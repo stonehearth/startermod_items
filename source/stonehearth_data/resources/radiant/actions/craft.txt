@@ -1,0 +1,8 @@
+{
+   "radiant.actions.craft" : {
+      "type" : "action",
+
+      "command"  : "radiant.commands.craft",
+      "args": [ "self", "{{recipe}}", "{{ingredients}}" ]
+   }
+}

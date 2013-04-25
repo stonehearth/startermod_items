@@ -1,0 +1,19 @@
+{
+   "radiant.mobs.rabbit" : {
+      "type" : "entity"
+      ,
+      "animation_table" : "radiant.animation_tables.rabbit"
+      ,
+      "ai" : {
+         "intentions" : [
+            "radiant.intentions.rabbit_ai"
+         ]
+      }
+      ,
+      "render_rig": {
+         "models": [
+            "models/rabbit/rabbit.qb"
+         ]
+      }
+   }
+}

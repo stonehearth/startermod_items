@@ -1,0 +1,12 @@
+{
+   "radiant.mobs.mammoth" : {
+      "type" : "entity"
+      ,
+      "render_rig": {
+         "scale": 0.5,
+         "models": [
+            "models/mammoth/mammoth.qb"
+         ]
+      }
+   }
+}

@@ -1,0 +1,3 @@
+<Material>
+   <Shader source="terrain/terrain.shader" />
+</Material>

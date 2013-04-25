@@ -1,0 +1,27 @@
+{
+   "radiant.items.sawtooth_short_sword": {
+      "type" : "entity"
+      ,
+      "item" : {
+         "material": "tool",
+         "stacks": 1
+      }
+      ,
+      "weapon_info" : {
+         "range":       4.2,
+         "damage":      "1d6+1",
+         "tags":        ["one_handed", "edged", "sword"]
+      }
+      ,
+      "unit_info" : {
+         "name" :  "yyy",
+         "description" : "xxx"
+      }
+      ,
+      "render_rig": {
+         "models": [
+            "models/sawtooth_short_sword.qb"
+         ]
+      }
+   }
+}

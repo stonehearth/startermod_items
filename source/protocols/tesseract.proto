@@ -1,0 +1,236 @@
+import "radiant.proto";
+import "world.proto";
+import "store.proto";
+
+package radiant.tesseract.protocol;
+
+option optimize_for = SPEED;
+
+message Update {
+   extensions 100 to max;
+   enum Type {
+      BeginUpdate = 1;
+      SetServerTick = 2;
+      CommandReply = 3;
+      UpdateObject = 4;
+      RemoveObjects = 5;
+      AllocObjects = 6;
+      UpdateDebugShapes = 7;
+      DoActionReply = 8;
+      EndUpdate = 9;
+   }
+   required Type     type = 1;
+   optional int32    chunk_size = 2;
+   optional int32    chunk_progress = 3;
+}
+
+message BeginUpdate {
+   extend Update {
+      optional BeginUpdate extension = 101;
+   }
+   required uint32   sequence_number = 1;
+}
+
+message SetServerTick {
+   extend Update {
+      optional SetServerTick extension = 102;
+   }
+   required uint32   now = 1;
+}
+
+message CommandReply {
+   extend Update {
+      optional CommandReply extension = 103;
+   }
+   required int32    reply_id = 1;
+   required string   msg = 2;
+}
+
+message UpdateObject {
+   extend Update {
+      optional UpdateObject extension = 104;
+   }
+   required Protocol.Object object = 1;
+}
+
+message RemoveObjects {
+   extend Update {
+      optional RemoveObjects extension = 105;
+   }
+   repeated uint32 objects = 1;
+}
+
+message AllocObjects {
+   extend Update {
+      optional AllocObjects extension = 106;
+   }
+   message Entry {
+      required int32 object_id = 1;
+      required int32 object_type = 2;
+   }
+   repeated Entry objects = 1;
+}
+
+message UpdateDebugShapes {
+   extend Update {
+      optional UpdateDebugShapes extension = 107;
+   }
+   required radiant.protocol.shapelist shapelist = 1;
+}
+
+message DoActionReply {
+   extend Update {
+      optional DoActionReply extension = 108;
+   }
+   optional int32       reply_id = 1;
+   optional string      json = 2;
+}
+
+
+message EndUpdate {
+   extend Update {
+      optional EndUpdate extension = 109;
+   }
+}
+
+message DoAction {
+   optional int32       reply_id = 1;
+   optional int32       entity = 2;
+   required string      action = 3;
+   repeated Protocol.Selection args = 4;
+}
+
+// ------------------------------------------------------------------------------------------
+
+/*
+ * Can be improved by converting to extensions, ala:
+ * message command {
+ *    optional uint32         cmd = 1;
+ *    extensions              100 to 4095;
+ * }
+ *
+ * extend command {
+ *    optional activate_brick_command  activate_brick_command_args = 100;
+ *    optional equip_item_command      equip_item_command_args     = 101;
+ * }
+ * 
+ */
+
+/* xxx: convert EVERYTHING to use this */
+message Arg {
+   optional uint64                          actor     = 1;
+   optional radiant.protocol.ipoint3        point     = 2;
+   optional radiant.protocol.ibounds3       bounds    = 3;
+   optional string                          string    = 4;
+}
+
+message Cmd {
+   required string                          id           = 1;
+   repeated Arg                             args         = 2; /* nuke this in favor of explicit commands (like BuildFloor) */
+   optional uint32                          cmdid        = 3;
+
+   message BuildFloor {
+      optional radiant.protocol.ibounds3    bounds       = 1;
+   }
+
+   repeated BuildFloor                      build_floor  = 16;
+}
+
+message Command {
+   extensions 1000 to 2999;
+   enum Type {
+      BuildFloor              = 1;
+      SetStoreyHeight         = 2;
+      CapStorey               = 3;
+      AssignWorkerToBuilding  = 4;
+      CreateFixture           = 5;
+      SetFixturePosition      = 6;     
+      FinishStructure         = 7;
+   }
+   required uint32 id = 1;
+   required Type type = 2;
+}
+
+message Reply {
+   extensions 3000 to 4999;
+   enum Type {
+      CreateFixture           = 5;
+   }
+   required uint32 id = 1;
+   required Type type = 2;
+};
+
+message BuildFloorCommand {
+   extend Command {
+      optional BuildFloorCommand extension      = 1000;
+   }
+   required radiant.protocol.ibounds3    bounds = 1;
+}
+
+message SetStoreyHeightCommand {
+   extend Command {
+      optional SetStoreyHeightCommand extension = 1001;
+   }
+   required uint64                       storey = 1;
+   required int32                        height = 2;
+}
+
+message CapStoreyCommand {
+   extend Command {
+      optional CapStoreyCommand extension       = 1003;
+   }
+   required uint64                       building = 1;
+   optional int32                        cap_type = 2;
+}
+
+message AssignWorkerToBuildingCommand {
+   extend Command {
+      optional AssignWorkerToBuildingCommand extension = 1004;
+   }
+   required uint64                       building = 1;
+   required uint64                       worker = 2;
+}
+
+message CreateFixtureCommand {
+   extend Command {
+      optional CreateFixtureCommand extension   = 1005;
+   }
+   required string                       fixture_name = 2;
+}
+
+message CreateFixtureReply {
+   extend Reply {
+      optional CreateFixtureReply extension   = 3000;
+   }
+   required uint64                       fixture = 1;
+}
+
+message SetFixturePositionCommand {
+   extend Command {
+      optional SetFixturePositionCommand extension   = 1006;
+   }
+   required uint64                       fixture = 1;
+   required uint64                       storey = 2;
+   required radiant.protocol.ray3        ray = 3;
+}
+
+message FinishStructureCommand {
+   extend Command {
+      optional FinishStructureCommand     extension   = 1007;
+   }
+   required uint64                       building = 1;
+}
+
+message command_list {
+   repeated Cmd                        cmds                 = 10;
+   repeated string                     console_cmds         = 11;
+   repeated Command                    commands             = 12;
+}
+
+message reload_game_scripts {
+}
+
+message logic_command {
+   optional reload_game_scripts reload_game_scripts = 1;
+}
+

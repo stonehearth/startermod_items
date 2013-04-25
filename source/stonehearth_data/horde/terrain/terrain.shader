@@ -1,0 +1,176 @@
+[[FX]]
+
+context ATTRIBPASS
+{
+	VertexShader = compile GLSL VS_GENERAL;
+	PixelShader = compile GLSL FS_AMBIENT;
+   CullMode = None;
+}
+
+context SHADOWMAP
+{
+	VertexShader = compile GLSL VS_SHADOWMAP;
+	PixelShader = compile GLSL FS_SHADOWMAP;
+   CullMode = None;
+}
+
+context DIRECTIONAL_SHADOWMAP
+{
+	VertexShader = compile GLSL VS_DIRECTIONAL_SHADOWMAP;
+	PixelShader = compile GLSL FS_DIRECTIONAL_SHADOWMAP;
+   CullMode = None;
+}
+
+context LIGHTING
+{
+	VertexShader = compile GLSL VS_GENERAL;
+	PixelShader = compile GLSL FS_LIGHTING;
+	
+	ZWriteEnable = false;
+	BlendMode = Add;
+   CullMode = None;
+}
+
+[[VS_GENERAL]]
+
+#include "shaders/utilityLib/vertCommon.glsl"
+
+uniform mat4 viewProjMat;
+uniform vec3 viewerPos;
+attribute vec3 vertPos;
+attribute vec3 normal;
+attribute vec3 color;
+varying vec4 pos, vsPos;
+varying vec3 tsbNormal;
+varying vec3 albedo;
+
+void main( void )
+{
+	pos = calcWorldPos( vec4( vertPos, 1.0 ) );
+	vsPos = calcViewPos( pos );
+   tsbNormal = normal;
+   albedo = color;
+
+	// Calculate texture coordinates and clip space position
+	gl_Position = viewProjMat * pos;
+}
+
+
+[[FS_AMBIENT]]	
+
+#include "shaders/utilityLib/fragDeferredWrite.glsl" 
+
+uniform vec3 viewerPos;
+uniform vec4 matDiffuseCol;
+uniform vec4 matSpecParams;
+uniform sampler2D albedoMap;
+
+varying vec4 pos;
+varying vec3 tsbNormal;
+varying vec3 albedo;
+
+void main( void )
+{
+#ifdef _F01_Topsoil
+#else
+#endif
+	vec3 newPos = pos.xyz;
+	vec3 normal = tsbNormal;
+
+	setMatID( 1.0 );
+	setPos( newPos - viewerPos );
+	setNormal( normalize( normal ) );
+	setAlbedo( albedo.rgb );
+	setSpecParams( matSpecParams.rgb, matSpecParams.a );
+}
+
+[[VS_SHADOWMAP]]
+// =================================================================================================
+	
+#include "shaders/utilityLib/vertCommon.glsl"
+#include "shaders/utilityLib/vertSkinning.glsl"
+
+uniform mat4 viewProjMat;
+uniform vec4 lightPos;
+attribute vec3 vertPos;
+varying vec3 lightVec;
+
+void main( void )
+{
+	vec4 pos = calcWorldPos( vec4( vertPos, 1.0 ) );
+	lightVec = lightPos.xyz - pos.xyz;
+	gl_Position = viewProjMat * pos;
+}
+	
+	
+[[FS_SHADOWMAP]]
+// =================================================================================================
+
+uniform vec4 lightPos;
+uniform float shadowBias;
+varying vec3 lightVec;
+
+void main( void )
+{
+	float dist = length( lightVec ) / lightPos.w;
+	gl_FragDepth = dist + shadowBias;
+	
+	// Clearly better bias but requires SM 3.0
+	//gl_FragDepth = dist + abs( dFdx( dist ) ) + abs( dFdy( dist ) ) + shadowBias;
+}
+
+[[VS_DIRECTIONAL_SHADOWMAP]]
+// =================================================================================================
+	
+#include "shaders/utilityLib/vertCommon.glsl"
+#include "shaders/utilityLib/vertSkinning.glsl"
+
+uniform mat4 viewProjMat;
+attribute vec3 vertPos;
+
+void main( void )
+{
+	vec4 pos = calcWorldPos( vec4( vertPos, 1.0 ) );
+	gl_Position = viewProjMat * pos;
+}
+	
+	
+[[FS_DIRECTIONAL_SHADOWMAP]]
+// =================================================================================================
+
+uniform float shadowBias;
+varying vec3 lightVec;
+
+void main( void )
+{
+	gl_FragDepth = gl_FragCoord.z + shadowBias;
+	// Clearly better bias but requires SM 3.0
+	//gl_FragDepth = dist + abs( dFdx( dist ) ) + abs( dFdy( dist ) ) + shadowBias;
+}
+
+[[FS_LIGHTING]]
+// =================================================================================================
+
+#include "shaders/utilityLib/fragLighting.glsl" 
+
+uniform vec4 matDiffuseCol;
+uniform vec4 matSpecParams;
+uniform sampler2D albedoMap;
+
+varying vec4 pos, vsPos;
+varying vec3 albedo;
+varying vec3 tsbNormal;
+
+void main( void )
+{
+#ifdef _F01_Topsoil
+#else
+#endif
+	vec3 normal = tsbNormal;
+	vec3 newPos = pos.xyz;
+
+	gl_FragColor.rgb =
+		calcPhongSpotLight( newPos, normalize( normal ), albedo, matSpecParams.rgb,
+		                    matSpecParams.a, -vsPos.z, 0.3 );
+}
+

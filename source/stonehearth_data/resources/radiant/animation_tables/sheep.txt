@@ -1,0 +1,19 @@
+{
+   "radiant.animation_tables.sheep": {
+      "type" : "animation-table"
+      ,
+	   "skeleton": {
+		   "type": "skeleton",
+		   "root": [10.5,14,0],
+		   "body": [10.5,16,8.5],
+		   "head": [10.5,8.17438,11],
+		   "rightEar": [6.49103,5.5,12.5],
+		   "leftEar": [14.4974,5.5,12.5]
+	   }
+      ,
+      "sequences" : {
+         "idle"        : "radiant.effects.sheep_idle",
+         "look_around" : "radiant.effects.sheep_look_around"
+      }
+   }
+}

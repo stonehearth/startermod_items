@@ -1,0 +1,14 @@
+#ifndef _RADIANT_CORE_NAMESPACE_H
+#define _RADIANT_CORE_NAMESPACE_H
+
+#define BEGIN_RADIANT_CORE_NAMESPACE  namespace radiant { namespace core {
+#define END_RADIANT_CORE_NAMESPACE    } }
+
+#define RADIANT_CORE_NAMESPACE    ::radiant::core
+
+#define IN_RADIANT_CORE_NAMESPACE(x) \
+   BEGIN_RADIANT_CORE_NAMESPACE \
+   x  \
+   END_RADIANT_CORE_NAMESPACE
+
+#endif //  _RADIANT_CORE_NAMESPACE_H

@@ -1,0 +1,14 @@
+{
+    "radiant.effects.civ_run": {
+        "type" : "effect"
+        ,
+        "tracks": {
+            "animation": {
+                "type": "animation_effect",
+                "start_time": 0,
+                "animation": "civ_run",
+                "loop": true
+            }
+        }
+    }
+}

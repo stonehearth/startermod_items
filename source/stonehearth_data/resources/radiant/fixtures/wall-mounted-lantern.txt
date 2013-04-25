@@ -1,0 +1,14 @@
+{
+   "radiant.fixtures.wall-mounted-lantern": {
+      "type" : "entity",
+      "name" :  "Wall Mounted Lantern",
+      "bounds": [ [ 0, 0, 0 ], [1, 1, 1] ],
+
+      "default-rig": {
+         "type": "rig",
+         "parts": {
+            "root":     "fixtures/lantern_wall"
+         }
+      }
+   }
+}

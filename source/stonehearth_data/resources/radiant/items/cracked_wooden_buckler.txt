@@ -1,0 +1,24 @@
+{
+   "radiant.items.cracked_wooden_buckler": {
+      "type" : "entity"
+      ,
+      "item" : {
+         "material": "tool",
+         "stacks": 1
+      }
+      ,
+      "armor_info" : {
+      }
+      ,
+      "unit_info" : {
+         "name" :  "Cracked Wooden Buckler",
+         "description" : "It's not much, but it's something"
+      }
+      ,
+      "render_rig": {
+         "models": [
+            "models/cracked_wooden_buckler.qb"
+         ]
+      }
+   }
+}

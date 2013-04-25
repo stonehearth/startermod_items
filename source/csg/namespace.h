@@ -1,0 +1,15 @@
+#ifndef _RADIANT_CSG_NAMESPACE_H
+#define _RADIANT_CSG_NAMESPACE_H
+
+#define BEGIN_RADIANT_CSG_NAMESPACE  namespace radiant { namespace csg {
+#define END_RADIANT_CSG_NAMESPACE    } }
+
+#define RADIANT_CSG_NAMESPACE    ::radiant::csg
+
+#define IN_RADIANT_CSG_NAMESPACE(x) \
+   BEGIN_RADIANT_CSG_NAMESPACE \
+   x  \
+   END_RADIANT_CSG_NAMESPACE
+
+
+#endif //  _RADIANT_CSG_NAMESPACE_H

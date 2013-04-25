@@ -1,0 +1,143 @@
+<!-- Deferred Shading Pipeline -->
+<Pipeline>
+   <Setup>
+      <RenderTarget id="GBUFFER" depthBuf="true" numColBufs="4" format="RGBA16F" scale="1.0"/>
+      <RenderTarget id="MBUFF" depthBuf="true" numColBufs="1" format="RGBA16F" scale="1.0"/>
+      <RenderTarget id="BLURBUF1" depthBuf="false" numColBufs="1" format="RGBA8" scale="0.5"/>
+      <RenderTarget id="BLURBUF2" depthBuf="false" numColBufs="1" format="RGBA8" scale="0.5"/>
+      <RenderTarget id="FINALIMAGE" depthBuf="false" numColBufs="1" format="RGBA16F" scale="1.0"/>
+      <RenderTarget id="OUTLINE" depthBuf="false" numColBufs="1" format="RGBA8" scale="1.0"/>
+      <RenderTarget id="SSAOBUF" depthBuf="false" numColBufs="1" format="RGBA8" scale="0.25" />
+      <RenderTarget id="SSAOBLUR" depthBuf="false" numColBufs="1" format="RGBA8" scale="1.0" />
+      <RenderTarget id="TEMPSSAOBLUR" depthBuf="false" numColBufs="1" format="RGBA8" scale="1.0" />
+   </Setup>
+
+   <CommandQueue>
+      <Stage id="Attribpass">
+         <SwitchTarget target="GBUFFER" />
+         <ClearTarget depthBuf="true" colBuf0="true" colBuf1="true"/>
+         <DrawGeometry context="BLUEPRINT_ATTRIBPASS" class="~Translucent"/>
+      </Stage>
+
+      <Stage id="Lighting" link="pipelines/globalSettings.material.xml">
+         <SwitchTarget target="MBUFF" />
+
+         <!-- Copy depth buffer to allow occlusion culling of lights -->
+         <!-- xxx
+              For some reason, we need to clear the depth buffer of the MBUFF before copying
+              the contents of the GBUFFER depth texture.  Setting ZEnable to false in the
+              COPY_DEPTH lighting material doesn't help.  Ideally, we would just clober the
+              MBUFF depth buffer unconditionally.
+         -->
+         <ClearTarget depthBuf="true"/>
+         <BindBuffer sampler="depthBuf" sourceRT="GBUFFER" bufIndex="32" />
+         <DrawQuad material="materials/light.material.xml" context="COPY_DEPTH" />
+         <UnbindBuffers />
+
+         <BindBuffer sampler="gbuf0" sourceRT="GBUFFER" bufIndex="0" />
+         <BindBuffer sampler="gbuf1" sourceRT="GBUFFER" bufIndex="1" />
+         <BindBuffer sampler="gbuf2" sourceRT="GBUFFER" bufIndex="2" />
+         <BindBuffer sampler="gbuf3" sourceRT="GBUFFER" bufIndex="3" />
+
+         <DrawQuad material="materials/light.material.xml" context="BLUEPRINT_AMBIENT" />
+         <DoDeferredLightLoop class="~Translucent"/>
+
+         <UnbindBuffers />
+      </Stage>
+
+      <Stage id="Translucent">
+         <SwitchTarget target="MBUFF" />
+         <DrawGeometry context="TRANSLUCENT"/>
+         <DrawGeometry context="DEBUG_SHAPES" />
+      </Stage>
+
+      <Stage id="Selected">
+         <DrawSelected context="SELECTED" />
+      </Stage>
+      <!--
+      <Stage id="Translucent">
+         <SwitchTarget target="MBUFF" />
+         <DrawGeometry context="TRANSLUCENT"/>
+         <DrawGeometry context="DEBUG_SHAPES" />
+      </Stage>
+      -->
+
+      <!--
+      <Stage id="BrightPass">
+         <SwitchTarget target="BLURBUF1" />
+         <BindBuffer sampler="buf0" sourceRT="MBUFF" bufIndex="0" />
+         <DrawQuad material="pipelines/postHDR.material.xml" context="BRIGHTPASS" />
+         <UnbindBuffers />
+      </Stage>
+
+      <Stage id="Bloom">
+         <SwitchTarget target="BLURBUF2" />
+         <BindBuffer sampler="buf0" sourceRT="BLURBUF1" bufIndex="0" />
+         <SetUniform material="pipelines/postHDR.material.xml" uniform="blurParams" a="0.0" />
+         <DrawQuad material="pipelines/postHDR.material.xml" context="BLUR" />
+         
+         <SwitchTarget target="BLURBUF1" />
+         <BindBuffer sampler="buf0" sourceRT="BLURBUF2" bufIndex="0" />
+         <SetUniform material="pipelines/postHDR.material.xml" uniform="blurParams" a="1.0" />
+         <DrawQuad material="pipelines/postHDR.material.xml" context="BLUR" />
+         
+         <SwitchTarget target="BLURBUF2" />
+         <BindBuffer sampler="buf0" sourceRT="BLURBUF1" bufIndex="0" />
+         <SetUniform material="pipelines/postHDR.material.xml" uniform="blurParams" a="2.0" />
+         <DrawQuad material="pipelines/postHDR.material.xml" context="BLUR" />
+         
+         <SwitchTarget target="BLURBUF1" />
+         <BindBuffer sampler="buf0" sourceRT="BLURBUF2" bufIndex="0" />
+         <SetUniform material="pipelines/postHDR.material.xml" uniform="blurParams" a="3.0" />
+         <DrawQuad material="pipelines/postHDR.material.xml" context="BLUR" />
+         <UnbindBuffers />
+      </Stage>
+-->
+      <Stage id="Outline">
+         <SwitchTarget target="OUTLINE" />
+         <BindBuffer sampler="depthBuf" sourceRT="GBUFFER" bufIndex="32" />
+         <BindBuffer sampler="gbuf0" sourceRT="GBUFFER" bufIndex="0" />
+         <BindBuffer sampler="gbuf1" sourceRT="GBUFFER" bufIndex="1" />
+         <BindBuffer sampler="gbuf2" sourceRT="GBUFFER" bufIndex="2" />
+         <BindBuffer sampler="gbuf3" sourceRT="GBUFFER" bufIndex="3" />
+         <!--
+			<DrawQuad material="materials/light.material.xml" context="COPY_DEPTH" />
+			<UnbindBuffers />
+         -->
+         <DrawQuad material="pipelines/outline.material.xml" context="OUTLINE" />
+         <UnbindBuffers />
+      </Stage>
+
+      <Stage id="Combination">
+         <SwitchTarget target="FINALIMAGE" />
+         <ClearTarget colBuf0="true" />
+
+         <BindBuffer sampler="buf0" sourceRT="MBUFF" bufIndex="0" />
+         <BindBuffer sampler="buf2" sourceRT="OUTLINE" bufIndex="0" />
+         <DrawQuad material="pipelines/outline.material.xml" context="BLUEPRINT_FINALPASS" />
+         <UnbindBuffers />
+      </Stage>
+
+      <Stage id="FXAA">
+         <SwitchTarget target=""/>
+         <BindBuffer sampler="buf0" sourceRT="FINALIMAGE" bufIndex="0" />
+         <DrawQuad material="pipelines/outline.material.xml" context="FXAA" />
+         <UnbindBuffers />
+      </Stage>
+
+      <!-- draw the MBUFF's depth buffer into the back buffer's color buffer -->
+      <!--
+      <Stage id="DebugGBufferDepthBuffer">
+         <SwitchTarget target="" />
+         <BindBuffer sampler="depthBuf" sourceRT="MBUFF" bufIndex="32" />
+         <DrawQuad material="pipelines/outline.material.xml" context="FINALPASS_COPY_DEPTH" />
+         <UnbindBuffers />
+      </Stage>
+      -->
+      
+      <Stage id="Overlays">
+         <DrawOverlays context="OVERLAY" />
+      </Stage>
+
+   </CommandQueue>
+</Pipeline>

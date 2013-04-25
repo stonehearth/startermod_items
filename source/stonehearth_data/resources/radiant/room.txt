@@ -1,0 +1,14 @@
+{
+   "room" : {
+      "type": "entity"
+      ,
+      "unit_info" : {
+         "name" : "Room",
+         "description" : "Roomy, isn't it?"
+      }
+      ,
+      "action_list" : [
+         "radiant.actions.start_project"
+      ]
+   }
+}

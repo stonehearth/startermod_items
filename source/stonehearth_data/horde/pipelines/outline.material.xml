@@ -1,0 +1,11 @@
+<Material>
+  <Shader source="shaders/outline.shader" />
+  <Uniform name="color" a="0.0" b="0.0" c="0.0" d="1.0" />
+  <Uniform name="thickness" a="1.0" />
+
+	<Uniform name="hdrExposure" a="2.0" />
+	<Uniform name="hdrBrightThres" a="0.6" />
+	<Uniform name="hdrBrightOffset" a="0.06" />
+
+   <Uniform name="blurParams" a="0.0" />
+</Material>

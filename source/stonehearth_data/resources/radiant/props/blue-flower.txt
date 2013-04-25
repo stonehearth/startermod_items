@@ -1,0 +1,12 @@
+{
+   "radiant.props.blue-flower": {
+      "type" : "prop",
+      "name" : "Flower",
+      "default-rig": {
+         "type" : "rig",
+         "parts" : {
+            "root" : "flowers/flowers_blue"
+         }
+      }
+   }
+}

@@ -1,0 +1,14 @@
+{
+    "radiant.effects.rabbit_look_around": {
+        "type" : "effect"
+        ,
+        "tracks": {
+            "animation": {
+                "type": "animation_effect",
+                "start_time": 0,
+                "animation": "rabbit_idle_looking_around",
+                "loop": false
+            }
+        }
+    }
+}

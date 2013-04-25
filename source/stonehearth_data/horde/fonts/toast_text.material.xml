@@ -1,0 +1,4 @@
+<Material>
+   <Shader source="fonts/toast_text.shader" />
+   <Sampler name="characterMap" map="fonts\fontdinerdotcom_huggable_regular_20.dds" />
+</Material>

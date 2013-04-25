@@ -1,0 +1,4 @@
+<Material>
+   <Shader source="materials/stockpile/stockpile.shader" />
+   <Sampler name="albedoMap" map="materials/stockpile/center.png" />
+</Material>

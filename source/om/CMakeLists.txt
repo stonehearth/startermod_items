@@ -1,0 +1,34 @@
+FIND_PACKAGE(Lua REQUIRED)
+FIND_PACKAGE(Luabind REQUIRED)
+FIND_PACKAGE(Libjson REQUIRED)
+FIND_PACKAGE(Cryptopp REQUIRED)
+FIND_PACKAGE(Boost COMPONENTS filesystem REQUIRED)
+
+include_directories(${Lua_INCLUDE_DIRS})
+include_directories(${Luabind_INCLUDE_DIRS})
+include_directories(${Libjson_INCLUDE_DIRS})
+include_directories(${Cryptopp_INCLUDE_DIRS})
+include_directories(${Boost_INCLUDE_DIRS})
+
+add_subdirectory(components)
+add_subdirectory(grid)
+
+add_library(om STATIC
+            entity.cpp
+            om_alloc.cpp
+            region.cpp
+            selection.cpp
+            stonehearth.cpp
+            pch.cpp
+            )
+
+if (MSVC)
+   set_target_properties(om PROPERTIES COMPILE_FLAGS "/Yupch.h")
+   set_source_files_properties(pch.cpp PROPERTIES COMPILE_FLAGS "/Ycpch.h")
+endif(MSVC)
+
+
+target_link_libraries(om
+                      om_components
+                      om_grid
+                      )

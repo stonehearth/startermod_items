@@ -1,0 +1,14 @@
+{
+    "radiant.effects.civ_run_panic": {
+        "type" : "effect"
+        ,
+        "tracks": {
+            "animation": {
+                "type": "animation_effect",
+                "start_time": 0,
+                "animation": "civ_run_panic",
+                "loop": true
+            }
+        }
+    }
+}

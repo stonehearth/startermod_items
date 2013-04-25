@@ -1,0 +1,151 @@
+import "radiant.proto";
+
+package Protocol;
+
+message Object {
+   required int32 object_id = 1;
+   required int32 timestamp = 2;
+   required Value value = 3;
+   optional int32 object_type = 4;
+};
+
+message Value {
+   extensions 1 to 999;
+};
+
+message Record {
+   message Entry {
+      required string   field = 1;
+      required int32    value = 2;
+   }
+   extend Value {
+      repeated Entry record_fields = 1;
+   }
+}
+
+message Set {
+   message Update {
+      repeated Value   contents = 2;
+      repeated Value   added = 3;
+      repeated Value   removed = 4;
+   }
+   extend Value {
+      required Update extension = 4;
+   }
+}
+
+message Map {
+   message Entry {
+      required Value   key = 1;
+      required Value   value = 2;
+   }
+   message Update {
+      repeated Entry   contents = 2;
+      repeated Entry   added = 3;
+      repeated Value   removed = 4;
+   }
+   extend Value {
+      required Update extension = 5;
+   }
+}
+
+message BoxedRef {
+   message Entry {
+      required int32    owner = 1;
+      required int32    boxed = 2;
+   }
+   extend Value {
+      required Entry extension = 6;
+   }
+}
+
+
+message Array {
+   message Entry {
+      required int32    index = 1;
+      required Value    value = 2;
+   }
+   extend Value {
+      repeated Entry extension = 7;
+   }
+}
+
+message Ref {
+   extend Value {
+      required int32   ref_object_id = 8;
+   }
+}
+
+message Queue {
+   message Update {
+      repeated Value   contents = 1;
+   }
+   extend Value {
+      required Update extension = 9;
+   }
+}
+
+extend Value {
+   required int32 integer = 100;
+   required string string = 101;
+   required radiant.protocol.point3 point3 = 102;
+   required radiant.protocol.transform transform = 103;
+   required radiant.protocol.ipoint3 ipoint3 = 104;
+   required radiant.protocol.aabb aabb = 105;
+   required radiant.protocol.region2 region2 = 106;
+   required radiant.protocol.sphere sphere = 107;
+   required radiant.protocol.ibounds3 ibounds3 = 108;
+   required radiant.protocol.region region = 109;
+   required radiant.protocol.point point = 110;
+   required radiant.protocol.cube cube = 111;
+   required radiant.protocol.color color = 112;
+   required bool boolean = 113;
+   required float floatingpoint = 114;
+};
+
+message Animation {
+   required string      name = 1;
+   required int32       start = 2;
+   required int32       end = 3;
+   required int32       flags = 4;
+   extend Value {
+      required Animation animation = 200;
+   }
+};
+
+message GridTile {
+   required bytes cells  = 1;
+   extend Value {
+      required GridTile tile = 201;
+   }
+};
+
+
+message Grid {
+   required bytes palette = 1;
+   extend Value {
+      required Grid extension  = 202;
+   }
+};
+
+message Selection {
+   optional int32             entity = 1;
+   optional radiant.protocol.ibounds3  bounds = 2;
+   optional int32 object = 3;
+   optional int32 object_type = 4;
+   optional radiant.protocol.ipoint3 block = 5;
+   optional string string = 6;
+   optional int32 number = 7;
+   extend Value {
+      required Selection extension  = 203;
+   }
+}
+
+message TerrainBlock {
+   required int32                   type = 1;
+   required radiant.protocol.cube   cube = 2;
+   extend Value {
+      required TerrainBlock extension  = 204;
+   }
+}
+

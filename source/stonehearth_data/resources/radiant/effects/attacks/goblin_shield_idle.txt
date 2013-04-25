@@ -1,0 +1,14 @@
+{
+    "radiant.effects.goblin_shield_idle": {
+        "type" : "effect"
+        ,
+        "tracks": {
+            "animation": {
+                "type": "animation_effect",
+                "start_time": 0,
+                "animation": "goblin_shield_idle",
+                "loop": true
+            }
+        }
+    }
+}

@@ -1,0 +1,33 @@
+{
+   "radiant.items.iron_sword": {
+      "type" : "entity"
+      ,
+      "item" : {
+         "material": "tool",
+         "stacks": 1
+      }
+      ,
+      "weapon_info" : {
+         "range":       4.2,
+         "damage":      "1d6+1",
+         "tags":        ["one_handed", "edged", "sword"]
+      }
+      ,
+      "unit_info" : {
+         "name" :  "Iron Sword",
+         "description" : "Used to thwack foes"
+      }
+      ,
+      "render_rig": {
+         "models": [
+            "models/iron_sword.qb"
+         ]
+      }
+      ,
+      "render_rig_iconic": {
+         "models": [
+            "models/carpenter_saw_icon.qb"
+         ]
+      }
+   }
+}

@@ -1,0 +1,178 @@
+package radiant.protocol;
+
+option optimize_for = SPEED;
+
+message UInt32List {
+   repeated uint32   items = 1;
+};
+
+message UInt64List {
+   repeated uint64   items = 1;
+};
+
+message rect2 {
+   required int32       x0 = 1;
+   required int32       y0 = 2;
+   required int32       x1 = 3;
+   required int32       y1 = 4;
+   required int32       cs = 5; /* xxx: wasteful when carried in an array for region2 */
+}
+
+message region2 {
+   repeated rect2       rects = 1;
+   required int32       cs = 2;
+}
+
+message point {
+   repeated int32       coord = 1;
+}
+
+message cube {
+   required point       min = 1;
+   required point       max = 2;
+   optional int32       tag = 3;
+}
+
+message region {
+   repeated cube       cubes = 1;
+   optional color      color = 2;
+}
+
+message ipoint3 {
+   required int32      x = 1;
+   required int32      y = 2;
+   required int32      z = 3;
+}
+
+message coord {
+   required int32      x = 1;
+   required int32      y = 2;
+   required int32      z = 3;
+   optional color      color = 5;
+}
+
+message point3 {
+   required float    x = 1;
+   required float    y = 2;
+   required float    z = 3;
+}
+
+message sphere {
+   required point3   center = 1;
+   required float    radius = 2;
+}
+
+message vector3 {
+   required float    x = 1;
+   required float    y = 2;
+   required float    z = 3;
+}
+
+message ray3 {
+   required point3   origin = 1;
+   required vector3  direction = 2;
+}
+
+message plane {
+   required vector3   normal = 1;
+   required float    offset = 2;
+}
+
+message aabb {
+   required point3          minimum = 1;
+   required point3          maximum = 2;
+}
+
+message ibounds3 {
+   required ipoint3         minimum = 1;
+   required ipoint3         maximum = 2;
+}
+
+message frustum {
+   repeated plane    plane = 1;  // must be exactly 6
+}
+
+message point_normal {
+   required point3    point  = 1;
+   required vector3   normal = 2;
+}
+
+message quaternion {
+   required float    x = 1;
+   required float    y = 2;
+   required float    z = 3;
+   required float    w = 4;
+}
+
+message transform {
+   required point3       position = 1;
+   required quaternion   orientation = 2;
+}
+
+message color {
+   required uint32      r = 1;
+   required uint32      g = 2;
+   required uint32      b = 3;
+   optional uint32      a = 4 [ default = 255 ];
+}
+
+// xxx - put "debug_" in front of all of these
+message line {
+   required point3          p0 = 1;
+   required point3          p1 = 2;
+   optional color          color = 3;
+}
+
+message triangle {
+   required point3          p0 = 1;
+   required point3          p1 = 2;
+   required point3          p2 = 3;
+   optional color          color = 4;
+}
+
+message quad {
+   required point3          p0 = 1;
+   required point3          p1 = 2;
+   required point3          p2 = 3;
+   required point3          p3 = 4;
+   optional color           color = 5;
+}
+
+message box {
+   required point3          minimum = 1;
+   required point3          maximum = 2;
+   optional color           color = 3;
+}
+
+message shapelist {
+   repeated line           line = 1;
+   repeated triangle       triangle = 2;
+   repeated quad           quad = 3;
+   repeated box            box = 4;
+   repeated coord          coords = 5;
+   repeated region         region = 6;
+}
+
+message cursor_description {
+   enum cursor_type {
+      NO_CURSOR         = 0;
+      ADJACENT_BRICK    = 1;
+      SELECTED_BRICK    = 2;
+   }
+   required cursor_type     type = 1;
+}
+
+message Model {
+   required string mesh          = 1;
+   required string texture       = 2;
+   required string material      = 3;
+   optional point3 offset        = 4;
+};
+
+message Rig {
+   message Bone {
+      required string   bone = 1;
+      repeated Model    models = 2;
+   };
+   repeated Bone        bones = 1;
+};

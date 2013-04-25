@@ -1,0 +1,5 @@
+{
+    "radiant.aura.panic": {
+        "type" : "aura"
+    }
+}

@@ -1,0 +1,19 @@
+{
+   "radiant.mobs.sheep" : {
+      "type" : "entity"
+      ,
+      "animation_table" : "radiant.animation_tables.sheep"
+      ,
+      "ai" : {
+         "intentions" : [
+            "radiant.intentions.sheep_ai"
+         ]
+      }
+      ,
+      "render_rig": {
+         "models": [
+            "models/sheep/sheep.qb"
+         ]
+      }
+   }
+}
