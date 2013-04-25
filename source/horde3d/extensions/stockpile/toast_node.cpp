@@ -10,17 +10,12 @@
 #include "Horde3D.h"
 #include "Horde3DUtils.h"
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
-
 #if defined(ASSERT)
 #  undef ASSERT
 #endif
 
 #include "radiant.h"
 #include "toast_node.h"
-
-FT_Library ft;
 
 using namespace ::radiant;
 using namespace ::radiant::horde3d;

@@ -5,6 +5,7 @@ FIND_PACKAGE(Cryptopp   REQUIRED)
 FIND_PACKAGE(Libjson REQUIRED)
 FIND_PACKAGE(Lua REQUIRED)
 FIND_PACKAGE(Luabind REQUIRED)
+FIND_PACKAGE(ChromiumEmbedded REQUIRED)
 
 # FIND_PACKAGE(Bullet     REQUIRED NO_MODULE)
 
@@ -16,6 +17,9 @@ include_directories(${Luabind_INCLUDE_DIRS})
 add_executable(client_app
                main_win32.cpp
                )
+
+# FILE(COPY ${ChromiumEmbedded_BINARY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+                   #                   COMMAND echo copy ${ChromiumEmbedded_BINARIES}/<$CONFIGURATION>/* <$TARGET_DIR:client_app> -------------------------- $<CONFIGURATION>)
 
 target_link_libraries(client_app
                              ${PROTOBUF_LIBRARIES}
@@ -41,3 +45,8 @@ target_link_libraries(client_app
                              resources
                              simulation
                              )
+
+FILE(TO_NATIVE_PATH ${Stonehearth_SOURCE_DIR} STAGE_SCRIPT)
+add_custom_command(TARGET client_app
+                   POST_BUILD
+                   COMMAND ${STAGE_SCRIPT}\\stage.cmd $<CONFIGURATION> $<TARGET_FILE_DIR:client_app>)

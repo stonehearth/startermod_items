@@ -15,11 +15,6 @@ namespace luabind { namespace detail { namespace has_get_pointer_ {
 
 namespace boost {
    template <class T>
-   T* get_pointer(std::shared_ptr<T> const& p) {
-      return p.get();
-   }
-
-   template <class T>
    T* get_pointer(std::weak_ptr<T> const& p)
    {
       auto ptr = p.lock();
@@ -28,7 +23,6 @@ namespace boost {
       }
       return ptr.get();
    }
-
 } // namespace boost
 
 #include <luabind/luabind.hpp>

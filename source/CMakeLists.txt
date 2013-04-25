@@ -1,5 +1,5 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.5)
-PROJECT(Tesseract)
+PROJECT(Stonehearth)
 
 ## Fix precompiled headers...
 ## See http://connect.microsoft.com/VisualStudio/feedback/details/746718/frequently-get-c1027-from-vc-100-compiler-after-installing-vs-2012-rc
@@ -25,10 +25,8 @@ STRING(REPLACE "/GX" "/EHsc" CMAKE_C_FLAGS_DEBUG ${CMAKE_C_FLAGS_DEBUG})
 # SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /FR")
 #MESSAGE("sup" ${CMAKE_CXX_FLAGS})
 
-SET(CMAKE_INSTALL_PREFIX "${Tesseract_BINARY_DIR}/../install")
+SET(CMAKE_INSTALL_PREFIX "${Stonehearth_BINARY_DIR}/../install")
 
-SET(TESSERACT_STAGE_ROOT  "${Tesseract_BINARY_DIR}/../stage/${CMAKE_CFG_INTDIR}")
-SET(TESSERACT_SCRIPT_ROOT  "${TESSERACT_STAGE_ROOT}/api")
 
 Function(PostBuildCopy SRCFILE DIRTO)
     get_filename_component(FILENAME SRCFILE NAME)
@@ -72,7 +70,7 @@ include_directories("c:/program files (x86)/microsoft directx sdk (june 2010)/in
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR}) # why?
 include_directories(../build/protocols) # xxx: BADDD
-SET(Horde3D_INCLUDE_DIRS "${Tesseract_SOURCE_DIR}/horde3d/Source/Shared" "${Tesseract_SOURCE_DIR}/horde3d/Bindings/C++" "${Tesseract_SOURCE_DIR}/horde3d/glfw")
+SET(Horde3D_INCLUDE_DIRS "${Stonehearth_SOURCE_DIR}/horde3d/Source/Shared" "${Stonehearth_SOURCE_DIR}/horde3d/Bindings/C++" "${Stonehearth_SOURCE_DIR}/horde3d/glfw")
 include_directories(${Horde3D_INCLUDE_DIRS})
 
 add_definitions(-DUNICODE -D_UNICODE -D_CRT_SECURE_NO_WARNINGS)
