@@ -1,0 +1,93 @@
+{
+   "radiant.mobs.person" : {
+      "type" : "entity"
+      ,
+      "animation_table" : "radiant.animation_tables.person"
+      ,
+      "unit_info" : {
+         "name": "Civilian",
+         "description": "Citizen of your town",
+         "faction": "civ"
+      }
+      ,
+      "scripts" : [
+      ]
+      ,
+      "attributes" : {
+         "ferocity": 1,
+         "health": 50
+      }
+      ,
+      "sensor_list" : {
+         "sensors" : {
+            "sight" : {
+               "type": "sensor",
+               "radius":   14
+            }
+         }
+      }
+      ,
+      "ai" : {
+         "intentions" : [
+            "radiant.intentions.life_and_death",
+            "radiant.intentions.idle",
+            "radiant.intentions.combat_recoil_on_hit",
+            "radiant.intentions.run_from_danger"
+         ]
+         ,
+         "observers" : [
+            "radiant.observers.compute_danger",
+            "radiant.observers.compute_proximity_aggro"
+         ]
+      }
+      ,
+      "render_rig": {
+         "models": [
+            {
+               "type": "one_of",
+               "items": [
+                  "models/civ/civ_head_1.qb",
+                  "models/civ/civ_head_2.qb",
+                  "models/civ/civ_head_3.qb",
+                  "models/civ/civ_head_5.qb"
+               ]
+            },            
+            "models/civ/civ_hands.qb"
+         ]
+      }
+   }
+   ,
+   "radiant.mobs.shepard" : {
+      "type" : "entity"
+      ,
+      "animation_table" : "radiant.animation_tables.person"
+      ,
+      "unit_info" : {
+         "name": "Civilian",
+         "description": "Citizen of your town",
+         "faction": "civ"
+      }
+      ,
+      "scripts" : [
+      ]
+      ,
+      "attributes" : {
+         "ferocity": 1,
+         "health": 50
+      }
+      ,
+      "ai" : {
+         "intentions" : [
+            "radiant.intentions.idle"
+         ]
+      }
+      ,
+      "render_rig": {
+         "models": [
+            "models/civ/shepherd_outfit.qb",
+            "models/civ/civ_hands.qb"
+         ]
+      }
+   }
+
+}

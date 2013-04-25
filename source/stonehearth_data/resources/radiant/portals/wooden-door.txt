@@ -1,0 +1,36 @@
+{
+   "wooden-door-frame": {
+      "type" : "entity"
+      ,
+      "unit_info" : {
+         "name" :  "Wooden Door",
+         "description" : "The way in the room..."
+      }
+      ,
+      "render_rig": {
+         "models": [
+            {
+               "type": "rig",
+               "parts": {
+                  "root" : "fixtures/door_frame_wood"
+               }
+            }
+         ]
+      }
+   }
+   ,
+   "wooden_door": {
+      "type" : "entity"
+      ,
+      "portal" : {
+         "type" : "region2d",
+         "rects" : [
+            [ [-1, 0], [1, 3] ]
+         ]
+      }
+      ,
+      "fixture" : {
+         "item": "wooden-door-frame"
+      }
+   }
+}

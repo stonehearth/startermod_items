@@ -1,0 +1,11 @@
+{
+   "worker_hammer": {
+      "type" : "entity"
+      ,
+      "render_rig": {
+         "models": [
+            "models/workers_hammer.qb"
+         ]
+      }
+   }
+}

@@ -1,0 +1,4 @@
+<Material>
+   <Shader source="terrain/terrain.shader" />
+   <ShaderFlag name="_F01_Topsoil" />
+</Material>

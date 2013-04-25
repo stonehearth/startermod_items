@@ -1,0 +1,38 @@
+{
+    "wooden_practice_sword": {
+        "type": "recipe",
+        "name": "Wooden Practice Sword (recipe)",
+        "description": "Makes a wooden sword to thwack your foes!",
+
+        "professions": [
+            "carpenter"
+        ],
+
+        "categories": [
+            "weapon"
+        ],
+
+        "ingredients": {
+            "hilt": {
+                "count": 1,
+                "tags": [
+                    "wood",
+                    "log"
+                ],
+                "name_singular": "wooden log",
+                "name_plural": "wooden logs",
+                "icon": "/images/icons/log.png"
+            },
+            "blade": {
+                "count": 2,
+                "tags": [
+                    "wood",
+                    "log"
+                ],
+                "name_singular": "another wooden log",
+                "name_plural": "more logs",
+                "icon": "/images/icons/log.png"
+            }
+        }
+    }
+}

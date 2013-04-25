@@ -1,0 +1,126 @@
+{
+   "radiant.mobs.goblin-worker" : {
+      "type" : "entity"
+      ,
+      "animation_table" : "radiant.animation_tables.goblin"
+      ,
+      "unit_info" : {
+         "name": "Goblin",
+         "description": "Gobble, gobble, gobble...",
+         "faction": "goblin"
+      }
+      ,
+      "scripts" : [
+      ]
+      ,
+      "attributes" : {
+         "ferocity": 10,
+         "health": 5
+      }
+      ,
+      "ai" : {
+         "intentions" : [
+            "radiant.intentions.life_and_death",
+            "radiant.intentions.idle"
+         ]
+         ,
+         "observers" : [
+            "radiant.observers.compute_danger"
+         ]
+      }
+      ,
+      "render_rig": {
+         "models": [
+            "models/goblin/goblin_body.qb",
+            {
+               "type": "one_of",
+               "items": [
+                  "models/goblin/goblin_hair_1.qb",
+                  "models/goblin/goblin_hair_2.qb",
+                  ""
+               ]
+            },
+            {
+               "type": "one_of",
+               "items": [
+                  "models/goblin/goblin_head_1.qb",
+                  "models/goblin/goblin_head_2.qb",
+                  "models/goblin/goblin_head_3.qb"
+               ]
+            },
+            {
+               "type": "one_of",
+               "items": [
+                  "models/goblin/goblin_outfit_vest.qb",
+                  "models/goblin/goblin_outfit_naked.qb"               
+               ]
+            }
+         ]
+      }
+   }
+   ,
+   "radiant.mobs.goblin-soldier" : {
+      "type" : "entity"
+      ,
+      "animation_table" : "radiant.animation_tables.goblin"
+      ,
+      "unit_info" : {
+         "name": "Goblin Soldier",
+         "description": "Gobble, gobble, gobble...",
+         "faction": "goblin"
+      }
+      ,
+      "scripts" : [
+      ]
+      ,
+      "attributes" : {
+         "ferocity": 100,
+         "health": 1
+      }
+      ,
+      "ai" : {
+         "intentions" : [
+            "radiant.intentions.life_and_death",
+            "radiant.intentions.attack_on_aggro",
+            "radiant.intentions.combat_recoil_on_hit",
+            "radiant.intentions.idle"
+         ]
+         ,
+         "observers" : [
+            "radiant.observers.compute_danger",
+            "radiant.observers.compute_proximity_aggro"
+         ]
+      }
+      ,
+      "render_rig": {
+         "models": [
+            "models/goblin/goblin_body.qb",
+            "models/studded_leather_helmet.qb",
+            {
+               "type": "one_of",
+               "items": [
+                  ""
+               ]
+            },
+            {
+               "type": "one_of",
+               "items": [
+                  "models/goblin/goblin_head_1.qb",
+                  "models/goblin/goblin_head_2.qb",
+                  "models/goblin/goblin_head_3.qb"
+               ]
+            },
+            {
+               "type": "one_of",
+               "items": [
+                  "models/goblin/goblin_outfit_breastplate.qb",
+                  "models/goblin/goblin_outfit_leather_armor.qb",
+                  "models/goblin/goblin_outfit_standard_bearer.qb",
+                  "models/goblin/goblin_outfit_standard_bearer.qb"
+               ]
+            }
+         ]
+      }
+   }
+
+}

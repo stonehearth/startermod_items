@@ -1,0 +1,14 @@
+{
+    "radiant.effects.civ_idle_breathe": {
+        "type" : "effect"
+        ,
+        "tracks": {
+            "animation": {
+                "type": "animation_effect",
+                "start_time": 0,
+                "animation": "civ_idle_breathe",
+                "loop": true
+            }
+        }
+    }
+}

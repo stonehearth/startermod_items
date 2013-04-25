@@ -1,0 +1,11 @@
+{
+   "worker_axe": {
+      "type" : "entity"
+      ,
+      "render_rig": {
+         "models": [
+            "models/worker_axe.qb"
+         ]
+      }
+   }
+}

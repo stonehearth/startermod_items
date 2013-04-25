@@ -1,0 +1,22 @@
+{
+   "radiant.weapons.1h.club" : {
+      "type" : "entity"
+      ,
+      "unit_info" : {
+         "name": "Club",
+         "description": "Good for beating people with..."
+      }
+      ,
+      "weapon_info" : {
+         "range":       3.2,
+         "damage":      "1d6+1",
+         "tags":        ["one_handed", "blunt", "club"]
+      }
+      ,
+      "render_rig": {
+         "models": [
+            "models/club.qb"
+         ]
+      }
+   }
+}

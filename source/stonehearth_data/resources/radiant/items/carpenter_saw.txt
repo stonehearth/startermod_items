@@ -1,0 +1,31 @@
+{
+   "carpenter-saw": {
+      "type" : "entity"
+      ,
+      "item" : {
+         "material": "tool",
+         "stacks": 1
+      }
+      ,
+      "unit_info" : {
+         "name" :  "Carpenter's Saw",
+         "description" : "Upgrades a unit to a carpenter."
+      }
+      ,
+      "render_rig": {
+         "models": [
+            "models/carpenter_saw.qb"
+         ]
+      }
+      ,
+      "render_rig_iconic": {
+         "models": [
+            "models/carpenter_saw_icon.qb"
+         ]
+      }
+      ,
+      "action_list" : [
+         "radiant.actions.promote_carpenter"
+      ]
+   }
+}
