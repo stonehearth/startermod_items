@@ -1,0 +1,16 @@
+
+@font-face {
+   font-family: 'BerlinSansFB';
+   src: url('brlnsb.eot');
+   src: url('brlnsb.eot?#iefix') format('embedded-opentype'), url('brlnsb.woff') format('woff'), url('brlnsb.ttf') format('truetype'), url('brlnsb.svg#brlnsb') format('svg');
+   font-weight: bold;
+   font-style: normal;
+}
+
+@font-face {
+   font-family: 'BerlinSansFB';
+   src: url('brlnsr.eot');
+   src: url('brlnsr.eot?#iefix') format('embedded-opentype'), url('brlnsr.woff') format('woff'), url('brlnsr.ttf') format('truetype'), url('brlnsr.svg#brlnsr') format('svg');
+   font-weight: normal;
+   font-style: normal;
+}

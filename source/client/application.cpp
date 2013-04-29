@@ -38,7 +38,7 @@ bool Application::LoadConfig(int argc, const char** argv)
    po::options_description configOptions("Configuration");
 
    configOptions.add_options()
-      ("ui.docroot", po::value<std::string>()->default_value("ui"), "the document root for the ui")
+      ("ui.docroot", po::value<std::string>()->default_value("docroot"), "the document root for the ui")
       ;
    Client::GetInstance().GetConfigOptions(configOptions);
    game_engine::arbiter::GetInstance().GetConfigOptions(configOptions);

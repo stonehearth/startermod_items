@@ -1,0 +1,47 @@
+
+.CodeMirror
+{
+   height: 100%;
+}
+
+#code_container, #output_container
+{
+   height: 75%;
+}
+
+#error_container
+{
+   margin-top: 16px;
+   height: 15%;
+}
+
+#code_container, #output_container, #error_container
+{
+   font-size: 12px;
+   border: 1px solid black;
+}
+
+
+/*
+#gutter_menu
+{
+   float: left;
+   width: 200px;
+   height: 20px;
+}
+
+#trace
+{
+   float: left;
+   border: 1px solid red;
+}
+
+.clear
+{
+   clear: both;
+}
+
+.code_window
+{
+   height: 100%;
+}*/

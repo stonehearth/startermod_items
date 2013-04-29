@@ -1,0 +1,16 @@
+{
+    "controllerClass": "StonehearthCharacterSheet",
+    "options": {
+        "uiType": "dialog",
+        "dialogOptions": {
+            "title": "CharacterSheet",
+            "width": 750,
+            "height": 700,
+            "position": {
+                "my": "right-20",
+                "at": "right"
+            },
+            "resizable": false
+        }
+    }
+}

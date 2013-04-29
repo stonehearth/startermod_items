@@ -1,0 +1,83 @@
+{
+   "keybindings" : {
+       "sidebar_store": {
+         "name" : "Store stuff",
+         "bind" : "f1"
+       },
+       "sidebar_build": {
+         "name" : "Build stuff",
+         "bind" : "f2"
+       },
+
+       "create_stockpile": {
+         "name" : "Create a stockpile",
+         "bind" : "c"
+       },
+       "actionbar_button0": {
+         "name" : "Actionbar Button 1",
+         "bind" : "1"
+       },
+       "actionbar_button1": {
+         "name" : "Actionbar Button 2",
+         "bind" : "2"
+       },
+       "actionbar_button2": {
+         "name" : "Actionbar Button 3",
+         "bind" : "3"
+       },
+       "actionbar_button3": {
+         "name" : "Actionbar Button 4",
+         "bind" : "4"
+       },
+       "actionbar_button4": {
+         "name" : "Actionbar Button 5",
+         "bind" : "5"
+       },
+       "main_menu": {
+         "name" : "",
+         "bind" : "`"
+       },
+       "plan_floor": {
+         "name" : "Draw floor",
+         "bind" : "Shift+f"
+       },
+       "plan_walls": {
+         "name" : "Extrude walls",
+         "bind" : "Shift+w"
+       },
+       "plan_roof": {
+         "name" : "Add roof",
+         "bind" : "Shift+r"
+       },
+       "plan_door": {
+         "name" : "Add door",
+         "bind" : "Shift+d"
+       },
+       "plan_lantern": {
+         "name" : "Add Lantern",
+         "bind" : "Shift+l"
+       }
+    },
+   "keygroups" : [
+      {
+         "displayname": "Action Bar Buttons",
+         "keys": [
+            "actionbar_button0",
+            "actionbar_button1",
+            "actionbar_button2",
+            "actionbar_button3",
+            "actionbar_button4"
+         ]
+      },
+      {
+         "displayname": "Plan Controls",
+         "keys": [
+            "plan_floor",
+            "plan_walls",
+            "plan_roof",
+            "plan_door",
+            "plan_lantern"
+         ]
+      }
+   ]
+}

@@ -1,0 +1,113 @@
+<div id="buildMode" class="sidebar-tab">
+
+   <div id="leftTools" class="blueprint">
+      <div class="leftTool handCursor" id="selectTool" keybind="build_select_tool">
+         <img src="views/sidebar/build/images/buttons/select-tool.png" />
+      </div>
+      <div class="leftTool handCursor" id="directselectTool" keybind="build_direct_select_tool">
+         <img src="views/sidebar/build/images/buttons/direct-select-tool.png" />
+      </div>
+      <div class="leftTool handCursor" id="decorateTool">
+         <img src="views/sidebar/build/images/buttons/decorate-tool.png" />
+      </div>
+      <div class="leftTool handCursor" id="deleteTool">
+         <img src="views/sidebar/build/images/buttons/delete-tool.png" />
+      </div>
+   </div>
+
+   <div id="rightTools" class="blueprint">
+      <h1 style="margin-top: -20px; padding-top: 20px">Construction Tools</h1>
+      <div id="constructionTools">
+         <!img class="constructionImage" src="views/sidebar/build/images/diagonal-hairlines.png" />
+
+         <!-- Image maps for the house when it is both up and down -->
+         <map id="sidebarMapHouse" name="sidebarMapHouse" class="handCursor">
+            <area shape="poly" coords="18,213,110,252,166,173,213,215,219,202,164,144,72,109,12,193," href="roof"/>
+            <area shape="poly" coords="143,293,191,278,191,217,141,235," href="door" />
+            <area shape="poly" coords="34,216,34,267,120,299,206,266,207,212,167,171," href="walls" />
+            <area shape="poly" coords="5,323,94,359,106,354,106,308,17,271,4,277," href="fence" />
+            <area shape="poly" coords="35,293,122,332,207,294,206,276,120,244,36,277," href="floor" />
+         </map>
+
+         <map id="sidebarMapHousePopped" name="sidebarMapHousePopped" class="handCursor">
+            <area shape="poly" coords="18,133,110,171,168,91,212,138,221,120,161,64,72,29,12,112," href="roof" />
+            <area shape="poly" coords="144,214,193,196,191,137,143,153," href="door" />
+            <area shape="poly" coords="31,187,121,222,207,188,207,129,166,89,34,136," href="walls" />
+            <area shape="poly" coords="83,263,122,278,162,260,163,222,130,209,83,251," href="stairs" />
+            <area shape="poly" coords="4,324,93,360,106,357,105,307,16,270,4,278," href="fence" />
+            <area shape="poly" coords="33,292,120,330,208,295,207,273,119,242,34,274," href="floor" />
+         </map>
+
+         <!-- The house floor -->
+         <img class="constructionImage" src="views/sidebar/build/images/construction/floor.png" />
+         <img class="constructionImage sidebarPartHover" id="sidebarFloorHover" />
+         <img class="constructionImage sidebarPartSelected" id="sidebarFloorSelected" />
+
+         <!-- The house, in a container so it can easily be animated up and down -->
+         <div id="sidebarHouseContainer" class="constructionImage">
+            <img class="constructionImage" src="views/sidebar/build/images/construction/house.png" />
+            <img class="constructionImage sidebarPartHover" id="sidebarHouseHover" />
+            <img class="constructionImage sidebarPartSelected" id="sidebarHouseSelected" />
+         </div>
+
+         <!-- Images for house up and house down, to hold the image maps -->
+         <img class="constructionImage" id="sidebarHouseSelector"
+            src="views/sidebar/build/images/construction/imagemap-helper.png" usemap="#sidebarMapHouse" />
+         <img class="constructionImage" id="sidebarHouseSelectorPopped"
+            src="views/sidebar/build/images/construction/imagemap-helper.png" usemap="#sidebarMapHousePopped" />
+
+      </div>
+
+      <div id="walls" class="toolbox">
+         <h1>Build Walls</h1>
+         <div class="rightTool defaultTool" tool="create_walls" keybind="build_wall">
+            <img src="views/sidebar/build/images/buttons/wall-box.png" />
+         </div>
+         <div class="rightTool">
+            <img src="views/sidebar/build/images/buttons/wall-line.png" />
+         </div>
+      </div>
+
+      <div id="roof" class="toolbox">
+         <h1>Build Roofs</h1>
+         <div class="rightTool" tool="create_roof" keybind="build_roof">
+            <img src="views/sidebar/build/images/buttons/roof-peaked.png" />
+         </div>
+         <div class="rightTool">
+            <img src="views/sidebar/build/images/buttons/roof-castle.png" />
+         </div>
+         <br />
+         <div class="rightTool">
+            <img src="views/sidebar/build/images/buttons/roof-flat.png" />
+         </div>
+      </div>
+
+      <div id="floor" class="toolbox">
+         <h1>Build Flooring</h1>
+         <div class="rightTool">
+            Floor <!img src="views/sidebar/build/images/buttons/floor.png" />
+         </div>
+      </div>
+
+      <div id="fence" class="toolbox">
+         <h1>Build Fences</h1>
+         <div class="rightTool">
+            Fence <!img src="views/sidebar/build/images/buttons/roof-peaked.png" />
+         </div>
+         <div class="rightTool">
+            Gate <!img src="views/sidebar/build/images/buttons/roof-peaked.png" />
+         </div>
+      </div>
+
+      <div id="door" class="toolbox">
+         <h1>Build Doors & Windows</h1>
+         <div class="rightTool" tool="create_door" keybind="build_door">
+            <img src="views/sidebar/build/images/buttons/door.png" />
+         </div>
+      </div>
+
+   </div>
+
+
+</div>
+

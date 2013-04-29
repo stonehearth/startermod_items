@@ -1,0 +1,38 @@
+
+.frame {
+   background-clip: content-box !important;
+   padding: 10px !important;
+   margin: 0px !important;
+}
+
+.wooden-frame {
+   background-color: #c5b994;
+   border-color: black;
+   border-width: 40px 40px 40px 40px;
+   border-image: url(images/textures/wood/frame-parchment.png) 40 40 40 40 repeat;
+   background-clip: padding-box;
+}
+
+.blueprint {
+   background: #2b68ad;
+   border-width: 20px;
+   border-image: url(images/textures/blueprint/blueprint.png) 15 15 15 15 repeat;
+}
+
+.namefield {
+   color: #ffed8c;
+}
+
+/* old
+.parchment {
+   color: #000;
+   text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
+   background: url(images/textures/parchment/light.png);
+}
+
+
+.wooden-frame {
+   background-image: url(images/frames/wood/9slice.png);
+   padding: 12px;
+}
+*/

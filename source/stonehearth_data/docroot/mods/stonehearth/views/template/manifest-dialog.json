@@ -1,0 +1,16 @@
+{
+    "controllerClass": "StonehearthCraftingWindow",
+    "options": {
+        "uiType": "dialog",
+        "dialogOptions": {
+            "title": "Crafting",
+            "width": 770,
+            "height": 800,
+            "position": {
+                "my": "left+20",
+                "at": "left"
+            },
+            "resizable": false
+        }
+    }
+}

@@ -1,0 +1,42 @@
+@import url('proggy/stylesheet.css');
+
+body {
+   font-family: "proggytinyttregular";
+   font-size: 16px;
+}
+
+.codemirror
+{
+   font-family: "proggytinyttregular";
+   font-size: 16px;
+   height: 100%;
+   line-height: inherit;
+}
+
+#event_container
+{
+    height: 25%;
+}
+
+#error_container
+{
+    height: 15%;
+}
+
+#event_container, #error_container
+{
+   margin-top: 16px;
+   border: 1px solid black;
+}
+
+.entity_widget
+{
+    border: 1px solid blue;
+}
+
+.entity_widget #intention_plot
+{
+    width: 400px;
+    height: 200px;
+    border: 1px solid darkslategrey;
+}
