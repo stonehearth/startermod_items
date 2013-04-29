@@ -448,8 +448,6 @@ void Renderer::PointCamera(const math3d::point3 &location)
 
 void Renderer::UpdateUITexture(const csg::Region2& rgn, const char* buffer)
 {
-   return;
-
    // why wouldn't it be?
    if (!rgn.IsEmpty()) {
       int pitch = uiWidth_ * 4;
