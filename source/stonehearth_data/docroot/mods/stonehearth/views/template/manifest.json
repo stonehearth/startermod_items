@@ -1,0 +1,7 @@
+{
+   "controllerClass": "CLASS_NAME",
+   "options": {
+      "my": "center bottom",
+      "at": "center bottom"
+   }
+}

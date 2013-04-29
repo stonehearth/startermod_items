@@ -1,0 +1,220 @@
+@import "../fonts/teen/stylesheet.css";
+@import "../fonts/lemieszex/stylesheet.css";
+@import "../fonts/flux/stylesheet.css";
+
+@import "jquery-ui-1.9.1.custom.css";
+@import "input.css";
+@import "tooltip.css";
+@import "frames.css";
+
+body {
+   background: none transparent;
+   font-family: 'teenregular', serif;
+   font-size: 14px;
+   color: #000;
+   text-shadow: 1px 1px 1px rgba(0,0,0, 0.5);
+   margin: 0px;
+   overflow: hidden;
+   -webkit-user-select: none;
+   cursor: default;
+}
+
+a:hover, .handCursor {
+   cursor: url('images/Finalhand.cur'), default; 
+}
+
+area {
+   cursor: wait;
+}
+
+.radiantView {
+   position: absolute !important;
+}
+
+td {
+   font-size: 14px;
+}
+
+a {
+   -webkit-transition: color 0.2s ease;
+}
+
+a, a:visited {
+   color: #ffed8c;
+   text-decoration: none;
+}
+
+   a:hover {
+      color: #ffc000 !important;
+      text-decoration: none;
+   }
+
+h1 {
+   //font-family: 'BerlinSansFB';
+   font-family: 'Lemiesz';
+   font-weight: normal;
+   font-size: 20px;
+   margin: 0px;
+   margin-bottom: 5px;
+   //background: -webkit-gradient(linear, left top, left bottom, from(#f00), to(#00f));
+   //-webkit-background-clip: text;
+   //-webkit-text-fill-color: transparent;
+   //text-shadow: none;
+}
+
+h2 {
+   margin-bottom: 8px;
+}
+
+img, a {
+   -webkit-user-select: none;
+   -webkit-user-drag: none;
+}
+
+iframe {
+   position: absolute;
+}
+
+.table {
+   display: table;
+}
+
+.table-cell {
+   display: table-cell;
+}
+
+.table-row {
+   display: table-row;
+}
+
+.outlined {
+   text-shadow: -2px -2px 0px #000, 0px -2px 0px #000, 2px -2px 0px #000, -2px 0px 0px #000, 2px 0px 0px #000, -2px 2px 0px #000, 0px 2px 0px #000, 2px 2px 0px #000;
+}
+
+.thickOutlined {
+      text-shadow: -3px -3px 0px #000, 0px -3px 0px #000, 3px -3px 0px #000, -3px 0px 0px #000, 3px 0px 0px #000, -3px 3px 0px #000, 0px 3px 0px #000, 3px 3px 0px #000;
+}
+
+.template {
+   display: none;
+}
+
+/*
+ * mbScrollable
+ *
+ */
+
+.scroll-item {
+   border: 0px solid rgba(0,0,0,0);
+}
+
+   .scroll-item:hover {
+      border: 0px solid #ffc000;
+   }
+
+/*
+ * Stonehearth paginator
+ *
+ */
+
+.paginator-page {
+   font-family: 'Lemiesz';
+   width: 30px;
+   height: 30px;
+   background: #000;
+   text-align: center;
+   line-height: 30px;
+   margin-right: 4px;
+   color: #fff;
+}
+
+   .paginator-page-link {
+      color: #FFED8C;
+   }
+
+      .paginator-page-link:hover {
+      color: #FFc000;
+   }
+
+/*
+ * Stonehearth itemGrid
+ *
+ */
+
+.itemGrid {
+   //border: 3px dashed #00baff;
+}
+
+   .itemGrid .itemGridCell {
+      //width: 48px;
+      //height: 48px;
+      //background: url(images/itemGrid/cell_background.png);
+      background-color: rgba(0,0,0,0.5);
+      margin: 2px;
+      background-repeat: no-repeat;
+   }
+
+   .itemGrid .itemGridItem {
+      position: relative;
+      border: 2px solid rgba(0,0,0,0);
+   }
+
+      .itemGrid .itemGridItem:hover {
+         border: 2px solid #ffc000;
+      }
+
+      .itemGrid .itemGridItem img {
+         position: absolute;
+         left: 0px;
+         top: 0px;
+      }
+
+      .itemGrid .itemGridItem .stackCount {
+         font-family: 'Lemiesz';
+         display: block;
+         position: absolute;
+         right: 8px;
+         bottom: 4px;
+         color: #fff;
+      }
+
+/*
+ * Stonehearth actionButton
+ *
+ */
+.ui-actionbutton {
+   width: 73px;
+   height: 73px;
+   vertical-align: middle;
+   //background: url(images/actionbar/actionbutton-background.png) !important;
+   //background-size: 64px 64px !important;
+   padding: 0;
+}
+
+.ui-actionbutton-empty {
+   background: url(images/actionbar/actionbutton-empty-background.png) !important;
+}
+
+.ui-actionbutton .ui-button-text {
+   font-family: 'Lemiesz';
+   display: block;
+   margin-top: 0px;
+   text-align: right;
+   position: relative;
+   top: -17px;
+   left: 0px;
+   font-size: 24px;
+   color: #ffd200 !important;
+}
+
+.ui-actionbutton-icon {
+   width: 70px;
+   height: 70px;
+   margin-top: 2px;
+   overflow: visible;
+   border: 0px solid #000;
+}
+
+   .ui-actionbutton-icon .ui-state-hover {
+      opacity: 1.0;
+   }

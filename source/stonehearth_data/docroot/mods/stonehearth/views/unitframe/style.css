@@ -1,0 +1,68 @@
+#unitframe {
+   position: relative;
+   width: 1920px;
+   height: 251px;
+   text-align: center;
+   background: url(images/bg.png);
+   background-position: bottom center;
+   background-repeat: no-repeat;
+}
+
+   #unitframe #bg {
+      position: relative;
+      top: 60px;
+      width: 622px;
+      height: 170px;
+      margin: 0px auto;
+      background-image: url(../css/default/images/actionbar/bg.png);
+      background-position: bottom;
+      background-repeat: no-repeat;
+      vertical-align: bottom;
+      padding: 0;
+   }
+
+   #unitframe #portrait {
+      position: absolute;
+      top: 68px;
+      left: 548px;
+      width: 159px;
+      height: 172px;
+      
+      background-repeat: no-repeat;
+      overflow: visible;
+      float: left;
+   }
+
+   #unitframe #centerBlock {
+      position: absolute;
+      top: 74px;
+      left: 717px;
+      width: 480px;
+      height: 166px;
+      font-size: 20px;
+      text-align: center;
+      //background: rgba(0,0,0,0.5);
+   }
+
+   #unitframe #name {
+      font-size: 30px;
+      font-family: 'Lemiesz';
+      color: #febf00;
+   }
+
+   #unitframe #description {
+      font-family: 'Lemiesz';
+      color: #ffe156 !important;
+      font-size: 22px;
+      padding-top: 8px;
+      color: white;
+   }
+
+   #unitframe #actionbar {
+      position: absolute;
+      bottom: 0px;
+   }
+
+      #unitframe #actionbar a {
+         margin-left: 1px;
+      }

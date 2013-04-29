@@ -1,0 +1,82 @@
+{
+    "keybindings": {
+        "sidebar_store": {
+            "name": "Store stuff",
+            "bind": "f1"
+        },
+        "sidebar_build": {
+            "name": "Build stuff",
+            "bind": "f2"
+        },
+        "create_stockpile": {
+            "name": "Create a stockpile",
+            "bind": "shift+s"
+        },
+        "build_select_tool": {
+            "name": "Selection tool",
+            "bind": "v"
+        },
+        "build_direct_select_tool": {
+            "name": "Direct selection tool",
+            "bind": "shift+a"
+        },
+        "build_wall": {
+            "name": "Build a boxy room",
+            "bind": "shift+w"
+        },
+        "build_door": {
+            "name": "Build a door",
+            "bind": "shift+d"
+        },
+        "build_roof": {
+            "name": "Build a roof",
+            "bind": "shift+r"
+        },
+        "actionbar_button0": {
+            "name": "Actionbar Button 1",
+            "bind": "1"
+        },
+        "actionbar_button1": {
+            "name": "Actionbar Button 2",
+            "bind": "2"
+        },
+        "actionbar_button2": {
+            "name": "Actionbar Button 3",
+            "bind": "3"
+        },
+        "actionbar_button3": {
+            "name": "Actionbar Button 4",
+            "bind": "4"
+        },
+        "actionbar_button4": {
+            "name": "Actionbar Button 5",
+            "bind": "5"
+        },
+        "main_menu": {
+            "name": "",
+            "bind": "`"
+        }
+    },
+    "keygroups": [
+        {
+            "displayname": "Action Bar Buttons",
+            "keys": [
+                "actionbar_button0",
+                "actionbar_button1",
+                "actionbar_button2",
+                "actionbar_button3",
+                "actionbar_button4"
+            ]
+        },
+        {
+            "displayname": "Plan Controls",
+            "keys": [
+                "plan_floor",
+                "plan_walls",
+                "plan_roof",
+                "plan_door",
+                "plan_lantern"
+            ]
+        }
+    ]
+}

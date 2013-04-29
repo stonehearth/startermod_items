@@ -1,0 +1,28 @@
+#sidebarNav {
+   position: absolute;
+   left: 10px;
+   top: 10px;
+   width: 500px;
+}
+
+   #sidebarNav a {
+      padding-right: 9px;
+   }
+
+.sidebarTab {
+   //background: url(images/bg.png);
+   //background-repeat: no-repeat;
+   //position: absolute;
+   //left: 0px;
+   //top: 0px;
+   //width: 450px;
+   //height: 100%;
+}
+
+#sidebarTabStore {
+   background-repeat: no-repeat;
+}
+
+#sidebarTabBuild {
+   
+}

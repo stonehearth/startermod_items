@@ -1,0 +1,46 @@
+#storeSidebar {
+   background: #343a41;
+   background-repeat: no-repeat;
+   position: absolute;
+   left: 10px;
+   top: 90px;
+   width: 450px;
+}
+
+   #storeSidebar #help {
+      margin-bottom: 10px;
+   }
+
+   #storeSidebar #search {
+      width: 405px;
+      margin-bottom: 10px;
+   }
+
+
+   #storeSidebar #createStockpileButton {
+      width: 401px;
+      margin-bottom: 10px;
+   }
+
+   #storeSidebar #list {
+      height: 800px;
+   }
+
+   #storeSidebar .listEntry {
+      position: relative;
+      width: 370px;
+      padding-top: 20px;
+   }
+
+      #storeSidebar .listEntry div.name {
+         font-family: 'Lemiesz';
+         font-size: 16px;
+         padding-bottom: 8px;
+      }
+
+
+   #storeSidebar #nav {
+      position: absolute;
+      right: 20px;
+      bottom: 20px;
+   }
