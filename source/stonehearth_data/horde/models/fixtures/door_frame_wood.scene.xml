@@ -1,0 +1,4 @@
+<Model name="door_frame_wood" geometry="models\fixtures/door_frame_wood.geo">
+
+	<Mesh name="" material="models\fixtures/door_frame_wood_simpletex.material.xml" tx="-15" ty="0" tz="15" batchStart="0" batchCount="27288" vertRStart="0" vertREnd="15438" />
+</Model>

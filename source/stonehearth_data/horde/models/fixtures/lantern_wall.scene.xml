@@ -1,0 +1,4 @@
+<Model name="lantern_wall" geometry="models\fixtures/lantern_wall.geo">
+
+	<Mesh name="" material="models\fixtures/lantern_simpletex.material.xml" tx="7.93122" ty="-7.88456" tz="-44.4525" rx="0" ry="-180" rz="0" sx="1.58596" sy="1.58596" sz="1.58596" batchStart="0" batchCount="3024" vertRStart="0" vertREnd="1747" />
+</Model>
