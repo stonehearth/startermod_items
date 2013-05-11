@@ -19,6 +19,12 @@ add_library(csg STATIC
             pch.cpp
             )
 
+add_library(unittests_csg STATIC
+            unittests.cpp)
+
+target_link_libraries(unittests_csg
+                      csg
+                     )
 if (MSVC)
    set_target_properties(csg PROPERTIES COMPILE_FLAGS "/Yupch.h")
    set_source_files_properties(pch.cpp PROPERTIES COMPILE_FLAGS "/Ycpch.h")

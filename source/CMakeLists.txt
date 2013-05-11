@@ -21,6 +21,10 @@ string(REPLACE "[/\\-]Zm[0-9]+" " " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 # VC11 deprecates GX for EHsc
 STRING(REPLACE "/GX" "/EHsc" CMAKE_C_FLAGS_DEBUG ${CMAKE_C_FLAGS_DEBUG})
 
+# MSVC only...
+SET(CMAKE_C_FLAGS "/DGTEST_HAS_TR1_TUPLE=0" ${CMAKE_C_FLAGS})
+SET(CMAKE_CXX_FLAGS "/DGTEST_HAS_TR1_TUPLE=0" ${CMAKE_CXX_FLAGS})
+
 # Add browse information 
 # SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /FR")
 #MESSAGE("sup" ${CMAKE_CXX_FLAGS})
@@ -53,6 +57,7 @@ FIND_PACKAGE(Snappy REQUIRED)
 FIND_PACKAGE(Boost COMPONENTS filesystem REQUIRED)
 FIND_PACKAGE(Lua REQUIRED)
 FIND_PACKAGE(Luabind REQUIRED)
+FIND_PACKAGE(GTest REQUIRED NO_MODULE)
 
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${PROTOBUF_INCLUDE_DIRS})
@@ -61,11 +66,11 @@ include_directories(${Gflags_INCLUDE_DIRS})
 include_directories(${Snappy_INCLUDE_DIRS})
 include_directories(${Lua_INCLUDE_DIRS})
 include_directories(${Luabind_INCLUDE_DIRS})
+include_directories(${GTest_INCLUDE_DIRS})
 
 include_directories(.)
 include_directories(include)
 
-include_directories("c:/python27/include")
 include_directories("c:/program files (x86)/microsoft directx sdk (june 2010)/include")
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR}) # why?
@@ -92,6 +97,6 @@ add_subdirectory(protocols)
 add_subdirectory(resources)
 add_subdirectory(dm)
 add_subdirectory(simulation)
-# add_subdirectory(world)
-# add_subdirectory(unit_tests)
-# add_subdirectory(worldview)
+add_subdirectory(unittests)
+
+
