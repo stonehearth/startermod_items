@@ -24,9 +24,9 @@ public:
 
    // manipulators
    Derived Scale(S s) const {
-      Derived result(*this);
+      Derived result;
       for (int i = 0; i < C; i++) {
-         result[i] *= s;
+         result[i] = (*this)[i] * s;
       }
       return result;
    }
