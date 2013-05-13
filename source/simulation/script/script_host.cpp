@@ -22,6 +22,8 @@
 #include "om/all_components.h"
 
 namespace fs = ::boost::filesystem;
+namespace po = boost::program_options;
+extern po::variables_map configvm;
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -107,8 +109,8 @@ ScriptHost::ScriptHost(lua_State* L, std::string scriptRoot) :
 
    // Load all the scripts...
    InitEnvironment(scriptRoot);
-   LoadScripts(scriptRoot, "radiant");
-   LoadScripts(scriptRoot, "radiant_tests");
+   LoadScript((fs::path(scriptRoot) / "radiant" / "api.lua").string());
+   LoadGameScript();
 }
 
 ScriptHost::~ScriptHost()
@@ -154,9 +156,6 @@ static int sh_pcall_callback_fun(lua_State* L)
 
 int GetConfigOptions(lua_State* L)
 {
-   namespace po = boost::program_options;
-   extern po::variables_map configvm;
-
    object arg1(from_stack(L, -1));
 
    std::string name = object_cast<std::string>(arg1);
@@ -209,32 +208,37 @@ void ScriptHost::InitEnvironment(std::string root)
 
    //globals(L_)["native"] = object(L_, this);
 
-   globals(L_)["package"]["path"] = "./scripts/?.lua;./scripts/lib/?.lua";
-   globals(L_)["package"]["cpath"] = "./scripts/?.lua;./scripts/clib/?.dll";
+   //globals(L_)["package"]["path"] = "./scripts/?.lua;./scripts/lib/?.lua";
+   //globals(L_)["package"]["cpath"] = "./scripts/?.lua;./scripts/clib/?.dll";
 
-#if 0
-   std::string env = (fs::path(root) / "env.lua").string();
-   int result = luaL_dofile(L_, env.c_str());
-#else
-   int result = luaL_dostring(L_, "require 'env'");
-#endif
+   globals(L_)["package"]["path"] = "./?.lua";
+   globals(L_)["package"]["cpath"] = "";
+}
 
-   if (!result) {
-      try {
-         luabind::object env = globals(L_)["env"];
-         call_function<void>(env["init"], env, this);
-      } CATCH_LUA_ERROR("initializing the environment");
-   } else {
-      LOG(WARNING) << lua_tostring(L_, -1);
+void ScriptHost::LoadGameScript()
+{
+   std::ifstream in;
+   std::string uri = configvm["game.script"].as<std::string>();
+   if (!resources::ResourceManager2::GetInstance().OpenResource(uri, in)) {
+      LOG(WARNING) << "could not open game script file '" << uri << "'.";
+      return;
    }
-   ii = lua_gettop(L_);
+   std::string str((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+
+   if (luaL_dostring(L_, str.c_str()) != 0) {
+      OnError(lua_tostring(L_, -1));
+      return;
+   }
+   try {
+      game_ = luabind::object(luabind::from_stack(L_, -1));
+      call_function<void>(game_["init"], game_, this);
+   } CATCH_LUA_ERROR("initializing the environment");
 }
 
 void ScriptHost::CreateNew()
 {
    try {
-      luabind::object env = globals(L_)["env"];
-      luabind::call_function<void>(env["start_new_game"], env);
+      luabind::call_function<void>(game_["create_new"], game_);
    } CATCH_LUA_ERROR("initializing environment");
 
 #if 0
@@ -271,8 +275,7 @@ void ScriptHost::Update(int interval, int& currentGameTime)
 
    //CallEnvironment("update");
    try {
-      luabind::object env = globals(L_)["env"];
-      currentGameTime = luabind::call_function<int>(env["update"], env, interval);
+      currentGameTime = luabind::call_function<int>(game_["update"], game_, interval);
    } CATCH_LUA_ERROR("update...");
 }
 
@@ -295,8 +298,7 @@ std::string ScriptHost::DoAction(const tesseract::protocol::DoAction& msg)
       args[i] = ConvertArg(msg.args(i));
    }
    try {
-      luabind::object env = globals(L_)["env"];
-      return luabind::call_function<std::string>(env["execute_command"], env, action, args[0], args[1], args[2], args[3]);
+      return luabind::call_function<std::string>(game_["execute_command"], game_, action, args[0], args[1], args[2], args[3]);
    } CATCH_LUA_ERROR("initializing environment");
    return "{ \"error\" : \"lua interpreter error\" }";
 }
@@ -346,50 +348,11 @@ luabind::object ScriptHost::ConvertArg(const Protocol::Selection& arg)
    return luabind::object();
 }
 
-void ScriptHost::LoadScripts(std::string root, std::string directory)
-{
-   fs::recursive_directory_iterator i(fs::path(root) / directory), end;
-   while (i != end) {
-      fs::path path(*i++);
-      if (fs::is_regular_file(path) && path.extension() == ".lua") {
-         int start = 0;
-         std::string arg = path.string().substr(root.length(), std::string::npos);
-         if (boost::starts_with(arg, "/") || boost::starts_with(arg, "\\")) {
-            start = 1;
-         }
-         arg = arg.substr(1, arg.length() - 4 - start);
-         if (!arg.empty()) {
-            std::replace(arg.begin(), arg.end(), '\\', '.');
-            std::replace(arg.begin(), arg.end(), '/', '.');
-            LoadScript(arg);
-         }
-      }
-   }
-}
-
 void ScriptHost::LoadScript(std::string arg)
 {
-   // returns false if there are no errors or true in case of errors.
-   LOG(WARNING) << "loading " << arg << "...";
-   try {
-      lua_getglobal(L_, "require");
-      lua_pushstring(L_, arg.c_str());
-      int result = lua_pcall(L_, 1, 0, 0);
-      if (result) {
-         OnError(lua_tostring(L_, -1));
-      }
-   } CATCH_LUA_ERROR(std::string("loading script ") + arg);
-#if 0
-   if (result) {
-      LOG(WARNING) << lua_tostring(L_, -1);
-      return;
+   if (luaL_dofile(L_, arg.c_str()) != 0) {
+      OnError(lua_tostring(L_, -1));
    }
-   luabind::object block(luabind::from_stack(L_, -1));
-   try {
-      luabind::call_function<void>(block);
-   } CATCH_LUA_ERROR(std::string("loading script ") + path);
-   lua_pop(L_, 1);
-#endif
 }
 
 
@@ -424,7 +387,7 @@ void ScriptHost::OnError(std::string description)
 #endif
 #if 1
    int startTime = timeGetTime();
-   while(timeGetTime() - startTime < 5000) {
+   while(timeGetTime() - startTime < 15000) {
       Sleep(0);
    }
 #endif
@@ -533,21 +496,17 @@ void ScriptHost::AssertFailed(std::string reason)
    OnError("Lua assert failed");
 }
 
-// xxx : call the one on the md, not the env!
 void ScriptHost::SendMsg(om::EntityRef entity, std::string msg)
 {
    try {
-      luabind::object env = luabind::globals(L_)["env"];
-      luabind::call_function<void>(env["send_msg"], env, entity, msg);
+      luabind::call_function<void>(game_["send_msg"], game_, entity, msg);
    } CATCH_LUA_ERROR("sending msg to entity");
 }
 
-// xxx : call the one on the md, not the env!
 void ScriptHost::SendMsg(om::EntityRef entity, std::string msg, const luabind::object& arg0)
 {
    try {
-      luabind::object env = luabind::globals(L_)["env"];
-      luabind::call_function<void>(env["send_msg"], env, entity, msg, arg0);
+      luabind::call_function<void>(game_["send_msg"], game_, entity, msg, arg0);
    } CATCH_LUA_ERROR("sending msg to entity");
 }
 

@@ -353,7 +353,7 @@ bool ResourceManager2::OpenResource(network::uri::uri const& uri, std::ifstream&
 
    fs::path filepath = fs::path(resource_dir_) / fileuri.host() / fileuri.path();
    auto fb = filepath.native();
-   in.open(filepath.native(), std::ios::in | std::ios::binary);
+   in.open(filepath.native(), std::ios::in);
    return in.good();
 }
 

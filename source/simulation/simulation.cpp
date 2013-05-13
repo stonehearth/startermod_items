@@ -23,7 +23,7 @@
 #include "jobs/job.h"
 
 //static const std::string scriptRoot_("C:\\Users\\ponder\\gamedev\\radiant\\projects\\tesseract\\source\\client\\assets\\script");
-static const std::string scriptRoot_(".\\scripts");
+static const std::string scriptRoot_(".\\data");
 static const int __initialCivCount = 3;
 
 using namespace ::radiant;

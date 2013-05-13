@@ -83,7 +83,7 @@ private:
    om::EntityRef CreateEntityRef(std::string kind);
    luabind::object GetEntityRef(om::EntityId id);
    void InitEnvironment(std::string root);
-   void LoadScripts(std::string root, std::string directory);
+   void LoadRecursive(std::string root, std::string directory);
    void LoadScript(std::string path);
    luabind::object ConvertArg(const Protocol::Selection& arg);
 
@@ -94,6 +94,7 @@ private:
 
 private:
 
+   void LoadGameScript();
    void DestroyEntity(std::weak_ptr<om::Entity>);
 
    std::shared_ptr<FollowPath> CreateFollowPath(om::EntityRef entity, float speed, std::shared_ptr<Path> path, float close_to_distance);
@@ -113,6 +114,7 @@ private:
 
 private:
    lua_State*           L_;
+   luabind::object      game_;
    std::map<om::EntityId, om::EntityPtr>  entityMap_;
 };
 
