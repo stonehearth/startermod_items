@@ -8,11 +8,9 @@
 #include "om/components/render_rig.h"
 #include "Horde3DUtils.h"
 #include "resources/res_manager.h"
-#include "resources/skeleton.h"
-#include "resources/rig.h"
-#include "resources/model.h"
 #include "qubicle_file.h"
 #include "texture_color_mapper.h"
+#include "pipeline.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -55,42 +53,41 @@ void RenderRig::AddRig(const std::string& identifier)
    if (boost::algorithm::ends_with(identifier, ".qb")) {
       AddQubicleResource(identifier);
    } else {
-      AddRigResource(identifier);
+      ASSERT(false);
    }
 }
 
-void RenderRig::AddQubicleResource(const std::string filename)
+void RenderRig::AddQubicleResource(const std::string uri)
 {
    QubicleFile f;
-   std::ifstream input(filename.c_str(), std::ifstream::in | std::ifstream::binary);
-
-   std::vector<H3DNode>& nodes = nodes_[filename];
+   std::vector<H3DNode>& nodes = nodes_[uri];
    DestroyRenderNodes(nodes);
 
-   if (input.good()) {
-      input >> f;
+   // xxx: no.  Make a qubicle resource type so they only get loaded once, ever.
+   std::ifstream input;
+   if (!resources::ResourceManager2::GetInstance().OpenResource(uri, input)) {
+      return;
    }
+   input >> f;
 
-   JSONNode bones;
-   auto resource = resources::ResourceManager2::GetInstance().Lookup<resources::ObjectResource>(animationTableName_);
-   auto skeleton = std::dynamic_pointer_cast<resources::Skeleton>(resource ? resource->Get("skeleton") : nullptr);
+   std::shared_ptr<resources::DataResource> skeleton;
+   if (!animationTableName_.empty()) {
+      skeleton = resources::ResourceManager2::GetInstance().Lookup<resources::DataResource>(animationTableName_);
+   }
    
-   auto getBonePos = [&bones](std::string bone) -> csg::Point3f {
+   auto getBonePos = [&skeleton](std::string bone) -> csg::Point3f {
       csg::Point3f pos(0, 0, 0);
-      auto i = bones.find(bone);
-      if (i != bones.end() && i->type() == JSON_ARRAY && i->size() == 3) {
-         for (int j = 0; j < 3; j++) {
-            pos[j] = (float)i->at(j).as_float();
+      if (skeleton) {
+         JSONNode const& bones = skeleton->GetJson()["skeleton"];
+         auto i = bones.find(bone);
+         if (i != bones.end() && i->type() == JSON_ARRAY && i->size() == 3) {
+            for (int j = 0; j < 3; j++) {
+               pos[j] = (float)i->at(j).as_float();
+            }
          }
       }
       return pos;
    };
-
-   csg::Point3f rootBonePos(0, 0, 0);
-   if (skeleton) {
-      bones = skeleton->GetJson();
-      rootBonePos = getBonePos("root");
-   }
 
    for (const auto& entry : f) {
       // Qubicle requires that ever matrix in the file have a unique name.  While authoring,
@@ -104,12 +101,12 @@ void RenderRig::AddQubicleResource(const std::string filename)
       }
 
       csg::Point3f origin = getBonePos(bone);
-      auto& pipeline = Renderer::GetInstance().GetPipeline();
+      auto& pipeline = Pipeline::GetInstance();
       Pipeline::Geometry geo = pipeline.OptimizeQubicle(entry.second, origin);
 
       auto& mapper = TextureColorMapper::GetInstance();
       // Geometry resource names must be unique.  WAT????
-      Pipeline::GeometryResource gr = pipeline.CreateMesh(filename + "_" + bone, geo);
+      Pipeline::GeometryResource gr = pipeline.CreateMesh(uri + "_" + bone, geo);
 
       H3DNode parent = entity_.GetSkeleton().GetSceneNode(bone);
       H3DNode node = h3dAddModelNode(parent, "blocks", gr.geometry);
@@ -125,31 +122,6 @@ void RenderRig::AddQubicleResource(const std::string filename)
       h3dSetNodeTransform(node, 0, 0, 0, 0, 0, 0, .1f, .1f, .1f);
       nodes.push_back(node);
       */
-   }
-}
-
-void RenderRig::AddRigResource(const std::string identifier)
-{
-   auto resource = resources::ResourceManager2::GetInstance().Lookup(identifier);
-   if (!resource || resource->GetType() != resources::Resource::RIG) {
-      LOG(WARNING) << " *** " << identifier << " is not a rig resource!";
-      return;
-   }
-   std::vector<H3DNode>& nodes = nodes_[identifier];
-   DestroyRenderNodes(nodes);
-
-   auto rig = std::static_pointer_cast<resources::Rig>(resource);
-   for (const auto& entry : rig->GetModels()) {
-      const std::string& bone = entry.first;
-      for (const auto& model : entry.second) {
-         H3DRes res = Renderer::GetInstance().GetPipeline().GetActorEntity(model);
-         if (res) {
-            H3DNode node = entity_.GetSkeleton().AttachEntityToBone(res, bone, model.GetOffset());
-            //LOG(WARNING) << "  attaching " << model.GetMesh() << " to " << bone;
-            h3dSetNodeTransform(node, 0, 0, 0, 0, 0, 0, scale_, scale_, scale_);
-            nodes.push_back(node);
-         }
-      }
    }
 }
 

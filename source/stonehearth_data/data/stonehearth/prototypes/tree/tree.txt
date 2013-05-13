@@ -1,0 +1,10 @@
+{
+   "type" : "entity",
+   "action_list" : [
+      "radiant.actions.chop"
+   ],
+   "scripts" : [
+      "radiant.msg_handlers.resource_factory"
+   ]
+}
+

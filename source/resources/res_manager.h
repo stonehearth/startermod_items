@@ -4,9 +4,10 @@
 #include <thread>
 #include <mutex>
 #include <unordered_map>
-#include "object_resource.h"
 #include "libjson.h"
 #include "data_resource.h"
+
+namespace boost { namespace network { namespace uri { class uri; } } }
 
 BEGIN_RADIANT_RESOURCES_NAMESPACE
 
@@ -17,49 +18,43 @@ public:
 
    static ResourceManager2& GetInstance();
 
-   void LoadDirectory(std::string filename);
-   void LoadJsonFile(std::string filename);
+   const std::shared_ptr<Resource> LookupResource(std::string id);
+   bool OpenResource(std::string const& uri, std::ifstream& in);
+   bool OpenResource(boost::network::uri::uri const& uri, std::ifstream& in);
 
-   const std::shared_ptr<Resource> Lookup(std::string id) const;
-
-   template <class T> std::shared_ptr<T> Lookup(std::string id) const {
-      std::shared_ptr<Resource> res = Lookup(id);
+   template <class T> std::shared_ptr<T> Lookup(std::string id) {
+      std::shared_ptr<Resource> res = LookupResource(id);
       if (res && res->GetType() == T::Type) {
          return std::static_pointer_cast<T>(res);
       }
       return nullptr;
    }
-
-   template <> std::shared_ptr<DataResource> Lookup(std::string id) const {
-      return std::dynamic_pointer_cast<DataResource>(Lookup(id));
+   template <> std::shared_ptr<DataResource> Lookup(std::string id) {
+      return std::dynamic_pointer_cast<DataResource>(LookupResource(id));
    }
 
 private:
    ResourceManager2();
 
 private:
-   void AddResourceToIndex(std::string key, std::shared_ptr<Resource> value);
-   std::shared_ptr<Resource> ParseJson(std::string ns, const JSONNode& json);
-   std::shared_ptr<Resource> ParseJsonArray(std::string ns, const JSONNode& json);
-   std::shared_ptr<Resource> ParseJsonObject(std::string ns, const JSONNode& json);
-   std::shared_ptr<Resource> ParseGenericJsonObject(std::string ns, const JSONNode& json);
-   std::shared_ptr<Resource> ParseRigJsonObject(std::string ns, const JSONNode& json);
-   std::shared_ptr<Resource> ParseActionJsonObject(std::string ns, const JSONNode& json);
+   bool ParseUri(std::string const& uristr, boost::network::uri::uri &uri);
    std::shared_ptr<Resource> ParseAnimationJsonObject(std::string key, const JSONNode& json);
-   std::shared_ptr<Resource> ParseRegion2dJsonObject(std::string key, const JSONNode& json);
-   std::shared_ptr<Resource> ParseSkeletonJsonObject(std::string key, const JSONNode& json);
    std::shared_ptr<Resource> ParseDataJsonObject(Resource::ResourceType type, std::string key, const JSONNode& json);
-   std::string ValidateJsonObject(const JSONNode& json);
-   void ConvertJsonToBinFile(std::string jsonhash, std::string jsonfile, std::string binfile);
    std::string Checksum(std::string buffer);
+   void ExtendRootJsonNode(boost::network::uri::uri const& uri, JSONNode& node);
+   void ExtendNode(JSONNode& node, const JSONNode& parent);
+   std::string ExpandURL(boost::network::uri::uri const& current, std::string const& str);
+   JSONNode ExpandJSON(boost::network::uri::uri const& uri, JSONNode const& node);
+   bool LoadJson(boost::network::uri::uri const& uri, JSONNode& node);
 
 private:
    static std::unique_ptr<ResourceManager2> singleton_;
 
 private:
+   typedef std::unordered_map<std::string, JSONNode> ExtendedNodesMap;
    mutable std::mutex                  mutex_;
    std::string                         resource_dir_;
-   ObjectResource                      root_;
+   ExtendedNodesMap                    extendedNodes_;
    std::unordered_map<std::string, std::shared_ptr<Resource>>   resources_;
 };
 

@@ -8,6 +8,7 @@
 #include "om/grid/grid.h"
 #include "Horde3DUtils.h"
 #include "render_entity.h"
+#include "pipeline.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -89,7 +90,7 @@ void RenderGrid::FlushDirtyTiles()
          }
 
          om::GridTilePtr tile = i->second;
-         H3DNode node = Renderer::GetInstance().GetPipeline().GetTileEntity(grid, tile, node_);
+         H3DNode node = Pipeline::GetInstance().GetTileEntity(grid, tile, node_);
          auto entry = std::make_shared<TileEntry>(node);
          entry->traces += tile->TraceObjectChanges("render grid tile changed", [=]() {
             stdutil::UniqueInsert(_dirtyTiles, addr);

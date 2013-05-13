@@ -1,0 +1,21 @@
+{
+   "type" : "entity",
+   "item" : {
+      "material": "tool",
+      "stacks": 1
+   },
+   "weapon_info" : {
+      "range":       4.2,
+      "damage":      "1d6+1",
+      "tags":        ["one_handed", "blunt", "mace"]
+   },
+   "unit_info" : {
+      "name" :  "Spiked Wooden Mace",
+      "description" : "Nasty, pointy spikes"
+   },
+   "render_rig": {
+      "models": [
+         "url(spiked_wooden_mace.qb)"
+      ]
+   }
+}

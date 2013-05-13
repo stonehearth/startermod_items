@@ -374,9 +374,9 @@ end
 
 function FoliageMapper:_add_trees_to_terrain(terrain)
    local trees = {
-      'oak-tree-small',
-      'oak-tree-medium',
-      'oak-tree-large'
+      'stonehearth.resources.trees.small_oak_tree',
+      'stonehearth.resources.trees.medium_oak_tree',
+      'stonehearth.resources.trees.large_oak_tree'
    }
    self:_add_items_to_terrain(terrain, self._point_map, trees)
 end

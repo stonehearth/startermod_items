@@ -35,7 +35,10 @@ public:
    std::shared_ptr<Entity> GetPtr() { return shared_from_this(); }
 
    std::string GetDebugName() const { return *debugname_; }
-   void SetDebugName(std::string str); 
+   void SetDebugName(std::string str) { debugname_ = str; }
+
+   std::string GetResourceUri() const { return *resource_uri_; }
+   void SetResourceUri(std::string str) { resource_uri_ = str; }
 
 private:
    void InitializeRecordFields() override;
@@ -45,11 +48,9 @@ private:
 private:
    typedef std::unordered_map<dm::TraceId, std::function<void(dm::ObjectPtr)>> ComponentTraceMap;
 
-   static std::atomic<dm::TraceId>                 nextTraceId_;
-   static ComponentTraceMap                        componentTraces_[4];
-   static std::vector<std::weak_ptr<dm::Object>>   newComponents_[4];
 private:
    dm::Boxed<std::string>  debugname_;
+   dm::Boxed<std::string>  resource_uri_;
    ComponentMap            components_;
 };
 

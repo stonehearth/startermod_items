@@ -1,29 +1,40 @@
 #include <fstream>
 #include <sstream>
 #include <io.h>
+#include <regex>
+#include <boost/filesystem.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/network/uri/uri.hpp>
+#include <boost/network/uri/uri_io.hpp>
+#include <boost/tokenizer.hpp>
 #include "radiant.h"
 #include "res_manager.h"
-#include "number_resource.h"
-#include "object_resource.h"
-#include "array_resource.h"
-#include "string_resource.h"
-#include "rig.h"
 #include "animation.h"
-#include "action.h"
-#include "region2d.h"
-#include "skeleton.h"
 #include "data_resource.h"
-#include "boost/filesystem.hpp"
 
 // Crytop stuff (xxx - change the include path so these generic headers aren't in it)
 #include "sha.h"
 #include "hex.h"
 #include "files.h"
 
+namespace network = ::boost::network;
 namespace fs = ::boost::filesystem;
 
 using namespace ::radiant;
 using namespace ::radiant::resources;
+
+// xxx: move helpers like this out to another file...
+csg::Region2 resources::ParsePortal(JSONNode const& obj)
+{
+   csg::Region2 rgn;
+
+   for (const JSONNode& rc : obj["rects"]) {
+      rgn += csg::Rect2(csg::Point2(rc[0][0].as_int(), rc[0][1].as_int()),
+                        csg::Point2(rc[1][0].as_int() + 1, rc[1][1].as_int() + 1));
+   }
+   return rgn;
+}
 
 std::unique_ptr<ResourceManager2> ResourceManager2::singleton_;
 
@@ -35,7 +46,8 @@ ResourceManager2& ResourceManager2::GetInstance()
    return *singleton_;
 }
 
-ResourceManager2::ResourceManager2()
+ResourceManager2::ResourceManager2() :
+   resource_dir_("./data/")
 {
    ASSERT(!singleton_);
 }
@@ -44,6 +56,7 @@ ResourceManager2::~ResourceManager2()
 {
 }
 
+#if 0
 void ResourceManager2::LoadDirectory(std::string dir)
 {
    resource_dir_ = dir;
@@ -55,184 +68,86 @@ void ResourceManager2::LoadDirectory(std::string dir)
       }
    }
 }
+#endif
 
-void ResourceManager2::LoadJsonFile(std::string filename)
+bool ResourceManager2::LoadJson(network::uri::uri const& uri, JSONNode& node)
 {
-   std::ifstream in(filename, std::ios::in);
-   if (!in.good()) {
-      return;
+   ASSERT(uri.is_valid());
+
+   std::ifstream in;
+   if (!OpenResource(uri, in)) {
+      return false;
    }
 
    std::stringstream reader;
    reader << in.rdbuf();
+
    json_string json = reader.str();
-      
    try {
-      JSONNode node = libjson::parse(json);
-      ParseJsonObject("", node);
+      node = libjson::parse(json);
    } catch (const std::invalid_argument& e) {
-      LOG(WARNING) << filename << " is not valid JSON: " << e.what();
-      return;
+      LOG(WARNING) << uri.string() << " is not valid JSON: " << e.what();
+      return false;
    }
+   return true;
 }
 
-std::shared_ptr<Resource> ResourceManager2::ParseJsonObject(std::string ns, const JSONNode& json)
-{
-   ASSERT(json.type() == JSON_NODE);
-
-   std::shared_ptr<Resource> obj;
-   std::string type = ValidateJsonObject(json);
-   if (type == "rig") {
-      obj = ParseRigJsonObject(ns, json);
-   } else if (type == "action") {
-      obj = ParseActionJsonObject(ns, json);
-   } else if (type == "animation") {
-      obj = ParseAnimationJsonObject(ns, json);
-   } else if (type == "region2d") {
-      obj = ParseRegion2dJsonObject(ns, json);
-   } else if (type == "skeleton") {
-      obj = ParseSkeletonJsonObject(ns, json);
-   } else if (type == "effect") {
-      obj = ParseDataJsonObject(Resource::EFFECT, ns, json);
-   } else if (type == "recipe") {
-      obj = ParseDataJsonObject(Resource::RECIPE, ns, json);
-   } else if (type == "one_of") {
-      obj = ParseDataJsonObject(Resource::ONE_OF, ns, json);
-   } else if (type == "json") {
-      obj = ParseDataJsonObject(Resource::JSON, ns, json);
-   } else if (type == "combat_ability") {
-      obj = ParseDataJsonObject(Resource::JSON, ns, json);
-   } else {
-      obj = ParseGenericJsonObject(ns, json);
-   }
-   return obj;
-}
-
-std::shared_ptr<Resource> ResourceManager2::ParseGenericJsonObject(std::string ns, const JSONNode& node)
-{
-   std::string sep = ns.empty() ? "" : ".";
-
-   auto obj = std::make_shared<ObjectResource>();
-   for (const JSONNode& child : node) {
-      std::string name = child.name();
-      std::string childns = ns + sep + name;
-
-      std::shared_ptr<Resource> value = ParseJson(childns, child);
-      (*obj)[name] = value;
-      AddResourceToIndex(childns, value);
-   }
-   return obj;
-}
-
-std::shared_ptr<Resource> ResourceManager2::ParseJsonArray(std::string ns, const JSONNode& json)
-{
-   ASSERT(json.type() == JSON_ARRAY);
-   ASSERT(!ns.empty());
-
-   auto obj = std::make_shared<ArrayResource>();
-   for (unsigned int i = 0; i < json.size(); i++) {
-      std::stringstream childns;
-      childns << ns << "[" << i << "]";
-      std::shared_ptr<Resource> value = ParseJson(childns.str(), json[i]);
-      obj->Append(value);
-      AddResourceToIndex(childns.str(), value);
-   }
-   return obj;
-}
-
-std::shared_ptr<Resource> ResourceManager2::ParseJson(std::string ns, const JSONNode& node)
-{
-   if (node.type() == JSON_NODE) {
-      return ParseJsonObject(ns, node);
-   } else if (node.type() == JSON_ARRAY) {
-      return ParseJsonArray(ns, node);
-   } else if (node.type() == JSON_NUMBER) {
-      return std::make_shared<NumberResource>(node.as_float());
-   } else if (node.type() == JSON_STRING) {
-      return std::make_shared<StringResource>(node.as_string());
-   }
-   ASSERT(false);
-   return nullptr;
-}
-
-void ResourceManager2::AddResourceToIndex(std::string key, std::shared_ptr<Resource> value)
-{
-   LOG(WARNING) << "Adding resource " << key << " to database.";
-   ASSERT(!resources_[key]);
-   resources_[key] = value;
-}
-
-std::string ResourceManager2::ValidateJsonObject(const JSONNode& json)
-{
-   ASSERT(json.type() == JSON_NODE);
-   auto i = json.find("type");
-   if (i != json.end()) {
-      return i->as_string();
-   }
-   return "";
-}
-
-const std::shared_ptr<Resource> ResourceManager2::Lookup(std::string id) const
+const std::shared_ptr<Resource> ResourceManager2::LookupResource(std::string struri)
 {
    std::lock_guard<std::mutex> lock(mutex_);
 
-   auto i = resources_.find(id);
-   return i == resources_.end() ? nullptr : i->second;
-}
-
-std::shared_ptr<Resource> ResourceManager2::ParseRigJsonObject(std::string ns, const JSONNode& json)
-{
-   std::shared_ptr<Rig> rig = std::make_shared<Rig>(ns);
-
-   const JSONNode& parts = json["parts"];
-   ASSERT(parts.type() == JSON_NODE);
-
-   for (const JSONNode& part : parts) {
-      std::string bone = part.name();
-      std::string model = part.as_string();
-      rig->AddModel(bone, Model(model, "", "", math3d::point3::origin));
+   // If we've already loaded the resources, there's no need to load it
+   // again.  Just return the one we've got.
+   auto j = resources_.find(struri);
+   if (j != resources_.end()) {
+      return j->second;
    }
 
-   return rig;
-}
-
-std::shared_ptr<Resource> ResourceManager2::ParseRegion2dJsonObject(std::string ns, const JSONNode& json)
-{
-   std::shared_ptr<Region2d> region = std::make_shared<Region2d>();
-
-   const JSONNode& rects = json["rects"];
-   ASSERT(rects.type() == JSON_ARRAY);
-
-   csg::Region2& rgn = region->ModifyRegion();
-   for (const JSONNode& rc : rects) {
-      rgn += csg::Rect2(csg::Point2(rc[0][0].as_int(), rc[0][1].as_int()),
-                        csg::Point2(rc[1][0].as_int() + 1, rc[1][1].as_int() + 1));
+   network::uri::uri uri;
+   if (!ParseUri(struri, uri)) {
+      LOG(WARNING) << "invalid uri '" << struri << "' in open resource.";
+      return nullptr;
    }
 
-   return region;
-}
+   // Load the JSON with the specified id.  This just loads a blob of JSON.
+   // We may convert it to something else based on the type.
+   JSONNode node;
+   if (!LoadJson(uri, node)) {
+      return nullptr;
+   }
 
-std::shared_ptr<Resource> ResourceManager2::ParseSkeletonJsonObject(std::string ns, const JSONNode& json)
-{
-   std::shared_ptr<Skeleton> skeleton = std::make_shared<Skeleton>(json);
-   return skeleton;
-}
+   std::shared_ptr<Resource> resource;
 
-std::shared_ptr<Resource> ResourceManager2::ParseDataJsonObject(Resource::ResourceType type, std::string ns, const JSONNode& json)
-{
-   return std::make_shared<DataResource>(type, json);
-}
+   auto i = node.find("type");
+   Resource::ResourceType loadType = Resource::JSON;
 
-std::shared_ptr<Resource> ResourceManager2::ParseActionJsonObject(std::string ns, const JSONNode& json)
-{
-   return std::make_shared<Action>(ns, json);
+   if (i != node.end() && i->type() == JSON_STRING) {
+      std::string type = i->as_string();
+      if (type == "animation") {
+         loadType = Resource::ANIMATION;
+      }
+   }
+   switch (loadType) {
+   case Resource::ANIMATION:
+      resource = ParseAnimationJsonObject(struri, node);
+      break;
+   case Resource::JSON:
+      ExtendRootJsonNode(uri, node);
+      resource = std::make_shared<DataResource>(ExpandJSON(uri, node));
+      break;
+   }
+
+   if (resource) {
+      resources_[struri] = resource;
+   }
+   return resource;
 }
 
 std::shared_ptr<Resource> ResourceManager2::ParseAnimationJsonObject(std::string key, const JSONNode& node)
 {
    std::string jsonfile = node.write();
    std::string jsonhash = Checksum(jsonfile);
-   fs::path binfile = fs::path(resource_dir_) / (key + std::string(".bin"));
+   fs::path binfile = fs::path(resource_dir_) / (jsonhash + std::string(".bin"));
 
    std::string buffer;
    std::ifstream in(binfile.string(), std::ios::out | std::ios::binary);
@@ -268,5 +183,182 @@ std::string ResourceManager2::Checksum(std::string input)
             new CryptoPP::HexEncoder(new CryptoPP::ArraySink(buffer, sizeof buffer))));
 
    return std::string((const char *)buffer, sizeof buffer);
+}
+
+void ResourceManager2::ExtendRootJsonNode(network::uri::uri const& uri, JSONNode& node)
+{
+   auto i = node.find("extends");
+   if (i != node.end()) {
+      if (i->type() == JSON_STRING) {
+         network::uri::uri parentUri;
+         std::string parentUriStr = ExpandURL(uri, i->as_string());
+         if (!ParseUri(parentUriStr, parentUri)) {
+            LOG(WARNING) << "invalid uri '" << parentUri << "' in extend";
+            return;
+         }         
+         parentUriStr = parentUri.string();
+         ExtendedNodesMap::iterator j = extendedNodes_.find(parentUriStr);
+         if (j == extendedNodes_.end()) {
+
+            if (!LoadJson(network::uri::uri(parentUri), extendedNodes_[parentUriStr])) {
+               ASSERT(false); // xxx: throw or something...
+            }
+            j = extendedNodes_.find(parentUriStr);
+            j->second = ExpandJSON(parentUri, j->second);
+         }
+         LOG(WARNING) << "node pre-extend: " << node.write_formatted();
+         LOG(WARNING) << "extending with: " << j->second.write_formatted();
+         ExtendNode(node, j->second);
+         LOG(WARNING) << "node post-extend: " << node.write_formatted();
+      }
+      // remove extends...
+      node.erase(i);
+   }
+}
+
+void ResourceManager2::ExtendNode(JSONNode& node, const JSONNode& parent)
+{
+   ASSERT(node.type() == parent.type());
+
+   switch (parent.type()) {
+   case JSON_NODE:
+      {
+         for (const auto& i : parent) {
+            std::string const& name = i.name();
+            auto current = node.find(name);
+            if (current!= node.end()) {
+               ExtendNode(*current, i);
+            } else {
+               node.push_back(i);
+            }
+         }
+         break;
+      }
+   case JSON_ARRAY:
+      {
+         JSONNode values = parent;
+         for (uint i = 0; i < node.size(); i++) {
+            values.push_back(node[i]);
+         }
+         node = values;
+         break;
+      }
+   default:
+      node = parent;
+      break;      
+   }
+}
+
+std::string ResourceManager2::ExpandURL(network::uri::uri const& current, std::string const& str)
+{
+   if (!boost::starts_with(str, "url(") || !boost::ends_with(str, ")")) {
+      return str;
+   }
+   fs::path newpath;
+   std::string suffix = str.substr(4, str.size() - 5);
+   if (!suffix.empty() && suffix[0] == '/') {
+      // start at the root
+      newpath = fs::path("/");
+      suffix = suffix.substr(1);
+   } else {
+      // start in the current directory
+      newpath = fs::path(current.path()).parent_path();
+   }
+   fs::path path(suffix);
+
+   for (auto const& item : path) {
+      if (item == ".") {
+      } else if (item == "..") {
+         newpath = newpath.parent_path();
+      } else {
+         newpath = newpath / item;
+      }
+   }
+
+   network::uri::uri newuri;
+   newuri << network::uri::scheme(current.scheme())
+          << network::uri::host(current.host())
+          << network::uri::path(newpath.generic_string());
+
+   return newuri.string();
+}
+
+JSONNode ResourceManager2::ExpandJSON(network::uri::uri const& uri, JSONNode const& node)
+{
+   switch (node.type()) {
+   case JSON_NODE:
+   case JSON_ARRAY: {
+      JSONNode result(node.type());
+      result.set_name(node.name());
+      for (const auto& i : node) {
+         result.push_back(ExpandJSON(uri, i));
+      }
+      return result;
+   }
+   case JSON_STRING:
+      return JSONNode(node.name(), ExpandURL(uri, node.as_string()));
+   }
+   return node;
+}
+
+
+bool ResourceManager2::ParseUri(std::string const& uristr, network::uri::uri &uri)
+{
+   uri = uristr;
+   if (!uri.is_valid()) {
+      LOG(WARNING) << "invalid uri '" << uri << "' in open resource.";
+      return false;
+   }
+
+   fs::path filepath = fs::path(resource_dir_) / uri.host();
+   std::string uripath = uri.path();
+
+   boost::char_separator<char> sep("/");
+   boost::tokenizer<boost::char_separator<char>> tokens(uripath, sep);
+
+   std::string last_part;
+   for (auto const& part: tokens) {
+      filepath /= part;
+      last_part = part;
+   }
+
+   // if the file path is a directory, look for a file with the name of
+   // the last part in there (e.g. /foo/bar -> /foo/bar/bar.txt
+   if (fs::is_directory(filepath) && !last_part.empty()) {
+      filepath /= last_part + ".txt";
+      uri = uristr + std::string("/") + std::string(last_part) + ".txt";
+   }
+   if (!fs::is_regular_file(filepath)) {
+      return false;
+   }
+   return true;
+}
+
+
+bool ResourceManager2::OpenResource(network::uri::uri const& uri, std::ifstream& in)
+{
+   LOG(WARNING) << "opening resource '" << uri << "'.";
+
+   if (!uri.is_valid()) {
+      LOG(WARNING) << "invalid uri '" << uri << "' in open resource.";
+      return false;
+   }
+
+   network::uri::uri fileuri;
+   std::string str = uri.string();
+   if (!ParseUri(str, fileuri)) {
+      LOG(WARNING) << "could not open uri '" << str << "' in open resource.";
+      return false;
+   }
+
+   fs::path filepath = fs::path(resource_dir_) / fileuri.host() / fileuri.path();
+   auto fb = filepath.native();
+   in.open(filepath.native(), std::ios::in | std::ios::binary);
+   return in.good();
+}
+
+bool ResourceManager2::OpenResource(std::string const& s, std::ifstream& in)
+{
+   return OpenResource(network::uri::uri(s), in);
 }
 

@@ -3,7 +3,6 @@
 
 #include "component.h"
 #include "om/region.h"
-#include "resources/region2d.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
 
@@ -13,7 +12,7 @@ public:
    DEFINE_OM_OBJECT_TYPE(Portal);
 
    const csg::Region2& GetRegion() const { return *region_; }
-   void SetPortal(const resources::Region2d& region);
+   void SetPortal(csg::Region2 const& region);
 
 private:
    void InitializeRecordFields() override;

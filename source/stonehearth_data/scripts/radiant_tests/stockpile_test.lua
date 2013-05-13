@@ -5,7 +5,7 @@ local gm = require 'radiant.core.gm'
 
 StockpileTest['radiant.md.create'] = function(self, bounds)
    self:create_world()
-   self:place_item_cluster('oak-log', -14, -14, 6, 6);
+   self:place_item_cluster('module://stonehearth/resources/oak_tree/oak_log', -14, -14, 6, 6);
    self:place_citizen(11, 12)
    self:place_citizen(12, 12)
    self:place_citizen(13, 12)

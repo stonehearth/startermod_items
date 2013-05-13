@@ -1,10 +1,14 @@
 #include "pch.h"
+#include "radiant_json.h"
 #include "renderer.h"
 #include "render_entity.h"
 #include "render_scaffolding.h"
+#include "om/entity.h"
 #include "om/components/scaffolding.h"
+#include "resources/res_manager.h"
 #include "Horde3DUtils.h"
 #include "Horde3DRadiant.h"
+#include "pipeline.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -26,13 +30,13 @@ RenderScaffolding::RenderScaffolding(const RenderEntity& entity, om::Scaffolding
    UpdateLadder(scaffolding->GetLadderRegion());
 
    if (normal_[0] == 1 && normal_[2] == 0) {
-      rotation_ = 270.0f;
-   } else if (normal_[0] == 0 && normal_[2] == 1) {
-      rotation_ = 180.0f;
-   } else if (normal_[0] == -1 && normal_[2] == 0) {
       rotation_ = 90.0f;
-   } else {
+   } else if (normal_[0] == 0 && normal_[2] == 1) {
       rotation_ = 0.0f;
+   } else if (normal_[0] == -1 && normal_[2] == 0) {
+      rotation_ = 270.0f;
+   } else {
+      rotation_ = 180.0f;
    }
 }
 
@@ -54,59 +58,61 @@ void RenderScaffolding::UpdateRegion(const csg::Region3& region)
          h3dRemoveNode(blocksNode_);
       }
 
-      ostringstream name;
+      std::ostringstream name;
       name << "Scaffolding " << scaffolding->GetObjectId();
       blocksNode_ = h3dAddGroupNode(GetParentNode(), name.str().c_str());
 
-      if (!region.IsEmpty()) {
-         csg::Point3 normal = scaffolding->GetNormal();
-         int tangent = normal_.x ? 2 : 0;
-         int top = region.GetBounds().GetMax()[1] - 1;
-         for (const auto& r : region) {
-            for (const auto& p : r) {
-               bool isTop = !region.Contains(p + csg::Point3(0, 1, 0));
-               bool isInner = region.Contains(p + normal);
+      if (region.IsEmpty()) {
+         return;
+      }
+      csg::Point3 normal = scaffolding->GetNormal();
+      int tangent = normal_.x ? 2 : 0;
+      int top = region.GetBounds().GetMax()[1] - 1;
 
-               if (isInner && !isTop) {
-                  // xxx: should really just iterate over the outer slice and 
-                  // the top slice.
-                  continue;
-               }
-               ostringstream segment;
-               if (isTop) {
-                  if (isInner) {
-                     segment << "models/scaffolding/scaffold_top.scene.xml";
-                  } else {
-                     segment << "models/scaffolding/scaffold_top_" << (p[tangent] % 4) << ".scene.xml";
-                  }
+      om::EntityPtr e = entity_.GetEntity();
+      if (!e) {
+         return;
+      }
+      std::string uri = e->GetResourceUri();
+      auto resource = resources::ResourceManager2::GetInstance().Lookup<resources::DataResource>(uri);
+      if (!resource) {
+         return;
+      }
+
+      JSONNode data = json::get<JSONNode>(resource->GetJson(), "data");
+      JSONNode models = json::get<JSONNode>(data, "models");
+      
+
+      for (const auto& r : region) {
+         for (const auto& p : r) {
+            bool isTop = !region.Contains(p + csg::Point3(0, 1, 0));
+            bool isInner = region.Contains(p + normal);
+
+            if (isInner && !isTop) {
+               // xxx: should really just iterate over the outer slice and 
+               // the top slice.
+               continue;
+            }
+            std::string segment;
+#if 1
+            segment = json::get<std::string>(models, "plank");
+#else
+            if (isTop) {
+               if (isInner) {
+                  segment << "models/scaffolding/scaffold_top.scene.xml";
                } else {
-                  segment << "models/scaffolding/scaffold_" << (p[tangent] % 4) << "_" << (p[1] % 4) << ".scene.xml";
+                  segment << "models/scaffolding/scaffold_top_" << (p[tangent] % 4) << ".scene.xml";
                }
+            } else {
+               segment << "models/scaffolding/scaffold_" << (p[tangent] % 4) << "_" << (p[1] % 4) << ".scene.xml";
+            }
+#endif
 
-               H3DNode res = h3dAddResource(H3DResTypes::SceneGraph, segment.str().c_str(), 0);
-               ASSERT(res);
-
-               Renderer::GetInstance().LoadResources();
-
-               H3DNode node = h3dAddNodes(blocksNode_, res);
-               ASSERT(node);
-
-               //math3d::ipoint3 pt = math3d::ipoint3(p) + math3d::ipoint3(normal_);
+            auto nodes = Pipeline::GetInstance().LoadQubicleFile(segment);
+            if (!nodes.empty()) {
+               H3DNode node = nodes.begin()->second;
+               h3dSetNodeParent(node, blocksNode_);
                h3dSetNodeTransform(node, (float)p.x, (float)p.y, (float)p.z, 0, rotation_, 0, .1f, .1f, .1f);
-               /*
-               if (isTop) {
-                  res = h3dAddResource(H3DResTypes::SceneGraph, "models/scaffolding/scaffold_top.scene.xml", 0);
-
-                  Renderer::GetInstance().LoadResources();
-
-                  node = h3dAddNodes(blocksNode_, res);
-
-                  ASSERT(res && node);
-
-                  pt = math3d::ipoint3(p);
-                  h3dSetNodeTransform(node, (float)pt.x, (float)pt.y, (float)pt.z, 0, rotation_, 0, .1f, .1f, .1f);
-               }
-               */
             }
          }
       }

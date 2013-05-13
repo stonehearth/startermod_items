@@ -8,14 +8,13 @@ BEGIN_RADIANT_RESOURCES_NAMESPACE
 
 class DataResource : public Resource {
    public:
-      DataResource(ResourceType type, const JSONNode& info) : type_(type), info_(info) { }
+      DataResource(const JSONNode& info) : info_(info) { }
       
-      ResourceType GetType() const override { return type_; }
+      ResourceType GetType() const override { return JSON; }
       const JSONNode& GetJson() const { return info_; }
       std::string GetJsonString() const { return info_.write(); }
 
    protected:
-      ResourceType      type_;
       JSONNode          info_;
 };
 

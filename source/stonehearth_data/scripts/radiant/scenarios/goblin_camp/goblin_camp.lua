@@ -57,7 +57,7 @@ function GoblinCamp:_create_goblins()
 
    -- create the soldiers
    for i = 1, 2 do
-      local goblin = self:_create_goblin(center, 'radiant.mobs.goblin-soldier')
+      local goblin = self:_create_goblin(center, 'module://stonehearth/mobs/goblin_soldier')
       local club = om:create_entity('radiant.weapons.1h.club')
       om:equip(goblin, Paperdoll.MAIN_HAND, club)
       self._goblin_warriors[goblin:get_id()] = goblin

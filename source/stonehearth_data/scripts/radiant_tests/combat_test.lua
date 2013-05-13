@@ -11,21 +11,21 @@ CombatTest['radiant.md.create'] = function(self, bounds)
    
    for i = 1, 2 do
       local footman = self:place_citizen(4, -12 + i * 6, 'footman')  
-      om:add_combat_ability(footman, 'radiant.combat_abilities.parry')
+      om:add_combat_ability(footman, 'module://stonehearth/combat_abilities/parry.txt')
       ai_mgr:add_intention(footman, 'radiant.intentions.combat_defense')
-      local sword = om:create_entity('radiant.items.iron_sword')
+      local sword = om:create_entity('module://stonehearth/items/iron_sword')
       om:equip(footman, Paperdoll.MAIN_HAND, sword)
    end
    
    for i = 1, 2 do
-      local goblin = self:place_entity(-4, -12 + i * 6, 'radiant.mobs.goblin-soldier')
-      local shield = om:create_entity('radiant.items.cracked_wooden_buckler')
-      local helmet = om:create_entity('radiant.items.studded_leather_helmet')
+      local goblin = self:place_entity(-4, -12 + i * 6, 'module://stonehearth/mobs/goblin_soldier')
+      local shield = om:create_entity('module://stonehearth/items/cracked_wooden_buckler')
+      local helmet = om:create_entity('module://stonehearth/items/studded_leather_helmet')
       ai_mgr:add_intention(goblin, 'radiant.intentions.combat_defense')
       
-      om:add_combat_ability(goblin, 'radiant.combat_abilities.shield_block')
-      om:add_combat_ability(goblin, 'radiant.combat_abilities.shield_swing')
-      local mace = om:create_entity('radiant.items.spiked_wooden_mace')
+      om:add_combat_ability(goblin, 'module://stonehearth/combat_abilities/shield_block.txt')
+      om:add_combat_ability(goblin, 'module://stonehearth/combat_abilities/shield_swing.txt')
+      local mace = om:create_entity('module://stonehearth/items/spiked_wooden_mace')
       om:equip(goblin, Paperdoll.MAIN_HAND, mace)
    
       om:wear(goblin, shield)

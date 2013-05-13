@@ -24,7 +24,7 @@ function PickupItem:run(ai, entity, item)
          log:info('picking up item at %s', tostring(location))
          om:turn_to_face(entity, location)
          om:pickup_item(entity, item)
-         ai:execute('radiant.actions.perform', 'carry_light_pickup')
+         ai:execute('radiant.actions.perform', 'carry_pickup')
       end
    end
 end

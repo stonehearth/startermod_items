@@ -1,0 +1,23 @@
+{
+   "extends": "url(/prototypes/tree)",
+   "resource_node" : {
+      "resource": "url(../oak_log)",
+      "durability": 6
+   },
+   "unit_info" : {
+      "name" :  "Medium Oak Tree",
+      "description" : "100's of years old.  Too bad..."
+   },
+   "render_rig": {
+      "scale": 1,
+      "models": [
+         {
+            "type": "one_of",
+            "items": [
+               "url(medium_oak_tree.qb)"
+            ]
+         }
+      ]
+   }
+}
+

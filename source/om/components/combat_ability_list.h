@@ -38,6 +38,7 @@ public:
    bool HasTag(std::string tag) const;
    int GetCooldown() const;
    int GetPriority() const;
+   std::string GetJsonString() const { return GetJson().write(); }
 
 private:
    void InitializeRecordFields() override {

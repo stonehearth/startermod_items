@@ -10,10 +10,10 @@ md:register_msg_handler("radiant.professions.worker", Worker)
 Worker['radiant.md.create'] = function(self, entity)
    self._entity = entity
    self._intention = ai_mgr:add_intention(entity, 'radiant.intentions.worker_scheduler_slave', sh:get_worker_scheduler())
-   om:add_rig_to_entity(entity, 'models/worker_outfit.qb')
+   om:add_rig_to_entity(entity, 'module://stonehearth/professions/worker/outfit.qb')
 end
 
 Worker['radiant.md.destroy'] = function(self)
    self._intention:destroy()
-   om:remove_rig_from_entity(self._entity, 'models/worker_outfit.qb')
+   om:remove_rig_from_entity(self._entity, 'module://stonehearth/professions/worker/outfit.qb')
 end

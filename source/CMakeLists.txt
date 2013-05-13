@@ -5,6 +5,10 @@ PROJECT(Stonehearth)
 ## See http://connect.microsoft.com/VisualStudio/feedback/details/746718/frequently-get-c1027-from-vc-100-compiler-after-installing-vs-2012-rc
 string(REPLACE "[/\\-]Zm[0-9]+" " " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 
+## See http://connect.microsoft.com/VisualStudio/feedback/details/746718/frequently-get-c1027-from-vc-100-compiler-after-installing-vs-2012-rc
+SET(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} /Ym0x50000000 ")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Ym0x50000000 ")
+
 ## Use MT instead of MD...
 #SET(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1")
 #SET(CMAKE_CXX_FLAGS_MINSIZEREL     "/MT /O1 /Ob1 /D NDEBUG")

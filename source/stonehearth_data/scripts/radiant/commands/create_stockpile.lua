@@ -2,7 +2,7 @@ local ch = require 'radiant.core.ch'
 local om = require 'radiant.core.om'
 
 ch:register_cmd("radiant.commands.create_stockpile", function(bounds)
-   local stockpile = om:create_entity('stockpile')
+   local stockpile = om:create_entity('module://stonehearth/buildings/stockpile')
    
    local origin = RadiantIPoint3(bounds.min)
    bounds.max = bounds.max - bounds.min

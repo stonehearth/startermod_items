@@ -9,9 +9,6 @@
 #include "om/components/render_rig.h"
 #include "Horde3DUtils.h"
 #include "resources/res_manager.h"
-#include "resources/skeleton.h"
-#include "resources/rig.h"
-#include "resources/model.h"
 #include "qubicle_file.h"
 #include "texture_color_mapper.h"
 

@@ -49,7 +49,7 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
    totalObjectCount_++;
    om::EntityId id = entity->GetObjectId();
 
-   ostringstream name;
+   std::ostringstream name;
    name << "RenderEntity " << entity->GetDebugName() << " (" << entity->GetStoreId() << ", " << id << ")";
 
    // LOG(WARNING) << "creating new entity " << name.str() << ".";

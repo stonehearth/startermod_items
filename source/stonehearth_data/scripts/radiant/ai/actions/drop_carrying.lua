@@ -14,7 +14,7 @@ function DropCarrying:run(ai, entity, location)
     
    if om:get_carrying(entity) then
       om:turn_to_face(entity, location)
-      ai:execute('radiant.actions.perform', 'carry_light_putdown')
+      ai:execute('radiant.actions.perform', 'carry_putdown')
       om:drop_carrying(entity, location)
    end
 end
