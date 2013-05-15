@@ -55,6 +55,9 @@ radiant.views['stonehearth.views.sidebar'] = radiant.View.extend({
       }
 
       this.initHandlers();
+
+      this.my("#sidebarNav").hide();
+      this.my("#sidebar").css({ opacity: 0.0 });
    },
 
    initHandlers: function() {
