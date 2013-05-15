@@ -79,7 +79,7 @@ radiant.views['stonehearth.views.unitframe'] = radiant.View.extend({
             var actionbutton = abElement.data("actionbutton");  //get the actionbutton interface
             actionbutton.entityId = entityId;
             actionbutton.icon(buttonData.icon);
-            actionbutton.execute = buttonData.execute;
+            actionbutton.execute = buttonData.action_uri;
             this.my("#ab" + i).show()
          }
       }

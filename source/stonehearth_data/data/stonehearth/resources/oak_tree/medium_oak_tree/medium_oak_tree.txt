@@ -14,7 +14,9 @@
          {
             "type": "one_of",
             "items": [
-               "url(medium_oak_tree.qb)"
+               "url(medium_oak_tree.qb)",
+               "url(medium_oak_tree_2.qb)",
+               "url(medium_oak_tree_3.qb)"
             ]
          }
       ]
