@@ -90,7 +90,7 @@ vec3 calcPhongDirectionalLight( const vec3 pos, const vec3 normal, const vec3 al
 
 	// Blinn-Phong specular with energy conservation
 	vec3 view = normalize( viewerPos - pos );
-	vec3 halfVec = normalize( lightDir + view );
+	vec3 halfVec = normalize( lightDir.xyz + view );
 	float specExp = exp2( 10.0 * gloss + 1.0 );
 	vec3 specular = specColor * pow( max( dot( halfVec, normal ), 0.0 ), specExp );
 	specular *= (specExp * 0.125 + 0.25);  // Normalization factor (n+2)/8
@@ -106,7 +106,7 @@ vec3 calcPhongDirectionalLight( const vec3 pos, const vec3 normal, const vec3 al
       else projShadow = shadowMats[3] * vec4( pos, 1.0 );
 
       //vec4 projShadow = shadowMats[0] * vec4(pos, 1.0);
-      shadowTerm = shadow2D(shadowMap, projShadow.xyz);
+      //shadowTerm = shadow2D(shadowMap, projShadow.xyz);
       shadowTerm = max( PCF( projShadow ), ambientIntensity );
 	}
 
