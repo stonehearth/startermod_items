@@ -34,18 +34,6 @@ end
 function MicroWorld:create_world()
    om:get_terrain():add_cube(Cube3(Point3(-16, -16, -16), Point3(16, 0, 16), Terrain.TOPSOIL))
    om:get_terrain():add_cube(Cube3(Point3(-16,   0, -16), Point3(16, 1, 16), Terrain.GRASS))
-   
-   -- left
-   om:get_terrain():add_cube(Cube3(Point3(-20, -16, -16), Point3(-16, 10, 16), Terrain.TOPSOIL))
-   om:get_terrain():add_cube(Cube3(Point3(-20,  10, -16), Point3(-16, 11, 16), Terrain.GRASS))
-   
-   -- right
-   --om:get_terrain():add_cube(Cube3(Point3(16, -16, -16), Point3(20, 10, 16), Terrain.TOPSOIL))
-   --om:get_terrain():add_cube(Cube3(Point3(16,  10, -16), Point3(20, 11, 16), Terrain.GRASS))
-   
-   --
-   om:get_terrain():add_cube(Cube3(Point3(-16, -16, 16), Point3(16, 10, 20), Terrain.TOPSOIL))
-   om:get_terrain():add_cube(Cube3(Point3(-16,  10, 16), Point3(16, 11, 20), Terrain.GRASS))
 end
 
 function MicroWorld:at(time, fn)
@@ -54,7 +42,7 @@ function MicroWorld:at(time, fn)
 end
 
 function MicroWorld:place_tree(x, z)
-   return self:place_item('oak-tree-medium', x, z)
+   return self:place_item('module://stonehearth/resources/oak_tree/medium_oak_tree', x, z)
 end
 
 function MicroWorld:place_item(name, x, z)
@@ -74,7 +62,7 @@ function MicroWorld:place_item_cluster(name, x, z, w, h)
    h = h and h or 3
    for i = x, x+w-1 do
       for j = z, z+h-1 do
-         self:place_item('oak-log', i, j)
+         self:place_item('module://stonehearth/resources/oak_tree/oak_log', i, j)
       end
    end
 end
@@ -102,7 +90,7 @@ end
 
 function MicroWorld:create_door_cmd(wall, x, y, z)
    check:is_a(wall, Wall)
-   local json, obj = ch:call('radiant.commands.create_portal', wall, 'wooden_door', RadiantIPoint3(x, y, z))
+   local json, obj = ch:call('radiant.commands.create_portal', wall, 'module://stonehearth/buildings/wooden_door', RadiantIPoint3(x, y, z))
    return om:get_entity(obj.entity_id)
 end
 

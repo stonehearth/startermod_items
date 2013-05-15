@@ -433,7 +433,7 @@ void ScriptHost::OnError(std::string description)
 luabind::object ScriptHost::LookupResource(std::string name)
 {
    luabind::object result;
-   std::shared_ptr<resources::Resource> obj = resources::ResourceManager2::GetInstance().Lookup(name);
+   std::shared_ptr<resources::Resource> obj = resources::ResourceManager2::GetInstance().LookupResource(name);
    return LuaResource::ConvertResourceToLua(L_, obj);
 }
 

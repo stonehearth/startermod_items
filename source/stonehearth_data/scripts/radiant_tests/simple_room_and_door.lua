@@ -13,7 +13,7 @@ SimpleRoomAndDoor['radiant.md.create'] = function(self, bounds)
    self:place_citizen(12, 13)
    self:place_citizen(12, 14)
    self:place_citizen(12, 15)
-   self:place_item_cluster('oak-log', 4, 8, 4, 4)
+   self:place_item_cluster('module://stonehearth/resources/oak_tree/oak_log', 4, 8, 4, 4)
    self:place_stockpile_cmd(4, -12)
    
    local house = self:create_room_cmd(-10, -10, 7, 7)

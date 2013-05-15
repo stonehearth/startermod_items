@@ -7,16 +7,19 @@
 #include "om/grid/grid.h"
 #include "renderer.h"
 #include "qubicle_file.h"
+#include "resources/res_manager.h"
+#include <fstream>
 #include <unordered_map>
 
 using namespace ::radiant;
 
 namespace metrics = ::radiant::metrics;
 using ::radiant::math3d::ipoint3;
-using ::radiant::resources::Model;
 
 using namespace ::radiant;
 using namespace ::radiant::client;
+
+DEFINE_SINGLETON(Pipeline);
 
 std::unique_ptr<TextureColorMapper> TextureColorMapper::mapper_;
 
@@ -25,29 +28,15 @@ Pipeline::Pipeline()
    //_actorMaterial = Ogre::MaterialManager::getSingleton().load("Tessaract/ActorMaterialTemplate", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
    //_tileMaterial = Ogre::MaterialManager::getSingleton().load("Tessaract/TileMaterialTemplate", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
    // ASSERT(!_actorMaterial.isNull());
-}
+   orphaned_ = h3dAddGroupNode(H3DRootNode, "pipeline orphaned nodes");
+   h3dSetNodeFlags(orphaned_, H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, true);
 
+   float offscreen = -100000.0f;
+   h3dSetNodeTransform(orphaned_, offscreen, offscreen, offscreen, 0, 0, 0, 1, 1, 1);
+}
 
 Pipeline::~Pipeline()
 {
-}
-
-
-H3DRes Pipeline::GetActorEntity(const Model &model)
-{
-   H3DNode res = 0;
-   std::string meshname = model.GetMesh();
-
-   ostringstream path;
-   path << "models/" << meshname << ".scene.xml";
-   //LOG(WARNING) << "Loading model " << path.str();
-
-   res = h3dAddResource(H3DResTypes::SceneGraph, path.str().c_str(), 0);
-   assert(res);
-
-   Renderer::GetInstance().LoadResources();
-
-   return res;
 }
 
 H3DNode Pipeline::GetTileEntity(const om::GridPtr grid, om::GridTilePtr tile, H3DRes parent)
@@ -59,7 +48,7 @@ H3DNode Pipeline::GetTileEntity(const om::GridPtr grid, om::GridTilePtr tile, H3
    if (geometry.Generate()) {
       auto& mapper = TextureColorMapper::GetInstance();
       static int nameOffset = 0;
-      ostringstream name;
+      std::ostringstream name;
       name << "Tile " << tile->GetObjectId() << " " << nameOffset++;
 
       GeometryResource geo = CreateMesh(name.str(), geometry.GetGeometry());
@@ -124,9 +113,9 @@ Pipeline::GeometryResource Pipeline::CreateMesh(std::string name, const Geometry
    int numVertices = geo.vertices.size();
    int numTriangleIndices = geo.indices.size();
 
-   vector<float> posData;
-   vector<short> normalData;
-   vector<float> texData1;
+   std::vector<float> posData;
+   std::vector<short> normalData;
+   std::vector<float> texData1;
    for (auto& v : geo.vertices) {
       posData.push_back(v.pos.x);
       posData.push_back(v.pos.y);
@@ -332,4 +321,39 @@ Pipeline::Geometry Pipeline::OptimizeQubicle(const QubicleMatrix& m, const csg::
    delete mask;
 
    return geo;
+}
+
+Pipeline::NamedNodeMap Pipeline::LoadQubicleFile(std::string const& uri)
+{   
+   NamedNodeMap result;
+
+   // xxx: no.  Make a qubicle resource type so they only get loaded once, ever.
+   std::ifstream input;
+   if (!resources::ResourceManager2::GetInstance().OpenResource(uri, input)) {
+      return result;
+   }
+
+   QubicleFile f;
+   input >> f;
+
+   for (const auto& entry : f) {
+      // Qubicle requires that every matrix in the file have a unique name.  While authoring,
+      // if you copy/pasta a matrix, it will rename it from matrixName to matrixName_2 to
+      // dismabiguate them.  Ignore everything after the _ so we don't make authors manually
+      // rename every single part when this happens.
+      std::string matrixName = entry.first;
+
+      Pipeline::Geometry geo = OptimizeQubicle(entry.second, csg::Point3f(0, 0, 0));
+
+      auto& mapper = TextureColorMapper::GetInstance();
+      // Geometry resource names must be unique.  WAT????
+      Pipeline::GeometryResource gr = CreateMesh(uri + "?matrix=" + matrixName, geo);
+
+      H3DNode node = h3dAddModelNode(orphaned_, "blocks", gr.geometry);
+      H3DNode mesh = h3dAddMeshNode(node , "mesh", mapper.GetMaterial(), 0, gr.numIndices, 0, gr.numVertices - 1);
+
+      result[matrixName] = node;
+   }
+
+   return result;
 }

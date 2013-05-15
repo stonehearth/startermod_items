@@ -4,8 +4,8 @@
 #include "namespace.h"
 #include "Horde3D.h"
 #include "om/om.h"
-#include "resources/model.h" // xxx -0 no!
 #include "csg/point.h"
+#include "core/singleton.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -17,8 +17,7 @@ struct Vertex {
    math3d::color3       color;
 };
 
-class Pipeline
-{
+class Pipeline : public core::Singleton<Pipeline> {
    public:
       Pipeline();
       ~Pipeline();
@@ -34,24 +33,16 @@ class Pipeline
          std::vector<radiant::uint32> indices;
       };
 
-      H3DRes GetActorEntity(const resources::Model &model);
+      typedef std::unordered_map<std::string, H3DNode> NamedNodeMap;
+
       H3DNode GetTileEntity(const om::GridPtr grid, om::GridTilePtr tile, H3DRes parentNode);
+      NamedNodeMap LoadQubicleFile(std::string const& uri);
 
       GeometryResource CreateMesh(std::string name, const Geometry& geo);
       Geometry OptimizeQubicle(const QubicleMatrix& m, const csg::Point3f& origin);
 
-   protected:
-      //void LoadActorMaterial(Ogre::Entity *entity, const resources::Model &model);
-      //void AddDebugWindow(std::string texture);
-
-   protected:
-      //Ogre::MaterialPtr                         _actorMaterial;
-      //std::map<std::string, Ogre::MaterialPtr>  _actorMaterials;
-      //Ogre::MaterialPtr                         _tileMaterial;
-      //Ogre::VertexData                          *_tileVertexData;
-      //std::vector<TextureDebugWindow>           _debugWindows;
-      //int                                       _nextEntityId;
-      //std::map<string, Ogre::Entity*>           models_;
+   private:
+      H3DNode     orphaned_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

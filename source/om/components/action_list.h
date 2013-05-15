@@ -2,7 +2,6 @@
 #define _RADIANT_OM_ACTION_LIST_H
 
 #include "dm/set.h"
-#include "resources/action.h"
 #include "component.h"
 
 BEGIN_RADIANT_OM_NAMESPACE

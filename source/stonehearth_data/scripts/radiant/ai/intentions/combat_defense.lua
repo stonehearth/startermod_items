@@ -65,13 +65,13 @@ CombatDefense['radiant.combat.on_defend_start'] = function(self, attacker, effec
 
          self._attacker = attacker
          self._action = ability:get_script_name()
-         self._script_info = dkjson.decode(ability:get_script_info_string())
+         self._script_info = dkjson.decode(ability:get_json())
 
          local ani = ani_mgr:get_animation(self._entity)
-         local defend_frame_data = ani:get_effect_track(self._script_info.execute, "frame_data")
+         local defend_frame_data = ani:get_effect_track(self._script_info.effect, "frame_data")
          local startup = om:frame_count_to_time(defend_frame_data.segments[1].duration)
          self._start_time = start_time - startup
-         self._end_time = self._start_time + ani:get_effect_duration(self._script_info.execute)
+         self._end_time = self._start_time + ani:get_effect_duration(self._script_info.effect)
 
          ability:set_cooldown_expire_time(self._start_time + ability:get_cooldown())
       end

@@ -4,10 +4,7 @@ local Util = class()
 
 local NativeClasses = {
    [RadiantIPoint3] = false,
-   [RigResource] = false,
    [AnimationResource] = false,
-   [ArrayResource] = false,
-   [ObjectResource] = false,
    [Entity] = 'Entity',
    [UnitInfo] = 'UnitInfo',
    [Mob] = 'Mob',

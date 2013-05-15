@@ -69,7 +69,7 @@ void Room::StartProject(const dm::CloneMapping& mapping, std::function<void(Buil
       roofDependencies->AddDependency(wall->GetEntityRef());
 
       // Add some scaffolding to support this wall...
-      EntityPtr e = Stonehearth::CreateEntity(GetStore(), "");
+      EntityPtr e = Stonehearth::CreateEntity(GetStore(), "module://stonehearth/buildings/scaffolding");
       GetEntity().GetComponent<EntityContainer>()->AddChild(e);
       scaffolding_.Insert(e);
 
@@ -147,7 +147,7 @@ EntityPtr Room::CreateWall(EntityPtr post1, EntityPtr post2, const csg::Point3& 
 
 void Room::CreateFloor()
 {
-   om::EntityPtr entity = Stonehearth::CreateEntity(GetStore(), "floor");
+   om::EntityPtr entity = Stonehearth::CreateEntity(GetStore(), "module://stonehearth/buildings/floor");
 
    entity->SetDebugName("floor for room " + stdutil::ToString(GetEntity().GetEntityId()));
    auto mob = entity->AddComponent<Mob>();
@@ -166,7 +166,7 @@ void Room::CreateFloor()
 
 void Room::CreateRoof()
 {
-   om::EntityPtr entity = Stonehearth::CreateEntity(GetStore(), "roof");
+   om::EntityPtr entity = Stonehearth::CreateEntity(GetStore(), "module://stonehearth/buildings/roof");
 
    entity->SetDebugName("roof for room " + stdutil::ToString(GetEntity().GetEntityId()));
    auto mob = entity->AddComponent<Mob>();

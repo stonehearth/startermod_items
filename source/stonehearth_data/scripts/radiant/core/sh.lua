@@ -54,7 +54,7 @@ function Stonehearth:create_citizen(location, profession)
    check:is_a(location, RadiantIPoint3)
    check:is_string(profession)
 
-   local entity = om:create_entity('radiant.mobs.person')
+   local entity = om:create_entity('module://stonehearth/mobs/civ')
    om:place_on_terrain(entity, location)
 
    om:set_display_name(entity, Stonehearth.CitizenNames[math.random(1, #Stonehearth.CitizenNames)])

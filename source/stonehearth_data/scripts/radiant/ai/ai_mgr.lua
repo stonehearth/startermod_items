@@ -135,19 +135,18 @@ function AIManager:_get_bm(arg0)
    return self._behavior_managers[id]
 end
 
-function AIManager:init_entity(entity, handlers)
+function AIManager:init_entity(entity, ai)
    local id = entity:get_id()
    
    self._entities[id] = entity  
-   local intentions =  handlers:get('intentions')
-   if intentions then
-      for name in intentions:contents() do
+   if ai.intentions then
+      for _, name in ipairs(ai.intentions) do
          self:add_intention(entity, name)
       end
    end
-   local observers = handlers:get('observers')
-   if observers then
-      for name in observers:contents() do
+  
+   if ai.observers then
+      for _, name in ipairs(ai.observers) do
          self:add_observer(entity, name)
       end
    end

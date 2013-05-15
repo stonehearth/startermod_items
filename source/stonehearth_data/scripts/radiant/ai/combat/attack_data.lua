@@ -41,10 +41,11 @@ end
 
 function Damage:run()
    local ani = ani_mgr:get_animation(self._entity)
+   local uri = 'module://stonehearth/effects/floating_combat_text'
    if self._mitigate_reason then
-      ani:start_action('radiant.effects.floating_combat_txt', nil, { damage_text = self._mitigate_reason })
+      ani:start_action(uri, nil, { damage_text = self._mitigate_reason })
    else
-      ani:start_action('radiant.effects.floating_combat_txt', nil, { damage_text = tostring(self._amount) })
+      ani:start_action(uri, nil, { damage_text = tostring(self._amount) })
       md:send_msg(self._entity, 'radiant.events.on_damage', self._source, self._amount, self._type)
    end
 end

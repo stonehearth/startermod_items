@@ -17,7 +17,7 @@ function MeleeAttack:run(ai, entity, target, script_info)
    self:_run_to_range(ai, range)
 
    md:listen(self._entity, 'radiant.combat.on_attack', self)
-   ai:execute('radiant.actions.perform_attack_script', target, script_info.execute)
+   ai:execute('radiant.actions.perform_attack_script', target, script_info.effect)
 end
 
 function MeleeAttack:stop()

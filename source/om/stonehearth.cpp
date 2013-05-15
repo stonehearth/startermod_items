@@ -1,195 +1,134 @@
 #include "pch.h"
 #include "stonehearth.h"
 #include "entity.h"
-#include "resources/rig.h"
-#include "resources/region2d.h"
+#include "radiant_json.h"
 #include "resources/res_manager.h"
-#include "resources/array_resource.h"
-#include "resources/data_resource.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-static void Ignore(om::EntityPtr entity, resources::ResourcePtr resource)
+static void Ignore(om::EntityPtr entity, JSONNode const& obj)
 {
 }
 
-static void InitUnitInfoComponent(om::EntityPtr entity, resources::ResourcePtr resource)
+static void InitUnitInfoComponent(om::EntityPtr entity, JSONNode const& obj)
 {
-   auto obj = std::dynamic_pointer_cast<resources::ObjectResource>(resource);
    auto unitInfo = entity->AddComponent<UnitInfo>();
 
-   unitInfo->SetDisplayName(obj->GetString("name"));
-   unitInfo->SetDescription(obj->GetString("description"));
-   unitInfo->SetFaction(obj->GetString("faction"));
+   unitInfo->SetDisplayName(obj["name"].as_string());
+   unitInfo->SetDescription(obj["description"].as_string());
+   unitInfo->SetFaction(json::get<std::string>(obj, "faction", ""));
 }
 
-static void InitWeaponInfoComponent(om::EntityPtr entity, resources::ResourcePtr resource)
+static void InitWeaponInfoComponent(om::EntityPtr entity, JSONNode const& obj)
 {
-   auto obj = std::dynamic_pointer_cast<resources::ObjectResource>(resource);
    auto weaponInfo = entity->AddComponent<WeaponInfo>();
 
-   weaponInfo->SetRange(obj->GetFloat("range"));
-   weaponInfo->SetDamageString(obj->GetString("damage"));
+   weaponInfo->SetRange(json::get<float>(obj, "range", 1.0f));
+   weaponInfo->SetDamageString(json::get<std::string>(obj, "damage", "1"));
 }
 
-static void InitPortalComponent(om::EntityPtr entity, resources::ResourcePtr resource)
+static void InitPortalComponent(om::EntityPtr entity, JSONNode const& obj)
 {
-   auto portalRegion = std::dynamic_pointer_cast<resources::Region2d>(resource);
-   if (portalRegion) {
-      entity->AddComponent<Portal>()->SetPortal(*portalRegion);
-   }
+   entity->AddComponent<Portal>()->SetPortal(resources::ParsePortal(obj));
 
    auto mob = entity->AddComponent<Mob>();
-   mob->SetInterpolateMovement(false);
+   mob->SetInterpolateMovement(false); // xxx: this is not a great place to do this... specify it in the json!
 }
 
-static void InitResourceNodeComponent(om::EntityPtr entity, resources::ResourcePtr resource)
+static void InitResourceNodeComponent(om::EntityPtr entity, JSONNode const& obj)
 {
-   auto obj = std::dynamic_pointer_cast<resources::ObjectResource>(resource);
    auto node = entity->AddComponent<ResourceNode>();
 
-   node->SetDurability(obj->GetInteger("durability"));
-   node->SetResource(obj->GetString("resource"));
+   node->SetDurability(obj["durability"].as_int());
+   node->SetResource(obj["resource"].as_string());
 }
 
-static void SetAnimationTable(om::EntityPtr entity, resources::ResourcePtr resource)
+static void SetAnimationTable(om::EntityPtr entity, JSONNode const& obj)
 {
-   auto tableName = std::dynamic_pointer_cast<resources::StringResource>(resource);
-   if (tableName) {
-      auto renderRig = entity->AddComponent<RenderRig>();
-      renderRig->SetAnimationTable(tableName->GetValue());
-   }
+   auto renderRig = entity->AddComponent<RenderRig>();
+   renderRig->SetAnimationTable(obj.as_string());
 }
 
-static void InitAttributesComponent(om::EntityPtr entity, resources::ResourcePtr resource)
+static void InitAttributesComponent(om::EntityPtr entity, JSONNode const& obj)
 {
-   auto obj = std::dynamic_pointer_cast<resources::ObjectResource>(resource);
    auto attributes = entity->AddComponent<om::Attributes>();
-   if (obj) {
-      for (const auto& entry : obj->GetContents()) {
-         std::string name = entry.first;
-         auto value = std::dynamic_pointer_cast<resources::NumberResource>(entry.second);
-         if (value) {
-            attributes->SetAttribute(name, (int)value->GetValue());
-         }
-      }
+   for (auto const& e : obj) {
+      attributes->SetAttribute(e.name(), e.as_int());
    }
 }
 
-static void InitSensorListComponent(om::EntityPtr entity, resources::ResourcePtr resource)
+static void InitSensorListComponent(om::EntityPtr entity, JSONNode const& obj)
 {
-   auto obj = std::dynamic_pointer_cast<resources::ObjectResource>(resource);
    auto sensorList = entity->AddComponent<om::SensorList>();
-   if (obj) {
-      auto sensors = obj->Get<resources::ObjectResource>("sensors");
-      if (sensors) {
-         for (const auto& entry : sensors->GetContents()) {
-            std::string name = entry.first;
-            auto value = std::dynamic_pointer_cast<resources::ObjectResource>(entry.second);
-            if (value) {
-               int radius = value->GetInteger("radius");
-               sensorList->AddSensor(name, radius);
-            }
+   for (auto const& e : obj["sensors"]) {
+      sensorList->AddSensor(e.name(), e["radius"].as_int());
+   }
+}
+
+static void InitRenderRigComponent(om::RenderRigPtr renderRig, JSONNode const& obj)
+{
+   renderRig->SetScale(json::get<float>(obj, "scale", 0.1f));
+
+   for (auto const& e : obj["models"]) {
+      if (e.type() == JSON_STRING) {
+         renderRig->AddRig(e.as_string());
+      } else if (e.type() == JSON_NODE) {
+         if (e["type"].as_string() == "one_of") {
+            JSONNode const& items = e["items"];
+            uint c = rand() * items.size() / RAND_MAX;
+            ASSERT(c < items.size());
+            renderRig->AddRig(items.at(c).as_string());
          }
       }
    }
 }
 
-static void InitRenderRigComponent(resources::ObjectResourcePtr obj, om::RenderRigPtr renderRig)
+static void InitRenderRigComponent(om::EntityPtr entity, JSONNode const& obj)
 {
-   renderRig->SetScale(obj->GetFloat("scale", 0.1f));
-
-   auto models = obj->Get<resources::ArrayResource>("models");
-   if (models) {
-      for (const auto& item : models->GetContents()) {
-         if (item->GetType() == resources::Resource::RIG) {
-            auto rig = std::static_pointer_cast<resources::Rig>(item);
-            renderRig->AddRig(rig->GetResourceIdentifier());
-         } else if (item->GetType() == resources::Resource::STRING) {
-            auto str = std::static_pointer_cast<resources::StringResource>(item);
-            renderRig->AddRig(str->GetValue());
-         } else if (item->GetType() == resources::Resource::ONE_OF) {
-            auto data = std::static_pointer_cast<resources::DataResource>(item);
-            const JSONNode& items = data->GetJson()["items"];
-            if (items.type() == JSON_ARRAY) {
-               int c = rand() * items.size() / RAND_MAX;
-               if (c == items.size()) {
-                  c = items.size() - 1;
-               }
-               const JSONNode& model = items.at(c);
-               if (model.type() == JSON_STRING) {
-                  std::string name = model.as_string();
-                  if (!name.empty()) {
-                     renderRig->AddRig(name);
-                  }
-               }
-            }
-         }
-      }
-   }
+   auto renderRig = entity->AddComponent<RenderRig>();
+   InitRenderRigComponent(renderRig, obj);
 }
 
-static void InitRenderRigComponent(om::EntityPtr entity, resources::ResourcePtr resource)
+static void InitRenderRigIconicComponent(om::EntityPtr entity, JSONNode const& obj)
 {
-   auto obj = std::dynamic_pointer_cast<resources::ObjectResource>(resource);
-
-   if (obj) {
-      auto renderRig = entity->AddComponent<RenderRig>();
-      InitRenderRigComponent(obj, renderRig);
-   }
+   auto renderRig = entity->AddComponent<RenderRigIconic>();
+   InitRenderRigComponent(renderRig, obj);
 }
 
-static void InitRenderRigIconicComponent(om::EntityPtr entity, resources::ResourcePtr resource)
-{
-   auto obj = std::dynamic_pointer_cast<resources::ObjectResource>(resource);
-
-   if (obj) {
-      auto renderRig = entity->AddComponent<RenderRigIconic>();
-      InitRenderRigComponent(obj, renderRig);
-   }
-}
-
-static void InitFixtureComponent(om::EntityPtr entity, resources::ResourcePtr resource)
-{
-   auto obj = std::dynamic_pointer_cast<resources::ObjectResource>(resource);
+static void InitFixtureComponent(om::EntityPtr entity, JSONNode const& obj)
+{   
    auto fixture = entity->AddComponent<Fixture>();
-
-   fixture->SetItemKind(obj->GetString("item"));
+   fixture->SetItemKind(obj["item"].as_string());
 }
 
-static void InitItemComponent(om::EntityPtr entity, resources::ResourcePtr resource)
+static void InitItemComponent(om::EntityPtr entity, JSONNode const& obj)
 {
-   auto obj = std::dynamic_pointer_cast<resources::ObjectResource>(resource);
    auto item = entity->AddComponent<Item>();
 
-   int count = obj->GetInteger("stacks");
+   int count = obj["stacks"].as_int();
    item->SetStacks(count);
    item->SetMaxStacks(count);
-   item->SetMaterial(obj->GetString("material"));
+   item->SetMaterial(obj["material"].as_string());
 
    // Should we put the flags on the entity??
    auto mob = entity->AddComponent<Mob>();
    mob->SetInterpolateMovement(false);
 }
 
-static void InitActionListComponent(om::EntityPtr entity, resources::ResourcePtr resource)
+static void InitActionListComponent(om::EntityPtr entity, JSONNode const& obj)
 {
-   auto arr = std::dynamic_pointer_cast<resources::ArrayResource>(resource);
    auto actionList = entity->AddComponent<ActionList>();
-   for (const auto& entry : arr->GetContents()) {
-      auto action = std::dynamic_pointer_cast<resources::StringResource>(entry);
-      if (action) {
-         actionList->AddAction(action->GetValue());
-      }
+   for (auto const& e : obj) {
+      actionList->AddAction(e.write());
    }
 }
 
-om::EntityPtr Stonehearth::CreateEntity(dm::Store& store, std::string kind)
+om::EntityPtr Stonehearth::CreateEntity(dm::Store& store, std::string uri)
 {
    static struct {
       const char* name;
-      void (*fn)(om::EntityPtr, resources::ResourcePtr);
+      void (*fn)(om::EntityPtr, JSONNode const&);
    } components[] = {
       { "portal",          InitPortalComponent },
       { "fixture",         InitFixtureComponent },
@@ -207,23 +146,38 @@ om::EntityPtr Stonehearth::CreateEntity(dm::Store& store, std::string kind)
       { "ai",              Ignore },
       { "type",            Ignore },
       { "scripts",         Ignore },
+      { "data",            Ignore },
    };
 
    om::EntityPtr entity = store.AllocObject<om::Entity>();
-   auto obj = resources::ResourceManager2::GetInstance().Lookup<resources::ObjectResource>(kind);
+   std::ostringstream debug_name;
+   debug_name << "(" << entity->GetObjectId() << ") " << uri;
+   entity->SetDebugName(debug_name.str());
 
-   if (obj) {
-      ASSERT(obj->GetString("type") == "entity");
-      for (const auto& entry : obj->GetContents()) {
-         bool handled = false;
-         for (const auto& component : components) {
-            if (entry.first == component.name) {
-               component.fn(entity, entry.second);
-               handled = true;
-               break;
+   if (!uri.empty()) {
+      auto resource = resources::ResourceManager2::GetInstance().Lookup<resources::DataResource>(uri);
+      ASSERT(resource);
+
+      if (resource) {
+         JSONNode const& obj = resource->GetJson();
+
+         entity->SetResourceUri(uri);
+         ASSERT(obj["type"].as_string() == "entity");
+         for (auto const& entry : obj) {
+            bool handled = false;
+            for (const auto& component : components) {
+               std::string name = entry.name();
+               if (name == component.name) {
+                  component.fn(entity, entry);
+                  handled = true;
+                  break;
+               }
+            }
+            if (!handled) {
+               LOG(WARNING) << "unknown field '" << entry.name() << "' in definition for entity '" << uri << "'.";
+               ASSERT(handled);
             }
          }
-         ASSERT(handled);
       }
    }
 

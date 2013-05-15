@@ -133,7 +133,7 @@ void main( void )
     ao += doAmbientOcclusion(texCoords, coord1 * 1.0,  p, n);
   }
   ao /= iterations*4.0;
-  ao = 1-clamp(ao, 0, 1);
+  ao = 1-clamp(ao, 0.0, 1.0);
   gl_FragColor = vec4(ao, ao, ao, 1);
 }
 

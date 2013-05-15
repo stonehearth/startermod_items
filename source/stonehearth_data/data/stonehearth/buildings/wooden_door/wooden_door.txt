@@ -1,0 +1,12 @@
+{
+   "type" : "entity",
+   "portal" : {
+      "type" : "region2d",
+      "rects" : [
+         [ [-1, 0], [1, 3] ]
+      ]
+   },
+   "fixture" : {
+      "item": "url(../wooden_door_frame)"
+   }
+}

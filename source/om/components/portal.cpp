@@ -10,7 +10,7 @@ void Portal::InitializeRecordFields()
    AddRecordField("region", region_);
 }
 
-void Portal::SetPortal(const resources::Region2d& region)
+void Portal::SetPortal(csg::Region2 const& region)
 {
-   region_ = region.GetRegion();
+   region_ = region;
 }

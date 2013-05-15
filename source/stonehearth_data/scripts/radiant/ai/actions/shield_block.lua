@@ -18,7 +18,7 @@ function ShieldBlock:run(ai, entity, attacker, script_info, start_time, end_time
    md:listen(entity, 'radiant.combat.on_defend', self)
 
    -- wait for the attack to come
-   self._effect = ani_mgr:get_animation(entity):start_action('combat_idle')
+   self._effect = ani_mgr:get_animation(entity):start_action('idle_breathe')
    ai:wait_until(start_time)
    self._effect:stop()
    self._effect = nil
@@ -28,7 +28,7 @@ function ShieldBlock:run(ai, entity, attacker, script_info, start_time, end_time
    
    -- go back to the idle stance forever.  the intention will lose its prioirty
    -- in due time
-   ai:execute('radiant.actions.perform', script_info.execute)
+   ai:execute('radiant.actions.perform', script_info.effect)
    ai:wait_until(function() return false end)
 end
 

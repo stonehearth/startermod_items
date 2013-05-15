@@ -4,7 +4,6 @@
 #include "client.h"
 #include "entity_traces.h"
 #include "resources/res_manager.h"
-#include "resources/action.h"
 #include "om/entity.h"
 #define DEFINE_ALL_COMPONENTS
 #include "om/all_components.h"
@@ -227,13 +226,10 @@ public:
          JSONNode& node = FetchNodeChild(parent, "actions", JSON_ARRAY);
          for (auto actionName : c.GetActions()) {
             JSONNode entry;
-            auto resource = resources.Lookup(actionName);
-            if (resource->GetType() == resources::Resource::ACTION) {
-               auto action = std::static_pointer_cast<resources::Action>(resource);
-               entry.push_back(JSONNode("tooltip", action->GetToolTip()));
-               entry.push_back(JSONNode("icon", action->GetIcon()));
-               entry.push_back(JSONNode("execute", actionName));
-               node.push_back(entry);
+            auto resource = resources.LookupResource(actionName);
+            if (resource->GetType() == resources::Resource::JSON) {
+               auto action = std::static_pointer_cast<resources::DataResource>(resource);
+               node.push_back(action->GetJson());
             }
          }
       };

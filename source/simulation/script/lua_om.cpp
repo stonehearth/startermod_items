@@ -365,7 +365,8 @@ void LuaObjectModel::RegisterType(lua_State* L)
          .def("removed", &BuildOrdersBuildOrderListPromise::RemovedPromise)
          ,
       ADD_OM_CLASS(Entity)
-         .def("get_debug_name", &om::Entity::GetDebugName)
+         .def("get_debug_name",  &om::Entity::GetDebugName)
+         .def("get_uri",         &om::Entity::GetResourceUri)
 #define OM_OBJECT(Clas, lower)  \
          .def("has_" #lower "_component" , &EntityHasComponent<om::Clas>) \
          .def("get_" #lower "_component" , &om::Entity::GetComponentRef<om::Clas>) \

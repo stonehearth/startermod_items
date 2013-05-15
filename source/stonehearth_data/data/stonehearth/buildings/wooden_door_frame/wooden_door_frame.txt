@@ -1,0 +1,12 @@
+{
+   "type" : "entity",
+   "unit_info" : {
+      "name" :  "Wooden Door",
+      "description" : "The way in the room..."
+   },
+   "render_rig": {
+      "models": [
+         "url(wooden_door_frame.qb)"
+      ]
+   }
+}

@@ -1,0 +1,7 @@
+{
+   "type": "entity",
+   "unit_info" : {
+      "name" : "Floor",
+      "description" : "..."
+   }
+}

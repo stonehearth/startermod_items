@@ -1,4 +1,5 @@
 require 'unclasslib'
+local dkjson = require ("dkjson")
 local log = require 'radiant.core.log'
 local util = require 'radiant.core.util'
 local check = require 'radiant.core.check'
@@ -16,8 +17,7 @@ ObjectModel.DefaultTravelSpeeds = {
    run = 1,
    walk = 0.5,
    hop = 0.7,
-   carry_run = 0.5,
-   carry_walk = 0.25,
+   carry_walk = 0.5,
    patrol = 0.25,
 }
 
@@ -238,35 +238,34 @@ function ObjectModel:_init_entity(entity, kind)
    -- add standard components, based on the kind of entity we want
    local resource = native:lookup_resource(kind)
    if resource then
-      self:_add_msg_handlers(entity, resource)
-      self:_add_ai(entity, resource)
-      self:_add_animation(entity, resource)
+      local obj = dkjson.decode(resource:get_json())
+      self:_add_msg_handlers(entity, obj)
+      self:_add_ai(entity, obj)
+      self:_add_animation(entity, obj)
    end
 end
 
-function ObjectModel:_add_msg_handlers(entity, resource)
-   local handlers = resource:get('scripts')
-   if handlers then
-      for name in handlers:contents() do
+function ObjectModel:_add_msg_handlers(entity, obj)
+   if obj.scripts then
+      for _, name in ipairs(obj.scripts) do
          log:info("adding msg handler %s.", name);
-         md:add_msg_handler(entity, name, resource)
+         md:add_msg_handler(entity, name, obj)
       end
    end
 end
 
-function ObjectModel:_add_ai(entity, resource)
-   local handlers = resource:get('ai')
-   if handlers then
-      ai_mgr:init_entity(entity, handlers)
+function ObjectModel:_add_ai(entity, obj)
+   if obj.ai then
+      ai_mgr:init_entity(entity, obj.ai)
    end
 end
 
-function ObjectModel:_add_animation(entity, resource)
-   if resource:get('animation_table') then
+function ObjectModel:_add_animation(entity, obj)
+   if obj.animation_table then
       if not ani_mgr then
          ani_mgr = require 'radiant.core.animation'
       end
-      ani_mgr:get_animation(entity, resource)
+      ani_mgr:get_animation(entity, obj)
    end
 end
 
@@ -446,7 +445,7 @@ function ObjectModel:teardown(worker, structure)
       local item = self:get_component(carry_block:get_carrying(), 'item')
       item:set_stacks(item:get_stacks() + 1)
    else
-      local item = self:create_entity('oak-log')
+      local item = self:create_entity('module://stonehearth/resources/oak_tree/oak_log')
       self:get_component(item, 'item'):set_stacks(1)
       carry_block:set_carrying(item)
    end
@@ -684,9 +683,14 @@ end
 function ObjectModel:get_movement_info(entity, travel_mode)
    check:is_entity(entity)
    
+   -- xxx: this is all horrible....
    travel_mode = travel_mode and travel_mode or 'run'
    if self:get_carrying(entity) then
-      travel_mode = "carry_" .. travel_mode
+      if travel_mode == 'run' then
+         travel_mode = 'carry_walk'
+      else
+         travel_mode = "carry_" .. travel_mode
+      end
    end
    local speed, success = self:get_attribute(entity, travel_mode .. "_travel_speed")
    if not success then

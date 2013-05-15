@@ -1,0 +1,13 @@
+{
+   "type" : "effect",
+   "tracks": {
+      "text": {
+         "type": "floating_combat_text",
+         "start_time": 0,
+         "duration": 800,
+         "distance": 2,
+         "distance_easing": "elastic_out",
+         "text": "{{damage_text}}"
+      }
+   }
+}

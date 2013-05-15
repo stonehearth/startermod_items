@@ -61,13 +61,13 @@ end
 
 
 local AnimationEffect = class()
-function AnimationEffect:__init(start_time, info)  
+function AnimationEffect:__init(animation_path, start_time, info)  
    self._loop = info.loop
    self._start_time = start_time + get_start_time(info)
 
-   self._animation = native:lookup_resource(info.animation)
+   self._animation = native:lookup_resource(animation_path)
    if not self._animation then
-      log:warning('could not lookup animation resource %s', info.animation)
+      log:warning('could not lookup animation resource %s', animation_path)
    end
    check:is_a(self._animation, AnimationResource)
 
@@ -145,11 +145,11 @@ function GenericEffect:update(now)
 end
 
 local EffectProxy = class()
-function EffectProxy:__init(mgr, entity, name, start_time, translated, trigger_handler, args) 
+function EffectProxy:__init(mgr, entity, effect_path, effect_name, start_time, trigger_handler, args) 
    self._mgr = mgr
-   self._name = name
+   self._name = effect_name
    self._effect_list = om:add_component(entity, 'effect_list')
-   self._effect = self._effect_list:add_effect(translated, start_time)
+   self._effect = self._effect_list:add_effect(effect_path, start_time)
    self._running = true
    
    if args then
@@ -159,9 +159,9 @@ function EffectProxy:__init(mgr, entity, name, start_time, translated, trigger_h
          self._effect:add_param(name, value)
       end
    end
-   local res = native:lookup_resource(translated)
+   local res = native:lookup_resource(effect_path)
    if not res then
-      log:warning('could not find animation named %s', translated)
+      log:warning('could not find animation named %s', effect_path)
    end
    check:verify(res)
    local effect = dkjson.decode(res:get_json())
@@ -169,8 +169,8 @@ function EffectProxy:__init(mgr, entity, name, start_time, translated, trigger_h
    
    self._effects = {}
    for name, e in pairs(effect.tracks) do
-      if e.type == "animation_effect" then    
-         table.insert(self._effects, AnimationEffect(start_time, e))
+      if e.type == "animation_effect" then
+         table.insert(self._effects, AnimationEffect(e.animation, start_time, e))
       elseif e.type == "trigger_effect" then
          table.insert(self._effects, TriggerEffect(start_time, trigger_handler, e, self._effect))
       elseif e.type == "attack_frame_data" then
@@ -236,7 +236,7 @@ function AnimationMgrMgr:get_animation(entity, resource)
    return self._animations[id]
 end
 
-function AnimationMgr:__init(entity, resource)
+function AnimationMgr:__init(entity, obj)
    self._effects = {}
    self._skip_animations = get_config_option("game.noidle");
    
@@ -244,16 +244,12 @@ function AnimationMgr:__init(entity, resource)
    
    md:listen('radiant.events.gameloop', self)
    
-   local animation_table_name = resource:get('animation_table')
-   if animation_table_name then
-      local table = native:lookup_resource(animation_table_name)
-      if table then
-         self._animation_table = table:get('sequences')
-      end
-   end
-   if not self._animation_table then
-      log:warning("missing animation table")   
-   end
+   self.animation_table_name = obj.animation_table
+   local resource = native:lookup_resource(obj.animation_table)
+   local obj = dkjson.decode(resource:get_json())   
+   self._effects_root = obj.effects_root
+   local i
+   i = 0
 end
 
 function AnimationMgr:destroy(entity)
@@ -298,19 +294,32 @@ function AnimationMgr:get_effect_duration(effect_name)
    return end_time
 end
 
+function AnimationMgr:_get_effect_path(effect_name)
+   local prefix = 'module://'
+   if effect_name:sub(1, prefix:len()) == prefix then
+      return effect_name
+   end
+   return self._effects_root .. '/' .. effect_name .. '.txt'
+end
+
 function AnimationMgr:_get_effect_info(effect_name)
-   local translated = self:_lookup_effect_name(effect_name)
-   local res = native:lookup_resource(translated)
+   local effect_path  = self:_get_effect_path(effect_name)
+   local res = native:lookup_resource(effect_path)
    check:verify(res)
    
    return dkjson.decode(res:get_json())
 end
 
 function AnimationMgr:_add_effect(name, when, trigger_handler, args)
-   local translated = self:_lookup_effect_name(name)
-   assert(not self._effects[translated]);
-
-   local effect = EffectProxy(self, self._entity, name, when, translated, trigger_handler, args)
+   -- xxx: make sure we're not already going one with this name!
+   local effect_path = self:_get_effect_path(name)
+   local effect = EffectProxy(self,
+                              self._entity,
+                              effect_path,
+                              name,
+                              when,
+                              trigger_handler,
+                              args)
    self._effects[effect] = true
    return effect
    --md:send_msg(self._entity, 'radiant.animation.on_start', name)      
@@ -318,20 +327,6 @@ end
 
 function AnimationMgr:_remove_effect(e)
    self._effects[e] = nil
-end
-
-function AnimationMgr:_lookup_effect_name(name)
-   local sequence = self._animation_table:get(name)
-   if not sequence then
-      return name
-   end
-   
-   if util:is_a(sequence, ArrayResource) then
-      return sequence:get(0)
-   end
-   
-   check:is_string(sequence)
-   return sequence
 end
 
 return AnimationMgrMgr()

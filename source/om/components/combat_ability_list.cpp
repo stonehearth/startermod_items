@@ -2,7 +2,6 @@
 #include "combat_ability_list.h"
 #include "om/entity.h"
 #include "resources/data_resource.h"
-#include "resources/object_resource.h"
 #include "resources/res_manager.h"
 
 using namespace ::radiant;
@@ -25,6 +24,7 @@ luabind::scope CombatAbility::RegisterLuaType(struct lua_State* L, const char* n
    return
       class_<CombatAbility, CombatAbilityPtr>(name)
          .def(tostring(self))
+         .def("get_json",                 &om::CombatAbility::GetJsonString)
          .def("get_priority",             &om::CombatAbility::GetPriority)
          .def("get_cooldown",             &om::CombatAbility::GetCooldown)
          .def("has_tag",                  &om::CombatAbility::HasTag)

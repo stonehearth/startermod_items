@@ -9,7 +9,6 @@
 #include "om/all_object_types.h"
 #include "om/om.h"
 #include "om/entity.h"
-#include "resources/action.h"
 #include "component.h"
 
 BEGIN_RADIANT_OM_NAMESPACE

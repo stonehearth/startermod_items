@@ -4,7 +4,6 @@
 #include "execute_action.h"
 #include "client/client.h"
 #include "resources/res_manager.h"
-#include "resources/action.h"
 #include "om/selection.h"
 
 using namespace radiant;
@@ -27,7 +26,7 @@ ExecuteAction::ExecuteAction(PendingCommandPtr cmd)
    }
 
    std::string actionName = args_["action"].as_string();
-   auto action = resources::ResourceManager2::GetInstance().Lookup<resources::Action>(actionName);
+   auto action = resources::ResourceManager2::GetInstance().Lookup<resources::DataResource>(actionName);
    if (!action) {
       cmd->Error("No such action " + actionName);
       return;
@@ -56,8 +55,9 @@ void ExecuteAction::operator()()
    if (!action_) {
       return;
    }
-   const JSONNode& formal = action_->GetArgs();
-   Client::GetInstance().SetCommandCursor(action_->GetCursor());
+   const JSONNode& action = action_->GetJson();
+   const JSONNode& formal = action["args"];
+   Client::GetInstance().SetCommandCursor(action["cursor"].as_string());
 
    for (auto i = actual_.size(); i < formal.size(); i++) {
 
@@ -121,7 +121,7 @@ void ExecuteAction::operator()()
 #endif
    }
    if (formal.size() == actual_.size()) {
-      std::string cmd = action_->GetCommand();
+      std::string cmd = action["command"].as_string();
       Client::GetInstance().SendCommand(self_, cmd, actual_, deferredCommandId_);
    }
 }

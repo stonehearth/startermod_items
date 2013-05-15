@@ -25,6 +25,7 @@ class RenderEntity
       void SetSelected(bool selected);
 
       om::EntityId GetEntityId() const;
+      om::EntityPtr GetEntity() const { return entity_.lock(); }
       void SetParent(H3DNode node);
       H3DNode GetParent() const; 
       H3DNode GetNode() const;

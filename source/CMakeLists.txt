@@ -5,6 +5,10 @@ PROJECT(Stonehearth)
 ## See http://connect.microsoft.com/VisualStudio/feedback/details/746718/frequently-get-c1027-from-vc-100-compiler-after-installing-vs-2012-rc
 string(REPLACE "[/\\-]Zm[0-9]+" " " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 
+## See http://connect.microsoft.com/VisualStudio/feedback/details/746718/frequently-get-c1027-from-vc-100-compiler-after-installing-vs-2012-rc
+SET(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} /Ym0x50000000 ")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Ym0x50000000 ")
+
 ## Use MT instead of MD...
 #SET(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1")
 #SET(CMAKE_CXX_FLAGS_MINSIZEREL     "/MT /O1 /Ob1 /D NDEBUG")
@@ -20,6 +24,10 @@ string(REPLACE "[/\\-]Zm[0-9]+" " " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 
 # VC11 deprecates GX for EHsc
 STRING(REPLACE "/GX" "/EHsc" CMAKE_C_FLAGS_DEBUG ${CMAKE_C_FLAGS_DEBUG})
+
+# MSVC only...
+SET(CMAKE_C_FLAGS "/DGTEST_HAS_TR1_TUPLE=0" ${CMAKE_C_FLAGS})
+SET(CMAKE_CXX_FLAGS "/DGTEST_HAS_TR1_TUPLE=0" ${CMAKE_CXX_FLAGS})
 
 # Add browse information 
 # SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /FR")
@@ -53,6 +61,7 @@ FIND_PACKAGE(Snappy REQUIRED)
 FIND_PACKAGE(Boost COMPONENTS filesystem REQUIRED)
 FIND_PACKAGE(Lua REQUIRED)
 FIND_PACKAGE(Luabind REQUIRED)
+FIND_PACKAGE(GTest REQUIRED NO_MODULE)
 
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${PROTOBUF_INCLUDE_DIRS})
@@ -61,11 +70,11 @@ include_directories(${Gflags_INCLUDE_DIRS})
 include_directories(${Snappy_INCLUDE_DIRS})
 include_directories(${Lua_INCLUDE_DIRS})
 include_directories(${Luabind_INCLUDE_DIRS})
+include_directories(${GTest_INCLUDE_DIRS})
 
 include_directories(.)
 include_directories(include)
 
-include_directories("c:/python27/include")
 include_directories("c:/program files (x86)/microsoft directx sdk (june 2010)/include")
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR}) # why?
@@ -92,6 +101,6 @@ add_subdirectory(protocols)
 add_subdirectory(resources)
 add_subdirectory(dm)
 add_subdirectory(simulation)
-# add_subdirectory(world)
-# add_subdirectory(unit_tests)
-# add_subdirectory(worldview)
+add_subdirectory(unittests)
+
+
