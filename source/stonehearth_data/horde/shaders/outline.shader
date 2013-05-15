@@ -356,8 +356,10 @@ void main( void )
 	}else{
 		outputCol.xyz=rgbB;
 	}
+
+  gl_FragColor = outputCol;
   //Gamma correct
-  gl_FragColor = pow(outputCol, 1.0/1.2);
+  //gl_FragColor = pow(outputCol, 1.0/1.2);
 }
 
 [[FS_DRAW_SHADOWMAP]]
