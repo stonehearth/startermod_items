@@ -6,7 +6,7 @@
    },
    "unit_info" : {
       "name" :  "Medium Oak Tree",
-      "description" : "100's of years old.  Too bad..."
+      "description" : "Sturdy, in the prime of life."
    },
    "render_rig": {
       "scale": 1,

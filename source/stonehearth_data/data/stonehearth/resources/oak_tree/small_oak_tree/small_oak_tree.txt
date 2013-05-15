@@ -6,7 +6,7 @@
    },
    "unit_info" : {
       "name" :  "Small Oak Tree",
-      "description" : "100's of years old.  Too bad..."
+      "description" : "He's just a sapling!"
    },
    "render_rig": {
       "scale": 1,
