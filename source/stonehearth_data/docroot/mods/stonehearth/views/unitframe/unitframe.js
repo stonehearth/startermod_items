@@ -13,7 +13,7 @@ radiant.views['stonehearth.views.unitframe'] = radiant.View.extend({
 
       this.initActionButtons();
       this.initHandlers();
-      //this.clear();
+      this.clear();
    },
 
    initActionButtons: function () {
@@ -41,7 +41,7 @@ radiant.views['stonehearth.views.unitframe'] = radiant.View.extend({
             self.trace.destroy();
          }
          console.log("selection changed detected in unitframe");
-         if (entityId == 0) {
+         if (entityId == "0") {
             self.clear();
          } else {
             self.trace = radiant.trace_entity(entityId)
@@ -60,6 +60,7 @@ radiant.views['stonehearth.views.unitframe'] = radiant.View.extend({
       this.my("#unitframe #description").html("");
 
       this.my("#actionbar a").hide();
+      this.my("#unitframe").css({ "opacity" : 0.0});
    },
 
    refresh: function (entityId, data) {
@@ -78,12 +79,14 @@ radiant.views['stonehearth.views.unitframe'] = radiant.View.extend({
 
             var actionbutton = abElement.data("actionbutton");  //get the actionbutton interface
             actionbutton.entityId = entityId;
-            actionbutton.icon(buttonData.icon);
+            console.log("--> /mods/stonehearth/views/unitframe/images/" + buttonData.command + ".png");
+            actionbutton.icon("/mods/stonehearth/views/unitframe/images/" + buttonData .command + ".png");
             actionbutton.execute = buttonData.action_uri;
             this.my("#ab" + i).show()
          }
       }
 
       //this._myElement.show();
+      this.my("#unitframe").css({ "opacity" : 1.0});
    }
 });
