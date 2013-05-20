@@ -15,6 +15,7 @@ include_directories(${Lua_INCLUDE_DIRS})
 include_directories(${Luabind_INCLUDE_DIRS})
 
 add_executable(client_app
+               WIN32
                main_win32.cpp
                )
 

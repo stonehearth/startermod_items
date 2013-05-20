@@ -8,6 +8,7 @@ HarvestTest['radiant.md.create'] = function(self, bounds)
    self:create_world()
 
    local tree = self:place_tree(-12, -12)
+   
    self:place_citizen(12, 12)
    self:at(10,  function()
          self:place_stockpile_cmd(4, 12)

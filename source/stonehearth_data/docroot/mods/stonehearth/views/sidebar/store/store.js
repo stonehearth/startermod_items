@@ -59,7 +59,7 @@ radiant.views['stonehearth.views.sidebar.store'] = radiant.View.extend({
       var sidebar = radiant.views.controllers["stonehearth.views.sidebar"];
       sidebar.selectTab("store", true);
 
-      radiant.api.execute('radiant.actions.create_stockpile')
+      radiant.api.execute('mod://stonehearth/actions/create_stockpile.txt')
          .done(function (response) {
             var id = response.entity_id;
             //self.stockpileList.showLastPage(); //XXX doesn't work, because getStockpiles completes later

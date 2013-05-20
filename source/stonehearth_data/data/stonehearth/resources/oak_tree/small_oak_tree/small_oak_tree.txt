@@ -6,7 +6,7 @@
    },
    "unit_info" : {
       "name" :  "Small Oak Tree",
-      "description" : "100's of years old.  Too bad..."
+      "description" : "He's just a sapling!"
    },
    "render_rig": {
       "scale": 1,
@@ -14,7 +14,9 @@
          {
             "type": "one_of",
             "items": [
-               "url(small_oak_tree.qb)"
+               "url(small_oak_tree.qb)",
+               "url(tree_oak_small_2.qb)",
+               "url(tree_oak_small_3.qb)"
             ]
          }
       ]

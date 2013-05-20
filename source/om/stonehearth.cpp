@@ -119,8 +119,9 @@ static void InitItemComponent(om::EntityPtr entity, JSONNode const& obj)
 static void InitActionListComponent(om::EntityPtr entity, JSONNode const& obj)
 {
    auto actionList = entity->AddComponent<ActionList>();
-   for (auto const& e : obj) {
-      actionList->AddAction(e.write());
+   for (unsigned int i = 0; i < obj.size(); i++) {
+      JSONNode const& e = obj.at(i);
+      actionList->AddAction(e.as_string());
    }
 }
 

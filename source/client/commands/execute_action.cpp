@@ -57,7 +57,10 @@ void ExecuteAction::operator()()
    }
    const JSONNode& action = action_->GetJson();
    const JSONNode& formal = action["args"];
-   Client::GetInstance().SetCommandCursor(action["cursor"].as_string());
+   auto i = action.find("cursor");
+   if (i != action.end()) {
+      Client::GetInstance().SetCommandCursor(i->as_string());
+   }
 
    for (auto i = actual_.size(); i < formal.size(); i++) {
 

@@ -1,0 +1,15 @@
+{
+   "type" : "entity",
+   "animation_table" : "url(/rigs/mammoth)",
+   "ai" : {
+      "intentions" : [
+         "radiant.intentions.mammoth_ai"
+      ]
+   },
+   "render_rig": {
+   	"scale": 2,
+      "models": [
+         "url(mammoth.qb)"
+      ]
+   }
+}

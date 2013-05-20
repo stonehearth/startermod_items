@@ -229,7 +229,9 @@ public:
             auto resource = resources.LookupResource(actionName);
             if (resource->GetType() == resources::Resource::JSON) {
                auto action = std::static_pointer_cast<resources::DataResource>(resource);
-               node.push_back(action->GetJson());
+               JSONNode n = action->GetJson();
+               n.push_back(JSONNode("action_uri", actionName));
+               node.push_back(n);
             }
          }
       };

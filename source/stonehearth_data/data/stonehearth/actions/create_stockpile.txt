@@ -1,0 +1,9 @@
+{
+   "type" : "action",
+
+   "tooltip": "Create Stockpile",
+   "icon": "/images/actions/chop.png",
+   "cursor": "create_stockpile",
+   "command"  : "radiant.commands.create_stockpile",
+   "args": [ "ground_area" ]
+}

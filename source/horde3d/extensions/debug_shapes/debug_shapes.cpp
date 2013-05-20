@@ -152,8 +152,9 @@ void DebugShapesNode::createBuffers()
          _bLocalBox.max.z = std::max(_bLocalBox.max.z, v.position[2]);
       }
    } else {
-      _bBox.clear();
+      _bLocalBox.clear();
    }
+   markDirty();
 }
 
 void DebugShapesNode::decode(const protocol::shapelist &shapes)

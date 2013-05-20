@@ -21,6 +21,7 @@
 
 #include "utDebug.h"
 
+//#include "radiant.h"
 
 namespace Horde3D {
 
@@ -357,9 +358,13 @@ struct RendQueueItemCompFunc
 };
 
 
-void SpatialGraph::updateQueues( const Frustum &frustum1, const Frustum *frustum2, RenderingOrder::List order,
+void SpatialGraph::updateQueues( const char* reason, const Frustum &frustum1, const Frustum *frustum2, RenderingOrder::List order,
                                  uint32 filterIgnore, uint32 filterRequired, bool lightQueue, bool renderQueue )
 {
+   ASSERT(lightQueue || renderQueue);
+
+   // LOG(WARNING) << "----------" << reason << "--------------------";
+
 	Modules::sceneMan().updateNodes();
 	
 	Vec3f camPos( frustum1.getOrigin() );
@@ -374,19 +379,32 @@ void SpatialGraph::updateQueues( const Frustum &frustum1, const Frustum *frustum
 	for( size_t i = 0, s = _nodes.size(); i < s; ++i )
 	{
 		SceneNode *node = _nodes[i];
-		if( node == 0x0 || (node->_flags & filterIgnore) || ((node->_flags & filterRequired) != filterRequired) ) {
+		if (node == 0x0) {
+         // LOG(WARNING) << "ignoring node (null)";
+         continue;
+      }
+      if (node->_flags & filterIgnore) {
+         // LOG(WARNING) << "ignoring node (in ignore set) " << node->getName() << " " << node->getHandle();
+         continue;
+      }
+      if ((node->_flags & filterRequired) != filterRequired) {
+         // LOG(WARNING) << "ignoring node (no required flag) " << node->getName() << " " << node->getHandle();
          continue;
       }
 
-		if( renderQueue && node->_renderable )
-		{
-			if( !frustum1.cullBox( node->_bBox ) &&
-				(frustum2 == 0x0 || !frustum2->cullBox( node->_bBox )) )
-			{
+		if (renderQueue) {
+         if (!node->_renderable) {
+            // LOG(WARNING) << "ignoring node (unrenderable) " << node->getName() << " " << node->getHandle();
+            continue;
+         }
+
+			if (!frustum1.cullBox( node->_bBox ) &&
+				(frustum2 == 0x0 || !frustum2->cullBox( node->_bBox )) ) {
 				if( node->_type == SceneNodeTypes::Mesh )  // TODO: Generalize and optimize this
 				{
 					uint32 curLod = ((MeshNode *)node)->getParentModel()->calcLodLevel( camPos );
 					if( ((MeshNode *)node)->getLodLevel() != curLod ) {
+                  // LOG(WARNING) << "ignoring node (wrong LOD level) " << node->getName() << " " << node->getHandle();
                   continue;
                }
 				}
@@ -406,11 +424,14 @@ void SpatialGraph::updateQueues( const Frustum &frustum1, const Frustum *frustum
 					break;
 				}
 				
+            // LOG(WARNING) << "adding node " << node->getName() << " " << node->getHandle();
 				_renderableQueue.push_back( RendQueueItem( node->_type, sortKey, node ) );
-			}
+			} else {
+            // LOG(WARNING) << "ignoring node (culled) " << node->getName() << " " << node->getHandle();
+         }
 		}
-		else if( lightQueue && node->_type == SceneNodeTypes::Light )
-		{
+      if (lightQueue && node->_type == SceneNodeTypes::Light) {		 
+         // LOG(WARNING) << "adding light " << node->getName() << " " << node->getHandle();
 			_lightQueue.push_back( node );
 		}
 	}
@@ -488,10 +509,10 @@ void SceneManager::updateNodes()
 }
 
 
-void SceneManager::updateQueues( const Frustum &frustum1, const Frustum *frustum2, RenderingOrder::List order,
+void SceneManager::updateQueues( const char* reason, const Frustum &frustum1, const Frustum *frustum2, RenderingOrder::List order,
                                  uint32 filterIgnore, uint32 filterRequired, bool lightQueue, bool renderableQueue )
 {
-	_spatialGraph->updateQueues( frustum1, frustum2, order, filterIgnore, filterRequired, lightQueue, renderableQueue );
+	_spatialGraph->updateQueues( reason, frustum1, frustum2, order, filterIgnore, filterRequired, lightQueue, renderableQueue );
 }
 
 

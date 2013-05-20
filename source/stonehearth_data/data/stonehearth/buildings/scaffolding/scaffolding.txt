@@ -3,9 +3,8 @@
    "data": {
       "models" : {
          "__comment" : "explain how this works...",
-         "plank" : "url(scaffolding_plank.qb)",
-         "top"   : "url(scaffolding_top_%d.qb)",
-         "inner" : "url(scaffolding_top_%d_%d.qb)"
+         "rows" : 4,
+         "cols" : 4
       }
    }
 }

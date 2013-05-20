@@ -136,8 +136,8 @@ local TT = Point2(301, 259)
 function scene_1()
    create_stairs(Point3(216, 1, 188), Point3(-1, 0, 0), 4, 3)
 
-   create_stockpile(Point3(ZA.x + 3, 1, ZA.y + 3), 5, 5);
-   create_stockpile(Point3(BC.x, 1, BC.y - 7), 5, 5);
+   --create_stockpile(Point3(ZA.x + 3, 1, ZA.y + 3), 5, 5);
+   --create_stockpile(Point3(BC.x, 1, BC.y - 7), 5, 5);
    
    sh:create_citizen(RadiantIPoint3(ZA.x + 2, 1, ZA.y))
    sh:create_citizen(RadiantIPoint3(ZA.x + 16, 1, ZA.y + 9))
@@ -146,7 +146,7 @@ function scene_1()
    for i = 0, 25 do
       local x = math.random(100, 300)
       local z = math.random(100, 300)
-      local rabbit = om:create_entity('radiant.mobs.rabbit')
+      local rabbit = om:create_entity('mod://stonehearth/critters/rabbit')
       om:place_on_terrain(rabbit, RadiantIPoint3(x, 1, z))      
    end
 end
@@ -490,7 +490,7 @@ function GameMaster:start_new_game()
    local size = 32
 
    tg:create()
-   scene_7();
+   scene_2();
    --[[
    -- Put the embark smack in the middle
    self:start_scenario('stonehearth.embark', RadiantBounds3(RadiantIPoint3(240, 1, 240), RadiantIPoint3(272, 1, 272)))

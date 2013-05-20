@@ -44,4 +44,4 @@ varying vec2 texCoords;
 void main() {
    vec4 color = texture(characterMap, texCoords);
    gl_FragColor = color;
-};
+}
