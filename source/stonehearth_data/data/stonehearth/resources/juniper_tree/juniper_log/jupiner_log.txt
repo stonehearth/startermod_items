@@ -1,0 +1,16 @@
+{
+   "type" : "entity",
+   "item" : {
+      "material": "wood",
+      "stacks": 20
+   },
+   "unit_info" : {
+      "name" :  "Jupiner Log",
+      "description" : "Looks a lot like an oak log..."
+   },
+   "render_rig": {
+      "models": [
+         "url(jupiner_log.qb)"
+      ]
+   }
+}

@@ -18,7 +18,7 @@ function RabbitAI:run(ai, entity)
       local dx = math.random(0, 1) == 0 and math.random(-r, -r / 2) or math.random(r / 2, r)
       local dz = math.random(0, 1) == 0 and math.random(-r, -r / 2) or math.random(r / 2, r)
       local goto = RadiantPoint3(home.x + dx, home.y, home.z + dz)
-      ai:execute('radiant.actions.goto_location', goto, 'hop')
+      ai:execute('radiant.actions.goto_location', goto)
    end
    local idle = function()
       om:turn_to(entity, math.random(0, 359))

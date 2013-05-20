@@ -1,5 +1,5 @@
 {
-   "type" : "animation-table",
+   "type" : "rig",
    "skeleton": {
 		"type": "skeleton",
 		"root": [15.5,15.5,0],

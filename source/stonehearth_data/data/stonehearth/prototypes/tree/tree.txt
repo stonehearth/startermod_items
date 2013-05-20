@@ -1,7 +1,7 @@
 {
    "type" : "entity",
    "action_list" : [
-      "radiant.actions.chop"
+      "url(/actions/chop.txt)"
    ],
    "scripts" : [
       "radiant.msg_handlers.resource_factory"

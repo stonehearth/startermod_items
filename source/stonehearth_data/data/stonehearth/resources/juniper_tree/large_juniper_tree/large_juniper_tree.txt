@@ -1,0 +1,23 @@
+{
+   "extends": "url(/prototypes/tree)",
+   "resource_node" : {
+      "resource": "url(../juniper_log)",
+      "durability": 6
+   },
+   "unit_info" : {
+      "name" :  "Large Juniper Tree",
+      "description" : "Strong and tall."
+   },
+   "render_rig": {
+      "scale": 1,
+      "models": [
+         {
+            "type": "one_of",
+            "items": [
+               "url(tree_juniper_large.qb)"
+            ]
+         }
+      ]
+   }
+}
+
