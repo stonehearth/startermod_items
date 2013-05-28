@@ -65,22 +65,21 @@ void RenderRig::AddQubicleResource(const std::string uri)
 
    // xxx: no.  Make a qubicle resource type so they only get loaded once, ever.
    std::ifstream input;
-   if (!resources::ResourceManager2::GetInstance().OpenResource(uri, input)) {
-      return;
-   }
+   resources::ResourceManager2::GetInstance().OpenResource(uri, input);
+   ASSERT(input.good());
    input >> f;
 
-   std::shared_ptr<resources::DataResource> skeleton;
+   JSONNode const* skeleton = NULL;
    if (!animationTableName_.empty()) {
-      skeleton = resources::ResourceManager2::GetInstance().Lookup<resources::DataResource>(animationTableName_);
+      JSONNode const& table = resources::ResourceManager2::GetInstance().LookupJson(animationTableName_);
+      auto i = table.find("skeleton");
+      skeleton = i == table.end() ? nullptr : &*i;
    }
-   
    auto getBonePos = [&skeleton](std::string bone) -> csg::Point3f {
       csg::Point3f pos(0, 0, 0);
       if (skeleton) {
-         JSONNode const& bones = skeleton->GetJson()["skeleton"];
-         auto i = bones.find(bone);
-         if (i != bones.end() && i->type() == JSON_ARRAY && i->size() == 3) {
+         auto i = skeleton->find(bone);
+         if (i != skeleton->end() && i->type() == JSON_ARRAY && i->size() == 3) {
             for (int j = 0; j < 3; j++) {
                pos[j] = (float)i->at(j).as_float();
             }

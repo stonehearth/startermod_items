@@ -22,9 +22,6 @@ class Aura : public dm::Record
 public:
    DEFINE_OM_OBJECT_TYPE(Aura);
 
-   Aura() : dm::Record() { }
-   virtual ~Aura() { }
-
    std::string GetName() const { return *name_; }
 
    om::EntityRef GetSource() const { return *source_; }
@@ -64,8 +61,6 @@ class AuraList : public Component
 {
 public:
    DEFINE_OM_OBJECT_TYPE(AuraList);
-
-   AuraList() { }
 
    const dm::Set<AuraPtr>& GetAuras() const { return auras_; }
 

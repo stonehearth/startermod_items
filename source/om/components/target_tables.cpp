@@ -14,11 +14,6 @@ bool TargetTableEntry::Update(int now, int interval)
    return *value_ > 0;
 }
 
-TargetTableEntry::~TargetTableEntry()
-{
-   // LOG(WARNING) << "destroying target table entry " << value_;
-}
-
 TargetTableEntryPtr TargetTable::AddEntry(om::EntityRef e)
 {
    TargetTableEntryPtr entry;

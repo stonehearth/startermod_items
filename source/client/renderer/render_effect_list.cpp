@@ -111,8 +111,8 @@ void RenderEffectList::UpdateEffects()
 RenderInnerEffectList::RenderInnerEffectList(RenderEntity& renderEntity, om::EffectPtr effect)
 {
    std::string name = effect->GetName();
-   auto res = resources::ResourceManager2::GetInstance().Lookup<resources::DataResource>(name);
-   for (const JSONNode& node : res->GetJson()["tracks"]) {
+   JSONNode const& data = resources::ResourceManager2::GetInstance().LookupJson(name);
+   for (const JSONNode& node : data["tracks"]) {
       std::string type = node["type"].as_string();
       std::shared_ptr<RenderEffect> e;
       if (type == "animation_effect") {
@@ -161,7 +161,7 @@ RenderAnimationEffect::RenderAnimationEffect(RenderEntity& e, om::EffectPtr effe
 {
    int now = effect->GetStartTime();
    animationName_ = node["animation"].as_string();
-   animation_ = resources::ResourceManager2::GetInstance().Lookup<resources::Animation>(animationName_);
+   animation_ = resources::ResourceManager2::GetInstance().LookupAnimation(animationName_);
 
    if (animation_) {
       startTime_ = GetStartTime(node) + now;
@@ -265,7 +265,7 @@ RenderAttachItemEffect::RenderAttachItemEffect(RenderEntity& e, om::EffectPtr ef
 #endif
       }
    } else {
-      item = om::Stonehearth::CreateEntity(Client::GetInstance().GetAuthoringStore(), kind);
+      item = om::Stonehearth::CreateEntityLegacyDIEDIEDIE(Client::GetInstance().GetAuthoringStore(), kind);
    }
 
    if (item) {
@@ -364,12 +364,10 @@ FloatingCombatTextEffect::FloatingCombatTextEffect(RenderEntity& e, om::EffectPt
       om::RenderRigPtr rig = entity->GetComponent<om::RenderRig>();
       if (rig) {
          std::string animationTableName = rig->GetAnimationTable();
-         auto obj = resources::ResourceManager2::GetInstance().Lookup<resources::DataResource>(animationTableName);
-         if (obj) {
-            JSONNode const& json = obj->GetJson();
-            height_ = json::get<float>(json::get<JSONNode>(json, "collision_shape"), "height", 4.0f);
-            height_ *= 0.1f; // xxx - take this out of the same place where we store the face that the model is 10x too big
-         }
+
+         JSONNode const& json = resources::ResourceManager2::GetInstance().LookupJson(animationTableName);
+         height_ = json::get<float>(json::get<JSONNode>(json, "collision_shape"), "height", 4.0f);
+         height_ *= 0.1f; // xxx - take this out of the same place where we store the face that the model is 10x too big
       }
    }
    int distance = node["distance"].as_int();

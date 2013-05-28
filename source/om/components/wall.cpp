@@ -16,16 +16,6 @@ using namespace ::radiant::om;
 static const int WallColor1 = 1;
 static const int WallColor2 = 2;
 
-Wall::Wall() :
-   GridBuildOrder()
-{
-   LOG(WARNING) << "creating new wall...";
-}
-
-Wall::~Wall()
-{
-}
-
 void Wall::InitializeRecordFields()
 {
    GridBuildOrder::InitializeRecordFields();

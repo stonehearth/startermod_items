@@ -22,8 +22,6 @@
 #include "native_commands/create_room_cmd.h"
 #include "jobs/job.h"
 
-//static const std::string scriptRoot_("C:\\Users\\ponder\\gamedev\\radiant\\projects\\tesseract\\source\\client\\assets\\script");
-static const std::string scriptRoot_(".\\data");
 static const int __initialCivCount = 3;
 
 using namespace ::radiant;
@@ -72,7 +70,7 @@ void Simulation::CreateNew()
 
    guards_ += store_.TraceDynamicObjectAlloc(std::bind(&Simulation::OnObjectAllocated, this, std::placeholders::_1));
 
-   scripts_.reset(new ScriptHost(L_, scriptRoot_));
+   scripts_.reset(new ScriptHost(L_));
    scripts_->CreateNew();
    now_ = 0;
 }
@@ -220,7 +218,7 @@ Physics::OctTree &Simulation::GetOctTree()
 
 om::EntityPtr Simulation::GetRootEntity()
 {
-   return scripts_->GetEntity(1);
+   return scripts_->GetEntity(1).lock();
 }
 
 dm::Store& Simulation::GetStore()

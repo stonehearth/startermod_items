@@ -24,9 +24,6 @@ class Grid : public dm::Record {
       DEFINE_OM_OBJECT_TYPE(Grid);
       friend GridTile;
 
-      Grid() : dm::Record() { }
-      virtual ~Grid();
-
       void InitializeRecordFields() override;
 
       void Clear();

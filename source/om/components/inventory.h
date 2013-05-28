@@ -19,7 +19,6 @@ public:
    DEFINE_OM_OBJECT_TYPE(Inventory);
 
    static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
-   Inventory() { }
 
    void SetCapacity(int capacity);
    int GetCapacity() const;

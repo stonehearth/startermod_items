@@ -1,8 +1,0 @@
-{
-   "type" : "action",
-
-   "tooltip": "Chop Tree",
-   "icon": "url(/images/actions/chop.png)",
-   "command"  : "radiant.commands.harvest",
-   "args": [ "self" ]
-}

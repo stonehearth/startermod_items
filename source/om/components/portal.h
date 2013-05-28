@@ -10,6 +10,7 @@ class Portal : public Component
 {
 public:
    DEFINE_OM_OBJECT_TYPE(Portal);
+   void Construct(json::ConstJsonObject const& obj) override;
 
    const csg::Region2& GetRegion() const { return *region_; }
    void SetPortal(csg::Region2 const& region);

@@ -28,6 +28,7 @@ std::string GetObjectNameLower(const dm::Object& obj);
    enum { DmType = Class ## ObjectType }; \
    dm::ObjectType GetObjectType() const override { return Class::DmType; } \
    static const char *GetObjectClassName() { return #Class; } \
+   Class() { }
 
 END_RADIANT_OM_NAMESPACE
 

@@ -328,12 +328,10 @@ Pipeline::NamedNodeMap Pipeline::LoadQubicleFile(std::string const& uri)
    NamedNodeMap result;
 
    // xxx: no.  Make a qubicle resource type so they only get loaded once, ever.
-   std::ifstream input;
-   if (!resources::ResourceManager2::GetInstance().OpenResource(uri, input)) {
-      return result;
-   }
-
    QubicleFile f;
+   std::ifstream input;
+
+   resources::ResourceManager2::GetInstance().OpenResource(uri, input);
    input >> f;
 
    for (const auto& entry : f) {

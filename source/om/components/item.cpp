@@ -13,3 +13,12 @@ void Item::InitializeRecordFields()
    AddRecordField("maxStacks", maxStacks_);
    AddRecordField("material", material_);
 }
+
+void Item::Construct(json::ConstJsonObject const& obj)
+{
+   JSONNode const& node = obj.GetNode();
+   int count = node["stacks"].as_int();
+   SetStacks(count);
+   SetMaxStacks(count);
+   SetMaterial(node["material"].as_string());
+}

@@ -14,8 +14,7 @@ class RenderRig : public Component
 {
 public:
    DEFINE_OM_OBJECT_TYPE(RenderRig);
-
-   RenderRig() : Component() { }
+   void Construct(json::ConstJsonObject const& obj) override;
 
 private:
    dm::Set<std::string>    rigs_;
@@ -45,7 +44,6 @@ class RenderRigIconic : public RenderRig
 {
 public:
    DEFINE_OM_OBJECT_TYPE(RenderRigIconic);
-   RenderRigIconic() : RenderRig() { }   
 };
 
 END_RADIANT_OM_NAMESPACE

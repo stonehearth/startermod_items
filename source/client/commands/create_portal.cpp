@@ -169,14 +169,14 @@ void CreatePortal::MovePortal(const csg::Point3& location)
       } else {
          angle = 0;
       }
-      portal_ = om::Stonehearth::CreateEntity(store, "module://stonehearth/buildings/wooden_door");
+      portal_ = om::Stonehearth::CreateEntityLegacyDIEDIEDIE(store, "module://stonehearth/buildings/wooden_door");
       wall->AddFixture(portal_);
 
       portalMob = portal_->GetComponent<om::Mob>();
       portalMob ->TurnToAngle(angle);
       auto fixture = portal_->GetComponent<om::Fixture>();
       if (fixture) {
-         om::EntityPtr item = om::Stonehearth::CreateEntity(store, fixture->GetItemKind());
+         om::EntityPtr item = om::Stonehearth::CreateEntityLegacyDIEDIEDIE(store, fixture->GetItemKind());
          fixture->SetItem(item);
       }
       auto portal = portal_->GetComponent<om::Portal>();

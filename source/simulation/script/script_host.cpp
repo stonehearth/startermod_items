@@ -1,7 +1,7 @@
 #include "pch.h"
 #include <algorithm>
+#include "radiant_file.h"
 #include "script_host.h"
-#include "lua_resource.h"
 #include "lua_om.h"
 #include "lua_jobs.h"
 //#include "lua_worker_scheduler.h"
@@ -20,6 +20,22 @@
 
 #define DEFINE_ALL_COMPONENTS
 #include "om/all_components.h"
+
+
+#define CATCH_LUA_ERROR(x) \
+   catch (luabind::cast_failed& e) { \
+      std::ostringstream out; \
+      out << x << "(luabind::cast_failed: " << e.what() << " in call " << e.info().name() << ")"; \
+      ScriptHost::GetInstance().OnError(out.str()); \
+   } catch (luabind::error& e) { \
+      std::ostringstream out; \
+      out << x << "(luabind::error: " << e.what() << ")"; \
+      ScriptHost::GetInstance().OnError(out.str()); \
+   } catch (std::exception& e) { \
+      std::ostringstream out; \
+      out << x << "(std::exception: " << e.what() << ")"; \
+      ScriptHost::GetInstance().OnError(out.str()); \
+   }
 
 namespace fs = ::boost::filesystem;
 namespace po = boost::program_options;
@@ -101,16 +117,19 @@ void* ScriptHost::LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize)
 }
 
 
-ScriptHost::ScriptHost(lua_State* L, std::string scriptRoot) :
+ScriptHost::ScriptHost(lua_State* L) :
    L_(L)
 {
+   std::string game = configvm["game.script"].as<std::string>();
+
    ASSERT(!singleton_);
    singleton_ = this;
 
    // Load all the scripts...
-   InitEnvironment(scriptRoot);
-   LoadScript((fs::path(scriptRoot) / "radiant" / "api.lua").string());
-   LoadGameScript();
+   InitEnvironment();
+
+   api_  = LoadScript("mod://radiant/api.lua");
+   game_ctor_ = LoadScript(game);
 }
 
 ScriptHost::~ScriptHost()
@@ -167,7 +186,7 @@ int GetConfigOptions(lua_State* L)
    return 0;
 }
 
-void ScriptHost::InitEnvironment(std::string root)
+void ScriptHost::InitEnvironment()
 {
    int ii = lua_gettop(L_);
 
@@ -175,10 +194,11 @@ void ScriptHost::InitEnvironment(std::string root)
 
    module(L_) [
       class_<ScriptHost>("RadiantNative")
-         .def("lookup_resource",          &ScriptHost::LookupResource)
+         .def("load_json",                &ScriptHost::LoadJson)
+         .def("load_animation",           &ScriptHost::LoadAnimation)
          .def("report_error",             &ScriptHost::ReportError)
-         .def("create_entity",            &ScriptHost::CreateEntityRef)
-         .def("get_entity",               &ScriptHost::GetEntityRef)
+         .def("create_entity",            &ScriptHost::CreateEntity)
+         .def("get_entity",               &ScriptHost::GetEntity)
          .def("create_grid",              &ScriptHost::CreateGrid)
          .def("destroy_entity",           &ScriptHost::DestroyEntity)
          .def("create_multi_path_finder", &ScriptHost::CreateMultiPathFinder)
@@ -189,14 +209,16 @@ void ScriptHost::InitEnvironment(std::string root)
          .def("log",                      &ScriptHost::Log)
          .def("assert_failed",            &ScriptHost::AssertFailed)
          .def("unstick",                  &ScriptHost::Unstick)
+         .def("lua_require",              &ScriptHost::LuaRequire)
    ];
    lua_register(L_, "get_config_option", GetConfigOptions);
 
    LuaBasicTypes::RegisterType(L_);
-   LuaResource::RegisterType(L_);
    LuaObjectModel::RegisterType(L_);
    LuaJobs::RegisterType(L_);
    LuaNoise::RegisterType(L_);
+   resources::Animation::RegisterType(L_);
+   json::ConstJsonObject::RegisterLuaType(L_);
 
    module(L_) [
       csg::RegisterLuaType(L_),
@@ -206,39 +228,20 @@ void ScriptHost::InitEnvironment(std::string root)
 
    //LuaWorkerScheduler::RegisterType(L_);
 
-   //globals(L_)["native"] = object(L_, this);
+   globals(L_)["native"] = object(L_, this);
+   //globals(L_)["require"] = globals(L_)["radiant_require"];
 
    //globals(L_)["package"]["path"] = "./scripts/?.lua;./scripts/lib/?.lua";
    //globals(L_)["package"]["cpath"] = "./scripts/?.lua;./scripts/clib/?.dll";
 
-   globals(L_)["package"]["path"] = "./?.lua";
+   globals(L_)["package"]["path"] = "./data/?.lua";
    globals(L_)["package"]["cpath"] = "";
-}
-
-void ScriptHost::LoadGameScript()
-{
-   std::ifstream in;
-   std::string uri = configvm["game.script"].as<std::string>();
-   if (!resources::ResourceManager2::GetInstance().OpenResource(uri, in)) {
-      LOG(WARNING) << "could not open game script file '" << uri << "'.";
-      return;
-   }
-   std::string str((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-
-   if (luaL_dostring(L_, str.c_str()) != 0) {
-      OnError(lua_tostring(L_, -1));
-      return;
-   }
-   try {
-      game_ = luabind::object(luabind::from_stack(L_, -1));
-      call_function<void>(game_["init"], game_, this);
-   } CATCH_LUA_ERROR("initializing the environment");
 }
 
 void ScriptHost::CreateNew()
 {
    try {
-      luabind::call_function<void>(game_["create_new"], game_);
+      game_ = luabind::call_function<luabind::object>(game_ctor_);
    } CATCH_LUA_ERROR("initializing environment");
 
 #if 0
@@ -275,7 +278,7 @@ void ScriptHost::Update(int interval, int& currentGameTime)
 
    //CallEnvironment("update");
    try {
-      currentGameTime = luabind::call_function<int>(game_["update"], game_, interval);
+      currentGameTime = luabind::call_function<int>(api_["update"], interval);
    } CATCH_LUA_ERROR("update...");
 }
 
@@ -348,32 +351,104 @@ luabind::object ScriptHost::ConvertArg(const Protocol::Selection& arg)
    return luabind::object();
 }
 
-void ScriptHost::LoadScript(std::string arg)
-{
-   if (luaL_dofile(L_, arg.c_str()) != 0) {
-      OnError(lua_tostring(L_, -1));
-   }
-}
 
+class Reader {
+public:
+   Reader(std::ifstream& in) : contents(io::read_contents(in)), finished(false) { }
+
+   static const char *Read(lua_State *L, void *ud, size_t *size) {
+      return ((Reader *)ud)->ReadContents(size);
+   }
+
+private:
+   const char *ReadContents(size_t *size) {
+      if (finished) {
+         contents.clear();
+         return NULL;
+      }
+      finished = true;
+      *size = contents.size();
+      return contents.c_str();
+   }
+
+private:
+   std::string contents;
+   bool        finished;
+};
+
+luabind::object ScriptHost::LoadScript(std::string uri)
+{
+   std::ifstream in;
+   luabind::object obj;
+
+   LOG(WARNING) << "loading script " << uri;
+#if 0
+   // this is the awesome version that we'll use eventually, but we'll need
+   // to ship our own decoda that knows how to load files from mods.
+   if (!resources::ResourceManager2::GetInstance().OpenResource(uri, in)) {
+      return obj;
+   }
+
+   Reader reader(in);
+   if (lua_load(L_, &Reader::Read, &reader, uri.c_str()) != 0) {
+      OnError(lua_tostring(L_, -1));
+      return obj;
+   }
+
+   lua_pushstring(L_, uri.c_str());
+   lua_pushcclosure(L_, LocalRequire, 1);
+   lua_setglobal(L_, "require");
+
+   if (lua_pcall(L_, 0, LUA_MULTRET, 0) != 0) {
+      OnError(lua_tostring(L_, -1));
+      return obj;
+   }
+#else
+   // this is the slightly crappier version
+   std::string filepath;
+   try {
+       filepath = resources::ResourceManager2::GetInstance().GetResourceFileName(uri, ".lua");
+   } catch (resources::Exception& e) {
+      LOG(WARNING) << e.what();
+	   return obj;
+   }
+
+   int error = luaL_loadfile(L_, filepath.c_str());
+   if (error == LUA_ERRFILE) {
+      OnError("Coud not open script file " + filepath);
+   } else if (error != 0) {
+      OnError(lua_tostring(L_, -1));
+      return obj;
+   }
+   if (lua_pcall(L_, 0, LUA_MULTRET, 0) != 0) {
+      OnError(lua_tostring(L_, -1));
+      return obj;
+   }
+
+#endif
+   obj = luabind::object(luabind::from_stack(L_, -1));
+   return obj;
+}
 
 void ScriptHost::OnError(std::string description)
 {
-   stackDump(L_);
-   LOG(WARNING) << "ScriptHost::OnError -> " << description;
-
-   LOG(WARNING) << " -- start backtrace -- ";
+   LOG(WARNING) << "-- Lua Error Begin ------------------------------- ";
+   std::string item;
+   std::stringstream ss(description);
+   while(std::getline(ss, item)) {
+      LOG(WARNING) << "   " << item;
+   }
    if (!last_error.empty()) {
       LOG(WARNING) << last_error;
 
-      std::string item;
       std::stringstream ss(last_error_traceback);
       while(std::getline(ss, item)) {
-         LOG(WARNING) << item;
+         LOG(WARNING) << "   " << item;
       }
       last_error = "";
       last_error_traceback = "";
    }
-   LOG(WARNING) << " -- end backtrace -- ";
+   LOG(WARNING) << "-- Lua Error End   ------------------------------- ";
 
 #if 0
    luabind::object tb = luabind::globals(L_)["debug"]["traceback"];
@@ -385,19 +460,48 @@ void ScriptHost::OnError(std::string description)
       LOG(WARNING) << "-- endstack";
    }
 #endif
-#if 0
+#if 1
    int startTime = timeGetTime();
-   while(timeGetTime() - startTime < 15000) {
+   while(timeGetTime() - startTime < 1500000) {
       Sleep(0);
+      //DebugBreak();
    }
 #endif
 }
 
-luabind::object ScriptHost::LookupResource(std::string name)
+json::ConstJsonObject ScriptHost::LoadJson(std::string uri)
 {
-   luabind::object result;
-   std::shared_ptr<resources::Resource> obj = resources::ResourceManager2::GetInstance().LookupResource(name);
-   return LuaResource::ConvertResourceToLua(L_, obj);
+   return json::ConstJsonObject(resources::ResourceManager2::GetInstance().LookupJson(uri));
+}
+
+resources::AnimationPtr ScriptHost::LoadAnimation(std::string uri)
+{
+   return resources::ResourceManager2::GetInstance().LookupAnimation(uri);
+}
+
+luabind::object ScriptHost::LuaRequire(std::string uri)
+{
+   std::string path, name;
+   std::ostringstream script;
+   luabind::object obj;
+
+   boost::network::uri::uri canonical_uri;
+   try {
+      canonical_uri = resources::ResourceManager2::GetInstance().ConvertToCanonicalUri(uri, ".lua");
+   } catch (resources::Exception& e) {
+      LOG(WARNING) << e.what();
+      return obj;
+   }
+   std::string key = canonical_uri.string();
+
+   auto i = required_.find(key);
+   if (i != required_.end()) {
+      obj = i->second;
+   } else {
+      obj = LoadScript(canonical_uri.string());
+      required_[key] = obj;
+   }
+   return obj;
 }
 
 void ScriptHost::Call(std::string name, luabind::object arg1)
@@ -408,19 +512,14 @@ void ScriptHost::Call(std::string name, luabind::object arg1)
    } CATCH_LUA_ERROR("calling function...");
 }
 
-om::EntityRef ScriptHost::CreateEntityRef(std::string kind)
+om::EntityRef ScriptHost::GetEntity(om::EntityId id)
 {
-   return CreateEntity(kind);
-}
-
-luabind::object ScriptHost::GetEntityRef(om::EntityId id)
-{
-   luabind::object result;
    auto i = entityMap_.find(id);
    if (i != entityMap_.end()) {
+      return i->second;
       result = luabind::object(L_, om::EntityRef(i->second));
    }
-   return result;
+   return om::EntityRef();
 }
 
 om::GridPtr ScriptHost::CreateGrid()
@@ -428,11 +527,13 @@ om::GridPtr ScriptHost::CreateGrid()
    return Simulation::GetInstance().GetStore().AllocObject<om::Grid>();
 }
 
-om::EntityPtr ScriptHost::CreateEntity(std::string kind)
+om::EntityRef ScriptHost::CreateEntity()
 {
    dm::Store& store = Simulation::GetInstance().GetStore();
-   om::EntityPtr entity = om::Stonehearth::CreateEntity(store, kind);
+   om::EntityPtr entity = store.AllocObject<om::Entity>();
+
    entityMap_[entity->GetEntityId()] = entity;
+
    return entity;
 }
 

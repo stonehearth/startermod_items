@@ -2,20 +2,18 @@
 #define _RADIANT_RESOURCES_ANIMATION_H
 
 #include "math3d.h"
-#include "resource.h"
 #include "libjson.h"
+#include "namespace.h"
+
+struct lua_State;
 
 BEGIN_RADIANT_RESOURCES_NAMESPACE
 
-class Animation : public Resource {
+class Animation {
 public:
-
+   Animation(std::string bin);
+   static void RegisterType(lua_State* L);
    static std::string JsonToBinary(const JSONNode &obj);
-
-   Animation(std::string name, std::string bin);
-
-   static ResourceType Type;
-   ResourceType GetType() const override { return Resource::ANIMATION; }
 
    float GetDuration();
 
@@ -45,11 +43,12 @@ protected:
    void GetFrames(float offset, int &f0, int &f1, float &alpha);
 
 private:
-   std::string         _name;
    std::string    bin_;
    const char     *_base;
    int            _len;
 };
+
+typedef std::shared_ptr<Animation> AnimationPtr;
 
 std::ostream& operator<<(std::ostream& out, const Animation& source);
 

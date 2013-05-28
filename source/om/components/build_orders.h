@@ -16,8 +16,6 @@ class BuildOrders : public Component,
 public:
    DEFINE_OM_OBJECT_TYPE(BuildOrders);
 
-   BuildOrders() : Component() { }
-
    typedef dm::Set<EntityRef> ProjectList;
    typedef dm::Set<EntityRef> BlueprintList;
    typedef dm::Set<EntityRef> BuildOrderList;

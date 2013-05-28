@@ -14,16 +14,6 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-Scaffolding::Scaffolding() :
-   RegionBuildOrder()
-{
-   LOG(WARNING) << "creating new scaffolding...";
-}
-
-Scaffolding::~Scaffolding()
-{
-}
-
 void Scaffolding::InitializeRecordFields()
 {
    RegionBuildOrder::InitializeRecordFields();

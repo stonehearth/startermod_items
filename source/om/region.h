@@ -13,9 +13,6 @@ class Region : public dm::Object
 public:
    DEFINE_OM_OBJECT_TYPE(Region);
 
-   Region();
-   virtual ~Region();
-
    csg::Region3& Modify() {
       MarkChanged();
       return region_;

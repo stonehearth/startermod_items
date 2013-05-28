@@ -18,8 +18,6 @@ public:
    DEFINE_OM_OBJECT_TYPE(StockpileDesignation);
    static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
 
-   StockpileDesignation();
-   ~StockpileDesignation();
    std::string ToString() const;
 
    const math3d::ibounds3& GetBounds() const { return bounds_; }

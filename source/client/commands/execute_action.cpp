@@ -25,6 +25,8 @@ ExecuteAction::ExecuteAction(PendingCommandPtr cmd)
       }
    }
 
+   ASSERT(false); // Needs to be re-written for the new ability thing...
+#if 0
    std::string actionName = args_["action"].as_string();
    auto action = resources::ResourceManager2::GetInstance().Lookup<resources::DataResource>(actionName);
    if (!action) {
@@ -37,6 +39,7 @@ ExecuteAction::ExecuteAction(PendingCommandPtr cmd)
 
    deferredCommandId_ = Client::GetInstance().CreatePendingCommandResponse();
    cmd->Defer(deferredCommandId_);
+#endif
 }
 
 ExecuteAction::~ExecuteAction()
@@ -50,6 +53,7 @@ ExecuteAction::~ExecuteAction()
 
 void ExecuteAction::operator()()
 {
+#if 0
    // xxx - this is annoying... if the initialization code fails, we shouldn't
    // even get this far, no?
    if (!action_) {
@@ -127,6 +131,7 @@ void ExecuteAction::operator()()
       std::string cmd = action["command"].as_string();
       Client::GetInstance().SendCommand(self_, cmd, actual_, deferredCommandId_);
    }
+#endif
 }
 
 #if 0

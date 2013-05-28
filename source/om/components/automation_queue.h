@@ -16,8 +16,6 @@ class AutomationQueue : public Component
 public:
    DEFINE_OM_OBJECT_TYPE(AutomationQueue);
 
-   AutomationQueue() : Component() { }
-
 public:
    AutomationTaskPtr AddTask(luabind::object handler);
    const dm::Queue<AutomationTaskPtr>& GetContents() const { return queue_; }

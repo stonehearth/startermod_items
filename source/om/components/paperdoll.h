@@ -17,8 +17,6 @@ class Paperdoll : public Component
 public:
    DEFINE_OM_OBJECT_TYPE(Paperdoll);
 
-   Paperdoll() { }
-
    enum Slot {
       MAIN_HAND         = 0,
       WEAPON_SCABBARD,

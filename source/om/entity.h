@@ -4,6 +4,7 @@
 #include <atomic>
 #include "om.h"
 #include "math3d.h"
+#include "libjson.h"
 #include "dm/record.h"
 #include "dm/boxed.h"
 #include "dm/map.h"
@@ -16,8 +17,7 @@ class Entity : public dm::Record,
                public std::enable_shared_from_this<Entity> {
 public:
    DEFINE_OM_OBJECT_TYPE(Entity);
-   Entity();
-   ~Entity();
+   virtual ~Entity() { }
 
    typedef dm::Map<dm::ObjectType, std::shared_ptr<dm::Object>> ComponentMap;
 

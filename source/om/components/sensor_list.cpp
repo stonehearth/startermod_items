@@ -30,6 +30,13 @@ luabind::scope SensorList::RegisterLuaType(struct lua_State* L, const char* name
       ;
 }
 
+void SensorList::Construct(json::ConstJsonObject const& obj)
+{
+   for (auto const& e : obj.GetNode()["sensors"]) {
+      AddSensor(e.name(), e["radius"].as_int());
+   }
+}
+
 void Sensor::UpdateIntersection(std::vector<EntityId> intersection)
 {
    // xxx: move this whole routine into the dm::Set class?  It would
