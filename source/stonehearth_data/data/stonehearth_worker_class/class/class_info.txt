@@ -1,0 +1,5 @@
+{
+	"outfits" : [
+		"url(worker_outfit.qb)"
+	]
+}

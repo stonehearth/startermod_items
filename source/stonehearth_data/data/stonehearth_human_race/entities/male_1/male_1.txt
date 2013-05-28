@@ -1,0 +1,20 @@
+{
+   "type" : "entity",
+   "extends" : "url(../base_human.txt)",
+   "components": {
+      "render_rig": {
+         "models": [
+            {
+               "type": "one_of",
+               "items": [
+                  "url(head_1.qb)",
+                  "url(head_2.qb)",
+                  "url(head_3.qb)",
+                  "url(head_5.qb)"
+               ]
+            },            
+            "url(hands.qb)"
+         ]
+      }
+   }
+}

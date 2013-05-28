@@ -1,0 +1,18 @@
+{
+   "type" : "entity",
+   "components" : {
+	   "item" : {
+		  "material": "wood",
+		  "stacks": 20
+	   },
+	   "unit_info" : {
+		  "name" :  "Oak Log",
+		  "description" : "That's right.  It's a log."
+	   },
+	   "render_rig": {
+		  "models": [
+			 "url(oak_log.qb)"
+		  ]
+	   }
+	}
+}

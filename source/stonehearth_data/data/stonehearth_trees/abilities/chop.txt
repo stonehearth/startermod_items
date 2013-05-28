@@ -1,0 +1,9 @@
+{
+   "type" : "ability",
+
+   "tooltip": "Chop Tree",
+   "icon": "url(/images/actions/chop.png)",
+   "handler"  : "url(chop_ability.lua)",
+   "command" : "chop",
+   "args": [ "self" ]
+}

@@ -1,15 +1,10 @@
-print 'requiring foo'
-print (package.path)
-print (package.path .. 'CORRUPTED')
+native:log('requiring microworld')
 
-local foo = require 'foo'
-print 'requiring microworld'
-local MicroWorld = require 'lib.micro_world'
+local MicroWorld = require 'stonehearth_tests.lib.micro_world'
 local HarvestTest = class(MicroWorld)
-local gm = require 'radiant.core.gm'
-local om = require 'radiant.core.om'
 
-HarvestTest['radiant.md.create'] = function(self, bounds)
+function HarvestTest:__init()
+   self[MicroWorld]:__init()
    self:create_world()
 
    local tree = self:place_tree(-12, -12)
@@ -18,8 +13,9 @@ HarvestTest['radiant.md.create'] = function(self, bounds)
          self:place_stockpile_cmd(4, 12)
       end)
    self:at(100, function()
-         self:harvest_cmd(tree)
+         radiant.components.get_component(tree, 'abilities'):do_ability('chop')
       end)
 end
 
-gm:register_scenario('radiant.tests.harvest', HarvestTest)
+return HarvestTest
+
