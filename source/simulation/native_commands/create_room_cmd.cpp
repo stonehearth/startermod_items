@@ -15,6 +15,9 @@ using namespace ::radiant::simulation;
 // xxx: why is this native???
 std::string CreateRoomCmd::operator()(const tesseract::protocol::DoAction& msg) const
 {
+   assert(false);
+   return "";
+#if 0
    auto& sim = Simulation::GetInstance();
    math3d::ibounds3 bounds(msg.args(0).bounds());
 
@@ -27,5 +30,6 @@ std::string CreateRoomCmd::operator()(const tesseract::protocol::DoAction& msg) 
    std::ostringstream result;
    result << "{ \"entity_id\": " << room->GetEntityId() << "}";
    return result.str();
+#endif
 }
 

@@ -7,14 +7,12 @@
 #include "om/components/terrain.h"
 #include "om/components/stockpile_designation.h"
 #include "om/components/unit_info.h"
-#include "om/components/action_list.h"
 #include "om/components/build_orders.h"
 #include "om/selection.h"
 #include "om/om_alloc.h"
 #include "om/components/build_orders.h"
 #include "platform/utils.h"
 #include "resources/res_manager.h"
-#include "resources/data_resource.h"
 #include "rest_api.h"
 #include "commands/command.h"
 #include "commands/trace_entity.h"
@@ -975,7 +973,7 @@ void Client::ExecuteCommands()
 
 void Client::SetRenderPipelineInfo()
 {
-   std::string pipeline = "pipelines/deferred_pipeline.xml";
+   std::string pipeline = "pipelines/deferred_pipeline_static.xml";
    if (showBuildOrders_) {
       //pipeline = "pipelines/blueprint.deferred.pipeline.xml";
    }
@@ -1070,10 +1068,8 @@ void Client::FetchJsonData(PendingCommandPtr cmd)
    for (const auto& node : args["entries"]) {
       if (node.type() == JSON_STRING) {
          std::string name = node.as_string();
-         auto data = resources::ResourceManager2::GetInstance().Lookup<resources::DataResource>(name);
-         if (data) {
-            result.push_back(data->GetJson());
-         }
+         JSONNode const& data = resources::ResourceManager2::GetInstance().LookupJson(name);
+         result.push_back(data);
       }
    }
    cmd->Complete(result);

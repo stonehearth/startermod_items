@@ -9,11 +9,6 @@ using namespace ::radiant::om;
 
 const int GridTile::size = 16;
    
-GridTile::~GridTile()
-{
-   LOG(WARNING) << "CONSTRUCTING NEW GRID TILE";
-}
-
 void GridTile::InitializeRecordFields() 
 {
    AddRecordField("grid", _grid);

@@ -212,6 +212,7 @@ public:
    }
 };
 
+#if 0
 class ActionListComponentWriter : public ComponentWriter<om::ActionList>
 {
 public:
@@ -239,6 +240,7 @@ public:
       ADD_GENERIC_COLLECTOR(om::ActionList, "actions", c, actionInstall, actionsWrite);
    }
 };
+#endif
 
 class ProfessionComponentWriter : public ComponentWriter<om::Profession>
 {
@@ -314,7 +316,7 @@ private:
       ADD_COMPONENT_COLLECTOR(UnitInfo,             "identity");
       ADD_COMPONENT_COLLECTOR(StockpileDesignation, "stockpile");
       ADD_COMPONENT_COLLECTOR(Item,                 "item");
-      ADD_COMPONENT_COLLECTOR(ActionList,           "action_list");
+//      ADD_COMPONENT_COLLECTOR(ActionList,           "action_list");
       ADD_COMPONENT_COLLECTOR(Profession,           "profession");
 
 #undef ADD_COMPONENT_COLLECTOR

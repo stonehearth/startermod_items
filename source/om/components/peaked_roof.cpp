@@ -13,16 +13,6 @@ static const int RoofColorNeutral = 1;
 static const int RoofColorBright = 2;
 static const int RoofColorDark = 3;
 
-PeakedRoof::PeakedRoof() :
-   GridBuildOrder()
-{
-   LOG(WARNING) << "creating new peaked roof...";
-}
-
-PeakedRoof::~PeakedRoof()
-{
-}
-
 void PeakedRoof::InitializeRecordFields()
 {
    GridBuildOrder::InitializeRecordFields();

@@ -1,0 +1,9 @@
+{
+   "type": "entity",
+   "components" : {
+      "unit_info" : {
+         "name" : "Stockpile",
+         "description" : "Stores all sorts of things."
+      }
+   }
+}

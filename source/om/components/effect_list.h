@@ -56,8 +56,6 @@ class EffectList : public Component
 public:
    DEFINE_OM_OBJECT_TYPE(EffectList);
 
-   EffectList() { }
-
    const dm::Set<EffectPtr>& GetEffects() const { return effects_; }
 
    EffectPtr AddEffect(std::string effectName, int startTime);

@@ -16,8 +16,6 @@ class GridCollisionShape : public Component,
 public:
    DEFINE_OM_OBJECT_TYPE(GridCollisionShape);
 
-   virtual ~GridCollisionShape() { }
-
    CollisionType GetType() const override { return CollisionShape::GRID; }
 
    math3d::aabb GetAABB() const override;

@@ -13,16 +13,6 @@ using namespace ::radiant::om;
 static const int FloorColor1 = 1;
 static const int FloorColor2 = 2;
 
-Floor::Floor() :
-   GridBuildOrder()
-{
-   LOG(WARNING) << "creating new floor...";
-}
-
-Floor::~Floor()
-{
-}
-
 void Floor::InitializeRecordFields()
 {
    GridBuildOrder::InitializeRecordFields();

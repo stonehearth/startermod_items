@@ -6,7 +6,6 @@
 #include "client/selectors/actor_selector.h"
 #include "client/selectors/voxel_range_selector.h"
 #include "command.h"
-#include "resources/data_resource.h"
 #include <boost/any.hpp>
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
@@ -25,7 +24,7 @@ private:
 private:
    om::EntityId                        self_;
    JSONNode                            args_;
-   std::shared_ptr<resources::DataResource>  action_;
+   //std::shared_ptr<resources::DataResource>  action_;
    std::vector<om::Selection>          actual_;
    int                                 deferredCommandId_;
    std::shared_ptr<Selector>           selector_;

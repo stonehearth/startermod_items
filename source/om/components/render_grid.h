@@ -15,8 +15,6 @@ class RenderGrid : public Component
 public:
    DEFINE_OM_OBJECT_TYPE(RenderGrid);
 
-   RenderGrid() : Component() { }
-
    std::shared_ptr<Grid> GetGrid() const { return (*grid_).lock(); }
    void SetGrid(om::GridPtr grid) { grid_ = grid; }
 

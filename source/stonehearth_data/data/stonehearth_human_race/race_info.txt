@@ -1,0 +1,5 @@
+{
+	"males" : [
+		"url(entities/male_1)"
+	]
+}

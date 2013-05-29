@@ -74,12 +74,9 @@ void RenderScaffolding::UpdateRegion(const csg::Region3& region)
          return;
       }
       std::string uri = e->GetResourceUri();
-      auto resource = resources::ResourceManager2::GetInstance().Lookup<resources::DataResource>(uri);
-      if (!resource) {
-         return;
-      }
 
-      JSONNode data = json::get<JSONNode>(resource->GetJson(), "data");
+      JSONNode const& res = resources::ResourceManager2::GetInstance().LookupJson(uri);
+      JSONNode data = json::get<JSONNode>(res, "data");
       JSONNode models = json::get<JSONNode>(data, "models");
       
 

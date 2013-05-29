@@ -1,9 +1,11 @@
 {
    "type" : "entity",
-   "render_rig": {
-      "scale": 0.2,
-      "models": [
-         "url(flower_pink.qb)"
-      ]
-   }
+   "components" : {
+	   "render_rig": {
+		  "scale": 0.2,
+		  "models": [
+			 "url(flower_pink.qb)"
+		  ]
+	   }
+	}
 }

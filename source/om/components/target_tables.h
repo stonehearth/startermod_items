@@ -20,8 +20,6 @@ class TargetTableEntry : public dm::Record
 {
 public:
    DEFINE_OM_OBJECT_TYPE(TargetTableEntry);
-   TargetTableEntry() : dm::Record() { }
-   ~TargetTableEntry();
 
    void SetTarget(EntityPtr entity) { entity_ = entity; }
 
@@ -56,7 +54,6 @@ class TargetTable : public dm::Record
 {
 public:
    DEFINE_OM_OBJECT_TYPE(TargetTable);
-   TargetTable() : dm::Record() { }
 
    TargetTableEntryPtr GetEntry(EntityId id) { return entries_.Lookup(id, nullptr); }
    TargetTableEntryPtr AddEntry(EntityRef e);
@@ -101,7 +98,6 @@ class TargetTableGroup : public dm::Record
 {
 public:
    DEFINE_OM_OBJECT_TYPE(TargetTableGroup);
-   TargetTableGroup() : dm::Record() { }
 
    TargetTablePtr AddTable();
    void RemoveTable(TargetTablePtr table);
@@ -129,8 +125,6 @@ class TargetTables : public Component
 {
 public:
    DEFINE_OM_OBJECT_TYPE(TargetTables);
-
-   TargetTables() { }
 
    TargetTablePtr AddTable(std::string category);
    void RemoveTable(TargetTablePtr table);

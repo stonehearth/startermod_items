@@ -4,14 +4,6 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-Mob::Mob()
-{
-}
-
-Mob::~Mob()
-{
-}
-
 void Mob::InitializeRecordFields()
 {
    Component::InitializeRecordFields();

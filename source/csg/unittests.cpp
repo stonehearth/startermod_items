@@ -28,4 +28,3 @@ TEST(RegionTest, SubtractCube) {
       }
    }
 }
-

@@ -24,8 +24,6 @@ add_library(om_components STATIC
             room.cpp
             portal.cpp
             fixture.cpp
-
-            action_list.cpp
             effect_list.cpp
             clock.cpp
             collision_shape.cpp
@@ -56,7 +54,7 @@ add_library(om_components STATIC
             target_tables.cpp
             inventory.cpp
             weapon_info.cpp
-            combat_ability_list.cpp
+			lua_components.cpp
             pch.cpp
             )
 

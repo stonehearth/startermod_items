@@ -16,9 +16,6 @@ class Clock : public Component
 public:
    DEFINE_OM_OBJECT_TYPE(Clock);
 
-   Clock();
-   virtual ~Clock();
-
    void SetTime(int now) { now_ = now; }
    int GetTime() const { return *now_; }
 

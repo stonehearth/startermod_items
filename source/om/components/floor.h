@@ -11,9 +11,6 @@ class Floor : public GridBuildOrder
 public:
    DEFINE_OM_OBJECT_TYPE(Floor);
 
-   Floor();
-   virtual ~Floor();
-
    void Create();
 
 public: // BuildOrder overrides

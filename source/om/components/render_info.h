@@ -15,8 +15,6 @@ class RenderInfo : public Component
 public:
    DEFINE_OM_OBJECT_TYPE(RenderInfo);
 
-   RenderInfo() : Component() { }
-
 public:
    //std::string GetKind() const { return *kind_; }
    //void SetKind(std::string kind) { kind_ = kind; }

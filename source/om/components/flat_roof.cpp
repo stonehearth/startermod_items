@@ -12,16 +12,6 @@ using namespace ::radiant::om;
 static const int FlatRoofColor1 = 1;
 static const int FlatRoofColor2 = 2;
 
-FlatRoof::FlatRoof() :
-   GridBuildOrder()
-{
-   LOG(WARNING) << "creating new peaked roof...";
-}
-
-FlatRoof::~FlatRoof()
-{
-}
-
 void FlatRoof::InitializeRecordFields()
 {
    GridBuildOrder::InitializeRecordFields();

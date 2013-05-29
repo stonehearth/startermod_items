@@ -2,9 +2,10 @@
 #define _RADIANT_JSON_H
 
 #include "libjson.h"
+#include <luabind/luabind.hpp>
+
 namespace radiant {
-   class json {
-   public:
+   namespace json {
       template <typename T> static T get(JSONNode const& node, char const* name) {
          return get<T>(node, name, T());
       }
@@ -17,7 +18,20 @@ namespace radiant {
          return def;
       }
 
-   private:
+      class ConstJsonObject {
+      public:
+         ConstJsonObject(JSONNode const& node) : node_(node) { }
+         static void RegisterLuaType(struct lua_State* L);
+
+         std::string ToString() const;
+         JSONNode const& GetNode() const { return node_; }
+
+      private:
+         JSONNode const& node_;
+      };
+      static std::ostream& operator<<(std::ostream& os, const ConstJsonObject& o) { return (os << o.ToString()); }
+
+
       template <typename T> static T cast_(JSONNode const& node);
 
       template <> static std::string cast_(JSONNode const& node) {
