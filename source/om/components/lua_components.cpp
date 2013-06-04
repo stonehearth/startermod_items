@@ -10,7 +10,7 @@ void LuaComponents::InitializeRecordFields()
    Component::InitializeRecordFields();
 }
 
-void LuaComponents::Construct(json::ConstJsonObject const& obj) 
+void LuaComponents::ExtendObject(json::ConstJsonObject const& obj) 
 {
 }
 

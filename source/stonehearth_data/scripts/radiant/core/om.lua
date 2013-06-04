@@ -810,17 +810,6 @@ function ObjectModel:set_target(entity, target)
    end
 end
 
-
-
-local all_build_orders = {
-   'wall',
-   'floor',
-   'scaffolding',
-   'post',
-   'peaked_roof',
-   'fixture'
-}
-
 function ObjectModel:get_build_order(entity)
    for _, name in ipairs(all_build_orders) do
       if self:has_component(entity, name) then

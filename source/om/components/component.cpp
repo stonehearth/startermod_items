@@ -13,7 +13,7 @@ luabind::scope Component::RegisterLuaType(struct lua_State* L, const char* name)
       class_<Component, std::weak_ptr<Component>>(name)
          .def("get_id",     &om::Component::GetObjectId)
          .def("get_entity", &om::Component::GetEntityRef)
-         .def("construct",  &om::Component::Construct)
+         .def("extend",     &om::Component::ExtendObject)
       ;
 }
 

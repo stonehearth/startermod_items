@@ -19,12 +19,11 @@ function entities._add_scripts(entity, obj)
    end
 end
 
-function entities._init_entity(entity, kind)
+function entities._init_entity(entity, uri)
    -- add standard components, based on the kind of entity we want
-   local obj = radiant.resources.load_json(kind)
+   local obj = radiant.resources.load_json(uri)
 
    if obj then
-      entity:set_resource_uri(kind)
       if obj.components then
          for component, json, b, c in radiant.resources.pairs(obj.components) do
             assert(json)
@@ -35,18 +34,23 @@ function entities._init_entity(entity, kind)
    end
 end
 
-function entities.create_entity(kind)
+function entities.create_entity(uri)
    assert(radiant.gamestate.is_initialized())
-   assert(not kind or type(kind) == 'string')
+   assert(not uri or type(uri) == 'string')
    
    local entity = native:create_entity()
-   radiant.log.info('creating new entity %d (kind: %s)', entity:get_id(), kind and kind or '-empty-')
-   entity:set_debug_name(kind and kind or '-unknown-')
-   
-   if kind then
-      entities._init_entity(entity, kind);
+   radiant.log.info('creating new entity %d (uri: %s)', entity:get_id(), uri and uri or '-empty-')
+   entity:set_debug_name(uri and uri or '-unknown-')
+  
+   if uri then
+      entity:set_resource_uri(uri)
+      entities._init_entity(entity, uri);
    end
    return entity
+end
+
+function entities.inject_into_entity(entity, uri)
+   entities._init_entity(entity, uri)
 end
 
 function entities.add_child(parent, child, location)
@@ -90,6 +94,16 @@ function entities.turn_to_face(entity, arg2)
    radiant.check.is_entity(entity)
    radiant.check.is_a(location, RadiantIPoint3)
    radiant.components.add_component(entity, 'mob'):turn_to_face_point(location)
+end
+
+function entities.get_location_aligned(entity)
+   radiant.check.is_entity(entity)
+   return radiant.components.add_component(entity, 'mob'):get_grid_location()
+end
+
+function entities.get_world_grid_location(entity)
+   radiant.check.is_entity(entity)
+   return radiant.components.add_component(entity, 'mob'):get_world_grid_location()
 end
 
 function entities.on_destroy(entity, dtor)

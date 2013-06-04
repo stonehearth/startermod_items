@@ -16,7 +16,7 @@ public:
    Component() { }
 
    static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
-   virtual void Construct(json::ConstJsonObject const& obj) { }
+   virtual void ExtendObject(json::ConstJsonObject const& obj) { }
 
    EntityPtr GetEntityPtr() const { return (*entity_).lock(); }
    EntityRef GetEntityRef() const { return (*entity_); }

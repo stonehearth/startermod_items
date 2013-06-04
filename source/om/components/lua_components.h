@@ -19,7 +19,7 @@ class LuaComponents : public Component
 {
 public:
    DEFINE_OM_OBJECT_TYPE(LuaComponents);
-   void Construct(json::ConstJsonObject const& obj) override;
+   void ExtendObject(json::ConstJsonObject const& obj) override;
 
    static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
    std::string ToString() const;

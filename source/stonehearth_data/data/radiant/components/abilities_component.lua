@@ -1,7 +1,11 @@
 local Abilities = class()
 
-function Abilities:__init(entity, json)
+function Abilities:__init(entity)
    self._entity = entity
+end
+   
+function Abilities:extend(entity, json)
+   -- not really...
    self._abilities = json.ability_list
 end
 

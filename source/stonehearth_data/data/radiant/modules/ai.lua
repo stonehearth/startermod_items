@@ -113,7 +113,6 @@ end
 
 function ai._init_entity(entity, obj)
    local id = entity:get_id()
-   
    singleton._entities[id] = entity  
    if obj.actions then
       for _, uri in radiant.resources.pairs(obj.actions) do

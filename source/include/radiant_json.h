@@ -26,6 +26,9 @@ namespace radiant {
          std::string ToString() const;
          JSONNode const& GetNode() const { return node_; }
 
+         template <typename T> T get(char const* name, T const& def) const {
+            return ::radiant::json::get(GetNode(), name, def);
+         }
       private:
          JSONNode const& node_;
       };
@@ -39,6 +42,9 @@ namespace radiant {
       }
       template <> static float cast_(JSONNode const& node) {
          return static_cast<float>(node.as_float());
+      }
+      template <> static int cast_(JSONNode const& node) {
+         return node.as_int();
       }
       template <> static JSONNode cast_(JSONNode const& node) {
          return node;

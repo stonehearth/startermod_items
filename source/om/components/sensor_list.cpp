@@ -30,7 +30,7 @@ luabind::scope SensorList::RegisterLuaType(struct lua_State* L, const char* name
       ;
 }
 
-void SensorList::Construct(json::ConstJsonObject const& obj)
+void SensorList::ExtendObject(json::ConstJsonObject const& obj)
 {
    for (auto const& e : obj.GetNode()["sensors"]) {
       AddSensor(e.name(), e["radius"].as_int());

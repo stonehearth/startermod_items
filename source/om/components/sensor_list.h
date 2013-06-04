@@ -67,7 +67,7 @@ class SensorList : public Component
 public:
    DEFINE_OM_OBJECT_TYPE(SensorList);
    static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
-   void Construct(json::ConstJsonObject const& obj) override;
+   void ExtendObject(json::ConstJsonObject const& obj) override;
 
    const dm::Map<std::string, SensorPtr>& GetSensors() const { return sensors_; }
 

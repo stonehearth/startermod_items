@@ -16,9 +16,9 @@ void Fixture::InitializeRecordFields()
    AddRecordField("standing", standingRegion_);
 }
 
-void Fixture::Construct(json::ConstJsonObject const& obj)
-{   
-   SetItemKind(obj.GetNode()["item"].as_string());
+void Fixture::ExtendObject(json::ConstJsonObject const& obj)
+{
+   kind_ = obj.get<std::string>("item", *kind_);
 }
 
 bool Fixture::NeedsMoreWork()

@@ -273,15 +273,6 @@ bool EntityHasComponent(om::EntityRef e)
    return entity && entity->GetComponent<T>() != nullptr;
 }
 
-template <class T>
-void EntityConstructComponent(std::weak_ptr<T> c, json::ConstJsonObject const& obj)
-{
-   auto component = c.lock();
-   if (component) {
-      component->Construct(obj.GetNode());
-   }
-}
-
 template <typename T>
 class DmIterator
 {
@@ -332,7 +323,7 @@ void LuaObjectModel::RegisterType(lua_State* L)
 #define ADD_OM_COMPONENT(Cls) \
          ADD_OM_CLASS(Cls) \
          .def("get_entity",            &om::Cls::GetEntityRef) \
-         .def("construct",             &om::Cls::Construct) \
+         .def("extend",                &om::Cls::ExtendObject) \
 
 // Things that do work...
 // 1) class_<om::BuildOrder, std::weak_ptr<om::BuildOrder> >("BuildOrder")
@@ -382,8 +373,7 @@ void LuaObjectModel::RegisterType(lua_State* L)
 #define OM_OBJECT(Clas, lower)  \
          .def("has_" #lower "_component" , &EntityHasComponent<om::Clas>) \
          .def("get_" #lower "_component" , &om::Entity::GetComponentRef<om::Clas>) \
-         .def("add_" #lower "_component" , &om::Entity::AddComponentRef<om::Clas>) \
-         .def("construct_" #lower "_component" , &EntityConstructComponent<om::Clas>) 
+         .def("add_" #lower "_component" , &om::Entity::AddComponentRef<om::Clas>)
          OM_ALL_COMPONENTS
 #undef OM_OBJECT
       ,

@@ -12,11 +12,11 @@ void UnitInfo::InitializeRecordFields()
    AddRecordField("faction", faction_);
 }
 
-void UnitInfo::Construct(json::ConstJsonObject const& obj)
+void UnitInfo::ExtendObject(json::ConstJsonObject const& obj)
 {
    JSONNode const& node = obj.GetNode();
 
-   SetDisplayName(node["name"].as_string());
-   SetDescription(node["description"].as_string());
-   SetFaction(json::get<std::string>(node, "faction", ""));
+   name_ = obj.get<std::string>("name", *name_);
+   description_ = obj.get<std::string>("description", *description_);
+   faction_ = obj.get<std::string>("faction", *faction_);
 }

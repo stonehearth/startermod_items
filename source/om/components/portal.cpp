@@ -15,7 +15,7 @@ void Portal::SetPortal(csg::Region2 const& region)
    region_ = region;
 }
 
-void Portal::Construct(json::ConstJsonObject const& obj)
+void Portal::ExtendObject(json::ConstJsonObject const& obj)
 {
    csg::Region2 rgn;
    JSONNode const& node = obj.GetNode();

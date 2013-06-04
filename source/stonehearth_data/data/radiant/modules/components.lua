@@ -99,10 +99,10 @@ function components.add_component(entity, name, json)
    
    if native_components[name] then
       local component = entity['add_'..name..'_component'](entity)
-      assert(component.construct)
+      assert(component.extend)
       if json then
          local native_obj = radiant.resources.get_native_obj(json)
-         component:construct(native_obj)
+         component:extend(native_obj)
       end
       return component
    end
@@ -110,10 +110,17 @@ function components.add_component(entity, name, json)
    local lua_components = components.add_component(entity, 'lua_components')
 
    local uri = components._get_component_uri(name)
-   local api = radiant.mods.require(uri)
-   local component = api(entity, json)
-   lua_components:add_lua_component(uri, component)
-   return api
+   local component = lua_components:get_lua_component(uri)
+   if not component then
+      local api = radiant.mods.require(uri)
+      assert(type(api) ~= 'string')
+      component = api(entity)
+      lua_components:add_lua_component(uri, component)
+   end
+   if json then
+      component:extend(entity, json)
+   end
+   return component
 end
 
 components.__init()

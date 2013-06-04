@@ -14,7 +14,7 @@ class RenderRig : public Component
 {
 public:
    DEFINE_OM_OBJECT_TYPE(RenderRig);
-   void Construct(json::ConstJsonObject const& obj) override;
+   void ExtendObject(json::ConstJsonObject const& obj) override;
 
 private:
    dm::Set<std::string>    rigs_;

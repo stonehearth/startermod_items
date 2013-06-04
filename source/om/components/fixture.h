@@ -9,7 +9,7 @@ class Fixture : public BuildOrder
 {
 public:
    DEFINE_OM_OBJECT_TYPE(Fixture);
-   void Construct(json::ConstJsonObject const& obj) override;
+   void ExtendObject(json::ConstJsonObject const& obj) override;
 
 public: // Simulation Methods
    bool NeedsMoreWork() override;

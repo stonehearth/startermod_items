@@ -1,57 +1,25 @@
-local singleton = {}
-local worker_scheduler = {}
-
-function worker_scheduler.schedule_chop(tree)
-   print 'chop...'
-end
-
-return worker_scheduler
-
---[[
 local WorkerScheduler = class()
 
-md:register_msg("radiant.resource_node.harvest", Harvest)
-md:register_msg_handler('radiant.msg_handlers.worker_scheduler', WorkerScheduler)
+local all_build_orders = {
+   'wall',
+   'floor',
+   'scaffolding',
+   'post',
+   'peaked_roof',
+   'fixture'
+}
 
-
-function WorkerScheduler:__tostring()
-   return '[WorkerScheduler]'
+--[[
+function WorkerScheduler:schedule_chop(tree)
+   print 'chop...'
 end
+]]
 
-function WorkerScheduler:start()
-   self._running = true
-   md:listen('radiant.events.gameloop', self)
-end
+--radiant.events.register_msg("radiant.resource_node.harvest", Harvest)
+--radiant.events.register_msg_handler('radiant.msg_handlers.worker_scheduler', WorkerScheduler)
 
-function WorkerScheduler:recommend_activity_for(worker)
-   assert(worker)
-   if self._worker_activities[worker:get_id()] then
-      return 5, self._worker_activities[worker:get_id()]
-   end
-end
-
-function WorkerScheduler:finish_activity(worker)
-   self._worker_activities[worker:get_id()] = nil
-   self:add_worker(worker)
-end
-
-function WorkerScheduler:_recommend_activity(worker, action, ...)
-   check:is_entity(worker)
-   check:is_string(action)
-   self._worker_activities[worker:get_id()] = { 'radiant.actions.worker_scheduler_slave', self, action, ... }
-   self:remove_worker(worker)
-end
-
-function WorkerScheduler:stop()
-   -- xxx: this doesn't actually stop the expensive stuff: the pathfinders
-   -- what we really want is a granular way to say "stop picking stuff up
-   -- and harvesting, but continue puttting stuff down" or osmething (??)
-   self._running = false
-   md:unlisten('radiant.events.gameloop', self)
-end
-
-WorkerScheduler['radiant.md.create'] = function(self)
-   --log:info('constructing worker scheduler...')
+function WorkerScheduler:__init()
+   --radiant.log.info('constructing worker scheduler...')
    self._workers = {}
    self._worker_activities = {}
    self._items = {}
@@ -72,28 +40,55 @@ WorkerScheduler['radiant.md.create'] = function(self)
       }, 
    }
 
-   md:listen('radiant.resource_node.harvest', self)
-   self:start()
+   self._running = true
+   radiant.events.listen('radiant.events.gameloop', self)
 end
 
-WorkerScheduler['radiant.md.destroy'] = function(self)
-   md:unlisten('radiant.events.gameloop', self)
-   md:unlisten('radiant.worker_scheduler', self)
-   md:unlisten('radiant.resource_node.harvest', self)
+function WorkerScheduler:destroy()
+   radiant.events.unlisten('radiant.events.gameloop', self)
+   radiant.events.unlisten('radiant.worker_scheduler', self)
 end
 
-WorkerScheduler['radiant.resource_node.harvest'] = function(self, resource_node)
-   assert(resource_node)
 
-   log:info('harvesting resource entity %d', resource_node:get_id())
+function WorkerScheduler:recommend_activity_for(worker)
+   assert(worker)
+   if self._worker_activities[worker:get_id()] then
+      return 5, self._worker_activities[worker:get_id()]
+   end
+end
 
-   local node = om:get_component(resource_node, 'resource_node')
-   check:verify(node)
+function WorkerScheduler:finish_activity(worker)
+   self._worker_activities[worker:get_id()] = nil
+   self:add_worker(worker)
+end
+
+function WorkerScheduler:_recommend_activity(worker, action, ...)
+   radiant.check.is_entity(worker)
+   radiant.check.is_string(action)
+   self._worker_activities[worker:get_id()] = { 'radiant.actions.worker_scheduler_slave', self, action, ... }
+   self:remove_worker(worker)
+end
+
+function WorkerScheduler:stop()
+   -- xxx: this doesn't actually stop the expensive stuff: the pathfinders
+   -- what we really want is a granular way to say "stop picking stuff up
+   -- and harvesting, but continue puttting stuff down" or osmething (??)
+   self._running = false
+   radiant.events.unlisten('radiant.events.gameloop', self)
+end
+
+function WorkerScheduler:schedule_chop(tree)
+   assert(tree)
+
+   radiant.log.info('harvesting resource entity %d', tree:get_id())
+
+   local node = radiant.components.get_component(tree, 'resource_node')
+   radiant.check.verify(node)
 
    local locations = node:get_harvest_locations()
-   check:verify(locations)
+   radiant.check.verify(locations)
 
-   local dst = EntityDestination(resource_node, locations)
+   local dst = EntityDestination(tree, locations)
    self.pf.chop:add_destination(dst)
 end
 
@@ -109,9 +104,33 @@ function WorkerScheduler:_create_pf(name, job)
    return pf
 end
 
+-- ug!  this is decidely un-extensible.  fix it!
+function WorkerScheduler:get_build_order(entity)
+   for _, name in ipairs(all_build_orders) do
+      local component = radiant.components.get_component(entity, name)
+      if component then
+         return component
+      end
+   end
+end
+
+function WorkerScheduler:_on_removed_from_terrain(entity, cb)
+   local mob = radiant.components.get_component(entity, 'mob')
+   if mob then
+      local promise
+      promise = mob:trace_parent():changed(function (v)
+         if not v or v:get_id() ~= self._terrain_container_id then
+            cb()
+            promise:destroy()
+         end
+      end)
+      -- xxx: what about item destruction?
+   end
+end
+
 function WorkerScheduler:add_build_order(entity)
    if entity then
-      local build_order = om:get_build_order(entity)
+      local build_order = self._get_build_order(entity)
       if build_order then
          local id = entity:get_id()
          self._build_orders[id] = build_order
@@ -120,23 +139,23 @@ function WorkerScheduler:add_build_order(entity)
 end
 
 function WorkerScheduler:remove_build_order(id)
-   log:info('nuking a build_order');
+   radiant.log.info('nuking a build_order');
 end
 
 function WorkerScheduler:add_item(entity)
-   log:info('tracking new item')
+   radiant.log.info('tracking new item')
 
-   check:is_entity(entity)
+   radiant.check.is_entity(entity)
    local id = entity:get_id()
-   local mob = om:get_component(entity, 'mob')
-   local item = om:get_component(entity, 'item')
+   local mob = radiant.components.get_component(entity, 'mob')
+   local item = radiant.components.get_component(entity, 'item')
    
    assert(mob and item)
 
    if not self._items[id] then
       local location = mob:get_grid_location()
       local stocked = self:_find_stockpile(location)
-      local material = om:get_component(entity, 'item'):get_material()
+      local material = radiant.components.get_component(entity, 'item'):get_material()
       
       local points = PointList()
       points:insert(RadiantIPoint3(location.x, location.y, location.z + 1))
@@ -155,7 +174,7 @@ function WorkerScheduler:add_item(entity)
          self.pf.pickup:add_destination(dst)
       end
 
-      om:on_removed_from_terrain(entity, function()
+      self:_on_removed_from_terrain(entity, function()
          self:remove_item(entity:get_id())
       end)
    end
@@ -163,8 +182,8 @@ end
 
 function WorkerScheduler:_find_stockpile(location)
    for id, stockpile in pairs(self._stockpiles) do
-      local origin = om:get_world_grid_location(stockpile)
-      local designation = om:get_component(stockpile, 'stockpile_designation')
+      local origin = radiant.entities.get_world_location_aligned(stockpile)
+      local designation = radiant.components.get_component(stockpile, 'stockpile_designation')
       if designation:get_bounds():contains(location - origin) then
          return stockpile
       end
@@ -173,12 +192,12 @@ function WorkerScheduler:_find_stockpile(location)
 end
 
 function WorkerScheduler:remove_item(id)
-   check:verify(id and id ~= 0)
+   radiant.check.verify(id and id ~= 0)
    local entity = self._items[id]
    if entity then
-      log:info('removing item from pickup pathfinder!')
+      radiant.log.info('removing item from pickup pathfinder!')
       self.pf.pickup:remove_destination(id)
-      local material = om:get_component(entity, 'item'):get_material()
+      local material = radiant.components.get_component(entity, 'item'):get_material()
       if material and material ~= '' then
          self.pf.group.pickup[material]:remove_destination(id);
       end
@@ -187,11 +206,11 @@ function WorkerScheduler:remove_item(id)
 end
 
 function WorkerScheduler:remove_stockpile(id)
-   check:verify(id ~= 0)
+   radiant.check.verify(id ~= 0)
    if self._stockpiles[id] then
       self._stockpiles[id] = nil
       self._stockpiles_dests[id] = nil
-      log:info('removing stockpile from restock pathfinder!')
+      radiant.log.info('removing stockpile from restock pathfinder!')
       self.pf.restock:remove_destination(id)
       for material, pf in pairs(self.pf.groups.restock) do
          pf:remove_destination(id)
@@ -199,10 +218,45 @@ function WorkerScheduler:remove_stockpile(id)
    end
 end
 
+
+function WorkerScheduler:_can_grab_more_of(worker, material, count)
+   radiant.check.is_entity(worker)
+   radiant.check.is_string(material)
+   radiant.check.is_number(count)
+   
+   local carry_block = radiant.components.get_component(worker, 'carry_block') 
+   if not carry_block then
+      return false
+   end
+   
+   if not carry_block:is_carrying() then
+      -- Not carrying anything.  Good to go!
+      return true
+   end
+   
+   local item = radiant.components.get_component(carry_block:get_carrying(), 'item')
+   if not item then
+      -- Not carrying an item.  Couldn't possibly be a resource, then.
+      return false -- this shouldn't be possible, right?
+   end
+   
+   if material ~= item:get_material() then
+      -- Wrong item...
+      return false
+   end
+   
+   local stacks = item:get_stacks()
+   if stacks + count >= item:get_max_stacks() then
+      -- Item stacks are full.  Can't grab anymore!
+      return false
+   end
+   return true
+end
+
 function WorkerScheduler:_alloc_pf(job, material)
-   check:is_string(job)
-   check:is_string(material)
-   check:is_table(self.pf.group[job])
+   radiant.check.is_string(job)
+   radiant.check.is_string(material)
+   radiant.check.is_table(self.pf.group[job])
    
    local pf = self.pf.group[job][material]
    if not pf then
@@ -217,7 +271,7 @@ function WorkerScheduler:_alloc_pf(job, material)
             pf:add_entity(worker);
          elseif job == 'pickup' and not item then
             pf:add_entity(worker)
-         elseif job == 'teardown' and material and om:worker_can_pickup_material(worker, material, 1) then
+         elseif job == 'teardown' and material and self:_can_grab_more_of(worker, material, 1) then
             pf:add_entity(worker)
          end
       end
@@ -235,11 +289,11 @@ function WorkerScheduler:_get_carrying(worker)
    local carrying = nil
    local material = ""
    
-   local c = om:get_component(worker, 'carry_block')
+   local c = radiant.components.get_component(worker, 'carry_block')
    if c:is_valid() and c:is_carrying() then
       carrying = c:get_carrying()
-      if om:has_component(carrying, 'item') then
-         local item = om:get_component(carrying, 'item')
+      if radiant.components.has_component(carrying, 'item') then
+         local item = radiant.components.get_component(carrying, 'item')
          material = item:get_material();
       end
    end
@@ -250,7 +304,7 @@ function WorkerScheduler:add_worker(worker)
    assert(worker)
    local id = worker:get_id()
    
-   log:info('adding worker %d.', id)
+   radiant.log.info('adding worker %d.', id)
    assert(self._worker_activities[id] == nil)
 
    self._workers[id] = worker
@@ -260,7 +314,7 @@ function WorkerScheduler:add_worker(worker)
       if material then
          self:_alloc_pf('construct', material):add_entity(worker);
          self:_alloc_pf('restock',   material):add_entity(worker);
-         if om:worker_can_pickup_material(worker, material, 1) then
+         if self:_can_grab_more_of(worker, material, 1) then 
             self:_alloc_pf('teardown', material):add_entity(worker);
          end
       else
@@ -282,7 +336,7 @@ function WorkerScheduler:remove_worker(worker)
    assert(worker)
 
    local id = worker:get_id()
-   log:info('removing worker %d.', id)
+   radiant.log.info('removing worker %d.', id)
    self._workers[id] = nil
 
    for name, entry in pairs(self.allpf) do
@@ -311,10 +365,10 @@ function WorkerScheduler:_collect_build_order_deps(build_order, checked, check_o
    if not checked[id] then
       local entity = build_order:get_entity()
       checked[id] = true
-      if om:has_component(entity, 'build_order_dependencies') then
-         local dependencies = om:get_component(entity, 'build_order_dependencies')
+      if radiant.components.has_component(entity, 'build_order_dependencies') then
+         local dependencies = radiant.components.get_component(entity, 'build_order_dependencies')
          for dep_entity in dependencies:get_dependencies() do
-            local dep_bo = om:get_build_order(dep_entity)
+            local dep_bo = self._get_build_order(dep_entity)
             if dep_bo then
                self:_collect_build_order_deps(dep_bo, checked, check_order)
             end
@@ -347,7 +401,7 @@ end
 function WorkerScheduler:_check_build_orders()
    local ancestor_is_busy = {}
    
-   --log:info('--- check build orders --------------------------------------------------')
+   --radiant.log.info('--- check build orders --------------------------------------------------')
    for _, build_order in ipairs(self:_walk_build_orders()) do
       local id = build_order:get_id()
       local reason = "doesn't need work"
@@ -356,11 +410,11 @@ function WorkerScheduler:_check_build_orders()
       local should_queue = build_order:needs_more_work()
       
       if should_queue then
-         if om:has_component(entity, 'build_order_dependencies') then
-            local dependencies = om:get_component(build_order:get_entity(), 'build_order_dependencies')
+         if radiant.components.has_component(entity, 'build_order_dependencies') then
+            local dependencies = radiant.components.get_component(build_order:get_entity(), 'build_order_dependencies')
             for e in dependencies:get_dependencies() do
                if ancestor_is_busy[e:get_id()] then
-                  reason = string.format('dependency %s in progress', tostring(om:get_build_order(e)))
+                  reason = string.format('dependency %s in progress', tostring(self._get_build_order(e)))
                   should_queue = false
                   ancestor_is_busy[entity_id] = true
                   break
@@ -381,14 +435,14 @@ function WorkerScheduler:_check_build_orders()
       if should_queue then
          destination:set_enabled(not teardown)
          teardown_dst:set_enabled(teardown);
-         --log:info('enabling %s to pathfinder (teardown? %s).', tostring(build_order), teardown and "yes" or "no")
+         --radiant.log.info('enabling %s to pathfinder (teardown? %s).', tostring(build_order), teardown and "yes" or "no")
       else
-         --log:info('disabling %s to pathfinder (reason: %s).', tostring(build_order), reason)
+         --radiant.log.info('disabling %s to pathfinder (reason: %s).', tostring(build_order), reason)
          destination:set_enabled(false)
          teardown_dst:set_enabled(false);
       end
    end
-   --log:info('----------------')
+   --radiant.log.info('----------------')
 end
 
 function WorkerScheduler:_enable_pathfinders()   
@@ -410,11 +464,11 @@ function WorkerScheduler:_dispatch_jobs()
          local worker = path:get_entity()
 
          if self._workers[worker:get_id()] then         
-            log:info('dispatching job %s to %d.', entry.job, worker:get_id())
+            radiant.log.info('dispatching job %s to %d.', entry.job, worker:get_id())
             if worker and self:_dispatch_job(entry.job, worker, path, dst) then
                self:remove_worker(worker)
             else
-               log:warning('!!!!!!!!!!!!!!! restarting pathfinder due to failed dispatch')
+               radiant.log.warning('!!!!!!!!!!!!!!! restarting pathfinder due to failed dispatch')
                --entry.pf:restart()
                --entry.pf:remove_destination(dst)
                --entry.pf:add_destination(dst)
@@ -438,12 +492,12 @@ function WorkerScheduler:_dispatch_job(job, worker, path, dst)
          local entity = dst:get_entity();
          local entity_id = entity:get_id();
          local location = path:get_points():last()
-         local stockpile = om:get_component(entity, 'stockpile_designation')    
+         local stockpile = radiant.components.get_component(entity, 'stockpile_designation')    
          local success, location = stockpile:reserve_adjacent(location)
          if success then
             self:_recommend_activity(worker, 'restock', path, stockpile, location)
          else
-            log:warning('failed to reserve location adjacent to stockpile.  aborting.')
+            radiant.log.warning('failed to reserve location adjacent to stockpile.  aborting.')
          end
          return success         
       end
@@ -453,27 +507,27 @@ function WorkerScheduler:_dispatch_job(job, worker, path, dst)
       local build_order = self._build_orders[entity_id]
       local location = path:get_points():last()
       if not build_order then
-         log:info('no build order?  wtf.')
+         radiant.log.info('no build order?  wtf.')
       end
       local success, location = build_order:reserve_adjacent(location)
       if success then
          self:_recommend_activity(worker, job, path, build_order, location)
       else
-         log:warning('failed to reserve location adjacent to build_order.  aborting.')
+         radiant.log.warning('failed to reserve location adjacent to build_order.  aborting.')
       end
       return success
    else
       assert(false)
    end
-   log:warning('unknown job "%s" in worker scheduler dispatch', job);
+   radiant.log.warning('unknown job "%s" in worker scheduler dispatch', job);
    return false
 end
 
 function WorkerScheduler:add_stockpile(stockpile)
-   log:info('tracing stockpile available region')
+   radiant.log.info('tracing stockpile available region')
 
-   if om:has_component(stockpile, 'stockpile_designation') then
-      local designation = om:get_component(stockpile, 'stockpile_designation')
+   if radiant.components.has_component(stockpile, 'stockpile_designation') then
+      local designation = radiant.components.get_component(stockpile, 'stockpile_designation')
       local rgn = designation:get_standing_region()
       local dst = RegionDestination(stockpile, rgn);
 
@@ -487,4 +541,5 @@ function WorkerScheduler:add_stockpile(stockpile)
       end
    end
 end
-]]
+
+return WorkerScheduler

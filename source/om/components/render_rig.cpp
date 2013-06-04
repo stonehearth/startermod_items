@@ -10,14 +10,15 @@ void RenderRig::InitializeRecordFields()
    AddRecordField("rigs", rigs_);
    AddRecordField("scale", scale_);
    AddRecordField("animation_table", animationTable_);
+   scale_ = 0.1f;
 }
 
-void RenderRig::Construct(json::ConstJsonObject const& obj)
+void RenderRig::ExtendObject(json::ConstJsonObject const& obj)
 {
    JSONNode const& node = obj.GetNode();
 
-   SetScale(json::get<float>(node, "scale", 0.1f));
-   SetAnimationTable(json::get<std::string>(node, "animation_table", ""));
+   scale_ = json::get<float>(node, "scale", *scale_);
+   animationTable_ = json::get<std::string>(node, "animation_table", *animationTable_);
 
    for (auto const& e : node["models"]) {
       if (e.type() == JSON_STRING) {
