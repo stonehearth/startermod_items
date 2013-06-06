@@ -23,7 +23,8 @@
 		  "actions" : [
 			 "mod://stonehearth/ai/actions/death_action.lua",
 			 "mod://stonehearth/ai/actions/idle_action.lua",
-			 "mod://stonehearth/ai/actions/follow_path_action.lua"
+			 "mod://stonehearth/ai/actions/follow_path_action.lua",
+			 "mod://stonehearth/ai/actions/goto_location_action.lua"
 		  ]
 	   },
       "render_rig": {
