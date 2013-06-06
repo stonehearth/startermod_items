@@ -12,7 +12,7 @@ function EffectManager:__init(entity)
    
    -- xxx: the animation_table should be on the entity?  what if we have no rigs
    -- at all?  or should "render_rig" be renamed something more appropriate?
-   local render_rig = radiant.components.get_component(entity, 'render_rig')
+   local render_rig = entity:get_component('render_rig')
    self.animation_table_name = render_rig:get_animation_table()
    
    local uri = entity:get_resource_uri()

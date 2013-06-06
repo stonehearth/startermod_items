@@ -231,11 +231,14 @@ void ResourceManager2::ConvertToAbsoluteUris(network::uri::uri const& base_uri, 
 
 network::uri::uri ResourceManager2::ConvertToCanonicalUri(network::uri::uri const& uri, const char* search_ext) const
 {
-   network::uri::uri canonical_uri;
+   std::string canonical_uri;
 
    if (!uri.is_valid()) {
       throw InvalidUriException(uri);
    }
+
+   canonical_uri = uri.scheme() + "://";
+   canonical_uri += uri.host();
 
    fs::path filepath = fs::path(resource_dir_);
    filepath /= uri.host();
@@ -248,15 +251,14 @@ network::uri::uri ResourceManager2::ConvertToCanonicalUri(network::uri::uri cons
    for (auto const& part: tokens) {
       filepath /= part;
       last_part = part;
+      canonical_uri += std::string("/") + part;
    }
 
    // if the file path is a directory, look for a file with the name of
    // the last part in there (e.g. /foo/bar -> /foo/bar/bar.txt
    if (fs::is_directory(filepath) && !last_part.empty()) {
       filepath /= last_part + search_ext;
-      canonical_uri = uri.string() + std::string("/") + std::string(last_part) + search_ext;
-   } else{
-      canonical_uri = uri;
+      canonical_uri += std::string("/") + std::string(last_part) + search_ext;
    }
 
    if (!fs::is_regular_file(filepath)) {

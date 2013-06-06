@@ -1,6 +1,5 @@
 local entities = {}
-local singleton = {
-}
+local singleton = {}
 
 function entities.__init()
    singleton._entity_dtors = {}
@@ -25,9 +24,15 @@ function entities._init_entity(entity, uri)
 
    if obj then
       if obj.components then
-         for component, json, b, c in radiant.resources.pairs(obj.components) do
+         for name, json in radiant.resources.pairs(obj.components) do
             assert(json)
-            radiant.components.add_component(entity, component, json)
+            local component, b, c = entity:add_component(name)
+            if component and component.extend then
+               if type(component) == 'userdata' then
+                  json = radiant.resources.get_native_obj(json)
+               end
+               component:extend(json)
+            end
          end
       end
       --entities._add_scripts(entity, obj)
@@ -57,7 +62,7 @@ function entities.add_child(parent, child, location)
    radiant.check.is_entity(parent)
    radiant.check.is_entity(child)
 
-   local component = radiant.components.add_component(parent, 'entity_container')
+   local component = parent:add_component('entity_container')
    radiant.check.is_a(component, EntityContainer)
 
    component:add_child(child)
@@ -68,7 +73,7 @@ function entities.remove_child(parent, child)
    radiant.check.is_entity(parent)
    radiant.check.is_entity(child)
 
-   local component = radiant.components.get_component(parent, 'entity_container')
+   local component = parent:get_component('entity_container')
    radiant.check.is_a(component, EntityContainer)
 
    component:remove_child(child)
@@ -78,32 +83,37 @@ end
 function entities.move_to(entity, location)
    radiant.check.is_entity(entity)
    radiant.check.is_a(location, RadiantIPoint3)
-   radiant.components.add_component(entity, 'mob'):set_location_grid_aligned(location)
+   entity:add_component('mob'):set_location_grid_aligned(location)
 end
 
 function entities.turn_to(entity, degrees)
    radiant.check.is_entity(entity)
    radiant.check.is_number(degrees)
-   radiant.components.add_component(entity, 'mob'):turn_to(degrees)
+   entity:add_component('mob'):turn_to(degrees)
 end
 
 function entities.turn_to_face(entity, arg2)
    --local location = util:is_a(arg2, Entity) and singleton.get_world_grid_location(arg2) or arg2
-   local location = arg2
+   local location
+   if radiant.util.is_entity(arg2) then
+      location = arg2:get_component('mob'):get_world_grid_location()
+   else
+      location = arg2   
+   end
 
    radiant.check.is_entity(entity)
    radiant.check.is_a(location, RadiantIPoint3)
-   radiant.components.add_component(entity, 'mob'):turn_to_face_point(location)
+   entity:add_component('mob'):turn_to_face_point(location)
 end
 
 function entities.get_location_aligned(entity)
    radiant.check.is_entity(entity)
-   return radiant.components.add_component(entity, 'mob'):get_grid_location()
+   return entity:add_component('mob'):get_grid_location()
 end
 
 function entities.get_world_grid_location(entity)
    radiant.check.is_entity(entity)
-   return radiant.components.add_component(entity, 'mob'):get_world_grid_location()
+   return entity:add_component('mob'):get_world_grid_location()
 end
 
 function entities.on_destroy(entity, dtor)
@@ -121,7 +131,7 @@ function entities.add_outfit(entity, outfit_uri)
    
    radiant.log.debug('adding outfit "%s" to entity %d.', outfit_uri, entity:get_id())
 
-   local rig_component = radiant.components.add_component(entity, 'render_rig')
+   local rig_component = entity:add_component('render_rig')
    rig_component:add_rig(outfit_uri)
 end
 
@@ -129,7 +139,7 @@ function entities.create_target_table(entity, group)
    radiant.check.is_entity(entity)
    radiant.check.is_string(group)
    
-   local target_tables = radiant.components.add_component(entity, 'target_tables')
+   local target_tables = entity:add_component('target_tables')
    return target_tables:add_table(group)
 end
 
@@ -137,14 +147,14 @@ function entities.destroy_target_table(entity, table)
    radiant.check.is_entity(entity)
    radiant.check.is_a(table, TargetTable)
    
-   local target_tables = radiant.components.add_component(entity, 'target_tables')
+   local target_tables = entity:add_component('target_tables')
    return target_tables:remove_table(table)
 end
 
 function entities.get_carrying(entity)
    radiant.check.is_entity(entity)
    
-   local carry_block = radiant.components.get_component(entity, 'carry_block') 
+   local carry_block = entity:get_component('carry_block') 
    if not carry_block then
       return nil
    end
@@ -159,7 +169,7 @@ end
 function entities.do_ability(entity, ability_name, ...)
    radiant.check.is_entity(entity)
    radiant.check.is_string(ability_name)
-   local abilities = radiant.components.get_component(entity, 'ability_list')
+   local abilities = entity:get_component('ability_list')
    if abilities then
       ability = abilities:get_ability()
       local api = radiant.mods.load_api(mod)
@@ -253,7 +263,7 @@ function entities.place_on_terrain(entity, arg1, arg2, arg3)
    radiant.check.is_a(location, RadiantIPoint3)
    
    singleton.add_child_to_entity(self._root_entity, entity, location)
-   radiant.components.add_component(entity, 'render_info'):set_display_iconic(true);
+   entity:add_component('render_info'):set_display_iconic(true);
    singleton.get_terrain():place_entity(entity, location)
 end
 
@@ -394,7 +404,7 @@ function entities.add_rig_to_entity(entity, rig)
    radiant.check.is_string(rig);
    radiant.log.debug('adding rig "%s" to entity %d.', rig, entity:get_id())
 
-   local rig_component = radiant.components.add_component(entity, 'render_rig')
+   local rig_component = entity:add_component('render_rig')
    rig_component:add_rig(rig)
 end
 
@@ -408,7 +418,7 @@ function entities.remove_rig_from_entity(entity, rig)
    radiant.check.is_string(rig);
    radiant.log.debug('removing rig "%s" from entity %d.', rig, entity:get_id())
 
-   local rig_component = radiant.components.add_component(entity, 'render_rig')
+   local rig_component = entity:add_component('render_rig')
    rig_component:remove_rig(rig)
 end
 
@@ -416,7 +426,7 @@ function entities.set_display_name(entity, name)
    radiant.check.is_entity(entity)
    radiant.check.is_string(name)
 
-   local component = radiant.components.add_component(entity, 'unit_info')
+   local component = entity:add_component('unit_info')
    radiant.check.is_a(component, UnitInfo)
    
    component:set_display_name(name)
@@ -426,7 +436,7 @@ function entities.set_description(entity, name)
    radiant.check.is_entity(entity)
    radiant.check.is_string(name)
 
-   local component = radiant.components.add_component(entity, 'unit_info')
+   local component = entity:add_component('unit_info')
    radiant.check.is_a(component, UnitInfo)
    
    component:set_description(name)
@@ -438,13 +448,13 @@ function entities.get_faction(entity)
    if not singleton.has_component(entity, 'unit_info') then
       return nil
    end      
-   return radiant.components.get_component(entity, 'unit_info'):get_faction()
+   return entity:get_component('unit_info'):get_faction()
 end
 
 function entities.get_display_name(entity)
    radiant.check.is_entity(entity)
 
-   local component = radiant.components.get_component(entity, 'unit_info')
+   local component = entity:get_component('unit_info')
    radiant.check.is_a(component, UnitInfo)
    
    return component:get_display_name()
@@ -452,22 +462,22 @@ end
 
 function entities.get_location(entity)
    radiant.check.is_entity(entity)
-   return radiant.components.add_component(entity, 'mob'):get_location()
+   return entity:add_component('mob'):get_location()
 end
 
 function entities.get_grid_location(entity)
    radiant.check.is_entity(entity)
-   return radiant.components.add_component(entity, 'mob'):get_grid_location()
+   return entity:add_component('mob'):get_grid_location()
 end
 
 function entities.get_world_grid_location(entity)
    radiant.check.is_entity(entity)
-   return radiant.components.add_component(entity, 'mob'):get_world_grid_location()
+   return entity:add_component('mob'):get_world_grid_location()
 end
 
 function entities.get_world_location(entity)
    radiant.check.is_entity(entity)
-   return radiant.components.add_component(entity, 'mob'):get_world_location()
+   return entity:add_component('mob'):get_world_location()
 end
 
 function entities.can_teardown_structure(worker, structure)
@@ -479,7 +489,7 @@ function entities.worker_can_pickup_material(worker, material, count)
    radiant.check.is_string(material)
    radiant.check.is_number(count)
    
-   local carry_block = radiant.components.get_component(worker, 'carry_block') 
+   local carry_block = worker:get_component('carry_block') 
    if not carry_block then
       return false
    end
@@ -511,13 +521,13 @@ end
 function entities.teardown(worker, structure)   
    radiant.check.verify(singleton.can_teardown_structure(worker, structure))
    
-   local carry_block = radiant.components.get_component(worker, 'carry_block')
+   local carry_block = worker:get_component('carry_block')
    if carry_block:is_carrying() then
       local item = radiant.components.get_component(carry_block:get_carrying(), 'item')
       item:set_stacks(item:get_stacks() + 1)
    else
       local item = singleton.create_entity('module://stonehearth/resources/oak_tree/oak_log')
-      radiant.components.get_component(item, 'item'):set_stacks(1)
+      item:get_component('item'):set_stacks(1)
       carry_block:set_carrying(item)
    end
 end
@@ -526,7 +536,7 @@ function entities.pickup_item(entity, item)
    radiant.check.is_entity(entity)
    radiant.check.is_entity(item)
    
-   local carry_block = radiant.components.get_component(entity, 'carry_block') 
+   local carry_block = entity:get_component('carry_block') 
    radiant.check.verify(carry_block ~= nil)
 
    if item then
@@ -542,7 +552,7 @@ function entities.drop_carrying(entity, location)
    radiant.check.is_entity(entity)
    radiant.check.is_a(location, RadiantIPoint3)
 
-   local carry_block = radiant.components.get_component(entity, 'carry_block') 
+   local carry_block = entity:get_component('carry_block') 
    if carry_block then
       local item = carry_block:get_carrying()
       if item then
@@ -557,7 +567,7 @@ function entities.equip(entity, slot, item)
    radiant.check.is_number(slot)
    radiant.check.verify(slot >= 0 and slot < Paperdoll.NUM_SLOTS)
    
-   local paperdoll = radiant.components.add_component(entity, 'paperdoll')
+   local paperdoll = entity:add_component('paperdoll')
    if util:is_entity(item) then
       paperdoll:equip(slot, item)
    else
@@ -568,14 +578,14 @@ end
 function entities.get_equipped(entity, slot)
    radiant.check.is_entity(entity)
    radiant.check.is_number(slot)
-   local paperdoll = radiant.components.get_component(entity, 'paperdoll')
+   local paperdoll = entity:get_component('paperdoll')
    if paperdoll and paperdoll:has_item_in_slot(slot) then
       return paperdoll:get_item_in_slot(slot)
    end
 end
 
 function entities.on_removed_from_terrain(entity, cb)
-   local mob = radiant.components.get_component(entity, 'mob')
+   local mob = entity:get_component('mob')
    if mob then
       local promise
       promise = mob:trace_parent():changed(function (v)
@@ -600,7 +610,7 @@ function entities.create_sensor(entity, name, radius)
    radiant.check.is_entity(entity)
    radiant.check.is_number(radius)
    
-   local sensor_list = radiant.components.add_component(entity, 'sensor_list')
+   local sensor_list = entity:add_component('sensor_list')
    local sensor = sensor_list:get_sensor(name)
    radiant.check.verify(not sensor)
 
@@ -609,7 +619,7 @@ end
 
 function entities.destroy_sensor(entity, name)
    radiant.check.is_string(name)
-   local sensor_list = radiant.components.get_component(entity, 'sensor_list')
+   local sensor_list = entity:get_component('sensor_list')
    if sensor_list then
       sensor_list:remove_sensor(name)
    end
@@ -617,7 +627,7 @@ end
 
 function entities.get_sensor(entity, name)
    radiant.check.is_string(name)
-   local sensor_list = radiant.components.get_component(entity, 'sensor_list')
+   local sensor_list = entity:get_component('sensor_list')
    if sensor_list then
       return sensor_list:get_sensor(name)
    end
@@ -625,7 +635,7 @@ end
 
 function entities.get_attribute(entity, name)
    radiant.check.is_entity(entity)
-   local attributes = radiant.components.get_component(entity, 'attributes')
+   local attributes = entity:get_component('attributes')
    if not attributes then
       return 0, false
    end
@@ -635,14 +645,14 @@ end
 function entities.set_attribute(entity, name, value)
    radiant.check.is_entity(entity)
    radiant.check.is_number(value)
-   local attributes = radiant.components.get_component(entity, 'attributes')
+   local attributes = entity:get_component('attributes')
    assert(attributes)
    attributes:set_attribute(name, value)
 end
 
 function entities.update_attribute(entity, name, delta)
    radiant.check.is_entity(entity)
-   local attributes = radiant.components.get_component(entity, 'attributes')
+   local attributes = entity:get_component('attributes')
    if not attributes then
       return nil
    end
@@ -657,7 +667,7 @@ function entities.apply_aura(entity, name, source)
    radiant.check.is_string(name)
    radiant.check.is_entity(source)
    
-   local auras = radiant.components.add_component(entity, 'aura_list')
+   local auras = entity:add_component('aura_list')
    local aura = auras:get_aura(name, source)
    if not aura then 
       aura = auras:create_aura(name, source)
@@ -678,13 +688,13 @@ function entities.get_target_table_entry(entity, group, target)
    radiant.check.is_string(group)
    radiant.check.is_entity(target)
    
-   local target_tables = radiant.components.add_component(entity, 'target_tables')
+   local target_tables = entity:add_component('target_tables')
    local table = target_tables:add_table(group)
    return table:add_entry(target)
 end
 
 function entities.get_target_table_top(entity, name)
-   local target_tables = radiant.components.add_component(entity, 'target_tables')
+   local target_tables = entity:add_component('target_tables')
    return target_tables:get_top(name)
 end
 
@@ -712,7 +722,7 @@ function entities.add_to_inventory(entity,  item)
    radiant.check.is_entity(entity)
    radiant.check.is_entity(item)
    
-   local inventory = radiant.components.add_component(entity, 'inventory')
+   local inventory = entity:add_component('inventory')
    if not inventory:is_full() then
       inventory:stash_item(item)
    end
@@ -746,9 +756,9 @@ function entities.wear(entity, clothing)
    radiant.check.is_entity(entity)
    radiant.check.is_entity(clothing)
    
-   local clothing_rigs = radiant.components.get_component(clothing, 'render_rig')   
+   local clothing_rigs = clothing:get_component('render_rig')   
    if clothing_rigs then
-      local entity_rigs = radiant.components.add_component(entity, 'render_rig')
+      local entity_rigs = entity:add_component('render_rig')
       for article in clothing_rigs:get_rigs():items() do -- xxx :each()
          entity_rigs:add_rig(article)         
       end
@@ -796,7 +806,7 @@ end
 
 function entities.filter_combat_abilities(entity, filter_fn)
    local result = {}
-   local combat_abilities = radiant.components.get_component(entity, 'combat_ability_list')
+   local combat_abilities = entity:get_component('combat_ability_list')
    if combat_abilities then
       for name, ability in combat_abilities:get_combat_abilities():items() do
          -- xxx: why is ability nil here?
@@ -810,7 +820,7 @@ function entities.filter_combat_abilities(entity, filter_fn)
 end
 
 function entities.add_combat_ability(entity, ability_name)
-   local combat_abilities = radiant.components.add_component(entity, 'combat_ability_list')
+   local combat_abilities = entity:add_component('combat_ability_list')
    combat_abilities:add_combat_ability(ability_name)
 end
 
@@ -828,7 +838,7 @@ end
 
 function entities.set_target(entity, target)
    check:is_entity(entity)
-   local combat_abilities = radiant.components.add_component(entity, 'combat_ability_list')
+   local combat_abilities = entity:add_component('combat_ability_list')
    assert(combat_abilities)
    if combat_abilities then
       if util:is_entity(target) then

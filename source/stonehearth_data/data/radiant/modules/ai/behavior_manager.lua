@@ -90,18 +90,21 @@ function BehaviorManager:check_action_stack()
    
    if not self._co or #self._action_stack == 0 then
       self:restart()
-      return true
+      return
    end
    
    -- walk the entire action stack looking for better things to do...
+   local unwind_to_action = nil
    for i, entry in ipairs(self._action_stack) do
       local action = self:_get_best_action(entry.activity)
       if action ~= entry.action then
-         self._unwind_to_action = i
-         return false
+         unwind_to_action = i
+         break
       end
    end
-   return true
+   if unwind_to_action then
+      self:restart()
+   end
    --[[
    self._action_stack
    local activity = self:_get_best_activity()
@@ -278,7 +281,7 @@ function BehaviorManager:execute(...)
    local len = #self._action_stack
 
    -- just call it and hope for the best.  manually unwind at yields...
-   result = action_main()
+   local result = action_main()
    
    --[[
    -- this is a loser. trying to yield in an pcall in a coroutine just doesn't work.
@@ -337,7 +340,6 @@ end
 
 function BehaviorManager:wait_until(obj)
    coroutine.yield(obj)
-   assert(not self._unwind_to_action)
 end
 
 return BehaviorManager

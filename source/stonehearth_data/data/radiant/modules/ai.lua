@@ -16,10 +16,7 @@ end
 function ai._on_event_loop(_, now)
    -- xxx: this is O(n) of entities with singleton. UG. make the intention notify the bm when its priorities change
    for id, bm in pairs(singleton._behavior_managers) do
-      if not bm:check_action_stack() then
-         radiant.log.info('scheduling bm for %d to unwind stack on resume', id)
-         assert(false)
-      end
+      bm:check_action_stack()
    end
    
    for co, pred in pairs(singleton._waiting_until) do

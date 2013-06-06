@@ -40,7 +40,8 @@ luabind::object LuaComponents::GetLuaComponent(const char* name) const
 
 void LuaComponents::AddLuaComponent(const char* name, luabind::object api)
 {
-   ASSERT(!GetLuaComponent(name).is_valid());
-   lua_components_[name] = api;
+   if (!GetLuaComponent(name).is_valid()) {
+      lua_components_[name] = api;
+   }
 }
 

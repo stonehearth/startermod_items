@@ -10,6 +10,13 @@ using namespace ::radiant;
 using namespace ::radiant::simulation;
 using namespace ::luabind;
 
+static std::unordered_map<std::string, std::string> LuaComponentAliases__;
+
+void LuaObjectModel::SetLuaComponentAlias(ScriptHost const&, const char* name, const char* value)
+{
+   LuaComponentAliases__[std::string(name)] = value;
+}
+
 om::TargetTableEntryRef TargetTableEntrySetValue(om::TargetTableEntryPtr in, int value) 
 { 
    in->SetValue(value);
@@ -273,6 +280,93 @@ bool EntityHasComponent(om::EntityRef e)
    return entity && entity->GetComponent<T>() != nullptr;
 }
 
+static luabind::object
+EntityGetNativeComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
+{
+#define OM_OBJECT(Clas, lower)  \
+   if (name == #lower) { \
+      auto component = entity->GetComponent<om::Clas>(); \
+      if (!component) { \
+         return luabind::object(); \
+      } \
+      return luabind::object(L, std::weak_ptr<om::Clas>(component)); \
+   }
+   OM_ALL_COMPONENTS
+#undef OM_OBJECT
+   return luabind::object();
+}
+
+static luabind::object
+EntityGetLuaComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
+{
+   om::LuaComponentsPtr component = entity->GetComponent<om::LuaComponents>();
+   if (component) {
+      return component->GetLuaComponent(name.c_str());
+   }
+   return luabind::object();
+}
+
+luabind::object
+EntityGetComponent(lua_State* L, om::EntityRef e, std::string name)
+{
+   auto entity = e.lock();
+   if (entity) {
+      auto i = LuaComponentAliases__.find(name);
+      if (i != LuaComponentAliases__.end()) {
+         name = i->second;
+      }
+      if (boost::starts_with(name, "mod://")) {
+         return EntityGetLuaComponent(L, entity, name);
+      }
+      return EntityGetNativeComponent(L, entity, name);
+   }
+   return luabind::object();
+}
+
+static luabind::object
+EntityAddNativeComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
+{
+#define OM_OBJECT(Clas, lower)  \
+   if (name == #lower) { \
+      auto component = entity->AddComponent<om::Clas>(); \
+      return luabind::object(L, std::weak_ptr<om::Clas>(component)); \
+   }
+   OM_ALL_COMPONENTS
+#undef OM_OBJECT
+   return luabind::object();
+}
+
+static luabind::object
+EntityAddLuaComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
+{
+   om::LuaComponentsPtr component = entity->AddComponent<om::LuaComponents>();
+   luabind::object ctor = ScriptHost::GetInstance().LuaRequire(name);
+   if (ctor) {
+luabind:object obj = luabind::call_function<luabind::object>(ctor, om::EntityRef(entity));
+      component->AddLuaComponent(name.c_str(), obj);
+      return obj;
+   }
+   return luabind::object();
+}
+
+luabind::object
+EntityAddComponent(lua_State* L, om::EntityRef e, std::string name)
+{
+   auto entity = e.lock();
+   if (entity) {
+      auto i = LuaComponentAliases__.find(name);
+      if (i != LuaComponentAliases__.end()) {
+         name = i->second;
+      }
+      if (boost::starts_with(name, "mod://")) {
+         return EntityAddLuaComponent(L, entity, name);
+      }
+      return EntityAddNativeComponent(L, entity, name);
+   }
+   return luabind::object();
+}
+
+
 template <typename T>
 class DmIterator
 {
@@ -370,12 +464,8 @@ void LuaObjectModel::RegisterType(lua_State* L)
          .def("set_debug_name",  &om::Entity::SetDebugName)
          .def("get_resource_uri",&om::Entity::GetResourceUri)
          .def("set_resource_uri",&om::Entity::SetResourceUri)
-#define OM_OBJECT(Clas, lower)  \
-         .def("has_" #lower "_component" , &EntityHasComponent<om::Clas>) \
-         .def("get_" #lower "_component" , &om::Entity::GetComponentRef<om::Clas>) \
-         .def("add_" #lower "_component" , &om::Entity::AddComponentRef<om::Clas>)
-         OM_ALL_COMPONENTS
-#undef OM_OBJECT
+         .def("get_component" ,  &EntityGetComponent)
+         .def("add_component" ,  &EntityAddComponent)
       ,
       ADD_OM_CLASS(Grid)
          .def("set_bounds",            &om::Grid::setBounds)

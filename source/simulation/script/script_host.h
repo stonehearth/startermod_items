@@ -39,6 +39,7 @@ public:
    void SendMsg(om::EntityRef entity, std::string msg, const luabind::object& arg0);
 
    void Call(std::string fn, luabind::object arg1);
+   luabind::object LuaRequire(std::string name);
    
    std::string DoAction(const tesseract::protocol::DoAction& msg);
    void CreateNew();
@@ -60,7 +61,6 @@ private:
    void ReportError(luabind::object error);
    json::ConstJsonObject LoadJson(std::string uri);
    resources::AnimationPtr LoadAnimation(std::string uri);
-   luabind::object LuaRequire(std::string name);
    void Log(std::string str);
 
 private:

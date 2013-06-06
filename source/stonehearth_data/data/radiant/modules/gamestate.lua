@@ -2,7 +2,7 @@ local gamestate = {}
 local singleton = {}
 
 function gamestate.__init()
-   singleton._clock = radiant._root_entity:add_clock_component()
+   singleton._clock = radiant._root_entity:add_component('clock')
 end
 
 function gamestate._start()

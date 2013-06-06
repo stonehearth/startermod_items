@@ -5,5 +5,5 @@
    "icon": "url(/images/actions/chop.png)",
    "handler"  : "url(chop_ability.lua)",
    "command" : "chop",
-   "args": [ "self" ]
+   "args": [ "self", "player_faction" ]
 }

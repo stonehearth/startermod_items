@@ -1,22 +1,22 @@
-local api = {}
+local Inventory = radiant.mods.require('mod://stonehearth_inventory/lib/inventory.lua')
+local stonehearth_inventory = {}
+local singleton = {}
 
-function api.create_stockpile(bounds)
-   local stockpile = radiant.entities.create_entity('mod://stonehearth_inventory/entities/stockpile')
-   
-   local origin = RadiantIPoint3(bounds.min)
-   bounds.max = bounds.max - bounds.min
-   bounds.min = RadiantIPoint3(0, 0, 0)   
-   radiant.terrain.place_entity(stockpile, origin)
-   
-   local designation = radiant.components.add_component(stockpile, 'stockpile_designation') 
-   designation:set_bounds(bounds)
-
-   --designation:set_container(om:get_component(om:get_root_entity(), 'entity_container')) -- xxx do this automatically as part of becoming a child? 
-   
-   local unitinfo = radiant.components.add_component(stockpile, 'unit_info')
-   unitinfo:set_faction('civ')
-   
-   return { entity_id = stockpile:get_id() }
+function stonehearth_inventory.__init()
+   singleton._inventories = {}
 end
 
-return api
+function stonehearth_inventory.get_inventory(faction)
+   radiant.check.is_string(faction)
+   local inventory = singleton._inventories[faction]
+   if not inventory then
+      inventory = Inventory(faction)
+      singleton._inventories[faction] = inventory
+   end
+   return inventory
+end
+
+stonehearth_inventory.__init()
+
+return stonehearth_inventory
+

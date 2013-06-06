@@ -23,9 +23,9 @@ function effects._init_entity(entity, resource)
 end
 ]]
 
-function effects._on_event_loop(now)
+function effects._on_event_loop(msg, now)
    for id, mgr in pairs(singleton._all_effects) do
-      mgr:on_event_loop()
+      mgr:on_event_loop(now)
    end
 end
 

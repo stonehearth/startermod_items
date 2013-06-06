@@ -82,7 +82,7 @@ function WorkerScheduler:schedule_chop(tree)
 
    radiant.log.info('harvesting resource entity %d', tree:get_id())
 
-   local node = radiant.components.get_component(tree, 'resource_node')
+   local node = tree:get_component('resource_node')
    radiant.check.verify(node)
 
    local locations = node:get_harvest_locations()
@@ -107,7 +107,7 @@ end
 -- ug!  this is decidely un-extensible.  fix it!
 function WorkerScheduler:get_build_order(entity)
    for _, name in ipairs(all_build_orders) do
-      local component = radiant.components.get_component(entity, name)
+      local component = entity:get_component(name)
       if component then
          return component
       end
@@ -115,7 +115,7 @@ function WorkerScheduler:get_build_order(entity)
 end
 
 function WorkerScheduler:_on_removed_from_terrain(entity, cb)
-   local mob = radiant.components.get_component(entity, 'mob')
+   local mob = entity:get_component('mob')
    if mob then
       local promise
       promise = mob:trace_parent():changed(function (v)
@@ -147,15 +147,15 @@ function WorkerScheduler:add_item(entity)
 
    radiant.check.is_entity(entity)
    local id = entity:get_id()
-   local mob = radiant.components.get_component(entity, 'mob')
-   local item = radiant.components.get_component(entity, 'item')
+   local mob = entity:get_component('mob')
+   local item = entity:get_component('item')
    
    assert(mob and item)
 
    if not self._items[id] then
       local location = mob:get_grid_location()
       local stocked = self:_find_stockpile(location)
-      local material = radiant.components.get_component(entity, 'item'):get_material()
+      local material = entity:get_component('item'):get_material()
       
       local points = PointList()
       points:insert(RadiantIPoint3(location.x, location.y, location.z + 1))
@@ -183,7 +183,7 @@ end
 function WorkerScheduler:_find_stockpile(location)
    for id, stockpile in pairs(self._stockpiles) do
       local origin = radiant.entities.get_world_location_aligned(stockpile)
-      local designation = radiant.components.get_component(stockpile, 'stockpile_designation')
+      local designation = stockpile:get_component('stockpile_designation')
       if designation:get_bounds():contains(location - origin) then
          return stockpile
       end
@@ -197,7 +197,7 @@ function WorkerScheduler:remove_item(id)
    if entity then
       radiant.log.info('removing item from pickup pathfinder!')
       self.pf.pickup:remove_destination(id)
-      local material = radiant.components.get_component(entity, 'item'):get_material()
+      local material = entity:get_component('item'):get_material()
       if material and material ~= '' then
          self.pf.group.pickup[material]:remove_destination(id);
       end
@@ -224,7 +224,7 @@ function WorkerScheduler:_can_grab_more_of(worker, material, count)
    radiant.check.is_string(material)
    radiant.check.is_number(count)
    
-   local carry_block = radiant.components.get_component(worker, 'carry_block') 
+   local carry_block = worker:get_component('carry_block') 
    if not carry_block then
       return false
    end
@@ -289,11 +289,11 @@ function WorkerScheduler:_get_carrying(worker)
    local carrying = nil
    local material = ""
    
-   local c = radiant.components.get_component(worker, 'carry_block')
+   local c = worker:get_component('carry_block')
    if c:is_valid() and c:is_carrying() then
       carrying = c:get_carrying()
       if radiant.components.has_component(carrying, 'item') then
-         local item = radiant.components.get_component(carrying, 'item')
+         local item = carrying:get_component('item')
          material = item:get_material();
       end
    end
@@ -366,7 +366,7 @@ function WorkerScheduler:_collect_build_order_deps(build_order, checked, check_o
       local entity = build_order:get_entity()
       checked[id] = true
       if radiant.components.has_component(entity, 'build_order_dependencies') then
-         local dependencies = radiant.components.get_component(entity, 'build_order_dependencies')
+         local dependencies = entity:get_component('build_order_dependencies')
          for dep_entity in dependencies:get_dependencies() do
             local dep_bo = self._get_build_order(dep_entity)
             if dep_bo then
@@ -492,7 +492,7 @@ function WorkerScheduler:_dispatch_job(job, worker, path, dst)
          local entity = dst:get_entity();
          local entity_id = entity:get_id();
          local location = path:get_points():last()
-         local stockpile = radiant.components.get_component(entity, 'stockpile_designation')    
+         local stockpile = entity:get_component('stockpile_designation')    
          local success, location = stockpile:reserve_adjacent(location)
          if success then
             self:_recommend_activity(worker, 'restock', path, stockpile, location)
@@ -527,7 +527,7 @@ function WorkerScheduler:add_stockpile(stockpile)
    radiant.log.info('tracing stockpile available region')
 
    if radiant.components.has_component(stockpile, 'stockpile_designation') then
-      local designation = radiant.components.get_component(stockpile, 'stockpile_designation')
+      local designation = stockpile:get_component('stockpile_designation')
       local rgn = designation:get_standing_region()
       local dst = RegionDestination(stockpile, rgn);
 

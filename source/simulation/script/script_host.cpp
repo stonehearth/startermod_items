@@ -210,6 +210,7 @@ void ScriptHost::InitEnvironment()
          .def("assert_failed",            &ScriptHost::AssertFailed)
          .def("unstick",                  &ScriptHost::Unstick)
          .def("lua_require",              &ScriptHost::LuaRequire)
+         .def("set_lua_component_alias",  &LuaObjectModel::SetLuaComponentAlias)
    ];
    lua_register(L_, "get_config_option", GetConfigOptions);
 
@@ -418,15 +419,18 @@ luabind::object ScriptHost::LoadScript(std::string uri)
       OnError("Coud not open script file " + filepath);
    } else if (error != 0) {
       OnError(lua_tostring(L_, -1));
+      lua_pop(L_, 1);
       return obj;
    }
    if (lua_pcall(L_, 0, LUA_MULTRET, 0) != 0) {
       OnError(lua_tostring(L_, -1));
+      lua_pop(L_, 1);
       return obj;
    }
 
 #endif
    obj = luabind::object(luabind::from_stack(L_, -1));
+   lua_pop(L_, 1);
    return obj;
 }
 

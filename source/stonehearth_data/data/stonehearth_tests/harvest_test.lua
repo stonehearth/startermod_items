@@ -8,12 +8,15 @@ function HarvestTest:__init()
    self:create_world()
 
    local tree = self:place_tree(-12, -12)
-   self:place_citizen(12, 12)
+   local worker = self:place_citizen(12, 12)
+   local faction = worker:get_component('unit_info'):get_faction()
+   
    self:at(10,  function()
-         self:place_stockpile_cmd(4, 12)
+         self:place_stockpile_cmd(faction, 4, 12)
       end)
+
    self:at(100, function()
-         radiant.components.get_component(tree, 'abilities'):do_ability('chop')
+         tree:get_component('abilities'):do_ability('chop', faction)
       end)
 end
 

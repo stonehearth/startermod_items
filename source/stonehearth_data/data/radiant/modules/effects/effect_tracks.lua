@@ -7,7 +7,7 @@ local EffectTracks = class()
 function EffectTracks:__init(mgr, entity, effect_path, effect_name, start_time, trigger_handler, args) 
    self._mgr = mgr
    self._name = effect_name
-   self._effect_list = radiant.components.add_component(entity, 'effect_list')
+   self._effect_list = entity:add_component('effect_list')
    self._effect = self._effect_list:add_effect(effect_path, start_time)
    self._running = true
    
@@ -33,7 +33,7 @@ function EffectTracks:__init(mgr, entity, effect_path, effect_name, start_time, 
       elseif e.type == "attack_frame_data" then
          table.insert(self._effects, FrameDataEffect(start_time, trigger_handler, e, self._effect))
       else
-         log:info('unknown effect type "%s".  using generic', e.type)
+         radiant.log.info('unknown effect type "%s".  using generic', e.type)
          table.insert(self._effects, GenericEffect(start_time, trigger_handler, e, self._effect))
       end
    end

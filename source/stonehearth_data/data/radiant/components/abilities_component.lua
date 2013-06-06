@@ -4,7 +4,7 @@ function Abilities:__init(entity)
    self._entity = entity
 end
    
-function Abilities:extend(entity, json)
+function Abilities:extend(json)
    -- not really...
    self._abilities = json.ability_list
 end

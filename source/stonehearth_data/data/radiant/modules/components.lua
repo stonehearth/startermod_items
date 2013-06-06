@@ -49,78 +49,9 @@ local embedded_components = {
 }
 
 function components:__init()
-end
-
-function components._get_component_uri(name)
-   if embedded_components[name] then
-      return embedded_components[name]
+   for name, value in pairs(embedded_components) do
+      native:set_lua_component_alias(name, value)
    end
-   return name
-end
-
-function components.get_component(entity, name)
-   radiant.check.is_entity(entity)
-
-   if name == 'transform' then
-      name = 'mob'
-   end
-   if native_components[name] then
-      if components.has_component(entity, name) then
-         return entity['get_'..name..'_component'](entity)
-      end
-      return nil
-   end
-
-   local lua_components = components.get_component(entity, 'lua_components')
-   if lua_components then
-      local uri = components._get_component_uri(name)
-      return lua_components:get_lua_component(uri)
-   end
-end
-
-function components.has_component(entity, name)
-   radiant.check.is_entity(entity)
-
-   if name == 'transform' then
-      name = 'mob'
-   end
-   if native_components[name] then
-      return entity['has_'..name..'_component'](entity)
-   end
-   local lua_components = components.get_component(entity, 'lua_components')
-   if lua_components then
-      local uri = components._get_component_uri(name)
-      return lua_components:get_lua_component(uri) ~= nil
-   end   
-end
-
-function components.add_component(entity, name, json)
-   local uri
-   
-   if native_components[name] then
-      local component = entity['add_'..name..'_component'](entity)
-      assert(component.extend)
-      if json then
-         local native_obj = radiant.resources.get_native_obj(json)
-         component:extend(native_obj)
-      end
-      return component
-   end
-
-   local lua_components = components.add_component(entity, 'lua_components')
-
-   local uri = components._get_component_uri(name)
-   local component = lua_components:get_lua_component(uri)
-   if not component then
-      local api = radiant.mods.require(uri)
-      assert(type(api) ~= 'string')
-      component = api(entity)
-      lua_components:add_lua_component(uri, component)
-   end
-   if json then
-      component:extend(entity, json)
-   end
-   return component
 end
 
 components.__init()
