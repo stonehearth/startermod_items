@@ -50,6 +50,7 @@ class RenderEntity
       void UpdateNodeFlags();
       void UpdateComponents();
       void AddComponent(dm::ObjectType key, std::shared_ptr<dm::Object> value);
+      void AddLuaComponents(om::LuaComponentsPtr lua_components);
       void RemoveComponent(dm::ObjectType key);
       void OnSelected(om::Selection& sel, const math3d::ray3& ray,
                       const math3d::point3& intersection, const math3d::point3& normal);
@@ -60,11 +61,13 @@ class RenderEntity
 
 protected:
       typedef std::unordered_map<dm::ObjectType, std::shared_ptr<RenderComponent>> ComponentMap;
+      typedef std::unordered_map<std::string, std::shared_ptr<RenderComponent>> LuaComponentMap;
       H3DNode           node_;
       om::EntityRef     entity_;
       dm::GuardSet      tracer_;
       Skeleton          skeleton_;
       ComponentMap      components_;
+      LuaComponentMap   lua_components_;
       bool              initialized_;
       int               displayIconic_;
 };

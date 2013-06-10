@@ -1,57 +1,32 @@
 local components = {}
 local singleton = {}
 
-local native_components = {
-   action_list = 'ActionList',
-   clock = 'Clock',
-   stockpile_designation = 'StockpileDesignation',
-   entity_container = 'EntityContainer',
-   item = 'Item',
-   mob = 'Mob',
-   path_jump_node = 'PathJumpNode',
-   resource_node = 'ResourceNode',
-   render_grid = 'RenderGrid',
-   render_rig = 'RenderRig',
-   grid_collision_shape = 'GridCollisionShape',
-   sphere_collision_shape = 'SphereCollisionShape',
-   terrain = 'Terrain',
-   carry_block = 'CarryBlock',
-   unit_info = 'UnitInfo',
-   wall = 'Wall',
-   room = 'Room',
-   floor = 'Floor',
-   scaffolding = 'Scaffolding',
-   post = 'Post',
-   peaked_roof = 'PeakedRoof',
-   portal = 'Portal',
-   fixture = 'Fixture',
-   build_orders = 'BuildOrders',
-   build_order_dependencies = 'BuildOrdersDependencies',
-   resource = 'Resource',
-   user_behavior_queue = 'UserBehaviorQueue',
-   effect_list = 'EffectList',
-   render_info = 'RenderInfo',
-   profession = 'Profession',
-   automation_queue = 'AutomationQueue',
-   paperdoll = 'Paperdoll',
-   sensor_list = 'SensorList',
-   attributes = 'Attributes',
-   aura_list = 'AuraList',
-   target_tables = 'TargetTables',
-   inventory = 'Inventory',
-   weapon_info = 'WeaponInfo',
-   lua_components = 'LuaComponents',
-}
-
 local embedded_components = {
    ai = 'mod://radiant/components/ai_component.lua',
-   abilities = 'mod://radiant/components/abilities_component.lua'
+   abilities = 'mod://radiant/components/abilities_component.lua',
+   resource_node = 'mod://radiant/components/resource_node_component.lua',
+   stockpile = 'mod://radiant/components/stockpile_component.lua',
 }
 
-function components:__init()
+function components.mark_dirty(component, data)
+   singleton._dirty_components[component] = data
+end
+
+function components.__init()
+   singleton._dirty_components = {}
    for name, value in pairs(embedded_components) do
       native:set_lua_component_alias(name, value)
    end
+end
+
+function components._flush_dirty()
+   for component, data in pairs(singleton._dirty_components) do
+      local json = radiant.json.encode(data)
+      local native_component = component.__native_component
+      assert(native_component)
+      native_component:save_data(json)
+   end
+   singleton._dirty_components = {}
 end
 
 components.__init()
@@ -79,66 +54,6 @@ ObjectModel.DefaultTravelSpeeds = {
    carry_walk = 0.5,
    patrol = 0.25,
 }
-
-native_components = {
-   action_list = 'ActionList',
-   clock = 'Clock',
-   stockpile_designation = 'StockpileDesignation',
-   entity_container = 'EntityContainer',
-   item = 'Item',
-   mob = 'Mob',
-   path_jump_node = 'PathJumpNode',
-   resource_node = 'ResourceNode',
-   render_grid = 'RenderGrid',
-   render_rig = 'RenderRig',
-   grid_collision_shape = 'GridCollisionShape',
-   sphere_collision_shape = 'SphereCollisionShape',
-   terrain = 'Terrain',
-   carry_block = 'CarryBlock',
-   unit_info = 'UnitInfo',
-   wall = 'Wall',
-   room = 'Room',
-   floor = 'Floor',
-   scaffolding = 'Scaffolding',
-   post = 'Post',
-   peaked_roof = 'PeakedRoof',
-   portal = 'Portal',
-   fixture = 'Fixture',
-   build_orders = 'BuildOrders',
-   build_order_dependencies = 'BuildOrdersDependencies',
-   resource = 'Resource',
-   user_behavior_queue = 'UserBehaviorQueue',
-   effect_list = 'EffectList',
-   render_info = 'RenderInfo',
-   profession = 'Profession',
-   automation_queue = 'AutomationQueue',
-   paperdoll = 'Paperdoll',
-   sensor_list = 'SensorList',
-   attributes = 'Attributes',
-   aura_list = 'AuraList',
-   target_tables = 'TargetTables',
-   inventory = 'Inventory',
-   weapon_info = 'WeaponInfo',
-   combat_ability_list = 'CombatAbilityList',
-}
-
-function components.__init()
-   self._root_entity = nil
-   self._terrain_grid = nil
-
-   self._entity_dtors = {}
-   
-   for _, name in ipairs(native_components) do
-      for _, op in { 'add', 'get' } do
-         self['add_' .. name .. '_component'] = function (self, entity, name)
-            radiant.check.is_entity(entity)
-            radiant.check.is_string(name)
-            return entity['add_' .. name .. '_component']()
-         end
-      end
-   end
-end
-
 function components.create_root_objects()
    self._root_entity = singleton.create_entity()
    assert(self._root_entity:get_id() == 1)

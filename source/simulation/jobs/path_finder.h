@@ -4,8 +4,8 @@
 #include "math3d.h"
 #include "math3d/common/color.h"
 #include "math3d_collision.h"
+#include "om/om.h"
 #include "job.h"
-#include "destination.h"
 #include "physics/namespace.h"
 #include "radiant.pb.h"
 #include "path.h"
@@ -20,8 +20,8 @@ class PathFinder : public Job {
       PathFinder(std::string name, bool ownsDest);
       virtual ~PathFinder();
 
-      void AddDestination(DestinationPtr dst);
-      void RemoveDestination(om::EntityId id);
+      void AddDestination(om::DestinationRef dst);
+      void RemoveDestination(om::DestinationRef dst);
 
       enum State {
          CONSTRUCTED,
@@ -50,17 +50,18 @@ class PathFinder : public Job {
       bool IsRunning() const;
       bool VerifyDestinationModifyTimes();
       bool CompareEntries(const math3d::ipoint3 &a, const math3d::ipoint3 &b);
-      void RecommendBestPath(PointList &points) const;
+      void RecommendBestPath(std::vector<math3d::ipoint3> &points) const;
+      int EstimateMovementCost(const math3d::ipoint3& start, om::DestinationPtr dst) const;
       int EstimateCostToDestination(const math3d::ipoint3 &pt) const;
-      int EstimateCostToDestination(const math3d::ipoint3 &pt, DestinationPtr& closest) const;
+      int EstimateCostToDestination(const math3d::ipoint3 &pt, om::DestinationPtr& closest) const;
 
       math3d::ipoint3 GetFirstOpen();
-      void ReconstructPath(PointList &solution, const math3d::ipoint3 &dst) const;
+      void ReconstructPath(std::vector<math3d::ipoint3> &solution, const math3d::ipoint3 &dst) const;
       void AddEdge(const math3d::ipoint3 &current, const math3d::ipoint3 &next, int cost);
       void RebuildHeap();
 
       void AbortSearch(State next, std::string reason);
-      void SolveSearch(const math3d::ipoint3& last, DestinationPtr dst);
+      void SolveSearch(const math3d::ipoint3& last, om::DestinationPtr dst);
       void CheckSolution() const;
 
    public:
@@ -80,7 +81,7 @@ class PathFinder : public Job {
       std::hash_map<math3d::ipoint3, int>               g_;
       std::hash_map<math3d::ipoint3, int>               h_;
       std::hash_map<math3d::ipoint3, math3d::ipoint3>   cameFrom_;
-      mutable std::unordered_map<om::EntityId, DestinationPtr>  destinations_;
+      mutable std::unordered_map<om::EntityId, om::DestinationRef>  destinations_;
 };
 
 typedef std::weak_ptr<PathFinder> PathFinderRef;

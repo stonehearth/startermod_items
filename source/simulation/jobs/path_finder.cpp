@@ -4,6 +4,8 @@
 #include "path_finder.h"
 #include "simulation/simulation.h"
 #include "om/entity.h"
+#include "om/components/mob.h"
+#include "om/components/destination.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -35,46 +37,46 @@ PathFinder::~PathFinder()
 
 bool PathFinder::IsIdle(int now) const
 {
-   if (IsRunning()) {
-      for (const auto& entry : destinations_) {
-         if (entry.second->IsEnabled()) {
-            return false;
-         }
-      }
-   }
-   return true;
+   return !IsRunning();
 }
 
-void PathFinder::AddDestination(DestinationPtr dst)
+void PathFinder::AddDestination(om::DestinationRef d)
 {
    PROFILE_BLOCK();
 
-   destinations_[dst->GetEntityId()] = dst;
-   if (state_ == RUNNING) {
-      LOG(WARNING) << "adding destination to a running search.  restarting.";
-      solution_ = nullptr;
-      state_ = RESTARTING;
-   }
-}
-
-void PathFinder::RemoveDestination(om::EntityId id)
-{
-   PROFILE_BLOCK();
-
-   auto i = destinations_.find(id);
-   if (i != destinations_.end()) {
+   auto dst = d.lock();
+   if (dst) {
+      destinations_[dst->GetObjectId()] = dst;
       if (state_ == RUNNING) {
-         LOG(WARNING) << "removing destination from a running search.  restarting.";
+         LOG(WARNING) << "adding destination to a running search.  restarting.";
          solution_ = nullptr;
          state_ = RESTARTING;
-      } else if (state_ == SOLVED) {
-         if (solution_->GetDestination() == i->second) {
-            LOG(WARNING) << "removing solution destination from multi-search.  resuming!";
-            solution_ = nullptr;
-            state_ = RESTARTING;
+      }
+   }
+}
+
+void PathFinder::RemoveDestination(om::DestinationRef d)
+{
+   PROFILE_BLOCK();
+
+   auto dst = d.lock();
+   if (dst) {
+      auto i = destinations_.find(dst->GetObjectId());
+      if (i != destinations_.end()) {
+         destinations_.erase(i);
+         auto solutionDst = solution_->GetDestination().lock();
+         if (solutionDst && solutionDst == dst) {
+            if (state_ == RUNNING) {
+               LOG(WARNING) << "removing destination from a running search.  restarting.";
+               solution_ = nullptr;
+               state_ = RESTARTING;
+            } else if (state_ == SOLVED) {
+               LOG(WARNING) << "removing solution destination from multi-search.  resuming!";
+               solution_ = nullptr;
+               state_ = RESTARTING;
+            }
          }
       }
-      destinations_.erase(i);
    }
 }
 
@@ -122,7 +124,7 @@ void PathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
 {
    PROFILE_BLOCK();
 
-   PointList best;
+   std::vector<math3d::ipoint3> best;
    math3d::color4 pathColor;
    if (!solution_) {
       RecommendBestPath(best);
@@ -153,11 +155,6 @@ void PathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
    for (const auto& pt : closed_) {
       if (std::find(best.begin(), best.end(), pt) == best.end()) {
          pt.SaveValue(msg->add_coords(), math3d::color4(0, 0, 128, 192));
-      }
-   }
-   if (ownsDst_) {
-      for (auto& entry : destinations_ ) {
-         entry.second->EncodeDebugShapes(msg);
       }
    }
 }
@@ -199,7 +196,7 @@ void PathFinder::Work(int now, const platform::timer &timer)
    math3d::ipoint3 current = GetFirstOpen();
    stdutil::UniqueInsert(closed_, current);
 
-   DestinationPtr closest;
+   om::DestinationPtr closest;
    if (EstimateCostToDestination(current, closest) == 0) {
       SolveSearch(current, closest);
       return;
@@ -287,36 +284,71 @@ int PathFinder::EstimateCostToSolution()
 
 int PathFinder::EstimateCostToDestination(const math3d::ipoint3 &from) const
 {
-   DestinationPtr ignore;
+   om::DestinationPtr ignore;
    ASSERT(!IsIdle(0));
    return EstimateCostToDestination(from, ignore);
 }
 
-int PathFinder::EstimateCostToDestination(const math3d::ipoint3 &from, DestinationPtr& closest) const
+
+int PathFinder::EstimateMovementCost(const math3d::ipoint3& from, om::DestinationPtr dst) const
+{
+   csg::Region3 const& rgn = **dst->GetAdjacent();
+   if (rgn.IsEmpty()) {
+      return INT_MAX;
+   }
+   math3d::ipoint3 start = from;
+   auto mob = dst->GetEntity().GetComponent<om::Mob>();
+   if (mob) {
+      start -= mob->GetWorldGridLocation();
+   }
+   csg::Point3 end = rgn.GetClosestPoint(start);
+
+   static int COST_SCALE = 10;
+   int cost = 0;
+
+   // it's fairly expensive to climb.
+   cost += COST_SCALE * std::max(end.y - start.y, 0) * 2;
+
+   // falling is super cheap.
+   cost += std::max(start.y - end.y, 0);
+
+   // diagonals need to be more expensive than cardinal directions
+   int xCost = abs(end.x - start.x);
+   int zCost = abs(end.z - start.z);
+   int diagCost = std::min(xCost, zCost);
+   int horzCost = std::max(xCost, zCost) - diagCost;
+
+   cost += (int)((horzCost + diagCost * 1.414) * COST_SCALE);
+
+   return cost;
+}
+
+int PathFinder::EstimateCostToDestination(const math3d::ipoint3 &from, om::DestinationPtr& closest) const
 {
    int hMin = INT_MAX;
 
    ASSERT(!IsIdle(0));
-   for (auto& entry : destinations_) {
-      if (entry.second->IsEnabled()) {
-start:
-         int h = entry.second->EstimateCostToDestination(from);
+
+   auto i = destinations_.begin();
+   while (i != destinations_.end()) {
+      auto dst = i->second.lock();
+      if (dst) {
+         int h = EstimateMovementCost(from, dst);
          //LOG(WARNING) << GetName() << "    sub cost to dst: " << h << "(vs: " << hMin << ")";
-         if (h == INT_MAX) {
-            DebugBreak();
-            goto start;
-         }
          if (h < hMin) {
-            closest = entry.second;
+            closest = dst;
             hMin = h;
          }
+         i++;
+      } else {
+         i = destinations_.erase(i);
       }
    }
-   ASSERT(hMin != INT_MAX);
-
-   // LOG(WARNING) << GetName() << " cost to dst: " << hMin;
-   float fudge = 1.25f; // to make the search finder at the cost of accuracyd
-   return hMin ? std::max(1, (int)(hMin * fudge)) : 0;
+   if (hMin != INT_MAX) {
+      float fudge = 1.25f; // to make the search finder at the hMin of accuracy
+      hMin ? std::max(1, (int)(hMin * fudge)) : 0;
+   }
+   return hMin;
 }
 
 math3d::ipoint3 PathFinder::GetFirstOpen()
@@ -334,7 +366,7 @@ math3d::ipoint3 PathFinder::GetFirstOpen()
    return result;
 }
 
-void PathFinder::ReconstructPath(PointList &solution, const math3d::ipoint3 &dst) const
+void PathFinder::ReconstructPath(std::vector<math3d::ipoint3> &solution, const math3d::ipoint3 &dst) const
 {
    solution.push_back(dst);
 
@@ -346,7 +378,7 @@ void PathFinder::ReconstructPath(PointList &solution, const math3d::ipoint3 &dst
    reverse(solution.begin(), solution.end());
 }
 
-void PathFinder::RecommendBestPath(PointList &points) const
+void PathFinder::RecommendBestPath(std::vector<math3d::ipoint3> &points) const
 {
    points.clear();
    if (!open_.empty()) {
@@ -385,10 +417,10 @@ bool PathFinder::VerifyDestinationModifyTimes()
 
    auto i = destinations_.begin();
    while (i != destinations_.end()) {
-      auto dst = i->second;
+      auto dst = i->second.lock();
 
-      if (dst->GetEntity().lock()) {
-         int modifyTime = dst->GetLastModificationTime();
+      if (dst) {
+         int modifyTime = dst->GetLastModified();
          if (modifyTime > startTime_) {
             changed = true;
          }
@@ -408,16 +440,16 @@ void PathFinder::AbortSearch(State next, std::string reason)
    stopReason_ = reason;  
 }
 
-void PathFinder::SolveSearch(const math3d::ipoint3& last, DestinationPtr dst)
+void PathFinder::SolveSearch(const math3d::ipoint3& last, om::DestinationPtr dst)
 {
-   PointList points;
+   std::vector<math3d::ipoint3> points;
 
    ASSERT(state_ == RUNNING);
    VERIFY_HEAPINESS();
 
    ReconstructPath(points, last);
    solution_ = std::make_shared<Path>(points, entity_, dst);
-   solutionTime_ = dst->GetLastModificationTime();
+   solutionTime_ = dst->GetLastModified();
    state_ = SOLVED;
 
    VERIFY_HEAPINESS();
@@ -439,22 +471,10 @@ void PathFinder::CheckSolution() const
 {
    PROFILE_BLOCK();
 
+   // xxx: we shouldn't ahve to do this if we put change trackers on the destinations!!
    if (solution_) {
-      auto dst = solution_->GetDestination();
-      auto entity = dst->GetEntity().lock();
-      if (!entity) {
-         LOG(WARNING) << "xxx BUG: Track lifetime, then i = destinations_.erase(i); in the destructor...";
-         auto i = destinations_.begin();
-         while (i != destinations_.end()) {
-            if (dst == i->second) {
-               destinations_.erase(i);
-               break;
-            }
-            i++;
-         }
-      }
-
-      if (!entity || !dst->IsEnabled() || solutionTime_ != dst->GetLastModificationTime()) {
+      auto dst = solution_->GetDestination().lock();
+      if (!dst || solutionTime_ != dst->GetLastModified()) {
          solution_ = nullptr;
          state_ = RESTARTING;
       }

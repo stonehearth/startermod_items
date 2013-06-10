@@ -12,8 +12,7 @@ end
 function BehaviorManager:destroy()
    self._dead = true
    self:_clear_action_stack()
-
-   radiant.ai._terminate_thread(self._co)
+   
    if self._debug_hook then
       self._debug_hook:notify_current_thread(nil)
    end
@@ -247,13 +246,16 @@ end
 
 function BehaviorManager:_clear_action_stack()
    for i = #self._action_stack, 1, -1 do
-      local action = self._action_stack[i]
+      local action = self._action_stack[i].action
       if action.stop then
          action:stop(self, self._entity, false)
       end
    end
    self._action_stack = {}
    self._current_activity = nil
+   if self._co then
+      radiant.ai._terminate_thread(self._co)
+   end
 end
 
 function BehaviorManager:abort(reason)

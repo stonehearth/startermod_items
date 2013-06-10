@@ -32,7 +32,6 @@ add_library(om_components STATIC
             grid_collision_shape.cpp
             item.cpp
             mob.cpp
-            resource_node.cpp
             render_grid.cpp
             render_rig.cpp
             render_info.cpp
@@ -55,6 +54,7 @@ add_library(om_components STATIC
             inventory.cpp
             weapon_info.cpp
 			lua_components.cpp
+			destination
             pch.cpp
             )
 

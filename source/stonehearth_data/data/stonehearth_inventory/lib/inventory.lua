@@ -54,9 +54,9 @@ function Inventory:_dispatch_jobs()
 end
 
 function Inventory:_stock_space_available()
-   for id, stockpile in pairs(self._stockpiles) do
-      local designation = stockpile:get_component('stockpile_designation')
-      if not designation:is_full() then
+   for id, entity in pairs(self._stockpiles) do
+      local stockpile = entity:get_component('stockpile')
+      if not stockpile:is_full() then
          return true
       end
    end
@@ -64,24 +64,17 @@ function Inventory:_stock_space_available()
 end
 
 
-function Inventory:create_stockpile(bounds)
-   local stockpile = radiant.entities.create_entity('mod://stonehearth_inventory/entities/stockpile')
+function Inventory:create_stockpile(location, size)
+   local entity = radiant.entities.create_entity('mod://stonehearth_inventory/entities/stockpile')
    
-   local origin = RadiantIPoint3(bounds.min)
-   bounds.max = bounds.max - bounds.min
-   bounds.min = RadiantIPoint3(0, 0, 0)   
-   radiant.terrain.place_entity(stockpile, origin)
+   radiant.terrain.place_entity(entity, location)
+   if size then
+      entity:get_component('stockpile'):set_size(size)
+   end
+   entity:get_component('unit_info'):set_faction(self._faction)
    
-   local designation = stockpile:add_component('stockpile_designation') 
-   designation:set_bounds(bounds)
-
-   --designation:set_container(om:get_component(om:get_root_entity(), 'entity_container')) -- xxx do this automatically as part of becoming a child? 
-   
-   local unitinfo = stockpile:add_component('unit_info')
-   unitinfo:set_faction(self._faction)
-   
-   table.insert(self._stockpiles, stockpile)
-   return { entity_id = stockpile:get_id() }
+   table.insert(self._stockpiles, entity)
+   return { entity_id = entity:get_id() }
 end
 
 function Inventory:harvest_tree(tree)
@@ -89,6 +82,11 @@ function Inventory:harvest_tree(tree)
 
    radiant.log.info('harvesting resource entity %d', tree:get_id())
 
+   local destination = tree:get_component('destination')
+   if destination then
+      self.pf.chop:add_destination(destination)
+   end
+   --[[
    local node = tree:get_component('resource_node')
    radiant.check.verify(node)
 
@@ -97,6 +95,7 @@ function Inventory:harvest_tree(tree)
 
    local dst = EntityDestination(tree, locations)
    self.pf.chop:add_destination(dst)
+   ]]
 end
 
 function Inventory:find_path_to_tree(from, cb)

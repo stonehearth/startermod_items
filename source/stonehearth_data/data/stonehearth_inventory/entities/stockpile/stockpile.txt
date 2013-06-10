@@ -4,6 +4,9 @@
       "unit_info" : {
          "name" : "Stockpile",
          "description" : "Stores all sorts of things."
+      },
+      "stockpile" : {
+         "size" : [ 4, 4 ]
       }
    }
 }

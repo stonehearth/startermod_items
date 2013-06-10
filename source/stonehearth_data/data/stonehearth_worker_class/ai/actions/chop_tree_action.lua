@@ -12,33 +12,45 @@ function ChopTreeAction:__init(ai, entity)
 end
 
 ChopTreeAction['radiant.events.gameloop'] = function(self)
+   self:_start_search()
+   radiant.events.unlisten('radiant.events.gameloop', self)
+end
+   
+
+function ChopTreeAction:_start_search()
    local faction = self._entity:get_component('unit_info'):get_faction()
    local inventory = radiant.mods.require('mod://stonehearth_inventory').get_inventory(faction)
 
+   self._path = nil
+   self._ai:set_action_priority(self, 0)
+   
    inventory:find_path_to_tree(self._entity, function(path)
          assert(self._entity:get_id() == path:get_entity():get_id())
          self._path = path
          self._ai:set_action_priority(self, 10)
       end)
-      
-   radiant.events.unlisten('radiant.events.gameloop', self)
 end
 
 function ChopTreeAction:run(ai, entity)
    assert(self._path)
-   local tree = self._path:get_destination():get_entity()
+   local destination = self._path:get_destination()
+   local tree = destination:get_entity()
 
    ai:execute('stonehearth.activities.follow_path', self._path)
    radiant.entities.turn_to_face(entity, tree)
-   while true do
-      ai:execute('stonehearth.activities.run_effect', 'chop')
-   end
+   ai:execute('stonehearth.activities.run_effect', 'chop')
    
-   -- spawn the tree...
-   assert(false)
+   local factory = tree:get_component('resource_node')
+   if factory then
+      local location = radiant.entities.get_world_grid_location(entity)
+      factory:spawn_resource(location)
+   end     
+   self:_start_search()
+end
 
-   self._path = nil
-   ai:set_priority(self, 0)
+function ChopTreeAction:stop()
+   self:_start_search()
 end
 
 return ChopTreeAction
+

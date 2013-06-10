@@ -5,6 +5,7 @@
 #include "simulation/simulation.h"
 #include "om/entity.h"
 #include "om/components/mob.h"
+#include "om/components/destination.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -86,45 +87,32 @@ void MultiPathFinder::RemoveEntity(om::EntityId id)
    }
 }
 
-void MultiPathFinder::AddDestination(DestinationPtr dst)
+void MultiPathFinder::AddDestination(om::DestinationRef d)
 {
    PROFILE_BLOCK();
 
-   destinations_[dst->GetEntityId()] = dst;
-   for (auto& entry : pathfinders_) {
-      entry.second->AddDestination(dst);
-   }
-}
-
-DestinationPtr MultiPathFinder::GetDestination(om::EntityId id)
-{
-   PROFILE_BLOCK();
-
-   auto i = destinations_.find(id);
-   return (i != destinations_.end()) ? i->second : nullptr;
-}
-
-int MultiPathFinder::GetActiveDestinationCount() const
-{
-   int count = 0;
-   for (const auto& entry : destinations_) {
-      if (entry.second->IsEnabled()) {
-         count++;
+   auto dst = d.lock();
+   if (dst) {
+      destinations_[dst->GetObjectId()] = dst;
+      for (auto& entry : pathfinders_) {
+         entry.second->AddDestination(dst);
       }
    }
-   return count;
 }
 
-void MultiPathFinder::RemoveDestination(om::EntityId id)
+void MultiPathFinder::RemoveDestination(om::DestinationRef d)
 {
    PROFILE_BLOCK();
 
-   auto i = destinations_.find(id);
-   if (i != destinations_.end()) {
-      destinations_.erase(i);
-   }
-   for (auto& entry : pathfinders_) {
-      entry.second->RemoveDestination(id);
+   auto dst = d.lock();
+   if (dst) {
+      auto i = destinations_.find(dst->GetObjectId());
+      if (i != destinations_.end()) {
+         destinations_.erase(i);
+      }
+      for (auto& entry : pathfinders_) {
+         entry.second->RemoveDestination(d);
+      }
    }
 }
 
@@ -133,9 +121,6 @@ void MultiPathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
    PROFILE_BLOCK();
 
    for (auto& entry : pathfinders_) {
-      entry.second->EncodeDebugShapes(msg);
-   }
-   for (auto& entry : destinations_) {
       entry.second->EncodeDebugShapes(msg);
    }
 }
@@ -209,8 +194,7 @@ std::ostream& ::radiant::simulation::operator<<(std::ostream& o, const MultiPath
 std::ostream& MultiPathFinder::Format(std::ostream& o) const
 {
    o << "[mpf " << GetName() << " " << pathfinders_.size() 
-     << " entities finding " << destinations_.size() << " locations ("
-     << GetActiveDestinationCount() << " active)";
+     << " entities finding " << destinations_.size() << " locations";
    return o;        
 }
 

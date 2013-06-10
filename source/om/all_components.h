@@ -11,7 +11,6 @@
 #  include "components/terrain.h"
 #  include "components/collision_shape.h"
 #  include "components/grid_collision_shape.h"
-#  include "components/resource_node.h"
 #  include "components/region_collision_shape.h"
 #  include "components/sphere_collision_shape.h"
 #  include "components/carry_block.h"
@@ -42,6 +41,7 @@
 #  include "components/inventory.h"
 #  include "components/weapon_info.h"
 #  include "components/lua_components.h"
+#  include "components/destination.h"
 #endif
 
 #if !defined(OM_ALL_COMPONENTS) 
@@ -52,7 +52,6 @@
       OM_OBJECT(EntityContainer,       entity_container) \
       OM_OBJECT(Item,                  item) \
       OM_OBJECT(Mob,                   mob) \
-      OM_OBJECT(ResourceNode,          resource_node) \
       OM_OBJECT(RenderGrid,            render_grid) \
       OM_OBJECT(RenderRig,             render_rig) \
       OM_OBJECT(RenderRigIconic,       render_rig_iconic) \
@@ -87,6 +86,7 @@
       OM_OBJECT(Inventory,             inventory) \
       OM_OBJECT(WeaponInfo,            weapon_info) \
       OM_OBJECT(LuaComponents,         lua_components) \
+      OM_OBJECT(Destination,           destination) \
 
 #endif
 

@@ -26,7 +26,7 @@ function entities._init_entity(entity, uri)
       if obj.components then
          for name, json in radiant.resources.pairs(obj.components) do
             assert(json)
-            local component, b, c = entity:add_component(name)
+            local component = entity:add_component(name)
             if component and component.extend then
                if type(component) == 'userdata' then
                   json = radiant.resources.get_native_obj(json)
@@ -52,6 +52,19 @@ function entities.create_entity(uri)
       entities._init_entity(entity, uri);
    end
    return entity
+end
+
+function entities.destroy_entity(entity)
+   radiant.check.is_entity(entity)
+   local id = entity:get_id()
+   local dtors = singleton._entity_dtors[id]
+   if dtors then
+      for _, dtor in ipairs(dtors) do
+         dtor()
+      end
+      singleton._entity_dtors[id] = nil
+   end
+   native:destroy_entity(entity)
 end
 
 function entities.inject_into_entity(entity, uri)
@@ -320,19 +333,6 @@ function entities.get_entity(id)
    radiant.check.is_number(id)
    local entity = native:get_entity(id)
    return entity and entity:is_valid() and entity or nil
-end
-
-function entities.destroy_entity(entity)
-   radiant.check.is_entity(entity)
-   local id = entity:get_id()
-   local dtors = self._entity_dtors[id]
-   if dtors then
-      for _, dtor in ipairs(dtors) do
-         dtor()
-      end
-      self._entity_dtors[id] = nil
-   end
-   native:destroy_entity(entity)
 end
 
 function entities.get_component(entity, name)

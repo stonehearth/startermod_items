@@ -71,11 +71,11 @@ function MicroWorld:place_stockpile_cmd(faction, x, z, w, h)
    w = w and w or 3
    h = h and h or 3
    
-   local bounds = RadiantBounds3(RadiantIPoint3(x, 1, z),
-                                 RadiantIPoint3(x + w, 2, z + h))
-   
+   local location = RadiantIPoint3(x, 1, z)
+   local size = { w, h }
+  
    local inventory = radiant.mods.load_api('mod://stonehearth_inventory/').get_inventory(faction)
-   inventory:create_stockpile(bounds)
+   inventory:create_stockpile(location, size)
 end
 
 function MicroWorld:create_room_cmd(x, z, w, h)

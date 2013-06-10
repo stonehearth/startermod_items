@@ -18,6 +18,18 @@ namespace radiant {
          return def;
       }
 
+      template <typename T> static T get(JSONNode const& node, int index) {
+         return get<T>(node, index, T());
+      }
+
+      template <typename T> static T get(JSONNode const& node, int index, T const& def) {
+         ASSERT(node.type() == JSON_ARRAY);
+         if (index >= 0 && index < (int)node.size()) {
+            return cast_<T>(node.at(index));
+         }
+         return def;
+      }
+
       class ConstJsonObject {
       public:
          ConstJsonObject(JSONNode const& node) : node_(node) { }
@@ -26,8 +38,15 @@ namespace radiant {
          std::string ToString() const;
          JSONNode const& GetNode() const { return node_; }
 
+         bool has(const char* name) const {
+            return node_.find(name) != node_.end();
+         }
+
          template <typename T> T get(char const* name, T const& def) const {
             return ::radiant::json::get(GetNode(), name, def);
+         }
+         template <typename T> T get(int offset, T const& def) const {
+            return ::radiant::json::get(GetNode(), offset, def);
          }
       private:
          JSONNode const& node_;
@@ -37,8 +56,8 @@ namespace radiant {
 
       template <typename T> static T cast_(JSONNode const& node);
 
-      template <> static std::string cast_(JSONNode const& node) {
-         return node.as_string();
+      template <> static JSONNode cast_(JSONNode const& node) {
+         return node;
       }
       template <> static float cast_(JSONNode const& node) {
          return static_cast<float>(node.as_float());
@@ -46,8 +65,8 @@ namespace radiant {
       template <> static int cast_(JSONNode const& node) {
          return node.as_int();
       }
-      template <> static JSONNode cast_(JSONNode const& node) {
-         return node;
+      template <> static std::string cast_(JSONNode const& node) {
+         return node.as_string();
       }
    };
 };

@@ -4,6 +4,24 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+luabind::scope Mob::RegisterLuaType(struct lua_State* L, const char* name)
+{
+   using namespace luabind;
+
+   return
+      class_<Mob, std::weak_ptr<Component>>(name)
+         .def("get_location",                &Mob::GetLocation)
+         .def("get_grid_location",           &Mob::GetGridLocation)
+         .def("get_world_grid_location",     &Mob::GetWorldGridLocation)
+         .def("get_world_location",          &Mob::GetWorldLocation)
+         .def("set_location",                &Mob::MoveTo)
+         .def("set_location_grid_aligned",   &Mob::MoveToGridAligned)
+         .def("turn_to",                     &Mob::TurnToAngle)
+         .def("turn_to_face_point",          &Mob::TurnToFacePoint)
+         .def("set_interpolate_movement",    &Mob::SetInterpolateMovement)
+     ;
+}
+
 void Mob::InitializeRecordFields()
 {
    Component::InitializeRecordFields();

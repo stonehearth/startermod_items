@@ -20,6 +20,8 @@ public:
 
    dm::Guard TraceRecordField(std::string name, const char* reason, std::function<void()> fn);  
 
+   bool IsRemoteRecord() const { return slave_; }
+
 protected:
    bool FieldIsUnique(std::string name, Object& field);
    void AddRecordField(std::string name, Object& field);
