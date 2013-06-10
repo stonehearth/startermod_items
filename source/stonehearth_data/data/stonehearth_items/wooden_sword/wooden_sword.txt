@@ -1,0 +1,15 @@
+{
+   "type": "entity",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Wooden Sword",
+         "description" : "Notched from many smites."
+      },
+      "render_rig": {
+         "models": [
+            "url(wooden_sword.qb)",
+         ]
+      }
+   }
+}
+
