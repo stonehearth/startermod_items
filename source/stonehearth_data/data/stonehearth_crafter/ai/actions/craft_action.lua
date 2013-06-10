@@ -43,9 +43,9 @@ function CraftAction:run(ai, entity)
    end
 
    --fill the outbox
-   local recipe = workshop:get_curr_recipe()
-   ai:execute('stonehearth_crafter.activities.fill_outbox', recipe)   
+   --local recipe = workshop:get_curr_recipe()
    workshop:crafting_complete()
+   ai:execute('stonehearth_crafter.activities.fill_outbox')   
 end
 
 return CraftAction

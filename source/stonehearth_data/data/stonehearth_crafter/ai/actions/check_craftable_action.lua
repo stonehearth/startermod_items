@@ -48,7 +48,11 @@ CheckCraftableAction['radiant.events.gameloop'] = function(self)
       self._is_crafting = true
       self._next_activity = {'stonehearth_crafter.activities.craft'}
       self._ai:set_action_priority(self, 5)
-   else 
+   elseif workshop:has_bench_outputs() then
+      self._is_crafting = true
+      self._next_activity = {'stonehearth_crafter.activities.fill_outbox'}
+      self._ai:set_action_priority(self, 5)
+   else
       local order, ingredient_data = todo_list:get_next_task()
       if order then
          self._is_crafting = true

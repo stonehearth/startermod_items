@@ -20,7 +20,11 @@ function Workshop:__init(entity)
    self._crafter = {}                  -- The worker component associated with this bench
    self._curr_order = nil              -- The order currently being worked on. Nil until we get an order from the todo list
    self._intermediate_item = nil       -- The item currently being worked on. Nil until we actually start crafting
-   self._bench_contents = {}           -- A table of ingredients currently collected (TODO: how to sort by classes of materials?)
+
+                                       -- TODO: revise all three of these to use entity-container 
+   self._bench_ingredients = {}        -- A table of ingredients currently collected (TODO: how to sort by classes of materials?)
+   self._bench_outputs = nil           -- An array of finished products on the bench, to be added to the outbox. Nil if nothing.
+   self._outbox = {}                   -- An array of finished objects, ready to be used
 end
 
 function Workshop:extend(json)
@@ -46,6 +50,32 @@ function Workshop:get_curr_recipe()
    end
 end
 
+--[[
+   returns: true if there is an output on the bench, false
+   otherwise
+]]
+function Workshop:has_bench_outputs()
+   return self._bench_outputs
+end
+
+--[[
+   Pops an entity off the bench and returns it
+   returns: an entity from the bench, or nil if there
+   are no entities left.
+]]
+function Workshop:pop_bench_output()
+   if self._bench_outputs == nil then
+      return nil
+   end
+   
+   local output = table.remove(self._bench_outputs)
+   if table.getn(self._bench_outputs) == 0 then
+      self._bench_outputs = nil 
+   end
+   return output
+   
+end
+
 function Workshop:set_curr_order(order)
    self._curr_order = order
 end
@@ -60,11 +90,11 @@ end
 ]]
 function Workshop:add_item_to_bench(item)
    local material = item:get_component('item'):get_material()
-   if(self._bench_contents[material]) then
-      self._bench_contents[material].amount = self._bench_contents[material].amount + 1
-      table.insert(self._bench_contents[material].contents, item)
+   if(self._bench_ingredients[material]) then
+      self._bench_ingredients[material].amount = self._bench_ingredients[material].amount + 1
+      table.insert(self._bench_ingredients[material].contents, item)
    else
-      self._bench_contents[material] = {amount = 1, contents = {item} }
+      self._bench_ingredients[material] = {amount = 1, contents = {item} }
    end
 end
 
@@ -75,10 +105,10 @@ end
    returns:    num items of type item, or nil if none. 
 ]]
 function Workshop:num_items_on_bench(material)
-   if not self._bench_contents[material] then
-      self._bench_contents[material] =  {amount = 0, contents = {} }
+   if not self._bench_ingredients[material] then
+      self._bench_ingredients[material] =  {amount = 0, contents = {} }
    end
-   return self._bench_contents[material].amount 
+   return self._bench_ingredients[material].amount 
 end
 
 --[[
@@ -104,12 +134,12 @@ function Workshop:create_intemediate_item()
    local recipe = self:get_curr_recipe()
    for material, amount in radiant.resources.pairs(recipe.ingredients) do
       --decrement the amount associated with the material 
-      self._bench_contents[material].amount = self._bench_contents[material].amount - amount
+      self._bench_ingredients[material].amount = self._bench_ingredients[material].amount - amount
       local num_removed = 0
 
       --remove ingredients from bench and from the world
       while num_removed < amount do
-         local item_to_remove = table.remove(self._bench_contents[material].contents)
+         local item_to_remove = table.remove(self._bench_ingredients[material].contents)
          radiant.entities.remove_child(radiant._root_entity, item_to_remove)
          num_removed = num_removed + 1
       end
@@ -145,12 +175,31 @@ end
 
 --[[
    Reset all the things that hold the intermediate state
+   and place the workshop outputs into the world.
 ]]
 function Workshop:crafting_complete() 
+   radiant.entities.remove_child(radiant._root_entity, self._intermediate_item.entity)     
+   self:produce_outputs()
    self._todo_list:chunk_complete(self._curr_order)
    self._curr_order = nil         
-   radiant.entities.remove_child(radiant._root_entity, self._intermediate_item.entity)     
    self._intermediate_item = nil     
 end
+
+--[[
+   Produces all the things in the recipe, puts them in the world. 
+   TODO: handle unwanted outputs, like toxic waste
+]]
+function Workshop:produce_outputs()
+   local recipe = self:get_curr_recipe()
+   local outputs = recipe.produces
+   self._bench_outputs = {}
+   for i, product in radiant.resources.pairs(outputs) do
+      local result = radiant.entities.create_entity(product.item)
+      --TODO: use entity container to put items on the bench
+      radiant.terrain.place_entity(result, RadiantIPoint3(-12, -5, -12))
+      table.insert(self._bench_outputs, result)
+   end
+end
+
 
 return Workshop

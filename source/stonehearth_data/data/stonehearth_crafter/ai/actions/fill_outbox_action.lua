@@ -11,53 +11,45 @@ FillOutboxAction.name = 'stonehearth.actions.fill_outbox'
 FillOutboxAction.does = 'stonehearth_crafter.activities.fill_outbox'
 FillOutboxAction.priority = 5
 
-function FillOutboxAction:__init(ai, entity)
-   self._outputs = {}
-   
-   --TODO: Use actual outbox when we get more actions
+function FillOutboxAction:__init(ai, entity)   
+   self._curr_carry = nil
    self._output_x = -9
    self._output_y = -9
 end
 
 --[[
+   All the outputs should be created by now. 
    Run over to the outbox and put all the outputs in it.
-   Create all the outputs and save them first so that we
-   can just dump them all in the outbox sans animation
-   if we're forced to stop. 
-   recipe: the recipe we just crafted
 ]]
-function FillOutboxAction:run(ai, entity, recipe)
-   local outputs = recipe.produces
+function FillOutboxAction:run(ai, entity)
+   local crafter_component = entity:get_component('mod://stonehearth_crafter/components/crafter.lua')
+   local workshop = crafter_component:get_workshop()
 
-   for i, product in radiant.resources.pairs(outputs) do
-      local result = radiant.entities.create_entity(product.item)
-      result.placed = false
-      table.insert(self._outputs, result)
-   end
+   assert(workshop:has_bench_outputs(), 'Trying to fill outbox, but the bench has no products!')
 
-   for v, item in ipairs(self._outputs) do
+   repeat 
+      --go to bench
+      ai:execute('stonehearth.activities.goto_location', RadiantIPoint3(-12, 1, -10))
+      --pick up product
+      self._curr_carry = workshop:pop_bench_output()
+      --carry product to outbox
       local goto = RadiantIPoint3(self._output_x, 1, self._output_y)
-      --TODO: add carry animation
+      self._output_x = self._output_x + 1
       ai:execute('stonehearth.activities.goto_location', goto)
-      --TODO: add some puttong-down animation
-      radiant.terrain.place_entity(item, RadiantIPoint3(self._output_x + 1, 1, self._output_y))
-      self._output_y = self._output_y + 1
-      item.placed = true
-   end
-   self._outputs = {}
+      --put down product
+      radiant.terrain.place_entity(self._curr_carry, RadiantIPoint3(self._output_x + 1, 1, self._output_y))
+      self._curr_carry = nil
+   until not workshop:has_bench_outputs()
 end
 
 --[[
-   If interrupted, unplaced items just appear in the outbox
-   withut animation.
+   If interrupted, while moving between the workbench and outbox, pitch the item into the outbox 
+   before stopping.
 ]]
 function FillOutboxAction:stop()
-   for v, item in ipairs(self._outputs) do
-      if(not item.placed) then       
-         radiant.terrain.place_entity(item, RadiantIPoint3(self._output_x + 1, 1, self._output_y))
-      end
+   if self._curr_carry then
+      radiant.terrain.place_entity(self._curr_carry, RadiantIPoint3(self._output_x + 1, 1, self._output_y))
    end
-   self._outputs = {}
 end
 
 return FillOutboxAction
