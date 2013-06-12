@@ -11,15 +11,18 @@ FillOutboxAction.name = 'stonehearth.actions.fill_outbox'
 FillOutboxAction.does = 'stonehearth_crafter.activities.fill_outbox'
 FillOutboxAction.priority = 5
 
-function FillOutboxAction:__init(ai, entity)   
+function FillOutboxAction:__init(ai, entity)
    self._curr_carry = nil
-   self._output_x = -9
-   self._output_y = -9
+   self._output_x = -0
+   self._output_y = -0
 end
 
 --[[
-   All the outputs should be created by now. 
+   All the outputs should be created by now.
    Run over to the outbox and put all the outputs in it.
+   TODO: crafter really should carry the small versions of objects; the big versions have several issues
+   --model is created to be worn off center (buckler)
+   --model realigns itself upon being placed into the world
 ]]
 function FillOutboxAction:run(ai, entity)
    local crafter_component = entity:get_component('mod://stonehearth_crafter/components/crafter.lua')
@@ -27,23 +30,18 @@ function FillOutboxAction:run(ai, entity)
 
    assert(workshop:has_bench_outputs(), 'Trying to fill outbox, but the bench has no products!')
 
-   repeat 
-      --go to bench
-      ai:execute('stonehearth.activities.goto_location', RadiantIPoint3(-12, 1, -10))
-      --pick up product
+   repeat
+      local bench_location = RadiantIPoint3(-12, 1, -11)
       self._curr_carry = workshop:pop_bench_output()
-      --carry product to outbox
       local goto = RadiantIPoint3(self._output_x, 1, self._output_y)
       self._output_x = self._output_x + 1
-      ai:execute('stonehearth.activities.goto_location', goto)
-      --put down product
-      radiant.terrain.place_entity(self._curr_carry, RadiantIPoint3(self._output_x + 1, 1, self._output_y))
+      ai:execute('stonehearth.activities.bring_to', self._curr_carry, goto)
       self._curr_carry = nil
    until not workshop:has_bench_outputs()
 end
 
 --[[
-   If interrupted, while moving between the workbench and outbox, pitch the item into the outbox 
+   If interrupted, while moving between the workbench and outbox, pitch the item into the outbox
    before stopping.
 ]]
 function FillOutboxAction:stop()

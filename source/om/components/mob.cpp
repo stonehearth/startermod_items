@@ -149,3 +149,12 @@ void Mob::SetParent(MobPtr parent)
 {
    parent_ = parent;
 }
+
+void Mob::ExtendObject(json::ConstJsonObject const& obj)
+{
+   for (auto const& e : obj.GetNode()) {
+	   if(e.name() == "interpolate_movement") {
+		   SetInterpolateMovement(e.as_bool());
+	   }
+   }
+}

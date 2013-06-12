@@ -13,10 +13,16 @@ local NativeClasses = {
    [Sensor] = 'Sensor',
    [TargetTable] = 'TargetTable',
 }
-
+--[[
+  Was failing whenever the object was a RadiantI3 because obj:is_valid() was undefined.
+]]
 function util.is_entity(obj)
    local is_entity = obj and util.is_a(obj, Entity)
-   is_entity = is_entity and obj:is_valid()
+   if obj.is_valid then
+      is_entity = is_entity and obj:is_valid()
+   else
+      is_entity = false
+   end
    return is_entity
 end
 
@@ -37,7 +43,7 @@ function util.is_a(obj, cls)
             return true
          end
          -- xxx: need to enforce that everyone implements get_class_name... or better yet, native:is_a !!
-         return true 
+         return true
       end
       return false
 -- xxx : class_info(obj) is causing weird crashes in the backend when destroying the result!
