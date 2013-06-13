@@ -1,5 +1,5 @@
 {
-	"extends":"mod://stonehearth_crafter/class_info/class_info.txt",
+   "extends":"mod://stonehearth_crafter/class_info/class_info.txt",
    "components" : {
       "render_rig" : {
          "models" : [
@@ -9,6 +9,6 @@
       "mod://stonehearth_crafter/components/crafter.lua" : {
          "work_effect" : "chop",
          "intermediate_item" : "mod://stonehearth_carpenter_class/entities/carpenter_intermediate_item"
-      } 
+      }
    }
 }

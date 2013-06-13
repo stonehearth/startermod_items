@@ -1,5 +1,5 @@
 {
- "type":"recipe", 
+ "type":"recipe",
  "work_units": 3,
  "crafter":"carpenter",
  "ingredients": {
@@ -9,7 +9,7 @@
   "produces": [
       {
          "item":"mod://stonehearth_items/wooden_buckler",
-         "script":"mod://stonehearth_crafter/", 
+         "script":"mod://stonehearth_crafter/",
          "command":"produce_item"
       }
   ]
