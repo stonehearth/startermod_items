@@ -508,10 +508,9 @@ luabind::object ScriptHost::LuaRequire(std::string uri)
    return obj;
 }
 
-void ScriptHost::Call(std::string name, luabind::object arg1)
+void ScriptHost::Call(luabind::object fn, luabind::object arg1)
 {
    try {
-      luabind::object fn = globals(L_)[name];
       call_function<void>(fn, arg1);
    } CATCH_LUA_ERROR("calling function...");
 }
@@ -569,14 +568,9 @@ std::shared_ptr<GotoLocation> ScriptHost::CreateGotoEntity(om::EntityRef entity,
    return Simulation::GetInstance().CreateGotoEntity(entity, speed, target, close_to_distance);
 }
 
-std::shared_ptr<PathFinder> ScriptHost::CreatePathFinder(std::string name, om::EntityRef e)
+std::shared_ptr<PathFinder> ScriptHost::CreatePathFinder(std::string name, om::EntityRef e, luabind::object solved, luabind::object dst_filter)
 {
-   std::shared_ptr<PathFinder> result;
-   auto entity = e.lock();
-   if (entity) {
-      result = Simulation::GetInstance().CreatePathFinder(name, entity);
-   }
-   return result;
+   return Simulation::GetInstance().CreatePathFinder(name, e, solved, dst_filter);
 }
 
 void ScriptHost::Log(std::string str)

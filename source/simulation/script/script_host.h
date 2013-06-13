@@ -38,7 +38,7 @@ public:
    void SendMsg(om::EntityRef entity, std::string msg);
    void SendMsg(om::EntityRef entity, std::string msg, const luabind::object& arg0);
 
-   void Call(std::string fn, luabind::object arg1);
+   void Call(luabind::object fn, luabind::object arg1);
    luabind::object LuaRequire(std::string name);
    
    std::string DoAction(const tesseract::protocol::DoAction& msg);
@@ -71,7 +71,7 @@ private:
    std::shared_ptr<GotoLocation> CreateGotoLocation(om::EntityRef entity, float speed, const math3d::point3& location, float close_to_distance);
    std::shared_ptr<GotoLocation> CreateGotoEntity(om::EntityRef entity, float speed, om::EntityRef target, float close_to_distance);
    std::shared_ptr<MultiPathFinder> CreateMultiPathFinder(std::string name);
-   std::shared_ptr<PathFinder> CreatePathFinder(std::string name, om::EntityRef e);
+   std::shared_ptr<PathFinder> CreatePathFinder(std::string name, om::EntityRef e, luabind::object solved, luabind::object dst_filter);
    
 public:
    void OnError(std::string description);

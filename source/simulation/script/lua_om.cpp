@@ -172,9 +172,9 @@ void IterateEntityContainerChildren(lua_State* L, om::EntityContainer& container
    }
 }
 
-EntityContainerChildrenPromise* TraceEntityContainerChildren(lua_State* L, om::EntityContainer& container)
+om::EntityContainer::Container::LuaPromise* TraceEntityContainerChildren(om::EntityContainer& container, const char* reason)
 {
-   return new EntityContainerChildrenPromise(container.GetChildren());
+	return container.GetChildren().LuaTrace(reason);
 }
 
 BuildOrdersBuildOrderListPromise* TraceBuildOrdersInProgress(lua_State* L, om::BuildOrders& buildOrders)
@@ -666,7 +666,7 @@ void LuaObjectModel::RegisterType(lua_State* L)
 
       dm::Set<om::EntityId>::RegisterLuaType(L, "Set<EntityId>"),
       dm::Set<std::string>::RegisterLuaType(L, "Set<String>"),
-      dm::Map<int, om::EntityRef>::RegisterLuaType(L, "Map<int,EntityRef>")
+	  om::EntityContainer::Container::RegisterLuaType(L, "EntityChildrenContainerMap")
    ];
    om::Destination::RegisterLuaType(L);
 }

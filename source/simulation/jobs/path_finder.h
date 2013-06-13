@@ -17,25 +17,15 @@ class Simulation;
 
 class PathFinder : public Job {
    public:
-      PathFinder(std::string name, bool ownsDest);
+      PathFinder(std::string name, om::EntityRef e, luabind::object solved, luabind::object dst_filter);
       virtual ~PathFinder();
 
       void AddDestination(om::DestinationRef dst);
       void RemoveDestination(om::DestinationRef dst);
 
-      enum State {
-         CONSTRUCTED,
-         RUNNING,
-         SOLVED,
-         EXHAUSTED,
-         RESTARTING,
-      };
-
-      State GetState() const { return state_; }
       PathPtr GetSolution() const;
 
       void Restart();
-      void Start(om::EntityRef entity, const math3d::ipoint3& start);
       int EstimateCostToSolution();
       std::ostream& Format(std::ostream& o) const;
 
@@ -47,8 +37,6 @@ class PathFinder : public Job {
       void EncodeDebugShapes(protocol::shapelist *msg) const override;
 
    private:
-      bool IsRunning() const;
-      bool VerifyDestinationModifyTimes();
       bool CompareEntries(const math3d::ipoint3 &a, const math3d::ipoint3 &b);
       void RecommendBestPath(std::vector<math3d::ipoint3> &points) const;
       int EstimateMovementCost(const math3d::ipoint3& start, om::DestinationPtr dst) const;
@@ -60,21 +48,18 @@ class PathFinder : public Job {
       void AddEdge(const math3d::ipoint3 &current, const math3d::ipoint3 &next, int cost);
       void RebuildHeap();
 
-      void AbortSearch(State next, std::string reason);
       void SolveSearch(const math3d::ipoint3& last, om::DestinationPtr dst);
-      void CheckSolution() const;
 
    public:
-      mutable State                                state_;
       om::EntityRef                                entity_;
-      math3d::ipoint3                              start_;
-      int                                          startTime_;
+      luabind::object                              solved_cb_;
+      luabind::object                              dst_filter_;
       int                                          costToDestination_;
       bool                                         rebuildHeap_;
-      bool                                         ownsDst_;
+      bool                                         restart_search_;
+      bool                                         search_exhausted_;
       mutable PathPtr                              solution_;
-      int                                          solutionTime_;
-      std::string                                  stopReason_;
+      dm::GuardSet                                 guards_;
       std::vector<math3d::ipoint3>                      open_;
       std::vector<math3d::ipoint3>                      closed_;
       std::hash_map<math3d::ipoint3, int>               f_;

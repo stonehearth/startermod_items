@@ -1,15 +1,15 @@
+local TreeTracker = radiant.mods.require('mod://stonehearth_inventory/lib/tree_tracker.lua')
+local StockpileTracker = radiant.mods.require('mod://stonehearth_inventory/lib/stockpile_tracker.lua')
 local Inventory = class()
 
 function Inventory:__init(faction)
+   self._tree_tracker = TreeTracker(faction)
    self._faction = faction
    self._stockpiles = {}
+   self._items = {}
 
    self.allpf = {}
-   self.cb = {
-      chop = {}
-   }
    self.pf = {
-      chop       = self:_create_pf('chop'),
       pickup     = self:_create_pf('pickup'), -- generic "put stuff in stockpiles"
       restock    = self:_create_pf('restock'), -- tearing down existing structures
       group = {  -- pf's by material (e.g. pickup.wood, construct.wood, etc.)
@@ -19,14 +19,43 @@ function Inventory:__init(faction)
          teardown = {},
       }, 
    }
-   radiant.events.listen('radiant.events.gameloop', self)  
+   radiant.events.listen('radiant.events.gameloop', self)
+
+   local ec = radiant.entities.get_root_entity():get_component('entity_container')
+
+   self._trace = ec:trace_children('tracking items on terrain')
+   self._trace:on_added(function (id, entity)
+         self:_add_entity_to_terrain(id, entity)
+      end)
+   self._trace:on_removed(function (id, entity)
+      self:_remove_entity_from_terrain(id, entity)
+      end)
 end
 
 Inventory['radiant.events.gameloop'] = function(self)
-   self:_enable_pathfinders()
+   --self:_enable_pathfinders()
    self:_dispatch_jobs()
 end
 
+function Inventory:_add_entity_to_terrain(id, entity)
+   if entity then
+      local stockpile = entity:get_component('stockpile')
+      if stockpile then
+         table.insert(self._stockpiles, entity)
+         return { entity_id = entity:get_id() }   
+      end
+      local item = entity:get_component('item')
+      if item then
+         radiant.log.info('got a new item!!')
+      end
+   end
+end
+
+function Inventory:_remove_entity_from_terrain(id, entity)
+   -- hmmm....
+end
+
+--[[
 function Inventory:_enable_pathfinders()   
    local space_available = self:_stock_space_available()
    self.pf.pickup:set_enabled(space_available)
@@ -37,6 +66,7 @@ function Inventory:_enable_pathfinders()
       self:_alloc_pf('restock', material):set_enabled(not needs_work and space_available)
    end
 end
+]]
 
 function Inventory:_dispatch_jobs()
    for name, pf in pairs(self.allpf) do
@@ -71,36 +101,15 @@ function Inventory:create_stockpile(location, size)
    if size then
       entity:get_component('stockpile'):set_size(size)
    end
-   entity:get_component('unit_info'):set_faction(self._faction)
-   
-   table.insert(self._stockpiles, entity)
-   return { entity_id = entity:get_id() }
+   entity:get_component('unit_info'):set_faction(self._faction)   
 end
 
 function Inventory:harvest_tree(tree)
-   assert(tree)
-
-   radiant.log.info('harvesting resource entity %d', tree:get_id())
-
-   local destination = tree:get_component('destination')
-   if destination then
-      self.pf.chop:add_destination(destination)
-   end
-   --[[
-   local node = tree:get_component('resource_node')
-   radiant.check.verify(node)
-
-   local locations = node:get_harvest_locations()
-   radiant.check.verify(locations)
-
-   local dst = EntityDestination(tree, locations)
-   self.pf.chop:add_destination(dst)
-   ]]
+   return self._tree_tracker:harvest_tree(tree)
 end
 
 function Inventory:find_path_to_tree(from, cb)
-   self.pf.chop:add_entity(from)
-   self.cb.chop[from:get_id()] = cb
+   return self._tree_tracker:find_path_to_tree(from, cb)
 end
 
 function Inventory:_create_pf(name)

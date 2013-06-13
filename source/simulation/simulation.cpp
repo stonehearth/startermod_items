@@ -234,14 +234,10 @@ std::shared_ptr<MultiPathFinder> Simulation::CreateMultiPathFinder(std::string n
    return path;
 }
 
-std::shared_ptr<PathFinder> Simulation::CreatePathFinder(std::string name, om::EntityPtr entity)
+std::shared_ptr<PathFinder> Simulation::CreatePathFinder(std::string name, om::EntityRef entity, luabind::object solved, luabind::object dst_filter)
 {
-   auto mob = entity->GetComponent<om::Mob>();
-   std::shared_ptr<PathFinder> pf = std::make_shared<PathFinder>(name, true);
+   std::shared_ptr<PathFinder> pf = std::make_shared<PathFinder>(name, entity, solved, dst_filter);
    _pathFinders.push_back(pf);
-   if (mob) {
-      pf->Start(entity, mob->GetWorldGridLocation());
-   }
    return pf;
 }
 

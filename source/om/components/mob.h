@@ -45,6 +45,8 @@ public:
    bool IsSelectable() const;
    void SetInterpolateMovement(bool value);
 
+   dm::Guard TraceTransform(const char* reason, std::function<void()> fn) { return transform_.TraceObjectChanges(reason, fn); }
+
 private:
    friend EntityContainer;
    void SetParent(MobPtr parent);

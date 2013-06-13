@@ -6,6 +6,8 @@
 #include "om/entity.h"
 #include "om/components/mob.h"
 #include "om/components/destination.h"
+#include "om/region.h"
+#include "simulation/script/script_host.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -23,12 +25,30 @@ using namespace ::radiant::simulation;
 #  define VERIFY_HEAPINESS()
 #endif
 
-PathFinder::PathFinder(std::string name, bool ownsDst) :
+PathFinder::PathFinder(std::string name, om::EntityRef e, luabind::object solved_cb, luabind::object dst_filter) :
    Job(name),
-   ownsDst_(ownsDst),
-   state_(CONSTRUCTED),
-   rebuildHeap_(false)
+   rebuildHeap_(false),
+   entity_(e),
+   solved_cb_(solved_cb),
+   dst_filter_(dst_filter)
 {
+   auto entity = entity_.lock();
+   if (!entity) {
+      return;
+   }
+
+	auto mob = entity->GetComponent<om::Mob>();
+   if (!mob) {
+      return;
+   }
+   guards_ += mob->TraceTransform("pathfinder entity mob trace", [=]() { restart_search_ = true; });
+
+   auto destination = entity->GetComponent<om::Destination>();
+   if (destination) {
+      guards_ += destination->GetAdjacent()->Trace("pathfinder entity destination trace", [=](const csg::Region3&) { restart_search_ = true; });
+   }
+   search_exhausted_ = false;
+   restart_search_ = true;
 }
 
 PathFinder::~PathFinder()
@@ -37,7 +57,8 @@ PathFinder::~PathFinder()
 
 bool PathFinder::IsIdle(int now) const
 {
-   return !IsRunning();
+   bool busy = restart_search_ || !solution_ || !search_exhausted_;
+   return !busy;
 }
 
 void PathFinder::AddDestination(om::DestinationRef d)
@@ -47,11 +68,9 @@ void PathFinder::AddDestination(om::DestinationRef d)
    auto dst = d.lock();
    if (dst) {
       destinations_[dst->GetObjectId()] = dst;
-      if (state_ == RUNNING) {
-         LOG(WARNING) << "adding destination to a running search.  restarting.";
-         solution_ = nullptr;
-         state_ = RESTARTING;
-      }
+      restart_search_ = true;
+      solution_ = nullptr;
+      guards_ += dst->GetAdjacent()->Trace("pathfinder destination trace", [=](const csg::Region3&) { restart_search_ = true; });
    }
 }
 
@@ -64,16 +83,12 @@ void PathFinder::RemoveDestination(om::DestinationRef d)
       auto i = destinations_.find(dst->GetObjectId());
       if (i != destinations_.end()) {
          destinations_.erase(i);
-         auto solutionDst = solution_->GetDestination().lock();
-         if (solutionDst && solutionDst == dst) {
-            if (state_ == RUNNING) {
-               LOG(WARNING) << "removing destination from a running search.  restarting.";
+
+         if (solution_) {
+            auto solutionDst = solution_->GetDestination().lock();
+            if (solutionDst && solutionDst == dst) {
+               restart_search_ = true;
                solution_ = nullptr;
-               state_ = RESTARTING;
-            } else if (state_ == SOLVED) {
-               LOG(WARNING) << "removing solution destination from multi-search.  resuming!";
-               solution_ = nullptr;
-               state_ = RESTARTING;
             }
          }
       }
@@ -82,42 +97,50 @@ void PathFinder::RemoveDestination(om::DestinationRef d)
 
 void PathFinder::Restart()
 {
-   Start(entity_, start_);
-}
-
-void PathFinder::Start(om::EntityRef entity, const math3d::ipoint3& start)
-{
    PROFILE_BLOCK();
 
-   entity_ = entity;
-   start_ = start;
+   ASSERT(restart_search_);
+
    solution_ = nullptr;
    rebuildHeap_ = false;
+   restart_search_ = false;
+   search_exhausted_ = false;
    cameFrom_.clear();
    closed_.clear();
    open_.clear();
    f_.clear();
    g_.clear();
    h_.clear();
-   open_.push_back(start);
 
-   if (IsIdle(0)) {
-      LOG(WARNING) << GetName() << " deferring search start because we're idle and can't compute first heuristic.";
-      state_ = RESTARTING;
-      return;
+   auto entity = entity_.lock();
+   if (entity) {
+	   auto mob = entity->GetComponent<om::Mob>();
+      if (mob) {
+         math3d::ipoint3 origin;
+         origin = mob->GetWorldGridLocation();
+         auto destination = entity->GetComponent<om::Destination>();
+         if (destination) {
+            // xxx - should open_ be a region?  wow, that would be complicated!
+            om::RegionPtr adjacent = destination->GetAdjacent();
+            csg::Region3 const& region = **adjacent;
+            for (csg::Cube3 const& cube : region) {
+               for (csg::Point3 const& pt : cube) {
+                  open_.push_back(pt);
+               }
+            }
+            std::make_heap(open_.begin(), open_.end());
+            VERIFY_HEAPINESS();
+         } else {
+      	   open_.push_back(origin);
+         }
+
+         for (math3d::ipoint3 const& pt : open_) {
+   	      int h = EstimateCostToDestination(pt);
+	         f_[pt] = h;
+	         h_[pt] = h;
+         }
+      }
    }
-
-   LOG(WARNING) << GetName() << " starting search";
-
-   state_ = RUNNING;
-   startTime_ = Simulation::GetInstance().GetStore().GetCurrentGenerationId();
-
-   // LOG(WARNING) << "       Starting Search... " << GetName();
-
-   // Add the heurestic cost of the closest destination to the score map
-   int h = EstimateCostToDestination(start);
-   f_[start] = h;
-   h_[start] = h;
 }
 
 void PathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
@@ -163,28 +186,12 @@ void PathFinder::Work(int now, const platform::timer &timer)
 {
    PROFILE_BLOCK();
 
-   ASSERT(!IsIdle(now));
-
-#if 0
-   if (state_ == RUNNING) {
-      if (!VerifyDestinationModifyTimes()) {
-         LOG(WARNING) << "destination in search set has been modified.  restarting.";
-         solution_ = nullptr;
-         state_ = RESTARTING;
-      }
+   if (restart_search_) {
+      Restart();
    }
-#endif
-
-   if (state_ == RESTARTING) {
-      LOG(WARNING) << "restarting search in PathFinder::Work.";
-      Start(entity_, start_);
-   }
-   //LogProgress(LOG(WARNING));
-
-   ASSERT(state_ == RUNNING);
 
    if (open_.empty()) {
-      AbortSearch(EXHAUSTED, "no solution found.");
+      search_exhausted_ = true;
       return;
    }
 
@@ -198,6 +205,8 @@ void PathFinder::Work(int now, const platform::timer &timer)
 
    om::DestinationPtr closest;
    if (EstimateCostToDestination(current, closest) == 0) {
+      // xxx: be careful!  this may end up being re-entrant (for example, removing
+      // destinations).
       SolveSearch(current, closest);
       return;
    }
@@ -269,23 +278,21 @@ void PathFinder::AddEdge(const math3d::ipoint3 &current, const math3d::ipoint3 &
 }
 
 int PathFinder::EstimateCostToSolution()
-{   
-   if (state_ == RESTARTING) {
-      LOG(WARNING) << "restarting search in PathFinder::EstimateCostToSolution.";
-      Start(entity_, start_);
+{
+   if (restart_search_) {
+      Restart();
    }
-
-   if (IsIdle(0) || open_.empty()) {
+   if (open_.empty()) {
       return INT_MAX;
    }
-
    return f_[open_.front()];
 }
 
 int PathFinder::EstimateCostToDestination(const math3d::ipoint3 &from) const
 {
+   ASSERT(!restart_search_);
+
    om::DestinationPtr ignore;
-   ASSERT(!IsIdle(0));
    return EstimateCostToDestination(from, ignore);
 }
 
@@ -327,7 +334,7 @@ int PathFinder::EstimateCostToDestination(const math3d::ipoint3 &from, om::Desti
 {
    int hMin = INT_MAX;
 
-   ASSERT(!IsIdle(0));
+   ASSERT(!restart_search_);
 
    auto i = destinations_.begin();
    while (i != destinations_.end()) {
@@ -410,75 +417,26 @@ void PathFinder::RebuildHeap()
    rebuildHeap_ = false;
 }
 
-bool PathFinder::VerifyDestinationModifyTimes()
-{
-   ASSERT(state_ == RUNNING);
-   bool changed = false;
-
-   auto i = destinations_.begin();
-   while (i != destinations_.end()) {
-      auto dst = i->second.lock();
-
-      if (dst) {
-         int modifyTime = dst->GetLastModified();
-         if (modifyTime > startTime_) {
-            changed = true;
-         }
-         i++;
-      } else {
-         i = destinations_.erase(i);
-      }
-   }
-
-   return !changed;
-}
-
-void PathFinder::AbortSearch(State next, std::string reason)
-{
-   ASSERT(IsRunning());
-   state_ = next;
-   stopReason_ = reason;  
-}
-
 void PathFinder::SolveSearch(const math3d::ipoint3& last, om::DestinationPtr dst)
 {
    std::vector<math3d::ipoint3> points;
 
-   ASSERT(state_ == RUNNING);
    VERIFY_HEAPINESS();
 
    ReconstructPath(points, last);
    solution_ = std::make_shared<Path>(points, entity_, dst);
-   solutionTime_ = dst->GetLastModified();
-   state_ = SOLVED;
+   if (solved_cb_.is_valid()) {
+      auto L = solved_cb_.interpreter();
+      luabind::object path(L, solution_);
+      ScriptHost::GetInstance().Call(solved_cb_, path);
+   }
 
    VERIFY_HEAPINESS();
 }
 
-bool PathFinder::IsRunning() const
-{
-   CheckSolution();
-   return state_ == RUNNING || state_ == RESTARTING;
-}
-
 PathPtr PathFinder::GetSolution() const
 {
-   CheckSolution();
    return solution_;
-}
-
-void PathFinder::CheckSolution() const
-{
-   PROFILE_BLOCK();
-
-   // xxx: we shouldn't ahve to do this if we put change trackers on the destinations!!
-   if (solution_) {
-      auto dst = solution_->GetDestination().lock();
-      if (!dst || solutionTime_ != dst->GetLastModified()) {
-         solution_ = nullptr;
-         state_ = RESTARTING;
-      }
-   }
 }
 
 std::ostream& ::radiant::simulation::operator<<(std::ostream& o, const PathFinder& pf)

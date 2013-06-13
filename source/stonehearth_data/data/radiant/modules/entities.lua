@@ -39,6 +39,10 @@ function entities._init_entity(entity, uri)
    end
 end
 
+function entities.get_root_entity()
+   return radiant._root_entity
+end
+
 function entities.create_entity(uri)
    assert(radiant.gamestate.is_initialized())
    assert(not uri or type(uri) == 'string')
