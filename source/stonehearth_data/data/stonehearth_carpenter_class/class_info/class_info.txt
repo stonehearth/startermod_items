@@ -7,7 +7,7 @@
          ]
       },
       "mod://stonehearth_crafter/components/crafter.lua" : {
-         "work_effect" : "chop",
+         "work_effect" : "saw",
          "intermediate_item" : "mod://stonehearth_carpenter_class/entities/carpenter_intermediate_item"
       }
    }

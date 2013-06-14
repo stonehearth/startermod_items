@@ -45,7 +45,7 @@ function GatherAndCraftAction:run(ai, entity, recipe, missing_ingredients)
       ai:execute('stonehearth.activities.goto_location', object_location)
       --TODO: make a drop on object action, something like(ai.execute('stonehearth.activities.run_effect', 'drop_on_workbench') )
       --TODO: give the bench entity_container
-      workshop:add_item_to_bench(ing_data.item)
+      workshop:add_ingredient_to_bench(ing_data.item)
 
    end
    -- Once everything's gathered, then craft

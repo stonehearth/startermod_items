@@ -3,7 +3,7 @@ local CraftOrder = radiant.mods.require('mod://stonehearth_crafter/lib/craft_ord
 
 local CarpenterTest = class(MicroWorld)
 --[[
-   Instantiate a carpenter, a workbench, and a piece of wood. 
+   Instantiate a carpenter, a workbench, and a piece of wood.
    Turn out a wooden sword
 ]]
 
@@ -17,7 +17,7 @@ function CarpenterTest:__init()
    local carpenter_component = carpenter:get_component('mod://stonehearth_crafter/components/crafter.lua')
    local bench = self:place_item('mod://stonehearth_carpenter_class/entities/carpenter_workbench', -12, -12)
    local workshop_component = bench:get_component('mod://stonehearth_crafter/components/workshop.lua')
-   workshop_component:add_crafter(carpenter_component)
+   workshop_component:set_crafter(carpenter_component)
    carpenter_component:set_workshop(workshop_component)
 
 -- Tests!
@@ -31,7 +31,7 @@ function CarpenterTest:__init()
          local order = CraftOrder(radiant.resources.load_json(
             'mod://stonehearth_carpenter_class/recipes/wooden_buckler_recipe.txt'),
             true,  condition, workshop_component)
-         local todo = workshop_component:get_todo_list()
+         local todo = workshop_component:ui_get_todo_list()
          todo:add_order(order)
       end)
 --]]
@@ -45,7 +45,7 @@ function CarpenterTest:__init()
          local order = CraftOrder(radiant.resources.load_json(
             'mod://stonehearth_carpenter_class/recipes/wooden_sword_recipe.txt'),
             true,  condition, workshop_component)
-         local todo = workshop_component:get_todo_list()
+         local todo = workshop_component:ui_get_todo_list()
          todo:add_order(order)
       end)
 --]]
@@ -59,7 +59,7 @@ function CarpenterTest:__init()
          local order = CraftOrder(radiant.resources.load_json(
             'mod://stonehearth_carpenter_class/recipes/wooden_sword_recipe.txt'),
             true,  condition, workshop_component)
-         local todo = workshop_component:get_todo_list()
+         local todo = workshop_component:ui_get_todo_list()
          todo:add_order(order)
       end)
 --]]

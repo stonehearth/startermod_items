@@ -36,27 +36,33 @@ end
    If c.), start gathering materials for crafting.
 ]]
 CheckCraftableAction['radiant.events.gameloop'] = function(self)
+   --TODO: Fix unlisten because it's not immediately de-registering us
    if self._is_crafting then
       return
    end
 
+   assert(not self._is_crafting,"Whoa! We're crafting? Stop the presses")
+
    local crafter_component = self._entity:get_component('mod://stonehearth_crafter/components/crafter.lua')
    local workshop = crafter_component:get_workshop()
-   local todo_list = workshop:get_todo_list()
+
+   --TODO: Do some validation here, and then call self._ai:abort() when it's implemented
+   --For now, just return out
+   if not (crafter_component and workshop) then
+      return
+   end
+
    local new_priority = 0
 
-   if workshop:get_intermediate_item() then
-      self._is_crafting = true
+   if workshop:is_currently_crafting() then
       self._next_activity = {'stonehearth_crafter.activities.craft'}
       new_priority = 5
    elseif workshop:has_bench_outputs() then
-      self._is_crafting = true
       self._next_activity = {'stonehearth_crafter.activities.fill_outbox'}
       new_priority = 5
    else
-      local recipe, ingredient_data = workshop:get_next_task()
+      local recipe, ingredient_data = workshop:establish_next_craftable_recipe()
       if recipe then
-         self._is_crafting = true
          self._next_activity = {'stonehearth_crafter.activities.gather_and_craft', recipe, ingredient_data}
          new_priority = 5
       end
@@ -70,18 +76,21 @@ end
    and relevant arguments
 ]]
 function CheckCraftableAction:run(ai, entity)
+   radiant.events.unlisten('radiant.events.gameloop', self)
+   self._is_crafting = true
    ai:execute(unpack(self._next_activity))
-   self._is_crafting = false
-   self._ai:set_action_priority(self, 0)
 end
 
 --[[
+   Always called after run, or if the action is interrupted
    If any of the actions spawned by CheckCraftable are
    stopped, be sure to remember that we're not currently
    crafting (so the next check can act appopriately)
 ]]
 function CheckCraftableAction:stop()
    self._is_crafting = false
+   self._ai:set_action_priority(self, 0)
+   radiant.events.listen('radiant.events.gameloop', self)
 end
 
 return CheckCraftableAction

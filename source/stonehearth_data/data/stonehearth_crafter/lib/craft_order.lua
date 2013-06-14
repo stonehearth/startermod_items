@@ -1,19 +1,19 @@
 --[[
-   Contains all the data for a CraftOrder. 
+   Contains all the data for a CraftOrder.
    A user puts a CraftOrder in a workshop's queue so the carpenter knows what to build.
 
    Right now, there are 2 kinds of craft orders, mutually exclusive. They are
-   defined in the "condition" parameter of the order. 
+   defined in the "condition" parameter of the order.
 
    amount: X - the carpenter will build X of these items. The order will go away when
-               the amount is complete. 
+               the amount is complete.
 
-   inventory_below: X - the carpenter will mantain X items in the town's global 
-                        inventory. This condition remains on the queue, and is 
-                        evaluated on each pass through the queue, but is 
+   inventory_below: X - the carpenter will mantain X items in the town's global
+                        inventory. This condition remains on the queue, and is
+                        evaluated on each pass through the queue, but is
                         skipped whenever there are X or more items in the town.
 
-   Theoretically, future condtions do not need to be mutually exclusive, but these two are. 
+   Theoretically, future condtions do not need to be mutually exclusive, but these two are.
 
    The format for an order. Note, amount and inventory_below are mutually exclusive
    {
@@ -41,8 +41,8 @@ Create a new CraftOrder
    recipe:     The name of the thing to build in mod:// format
    enabled:    Whether or not the user currently wants the crafter to
                evaluate the order
-   condition:  The parameters that must be met for the carpenter to make 
-               the order. 
+   condition:  The parameters that must be met for the carpenter to make
+               the order.
 ]]
 
 function CraftOrder:__init(recipe, enabled, condition, workshop)
@@ -85,7 +85,7 @@ end
 
 --[[
    Whether or not an order can be executed right now is a factor
-   of whether its ingredients are in the world and whether its 
+   of whether its ingredients are in the world and whether its
    conditions are not yet satisfied.
    returns: true if conditions are not yet met AND ingredients are available
 ]]
@@ -96,7 +96,7 @@ end
 --[[
    If this order has a condition which is not yet met, (ie, less than x amount
    was built, or less than x inventory exists in the world) return true.
-   If this order's conditions are met, and we don't need to execute this 
+   If this order's conditions are met, and we don't need to execute this
    order, return false.
 ]]
 function CraftOrder:are_conditions_unsatisfied()
@@ -126,7 +126,7 @@ function CraftOrder:are_ingredients_available()
    local ingredient_obj = self._recipe.ingredients
    for ingredient, amount in radiant.resources.pairs(ingredient_obj) do
       --check if the ingredients are already on the workbench
-      local num_available = self._workshop:num_items_on_bench(ingredient)
+      local num_available = self._workshop:num_ingredients_on_bench(ingredient)
       local num_needed = 0
       if num_available and num_available < amount then
          num_needed = amount - num_available
@@ -138,7 +138,7 @@ function CraftOrder:are_ingredients_available()
          --TODO reserve the paths to ingredients with the order_id or entity id
          --For each ingredient, we'll need the path to the ingredient, the path to the workbench, and a ref to the ingredient itself
          num_needed = num_needed - 1
-      end  
+      end
       --NOTE we do not lock, since really, it's single threaded?
    end
    return true
