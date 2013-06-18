@@ -1,0 +1,15 @@
+{
+   "type": "entity",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Wooden Buckler",
+         "description" : "Like a plate for giants."
+      },
+      "render_rig": {
+         "models": [
+            "url(cracked_wooden_buckler.qb)",
+         ]
+      }
+   }
+}
+

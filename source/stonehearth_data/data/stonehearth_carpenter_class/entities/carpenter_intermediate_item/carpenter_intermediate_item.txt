@@ -1,0 +1,15 @@
+{
+   "type": "entity",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Work In Progress",
+         "description" : "Will saw and saw and saw."
+      },
+      "render_rig": {
+         "models": [
+            "url(wood_blob.qb)"
+         ]
+      }
+   }
+}
+

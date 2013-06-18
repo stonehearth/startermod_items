@@ -1,0 +1,19 @@
+{
+   "type": "entity",
+   "components" : {
+      "item" : {
+        "material": "cloth",
+        "stacks": 10
+      },
+      "unit_info" : {
+         "name" :  "Bolt of Cloth",
+         "description" : "Shimmery."
+      },
+      "render_rig": {
+         "models": [
+            "url(cloth_bolt.qb)",
+         ]
+      }
+   }
+}
+
