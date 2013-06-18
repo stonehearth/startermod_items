@@ -1,7 +1,7 @@
 --[[
-   Contains all the data for the todo list of a workshop. 
+   Contains all the data for the todo list of a workshop.
    The player places craft orders, orders them, and can enable/disable them.
-   A crafter will execute the craft orders in a todo list from top to bottom. 
+   A crafter will execute the craft orders in a todo list from top to bottom.
 ]]
 
 local CraftOrder = radiant.mods.require('mod://stonehearth_crafter/lib/craft_order.lua')
@@ -20,15 +20,15 @@ end
 function ToDoList:add_order(order, target_index)
    if target_index then
       table.insert(self._my_list, target_index, order)
-   else 
+   else
       table.insert(self._my_list, order)
-   end 
+   end
 end
 
 --[[
-   Iterate through the list from top to bottom. Check for the first enabled, 
-   relevant craft_order and return it and the paths associated with its 
-   ingredients. 
+   Iterate through the list from top to bottom. Check for the first enabled,
+   relevant craft_order and return it and the paths associated with its
+   ingredients.
    return: nil if the list is empty.
 ]]
 function ToDoList:get_next_task()
@@ -62,7 +62,7 @@ function ToDoList:sword_ingredients()
    radiant.terrain.place_entity(wood2, RadiantIPoint3(-9, 1, 10))
    local wood3 = radiant.entities.create_entity('mod://stonehearth_trees/entities/oak_tree/oak_log')
    radiant.terrain.place_entity(wood3, RadiantIPoint3(-8, 1, 10))
-   
+
    local ingredient_data = {{item = wood},{item = wood2},{item = wood3}}
    return ingredient_data
 end
@@ -71,18 +71,19 @@ end
 function ToDoList:buckler_ingredients()
    local wood = radiant.entities.create_entity('mod://stonehearth_trees/entities/oak_tree/oak_log')
    radiant.terrain.place_entity(wood, RadiantIPoint3(-10, 1, 10))
-   local cloth = radiant.entities.create_entity('mod://stonehearth_items/cloth_bolt')   
+
+   local cloth = radiant.entities.create_entity('mod://stonehearth_items/cloth_bolt')
    radiant.terrain.place_entity(cloth, RadiantIPoint3(-7, 1, 10))
-   
+
    local ingredient_data = {{item = wood}, {item = cloth}}
    return ingredient_data
 end
---]]   
+--]]
 
 --[[
    When the crafter as completed his current task, call this function
    to notify the todo list. If the craft_order in question is complete
-   and should be removed from the list, do so. 
+   and should be removed from the list, do so.
 ]]
 function ToDoList:chunk_complete(curr_order)
    -- Verify that the current order is still in the queue somewhere
@@ -95,9 +96,9 @@ end
 -- Helper functions
 
 --[[
-   Find a craft_order by its ID. 
+   Find a craft_order by its ID.
    order_id: the unique ID that represents this order
-   returns:  the craft_order associated with the ID or nil if the order 
+   returns:  the craft_order associated with the ID or nil if the order
              cannot be found
 ]]
 function ToDoList:find_index_of(order_id)
@@ -116,11 +117,11 @@ end
    if the ui removes an order.
    order_id: the unique ID that represents this order
    returns:  the craft_order to remove or nil if the order
-             can't be found. 
+             can't be found.
 ]]
 function ToDoList:remove_order(order_id)
     local i = self:find_index_of(order_id)
-    if i then 
+    if i then
       local order = self._my_list[i]
       table.remove(self._my_list, i)
       return order

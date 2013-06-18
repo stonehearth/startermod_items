@@ -37,16 +37,13 @@ function GatherAndCraftAction:run(ai, entity, recipe, missing_ingredients)
    local workshop = crafter_component:get_workshop()
 
    for _, ing_data in ipairs(missing_ingredients) do
-      local object_location = radiant.entities.get_world_grid_location(ing_data.item)
-      ai:execute('stonehearth.activities.goto_location', object_location)
-      --TODO: make pickup action (something like --ai:execute('radiant.actions.pickup_item', ing_data.item)  )
-      --TODO: stand beside workshop, something like radiant.entities.get_world_grid_location(workshop:get_entity()):standable_loc()
-      object_location = RadiantIPoint3(-12, 1, -10)
-      ai:execute('stonehearth.activities.goto_location', object_location)
-      --TODO: make a drop on object action, something like(ai.execute('stonehearth.activities.run_effect', 'drop_on_workbench') )
-      --TODO: give the bench entity_container
-      workshop:add_ingredient_to_bench(ing_data.item)
-
+      --TODO: replace with something like workshop:get_inbox_location()
+      local bench_location = RadiantIPoint3(-12, 1, -11)
+      ai:execute('stonehearth.activities.pickup_item', ing_data.item)
+      --TODO: calculate adjacent with pathfinder (this is a fake adjacent right now)
+      ai:execute('stonehearth.activities.goto_location', RadiantIPoint3(bench_location.x, bench_location.y, bench_location.z+1))
+      ai:execute('stonehearth.activities.drop_carrying', bench_location)
+      workshop:add_item_to_bench(ing_data.item)
    end
    -- Once everything's gathered, then craft
    ai:execute('stonehearth_crafter.activities.craft')

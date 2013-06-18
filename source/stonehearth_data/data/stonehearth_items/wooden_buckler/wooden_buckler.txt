@@ -1,5 +1,6 @@
 {
    "type": "entity",
+   "extends" : "mod://stonehearth_items/entities/item/item_properties.txt",
    "components" : {
       "unit_info" : {
          "name" :  "Wooden Buckler",

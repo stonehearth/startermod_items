@@ -94,10 +94,12 @@ function CraftOrder:can_execute_order()
 end
 
 --[[
-   If this order has a condition which is not yet met, (ie, less than x amount
+   Used to determine if we should proceed with executing the order.
+   If this order has a condition which are unsatisfied, (ie, less than x amount
    was built, or less than x inventory exists in the world) return true.
    If this order's conditions are met, and we don't need to execute this
    order, return false.
+   returns: true if conditions are not yet met, false if conditions are met
 ]]
 function CraftOrder:are_conditions_unsatisfied()
    if self._condition.amount then
@@ -112,9 +114,13 @@ function CraftOrder:are_conditions_unsatisfied()
 end
 
 --[[
-   Check if the ingredients for an order are available
-   If so, reserve them and return true. Otherwise, return
-   false.
+   Check if the ingredients for an order are available in the
+   inventory and workbench. If so, reserve them and return true.
+   Otherwise, return false.
+   TODO: actually integrate with the inventory, clean up code
+   TODO: test what happens if some ingredients are already on the bench.
+
+   returns: true if ingredients are avaialble, false otherwise
 ]]
 function CraftOrder:are_ingredients_available()
    for ingredient, amount in radiant.resources.pairs(self._recipe.ingredients) do
@@ -133,20 +139,24 @@ function CraftOrder:are_ingredients_available()
       elseif not num_available then
          num_needed = amount
       end
+      --if there are outstanding ingredients, find them in the world
       while num_needed > 0 do
          --look up the remaining ingredients
          --TODO reserve the paths to ingredients with the order_id or entity id
-         --For each ingredient, we'll need the path to the ingredient, the path to the workbench, and a ref to the ingredient itself
+         --For each ingredient, we'll need its entity so we can calculate paths.
          num_needed = num_needed - 1
       end
-      --NOTE we do not lock, since really, it's single threaded?
+      --NOTE we do not lock the inventory, since really, it's single threaded?
    end
    return true
 end
 
 --[[
-   Used to determine if an order is complete. Inventory_below orders are never
-   complete, as the crafter is always monitoring if they should be making more.
+   Used to determine if an order is complete. Inventory_below orders
+   are never complete, as the crafter is always monitoring if
+   they should be making more.
+   returns: true if the order is complete and can be removed from
+             the list, false otherwise.
 ]]
 function CraftOrder:check_complete()
    if self._condition.amount then

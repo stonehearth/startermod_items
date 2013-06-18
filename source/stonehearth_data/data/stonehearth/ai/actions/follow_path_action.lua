@@ -10,6 +10,9 @@ function FollowPathAction:run(ai, entity, path)
 
    -- todo: get effect name based on posture
    local effect_name = 'run'
+   if radiant.entities.is_carrying(entity) then 
+      effect_name = 'carry_walk'
+   end
 
    self._effect = radiant.effects.run_effect(entity, effect_name)
    self._mover = native:create_follow_path(entity, speed, path, 0)
