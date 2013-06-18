@@ -4,12 +4,14 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-luabind::scope Mob::RegisterLuaType(struct lua_State* L, const char* name)
+void Mob::RegisterLuaType(struct lua_State* L)
 {
    using namespace luabind;
 
-   return
-      class_<Mob, std::weak_ptr<Component>>(name)
+   dm::Boxed<math3d::transform>::RegisterLuaType(L);
+
+   module(L) [
+      class_<Mob, std::weak_ptr<Component>>("Mob")
          .def("get_location",                &Mob::GetLocation)
          .def("get_grid_location",           &Mob::GetGridLocation)
          .def("get_world_grid_location",     &Mob::GetWorldGridLocation)
@@ -19,7 +21,8 @@ luabind::scope Mob::RegisterLuaType(struct lua_State* L, const char* name)
          .def("turn_to",                     &Mob::TurnToAngle)
          .def("turn_to_face_point",          &Mob::TurnToFacePoint)
          .def("set_interpolate_movement",    &Mob::SetInterpolateMovement)
-     ;
+         .def("get_boxed_transform",         &Mob::GetBoxedTransform)
+   ];
 }
 
 void Mob::InitializeRecordFields()

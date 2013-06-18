@@ -1,98 +1,89 @@
 local TreeTracker = radiant.mods.require('mod://stonehearth_inventory/lib/tree_tracker.lua')
+--local ItemTracker = radiant.mods.require('mod://stonehearth_inventory/lib/item_tracker.lua')
+local RestockTracker = radiant.mods.require('mod://stonehearth_inventory/lib/restock_tracker.lua')
 local StockpileTracker = radiant.mods.require('mod://stonehearth_inventory/lib/stockpile_tracker.lua')
 local Inventory = class()
 
 function Inventory:__init(faction)
-   self._tree_tracker = TreeTracker(faction)
    self._faction = faction
-   self._stockpiles = {}
-   self._items = {}
 
-   self.allpf = {}
-   self.pf = {
-      pickup     = self:_create_pf('pickup'), -- generic "put stuff in stockpiles"
-      restock    = self:_create_pf('restock'), -- tearing down existing structures
-      group = {  -- pf's by material (e.g. pickup.wood, construct.wood, etc.)
-         pickup = {},
-         restock = {},
-         construct = {},
-         teardown = {},
-      }, 
-   }
-   radiant.events.listen('radiant.events.gameloop', self)
+   self._tree_tracker = TreeTracker(faction)
+   self._all_items_tracker = native:create_multi_path_finder('all items tracker')
 
-   local ec = radiant.entities.get_root_entity():get_component('entity_container')
+   self._all_items_backtracker = native:create_multi_path_finder('all items back tracker')
+   self._all_items_backtracker:set_reverse_search(true)
 
-   self._trace = ec:trace_children('tracking items on terrain')
+   self._restock_pathfinder = native:create_multi_path_finder('restock pathfinder')
+   --self._unstocked_items_tracker = ItemTracker('unstocked items tracker')
+   --self._restock_tracker = RestockTracker()
+   self._stockpile_trackers = {}
+   self._item_restock_paths = {}
+
+   local ec = radiant.entities.get_root_entity():get_component('entity_container'):get_children()
+
+   -- put a trace on the root entity container to detect when items 
+   -- go on and off the terrain.  each item is forwarded to the
+   -- appropriate tracker.
+   self._trace = ec:trace('tracking items on terrain')
    self._trace:on_added(function (id, entity)
          self:_add_entity_to_terrain(id, entity)
       end)
    self._trace:on_removed(function (id, entity)
-      self:_remove_entity_from_terrain(id, entity)
+         self:_remove_entity_from_terrain(id, entity)
       end)
 end
 
-Inventory['radiant.events.gameloop'] = function(self)
-   --self:_enable_pathfinders()
-   self:_dispatch_jobs()
-end
 
 function Inventory:_add_entity_to_terrain(id, entity)
    if entity then
       local stockpile = entity:get_component('stockpile')
       if stockpile then
-         table.insert(self._stockpiles, entity)
-         return { entity_id = entity:get_id() }   
+         self:_track_stockpile(entity, stockpile)
       end
+
       local item = entity:get_component('item')
       if item then
-         radiant.log.info('got a new item!!')
+         self:_track_item(entity, item)
       end
    end
+end
+
+function Inventory:_track_item(item_entity)
+   -- unconditionally add the item to the all item tracker
+   self._all_items_tracker:add_destination(item_entity)
+   self._all_items_backtracker:add_destination(item_entity)
+
+   --[[
+   local stockpile_entity = self:_find_containing_stockpile(item_entity)
+   if not stockpile_entity then
+      -- if there's no stockpile which currently contains the item,
+      -- notify all trackers that it exists so they can do a reverse
+      -- search to it.  this computes the path from the item to each
+      -- stockpile, for stockpiles which are configured to store this
+      -- item type
+      for tracker in pairs(self._stockpile_trackers) do
+         tracker:track_item(item_entity)
+      end
+      -- add the item to the unstocked item tracker.
+      self._unstocked_items_tracker:track_item(item_entity)
+   end
+   ]]
+end
+
+function Inventory:_track_stockpile(stockpile_entity)
+   -- simply create a new stockpile tracker.
+   local id = stockpile_entity:get_id()
+   self._stockpile_trackers[id] = StockpileTracker(self, stockpile_entity)
 end
 
 function Inventory:_remove_entity_from_terrain(id, entity)
+   for tracker in pairs(self._stockpile_trackers) do
+      tracker:untrack_item(item_entity)
+   end
+   self._all_items_tracker:remove_destination(item_entity)   
+   self._unstocked_items_tracker:remove_destination(item_entity)   
    -- hmmm....
 end
-
---[[
-function Inventory:_enable_pathfinders()   
-   local space_available = self:_stock_space_available()
-   self.pf.pickup:set_enabled(space_available)
-   self.pf.restock:set_enabled(space_available)
-   for material, pf in pairs(self.pf.group.construct) do
-      local needs_work = pf:get_active_destination_count() > 0
-      self:_alloc_pf('pickup', material):set_enabled(needs_work)
-      self:_alloc_pf('restock', material):set_enabled(not needs_work and space_available)
-   end
-end
-]]
-
-function Inventory:_dispatch_jobs()
-   for name, pf in pairs(self.allpf) do
-      local path = pf:get_solution()
-      if path then
-         local entity_id = path:get_entity():get_id()
-         local cb = self.cb[name][entity_id]
-
-         if cb then
-            pf:remove_entity(entity_id)
-            cb(path)
-         end
-      end
-   end
-end
-
-function Inventory:_stock_space_available()
-   for id, entity in pairs(self._stockpiles) do
-      local stockpile = entity:get_component('stockpile')
-      if not stockpile:is_full() then
-         return true
-      end
-   end
-   return false
-end
-
 
 function Inventory:create_stockpile(location, size)
    local entity = radiant.entities.create_entity('mod://stonehearth_inventory/entities/stockpile')
@@ -102,6 +93,7 @@ function Inventory:create_stockpile(location, size)
       entity:get_component('stockpile'):set_size(size)
    end
    entity:get_component('unit_info'):set_faction(self._faction)   
+   -- return something?
 end
 
 function Inventory:harvest_tree(tree)
@@ -110,6 +102,35 @@ end
 
 function Inventory:find_path_to_tree(from, cb)
    return self._tree_tracker:find_path_to_tree(from, cb)
+end
+
+function Inventory:find_backpath_to_item(source_entity, cb)
+   local solved = function (path)
+      cb(path)
+   end
+   self._all_items_backtracker:add_entity(source_entity, solved, nil)
+end
+
+function Inventory:find_item_to_restock(worker_entity, cb)
+   local solved = function(path_to_item)
+      local worker_entity = path_to_item:get_source()
+      local item_entity = path_to_item:get_destination()
+      local path_to_stockpile = self._item_restock_paths[item_entity:get_id()]
+      if path_to_stockpile then
+         self._restock_pathfinder:remove_entity(worker_entity:get_id())
+         cb(item_entity, path_to_item, path_to_stockpile)
+      else
+         -- this shouldn't happen...
+         self._restock_pathfinder:remove_destination(item_entity)
+      end
+   end
+   self._restock_pathfinder:add_entity(worker_entity, solved, nil)
+end
+
+function Inventory:_register_restock_item(item_entity, path)
+   local id = item_entity:get_id()
+   self._item_restock_paths[id] = path
+   self._restock_pathfinder:add_destination(item_entity)
 end
 
 function Inventory:_create_pf(name)

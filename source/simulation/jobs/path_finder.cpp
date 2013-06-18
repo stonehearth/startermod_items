@@ -12,7 +12,7 @@
 using namespace ::radiant;
 using namespace ::radiant::simulation;
 
-// #define CHECK_HEAPINESS
+#define CHECK_HEAPINESS
 
 #if defined(CHECK_HEAPINESS)
 #  define VERIFY_HEAPINESS() \
@@ -29,26 +29,13 @@ PathFinder::PathFinder(std::string name, om::EntityRef e, luabind::object solved
    Job(name),
    rebuildHeap_(false),
    entity_(e),
+   source_(*this, e),
    solved_cb_(solved_cb),
-   dst_filter_(dst_filter)
+   dst_filter_(dst_filter),
+   search_exhausted_(false),
+   reversed_search_(false),
+   restart_search_(true)
 {
-   auto entity = entity_.lock();
-   if (!entity) {
-      return;
-   }
-
-	auto mob = entity->GetComponent<om::Mob>();
-   if (!mob) {
-      return;
-   }
-   guards_ += mob->TraceTransform("pathfinder entity mob trace", [=]() { restart_search_ = true; });
-
-   auto destination = entity->GetComponent<om::Destination>();
-   if (destination) {
-      guards_ += destination->GetAdjacent()->Trace("pathfinder entity destination trace", [=](const csg::Region3&) { restart_search_ = true; });
-   }
-   search_exhausted_ = false;
-   restart_search_ = true;
 }
 
 PathFinder::~PathFinder()
@@ -57,38 +44,35 @@ PathFinder::~PathFinder()
 
 bool PathFinder::IsIdle(int now) const
 {
-   bool busy = restart_search_ || !solution_ || !search_exhausted_;
+   bool busy = restart_search_ || (!solution_ && !search_exhausted_);
    return !busy;
 }
 
-void PathFinder::AddDestination(om::DestinationRef d)
+void PathFinder::AddDestination(om::EntityRef e)
 {
    PROFILE_BLOCK();
 
-   auto dst = d.lock();
-   if (dst) {
-      destinations_[dst->GetObjectId()] = dst;
+   auto entity = e.lock();
+   if (entity) {
+      destinations_[entity->GetObjectId()] = std::unique_ptr<PathFinderEndpoint>(new PathFinderEndpoint(*this, e));
       restart_search_ = true;
       solution_ = nullptr;
-      guards_ += dst->GetAdjacent()->Trace("pathfinder destination trace", [=](const csg::Region3&) { restart_search_ = true; });
    }
 }
 
-void PathFinder::RemoveDestination(om::DestinationRef d)
+void PathFinder::RemoveDestination(om::EntityRef e)
 {
    PROFILE_BLOCK();
 
-   auto dst = d.lock();
-   if (dst) {
-      auto i = destinations_.find(dst->GetObjectId());
+   auto entity = e.lock();
+   if (entity) {
+      auto i = destinations_.find(entity->GetObjectId());
       if (i != destinations_.end()) {
          destinations_.erase(i);
-
          if (solution_) {
-            auto solutionDst = solution_->GetDestination().lock();
-            if (solutionDst && solutionDst == dst) {
-               restart_search_ = true;
-               solution_ = nullptr;
+            auto solution_entity = solution_->GetDestination().lock();
+            if (solution_entity && solution_entity == entity) {
+               RestartSearch();
             }
          }
       }
@@ -102,7 +86,7 @@ void PathFinder::Restart()
    ASSERT(restart_search_);
 
    solution_ = nullptr;
-   rebuildHeap_ = false;
+   rebuildHeap_ = true;
    restart_search_ = false;
    search_exhausted_ = false;
    cameFrom_.clear();
@@ -112,34 +96,19 @@ void PathFinder::Restart()
    g_.clear();
    h_.clear();
 
-   auto entity = entity_.lock();
-   if (entity) {
-	   auto mob = entity->GetComponent<om::Mob>();
-      if (mob) {
-         math3d::ipoint3 origin;
-         origin = mob->GetWorldGridLocation();
-         auto destination = entity->GetComponent<om::Destination>();
-         if (destination) {
-            // xxx - should open_ be a region?  wow, that would be complicated!
-            om::RegionPtr adjacent = destination->GetAdjacent();
-            csg::Region3 const& region = **adjacent;
-            for (csg::Cube3 const& cube : region) {
-               for (csg::Point3 const& pt : cube) {
-                  open_.push_back(pt);
-               }
-            }
-            std::make_heap(open_.begin(), open_.end());
-            VERIFY_HEAPINESS();
-         } else {
-      	   open_.push_back(origin);
-         }
+   source_.AddAdjacentToOpenSet(open_);
+   for (math3d::ipoint3 const& pt : open_) {
+   	int h = EstimateCostToDestination(pt);
+	   f_[pt] = h;
+	   h_[pt] = h;
+   }
+}
 
-         for (math3d::ipoint3 const& pt : open_) {
-   	      int h = EstimateCostToDestination(pt);
-	         f_[pt] = h;
-	         h_[pt] = h;
-         }
-      }
+void PathFinder::SetReverseSearch(bool reversed)
+{
+   if (reversed != reversed_search_) {
+      reversed_search_ = reversed;
+      RestartSearch();
    }
 }
 
@@ -203,7 +172,7 @@ void PathFinder::Work(int now, const platform::timer &timer)
    math3d::ipoint3 current = GetFirstOpen();
    stdutil::UniqueInsert(closed_, current);
 
-   om::DestinationPtr closest;
+   om::EntityRef closest;
    if (EstimateCostToDestination(current, closest) == 0) {
       // xxx: be careful!  this may end up being re-entrant (for example, removing
       // destinations).
@@ -215,7 +184,11 @@ void PathFinder::Work(int now, const platform::timer &timer)
 
    // Check each neighbor...
    const auto& o = Simulation::GetInstance().GetOctTree();
-
+   
+   // xxx: not correct for reversed search yet...
+   if (reversed_search_) {
+      LOG(WARNING) << "neighbor cost in revese search is reversed!";
+   }
    auto neighbors = o.ComputeNeighborMovementCost(current);
 
    VERIFY_HEAPINESS();
@@ -292,45 +265,11 @@ int PathFinder::EstimateCostToDestination(const math3d::ipoint3 &from) const
 {
    ASSERT(!restart_search_);
 
-   om::DestinationPtr ignore;
+   om::EntityRef ignore;
    return EstimateCostToDestination(from, ignore);
 }
 
-
-int PathFinder::EstimateMovementCost(const math3d::ipoint3& from, om::DestinationPtr dst) const
-{
-   csg::Region3 const& rgn = **dst->GetAdjacent();
-   if (rgn.IsEmpty()) {
-      return INT_MAX;
-   }
-   math3d::ipoint3 start = from;
-   auto mob = dst->GetEntity().GetComponent<om::Mob>();
-   if (mob) {
-      start -= mob->GetWorldGridLocation();
-   }
-   csg::Point3 end = rgn.GetClosestPoint(start);
-
-   static int COST_SCALE = 10;
-   int cost = 0;
-
-   // it's fairly expensive to climb.
-   cost += COST_SCALE * std::max(end.y - start.y, 0) * 2;
-
-   // falling is super cheap.
-   cost += std::max(start.y - end.y, 0);
-
-   // diagonals need to be more expensive than cardinal directions
-   int xCost = abs(end.x - start.x);
-   int zCost = abs(end.z - start.z);
-   int diagCost = std::min(xCost, zCost);
-   int horzCost = std::max(xCost, zCost) - diagCost;
-
-   cost += (int)((horzCost + diagCost * 1.414) * COST_SCALE);
-
-   return cost;
-}
-
-int PathFinder::EstimateCostToDestination(const math3d::ipoint3 &from, om::DestinationPtr& closest) const
+int PathFinder::EstimateCostToDestination(const math3d::ipoint3 &from, om::EntityRef& closest) const
 {
    int hMin = INT_MAX;
 
@@ -338,17 +277,17 @@ int PathFinder::EstimateCostToDestination(const math3d::ipoint3 &from, om::Desti
 
    auto i = destinations_.begin();
    while (i != destinations_.end()) {
-      auto dst = i->second.lock();
-      if (dst) {
-         int h = EstimateMovementCost(from, dst);
+      auto dst = i->second.get();      
+      if (!dst->GetEntity()) {
+         i = destinations_.erase(i);
+      } else {
+         int h = dst->EstimateMovementCost(from);
          //LOG(WARNING) << GetName() << "    sub cost to dst: " << h << "(vs: " << hMin << ")";
          if (h < hMin) {
-            closest = dst;
+            closest = dst->GetEntity();
             hMin = h;
          }
          i++;
-      } else {
-         i = destinations_.erase(i);
       }
    }
    if (hMin != INT_MAX) {
@@ -382,7 +321,9 @@ void PathFinder::ReconstructPath(std::vector<math3d::ipoint3> &solution, const m
       solution.push_back(i->second);
       i = cameFrom_.find(i->second);
    }
-   reverse(solution.begin(), solution.end());
+   if (!reversed_search_) {
+      std::reverse(solution.begin(), solution.end());
+   }
 }
 
 void PathFinder::RecommendBestPath(std::vector<math3d::ipoint3> &points) const
@@ -412,12 +353,12 @@ void PathFinder::RebuildHeap()
 {
    PROFILE_BLOCK();
 
-   make_heap(open_.begin(), open_.end(), bind(&PathFinder::CompareEntries, this, std::placeholders::_1, std::placeholders::_2));
+   std::make_heap(open_.begin(), open_.end(), bind(&PathFinder::CompareEntries, this, std::placeholders::_1, std::placeholders::_2));
    VERIFY_HEAPINESS();
    rebuildHeap_ = false;
 }
 
-void PathFinder::SolveSearch(const math3d::ipoint3& last, om::DestinationPtr dst)
+void PathFinder::SolveSearch(const math3d::ipoint3& last, om::EntityRef dst)
 {
    std::vector<math3d::ipoint3> points;
 
@@ -439,6 +380,12 @@ PathPtr PathFinder::GetSolution() const
    return solution_;
 }
 
+void PathFinder::RestartSearch()
+{
+   restart_search_ = true;
+   solution_ = nullptr;
+}
+
 std::ostream& ::radiant::simulation::operator<<(std::ostream& o, const PathFinder& pf)
 {
    return pf.Format(o);
@@ -448,5 +395,119 @@ std::ostream& PathFinder::Format(std::ostream& o) const
 {
    o << "[pf " << GetName() << "]";
    return o;        
+}
+
+
+PathFinderEndpoint::PathFinderEndpoint(PathFinder &pf, om::EntityRef e) :
+   pf_(pf),
+   entity_(e)
+{
+   auto entity = e.lock();
+   if (entity) {
+      auto restart_fn = [=]() {
+         pf_.RestartSearch();
+      };
+
+      auto mob = entity->GetComponent<om::Mob>();
+      if (mob) {
+         guards_ += mob->GetBoxedTransform().TraceValue(
+            "pathfinder entity mob trace",
+            [=](math3d::transform const&) {
+               restart_fn();
+            });
+      }
+      auto dst = entity->GetComponent<om::Destination>();
+      if (dst) {
+         guards_ += dst->GetAdjacent()->Trace(
+            "pathfinder destination trace",
+            [=](csg::Region3 const&) {
+               restart_fn();
+            });
+      }
+   }
+}
+
+void PathFinderEndpoint::AddAdjacentToOpenSet(std::vector<math3d::ipoint3>& open)
+{
+   auto entity = entity_.lock();
+   if (entity) {
+      auto mob = entity->GetComponent<om::Mob>();
+      if (mob) {
+         math3d::ipoint3 origin;
+         origin = mob->GetWorldGridLocation();
+
+         auto destination = entity->GetComponent<om::Destination>();
+         if (destination) {
+            // xxx - should open_ be a region?  wow, that would be complicated!
+            om::RegionPtr adjacent = destination->GetAdjacent();
+            csg::Region3 const& region = **adjacent;
+            for (csg::Cube3 const& cube : region) {
+               for (csg::Point3 const& pt : cube) {
+                  open.push_back(origin + pt);
+               }
+            }
+         } else {
+            open.push_back(origin);
+         }
+      }
+   }
+}
+
+int PathFinderEndpoint::EstimateMovementCost(const math3d::ipoint3& from) const
+{
+   auto entity = GetEntity();
+
+   if (!entity) {
+      return INT_MAX;
+   }
+
+   // Translate the point to the local coordinate system
+   math3d::ipoint3 start = from;
+   auto mob = entity->GetComponent<om::Mob>();
+   if (mob) {
+      start -= mob->GetWorldGridLocation();
+   }
+
+   csg::Point3 end;
+   om::DestinationPtr dst = entity->GetComponent<om::Destination>();
+   if (dst) {
+      csg::Region3 const& rgn = **dst->GetAdjacent();
+      if (rgn.IsEmpty()) {
+         return INT_MAX;
+      }
+      end = rgn.GetClosestPoint(start);
+   } else {
+      csg::Region3 adjacent;
+      adjacent += csg::Point3( 0, 0,  1);
+      adjacent += csg::Point3( 1, 0,  1);
+      adjacent += csg::Point3( 0, 0, -1);
+      adjacent += csg::Point3(-1, 0, -1);
+      end = adjacent.GetClosestPoint(start);
+   }
+   return EstimateMovementCost(start, end);
+
+   return INT_MAX;
+}
+
+int PathFinderEndpoint::EstimateMovementCost(csg::Point3 const& start, csg::Point3 const& end) const
+{
+   static int COST_SCALE = 10;
+   int cost = 0;
+
+   // it's fairly expensive to climb.
+   cost += COST_SCALE * std::max(end.y - start.y, 0) * 2;
+
+   // falling is super cheap.
+   cost += std::max(start.y - end.y, 0);
+
+   // diagonals need to be more expensive than cardinal directions
+   int xCost = abs(end.x - start.x);
+   int zCost = abs(end.z - start.z);
+   int diagCost = std::min(xCost, zCost);
+   int horzCost = std::max(xCost, zCost) - diagCost;
+
+   cost += (int)((horzCost + diagCost * 1.414) * COST_SCALE);
+
+   return cost;
 }
 

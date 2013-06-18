@@ -165,18 +165,6 @@ private:
 typedef SetPromise<om::BuildOrders::BuildOrderList> BuildOrdersBuildOrderListPromise;
 typedef MapPromise<om::EntityContainer::Container> EntityContainerChildrenPromise;
 
-void IterateEntityContainerChildren(lua_State* L, om::EntityContainer& container, object fn)
-{
-   for (const auto& entry : container.GetChildren()) {
-      luabind::call_function<void>(fn, entry.first, entry.second);
-   }
-}
-
-om::EntityContainer::Container::LuaPromise* TraceEntityContainerChildren(om::EntityContainer& container, const char* reason)
-{
-	return container.GetChildren().LuaTrace(reason);
-}
-
 BuildOrdersBuildOrderListPromise* TraceBuildOrdersInProgress(lua_State* L, om::BuildOrders& buildOrders)
 {
    return new BuildOrdersBuildOrderListPromise(buildOrders.GetInProgress());
@@ -529,8 +517,7 @@ void LuaObjectModel::RegisterType(lua_State* L)
       ADD_OM_COMPONENT(EntityContainer)
          .def("add_child",             &om::EntityContainer::AddChild)
          .def("remove_child",          &om::EntityContainer::RemoveChild)
-         .def("trace_children",        TraceEntityContainerChildren)
-         .def("iterate_children",      IterateEntityContainerChildren)
+         .def("get_children",          &om::EntityContainer::GetChildren)
          ,
       ADD_OM_COMPONENT(CarryBlock)
          .def("get_carrying",          &om::CarryBlock::GetCarrying)
@@ -661,12 +648,12 @@ void LuaObjectModel::RegisterType(lua_State* L)
       om::SensorList::RegisterLuaType(L, "SensorList"),
       om::StockpileDesignation::RegisterLuaType(L, "StockpileDesignation"),
       om::Terrain::RegisterLuaType(L, "Terrain"),
-      om::Mob::RegisterLuaType(L, "Mob"),
       om::LuaComponents::RegisterLuaType(L, "LuaComponents"),
 
       dm::Set<om::EntityId>::RegisterLuaType(L, "Set<EntityId>"),
       dm::Set<std::string>::RegisterLuaType(L, "Set<String>"),
 	  om::EntityContainer::Container::RegisterLuaType(L, "EntityChildrenContainerMap")
    ];
+   om::Mob::RegisterLuaType(L),
    om::Destination::RegisterLuaType(L);
 }

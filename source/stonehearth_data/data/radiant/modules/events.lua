@@ -15,6 +15,8 @@ function events.__init()
    
    singleton._msg_queue = {}                -- list of messages yet to be sent.
    
+   singleton._game_state_hooks = {}
+
    events.register_event('radiant.md.create')
    events.register_event('radiant.md.destroy')
    events.register_event('radiant.events.gameloop')
@@ -41,6 +43,25 @@ function events._update()
       events.broadcast_msg('radiant.events.very_slow_poll', now)
    end
    events._flush_msg_queue();
+end
+
+function events._call_game_hook(stage)
+   local hooks = singleton._game_state_hooks[stage]
+   if hooks then
+      for cb, _ in pairs(hooks) do
+         cb()
+      end
+   end
+   singleton._game_state_hooks[stage] = {}
+end
+
+function events.notify_game_loop_stage(stage, handler)
+   local hooks = singleton._game_state_hooks[stage]
+   if not hooks then
+      hooks = {}
+      singleton._game_state_hooks[stage] = hooks
+   end
+   hooks[handler] = true
 end
 
 function events.is_msg(msg)

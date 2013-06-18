@@ -61,6 +61,8 @@ void arbiter::Run(lua_State* L)
    main();
 }
 
+extern "C" int luaopen_lpeg (lua_State *L);
+
 void arbiter::Start(lua_State* L)
 {
    L_ = L;
@@ -68,6 +70,7 @@ void arbiter::Start(lua_State* L)
       L_ = lua_newstate(LuaAllocFn, this);
 
 	   luaL_openlibs(L_);
+      luaopen_lpeg(L_);
    }
    luabind::open(L_);
    luabind::bind_class_info(L_);

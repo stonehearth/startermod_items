@@ -12,9 +12,9 @@ INCLUDE(${RADIANT_DEPENDENCY_ROOT}/Glog-0.3.1/cmake/config.txt)
 INCLUDE(${RADIANT_DEPENDENCY_ROOT}/Libjson-7.6.1/cmake/config.txt)
 
 # INCLUDE(${RADIANT_DEPENDENCY_ROOT}/LuaJIT-2.0.0/cmake/config.txt)   # LuaJIT!
-INCLUDE(${RADIANT_DEPENDENCY_ROOT}/Lua-5.1.4/cmake/config.txt)   # standard lua downloaded from the interwebs
-
-# INCLUDE(${RADIANT_DEPENDENCY_ROOT}/Lua-5.1.5/cmake/config.txt) # compiled out of dependencies..
+# INCLUDE(${RADIANT_DEPENDENCY_ROOT}/Lua-5.1.4/cmake/config.txt)   # standard lua downloaded from the interwebs
+INCLUDE(${RADIANT_DEPENDENCY_ROOT}/Lua-5.1.5/cmake/config.txt) # compiled out of dependencies..
+INCLUDE(${RADIANT_DEPENDENCY_ROOT}/Lpeg-0.12/cmake/config.txt)
 
 INCLUDE(${RADIANT_DEPENDENCY_ROOT}/Luabind-0.9.1/cmake/config.txt)
 INCLUDE(${RADIANT_DEPENDENCY_ROOT}/Protobuf-2.4.1/cmake/config.txt)

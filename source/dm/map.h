@@ -105,14 +105,19 @@ public:
          i_ = container_.begin();
       }
 
-      void NextIteration(lua_State *L, luabind::object s, luabind::object var) {
+      static int NextIteration(lua_State *L) {
+         LuaIterator* iter = object_cast<LuaIterator*>(object(from_stack(L, -2)));
+         return iter->Next(L);
+      }
+
+      int Next(lua_State *L) {
          if (i_ != container_.end()) {
             luabind::object(L, i_->first).push(L);
             luabind::object(L, i_->second).push(L);
             i_++;
-            return;
+            return 2;
          }
-         lua_pushnil(L);
+         return 0;
       }
 
    private:
@@ -123,8 +128,8 @@ public:
    static void LuaIteratorStart(lua_State *L, const Map& s)
    {
       using namespace luabind;
-      object(L, new LuaIterator<decltype(items_)>(s.items_)).push(L); // f
-      object(L, 1).push(L); // s (ignored)
+      lua_pushcfunction(L, &LuaIterator<decltype(items_)>::NextIteration); // f
+      object(L, new LuaIterator<decltype(items_)>(s.items_)).push(L); // s
       object(L, 1).push(L); // var (ignored)
    }
 
@@ -190,7 +195,6 @@ public:
             .def("trace",             &Map::LuaTrace)
          ,
          class_<LuaIterator<decltype(items_)>>(itername.c_str())
-            .def("__call",    &LuaIterator<decltype(items_)>::NextIteration)
          ,
          class_<LuaPromise>(itername.c_str())
             .def("on_added",    &LuaPromise::PushAddedCb)

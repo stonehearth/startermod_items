@@ -139,6 +139,14 @@ void Simulation::Step(platform::timer &timer, int interval)
    // Send out change notifications
    store_.FireTraces();
 
+   // One last opportunity for the script layer to do something.
+   // Some objects may accumulate state when traces fire (e.g.
+   // setting dirty bits).  This gives them an opportunity to
+   // actually change state before we push a change over the
+   // network or start doing some heavy lifting (like pathfinding
+   // jobs).
+   scripts_->CallGameHook("post_trace_firing");
+
    // Run jobs with the time left over
    ProcessJobList(now_, timer);
 }

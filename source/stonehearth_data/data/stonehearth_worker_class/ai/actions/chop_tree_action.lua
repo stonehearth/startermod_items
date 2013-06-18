@@ -11,6 +11,12 @@ function ChopTreeAction:__init(ai, entity)
    radiant.events.listen('radiant.events.gameloop', self)
 end
 
+-- xxx: this is a really common pattern... register for a callback
+-- at the start of the game loop, do something, then unlisten.
+-- what we really need is a one-time callback when the game is
+-- "loaded" and ready to go.  we can't do this in the constructor
+-- because, for example, the entire entity may not yet have been
+-- assembled. 
 ChopTreeAction['radiant.events.gameloop'] = function(self)
    self:_start_search()
    radiant.events.unlisten('radiant.events.gameloop', self)
@@ -44,8 +50,7 @@ function ChopTreeAction:run(ai, entity)
    if factory then
       local location = radiant.entities.get_world_grid_location(entity)
       factory:spawn_resource(location)
-   end     
-   self:_start_search()
+   end
 end
 
 function ChopTreeAction:stop()

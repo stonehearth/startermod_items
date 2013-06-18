@@ -44,6 +44,7 @@ public:
    std::string DoAction(const tesseract::protocol::DoAction& msg);
    void CreateNew();
    void Update(int interval, int& currentGameTime);
+   void CallGameHook(std::string const& stage);
    void Idle(platform::timer &timer);
    om::EntityRef CreateEntity();
    om::EntityRef GetEntity(om::EntityId id);
@@ -84,6 +85,7 @@ private:
 
 private:
    lua_State*           L_;
+   lua_State*           cb_thread_;
    luabind::object      api_;
    luabind::object      game_;
    luabind::object      game_ctor_;

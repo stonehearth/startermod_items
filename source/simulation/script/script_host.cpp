@@ -241,6 +241,11 @@ void ScriptHost::InitEnvironment()
 
 void ScriptHost::CreateNew()
 {
+   // xxx : all c -> lua functions (except maybe update) should be on this clean callback thread.
+   // this is to prevent state corruption and all sorts of other confusion which can result
+   // from running on whatever state the main thread was in (e.g. if it most recently yielded
+   // from a coroutine...)
+   cb_thread_ = lua_newthread(L_);
    try {
       game_ = luabind::call_function<luabind::object>(game_ctor_);
    } CATCH_LUA_ERROR("initializing environment");
@@ -260,27 +265,17 @@ void ScriptHost::CreateNew()
 void ScriptHost::Update(int interval, int& currentGameTime)
 {
    PROFILE_BLOCK();
-
-   /*
-   for (dm::ObjectRef c : allocedComponents_) {
-      dm::ObjectPtr obj = c.lock();
-      if (obj) {
-         try {
-            om::Entity& e = std::dynamic_pointer_cast<om::Component>(obj)->GetEntity();
-            call_function<void>(reactor_["on_component_allocated"],
-                                reactor_,
-                                e.GetEntityId(),
-                                om::GetComponentNameLower(obj));
-         } CATCH_LUA_ERROR("starting reactor");
-      }
-   }  
-   allocedComponents_.clear();
-   */
-
-   //CallEnvironment("update");
    try {
       currentGameTime = luabind::call_function<int>(api_["update"], interval);
    } CATCH_LUA_ERROR("update...");
+}
+
+void ScriptHost::CallGameHook(std::string const& stage)
+{
+   PROFILE_BLOCK();
+   try {
+      luabind::call_function<int>(api_["call_game_hook"], stage);
+   } CATCH_LUA_ERROR((std::string("calling game hook: ") + stage).c_str());
 }
 
 void ScriptHost::Idle(platform::timer &timer)
@@ -511,7 +506,8 @@ luabind::object ScriptHost::LuaRequire(std::string uri)
 void ScriptHost::Call(luabind::object fn, luabind::object arg1)
 {
    try {
-      call_function<void>(fn, arg1);
+      luabind::object caller(cb_thread_, fn);
+      call_function<void>(caller, arg1);
    } CATCH_LUA_ERROR("calling function...");
 }
 

@@ -11,7 +11,8 @@ using namespace ::radiant;
 using namespace ::radiant::simulation;
 
 MultiPathFinder::MultiPathFinder(std::string name) :
-   Job(name)
+   Job(name),
+   reversed_search_(false)
 {
 }
 
@@ -39,7 +40,6 @@ void MultiPathFinder::AddEntity(om::EntityRef e, luabind::object solved_cb, luab
       om::EntityId id = entity->GetEntityId();
 
       auto i = pathfinders_.find(id);
-      ASSERT(i == pathfinders_.end());
       if (i == pathfinders_.end()) {
          std::ostringstream name;
 
@@ -48,7 +48,10 @@ void MultiPathFinder::AddEntity(om::EntityRef e, luabind::object solved_cb, luab
          for (auto& entry: destinations_) {
             pathfinder->AddDestination(entry.second);
          }
+         pathfinder->SetReverseSearch(reversed_search_);
          pathfinders_[id] = pathfinder;
+      } else {
+         LOG(WARNING) << "adding duplicate entity " << entity->GetObjectId() << " to path finder " << GetName() << ".  ignoring.";
       }
    }
 }
@@ -63,7 +66,7 @@ void MultiPathFinder::RemoveEntity(om::EntityId id)
    }
 }
 
-void MultiPathFinder::AddDestination(om::DestinationRef d)
+void MultiPathFinder::AddDestination(om::EntityRef d)
 {
    PROFILE_BLOCK();
 
@@ -76,7 +79,7 @@ void MultiPathFinder::AddDestination(om::DestinationRef d)
    }
 }
 
-void MultiPathFinder::RemoveDestination(om::DestinationRef d)
+void MultiPathFinder::RemoveDestination(om::EntityRef d)
 {
    PROFILE_BLOCK();
 
@@ -89,6 +92,14 @@ void MultiPathFinder::RemoveDestination(om::DestinationRef d)
       for (auto& entry : pathfinders_) {
          entry.second->RemoveDestination(d);
       }
+   }
+}
+
+void MultiPathFinder::SetReverseSearch(bool reversed)
+{
+   reversed_search_ = reversed;
+   for (auto const& entry : pathfinders_) {
+      entry.second->SetReverseSearch(reversed);
    }
 }
 

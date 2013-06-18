@@ -9,23 +9,43 @@
 #include "physics/namespace.h"
 #include "radiant.pb.h"
 #include "path.h"
+#include "csg/point.h"
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
 
 class Path;
+class PathFinder;
 class Simulation;
+
+class PathFinderEndpoint {
+public:
+   PathFinderEndpoint(PathFinder& pf, om::EntityRef entity);
+   void AddAdjacentToOpenSet(std::vector<math3d::ipoint3>& open);
+
+   int EstimateMovementCost(const math3d::ipoint3& start) const;
+   om::EntityPtr GetEntity() const { return entity_.lock(); }
+
+private:
+   int EstimateMovementCost(csg::Point3 const& start, csg::Point3 const& end) const;
+
+public:
+   PathFinder&       pf_;
+   om::EntityRef     entity_;
+   dm::GuardSet      guards_;
+};
 
 class PathFinder : public Job {
    public:
       PathFinder(std::string name, om::EntityRef e, luabind::object solved, luabind::object dst_filter);
       virtual ~PathFinder();
 
-      void AddDestination(om::DestinationRef dst);
-      void RemoveDestination(om::DestinationRef dst);
+      void AddDestination(om::EntityRef dst);
+      void RemoveDestination(om::EntityRef dst);
 
       PathPtr GetSolution() const;
 
       void Restart();
+      void SetReverseSearch(bool reversed);
       int EstimateCostToSolution();
       std::ostream& Format(std::ostream& o) const;
 
@@ -37,18 +57,21 @@ class PathFinder : public Job {
       void EncodeDebugShapes(protocol::shapelist *msg) const override;
 
    private:
+      friend PathFinderEndpoint;
+      void RestartSearch();
+
+   private:
       bool CompareEntries(const math3d::ipoint3 &a, const math3d::ipoint3 &b);
       void RecommendBestPath(std::vector<math3d::ipoint3> &points) const;
-      int EstimateMovementCost(const math3d::ipoint3& start, om::DestinationPtr dst) const;
       int EstimateCostToDestination(const math3d::ipoint3 &pt) const;
-      int EstimateCostToDestination(const math3d::ipoint3 &pt, om::DestinationPtr& closest) const;
+      int EstimateCostToDestination(const math3d::ipoint3 &pt, om::EntityRef& closest) const;
 
       math3d::ipoint3 GetFirstOpen();
       void ReconstructPath(std::vector<math3d::ipoint3> &solution, const math3d::ipoint3 &dst) const;
       void AddEdge(const math3d::ipoint3 &current, const math3d::ipoint3 &next, int cost);
       void RebuildHeap();
 
-      void SolveSearch(const math3d::ipoint3& last, om::DestinationPtr dst);
+      void SolveSearch(const math3d::ipoint3& last, om::EntityRef dst);
 
    public:
       om::EntityRef                                entity_;
@@ -58,15 +81,17 @@ class PathFinder : public Job {
       bool                                         rebuildHeap_;
       bool                                         restart_search_;
       bool                                         search_exhausted_;
+      bool                                         reversed_search_;
       mutable PathPtr                              solution_;
-      dm::GuardSet                                 guards_;
       std::vector<math3d::ipoint3>                      open_;
       std::vector<math3d::ipoint3>                      closed_;
       std::hash_map<math3d::ipoint3, int>               f_;
       std::hash_map<math3d::ipoint3, int>               g_;
       std::hash_map<math3d::ipoint3, int>               h_;
       std::hash_map<math3d::ipoint3, math3d::ipoint3>   cameFrom_;
-      mutable std::unordered_map<om::EntityId, om::DestinationRef>  destinations_;
+
+      PathFinderEndpoint                                 source_;
+      mutable std::unordered_map<om::EntityId, std::unique_ptr<PathFinderEndpoint>>  destinations_;
 };
 
 typedef std::weak_ptr<PathFinder> PathFinderRef;

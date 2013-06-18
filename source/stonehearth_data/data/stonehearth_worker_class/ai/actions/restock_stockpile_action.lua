@@ -1,57 +1,52 @@
-local ChopTreeAction = class()
+local RestockStockpileAction = class()
 
-ChopTreeAction.name = 'stonehearth.actions.chop_tree'
-ChopTreeAction.does = 'stonehearth.activities.top'
-ChopTreeAction.priority = 0
+RestockStockpileAction.name = 'stonehearth.actions.restock_stockpile'
+RestockStockpileAction.does = 'stonehearth.activities.top'
+RestockStockpileAction.priority = 0
 
 
-function ChopTreeAction:__init(ai, entity)
+function RestockStockpileAction:__init(ai, entity)
    self._ai = ai
    self._entity = entity
+   
+   local faction = self._entity:get_component('unit_info'):get_faction()
+   self._inventory = radiant.mods.require('mod://stonehearth_inventory').get_inventory(faction)
+   
    radiant.events.listen('radiant.events.gameloop', self)
 end
 
-ChopTreeAction['radiant.events.gameloop'] = function(self)
+-- xxx: the 'fire one when i'm constructed' pattern again...
+RestockStockpileAction['radiant.events.gameloop'] = function(self)
    self:_start_search()
    radiant.events.unlisten('radiant.events.gameloop', self)
 end
    
 
-function ChopTreeAction:_start_search()
+function RestockStockpileAction:_start_search()
    local faction = self._entity:get_component('unit_info'):get_faction()
-   local inventory = radiant.mods.require('mod://stonehearth_inventory').get_inventory(faction)
 
    self._path = nil
    self._ai:set_action_priority(self, 0)
    
-   inventory:find_path_to_tree(self._entity, function(path)
-         assert(self._entity:get_id() == path:get_entity():get_id())
-         self._path = path
-         self._ai:set_action_priority(self, 10)
-      end)
-end
-
-function ChopTreeAction:run(ai, entity)
-   assert(self._path)
-   local tree = self._path:get_destination():get_entity()
-
-   ai:execute('stonehearth.activities.follow_path', self._path)
-   radiant.entities.turn_to_face(entity, tree)
-   ai:execute('stonehearth.activities.run_effect', 'chop')
+   local solved = function(item, path_to_item, path_to_stockpile)
+      self._item = item
+      self._path_to_item = path_to_item
+      self._path_to_stockpile = path_to_stockpile
+      self._ai:set_action_priority(self, 10)      
+   end
    
-   local factory = tree:get_component('resource_node')
-   if factory then
-      local location = radiant.entities.get_world_grid_location(entity)
-      factory:spawn_resource(location)
-      local location2 = radiant.entities.get_world_grid_location(entity)
-      local a = 1
-   end     
+   self._inventory:find_item_to_restock(self._entity, solved)
+end
+
+function RestockStockpileAction:run(ai, entity)
+   ai:execute('stonehearth.activities.follow_path', self._path_to_item)
+   radiant.entities.turn_to_face(entity, self._item)
+   ai:execute('stonehearth.activities.run_effect', 'chop') -- xxx: pickup...
+   ai:execute('stonehearth.activities.follow_path', self._path_to_stockpile)
+end
+
+function RestockStockpileAction:stop()
    self:_start_search()
 end
 
-function ChopTreeAction:stop()
-   self:_start_search()
-end
-
-return ChopTreeAction
-
+return RestockStockpileAction

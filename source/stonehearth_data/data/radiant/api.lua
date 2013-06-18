@@ -41,4 +41,8 @@ function api.update(interval)
    return radiant.gamestate.now()
 end
 
+function api.call_game_hook(stage)
+   radiant.events._call_game_hook(stage)
+end
+
 return api

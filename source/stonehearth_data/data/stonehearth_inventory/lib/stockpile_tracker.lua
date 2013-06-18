@@ -1,36 +1,16 @@
 local StockpileTracker = class()
 
-function StockpileTracker:__init(faction)
-   self._pathfinder = native:create_multi_path_finder('stockpile tracker')
-   self._callbacks = {}
-   radiant.events.listen('radiant.events.gameloop', self)
-end
+function StockpileTracker:__init(inventory, stockpile_entity)
+   self._inventory = inventory
 
-StockpileTracker['radiant.events.gameloop'] = function(self)
-   self:_dispatch_jobs()
-   local path = self._pathfinder:get_solution()
-   if path then
-      local entity_id = path:get_entity():get_id()
-      local cb = self._callbacks(entity_id)
-      if cb then
-         cb(path)
-      end
-   end   
-end
-
-function StockpileTracker:harvest_tree(tree)
-   assert(tree)
-
-   radiant.log.info('harvesting resource entity %d', tree:get_id())
-   local destination = tree:get_component('destination')
-   if destination then
-      self._pathfinder:add_destination(destination)
+   local solved = function(path)
+      local item_entity = path:get_destination()
+      -- xxx: reserve spot in stockpile...
+      inventory:_register_restock_item(item_entity, path)
    end
-end
-
-function StockpileTracker:find_path_to_tree(entity, cb)
-   self._pathfinder:add_entity(entity)
-   self._callbacks[entity:get_id()] = cb
+   
+   local filter = nil
+   inventory:find_backpath_to_item(stockpile_entity, solved)
 end
 
 return StockpileTracker

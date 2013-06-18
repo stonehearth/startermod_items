@@ -7,7 +7,8 @@
       },
       "ai" : {
          "actions" : [
-            "url(/ai/actions/chop_tree_action.lua)"
+            "url(/ai/actions/chop_tree_action.lua)",
+            "url(/ai/actions/restock_stockpile_action.lua)"
          ]
       }
    }

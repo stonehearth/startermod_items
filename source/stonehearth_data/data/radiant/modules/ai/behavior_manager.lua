@@ -147,7 +147,7 @@ function BehaviorManager:_get_best_action(activity)
          p = a:get_priority(unpack(activity))
          priorities[a] = p
       end
-      radiant.log.info('activity %s: %s has priority %d', activity_name, a.name, p)
+      --radiant.log.info('activity %s: %s has priority %d', activity_name, a.name, p)
       if not best_p or p > best_p then
          best_a, best_p = a, p
       end
@@ -269,9 +269,9 @@ function BehaviorManager:execute(...)
 
    local action_main = function()
       decoda_name = string.format("entity %d : %s action", self._entity:get_id(), tostring(action.name))
-      radiant.log.debug('coroutine starting action: %s for activity %s', action.name, self:_format_activity(activity))
+      --radiant.log.debug('coroutine starting action: %s for activity %s', action.name, self:_format_activity(activity))
       local result = { action:run(self, self._entity, select(2, unpack(activity))) }
-      radiant.log.debug('coroutine finished: %s', action.name)
+      --radiant.log.debug('coroutine finished: %s', action.name)
       return result
    end
 

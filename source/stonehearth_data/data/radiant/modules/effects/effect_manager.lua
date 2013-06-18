@@ -29,15 +29,15 @@ function EffectManager:destroy(entity)
 end
 
 function EffectManager:on_event_loop(now)
-   radiant.log.info('-----')
+   -- radiant.log.info('-----')
    for e, _ in pairs(self._effects) do
-      radiant.log.info('checking effect %d', now)
+      -- radiant.log.info('checking effect %d', now)
       e:update(now) 
       if e:finished() then
          self._effects[e] = nil
       end
    end
-   radiant.log.info('-----')
+   -- radiant.log.info('-----')
 end
 
 function EffectManager:start_effect(action, trigger_handler, args)
