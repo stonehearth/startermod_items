@@ -1,5 +1,6 @@
 {
    "components" : {
+      "item" : {},
       "mob" : {
          "interpolate_movement" : false
       }

@@ -1,19 +1,19 @@
 --[[
    At some interval, check if the crafter should be crafting anything.
-   If the worker's todo list has something that can be 
+   If the worker's todo list has something that can be
    crafted right now, or if the last thing we tried to craft is waiting
    unfinished ont he bench, change the priority of this component to be
-   higher (5) and call the appropriate gather or craft action. 
+   higher (5) and call the appropriate gather or craft action.
 ]]
 
-local CheckCraftableAction = class() 
+local CheckCraftableAction = class()
 
 CheckCraftableAction.name = 'stonehearth.actions.check_craftable'
 CheckCraftableAction.does = 'stonehearth.activities.top'
 CheckCraftableAction.priority = 0
 
 function CheckCraftableAction:__init(ai, entity)
-   radiant.check.is_entity(entity)  
+   radiant.check.is_entity(entity)
    self._entity = entity         --the crafter
    self._ai = ai
 
@@ -32,11 +32,11 @@ end
    c.) can craft something new off the todo list
 
    If a.), return.
-   If b.) tell the worker to resume crafting. 
-   If c.), start gathering materials for crafting. 
+   If b.) tell the worker to resume crafting.
+   If c.), start gathering materials for crafting.
 ]]
 CheckCraftableAction['radiant.events.gameloop'] = function(self)
-   if self._is_crafting then 
+   if self._is_crafting then
       return
    end
 
@@ -68,7 +68,7 @@ end
 
 --[[
    When the action comes up on the priority lottery,
-   call the actual craft action with the next activity 
+   call the actual craft action with the next activity
    and relevant arguments
 ]]
 function CheckCraftableAction:run(ai, entity)

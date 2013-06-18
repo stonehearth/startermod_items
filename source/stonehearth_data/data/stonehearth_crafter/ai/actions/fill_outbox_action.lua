@@ -35,7 +35,10 @@ function FillOutboxAction:run(ai, entity)
       self._curr_carry = workshop:pop_bench_output()
       local goto = RadiantIPoint3(self._output_x, 1, self._output_y)
       self._output_x = self._output_x + 1
-      ai:execute('stonehearth.activities.bring_to', self._curr_carry, goto)
+      ai:execute('stonehearth.activities.pickup_item', self._curr_carry)
+      --TODO: calculate adjacent with pathfinder (this is a fake adjacent right now)
+      ai:execute('stonehearth.activities.goto_location', RadiantIPoint3(goto.x, goto.y, goto.z+1))
+      ai:execute('stonehearth.activities.drop_carrying', goto)
       self._curr_carry = nil
    until not workshop:has_bench_outputs()
 end

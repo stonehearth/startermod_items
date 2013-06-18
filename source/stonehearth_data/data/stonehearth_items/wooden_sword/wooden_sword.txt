@@ -1,6 +1,6 @@
 {
    "type": "entity",
-   "extends" : "mod://stonehearth_items/item_properties.txt",
+   "extends" : "mod://stonehearth_items/entities/item/item_properties.txt",
    "components" : {
       "unit_info" : {
          "name" :  "Wooden Sword",

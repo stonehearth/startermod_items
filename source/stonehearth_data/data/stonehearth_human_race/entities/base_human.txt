@@ -27,7 +27,7 @@
 			 "mod://stonehearth/ai/actions/goto_location_action.lua",
 			 "mod://stonehearth/ai/actions/pickup_item_action.lua",
 			 "mod://stonehearth/ai/actions/drop_carrying_action.lua",
-			 "mod://stonehearth/ai/actions/bring_to_action.lua"
+          "mod://stonehearth/ai/actions/compel_to_action.lua"
 		  ]
 	   },
       "render_rig": {

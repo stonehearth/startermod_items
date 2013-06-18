@@ -9,35 +9,36 @@ function events.__init()
 
    singleton._all_handlers = {}             -- translates handlers to their names
    singleton._entity_msg_handlers = {}      -- all msg handlers for all entities
-   
+
    singleton._entity_listen_map = {}          -- listen map for handlers, by id
    singleton._free_handlers   = {}          -- all handlers who have called listen without an entity
-   
+
    singleton._msg_queue = {}                -- list of messages yet to be sent.
-   
+
    events.register_event('radiant.md.create')
    events.register_event('radiant.md.destroy')
    events.register_event('radiant.events.gameloop')
    events.register_event('radiant.commands.activate')
-   
-   events.register_event('radiant.events.slow_poll')   
+
+   events.register_event('radiant.events.slow_poll')
    events.register_event('radiant.events.very_slow_poll')
-   
+
    events.register_event('radiant.events.aura_expired')
+
 end
 
 function events._update()
    local now = radiant.gamestate.now()
-   
+
    -- xxx: get rid of ALL polls.  register timers instead, or one time
    -- loop calls.
-   
+
    events.broadcast_msg('radiant.events.gameloop', now)
    -- pump the polls
    if now % 200 == 0 then
       events.broadcast_msg('radiant.events.slow_poll', now)
-   end  
-   if now % 1000 == 0 then   
+   end
+   if now % 1000 == 0 then
       events.broadcast_msg('radiant.events.very_slow_poll', now)
    end
    events._flush_msg_queue();
@@ -79,10 +80,10 @@ end
 
 function events.register_event_handler(name, handler)
    radiant.check.is_string(name)
-   assert(not env:is_running()) 
+   assert(not env:is_running())
    assert(not singleton._registered_handlers[name])
    radiant.check.is_callable(handler)
-   
+
    radiant.log.info('registering msg_handler "%s".', name)
    singleton._registered_handlers[name] = handler
 end
@@ -92,7 +93,7 @@ function events.register_event_handler_instance(name, handler)
    radiant.check.is_string(name)
    assert(not singleton._registered_handlers[name])
    assert(not events.is_msg_handler(handler))
-   singleton._all_handlers[handler] = name   
+   singleton._all_handlers[handler] = name
 end
 
 -- xxx: this belongs in the BehaviorManager, not the events
@@ -130,16 +131,16 @@ function events.create_activity(...)
 end
 
 function events.create_msg_handler(name, ...)
-   assert(env:is_running()) 
+   assert(env:is_running())
    assert(singleton._registered_handlers[name])
    assert(name)
-   
+
    local ctor = singleton._registered_handlers[name]
    assert(ctor)
 
    local handler = ctor();
    handler = handler and handler or ctor
-   singleton._all_handlers[handler] = name   
+   singleton._all_handlers[handler] = name
    events.call_handler(handler, 'radiant.md.create', ...)
 
    return handler
@@ -148,17 +149,17 @@ end
 function events.add_msg_handler(entity, name, ...)
    radiant.check.is_entity(entity)
    radiant.check.verify(singleton._registered_handlers[name])
-   
-   local handler = events.create_msg_handler(name, entity, ...) 
+
+   local handler = events.create_msg_handler(name, entity, ...)
 
    -- track which entity the handler is attached to so we can implement
    -- send_msg, save, load, etc.
    local id = entity:get_id();
    if not singleton._entity_msg_handlers[id] then
       singleton._entity_msg_handlers[id] = {}
-   end  
+   end
    singleton._entity_msg_handlers[id][handler] = true
-     
+
    return handler
 end
 
@@ -203,7 +204,7 @@ function events._listen_to_msg_filter(filter, handler)
    radiant.check.verify(events.is_msg_filter(filter))
    --radiant.check.verify(events.is_msg_handler(handler));
    radiant.check.is_callable(handler)
-   
+
    radiant.log.debug('listen %s (%s).', filter, events._get_handler_name(handler))
    local handlers = events._get_free_handlers_for_filter(filter)
    table.insert(handlers, handler)
@@ -213,12 +214,12 @@ function events._listen_to_entity(entity, filter, handler)
    radiant.check.is_entity(entity)
    radiant.check.verify(events.is_msg_filter(filter))
    radiant.check.is_callable(handler)
-   
+
    if not entity:is_valid() then
       log:warning('ignoring invalid entity in md:listen')
       return
    end
-   
+
    radiant.log.debug('listen entity %d, %s (%s).', entity:get_id(), filter, events._get_handler_name(handler))
 
    local handlers = events._get_entity_listen_map_by_filter(entity, filter)
@@ -254,7 +255,7 @@ function events._unlisten_entity(entity, filter, handler)
    radiant.check.verify(events.is_msg_filter(filter))
    --radiant.check.verify(events.is_msg_handler(handler))
 
-   
+
    radiant.log.debug('unlisten_to_category entity %d, msgs %s (%s).',
               entity:get_id(), filter, events._get_handler_name(handler))
 
@@ -330,7 +331,7 @@ function events._send_msg(sync, obj, msg, ...)
    return events._send_msg_to_entity(sync, obj, msg, ...)
 end
 
-function events._send_msg_to_entity(sync, entity, msg, ...)  
+function events._send_msg_to_entity(sync, entity, msg, ...)
    if not entity:is_valid() then
       log:warning('ignoring invalid entity in md:send_msg')
       return
@@ -355,7 +356,7 @@ function events._get_handlers_for_filter(obj, filter)
       return events._get_entity_listen_map_by_filter(obj, filter)
    end
    if events.is_msg_handler(handler) then
-      return events._get_free_handlers_for_filter(obj, filter)      
+      return events._get_free_handlers_for_filter(obj, filter)
    end
    radiant.check.report_error('invalid object type %s (%s) in md:_get_handlers_for_filter', type(obj), tostring(obj))
    return {}
@@ -379,21 +380,21 @@ end
 function events._flush_msg_queue()
    local queue = singleton._msg_queue
    singleton._msg_queue = {}
-   
+
    for i, entry in ipairs(queue) do
       events.call_handler(entry.handler, entry.msg, unpack(entry.args))
    end
 end
 
 function events.call_handler(handler, msg, ...)
-   -- if this assert fires, it's because an external agent is holding onto a 
+   -- if this assert fires, it's because an external agent is holding onto a
    -- msg hander and calling call_handler on it directly.  this is illegal!
    -- they should be checking to make sure it's a handler first...
    assert(handler)
-   
-   radiant.check.verify(events.is_msg(msg))  
+
+   radiant.check.verify(events.is_msg(msg))
    radiant.log.debug('invoking (%s, %s, ...)', events._get_handler_name(handler), msg)
-   
+
    -- xxx - we should just be able to call handler(msg, ...) on clases with __call, right?
    if type(handler) == 'table' and type(handler.__index) == 'table' then
       local method = handler.__index[msg]

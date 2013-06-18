@@ -38,7 +38,10 @@ function GatherAndCraftAction:run(ai, entity, recipe, all_ing)
    for _, ing_data in ipairs(all_ing) do
       --TODO: replace with something like workshop:get_inbox_location()
       local bench_location = RadiantIPoint3(-12, 1, -11)
-      ai:execute('stonehearth.activities.bring_to', ing_data.item, bench_location)
+      ai:execute('stonehearth.activities.pickup_item', ing_data.item)
+      --TODO: calculate adjacent with pathfinder (this is a fake adjacent right now)
+      ai:execute('stonehearth.activities.goto_location', RadiantIPoint3(bench_location.x, bench_location.y, bench_location.z+1))
+      ai:execute('stonehearth.activities.drop_carrying', bench_location)
       workshop:add_item_to_bench(ing_data.item)
 
    end
