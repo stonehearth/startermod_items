@@ -1,0 +1,29 @@
+<script type="text/x-handlebars" data-template-name="craftingWindow">
+  <div id="craftingWindow">
+    <h1>{{unit_info.name}}</h1>
+    <small>{{unit_info.description}}</small>
+
+    <div id="recipeList">
+      {{#each crafter_info.recipes}}
+      	<a href="#" {{action select id target="view"}}>{{name}}</a>
+    	<br>
+      {{/each}}
+    </div>
+
+    <div id="details">
+      {{render 'details' current}}
+    </div>
+
+    <div id="order">
+      <button class='btn' {{action "craft" target="view"}} id="craftButton">craft!</button>
+    </div>
+  </div>
+</script>
+
+<script type="text/x-handlebars" data-template-name="details">
+  <b>{{model.name}}</b>
+  <p>
+    {{model.description}}
+  </p>
+</script>
+

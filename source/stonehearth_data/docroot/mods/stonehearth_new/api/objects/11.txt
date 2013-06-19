@@ -1,0 +1,12 @@
+{
+    "recipes": [
+        {
+            "name": "Small Wooden Table",
+            "id": 100
+        },
+        {
+            "name": "Wooden Practice Sword",
+            "id": 101
+        }
+    ]
+}

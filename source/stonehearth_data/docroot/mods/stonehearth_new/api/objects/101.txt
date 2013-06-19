@@ -1,0 +1,4 @@
+{
+    "name": "Wooden Practice Sword",
+    "description": "Not very sharp, but pointy enough to do the job!"
+}

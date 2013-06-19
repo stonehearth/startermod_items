@@ -1,0 +1,6 @@
+{
+    "type": "entity",
+    "id": "1",
+    "unit_info": "/api/1/unit_info.json",
+    "abilities": "/api/1/abilities.json"
+}
