@@ -1,0 +1,26 @@
+{
+	"type": "rig",
+	"skeleton": {
+		"type": "skeleton",
+		"root": [10.5053,14.483,6.33071e-007],
+		"lowerTorso": [10.5,14.9229,11],
+		"tail": [10.5,22.0404,11.5649],
+		"rightBackleg": [7,19,5],
+		"rightBackPaw": [7,16.9955,3.00116],
+		"leftBackLeg": [14,19,5],
+		"leftBackPaw": [14,16.9955,3.00116],
+		"upperTorso": [10.5,13.1557,10.3579],
+		"leftFrontLeg": [14,10,5],
+		"leftFrontPaw": [14,8.0292,2.96741],
+		"rightFrontLeg": [7,10,5],
+		"rightFrontPaw": [7,8.0292,2.96741],
+		"head": [10.5,8.8594,11.1844],
+		"rightEar": [5.5,6.42327,13.0361],
+		"leftEar": [15.5,6.42327,13.0361],
+		"trunk1": [10.5,1.92523,9.03454],
+		"trunk2": [10.5,1.92914,7.02353],
+		"rightTusk": [7,5.9989,9.90038],
+		"leftTusk": [14,5.9989,9.90038]
+	},
+	"effects_root" : "url(effects)"
+}

@@ -5,14 +5,13 @@
 #include "simulation/simulation.h"
 #include "om/entity.h"
 #include "om/components/mob.h"
+#include "om/components/destination.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
 
 MultiPathFinder::MultiPathFinder(std::string name) :
-   Job(name),
-   solved_(0),
-   enabled_(true)
+   Job(name)
 {
 }
 
@@ -22,52 +21,34 @@ MultiPathFinder::~MultiPathFinder()
 
 bool MultiPathFinder::IsIdle(int now) const
 {
-   if (!enabled_) {
-      return true;
-   }
-
-   auto solution = GetSolution();
-   if (!solution) {
-      for (const auto& entry : pathfinders_) {
-         if (!entry.second->IsIdle(now)) {
-            return false;
-         }
+   // xxx: don't run if any of these have a solution!
+   for (const auto& entry : pathfinders_) {
+      if (!entry.second->IsIdle(now)) {
+         return false;
       }
    }
    return true;
 }
 
-void MultiPathFinder::Restart()
-{
-   for (const auto& entry : pathfinders_) {
-      entry.second->Restart();
-   }
-}
-
-void MultiPathFinder::AddEntity(om::EntityRef e)
+void MultiPathFinder::AddEntity(om::EntityRef e, luabind::object solved_cb, luabind::object dst_filter)
 {
    PROFILE_BLOCK();
 
    auto entity = e.lock();
-
    if (entity) {
-      auto mob = entity->GetComponent<om::Mob>();
-      if (mob) {
-         math3d::ipoint3 location = math3d::ipoint3(mob->GetLocation());
-         om::EntityId id = entity->GetEntityId();
+      om::EntityId id = entity->GetEntityId();
 
-         auto i = pathfinders_.find(id);
-         if (i == pathfinders_.end()) {
-            std::ostringstream name;
+      auto i = pathfinders_.find(id);
+      ASSERT(i == pathfinders_.end());
+      if (i == pathfinders_.end()) {
+         std::ostringstream name;
 
-            name << GetName() << "(entity " << id << ")";
-            auto pathfinder = std::make_shared<PathFinder>(name.str(), false);
-            for (auto& entry: destinations_) {
-               pathfinder->AddDestination(entry.second);
-            }
-            pathfinders_[id] = pathfinder;
-            pathfinder->Start(e, location);
+         name << GetName() << "(entity " << id << ")";
+         auto pathfinder = std::make_shared<PathFinder>(name.str(), e, solved_cb, dst_filter);
+         for (auto& entry: destinations_) {
+            pathfinder->AddDestination(entry.second);
          }
+         pathfinders_[id] = pathfinder;
       }
    }
 }
@@ -78,53 +59,36 @@ void MultiPathFinder::RemoveEntity(om::EntityId id)
 
    auto i = pathfinders_.find(id);
    if (i != pathfinders_.end()) {
-      if (solved_ == id) {
-         LOG(WARNING) << "(" << GetName() << ") removing solution entity from multi-search.  resuming!";
-         solved_ = 0;
-      }
       pathfinders_.erase(id);
    }
 }
 
-void MultiPathFinder::AddDestination(DestinationPtr dst)
+void MultiPathFinder::AddDestination(om::DestinationRef d)
 {
    PROFILE_BLOCK();
 
-   destinations_[dst->GetEntityId()] = dst;
-   for (auto& entry : pathfinders_) {
-      entry.second->AddDestination(dst);
-   }
-}
-
-DestinationPtr MultiPathFinder::GetDestination(om::EntityId id)
-{
-   PROFILE_BLOCK();
-
-   auto i = destinations_.find(id);
-   return (i != destinations_.end()) ? i->second : nullptr;
-}
-
-int MultiPathFinder::GetActiveDestinationCount() const
-{
-   int count = 0;
-   for (const auto& entry : destinations_) {
-      if (entry.second->IsEnabled()) {
-         count++;
+   auto dst = d.lock();
+   if (dst) {
+      destinations_[dst->GetObjectId()] = dst;
+      for (auto& entry : pathfinders_) {
+         entry.second->AddDestination(dst);
       }
    }
-   return count;
 }
 
-void MultiPathFinder::RemoveDestination(om::EntityId id)
+void MultiPathFinder::RemoveDestination(om::DestinationRef d)
 {
    PROFILE_BLOCK();
 
-   auto i = destinations_.find(id);
-   if (i != destinations_.end()) {
-      destinations_.erase(i);
-   }
-   for (auto& entry : pathfinders_) {
-      entry.second->RemoveDestination(id);
+   auto dst = d.lock();
+   if (dst) {
+      auto i = destinations_.find(dst->GetObjectId());
+      if (i != destinations_.end()) {
+         destinations_.erase(i);
+      }
+      for (auto& entry : pathfinders_) {
+         entry.second->RemoveDestination(d);
+      }
    }
 }
 
@@ -135,16 +99,12 @@ void MultiPathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
    for (auto& entry : pathfinders_) {
       entry.second->EncodeDebugShapes(msg);
    }
-   for (auto& entry : destinations_) {
-      entry.second->EncodeDebugShapes(msg);
-   }
 }
 
 void MultiPathFinder::Work(int now, const platform::timer &timer)
 {
    PROFILE_BLOCK();
 
-   ASSERT(!solved_);
    ASSERT(!pathfinders_.empty());
    
    int cost = INT_MAX;
@@ -153,7 +113,6 @@ void MultiPathFinder::Work(int now, const platform::timer &timer)
    while (i != end) {
       PathFinderPtr p = i->second;
 
-      ASSERT(p->GetState() != PathFinder::SOLVED);
       int c = p->EstimateCostToSolution();
       if (c < cost) {
          closest = i;
@@ -168,9 +127,6 @@ void MultiPathFinder::Work(int now, const platform::timer &timer)
 
       ASSERT(!p->IsIdle(now));
       p->Work(now, timer);
-      if (p->GetState() == PathFinder::SOLVED) {
-         solved_ = id;
-      }
    }
 }
 
@@ -181,26 +137,6 @@ void MultiPathFinder::LogProgress(std::ostream& o) const
    }
 }
 
-PathPtr MultiPathFinder::GetSolution() const
-{
-   PROFILE_BLOCK();
-
-   if (!solved_) {
-      return nullptr;
-   }
-   auto i = pathfinders_.find(solved_);
-   if (i == pathfinders_.end()) {
-      solved_ = 0;
-      return nullptr;
-   }
-   auto path = i->second->GetSolution();
-   if (!path) {
-      solved_ = 0;
-      return nullptr;
-   }
-   return path;
-}
-
 std::ostream& ::radiant::simulation::operator<<(std::ostream& o, const MultiPathFinder& pf)
 {
    return pf.Format(o);
@@ -209,8 +145,7 @@ std::ostream& ::radiant::simulation::operator<<(std::ostream& o, const MultiPath
 std::ostream& MultiPathFinder::Format(std::ostream& o) const
 {
    o << "[mpf " << GetName() << " " << pathfinders_.size() 
-     << " entities finding " << destinations_.size() << " locations ("
-     << GetActiveDestinationCount() << " active)";
+     << " entities finding " << destinations_.size() << " locations";
    return o;        
 }
 

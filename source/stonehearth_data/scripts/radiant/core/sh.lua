@@ -49,12 +49,19 @@ Stonehearth.CitizenNames = {
    'Olaf Oakshield',
 }
 
+local first_citizen = false
 function Stonehearth:create_citizen(location, profession)
    profession = profession and profession or 'worker'
    check:is_a(location, RadiantIPoint3)
    check:is_string(profession)
 
-   local entity = om:create_entity('radiant.mobs.person')
+   local entity 
+   if first_citizen then
+      entity = om:create_entity('module://stonehearth/mobs/civ_black')
+      first_citizen = false
+   else 
+      entity = om:create_entity('module://stonehearth/mobs/civ')
+   end
    om:place_on_terrain(entity, location)
 
    om:set_display_name(entity, Stonehearth.CitizenNames[math.random(1, #Stonehearth.CitizenNames)])

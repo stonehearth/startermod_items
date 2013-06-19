@@ -11,9 +11,6 @@ class PeakedRoof : public GridBuildOrder
 public:
    DEFINE_OM_OBJECT_TYPE(PeakedRoof);
 
-   PeakedRoof();
-   virtual ~PeakedRoof();
-
    void Create();
 
 public: // BuildOrder overrides

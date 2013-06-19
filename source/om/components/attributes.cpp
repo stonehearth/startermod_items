@@ -21,3 +21,10 @@ void Attributes::SetAttribute(std::string name, int value)
 {
    attributes_[name] = value;
 }
+
+void Attributes::ExtendObject(json::ConstJsonObject const& obj)
+{
+   for (auto const& e : obj.GetNode()) {
+      SetAttribute(e.name(), e.as_int());
+   }
+}

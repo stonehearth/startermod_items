@@ -25,7 +25,7 @@ CombatRecoilOnHit['radiant.events.on_damage'] = function(self, source, amount, t
    check:is_string(type)
 
    local ani = ani_mgr:get_animation(self._entity)
-   self._recoil_action = 'recoil_on_physical'
+   self._recoil_action = 'combat/xxx_recoil_on_physical'
    self._end_recoil = env:now() + ani:get_effect_duration(self._recoil_action)
 end
 

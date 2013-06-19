@@ -1,0 +1,10 @@
+{
+   "type": "entity",
+   "data": {
+      "models" : {
+         "__comment" : "explain how this works...",
+         "rows" : 4,
+         "cols" : 4
+      }
+   }
+}

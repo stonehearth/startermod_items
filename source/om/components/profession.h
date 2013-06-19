@@ -9,7 +9,6 @@
 #include "om/all_object_types.h"
 #include "om/om.h"
 #include "om/entity.h"
-#include "resources/action.h"
 #include "component.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
@@ -18,8 +17,6 @@ class Profession : public Component
 {
 public:
    DEFINE_OM_OBJECT_TYPE(Profession);
-
-   Profession() { }
 
    const dm::Set<std::string>& GetLearnedRecipies() const { return learnedReceipes_; }
 

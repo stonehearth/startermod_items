@@ -218,7 +218,7 @@ public:
 	void removeNode( uint32 sgHandle );
 	void updateNode( uint32 sgHandle );
 
-	void updateQueues( const Frustum &frustum1, const Frustum *frustum2,
+	void updateQueues( const char* reason, const Frustum &frustum1, const Frustum *frustum2,
 	                   RenderingOrder::List order, uint32 filterIgnore, uint32 filterRequired, bool lightQueue, bool renderQueue );
 
 	std::vector< SceneNode * > &getLightQueue() { return _lightQueue; }
@@ -273,7 +273,7 @@ public:
 	
 	void updateNodes();
 	void updateSpatialNode( uint32 sgHandle ) { _spatialGraph->updateNode( sgHandle ); }
-	void updateQueues( const Frustum &frustum1, const Frustum *frustum2,
+	void updateQueues( const char* reason, const Frustum &frustum1, const Frustum *frustum2,
 	                   RenderingOrder::List order, uint32 filterIgnore, uint32 filterRequired, bool lightQueue, bool renderableQueue );
 	
 	NodeHandle addNode( SceneNode *node, SceneNode &parent );

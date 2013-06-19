@@ -5,22 +5,12 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-std::atomic<dm::TraceId> Entity::nextTraceId_(1);
-Entity::ComponentTraceMap Entity::componentTraces_[4];
-
-Entity::Entity()
-{
-}
-
-Entity::~Entity()
-{
-}
-
 void Entity::InitializeRecordFields()
 {
    // LOG(WARNING) << "creating entity " << GetObjectId();
-   AddRecordField("components",  components_);
-   AddRecordField("debugname",   debugname_);
+   AddRecordField("components",     components_);
+   AddRecordField("debugname",      debugname_);
+   AddRecordField("resource_uri",   resource_uri_);
 }
 
 template <class T> std::shared_ptr<T> Entity::AddComponent()
@@ -48,11 +38,6 @@ dm::ObjectPtr Entity::GetComponent(dm::ObjectType t) const
 template <class T> std::shared_ptr<T> Entity::GetComponent() const
 {
    return std::static_pointer_cast<T>(GetComponent(T::DmType));
-}
-
-void Entity::SetDebugName(std::string str)
-{
-   debugname_ = str;
 }
 
 #define OM_OBJECT(Clas, lower) \

@@ -4,14 +4,6 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-Clock::Clock()
-{
-}
-
-Clock::~Clock()
-{
-}
-
 void Clock::InitializeRecordFields()
 {
    Component::InitializeRecordFields();

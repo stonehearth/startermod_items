@@ -1,0 +1,14 @@
+{
+   "components" : {
+   	"render_rig" : {
+         "models" : [
+            "url(worker_outfit.qb)"
+         ]
+      },
+      "ai" : {
+         "actions" : [
+            "url(/ai/actions/chop_tree_action.lua)"
+         ]
+      }
+   }
+}

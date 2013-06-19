@@ -156,7 +156,6 @@ void CreatePortal::MovePortal(const csg::Point3& location)
    om::MobPtr portalMob;
    auto wall = shadowWall_->GetComponent<om::Wall>();
    auto wallNormal = wall->GetNormal();
-   std::string kind = "wooden_door";
    dm::Store& store = wall->GetStore();
 
    if (!portal_) {
@@ -170,14 +169,14 @@ void CreatePortal::MovePortal(const csg::Point3& location)
       } else {
          angle = 0;
       }
-      portal_ = om::Stonehearth::CreateEntity(store, "wooden_door");
+      portal_ = om::Stonehearth::CreateEntityLegacyDIEDIEDIE(store, "module://stonehearth/buildings/wooden_door");
       wall->AddFixture(portal_);
 
       portalMob = portal_->GetComponent<om::Mob>();
       portalMob ->TurnToAngle(angle);
       auto fixture = portal_->GetComponent<om::Fixture>();
       if (fixture) {
-         om::EntityPtr item = om::Stonehearth::CreateEntity(store, fixture->GetItemKind());
+         om::EntityPtr item = om::Stonehearth::CreateEntityLegacyDIEDIEDIE(store, fixture->GetItemKind());
          fixture->SetItem(item);
       }
       auto portal = portal_->GetComponent<om::Portal>();
@@ -243,7 +242,7 @@ void CreatePortal::SendCommand()
 
    std::vector<om::Selection> args;
    args.push_back(om::Selection(remoteWall->GetComponent<om::Wall>()));
-   args.push_back(om::Selection("wooden_door"));
+   args.push_back(om::Selection("module://stonehearth/buildings/wooden_door"));
    args.push_back(om::Selection(portalPosition_));
    Client::GetInstance().SendCommand(0, "radiant.commands.create_portal", args, id);
 

@@ -4,7 +4,6 @@
 #include "execute_action.h"
 #include "client/client.h"
 #include "resources/res_manager.h"
-#include "resources/action.h"
 #include "om/selection.h"
 
 using namespace radiant;
@@ -26,8 +25,10 @@ ExecuteAction::ExecuteAction(PendingCommandPtr cmd)
       }
    }
 
+   ASSERT(false); // Needs to be re-written for the new ability thing...
+#if 0
    std::string actionName = args_["action"].as_string();
-   auto action = resources::ResourceManager2::GetInstance().Lookup<resources::Action>(actionName);
+   auto action = resources::ResourceManager2::GetInstance().Lookup<resources::DataResource>(actionName);
    if (!action) {
       cmd->Error("No such action " + actionName);
       return;
@@ -38,6 +39,7 @@ ExecuteAction::ExecuteAction(PendingCommandPtr cmd)
 
    deferredCommandId_ = Client::GetInstance().CreatePendingCommandResponse();
    cmd->Defer(deferredCommandId_);
+#endif
 }
 
 ExecuteAction::~ExecuteAction()
@@ -51,13 +53,18 @@ ExecuteAction::~ExecuteAction()
 
 void ExecuteAction::operator()()
 {
+#if 0
    // xxx - this is annoying... if the initialization code fails, we shouldn't
    // even get this far, no?
    if (!action_) {
       return;
    }
-   const JSONNode& formal = action_->GetArgs();
-   Client::GetInstance().SetCommandCursor(action_->GetCursor());
+   const JSONNode& action = action_->GetJson();
+   const JSONNode& formal = action["args"];
+   auto i = action.find("cursor");
+   if (i != action.end()) {
+      Client::GetInstance().SetCommandCursor(i->as_string());
+   }
 
    for (auto i = actual_.size(); i < formal.size(); i++) {
 
@@ -121,9 +128,10 @@ void ExecuteAction::operator()()
 #endif
    }
    if (formal.size() == actual_.size()) {
-      std::string cmd = action_->GetCommand();
+      std::string cmd = action["command"].as_string();
       Client::GetInstance().SendCommand(self_, cmd, actual_, deferredCommandId_);
    }
+#endif
 }
 
 #if 0

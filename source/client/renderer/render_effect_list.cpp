@@ -24,6 +24,7 @@
 #include "om/components/render_rig.h"
 #include "resources/res_manager.h"
 #include "resources/animation.h"
+#include "radiant_json.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -110,23 +111,21 @@ void RenderEffectList::UpdateEffects()
 RenderInnerEffectList::RenderInnerEffectList(RenderEntity& renderEntity, om::EffectPtr effect)
 {
    std::string name = effect->GetName();
-   auto res = resources::ResourceManager2::GetInstance().Lookup<resources::DataResource>(name);
-   if (res && res->GetType() == resources::Resource::EFFECT) {
-      for (const JSONNode& node : res->GetJson()["tracks"]) {
-         std::string type = node["type"].as_string();
-         std::shared_ptr<RenderEffect> e;
-         if (type == "animation_effect") {
-            e = std::make_shared<RenderAnimationEffect>(renderEntity, effect, node); 
-         } else if (type == "attach_item_effect") {
-            e = std::make_shared<RenderAttachItemEffect>(renderEntity, effect, node); 
-         } else if (type == "floating_combat_text") {
-            e = std::make_shared<FloatingCombatTextEffect>(renderEntity, effect, node); 
-         } else if (type == "hide_bone") {
-            e = std::make_shared<HideBoneEffect>(renderEntity, effect, node); 
-         }
-         if (e) {
-            effects_.push_back(e);
-         }
+   JSONNode const& data = resources::ResourceManager2::GetInstance().LookupJson(name);
+   for (const JSONNode& node : data["tracks"]) {
+      std::string type = node["type"].as_string();
+      std::shared_ptr<RenderEffect> e;
+      if (type == "animation_effect") {
+         e = std::make_shared<RenderAnimationEffect>(renderEntity, effect, node); 
+      } else if (type == "attach_item_effect") {
+         e = std::make_shared<RenderAttachItemEffect>(renderEntity, effect, node); 
+      } else if (type == "floating_combat_text") {
+         e = std::make_shared<FloatingCombatTextEffect>(renderEntity, effect, node); 
+      } else if (type == "hide_bone") {
+         e = std::make_shared<HideBoneEffect>(renderEntity, effect, node); 
+      }
+      if (e) {
+         effects_.push_back(e);
       }
    }
 }
@@ -162,7 +161,7 @@ RenderAnimationEffect::RenderAnimationEffect(RenderEntity& e, om::EffectPtr effe
 {
    int now = effect->GetStartTime();
    animationName_ = node["animation"].as_string();
-   animation_ = resources::ResourceManager2::GetInstance().Lookup<resources::Animation>(animationName_);
+   animation_ = resources::ResourceManager2::GetInstance().LookupAnimation(animationName_);
 
    if (animation_) {
       startTime_ = GetStartTime(node) + now;
@@ -266,7 +265,7 @@ RenderAttachItemEffect::RenderAttachItemEffect(RenderEntity& e, om::EffectPtr ef
 #endif
       }
    } else {
-      item = om::Stonehearth::CreateEntity(Client::GetInstance().GetAuthoringStore(), kind);
+      item = om::Stonehearth::CreateEntityLegacyDIEDIEDIE(Client::GetInstance().GetAuthoringStore(), kind);
    }
 
    if (item) {
@@ -365,14 +364,10 @@ FloatingCombatTextEffect::FloatingCombatTextEffect(RenderEntity& e, om::EffectPt
       om::RenderRigPtr rig = entity->GetComponent<om::RenderRig>();
       if (rig) {
          std::string animationTableName = rig->GetAnimationTable();
-         auto obj = resources::ResourceManager2::GetInstance().Lookup<resources::ObjectResource>(animationTableName);
-         if (obj) {
-            auto cs = obj->Get<resources::ObjectResource>("collision_shape");
-            if (cs) {
-               height_ = cs->GetFloat("height");
-               height_ *= 0.1f; // xxx - take this out of the same place where we store the face that the model is 10x too big
-            }
-         }
+
+         JSONNode const& json = resources::ResourceManager2::GetInstance().LookupJson(animationTableName);
+         height_ = json::get<float>(json::get<JSONNode>(json, "collision_shape"), "height", 4.0f);
+         height_ *= 0.1f; // xxx - take this out of the same place where we store the face that the model is 10x too big
       }
    }
    int distance = node["distance"].as_int();

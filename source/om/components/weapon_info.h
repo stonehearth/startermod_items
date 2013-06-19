@@ -17,9 +17,7 @@ class WeaponInfo : public Component
 {
 public:
    DEFINE_OM_OBJECT_TYPE(WeaponInfo);
-
    static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
-   WeaponInfo() { }
 
    float GetRange() const;
    void SetRange(float range);

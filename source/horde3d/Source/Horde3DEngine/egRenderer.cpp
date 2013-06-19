@@ -22,8 +22,11 @@
 #include "egModules.h"
 #include "egCom.h"
 #include <cstring>
-
+#include <sstream>
+#include <glsl/glsl_optimizer.h>
 #include "utDebug.h"
+
+#include "radiant.h"
 
 namespace Horde3D {
 
@@ -66,6 +69,10 @@ Renderer::Renderer()
 	_vlOverlay = 0;
 	_vlModel = 0;
 	_vlParticle = 0;
+   bool openglES = false;
+#if defined(OPTIMIZE_GSLS)
+   _glsl_opt_ctx = glslopt_initialize(openglES);
+#endif
 }
 
 
@@ -75,7 +82,9 @@ Renderer::~Renderer()
 	gRDI->destroyTexture( _defShadowMap );
 	gRDI->destroyBuffer( _particleVBO );
 	releaseShaderComb( _defColorShader );
-
+#if defined(OPTIMIZE_GSLS)
+   glslopt_cleanup(_glsl_opt_ctx);
+#endif
 	delete[] _scratchBuf;
 	delete[] _overlayVerts;
 }
@@ -359,6 +368,28 @@ void Renderer::drawCone( float height, float radius, const Matrix4f &transMat )
 
 bool Renderer::createShaderComb( const char *vertexShader, const char *fragmentShader, ShaderCombination &sc )
 {
+#if defined(OPTIMIZE_GSLS)
+   auto optimize = [=](const char* input, glslopt_shader_type type) -> std::string {
+      std::string result;
+	   glslopt_shader* shader = glslopt_optimize (_glsl_opt_ctx, type, input, 0);
+      bool optimizeOk = glslopt_get_status(shader);
+	   if (optimizeOk) {
+         result = glslopt_get_output (shader);
+         //LOG(WARNING) << "using optimized shader " << result;
+      } else {
+         //LOG(WARNING) << "shader optimization failed " << glslopt_get_log(shader);
+         //LOG(WARNING) << "original shader: " << std::endl << input;
+         result = input;
+      }
+      glslopt_shader_delete(shader);
+      return result;
+   };
+   std::string vopt = optimize(vertexShader, kGlslOptShaderVertex);
+   std::string fopt = optimize(fragmentShader, kGlslOptShaderFragment);
+   vertexShader = vopt.c_str();
+   fragmentShader = fopt.c_str();
+#endif
+
 	// Create shader program
 	uint32 shdObj = gRDI->createShader( vertexShader, fragmentShader );
 	if( shdObj == 0 ) return false;
@@ -810,7 +841,7 @@ Matrix4f Renderer::calcCropMatrix( const Frustum &frustSlice, const Vec3f lightP
 	float frustMaxZ = -Math::MaxFloat, bbMaxZ = -Math::MaxFloat;
 	
 	// Find post-projective space AABB of all objects in frustum
-	Modules::sceneMan().updateQueues( frustSlice, 0x0, RenderingOrder::None,
+	Modules::sceneMan().updateQueues("calculating crop matrix", frustSlice, 0x0, RenderingOrder::None,
 		SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
 	std::vector< RendQueueItem > &rendQueue = Modules::sceneMan().getRenderableQueue();
 	
@@ -912,9 +943,13 @@ void Renderer::updateShadowMap()
 	// Cascaded Shadow Maps
 	// ********************************************************************************************
 	
+
 	// Find AABB of lit geometry
 	BoundingBox aabb;
-	Modules::sceneMan().updateQueues( _curCamera->getFrustum(), &_curLight->getFrustum(),
+
+   std::ostringstream reason;
+   reason << "update shadowmap for light " << _curLight->getName();
+	Modules::sceneMan().updateQueues(reason.str().c_str(), _curCamera->getFrustum(), &_curLight->getFrustum(),
 		RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
 	for( size_t j = 0, s = Modules::sceneMan().getRenderableQueue().size(); j < s; ++j )
 	{
@@ -1003,7 +1038,7 @@ void Renderer::updateShadowMap()
 	
 		// Generate render queue with shadow casters for current slice
 		frustum.buildViewFrustum( _curLight->getViewMat(), lightProjMat );
-		Modules::sceneMan().updateQueues( frustum, 0x0, RenderingOrder::None,
+		Modules::sceneMan().updateQueues("rendering shadowmap", frustum, 0x0, RenderingOrder::None,
 			SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
 		
 		// Create texture atlas if several splits are enabled
@@ -1307,8 +1342,8 @@ void Renderer::drawFSQuad( Resource *matRes, const std::string &shaderContext )
 void Renderer::drawGeometry( const std::string &shaderContext, const std::string &theClass,
                              RenderingOrder::List order, int filterRequried, int occSet )
 {
-	Modules::sceneMan().updateQueues( _curCamera->getFrustum(), 0x0, order,
-	                                  SceneNodeFlags::NoDraw, filterRequried, false, true );
+	Modules::sceneMan().updateQueues("drawing geometry", _curCamera->getFrustum(), 0x0, order,
+	                                 SceneNodeFlags::NoDraw, filterRequried, false, true );
 	
 	setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
 	drawRenderables( shaderContext, theClass, false, &_curCamera->getFrustum(), 0x0, order, occSet );
@@ -1318,8 +1353,8 @@ void Renderer::drawGeometry( const std::string &shaderContext, const std::string
 void Renderer::drawLightGeometry( const std::string &shaderContext, const std::string &theClass,
                                   bool noShadows, RenderingOrder::List order, int occSet )
 {
-	Modules::sceneMan().updateQueues( _curCamera->getFrustum(), 0x0, RenderingOrder::None,
-	                                  SceneNodeFlags::NoDraw, 0, true, false );
+	Modules::sceneMan().updateQueues("drawing light geometry", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
+	                                 SceneNodeFlags::NoDraw, 0, true, false );
 	
 	GPUTimer *timer = Modules::stats().getGPUTimer( EngineStats::FwdLightsGPUTime );
 	if( Modules::config().gatherTimeStats ) timer->beginQuery( _frameID );
@@ -1400,7 +1435,9 @@ void Renderer::drawLightGeometry( const std::string &shaderContext, const std::s
 		}
 		
 		// Render
-		Modules::sceneMan().updateQueues( _curCamera->getFrustum(), &_curLight->getFrustum(),
+      std::ostringstream reason;
+      reason << "drawing light geometry for light " << _curLight->getName();
+		Modules::sceneMan().updateQueues( reason.str().c_str(), _curCamera->getFrustum(), &_curLight->getFrustum(),
 		                                  order, SceneNodeFlags::NoDraw, 0, false, true );
 		setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
 		drawRenderables( shaderContext.empty() ? _curLight->_lightingContext : shaderContext,
@@ -1429,7 +1466,7 @@ void Renderer::drawLightShapes( const std::string &shaderContext, bool noShadows
 {
 	MaterialResource *curMatRes = 0x0;
 	
-	Modules::sceneMan().updateQueues( _curCamera->getFrustum(), 0x0, RenderingOrder::None,
+	Modules::sceneMan().updateQueues( "drawing light shapes", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
 	                                  SceneNodeFlags::NoDraw, 0, true, false );
 	
 	GPUTimer *timer = Modules::stats().getGPUTimer( EngineStats::DefLightsGPUTime );
@@ -2090,7 +2127,7 @@ void Renderer::renderDebugView()
 
 	gRDI->clear( CLR_DEPTH | CLR_COLOR );
 
-	Modules::sceneMan().updateQueues( _curCamera->getFrustum(), 0x0, RenderingOrder::None,
+	Modules::sceneMan().updateQueues( "rendering debug view", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
 	                                  SceneNodeFlags::NoDraw, 0, true, true );
 
 	// Draw renderable nodes as wireframe

@@ -47,7 +47,7 @@ public:
 
    /* End of new object model stuff */
    std::shared_ptr<MultiPathFinder> CreateMultiPathFinder(std::string name);
-   std::shared_ptr<PathFinder> CreatePathFinder(std::string name, om::EntityPtr entity); // xxx: should be an entity ref.  don't keep the entity alive!
+   std::shared_ptr<PathFinder> CreatePathFinder(std::string name, om::EntityRef entity, luabind::object solved, luabind::object dst_filter); // xxx: should be an entity ref.  don't keep the entity alive!
    std::shared_ptr<FollowPath> CreateFollowPath(om::EntityRef entity, float speed, std::shared_ptr<Path> path, float close_to_distance);
    std::shared_ptr<GotoLocation> CreateGotoLocation(om::EntityRef entity, float speed, const math3d::point3& location, float close_to_distance);
    std::shared_ptr<GotoLocation> CreateGotoEntity(om::EntityRef entity, float speed, om::EntityRef target, float close_to_distance);

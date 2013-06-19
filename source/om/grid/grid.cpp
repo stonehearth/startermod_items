@@ -17,10 +17,6 @@ void Grid::InitializeRecordFields()
    _bounds.Modify().set_zero();
 }
 
-Grid::~Grid()
-{
-}
-
 #if 0
 NotifyChangeFnId Grid::SetNotifyTileChanged(std::function<void(GridTile *)> fn) const
 {

@@ -1,0 +1,22 @@
+{
+   "extends": "url(/prototypes/tree)",
+   "resource_node" : {
+      "resource": "url(../juniper_log)",
+      "durability": 6
+   },
+   "unit_info" : {
+      "name" :  "Small Juniper Tree",
+      "description" : "Just a sapling."
+   },
+   "render_rig": {
+      "scale": 1,
+      "models": [
+         {
+            "type": "one_of",
+            "items": [
+               "url(tree_juniper_small.qb)"
+            ]
+         }
+      ]
+   }
+}

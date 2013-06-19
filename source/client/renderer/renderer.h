@@ -7,7 +7,6 @@
 #include "om/om.h"
 #include "client/input_event.h"
 #include "resources/namespace.h"
-#include "pipeline.h"
 #include "tesseract.pb.h"
 #include "csg/region.h"
 #include <unordered_map>
@@ -51,7 +50,6 @@ public:
       bool IsRunning() const;
       HWND GetWindowHandle() const;
 
-      Pipeline& GetPipeline() { return pipeline_; }
       boost::property_tree::ptree const& GetConfig() const;
 
       std::shared_ptr<RenderEntity> CreateRenderObject(H3DNode parent, om::EntityPtr obj);
@@ -132,7 +130,6 @@ public:
       TraceMap          renderFrameTraces_;
       TraceMap          interpolationStartTraces_;
 
-      Pipeline                      pipeline_;
       std::shared_ptr<RenderEntity>      rootRenderObject_;
       H3DNode                       debugShapes_;
 

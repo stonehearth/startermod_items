@@ -7,7 +7,7 @@ local CraftTest = class(MicroWorld)
 
 function CraftTest:start()
    self:create_world()
-   self:place_item_cluster('oak-log', 2, 2)
+   self:place_item_cluster('module://stonehearth/resources/oak_tree/oak_log', 2, 2)
 
    local recipe = 'wooden_practice_sword'
    local ingredients = dkjson.encode({ blade = 'oak-log', hilt = 'oak-log'})

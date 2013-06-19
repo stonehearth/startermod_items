@@ -11,8 +11,8 @@ md:register_msg_handler("radiant.professions.footman", Footman)
 
 Footman['radiant.md.create'] = function(self, entity)
    local rigs = {
-      'models/footman.qb',
-      'models/iron_armor.qb',
+      'module://stonehearth/professions/footman/footman.qb',
+      'module://stonehearth/professions/footman/iron_armor.qb',
    }
 
    self._entity = entity
@@ -21,9 +21,9 @@ Footman['radiant.md.create'] = function(self, entity)
    om:add_rig_to_entity(entity, self._rig_name)
    
    local abilities = {
-      'radiant.combat_abilities.1h_swing',
-      'radiant.combat_abilities.1h_forehand',
-      'radiant.combat_abilities.1h_forehand_spin',
+      'module://stonehearth/combat_abilities/1h_swing.txt',
+      'module://stonehearth/combat_abilities/1h_forehand.txt',
+      'module://stonehearth/combat_abilities/1h_forehand_spin.txt',
    }
    for _, ability_name in ipairs(abilities) do
       om:add_combat_ability(entity, ability_name)

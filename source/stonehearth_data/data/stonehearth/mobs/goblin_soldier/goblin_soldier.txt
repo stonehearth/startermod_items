@@ -1,0 +1,23 @@
+{
+   "type" : "entity",
+   "extends" : "url(/prototypes/goblin)",
+   "components" : {
+	   "unit_info" : {
+		  "name": "Goblin Soldier",
+		  "description": "Gobble, gobble, gobble..."
+	   },
+	   "render_rig": {
+		  "models": [
+			 {
+				"type": "one_of",
+				"items": [
+				   "url(goblin_outfit_breastplate.qb)",
+				   "url(goblin_outfit_leather_armor.qb)",
+				   "url(goblin_outfit_standard_bearer.qb)",
+				   "url(goblin_outfit_standard_bearer.qb)"
+				]
+			 }
+		  ]
+	   }
+	}
+}

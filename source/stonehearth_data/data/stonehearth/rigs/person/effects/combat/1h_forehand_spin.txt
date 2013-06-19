@@ -1,0 +1,31 @@
+{
+   "type" : "effect",
+   "tracks": {
+      "animation" : {
+         "type": "animation_effect",
+         "start_time": 0,
+         "animation": "url(../../animations/combat/1h_forehand_spin.txt)"
+      }
+      ,
+      "frame_data" : {
+         "type": "attack_frame_data",
+         "segments" : [
+            {
+               "phase": "startup",
+               "name": "beginning swing",
+               "duration": 19
+            },
+            {
+               "phase": "execute",
+               "name": "thwack em!",
+               "duration": 1
+            },
+            {
+               "phase": "recovery",
+               "name": "return to ready",
+               "duration": 1
+            }
+         ]
+      }
+   }
+}

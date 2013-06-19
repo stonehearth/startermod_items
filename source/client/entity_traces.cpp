@@ -4,7 +4,6 @@
 #include "client.h"
 #include "entity_traces.h"
 #include "resources/res_manager.h"
-#include "resources/action.h"
 #include "om/entity.h"
 #define DEFINE_ALL_COMPONENTS
 #include "om/all_components.h"
@@ -213,6 +212,7 @@ public:
    }
 };
 
+#if 0
 class ActionListComponentWriter : public ComponentWriter<om::ActionList>
 {
 public:
@@ -227,13 +227,12 @@ public:
          JSONNode& node = FetchNodeChild(parent, "actions", JSON_ARRAY);
          for (auto actionName : c.GetActions()) {
             JSONNode entry;
-            auto resource = resources.Lookup(actionName);
-            if (resource->GetType() == resources::Resource::ACTION) {
-               auto action = std::static_pointer_cast<resources::Action>(resource);
-               entry.push_back(JSONNode("tooltip", action->GetToolTip()));
-               entry.push_back(JSONNode("icon", action->GetIcon()));
-               entry.push_back(JSONNode("execute", actionName));
-               node.push_back(entry);
+            auto resource = resources.LookupResource(actionName);
+            if (resource->GetType() == resources::Resource::JSON) {
+               auto action = std::static_pointer_cast<resources::DataResource>(resource);
+               JSONNode n = action->GetJson();
+               n.push_back(JSONNode("action_uri", actionName));
+               node.push_back(n);
             }
          }
       };
@@ -241,6 +240,7 @@ public:
       ADD_GENERIC_COLLECTOR(om::ActionList, "actions", c, actionInstall, actionsWrite);
    }
 };
+#endif
 
 class ProfessionComponentWriter : public ComponentWriter<om::Profession>
 {
@@ -316,7 +316,7 @@ private:
       ADD_COMPONENT_COLLECTOR(UnitInfo,             "identity");
       ADD_COMPONENT_COLLECTOR(StockpileDesignation, "stockpile");
       ADD_COMPONENT_COLLECTOR(Item,                 "item");
-      ADD_COMPONENT_COLLECTOR(ActionList,           "action_list");
+//      ADD_COMPONENT_COLLECTOR(ActionList,           "action_list");
       ADD_COMPONENT_COLLECTOR(Profession,           "profession");
 
 #undef ADD_COMPONENT_COLLECTOR

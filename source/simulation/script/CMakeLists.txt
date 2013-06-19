@@ -18,7 +18,6 @@ add_library(simulation_script STATIC
             lua_om.cpp
             lua_module.cpp
             lua_noise.cpp
-            lua_resource.cpp
             pch.cpp
             )
 

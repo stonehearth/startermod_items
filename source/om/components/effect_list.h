@@ -11,7 +11,6 @@
 #include "om/om.h"
 #include "om/entity.h"
 #include "om/selection.h"
-#include "resources/action.h"
 #include "component.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
@@ -56,8 +55,6 @@ class EffectList : public Component
 {
 public:
    DEFINE_OM_OBJECT_TYPE(EffectList);
-
-   EffectList() { }
 
    const dm::Set<EffectPtr>& GetEffects() const { return effects_; }
 

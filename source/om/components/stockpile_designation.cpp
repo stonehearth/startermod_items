@@ -7,14 +7,6 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-StockpileDesignation::StockpileDesignation()
-{
-}
-
-StockpileDesignation::~StockpileDesignation()
-{
-}
-
 static void ReserveAdjacent(lua_State* L, StockpileDesignation& s, math3d::ipoint3 location)
 {
    math3d::ipoint3 block;

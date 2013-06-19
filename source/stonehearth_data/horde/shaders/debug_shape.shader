@@ -5,6 +5,7 @@ context DEBUG_SHAPES
 	VertexShader = compile GLSL VS_GENERAL;
 	PixelShader = compile GLSL FS_AMBIENT;
 	ZWriteEnable = false;
+   CullMode = None;
 	BlendMode = Blend;
 }
 

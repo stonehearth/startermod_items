@@ -16,7 +16,7 @@ std::vector<math3d::ipoint3> ResourceNode::GetHarvestStandingLocations() const
 {
    std::vector<math3d::ipoint3> result;
 
-   static const int r = 4;
+   static const int r = 3;
    math3d::ipoint3 origin(0, 0, 0);
    om::MobPtr mob = GetEntity().GetComponent<om::Mob>();
    if (mob) {

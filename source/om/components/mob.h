@@ -17,9 +17,7 @@ class Mob : public Component
 {
 public:
    DEFINE_OM_OBJECT_TYPE(Mob);
-
-   Mob();
-   virtual ~Mob();
+   static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
 
    void MoveTo(const math3d::point3& location);
    void MoveToGridAligned(const math3d::ipoint3& location);
@@ -46,6 +44,8 @@ public:
    bool InterpolateMovement() const;
    bool IsSelectable() const;
    void SetInterpolateMovement(bool value);
+
+   dm::Guard TraceTransform(const char* reason, std::function<void()> fn) { return transform_.TraceObjectChanges(reason, fn); }
 
 private:
    friend EntityContainer;

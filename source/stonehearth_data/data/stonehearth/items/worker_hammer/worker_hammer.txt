@@ -1,0 +1,14 @@
+{
+   "type" : "entity",
+   "components" : {
+	   "unit_info" : {
+		  "name": "Hammer",
+		  "description": "..."
+	   },
+	   "render_rig": {
+		  "models": [
+			 "url(worker_hammer.qb)"
+		  ]
+	   }
+	}
+}

@@ -26,12 +26,12 @@ function Defend:run(ai, entity, attacker, script_info, end_time)
    ]]
    
    ai:execute('radiant.actions.perform', script_info.start)
-   ai:execute('radiant.actions.perform', script_info.execute)
+   ai:execute('radiant.actions.perform', script_info.effect)
    ai:execute('radiant.actions.perform', script_info.finish)
    ai:wait_until(function() return false end)
    
    --[[
-   ai:execute('radiant.actions.perform', script_info.execute)
+   ai:execute('radiant.actions.perform', script_info.effect)
    --ai:execute('radiant.actions.perform', script_info.finish)
    ai:wait_until(function() return false end)
    ]]

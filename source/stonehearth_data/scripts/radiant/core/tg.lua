@@ -336,7 +336,7 @@ function create_voronoi_map(radius, size)
    local relax_iterations = 8
    local point_count = (size / radius) * (size / radius)
    
-   math.randomseed(2)
+   math.randomseed(3)
    
    local voronoi_map = VoronoiMap(size, size)   
    for i = 1, point_count do
@@ -374,16 +374,16 @@ end
 
 function FoliageMapper:_add_trees_to_terrain(terrain)
    local trees = {
-      'oak-tree-small',
-      'oak-tree-medium',
-      'oak-tree-large'
+      'module://stonehearth/resources/oak_tree/small_oak_tree',
+      'module://stonehearth/resources/oak_tree/medium_oak_tree',
+      'module://stonehearth/resources/oak_tree/large_oak_tree'
    }
    self:_add_items_to_terrain(terrain, self._point_map, trees)
 end
 
 function FoliageMapper:_add_undergrowth_to_terrain(terrain)
    local undergrowth = {
-      'flower_pink',
+      'module://stonehearth/clutter/flower_pink',
    }
    local lod = self._foliage:get_lod()
    local hm = self._underbrush:get_heightmap(0, Config.Underbrush.StepCount)

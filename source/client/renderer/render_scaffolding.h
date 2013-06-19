@@ -18,10 +18,10 @@ class RenderScaffolding : public RenderBuildOrder {
 
    private:
       H3DNode                 ladderDebugShape_;
-     om::ScaffoldingRef       scaffolding_;
-     float                    rotation_;
-     csg::Point3              normal_;
-     H3DNode                  blocksNode_;
+      om::ScaffoldingRef       scaffolding_;
+      float                    rotation_;
+      csg::Point3              normal_;
+      H3DNode                  blocksNode_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

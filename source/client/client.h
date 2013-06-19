@@ -12,7 +12,6 @@
 #include "dm/trace_map.h"
 #include "physics/octtree.h"
 #include "libjson.h"
-#include "resources/action.h"
 #include "core/singleton.h"
 #include "selectors/selector.h"
 #include "entity_traces.h"
@@ -113,18 +112,6 @@ namespace radiant {
             void addToSelection(om::EntityId id);
             void setSelection(const om::Selection &s);
 
-            bool DoAction(const om::EntityPtr self, const std::shared_ptr<resources::Action> action, bool install);
-            bool CollectArgs(const om::EntityPtr self, const std::shared_ptr<resources::Action> action, std::shared_ptr<std::vector<om::Selection>> args, bool install);
-            bool CollectArgSelf(const om::EntityPtr self, std::shared_ptr<std::vector<om::Selection>> args);
-#if 0
-            bool RunGlobalCommand(std::string name, bool install);
-            bool SetArg_String(std::string arg, std::shared_ptr<vector<om::Selection>> args);
-            bool SetArg_Actor(const ObjectModel::ICommand* cmd, const om::EntityPtr self, std::shared_ptr<vector<om::Selection>> args, bool install);
-            bool SetArg_GroundArea(const ObjectModel::ICommand* cmd, const om::EntityPtr self, std::shared_ptr<vector<om::Selection>> args, bool install);
-            bool SetArg_GroundLocation(const ObjectModel::ICommand* cmd, const om::EntityPtr self, std::shared_ptr<vector<om::Selection>> args, bool install);
-            void SetArg_GroundAreaCb(const ObjectModel::ICommand* cmd, const om::EntityPtr self, std::shared_ptr<vector<om::Selection>> args, const om::Selection &result);
-#endif
-
             bool CreateStockpile(bool install);
             bool AddVoxelToPlan(bool install);
             bool MoveSelectedActor(bool install);
@@ -155,7 +142,6 @@ namespace radiant {
 
             void Reset();
             void UpdateSelection(const MouseInputEvent &mouse);
-            void UpdateSelectionBuildOrders(const MouseInputEvent &mouse);
             void CenterMap(const MouseInputEvent &mouse);
 
             typedef std::function<void (const tesseract::protocol::Reply&)> ReplyFn;

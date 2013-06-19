@@ -1,0 +1,38 @@
+{
+   "type" : "entity",
+   "components" : {
+	   "unit_info" : {
+		  "faction": "goblin"
+	   },
+	   "attributes" : {
+		  "ferocity": 100,
+		  "health": 100
+	   },
+	   "ai" : {
+		  "intentions" : [
+			 "radiant.intentions.life_and_death",
+			 "radiant.intentions.attack_on_aggro",
+			 "radiant.intentions.combat_recoil_on_hit",
+			 "radiant.intentions.idle"
+		  ],
+		  "observers" : [
+			 "radiant.observers.compute_danger",
+			 "radiant.observers.compute_proximity_aggro"
+		  ]
+	   },
+	   "render_rig": {
+		  "animation_table" : "url(/rigs/goblin)",
+		  "models": [
+			 "url(goblin_body.qb)",
+			 {
+				"type": "one_of",
+				"items": [
+				   "url(goblin_head_1.qb)",
+				   "url(goblin_head_2.qb)",
+				   "url(goblin_head_3.qb)"
+				]
+			 }
+		  ]
+	   }
+	}
+}

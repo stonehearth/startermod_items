@@ -131,11 +131,11 @@ public:
    class LuaPromise
    {
    public:
-      LuaPromise(const Map& c) {
+      LuaPromise(const Map& c, const char* reason) {
          auto changed = std::bind(&LuaPromise::OnChange, this, std::placeholders::_1, std::placeholders::_2);
          auto removed = std::bind(&LuaPromise::OnRemove, this, std::placeholders::_1);
 
-         guard_ = c.TraceMapChanges("map promise", changed, removed);
+         guard_ = c.TraceMapChanges(reason, changed, removed);
       }
 
       ~LuaPromise() {
@@ -174,8 +174,8 @@ public:
       std::vector<luabind::object>  removedCbs_;
    };
 
-   LuaPromise* CreateLuaPromise() const {
-      return new LuaPromise(*this);
+   LuaPromise* LuaTrace(const char* reason) const {
+      return new LuaPromise(*this, reason);
    }
    static luabind::scope RegisterLuaType(struct lua_State* L, const char* name) {
       using namespace luabind;
@@ -187,15 +187,15 @@ public:
             .def("size",              &Map::GetSize)
             .def("is_empty",          &Map::IsEmpty)
             .def("items",             &Map::LuaIteratorStart)
-            .def("trace",             &Map::CreateLuaPromise)
+            .def("trace",             &Map::LuaTrace)
          ,
          class_<LuaIterator<decltype(items_)>>(itername.c_str())
             .def("__call",    &LuaIterator<decltype(items_)>::NextIteration)
          ,
          class_<LuaPromise>(itername.c_str())
-            .def("added",    &LuaPromise::PushAddedCb)
-            .def("removed",  &LuaPromise::PushRemovedCb)
-            .def("destroy",  &LuaPromise::Destroy)
+            .def("on_added",    &LuaPromise::PushAddedCb)
+            .def("on_removed",  &LuaPromise::PushRemovedCb)
+            .def("destroy",  &LuaPromise::Destroy) // xxx: make this __gc!!
          ;
    }
 

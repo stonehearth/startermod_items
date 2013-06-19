@@ -52,7 +52,7 @@ radiant.debug.log(radiant.debug.INFO, 'loading radiant.events');
 
          // xxx: need a radiant.ready() function which gets called once we've created
          // a session...
-
+         console.log("sending command " + name + " " + JSON.stringify(options))
          var o = $.extend({ command: name, endpoint_id: this._endpointId }, options || {});
 
          $(top).trigger('radiant.dbg.on_cmd', o);
@@ -75,6 +75,7 @@ radiant.debug.log(radiant.debug.INFO, 'loading radiant.events');
       },
 
       execute: function (name, options) {
+         console.log("executing action: " + name);
          var o = $.extend({ 'action': name }, options || {});
          return this.cmd('execute_action', o);
       },

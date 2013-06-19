@@ -89,7 +89,7 @@ end
 
 function create_door(wall, x, y, z)
    check:is_a(wall, Wall)
-   local json, obj = ch:call('radiant.commands.create_portal', wall, 'wooden_door', RadiantIPoint3(x, y, z))
+   local json, obj = ch:call('radiant.commands.create_portal', wall, 'module://stonehearth/buildings/wooden_door', RadiantIPoint3(x, y, z))
    return om:get_entity(obj.entity_id)
 end
 
@@ -136,8 +136,8 @@ local TT = Point2(301, 259)
 function scene_1()
    create_stairs(Point3(216, 1, 188), Point3(-1, 0, 0), 4, 3)
 
-   create_stockpile(Point3(ZA.x + 3, 1, ZA.y + 3), 5, 5);
-   create_stockpile(Point3(BC.x, 1, BC.y - 7), 5, 5);
+   --create_stockpile(Point3(ZA.x + 3, 1, ZA.y + 3), 5, 5);
+   --create_stockpile(Point3(BC.x, 1, BC.y - 7), 5, 5);
    
    sh:create_citizen(RadiantIPoint3(ZA.x + 2, 1, ZA.y))
    sh:create_citizen(RadiantIPoint3(ZA.x + 16, 1, ZA.y + 9))
@@ -146,7 +146,7 @@ function scene_1()
    for i = 0, 25 do
       local x = math.random(100, 300)
       local z = math.random(100, 300)
-      local rabbit = om:create_entity('radiant.mobs.rabbit')
+      local rabbit = om:create_entity('mod://stonehearth/critters/rabbit')
       om:place_on_terrain(rabbit, RadiantIPoint3(x, 1, z))      
    end
 end
@@ -264,21 +264,19 @@ function scene_5()
    local goblins = {}
    local soldiers = {}
    local goblin_weapons = {
-      'radiant.items.sawtooth_short_sword',
-      'radiant.items.sawtooth_cleaver',
-      'radiant.items.spiked_wooden_mace'
+      'module://stonehearth/items/spiked_wooden_mace'
    }
    local spawn_goblin = function(x, z)
-      local goblin = om:create_entity('radiant.mobs.goblin-soldier')
-      local shield = om:create_entity('radiant.items.cracked_wooden_buckler')
-      local helmet = om:create_entity('radiant.items.studded_leather_helmet')
+      local goblin = om:create_entity('module://stonehearth/mobs/goblin_soldier')
+      local shield = om:create_entity('module://stonehearth/items/cracked_wooden_buckler')
+      local helmet = om:create_entity('module://stonehearth/items/studded_leather_helmet')
       local mace = om:create_entity(goblin_weapons[math.random(1, #goblin_weapons)])
 
       om:wear(goblin, shield)
       om:wear(goblin, helmet)
       om:equip(goblin, Paperdoll.MAIN_HAND, mace)
-      --om:add_combat_ability(goblin, 'radiant.combat_abilities.shield_block')
-      om:add_combat_ability(goblin, 'radiant.combat_abilities.shield_swing')
+      --om:add_combat_ability(goblin, 'module://stonehearth/combat_abilities/shield_block.txt')
+      om:add_combat_ability(goblin, 'module://stonehearth/combat_abilities/shield_swing.txt')
       
       om:set_attribute(goblin, 'health', 1)
       
@@ -287,8 +285,8 @@ function scene_5()
       
       ai_mgr:add_intention(goblin, 'radiant.intentions.combat_defense')
       local abilities = {
-         'radiant.combat_abilities.shield_block',
-         'radiant.combat_abilities.shield_swing',
+         'module://stonehearth/combat_abilities/shield_block.txt',
+         'module://stonehearth/combat_abilities/shield_swing.txt',
       }
       for _, ability_name in ipairs(abilities) do
          om:add_combat_ability(goblin, ability_name)
@@ -298,9 +296,9 @@ function scene_5()
    end
    local spawn_soldier = function(x, z)
       local footman = sh:create_citizen(RadiantIPoint3(x, 1, z), 'footman')
-      om:add_combat_ability(footman, 'radiant.combat_abilities.parry')
+      om:add_combat_ability(footman, 'module://stonehearth/combat_abilities/parry.txt')
       ai_mgr:add_intention(footman, 'radiant.intentions.combat_defense')
-      local sword = om:create_entity('radiant.items.iron_sword')
+      local sword = om:create_entity('module://stonehearth/items/iron_sword')
       om:equip(footman, Paperdoll.MAIN_HAND, sword)
       table.insert(soldiers, footman)
       return footman
@@ -373,21 +371,19 @@ function scene_6()
    local goblins = {}
    local soldiers = {}
    local goblin_weapons = {
-      'radiant.items.sawtooth_short_sword',
-      'radiant.items.sawtooth_cleaver',
-      'radiant.items.spiked_wooden_mace'
+      'module://stonehearth/items/spiked_wooden_mace'
    }
    local spawn_goblin = function(x, z)
-      local goblin = om:create_entity('radiant.mobs.goblin-soldier')
-      local shield = om:create_entity('radiant.items.cracked_wooden_buckler')
-      local helmet = om:create_entity('radiant.items.studded_leather_helmet')
+      local goblin = om:create_entity('module://stonehearth/mobs/goblin_soldier')
+      local shield = om:create_entity('module://stonehearth/items/cracked_wooden_buckler')
+      local helmet = om:create_entity('module://stonehearth/items/studded_leather_helmet')
       local mace = om:create_entity(goblin_weapons[math.random(1, #goblin_weapons)])
 
       om:wear(goblin, shield)
       om:wear(goblin, helmet)
       om:equip(goblin, Paperdoll.MAIN_HAND, mace)
-      --om:add_combat_ability(goblin, 'radiant.combat_abilities.shield_block')
-      om:add_combat_ability(goblin, 'radiant.combat_abilities.shield_swing')
+      --om:add_combat_ability(goblin, 'module://stonehearth/combat_abilities/shield_block.txt')
+      om:add_combat_ability(goblin, 'module://stonehearth/combat_abilities/shield_swing.txt')
       
       om:set_attribute(goblin, 'health', math.random(16, 29))
       
@@ -396,8 +392,8 @@ function scene_6()
       
       ai_mgr:add_intention(goblin, 'radiant.intentions.combat_defense')
       local abilities = {
-         'radiant.combat_abilities.shield_block',
-         'radiant.combat_abilities.shield_swing',
+         'module://stonehearth/combat_abilities/shield_block.txt',
+         'module://stonehearth/combat_abilities/shield_swing.txt',
       }
       for _, ability_name in ipairs(abilities) do
          om:add_combat_ability(goblin, ability_name)
@@ -410,7 +406,7 @@ function scene_6()
          'radiant.items.short_sword',
       }
       local footman = sh:create_citizen(RadiantIPoint3(x, 1, z), 'footman')
-      om:add_combat_ability(footman, 'radiant.combat_abilities.parry')
+      om:add_combat_ability(footman, 'module://stonehearth/combat_abilities/parry.txt')
       ai_mgr:add_intention(footman, 'radiant.intentions.combat_defense')
       local sword = om:create_entity(weapons[math.random(#weapons)])
       om:equip(footman, Paperdoll.MAIN_HAND, sword)
@@ -494,7 +490,7 @@ function GameMaster:start_new_game()
    local size = 32
 
    tg:create()
-   scene_7();
+   scene_2();
    --[[
    -- Put the embark smack in the middle
    self:start_scenario('stonehearth.embark', RadiantBounds3(RadiantIPoint3(240, 1, 240), RadiantIPoint3(272, 1, 272)))

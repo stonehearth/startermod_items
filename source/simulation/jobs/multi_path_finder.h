@@ -12,20 +12,14 @@ class MultiPathFinder : public Job {
       MultiPathFinder(std::string name);
       virtual ~MultiPathFinder();
 
-      typedef std::unordered_map<om::EntityId, std::shared_ptr<Destination>> DestinationMap;
+      typedef std::unordered_map<om::EntityId, om::DestinationRef> DestinationMap;
 
-      void Restart();
-      void SetEnabled(bool enabled) { enabled_ = enabled; }
-      void AddEntity(om::EntityRef actor);
+	   void AddEntity(om::EntityRef actor, luabind::object solved_cb, luabind::object dst_filter);
       void RemoveEntity(om::EntityId actor);
 
-      void AddDestination(DestinationPtr dst);
-      DestinationPtr GetDestination(om::EntityId);
-      void RemoveDestination(om::EntityId id);
-      int GetActiveDestinationCount() const;
+      void AddDestination(om::DestinationRef dst);
+      void RemoveDestination(om::DestinationRef dst);
       const DestinationMap& GetDestinations() const { return destinations_; }
-
-      PathPtr GetSolution() const;
 
    public: // Job Interface
       bool IsIdle(int now) const override;
@@ -39,9 +33,7 @@ class MultiPathFinder : public Job {
 
    private:
       typedef std::unordered_map<om::EntityId, PathFinderPtr> PathFinderMap;
-      bool                             enabled_;
       PathFinderMap                    pathfinders_;
-      mutable om::EntityId             solved_;
       DestinationMap                   destinations_;
 };
 

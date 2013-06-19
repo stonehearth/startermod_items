@@ -1,15 +1,12 @@
 add_library(simulation_jobs STATIC
+			pch.cpp
             debug_colors.cpp
-            destination.cpp
             job.cpp
             multi_path_finder.cpp
             path.cpp
             path_finder.cpp
             follow_path.cpp
             goto_location.cpp
-            entity_destination.cpp
-            region_destination.cpp
-               pch.cpp
             )
 
 if (MSVC)

@@ -1,0 +1,10 @@
+{
+	"type": "entity",
+	"components" : {
+	   "ai" : {
+		  "actions" : [
+			 "mod://stonehearth/ai/actions/run_effect_action.lua"
+		  ]
+	   }
+	}
+}

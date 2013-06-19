@@ -10,15 +10,6 @@ using namespace ::radiant::om;
 
 static const int PostColor1 = 1;
 
-Post::Post()
-{
-   LOG(WARNING) << "creating new post...";
-}
-
-Post::~Post()
-{
-}
-
 void Post::InitializeRecordFields()
 {
    GridBuildOrder::InitializeRecordFields();

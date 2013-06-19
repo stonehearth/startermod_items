@@ -57,10 +57,16 @@ function Environment:start_new_game()
    
    self._om:create_root_objects()
    self._sh:start_new_game()
-   
+
+--[[   
+   for a in ipairs(arg) do
+      print '--------------> ' .. a
+   end
+   ]]
    local test
+   --test = 'radiant.tests.empty'
    --test = 'radiant.tests.stockpile'
-   test = 'radiant.tests.harvest'
+   --test = 'radiant.tests.harvest'
    --test = 'radiant.tests.simple_room'
    --test = 'radiant.tests.simple_room_and_door'
    --test = 'radiant.tests.combat_test'

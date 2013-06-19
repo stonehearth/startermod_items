@@ -15,7 +15,6 @@ class UserBehaviorQueue : public Component
 {
 public:
    DEFINE_OM_OBJECT_TYPE(UserBehaviorQueue);
-   UserBehaviorQueue() : Component() { }
 
 public:
    UserBehaviorPtr AddUserBehavior();

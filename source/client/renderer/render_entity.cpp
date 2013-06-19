@@ -12,7 +12,8 @@
 #include "render_mob.h"
 #include "render_terrain.h"
 #include "render_scaffolding.h"
-#include "render_stockpile_designation.h"
+#include "render_stockpile.h"
+#include "render_destination.h"
 #include "render_rig.h"
 #include "render_paperdoll.h"
 #include "render_effect_list.h"
@@ -28,6 +29,7 @@
 #include "om/components/build_orders.h"
 #include "om/components/terrain.h"
 #include "om/components/paperdoll.h"
+#include "om/components/lua_components.h"
 #include "om/components/scaffolding.h"
 #include "om/components/effect_list.h"
 #include "om/components/render_info.h"
@@ -49,7 +51,7 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
    totalObjectCount_++;
    om::EntityId id = entity->GetObjectId();
 
-   ostringstream name;
+   std::ostringstream name;
    name << "RenderEntity " << entity->GetDebugName() << " (" << entity->GetStoreId() << ", " << id << ")";
 
    // LOG(WARNING) << "creating new entity " << name.str() << ".";
@@ -203,9 +205,13 @@ void RenderEntity::AddComponent(dm::ObjectType key, std::shared_ptr<dm::Object> 
             components_[key] = std::make_shared<RenderEntityContainer>(*this, container);
             break;
          }
-         case om::StockpileDesignationObjectType: {
-            om::StockpileDesignationPtr stockpile = std::static_pointer_cast<om::StockpileDesignation>(value);
-            components_[key] = std::make_shared<RenderStockpileDesignation>(*this, stockpile);
+         case om::DestinationObjectType: {
+            om::DestinationPtr stockpile = std::static_pointer_cast<om::Destination>(value);
+            components_[key] = std::make_shared<RenderDestination>(*this, stockpile);
+            break;
+         }
+         case om::LuaComponentsObjectType: {
+            AddLuaComponents(std::static_pointer_cast<om::LuaComponents>(value));
             break;
          }
          case om::WallObjectType:
@@ -234,6 +240,16 @@ void RenderEntity::AddComponent(dm::ObjectType key, std::shared_ptr<dm::Object> 
             components_[key] = std::make_shared<RenderPaperdoll>(*this, paperdoll);
             break;
          }
+      }
+   }
+}
+
+void RenderEntity::AddLuaComponents(om::LuaComponentsPtr lua_components)
+{
+   for (auto const& entry : lua_components->GetComponentMap()) {
+      std::string mod = entry.first;
+      if (mod == "mod://radiant/components/stockpile_component.lua") {
+         lua_components_[mod] = std::make_shared<RenderStockpile>(*this, entry.second);
       }
    }
 }
@@ -291,7 +307,7 @@ om::EntityId RenderEntity::GetEntityId() const
 
 bool RenderEntity::ShowDebugRegions() const
 {
-   return false;
+   return true;
 }
 
 

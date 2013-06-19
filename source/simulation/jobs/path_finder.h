@@ -4,8 +4,8 @@
 #include "math3d.h"
 #include "math3d/common/color.h"
 #include "math3d_collision.h"
+#include "om/om.h"
 #include "job.h"
-#include "destination.h"
 #include "physics/namespace.h"
 #include "radiant.pb.h"
 #include "path.h"
@@ -17,25 +17,15 @@ class Simulation;
 
 class PathFinder : public Job {
    public:
-      PathFinder(std::string name, bool ownsDest);
+      PathFinder(std::string name, om::EntityRef e, luabind::object solved, luabind::object dst_filter);
       virtual ~PathFinder();
 
-      void AddDestination(DestinationPtr dst);
-      void RemoveDestination(om::EntityId id);
+      void AddDestination(om::DestinationRef dst);
+      void RemoveDestination(om::DestinationRef dst);
 
-      enum State {
-         CONSTRUCTED,
-         RUNNING,
-         SOLVED,
-         EXHAUSTED,
-         RESTARTING,
-      };
-
-      State GetState() const { return state_; }
       PathPtr GetSolution() const;
 
       void Restart();
-      void Start(om::EntityRef entity, const math3d::ipoint3& start);
       int EstimateCostToSolution();
       std::ostream& Format(std::ostream& o) const;
 
@@ -47,40 +37,36 @@ class PathFinder : public Job {
       void EncodeDebugShapes(protocol::shapelist *msg) const override;
 
    private:
-      bool IsRunning() const;
-      bool VerifyDestinationModifyTimes();
       bool CompareEntries(const math3d::ipoint3 &a, const math3d::ipoint3 &b);
-      void RecommendBestPath(PointList &points) const;
+      void RecommendBestPath(std::vector<math3d::ipoint3> &points) const;
+      int EstimateMovementCost(const math3d::ipoint3& start, om::DestinationPtr dst) const;
       int EstimateCostToDestination(const math3d::ipoint3 &pt) const;
-      int EstimateCostToDestination(const math3d::ipoint3 &pt, DestinationPtr& closest) const;
+      int EstimateCostToDestination(const math3d::ipoint3 &pt, om::DestinationPtr& closest) const;
 
       math3d::ipoint3 GetFirstOpen();
-      void ReconstructPath(PointList &solution, const math3d::ipoint3 &dst) const;
+      void ReconstructPath(std::vector<math3d::ipoint3> &solution, const math3d::ipoint3 &dst) const;
       void AddEdge(const math3d::ipoint3 &current, const math3d::ipoint3 &next, int cost);
       void RebuildHeap();
 
-      void AbortSearch(State next, std::string reason);
-      void SolveSearch(const math3d::ipoint3& last, DestinationPtr dst);
-      void CheckSolution() const;
+      void SolveSearch(const math3d::ipoint3& last, om::DestinationPtr dst);
 
    public:
-      mutable State                                state_;
       om::EntityRef                                entity_;
-      math3d::ipoint3                              start_;
-      int                                          startTime_;
+      luabind::object                              solved_cb_;
+      luabind::object                              dst_filter_;
       int                                          costToDestination_;
       bool                                         rebuildHeap_;
-      bool                                         ownsDst_;
+      bool                                         restart_search_;
+      bool                                         search_exhausted_;
       mutable PathPtr                              solution_;
-      int                                          solutionTime_;
-      std::string                                  stopReason_;
+      dm::GuardSet                                 guards_;
       std::vector<math3d::ipoint3>                      open_;
       std::vector<math3d::ipoint3>                      closed_;
       std::hash_map<math3d::ipoint3, int>               f_;
       std::hash_map<math3d::ipoint3, int>               g_;
       std::hash_map<math3d::ipoint3, int>               h_;
       std::hash_map<math3d::ipoint3, math3d::ipoint3>   cameFrom_;
-      mutable std::unordered_map<om::EntityId, DestinationPtr>  destinations_;
+      mutable std::unordered_map<om::EntityId, om::DestinationRef>  destinations_;
 };
 
 typedef std::weak_ptr<PathFinder> PathFinderRef;

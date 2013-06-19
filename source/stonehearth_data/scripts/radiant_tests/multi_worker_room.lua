@@ -14,7 +14,7 @@ function MultiWorkerRoom:start()
    self:place_citizen(14, 12)
    self:place_citizen(14, 13)
    
-   self:place_item_cluster('oak-log', 4, 4, 10, 10)
+   self:place_item_cluster('module://stonehearth/resources/oak_tree/oak_log', 4, 4, 10, 10)
    self:place_stockpile_cmd(12, -12)
    
    local house = self:create_room_cmd(-12, -12, 10, 10)

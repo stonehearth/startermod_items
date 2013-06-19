@@ -46,8 +46,7 @@ function Attack:run(ai, entity, target)
          ability:set_cooldown_expire_time(now + delay)
 
          -- run it
-         local info_str = ability:get_script_info_string()
-         local info = dkjson.decode(info_str)
+         local info = dkjson.decode(ability:get_json())
          ai:execute(ability:get_script_name(), target, info)
       end
    end   
@@ -62,7 +61,7 @@ function Attack:stop(ai, entity)
 end
 
 function Attack:_idle(ai, entity, till)
-   self._idle_effect = ani_mgr:get_animation(entity):start_action('combat_idle')
+   self._idle_effect = ani_mgr:get_animation(entity):start_action('idle_breathe')
    ai:wait_until(till)
    self._idle_effect:stop()
    self._idle_effect = nil

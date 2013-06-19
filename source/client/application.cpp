@@ -100,7 +100,6 @@ int Application::run(lua_State* L, int argc, const char** argv)
 
 int Application::Start(lua_State* L)
 {
-   resources::ResourceManager2::GetInstance().LoadDirectory("./resources/");
    httpd::Server server;
 
    const char *docroot = configvm["ui.docroot"].as<std::string>().c_str();

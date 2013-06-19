@@ -28,7 +28,6 @@ private:
    void DestroyAllRenderNodes();
 
 private:
-   void AddRigResource(std::string identifier);
    void AddQubicleResource(std::string identifier);
 
 private:

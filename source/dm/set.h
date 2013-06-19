@@ -187,8 +187,8 @@ public:
             .def("__call",    &LuaIterator<decltype(items_)>::NextIteration)
          ,
          class_<LuaPromise>(itername.c_str())
-            .def("added",    &LuaPromise::PushAddedCb)
-            .def("removed",  &LuaPromise::PushRemovedCb)
+            .def("on_added",    &LuaPromise::PushAddedCb)
+            .def("on_removed",  &LuaPromise::PushRemovedCb)
             .def("destroy",  &LuaPromise::Destroy)
          ;
    }

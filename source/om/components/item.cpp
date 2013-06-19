@@ -12,4 +12,15 @@ void Item::InitializeRecordFields()
    AddRecordField("stacks", stacks_);
    AddRecordField("maxStacks", maxStacks_);
    AddRecordField("material", material_);
+   stacks_ = 1;
+   maxStacks_ = 1;
+}
+
+void Item::ExtendObject(json::ConstJsonObject const& obj)
+{
+   JSONNode const& node = obj.GetNode();
+   int count = obj.get<int>("stacks", *maxStacks_);
+   stacks_ = count;
+   maxStacks_ = count;
+   material_ = obj.get<std::string>("material", *material_);
 }

@@ -7,14 +7,12 @@
 #include "om/components/terrain.h"
 #include "om/components/stockpile_designation.h"
 #include "om/components/unit_info.h"
-#include "om/components/action_list.h"
 #include "om/components/build_orders.h"
 #include "om/selection.h"
 #include "om/om_alloc.h"
 #include "om/components/build_orders.h"
 #include "platform/utils.h"
 #include "resources/res_manager.h"
-#include "resources/data_resource.h"
 #include "rest_api.h"
 #include "commands/command.h"
 #include "commands/trace_entity.h"
@@ -99,7 +97,6 @@ void Client::run()
    renderer.SetRawInputCallback(std::bind(&Chromium::OnRawInput, chromium_.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
    renderer.SetMouseInputCallback(std::bind(&Chromium::OnMouseInput, chromium_.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 #endif
-   renderer.PointCamera(math3d::point3(0, 0, 0));
 
 #if 0
    //_commands['S'] = std::bind(&Client::RunGlobalCommand, this, "create-stockpile", std::placeholders::_1);
@@ -137,8 +134,10 @@ void Client::run()
    _commands[GLFW_KEY_F4] = std::bind(&Client::EvalCommand, this, "radiant.step_paths");
    _commands[GLFW_KEY_F5] = [=]() { ToggleBuildPlan(); };
    _commands[GLFW_KEY_ESC] = [=]() {
+      currentTool_ = nullptr;
       currentCommand_ = nullptr;
       currentCommandCursor_ = NULL;
+      currentToolName_ = "";
    };
 
    // _commands[VK_NUMPAD0] = std::shared_ptr<command>(new command_build_blueprint(*_proxy_manager, *_renderer, 500));
@@ -471,12 +470,12 @@ void Client::OnMouseInput(const MouseInputEvent &mouse, bool &handled, bool &uni
 {
    bool hovering_on_brick = false;
 
+   if (mouse.up[0]) {
+      LOG(WARNING) << "got mouse up... current command:" << currentCommand_;
+   }
    if (rootObject_ && !currentCommand_ && mouse.up[0]) {
-      if (showBuildOrders_) {
-         UpdateSelectionBuildOrders(mouse);
-      } else {
-         UpdateSelection(mouse);
-      }
+      LOG(WARNING) << "updating selection...";
+      UpdateSelection(mouse);
    } else if (mouse.up[2]) {
       CenterMap(mouse);
    }
@@ -510,36 +509,33 @@ void Client::UpdateSelection(const MouseInputEvent &mouse)
    };
    octtree_->TraceRay(r, cb);
    if (stockpile) {
+      LOG(WARNING) << "selecting stockpile";
       SelectEntity(stockpile);
    } else {
       if (s.HasEntities()) {
+         for (om::EntityId id : s.GetEntities()) {
+            auto entity = GetEntity(id);
+            if (entity && entity->GetComponent<om::Room>()) {
+               LOG(WARNING) << "selecting room " << entity->GetObjectId();
+               SelectEntity(entity);
+               return;
+            }
+         }
          auto entity = GetEntity(s.GetEntities().front());
          if (entity->GetComponent<om::Terrain>()) {
+            LOG(WARNING) << "clearing selection (clicked on terrain)";
             SelectEntity(nullptr);
          } else {
+            LOG(WARNING) << "selecting " << entity->GetObjectId();
             SelectEntity(entity);
          }
       } else {
+         LOG(WARNING) << "no entities!";
          SelectEntity(nullptr);
       }
    }
 }
 
-void Client::UpdateSelectionBuildOrders(const MouseInputEvent &mouse)
-{
-   om::Selection s;
-   om::EntityPtr selected;
-   Renderer::GetInstance().QuerySceneRay(mouse.x, mouse.y, s);
-
-   for (om::EntityId id : s.GetEntities()) {
-      auto entity = GetEntity(id);
-      if (entity && entity->GetComponent<om::Room>()) {
-         selected = entity;
-         break;
-      }
-   }
-   SelectEntity(selected);
-}
 
 // xxx: move this crap into a separate class
 void Client::OnKeyboardInput(const KeyboardEvent &e, bool &handled, bool &uninstall)
@@ -943,6 +939,11 @@ void Client::ExecuteCommands()
          continue;
       }
 
+      currentCommandCursor_ = NULL;
+      currentCommand_ = nullptr;
+      currentTool_ = nullptr;
+      currentToolName_ = "";
+
       CommandPtr command;
 
       std::string type = cmd->GetCommand();
@@ -965,8 +966,6 @@ void Client::ExecuteCommands()
       }
       if (command) {
          currentCommand_ = command;
-         currentTool_ = nullptr;
-         currentToolName_ = "";
          (*command)();
       }
    }
@@ -974,7 +973,7 @@ void Client::ExecuteCommands()
 
 void Client::SetRenderPipelineInfo()
 {
-   std::string pipeline = "pipelines/deferred_pipeline.xml";
+   std::string pipeline = "pipelines/deferred_pipeline_static.xml";
    if (showBuildOrders_) {
       //pipeline = "pipelines/blueprint.deferred.pipeline.xml";
    }
@@ -1069,10 +1068,8 @@ void Client::FetchJsonData(PendingCommandPtr cmd)
    for (const auto& node : args["entries"]) {
       if (node.type() == JSON_STRING) {
          std::string name = node.as_string();
-         auto data = resources::ResourceManager2::GetInstance().Lookup<resources::DataResource>(name);
-         if (data) {
-            result.push_back(data->GetJson());
-         }
+         JSONNode const& data = resources::ResourceManager2::GetInstance().LookupJson(name);
+         result.push_back(data);
       }
    }
    cmd->Complete(result);
