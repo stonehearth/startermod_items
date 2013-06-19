@@ -12,8 +12,6 @@
 using namespace ::radiant;
 using namespace ::radiant::simulation;
 
-#define CHECK_HEAPINESS
-
 #if defined(CHECK_HEAPINESS)
 #  define VERIFY_HEAPINESS() \
    do { \
@@ -30,6 +28,7 @@ PathFinder::PathFinder(std::string name, om::EntityRef e, luabind::object solved
    rebuildHeap_(false),
    entity_(e),
    source_(*this, e),
+   stopped_(false),
    solved_cb_(solved_cb),
    dst_filter_(dst_filter),
    search_exhausted_(false),
@@ -42,10 +41,21 @@ PathFinder::~PathFinder()
 {
 }
 
+void PathFinder::SetSolvedCb(luabind::object solved_cb)
+{
+   solved_cb_ = solved_cb;
+}
+
+void PathFinder::SetFilterFn(luabind::object dst_filter)
+{
+   dst_filter_ = dst_filter;
+   RestartSearch();
+}
+
 bool PathFinder::IsIdle(int now) const
 {
    bool busy = restart_search_ || (!solution_ && !search_exhausted_);
-   return !busy;
+   return stopped_ || !busy;
 }
 
 void PathFinder::AddDestination(om::EntityRef e)
@@ -60,20 +70,17 @@ void PathFinder::AddDestination(om::EntityRef e)
    }
 }
 
-void PathFinder::RemoveDestination(om::EntityRef e)
+void PathFinder::RemoveDestination(dm::ObjectId id)
 {
    PROFILE_BLOCK();
 
-   auto entity = e.lock();
-   if (entity) {
-      auto i = destinations_.find(entity->GetObjectId());
-      if (i != destinations_.end()) {
-         destinations_.erase(i);
-         if (solution_) {
-            auto solution_entity = solution_->GetDestination().lock();
-            if (solution_entity && solution_entity == entity) {
-               RestartSearch();
-            }
+   auto i = destinations_.find(id);
+   if (i != destinations_.end()) {
+      destinations_.erase(i);
+      if (solution_) {
+         auto solution_entity = solution_->GetDestination().lock();
+         if (solution_entity && solution_entity->GetObjectId() == id) {
+            RestartSearch();
          }
       }
    }
@@ -478,10 +485,10 @@ int PathFinderEndpoint::EstimateMovementCost(const math3d::ipoint3& from) const
       end = rgn.GetClosestPoint(start);
    } else {
       csg::Region3 adjacent;
-      adjacent += csg::Point3( 0, 0,  1);
-      adjacent += csg::Point3( 1, 0,  1);
+      adjacent += csg::Point3(-1, 0,  0);
+      adjacent += csg::Point3( 1, 0,  0);
       adjacent += csg::Point3( 0, 0, -1);
-      adjacent += csg::Point3(-1, 0, -1);
+      adjacent += csg::Point3( 0, 0, -1);
       end = adjacent.GetClosestPoint(start);
    }
    return EstimateMovementCost(start, end);

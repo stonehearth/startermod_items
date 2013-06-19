@@ -31,16 +31,26 @@ end
    ingredients.
    return: nil if the list is empty.
 ]]
-function ToDoList:get_next_task()
-   if table.getn(self._my_list) < 1 then
-      return nil
+function ToDoList:get_next_task()   
+   for i, order in ipairs(self._my_list) do
+      if order:should_execute_order() then
+         order:search_for_ingredients()
+         -- TODO: need a way for the order to say "no, i can't go yet... move onto
+         -- the next guy".  this should happens when the search for an ingredient
+         -- gets exhausted.
+         local ingredients = order:get_all_ingredients()
+         if ingredients then
+            return order, ingredients
+         end
+         return
+      end
    end
+--[[
    local i = 1
-   while (not self._my_list[i]:can_execute_order()) do
+   while not self._my_list[i]:can_execute_order() do
       i = i + 1;
    end
    --TODO: figure out inventory syntax. We need the ingredients relevant to this recipe, and paths to each
-
    --FOR TESTING ONLY
    local ingredient_data = {}
    local recipe = self._my_list[i]:get_recipe().produces[1].item
@@ -51,10 +61,11 @@ function ToDoList:get_next_task()
    end
 
    return self._my_list[i], ingredient_data
+   ]]
 end
 
 --TESTING FUNCTIONS ONLY
----[[
+--[[
 function ToDoList:sword_ingredients()
    local wood = radiant.entities.create_entity('mod://stonehearth_trees/entities/oak_tree/oak_log')
    radiant.terrain.place_entity(wood, RadiantIPoint3(-10, 1, 10))

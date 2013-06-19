@@ -53,7 +53,106 @@ function CraftOrder:__init(recipe, enabled, condition, workshop)
    self._enabled = enabled
    self._condition = condition
    self._workshop = workshop
+   
+   local faction = self._workshop:get_entity():add_component('unit_info'):get_faction()
+   assert(faction and (#faction > 0), "workshop has no faction.")
+   
    self._status = {}
+
+   -- look out into the world of all the ingredients
+   self._ingredients = {}
+   for offset, ingredient_data in radiant.resources.pairs(self._recipe.ingredients) do
+      local filter = function(item_entity)
+         return self:_can_use_ingredient(item_entity, ingredient_data)
+      end
+      local ingredient = {
+         item = nil,
+         path = nil,
+         filter = filter
+      }
+      table.insert(self._ingredients, ingredient)
+   end   
+end
+
+function CraftOrder:_can_use_ingredient(item_entity, ingredient_data)
+   -- make sure we're not using it for something else...
+   for _, ingredient in ipairs(self._ingredients) do
+      if ingredient.item and item_entity:get_id() == ingredient.item:get_id() then
+         return false
+      end
+   end
+   -- make sure it matches the criteria specified in the recipe
+   return item_entity:get_component('item'):get_material() == ingredient_data.material
+end
+
+function CraftOrder:search_for_ingredients()
+   local inventory = radiant.mods.require('mod://stonehearth_inventory/')
+   local bench_items = self._workshop:get_items_on_bench()
+   local workshop_entity = self._workshop:get_entity()
+
+   if self._found_all_ingredients then
+      return
+   end
+   if self._search_running then
+      return   
+   end
+   
+   for i, ingredient in ipairs(self._ingredients) do    
+      if not ingredient.item then
+         -- is the item on the bench?  if so, claim it and remove it from
+         -- the bench list..
+         for _, item in pairs(bench_items) do
+            if ingredient.filter(item) then
+               ingredient = item
+               bench_items[_] = nil
+               break
+            end
+         end
+         if not ingredient.item then
+            -- not on the bench?  look around and see if we can find an item
+            local solved = function(path)
+               local item = path:get_destination()
+               ingredient.path = path
+               ingredient.item = item
+               
+               self._pathfinder:stop()
+               self._pathfinder = nil
+               self._search_running = false
+               self:search_for_ingredients()
+            end
+            self._pathfinder = inventory.create_item_pathfinder(workshop_entity, solved, ingredient.filter)
+            self._search_running = true
+            return
+         end
+      end
+   end
+   -- we've got everything! woot!
+   self._found_all_ingredients = true
+end
+
+function CraftOrder:_search_for_ingredients()
+   local workshop_entity = self._workshop:get_entity() 
+   local inventory = radiant.mods.require('mod://stonehearth_inventory/')
+   
+   self._ingredient_paths = {}
+   for offset, ingredient_data in radiant.resources.pairs(self._recipe.ingredients) do
+      assert(not ingredient_data.material:find(' '), "todo: add search for multiple tags")
+      
+      local filter = function(item_entity)
+         return item_entity:get_component('item'):get_material() == ingredient_data.material
+      end
+      local solved = function(path)
+         local item = path:get_destination()
+         self._ingredient_paths[offset].path = path
+         self._ingredient_paths[offset].item = item
+      end
+      local pathfinder = inventory.create_item_pathfinder(workshop_entity, solved, filter)    
+      self._ingredient_paths[offset] = {
+         item = nil,
+         path = nil,
+         pathfinder = pathfinder
+      }
+   end
    --Note: I suppose we could make a function that added status based on conditions
 end
 
@@ -65,10 +164,6 @@ end
 
 function CraftOrder:get_recipe()
    return self._recipe
-end
-
-function CraftOrder:set_recipe(recipe)
-   self._recipe = recipe
 end
 
 function CraftOrder:get_enabled()
@@ -84,16 +179,6 @@ function CraftOrder:get_condition()
 end
 
 --[[
-   Whether or not an order can be executed right now is a factor
-   of whether its ingredients are in the world and whether its
-   conditions are not yet satisfied.
-   returns: true if conditions are not yet met AND ingredients are available
-]]
-function CraftOrder:can_execute_order()
-   return self:are_conditions_unsatisfied() and self:are_ingredients_available()
-end
-
---[[
    Used to determine if we should proceed with executing the order.
    If this order has a condition which are unsatisfied, (ie, less than x amount
    was built, or less than x inventory exists in the world) return true.
@@ -101,10 +186,11 @@ end
    order, return false.
    returns: true if conditions are not yet met, false if conditions are met
 ]]
-function CraftOrder:are_conditions_unsatisfied()
+function CraftOrder:should_execute_order()
    if self._condition.amount then
       return true
-   elseif self._condition.inventory_below then
+   end
+   if self._condition.inventory_below then
       --TODO: access the inventory
       --TODO: ask if the inventory has self.condition.inventory_below of recipe object
       --TODO: if not, return true
@@ -122,8 +208,58 @@ end
 
    returns: true if ingredients are avaialble, false otherwise
 ]]
-function CraftOrder:are_ingredients_available()
-   for ingredient, amount in radiant.resources.pairs(self._recipe.ingredients) do
+function CraftOrder:get_all_ingredients()
+   -- xxx: This implementation can be improved...there may be solutions that
+   -- it does not find because of overlapping tags (e.g. a recipe that requires
+   -- "magic wood" and "magic" blocks, where the "magic wood" block is on the
+   -- bench and there are no "magic" items in the world)
+   
+   if self._found_all_ingredients then
+      -- xxx: do more validation?
+      return self._ingredients
+   end
+   --[[
+   
+   local ingredients = {}
+   local bench_items = self._workshop:get_items_on_bench()
+
+   for offset, ingredient in radiant.resources.pairs(self._recipe.ingredients) do
+      local i = offset + 1
+
+      -- is the item on the bench?  if so, claim it and remove it from
+      -- the bench list..
+      for _, item in pairs(bench_items) do
+         if self._item_is_suitable_for_ingredient(item, ingredient) then
+            ingredients[i] = {
+               item = item
+            }  
+            bench_items[_] = nil
+         end
+      end
+      -- wasn't on the bench?  bummer.  see if we know how to get one in the
+      -- world.  if so, remember both the item and the path so we can get to
+      -- it (eventually)
+      if not ingredients[i] then
+         local path_info = self._ingredient_paths[offset]
+         if path_info and path_info.item then         
+            ingredients[i] = {
+               item = path_info.item,
+               path = path_info.path,
+            }
+         end
+      end
+      -- not on the bench and not in the world.  we're really really really
+      -- out of luck.  return nil.
+      if not ingredients[i] then
+         return nil
+      end
+   end
+
+   -- return all the ingredients we need to build the recipe
+   return ingredients
+   ]]
+   --[[
+   for i, ingredient in radiant.resources.pairs(self._recipe.ingredients) do
       --TODO check if inventory + workbench has at least amount of ingredient
       --if not return false
    end
@@ -149,6 +285,7 @@ function CraftOrder:are_ingredients_available()
       --NOTE we do not lock the inventory, since really, it's single threaded?
    end
    return true
+   ]]
 end
 
 --[[

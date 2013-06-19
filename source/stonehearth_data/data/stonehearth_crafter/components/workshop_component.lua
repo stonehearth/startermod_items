@@ -15,15 +15,14 @@ local ToDoList = radiant.mods.require('mod://stonehearth_crafter/lib/todo_list.l
 local Workshop = class()
 
 function Workshop:__init(entity)
+   self._available_materials = {}      -- The list of materials in the world we don't have yet, but can get
    self._todo_list = ToDoList()        -- The list of things we need to work on
    self._entity = entity               -- The entity associated with this component
    self._crafter = {}                  -- The worker component associated with this bench
    self._curr_order = nil              -- The order currently being worked on. Nil until we get an order from the todo list
    self._intermediate_item = nil       -- The item currently being worked on. Nil until we actually start crafting
-
                                        -- TODO: revise all three of these to use entity-container
-   self._bench_ingredients = {}        -- A table of ingredients currently collected (TODO: how to sort by classes of materials?)
-   self._bench_outputs = {}           -- An array of finished products on the bench, to be added to the outbox. Nil if nothing.
+   self._bench_outputs = {}            -- An array of finished products on the bench, to be added to the outbox. Nil if nothing.
    self._outbox = {}                   -- An array of finished objects, ready to be used
 end
 
@@ -77,40 +76,23 @@ end
 ]]
 function Workshop:establish_next_craftable_recipe()
    assert(not self._curr_order, "Current order is not nil; do not get next item")
-   local order, remaining_ingredients = self._todo_list:get_next_task()
+   local order, ingredients = self._todo_list:get_next_task()
    self._curr_order = order
-   return self:_get_current_recipe(), remaining_ingredients
+   self._current_ingredients = ingredients
+   return self:_get_current_recipe(), ingredients
 end
 
 --[[
-   We store ingredients on the bench indexed by their material.
-   If there is already an item of that material on the
-   bench, just increment its amount # and add its entity to
-   the list of associated entities. If not, add a new one.
-   TODO: use entity_container
-   item: the actual entity of the ingredient
+   Returns an array of all the items currently on the bench.
 ]]
-function Workshop:add_ingredient_to_bench(item)
-   local material = item:get_component('item'):get_material()
-   if(self._bench_ingredients[material]) then
-      self._bench_ingredients[material].amount = self._bench_ingredients[material].amount + 1
-      table.insert(self._bench_ingredients[material].contents, item)
-   else
-      self._bench_ingredients[material] = {amount = 1, contents = {item} }
+function Workshop:get_items_on_bench()
+   local children = self:get_entity():add_component('entity_container'):get_children()
+   
+   local items = {}
+   for _, item in children:items() do
+      table.insert(items, item)
    end
-end
-
---[[
-   Given a type of object, determine the # of that
-   type on the bench.
-   material:   name of the material in question (wood, cloth)
-   returns:    num items of type item, or nil if none.
-]]
-function Workshop:num_ingredients_on_bench(material)
-   if not self._bench_ingredients[material] then
-      self._bench_ingredients[material] =  {amount = 0, contents = {} }
-   end
-   return self._bench_ingredients[material].amount
+   return items
 end
 
 --[[
@@ -121,11 +103,7 @@ end
             in the process of making something. False otherwise.
 ]]
 function Workshop:is_currently_crafting()
-   if self._intermediate_item then
-      return true
-   else
-      return false
-   end
+   return self._intermediate_item ~= nil
 end
 
 --[[
@@ -165,26 +143,20 @@ function Workshop:_create_intemediate_item()
    --verify that the ingredients for the curr recipe are on the bench
    assert(self:_verify_curr_recipe(), "Can't find all ingredients in recipe")
 
-   local recipe = self:_get_current_recipe()
-   for material, amount in radiant.resources.pairs(recipe.ingredients) do
-      --decrement the amount associated with the material
-      self._bench_ingredients[material].amount = self._bench_ingredients[material].amount - amount
-      local num_removed = 0
-
-      --remove ingredients from bench and from the world
-      while num_removed < amount do
-         local item_to_remove = table.remove(self._bench_ingredients[material].contents)
-         radiant.entities.remove_child(radiant._root_entity, item_to_remove)
-         num_removed = num_removed + 1
-      end
+   -- now we can destroy all the items on the bench and create an
+   -- intermediate item.
+   local items = self:get_items_on_bench()
+   for i, item in ipairs(items) do
+      radiant.entities.destroy_entity(item)
    end
-
+   
    --Create intermediate item (with progress) and place its entity in the world
-   self._intermediate_item = {progress = 0}
-   self._intermediate_item.entity = radiant.entities.create_entity(self._crafter:get_intermediate_item())
-
-   --TODO: use an entity container to put it right over the bench
-   radiant.terrain.place_entity(self._intermediate_item.entity, RadiantIPoint3(-12, -5, -12))
+   local intermediate_item = radiant.entities.create_entity(self._crafter:get_intermediate_item())
+   radiant.entities.add_child(self:get_entity(), intermediate_item, RadiantIPoint3(0, 1, 0))
+   self._intermediate_item = {
+      progress = 0,
+      entity = intermediate_item
+   }
    return self._intermediate_item
 end
 
@@ -193,18 +165,17 @@ end
    returns: True if all ingredients are on bench. False otherwise.
 ]]
 function Workshop:_verify_curr_recipe()
-   local recipe = self:_get_current_recipe()
-   if recipe then
-      for material, amount in radiant.resources.pairs(recipe.ingredients) do
-         if not (self:num_ingredients_on_bench(material) >= amount) then
+   if self._current_ingredients then
+      -- verify that all the items in the current ingredients are on the
+      -- bench, and nothing else!
+      local ec = self._entity:get_component('entity_container'):get_children()      
+      for _, ingredient in pairs(self._current_ingredients) do
+         if not ec:get(ingredient.item:get_id()) then
             return false
          end
       end
-      --Found all ingredients in for loop
-      return true
-   else
-      return false
-   end
+      return #self._current_ingredients == ec:size()
+   end   
 end
 
 --[[
@@ -212,11 +183,13 @@ end
    and place the workshop outputs into the world.
 ]]
 function Workshop:_crafting_complete()
-   radiant.entities.remove_child(radiant._root_entity, self._intermediate_item.entity)
+   radiant.entities.destroy_entity(self._intermediate_item.entity)
+   self._intermediate_item = nil
+
    self:_produce_outputs()
+   
    self._todo_list:chunk_complete(self._curr_order)
    self._curr_order = nil
-   self._intermediate_item = nil
 end
 
 --[[
@@ -241,8 +214,6 @@ end
 function Workshop:_get_current_recipe()
    if(self._curr_order) then
       return self._curr_order:get_recipe()
-   else
-      return nil
    end
 end
 

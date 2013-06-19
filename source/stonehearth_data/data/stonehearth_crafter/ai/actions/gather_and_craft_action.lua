@@ -32,18 +32,26 @@ end
 
    TODO: finalize the inventory/all_ing api
 ]]
-function GatherAndCraftAction:run(ai, entity, recipe, missing_ingredients)
-   local crafter_component = self._entity:get_component('mod://stonehearth_crafter/components/crafter.lua')
+function GatherAndCraftAction:run(ai, entity, recipe, ingredients)
+   local crafter_component = self._entity:get_component('mod://stonehearth_crafter/components/crafter_component.lua')
    local workshop = crafter_component:get_workshop()
-
-   for _, ing_data in ipairs(missing_ingredients) do
-      --TODO: replace with something like workshop:get_inbox_location()
-      local bench_location = RadiantIPoint3(-12, 1, -11)
-      ai:execute('stonehearth.activities.pickup_item', ing_data.item)
-      --TODO: calculate adjacent with pathfinder (this is a fake adjacent right now)
-      ai:execute('stonehearth.activities.goto_location', RadiantIPoint3(bench_location.x, bench_location.y, bench_location.z+1))
-      ai:execute('stonehearth.activities.drop_carrying', bench_location)
-      workshop:add_item_to_bench(ing_data.item)
+   local workshop_entity = workshop:get_entity()
+   local workshop_ec = workshop_entity:add_component('entity_container'):get_children()
+   for _, ing_data in ipairs(ingredients) do
+      local item = ing_data.item      
+      -- is the item already on the bench?  if so, there's nothing to do.
+      if not workshop_ec:get(item:get_id()) then
+         -- grab it!
+         ai:execute('stonehearth.activities.pickup_item', ing_data.item)
+         
+         -- bring it back!
+         ai:execute('stonehearth.activities.goto_entity', workshop_entity)
+         
+         -- drop it!!
+         ai:execute('stonehearth.activities.run_effect', 'carry_putdown_on_table')
+         radiant.entities.add_child(workshop_entity, item, RadiantIPoint3(0, 1, 0))
+         entity:get_component('carry_block'):set_carrying(nil)
+      end
    end
    -- Once everything's gathered, then craft
    ai:execute('stonehearth_crafter.activities.craft')

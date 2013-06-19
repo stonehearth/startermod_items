@@ -44,8 +44,11 @@ void LuaJobs::RegisterType(lua_State* L)
       ,
       class_<PathFinder, std::shared_ptr<PathFinder> >("PathFinder")
          .def(tostring(self))
+         .def("stop",               &PathFinder::Stop)
          .def("add_destination",    &PathFinder::AddDestination)
          .def("remove_destination", &PathFinder::RemoveDestination)
+         .def("set_solved_cb",      &PathFinder::SetSolvedCb)
+         .def("set_filter_fn",      &PathFinder::SetFilterFn)
          .def("get_solution",       &PathFinder::GetSolution)
          .def("set_reverse_search", &PathFinder::SetReverseSearch)
       ,

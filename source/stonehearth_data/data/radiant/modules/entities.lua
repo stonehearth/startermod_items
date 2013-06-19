@@ -173,11 +173,11 @@ end
    returns: entity that is being carried, nil otherwise
 ]]
 function entities.get_carrying(entity)
-   if entities.is_carrying(entity) then
-      return carry_block:get_carrying()
-   else
+   local carry_block = entity:get_component('carry_block')
+   if not carry_block then
       return nil
    end
+   return carry_block:is_carrying() and carry_block:get_carrying() or nil
 end
 
 --[[
@@ -195,7 +195,6 @@ function entities.is_carrying(entity)
    end
 
    return carry_block:is_carrying()
-
 end
 
 function entities.do_ability(entity, ability_name, ...)

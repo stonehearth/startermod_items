@@ -12,17 +12,26 @@ function CarpenterTest:__init()
    self:create_world()
 
    --Create the carpenter, bench, and instantiate them to each other
-   --TODO: can we do this via promote?
+   
    local carpenter = self:place_citizen(12, 12,'carpenter')
-   local carpenter_component = carpenter:get_component('mod://stonehearth_crafter/components/crafter.lua')
    local bench = self:place_item('mod://stonehearth_carpenter_class/entities/carpenter_workbench', -12, -12)
-   local workshop_component = bench:get_component('mod://stonehearth_crafter/components/workshop.lua')
+   
+   --TODO: can we do this via promote?
+   local carpenter_component = carpenter:get_component('mod://stonehearth_crafter/components/crafter_component.lua')   
+   local workshop_component = bench:get_component('mod://stonehearth_crafter/components/workshop_component.lua')
+   local faction = carpenter:get_component('unit_info'):get_faction()
+   bench:add_component('unit_info'):set_faction(faction)
    workshop_component:set_crafter(carpenter_component)
    carpenter_component:set_workshop(workshop_component)
+   -- end TODO
 
--- Tests!
+   -- put some items in the world
+   self:place_item_cluster('mod://stonehearth_trees/entities/oak_tree/oak_log', -10, 10, 3, 3)
+   self:place_item_cluster('mod://stonehearth_items/cloth_bolt', -7, 10, 2, 2)
 
- ---[[
+ -- Tests!
+
+   ---[[
    --500ms seconds in, create an order for a shield (multiple types of ingredients)
    self:at(500, function()
          --Programatically add items to the workbench's queue
@@ -34,9 +43,9 @@ function CarpenterTest:__init()
          local todo = workshop_component:ui_get_todo_list()
          todo:add_order(order)
       end)
---]]
+   --]]
 
----[[
+   ---[[
    --Create an order for a sword (multiple of single ingredient)
    self:at(1000, function()
          --Programatically add items to the workbench's queue
@@ -48,9 +57,9 @@ function CarpenterTest:__init()
          local todo = workshop_component:ui_get_todo_list()
          todo:add_order(order)
       end)
---]]
+   --]]
 
----[[
+   ---[[
    --Create an order for 2 swords (multiple items in one order)
    self:at(10000, function()
          --Programatically add items to the workbench's queue
@@ -62,8 +71,7 @@ function CarpenterTest:__init()
          local todo = workshop_component:ui_get_todo_list()
          todo:add_order(order)
       end)
---]]
-
+   --]]
 end
 
 return CarpenterTest

@@ -182,6 +182,15 @@ public:
    LuaPromise* LuaTrace(const char* reason) const {
       return new LuaPromise(*this, reason);
    }
+
+   static luabind::object LuaGet(struct lua_State* L, Map const& m, K const& k) {
+      auto i = m.items_.find(k);
+      if (i == m.items_.end()) {
+         return luabind::object();
+      }
+      return luabind::object(L, i->second);
+   }
+
    static luabind::scope RegisterLuaType(struct lua_State* L, const char* name) {
       using namespace luabind;
       std::string itername = std::string(name) + "Iterator";
@@ -191,6 +200,7 @@ public:
             .def(tostring(const_self))
             .def("size",              &Map::GetSize)
             .def("is_empty",          &Map::IsEmpty)
+            .def("get",               &Map::LuaGet)
             .def("items",             &Map::LuaIteratorStart)
             .def("trace",             &Map::LuaTrace)
          ,

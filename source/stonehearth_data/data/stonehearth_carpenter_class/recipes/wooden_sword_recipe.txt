@@ -2,9 +2,17 @@
  "type":"recipe", 
  "work_units": 3,
  "crafter":"carpenter",
- "ingredients": {
-    "wood": 3
-     },
+ "ingredients": [
+    {
+      "material" : "wood"      
+    },
+    {
+      "material" : "wood"      
+    },
+    {
+      "material" : "wood"      
+    }
+  ],
   "produces": [
       {
          "item":"mod://stonehearth_items/wooden_sword",

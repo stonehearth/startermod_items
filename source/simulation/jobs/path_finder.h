@@ -40,7 +40,10 @@ class PathFinder : public Job {
       virtual ~PathFinder();
 
       void AddDestination(om::EntityRef dst);
-      void RemoveDestination(om::EntityRef dst);
+      void RemoveDestination(dm::ObjectId id);
+      void Stop() { stopped_ = true; }
+      void SetSolvedCb(luabind::object solved);
+      void SetFilterFn(luabind::object dst_filter);
 
       PathPtr GetSolution() const;
 
@@ -48,6 +51,7 @@ class PathFinder : public Job {
       void SetReverseSearch(bool reversed);
       int EstimateCostToSolution();
       std::ostream& Format(std::ostream& o) const;
+
 
    public: // Job Interface
       bool IsIdle(int now) const override;
@@ -82,6 +86,7 @@ class PathFinder : public Job {
       bool                                         restart_search_;
       bool                                         search_exhausted_;
       bool                                         reversed_search_;
+      bool                                         stopped_;
       mutable PathPtr                              solution_;
       std::vector<math3d::ipoint3>                      open_;
       std::vector<math3d::ipoint3>                      closed_;

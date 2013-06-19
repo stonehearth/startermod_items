@@ -13,6 +13,7 @@ void Mob::RegisterLuaType(struct lua_State* L)
    module(L) [
       class_<Mob, std::weak_ptr<Component>>("Mob")
          .def("get_location",                &Mob::GetLocation)
+         .def("extend",                      &Mob::ExtendObject)
          .def("get_grid_location",           &Mob::GetGridLocation)
          .def("get_world_grid_location",     &Mob::GetWorldGridLocation)
          .def("get_world_location",          &Mob::GetWorldLocation)

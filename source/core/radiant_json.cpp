@@ -96,6 +96,9 @@ static void PushNode(lua_State* L, JSONNode const& node)
 class Iterator {
 public:
    Iterator(JSONNode const& node) : node_(node), i_(node.begin()) {
+      if (node.type() == JSON_ARRAY) {
+         index_ = 0;
+      }
    }
 
    virtual ~Iterator() {
@@ -104,7 +107,11 @@ public:
 
    int NextIteration(lua_State *L) const {
       if (i_ != node_.end()) {
-         luabind::object(L, i_->name()).push(L);
+         if (node_.type() == JSON_ARRAY) {
+            luabind::object(L, index_++).push(L);
+         } else {
+            luabind::object(L, i_->name()).push(L);
+         }
          //luabind::object(L, std::string("happy fun times")).push(L);
          LOG(WARNING) << "node: " << i_->write_formatted();
          PushNode(L, *i_);
@@ -119,6 +126,7 @@ private:
 
 private:
    JSONNode const& node_;
+   mutable int index_;
    mutable JSONNode::const_iterator i_;
 };
 

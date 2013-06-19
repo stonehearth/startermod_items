@@ -2,10 +2,14 @@
  "type":"recipe",
  "work_units": 3,
  "crafter":"carpenter",
- "ingredients": {
-    "wood": 1,
-    "cloth": 1
-     },
+ "ingredients": [
+    {
+      "material" : "wood"      
+    },
+    {
+      "material" : "cloth"
+    }
+  ],
   "produces": [
       {
          "item":"mod://stonehearth_items/wooden_buckler",

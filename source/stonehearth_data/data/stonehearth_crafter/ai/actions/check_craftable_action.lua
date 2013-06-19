@@ -43,7 +43,7 @@ CheckCraftableAction['radiant.events.gameloop'] = function(self)
 
    assert(not self._is_crafting,"Whoa! We're crafting? Stop the presses")
 
-   local crafter_component = self._entity:get_component('mod://stonehearth_crafter/components/crafter.lua')
+   local crafter_component = self._entity:get_component('mod://stonehearth_crafter/components/crafter_component.lua')
    local workshop = crafter_component:get_workshop()
 
    --TODO: Do some validation here, and then call self._ai:abort() when it's implemented

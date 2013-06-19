@@ -31,6 +31,10 @@ function Inventory:__init(faction)
    self._trace:on_removed(function (id, entity)
          self:_remove_entity_from_terrain(id, entity)
       end)
+   -- UGGGG. ITERATE THROUGH EVERY ITEM IN THE WORLD. =..(
+   for id, item in ec:items() do
+      self:_add_entity_to_terrain(id, item)
+   end
 end
 
 
@@ -109,6 +113,13 @@ function Inventory:find_backpath_to_item(source_entity, cb)
       cb(path)
    end
    self._all_items_backtracker:add_entity(source_entity, solved, nil)
+end
+
+function Inventory:find_path_to_item(source_entity, cb, filter)
+   local solved = function (path)
+      cb(path)
+   end
+   self._all_items_tracker:add_entity(source_entity, solved, filter)
 end
 
 function Inventory:find_item_to_restock(worker_entity, cb)

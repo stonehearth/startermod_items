@@ -16,8 +16,8 @@ function DropCarryingAction:run(ai, entity, location)
    if radiant.entities.is_carrying(entity) then
       --TODO: add this back when
       radiant.entities.turn_to_face(entity, location)
-      --ai:execute('stonehearth.activities.run_effect', 'carry_putdown')
-      ---[[
+      ai:execute('stonehearth.activities.run_effect', 'carry_putdown')
+      --[[
       --TODO: replace with ai:execute('stonehearth.activities.run_effect,''carry_putdown')
       --It does not seem to be working right now, but this does:
       self._effect = radiant.effects.run_effect(entity, 'carry_putdown')

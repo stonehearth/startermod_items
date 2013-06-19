@@ -79,19 +79,16 @@ void MultiPathFinder::AddDestination(om::EntityRef d)
    }
 }
 
-void MultiPathFinder::RemoveDestination(om::EntityRef d)
+void MultiPathFinder::RemoveDestination(dm::ObjectId id)
 {
    PROFILE_BLOCK();
 
-   auto dst = d.lock();
-   if (dst) {
-      auto i = destinations_.find(dst->GetObjectId());
-      if (i != destinations_.end()) {
-         destinations_.erase(i);
-      }
-      for (auto& entry : pathfinders_) {
-         entry.second->RemoveDestination(d);
-      }
+   auto i = destinations_.find(id);
+   if (i != destinations_.end()) {
+      destinations_.erase(i);
+   }
+   for (auto& entry : pathfinders_) {
+      entry.second->RemoveDestination(id);
    }
 }
 

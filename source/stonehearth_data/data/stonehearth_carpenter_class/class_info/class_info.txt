@@ -6,7 +6,7 @@
             "url(carpenter_outfit.qb)"
          ]
       },
-      "mod://stonehearth_crafter/components/crafter.lua" : {
+      "mod://stonehearth_crafter/components/crafter_component.lua" : {
          "work_effect" : "saw",
          "intermediate_item" : "mod://stonehearth_carpenter_class/entities/carpenter_intermediate_item"
       }

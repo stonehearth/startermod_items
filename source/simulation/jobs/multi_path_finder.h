@@ -18,7 +18,7 @@ class MultiPathFinder : public Job {
       void RemoveEntity(om::EntityId actor);
 
       void AddDestination(om::EntityRef dst);
-      void RemoveDestination(om::EntityRef dst);
+      void RemoveDestination(dm::ObjectId id);
       const DestinationMap& GetDestinations() const { return destinations_; }
 
       void SetReverseSearch(bool reversed);

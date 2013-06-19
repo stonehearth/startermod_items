@@ -8,7 +8,7 @@
           "mod://stonehearth_crafter/ai/actions/check_craftable_action.lua"
         ]
       },
-      "mod://stonehearth_crafter/components/crafter.lua" : {
+      "mod://stonehearth_crafter/components/crafter_component.lua" : {
       }
    }
 }
