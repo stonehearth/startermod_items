@@ -8,24 +8,8 @@
 #include "namespace.h"
 #include "math3d.h"
 #include "tesseract.pb.h"
-
-#define CATCH_LUA_ERROR(x) \
-   catch (luabind::cast_failed& e) { \
-      std::ostringstream out; \
-      LOG(WARNING) << "caught luabind::cast_failed."; \
-      out << "lua error " << x << ": " << e.what() << " in call " << e.info().name(); \
-      ScriptHost::GetInstance().OnError(out.str()); \
-   } catch (luabind::error& e) { \
-      std::ostringstream out; \
-      LOG(WARNING) << "caught luabind::error."; \
-      out << "lua error: " << x << " " << e.what() << ", " << lua_tostring(e.state(), -1) << std::endl; \
-      ScriptHost::GetInstance().OnError(out.str()); \
-   } catch (std::exception& e) { \
-      std::ostringstream out; \
-      LOG(WARNING) << "caught exception."; \
-      out << "error: " << e.what() << std::endl; \
-      ScriptHost::GetInstance().OnError(out.str()); \
-   }
+#include "radiant_json.h"
+#include "resources/animation.h"
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
 
@@ -44,7 +28,7 @@ struct ScriptError
 
 class ScriptHost {
 public:
-   ScriptHost(lua_State* L, std::string scriptRoot);
+   ScriptHost(lua_State* L);
    ~ScriptHost();
 
    static ScriptHost& GetInstance();
@@ -54,42 +38,30 @@ public:
    void SendMsg(om::EntityRef entity, std::string msg);
    void SendMsg(om::EntityRef entity, std::string msg, const luabind::object& arg0);
 
-   void Call(std::string fn, luabind::object arg1);
+   void Call(luabind::object fn, luabind::object arg1);
+   luabind::object LuaRequire(std::string name);
    
-   template <class T1, class T2>
-   void CallFunction(T1 fn, T2 arg1) {
-      try {
-         call_function<void>(fn, arg1);
-      } CATCH_LUA_ERROR("calling function...");
-   }
-   template <class T1, class T2, class T3>
-   void CallFunction(T1 fn, T2 arg1, T3 arg2) {
-      try {
-         call_function<void>(fn, arg1, arg2);
-      } CATCH_LUA_ERROR("calling function...");
-   }
-
    std::string DoAction(const tesseract::protocol::DoAction& msg);
    void CreateNew();
    void Update(int interval, int& currentGameTime);
+   void CallGameHook(std::string const& stage);
    void Idle(platform::timer &timer);
-   om::EntityPtr CreateEntity(std::string kind);
-   om::EntityPtr GetEntity(om::EntityId id) { auto i = entityMap_.find(id); return i == entityMap_.end() ? nullptr : i->second; }
+   om::EntityRef CreateEntity();
+   om::EntityRef GetEntity(om::EntityId id);
 
 private:
    static void* LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize);
 
    om::GridPtr CreateGrid();
-   om::EntityRef CreateEntityRef(std::string kind);
-   luabind::object GetEntityRef(om::EntityId id);
-   void InitEnvironment(std::string root);
-   void LoadScripts(std::string root, std::string directory);
-   void LoadScript(std::string path);
+   void InitEnvironment();
+   void LoadRecursive(std::string root, std::string directory);
+   luabind::object LoadScript(std::string path);
    luabind::object ConvertArg(const Protocol::Selection& arg);
 
    void RegisterScenario(luabind::object name, luabind::object scenario);
    void ReportError(luabind::object error);
-   luabind::object LookupResource(std::string name);
+   json::ConstJsonObject LoadJson(std::string uri);
+   resources::AnimationPtr LoadAnimation(std::string uri);
    void Log(std::string str);
 
 private:
@@ -100,7 +72,7 @@ private:
    std::shared_ptr<GotoLocation> CreateGotoLocation(om::EntityRef entity, float speed, const math3d::point3& location, float close_to_distance);
    std::shared_ptr<GotoLocation> CreateGotoEntity(om::EntityRef entity, float speed, om::EntityRef target, float close_to_distance);
    std::shared_ptr<MultiPathFinder> CreateMultiPathFinder(std::string name);
-   std::shared_ptr<PathFinder> CreatePathFinder(std::string name, om::EntityRef e);
+   std::shared_ptr<PathFinder> CreatePathFinder(std::string name, om::EntityRef e, luabind::object solved, luabind::object dst_filter);
    
 public:
    void OnError(std::string description);
@@ -113,7 +85,12 @@ private:
 
 private:
    lua_State*           L_;
-   std::map<om::EntityId, om::EntityPtr>  entityMap_;
+   lua_State*           cb_thread_;
+   luabind::object      api_;
+   luabind::object      game_;
+   luabind::object      game_ctor_;
+   std::map<std::string, luabind::object>    required_;
+   std::map<om::EntityId, om::EntityPtr>     entityMap_;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

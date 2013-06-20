@@ -182,6 +182,13 @@ Renderer::Renderer() :
    glfwSetMousePosCallback([](int x, int y) { Renderer::GetInstance().OnMouseMove(x, y); });
    glfwSetMouseButtonCallback([](int button, int press) { Renderer::GetInstance().OnMouseButton(button, press); });
    glfwSetRawInputCallback([](UINT msg, WPARAM wParam, LPARAM lParam) { Renderer::GetInstance().OnRawInput(msg, wParam, lParam); });
+   glfwSetWindowCloseCallback([]() -> int {
+      // die RIGHT NOW!!
+      LOG(WARNING) << "Bailing...";
+      TerminateProcess(GetCurrentProcess(), 1);
+      return true;
+   });
+   SetWindowPos(GetWindowHandle(), NULL, 0, 0 , 0, 0, SWP_NOSIZE);
 
    //glfwSwapInterval(1); // Enable VSync
 
@@ -248,7 +255,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    bool debug = (GetAsyncKeyState(VK_SPACE) & 0x8000) != 0;
    bool showStats = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
   
-   if ((GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0) {
+   if (false && (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0) {
       h3dSetNodeFlags(spotLight, 0, true);
       h3dSetNodeFlags(directionalLight, H3DNodeFlags::NoDraw, true);
    } else {
@@ -613,7 +620,7 @@ void Renderer::OnMouseWheel(int value)
    float d = dir.length();
 
    d = d + (-dWheel * 10.0f);
-   d = std::min(std::max(d, 5.0f), 3000.0f);
+   d = std::min(std::max(d, 0.1f), 3000.0f);
 
    dir.normalize();
    cameraPos_ = cameraTarget_ + dir * d;

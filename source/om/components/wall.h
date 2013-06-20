@@ -14,9 +14,6 @@ class Wall : public GridBuildOrder
 public:
    DEFINE_OM_OBJECT_TYPE(Wall);
 
-   Wall();
-   virtual ~Wall();
-
    void Create(PostPtr post1, PostPtr post2, const csg::Point3& normal);
    csg::Point3 GetNormal() const { return *normal_; }
    csg::Point3 GetSize() const { return *size_; }

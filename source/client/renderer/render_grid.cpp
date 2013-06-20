@@ -153,17 +153,28 @@ void RenderGrid::OnSelected(om::Selection& sel, const math3d::ray3& ray,
    if (grid) {
       math3d::ipoint3 brick;
 
-      for (int i = 0; i < 3; i++) {
-         // The brick origin is at the center of mass.  Adding 0.5f to the
-         // coordinate and flooring it should return a brick coordinate.
-         brick[i] = (int)std::floor(intersection[i] + 0.5f);
-
+      // Handle the x and z coordinates...
+      for (int i = 0; i < 3; i += 2) {
          // We want to choose the brick that the mouse is currently over.  The
          // intersection point is actually a point on the surface.  So to get the
          // brick, we need to move in the opposite direction of the normal
-         if (fabs(normal[i]) > k_epsilon) {
-            brick[i] += normal[i] > 0 ? -1 : 1;
+         if (normal[i] > k_epsilon) {
+            brick[i] = std::floor(intersection[i]);
+         } else if (normal[i] < k_epsilon) {
+            brick[i] = std::ceil(intersection[i]);
+         } else {
+            // The brick origin is at the center of mass.  Adding 0.5f to the
+            // coordinate and flooring it should return a brick coordinate.
+            brick[i] = (int)std::floor(intersection[i] + 0.5f);
          }
+      }
+      // handle the y coordinate.  the brick's origin is at y == 0
+      if (normal.y > k_epsilon) {
+         brick.y = std::floor(intersection.y - 0.1); // 0.1's significantly bigger than k_epsilon
+      } else if (normal.y < k_epsilon) {
+         brick.y = std::floor(intersection.y + 0.1); // 0.1's significantly bigger than k_epsilon
+      } else {
+         brick.y = std::floor(intersection.y);
       }
 
 #if 0

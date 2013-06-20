@@ -5,14 +5,6 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-Entity::Entity()
-{
-}
-
-Entity::~Entity()
-{
-}
-
 void Entity::InitializeRecordFields()
 {
    // LOG(WARNING) << "creating entity " << GetObjectId();

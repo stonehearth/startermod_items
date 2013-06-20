@@ -1,0 +1,20 @@
+{
+   "type": "entity",
+   "extends" : "mod://stonehearth_items/entities/item/item_properties.txt",
+   "components" : {
+      "item" : {
+        "material": "cloth",
+        "stacks": 10
+      },
+      "unit_info" : {
+         "name" :  "Bolt of Cloth",
+         "description" : "Shimmery."
+      },
+      "render_rig": {
+         "models": [
+            "url(cloth_bolt.qb)",
+         ]
+      }
+   }
+}
+

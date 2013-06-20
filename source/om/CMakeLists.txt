@@ -14,12 +14,12 @@ add_subdirectory(components)
 add_subdirectory(grid)
 
 add_library(om STATIC
+            pch.cpp
             entity.cpp
             om_alloc.cpp
             region.cpp
             selection.cpp
             stonehearth.cpp
-            pch.cpp
             )
 
 if (MSVC)

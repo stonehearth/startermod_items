@@ -249,6 +249,7 @@ luabind::scope Cube<S, C>::RegisterLuaType(struct lua_State* L, const char* name
          .property("max",     &Cube<S, C>::GetMax, &Cube<S, C>::SetMax)
          .property("tag",     &Cube<S, C>::GetTag, &Cube<S, C>::SetTag)
          .def("get_area",     &Cube<S, C>::GetArea)
+         .def("contains",     &Cube<S, C>::Contains)
          .def("width",        &Cube<S, C>::GetWidth) 
          .def("height",       &Cube<S, C>::GetHeight)
       ;

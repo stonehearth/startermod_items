@@ -1,6 +1,7 @@
 #pragma once
 #include "object.h"
 #include "store.pb.h"
+#include "radiant_luabind.h"
 #include "namespace.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
@@ -64,6 +65,60 @@ public:
          fn(value_);
       };
       return TraceObjectChanges(reason, cb);
+   }
+
+   class Promise
+   {
+   public:
+      Promise(const Boxed& c, const char* reason) {
+         guard_ = c.TraceValue(reason, [=](Boxed::ValueType const&) {
+            for (auto& cb : changedCbs_) {
+               luabind::call_function<void>(cb);
+            }
+         });
+      }
+      ~Promise() {
+         LOG(WARNING) << "killing Promise...";
+      }
+
+   public:
+      static void RegisterLuaType(struct lua_State* L) {
+         using namespace luabind;
+         module(L) [
+            class_<Promise>(typeid(Promise).name())
+               .def("on_changed",&Promise::PushChangedCb)
+               .def("destroy",   &Promise::Destroy)
+         ];
+      }
+
+   public:
+      void Destroy() {
+         guard_.Reset();
+         changedCbs_.clear();
+      }
+
+      Promise* PushChangedCb(luabind::object cb) {
+         changedCbs_.push_back(cb);
+         return this;
+      }
+
+   private:
+      dm::Guard                     guard_;
+      std::vector<luabind::object>  changedCbs_;
+   };
+
+   Promise* CreatePromise(const char* reason) const {
+      return new Promise(*this, reason);
+   }
+
+   static void RegisterLuaType(struct lua_State* L) {
+      using namespace luabind;
+      module(L) [
+         class_<Boxed>(typeid(Boxed).name())
+            .def(tostring(const_self))
+            .def("trace",             &Boxed::CreatePromise)
+      ];
+      Promise::RegisterLuaType(L);
    }
 
 private:

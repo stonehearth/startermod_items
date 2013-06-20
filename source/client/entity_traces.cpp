@@ -212,6 +212,7 @@ public:
    }
 };
 
+#if 0
 class ActionListComponentWriter : public ComponentWriter<om::ActionList>
 {
 public:
@@ -229,7 +230,9 @@ public:
             auto resource = resources.LookupResource(actionName);
             if (resource->GetType() == resources::Resource::JSON) {
                auto action = std::static_pointer_cast<resources::DataResource>(resource);
-               node.push_back(action->GetJson());
+               JSONNode n = action->GetJson();
+               n.push_back(JSONNode("action_uri", actionName));
+               node.push_back(n);
             }
          }
       };
@@ -237,6 +240,7 @@ public:
       ADD_GENERIC_COLLECTOR(om::ActionList, "actions", c, actionInstall, actionsWrite);
    }
 };
+#endif
 
 class ProfessionComponentWriter : public ComponentWriter<om::Profession>
 {
@@ -312,7 +316,7 @@ private:
       ADD_COMPONENT_COLLECTOR(UnitInfo,             "identity");
       ADD_COMPONENT_COLLECTOR(StockpileDesignation, "stockpile");
       ADD_COMPONENT_COLLECTOR(Item,                 "item");
-      ADD_COMPONENT_COLLECTOR(ActionList,           "action_list");
+//      ADD_COMPONENT_COLLECTOR(ActionList,           "action_list");
       ADD_COMPONENT_COLLECTOR(Profession,           "profession");
 
 #undef ADD_COMPONENT_COLLECTOR

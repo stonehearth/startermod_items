@@ -142,7 +142,6 @@ namespace radiant {
 
             void Reset();
             void UpdateSelection(const MouseInputEvent &mouse);
-            void UpdateSelectionBuildOrders(const MouseInputEvent &mouse);
             void CenterMap(const MouseInputEvent &mouse);
 
             typedef std::function<void (const tesseract::protocol::Reply&)> ReplyFn;

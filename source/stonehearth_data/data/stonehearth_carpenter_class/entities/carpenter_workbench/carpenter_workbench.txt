@@ -1,0 +1,22 @@
+{
+   "type": "entity",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Carpenter Workbench",
+         "description" : "Clean enough."
+      },
+      "render_rig": {
+         "models": [
+            "url(carpenter_bench.qb)",
+         ]
+      },
+      "destination" : {
+         "region" : [
+            [[0, 0, 1], [1, 1, 2]]
+         ]
+      },
+      "mod://stonehearth_crafter/components/workshop_component.lua" : {
+      }
+   }
+}
+

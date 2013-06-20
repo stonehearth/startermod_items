@@ -11,9 +11,6 @@ class FlatRoof : public GridBuildOrder
 public:
    DEFINE_OM_OBJECT_TYPE(FlatRoof);
 
-   FlatRoof();
-   virtual ~FlatRoof();
-
    void Create();
 
 public: // BuildOrder overrides

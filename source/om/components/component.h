@@ -6,6 +6,7 @@
 #include "dm/boxed.h"
 #include "dm/record.h"
 #include "om/all_object_types.h"
+#include "radiant_json.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
    
@@ -15,6 +16,7 @@ public:
    Component() { }
 
    static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
+   virtual void ExtendObject(json::ConstJsonObject const& obj) { }
 
    EntityPtr GetEntityPtr() const { return (*entity_).lock(); }
    EntityRef GetEntityRef() const { return (*entity_); }

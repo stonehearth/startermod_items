@@ -6,11 +6,6 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-EntityContainer::EntityContainer() :
-   children_()
-{
-}
-
 void EntityContainer::InitializeRecordFields()
 {
    Component::InitializeRecordFields();

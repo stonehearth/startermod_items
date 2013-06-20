@@ -15,8 +15,6 @@ class ResourceNode : public Component
 public:
    DEFINE_OM_OBJECT_TYPE(ResourceNode);
 
-   ResourceNode() : Component() { }
-
 public:
    std::vector<math3d::ipoint3> GetHarvestStandingLocations() const;
 

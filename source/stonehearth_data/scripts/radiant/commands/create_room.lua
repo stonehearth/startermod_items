@@ -2,7 +2,7 @@ local ch = require 'radiant.core.ch'
 local om = require 'radiant.core.om'
 
 ch:register_cmd("radiant.commands.create_room", function(bounds)
-   local entity = om:create_entity()
+   local entity = om:create_entity('mod://stonehearth/buildings/room_plan')
    om:add_component(entity, 'unit_info')
    om:set_display_name(entity, 'Room')
    om:set_description(entity, 'Warm and toasty inside')

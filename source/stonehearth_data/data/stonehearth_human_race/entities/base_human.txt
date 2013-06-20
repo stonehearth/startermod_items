@@ -1,0 +1,40 @@
+{
+   "type" : "entity",
+   "extends" : "mod://stonehearth/entities/mobile",
+   "components" : {
+	   "unit_info" : {
+		  "name": "Civilian",
+		  "description": "Citizen of your town",
+		  "faction": "civ"
+	   },
+	   "attributes" : {
+		  "ferocity": 1,
+		  "health": 50
+	   },
+	   "sensor_list" : {
+		  "sensors" : {
+			 "sight" : {
+				"type": "sensor",
+				"radius":   14
+			 }
+		  }
+	   },
+	   "ai" : {
+		  "actions" : [
+			 "mod://stonehearth/ai/actions/death_action.lua",
+			 "mod://stonehearth/ai/actions/idle_action.lua",
+			 "mod://stonehearth/ai/actions/follow_path_action.lua",
+			 "mod://stonehearth/ai/actions/goto_entity_action.lua",
+			 "mod://stonehearth/ai/actions/goto_location_action.lua",
+			 "mod://stonehearth/ai/actions/pickup_item_action.lua",
+			 "mod://stonehearth/ai/actions/drop_carrying_action.lua",
+          "mod://stonehearth/ai/actions/compel_to_action.lua"
+		  ]
+	   },
+      "render_rig": {
+         "animation_table" : "url(/rigs/male)"
+      },
+      "carry_block": {
+      }
+	}
+}

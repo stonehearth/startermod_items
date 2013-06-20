@@ -20,6 +20,7 @@
 #include <vector>
 #include <algorithm>
 
+struct glslopt_ctx;
 
 namespace Horde3D {
 
@@ -216,6 +217,7 @@ protected:
 	uint32                             _vbCone, _ibCone, _vbFSPoly;
 public:
    // needed to draw debug shapes in extensions!
+   glslopt_ctx*                       _glsl_opt_ctx;
 	ShaderCombination                  _defColorShader;
 	int                                _defColShader_color;  // Uniform location
 };

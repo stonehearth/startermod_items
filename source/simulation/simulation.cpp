@@ -22,8 +22,6 @@
 #include "native_commands/create_room_cmd.h"
 #include "jobs/job.h"
 
-//static const std::string scriptRoot_("C:\\Users\\ponder\\gamedev\\radiant\\projects\\tesseract\\source\\client\\assets\\script");
-static const std::string scriptRoot_(".\\scripts");
 static const int __initialCivCount = 3;
 
 using namespace ::radiant;
@@ -72,7 +70,7 @@ void Simulation::CreateNew()
 
    guards_ += store_.TraceDynamicObjectAlloc(std::bind(&Simulation::OnObjectAllocated, this, std::placeholders::_1));
 
-   scripts_.reset(new ScriptHost(L_, scriptRoot_));
+   scripts_.reset(new ScriptHost(L_));
    scripts_->CreateNew();
    now_ = 0;
 }
@@ -140,6 +138,14 @@ void Simulation::Step(platform::timer &timer, int interval)
 
    // Send out change notifications
    store_.FireTraces();
+
+   // One last opportunity for the script layer to do something.
+   // Some objects may accumulate state when traces fire (e.g.
+   // setting dirty bits).  This gives them an opportunity to
+   // actually change state before we push a change over the
+   // network or start doing some heavy lifting (like pathfinding
+   // jobs).
+   scripts_->CallGameHook("post_trace_firing");
 
    // Run jobs with the time left over
    ProcessJobList(now_, timer);
@@ -220,7 +226,7 @@ Physics::OctTree &Simulation::GetOctTree()
 
 om::EntityPtr Simulation::GetRootEntity()
 {
-   return scripts_->GetEntity(1);
+   return scripts_->GetEntity(1).lock();
 }
 
 dm::Store& Simulation::GetStore()
@@ -236,14 +242,10 @@ std::shared_ptr<MultiPathFinder> Simulation::CreateMultiPathFinder(std::string n
    return path;
 }
 
-std::shared_ptr<PathFinder> Simulation::CreatePathFinder(std::string name, om::EntityPtr entity)
+std::shared_ptr<PathFinder> Simulation::CreatePathFinder(std::string name, om::EntityRef entity, luabind::object solved, luabind::object dst_filter)
 {
-   auto mob = entity->GetComponent<om::Mob>();
-   std::shared_ptr<PathFinder> pf = std::make_shared<PathFinder>(name, true);
+   std::shared_ptr<PathFinder> pf = std::make_shared<PathFinder>(name, entity, solved, dst_filter);
    _pathFinders.push_back(pf);
-   if (mob) {
-      pf->Start(entity, mob->GetWorldGridLocation());
-   }
    return pf;
 }
 

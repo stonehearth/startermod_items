@@ -11,9 +11,6 @@ class Ladder : public BuildOrder
 public:
    DEFINE_OM_OBJECT_TYPE(Ladder);
 
-   Ladder();
-   virtual ~Ladder();
-
    void StartProject();
    void SetSupportStructure(WallPtr wall);
 

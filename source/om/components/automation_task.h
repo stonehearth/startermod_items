@@ -16,8 +16,6 @@ class AutomationTask : public Component
 public:
    DEFINE_OM_OBJECT_TYPE(AutomationTask);
 
-   AutomationTask() : Component() { }
-
    luabind::object GetHandler() const { return handler_; }
    void SetHandler(luabind::object handler) { handler_ = handler; }
 

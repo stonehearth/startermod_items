@@ -28,13 +28,17 @@ public:
       return items_.erase(i); // this is O(n) !!
    }
 
+   void Clear() {
+      while (!items_.empty()) {
+         Remove(items_.back());
+      }
+   }
    void Remove(const T& item) {
       // this could be faster...
-      auto i = std::find(items_.begin(), items_.end(), item);
-      if (i != items_.end()) {
-         stdutil::UniqueRemove(items_, item);         
-         stdutil::UniqueRemove(added_, item);
-         removed_.push_back(item);
+      if (stdutil::UniqueRemove(items_, item)) {
+         if (!stdutil::UniqueRemove(added_, item)) {
+            removed_.push_back(item);
+         }
          MarkChanged();
       }
    }
@@ -183,8 +187,8 @@ public:
             .def("__call",    &LuaIterator<decltype(items_)>::NextIteration)
          ,
          class_<LuaPromise>(itername.c_str())
-            .def("added",    &LuaPromise::PushAddedCb)
-            .def("removed",  &LuaPromise::PushRemovedCb)
+            .def("on_added",    &LuaPromise::PushAddedCb)
+            .def("on_removed",  &LuaPromise::PushRemovedCb)
             .def("destroy",  &LuaPromise::Destroy)
          ;
    }

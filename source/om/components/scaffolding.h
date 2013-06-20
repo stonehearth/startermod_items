@@ -11,9 +11,6 @@ class Scaffolding : public RegionBuildOrder
 public:
    DEFINE_OM_OBJECT_TYPE(Scaffolding);
 
-   Scaffolding();
-   virtual ~Scaffolding();
-
    void StartProject(WallPtr wall, const dm::CloneMapping& mapping);
    void SetRoof(GridBuildOrderPtr roof);
    csg::Point3 GetNormal() const;

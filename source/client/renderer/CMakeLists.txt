@@ -26,7 +26,8 @@ add_library(client_renderer STATIC
             render_scaffolding.cpp
 #            render_sensor.cpp
 #            render_structure.cpp
-            render_stockpile_designation.cpp
+            render_destination.cpp
+            render_stockpile.cpp
 #            render_storey.cpp
             texture_color_mapper.cpp
             qubicle_file.cpp

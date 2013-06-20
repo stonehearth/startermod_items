@@ -4,12 +4,26 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-Mob::Mob()
+void Mob::RegisterLuaType(struct lua_State* L)
 {
-}
+   using namespace luabind;
 
-Mob::~Mob()
-{
+   dm::Boxed<math3d::transform>::RegisterLuaType(L);
+
+   module(L) [
+      class_<Mob, std::weak_ptr<Component>>("Mob")
+         .def("get_location",                &Mob::GetLocation)
+         .def("extend",                      &Mob::ExtendObject)
+         .def("get_grid_location",           &Mob::GetGridLocation)
+         .def("get_world_grid_location",     &Mob::GetWorldGridLocation)
+         .def("get_world_location",          &Mob::GetWorldLocation)
+         .def("set_location",                &Mob::MoveTo)
+         .def("set_location_grid_aligned",   &Mob::MoveToGridAligned)
+         .def("turn_to",                     &Mob::TurnToAngle)
+         .def("turn_to_face_point",          &Mob::TurnToFacePoint)
+         .def("set_interpolate_movement",    &Mob::SetInterpolateMovement)
+         .def("get_boxed_transform",         &Mob::GetBoxedTransform)
+   ];
 }
 
 void Mob::InitializeRecordFields()
@@ -156,4 +170,13 @@ void Mob::SetInterpolateMovement(bool value)
 void Mob::SetParent(MobPtr parent)
 {
    parent_ = parent;
+}
+
+void Mob::ExtendObject(json::ConstJsonObject const& obj)
+{
+   JSONNode const& node = obj.GetNode();
+   auto i = node.find("interpolate_movement");
+   if (i != node.end()) {
+      SetInterpolateMovement(i->as_bool());
+   }
 }

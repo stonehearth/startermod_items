@@ -39,14 +39,6 @@ std::string Terrain::ToString() const
    return os.str();
 }
 
-Terrain::Terrain()
-{
-}
-
-Terrain::~Terrain()
-{
-}
-
 void Terrain::CreateNew()
 {
 }

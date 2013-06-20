@@ -9,7 +9,6 @@
 #include "types.h"
 #include "skeleton.h"
 #include "render_component.h"
-#include "resources/data_resource.h"
 #include "resources/animation.h"
 #include "om/components/effect_list.h"
 
@@ -34,7 +33,7 @@ private:
    int            startTime_;
    float          duration_;
    std::string    animationName_;
-   std::shared_ptr<resources::Animation>  animation_;
+   resources::AnimationPtr  animation_;
 };
 
 struct RenderAttachItemEffect : public RenderEffect {

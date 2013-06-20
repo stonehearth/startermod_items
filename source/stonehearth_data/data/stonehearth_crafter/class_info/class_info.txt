@@ -1,0 +1,14 @@
+{
+   "components" : {
+      "ai" : {
+        "actions" : [
+          "mod://stonehearth_crafter/ai/actions/fill_outbox_action.lua",
+          "mod://stonehearth_crafter/ai/actions/gather_and_craft_action.lua",
+          "mod://stonehearth_crafter/ai/actions/craft_action.lua",
+          "mod://stonehearth_crafter/ai/actions/check_craftable_action.lua"
+        ]
+      },
+      "mod://stonehearth_crafter/components/crafter_component.lua" : {
+      }
+   }
+}

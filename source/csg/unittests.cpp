@@ -1,8 +1,9 @@
 #include "radiant.h"
-#include "radiant_test.h"
+//#include "radiant_test.h"
+#include <gtest/gtest.h>
 #include "region.h"
 
-RADIANT_DEFINE_TEST(csg)
+//RADIANT_DEFINE_TEST(csg)
 
 using namespace ::radiant::csg;
 
@@ -27,4 +28,3 @@ TEST(RegionTest, SubtractCube) {
       }
    }
 }
-

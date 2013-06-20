@@ -3,35 +3,31 @@
 
 #include "math3d.h"
 #include "simulation/namespace.h"
-#include "destination.h"
 #include "om/om.h"
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
 
 class Path {
    public:
-      Path(const PointList& points, om::EntityRef source, DestinationPtr destination) :
+      Path(const std::vector<math3d::ipoint3>& points, om::EntityRef source, om::EntityRef destination) :
          points_(points),
          source_(source),
          destination_(destination)
       {
       }
 
-      const std::vector<math3d::ipoint3> &GetPoints() const {
+      std::vector<math3d::ipoint3> const& GetPoints() const {
          return points_;
       }
 
-      DestinationPtr GetDestination() const {
-         return destination_;
-      }
-
-      om::EntityRef GetEntity() const { return source_; }
+      om::EntityRef GetDestination() const { return destination_; }
+      om::EntityRef GetSource() const { return source_; }
       std::ostream& Format(std::ostream& os) const;
 
    protected:
-      PointList               points_;
-      om::EntityRef           source_;
-      DestinationPtr          destination_;
+      std::vector<math3d::ipoint3>  points_;
+      om::EntityRef                 source_;
+      om::EntityRef                 destination_;
 };
 
 typedef std::weak_ptr<Path> PathRef;

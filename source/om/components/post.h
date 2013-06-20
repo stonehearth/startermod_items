@@ -21,9 +21,6 @@ class Post : public GridBuildOrder
 public:
    DEFINE_OM_OBJECT_TYPE(Post);
 
-   Post();
-   virtual ~Post();
-
    void Create(int height);
    void StartProject(const dm::CloneMapping& mapping) override;
 

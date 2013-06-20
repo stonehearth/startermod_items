@@ -106,8 +106,15 @@ function ObjectModel:get_root_entity()
    return self._root_entity
 end
 
-function ObjectModel:place_on_terrain(entity, location)
+function ObjectModel:place_on_terrain(entity, arg1, arg2, arg3)
    check:is_entity(entity)
+   
+   local location
+   if type(arg1) == 'number' then
+      location = RadiantIPoint3(arg1, arg2, arg3)
+   else
+      location = arg1
+   end   
    check:is_a(location, RadiantIPoint3)
    
    self:add_child_to_entity(self._root_entity, entity, location)
@@ -193,6 +200,9 @@ function ObjectModel:destroy_entity(entity)
 end
 
 function ObjectModel:get_component(entity, name)
+   if name == 'transform' then
+      name = 'mob'
+   end
    check:is_entity(entity)
    check:verify(ObjectModel.AllComponents[name])
    if self:has_component(entity, name) then
@@ -799,17 +809,6 @@ function ObjectModel:set_target(entity, target)
       end
    end
 end
-
-
-
-local all_build_orders = {
-   'wall',
-   'floor',
-   'scaffolding',
-   'post',
-   'peaked_roof',
-   'fixture'
-}
 
 function ObjectModel:get_build_order(entity)
    for _, name in ipairs(all_build_orders) do

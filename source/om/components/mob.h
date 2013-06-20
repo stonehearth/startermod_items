@@ -17,9 +17,8 @@ class Mob : public Component
 {
 public:
    DEFINE_OM_OBJECT_TYPE(Mob);
-
-   Mob();
-   virtual ~Mob();
+   static void RegisterLuaType(struct lua_State* L);
+   void ExtendObject(json::ConstJsonObject const& obj) override;
 
    void MoveTo(const math3d::point3& location);
    void MoveToGridAligned(const math3d::ipoint3& location);
@@ -46,6 +45,8 @@ public:
    bool InterpolateMovement() const;
    bool IsSelectable() const;
    void SetInterpolateMovement(bool value);
+
+   dm::Boxed<math3d::transform> const& GetBoxedTransform() const { return transform_; }
 
 private:
    friend EntityContainer;

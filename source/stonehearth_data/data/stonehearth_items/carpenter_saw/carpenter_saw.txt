@@ -1,0 +1,16 @@
+{
+   "type": "entity",
+   "extends" : "mod://stonehearth_items/entities/item/item_properties.txt",
+   "components" : {
+      "unit_info" : {
+         "name" :  "The Saw",
+         "description" : "The foundation of civilization"
+      },
+      "render_rig": {
+         "models": [
+            "url(carpenter_saw.qb)",
+         ]
+      }
+   }
+}
+

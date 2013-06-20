@@ -22,9 +22,6 @@ public:
    static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
    std::string ToString() const;
 
-   Terrain();
-   virtual ~Terrain();
-
    enum TerrainTypes {
       Null        = 0,
       Magma       = 1,

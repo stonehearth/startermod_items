@@ -31,7 +31,7 @@
       OM_OBJECT(TargetTable,        target_table) \
       OM_OBJECT(TargetTableGroup,   target_table_group) \
       OM_OBJECT(TargetTableEntry,   target_table_entry) \
-      OM_OBJECT(CombatAbility,      combat_ability) \
+      OM_OBJECT(LuaComponent,       lua_component) \
 
 #endif
 

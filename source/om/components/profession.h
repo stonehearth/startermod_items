@@ -18,8 +18,6 @@ class Profession : public Component
 public:
    DEFINE_OM_OBJECT_TYPE(Profession);
 
-   Profession() { }
-
    const dm::Set<std::string>& GetLearnedRecipies() const { return learnedReceipes_; }
 
    void LearnReceipe(std::string value) { learnedReceipes_.Insert(value); }

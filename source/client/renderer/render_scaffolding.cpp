@@ -74,12 +74,9 @@ void RenderScaffolding::UpdateRegion(const csg::Region3& region)
          return;
       }
       std::string uri = e->GetResourceUri();
-      auto resource = resources::ResourceManager2::GetInstance().Lookup<resources::DataResource>(uri);
-      if (!resource) {
-         return;
-      }
 
-      JSONNode data = json::get<JSONNode>(resource->GetJson(), "data");
+      JSONNode const& res = resources::ResourceManager2::GetInstance().LookupJson(uri);
+      JSONNode data = json::get<JSONNode>(res, "data");
       JSONNode models = json::get<JSONNode>(data, "models");
       
 
@@ -93,22 +90,20 @@ void RenderScaffolding::UpdateRegion(const csg::Region3& region)
                // the top slice.
                continue;
             }
-            std::string segment;
-#if 1
-            segment = json::get<std::string>(models, "plank");
-#else
+            std::ostringstream segment;
+            segment << uri << "/";
             if (isTop) {
                if (isInner) {
-                  segment << "models/scaffolding/scaffold_top.scene.xml";
+                  segment << "plank.qb";
                } else {
-                  segment << "models/scaffolding/scaffold_top_" << (p[tangent] % 4) << ".scene.xml";
+                  segment << "top_" << (p[tangent] % 4) << ".qb";
                }
             } else {
-               segment << "models/scaffolding/scaffold_" << (p[tangent] % 4) << "_" << (p[1] % 4) << ".scene.xml";
+               segment << "row" << (p[1] % 4) << "_" << (p[tangent] % 4) << ".qb";
             }
-#endif
+            LOG(WARNING) << segment.str();
 
-            auto nodes = Pipeline::GetInstance().LoadQubicleFile(segment);
+            auto nodes = Pipeline::GetInstance().LoadQubicleFile(segment.str());
             if (!nodes.empty()) {
                H3DNode node = nodes.begin()->second;
                h3dSetNodeParent(node, blocksNode_);

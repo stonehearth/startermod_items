@@ -23,8 +23,6 @@ public:
 
    typedef dm::Map<dm::ObjectId, std::weak_ptr<Entity>> Container;
 
-   EntityContainer();
-
    const Container& GetChildren() const { return children_; }
 
    void AddChild(om::EntityRef child);

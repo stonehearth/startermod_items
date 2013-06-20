@@ -23,8 +23,6 @@ public:
    DEFINE_OM_OBJECT_TYPE(Sensor);
    static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
 
-   Sensor() : dm::Record() { }
-
    om::EntityRef GetEntity() const { return *entity_; }
    void SetEntity(om::EntityRef e) { entity_ = e; }
 
@@ -69,8 +67,7 @@ class SensorList : public Component
 public:
    DEFINE_OM_OBJECT_TYPE(SensorList);
    static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
-
-   SensorList() { }
+   void ExtendObject(json::ConstJsonObject const& obj) override;
 
    const dm::Map<std::string, SensorPtr>& GetSensors() const { return sensors_; }
 

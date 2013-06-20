@@ -1,0 +1,10 @@
+{
+   "type": "entity",
+   "unit_info": {
+      "name": "A Cozy Room ",
+      "description": "..."
+   },
+   "action_list" : [
+      "url(/actions/start_project.txt)"
+   ]
+}

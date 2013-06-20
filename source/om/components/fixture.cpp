@@ -7,12 +7,6 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-Fixture::Fixture() :
-   BuildOrder()
-{
-   LOG(WARNING) << "creating new fixture...";
-}
-
 void Fixture::InitializeRecordFields()
 {
    BuildOrder::InitializeRecordFields();
@@ -20,6 +14,11 @@ void Fixture::InitializeRecordFields()
    AddRecordField("reserved", reserved_);
    AddRecordField("kind",     kind_);
    AddRecordField("standing", standingRegion_);
+}
+
+void Fixture::ExtendObject(json::ConstJsonObject const& obj)
+{
+   kind_ = obj.get<std::string>("item", *kind_);
 }
 
 bool Fixture::NeedsMoreWork()
@@ -68,7 +67,7 @@ void Fixture::CompleteTo(int percent)
    if (percent >= 100) {
       auto ec = GetEntity().AddComponent<EntityContainer>();
       if (ec->GetChildren().GetSize() == 0) {
-         EntityPtr item = Stonehearth::CreateEntity(GetStore(), GetItemKind());
+         EntityPtr item = Stonehearth::CreateEntityLegacyDIEDIEDIE(GetStore(), GetItemKind());
          SetItem(item);
       }
    }

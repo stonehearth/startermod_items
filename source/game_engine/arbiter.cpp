@@ -41,7 +41,8 @@ void arbiter::GetConfigOptions(po::options_description& options)
 {
    po::options_description o("Server options");
    o.add_options()
-      ("game.noidle", po::bool_switch(&config_.noidle), "suspend the idle loop, running the game as fast as possible.")
+      ("game.noidle",   po::bool_switch(&config_.noidle), "suspend the idle loop, running the game as fast as possible.")
+      ("game.script",   po::value<std::string>()->default_value("stonehearth://game.lua"), "the game script to load")
       ("game.travel_speed_multiplier", po::value<float>()->default_value(0.4f), "multiplier for unit travelling speed")
       ;
    options.add(o);
@@ -60,6 +61,8 @@ void arbiter::Run(lua_State* L)
    main();
 }
 
+extern "C" int luaopen_lpeg (lua_State *L);
+
 void arbiter::Start(lua_State* L)
 {
    L_ = L;
@@ -67,6 +70,7 @@ void arbiter::Start(lua_State* L)
       L_ = lua_newstate(LuaAllocFn, this);
 
 	   luaL_openlibs(L_);
+      luaopen_lpeg(L_);
    }
    luabind::open(L_);
    luabind::bind_class_info(L_);

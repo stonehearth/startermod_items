@@ -105,14 +105,19 @@ public:
          i_ = container_.begin();
       }
 
-      void NextIteration(lua_State *L, luabind::object s, luabind::object var) {
+      static int NextIteration(lua_State *L) {
+         LuaIterator* iter = object_cast<LuaIterator*>(object(from_stack(L, -2)));
+         return iter->Next(L);
+      }
+
+      int Next(lua_State *L) {
          if (i_ != container_.end()) {
             luabind::object(L, i_->first).push(L);
             luabind::object(L, i_->second).push(L);
             i_++;
-            return;
+            return 2;
          }
-         lua_pushnil(L);
+         return 0;
       }
 
    private:
@@ -123,19 +128,19 @@ public:
    static void LuaIteratorStart(lua_State *L, const Map& s)
    {
       using namespace luabind;
-      object(L, new LuaIterator<decltype(items_)>(s.items_)).push(L); // f
-      object(L, 1).push(L); // s (ignored)
+      lua_pushcfunction(L, &LuaIterator<decltype(items_)>::NextIteration); // f
+      object(L, new LuaIterator<decltype(items_)>(s.items_)).push(L); // s
       object(L, 1).push(L); // var (ignored)
    }
 
    class LuaPromise
    {
    public:
-      LuaPromise(const Map& c) {
+      LuaPromise(const Map& c, const char* reason) {
          auto changed = std::bind(&LuaPromise::OnChange, this, std::placeholders::_1, std::placeholders::_2);
          auto removed = std::bind(&LuaPromise::OnRemove, this, std::placeholders::_1);
 
-         guard_ = c.TraceMapChanges("map promise", changed, removed);
+         guard_ = c.TraceMapChanges(reason, changed, removed);
       }
 
       ~LuaPromise() {
@@ -174,9 +179,18 @@ public:
       std::vector<luabind::object>  removedCbs_;
    };
 
-   LuaPromise* CreateLuaPromise() const {
-      return new LuaPromise(*this);
+   LuaPromise* LuaTrace(const char* reason) const {
+      return new LuaPromise(*this, reason);
    }
+
+   static luabind::object LuaGet(struct lua_State* L, Map const& m, K const& k) {
+      auto i = m.items_.find(k);
+      if (i == m.items_.end()) {
+         return luabind::object();
+      }
+      return luabind::object(L, i->second);
+   }
+
    static luabind::scope RegisterLuaType(struct lua_State* L, const char* name) {
       using namespace luabind;
       std::string itername = std::string(name) + "Iterator";
@@ -186,16 +200,16 @@ public:
             .def(tostring(const_self))
             .def("size",              &Map::GetSize)
             .def("is_empty",          &Map::IsEmpty)
+            .def("get",               &Map::LuaGet)
             .def("items",             &Map::LuaIteratorStart)
-            .def("trace",             &Map::CreateLuaPromise)
+            .def("trace",             &Map::LuaTrace)
          ,
          class_<LuaIterator<decltype(items_)>>(itername.c_str())
-            .def("__call",    &LuaIterator<decltype(items_)>::NextIteration)
          ,
          class_<LuaPromise>(itername.c_str())
-            .def("added",    &LuaPromise::PushAddedCb)
-            .def("removed",  &LuaPromise::PushRemovedCb)
-            .def("destroy",  &LuaPromise::Destroy)
+            .def("on_added",    &LuaPromise::PushAddedCb)
+            .def("on_removed",  &LuaPromise::PushRemovedCb)
+            .def("destroy",  &LuaPromise::Destroy) // xxx: make this __gc!!
          ;
    }
 

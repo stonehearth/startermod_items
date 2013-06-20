@@ -19,8 +19,7 @@ class Attributes : public Component
 {
 public:
    DEFINE_OM_OBJECT_TYPE(Attributes);
-
-   Attributes() { }
+   void ExtendObject(json::ConstJsonObject const& obj) override;
 
    int GetAttribute(std::string name) const;
    bool HasAttribute(std::string name) const;

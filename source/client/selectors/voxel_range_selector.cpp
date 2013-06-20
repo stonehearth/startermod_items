@@ -19,6 +19,7 @@ VoxelRangeSelector::VoxelRangeSelector(om::TerrainPtr terrain) :
 {
    SetDimensions(2);
    _shape = h3dRadiantAddDebugShapes(H3DRootNode, "voxel range selector");
+   LOG(WARNING) << "creating shape for voxel range selector " << _shape;
 }
 
 VoxelRangeSelector::VoxelRangeSelector(om::TerrainPtr terrain, Selector::SelectionFn fn) :   
@@ -32,6 +33,7 @@ VoxelRangeSelector::VoxelRangeSelector(om::TerrainPtr terrain, Selector::Selecti
    RegisterSelectionFn(fn);
 
    _shape = h3dRadiantAddDebugShapes(H3DRootNode, "voxel range selector");
+   LOG(WARNING) << "creating shape for voxel range selector " << _shape;
 }
 
 VoxelRangeSelector::~VoxelRangeSelector()
@@ -72,6 +74,7 @@ void VoxelRangeSelector::Prepare()
       math3d::aabb box;
       GetDrawBox(box);
 
+      LOG(WARNING) << "updating shape for voxel range selector " << _shape << " " << box;
       h3dRadiantClearDebugShape(_shape);
       h3dRadiantAddDebugBox(_shape, box, math3d::color4(_color.r, _color.b, _color.g, 255));
       h3dRadiantCommitDebugShape(_shape);
@@ -110,6 +113,7 @@ void VoxelRangeSelector::Deactivate()
       h3dRemoveNode(_shape);
       Renderer::GetInstance().RemoveInputEventHandler(_inputHandlerId);
       _inputHandlerId = 0;
+      _shape = 0;
    }
    _selectionFn = nullptr;
    feedbackFn_ = nullptr;

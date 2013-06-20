@@ -10,6 +10,13 @@ using namespace ::radiant;
 using namespace ::radiant::simulation;
 using namespace ::luabind;
 
+static std::unordered_map<std::string, std::string> LuaComponentAliases__;
+
+void LuaObjectModel::SetLuaComponentAlias(ScriptHost const&, const char* name, const char* value)
+{
+   LuaComponentAliases__[std::string(name)] = value;
+}
+
 om::TargetTableEntryRef TargetTableEntrySetValue(om::TargetTableEntryPtr in, int value) 
 { 
    in->SetValue(value);
@@ -60,12 +67,12 @@ public:
 
    void OnMapChange(const typename T::KeyType& key, const typename T::ValueType& value) {
       for (auto& cb : changedCbs_) {
-         ScriptHost::GetInstance().CallFunction(cb, key, value);
+         luabind::call_function<void>(cb, key, value);
       }
    }
    void OnMapRemove(const typename T::KeyType& key)  {
       for (auto& cb : removedCbs_) {
-         ScriptHost::GetInstance().CallFunction(cb, key);
+         luabind::call_function<void>(cb, key);
       }
    }
 
@@ -104,12 +111,12 @@ public:
 
    void OnSetChange(const typename T::ValueType& value) {
       for (auto& cb : changedCbs_) {
-         ScriptHost::GetInstance().CallFunction(cb, value);
+         luabind::call_function<void>(cb, value);
       }
    }
    void OnSetRemove(const typename T::ValueType& value)  {
       for (auto& cb : removedCbs_) {
-         ScriptHost::GetInstance().CallFunction(cb, value);
+         luabind::call_function<void>(cb, value);
       }
    }
 
@@ -146,7 +153,7 @@ public:
 
    void OnChange(const typename T::ValueType& value) {
       for (auto& cb : changedCbs_) {
-         ScriptHost::GetInstance().CallFunction(cb, value);
+         luabind::call_function<void>(cb, value);
       }
    }
 
@@ -158,26 +165,9 @@ private:
 typedef SetPromise<om::BuildOrders::BuildOrderList> BuildOrdersBuildOrderListPromise;
 typedef MapPromise<om::EntityContainer::Container> EntityContainerChildrenPromise;
 
-void IterateEntityContainerChildren(lua_State* L, om::EntityContainer& container, object fn)
-{
-   for (const auto& entry : container.GetChildren()) {
-      ScriptHost::GetInstance().CallFunction(fn, entry.first, entry.second);
-   }
-}
-
-EntityContainerChildrenPromise* TraceEntityContainerChildren(lua_State* L, om::EntityContainer& container)
-{
-   return new EntityContainerChildrenPromise(container.GetChildren());
-}
-
 BuildOrdersBuildOrderListPromise* TraceBuildOrdersInProgress(lua_State* L, om::BuildOrders& buildOrders)
 {
    return new BuildOrdersBuildOrderListPromise(buildOrders.GetInProgress());
-}
-
-BoxedPromise<dm::Boxed<om::MobRef>>* TraceMobParent(lua_State* L, om::Mob& mob)
-{
-   return new BoxedPromise<dm::Boxed<om::MobRef>>(mob.parent_);
 }
 
 template <class T>
@@ -273,6 +263,102 @@ bool EntityHasComponent(om::EntityRef e)
    return entity && entity->GetComponent<T>() != nullptr;
 }
 
+static luabind::object
+EntityGetNativeComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
+{
+#define OM_OBJECT(Clas, lower)  \
+   if (name == #lower) { \
+      auto component = entity->GetComponent<om::Clas>(); \
+      if (!component) { \
+         return luabind::object(); \
+      } \
+      return luabind::object(L, std::weak_ptr<om::Clas>(component)); \
+   }
+   OM_ALL_COMPONENTS
+#undef OM_OBJECT
+   return luabind::object();
+}
+
+static luabind::object
+EntityGetLuaComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
+{
+   om::LuaComponentsPtr component = entity->GetComponent<om::LuaComponents>();
+   if (component) {
+      om::LuaComponentPtr lua_component = component->GetLuaComponent(name.c_str());
+      if (lua_component) {
+         return lua_component->GetLuaObject();
+      }
+   }
+   return luabind::object();
+}
+
+luabind::object
+EntityGetComponent(lua_State* L, om::EntityRef e, std::string name)
+{
+   auto entity = e.lock();
+   if (entity) {
+      auto i = LuaComponentAliases__.find(name);
+      if (i != LuaComponentAliases__.end()) {
+         name = i->second;
+      }
+      if (boost::starts_with(name, "mod://")) {
+         return EntityGetLuaComponent(L, entity, name);
+      }
+      return EntityGetNativeComponent(L, entity, name);
+   }
+   return luabind::object();
+}
+
+static luabind::object
+EntityAddNativeComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
+{
+#define OM_OBJECT(Clas, lower)  \
+   if (name == #lower) { \
+      auto component = entity->AddComponent<om::Clas>(); \
+      return luabind::object(L, std::weak_ptr<om::Clas>(component)); \
+   }
+   OM_ALL_COMPONENTS
+#undef OM_OBJECT
+   return luabind::object();
+}
+
+static luabind::object
+EntityAddLuaComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
+{
+   luabind::object result;
+   om::LuaComponentsPtr component = entity->AddComponent<om::LuaComponents>();
+   om::LuaComponentPtr lua_component = component->GetLuaComponent(name.c_str());
+   if (!lua_component) {
+      luabind::object ctor = ScriptHost::GetInstance().LuaRequire(name);
+      if (ctor) {
+         lua_component = component->AddLuaComponent(name.c_str());         
+
+         luabind::object obj = luabind::call_function<luabind::object>(ctor, om::EntityRef(entity));
+         obj["__native_component"] = luabind::object(L, om::LuaComponentRef(lua_component));
+         lua_component->SetLuaObject(obj);
+      }
+   }
+   return lua_component ? lua_component->GetLuaObject() : luabind::object();
+}
+
+luabind::object
+EntityAddComponent(lua_State* L, om::EntityRef e, std::string name)
+{
+   auto entity = e.lock();
+   if (entity) {
+      auto i = LuaComponentAliases__.find(name);
+      if (i != LuaComponentAliases__.end()) {
+         name = i->second;
+      }
+      if (boost::starts_with(name, "mod://")) {
+         return EntityAddLuaComponent(L, entity, name);
+      }
+      return EntityAddNativeComponent(L, entity, name);
+   }
+   return luabind::object();
+}
+
+
 template <typename T>
 class DmIterator
 {
@@ -323,6 +409,7 @@ void LuaObjectModel::RegisterType(lua_State* L)
 #define ADD_OM_COMPONENT(Cls) \
          ADD_OM_CLASS(Cls) \
          .def("get_entity",            &om::Cls::GetEntityRef) \
+         .def("extend",                &om::Cls::ExtendObject) \
 
 // Things that do work...
 // 1) class_<om::BuildOrder, std::weak_ptr<om::BuildOrder> >("BuildOrder")
@@ -366,13 +453,11 @@ void LuaObjectModel::RegisterType(lua_State* L)
          ,
       ADD_OM_CLASS(Entity)
          .def("get_debug_name",  &om::Entity::GetDebugName)
-         .def("get_uri",         &om::Entity::GetResourceUri)
-#define OM_OBJECT(Clas, lower)  \
-         .def("has_" #lower "_component" , &EntityHasComponent<om::Clas>) \
-         .def("get_" #lower "_component" , &om::Entity::GetComponentRef<om::Clas>) \
-         .def("add_" #lower "_component" , &om::Entity::AddComponentRef<om::Clas>) 
-         OM_ALL_COMPONENTS
-#undef OM_OBJECT
+         .def("set_debug_name",  &om::Entity::SetDebugName)
+         .def("get_resource_uri",&om::Entity::GetResourceUri)
+         .def("set_resource_uri",&om::Entity::SetResourceUri)
+         .def("get_component" ,  &EntityGetComponent)
+         .def("add_component" ,  &EntityAddComponent)
       ,
       ADD_OM_CLASS(Grid)
          .def("set_bounds",            &om::Grid::setBounds)
@@ -387,9 +472,6 @@ void LuaObjectModel::RegisterType(lua_State* L)
       ADD_OM_COMPONENT(Clock)
          .def("set_time",              &om::Clock::SetTime)
          .def("get_time",              &om::Clock::GetTime)
-         ,
-      ADD_OM_COMPONENT(ActionList)
-         .def("add_action",            &om::ActionList::AddAction)
          ,
       ADD_OM_CLASS(Effect)
          .def("get_name",              &om::Effect::GetName)
@@ -415,22 +497,6 @@ void LuaObjectModel::RegisterType(lua_State* L)
       ADD_OM_COMPONENT(GridCollisionShape)
          .def("set_grid",              &om::GridCollisionShape::SetGrid)
          ,
-      ADD_OM_COMPONENT(Mob)
-         .def("get_location",                &om::Mob::GetLocation)
-         .def("get_grid_location",           &om::Mob::GetGridLocation)
-         .def("get_world_grid_location",     &om::Mob::GetWorldGridLocation)
-         .def("get_world_location",          &om::Mob::GetWorldLocation)
-         .def("set_location",                &om::Mob::MoveTo)
-         .def("set_location_grid_aligned",   &om::Mob::MoveToGridAligned)
-         .def("turn_to",                     &om::Mob::TurnToAngle)
-         .def("turn_to_face_point",          &om::Mob::TurnToFacePoint)
-         .def("set_interpolate_movement",    &om::Mob::SetInterpolateMovement)
-         .def("trace_parent",                &TraceMobParent)
-         ,
-      class_<BoxedPromise<dm::Boxed<om::MobRef>>>("TraceMobParentPromise")
-         .def("changed",   &BoxedPromise<dm::Boxed<om::MobRef>>::ChangedPromise)
-         .def("destroy",   &BoxedPromise<dm::Boxed<om::MobRef>>::Destroy)
-         ,
       ADD_OM_COMPONENT(Item)
          //.def("get_kind",              &om::Item::GetKind)
          //.def("set_kind",              &om::Item::SetKind)
@@ -444,13 +510,14 @@ void LuaObjectModel::RegisterType(lua_State* L)
       ADD_OM_COMPONENT(RenderRig)
          .def("add_rig",               &om::RenderRig::AddRig)
          .def("remove_rig",            &om::RenderRig::RemoveRig)
+         .def("set_animation_table",   &om::RenderRig::SetAnimationTable)
+         .def("get_animation_table",   &om::RenderRig::GetAnimationTable)
          .def("get_rigs",              &om::RenderRig::GetRigs)
          ,
       ADD_OM_COMPONENT(EntityContainer)
          .def("add_child",             &om::EntityContainer::AddChild)
          .def("remove_child",          &om::EntityContainer::RemoveChild)
-         .def("trace_children",        TraceEntityContainerChildren)
-         .def("iterate_children",      IterateEntityContainerChildren)
+         .def("get_children",          &om::EntityContainer::GetChildren)
          ,
       ADD_OM_COMPONENT(CarryBlock)
          .def("get_carrying",          &om::CarryBlock::GetCarrying)
@@ -464,13 +531,6 @@ void LuaObjectModel::RegisterType(lua_State* L)
          .def("get_description",       &om::UnitInfo::GetDescription)
          .def("set_faction",           &om::UnitInfo::SetFaction)
          .def("get_faction",           &om::UnitInfo::GetFaction)
-      ,
-      ADD_OM_COMPONENT(ResourceNode)
-         .def("get_harvest_locations", &om::ResourceNode::GetHarvestStandingLocations)
-         .def("get_resource",          &om::ResourceNode::GetResource)
-         .def("set_resource",          &om::ResourceNode::SetResource)
-         .def("get_durability",        &om::ResourceNode::GetDurability)
-         .def("set_durability",        &om::ResourceNode::SetDurability)
       ,
       ADD_OM_COMPONENT(Room)
          .def("set_bounds",            &om::Room::SetBounds)
@@ -586,14 +646,14 @@ void LuaObjectModel::RegisterType(lua_State* L)
       om::WeaponInfo::RegisterLuaType(L, "WeaponInfo"),
       om::Sensor::RegisterLuaType(L, "Sensor"),
       om::SensorList::RegisterLuaType(L, "SensorList"),
-      om::CombatAbility::RegisterLuaType(L, "CombatAbility"),
-      om::CombatAbilityList::RegisterLuaType(L, "CombatAbilityList"),
       om::StockpileDesignation::RegisterLuaType(L, "StockpileDesignation"),
       om::Terrain::RegisterLuaType(L, "Terrain"),
+      om::LuaComponents::RegisterLuaType(L, "LuaComponents"),
 
       dm::Set<om::EntityId>::RegisterLuaType(L, "Set<EntityId>"),
       dm::Set<std::string>::RegisterLuaType(L, "Set<String>"),
-      dm::Map<int, om::EntityRef>::RegisterLuaType(L, "Map<int,EntityRef>"),
-      dm::Map<std::string, om::CombatAbilityPtr>::RegisterLuaType(L, "Map<string,CombatAbilityPtr>")
+	  om::EntityContainer::Container::RegisterLuaType(L, "EntityChildrenContainerMap")
    ];
+   om::Mob::RegisterLuaType(L),
+   om::Destination::RegisterLuaType(L);
 }

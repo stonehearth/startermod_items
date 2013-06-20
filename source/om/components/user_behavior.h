@@ -14,7 +14,6 @@ class UserBehavior : public dm::Record
 {
 public:
    DEFINE_OM_OBJECT_TYPE(UserBehavior);
-   UserBehavior() : dm::Record() { }
 
 public:
    std::string GetScriptName() const;

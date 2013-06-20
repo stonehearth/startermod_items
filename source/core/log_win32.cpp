@@ -27,9 +27,9 @@ static void redirect_io_to_console()
    wcscpy(fontinfo.FaceName, L"Lucidia Console");
    ::SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), false, &fontinfo);
 
-   //freopen("conin$","r", stdin);
-   //freopen("conout$","w",stdout);
-   //freopen("conout$","w",stderr);
+   freopen("conin$","r", stdin);
+   freopen("conout$","w",stdout);
+   freopen("conout$","w",stderr);
 }
 #pragma warning(pop)
 
