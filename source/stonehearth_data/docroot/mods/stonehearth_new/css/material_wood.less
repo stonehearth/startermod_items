@@ -1,0 +1,77 @@
+
+// Basic colors
+// -------------------------
+@woodDarkestColor:      #1c1b1b;
+
+.wood {
+   background: url(images/wood/backgrounds/bg.png) repeat;
+   border-width: 13px 13px 31px 13px;
+   border-image: url(images/wood/backgrounds/slate.png) 13 13 31 13 repeat;
+   padding: 0px;
+   margin: 0px;
+   color: #fff;
+
+   b {
+   	 color: @blackColor;
+       font-weight: bold;
+   }
+
+   button {
+      background: #7e8994;
+      border-width: 15px;
+      border-image: url(images/wood/button/button.png) 15 15 15 15 repeat;
+      padding: 0px;
+      margin: 0px;
+      text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.8);
+      color: @gold;
+
+      &:hover { 
+         color: @hoverColor;
+      }
+   }
+
+   .frame {
+      background: #3b352c;
+      background-clip: content-box;
+      border-width: 25px;
+      border-image: url(images/wood/backgrounds/frame_border.png) 25 25 25 25 repeat;
+   }
+
+   .accordion {
+      .blackBorder;
+      background: #000;
+      border-image: none;
+
+      .accordion-group {
+         -webkit-border-radius: 0px;
+         border: 0px;
+
+         .accordion-heading {
+            .controlFont;
+            background: #75684d;
+            border-style: solid;
+            border-width: 9px 12px 9px 12px;
+            padding: 0px;
+            border-image: url(images/wood/accordion/accordion_heading.png) 9 12 9 12 repeat;
+         }
+
+         .accordion-toggle {
+            padding: 0px;
+         }
+
+         .in {
+            //background: red;
+            color: red;
+            height: 200px !important;
+            overflow-y: auto;
+         }
+
+         .accordion-inner {
+            border: 0px;
+            background: @woodDarkestColor;
+         }
+
+      }
+
+   }
+}

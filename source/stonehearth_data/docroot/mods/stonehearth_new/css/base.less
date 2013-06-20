@@ -6,7 +6,8 @@
 	color: @baseFontColor;
 	font-family: @baseFontFamily;
 	font-size: @baseFontSize;
-	text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.3);
+	letter-spacing: 0px;
+	
 }
 
 .boldFont {
@@ -14,8 +15,19 @@
 	font-weight: normal;
 }
 
+.controlFont {
+	.outlined;
+	color: @controlFontColor;
+	font-size: @controlFontSize;
+	font-family: @controlFontFamily;
+
+	a {
+		color: @controlFontColor;
+	}
+}
+
 .smallFont {
-	font-size: 14px;
+	font-size: .7em;
 }
 
 .outlined {
@@ -34,6 +46,9 @@
 	cursor: url('images/cursors/Finalhand.cur'), default; 
 }
 
+.blackBorder {
+	border: 3px solid #000;
+}
 
 body {
 	.baseFont;

@@ -3,6 +3,7 @@ App.Route.buildRoutes(function() {
 	var router = this;
 
 	this.route("game");
+	
 /*
   // Topic routes
   this.resource('topic', { path: '/t/:slug/:id' }, function() {
