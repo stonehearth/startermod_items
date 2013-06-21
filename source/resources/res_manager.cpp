@@ -8,6 +8,7 @@
 #include <boost/network/uri/uri_io.hpp>
 #include <boost/tokenizer.hpp>
 #include "radiant.h"
+#include "radiant_file.h"
 #include "radiant_json.h"
 #include "res_manager.h"
 #include "animation.h"
@@ -74,9 +75,10 @@ static std::string Checksum(std::string input)
 
 AnimationPtr ResourceManager2::LoadAnimation(network::uri::uri const& canonical_uri) const
 {
-   JSONNode node = LoadJson(canonical_uri);
+   std::ifstream json_in;
+   OpenResource(canonical_uri.string(), json_in);
 
-   std::string jsonfile = node.write();
+   std::string jsonfile = io::read_contents(json_in);
    std::string jsonhash = Checksum(jsonfile);
    fs::path binfile = fs::path(resource_dir_) / (jsonhash + std::string(".bin"));
 
@@ -93,6 +95,7 @@ AnimationPtr ResourceManager2::LoadAnimation(network::uri::uri const& canonical_
       in.close();
    }
    if (buffer.empty()) {
+      JSONNode node = libjson::parse(jsonfile);
       std::string type = json::get<std::string>(node, "type", "");
       if (type.empty()) {
          throw InvalidResourceException(canonical_uri, "'type' field missing");
