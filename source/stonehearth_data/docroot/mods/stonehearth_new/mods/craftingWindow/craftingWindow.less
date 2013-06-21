@@ -10,12 +10,22 @@
 	top: 40px;
 	left: 10px;
 
+	.craftRadioButton {
+		margin-top: -2px;
+	}
+
+	.craftNumericSelect {
+		width: 35px;
+		margin-top: 0px;
+		margin-bottom: 0px;
+	}
+
 	#recipeList {
 		.smallFont;
 
 		position: absolute;
 		top: 60px;
-		bottom:60px;
+		bottom:100px;
 		left: 10px;
 		width: 200px;
 
@@ -31,7 +41,7 @@
 		top: 60px;
 		left: 230px;
 		right: 10px;
-		bottom: 60px;
+		bottom: 100px;
 
 		padding: 8px;
 		background: #fff;
@@ -41,11 +51,78 @@
 	#order {
 		position: absolute;
 		bottom: 10px;
+		left: 10px;
 		right: 10px;
+		height: 70px;
+
+		#conditionDiv {
+			float: left;
+			width: 400px;
+			padding-left: 10px;
+
+			label {
+				font-size: 16px;
+				width: 450px;
+			}
+		}
 
 		#craftButton {
 			float: right;
 			width: 120px;
+			height: 80px;
 		}
+	}
+}
+
+#workOrderWindow {
+	padding-left: 12px;
+	width: 200px;
+	height: 385px;
+	position: absolute;
+	top: 45px;
+	left: 640px;
+
+	#orderListUpBtn {
+		position: absolute;
+		top: -30px;
+		left: 100px;
+		height: 50px;
+		background-color: orange;
+	}
+
+	#orderListDownBtn {
+		position: absolute;
+		top: 400px;
+		left: 100px;
+		height: 50px;
+		background-color: orange;
+	}
+
+	#currentOrdersList {
+		list-style-type: none;
+		height: 400px;
+		overflow: auto;
+		margin: 0;
+		padding: 0;
+
+  		li {
+  			margin: 0 3px 3px 3px;
+  			padding: 0.4em;
+  			padding-left:
+  			1.5em;
+  			font-size: 1.4em;
+  			height: 18px;
+
+	  		span {
+	  			position: absolute;
+	  			margin-left: -1.3em;
+	  		}
+
+  		}
+	}
+	#currentOrdersList::-webkit-scrollbar { width: 0 }
+
+	#garbageList {
+		height: 100px;
 	}
 }

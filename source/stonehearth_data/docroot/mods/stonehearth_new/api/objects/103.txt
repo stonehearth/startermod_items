@@ -1,0 +1,4 @@
+{
+    "name": "Shortbow",
+    "description": "Point away from self before shooting."
+}

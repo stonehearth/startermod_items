@@ -1,12 +1,31 @@
 {
-    "recipes": [
+    "recipe_groups": [
         {
-            "name": "Small Wooden Table",
-            "id": 100
+            "category": "Weapons",
+            "recipes" : [
+                {
+                    "name": "Wooden Practice Sword",
+                    "id": 101
+                },
+                {
+                    "name": "Small Wooden Shield",
+                    "id": 102
+                },
+                {
+                    "name": "Shortbow",
+                    "id": 103
+                }
+            ]
         },
         {
-            "name": "Wooden Practice Sword",
-            "id": 101
+            "category": "Furniture",
+            "recipes" : [
+                {
+                    "name" : "Small Wooden Table",
+                    "id": 100
+                }
+            ]
+
         }
     ]
 }

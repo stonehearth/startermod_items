@@ -1,0 +1,21 @@
+{
+    "orders": [
+        {
+            "name": "Swords",
+            "id": 101,
+            "condition": {
+                "type": "amount",
+                "total": 5,
+                "status": 2
+            }
+        },
+        {
+            "name": "Shields",
+            "id": 102,
+            "condition": {
+                "type": "mantain",
+                "total": 5
+            }
+        }
+    ]
+}

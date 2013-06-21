@@ -1,29 +1,80 @@
 <script type="text/x-handlebars" data-template-name="craftingWindow">
-  <div id="craftingWindow">
-    <h1>{{unit_info.name}}</h1>
-    <small>{{unit_info.description}}</small>
+   <div id="workOrderWindow">
+      {{partial 'orderListTemplate'}}
+   </div>
 
-    <div id="recipeList">
-      {{#each crafter_info.recipes}}
-      	<a href="#" {{action select id target="view"}}>{{name}}</a>
-    	<br>
-      {{/each}}
-    </div>
+   <div id="craftingWindow">
+      <h1>{{unit_info.name}}</h1>
+      <small>{{unit_info.description}}</small>
 
-    <div id="details">
-      {{render 'details' current}}
-    </div>
+      <div id="recipeList">
+         <div id="recipeAccordion">
+            {{partial 'recipeAccordionTemplate'}}
+         </div>
+      </div>
 
-    <div id="order">
-      <button class='btn' {{action "craft" target="view"}} id="craftButton">craft!</button>
-    </div>
-  </div>
+      <div id="details">
+         {{render 'details' current}}
+      </div>
+
+      <div id="order">
+         {{partial 'finalOptionsTemplate'}}
+      </div>
+   </div>
 </script>
 
+<!--Template for everything regarding the order list-->
+<script type="text/x-handlebars" data-template-name="_orderListTemplate">
+   <a id="orderListUpBtn"  class="droptrue">Scroll Up</a>
+   <ul id="currentOrdersList">
+   {{#each queue_info.orders}}
+      <li><a href="#" {{action select id target="view"}}>{{name}}</a></li>
+   {{/each}}
+   </ul>
+   <a id="orderListDownBtn">Scroll Down</a>
+   Garbage Can!!!
+   <ul id="garbageList" class="droptrue">
+   </ul>
+</script>
+
+<!--Template for the accordion-->
+<script type="text/x-handlebars" data-template-name="_recipeAccordionTemplate">
+   {{#each crafter_info.recipe_groups}}
+   <h3>{{category}}</h2>
+   <div>
+      {{#each recipes}}
+      <a href="#" {{action select id target="view"}}>{{name}}</a>
+      <br>
+      {{/each}}
+   </div>
+   {{/each}}
+</script>
+
+<!--Template for the details window-->
 <script type="text/x-handlebars" data-template-name="details">
-  <b>{{model.name}}</b>
-  <p>
-    {{model.description}}
-  </p>
+   <b>{{model.name}}</b>
+   <p>
+      {{model.description}}
+   </p>
+</script>
+
+<!--Template for the options and craft button-->
+<script type="text/x-handlebars" data-template-name="_finalOptionsTemplate">
+   <div id = "conditionDiv">
+      <label>
+         <input type="radio" name="conditionGroup" value="make" class="craftRadioButton">
+         {{i18n craftingWindow:craftNumber}}
+         <input type="number" name="quantityToMake" value="1" min="1" max="99" class="craftNumericSelect">
+         {{i18n craftingWindow:craftNow}}
+      </label>
+      <label>
+
+         <input type="radio" name="conditionGroup" value="mantain" class="craftRadioButton" checked>
+         {{i18n craftingWindow:craftUpTo}}
+         <input type="number" name="quantityToMantain" value="1" min="1" max="99" class="craftNumericSelect" >
+         {{i18n craftingWindow:craftForTown}}
+      </label>
+   </div>
+   <button class='btn' {{action "craft" target="view"}} id="craftButton">craft!</button>
 </script>
 

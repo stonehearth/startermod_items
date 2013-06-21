@@ -1,5 +1,6 @@
 {
     "id": 1,
     "unit_info": "mod://10",
-    "crafter_info": "mod://11"
+    "crafter_info": "mod://11",
+    "queue_info": "mod://12"
 }
