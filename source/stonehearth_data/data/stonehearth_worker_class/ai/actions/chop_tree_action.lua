@@ -31,7 +31,7 @@ function ChopTreeAction:_start_search()
    self._ai:set_action_priority(self, 0)
    
    inventory:find_path_to_tree(self._entity, function(path)
-         assert(self._entity:get_id() == path:get_entity():get_id())
+         assert(self._entity:get_id() == path:get_source():get_id())
          self._path = path
          self._ai:set_action_priority(self, 10)
       end)
@@ -39,8 +39,7 @@ end
 
 function ChopTreeAction:run(ai, entity)
    assert(self._path)
-   local destination = self._path:get_destination()
-   local tree = destination:get_entity()
+   local tree = self._path:get_destination()
 
    ai:execute('stonehearth.activities.follow_path', self._path)
    radiant.entities.turn_to_face(entity, tree)
