@@ -2,7 +2,6 @@
 #include "client.h" 
 #include "application.h"
 #include "resources/res_manager.h"
-#include "httpd/server.h"
 #include <thread>
 #include <fstream>
 #include <boost/filesystem.hpp>
@@ -100,20 +99,15 @@ int Application::run(lua_State* L, int argc, const char** argv)
 
 int Application::Start(lua_State* L)
 {
-   httpd::Server server;
-
    const char *docroot = configvm["ui.docroot"].as<std::string>().c_str();
    const char *port = "1336";
    
    std::thread client([&]() {
       Client::GetInstance().run();
    });
-   server.Start(docroot, port);
 
    game_engine::arbiter::GetInstance().Run(L);
    client.join();
-
-   server.Stop();
 
    return 0;
 }
