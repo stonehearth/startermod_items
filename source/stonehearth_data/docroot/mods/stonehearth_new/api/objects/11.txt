@@ -1,31 +1,37 @@
 {
     "recipe_groups": [
         {
-            "category": "Weapons",
-            "recipes" : [
-                {
-                    "name": "Wooden Practice Sword",
-                    "id": 101
-                },
-                {
-                    "name": "Small Wooden Shield",
-                    "id": 102
-                },
-                {
-                    "name": "Shortbow",
-                    "id": 103
-                }
-            ]
-        },
-        {
             "category": "Furniture",
             "recipes" : [
                 {
                     "name" : "Small Wooden Table",
-                    "id": 100
+                    "id": "http://localhost/api/objects/100.txt"
                 }
             ]
-
+        },
+        {
+            "category": "Weapons & Armor",
+            "recipes" : [
+                {
+                    "name": "Wooden Practice Sword",
+                    "id": "http://localhost/api/objects/101.txt"
+                },
+                {
+                    "name": "Small Wooden Shield",
+                    "id": "http://localhost/api/objects/102.txt"
+                },
+                {
+                    "name": "Shortbow",
+                    "id": "http://localhost/api/objects/103.txt"
+                }
+            ]
+        },
+        {
+            "category": "Building Materials"
+        },
+        {
+            "category": "Fun Stuff"
         }
+
     ]
 }

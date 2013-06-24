@@ -3,10 +3,16 @@
 // -------------------------
 @woodDarkestColor:      #1c1b1b;
 
+.woodsimple {
+   border-width: 13px 13px 31px 13px;
+   border-image: url(images/wood/backgrounds/slate_simple.png) 13 13 31 13 repeat;
+}
+
 .wood {
    background: url(images/wood/backgrounds/bg.png) repeat;
-   border-width: 13px 13px 31px 13px;
-   border-image: url(images/wood/backgrounds/slate.png) 13 13 31 13 repeat;
+   background-clip: content-box;
+   border-width: 15px 21px 60px 21px;
+   border-image: url(images/wood/backgrounds/slate.png) 15 21 60 21 repeat;
    padding: 0px;
    margin: 0px;
    color: #fff;
@@ -16,10 +22,10 @@
        font-weight: bold;
    }
 
-   button {
+   button_hide {
       background: #7e8994;
       border-width: 15px;
-      border-image: url(images/wood/button/button.png) 15 15 15 15 repeat;
+      border-image: url(images/wood/controls/button/normal_button_border.png) 15 15 15 15 repeat;
       padding: 0px;
       margin: 0px;
       text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.8);
@@ -31,10 +37,44 @@
    }
 
    .frame {
-      background: #3b352c;
-      background-clip: content-box;
-      border-width: 25px;
+      color: @controlFontColor;
       border-image: url(images/wood/backgrounds/frame_border.png) 25 25 25 25 repeat;
+
+      small {
+         font-size: 20px;
+         color: @controlLightFontColor;
+      }
+   }
+
+   .ui-accordion {
+      border: 8px solid #000;
+      background: @woodDarkestColor;
+
+      .ui-accordion-header {
+         .control;
+         background: #75684d;
+         border: 0px;
+         //border-width: 9px 12px 9px 12px;
+         //border-image: url(images/wood/accordion/accordion_heading.png) 9 12 9 12 repeat;
+         margin: 0 0 1px 0;
+         line-height: 1.8em;
+         padding-left: 8px;
+
+      }
+
+      h3 {
+            font-weight: normal;
+            letter-spacing: 0px;
+            color: @controlLightFontColor !important;
+      }
+
+      .ui-accordion-content {
+         padding-left: 8px;
+         padding-top: 12px;
+         a {
+            color: #fff;
+         }
+      }
    }
 
    .accordion {

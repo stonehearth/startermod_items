@@ -1,30 +1,16 @@
 
 .parchment {
-   background: #red;
-   border-width: 20px;
-   border-image: url(images/stone/medium-frame.png) 15 15 15 15 repeat;
-   padding: 0px;
-   margin: 0px;
-   //text-shadow: -1px -1px 0px rgba(0, 0, 0, 0.8);
-   color: #9a9fa3;
+   color: #000;
+   font-size: 20px;
+   font-family: @serifFontFamily !important;
 
-   b {
-       .outlined;
-       color: @gold;
-   }
-
-   button {
-      font-family: 'BerlinSansFB';
-      background: #7e8994;
-      border-width: 15px;
-      border-image: url(images/button/button.png) 15 15 15 15 repeat;
-      padding: 0px;
-      margin: 0px;
-      text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.8);
-      color: @gold;
-
-      &:hover { 
-         color: @hoverColor;
-      }
+   h1 {
+      .noOutline;
+      color: #000;
+      font-family: @serifFontFamily !important;
+      font-size: 30px;
+      font-weight: bold;
+      text-align: center;
+      padding-bottom: 10px;
    }
 }

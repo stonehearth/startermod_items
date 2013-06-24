@@ -1,16 +1,15 @@
 <script type="text/x-handlebars" data-template-name="craftingWindow">
-   <div id="workOrderWindow">
-      {{partial 'orderListTemplate'}}
-   </div>
+   
+   {{partial 'orderList'}}   
 
    <div id="craftingWindow">
-      <h1>{{unit_info.name}}</h1>
-      <small>{{unit_info.description}}</small>
+      <div class="frame">
+        {{unit_info.name}}<br>
+        <small>{{unit_info.description}}</small>
+      </div>
 
       <div id="recipeList">
-         <div id="recipeAccordion">
-            {{partial 'recipeAccordionTemplate'}}
-         </div>
+         {{partial 'recipeAccordion'}}
       </div>
 
       <div id="details">
@@ -18,63 +17,79 @@
       </div>
 
       <div id="order">
-         {{partial 'finalOptionsTemplate'}}
+         {{partial 'orderOptions'}}
       </div>
    </div>
 </script>
 
 <!--Template for everything regarding the order list-->
-<script type="text/x-handlebars" data-template-name="_orderListTemplate">
-   <a id="orderListUpBtn"  class="droptrue">Scroll Up</a>
-   <ul id="currentOrdersList">
-   {{#each queue_info.orders}}
-      <li><a href="#" {{action select id target="view"}}>{{name}}</a></li>
-   {{/each}}
-   </ul>
-   <a id="orderListDownBtn">Scroll Down</a>
-   Garbage Can!!!
-   <ul id="garbageList" class="droptrue">
-   </ul>
+<script type="text/x-handlebars" data-template-name="_orderList">
+   <div id="orderList">
+
+      <div id="orders">
+      {{#each queue_info.orders}}
+         <div class="orderListItem">
+            <a href="#" {{action select id target="view"}}>{{name}}</a>
+         </div>
+      {{/each}}
+      </div>
+
+      <a id="orderListUpBtn" {{action scrollOrderListUp target="view"}}><img src="/mods/craftingWindow/images/queue_up_arrow.png"></a>
+      <a id="orderListDownBtn" {{action scrollOrderListDown target="view"}} ><img src="/mods/craftingWindow/images/queue_down_arrow.png"></a>
+   
+      <ul id="garbageList" class="droptrue">
+      </ul>
+   </div>
 </script>
 
 <!--Template for the accordion-->
-<script type="text/x-handlebars" data-template-name="_recipeAccordionTemplate">
-   {{#each crafter_info.recipe_groups}}
-   <h3>{{category}}</h2>
-   <div>
-      {{#each recipes}}
-      <a href="#" {{action select id target="view"}}>{{name}}</a>
-      <br>
+<script type="text/x-handlebars" data-template-name="_recipeAccordion">
+   <div id="recipeAccordion">
+      {{#each crafter_info.recipe_groups}}
+         <h3>{{category}}</h3>
+         <div>
+            {{#each recipes}}
+               <a href="#" {{action select id target="view"}}>{{name}}</a>
+               <br>
+            {{/each}}
+         </div>
       {{/each}}
    </div>
-   {{/each}}
 </script>
 
 <!--Template for the details window-->
 <script type="text/x-handlebars" data-template-name="details">
-   <b>{{model.name}}</b>
-   <p>
-      {{model.description}}
-   </p>
+   <div>
+      <h1>{{model.name}}</h1>
+      <p>
+         {{model.description}}
+      </p>
+   </div>      
 </script>
 
 <!--Template for the options and craft button-->
-<script type="text/x-handlebars" data-template-name="_finalOptionsTemplate">
-   <div id = "conditionDiv">
-      <label>
-         <input type="radio" name="conditionGroup" value="make" class="craftRadioButton">
-         {{i18n craftingWindow:craftNumber}}
-         <input type="number" name="quantityToMake" value="1" min="1" max="99" class="craftNumericSelect">
-         {{i18n craftingWindow:craftNow}}
-      </label>
-      <label>
+<script type="text/x-handlebars" data-template-name="_orderOptions">
+   <div id="orderOptions">
+      <table>
+         <tr><td>
+            <input type="radio" name="conditionGroup" value="make" class="craftRadioButton" id="make" checked>
+            <label for="make" style='width:auto;'>{{i18n craftingWindow:craftNumber}}</label>
+         <td>
+            <input type="number" name="quantityToMake" value="1" min="1" max="99" class="craftNumericSelect">
+         </td></tr>
+      </table>
 
-         <input type="radio" name="conditionGroup" value="mantain" class="craftRadioButton" checked>
-         {{i18n craftingWindow:craftUpTo}}
-         <input type="number" name="quantityToMantain" value="1" min="1" max="99" class="craftNumericSelect" >
-         {{i18n craftingWindow:craftForTown}}
-      </label>
+      <table>
+         <tr><td>
+            <input type="radio" name="conditionGroup" value="mantain" class="craftRadioButton" id="maintain">
+            <label for="maintain" style='width:auto'>{{i18n craftingWindow:craftUpTo}}</label>
+         <td>
+            <input type="number" name="quantityToMantain" value="1" min="1" max="99" class="craftNumericSelect">
+         </td></tr>
+      </table>
+
+      <button class='btn' {{action "craft" target="view"}} id="craftButton"><img src="/mods/craftingWindow/images/anvil.png"></button>
    </div>
-   <button class='btn' {{action "craft" target="view"}} id="craftButton">craft!</button>
+   
 </script>
 

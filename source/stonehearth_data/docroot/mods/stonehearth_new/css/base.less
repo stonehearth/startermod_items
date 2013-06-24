@@ -20,6 +20,7 @@
 	color: @controlFontColor;
 	font-size: @controlFontSize;
 	font-family: @controlFontFamily;
+	letter-spacing: -1px;
 
 	a {
 		color: @controlFontColor;
@@ -28,6 +29,10 @@
 
 .smallFont {
 	font-size: .7em;
+}
+
+.noOutline {
+	text-shadow: none;
 }
 
 .outlined {
@@ -49,6 +54,18 @@
 .blackBorder {
 	border: 3px solid #000;
 }
+
+.control {
+	.handCursor !important;
+	.controlFont;
+	background: #476248;
+
+	&:hover {
+		color: @controlFontColor;
+		background: #48704a;
+	};
+}
+
 
 body {
 	.baseFont;

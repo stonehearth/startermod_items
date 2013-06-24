@@ -2,7 +2,7 @@
     "orders": [
         {
             "name": "Swords",
-            "id": 101,
+            "id": "http://localhost/api/objects/101.txt",
             "condition": {
                 "type": "amount",
                 "total": 5,
@@ -11,7 +11,7 @@
         },
         {
             "name": "Shields",
-            "id": 102,
+            "id": "http://localhost/api/objects/102.txt",
             "condition": {
                 "type": "mantain",
                 "total": 5

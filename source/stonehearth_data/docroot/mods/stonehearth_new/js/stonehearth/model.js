@@ -1,18 +1,20 @@
 App.RemoteObject = Ember.Object.extend({
 
-  init: function(id, options) {
+  init: function(url, options) {
     this._super;
-    var id = this.get('id');
+    var url = this.get('url');
     var components = this.get('components');
 
-    Ember.assert("Tried to get an object without supplying { id: foo }", id != undefined);
-    this._getObject(id, components)
+    Ember.assert("Tried to get an object without supplying { url: foo }", url != undefined);
+    this._getObject(url, components)
   },
 
-  _getObject: function(id, components) {
+  _getObject: function(url, components) {
+    console.log('fetching object ' + url);
+    
     var self = this;
-    console.log('fetching object ' + id);
-    jQuery.getJSON("http://localhost/api/objects/" + id + ".txt", function(json) {
+    
+    jQuery.getJSON(url, function(json) {
       if(components && components.length > 0) {
         self._getComponentObjects(json, components);
       }
@@ -21,14 +23,16 @@ App.RemoteObject = Ember.Object.extend({
   },
 
   _getComponentObjects: function(json, components) {
+    var deferreds = [];
+
     $.each(components, function(index, value) {
       if (json.hasOwnProperty(value))  {
         console.log(value);
-        if(typeof json[value] === "string" && json[value].startsWith('mod://')) {
+        if(typeof json[value] === "string") {
           // it's an url. create a new RemoteObject to follow the link, and set
           // the property from the link to that object
-          var objectId = json[value].substring(6);
-          json[value] = App.RemoteObject.create({ id: objectId });
+          //var objectId = json[value].substring(6);
+          json[value] = App.RemoteObject.create({ url: json[value] });
         }
       }
     });

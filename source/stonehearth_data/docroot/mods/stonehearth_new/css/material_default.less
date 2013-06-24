@@ -1,0 +1,66 @@
+.goldButtonBorder {
+   border-image: url(images/default/controls/button/gold_button_border.png) 13 10 16 10;
+}
+
+
+button {
+   .control;
+   border-width: 13px 10px 16px 10px;
+   border-image: url(images/default/controls/button/normal_button_border.png) 13 10 16 10;
+   padding: 10px;
+   margin: 0px;
+
+   &:hover {
+      border-image: url(images/default/controls/button/hover_button_border.png) 13 10 16 10;
+   };
+}
+
+.frame {
+   .controlFont;
+   background: #3b352c;
+   background-clip: content-box;
+   border-width: 25px;
+   border-image: url(images/default/backgrounds/frame_border.png) 25 25 25 25 repeat;
+   text-align: center;
+   font-size: 30px;
+}
+
+//XXX todo
+/*
+.accordion {
+   .blackBorder;
+   background: #000;
+   border-image: none;
+
+   .accordion-group {
+      -webkit-border-radius: 0px;
+      border: 0px;
+
+      .accordion-heading {
+         .controlFont;
+         background: #75684d;
+         border-style: solid;
+         border-width: 9px 12px 9px 12px;
+         padding: 0px;
+         border-image: url(images/wood/accordion/accordion_heading.png) 9 12 9 12 repeat;
+      }
+
+      .accordion-toggle {
+         padding: 0px;
+      }
+
+      .in {
+         //background: red;
+         color: red;
+         height: 200px !important;
+         overflow-y: auto;
+      }
+
+      .accordion-inner {
+         border: 0px;
+         background: @woodDarkestColor;
+      }
+
+   }
+}
+*/

@@ -6,17 +6,16 @@ App.CraftingWindowView = App.View.extend({
 	//run until all relevant children are inserted.
 	//Then attach all jquery functionality to items
 	didInsertElement: function() {
-		if (($("#recipeList").find("h3").length > 0) &&
-			 ($('#currentOrdersList').find("li").length > 0) ) {
+		if ($("#recipeAccordion").find("h3").length > 0 &&
+			 $('#orders').find("div").length > 0 ) {
 		  this._super();
 		  this._buildAccordion();
 		  this._buildOrderList();
-		  console.log("hello!");
-		}
-		else {
-		  Ember.run.next(this,function(){
-		      this.didInsertElement();
-		  });
+		} else {
+			console.log("craftingWindow waiting for data..." + $('#orders').find("div").length);
+		  	Ember.run.next(this,function(){
+		   	this.didInsertElement();
+		  	});
 		}
 	},
 
@@ -33,7 +32,8 @@ App.CraftingWindowView = App.View.extend({
   	//list. Hook order list onto garbage can. Set up scroll
   	//buttons.
   	_buildOrderList: function(){
-  		$( "#currentOrdersList, #garbageList" ).sortable({
+  		$( "#orders, #garbageList" ).sortable({
+  			axis: "y",
      		connectWith: "#garbageList",
      		beforeStop: function (event, ui) {
              if(ui.item[0].parentNode.id == "garbageList") {
@@ -48,14 +48,14 @@ App.CraftingWindowView = App.View.extend({
   	//list. Register an event to toggle them when they
   	//are no longer needed. TODO: animation!
   	_initButtonStates: function() {
-  		var currentOrdersList = $('#currentOrdersList');
+  		var currentOrdersList = $('#orders');
 		//Set the default state of the buttons
 		if (currentOrdersList[0].scrollHeight > currentOrdersList.height()) {
-			$('#orderListUpBtn').css('display', 'block');
-			$('#orderListDownBtn').css('display', 'block');
+			$('#orderListUpBtn').show();
+			$('#orderListDownBtn').show();
 		} else {
-			$('#orderListUpBtn').css('display', 'none');
-			$('#orderListDownBtn').css('display', 'none');
+			$('#orderListUpBtn').hide();
+			$('#orderListDownBtn').hide();
 		}
 
 		//Register an event to toggle the buttons when the scroll state changes
@@ -64,31 +64,13 @@ App.CraftingWindowView = App.View.extend({
 		   $('#orderListUpBtn').toggle();
 		   $('#orderListDownBtn').toggle();
 		});
-
-		//Register the button handlers to scroll
-		this._registerButtonHandlers();
-
-  	},
-
-  	//On click scroll up or down
-  	_registerButtonHandlers: function(){
-		$('#orderListUpBtn').click(function() {
-		  var orderList = $('#currentOrdersList'),
-		      localScrollTop = orderList.scrollTop() - 100;
-		     orderList.animate({scrollTop: localScrollTop}, 100);
-		});
-		$('#orderListDownBtn').click(function() {
-		     var orderList = $('#currentOrdersList'),
-		      localScrollTop = orderList.scrollTop() + 100;
-		     orderList.animate({scrollTop: localScrollTop}, 100);
-		});
   	},
 
   	//Call this function when the selected order changes.
-	select: function(id) {
+	select: function(url) {
 		var self = this;
-		console.log('fetching object ' + id);
-		jQuery.getJSON("http://localhost/api/objects/" + id + ".txt", function(json) {
+		console.log('fetching object ' + url);
+		jQuery.getJSON(url, function(json) {
 			self.set('context.current', json);
 		});
 	},
@@ -97,6 +79,21 @@ App.CraftingWindowView = App.View.extend({
 	craft: function() {
 		console.log('craft!');
 		//TODO: replace with call to the server
-		$("#currentOrdersList").append('<li class="newItem">Item3</li>');
+		$("#orders").append('<div class="orderListItem"><a href=#>new</a></div>');
+	},
+
+	scrollOrderListUp: function() {
+		this._scrollOrderList(-153)
+	},
+
+	scrollOrderListDown: function() {
+		this._scrollOrderList(153)
+	},
+
+	_scrollOrderList: function(amount) {
+		var orderList = $('#orders'),
+		localScrollTop = orderList.scrollTop() + amount;
+		orderList.animate({scrollTop: localScrollTop}, 100);
 	}
+
 });

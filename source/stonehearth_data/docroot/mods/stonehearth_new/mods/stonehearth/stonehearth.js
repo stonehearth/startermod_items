@@ -10,9 +10,9 @@ App.MainView = Ember.View.extend({
 App.StonehearthView = Ember.ContainerView.extend({
 	init: function() {
 		this._super();
-		this.add(App.MainbarView);
-		this.add(App.UnitFrameView, { remoteId: 1});
-		this.add(App.CraftingWindowView, {remoteId: 1});
+		this.add(App.MainbarView, {url: "http://localhost/api/available_workshops.txt"});
+		this.add(App.UnitFrameView, { url: "http://localhost/api/objects/1.txt"});
+		this.add(App.CraftingWindowView, { url: "http://localhost/api/objects/1.txt"});
 		//App.render("unitFrame");
 	},
 

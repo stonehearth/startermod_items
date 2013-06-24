@@ -1,6 +1,6 @@
 {
     "id": 1,
-    "unit_info": "mod://10",
-    "crafter_info": "mod://11",
-    "queue_info": "mod://12"
+    "unit_info": "http://localhost/api/objects/10.txt",
+    "crafter_info": "http://localhost/api/objects/11.txt",
+    "queue_info": "http://localhost/api/objects/12.txt"
 }
