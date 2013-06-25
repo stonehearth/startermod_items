@@ -61,7 +61,7 @@ static std::string ConvertToAbsolutePath(std::string const& current, std::string
          newpath.push_back(elem);
       }
    }
-   return boost::algorithm::join(newpath, "/");
+   return std::string("/") + boost::algorithm::join(newpath, "/");
 }
 
 static std::string Checksum(std::string input)

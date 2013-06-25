@@ -14,6 +14,10 @@ function Abilities:extend(json)
    end
 end
 
+function Abilities:__tojson()
+   return radiant.json.encode(self._abilities)
+end
+
 function Abilities:do_ability(name, ...)
    local ability_uri = self._abilities[name]
    if ability_uri then

@@ -491,6 +491,7 @@ void Chromium::ReadFile(CefRefPtr<BufferedResponse> response, std::string path)
      { "css",  "text/css" },
      { "js",   "application/x-javascript" },
      { "json", "application/json" },
+     { "txt",  "text/plain" },
      { "jpg",  "image/jpeg" },
      { "png",  "image/png" },
      { "gif",  "image/gif" },
