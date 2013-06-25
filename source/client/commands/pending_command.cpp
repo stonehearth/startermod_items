@@ -10,11 +10,6 @@ PendingCommand::PendingCommand(const JSONNode& cmd, ResponsePtr response) :
 {
 }
 
-std::string PendingCommand::GetCommand() const
-{
-   return cmd_["command"].as_string();
-}
-
 int PendingCommand::GetSession() const
 {
    return response_->GetSession();
@@ -25,22 +20,14 @@ void PendingCommand::SetSession(int session)
    response_->SetSession(session);
 }
 
-const JSONNode& PendingCommand::GetArgs() const
+void PendingCommand::CompleteSuccessObj(JSONNode const& obj)
 {
-   return cmd_;
-}
+   JSONNode success;
+   success.push_back(JSONNode("result", "success"));
 
-void PendingCommand::Complete(JSONNode result)
-{ 
-   response_->Complete(result); 
-}
+   JSONNode response = obj;
+   response.set_name("response");
+   response.push_back(response);
 
-void PendingCommand::Defer(int id) 
-{
-   response_->Defer(id);
-}
-
-void PendingCommand::Error(std::string result)
-{
-   response_->Error(result); 
+   Complete(success.write());     
 }

@@ -146,7 +146,7 @@ function scene_1()
    for i = 0, 25 do
       local x = math.random(100, 300)
       local z = math.random(100, 300)
-      local rabbit = om:create_entity('mod://stonehearth/critters/rabbit')
+      local rabbit = om:create_entity('/stonehearth/critters/rabbit')
       om:place_on_terrain(rabbit, RadiantIPoint3(x, 1, z))      
    end
 end

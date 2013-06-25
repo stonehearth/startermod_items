@@ -18,7 +18,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class Attributes : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(Attributes);
+   DEFINE_OM_OBJECT_TYPE(Attributes, attributes);
    void ExtendObject(json::ConstJsonObject const& obj) override;
 
    int GetAttribute(std::string name) const;

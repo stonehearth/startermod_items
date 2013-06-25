@@ -25,7 +25,7 @@ end
    --model realigns itself upon being placed into the world
 ]]
 function FillOutboxAction:run(ai, entity)
-   local crafter_component = entity:get_component('mod://stonehearth_crafter/components/crafter_component.lua')
+   local crafter_component = entity:get_component('stonehearth_crafter.crafter')
    local workshop = crafter_component:get_workshop()
 
    assert(workshop:has_bench_outputs(), 'Trying to fill outbox, but the bench has no products!')

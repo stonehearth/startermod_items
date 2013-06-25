@@ -13,7 +13,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class Item : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(Item);
+   DEFINE_OM_OBJECT_TYPE(Item, item);
    void ExtendObject(json::ConstJsonObject const& obj);
 
 public:

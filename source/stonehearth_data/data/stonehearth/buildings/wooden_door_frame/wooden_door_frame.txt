@@ -7,7 +7,7 @@
 	   },
 	   "render_rig": {
 		  "models": [
-			 "url(wooden_door_frame.qb)"
+			 "file(wooden_door_frame.qb)"
 		  ]
 	   }
 	}

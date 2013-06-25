@@ -56,7 +56,7 @@ namespace radiant {
             void EncodeUpdates(std::shared_ptr<client> c);
 
          private:
-            bool ProcessMessage(std::shared_ptr<client> c, const tesseract::protocol::DoAction& msg);
+            bool ProcessMessage(std::shared_ptr<client> c, const tesseract::protocol::Request& msg);
 
          protected:
             boost::asio::io_service             _io_service;

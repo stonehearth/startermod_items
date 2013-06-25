@@ -16,7 +16,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class Profession : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(Profession);
+   DEFINE_OM_OBJECT_TYPE(Profession, profession);
 
    const dm::Set<std::string>& GetLearnedRecipies() const { return learnedReceipes_; }
 

@@ -8,10 +8,7 @@ function TreeTracker:harvest_tree(tree)
    assert(tree)
 
    radiant.log.info('harvesting resource entity %d', tree:get_id())
-   local destination = tree:get_component('destination')
-   if destination then
-      self._pathfinder:add_destination(destination)
-   end
+   self._pathfinder:add_destination(tree)
 end
 
 function TreeTracker:find_path_to_tree(entity, cb)

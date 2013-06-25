@@ -14,7 +14,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class AutomationQueue : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(AutomationQueue);
+   DEFINE_OM_OBJECT_TYPE(AutomationQueue, automation_queue);
 
 public:
    AutomationTaskPtr AddTask(luabind::object handler);

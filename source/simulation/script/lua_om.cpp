@@ -5,17 +5,11 @@
 #define DEFINE_ALL_COMPONENTS
 #include "om/all_components.h"
 #include "helpers.h"
+#include "resources/res_manager.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
 using namespace ::luabind;
-
-static std::unordered_map<std::string, std::string> LuaComponentAliases__;
-
-void LuaObjectModel::SetLuaComponentAlias(ScriptHost const&, const char* name, const char* value)
-{
-   LuaComponentAliases__[std::string(name)] = value;
-}
 
 om::TargetTableEntryRef TargetTableEntrySetValue(om::TargetTableEntryPtr in, int value) 
 { 
@@ -242,6 +236,19 @@ std::string WeakPtrToWatch(std::weak_ptr<T> o)
    return output.str();
 }
 
+template <class T>
+std::string ToJsonUri(std::weak_ptr<T> o, luabind::object state)
+{
+   std::ostringstream output;
+   std::shared_ptr<T> obj = o.lock();
+   if (obj) {
+      output << "\"/object/" << obj->GetObjectId() << "\"";
+   } else {
+      output << "null";
+   }
+   return output.str();
+}
+
 std::string BuildOrderToWatch(std::weak_ptr<om::BuildOrder> o)
 {
    auto buildOrder = o.lock();
@@ -279,12 +286,30 @@ EntityGetNativeComponent(lua_State* L, om::EntityPtr entity, std::string const& 
    return luabind::object();
 }
 
+std::string
+GetLuaComponentUri(std::string name)
+{
+   std::string modname;
+   size_t offset = name.find('.');
+
+   if (offset != std::string::npos) {
+      modname = name.substr(0, offset);
+      name = name.substr(offset + 1, std::string::npos);
+
+      JSONNode const& manifest = resources::ResourceManager2::GetInstance().LookupManifest(modname);
+      return manifest["components"][name].as_string();
+   }
+   // xxx: throw an exception...
+   return "";
+}
+
 static luabind::object
 EntityGetLuaComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
 {
+   GetLuaComponentUri(name);
    om::LuaComponentsPtr component = entity->GetComponent<om::LuaComponents>();
    if (component) {
-      om::LuaComponentPtr lua_component = component->GetLuaComponent(name.c_str());
+      om::LuaComponentPtr lua_component = component->GetLuaComponent(name);
       if (lua_component) {
          return lua_component->GetLuaObject();
       }
@@ -295,18 +320,15 @@ EntityGetLuaComponent(lua_State* L, om::EntityPtr entity, std::string const& nam
 luabind::object
 EntityGetComponent(lua_State* L, om::EntityRef e, std::string name)
 {
+   luabind::object component;
    auto entity = e.lock();
    if (entity) {
-      auto i = LuaComponentAliases__.find(name);
-      if (i != LuaComponentAliases__.end()) {
-         name = i->second;
+      component = EntityGetNativeComponent(L, entity, name);
+      if (!component.is_valid()) {
+         component = EntityGetLuaComponent(L, entity, name);
       }
-      if (boost::starts_with(name, "mod://")) {
-         return EntityGetLuaComponent(L, entity, name);
-      }
-      return EntityGetNativeComponent(L, entity, name);
    }
-   return luabind::object();
+   return component;
 }
 
 static luabind::object
@@ -325,37 +347,39 @@ EntityAddNativeComponent(lua_State* L, om::EntityPtr entity, std::string const& 
 static luabind::object
 EntityAddLuaComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
 {
-   luabind::object result;
-   om::LuaComponentsPtr component = entity->AddComponent<om::LuaComponents>();
-   om::LuaComponentPtr lua_component = component->GetLuaComponent(name.c_str());
-   if (!lua_component) {
-      luabind::object ctor = ScriptHost::GetInstance().LuaRequire(name);
-      if (ctor) {
-         lua_component = component->AddLuaComponent(name.c_str());         
+   using namespace luabind;
 
-         luabind::object obj = luabind::call_function<luabind::object>(ctor, om::EntityRef(entity));
-         obj["__native_component"] = luabind::object(L, om::LuaComponentRef(lua_component));
-         lua_component->SetLuaObject(obj);
+   object result;
+   om::LuaComponentsPtr component = entity->AddComponent<om::LuaComponents>();
+   om::LuaComponentPtr lua_component = component->GetLuaComponent(name);
+   if (lua_component) {
+      result = lua_component->GetLuaObject();
+   } else {
+      std::string uri = GetLuaComponentUri(name);
+      object ctor = ScriptHost::GetInstance().LuaRequire(uri);
+      if (ctor) {
+         result = call_function<object>(ctor, om::EntityRef(entity));
+         lua_component = component->AddLuaComponent(name);         
+         lua_component->SetLuaObject(name, result);
       }
    }
-   return lua_component ? lua_component->GetLuaObject() : luabind::object();
+   return result;
 }
 
 luabind::object
 EntityAddComponent(lua_State* L, om::EntityRef e, std::string name)
 {
+   luabind::object component;
    auto entity = e.lock();
    if (entity) {
-      auto i = LuaComponentAliases__.find(name);
-      if (i != LuaComponentAliases__.end()) {
-         name = i->second;
+      component = EntityAddNativeComponent(L, entity, name);
+
+      if (!component.is_valid()) {
+         component = EntityAddLuaComponent(L, entity, name);
+         ASSERT(component.is_valid());
       }
-      if (boost::starts_with(name, "mod://")) {
-         return EntityAddLuaComponent(L, entity, name);
-      }
-      return EntityAddNativeComponent(L, entity, name);
    }
-   return luabind::object();
+   return component;
 }
 
 
@@ -403,6 +427,7 @@ void LuaObjectModel::RegisterType(lua_State* L)
          .def("is_valid",              &IsValid<om::Cls>) \
          .def("get_class_name",        &GetClassNameFn<om::Cls>) \
          .def("get_id",                &om::Cls::GetObjectId) \
+         .def("__tojson",              &ToJsonUri<om::Cls>) \
          .def("__tostring",            &WeakPtrToWatch<om::Cls>) \
          .def("__towatch",             &WeakPtrToWatch<om::Cls>) \
 

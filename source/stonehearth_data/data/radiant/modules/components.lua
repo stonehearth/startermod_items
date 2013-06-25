@@ -1,32 +1,7 @@
 local components = {}
 local singleton = {}
 
-local embedded_components = {
-   ai = 'mod://radiant/components/ai_component.lua',
-   abilities = 'mod://radiant/components/abilities_component.lua',
-   resource_node = 'mod://radiant/components/resource_node_component.lua',
-   stockpile = 'mod://radiant/components/stockpile_component.lua',
-}
-
-function components.mark_dirty(component, data)
-   singleton._dirty_components[component] = data
-end
-
 function components.__init()
-   singleton._dirty_components = {}
-   for name, value in pairs(embedded_components) do
-      native:set_lua_component_alias(name, value)
-   end
-end
-
-function components._flush_dirty()
-   for component, data in pairs(singleton._dirty_components) do
-      local json = radiant.json.encode(data)
-      local native_component = component.__native_component
-      assert(native_component)
-      native_component:save_data(json)
-   end
-   singleton._dirty_components = {}
 end
 
 components.__init()
@@ -341,7 +316,7 @@ function components.teardown(worker, structure)
       local item = components.get_component(carry_block:get_carrying(), 'item')
       item:set_stacks(item:get_stacks() + 1)
    else
-      local item = singleton.create_entity('module://stonehearth/resources/oak_tree/oak_log')
+      local item = singleton.create_entity('/stonehearth/resources/oak_tree/oak_log')
       components.get_component(item, 'item'):set_stacks(1)
       carry_block:set_carrying(item)
    end

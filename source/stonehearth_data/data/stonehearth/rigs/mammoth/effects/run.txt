@@ -4,7 +4,7 @@
       "animation": {
             "type": "animation_effect",
             "start_time": 0,
-            "animation": "url(../animations/run.txt)",
+            "animation": "file(../animations/run.txt)",
             "loop": true
       }
    }

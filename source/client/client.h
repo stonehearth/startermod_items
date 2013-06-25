@@ -89,6 +89,7 @@ namespace radiant {
 
             void ProcessReadQueue();
             bool ProcessMessage(const tesseract::protocol::Update& msg);
+            bool ProcessRequestReply(const tesseract::protocol::Update& msg);
             void BeginUpdate(const tesseract::protocol::BeginUpdate& msg);
             void EndUpdate(const tesseract::protocol::EndUpdate& msg);
             void SetServerTick(const tesseract::protocol::SetServerTick& msg);
@@ -276,6 +277,9 @@ namespace radiant {
             std::map<int, CommandResponseFn> responseHandlers_;
             std::unordered_map<std::string, std::unique_ptr<HCURSOR, Client::CursorDeleter>> cursors_;
             std::vector<om::EntityRef>       alloced_;
+
+            int                              last_server_request_id_;
+            std::map<int, std::function<void(tesseract::protocol::Update const& reply)> >  server_requests_;
       };
    };
 };

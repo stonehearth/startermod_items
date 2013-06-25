@@ -12,7 +12,7 @@ using namespace radiant::client;
 ExecuteAction::ExecuteAction(PendingCommandPtr cmd)
 {
    // xxx: just use a schema validator for this.  BEFORE it gets to the command!
-   args_ = cmd->GetArgs();
+   args_ = cmd->GetJson();
    CHECK_TYPE(cmd, args_, "action", JSON_STRING);
    
    om::EntityId self = 0;

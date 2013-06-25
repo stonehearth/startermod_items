@@ -542,7 +542,7 @@ function entities.teardown(worker, structure)
       local item = radiant.components.get_component(carry_block:get_carrying(), 'item')
       item:set_stacks(item:get_stacks() + 1)
    else
-      local item = singleton.create_entity('module://stonehearth/resources/oak_tree/oak_log')
+      local item = singleton.create_entity('/stonehearth/resources/oak_tree/oak_log')
       item:get_component('item'):set_stacks(1)
       carry_block:set_carrying(item)
    end

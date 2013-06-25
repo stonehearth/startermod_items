@@ -19,13 +19,17 @@
 #include "om/components/build_orders.h"
 #include "om/components/aura_list.h"
 #include "om/components/target_tables.h"
+#include "om/object_formatter/object_formatter.h"
 #include "native_commands/create_room_cmd.h"
 #include "jobs/job.h"
+#include <boost/algorithm/string.hpp>
 
 static const int __initialCivCount = 3;
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
+
+namespace proto = ::radiant::tesseract::protocol;
 
 Simulation* Simulation::singleton_;
 
@@ -47,10 +51,9 @@ Simulation::Simulation(lua_State* L) :
    commands_["radiant.toggle_debug_nodes"] = std::bind(&Simulation::ToggleDebugShapes, this, std::placeholders::_1);
    commands_["radiant.toggle_step_paths"] = std::bind(&Simulation::ToggleStepPathFinding, this, std::placeholders::_1);
    commands_["radiant.step_paths"] = std::bind(&Simulation::StepPathFinding, this, std::placeholders::_1);
-   commands_["create_room"] = [](const tesseract::protocol::DoAction& msg) { return CreateRoomCmd()(msg); };
+   commands_["create_room"] = [](const proto::DoAction& msg) { return CreateRoomCmd()(msg); };
 
    om::RegisterObjectTypes(store_);
-
 }
 
 Simulation::~Simulation()
@@ -75,21 +78,21 @@ void Simulation::CreateNew()
    now_ = 0;
 }
 
-std::string Simulation::ToggleDebugShapes(const tesseract::protocol::DoAction& msg)
+std::string Simulation::ToggleDebugShapes(const proto::DoAction& msg)
 {
    _showDebugNodes = !_showDebugNodes;
    LOG(WARNING) << "debug nodes turned " << (_showDebugNodes ? "ON" : "OFF");
    return "";
 }
 
-std::string Simulation::ToggleStepPathFinding(const tesseract::protocol::DoAction& msg)
+std::string Simulation::ToggleStepPathFinding(const proto::DoAction& msg)
 {
    _singleStepPathFinding = !_singleStepPathFinding;
    LOG(WARNING) << "single step path finding turned " << (_singleStepPathFinding ? "ON" : "OFF");
    return "";
 }
 
-std::string Simulation::StepPathFinding(const tesseract::protocol::DoAction& msg)
+std::string Simulation::StepPathFinding(const proto::DoAction& msg)
 {
    platform::timer t(1000);
    radiant::stdutil::ForEachPrune<Job>(_pathFinders, [&](std::shared_ptr<Job> &p) {
@@ -101,12 +104,12 @@ std::string Simulation::StepPathFinding(const tesseract::protocol::DoAction& msg
    return "";
 }
 
-void Simulation::ProcessCommand(const ::radiant::tesseract::protocol::Cmd &cmd)
+void Simulation::ProcessCommand(const proto::Cmd &cmd)
 {
    ASSERT(false);
 }
 
-void Simulation::ProcessCommand(::google::protobuf::RepeatedPtrField<tesseract::protocol::Reply >* replies, const ::radiant::tesseract::protocol::Command &command)
+void Simulation::ProcessCommand(::google::protobuf::RepeatedPtrField<proto::Reply >* replies, const proto::Command &command)
 {
    ASSERT(false);
 }
@@ -158,19 +161,19 @@ void Simulation::Idle(platform::timer &timer)
 
 void Simulation::EncodeUpdates(protocol::SendQueuePtr queue, ClientState& cs)
 {
-   tesseract::protocol::Update update;
+   proto::Update update;
 
    // Set the server tick...
-   update.set_type(tesseract::protocol::Update::SetServerTick);
-   auto msg = update.MutableExtension(tesseract::protocol::SetServerTick::extension);
+   update.set_type(proto::Update::SetServerTick);
+   auto msg = update.MutableExtension(proto::SetServerTick::extension);
    msg->set_now(now_);
    queue->Push(protocol::Encode(update));
 
    // Process all objects which have been modified since 
    if (!allocated_.empty()) {
       update.Clear();
-      update.set_type(tesseract::protocol::Update::AllocObjects);
-      auto msg = update.MutableExtension(tesseract::protocol::AllocObjects::extension);
+      update.set_type(proto::Update::AllocObjects);
+      auto msg = update.MutableExtension(proto::AllocObjects::extension);
       for (const auto& o : allocated_) {
          auto allocMsg = msg->add_objects();
          allocMsg->set_object_id(o.first);
@@ -182,8 +185,8 @@ void Simulation::EncodeUpdates(protocol::SendQueuePtr queue, ClientState& cs)
 
    if (!destroyed_.empty()) {
       update.Clear();
-      update.set_type(tesseract::protocol::Update::RemoveObjects);
-      auto msg = update.MutableExtension(tesseract::protocol::RemoveObjects::extension);
+      update.set_type(proto::Update::RemoveObjects);
+      auto msg = update.MutableExtension(proto::RemoveObjects::extension);
       for (dm::ObjectId id : destroyed_) {
          msg->add_objects(id);
       }
@@ -203,8 +206,8 @@ void Simulation::EncodeUpdates(protocol::SendQueuePtr queue, ClientState& cs)
       dm::Object* obj = store_.FetchStaticObject(id);
       if (obj) {
          update.Clear();
-         update.set_type(tesseract::protocol::Update::UpdateObject);
-         auto msg = update.MutableExtension(tesseract::protocol::UpdateObject::extension);
+         update.set_type(proto::Update::UpdateObject);
+         auto msg = update.MutableExtension(proto::UpdateObject::extension);
 
          obj->SaveObject(msg->mutable_object());
          queue->Push(protocol::Encode(update));
@@ -215,7 +218,7 @@ void Simulation::EncodeUpdates(protocol::SendQueuePtr queue, ClientState& cs)
    cs.last_update = store_.GetNextGenerationId();
 }
 
-void Simulation::SendCommandReply(::radiant::tesseract::protocol::Reply* reply)
+void Simulation::SendCommandReply(proto::Reply* reply)
 {
 }
 
@@ -270,7 +273,31 @@ std::shared_ptr<GotoLocation> Simulation::CreateGotoEntity(om::EntityRef entity,
    return fp;
 }
 
-void Simulation::DoAction(const tesseract::protocol::DoAction& msg, protocol::SendQueuePtr queue)
+JSONNode Simulation::FormatObjectAtUri(std::string const& uri)
+{
+   std::vector<std::string> parts;
+   boost::algorithm::split(parts, uri, boost::is_any_of("/"));
+
+   // should be "", "object", "13"...
+   if (parts.size() > 2) {
+      dm::ObjectId id;
+      std::stringstream(parts[2]) >> id;
+
+      dm::ObjectPtr obj = store_.FetchObject<dm::Object>(id);
+      if (obj) {
+         return om::ObjectFormatter("/object/").ObjectToJson(obj);
+      }
+   }
+   return JSONNode(); // actually, return an error!
+}
+
+void Simulation::FetchObject(proto::FetchObjectRequest const& request, proto::FetchObjectReply* reply)
+{
+   JSONNode node = FormatObjectAtUri(request.uri());
+   reply->set_json(node.write());
+}
+
+void Simulation::DoAction(const proto::DoAction& msg, protocol::SendQueuePtr queue)
 {
    std::string json;
 
@@ -281,9 +308,9 @@ void Simulation::DoAction(const tesseract::protocol::DoAction& msg, protocol::Se
       json = scripts_->DoAction(msg);
    }
    if (msg.has_reply_id()) {
-      tesseract::protocol::Update update;
-      update.set_type(tesseract::protocol::Update::DoActionReply);
-      auto reply = update.MutableExtension(tesseract::protocol::DoActionReply::extension);
+      proto::Update update;
+      update.set_type(proto::Update::DoActionReply);
+      auto reply = update.MutableExtension(proto::DoActionReply::extension);
 
       reply->set_reply_id(msg.reply_id());
       if (json.empty()) {
@@ -297,9 +324,9 @@ void Simulation::DoAction(const tesseract::protocol::DoAction& msg, protocol::Se
 
 void Simulation::EncodeDebugShapes(protocol::SendQueuePtr queue)
 {
-   tesseract::protocol::Update update;
-   update.set_type(tesseract::protocol::Update::UpdateDebugShapes);
-   auto uds = update.MutableExtension(tesseract::protocol::UpdateDebugShapes::extension);
+   proto::Update update;
+   update.set_type(proto::Update::UpdateDebugShapes);
+   auto uds = update.MutableExtension(proto::UpdateDebugShapes::extension);
    auto msg = uds->mutable_shapelist();
 
    if (_showDebugNodes) {

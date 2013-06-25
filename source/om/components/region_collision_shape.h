@@ -17,7 +17,7 @@ class RegionCollisionShape : public Component,
                              public CollisionShape
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(RegionCollisionShape);
+   DEFINE_OM_OBJECT_TYPE(RegionCollisionShape, region_collision_shape);
 
    CollisionType GetType() const override { return CollisionShape::REGION; }
    math3d::aabb GetAABB() const override;

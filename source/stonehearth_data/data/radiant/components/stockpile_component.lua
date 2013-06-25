@@ -47,7 +47,7 @@ end
 
 function StockpileComponent:set_size(size)
    self._data.size = { size[1], size[2] }  
-   radiant.components.mark_dirty(self, self._data)
+   self:_rebuild_item_data()      
 end
 
 function StockpileComponent:_add_item(entity)
@@ -60,7 +60,6 @@ function StockpileComponent:_add_item(entity)
       if item then
          -- hold onto the item...
          self._data.items[entity:get_id()] = item
-         radiant.components.mark_dirty(self, self._data)
 
          -- update our destination component to *remove* the space
          -- where the item is, since we can't drop anything there
@@ -75,23 +74,12 @@ function StockpileComponent:_remove_item(id)
    local entity = self._data.items[id]
    if entity then
       self._data.items[id] = nil
-      radiant.components.mark_dirty(self, self._data)
 
       -- add this point to our destination region
       local region = self._destination:get_region()
       local origin = radiant.entities.get_world_grid_location(entity)
       local offset = origin - radiant.entities.get_world_grid_location(self._entity)
       region:add_point(offset)
-   end
-end
-
-function StockpileComponent:_mark_dirty()
-   if not self._dirty then
-      self._dirty = true
-      events.notify_game_loop_stage('post_trace_firing', function()
-         self._update_state()
-         self._dirty = false
-      end)      
    end
 end
 
@@ -102,8 +90,6 @@ function StockpileComponent:_rebuild_item_data()
    self._destination:set_region(region)
 
    self._data.items = {}
-   radiant.components.mark_dirty(self, self._data)
-
    local ec = radiant.entities.get_root_entity()
                   :get_component('entity_container')
                   :get_children()

@@ -30,14 +30,13 @@ void Response::SetSession(int session)
    session_ = session;
 }
 
-void Response::Complete(JSONNode result)
+void Response::Complete(std::string const& result)
 {
-   JSONNode response;
-   response.push_back(JSONNode("result", "success"));
+   LOG(WARNING) << "Sending: " << result;
 
-   result.set_name("response");
-   response.push_back(result);
-   Deliver(response);
+   ASSERT(responseFn_);
+   responseFn_(result);
+   responseFn_ = nullptr;
 }
 
 void Response::Defer(int id)
@@ -45,23 +44,13 @@ void Response::Defer(int id)
    JSONNode response;
    response.push_back(JSONNode("result", "pending"));
    response.push_back(JSONNode("pending_command_id", id));
-   Deliver(response);
+   Complete(response.write());
 }
 
-void Response::Error(std::string reason)
+void Response::Error(std::string const& reason)
 {
    JSONNode response;
    response.push_back(JSONNode("result", "error"));
    response.push_back(JSONNode("reason", reason));
-   Deliver(response);
-
-}
-
-void Response::Deliver(const JSONNode& response)
-{
-   LOG(WARNING) << "Sending: " << response.write_formatted();
-
-   ASSERT(responseFn_);
-   responseFn_(response);
-   responseFn_ = nullptr;
+   Complete(response.write());
 }

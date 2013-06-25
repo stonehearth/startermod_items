@@ -10,7 +10,7 @@
       "animation" : {
             "type": "animation_effect",
             "start_time": 0,
-            "animation": "url(../animations/promote.txt)",
+            "animation": "file(../animations/promote.txt)",
             "loop": false
       },
       "promote_trigger" : {

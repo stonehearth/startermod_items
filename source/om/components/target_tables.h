@@ -19,7 +19,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class TargetTableEntry : public dm::Record
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(TargetTableEntry);
+   DEFINE_OM_OBJECT_TYPE(TargetTableEntry, target_table_entry);
 
    void SetTarget(EntityPtr entity) { entity_ = entity; }
 
@@ -53,7 +53,7 @@ typedef std::shared_ptr<TargetTableEntry> TargetTableEntryPtr;
 class TargetTable : public dm::Record
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(TargetTable);
+   DEFINE_OM_OBJECT_TYPE(TargetTable, target_table);
 
    TargetTableEntryPtr GetEntry(EntityId id) { return entries_.Lookup(id, nullptr); }
    TargetTableEntryPtr AddEntry(EntityRef e);
@@ -97,7 +97,7 @@ typedef std::shared_ptr<TargetTableTop> TargetTableTopPtr;
 class TargetTableGroup : public dm::Record
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(TargetTableGroup);
+   DEFINE_OM_OBJECT_TYPE(TargetTableGroup, target_table_group);
 
    TargetTablePtr AddTable();
    void RemoveTable(TargetTablePtr table);
@@ -124,7 +124,7 @@ typedef std::shared_ptr<TargetTableGroup> TargetTableGroupPtr;
 class TargetTables : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(TargetTables);
+   DEFINE_OM_OBJECT_TYPE(TargetTables, target_tables);
 
    TargetTablePtr AddTable(std::string category);
    void RemoveTable(TargetTablePtr table);

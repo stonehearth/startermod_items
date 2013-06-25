@@ -12,7 +12,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class BuildOrderDependencies : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(BuildOrderDependencies);
+   DEFINE_OM_OBJECT_TYPE(BuildOrderDependencies, build_order_dependencies);
 
    typedef dm::Set<EntityRef> Dependencies;
 

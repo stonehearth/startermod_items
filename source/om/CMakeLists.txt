@@ -12,6 +12,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 add_subdirectory(components)
 add_subdirectory(grid)
+add_subdirectory(object_formatter)
 
 add_library(om STATIC
             pch.cpp
@@ -31,4 +32,5 @@ endif(MSVC)
 target_link_libraries(om
                       om_components
                       om_grid
+                      om_object_formatter
                       )

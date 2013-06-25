@@ -16,7 +16,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class WeaponInfo : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(WeaponInfo);
+   DEFINE_OM_OBJECT_TYPE(WeaponInfo, weapon_info);
    static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
 
    float GetRange() const;

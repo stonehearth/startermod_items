@@ -16,7 +16,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class UnitInfo : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(UnitInfo);
+   DEFINE_OM_OBJECT_TYPE(UnitInfo, unit_info);
    void ExtendObject(json::ConstJsonObject const& obj) override;
 
    std::string GetDisplayName() const { return *name_; }

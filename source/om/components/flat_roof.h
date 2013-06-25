@@ -9,7 +9,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class FlatRoof : public GridBuildOrder
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(FlatRoof);
+   DEFINE_OM_OBJECT_TYPE(FlatRoof, flat_roof);
 
    void Create();
 

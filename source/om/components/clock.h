@@ -14,7 +14,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class Clock : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(Clock);
+   DEFINE_OM_OBJECT_TYPE(Clock, clock);
 
    void SetTime(int now) { now_ = now; }
    int GetTime() const { return *now_; }

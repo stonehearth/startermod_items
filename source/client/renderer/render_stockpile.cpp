@@ -19,7 +19,7 @@ RenderStockpile::RenderStockpile(const RenderEntity& entity, om::LuaComponentPtr
    nodeObj_ = result.second;
 
    auto update = [=]() {
-      UpdateStockpile(stockpile->GetJsonData());
+      UpdateStockpile(stockpile->ToJson());
    };
    stockpile->TraceObjectChanges("rendering stockpile", update);
    update();

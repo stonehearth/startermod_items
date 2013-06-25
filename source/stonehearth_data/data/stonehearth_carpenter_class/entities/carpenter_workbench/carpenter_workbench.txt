@@ -7,7 +7,7 @@
       },
       "render_rig": {
          "models": [
-            "url(carpenter_bench.qb)",
+            "file(carpenter_bench.qb)",
          ]
       },
       "destination" : {
@@ -15,7 +15,7 @@
             [[0, 0, 1], [1, 1, 2]]
          ]
       },
-      "mod://stonehearth_crafter/components/workshop_component.lua" : {
+      "stonehearth_crafter.workshop" : {
       }
    }
 }

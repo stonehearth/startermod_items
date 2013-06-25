@@ -1,7 +1,7 @@
-local TreeTracker = radiant.mods.require('mod://stonehearth_inventory/lib/tree_tracker.lua')
---local ItemTracker = radiant.mods.require('mod://stonehearth_inventory/lib/item_tracker.lua')
-local RestockTracker = radiant.mods.require('mod://stonehearth_inventory/lib/restock_tracker.lua')
-local StockpileTracker = radiant.mods.require('mod://stonehearth_inventory/lib/stockpile_tracker.lua')
+local TreeTracker = radiant.mods.require('/stonehearth_inventory/lib/tree_tracker.lua')
+--local ItemTracker = radiant.mods.require('/stonehearth_inventory/lib/item_tracker.lua')
+local RestockTracker = radiant.mods.require('/stonehearth_inventory/lib/restock_tracker.lua')
+local StockpileTracker = radiant.mods.require('/stonehearth_inventory/lib/stockpile_tracker.lua')
 local Inventory = class()
 
 function Inventory:__init(faction)
@@ -14,7 +14,6 @@ function Inventory:__init(faction)
    self._all_items_backtracker:set_reverse_search(true)
 
    self._restock_pathfinder = native:create_multi_path_finder('restock pathfinder')
-   --self._unstocked_items_tracker = ItemTracker('unstocked items tracker')
    --self._restock_tracker = RestockTracker()
    self._stockpile_trackers = {}
    self._item_restock_paths = {}
@@ -68,8 +67,6 @@ function Inventory:_track_item(item_entity)
       for tracker in pairs(self._stockpile_trackers) do
          tracker:track_item(item_entity)
       end
-      -- add the item to the unstocked item tracker.
-      self._unstocked_items_tracker:track_item(item_entity)
    end
    ]]
 end
@@ -82,15 +79,14 @@ end
 
 function Inventory:_remove_entity_from_terrain(id, entity)
    for tracker in pairs(self._stockpile_trackers) do
-      tracker:untrack_item(item_entity)
+      tracker:untrack_item(id)
    end
-   self._all_items_tracker:remove_destination(item_entity)   
-   self._unstocked_items_tracker:remove_destination(item_entity)   
+   self._all_items_tracker:remove_destination(id)
    -- hmmm....
 end
 
 function Inventory:create_stockpile(location, size)
-   local entity = radiant.entities.create_entity('mod://stonehearth_inventory/entities/stockpile')
+   local entity = radiant.entities.create_entity('/stonehearth_inventory/entities/stockpile')
    
    radiant.terrain.place_entity(entity, location)
    if size then

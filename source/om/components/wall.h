@@ -12,7 +12,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class Wall : public GridBuildOrder
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(Wall);
+   DEFINE_OM_OBJECT_TYPE(Wall, wall);
 
    void Create(PostPtr post1, PostPtr post2, const csg::Point3& normal);
    csg::Point3 GetNormal() const { return *normal_; }

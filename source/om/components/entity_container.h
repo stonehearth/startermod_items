@@ -19,7 +19,7 @@ class Entity;
 class EntityContainer : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(EntityContainer);
+   DEFINE_OM_OBJECT_TYPE(EntityContainer, entity_container);
 
    typedef dm::Map<dm::ObjectId, std::weak_ptr<Entity>> Container;
 
@@ -32,7 +32,8 @@ private:
    void InitializeRecordFields() override;
 
 public:
-   Container         children_;
+   Container children_;
+   std::unordered_map<dm::ObjectId, dm::Guard> destroy_guards_;
 };
 
 END_RADIANT_OM_NAMESPACE

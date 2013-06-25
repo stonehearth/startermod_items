@@ -191,14 +191,16 @@ bool isExtensionSupported( const char *extName )
 	if( glExt::majorVersion < 3 )
 	{
 		const char *extensions = (char *)glGetString( GL_EXTENSIONS );
-		size_t nameLen = strlen( extName );
-		const char *pos;
-		while( ( pos = strstr( extensions, extName ) ) != 0x0 )
-		{
-			char c = pos[nameLen];
-			if( c == ' ' || c == '\0' ) return true;
-			extensions = pos + nameLen;
-		}
+      if (extensions) {
+		   size_t nameLen = strlen( extName );
+		   const char *pos;
+		   while( ( pos = strstr( extensions, extName ) ) != 0x0 )
+		   {
+			   char c = pos[nameLen];
+			   if( c == ' ' || c == '\0' ) return true;
+			   extensions = pos + nameLen;
+		   }
+      }
 	}
 	else
 	{
@@ -218,7 +220,14 @@ bool isExtensionSupported( const char *extName )
 void getOpenGLVersion()
 {
 	char version[8];
-	size_t len = strlen( (char *)glGetString( GL_VERSION ) );
+   char *pversion = (char *)glGetString( GL_VERSION );
+   if (pversion == NULL) {
+      glExt::majorVersion = 0;
+      glExt::minorVersion = 0;
+      return;
+   }
+
+	size_t len = strlen( pversion );
 	if( len >= 8 ) len = 7;
 	
 	strncpy( version, (char *)glGetString( GL_VERSION ), len );

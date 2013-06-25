@@ -13,7 +13,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class RenderInfo : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(RenderInfo);
+   DEFINE_OM_OBJECT_TYPE(RenderInfo, render_info);
 
 public:
    //std::string GetKind() const { return *kind_; }

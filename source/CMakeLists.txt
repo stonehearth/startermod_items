@@ -86,7 +86,7 @@ include_directories(../build/protocols) # xxx: BADDD
 SET(Horde3D_INCLUDE_DIRS "${Stonehearth_SOURCE_DIR}/horde3d/Source/Shared" "${Stonehearth_SOURCE_DIR}/horde3d/Bindings/C++" "${Stonehearth_SOURCE_DIR}/horde3d/glfw")
 include_directories(${Horde3D_INCLUDE_DIRS})
 
-add_definitions(-DUNICODE -D_UNICODE -D_CRT_SECURE_NO_WARNINGS)
+add_definitions(-DUNICODE -D_UNICODE -D_CRT_SECURE_NO_WARNINGS -wd4996)
 
 add_subdirectory(core)
 add_subdirectory(client)
@@ -94,7 +94,6 @@ add_subdirectory(client_app)
 add_subdirectory(csg)
 add_subdirectory(game_engine)
 add_subdirectory(horde3d)
-add_subdirectory(httpd)
 add_subdirectory(math3d)
 add_subdirectory(metrics)
 add_subdirectory(om)

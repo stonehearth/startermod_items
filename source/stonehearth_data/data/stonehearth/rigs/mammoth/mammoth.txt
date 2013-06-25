@@ -22,5 +22,5 @@
 		"rightTusk": [7,5.9989,9.90038],
 		"leftTusk": [14,5.9989,9.90038]
 	},
-	"effects_root" : "url(effects)"
+	"effects_root" : "file(effects)"
 }

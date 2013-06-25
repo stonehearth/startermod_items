@@ -128,7 +128,7 @@ ScriptHost::ScriptHost(lua_State* L) :
    // Load all the scripts...
    InitEnvironment();
 
-   api_  = LoadScript("mod://radiant/api.lua");
+   api_  = LoadScript("/radiant/api.lua");
    game_ctor_ = LoadScript(game);
 }
 
@@ -194,6 +194,7 @@ void ScriptHost::InitEnvironment()
 
    module(L_) [
       class_<ScriptHost>("RadiantNative")
+         .def("load_manifest",            &ScriptHost::LoadManifest)
          .def("load_json",                &ScriptHost::LoadJson)
          .def("load_animation",           &ScriptHost::LoadAnimation)
          .def("report_error",             &ScriptHost::ReportError)
@@ -210,7 +211,6 @@ void ScriptHost::InitEnvironment()
          .def("assert_failed",            &ScriptHost::AssertFailed)
          .def("unstick",                  &ScriptHost::Unstick)
          .def("lua_require",              &ScriptHost::LuaRequire)
-         .def("set_lua_component_alias",  &LuaObjectModel::SetLuaComponentAlias)
    ];
    lua_register(L_, "get_config_option", GetConfigOptions);
 
@@ -372,12 +372,12 @@ private:
    bool        finished;
 };
 
-luabind::object ScriptHost::LoadScript(std::string uri)
+luabind::object ScriptHost::LoadScript(std::string path)
 {
    std::ifstream in;
    luabind::object obj;
 
-   LOG(WARNING) << "loading script " << uri;
+   LOG(WARNING) << "loading script " << path;
 #if 0
    // this is the awesome version that we'll use eventually, but we'll need
    // to ship our own decoda that knows how to load files from mods.
@@ -403,7 +403,7 @@ luabind::object ScriptHost::LoadScript(std::string uri)
    // this is the slightly crappier version
    std::string filepath;
    try {
-       filepath = resources::ResourceManager2::GetInstance().GetResourceFileName(uri, ".lua");
+       filepath = resources::ResourceManager2::GetInstance().GetResourceFileName(path, ".lua");
    } catch (resources::Exception& e) {
       LOG(WARNING) << e.what();
 	   return obj;
@@ -473,6 +473,11 @@ json::ConstJsonObject ScriptHost::LoadJson(std::string uri)
    return json::ConstJsonObject(resources::ResourceManager2::GetInstance().LookupJson(uri));
 }
 
+json::ConstJsonObject ScriptHost::LoadManifest(std::string uri)
+{
+   return json::ConstJsonObject(resources::ResourceManager2::GetInstance().LookupManifest(uri));
+}
+
 resources::AnimationPtr ScriptHost::LoadAnimation(std::string uri)
 {
    return resources::ResourceManager2::GetInstance().LookupAnimation(uri);
@@ -484,20 +489,20 @@ luabind::object ScriptHost::LuaRequire(std::string uri)
    std::ostringstream script;
    luabind::object obj;
 
-   boost::network::uri::uri canonical_uri;
+   std::string canonical_path;
    try {
-      canonical_uri = resources::ResourceManager2::GetInstance().ConvertToCanonicalUri(uri, ".lua");
+      canonical_path = resources::ResourceManager2::GetInstance().ConvertToCanonicalPath(uri, ".lua");
    } catch (resources::Exception& e) {
       LOG(WARNING) << e.what();
       return obj;
    }
-   std::string key = canonical_uri.string();
+   std::string key = canonical_path;
 
    auto i = required_.find(key);
    if (i != required_.end()) {
       obj = i->second;
    } else {
-      obj = LoadScript(canonical_uri.string());
+      obj = LoadScript(canonical_path);
       required_[key] = obj;
    }
    return obj;

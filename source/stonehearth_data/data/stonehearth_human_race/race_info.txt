@@ -1,5 +1,5 @@
 {
 	"males" : [
-		"url(entities/male_1)"
+		"file(entities/male_1)"
 	]
 }

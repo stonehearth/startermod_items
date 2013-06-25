@@ -14,7 +14,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class AutomationTask : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(AutomationTask);
+   DEFINE_OM_OBJECT_TYPE(AutomationTask, automation_task);
 
    luabind::object GetHandler() const { return handler_; }
    void SetHandler(luabind::object handler) { handler_ = handler; }

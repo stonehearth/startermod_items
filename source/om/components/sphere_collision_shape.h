@@ -17,7 +17,7 @@ class SphereCollisionShape : public Component,
                              public CollisionShape
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(SphereCollisionShape);
+   DEFINE_OM_OBJECT_TYPE(SphereCollisionShape, sphere_collision_shape);
 
    CollisionType GetType() const override { return CollisionShape::SPHERE; }
 

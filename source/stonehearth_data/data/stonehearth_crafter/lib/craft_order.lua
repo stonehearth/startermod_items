@@ -19,7 +19,7 @@
    {
       "id":"some number uniquely referencing this object
       "workshop: ":workshop this order belongs to
-      "recipe":"mod://module_name/craftable/object_recipe.txt",
+      "recipe":"/module_name/craftable/object_recipe.txt",
       "enabled":"true/false",
       "condition": {
          "amount":"an integer",
@@ -74,6 +74,15 @@ function CraftOrder:__init(recipe, enabled, condition, workshop)
    end   
 end
 
+function CraftOrder:__tojson()
+   local json = {
+      recipe = self._recipe,
+      condition = self._condition,
+      enabled = self._enabled
+   }
+   return radiant.json.encode(json)
+end
+
 function CraftOrder:_can_use_ingredient(item_entity, ingredient_data)
    -- make sure we're not using it for something else...
    for _, ingredient in ipairs(self._ingredients) do
@@ -86,7 +95,7 @@ function CraftOrder:_can_use_ingredient(item_entity, ingredient_data)
 end
 
 function CraftOrder:search_for_ingredients()
-   local inventory = radiant.mods.require('mod://stonehearth_inventory/')
+   local inventory = radiant.mods.require('/stonehearth_inventory/')
    local bench_items = self._workshop:get_items_on_bench()
    local workshop_entity = self._workshop:get_entity()
 
@@ -132,7 +141,7 @@ end
 
 function CraftOrder:_search_for_ingredients()
    local workshop_entity = self._workshop:get_entity() 
-   local inventory = radiant.mods.require('mod://stonehearth_inventory/')
+   local inventory = radiant.mods.require('/stonehearth_inventory/')
    
    self._ingredient_paths = {}
    for offset, ingredient_data in radiant.resources.pairs(self._recipe.ingredients) do

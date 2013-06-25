@@ -18,7 +18,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class Terrain : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(Terrain);
+   DEFINE_OM_OBJECT_TYPE(Terrain, terrain);
    static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
    std::string ToString() const;
 

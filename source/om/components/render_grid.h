@@ -13,7 +13,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class RenderGrid : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(RenderGrid);
+   DEFINE_OM_OBJECT_TYPE(RenderGrid, render_grid);
 
    std::shared_ptr<Grid> GetGrid() const { return (*grid_).lock(); }
    void SetGrid(om::GridPtr grid) { grid_ = grid; }

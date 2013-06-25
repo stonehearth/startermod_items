@@ -9,8 +9,6 @@
 #include "animation.h"
 #include "exceptions.h"
 
-namespace boost { namespace network { namespace uri { class uri; } } }
-
 BEGIN_RADIANT_RESOURCES_NAMESPACE
 
 class ResourceManager2
@@ -20,28 +18,28 @@ public:
 
    static ResourceManager2& GetInstance();
 
-   JSONNode const& LookupJson(std::string uri) const;
-   AnimationPtr LookupAnimation(std::string uri) const;
+   JSONNode const& LookupManifest(std::string const& modname) const;
+   JSONNode const& LookupJson(std::string path) const;
+   AnimationPtr LookupAnimation(std::string path) const;
 
-   void OpenResource(std::string const& uri, std::ifstream& in) const;
-   std::string GetResourceFileName(std::string const& uri, const char* serach_ext) const;  // xxx: used only for lua... it's bad!
-   boost::network::uri::uri ConvertToCanonicalUri(boost::network::uri::uri const& uri, const char* search_ext) const;
+   void OpenResource(std::string const& path, std::ifstream& in) const;
+   std::string GetResourceFileName(std::string const& path, const char* serach_ext) const;  // xxx: used only for lua... it's bad!
+   std::string ConvertToCanonicalPath(std::string const& path, const char* search_ext) const;
 
 private:
    ResourceManager2();
    static std::unique_ptr<ResourceManager2> singleton_;
 
-   void ParseUriAndFilepath(boost::network::uri::uri const& uri,
-                            boost::network::uri::uri &canonical_uri,
-                            std::string& path,
-                            const char* search_ext) const;
-   std::string GetFilepathForUri(boost::network::uri::uri const& uri) const;
-   AnimationPtr LoadAnimation(boost::network::uri::uri const& canonical_uri) const;
-   JSONNode LoadJson(boost::network::uri::uri const& uri) const;
-   void ParseNodeExtension(boost::network::uri::uri const& uri, JSONNode& node) const;
+   void ParseFilepath(std::string const& path,
+                      std::string& canonical_path,
+                      boost::filesystem::path& file_path,
+                      const char* search_ext) const;
+   std::string GetFilepath(std::string const& path) const;
+   AnimationPtr LoadAnimation(std::string const& canonical_path) const;
+   JSONNode LoadJson(std::string const& path) const;
+   void ParseNodeExtension(std::string const& path, JSONNode& node) const;
    void ExtendNode(JSONNode& node, const JSONNode& parent) const;
-   void ConvertToAbsoluteUris(boost::network::uri::uri const& canonical_uri, JSONNode& node) const;
-   
+   void ConvertToAbsolutePaths(std::string const& base_path, JSONNode& node) const;
 
 private:
    boost::filesystem::path                       resource_dir_;

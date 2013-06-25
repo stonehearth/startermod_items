@@ -10,7 +10,7 @@ function RestockStockpileAction:__init(ai, entity)
    self._entity = entity
    
    local faction = self._entity:get_component('unit_info'):get_faction()
-   self._inventory = radiant.mods.require('mod://stonehearth_inventory').get_inventory(faction)
+   self._inventory = radiant.mods.require('/stonehearth_inventory').get_inventory(faction)
    
    radiant.events.listen('radiant.events.gameloop', self)
 end

@@ -16,10 +16,10 @@ BEGIN_RADIANT_OM_NAMESPACE
 class Entity : public dm::Record,
                public std::enable_shared_from_this<Entity> {
 public:
-   DEFINE_OM_OBJECT_TYPE(Entity);
+   DEFINE_OM_OBJECT_TYPE(Entity, entity);
    virtual ~Entity() { }
 
-   typedef dm::Map<dm::ObjectType, std::shared_ptr<dm::Object>> ComponentMap;
+   typedef dm::Map<dm::ObjectType, std::shared_ptr<Object>> ComponentMap;
 
    const ComponentMap& GetComponents() const { return components_; }
 

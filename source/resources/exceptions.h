@@ -19,7 +19,7 @@ private:
    std::string       error_;
 };
 
-class InvalidUriException : Exception {
+class InvalidUriException : public Exception {
 public:
    InvalidUriException(boost::network::uri::uri const& uri) {
       std::ostringstream format;
@@ -28,7 +28,7 @@ public:
    }
 };
 
-class InvalidFilePath : Exception {
+class InvalidFilePath : public Exception {
 public:
    InvalidFilePath(std::string const& path) {
       std::ostringstream format;
@@ -37,7 +37,7 @@ public:
    }
 };
 
-class InvalidJsonAtUriException : Exception {
+class InvalidJsonAtUriException : public Exception {
 public:
    InvalidJsonAtUriException(boost::network::uri::uri const& uri) {
       std::ostringstream format;
@@ -46,7 +46,7 @@ public:
    }
 };
 
-class InvalidResourceException : Exception {
+class InvalidResourceException : public Exception {
 public:
    InvalidResourceException(boost::network::uri::uri const& uri, std::string const& why) {
       std::ostringstream format;

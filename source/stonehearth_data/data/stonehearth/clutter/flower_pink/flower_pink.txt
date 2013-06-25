@@ -4,7 +4,7 @@
 	   "render_rig": {
 		  "scale": 0.2,
 		  "models": [
-			 "url(flower_pink.qb)"
+			 "file(flower_pink.qb)"
 		  ]
 	   }
 	}

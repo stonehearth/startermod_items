@@ -17,7 +17,7 @@ class VerticalPathingRegion : public Component,
                               public CollisionShape
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(VerticalPathingRegion);
+   DEFINE_OM_OBJECT_TYPE(VerticalPathingRegion, vertical_pathing_region);
 
    CollisionType GetType() const override { return CollisionShape::REGION; }
    math3d::aabb GetAABB() const override;

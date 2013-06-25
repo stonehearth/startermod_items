@@ -21,7 +21,7 @@ std::string CreateRoomCmd::operator()(const tesseract::protocol::DoAction& msg) 
    auto& sim = Simulation::GetInstance();
    math3d::ibounds3 bounds(msg.args(0).bounds());
 
-   om::EntityPtr room = sim.GetScript().CreateEntity("mod://stonehearth/buildings/room_plan");
+   om::EntityPtr room = sim.GetScript().CreateEntity("http://radiant/stonehearth/buildings/room_plan");
    room->AddComponent<om::Room>()->SetInteriorSize(bounds._min, bounds._max);
 
    LOG(WARNING) << "!!! created room " << room->GetEntityId();

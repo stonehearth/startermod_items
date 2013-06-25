@@ -4,11 +4,15 @@
    A crafter will execute the craft orders in a todo list from top to bottom.
 ]]
 
-local CraftOrder = radiant.mods.require('mod://stonehearth_crafter/lib/craft_order.lua')
+local CraftOrder = radiant.mods.require('/stonehearth_crafter/lib/craft_order.lua')
 local ToDoList = class()
 
 function ToDoList:__init()
    self._my_list = {}
+end
+
+function ToDoList:__tojson()
+   return radiant.json.encode(self._my_list)
 end
 
 --[[
@@ -54,9 +58,9 @@ function ToDoList:get_next_task()
    --FOR TESTING ONLY
    local ingredient_data = {}
    local recipe = self._my_list[i]:get_recipe().produces[1].item
-   if recipe == 'mod://stonehearth_items/wooden_buckler' then
+   if recipe == '/stonehearth_items/wooden_buckler' then
       ingredient_data = self:buckler_ingredients()
-   elseif recipe == 'mod://stonehearth_items/wooden_sword' then
+   elseif recipe == '/stonehearth_items/wooden_sword' then
       ingredient_data = self:sword_ingredients()
    end
 
@@ -67,11 +71,11 @@ end
 --TESTING FUNCTIONS ONLY
 --[[
 function ToDoList:sword_ingredients()
-   local wood = radiant.entities.create_entity('mod://stonehearth_trees/entities/oak_tree/oak_log')
+   local wood = radiant.entities.create_entity('/stonehearth_trees/entities/oak_tree/oak_log')
    radiant.terrain.place_entity(wood, RadiantIPoint3(-10, 1, 10))
-   local wood2 = radiant.entities.create_entity('mod://stonehearth_trees/entities/oak_tree/oak_log')
+   local wood2 = radiant.entities.create_entity('/stonehearth_trees/entities/oak_tree/oak_log')
    radiant.terrain.place_entity(wood2, RadiantIPoint3(-9, 1, 10))
-   local wood3 = radiant.entities.create_entity('mod://stonehearth_trees/entities/oak_tree/oak_log')
+   local wood3 = radiant.entities.create_entity('/stonehearth_trees/entities/oak_tree/oak_log')
    radiant.terrain.place_entity(wood3, RadiantIPoint3(-8, 1, 10))
 
    local ingredient_data = {{item = wood},{item = wood2},{item = wood3}}
@@ -80,10 +84,10 @@ end
 
 --TESTING FUNCTIONS ONLY
 function ToDoList:buckler_ingredients()
-   local wood = radiant.entities.create_entity('mod://stonehearth_trees/entities/oak_tree/oak_log')
+   local wood = radiant.entities.create_entity('/stonehearth_trees/entities/oak_tree/oak_log')
    radiant.terrain.place_entity(wood, RadiantIPoint3(-10, 1, 10))
 
-   local cloth = radiant.entities.create_entity('mod://stonehearth_items/cloth_bolt')
+   local cloth = radiant.entities.create_entity('/stonehearth_items/cloth_bolt')
    radiant.terrain.place_entity(cloth, RadiantIPoint3(-7, 1, 10))
 
    local ingredient_data = {{item = wood}, {item = cloth}}

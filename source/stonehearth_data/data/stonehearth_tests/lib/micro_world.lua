@@ -34,7 +34,7 @@ function MicroWorld:at(time, fn)
 end
 
 function MicroWorld:place_tree(x, z)
-   return self:place_item('mod://stonehearth_trees/entities/oak_tree/medium_oak_tree', x, z)
+   return self:place_item('/stonehearth_trees/entities/oak_tree/medium_oak_tree', x, z)
 end
 
 function MicroWorld:place_item(name, x, z)
@@ -60,9 +60,9 @@ function MicroWorld:place_item_cluster(uri, x, z, w, h)
 end
 
 function MicroWorld:place_citizen(x, z, profession)
-   local citizen = radiant.mods.load_api('mod://stonehearth_human_race/').create_entity()
+   local citizen = radiant.mods.load_api('/stonehearth_human_race/').create_entity()
    profession = profession and profession or 'worker'
-   local profession = radiant.mods.load_api('mod://stonehearth_' .. profession .. '_class/').promote(citizen)
+   local profession = radiant.mods.load_api('/stonehearth_' .. profession .. '_class/').promote(citizen)
    radiant.terrain.place_entity(citizen, RadiantIPoint3(x, 1, z))
    return citizen
 end
@@ -74,7 +74,7 @@ function MicroWorld:place_stockpile_cmd(faction, x, z, w, h)
    local location = RadiantIPoint3(x, 1, z)
    local size = { w, h }
   
-   local inventory = radiant.mods.load_api('mod://stonehearth_inventory/').get_inventory(faction)
+   local inventory = radiant.mods.load_api('/stonehearth_inventory/').get_inventory(faction)
    inventory:create_stockpile(location, size)
 end
 
@@ -89,7 +89,7 @@ end
 
 function MicroWorld:create_door_cmd(wall, x, y, z)
    radiant.check.is_a(wall, Wall)
-   local json, obj = radiant.commands.call('radiant.commands.create_portal', wall, 'module://stonehearth/buildings/wooden_door', RadiantIPoint3(x, y, z))
+   local json, obj = radiant.commands.call('radiant.commands.create_portal', wall, '//stonehearth/buildings/wooden_door', RadiantIPoint3(x, y, z))
    return om:get_entity(obj.entity_id)
 end
 

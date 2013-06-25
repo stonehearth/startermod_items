@@ -34,6 +34,7 @@ public:
    virtual void Step(platform::timer &timer, int interval) = 0;
    virtual void Idle(platform::timer &timer) = 0;
    virtual void DoAction(const tesseract::protocol::DoAction& msg, protocol::SendQueuePtr queue) = 0;
+   virtual void FetchObject(tesseract::protocol::FetchObjectRequest const& request, tesseract::protocol::FetchObjectReply* reply) = 0;
 };
 
 SimulationInterface *CreateSimulation(lua_State* L);

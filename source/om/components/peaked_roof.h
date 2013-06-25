@@ -9,7 +9,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class PeakedRoof : public GridBuildOrder
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(PeakedRoof);
+   DEFINE_OM_OBJECT_TYPE(PeakedRoof, peaked_roof);
 
    void Create();
 

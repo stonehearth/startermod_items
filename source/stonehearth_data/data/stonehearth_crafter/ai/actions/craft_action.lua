@@ -18,7 +18,7 @@ CraftAction.priority = 5
    the item is complete
 ]]
 function CraftAction:run(ai, entity)
-   local crafter_component = entity:get_component('mod://stonehearth_crafter/components/crafter_component.lua')
+   local crafter_component = entity:get_component('stonehearth_crafter.crafter')
    local workshop = crafter_component:get_workshop()
 
    while workshop:work_on_curr_recipe(ai) do

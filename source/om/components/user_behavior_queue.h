@@ -14,7 +14,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class UserBehaviorQueue : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(UserBehaviorQueue);
+   DEFINE_OM_OBJECT_TYPE(UserBehaviorQueue, user_behavior_queue);
 
 public:
    UserBehaviorPtr AddUserBehavior();

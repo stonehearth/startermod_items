@@ -14,7 +14,7 @@ class GridCollisionShape : public Component,
                            public CollisionShape
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(GridCollisionShape);
+   DEFINE_OM_OBJECT_TYPE(GridCollisionShape, grid_collision_shape);
 
    CollisionType GetType() const override { return CollisionShape::GRID; }
 

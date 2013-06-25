@@ -70,10 +70,6 @@ function EffectManager:get_effect_duration(effect_name)
 end
 
 function EffectManager:_get_effect_path(effect_name)
-   local prefix = 'module://'
-   if effect_name:sub(1, prefix:len()) == prefix then
-      return effect_name
-   end
    return self._effects_root .. '/' .. effect_name .. '.txt'
 end
 

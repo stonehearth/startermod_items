@@ -8,7 +8,7 @@
 		  ]
 	   },
 	   "fixture" : {
-		  "item": "url(../wooden_door_frame)"
+		  "item": "file(../wooden_door_frame)"
 	   }
 	}
 }

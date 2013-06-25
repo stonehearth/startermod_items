@@ -16,7 +16,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class Inventory : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(Inventory);
+   DEFINE_OM_OBJECT_TYPE(Inventory, inventory);
 
    static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
 

@@ -9,6 +9,7 @@
 #include "interfaces.h"
 #include "dm/store.h"
 #include "dm/guard_set.h"
+#include "libjson.h"
 #include "physics/namespace.h"
 
 // Forward Declarations
@@ -56,7 +57,9 @@ public:
    void ProcessCommand(::google::protobuf::RepeatedPtrField<tesseract::protocol::Reply >* replies, const ::radiant::tesseract::protocol::Command &command) override;
    // void ProcessCommandList(const ::radiant::tesseract::protocol::command_list &cmd_list) override;
 
-   void DoAction(const tesseract::protocol::DoAction& msg, protocol::SendQueuePtr queue) override;
+   void DoAction(const tesseract::protocol::DoAction& msg, protocol::SendQueuePtr queue) override; // xxx: die , die , die
+   void FetchObject(tesseract::protocol::FetchObjectRequest const& request, tesseract::protocol::FetchObjectReply* reply) override;
+   JSONNode FormatObjectAtUri(std::string const& uri);
    void EncodeUpdates(protocol::SendQueuePtr queue, ClientState& cs) override;
    void Step(platform::timer &timer, int interval) override;
    void Idle(platform::timer &timer) override;
@@ -120,7 +123,7 @@ private:
    std::list<std::weak_ptr<Job>>                _pathFinders;
    std::list<std::weak_ptr<Job>>                _loopTasks;
    std::vector<AuraListEntry>                   auras_;
-   std::vector<om::TargetTablesRef>             targetTables_;
+   std::vector<om::TargetTablesRef>             targetTables_;   
    lua_State* L_;
 };
 

@@ -5,53 +5,27 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-#if 0
-static luabind::object CastObject(dm::ObjectPtr obj)
+// xxx: move this into a helper or header or somewhere.  EVERYONE needs to
+// do this.  actually, we can't we just inherit it in the luabind registration
+// stuff???
+template <class T>
+std::string ToJsonUri(std::weak_ptr<T> o, luabind::object state)
 {
-   luabind::object result;
+   std::ostringstream output;
+   std::shared_ptr<T> obj = o.lock();
    if (obj) {
-      switch (obj->GetObjectType()) {
-      }
+      output << "\"/object/" << obj->GetObjectId() << "\"";
+   } else {
+      output << "null";
    }
-   return result;
+   return output.str();
 }
 
-dm::ObjectPtr LuaStoreTable::Get(std::string const& name)
-{
-   auto i = find(name);
-   if (i != end()) {
-      return GetStore().FetchObject<dm::Object>(i->second);
-   }
-   return nullptr;
-}
-
-luabind::object LuaStoreTable::GetLua(std::string const& name) {
-   return CastObject(Get(name));
-}
-
-   
-template <class T> std::shared_ptr<T> LuaStoreTable::Get(std::string const& name) const {
-   auto obj = Get(name);
-   if (obj && obj->GetType() == T::DmObjectType) {
-      return std::static_cast_pointer_cast<T>(obj);
-   }
-   return nullptr;
-}
-
-void LuaStoreTable::Set(std::string const& name, dm::ObjectPtr obj)
+LuaComponent::LuaComponent() :
+   dm::Object(),
+   cached_json_valid_(false)
 {
 }
-
-void LuaStoreTable::SetLua(std::string const& name, luabind::object value)
-{
-   switch (luabind::type(value)) {
-   case LUA_TSTRING:
-      
-   default:
-      ASSERT(false);
-   }
-}
-#endif
 
 void LuaComponent::RegisterLuaType(struct lua_State* L)
 {
@@ -59,7 +33,7 @@ void LuaComponent::RegisterLuaType(struct lua_State* L)
    module(L) [
       class_<LuaComponent, LuaComponentRef>("LuaComponent")
          .def(tostring(self))
-         .def("save_data",      &om::LuaComponent::SaveJsonData)
+         .def("__tojson", &ToJsonUri<LuaComponent>)
    ];
 }
 
@@ -70,10 +44,52 @@ std::string LuaComponent::ToString() const
    return o.str();
 }
 
-void LuaComponent::SaveJsonData(std::string const& data)
+void LuaComponent::SetLuaObject(std::string const& name, luabind::object obj)
 {
-   json_ = libjson::parse(data);
-   MarkChanged();
+   name_ = name;
+   obj_ = obj;
+}
+
+void LuaComponent::SaveValue(const dm::Store& store, Protocol::Value* msg) const
+{
+   // xxx: this isn't going to work for save and load.  we need to serialize something
+   // which can then be unserialized (probably via eval!!), which means it will have
+   // class names in it, which means it won't be valid json! 
+   //
+   // this is idea for remoting, though, so let's do it.  SaveValue/LoadValue should
+   // probably be renamed to something which indicates they're for remoting (or
+   // removed entirely from the object and moved elsewhere!!!)
+   std::string json = ToJson().write();
+   dm::SaveImpl<std::string>::SaveValue(store, msg, json);
+}
+
+void LuaComponent::LoadValue(const dm::Store& store, const Protocol::Value& msg)
+{
+   std::string json;
+   dm::SaveImpl<std::string>::LoadValue(store, msg, json);
+   cached_json_ = libjson::parse(json);
+   cached_json_valid_ = true;
+}
+
+JSONNode LuaComponent::ToJson() const
+{
+   using namespace luabind;
+   if (!cached_json_valid_) {
+      cached_json_ = JSONNode();
+      
+      object tojson = obj_["__tojson"];
+      if (luabind::type(tojson) != LUA_TNIL) {
+         std::string json = call_function<std::string>(tojson, obj_);
+         if (!libjson::is_valid(json)) {
+            // xxx: actually, throw an exception
+            return JSONNode();
+         }
+         cached_json_ = libjson::parse(json);
+      }
+      // xxx: skip this until we have legitimate change tracking
+      // cached_json_valid_ = true; 
+   }
+   return cached_json_;
 }
 
 void LuaComponents::ExtendObject(json::ConstJsonObject const& obj) 
@@ -99,13 +115,13 @@ std::string LuaComponents::ToString() const
    return os.str();
 }
 
-LuaComponentPtr LuaComponents::GetLuaComponent(const char* name) const
+LuaComponentPtr LuaComponents::GetLuaComponent(std::string name) const
 {
    auto i = lua_components_.find(name);
    return i == lua_components_.end() ? nullptr : i->second;
 }
 
-LuaComponentPtr LuaComponents::AddLuaComponent(const char* name)
+LuaComponentPtr LuaComponents::AddLuaComponent(std::string name)
 {
    ASSERT(lua_components_.find(name) == lua_components_.end());
 

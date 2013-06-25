@@ -19,7 +19,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class Post : public GridBuildOrder
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(Post);
+   DEFINE_OM_OBJECT_TYPE(Post, post);
 
    void Create(int height);
    void StartProject(const dm::CloneMapping& mapping) override;

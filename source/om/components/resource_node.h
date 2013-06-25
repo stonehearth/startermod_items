@@ -13,7 +13,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class ResourceNode : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(ResourceNode);
+   DEFINE_OM_OBJECT_TYPE(ResourceNode, resource_node);
 
 public:
    std::vector<math3d::ipoint3> GetHarvestStandingLocations() const;

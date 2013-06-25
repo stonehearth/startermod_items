@@ -8,7 +8,7 @@
 		  "ferocity": 100,
 		  "health": 100
 	   },
-	   "ai" : {
+	   "radiant.ai" : {
 		  "intentions" : [
 			 "radiant.intentions.life_and_death",
 			 "radiant.intentions.attack_on_aggro",
@@ -21,15 +21,15 @@
 		  ]
 	   },
 	   "render_rig": {
-		  "animation_table" : "url(/rigs/goblin)",
+		  "animation_table" : "file(/rigs/goblin)",
 		  "models": [
-			 "url(goblin_body.qb)",
+			 "file(goblin_body.qb)",
 			 {
 				"type": "one_of",
 				"items": [
-				   "url(goblin_head_1.qb)",
-				   "url(goblin_head_2.qb)",
-				   "url(goblin_head_3.qb)"
+				   "file(goblin_head_1.qb)",
+				   "file(goblin_head_2.qb)",
+				   "file(goblin_head_3.qb)"
 				]
 			 }
 		  ]

@@ -5,7 +5,7 @@
       "animation": {
          "type": "animation_effect",
          "start_time": 0,
-         "animation": "url(../animations/chop.txt)",
+         "animation": "file(../animations/chop.txt)",
          "loop": false
       }
       ,
@@ -13,7 +13,7 @@
          "type": "attach_item_effect",
          "start_time": 0,
          "end_time": 0,
-         "item": "module://stonehearth/items/worker_axe",
+         "item": "file(/items/worker_axe)",
          "bone": "mainHand"
       }
    }

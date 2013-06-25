@@ -4,10 +4,10 @@
 #include <regex>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/network/uri/uri.hpp>
-#include <boost/network/uri/uri_io.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/tokenizer.hpp>
 #include "radiant.h"
+#include "radiant_file.h"
 #include "radiant_json.h"
 #include "res_manager.h"
 #include "animation.h"
@@ -17,47 +17,51 @@
 #include "hex.h"
 #include "files.h"
 
-namespace network = ::boost::network;
 namespace fs = ::boost::filesystem;
 
 using namespace ::radiant;
 using namespace ::radiant::resources;
 
+
 // === Helper Functions ======================================================
 
-static network::uri::uri ConvertToAbsoluteUri(network::uri::uri const& current, std::string const& str)
+static std::vector<std::string> SplitPath(std::string const& path)
 {
-   if (!boost::starts_with(str, "url(") || !boost::ends_with(str, ")")) {
-      return network::uri::uri(str);
+   std::vector<std::string> s;
+   boost::split(s, path, boost::is_any_of("/"));
+   s.erase(std::remove(s.begin(), s.end(), ""), s.end());
+   
+   return s;
+}
+
+static std::string ConvertToAbsolutePath(std::string const& current, std::string const& p)
+{
+   if (!boost::starts_with(p, "file(") || !boost::ends_with(p, ")")) {
+      return p;
    }
 
-   fs::path newpath;
-   std::string suffix = str.substr(4, str.size() - 5);
-   if (!suffix.empty() && suffix[0] == '/') {
-      // start at the root
-      newpath = fs::path("/");
-      suffix = suffix.substr(1);
+   std::string path = p.substr(5, p.size() - 6);
+   std::vector<std::string> newpath;
+
+   if (path[0] == '/') {
+      // absolute paths (relative the the current mod).
+      std::vector<std::string> current_path = SplitPath(current);
+      newpath.push_back(*current_path.begin());
    } else {
-      // start in the current directory
-      newpath = fs::path(current.path()).parent_path();
+      // relatives paths (to the current directory)
+      newpath = SplitPath(current);
+      newpath.pop_back();
    }
-   fs::path path(suffix);
 
-   for (auto const& item : path) {
-      if (item == ".") {
-      } else if (item == "..") {
-         newpath = newpath.parent_path();
+   for (auto const& elem : SplitPath(path)) {
+      if (elem == ".") {
+      } else if (elem == "..") {
+         newpath.pop_back();
       } else {
-         newpath = newpath / item;
+         newpath.push_back(elem);
       }
    }
-
-   network::uri::uri newuri;
-   newuri << network::uri::scheme(current.scheme())
-          << network::uri::host(current.host())
-          << network::uri::path(newpath.generic_string());
-
-   return newuri.string();
+   return boost::algorithm::join(newpath, "/");
 }
 
 static std::string Checksum(std::string input)
@@ -72,11 +76,12 @@ static std::string Checksum(std::string input)
    return std::string((const char *)buffer, sizeof buffer);
 }
 
-AnimationPtr ResourceManager2::LoadAnimation(network::uri::uri const& canonical_uri) const
+AnimationPtr ResourceManager2::LoadAnimation(std::string const& canonical_path) const
 {
-   JSONNode node = LoadJson(canonical_uri);
+   std::ifstream json_in;
+   OpenResource(canonical_path, json_in);
 
-   std::string jsonfile = node.write();
+   std::string jsonfile = io::read_contents(json_in);
    std::string jsonhash = Checksum(jsonfile);
    fs::path binfile = fs::path(resource_dir_) / (jsonhash + std::string(".bin"));
 
@@ -93,12 +98,13 @@ AnimationPtr ResourceManager2::LoadAnimation(network::uri::uri const& canonical_
       in.close();
    }
    if (buffer.empty()) {
+      JSONNode node = libjson::parse(jsonfile);
       std::string type = json::get<std::string>(node, "type", "");
       if (type.empty()) {
-         throw InvalidResourceException(canonical_uri, "'type' field missing");
+         throw InvalidResourceException(canonical_path, "'type' field missing");
       }
       if (type != "animation") {
-         throw InvalidResourceException(canonical_uri, "node type is not 'animation'");
+         throw InvalidResourceException(canonical_path, "node type is not 'animation'");
       }      
       buffer = Animation::JsonToBinary(node);
       std::ofstream out(binfile.string(), std::ios::out | std::ios::binary);
@@ -131,169 +137,115 @@ ResourceManager2::~ResourceManager2()
 {
 }
 
-JSONNode const& ResourceManager2::LookupJson(std::string uri) const
+JSONNode const& ResourceManager2::LookupManifest(std::string const& modname) const
+{
+   return LookupJson(modname + "/manifest.json");
+}
+
+JSONNode const& ResourceManager2::LookupJson(std::string path) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
 
-   network::uri::uri canonical_uri = ConvertToCanonicalUri(uri, ".txt");
-   std::string key = canonical_uri.string();
+   std::string key = ConvertToCanonicalPath(path, ".txt");
 
    auto i = jsons_.find(key);
    if (i != jsons_.end()) {
       return i->second;
    }
-   return (jsons_[key] = LoadJson(canonical_uri));
+   return (jsons_[key] = LoadJson(key));
 }
 
-AnimationPtr ResourceManager2::LookupAnimation(std::string uri) const
+AnimationPtr ResourceManager2::LookupAnimation(std::string path) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
 
-   network::uri::uri canonical_uri = ConvertToCanonicalUri(uri, ".txt");   
-   std::string key = canonical_uri.string();
+   std::string key = ConvertToCanonicalPath(path, ".txt");   
 
    auto i = animations_.find(key);
    if (i != animations_.end()) {
       return i->second;
    }
-   return (animations_[key] = LoadAnimation(canonical_uri));
+   return (animations_[key] = LoadAnimation(key));
 }
 
-void ResourceManager2::OpenResource(std::string const& canonical_uri, std::ifstream& in) const
+void ResourceManager2::OpenResource(std::string const& canonical_path, std::ifstream& in) const
 {
-   std::string filepath = GetFilepathForUri(canonical_uri);
+   std::string filepath = GetFilepath(canonical_path);
 
    in = std::ifstream(filepath, std::ios::in | std::ios::binary);
    if (!in.good()) {
-      // how can we get here?  GetFilepathForUri validates the filepath.
+      // how can we get here?  GetFilepath validates the filepath.
       // maybe if we can't open the file for some reason?
       throw InvalidFilePath(filepath);
    }
 }
 
-std::string ResourceManager2::GetResourceFileName(std::string const& uri, const char* search_ext) const
+std::string ResourceManager2::GetResourceFileName(std::string const& path, const char* search_ext) const
 {
-   return GetFilepathForUri(ConvertToCanonicalUri(uri, search_ext));
+   return GetFilepath(ConvertToCanonicalPath(path, search_ext));
 }
 
-void ResourceManager2::ParseUriAndFilepath(network::uri::uri const& uri,
-                                           network::uri::uri &canonical_uri,
-                                           std::string& path,
-                                           const char* search_ext) const
-{
-   if (!uri.is_valid()) {
-      throw InvalidUriException(uri);
-   }
-
-   fs::path filepath = fs::path(resource_dir_);
-   filepath /= uri.host();
-
-   std::string uripath = uri.path();
-   boost::char_separator<char> sep("/");
-   boost::tokenizer<boost::char_separator<char>> tokens(uripath, sep);
-
-   std::string last_part = uri.host();
-   for (auto const& part: tokens) {
-      filepath /= part;
-      last_part = part;
-   }
-
-   // if the file path is a directory, look for a file with the name of
-   // the last part in there (e.g. /foo/bar -> /foo/bar/bar.txt
-   if (fs::is_directory(filepath) && !last_part.empty()) {
-      filepath /= last_part + search_ext;
-      canonical_uri = uri.string() + std::string("/") + std::string(last_part) + search_ext;
-   } else{
-      canonical_uri = uri;
-   }
-
-   if (!fs::is_regular_file(filepath)) {
-      throw InvalidUriException(uri);
-   }
-
-   // xxx: this doesn't work if the path is non-ascii!
-   std::wstring native_path = filepath.native();
-   path = std::string(native_path.begin(), native_path.end());
-}
-
-void ResourceManager2::ConvertToAbsoluteUris(network::uri::uri const& base_uri, JSONNode& node) const
+void ResourceManager2::ConvertToAbsolutePaths(std::string const& base_path, JSONNode& node) const
 {
    int type = node.type();
    if (type == JSON_NODE || type == JSON_ARRAY) {
       for (auto& i : node) {
-         ConvertToAbsoluteUris(base_uri, i);
+         ConvertToAbsolutePaths(base_path, i);
       }
    } else if (type == JSON_STRING) {
-      network::uri::uri absolute_uri = ConvertToAbsoluteUri(base_uri, node.as_string());
-      node = JSONNode(node.name(), absolute_uri.string());
+      std::string absolute_path = ConvertToAbsolutePath(base_path, node.as_string());
+      node = JSONNode(node.name(), absolute_path);
    }
 }
 
-network::uri::uri ResourceManager2::ConvertToCanonicalUri(network::uri::uri const& uri, const char* search_ext) const
+std::string ResourceManager2::ConvertToCanonicalPath(std::string const& path, const char* search_ext) const
 {
-   std::string canonical_uri;
+   std::vector<std::string> parts = SplitPath(path);
 
-   if (!uri.is_valid()) {
-      throw InvalidUriException(uri);
+   if (parts.size() < 1) {
+      throw InvalidUriException(path);
    }
 
-   canonical_uri = uri.scheme() + "://";
-   canonical_uri += uri.host();
-
    fs::path filepath = fs::path(resource_dir_);
-   filepath /= uri.host();
-
-   std::string uripath = uri.path();
-   boost::char_separator<char> sep("/");
-   boost::tokenizer<boost::char_separator<char>> tokens(uripath, sep);
-
-   std::string last_part = uri.host();
-   for (auto const& part: tokens) {
+   for (std::string const& part : parts) {
       filepath /= part;
-      last_part = part;
-      canonical_uri += std::string("/") + part;
    }
 
    // if the file path is a directory, look for a file with the name of
    // the last part in there (e.g. /foo/bar -> /foo/bar/bar.txt
-   if (fs::is_directory(filepath) && !last_part.empty()) {
-      filepath /= last_part + search_ext;
-      canonical_uri += std::string("/") + std::string(last_part) + search_ext;
+   if (fs::is_directory(filepath)) {
+      std::string filename = filepath.filename().string() + search_ext;
+      parts.push_back(filename);
+      filepath /= filename;
    }
 
    if (!fs::is_regular_file(filepath)) {
-      throw InvalidUriException(uri);
+      throw InvalidUriException(path);
    }
-   return canonical_uri;
+   return boost::algorithm::join(parts, "/");
 }
 
 
-std::string ResourceManager2::GetFilepathForUri(network::uri::uri const& canonical_uri) const
+std::string ResourceManager2::GetFilepath(std::string const& canonical_path) const
 {
+   std::vector<std::string> parts = SplitPath(canonical_path);
+
    fs::path filepath = fs::path(resource_dir_);
-   filepath /= canonical_uri.host();
-
-   std::string uripath = canonical_uri.path();
-   boost::char_separator<char> sep("/");
-   boost::tokenizer<boost::char_separator<char>> tokens(uripath, sep);
-
-   std::string last_part = canonical_uri.host();
-   for (auto const& part: tokens) {
+   for (std::string const& part : parts) {
       filepath /= part;
-      last_part = part;
    }
 
    std::wstring native_path = filepath.native();
    return std::string(native_path.begin(), native_path.end());
 }
 
-JSONNode ResourceManager2::LoadJson(network::uri::uri const& canonical_uri) const
+JSONNode ResourceManager2::LoadJson(std::string const& canonical_path) const
 {
-   std::string filepath = GetFilepathForUri(canonical_uri);
+   std::string filepath = GetFilepath(canonical_path);
 
    std::ifstream in(filepath, std::ios::in);
    if (!in.good()) {
-      throw InvalidUriException(canonical_uri);
+      throw InvalidUriException(canonical_path);
    }
 
    std::stringstream reader;
@@ -301,24 +253,24 @@ JSONNode ResourceManager2::LoadJson(network::uri::uri const& canonical_uri) cons
 
    json_string json = reader.str();
    if (!libjson::is_valid(json)) {
-      throw InvalidJsonAtUriException(canonical_uri);
+      throw InvalidJsonAtUriException(canonical_path);
    }
 
    JSONNode node = libjson::parse(json);
-   ConvertToAbsoluteUris(canonical_uri, node);
-   ParseNodeExtension(canonical_uri, node);
+   ConvertToAbsolutePaths(canonical_path, node);
+   ParseNodeExtension(canonical_path, node);
 
    return node;
 }
 
 
-void ResourceManager2::ParseNodeExtension(network::uri::uri const& uri, JSONNode& node) const
+void ResourceManager2::ParseNodeExtension(std::string const& path, JSONNode& node) const
 {
    std::string extends = json::get<std::string>(node, "extends", "");
    if (!extends.empty()) {
-      network::uri::uri absolute_uri = ConvertToAbsoluteUri(uri, extends);
+      std::string absolute_path = ConvertToAbsolutePath(path, extends);
 
-      JSONNode const& parent = LookupJson(absolute_uri.string());
+      JSONNode const& parent = LookupJson(absolute_path);
 
       LOG(WARNING) << "node pre-extend: " << node.write_formatted();
       LOG(WARNING) << "extending with: " << parent.write_formatted();

@@ -2,8 +2,8 @@
    "type" : "ability",
 
    "tooltip": "Chop Tree",
-   "icon": "url(/images/actions/chop.png)",
-   "handler"  : "url(chop_ability.lua)",
+   "icon": "file(/images/actions/chop.png)",
+   "handler"  : "file(chop_ability.lua)",
    "command" : "chop",
    "args": [ "self", "player_faction" ]
 }

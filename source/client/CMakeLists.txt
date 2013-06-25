@@ -59,7 +59,6 @@ target_link_libraries(client
                              dm
                              game_engine
                              glfw
-                             httpd
                              Horde3D
                              Horde3DUtils
                              horde3d_extensions

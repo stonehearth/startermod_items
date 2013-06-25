@@ -1,7 +1,7 @@
 {
-   "extends": "url(../../tree.txt)",
-   "resource_node" : {
-      "resource": "url(../oak_log)",
+   "extends": "file(../../tree.txt)",
+   "radiant.resource_node" : {
+      "resource": "file(../oak_log)",
       "durability": 6
    },
    "unit_info" : {
@@ -14,9 +14,9 @@
          {
             "type": "one_of",
             "items": [
-               "url(small_oak_tree.qb)",
-               "url(tree_oak_small_2.qb)",
-               "url(tree_oak_small_3.qb)"
+               "file(small_oak_tree.qb)",
+               "file(tree_oak_small_2.qb)",
+               "file(tree_oak_small_3.qb)"
             ]
          }
       ]

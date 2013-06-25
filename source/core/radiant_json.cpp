@@ -5,10 +5,6 @@
 using namespace ::radiant;
 using namespace ::radiant::json;
 
-std::string ConstJsonObject::ToString() const
-{
-   return node_.write_formatted();
-}
 
 #if 0
 template <class T>
@@ -113,7 +109,7 @@ public:
             luabind::object(L, i_->name()).push(L);
          }
          //luabind::object(L, std::string("happy fun times")).push(L);
-         LOG(WARNING) << "node: " << i_->write_formatted();
+         //LOG(WARNING) << "node: " << i_->write_formatted();
          PushNode(L, *i_);
          ++i_;
          return 2;

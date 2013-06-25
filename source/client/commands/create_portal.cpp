@@ -24,7 +24,7 @@ using namespace radiant::client;
 CreatePortal::CreatePortal(PendingCommandPtr cmd) :
    inputHandlerId_(0)
 {
-   cmd->Complete(JSONNode());
+   cmd->CompleteSuccessObj(JSONNode());
 }
 
 CreatePortal::~CreatePortal()
@@ -169,7 +169,7 @@ void CreatePortal::MovePortal(const csg::Point3& location)
       } else {
          angle = 0;
       }
-      portal_ = om::Stonehearth::CreateEntityLegacyDIEDIEDIE(store, "module://stonehearth/buildings/wooden_door");
+      portal_ = om::Stonehearth::CreateEntityLegacyDIEDIEDIE(store, "/stonehearth/buildings/wooden_door");
       wall->AddFixture(portal_);
 
       portalMob = portal_->GetComponent<om::Mob>();
@@ -242,7 +242,7 @@ void CreatePortal::SendCommand()
 
    std::vector<om::Selection> args;
    args.push_back(om::Selection(remoteWall->GetComponent<om::Wall>()));
-   args.push_back(om::Selection("module://stonehearth/buildings/wooden_door"));
+   args.push_back(om::Selection("/stonehearth/buildings/wooden_door"));
    args.push_back(om::Selection(portalPosition_));
    Client::GetInstance().SendCommand(0, "radiant.commands.create_portal", args, id);
 

@@ -3,7 +3,7 @@
    "tracks": {
       "animation": {
          "type": "animation_effect",
-         "animation": "url(../../animations/combat/shield_block.txt)"
+         "animation": "file(../../animations/combat/shield_block.txt)"
       },
       "frame_data" : {
          "type": "attack_frame_data",

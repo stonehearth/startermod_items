@@ -248,7 +248,7 @@ void RenderEntity::AddLuaComponents(om::LuaComponentsPtr lua_components)
 {
    for (auto const& entry : lua_components->GetComponentMap()) {
       std::string mod = entry.first;
-      if (mod == "mod://radiant/components/stockpile_component.lua") {
+      if (mod == "radiant.stockpile") {
          lua_components_[mod] = std::make_shared<RenderStockpile>(*this, entry.second);
       }
    }

@@ -1,6 +1,6 @@
 {
    "type" : "entity",
-   "extends" : "mod://stonehearth_items/entities/item/item_properties.txt",
+   "extends" : "/stonehearth_items/entities/item/item_properties.txt",
    "components" : {
 	   "item" : {
 		  "material": "wood",
@@ -12,7 +12,7 @@
 	   },
 	   "render_rig": {
 		  "models": [
-			 "url(oak_log.qb)"
+			 "file(oak_log.qb)"
 		  ]
 	   }
 	}

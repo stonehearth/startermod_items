@@ -4,7 +4,7 @@
       "animation": {
             "type": "animation_effect",
             "start_time": 0,
-            "animation": "url(../animations/work.txt)",
+            "animation": "file(../animations/work.txt)",
             "loop": false
       },
       "hide_carrying" : {
@@ -17,7 +17,7 @@
          "type": "attach_item_effect",
          "start_time": 0,
          "end_time": 0,
-         "item": "module://stonehearth/items/worker_hammer",
+         "item": "file(/items/worker_hammer)",
          "bone": "mainHand"
       }
    }
