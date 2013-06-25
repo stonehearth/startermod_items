@@ -3,7 +3,7 @@
    "tracks": {
       "animation": {
             "type": "animation_effect",
-            "animation": "url(../../animations/combat/1h_parry.txt)"
+            "animation": "file(../../animations/combat/1h_parry.txt)"
       },
       "frame_data" : {
          "type": "attack_frame_data",

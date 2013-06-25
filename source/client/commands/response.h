@@ -8,7 +8,7 @@
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
 typedef int ResponseId;
-typedef std::function<void(JSONNode)> ResponseFn;
+typedef std::function<void(std::string const& )> ResponseFn;
 
 class Response
 {
@@ -19,10 +19,9 @@ public:
    int GetSession() const;
    void SetSession(int session);
 
-   void Complete(JSONNode result);
+   void Complete(std::string const& result);
    void Defer(int id);
-   void Error(std::string reason);
-   void Deliver(const JSONNode& response);
+   void Error(std::string const& reason);
 
 private:
    static std::atomic_int nextDeferId_;

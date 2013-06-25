@@ -20,7 +20,7 @@ class AuraList;
 class Aura : public dm::Record
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(Aura);
+   DEFINE_OM_OBJECT_TYPE(Aura, aura);
 
    std::string GetName() const { return *name_; }
 
@@ -60,7 +60,7 @@ typedef std::shared_ptr<Aura> AuraPtr;
 class AuraList : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(AuraList);
+   DEFINE_OM_OBJECT_TYPE(AuraList, aura_list);
 
    const dm::Set<AuraPtr>& GetAuras() const { return auras_; }
 

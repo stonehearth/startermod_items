@@ -20,7 +20,7 @@ class SensorList;
 class Sensor : public dm::Record
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(Sensor);
+   DEFINE_OM_OBJECT_TYPE(Sensor, sensor);
    static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
 
    om::EntityRef GetEntity() const { return *entity_; }
@@ -65,7 +65,7 @@ typedef std::shared_ptr<Sensor> SensorPtr;
 class SensorList : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(SensorList);
+   DEFINE_OM_OBJECT_TYPE(SensorList, sensor_list);
    static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
    void ExtendObject(json::ConstJsonObject const& obj) override;
 

@@ -35,7 +35,19 @@ namespace radiant {
          ConstJsonObject(JSONNode const& node) : node_(node) { }
          static void RegisterLuaType(struct lua_State* L);
 
-         std::string ToString() const;
+         std::string write() const {
+            return node_.write();
+         }
+
+         std::string write_formatted() const {
+            return node_.write_formatted();
+         }
+
+         std::string as_string() const {
+            ASSERT(node_.type() == JSON_STRING);
+            return node_.as_string();
+         }
+
          JSONNode const& GetNode() const { return node_; }
 
          bool has(const char* name) const {
@@ -48,10 +60,18 @@ namespace radiant {
          template <typename T> T get(int offset, T const& def) const {
             return ::radiant::json::get(GetNode(), offset, def);
          }
+         ConstJsonObject operator[](std::string const& name) {
+            return (*this)[name.c_str()];
+         }
+         ConstJsonObject operator[](const char* name) {
+            auto i = node_.find(name);
+            ASSERT(i != node_.end());
+            return ConstJsonObject(*i);
+         }
       private:
          JSONNode const& node_;
       };
-      static std::ostream& operator<<(std::ostream& os, const ConstJsonObject& o) { return (os << o.ToString()); }
+      static std::ostream& operator<<(std::ostream& os, const ConstJsonObject& o) { return (os << o.write_formatted()); }
 
 
       template <typename T> static T cast_(JSONNode const& node);

@@ -15,7 +15,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class Paperdoll : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(Paperdoll);
+   DEFINE_OM_OBJECT_TYPE(Paperdoll, paperdoll);
 
    enum Slot {
       MAIN_HAND         = 0,

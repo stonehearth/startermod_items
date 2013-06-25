@@ -11,7 +11,7 @@
 	   },
 	   "render_rig": {
 		  "models": [
-			 "url(jupiner_log.qb)"
+			 "file(jupiner_log.qb)"
 		  ]
 	   }
 	}

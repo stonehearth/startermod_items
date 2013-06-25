@@ -1,17 +1,17 @@
 {
    "type" : "entity",
-   "extends" : "url(../base_human.txt)",
+   "extends" : "file(../base_human.txt)",
    "components" : {
 	   "render_rig": {
 		  "models": [
 			 {
 				"type": "one_of",
 				"items": [
-				   "url(head_black_1.qb)",
-				   "url(head_black_2.qb)"
+				   "file(head_black_1.qb)",
+				   "file(head_black_2.qb)"
 				]
 			 },            
-			 "url(hands_black.qb)"
+			 "file(hands_black.qb)"
 		  ]
 	   }
 	}

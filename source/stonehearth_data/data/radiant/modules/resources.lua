@@ -12,19 +12,31 @@ local proxy_metatable = {
    end,
    __towatch = function (proxy)
       return tostring(proxy.__obj)
-   end
+   end,
+   --[[
+   __tojson = function(proxy) 
+      return { yo = 'dude' }
+   end,
+   ]]
+   __tojson = function(proxy) 
+      if proxy.__resource_uri then
+         return '"' .. proxy.__resource_uri .. '"'
+      end
+      return tostring(proxy.__obj)
+   end,
 }
 
 function resources.__init()
 end
 
-function resources._wrap(obj)
+function resources._wrap(obj, uri)
    if type(obj) ~= 'userdata' then
       return obj
    end
    local proxy = { 
       __is_radiant_json = true,
-      __obj = obj
+      __obj = obj,
+      __resource_uri = uri,
    }
    setmetatable(proxy, proxy_metatable)
    return proxy
@@ -35,7 +47,11 @@ function resources.load_animation(uri)
 end
 
 function resources.load_json(uri)
-   return resources._wrap(native:load_json(uri))
+   return resources._wrap(native:load_json(uri), uri)
+end
+
+function resources.load_manifest(uri)
+   return resources._wrap(native:load_manifest(uri), uri)
 end
 
 function resources.get_native_obj(proxy)

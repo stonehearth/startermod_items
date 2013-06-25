@@ -344,6 +344,14 @@ encode2 = function (value, indent, level, buffer, buflen, tables, globalorder)
   local valmeta = getmetatable (value)
   valmeta = type (valmeta) == 'table' and valmeta -- only tables
   local valtojson = valmeta and valmeta.__tojson
+  
+  -- patch by radiant.  luabind does not make it easy to modify the metatable, so also
+  -- allow a __tojson function in the object itself if the type is userdata
+  if not valtojson and type(value) == 'userdata' then
+     valtojson = value.__tojson
+  end
+  -- end patch
+  
   if valtojson then
     if tables[value] then
       return nil, "reference cycle"

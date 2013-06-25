@@ -17,7 +17,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class CarryBlock : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(CarryBlock);
+   DEFINE_OM_OBJECT_TYPE(CarryBlock, carry_block);
 
    om::EntityRef GetCarrying() const { return *carrying_; }
    void SetCarrying(om::EntityRef obj) { carrying_ = obj; }

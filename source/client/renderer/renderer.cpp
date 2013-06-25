@@ -71,7 +71,7 @@ Renderer::Renderer() :
 
 	if (!h3dInit()) {	
 		h3dutDumpMessages();
-      assert(false);
+      return;
    }
 
 	// Set options
@@ -460,16 +460,18 @@ void Renderer::UpdateUITexture(const csg::Region2& rgn, const char* buffer)
       int pitch = uiWidth_ * 4;
 
       char *data = (char *)h3dMapResStream(uiTexture_, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, true, true);
-      for (csg::Rect2 const& r : rgn) {
-         int amount = (r.GetMax().x - r.GetMin().x) * 4;
-         for (int y = r.GetMin().y; y < r.GetMax().y; y++) {
-            char* dst = data + (y * pitch) + (r.GetMin().x * 4);         
-            const char* src = buffer + (y * pitch) + (r.GetMin().x * 4);
-            memcpy(dst, src, amount);
-            //for (int i = 0; i < amount; i += 4) {  dst[i+3] = 0xff; }
+      if (data) {
+         for (csg::Rect2 const& r : rgn) {
+            int amount = (r.GetMax().x - r.GetMin().x) * 4;
+            for (int y = r.GetMin().y; y < r.GetMax().y; y++) {
+               char* dst = data + (y * pitch) + (r.GetMin().x * 4);         
+               const char* src = buffer + (y * pitch) + (r.GetMin().x * 4);
+               memcpy(dst, src, amount);
+               //for (int i = 0; i < amount; i += 4) {  dst[i+3] = 0xff; }
+            }
          }
+         h3dUnmapResStream(uiTexture_);
       }
-      h3dUnmapResStream(uiTexture_);
    }
 }
 

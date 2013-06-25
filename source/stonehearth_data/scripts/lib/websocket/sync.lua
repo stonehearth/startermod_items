@@ -92,7 +92,7 @@ local connect = function(self,ws_url,ws_protocol)
   if self.state == 'OPEN' then
     error('already connected')
   end
-  local protocol,host,port,uri = tools.parse_url(ws_url)
+  local protocol,host,port,uri = tools.parse_file(ws_url)
   if protocol ~= 'ws' then
     error('bad protocol')
   end

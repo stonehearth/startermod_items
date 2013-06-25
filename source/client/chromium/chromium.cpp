@@ -1,7 +1,10 @@
 #include "pch.h"
+#include "radiant_json.h"
+#include "radiant_file.h"
 #include "chromium.h"
 #include "client/client.h"
 #include "client/renderer/renderer.h"
+#include "resources/res_manager.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
 #include <fstream>
@@ -46,10 +49,6 @@ Chromium::Chromium(HWND parentWindow) :
    mouseX_(0),
    mouseY_(0)
 { 
-   namespace po = boost::program_options;
-   extern po::variables_map configvm;
-   docroot_ = configvm["ui.docroot"].as<std::string>().c_str();
-
    CefSettings settings;   
    CefString(&settings.log_file) = L"cef_debug_log.txt";
    // settings.log_severity = LOGSEVERITY_VERBOSE;
@@ -68,7 +67,7 @@ Chromium::Chromium(HWND parentWindow) :
 
    CefInitialize(main_args, settings, chromimumApp.get());
 
-   //CefRegisterCustomScheme("radiant", true, false, false);
+   //CefRegisterSchemeHandlerFactory("mod", "", this);
    CefRegisterSchemeHandlerFactory("http", "radiant", this);
    //CefAddCrossOriginWhitelistEntry("radiant://ui", "radiant", "api", true);
 
@@ -83,8 +82,14 @@ Chromium::Chromium(HWND parentWindow) :
 
    // Create the new browser window object asynchronously. This eventually results
    // in a call to CefLifeSpanHandler::OnAfterCreated().
-   std::string docroot = "http://radiant/mods/stonehearth/";
-   //docroot = "http://google.com/";
+
+   namespace po = boost::program_options;
+   extern po::variables_map configvm;
+   std::string loader = configvm["game.loader"].as<std::string>().c_str();
+
+   json::ConstJsonObject manifest(resources::ResourceManager2::GetInstance().LookupManifest(loader));
+   std::string docroot = "http://radiant/" + manifest["loader"]["ui"]["homepage"].as_string();
+
    CefBrowserHost::CreateBrowser(windowInfo, this, docroot, browserSettings);
    framebuffer_ = new uint32[width_ * height_];
 }
@@ -415,18 +420,20 @@ CefRefPtr<CefResourceHandler> Chromium::GetResourceHandler(CefRefPtr<CefBrowser>
    CefParseURL(url, url_parts);
 
    CefRefPtr<BufferedResponse> response(new BufferedResponse(request));
-   auto cb = [response](const JSONNode& node) {
+   auto cb = [response](std::string const& node) {
       // is it ok to do this on the client thread???
-      response->SetResponse(node);
+      response->SetResponse(node, "application/json");
    };
 
+   // xxx: for now, assume everything is internal...
    auto &api = Client::GetInstance().GetAPI();
+
    std::string path = CefString(&url_parts.path);
    std::string query = CefString(&url_parts.query);
    std::string postdata = GetPostData(request);
 
    if (!api.OnNewRequest(path, query, postdata, cb)) {
-      ReadFile(response, path);
+      ReadFile(response, CefString(&url_parts.path));
    }
    return CefRefPtr<CefResourceHandler>(response);
 }
@@ -493,46 +500,25 @@ void Chromium::ReadFile(CefRefPtr<BufferedResponse> response, std::string path)
      { "woff", "application/font-woff" },
      { "cur",  "image/vnd.microsoft.icon" },
    };
-   static const std::string altroots[] = {
-      std::string("index.html"),
-   };
-   std::string filepath = docroot_ + path;
-   std::ifstream is(filepath, std::ios::binary );
-   if (!is.is_open()) {
-      std::string sep(path.back() == '/' ? "" : "/"); 
-      for (const auto& filename : altroots) {
-         filepath = docroot_ + path + sep + filename;
-         is.open(filepath, std::ios::binary);
-         if (is.is_open()) {
-            break;
-         }
-      }
-   }
-   if (!is.is_open()) {
+   std::ifstream infile;
+   auto const& rm = resources::ResourceManager2::GetInstance();
+
+   try {
+      rm.OpenResource(path, infile);
+   } catch (resources::Exception const& e) {
+      LOG(WARNING) << "error code 404: " << e.what();
       response->SetStatusCode(404);
       return;
    }
-   std::stringstream buffer;
-   buffer << is.rdbuf();
+   ASSERT(infile.is_open());
 
-   //// get length of file:
-   //is.seekg (0, std::ios::end);
-   //size_t filesize = (int)is.tellg();
-   //is.seekg (0, std::ios::beg);
-
-   //// allocate memory:
-   //std::string response;
-   //response.reserve(filesize);
-
-   //// read data as a block:
-   //is.read ((char *)response.data(), filesize);
-   is.close();
+   std::string data = io::read_contents(infile);
 
    // Determine the file extension.
    std::string mimeType;
-   std::size_t last_dot_pos = filepath.find_last_of(".");
+   std::size_t last_dot_pos = path.find_last_of(".");
    if (last_dot_pos != std::string::npos) {
-      std::string extension = filepath.substr(last_dot_pos + 1);
+      std::string extension = path.substr(last_dot_pos + 1);
       for (auto &entry : mimeTypes_) {
          if (extension == entry.extension) {
             mimeType = entry.mimeType;
@@ -541,7 +527,7 @@ void Chromium::ReadFile(CefRefPtr<BufferedResponse> response, std::string path)
       }
    }
    ASSERT(!mimeType.empty());
-   response->SetResponse(buffer.str(), mimeType);
+   response->SetResponse(data, mimeType);
 }
 
 std::string Chromium::GetPostData(CefRefPtr<CefRequest> request)

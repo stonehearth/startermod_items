@@ -1,7 +1,7 @@
 {
-   "extends": "url(/prototypes/tree)",
-   "resource_node" : {
-      "resource": "url(../juniper_log)",
+   "extends": "file(/prototypes/tree)",
+   "radiant.resource_node" : {
+      "resource": "file(../juniper_log)",
       "durability": 6
    },
    "unit_info" : {
@@ -14,7 +14,7 @@
          {
             "type": "one_of",
             "items": [
-               "url(tree_juniper_small.qb)"
+               "file(tree_juniper_small.qb)"
             ]
          }
       ]

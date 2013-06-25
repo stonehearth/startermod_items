@@ -13,7 +13,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class RenderRig : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(RenderRig);
+   DEFINE_OM_OBJECT_TYPE(RenderRig, render_rig);
    void ExtendObject(json::ConstJsonObject const& obj) override;
 
 private:
@@ -43,7 +43,7 @@ private:
 class RenderRigIconic : public RenderRig
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(RenderRigIconic);
+   DEFINE_OM_OBJECT_TYPE(RenderRigIconic, render_rig_iconic);
 };
 
 END_RADIANT_OM_NAMESPACE

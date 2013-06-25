@@ -187,7 +187,6 @@ private:
    int32                         renderWidth_;
    int32                         renderHeight_;
    uint32*                       framebuffer_;
-   std::string                   docroot_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

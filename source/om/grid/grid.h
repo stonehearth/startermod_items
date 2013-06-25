@@ -21,7 +21,7 @@ class GridTile;
 
 class Grid : public dm::Record {
    public:
-      DEFINE_OM_OBJECT_TYPE(Grid);
+      DEFINE_OM_OBJECT_TYPE(Grid, grid);
       friend GridTile;
 
       void InitializeRecordFields() override;

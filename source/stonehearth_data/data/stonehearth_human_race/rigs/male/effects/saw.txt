@@ -4,14 +4,14 @@
       "animation": {
          "type": "animation_effect",
          "start_time": 0,
-         "animation": "url(../animations/saw.txt)",
+         "animation": "file(../animations/saw.txt)",
          "loop": false
       },
       "grab_saw" : {
          "type": "attach_item_effect",
          "start_time": 0,
          "end_time": 0,
-         "item": "mod://stonehearth_items/carpenter_saw",
+         "item": "/stonehearth_items/carpenter_saw",
          "bone": "mainHand"
       }
 

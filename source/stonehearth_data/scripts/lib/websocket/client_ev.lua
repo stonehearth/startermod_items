@@ -36,7 +36,7 @@ local ev = function(ws)
   end
   
   local connect = function(_,params)
-    local protocol,host,port,uri = tools.parse_url(params.url)
+    local protocol,host,port,uri = tools.parse_file(params.url)
     if protocol ~= 'ws' then
       error('Protocol not supported:'..protocol)
     end

@@ -19,7 +19,7 @@ class Entity;
 class EntityContainer : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(EntityContainer);
+   DEFINE_OM_OBJECT_TYPE(EntityContainer, entity_container);
 
    typedef dm::Map<dm::ObjectId, std::weak_ptr<Entity>> Container;
 

@@ -1,5 +1,5 @@
 local MicroWorld = require 'stonehearth_tests.lib.micro_world'
-local CraftOrder = radiant.mods.require('mod://stonehearth_crafter/lib/craft_order.lua')
+local CraftOrder = radiant.mods.require('/stonehearth_crafter/lib/craft_order.lua')
 
 local CarpenterTest = class(MicroWorld)
 --[[
@@ -14,20 +14,20 @@ function CarpenterTest:__init()
    --Create the carpenter, bench, and instantiate them to each other
    
    local carpenter = self:place_citizen(12, 12,'carpenter')
-   local bench = self:place_item('mod://stonehearth_carpenter_class/entities/carpenter_workbench', -12, -12)
+   local bench = self:place_item('/stonehearth_carpenter_class/entities/carpenter_workbench', -12, -12)
    
    --TODO: can we do this via promote?
-   local carpenter_component = carpenter:get_component('mod://stonehearth_crafter/components/crafter_component.lua')   
-   local workshop_component = bench:get_component('mod://stonehearth_crafter/components/workshop_component.lua')
+   local carpenter_component = carpenter:get_component('stonehearth_crafter.crafter')   
+   local workshop_component = bench:get_component('stonehearth_crafter.workshop')
    local faction = carpenter:get_component('unit_info'):get_faction()
    bench:add_component('unit_info'):set_faction(faction)
-   workshop_component:set_crafter(carpenter_component)
+   workshop_component:set_crafter(carpenter)
    carpenter_component:set_workshop(workshop_component)
    -- end TODO
 
    -- put some items in the world
-   self:place_item_cluster('mod://stonehearth_trees/entities/oak_tree/oak_log', -10, 10, 3, 3)
-   self:place_item_cluster('mod://stonehearth_items/cloth_bolt', -7, 10, 2, 2)
+   self:place_item_cluster('/stonehearth_trees/entities/oak_tree/oak_log', -10, 10, 3, 3)
+   self:place_item_cluster('/stonehearth_items/cloth_bolt', -7, 10, 2, 2)
 
  -- Tests!
 
@@ -38,7 +38,7 @@ function CarpenterTest:__init()
          local condition = {}
          condition.amount = 1
          local order = CraftOrder(radiant.resources.load_json(
-            'mod://stonehearth_carpenter_class/recipes/wooden_buckler_recipe.txt'),
+            '/stonehearth_carpenter_class/recipes/wooden_buckler_recipe.txt'),
             true,  condition, workshop_component)
          local todo = workshop_component:ui_get_todo_list()
          todo:add_order(order)
@@ -52,7 +52,7 @@ function CarpenterTest:__init()
          local condition = {}
          condition.amount = 1
          local order = CraftOrder(radiant.resources.load_json(
-            'mod://stonehearth_carpenter_class/recipes/wooden_sword_recipe.txt'),
+            '/stonehearth_carpenter_class/recipes/wooden_sword_recipe.txt'),
             true,  condition, workshop_component)
          local todo = workshop_component:ui_get_todo_list()
          todo:add_order(order)
@@ -66,7 +66,7 @@ function CarpenterTest:__init()
          local condition = {}
          condition.amount = 2
          local order = CraftOrder(radiant.resources.load_json(
-            'mod://stonehearth_carpenter_class/recipes/wooden_sword_recipe.txt'),
+            '/stonehearth_carpenter_class/recipes/wooden_sword_recipe.txt'),
             true,  condition, workshop_component)
          local todo = workshop_component:ui_get_todo_list()
          todo:add_order(order)

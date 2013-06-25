@@ -15,7 +15,7 @@ using namespace radiant::client;
 
 CreateRoom::CreateRoom(PendingCommandPtr cmd)
 {
-   cmd->Complete(JSONNode());
+   cmd->CompleteSuccessObj(JSONNode());
 }
 
 CreateRoom::~CreateRoom()

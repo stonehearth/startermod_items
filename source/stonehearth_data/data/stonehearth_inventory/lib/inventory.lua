@@ -1,7 +1,7 @@
-local TreeTracker = radiant.mods.require('mod://stonehearth_inventory/lib/tree_tracker.lua')
---local ItemTracker = radiant.mods.require('mod://stonehearth_inventory/lib/item_tracker.lua')
-local RestockTracker = radiant.mods.require('mod://stonehearth_inventory/lib/restock_tracker.lua')
-local StockpileTracker = radiant.mods.require('mod://stonehearth_inventory/lib/stockpile_tracker.lua')
+local TreeTracker = radiant.mods.require('/stonehearth_inventory/lib/tree_tracker.lua')
+--local ItemTracker = radiant.mods.require('/stonehearth_inventory/lib/item_tracker.lua')
+local RestockTracker = radiant.mods.require('/stonehearth_inventory/lib/restock_tracker.lua')
+local StockpileTracker = radiant.mods.require('/stonehearth_inventory/lib/stockpile_tracker.lua')
 local Inventory = class()
 
 function Inventory:__init(faction)
@@ -90,7 +90,7 @@ function Inventory:_remove_entity_from_terrain(id, entity)
 end
 
 function Inventory:create_stockpile(location, size)
-   local entity = radiant.entities.create_entity('mod://stonehearth_inventory/entities/stockpile')
+   local entity = radiant.entities.create_entity('/stonehearth_inventory/entities/stockpile')
    
    radiant.terrain.place_entity(entity, location)
    if size then

@@ -13,7 +13,7 @@
 	   },
 	   "render_rig": {
 		  "models": [
-			 "url(studded_leather_helmet.qb)"
+			 "file(studded_leather_helmet.qb)"
 		  ]
 	   }
 	}

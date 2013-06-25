@@ -9,7 +9,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class Ladder : public BuildOrder
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(Ladder);
+   DEFINE_OM_OBJECT_TYPE(Ladder, ladder);
 
    void StartProject();
    void SetSupportStructure(WallPtr wall);

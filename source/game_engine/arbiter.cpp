@@ -15,6 +15,7 @@ using namespace ::radiant;
 using namespace ::radiant::game_engine;
 
 namespace po = boost::program_options;
+namespace proto = ::radiant::tesseract::protocol;
 
 DEFINE_SINGLETON(arbiter);
 
@@ -42,7 +43,8 @@ void arbiter::GetConfigOptions(po::options_description& options)
    po::options_description o("Server options");
    o.add_options()
       ("game.noidle",   po::bool_switch(&config_.noidle), "suspend the idle loop, running the game as fast as possible.")
-      ("game.script",   po::value<std::string>()->default_value("stonehearth://game.lua"), "the game script to load")
+      ("game.script",   po::value<std::string>()->default_value("stonehearth_tests/harvest_test.lua"), "the game script to load") // xxx: remove me
+      ("game.loader",     po::value<std::string>()->default_value("stonehearth_tests"), "the game script to load")
       ("game.travel_speed_multiplier", po::value<float>()->default_value(0.4f), "multiplier for unit travelling speed")
       ;
    options.add(o);
@@ -78,10 +80,24 @@ void arbiter::Start(lua_State* L)
    _simulation.reset(::radiant::simulation::CreateSimulation(L_));
 }
 
-bool arbiter::ProcessMessage(std::shared_ptr<client> c, const tesseract::protocol::DoAction& msg)
+bool arbiter::ProcessMessage(std::shared_ptr<client> c, const proto::Request& msg)
 {
-   LOG(WARNING) << "Got " << msg.action();
-   _simulation->DoAction(msg, c->send_queue);
+   proto::Update reply;
+
+#define DISPATCH_MSG(MsgName) \
+   case proto::Request::MsgName ## Request: \
+      reply.set_type(proto::Update::MsgName ## Reply); \
+      reply.set_reply_id(msg.request_id()); \
+      _simulation->MsgName(msg.GetExtension(proto::MsgName ## Request::extension), \
+                           reply.MutableExtension(proto::MsgName ## Reply::extension)); \
+      break;
+
+   switch (msg.type()) {
+      DISPATCH_MSG(FetchObject);
+   default:
+      ASSERT(false);
+   }
+   c->send_queue->Push(protocol::Encode(reply));
    return true;
 }
 
@@ -199,9 +215,9 @@ void arbiter::ProcessSendQueue(std::shared_ptr<client> c)
 void arbiter::EncodeUpdates(std::shared_ptr<client> c)
 {
    // Update the sequence number...
-   tesseract::protocol::Update update;
-   update.set_type(tesseract::protocol::Update::BeginUpdate);
-   auto msg = update.MutableExtension(tesseract::protocol::BeginUpdate::extension);
+   proto::Update update;
+   update.set_type(proto::Update::BeginUpdate);
+   auto msg = update.MutableExtension(proto::BeginUpdate::extension);
    msg->set_sequence_number(sequence_number_);
    c->send_queue->Push(protocol::Encode(update));
    c->sequence_number = sequence_number_;
@@ -211,7 +227,7 @@ void arbiter::EncodeUpdates(std::shared_ptr<client> c)
 
    // End the sequence
    update.Clear();
-   update.set_type(tesseract::protocol::Update::EndUpdate);
+   update.set_type(proto::Update::EndUpdate);
    c->send_queue->Push(protocol::Encode(update));
 }
 
@@ -223,7 +239,8 @@ void arbiter::process_messages()
    _io_service.reset();
 
    for (auto c : _clients) {
-      c->recv_queue->Process<tesseract::protocol::DoAction>(std::bind(&arbiter::ProcessMessage, this, c, std::placeholders::_1));
+      c->recv_queue->Process<proto::Request>([=](proto::Request const& msg) -> bool {
+         return ProcessMessage(c, msg);
+      });
    }
 }
-

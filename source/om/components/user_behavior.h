@@ -13,7 +13,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class UserBehavior : public dm::Record
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(UserBehavior);
+   DEFINE_OM_OBJECT_TYPE(UserBehavior, user_behavior);
 
 public:
    std::string GetScriptName() const;

@@ -1,15 +1,15 @@
 {
    "type" : "entity",
    "components" : {
-	   "ai" : {
+	   "radiant.ai" : {
 		  "intentions" : [
 			 "radiant.intentions.rabbit_ai"
 		  ]
 	   },
 	   "render_rig": {
-	      "animation_table" : "url(/rigs/rabbit)",
+	      "animation_table" : "file(/rigs/rabbit)",
 		  "models": [
-			 "url(rabbit.qb)"
+			 "file(rabbit.qb)"
 		  ]
 	   }
 	}

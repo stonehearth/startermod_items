@@ -27,7 +27,6 @@ radiant.log.info('radiant api initialized.')
 function api.update(interval)
    radiant.gamestate._increment_clock(interval)
    radiant.events._update()
-   radiant.components._flush_dirty()
    --[[
    if now > self._lastProfileReport + 5000 then
       ProFi:stop();

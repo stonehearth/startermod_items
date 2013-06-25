@@ -8,7 +8,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class Fixture : public BuildOrder
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(Fixture);
+   DEFINE_OM_OBJECT_TYPE(Fixture, fixture);
    void ExtendObject(json::ConstJsonObject const& obj) override;
 
 public: // Simulation Methods

@@ -9,7 +9,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class Floor : public GridBuildOrder
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(Floor);
+   DEFINE_OM_OBJECT_TYPE(Floor, floor);
 
    void Create();
 

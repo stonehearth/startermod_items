@@ -11,14 +11,13 @@
 ]]
 
 -- All workshops have a ToDo list through which the user instructs the crafter
-local ToDoList = radiant.mods.require('mod://stonehearth_crafter/lib/todo_list.lua')
+local ToDoList = radiant.mods.require('/stonehearth_crafter/lib/todo_list.lua')
 local Workshop = class()
 
 function Workshop:__init(entity)
-   self._available_materials = {}      -- The list of materials in the world we don't have yet, but can get
    self._todo_list = ToDoList()        -- The list of things we need to work on
+   
    self._entity = entity               -- The entity associated with this component
-   self._crafter = {}                  -- The worker component associated with this bench
    self._curr_order = nil              -- The order currently being worked on. Nil until we get an order from the todo list
    self._intermediate_item = nil       -- The item currently being worked on. Nil until we actually start crafting
                                        -- TODO: revise all three of these to use entity-container
@@ -29,6 +28,14 @@ end
 function Workshop:extend(json)
 end
 
+function Workshop:__tojson()
+   local json = {
+      crafter = self._crafter,
+      order_list = self._todo_list,
+   }
+   return radiant.json.encode(json)
+end
+
 --[[
    Returns the entity of the work area
    associated with this workshop
@@ -37,11 +44,33 @@ function Workshop:get_entity()
    return self._entity
 end
 
+
+--[[
+   Returns the crafter associated with this workshop
+]]
+function Workshop:get_crafter()
+   return self._crafter
+end
+
 --[[
    Associate a crafter component with this bench.
 ]]
 function Workshop:set_crafter(crafter)
-   self._crafter = crafter
+   local current = self:get_crafter()
+   if not crafter or not current or current:get_id() ~= crafter:get_id() then
+      self._crafter = crafter
+   end
+end
+
+--[[
+   Get the crafter component of the crafter entity associated with
+   this workshop
+]]
+function Workshop:_get_crafter_component()
+   local crafter_entity = self:get_crafter()
+   if crafter_entity then
+      return crafter_entity:get_component('stonehearth_crafter.crafter')
+   end
 end
 
 --[[
@@ -121,7 +150,7 @@ function Workshop:work_on_curr_recipe(ai)
    end
    local work_units = self:_get_current_recipe().work_units
    if self._intermediate_item.progress < work_units then
-      self._crafter:perform_work_effect(ai)
+      self:_get_crafter_component():perform_work_effect(ai)
       self._intermediate_item.progress = self._intermediate_item.progress + 1
       return true
    else
@@ -151,7 +180,7 @@ function Workshop:_create_intemediate_item()
    end
    
    --Create intermediate item (with progress) and place its entity in the world
-   local intermediate_item = radiant.entities.create_entity(self._crafter:get_intermediate_item())
+   local intermediate_item = radiant.entities.create_entity(self:_get_crafter_component():get_intermediate_item())
    radiant.entities.add_child(self:get_entity(), intermediate_item, RadiantIPoint3(0, 1, 0))
    self._intermediate_item = {
       progress = 0,

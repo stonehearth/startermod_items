@@ -1,0 +1,9 @@
+{
+   "info" :{
+      "name" : "Stonehearth Crafter Library"
+   },
+   "components" :  {
+      "workshop" : "file(components/workshop_component.lua)",
+      "crafter"  : "file(components/crafter_component.lua)"
+   }
+}

@@ -2,6 +2,8 @@
 #include "rest_api.h"
 #include "client.h"
 #include "om/entity.h"
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/lexical_cast.hpp>
 
 using namespace radiant;
 using namespace radiant::client;
@@ -24,7 +26,8 @@ bool RestAPI::OnNewRequest(std::string uri, std::string query, std::string postd
    if (uri == "/api/events") {
       GetEvents(ParseQuery(query), cb);
       return true;
-   } else if (uri == "/api/commands/execute") {
+   }
+   if (uri == "/api/commands/execute") {
       JSONNode args;
       try {
          args = libjson::parse(postdata);
@@ -33,6 +36,14 @@ bool RestAPI::OnNewRequest(std::string uri, std::string query, std::string postd
          return false;
       }
       ExecuteCommand(args, cb);
+      return true;
+   }
+   if (boost::starts_with(uri, "/object")) {
+      ResponsePtr response = std::make_shared<Response>(cb);
+      JSONNode args;
+      args.push_back(JSONNode("command", "fetch_object")); // xxx: this is crap.  should be functor or something!  see Client::ExecuteCommands for the super crappy part.
+      args.push_back(JSONNode("uri", uri));
+      pendingCommands_.push_back(std::make_shared<PendingCommand>(args, response));
       return true;
    }
    return false;
@@ -126,8 +137,12 @@ void RestAPI::ExecuteCommand(JSONNode args, ResponseFn completeCb)
 // will be called by the client thread
 void RestAPI::OnSelectionChanged(om::EntityPtr selection)
 {
+   std::string uri;
+   if (selection) {
+      uri = std::string("/object/") + stdutil::ToString(selection->GetObjectId());
+   }
    JSONNode data(JSON_NODE);
-   data.push_back(JSONNode("entity_id", selection ? selection->GetEntityId() : 0));
+   data.push_back(JSONNode("selected_entity", uri));
 
    QueueEvent("radiant.events.selection_changed", data);
 }
@@ -164,7 +179,7 @@ void RestAPI::Session::FlushEvents()
          result.push_back(e);
       }
       events_.clear();
-      response_->Deliver(result);
+      response_->Complete(result.write());
       response_ = nullptr;
    }
 }

@@ -16,7 +16,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class Mob : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(Mob);
+   DEFINE_OM_OBJECT_TYPE(Mob, mob);
    static void RegisterLuaType(struct lua_State* L);
    void ExtendObject(json::ConstJsonObject const& obj) override;
 

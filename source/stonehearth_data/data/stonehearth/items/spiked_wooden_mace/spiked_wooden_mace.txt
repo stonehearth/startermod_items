@@ -16,7 +16,7 @@
 	   },
 	   "render_rig": {
 		  "models": [
-			 "url(spiked_wooden_mace.qb)"
+			 "file(spiked_wooden_mace.qb)"
 		  ]
 	   }
 	}

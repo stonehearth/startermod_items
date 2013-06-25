@@ -5,7 +5,7 @@
          "name" : "Stockpile",
          "description" : "Stores all sorts of things."
       },
-      "stockpile" : {
+      "radiant.stockpile" : {
          "size" : [ 4, 4 ]
       }
    }

@@ -7,7 +7,7 @@
       },
       "render_rig": {
          "models": [
-            "url(wood_blob.qb)"
+            "file(wood_blob.qb)"
          ]
       }
    }

@@ -61,6 +61,7 @@ private:
    void RegisterScenario(luabind::object name, luabind::object scenario);
    void ReportError(luabind::object error);
    json::ConstJsonObject LoadJson(std::string uri);
+   json::ConstJsonObject LoadManifest(std::string uri);
    resources::AnimationPtr LoadAnimation(std::string uri);
    void Log(std::string str);
 

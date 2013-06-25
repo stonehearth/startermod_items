@@ -9,7 +9,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class Scaffolding : public RegionBuildOrder
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(Scaffolding);
+   DEFINE_OM_OBJECT_TYPE(Scaffolding, scaffolding);
 
    void StartProject(WallPtr wall, const dm::CloneMapping& mapping);
    void SetRoof(GridBuildOrderPtr roof);

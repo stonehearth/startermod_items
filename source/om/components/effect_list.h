@@ -18,7 +18,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class Effect : public dm::Record
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(Effect);
+   DEFINE_OM_OBJECT_TYPE(Effect, effect);
 
    std::string GetName() const { return *effectName_; }
    int GetStartTime() const { return *startTime_; }
@@ -54,7 +54,7 @@ typedef std::shared_ptr<Effect> EffectPtr;
 class EffectList : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(EffectList);
+   DEFINE_OM_OBJECT_TYPE(EffectList, effect_list);
 
    const dm::Set<EffectPtr>& GetEffects() const { return effects_; }
 

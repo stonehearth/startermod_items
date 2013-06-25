@@ -4,7 +4,7 @@
       "animation": {
             "type": "animation_effect",
             "start_time": 0,
-            "animation": "url(../../animations/combat/shield_hit.txt)"
+            "animation": "file(../../animations/combat/shield_hit.txt)"
       }
    }
 }

@@ -1,9 +1,9 @@
 {
    "type": "entity",
-   "extends": "url(../../tree.txt)",
+   "extends": "file(../../tree.txt)",
    "components" : {
-      "resource_node" : {
-         "resource": "url(../oak_log)",
+      "radiant.resource_node" : {
+         "resource": "file(../oak_log)",
          "durability": 6
       },
       "unit_info" : {
@@ -16,9 +16,9 @@
             {
                "type": "one_of",
                "items": [
-                  "url(medium_oak_tree.qb)",
-                  "url(medium_oak_tree_2.qb)",
-                  "url(medium_oak_tree_3.qb)"
+                  "file(medium_oak_tree.qb)",
+                  "file(medium_oak_tree_2.qb)",
+                  "file(medium_oak_tree_3.qb)"
                ]
             }
          ]

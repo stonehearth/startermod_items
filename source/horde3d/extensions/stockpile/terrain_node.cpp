@@ -185,7 +185,7 @@ bool TerrainNode::checkIntersection( const Vec3f &rayOrig, const Vec3f &rayDir, 
 	bool intersection = false;
 	
 	// Check triangles
-   for (int i = 0; i < mesh_.indices.size(); i += 3) {
+   for (unsigned int i = 0; i < mesh_.indices.size(); i += 3) {
       Vec3f const* vert0 = (Vec3f const*)&mesh_.vertices[mesh_.indices[i]];
       Vec3f const* vert1 = (Vec3f const*)&mesh_.vertices[mesh_.indices[i+1]];
       Vec3f const* vert2 = (Vec3f const*)&mesh_.vertices[mesh_.indices[i+2]];

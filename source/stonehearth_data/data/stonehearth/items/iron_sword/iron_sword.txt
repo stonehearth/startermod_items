@@ -16,7 +16,7 @@
 	   },
 	   "render_rig": {
 		  "models": [
-			 "url(iron_sword.qb)"
+			 "file(iron_sword.qb)"
 		  ]
 	   }
 	}

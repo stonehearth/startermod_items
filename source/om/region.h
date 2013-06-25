@@ -11,7 +11,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class Region : public dm::Object
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(Region);
+   DEFINE_OM_OBJECT_TYPE(Region, region);
 
    csg::Region3& Modify() {
       MarkChanged();

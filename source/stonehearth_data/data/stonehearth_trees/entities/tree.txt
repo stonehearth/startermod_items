@@ -1,9 +1,9 @@
 {
    "type" : "entity",
    "components" : {
-	   "abilities" : {
+	   "radiant.abilities" : {
 	   	"ability_list" : {
-	      	"chop" : "url(/abilities/chop.txt)"
+	      	"chop" : "file(/abilities/chop.txt)"
 			}
 	   },
       "destination" : {

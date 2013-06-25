@@ -1,5 +1,5 @@
-local Inventory = radiant.mods.require('mod://stonehearth_inventory/lib/inventory.lua')
-local ItemPathfinder = radiant.mods.require('mod://stonehearth_inventory/lib/item_pathfinder.lua')
+local Inventory = radiant.mods.require('/stonehearth_inventory/lib/inventory.lua')
+local ItemPathfinder = radiant.mods.require('/stonehearth_inventory/lib/item_pathfinder.lua')
 
 local stonehearth_inventory = {}
 local singleton = {}

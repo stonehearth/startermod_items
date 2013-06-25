@@ -15,7 +15,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class StockpileDesignation : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(StockpileDesignation);
+   DEFINE_OM_OBJECT_TYPE(StockpileDesignation, stockpile_designation);
    static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
 
    std::string ToString() const;

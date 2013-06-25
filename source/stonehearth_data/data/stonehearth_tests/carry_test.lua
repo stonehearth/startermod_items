@@ -12,11 +12,11 @@ function CarryTest:__init()
    self:create_world()
    local dude = self:place_citizen(12, 12)
 
-   local saw = self:place_item('mod://stonehearth_items/carpenter_saw', 11, 11)
-   local bolt = self:place_item('mod://stonehearth_items/cloth_bolt', 11, 10)
-   local buckler = self:place_item('mod://stonehearth_items/wooden_buckler', 11, 9)
-   local sword = self:place_item('mod://stonehearth_items/wooden_sword', 11, 8)
-   local log =  self:place_item('mod://stonehearth_trees/entities/oak_tree/oak_log', 11, 7)
+   local saw = self:place_item('/stonehearth_items/carpenter_saw', 11, 11)
+   local bolt = self:place_item('/stonehearth_items/cloth_bolt', 11, 10)
+   local buckler = self:place_item('/stonehearth_items/wooden_buckler', 11, 9)
+   local sword = self:place_item('/stonehearth_items/wooden_sword', 11, 8)
+   local log =  self:place_item('/stonehearth_trees/entities/oak_tree/oak_log', 11, 7)
 
    local movable_items = {saw, bolt, buckler, sword, log}
    self:at(1000, function()

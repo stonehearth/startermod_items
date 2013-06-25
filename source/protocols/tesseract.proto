@@ -6,6 +6,22 @@ package radiant.tesseract.protocol;
 
 option optimize_for = SPEED;
 
+message Request {
+   extensions 100 to max;
+   enum Type {
+      FetchObjectRequest = 1;
+   }
+   required Type     type = 1;
+   required uint32   request_id = 2;
+};
+
+message FetchObjectRequest {
+   extend Request {
+      optional FetchObjectRequest extension = 101;
+   }
+   required string   uri = 1;
+}
+
 message Update {
    extensions 100 to max;
    enum Type {
@@ -18,10 +34,12 @@ message Update {
       UpdateDebugShapes = 7;
       DoActionReply = 8;
       EndUpdate = 9;
+      FetchObjectReply = 10;
    }
    required Type     type = 1;
    optional int32    chunk_size = 2;
    optional int32    chunk_progress = 3;
+   optional int32    reply_id = 4;
 }
 
 message BeginUpdate {
@@ -86,11 +104,17 @@ message DoActionReply {
    optional string      json = 2;
 }
 
-
 message EndUpdate {
    extend Update {
       optional EndUpdate extension = 109;
    }
+}
+
+message FetchObjectReply {
+   extend Update {
+      optional FetchObjectReply extension = 119;
+   }
+   required string      json = 1;
 }
 
 message DoAction {
@@ -98,6 +122,11 @@ message DoAction {
    optional int32       entity = 2;
    required string      action = 3;
    repeated Protocol.Selection args = 4;
+}
+
+message ClientRequest {
+   optional int32        request_id = 1;
+   required string       request = 2; // json
 }
 
 // ------------------------------------------------------------------------------------------

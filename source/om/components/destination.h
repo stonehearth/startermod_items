@@ -14,7 +14,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class Destination : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(Destination);
+   DEFINE_OM_OBJECT_TYPE(Destination, destination);
    static void RegisterLuaType(struct lua_State* L);
    std::string ToString() const;
 

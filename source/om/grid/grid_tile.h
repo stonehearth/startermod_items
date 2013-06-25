@@ -16,7 +16,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 
 class GridTile : public dm::Record {
 public:
-   DEFINE_OM_OBJECT_TYPE(GridTile);
+   DEFINE_OM_OBJECT_TYPE(GridTile, grid_tile);
 
    void InitializeRecordFields() override;
 

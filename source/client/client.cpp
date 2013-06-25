@@ -55,7 +55,8 @@ Client::Client() :
    nextTraceId_(1),
    nextDeferredCommandId_(1),
    nextResponseHandlerId_(1),
-   currentCommandCursor_(NULL)
+   currentCommandCursor_(NULL),
+   last_server_request_id_(0)
 {
    om::RegisterObjectTypes(store_);
    om::RegisterObjectTypes(authoringStore_);
@@ -191,6 +192,7 @@ void Client::mainloop()
    alpha = std::min(1.0f, std::max(alpha, 0.0f));
    now_ = (int)(_server_last_update_time + (_server_interval_duration * alpha));
 
+   GetAPI().FlushEvents();
    if (chromium_) {
       auto cb = [](const csg::Region2 &rgn, const char* buffer) { Renderer::GetInstance().UpdateUITexture(rgn, buffer); };
       chromium_->Work();
@@ -236,8 +238,27 @@ void Client::Reset()
    objects_.clear();
 }
 
+bool Client::ProcessRequestReply(const proto::Update& msg)
+{
+   int reply_id = msg.reply_id();
+   if (reply_id == 0) {
+      return false;
+   }
+
+   auto i = server_requests_.find(reply_id);
+   if (i != server_requests_.end()) {
+      i->second(msg);
+      server_requests_.erase(i);
+   }
+   return true;
+}
+
 bool Client::ProcessMessage(const proto::Update& msg)
 {
+   if (ProcessRequestReply(msg)) {
+      return true;
+   }
+
 #define DISPATCH_MSG(MsgName) \
    case proto::Update::MsgName: \
       MsgName(msg.GetExtension(proto::MsgName::extension)); \
@@ -247,7 +268,6 @@ bool Client::ProcessMessage(const proto::Update& msg)
       DISPATCH_MSG(BeginUpdate);
       DISPATCH_MSG(EndUpdate);
       DISPATCH_MSG(SetServerTick);
-      DISPATCH_MSG(DoActionReply);
       DISPATCH_MSG(AllocObjects);
       DISPATCH_MSG(UpdateObject);
       DISPATCH_MSG(RemoveObjects);
@@ -303,8 +323,6 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
          GetAPI().QueueEventFor(sessionId, "radiant.events.trace_fired", obj);
       }
    }
-   GetAPI().FlushEvents();
-
    // Only fire the remote store traces at sequence boundaries.  The
    // data isn't guaranteed to be in a consistent state between
    // boundaries.
@@ -933,12 +951,6 @@ void Client::ExecuteCommands()
    std::vector<PendingCommandPtr> commands = GetAPI().GetPendingCommands();
    for (PendingCommandPtr cmd : commands) {
 
-      RestAPI::SessionId sessionId = cmd->GetSession();
-      if (!sessionId) {
-         cmd->Error("no session id specified.");
-         continue;
-      }
-
       currentCommandCursor_ = NULL;
       currentCommand_ = nullptr;
       currentTool_ = nullptr;
@@ -946,7 +958,8 @@ void Client::ExecuteCommands()
 
       CommandPtr command;
 
-      std::string type = cmd->GetCommand();
+      JSONNode const& json = cmd->GetJson();
+      std::string type = json["command"].as_string();
       if (type == "execute_action") {
          command = std::make_shared<ExecuteAction>(cmd);
       } else if (type == "select_tool") {
@@ -961,6 +974,33 @@ void Client::ExecuteCommands()
          FetchJsonData(cmd);
       } else if (type == "set_view_mode") {
          SetViewModeCommand(cmd);
+      } else if (type == "fetch_object") {
+         std::string uri = json["uri"].as_string();
+         auto reply = [=](tesseract::protocol::Update const& msg) {
+            if (msg.type() != proto::Update::FetchObjectReply) {
+               cmd->Error("unexpected server reply");
+               return;
+            }
+            proto::FetchObjectReply const& reply = msg.GetExtension(proto::FetchObjectReply::extension);
+            std::string const& json = reply.json();
+            if (!libjson::is_valid(json)) {
+               cmd->Error("unexpected server reply (invalid json)");
+               return;
+            }
+            cmd->Complete(json);
+         };
+
+         proto::Request msg;
+         msg.set_type(proto::Request::FetchObjectRequest);
+   
+         proto::FetchObjectRequest* request = msg.MutableExtension(proto::FetchObjectRequest::extension);
+         request->set_uri(uri);
+         
+         int id = ++last_server_request_id_;
+         msg.set_request_id(id);
+         server_requests_[id] = reply;
+
+         send_queue_->Push(msg);
       } else {
          cmd->Error("Unknown type: " + type);
       }
@@ -1039,6 +1079,7 @@ void Client::EnumEntities(std::function<void(om::EntityPtr)> cb)
 
 void Client::TraceEntities(PendingCommandPtr cmd)
 {
+#if 0
    const auto& args = cmd->GetArgs();
 
    CHECK_TYPE(cmd, args, "filters", JSON_ARRAY);
@@ -1056,10 +1097,13 @@ void Client::TraceEntities(PendingCommandPtr cmd)
    result.push_back(JSONNode("trace_id", traceId));
    result.push_back(data);
    cmd->Complete(result);
+#endif
+   ASSERT(false);
 }
 
 void Client::FetchJsonData(PendingCommandPtr cmd)
 {
+#if 0
    const auto& args = cmd->GetArgs();
 
    CHECK_TYPE(cmd, args, "entries", JSON_ARRAY);
@@ -1073,10 +1117,13 @@ void Client::FetchJsonData(PendingCommandPtr cmd)
       }
    }
    cmd->Complete(result);
+#endif
+   ASSERT(false);
 }
 
 void Client::TraceEntity(PendingCommandPtr cmd)
 {
+#if 0
    const auto& args = cmd->GetArgs();
 
    CHECK_TYPE(cmd, args, "filters", JSON_ARRAY);
@@ -1100,10 +1147,13 @@ void Client::TraceEntity(PendingCommandPtr cmd)
    result.push_back(JSONNode("trace_id", traceId));
    result.push_back(data);
    cmd->Complete(result);
+#endif
+   ASSERT(false);
 }
 
 void Client::SetViewModeCommand(PendingCommandPtr cmd)
 {
+#if 0
    const auto& args = cmd->GetArgs();
 
    CHECK_TYPE(cmd, args, "mode", JSON_STRING);
@@ -1115,22 +1165,23 @@ void Client::SetViewModeCommand(PendingCommandPtr cmd)
       ShowBuildPlan(false);
    }
    cmd->Complete(JSONNode());
+#endif
+   ASSERT(false);
 }
 
 void Client::SelectEntityCommand(PendingCommandPtr cmd)
 {
-   const auto& args = cmd->GetArgs();
+   const auto& json = cmd->GetJson();
 
-   LOG(WARNING) << args.write();
-   CHECK_TYPE(cmd, args, "entity_id", JSON_NUMBER);
+   CHECK_TYPE(cmd, json, "entity_id", JSON_NUMBER);
 
-   Client::GetInstance().SelectEntity(args["entity_id"].as_int());
-   cmd->Complete(JSONNode());
+   Client::GetInstance().SelectEntity(json["entity_id"].as_int());
+   cmd->CompleteSuccessObj(JSONNode());
 }
 
 void Client::SelectToolCommand(PendingCommandPtr cmd)
 {
-   const auto& args = cmd->GetArgs();
+   const auto& args = cmd->GetJson();
 
    LOG(WARNING) << args.write();
    CHECK_TYPE(cmd, args, "tool", JSON_STRING);
@@ -1138,7 +1189,7 @@ void Client::SelectToolCommand(PendingCommandPtr cmd)
    std::shared_ptr<Command>  tool;
    std::string toolName = args["tool"].as_string();
    if (toolName == "none") {
-      cmd->Complete(JSONNode());
+      cmd->CompleteSuccessObj(JSONNode());
    } else if (toolName == "create_walls") {
       tool = std::make_shared<CreateRoom>(cmd);
    } else if (toolName == "create_door") {

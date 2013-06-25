@@ -14,7 +14,7 @@ BEGIN_RADIANT_OM_NAMESPACE
 class BuildOrders : public Component,
                     public std::enable_shared_from_this<BuildOrders> {
 public:
-   DEFINE_OM_OBJECT_TYPE(BuildOrders);
+   DEFINE_OM_OBJECT_TYPE(BuildOrders, build_orders);
 
    typedef dm::Set<EntityRef> ProjectList;
    typedef dm::Set<EntityRef> BlueprintList;

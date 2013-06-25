@@ -1,0 +1,10 @@
+{
+   "info" :{
+      "name" : "Stonehearth Unit Tests"
+   },
+   "loader" :  {
+      "ui" : {
+         "homepage" : "file(/html/index.html)"
+      }
+   }
+}

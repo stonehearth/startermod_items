@@ -24,10 +24,14 @@ std::string GetObjectName(const dm::Object& obj);
 std::string GetObjectNameLower(dm::ObjectPtr obj);
 std::string GetObjectNameLower(const dm::Object& obj);
 
-#define DEFINE_OM_OBJECT_TYPE(Class)   \
+#define DEFINE_OM_OBJECT_TYPE_NO_CONS(Class, lower)   \
    enum { DmType = Class ## ObjectType }; \
    dm::ObjectType GetObjectType() const override { return Class::DmType; } \
    static const char *GetObjectClassName() { return #Class; } \
+   static const char *GetObjectClassNameLower() { return #lower; } \
+
+#define DEFINE_OM_OBJECT_TYPE(Class, lower)   \
+   DEFINE_OM_OBJECT_TYPE_NO_CONS(Class, lower) \
    Class() { }
 
 END_RADIANT_OM_NAMESPACE

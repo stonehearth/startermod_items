@@ -27,12 +27,13 @@ public:
    int GetSession() const;
    void SetSession(int session);
 
-   std::string GetCommand() const;
-   const JSONNode& GetArgs() const;
+   JSONNode const& GetJson() const { return cmd_; }
 
-   void Complete(JSONNode result);
-   void Defer(int id);
-   void Error(std::string result);
+   void Complete(std::string const& result) { response_->Complete(result); }
+   void Defer(int id) { response_->Defer(id); }
+   void Error(std::string const& result) { response_->Error(result); }
+
+   void CompleteSuccessObj(JSONNode const& obj);
 
 private:
    JSONNode       cmd_;

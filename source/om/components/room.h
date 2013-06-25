@@ -20,7 +20,7 @@ class Room : public Component
 
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(Room);
+   DEFINE_OM_OBJECT_TYPE(Room, room);
 
    void SetBounds(const math3d::ibounds3& bounds) {
       SetInteriorSize(bounds._min, bounds._max);
