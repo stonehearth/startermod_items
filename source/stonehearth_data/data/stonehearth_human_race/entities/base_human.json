@@ -1,6 +1,6 @@
 {
    "type" : "entity",
-   "extends" : "/stonehearth/entities/humanoid.txt",
+   "extends" : "/stonehearth/entities/humanoid.json",
    "components" : {
 	   "unit_info" : {
 		  "name": "Civilian",

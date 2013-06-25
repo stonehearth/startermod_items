@@ -2,7 +2,7 @@
    The Workshop.lua component implements all the functionality
    associated with the place a crafter goes to do the work a user
    assigns to him. A profession's workplace.txt file (for example,
-   carpenter_workbench.txt references this blob of code as a component.
+   carpenter_workbench.json references this blob of code as a component.
 
    Conceptually, all workshops have an intermediate item--the item the crafter
    is working on right now. If the crafter is not working on an item,

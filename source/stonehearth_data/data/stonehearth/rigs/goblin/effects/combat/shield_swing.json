@@ -4,7 +4,7 @@
       "animation" : {
          "type": "animation_effect",
          "start_time": 0,
-         "animation": "file(../../animations/combat/shield_swing.txt)"
+         "animation": "file(../../animations/combat/shield_swing.json)"
       },
       "frame_data" : {
          "type": "attack_frame_data",

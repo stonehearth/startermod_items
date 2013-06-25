@@ -1,6 +1,6 @@
 {
    "type": "entity",
-   "extends" : "/stonehearth_items/entities/item/item_properties.txt",
+   "extends" : "/stonehearth_items/entities/item/item_properties.json",
    "components" : {
       "unit_info" : {
          "name" :  "Wooden Buckler",

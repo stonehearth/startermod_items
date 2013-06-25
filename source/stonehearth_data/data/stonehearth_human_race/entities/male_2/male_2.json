@@ -1,6 +1,6 @@
 {
    "type" : "entity",
-   "extends" : "file(../base_human.txt)",
+   "extends" : "file(../base_human.json)",
    "components" : {
 	   "render_rig": {
 		  "models": [

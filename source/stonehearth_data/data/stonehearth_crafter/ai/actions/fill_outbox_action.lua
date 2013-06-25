@@ -1,7 +1,7 @@
 --[[
    After an item has been crafted, add its outputs to the outbox.
    TODO: Add the small version of each item
-   TODO: Read the appropriate outbox location from the crafter's class_info.txt
+   TODO: Read the appropriate outbox location from the crafter's class_info.json
    TODO: Make the outbox an actual entity container?
    TODO: If there are side-effect products, like toxic waste, handle separately
 ]]

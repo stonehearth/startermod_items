@@ -5,7 +5,7 @@
          "type": "animation_effect",
          "start_time": 0,
          "end_time": 100000,
-         "animation": "file(../../animations/combat/1h_downed.txt)"
+         "animation": "file(../../animations/combat/1h_downed.json)"
       }
    }
 }

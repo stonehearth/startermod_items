@@ -5,6 +5,6 @@
       "description": "..."
    },
    "action_list" : [
-      "file(/actions/start_project.txt)"
+      "file(/actions/start_project.json)"
    ]
 }

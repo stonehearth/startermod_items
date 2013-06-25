@@ -70,7 +70,7 @@ function EffectManager:get_effect_duration(effect_name)
 end
 
 function EffectManager:_get_effect_path(effect_name)
-   return self._effects_root .. '/' .. effect_name .. '.txt'
+   return self._effects_root .. '/' .. effect_name .. '.json'
 end
 
 function EffectManager:_get_effect_info(effect_name)
