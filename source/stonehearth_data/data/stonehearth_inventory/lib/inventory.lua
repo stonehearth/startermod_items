@@ -14,7 +14,6 @@ function Inventory:__init(faction)
    self._all_items_backtracker:set_reverse_search(true)
 
    self._restock_pathfinder = native:create_multi_path_finder('restock pathfinder')
-   --self._unstocked_items_tracker = ItemTracker('unstocked items tracker')
    --self._restock_tracker = RestockTracker()
    self._stockpile_trackers = {}
    self._item_restock_paths = {}
@@ -68,8 +67,6 @@ function Inventory:_track_item(item_entity)
       for tracker in pairs(self._stockpile_trackers) do
          tracker:track_item(item_entity)
       end
-      -- add the item to the unstocked item tracker.
-      self._unstocked_items_tracker:track_item(item_entity)
    end
    ]]
 end
@@ -82,10 +79,9 @@ end
 
 function Inventory:_remove_entity_from_terrain(id, entity)
    for tracker in pairs(self._stockpile_trackers) do
-      tracker:untrack_item(item_entity)
+      tracker:untrack_item(id)
    end
-   self._all_items_tracker:remove_destination(item_entity)   
-   self._unstocked_items_tracker:remove_destination(item_entity)   
+   self._all_items_tracker:remove_destination(id)
    -- hmmm....
 end
 

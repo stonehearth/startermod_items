@@ -66,10 +66,7 @@ Chromium::Chromium(HWND parentWindow) :
    ASSERT(renderWidth_ * height_ == renderHeight_ * width_);
 
    CefInitialize(main_args, settings, chromimumApp.get());
-
-   //CefRegisterSchemeHandlerFactory("mod", "", this);
    CefRegisterSchemeHandlerFactory("http", "radiant", this);
-   //CefAddCrossOriginWhitelistEntry("radiant://ui", "radiant", "api", true);
 
    CefWindowInfo windowInfo;
    windowInfo.SetAsOffScreen(parentWindow);
@@ -425,8 +422,8 @@ CefRefPtr<CefResourceHandler> Chromium::GetResourceHandler(CefRefPtr<CefBrowser>
       response->SetResponse(node, "application/json");
    };
 
-   // xxx: for now, assume everything is internal...
    auto &api = Client::GetInstance().GetAPI();
+
 
    std::string path = CefString(&url_parts.path);
    std::string query = CefString(&url_parts.query);

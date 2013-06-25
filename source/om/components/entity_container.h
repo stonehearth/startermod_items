@@ -32,7 +32,8 @@ private:
    void InitializeRecordFields() override;
 
 public:
-   Container         children_;
+   Container children_;
+   std::unordered_map<dm::ObjectId, dm::Guard> destroy_guards_;
 };
 
 END_RADIANT_OM_NAMESPACE
