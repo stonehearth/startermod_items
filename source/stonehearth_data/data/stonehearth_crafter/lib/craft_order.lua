@@ -19,7 +19,7 @@
    {
       "id":"some number uniquely referencing this object
       "workshop: ":workshop this order belongs to
-      "recipe":"/module_name/craftable/object_recipe.txt",
+      "recipe":"/module_name/craftable/object_recipe.json",
       "enabled":"true/false",
       "condition": {
          "amount":"an integer",

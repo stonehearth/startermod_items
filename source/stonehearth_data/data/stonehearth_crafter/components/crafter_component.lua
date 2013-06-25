@@ -3,7 +3,7 @@
    generic crafter. For example, a reference to the workshop,
    inspiration levels, etc. Individual crafter types (like carpenter)
    can inject their specific kind of crafter attributes through
-   the extend mechanism on their classinfo.txt documents.
+   the extend mechanism on their classinfo.json documents.
 ]]
 
 local Crafter = class()
@@ -14,7 +14,7 @@ function Crafter:__init(entity)
 end
 
 --[[
-   Takes extra arguments from class_info.txt and
+   Takes extra arguments from class_info.json and
    injects them into the class.
 ]]
 function Crafter:extend(json)

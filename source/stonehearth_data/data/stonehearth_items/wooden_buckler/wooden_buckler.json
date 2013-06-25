@@ -1,0 +1,16 @@
+{
+   "type": "entity",
+   "extends" : "/stonehearth_items/entities/item/item_properties.json",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Wooden Buckler",
+         "description" : "Like a plate for giants."
+      },
+      "render_rig": {
+         "models": [
+            "file(cracked_wooden_buckler.qb)",
+         ]
+      }
+   }
+}
+

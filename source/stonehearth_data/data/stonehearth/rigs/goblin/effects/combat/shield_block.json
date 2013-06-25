@@ -1,0 +1,29 @@
+{
+   "type" : "effect",
+   "tracks": {
+      "animation": {
+         "type": "animation_effect",
+         "animation": "file(../../animations/combat/shield_block.json)"
+      },
+      "frame_data" : {
+         "type": "attack_frame_data",
+         "segments" : [
+            {
+               "phase": "startup",
+               "name": "raise shield",
+               "duration": 14
+            },
+            {
+               "phase": "execute",
+               "name": "block!!",
+               "duration": 1
+            },
+            {
+               "phase": "recovery",
+               "name": "lower shield",
+               "duration": 9
+            }
+         ]
+      }
+   }
+}

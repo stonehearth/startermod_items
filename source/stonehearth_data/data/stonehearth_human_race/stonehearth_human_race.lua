@@ -1,4 +1,4 @@
-local index = radiant.resources.load_json('/stonehearth_human_race/race_info.txt')
+local index = radiant.resources.load_json('/stonehearth_human_race/race_info.json')
 
 local api = {}
 

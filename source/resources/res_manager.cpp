@@ -61,7 +61,7 @@ static std::string ConvertToAbsolutePath(std::string const& current, std::string
          newpath.push_back(elem);
       }
    }
-   return boost::algorithm::join(newpath, "/");
+   return std::string("/") + boost::algorithm::join(newpath, "/");
 }
 
 static std::string Checksum(std::string input)
@@ -146,7 +146,7 @@ JSONNode const& ResourceManager2::LookupJson(std::string path) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
 
-   std::string key = ConvertToCanonicalPath(path, ".txt");
+   std::string key = ConvertToCanonicalPath(path, ".json");
 
    auto i = jsons_.find(key);
    if (i != jsons_.end()) {
@@ -159,7 +159,7 @@ AnimationPtr ResourceManager2::LookupAnimation(std::string path) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
 
-   std::string key = ConvertToCanonicalPath(path, ".txt");   
+   std::string key = ConvertToCanonicalPath(path, ".json");   
 
    auto i = animations_.find(key);
    if (i != animations_.end()) {
@@ -212,7 +212,7 @@ std::string ResourceManager2::ConvertToCanonicalPath(std::string const& path, co
    }
 
    // if the file path is a directory, look for a file with the name of
-   // the last part in there (e.g. /foo/bar -> /foo/bar/bar.txt
+   // the last part in there (e.g. /foo/bar -> /foo/bar/bar.json
    if (fs::is_directory(filepath)) {
       std::string filename = filepath.filename().string() + search_ext;
       parts.push_back(filename);

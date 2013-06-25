@@ -1,0 +1,18 @@
+{
+   "type" : "entity",
+   "extends" : "file(../base_human.json)",
+   "components" : {
+	   "render_rig": {
+		  "models": [
+			 {
+				"type": "one_of",
+				"items": [
+				   "file(head_black_1.qb)",
+				   "file(head_black_2.qb)"
+				]
+			 },            
+			 "file(hands_black.qb)"
+		  ]
+	   }
+	}
+}
