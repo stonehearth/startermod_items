@@ -2,15 +2,16 @@ local GenericEffect = require 'radiant.modules.effects.generic_effect'
 local AnimationEffect = require 'radiant.modules.effects.animation_effect'
 local FrameDataEffect = require 'radiant.modules.effects.frame_data_effect'
 local TriggerEffect = require 'radiant.modules.effects.trigger_effect'
+local MusicEffect = require 'radiant.modules.effects.music_effect'
 
 local EffectTracks = class()
-function EffectTracks:__init(mgr, entity, effect_path, effect_name, start_time, trigger_handler, args) 
+function EffectTracks:__init(mgr, entity, effect_path, effect_name, start_time, trigger_handler, args)
    self._mgr = mgr
    self._name = effect_name
    self._effect_list = entity:add_component('effect_list')
    self._effect = self._effect_list:add_effect(effect_path, start_time)
    self._running = true
-   
+
    if args then
       radiant.check.is_table(args)
       for name, value in pairs(args) do
@@ -23,7 +24,7 @@ function EffectTracks:__init(mgr, entity, effect_path, effect_name, start_time, 
       log:warning('could not find animation named %s', effect_path)
    end
    radiant.check.verify(effect)
-   
+
    self._effects = {}
    for name, e in radiant.resources.pairs(effect.tracks) do
       if e.type == "animation_effect" then
@@ -32,6 +33,8 @@ function EffectTracks:__init(mgr, entity, effect_path, effect_name, start_time, 
          table.insert(self._effects, TriggerEffect(start_time, trigger_handler, e, self._effect))
       elseif e.type == "attack_frame_data" then
          table.insert(self._effects, FrameDataEffect(start_time, trigger_handler, e, self._effect))
+      elseif e.type == "music_effect" then
+         table.insert(self._effects, MusicEffect(start_time, trigger_handler, e, self._effect))
       else
          radiant.log.info('unknown effect type "%s".  using generic', e.type)
          table.insert(self._effects, GenericEffect(start_time, trigger_handler, e, self._effect))

@@ -25,6 +25,7 @@
 #include "resources/res_manager.h"
 #include "resources/animation.h"
 #include "radiant_json.h"
+#include <SFML\Audio.hpp>
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -123,6 +124,8 @@ RenderInnerEffectList::RenderInnerEffectList(RenderEntity& renderEntity, om::Eff
          e = std::make_shared<FloatingCombatTextEffect>(renderEntity, effect, node); 
       } else if (type == "hide_bone") {
          e = std::make_shared<HideBoneEffect>(renderEntity, effect, node); 
+      } else if (type == "music_effect") {
+          e = std::make_shared<PlayMusicEffect>(renderEntity, effect, node); 
       }
       if (e) {
          effects_.push_back(e);
@@ -237,6 +240,32 @@ void HideBoneEffect::Update(int now, int dt, bool& finished)
    }
    finished = true;
 }
+
+PlayMusicEffect::PlayMusicEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
+	entity_(e)
+{
+	std::string trackName = node["track"].as_string();
+   loop_ = node["loop"].as_bool();
+   if (music_.openFromFile(trackName)) {
+      music_.setLoop(loop_);
+	   music_.play();
+   } else {
+      LOG(INFO) << "Can't find Music! " << trackName;
+   }
+}
+
+PlayMusicEffect::~PlayMusicEffect()
+{
+    //How to destroy this?
+    //music_ = NULL;
+}
+
+void PlayMusicEffect::Update(int now, int dt, bool& finished)
+{
+    //TODO: figure out when we're finished. Are we ever finished?
+    finished = false;
+}
+
 
 RenderAttachItemEffect::RenderAttachItemEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
    entity_(e),

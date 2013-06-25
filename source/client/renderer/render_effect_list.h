@@ -11,6 +11,7 @@
 #include "render_component.h"
 #include "resources/animation.h"
 #include "om/components/effect_list.h"
+#include <SFML\Audio.hpp>
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -78,6 +79,20 @@ private:
    RenderEntity&                 entity_;
    H3DNode                       boneNode_;
    int                           boneNodeFlags_;
+};
+
+/* For playing background music*/
+struct PlayMusicEffect : public RenderEffect {
+public:
+	PlayMusicEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
+	~PlayMusicEffect();
+
+	void Update(int now, int dt, bool& done) override;
+
+private:
+	RenderEntity&	entity_;
+   sf::Music      music_;
+   bool           loop_;
 };
 
 struct RenderInnerEffectList {

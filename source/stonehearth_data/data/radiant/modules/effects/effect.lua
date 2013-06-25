@@ -26,7 +26,7 @@ function Effect:_get_end_time()
    if self._info.end_frame then
       frame_count_to_time(self._info.end_frame)
    end
-   if self._info.loop == 'true' then
+   if self._info.loop then
       return 0
    end
    if self._info.duration then
@@ -35,7 +35,7 @@ function Effect:_get_end_time()
       end
       if self._info.start_frame then
          return frame_count_to_time(self._info.end_frame)(self._info.start_frame + self._info.duration)
-      end      
+      end
    end
    if self._info.type == 'animation_effect' then
       local animation = native:lookup_resource(self._info.animation)

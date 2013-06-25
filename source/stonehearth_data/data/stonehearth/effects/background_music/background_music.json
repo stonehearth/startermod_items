@@ -1,0 +1,11 @@
+{
+   "type" : "effect",
+   "tracks": {
+      "music": {
+         "type": "music_effect",
+         "start_time": 0,
+         "track" : "data/stonehearth/effects/background_music/soothing.ogg",
+         "loop": true
+      }
+   }
+}

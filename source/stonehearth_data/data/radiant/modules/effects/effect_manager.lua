@@ -5,23 +5,26 @@ local EffectManager = class()
 function EffectManager:__init(entity)
    self._effects = {}
    self._skip_animations = get_config_option("game.noidle");
-   
+
    self._entity = entity
-   
+
    radiant.events.listen('radiant.events.gameloop', self)
-   
+
    -- xxx: the animation_table should be on the entity?  what if we have no rigs
    -- at all?  or should "render_rig" be renamed something more appropriate?
    local render_rig = entity:get_component('render_rig')
-   self.animation_table_name = render_rig:get_animation_table()
-   
-   local uri = entity:get_resource_uri()
-   assert(#self.animation_table_name > 0)
-   
-   local obj = radiant.resources.load_json(self.animation_table_name)
-   self._effects_root = obj.effects_root
-   local i
-   i = 0
+   if (render_rig) then
+      self.animation_table_name = render_rig:get_animation_table()
+      --Is this used?
+      local uri = entity:get_resource_uri()
+      assert(#self.animation_table_name > 0)
+
+      local obj = radiant.resources.load_json(self.animation_table_name)
+      self._effects_root = obj.effects_root
+      --Is this used?
+      local i
+      i = 0
+   end
 end
 
 function EffectManager:destroy(entity)
@@ -32,7 +35,7 @@ function EffectManager:on_event_loop(now)
    -- radiant.log.info('-----')
    for e, _ in pairs(self._effects) do
       -- radiant.log.info('checking effect %d', now)
-      e:update(now) 
+      e:update(now)
       if e:finished() then
          self._effects[e] = nil
       end
@@ -45,7 +48,7 @@ function EffectManager:start_effect(action, trigger_handler, args)
 end
 
 function EffectManager:start_action_at_time(action, when, trigger_handler, args)
-   radiant.check.is_string(action) 
+   radiant.check.is_string(action)
    radiant.check.is_number(when)
 
    if trigger_handler then radiant.check.is_callable(trigger_handler) end
@@ -70,6 +73,11 @@ function EffectManager:get_effect_duration(effect_name)
 end
 
 function EffectManager:_get_effect_path(effect_name)
+   --If effect_name starts with /, return effect name, otherwise return root+name
+   local first_char = effect_name:sub(1,1)
+   if (first_char == "/") then
+      return effect_name
+   end
    return self._effects_root .. '/' .. effect_name .. '.json'
 end
 
@@ -90,7 +98,7 @@ function EffectManager:_add_effect(name, when, trigger_handler, args)
                                args)
    self._effects[effect] = true
    return effect
-   --md:send_msg(self._entity, 'radiant.animation.on_start', name)      
+   --md:send_msg(self._entity, 'radiant.animation.on_start', name)
 end
 
 function EffectManager:_remove_effect(e)
