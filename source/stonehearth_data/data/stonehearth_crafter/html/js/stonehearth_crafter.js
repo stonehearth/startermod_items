@@ -1,7 +1,7 @@
 $(document).ready(function(){
       $(top).on("stonehearth_crafter.show_workshop", function (_, e) {
          console.log('showing crafting ui for entity ' + e.entity)
-         App.gameView.add(App.StonehearthCrafterView, { uri: e.entity });
+         App.gameView.addView(App.StonehearthCrafterView, { uri: e.entity });
       });
 });
 
@@ -9,7 +9,7 @@ $(document).ready(function(){
 // component
 App.StonehearthCrafterView = App.View.extend({
    templateName: 'stonehearthCrafter',
-   components: ['crafter', 'crafter.unit_info'],
+   components: ['stonehearth_crafter:workshop.crafter.unit_info'],
 
    didInsertElement: function() {
 

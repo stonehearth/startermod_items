@@ -36,7 +36,7 @@ App.View = Ember.View.extend({
       var self = this;
 
       if(this.uri) {
-         this._fetch(this.uri)
+         this._fetch(this.uri, this._subComponents)
             .done(function(object) {
                console.log("view context set to ");
                console.log(object);
@@ -57,7 +57,7 @@ App.View = Ember.View.extend({
          var pending = 0
 
          $.each(json, function(name, value) {
-            var subsubProperties = self._subComponents[name];
+            var subsubProperties = subProperties[name];
 
             if (subsubProperties != undefined) {
                pending++;

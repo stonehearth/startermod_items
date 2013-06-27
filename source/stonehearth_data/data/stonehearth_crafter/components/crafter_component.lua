@@ -26,6 +26,16 @@ function Crafter:extend(json)
    end
 end
 
+function Crafter:__tojson()
+   -- xxx: this is totally hacked to unblock Tom...
+   local json = {
+      craftable_recipes = {
+         '/stonehearth_carpenter_class/recipes/wooden_sword_recipe.json',
+         '/stonehearth_carpenter_class/recipes/wooden_buckler_recipe.json',
+      }
+   }
+   return radiant.json.encode(json)
+end
 --[[
    Tell the crafter to perform his work_effect (the animtion he does when he's crafting)
    ai: the ai required for the entity to perform anything
