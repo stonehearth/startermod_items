@@ -44,7 +44,7 @@ void arbiter::GetConfigOptions(po::options_description& options)
    o.add_options()
       ("game.noidle",   po::bool_switch(&config_.noidle), "suspend the idle loop, running the game as fast as possible.")
       ("game.script",   po::value<std::string>()->default_value("stonehearth_tests/harvest_test.lua"), "the game script to load") // xxx: remove me
-      ("game.loader",     po::value<std::string>()->default_value("stonehearth_tests"), "the game script to load")
+      ("game.loader",     po::value<std::string>()->default_value("stonehearth"), "the game script to load")
       ("game.travel_speed_multiplier", po::value<float>()->default_value(0.4f), "multiplier for unit travelling speed")
       ;
    options.add(o);

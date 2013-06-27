@@ -1,0 +1,14 @@
+<script type="text/x-handlebars" data-template-name="objectbrowser">
+
+   <div id="objectbrowser">
+      <b>selected object</b>
+      <div id="objectJson">
+         {{#if view.loading}}
+            loading...
+         {{else}}
+            {{{view.objectHtml}}}
+         {{/if}}
+      </div>
+   </div>
+
+</script>

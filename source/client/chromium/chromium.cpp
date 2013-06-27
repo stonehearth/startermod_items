@@ -55,7 +55,7 @@ Chromium::Chromium(HWND parentWindow) :
    // The multi threaded msgs loop isn't implemented on non-windows plaforms
    //settings.multi_threaded_message_loop = true; // We own the msg loop?
 
-   settings.single_process = true; // single process mode eats nearly the entire frame time
+   settings.single_process = false; // single process mode eats nearly the entire frame time
    settings.remote_debugging_port = 1338;
 
    width_ = Renderer::GetInstance().GetUIWidth();
@@ -489,6 +489,7 @@ void Chromium::ReadFile(CefRefPtr<BufferedResponse> response, std::string path)
      { "htm",  "text/html" },
      { "html", "text/html" },
      { "css",  "text/css" },
+	 { "less",  "text/css" },
      { "js",   "application/x-javascript" },
      { "json", "application/json" },
      { "txt",  "text/plain" },
