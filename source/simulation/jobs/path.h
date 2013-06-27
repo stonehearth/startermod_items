@@ -9,10 +9,12 @@ BEGIN_RADIANT_SIMULATION_NAMESPACE
 
 class Path {
    public:
-      Path(const std::vector<math3d::ipoint3>& points, om::EntityRef source, om::EntityRef destination) :
+      Path(const std::vector<math3d::ipoint3>& points, om::EntityRef source, om::EntityRef destination, math3d::ipoint3 const& start, math3d::ipoint3 const& finish) :
          points_(points),
          source_(source),
-         destination_(destination)
+         destination_(destination),
+         start_pt_(start),
+         finish_pt_(finish)
       {
       }
 
@@ -22,10 +24,14 @@ class Path {
 
       om::EntityRef GetDestination() const { return destination_; }
       om::EntityRef GetSource() const { return source_; }
+      math3d::ipoint3 GetStartPoint() const { return start_pt_; }
+      math3d::ipoint3 GetFinishPoint() const { return finish_pt_; }
       std::ostream& Format(std::ostream& os) const;
 
    protected:
       std::vector<math3d::ipoint3>  points_;
+      math3d::ipoint3               start_pt_;
+      math3d::ipoint3               finish_pt_;
       om::EntityRef                 source_;
       om::EntityRef                 destination_;
 };

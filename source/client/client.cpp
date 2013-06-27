@@ -488,6 +488,10 @@ void Client::OnMouseInput(const MouseInputEvent &mouse, bool &handled, bool &uni
 {
    bool hovering_on_brick = false;
 
+   if (chromium_->HasMouseFocus()) {
+      // xxx: not quite right...
+      return;
+   }
    if (mouse.up[0]) {
       LOG(WARNING) << "got mouse up... current command:" << currentCommand_;
    }

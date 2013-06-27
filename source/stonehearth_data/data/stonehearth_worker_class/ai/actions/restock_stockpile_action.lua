@@ -28,21 +28,23 @@ function RestockStockpileAction:_start_search()
    self._path = nil
    self._ai:set_action_priority(self, 0)
    
-   local solved = function(item, path_to_item, path_to_stockpile)
+   local solved = function(item, path_to_item, path_to_stockpile, drop_location)
       self._item = item
       self._path_to_item = path_to_item
       self._path_to_stockpile = path_to_stockpile
+      self._drop_location = drop_location
       self._ai:set_action_priority(self, 10)      
    end
    
+   self._path_to_item, self._item, self._path_to_stockpile, self._drop_location = nil
    self._inventory:find_item_to_restock(self._entity, solved)
 end
 
 function RestockStockpileAction:run(ai, entity)
    ai:execute('stonehearth.activities.follow_path', self._path_to_item)
-   radiant.entities.turn_to_face(entity, self._item)
-   ai:execute('stonehearth.activities.run_effect', 'chop') -- xxx: pickup...
+   ai:execute('stonehearth.activities.pickup_item', self._item)
    ai:execute('stonehearth.activities.follow_path', self._path_to_stockpile)
+   ai:execute('stonehearth.activities.drop_carrying', self._drop_location)
 end
 
 function RestockStockpileAction:stop()

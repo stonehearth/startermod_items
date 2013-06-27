@@ -486,18 +486,18 @@ void Chromium::ReadFile(CefRefPtr<BufferedResponse> response, std::string path)
       char *extension;
       char *mimeType;
    } mimeTypes_[] = {
-     { "htm",  "text/html" },
-     { "html", "text/html" },
-     { "css",  "text/css" },
-	 { "less",  "text/css" },
-     { "js",   "application/x-javascript" },
-     { "json", "application/json" },
-     { "txt",  "text/plain" },
-     { "jpg",  "image/jpeg" },
-     { "png",  "image/png" },
-     { "gif",  "image/gif" },
-     { "woff", "application/font-woff" },
-     { "cur",  "image/vnd.microsoft.icon" },
+      { "htm",  "text/html" },
+      { "html", "text/html" },
+      {  "css",  "text/css" },
+      { "less",  "text/css" },
+      { "js",   "application/x-javascript" },
+      { "json", "application/json" },
+      { "txt",  "text/plain" },
+      { "jpg",  "image/jpeg" },
+      { "png",  "image/png" },
+      { "gif",  "image/gif" },
+      { "woff", "application/font-woff" },
+      { "cur",  "image/vnd.microsoft.icon" },
    };
    std::ifstream infile;
    auto const& rm = resources::ResourceManager2::GetInstance();
