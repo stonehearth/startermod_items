@@ -4,7 +4,7 @@
    },
    "components" :  {
       "ai" : "file(components/ai_component.lua)",
-      "abilities" : "file(components/abilities_component.lua)",
+      "commands" : "file(components/commands_component.lua)",
       "resource_node" : "file(components/resource_node_component.lua)",
       "stockpile" : "file(components/stockpile_component.lua)"
    }

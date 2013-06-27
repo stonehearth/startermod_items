@@ -1,10 +1,10 @@
 {
    "type" : "entity",
    "components" : {
-	   "radiant:abilities" : {
-	   	"ability_list" : {
-	      	"chop" : "file(/abilities/chop.json)"
-			}
+	   "radiant:commands" : {
+	   	"commands" : [
+            "file(/commands/chop.json)"
+			]
 	   },
       "destination" : {
          "region" : [
