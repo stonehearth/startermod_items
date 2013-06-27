@@ -14,9 +14,21 @@ App.View = Ember.View.extend({
 
       var self = this;
       $.each(this.components, function(i, value) {
+         console.log(value);
          self._subComponents[value] = {};
+         
+         var component = self._subComponents;
+         var parts = value.split(".");
+         $.each(parts, function(i, part) {
+            console.log("  " + part);
+            component[part] = {};
+            component = component[part];
+         });
+
+         console.log(self._subComponents);
+
          // xxx, build the tree for more than one level of properties
-         Ember.assert("Tried to fetch a subsubproperty, which isn't supported yet", value.indexOf(".") == -1);
+         //Ember.assert("Tried to fetch a subsubproperty, which isn't supported yet", value.indexOf(".") == -1);
       });
    },
 

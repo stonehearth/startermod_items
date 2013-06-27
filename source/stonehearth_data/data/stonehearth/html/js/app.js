@@ -4,7 +4,7 @@ App = Ember.Application.createWithMixins({
   	init: function() {
   		this.deferReadiness();
   		this._super();
-  		this._loadMods();
+  		this._loadTemplates();
   	},
 
   	ready: function() {
@@ -13,21 +13,22 @@ App = Ember.Application.createWithMixins({
   	},
 
 
-  	_loadMods: function() {
+  	_loadTemplates: function() {
   		var self = this;
 
-  		var modUrls = [
-  			'stonehearth',
-         'mainbar',
-         'unitframe',
-         'objectbrowser'
+  		var templateUrls = [
+  			'stonehearth/stonehearth.html',
+         'mainbar/mainbar.html',
+         'unitframe/unitframe.html',
+         'objectbrowser/objectbrowser.html',
+         '/stonehearth_crafter/html/stonehearth_crafter.html'
   			];
 
   		var deferreds = [];
 
   		// make all the ajax calls and collect the deferres
-  		$.each(modUrls, function(index, modUrl) {
-  			deferreds.push(self._loadMod(modUrl));
+  		$.each(templateUrls, function(index, templateUrl) {
+  			deferreds.push(self._loadTemplate(templateUrl));
   		});
 
   		// when all the tempalates are loading, contune loading the app
@@ -35,26 +36,6 @@ App = Ember.Application.createWithMixins({
 			self.advanceReadiness();
   		});
   	},
-
-  	_loadMod: function(url) {
-  		var modName = url.substr(url.lastIndexOf('/') + 1);
-  		console.log('loading mod: ' + modName);
-
-  		//load the mod
-  		//this._loadCss(url + '/' + modName + '.less')
-		return this._loadTemplate(url + '/' + modName + '.html');
-  	},
-
-	_loadCss: function (url) {
-		var link = $("<link>");
-		link.attr({
-			type: 'text/css',
-			rel: 'stylesheet',
-			href: url
-		});
-		$("head").append(link);
-	},
-
 
   	_loadTemplate: function(url) {
 		return $.ajax({
