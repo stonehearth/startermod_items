@@ -7,6 +7,7 @@ App.ObjectBrowserView = App.View.extend({
       var self = this;
 
       $(top).on("radiant.events.selection_changed", function (_, evt) {
+         console.log('selection changed!');
          var uri = evt.data.selected_entity;
          if (uri) {
             self.fetch(uri);
@@ -38,6 +39,7 @@ App.ObjectBrowserView = App.View.extend({
 
       $.get(uri)
          .done(function(json) {
+            console.log('done!');
             self.set('loading', false);
             self.set('objectHtml', self.formatJson(json));
          });
