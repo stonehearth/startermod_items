@@ -1,13 +1,19 @@
 {
- "type":"recipe",
- "work_units": 3,
- "crafter":"carpenter",
- "ingredients": [
+  "type":"recipe",
+
+  "work_units": 3,
+  "preview_item" : "/stonehearth_items/wooden_buckler",
+
+  "ingredients": [
     {
-      "material" : "wood"      
+      "material" : "wood",
+      "count" : 1,
+      "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
     },
     {
-      "material" : "cloth"
+      "material" : "cloth",
+      "count" : 1,
+      "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/cloth.png"
     }
   ],
   "produces": [
