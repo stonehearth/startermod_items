@@ -10,7 +10,12 @@ App.UnitFrameView = App.View.extend({
          var uri = evt.data.selected_entity;
          if (uri) {
             self.set('uri', uri);
+            //$('#unitframe').show()
+         } else {
+            //$('#unitframe').hide()
+            self.set('uri', null);
          }
+
       });
    },
 
@@ -22,5 +27,14 @@ App.UnitFrameView = App.View.extend({
 
    doCommand: function(handler) {
       console.log(handler);
-   }
+   },
+
+   _setVisibility: function() {
+      if (this.get('context')) {
+         $('#unitframe').show();
+      } else {
+         $('#unitframe').hide();
+      }
+
+   }.observes('context')
 });

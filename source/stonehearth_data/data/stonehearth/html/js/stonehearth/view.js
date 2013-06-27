@@ -23,12 +23,16 @@ App.View = Ember.View.extend({
    _updatedUri: function() {
       var self = this;
 
-      this._fetch(this.uri)
-         .done(function(object) {
-            console.log("view context set to ");
-            console.log(object);
-            self.set('context', object);
-         });
+      if(this.uri) {
+         this._fetch(this.uri)
+            .done(function(object) {
+               console.log("view context set to ");
+               console.log(object);
+               self.set('context', object);
+            });
+      } else {
+         self.set('context', {});
+      }
 
    }.observes('uri'),
 

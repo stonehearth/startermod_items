@@ -8,9 +8,13 @@
    <div id="commandButtons">
       {{#each radiant:commands}}
          <a href="#" {{action doCommand handler target="view"}}>
-            <img class="commandButton" {{bindAttr src="icon"}} {{bindAttr title="tooltip"}}></a>
+            <div class="commandButton" {{bindAttr title="tooltip"}}>
+               <img {{bindAttr src="icon"}} >
+            </div>
+         </a>
       {{/each}}
    </div>
 </div>
+
 
 </script>
