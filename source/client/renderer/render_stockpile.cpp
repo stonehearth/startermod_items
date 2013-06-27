@@ -32,12 +32,14 @@ RenderStockpile::~RenderStockpile()
 void RenderStockpile::UpdateStockpile(JSONNode const& data)
 {
    if (nodeObj_) {
-      json::ConstJsonObject obj(data["size"]);
+      json::ConstJsonObject obj(data);
       
-      math3d::ibounds3 bounds(math3d::ipoint3::origin, math3d::ipoint3::origin);
-      bounds._max.x += obj.get<int>(0, 0);
-      bounds._max.z += obj.get<int>(1, 0);
-      nodeObj_->UpdateShape(bounds);
+      if (obj.has("size")) {
+         math3d::ibounds3 bounds(math3d::ipoint3::origin, math3d::ipoint3::origin);
+         bounds._max.x += obj["size"][0].as_integer();
+         bounds._max.z += obj["size"][0].as_integer();
+         nodeObj_->UpdateShape(bounds);
+      }
    }
    Renderer::GetInstance().LoadResources();
 }
