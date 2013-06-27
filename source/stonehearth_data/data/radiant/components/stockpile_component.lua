@@ -37,6 +37,10 @@ function StockpileComponent:extend(json)
    end
 end
 
+function StockpileComponent:__tojson()
+   return radiant.json.encode(self._data)
+end
+
 function StockpileComponent:is_full()
    return false
 end

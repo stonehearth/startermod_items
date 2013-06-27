@@ -1,5 +1,5 @@
 {
-   "type" : "ability",
+   "type" : "command",
 
    "name": "chop",
    "args": [ "self", "player_faction" ],

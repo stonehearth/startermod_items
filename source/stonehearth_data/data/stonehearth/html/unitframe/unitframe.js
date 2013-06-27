@@ -7,9 +7,9 @@ App.UnitFrameView = App.View.extend({
 
       var self = this;
       $(top).on("radiant.events.selection_changed", function (_, evt) {
-         var uri = evt.data.selected_entity;
-         if (uri) {
-            self.set('uri', uri);
+         self._selected_entity = evt.data.selected_entity;
+         if (self._selected_entity) {
+            self.set('uri', self._selected_entity);
             //$('#unitframe').show()
          } else {
             //$('#unitframe').hide()
@@ -25,8 +25,15 @@ App.UnitFrameView = App.View.extend({
          });
    },
 
-   doCommand: function(handler) {
-      console.log(handler);
+   doCommand: function(command) {
+      if (command.action == 'fire_event') {
+         // xxx: error checking would be nice!!
+         var e = {
+            entity : this._selected_entity,
+            event_data : command.event_data
+         };
+         $(top).trigger(command.event_name, e);
+      }
    },
 
    _setVisibility: function() {

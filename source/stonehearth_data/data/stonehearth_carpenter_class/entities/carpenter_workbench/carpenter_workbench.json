@@ -1,5 +1,6 @@
 {
    "type": "entity",
+   "extends" : "/stonehearth_crafter/entities/workbench.json",
    "components" : {
       "unit_info" : {
          "name" :  "Carpenter Workbench",

@@ -7,7 +7,7 @@
    </div>
    <div id="commandButtons">
       {{#each radiant:commands}}
-         <a href="#" {{action doCommand handler target="view"}}>
+         <a href="#" {{action doCommand this target="view"}}>
             <div class="commandButton" {{bindAttr title="tooltip"}}>
                <img {{bindAttr src="icon"}} >
             </div>

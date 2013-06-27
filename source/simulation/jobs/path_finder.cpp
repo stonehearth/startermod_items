@@ -179,11 +179,11 @@ void PathFinder::Work(int now, const platform::timer &timer)
    math3d::ipoint3 current = GetFirstOpen();
    stdutil::UniqueInsert(closed_, current);
 
-   om::EntityRef closest;
-   if (EstimateCostToDestination(current, closest) == 0) {
+   PathFinderEndpoint* closest;
+   if (EstimateCostToDestination(current, &closest) == 0) {
       // xxx: be careful!  this may end up being re-entrant (for example, removing
       // destinations).
-      SolveSearch(current, closest);
+      SolveSearch(current, *closest);
       return;
    }
 
@@ -272,11 +272,10 @@ int PathFinder::EstimateCostToDestination(const math3d::ipoint3 &from) const
 {
    ASSERT(!restart_search_);
 
-   om::EntityRef ignore;
-   return EstimateCostToDestination(from, ignore);
+   return EstimateCostToDestination(from, nullptr);
 }
 
-int PathFinder::EstimateCostToDestination(const math3d::ipoint3 &from, om::EntityRef& closest) const
+int PathFinder::EstimateCostToDestination(const math3d::ipoint3 &from, PathFinderEndpoint** closest) const
 {
    int hMin = INT_MAX;
 
@@ -291,7 +290,9 @@ int PathFinder::EstimateCostToDestination(const math3d::ipoint3 &from, om::Entit
          int h = dst->EstimateMovementCost(from);
          //LOG(WARNING) << GetName() << "    sub cost to dst: " << h << "(vs: " << hMin << ")";
          if (h < hMin) {
-            closest = dst->GetEntity();
+            if (closest) {
+               *closest = dst;
+            }
             hMin = h;
          }
          i++;
@@ -365,14 +366,16 @@ void PathFinder::RebuildHeap()
    rebuildHeap_ = false;
 }
 
-void PathFinder::SolveSearch(const math3d::ipoint3& last, om::EntityRef dst)
+void PathFinder::SolveSearch(const math3d::ipoint3& last, PathFinderEndpoint const& dst)
 {
    std::vector<math3d::ipoint3> points;
 
    VERIFY_HEAPINESS();
 
    ReconstructPath(points, last);
-   solution_ = std::make_shared<Path>(points, entity_, dst);
+   math3d::ipoint3 start_point = source_.GetPointInRegionAdjacentTo(points.front());
+   math3d::ipoint3 end_point = dst.GetPointInRegionAdjacentTo(points.front());
+   solution_ = std::make_shared<Path>(points, entity_, dst.GetEntity(), start_point, end_point);
    if (solved_cb_.is_valid()) {
       auto L = solved_cb_.interpreter();
       luabind::object path(L, solution_);
@@ -492,8 +495,6 @@ int PathFinderEndpoint::EstimateMovementCost(const math3d::ipoint3& from) const
       end = adjacent.GetClosestPoint(start);
    }
    return EstimateMovementCost(start, end);
-
-   return INT_MAX;
 }
 
 int PathFinderEndpoint::EstimateMovementCost(csg::Point3 const& start, csg::Point3 const& end) const
@@ -516,5 +517,32 @@ int PathFinderEndpoint::EstimateMovementCost(csg::Point3 const& start, csg::Poin
    cost += (int)((horzCost + diagCost * 1.414) * COST_SCALE);
 
    return cost;
+}
+
+math3d::ipoint3 PathFinderEndpoint::GetPointInRegionAdjacentTo(math3d::ipoint3 const& adjacent_pt) const
+{
+   auto entity = GetEntity();
+   ASSERT(entity);
+
+   // Translate the point to the local coordinate system
+
+   math3d::ipoint3 origin(0, 0, 0);
+   auto mob = entity->GetComponent<om::Mob>();
+   if (mob) {
+      origin = mob->GetWorldGridLocation();
+   }
+
+   math3d::ipoint3 end;
+   om::DestinationPtr dst = entity->GetComponent<om::Destination>();
+   if (dst) {
+      csg::Region3 const& rgn = **dst->GetAdjacent();
+      return rgn.GetClosestPoint(adjacent_pt - origin);
+   }
+   csg::Region3 adjacent;
+   adjacent += csg::Point3(-1, 0,  0);
+   adjacent += csg::Point3( 1, 0,  0);
+   adjacent += csg::Point3( 0, 0, -1);
+   adjacent += csg::Point3( 0, 0, -1);
+   return adjacent.GetClosestPoint(adjacent_pt - origin) + origin;
 }
 

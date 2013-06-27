@@ -43,6 +43,11 @@ namespace radiant {
             return node_.write_formatted();
          }
 
+         int as_integer() const {
+            ASSERT(node_.type() == JSON_NUMBER);
+            return node_.as_int();
+         }
+
          std::string as_string() const {
             ASSERT(node_.type() == JSON_STRING);
             return node_.as_string();
@@ -60,13 +65,29 @@ namespace radiant {
          template <typename T> T get(int offset, T const& def) const {
             return ::radiant::json::get(GetNode(), offset, def);
          }
-         ConstJsonObject operator[](std::string const& name) {
+         ConstJsonObject operator[](std::string const& name) const {
             return (*this)[name.c_str()];
          }
-         ConstJsonObject operator[](const char* name) {
+
+         ConstJsonObject operator[](const char* name) const {
+            ASSERT(name);
+            ASSERT(node_.type() == JSON_NODE);
+
             auto i = node_.find(name);
             ASSERT(i != node_.end());
+
             return ConstJsonObject(*i);
+         }
+
+         ConstJsonObject operator[](int i) const {
+            ASSERT(i >= 0);
+            return (*this)[(unsigned int)i];
+         }
+
+         ConstJsonObject operator[](unsigned int i) const {
+            ASSERT(node_.type() == JSON_ARRAY);
+            ASSERT(i < node_.size());
+            return node_.at(i);
          }
       private:
          JSONNode const& node_;

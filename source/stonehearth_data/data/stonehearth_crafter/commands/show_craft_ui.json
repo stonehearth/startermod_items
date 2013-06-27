@@ -1,0 +1,11 @@
+{
+   "type" : "command",
+
+   "name": "show_craft_ui",
+   "tooltip": "Craft Stuff!!",
+   "icon": "file(/need_a_button!.png)",
+
+   "action": "fire_event",
+   "event_name" : "stonehearth_crafter.show_craft_ui",
+   "event_data" : {}
+}

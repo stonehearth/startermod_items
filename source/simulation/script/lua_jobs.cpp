@@ -32,6 +32,8 @@ void LuaJobs::RegisterType(lua_State* L)
          .def("get_points",         &Path::GetPoints)
          .def("get_source",         &Path::GetSource)
          .def("get_destination",    &Path::GetDestination)
+         .def("get_start_point",    &Path::GetStartPoint)
+         .def("get_finish_point",   &Path::GetFinishPoint)
       ,
       class_<MultiPathFinder, std::shared_ptr<MultiPathFinder> >("MultiPathFinder")
          .def(tostring(self))
