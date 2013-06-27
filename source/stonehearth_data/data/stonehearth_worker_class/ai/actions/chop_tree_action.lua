@@ -45,7 +45,7 @@ function ChopTreeAction:run(ai, entity)
    radiant.entities.turn_to_face(entity, tree)
    ai:execute('stonehearth.activities.run_effect', 'chop')
    
-   local factory = tree:get_component('radiant.resource_node') -- radiant. <-- everywhere!!
+   local factory = tree:get_component('radiant:resource_node') -- radiant. <-- everywhere!!
    if factory then
       local location = radiant.entities.get_world_grid_location(entity)
       factory:spawn_resource(location)

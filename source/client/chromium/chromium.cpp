@@ -502,16 +502,21 @@ void Chromium::ReadFile(CefRefPtr<BufferedResponse> response, std::string path)
    std::ifstream infile;
    auto const& rm = resources::ResourceManager2::GetInstance();
 
+   std::string data;
    try {
-      rm.OpenResource(path, infile);
+      if (boost::ends_with(path, ".json")) {
+         JSONNode const& node = rm.LookupJson(path);
+         data = node.write();
+      } else {
+         rm.OpenResource(path, infile);
+         data = io::read_contents(infile);
+      }
    } catch (resources::Exception const& e) {
       LOG(WARNING) << "error code 404: " << e.what();
       response->SetStatusCode(404);
       return;
    }
-   ASSERT(infile.is_open());
 
-   std::string data = io::read_contents(infile);
 
    // Determine the file extension.
    std::string mimeType;

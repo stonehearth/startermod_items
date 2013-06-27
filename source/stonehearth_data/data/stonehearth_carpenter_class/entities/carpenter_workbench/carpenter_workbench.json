@@ -15,7 +15,7 @@
             [[0, 0, 1], [1, 1, 2]]
          ]
       },
-      "stonehearth_crafter.workshop" : {
+      "stonehearth_crafter:workshop" : {
       }
    }
 }

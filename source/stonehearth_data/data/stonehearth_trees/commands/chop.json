@@ -1,0 +1,10 @@
+{
+   "type" : "ability",
+
+   "name": "chop",
+   "args": [ "self", "player_faction" ],
+
+   "tooltip": "Chop Tree",
+   "icon": "file(/images/actions/chop.png)",
+   "handler"  : "file(chop_command.lua)"
+}

@@ -5,7 +5,7 @@
             "file(worker_outfit.qb)"
          ]
       },
-      "radiant.ai" : {
+      "radiant:ai" : {
          "actions" : [
             "file(/ai/actions/chop_tree_action.lua)",
             "file(/ai/actions/restock_stockpile_action.lua)"

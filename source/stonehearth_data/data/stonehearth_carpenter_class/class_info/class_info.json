@@ -6,7 +6,7 @@
             "file(carpenter_outfit.qb)"
          ]
       },
-      "stonehearth_crafter.crafter" : {
+      "stonehearth_crafter:crafter" : {
          "work_effect" : "saw",
          "intermediate_item" : "/stonehearth_carpenter_class/entities/carpenter_intermediate_item"
       }
