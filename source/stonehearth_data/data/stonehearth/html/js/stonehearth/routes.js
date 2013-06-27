@@ -65,16 +65,3 @@ App.IndexRoute = Ember.Route.extend({
 	}
 	*/
 })
-
-
-App.UnitFrameRoute = Ember.Route.extend({
-	renderTemplate: function() {
-    	this.render({ outlet: 'left' });
-  	},
-
-	model: function() {
-		var model = App.UnitFrameModel.create();
-		model.get('/api/1.txt');
-		return model;
-  	}
-});

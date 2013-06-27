@@ -2,18 +2,72 @@ App.View = Ember.View.extend({
 
    //the interface to set the remote id. Call this using the set method of the view;
    //view.set('remoteId', entity.id)
-   url: "",
+   uri: "",
 
    //the components to retrieve from the object
    components: [],
 
-   _fetchObject: function() {
-    
-      var m = App.RemoteObject.create({
-         url: this.url,
-         components: this.components
-      });
+   _subComponents: {},
 
-      this.set('context', m);
-   }.observes('url'),
+   init: function() {
+      this._super();
+
+      var self = this;
+      $.each(this.components, function(i, value) {
+         self._subComponents[value] = {};
+         // xxx, build the tree for more than one level of properties
+         Ember.assert("Tried to fetch a subsubproperty, which isn't supported yet", value.indexOf(".") == -1);
+      });
+   },
+
+   _updatedUri: function() {
+      var self = this;
+
+      this._fetch(this.uri)
+         .done(function(object) {
+            console.log("view context set to ");
+            console.log(object);
+            self.set('context', object);
+         });
+
+   }.observes('uri'),
+
+
+   _fetch: function(uri, subProperties) {
+      var self = this;
+      var deferred = $.Deferred();
+
+      var _fetchSubProperties = function (json) {
+         var pending = 0
+
+         $.each(json, function(name, value) {
+            var subsubProperties = self._subComponents[name];
+
+            if (subsubProperties != undefined) {
+               pending++;
+               self._fetch(value, subsubProperties) 
+                  .done(function (object) {
+                     json[name] = object;
+                     pending--;
+
+                     if (pending == 0) {
+                        deferred.resolve(json);
+                     }
+                  });
+            }
+         });
+
+         if (pending == 0) {
+            deferred.resolve(json);
+         }
+      }
+
+      $.getJSON(uri)
+         .done(function(json) {
+            _fetchSubProperties(json);
+         });
+
+      return deferred;
+
+   }
 });

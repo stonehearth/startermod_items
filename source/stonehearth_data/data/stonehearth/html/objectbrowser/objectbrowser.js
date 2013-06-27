@@ -1,6 +1,6 @@
 App.ObjectBrowserView = App.View.extend({
    templateName: 'objectbrowser',
-   objectHtml: "hi there",
+   objectHtml: "",
    loading: false,
 
    didInsertElement: function() {
@@ -16,7 +16,7 @@ App.ObjectBrowserView = App.View.extend({
       
       $("#objectJson").on("click", "a", function(event) {
          event.preventDefault();
-         var uri = $(this).ampttr('href');
+         var uri = $(this).attr('href');
          self.fetch(uri);      
       });
    },

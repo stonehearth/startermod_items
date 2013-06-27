@@ -1,6 +1,6 @@
 App.UnitFrameView = App.View.extend({
 	templateName: 'unitframe',
-	components: ['unit_info', 'radiant.abilities'],
+	components: ['unit_info', 'radiant:commands'],
 
    init: function() {
       this._super();
@@ -8,10 +8,19 @@ App.UnitFrameView = App.View.extend({
       var self = this;
       $(top).on("radiant.events.selection_changed", function (_, evt) {
          var uri = evt.data.selected_entity;
-         console.log('selection changed to ' + uri);
          if (uri) {
-            self.set('url', uri);
+            self.set('uri', uri);
          }
       });
+   },
+
+   didInsertElement: function() {
+      $('.commandButton').tooltip({
+         delay: { show: 800, hide: 0 }
+         });
+   },
+
+   doCommand: function(handler) {
+      console.log(handler);
    }
 });

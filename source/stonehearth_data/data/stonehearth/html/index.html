@@ -13,15 +13,15 @@
 <body>
 
    <script type="text/x-handlebars">
+      {{render Stonehearth}}
+   </script>
+
+   <script type="text/x-handlebars" data-template-name="eventualRealIndexTemplate">
       {{outlet}}
 
       {{#linkTo "index"}}index{{/linkTo}}
       {{#linkTo "game"}}game{{/linkTo}}
 
-   </script>
-
-   <script type="text/x-handlebars" data-template-name="game">
-      {{render Stonehearth}}
    </script>
 
   <!-- lib -->

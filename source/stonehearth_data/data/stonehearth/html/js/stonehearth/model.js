@@ -1,4 +1,52 @@
-App.RemoteObject = Ember.Object.extend({
+/*
+App.ObjectFactory = Ember.Object.extend({
+   getObject: function(uri, options) {
+      var options = options || {};
+      return this._getObject(uri, options);
+   },
+
+   _getObject: function(url, components) {
+      console.log('getting object ' + url);
+    
+      var self = this;
+      var obj = {};
+
+      jQuery.getJSON(url, function(json) {
+         console.log(json);
+
+         if( Object.prototype.toString.call(json) === '[object Array]' ) {
+            console.log('  is an array');
+            obj = Ember.A(json);
+         } else {
+            obj = Ember.Object.create(json);
+            obj.setProperties(json);
+
+            if (components && components.length > 0) {
+              self._getComponentsForObject(obj, components);
+            }
+         }
+      });
+
+      return obj;
+  },
+
+  _getComponentsForObject: function(obj, components) {
+    $.each(components, function(index, component) {
+      if (obj.hasOwnProperty(component))  {
+         // it's an url. create a new RemoteObject to follow the link, and set
+         // the property from the link to that object
+         //var objectId = json[value].substring(6);
+         console.log(component);
+         var f = App.ObjectFactory.create(); // XXX this could be wasteful and totally the wrong thing
+         var componentObj = f.getObject(obj[component]);
+         obj.set(component, componentObj);
+      }
+    });
+  }   
+});
+
+/*
+App.RemoteObject = Ember.Object.extend(Ember.Array, {
 
   init: function(url, options) {
     this._super;
@@ -16,19 +64,16 @@ App.RemoteObject = Ember.Object.extend({
     
     jQuery.getJSON(url, function(json) {
       console.log(json);
+
+      if( Object.prototype.toString.call(json) === '[object Array]' ) {
+         console.log('  is an array');
+      }
+
       if (components && components.length > 0) {
         self._getComponentObjects(json, components);
       }
 
-      var patchedJson = {};
-
-      for (key in json) {
-         var patchedKey = key.replace(".",":");
-         patchedJson[patchedKey] = json[key];
-         //console.log(patchedKey + ' = ' + json[key])
-      }
-
-      self.setProperties(patchedJson);
+      self.setProperties(json);
     });
   },
 
@@ -46,10 +91,19 @@ App.RemoteObject = Ember.Object.extend({
         }
       }
     });
-  }
+  },
 
+   objectAt: function(idx) {
+      if (idx > 3) {
+         return undefined;
+      } else {
+         return idx;
+      }
+   },
 
-
+   length: function() {
+      return 3;
+   }
 })
 
 if (typeof String.prototype.startsWith != 'function') {
@@ -57,3 +111,4 @@ if (typeof String.prototype.startsWith != 'function') {
     return this.slice(0, str.length) == str;
   };
 }
+*/
