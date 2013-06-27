@@ -1,6 +1,6 @@
 {
    "components" : {
-      "radiant.ai" : {
+      "radiant:ai" : {
          "actions" : [
             "file(/ai/actions/compel_to_action.lua)",
             "file(/ai/actions/death_action.lua)",

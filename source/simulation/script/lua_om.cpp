@@ -290,7 +290,7 @@ std::string
 GetLuaComponentUri(std::string name)
 {
    std::string modname;
-   size_t offset = name.find('.');
+   size_t offset = name.find(':');
 
    if (offset != std::string::npos) {
       modname = name.substr(0, offset);

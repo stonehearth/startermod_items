@@ -2,7 +2,7 @@
    "type" : "entity",
    "extends" : "file(../../tree.json)",
    "components" : {
-      "radiant.resource_node" : {
+      "radiant:resource_node" : {
          "resource": "file(../oak_log)",
          "durability": 6
       },

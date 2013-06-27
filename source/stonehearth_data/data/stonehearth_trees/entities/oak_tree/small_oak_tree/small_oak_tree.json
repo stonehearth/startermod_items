@@ -1,6 +1,6 @@
 {
    "extends": "file(../../tree.json)",
-   "radiant.resource_node" : {
+   "radiant:resource_node" : {
       "resource": "file(../oak_log)",
       "durability": 6
    },
