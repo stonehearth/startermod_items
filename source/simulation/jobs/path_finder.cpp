@@ -183,7 +183,7 @@ void PathFinder::Work(int now, const platform::timer &timer)
    if (EstimateCostToDestination(current, &closest) == 0) {
       // xxx: be careful!  this may end up being re-entrant (for example, removing
       // destinations).
-      SolveSearch(current, *closest);
+      SolveSearch(current, closest);
       return;
    }
 
@@ -366,16 +366,21 @@ void PathFinder::RebuildHeap()
    rebuildHeap_ = false;
 }
 
-void PathFinder::SolveSearch(const math3d::ipoint3& last, PathFinderEndpoint const& dst)
+void PathFinder::SolveSearch(const math3d::ipoint3& last, PathFinderEndpoint* dst)
 {
    std::vector<math3d::ipoint3> points;
 
    VERIFY_HEAPINESS();
 
    ReconstructPath(points, last);
-   math3d::ipoint3 start_point = source_.GetPointInRegionAdjacentTo(points.front());
-   math3d::ipoint3 end_point = dst.GetPointInRegionAdjacentTo(points.front());
-   solution_ = std::make_shared<Path>(points, entity_, dst.GetEntity(), start_point, end_point);
+   PathFinderEndpoint *src = &source_;
+   if (reversed_search_) {
+      std::swap(src, dst);
+   }
+
+   math3d::ipoint3 start_point = src->GetPointInRegionAdjacentTo(points.front());
+   math3d::ipoint3 end_point = dst->GetPointInRegionAdjacentTo(points.back());
+   solution_ = std::make_shared<Path>(points, src->GetEntity(), dst->GetEntity(), start_point, end_point);
    if (solved_cb_.is_valid()) {
       auto L = solved_cb_.interpreter();
       luabind::object path(L, solution_);
@@ -457,7 +462,10 @@ void PathFinderEndpoint::AddAdjacentToOpenSet(std::vector<math3d::ipoint3>& open
                }
             }
          } else {
-            open.push_back(origin);
+            open.push_back(origin + math3d::ipoint3(-1, 0,  0));
+            open.push_back(origin + math3d::ipoint3( 1, 0,  0));
+            open.push_back(origin + math3d::ipoint3( 0, 0, -1));
+            open.push_back(origin + math3d::ipoint3( 0, 0,  1));
          }
       }
    }
@@ -525,24 +533,22 @@ math3d::ipoint3 PathFinderEndpoint::GetPointInRegionAdjacentTo(math3d::ipoint3 c
    ASSERT(entity);
 
    // Translate the point to the local coordinate system
-
    math3d::ipoint3 origin(0, 0, 0);
    auto mob = entity->GetComponent<om::Mob>();
    if (mob) {
       origin = mob->GetWorldGridLocation();
    }
 
-   math3d::ipoint3 end;
+   math3d::ipoint3 end(0, 0, 0);
    om::DestinationPtr dst = entity->GetComponent<om::Destination>();
    if (dst) {
-      csg::Region3 const& rgn = **dst->GetAdjacent();
-      return rgn.GetClosestPoint(adjacent_pt - origin);
+      csg::Region3 const& rgn = **dst->GetRegion();
+      end = rgn.GetClosestPoint(adjacent_pt - origin);
    }
-   csg::Region3 adjacent;
-   adjacent += csg::Point3(-1, 0,  0);
-   adjacent += csg::Point3( 1, 0,  0);
-   adjacent += csg::Point3( 0, 0, -1);
-   adjacent += csg::Point3( 0, 0, -1);
-   return adjacent.GetClosestPoint(adjacent_pt - origin) + origin;
+
+   end += origin;
+   math3d::ipoint3 d = end - adjacent_pt;
+   ASSERT(d.distanceSquared() == 1);
+   return end;
 }
 
