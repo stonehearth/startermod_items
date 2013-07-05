@@ -3,7 +3,6 @@
 
 #include <map>
 #include "namespace.h"
-#include "client/input_event.h"
 #include "selector.h"
 #include "om/selection.h"
 
@@ -25,11 +24,11 @@ class ActorSelector : public Selector {
       void Activate();
 
    protected:
-      void onInputEvent(const MouseInputEvent &evt, bool &handled, bool &uninstall);
+      void onInputEvent(const MouseEvent &evt, bool &handled, bool &uninstall);
 
    protected:
       Selector::SelectionFn   _selectionFn;
-      InputCallbackId         _inputHandlerId;
+      int                     _inputHandlerId;
       om::Selection           _selection;
 };
 

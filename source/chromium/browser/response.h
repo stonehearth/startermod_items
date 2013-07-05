@@ -1,25 +1,23 @@
-#ifndef _RADIANT_CLIENT_CHROMIUM_BUFFERED_REQUEST_H
-#define _RADIANT_CLIENT_CHROMIUM_BUFFERED_REQUEST_H
+#ifndef _RADIANT_CHROMIUM_BROWSER_RESPONSE_H
+#define _RADIANT_CHROMIUM_BROWSER_RESPONSE_H
 
-#if defined(GetNextSibling) // windows.h again... sigh.  xxx maybe WIN32_LEAN_AND_MEAN will fix this?
-#  undef GetNextSibling
-#  undef GetFirstChild
-#endif
+#include <atomic>
+#include "../chromium.h"
 
-#include "libjson.h"
-#include "namespace.h"
+BEGIN_RADIANT_CHROMIUM_NAMESPACE
 
-BEGIN_RADIANT_CLIENT_NAMESPACE
-
-class BufferedResponse : public CefResourceHandler
+class Response : public IResponse,
+                 public CefResourceHandler
 {
 public:
-   BufferedResponse(CefRefPtr<CefRequest> request);
-   virtual ~BufferedResponse();
+   Response(CefRefPtr<CefRequest> request);
+   virtual ~Response();
 
+#if 0
    void SetResponse(JSONNode node);
-   void SetResponse(std::string response, std::string mimeType);
-   void SetStatusCode(int status);
+#endif
+   void SetResponse(std::string response, std::string mimeType) override;
+   void SetStatusCode(int status) override;
 
 public:
    // CefBase overrides
@@ -71,7 +69,7 @@ public:
    void Cancel() override;
 
 private:
-   int                           refCount_;
+   std::atomic_int               refCount_;
    CefRefPtr<CefRequest>         request_;
    CefRefPtr<CefCallback>        callback_;
    std::string                   response_;
@@ -80,6 +78,6 @@ private:
    std::string                   mimeType_;
 };
 
-END_RADIANT_CLIENT_NAMESPACE
+END_RADIANT_CHROMIUM_NAMESPACE
 
-#endif // _RADIANT_CLIENT_CHROMIUM_BUFFERED_REQUEST_H
+#endif // _RADIANT_CHROMIUM_BROWSER_RESPONSE_H
