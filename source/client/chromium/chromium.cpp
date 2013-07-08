@@ -428,8 +428,13 @@ CefRefPtr<CefResourceHandler> Chromium::GetResourceHandler(CefRefPtr<CefBrowser>
    std::string path = CefString(&url_parts.path);
    std::string query = CefString(&url_parts.query);
    std::string postdata = GetPostData(request);
-
-   if (!api.OnNewRequest(path, query, postdata, cb)) {
+   bool handled;
+   if (postdata.empty()) {
+      handled = api.Get(path, query, cb);
+   } else {
+      handled = api.Post(path, query, postdata, cb);
+   }
+   if (!handled) {
       ReadFile(response, CefString(&url_parts.path));
    }
    return CefRefPtr<CefResourceHandler>(response);

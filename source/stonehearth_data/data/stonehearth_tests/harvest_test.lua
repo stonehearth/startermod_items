@@ -17,7 +17,7 @@ function HarvestTest:__init()
       end)
 
    self:at(100, function()
-         tree:get_component('radiant:commands'):do_command('chop', faction)
+         --tree:get_component('radiant:commands'):do_command('chop', faction)
       end)
 end
 
