@@ -40,7 +40,7 @@ Simulation& Simulation::GetInstance()
 }
 
 Simulation::Simulation(lua_State* L) :
-   _showDebugNodes(false),
+   _showDebugNodes(true),
    _singleStepPathFinding(false),
    L_(L),
    store_(1)

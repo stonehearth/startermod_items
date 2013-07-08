@@ -3,5 +3,8 @@
 
 #include "radiant.h"
 #include "radiant_stdutil.h"
+#include <boost/filesystem.hpp>
+#include <boost/program_options/variables_map.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 #endif // _RADIANT_CLIENT_PCH_H

@@ -1,74 +1,53 @@
-#ifndef _RADIANT_CLIENT_CHROMIUM_H
-#define _RADIANT_CLIENT_CHROMIUM_H
+#ifndef _RADIANT_CHROMIUM_BROWSER_BROWSER_H
+#define _RADIANT_CHROMIUM_BROWSER_BROWSER_H
 
-#if defined(GetNextSibling) // windows.h again... sigh.  xxx maybe WIN32_LEAN_AND_MEAN will fix this?
-#  undef GetNextSibling
-#  undef GetFirstChild
-#endif
+#include "csg/region.h"
+#include "../chromium.h"
 
-#include <mutex>
-#include <unordered_map>
-#include "include/cef_url.h"
-#include "include/cef_resource_handler.h"
-#include "include/cef_origin_whitelist.h"
-#include "include/cef_app.h"
-#include "include/cef_base.h"
-#include "include/cef_client.h"
-#include "include/cef_browser.h"
-#include "include/cef_resource_handler.h"
-#include "client/input_event.h"
+#if 0
 #include "libjson.h"
-#include "namespace.h"
-#include "buffered_response.h"
 #include "dm/dm.h"
 #include "om/om.h"
-#include "csg/region.h"
+#endif
 
-BEGIN_RADIANT_CLIENT_NAMESPACE
+BEGIN_RADIANT_CHROMIUM_NAMESPACE
 
-class ChromiumApp : public CefApp,      
-                    public CefBrowserProcessHandler,
-                    public CefRenderProcessHandler
+class App2;
+
+class Browser : public IBrowser,
+                public CefClient,
+                public CefLifeSpanHandler,
+                public CefSchemeHandlerFactory,
+                public CefLoadHandler,
+                public CefDisplayHandler,
+                public CefRenderHandler,
+                public CefKeyboardHandler,
+                public CefRequestHandler
 {
 public:
-   IMPLEMENT_REFCOUNTING(ChromiumApp);
-
-public: // CefApp overrides
-};
-
-class Chromium : public CefClient,
-                 public CefLifeSpanHandler,
-                 public CefSchemeHandlerFactory,
-                 public CefLoadHandler,
-                 public CefDisplayHandler,
-                 public CefRenderHandler,
-                 public CefKeyboardHandler,
-                 public CefRequestHandler
-{
-public:
-   static int Initialize();
-
-   Chromium(HWND parentWnd);
-   virtual ~Chromium();
+   Browser(HWND parentWindow, std::string const& docroot, int width, int height, int debug_port);
+   virtual ~Browser();
 
    typedef std::function<void(const csg::Region2& rgn, const char* buffer)> PaintCb;
    typedef std::function<void(const CefCursorHandle cursor)> CursorChangeCb;
-
-   bool HasMouseFocus();
-   void UpdateDisplay(PaintCb cb);
-   void Work();
-
-   void OnRawInput(const RawInputEvent &evt, bool& handled, bool& uninstall);
-   void OnMouseInput(const MouseInputEvent &evt, bool& handled, bool& uninstall);
-
-   void SetCursorChangeCb(CursorChangeCb cb) { cursorChangeCb_ = cb; }
-
+   
+public:  // IBrowser Interface
+   bool HasMouseFocus() override;
+   void UpdateDisplay(PaintCb cb) override;
+   void Work() override;
+   void OnRawInput(const RawInputEvent &evt, bool& handled, bool& uninstall) override;
+   void OnMouseInput(const MouseEvent &evt, bool& handled, bool& uninstall) override;
+   void SetCursorChangeCb(CursorChangeCb cb) override;
+   void SetRequestHandler(HandleRequestCb cb) override;
+public:
    typedef int CommandId;
+#if 0
    bool GetNextCommand(CommandId& id, JSONNode& node);
    void SetCommandResponse(CommandId& id, const JSONNode& response);
+#endif
 
 public:
-   IMPLEMENT_REFCOUNTING(ChromiumApp);
+   IMPLEMENT_REFCOUNTING(Browser);
 
    // CefClient overrides
    CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override { return this; }
@@ -155,11 +134,10 @@ public:
                                        CefRefPtr<CefRequest> request) override ;
 
 private:
-   void OnKeyboardEvent(const RawInputEvent& kb);
-   void OnMouseEvent(const MouseInputEvent& mouse);
+#if 0
    void OnSelectionChanged(om::EntityPtr selection);
-   void ReadFile(CefRefPtr<BufferedResponse> response, std::string path);
-   std::string GetPostData(CefRefPtr<CefRequest> request);
+#endif
+#if 0
    JSONNode CommandErrorResponse(std::string reason);
    JSONNode CommandPendingReponse();
    JSONNode CommandSuccessResponse(JSONNode response);
@@ -169,9 +147,11 @@ private:
    JSONNode DescribeEntities(const JSONNode& args);
    JSONNode DescribeEntity(om::EntityPtr entity, const JSONNode& types);
    void FinishCreateEntity(dm::ObjectId id, CommandId cmdId);
+#endif
    int GetCefKeyboardModifiers(WPARAM wparam, LPARAM lparam);
 
 private:
+   CefRefPtr<CefApp>                app_;
    HWND                          hwnd_;
    CefRefPtr<CefBrowser>         browser_;
 
@@ -184,11 +164,10 @@ private:
    int32                         mouseY_;
    int32                         width_;
    int32                         height_;
-   int32                         renderWidth_;
-   int32                         renderHeight_;
    uint32*                       framebuffer_;
+   HandleRequestCb               requestHandler_;
 };
 
-END_RADIANT_CLIENT_NAMESPACE
+END_RADIANT_CHROMIUM_NAMESPACE
 
-#endif // _RADIANT_CLIENT_CHROMIUM_H
+#endif // _RADIANT_CHROMIUM_BROWSER_BROWSER_H

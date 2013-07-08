@@ -42,13 +42,10 @@ Renderer::Renderer() :
    assert(renderer_.get() == nullptr);
    renderer_.reset(this);
 
-   uiWidth_ = 1920;
-   uiHeight_ = 1080;
-
    //width_ = 1920;
    //height_ = 1080;
-   width_ = 1280;
-   height_ = 720;
+   uiWidth_ = width_ = 1280;
+   uiHeight_ = height_ = 720;
 
    //uiWidth_ = width_;
    //uiHeight_ = height_;
@@ -402,21 +399,21 @@ math3d::matrix4 Renderer::GetNodeTransform(H3DNode node) const
    return transform;
  }
 
-InputCallbackId Renderer::SetRawInputCallback(RawInputEventCb fn)
+Renderer::InputCallbackId Renderer::SetRawInputCallback(RawInputEventCb fn)
 {
    InputCallbackId id = nextInputCbId_++;
    rawInputCbs_.push_back(std::make_pair(id, fn));
    return id;
 }
 
-InputCallbackId Renderer::SetMouseInputCallback(MouseInputEventCb fn)
+Renderer::InputCallbackId Renderer::SetMouseInputCallback(MouseEventCb fn)
 {
    InputCallbackId id = nextInputCbId_++;
    mouseInputCbs_.push_back(std::make_pair(id, fn));
    return id;
 }
 
-InputCallbackId Renderer::SetKeyboardInputCallback(KeyboardInputEventCb fn)
+Renderer::InputCallbackId Renderer::SetKeyboardInputCallback(KeyboardInputEventCb fn)
 {
    InputCallbackId id = nextInputCbId_++;
    keyboardInputCbs_.push_back(std::make_pair(id, fn));

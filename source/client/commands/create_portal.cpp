@@ -47,7 +47,7 @@ void CreatePortal::operator()(void)
    FindShadowWall(pt.x, pt.y);
 }
 
-void CreatePortal::OnMouseEvent(const MouseInputEvent &me, bool &handled, bool &uninstall) 
+void CreatePortal::OnMouseEvent(const MouseEvent &me, bool &handled, bool &uninstall) 
 {
    if (!shadowWall_) {
       FindShadowWall(me.x, me.y);

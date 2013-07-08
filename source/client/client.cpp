@@ -21,13 +21,12 @@
 #include "commands/execute_action.h"
 #include "rest_api.h"
 #include "renderer/render_entity.h"
+#include "glfw.h"
 
 //  #include "GFx/AS3/AS3_Global.h"
 #include "client.h"
-#include "chromium/chromium.h"
 #include "renderer/renderer.h"
 #include "libjson.h"
-#include <boost/filesystem.hpp>
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -36,8 +35,6 @@ namespace po = boost::program_options;
 namespace proto = ::radiant::tesseract::protocol;
 
 DEFINE_SINGLETON(Client);
-
-#define CHROMIUM
 
 Client::Client() :
    _tcp_socket(_io_service),
@@ -92,12 +89,33 @@ void Client::run()
    renderer.SetKeyboardInputCallback(std::bind(&Client::OnKeyboardInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
    SetRenderPipelineInfo();
 
-#if defined(CHROMIUM)
-   chromium_.reset(new client::Chromium(hwnd_));
-   chromium_->SetCursorChangeCb(std::bind(&Client::SetUICursor, this, std::placeholders::_1));
-   renderer.SetRawInputCallback(std::bind(&Chromium::OnRawInput, chromium_.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-   renderer.SetMouseInputCallback(std::bind(&Chromium::OnMouseInput, chromium_.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-#endif
+   int width = renderer.GetWidth();
+   int height = renderer.GetHeight();
+   int debug_port = 1338;
+
+   namespace po = boost::program_options;
+   extern po::variables_map configvm;
+   std::string loader = configvm["game.loader"].as<std::string>().c_str();
+   json::ConstJsonObject manifest(resources::ResourceManager2::GetInstance().LookupManifest(loader));
+   std::string docroot = "http://radiant/" + manifest["loader"]["ui"]["homepage"].as_string();
+
+   browser_.reset(chromium::CreateBrowser(hwnd_, docroot, width, height, debug_port));
+   browser_->SetCursorChangeCb(std::bind(&Client::SetUICursor, this, std::placeholders::_1));
+
+   auto requestHandler = [=](std::string const& uri, std::string const& query, std::string const& postdata, std::shared_ptr<chromium::IResponse> response) {
+      BrowserRequestHandler(uri, query, postdata, response);
+   };
+   browser_->SetRequestHandler(requestHandler);
+
+   auto onRawInput = [=](RawInputEvent const & re, bool& handled, bool& uninstall) {
+      browser_->OnRawInput(re, handled, uninstall);
+   };
+
+   auto onMouse = [=](MouseEvent const & m, bool& handled, bool& uninstall) {
+      browser_->OnMouseInput(m, handled, uninstall);
+   };
+   renderer.SetRawInputCallback(onRawInput);
+   renderer.SetMouseInputCallback(onMouse);
 
 #if 0
    //_commands['S'] = std::bind(&Client::RunGlobalCommand, this, "create-stockpile", std::placeholders::_1);
@@ -193,10 +211,12 @@ void Client::mainloop()
    now_ = (int)(_server_last_update_time + (_server_interval_duration * alpha));
 
    GetAPI().FlushEvents();
-   if (chromium_) {
-      auto cb = [](const csg::Region2 &rgn, const char* buffer) { Renderer::GetInstance().UpdateUITexture(rgn, buffer); };
-      chromium_->Work();
-      chromium_->UpdateDisplay(cb);
+   if (browser_) {
+      auto cb = [](const csg::Region2 &rgn, const char* buffer) {
+         Renderer::GetInstance().UpdateUITexture(rgn, buffer);
+      };
+      browser_->Work();
+      browser_->UpdateDisplay(cb);
    }
 
    ExecuteCommands();
@@ -484,11 +504,11 @@ void Client::activate_comamnd(int k)
 {
 }
 
-void Client::OnMouseInput(const MouseInputEvent &mouse, bool &handled, bool &uninstall)
+void Client::OnMouseInput(const MouseEvent &mouse, bool &handled, bool &uninstall)
 {
    bool hovering_on_brick = false;
 
-   if (chromium_->HasMouseFocus()) {
+   if (browser_->HasMouseFocus()) {
       // xxx: not quite right...
       return;
    }
@@ -503,7 +523,7 @@ void Client::OnMouseInput(const MouseInputEvent &mouse, bool &handled, bool &uni
    }
 }
 
-void Client::CenterMap(const MouseInputEvent &mouse)
+void Client::CenterMap(const MouseEvent &mouse)
 {
    om::Selection s;
 
@@ -513,7 +533,7 @@ void Client::CenterMap(const MouseInputEvent &mouse)
    }
 }
 
-void Client::UpdateSelection(const MouseInputEvent &mouse)
+void Client::UpdateSelection(const MouseEvent &mouse)
 {
    om::Selection s;
    Renderer::GetInstance().QuerySceneRay(mouse.x, mouse.y, s);
@@ -734,7 +754,7 @@ bool Client::GrowWalls(bool install)
 {
 
    // xxx: uninstall the input handler whenever the selection changes.
-   auto onInput = [&](const MouseInputEvent &mouse, bool &handled, bool &uninstall) {
+   auto onInput = [&](const MouseEvent &mouse, bool &handled, bool &uninstall) {
       if (mouse.up[0]) {
          uninstall = true;
          FinishCurrentCommand();
@@ -782,7 +802,7 @@ bool Client::PlaceFixture(bool install, om::EntityId fixtureId)
       ObjectModel::Storey* storey = building->GetStorey(building->GetStoreyCount() - 1);
 
       // xxx: uninstall the input handler whenever the selection changes.
-      auto onInput = [fixtureId, storey, this](const MouseInputEvent &mouse, bool &handled, bool &uninstall) {
+      auto onInput = [fixtureId, storey, this](const MouseEvent &mouse, bool &handled, bool &uninstall) {
          if (mouse.up[0]) {
             FinishCurrentCommand();
             return;
@@ -907,9 +927,9 @@ om::EntityPtr Client::GetEntity(om::EntityId id)
 
 void Client::InstallCursor()
 {
-   if (chromium_) {
+   if (browser_) {
       HCURSOR cursor;
-      if (chromium_->HasMouseFocus()) {
+      if (browser_->HasMouseFocus()) {
          cursor = uiCursor_;
       } else {
          cursor = NULL;
@@ -1323,3 +1343,71 @@ void Client::OnEntityAlloc(om::EntityPtr entity)
 void Client::ComponentAdded(om::EntityRef e, dm::ObjectType type, std::shared_ptr<dm::Object> component)
 {
 }
+
+
+static void HandleFileRequest(std::string const& path, std::shared_ptr<chromium::IResponse> response)
+{
+   static const struct {
+      char *extension;
+      char *mimeType;
+   } mimeTypes_[] = {
+      { "htm",  "text/html" },
+      { "html", "text/html" },
+      {  "css",  "text/css" },
+      { "less",  "text/css" },
+      { "js",   "application/x-javascript" },
+      { "json", "application/json" },
+      { "txt",  "text/plain" },
+      { "jpg",  "image/jpeg" },
+      { "png",  "image/png" },
+      { "gif",  "image/gif" },
+      { "woff", "application/font-woff" },
+      { "cur",  "image/vnd.microsoft.icon" },
+   };
+   std::ifstream infile;
+   auto const& rm = resources::ResourceManager2::GetInstance();
+
+   std::string data;
+   try {
+      if (boost::ends_with(path, ".json")) {
+         JSONNode const& node = rm.LookupJson(path);
+         data = node.write();
+      } else {
+         rm.OpenResource(path, infile);
+         data = io::read_contents(infile);
+      }
+   } catch (resources::Exception const& e) {
+      LOG(WARNING) << "error code 404: " << e.what();
+      response->SetStatusCode(404);
+      return;
+   }
+
+
+   // Determine the file extension.
+   std::string mimeType;
+   std::size_t last_dot_pos = path.find_last_of(".");
+   if (last_dot_pos != std::string::npos) {
+      std::string extension = path.substr(last_dot_pos + 1);
+      for (auto &entry : mimeTypes_) {
+         if (extension == entry.extension) {
+            mimeType = entry.mimeType;
+            break;
+         }
+      }
+   }
+   ASSERT(!mimeType.empty());
+   response->SetResponse(data, mimeType);
+}
+
+void Client::BrowserRequestHandler(std::string const& path, std::string const& query, std::string const& postdata, std::shared_ptr<chromium::IResponse> response) const
+{
+   auto cb = [response](std::string const& node) {
+      // is it ok to do this on the client thread???
+      response->SetResponse(node, "application/json");
+   };
+
+   if (!api_->OnNewRequest(path, query, postdata, cb)) {
+      HandleFileRequest(path, response);
+   }
+}
+

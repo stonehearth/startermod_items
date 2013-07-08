@@ -3,7 +3,6 @@
 
 #include "namespace.h"
 #include "physics/namespace.h"
-#include "client/input_event.h"
 #include "om/selection.h"
 #include "om/om.h"
 #include "selector.h"
@@ -40,11 +39,11 @@ class VoxelRangeSelector : public std::enable_shared_from_this<VoxelRangeSelecto
          SELECT_P2 = 2,
          NUM_STATES,
       };
-      void onInputEvent(const MouseInputEvent &evt, bool &handled, bool &uninstall);
+      void onInputEvent(const MouseEvent &evt, bool &handled, bool &uninstall);
 
-      bool SelectP0(const MouseInputEvent &me);
-      bool SelectP1(const MouseInputEvent &me);
-      bool SelectP2(const MouseInputEvent &me);
+      bool SelectP0(const MouseEvent &me);
+      bool SelectP1(const MouseEvent &me);
+      bool SelectP2(const MouseEvent &me);
 
       bool GetHoverBrick(int x, int y, math3d::ipoint3 &pt);
       void ValidateP1(int x, int z);
@@ -54,7 +53,7 @@ class VoxelRangeSelector : public std::enable_shared_from_this<VoxelRangeSelecto
       H3DNode                          node_;
       Selector::SelectionFn            _selectionFn;
       FeedbackFn                       feedbackFn_;
-      InputCallbackId                  _inputHandlerId;
+      int                              _inputHandlerId;
       bool                             _modified;
       om::TerrainPtr                   _terrain;
 

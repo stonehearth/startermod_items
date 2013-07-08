@@ -32,6 +32,7 @@ target_link_libraries(client_app
                              comctl32
                              winmm
                              client
+                             chromium_browser
                              core
                              csg
                              dm

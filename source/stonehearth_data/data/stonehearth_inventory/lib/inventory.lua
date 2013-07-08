@@ -78,7 +78,7 @@ function Inventory:create_stockpile(location, size)
    entity:get_component('radiant:stockpile'):set_size(size)
    entity:get_component('unit_info'):set_faction(self._faction)
    -- return something?
-end
+end 
 
 function Inventory:harvest_tree(tree)
    return self._tree_tracker:harvest_tree(tree)

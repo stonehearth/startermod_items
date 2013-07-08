@@ -101,7 +101,7 @@ void VoxelRangeSelector::Activate()
    traces_ += Renderer::GetInstance().TraceFrameStart([=]() { Prepare(); });
 
    auto self = shared_from_this();
-   _inputHandlerId = Renderer::GetInstance().SetMouseInputCallback([=](const MouseInputEvent &evt, bool &handled, bool &uninstall) {
+   _inputHandlerId = Renderer::GetInstance().SetMouseInputCallback([=](const MouseEvent &evt, bool &handled, bool &uninstall) {
       self->onInputEvent(evt, handled, uninstall);
    });
    
@@ -119,9 +119,9 @@ void VoxelRangeSelector::Deactivate()
    feedbackFn_ = nullptr;
 }
 
-void VoxelRangeSelector::onInputEvent(const MouseInputEvent &evt, bool &handled, bool &uninstall)
+void VoxelRangeSelector::onInputEvent(const MouseEvent &evt, bool &handled, bool &uninstall)
 {
-   typedef bool (VoxelRangeSelector::*DispatchFn)(const MouseInputEvent &me);
+   typedef bool (VoxelRangeSelector::*DispatchFn)(const MouseEvent &me);
    static const DispatchFn dispatch[] = {
       &VoxelRangeSelector::SelectP0,
       &VoxelRangeSelector::SelectP1,
@@ -141,7 +141,7 @@ void VoxelRangeSelector::onInputEvent(const MouseInputEvent &evt, bool &handled,
    }
 }
 
-bool VoxelRangeSelector::SelectP0(const MouseInputEvent &me)
+bool VoxelRangeSelector::SelectP0(const MouseEvent &me)
 {
    // LOG(WARNING) << "P0... " << me.x << ", " << me.y;
    if (GetHoverBrick(me.x, me.y, _p0)) {
@@ -167,7 +167,7 @@ bool VoxelRangeSelector::SelectP0(const MouseInputEvent &me)
    return false;
 }
 
-bool VoxelRangeSelector::SelectP1(const MouseInputEvent &me)
+bool VoxelRangeSelector::SelectP1(const MouseEvent &me)
 {
    //LOG(WARNING) << "P1...";
    math3d::ipoint3 p;
@@ -197,7 +197,7 @@ bool VoxelRangeSelector::SelectP1(const MouseInputEvent &me)
    return false;
 }
 
-bool VoxelRangeSelector::SelectP2(const MouseInputEvent &me)
+bool VoxelRangeSelector::SelectP2(const MouseEvent &me)
 {
    return false;
 }

@@ -1,16 +1,20 @@
 #include "pch.h"
+
+#if 0
 #include "radiant_json.h"
+#endif
+
 #include "radiant_file.h"
-#include "chromium.h"
-#include "client/client.h"
-#include "client/renderer/renderer.h"
-#include "resources/res_manager.h"
-#include <boost/algorithm/string.hpp>
-#include <boost/program_options.hpp>
+#include "chromium/app/app.h"
+#include "browser.h"
+#include "response.h"
 #include <fstream>
 
 using namespace radiant;
-using namespace radiant::client;
+using namespace radiant::chromium;
+
+static void ReadFile(CefRefPtr<Response> response, std::string path);
+std::string GetPostData(CefRefPtr<CefRequest> request);
 
 /*
 class ClientOSRHandler : public CefClient,
@@ -21,34 +25,23 @@ public CefDisplayHandler,
 public CefRenderHandler {
 */
 
-static CefMainArgs main_args;
-static CefRefPtr<client::ChromiumApp> chromimumApp;
-
-///
-// This function should be called from the application entry point function to
-// execute a secondary process. It can be used to run secondary processes from
-// the browser client executable (default behavior) or from a separate
-// executable specified by the CefSettings.browser_subprocess_path value. If
-// called for the browser process (identified by no "type" command-line value)
-// it will return immediately with a value of -1. If called for a recognized
-// secondary process it will block until the process should exit and then return
-// the process exit code. The |application| parameter may be empty.
-///
-int Chromium::Initialize()
+IBrowser* ::radiant::chromium::CreateBrowser(HWND parentWindow, std::string const& docroot, int width, int height, int debug_port)
 {
-   chromimumApp = new client::ChromiumApp();
-   main_args = CefMainArgs(GetModuleHandle(NULL));
-
-   // Execute the secondary process, if any.
-   // xxx - use CefSettings.browser_subprocess_path to create a ui process container with just this lib!
-   return CefExecuteProcess(main_args, chromimumApp.get());
+   return new Browser(parentWindow, docroot, width, height, debug_port);
 }
 
-Chromium::Chromium(HWND parentWindow) :
+Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int height, int debug_port) :
    hwnd_(parentWindow),
+   width_(width),
+   height_(height),
    mouseX_(0),
    mouseY_(0)
 { 
+   CefMainArgs main_args(GetModuleHandle(NULL));
+   if (!CefExecuteProcess(main_args, app_)) {
+      ASSERT(false);
+   }
+
    CefSettings settings;   
    CefString(&settings.log_file) = L"cef_debug_log.txt";
    // settings.log_severity = LOGSEVERITY_VERBOSE;
@@ -56,16 +49,15 @@ Chromium::Chromium(HWND parentWindow) :
    //settings.multi_threaded_message_loop = true; // We own the msg loop?
 
    settings.single_process = false; // single process mode eats nearly the entire frame time
-   settings.remote_debugging_port = 1338;
 
-   width_ = Renderer::GetInstance().GetUIWidth();
-   height_ = Renderer::GetInstance().GetUIHeight();
-   renderWidth_ = Renderer::GetInstance().GetWidth();
-   renderHeight_ = Renderer::GetInstance().GetHeight();
+   std::wstring subproc(L"d:\\radiant\\stonehearth\\build\\chromium\\renderer\\relwithdebinfo\\chromium_renderer.exe");
+   cef_string_utf16_set(subproc.c_str(), subproc.size(), &settings.browser_subprocess_path, true);
 
-   ASSERT(renderWidth_ * height_ == renderHeight_ * width_);
+   settings.remote_debugging_port = debug_port;
 
-   CefInitialize(main_args, settings, chromimumApp.get());
+   //ASSERT(renderWidth_ * height_ == renderHeight_ * width_);
+
+   CefInitialize(main_args, settings, app_.get());
    CefRegisterSchemeHandlerFactory("http", "radiant", this);
 
    CefWindowInfo windowInfo;
@@ -79,30 +71,22 @@ Chromium::Chromium(HWND parentWindow) :
 
    // Create the new browser window object asynchronously. This eventually results
    // in a call to CefLifeSpanHandler::OnAfterCreated().
-
-   namespace po = boost::program_options;
-   extern po::variables_map configvm;
-   std::string loader = configvm["game.loader"].as<std::string>().c_str();
-
-   json::ConstJsonObject manifest(resources::ResourceManager2::GetInstance().LookupManifest(loader));
-   std::string docroot = "http://radiant/" + manifest["loader"]["ui"]["homepage"].as_string();
-
    CefBrowserHost::CreateBrowser(windowInfo, this, docroot, browserSettings);
    framebuffer_ = new uint32[width_ * height_];
 }
 
-void Chromium::Work()
+void Browser::Work()
 {
    CefDoMessageLoopWork();
 }
 
-Chromium::~Chromium()
+Browser::~Browser()
 {
    CefShutdown();
    delete [] framebuffer_;
 }
 
-bool Chromium::OnBeforePopup(CefRefPtr<CefBrowser> parentBrowser,
+bool Browser::OnBeforePopup(CefRefPtr<CefBrowser> parentBrowser,
                              const CefPopupFeatures& popupFeatures,
                              CefWindowInfo& windowInfo,
                              const CefString& url,
@@ -112,61 +96,50 @@ bool Chromium::OnBeforePopup(CefRefPtr<CefBrowser> parentBrowser,
    return false; 
 }
 
-void Chromium::OnAfterCreated(CefRefPtr<CefBrowser> browser)
+void Browser::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
    if (browser_ == nullptr) {
       browser_ = browser;
       //browser_->SetSize(PET_VIEW, width_, height_);
-
-#if 0
-      CefRefPtr<CefCookieManager> manager = CefCookieManager::GetGlobalManager();
-
-      std::vector<CefString> schemes;
-      schemes.push_back("file");
-      schemes.push_back("radiant");
-
-      manager->SetSupportedSchemes(schemes);
-#endif
    }
-
 }
 
-bool Chromium::RunModal(CefRefPtr<CefBrowser> browser) 
+bool Browser::RunModal(CefRefPtr<CefBrowser> browser) 
 { 
    return false; 
 }
 
-bool Chromium::DoClose(CefRefPtr<CefBrowser> browser) 
+bool Browser::DoClose(CefRefPtr<CefBrowser> browser) 
 { 
    return false;
 }
 
-void Chromium::OnBeforeClose(CefRefPtr<CefBrowser> browser) 
+void Browser::OnBeforeClose(CefRefPtr<CefBrowser> browser) 
 {
 }
 
-void Chromium::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame)  
+void Browser::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame)  
 {
    if (!browser->IsPopup() && frame->IsMain()) {
       // We've just started loading a page
    }
 }
 
-void Chromium::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode) 
+void Browser::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode) 
 {
    if (!browser->IsPopup() && frame->IsMain()) {
    }
 }
 
 // CefDisplayHandler methods
-void Chromium::OnAddressChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const CefString& url) 
+void Browser::OnAddressChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const CefString& url) 
 {
 }
 
-void Chromium::OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString& title) {
+void Browser::OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString& title) {
 }  
 
-bool Chromium::OnConsoleMessage(CefRefPtr<CefBrowser> browser, const CefString& message, const CefString& source, int line) 
+bool Browser::OnConsoleMessage(CefRefPtr<CefBrowser> browser, const CefString& message, const CefString& source, int line) 
 {
    if (message.c_str()) {
       char msg[128];
@@ -178,20 +151,20 @@ bool Chromium::OnConsoleMessage(CefRefPtr<CefBrowser> browser, const CefString& 
 }
 
 // CefRenderHandler overrides
-bool Chromium::GetRootScreenRect(CefRefPtr<CefBrowser> browser,
+bool Browser::GetRootScreenRect(CefRefPtr<CefBrowser> browser,
                                  CefRect& rect)
 {
    rect.Set(0, 0, width_, height_);
    return true;
 }
 
-bool Chromium::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) 
+bool Browser::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) 
 {
    rect.Set(0, 0, width_, height_);
    return true;
 }
 
-bool Chromium::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX, int viewY, int& screenX, int& screenY) 
+bool Browser::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX, int viewY, int& screenX, int& screenY) 
 {
    screenX = viewX;
    screenY = viewY;
@@ -204,7 +177,7 @@ bool Chromium::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX, int view
 // to be repainted. On Windows |buffer| will be |width|*|height|*4 bytes
 // in size and represents a BGRA image with an upper-left origin.
 
-void Chromium::OnPaint(CefRefPtr<CefBrowser> browser,
+void Browser::OnPaint(CefRefPtr<CefBrowser> browser,
                        PaintElementType type,
                        const RectList& dirtyRects,
                        const void* buffer,
@@ -227,7 +200,7 @@ void Chromium::OnPaint(CefRefPtr<CefBrowser> browser,
    }
 }
 
-void Chromium::UpdateDisplay(PaintCb cb)
+void Browser::UpdateDisplay(PaintCb cb)
 {
    std::lock_guard<std::mutex> guard(ui_lock_);
 
@@ -235,7 +208,7 @@ void Chromium::UpdateDisplay(PaintCb cb)
    dirtyRegion_.Clear();
 }
 
-int Chromium::GetCefKeyboardModifiers(WPARAM wparam, LPARAM lparam)
+int Browser::GetCefKeyboardModifiers(WPARAM wparam, LPARAM lparam)
 {
    auto isKeyDown = [](WPARAM arg) {
       return (GetKeyState(arg) & 0x8000) != 0;
@@ -320,7 +293,7 @@ int Chromium::GetCefKeyboardModifiers(WPARAM wparam, LPARAM lparam)
    return modifiers;
 }
 
-void Chromium::OnRawInput(const RawInputEvent &msg, bool& handled, bool& uninstall)
+void Browser::OnRawInput(const RawInputEvent &msg, bool& handled, bool& uninstall)
 {
    if (!browser_) {
       return;
@@ -355,7 +328,11 @@ void Chromium::OnRawInput(const RawInputEvent &msg, bool& handled, bool& uninsta
    }
 }
 
-void Chromium::OnMouseInput(const MouseInputEvent& mouse, bool& handled, bool& uninstall)
+void Browser::SetCursorChangeCb(CursorChangeCb cb) {
+   cursorChangeCb_ = cb;
+}
+
+void Browser::OnMouseInput(const MouseEvent& mouse, bool& handled, bool& uninstall)
 {
    static const CefBrowserHost::MouseButtonType types[] = {
       MBT_LEFT,
@@ -368,8 +345,8 @@ void Chromium::OnMouseInput(const MouseInputEvent& mouse, bool& handled, bool& u
    }
 
    CefMouseEvent evt;
-   evt.x = mouseX_ = mouse.x * width_ / renderWidth_ ;
-   evt.y = mouseY_ = mouse.y * height_ / renderHeight_;
+   evt.x = mouseX_ = mouse.x;
+   evt.y = mouseY_ = mouse.y;
    evt.modifiers = 0;
 
    auto host = browser_->GetHost();
@@ -390,7 +367,7 @@ void Chromium::OnMouseInput(const MouseInputEvent& mouse, bool& handled, bool& u
    }
 }
 
-void Chromium::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle cursor)
+void Browser::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle cursor)
 {
    if (cursorChangeCb_) {
       cursorChangeCb_(cursor);
@@ -398,7 +375,7 @@ void Chromium::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle cur
 }
 
 // xxx - nuke this...
-bool Chromium::HasMouseFocus()
+bool Browser::HasMouseFocus()
 {
    if (mouseX_ < 0 || mouseY_ < 0 || mouseX_ >= width_ || mouseY_ >= height_) {
       return false;
@@ -407,41 +384,35 @@ bool Chromium::HasMouseFocus()
    return ((pixel >> 24) && 0xff) != 0;
 }
 
-CefRefPtr<CefResourceHandler> Chromium::GetResourceHandler(CefRefPtr<CefBrowser> browser,
-                                                           CefRefPtr<CefFrame> frame,
-                                                           CefRefPtr<CefRequest> request)
+CefRefPtr<CefResourceHandler> Browser::GetResourceHandler(CefRefPtr<CefBrowser> browser,
+                                                          CefRefPtr<CefFrame> frame,
+                                                          CefRefPtr<CefRequest> request)
 {
+   if (!requestHandler_) {
+      return nullptr;
+   }
+
    std::string url = request->GetURL().ToString();
    
    CefURLParts url_parts;
    CefParseURL(url, url_parts);
-
-   CefRefPtr<BufferedResponse> response(new BufferedResponse(request));
-   auto cb = [response](std::string const& node) {
-      // is it ok to do this on the client thread???
-      response->SetResponse(node, "application/json");
-   };
-
-   auto &api = Client::GetInstance().GetAPI();
-
-
    std::string path = CefString(&url_parts.path);
    std::string query = CefString(&url_parts.query);
    std::string postdata = GetPostData(request);
-   bool handled;
-   if (postdata.empty()) {
-      handled = api.Get(path, query, cb);
-   } else {
-      handled = api.Post(path, query, postdata, cb);
-   }
-   if (!handled) {
-      ReadFile(response, CefString(&url_parts.path));
-   }
-   return CefRefPtr<CefResourceHandler>(response);
+
+   Response *r = new Response(request);
+   r->AddRef();
+   std::shared_ptr<IResponse> response(r, [](Response* p) {
+      p->Release();
+   });
+
+   requestHandler_(path, query, postdata, response);
+
+   return CefRefPtr<CefResourceHandler>(r);
 }
 
 
-CefRefPtr<CefResourceHandler> Chromium::Create(CefRefPtr<CefBrowser> browser,
+CefRefPtr<CefResourceHandler> Browser::Create(CefRefPtr<CefBrowser> browser,
                                                CefRefPtr<CefFrame> frame,
                                                const CefString& scheme_name,
                                                CefRefPtr<CefRequest> request)
@@ -460,7 +431,7 @@ CefRefPtr<CefResourceHandler> Chromium::Create(CefRefPtr<CefBrowser> browser,
 // SECURITY WARNING: YOU SHOULD USE THIS METHOD TO ENFORCE RESTRICTIONS BASED
 // ON SCHEME, HOST OR OTHER URL ANALYSIS BEFORE ALLOWING OS EXECUTION.
 
-void Chromium::OnProtocolExecution(CefRefPtr<CefBrowser> browser,
+void Browser::OnProtocolExecution(CefRefPtr<CefBrowser> browser,
                                    const CefString& url,
                                    bool& allow_os_execution)
 {
@@ -468,7 +439,7 @@ void Chromium::OnProtocolExecution(CefRefPtr<CefBrowser> browser,
    allow_os_execution = boost::starts_with(uri, "http://radiant/");
 }
 //
-//void Chromium::OnResourceResponse(CefRefPtr<CefBrowser> browser,
+//void Browser::OnResourceResponse(CefRefPtr<CefBrowser> browser,
 //                                  const CefString& url,
 //                                  CefRefPtr<CefResponse> response,
 //                                  CefRefPtr<CefContentFilter>& filter)
@@ -485,8 +456,9 @@ void Chromium::OnProtocolExecution(CefRefPtr<CefBrowser> browser,
 //}
 //
 
-void Chromium::ReadFile(CefRefPtr<BufferedResponse> response, std::string path)
+void ReadFile(CefRefPtr<Response> response, std::string path)
 {
+#if 0
    static const struct {
       char *extension;
       char *mimeType;
@@ -537,9 +509,11 @@ void Chromium::ReadFile(CefRefPtr<BufferedResponse> response, std::string path)
    }
    ASSERT(!mimeType.empty());
    response->SetResponse(data, mimeType);
+#endif
+   ASSERT(false);
 }
 
-std::string Chromium::GetPostData(CefRefPtr<CefRequest> request)
+std::string GetPostData(CefRefPtr<CefRequest> request)
 {
    CefRequest::HeaderMap headerMap;
    request->GetHeaderMap(headerMap);
@@ -563,4 +537,9 @@ std::string Chromium::GetPostData(CefRefPtr<CefRequest> request)
       }
    }
    return std::string();
+}
+
+void Browser::SetRequestHandler(HandleRequestCb cb)
+{
+   requestHandler_ = cb;
 }

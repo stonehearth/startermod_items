@@ -16,6 +16,7 @@
 #include "selectors/selector.h"
 #include "entity_traces.h"
 #include "rest_api.h"
+#include "chromium/chromium.h"
 
 using boost::asio::ip::tcp;
 namespace boost {
@@ -29,10 +30,7 @@ namespace boost {
 namespace radiant {
    namespace client {
       class RestAPI;
-      class Chromium;
       class InputEvent;
-      class MouseInputEvent;
-      class KeyboardEvent;
       class Selector;
       class RestAPI;
       class Command;
@@ -104,7 +102,7 @@ namespace radiant {
             void process_messages();
             void update_interpolation(int time);
             void handle_connect(const boost::system::error_code& e);
-            void OnMouseInput(const MouseInputEvent &me, bool &handled, bool &uninstall);
+            void OnMouseInput(const MouseEvent &me, bool &handled, bool &uninstall);
             void OnKeyboardInput(const KeyboardEvent &e, bool &handled, bool &uninstall);
             void activate_comamnd(int k);
 
@@ -142,8 +140,8 @@ namespace radiant {
             void AssignWorkerToBuilding(std::vector<om::Selection> args);
 
             void Reset();
-            void UpdateSelection(const MouseInputEvent &mouse);
-            void CenterMap(const MouseInputEvent &mouse);
+            void UpdateSelection(const MouseEvent &mouse);
+            void CenterMap(const MouseEvent &mouse);
 
             typedef std::function<void (const tesseract::protocol::Reply&)> ReplyFn;
             typedef std::deque<std::pair<unsigned int, ReplyFn>> ReplyQueue;
@@ -196,7 +194,7 @@ namespace radiant {
             void LoadCursors();
             void OnEntityAlloc(om::EntityPtr entity);
             void ComponentAdded(om::EntityRef e, dm::ObjectType type, std::shared_ptr<dm::Object> component);
-            
+            void BrowserRequestHandler(std::string const& uri, std::string const& query, std::string const& postdata, std::shared_ptr<chromium::IResponse> response) const;
 
       private:
             typedef std::unordered_map<dm::TraceId, SelectedTraceFn> SelectedTraceMap;
@@ -233,7 +231,7 @@ namespace radiant {
             om::EntityPtr                    rootObject_;
             //std::unique_ptr<ScaleformGFx>         _scaleform;
             std::unique_ptr<Physics::OctTree>     octtree_;
-            std::unique_ptr<Chromium>             chromium_;
+            std::unique_ptr<chromium::IBrowser>   browser_;
 
             uint32                           _server_last_update_time;
             uint32                           _server_interval_duration;

@@ -1,4 +1,3 @@
-FIND_PACKAGE(ChromiumEmbedded REQUIRED)
 FIND_PACKAGE(Boost 1.48.0 COMPONENTS system regex date_time program_options REQUIRED)
 FIND_PACKAGE(Gflags     REQUIRED)
 FIND_PACKAGE(Glog       REQUIRED)
@@ -9,25 +8,22 @@ FIND_PACKAGE(Luabind REQUIRED)
 # FIND_PACKAGE(Bullet     REQUIRED NO_MODULE)
 
 include_directories(${Boost_INCLUDE_DIR})
-include_directories(${ChromiumEmbedded_INCLUDE_DIRS})
 include_directories(${Horde3D_INCLUDE_DIRS})
 include_directories(${Libjson_INCLUDE_DIRS})
 include_directories(${Lua_INCLUDE_DIRS})
 include_directories(${Luabind_INCLUDE_DIRS})
 
-
-add_subdirectory(chromium)
 add_subdirectory(commands)
 add_subdirectory(renderer)
 add_subdirectory(selectors)
 
 add_library(client
-               application.cpp
-               client.cpp
-               entity_traces.cpp
-               main.cpp
-               rest_api.cpp
-               pch.cpp
+            application.cpp
+            client.cpp
+            entity_traces.cpp
+            main.cpp
+            rest_api.cpp
+            pch.cpp
             )
 
 if (MSVC)
@@ -43,14 +39,13 @@ target_link_libraries(client
                              ${Python_LIBRARIES}
                              ${Cryptopp_LIBRARIES}
                              ${Libjson_LIBRARIES}
-                             ${ChromiumEmbedded_LIBRARIES}
 
 #                             ${Bullet_LIBRARIES}
                              comctl32
                              winmm
 #                             "C:/Program Files (x86)/Microsoft DirectX SDK (June 2010)/Lib/x86/d3dx9.lib"
 #                             "C:/Program Files (x86)/Microsoft DirectX SDK (June 2010)/Lib/x86/d3d9.lib"
-                             client_chromium
+                             chromium_browser
                              client_commands
                              client_renderer
                              client_selectors

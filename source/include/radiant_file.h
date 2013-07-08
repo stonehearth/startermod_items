@@ -23,6 +23,36 @@ namespace radiant {
          return contents;
       }
    };
+
+   class MouseEvent {
+      public:
+         int         wheel;
+         int         x;
+         int         y;
+         int         dx;
+         int         dy;
+         int         drag_start_x;
+         int         drag_start_y;
+         bool        dragging;
+         bool        dragend;
+         bool        up[16];
+         bool        down[16];
+         bool        buttons[16];
+   };
+
+   class KeyboardEvent {
+      public:
+         bool        down;
+         int         key;
+   };
+
+   class RawInputEvent {
+      public:
+         UINT     msg;
+         WPARAM   wp;
+         LPARAM   lp;
+   };
+
 };
 
 #endif // _RADIANT_JSON_H

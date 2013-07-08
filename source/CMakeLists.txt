@@ -89,6 +89,7 @@ include_directories(${Horde3D_INCLUDE_DIRS})
 add_definitions(-DUNICODE -D_UNICODE -D_CRT_SECURE_NO_WARNINGS -wd4996)
 
 add_subdirectory(core)
+add_subdirectory(chromium)
 add_subdirectory(client)
 add_subdirectory(client_app)
 add_subdirectory(csg)

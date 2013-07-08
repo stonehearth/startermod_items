@@ -1,29 +1,29 @@
 #include "pch.h"
-#include "buffered_response.h"
+#include "response.h"
 #include <fstream>
 
 using namespace radiant;
-using namespace radiant::client;
+using namespace radiant::chromium;
 
-BufferedResponse::BufferedResponse(CefRefPtr<CefRequest> request) :
-   refCount_(0),
+Response::Response(CefRefPtr<CefRequest> request) :
    request_(request),
    status_(0),
    readOffset_(0),
    mimeType_("text/html")
 {
+   refCount_ = 0;
 }
 
-BufferedResponse::~BufferedResponse()
+Response::~Response()
 {
 }
 
-int BufferedResponse::AddRef()
+int Response::AddRef()
 {
    return ++refCount_;
 }
 
-int BufferedResponse::Release() 
+int Response::Release() 
 {
    if (--refCount_ == 0) {
       delete this;
@@ -31,7 +31,7 @@ int BufferedResponse::Release()
    return refCount_;
 }
 
-int BufferedResponse::GetRefCt()
+int Response::GetRefCt()
 { 
    return refCount_; 
 }
@@ -41,8 +41,8 @@ int BufferedResponse::GetRefCt()
 // (HeadersAvailable() can also be called from inside this method if header
 // information is available immediately). To cancel the request return false.
 
-bool BufferedResponse::ProcessRequest(CefRefPtr<CefRequest> request,
-                                     CefRefPtr<CefCallback> callback)
+bool Response::ProcessRequest(CefRefPtr<CefRequest> request,
+                              CefRefPtr<CefCallback> callback)
 {
    callback_ = callback;
    if (status_ != 0) {
@@ -51,19 +51,19 @@ bool BufferedResponse::ProcessRequest(CefRefPtr<CefRequest> request,
    return true;
 }
 
-void BufferedResponse::GetResponseHeaders(CefRefPtr<CefResponse> response,
-                                    int64& response_length,
-                                    CefString& redirectUrl)
+void Response::GetResponseHeaders(CefRefPtr<CefResponse> response,
+                                  int64& response_length,
+                                  CefString& redirectUrl)
 {
    response->SetMimeType(mimeType_);
    response->SetStatus(status_);
    response_length = response_.size();
 }
 
-bool BufferedResponse::ReadResponse(void* data_out,
-                                   int bytes_to_read,
-                                   int& bytes_read,
-                                   CefRefPtr<CefCallback> callback)
+bool Response::ReadResponse(void* data_out,
+                            int bytes_to_read,
+                            int& bytes_read,
+                            CefRefPtr<CefCallback> callback)
 {
    if (readOffset_ >= response_.size()) {
       return false;
@@ -74,11 +74,11 @@ bool BufferedResponse::ReadResponse(void* data_out,
    return true;
 }
 
-void BufferedResponse::Cancel()
+void Response::Cancel()
 {
 }
 
-void BufferedResponse::SetStatusCode(int code)
+void Response::SetStatusCode(int code)
 {
    ASSERT(status_ == 0 && code != 0);
 
@@ -88,7 +88,7 @@ void BufferedResponse::SetStatusCode(int code)
    }
 }
 
-void BufferedResponse::SetResponse(std::string response, std::string mimeType)
+void Response::SetResponse(std::string response, std::string mimeType)
 {
    ASSERT(status_ == 0);
 
@@ -101,7 +101,9 @@ void BufferedResponse::SetResponse(std::string response, std::string mimeType)
    }
 }
 
-void BufferedResponse::SetResponse(JSONNode node)
+#if 0
+void Response::SetResponse(JSONNode node)
 {
    SetResponse(node.write(), "application/json");
 }
+#endif
