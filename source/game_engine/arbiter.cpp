@@ -82,23 +82,7 @@ void arbiter::Start(lua_State* L)
 
 bool arbiter::ProcessMessage(std::shared_ptr<client> c, const proto::Request& msg)
 {
-   proto::Update reply;
-
-#define DISPATCH_MSG(MsgName) \
-   case proto::Request::MsgName ## Request: \
-      reply.set_type(proto::Update::MsgName ## Reply); \
-      reply.set_reply_id(msg.request_id()); \
-      _simulation->MsgName(msg.GetExtension(proto::MsgName ## Request::extension), \
-                           reply.MutableExtension(proto::MsgName ## Reply::extension)); \
-      break;
-
-   switch (msg.type()) {
-      DISPATCH_MSG(FetchObject);
-   default:
-      ASSERT(false);
-   }
-   c->send_queue->Push(protocol::Encode(reply));
-   return true;
+   return _simulation->ProcessMessage(msg, c->send_queue);
 }
 
 void arbiter::handle_accept(std::shared_ptr<tcp::socket> socket, const boost::system::error_code& error)

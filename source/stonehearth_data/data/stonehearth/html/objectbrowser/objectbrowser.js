@@ -40,6 +40,9 @@ App.ObjectBrowserView = App.View.extend({
          .done(function(json) {
             self.set('loading', false);
             self.set('objectHtml', self.formatJson(json));
+         })
+         .error(function(e) {
+            console.log(e);
          });
    }
 });

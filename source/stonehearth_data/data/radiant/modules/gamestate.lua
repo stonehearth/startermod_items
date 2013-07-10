@@ -9,6 +9,12 @@ function gamestate._start()
    singleton._initialized = true
 end
 
+function gamestate._create_player()
+   return {
+      faction = 'civ'
+   }
+end
+
 function gamestate._increment_clock(interval)
    local now = gamestate.now() + interval
    singleton._clock:set_time(now)

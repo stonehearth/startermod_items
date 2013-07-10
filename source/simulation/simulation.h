@@ -58,8 +58,7 @@ public:
    // void ProcessCommandList(const ::radiant::tesseract::protocol::command_list &cmd_list) override;
 
    void DoAction(const tesseract::protocol::DoAction& msg, protocol::SendQueuePtr queue) override; // xxx: die , die , die
-   void FetchObject(tesseract::protocol::FetchObjectRequest const& request, tesseract::protocol::FetchObjectReply* reply) override;
-   JSONNode FormatObjectAtUri(std::string const& uri);
+   bool ProcessMessage(const ::radiant::tesseract::protocol::Request& msg, protocol::SendQueuePtr queue);
    void EncodeUpdates(protocol::SendQueuePtr queue, ClientState& cs) override;
    void Step(platform::timer &timer, int interval) override;
    void Idle(platform::timer &timer) override;
@@ -75,6 +74,8 @@ public:
    BuildingScheduler* GetBuildingScehduler(om::EntityId id);
 
 private:
+   void FetchObject(tesseract::protocol::FetchObjectRequest const& request, tesseract::protocol::FetchObjectReply* reply);
+   void PostCommand(tesseract::protocol::PostCommandRequest const& request, tesseract::protocol::PostCommandReply* reply);
    void EncodeDebugShapes(protocol::SendQueuePtr queue);
    void ProcessJobList(int now, platform::timer &timer);
    void OnObjectAllocated(dm::ObjectPtr obj);

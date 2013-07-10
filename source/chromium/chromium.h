@@ -12,8 +12,8 @@ class IResponse
 {
 public:
    virtual ~IResponse() { }
-   virtual void SetResponse(std::string response, std::string mimeType) = 0;
-   virtual void SetStatusCode(int status) = 0;
+   virtual void SetResponse(int status) { SetResponse(status, "", ""); }
+   virtual void SetResponse(int status, std::string const& response, std::string const& mimeType) = 0;
 };
 
 class IBrowser

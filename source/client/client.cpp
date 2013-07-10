@@ -78,7 +78,6 @@ void Client::run()
 {
    LoadCursors();
 
-   api_.reset(new RestAPI());
    octtree_ = std::unique_ptr<Physics::OctTree>(new Physics::OctTree());
       
    Renderer& renderer = Renderer::GetInstance();
@@ -194,6 +193,8 @@ void Client::setup_connections()
 
 void Client::mainloop()
 {
+   std::lock_guard<std::mutex> guard(lock_);
+
    PROFILE_BLOCK();
    
    /*
@@ -210,7 +211,7 @@ void Client::mainloop()
    alpha = std::min(1.0f, std::max(alpha, 0.0f));
    now_ = (int)(_server_last_update_time + (_server_interval_duration * alpha));
 
-   GetAPI().FlushEvents();
+   FlushEvents();
    if (browser_) {
       auto cb = [](const csg::Region2 &rgn, const char* buffer) {
          Renderer::GetInstance().UpdateUITexture(rgn, buffer);
@@ -219,7 +220,6 @@ void Client::mainloop()
       browser_->UpdateDisplay(cb);
    }
 
-   ExecuteCommands();
    InstallCursor();
    HilightMouseover();
 
@@ -330,6 +330,7 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
    }
    alloced_.clear();
 
+#if 0
    for (const auto& entry : _entitiesTraces) {
       JSONNode data;
       if (entry.second->Flush(data)) {
@@ -343,6 +344,8 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
          GetAPI().QueueEventFor(sessionId, "radiant.events.trace_fired", obj);
       }
    }
+#endif
+
    // Only fire the remote store traces at sequence boundaries.  The
    // data isn't guaranteed to be in a consistent state between
    // boundaries.
@@ -360,7 +363,14 @@ void Client::DoActionReply(const proto::DoActionReply& msg)
 
 void Client::QueueEvent(std::string type, JSONNode payload)
 {
-   api_->QueueEvent(type, payload);
+   JSONNode e(JSON_NODE);
+   e.push_back(JSONNode("type", type));
+   e.push_back(JSONNode("when", Client::GetInstance().Now()));
+
+   payload.set_name("data");
+   e.push_back(payload);
+
+   queued_events_.push_back(e);
 }
 
 void Client::SetServerTick(const proto::SetServerTick& msg)
@@ -617,9 +627,13 @@ void Client::SelectEntity(om::EntityPtr obj)
       if (renderEntity) {
          renderEntity->SetSelected(true);
       }
-      for (const auto& entry : selectedTraces_) {
-         entry.second(selectedObject_);
+
+      JSONNode data(JSON_NODE);
+      if (selectedObject_) {
+         std::string uri = std::string("/object/") + stdutil::ToString(selectedObject_->GetObjectId());
+         data.push_back(JSONNode("selected_entity", uri));
       }
+      QueueEvent("radiant.events.selection_changed", data);
    }
 }
 
@@ -969,7 +983,7 @@ void Client::SetUICursor(HCURSOR cursor)
    }
 }
 
-
+#if 0
 void Client::ExecuteCommands()
 {  
    std::vector<PendingCommandPtr> commands = GetAPI().GetPendingCommands();
@@ -998,33 +1012,6 @@ void Client::ExecuteCommands()
          FetchJsonData(cmd);
       } else if (type == "set_view_mode") {
          SetViewModeCommand(cmd);
-      } else if (type == "fetch_object") {
-         std::string uri = json["uri"].as_string();
-         auto reply = [=](tesseract::protocol::Update const& msg) {
-            if (msg.type() != proto::Update::FetchObjectReply) {
-               cmd->Error("unexpected server reply");
-               return;
-            }
-            proto::FetchObjectReply const& reply = msg.GetExtension(proto::FetchObjectReply::extension);
-            std::string const& json = reply.json();
-            if (!libjson::is_valid(json)) {
-               cmd->Error("unexpected server reply (invalid json)");
-               return;
-            }
-            cmd->Complete(json);
-         };
-
-         proto::Request msg;
-         msg.set_type(proto::Request::FetchObjectRequest);
-   
-         proto::FetchObjectRequest* request = msg.MutableExtension(proto::FetchObjectRequest::extension);
-         request->set_uri(uri);
-         
-         int id = ++last_server_request_id_;
-         msg.set_request_id(id);
-         server_requests_[id] = reply;
-
-         send_queue_->Push(msg);
       } else {
          cmd->Error("Unknown type: " + type);
       }
@@ -1034,6 +1021,7 @@ void Client::ExecuteCommands()
       }
    }
 }
+#endif
 
 void Client::SetRenderPipelineInfo()
 {
@@ -1053,13 +1041,6 @@ bool Client::RotateViewMode(bool install)
 
    r.SetViewMode(mode);
    return true;
-}
-
-dm::Guard Client::TraceSelection(std::function<void(om::EntityPtr)> fn)
-{
-   dm::TraceId tid = nextTraceId_++;
-   selectedTraces_[tid] = fn;
-   return dm::Guard([&]() { selectedTraces_.erase(tid); });
 }
 
 void Client::OnDestroyed(dm::ObjectId id)
@@ -1100,6 +1081,8 @@ void Client::EnumEntities(std::function<void(om::EntityPtr)> cb)
       cb(entry.second);
    }
 }
+
+#if 0
 
 void Client::TraceEntities(PendingCommandPtr cmd)
 {
@@ -1264,6 +1247,8 @@ int Client::CreateCommandResponse(CommandResponseFn fn)
    return id;
 }
 
+#endif
+
 void Client::HilightMouseover()
 {
    om::Selection selection;
@@ -1378,7 +1363,7 @@ static void HandleFileRequest(std::string const& path, std::shared_ptr<chromium:
       }
    } catch (resources::Exception const& e) {
       LOG(WARNING) << "error code 404: " << e.what();
-      response->SetStatusCode(404);
+      response->SetResponse(404);
       return;
    }
 
@@ -1396,18 +1381,87 @@ static void HandleFileRequest(std::string const& path, std::shared_ptr<chromium:
       }
    }
    ASSERT(!mimeType.empty());
-   response->SetResponse(data, mimeType);
+   response->SetResponse(200, data, mimeType);
 }
 
-void Client::BrowserRequestHandler(std::string const& path, std::string const& query, std::string const& postdata, std::shared_ptr<chromium::IResponse> response) const
+void Client::BrowserRequestHandler(std::string const& path, std::string const& query, std::string const& postdata, std::shared_ptr<chromium::IResponse> response)
 {
-   auto cb = [response](std::string const& node) {
-      // is it ok to do this on the client thread???
-      response->SetResponse(node, "application/json");
-   };
+   std::lock_guard<std::mutex> guard(lock_);
 
-   if (!api_->OnNewRequest(path, query, postdata, cb)) {
-      HandleFileRequest(path, response);
+   if (postdata.empty()) {
+      if (boost::starts_with(path, "/api/events")) {
+         GetEvents(query, response);
+      } else if (boost::starts_with(path, "/object")) {
+         GetRemoteObject(path, query, response);
+      } else {
+         HandleFileRequest(path, response);
+      }
+   } else {
+      HandlePostRequest(path, postdata, response);
    }
 }
+
+void Client::HandlePostRequest(std::string const& path, std::string const& postdata, std::shared_ptr<chromium::IResponse> response)
+{
+   auto reply = [=](tesseract::protocol::Update const& msg) {
+      proto::PostCommandReply const& reply = msg.GetExtension(proto::PostCommandReply::extension);
+      response->SetResponse(reply.status_code(), reply.content(), reply.mime_type());
+   };
+
+   proto::Request msg;
+   msg.set_type(proto::Request::PostCommandRequest);
+   
+   proto::PostCommandRequest* request = msg.MutableExtension(proto::PostCommandRequest::extension);
+   request->set_path(path);
+   request->set_data(postdata);
+
+   int id = ++last_server_request_id_;
+   msg.set_request_id(id);
+   server_requests_[id] = reply;
+
+   send_queue_->Push(msg);
+}
+
+void Client::GetRemoteObject(std::string const& uri, std::string const& query, std::shared_ptr<chromium::IResponse> response)
+{
+   auto reply = [=](tesseract::protocol::Update const& msg) {
+      proto::FetchObjectReply const& r = msg.GetExtension(proto::FetchObjectReply::extension);
+      response->SetResponse(r.status_code(), r.content(), r.mime_type());
+   };
+
+   proto::Request msg;
+   msg.set_type(proto::Request::FetchObjectRequest);
+   
+   proto::FetchObjectRequest* request = msg.MutableExtension(proto::FetchObjectRequest::extension);
+   request->set_uri(uri);
+         
+   int id = ++last_server_request_id_;
+   msg.set_request_id(id);
+   server_requests_[id] = reply;
+
+   send_queue_->Push(msg);
+}
+
+void Client::GetEvents(std::string const& query, std::shared_ptr<chromium::IResponse> response)
+{
+   if (get_events_request_) {
+      get_events_request_->SetResponse(504);
+   }
+   get_events_request_ = response;
+   FlushEvents();
+}
+
+void Client::FlushEvents()
+{
+   if (get_events_request_ && !queued_events_.empty()) {
+      JSONNode events(JSON_ARRAY);
+      for (const auto& e : queued_events_) {
+         events.push_back(e);
+      }
+      queued_events_.clear();
+      get_events_request_->SetResponse(200, events.write(), "application/json");
+      get_events_request_ = nullptr;
+   }
+}
+
 

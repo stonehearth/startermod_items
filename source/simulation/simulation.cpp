@@ -273,30 +273,6 @@ std::shared_ptr<GotoLocation> Simulation::CreateGotoEntity(om::EntityRef entity,
    return fp;
 }
 
-JSONNode Simulation::FormatObjectAtUri(std::string const& uri)
-{
-   std::vector<std::string> parts;
-   boost::algorithm::split(parts, uri, boost::is_any_of("/"));
-
-   // should be "", "object", "13"...
-   if (parts.size() > 2) {
-      dm::ObjectId id;
-      std::stringstream(parts[2]) >> id;
-
-      dm::ObjectPtr obj = store_.FetchObject<dm::Object>(id);
-      if (obj) {
-         return om::ObjectFormatter("/object/").ObjectToJson(obj);
-      }
-   }
-   return JSONNode(); // actually, return an error!
-}
-
-void Simulation::FetchObject(proto::FetchObjectRequest const& request, proto::FetchObjectReply* reply)
-{
-   JSONNode node = FormatObjectAtUri(request.uri());
-   reply->set_json(node.write());
-}
-
 void Simulation::DoAction(const proto::DoAction& msg, protocol::SendQueuePtr queue)
 {
    std::string json;
@@ -524,4 +500,71 @@ void Simulation::UpdateTargetTables(int now, int interval)
          targetTables_.resize(c);
       }
    }
+}
+
+
+void Simulation::FetchObject(proto::FetchObjectRequest const& request, proto::FetchObjectReply* reply)
+{
+   std::vector<std::string> parts;
+   std::string const& uri = request.uri();
+
+   boost::algorithm::split(parts, uri, boost::is_any_of("/"));
+
+   // should be "", "object", "13"...
+   if (parts.size() < 3) {
+      reply->set_status_code(404);
+      reply->set_content("unknown uri " + uri);
+      return;
+
+   }
+   dm::ObjectId id;
+   std::stringstream(parts[2]) >> id;
+
+   dm::ObjectPtr obj = store_.FetchObject<dm::Object>(id);
+   if (!obj) {
+      std::ostringstream error;
+      error << "No object exists with id " << id;
+      reply->set_status_code(500);
+      reply->set_content(error.str());
+   }
+
+   JSONNode node = om::ObjectFormatter("/object/").ObjectToJson(obj);
+   reply->set_status_code(200);
+   reply->set_content(node.write());
+   reply->set_mime_type("application/json");
+   return;
+}
+
+
+void Simulation::PostCommand(proto::PostCommandRequest const& request, proto::PostCommandReply* reply)
+{
+   std::string const& path = request.path();
+   std::string response = scripts_->PostCommand(request.path(), request.data());
+
+   reply->set_status_code(200);
+   reply->set_content(response);
+   reply->set_mime_type("application/json");
+}
+
+
+bool Simulation::ProcessMessage(const proto::Request& msg, protocol::SendQueuePtr queue)
+{
+   proto::Update reply;
+
+#define DISPATCH_MSG(MsgName) \
+   case proto::Request::MsgName ## Request: \
+      reply.set_type(proto::Update::MsgName ## Reply); \
+      reply.set_reply_id(msg.request_id()); \
+      MsgName(msg.GetExtension(proto::MsgName ## Request::extension), \
+              reply.MutableExtension(proto::MsgName ## Reply::extension)); \
+      break;
+
+   switch (msg.type()) {
+      DISPATCH_MSG(FetchObject);
+      DISPATCH_MSG(PostCommand);
+   default:
+      ASSERT(false);
+   }
+   queue->Push(protocol::Encode(reply));
+   return true;
 }
