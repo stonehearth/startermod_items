@@ -2,7 +2,9 @@
  "type":"recipe", 
 
  "work_units": 3,
- "preview_item" : "/stonehearth_items/wooden_sword",
+  "recipe_name" : "Wooden Practice Sword",
+  "recipe_icon" : "/stonehearth_items/wooden_sword/html/images/wooden_sword_icon.png",
+ "category" : "weapons",
 
  "ingredients": [
     {
@@ -14,7 +16,7 @@
       "material" : "wood",     
       "count" : 1,
       "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
-    },
+ },
     {
       "material" : "wood",     
       "count" : 1,

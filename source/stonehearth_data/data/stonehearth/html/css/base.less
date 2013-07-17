@@ -7,7 +7,7 @@
 	font-family: @baseFontFamily;
 	font-size: @baseFontSize;
 	letter-spacing: 0px;
-	
+   line-height: 1.4em;
 }
 
 .boldFont {
@@ -35,8 +35,8 @@
 	text-shadow: none;
 }
 
-.outlined {
-   text-shadow: -2px -2px 0px #000, 0px -2px 0px #000, 2px -2px 0px #000, -2px 0px 0px #000, 2px 0px 0px #000, -2px 2px 0px #000, 0px 2px 0px #000, 2px 2px 0px #000;
+.outlined (@color: #000) {
+   text-shadow: -2px -2px 0px @color, 0px -2px 0px @color, 2px -2px 0px @color, -2px 0px 0px @color, 2px 0px 0px @color, -2px 2px 0px @color, 0px 2px 0px @color, 2px 2px 0px @color;
 }
 
 .thickOutlined {
@@ -96,7 +96,7 @@ h1, h2, h3, h4 {
 }
 
 h1 {
-	font-size: 1.2em;
+	font-size: 1.1em;
 	margin-bottom: 0px;
 }
 

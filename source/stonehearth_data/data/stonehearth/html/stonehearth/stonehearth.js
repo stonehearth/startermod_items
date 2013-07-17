@@ -30,6 +30,7 @@ App.StonehearthView = Ember.ContainerView.extend({
       });
       childView.setProperties(options);
       this.pushObject(childView)
+      return childView;
    }
 
 });

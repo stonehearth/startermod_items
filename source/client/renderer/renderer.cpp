@@ -44,8 +44,8 @@ Renderer::Renderer() :
 
    //width_ = 1920;
    //height_ = 1080;
-   uiWidth_ = width_ = 1280;
-   uiHeight_ = height_ = 720;
+   uiWidth_ = width_ = 1920;
+   uiHeight_ = height_ = 1080;
 
    //uiWidth_ = width_;
    //uiHeight_ = height_;

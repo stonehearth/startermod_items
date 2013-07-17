@@ -1,10 +1,119 @@
 <script type="text/x-handlebars" data-template-name="stonehearthCrafter">
+   
+   <div id="craftingWindow">
+      <div class="frame">
+        {{unit_info.name}}<br>
+        <small>{{unit_info.description}}</small>
+      </div>
 
-<div id="stonehearthCrafter">
-   This is the crafter window
-   <br>
-   {{stonehearth_crafter:workshop}}
-   <br>
-   {{stonehearth_crafter:workshop.crafter.unit_info.name}}
-</div>
+      <div id="recipeList">
+         {{partial 'recipeList'}}
+      </div>
+
+      <div id="details">
+         {{render 'details' current}}
+      </div>
+
+      <div id="order">
+         {{partial 'orderOptions'}}
+      </div>
+
+      {{partial 'orderList'}}
+   </div>
 </script>
+
+<!--Template for the accordion-->
+<script type="text/x-handlebars" data-template-name="_recipeList">
+   <div id="recipeAccordion">
+      <h3>All recipes</h3>
+      <div>
+         {{#each stonehearth_crafter:workshop.crafter.stonehearth_crafter:crafter.craftable_recipes}}
+            <a href="#" {{action select this target="view"}}>{{recipe_name}}</a>
+            <br>
+         {{/each}}
+      </div>
+      <!--
+      <h3>wtf</h3>
+      <div>foo<br>bar<br>binky<br></div>
+      -->
+   </div>
+</script>
+
+<!--Template for the details window-->
+<script type="text/x-handlebars" data-template-name="details">
+   <div>
+      <div id="title">
+         <h1>{{model.recipe_name}}</h1>
+      </div>
+      <div id="portrait">
+         
+      </div>
+
+      <div id="description">
+         <center>
+            <div id="ingredients">
+               <img src="/stonehearth_crafter/html/images/scroll_socket_left_bookend.png">
+               {{#each model.ingredients}}
+                  <div class="ingredientSocket">
+                     <img {{bindAttr src="socket_background"}}>
+                     <span class="count">{{count}}</span>
+                  </div>
+               {{/each}}
+               <img src="/stonehearth_crafter/html/images/scroll_socket_right_bookend.png">
+            </div>
+         </center>
+
+         <div id="attributes">
+            The item description goes here, as soon as Tony enables post and lets 
+            me preview the item with no ingredients to grab the name, description,
+            and portrait
+         </div>
+      </div>
+   </div>      
+</script>
+
+<!--Template for the options and craft button-->
+<script type="text/x-handlebars" data-template-name="_orderOptions">
+   <div id="orderOptions">
+      <table>
+         <tr><td>
+            <input type="radio" name="conditionGroup" value="make" class="craftRadioButton" id="make" checked>
+            <label for="make" style='width:auto;'>{{i18n craftingWindow:craftNumber}}</label>
+         <td>
+            <input type="number" name="quantityToMake" value="1" min="1" max="99" class="craftNumericSelect">
+         </td></tr>
+      </table>
+
+      <table>
+         <tr><td>
+            <input type="radio" name="conditionGroup" value="mantain" class="craftRadioButton" id="maintain">
+            <label for="maintain" style='width:auto'>{{i18n craftingWindow:craftUpTo}}</label>
+         <td>
+            <input type="number" name="quantityToMantain" value="1" min="1" max="99" class="craftNumericSelect">
+         </td></tr>
+      </table>
+
+      <button class='btn' {{action "craft" target="view"}} id="craftButton"><img src="/stonehearth_crafter/html/images/anvil.png"></button>
+   </div>
+</script>
+
+<!--Template for everything regarding the order list-->
+<script type="text/x-handlebars" data-template-name="_orderList">
+   <div id="orderList">
+
+      <div id="orders">
+      {{#each stonehearth_crafter:workshop.order_list}}
+         <div class="orderListItem">
+            <a href="#" {{action select recipe target="view"}}>{{recipe.recipe_name}}</a>
+         </div>
+      {{/each}}
+      </div>
+
+      <a id="orderListUpBtn" {{action scrollOrderListUp target="view"}}><img src="/stonehearth_crafter/html/images/queue_up_arrow.png"></a>
+      <a id="orderListDownBtn" {{action scrollOrderListDown target="view"}} ><img src="/stonehearth_crafter/html/images/queue_down_arrow.png"></a>
+   
+      <ul id="garbageList" class="droptrue">
+      </ul>
+   </div>
+</script>
+

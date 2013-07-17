@@ -1,6 +1,10 @@
 App.UnitFrameView = App.View.extend({
 	templateName: 'unitframe',
-	components: ['unit_info', 'radiant:commands'],
+
+   components: {
+      "unit_info": {},
+      "radiant:commands": {}
+   },
 
    init: function() {
       this._super();

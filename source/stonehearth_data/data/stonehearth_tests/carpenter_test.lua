@@ -26,7 +26,7 @@ function CarpenterTest:__init()
    -- end TODO
 
    -- put some items in the world
-   self:place_item_cluster('/stonehearth_trees/entities/oak_tree/oak_log', -10, 10, 3, 3)
+   --self:place_item_cluster('/stonehearth_trees/entities/oak_tree/oak_log', -10, 10, 3, 3)
    self:place_item_cluster('/stonehearth_items/cloth_bolt', -7, 10, 2, 2)
 
  -- Tests!
@@ -41,7 +41,7 @@ function CarpenterTest:__init()
             '/stonehearth_carpenter_class/recipes/wooden_buckler_recipe.json'),
             true,  condition, workshop_component)
          local todo = workshop_component:ui_get_todo_list()
-         --todo:add_order(order)
+         todo:add_order(order)
       end)
    --]]
 
@@ -55,7 +55,7 @@ function CarpenterTest:__init()
             '/stonehearth_carpenter_class/recipes/wooden_sword_recipe.json'),
             true,  condition, workshop_component)
          local todo = workshop_component:ui_get_todo_list()
-         --todo:add_order(order)
+         todo:add_order(order)
       end)
    --]]
 
@@ -69,7 +69,7 @@ function CarpenterTest:__init()
             '/stonehearth_carpenter_class/recipes/wooden_sword_recipe.json'),
             true,  condition, workshop_component)
          local todo = workshop_component:ui_get_todo_list()
-         --todo:add_order(order)
+         todo:add_order(order)
       end)
    --]]
 end
