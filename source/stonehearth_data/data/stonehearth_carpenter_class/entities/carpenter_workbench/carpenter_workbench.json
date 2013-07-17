@@ -1,5 +1,6 @@
 {
    "type": "entity",
+   "extends" : "/stonehearth_crafter/entities/workbench.json",
    "components" : {
       "unit_info" : {
          "name" :  "Carpenter Workbench",
@@ -15,7 +16,7 @@
             [[0, 0, 1], [1, 1, 2]]
          ]
       },
-      "stonehearth_crafter.workshop" : {
+      "stonehearth_crafter:workshop" : {
       }
    }
 }

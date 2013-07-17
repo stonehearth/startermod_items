@@ -1,6 +1,6 @@
 {
    "extends": "file(/prototypes/tree)",
-   "radiant.resource_node" : {
+   "radiant:resource_node" : {
       "resource": "file(../juniper_log)",
       "durability": 6
    },

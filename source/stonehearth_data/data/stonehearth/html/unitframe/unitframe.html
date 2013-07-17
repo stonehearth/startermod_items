@@ -1,0 +1,21 @@
+<script type="text/x-handlebars" data-template-name="unitframe">
+
+<div id="unitframe">
+   <div class="frame">
+      <div class="name">{{unit_info.name}}</div>
+      <div class="description"{{unit_info.description}}</div>
+   </div>
+   <div id="commandButtons">
+      {{#each radiant:commands}}
+         <a href="#" {{action doCommand this target="view"}}>
+            <div class="commandButton" {{bindAttr title="tooltip"}}>
+               <img {{bindAttr src="icon"}} >
+            </div>
+         </a>
+      {{/each}}
+
+   </div>
+</div>
+
+
+</script>

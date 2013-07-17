@@ -1,0 +1,9 @@
+{
+  "title": "This is the title",
+
+  "mainbar2": {
+    "newStockpileTooltip": "x",
+    "buildWorkshopTooltip": "x",
+    "newBuildingTooltip": "x"
+  }
+}

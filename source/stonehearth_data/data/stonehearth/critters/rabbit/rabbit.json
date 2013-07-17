@@ -1,7 +1,7 @@
 {
    "type" : "entity",
    "components" : {
-	   "radiant.ai" : {
+	   "radiant:ai" : {
 		  "intentions" : [
 			 "radiant.intentions.rabbit_ai"
 		  ]

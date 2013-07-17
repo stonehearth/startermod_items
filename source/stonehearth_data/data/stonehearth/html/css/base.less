@@ -1,0 +1,113 @@
+@baseColor:  #111;
+@gold:       #ffc000;
+@hoverColor: #ffc000;
+
+.baseFont {
+	color: @baseFontColor;
+	font-family: @baseFontFamily;
+	font-size: @baseFontSize;
+	letter-spacing: 0px;
+	
+}
+
+.boldFont {
+	color: #000;
+	font-weight: normal;
+}
+
+.controlFont {
+	.outlined;
+	color: @controlFontColor;
+	font-size: @controlFontSize;
+	font-family: @controlFontFamily;
+	letter-spacing: -1px;
+
+	a {
+		color: @controlFontColor;
+	}
+}
+
+.smallFont {
+	font-size: .7em;
+}
+
+.noOutline {
+	text-shadow: none;
+}
+
+.outlined {
+   text-shadow: -2px -2px 0px #000, 0px -2px 0px #000, 2px -2px 0px #000, -2px 0px 0px #000, 2px 0px 0px #000, -2px 2px 0px #000, 0px 2px 0px #000, 2px 2px 0px #000;
+}
+
+.thickOutlined {
+  text-shadow: -3px -3px 0px #000, 0px -3px 0px #000, 3px -3px 0px #000, -3px 0px 0px #000, 3px 0px 0px #000, -3px 3px 0px #000, 0px 3px 0px #000, 3px 3px 0px #000;
+}
+
+.textShadow {
+   text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+.handCursor {
+	cursor: url('images/cursors/Finalhand.cur'), default; 
+}
+
+.blackBorder {
+	border: 3px solid #000;
+}
+
+.control {
+	.handCursor !important;
+	.controlFont;
+	background: #476248;
+
+	&:hover {
+		color: @controlFontColor;
+		background: #48704a;
+	};
+}
+
+
+body {
+	.baseFont;
+   background: transparent;
+	-webkit-user-select: none;
+	//cursor: default;
+}
+
+b {
+	.boldFont;
+}
+
+a {
+	text-decoration: none;
+	&:hover { 
+		.handCursor;
+		color: @hoverColor;
+		text-decoration: none;
+	}
+}
+
+
+h1, h2, h3, h4 {
+	.outlined;
+	font-family: @headerFontFamily;
+	font-weight: normal;
+	color: @goldColor;
+}
+
+h1 {
+	font-size: 1.2em;
+	margin-bottom: 0px;
+}
+
+.sh-view {
+
+}
+
+.basic {
+  margin: 10px;
+  border: 1px solid #000;	
+  padding: 8px;
+  background-color: rgba(0, 0, 0, 0.08);
+  display: inline-block;
+}

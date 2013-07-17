@@ -21,7 +21,7 @@ public:
 private:
    bool ResizePortal(const csg::Point3& p0, const csg::Point3& p1);
    void SendCommand();
-   void OnMouseEvent(const MouseInputEvent &evt, bool &handled, bool &uninstall);
+   void OnMouseEvent(const MouseEvent &evt, bool &handled, bool &uninstall);
    void BeginShadowing(om::EntityPtr wall);
    void EndShadowing();
    void MovePortal(const csg::Point3& location);

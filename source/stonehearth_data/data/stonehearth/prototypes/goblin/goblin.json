@@ -8,7 +8,7 @@
 		  "ferocity": 100,
 		  "health": 100
 	   },
-	   "radiant.ai" : {
+	   "radiant:ai" : {
 		  "intentions" : [
 			 "radiant.intentions.life_and_death",
 			 "radiant.intentions.attack_on_aggro",

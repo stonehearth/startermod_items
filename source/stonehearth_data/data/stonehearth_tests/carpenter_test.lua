@@ -17,8 +17,8 @@ function CarpenterTest:__init()
    local bench = self:place_item('/stonehearth_carpenter_class/entities/carpenter_workbench', -12, -12)
    
    --TODO: can we do this via promote?
-   local carpenter_component = carpenter:get_component('stonehearth_crafter.crafter')   
-   local workshop_component = bench:get_component('stonehearth_crafter.workshop')
+   local carpenter_component = carpenter:get_component('stonehearth_crafter:crafter')
+   local workshop_component = bench:get_component('stonehearth_crafter:workshop')
    local faction = carpenter:get_component('unit_info'):get_faction()
    bench:add_component('unit_info'):set_faction(faction)
    workshop_component:set_crafter(carpenter)
@@ -41,7 +41,7 @@ function CarpenterTest:__init()
             '/stonehearth_carpenter_class/recipes/wooden_buckler_recipe.json'),
             true,  condition, workshop_component)
          local todo = workshop_component:ui_get_todo_list()
-         todo:add_order(order)
+         --todo:add_order(order)
       end)
    --]]
 
@@ -55,7 +55,7 @@ function CarpenterTest:__init()
             '/stonehearth_carpenter_class/recipes/wooden_sword_recipe.json'),
             true,  condition, workshop_component)
          local todo = workshop_component:ui_get_todo_list()
-         todo:add_order(order)
+         --todo:add_order(order)
       end)
    --]]
 
@@ -69,7 +69,7 @@ function CarpenterTest:__init()
             '/stonehearth_carpenter_class/recipes/wooden_sword_recipe.json'),
             true,  condition, workshop_component)
          local todo = workshop_component:ui_get_todo_list()
-         todo:add_order(order)
+         --todo:add_order(order)
       end)
    --]]
 end

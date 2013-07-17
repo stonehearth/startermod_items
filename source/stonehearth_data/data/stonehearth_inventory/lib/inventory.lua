@@ -39,7 +39,7 @@ end
 
 function Inventory:_add_entity_to_terrain(id, entity)
    if entity then
-      local stockpile = entity:get_component('stockpile')
+      local stockpile = entity:get_component('radiant:stockpile')
       if stockpile then
          self:_track_stockpile(entity, stockpile)
       end
@@ -55,20 +55,6 @@ function Inventory:_track_item(item_entity)
    -- unconditionally add the item to the all item tracker
    self._all_items_tracker:add_destination(item_entity)
    self._all_items_backtracker:add_destination(item_entity)
-
-   --[[
-   local stockpile_entity = self:_find_containing_stockpile(item_entity)
-   if not stockpile_entity then
-      -- if there's no stockpile which currently contains the item,
-      -- notify all trackers that it exists so they can do a reverse
-      -- search to it.  this computes the path from the item to each
-      -- stockpile, for stockpiles which are configured to store this
-      -- item type
-      for tracker in pairs(self._stockpile_trackers) do
-         tracker:track_item(item_entity)
-      end
-   end
-   ]]
 end
 
 function Inventory:_track_stockpile(stockpile_entity)
@@ -78,7 +64,7 @@ function Inventory:_track_stockpile(stockpile_entity)
 end
 
 function Inventory:_remove_entity_from_terrain(id, entity)
-   for tracker in pairs(self._stockpile_trackers) do
+   for id, tracker in pairs(self._stockpile_trackers) do
       tracker:untrack_item(id)
    end
    self._all_items_tracker:remove_destination(id)
@@ -89,12 +75,10 @@ function Inventory:create_stockpile(location, size)
    local entity = radiant.entities.create_entity('/stonehearth_inventory/entities/stockpile')
    
    radiant.terrain.place_entity(entity, location)
-   if size then
-      entity:get_component('stockpile'):set_size(size)
-   end
-   entity:get_component('unit_info'):set_faction(self._faction)   
+   entity:get_component('radiant:stockpile'):set_size(size)
+   entity:get_component('unit_info'):set_faction(self._faction)
    -- return something?
-end
+end 
 
 function Inventory:harvest_tree(tree)
    return self._tree_tracker:harvest_tree(tree)

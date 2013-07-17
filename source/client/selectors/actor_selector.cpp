@@ -45,7 +45,7 @@ void ActorSelector::Deactivate()
    }
 }
 
-void ActorSelector::onInputEvent(const MouseInputEvent &evt, bool &handled, bool &uninstall)
+void ActorSelector::onInputEvent(const MouseEvent &evt, bool &handled, bool &uninstall)
 {
    om::Selection s;
 

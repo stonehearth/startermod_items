@@ -5,10 +5,10 @@
 #include "Horde3D.h"
 #include "math3d.h"
 #include "om/om.h"
-#include "client/input_event.h"
 #include "resources/namespace.h"
 #include "tesseract.pb.h"
 #include "csg/region.h"
+#include "radiant_file.h"
 #include <unordered_map>
 #include <boost/property_tree/ptree.hpp>
 
@@ -63,8 +63,12 @@ public:
       math3d::ray3 GetCameraToViewportRay(int windowX, int windowY);
       void QuerySceneRay(int windowX, int windowY, om::Selection &result);
 
+      typedef int InputCallbackId;
+      typedef std::function<void (const RawInputEvent&, bool& handled, bool& uninstall)> RawInputEventCb;
+      typedef std::function<void (const MouseEvent&, bool& handled, bool& uninstall)> MouseEventCb;
+      typedef std::function<void (const KeyboardEvent&, bool& handled, bool& uninstall)> KeyboardInputEventCb;
       InputCallbackId SetRawInputCallback(RawInputEventCb fn);
-      InputCallbackId SetMouseInputCallback(MouseInputEventCb fn);
+      InputCallbackId SetMouseInputCallback(MouseEventCb fn);
       InputCallbackId SetKeyboardInputCallback(KeyboardInputEventCb fn);
       void RemoveInputEventHandler(InputCallbackId id);
 
@@ -103,7 +107,7 @@ public:
       typedef std::unordered_map<H3DNode, UpdateSelectionFn> SelectableMap;
       typedef std::unordered_map<om::EntityId, std::shared_ptr<RenderEntity>> RenderEntityMap;
       typedef std::vector<std::pair<InputCallbackId, RawInputEventCb>> RawInputCallbackMap;
-      typedef std::vector<std::pair<InputCallbackId, MouseInputEventCb>> MouseInputCallbackMap;
+      typedef std::vector<std::pair<InputCallbackId, MouseEventCb>> MouseInputCallbackMap;
       typedef std::vector<std::pair<InputCallbackId, KeyboardInputEventCb>> KeyboardInputCallbackMap;
       typedef std::unordered_map<std::string, H3DRes>    H3DResourceMap;
       int               width_;
@@ -141,7 +145,7 @@ public:
       KeyboardInputCallbackMap      keyboardInputCbs_;
 
       bool                          rotateCamera_;
-      MouseInputEvent               mouse_;
+      MouseEvent                    mouse_;
       bool                          initialized_;
 
       int                           currentFrameTime_;

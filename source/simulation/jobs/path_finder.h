@@ -21,6 +21,7 @@ class PathFinderEndpoint {
 public:
    PathFinderEndpoint(PathFinder& pf, om::EntityRef entity);
    void AddAdjacentToOpenSet(std::vector<math3d::ipoint3>& open);
+   math3d::ipoint3 GetPointInRegionAdjacentTo(math3d::ipoint3 const& adjacent) const;
 
    int EstimateMovementCost(const math3d::ipoint3& start) const;
    om::EntityPtr GetEntity() const { return entity_.lock(); }
@@ -68,14 +69,14 @@ class PathFinder : public Job {
       bool CompareEntries(const math3d::ipoint3 &a, const math3d::ipoint3 &b);
       void RecommendBestPath(std::vector<math3d::ipoint3> &points) const;
       int EstimateCostToDestination(const math3d::ipoint3 &pt) const;
-      int EstimateCostToDestination(const math3d::ipoint3 &pt, om::EntityRef& closest) const;
+      int EstimateCostToDestination(const math3d::ipoint3 &pt, PathFinderEndpoint** closest) const;
 
       math3d::ipoint3 GetFirstOpen();
       void ReconstructPath(std::vector<math3d::ipoint3> &solution, const math3d::ipoint3 &dst) const;
       void AddEdge(const math3d::ipoint3 &current, const math3d::ipoint3 &next, int cost);
       void RebuildHeap();
 
-      void SolveSearch(const math3d::ipoint3& last, om::EntityRef dst);
+      void SolveSearch(const math3d::ipoint3& last, PathFinderEndpoint const& dst);
 
    public:
       om::EntityRef                                entity_;

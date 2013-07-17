@@ -1,16 +1,24 @@
 {
  "type":"recipe", 
+
  "work_units": 3,
- "crafter":"carpenter",
+ "preview_item" : "/stonehearth_items/wooden_sword",
+
  "ingredients": [
     {
-      "material" : "wood"      
+      "material" : "wood",
+      "count" : 1,
+      "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
     },
     {
-      "material" : "wood"      
+      "material" : "wood",     
+      "count" : 1,
+      "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
     },
     {
-      "material" : "wood"      
+      "material" : "wood",     
+      "count" : 1,
+      "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
     }
   ],
   "produces": [

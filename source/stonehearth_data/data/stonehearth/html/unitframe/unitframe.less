@@ -1,0 +1,43 @@
+#unitframe {
+   .wood;
+   .woodsimple;
+   border-width: 10px 10px 20px 10px;
+   width: 500px;
+   height: 177px;
+   position: absolute;
+   bottom: 10px;
+   left: 10px;
+
+   .frame {
+      width: 300px;
+      height: 45px;
+      line-height: 0.8em;
+      position: absolute;
+      right: 0px;
+
+      .description {
+         .smallFont;
+         color: @controlLightFontColor;
+      }
+   }
+
+   #commandButtons {
+      position: absolute;
+      top: 104px;
+      left: 160px;
+      width: 325px;
+      background: url('../unitframe/images/command_button_well.png');
+
+      .commandButton {
+         display: inline-block;
+         width: 63px;
+         height: 65px;
+         background: url('../unitframe/images/command_button_bg.png');
+         border: 0px;
+
+         img {
+            
+         }
+      }
+   }
+}

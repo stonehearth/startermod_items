@@ -1,0 +1,18 @@
+{
+    "remote": "mod://foo",
+    "crafter": {
+        "name": "Gromsnouth McFadden",
+        "profession": "Smith",
+        "level": 10
+    },
+    "recipes": [
+        {
+            "id": "12",
+            "name": "Iron Buckler"
+        },
+        {
+            "id": "13",
+            "name": "Rough Scalemail"
+        }
+    ]
+}

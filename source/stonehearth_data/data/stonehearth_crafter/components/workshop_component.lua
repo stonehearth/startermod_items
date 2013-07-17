@@ -69,7 +69,7 @@ end
 function Workshop:_get_crafter_component()
    local crafter_entity = self:get_crafter()
    if crafter_entity then
-      return crafter_entity:get_component('stonehearth_crafter.crafter')
+      return crafter_entity:get_component('stonehearth_crafter:crafter')
    end
 end
 

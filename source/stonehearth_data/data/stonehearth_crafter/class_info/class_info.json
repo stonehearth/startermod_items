@@ -1,6 +1,6 @@
 {
    "components" : {
-      "radiant.ai" : {
+      "radiant:ai" : {
         "actions" : [
            "file(/ai/actions/check_craftable_action.lua)",
            "file(/ai/actions/craft_action.lua)",
@@ -8,7 +8,7 @@
            "file(/ai/actions/gather_and_craft_action.lua)"
         ]
       },
-      "stonehearth_crafter.crafter" : {
+      "stonehearth_crafter:crafter" : {
       }
    }
 }

@@ -1,6 +1,7 @@
 #ifndef _RADIANT_CLIENT_SELECTOR_H
 #define _RADIANT_CLIENT_SELECTOR_H
 
+#include "radiant_file.h"
 #include "namespace.h"
 #include "om/om.h"
 

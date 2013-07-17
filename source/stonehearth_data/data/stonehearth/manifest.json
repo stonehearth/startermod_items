@@ -1,5 +1,13 @@
 {
    "info" :{
-      "name" : "Stonehearth Core Library"
+      "name" : "Stonehearth"
+   },
+
+   "loader" :  {
+      "ui" : {
+         "homepage" : "file(/html/index.html)"
+      }
    }
+
 }
+
