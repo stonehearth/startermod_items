@@ -10,6 +10,7 @@ message Request {
    extensions 100 to max;
    enum Type {
       FetchObjectRequest = 1;
+      PostCommandRequest = 2;
    }
    required Type     type = 1;
    required uint32   request_id = 2;
@@ -20,6 +21,14 @@ message FetchObjectRequest {
       optional FetchObjectRequest extension = 101;
    }
    required string   uri = 1;
+}
+
+message PostCommandRequest {
+   extend Request {
+      optional PostCommandRequest extension = 102;
+   }
+   required string   path = 1;
+   required string   data = 2;
 }
 
 message Update {
@@ -35,6 +44,7 @@ message Update {
       DoActionReply = 8;
       EndUpdate = 9;
       FetchObjectReply = 10;
+      PostCommandReply = 11;
    }
    required Type     type = 1;
    optional int32    chunk_size = 2;
@@ -114,7 +124,18 @@ message FetchObjectReply {
    extend Update {
       optional FetchObjectReply extension = 119;
    }
-   required string      json = 1;
+   required int32       status_code = 1;
+   optional string      mime_type = 2;
+   optional string      content = 3;
+}
+
+message PostCommandReply {
+   extend Update {
+      optional PostCommandReply extension = 120;
+   }
+   required int32       status_code = 1;
+   optional string      mime_type = 2;
+   optional string      content = 3;
 }
 
 message DoAction {

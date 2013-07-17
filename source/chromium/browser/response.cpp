@@ -55,7 +55,9 @@ void Response::GetResponseHeaders(CefRefPtr<CefResponse> response,
                                   int64& response_length,
                                   CefString& redirectUrl)
 {
-   response->SetMimeType(mimeType_);
+   if (!mimeType_.empty()) {
+      response->SetMimeType(mimeType_);
+   }
    response->SetStatus(status_);
    response_length = response_.size();
 }
@@ -78,21 +80,11 @@ void Response::Cancel()
 {
 }
 
-void Response::SetStatusCode(int code)
-{
-   ASSERT(status_ == 0 && code != 0);
-
-   status_ = code;
-   if (callback_) {
-      callback_->Continue();
-   }
-}
-
-void Response::SetResponse(std::string response, std::string mimeType)
+void Response::SetResponse(int status_code, std::string const& response, std::string const& mimeType)
 {
    ASSERT(status_ == 0);
 
-   status_ = 200;
+   status_ = status_code;
    mimeType_ = mimeType;
    response_ = response;
 

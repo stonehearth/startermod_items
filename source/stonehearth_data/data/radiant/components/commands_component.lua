@@ -12,7 +12,7 @@ function CommandsComponent:extend(json)
          local command = radiant.resources.load_json(uri)
          
          -- expand the json.  just for fun (it's small)
-         local t = radiant.json.decode(tostring(command))
+         local t = self:_replace_variables(command)
          table.insert(self._commands, t)
       end
    end
@@ -20,6 +20,23 @@ end
 
 function CommandsComponent:__tojson()
    return radiant.json.encode(self._commands)
+end
+
+function CommandsComponent:_replace_variables(res)
+   if type(res) == 'table' then
+      local result = {}
+      for k, v in radiant.resources.pairs(res) do
+         result[k] = self:_replace_variables(v)
+      end
+      return result
+   end
+   
+   if type(res) == 'string' then
+      if res == '{{entity_id}}' then
+         res = self._entity:get_id()
+      end
+   end
+   return res
 end
 
 function CommandsComponent:do_command(name, ...)

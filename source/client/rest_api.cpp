@@ -19,14 +19,29 @@ RestAPI::~RestAPI()
 {
 }
 
-bool RestAPI::OnNewRequest(std::string uri, std::string query, std::string postdata, ResponseFn cb)
+bool RestAPI::Get(std::string uri, std::string query, ResponseFn cb)
 {
    std::lock_guard<std::mutex> guard(lock_);
 
-   if (uri == "/api/events") {
+   if (boost::starts_with(uri, "/api/events")) {
       GetEvents(ParseQuery(query), cb);
       return true;
    }
+   if (boost::starts_with(uri, "/object")) {
+      ResponsePtr response = std::make_shared<Response>(cb);
+      JSONNode args;
+      args.push_back(JSONNode("command", "fetch_object")); // xxx: this is crap.  should be functor or something!  see Client::ExecuteCommands for the super crappy part.
+      args.push_back(JSONNode("uri", uri));
+      pendingCommands_.push_back(std::make_shared<PendingCommand>(args, response));
+      return true;
+   }
+   return false;
+}
+
+bool RestAPI::Post(std::string uri, std::string query, std::string postdata, ResponseFn cb)
+{
+   std::lock_guard<std::mutex> guard(lock_);
+
    if (uri == "/api/commands/execute") {
       JSONNode args;
       try {
@@ -36,14 +51,6 @@ bool RestAPI::OnNewRequest(std::string uri, std::string query, std::string postd
          return false;
       }
       ExecuteCommand(args, cb);
-      return true;
-   }
-   if (boost::starts_with(uri, "/object")) {
-      ResponsePtr response = std::make_shared<Response>(cb);
-      JSONNode args;
-      args.push_back(JSONNode("command", "fetch_object")); // xxx: this is crap.  should be functor or something!  see Client::ExecuteCommands for the super crappy part.
-      args.push_back(JSONNode("uri", uri));
-      pendingCommands_.push_back(std::make_shared<PendingCommand>(args, response));
       return true;
    }
    return false;

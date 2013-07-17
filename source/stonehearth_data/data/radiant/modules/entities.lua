@@ -210,6 +210,11 @@ function entities.do_ability(entity, ability_name, ...)
    end
 end
 
+function entities.get_entity(id)
+   radiant.check.is_number(id)
+   local entity = native:get_entity(id)
+   return entity and entity:is_valid() and entity or nil
+end
 
 
 --[[
@@ -343,12 +348,6 @@ function entities.create_entity(kind)
    end
 
    return entity
-end
-
-function entities.get_entity(id)
-   radiant.check.is_number(id)
-   local entity = native:get_entity(id)
-   return entity and entity:is_valid() and entity or nil
 end
 
 function entities.get_component(entity, name)

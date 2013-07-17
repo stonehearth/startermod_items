@@ -76,7 +76,7 @@ class PathFinder : public Job {
       void AddEdge(const math3d::ipoint3 &current, const math3d::ipoint3 &next, int cost);
       void RebuildHeap();
 
-      void SolveSearch(const math3d::ipoint3& last, PathFinderEndpoint const& dst);
+      void SolveSearch(const math3d::ipoint3& last, PathFinderEndpoint* dst);
 
    public:
       om::EntityRef                                entity_;

@@ -13,11 +13,7 @@ public:
    Response(CefRefPtr<CefRequest> request);
    virtual ~Response();
 
-#if 0
-   void SetResponse(JSONNode node);
-#endif
-   void SetResponse(std::string response, std::string mimeType) override;
-   void SetStatusCode(int status) override;
+   void SetResponse(int status, std::string const& response, std::string const& mimeType) override;
 
 public:
    // CefBase overrides

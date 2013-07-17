@@ -7,8 +7,8 @@ function StockpileTracker:__init(inventory, stockpile_entity)
    local solved = function(path)
       -- we found a backpath to an item!  get the item, and register it
       -- with the inventory system as an item which we can restock
-      local item_entity = path:get_destination()
-      local drop_location = path:get_start_point()
+      local item_entity = path:get_source()
+      local drop_location = path:get_finish_point()
       
       inventory:_register_restock_item(item_entity, path)
       self._item_drop_locations[item_entity:get_id()] = drop_location

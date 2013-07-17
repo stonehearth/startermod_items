@@ -13,7 +13,6 @@
 using namespace radiant;
 using namespace radiant::chromium;
 
-static void ReadFile(CefRefPtr<Response> response, std::string path);
 std::string GetPostData(CefRefPtr<CefRequest> request);
 
 /*
@@ -37,25 +36,21 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
    mouseX_(0),
    mouseY_(0)
 { 
+   framebuffer_ = new uint32[width_ * height_];
+
    CefMainArgs main_args(GetModuleHandle(NULL));
    if (!CefExecuteProcess(main_args, app_)) {
       ASSERT(false);
    }
 
    CefSettings settings;   
+
+   CefString(&settings.browser_subprocess_path) = L"..\\..\\build\\chromium\\renderer\\relwithdebinfo\\chromium_renderer.exe";
    CefString(&settings.log_file) = L"cef_debug_log.txt";
-   // settings.log_severity = LOGSEVERITY_VERBOSE;
-   // The multi threaded msgs loop isn't implemented on non-windows plaforms
-   //settings.multi_threaded_message_loop = true; // We own the msg loop?
-
+   settings.log_severity = LOGSEVERITY_VERBOSE;
    settings.single_process = false; // single process mode eats nearly the entire frame time
-
-   std::wstring subproc(L"d:\\radiant\\stonehearth\\build\\chromium\\renderer\\relwithdebinfo\\chromium_renderer.exe");
-   cef_string_utf16_set(subproc.c_str(), subproc.size(), &settings.browser_subprocess_path, true);
-
    settings.remote_debugging_port = debug_port;
 
-   //ASSERT(renderWidth_ * height_ == renderHeight_ * width_);
 
    CefInitialize(main_args, settings, app_.get());
    CefRegisterSchemeHandlerFactory("http", "radiant", this);
@@ -66,13 +61,11 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
 
    CefBrowserSettings browserSettings;
    browserSettings.Reset();
-   browserSettings.page_cache_disabled = true;
-   browserSettings.application_cache_disabled = true;
+   browserSettings.developer_tools = STATE_ENABLED;
+   browserSettings.java = STATE_DISABLED;
+   browserSettings.plugins = STATE_DISABLED;
 
-   // Create the new browser window object asynchronously. This eventually results
-   // in a call to CefLifeSpanHandler::OnAfterCreated().
    CefBrowserHost::CreateBrowser(windowInfo, this, docroot, browserSettings);
-   framebuffer_ = new uint32[width_ * height_];
 }
 
 void Browser::Work()
@@ -438,102 +431,25 @@ void Browser::OnProtocolExecution(CefRefPtr<CefBrowser> browser,
    std::string uri = url.ToString();
    allow_os_execution = boost::starts_with(uri, "http://radiant/");
 }
-//
-//void Browser::OnResourceResponse(CefRefPtr<CefBrowser> browser,
-//                                  const CefString& url,
-//                                  CefRefPtr<CefResponse> response,
-//                                  CefRefPtr<CefContentFilter>& filter)
-//{
-//   CefResponse::HeaderMap hm;
-//   std::string uri = url.ToString();
-//   std::string text = response->GetStatusText();
-//   std::string mime = response->GetMimeType();
-//   int code = response->GetStatus();
-//   response->GetHeaderMap(hm);
-//   for (auto& entry: hm) {
-//      //LOG(WARNING) << entry.first.ToString() << ": " << entry.second.ToString();
-//   }
-//}
-//
-
-void ReadFile(CefRefPtr<Response> response, std::string path)
-{
-#if 0
-   static const struct {
-      char *extension;
-      char *mimeType;
-   } mimeTypes_[] = {
-      { "htm",  "text/html" },
-      { "html", "text/html" },
-      {  "css",  "text/css" },
-      { "less",  "text/css" },
-      { "js",   "application/x-javascript" },
-      { "json", "application/json" },
-      { "txt",  "text/plain" },
-      { "jpg",  "image/jpeg" },
-      { "png",  "image/png" },
-      { "gif",  "image/gif" },
-      { "woff", "application/font-woff" },
-      { "cur",  "image/vnd.microsoft.icon" },
-   };
-   std::ifstream infile;
-   auto const& rm = resources::ResourceManager2::GetInstance();
-
-   std::string data;
-   try {
-      if (boost::ends_with(path, ".json")) {
-         JSONNode const& node = rm.LookupJson(path);
-         data = node.write();
-      } else {
-         rm.OpenResource(path, infile);
-         data = io::read_contents(infile);
-      }
-   } catch (resources::Exception const& e) {
-      LOG(WARNING) << "error code 404: " << e.what();
-      response->SetStatusCode(404);
-      return;
-   }
-
-
-   // Determine the file extension.
-   std::string mimeType;
-   std::size_t last_dot_pos = path.find_last_of(".");
-   if (last_dot_pos != std::string::npos) {
-      std::string extension = path.substr(last_dot_pos + 1);
-      for (auto &entry : mimeTypes_) {
-         if (extension == entry.extension) {
-            mimeType = entry.mimeType;
-            break;
-         }
-      }
-   }
-   ASSERT(!mimeType.empty());
-   response->SetResponse(data, mimeType);
-#endif
-   ASSERT(false);
-}
 
 std::string GetPostData(CefRefPtr<CefRequest> request)
 {
-   CefRequest::HeaderMap headerMap;
-   request->GetHeaderMap(headerMap);
+   std::string result;
 
-   CefRequest::HeaderMap::iterator it = headerMap.find("Content-Type");
-
-   JSONNode result;
    auto postData = request->GetPostData();
    if (postData) {
       int c = postData->GetElementCount();
-      if (c) {
+      if (c == 1) {
          CefPostData::ElementVector elements;
          postData->GetElements(elements);
-         for (auto &e : elements) {
-            int count = e->GetBytesCount();
-            char* bytes = new char[count];           
-            e->GetBytes(count, bytes);
-            
-            return std::string(bytes, count);
-         }
+         auto const e = elements[0];
+         int count = e->GetBytesCount();
+         char* bytes = new char[count];           
+         e->GetBytes(count, bytes);
+         std::string result(bytes, count);
+         delete [] bytes;
+
+         return result;
       }
    }
    return std::string();

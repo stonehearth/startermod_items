@@ -1,5 +1,7 @@
 #include "pch.h"
 #include <algorithm>
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include "radiant_file.h"
 #include "script_host.h"
 #include "lua_om.h"
@@ -248,6 +250,7 @@ void ScriptHost::CreateNew()
    cb_thread_ = lua_newthread(L_);
    try {
       game_ = luabind::call_function<luabind::object>(game_ctor_);
+      p1_ = globals(L_)["radiant"]["gamestate"]["_create_player"]('civ');
    } CATCH_LUA_ERROR("initializing environment");
 
 #if 0
@@ -621,4 +624,22 @@ void ScriptHost::Unstick(om::EntityRef e)
       Simulation::GetInstance().GetOctTree().Unstick(entity);
    }
 #endif
+}
+
+std::string ScriptHost::PostCommand(std::string const& uri, std::string const& json)
+{
+   using namespace luabind;
+
+   try {
+      object obj = LuaRequire(uri);
+      object coder = globals(L_)["radiant"]["json"];
+      object data = call_function<object>(coder["decode"], json);
+      object result = call_function<object>(obj, p1_, data);
+      std::string ret = call_function<std::string>(coder["encode"], result);
+      return ret;
+   } catch (std::exception &e) {
+      return std::string("{'error': '") + e.what() + "'}";
+   }
+   // UNREACHABLE
+   return "";
 }

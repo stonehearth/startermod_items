@@ -35,6 +35,8 @@ public:
 
    lua_State* GetInterpreter() const { return L_; }
 
+   std::string PostCommand(std::string const& lua_path, std::string const& json);
+
    void SendMsg(om::EntityRef entity, std::string msg);
    void SendMsg(om::EntityRef entity, std::string msg, const luabind::object& arg0);
 
@@ -90,6 +92,7 @@ private:
    luabind::object      api_;
    luabind::object      game_;
    luabind::object      game_ctor_;
+   luabind::object      p1_;
    std::map<std::string, luabind::object>    required_;
    std::map<om::EntityId, om::EntityPtr>     entityMap_;
 };

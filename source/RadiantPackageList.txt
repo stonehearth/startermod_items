@@ -5,7 +5,7 @@ string(REGEX REPLACE "\\\\" "/" RADIANT_ROOT ${RADIANT_ROOT} )
 
 SET(RADIANT_DEPENDENCY_ROOT   "${RADIANT_ROOT}/stonehearth-dependencies")
 
-INCLUDE(${RADIANT_ROOT}/chromium-embedded/cmake/config.txt)
+INCLUDE(${RADIANT_ROOT}/cef_binary_3.1453.1255_windows/cmake/config.txt)
 INCLUDE(${RADIANT_DEPENDENCY_ROOT}/Boost-1.54.0/cmake/config.txt)
 INCLUDE(${RADIANT_DEPENDENCY_ROOT}/Gflags-1.6/cmake/config.txt)
 INCLUDE(${RADIANT_DEPENDENCY_ROOT}/Glog-0.3.1/cmake/config.txt)

@@ -3,6 +3,7 @@
 
 #include <boost/asio.hpp>
 #include <unordered_map>
+#include <mutex>
 #include "protocol.h"
 #include "tesseract.pb.h"
 #include "metrics.h"
@@ -15,7 +16,6 @@
 #include "core/singleton.h"
 #include "selectors/selector.h"
 #include "entity_traces.h"
-#include "rest_api.h"
 #include "chromium/chromium.h"
 
 using boost::asio::ip::tcp;
@@ -29,10 +29,8 @@ namespace boost {
 
 namespace radiant {
    namespace client {
-      class RestAPI;
       class InputEvent;
       class Selector;
-      class RestAPI;
       class Command;
 
       class Client : public core::Singleton<Client> {
@@ -46,11 +44,6 @@ namespace radiant {
             void run();
             int Now() { return now_; }
 
-            RestAPI& GetAPI() { return *api_; }
-
-            typedef std::function<void(om::EntityPtr)> SelectedTraceFn;
-
-            dm::Guard TraceSelection(SelectedTraceFn fn);
             dm::Guard TraceDynamicObjectAlloc(std::function<void(dm::ObjectPtr)> fn) { return store_.TraceDynamicObjectAlloc(fn); }
 
             om::EntityPtr GetEntity(om::EntityId id);
@@ -184,20 +177,25 @@ namespace radiant {
             void SetRenderPipelineInfo();
             void OnDestroyed(dm::ObjectId id);
             void OnAuthoringObjectAllocated(dm::ObjectPtr obj);
+#if 0
             void TraceEntity(PendingCommandPtr cmd);
             void TraceEntities(PendingCommandPtr cmd);
             void FetchJsonData(PendingCommandPtr cmd);
             void SetViewModeCommand(PendingCommandPtr cmd);
             void SelectEntityCommand(PendingCommandPtr cmd);
             void SelectToolCommand(PendingCommandPtr cmd);
+#endif
             void HilightMouseover();
             void LoadCursors();
             void OnEntityAlloc(om::EntityPtr entity);
             void ComponentAdded(om::EntityRef e, dm::ObjectType type, std::shared_ptr<dm::Object> component);
-            void BrowserRequestHandler(std::string const& uri, std::string const& query, std::string const& postdata, std::shared_ptr<chromium::IResponse> response) const;
+            void BrowserRequestHandler(std::string const& uri, std::string const& query, std::string const& postdata, std::shared_ptr<chromium::IResponse> response);
+            void HandlePostRequest(std::string const& path, std::string const& postdata, std::shared_ptr<chromium::IResponse> response);
+            void GetRemoteObject(std::string const& uri, std::string const& query, std::shared_ptr<chromium::IResponse> response);
+            void GetEvents(std::string const& query, std::shared_ptr<chromium::IResponse> response);
+            void FlushEvents();
 
       private:
-            typedef std::unordered_map<dm::TraceId, SelectedTraceFn> SelectedTraceMap;
             enum TraceTypes {
                ShowBuildOrdersTraces,
             };
@@ -221,7 +219,6 @@ namespace radiant {
 
             dm::TraceId             nextTraceId_;
             dm::GuardSet              guards_;
-            SelectedTraceMap        selectedTraces_;
 
             int                     _send_ahead_commands;
 
@@ -258,14 +255,12 @@ namespace radiant {
             HWND                             hwnd_;
             std::shared_ptr<Selector>             selector_;
             int                              now_;
-            std::unique_ptr<RestAPI>         api_;
             int                              nextDeferredCommandId_;
             bool                             showBuildOrders_;
 
             std::unordered_map<dm::ObjectId, std::shared_ptr<dm::Object>> objects_;
             std::unordered_map<dm::ObjectId, om::EntityPtr> entities_;
             dm::TraceMap<TraceTypes>         traces_;
-            std::map<std::pair<RestAPI::SessionId, dm::TraceId>, std::shared_ptr<TraceInterface>> _entitiesTraces;
             std::shared_ptr<Command>         currentCommand_;
             HCURSOR                          currentCommandCursor_;
             std::shared_ptr<Command>         currentTool_;
@@ -278,6 +273,9 @@ namespace radiant {
 
             int                              last_server_request_id_;
             std::map<int, std::function<void(tesseract::protocol::Update const& reply)> >  server_requests_;
+            std::mutex                       lock_;
+            std::vector<JSONNode>            queued_events_;
+            std::shared_ptr<chromium::IResponse>   get_events_request_;
       };
    };
 };

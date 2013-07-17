@@ -20,7 +20,8 @@ public:
 
    typedef int SessionId;
 
-   bool OnNewRequest(std::string uri, std::string query, std::string postdata, ResponseFn fn);
+   bool Get(std::string uri, std::string query, ResponseFn fn);
+   bool Post(std::string uri, std::string query, std::string postdata, ResponseFn fn);
    void QueueEvent(std::string evt, JSONNode data);
    void QueueEventFor(SessionId session, std::string evt, JSONNode data);
    void FlushEvents();

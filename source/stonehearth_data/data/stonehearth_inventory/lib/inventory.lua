@@ -108,8 +108,9 @@ function Inventory:find_item_to_restock(worker_entity, cb)
       local item_entity = path_to_item:get_destination()
       local path_to_stockpile = self._item_restock_paths[item_entity:get_id()]
       if path_to_stockpile then
+         local drop_location = path_to_stockpile:get_finish_point()
          self._restock_pathfinder:remove_entity(worker_entity:get_id())
-         cb(item_entity, path_to_item, path_to_stockpile)
+         cb(item_entity, path_to_item, path_to_stockpile, drop_location)
       else
          -- this shouldn't happen...
          self._restock_pathfinder:remove_destination(item_entity)

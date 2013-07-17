@@ -33,6 +33,14 @@ App.UnitFrameView = App.View.extend({
             event_data : command.event_data
          };
          $(top).trigger(command.event_name, e);
+      } else if (command.action == 'post') {         
+         // $.post(command.post_uri, command.post_data);
+         $.ajax({
+            type: 'post',
+            url: command.post_uri,
+            contentType: 'application/json',
+            data: JSON.stringify(command.post_data)
+         });
       }
    },
 
