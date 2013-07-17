@@ -125,7 +125,18 @@ RenderInnerEffectList::RenderInnerEffectList(RenderEntity& renderEntity, om::Eff
       } else if (type == "hide_bone") {
          e = std::make_shared<HideBoneEffect>(renderEntity, effect, node); 
       } else if (type == "music_effect") {
-          e = std::make_shared<PlayMusicEffect>(renderEntity, effect, node); 
+         //e = std::make_shared<PlayMusicEffect>(renderEntity, effect, node); 
+         
+         bool is_first_creation = SingMusicEffect::IsFirstCreation();
+         //TODO: why does e stop getting updates unless it is re-added every new music?
+         //Can't it just be added once, at first creation?
+         //if (is_first_creation) {
+            //e = SingMusicEffect::GetMusicInstance(renderEntity);
+         //}
+         std::shared_ptr<SingMusicEffect> m = SingMusicEffect::GetMusicInstance(renderEntity);
+         m ->PlayMusic(renderEntity, effect, node); 
+         e = m;
+         
       }
       if (e) {
          effects_.push_back(e);
@@ -249,7 +260,7 @@ PlayMusicEffect::PlayMusicEffect(RenderEntity& e, om::EffectPtr effect, const JS
    if (music_.openFromFile(trackName)) {
       music_.setLoop(loop_);
 	   music_.play();
-   } else {
+   } else { 
       LOG(INFO) << "Can't find Music! " << trackName;
    }
 }
@@ -435,3 +446,105 @@ void FloatingCombatTextEffect::Update(int now, int dt, bool& finished)
    tweener_->update((double)dt);
    h3dSetNodeTransform(toastNode_->GetNode(), 0, static_cast<float>(height_), 0, 0, 0, 0, 1, 1, 1);
 }
+
+
+/*"Singleton" version of PlayMusic*/
+//Global static single instance
+std::shared_ptr<SingMusicEffect> SingMusicEffect::music_instance_ = NULL;
+bool SingMusicEffect::first_creation_ = true;
+
+//Use this to get the Music instance. Creates a new instance if necessary
+std::shared_ptr<SingMusicEffect> SingMusicEffect::GetMusicInstance(RenderEntity& e) {
+   if (!music_instance_) {   // Only allow one instance of class to be generated.
+      //TODO: if we need the entity and can't assign it in PlayMusic,
+      //merge function with PlayMusic and create a new instance each time with the
+      //appropriate RenderEntity
+      music_instance_ = std::make_shared<SingMusicEffect>(e);
+      first_creation_ = false; 
+    }
+    return music_instance_;
+}
+
+//TODO: remove if we always have to add the effect whenever the list is called
+bool SingMusicEffect::IsFirstCreation() 
+{
+    return first_creation_;
+}
+
+//Call when we want to play a new song
+void SingMusicEffect::PlayMusic(RenderEntity& e, om::EffectPtr effect, const JSONNode& node)
+{
+   //TODO: Unfortunately, we can't seem to assign entity here.
+   //Fortunately, it doesn't really matter, since the entity is always the root node
+   //TODO: what about local battle music? Make singleton create new on GetInstance?
+   //entity_ = e;
+
+   std::string trackName = node["track"].as_string();
+   loop_ = node["loop"].as_bool();
+
+   //If there is already music playing, note next track for update
+   if (music_.getStatus() == sf::Music::Playing) {
+     next_track_ = trackName;
+   } else {
+      //If there is no music, immediately start bg music
+      if (music_.openFromFile(trackName)) {
+         music_.setLoop(loop_);
+	      music_.play();
+      } else { 
+         LOG(INFO) << "Can't find Music! " << trackName;
+      }
+   }
+}
+
+//TODO: Why can't I seem to make this private?
+SingMusicEffect::SingMusicEffect(RenderEntity& e) : 
+   entity_(e)
+{
+   next_track_ = "";
+   volume_ = 100;
+   tweener_ = NULL;
+}
+
+//TODO: Why can't I seem to make this private?
+SingMusicEffect::~SingMusicEffect()
+{
+   //Since there's only one, do we ever need to dispose?
+}
+
+//On update, keep playing the current BG music, unless there is a new music track
+//If so, fade out the old one and eventually introduce the new one. 
+void SingMusicEffect::Update(int now, int dt, bool& finished)
+{
+    //There's always some BG music playing, so this is never false. Right?
+    finished = false;
+
+    if (next_track_.length() > 0) {
+       if (!tweener_.get()) {
+          //if we have another track to do and the tweener is null, then create a new tweener
+          //TODO: get rid of magic numbers, pick best easing function
+          tweener_.reset(new claw::tween::single_tweener(volume_, 0, 2000, get_easing_function("sine_out")));
+       } else {
+          //There is a next track and a tweener, we must be in the process of quieting the prev music
+          if (tweener_->is_finished()) {
+             //If the tweener is finished, play the next track
+             tweener_ = NULL;
+             music_.stop();
+             if (music_.openFromFile(next_track_)) {
+                music_.setLoop(loop_);
+                //TODO: crossfade
+                volume_ = 100;
+                music_.setVolume(volume_);
+	             music_.play();
+             } else { 
+                LOG(INFO) << "Can't find Music! " << next_track_;
+             }
+             next_track_ = "";
+          } else {
+            //If the tweener is not finished, soften the volume
+            tweener_->update((double)dt);
+            music_.setVolume(volume_);
+          }
+       }
+   }
+}
+

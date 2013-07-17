@@ -95,6 +95,48 @@ private:
    bool           loop_;
 };
 
+/*Sample Singleton, for playing BG music*/
+struct SingMusicEffect : public RenderEffect {
+public:
+   static std::shared_ptr<SingMusicEffect> GetMusicInstance(RenderEntity& e);
+   void PlayMusic(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
+   static bool IsFirstCreation();
+   void Update(int now, int dt, bool& done) override;
+
+   //Getting erros if this is private
+   SingMusicEffect(RenderEntity& e);  // Private so that it can  not be called
+   ~SingMusicEffect();   //If this is private, will it ever get called?
+
+
+private:
+   //TODO: do we need to make the copy constructor and assignment operator private also?
+   static std::shared_ptr<SingMusicEffect> music_instance_;
+   static bool first_creation_;
+
+   RenderEntity&	entity_;
+   sf::Music      music_;
+   bool           loop_;
+   std::string    next_track_;
+   double         volume_;
+   std::unique_ptr<claw::tween::single_tweener> tweener_;
+};
+
+/* For playing short sound effects
+struct PlaySoundEffect : public RenderEffect {
+public:
+	PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
+	~PlaySoundEffect();
+
+	void Update(int now, int dt, bool& done) override;
+
+private:
+	RenderEntity&	 entity_;
+   sf::SoundBuffer sound_buffer_;
+   sf::Sound       sound_;
+   bool            loop_;
+};
+*/
+
 struct RenderInnerEffectList {
    RenderInnerEffectList() {}
    RenderInnerEffectList(RenderEntity& e, om::EffectPtr effect);
