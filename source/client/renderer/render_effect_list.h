@@ -93,14 +93,14 @@ private:
 	RenderEntity&	entity_;
    sf::Music      music_;
    bool           loop_;
+   int            startTime_;
 };
 
 /*Sample Singleton, for playing BG music*/
 struct SingMusicEffect : public RenderEffect {
 public:
    static std::shared_ptr<SingMusicEffect> GetMusicInstance(RenderEntity& e);
-   void PlayMusic(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
-   static bool IsFirstCreation();
+   void PlayMusic(om::EffectPtr effect, const JSONNode& node);
    void Update(int now, int dt, bool& done) override;
 
    //Getting erros if this is private
@@ -111,19 +111,20 @@ public:
 private:
    //TODO: do we need to make the copy constructor and assignment operator private also?
    static std::shared_ptr<SingMusicEffect> music_instance_;
-   static bool first_creation_;
 
    RenderEntity&	entity_;
    sf::Music      music_;
    bool           loop_;
-   std::string    next_track_;
+   std::string    nextTrack_;
    double         volume_;
+   int            startTime_;
    std::unique_ptr<claw::tween::single_tweener> tweener_;
 };
 
-/* For playing short sound effects
+/* For playing short sound effects*/
 struct PlaySoundEffect : public RenderEffect {
 public:
+   static bool ShouldCreateSound();
 	PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
 	~PlaySoundEffect();
 
@@ -131,11 +132,17 @@ public:
 
 private:
 	RenderEntity&	 entity_;
-   sf::SoundBuffer sound_buffer_;
+   sf::SoundBuffer soundBuffer_;
    sf::Sound       sound_;
    bool            loop_;
+   int             startTime_;
+   int             delay_;
+   bool            firstPlay_;
+   int             attenuation_; //How hard it is to hear the sound at distance. 1 is easy, 100 is hard to hear
+   int             minDistance_; //distance under which sound will be heard at maximum volume. 1 is default
+
+   static int      numSounds_;
 };
-*/
 
 struct RenderInnerEffectList {
    RenderInnerEffectList() {}

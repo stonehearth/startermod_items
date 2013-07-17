@@ -125,18 +125,19 @@ RenderInnerEffectList::RenderInnerEffectList(RenderEntity& renderEntity, om::Eff
       } else if (type == "hide_bone") {
          e = std::make_shared<HideBoneEffect>(renderEntity, effect, node); 
       } else if (type == "music_effect") {
+         //Use this class if you just want simple, single-track background music
          //e = std::make_shared<PlayMusicEffect>(renderEntity, effect, node); 
          
-         bool is_first_creation = SingMusicEffect::IsFirstCreation();
-         //TODO: why does e stop getting updates unless it is re-added every new music?
-         //Can't it just be added once, at first creation?
-         //if (is_first_creation) {
-            //e = SingMusicEffect::GetMusicInstance(renderEntity);
-         //}
+         //Use this if you want the current bg music to fade out before new bg music starts to play
+         //TODO: remove this class when we have lua event interrupting
          std::shared_ptr<SingMusicEffect> m = SingMusicEffect::GetMusicInstance(renderEntity);
-         m ->PlayMusic(renderEntity, effect, node); 
+         m ->PlayMusic(effect, node); 
          e = m;
          
+      } else if (type == "sound_effect") {
+         if (PlaySoundEffect::ShouldCreateSound()) {
+            e = std::make_shared<PlaySoundEffect>(renderEntity, effect, node); 
+         }
       }
       if (e) {
          effects_.push_back(e);
@@ -251,32 +252,6 @@ void HideBoneEffect::Update(int now, int dt, bool& finished)
    }
    finished = true;
 }
-
-PlayMusicEffect::PlayMusicEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
-	entity_(e)
-{
-	std::string trackName = node["track"].as_string();
-   loop_ = node["loop"].as_bool();
-   if (music_.openFromFile(trackName)) {
-      music_.setLoop(loop_);
-	   music_.play();
-   } else { 
-      LOG(INFO) << "Can't find Music! " << trackName;
-   }
-}
-
-PlayMusicEffect::~PlayMusicEffect()
-{
-    //How to destroy this?
-    //music_ = NULL;
-}
-
-void PlayMusicEffect::Update(int now, int dt, bool& finished)
-{
-    //TODO: figure out when we're finished. Are we ever finished?
-    finished = false;
-}
-
 
 RenderAttachItemEffect::RenderAttachItemEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
    entity_(e),
@@ -447,44 +422,81 @@ void FloatingCombatTextEffect::Update(int now, int dt, bool& finished)
    h3dSetNodeTransform(toastNode_->GetNode(), 0, static_cast<float>(height_), 0, 0, 0, 0, 1, 1, 1);
 }
 
+/* PlayMusicEffect
+ * Constructor
+ * Simple class to play background music
+ * TODO: when we have the ability to interrupt effects, return to using this
+ * and add code to quiet the music as it fades.
+**/
+PlayMusicEffect::PlayMusicEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
+	entity_(e)
+{
+   startTime_ = effect->GetStartTime();
+	std::string trackName = node["track"].as_string();
+   loop_ = node["loop"].as_bool();
+   if (music_.openFromFile(trackName)) {
+      music_.setLoop(loop_);
+	   music_.play();
+   } else { 
+      LOG(INFO) << "Can't find Music! " << trackName;
+   }
+}
 
-/*"Singleton" version of PlayMusic*/
-//Global static single instance
+PlayMusicEffect::~PlayMusicEffect()
+{
+    //Nothing actually needs to be destroyed here
+}
+
+/* PlayMusicEffect::Update
+ * On update, check if we are finished.
+ * If we're looping, we're never finished. If we aren't looping,
+ * then finished is true if we're past the start time and music duration.
+ * TODO: implement delay for background music?
+**/
+void PlayMusicEffect::Update(int now, int dt, bool& finished)
+{
+   if (music_.getLoop()) {
+      finished = false;
+   } else {
+      finished = now > startTime_ + music_.getDuration().asMilliseconds(); 
+   }
+}
+
+/* "Singleton" version of PlayMusicEffect*
+ * Uses GetMusicInstance to call the constructor, so that we can be sure to
+ * quiet the old music before playing the new music passed in. 
+ * TODO: Replace with simple verson once we have a mechanism to quiet music.
+**/
+#define SING_MUSIC_EFFECT_DEF_VOL 100; //Matches sfml default
+#define SING_MUSIC_EFFECT_FADE 2000;
 std::shared_ptr<SingMusicEffect> SingMusicEffect::music_instance_ = NULL;
-bool SingMusicEffect::first_creation_ = true;
 
-//Use this to get the Music instance. Creates a new instance if necessary
+/* SingMusicEffect::GetMusicInstance
+ * Use this static function to get the music instance.
+ * Create a new one if necessary
+ * Returns a shared ptr to a SingMusicInstance.
+**/
 std::shared_ptr<SingMusicEffect> SingMusicEffect::GetMusicInstance(RenderEntity& e) {
-   if (!music_instance_) {   // Only allow one instance of class to be generated.
-      //TODO: if we need the entity and can't assign it in PlayMusic,
-      //merge function with PlayMusic and create a new instance each time with the
-      //appropriate RenderEntity
+   if (!music_instance_) {   
+      //TODO: If we want music to be tied to a particular activity, and fade as we get further
+      //we may need to create a new instance each time since the entity can only be assigned in the constructor
       music_instance_ = std::make_shared<SingMusicEffect>(e);
-      first_creation_ = false; 
     }
     return music_instance_;
 }
 
-//TODO: remove if we always have to add the effect whenever the list is called
-bool SingMusicEffect::IsFirstCreation() 
-{
-    return first_creation_;
-}
-
-//Call when we want to play a new song
-void SingMusicEffect::PlayMusic(RenderEntity& e, om::EffectPtr effect, const JSONNode& node)
-{
-   //TODO: Unfortunately, we can't seem to assign entity here.
-   //Fortunately, it doesn't really matter, since the entity is always the root node
-   //TODO: what about local battle music? Make singleton create new on GetInstance?
-   //entity_ = e;
-
+/* SingMusicEffect::PlayMusic
+ * Call whenever we have a new song to play
+**/
+void SingMusicEffect::PlayMusic(om::EffectPtr effect, const JSONNode& node)
+{   
+   startTime_ = effect->GetStartTime();
    std::string trackName = node["track"].as_string();
    loop_ = node["loop"].as_bool();
 
    //If there is already music playing, note next track for update
    if (music_.getStatus() == sf::Music::Playing) {
-     next_track_ = trackName;
+     nextTrack_ = trackName;
    } else {
       //If there is no music, immediately start bg music
       if (music_.openFromFile(trackName)) {
@@ -496,49 +508,55 @@ void SingMusicEffect::PlayMusic(RenderEntity& e, om::EffectPtr effect, const JSO
    }
 }
 
-//TODO: Why can't I seem to make this private?
+/* SingMusicEffect
+ * Constructor (Public, but do not call!)
+ * Unfortunately, can't make this private because the shared ptr expects it
+**/
 SingMusicEffect::SingMusicEffect(RenderEntity& e) : 
    entity_(e)
 {
-   next_track_ = "";
-   volume_ = 100;
+   nextTrack_ = "";
+   volume_ = SING_MUSIC_EFFECT_DEF_VOL;
    tweener_ = NULL;
 }
 
-//TODO: Why can't I seem to make this private?
 SingMusicEffect::~SingMusicEffect()
 {
-   //Since there's only one, do we ever need to dispose?
 }
 
-//On update, keep playing the current BG music, unless there is a new music track
-//If so, fade out the old one and eventually introduce the new one. 
+/* SingMusicEffect::Update
+ * On update, keep playing the current BG music, unless there is a new music track
+ * If so, fade out the old one and eventually introduce the new one. 
+**/
 void SingMusicEffect::Update(int now, int dt, bool& finished)
 {
-    //There's always some BG music playing, so this is never false. Right?
-    finished = false;
+    if (music_.getLoop()) {
+       finished = false;
+    } else {
+        finished = now > startTime_ + music_.getDuration().asMilliseconds(); 
+    }
 
-    if (next_track_.length() > 0) {
+    //If there is another track to play after this one
+    if (nextTrack_.length() > 0) {
        if (!tweener_.get()) {
           //if we have another track to do and the tweener is null, then create a new tweener
-          //TODO: get rid of magic numbers, pick best easing function
-          tweener_.reset(new claw::tween::single_tweener(volume_, 0, 2000, get_easing_function("sine_out")));
+          int fade = SING_MUSIC_EFFECT_FADE;
+          tweener_.reset(new claw::tween::single_tweener(volume_, 0, fade, get_easing_function("sine_out")));
        } else {
           //There is a next track and a tweener, we must be in the process of quieting the prev music
           if (tweener_->is_finished()) {
              //If the tweener is finished, play the next track
              tweener_ = NULL;
              music_.stop();
-             if (music_.openFromFile(next_track_)) {
-                music_.setLoop(loop_);
+             if (music_.openFromFile(nextTrack_)) {
                 //TODO: crossfade
-                volume_ = 100;
+                volume_ = SING_MUSIC_EFFECT_DEF_VOL;
                 music_.setVolume(volume_);
 	             music_.play();
              } else { 
-                LOG(INFO) << "Can't find Music! " << next_track_;
+                LOG(INFO) << "Can't find Music! " << nextTrack_;
              }
-             next_track_ = "";
+             nextTrack_ = "";
           } else {
             //If the tweener is not finished, soften the volume
             tweener_->update((double)dt);
@@ -547,4 +565,89 @@ void SingMusicEffect::Update(int now, int dt, bool& finished)
        }
    }
 }
+
+
+/* PlaySoundEffect
+ * Class to play a short sound. Loads sound into memory.
+ * Can only play 250 sounds at once; limitation of sfml
+ * Be sure to call ShouldCreateSound() before calling the constructor.
+ * TODO: Theoretically, we could keep a hash of all the soundbuffers
+ * so we could just have 1 buffer per type of sound; revisit if
+ * optimization is required.
+**/
+
+//Static variable to keep track of the total number of sounds
+int PlaySoundEffect::numSounds_ = 0;
+
+/* PlaySoundEffect::ShouldCreateSound
+ * Static function to check if we already have more than 250 sounds. If so
+ * returns false. Otherwise, returns true. Call before calling the constructor.
+*/
+bool PlaySoundEffect::ShouldCreateSound() {
+   return (numSounds_ <= 250);
+}
+
+/* PlaySoundEffect
+ * Constructor
+ * When we have a new effect, create an sf::SoundBuffer and sf::Sound to play it
+ * Store all relevant parameters
+*/
+PlaySoundEffect::PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
+	entity_(e)
+{
+   firstPlay_ = true;
+   startTime_ = effect->GetStartTime();
+	std::string trackName = node["track"].as_string();
+   delay_ = node["start_time"].as_int();
+   loop_ = node["loop"].as_bool();
+   attenuation_ = node["attenuation"].as_int();
+   minDistance_ = node["min_distance"].as_int();
+   numSounds_++;
+
+   if (soundBuffer_.loadFromFile(trackName)) {
+      sound_.setBuffer(soundBuffer_);
+      sound_.setLoop(loop_);
+      if (delay_ == 0) {
+	      sound_.play();
+      }
+   } else { 
+      LOG(INFO) << "Can't find Sound Effect! " << trackName;
+   }
+
+}
+
+PlaySoundEffect::~PlaySoundEffect()
+{
+    numSounds_--;
+}
+
+/* PlaySoundEffect::Update
+ * Update location of sound.
+ * If we were delaying the sound start and now is the time to actually start the sound, start it. 
+ * If the sound was in a loop, we are not yet finished.
+ * If the sound is finished, set finished to true
+**/
+void PlaySoundEffect::Update(int now, int dt, bool& finished)
+{
+   om::MobPtr mobP = entity_.GetEntity()->GetComponent<om::Mob>();
+   if (mobP) {
+      math3d::point3 loc = mobP -> GetWorldLocation();
+      sound_.setPosition(loc.x, loc.y, loc.z);
+   }
+
+   if (delay_ > 0 && firstPlay_ && (now > startTime_+ delay_) ) {
+      sound_.play();
+      firstPlay_ = false;
+      finished = false;
+   } else if (sound_.getLoop()) {
+      finished = false;
+   } else {
+      finished = now > startTime_ + delay_ + soundBuffer_.getDuration().asMilliseconds(); 
+   }
+
+}
+
+
+
+
 

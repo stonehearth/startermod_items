@@ -15,6 +15,15 @@
          "end_time": 0,
          "item": "file(worker_axe)",
          "bone": "mainHand"
+      },
+      "music": {
+         "type": "sound_effect",
+         "start_time": 200,
+         "end_time": 1000,
+         "attenuation" : 10,
+         "min_distance" : 10,
+         "track" : "data/stonehearth_human_race/rigs/male/sounds/axe_tree.ogg",
+         "loop": false
       }
    }
 }
