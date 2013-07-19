@@ -81,7 +81,7 @@ private:
    int                           boneNodeFlags_;
 };
 
-/* For playing background music*/
+/* For playing simple background music*/
 struct PlayMusicEffect : public RenderEffect {
 public:
 	PlayMusicEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
@@ -90,13 +90,13 @@ public:
 	void Update(int now, int dt, bool& done) override;
 
 private:
-	RenderEntity&	entity_;
+   RenderEntity&	entity_;
    sf::Music      music_;
    bool           loop_;
    int            startTime_;
 };
 
-/*Sample Singleton, for playing BG music*/
+/*Singleton, for playing fading BG music. Replace with simple version later.*/
 struct SingMusicEffect : public RenderEffect {
 public:
    static std::shared_ptr<SingMusicEffect> GetMusicInstance(RenderEntity& e);
@@ -126,8 +126,8 @@ private:
 struct PlaySoundEffect : public RenderEffect {
 public:
    static bool ShouldCreateSound();
-	PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
-	~PlaySoundEffect();
+   PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
+   ~PlaySoundEffect();
 
 	void Update(int now, int dt, bool& done) override;
 

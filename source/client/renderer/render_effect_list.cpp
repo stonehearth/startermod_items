@@ -133,7 +133,6 @@ RenderInnerEffectList::RenderInnerEffectList(RenderEntity& renderEntity, om::Eff
          std::shared_ptr<SingMusicEffect> m = SingMusicEffect::GetMusicInstance(renderEntity);
          m ->PlayMusic(effect, node); 
          e = m;
-         
       } else if (type == "sound_effect") {
          if (PlaySoundEffect::ShouldCreateSound()) {
             e = std::make_shared<PlaySoundEffect>(renderEntity, effect, node); 
@@ -429,7 +428,7 @@ void FloatingCombatTextEffect::Update(int now, int dt, bool& finished)
 
 /* PlayMusicEffect
  * Constructor
- * Simple class to play background music
+ * Simple class to play background music, currently not in use
  * TODO: when we have the ability to interrupt effects, return to using this
  * and add code to quiet the music as it fades.
 **/
@@ -451,7 +450,7 @@ PlayMusicEffect::PlayMusicEffect(RenderEntity& e, om::EffectPtr effect, const JS
 
    if (music_.openFromFile(trackName)) {
       music_.setLoop(loop_);
-	   music_.play();
+      music_.play();
    } else { 
       LOG(INFO) << "Can't find Music! " << trackName;
    }
@@ -493,7 +492,8 @@ std::shared_ptr<SingMusicEffect> SingMusicEffect::music_instance_ = NULL;
  * Create a new one if necessary
  * Returns a shared ptr to a SingMusicInstance.
 **/
-std::shared_ptr<SingMusicEffect> SingMusicEffect::GetMusicInstance(RenderEntity& e) {
+std::shared_ptr<SingMusicEffect> SingMusicEffect::GetMusicInstance(RenderEntity& e)
+{
    if (!music_instance_) {   
       //TODO: If we want music to be tied to a particular activity, and fade as we get further
       //we may need to create a new instance each time since the entity can only be assigned in the constructor
@@ -555,40 +555,40 @@ SingMusicEffect::~SingMusicEffect()
 **/
 void SingMusicEffect::Update(int now, int dt, bool& finished)
 {
-    if (music_.getLoop()) {
-       finished = false;
-    } else {
-        finished = now > startTime_ + music_.getDuration().asMilliseconds(); 
-    }
+   if (music_.getLoop()) {
+      finished = false;
+   } else {
+      finished = now > startTime_ + music_.getDuration().asMilliseconds(); 
+   }
 
-    //If there is another track to play after this one
-    if (nextTrack_.length() > 0) {
-       if (!tweener_.get()) {
-          //if we have another track to do and the tweener is null, then create a new tweener
-          int fade = SING_MUSIC_EFFECT_FADE;
-          tweener_.reset(new claw::tween::single_tweener(volume_, 0, fade, get_easing_function("sine_out")));
-       } else {
-          //There is a next track and a tweener, we must be in the process of quieting the prev music
-          if (tweener_->is_finished()) {
-             //If the tweener is finished, play the next track
-             tweener_ = NULL;
-             music_.stop();
-             if (music_.openFromFile(nextTrack_)) {
-                //TODO: crossfade
-                volume_ = SING_MUSIC_EFFECT_DEF_VOL;
-                music_.setVolume(volume_);
-                music_.setLoop(loop_);
-	             music_.play();
-             } else { 
-                LOG(INFO) << "Can't find Music! " << nextTrack_;
-             }
-             nextTrack_ = "";
-          } else {
+   //If there is another track to play after this one
+   if (nextTrack_.length() > 0) {
+      if (!tweener_.get()) {
+         //if we have another track to do and the tweener is null, then create a new tweener
+         int fade = SING_MUSIC_EFFECT_FADE;
+         tweener_.reset(new claw::tween::single_tweener(volume_, 0, fade, get_easing_function("sine_out")));
+      } else {
+         //There is a next track and a tweener, we must be in the process of quieting the prev music
+         if (tweener_->is_finished()) {
+            //If the tweener is finished, play the next track
+            tweener_ = NULL;
+            music_.stop();
+            if (music_.openFromFile(nextTrack_)) {
+            //TODO: crossfade
+            volume_ = SING_MUSIC_EFFECT_DEF_VOL;
+            music_.setVolume(volume_);
+            music_.setLoop(loop_);
+            music_.play();
+            } else { 
+               LOG(INFO) << "Can't find Music! " << nextTrack_;
+            }
+            nextTrack_ = "";
+         } else {
             //If the tweener is not finished, soften the volume
             tweener_->update((double)dt);
             music_.setVolume(volume_);
-          }
-       }
+         }
+      }
    }
 }
 

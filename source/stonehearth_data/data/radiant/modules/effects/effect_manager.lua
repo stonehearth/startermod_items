@@ -19,7 +19,6 @@ function EffectManager:__init(entity)
 
       local obj = radiant.resources.load_json(self.animation_table_name)
       self._effects_root = obj.effects_root
-
    end
 end
 
