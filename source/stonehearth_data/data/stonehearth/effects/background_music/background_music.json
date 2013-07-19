@@ -1,0 +1,9 @@
+{
+   "type" : "effect",
+   "tracks": {
+      "music": {
+         "type": "music_effect",
+         "track" : "file(soothing.ogg)"
+      }
+   }
+}

@@ -16,3 +16,8 @@ xcopy /d %LUA_ROOT%\lua5.1.dll %DST%
 set CE_ROOT=%RADIANT_ROOT%\chromium-embedded\package\bin
 xcopy /d /s %CE_ROOT%\common\* %DST%
 xcopy /d %CE_ROOT%\%CFG%\* %DST%
+
+:: sfml 
+set SFML_ROOT=%RADIANT_ROOT%\stonehearth-dependencies\sfml-2.0\package\bin
+xcopy /d /s %SFML_ROOT%\* %DST%
+
