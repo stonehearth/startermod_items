@@ -22,13 +22,13 @@ end
 
 -- Play the passed-in music effect. Stop any currently running music effect
 function BgmManager:play_music_effect(effect_uri)
-   self:stop_curr_music()
+   self:stop_current()
    self._curr_music_effect =
       radiant.effects.run_effect(radiant.entities.get_root_entity(), effect_uri)
 end
 
 -- If there is currently music running, stop it
-function BgmManager:stop_curr_music()
+function BgmManager:stop_current()
    if self._curr_music_effect then
       --TODO: fade first
       self._curr_music_effect:stop()

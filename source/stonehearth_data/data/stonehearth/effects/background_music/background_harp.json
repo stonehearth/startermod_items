@@ -1,9 +1,9 @@
 {
    "type" : "effect",
    "tracks": {
-      "music": {
+      "sound": {
          "type": "music_effect",
-         "track" : "file(soothing.ogg)"
+         "track" : "file(af_the_pearl.ogg)"
       }
    }
 }

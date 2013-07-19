@@ -33,7 +33,7 @@ function EffectTracks:__init(mgr, entity, effect_path, effect_name, start_time, 
          table.insert(self._effects, TriggerEffect(start_time, trigger_handler, e, self._effect))
       elseif e.type == "attack_frame_data" then
          table.insert(self._effects, FrameDataEffect(start_time, trigger_handler, e, self._effect))
-      elseif e.type == "music_effect" then
+      elseif e.type == "music_effect" or e.type == "sound_effect" then
          table.insert(self._effects, MusicEffect(start_time, trigger_handler, e, self._effect, args))
       else
          radiant.log.info('unknown effect type "%s".  using generic', e.type)

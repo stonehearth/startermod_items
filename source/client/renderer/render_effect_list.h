@@ -11,7 +11,7 @@
 #include "render_component.h"
 #include "resources/animation.h"
 #include "om/components/effect_list.h"
-#include <SFML\Audio.hpp>
+#include <SFML/Audio.hpp>
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -122,6 +122,7 @@ private:
 };
 
 /* For playing short sound effects*/
+
 struct PlaySoundEffect : public RenderEffect {
 public:
    static bool ShouldCreateSound();
@@ -131,17 +132,19 @@ public:
 	void Update(int now, int dt, bool& done) override;
 
 private:
-	RenderEntity&	 entity_;
+   static int      numSounds_;
+
+   RenderEntity&	 entity_;
    sf::SoundBuffer soundBuffer_;
    sf::Sound       sound_;
-   bool            loop_;
-   int             startTime_;
-   int             delay_;
-   bool            firstPlay_;
-   int             attenuation_; //How hard it is to hear the sound at distance. 1 is easy, 100 is hard to hear
-   int             minDistance_; //distance under which sound will be heard at maximum volume. 1 is default
+   int             startTime_;   //Time when the sound starts to play
+   bool            firstPlay_;   //Whether this is the first time we're playing the sound
+   int             delay_;       //How long to wait before starting the sound
+   int             maxDistance_; //distance under which sound will be heard at maximum volume. 1 is default
 
-   static int      numSounds_;
+   void  AssignFromJSON_(const JSONNode& node);
+   float CalculateAttenuation_(int maxDistance, int minDistance);
+
 };
 
 struct RenderInnerEffectList {

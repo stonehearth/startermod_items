@@ -13,17 +13,13 @@ function EffectManager:__init(entity)
    -- xxx: the animation_table should be on the entity?  what if we have no rigs
    -- at all?  or should "render_rig" be renamed something more appropriate?
    local render_rig = entity:get_component('render_rig')
-   if (render_rig) then
+   if render_rig then
       self.animation_table_name = render_rig:get_animation_table()
-      --Is this used?
-      local uri = entity:get_resource_uri()
       assert(#self.animation_table_name > 0)
 
       local obj = radiant.resources.load_json(self.animation_table_name)
       self._effects_root = obj.effects_root
-      --Is this used?
-      local i
-      i = 0
+
    end
 end
 
@@ -75,7 +71,7 @@ end
 function EffectManager:_get_effect_path(effect_name)
    --If effect_name starts with /, return effect name, otherwise return root+name
    local first_char = effect_name:sub(1,1)
-   if (first_char == "/") then
+   if first_char == "/" then
       return effect_name
    end
    return self._effects_root .. '/' .. effect_name .. '.json'

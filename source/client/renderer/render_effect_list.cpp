@@ -25,7 +25,7 @@
 #include "resources/res_manager.h"
 #include "resources/animation.h"
 #include "radiant_json.h"
-#include <SFML\Audio.hpp>
+#include <SFML/Audio.hpp>
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -422,18 +422,33 @@ void FloatingCombatTextEffect::Update(int now, int dt, bool& finished)
    h3dSetNodeTransform(toastNode_->GetNode(), 0, static_cast<float>(height_), 0, 0, 0, 0, 1, 1, 1);
 }
 
+/* Sound Effect Classes 
+ * See http://wiki.rad-ent.com/doku.php?id=adding_music_and_sound_effects&#adding_a_sound_effect 
+ * for a full description of how to create a sound effect in json that is then interpreted here.
+ */
+
 /* PlayMusicEffect
  * Constructor
  * Simple class to play background music
  * TODO: when we have the ability to interrupt effects, return to using this
  * and add code to quiet the music as it fades.
 **/
+#define PLAY_MUSIC_EFFECT_DEFAULT_LOOP true;
+
 PlayMusicEffect::PlayMusicEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
 	entity_(e)
 {
    startTime_ = effect->GetStartTime();
-	std::string trackName = node["track"].as_string();
-   loop_ = node["loop"].as_bool();
+   std::string trackName = resources::ResourceManager2::GetInstance().GetResourceFileName(
+      node["track"].as_string(), "");
+
+   loop_ = PLAY_MUSIC_EFFECT_DEFAULT_LOOP;
+
+   auto i = node.find("loop");
+   if (i != node.end()) {
+      loop_ = (bool)i->as_bool();
+   }
+
    if (music_.openFromFile(trackName)) {
       music_.setLoop(loop_);
 	   music_.play();
@@ -467,8 +482,10 @@ void PlayMusicEffect::Update(int now, int dt, bool& finished)
  * quiet the old music before playing the new music passed in. 
  * TODO: Replace with simple verson once we have a mechanism to quiet music.
 **/
-#define SING_MUSIC_EFFECT_DEF_VOL 100; //Matches sfml default
-#define SING_MUSIC_EFFECT_FADE 2000;
+#define SING_MUSIC_EFFECT_DEF_VOL 40; //I like my music quieter than my sound effects
+#define SING_MUSIC_EFFECT_FADE 2000;  //MS to have old music fade
+#define SING_MUSIC_EFFECT_DEFAULT_LOOP true;
+
 std::shared_ptr<SingMusicEffect> SingMusicEffect::music_instance_ = NULL;
 
 /* SingMusicEffect::GetMusicInstance
@@ -491,8 +508,15 @@ std::shared_ptr<SingMusicEffect> SingMusicEffect::GetMusicInstance(RenderEntity&
 void SingMusicEffect::PlayMusic(om::EffectPtr effect, const JSONNode& node)
 {   
    startTime_ = effect->GetStartTime();
-   std::string trackName = node["track"].as_string();
-   loop_ = node["loop"].as_bool();
+   std::string trackName = resources::ResourceManager2::GetInstance().GetResourceFileName(
+      node["track"].as_string(), "");
+   
+   loop_ = SING_MUSIC_EFFECT_DEFAULT_LOOP;
+
+   auto i = node.find("loop");
+   if (i != node.end()) {
+      loop_ = (bool)i->as_bool();
+   }
 
    //If there is already music playing, note next track for update
    if (music_.getStatus() == sf::Music::Playing) {
@@ -501,6 +525,7 @@ void SingMusicEffect::PlayMusic(om::EffectPtr effect, const JSONNode& node)
       //If there is no music, immediately start bg music
       if (music_.openFromFile(trackName)) {
          music_.setLoop(loop_);
+         music_.setVolume(volume_);
 	      music_.play();
       } else { 
          LOG(INFO) << "Can't find Music! " << trackName;
@@ -552,6 +577,7 @@ void SingMusicEffect::Update(int now, int dt, bool& finished)
                 //TODO: crossfade
                 volume_ = SING_MUSIC_EFFECT_DEF_VOL;
                 music_.setVolume(volume_);
+                music_.setLoop(loop_);
 	             music_.play();
              } else { 
                 LOG(INFO) << "Can't find Music! " << nextTrack_;
@@ -574,6 +600,8 @@ void SingMusicEffect::Update(int now, int dt, bool& finished)
  * TODO: Theoretically, we could keep a hash of all the soundbuffers
  * so we could just have 1 buffer per type of sound; revisit if
  * optimization is required.
+ * TODO: if we run out of sounds too quickly, only create sounds if the
+ * camera is in range of them. (Make sound a ptr and create/dispose as necessary)
 **/
 
 //Static variable to keep track of the total number of sounds
@@ -592,33 +620,105 @@ bool PlaySoundEffect::ShouldCreateSound() {
  * When we have a new effect, create an sf::SoundBuffer and sf::Sound to play it
  * Store all relevant parameters
 */
+#define PLAY_SOUND_EFFECT_DEFAULT_START_DELAY 0;
+#define PLAY_SOUND_EFFECT_DEFAULT_MIN_DIST 20;
+#define PLAY_SOUND_EFFECT_DEFAULT_MAX_DIST 60;
+#define PLAY_SOUND_EFFECT_DEFAULT_LOOP false;
+#define PLAY_SOUND_EFFECT_MIN_VOLUME 0.1f;
+
 PlaySoundEffect::PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
 	entity_(e)
 {
-   firstPlay_ = true;
    startTime_ = effect->GetStartTime();
-	std::string trackName = node["track"].as_string();
-   delay_ = node["start_time"].as_int();
-   loop_ = node["loop"].as_bool();
-   attenuation_ = node["attenuation"].as_int();
-   minDistance_ = node["min_distance"].as_int();
+   firstPlay_ = true;
    numSounds_++;
+
+   std::string trackName = resources::ResourceManager2::GetInstance().GetResourceFileName(
+      node["track"].as_string(), "");
 
    if (soundBuffer_.loadFromFile(trackName)) {
       sound_.setBuffer(soundBuffer_);
-      sound_.setLoop(loop_);
+      AssignFromJSON_(node);
       if (delay_ == 0) {
+         //TODO: if camera is farther than maxDistance, create sound and play
 	      sound_.play();
       }
    } else { 
       LOG(INFO) << "Can't find Sound Effect! " << trackName;
    }
+}
 
+/* PlaySoundEffect::AssignFromJSON
+ * Make initial values for all the sound parameters
+ * Extract the optional values from the json, verify, and assign them.
+*/
+void PlaySoundEffect::AssignFromJSON_(const JSONNode& node) {
+   bool loop = PLAY_SOUND_EFFECT_DEFAULT_LOOP;
+   int delay = PLAY_SOUND_EFFECT_DEFAULT_START_DELAY;
+   int minDistance = PLAY_SOUND_EFFECT_DEFAULT_MIN_DIST; 
+   int maxDistance = PLAY_SOUND_EFFECT_DEFAULT_MAX_DIST;
+   float attenuation;
+
+   //Optional members
+   auto i = node.find("start_delay");
+   if (i != node.end()) {
+      delay = (int)i->as_int();
+   } 
+
+   i = node.find("min_distance");
+   if (i != node.end()) {
+      minDistance = (int)i->as_int();
+      if (minDistance < 1) {
+         minDistance = 1;
+      }
+   }
+
+   i = node.find("max_distance");
+   if (i != node.end()) {
+      maxDistance = (int)i->as_int();
+      if (maxDistance <= minDistance) {
+         maxDistance = minDistance + 1;
+      }
+   }
+
+   i = node.find("loop");
+   if (i != node.end()) {
+      loop = (int)i->as_bool();
+   } 
+
+   attenuation = CalculateAttenuation_(maxDistance, minDistance);
+
+   //Set member variables
+   delay_ = delay;
+   maxDistance_ = maxDistance; 
+
+   //Set sound parameters
+   sound_.setLoop(loop);
+   sound_.setAttenuation(attenuation);
+   sound_.setMinDistance(minDistance);
+}
+
+/* PlaySoundEffect::CalculateAttenuation
+ *  SFML has an attentuation parameter that determines how fast sound fades.
+ * Since we'd rather expose max distance to the user (the max distance at which a sound can be heard)
+ * we will use sfml's attentuation function to figure out what attentuation should be based on
+ * max distance. 
+ * Assumes MaxDistance >= MinDistance + 1
+ * Equation: A = (maxDistance_/(.01) - minDistance_)/(maxDistance_ - minDistance_)
+ * Note: remember, doing an operation of int and float converts everything to a float
+ * Returns a float. 1 means the sound sticks around for a long time. Higher numbers means it softens faster.
+*/
+float PlaySoundEffect::CalculateAttenuation_(int maxDistance, int minDistance) {
+   float interm1 = maxDistance/PLAY_SOUND_EFFECT_MIN_VOLUME;
+   float interm2 = interm1 - minDistance;
+   float interm3 = maxDistance - minDistance;
+   return (interm2/interm3);
 }
 
 PlaySoundEffect::~PlaySoundEffect()
 {
     numSounds_--;
+    //TODO: if we're showing sounds based on camera location, dispose of the sound object here
 }
 
 /* PlaySoundEffect::Update
@@ -626,6 +726,7 @@ PlaySoundEffect::~PlaySoundEffect()
  * If we were delaying the sound start and now is the time to actually start the sound, start it. 
  * If the sound was in a loop, we are not yet finished.
  * If the sound is finished, set finished to true
+ * TODO: on update, check if camera is between min and max distances. If so, create/destroy sound as necessary
 **/
 void PlaySoundEffect::Update(int now, int dt, bool& finished)
 {
@@ -646,8 +747,6 @@ void PlaySoundEffect::Update(int now, int dt, bool& finished)
    }
 
 }
-
-
 
 
 

@@ -4,7 +4,7 @@
       "music": {
          "type": "music_effect",
          "start_time": 0,
-         "track" : "data/stonehearth/effects/background_music/orchestral.ogg",
+         "track" : "file(orchestral.ogg)",
          "loop": true
       }
    }
