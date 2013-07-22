@@ -2,6 +2,12 @@ App.ObjectBrowserView = App.View.extend({
    templateName: 'objectbrowser',
    objectHtml: "",
    loading: false,
+   history: [],
+   forwardHistory: [],
+
+   init: function() {
+      this._super();
+   },
 
    didInsertElement: function() {
       var self = this;
@@ -14,11 +20,20 @@ App.ObjectBrowserView = App.View.extend({
       });
 
       
-      $("#objectJson").on("click", "a", function(event) {
+      $("#body").on("click", "a", function(event) {
          event.preventDefault();
          var uri = $(this).attr('href');
          self.fetch(uri);      
       });
+
+      $('#uriInput').keypress(function(e) {
+        if(e.which == 13) {
+            $(this).blur();
+            self.fetch($(this).val());
+        }
+    });
+
+      this.goHome();
    },
 
    formatJson: function(json) {
@@ -38,12 +53,39 @@ App.ObjectBrowserView = App.View.extend({
 
       $.get(uri)
          .done(function(json) {
-            self.set('loading', false);
-            self.set('objectHtml', self.formatJson(json));
+            self.set('context.loading', false);
+            self.set('context.objectHtml', self.formatJson(json));
+            self.set('context.uri', uri);
+            self.history.push(uri);
          })
          .error(function(e) {
             console.log(e);
          });
+   },
+
+   collapse: function() {
+      $("#body").toggle();
+   },
+
+   goBack: function() {
+      if(this.history.length > 1) {
+        this.forwardHistory.push(this.history.pop())
+      }
+      this.fetch(this.history.pop());
+      console.log(this.history.length);
+   },
+
+   goForward: function () {
+      if(this.forwardHistory.length > 0) {
+         var uri = this.forwardHistory.pop();
+         this.fetch(uri);
+      }
+      console.log(this.forwardHistory.length);
+   },
+
+   goHome: function() {
+      this.fetch('/objects/1');
    }
+
 });
 

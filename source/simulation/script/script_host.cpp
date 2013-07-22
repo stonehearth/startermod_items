@@ -634,8 +634,9 @@ std::string ScriptHost::PostCommand(luabind::object obj, std::string const& json
       object coder = globals(L_)["radiant"]["json"];
       object data = call_function<object>(coder["decode"], json);
       object result = call_function<object>(obj, p1_, data);
-      std::string ret = call_function<std::string>(coder["encode"], result);
-      return ret;
+      const char * ret = call_function<const char *>(coder["encode"], result);
+	  LOG(WARNING) << "got back -> " << ret << " <-";
+      return std::string(ret);
    } catch (std::exception &e) {
       return std::string("{'error': '") + e.what() + "'}";
    }

@@ -9,14 +9,17 @@ App.StonehearthView = Ember.ContainerView.extend({
          views : [
             "MainbarView",
             "UnitFrameView",
-            "ObjectBrowserView"
+            "ObjectBrowserView",
+            "StonehearthCalendarView"
          ]
       };
 
       var views = json.views || [];
       $.each(views, function(i, name) {
+         console.log(name);
          var ctor = App[name]
          if (ctor) {
+            console.log("adding view " + App[name]);
             self.addView(ctor);
          }
       });
