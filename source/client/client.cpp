@@ -1,4 +1,6 @@
 #include "pch.h"
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include "math3d/common/rect2d.h"
 #include "selectors/actor_selector.h"
 #include "selectors/voxel_range_selector.h"
@@ -101,7 +103,7 @@ void Client::run()
    browser_.reset(chromium::CreateBrowser(hwnd_, docroot, width, height, debug_port));
    browser_->SetCursorChangeCb(std::bind(&Client::SetUICursor, this, std::placeholders::_1));
 
-   auto requestHandler = [=](std::string const& uri, std::string const& query, std::string const& postdata, std::shared_ptr<chromium::IResponse> response) {
+   auto requestHandler = [=](std::string const& uri, JSONNode const& query, std::string const& postdata, std::shared_ptr<chromium::IResponse> response) {
       BrowserRequestHandler(uri, query, postdata, response);
    };
    browser_->SetRequestHandler(requestHandler);
@@ -1384,7 +1386,7 @@ static void HandleFileRequest(std::string const& path, std::shared_ptr<chromium:
    response->SetResponse(200, data, mimeType);
 }
 
-void Client::BrowserRequestHandler(std::string const& path, std::string const& query, std::string const& postdata, std::shared_ptr<chromium::IResponse> response)
+void Client::BrowserRequestHandler(std::string const& path, JSONNode const& query, std::string const& postdata, std::shared_ptr<chromium::IResponse> response)
 {
    std::lock_guard<std::mutex> guard(lock_);
 
@@ -1397,23 +1399,25 @@ void Client::BrowserRequestHandler(std::string const& path, std::string const& q
          HandleFileRequest(path, response);
       }
    } else {
-      HandlePostRequest(path, postdata, response);
+      HandlePostRequest(path, query, postdata, response);
    }
 }
 
-void Client::HandlePostRequest(std::string const& path, std::string const& postdata, std::shared_ptr<chromium::IResponse> response)
+void Client::HandlePostRequest(std::string const& path, JSONNode const& query, std::string const& postdata, std::shared_ptr<chromium::IResponse> response)
 {
    auto reply = [=](tesseract::protocol::Update const& msg) {
       proto::PostCommandReply const& reply = msg.GetExtension(proto::PostCommandReply::extension);
       response->SetResponse(reply.status_code(), reply.content(), reply.mime_type());
    };
-
    proto::Request msg;
    msg.set_type(proto::Request::PostCommandRequest);
    
    proto::PostCommandRequest* request = msg.MutableExtension(proto::PostCommandRequest::extension);
    request->set_path(path);
    request->set_data(postdata);
+   if (!query.empty()) {
+      request->set_query(query.write());
+   }
 
    int id = ++last_server_request_id_;
    msg.set_request_id(id);
@@ -1422,7 +1426,7 @@ void Client::HandlePostRequest(std::string const& path, std::string const& postd
    send_queue_->Push(msg);
 }
 
-void Client::GetRemoteObject(std::string const& uri, std::string const& query, std::shared_ptr<chromium::IResponse> response)
+void Client::GetRemoteObject(std::string const& uri, JSONNode const& query, std::shared_ptr<chromium::IResponse> response)
 {
    auto reply = [=](tesseract::protocol::Update const& msg) {
       proto::FetchObjectReply const& r = msg.GetExtension(proto::FetchObjectReply::extension);
@@ -1442,7 +1446,7 @@ void Client::GetRemoteObject(std::string const& uri, std::string const& query, s
    send_queue_->Push(msg);
 }
 
-void Client::GetEvents(std::string const& query, std::shared_ptr<chromium::IResponse> response)
+void Client::GetEvents(JSONNode const& query, std::shared_ptr<chromium::IResponse> response)
 {
    if (get_events_request_) {
       get_events_request_->SetResponse(504);

@@ -626,15 +626,32 @@ void ScriptHost::Unstick(om::EntityRef e)
 #endif
 }
 
-std::string ScriptHost::PostCommand(std::string const& uri, std::string const& json)
+std::string ScriptHost::PostCommand(luabind::object obj, std::string const& json)
 {
    using namespace luabind;
 
    try {
-      object obj = LuaRequire(uri);
       object coder = globals(L_)["radiant"]["json"];
       object data = call_function<object>(coder["decode"], json);
       object result = call_function<object>(obj, p1_, data);
+      const char * ret = call_function<const char *>(coder["encode"], result);
+	  LOG(WARNING) << "got back -> " << ret << " <-";
+      return std::string(ret);
+   } catch (std::exception &e) {
+      return std::string("{'error': '") + e.what() + "'}";
+   }
+   // UNREACHABLE
+   return "";
+}
+
+std::string ScriptHost::PostCommand(luabind::object fn, luabind::object self, std::string const& json)
+{
+   using namespace luabind;
+
+   try {
+      object coder = globals(L_)["radiant"]["json"];
+      object data = call_function<object>(coder["decode"], json);
+      object result = call_function<object>(fn, self, p1_, data);
       std::string ret = call_function<std::string>(coder["encode"], result);
       return ret;
    } catch (std::exception &e) {

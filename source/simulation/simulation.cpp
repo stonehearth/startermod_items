@@ -19,6 +19,7 @@
 #include "om/components/build_orders.h"
 #include "om/components/aura_list.h"
 #include "om/components/target_tables.h"
+#include "om/components/lua_components.h"
 #include "om/object_formatter/object_formatter.h"
 #include "native_commands/create_room_cmd.h"
 #include "jobs/job.h"
@@ -535,17 +536,47 @@ void Simulation::FetchObject(proto::FetchObjectRequest const& request, proto::Fe
    return;
 }
 
-
 void Simulation::PostCommand(proto::PostCommandRequest const& request, proto::PostCommandReply* reply)
 {
+   std::string response, error;
    std::string const& path = request.path();
-   std::string response = scripts_->PostCommand(request.path(), request.data());
+   std::string const& query = request.query();
+   std::string const& data = request.data();
 
-   reply->set_status_code(200);
-   reply->set_content(response);
+   dm::ObjectPtr obj = om::ObjectFormatter("/object/").GetObject(GetStore(), request.path());
+   if (obj) {
+      if (obj->GetObjectType() == om::LuaComponentObjectType) {
+         JSONNode n = libjson::parse(query); // xxx: turn json::ConstJsonObject into a REAL WRAPPER instead of this const ref crap.
+         json::ConstJsonObject node(n);
+         try {
+            om::LuaComponentPtr lc = std::static_pointer_cast<om::LuaComponent>(obj);
+            std::string fname = node["fn"].as_string();
+            luabind::object obj = lc->GetLuaObject();
+            luabind::object fn = obj[fname];
+            response = scripts_->PostCommand(fn, obj, data);
+         } catch (std::exception const& e) {
+            error = e.what();
+         }
+      }
+   } else {
+      luabind::object obj = scripts_->LuaRequire(path);
+      if (obj && luabind::type(obj) != LUA_TNIL) { // xxx: Just let the exception thing happen!
+         response = scripts_->PostCommand(obj, data);
+      } else {
+         error = "no such object";
+      }
+   }
+
    reply->set_mime_type("application/json");
+   reply->set_status_code(200); // xxx: or 500 or something?
+   if (error.empty()) {
+      reply->set_content(response);
+   } else {
+      JSONNode errorNode;
+      errorNode.push_back(JSONNode("error", error));
+      reply->set_content(errorNode.write());
+   }
 }
-
 
 bool Simulation::ProcessMessage(const proto::Request& msg, protocol::SendQueuePtr queue)
 {

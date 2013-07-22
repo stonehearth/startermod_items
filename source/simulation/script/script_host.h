@@ -35,7 +35,8 @@ public:
 
    lua_State* GetInterpreter() const { return L_; }
 
-   std::string PostCommand(std::string const& lua_path, std::string const& json);
+   std::string PostCommand(luabind::object obj, std::string const& json);
+   std::string PostCommand(luabind::object fn, luabind::object self, std::string const& json);
 
    void SendMsg(om::EntityRef entity, std::string msg);
    void SendMsg(om::EntityRef entity, std::string msg, const luabind::object& arg0);
