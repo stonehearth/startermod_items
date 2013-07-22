@@ -12,6 +12,7 @@ class ObjectFormatter
 public:
    ObjectFormatter(std::string const& root);
    JSONNode ObjectToJson(dm::ObjectPtr obj) const;
+   dm::ObjectPtr GetObject(dm::Store const& store, std::string const& path) const;
    std::string GetPathToObject(dm::ObjectPtr obj) const;
 
 private:
