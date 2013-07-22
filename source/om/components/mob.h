@@ -35,6 +35,8 @@ public:
    const math3d::transform& GetTransform() const;
 
    MobPtr GetParent() const { return (*parent_).lock(); }
+   void SetMoving(bool m) { moving_ = m; }
+   bool GetMoving() const { return moving_; }
 
    math3d::ipoint3 GetGridLocation() const;
 
@@ -47,6 +49,7 @@ public:
    void SetInterpolateMovement(bool value);
 
    dm::Boxed<math3d::transform> const& GetBoxedTransform() const { return transform_; }
+   dm::Boxed<bool> const& GetBoxedMoving() const { return moving_; }
 
 private:
    friend EntityContainer;
@@ -67,6 +70,7 @@ public:
    dm::Boxed<math3d::transform>  transform_;
    dm::Boxed<math3d::aabb>       aabb_;
    dm::Boxed<int>                flags_;
+   dm::Boxed<bool>               moving_;
 };
 
 END_RADIANT_OM_NAMESPACE

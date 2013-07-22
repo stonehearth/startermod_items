@@ -14,7 +14,7 @@ App.ObjectBrowserView = App.View.extend({
       });
 
       
-      $("#objectJson").on("click", "a", function(event) {
+      $(".object_browser_link").on("click", "a", function(event) {
          event.preventDefault();
          var uri = $(this).attr('href');
          self.fetch(uri);      

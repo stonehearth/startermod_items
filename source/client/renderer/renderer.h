@@ -11,6 +11,11 @@
 #include "radiant_file.h"
 #include <unordered_map>
 #include <boost/property_tree/ptree.hpp>
+#include "lua/namespace.h"
+
+IN_RADIANT_LUA_NAMESPACE(
+   class ScriptHost;
+)
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -34,6 +39,8 @@ public:
 
       void Initialize(om::EntityPtr rootObject);
       void SetServerTick(int tick);
+      void SetScriptHost(lua::ScriptHost* host);
+      lua::ScriptHost* GetScriptHost() const;
       void DecodeDebugShapes(const ::radiant::protocol::shapelist& msg);
       void RenderOneFrame(int now, float alpha);
       void Cleanup();
@@ -152,6 +159,7 @@ public:
       float                         currentFrameInterp_;
       ViewMode                      viewMode_;
       boost::property_tree::basic_ptree<std::string, std::string> config_;
+      lua::ScriptHost*              scriptHost_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

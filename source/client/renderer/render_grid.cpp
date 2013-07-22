@@ -159,9 +159,9 @@ void RenderGrid::OnSelected(om::Selection& sel, const math3d::ray3& ray,
          // intersection point is actually a point on the surface.  So to get the
          // brick, we need to move in the opposite direction of the normal
          if (normal[i] > k_epsilon) {
-            brick[i] = std::floor(intersection[i]);
+            brick[i] = (int)std::floor(intersection[i]);
          } else if (normal[i] < k_epsilon) {
-            brick[i] = std::ceil(intersection[i]);
+            brick[i] = (int)std::ceil(intersection[i]);
          } else {
             // The brick origin is at the center of mass.  Adding 0.5f to the
             // coordinate and flooring it should return a brick coordinate.
@@ -170,11 +170,11 @@ void RenderGrid::OnSelected(om::Selection& sel, const math3d::ray3& ray,
       }
       // handle the y coordinate.  the brick's origin is at y == 0
       if (normal.y > k_epsilon) {
-         brick.y = std::floor(intersection.y - 0.1); // 0.1's significantly bigger than k_epsilon
+         brick.y = (int)std::floor(intersection.y - 0.1); // 0.1's significantly bigger than k_epsilon
       } else if (normal.y < k_epsilon) {
-         brick.y = std::floor(intersection.y + 0.1); // 0.1's significantly bigger than k_epsilon
+         brick.y = (int)std::floor(intersection.y + 0.1); // 0.1's significantly bigger than k_epsilon
       } else {
-         brick.y = std::floor(intersection.y);
+         brick.y = (int)std::floor(intersection.y);
       }
 
 #if 0

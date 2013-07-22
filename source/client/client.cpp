@@ -352,15 +352,6 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
    store_.FireTraces();
 }
 
-void Client::DoActionReply(const proto::DoActionReply& msg)
-{
-   auto i = responseHandlers_.find(msg.reply_id());
-   if (i != responseHandlers_.end()) {
-      i->second(&msg);
-      responseHandlers_.erase(i);
-   }
-}
-
 void Client::QueueEvent(std::string type, JSONNode payload)
 {
    JSONNode e(JSON_NODE);
@@ -637,28 +628,23 @@ void Client::SelectEntity(om::EntityPtr obj)
    }
 }
 
-void Client::SendCommand(om::EntityId to, std::string action, const std::vector<om::Selection>& args, int replyId)
-{
-   proto::DoAction msg;
-
-   msg.set_entity(to);
-   msg.set_action(action);
-   msg.set_reply_id(replyId);
-
-   for (const om::Selection& s : args) {
-      s.SaveValue(msg.add_args());
-   }
-   send_queue_->Push(msg);
-
-   currentCommand_ = nullptr;
-   currentCommandCursor_ = NULL;
-}
-
 void Client::EvalCommand(std::string cmd)
 {
-   proto::DoAction msg;
-   msg.set_entity(0);
-   msg.set_action(cmd);
+   auto reply = [=](tesseract::protocol::Update const& msg) {
+      proto::ScriptCommandReply const& reply = msg.GetExtension(proto::ScriptCommandReply::extension);
+      LOG(WARNING) << reply.result();
+   };
+
+   proto::Request msg;
+   msg.set_type(proto::Request::ScriptCommandRequest);
+   
+   proto::ScriptCommandRequest* request = msg.MutableExtension(proto::ScriptCommandRequest::extension);
+   request->set_cmd(cmd);
+
+   int id = ++last_server_request_id_;
+   msg.set_request_id(id);
+   server_requests_[id] = reply;
+
    send_queue_->Push(msg);
 }
 

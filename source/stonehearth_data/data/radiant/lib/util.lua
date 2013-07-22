@@ -58,4 +58,16 @@ function util.is_callable(obj)
           (type(obj) == 'function' or (type(obj) == 'table' and (type(obj.__index) == 'table' or obj.__call ~= nil)))
 end
 
+function util.colorcode_to_integer(cc)
+   local result = 0
+   if type(cc) == 'string' then
+      -- parse the digits out of 'rgb(13, 34, 19)', allowing for spaces between tokens
+      local r, g, b = cc:match('rgb%s*%(%s*(%d+)%s*,%s*(%d+)%s*,%s*(%d+)%s*%)')
+      if r and g and b then
+         result = (((tonumber(b) * 256) + tonumber(g)) * 256) + tonumber(r)
+      end
+   end
+   return result
+end
+
 return util

@@ -33,7 +33,6 @@ public:
    virtual void EncodeUpdates(protocol::SendQueuePtr queue, ClientState& cs) = 0;
    virtual void Step(platform::timer &timer, int interval) = 0;
    virtual void Idle(platform::timer &timer) = 0;
-   virtual void DoAction(const tesseract::protocol::DoAction& msg, protocol::SendQueuePtr queue) = 0;
    virtual bool ProcessMessage(const ::radiant::tesseract::protocol::Request& msg, protocol::SendQueuePtr queue) = 0;
 };
 

@@ -12,11 +12,11 @@
 #include "render_mob.h"
 #include "render_terrain.h"
 #include "render_scaffolding.h"
-#include "render_stockpile.h"
 #include "render_destination.h"
 #include "render_rig.h"
 #include "render_paperdoll.h"
 #include "render_effect_list.h"
+#include "render_render_region.h"
 #include "resources/res_manager.h"
 #include "resources/animation.h"
 #include "om/entity.h"
@@ -34,6 +34,7 @@
 #include "om/components/effect_list.h"
 #include "om/components/render_info.h"
 #include "om/selection.h"
+#include "lua/script_host.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -66,7 +67,10 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
 
    tracer_ += entity->GetComponents().TraceMapChanges("render entity components", added, removed);
    tracer_ += Renderer::GetInstance().TraceSelected(node_, std::bind(&RenderEntity::OnSelected, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+}
 
+void RenderEntity::FinishConstruction()
+{
    UpdateComponents();
    initialized_ = true;
    CreateRenderRigs();
@@ -240,16 +244,46 @@ void RenderEntity::AddComponent(dm::ObjectType key, std::shared_ptr<dm::Object> 
             components_[key] = std::make_shared<RenderPaperdoll>(*this, paperdoll);
             break;
          }
+         case om::RenderRegionObjectType: {
+            om::RenderRegionPtr renderRegion = std::static_pointer_cast<om::RenderRegion>(value);
+            components_[key] = std::make_shared<RenderRenderRegion>(*this, renderRegion);
+            break;
+         }
       }
    }
 }
 
 void RenderEntity::AddLuaComponents(om::LuaComponentsPtr lua_components)
 {
+   // xxx: gotta trace to catch lua components added after the initial push
    for (auto const& entry : lua_components->GetComponentMap()) {
-      std::string mod = entry.first;
-      if (mod == "radiant:stockpile") {
-         lua_components_[mod] = std::make_shared<RenderStockpile>(*this, entry.second);
+      std::string const& name = entry.first;
+      size_t offset = name.find(':');
+      if (offset != std::string::npos) {
+         std::string modname = name.substr(0, offset);
+         std::string component_name = name.substr(offset + 1, std::string::npos);
+
+         auto const& res = resources::ResourceManager2::GetInstance();
+         json::ConstJsonObject const& manifest = res.LookupManifest(modname);
+         std::string path;
+         try {
+            path = manifest["component_renderers"][component_name].as_string();
+         } catch (json::Exception&) {
+            continue;
+         }
+         lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
+         luabind::object ctor = script->LuaRequire(path);
+
+         std::weak_ptr<RenderEntity> re = shared_from_this();
+         luabind::object render_component;
+         try {
+            luabind::object json = script->JsonToLua(entry.second->ToJson());
+            render_component = script->CallFunction<luabind::object>(ctor, re, json);
+         } catch (std::exception const& e) {
+            LOG(WARNING) << e.what();
+            continue;
+         }
+         lua_components_[name] = render_component;
       }
    }
 }

@@ -12,7 +12,8 @@ using namespace ::radiant::simulation;
 
 MultiPathFinder::MultiPathFinder(std::string name) :
    Job(name),
-   reversed_search_(false)
+   reversed_search_(false),
+   enabled_(true)
 {
 }
 
@@ -20,11 +21,20 @@ MultiPathFinder::~MultiPathFinder()
 {
 }
 
-bool MultiPathFinder::IsIdle(int now) const
+void MultiPathFinder::SetEnabled(bool enabled)
 {
+   enabled_ = enabled;
+}
+
+bool MultiPathFinder::IsIdle() const
+{
+   if (!enabled_) {
+      return true;
+   }
+
    // xxx: don't run if any of these have a solution!
    for (const auto& entry : pathfinders_) {
-      if (!entry.second->IsIdle(now)) {
+      if (!entry.second->IsIdle()) {
          return false;
       }
    }
@@ -109,7 +119,7 @@ void MultiPathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
    }
 }
 
-void MultiPathFinder::Work(int now, const platform::timer &timer)
+void MultiPathFinder::Work(const platform::timer &timer)
 {
    PROFILE_BLOCK();
 
@@ -133,8 +143,8 @@ void MultiPathFinder::Work(int now, const platform::timer &timer)
       om::EntityId id = closest->first;
       PathFinderPtr p = closest->second;
 
-      ASSERT(!p->IsIdle(now));
-      p->Work(now, timer);
+      ASSERT(!p->IsIdle());
+      p->Work(timer);
    }
 }
 

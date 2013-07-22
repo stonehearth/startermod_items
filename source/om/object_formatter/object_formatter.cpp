@@ -3,6 +3,7 @@
 
 // templates...
 #include "om/om.h"
+#include "dm/store.h"
 #define DEFINE_ALL_OBJECTS
 #include "om/all_objects.h"
 #include "om/all_object_types.h"
@@ -57,11 +58,6 @@ template <> JSONNode ToJson(const ObjectFormatter& f, LuaComponents const& obj)
    JSONNode node;
    for (auto const& entry : obj.GetComponentMap()) {
       node.push_back(JSONNode(entry.first, f.GetPathToObject(entry.second)));
-#if 0
-      JSONNode child = ToJson(f, *entry.second);
-      child.set_name(entry.first);
-      node.push_back(child);
-#endif
    }
    return node;
 }
@@ -98,6 +94,18 @@ template <> JSONNode ToJson(const ObjectFormatter& f, UnitInfo const& obj)
    return node;
 }
 
+template <> JSONNode ToJson(const ObjectFormatter& f, EntityContainer const& obj)
+{
+   JSONNode node;
+   for (auto const& entry : obj.GetChildren()) {
+      auto obj = entry.second.lock();
+      if (obj) {
+         node.push_back(JSONNode(stdutil::ToString(entry.first), f.GetPathToObject(obj)));
+      }
+   }
+   return node;
+}
+
 #define OM_OBJECT(Cls, lower) \
    template <> JSONNode ToJson(const ObjectFormatter& f, Cls const& obj) { \
       JSONNode result; \
@@ -116,7 +124,6 @@ template <> JSONNode ToJson(const ObjectFormatter& f, UnitInfo const& obj)
       OM_OBJECT(TargetTableEntry,   target_table_entry)
       OM_OBJECT(Clock,                 clock)
       OM_OBJECT(StockpileDesignation,  stockpile_designation)
-      OM_OBJECT(EntityContainer,       entity_container)
       OM_OBJECT(Item,                  item)
       OM_OBJECT(Mob,                   mob)
       OM_OBJECT(RenderGrid,            render_grid)
@@ -152,6 +159,7 @@ template <> JSONNode ToJson(const ObjectFormatter& f, UnitInfo const& obj)
       OM_OBJECT(Inventory,             inventory)
       OM_OBJECT(WeaponInfo,            weapon_info)
       OM_OBJECT(Destination,           destination)
+      OM_OBJECT(RenderRegion,          render_region)
 #undef OM_OBJECT
 
 static void CreateDispatchTable()

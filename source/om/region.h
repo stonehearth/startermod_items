@@ -12,9 +12,14 @@ class Region : public dm::Object
 {
 public:
    DEFINE_OM_OBJECT_TYPE(Region, region);
+   static void RegisterLuaType(struct lua_State* L);
 
    csg::Region3& Modify() {
       MarkChanged();
+      return region_;
+   }
+
+   csg::Region3 const& GetRegion() {
       return region_;
    }
 
@@ -51,6 +56,8 @@ protected:
 private:
    csg::Region3    region_;
 };
+
+static std::ostream& operator<<(std::ostream& os, const Region& o) { return (os << *o); }
 
 END_RADIANT_OM_NAMESPACE
 

@@ -6,10 +6,17 @@ function gamestate.__init()
 end
 
 function gamestate._start()
+   radiant._root_entity:add_component('entity_container')
    singleton._initialized = true
 end
 
 function gamestate._create_player()
+   return {
+      faction = 'civ'
+   }
+end
+
+function gamestate.get_player()
    return {
       faction = 'civ'
    }

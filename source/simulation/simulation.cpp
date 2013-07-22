@@ -20,7 +20,7 @@
 #include "om/components/aura_list.h"
 #include "om/components/target_tables.h"
 #include "om/object_formatter/object_formatter.h"
-#include "native_commands/create_room_cmd.h"
+//#include "native_commands/create_room_cmd.h"
 #include "jobs/job.h"
 #include <boost/algorithm/string.hpp>
 
@@ -51,7 +51,7 @@ Simulation::Simulation(lua_State* L) :
    commands_["radiant.toggle_debug_nodes"] = std::bind(&Simulation::ToggleDebugShapes, this, std::placeholders::_1);
    commands_["radiant.toggle_step_paths"] = std::bind(&Simulation::ToggleStepPathFinding, this, std::placeholders::_1);
    commands_["radiant.step_paths"] = std::bind(&Simulation::StepPathFinding, this, std::placeholders::_1);
-   commands_["create_room"] = [](const proto::DoAction& msg) { return CreateRoomCmd()(msg); };
+   //commands_["create_room"] = [](const proto::DoAction& msg) { return CreateRoomCmd()(msg); };
 
    om::RegisterObjectTypes(store_);
 }
@@ -78,26 +78,26 @@ void Simulation::CreateNew()
    now_ = 0;
 }
 
-std::string Simulation::ToggleDebugShapes(const proto::DoAction& msg)
+std::string Simulation::ToggleDebugShapes(std::string const& cmd)
 {
    _showDebugNodes = !_showDebugNodes;
    LOG(WARNING) << "debug nodes turned " << (_showDebugNodes ? "ON" : "OFF");
    return "";
 }
 
-std::string Simulation::ToggleStepPathFinding(const proto::DoAction& msg)
+std::string Simulation::ToggleStepPathFinding(std::string const& cmd)
 {
    _singleStepPathFinding = !_singleStepPathFinding;
    LOG(WARNING) << "single step path finding turned " << (_singleStepPathFinding ? "ON" : "OFF");
    return "";
 }
 
-std::string Simulation::StepPathFinding(const proto::DoAction& msg)
+std::string Simulation::StepPathFinding(std::string const& cmd)
 {
    platform::timer t(1000);
    radiant::stdutil::ForEachPrune<Job>(_pathFinders, [&](std::shared_ptr<Job> &p) {
-      if (!p->IsFinished() && !p->IsIdle(now_)) {
-         p->Work(now_, t);
+      if (!p->IsFinished() && !p->IsIdle()) {
+         p->Work(t);
          p->LogProgress(LOG(WARNING));
       }
    });
@@ -151,7 +151,7 @@ void Simulation::Step(platform::timer &timer, int interval)
    scripts_->CallGameHook("post_trace_firing");
 
    // Run jobs with the time left over
-   ProcessJobList(now_, timer);
+   ProcessJobList(timer);
 }
 
 void Simulation::Idle(platform::timer &timer)
@@ -252,49 +252,32 @@ std::shared_ptr<PathFinder> Simulation::CreatePathFinder(std::string name, om::E
    return pf;
 }
 
-std::shared_ptr<FollowPath> Simulation::CreateFollowPath(om::EntityRef entity, float speed, std::shared_ptr<Path> path, float close_to_distance)
+void Simulation::AddTask(std::shared_ptr<Task> task)
 {
-   std::shared_ptr<FollowPath> fp = std::make_shared<FollowPath>(entity, speed, path, close_to_distance);
-   _loopTasks.push_back(fp);
-   return fp;
+   tasks_.push_back(task);
 }
 
-std::shared_ptr<GotoLocation> Simulation::CreateGotoLocation(om::EntityRef entity, float speed, const math3d::point3& location, float close_to_distance)
+void Simulation::PostCommand(proto::PostCommandRequest const& request, proto::PostCommandReply* reply)
 {
-   std::shared_ptr<GotoLocation> fp = std::make_shared<GotoLocation>(entity, speed, location, close_to_distance);
-   _loopTasks.push_back(fp);
-   return fp;
+   luabind::object obj = scripts_->LuaRequire(request.path());
+   std::string response = scripts_->PostCommand(obj, request.data());
+
+   reply->set_status_code(200);
+   reply->set_content(response);
+   reply->set_mime_type("application/json");
 }
 
-std::shared_ptr<GotoLocation> Simulation::CreateGotoEntity(om::EntityRef entity, float speed, om::EntityRef target, float close_to_distance)
+void Simulation::ScriptCommand(tesseract::protocol::ScriptCommandRequest const& request, tesseract::protocol::ScriptCommandReply* reply)
 {
-   std::shared_ptr<GotoLocation> fp = std::make_shared<GotoLocation>(entity, speed, target, close_to_distance);
-   _loopTasks.push_back(fp);
-   return fp;
-}
+   std::string result;
+   std::string const& cmd = request.cmd();
 
-void Simulation::DoAction(const proto::DoAction& msg, protocol::SendQueuePtr queue)
-{
-   std::string json;
-
-   auto i = commands_.find(msg.action());
+   auto i = commands_.find(cmd);
    if (i != commands_.end()) {
-      json = i->second(msg);
-   } else {
-      json = scripts_->DoAction(msg);
+      result = i->second(cmd);
    }
-   if (msg.has_reply_id()) {
-      proto::Update update;
-      update.set_type(proto::Update::DoActionReply);
-      auto reply = update.MutableExtension(proto::DoActionReply::extension);
-
-      reply->set_reply_id(msg.reply_id());
-      if (json.empty()) {
-         json = "{}";
-      }
-      reply->set_json(json);
-
-      queue->Push(protocol::Encode(update));
+   if (reply) {
+      reply->set_result(result);
    }
 }
 
@@ -306,9 +289,6 @@ void Simulation::EncodeDebugShapes(protocol::SendQueuePtr queue)
    auto msg = uds->mutable_shapelist();
 
    if (_showDebugNodes) {
-      radiant::stdutil::ForEachPrune<Job>(_loopTasks, [&](std::shared_ptr<Job> &job) {
-         job->EncodeDebugShapes(msg);
-      });
       radiant::stdutil::ForEachPrune<Job>(_pathFinders, [&](std::shared_ptr<Job> &job) {
          job->EncodeDebugShapes(msg);
       });
@@ -318,18 +298,17 @@ void Simulation::EncodeDebugShapes(protocol::SendQueuePtr queue)
 }
 
 
-void Simulation::ProcessJobList(int now, platform::timer &timer)
+void Simulation::ProcessJobList(platform::timer &timer)
 {
    PROFILE_BLOCK();
 
-   auto i = _loopTasks.begin();
-   while (i != _loopTasks.end()) {
-      std::shared_ptr<Job> task = i->lock();
-      if (task && !task->IsFinished()) {
-         task->Work(now, timer);
+   auto i = tasks_.begin();
+   while (i != tasks_.end()) {
+      std::shared_ptr<Task> task = i->lock();
+      if (task && task->Work(timer)) {
          i++;
       } else {
-         i = _loopTasks.erase(i);
+         i = tasks_.erase(i);
       }
    }
 
@@ -348,11 +327,11 @@ void Simulation::ProcessJobList(int now, platform::timer &timer)
       std::shared_ptr<Job> job = front.lock();
       if (job) {
          if (!job->IsFinished()) {
-            if (!job->IsIdle(now)) {
+            if (!job->IsIdle()) {
                idleCountdown = _pathFinders.size() + 2;
-               job->Work(now, timer);
+               job->Work(timer);
+               //job->LogProgress(LOG(WARNING));
             }
-            //job->LogProgress(LOG(INFO));
             _pathFinders.push_back(front);
          } else {
             LOG(WARNING) << "destroying job..";
@@ -535,18 +514,6 @@ void Simulation::FetchObject(proto::FetchObjectRequest const& request, proto::Fe
    return;
 }
 
-
-void Simulation::PostCommand(proto::PostCommandRequest const& request, proto::PostCommandReply* reply)
-{
-   std::string const& path = request.path();
-   std::string response = scripts_->PostCommand(request.path(), request.data());
-
-   reply->set_status_code(200);
-   reply->set_content(response);
-   reply->set_mime_type("application/json");
-}
-
-
 bool Simulation::ProcessMessage(const proto::Request& msg, protocol::SendQueuePtr queue)
 {
    proto::Update reply;
@@ -560,8 +527,9 @@ bool Simulation::ProcessMessage(const proto::Request& msg, protocol::SendQueuePt
       break;
 
    switch (msg.type()) {
-      DISPATCH_MSG(FetchObject);
-      DISPATCH_MSG(PostCommand);
+      DISPATCH_MSG(FetchObject)
+      DISPATCH_MSG(ScriptCommand)
+      DISPATCH_MSG(PostCommand)
    default:
       ASSERT(false);
    }

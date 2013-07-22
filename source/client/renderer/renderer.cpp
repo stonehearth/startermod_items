@@ -30,6 +30,7 @@ Renderer::Renderer() :
    nextInputCbId_(1),
    cameraMoveDirection_(0, 0, 0),
    viewMode_(Standard),
+   scriptHost_(nullptr),
    nextTraceId_(1)
 {
    try {
@@ -304,6 +305,8 @@ void Renderer::RenderOneFrame(int now, float alpha)
       h3dutShowFrameStats( fontMatRes_, panelMatRes_, H3DUTMaxStatMode );
    }
 	
+   LoadResources();
+
 	// Render scene
 	h3dRender(camera_);
 
@@ -508,6 +511,7 @@ std::shared_ptr<RenderEntity> Renderer::CreateRenderObject(H3DNode parent, om::E
    } else {
       // LOG(WARNING) << "CREATING RENDER OBJECT " << sid << ", " << id;
       result = std::make_shared<RenderEntity>(parent, entity);
+      result->FinishConstruction();
       entities[id] = result;
       traces_ += entity->TraceObjectLifetime("render entity lifetime", [=]() { 
          // LOG(WARNING) << "DESTROYING RENDER OBJECT " << sid << ", " << id;
@@ -917,4 +921,15 @@ int Renderer::GetHeight() const
 boost::property_tree::ptree const& Renderer::GetConfig() const
 {  
    return config_;
+}
+
+void Renderer::SetScriptHost(lua::ScriptHost* scriptHost)
+{
+   scriptHost_ = scriptHost;
+}
+
+lua::ScriptHost* Renderer::GetScriptHost() const
+{
+   ASSERT(scriptHost_);
+   return scriptHost_;
 }

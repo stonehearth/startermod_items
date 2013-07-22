@@ -1,7 +1,10 @@
 #include "pch.h"
+#include "radiant_json.h"
 #include "client.h" 
 #include "application.h"
 #include "resources/res_manager.h"
+#include "renderer/lua_render_entity.h"
+#include "renderer/lua_renderer.h"
 #include <thread>
 #include <fstream>
 #include <boost/filesystem.hpp>
@@ -15,6 +18,16 @@ po::variables_map configvm;
 
 Application::Application()
 {
+   using namespace luabind;
+
+   lua_State* L = scriptHost_.GetInterpreter();
+
+   LuaRenderer::RegisterType(L);
+   LuaRenderEntity::RegisterType(L);
+   json::ConstJsonObject::RegisterLuaType(L);
+
+   // this locks down the environment!  all types must be registered by now!!
+   scriptHost_.LuaRequire("/radiant/client.lua");
 }
    
 Application::~Application()
@@ -103,6 +116,7 @@ int Application::Start(lua_State* L)
    const char *port = "1336";
    
    std::thread client([&]() {
+      Renderer::GetInstance().SetScriptHost(&scriptHost_);
       Client::GetInstance().run();
    });
 

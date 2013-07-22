@@ -1,0 +1,7 @@
+{
+   "type": "entity",
+   "components" : {
+      "stonehearth_building:storey" : {         
+      }
+   }
+}

@@ -1,0 +1,12 @@
+{
+   "info" :{
+      "name" : "Stonehearth Building Library"
+   },
+   "components" :  {
+      "storey" : "file(components/storey_component.lua)",
+      "building" : "file(components/building_component.lua)",
+      "column" :  "file(components/column_component.lua)",
+      "wall" :  "file(components/wall_component.lua)",
+      "city_plan" :  "file(components/city_plan_component.lua)"
+   }
+}

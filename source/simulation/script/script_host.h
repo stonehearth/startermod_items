@@ -35,7 +35,8 @@ public:
 
    lua_State* GetInterpreter() const { return L_; }
 
-   std::string PostCommand(std::string const& lua_path, std::string const& json);
+   std::string PostCommand(luabind::object obj, std::string const& json);
+   std::string PostCommand(luabind::object fn, luabind::object self, std::string const& json);
 
    void SendMsg(om::EntityRef entity, std::string msg);
    void SendMsg(om::EntityRef entity, std::string msg, const luabind::object& arg0);
@@ -43,7 +44,6 @@ public:
    void Call(luabind::object fn, luabind::object arg1);
    luabind::object LuaRequire(std::string name);
    
-   std::string DoAction(const tesseract::protocol::DoAction& msg);
    void CreateNew();
    void Update(int interval, int& currentGameTime);
    void CallGameHook(std::string const& stage);
@@ -58,7 +58,6 @@ private:
    void InitEnvironment();
    void LoadRecursive(std::string root, std::string directory);
    luabind::object LoadScript(std::string path);
-   luabind::object ConvertArg(const Protocol::Selection& arg);
 
    void RegisterScenario(luabind::object name, luabind::object scenario);
    void ReportError(luabind::object error);
@@ -71,9 +70,9 @@ private:
 
    void DestroyEntity(std::weak_ptr<om::Entity>);
 
-   std::shared_ptr<FollowPath> CreateFollowPath(om::EntityRef entity, float speed, std::shared_ptr<Path> path, float close_to_distance);
-   std::shared_ptr<GotoLocation> CreateGotoLocation(om::EntityRef entity, float speed, const math3d::point3& location, float close_to_distance);
-   std::shared_ptr<GotoLocation> CreateGotoEntity(om::EntityRef entity, float speed, om::EntityRef target, float close_to_distance);
+   std::shared_ptr<FollowPath> CreateFollowPath(om::EntityRef entity, float speed, std::shared_ptr<Path> path, float close_to_distance, luabind::object arrived_cb);
+   std::shared_ptr<GotoLocation> CreateGotoLocation(om::EntityRef entity, float speed, const math3d::point3& location, float close_to_distance, luabind::object arrived_cb);
+   std::shared_ptr<GotoLocation> CreateGotoEntity(om::EntityRef entity, float speed, om::EntityRef target, float close_to_distance, luabind::object arrived_cb);
    std::shared_ptr<MultiPathFinder> CreateMultiPathFinder(std::string name);
    std::shared_ptr<PathFinder> CreatePathFinder(std::string name, om::EntityRef e, luabind::object solved, luabind::object dst_filter);
    

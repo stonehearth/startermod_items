@@ -130,7 +130,7 @@ ScriptHost::ScriptHost(lua_State* L) :
    // Load all the scripts...
    InitEnvironment();
 
-   api_  = LoadScript("/radiant/api.lua");
+   api_  = LoadScript("/radiant/server.lua");
    game_ctor_ = LoadScript(game);
 }
 
@@ -288,68 +288,6 @@ void ScriptHost::Idle(platform::timer &timer)
       finished = (lua_gc(L_, LUA_GCSTEP, 1) != 0);
    }
 }
-
-std::string ScriptHost::DoAction(const tesseract::protocol::DoAction& msg)
-{
-   luabind::object args[4];
-   std::string action = msg.action();
-   om::EntityId entity = msg.entity();
-
-   ASSERT(msg.args().size() < ARRAY_SIZE(args));
-   for (int i = 0; i < msg.args_size(); i++) {
-      args[i] = ConvertArg(msg.args(i));
-   }
-   try {
-      return luabind::call_function<std::string>(game_["execute_command"], game_, action, args[0], args[1], args[2], args[3]);
-   } CATCH_LUA_ERROR("initializing environment");
-   return "{ \"error\" : \"lua interpreter error\" }";
-}
-
-// xxx: Once we've converted the selectino object to a boost<any>, use
-// selection::ToLuaObject
-luabind::object ScriptHost::ConvertArg(const Protocol::Selection& arg)
-{
-   om::EntityId entityId = arg.entity();
-   if (entityId != 0) {
-      auto j = entityMap_.find(arg.entity());
-      if (j != entityMap_.end()) {
-         return luabind::object(L_, om::EntityRef(j->second));
-      }
-      return luabind::object(L_, om::EntityRef());
-   }
-   if (arg.has_block()) {
-      return luabind::object(L_, math3d::ipoint3(arg.block()));
-   }
-   if (arg.has_bounds()) {
-      return luabind::object(L_, math3d::ibounds3(arg.bounds()));
-   }
-   if (arg.has_string()) {
-      return luabind::object(L_, arg.string());
-   }
-   if (arg.has_number()) {
-      return luabind::object(L_, arg.number());
-   }
-
-#define OM_OBJECT(Cls, lower) \
-   if (objectType == om::Cls::DmType) { \
-      auto obj = Simulation::GetInstance().GetStore().FetchObject<om::Cls>(objectId); \
-      return luabind::object(L_, obj); \
-   }
-
-   if (arg.has_object()) {
-      dm::ObjectId objectId = arg.object();
-      dm::ObjectType objectType = arg.object_type();
-
-      OM_ALL_OBJECTS
-      OM_ALL_COMPONENTS
-   }
-
-#undef OM_OBJECT
-
-   ASSERT(false);
-   return luabind::object();
-}
-
 
 class Reader {
 public:
@@ -557,19 +495,28 @@ std::shared_ptr<MultiPathFinder> ScriptHost::CreateMultiPathFinder(std::string n
    return Simulation::GetInstance().CreateMultiPathFinder(name);
 }
 
-std::shared_ptr<FollowPath> ScriptHost::CreateFollowPath(om::EntityRef entity, float speed, std::shared_ptr<Path> path, float close_to_distance)
+std::shared_ptr<FollowPath> ScriptHost::CreateFollowPath(om::EntityRef entity, float speed, std::shared_ptr<Path> path, float close_to_distance, luabind::object arrived_cb)
 {
-   return Simulation::GetInstance().CreateFollowPath(entity, speed, path, close_to_distance);
+   luabind::object cb(cb_thread_, arrived_cb);
+   std::shared_ptr<FollowPath> fp = std::make_shared<FollowPath>(entity, speed, path, close_to_distance, cb);
+   Simulation::GetInstance().AddTask(fp);
+   return fp;
 }
 
-std::shared_ptr<GotoLocation> ScriptHost::CreateGotoLocation(om::EntityRef entity, float speed, const math3d::point3& location, float close_to_distance)
+std::shared_ptr<GotoLocation> ScriptHost::CreateGotoLocation(om::EntityRef entity, float speed, const math3d::point3& location, float close_to_distance, luabind::object arrived_cb)
 {
-   return Simulation::GetInstance().CreateGotoLocation(entity, speed, location, close_to_distance);
+   luabind::object cb(cb_thread_, arrived_cb);
+   std::shared_ptr<GotoLocation> fp = std::make_shared<GotoLocation>(entity, speed, location, close_to_distance, cb);
+   Simulation::GetInstance().AddTask(fp);
+   return fp;
 }
 
-std::shared_ptr<GotoLocation> ScriptHost::CreateGotoEntity(om::EntityRef entity, float speed, om::EntityRef target, float close_to_distance)
+std::shared_ptr<GotoLocation> ScriptHost::CreateGotoEntity(om::EntityRef entity, float speed, om::EntityRef target, float close_to_distance, luabind::object arrived_cb)
 {
-   return Simulation::GetInstance().CreateGotoEntity(entity, speed, target, close_to_distance);
+   luabind::object cb(cb_thread_, arrived_cb);
+   std::shared_ptr<GotoLocation> fp = std::make_shared<GotoLocation>(entity, speed, target, close_to_distance, cb);
+   Simulation::GetInstance().AddTask(fp);
+   return fp;
 }
 
 std::shared_ptr<PathFinder> ScriptHost::CreatePathFinder(std::string name, om::EntityRef e, luabind::object solved, luabind::object dst_filter)
@@ -626,15 +573,31 @@ void ScriptHost::Unstick(om::EntityRef e)
 #endif
 }
 
-std::string ScriptHost::PostCommand(std::string const& uri, std::string const& json)
+std::string ScriptHost::PostCommand(luabind::object obj, std::string const& json)
 {
    using namespace luabind;
 
    try {
-      object obj = LuaRequire(uri);
       object coder = globals(L_)["radiant"]["json"];
       object data = call_function<object>(coder["decode"], json);
       object result = call_function<object>(obj, p1_, data);
+      std::string ret = call_function<std::string>(coder["encode"], result);
+      return ret;
+   } catch (std::exception &e) {
+      return std::string("{'error': '") + e.what() + "'}";
+   }
+   // UNREACHABLE
+   return "";
+}
+
+std::string ScriptHost::PostCommand(luabind::object fn, luabind::object self, std::string const& json)
+{
+   using namespace luabind;
+
+   try {
+      object coder = globals(L_)["radiant"]["json"];
+      object data = call_function<object>(coder["decode"], json);
+      object result = call_function<object>(fn, self, p1_, data);
       std::string ret = call_function<std::string>(coder["encode"], result);
       return ret;
    } catch (std::exception &e) {

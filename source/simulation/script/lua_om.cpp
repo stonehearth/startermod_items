@@ -492,8 +492,6 @@ void LuaObjectModel::RegisterType(lua_State* L)
          ,
       ADD_OM_CLASS(GridTile)
          ,
-      ADD_OM_CLASS(Region)
-         ,
       ADD_OM_COMPONENT(Clock)
          .def("set_time",              &om::Clock::SetTime)
          .def("get_time",              &om::Clock::GetTime)
@@ -679,6 +677,8 @@ void LuaObjectModel::RegisterType(lua_State* L)
       dm::Set<std::string>::RegisterLuaType(L, "Set<String>"),
 	  om::EntityContainer::Container::RegisterLuaType(L, "EntityChildrenContainerMap")
    ];
+   om::Region::RegisterLuaType(L),
    om::Mob::RegisterLuaType(L),
    om::Destination::RegisterLuaType(L);
+   om::RenderRegion::RegisterLuaType(L);
 }

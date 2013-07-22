@@ -27,3 +27,14 @@ void Job::LogProgress(std::ostream& ) const
 void Job::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
 {
 }
+
+Task::Task(std::string const& name) :
+   name_(name)
+{
+}
+
+std::string const& Task::GetName() const
+{
+   return name_;
+}
+

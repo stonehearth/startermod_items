@@ -268,7 +268,7 @@ function BehaviorManager:execute(...)
    local action = self:_get_best_action(activity)
 
    local action_main = function()
-      decoda_name = string.format("entity %d : %s action", self._entity:get_id(), tostring(action.name))
+      -- decoda_name = string.format("entity %d : %s action", self._entity:get_id(), tostring(action.name))
       --radiant.log.debug('coroutine starting action: %s for activity %s', action.name, self:_format_activity(activity))
       local result = { action:run(self, self._entity, select(2, unpack(activity))) }
       --radiant.log.debug('coroutine finished: %s', action.name)
@@ -342,6 +342,14 @@ end
 
 function BehaviorManager:wait_until(obj)
    coroutine.yield(obj)
+end
+
+function BehaviorManager:suspend()
+   coroutine.yield(radiant.ai.SUSPEND_THREAD)
+end
+
+function BehaviorManager:resume()
+   radiant.ai._resume_thread(self._co)
 end
 
 return BehaviorManager

@@ -1,0 +1,14 @@
+{
+   "type": "entity",
+   "components": {
+      "stonehearth_building:blueprint": {         
+         "structure_path" : "file(../column)",
+         "component_name" : "stonehearth_building:column"
+      },
+      "stonehearth_building:column_blueprint": {
+         "colors" : [
+            "rgb(51, 43, 31)"
+         ]
+      }
+   }
+}

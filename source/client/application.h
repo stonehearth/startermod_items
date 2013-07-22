@@ -2,6 +2,8 @@
 #define _RADIANT_CLIENT_APPLICATION_H
 
 #include "game_engine.h"
+#include "lua/script_host.h"
+
 //#include "configfile.h"
 
 extern "C" struct lua_State;
@@ -20,6 +22,8 @@ namespace radiant {
             bool LoadConfig(int argc, const char** argv);
             int Start(lua_State* L);
 //            configlib::configfile   _config;
+         private:
+            lua::ScriptHost   scriptHost_;
       };
    };
 };

@@ -33,7 +33,6 @@ end
 
 function ItemPathfinder:stop()
    if self._path_finder then
-      self._path_finder:stop()
       self._path_finder = nil
    end
    if self._trace then

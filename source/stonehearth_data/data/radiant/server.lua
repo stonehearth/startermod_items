@@ -1,7 +1,8 @@
 local api = {}
 
-native:log('loading radiant script!')
+native:log('loading server radiant script')
 require 'radiant.lib.env'
+decoda_name = "radiant server"
 
 radiant = {
    _root_entity = native:create_entity()

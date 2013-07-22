@@ -1,8 +1,9 @@
 <script type="text/x-handlebars" data-template-name="objectbrowser">
-
-   <div id="objectbrowser">
+<div id="objectbrowser">
+   <div class="object_browser_link"><a href="/objects/1">root object...</a></div>
+   <div class="object_browser_link">
       <b>selected object</b>
-      <div id="objectJson">
+      <div class="objectJson">
          {{#if view.loading}}
             loading...
          {{else}}
@@ -10,5 +11,5 @@
          {{/if}}
       </div>
    </div>
-
+</div>
 </script>

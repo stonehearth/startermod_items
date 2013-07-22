@@ -12,16 +12,20 @@ namespace po = boost::program_options;
 
 extern po::variables_map configvm;
 
-FollowPath::FollowPath(om::EntityRef entity, float speed, std::shared_ptr<Path> path, float close_to_distance) :
-   Job("follow path"),
-   entity_(entity),
+FollowPath::FollowPath(om::EntityRef e, float speed, std::shared_ptr<Path> path, float close_to_distance, luabind::object arrived_cb) :
+   Task("follow path"),
+   entity_(e),
    path_(path),
    pursuing_(0),
-   finished_(false),
    speed_(speed),
-   lateUpdateTime_(0),
-   close_to_distance_(close_to_distance)
+   close_to_distance_(close_to_distance),
+   arrived_cb_(arrived_cb)
 {
+   auto entity = entity_.lock();
+   if (entity) {
+      auto mob = entity->GetComponent<om::Mob>();
+      mob->SetMoving(false);
+   }
    Report("constructor");
 }
 
@@ -30,24 +34,14 @@ static float angle(const math3d::vector3 &v)
    return math3d::atan2(v.z, -v.x) - math3d::atan2(-1, 0);
 }
 
-bool FollowPath::IsIdle(int now) const
-{
-   ASSERT(now >= lateUpdateTime_);
-   return now == lateUpdateTime_;
-}
 
-void FollowPath::Work(int now, const platform::timer &timer)
+bool FollowPath::Work(const platform::timer &timer)
 {
-   ASSERT(!finished_);
-
    Report("running");
-
-   lateUpdateTime_ = now;
 
    auto entity = entity_.lock();
    if (!entity) {
-      finished_ = true;
-      return;
+      return false;
    }
 
    float speedMultiplier = configvm["game.travel_speed_multiplier"].as<float>();
@@ -71,10 +65,14 @@ void FollowPath::Work(int now, const platform::timer &timer)
       }
       mob->TurnToAngle(angle(direction) * 180 / k_pi);
    }
-   finished_ = Arrived(mob);
-   if (finished_) {
+   if (Arrived(mob)) {
       Report("arrived!");
+      if (luabind::type(arrived_cb_) == LUA_TFUNCTION) {
+         luabind::call_function<void>(arrived_cb_);
+      }
+      return false;
    }
+   return true;
 }
 
 bool FollowPath::Arrived(om::MobPtr mob)
@@ -99,7 +97,12 @@ bool FollowPath::Obstructed()
 void FollowPath::Stop()
 {
    Report("stopping");
-   finished_ = true;
+   auto entity = entity_.lock();
+   if (entity) {
+      auto mob = entity->GetComponent<om::Mob>();
+      mob->SetMoving(false);
+      entity_.reset();
+   }
 }
 
 void FollowPath::Report(std::string msg)
@@ -118,7 +121,6 @@ luabind::scope FollowPath::RegisterLuaType(struct lua_State* L, const char* name
    using namespace luabind;
    return
       class_<FollowPath, std::shared_ptr<FollowPath>>(name)
-         .def("finished", &FollowPath::IsFinished)
          .def("stop",     &FollowPath::Stop)
       ;
 }

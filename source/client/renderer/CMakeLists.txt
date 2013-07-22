@@ -6,6 +6,7 @@ include_directories(${Libjson_INCLUDE_DIRS})
 include_directories(${Libclaw_INCLUDE_DIRS})
 
 add_library(client_renderer STATIC
+            pch.cpp
             geometry_generator.cpp
             pipeline.cpp
             skeleton.cpp
@@ -27,12 +28,13 @@ add_library(client_renderer STATIC
 #            render_sensor.cpp
 #            render_structure.cpp
             render_destination.cpp
-            render_stockpile.cpp
 #            render_storey.cpp
             texture_color_mapper.cpp
             qubicle_file.cpp
             render_paperdoll.cpp
-            pch.cpp
+            render_render_region.cpp
+            lua_renderer.cpp
+            lua_render_entity.cpp
             )
 
 if (MSVC)
