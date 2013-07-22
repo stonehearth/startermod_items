@@ -13,8 +13,8 @@
 using namespace radiant;
 using namespace radiant::chromium;
 
-std::string GetPostData(CefRefPtr<CefRequest> request);
-
+static std::string GetPostData(CefRefPtr<CefRequest> request);
+static JSONNode GetQuery(std::string query);
 /*
 class ClientOSRHandler : public CefClient,
 public CefLifeSpanHandler,
@@ -45,7 +45,6 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
 
    CefSettings settings;   
 
-   CefString(&settings.browser_subprocess_path) = L"..\\..\\build\\chromium\\renderer\\relwithdebinfo\\chromium_renderer.exe";
    CefString(&settings.log_file) = L"cef_debug_log.txt";
    settings.log_severity = LOGSEVERITY_VERBOSE;
    settings.single_process = false; // single process mode eats nearly the entire frame time
@@ -390,7 +389,7 @@ CefRefPtr<CefResourceHandler> Browser::GetResourceHandler(CefRefPtr<CefBrowser> 
    CefURLParts url_parts;
    CefParseURL(url, url_parts);
    std::string path = CefString(&url_parts.path);
-   std::string query = CefString(&url_parts.query);
+   JSONNode query = GetQuery(CefString(&url_parts.query));
    std::string postdata = GetPostData(request);
 
    Response *r = new Response(request);
@@ -432,7 +431,36 @@ void Browser::OnProtocolExecution(CefRefPtr<CefBrowser> browser,
    allow_os_execution = boost::starts_with(uri, "http://radiant/");
 }
 
-std::string GetPostData(CefRefPtr<CefRequest> request)
+
+static JSONNode GetQuery(std::string query)
+{
+   JSONNode result;
+   size_t start = 0, end;
+   do {
+      end = query.find('&', start);
+      if (end == std::string::npos) {
+         end = query.size();
+      }
+      if (end > start) {
+         size_t mid = query.find_first_of('=', start);
+         if (mid != std::string::npos) {
+            std::string name = query.substr(start, mid - start);
+            std::string value = query.substr(mid + 1, end - mid - 1);
+
+            int ivalue = atoi(value.c_str());
+            if (ivalue != 0 || value == "0") {
+               result.push_back(JSONNode(name, ivalue));
+            } else {
+               result.push_back(JSONNode(name, value));
+            }
+         }
+         start = end + 1;
+      }
+   } while (end < query.size());
+   return result;
+}
+
+static std::string GetPostData(CefRefPtr<CefRequest> request)
 {
    std::string result;
 

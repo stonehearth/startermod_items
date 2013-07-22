@@ -90,7 +90,6 @@ end
 function events.register_event(msg)
    radiant.log.info('registering msg "%s".', msg)
    radiant.check.verify(not events.is_msg_filter(msg))
-   radiant.check.verify(not radiant.gamestate.is_running())
 
    singleton._registered_msgs[msg] = true
    for _, filter in ipairs(events._get_msg_filters(msg)) do

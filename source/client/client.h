@@ -189,10 +189,10 @@ namespace radiant {
             void LoadCursors();
             void OnEntityAlloc(om::EntityPtr entity);
             void ComponentAdded(om::EntityRef e, dm::ObjectType type, std::shared_ptr<dm::Object> component);
-            void BrowserRequestHandler(std::string const& uri, std::string const& query, std::string const& postdata, std::shared_ptr<chromium::IResponse> response);
-            void HandlePostRequest(std::string const& path, std::string const& postdata, std::shared_ptr<chromium::IResponse> response);
-            void GetRemoteObject(std::string const& uri, std::string const& query, std::shared_ptr<chromium::IResponse> response);
-            void GetEvents(std::string const& query, std::shared_ptr<chromium::IResponse> response);
+            void BrowserRequestHandler(std::string const& uri, JSONNode const& query, std::string const& postdata, std::shared_ptr<chromium::IResponse> response);
+            void HandlePostRequest(std::string const& path, JSONNode const& query, std::string const& postdata, std::shared_ptr<chromium::IResponse> response);
+            void GetRemoteObject(std::string const& uri, JSONNode const& query, std::shared_ptr<chromium::IResponse> response);
+            void GetEvents(JSONNode const& query, std::shared_ptr<chromium::IResponse> response);
             void FlushEvents();
 
       private:

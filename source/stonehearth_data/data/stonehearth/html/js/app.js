@@ -21,7 +21,8 @@ App = Ember.Application.createWithMixins({
          'mainbar/mainbar.html',
          'unitframe/unitframe.html',
          'objectbrowser/objectbrowser.html',
-         '/stonehearth_crafter/html/stonehearth_crafter.html'
+         '/stonehearth_crafter/html/stonehearth_crafter.html',
+         '/stonehearth_calendar/html/stonehearth_calendar.html'
   			];
 
   		var deferreds = [];

@@ -1,3 +1,4 @@
+
 /*
 App.ObjectFactory = Ember.Object.extend({
    getObject: function(uri, options) {

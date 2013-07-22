@@ -24,7 +24,7 @@ public:
    typedef std::function<void(const csg::Region2& rgn, const char* buffer)> PaintCb;
    typedef std::function<void(const HCURSOR cursor)> CursorChangeCb; // xxx: merge this into the command system!
 
-   typedef std::function<void(std::string const& uri, std::string const& query, std::string const& postdata, std::shared_ptr<IResponse> response)> HandleRequestCb;
+   typedef std::function<void(std::string const& uri, JSONNode const& query, std::string const& postdata, std::shared_ptr<IResponse> response)> HandleRequestCb;
 
    virtual bool HasMouseFocus() = 0;
    virtual void UpdateDisplay(PaintCb cb) = 0;

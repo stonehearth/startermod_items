@@ -1,3 +1,4 @@
+FIND_PACKAGE(ChromiumEmbedded REQUIRED)
 FIND_PACKAGE(Boost 1.48.0 COMPONENTS system regex date_time program_options REQUIRED)
 FIND_PACKAGE(Gflags     REQUIRED)
 FIND_PACKAGE(Glog       REQUIRED)
@@ -8,6 +9,7 @@ FIND_PACKAGE(Luabind REQUIRED)
 # FIND_PACKAGE(Bullet     REQUIRED NO_MODULE)
 
 include_directories(${Boost_INCLUDE_DIR})
+INCLUDE_DIRECTORIES(${ChromiumEmbedded_INCLUDE_DIRS})
 include_directories(${Horde3D_INCLUDE_DIRS})
 include_directories(${Libjson_INCLUDE_DIRS})
 include_directories(${Lua_INCLUDE_DIRS})

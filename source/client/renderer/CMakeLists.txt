@@ -1,9 +1,11 @@
 FIND_PACKAGE(Libjson REQUIRED)
 FIND_PACKAGE(Libclaw REQUIRED)
+FIND_PACKAGE(Sfml REQUIRED)
 
 include_directories(${Horde3D_INCLUDE_DIRS})
 include_directories(${Libjson_INCLUDE_DIRS})
 include_directories(${Libclaw_INCLUDE_DIRS})
+include_directories(${Sfml_INCLUDE_DIRS})
 
 add_library(client_renderer STATIC
             pch.cpp
@@ -45,4 +47,5 @@ endif(MSVC)
 target_link_libraries(client_renderer
                       Horde3D
                       ${Libclaw_LIBRARIES}
+                      ${Sfml_LIBRARIES}
                      )

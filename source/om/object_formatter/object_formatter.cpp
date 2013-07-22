@@ -1,7 +1,10 @@
 #include "radiant.h"
 #include "object_formatter.h"
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
 
 // templates...
+#include "dm/store.h"
 #include "om/om.h"
 #include "dm/store.h"
 #define DEFINE_ALL_OBJECTS
@@ -31,11 +34,26 @@ JSONNode ObjectFormatter::ObjectToJson(dm::ObjectPtr obj) const
    if (obj) {
       auto i = object_formatters_.find(obj->GetObjectType());
       if (i != object_formatters_.end()) {
-         return i->second(*this, obj);
+         JSONNode result = i->second(*this, obj);
+         if (result.type() == JSON_NODE) {
+            result.push_back(JSONNode("__self", GetPathToObject(obj)));
+         }
+         return result;
       }
    }
    // xxx: throw an exception...
    return JSONNode();
+}
+
+dm::ObjectPtr ObjectFormatter::GetObject(dm::Store const& store, std::string const& path) const
+{
+   std::vector<std::string> parts;
+   boost::algorithm::split(parts, path, boost::is_any_of("/"));
+   if (parts.size() == 3) {
+      dm::ObjectId id = atoi(parts.back().c_str());
+      return store.FetchObject<dm::Object>(id);
+   }
+   return nullptr;
 }
 
 std::string ObjectFormatter::GetPathToObject(dm::ObjectPtr obj) const

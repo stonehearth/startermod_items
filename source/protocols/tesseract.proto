@@ -29,7 +29,8 @@ message PostCommandRequest {
       optional PostCommandRequest extension = 102;
    }
    required string   path = 1;
-   required string   data = 2;
+   optional string   query = 2;
+   optional string   data = 3;
 }
 
 message ScriptCommandRequest {

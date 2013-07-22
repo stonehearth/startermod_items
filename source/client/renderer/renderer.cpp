@@ -8,6 +8,8 @@
 #include "om/selection.h"
 #include "om/entity.h"
 #include <boost/property_tree/json_parser.hpp>
+#include <SFML/Audio.hpp>
+
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -45,8 +47,8 @@ Renderer::Renderer() :
 
    //width_ = 1920;
    //height_ = 1080;
-   uiWidth_ = width_ = 1280;
-   uiHeight_ = height_ = 720;
+   uiWidth_ = width_ = 1920;
+   uiHeight_ = height_ = 1080;
 
    //uiWidth_ = width_;
    //uiHeight_ = height_;
@@ -557,6 +559,9 @@ void Renderer::UpdateCamera()
    math3d::matrix4 m;
    m.translation(cameraPos_);
    m *= math3d::matrix4(GetCameraRotation());
+
+   //Let the audio listener know where the camera is
+   sf::Listener::setPosition(cameraPos_.x, cameraPos_.y, cameraPos_.z);
 
    h3dSetNodeTransMat(camera_, m.get_float_ptr());
 }
