@@ -2,6 +2,11 @@
    "type" : "entity",
    "extends" : "/stonehearth/entities/humanoid.json",
    "components" : {
+      "radiant:ai" : {
+         "actions" : [
+            "file(/ai/actions/sleep_action.lua)"
+         ]
+      },      
 	   "unit_info" : {
 		  "name": "Civilian",
 		  "description": "Citizen of your town",
@@ -26,3 +31,4 @@
       }
 	}
 }
+
