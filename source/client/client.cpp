@@ -23,6 +23,9 @@
 #include "commands/execute_action.h"
 #include "rest_api.h"
 #include "renderer/render_entity.h"
+#include "renderer/lua_render_entity.h"
+#include "renderer/lua_renderer.h"
+#include "lua/script_host.h"
 #include "glfw.h"
 
 //  #include "GFx/AS3/AS3_Global.h"
@@ -117,6 +120,27 @@ void Client::run()
    };
    renderer.SetRawInputCallback(onRawInput);
    renderer.SetMouseInputCallback(onMouse);
+
+
+   lua_State* L = scriptHost_->GetInterpreter();
+   renderer.SetScriptHost(scriptHost_);
+   LuaRenderer::RegisterType(L);
+   LuaRenderEntity::RegisterType(L);
+   json::ConstJsonObject::RegisterLuaType(L);
+
+   // this locks down the environment!  all types must be registered by now!!
+   scriptHost_->LuaRequire("/radiant/client.lua");
+   auto& rm = resources::ResourceManager2::GetInstance();
+   for (std::string const& modname : rm.GetModuleNames()) {
+      try {
+         LOG(WARNING) << "loading init script for " << modname << "...";
+         json::ConstJsonObject manifest = rm.LookupManifest(modname);
+         std::string filename = manifest["scripts"]["init_client_script"].as_string();
+         scriptHost_->LuaRequire(filename);
+      } catch (std::exception const& e) {
+         LOG(WARNING) << "load failed: " << e.what();
+      }
+   }
 
 #if 0
    //_commands['S'] = std::bind(&Client::RunGlobalCommand, this, "create-stockpile", std::placeholders::_1);
@@ -1454,4 +1478,7 @@ void Client::FlushEvents()
    }
 }
 
-
+void Client::SetScriptHost(lua::ScriptHost* scriptHost)
+{
+   scriptHost_ = scriptHost;
+}
