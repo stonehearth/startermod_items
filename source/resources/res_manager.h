@@ -18,6 +18,7 @@ public:
 
    static ResourceManager2& GetInstance();
 
+   std::vector<std::string> const& GetModuleNames() const;
    JSONNode const& LookupManifest(std::string const& modname) const;
    JSONNode const& LookupJson(std::string path) const;
    AnimationPtr LookupAnimation(std::string path) const;
@@ -43,6 +44,7 @@ private:
 
 private:
    boost::filesystem::path                       resource_dir_;
+   std::vector<std::string>                      moduleNames_;
    mutable std::recursive_mutex                  mutex_;
    mutable std::unordered_map<std::string, AnimationPtr> animations_;
    mutable std::unordered_map<std::string, JSONNode>     jsons_;

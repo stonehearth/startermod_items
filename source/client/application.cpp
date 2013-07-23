@@ -29,6 +29,18 @@ Application::Application()
 
    // this locks down the environment!  all types must be registered by now!!
    scriptHost_.LuaRequire("/radiant/client.lua");
+
+   auto& rm = resources::ResourceManager2::GetInstance();
+   for (std::string const& modname : rm.GetModuleNames()) {
+      try {
+         LOG(WARNING) << "loading init script for " << modname < "...";
+         json::ConstJsonObject manifest = rm.LookupManifest(modname);
+         std::string filename = manifest["scripts"]["init_client_script"].as_string();
+         scriptHost_.LuaRequire(filename);
+      } catch (std::exception const& e) {
+         LOG(WARNING) << "load failed: " << e.what();
+      }
+   }
 }
    
 Application::~Application()
