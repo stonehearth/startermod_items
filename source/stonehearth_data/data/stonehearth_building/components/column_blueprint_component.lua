@@ -16,4 +16,8 @@ function ColumnBlueprintComponent:extend(json)
    end
 end
 
+function ColumnBlueprintComponent:set_height(height)
+   self._height = height
+end
+
 return ColumnBlueprintComponent

@@ -607,20 +607,3 @@ std::string ScriptHost::PostCommand(luabind::object fn, luabind::object self, st
    // UNREACHABLE
    return "";
 }
-
-std::string ScriptHost::PostCommand(luabind::object fn, luabind::object self, std::string const& json)
-{
-   using namespace luabind;
-
-   try {
-      object coder = globals(L_)["radiant"]["json"];
-      object data = call_function<object>(coder["decode"], json);
-      object result = call_function<object>(fn, self, p1_, data);
-      std::string ret = call_function<std::string>(coder["encode"], result);
-      return ret;
-   } catch (std::exception &e) {
-      return std::string("{'error': '") + e.what() + "'}";
-   }
-   // UNREACHABLE
-   return "";
-}

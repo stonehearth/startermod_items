@@ -9,6 +9,7 @@
 #include <fstream>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
+#include "client/renderer/renderer.h"
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;

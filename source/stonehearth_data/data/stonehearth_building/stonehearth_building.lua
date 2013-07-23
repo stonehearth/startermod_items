@@ -3,19 +3,19 @@ local stonehearth_building = {
 } 
 
 function stonehearth_building.create_column(faction, x, z)
-   local entity = radiant.entities.create_entity('/stonehearth_building/entities/column')
+   local entity = radiant.entities.create_entity('/stonehearth_building/entities/column_blueprint')
    
    entity:add_component('unit_info'):set_faction(faction)
    entity:add_component('mob'):set_location_grid_aligned(RadiantIPoint3(x, 0, z));
-   entity:add_component('stonehearth_building:column'):set_height(stonehearth_building.STOREY_HEIGHT)
+   entity:add_component('stonehearth_building:column_blueprint'):set_height(stonehearth_building.STOREY_HEIGHT)
    
    return entity
 end
 
 function stonehearth_building.create_wall(faction, p0, p1, normal)
-   local entity = radiant.entities.create_entity('/stonehearth_building/entities/wall')
+   local entity = radiant.entities.create_entity('/stonehearth_building/entities/wall_blueprint')
    local unit_info = entity:add_component('unit_info')   
-   local wall = entity:add_component('stonehearth_building:wall')
+   local wall = entity:add_component('stonehearth_building:wall_blueprint')
    
    unit_info:set_faction(faction)
    wall:set_columns(p0, p1, normal)
@@ -57,16 +57,18 @@ function stonehearth_building._create_new_building(faction, w, h)
       stonehearth_building.create_column(faction, w, h),
       stonehearth_building.create_column(faction, 0, h),
    }
+   --[[
    local walls = {
       stonehearth_building.create_wall(faction, columns[1], columns[2], Point3(0, 0, -1)),
       stonehearth_building.create_wall(faction, columns[2], columns[3], Point3(1, 0, 0)),
       stonehearth_building.create_wall(faction, columns[3], columns[4], Point3(0, 0, 1)),
       stonehearth_building.create_wall(faction, columns[4], columns[1], Point3(-1, 0, 0)),     
    }
+   ]]
    local storey_container = storey_entity:add_component('entity_container')
    for i = 1,4 do
       storey_container:add_child(columns[i])
-      storey_container:add_child(walls[i])
+      --storey_container:add_child(walls[i])
    end
    
    -- add the building plan to the root entity

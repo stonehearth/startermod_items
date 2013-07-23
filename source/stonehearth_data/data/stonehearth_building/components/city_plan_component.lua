@@ -5,6 +5,13 @@ function CityPlanComponent:__init(entity)
    self._blueprints = {}
 end
 
+function CityPlanComponent:__tojson()
+   local result = {
+      blueprints = self._blueprints,
+   }
+   return radiant.json.encode(result)
+end
+
 function CityPlanComponent:extend(json)
 end
 

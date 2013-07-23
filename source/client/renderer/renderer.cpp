@@ -457,8 +457,9 @@ void Renderer::PointCamera(const math3d::point3 &location)
 
 void Renderer::UpdateUITexture(const csg::Region2& rgn, const char* buffer)
 {
-   // why wouldn't it be?
    if (!rgn.IsEmpty()) {
+      LOG(WARNING) << "Updating " << rgn.GetArea() << " pixels from the ui texture.";
+
       int pitch = uiWidth_ * 4;
 
       char *data = (char *)h3dMapResStream(uiTexture_, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, true, true);
