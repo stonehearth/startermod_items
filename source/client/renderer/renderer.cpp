@@ -141,9 +141,9 @@ Renderer::Renderer() :
 	h3dSetNodeParamI(directionalLight, H3DLight::DirectionalI, true);
 	h3dSetNodeParamF(directionalLight, H3DLight::ShadowSplitLambdaF, 0, 0.9f);
 	h3dSetNodeParamF(directionalLight, H3DLight::ShadowMapBiasF, 0, 0.001f);
-	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 0, 0.5f);
-	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 1, 0.5f);
-	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 2, 0.5f);
+	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 0, 0.6f);
+	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 1, 0.6f);
+	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 2, 0.6f);
 
 	spotLight = h3dAddLightNode(H3DRootNode, "AnotherLight", lightMatRes, "LIGHTING", "SHADOWMAP");
 	h3dSetNodeTransform(spotLight, 0, 20, 0, -90, 0, 0, 1, 1, 1);
