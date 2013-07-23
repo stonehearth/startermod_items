@@ -3,6 +3,7 @@ local singleton = {}
 local BehaviorManager = require 'radiant.modules.ai.behavior_manager'
 
 function ai.__init()
+   ai.SUSPEND_THREAD = {}
    singleton._action_registry = {}
    singleton._intention_registry = {}
    singleton._observer_registry = {}
@@ -25,6 +26,8 @@ function ai._on_event_loop(_, now)
          run = pred(now)
       elseif type(pred) == 'number' then
          run = env:now() >= pred
+      elseif pred == ai.SUSPEND_THREAD then
+         run = false
       else
          assert(false)
       end
@@ -137,6 +140,13 @@ function ai._create_thread(bm, fn)
    singleton._scheduled[co] = true
    singleton._co_to_bm[co] = bm
    return co
+end
+
+function ai._resume_thread(co)
+   local wait_obj = singleton._waiting_until[co]
+   if wait_obj == ai.SUSPEND_THREAD then
+      ai._schedule(co)
+   end
 end
 
 function ai._terminate_thread(co)

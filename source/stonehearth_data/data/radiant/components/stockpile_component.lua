@@ -7,33 +7,37 @@ function StockpileComponent:__init(entity)
       items = {},
       size  = { 0, 0 }
    }
+   radiant.events.listen('radiant.events.gameloop', self)
+end
+
+-- xxx: the 'fire one when i'm constructed' pattern again...
+StockpileComponent['radiant.events.gameloop'] = function(self)
+   radiant.events.unlisten('radiant.events.gameloop', self)
+   
+   local root = radiant.entities.get_root_entity()
+   local ec = radiant.entities.get_root_entity():get_component('entity_container')
+   local children = ec:get_children()
+   
+   self._ec_trace = children:trace('tracking stockpile')
+   self._ec_trace:on_added(function (id, entity)
+         self:_add_item(entity)
+      end)
+   self._ec_trace:on_removed(function (id, entity)
+         self:_remove_item(id)
+      end)
+   
+   local boxed_transform = self._entity:add_component('mob'):get_boxed_transform()
+   self._mob_trace = boxed_transform:trace('stockpile tracking self position')
+   self._mob_trace:on_changed(function()
+         self:_rebuild_item_data()
+      end)
+      
+   self:_rebuild_item_data()      
 end
 
 function StockpileComponent:extend(json)
    if json.size then
       self:set_size(json.size)
-   end
-   -- not so much...
-   if not self._ec_trace then
-      local root = radiant.entities.get_root_entity()
-      local ec = radiant.entities.get_root_entity():get_component('entity_container')
-      local children = ec:get_children()
-      
-      self._ec_trace = children:trace('tracking stockpile')
-      self._ec_trace:on_added(function (id, entity)
-            self:_add_item(entity)
-         end)
-      self._ec_trace:on_removed(function (id, entity)
-            self:_remove_item(id)
-         end)
-      
-      local boxed_transform = self._entity:add_component('mob'):get_boxed_transform()
-      self._mob_trace = boxed_transform:trace('stockpile tracking self position')
-      self._mob_trace:on_changed(function()
-            self:_rebuild_item_data()
-         end)
-
-      self:_rebuild_item_data()      
    end
 end
 
@@ -41,8 +45,27 @@ function StockpileComponent:__tojson()
    return radiant.json.encode(self._data)
 end
 
+function StockpileComponent:_get_bounds()
+   local size = self:get_size()
+   local bounds = Cube3(Point3(0, 0, 0), Point3(size[1], 1, size[2]))
+   return bounds
+end
+
+function StockpileComponent:_get_world_bounds()
+   local size = self:get_size()
+   local origin = Point3(radiant.entities.get_world_grid_location(self._entity))
+   local bounds = Cube3(origin, Point3(origin.x + size[1], origin.y + 1, origin.z + size[2]))
+   return bounds
+end
+
 function StockpileComponent:is_full()
    return false
+end
+
+function StockpileComponent:contains(item_entity)
+   local location = Point3(radiant.entities.get_world_grid_location(item_entity))
+   local world_bounds = self:_get_world_bounds()
+   return world_bounds:contains(location)
 end
 
 function StockpileComponent:get_size()
@@ -51,25 +74,59 @@ end
 
 function StockpileComponent:set_size(size)
    self._data.size = { size[1], size[2] }  
-   self:_rebuild_item_data()      
+   self:_rebuild_item_data()
+end
+
+--[[
+function StockpileComponent:reserve_adjacent(location)
+   local origin = Point3(radiant.entities.get_world_grid_location(self._entity))
+   local pt = Point3(location) - origin
+   local points = {
+      Point3(pt.x + 1, pt.y, pt.z),
+      Point3(pt.x - 1, pt.y, pt.z),
+      Point3(pt.x, pt.y, pt.z + 1),
+      Point3(pt.x, pt.y, pt.z - 1),
+   }
+   local region = self._destination:get_region()
+   for _, p in ipairs(points) do
+      if region:contains(p) then
+         self:_remove_world_point_from_region(p)
+         return p
+      end
+   end   
+end
+]]--
+
+function StockpileComponent:reserve(location)
+   local origin = Point3(radiant.entities.get_world_grid_location(self._entity))
+   local pt = Point3(location) - origin
+   local region = self._destination:get_region()
+   if region:contains(pt) then
+      region:modify():remove_point(pt)
+      return true
+   end   
+end
+
+function StockpileComponent:_remove_world_point_from_region(location)
+   local origin = Point3(radiant.entities.get_world_grid_location(self._entity))
+   local offset = location - origin
+   local region = self._destination:get_region()
+   region:modify():remove_point(offset)
 end
 
 function StockpileComponent:_add_item(entity)
-   local size = self:get_size()
-   local origin = Point3(radiant.entities.get_world_grid_location(entity))
-   local bounds = Cube3(origin, Point3(origin.x + size[1], origin.y, origin.z + size[2]))
+   local location = Point3(radiant.entities.get_world_grid_location(entity))
+   local world_bounds = self:_get_world_bounds()
    
-   if bounds:contains(origin) then
+   if world_bounds:contains(location) then
       local item = entity:get_component('item')
       if item then
          -- hold onto the item...
-         self._data.items[entity:get_id()] = item
+         self._data.items[entity:get_id()] = entity
 
          -- update our destination component to *remove* the space
          -- where the item is, since we can't drop anything there
-         local region = self._destination:get_region()
-         local offset = origin - radiant.entities.get_world_grid_location(self._entity)
-         region:remove_point(offset)
+         self:_remove_world_point_from_region(location)
       end
    end
 end
@@ -83,13 +140,12 @@ function StockpileComponent:_remove_item(id)
       local region = self._destination:get_region()
       local origin = radiant.entities.get_world_grid_location(entity)
       local offset = origin - radiant.entities.get_world_grid_location(self._entity)
-      region:add_point(offset)
+      region:modify():add_point(Point3(offset))
    end
 end
 
 function StockpileComponent:_rebuild_item_data()
-   local size = self:get_size()
-   local bounds = Cube3(Point3(0, 0, 0), Point3(size[1], 1, size[2]))
+   local bounds = self:_get_bounds()
    local region = Region3(bounds)
    self._destination:set_region(region)
 

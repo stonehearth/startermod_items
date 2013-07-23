@@ -10,11 +10,12 @@ using namespace ::radiant::client;
 RenderDestination::RenderDestination(const RenderEntity& entity, om::DestinationPtr stockpile) :
    entity_(entity)
 {
-   H3DNode parent = entity_.GetNode();
-   std::string parentName = h3dGetNodeParamStr(parent, H3DNodeParams::NameStr);
+   node_ = h3dAddGroupNode(entity_.GetNode(), "destination region");
+   h3dSetNodeTransform(node_, 0.5f, 0.0f, 0.5f, 0, 0, 0, 1, 1, 1);
+   std::string nodeName = h3dGetNodeParamStr(node_, H3DNodeParams::NameStr);
 
    auto create_debug_tracker = [=](std::string regionName, H3DNode& shape, om::RegionPtr region, math3d::color4 const& color) {
-      shape = h3dRadiantAddDebugShapes(parent, (parentName + regionName, std::string(" destination debug shape")).c_str());
+      shape = h3dRadiantAddDebugShapes(node_, (nodeName + regionName, std::string(" destination debug shape")).c_str());
       auto update = std::bind(&RenderDestination::UpdateShape, this, std::placeholders::_1, shape, color);
       guards_ += region->Trace("rendering destination debug region", update);
       update(**region);

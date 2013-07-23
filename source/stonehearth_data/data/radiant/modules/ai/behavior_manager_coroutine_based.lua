@@ -265,7 +265,7 @@ function BehaviorManager:execute(...)
    local action = self:_get_best_action(...)
 
    local action_main = function()
-      decoda_name = string.format("entity %d : %s action", self._entity:get_id(), tostring(action.name))
+      -- decoda_name = string.format("entity %d : %s action", self._entity:get_id(), tostring(action.name))
       radiant.log.debug('coroutine starting action: %s for activity %s', action.name, self:_format_activity(activity))
       local result = { action:run(self, self._entity, select(2, unpack(activity))) }
       radiant.log.debug('coroutine finished: %s', action.name)

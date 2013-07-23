@@ -8,6 +8,7 @@ function Inventory:__init(faction)
    self._faction = faction
 
    self._tree_tracker = TreeTracker(faction)
+
    self._all_items_tracker = native:create_multi_path_finder('all items tracker')
 
    self._all_items_backtracker = native:create_multi_path_finder('all items back tracker')
@@ -18,22 +19,27 @@ function Inventory:__init(faction)
    self._stockpile_trackers = {}
    self._item_restock_paths = {}
 
-   local ec = radiant.entities.get_root_entity():get_component('entity_container'):get_children()
+--[[
+   self._stocked_items = {}
+   local ec = radiant.entities.get_root_entity():get_component('entity_container');
+   local children = ec:get_children()
 
    -- put a trace on the root entity container to detect when items 
    -- go on and off the terrain.  each item is forwarded to the
    -- appropriate tracker.
-   self._trace = ec:trace('tracking items on terrain')
+   self._trace = children:trace('tracking items on terrain')
    self._trace:on_added(function (id, entity)
          self:_add_entity_to_terrain(id, entity)
       end)
    self._trace:on_removed(function (id, entity)
          self:_remove_entity_from_terrain(id, entity)
       end)
+      
    -- UGGGG. ITERATE THROUGH EVERY ITEM IN THE WORLD. =..(
-   for id, item in ec:items() do
+   for id, item in children:items() do
       self:_add_entity_to_terrain(id, item)
    end
+   ]]
 end
 
 
@@ -55,6 +61,12 @@ function Inventory:_track_item(item_entity)
    -- unconditionally add the item to the all item tracker
    self._all_items_tracker:add_destination(item_entity)
    self._all_items_backtracker:add_destination(item_entity)
+   for _, tracker in pairs(self._stockpile_trackers) do
+      if tracker:contains_item(item_entity) then
+         self._stocked_items[item_entity:get_id()] = item_entity
+         break
+      end
+   end
 end
 
 function Inventory:_track_stockpile(stockpile_entity)
@@ -68,7 +80,8 @@ function Inventory:_remove_entity_from_terrain(id, entity)
       tracker:untrack_item(id)
    end
    self._all_items_tracker:remove_destination(id)
-   -- hmmm....
+   self._all_items_backtracker:remove_destination(id)
+   self._restock_pathfinder:remove_destination(id)
 end
 
 function Inventory:create_stockpile(location, size)
@@ -88,39 +101,44 @@ function Inventory:find_path_to_tree(from, cb)
    return self._tree_tracker:find_path_to_tree(from, cb)
 end
 
-function Inventory:find_backpath_to_item(source_entity, cb)
-   local solved = function (path)
-      cb(path)
-   end
-   self._all_items_backtracker:add_entity(source_entity, solved, nil)
+function Inventory:find_backpath_to_item(source_entity, solved_cb, filter_fn)
+   self._all_items_backtracker:add_entity(source_entity, solved_cb, filter_fn)
 end
 
-function Inventory:find_path_to_item(source_entity, cb, filter)
-   local solved = function (path)
-      cb(path)
-   end
-   self._all_items_tracker:add_entity(source_entity, solved, filter)
+function Inventory:find_path_to_item(source_entity, solved_cb, filter_fn)
+   self._all_items_tracker:add_entity(source_entity, solved_cb, filter_fn)
 end
 
 function Inventory:find_item_to_restock(worker_entity, cb)
    local solved = function(path_to_item)
       local worker_entity = path_to_item:get_source()
+
       local item_entity = path_to_item:get_destination()
-      local path_to_stockpile = self._item_restock_paths[item_entity:get_id()]
+      self._restock_pathfinder:remove_destination(item_entity:get_id())
+
+      local path_to_stockpile = self._item_restock_paths[item_entity:get_id()]      
       if path_to_stockpile then
          local drop_location = path_to_stockpile:get_finish_point()
          self._restock_pathfinder:remove_entity(worker_entity:get_id())
          cb(item_entity, path_to_item, path_to_stockpile, drop_location)
-      else
-         -- this shouldn't happen...
-         self._restock_pathfinder:remove_destination(item_entity)
       end
    end
    self._restock_pathfinder:add_entity(worker_entity, solved, nil)
 end
 
+function Inventory:is_item_stocked(entity)
+   return self._stocked_items[entity:get_id()] ~= nil
+end
+
 function Inventory:_register_restock_item(item_entity, path)
    local id = item_entity:get_id()
+   if self._item_restock_paths[id] then
+      -- hm.  two different stockpile trackers found a way to this item...
+      -- perhaps it would be better if we compared the lengths of the paths
+      -- and picked the shorter one.
+      radiant.log.warning('ignoring duplicate restock item.')
+      return
+   end
    self._item_restock_paths[id] = path
    self._restock_pathfinder:add_destination(item_entity)
 end

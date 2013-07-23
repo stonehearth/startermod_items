@@ -81,11 +81,20 @@ void mesh_tools::add_region(csg::Region2 const& region, int plane_value, plane_d
       int tag = r.GetTag();
       mesh& m = mm[tag];
 
-      auto i = tesselators_.find(tag);
-      if (i != tesselators_.end()) {
-         i->second(tag, points, normal, m);
+      // this is super gross.  instead of passing in a tess map, we should parameterize the 
+      // mesh_tools object with a function that we can call...  or better yet, dump this
+      // thing and do tesselation on the server!
+      if (tesselators_.empty()) {         
+         math3d::color3 c= math3d::color3::FromInteger(tag);
+         csg::Point3f color(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f);
+         m.add_face(points, normal, color);
       } else {
-         m.add_face(points, normal, csg::Point3f(0.5, 0.5, 0.5));
+         auto i = tesselators_.find(tag);
+         if (i != tesselators_.end()) {
+            i->second(tag, points, normal, m);
+         } else {
+            m.add_face(points, normal, csg::Point3f(0.5, 0.5, 0.5));
+         }
       }
    }
 }

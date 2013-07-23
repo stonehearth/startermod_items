@@ -15,11 +15,13 @@ BEGIN_RADIANT_CLIENT_NAMESPACE
 class Renderer;
 class RenderAspect;
 
-class RenderEntity
+class RenderEntity : public std::enable_shared_from_this<RenderEntity>
 {
    public:
       RenderEntity(H3DNode parent, om::EntityPtr obj);
       ~RenderEntity();
+
+      void FinishConstruction();
 
       void Show(bool show);
       void SetSelected(bool selected);
@@ -61,7 +63,7 @@ class RenderEntity
 
 protected:
       typedef std::unordered_map<dm::ObjectType, std::shared_ptr<RenderComponent>> ComponentMap;
-      typedef std::unordered_map<std::string, std::shared_ptr<RenderComponent>> LuaComponentMap;
+      typedef std::unordered_map<std::string, luabind::object> LuaComponentMap;
       H3DNode           node_;
       om::EntityRef     entity_;
       dm::GuardSet      tracer_;

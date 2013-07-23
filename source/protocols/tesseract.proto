@@ -11,6 +11,7 @@ message Request {
    enum Type {
       FetchObjectRequest = 1;
       PostCommandRequest = 2;
+      ScriptCommandRequest = 3;
    }
    required Type     type = 1;
    required uint32   request_id = 2;
@@ -32,6 +33,13 @@ message PostCommandRequest {
    optional string   data = 3;
 }
 
+message ScriptCommandRequest {
+   extend Request {
+      optional ScriptCommandRequest extension = 103;
+   }
+   required string   cmd = 1;
+}
+
 message Update {
    extensions 100 to max;
    enum Type {
@@ -42,10 +50,10 @@ message Update {
       RemoveObjects = 5;
       AllocObjects = 6;
       UpdateDebugShapes = 7;
-      DoActionReply = 8;
       EndUpdate = 9;
       FetchObjectReply = 10;
       PostCommandReply = 11;
+      ScriptCommandReply = 12;
    }
    required Type     type = 1;
    optional int32    chunk_size = 2;
@@ -107,14 +115,6 @@ message UpdateDebugShapes {
    required radiant.protocol.shapelist shapelist = 1;
 }
 
-message DoActionReply {
-   extend Update {
-      optional DoActionReply extension = 108;
-   }
-   optional int32       reply_id = 1;
-   optional string      json = 2;
-}
-
 message EndUpdate {
    extend Update {
       optional EndUpdate extension = 109;
@@ -139,11 +139,11 @@ message PostCommandReply {
    optional string      content = 3;
 }
 
-message DoAction {
-   optional int32       reply_id = 1;
-   optional int32       entity = 2;
-   required string      action = 3;
-   repeated Protocol.Selection args = 4;
+message ScriptCommandReply {
+   extend Update {
+      optional ScriptCommandReply extension = 121;
+   }
+   optional string      result = 1;
 }
 
 message ClientRequest {

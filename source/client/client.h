@@ -37,7 +37,7 @@ namespace radiant {
          public:
             Client();
             ~Client();
-               
+            
          public:
             void GetConfigOptions(boost::program_options::options_description& options);
 
@@ -68,11 +68,12 @@ namespace radiant {
             void SetCommandCursor(std::string name);
 
             // For command executors only
+#if 0
          public:
             typedef std::function<void(const tesseract::protocol::DoActionReply*)> CommandResponseFn;
             int CreatePendingCommandResponse();
             int CreateCommandResponse(CommandResponseFn fn);
-            void SendCommand(om::EntityId to, std::string action, const std::vector<om::Selection>& args, int responseId = 0);
+#endif
 
          protected:
             typedef std::function<void()>  CommandFn;
@@ -84,7 +85,6 @@ namespace radiant {
             void BeginUpdate(const tesseract::protocol::BeginUpdate& msg);
             void EndUpdate(const tesseract::protocol::EndUpdate& msg);
             void SetServerTick(const tesseract::protocol::SetServerTick& msg);
-            void DoActionReply(const tesseract::protocol::DoActionReply& msg);
             void AllocObjects(const tesseract::protocol::AllocObjects& msg);
             void UpdateObject(const tesseract::protocol::UpdateObject& msg);
             void RemoveObjects(const tesseract::protocol::RemoveObjects& msg);
@@ -267,7 +267,7 @@ namespace radiant {
             std::string                      currentToolName_;
 
             int                              nextResponseHandlerId_;
-            std::map<int, CommandResponseFn> responseHandlers_;
+            //std::map<int, CommandResponseFn> responseHandlers_;
             std::unordered_map<std::string, std::unique_ptr<HCURSOR, Client::CursorDeleter>> cursors_;
             std::vector<om::EntityRef>       alloced_;
 

@@ -1,0 +1,10 @@
+{
+   "info" :{
+      "name" : "Stonehearth Unit Tests"
+   },
+   "loader" :  {
+      "ui" : {
+         "homepage" : "http://mods/stonehearth_tests/html/index.html"
+      }
+   }
+}

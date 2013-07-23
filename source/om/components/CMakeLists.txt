@@ -11,6 +11,7 @@ include_directories(${Cryptopp_INCLUDE_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
 
 add_library(om_components STATIC
+            pch.cpp
             build_order.cpp
             build_order_dependencies.cpp
             grid_build_order.cpp
@@ -53,9 +54,9 @@ add_library(om_components STATIC
             target_tables.cpp
             inventory.cpp
             weapon_info.cpp
-			lua_components.cpp
-			destination
-            pch.cpp
+            lua_components.cpp
+			   destination.cpp
+            render_region.cpp
             )
 
 if (MSVC)

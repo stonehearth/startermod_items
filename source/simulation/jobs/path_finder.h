@@ -42,7 +42,6 @@ class PathFinder : public Job {
 
       void AddDestination(om::EntityRef dst);
       void RemoveDestination(dm::ObjectId id);
-      void Stop() { stopped_ = true; }
       void SetSolvedCb(luabind::object solved);
       void SetFilterFn(luabind::object dst_filter);
 
@@ -55,9 +54,9 @@ class PathFinder : public Job {
 
 
    public: // Job Interface
-      bool IsIdle(int now) const override;
+      bool IsIdle() const override;
       bool IsFinished() const override { return false; }
-      void Work(int now, const platform::timer &timer) override;
+      void Work(const platform::timer &timer) override;
       void LogProgress(std::ostream&) const override;
       void EncodeDebugShapes(protocol::shapelist *msg) const override;
 
@@ -80,6 +79,7 @@ class PathFinder : public Job {
 
    public:
       om::EntityRef                                entity_;
+      om::MobRef                                   mob_;
       luabind::object                              solved_cb_;
       luabind::object                              dst_filter_;
       int                                          costToDestination_;
@@ -87,10 +87,9 @@ class PathFinder : public Job {
       bool                                         restart_search_;
       bool                                         search_exhausted_;
       bool                                         reversed_search_;
-      bool                                         stopped_;
       mutable PathPtr                              solution_;
       std::vector<math3d::ipoint3>                      open_;
-      std::vector<math3d::ipoint3>                      closed_;
+      std::unordered_map<math3d::ipoint3, bool, math3d::ipoint3::hash> closed_;
       std::hash_map<math3d::ipoint3, int>               f_;
       std::hash_map<math3d::ipoint3, int>               g_;
       std::hash_map<math3d::ipoint3, int>               h_;

@@ -6,18 +6,16 @@
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
 
-class GotoLocation : public Job
+class GotoLocation : public Task
 {
 public:
-   GotoLocation(om::EntityRef entity, float speed, const math3d::point3& location, float close_to_distance);
-   GotoLocation(om::EntityRef entity, float speed, om::EntityRef target, float close_to_distance);
+   GotoLocation(om::EntityRef entity, float speed, const math3d::point3& location, float close_to_distance, luabind::object arrived_cb);
+   GotoLocation(om::EntityRef entity, float speed, om::EntityRef target, float close_to_distance, luabind::object arrived_cb);
 
    static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
 
 public:
-   bool IsIdle(int now) const override;
-   bool IsFinished() const override { return finished_; }
-   void Work(int now, const platform::timer &timer) override;
+   bool Work(const platform::timer &timer) override;
 
 protected:
    void Report(std::string msg);
@@ -29,9 +27,8 @@ protected:
    math3d::point3       target_location_;
    float                speed_;
    bool                 target_is_entity_;
-   bool                 finished_;
-   int                  lateUpdateTime_;
    float                close_to_distance_;
+   luabind::object      arrived_cb_;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

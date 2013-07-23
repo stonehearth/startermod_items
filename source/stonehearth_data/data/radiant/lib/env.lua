@@ -10,4 +10,3 @@ require 'radiant.lualibs.unclasslib'
 
 -- finish off by locking down the global namespace
 require 'radiant.lualibs.strict'
-decoda_name = "main"
