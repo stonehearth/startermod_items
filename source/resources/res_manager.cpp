@@ -131,6 +131,13 @@ ResourceManager2::ResourceManager2() :
    resource_dir_("data")
 {
    ASSERT(!singleton_);
+   fs::directory_iterator end;
+   for (fs::directory_iterator i(resource_dir_); i != end; i++) {
+      fs::path path = i->path();
+      if (fs::is_directory(path)) {
+         moduleNames_.push_back(path.filename().string());
+      }
+   }
 }
 
 ResourceManager2::~ResourceManager2()
@@ -310,4 +317,9 @@ void ResourceManager2::ExtendNode(JSONNode& node, const JSONNode& parent) const
       node = parent;
       break;      
    }
+}
+
+std::vector<std::string> const& ResourceManager2::GetModuleNames() const
+{
+   return moduleNames_;
 }

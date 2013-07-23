@@ -17,6 +17,7 @@
 #include "selectors/selector.h"
 #include "entity_traces.h"
 #include "chromium/chromium.h"
+#include "lua/namespace.h"
 
 using boost::asio::ip::tcp;
 namespace boost {
@@ -26,6 +27,10 @@ namespace boost {
 }
 
 //class ScaleformGFx;
+
+IN_RADIANT_LUA_NAMESPACE(
+   class ScriptHost;
+)
 
 namespace radiant {
    namespace client {
@@ -43,6 +48,7 @@ namespace radiant {
 
             void run();
             int Now() { return now_; }
+            void SetScriptHost(lua::ScriptHost* host);
 
             dm::Guard TraceDynamicObjectAlloc(std::function<void(dm::ObjectPtr)> fn) { return store_.TraceDynamicObjectAlloc(fn); }
 
@@ -276,6 +282,7 @@ namespace radiant {
             std::mutex                       lock_;
             std::vector<JSONNode>            queued_events_;
             std::shared_ptr<chromium::IResponse>   get_events_request_;
+            lua::ScriptHost*                 scriptHost_;
       };
    };
 };
