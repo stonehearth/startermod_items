@@ -5,7 +5,7 @@ radiant.events.register_event_handler("radiant.msg_handlers.resource_factory", R
 
 ResourceFactory['radiant.md.create'] = function(self, entity)
    self.entity = entity
-   md:listen(entity, 'radiant.resource_node.spawn_resource', self)
+   md:listen_to_entity(entity, 'radiant.resource_node.spawn_resource', self)
 end
 
 ResourceFactory['radiant.resource_node.spawn_resource'] = function(self, location)

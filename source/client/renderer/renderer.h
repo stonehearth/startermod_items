@@ -94,6 +94,9 @@ public:
       float GetCurrentFrameInterp() const { return currentFrameInterp_; }
 
    private:
+      NO_COPY_CONSTRUCTOR(Renderer);
+
+   private:
       void OnKey(int key, int down);
       void OnMouseWheel(int value);
       void OnMouseMove(int x, int y);

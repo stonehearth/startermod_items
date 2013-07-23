@@ -98,7 +98,6 @@ function ai._get_bm(arg0)
       entity = arg0
       id = entity:get_id()
    end
-   radiant.check.is_entity(entity)
    
    if not singleton._behavior_managers[id] then
       singleton._behavior_managers[id] = BehaviorManager(entity)

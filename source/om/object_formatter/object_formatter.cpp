@@ -38,6 +38,7 @@ JSONNode ObjectFormatter::ObjectToJson(dm::ObjectPtr obj) const
          if (result.type() == JSON_NODE) {
             result.push_back(JSONNode("__self", GetPathToObject(obj)));
          }
+         LOG(WARNING) << result.write();
          return result;
       }
    }

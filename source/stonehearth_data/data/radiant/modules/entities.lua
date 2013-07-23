@@ -80,7 +80,6 @@ function entities.add_child(parent, child, location)
    radiant.check.is_entity(child)
 
    local component = parent:add_component('entity_container')
-   radiant.check.is_a(component, EntityContainer)
 
    component:add_child(child)
    entities.move_to(child, location)
@@ -99,7 +98,6 @@ end
 
 function entities.move_to(entity, location)
    radiant.check.is_entity(entity)
-   radiant.check.is_a(location, RadiantIPoint3)
    entity:add_component('mob'):set_location_grid_aligned(location)
 end
 

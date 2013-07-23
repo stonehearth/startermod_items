@@ -101,7 +101,6 @@ function events.register_event_handler(name, handler)
    radiant.check.is_string(name)
    assert(not env:is_running())
    assert(not singleton._registered_handlers[name])
-   radiant.check.is_callable(handler)
 
    radiant.log.info('registering msg_handler "%s".', name)
    singleton._registered_handlers[name] = handler
@@ -207,32 +206,18 @@ function events.destroy_msg_handler(handler)
    -- singleton._all_handlers[handler] = nil
 end
 
-function events.listen(arg1, arg2, arg3)
-   if radiant.util.is_string(arg1) then
-      events._listen_to_msg_filter(arg1, arg2)
-      return
-   end
-   if radiant.util.is_a(arg1, Entity) then
-      events._listen_to_entity(arg1, arg2, arg3)
-      return
-   end
-   radiant.check.report_error('invalid object type %s (%s) in md:listen', type(arg1), tostring(arg1))
-end
-
-function events._listen_to_msg_filter(filter, handler)
+function events.listen(filter, handler)
    radiant.check.verify(events.is_msg_filter(filter))
    --radiant.check.verify(events.is_msg_handler(handler));
-   radiant.check.is_callable(handler)
 
    radiant.log.debug('listen %s (%s).', filter, events._get_handler_name(handler))
    local handlers = events._get_free_handlers_for_filter(filter)
    table.insert(handlers, handler)
 end
 
-function events._listen_to_entity(entity, filter, handler)
+function events.listen_to_entity(entity, filter, handler)
    radiant.check.is_entity(entity)
    radiant.check.verify(events.is_msg_filter(filter))
-   radiant.check.is_callable(handler)
 
    if not entity:is_valid() then
       log:warning('ignoring invalid entity in md:listen')
@@ -245,19 +230,7 @@ function events._listen_to_entity(entity, filter, handler)
    table.insert(handlers, handler)
 end
 
-function events.unlisten(arg1, arg2, arg3)
-   if radiant.util.is_string(arg1) then
-      events._unlisten_msg_filter(arg1, arg2)
-      return
-   end
-   if radiant.util.is_a(arg1, Entity) then
-      events._unlisten_entity(arg1, arg2, arg3)
-      return
-   end
-   radiant.check.report_error('invalid object type %s (%s) in md:listen', type(handler), tostring(handler))
-end
-
-function events._unlisten_msg_filter(filter, handler)
+function events.unlisten(filter, handler)
    radiant.check.verify(events.is_msg_filter(filter))
 
    local handlers = events._get_free_handlers_for_filter(filter)
@@ -269,7 +242,7 @@ function events._unlisten_msg_filter(filter, handler)
    end
 end
 
-function events._unlisten_entity(entity, filter, handler)
+function events.unlisten_to_entity(entity, filter, handler)
    radiant.check.is_entity(entity)
    radiant.check.verify(events.is_msg_filter(filter))
    --radiant.check.verify(events.is_msg_handler(handler))
@@ -325,32 +298,16 @@ function events.broadcast_msg(msg, ...)
    for _, filter in ipairs(filters) do
       local handlers = events._get_free_handlers_for_filter(filter)
       for _, handler in ipairs(handlers) do
-         events.send_msg(handler, msg, ...)
+         events.send_msg(true, handler, msg, ...)
       end
    end
 end
 
 -- use sparingly...
-function events.sync_send_msg(obj, msg, ...)
-   events._send_msg(true, obj, msg, ...)
-end
 
-function events.send_msg(obj, msg, ...)
-   events._send_msg(false, obj, msg, ...)
-end
-
-function events._send_msg(sync, obj, msg, ...)
+function events.send_msg_to_entity(sync, entity, msg, ...)
    radiant.check.is_boolean(sync)
-   radiant.check.verify(radiant.util.is_callable(obj) or radiant.util.is_a(obj, Entity))
    radiant.check.verify(events.is_msg(msg))
-
-   if not radiant.util.is_a(obj, Entity) then
-      return events._send_msg_to_handler(sync, obj, msg, ...)
-   end
-   return events._send_msg_to_entity(sync, obj, msg, ...)
-end
-
-function events._send_msg_to_entity(sync, entity, msg, ...)
    if not entity:is_valid() then
       log:warning('ignoring invalid entity in md:send_msg')
       return
@@ -362,26 +319,13 @@ function events._send_msg_to_entity(sync, entity, msg, ...)
       local handlers = events._get_entity_listen_map_by_filter(entity, filter)
       for _i, handler in ipairs(handlers) do
          -- table constructors capture all return values from a function
-         events._send_msg_to_handler(sync, handler, msg, ...)
+         events.send_msg(sync, handler, msg, ...)
       end
    end
 end
 
-function events._get_handlers_for_filter(obj, filter)
-   radiant.check.verify(events.is_msg_handler(handler) or radiant.util.is_a(obj, Entity))
-   radiant.check.verify(events.is_msg_filter(filter))
-
-   if radiant.util.is_a(obj, Entity) then
-      return events._get_entity_listen_map_by_filter(obj, filter)
-   end
-   if events.is_msg_handler(handler) then
-      return events._get_free_handlers_for_filter(obj, filter)
-   end
-   radiant.check.report_error('invalid object type %s (%s) in md:_get_handlers_for_filter', type(obj), tostring(obj))
-   return {}
-end
-
-function events._send_msg_to_handler(sync, handler, msg, ...)
+function events.send_msg(sync, handler, msg, ...)
+   radiant.check.is_boolean(sync)
    radiant.check.verify(events.is_msg(msg))
 
    if sync then
