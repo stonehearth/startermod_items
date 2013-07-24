@@ -1,61 +1,68 @@
 #include "pch.h"
 #include "guard.h"
-#include "store.h"
+#include <utility>
 
 using namespace ::radiant;
 using namespace ::radiant::dm;
 
-static int id = 1;
-
 Guard::Guard()
 {
-   id_ = id++;
-   // std::cout << "Guard::Guard() " << id_ << std::endl;
 }
 
-Guard::Guard(std::function<void()> untrack) :
-   untrack_(untrack)
+Guard::Guard(Guard&& other) :
+   nodes_(std::move(other.nodes_))
 {
-   id_ = id++;
-   // std::cout << "Guard::Guard(std::function<...>)  " << id_ << std::endl;
+}
+
+Guard::Guard(std::function<void()> untrack)
+{
+   (*this) += untrack;
 }
 
 Guard::~Guard()
 {
-   // std::cout << "Guard::~Guard()  " << id_ << std::endl;
-   if (untrack_) {
-      // std::cout << "invoking untrack function!" << std::endl;
-      untrack_();
-   }
+   UntrackNodes();
 }
 
-Guard::Guard(Guard&& other)
+Guard const& Guard::operator=(Guard&& other)
 {
-   id_ = id++;
-   // std::cout << "Guard::Guard(Guard&& other)  " << id_ << " other is " << other.id_ << std::endl;
-
-   *this = std::move(other);
-}
-
-
-const Guard& Guard::operator=(Guard&& other)
-{
-   // std::cout << "Guard::operator=(Guard&& other)  " << id_ << " other is " << other.id_ << std::endl;
-
    if (this != &other) {
-      if (untrack_) {
-         untrack_();
-      }
-      untrack_ = other.untrack_;
-      other.untrack_ = nullptr;
+      UntrackNodes();
+      nodes_ = std::move(other.nodes_);
    }
    return *this;
 }
 
-void Guard::Reset()
-{
-   if (untrack_) {
-      untrack_();
-      untrack_ = nullptr;
-   }
+Guard const& Guard::operator+=(Guard&& other)
+{   
+   nodes_.insert(nodes_.end(), other.nodes_.begin(), other.nodes_.end());
+   other.nodes_.clear();
+   return *this;
 }
+
+Guard const& Guard::operator=(std::function<void()> untrack)
+{
+   UntrackNodes();
+   nodes_.push_back(untrack);
+   return *this;
+}
+
+Guard const& Guard::operator+=(std::function<void()> untrack)
+{
+   nodes_.push_back(untrack);
+   return *this;
+}
+
+void Guard::Clear()
+{
+   UntrackNodes();
+}
+
+void Guard::UntrackNodes()
+{
+   for (auto &fn : nodes_) {
+      fn();
+   }
+   nodes_.clear();
+}
+

@@ -25,7 +25,7 @@ class RenderBuildOrder : public RenderComponent {
       const RenderEntity&     entity_;
       H3DNode                 regionDebugShape_;
       H3DNode                 reservedDebugShape_;
-      dm::GuardSet            traces_;
+      dm::Guard               traces_;
 
 };
 

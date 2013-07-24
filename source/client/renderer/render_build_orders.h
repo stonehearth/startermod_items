@@ -29,7 +29,7 @@ private:
 
    const RenderEntity&  entity_;
    H3DNode              node_;
-   dm::GuardSet         guards_;
+   dm::Guard            guards_;
    BuildprintMap        blueprints_;
 };
 

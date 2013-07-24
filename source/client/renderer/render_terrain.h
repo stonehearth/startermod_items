@@ -60,7 +60,7 @@ private:
 
 private:
    const RenderEntity&  entity_;
-   dm::GuardSet         tracer_;
+   dm::Guard            tracer_;
    om::TerrainRef       terrain_;
    H3DNode              node_;
 };

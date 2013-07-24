@@ -26,7 +26,7 @@ class RenderDestination : public RenderComponent {
       H3DNode                    reservedDebugShape_;
       H3DNode                    adjacentDebugShape_;
       H3DNode                    node_;
-      dm::GuardSet               guards_;
+      dm::Guard                  guards_;
 
 };
 

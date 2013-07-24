@@ -93,7 +93,7 @@ public:
 
    public:
       void Destroy() {
-         guard_.Reset();
+         guard_.Clear();
          changedCbs_.clear();
       }
 

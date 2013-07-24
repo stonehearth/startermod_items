@@ -21,7 +21,6 @@ add_subdirectory(selectors)
 add_library(client
             application.cpp
             client.cpp
-            entity_traces.cpp
             main.cpp
             pch.cpp
             )

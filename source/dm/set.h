@@ -99,7 +99,7 @@ public:
 
    public:
       void Destroy() {
-         guard_.Reset();
+         guard_.Clear();
       }
 
       LuaPromise* PushAddedCb(luabind::object cb) {

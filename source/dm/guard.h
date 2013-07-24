@@ -1,5 +1,7 @@
 #pragma once
-#include "types.h"
+#include <list>
+#include <memory>
+
 #include "namespace.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
@@ -13,19 +15,23 @@ class Guard
 public:
    Guard();
    Guard(std::function<void()> untrack);
+   Guard(Guard&& other);
    ~Guard();
 
-   Guard(Guard&& other);
    const Guard& operator=(Guard&& rhs);
+   const Guard& operator=(std::function<void()> untrack);
 
-   void Reset();
+   const Guard& operator+=(Guard&& other);
+   const Guard& operator+=(std::function<void()> untrack);
+
+   void Clear();
 
 private:
    NO_COPY_CONSTRUCTOR(Guard);
+   void UntrackNodes();
 
 private:
-   std::function<void()>   untrack_;
-   int id_;
+   std::vector<std::function<void()>>      nodes_;
 };
 
 END_RADIANT_DM_NAMESPACE

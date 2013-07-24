@@ -61,7 +61,7 @@ class OctTree {
 
       std::map<dm::ObjectId, om::EntityRef>     entities_;
       std::map<dm::ObjectId, om::SensorRef>     sensors_;
-      dm::GuardSet                              guards_;
+      dm::Guard                                 guards_;
       NavGrid                                   navgrid_;
 };
 

@@ -27,7 +27,7 @@ private:
 private:
    const RenderEntity&  entity_;
    om::MobRef           mob_;
-   dm::GuardSet           tracer_;
+   dm::Guard              tracer_;
    math3d::transform    _initial;
    math3d::transform    _final;
    math3d::transform    _current;

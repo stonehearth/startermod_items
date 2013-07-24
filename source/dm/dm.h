@@ -2,7 +2,7 @@
 #define _RADIANT_DM_DM_H
 
 #include "namespace.h"
-#include "guard_set.h"
+#include "guard.h"
 #include "store.pb.h"
 #include "types.h"
 #include "dm_save_impl.h"

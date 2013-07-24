@@ -140,7 +140,7 @@ public:
       math3d::vector3   cameraMoveDirection_;
 
       dm::TraceId       nextTraceId_;
-      dm::GuardSet        traces_;
+      dm::Guard           traces_;
       TraceMap          renderFrameTraces_;
       TraceMap          interpolationStartTraces_;
 

@@ -44,7 +44,7 @@ private:
    void UpdateStandingRegion();
 
 public:
-   dm::GuardSet                    traces_;
+   dm::Guard                       traces_;
 
    dm::Set<EntityId>               contents_;
    dm::Boxed<math3d::ibounds3>     bounds_;

@@ -32,7 +32,7 @@ private:
 public:
    PathFinder&       pf_;
    om::EntityRef     entity_;
-   dm::GuardSet      guards_;
+   dm::Guard         guards_;
 };
 
 class PathFinder : public Job {

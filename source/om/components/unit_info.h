@@ -28,8 +28,7 @@ public:
    std::string GetFaction() const { return *faction_; }
    void SetFaction(std::string faction) { faction_ = faction; }
 
-   dm::Guard TraceName(const char* reason, std::function<void()> fn) { return name_.TraceObjectChanges(reason, fn); };
-   dm::Guard TraceDescription(const char* reason, std::function<void()> fn) { return description_.TraceObjectChanges(reason, fn); };
+   dm::Guard TraceObjectChanges(const char* reason, std::function<void()> fn) const override;
 
 private:
    void InitializeRecordFields() override;

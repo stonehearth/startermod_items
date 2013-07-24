@@ -60,6 +60,19 @@ namespace radiant {
             VERIFY(node_.type() == JSON_STRING, Exception("json node is not a string"));
             return node_.as_string();
          }
+         
+         bool as_bool() const {
+            if (node_.type() == JSON_BOOL) {
+               return node_.as_bool();
+            }
+            if (node_.type() == JSON_NUMBER) {
+               return node_.as_int() != 0;
+            }
+            if (node_.type() == JSON_STRING) {
+               return node_.as_string() == "true";
+            }
+            return false;
+         }
 
          JSONNode const& GetNode() const {
             return node_;

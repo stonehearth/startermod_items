@@ -37,7 +37,7 @@ private:
    dm::Boxed<RegionPtr>          ladder_;
    dm::Boxed<WallRef>            wall_;
    dm::Boxed<GridBuildOrderRef>  roof_;
-   dm::GuardSet                  guards_;
+   dm::Guard                     guards_;
 };
 
 END_RADIANT_OM_NAMESPACE

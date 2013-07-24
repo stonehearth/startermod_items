@@ -8,7 +8,7 @@
 
 #include "interfaces.h"
 #include "dm/store.h"
-#include "dm/guard_set.h"
+#include "dm/guard.h"
 #include "libjson.h"
 #include "physics/namespace.h"
 
@@ -107,7 +107,7 @@ private:
 private:
    NativeCommandHandlers                                 commands_;
    dm::Store                                             store_;
-   dm::GuardSet                                          guards_;
+   dm::Guard                                             guards_;
    std::vector<std::pair<dm::ObjectId, dm::ObjectType>>  allocated_;
    std::vector<dm::ObjectId>                             destroyed_;
    std::unique_ptr<Physics::OctTree>                     octtree_;

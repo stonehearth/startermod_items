@@ -50,8 +50,6 @@ namespace radiant {
             int Now() { return now_; }
             void SetScriptHost(lua::ScriptHost* host);
 
-            dm::Guard TraceDynamicObjectAlloc(std::function<void(dm::ObjectPtr)> fn) { return store_.TraceDynamicObjectAlloc(fn); }
-
             om::EntityPtr GetEntity(om::EntityId id);
             om::TerrainPtr GetTerrain();
 
@@ -199,6 +197,9 @@ namespace radiant {
             void HandlePostRequest(std::string const& path, JSONNode const& query, std::string const& postdata, std::shared_ptr<chromium::IResponse> response);
             void GetRemoteObject(std::string const& uri, JSONNode const& query, std::shared_ptr<chromium::IResponse> response);
             void GetEvents(JSONNode const& query, std::shared_ptr<chromium::IResponse> response);
+            void TraceUri(JSONNode const& query, std::shared_ptr<chromium::IResponse> response);
+            void TraceObjectUri(std::string const& uri, std::shared_ptr<chromium::IResponse> response);
+            void TraceFileUri(std::string const& uri, std::shared_ptr<chromium::IResponse> response);
             void FlushEvents();
 
       private:
@@ -224,7 +225,7 @@ namespace radiant {
             tcp::socket             _tcp_socket;
 
             dm::TraceId             nextTraceId_;
-            dm::GuardSet              guards_;
+            dm::Guard                 guards_;
 
             int                     _send_ahead_commands;
 
@@ -283,6 +284,7 @@ namespace radiant {
             std::vector<JSONNode>            queued_events_;
             std::shared_ptr<chromium::IResponse>   get_events_request_;
             lua::ScriptHost*                 scriptHost_;
+            std::map<dm::TraceId, dm::Guard>         uriTraces_;
       };
    };
 };

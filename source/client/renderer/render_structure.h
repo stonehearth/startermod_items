@@ -25,7 +25,7 @@ class RenderStructure : public RenderComponent {
       H3DNode                 regionDebugShape_;
       H3DNode                 reservedDebugShape_;
       H3DNode                 node_;
-      dm::GuardSet            traces_;
+      dm::Guard               traces_;
 
 };
 

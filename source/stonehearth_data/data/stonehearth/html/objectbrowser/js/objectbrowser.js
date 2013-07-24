@@ -50,15 +50,19 @@ App.ObjectBrowserView = App.View.extend({
    fetch: function(uri) {
       var self = this;
       self.set('loading', true);
+      self.history.push(uri);
+      
+      if (self.trace) {
+         self.trace.destroy();
+      }
 
-      $.get(uri)
-         .done(function(json) {
+      self.trace = radiant.trace(uri)
+         .progress(function(json) {
             self.set('context.loading', false);
             self.set('context.objectHtml', self.formatJson(json));
             self.set('context.uri', uri);
-            self.history.push(uri);
          })
-         .error(function(e) {
+         .fail(function(e) {
             console.log(e);
          });
    },

@@ -64,7 +64,7 @@ class VoxelRangeSelector : public std::enable_shared_from_this<VoxelRangeSelecto
       math3d::ipoint3                  _p0;
       math3d::ipoint3                  _p1;
       math3d::ipoint3                  _p2;
-      dm::GuardSet                       traces_;
+      dm::Guard                          traces_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

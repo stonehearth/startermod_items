@@ -15,17 +15,16 @@
 #include "om/components/build_orders.h"
 #include "platform/utils.h"
 #include "resources/res_manager.h"
-#include "rest_api.h"
 #include "commands/command.h"
 #include "commands/trace_entity.h"
 #include "commands/create_room.h"
 #include "commands/create_portal.h"
 #include "commands/execute_action.h"
-#include "rest_api.h"
 #include "renderer/render_entity.h"
 #include "renderer/lua_render_entity.h"
 #include "renderer/lua_renderer.h"
 #include "lua/script_host.h"
+#include "om/object_formatter/object_formatter.h"
 #include "glfw.h"
 
 //  #include "GFx/AS3/AS3_Global.h"
@@ -64,7 +63,6 @@ Client::Client() :
    om::RegisterObjectTypes(authoringStore_);
 
    std::vector<std::pair<dm::ObjectId, dm::ObjectType>>  allocated_;
-   guards_ += authoringStore_.TraceDynamicObjectAlloc(std::bind(&Client::OnAuthoringObjectAllocated, this, std::placeholders::_1));
 }
 
 Client::~Client()
@@ -1077,10 +1075,6 @@ void Client::SelectGroundArea(Selector::SelectionFn cb)
    selector_ = vrs;
 }
 
-void Client::OnAuthoringObjectAllocated(dm::ObjectPtr obj)
-{
-
-}
 
 dm::Guard Client::TraceShowBuildOrders(std::function<void()> cb)
 {
@@ -1403,6 +1397,8 @@ void Client::BrowserRequestHandler(std::string const& path, JSONNode const& quer
    if (postdata.empty()) {
       if (boost::starts_with(path, "/api/events")) {
          GetEvents(query, response);
+      } else if (boost::starts_with(path, "/api/trace")) {
+         TraceUri(query, response);
       } else if (boost::starts_with(path, "/object")) {
          GetRemoteObject(path, query, response);
       } else {
@@ -1463,6 +1459,76 @@ void Client::GetEvents(JSONNode const& query, std::shared_ptr<chromium::IRespons
    }
    get_events_request_ = response;
    FlushEvents();
+}
+
+void Client::TraceUri(JSONNode const& query, std::shared_ptr<chromium::IResponse> response)
+{
+   json::ConstJsonObject args(query);
+
+   if (args["create"].as_bool()) {
+      std::string uri = args["uri"].as_string();
+
+      if (boost::starts_with(uri, "/object")) {
+         TraceObjectUri(uri, response);
+      } else {
+         TraceFileUri(uri, response);
+      }
+   } else {
+      dm::TraceId traceId = args["trace_id"].as_integer();
+      uriTraces_.erase(traceId);
+   }
+}
+
+void Client::TraceObjectUri(std::string const& uri, std::shared_ptr<chromium::IResponse> response)
+{
+   dm::ObjectPtr obj = om::ObjectFormatter("/object/").GetObject(GetStore(), uri);
+   if (obj) {
+      int traceId = nextTraceId_++;
+      std::weak_ptr<dm::Object> o = obj;
+
+      auto createResponse = [traceId, uri, o]() -> JSONNode {
+         JSONNode node;
+         node.push_back(JSONNode("trace_id", traceId));
+         node.push_back(JSONNode("uri",      uri));
+         auto obj = o.lock();
+         if (obj) {
+            JSONNode data = om::ObjectFormatter("/object/").ObjectToJson(obj);
+            data.set_name("data");
+            node.push_back(data);
+         }
+         return node;
+      };
+
+      auto objectChanged = [this, createResponse]() {
+         QueueEvent("radiant.trace_fired", createResponse());
+      };
+
+      uriTraces_[traceId] = obj->TraceObjectChanges("tracing uri", objectChanged);
+      JSONNode res = createResponse();
+      response->SetResponse(200, res.write(), "application/json");
+      return;
+   }
+   response->SetResponse(404, "", "");
+}
+
+
+void Client::TraceFileUri(std::string const& uri, std::shared_ptr<chromium::IResponse> response)
+{
+   if (boost::ends_with(uri, ".json")) {
+      auto const& rm = resources::ResourceManager2::GetInstance();
+      JSONNode data = rm.LookupJson(uri);
+
+      JSONNode node;
+      int traceId = nextTraceId_++;
+      node.push_back(JSONNode("trace_id", traceId));
+      node.push_back(JSONNode("uri",      uri));
+      data.set_name("data");
+      node.push_back(data);
+      response->SetResponse(200, node.write(), "application/json");
+      return;
+   }
+   LOG(WARNING) << "attempting to trace non-json uri " << uri << " NOT IMPLEMENTED!!! Returning 404";
+   response->SetResponse(404, "", "");
 }
 
 void Client::FlushEvents()

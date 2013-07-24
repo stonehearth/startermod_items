@@ -432,6 +432,30 @@ void Browser::OnProtocolExecution(CefRefPtr<CefBrowser> browser,
 }
 
 
+static std::string UrlDecode(std::string const& in)
+{
+   std::string out;
+   out.reserve(in.size());
+   for (std::size_t i = 0; i < in.size(); ++i) {
+      if (in[i] == '%') {
+         if (i + 3 > in.size()) {
+            // xxx: error!
+            break;
+         }
+         int value = 0;
+         std::istringstream is(in.substr(i + 1, 2));
+         is >> std::hex >> value;
+         out += static_cast<char>(value);
+         i += 2;
+      } else if (in[i] == '+') {
+         out += ' ';
+      } else {
+         out += in[i];
+      }
+   }
+   return out;
+}
+
 static JSONNode GetQuery(std::string query)
 {
    JSONNode result;
@@ -447,6 +471,8 @@ static JSONNode GetQuery(std::string query)
             std::string name = query.substr(start, mid - start);
             std::string value = query.substr(mid + 1, end - mid - 1);
 
+            name = UrlDecode(name);
+            value = UrlDecode(value);
             int ivalue = atoi(value.c_str());
             if (ivalue != 0 || value == "0") {
                result.push_back(JSONNode(name, ivalue));
