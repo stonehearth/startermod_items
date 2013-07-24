@@ -20,24 +20,42 @@ void LuaRenderer::RegisterType(lua_State* L)
       class_<H3DResTypes>("H3DResTypes")
          .enum_("constants")
       [
-		   value("Undefined",      H3DResTypes::Undefined),
-		   value("SceneGraph",     H3DResTypes::SceneGraph),
-		   value("Geometry",       H3DResTypes::Geometry),
-		   value("Animation",      H3DResTypes::Animation),
-		   value("Material",       H3DResTypes::Material),
-		   value("Code",           H3DResTypes::Code),
-		   value("Shader",         H3DResTypes::Shader),
-		   value("Texture",        H3DResTypes::Texture),
-		   value("ParticleEffect", H3DResTypes::ParticleEffect),
-		   value("Pipeline",       H3DResTypes::Pipeline)
+		   value("Undefined",                  H3DResTypes::Undefined),
+		   value("SceneGraph",                 H3DResTypes::SceneGraph),
+		   value("Geometry",                   H3DResTypes::Geometry),
+		   value("Animation",                  H3DResTypes::Animation),
+		   value("Material",                   H3DResTypes::Material),
+		   value("Code",                       H3DResTypes::Code),
+		   value("Shader",                     H3DResTypes::Shader),
+		   value("Texture",                    H3DResTypes::Texture),
+		   value("ParticleEffect",             H3DResTypes::ParticleEffect),
+		   value("Pipeline",                   H3DResTypes::Pipeline)
       ],
-      def("h3dGetNodeParamStr",             &h3dGetNodeParamStr),
-      def("h3dRemoveNode",                  &h3dRemoveNode),
-      def("h3dAddLightNode",                &h3dAddLightNode),
-      def("h3dAddResource",                 &h3dAddResource),
-      def("h3dRadiantCreateStockpileNode",  &h3dRadiantCreateStockpileNode),
-      def("h3dRadiantResizeStockpileNode",  &h3dRadiantResizeStockpileNode)
+      class_<H3DLight>("H3DLight")
+         .enum_("constants")
+      [
+         value("MatResI",                    H3DLight::MatResI),
+		   value("RadiusF",                    H3DLight::RadiusF),
+		   value("FovF",                       H3DLight::FovF),
+		   value("ColorF3",                    H3DLight::ColorF3),
+		   value("ColorMultiplierF",           H3DLight::ColorMultiplierF),
+		   value("ShadowMapCountI",            H3DLight::ShadowMapCountI),
+		   value("ShadowSplitLambdaF",         H3DLight::ShadowSplitLambdaF),
+		   value("ShadowMapBiasF",             H3DLight::ShadowMapBiasF),
+		   value("LightingContextStr",         H3DLight::LightingContextStr),
+		   value("ShadowContextStr",           H3DLight::ShadowContextStr),
+         value("DirectionalI",               H3DLight::DirectionalI)
+      ],
+      def("h3dGetNodeParamStr",              &h3dGetNodeParamStr),
+      def("h3dRemoveNode",                   &h3dRemoveNode),
+      def("h3dAddLightNode",                 &h3dAddLightNode),
+      def("h3dAddResource",                  &h3dAddResource),
+      def("h3dRadiantCreateStockpileNode",   &h3dRadiantCreateStockpileNode),
+      def("h3dRadiantResizeStockpileNode",   &h3dRadiantResizeStockpileNode),
+      def("h3dSetMaterialUniform",           &h3dSetMaterialUniform),
+      def("h3dSetNodeTransform",             &h3dSetNodeTransform),
+      def("h3dSetNodeParamI",                &h3dSetNodeParamI),
+      def("h3dSetNodeParamF",                &h3dSetNodeParamF)
    ];
    globals(L)["H3DRootNode"] = H3DRootNode;
 };
-
