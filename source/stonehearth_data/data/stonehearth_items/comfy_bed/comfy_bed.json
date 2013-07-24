@@ -1,0 +1,23 @@
+{
+   "type": "entity",
+   "extends" : "/stonehearth_items/entities/item/item_properties.json",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Comfy Bed",
+         "description" : "***TODO*** For sleeping. Tier 2 bed"
+      },
+      "stonehearth_sleep_system:bed" : {
+      },
+      "render_rig": {
+         "models": [
+            "file(comfy_bed.qb)"
+         ]
+      },
+      "destination" : {
+         "region" : [
+            [[0, 0, 1], [1, 1, 2]]
+         ]
+      }
+   }
+}
+

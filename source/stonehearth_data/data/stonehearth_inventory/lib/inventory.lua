@@ -19,7 +19,6 @@ function Inventory:__init(faction)
    self._stockpile_trackers = {}
    self._item_restock_paths = {}
 
---[[
    self._stocked_items = {}
    local ec = radiant.entities.get_root_entity():get_component('entity_container');
    local children = ec:get_children()
@@ -39,7 +38,6 @@ function Inventory:__init(faction)
    for id, item in children:items() do
       self:_add_entity_to_terrain(id, item)
    end
-   ]]
 end
 
 

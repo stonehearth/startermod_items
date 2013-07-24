@@ -56,7 +56,7 @@ varying vec3 viewVec;
 void main( void )
 {
 	vec3 albedo = textureCube( albedoMap, viewVec ).rgb;
-	
+
 	// Set fragment material ID to 2, meaning skybox in this case
 	setMatID( 2.0 );
 	setAlbedo( albedo );

@@ -115,14 +115,16 @@ void main( void )
 #include "shaders/utilityLib/fragDeferredRead.glsl"
 
 uniform samplerCube ambientMap;
+vec3 ambientLightColor = vec3(0.4, 0.4, 0.4);
 varying vec2 texCoords;
 
 void main( void )
 {
+
 	if( getMatID( texCoords ) == 0.0 )	// Background
 	{
-		gl_FragColor.rgb = vec3( 0, 0, 0 );
-      gl_FragColor.rgb = vec3(167.0 / 255.0, 227.0 / 255.0, 255.0 / 255.0);
+      gl_FragColor.rgb = vec3( 0, 0, 0 );
+      //gl_FragColor.rgb = vec3(167.0 / 255.0, 227.0 / 255.0, 255.0 / 255.0);
 	}
 	else if( getMatID( texCoords ) == 2.0 )	// Sky
 	{
@@ -130,8 +132,8 @@ void main( void )
 	}
 	else
 	{
-		gl_FragColor.rgb = getAlbedo( texCoords ) * textureCube( ambientMap, getNormal( texCoords ) ).rgb;
-      gl_FragColor.rgb = getAlbedo( texCoords ) * vec3(0.5, 0.5, 0.5);
+		//gl_FragColor.rgb = getAlbedo( texCoords ) * textureCube( ambientMap, getNormal( texCoords ) ).rgb;
+		gl_FragColor.rgb = getAlbedo( texCoords ) * ambientLightColor;
 	}
 }
 

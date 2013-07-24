@@ -110,6 +110,7 @@ Renderer::Renderer() :
 
 	H3DRes lightMatRes = h3dAddResource(H3DResTypes::Material, "materials/light.material.xml", 0);
    H3DRes skyBoxRes = h3dAddResource( H3DResTypes::SceneGraph, "models/skybox/skybox.scene.xml", 0 );
+   
 
    // xxx - should move this into the horde extension for debug shapes, but it doesn't know
    // how to actually get the resource loaded!
@@ -127,6 +128,7 @@ Renderer::Renderer() :
 
 	// Add light source
 	directionalLight = h3dAddLightNode(H3DRootNode, "Sun", lightMatRes, "DIRECTIONAL_LIGHTING", "DIRECTIONAL_SHADOWMAP");
+   h3dSetMaterialUniform(lightMatRes, "ambientLightColor", 1.0f, 1.0f, 0.0f, 1.0f);
 #if 0
    math3d::quaternion q(math3d::vector3::unit_x, -90.0f / 180.0f * k_pi);
    //q *= math3d::quaternion(math3d::vector3::unit_y, 45.0f / 180 * k_pi);
@@ -142,9 +144,9 @@ Renderer::Renderer() :
 	h3dSetNodeParamI(directionalLight, H3DLight::DirectionalI, true);
 	h3dSetNodeParamF(directionalLight, H3DLight::ShadowSplitLambdaF, 0, 0.9f);
 	h3dSetNodeParamF(directionalLight, H3DLight::ShadowMapBiasF, 0, 0.001f);
-	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 0, 0.5f);
-	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 1, 0.5f);
-	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 2, 0.5f);
+	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 0, 0.6f);
+	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 1, 0.6f);
+	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 2, 0.6f);
 
 	spotLight = h3dAddLightNode(H3DRootNode, "AnotherLight", lightMatRes, "LIGHTING", "SHADOWMAP");
 	h3dSetNodeTransform(spotLight, 0, 20, 0, -90, 0, 0, 1, 1, 1);
@@ -158,11 +160,9 @@ Renderer::Renderer() :
 	h3dSetNodeParamF(spotLight, H3DLight::ColorF3, 2, 1);
 
    // Skybox
-#if 0
 	H3DNode sky = h3dAddNodes( H3DRootNode, skyBoxRes );
 	h3dSetNodeTransform( sky, 0, 0, 0, 0, 0, 0, 210, 50, 210 );
 	h3dSetNodeFlags( sky, H3DNodeFlags::NoCastShadow, true );
-#endif
 
    // Resize
    Resize(width_, height_);

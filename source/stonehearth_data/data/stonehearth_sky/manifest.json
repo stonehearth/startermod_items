@@ -1,0 +1,8 @@
+{
+   "info" :{
+      "name" : "Stonehearth Sky Renderer"
+   },
+   "scripts" : {
+      "init_client_script" : "file(stonehearth_sky.lua)"
+   }
+}
