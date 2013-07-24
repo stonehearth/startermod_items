@@ -84,18 +84,16 @@
 
       //App.start()
       //less.watch();
-      i18n.setDefaultNamespace('stonehearth');
 
-      /*
       i18n.init({
          lng: "en",
          fallbackLng: false,
          ns: "stonehearth",
-         resGetPath: '/mods/__ns__/locales/__lng__.json'
-         //resGetPath: '../../__ns__/html/locales/__lng__.json'
+         resGetPath: '../../__ns__/html/locales/__lng__.json'
       });
-      i18n.loadNamespace('mainbar', function() { console.log('loaded mainbar i18n namespace'); });
-      */
+      //TODO: Standardize the namespace/mod structure
+      //so mainbar and unit frame etc can be peers of stonehearth_crafter
+      //i18n.loadNamespace('mainbar', function() { console.log('loaded mainbar i18n namespace'); });
    </script>
 
 </body>

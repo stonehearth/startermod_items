@@ -12,11 +12,13 @@
 
 -- All workshops have a ToDo list through which the user instructs the crafter
 local ToDoList = radiant.mods.require('/stonehearth_crafter/lib/todo_list.lua')
+local CraftOrder = radiant.mods.require('/stonehearth_crafter/lib/craft_order.lua')
+
 local Workshop = class()
 
 function Workshop:__init(entity)
    self._todo_list = ToDoList()        -- The list of things we need to work on
-   
+
    self._entity = entity               -- The entity associated with this component
    self._curr_order = nil              -- The order currently being worked on. Nil until we get an order from the todo list
    self._intermediate_item = nil       -- The item currently being worked on. Nil until we actually start crafting
@@ -34,6 +36,33 @@ function Workshop:__tojson()
       order_list = self._todo_list,
    }
    return radiant.json.encode(json)
+end
+
+--[[
+   Creates an order and sticks it into the todo list.
+   Order_data has to contain
+   recipe_url: url to the recipe
+   condition_amount: an integer,
+         OR
+   condition_inventory_below:integer to mantain at
+   Returns: true if successful add, false otherwise
+--]]
+function Workshop:add_order(player_object, order_data)
+   if pcall(function()
+      local condition = {}
+      if order_data.condition_amount then
+         condition.amount = tonumber(order_data.condition_amount)
+      else
+         condition.inventory_below = tonumber(order_data.condition_inventory_below)
+      end
+      local order = CraftOrder(radiant.resources.load_json(order_data.recipe_url), true,  condition, self)
+      self._todo_list:add_order(order)
+      end) then
+      return {success = true, message = ""}
+    else
+      return {success = false, message = "Error creating order"}
+    end
+
 end
 
 --[[
@@ -116,7 +145,7 @@ end
 ]]
 function Workshop:get_items_on_bench()
    local children = self:get_entity():add_component('entity_container'):get_children()
-   
+
    local items = {}
    for _, item in children:items() do
       table.insert(items, item)
@@ -178,7 +207,7 @@ function Workshop:_create_intemediate_item()
    for i, item in ipairs(items) do
       radiant.entities.destroy_entity(item)
    end
-   
+
    --Create intermediate item (with progress) and place its entity in the world
    local intermediate_item = radiant.entities.create_entity(self:_get_crafter_component():get_intermediate_item())
    radiant.entities.add_child(self:get_entity(), intermediate_item, RadiantIPoint3(0, 1, 0))
@@ -197,14 +226,14 @@ function Workshop:_verify_curr_recipe()
    if self._current_ingredients then
       -- verify that all the items in the current ingredients are on the
       -- bench, and nothing else!
-      local ec = self._entity:get_component('entity_container'):get_children()      
+      local ec = self._entity:get_component('entity_container'):get_children()
       for _, ingredient in pairs(self._current_ingredients) do
          if not ec:get(ingredient.item:get_id()) then
             return false
          end
       end
       return #self._current_ingredients == ec:size()
-   end   
+   end
 end
 
 --[[
@@ -216,7 +245,7 @@ function Workshop:_crafting_complete()
    self._intermediate_item = nil
 
    self:_produce_outputs()
-   
+
    self._todo_list:chunk_complete(self._curr_order)
    self._curr_order = nil
 end

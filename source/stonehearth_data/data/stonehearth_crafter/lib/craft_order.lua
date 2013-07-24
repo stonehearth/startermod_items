@@ -65,12 +65,14 @@ function CraftOrder:__init(recipe, enabled, condition, workshop)
       local filter = function(item_entity)
          return self:_can_use_ingredient(item_entity, ingredient_data)
       end
-      local ingredient = {
-         item = nil,
-         path = nil,
-         filter = filter
-      }
-      table.insert(self._ingredients, ingredient)
+      for i=1, ingredient_data.count do
+         local ingredient = {
+            item = nil,
+            path = nil,
+            filter = filter
+         }
+         table.insert(self._ingredients, ingredient)
+      end
    end   
 end
 

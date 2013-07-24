@@ -19,6 +19,8 @@ App.CraftingWindowView = App.View.extend({
 		}
 	},
 
+
+
 	//Attach accordion functionality to the appropriate div
 	_buildAccordion: function() {
 		var accordion = $("#recipeAccordion");

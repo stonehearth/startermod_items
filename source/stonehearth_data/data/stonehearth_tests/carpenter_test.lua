@@ -26,12 +26,12 @@ function CarpenterTest:__init()
    -- end TODO
 
    -- put some items in the world
-   --self:place_item_cluster('/stonehearth_trees/entities/oak_tree/oak_log', -10, 10, 3, 3)
+   self:place_item_cluster('/stonehearth_trees/entities/oak_tree/oak_log', -10, 10, 3, 3)
    self:place_item_cluster('/stonehearth_items/cloth_bolt', -7, 10, 2, 2)
 
  -- Tests!
 
-   ---[[
+   --[[
    --500ms seconds in, create an order for a shield (multiple types of ingredients)
    self:at(500, function()
          --Programatically add items to the workbench's queue
@@ -45,7 +45,7 @@ function CarpenterTest:__init()
       end)
    --]]
 
-   ---[[
+   --[[
    --Create an order for a sword (multiple of single ingredient)
    self:at(1000, function()
          --Programatically add items to the workbench's queue
@@ -59,7 +59,7 @@ function CarpenterTest:__init()
       end)
    --]]
 
-   ---[[
+   --[[
    --Create an order for 2 swords (multiple items in one order)
    self:at(10000, function()
          --Programatically add items to the workbench's queue

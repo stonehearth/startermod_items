@@ -1,9 +1,10 @@
 {
- "type":"recipe", 
+ "type":"recipe",
 
  "work_units": 3,
-  "recipe_name" : "Wooden Practice Sword",
-  "recipe_icon" : "/stonehearth_items/wooden_sword/html/images/wooden_sword_icon.png",
+ "recipe_name" : "Wooden Practice Sword",
+ "recipe_icon" : "/stonehearth_items/wooden_sword/html/images/wooden_sword_icon.png",
+ "my_location" : "/stonehearth_carpenter_class/recipes/wooden_sword_recipe.json",
  "category" : "weapons",
 
  "ingredients": [
@@ -13,12 +14,12 @@
       "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
     },
     {
-      "material" : "wood",     
+      "material" : "wood",
       "count" : 1,
       "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
  },
     {
-      "material" : "wood",     
+      "material" : "wood",
       "count" : 1,
       "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
     }
@@ -26,7 +27,7 @@
   "produces": [
       {
          "item":"/stonehearth_items/wooden_sword",
-         "script":"/stonehearth_crafter/", 
+         "script":"/stonehearth_crafter/",
          "command":"produce_item"
       }
   ]

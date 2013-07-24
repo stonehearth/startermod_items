@@ -1,5 +1,5 @@
 <script type="text/x-handlebars" data-template-name="stonehearthCrafter">
-   
+
    <div id="craftingWindow">
       <div class="frame">
         {{unit_info.name}}<br>
@@ -28,7 +28,7 @@
       <h3>All recipes</h3>
       <div>
          {{#each stonehearth_crafter:workshop.crafter.stonehearth_crafter:crafter.craftable_recipes}}
-            <a href="#" {{action select this target="view"}}>{{recipe_name}}</a>
+            <a href="#" {{action select this target="view"}} class="selected">{{recipe_name}}</a>
             <br>
          {{/each}}
       </div>
@@ -46,7 +46,7 @@
          <h1>{{model.recipe_name}}</h1>
       </div>
       <div id="portrait">
-         
+
       </div>
 
       <div id="description">
@@ -64,12 +64,12 @@
          </center>
 
          <div id="attributes">
-            The item description goes here, as soon as Tony enables post and lets 
+            The item description goes here, as soon as Tony enables post and lets
             me preview the item with no ingredients to grab the name, description,
             and portrait
          </div>
       </div>
-   </div>      
+   </div>
 </script>
 
 <!--Template for the options and craft button-->
@@ -78,18 +78,18 @@
       <table>
          <tr><td>
             <input type="radio" name="conditionGroup" value="make" class="craftRadioButton" id="make" checked>
-            <label for="make" style='width:auto;'>{{i18n craftingWindow:craftNumber}}</label>
+            <label for="make" style='width:auto;'>{{i18n stonehearth_crafter:craftNumber}}</label>
          <td>
-            <input type="number" name="quantityToMake" value="1" min="1" max="99" class="craftNumericSelect">
+            <input id="make_num_selector" type="number" name="quantityToMake" value="1" min="1" max="99" class="craftNumericSelect">
          </td></tr>
       </table>
 
       <table>
          <tr><td>
             <input type="radio" name="conditionGroup" value="mantain" class="craftRadioButton" id="maintain">
-            <label for="maintain" style='width:auto'>{{i18n craftingWindow:craftUpTo}}</label>
+            <label for="maintain" style='width:auto'>{{i18n stonehearth_crafter:craftUpTo}}</label>
          <td>
-            <input type="number" name="quantityToMantain" value="1" min="1" max="99" class="craftNumericSelect">
+            <input id="mantain_num_selector" type="number" name="quantityToMantain" value="1" min="1" max="99" class="craftNumericSelect">
          </td></tr>
       </table>
 
@@ -111,7 +111,7 @@
 
       <a id="orderListUpBtn" {{action scrollOrderListUp target="view"}}><img src="/stonehearth_crafter/html/images/queue_up_arrow.png"></a>
       <a id="orderListDownBtn" {{action scrollOrderListDown target="view"}} ><img src="/stonehearth_crafter/html/images/queue_down_arrow.png"></a>
-   
+
       <ul id="garbageList" class="droptrue">
       </ul>
    </div>

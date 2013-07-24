@@ -3,7 +3,7 @@ App.StonehearthView = Ember.ContainerView.extend({
    init: function() {
       this._super();
       var self = this;
-      
+
       // xxx: fetch this from the game...
       var json = {
          views : [
