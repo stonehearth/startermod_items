@@ -30,10 +30,6 @@ App.UnitFrameView = App.View.extend({
    },
 
    doCommand: function(command) {
-      console.log(">>> ");
-      var arr = this.get("context.radiant:commands");
-      arr.addObject({ "icon" : 1337 });
-      console.log(this.get("context.radiant:commands.[0]"));
       if (command.action == 'fire_event') {
          // xxx: error checking would be nice!!
          var e = {

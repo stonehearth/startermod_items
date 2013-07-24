@@ -34,6 +34,7 @@ void LuaComponent::RegisterLuaType(struct lua_State* L)
       class_<LuaComponent, LuaComponentRef>("LuaComponent")
          .def(tostring(self))
          .def("__tojson", &ToJsonUri<LuaComponent>)
+         .def("mark_changed", &LuaComponent::MarkChanged)
    ];
 }
 

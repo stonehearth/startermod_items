@@ -15,7 +15,6 @@
 #include "libjson.h"
 #include "core/singleton.h"
 #include "selectors/selector.h"
-#include "entity_traces.h"
 #include "chromium/chromium.h"
 #include "lua/namespace.h"
 

@@ -14,8 +14,8 @@
 local ToDoList = radiant.mods.require('/stonehearth_crafter/lib/todo_list.lua')
 local Workshop = class()
 
-function Workshop:__init(entity)
-   self._todo_list = ToDoList()        -- The list of things we need to work on
+function Workshop:__init(entity, backing_obj)
+   self._todo_list = ToDoList(backing_obj)        -- The list of things we need to work on
    
    self._entity = entity               -- The entity associated with this component
    self._curr_order = nil              -- The order currently being worked on. Nil until we get an order from the todo list

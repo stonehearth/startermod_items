@@ -358,8 +358,8 @@ EntityAddLuaComponent(lua_State* L, om::EntityPtr entity, std::string const& nam
       std::string uri = GetLuaComponentUri(name);
       object ctor = ScriptHost::GetInstance().LuaRequire(uri);
       if (ctor) {
-         result = call_function<object>(ctor, om::EntityRef(entity));
          lua_component = component->AddLuaComponent(name);         
+         result = call_function<object>(ctor, om::EntityRef(entity), om::LuaComponentRef(lua_component));
          lua_component->SetLuaObject(name, result);
       }
    }

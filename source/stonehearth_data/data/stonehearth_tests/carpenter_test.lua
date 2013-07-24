@@ -39,7 +39,7 @@ function CarpenterTest:__init()
 
    ---[[
    --500ms seconds in, create an order for a shield (multiple types of ingredients)
-   self:at(500, function()
+   self:at(2000, function()
          --Programatically add items to the workbench's queue
          local condition = {}
          condition.amount = 1
@@ -53,7 +53,7 @@ function CarpenterTest:__init()
 
    ---[[
    --Create an order for a sword (multiple of single ingredient)
-   self:at(1000, function()
+   self:at(3000, function()
          --Programatically add items to the workbench's queue
          local condition = {}
          condition.amount = 1
@@ -67,7 +67,7 @@ function CarpenterTest:__init()
 
    ---[[
    --Create an order for 2 swords (multiple items in one order)
-   self:at(10000, function()
+   self:at(5000, function()
          --Programatically add items to the workbench's queue
          local condition = {}
          condition.amount = 2
