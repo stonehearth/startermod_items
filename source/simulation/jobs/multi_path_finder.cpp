@@ -10,8 +10,9 @@
 using namespace ::radiant;
 using namespace ::radiant::simulation;
 
-MultiPathFinder::MultiPathFinder(std::string name) :
+MultiPathFinder::MultiPathFinder(lua_State* L, std::string name) :
    Job(name),
+   L_(L),
    reversed_search_(false),
    enabled_(true)
 {
@@ -54,7 +55,7 @@ void MultiPathFinder::AddEntity(om::EntityRef e, luabind::object solved_cb, luab
          std::ostringstream name;
 
          name << GetName() << "(entity " << id << ")";
-         auto pathfinder = std::make_shared<PathFinder>(name.str(), e, solved_cb, dst_filter);
+         auto pathfinder = std::make_shared<PathFinder>(L_, name.str(), e, solved_cb, dst_filter);
          for (auto& entry: destinations_) {
             pathfinder->AddDestination(entry.second);
          }

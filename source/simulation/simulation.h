@@ -48,9 +48,8 @@ public:
    /* New object model stuff goes here */
 
    /* End of new object model stuff */
-   std::shared_ptr<MultiPathFinder> CreateMultiPathFinder(std::string name);
-   std::shared_ptr<PathFinder> CreatePathFinder(std::string name, om::EntityRef entity, luabind::object solved, luabind::object dst_filter); // xxx: should be an entity ref.  don't keep the entity alive!
    void AddTask(std::shared_ptr<Task> task);
+   void AddJob(std::shared_ptr<Job> job);
 
    void ProcessCommand(const ::radiant::tesseract::protocol::Cmd &cmd) override;
    void ProcessCommand(::google::protobuf::RepeatedPtrField<tesseract::protocol::Reply >* replies, const ::radiant::tesseract::protocol::Command &command) override;
@@ -120,7 +119,7 @@ private:
    int                                          lastNow_;
    bool                                         _showDebugNodes;
    bool                                         _singleStepPathFinding;
-   std::list<std::weak_ptr<Job>>                _pathFinders;
+   std::list<std::weak_ptr<Job>>                jobs_;
    std::list<std::weak_ptr<Task>>               tasks_;
    std::vector<AuraListEntry>                   auras_;
    std::vector<om::TargetTablesRef>             targetTables_;   

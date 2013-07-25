@@ -9,7 +9,7 @@ BEGIN_RADIANT_SIMULATION_NAMESPACE
 
 class MultiPathFinder : public Job {
    public:
-      MultiPathFinder(std::string name);
+      MultiPathFinder(lua_State* L, std::string name);
       virtual ~MultiPathFinder();
 
       typedef std::unordered_map<om::EntityId, om::EntityRef> DestinationMap;
@@ -40,6 +40,7 @@ class MultiPathFinder : public Job {
       DestinationMap                   destinations_;
       bool                             reversed_search_;
       bool                             enabled_;
+      lua_State*                       L_;
 };
 
 std::ostream& operator<<(std::ostream& o, const MultiPathFinder& pf);

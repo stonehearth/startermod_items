@@ -37,7 +37,7 @@ public:
 
 class PathFinder : public Job {
    public:
-      PathFinder(std::string name, om::EntityRef e, luabind::object solved, luabind::object dst_filter);
+      PathFinder(lua_State* L, std::string name, om::EntityRef e, luabind::object solved, luabind::object dst_filter);
       virtual ~PathFinder();
 
       void AddDestination(om::EntityRef dst);
