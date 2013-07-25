@@ -25,6 +25,10 @@ function check.is_function(obj)
    check.verify(type(obj) == 'function')
 end
 
+function check.is_a(value, class)
+   return classof(value) and value:is_a(class) or false
+end
+
 function check.verify(condition)   
    if not condition then
       assert(false)

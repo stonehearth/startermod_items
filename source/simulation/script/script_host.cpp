@@ -490,11 +490,6 @@ void ScriptHost::DestroyEntity(std::weak_ptr<om::Entity> e)
    }
 }
 
-std::shared_ptr<MultiPathFinder> ScriptHost::CreateMultiPathFinder(std::string name)
-{
-   return Simulation::GetInstance().CreateMultiPathFinder(name);
-}
-
 std::shared_ptr<FollowPath> ScriptHost::CreateFollowPath(om::EntityRef entity, float speed, std::shared_ptr<Path> path, float close_to_distance, luabind::object arrived_cb)
 {
    luabind::object cb(cb_thread_, arrived_cb);
@@ -519,9 +514,22 @@ std::shared_ptr<GotoLocation> ScriptHost::CreateGotoEntity(om::EntityRef entity,
    return fp;
 }
 
-std::shared_ptr<PathFinder> ScriptHost::CreatePathFinder(std::string name, om::EntityRef e, luabind::object solved, luabind::object dst_filter)
+std::shared_ptr<MultiPathFinder> ScriptHost::CreateMultiPathFinder(std::string name)
 {
-   return Simulation::GetInstance().CreatePathFinder(name, e, solved, dst_filter);
+   auto pf = std::make_shared<MultiPathFinder>(cb_thread_, name);
+   Simulation::GetInstance().AddJob(pf);
+   return pf;
+}
+
+std::shared_ptr<PathFinder> ScriptHost::CreatePathFinder(std::string name, om::EntityRef e, luabind::object solved_cb, luabind::object filter_cb)
+{
+   std::shared_ptr<PathFinder> pf;
+   auto entity = e.lock();
+   if (entity) {
+      pf = std::make_shared<PathFinder>(cb_thread_, name, entity, solved_cb, filter_cb);
+      Simulation::GetInstance().AddJob(pf);
+   }
+   return pf;
 }
 
 void ScriptHost::Log(std::string str)

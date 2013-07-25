@@ -44,9 +44,8 @@ function SleepAction:run(ai, entity)
    local i = inventory.get_inventory(faction)
 
    -- the filter function to find a bed
-   local filter_fn = function(item) 
+   local filter_fn = function(item)
       local bed = item:get_component('stonehearth_sleep_system:bed')
-      -- XXX, only find a bed that's not already leased
       return bed ~= nil
    end
 

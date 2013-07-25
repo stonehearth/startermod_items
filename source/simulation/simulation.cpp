@@ -96,7 +96,7 @@ std::string Simulation::ToggleStepPathFinding(std::string const& cmd)
 std::string Simulation::StepPathFinding(std::string const& cmd)
 {
    platform::timer t(1000);
-   radiant::stdutil::ForEachPrune<Job>(_pathFinders, [&](std::shared_ptr<Job> &p) {
+   radiant::stdutil::ForEachPrune<Job>(jobs_, [&](std::shared_ptr<Job> &p) {
       if (!p->IsFinished() && !p->IsIdle()) {
          p->Work(t);
          p->LogProgress(LOG(WARNING));
@@ -239,23 +239,14 @@ dm::Store& Simulation::GetStore()
 }
 
 
-std::shared_ptr<MultiPathFinder> Simulation::CreateMultiPathFinder(std::string name)
-{
-   std::shared_ptr<MultiPathFinder> path = std::make_shared<MultiPathFinder>(name);
-   _pathFinders.push_back(path);
-   return path;
-}
-
-std::shared_ptr<PathFinder> Simulation::CreatePathFinder(std::string name, om::EntityRef entity, luabind::object solved, luabind::object dst_filter)
-{
-   std::shared_ptr<PathFinder> pf = std::make_shared<PathFinder>(name, entity, solved, dst_filter);
-   _pathFinders.push_back(pf);
-   return pf;
-}
-
 void Simulation::AddTask(std::shared_ptr<Task> task)
 {
    tasks_.push_back(task);
+}
+
+void Simulation::AddJob(std::shared_ptr<Job> job)
+{
+   jobs_.push_back(job);
 }
 
 void Simulation::ScriptCommand(tesseract::protocol::ScriptCommandRequest const& request, tesseract::protocol::ScriptCommandReply* reply)
@@ -280,7 +271,7 @@ void Simulation::EncodeDebugShapes(protocol::SendQueuePtr queue)
    auto msg = uds->mutable_shapelist();
 
    if (_showDebugNodes) {
-      radiant::stdutil::ForEachPrune<Job>(_pathFinders, [&](std::shared_ptr<Job> &job) {
+      radiant::stdutil::ForEachPrune<Job>(jobs_, [&](std::shared_ptr<Job> &job) {
          job->EncodeDebugShapes(msg);
       });
    }
@@ -310,20 +301,20 @@ void Simulation::ProcessJobList(platform::timer &timer)
    }
 
 
-   int idleCountdown = _pathFinders.size();
+   int idleCountdown = jobs_.size();
    LOG(INFO) << timer.remaining() << " ms remaining in process job list (" << idleCountdown << " jobs).";
 
-   while (!timer.expired() && !_pathFinders.empty() && idleCountdown) {
-      std::weak_ptr<Job> front = radiant::stdutil::pop_front(_pathFinders);
+   while (!timer.expired() && !jobs_.empty() && idleCountdown) {
+      std::weak_ptr<Job> front = radiant::stdutil::pop_front(jobs_);
       std::shared_ptr<Job> job = front.lock();
       if (job) {
          if (!job->IsFinished()) {
             if (!job->IsIdle()) {
-               idleCountdown = _pathFinders.size() + 2;
+               idleCountdown = jobs_.size() + 2;
                job->Work(timer);
                //job->LogProgress(LOG(WARNING));
             }
-            _pathFinders.push_back(front);
+            jobs_.push_back(front);
          } else {
             LOG(WARNING) << "destroying job..";
          }

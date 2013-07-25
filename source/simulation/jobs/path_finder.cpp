@@ -23,13 +23,13 @@ using namespace ::radiant::simulation;
 #  define VERIFY_HEAPINESS()
 #endif
 
-PathFinder::PathFinder(std::string name, om::EntityRef e, luabind::object solved_cb, luabind::object dst_filter) :
+PathFinder::PathFinder(lua_State* L, std::string name, om::EntityRef e, luabind::object solved_cb, luabind::object dst_filter) :
    Job(name),
    rebuildHeap_(false),
    entity_(e),
    source_(*this, e),
-   solved_cb_(solved_cb),
-   dst_filter_(dst_filter),
+   solved_cb_(L, solved_cb),
+   dst_filter_(L, dst_filter),
    search_exhausted_(false),
    reversed_search_(false),
    restart_search_(true)
