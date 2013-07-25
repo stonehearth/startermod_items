@@ -16,8 +16,8 @@ class Job {
       std::string GetName() const;
 
       virtual bool IsFinished() const = 0;
-      virtual bool IsIdle(int now) const = 0;
-      virtual void Work(int now, const platform::timer &timer) = 0;
+      virtual bool IsIdle() const = 0;
+      virtual void Work(const platform::timer &timer) = 0;
       virtual void LogProgress(std::ostream&) const;
       virtual void EncodeDebugShapes(radiant::protocol::shapelist *msg) const;
 
@@ -26,6 +26,17 @@ class Job {
 
       JobId                            _id;
       std::string                           _name;
+};
+
+class Task {
+   public:
+      Task(std::string const& name);
+
+      std::string const& GetName() const;
+      virtual bool Work(const platform::timer &timer) = 0;
+
+   private:
+      std::string    name_;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

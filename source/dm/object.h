@@ -37,8 +37,8 @@ public:
 
    bool IsValid() const;
 
-   Guard TraceObjectLifetime(const char* reason, std::function<void()> fn) const;
-   Guard TraceObjectChanges(const char* reason, std::function<void()> fn) const;
+   virtual Guard TraceObjectLifetime(const char* reason, std::function<void()> fn) const;
+   virtual Guard TraceObjectChanges(const char* reason, std::function<void()> fn) const;
 
    void SaveObject(Protocol::Object* msg) const;
    void LoadObject(const Protocol::Object& msg);

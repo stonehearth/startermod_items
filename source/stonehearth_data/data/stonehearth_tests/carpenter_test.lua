@@ -16,6 +16,12 @@ function CarpenterTest:__init()
    local carpenter = self:place_citizen(12, 12,'carpenter')
    local bench = self:place_item('/stonehearth_carpenter_class/entities/carpenter_workbench', -12, -12)
    
+   local i = 1
+   radiant.events.listen('radiant.events.slow_poll', function()
+         i = i + 1
+         bench:get_component('unit_info'):set_description(string.format('iteration %d', i))
+      end)
+   
    --TODO: can we do this via promote?
    local carpenter_component = carpenter:get_component('stonehearth_crafter:crafter')
    local workshop_component = bench:get_component('stonehearth_crafter:workshop')
@@ -33,7 +39,7 @@ function CarpenterTest:__init()
 
    --[[
    --500ms seconds in, create an order for a shield (multiple types of ingredients)
-   self:at(500, function()
+   self:at(2000, function()
          --Programatically add items to the workbench's queue
          local condition = {}
          condition.amount = 1
@@ -47,7 +53,7 @@ function CarpenterTest:__init()
 
    --[[
    --Create an order for a sword (multiple of single ingredient)
-   self:at(1000, function()
+   self:at(3000, function()
          --Programatically add items to the workbench's queue
          local condition = {}
          condition.amount = 1
@@ -61,7 +67,7 @@ function CarpenterTest:__init()
 
    --[[
    --Create an order for 2 swords (multiple items in one order)
-   self:at(10000, function()
+   self:at(5000, function()
          --Programatically add items to the workbench's queue
          local condition = {}
          condition.amount = 2

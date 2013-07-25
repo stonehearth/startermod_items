@@ -54,6 +54,7 @@ public:
    // non-optimizing...
    void Clear();
    void Add(const Cube& cube);
+   void Add(const Point& cube);
    void AddUnique(const Cube& cube);
    void AddUnique(const Region& cube);
    

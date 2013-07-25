@@ -46,6 +46,12 @@ void Region<S, C>::Add(const Cube& cube)
 }
 
 template <class S, int C>
+void Region<S, C>::Add(const Point& point)
+{
+   Add(Cube(point));
+}
+
+template <class S, int C>
 void Region<S, C>::AddUnique(const Cube& cube)
 {
    ASSERT(!Intersects(cube));
@@ -285,6 +291,32 @@ std::shared_ptr<Region<S, C>> RegionClip(const Region<S, C>& region, const Cube<
 }
 
 template <class S, int C>
+static void AddCube(Region<S, C>& region, typename Region<S, C>::Cube const& cube)
+{
+   region.Add(cube);
+}
+
+
+template <class S, int C>
+static void AddPoint(Region<S, C>& region, typename Region<S, C>::Point const& point)
+{
+   region.Add(point);
+}
+
+template <class S, int C>
+static void RemoveCube(Region<S, C>& region, typename Region<S, C>::Cube const& cube)
+{
+   region -= cube;
+}
+
+
+template <class S, int C>
+static void RemovePoint(Region<S, C>& region, typename Region<S, C>::Point const& point)
+{
+   region -= Cube<S, C>(point);
+}
+
+template <class S, int C>
 static void AddUniqueCube(Region<S, C>& region, typename Region<S, C>::Cube const& cube)
 {
    region.AddUnique(cube);
@@ -306,8 +338,11 @@ luabind::scope Region<S, C>::RegisterLuaType(struct lua_State* L, const char* na
          .def("get_bounds",         &Region<S, C>::GetBounds)
          .def("optimize",           &Region<S, C>::Optimize)
          .def("intersects",         &Region<S, C>::Intersects)
-         .def("add",                &Region<S, C>::Add)
+         .def("add_cube",           &AddCube<S, C>)
+         .def("add_point",          &AddPoint<S, C>)
          .def("add_unique",         &AddUniqueCube<S, C>)
+         .def("remove_cube",        &RemoveCube<S, C>)
+         .def("remove_point",       &RemovePoint<S, C>)
          .def("subtract",           static_cast<void(Region<S, C>::*)(const Cube& other)>(&Region<S, C>::Subtract))
          .def("contents",           &Region<S, C>::GetContents, return_stl_iterator)
          .def("clip",               &RegionClip<S, C>)
@@ -315,6 +350,7 @@ luabind::scope Region<S, C>::RegisterLuaType(struct lua_State* L, const char* na
          .def("get_rect",           &Region<S, C>::GetRect)
          .def("get_closest_point",  &Region<S, C>::GetClosestPoint)
          .def("translate",          &Region<S, C>::Translate)
+         .def("contains",           &Region<S, C>::Contains)
       ;
 }
 
@@ -345,6 +381,7 @@ Region3 radiant::csg::GetBorderXZ(const Region3 &other)
    template Cls::ScalarType Cls::GetArea() const; \
    template void Cls::Clear(); \
    template void Cls::Add(const Cls::Cube&); \
+   template void Cls::Add(const Cls::Point&); \
    template void Cls::AddUnique(const Cls::Cube&); \
    template void Cls::AddUnique(const Cls&); \
    template void Cls::Subtract(const Cls::Cube&); \

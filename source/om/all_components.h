@@ -42,6 +42,7 @@
 #  include "components/weapon_info.h"
 #  include "components/lua_components.h"
 #  include "components/destination.h"
+#  include "components/render_region.h"
 #endif
 
 #if !defined(OM_ALL_COMPONENTS) 
@@ -87,6 +88,7 @@
       OM_OBJECT(WeaponInfo,            weapon_info) \
       OM_OBJECT(LuaComponents,         lua_components) \
       OM_OBJECT(Destination,           destination) \
+      OM_OBJECT(RenderRegion,          render_region) \
 
 #endif
 

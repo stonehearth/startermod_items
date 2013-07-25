@@ -27,7 +27,7 @@ private:
    typedef std::unordered_map<dm::ObjectId, std::weak_ptr<RenderEntity>> EntityContainerMap;
 
    const RenderEntity&  entity_;
-   dm::GuardSet           tracer_;
+   dm::Guard              tracer_;
    EntityContainerMap   children_;
 };
 

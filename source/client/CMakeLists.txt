@@ -21,7 +21,6 @@ add_subdirectory(selectors)
 add_library(client
             application.cpp
             client.cpp
-            entity_traces.cpp
             main.cpp
             pch.cpp
             )
@@ -56,6 +55,7 @@ target_link_libraries(client
                              Horde3D
                              Horde3DUtils
                              horde3d_extensions
+                             lua
                              math3d_common
                              math3d_collision
                              metrics

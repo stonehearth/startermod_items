@@ -22,11 +22,12 @@ class MultiPathFinder : public Job {
       const DestinationMap& GetDestinations() const { return destinations_; }
 
       void SetReverseSearch(bool reversed);
+      void SetEnabled(bool enabled);
 
    public: // Job Interface
-      bool IsIdle(int now) const override;
+      bool IsIdle() const override;
       bool IsFinished() const override { return false; }
-      void Work(int now, const platform::timer &timer) override;
+      void Work(const platform::timer &timer) override;
       void LogProgress(std::ostream&) const override;
       void EncodeDebugShapes(radiant::protocol::shapelist *msg) const override;
 
@@ -38,6 +39,7 @@ class MultiPathFinder : public Job {
       PathFinderMap                    pathfinders_;
       DestinationMap                   destinations_;
       bool                             reversed_search_;
+      bool                             enabled_;
 };
 
 std::ostream& operator<<(std::ostream& o, const MultiPathFinder& pf);

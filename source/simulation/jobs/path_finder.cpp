@@ -28,13 +28,16 @@ PathFinder::PathFinder(std::string name, om::EntityRef e, luabind::object solved
    rebuildHeap_(false),
    entity_(e),
    source_(*this, e),
-   stopped_(false),
    solved_cb_(solved_cb),
    dst_filter_(dst_filter),
    search_exhausted_(false),
    reversed_search_(false),
    restart_search_(true)
 {
+   auto entity = e.lock();
+   if (entity) {
+      mob_ = entity->GetComponent<om::Mob>();
+   }
 }
 
 PathFinder::~PathFinder()
@@ -52,10 +55,21 @@ void PathFinder::SetFilterFn(luabind::object dst_filter)
    RestartSearch();
 }
 
-bool PathFinder::IsIdle(int now) const
+bool PathFinder::IsIdle() const
 {
-   bool busy = restart_search_ || (!solution_ && !search_exhausted_);
-   return stopped_ || !busy;
+   if (destinations_.empty()) {
+      return true;
+   }
+   if (restart_search_) {
+      return false;
+   }
+   if (search_exhausted_) {
+      return true;
+   }
+   if (solution_) {
+      return true;
+   }
+   return false;
 }
 
 void PathFinder::AddDestination(om::EntityRef e)
@@ -151,14 +165,15 @@ void PathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
          pt.SaveValue(msg->add_coords(), math3d::color4(shade, shade, 255, 192));
       }
    }
-   for (const auto& pt : closed_) {
+   for (const auto& entry: closed_) {
+      math3d::ipoint3 const& pt = entry.first;
       if (std::find(best.begin(), best.end(), pt) == best.end()) {
          pt.SaveValue(msg->add_coords(), math3d::color4(0, 0, 128, 192));
       }
    }
 }
 
-void PathFinder::Work(int now, const platform::timer &timer)
+void PathFinder::Work(const platform::timer &timer)
 {
    PROFILE_BLOCK();
 
@@ -177,7 +192,7 @@ void PathFinder::Work(int now, const platform::timer &timer)
 
    VERIFY_HEAPINESS();
    math3d::ipoint3 current = GetFirstOpen();
-   stdutil::UniqueInsert(closed_, current);
+   closed_[current] = true;
 
    PathFinderEndpoint* closest;
    if (EstimateCostToDestination(current, &closest) == 0) {
@@ -217,7 +232,7 @@ void PathFinder::AddEdge(const math3d::ipoint3 &current, const math3d::ipoint3 &
 
    VERIFY_HEAPINESS();
 
-   if (!stdutil::contains(closed_, next)) {
+   if (closed_.find(next) == closed_.end()) {
       bool update = false;
       int g = g_[current] + movementCost;
 
@@ -262,6 +277,9 @@ int PathFinder::EstimateCostToSolution()
    if (restart_search_) {
       Restart();
    }
+   if (IsIdle()) {
+      return INT_MAX;
+   }
    if (open_.empty()) {
       return INT_MAX;
    }
@@ -270,6 +288,8 @@ int PathFinder::EstimateCostToSolution()
 
 int PathFinder::EstimateCostToDestination(const math3d::ipoint3 &from) const
 {
+   PROFILE_BLOCK();
+
    ASSERT(!restart_search_);
 
    return EstimateCostToDestination(from, nullptr);
@@ -287,21 +307,47 @@ int PathFinder::EstimateCostToDestination(const math3d::ipoint3 &from, PathFinde
       if (!dst->GetEntity()) {
          i = destinations_.erase(i);
       } else {
+         i++;
+
+         om::EntityPtr entity = dst->GetEntity();
+         if (!entity) {
+            continue;
+         }
+         if (dst_filter_.is_valid() && luabind::type(dst_filter_) == LUA_TFUNCTION) {
+            try {
+               auto L = dst_filter_.interpreter();
+               luabind::object e(L, std::weak_ptr<om::Entity>(entity));
+               if (!luabind::call_function<bool>(dst_filter_, e)) {
+                  LOG(WARNING) << "filter fn for entity " << entity->GetObjectId() << " returned false!";
+                  continue;
+               }
+               LOG(WARNING) << "filter fn for entity " << entity->GetObjectId() << " returned TRUE!!!!!";
+            } catch (luabind::error& e) {
+               LOG(WARNING) << "luabind::error " << e.what();
+               continue;
+            } catch (std::exception& e) {
+               LOG(WARNING) << "std::exception " << e.what();
+               continue;
+            } catch (...) {
+               LOG(WARNING) << "unknown error in pathfinder filter cb...";
+               continue;
+            }
+         }
          int h = dst->EstimateMovementCost(from);
-         //LOG(WARNING) << GetName() << "    sub cost to dst: " << h << "(vs: " << hMin << ")";
+         // LOG(WARNING) << GetName() << "    sub cost to dst: " << h << "(vs: " << hMin << ")";
          if (h < hMin) {
             if (closest) {
                *closest = dst;
             }
             hMin = h;
          }
-         i++;
       }
    }
    if (hMin != INT_MAX) {
       float fudge = 1.25f; // to make the search finder at the hMin of accuracy
       hMin ? std::max(1, (int)(hMin * fudge)) : 0;
    }
+   //LOG(WARNING) << GetName() << "    EstimateCostToDestination returning " << hMin;
    return hMin;
 }
 
@@ -426,8 +472,13 @@ PathFinderEndpoint::PathFinderEndpoint(PathFinder &pf, om::EntityRef e) :
       auto mob = entity->GetComponent<om::Mob>();
       if (mob) {
          guards_ += mob->GetBoxedTransform().TraceValue(
-            "pathfinder entity mob trace",
+            "pathfinder entity mob trace (xform)",
             [=](math3d::transform const&) {
+               restart_fn();
+            });
+         guards_ += mob->GetBoxedMoving().TraceValue(
+            "pathfinder entity mob trace (moving)",
+            [=](bool const& moving) {
                restart_fn();
             });
       }
@@ -473,6 +524,8 @@ void PathFinderEndpoint::AddAdjacentToOpenSet(std::vector<math3d::ipoint3>& open
 
 int PathFinderEndpoint::EstimateMovementCost(const math3d::ipoint3& from) const
 {
+   PROFILE_BLOCK();
+
    auto entity = GetEntity();
 
    if (!entity) {
@@ -507,6 +560,8 @@ int PathFinderEndpoint::EstimateMovementCost(const math3d::ipoint3& from) const
 
 int PathFinderEndpoint::EstimateMovementCost(csg::Point3 const& start, csg::Point3 const& end) const
 {
+   PROFILE_BLOCK();
+
    static int COST_SCALE = 10;
    int cost = 0;
 
@@ -529,6 +584,8 @@ int PathFinderEndpoint::EstimateMovementCost(csg::Point3 const& start, csg::Poin
 
 math3d::ipoint3 PathFinderEndpoint::GetPointInRegionAdjacentTo(math3d::ipoint3 const& adjacent_pt) const
 {
+   PROFILE_BLOCK();
+
    auto entity = GetEntity();
    ASSERT(entity);
 

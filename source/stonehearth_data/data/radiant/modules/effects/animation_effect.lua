@@ -11,7 +11,6 @@ function AnimationEffect:__init(animation_path, start_time, info)
    if not self._animation then
       log:warning('could not lookup animation resource %s', animation_path)
    end
-   radiant.check.is_a(self._animation, Animation)
 
    self._end_time = 0
    if not self._loop then 

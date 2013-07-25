@@ -7,17 +7,15 @@
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
 
-class FollowPath : public Job
+class FollowPath : public Task
 {
 public:
-   FollowPath(om::EntityRef entity, float speed, std::shared_ptr<Path> path, float close_to_distance);
+   FollowPath(om::EntityRef entity, float speed, std::shared_ptr<Path> path, float close_to_distance, luabind::object arrived_cb);
 
    static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
 
 public:
-   bool IsIdle(int now) const override;
-   bool IsFinished() const override { return finished_; }
-   void Work(int now, const platform::timer &timer) override;
+   bool Work(const platform::timer &timer) override;
 
 protected:
    void Stop();
@@ -26,13 +24,12 @@ protected:
    void Report(std::string msg);
 
 protected:
-   om::EntityRef        entity_;
-   std::shared_ptr<Path>     path_;
-   float                speed_;
-   int                  pursuing_;
-   bool                 finished_;
-   int                  lateUpdateTime_;
-   float                close_to_distance_;
+   om::EntityRef           entity_;
+   std::shared_ptr<Path>   path_;
+   float                   speed_;
+   int                     pursuing_;
+   float                   close_to_distance_;
+   luabind::object         arrived_cb_;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

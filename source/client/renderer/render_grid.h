@@ -34,11 +34,11 @@ private:
 
 private:
    const RenderEntity&  entity_;
-   dm::GuardSet           tracer_;
+   dm::Guard              tracer_;
    om::RenderGridRef    renderGrid_;
 
    struct TileEntry {
-      dm::GuardSet   traces;
+      dm::Guard      traces;
       H3DNode        node;
       
       TileEntry(H3DNode n) : node(n) { }

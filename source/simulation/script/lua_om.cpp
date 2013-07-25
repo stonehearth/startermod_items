@@ -358,8 +358,8 @@ EntityAddLuaComponent(lua_State* L, om::EntityPtr entity, std::string const& nam
       std::string uri = GetLuaComponentUri(name);
       object ctor = ScriptHost::GetInstance().LuaRequire(uri);
       if (ctor) {
-         result = call_function<object>(ctor, om::EntityRef(entity));
          lua_component = component->AddLuaComponent(name);         
+         result = call_function<object>(ctor, om::EntityRef(entity), om::LuaComponentRef(lua_component));
          lua_component->SetLuaObject(name, result);
       }
    }
@@ -491,8 +491,6 @@ void LuaObjectModel::RegisterType(lua_State* L)
          .def("set_palette_entry",     &om::Grid::SetPaletteEntry)
          ,
       ADD_OM_CLASS(GridTile)
-         ,
-      ADD_OM_CLASS(Region)
          ,
       ADD_OM_COMPONENT(Clock)
          .def("set_time",              &om::Clock::SetTime)
@@ -679,6 +677,8 @@ void LuaObjectModel::RegisterType(lua_State* L)
       dm::Set<std::string>::RegisterLuaType(L, "Set<String>"),
 	  om::EntityContainer::Container::RegisterLuaType(L, "EntityChildrenContainerMap")
    ];
+   om::Region::RegisterLuaType(L),
    om::Mob::RegisterLuaType(L),
    om::Destination::RegisterLuaType(L);
+   om::RenderRegion::RegisterLuaType(L);
 }

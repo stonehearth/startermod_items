@@ -1,0 +1,9 @@
+{
+   "type": "entity",
+   "components" : {
+      "unit_info": {
+         "name": "A Cozy Room ",
+         "description": "..."
+      }
+   }
+}

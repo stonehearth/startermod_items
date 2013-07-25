@@ -1,0 +1,14 @@
+#ifndef _RADIANT_LUA_NAMESPACE_H
+#define _RADIANT_LUA_NAMESPACE_H
+
+#define BEGIN_RADIANT_LUA_NAMESPACE  namespace radiant { namespace lua {
+#define END_RADIANT_LUA_NAMESPACE    } }
+
+#define RADIANT_LUA_NAMESPACE    ::radiant::lua
+
+#define IN_RADIANT_LUA_NAMESPACE(x) \
+   BEGIN_RADIANT_LUA_NAMESPACE \
+   x  \
+   END_RADIANT_LUA_NAMESPACE
+
+#endif //  _RADIANT_LUA_NAMESPACE_H

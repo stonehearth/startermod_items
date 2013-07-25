@@ -1,3 +1,4 @@
 <Material>
 	<Shader source="shaders/deferredLighting.shader"/>
+   <Uniform name="ambientLightColor" a="1.0" b="0.0" c="0.0" />
 </Material>

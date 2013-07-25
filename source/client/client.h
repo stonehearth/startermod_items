@@ -15,8 +15,8 @@
 #include "libjson.h"
 #include "core/singleton.h"
 #include "selectors/selector.h"
-#include "entity_traces.h"
 #include "chromium/chromium.h"
+#include "lua/namespace.h"
 
 using boost::asio::ip::tcp;
 namespace boost {
@@ -26,6 +26,10 @@ namespace boost {
 }
 
 //class ScaleformGFx;
+
+IN_RADIANT_LUA_NAMESPACE(
+   class ScriptHost;
+)
 
 namespace radiant {
    namespace client {
@@ -37,14 +41,13 @@ namespace radiant {
          public:
             Client();
             ~Client();
-               
+            
          public:
             void GetConfigOptions(boost::program_options::options_description& options);
 
             void run();
             int Now() { return now_; }
-
-            dm::Guard TraceDynamicObjectAlloc(std::function<void(dm::ObjectPtr)> fn) { return store_.TraceDynamicObjectAlloc(fn); }
+            void SetScriptHost(lua::ScriptHost* host);
 
             om::EntityPtr GetEntity(om::EntityId id);
             om::TerrainPtr GetTerrain();
@@ -68,11 +71,12 @@ namespace radiant {
             void SetCommandCursor(std::string name);
 
             // For command executors only
+#if 0
          public:
             typedef std::function<void(const tesseract::protocol::DoActionReply*)> CommandResponseFn;
             int CreatePendingCommandResponse();
             int CreateCommandResponse(CommandResponseFn fn);
-            void SendCommand(om::EntityId to, std::string action, const std::vector<om::Selection>& args, int responseId = 0);
+#endif
 
          protected:
             typedef std::function<void()>  CommandFn;
@@ -84,7 +88,6 @@ namespace radiant {
             void BeginUpdate(const tesseract::protocol::BeginUpdate& msg);
             void EndUpdate(const tesseract::protocol::EndUpdate& msg);
             void SetServerTick(const tesseract::protocol::SetServerTick& msg);
-            void DoActionReply(const tesseract::protocol::DoActionReply& msg);
             void AllocObjects(const tesseract::protocol::AllocObjects& msg);
             void UpdateObject(const tesseract::protocol::UpdateObject& msg);
             void RemoveObjects(const tesseract::protocol::RemoveObjects& msg);
@@ -193,6 +196,9 @@ namespace radiant {
             void HandlePostRequest(std::string const& path, JSONNode const& query, std::string const& postdata, std::shared_ptr<chromium::IResponse> response);
             void GetRemoteObject(std::string const& uri, JSONNode const& query, std::shared_ptr<chromium::IResponse> response);
             void GetEvents(JSONNode const& query, std::shared_ptr<chromium::IResponse> response);
+            void TraceUri(JSONNode const& query, std::shared_ptr<chromium::IResponse> response);
+            void TraceObjectUri(std::string const& uri, std::shared_ptr<chromium::IResponse> response);
+            void TraceFileUri(std::string const& uri, std::shared_ptr<chromium::IResponse> response);
             void FlushEvents();
 
       private:
@@ -218,7 +224,7 @@ namespace radiant {
             tcp::socket             _tcp_socket;
 
             dm::TraceId             nextTraceId_;
-            dm::GuardSet              guards_;
+            dm::Guard                 guards_;
 
             int                     _send_ahead_commands;
 
@@ -267,7 +273,7 @@ namespace radiant {
             std::string                      currentToolName_;
 
             int                              nextResponseHandlerId_;
-            std::map<int, CommandResponseFn> responseHandlers_;
+            //std::map<int, CommandResponseFn> responseHandlers_;
             std::unordered_map<std::string, std::unique_ptr<HCURSOR, Client::CursorDeleter>> cursors_;
             std::vector<om::EntityRef>       alloced_;
 
@@ -276,6 +282,8 @@ namespace radiant {
             std::mutex                       lock_;
             std::vector<JSONNode>            queued_events_;
             std::shared_ptr<chromium::IResponse>   get_events_request_;
+            lua::ScriptHost*                 scriptHost_;
+            std::map<dm::TraceId, dm::Guard>         uriTraces_;
       };
    };
 };

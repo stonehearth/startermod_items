@@ -1,0 +1,11 @@
+{
+   "type": "entity",
+   "components": {
+      "stonehearth_building:column": {
+         "height" : 7,
+         "colors" : [
+            "rgb(51, 43, 31)"
+         ]
+      }
+   }
+}

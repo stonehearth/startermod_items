@@ -173,7 +173,7 @@ private:
 private:
    RenderEntity&        entity_;
    om::EffectListRef    effectList_;
-   dm::GuardSet         tracer_;
+   dm::Guard            tracer_;
    EffectMap            effects_;
    int                  lastUpdateTime_;
    int                  dt;

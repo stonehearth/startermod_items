@@ -15,14 +15,16 @@
 #include "om/components/build_orders.h"
 #include "platform/utils.h"
 #include "resources/res_manager.h"
-#include "rest_api.h"
 #include "commands/command.h"
 #include "commands/trace_entity.h"
 #include "commands/create_room.h"
 #include "commands/create_portal.h"
 #include "commands/execute_action.h"
-#include "rest_api.h"
 #include "renderer/render_entity.h"
+#include "renderer/lua_render_entity.h"
+#include "renderer/lua_renderer.h"
+#include "lua/script_host.h"
+#include "om/object_formatter/object_formatter.h"
 #include "glfw.h"
 
 //  #include "GFx/AS3/AS3_Global.h"
@@ -61,7 +63,6 @@ Client::Client() :
    om::RegisterObjectTypes(authoringStore_);
 
    std::vector<std::pair<dm::ObjectId, dm::ObjectType>>  allocated_;
-   guards_ += authoringStore_.TraceDynamicObjectAlloc(std::bind(&Client::OnAuthoringObjectAllocated, this, std::placeholders::_1));
 }
 
 Client::~Client()
@@ -117,6 +118,27 @@ void Client::run()
    };
    renderer.SetRawInputCallback(onRawInput);
    renderer.SetMouseInputCallback(onMouse);
+
+
+   lua_State* L = scriptHost_->GetInterpreter();
+   renderer.SetScriptHost(scriptHost_);
+   LuaRenderer::RegisterType(L);
+   LuaRenderEntity::RegisterType(L);
+   json::ConstJsonObject::RegisterLuaType(L);
+
+   // this locks down the environment!  all types must be registered by now!!
+   scriptHost_->LuaRequire("/radiant/client.lua");
+   auto& rm = resources::ResourceManager2::GetInstance();
+   for (std::string const& modname : rm.GetModuleNames()) {
+      try {
+         LOG(WARNING) << "loading init script for " << modname << "...";
+         json::ConstJsonObject manifest = rm.LookupManifest(modname);
+         std::string filename = manifest["scripts"]["init_client_script"].as_string();
+         scriptHost_->LuaRequire(filename);
+      } catch (std::exception const& e) {
+         LOG(WARNING) << "load failed: " << e.what();
+      }
+   }
 
 #if 0
    //_commands['S'] = std::bind(&Client::RunGlobalCommand, this, "create-stockpile", std::placeholders::_1);
@@ -352,15 +374,6 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
    // data isn't guaranteed to be in a consistent state between
    // boundaries.
    store_.FireTraces();
-}
-
-void Client::DoActionReply(const proto::DoActionReply& msg)
-{
-   auto i = responseHandlers_.find(msg.reply_id());
-   if (i != responseHandlers_.end()) {
-      i->second(&msg);
-      responseHandlers_.erase(i);
-   }
 }
 
 void Client::QueueEvent(std::string type, JSONNode payload)
@@ -639,28 +652,23 @@ void Client::SelectEntity(om::EntityPtr obj)
    }
 }
 
-void Client::SendCommand(om::EntityId to, std::string action, const std::vector<om::Selection>& args, int replyId)
-{
-   proto::DoAction msg;
-
-   msg.set_entity(to);
-   msg.set_action(action);
-   msg.set_reply_id(replyId);
-
-   for (const om::Selection& s : args) {
-      s.SaveValue(msg.add_args());
-   }
-   send_queue_->Push(msg);
-
-   currentCommand_ = nullptr;
-   currentCommandCursor_ = NULL;
-}
-
 void Client::EvalCommand(std::string cmd)
 {
-   proto::DoAction msg;
-   msg.set_entity(0);
-   msg.set_action(cmd);
+   auto reply = [=](tesseract::protocol::Update const& msg) {
+      proto::ScriptCommandReply const& reply = msg.GetExtension(proto::ScriptCommandReply::extension);
+      LOG(WARNING) << reply.result();
+   };
+
+   proto::Request msg;
+   msg.set_type(proto::Request::ScriptCommandRequest);
+   
+   proto::ScriptCommandRequest* request = msg.MutableExtension(proto::ScriptCommandRequest::extension);
+   request->set_cmd(cmd);
+
+   int id = ++last_server_request_id_;
+   msg.set_request_id(id);
+   server_requests_[id] = reply;
+
    send_queue_->Push(msg);
 }
 
@@ -1067,10 +1075,6 @@ void Client::SelectGroundArea(Selector::SelectionFn cb)
    selector_ = vrs;
 }
 
-void Client::OnAuthoringObjectAllocated(dm::ObjectPtr obj)
-{
-
-}
 
 dm::Guard Client::TraceShowBuildOrders(std::function<void()> cb)
 {
@@ -1393,6 +1397,8 @@ void Client::BrowserRequestHandler(std::string const& path, JSONNode const& quer
    if (postdata.empty()) {
       if (boost::starts_with(path, "/api/events")) {
          GetEvents(query, response);
+      } else if (boost::starts_with(path, "/api/trace")) {
+         TraceUri(query, response);
       } else if (boost::starts_with(path, "/object")) {
          GetRemoteObject(path, query, response);
       } else {
@@ -1455,6 +1461,76 @@ void Client::GetEvents(JSONNode const& query, std::shared_ptr<chromium::IRespons
    FlushEvents();
 }
 
+void Client::TraceUri(JSONNode const& query, std::shared_ptr<chromium::IResponse> response)
+{
+   json::ConstJsonObject args(query);
+
+   if (args["create"].as_bool()) {
+      std::string uri = args["uri"].as_string();
+
+      if (boost::starts_with(uri, "/object")) {
+         TraceObjectUri(uri, response);
+      } else {
+         TraceFileUri(uri, response);
+      }
+   } else {
+      dm::TraceId traceId = args["trace_id"].as_integer();
+      uriTraces_.erase(traceId);
+   }
+}
+
+void Client::TraceObjectUri(std::string const& uri, std::shared_ptr<chromium::IResponse> response)
+{
+   dm::ObjectPtr obj = om::ObjectFormatter("/object/").GetObject(GetStore(), uri);
+   if (obj) {
+      int traceId = nextTraceId_++;
+      std::weak_ptr<dm::Object> o = obj;
+
+      auto createResponse = [traceId, uri, o]() -> JSONNode {
+         JSONNode node;
+         node.push_back(JSONNode("trace_id", traceId));
+         node.push_back(JSONNode("uri",      uri));
+         auto obj = o.lock();
+         if (obj) {
+            JSONNode data = om::ObjectFormatter("/object/").ObjectToJson(obj);
+            data.set_name("data");
+            node.push_back(data);
+         }
+         return node;
+      };
+
+      auto objectChanged = [this, createResponse]() {
+         QueueEvent("radiant.trace_fired", createResponse());
+      };
+
+      uriTraces_[traceId] = obj->TraceObjectChanges("tracing uri", objectChanged);
+      JSONNode res = createResponse();
+      response->SetResponse(200, res.write(), "application/json");
+      return;
+   }
+   response->SetResponse(404, "", "");
+}
+
+
+void Client::TraceFileUri(std::string const& uri, std::shared_ptr<chromium::IResponse> response)
+{
+   if (boost::ends_with(uri, ".json")) {
+      auto const& rm = resources::ResourceManager2::GetInstance();
+      JSONNode data = rm.LookupJson(uri);
+
+      JSONNode node;
+      int traceId = nextTraceId_++;
+      node.push_back(JSONNode("trace_id", traceId));
+      node.push_back(JSONNode("uri",      uri));
+      data.set_name("data");
+      node.push_back(data);
+      response->SetResponse(200, node.write(), "application/json");
+      return;
+   }
+   LOG(WARNING) << "attempting to trace non-json uri " << uri << " NOT IMPLEMENTED!!! Returning 404";
+   response->SetResponse(404, "", "");
+}
+
 void Client::FlushEvents()
 {
    if (get_events_request_ && !queued_events_.empty()) {
@@ -1468,4 +1544,7 @@ void Client::FlushEvents()
    }
 }
 
-
+void Client::SetScriptHost(lua::ScriptHost* scriptHost)
+{
+   scriptHost_ = scriptHost;
+}

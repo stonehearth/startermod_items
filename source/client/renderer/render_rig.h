@@ -35,7 +35,7 @@ private:
 
    RenderEntity&        entity_;
    om::RenderRigRef     rig_;
-   dm::GuardSet         tracer_;
+   dm::Guard            tracer_;
    RigMap               nodes_;
    float                scale_;
    std::string          animationTableName_;

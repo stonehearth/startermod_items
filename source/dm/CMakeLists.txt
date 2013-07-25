@@ -7,7 +7,6 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 add_library(dm STATIC
             guard.cpp
-            guard_set.cpp
             tracer.cpp
             object.cpp
             record.cpp

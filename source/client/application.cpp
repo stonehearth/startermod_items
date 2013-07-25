@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "radiant_json.h"
 #include "client.h" 
 #include "application.h"
 #include "resources/res_manager.h"
@@ -103,7 +104,9 @@ int Application::Start(lua_State* L)
    const char *port = "1336";
    
    std::thread client([&]() {
-      Client::GetInstance().run();
+      auto& c = Client::GetInstance();
+      c.SetScriptHost(&scriptHost_);
+      c.run();
    });
 
    game_engine::arbiter::GetInstance().Run(L);

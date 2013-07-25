@@ -33,6 +33,7 @@ void Mob::InitializeRecordFields()
    AddRecordField("aabb", aabb_);
    AddRecordField("flags", flags_);
    AddRecordField("parent", parent_);
+   AddRecordField("moving", moving_);
 
    transform_.Modify().set_zero();
    aabb_.Modify().set_zero();

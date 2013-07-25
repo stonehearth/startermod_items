@@ -45,7 +45,6 @@ namespace radiant {
          bool is_zero() const { return x == 0 && y == 0 && z == 0; }
          void set_zero() { x = y = z = 0; }
 
-#if !defined(SWIG)
          ipoint3(const protocol::ipoint3 &p) : x(p.x()), y(p.y()), z(p.z()) { }
          explicit ipoint3(const protocol::point3 &p) : x((int)p.x()), y((int)p.y()), z((int)p.z()) { }
 
@@ -70,7 +69,7 @@ namespace radiant {
             y = p.y();
             z = p.z();
          }
-#endif
+
          operator size_t() const {
             // xxx: make a wrapper to add this so we don't accidently compare points to sizes.
             return (((x * 863) * y * 971) * z * 991); // bunch-o-primes.  xxx: NO IDEA if this is any good
@@ -145,6 +144,12 @@ namespace radiant {
 
          static ipoint3    origin;
          static ipoint3    one;
+
+         struct hash { 
+            size_t operator()(const math3d::ipoint3& o) const {
+               return std::hash<int>()(o.x) ^ std::hash<int>()(o.y) ^ std::hash<int>()(o.z); 
+            }
+         };
       };
       std::ostream& operator<<(std::ostream& out, const ipoint3& source);
    };

@@ -1,7 +1,8 @@
 local check = {}
 
 function check.is_entity(obj)
-   check.verify(radiant.util.is_entity(obj))
+   radiant.log.debug('!! implement is_entity !!')
+   return true
 end
 
 function check.is_table(obj)
@@ -22,14 +23,6 @@ end
 
 function check.is_function(obj)
    check.verify(type(obj) == 'function')
-end
-
-function check.is_a(obj, cls)
-   check.verify(radiant.util.is_a(obj, cls))
-end
-
-function check.is_callable(obj)
-   check.verify(radiant.util.is_callable(obj))
 end
 
 function check.verify(condition)   

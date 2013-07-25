@@ -30,6 +30,14 @@ namespace radiant {
          return def;
       }
 
+      class Exception : public std::exception {
+      public:
+         Exception(std::string const& error) : error_(error) { }
+         const char* what() const override { return error_.c_str(); }
+      private:
+         std::string    error_;
+      };
+
       class ConstJsonObject {
       public:
          ConstJsonObject(JSONNode const& node) : node_(node) { }
@@ -44,16 +52,31 @@ namespace radiant {
          }
 
          int as_integer() const {
-            ASSERT(node_.type() == JSON_NUMBER);
+            VERIFY(node_.type() == JSON_NUMBER, Exception("json node is not an interger"));
             return node_.as_int();
          }
 
          std::string as_string() const {
-            ASSERT(node_.type() == JSON_STRING);
+            VERIFY(node_.type() == JSON_STRING, Exception("json node is not a string"));
             return node_.as_string();
          }
+         
+         bool as_bool() const {
+            if (node_.type() == JSON_BOOL) {
+               return node_.as_bool();
+            }
+            if (node_.type() == JSON_NUMBER) {
+               return node_.as_int() != 0;
+            }
+            if (node_.type() == JSON_STRING) {
+               return node_.as_string() == "true";
+            }
+            return false;
+         }
 
-         JSONNode const& GetNode() const { return node_; }
+         JSONNode const& GetNode() const {
+            return node_;
+         }
 
          bool has(const char* name) const {
             return node_.find(name) != node_.end();
@@ -62,33 +85,36 @@ namespace radiant {
          template <typename T> T get(char const* name, T const& def) const {
             return ::radiant::json::get(GetNode(), name, def);
          }
+
          template <typename T> T get(int offset, T const& def) const {
             return ::radiant::json::get(GetNode(), offset, def);
          }
+
          ConstJsonObject operator[](std::string const& name) const {
             return (*this)[name.c_str()];
          }
 
          ConstJsonObject operator[](const char* name) const {
-            ASSERT(name);
-            ASSERT(node_.type() == JSON_NODE);
+            VERIFY(node_.type() == JSON_NODE, Exception("json object is not a node"));
+            VERIFY(name, Exception("attempt to lookup null key in json node"));
 
             auto i = node_.find(name);
-            ASSERT(i != node_.end());
+            VERIFY(i != node_.end(), Exception(std::string("node has no child: ") + name));
 
             return ConstJsonObject(*i);
          }
 
          ConstJsonObject operator[](int i) const {
-            ASSERT(i >= 0);
+            VERIFY(i >= 0, Exception("json array index is negative"));
             return (*this)[(unsigned int)i];
          }
 
          ConstJsonObject operator[](unsigned int i) const {
-            ASSERT(node_.type() == JSON_ARRAY);
-            ASSERT(i < node_.size());
+            VERIFY(node_.type() == JSON_ARRAY, Exception("json node is not an array"));
+            VERIFY(i < node_.size(), Exception("json array index out of bounds"));
             return node_.at(i);
          }
+
       private:
          JSONNode const& node_;
       };

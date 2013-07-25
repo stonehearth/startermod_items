@@ -32,6 +32,7 @@ Renderer::Renderer() :
    nextInputCbId_(1),
    cameraMoveDirection_(0, 0, 0),
    viewMode_(Standard),
+   scriptHost_(nullptr),
    nextTraceId_(1)
 {
    try {
@@ -109,6 +110,7 @@ Renderer::Renderer() :
 
 	H3DRes lightMatRes = h3dAddResource(H3DResTypes::Material, "materials/light.material.xml", 0);
    H3DRes skyBoxRes = h3dAddResource( H3DResTypes::SceneGraph, "models/skybox/skybox.scene.xml", 0 );
+   
 
    // xxx - should move this into the horde extension for debug shapes, but it doesn't know
    // how to actually get the resource loaded!
@@ -126,6 +128,7 @@ Renderer::Renderer() :
 
 	// Add light source
 	directionalLight = h3dAddLightNode(H3DRootNode, "Sun", lightMatRes, "DIRECTIONAL_LIGHTING", "DIRECTIONAL_SHADOWMAP");
+   h3dSetMaterialUniform(lightMatRes, "ambientLightColor", 1.0f, 1.0f, 0.0f, 1.0f);
 #if 0
    math3d::quaternion q(math3d::vector3::unit_x, -90.0f / 180.0f * k_pi);
    //q *= math3d::quaternion(math3d::vector3::unit_y, 45.0f / 180 * k_pi);
@@ -141,9 +144,9 @@ Renderer::Renderer() :
 	h3dSetNodeParamI(directionalLight, H3DLight::DirectionalI, true);
 	h3dSetNodeParamF(directionalLight, H3DLight::ShadowSplitLambdaF, 0, 0.9f);
 	h3dSetNodeParamF(directionalLight, H3DLight::ShadowMapBiasF, 0, 0.001f);
-	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 0, 0.5f);
-	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 1, 0.5f);
-	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 2, 0.5f);
+	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 0, 0.6f);
+	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 1, 0.6f);
+	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 2, 0.6f);
 
 	spotLight = h3dAddLightNode(H3DRootNode, "AnotherLight", lightMatRes, "LIGHTING", "SHADOWMAP");
 	h3dSetNodeTransform(spotLight, 0, 20, 0, -90, 0, 0, 1, 1, 1);
@@ -157,11 +160,9 @@ Renderer::Renderer() :
 	h3dSetNodeParamF(spotLight, H3DLight::ColorF3, 2, 1);
 
    // Skybox
-#if 0
 	H3DNode sky = h3dAddNodes( H3DRootNode, skyBoxRes );
 	h3dSetNodeTransform( sky, 0, 0, 0, 0, 0, 0, 210, 50, 210 );
 	h3dSetNodeFlags( sky, H3DNodeFlags::NoCastShadow, true );
-#endif
 
    // Resize
    Resize(width_, height_);
@@ -306,6 +307,8 @@ void Renderer::RenderOneFrame(int now, float alpha)
       h3dutShowFrameStats( fontMatRes_, panelMatRes_, H3DUTMaxStatMode );
    }
 	
+   LoadResources();
+
 	// Render scene
 	h3dRender(camera_);
 
@@ -454,8 +457,9 @@ void Renderer::PointCamera(const math3d::point3 &location)
 
 void Renderer::UpdateUITexture(const csg::Region2& rgn, const char* buffer)
 {
-   // why wouldn't it be?
    if (!rgn.IsEmpty()) {
+      LOG(WARNING) << "Updating " << rgn.GetArea() << " pixels from the ui texture.";
+
       int pitch = uiWidth_ * 4;
 
       char *data = (char *)h3dMapResStream(uiTexture_, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, true, true);
@@ -510,6 +514,7 @@ std::shared_ptr<RenderEntity> Renderer::CreateRenderObject(H3DNode parent, om::E
    } else {
       // LOG(WARNING) << "CREATING RENDER OBJECT " << sid << ", " << id;
       result = std::make_shared<RenderEntity>(parent, entity);
+      result->FinishConstruction();
       entities[id] = result;
       traces_ += entity->TraceObjectLifetime("render entity lifetime", [=]() { 
          // LOG(WARNING) << "DESTROYING RENDER OBJECT " << sid << ", " << id;
@@ -922,4 +927,15 @@ int Renderer::GetHeight() const
 boost::property_tree::ptree const& Renderer::GetConfig() const
 {  
    return config_;
+}
+
+void Renderer::SetScriptHost(lua::ScriptHost* scriptHost)
+{
+   scriptHost_ = scriptHost;
+}
+
+lua::ScriptHost* Renderer::GetScriptHost() const
+{
+   ASSERT(scriptHost_);
+   return scriptHost_;
 }

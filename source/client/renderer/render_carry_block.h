@@ -24,7 +24,7 @@ private:
 
 private:
    RenderEntity&        entity_;
-   dm::GuardSet         tracer_;
+   dm::Guard            tracer_;
    om::CarryBlockRef    carryBlock_;
    om::EntityId         carrying_;
    H3DNode              carryBoneId_;

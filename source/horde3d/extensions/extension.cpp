@@ -69,17 +69,31 @@ void Extension::release()
    // xxx: nuke the material
 }
 
-std::pair<H3DNode, ::radiant::horde3d::StockpileNode*> h3dRadiantCreateStockpileNode(H3DNode parent, std::string name)
+H3DNode h3dRadiantCreateStockpileNode(H3DNode parent, std::string name)
 {
 	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
-	APIFUNC_VALIDATE_NODE(parentNode, "h3dRadiantCreateStockpileNode", std::make_pair(0, nullptr));
+	APIFUNC_VALIDATE_NODE(parentNode, "h3dRadiantCreateStockpileNode", 0);
 	
 	Modules::log().writeInfo( "Adding Stockpile node '%s'", name.c_str() );
 	
 	StockpileNode* sn = (StockpileNode*)Modules::sceneMan().findType(SNT_StockpileNode)->factoryFunc(StockpileTpl(name));
 	H3DNode node = Modules::sceneMan().addNode(sn, *parentNode);
 
-   return std::make_pair(node, sn);
+   return node;
+}
+
+bool h3dRadiantResizeStockpileNode(H3DNode node, int width, int height)
+{
+	SceneNode *sceneNode = Modules::sceneMan().resolveNodeHandle( node );
+	APIFUNC_VALIDATE_NODE(sceneNode, "h3dRadiantResizeStockpileNode", false);
+
+   APIFUNC_VALIDATE_NODE_TYPE(sceneNode, SNT_StockpileNode, "h3dRadiantResizeStockpileNode", false );
+
+   math3d::ibounds3 bounds(math3d::ipoint3::origin, math3d::ipoint3::origin);
+   bounds._max.x += width;
+   bounds._max.z += height;
+   ((StockpileNode*)sceneNode)->UpdateShape(bounds);
+   return true;
 }
 
 ::radiant::horde3d::ToastNode* h3dRadiantCreateToastNode(H3DNode parent, std::string name)

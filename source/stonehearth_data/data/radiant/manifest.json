@@ -7,5 +7,8 @@
       "commands" : "file(components/commands_component.lua)",
       "resource_node" : "file(components/resource_node_component.lua)",
       "stockpile" : "file(components/stockpile_component.lua)"
+   },
+   "component_renderers" : {
+      "stockpile" : "file(component_renderers/stockpile_renderer.lua)"
    }
 }

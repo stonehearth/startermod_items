@@ -13,13 +13,14 @@ function FollowPathAction:run(ai, entity, path)
    if radiant.entities.is_carrying(entity) then
       effect_name = 'carry_walk'
    end
-
    self._effect = radiant.effects.run_effect(entity, effect_name)
-   self._mover = native:create_follow_path(entity, speed, path, 0)
-   ai:wait_until(function()
-         return self._mover:finished()
-      end)
 
+   local arrived_fn = function()
+      ai:resume()
+   end  
+   self._mover = native:create_follow_path(entity, speed, path, 0, arrived_fn)
+   ai:suspend()
+   
    self._effect:stop()
    self._effect = nil
 end

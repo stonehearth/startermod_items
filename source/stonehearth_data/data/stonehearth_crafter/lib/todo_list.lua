@@ -7,7 +7,8 @@
 local CraftOrder = radiant.mods.require('/stonehearth_crafter/lib/craft_order.lua')
 local ToDoList = class()
 
-function ToDoList:__init()
+function ToDoList:__init(backing_obj)
+   self._backing_obj = backing_obj
    self._my_list = {}
 end
 
@@ -27,6 +28,7 @@ function ToDoList:add_order(order, target_index)
    else
       table.insert(self._my_list, order)
    end
+   self._backing_obj:mark_changed()
 end
 
 --[[
@@ -139,6 +141,7 @@ function ToDoList:remove_order(order_id)
     if i then
       local order = self._my_list[i]
       table.remove(self._my_list, i)
+      self._backing_obj:mark_changed()
       return order
    else
       return nil

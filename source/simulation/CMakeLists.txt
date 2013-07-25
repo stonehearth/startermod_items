@@ -14,7 +14,6 @@ add_subdirectory(actions)
 add_subdirectory(jobs)
 # add_subdirectory(scheduler)
 add_subdirectory(script)
-add_subdirectory(native_commands)
 
 add_library(simulation STATIC
             interfaces.cpp
@@ -34,6 +33,5 @@ target_link_libraries(simulation
                       resources
                       simulation_actions
                       simulation_jobs
-                      simulation_native_commands
                       simulation_script
                       )

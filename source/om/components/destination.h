@@ -35,7 +35,7 @@ public:
    dm::Boxed<RegionPtr>             region_;
    dm::Boxed<RegionPtr>             reserved_;
    dm::Boxed<RegionPtr>             adjacent_;
-   dm::GuardSet                     guards_;
+   dm::Guard                        guards_;
    int                              lastUpdated_;
 };
 

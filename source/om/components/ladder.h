@@ -25,7 +25,7 @@ private:
 
 private:
    dm::Boxed<WallRef>      wall_;
-   dm::GuardSet            guards_;
+   dm::Guard               guards_;
 };
 
 END_RADIANT_OM_NAMESPACE

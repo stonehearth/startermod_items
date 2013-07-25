@@ -7,6 +7,8 @@
 #define ASSERT(x)          do { if (!(x)) { DebugBreak(); } } while(false)
 #define NYI_ERROR_CHECK(x) ASSERT(x)
 
+#define VERIFY(expr, Excp) do { if (!(expr)) { throw Excp; } } while(false)
+
 #define DEBUG_ONLY(x)      do { x } while (false);
 #define RADIANT_NOT_IMPLEMENTED()   (LOG(WARNING) << __FUNCTION__  << " not implemented (" << __FILE__ << ":" << __LINE__)
 #define NOT_YET_IMPLEMENTED()       (LOG(WARNING) << __FUNCTION__  << " not implemented (" << __FILE__ << ":" << __LINE__)
