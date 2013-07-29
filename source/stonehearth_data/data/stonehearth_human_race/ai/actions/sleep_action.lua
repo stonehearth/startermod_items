@@ -57,7 +57,8 @@ function SleepAction:run(ai, entity)
    end
 
    -- go find the path to the bed
-   i:find_path_to_item(entity, solved_cb, filter_fn)
+   local desc = string.format('finding bed for %s', tostring(entity))
+   i:find_path_to_closest_entity(desc, entity, solved_cb, filter_fn)
    ai:suspend()
 
    -- follow the path

@@ -15,6 +15,11 @@ Job::Job(std::string name)  :
    _name = s.str();
 }
 
+JobId Job::GetId() const
+{
+   return _id;
+}
+
 std::string Job::GetName() const
 {
    return _name;

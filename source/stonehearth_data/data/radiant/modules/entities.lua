@@ -110,7 +110,7 @@ end
 function entities.turn_to_face(entity, arg2)
    --local location = util:is_a(arg2, Entity) and singleton.get_world_grid_location(arg2) or arg2
    local location
-   if radiant.check.is_entity(arg2) then
+   if arg2.x == nil then
       location = arg2:get_component('mob'):get_world_grid_location()
    else
       location = arg2

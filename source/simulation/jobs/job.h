@@ -15,6 +15,7 @@ class Job {
 
       std::string GetName() const;
 
+      JobId GetId() const;
       virtual bool IsFinished() const = 0;
       virtual bool IsIdle() const = 0;
       virtual void Work(const platform::timer &timer) = 0;
