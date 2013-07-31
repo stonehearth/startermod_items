@@ -25,7 +25,7 @@ App.UnitFrameView = App.View.extend({
 
    didInsertElement: function() {
       $('.commandButton').tooltip({
-         delay: { show: 800, hide: 0 }
+         delay: { show: 400, hide: 0 }
          });
    },
 

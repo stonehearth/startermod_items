@@ -3,7 +3,7 @@ App.StonehearthCalendarView = App.View.extend({
 
    init: function() {
       this._super();
-      //this._poll();
+      this._poll();
       this.set('context', {});
    },
 

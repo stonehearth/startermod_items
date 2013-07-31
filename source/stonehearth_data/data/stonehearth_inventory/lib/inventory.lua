@@ -41,7 +41,7 @@ function Inventory:__init(faction)
 end
 
 function Inventory:find_path_to_entity(name, source, destination, solved_fn)
-   local pathfinder = native:create_path_finder(name, source, solved_fn)
+   local pathfinder = native:create_path_finder(name, source, solved_fn, nil)
    pathfinder:add_destination(destination)
    return pathfinder
 end

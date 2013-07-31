@@ -48,6 +48,8 @@ class PathFinder : public Job {
       PathPtr GetSolution() const;
 
       void Restart();
+      void Start();
+      void Stop();
       void SetReverseSearch(bool reversed);
       int EstimateCostToSolution();
       std::ostream& Format(std::ostream& o) const;
@@ -87,8 +89,10 @@ class PathFinder : public Job {
       bool                                         restart_search_;
       bool                                         search_exhausted_;
       bool                                         reversed_search_;
+      bool                                         enabled_;
       mutable PathPtr                              solution_;
       std::vector<math3d::ipoint3>                      open_;
+
       std::unordered_map<math3d::ipoint3, bool, math3d::ipoint3::hash> closed_;
       std::hash_map<math3d::ipoint3, int>               f_;
       std::hash_map<math3d::ipoint3, int>               g_;

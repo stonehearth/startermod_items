@@ -32,7 +32,8 @@ PathFinder::PathFinder(lua_State* L, std::string name, om::EntityRef e, luabind:
    dst_filter_(L, dst_filter),
    search_exhausted_(false),
    reversed_search_(false),
-   restart_search_(true)
+   restart_search_(true),
+   enabled_(true)
 {
    auto entity = e.lock();
    if (entity) {
@@ -57,6 +58,10 @@ void PathFinder::SetFilterFn(luabind::object dst_filter)
 
 bool PathFinder::IsIdle() const
 {
+   if (!enabled_) {
+      return true;
+   }
+
    if (destinations_.empty()) {
       return true;
    }
@@ -70,6 +75,16 @@ bool PathFinder::IsIdle() const
       return true;
    }
    return false;
+}
+
+void PathFinder::Start()
+{
+   enabled_ = true;
+}
+
+void PathFinder::Stop()
+{
+   enabled_ = false;
 }
 
 void PathFinder::AddDestination(om::EntityRef e)

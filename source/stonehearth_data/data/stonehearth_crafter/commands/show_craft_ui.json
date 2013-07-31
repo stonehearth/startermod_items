@@ -2,7 +2,7 @@
    "type" : "command",
 
    "name": "show_craft_ui",
-   "tooltip": "Craft Stuff!!",
+   "tooltip": "Craft",
    "icon": "file(/html/images/show_workshop.png)",
 
    "action": "fire_event",

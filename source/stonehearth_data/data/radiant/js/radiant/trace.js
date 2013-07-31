@@ -27,12 +27,7 @@
       destroy: function () {
          // remove all traces
          if (this._traceId) {
-            var traceId = this._traceId;
-            this._traceId = undefined;
-            $.getJSON('/api/trace', { create: false, trace_id: traceId })
-               .done(function(json) {
-                  console.log('removed trace ' + traceId +  ' ' + JSON.stringify(json));
-               })
+            this._removeTrace();
          }
 
          // remove the event handler.
@@ -41,6 +36,15 @@
             this._handler = null;
          }
          this._traceInstalled = false;
+      },
+
+      _removeTrace: function() {
+         var traceId = this._traceId;
+         this._traceId = undefined;
+         $.getJSON('/api/trace', { create: false, trace_id: traceId })
+            .done(function(json) {
+               console.log('removed trace ' + traceId +  ' ' + JSON.stringify(json));
+            });
       },
 
       _installTrace: function () {
@@ -57,8 +61,7 @@
                   });
                   self._onTraceFired(o);
                } else {
-                  $.getJSON('/api/remove_trace', options)
-                  this._traceId = null;
+                  self._removeTrace();
                }
             })
             .fail(function (err) {
@@ -66,7 +69,7 @@
                self._deferred = null;
             })
             .always(function(o) {
-               console.log('GET for trace ' + this._uri + ' finished.');
+               console.log('GET for trace ' + self._uri + ' finished.');
             });
       },
 
