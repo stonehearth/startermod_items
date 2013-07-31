@@ -23,6 +23,25 @@ std::vector<om::EntityRef> MultiPathFinderGetDestinations(const MultiPathFinder&
    return result;
 }
 
+template <class T>
+class WeakObjectReference {
+public:
+   WeakObjectReference(std::shared_ptr<T> obj) : obj_(obj) {}
+
+   std::shared_ptr<T> Lock() {
+      return obj_.lock();
+   }
+
+private:
+   std::weak_ptr<T>  obj_;
+};
+
+WeakObjectReference<PathFinder> ToWeakPathFinder(lua_State* L, std::shared_ptr<PathFinder> p)
+{
+   return WeakObjectReference<PathFinder>(p);
+}
+
+
 void LuaJobs::RegisterType(lua_State* L)
 {
    module(L) [
@@ -48,6 +67,7 @@ void LuaJobs::RegisterType(lua_State* L)
       ,
       class_<PathFinder, std::shared_ptr<PathFinder> >("PathFinder")
          .def(tostring(self))
+         .def("get_id",             &PathFinder::GetId)
          .def("add_destination",    &PathFinder::AddDestination)
          .def("remove_destination", &PathFinder::RemoveDestination)
          .def("set_solved_cb",      &PathFinder::SetSolvedCb)
@@ -55,6 +75,10 @@ void LuaJobs::RegisterType(lua_State* L)
          .def("get_solution",       &PathFinder::GetSolution)
          .def("set_reverse_search", &PathFinder::SetReverseSearch)
          .def("is_idle",            &PathFinder::IsIdle)
+         .def("to_weak_ref",        &ToWeakPathFinder)
+      ,
+      class_<WeakObjectReference<PathFinder> >("WeakPathFinder")
+         .def("lock",               &WeakObjectReference<PathFinder>::Lock)
       ,
       FollowPath::RegisterLuaType(L, "FollowPathJob"),
       GotoLocation::RegisterLuaType(L, "GotoLocation")

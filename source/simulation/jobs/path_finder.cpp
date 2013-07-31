@@ -78,6 +78,27 @@ void PathFinder::AddDestination(om::EntityRef e)
 
    auto entity = e.lock();
    if (entity) {
+      if (dst_filter_.is_valid() && luabind::type(dst_filter_) == LUA_TFUNCTION) {
+         try {
+            auto L = dst_filter_.interpreter();
+            luabind::object e(L, std::weak_ptr<om::Entity>(entity));
+            if (!luabind::call_function<bool>(dst_filter_, e)) {
+               LOG(WARNING) << "filter fn for entity " << entity->GetObjectId() << " returned false!";
+               return;
+            }
+            LOG(WARNING) << "filter fn for entity " << entity->GetObjectId() << " returned TRUE!!!!!";
+         } catch (luabind::error& e) {
+            LOG(WARNING) << "luabind::error " << e.what();
+            return;
+         } catch (std::exception& e) {
+            LOG(WARNING) << "std::exception " << e.what();
+            return;
+         } catch (...) {
+            LOG(WARNING) << "unknown error in pathfinder filter cb...";
+            return;
+         }
+      }
+
       destinations_[entity->GetObjectId()] = std::unique_ptr<PathFinderEndpoint>(new PathFinderEndpoint(*this, e));
       restart_search_ = true;
       solution_ = nullptr;
@@ -312,26 +333,6 @@ int PathFinder::EstimateCostToDestination(const math3d::ipoint3 &from, PathFinde
          om::EntityPtr entity = dst->GetEntity();
          if (!entity) {
             continue;
-         }
-         if (dst_filter_.is_valid() && luabind::type(dst_filter_) == LUA_TFUNCTION) {
-            try {
-               auto L = dst_filter_.interpreter();
-               luabind::object e(L, std::weak_ptr<om::Entity>(entity));
-               if (!luabind::call_function<bool>(dst_filter_, e)) {
-                  LOG(WARNING) << "filter fn for entity " << entity->GetObjectId() << " returned false!";
-                  continue;
-               }
-               LOG(WARNING) << "filter fn for entity " << entity->GetObjectId() << " returned TRUE!!!!!";
-            } catch (luabind::error& e) {
-               LOG(WARNING) << "luabind::error " << e.what();
-               continue;
-            } catch (std::exception& e) {
-               LOG(WARNING) << "std::exception " << e.what();
-               continue;
-            } catch (...) {
-               LOG(WARNING) << "unknown error in pathfinder filter cb...";
-               continue;
-            }
          }
          int h = dst->EstimateMovementCost(from);
          // LOG(WARNING) << GetName() << "    sub cost to dst: " << h << "(vs: " << hMin << ")";
