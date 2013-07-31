@@ -4,7 +4,8 @@
    "components" : {
       "radiant:ai" : {
          "actions" : [
-            "file(/ai/actions/sleep_action.lua)"
+            "file(/ai/actions/sleep_action.lua)",
+            "file(/ai/actions/sleep_in_bed_action.lua)"
          ]
       },      
 	   "unit_info" : {
@@ -28,6 +29,8 @@
          "animation_table" : "file(/rigs/male)"
       },
       "carry_block": {
+      },
+      "stonehearth_sleep_system:bed_lease" : {
       }
 	}
 }

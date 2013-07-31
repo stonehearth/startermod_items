@@ -76,6 +76,8 @@ void LuaJobs::RegisterType(lua_State* L)
          .def("set_reverse_search", &PathFinder::SetReverseSearch)
          .def("is_idle",            &PathFinder::IsIdle)
          .def("to_weak_ref",        &ToWeakPathFinder)
+         .def("stop",               &PathFinder::Stop)
+         .def("start",              &PathFinder::Start)
       ,
       class_<WeakObjectReference<PathFinder> >("WeakPathFinder")
          .def("lock",               &WeakObjectReference<PathFinder>::Lock)
