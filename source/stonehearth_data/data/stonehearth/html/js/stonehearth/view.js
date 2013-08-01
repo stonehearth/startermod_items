@@ -19,7 +19,13 @@ App.View = Ember.View.extend({
       }
    },
 
+   _debug : false,
+
    _log : function(level, str, obj) {
+      if (!this._debug) {
+         return;
+      }
+
       var indent = '';
       var level = level ? level : 0;
       for (i = 0; i < level; i++) {
@@ -40,7 +46,7 @@ App.View = Ember.View.extend({
       if (this.uri) {
          this._expand_uri(this.uri, this.components)
             .progress(function(eobj) {               
-               console.log("settint view context for " + this.uri);
+               console.log("setting view context for " + self.uri);
                self.set('context', eobj)
             });
       } else {

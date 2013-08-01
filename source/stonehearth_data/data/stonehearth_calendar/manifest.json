@@ -1,0 +1,8 @@
+{
+   "info" :{
+      "name" : "Stonehearth Calendar"
+   },
+   "components" : {
+      "calendar" : "file(components/calendar_component.lua)"
+   }
+}
