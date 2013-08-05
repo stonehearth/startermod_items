@@ -7,7 +7,6 @@
 #include "debug_shapes/debug_shapes.h"
 #include "stockpile/decal_node.h"
 #include "stockpile/stockpile_node.h"
-#include "stockpile/region_node.h"
 #include "stockpile/toast_node.h"
 #include "Horde3D.h"
 #include "Horde3DUtils.h"
