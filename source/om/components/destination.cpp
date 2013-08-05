@@ -13,23 +13,16 @@ void Destination::InitializeRecordFields()
    AddRecordField("adjacent", adjacent_);
 
    if (!IsRemoteRecord()) {
-      region_ = GetStore().AllocObject<Region>();
-      reserved_ = GetStore().AllocObject<Region>();
-      adjacent_ = GetStore().AllocObject<Region>();
+      region_ = GetStore().AllocObject<BoxedRegion3>();
+      reserved_ = GetStore().AllocObject<BoxedRegion3>();
+      adjacent_ = GetStore().AllocObject<BoxedRegion3>();
       lastUpdated_ = 0;
 
-      auto update = [=](csg::Region3 const& rgn) { UpdateDerivedValues(); };
+      auto update = [=]() { UpdateDerivedValues(); };
 
-      guards_ += (*region_)->Trace("updating destination derived values (region changed)", update);
-      guards_ += (*reserved_)->Trace("updating destination derived values (reserved changed)", update);
+      guards_ += (*region_)->TraceObjectChanges("updating destination derived values (region changed)", update);
+      guards_ += (*reserved_)->TraceObjectChanges("updating destination derived values (reserved changed)", update);
    }
-}
-
-std::string Destination::ToString() const
-{
-   std::ostringstream os;
-   os << "(Destination id:" << GetObjectId() << ")";
-   return os.str();
 }
 
 /*
@@ -48,23 +41,6 @@ void Destination::ExtendObject(json::ConstJsonObject const& obj)
       csg::Region3& region = (*region_)->Modify();
       region += obj.get("region", csg::Region3());
    }
-}
-
-void Destination::RegisterLuaType(struct lua_State* L)
-{
-   using namespace luabind;
-
-   module(L) [
-      class_<Destination, std::weak_ptr<Component>, Component>("Destination")
-         .def(tostring(self))
-         .def("get_region",   &om::Destination::GetRegion)
-         .def("set_region",   &om::Destination::SetRegion)
-   ];
-}
-
-void Destination::SetRegion(std::shared_ptr<csg::Region3> region)
-{
-   (*region_)->Modify() = *region;
 }
 
 void Destination::UpdateDerivedValues()

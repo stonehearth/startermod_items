@@ -6,11 +6,6 @@
 #include "point.h"
 #include "math3d.h"
 
-struct lua_State;
-namespace luabind { 
-   struct scope; 
-}
-
 BEGIN_RADIANT_CSG_NAMESPACE
 
 template <typename S, int C> class Region;
@@ -33,8 +28,6 @@ public:
    Cube(const protocol::cube& msg);
 
    static Cube Construct(Point min, Point max, int tag = 0);
-   static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
-
 
    // nuke these...
    Cube(const math3d::aabb& a) : min_(a._min), max_(a._max) { }

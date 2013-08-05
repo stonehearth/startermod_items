@@ -1,8 +1,8 @@
 #include "pch.h"
+#include "pipeline.h"
 #include "renderer.h"
 #include "render_terrain.h"
 #include "om/components/terrain.h"
-#include "om/grid/grid.h"
 #include "csg/meshtools.h"
 #include <unordered_map>
 
@@ -134,7 +134,7 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
       }
    }
    ASSERT(terrain);
-   tracer_ += terrain->region_.Trace("terrain renderer", [=](const csg::Region3 &){ UpdateRenderRegion(); });
+   tracer_ += terrain->region_.TraceObjectChanges("terrain renderer", [=](){ UpdateRenderRegion(); });
    UpdateRenderRegion();
 }
 
@@ -171,8 +171,7 @@ void RenderTerrain::UpdateRenderRegion()
       csg::mesh_tools(tess_map).optimize_region(tesselatedRegion, meshmap);
    
       for (auto const& entry : meshmap) {
-         H3DNode node;
-         node = h3dRadiantCreateTerrainNode(node_, "terrain node", entry.first, entry.second)->GetNode();
+         H3DNode node = Pipeline::GetInstance().AddMeshNode(node_, entry.second);
       }
    }
 }

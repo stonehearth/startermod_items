@@ -1,10 +1,7 @@
 #include "pch.h"
 #include "pipeline.h"
 #include "metrics.h"
-#include "geometry_generator.h"
 #include "Horde3DUtils.h"
-#include "texture_color_mapper.h"
-#include "om/grid/grid.h"
 #include "renderer.h"
 #include "qubicle_file.h"
 #include "resources/res_manager.h"
@@ -21,7 +18,6 @@ using namespace ::radiant::client;
 
 DEFINE_SINGLETON(Pipeline);
 
-std::unique_ptr<TextureColorMapper> TextureColorMapper::mapper_;
 
 Pipeline::Pipeline()
 {
@@ -39,121 +35,26 @@ Pipeline::~Pipeline()
 {
 }
 
-H3DNode Pipeline::GetTileEntity(const om::GridPtr grid, om::GridTilePtr tile, H3DRes parent)
-{
-#if 1
-   GeometryGenerator geometry(grid, tile);
-
-   H3DNode result = 0;
-   if (geometry.Generate()) {
-      auto& mapper = TextureColorMapper::GetInstance();
-      static int nameOffset = 0;
-      std::ostringstream name;
-      name << "Tile " << tile->GetObjectId() << " " << nameOffset++;
-
-      GeometryResource geo = CreateMesh(name.str(), geometry.GetGeometry());
-
-      result = h3dAddModelNode(parent, "blocks", geo.geometry);
-      H3DNode mesh = h3dAddMeshNode(result , "mesh", mapper.GetMaterial(), 0, geo.numIndices, 0, geo.numVertices - 1);
-   }
-   
-   return result;
-#else
-   //if (tile->isEmpty()) {
-   //   return NULL;
-   //}
-
-   GeometryGenerator geometry(grid, tile);
-
-   H3DNode result = 0;
-   if (geometry.Generate()) {
-      TextureColorMapper::GetInstance();
-      auto& mapper = TextureColorMapper::GetInstance();
-      auto& vertices = geometry.GetVertices();
-      auto& indices = geometry.GetIndices();
-      ostringstream name;
-      static int nameOffset = 0;
-      name << "Tile " << tile->GetObjectId() << " " << nameOffset++;
-
-      int numVertices = vertices.size();
-      int numTriangleIndices = indices.size();
-
-      vector<float> posData;
-      vector<short> normalData;
-      vector<float> texData1;
-      for (auto& v : vertices) {
-         posData.push_back(v.x);
-         posData.push_back(v.y);
-         posData.push_back(v.z);
-         normalData.push_back((short)(v.nx * 32767.0f));
-         normalData.push_back((short)(v.ny * 32767.0f));
-         normalData.push_back((short)(v.nz * 32767.0f));
-
-         std::pair<float, float> uv = mapper.MapColor(v.color);
-         texData1.push_back(uv.first);
-         texData1.push_back(uv.second);
-      }
-      H3DNode geom = h3dutCreateGeometryRes(name.str().c_str(), numVertices, numTriangleIndices, 
-                                            &posData[0], (unsigned int *)&indices[0], &normalData[0],
-								                    NULL, NULL, &texData1[0], NULL);
-
-      result = h3dAddModelNode(parent, "blocks", geom);
-      H3DNode mesh = h3dAddMeshNode(result , "mesh", mapper.GetMaterial(), 0, numTriangleIndices, 0, numVertices - 1);
-   }
-   
-   return result;
-#endif
-}
-
-
-Pipeline::GeometryResource Pipeline::CreateMesh(std::string name, const Geometry& geo)
-{
-   auto& mapper = TextureColorMapper::GetInstance();
-
-   int numVertices = geo.vertices.size();
-   int numTriangleIndices = geo.indices.size();
-
-   std::vector<float> posData;
-   std::vector<short> normalData;
-   std::vector<float> texData1;
-   for (auto& v : geo.vertices) {
-      posData.push_back(v.pos.x);
-      posData.push_back(v.pos.y);
-      posData.push_back(v.pos.z);
-      normalData.push_back((short)(v.normal.x * 32767.0f));
-      normalData.push_back((short)(v.normal.y * 32767.0f));
-      normalData.push_back((short)(v.normal.z * 32767.0f));
-
-      std::pair<float, float> uv = mapper.MapColor(v.color);
-      texData1.push_back(uv.first);
-      texData1.push_back(uv.second);
-   }
-#if 1
-   GeometryResource result;
-   result.geometry = h3dutCreateGeometryRes(name.c_str(), numVertices, numTriangleIndices, 
-                                            &posData[0], (unsigned int *)&geo.indices[0], &normalData[0],
-								                    NULL, NULL, &texData1[0], NULL);
-   result.numIndices = numTriangleIndices;
-   result.numVertices = numVertices;
-   
-   return result;
-#else
-   H3DNode geom = h3dutCreateGeometryRes(name.c_str(), numVertices, numTriangleIndices, 
-                                         &posData[0], (unsigned int *)&indices[0], &normalData[0],
-								                 NULL, NULL, &texData1[0], NULL);
-
-   H3DNode result = h3dAddModelNode(parent, "blocks", geom);
-   H3DNode mesh = h3dAddMeshNode(result , "mesh", mapper.GetMaterial(), 0, numTriangleIndices, 0, numVertices - 1);
-
-   return result;
-#endif
-}
-
 // From: http://mikolalysenko.github.com/MinecraftMeshes2/js/greedy.js
 
-Pipeline::Geometry Pipeline::OptimizeQubicle(const QubicleMatrix& m, const csg::Point3f& origin)
+H3DNode Pipeline::AddMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m)
 {
-   Pipeline::Geometry geo;
+   static int unique = 0;
+   std::string name = "mesh data ";
+
+   H3DRes res = h3dutCreateVoxelGeometryRes((name + stdutil::ToString(unique++)).c_str(), (VoxelGeometryVertex *)m.vertices.data(), m.vertices.size(), (uint *)m.indices.data(), m.indices.size());
+   H3DRes matRes = h3dAddResource(H3DResTypes::Material, "terrain/default_material.xml", 0);
+   H3DNode modelNode = h3dAddVoxelModelNode(parent, (name + stdutil::ToString(unique++)).c_str(), res);
+   H3DNode meshNode = h3dAddVoxelMeshNode(modelNode, (name + stdutil::ToString(unique++)).c_str(), matRes, 0, m.indices.size(), 0, m.vertices.size() - 1);
+
+   return modelNode;
+}
+
+H3DNode Pipeline::AddQubicleNode(H3DNode parent, const QubicleMatrix& m, const csg::Point3f& origin)
+{
+   std::vector<VoxelGeometryVertex> vertices;
+   std::vector<uint32> indices;
+
    //std::unordered_map<Vertex, int> vertcache;
 
    // Super greedy...
@@ -242,12 +143,18 @@ Pipeline::Geometry Pipeline::OptimizeQubicle(const QubicleMatrix& m, const csg::
                   min.z += 0.5;
                   min.y += 0.5;
 
-                  Vertex vertex;
-                  vertex.normal = edge.normal;
-                  vertex.color = m.GetColor(c);
+               
+#define COPY_VEC(a, b) ((a)[0] = (b)[0]), ((a)[1] = (b)[1]), ((a)[2] = (b)[2])
+
+                  VoxelGeometryVertex vertex;
+                  COPY_VEC(vertex.normal, edge.normal);
+                  math3d::color3 col = m.GetColor(c);
+                  vertex.color[0] = col.r / 255.0;
+                  vertex.color[1] = col.g / 255.0;
+                  vertex.color[2] = col.b / 255.0;
 
                   // UGGGGGGGGGGGGGE
-                  int voffset = geo.vertices.size();
+                  int voffset = vertices.size();
                   
                   // 3DS Max uses a z-up, right handed origin....
                   // The voxels in the matrix are stored y-up, left-handed...
@@ -262,41 +169,41 @@ Pipeline::Geometry Pipeline::OptimizeQubicle(const QubicleMatrix& m, const csg::
                   // the positive z-side of the model.  Flip it so the actor is
                   // looking down the negative z axis
 #endif
-                  vertex.pos = (min + matrixPosition) - yUpLHOrigin;
-                  geo.vertices.push_back(vertex);
-                  //geo.vertices.back().pos.z *= -1;
+                  COPY_VEC(vertex.pos, (min + matrixPosition) - yUpLHOrigin);
+                  vertices.push_back(vertex);
+                  //vertices.back().pos.z *= -1;
 
                   vertex.pos[edge.v] += h;
-                  geo.vertices.push_back(vertex);
-                  //geo.vertices.back().pos.z *= -1;
+                  vertices.push_back(vertex);
+                  //vertices.back().pos.z *= -1;
 
                   vertex.pos[edge.u] += w;
-                  geo.vertices.push_back(vertex);
-                  //geo.vertices.back().pos.z *= -1;
+                  vertices.push_back(vertex);
+                  //vertices.back().pos.z *= -1;
 
                   vertex.pos[edge.v] -= h;
-                  geo.vertices.push_back(vertex);
-                  //geo.vertices.back().pos.z *= -1;
+                  vertices.push_back(vertex);
+                  //vertices.back().pos.z *= -1;
 
                   // xxx - the whole conversion bit above can be greatly optimized,
                   // but I don't want to touch it now that it's workin'!
 
                   if (edge.mask == RIGHT_MASK || edge.mask == FRONT_MASK || edge.mask == BOTTOM_MASK) {
-                     geo.indices.push_back(voffset + 2);
-                     geo.indices.push_back(voffset + 1);
-                     geo.indices.push_back(voffset);
+                     indices.push_back(voffset + 2);
+                     indices.push_back(voffset + 1);
+                     indices.push_back(voffset);
 
-                     geo.indices.push_back(voffset + 3);
-                     geo.indices.push_back(voffset + 2);
-                     geo.indices.push_back(voffset);
+                     indices.push_back(voffset + 3);
+                     indices.push_back(voffset + 2);
+                     indices.push_back(voffset);
                   } else {
-                     geo.indices.push_back(voffset);
-                     geo.indices.push_back(voffset + 1);
-                     geo.indices.push_back(voffset + 2);
+                     indices.push_back(voffset);
+                     indices.push_back(voffset + 1);
+                     indices.push_back(voffset + 2);
 
-                     geo.indices.push_back(voffset);
-                     geo.indices.push_back(voffset + 2);
-                     geo.indices.push_back(voffset + 3);
+                     indices.push_back(voffset);
+                     indices.push_back(voffset + 2);
+                     indices.push_back(voffset + 3);
                   }
 
                   // ...zero out the mask
@@ -320,8 +227,15 @@ Pipeline::Geometry Pipeline::OptimizeQubicle(const QubicleMatrix& m, const csg::
    }
    delete mask;
 
-   return geo;
+   static int unique = 0;
+   std::string name = "qubicle data ";
+   H3DRes res = h3dutCreateVoxelGeometryRes((name + stdutil::ToString(unique++)).c_str(), vertices.data(), vertices.size(), indices.data(), indices.size());
+   H3DRes matRes = h3dAddResource(H3DResTypes::Material, "terrain/default_material.xml", 0);
+   H3DNode modelNode = h3dAddVoxelModelNode(parent, (name + stdutil::ToString(unique++)).c_str(), res);
+   H3DNode meshNode = h3dAddVoxelMeshNode(modelNode, (name + stdutil::ToString(unique++)).c_str(), matRes, 0, indices.size(), 0, vertices.size() - 1);
+   return modelNode;
 }
+
 
 Pipeline::NamedNodeMap Pipeline::LoadQubicleFile(std::string const& uri)
 {   
@@ -340,17 +254,7 @@ Pipeline::NamedNodeMap Pipeline::LoadQubicleFile(std::string const& uri)
       // dismabiguate them.  Ignore everything after the _ so we don't make authors manually
       // rename every single part when this happens.
       std::string matrixName = entry.first;
-
-      Pipeline::Geometry geo = OptimizeQubicle(entry.second, csg::Point3f(0, 0, 0));
-
-      auto& mapper = TextureColorMapper::GetInstance();
-      // Geometry resource names must be unique.  WAT????
-      Pipeline::GeometryResource gr = CreateMesh(uri + "?matrix=" + matrixName, geo);
-
-      H3DNode node = h3dAddModelNode(orphaned_, "blocks", gr.geometry);
-      H3DNode mesh = h3dAddMeshNode(node , "mesh", mapper.GetMaterial(), 0, gr.numIndices, 0, gr.numVertices - 1);
-
-      result[matrixName] = node;
+      result[matrixName] = AddQubicleNode(orphaned_, entry.second, csg::Point3f(0, 0, 0));
    }
 
    return result;

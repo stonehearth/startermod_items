@@ -61,8 +61,8 @@ public:
 
       std::shared_ptr<RenderEntity> CreateRenderObject(H3DNode parent, om::EntityPtr obj);
       std::shared_ptr<RenderEntity> GetRenderObject(om::EntityPtr obj);
-      std::shared_ptr<RenderEntity> GetRenderObject(int storeId, om::EntityId id);
-      void RemoveRenderObject(int storeId, om::EntityId id);
+      std::shared_ptr<RenderEntity> GetRenderObject(int storeId, dm::ObjectId id);
+      void RemoveRenderObject(int storeId, dm::ObjectId id);
 
       typedef std::function<void(om::Selection& sel, const math3d::ray3& ray, const math3d::point3& intersection, const math3d::point3& normal)> UpdateSelectionFn;
       dm::Guard TraceSelected(H3DNode node, UpdateSelectionFn fn);
@@ -115,7 +115,7 @@ public:
 
    protected:
       typedef std::unordered_map<H3DNode, UpdateSelectionFn> SelectableMap;
-      typedef std::unordered_map<om::EntityId, std::shared_ptr<RenderEntity>> RenderEntityMap;
+      typedef std::unordered_map<dm::ObjectId, std::shared_ptr<RenderEntity>> RenderEntityMap;
       typedef std::vector<std::pair<InputCallbackId, RawInputEventCb>> RawInputCallbackMap;
       typedef std::vector<std::pair<InputCallbackId, MouseEventCb>> MouseInputCallbackMap;
       typedef std::vector<std::pair<InputCallbackId, KeyboardInputEventCb>> KeyboardInputCallbackMap;

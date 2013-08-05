@@ -4,7 +4,6 @@
 #include "Horde3DRadiant.h"
 #include "glfw.h"
 #include "render_entity.h"
-#include "texture_color_mapper.h"
 #include "om/selection.h"
 #include "om/entity.h"
 #include <boost/property_tree/json_parser.hpp>
@@ -293,7 +292,6 @@ void Renderer::RenderOneFrame(int now, float alpha)
                           ww * .9f,  1,     0, 0,
                           ww,        1,     1, 0,
                           ww,       .9f,    1, 1, };
-	   h3dShowOverlays(v, 4, 1, 1, 1, 1, TextureColorMapper::GetInstance().GetOverlay(), 0);
    }
 
    // Show logo
@@ -499,7 +497,7 @@ void Renderer::Resize( int width, int height )
 std::shared_ptr<RenderEntity> Renderer::CreateRenderObject(H3DNode parent, om::EntityPtr entity)
 {
    std::shared_ptr<RenderEntity> result;
-   om::EntityId id = entity->GetObjectId();
+   dm::ObjectId id = entity->GetObjectId();
    int sid = entity->GetStoreId();
 
    auto& entities = entities_[sid];
@@ -533,7 +531,7 @@ std::shared_ptr<RenderEntity> Renderer::GetRenderObject(om::EntityPtr entity)
    return result;
 }
 
-std::shared_ptr<RenderEntity> Renderer::GetRenderObject(int sid, om::EntityId id)
+std::shared_ptr<RenderEntity> Renderer::GetRenderObject(int sid, dm::ObjectId id)
 {
    auto i = entities_[sid].find(id);
    if (i != entities_[sid].end()) {
@@ -542,7 +540,7 @@ std::shared_ptr<RenderEntity> Renderer::GetRenderObject(int sid, om::EntityId id
    return nullptr;
 }
 
-void Renderer::RemoveRenderObject(int sid, om::EntityId id)
+void Renderer::RemoveRenderObject(int sid, dm::ObjectId id)
 {
    auto i = entities_[sid].find(id);
    if (i != entities_[sid].end()) {

@@ -4,21 +4,21 @@ context ATTRIBPASS
 {
 	VertexShader = compile GLSL VS_GENERAL;
 	PixelShader = compile GLSL FS_AMBIENT;
-   CullMode = None;
+   CullMode = Back;
 }
 
 context SHADOWMAP
 {
 	VertexShader = compile GLSL VS_SHADOWMAP;
 	PixelShader = compile GLSL FS_SHADOWMAP;
-   CullMode = None;
+   CullMode = Back;
 }
 
 context DIRECTIONAL_SHADOWMAP
 {
 	VertexShader = compile GLSL VS_DIRECTIONAL_SHADOWMAP;
 	PixelShader = compile GLSL FS_DIRECTIONAL_SHADOWMAP;
-   CullMode = None;
+   CullMode = Back;
 }
 
 context LIGHTING
@@ -28,7 +28,7 @@ context LIGHTING
 	
 	ZWriteEnable = false;
 	BlendMode = Add;
-   CullMode = None;
+   CullMode = Back;
 }
 
 [[VS_GENERAL]]

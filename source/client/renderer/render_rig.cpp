@@ -9,7 +9,6 @@
 #include "Horde3DUtils.h"
 #include "resources/res_manager.h"
 #include "qubicle_file.h"
-#include "texture_color_mapper.h"
 #include "pipeline.h"
 
 using namespace ::radiant;
@@ -101,16 +100,8 @@ void RenderRig::AddQubicleResource(const std::string uri)
 
       csg::Point3f origin = getBonePos(bone);
       auto& pipeline = Pipeline::GetInstance();
-      Pipeline::Geometry geo = pipeline.OptimizeQubicle(entry.second, origin);
-
-      auto& mapper = TextureColorMapper::GetInstance();
-      // Geometry resource names must be unique.  WAT????
-      Pipeline::GeometryResource gr = pipeline.CreateMesh(uri + "_" + bone, geo);
-
       H3DNode parent = entity_.GetSkeleton().GetSceneNode(bone);
-      H3DNode node = h3dAddModelNode(parent, "blocks", gr.geometry);
-      H3DNode mesh = h3dAddMeshNode(node , "mesh", mapper.GetMaterial(), 0, gr.numIndices, 0, gr.numVertices - 1);
-
+      H3DNode node = pipeline.AddQubicleNode(parent, entry.second, origin);
       h3dSetNodeTransform(node, 0, 0, 0, 0, 0, 0, scale_, scale_, scale_);
       nodes.push_back(node);
       // LOG(WARNING) << "Adding render rig node " << node;

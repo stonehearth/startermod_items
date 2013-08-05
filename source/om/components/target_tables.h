@@ -7,7 +7,7 @@
 #include "dm/store.h"
 #include "dm/set.h"
 #include "dm/map.h"
-#include "om/all_object_types.h"
+#include "om/object_enums.h"
 #include "om/om.h"
 #include "om/entity.h"
 #include "component.h"
@@ -46,6 +46,7 @@ private:
    dm::Boxed<int>             value_;
    dm::Boxed<int>             expires_;
 };
+std::ostream& operator<<(std::ostream& os, const TargetTableEntry& o);
 typedef std::shared_ptr<TargetTableEntry> TargetTableEntryPtr;
 
 // --------------------------------------------------------------------------------------
@@ -79,6 +80,7 @@ private:
    dm::Boxed<std::string>                       category_;
    dm::Map<EntityId, TargetTableEntryPtr> entries_;
 };
+std::ostream& operator<<(std::ostream& os, const TargetTable& o);
 typedef std::shared_ptr<TargetTable> TargetTablePtr;
 
 // --------------------------------------------------------------------------------------
@@ -90,6 +92,7 @@ struct TargetTableTop {
    int            value;
    int            expires;
 };
+std::ostream& operator<<(std::ostream& os, const TargetTableTop& o);
 typedef std::shared_ptr<TargetTableTop> TargetTableTopPtr;
 
 // --------------------------------------------------------------------------------------
@@ -104,7 +107,9 @@ public:
    TargetTableTopPtr GetTop();
 
    void SetCategory(std::string category) { category_ = category; }
+   std::string GetCategory() const { return *category_; }
 
+   int GetTableCount() const { return tables_.Size(); }
    void Update(int now, int interval);
 
 private:
@@ -117,6 +122,7 @@ private:
    dm::Boxed<std::string>     category_;
    dm::Set<TargetTablePtr>    tables_;
 };
+std::ostream& operator<<(std::ostream& os, const TargetTableGroup& o);
 typedef std::shared_ptr<TargetTableGroup> TargetTableGroupPtr;
 
 // --------------------------------------------------------------------------------------

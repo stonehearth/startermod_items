@@ -27,7 +27,7 @@ end
    When the time changes, notify
 --]]
 Calendar['radiant.events.calendar.minutely'] = function(self, calendar)
-   self._backing_obj:mark_changed()
+   --self._backing_obj:mark_changed()
 end
 
 function Calendar:__tojson()

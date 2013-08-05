@@ -15,7 +15,7 @@ ExecuteAction::ExecuteAction(PendingCommandPtr cmd)
    args_ = cmd->GetJson();
    CHECK_TYPE(cmd, args_, "action", JSON_STRING);
    
-   om::EntityId self = 0;
+   dm::ObjectId self = 0;
    auto i = args_.find("self");
    if (i != args_.end()) {
       self = i->as_int();

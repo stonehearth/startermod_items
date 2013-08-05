@@ -6,7 +6,7 @@
 #include "dm/record.h"
 #include "dm/store.h"
 #include "dm/array.h"
-#include "om/all_object_types.h"
+#include "om/object_enums.h"
 #include "om/om.h"
 #include "component.h"
 

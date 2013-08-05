@@ -9,6 +9,7 @@ BEGIN_RADIANT_CSG_NAMESPACE
 class mesh_tools
 {
 public:
+   // xxx: must match definition of VoxelGeometryVertex, exactly
    struct vertex {
       csg::Point3f   location; // must be at offset 0
       csg::Point3f   normal;
@@ -18,7 +19,7 @@ public:
 
    struct mesh {
       std::vector<vertex>  vertices;
-      std::vector<uint16>  indices;
+      std::vector<int32>   indices;
       csg::Cube3f          bounds;
 
       void add_face(csg::Point3f const points[], csg::Point3f const& normal, csg::Point3f const& color);

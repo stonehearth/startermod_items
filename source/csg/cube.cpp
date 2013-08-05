@@ -234,27 +234,6 @@ Cube<S, C> Cube<S, C>::Construct(Point min, Point max, int tag)
    return Cube(min, max, tag);
 }
 
-template <class S, int C>
-luabind::scope Cube<S, C>::RegisterLuaType(struct lua_State* L, const char* name)
-{
-   using namespace luabind;
-   return
-      class_<Cube<S, C>>(name)
-         .def(tostring(const_self))
-         .def(constructor<>())
-         .def(constructor<const Cube&>())
-         .def(constructor<const Point&, const Point&>())
-         .def(constructor<const Point&, const Point&, int>())
-         .property("min",     &Cube<S, C>::GetMin, &Cube<S, C>::SetMax)
-         .property("max",     &Cube<S, C>::GetMax, &Cube<S, C>::SetMax)
-         .property("tag",     &Cube<S, C>::GetTag, &Cube<S, C>::SetTag)
-         .def("get_area",     &Cube<S, C>::GetArea)
-         .def("contains",     &Cube<S, C>::Contains)
-         .def("width",        &Cube<S, C>::GetWidth) 
-         .def("height",       &Cube<S, C>::GetHeight)
-      ;
-}
-
 #define MAKE_CUBE(Cls) \
    template Cls::Cube(); \
    template Cls::Cube(const Cls::Point&, int); \
@@ -272,7 +251,6 @@ luabind::scope Cube<S, C>::RegisterLuaType(struct lua_State* L, const char* name
    template Cls::Point Cls::GetClosestPoint2(const Cls::Point& other, Cls::ScalarType*) const; \
    template void Cls::Grow(const Cls::Point& other); \
    template Cls Cls::ProjectOnto(int axis, Cls::ScalarType plane) const; \
-   template luabind::scope Cls::RegisterLuaType(struct lua_State*, const char*);
 
 MAKE_CUBE(Cube3)
 MAKE_CUBE(Cube3f)

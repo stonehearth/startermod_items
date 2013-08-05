@@ -68,7 +68,7 @@ public:
    ScriptHost& GetScript() { return *scripts_; }
 
    WorkerScheduler* GetWorkerScheduler();
-   BuildingScheduler* GetBuildingScehduler(om::EntityId id);
+   BuildingScheduler* GetBuildingScehduler(dm::ObjectId id);
 
 private:
    void FetchObject(tesseract::protocol::FetchObjectRequest const& request, tesseract::protocol::FetchObjectReply* reply);

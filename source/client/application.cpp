@@ -104,9 +104,13 @@ int Application::Start(lua_State* L)
    const char *port = "1336";
    
    std::thread client([&]() {
-      auto& c = Client::GetInstance();
-      c.SetScriptHost(&scriptHost_);
-      c.run();
+      try {
+         auto& c = Client::GetInstance();
+         c.SetScriptHost(&scriptHost_);
+         c.run();
+      } catch (...) {
+         ASSERT(false);
+      }
    });
 
    game_engine::arbiter::GetInstance().Run(L);

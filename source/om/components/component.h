@@ -2,10 +2,10 @@
 #define _RADIANT_OM_COMPONENT_H
 
 #include "om/om.h"
-#include "om/entity.h"
+#include "om/object_enums.h"
 #include "dm/boxed.h"
 #include "dm/record.h"
-#include "om/all_object_types.h"
+#include "om/entity.h"
 #include "radiant_json.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
@@ -15,16 +15,13 @@ class Component : public dm::Record
 public:
    Component() { }
 
-   static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
-   virtual void ExtendObject(json::ConstJsonObject const& obj) { }
+   virtual void ExtendObject(json::ConstJsonObject const& obj) { };
+   virtual void Describe(std::ostringstream& os) const { };
 
    EntityPtr GetEntityPtr() const { return (*entity_).lock(); }
    EntityRef GetEntityRef() const { return (*entity_); }
    Entity& GetEntity() const { return *(*entity_).lock(); }
    void SetEntity(EntityPtr entity) { entity_ = entity; }
-
-   const math3d::ipoint3 GetOrigin() const;
-   const math3d::ipoint3 GetWorldOrigin() const;
 
 protected:
    void InitializeRecordFields() {
@@ -34,6 +31,7 @@ protected:
 private:
    dm::Boxed<EntityRef>    entity_;
 };
+std::ostream& operator<<(std::ostream& os, const Component& o);
 
 END_RADIANT_OM_NAMESPACE
 

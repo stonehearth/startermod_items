@@ -9,31 +9,19 @@ include_directories(${Sfml_INCLUDE_DIRS})
 
 add_library(client_renderer STATIC
             pch.cpp
-            geometry_generator.cpp
             pipeline.cpp
             skeleton.cpp
             renderer.cpp
-#            render_floor.cpp
-            render_carry_block.cpp
-            render_build_order.cpp
-            render_build_orders.cpp
-            render_grid.cpp
-#           render_ladder.cpp
             render_entity.cpp
             render_entity_container.cpp
             render_mob.cpp
             render_rig.cpp
             render_terrain.cpp
             render_effect_list.cpp
-#            render_rig_map.cpp
-            render_scaffolding.cpp
-#            render_sensor.cpp
-#            render_structure.cpp
             render_destination.cpp
-#            render_storey.cpp
-            texture_color_mapper.cpp
-            qubicle_file.cpp
             render_paperdoll.cpp
+            render_carry_block.cpp
+            qubicle_file.cpp
             render_render_region.cpp
             lua_renderer.cpp
             lua_render_entity.cpp

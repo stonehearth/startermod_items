@@ -12,6 +12,8 @@
 
 #define _CRT_SECURE_NO_DEPRECATE
 #include "Horde3D.h"
+#include "egModules.h"
+#include "egVoxelGeometry.h"
 #include "utPlatform.h"
 #include "utMath.h"
 #include <math.h>
@@ -594,6 +596,17 @@ DLLEXP void h3dutFreeMem( char **ptr )
 	if( ptr == 0x0 ) return;
 	
 	delete[] *ptr; *ptr = 0x0;
+}
+
+DLLEXP H3DRes h3dutCreateVoxelGeometryRes( const char *name, struct VoxelGeometryVertex* vertexData, int numVertices, unsigned int* indexData, int numIndices)
+{
+	if( numVertices == 0 || numIndices == 0 ) return 0;
+
+	H3DRes res = h3dAddResource(H3DResTypes::VoxelGeometry, name, 0);
+   VoxelGeometryResource *geoRes = (VoxelGeometryResource* )Horde3D::Modules::resMan().resolveResHandle( res );
+   geoRes->loadData((Horde3D::VoxelVertexData*)vertexData, numVertices, indexData, numIndices);
+
+   return res;
 }
 
 DLLEXP H3DRes h3dutCreateGeometryRes( 

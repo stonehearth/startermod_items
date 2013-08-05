@@ -3,36 +3,28 @@
 #include "Horde3DUtils.h"
 #include "utMath.h"
 #include "renderer.h"
-#include "render_build_order.h"
-#include "render_build_orders.h"
 #include "render_entity.h"
 #include "render_entity_container.h"
-#include "render_grid.h"
-#include "render_carry_block.h"
 #include "render_mob.h"
 #include "render_terrain.h"
-#include "render_scaffolding.h"
 #include "render_destination.h"
 #include "render_rig.h"
-#include "render_paperdoll.h"
 #include "render_effect_list.h"
 #include "render_render_region.h"
+#include "render_carry_block.h"
+#include "render_paperdoll.h"
 #include "resources/res_manager.h"
 #include "resources/animation.h"
 #include "om/entity.h"
 #include "om/components/mob.h"
-#include "om/components/carry_block.h"
 #include "om/components/entity_container.h"
-#include "om/components/render_grid.h"
 #include "om/components/render_rig.h"
-#include "om/components/stockpile_designation.h"
-#include "om/components/build_orders.h"
 #include "om/components/terrain.h"
-#include "om/components/paperdoll.h"
 #include "om/components/lua_components.h"
-#include "om/components/scaffolding.h"
 #include "om/components/effect_list.h"
 #include "om/components/render_info.h"
+#include "om/components/paperdoll.h"
+#include "om/components/carry_block.h"
 #include "om/selection.h"
 #include "lua/script_host.h"
 
@@ -50,7 +42,7 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
 
 
    totalObjectCount_++;
-   om::EntityId id = entity->GetObjectId();
+   dm::ObjectId id = entity->GetObjectId();
 
    std::ostringstream name;
    name << "RenderEntity " << entity->GetDebugName() << " (" << entity->GetStoreId() << ", " << id << ")";
@@ -184,16 +176,6 @@ void RenderEntity::AddComponent(dm::ObjectType key, std::shared_ptr<dm::Object> 
             components_[key] = std::make_shared<RenderTerrain>(*this, terrain);
             break;
          }
-         case om::RenderGridObjectType: {
-            om::RenderGridPtr render_grid = std::static_pointer_cast<om::RenderGrid>(value);
-            components_[key] = std::make_shared<RenderGrid>(*this, render_grid);
-            break;
-         }
-         case om::CarryBlockObjectType: {
-            om::CarryBlockPtr carry_block = std::static_pointer_cast<om::CarryBlock>(value);
-            components_[key] = std::make_shared<RenderCarryBlock>(*this, carry_block);
-            break;
-         }
          case om::MobObjectType: {
             om::MobPtr mob = std::static_pointer_cast<om::Mob>(value);
             components_[key] = std::make_shared<RenderMob>(*this, mob);
@@ -218,35 +200,24 @@ void RenderEntity::AddComponent(dm::ObjectType key, std::shared_ptr<dm::Object> 
             AddLuaComponents(std::static_pointer_cast<om::LuaComponents>(value));
             break;
          }
-         case om::WallObjectType:
-         case om::PostObjectType: {
-            om::RegionBuildOrderPtr buildOrder = std::static_pointer_cast<om::RegionBuildOrder>(value);
-            components_[key] = std::make_shared<RenderBuildOrder>(*this, buildOrder);
-            break;
-         }
-         case om::ScaffoldingObjectType:{
-            om::ScaffoldingPtr scaffolding = std::static_pointer_cast<om::Scaffolding>(value);
-            components_[key] = std::make_shared<RenderScaffolding>(*this, scaffolding);
-            break;
-         }
-         case om::BuildOrdersObjectType: {
-            om::BuildOrdersPtr bo = std::static_pointer_cast<om::BuildOrders>(value);
-            components_[key] = std::make_shared<RenderBuildOrders>(*this, bo);
-            break;
-         }
          case om::EffectListObjectType: {
             om::EffectListPtr el = std::static_pointer_cast<om::EffectList>(value);
             components_[key] = std::make_shared<RenderEffectList>(*this, el);
             break;
          }
-         case om::PaperdollObjectType: {
-            om::PaperdollPtr paperdoll = std::static_pointer_cast<om::Paperdoll>(value);
-            components_[key] = std::make_shared<RenderPaperdoll>(*this, paperdoll);
-            break;
-         }
          case om::RenderRegionObjectType: {
             om::RenderRegionPtr renderRegion = std::static_pointer_cast<om::RenderRegion>(value);
             components_[key] = std::make_shared<RenderRenderRegion>(*this, renderRegion);
+            break;
+         }
+         case om::CarryBlockObjectType: {
+            om::CarryBlockPtr renderRegion = std::static_pointer_cast<om::CarryBlock>(value);
+            components_[key] = std::make_shared<RenderCarryBlock>(*this, renderRegion);
+            break;
+         }
+         case om::PaperdollObjectType: {
+            om::PaperdollPtr renderRegion = std::static_pointer_cast<om::Paperdoll>(value);
+            components_[key] = std::make_shared<RenderPaperdoll>(*this, renderRegion);
             break;
          }
       }
@@ -333,10 +304,10 @@ void RenderEntity::SetSelected(bool selected)
    h3dSetNodeFlags(node_, flags, true);
 }
 
-om::EntityId RenderEntity::GetEntityId() const
+dm::ObjectId RenderEntity::GetObjectId() const
 {
    auto entity = entity_.lock();
-   return entity ? entity->GetEntityId() : 0;
+   return entity ? entity->GetObjectId() : 0;
 }
 
 bool RenderEntity::ShowDebugRegions() const

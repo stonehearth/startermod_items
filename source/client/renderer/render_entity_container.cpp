@@ -36,7 +36,7 @@ void RenderEntityContainer::AddChild(dm::ObjectId key, om::EntityRef childRef)
 {
    auto child = childRef.lock();
    if (child) {
-      // LOG(WARNING) << "adding child entity to container " << child->GetEntityId();
+      // LOG(WARNING) << "adding child entity to container " << child->GetObjectId();
       children_[key] = Renderer::GetInstance().CreateRenderObject(entity_.GetNode(), child);
    }
 }

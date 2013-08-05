@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "renderer.h"
+#include "client/client.h"
+#include "om/object_formatter/object_formatter.h"
 #include "lua_renderer.h"
 
 using namespace luabind;
@@ -15,10 +17,25 @@ static object GetNodeParam(lua_State* L, H3DNode node, int param)
    return object();
 }
 
-std::weak_ptr<RenderEntity> Renderer_CreateRenderEntity(Renderer& r, H3DNode parent, om::EntityRef e)
+std::weak_ptr<RenderEntity> Renderer_CreateRenderEntity(Renderer& r, H3DNode parent, luabind::object arg)
 {
+   om::EntityPtr entity;
    std::weak_ptr<RenderEntity> result;
-   om::EntityPtr entity = e.lock();
+
+   if (luabind::type(arg) == LUA_TSTRING) {
+      // arg is a path to an object (e.g. /objects/3).  If this leads to a Entity, we're all good
+      std::string path = luabind::object_cast<std::string>(arg);
+      dm::Store& store = Client::GetInstance().GetStore();
+      dm::ObjectPtr obj =  om::ObjectFormatter("objects").GetObject(store, path);
+      if (obj && obj->GetObjectType() == om::Entity::DmType) {
+         entity = std::static_pointer_cast<om::Entity>(obj);
+      }
+   } else {
+      try {
+         entity = luabind::object_cast<om::EntityRef>(arg).lock();
+      } catch (luabind::cast_failed&) {
+      }
+   }
    if (entity) {
       result = r.CreateRenderObject(parent, entity);
    }

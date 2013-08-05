@@ -4,11 +4,6 @@
 #include <vector>
 #include "cube.h"
 
-struct lua_State;
-namespace luabind { 
-   struct scope; 
-}
-
 BEGIN_RADIANT_CSG_NAMESPACE
 
 template <class S, int C>
@@ -26,7 +21,6 @@ public:
    Region(const protocol::region& msg) { LoadValue(msg); }
 
    static const Region empty;
-   static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
   
    const CubeVector& GetContents() const { return cubes_; }
    typename CubeVector::const_iterator begin() const { return cubes_.begin(); }
@@ -71,11 +65,6 @@ public:
    const Region<S, C>& operator+=(const Point& pt) { return operator+=(Cube(pt)); }
    const Region<S, C>& operator-=(const Point& pt) { return operator-=(Cube(pt)); }
 
-   std::ostream& Format(std::ostream& os) const {
-      os << "( " << cubes_.size() << " cubes of area " << GetArea() << ")";
-      return os;
-   }
-
 public:
    void SaveValue(protocol::region* msg) const {
       for (const auto& c : cubes_) {
@@ -100,9 +89,10 @@ private:
 };
 
 template <typename S, int C>
-std::ostream& operator<<(std::ostream& os, const Region<S, C>& in)
+std::ostream& operator<<(std::ostream& os, const Region<S, C>& o)
 {
-   return in.Format(os);
+   os << "(" << o.GetCubeCount() << " cubes of area " << o.GetArea() << ")";
+   return os;
 }
 
 typedef Region<int, 1>   Region1;

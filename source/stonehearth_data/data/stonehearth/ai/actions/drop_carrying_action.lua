@@ -1,3 +1,4 @@
+local RadiantIPoint3 = _radiant.math3d.RadiantIPoint3
 local DropCarryingAction = class()
 
 DropCarryingAction.name = 'stonehearth.actions.drop_carrying'

@@ -5,6 +5,11 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+std::ostream& om::operator<<(std::ostream& os, const LuaComponent& o)
+{
+   return (os << "[LuaComponent " << o.GetObjectId() << " name:" << o.GetName() << "]");
+}
+
 // xxx: move this into a helper or header or somewhere.  EVERYONE needs to
 // do this.  actually, we can't we just inherit it in the luabind registration
 // stuff???
@@ -25,24 +30,6 @@ LuaComponent::LuaComponent() :
    dm::Object(),
    cached_json_valid_(false)
 {
-}
-
-void LuaComponent::RegisterLuaType(struct lua_State* L)
-{
-   using namespace luabind;
-   module(L) [
-      class_<LuaComponent, LuaComponentRef>("LuaComponent")
-         .def(tostring(self))
-         .def("__tojson", &ToJsonUri<LuaComponent>)
-         .def("mark_changed", &LuaComponent::MarkChanged)
-   ];
-}
-
-std::string LuaComponent::ToString() const
-{
-   std::ostringstream o;
-   o << "[LuaComponent " << GetObjectId() << "]";
-   return o.str();
 }
 
 void LuaComponent::SetLuaObject(std::string const& name, luabind::object obj)
@@ -95,25 +82,6 @@ JSONNode LuaComponent::ToJson() const
 
 void LuaComponents::ExtendObject(json::ConstJsonObject const& obj) 
 {
-}
-
-luabind::scope LuaComponents::RegisterLuaType(struct lua_State* L, const char* name)
-{
-   using namespace luabind;
-   LuaComponent::RegisterLuaType(L);
-   return
-      class_<LuaComponents, Component, std::weak_ptr<Component>>(name)
-         .def(tostring(self))
-         .def("get_lua_component",               &om::LuaComponents::GetLuaComponent)
-         .def("add_lua_component",               &om::LuaComponents::AddLuaComponent)
-      ;
-}
-
-std::string LuaComponents::ToString() const
-{
-   std::ostringstream os;
-   os << "(LuaComponents id:" << GetObjectId() << ")";
-   return os.str();
 }
 
 LuaComponentPtr LuaComponents::GetLuaComponent(std::string name) const

@@ -1,20 +1,21 @@
 #include "pch.h"
-#include "om/all_object_types.h"
-#include "om/entity.h"
-#include "mob.h"
+#include "component.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-luabind::scope Component::RegisterLuaType(struct lua_State* L, const char* name)
+std::ostream& ::radiant::om::operator<<(std::ostream& os, Component const& o)
 {
-   using namespace luabind;
-   return
-      class_<Component, std::weak_ptr<Component>>(name)
-         .def("get_id",     &om::Component::GetObjectId)
-         .def("get_entity", &om::Component::GetEntityRef)
-         .def("extend",     &om::Component::ExtendObject)
-      ;
+   os << "[" << om::GetObjectName(o) << " " << o.GetObjectId();
+
+   std::ostringstream strm;
+   o.Describe(strm);
+   std::string desc = strm.str();
+   if (!desc.empty()) {
+      os << " " << desc << " ";
+   }
+   os << "]";
+   return os;
 }
 
 std::string radiant::om::GetObjectNameLower(dm::ObjectPtr obj)
@@ -35,6 +36,7 @@ std::string radiant::om::GetObjectNameLower(const dm::Object& obj)
       std::string("om_object_type_base"),
       OM_ALL_OBJECTS
       OM_ALL_COMPONENTS
+      std::string("boxed_region3_object_type"),
    #undef OM_OBJECT
    };
    ASSERT(t > OmObjectTypeBase && t < OmObjectTypeLast);
@@ -48,20 +50,9 @@ std::string radiant::om::GetObjectName(const dm::Object& obj) {
       std::string("OmObjectTypeBase"),
       OM_ALL_OBJECTS
       OM_ALL_COMPONENTS
+      std::string("BoxedRegion3ObjectType"),
    #undef OM_OBJECT
    };
    ASSERT(t > OmObjectTypeBase && t < OmObjectTypeLast);
    return names[t - OmObjectTypeBase];
-}
-
-const math3d::ipoint3 Component::GetOrigin() const
-{
-   auto mob = GetEntity().GetComponent<Mob>();
-   return mob ? mob->GetGridLocation() : math3d::ipoint3(0, 0, 0);
-}
-
-const math3d::ipoint3 Component::GetWorldOrigin() const
-{
-   auto mob = GetEntity().GetComponent<Mob>();
-   return mob ? mob->GetWorldGridLocation() : math3d::ipoint3(0, 0, 0);
 }

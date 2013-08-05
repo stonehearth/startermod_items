@@ -37,6 +37,8 @@ namespace radiant {
       class Selector;
       class Command;
 
+      void RegisterLuaTypes(lua_State* L);
+
       class Client : public core::Singleton<Client> {
          public:
             Client();
@@ -49,7 +51,7 @@ namespace radiant {
             int Now() { return now_; }
             void SetScriptHost(lua::ScriptHost* host);
 
-            om::EntityPtr GetEntity(om::EntityId id);
+            om::EntityPtr GetEntity(dm::ObjectId id);
             om::TerrainPtr GetTerrain();
 
             void SelectEntity(om::EntityPtr obj);
@@ -104,7 +106,7 @@ namespace radiant {
 
             void clearSelection();
             void hilightSelection(bool value);
-            void addToSelection(om::EntityId id);
+            void addToSelection(dm::ObjectId id);
             void setSelection(const om::Selection &s);
 
             bool CreateStockpile(bool install);
@@ -118,11 +120,11 @@ namespace radiant {
             void EvalCommand(std::string cmd);
 
             void SendHarvestCommand(const om::Selection &s);
-            void SendPromoteItemCommand(om::EntityId itemId, const om::Selection &s);
+            void SendPromoteItemCommand(dm::ObjectId itemId, const om::Selection &s);
             void SendCreateStockpile(const om::Selection &s);
             void SendAddVoxelToPlan(const om::Selection &s);
             void SendMoveSelectedActor(const om::Selection &s);
-            void SendBuildWorkshop(const om::Selection &s, om::EntityId id);
+            void SendBuildWorkshop(const om::Selection &s, dm::ObjectId id);
 
             bool RotateViewMode(bool install);
             bool ToggleBuildPlan();
@@ -130,7 +132,7 @@ namespace radiant {
             bool GrowWalls(bool install);
             bool AddFixture(bool install, std::string fixtureName);
             bool FinishStructure(bool install);
-            bool PlaceFixture(bool install, om::EntityId fixture);
+            bool PlaceFixture(bool install, dm::ObjectId fixture);
             bool CapStorey(bool install);
             void AddToFloor(const om::Selection &s);
             void AssignWorkerToBuilding(std::vector<om::Selection> args);
@@ -150,7 +152,7 @@ namespace radiant {
                return selectedObject_->GetInterface<T>();
             }
 
-            void OnObjectLoad(std::vector<om::EntityId> objects); 
+            void OnObjectLoad(std::vector<dm::ObjectId> objects); 
 
 
             void RegisterReplyHandler(const tesseract::protocol::Command* cmd, ReplyFn fn);

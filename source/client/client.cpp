@@ -5,14 +5,11 @@
 #include "selectors/actor_selector.h"
 #include "selectors/voxel_range_selector.h"
 #include "om/entity.h"
-#include "om/grid/grid.h"
 #include "om/components/terrain.h"
-#include "om/components/stockpile_designation.h"
-#include "om/components/unit_info.h"
-#include "om/components/build_orders.h"
 #include "om/selection.h"
 #include "om/om_alloc.h"
-#include "om/components/build_orders.h"
+#include "csg/lua/lua_csg.h"
+#include "om/lua/lua_om.h"
 #include "platform/utils.h"
 #include "resources/res_manager.h"
 #include "commands/command.h"
@@ -23,6 +20,7 @@
 #include "renderer/render_entity.h"
 #include "renderer/lua_render_entity.h"
 #include "renderer/lua_renderer.h"
+#include "lua/register.h"
 #include "lua/script_host.h"
 #include "om/object_formatter/object_formatter.h"
 #include "glfw.h"
@@ -122,8 +120,11 @@ void Client::run()
 
    lua_State* L = scriptHost_->GetInterpreter();
    renderer.SetScriptHost(scriptHost_);
-   LuaRenderer::RegisterType(L);
-   LuaRenderEntity::RegisterType(L);
+   lua::RegisterBasicTypes(L);
+   om::RegisterLuaTypes(L);
+   csg::RegisterLuaTypes(L);
+   client::RegisterLuaTypes(L);
+
    json::ConstJsonObject::RegisterLuaType(L);
 
    // this locks down the environment!  all types must be registered by now!!
@@ -568,11 +569,13 @@ void Client::UpdateSelection(const MouseEvent &mouse)
 
    float minDistance = FLT_MAX;
    auto cb = [&minDistance, &stockpile] (om::EntityPtr obj, float d) {
+#if 0
       auto s = obj->GetComponent<om::StockpileDesignation>();
       if (s && d < minDistance) {
          minDistance = d;
          stockpile = obj;
       }
+#endif
    };
    octtree_->TraceRay(r, cb);
    if (stockpile) {
@@ -580,7 +583,8 @@ void Client::UpdateSelection(const MouseEvent &mouse)
       SelectEntity(stockpile);
    } else {
       if (s.HasEntities()) {
-         for (om::EntityId id : s.GetEntities()) {
+#if 0
+         for (dm::ObjectId id : s.GetEntities()) {
             auto entity = GetEntity(id);
             if (entity && entity->GetComponent<om::Room>()) {
                LOG(WARNING) << "selecting room " << entity->GetObjectId();
@@ -588,6 +592,7 @@ void Client::UpdateSelection(const MouseEvent &mouse)
                return;
             }
          }
+#endif
          auto entity = GetEntity(s.GetEntities().front());
          if (entity->GetComponent<om::Terrain>()) {
             LOG(WARNING) << "clearing selection (clicked on terrain)";
@@ -813,7 +818,7 @@ bool Client::GrowWalls(bool install)
 }
 
 // This entire function is crappy... (see the static, etc.)
-bool Client::PlaceFixture(bool install, om::EntityId fixtureId)
+bool Client::PlaceFixture(bool install, dm::ObjectId fixtureId)
 {
    static InputCallbackId eventHandlerId = 0;
    
@@ -917,7 +922,7 @@ void Client::AssignWorkerToBuilding(vector<om::Selection> args)
 }
 #endif
 
-void Client::OnObjectLoad(std::vector<om::EntityId> objects)
+void Client::OnObjectLoad(std::vector<dm::ObjectId> objects)
 {
 #if 1
    ASSERT(false);
@@ -943,7 +948,7 @@ void Client::OnObjectLoad(std::vector<om::EntityId> objects)
 #endif
 }
 
-om::EntityPtr Client::GetEntity(om::EntityId id)
+om::EntityPtr Client::GetEntity(dm::ObjectId id)
 {
    auto obj = objects_[id];
    return (obj && obj->GetObjectType() == om::Entity::DmType) ? std::static_pointer_cast<om::Entity>(obj) : nullptr;
@@ -1548,3 +1553,10 @@ void Client::SetScriptHost(lua::ScriptHost* scriptHost)
 {
    scriptHost_ = scriptHost;
 }
+
+void client::RegisterLuaTypes(lua_State* L)
+{
+   LuaRenderer::RegisterType(L);
+   LuaRenderEntity::RegisterType(L);
+}
+

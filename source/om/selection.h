@@ -46,8 +46,8 @@ public:
    const math3d::vector3& GetNormal();
    
    bool HasEntities();
-   void AddEntity(const om::EntityId);
-   const std::vector<om::EntityId>& GetEntities() { return entities_; }
+   void AddEntity(const dm::ObjectId);
+   const std::vector<dm::ObjectId>& GetEntities() { return entities_; }
    
    bool HasBounds() const { return (flags_ & HAS_BOUNDS) != 0; }
    void SetBounds(const math3d::ibounds3& bounds);
@@ -83,7 +83,7 @@ private:
    math3d::vector3   normal_;
    math3d::ibounds3  bounds_;
    std::string       string_;
-   std::vector<om::EntityId> entities_;
+   std::vector<dm::ObjectId> entities_;
 
    dm::ObjectType    objectType_;
    dm::ObjectId      objectId_;

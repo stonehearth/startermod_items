@@ -8,8 +8,6 @@
 #include "om/components/sphere_collision_shape.h"
 #include "om/components/sensor_list.h"
 #include "simulation/script/script_host.h"
-#include "om/grid/grid.h"
-#include "om/grid/grid_tile.h"
 
 using namespace radiant;
 using namespace radiant::Physics;
@@ -414,7 +412,7 @@ bool OctTree::UpdateSensor(om::SensorPtr sensor)
    csg::Point3 origin = mob->GetWorldLocation();
    csg::Cube3 cube = sensor->GetCube() + origin;
 
-   std::vector<om::EntityId> intersects;
+   std::vector<dm::ObjectId> intersects;
    auto i = entities_.begin();
    while (i != entities_.end()) {
       auto entity = i->second.lock();

@@ -49,12 +49,11 @@ public:
    void CallGameHook(std::string const& stage);
    void Idle(platform::timer &timer);
    om::EntityRef CreateEntity();
-   om::EntityRef GetEntity(om::EntityId id);
+   om::EntityRef GetEntity(dm::ObjectId id);
 
 private:
    static void* LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize);
 
-   om::GridPtr CreateGrid();
    void InitEnvironment();
    void LoadRecursive(std::string root, std::string directory);
    luabind::object LoadScript(std::string path);
@@ -93,7 +92,7 @@ private:
    luabind::object      game_ctor_;
    luabind::object      p1_;
    std::map<std::string, luabind::object>    required_;
-   std::map<om::EntityId, om::EntityPtr>     entityMap_;
+   std::map<dm::ObjectId, om::EntityPtr>     entityMap_;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

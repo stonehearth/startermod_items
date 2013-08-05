@@ -7,9 +7,8 @@
 #include "dm/store.h"
 #include "om/om.h"
 #include "dm/store.h"
-#define DEFINE_ALL_OBJECTS
 #include "om/all_objects.h"
-#include "om/all_object_types.h"
+#include "om/all_components.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -103,16 +102,6 @@ template <> JSONNode ToJson(const ObjectFormatter& f, Entity const& obj)
    return node;
 }
 
-
-template <> JSONNode ToJson(const ObjectFormatter& f, UnitInfo const& obj)
-{
-   JSONNode node;
-   node.push_back(JSONNode("name", obj.GetDisplayName()));
-   node.push_back(JSONNode("description", obj.GetDescription()));
-   node.push_back(JSONNode("faction", obj.GetFaction()));
-   return node;
-}
-
 template <> JSONNode ToJson(const ObjectFormatter& f, EntityContainer const& obj)
 {
    JSONNode node;
@@ -125,60 +114,46 @@ template <> JSONNode ToJson(const ObjectFormatter& f, EntityContainer const& obj
    return node;
 }
 
+template <> JSONNode ToJson(const ObjectFormatter& f, UnitInfo const& obj)
+{
+   JSONNode node;
+   node.push_back(JSONNode("name", obj.GetDisplayName()));
+   node.push_back(JSONNode("description", obj.GetDescription()));
+   node.push_back(JSONNode("faction", obj.GetFaction()));
+   return node;
+}
+
 #define OM_OBJECT(Cls, lower) \
    template <> JSONNode ToJson(const ObjectFormatter& f, Cls const& obj) { \
       JSONNode result; \
       result.push_back(JSONNode("error", "someone needs to implement " #Cls "::ToJson in the object formatter!")); \
       return result; \
    }
-      OM_OBJECT(Grid,           grid)
-      OM_OBJECT(GridTile,       grid_tile)
-      OM_OBJECT(Region,         region)
       OM_OBJECT(Effect,         effect)
-      OM_OBJECT(UserBehavior,   user_behavior)
       OM_OBJECT(Sensor,         sensor)
       OM_OBJECT(Aura,           aura)
       OM_OBJECT(TargetTable,        target_table)
       OM_OBJECT(TargetTableGroup,   target_table_group)
       OM_OBJECT(TargetTableEntry,   target_table_entry)
       OM_OBJECT(Clock,                 clock)
-      OM_OBJECT(StockpileDesignation,  stockpile_designation)
-      OM_OBJECT(Item,                  item)
       OM_OBJECT(Mob,                   mob)
-      OM_OBJECT(RenderGrid,            render_grid)
       OM_OBJECT(RenderRig,             render_rig)
       OM_OBJECT(RenderRigIconic,       render_rig_iconic)
-      OM_OBJECT(GridCollisionShape,    grid_collision_shape)
       OM_OBJECT(SphereCollisionShape,  sphere_collision_shape)
       OM_OBJECT(RegionCollisionShape,  region_collision_shape)
       OM_OBJECT(Terrain,               terrain)
-      OM_OBJECT(CarryBlock,            carry_block)
-      OM_OBJECT(Wall,                  wall)
-      OM_OBJECT(Floor,                 floor)
-      OM_OBJECT(Scaffolding,           scaffolding)
-      OM_OBJECT(Post,                  post)
-      OM_OBJECT(Room,                  room)
-      OM_OBJECT(PeakedRoof,            peaked_roof)
-      OM_OBJECT(Fixture,               fixture)
-      OM_OBJECT(Portal,                portal)
-      OM_OBJECT(BuildOrders,           build_orders)
-      OM_OBJECT(BuildOrderDependencies, build_order_dependencies)
       OM_OBJECT(VerticalPathingRegion, vertical_pathing_region)
-      OM_OBJECT(UserBehaviorQueue,     user_behavior_queue)
       OM_OBJECT(EffectList,            effect_list)
       OM_OBJECT(RenderInfo,            render_info)
-      OM_OBJECT(Profession,            profession)
-      OM_OBJECT(AutomationTask,        automation_task)
-      OM_OBJECT(AutomationQueue,       automation_queue)
-      OM_OBJECT(Paperdoll,             paperdoll)
       OM_OBJECT(SensorList,            sensor_list)
       OM_OBJECT(Attributes,            attributes)
       OM_OBJECT(AuraList,              aura_list)
       OM_OBJECT(TargetTables,          target_tables)
-      OM_OBJECT(Inventory,             inventory)
-      OM_OBJECT(WeaponInfo,            weapon_info)
       OM_OBJECT(Destination,           destination)
       OM_OBJECT(RenderRegion,          render_region)
+      OM_OBJECT(Paperdoll,             paperdoll)
+      OM_OBJECT(Item,                  item)
+      OM_OBJECT(CarryBlock,            carry_block)
 #undef OM_OBJECT
 
 static void CreateDispatchTable()

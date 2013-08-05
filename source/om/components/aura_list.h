@@ -7,7 +7,7 @@
 #include "dm/store.h"
 #include "dm/set.h"
 #include "dm/map.h"
-#include "om/all_object_types.h"
+#include "om/object_enums.h"
 #include "om/om.h"
 #include "om/entity.h"
 #include "component.h"

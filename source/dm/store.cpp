@@ -49,6 +49,7 @@ ObjectPtr Store::AllocObject(ObjectType t)
 ObjectPtr Store::AllocSlaveObject(ObjectType t, ObjectId id)
 {
    ASSERT(nextObjectId_ == 1);
+   ASSERT(allocators_[t]);
 
    ObjectPtr obj = allocators_[t]();
    obj->InitializeSlave(*this, id); 

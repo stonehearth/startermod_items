@@ -25,6 +25,9 @@ set(HORDE3D_SOURCES
 	egSceneGraphRes.cpp
 	egShader.cpp
 	egTexture.cpp
+   egVoxelModel.cpp
+   egVoxelMesh.cpp
+   egVoxelGeometry.cpp
 	utImage.cpp
 	utOpenGL.cpp
 	config.h

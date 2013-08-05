@@ -1,4 +1,8 @@
+local Cube3 = _radiant.csg.Cube3
+local Point3 = _radiant.csg.Point3
+local Region3 = _radiant.csg.Region3
 local GotoLocationAction = class()
+
 
 GotoLocationAction.name = 'stonehearth.actions.goto_location'
 GotoLocationAction.does = 'stonehearth.activities.goto_location'
@@ -11,11 +15,14 @@ function GotoLocationAction:run(ai, entity, dest)
    
    -- anyway, the pathfinder can only find paths between two entities,
    -- so go ahead and make a new one.  this is HORRIBLY INEFFICENT. =..(
+   local bounds = Cube3(Point3(0, 0, 0), Point3(1, 1, 1))
+   local region = native:alloc_region()
+   region:modify():add_cube(bounds)
+   
    self._dest_entity = radiant.entities.create_entity()
    local standing = self._dest_entity:add_component('destination')
-   local bounds = Cube3(Point3(0, 0, 0), Point3(1, 1, 1))
-   local region = Region3(bounds)
    standing:set_region(region)
+   
    radiant.terrain.place_entity(self._dest_entity, dest)
 
    local path

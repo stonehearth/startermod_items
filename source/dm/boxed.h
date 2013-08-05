@@ -2,6 +2,7 @@
 #include "object.h"
 #include "store.pb.h"
 #include "radiant_luabind.h"
+#include "lua/register.h"
 #include "namespace.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
@@ -11,10 +12,12 @@ struct Integer {
    int value;
 };
 
-template <class T> class Boxed : public Object
+template <class T, int OT = BoxedObjectType>
+class Boxed : public Object
 {
 public:
-   DEFINE_DM_OBJECT_TYPE(Boxed);
+   enum { DmType = OT };
+   ObjectType GetObjectType() const override { return OT; }
 
    typedef T   ValueType;
 
@@ -39,13 +42,13 @@ public:
    const T& operator*() const { return value_; }
 
    operator const T&() const { return value_; }
-   const Boxed<T>& operator=(const T& rhs) {
+   const Boxed& operator=(const T& rhs) {
       value_ = rhs;
       MarkChanged();
       return *this;
    }
 
-   const Boxed<T>& operator=(const Boxed<T>& rhs) {
+   const Boxed& operator=(const Boxed& rhs) {
       *this = *rhs;
       return *this;
    }
@@ -54,10 +57,6 @@ public:
    T& Modify() {
       MarkChanged();
       return value_;
-   }
-   std::ostream& Log(std::ostream& os, std::string indent) const override {
-      os << "boxed [oid:" << GetObjectId() << " value:" << Format<T>(value_, indent) << "]" << std::endl;
-      return os;
    }
 
    dm::Guard TraceValue(const char* reason, std::function<void(const T&)> fn) const {
@@ -82,13 +81,12 @@ public:
       }
 
    public:
-      static void RegisterLuaType(struct lua_State* L) {
-         using namespace luabind;
-         module(L) [
-            class_<Promise>(typeid(Promise).name())
+      static luabind::scope RegisterLuaType(struct lua_State* L, std::string const& tname) {
+         std::string name = tname + "Promise";
+         return
+            lua::RegisterTypePtr<Promise>(name.c_str())
                .def("on_changed",&Promise::PushChangedCb)
-               .def("destroy",   &Promise::Destroy)
-         ];
+               .def("destroy",   &Promise::Destroy);
       }
 
    public:
@@ -107,28 +105,25 @@ public:
       std::vector<luabind::object>  changedCbs_;
    };
 
-   Promise* CreatePromise(const char* reason) const {
-      return new Promise(*this, reason);
+   std::shared_ptr<Promise> CreatePromise(const char* reason) const {
+      return std::make_shared<Promise>(*this, reason);
    }
 
-   static void RegisterLuaType(struct lua_State* L) {
-      using namespace luabind;
-      module(L) [
-         class_<Boxed>(typeid(Boxed).name())
-            .def(tostring(const_self))
+   static luabind::scope RegisterLuaType(struct lua_State* L, std::string tname = std::string()) {
+      if (tname.empty()) {
+         tname = lua::GetTypeName<Boxed>();
+      }
+      return
+         lua::RegisterObject<Boxed>(tname.c_str())
+            .def("get",               &Boxed::Get)
+            .def("modify",            &Boxed::Modify)
             .def("trace",             &Boxed::CreatePromise)
-      ];
-      Promise::RegisterLuaType(L);
+         ,
+         Promise::RegisterLuaType(L, tname);
    }
 
 private:
    Boxed(const Boxed<T>&); // opeartor= is ok, though.
-   void CloneObject(Object* c, CloneMapping& mapping) const override {
-      Boxed<T>& copy = static_cast<Boxed<T>&>(*c);
-
-      mapping.objects[GetObjectId()] = copy.GetObjectId();
-      SaveImpl<T>::CloneValue(c->GetStore(), value_, &copy.value_, mapping);
-   }
 
 protected:
    void SaveValue(const Store& store, Protocol::Value* msg) const override {
@@ -142,14 +137,19 @@ private:
    T     value_;
 };
 
-
-template<class T>
-struct Formatter<Boxed<T>>
+template <class T, int OT>
+std::ostream& operator<<(std::ostream& os, const Boxed<T, OT>& o)
 {
-   static std::ostream& Log(std::ostream& out, const Boxed<T>& value, const std::string indent) {
-      return value.Log(out, indent);
+   std::ostringstream details;
+   details << o.Get();
+
+   os << "(ObjectReference " << o.GetObjectId();
+   if (!details.str().empty()) {
+      os << " -> " << details.str() << " ";
    }
-};
+   os << ")";
+   return os;
+}
 
 END_RADIANT_DM_NAMESPACE
 

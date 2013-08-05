@@ -8,7 +8,6 @@ add_library(horde3d_stockpile STATIC
             decal_node.cpp
             stockpile_node.cpp
             toast_node.cpp
-            terrain_node.cpp
             )
 
 target_link_libraries(horde3d_stockpile 

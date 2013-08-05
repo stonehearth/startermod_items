@@ -6,11 +6,6 @@
 #include "math3d.h"
 #include "dm/dm.h"
 
-struct lua_State;
-namespace luabind { 
-   struct scope; 
-}
-
 BEGIN_RADIANT_CSG_NAMESPACE
 
 template <typename S, int C, typename Derived>
@@ -180,7 +175,6 @@ public:
    Point(S x) : x(x) { }
    Point(const protocol::point& msg) { LoadValue(msg); }
 
-   static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
    static Point zero;
    static Point one;
 
@@ -200,7 +194,6 @@ public:
    Point(S x, S y) : x(x), y(y) { }
    Point(const protocol::point& msg) { LoadValue(msg); }
 
-   static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
    static Point zero;
    static Point one;
 
@@ -219,7 +212,6 @@ public:
    Point(S x, S y, S z) : x(x), y(y), z(z) { }
    Point(const protocol::point& msg) { LoadValue(msg); }
 
-   static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
    static Point zero;
    static Point one;
 

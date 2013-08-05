@@ -26,13 +26,5 @@ typedef int ObjectType;
 
 class Object;
 
-struct CloneMapping {
-   std::unordered_map<ObjectId, ObjectId> objects;
-   std::unordered_map<ObjectId, std::shared_ptr<Object> > dynamicObjects;
-   std::unordered_map<ObjectId, std::shared_ptr<Object> > dynamicObjectsInverse;
-   std::function<bool(std::shared_ptr<Object>, std::shared_ptr<Object>)> filter;
-
-   std::vector<std::function<void()>> restore;
-};
 
 END_RADIANT_DM_NAMESPACE

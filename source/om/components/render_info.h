@@ -2,7 +2,7 @@
 #define _RADIANT_OM_RENDER_INFO_H
 
 #include "om/om.h"
-#include "om/all_object_types.h"
+#include "om/object_enums.h"
 #include "dm/set.h"
 #include "dm/record.h"
 #include "store.pb.h"

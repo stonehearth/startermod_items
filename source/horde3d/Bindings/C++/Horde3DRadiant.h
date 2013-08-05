@@ -19,10 +19,9 @@ DLL bool h3dRadiantCommitDebugShape(H3DNode node);
 #include "../extensions/stockpile/stockpile_node.h"
 #include "../extensions/stockpile/decal_node.h"
 #include "../extensions/stockpile/toast_node.h"
-#include "../extensions/stockpile/terrain_node.h"
 
 H3DNode h3dRadiantCreateStockpileNode(H3DNode parent, std::string name);
 bool h3dRadiantResizeStockpileNode(H3DNode node, int width, int height);
+
 std::pair<H3DNode, ::radiant::horde3d::DecalNode*> h3dRadiantCreateDecalNode(H3DNode parent, std::string name, std::string material);
 ::radiant::horde3d::ToastNode* h3dRadiantCreateToastNode(H3DNode parent, std::string name);
-::radiant::horde3d::TerrainNode* h3dRadiantCreateTerrainNode(H3DNode parent, std::string name, int type, ::radiant::csg::mesh_tools::mesh const& m);

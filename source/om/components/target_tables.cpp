@@ -6,6 +6,34 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+std::ostream& om::operator<<(std::ostream& os, const TargetTableEntry& o)
+{
+   auto entity = o.GetTarget().lock();
+   if (!entity) {
+      return (os << "[TargetTableEntry null]");
+   }
+   return (os << "[TargetTableEntry entity:" << entity->GetObjectId() << " value:" << o.GetValue() << "]");
+}
+
+std::ostream& om::operator<<(std::ostream& os, const TargetTable& o)
+{
+   return (os << "[TargetTable category:" << o.GetCategory() << " name:" << o.GetName());
+}
+
+std::ostream& om::operator<<(std::ostream& os, const TargetTableTop& o)
+{
+   auto entity = o.target.lock();
+   if (!entity) {
+      return (os << "[TargetTableEntry null]");
+   }
+   return (os << "[TargetTableEntry entity:" << entity->GetObjectId() << " value:" << o.value << "]");
+}
+
+std::ostream& om::operator<<(std::ostream& os, const TargetTableGroup& o)
+{
+   return (os << "[TargetTableGroup category:" << o.GetCategory() << " #:" << o.GetTableCount() << "]");
+}
+
 bool TargetTableEntry::Update(int now, int interval)
 {
    if (*expires_ > 0 && now > *expires_) {
@@ -71,7 +99,7 @@ TargetTableTopPtr TargetTableGroup::GetTop()
 
    for (TargetTablePtr table  : tables_) {
       for (const auto& j: table->GetEntries()) {
-         om::EntityId id = j.first;
+         dm::ObjectId id = j.first;
          TargetTableEntryPtr entry = j.second;
          values[id] += entry->GetValue();
          expireTimes[id] = std::max(expireTimes[id], entry->GetExpireTime());

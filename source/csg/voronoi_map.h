@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <list>
+#include <set>
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
@@ -30,8 +31,6 @@ public:
    int tag;
 
    VoronoiMapSite() : tag(0), pos(0, 0) { }
-
-   static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
    VoronoiMapSite(const Point2 pos) : pos(pos) {};
 
    Point2 center();
@@ -42,8 +41,6 @@ typedef std::vector<VoronoiMapSitePtr> VoronoiMapSiteVector;
 
 class VoronoiMap {
 public:
-   static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
-
    VoronoiMap(int width, int height);
 
    void add_point(int x, int y);

@@ -500,11 +500,8 @@ PathFinderEndpoint::PathFinderEndpoint(PathFinder &pf, om::EntityRef e) :
       }
       auto dst = entity->GetComponent<om::Destination>();
       if (dst) {
-         guards_ += dst->GetAdjacent()->Trace(
-            "pathfinder destination trace",
-            [=](csg::Region3 const&) {
-               restart_fn();
-            });
+         guards_ += dst->GetAdjacent()->TraceObjectChanges(
+            "pathfinder destination trace", restart_fn);
       }
    }
 }
@@ -521,8 +518,8 @@ void PathFinderEndpoint::AddAdjacentToOpenSet(std::vector<math3d::ipoint3>& open
          auto destination = entity->GetComponent<om::Destination>();
          if (destination) {
             // xxx - should open_ be a region?  wow, that would be complicated!
-            om::RegionPtr adjacent = destination->GetAdjacent();
-            csg::Region3 const& region = **adjacent;
+            om::BoxedRegion3Ptr adjacent = destination->GetAdjacent();
+            csg::Region3 const& region = adjacent->Get();
             for (csg::Cube3 const& cube : region) {
                for (csg::Point3 const& pt : cube) {
                   open.push_back(origin + pt);

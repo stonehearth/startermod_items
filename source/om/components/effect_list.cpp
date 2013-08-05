@@ -5,6 +5,12 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+std::ostream& om::operator<<(std::ostream& os, const Effect& o)
+{
+   os << "[Effect " << o.GetObjectId() << " name:" << o.GetName() << "]";
+   return os;
+}
+
 void Effect::AddParam(std::string name, luabind::object o)
 {
    params_[name].FromLuaObject(o);
