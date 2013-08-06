@@ -125,6 +125,11 @@ lua_State* ScriptHost::GetInterpreter()
    return L_;
 }
 
+lua_State* ScriptHost::GetCallbackState()
+{
+   return cb_thread_;
+}
+
 void ScriptHost::GC(platform::timer &timer)
 {
    bool finished = false;

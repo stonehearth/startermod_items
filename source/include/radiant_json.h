@@ -43,6 +43,8 @@ namespace radiant {
          ConstJsonObject(JSONNode const& node) : node_(node) { }
          static void RegisterLuaType(struct lua_State* L);
 
+         int type() const { return node_.type(); }
+
          std::string write() const {
             return node_.write();
          }
@@ -114,6 +116,11 @@ namespace radiant {
             VERIFY(i < node_.size(), Exception("json array index out of bounds"));
             return node_.at(i);
          }
+
+         // xxx: these shoudl return ConstJsonObject's, right?
+         JSONNode::const_iterator begin() const { return node_.begin(); }
+         JSONNode::const_iterator end() const { return node_.end(); }
+
 
       private:
          JSONNode const& node_;

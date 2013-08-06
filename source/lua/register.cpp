@@ -6,6 +6,14 @@ using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::lua;
 
+template <typename T>
+std::string PointToJson(T& const pt, luabind::object state)
+{
+   std::stringstream os;
+   os << "[" << pt.x << ", " << pt.y << ", " << pt.z << "]";
+   return os.str();
+}
+
 void ::radiant::lua::RegisterBasicTypes(lua_State* L)
 {
    module(L) [
@@ -14,6 +22,7 @@ void ::radiant::lua::RegisterBasicTypes(lua_State* L)
             lua::RegisterType<math3d::point3>("RadiantPoint3")
                .def(constructor<const math3d::ipoint3 &>())
                .def(constructor<float, float, float>())
+               .def("__tojson",    &PointToJson<math3d::point3>)
                .def(tostring(const_self))
                .def_readwrite("x", &math3d::point3::x)
                .def_readwrite("y", &math3d::point3::y)
@@ -32,6 +41,7 @@ void ::radiant::lua::RegisterBasicTypes(lua_State* L)
                .def(constructor<const math3d::point3 &>())
                .def(constructor<const math3d::ipoint3 &>())
                .def(constructor<int, int, int>())
+               .def("__tojson",    &PointToJson<math3d::ipoint3>)
                .def(tostring(const_self))
                .def_readwrite("x", &math3d::ipoint3::x)
                .def_readwrite("y", &math3d::ipoint3::y)

@@ -34,6 +34,8 @@ public:
    static ScriptHost& GetInstance();
 
    lua_State* GetInterpreter() const { return L_; }
+   lua_State* GetCallbackState() const { return cb_thread_; }
+   luabind::object JsonToLua(JSONNode const& json);
 
    std::string PostCommand(luabind::object obj, std::string const& json);
    std::string PostCommand(luabind::object fn, luabind::object self, std::string const& json);

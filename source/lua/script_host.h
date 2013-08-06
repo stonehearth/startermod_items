@@ -14,20 +14,26 @@ public:
    ~ScriptHost();
 
    lua_State* GetInterpreter();
+   lua_State* GetCallbackState();
    luabind::object LuaRequire(std::string name);
    void GC(platform::timer &timer);
 
    luabind::object JsonToLua(JSONNode const& json);
 
-   template <typename T, typename A0, typename A1, typename A2>
-   T CallFunction(A0 const& a0, A1 const& a1, A2 const& a2) {
+   template <typename T, typename A0, typename A1, typename A2, typename A3>
+   T CallFunction(A0 const& a0, A1 const& a1, A2 const& a2, A3 const& a3) {
       try {
          luabind::object caller(cb_thread_, a0);
-         return luabind::call_function<T>(caller, a1, a2);
+         return luabind::call_function<T>(caller, a1, a2, a3);
       } catch (std::exception& e) {
          OnError(e.what());
          throw;
       }
+   }
+
+   template <typename T, typename A0, typename A1, typename A2>
+   T CallFunction(A0 const& a0, A1 const& a1, A2 const& a2) {
+      return CallFunction<T>(a0, a1, a2, luabind::object());
    }
    template <typename T, typename A0, typename A1>
    T CallFunction(A0 const& a0, A1 const& a1) {
@@ -35,7 +41,7 @@ public:
    }
    template <typename T, typename A0>
    T CallFunction(A0 const& a0) {
-      return CallFunction<T>(a0, luabind::object(), luabind::object());
+      return CallFunction<T>(a0, luabind::object());
    }
 
 private:
