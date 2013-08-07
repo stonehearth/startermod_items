@@ -24,15 +24,14 @@ function Crafter:extend(json)
    if json and json.intermediate_item then
       self._intermediate_item = json.intermediate_item  --the object to show while the crafter is working
    end
+   if json and json.recipe_list  then
+      self._recipe_list = radiant.resources.load_json(json.recipe_list)
+   end
 end
 
 function Crafter:__tojson()
-   -- xxx: this is totally hacked to unblock Tom...
    local json = {
-      craftable_recipes = {
-         '/stonehearth_carpenter_class/recipes/wooden_sword_recipe.json',
-         '/stonehearth_carpenter_class/recipes/wooden_buckler_recipe.json',
-      }
+      craftable_recipes = self._recipe_list.craftable_recipes
    }
    return radiant.json.encode(json)
 end
@@ -41,15 +40,7 @@ end
    ai: the ai required for the entity to perform anything
 ]]
 function Crafter:perform_work_effect(ai)
-   ---[[
-   --TODO: replace with ai:execute('stonehearth.activities.run_effect,''saw')
-   --It does not seem to be working right now, but this does:
-   self._curr_effect = radiant.effects.run_effect(self._entity, self._work_effect)
-   ai:wait_until(function()
-      return self._curr_effect:finished()
-   end)
-   self._curr_effect = nil
-   --]]
+   ai:execute('stonehearth.activities.run_effect', self._work_effect)
 end
 
 

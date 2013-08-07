@@ -4,7 +4,7 @@
    "components" : {
       "unit_info" : {
          "name" :  "Wooden Buckler",
-         "description" : "Like a plate for giants."
+         "description" : "Better than using an oak branch to defend your ego."
       },
       "render_rig": {
          "models": [

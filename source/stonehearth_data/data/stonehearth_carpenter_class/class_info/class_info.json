@@ -8,7 +8,8 @@
       },
       "stonehearth_crafter:crafter" : {
          "work_effect" : "saw",
-         "intermediate_item" : "/stonehearth_carpenter_class/entities/carpenter_intermediate_item"
+         "intermediate_item" : "/stonehearth_carpenter_class/entities/carpenter_intermediate_item",
+         "recipe_list": "/stonehearth_carpenter_class/recipes/recipes.json"
       }
    }
 }

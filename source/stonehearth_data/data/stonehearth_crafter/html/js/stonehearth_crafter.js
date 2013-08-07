@@ -47,9 +47,7 @@ App.StonehearthCrafterView = App.View.extend({
       "stonehearth_crafter:workshop": {
          "crafter": {
             "stonehearth_crafter:crafter": {
-               "craftable_recipes" : {
-                  "preview_item" : {}
-               }
+               "craftable_recipes" : []
             }
          },
          "order_list" : {
