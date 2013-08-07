@@ -1,6 +1,6 @@
 @baseColor:  #111;
 @gold:       #ffc000;
-@hoverColor: #ffc000;
+@hoverColor: #fff04d;
 
 .baseFont {
 	color: @baseFontColor;
@@ -25,6 +25,11 @@
 	a {
 		color: @controlFontColor;
 	}
+
+	&:hover {
+		color: @hoverColor;
+	};
+
 }
 
 .smallFont {
@@ -61,7 +66,6 @@
 	background: #476248;
 
 	&:hover {
-		color: @controlFontColor;
 		background: #48704a;
 	};
 }
@@ -71,7 +75,7 @@ body {
 	.baseFont;
    background: transparent;
 	-webkit-user-select: none;
-	//cursor: default;
+	cursor: default;
 }
 
 b {
@@ -102,7 +106,6 @@ h1 {
 
 .tooltip {
 	.controlFont;
-	color: red !important;
 }
 
 .sh-view {

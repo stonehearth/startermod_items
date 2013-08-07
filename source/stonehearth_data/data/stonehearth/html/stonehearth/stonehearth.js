@@ -10,7 +10,8 @@ App.StonehearthView = Ember.ContainerView.extend({
             "MainbarView",
             "UnitFrameView",
             "ObjectBrowserView",
-            "StonehearthCalendarView"
+            "StonehearthCalendarView",
+            "StonehearthMainActionbarView"
          ]
       };
 
