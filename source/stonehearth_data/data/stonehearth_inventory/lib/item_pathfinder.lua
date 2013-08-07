@@ -45,7 +45,7 @@ function ItemPathfinder:_add_entity_to_terrain(id, entity)
    if entity then   
       local item = entity:get_component('item')
       if item then
-         if self._filter(entity) then
+         if self._filter and self._filter(entity) then
             self._path_finder:add_destination(entity)
          end
       end

@@ -13,8 +13,6 @@ FillOutboxAction.priority = 5
 
 function FillOutboxAction:__init(ai, entity)
    self._curr_carry = nil
-   self._output_x = -0
-   self._output_y = -0
 end
 
 --[[
@@ -27,29 +25,55 @@ end
 function FillOutboxAction:run(ai, entity)
    local crafter_component = entity:get_component('stonehearth_crafter:crafter')
    local workshop = crafter_component:get_workshop()
+   local workshop_entity = workshop:get_entity()
+   self._outbox_entity = workshop:get_outbox()
 
    assert(workshop:has_bench_outputs(), 'Trying to fill outbox, but the bench has no products!')
 
-   repeat
-      local bench_location = RadiantIPoint3(-12, 1, -11)
+    repeat
       self._curr_carry = workshop:pop_bench_output()
-      local goto = RadiantIPoint3(self._output_x, 1, self._output_y)
-      self._output_x = self._output_x + 1
+
+      --TODO: pickup from table?
       ai:execute('stonehearth.activities.pickup_item', self._curr_carry)
-      --TODO: calculate adjacent with pathfinder (this is a fake adjacent right now)
-      ai:execute('stonehearth.activities.goto_location', RadiantIPoint3(goto.x, goto.y, goto.z+1))
-      ai:execute('stonehearth.activities.drop_carrying', goto)
+
+      --Find path
+      --Something like:
+      local path = nil
+      local solved = function(solution)
+         path = solution
+      end
+
+      local pathfinder = native:create_path_finder('goto entity action', entity, solved, nil)
+      pathfinder:add_destination(self._outbox_entity)
+
+      ai:wait_until(function()
+         return path ~= nil
+      end)
+      ai:execute('stonehearth.activities.follow_path', path)
+      local drop_location = path:get_finish_point()
+      ai:execute('stonehearth.activities.drop_carrying', drop_location)
       self._curr_carry = nil
+
+      --If the user has paused progress, don't continue
+      if workshop:is_paused() then
+         return
+      end
+
    until not workshop:has_bench_outputs()
+
+
 end
 
 --[[
-   If interrupted, while moving between the workbench and outbox, pitch the item into the outbox
-   before stopping.
+   If interrupted, while moving between the workbench and outbox,
+   pitch the item into the outbox before stopping.
+   TODO: is this the right way to programatically add something to the outbox?
+   TODO: can the outbox expose an "add to me" function?
 ]]
 function FillOutboxAction:stop()
-   if self._curr_carry then
-      radiant.terrain.place_entity(self._curr_carry, RadiantIPoint3(self._output_x + 1, 1, self._output_y))
+   if self._curr_carry and self._outbox_entity then
+      radiant.entities.add_child(self._outbox_entity, self._curr_carry, RadiantIPoint3(0, 1, 0))
+      self._curr_carry = nil
    end
 end
 

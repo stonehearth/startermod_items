@@ -85,6 +85,7 @@ App.StonehearthCrafterView = App.View.extend({
       this._super();
       this._buildAccordion();
       this._buildOrderList();
+      initIncrementButtons();
 
       $("#craftingWindow")
          .animate({ top: 20 }, {duration: 500, easing: 'easeOutBounce'});
@@ -93,23 +94,36 @@ App.StonehearthCrafterView = App.View.extend({
    //Call this function when the selected order changes.
    select: function(object) {
       this.set('context.current', object);
-
       //TODO: make the selected item visually distinct
+      this.preview();
+   },
+
+   preview: function() {
+      var url = this.get('context.stonehearth_crafter:workshop').__self + "?fn=resolve_order_options";
+      var data = {};
+      data.recipe_url = this.get('context.current').my_location;
+      $.ajax({
+            type: 'post',
+            url: url,
+            contentType: 'application/json',
+            data: JSON.stringify(data)
+         }).done(function(return_data){
+            $("#portrait").attr("src", return_data.portrait);
+            $("#usefulText").html(return_data.desc);
+            $("#flavorText").html(return_data.flavor);
+         });
    },
 
    //Call this function when the user is ready to submit an order
    craft: function() {
-      console.log('craft!');
-      //TODO: CLEAN UP this call to the server
-      var url = this.get('context.stonehearth_crafter:workshop').__self;
-      url += "?fn=add_order";
+      var url = this.get('context.stonehearth_crafter:workshop').__self + "?fn=add_order";
       var data = {};
       data.recipe_url = this.get('context.current').my_location;
       var type = $('input[name=conditionGroup]:checked').val();
       if (type == "make") {
-         data.condition_amount = $('#make_num_selector').val();
+         data.condition_amount = $('#makeNumSelector').val();
       } else {
-         data.condition_inventory_below = $('#mantain_num_selector').val();
+         data.condition_inventory_below = $('#mantainNumSelector').val();
       }
       $.ajax({
             type: 'post',
@@ -117,24 +131,30 @@ App.StonehearthCrafterView = App.View.extend({
             contentType: 'application/json',
             data: JSON.stringify(data)
          }).done(function(return_data){
-            if(return_data.success) {
-               console.log("Order added successfully!");
-               //We refresh the view, right?
-               //$("#orders").append('<div class="orderListItem"><a href=#>new</a></div>');
-            } else {
-               console.log("Order failed to add...");
-            }
+            //TODO: maybe stuff goes here?
          });
+   },
 
+   togglePause: function(){
+      var url = this.get('context.stonehearth_crafter:workshop').__self + "?fn=toggle_pause";
+      var data = {};
+      $.ajax({
+            type: 'post',
+            url: url,
+            contentType: 'application/json',
+            data: JSON.stringify(data)
+         }).done(function(return_data){
+            //TODO: change other things to reflect pause?
+         });
 
    },
 
    scrollOrderListUp: function() {
-      this._scrollOrderList(-153)
+      this._scrollOrderList(-157)
    },
 
    scrollOrderListDown: function() {
-      this._scrollOrderList(153)
+      this._scrollOrderList(157)
    },
 
    //Attach accordion functionality to the appropriate div
@@ -156,13 +176,62 @@ App.StonehearthCrafterView = App.View.extend({
    //list. Hook order list onto garbage can. Set up scroll
    //buttons.
    _buildOrderList: function(){
+      var self = this;
       $( "#orders, #garbageList" ).sortable({
-         axis: "y",
          connectWith: "#garbageList",
          beforeStop: function (event, ui) {
-             if(ui.item[0].parentNode.id == "garbageList") {
-               ui.item.remove();
+            //Called right after an object is dropped
+            if(ui.item[0].parentNode.id == "garbageList") {
+               ui.item.addClass("hiddenOrder");
+               var url = self.get('context.stonehearth_crafter:workshop').__self + "?fn=delete_order";
+               var data = {
+                  id: parseInt(ui.item.attr("data-orderid"))
+               };
+               $.ajax({
+                  type: 'post',
+                  url: url,
+                  contentType: 'application/json',
+                  data: JSON.stringify(data)
+               }).done(function(return_data){
+                  ui.item.remove();
+               });
              }
+         },
+         over: function (event, ui) {
+            //Called whenever we hover over a new target
+            if (event.target.id == "garbageList") {
+               ui.item.find(".deleteLabel").addClass("showDelete");
+            } else {
+               ui.item.find(".deleteLabel").removeClass("showDelete");
+            }
+         },
+         start: function(event, ui) {
+            // on drag start, creates a temporary attribute on the element with the old index
+            $(this).attr('data-previndex', ui.item.index(".orderListItem")+1);
+         },
+         update: function (event, ui) {
+            //Called right when we're sorting
+            //Don't update objects inside the garbage list
+            if(ui.item[0].parentNode.id == "garbageList") {
+               return;
+            }
+            var url = self.get('context.stonehearth_crafter:workshop').__self + "?fn=move_order";
+            var data = {
+               newPos: (ui.item.index(".orderListItem") + 1),
+               id: parseInt(ui.item.attr("data-orderid"))
+            };
+            //Check if we're replacing?
+            if ($(this).attr('data-previndex') == data.newPos) {
+               return;
+            }
+            $.ajax({
+               type: 'post',
+               url: url,
+               contentType: 'application/json',
+               data: JSON.stringify(data)
+            }).done(function(return_data){
+            });
+
          }
       }).disableSelection();
       this._initButtonStates();

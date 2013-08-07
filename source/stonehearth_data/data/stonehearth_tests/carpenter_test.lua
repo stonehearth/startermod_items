@@ -12,16 +12,10 @@ function CarpenterTest:__init()
    self:create_world()
 
    --Create the carpenter, bench, and instantiate them to each other
-   
+
    local carpenter = self:place_citizen(12, 12,'carpenter')
    local bench = self:place_item('/stonehearth_carpenter_class/entities/carpenter_workbench', -12, -12)
-   
-   local i = 1
-   radiant.events.listen('radiant.events.slow_poll', function()
-         i = i + 1
-         bench:get_component('unit_info'):set_description(string.format('iteration %d', i))
-      end)
-   
+
    --TODO: can we do this via promote?
    local carpenter_component = carpenter:get_component('stonehearth_crafter:crafter')
    local workshop_component = bench:get_component('stonehearth_crafter:workshop')
@@ -29,11 +23,26 @@ function CarpenterTest:__init()
    bench:add_component('unit_info'):set_faction(faction)
    workshop_component:set_crafter(carpenter)
    carpenter_component:set_workshop(workshop_component)
+
+   --initialize the outbox
+   --user places both workshop and outbox
+   --TODO: make a private stockpile
+   local outbox_entity = radiant.entities.create_entity('/stonehearth_inventory/entities/stockpile')
+   local outbox_location = RadiantIPoint3(-8, 1, -12)
+   radiant.terrain.place_entity(outbox_entity, outbox_location)
+   local outbox_component = outbox_entity:get_component('radiant:stockpile')
+   outbox_component:set_size({3, 3})
+   outbox_entity:get_component('unit_info'):set_faction(faction)
+   workshop_component:set_outbox(outbox_entity)
+   
    -- end TODO
 
    -- put some items in the world
    self:place_item_cluster('/stonehearth_trees/entities/oak_tree/oak_log', -10, 10, 3, 3)
    self:place_item_cluster('/stonehearth_items/cloth_bolt', -7, 10, 2, 2)
+
+   --TODO: figure out iconic objects
+   --self:place_item_cluster('stonehearth_items/comfy_bed/', 0, 0, 2, 2)
 
  -- Tests!
 

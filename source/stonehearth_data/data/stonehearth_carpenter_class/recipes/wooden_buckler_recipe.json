@@ -3,19 +3,22 @@
 
   "work_units": 3,
   "recipe_name" : "Wooden Buckler",
-  "recipe_icon" : "/stonehearth_items/wooden_buckler/html/images/wooden_buckler_icon.png",
   "my_location" : "/stonehearth_carpenter_class/recipes/wooden_buckler_recipe.json",
+  "description" : "Helps you not get hit. Spike deters hugs from overzelous grizzlies.",
+  "flavor"      : "Slightly better than using an oak branch to defend your ego",
+  "card_art"    : "/stonehearth_items/wooden_buckler/wooden_buckler_card.png",
+  "queue_art"   : "/stonehearth_items/wooden_buckler/wooden_buckler_queue.png",
   "category" : "armor",
 
-  "ingredients": [
+    "ingredients": [
     {
       "material" : "wood",
-      "count" : 3,
+      "count" : 1,
       "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
     },
     {
       "material" : "cloth",
-      "count" : 2,
+      "count" : 1,
       "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/cloth.png"
     }
   ],

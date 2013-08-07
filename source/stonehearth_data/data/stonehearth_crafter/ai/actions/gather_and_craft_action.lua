@@ -29,8 +29,6 @@ end
    recipe:  recipe for the thing we're about to craft
    missing_ingredients: data about the ingredients we still need to collect
                         (some may already be on the workbench)
-
-   TODO: finalize the inventory/all_ing api
 ]]
 function GatherAndCraftAction:run(ai, entity, recipe, ingredients)
    local crafter_component = self._entity:get_component('stonehearth_crafter:crafter')
@@ -38,15 +36,22 @@ function GatherAndCraftAction:run(ai, entity, recipe, ingredients)
    local workshop_entity = workshop:get_entity()
    local workshop_ec = workshop_entity:add_component('entity_container'):get_children()
    for _, ing_data in ipairs(ingredients) do
-      local item = ing_data.item      
+
+      --If the user has paused progress, or cancelled the orderdon't continue.
+      --Stopping will cause the  list to be reevaluated from scratch
+      if workshop:is_paused() or (workshop:get_curr_order() == nil) then
+         return
+      end
+
+      local item = ing_data.item
       -- is the item already on the bench?  if so, there's nothing to do.
       if not workshop_ec:get(item:get_id()) then
          -- grab it!
          ai:execute('stonehearth.activities.pickup_item', ing_data.item)
-         
+
          -- bring it back!
          ai:execute('stonehearth.activities.goto_entity', workshop_entity)
-         
+
          -- drop it!!
          ai:execute('stonehearth.activities.run_effect', 'carry_putdown_on_table')
          radiant.entities.add_child(workshop_entity, item, RadiantIPoint3(0, 1, 0))

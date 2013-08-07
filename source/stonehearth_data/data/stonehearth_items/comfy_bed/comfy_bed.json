@@ -13,6 +13,11 @@
             "file(comfy_bed.qb)"
          ]
       },
+      "render_rig_iconic": {
+         "models": [
+            "file(comfy_bed_icon.qb)"
+         ]
+      },
       "destination" : {
          "region" : [
             [[-2, 0, -1], [2, 2, 1]]
