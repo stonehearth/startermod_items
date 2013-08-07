@@ -11,16 +11,9 @@
 </head>
 
 <body>
-   <script type="text/x-handlebars">
-      {{render Stonehearth}}
-   </script>
 
-   <script type="text/x-handlebars" data-template-name="eventualRealIndexTemplate">
-      {{outlet}}
-
-      {{#linkTo "index"}}index{{/linkTo}}
-      {{#linkTo "game"}}game{{/linkTo}}
-
+   <script type="text/x-handlebars" data-template-name="index">
+      {{render Root}}
    </script>
 
   <!-- lib -->
@@ -62,17 +55,19 @@
    <script src="js/stonehearth.js"></script>
    <script src="js/stonehearth/model.js"></script>
    <script src="js/stonehearth/view.js"></script>
-   <script src="js/stonehearth/route.js"></script>
-   <script src="js/stonehearth/routes.js"></script>
+   <!script src="js/stonehearth/route.js"></script>
+   <!script src="js/stonehearth/routes.js"></script>
 
    <!-- mods -->
+   <script src="stonehearth/root.js"></script>
    <script src="stonehearth/stonehearth.js"></script>
    <script src="unitframe/js/unitframe.js"></script>
    <script src="objectbrowser/js/objectbrowser.js"></script>
+   <script src="/stonehearth_title_screen/html/js/stonehearth_title_screen.js"></script>    
    <script src="/stonehearth_crafter/html/js/stonehearth_crafter.js"></script> 
    <script src="/stonehearth_calendar/html/js/stonehearth_calendar.js"></script> 
    <script src="/stonehearth_main_actionbar/html/js/stonehearth_main_actionbar.js"></script> 
-   
+
    <!--
    <script src="mods/mainbar/mainbar.js"></script>
    <script src="mods/craftingWindow/craftingWindow.js"></script>
@@ -80,9 +75,11 @@
 
    <!-- start the app -->
    <script>
+      /*
       App.Router.map(function() {
          return App.routeBuilder.call(this);
       });
+      */
 
       //App.start()
       //less.watch();

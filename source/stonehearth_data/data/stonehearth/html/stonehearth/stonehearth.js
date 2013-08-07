@@ -7,7 +7,6 @@ App.StonehearthView = Ember.ContainerView.extend({
       // xxx: fetch this from the game...
       var json = {
          views : [
-            "MainbarView",
             "UnitFrameView",
             "ObjectBrowserView",
             "StonehearthCalendarView",
@@ -24,8 +23,6 @@ App.StonehearthView = Ember.ContainerView.extend({
             self.addView(ctor);
          }
       });
-
-      App.gameView = this;
    },
 
    addView: function(type, options) {

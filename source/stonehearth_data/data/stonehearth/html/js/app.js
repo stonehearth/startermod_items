@@ -1,5 +1,6 @@
 App = Ember.Application.createWithMixins({
 	//rootElement: '#main',
+    LOG_TRANSITIONS: true,
 
   	init: function() {
   		this.deferReadiness();
@@ -17,9 +18,10 @@ App = Ember.Application.createWithMixins({
   		var self = this;
 
   		var templateUrls = [
-  			'stonehearth/stonehearth.html',
+         'stonehearth/stonehearth.html',
          'unitframe/unitframe.html',
          'objectbrowser/objectbrowser.html',
+         '/stonehearth_title_screen/html/stonehearth_title_screen.html',
          '/stonehearth_crafter/html/stonehearth_crafter.html',
          '/stonehearth_calendar/html/stonehearth_calendar.html',
          '/stonehearth_main_actionbar/html/stonehearth_main_actionbar.html'
@@ -57,4 +59,8 @@ App = Ember.Application.createWithMixins({
   	start: function() {
   		// TODO, hook this up. It's just prettier that way
   	}
+});
+
+App.Router.map(function() {
+  
 });
