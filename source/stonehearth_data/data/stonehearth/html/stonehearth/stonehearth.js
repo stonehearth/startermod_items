@@ -7,8 +7,8 @@ App.StonehearthView = Ember.ContainerView.extend({
       // xxx: fetch this from the game...
       var json = {
          views : [
-            "UnitFrameView",
-            "ObjectBrowserView",
+            "StonehearthUnitFrameView",
+            "StonehearthObjectBrowserView",
             "StonehearthCalendarView",
             "StonehearthMainActionbarView"
          ]

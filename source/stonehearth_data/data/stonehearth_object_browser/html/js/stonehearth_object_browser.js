@@ -1,5 +1,5 @@
-App.ObjectBrowserView = App.View.extend({
-   templateName: 'objectbrowser',
+App.StonehearthObjectBrowserView = App.View.extend({
+   templateName: 'objectBrowser',
    objectHtml: "",
    loading: false,
    history: [],
@@ -80,17 +80,11 @@ App.ObjectBrowserView = App.View.extend({
    },
 
    goForward: function () {
-      $.get('/modules/client/samplecode_place_workbench/choose_location', { entity: '/stonehearth_carpenter_class/entities/carpenter_workbench'})
-        .done(function(o){
-
-        });
-      /*
       if(this.forwardHistory.length > 0) {
          var uri = this.forwardHistory.pop();
          this.fetch(uri);
       }
       console.log(this.forwardHistory.length);
-      */
    },
 
    goHome: function() {

@@ -106,9 +106,7 @@ App = Ember.Application.createWithMixins({
   		var self = this;
 
       var templateUrls = [
-         'stonehearth/stonehearth.html',
-         'unitframe/unitframe.html',
-         'objectbrowser/objectbrowser.html'
+         'stonehearth/stonehearth.html'
         ];
 
       $.each( modules, function( k, v ) {

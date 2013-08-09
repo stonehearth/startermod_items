@@ -1,5 +1,5 @@
-App.UnitFrameView = App.View.extend({
-	templateName: 'unitframe',
+App.StonehearthUnitFrameView = App.View.extend({
+	templateName: 'unitFrame',
 
    components: {
       "unit_info": {},
