@@ -3,33 +3,12 @@
 <head>
 <meta charset="utf-8">
 <title>Stonehearth UI</title>
-<!link rel="stylesheet/less" type="text/css" href="css/bootstrap.css" />
-<link rel="stylesheet/less" type="text/css" href="css/style.less" />
-
-<!-- TODO, figure out less -->
-<!-- TODO, use bootstrap? -->
 </head>
 
 <body>
 
    <script type="text/x-handlebars" data-template-name="index">
       {{render Root}}
-   </script>
-
-  <!-- lib -->
-   <script type="text/javascript">
-      less = {
-           env: "development", // or "production"
-           async: false,       // load imports async
-           fileAsync: false,   // load imports async when in a page under
-                            // a file protocol
-           poll: 500,         // when in watch mode, time in ms between polls
-           functions: {},      // user functions, keyed by name
-           dumpLineNumbers: "comments", // or "mediaQuery" or "all"
-           relativeUrls: false,// whether to adjust url's to be relative
-                            // if false, url's are already relative to the
-                            // entry less file
-      };
    </script>
 
    <!-- core radiant libraries -->
@@ -62,11 +41,7 @@
    <script src="stonehearth/root.js"></script>
    <script src="stonehearth/stonehearth.js"></script>
    <script src="unitframe/js/unitframe.js"></script>
-   <script src="objectbrowser/js/objectbrowser.js"></script>
-   <script src="/stonehearth_title_screen/html/js/stonehearth_title_screen.js"></script>    
-   <script src="/stonehearth_crafter/html/js/stonehearth_crafter.js"></script> 
-   <script src="/stonehearth_calendar/html/js/stonehearth_calendar.js"></script> 
-   <script src="/stonehearth_main_actionbar/html/js/stonehearth_main_actionbar.js"></script> 
+   <script src="objectbrowser/js/objectbrowser.js"></script> 
 
    <!--
    <script src="mods/mainbar/mainbar.js"></script>
@@ -75,17 +50,6 @@
 
    <!-- start the app -->
    <script>
-      /*
-      App.Router.map(function() {
-         return App.routeBuilder.call(this);
-      });
-      */
-
-      //App.start()
-      //less.watch();
-      //i18n.setDefaultNamespace('stonehearth');
-
-      /*
       i18n.init({ 
          lng: "en",
          fallbackLng: false,
@@ -93,7 +57,6 @@
          resGetPath: '/mods/__ns__/locales/__lng__.json'
       });
       i18n.loadNamespace('mainbar', function() { console.log('loaded mainbar i18n namespace'); });
-      */
    </script>
 
 </body>
