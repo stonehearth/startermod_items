@@ -1,4 +1,3 @@
-
 App.RootView = Ember.ContainerView.extend({
 
    _gameView: null,
@@ -9,7 +8,7 @@ App.RootView = Ember.ContainerView.extend({
       var self = this;
 
       // create the views
-      this._gameView = this.createChildView(App["StonehearthView"]);
+      this._gameView = this.createChildView(App["StonehearthGameUiView"]);
       this._titleScreenView = this.createChildView(App["StonehearthTitleScreenView"]);
 
       // push em

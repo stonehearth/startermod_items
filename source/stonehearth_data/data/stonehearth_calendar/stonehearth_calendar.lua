@@ -1,3 +1,4 @@
+local stonehearth_sky = radiant.mods.require('stonehearth_sky') -- xxx, hack, see below
 
 local constants = {
    TICKS_PER_SECOND = 2,
@@ -54,6 +55,9 @@ function stonehearth_calendar.__init()
    -- xxx, move this.
    local root_entity = radiant.entities.get_root_entity()
    root_entity:add_component('stonehearth_calendar:calendar'):_set_calendar(stonehearth_calendar)
+
+   -- xxx, this is a total hack. Need a sensible entry point for the sky mod
+   -- stonehearth_sky.add_lights();
 end
 
 function stonehearth_calendar.set_time(second, minute, hour)

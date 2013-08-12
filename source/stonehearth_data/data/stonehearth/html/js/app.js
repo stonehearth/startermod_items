@@ -105,9 +105,7 @@ App = Ember.Application.createWithMixins({
   	_loadTemplates: function(modules) {
   		var self = this;
 
-      var templateUrls = [
-         'stonehearth/stonehearth.html'
-        ];
+      var templateUrls = [];
 
       $.each( modules, function( k, v ) {
         templateUrls.push('/' + k + '/html/' + k + ".html");

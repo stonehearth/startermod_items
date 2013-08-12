@@ -1,5 +1,5 @@
 
-App.StonehearthView = Ember.ContainerView.extend({
+App.StonehearthGameUiView = Ember.ContainerView.extend({
    init: function() {
       this._super();
       var self = this;

@@ -29,7 +29,12 @@ App.StonehearthMainActionbarView = App.View.extend({
                      items: {
                         carpenter: {
                            name: 'Carpenter',
-                           icon: imagePath + 'carpenter.png'
+                           icon: imagePath + 'carpenter.png',
+                           click: function () {
+                              $(top).trigger('radiant.events.create_workshop', {
+                                 workbench: '/stonehearth_carpenter_class/entities/carpenter_workbench'
+                              });  
+                           }
                         }
                      }
                   },

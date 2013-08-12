@@ -1,3 +1,8 @@
 build
 *.deuser
 *.deproj
+
+source/stonehearth_data/tesseract.IBUKI.tom.log*
+source/stonehearth_data/data/*.bin
+source/stonehearth_data/Horde3D_Log.html
+source/stonehearth_data/cef_debug_log.txt

@@ -4,6 +4,7 @@
       options: {},
       _numButtons: 0,
       _initialMenuBuild: true,
+      _clickHandlers: {},
 
       update: function (items) {
          //this._removeItems();
@@ -45,21 +46,35 @@
          //this._menu.find('.button').on('click', function() {
          this._menu.delegate('.clickable', 'click', function() {
             var menuItem = $(this);
-            console.log(this);
-            menuItem.addClass('active');
+            var id = menuItem.attr('id');
 
+            var active = true;
             if (menuItem.hasClass('hasMenu')) {
-               self._showMenu(menuItem.attr('id'));      
+               if (menuItem.hasClass('menuButton') && menuItem.hasClass('active')) {
+                  active = false;
+                  self._hideAllMenus();
+               } else {
+                  self._showMenu(id);
+               }
+
             } else {
-               //XXX execute the button action
+               // we're a leaf menu item, so close all the menus
                self._hideAllMenus();
             }
 
-            // show the arrow
-            menuItem.find('.arrow').show();
+            if (active) {
+               menuItem.addClass('active');
+               menuItem.find('.arrow').show();
+            }
 
             // remove the new badge
             self._removeNewBadge(menuItem);
+
+            // finally, run the function assigned to this menu item
+            if (self._clickHandlers[id]) {
+               self._clickHandlers[id]();
+            }
+
             
          });
 
@@ -85,13 +100,22 @@
                .addClass('hasMenu')
                .addClass('clickable')
                .attr('id', buttonId)
+               .attr('title', data.name)
                .css('bottom', this._numButtons * 80)
                .html('<img src="' + data.icon + '"/>')
                .append('<div class=label>' + data.name + '</div>');
+               /*
+               .tooltip({
+                  delay: { show: 400, hide: 0 },
+                  placement: 'left'
+               });
+               */
 
             $('<div class=arrow></div>')
                .hide()
                .appendTo(button)
+
+
 
             if (!this._initialMenuBuild) {
                // this is a new item that has come in after
@@ -146,6 +170,12 @@
                   .html('<img class=icon src="' + v.icon + '"/>')
                   .append('<div class=label>' + v.name + '</div>');
                
+               // wire up the click handler
+               if (v.click) {
+                  self._clickHandlers[k] = v.click;
+               }
+
+               // style items that spawn a new menu when clicked
                if (v.items) {
                   menuItem.addClass('hasMenu')
 
@@ -184,7 +214,7 @@
       },
 
       _showMenu: function(buttonId) {
-
+         console.log('showmenu ' + buttonId)
          var menu = this._menu.find("[parent='" + buttonId + "']" );
          var parentButton = this._menu.find("#" + buttonId);
          var pos = parentButton.position();
@@ -198,14 +228,10 @@
          });
 
          if (parentButton.hasClass('menuButton')) {
-
             // position the menu relative to the top button
             var parentButton = this._menu.find("#" + buttonId);
             menu.css({ left: pos.left - (menu.width() + 24), top: pos.top + 8});
-
-
          } else {
-
             // position the menu relative the the menu (the button's parent)
             var parentMenuPos = parentButton.parent().position();
             var parentPos = parentButton.position();
@@ -217,6 +243,7 @@
 
             menu.css({ left: left , top: parentMenuPos.top - 80});
          }
+
          menu.show();
       },
 
@@ -224,11 +251,15 @@
          var button = $('#' + buttonId);
 
          var self = this;
-         this._menu.find('.menu').each(function(i, m) {
+         this._menu.find('.menu, .menuButton').each(function(i, m) {
             var menu = $(m);
             var found = self._contains(menu.attr('parent'), buttonId);
             if (!found) {
-               menu.hide();
+               if (menu.hasClass('menu')) {
+                  menu.hide();
+               }
+
+               menu.removeClass('active');
                menu.find('.arrow').hide();
             }
          });
@@ -255,7 +286,7 @@
             if (prop == key) {
                //console.log(indent + 'found ' + key + '!!!');
                return obj[prop];
-            } else if (obj[prop] instanceof Object) {
+            } else if (obj[prop] instanceof Object && typeof obj[prop] != 'function') {
                result = this._getPropertyInObject(key, obj[prop], indent + '   ');
                if (result) {
                   return result;
@@ -268,7 +299,7 @@
 
       _hideAllMenus: function() {
          this.element.find('.menu').hide();
-         this.element.find('.button').removeClass('active');
+         this.element.find('.clickable').removeClass('active');
          this.element.find('.arrow').hide();
       },
 
