@@ -14,9 +14,6 @@
 #include "om/components/mob.h"
 #include "om/components/terrain.h"
 #include "om/components/entity_container.h"
-#include "om/components/grid_collision_shape.h"
-#include "om/components/render_grid.h"
-#include "om/components/build_orders.h"
 #include "om/components/aura_list.h"
 #include "om/components/target_tables.h"
 #include "om/components/lua_components.h"
@@ -48,12 +45,25 @@ Simulation::Simulation(lua_State* L) :
 {
    singleton_ = this;
    octtree_ = std::unique_ptr<Physics::OctTree>(new Physics::OctTree());
+   scriptHost_.reset(new ScriptHost(L_));
 
    commands_["radiant.toggle_debug_nodes"] = std::bind(&Simulation::ToggleDebugShapes, this, std::placeholders::_1);
    commands_["radiant.toggle_step_paths"] = std::bind(&Simulation::ToggleStepPathFinding, this, std::placeholders::_1);
    commands_["radiant.step_paths"] = std::bind(&Simulation::StepPathFinding, this, std::placeholders::_1);
    //commands_["create_room"] = [](const proto::DoAction& msg) { return CreateRoomCmd()(msg); };
 
+   auto& rm = resources::ResourceManager2::GetInstance();
+   for (std::string const& modname : rm.GetModuleNames()) {
+      try {
+         json::ConstJsonObject manifest = rm.LookupManifest(modname);
+         json::ConstJsonObject const& block = manifest["server"];
+         LOG(WARNING) << "loading init script for " << modname << "...";
+         LoadModuleInitScript(block);
+         LoadModuleRoutes(modname, block);
+      } catch (std::exception const& e) {
+         LOG(WARNING) << "load failed: " << e.what();
+      }
+   }
    om::RegisterObjectTypes(store_);
 }
 
@@ -68,14 +78,47 @@ Simulation::~Simulation()
    singleton_ = nullptr;
 }
 
+
+void Simulation::LoadModuleInitScript(json::ConstJsonObject const& block)
+{
+   try {
+      std::string filename = block["init_script"].as_string();
+      scriptHost_->LuaRequire(filename);
+   } catch (std::exception const& e) {
+      LOG(WARNING) << "load failed: " << e.what();
+   }
+}
+
+static std::string SanatizePath(std::string const& path)
+{
+   std::vector<std::string> s;
+   boost::split(s, path, boost::is_any_of("/"));
+   s.erase(std::remove(s.begin(), s.end(), ""), s.end());
+   return std::string("/") + boost::algorithm::join(s, "/");
+}
+
+void Simulation::LoadModuleRoutes(std::string const& modname, json::ConstJsonObject const& block)
+{
+   resources::ResourceManager2 &rm = resources::ResourceManager2::GetInstance();
+   try {
+      for (auto const& node : block["routes"]) {
+         std::string const& uri_path = SanatizePath("/modules/server/" + modname + "/" + node.name());
+         std::string const& lua_path = node.as_string();
+         routes_[uri_path] = scriptHost_->LuaRequire(lua_path);
+      }
+   } catch (std::exception const& e) {
+      LOG(WARNING) << "load failed: " << e.what();
+   }
+}
+
+
 void Simulation::CreateNew()
 {
    ASSERT(this == &Simulation::GetInstance());
 
    guards_ += store_.TraceDynamicObjectAlloc(std::bind(&Simulation::OnObjectAllocated, this, std::placeholders::_1));
 
-   scripts_.reset(new ScriptHost(L_));
-   scripts_->CreateNew();
+   scriptHost_->CreateNew();
    now_ = 0;
 }
 
@@ -133,7 +176,7 @@ void Simulation::Step(platform::timer &timer, int interval)
    //IncrementClock(interval);
 
    // Run AI...
-   scripts_->Update(interval, now_);
+   scriptHost_->Update(interval, now_);
 
    // Collision detection...
    GetOctTree().Update(now_);
@@ -149,7 +192,7 @@ void Simulation::Step(platform::timer &timer, int interval)
    // actually change state before we push a change over the
    // network or start doing some heavy lifting (like pathfinding
    // jobs).
-   scripts_->CallGameHook("post_trace_firing");
+   scriptHost_->CallGameHook("post_trace_firing");
 
    // Run jobs with the time left over
    ProcessJobList(timer);
@@ -157,7 +200,7 @@ void Simulation::Step(platform::timer &timer, int interval)
 
 void Simulation::Idle(platform::timer &timer)
 {
-   scripts_->Idle(timer);
+   scriptHost_->Idle(timer);
 }
 
 void Simulation::EncodeUpdates(protocol::SendQueuePtr queue, ClientState& cs)
@@ -230,7 +273,7 @@ Physics::OctTree &Simulation::GetOctTree()
 
 om::EntityPtr Simulation::GetRootEntity()
 {
-   return scripts_->GetEntity(1).lock();
+   return scriptHost_->GetEntity(1).lock();
 }
 
 dm::Store& Simulation::GetStore()
@@ -407,7 +450,7 @@ void Simulation::UpdateAuras(int now)
             auto list = entry.list.lock();
             list->RemoveAura(aura);
 
-            auto L = scripts_->GetInterpreter();
+            auto L = scriptHost_->GetInterpreter();
             luabind::object handler = aura->GetMsgHandler();
             luabind::object md = luabind::globals(L)["md"];
             luabind::object aobj(L, aura);
@@ -496,12 +539,56 @@ void Simulation::FetchObject(proto::FetchObjectRequest const& request, proto::Fe
    return;
 }
 
+// xxx: Merge into a common route thingy...
+void Simulation::HandleRouteRequest(luabind::object ctor, JSONNode const& query, std::string const& postdata, proto::PostCommandReply* reply)
+{
+   // convert the json query data to a lua table...
+   try {
+      using namespace luabind;
+      lua_State* L = scriptHost_->GetCallbackState();
+      object queryObj = scriptHost_->JsonToLua(query);
+      object postdataObj;
+      if (!postdata.empty()) {
+         postdataObj = scriptHost_->JsonToLua(libjson::parse(postdata));
+      }
+      object coder = globals(L)["radiant"]["json"];
+
+      object obj = call_function<object>(ctor);
+      object fn = obj["handle_request"];
+      auto i = query.find("fn");
+      if (i != query.end() && i->type() == JSON_STRING) {
+         std::string fname = i->as_string();
+         if (!fname.empty())  {
+            fn = obj[fname];
+         }
+      }
+      object result = call_function<object>(fn, obj, queryObj, postdataObj);
+      std::string json = call_function<std::string>(coder["encode"], result);
+
+      reply->set_status_code(200);
+      reply->set_content(json);
+      reply->set_mime_type("application/json");
+   } catch (std::exception &e) {
+      JSONNode result;
+      result.push_back(JSONNode("error", e.what()));
+      reply->set_status_code(500);
+      reply->set_content(result.write());
+      reply->set_mime_type("application/json");
+   }
+}
+
 void Simulation::PostCommand(proto::PostCommandRequest const& request, proto::PostCommandReply* reply)
 {
    std::string response, error;
    std::string const& path = request.path();
    std::string const& query = request.query();
    std::string const& data = request.data();
+
+   auto i = routes_.find(path);
+   if (i != routes_.end()) {
+      HandleRouteRequest(i->second, libjson::parse(query), data, reply);
+      return;
+   }
 
    dm::ObjectPtr obj = om::ObjectFormatter("/object/").GetObject(GetStore(), request.path());
    if (obj) {
@@ -513,15 +600,15 @@ void Simulation::PostCommand(proto::PostCommandRequest const& request, proto::Po
             std::string fname = node["fn"].as_string();
             luabind::object obj = lc->GetLuaObject();
             luabind::object fn = obj[fname];
-            response = scripts_->PostCommand(fn, obj, data);
+            response = scriptHost_->PostCommand(fn, obj, data);
          } catch (std::exception const& e) {
             error = e.what();
          }
       }
    } else {
-      luabind::object obj = scripts_->LuaRequire(path);
+      luabind::object obj = scriptHost_->LuaRequire(path);
       if (obj && luabind::type(obj) != LUA_TNIL) { // xxx: Just let the exception thing happen!
-         response = scripts_->PostCommand(obj, data);
+         response = scriptHost_->PostCommand(obj, data);
       } else {
          error = "no such object";
       }

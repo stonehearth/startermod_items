@@ -373,7 +373,7 @@ FloatingCombatTextEffect::FloatingCombatTextEffect(RenderEntity& e, om::EffectPt
       std::string value = effect->GetParam(key).GetString();
       text = match.prefix().str() + value + match.suffix().str();
    }
-   om::EntityPtr entity = Client::GetInstance().GetStore().FetchObject<om::Entity>(e.GetEntityId());
+   om::EntityPtr entity = Client::GetInstance().GetStore().FetchObject<om::Entity>(e.GetObjectId());
    if (entity) {
       om::RenderRigPtr rig = entity->GetComponent<om::RenderRig>();
       if (rig) {

@@ -7,8 +7,7 @@
 #include "dm/boxed.h"
 #include "dm/store.h"
 #include "om/om.h"
-#include "om/grid/grid.h"
-#include "om/all_object_types.h"
+#include "om/object_enums.h"
 #include "om/region.h"
 #include "csg/cube.h"
 #include "component.h"
@@ -19,8 +18,6 @@ class Terrain : public Component
 {
 public:
    DEFINE_OM_OBJECT_TYPE(Terrain, terrain);
-   static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
-   std::string ToString() const;
 
    enum TerrainTypes {
       Null        = 0,
@@ -45,12 +42,10 @@ private:
    void InitializeRecordFields() override;
 
 public:
-   Region                    region_;
+   BoxedRegion3      region_;
    //dm::Set<dm::Ref<Entity>>      mobs_;
    //dm::Set<dm::Ref<Entity>>      items_;
 };
-
-static std::ostream& operator<<(std::ostream& os, const Terrain& o) { return (os << o.ToString()); }
 
 END_RADIANT_OM_NAMESPACE
 

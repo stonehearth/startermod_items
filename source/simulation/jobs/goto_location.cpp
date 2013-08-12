@@ -2,7 +2,6 @@
 #include "goto_location.h"
 #include "om/entity.h"
 #include "om/components/mob.h"
-#include "om/components/carry_block.h"
 #include "simulation/script/script_host.h"
 #include <boost/program_options.hpp>
 

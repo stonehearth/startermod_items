@@ -11,7 +11,7 @@ function SimpleRoomTest:__init()
    --self:place_stockpile_cmd(faction, 12, -12)
    
    local house = self:create_room(faction, -16, -16, 4, 4)   
-   self:at(100, function()
+   self:at(10, function()
          -- self:start_project_cmd(house)
       end)
 end

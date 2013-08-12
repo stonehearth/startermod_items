@@ -22,18 +22,15 @@ class NavGrid {
 
    private:
       void AddVerticalPathingRegion(om::VerticalPathingRegionPtr vpr);
-      void AddGridCollisionShape(om::GridCollisionShapePtr grid);
       void AddRegionCollisionShape(om::RegionCollisionShapePtr region);
       bool CanStandOn(csg::Point3 const& pt) const;
       bool Intersects(csg::Cube3 const& bounds, om::RegionCollisionShapePtr rgnCollsionShape) const;
-      bool Intersects(csg::Cube3 const& bounds, om::GridCollisionShapePtr gridCollsionShape) const;
       bool PointOnLadder(csg::Point3 const& pt) const;
 
    private:
       bool                    dirty_;
       csg::Region3            solidRegion_;
       mutable std::map<dm::ObjectId, om::VerticalPathingRegionRef> vprs_;
-      mutable std::map<dm::ObjectId, om::GridCollisionShapeRef>    gridCollisionShapes_;
       mutable std::map<dm::ObjectId, om::RegionCollisionShapeRef>  regionCollisionShapes_;
 };
 

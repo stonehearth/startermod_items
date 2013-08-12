@@ -10,7 +10,6 @@
 #include "Horde3DUtils.h"
 #include "resources/res_manager.h"
 #include "qubicle_file.h"
-#include "texture_color_mapper.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;

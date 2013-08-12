@@ -219,7 +219,7 @@ function events.listen_to_entity(entity, filter, handler)
    radiant.check.is_entity(entity)
    radiant.check.verify(events.is_msg_filter(filter))
 
-   if not entity:is_valid() then
+   if not entity then
       log:warning('ignoring invalid entity in md:listen')
       return
    end

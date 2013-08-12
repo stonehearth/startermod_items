@@ -49,21 +49,6 @@ void Object::InitializeSlave(Store& store, ObjectId id)
    // A LoadValue's coming... don't worry
 }
 
-#if 0
-void Object::Initialize(Store& store, const Protocol::Object& msg)
-{
-   id_.id = msg.object_id();
-   id_.store = store.GetStoreId();
-   timestamp_ = msg.timestamp();
-
-   ASSERT(msg.object_type() == GetObjectType());
-
-   store.RegisterObject(*this);
-   LoadValue(store, msg.value());
-   InitializeRecordFields();
-}
-#endif
-
 Object::~Object()
 {
    if (id_.id) {
@@ -125,9 +110,3 @@ bool Object::IsValid() const
    return id_.id != 0 && id_.store > 0 && id_.store < 4;
 }
 
-void Object::RestoreWeakPointers(CloneMapping& mapping) const
-{
-   for (const auto& fn : mapping.restore) {
-      fn();
-   }
-}

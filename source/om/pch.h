@@ -12,6 +12,6 @@
 
 #define DEFINE_ALL_OBJECTS
 #include "all_objects.h"
-#include "all_object_types.h"
+#include "all_components.h"
 
 #endif // _RADIANT_OM_PCH_H

@@ -5,6 +5,7 @@
 #include "namespace.h"
 #include "radiant_stdutil.h"
 #include "radiant_luabind.h"
+#include "lua/register.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -191,25 +192,24 @@ public:
       return luabind::object(L, i->second);
    }
 
-   static luabind::scope RegisterLuaType(struct lua_State* L, const char* name) {
+   static luabind::scope RegisterLuaType(struct lua_State* L) {
       using namespace luabind;
-      std::string itername = std::string(name) + "Iterator";
-      std::string promisename = std::string(name) + "Promise";
+
       return
-         class_<Map>(name)
+         lua::RegisterType<Map>()
             .def(tostring(const_self))
-            .def("size",              &Map::GetSize)
-            .def("is_empty",          &Map::IsEmpty)
-            .def("get",               &Map::LuaGet)
-            .def("items",             &Map::LuaIteratorStart)
-            .def("trace",             &Map::LuaTrace)
+            .def("size",         &Map::GetSize)
+            .def("is_empty",     &Map::IsEmpty)
+            .def("get",          &Map::LuaGet)
+            .def("items",        &Map::LuaIteratorStart)
+            .def("trace",        &Map::LuaTrace)
          ,
-         class_<LuaIterator<decltype(items_)>>(itername.c_str())
+         lua::RegisterType<LuaIterator<decltype(items_)>>()
          ,
-         class_<LuaPromise>(itername.c_str())
-            .def("on_added",    &LuaPromise::PushAddedCb)
-            .def("on_removed",  &LuaPromise::PushRemovedCb)
-            .def("destroy",  &LuaPromise::Destroy) // xxx: make this __gc!!
+         lua::RegisterType<LuaPromise>()
+            .def("on_added",     &LuaPromise::PushAddedCb)
+            .def("on_removed",   &LuaPromise::PushRemovedCb)
+            .def("destroy",      &LuaPromise::Destroy) // xxx: make this __gc!!
          ;
    }
 
@@ -251,27 +251,9 @@ public:
          }
       }
    }
-   void CloneObject(Object* obj, CloneMapping& mapping) const override {
-      Map<K, V, Hash>& copy = static_cast<Map<K, V, Hash>&>(*obj);
-
-      mapping.objects[GetObjectId()] = copy.GetObjectId();
-      for (const auto& entry : items_) {
-         SaveImpl<V>::CloneValue(obj->GetStore(), entry.second, &copy[entry.first], mapping);
-      }
-   }
 
    std::ostream& ToString(std::ostream& os) const {
       return (os << "(Map size:" << items_.size() << ")");
-   }
-
-   std::ostream& Log(std::ostream& os, std::string indent) const override {
-      os << "map [oid:" << GetObjectId() << "] {" << std::endl;
-      std::string i2 = indent + std::string("  ");
-      for (const auto &entry : items_) {
-         os << i2 << entry.first << " : " << Format<V>(entry.second, i2) << std::endl;
-      }
-      os << indent << "}" << std::endl;
-      return os;
    }
 
 private:
@@ -283,33 +265,10 @@ private:
    mutable std::vector<K>  removed_;
 };
 
-
-template <class K, class V, class Hash>
-struct Formatter<Map<K, V, Hash>>
-{
-   static std::ostream& Log(std::ostream& out, const Map<K, V, Hash>& value, const std::string indent) {
-      return value.Log(out, indent);
-   }
-};
-
-
 template <typename K, typename V, typename H>
 static std::ostream& operator<<(std::ostream& os, const Map<K, V, H>& in)
 {
    return in.ToString(os);
 }
-
-#if 0
-template<class K, class V, class Hash>
-struct SaveImpl<Map<K, V, Hash>>
-{
-   static void SaveValue(const Store& store, Protocol::Value* msg, const Map<K, V, Hash>& obj) {
-      obj.SaveValue(store, msg);
-   }
-   static void LoadValue(const Store& store, const Protocol::Value& msg, Map<K, V, Hash>& obj) {
-      obj.LoadValue(store, msg);
-   }
-};
-#endif
 
 END_RADIANT_DM_NAMESPACE

@@ -20,6 +20,8 @@
 #include "egLight.h"
 #include "egCamera.h"
 #include "egModules.h"
+#include "egVoxelGeometry.h"
+#include "egVoxelModel.h"
 #include "egCom.h"
 #include <cstring>
 #include <sstream>
@@ -68,6 +70,7 @@ Renderer::Renderer()
 	_vlPosOnly = 0;
 	_vlOverlay = 0;
 	_vlModel = 0;
+   _vlVoxelModel = 0;
 	_vlParticle = 0;
    bool openglES = false;
 #if defined(OPTIMIZE_GSLS)
@@ -142,6 +145,13 @@ bool Renderer::init()
 		"texCoords1", 3, 2, 40
 	};
 	_vlModel = gRDI->registerVertexLayout( 7, attribsModel );
+
+	VertexLayoutAttrib attribsVoxelModel[3] = {
+      { "vertPos",     0, 3, 0 }, 
+      { "normal",      0, 3, 12 },
+      { "color",       0, 3, 24 },
+	};
+	_vlVoxelModel = gRDI->registerVertexLayout( 3, attribsVoxelModel );
 
 	VertexLayoutAttrib attribsParticle[2] = {
 		"texCoords0", 0, 2, 0,
@@ -1288,7 +1298,9 @@ void Renderer::clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3,
 	if( gRDI->_curRendBuf != 0x0 )
 	{
 		// Store state of glDrawBuffers
-		for( uint32 i = 0; i < 4; ++i ) glGetIntegerv( GL_DRAW_BUFFER0 + i, (int *)&prevBuffers[i] );
+		for( uint32 i = 0; i < 4; ++i ) {
+         glGetIntegerv( GL_DRAW_BUFFER0 + i, (int *)&prevBuffers[i] );
+      }
 		
 		RDIRenderBuffer &rb = gRDI->_rendBufs.getRef( gRDI->_curRendBuf );
 		uint32 buffers[4], cnt = 0;
@@ -1318,8 +1330,9 @@ void Renderer::clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3,
 	glDisable( GL_SCISSOR_TEST );
 	
 	// Restore state of glDrawBuffers
-	if( gRDI->_curRendBuf != 0x0 )
+	if( gRDI->_curRendBuf != 0x0 ) {
 		glDrawBuffers( 4, prevBuffers );
+   }
 }
 
 
@@ -1648,7 +1661,7 @@ void Renderer::drawMeshes( const std::string &shaderContext, const std::string &
 		if( meshNode->getBatchStart() + meshNode->getBatchCount() > modelNode->getGeometryResource()->_indexCount )
 			continue;
 		
-		bool modelChanged = true;
+      bool modelChanged = true;
 		uint32 queryObj = 0;
 
 		// Occlusion culling
@@ -1746,7 +1759,7 @@ void Renderer::drawMeshes( const std::string &shaderContext, const std::string &
 		}
 
 		ShaderCombination *curShader = Modules::renderer().getCurShader();
-		
+
 		if( modelChanged || curShader != prevShader )
 		{
 			// Skeleton
@@ -1761,7 +1774,159 @@ void Renderer::drawMeshes( const std::string &shaderContext, const std::string &
 
 			modelChanged = false;
 		}
+		
+		// World transformation
+		if( curShader->uni_worldMat >= 0 )
+		{
+			gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &meshNode->_absTrans.x[0] );
+		}
+		if( curShader->uni_worldNormalMat >= 0 )
+		{
+			// TODO: Optimize this
+			Matrix4f normalMat4 = meshNode->_absTrans.inverted().transposed();
+			float normalMat[9] = { normalMat4.x[0], normalMat4.x[1], normalMat4.x[2],
+			                       normalMat4.x[4], normalMat4.x[5], normalMat4.x[6],
+			                       normalMat4.x[8], normalMat4.x[9], normalMat4.x[10] };
+			gRDI->setShaderConst( curShader->uni_worldNormalMat, CONST_FLOAT33, normalMat );
+		}
+		if( curShader->uni_nodeId >= 0 )
+		{
+			float id = (float)meshNode->getHandle();
+			gRDI->setShaderConst( curShader->uni_nodeId, CONST_FLOAT, &id );
+		}
 
+		if( queryObj )
+			gRDI->beginQuery( queryObj );
+		
+		// Render
+		gRDI->drawIndexed( PRIM_TRILIST, meshNode->getBatchStart(), meshNode->getBatchCount(),
+		                   meshNode->getVertRStart(), meshNode->getVertREnd() - meshNode->getVertRStart() + 1 );
+		Modules::stats().incStat( EngineStats::BatchCount, 1 );
+		Modules::stats().incStat( EngineStats::TriCount, meshNode->getBatchCount() / 3.0f );
+
+		if( queryObj )
+			gRDI->endQuery( queryObj );
+	}
+
+	// Draw occlusion proxies
+	if( occSet >= 0 )
+		Modules::renderer().drawOccProxies( 0 );
+
+	gRDI->setVertexLayout( 0 );
+}
+
+
+void Renderer::drawVoxelMeshes(const std::string &shaderContext, const std::string &theClass, bool debugView,
+                               const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
+                               int occSet)
+{
+	if( frust1 == 0x0 ) return;
+	
+	VoxelGeometryResource *curVoxelGeoRes = 0x0;
+	MaterialResource *curMatRes = 0x0;
+
+	// Loop over mesh queue
+	for( size_t i = 0, si = Modules::sceneMan().getRenderableQueue().size(); i < si; ++i )
+	{
+		if( Modules::sceneMan().getRenderableQueue()[i].type != SceneNodeTypes::VoxelMesh ) continue;
+		
+		VoxelMeshNode *meshNode = (VoxelMeshNode *)Modules::sceneMan().getRenderableQueue()[i].node;
+		VoxelModelNode *modelNode = meshNode->getParentModel();
+		
+		// Check that mesh is valid
+		if( modelNode->getVoxelGeometryResource() == 0x0 )
+			continue;
+		if( meshNode->getBatchStart() + meshNode->getBatchCount() > modelNode->getVoxelGeometryResource()->_indexCount )
+			continue;
+		
+		uint32 queryObj = 0;
+
+		// Occlusion culling
+		if( occSet >= 0 )
+		{
+			if( occSet > (int)meshNode->_occQueries.size() - 1 )
+			{
+				meshNode->_occQueries.resize( occSet + 1, 0 );
+				meshNode->_lastVisited.resize( occSet + 1, 0 );
+			}
+			if( meshNode->_occQueries[occSet] == 0 )
+			{
+				queryObj = gRDI->createOcclusionQuery();
+				meshNode->_occQueries[occSet] = queryObj;
+				meshNode->_lastVisited[occSet] = 0;
+			}
+			else
+			{
+				if( meshNode->_lastVisited[occSet] != Modules::renderer().getFrameID() )
+				{
+					meshNode->_lastVisited[occSet] = Modules::renderer().getFrameID();
+				
+					// Check query result (viewer must be outside of bounding box)
+					if( nearestDistToAABB( frust1->getOrigin(), meshNode->getBBox().min,
+					                       meshNode->getBBox().max ) > 0 &&
+						gRDI->getQueryResult( meshNode->_occQueries[occSet] ) < 1 )
+					{
+						Modules::renderer().pushOccProxy( 0, meshNode->getBBox().min, meshNode->getBBox().max,
+						                                  meshNode->_occQueries[occSet] );
+						continue;
+					}
+					else
+						queryObj = meshNode->_occQueries[occSet];
+				}
+			}
+		}
+		
+		// Bind geometry
+		if( curVoxelGeoRes != modelNode->getVoxelGeometryResource() )
+		{
+			curVoxelGeoRes = modelNode->getVoxelGeometryResource();
+			ASSERT( curVoxelGeoRes != 0x0 );
+		
+			// Indices
+			gRDI->setIndexBuffer( curVoxelGeoRes->getIndexBuf(),
+			                      curVoxelGeoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
+
+			// Vertices
+         gRDI->setVertexBuffer( 0, curVoxelGeoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
+		}
+
+		gRDI->setVertexLayout( Modules::renderer()._vlVoxelModel );
+		
+		ShaderCombination *prevShader = Modules::renderer().getCurShader();
+		
+		if( !debugView )
+		{
+			if( !meshNode->getMaterialRes()->isOfClass( theClass ) ) continue;
+			
+			// Set material
+			if( curMatRes != meshNode->getMaterialRes() )
+			{
+				if( !Modules::renderer().setMaterial( meshNode->getMaterialRes(), shaderContext ) )
+				{	
+					curMatRes = 0x0;
+					continue;
+				}
+				curMatRes = meshNode->getMaterialRes();
+			}
+		}
+		else
+		{
+			Modules::renderer().setShaderComb( &Modules::renderer()._defColorShader );
+			Modules::renderer().commitGeneralUniforms();
+			
+			uint32 curLod = meshNode->getLodLevel();
+			Vec4f color;
+			if( curLod == 0 ) color = Vec4f( 0.5f, 0.75f, 1, 1 );
+			else if( curLod == 1 ) color = Vec4f( 0.25f, 0.75, 0.75f, 1 );
+			else if( curLod == 2 ) color = Vec4f( 0.25f, 0.75, 0.5f, 1 );
+			else if( curLod == 3 ) color = Vec4f( 0.5f, 0.5f, 0.25f, 1 );
+			else color = Vec4f( 0.75f, 0.5, 0.25f, 1 );
+
+			gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color.x );
+		}
+
+		ShaderCombination *curShader = Modules::renderer().getCurShader();
+		
 		// World transformation
 		if( curShader->uni_worldMat >= 0 )
 		{

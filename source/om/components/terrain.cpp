@@ -1,43 +1,10 @@
 #include "pch.h"
 #include "terrain.h"
-#include "om/grid/grid.h"
 #include "om/entity.h"
 #include "mob.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
-
-luabind::scope Terrain::RegisterLuaType(struct lua_State* L, const char* name)
-{
-   using namespace luabind;
-
-   return
-      class_<Terrain, std::weak_ptr<Component>>(name)
-         .def(tostring(self))
-         .def("create_new",            &om::Terrain::CreateNew)
-         .def("add_region",            &om::Terrain::AddRegion)
-         .def("add_cube",              &om::Terrain::AddCube)
-         .def("remove_cube",           &om::Terrain::RemoveCube)
-         .def("place_entity",          &om::Terrain::PlaceEntity)
-         .enum_("TerrainTypes")
-         [
-            value("BEDROCK",              Terrain::Bedrock),
-            value("TOPSOIL",              Terrain::Topsoil),
-            value("TOPSOIL_DETAIL",       Terrain::TopsoilDetail),
-            value("GRASS",                Terrain::Grass),
-            value("PLAINS",               Terrain::Plains),
-            value("DARK_WOOD",            Terrain::DarkWood),
-            value("DIRT_PATH",            Terrain::DirtPath)
-         ]
-      ;
-}
-
-std::string Terrain::ToString() const
-{
-   std::ostringstream os;
-   os << "(Terrain id:" << GetObjectId() << ")";
-   return os.str();
-}
 
 void Terrain::CreateNew()
 {

@@ -8,7 +8,6 @@
 #include "stockpile/decal_node.h"
 #include "stockpile/stockpile_node.h"
 #include "stockpile/toast_node.h"
-#include "stockpile/terrain_node.h"
 #include "Horde3D.h"
 #include "Horde3DUtils.h"
 
@@ -37,9 +36,6 @@ bool Extension::init()
       return false;
    }
    if (!ToastNode::InitExtension()) {
-      return false;
-   }
-   if (!TerrainNode::InitExtension()) {
       return false;
    }
 
@@ -106,19 +102,6 @@ bool h3dRadiantResizeStockpileNode(H3DNode node, int width, int height)
 	ToastNode* sn = (ToastNode*)Modules::sceneMan().findType(SNT_ToastNode)->factoryFunc(ToastTpl(name));
 	H3DNode node = Modules::sceneMan().addNode(sn, *parentNode);
 
-   sn->SetNode(node);
-   return sn;
-}
-
-::radiant::horde3d::TerrainNode* h3dRadiantCreateTerrainNode(H3DNode parent, std::string name, int type, csg::mesh_tools::mesh const& m)
-{
-	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
-	APIFUNC_VALIDATE_NODE(parentNode, "h3dRadiantCreateTerrainNode", nullptr);
-	
-	Modules::log().writeInfo( "Adding Terrain node '%s'", name.c_str() );
-	
-	TerrainNode* sn = new TerrainNode(type, m);
-	H3DNode node = Modules::sceneMan().addNode(sn, *parentNode);
    sn->SetNode(node);
    return sn;
 }

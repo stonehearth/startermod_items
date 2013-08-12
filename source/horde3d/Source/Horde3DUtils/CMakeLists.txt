@@ -1,5 +1,6 @@
 
 include_directories(../Shared)
+include_directories(../Horde3DEngine)
 include_directories(../../Bindings/C++)
 
 

@@ -4,7 +4,6 @@
 #include <map>
 #include "namespace.h"
 #include "render_component.h"
-#include "render_grid.h"
 #include "types.h"
 #include "om/om.h"
 #include "dm/dm.h"
@@ -26,7 +25,6 @@ private:
 private:
    const RenderEntity&  entity_;
    dm::Guard            regionGuard_;
-   dm::Guard            regionPtrGuard_;
    dm::Guard            selectedGuard_;
    H3DNode              node_;
 };

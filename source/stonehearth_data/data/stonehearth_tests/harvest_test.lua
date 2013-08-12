@@ -13,7 +13,7 @@ function HarvestTest:__init()
    local faction = worker:get_component('unit_info'):get_faction()
    
    self:at(10,  function()
-         --self:place_stockpile_cmd(faction, 4, 12)
+         self:place_stockpile_cmd(faction, 4, 12)
       end)
 
    self:at(100, function()

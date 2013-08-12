@@ -2,9 +2,13 @@ $(document).ready(function(){
 
       // When we get the show_workshop event, toggle the crafting window
       // for this entity.
-      $(top).on("stonehearth_crafter.show_workshop", function (_, e) {
+      $(top).on("stonehearth_crafter.show_workshop", function (_, e) {         
          var entity = e.entity;
+
+         // xxx - this is probably way too convoluted, and if it does need to be here
+         // should use local data instead of this crazy stonehearth.entityData API
          var existingWorkshopView = stonehearth.entityData(entity, "show_workshop");
+         existingWorkshopView = false;
 
          if (!existingWorkshopView) {
             var view = App.gameView.addView(App.StonehearthCrafterView, { uri: entity });
@@ -26,12 +30,30 @@ $(document).ready(function(){
          if (e["stonehearth_crafter:workshop"] != undefined) {
 
          } else {
+            // xxx - this is probably way too convoluted, and if it does need to be here
+            // should use local data instead of this crazy stonehearth.entityData API
+            /*
             var existingWorkshopView = stonehearth.entityData(entity, "show_workshop");
             if (existingWorkshopView) {
                existingWorkshopView.hide();
             }
+            */
          }
+      });
 
+      // handle requests from elsewhere in the UI that a workshop be created
+      $(top).on("radiant.events.create_workshop", function (_, e) {
+         // kick off a request to the client to show the cursor for placing
+         // the workshop. The UI is out of the 'create workshop' process after
+         // this. All the work is done in the client and server
+
+         var crafterModUri = '/modules/client/stonehearth_crafter/choose_location';
+         var workbenchEntity = e.workbench;
+
+         $.get(crafterModUri, { entity: workbenchEntity })
+            .done(function(o){
+
+            });
       });
 
 });

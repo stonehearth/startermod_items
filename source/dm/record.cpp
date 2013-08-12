@@ -111,33 +111,3 @@ bool Record::FieldIsUnique(std::string name, Object& obj)
    return true;
 }
 
-void Record::CloneObject(Object* c, CloneMapping& mapping) const
-{
-   Record& copy = static_cast<Record&>(*c);
-   ASSERT(copy.GetObjectType() == GetObjectType());
-
-   mapping.objects[GetObjectId()] = copy.GetObjectId();
-
-   for (unsigned int i = 0; i < fields_.size(); i++) {
-      ASSERT(fields_[i].first == copy.fields_[i].first);
-      Object* lhs = GetStore().FetchStaticObject(fields_[i].second);
-      Object* rhs = copy.GetStore().FetchStaticObject(copy.fields_[i].second);
-
-      ASSERT(lhs && rhs);
-      ASSERT(lhs->GetObjectType() == rhs->GetObjectType());
-      lhs->CloneObject(rhs, mapping);
-   }
-}
-
-std::ostream& Record::Log(std::ostream& os, std::string indent) const
-{
-   os << "record [oid:" << GetObjectId() << "] {" << std::endl;
-   
-   std::string i2 = indent + std::string("  ");
-   for (unsigned int i = 0; i < fields_.size(); i++) {
-      const Object* value = GetStore().FetchStaticObject(fields_[i].second);
-      os << i2 << '\"' << fields_[i].first << "\" : " << Format<const Object*>(value, i2);
-   }
-   os << indent << "}";
-   return os;
-}

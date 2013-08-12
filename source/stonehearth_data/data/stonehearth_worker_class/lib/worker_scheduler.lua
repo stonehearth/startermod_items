@@ -113,7 +113,8 @@ function WorkerScheduler:_recommend_activity(worker, action, ...)
 
    local entry = self._workers[worker:get_id()]
    if entry then
-      entry.dispatch_fn(5, action, ...)
+      radiant.log.warning('dispatching task %s', action)
+      entry.dispatch_fn(10, action, ...)
    end
    self:remove_worker(worker)
 end
@@ -316,7 +317,7 @@ function WorkerScheduler:_get_carrying(worker)
    local material = ""
    
    local c = worker:get_component('carry_block')
-   if c:is_valid() and c:is_carrying() then
+   if c and c:is_carrying() then
       carrying = c:get_carrying()
       local item = carrying:get_component('item')
       if item then
@@ -456,7 +457,9 @@ end
 
 function WorkerScheduler:_enable_pathfinders()   
    local space_available = self:_stock_space_available()
+   -- why do we have a generic pickup finder for restocking!?
    self.pf.pickup:set_enabled(space_available)
+   --self.pf.pickup:set_enabled(false)
    for material, pf in pairs(self.pf.group.construct) do
       local needs_work = not pf:is_idle()
       self:_alloc_pf('pickup', material):set_enabled(needs_work)

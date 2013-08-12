@@ -53,12 +53,6 @@ public:
    typename ContainerType::const_iterator begin() const { return items_.begin(); }
    typename ContainerType::const_iterator end() const { return items_.end(); }
 
-   ObjectPtr Clone(CloneMapping& mapping) {
-      for (const auto& item : items_) {
-         Enqueue(SaveImpl<T>::Clone(store, item));
-      }
-   }
-
 public:
    void SaveValue(const Store& store, Protocol::Value* valmsg) const {
       Protocol::Queue::Update* msg = valmsg->MutableExtension(Protocol::Queue::extension);
@@ -76,26 +70,6 @@ public:
          SaveImpl<T>::LoadValue(store, item, value);
          items_.push_back(value);
       }
-   }
-   void CloneObject(Object* obj, CloneMapping& mapping) const override {
-      Queue<T>& copy = static_cast<Queue<T>&>(*obj);
-
-      mapping.objects[GetObjectId()] = copy.GetObjectId();
-
-      copy.items_.resize(items_.size());
-      for (unsigned int i = 0; i < items_.size(); i++) {
-         SaveImpl<T>::CloneValue(obj->GetStore(), items_[i], &copy.items_[i], mapping);
-      }
-   }
-
-   std::ostream& Log(std::ostream& os, std::string indent) const override {
-      os << "queue [oid:" << GetObjectId() << " size:" << items_.size() << "] {" << std::endl;
-      std::string i2 = indent + std::string("  ");
-      for (const auto &entry : items_) {
-         os << i2 << Format<T>(entry, i2) << std::endl;
-      }
-      os << indent << "}" << std::endl;
-      return os;
    }
 
 private:

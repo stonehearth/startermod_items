@@ -100,7 +100,7 @@ class PathFinder : public Job {
       std::hash_map<math3d::ipoint3, math3d::ipoint3>   cameFrom_;
 
       PathFinderEndpoint                                 source_;
-      mutable std::unordered_map<om::EntityId, std::unique_ptr<PathFinderEndpoint>>  destinations_;
+      mutable std::unordered_map<dm::ObjectId, std::unique_ptr<PathFinderEndpoint>>  destinations_;
 };
 
 typedef std::weak_ptr<PathFinder> PathFinderRef;

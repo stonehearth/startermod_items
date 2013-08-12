@@ -19,8 +19,14 @@ add_library(csg STATIC
             pch.cpp
             )
 
+add_subdirectory(lua)
+
 add_library(unittests_csg STATIC
             unittests.cpp)
+
+target_link_libraries(csg
+                      csg_lua
+                     )
 
 target_link_libraries(unittests_csg
                       csg

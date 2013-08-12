@@ -46,7 +46,6 @@ bool Region3Intersects(const Region3& rgn, const math3d::ray3& ray, float& dista
 void HeightmapToRegion2(HeightMap<double> const& h, Region2& r);
 EdgeListPtr Region2ToEdgeList(csg::Region2 const& rgn, int height, csg::Region3 const& clipper);
 csg::Region2 EdgeListToRegion2(EdgeListPtr segments, int width, csg::Region2 const* clipper);
-luabind::scope RegisterLuaType(struct lua_State* L);
 
 END_RADIANT_CSG_NAMESPACE
 

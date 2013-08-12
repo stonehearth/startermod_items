@@ -12,7 +12,7 @@ public:
    void operator()(PendingCommandPtr cmd);
 
 private:
-   void TraceEntity(om::EntityId id, const JSONNode& components, JSONNode& result);
+   void TraceEntity(dm::ObjectId id, const JSONNode& components, JSONNode& result);
 };
 
 class TraceEntitiesCmd

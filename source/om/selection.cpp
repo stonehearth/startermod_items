@@ -68,7 +68,7 @@ bool Selection::HasEntities()
    return entities_.size() > 0;
 }
    
-void Selection::AddEntity(const om::EntityId id)
+void Selection::AddEntity(const dm::ObjectId id)
 {
    entities_.push_back(id);
 }
@@ -127,7 +127,7 @@ void Selection::LoadValue(const Protocol::Selection& msg)
 {
    Clear();
 
-   om::EntityId entityId = msg.entity();
+   dm::ObjectId entityId = msg.entity();
    if (entityId != 0) {
       AddEntity(entityId);
    }

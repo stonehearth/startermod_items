@@ -1,9 +1,20 @@
 #include "pch.h"
 #include "entity.h"
-#include "grid/grid.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
+
+std::ostream& ::radiant::om::operator<<(std::ostream& os, Entity const& o)
+{
+   std::string uri = o.GetResourceUri();
+   os << "[Entity " << o.GetObjectId();
+   if (!uri.empty()) {
+      os << " from: " << o.GetResourceUri();
+   }
+   os << "]";
+
+   return os;
+}
 
 void Entity::InitializeRecordFields()
 {

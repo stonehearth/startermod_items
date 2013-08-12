@@ -22,7 +22,9 @@
 #include "egRendererBase.h"
 #include "egRenderer.h"
 #include "egPipeline.h"
+#include "egVoxelGeometry.h"
 #include "egExtensions.h"
+#include "egVoxelModel.h"
 
 // Extensions
 #if 1
@@ -98,6 +100,8 @@ bool Modules::init()
 		SceneGraphResource::factoryFunc );
 	resMan().registerType( ResourceTypes::Geometry, "Geometry", GeometryResource::initializationFunc,
 		GeometryResource::releaseFunc, GeometryResource::factoryFunc );
+	resMan().registerType( ResourceTypes::VoxelGeometry, "VoxelGeometry", VoxelGeometryResource::initializationFunc,
+		VoxelGeometryResource::releaseFunc, VoxelGeometryResource::factoryFunc );
 	resMan().registerType( ResourceTypes::Animation, "Animation", 0x0, 0x0,
 		AnimationResource::factoryFunc );
 	resMan().registerType( ResourceTypes::Material, "Material", 0x0, 0x0,
@@ -128,6 +132,10 @@ bool Modules::init()
 		CameraNode::parsingFunc, CameraNode::factoryFunc, 0x0 );
 	sceneMan().registerType( SceneNodeTypes::Emitter, "Emitter",
 		EmitterNode::parsingFunc, EmitterNode::factoryFunc, Renderer::drawParticles );
+	sceneMan().registerType( SceneNodeTypes::VoxelModel, "VoxelModel",
+		VoxelModelNode::parsingFunc, VoxelModelNode::factoryFunc, 0x0 );
+	sceneMan().registerType( SceneNodeTypes::VoxelMesh, "VoxelMesh",
+		VoxelMeshNode::parsingFunc, VoxelMeshNode::factoryFunc, Renderer::drawVoxelMeshes );
 	
 	// Install extensions
 	installExtensions();

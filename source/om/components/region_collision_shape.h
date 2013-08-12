@@ -4,7 +4,7 @@
 #include "math3d.h"
 #include "om/om.h"
 #include "om/region.h"
-#include "om/all_object_types.h"
+#include "om/object_enums.h"
 #include "dm/boxed.h"
 #include "dm/record.h"
 #include "csg/region.h"
@@ -22,15 +22,17 @@ public:
    CollisionType GetType() const override { return CollisionShape::REGION; }
    math3d::aabb GetAABB() const override;
 
-   const csg::Region3& GetRegion() const { return **GetRegionPtr(); }
-   RegionPtr GetRegionPtr() const { return (*region_).lock(); }
-   void SetRegionPtr(RegionPtr region) { region_ = region; }
+   BoxedRegion3Ptr GetRegionPtr() const { return *region_; }
+   void SetRegionPtr(BoxedRegion3Ptr region) { region_ = region; }
+
+public: // used only only for lua promises
+   dm::Boxed<BoxedRegion3Ptr> const& GetRegionField() const { return region_; }
 
 private:
    void InitializeRecordFields() override;
 
 private:
-   dm::Boxed<RegionRef>   region_;
+   dm::Boxed<BoxedRegion3Ptr>   region_;
 };
 
 END_RADIANT_OM_NAMESPACE

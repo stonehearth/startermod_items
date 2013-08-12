@@ -4,7 +4,6 @@
 #include "client/renderer/renderer.h"
 #include "Horde3DRadiant.h"
 #include "om/components/terrain.h"
-#include "om/grid/grid.h"
 #include "om/entity.h"
 
 using namespace radiant;
@@ -210,7 +209,7 @@ bool VoxelRangeSelector::GetHoverBrick(int x, int y, math3d::ipoint3 &pt)
    if (!s.HasBlock()) {
       return false;
    }
-   if (s.HasEntities() && (s.GetEntities().front() != _terrain->GetEntity().GetEntityId())) {
+   if (s.HasEntities() && (s.GetEntities().front() != _terrain->GetEntity().GetObjectId())) {
       return false;
    }
 

@@ -20,9 +20,6 @@ struct SaveImpl
    static void LoadValue(const Store& store, const Protocol::Value& msg, T& obj) {
       obj.LoadValue(store, msg);
    }
-   static void CloneValue(Store& store, const T& value, T* copy, CloneMapping& mapping) { \
-      value.CloneObject(copy, mapping);
-   }
 };
 
 #define IMPLEMENT_DM_EXTENSION(T, E) \
@@ -33,9 +30,6 @@ struct ::radiant::dm::SaveImpl<T> { \
    } \
    static void LoadValue(const Store& store, const Protocol::Value& msg, T& obj) { \
       obj.LoadValue(msg.GetExtension(E)); \
-   } \
-   static void CloneValue(Store& store, const T& value, T* copy, CloneMapping& mapping) { \
-      *copy = value; \
    } \
 };
 
@@ -48,9 +42,6 @@ struct SaveImpl<T> \
    } \
    static void LoadValue(const Store& store, const Protocol::Value& msg, T& value) { \
       value = msg.GetExtension(E); \
-   } \
-   static void CloneValue(Store& store, const T& value, T* copy, CloneMapping& mapping) { \
-      *copy = value; \
    } \
 };
 

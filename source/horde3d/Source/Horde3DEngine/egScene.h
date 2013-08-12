@@ -45,7 +45,9 @@ struct SceneNodeTypes
 		Joint,
 		Light,
 		Camera,
-		Emitter
+		Emitter,
+      VoxelModel,
+      VoxelMesh,
 	};
 };
 

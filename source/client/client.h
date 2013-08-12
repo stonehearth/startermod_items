@@ -4,6 +4,7 @@
 #include <boost/asio.hpp>
 #include <unordered_map>
 #include <mutex>
+#include "radiant_net.h"
 #include "protocol.h"
 #include "tesseract.pb.h"
 #include "metrics.h"
@@ -17,6 +18,8 @@
 #include "selectors/selector.h"
 #include "chromium/chromium.h"
 #include "lua/namespace.h"
+#include "mouse_event_promise.h"
+#include "radiant_json.h"
 
 using boost::asio::ip::tcp;
 namespace boost {
@@ -37,25 +40,34 @@ namespace radiant {
       class Selector;
       class Command;
 
+      void RegisterLuaTypes(lua_State* L);
+
       class Client : public core::Singleton<Client> {
          public:
             Client();
             ~Client();
+
+            static void RegisterLuaTypes(lua_State* L);
             
+         public: // xxx: just for lua...
+            void BrowserRequestHandler(std::string const& uri, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response);
+
          public:
             void GetConfigOptions(boost::program_options::options_description& options);
 
             void run();
             int Now() { return now_; }
             void SetScriptHost(lua::ScriptHost* host);
-
-            om::EntityPtr GetEntity(om::EntityId id);
+            lua::ScriptHost* GetScriptHost() const { return scriptHost_; }
+            
+            om::EntityPtr GetEntity(dm::ObjectId id);
             om::TerrainPtr GetTerrain();
 
             void SelectEntity(om::EntityPtr obj);
             void SelectEntity(dm::ObjectId id);
 
             void SelectGroundArea(Selector::SelectionFn cb);
+            om::EntityPtr CreateAuthoringEntity(std::string const& path);
 
             void ShowBuildPlan(bool visible);
             bool GetShowBuildOrders() const { return showBuildOrders_; }
@@ -68,7 +80,7 @@ namespace radiant {
             dm::Store& GetAuthoringStore() { return authoringStore_; }
             Physics::OctTree& GetOctTree() const { return *octtree_; }
 
-            void SetCommandCursor(std::string name);
+            void SetCommandCursor(std::string name);            
 
             // For command executors only
 #if 0
@@ -104,7 +116,7 @@ namespace radiant {
 
             void clearSelection();
             void hilightSelection(bool value);
-            void addToSelection(om::EntityId id);
+            void addToSelection(dm::ObjectId id);
             void setSelection(const om::Selection &s);
 
             bool CreateStockpile(bool install);
@@ -118,11 +130,11 @@ namespace radiant {
             void EvalCommand(std::string cmd);
 
             void SendHarvestCommand(const om::Selection &s);
-            void SendPromoteItemCommand(om::EntityId itemId, const om::Selection &s);
+            void SendPromoteItemCommand(dm::ObjectId itemId, const om::Selection &s);
             void SendCreateStockpile(const om::Selection &s);
             void SendAddVoxelToPlan(const om::Selection &s);
             void SendMoveSelectedActor(const om::Selection &s);
-            void SendBuildWorkshop(const om::Selection &s, om::EntityId id);
+            void SendBuildWorkshop(const om::Selection &s, dm::ObjectId id);
 
             bool RotateViewMode(bool install);
             bool ToggleBuildPlan();
@@ -130,7 +142,7 @@ namespace radiant {
             bool GrowWalls(bool install);
             bool AddFixture(bool install, std::string fixtureName);
             bool FinishStructure(bool install);
-            bool PlaceFixture(bool install, om::EntityId fixture);
+            bool PlaceFixture(bool install, dm::ObjectId fixture);
             bool CapStorey(bool install);
             void AddToFloor(const om::Selection &s);
             void AssignWorkerToBuilding(std::vector<om::Selection> args);
@@ -138,7 +150,7 @@ namespace radiant {
             void Reset();
             void UpdateSelection(const MouseEvent &mouse);
             void CenterMap(const MouseEvent &mouse);
-
+            
             typedef std::function<void (const tesseract::protocol::Reply&)> ReplyFn;
             typedef std::deque<std::pair<unsigned int, ReplyFn>> ReplyQueue;
 
@@ -150,7 +162,7 @@ namespace radiant {
                return selectedObject_->GetInterface<T>();
             }
 
-            void OnObjectLoad(std::vector<om::EntityId> objects); 
+            void OnObjectLoad(std::vector<dm::ObjectId> objects); 
 
 
             void RegisterReplyHandler(const tesseract::protocol::Command* cmd, ReplyFn fn);
@@ -192,14 +204,21 @@ namespace radiant {
             void LoadCursors();
             void OnEntityAlloc(om::EntityPtr entity);
             void ComponentAdded(om::EntityRef e, dm::ObjectType type, std::shared_ptr<dm::Object> component);
-            void BrowserRequestHandler(std::string const& uri, JSONNode const& query, std::string const& postdata, std::shared_ptr<chromium::IResponse> response);
-            void HandlePostRequest(std::string const& path, JSONNode const& query, std::string const& postdata, std::shared_ptr<chromium::IResponse> response);
-            void GetRemoteObject(std::string const& uri, JSONNode const& query, std::shared_ptr<chromium::IResponse> response);
-            void GetEvents(JSONNode const& query, std::shared_ptr<chromium::IResponse> response);
-            void TraceUri(JSONNode const& query, std::shared_ptr<chromium::IResponse> response);
-            void TraceObjectUri(std::string const& uri, std::shared_ptr<chromium::IResponse> response);
-            void TraceFileUri(std::string const& uri, std::shared_ptr<chromium::IResponse> response);
+            void GetEvents(JSONNode const& query, std::shared_ptr<net::IResponse> response);
+            void HandlePostRequest(std::string const& path, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response);
+            void HandleClientRouteRequest(luabind::object ctor, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response);
+            void GetRemoteObject(std::string const& uri, JSONNode const& query, std::shared_ptr<net::IResponse> response);
+            void TraceUri(JSONNode const& query, std::shared_ptr<net::IResponse> response);
+            void TraceObjectUri(std::string const& uri, std::shared_ptr<net::IResponse> response);
+            void TraceFileUri(std::string const& uri, std::shared_ptr<net::IResponse> response);
             void FlushEvents();
+            void DestroyAuthoringEntity(dm::ObjectId id);
+            MouseEventPromisePtr TraceMouseEvents();
+            void LoadModuleInitScript(json::ConstJsonObject const& block);
+            void LoadModuleRoutes(std::string const& modulename, json::ConstJsonObject const& block);
+
+            typedef std::function<void(tesseract::protocol::Update const& msg)> ServerReplyCb;
+            void PushServerRequest(tesseract::protocol::Request& msg, ServerReplyCb replyCb);
 
       private:
             enum TraceTypes {
@@ -266,6 +285,7 @@ namespace radiant {
 
             std::unordered_map<dm::ObjectId, std::shared_ptr<dm::Object>> objects_;
             std::unordered_map<dm::ObjectId, om::EntityPtr> entities_;
+            std::unordered_map<dm::ObjectId, om::EntityPtr> authoredEntities_;
             dm::TraceMap<TraceTypes>         traces_;
             std::shared_ptr<Command>         currentCommand_;
             HCURSOR                          currentCommandCursor_;
@@ -281,9 +301,11 @@ namespace radiant {
             std::map<int, std::function<void(tesseract::protocol::Update const& reply)> >  server_requests_;
             std::mutex                       lock_;
             std::vector<JSONNode>            queued_events_;
-            std::shared_ptr<chromium::IResponse>   get_events_request_;
+            std::shared_ptr<net::IResponse>   get_events_request_;
             lua::ScriptHost*                 scriptHost_;
             std::map<dm::TraceId, dm::Guard>         uriTraces_;
+            std::vector<MouseEventPromiseRef>   mouseEventPromises_;
+            std::unordered_map<std::string, luabind::object>   clientRoutes_;
       };
    };
 };

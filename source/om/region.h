@@ -1,63 +1,32 @@
 #ifndef _RADIANT_OM_REGION_H
 #define _RADIANT_OM_REGION_H
 
-#include "math3d.h"
-#include "dm/record.h"
+#include "dm/boxed.h"
 #include "csg/region.h"
-#include "om/all_object_types.h"
+#include "object_enums.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
 
-class Region : public dm::Object
+typedef dm::Boxed<csg::Region3, BoxedRegion3ObjectType> BoxedRegion3;
+typedef std::shared_ptr<BoxedRegion3> BoxedRegion3Ptr;
+typedef std::weak_ptr<BoxedRegion3> BoxedRegion3Ref;
+
+dm::Guard TraceBoxedRegion3PtrField(dm::Boxed<BoxedRegion3Ptr> const& boxedRegionPtrField,
+                                    const char* reason,
+                                    std::function<void(csg::Region3 const& r)> updateCb);
+
+class BoxedRegion3Promise
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(Region, region);
-   static void RegisterLuaType(struct lua_State* L);
+   BoxedRegion3Promise(dm::Boxed<BoxedRegion3Ptr> const& boxedRegionPtrField, const char* reason);
 
-   csg::Region3& Modify() {
-      MarkChanged();
-      return region_;
-   }
-
-   csg::Region3 const& GetRegion() {
-      return region_;
-   }
-
-   const csg::Region3& operator*() const {
-      return region_;
-   }
-
-   dm::Guard Trace(const char* reason, std::function<void(const csg::Region3&)> cb) const {
-      return TraceObjectChanges(reason, [=]() {
-         cb(region_);
-      });
-   }
-
-   std::ostream& Log(std::ostream& os, std::string indent) const override {
-      os << "region [oid:" << GetObjectId() << " value:" << dm::Format<csg::Region3>(region_, indent) << "]" << std::endl;
-      return os;
-   }
+public:
+   BoxedRegion3Promise* PushChangedCb(luabind::object cb);
 
 private:
-   void CloneObject(Object* c, dm::CloneMapping& mapping) const override {
-      Region& copy = static_cast<Region&>(*c);
-      mapping.objects[GetObjectId()] = copy.GetObjectId();
-      copy.region_ = region_;
-   }
-
-protected:
-   void SaveValue(const dm::Store& store, Protocol::Value* msg) const override {
-      dm::SaveImpl<csg::Region3>::SaveValue(store, msg, region_);
-   }
-   void LoadValue(const dm::Store& store, const Protocol::Value& msg) override {
-      dm::SaveImpl<csg::Region3>::LoadValue(store, msg, region_);
-   }
-
-private:
-   csg::Region3    region_;
+   dm::Guard                     guard_;
+   std::vector<luabind::object>  changedCbs_;
 };
-
-static std::ostream& operator<<(std::ostream& os, const Region& o) { return (os << *o); }
 
 END_RADIANT_OM_NAMESPACE
 

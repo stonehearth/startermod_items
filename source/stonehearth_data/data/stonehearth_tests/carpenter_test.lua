@@ -32,7 +32,7 @@ function CarpenterTest:__init()
    -- end TODO
 
    -- put some items in the world
-   --self:place_item_cluster('/stonehearth_trees/entities/oak_tree/oak_log', -10, 10, 3, 3)
+   self:place_item_cluster('/stonehearth_trees/entities/oak_tree/oak_log', -10, 10, 3, 3)
    self:place_item_cluster('/stonehearth_items/cloth_bolt', -7, 10, 2, 2)
 
  -- Tests!

@@ -1,10 +1,8 @@
 #include "radiant.h"
 #include "nav_grid.h"
-#include "om/grid/grid.h"
 #include "om/components/mob.h"
 #include "om/components/terrain.h"
 #include "om/components/vertical_pathing_region.h"
-#include "om/components/grid_collision_shape.h"
 #include "om/components/region_collision_shape.h"
 
 using namespace radiant;
@@ -39,10 +37,6 @@ void NavGrid::TrackComponent(dm::ObjectType type, std::shared_ptr<dm::Object> co
       AddRegion(terrain->GetRegion());
       break;
    }
-   case om::GridCollisionShapeObjectType: {
-      AddGridCollisionShape(std::static_pointer_cast<om::GridCollisionShape>(component));
-      break;
-   }
    case om::RegionCollisionShapeObjectType: {
       AddRegionCollisionShape(std::static_pointer_cast<om::RegionCollisionShape>(component));
       break;
@@ -59,11 +53,6 @@ void NavGrid::AddRegion(csg::Region3 const& r)
    solidRegion_ += r;
 }
 
-void NavGrid::AddGridCollisionShape(om::GridCollisionShapePtr grid)
-{
-   dm::ObjectId id = grid->GetObjectId();
-   gridCollisionShapes_[id] = grid;
-}
 
 void NavGrid::AddRegionCollisionShape(om::RegionCollisionShapePtr region)
 {
@@ -85,21 +74,6 @@ bool NavGrid::IsEmpty(csg::Point3 const& pt) const
    }
 
    {
-      auto i = gridCollisionShapes_.begin();
-      while (i != gridCollisionShapes_.end()) {
-         auto grid = i->second.lock();
-         if (grid) {
-            if (Intersects(bounds, grid)) {
-               return false;
-            }
-            i++;
-         } else {
-            i = gridCollisionShapes_.erase(i);
-         }
-      }
-   }
-
-   {
       auto i = regionCollisionShapes_.begin();
       while (i != regionCollisionShapes_.end()) {
          auto region = i->second.lock();
@@ -116,12 +90,6 @@ bool NavGrid::IsEmpty(csg::Point3 const& pt) const
    return true;
 }
 
-bool NavGrid::Intersects(csg::Cube3 const& bounds, om::GridCollisionShapePtr gridCollsionShape) const
-{
-   csg::Cube3 box = ToLocalCoordinates(bounds, gridCollsionShape);
-   auto grid = gridCollsionShape->GetGrid();
-   return grid && !grid->isPassable(box);
-}
 
 bool NavGrid::Intersects(csg::Cube3 const&  bounds, om::RegionCollisionShapePtr rgnCollsionShape) const
 {
@@ -140,8 +108,9 @@ bool NavGrid::PointOnLadder(csg::Point3 const& pt) const
    while (i != vprs_.end()) {
       auto vpr = i->second.lock();
       if (vpr) {
-         auto const& region = vpr->GetRegion();
-         if (!region.IsEmpty()) {
+         om::BoxedRegion3Ptr r = vpr->GetRegionPtr();
+         if (r) {
+            csg::Region3 const& region = r->Get();
             csg::Point3 p = ToLocalCoordinates(pt, vpr);
             if (region.Contains(p)) {
                return true;

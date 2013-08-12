@@ -394,7 +394,7 @@ CefRefPtr<CefResourceHandler> Browser::GetResourceHandler(CefRefPtr<CefBrowser> 
 
    Response *r = new Response(request);
    r->AddRef();
-   std::shared_ptr<IResponse> response(r, [](Response* p) {
+   std::shared_ptr<net::IResponse> response(r, [](Response* p) {
       p->Release();
    });
 

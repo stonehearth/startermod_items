@@ -3,7 +3,7 @@
 
 #include "math3d.h"
 #include "om/om.h"
-#include "om/all_object_types.h"
+#include "om/object_enums.h"
 #include "dm/boxed.h"
 #include "dm/record.h"
 #include "dm/object.h"
@@ -17,8 +17,8 @@ class Mob : public Component
 {
 public:
    DEFINE_OM_OBJECT_TYPE(Mob, mob);
-   static void RegisterLuaType(struct lua_State* L);
-   void ExtendObject(json::ConstJsonObject const& obj) override;
+   virtual void ExtendObject(json::ConstJsonObject const& obj);
+   virtual void Describe(std::ostringstream& os) const;
 
    void MoveTo(const math3d::point3& location);
    void MoveToGridAligned(const math3d::ipoint3& location);

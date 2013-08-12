@@ -22,7 +22,7 @@ private:
    void SetGroundArea(const om::Selection &area);
 
 private:
-   om::EntityId                        self_;
+   dm::ObjectId                        self_;
    JSONNode                            args_;
    //std::shared_ptr<resources::DataResource>  action_;
    std::vector<om::Selection>          actual_;
