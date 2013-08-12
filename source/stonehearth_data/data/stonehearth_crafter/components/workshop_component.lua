@@ -18,12 +18,14 @@ local Workshop = class()
 
 function Workshop:__init(entity, backing_obj)
    self._todo_list = ToDoList(backing_obj)        -- The list of things we need to work on
+   self._backing_obj = backing_obj
    self._entity = entity               -- The entity associated with this component
    self._curr_order = nil              -- The order currently being worked on. Nil until we get an order from the todo list
    self._intermediate_item = nil       -- The item currently being worked on. Nil until we actually start crafting
                                        -- TODO: revise all three of these to use entity-container
    self._bench_outputs = {}            -- An array of finished products on the bench, to be added to the outbox. Nil if nothing.
-   self._outbox = {}                   -- An array of finished objects, ready to be used
+   self._outbox = nil                  -- The outbox entity
+   self._saw = nil                     -- The saw for the bench, available when there is no craftsman
 end
 
 function Workshop:extend(json)
@@ -150,13 +152,30 @@ function Workshop:get_outbox()
 end
 
 --[[
-   Associate a crafter component with this bench.
+   Associate a crafter entity with this bench.
 ]]
 function Workshop:set_crafter(crafter)
    local current = self:get_crafter()
    if not crafter or not current or current:get_id() ~= crafter:get_id() then
       self._crafter = crafter
    end
+   self._backing_obj:mark_changed()
+end
+
+--[[
+   When there isn't a crafter yet, associate a saw
+   If the saw is nil, and a saw currently exists, remove the saw from the bench
+]]
+
+function Workshop:set_saw_entity(saw_entity)
+   self._saw = saw_entity
+   local saw_loc = radiant.entities.get_location_aligned(self._entity)
+   --TODO: how do we get the saw higher in the world?
+   radiant.terrain.place_entity(saw_entity, RadiantIPoint3(saw_loc.x, 3, saw_loc.z + 3))
+end
+
+function Workshop:get_saw_entity()
+   return self._saw
 end
 
 --[[

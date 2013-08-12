@@ -1,0 +1,8 @@
+{
+   "info" :{
+      "name" : "Stonehearth Classes Library"
+   },
+   "components" :  {
+      "profession_info" : "file(components/profession_info.lua)"
+   }
+}

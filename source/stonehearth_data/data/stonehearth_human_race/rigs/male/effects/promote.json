@@ -4,6 +4,7 @@
       "grab_talisman": {
          "type": "attach_item_effect",
          "start_time": 0,
+         "end_time": 0,
          "item": "{{talisman}}",
          "bone": "talisman"
       },
@@ -17,7 +18,8 @@
             "type": "trigger_effect",
             "start_frame": 145,
             "info": {
-               "event": "change_outfit"
+               "event": "change_outfit",
+               "talisman": "{{talisman}}"
             }
       },
       "grab_saw_trigger" : {

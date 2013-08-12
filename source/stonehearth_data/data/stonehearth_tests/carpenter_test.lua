@@ -1,4 +1,5 @@
 local MicroWorld = require 'stonehearth_tests.lib.micro_world'
+local ProfessionInfo = radiant.mods.require('/stonehearth_classes/components/profession_info.lua')
 local CraftOrder = radiant.mods.require('/stonehearth_crafter/lib/craft_order.lua')
 
 local CarpenterTest = class(MicroWorld)
@@ -13,16 +14,15 @@ function CarpenterTest:__init()
 
    --Create the carpenter, bench, and instantiate them to each other
 
-   local carpenter = self:place_citizen(12, 12,'carpenter')
    local bench = self:place_item('/stonehearth_carpenter_class/entities/carpenter_workbench', -12, -12)
-
-   --TODO: can we do this via promote?
-   local carpenter_component = carpenter:get_component('stonehearth_crafter:crafter')
    local workshop_component = bench:get_component('stonehearth_crafter:workshop')
+
+   local profession_info = ProfessionInfo()
+   profession_info:set_workshop(workshop_component)
+   local carpenter = self:place_citizen(12, 12,'carpenter', profession_info)
+
    local faction = carpenter:get_component('unit_info'):get_faction()
    bench:add_component('unit_info'):set_faction(faction)
-   workshop_component:set_crafter(carpenter)
-   carpenter_component:set_workshop(workshop_component)
 
    --initialize the outbox
    --user places both workshop and outbox
@@ -34,7 +34,7 @@ function CarpenterTest:__init()
    outbox_component:set_size({3, 3})
    outbox_entity:get_component('unit_info'):set_faction(faction)
    workshop_component:set_outbox(outbox_entity)
-   
+
    -- end TODO
 
    -- put some items in the world

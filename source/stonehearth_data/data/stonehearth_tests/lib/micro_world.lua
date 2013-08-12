@@ -5,7 +5,7 @@ function MicroWorld:__init()
    self._times = {}
    self._timers = {}
    self._running = false;
-   
+
    radiant.events.listen('radiant.events.gameloop', self)
 end
 
@@ -59,10 +59,10 @@ function MicroWorld:place_item_cluster(uri, x, z, w, h)
    end
 end
 
-function MicroWorld:place_citizen(x, z, profession)
+function MicroWorld:place_citizen(x, z, profession, profession_info)
    local citizen = radiant.mods.load_api('/stonehearth_human_race/').create_entity()
    profession = profession and profession or 'worker'
-   local profession = radiant.mods.load_api('/stonehearth_' .. profession .. '_class/').promote(citizen)
+   local profession = radiant.mods.load_api('/stonehearth_' .. profession .. '_class/').promote(citizen, profession_info)
    radiant.terrain.place_entity(citizen, RadiantIPoint3(x, 1, z))
    return citizen
 end
@@ -70,10 +70,10 @@ end
 function MicroWorld:place_stockpile_cmd(faction, x, z, w, h)
    w = w and w or 3
    h = h and h or 3
-   
+
    local location = RadiantIPoint3(x, 1, z)
    local size = { w, h }
-  
+
    local inventory = radiant.mods.load_api('/stonehearth_inventory/').get_inventory(faction)
    inventory:create_stockpile(location, size)
 end
