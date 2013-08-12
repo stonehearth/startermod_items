@@ -1,3 +1,15 @@
+$(document).ready(function(){
+
+   $(top).bind('keyup', function(e){
+      console.log('keyup!');
+      console.log(e);
+      var activeMenu = $("#mainActionbar").boxmenu( 'handleKey', e.keyCode);
+
+      //$( "#mainActionbar" ).boxmenu( 'click', 'build');
+   });
+});
+
+
 App.StonehearthMainActionbarView = App.View.extend({
    templateName: 'stonehearthMainActionbar',
 
@@ -18,18 +30,22 @@ App.StonehearthMainActionbarView = App.View.extend({
             build: {
                name: 'Build',
                icon: imagePath + 'build.png',
+               hotkey: 'b',
                items: {
                   stockpile: {
                      name: 'Stockpile',
-                     icon: imagePath + 'stockpile.png'
+                     icon: imagePath + 'stockpile.png',
+                     hotkey: 's'
                   },
                   workshop: {
                      name: 'Workshop',
                      icon: imagePath + 'workshop.png',
+                     hotkey: 'w',
                      items: {
                         carpenter: {
                            name: 'Carpenter',
                            icon: imagePath + 'carpenter.png',
+                           hotkey: 'c',
                            click: function () {
                               $(top).trigger('radiant.events.create_workshop', {
                                  workbench: '/stonehearth_carpenter_class/entities/carpenter_workbench'
@@ -40,17 +56,20 @@ App.StonehearthMainActionbarView = App.View.extend({
                   },
                   building: {
                      name: 'Building',
-                     icon: imagePath + 'building.png'
+                     icon: imagePath + 'building.png',
+                     hotkey: 'b'
                   }
                }
             },
             harvest: {
                name: 'Harvest',
                icon: imagePath + 'harvest.png',
+               hotkey: 'h',
                items: {
                   chop: {
                      name: 'Chop trees',
-                     icon: imagePath + 'chop.png'
+                     icon: imagePath + 'chop.png',
+                     hotkey: 'c'
                   }
                }
             }
