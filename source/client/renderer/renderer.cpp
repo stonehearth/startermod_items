@@ -160,7 +160,7 @@ Renderer::Renderer() :
 
    // Skybox
 	H3DNode sky = h3dAddNodes( H3DRootNode, skyBoxRes );
-	h3dSetNodeTransform( sky, 0, 0, 0, 0, 0, 0, 210, 50, 210 );
+	h3dSetNodeTransform( sky, 128, 0, 128, 0, 0, 0, 256, 256, 256 );
 	h3dSetNodeFlags( sky, H3DNodeFlags::NoCastShadow, true );
 
    // Resize
