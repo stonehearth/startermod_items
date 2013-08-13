@@ -1,0 +1,17 @@
+{
+   "info" :{
+      "name" : "Stonehearth Game UI"
+   },
+
+   "ui" :  {
+      "html" : [
+         "file(/html/stonehearth_game_ui.html)"
+      ],
+      "js" : [
+         "file(/html/js/stonehearth_game_ui.js)"
+      ],
+      "less" : [
+         "file(/html/css/stonehearth_game_ui.less)"
+      ]
+   }
+}

@@ -23,7 +23,10 @@ App.StonehearthMainActionbarView = App.View.extend({
                   stockpile: {
                      name: 'Stockpile',
                      icon: imagePath + 'stockpile.png',
-                     hotkey: 's'
+                     hotkey: 's',
+                     click: function () {
+                        $(top).trigger('create_stockpile.radiant');
+                     }
                   },
                   workshop: {
                      name: 'Workshop',

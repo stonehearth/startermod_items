@@ -15,5 +15,16 @@
       "routes" : {
          "create_workbench" : "file(routes/create_workbench.lua)"
       }
-   }
+   },
+   "ui" :  {
+      "html" : [
+         "file(/html/stonehearth_crafter.html)"
+      ],
+      "js" : [
+         "file(/html/js/stonehearth_crafter.js)"
+      ],
+      "less" : [
+         "file(/html/css/stonehearth_crafter.less)"
+      ]
+   }   
 }

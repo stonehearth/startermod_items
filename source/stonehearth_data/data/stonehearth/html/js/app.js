@@ -20,16 +20,16 @@ App = Ember.Application.createWithMixins({
       var deferreds = [];
 
       $.ajax( {
-        url: '/stonehearth/html/init.json'
+        url: '/api/get_modules'
       }).done( function(data) {
         console.log(data);
 
-        deferreds = deferreds.concat(self._loadJavaScripts(data.modules));
-        deferreds = deferreds.concat(self._loadCsss(data.modules));
-        deferreds = deferreds.concat(self._loadTemplates(data.modules));
+        deferreds = deferreds.concat(self._loadJavaScripts(data));
+        deferreds = deferreds.concat(self._loadCsss(data));
+        deferreds = deferreds.concat(self._loadTemplates(data));
 
         // when all the tempalates are loading, contune loading the app
-        $.when.apply($, deferreds).then(function(data) {
+        $.when.apply($, deferreds).then(function() {
           self.advanceReadiness();
         });
       });
@@ -39,9 +39,12 @@ App = Ember.Application.createWithMixins({
       var deferreds = [];
       var self = this;
 
-      $.each( modules, function( k, v ) {
-        var url = '/' + k + '/html/js/' + k + ".js";
-        deferreds.push(self._loadJavaScript(url));
+      $.each( modules, function( name, data ) {
+        if (data.ui && data.ui.js) {
+          $.each(data.ui.js, function(i, url) {
+            deferreds.push(self._loadJavaScript(url));
+          });
+        }
       });
 
       return deferreds;
@@ -59,7 +62,8 @@ App = Ember.Application.createWithMixins({
         deferred.resolve();
       };
       script.onerror = function () {
-         throw ('failed to load script at ' + url);
+         console.log('failed to load script at ' + url);
+         deferred.resolve();
       };
       document.getElementsByTagName('head')[0].appendChild(script);
 
@@ -71,9 +75,10 @@ App = Ember.Application.createWithMixins({
 
       // collect the css urls from all the modules
       var urls = [];
-      $.each(modules, function( k, v ) {
-        var url = '/' + k + '/html/css/' + k + ".less";
-        urls.push(url);
+      $.each(modules, function( name, data ) {
+        if (data.ui && data.ui.less) {
+          urls = urls.concat(data.ui.less);
+        }
       });
 
       // grab the root stylesheet
@@ -104,19 +109,15 @@ App = Ember.Application.createWithMixins({
 
   	_loadTemplates: function(modules) {
   		var self = this;
+      var deferreds = [];
 
-      var templateUrls = [];
-
-      $.each( modules, function( k, v ) {
-        templateUrls.push('/' + k + '/html/' + k + ".html");
+      $.each( modules, function( name, data ) {
+        if (data.ui && data.ui.html) {
+          $.each(data.ui.html, function(i, templateUrl) {
+            deferreds.push(self._loadTemplate(templateUrl));
+          });
+        }
       });
-
-  		var deferreds = [];
-
-  		// make all the ajax calls and collect the deferres
-  		$.each(templateUrls, function(index, templateUrl) {
-  			deferreds.push(self._loadTemplate(templateUrl));
-  		});
 
       return deferreds;
   	},
