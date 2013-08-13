@@ -39,28 +39,11 @@
    <script src="js/stonehearth/model.js"></script>
    <script src="js/stonehearth/view.js"></script>
 
-   <!-- mods -->
-   <script src="stonehearth/stonehearth.js"></script>
-   <script src="mainbar/js/mainbar.js"></script>
-   <script src="unitframe/js/unitframe.js"></script>
-   <script src="objectbrowser/js/objectbrowser.js"></script>
-   <script src="/stonehearth_crafter/html/js/stonehearth_crafter.js"></script>
-   <script src="/stonehearth_calendar/html/js/stonehearth_calendar.js"></script>
-
-   <!--
-   <script src="mods/mainbar/mainbar.js"></script>
-   <script src="mods/craftingWindow/craftingWindow.js"></script>
-   -->
+   <!-- the root view -->
+   <script src="js/stonehearth.js"></script>
 
    <!-- start the app -->
    <script>
-      App.Router.map(function() {
-         return App.routeBuilder.call(this);
-      });
-
-      //App.start()
-      //less.watch();
-
       i18n.init({
          lng: "en",
          fallbackLng: false,

@@ -1,87 +1,12 @@
 $(document).ready(function(){
    i18n.loadNamespace('stonehearth_crafter', function() { console.log('loaded crafter i18n namespace'); });
 
-<<<<<<< HEAD
    // When we get the show_workshop event, toggle the crafting window
    // for this entity.
    $(top).on("stonehearth_crafter.show_workshop", function (_, e) {
-      var entity = e.entity;
-      var existingWorkshopView = stonehearth.entityData(entity, "show_workshop");
-=======
-      // When we get the show_workshop event, toggle the crafting window
-      // for this entity.
-      $(top).on("stonehearth_crafter.show_workshop", function (_, e) {         
-         var entity = e.entity;
-
-         // xxx - this is probably way too convoluted, and if it does need to be here
-         // should use local data instead of this crazy stonehearth.entityData API
-         //var existingWorkshopView = stonehearth.entityData(entity, "show_workshop");
-         var existingWorkshopView = false;
->>>>>>> d050c6313714c0829f2b486671d3b14c774f732d
-
-      if (!existingWorkshopView) {
-         var view = App.gameView.addView(App.StonehearthCrafterView, { uri: entity });
-         stonehearth.entityData(entity, "show_workshop", view);
-         console.log('showing crafting ui ' + view + ' for entity ' + entity)
-      } else {
-         console.log('hiding crafting ui for entity ' + entity)
-         existingWorkshopView.hide();
-         stonehearth.entityData(entity, "show_workshop", null);
-      }
+      //TODO: hide the workshop on X button, etc.
+      var view = App.gameView.addView(App.StonehearthCrafterView, { uri: e.entity });
    });
-
-<<<<<<< HEAD
-   // when the selection changes, restore the workshop if need be.
-   $(top).on("radiant.events.selection_changed", function (_, e) {
-      var entity = e.entity;
-=======
-      // when the selection changes, restore the workshop if need be.
-      $(top).on("selection_changed.radiant", function (_, e) {
-         var entity = e.entity;
->>>>>>> d050c6313714c0829f2b486671d3b14c774f732d
-
-      // refresh the workshop widget if it us up and we've selected a
-      // different workshop. Otherwise, hide the workshop
-      if (e["stonehearth_crafter:workshop"] != undefined) {
-
-<<<<<<< HEAD
-      } else {
-         var existingWorkshopView = stonehearth.entityData(entity, "show_workshop");
-         if (existingWorkshopView) {
-            existingWorkshopView.hide();
-         }
-      }
-
-   });
-=======
-         } else {
-            // xxx - this is probably way too convoluted, and if it does need to be here
-            // should use local data instead of this crazy stonehearth.entityData API
-            /*
-            var existingWorkshopView = stonehearth.entityData(entity, "show_workshop");
-            if (existingWorkshopView) {
-               existingWorkshopView.hide();
-            }
-            */
-         }
-      });
-
-      // handle requests from elsewhere in the UI that a workshop be created
-      $(top).on("create_workshop.radiant", function (_, e) {
-         // kick off a request to the client to show the cursor for placing
-         // the workshop. The UI is out of the 'create workshop' process after
-         // this. All the work is done in the client and server
-
-         var crafterModUri = '/modules/client/stonehearth_crafter/choose_location';
-         var workbenchEntity = e.workbench;
-
-         $.get(crafterModUri, { entity: workbenchEntity })
-            .done(function(o){
-
-            });
-      });
->>>>>>> d050c6313714c0829f2b486671d3b14c774f732d
-
 });
 
 // Expects the uri to be an entity with a stonehearth_crafter:workshop
