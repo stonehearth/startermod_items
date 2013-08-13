@@ -210,6 +210,7 @@ namespace radiant {
             void HandleClientRouteRequest(luabind::object ctor, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response);
             void GetRemoteObject(std::string const& uri, JSONNode const& query, std::shared_ptr<net::IResponse> response);
             void TraceUri(JSONNode const& query, std::shared_ptr<net::IResponse> response);
+            void GetModules(JSONNode const& query, std::shared_ptr<net::IResponse> response);
             void TraceObjectUri(std::string const& uri, std::shared_ptr<net::IResponse> response);
             void TraceFileUri(std::string const& uri, std::shared_ptr<net::IResponse> response);
             void FlushEvents();

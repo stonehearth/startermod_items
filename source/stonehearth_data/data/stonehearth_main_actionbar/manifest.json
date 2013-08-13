@@ -1,0 +1,17 @@
+{
+   "info" :{
+      "name" : "Stonehearth Main Actionbar"
+   },
+
+   "ui" :  {
+      "html" : [
+         "file(/html/stonehearth_main_actionbar.html)"
+      ],
+      "js" : [
+         "file(/html/js/stonehearth_main_actionbar.js)"
+      ],
+      "less" : [
+         "file(/html/css/stonehearth_main_actionbar.less)"
+      ]
+   }
+}

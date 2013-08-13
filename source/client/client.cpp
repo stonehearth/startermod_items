@@ -1547,6 +1547,23 @@ void Client::GetEvents(JSONNode const& query, std::shared_ptr<net::IResponse> re
    FlushEvents();
 }
 
+void Client::GetModules(JSONNode const& query, std::shared_ptr<net::IResponse> response)
+{
+   JSONNode result;
+   auto& rm = resources::ResourceManager2::GetInstance();
+   for (std::string const& modname : rm.GetModuleNames()) {
+      JSONNode manifest;
+      try {
+         manifest = rm.LookupManifest(modname);
+      } catch (std::exception const& e) {
+         // Just use an empty manifest...f
+      }
+      manifest.set_name(modname);
+      result.push_back(manifest);
+   }
+   response->SetResponse(200, result.write(), "application/json");
+}
+
 void Client::TraceUri(JSONNode const& query, std::shared_ptr<net::IResponse> response)
 {
    json::ConstJsonObject args(query);
@@ -1645,6 +1662,8 @@ void Client::BrowserRequestHandler(std::string const& path, JSONNode const& quer
    if (postdata.empty()) {
       if (boost::starts_with(path, "/api/trace")) {
          TraceUri(query, response);
+      } else if (boost::starts_with(path, "/api/get_modules")) {
+         GetModules(query, response);
       } else if (boost::starts_with(path, "/object")) {
          GetRemoteObject(path, query, response);
       } else {
