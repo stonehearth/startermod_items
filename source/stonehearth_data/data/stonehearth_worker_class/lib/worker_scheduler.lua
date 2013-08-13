@@ -127,6 +127,10 @@ function WorkerScheduler:stop()
    radiant.events.unlisten('radiant.events.gameloop', self)
 end
 
+function WorkerScheduler:abort_worker_task(task)
+   radiant.log.warning('aborting task in worker scheduler...')
+end
+
 function WorkerScheduler:_create_pf(name)
    assert(not self.allpf[name])
   

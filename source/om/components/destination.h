@@ -18,11 +18,11 @@ public:
 
    void ExtendObject(json::ConstJsonObject const& obj) override;
 
-   BoxedRegion3Ptr const GetRegion() const { return region_; }
+   BoxedRegion3Ptr GetRegion() const { return region_; }
    void SetRegion(BoxedRegion3Ptr r) { region_ = r; }
 
-   BoxedRegion3Ptr const GetReserved() const { return reserved_; }
-   BoxedRegion3Ptr const GetAdjacent() const { return adjacent_; }
+   BoxedRegion3Ptr GetReserved() const;
+   BoxedRegion3Ptr GetAdjacent();
 
 private:
    void InitializeRecordFields() override;
@@ -30,11 +30,12 @@ private:
    void ComputeAdjacentRegion(csg::Region3 const& r);
 
 public:
-   dm::Boxed<BoxedRegion3Ptr>             region_;
-   dm::Boxed<BoxedRegion3Ptr>             reserved_;
-   dm::Boxed<BoxedRegion3Ptr>             adjacent_;
+   dm::Boxed<BoxedRegion3Ptr>       region_;
+   dm::Boxed<BoxedRegion3Ptr>       reserved_;
+   dm::Boxed<BoxedRegion3Ptr>       adjacent_;
    dm::Guard                        guards_;
    int                              lastUpdated_;
+   int                              lastChanged_;
 };
 
 END_RADIANT_OM_NAMESPACE

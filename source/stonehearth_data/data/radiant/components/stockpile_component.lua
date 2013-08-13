@@ -106,7 +106,7 @@ function StockpileComponent:reserve(location)
    local origin = Point3(radiant.entities.get_world_grid_location(self._entity))
    local pt = Point3(location) - origin
    local region = self._destination:get_region()
-   if region:contains(pt) then
+   if region:get():contains(pt) then
       region:modify():remove_point(pt)
       return true
    end   
