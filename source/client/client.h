@@ -104,6 +104,7 @@ namespace radiant {
             void UpdateObject(const tesseract::protocol::UpdateObject& msg);
             void RemoveObjects(const tesseract::protocol::RemoveObjects& msg);
             void UpdateDebugShapes(const tesseract::protocol::UpdateDebugShapes& msg);
+            void DefineRemoteObject(const tesseract::protocol::DefineRemoteObject& msg);
 
             void mainloop();
             void setup_connections();
@@ -306,6 +307,7 @@ namespace radiant {
             std::map<dm::TraceId, dm::Guard>         uriTraces_;
             std::vector<MouseEventPromiseRef>   mouseEventPromises_;
             std::unordered_map<std::string, luabind::object>   clientRoutes_;
+            std::unordered_map<std::string, std::string>       serverRemoteObjects_;
       };
    };
 };

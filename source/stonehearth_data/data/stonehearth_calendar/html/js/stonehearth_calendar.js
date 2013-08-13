@@ -1,10 +1,6 @@
 App.StonehearthCalendarView = App.View.extend({
    templateName: 'stonehearthCalendar',
 
-   components: {
-      "stonehearth_calendar:calendar" : {}
-   },
-
    init: function() {
       this._super();
    },
@@ -17,16 +13,14 @@ App.StonehearthCalendarView = App.View.extend({
       this._moon = $('#moon');
       this._daySky = $('#skyDay');
 
-      this.set('uri', '/objects/1');
+      this.set('uri', '/stonehearth_calendar/clock');
    },
 
    _updateClock: function() {
       if (this._clock == undefined) {
          return;
       }
-      var c = this.get('context');
-      var date;
-      date = this.get('context.stonehearth_calendar:calendar.date');
+      var date = this.get('context.date');
 
       if (!date) {
          return;
@@ -110,7 +104,7 @@ App.StonehearthCalendarView = App.View.extend({
          this._moon.css({'top': PATH_Y_MAX - dy, 'left': PATH_X_MAX});
       }
 
-   }.observes('context.stonehearth_calendar:calendar')
+   }.observes('context.date')
 
 });
 

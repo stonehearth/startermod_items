@@ -37,6 +37,7 @@ add_library(om_lua STATIC
             lua_carry_block_component.cpp
             lua_unit_info_component.cpp
             lua_item_component.cpp
+            lua_data_blob.cpp
             pch.cpp
             )
 

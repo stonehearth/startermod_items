@@ -234,7 +234,7 @@ void Client::LoadModuleRoutes(std::string const& modname, json::ConstJsonObject 
 {
    resources::ResourceManager2 &rm = resources::ResourceManager2::GetInstance();
    try {
-      for (auto const& node : block["routes"]) {
+      for (auto const& node : block["request_handlers"]) {
          std::string const& uri_path = SanatizePath("/modules/client/" + modname + "/" + node.name());
          std::string const& lua_path = node.as_string();
          clientRoutes_[uri_path] = scriptHost_->LuaRequire(lua_path);
@@ -363,6 +363,7 @@ bool Client::ProcessMessage(const proto::Update& msg)
       DISPATCH_MSG(UpdateObject);
       DISPATCH_MSG(RemoveObjects);
       DISPATCH_MSG(UpdateDebugShapes);
+      DISPATCH_MSG(DefineRemoteObject);
    default:
       ASSERT(false);
    }
@@ -534,6 +535,21 @@ void Client::RemoveObjects(const proto::RemoveObjects& update)
 void Client::UpdateDebugShapes(const proto::UpdateDebugShapes& msg)
 {
    Renderer::GetInstance().DecodeDebugShapes(msg.shapelist());
+}
+
+void Client::DefineRemoteObject(const proto::DefineRemoteObject& msg)
+{
+   std::string const &key = msg.uri();
+   std::string const &value = msg.object_uri();
+
+   if (value.empty()) { 
+      auto i = serverRemoteObjects_.find(key);
+      if (i != serverRemoteObjects_.end()) {
+         serverRemoteObjects_.erase(i);
+      }
+   } else {
+      serverRemoteObjects_[key] = value;
+   }
 }
 
 void Client::RegisterReplyHandler(const proto::Command* cmd, ReplyFn fn)
@@ -1537,6 +1553,11 @@ void Client::TraceUri(JSONNode const& query, std::shared_ptr<net::IResponse> res
 
    if (args["create"].as_bool()) {
       std::string uri = args["uri"].as_string();
+
+      auto i = serverRemoteObjects_.find(uri);
+      if (i != serverRemoteObjects_.end()) {
+         uri = i->second;
+      }
 
       if (boost::starts_with(uri, "/object")) {
          TraceObjectUri(uri, response);

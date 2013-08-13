@@ -101,7 +101,7 @@ void Simulation::LoadModuleRoutes(std::string const& modname, json::ConstJsonObj
 {
    resources::ResourceManager2 &rm = resources::ResourceManager2::GetInstance();
    try {
-      for (auto const& node : block["routes"]) {
+      for (auto const& node : block["request_handlers"]) {
          std::string const& uri_path = SanatizePath("/modules/server/" + modname + "/" + node.name());
          std::string const& lua_path = node.as_string();
          routes_[uri_path] = scriptHost_->LuaRequire(lua_path);
@@ -258,6 +258,7 @@ void Simulation::EncodeUpdates(protocol::SendQueuePtr queue, ClientState& cs)
       }
    }
    EncodeDebugShapes(queue);
+   PushServerRemoteObjects(queue);
 
    cs.last_update = store_.GetNextGenerationId();
 }
@@ -320,6 +321,21 @@ void Simulation::EncodeDebugShapes(protocol::SendQueuePtr queue)
    }
 
    queue->Push(protocol::Encode(update));
+}
+
+void Simulation::PushServerRemoteObjects(protocol::SendQueuePtr queue)
+{
+   if (!serverRemoteObjects_.empty()) {
+      proto::Update update;
+      update.set_type(proto::Update::DefineRemoteObject);
+      auto drs = update.MutableExtension(proto::DefineRemoteObject::extension);
+      for (const auto& entry : serverRemoteObjects_) {
+         drs->set_uri(entry.first);
+         drs->set_object_uri(entry.second);
+         queue->Push(protocol::Encode(update));
+      }
+      serverRemoteObjects_.clear();
+   }
 }
 
 
@@ -646,4 +662,13 @@ bool Simulation::ProcessMessage(const proto::Request& msg, protocol::SendQueuePt
    }
    queue->Push(protocol::Encode(reply));
    return true;
+}
+
+void Simulation::RegisterServerRemoteObject(std::string const& uri, dm::ObjectPtr obj)
+{
+   std::pair<std::string, std::string> entry;
+
+   entry.first = uri;
+   entry.second = std::string("/object/") + stdutil::ToString(obj->GetObjectId());
+   serverRemoteObjects_.push_back(entry);
 }
