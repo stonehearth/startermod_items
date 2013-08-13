@@ -62,7 +62,7 @@ public:
    void Idle(platform::timer &timer) override;
 
    void SendCommandReply(::radiant::tesseract::protocol::Reply* reply);
-
+   void RegisterServerRemoteObject(std::string const& uri, dm::ObjectPtr obj);
    om::EntityPtr GetRootEntity();
    Physics::OctTree &GetOctTree();
    dm::Store& GetStore();
@@ -76,6 +76,7 @@ private:
    void PostCommand(tesseract::protocol::PostCommandRequest const& request, tesseract::protocol::PostCommandReply* reply);
    void ScriptCommand(tesseract::protocol::ScriptCommandRequest const& request, tesseract::protocol::ScriptCommandReply* reply);
    void EncodeDebugShapes(protocol::SendQueuePtr queue);
+   void PushServerRemoteObjects(protocol::SendQueuePtr queue);
    void ProcessJobList(platform::timer &timer);
    void OnObjectAllocated(dm::ObjectPtr obj);
    void OnObjectDestroyed(dm::ObjectId id);
@@ -129,6 +130,7 @@ private:
    std::vector<om::TargetTablesRef>             targetTables_;   
    lua_State* L_;
    std::unordered_map<std::string, luabind::object>   routes_;
+   std::vector<std::pair<std::string, std::string>>   serverRemoteObjects_;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

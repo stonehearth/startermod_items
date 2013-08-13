@@ -17,6 +17,7 @@
 #include "om/stonehearth.h"
 #include "csg/lua/lua_csg.h"
 #include "om/lua/lua_om.h"
+#include "om/data_blob.h"
 
 #define DEFINE_ALL_COMPONENTS
 #include "om/all_components.h"
@@ -191,6 +192,18 @@ om::BoxedRegion3Ptr ScriptHostAllocRegion(ScriptHost const& sh)
    return Simulation::GetInstance().GetStore().AllocObject<om::BoxedRegion3>();
 }
 
+om::DataBlobPtr ScriptHostCreateDataBlob(ScriptHost const& sh, luabind::object obj)
+{
+   om::DataBlobPtr blob = Simulation::GetInstance().GetStore().AllocObject<om::DataBlob>();
+   blob->SetLuaObject(obj);
+   return blob;
+}
+
+void ScriptHostRegisterRemoteObject(ScriptHost const& sh, std::string uri, om::DataBlobPtr blob)
+{
+   Simulation::GetInstance().RegisterServerRemoteObject(uri, blob);
+}
+
 void ScriptHost::InitEnvironment()
 {
    int ii = lua_gettop(L_);
@@ -216,6 +229,8 @@ void ScriptHost::InitEnvironment()
          .def("unstick",                  &ScriptHost::Unstick)
          .def("lua_require",              &ScriptHost::LuaRequire)
          .def("alloc_region",             &ScriptHostAllocRegion)
+         .def("create_data_blob",         &ScriptHostCreateDataBlob)
+         .def("publish_data_blob",        &ScriptHostRegisterRemoteObject)
    ];
    lua_register(L_, "get_config_option", GetConfigOptions);
 
