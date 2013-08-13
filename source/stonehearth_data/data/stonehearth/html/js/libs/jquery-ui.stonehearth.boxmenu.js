@@ -103,28 +103,6 @@
          menuItem.click();
       },
 
-      handleKey: function(keyCode) {
-         var menuItem = null;
-
-         var key = String.fromCharCode(keyCode).toLowerCase();
-         var s = "[hotkey='" + key + "']";
-
-         if (this._activeMenu) {
-            menuItem = this._activeMenu.find(s);
-         } else {
-            this._menu.find('.menuButton').each(function(i, element) {
-               if ($(element).attr('hotkey') == key) {
-                  menuItem = element;
-                  return false;
-               }
-            });
-         }
-
-         if (menuItem) {
-            menuItem.click();
-         }
-      },
-
       _addTopButton: function(buttonId, data) {
          var buttonDy = 80;
 

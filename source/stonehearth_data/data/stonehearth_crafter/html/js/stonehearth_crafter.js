@@ -7,8 +7,8 @@ $(document).ready(function(){
 
          // xxx - this is probably way too convoluted, and if it does need to be here
          // should use local data instead of this crazy stonehearth.entityData API
-         var existingWorkshopView = stonehearth.entityData(entity, "show_workshop");
-         existingWorkshopView = false;
+         //var existingWorkshopView = stonehearth.entityData(entity, "show_workshop");
+         var existingWorkshopView = false;
 
          if (!existingWorkshopView) {
             var view = App.gameView.addView(App.StonehearthCrafterView, { uri: entity });
@@ -22,7 +22,7 @@ $(document).ready(function(){
       });
 
       // when the selection changes, restore the workshop if need be.
-      $(top).on("radiant.events.selection_changed", function (_, e) {
+      $(top).on("selection_changed.radiant", function (_, e) {
          var entity = e.entity;
 
          // refresh the workshop widget if it us up and we've selected a
@@ -42,7 +42,7 @@ $(document).ready(function(){
       });
 
       // handle requests from elsewhere in the UI that a workshop be created
-      $(top).on("radiant.events.create_workshop", function (_, e) {
+      $(top).on("create_workshop.radiant", function (_, e) {
          // kick off a request to the client to show the cursor for placing
          // the workshop. The UI is out of the 'create workshop' process after
          // this. All the work is done in the client and server

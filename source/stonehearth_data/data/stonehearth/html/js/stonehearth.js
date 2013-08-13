@@ -1,4 +1,4 @@
-App.RootView = Ember.ContainerView.extend({
+App.StonehearthView = Ember.ContainerView.extend({
 
    _gameView: null,
    _titleScreenView: null,
