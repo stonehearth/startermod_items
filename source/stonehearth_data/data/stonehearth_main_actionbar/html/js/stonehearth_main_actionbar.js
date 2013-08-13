@@ -56,6 +56,7 @@ App.StonehearthMainActionbarView = App.View.extend({
                name: 'Harvest',
                icon: imagePath + 'harvest.png',
                hotkey: 'h',
+               styleClass: 'harvestMenu'
                items: {
                   chop: {
                      name: 'Chop trees',

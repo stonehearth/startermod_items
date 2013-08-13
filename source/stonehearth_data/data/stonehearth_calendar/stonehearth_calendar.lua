@@ -62,7 +62,7 @@ function stonehearth_calendar.__init()
    data._uiClock = radiant.mods.create_data_blob(currentTimeToJson)
    
    -- Step 2: every minute, mark the storage object as dirty.
-   radiant.events.listen('radiant.events.calendar.minutely', function()
+   radiant.events.listen('radiant.events.calendar.hourly', function()
          data._uiClock:mark_changed()
       end)
       
