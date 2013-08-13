@@ -1,6 +1,11 @@
 <script type="text/x-handlebars" data-template-name="stonehearthCrafter">
-
    <div id="craftingWindow">
+      <div id="craftingShingle">
+         <img class="classMarker" src="">
+         {{unit_info.name}}<br/>
+         <small>TODO: insert name here: {{unit_info.description}}</small>
+         <a>Close</a>
+      </div>
       <div class="frame">
         {{unit_info.name}}<br>
         <small>{{unit_info.description}}</small>
@@ -115,7 +120,7 @@
             {{else}}
                <label class="amountLabel"> = {{condition.inventory_below}}</label>
             {{/if}}
-               <label class="deleteLabel">Remove?</label>
+               <label class="deleteLabel">{{i18n stonehearth_crafter:remove_confirm}}</label>
          </div>
       {{/each}}
       </div>
@@ -123,6 +128,7 @@
       <a id="orderListUpBtn" {{action scrollOrderListUp target="view"}}><img src="/stonehearth_crafter/html/images/queue_up_arrow.png"></a>
       <a id="orderListDownBtn" {{action scrollOrderListDown target="view"}} ><img src="/stonehearth_crafter/html/images/queue_down_arrow.png"></a>
 
+      {{#if stonehearth_crafter:workshop.order_list}}
       <div id="orderListControls">
          {{#if stonehearth_crafter:workshop.is_paused}}
             <a id="pauseButton" class="showPlay" href="#" {{action togglePause target="view"}}></a>
@@ -133,6 +139,7 @@
             <ul id="garbageList" class="droptrue"></ul>
          </a>
       </div>
+      {{/if}}
 
    </div>
 </script>

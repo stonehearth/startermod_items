@@ -2,8 +2,7 @@ local MicroWorld = require 'stonehearth_tests.lib.micro_world'
 
 local PromoteTest = class(MicroWorld)
 --[[
-   Instantiate a carpenter, a workbench, and a piece of wood.
-   Turn out a wooden sword
+   Instantiate a worker and a workbench with saw. Promote the worker into a carpenter
 ]]
 
 function PromoteTest:__init()
@@ -27,7 +26,7 @@ function PromoteTest:__init()
    local tree2 = self:place_tree(-12, 12)
 
    saw:add_component('unit_info'):set_faction(faction)
-   saw:get_component('stonehearth_classes:profession_info'):set_workshop(workshop_component)
+   saw:get_component('stonehearth_classes:talisman_promotion_info'):set_promotion_data({workshop = workshop_component})
 
    --Human TODO
    --Test that the dude can chop down the tree

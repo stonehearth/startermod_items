@@ -1,8 +1,12 @@
+local GrabTalismanAction = require 'stonehearth_classes/ai/actions/grab_talisman_action'
 
 function promote(player, args)
    local target_talisman = radiant.entities.get_entity(args.talisman)
-   --TODO: produce the target person
-   radiant.events.broadcast_msg('stonehearth_item.promote_citizen', {talisman = target_talisman, target_person = 14})
+   radiant.events.broadcast_msg(
+      'stonehearth.events.compulsion_event',
+      GrabTalismanAction,
+      14, --TODO: replace with the results of the people picker
+      {talisman = target_talisman})
 end
 
 return promote

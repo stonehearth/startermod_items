@@ -17,9 +17,9 @@ function CarpenterTest:__init()
    local bench = self:place_item('/stonehearth_carpenter_class/entities/carpenter_workbench', -12, -12)
    local workshop_component = bench:get_component('stonehearth_crafter:workshop')
 
-   local profession_info = ProfessionInfo()
-   profession_info:set_workshop(workshop_component)
-   local carpenter = self:place_citizen(12, 12,'carpenter', profession_info)
+   --local profession_info = ProfessionInfo()
+   --profession_info:set_promotion_data({workshop = workshop_component})
+   local carpenter = self:place_citizen(12, 12,'carpenter', {workshop = workshop_component})
 
    local faction = carpenter:get_component('unit_info'):get_faction()
    bench:add_component('unit_info'):set_faction(faction)

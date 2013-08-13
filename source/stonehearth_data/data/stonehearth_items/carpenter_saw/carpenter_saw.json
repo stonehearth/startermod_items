@@ -16,8 +16,8 @@
             "file(/commands/promote_citizen.json)"
          ]
       },
-      "stonehearth_classes:profession_info": {
-         "profession": "carpenter"
+      "stonehearth_classes:talisman_promotion_info": {
+         "class_script": "/stonehearth_carpenter_class/"
       }
    }
 }
