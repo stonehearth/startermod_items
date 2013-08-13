@@ -12,10 +12,10 @@ class MultiPathFinder : public Job {
       MultiPathFinder(lua_State* L, std::string name);
       virtual ~MultiPathFinder();
 
-      typedef std::unordered_map<om::EntityId, om::EntityRef> DestinationMap;
+      typedef std::unordered_map<dm::ObjectId, om::EntityRef> DestinationMap;
 
 	   void AddEntity(om::EntityRef actor, luabind::object solved_cb, luabind::object dst_filter);
-      void RemoveEntity(om::EntityId actor);
+      void RemoveEntity(dm::ObjectId actor);
 
       void AddDestination(om::EntityRef dst);
       void RemoveDestination(dm::ObjectId id);
@@ -35,7 +35,7 @@ class MultiPathFinder : public Job {
       std::ostream& Format(std::ostream& o) const;
 
    private:
-      typedef std::unordered_map<om::EntityId, PathFinderPtr> PathFinderMap;
+      typedef std::unordered_map<dm::ObjectId, PathFinderPtr> PathFinderMap;
       PathFinderMap                    pathfinders_;
       DestinationMap                   destinations_;
       bool                             reversed_search_;

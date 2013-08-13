@@ -1,5 +1,9 @@
 local StockpileComponent = class()
 
+local Point3 = _radiant.csg.Point3
+local Cube3 = _radiant.csg.Cube3
+local Region3 = _radiant.csg.Region3
+
 function StockpileComponent:__init(entity)
    self._entity = entity
    self._destination = entity:add_component('destination')
@@ -7,6 +11,7 @@ function StockpileComponent:__init(entity)
       items = {},
       size  = { 0, 0 }
    }
+   self._destination:set_region(native:alloc_region())
    radiant.events.listen('radiant.events.gameloop', self)
 end
 
@@ -26,11 +31,11 @@ StockpileComponent['radiant.events.gameloop'] = function(self)
          self:_remove_item(id)
       end)
    
-   local boxed_transform = self._entity:add_component('mob'):get_boxed_transform()
-   self._mob_trace = boxed_transform:trace('stockpile tracking self position')
-   self._mob_trace:on_changed(function()
-         self:_rebuild_item_data()
-      end)
+   local mob = self._entity:add_component('mob')
+   self._mob_trace = mob:trace_transform('stockpile tracking self position')
+                        :on_changed(function()
+                              self:_rebuild_item_data()
+                           end)
       
    self:_rebuild_item_data()      
 end
@@ -101,7 +106,7 @@ function StockpileComponent:reserve(location)
    local origin = Point3(radiant.entities.get_world_grid_location(self._entity))
    local pt = Point3(location) - origin
    local region = self._destination:get_region()
-   if region:contains(pt) then
+   if region:get():contains(pt) then
       region:modify():remove_point(pt)
       return true
    end   
@@ -145,9 +150,9 @@ function StockpileComponent:_remove_item(id)
 end
 
 function StockpileComponent:_rebuild_item_data()
-   local bounds = self:_get_bounds()
-   local region = Region3(bounds)
-   self._destination:set_region(region)
+   local region = self._destination:get_region()
+   local cursor = region:modify()
+   cursor:add_cube(self:_get_bounds())
 
    self._data.items = {}
    local ec = radiant.entities.get_root_entity()

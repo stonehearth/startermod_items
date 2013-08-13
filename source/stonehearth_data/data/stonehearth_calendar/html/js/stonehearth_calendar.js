@@ -1,10 +1,12 @@
 App.StonehearthCalendarView = App.View.extend({
    templateName: 'stonehearthCalendar',
 
+   components: {
+      "stonehearth_calendar:calendar" : {}
+   },
+
    init: function() {
       this._super();
-      this._poll();
-      this.set('context', {});
    },
 
    didInsertElement: function() {
@@ -14,29 +16,24 @@ App.StonehearthCalendarView = App.View.extend({
       this._sunRays = $('#sunRays');
       this._moon = $('#moon');
       this._daySky = $('#skyDay');
-   },
 
-   _poll: function() {
-      var self = this;
-      $.ajax({
-         type: 'post',
-         url: '/stonehearth_calendar/get_calendar.lua',
-         contentType: "application/json",
-         dataType: 'json',
-         data: "{}"
-      }).done(function(data) {
-         self.set('context.calendar', data);
-         setTimeout(function() { self._poll() }, 1000);
-      })
-
+      this.set('uri', '/objects/1');
    },
 
    _updateClock: function() {
       if (this._clock == undefined) {
          return;
       }
-      var calendar = this.get('context.calendar');
-      var seconds = calendar.second + (calendar.minute * 60) + (calendar.hour * 3600);
+      var c = this.get('context');
+      var date;
+      date = this.get('context.stonehearth_calendar:calendar.date');
+
+      if (!date) {
+         return;
+      }
+
+      this.set('context.time', date.time);
+      var seconds = date.second + (date.minute * 60) + (date.hour * 3600);
 
       var SECONDS_IN_DAY = 86400;
       var SECONDS_IN_HOUR = 3600;
@@ -66,7 +63,6 @@ App.StonehearthCalendarView = App.View.extend({
       var opacity = 0
       var skySeconds = seconds % SECONDS_IN_DAY;
 
-
       if (skySeconds > DAWN && skySeconds < DAY_BEGINNING ) {
          // morning
          opacity = (skySeconds - DAWN) / (DAY_BEGINNING - DAWN);
@@ -87,7 +83,6 @@ App.StonehearthCalendarView = App.View.extend({
 
       this._daySky.css('opacity', opacity);
       this._sunRays.css('opacity', opacity);
-
 
       // the sun and moon's path around the sky
       var offsetSeconds = seconds + (SECONDS_IN_DAY * 5 / 8);
@@ -115,7 +110,7 @@ App.StonehearthCalendarView = App.View.extend({
          this._moon.css({'top': PATH_Y_MAX - dy, 'left': PATH_X_MAX});
       }
 
-   }.observes('context.calendar')
+   }.observes('context.stonehearth_calendar:calendar')
 
 });
 

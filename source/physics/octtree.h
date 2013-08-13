@@ -41,7 +41,6 @@ class OctTree {
       int EstimateMovementCost(const math3d::ipoint3& src, const csg::Region3& dst) const;
 
    protected:
-      bool Intersects(math3d::aabb bounds, om::GridCollisionShapePtr gridCollsionShape) const;
       bool Intersects(math3d::aabb bounds, om::RegionCollisionShapePtr rgnCollsionShape) const;   
       bool CanStepUp(math3d::ipoint3& at) const;
       bool CanFallDown(math3d::ipoint3& at) const;

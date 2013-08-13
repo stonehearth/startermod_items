@@ -222,7 +222,7 @@ void CreatePortal::SendCommand()
          JSONNode node = libjson::parse(msg->json());
          auto i = node.find("entity_id");
          if (i != node.end() && i->type() == JSON_NUMBER) {
-            om::EntityId id = i->as_int();
+            dm::ObjectId id = i->as_int();
             WaitForEntityAlloc(Client::GetInstance().GetStore(), id, [self, remoteWall, shadowWall]() {
                // Show the remote wall again...
                auto ro = Renderer::GetInstance().GetRenderObject(remoteWall);
@@ -230,7 +230,7 @@ void CreatePortal::SendCommand()
                   ro->Show(true);
                }
 
-               LOG(WARNING) << "Destroying authoring wall " << shadowWall->GetEntityId();
+               LOG(WARNING) << "Destroying authoring wall " << shadowWall->GetObjectId();
                if (self.use_count() > 1) {
                   (*self)();
                }

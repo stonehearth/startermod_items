@@ -3,7 +3,7 @@
 
 #include "math3d.h"
 #include "dm/record.h"
-#include "om/all_object_types.h"
+#include "om/object_enums.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
 

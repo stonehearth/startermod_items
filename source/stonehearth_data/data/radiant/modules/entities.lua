@@ -1,6 +1,8 @@
 local entities = {}
 local singleton = {}
 
+local RadiantIPoint3 = _radiant.math3d.RadiantIPoint3
+
 function entities.__init()
    singleton._entity_dtors = {}
 end
@@ -90,7 +92,6 @@ function entities.remove_child(parent, child)
    radiant.check.is_entity(child)
 
    local component = parent:get_component('entity_container')
-   radiant.check.is_a(component, EntityContainer)
 
    component:remove_child(child)
    entities.move_to(child, RadiantIPoint3(0, 0, 0))
@@ -117,7 +118,6 @@ function entities.turn_to_face(entity, arg2)
    end
 
    radiant.check.is_entity(entity)
-   radiant.check.is_a(location, RadiantIPoint3)
    entity:add_component('mob'):turn_to_face_point(location)
 end
 
@@ -160,7 +160,6 @@ end
 
 function entities.destroy_target_table(entity, table)
    radiant.check.is_entity(entity)
-   radiant.check.is_a(table, TargetTable)
 
    local target_tables = entity:add_component('target_tables')
    return target_tables:remove_table(table)
@@ -210,8 +209,7 @@ end
 
 function entities.get_entity(id)
    radiant.check.is_number(id)
-   local entity = native:get_entity(id)
-   return entity and entity:is_valid() and entity or nil
+   return native:get_entity(id)
 end
 
 

@@ -26,10 +26,10 @@ void RenderCarryBlock::UpdateCarrying()
    LOG(WARNING) << "updating carry block.";
    auto carryBlock = carryBlock_.lock();
    if (carryBlock && carryBoneId_) {
-      om::EntityId carryingId = 0;
+      dm::ObjectId carryingId = 0;
       om::EntityPtr carrying = carryBlock->GetCarrying().lock();      
       if (carrying) {
-         carryingId = carrying->GetEntityId();
+         carryingId = carrying->GetObjectId();
       }
       if (carryingId != carrying_) {
          // If the thing we used to be carrying is still attached to our carry bone, deparent it

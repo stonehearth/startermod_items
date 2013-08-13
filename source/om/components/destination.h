@@ -6,7 +6,7 @@
 #include "dm/record.h"
 #include "om/om.h"
 #include "om/region.h"
-#include "om/all_object_types.h"
+#include "om/object_enums.h"
 #include "component.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
@@ -15,16 +15,14 @@ class Destination : public Component
 {
 public:
    DEFINE_OM_OBJECT_TYPE(Destination, destination);
-   static void RegisterLuaType(struct lua_State* L);
-   std::string ToString() const;
 
    void ExtendObject(json::ConstJsonObject const& obj) override;
 
-   RegionPtr const GetRegion() const { return region_; }
-   RegionPtr const GetReserved() const { return reserved_; }
-   RegionPtr const GetAdjacent() const { return adjacent_; }
+   BoxedRegion3Ptr GetRegion() const { return region_; }
+   void SetRegion(BoxedRegion3Ptr r) { region_ = r; }
 
-   void SetRegion(std::shared_ptr<csg::Region3> region);
+   BoxedRegion3Ptr GetReserved() const;
+   BoxedRegion3Ptr GetAdjacent();
 
 private:
    void InitializeRecordFields() override;
@@ -32,14 +30,13 @@ private:
    void ComputeAdjacentRegion(csg::Region3 const& r);
 
 public:
-   dm::Boxed<RegionPtr>             region_;
-   dm::Boxed<RegionPtr>             reserved_;
-   dm::Boxed<RegionPtr>             adjacent_;
+   dm::Boxed<BoxedRegion3Ptr>       region_;
+   dm::Boxed<BoxedRegion3Ptr>       reserved_;
+   dm::Boxed<BoxedRegion3Ptr>       adjacent_;
    dm::Guard                        guards_;
    int                              lastUpdated_;
+   int                              lastChanged_;
 };
-
-static std::ostream& operator<<(std::ostream& os, const Destination& o) { return (os << o.ToString()); }
 
 END_RADIANT_OM_NAMESPACE
 

@@ -137,6 +137,8 @@ public:
 	
 	static void drawMeshes( const std::string &shaderContext, const std::string &theClass, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet );
+	static void drawVoxelMeshes( const std::string &shaderContext, const std::string &theClass, bool debugView,
+		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet );
 	static void drawParticles( const std::string &shaderContext, const std::string &theClass, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet );
 
@@ -212,7 +214,7 @@ protected:
 	float                              _splitPlanes[5];
 	Matrix4f                           _lightMats[4];
 
-	uint32                             _vlPosOnly, _vlOverlay, _vlModel, _vlParticle;
+	uint32                             _vlPosOnly, _vlOverlay, _vlModel, _vlParticle, _vlVoxelModel;
 	uint32                             _vbCube, _ibCube, _vbSphere, _ibSphere;
 	uint32                             _vbCone, _ibCone, _vbFSPoly;
 public:

@@ -1,3 +1,4 @@
+local stonehearth_sky = radiant.mods.require('stonehearth_sky') -- xxx, hack, see below
 
 local constants = {
    TICKS_PER_SECOND = 2,
@@ -29,7 +30,7 @@ local constants = {
 }
 
 local data = {
-   calendar = {
+   date = {
       hour = 6,
       minute = 0,
       second = 0,
@@ -49,12 +50,20 @@ radiant.events.register_event('radiant.events.calendar.hourly')
 
 function stonehearth_calendar.__init()
    radiant.events.listen('radiant.events.gameloop', stonehearth_calendar._on_event_loop)
+
+   -- add the calendar to the root entity
+   -- xxx, move this.
+   local root_entity = radiant.entities.get_root_entity()
+   root_entity:add_component('stonehearth_calendar:calendar'):_set_calendar(stonehearth_calendar)
+
+   -- xxx, this is a total hack. Need a sensible entry point for the sky mod
+   -- stonehearth_sky.add_lights();
 end
 
 function stonehearth_calendar.set_time(second, minute, hour)
-   data.calendar.hour = hour;
-   data.calendar.minute = minute;
-   data.calendar.second = second;
+   data.date.hour = hour;
+   data.date.minute = minute;
+   data.date.second = second;
 end
 
 -- recompute the game calendar based on the time
@@ -67,62 +76,62 @@ function stonehearth_calendar._on_event_loop(_, now)
    local t = math.floor(dt / constants.TICKS_PER_SECOND)
 
    -- set the calendar data
-   local sec = data.calendar.second + t;
-   data.calendar.second = sec % constants.SECONDS_IN_MINUTE
+   local sec = data.date.second + t;
+   data.date.second = sec % constants.SECONDS_IN_MINUTE
 
-   local min = data.calendar.minute + math.floor(sec / constants.SECONDS_IN_MINUTE)
-   data.calendar.minute = min % constants.MINUTES_IN_HOUR
+   local min = data.date.minute + math.floor(sec / constants.SECONDS_IN_MINUTE)
+   data.date.minute = min % constants.MINUTES_IN_HOUR
 
-   local hour = data.calendar.hour + math.floor(min / constants.MINUTES_IN_HOUR)
-   data.calendar.hour = hour % constants.HOURS_IN_DAY
+   local hour = data.date.hour + math.floor(min / constants.MINUTES_IN_HOUR)
+   data.date.hour = hour % constants.HOURS_IN_DAY
 
-   local day = data.calendar.day + math.floor(hour / constants.HOURS_IN_DAY)
-   data.calendar.day = day % constants.DAYS_IN_MONTH
+   local day = data.date.day + math.floor(hour / constants.HOURS_IN_DAY)
+   data.date.day = day % constants.DAYS_IN_MONTH
 
-   local month = data.calendar.month + math.floor(day / constants.DAYS_IN_MONTH)
-   data.calendar.month = month % constants.MONTHS_IN_YEAR
+   local month = data.date.month + math.floor(day / constants.DAYS_IN_MONTH)
+   data.date.month = month % constants.MONTHS_IN_YEAR
 
-   local year = data.calendar.year + math.floor(month / constants.MONTHS_IN_YEAR)
-   data.calendar.year = year
+   local year = data.date.year + math.floor(month / constants.MONTHS_IN_YEAR)
+   data.date.year = year
 
    if sec >= constants.SECONDS_IN_MINUTE  then
-      radiant.events.broadcast_msg('radiant.events.calendar.minutely', data.calendar)
+      radiant.events.broadcast_msg('radiant.events.calendar.minutely', data.date)
    end
    
    if min >= constants.MINUTES_IN_HOUR then
-      radiant.events.broadcast_msg('radiant.events.calendar.hourly', data.calendar)
+      radiant.events.broadcast_msg('radiant.events.calendar.hourly', data.date)
    end
 
    -- the time, formatted into a string
-   data.calendar.time = stonehearth_calendar.format_time()
+   data.date.time = stonehearth_calendar.format_time()
 
    -- the date, formatting into a string
-   data.calendar.date = stonehearth_calendar.format_date()
+   data.date.date = stonehearth_calendar.format_date()
 
    data._lastNow = now
 end
 
 function stonehearth_calendar.format_time()
    local suffix = "am"
-   local hour = data.calendar.hour
+   local hour = data.date.hour
 
-   if data.calendar.hour == 0 then
+   if data.date.hour == 0 then
       hour = 12
-   elseif data.calendar.hour > 12 then
+   elseif data.date.hour > 12 then
       hour = hour - 12
       suffix = "pm"
    end
 
-   return string.format("%d : %02d %s", hour, data.calendar.minute, suffix)
+   return string.format("%d : %02d %s", hour, data.date.minute, suffix)
 end
 
 function stonehearth_calendar.format_date()
-   return string.format("day %d of %s, %d", data.calendar.day, constants.monthNames[data.calendar.month + 1], 
-      data.calendar.year)
+   return string.format("day %d of %s, %d", data.date.day, constants.monthNames[data.date.month + 1], 
+      data.date.year)
 end
 
-function stonehearth_calendar.get_calendar()
-   return data.calendar
+function stonehearth_calendar.get_time_and_date()
+   return data.date
 end
 
 stonehearth_calendar.__init()

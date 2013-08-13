@@ -9,7 +9,7 @@ static const int SNT_DebugShapesNode   = 1000;
 static const int SNT_StockpileNode     = 1001;
 static const int SNT_DecalNode         = 1002;
 static const int SNT_ToastNode         = 1003;
-static const int SNT_TerrainNode       = 1004;
+static const int SNT_RegionNode        = 1005;
 
 BEGIN_RADIANT_HORDE3D_NAMESPACE
 

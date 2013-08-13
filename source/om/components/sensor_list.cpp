@@ -5,29 +5,10 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-luabind::scope Sensor::RegisterLuaType(struct lua_State* L, const char* name)
+std::ostream& om::operator<<(std::ostream& os, const Sensor& o)
 {
-   using namespace luabind;
-
-   std::string contentsName = std::string(name) + "Contents";
-
-   return
-      class_<Sensor, SensorPtr>(name)
-         .def("set_name",                 &om::Sensor::SetName)
-         .def("get_name",                 &om::Sensor::GetName)
-         .def("get_contents",             &om::Sensor::GetContents)
-      ;
-}
-
-luabind::scope SensorList::RegisterLuaType(struct lua_State* L, const char* name)
-{
-   using namespace luabind;
-   return
-      class_<SensorList, Component, std::weak_ptr<Component>>(name)
-         .def("add_sensor",               &om::SensorList::AddSensor)
-         .def("get_sensor",               &om::SensorList::GetSensor)
-         .def("remove_sensor",            &om::SensorList::RemoveSensor)
-      ;
+   os << "[Sensor " << o.GetObjectId() << " name:" << o.GetName() << "]";
+   return os;
 }
 
 void SensorList::ExtendObject(json::ConstJsonObject const& obj)

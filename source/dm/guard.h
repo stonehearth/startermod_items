@@ -18,6 +18,8 @@ public:
    Guard(Guard&& other);
    ~Guard();
 
+   int GetId() const { return id_; }
+
    const Guard& operator=(Guard&& rhs);
    const Guard& operator=(std::function<void()> untrack);
 
@@ -29,8 +31,10 @@ public:
 private:
    NO_COPY_CONSTRUCTOR(Guard);
    void UntrackNodes();
+   static int nextGuardId__;
 
 private:
+   int                                     id_;
    std::vector<std::function<void()>>      nodes_;
 };
 

@@ -16,6 +16,7 @@ void radiant::om::RegisterObjectTypes(dm::Store& store)
 
       OM_ALL_OBJECTS
       OM_ALL_COMPONENTS
+      OM_OBJECT(BoxedRegion3, boxed_region3)
 
 #  undef OM_OBJECT
 }

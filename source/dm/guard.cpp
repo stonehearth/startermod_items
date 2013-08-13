@@ -5,22 +5,28 @@
 using namespace ::radiant;
 using namespace ::radiant::dm;
 
-Guard::Guard()
+int Guard::nextGuardId__ = 1;
+
+Guard::Guard() :
+   id_(nextGuardId__++)
 {
 }
 
 Guard::Guard(Guard&& other) :
+   id_(nextGuardId__++),
    nodes_(std::move(other.nodes_))
 {
 }
 
-Guard::Guard(std::function<void()> untrack)
+Guard::Guard(std::function<void()> untrack) :
+   id_(nextGuardId__++)
 {
    (*this) += untrack;
 }
 
 Guard::~Guard()
 {
+   LOG(WARNING) << "destroying guard " << id_;
    UntrackNodes();
 }
 

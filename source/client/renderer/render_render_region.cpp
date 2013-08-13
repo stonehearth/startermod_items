@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "pipeline.h"
 #include "renderer.h"
 #include "render_render_region.h"
 #include "om/components/render_region.h"
@@ -12,19 +13,13 @@ RenderRenderRegion::RenderRenderRegion(const RenderEntity& entity, om::RenderReg
    entity_(entity)
 {
    node_ = h3dAddGroupNode(entity_.GetNode(), "region");
+
+   // xxx: TraceSelected is a horribad name!
    selectedGuard_ = Renderer::GetInstance().TraceSelected(node_, std::bind(&RenderRenderRegion::OnSelected, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4)); 
 
-   auto update_render_region = [=](const csg::Region3 &r){
+   regionGuard_ = render_region->TraceRenderRegion("rendering render_region", [=](csg::Region3 const& r) {
       UpdateRenderRegion(r);
-   };
-
-   auto traceRegionPtr = [=](om::RegionPtr const &v) {
-      regionGuard_ = v->Trace("render_region renderer", update_render_region);
-      update_render_region(v->GetRegion());
-   };
-
-   regionPtrGuard_ = render_region->GetBoxedRegion().TraceValue("render render_region ptr trace", traceRegionPtr);
-   traceRegionPtr(render_region->GetRegionPointer());
+   });
 }
 
 
@@ -57,7 +52,7 @@ void RenderRenderRegion::UpdateRenderRegion(csg::Region3 const& region)
    
    for (auto const& entry : meshmap) {
       H3DNode node;
-      // xxx: why is this called TerrainNode?
-      node = h3dRadiantCreateTerrainNode(node_, "render_region node", entry.first, entry.second)->GetNode();
+      // xxx: why is this called TerrainNode?      
+      node = Pipeline::GetInstance().AddMeshNode(node_, entry.second);
    }
 }

@@ -3,13 +3,13 @@
 
 #include <atomic>
 #include "om.h"
-#include "math3d.h"
+#include "om/object_enums.h"
+#include "om/macros.h"
 #include "libjson.h"
 #include "dm/record.h"
 #include "dm/boxed.h"
 #include "dm/map.h"
 #include "dm/store.h"
-#include "all_object_types.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
 
@@ -30,7 +30,6 @@ public:
    template <class T> std::weak_ptr<T> AddComponentRef() { return AddComponent<T>(); }
    template <class T> std::weak_ptr<T> GetComponentRef() const { return GetComponent<T>(); }
    
-   om::EntityId GetEntityId() const { return GetObjectId(); }
    std::weak_ptr<Entity> GetRef() { return shared_from_this(); }
    std::shared_ptr<Entity> GetPtr() { return shared_from_this(); }
 
@@ -42,7 +41,6 @@ public:
 
 private:
    void InitializeRecordFields() override;
-
    NO_COPY_CONSTRUCTOR(Entity)
 
 private:
@@ -53,6 +51,7 @@ private:
    dm::Boxed<std::string>  resource_uri_;
    ComponentMap            components_;
 };
+std::ostream& operator<<(std::ostream& os, const Entity& o);
 
 END_RADIANT_OM_NAMESPACE
 

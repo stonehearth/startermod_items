@@ -33,7 +33,7 @@ void LuaBasicTypes::RegisterType(lua_State* L)
       csg::Cube3::RegisterLuaType(L, "Cube3"), 
       csg::Point2::RegisterLuaType(L, "Point2"),
       csg::Point3::RegisterLuaType(L, "Point3"),
-      csg::HeightMap<double>::RegisterLuaType(L, "HeightMap")
+      csg::HeightMap<double>::RegisterLuaType(L, "HeightMapCPP")
    ];
 
    module(L) [

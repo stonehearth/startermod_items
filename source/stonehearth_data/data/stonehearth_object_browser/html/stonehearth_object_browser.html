@@ -1,0 +1,28 @@
+<script type="text/x-handlebars" data-template-name="objectBrowser">
+   <div id="objectBrowser">
+      <div id="toolbar">
+         <a href="#" {{action goHome target="view"}} class="button">
+            <img src="/stonehearth_object_browser/html/images/goHome.png">
+         </a>
+         <a href="#" {{action goBack target="view"}} class="button">
+            <img src="/stonehearth_object_browser/html/images/goBack.png">
+         </a>
+         <a href="#" {{action goForward target="view"}} class="button">
+            <img src="/stonehearth_object_browser/html/images/goForward.png">
+         </a>
+
+         <input type="text" id="uriInput" {{bindAttr value="uri"}}>
+         <a href="#" {{action collapse target="view"}} id="collapse" class="button">
+            <img src="/stonehearth_object_browser/html/images/collapse.png">
+         </a>
+      </div>
+      <div id="body">
+         {{#if loading}}
+            loading...
+         {{else}}
+            {{{objectHtml}}}
+         {{/if}}
+      </div>
+   </div>
+</div>
+</script>

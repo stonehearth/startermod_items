@@ -1,13 +1,11 @@
 #include "pch.h"
+#include "metrics.h"
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include "radiant_file.h"
 #include "script_host.h"
-#include "lua_om.h"
 #include "lua_jobs.h"
-//#include "lua_worker_scheduler.h"
-#include "lua_basic_types.h"
 #include "lua_noise.h"
 #include "simulation/simulation.h"
 #include "simulation/jobs/multi_path_finder.h"
@@ -17,8 +15,8 @@
 #include "om/entity.h"
 #include "om/om_alloc.h"
 #include "om/stonehearth.h"
-#include "csg/voronoi_map.h"
-#include "csg/util.h"
+#include "csg/lua/lua_csg.h"
+#include "om/lua/lua_om.h"
 
 #define DEFINE_ALL_COMPONENTS
 #include "om/all_components.h"
@@ -188,6 +186,11 @@ int GetConfigOptions(lua_State* L)
    return 0;
 }
 
+om::BoxedRegion3Ptr ScriptHostAllocRegion(ScriptHost const& sh)
+{
+   return Simulation::GetInstance().GetStore().AllocObject<om::BoxedRegion3>();
+}
+
 void ScriptHost::InitEnvironment()
 {
    int ii = lua_gettop(L_);
@@ -202,7 +205,6 @@ void ScriptHost::InitEnvironment()
          .def("report_error",             &ScriptHost::ReportError)
          .def("create_entity",            &ScriptHost::CreateEntity)
          .def("get_entity",               &ScriptHost::GetEntity)
-         .def("create_grid",              &ScriptHost::CreateGrid)
          .def("destroy_entity",           &ScriptHost::DestroyEntity)
          .def("create_multi_path_finder", &ScriptHost::CreateMultiPathFinder)
          .def("create_path_finder",       &ScriptHost::CreatePathFinder)
@@ -213,21 +215,18 @@ void ScriptHost::InitEnvironment()
          .def("assert_failed",            &ScriptHost::AssertFailed)
          .def("unstick",                  &ScriptHost::Unstick)
          .def("lua_require",              &ScriptHost::LuaRequire)
+         .def("alloc_region",             &ScriptHostAllocRegion)
    ];
    lua_register(L_, "get_config_option", GetConfigOptions);
 
-   LuaBasicTypes::RegisterType(L_);
-   LuaObjectModel::RegisterType(L_);
+   om::RegisterLuaTypes(L_);
+   csg::RegisterLuaTypes(L_);
+   lua::RegisterBasicTypes(L_);
    LuaJobs::RegisterType(L_);
    LuaNoise::RegisterType(L_);
    resources::Animation::RegisterType(L_);
    json::ConstJsonObject::RegisterLuaType(L_);
 
-   module(L_) [
-      csg::RegisterLuaType(L_),
-      csg::VoronoiMap::RegisterLuaType(L_, "VoronoiMap"),
-      csg::VoronoiMapSite::RegisterLuaType(L_, "VoronoiMapSite")
-   ];
 
    //LuaWorkerScheduler::RegisterType(L_);
 
@@ -457,7 +456,7 @@ void ScriptHost::Call(luabind::object fn, luabind::object arg1)
    } CATCH_LUA_ERROR("calling function...");
 }
 
-om::EntityRef ScriptHost::GetEntity(om::EntityId id)
+om::EntityRef ScriptHost::GetEntity(dm::ObjectId id)
 {
    auto i = entityMap_.find(id);
    if (i != entityMap_.end()) {
@@ -467,17 +466,12 @@ om::EntityRef ScriptHost::GetEntity(om::EntityId id)
    return om::EntityRef();
 }
 
-om::GridPtr ScriptHost::CreateGrid()
-{
-   return Simulation::GetInstance().GetStore().AllocObject<om::Grid>();
-}
-
 om::EntityRef ScriptHost::CreateEntity()
 {
    dm::Store& store = Simulation::GetInstance().GetStore();
    om::EntityPtr entity = store.AllocObject<om::Entity>();
 
-   entityMap_[entity->GetEntityId()] = entity;
+   entityMap_[entity->GetObjectId()] = entity;
 
    return entity;
 }
@@ -486,7 +480,7 @@ void ScriptHost::DestroyEntity(std::weak_ptr<om::Entity> e)
 {
    auto entity = e.lock();
    if (entity) {
-      entityMap_.erase(entity->GetEntityId());
+      entityMap_.erase(entity->GetObjectId());
    }
 }
 
@@ -614,4 +608,31 @@ std::string ScriptHost::PostCommand(luabind::object fn, luabind::object self, st
    }
    // UNREACHABLE
    return "";
+}
+
+luabind::object ScriptHost::JsonToLua(JSONNode const& json)
+{
+   using namespace luabind;
+
+   if (json.type() == JSON_NODE) {
+      object table = newtable(L_);
+      for (auto const& entry : json) {
+         table[entry.name()] = JsonToLua(entry);
+      }
+      return table;
+   } else if (json.type() == JSON_ARRAY) {
+      object table = newtable(L_);
+      for (unsigned int i = 0; i < json.size(); i++) {
+         table[i + 1] = JsonToLua(json[i]);
+      }
+      return table;
+   } else if (json.type() == JSON_STRING) {
+      return object(L_, json.as_string());
+   } else if (json.type() == JSON_NUMBER) {
+      return object(L_, json.as_float());
+   } else if (json.type() == JSON_BOOL) {
+      return object(L_, json.as_bool());
+   }
+   ASSERT(false);
+   return object();
 }

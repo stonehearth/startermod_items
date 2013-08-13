@@ -24,11 +24,11 @@ std::string CreateRoomCmd::operator()(const tesseract::protocol::DoAction& msg) 
    om::EntityPtr room = sim.GetScript().CreateEntity("http://radiant/stonehearth/buildings/room_plan");
    room->AddComponent<om::Room>()->SetInteriorSize(bounds._min, bounds._max);
 
-   LOG(WARNING) << "!!! created room " << room->GetEntityId();
+   LOG(WARNING) << "!!! created room " << room->GetObjectId();
    sim.GetRootEntity()->GetComponent<om::BuildOrders>()->AddBlueprint(room);
 
    std::ostringstream result;
-   result << "{ \"entity_id\": " << room->GetEntityId() << "}";
+   result << "{ \"entity_id\": " << room->GetObjectId() << "}";
    return result.str();
 #endif
 }

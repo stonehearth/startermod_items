@@ -5,14 +5,11 @@
 #include "selectors/actor_selector.h"
 #include "selectors/voxel_range_selector.h"
 #include "om/entity.h"
-#include "om/grid/grid.h"
 #include "om/components/terrain.h"
-#include "om/components/stockpile_designation.h"
-#include "om/components/unit_info.h"
-#include "om/components/build_orders.h"
 #include "om/selection.h"
 #include "om/om_alloc.h"
-#include "om/components/build_orders.h"
+#include "csg/lua/lua_csg.h"
+#include "om/lua/lua_om.h"
 #include "platform/utils.h"
 #include "resources/res_manager.h"
 #include "commands/command.h"
@@ -23,8 +20,11 @@
 #include "renderer/render_entity.h"
 #include "renderer/lua_render_entity.h"
 #include "renderer/lua_renderer.h"
+#include "lua/register.h"
 #include "lua/script_host.h"
+#include "om/stonehearth.h"
 #include "om/object_formatter/object_formatter.h"
+#include "deferred.h"
 #include "glfw.h"
 
 //  #include "GFx/AS3/AS3_Global.h"
@@ -104,8 +104,14 @@ void Client::run()
    browser_.reset(chromium::CreateBrowser(hwnd_, docroot, width, height, debug_port));
    browser_->SetCursorChangeCb(std::bind(&Client::SetUICursor, this, std::placeholders::_1));
 
-   auto requestHandler = [=](std::string const& uri, JSONNode const& query, std::string const& postdata, std::shared_ptr<chromium::IResponse> response) {
-      BrowserRequestHandler(uri, query, postdata, response);
+   auto requestHandler = [=](std::string const& uri, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response) {
+      std::lock_guard<std::mutex> guard(lock_);
+
+      if (boost::starts_with(uri, "/api/events")) {
+         GetEvents(query, response);         
+      } else {
+         BrowserRequestHandler(uri, query, postdata, response);
+      }
    };
    browser_->SetRequestHandler(requestHandler);
 
@@ -122,8 +128,12 @@ void Client::run()
 
    lua_State* L = scriptHost_->GetInterpreter();
    renderer.SetScriptHost(scriptHost_);
-   LuaRenderer::RegisterType(L);
-   LuaRenderEntity::RegisterType(L);
+   lua::RegisterBasicTypes(L);
+   om::RegisterLuaTypes(L);
+   csg::RegisterLuaTypes(L);
+   client::RegisterLuaTypes(L);
+   luabind::globals(L)["_client"] = luabind::object(L, this);
+
    json::ConstJsonObject::RegisterLuaType(L);
 
    // this locks down the environment!  all types must be registered by now!!
@@ -131,10 +141,11 @@ void Client::run()
    auto& rm = resources::ResourceManager2::GetInstance();
    for (std::string const& modname : rm.GetModuleNames()) {
       try {
-         LOG(WARNING) << "loading init script for " << modname << "...";
          json::ConstJsonObject manifest = rm.LookupManifest(modname);
-         std::string filename = manifest["scripts"]["init_client_script"].as_string();
-         scriptHost_->LuaRequire(filename);
+         json::ConstJsonObject const& block = manifest["client"];
+         LOG(WARNING) << "loading init script for " << modname << "...";
+         LoadModuleInitScript(block);
+         LoadModuleRoutes(modname, block);
       } catch (std::exception const& e) {
          LOG(WARNING) << "load failed: " << e.what();
       }
@@ -201,12 +212,48 @@ void Client::run()
    }
 }
 
+void Client::LoadModuleInitScript(json::ConstJsonObject const& block)
+{
+   try {
+      std::string filename = block["init_script"].as_string();
+      scriptHost_->LuaRequire(filename);
+   } catch (std::exception const& e) {
+      LOG(WARNING) << "load failed: " << e.what();
+   }
+}
+
+static std::string SanatizePath(std::string const& path)
+{
+   std::vector<std::string> s;
+   boost::split(s, path, boost::is_any_of("/"));
+   s.erase(std::remove(s.begin(), s.end(), ""), s.end());
+   return std::string("/") + boost::algorithm::join(s, "/");
+}
+
+void Client::LoadModuleRoutes(std::string const& modname, json::ConstJsonObject const& block)
+{
+   resources::ResourceManager2 &rm = resources::ResourceManager2::GetInstance();
+   try {
+      for (auto const& node : block["routes"]) {
+         std::string const& uri_path = SanatizePath("/modules/client/" + modname + "/" + node.name());
+         std::string const& lua_path = node.as_string();
+         clientRoutes_[uri_path] = scriptHost_->LuaRequire(lua_path);
+      }
+   } catch (std::exception const& e) {
+      LOG(WARNING) << "load failed: " << e.what();
+   }
+}
+
 void Client::handle_connect(const boost::system::error_code& error)
 {
-   ASSERT(!error);
-   recv_queue_ = std::make_shared<protocol::RecvQueue>(_tcp_socket);
-   send_queue_ = protocol::SendQueue::Create(_tcp_socket);
-   recv_queue_->Read();
+   if (error) {
+      LOG(WARNING) << "connection to server failed (" << error << ").  retrying...";
+      setup_connections();
+   } else {
+      recv_queue_ = std::make_shared<protocol::RecvQueue>(_tcp_socket);
+      send_queue_ = protocol::SendQueue::Create(_tcp_socket);
+      recv_queue_->Read();
+   }
 }
 
 void Client::setup_connections()
@@ -537,14 +584,28 @@ void Client::OnMouseInput(const MouseEvent &mouse, bool &handled, bool &uninstal
       // xxx: not quite right...
       return;
    }
-   if (mouse.up[0]) {
-      LOG(WARNING) << "got mouse up... current command:" << currentCommand_;
+
+   auto i = mouseEventPromises_.begin();
+   while (!handled && i != mouseEventPromises_.end()) {
+      auto promise = i->lock();
+      if (promise && promise->IsActive()) {
+         promise->OnMouseEvent(mouse, handled);
+         i++;
+      } else {
+         i = mouseEventPromises_.erase(i);
+      }
    }
-   if (rootObject_ && !currentCommand_ && mouse.up[0]) {
-      LOG(WARNING) << "updating selection...";
-      UpdateSelection(mouse);
-   } else if (mouse.up[2]) {
-      CenterMap(mouse);
+
+   if (!handled) {
+      if (mouse.up[0]) {
+         LOG(WARNING) << "got mouse up... current command:" << currentCommand_;
+      }
+      if (rootObject_ && !currentCommand_ && mouse.up[0]) {
+         LOG(WARNING) << "updating selection...";
+         UpdateSelection(mouse);
+      } else if (mouse.up[2]) {
+         CenterMap(mouse);
+      }
    }
 }
 
@@ -568,11 +629,13 @@ void Client::UpdateSelection(const MouseEvent &mouse)
 
    float minDistance = FLT_MAX;
    auto cb = [&minDistance, &stockpile] (om::EntityPtr obj, float d) {
+#if 0
       auto s = obj->GetComponent<om::StockpileDesignation>();
       if (s && d < minDistance) {
          minDistance = d;
          stockpile = obj;
       }
+#endif
    };
    octtree_->TraceRay(r, cb);
    if (stockpile) {
@@ -580,7 +643,8 @@ void Client::UpdateSelection(const MouseEvent &mouse)
       SelectEntity(stockpile);
    } else {
       if (s.HasEntities()) {
-         for (om::EntityId id : s.GetEntities()) {
+#if 0
+         for (dm::ObjectId id : s.GetEntities()) {
             auto entity = GetEntity(id);
             if (entity && entity->GetComponent<om::Room>()) {
                LOG(WARNING) << "selecting room " << entity->GetObjectId();
@@ -588,6 +652,7 @@ void Client::UpdateSelection(const MouseEvent &mouse)
                return;
             }
          }
+#endif
          auto entity = GetEntity(s.GetEntities().front());
          if (entity->GetComponent<om::Terrain>()) {
             LOG(WARNING) << "clearing selection (clicked on terrain)";
@@ -648,8 +713,17 @@ void Client::SelectEntity(om::EntityPtr obj)
          std::string uri = std::string("/object/") + stdutil::ToString(selectedObject_->GetObjectId());
          data.push_back(JSONNode("selected_entity", uri));
       }
-      QueueEvent("radiant.events.selection_changed", data);
+      QueueEvent("selection_changed.radiant", data);
    }
+}
+
+void Client::PushServerRequest(proto::Request& msg, ServerReplyCb replyCb)
+{
+   int id = ++last_server_request_id_;
+   msg.set_request_id(id);
+   server_requests_[id] = replyCb;
+
+   send_queue_->Push(msg);
 }
 
 void Client::EvalCommand(std::string cmd)
@@ -665,11 +739,7 @@ void Client::EvalCommand(std::string cmd)
    proto::ScriptCommandRequest* request = msg.MutableExtension(proto::ScriptCommandRequest::extension);
    request->set_cmd(cmd);
 
-   int id = ++last_server_request_id_;
-   msg.set_request_id(id);
-   server_requests_[id] = reply;
-
-   send_queue_->Push(msg);
+   PushServerRequest(msg, reply);
 }
 
 #if 0
@@ -813,7 +883,7 @@ bool Client::GrowWalls(bool install)
 }
 
 // This entire function is crappy... (see the static, etc.)
-bool Client::PlaceFixture(bool install, om::EntityId fixtureId)
+bool Client::PlaceFixture(bool install, dm::ObjectId fixtureId)
 {
    static InputCallbackId eventHandlerId = 0;
    
@@ -917,7 +987,7 @@ void Client::AssignWorkerToBuilding(vector<om::Selection> args)
 }
 #endif
 
-void Client::OnObjectLoad(std::vector<om::EntityId> objects)
+void Client::OnObjectLoad(std::vector<dm::ObjectId> objects)
 {
 #if 1
    ASSERT(false);
@@ -943,7 +1013,7 @@ void Client::OnObjectLoad(std::vector<om::EntityId> objects)
 #endif
 }
 
-om::EntityPtr Client::GetEntity(om::EntityId id)
+om::EntityPtr Client::GetEntity(dm::ObjectId id)
 {
    auto obj = objects_[id];
    return (obj && obj->GetObjectType() == om::Entity::DmType) ? std::static_pointer_cast<om::Entity>(obj) : nullptr;
@@ -1335,8 +1405,7 @@ void Client::ComponentAdded(om::EntityRef e, dm::ObjectType type, std::shared_pt
 {
 }
 
-
-static void HandleFileRequest(std::string const& path, std::shared_ptr<chromium::IResponse> response)
+static void HandleFileRequest(std::string const& path, std::shared_ptr<net::IResponse> response)
 {
    static const struct {
       char *extension;
@@ -1390,28 +1459,38 @@ static void HandleFileRequest(std::string const& path, std::shared_ptr<chromium:
    response->SetResponse(200, data, mimeType);
 }
 
-void Client::BrowserRequestHandler(std::string const& path, JSONNode const& query, std::string const& postdata, std::shared_ptr<chromium::IResponse> response)
+void Client::HandleClientRouteRequest(luabind::object ctor, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response)
 {
-   std::lock_guard<std::mutex> guard(lock_);
+   // convert the json query data to a lua table...
+   try {
+      using namespace luabind;
+      lua_State* L = scriptHost_->GetCallbackState();
+      object queryObj = scriptHost_->JsonToLua(query);
+      object coder = globals(L)["radiant"]["json"];
 
-   if (postdata.empty()) {
-      if (boost::starts_with(path, "/api/events")) {
-         GetEvents(query, response);
-      } else if (boost::starts_with(path, "/api/trace")) {
-         TraceUri(query, response);
-      } else if (boost::starts_with(path, "/object")) {
-         GetRemoteObject(path, query, response);
-      } else {
-         HandleFileRequest(path, response);
+      object obj = scriptHost_->CallFunction<object>(ctor);
+      object fn = obj["handle_request"];
+      auto i = query.find("fn");
+      if (i != query.end() && i->type() == JSON_STRING) {
+         std::string fname = i->as_string();
+         if (!fname.empty())  {
+            fn = obj[fname];
+         }
       }
-   } else {
-      HandlePostRequest(path, query, postdata, response);
+      object result = scriptHost_->CallFunction<object>(fn, obj, queryObj, postdata);
+      std::string json = scriptHost_->CallFunction<std::string>(coder["encode"], result);
+
+      response->SetResponse(200, json, "application/json");
+   } catch (std::exception &e) {
+      JSONNode result;
+      result.push_back(JSONNode("error", e.what()));
+      response->SetResponse(500, result.write(), "application/json");
    }
 }
 
-void Client::HandlePostRequest(std::string const& path, JSONNode const& query, std::string const& postdata, std::shared_ptr<chromium::IResponse> response)
+void Client::HandlePostRequest(std::string const& path, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response)
 {
-   auto reply = [=](tesseract::protocol::Update const& msg) {
+   auto replyCb = [=](tesseract::protocol::Update const& msg) {
       proto::PostCommandReply const& reply = msg.GetExtension(proto::PostCommandReply::extension);
       response->SetResponse(reply.status_code(), reply.content(), reply.mime_type());
    };
@@ -1424,15 +1503,10 @@ void Client::HandlePostRequest(std::string const& path, JSONNode const& query, s
    if (!query.empty()) {
       request->set_query(query.write());
    }
-
-   int id = ++last_server_request_id_;
-   msg.set_request_id(id);
-   server_requests_[id] = reply;
-
-   send_queue_->Push(msg);
+   PushServerRequest(msg, replyCb);
 }
 
-void Client::GetRemoteObject(std::string const& uri, JSONNode const& query, std::shared_ptr<chromium::IResponse> response)
+void Client::GetRemoteObject(std::string const& uri, JSONNode const& query, std::shared_ptr<net::IResponse> response)
 {
    auto reply = [=](tesseract::protocol::Update const& msg) {
       proto::FetchObjectReply const& r = msg.GetExtension(proto::FetchObjectReply::extension);
@@ -1445,14 +1519,10 @@ void Client::GetRemoteObject(std::string const& uri, JSONNode const& query, std:
    proto::FetchObjectRequest* request = msg.MutableExtension(proto::FetchObjectRequest::extension);
    request->set_uri(uri);
          
-   int id = ++last_server_request_id_;
-   msg.set_request_id(id);
-   server_requests_[id] = reply;
-
-   send_queue_->Push(msg);
+   PushServerRequest(msg, reply);
 }
 
-void Client::GetEvents(JSONNode const& query, std::shared_ptr<chromium::IResponse> response)
+void Client::GetEvents(JSONNode const& query, std::shared_ptr<net::IResponse> response)
 {
    if (get_events_request_) {
       get_events_request_->SetResponse(504);
@@ -1461,7 +1531,7 @@ void Client::GetEvents(JSONNode const& query, std::shared_ptr<chromium::IRespons
    FlushEvents();
 }
 
-void Client::TraceUri(JSONNode const& query, std::shared_ptr<chromium::IResponse> response)
+void Client::TraceUri(JSONNode const& query, std::shared_ptr<net::IResponse> response)
 {
    json::ConstJsonObject args(query);
 
@@ -1479,7 +1549,7 @@ void Client::TraceUri(JSONNode const& query, std::shared_ptr<chromium::IResponse
    }
 }
 
-void Client::TraceObjectUri(std::string const& uri, std::shared_ptr<chromium::IResponse> response)
+void Client::TraceObjectUri(std::string const& uri, std::shared_ptr<net::IResponse> response)
 {
    dm::ObjectPtr obj = om::ObjectFormatter("/object/").GetObject(GetStore(), uri);
    if (obj) {
@@ -1511,8 +1581,7 @@ void Client::TraceObjectUri(std::string const& uri, std::shared_ptr<chromium::IR
    response->SetResponse(404, "", "");
 }
 
-
-void Client::TraceFileUri(std::string const& uri, std::shared_ptr<chromium::IResponse> response)
+void Client::TraceFileUri(std::string const& uri, std::shared_ptr<net::IResponse> response)
 {
    if (boost::ends_with(uri, ".json")) {
       auto const& rm = resources::ResourceManager2::GetInstance();
@@ -1544,7 +1613,193 @@ void Client::FlushEvents()
    }
 }
 
+void Client::BrowserRequestHandler(std::string const& path, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response)
+{
+   auto i = clientRoutes_.find(path);
+   if (i != clientRoutes_.end()) {
+      HandleClientRouteRequest(i->second, query, postdata, response);
+      return;
+   }
+
+   if (postdata.empty()) {
+      if (boost::starts_with(path, "/api/trace")) {
+         TraceUri(query, response);
+      } else if (boost::starts_with(path, "/object")) {
+         GetRemoteObject(path, query, response);
+      } else {
+         HandleFileRequest(path, response);
+      }
+   } else {
+      HandlePostRequest(path, query, postdata, response);
+   }
+}
 void Client::SetScriptHost(lua::ScriptHost* scriptHost)
 {
    scriptHost_ = scriptHost;
+}
+
+om::EntityPtr Client::CreateAuthoringEntity(std::string const& path)
+{
+   om::EntityPtr entity = om::Stonehearth::CreateEntityLegacyDIEDIEDIE(authoringStore_, path);
+   authoredEntities_[entity->GetObjectId()] = entity;
+   return entity;
+}
+
+void Client::DestroyAuthoringEntity(dm::ObjectId id)
+{
+   auto i = authoredEntities_.find(id);
+   if (i != authoredEntities_.end()) {
+      authoredEntities_.erase(i);
+   }
+}
+
+MouseEventPromisePtr Client::TraceMouseEvents()
+{
+   MouseEventPromisePtr result = std::make_shared<MouseEventPromise>();
+   mouseEventPromises_.push_back(result);
+   return result;
+}
+
+void client::RegisterLuaTypes(lua_State* L)
+{
+   LuaRenderer::RegisterType(L);
+   LuaRenderEntity::RegisterType(L);
+   Client::RegisterLuaTypes(L);
+}
+
+MouseEventPromisePtr MouseEventPromise_OnMouseEvent(MouseEventPromisePtr me, luabind::object cb)
+{
+   lua::ScriptHost* host = Client::GetInstance().GetScriptHost();
+
+   using namespace luabind;
+   me->TraceMouseEvent([=](const MouseEvent &e) -> bool {
+      object result = host->CallFunction<object>(cb, e);
+      return type(result) == LUA_TBOOLEAN && object_cast<bool>(result);
+   });
+   return me;
+}
+
+void MouseEventPromise_Destroy(MouseEventPromisePtr me)
+{
+   me->Uninstall();
+}
+
+om::EntityRef Client_CreateAuthoringEntity(Client& client, std::string const& path)
+{
+   return client.CreateAuthoringEntity(path);
+}
+
+
+static luabind::object
+Client_QueryScene(lua_State* L, Client const&, int x, int y)
+{
+   om::Selection s;
+   Renderer::GetInstance().QuerySceneRay(x, y, s);
+
+   using namespace luabind;
+   object result = newtable(L);
+   if (s.HasBlock()) {
+      result["location"] = object(L, s.GetBlock());
+   }
+   return result;
+}
+
+std::weak_ptr<RenderEntity> Client_CreateRenderEntity(Client& c, H3DNode parent, luabind::object arg)
+{
+   om::EntityPtr entity;
+   std::weak_ptr<RenderEntity> result;
+
+   if (luabind::type(arg) == LUA_TSTRING) {
+      // arg is a path to an object (e.g. /objects/3).  If this leads to a Entity, we're all good
+      std::string path = luabind::object_cast<std::string>(arg);
+      dm::Store& store = Client::GetInstance().GetStore();
+      dm::ObjectPtr obj =  om::ObjectFormatter("objects").GetObject(store, path);
+      if (obj && obj->GetObjectType() == om::Entity::DmType) {
+         entity = std::static_pointer_cast<om::Entity>(obj);
+      }
+   } else {
+      try {
+         entity = luabind::object_cast<om::EntityRef>(arg).lock();
+      } catch (luabind::cast_failed&) {
+      }
+   }
+   if (entity) {
+      result = Renderer::GetInstance().CreateRenderObject(parent, entity);
+   }
+   return result;
+}
+
+
+static bool MouseEvent_GetUp(MouseEvent const& me, int button)
+{
+   button--;
+   if (button >= 0 && button < sizeof(me.up)) {
+      return me.up[button];
+   }
+   return false;
+}
+
+DeferredPtr Client_Call(lua_State* L, Client& c, std::string const& uri, std::string fn, luabind::object postdataObject)
+{
+   DeferredPtr response = std::make_shared<Deferred>();
+   try {
+      using namespace luabind;
+
+      JSONNode query;
+      query.push_back(JSONNode("fn", fn));
+
+      lua::ScriptHost* scriptHost = Client::GetInstance().GetScriptHost();
+      lua_State* L = scriptHost->GetCallbackState();
+      object coder = globals(L)["radiant"]["json"];
+      std::string postdata = scriptHost->CallFunction<std::string>(coder["encode"], postdataObject);
+
+      c.BrowserRequestHandler(uri, query, postdata, response);
+   } catch (std::exception const& e) {
+      JSONNode result;
+      result.push_back(JSONNode("error", e.what()));
+      response->SetResponse(500, result.write(), "application/json");
+   }
+   return response;
+}
+
+DeferredPtr Deferred_Always(DeferredPtr d, luabind::object cb)
+{
+   if (d) {
+      lua::ScriptHost* scriptHost = Client::GetInstance().GetScriptHost();
+      lua_State* L = scriptHost->GetCallbackState();
+      luabind::object cbObj(L, cb);
+
+      d->Always([=]() {
+         luabind::call_function<void>(cbObj);
+      });
+   }
+   return d;
+}
+
+
+void Client::RegisterLuaTypes(lua_State* L)
+{
+   using namespace luabind;
+   module(L) [
+      lua::RegisterType<Client>()
+         .def("create_authoring_entity",  &Client_CreateAuthoringEntity)
+         .def("destroy_authoring_entity", &Client::DestroyAuthoringEntity)
+         .def("create_render_entity",     &Client_CreateRenderEntity)
+         .def("trace_mouse",              &Client::TraceMouseEvents)
+         .def("query_scene",              &Client_QueryScene)
+         .def("call",                     &Client_Call)
+      ,
+      lua::RegisterTypePtr<MouseEventPromise>()
+         .def("on_mouse_event",     &MouseEventPromise_OnMouseEvent)
+         .def("destroy",            &MouseEventPromise_Destroy)
+      ,
+      lua::RegisterType<MouseEvent>()
+         .def_readonly("x",       &MouseEvent::x)
+         .def_readonly("y",       &MouseEvent::y)
+         .def_readonly("wheel",   &MouseEvent::wheel)
+         .def("up",               &MouseEvent_GetUp)
+      ,
+      lua::RegisterTypePtr<Deferred>()
+         .def("always",           &Deferred_Always)
+   ];
 }

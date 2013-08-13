@@ -4,7 +4,6 @@
 #include "Horde3DRadiant.h"
 #include "glfw.h"
 #include "render_entity.h"
-#include "texture_color_mapper.h"
 #include "om/selection.h"
 #include "om/entity.h"
 #include <boost/property_tree/json_parser.hpp>
@@ -161,7 +160,7 @@ Renderer::Renderer() :
 
    // Skybox
 	H3DNode sky = h3dAddNodes( H3DRootNode, skyBoxRes );
-	h3dSetNodeTransform( sky, 0, 0, 0, 0, 0, 0, 210, 50, 210 );
+	h3dSetNodeTransform( sky, 128, 0, 128, 0, 0, 0, 256, 256, 256 );
 	h3dSetNodeFlags( sky, H3DNodeFlags::NoCastShadow, true );
 
    // Resize
@@ -293,7 +292,6 @@ void Renderer::RenderOneFrame(int now, float alpha)
                           ww * .9f,  1,     0, 0,
                           ww,        1,     1, 0,
                           ww,       .9f,    1, 1, };
-	   h3dShowOverlays(v, 4, 1, 1, 1, 1, TextureColorMapper::GetInstance().GetOverlay(), 0);
    }
 
    // Show logo
@@ -499,7 +497,7 @@ void Renderer::Resize( int width, int height )
 std::shared_ptr<RenderEntity> Renderer::CreateRenderObject(H3DNode parent, om::EntityPtr entity)
 {
    std::shared_ptr<RenderEntity> result;
-   om::EntityId id = entity->GetObjectId();
+   dm::ObjectId id = entity->GetObjectId();
    int sid = entity->GetStoreId();
 
    auto& entities = entities_[sid];
@@ -533,7 +531,7 @@ std::shared_ptr<RenderEntity> Renderer::GetRenderObject(om::EntityPtr entity)
    return result;
 }
 
-std::shared_ptr<RenderEntity> Renderer::GetRenderObject(int sid, om::EntityId id)
+std::shared_ptr<RenderEntity> Renderer::GetRenderObject(int sid, dm::ObjectId id)
 {
    auto i = entities_[sid].find(id);
    if (i != entities_[sid].end()) {
@@ -542,7 +540,7 @@ std::shared_ptr<RenderEntity> Renderer::GetRenderObject(int sid, om::EntityId id
    return nullptr;
 }
 
-void Renderer::RemoveRenderObject(int sid, om::EntityId id)
+void Renderer::RemoveRenderObject(int sid, dm::ObjectId id)
 {
    auto i = entities_[sid].find(id);
    if (i != entities_[sid].end()) {
@@ -680,7 +678,28 @@ void Renderer::OnMouseMove(int x, int y)
       cameraPos_ = cameraTarget_ + pitch.rotate(projection * d);
 
       UpdateCamera();
+   } else {
+      /*     
+      int gutterSize = 10;
+
+      if (mouse_.x < gutterSize) {
+         cameraMoveDirection_.x = (float)-1;
+      } else if (mouse_.x > width_ - gutterSize) {
+         cameraMoveDirection_.x = (float)1;
+      } else {
+         cameraMoveDirection_.x = (float)0;
+      }
+
+      if (mouse_.y < gutterSize) {
+         cameraMoveDirection_.z = (float)-1;
+      } else if (mouse_.y > height_ - gutterSize) {
+         cameraMoveDirection_.z = (float)1;
+      } else {
+         cameraMoveDirection_.z = 0;
+      }
+      */
    }
+
    CallMouseInputCallbacks();
 }
 

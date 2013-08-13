@@ -7,8 +7,7 @@
 #include "dm/boxed.h"
 #include "dm/store.h"
 #include "om/om.h"
-#include "om/grid/grid.h"
-#include "om/all_object_types.h"
+#include "om/object_enums.h"
 #include "om/region.h"
 #include "csg/cube.h"
 #include "component.h"
@@ -19,25 +18,21 @@ class RenderRegion : public Component
 {
 public:
    DEFINE_OM_OBJECT_TYPE(RenderRegion, terrain);
-   static void RegisterLuaType(struct lua_State* L);
-   std::string ToString() const;
    
-   csg::Region3& ModifyRegion();
-   const csg::Region3& GetRegion() const;
-   RegionPtr AllocRegion();
-   RegionPtr GetRegionPointer() const;
-   void SetRegionPointer(RegionPtr r);
+   BoxedRegion3Ptr GetRegion() const;
+   void SetRegion(BoxedRegion3Ptr r);
 
-   dm::Boxed<RegionPtr> const& GetBoxedRegion() const;
+   dm::Guard TraceRenderRegion(const char* reason, std::function<void(csg::Region3 const&)> cb) const;
+
+public: // used only only for lua promises
+   dm::Boxed<BoxedRegion3Ptr> const& GetRenderRegionField() const { return region_; }
 
 private:
    void InitializeRecordFields() override;
 
 public:
-   dm::Boxed<RegionPtr>    region_;
+   dm::Boxed<BoxedRegion3Ptr>    region_;
 };
-
-static std::ostream& operator<<(std::ostream& os, const RenderRegion& o) { return (os << o.ToString()); }
 
 END_RADIANT_OM_NAMESPACE
 

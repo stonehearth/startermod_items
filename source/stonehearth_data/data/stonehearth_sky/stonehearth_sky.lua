@@ -23,7 +23,9 @@ local sky_transitions = {
 
 
 function stonehearth_sky.__init()
-   
+end
+
+function stonehearth_sky.add_lights()
    --radiant.events.listen('radiant.events.calendar.minutely', stonehearth_calendar._on_minute)
    lightMatRes = h3dAddResource(H3DResTypes.Material, "materials/light.material.xml", 0)
    h3dSetMaterialUniform(lightMatRes, "ambientLightColor", 1, 1, 1, 1 )

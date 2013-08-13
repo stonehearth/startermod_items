@@ -5,5 +5,15 @@
    "components" :  {
       "workshop" : "file(components/workshop_component.lua)",
       "crafter"  : "file(components/crafter_component.lua)"
+   },
+   "client" : {
+      "routes" : {
+         "choose_location" : "file(routes/location_selector.lua)"
+      }
+   },
+   "server" : {
+      "routes" : {
+         "create_workbench" : "file(routes/create_workbench.lua)"
+      }
    }
 }

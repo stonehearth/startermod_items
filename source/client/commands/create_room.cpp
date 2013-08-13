@@ -65,9 +65,9 @@ void CreateRoom::SendCommand(const om::Selection& s)
          JSONNode node = libjson::parse(msg->json());
          auto i = node.find("entity_id");
          if (i != node.end() && i->type() == JSON_NUMBER) {
-            om::EntityId id = i->as_int();
+            dm::ObjectId id = i->as_int();
             WaitForEntityAlloc(Client::GetInstance().GetStore(), id, [room]() {
-               LOG(WARNING) << "Destroying authoring room " << room->GetEntityId();
+               LOG(WARNING) << "Destroying authoring room " << room->GetObjectId();
             });
          }
       }

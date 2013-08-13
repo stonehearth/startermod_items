@@ -1,5 +1,11 @@
 local MicroWorld = class()
 
+local RadiantIPoint3 = _radiant.math3d.RadiantIPoint3
+local RadiantBounds3 = _radiant.math3d.RadiantBounds3
+local Cube3 = _radiant.csg.Cube3
+local Point3 = _radiant.csg.Point3
+local Terrain = _radiant.om.Terrain
+
 function MicroWorld:__init()
    self._nextTime = 1
    self._times = {}

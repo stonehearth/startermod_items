@@ -3,7 +3,8 @@
 
 #include <memory>
 #include "namespace.h"
-#include "all_objects.h"
+#include "all_object_defs.h"
+#include "all_component_defs.h"
 #include "dm/dm.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
@@ -26,15 +27,15 @@ DECLARE_INTERFACE(CollisionShape)
 OM_ALL_OBJECTS
 OM_ALL_COMPONENTS
 
-// abstruct base classes...
-   OM_OBJECT(BuildOrder,         build_order)
-   OM_OBJECT(GridBuildOrder,     grid_build_order)
-   OM_OBJECT(RegionBuildOrder,   region_build_order)
-
 #undef OM_OBJECT
 
 class Selection;
 class TileAddress;
+
+std::string GetObjectName(dm::ObjectPtr obj);
+std::string GetObjectName(const dm::Object& obj);
+std::string GetObjectNameLower(dm::ObjectPtr obj);
+std::string GetObjectNameLower(const dm::Object& obj);
 
 void RegisterObjectTypes(dm::Store& store);
 

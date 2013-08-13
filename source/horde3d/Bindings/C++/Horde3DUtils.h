@@ -213,6 +213,14 @@ DLL H3DRes h3dutCreateGeometryRes( const char *name, int numVertices, int numTri
 								   short *tangentData, short *bitangentData, 
 								   float *texData1, float *texData2 );
 
+struct VoxelGeometryVertex {
+   float pos[3];
+   float normal[3];
+   float color[3];
+};
+
+DLL H3DRes h3dutCreateVoxelGeometryRes( const char *name, struct VoxelGeometryVertex* vertexData, int numVertices, unsigned int* indexData, int numIndices);
+
 /* Function: h3dutCreateTGAImage
 		Creates a TGA image in memory.
 	
@@ -336,3 +344,4 @@ DLL void h3dutShowText( const char *text, float x, float y, float size,
 		nothing
 */
 DLL void h3dutShowFrameStats( H3DRes fontMaterialRes, H3DRes panelMaterialRes, int mode );
+

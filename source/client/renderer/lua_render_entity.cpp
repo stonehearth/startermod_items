@@ -11,9 +11,19 @@ void f()
    i++;
 }
 
-Renderer& RenderEntity_GetRenderer(std::weak_ptr<RenderEntity>)
+Renderer& RenderEntity_GetRenderer(RenderEntity const& e)
 {
    return Renderer::GetInstance();
+}
+
+om::EntityRef RenderEntity_GetEntity(RenderEntity const& e)
+{
+   return e.GetEntity();
+}
+
+static std::ostream& operator<<(std::ostream& os, const RenderEntity& o)
+{
+   return (os << "[RenderEntity " << o.GetObjectId() << "]");
 }
 
 void LuaRenderEntity::RegisterType(lua_State* L)
@@ -25,7 +35,9 @@ void LuaRenderEntity::RegisterType(lua_State* L)
       namespace_("_radiant") [
          namespace_("renderer") [
             class_<RenderEntity, std::weak_ptr<RenderEntity>>("RenderEntity")
+               .def(tostring(self))
                .def("get_node",        &RenderEntity::GetNode)
+               .def("get_entity",      &RenderEntity_GetEntity)
                .def("get_renderer",    &RenderEntity_GetRenderer)
          ]
       ]

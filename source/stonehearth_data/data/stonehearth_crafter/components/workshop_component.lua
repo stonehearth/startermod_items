@@ -11,6 +11,7 @@
 ]]
 
 -- All workshops have a ToDo list through which the user instructs the crafter
+local RadiantIPoint3 = _radiant.math3d.RadiantIPoint3
 local ToDoList = radiant.mods.require('/stonehearth_crafter/lib/todo_list.lua')
 local CraftOrder = radiant.mods.require('/stonehearth_crafter/lib/craft_order.lua')
 

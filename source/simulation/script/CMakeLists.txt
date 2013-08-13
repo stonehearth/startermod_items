@@ -13,9 +13,7 @@ include_directories(${Libnoise_INCLUDE_DIRS})
 add_library(simulation_script STATIC
             helpers.cpp
             script_host.cpp
-            lua_basic_types.cpp
             lua_jobs.cpp
-            lua_om.cpp
             lua_module.cpp
             lua_noise.cpp
             pch.cpp

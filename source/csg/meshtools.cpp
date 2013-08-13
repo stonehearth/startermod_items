@@ -114,11 +114,21 @@ void mesh_tools::mesh::add_face(csg::Point3f const points[], csg::Point3f const&
       vertices.emplace_back(vertex(points[i], normal, color));
    }
 
-   indices.push_back(vlast + 0);  // first triangle...
-   indices.push_back(vlast + 1);
-   indices.push_back(vlast + 2);
+   if (normal.x < 0 || normal.y < 0 || normal.z > 0) {
+      indices.push_back(vlast + 2);  // first triangle...
+      indices.push_back(vlast + 1);
+      indices.push_back(vlast + 0);
 
-   indices.push_back(vlast + 2);  // second triangle...
-   indices.push_back(vlast + 3);
-   indices.push_back(vlast + 0);
+      indices.push_back(vlast + 3);  // second triangle...
+      indices.push_back(vlast + 2);
+      indices.push_back(vlast + 0);
+   } else {
+      indices.push_back(vlast + 0);  // first triangle...
+      indices.push_back(vlast + 1);
+      indices.push_back(vlast + 2);
+
+      indices.push_back(vlast + 0);  // second triangle...
+      indices.push_back(vlast + 2);
+      indices.push_back(vlast + 3);
+   }
 }

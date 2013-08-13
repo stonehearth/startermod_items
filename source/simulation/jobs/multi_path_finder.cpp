@@ -48,7 +48,7 @@ void MultiPathFinder::AddEntity(om::EntityRef e, luabind::object solved_cb, luab
 
    auto entity = e.lock();
    if (entity) {
-      om::EntityId id = entity->GetEntityId();
+      dm::ObjectId id = entity->GetObjectId();
 
       auto i = pathfinders_.find(id);
       if (i == pathfinders_.end()) {
@@ -67,7 +67,7 @@ void MultiPathFinder::AddEntity(om::EntityRef e, luabind::object solved_cb, luab
    }
 }
 
-void MultiPathFinder::RemoveEntity(om::EntityId id)
+void MultiPathFinder::RemoveEntity(dm::ObjectId id)
 {
    PROFILE_BLOCK();
 
@@ -141,7 +141,7 @@ void MultiPathFinder::Work(const platform::timer &timer)
    }
 
    if (closest != end) {
-      om::EntityId id = closest->first;
+      dm::ObjectId id = closest->first;
       PathFinderPtr p = closest->second;
 
       ASSERT(!p->IsIdle());

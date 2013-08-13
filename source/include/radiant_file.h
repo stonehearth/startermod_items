@@ -24,6 +24,14 @@ namespace radiant {
       }
    };
 
+   class IResponse
+   {
+   public:
+      virtual ~IResponse() { }
+      virtual void SetResponse(int status) { SetResponse(status, "", ""); }
+      virtual void SetResponse(int status, std::string const& response, std::string const& mimeType) = 0;
+   };
+
    class MouseEvent {
       public:
          int         wheel;

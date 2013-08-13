@@ -15,6 +15,7 @@
 #include "egExtensions.h"
 #include "egRenderer.h"
 #include "egModel.h"
+#include "egVoxelModel.h"
 #include "egLight.h"
 #include "egCamera.h"
 #include "egParticle.h"
@@ -746,6 +747,18 @@ DLLEXP NodeHandle h3dAddModelNode( NodeHandle parent, const char *name, ResHandl
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }
 
+DLLEXP NodeHandle h3dAddVoxelModelNode( NodeHandle parent, const char *name, ResHandle voxelGeometryRes )
+{
+	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
+	APIFUNC_VALIDATE_NODE( parentNode, "h3dAddVoxelModelNode", 0 );
+	Resource *geoRes = Modules::resMan().resolveResHandle( voxelGeometryRes  );
+	APIFUNC_VALIDATE_RES_TYPE( geoRes, ResourceTypes::VoxelGeometry, "h3dAddVoxelModelNode", 0 );
+
+	//Modules::log().writeInfo( "Adding Model node '%s'", safeStr( name ).c_str() );
+	VoxelModelNodeTpl tpl( safeStr( name, 0 ), (VoxelGeometryResource *)geoRes );
+	SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::VoxelModel )->factoryFunc( tpl );
+	return Modules::sceneMan().addNode( sn, *parentNode );
+}
 
 DLLEXP void h3dSetupModelAnimStage( NodeHandle modelNode, int stage, ResHandle animationRes, int layer,
                                     const char *startNode, bool additive )
@@ -794,6 +807,21 @@ DLLEXP NodeHandle h3dAddMeshNode( NodeHandle parent, const char *name, ResHandle
 	MeshNodeTpl tpl( safeStr( name, 0 ), (MaterialResource *)matRes, (unsigned)batchStart,
 	                 (unsigned)batchCount, (unsigned)vertRStart, (unsigned)vertREnd );
 	SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::Mesh )->factoryFunc( tpl );
+	return Modules::sceneMan().addNode( sn, *parentNode );
+}
+
+DLLEXP NodeHandle h3dAddVoxelMeshNode( NodeHandle parent, const char *name, ResHandle materialRes,
+                                  int batchStart, int batchCount, int vertRStart, int vertREnd )
+{
+	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
+	APIFUNC_VALIDATE_NODE( parentNode, "h3dAddVoxelMeshNode", 0 );
+	Resource *matRes = Modules::resMan().resolveResHandle( materialRes );
+	APIFUNC_VALIDATE_RES_TYPE( matRes, ResourceTypes::Material, "h3dAddVoxelMeshNode", 0 );
+
+	//Modules::log().writeInfo( "Adding VoxelMesh node '%s'", safeStr( name ).c_str() );
+	VoxelMeshNodeTpl tpl( safeStr( name, 0 ), (MaterialResource *)matRes, (unsigned)batchStart,
+	                 (unsigned)batchCount, (unsigned)vertRStart, (unsigned)vertREnd );
+	SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::VoxelMesh )->factoryFunc( tpl );
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }
 

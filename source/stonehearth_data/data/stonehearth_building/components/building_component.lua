@@ -1,5 +1,6 @@
 local stonehearth_building = radiant.mods.require('stonehearth_building')
 
+local RadiantIPoint3 = _radiant.math3d.RadiantIPoint3
 local BuildingComponent = class()
 
 function BuildingComponent:__init(entity)

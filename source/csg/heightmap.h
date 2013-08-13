@@ -8,8 +8,6 @@
 #include <list>
 #include "region.h"
 
-struct lua_State;
-
 BEGIN_RADIANT_CSG_NAMESPACE
 
 template <class S>
@@ -19,8 +17,6 @@ public:
    typedef S ScalarType;
 
 public:
-   static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
-
    HeightMap(int size, int scale) :
       size_(size),
       scale_(scale),

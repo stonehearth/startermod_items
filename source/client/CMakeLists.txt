@@ -21,7 +21,9 @@ add_subdirectory(selectors)
 add_library(client
             application.cpp
             client.cpp
+            deferred.cpp
             main.cpp
+            mouse_event_promise.cpp
             pch.cpp
             )
 

@@ -18,7 +18,7 @@ class RenderDestination : public RenderComponent {
       ~RenderDestination();
 
    private:
-      void UpdateShape(csg::Region3 const& region, H3DNode shape, math3d::color4 const& color);
+      void UpdateShape(om::BoxedRegion3Ref r, H3DNode shape, math3d::color4 const& color);
 
    private:
       const RenderEntity&        entity_;

@@ -1,20 +1,12 @@
 #ifndef _RADIANT_CHROMIUM_CHROMIUM_H
 #define _RADIANT_CHROMIUM_CHROMIUM_H
 
+#include "radiant_net.h"
 #include "radiant_file.h" // xxx: rename to radiant_io or something?
 #include "csg/region.h"
 #include "namespace.h"
 
 BEGIN_RADIANT_CHROMIUM_NAMESPACE
-
-
-class IResponse
-{
-public:
-   virtual ~IResponse() { }
-   virtual void SetResponse(int status) { SetResponse(status, "", ""); }
-   virtual void SetResponse(int status, std::string const& response, std::string const& mimeType) = 0;
-};
 
 class IBrowser
 {
@@ -24,7 +16,7 @@ public:
    typedef std::function<void(const csg::Region2& rgn, const char* buffer)> PaintCb;
    typedef std::function<void(const HCURSOR cursor)> CursorChangeCb; // xxx: merge this into the command system!
 
-   typedef std::function<void(std::string const& uri, JSONNode const& query, std::string const& postdata, std::shared_ptr<IResponse> response)> HandleRequestCb;
+   typedef std::function<void(std::string const& uri, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response)> HandleRequestCb;
 
    virtual bool HasMouseFocus() = 0;
    virtual void UpdateDisplay(PaintCb cb) = 0;

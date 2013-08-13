@@ -64,23 +64,6 @@ public:
          SaveImpl<T>::LoadValue(store, msg.value(), items_[index]);
       }
    }
-   void CloneObject(Object* obj, CloneMapping& mapping) const override {
-      Array<T, C>& copy = static_cast<Array<T, C>&>(*obj);
-
-      mapping.objects[GetObjectId()] = copy.GetObjectId();
-      for (int i = 0; i < C; i++) {
-         SaveImpl<T>::CloneValue(obj->GetStore(), items_[i], &copy[i], mapping);
-      }
-   }
-   std::ostream& Log(std::ostream& os, std::string indent) const override {
-      os << "array [oid:" << GetObjectId() << "] {" << std::endl;
-      std::string i2 = indent + std::string("  ");
-      for (int i = 0; i < C; i++) {
-         os << i2 << i << " : " << Format<T>(items_[i], i2) << std::endl;
-      }
-      os << indent << "}" << std::endl;
-      return os;
-   }
 
 private:
    // No copying!
@@ -91,21 +74,5 @@ private:
    T items_[C];
    mutable std::vector<int>  changed_;
 };
-
-#if 0
-template<class T, int C>
-struct SaveImpl<Array<T, C>>
-{
-   static void SaveValue(const Store& store, Protocol::Value* msg, const Array<T, C>& obj) {
-      obj.SaveValue(store, msg);
-   }
-   static void LoadValue(const Store& store, const Protocol::Value& msg, Array<T, C>& obj) {
-      obj.LoadValue(store, msg);
-   }
-   static void CloneValue(Store& store, Array<T, C>& obj, Object& copy, CloneMapping& mapping) {
-      obj.CloneValue(static_cast<Array<T, C>&>(copy), mapping);
-   }
-};
-#endif
 
 END_RADIANT_DM_NAMESPACE

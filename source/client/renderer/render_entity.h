@@ -26,7 +26,7 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       void Show(bool show);
       void SetSelected(bool selected);
 
-      om::EntityId GetEntityId() const;
+      dm::ObjectId GetObjectId() const;
       om::EntityPtr GetEntity() const { return entity_.lock(); }
       void SetParent(H3DNode node);
       H3DNode GetParent() const; 

@@ -13,6 +13,7 @@
    useful, and that now only he can use.
 ]]
 
+local RadiantIPoint3 = _radiant.math3d.RadiantIPoint3
 local GatherAndCraftAction = class()
 
 GatherAndCraftAction.name = 'stonehearth.actions.gather_and_craft'

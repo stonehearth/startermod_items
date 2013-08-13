@@ -171,7 +171,8 @@ struct H3DResTypes
 		Shader,
 		Texture,
 		ParticleEffect,
-		Pipeline
+		Pipeline,
+      VoxelGeometry,
 	};
 };
 
@@ -1862,6 +1863,7 @@ DLL H3DNode h3dAddGroupNode( H3DNode parent, const char *name );
 		handle to the created node or 0 in case of failure
 */
 DLL H3DNode h3dAddModelNode( H3DNode parent, const char *name, H3DRes geometryRes );
+DLL H3DNode h3dAddVoxelModelNode( H3DNode parent, const char *name, H3DRes voxelGeometryRes );
 
 /* Function: h3dSetupModelAnimStage
 		Configures an animation stage of a Model node.
@@ -1962,6 +1964,8 @@ DLL bool h3dSetModelMorpher( H3DNode modelNode, const char *target, float weight
 		handle to the created node or 0 in case of failure
 */
 DLL H3DNode h3dAddMeshNode( H3DNode parent, const char *name, H3DRes materialRes, 
+                            int batchStart, int batchCount, int vertRStart, int vertREnd );
+DLL H3DNode h3dAddVoxelMeshNode( H3DNode parent, const char *name, H3DRes materialRes, 
                             int batchStart, int batchCount, int vertRStart, int vertREnd );
 
 

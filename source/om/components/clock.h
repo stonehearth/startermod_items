@@ -6,7 +6,7 @@
 #include "dm/record.h"
 #include "dm/set.h"
 #include "om/om.h"
-#include "om/all_object_types.h"
+#include "om/object_enums.h"
 #include "component.h"
 
 BEGIN_RADIANT_OM_NAMESPACE

@@ -7,7 +7,7 @@
 #include "dm/store.h"
 #include "dm/set.h"
 #include "dm/map.h"
-#include "om/all_object_types.h"
+#include "om/object_enums.h"
 #include "om/om.h"
 #include "om/entity.h"
 #include "component.h"
@@ -21,7 +21,6 @@ class Sensor : public dm::Record
 {
 public:
    DEFINE_OM_OBJECT_TYPE(Sensor, sensor);
-   static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
 
    om::EntityRef GetEntity() const { return *entity_; }
    void SetEntity(om::EntityRef e) { entity_ = e; }
@@ -59,6 +58,7 @@ private:
    dm::Boxed<std::string>     name_;
    dm::Set<EntityId>          contains_;
 };
+std::ostream& operator<<(std::ostream& os, const Sensor& o);
 
 typedef std::shared_ptr<Sensor> SensorPtr;
 
@@ -66,7 +66,6 @@ class SensorList : public Component
 {
 public:
    DEFINE_OM_OBJECT_TYPE(SensorList, sensor_list);
-   static luabind::scope RegisterLuaType(struct lua_State* L, const char* name);
    void ExtendObject(json::ConstJsonObject const& obj) override;
 
    const dm::Map<std::string, SensorPtr>& GetSensors() const { return sensors_; }

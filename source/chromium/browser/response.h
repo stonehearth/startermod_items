@@ -6,7 +6,7 @@
 
 BEGIN_RADIANT_CHROMIUM_NAMESPACE
 
-class Response : public IResponse,
+class Response : public net::IResponse,
                  public CefResourceHandler
 {
 public:

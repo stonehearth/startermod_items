@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "renderer.h"
+#include "client/client.h"
+#include "om/object_formatter/object_formatter.h"
 #include "lua_renderer.h"
 
 using namespace luabind;
@@ -15,22 +17,9 @@ static object GetNodeParam(lua_State* L, H3DNode node, int param)
    return object();
 }
 
-std::weak_ptr<RenderEntity> Renderer_CreateRenderEntity(Renderer& r, H3DNode parent, om::EntityRef e)
-{
-   std::weak_ptr<RenderEntity> result;
-   om::EntityPtr entity = e.lock();
-   if (entity) {
-      result = r.CreateRenderObject(parent, entity);
-   }
-   return result;
-}
-
 void LuaRenderer::RegisterType(lua_State* L)
 {
    module(L) [
-      class_<Renderer>("Renderer")
-         .def("create_render_entity",     &Renderer_CreateRenderEntity)
-      ,
       class_<H3DResTypes>("H3DResTypes")
          .enum_("constants")
       [

@@ -1,0 +1,34 @@
+#titlescreen {
+   z-index: 9999;
+   background: #529864;
+   position: absolute;
+   top: 0;
+   left: 0;
+   right: 0;
+   bottom: 0;
+   text-align: center;
+
+   #controls {
+      position: relative;
+      top: 200px;
+      display: inline-block;
+      margin: auto;
+
+      #logo {
+         padding-bottom: 50px
+      }
+
+      a {
+         .outlined;
+         color: @controlFontColor;
+         font-size: 60px;
+         line-height: 70px;
+
+         &:hover {
+            color: @hoverColor;
+         };
+
+      }
+
+   }
+}

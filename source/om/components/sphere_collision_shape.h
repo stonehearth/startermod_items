@@ -3,7 +3,7 @@
 
 #include "math3d.h"
 #include "om/om.h"
-#include "om/all_object_types.h"
+#include "om/object_enums.h"
 #include "dm/boxed.h"
 #include "dm/record.h"
 #include "namespace.h"

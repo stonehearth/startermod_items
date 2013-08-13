@@ -1,14 +1,19 @@
 local Structure = radiant.mods.require('/stonehearth_building/lib/structure.lua')
 
-local ColumnBlueprintComponent = class(Structure)
+local Cube3 = _radiant.csg.Cube3
+local Point3 = _radiant.csg.Point3
+local ColumnBlueprintComponent = class()
 
 function ColumnBlueprintComponent:__init(entity)
-   self[Structure]:__init(entity)
+   self._entity = entity
+end
+
+function ColumnBlueprintComponent:__tojson()
+   return "{}"
 end
 
 function ColumnBlueprintComponent:extend(json)
    self._colors = {}
-   self._height = json.height
    if json.colors then
       for _, rgb in radiant.resources.pairs(json.colors) do
          table.insert(self._colors, radiant.util.colorcode_to_integer(rgb))
@@ -17,7 +22,11 @@ function ColumnBlueprintComponent:extend(json)
 end
 
 function ColumnBlueprintComponent:set_height(height)
-   self._height = height
+   local region = self._entity:get_component('region_collision_shape'):get_region()
+
+   local cursor = region:modify()
+   cursor:clear()
+   cursor:add_cube(Cube3(Point3(0, 0, 0), Point3(1, height, 1)))
 end
 
 return ColumnBlueprintComponent

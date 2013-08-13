@@ -5,6 +5,7 @@
    TODO: Make the outbox an actual entity container?
    TODO: If there are side-effect products, like toxic waste, handle separately
 ]]
+local RadiantIPoint3 = _radiant.math3d.RadiantIPoint3
 local FillOutboxAction = class()
 
 FillOutboxAction.name = 'stonehearth.actions.fill_outbox'

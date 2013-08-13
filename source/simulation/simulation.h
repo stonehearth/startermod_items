@@ -11,6 +11,7 @@
 #include "dm/guard.h"
 #include "libjson.h"
 #include "physics/namespace.h"
+#include "radiant_json.h"
 
 // Forward Declarations
 IN_RADIANT_OM_NAMESPACE(
@@ -65,10 +66,10 @@ public:
    om::EntityPtr GetRootEntity();
    Physics::OctTree &GetOctTree();
    dm::Store& GetStore();
-   ScriptHost& GetScript() { return *scripts_; }
+   ScriptHost& GetScript() { return *scriptHost_; }
 
    WorkerScheduler* GetWorkerScheduler();
-   BuildingScheduler* GetBuildingScehduler(om::EntityId id);
+   BuildingScheduler* GetBuildingScehduler(dm::ObjectId id);
 
 private:
    void FetchObject(tesseract::protocol::FetchObjectRequest const& request, tesseract::protocol::FetchObjectReply* reply);
@@ -90,6 +91,9 @@ private:
    void TraceAura(om::AuraListRef auraList, om::AuraPtr aura);
    void TraceTargetTables(om::TargetTablesPtr tables);
    void UpdateTargetTables(int now, int interval);
+   void HandleRouteRequest(luabind::object ctor, JSONNode const& query, std::string const& postdata, tesseract::protocol::PostCommandReply* response);
+   void LoadModuleInitScript(json::ConstJsonObject const& block);
+   void LoadModuleRoutes(std::string const& modname, json::ConstJsonObject const& block);
 
 private:
    static Simulation*                           singleton_;
@@ -110,7 +114,7 @@ private:
    std::vector<std::pair<dm::ObjectId, dm::ObjectType>>  allocated_;
    std::vector<dm::ObjectId>                             destroyed_;
    std::unique_ptr<Physics::OctTree>                     octtree_;
-   std::unique_ptr<ScriptHost>                           scripts_;
+   std::unique_ptr<ScriptHost>                           scriptHost_;
 
    // Good stuff down here.
 
@@ -124,6 +128,7 @@ private:
    std::vector<AuraListEntry>                   auras_;
    std::vector<om::TargetTablesRef>             targetTables_;   
    lua_State* L_;
+   std::unordered_map<std::string, luabind::object>   routes_;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE
