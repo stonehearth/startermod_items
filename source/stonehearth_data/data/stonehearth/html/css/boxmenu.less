@@ -15,15 +15,15 @@
       text-align: center;
    }
 
+   .hover {
+      color: #ffe744;
+   }
+
    .menu {
       background: #417cb9;
       white-space: nowrap;
       border-width: 6px 6px 10px 6px;
       border-image: url(../images/boxmenu/menuBorder.png) 6 6 10 repeat;
-
-      .label {
-         color: #93c8ff;
-      }
 
       .menuItem {
          position: absolute;
@@ -67,6 +67,10 @@
       background: #ccc;
       margin-top: 8px;
 
+      &:hover {
+         border-image: url(../images/boxmenu/menuButtonBorderActive.png) 11 8 12 8 repeat;
+      }
+
       .arrow {
          position: absolute;
          top: 15px;
@@ -82,11 +86,6 @@
       top: 0;
       right: 0;
       background: red;
-   }
-
-
-  .active {
-      background: #4885c4;
    }
 }
 

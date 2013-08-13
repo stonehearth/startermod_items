@@ -43,6 +43,15 @@
          });
 
 
+         this._menu.delegate('.clickable','mouseenter mouseleave', function(event) {
+            if(event.type === 'mouseenter') {
+               $(this).find('.label').addClass('hover');
+            } else {
+               $(this).find('.label').removeClass('hover');
+            }
+         });
+
+
          //this._menu.find('.button').on('click', function() {
          this._menu.delegate('.clickable', 'click', function() {
             var menuItem = $(this);
@@ -89,6 +98,33 @@
 
       },
 
+      click: function(menuItemId) {
+         var menuItem = this._menu.find('#' + menuItemId);
+         menuItem.click();
+      },
+
+      handleKey: function(keyCode) {
+         var menuItem = null;
+
+         var key = String.fromCharCode(keyCode).toLowerCase();
+         var s = "[hotkey='" + key + "']";
+
+         if (this._activeMenu) {
+            menuItem = this._activeMenu.find(s);
+         } else {
+            this._menu.find('.menuButton').each(function(i, element) {
+               if ($(element).attr('hotkey') == key) {
+                  menuItem = element;
+                  return false;
+               }
+            });
+         }
+
+         if (menuItem) {
+            menuItem.click();
+         }
+      },
+
       _addTopButton: function(buttonId, data) {
          var buttonDy = 80;
 
@@ -101,6 +137,7 @@
                .addClass('clickable')
                .attr('id', buttonId)
                .attr('title', data.name)
+               .attr('hotkey', data.hotkey)
                .css('bottom', this._numButtons * 80)
                .html('<img src="' + data.icon + '"/>')
                .append('<div class=label>' + data.name + '</div>');
@@ -164,6 +201,7 @@
             if (menuItem.length == 0) {
                var menuItem = $('<div></div>')
                   .attr('id', k)
+                  .attr('hotkey', v.hotkey)
                   .addClass('menuItem')
                   .addClass('clickable')
                   .css('left', menu.find('.menuItem').length * 90)
@@ -214,7 +252,7 @@
       },
 
       _showMenu: function(buttonId) {
-         console.log('showmenu ' + buttonId)
+         //console.log('showmenu ' + buttonId)
          var menu = this._menu.find("[parent='" + buttonId + "']" );
          var parentButton = this._menu.find("#" + buttonId);
          var pos = parentButton.position();
@@ -244,6 +282,7 @@
             menu.css({ left: left , top: parentMenuPos.top - 80});
          }
 
+         this._activeMenu = menu;
          menu.show();
       },
 
@@ -301,21 +340,19 @@
          this.element.find('.menu').hide();
          this.element.find('.clickable').removeClass('active');
          this.element.find('.arrow').hide();
+         this._activeMenu = null;
       },
 
       destroy: function () {
          //this._clearItems();
          this.element.html("");
-      },
+      }
 
+      /*
       _setOption: function (option, value) {
          $.Widget.prototype._setOption.apply(this, arguments);
-         switch (option) {
-            case "add":
-               this._add(value);
-               break;
-         }
       }
+      */
 
    });
 
