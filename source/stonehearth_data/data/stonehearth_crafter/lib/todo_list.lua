@@ -19,7 +19,7 @@ end
 
 function ToDoList:togglePause()
    self._is_paused = not self._is_paused
-   self._backing_obj:mark_changed()
+   self._data_blob:mark_changed()
 end
 
 function ToDoList:is_paused()
@@ -56,7 +56,7 @@ function ToDoList:get_next_task()
          local ingredients = order:get_all_ingredients()
          if ingredients then
             order:set_crafting_status(true)
-            self._backing_obj:mark_changed()
+            self._data_blob:mark_changed()
             return order, ingredients
          end
          return
@@ -75,8 +75,8 @@ function ToDoList:chunk_complete(curr_order)
    if i and curr_order:check_complete() then
       table.remove(self._my_list, i)
    end
-   --TODO: updates whole list when any object order is updated. Add backing object to TODO item?
-   self._backing_obj:mark_changed()
+   --TODO: updates whole list when any object order is updated. Add data_blob to TODO item?
+   self._data_blob:mark_changed()
 end
 
 -- Helper functions
@@ -107,7 +107,7 @@ function ToDoList:change_order_position(new, id)
    table.remove(self._my_list, i)
    table.insert(self._my_list, new, order)
    --TODO: comment out when you've fixed the drag/drop problem
-   self._backing_obj:mark_changed()
+   self._data_blob:mark_changed()
 end
 
 --[[
@@ -124,9 +124,6 @@ function ToDoList:remove_order(order_id)
       table.remove(self._my_list, i)
       order:destroy()
       self._data_blob:mark_changed()
-   else
-      return nil
->>>>>>> c703bd606c10242996069770eb1551982ddc4ac9
    end
 end
 

@@ -19,7 +19,7 @@ local Workshop = class()
 
 function Workshop:__init(entity, data_blob)
    self._todo_list = ToDoList(data_blob)        -- The list of things we need to work on
-   self._backing_obj = backing_obj
+   self._data_blob = data_blob
    self._entity = entity               -- The entity associated with this component
    self._curr_order = nil              -- The order currently being worked on. Nil until we get an order from the todo list
    self._intermediate_item = nil       -- The item currently being worked on. Nil until we actually start crafting
@@ -160,7 +160,7 @@ function Workshop:set_crafter(crafter)
    if not crafter or not current or current:get_id() ~= crafter:get_id() then
       self._crafter = crafter
    end
-   self._backing_obj:mark_changed()
+   self._data_blob:mark_changed()
 end
 
 --[[
