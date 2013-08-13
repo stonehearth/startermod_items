@@ -33,8 +33,8 @@ function stonehearth_sky.add_lights()
    stonehearth_sky._initSun()
    stonehearth_sky._initMoon()
 
-   --stonehearth_sky.dawn()
-   stonehearth_sky.noon()
+   stonehearth_sky.dawn()
+   --stonehearth_sky.noon()
    --stonehearth_sky.dusk()
    --stonehearth_sky.night()
 end

@@ -1,15 +1,3 @@
-$(document).ready(function(){
-
-   $(top).bind('keyup', function(e){
-      console.log('keyup!');
-      console.log(e);
-      var activeMenu = $("#mainActionbar").boxmenu( 'handleKey', e.keyCode);
-
-      //$( "#mainActionbar" ).boxmenu( 'click', 'build');
-   });
-});
-
-
 App.StonehearthMainActionbarView = App.View.extend({
    templateName: 'stonehearthMainActionbar',
 
@@ -47,7 +35,7 @@ App.StonehearthMainActionbarView = App.View.extend({
                            icon: imagePath + 'carpenter.png',
                            hotkey: 'c',
                            click: function () {
-                              $(top).trigger('radiant.events.create_workshop', {
+                              $(top).trigger('create_workshop.radiant', {
                                  workbench: '/stonehearth_carpenter_class/entities/carpenter_workbench'
                               });  
                            }

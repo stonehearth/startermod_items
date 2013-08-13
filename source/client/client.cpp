@@ -709,7 +709,7 @@ void Client::SelectEntity(om::EntityPtr obj)
          std::string uri = std::string("/object/") + stdutil::ToString(selectedObject_->GetObjectId());
          data.push_back(JSONNode("selected_entity", uri));
       }
-      QueueEvent("radiant.events.selection_changed", data);
+      QueueEvent("selection_changed.radiant", data);
    }
 }
 

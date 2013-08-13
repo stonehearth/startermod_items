@@ -679,8 +679,7 @@ void Renderer::OnMouseMove(int x, int y)
 
       UpdateCamera();
    } else {
-
-      // move the camera if the mouse is near the edge of the screen
+      /*     
       int gutterSize = 10;
 
       if (mouse_.x < gutterSize) {
@@ -698,6 +697,7 @@ void Renderer::OnMouseMove(int x, int y)
       } else {
          cameraMoveDirection_.z = 0;
       }
+      */
    }
 
    CallMouseInputCallbacks();

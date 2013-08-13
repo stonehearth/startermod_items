@@ -26,7 +26,7 @@ $(document).ready(function() {
       fetch(uri);      
    });
 
-   $(top).on("radiant.events.selection_changed", function (_, evt) {
+   $(top).on("selection_changed.radiant", function (_, evt) {
       var uri = evt.data.selected_entity;
       if (uri) {
          fetch(uri);
