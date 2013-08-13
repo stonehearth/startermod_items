@@ -1,3 +1,5 @@
+local stonehearth_trees = radiant.mods.require('/stonehearth_trees')
+
 local ChopTreeAction = class()
 
 ChopTreeAction.name = 'stonehearth.actions.chop_tree'
@@ -24,13 +26,12 @@ end
    
 
 function ChopTreeAction:_start_search()
-   local faction = self._entity:get_component('unit_info'):get_faction()
-   local inventory = radiant.mods.require('/stonehearth_inventory').get_inventory(faction)
+   
 
    self._path = nil
    self._ai:set_action_priority(self, 0)
    
-   inventory:find_path_to_tree(self._entity, function(path)
+   stonehearth_trees.find_path_to_tree(self._entity, function(path)
          self._path = path
          self._ai:set_action_priority(self, 10)
       end)

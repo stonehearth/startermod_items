@@ -84,18 +84,27 @@ function CraftOrder:__tojson()
 end
 
 function CraftOrder:_can_use_ingredient(item_entity, ingredient_data)
+   -- make sure it's an item...
+   local item = item_entity:get_component('item')
+   if not item then
+      return false
+   end
+
+   if not item:get_material() == ingredient_data.material then
+      return false
+   end
+   
    -- make sure we're not using it for something else...
    for _, ingredient in ipairs(self._ingredients) do
       if ingredient.item and item_entity:get_id() == ingredient.item:get_id() then
          return false
       end
    end
-   -- make sure it matches the criteria specified in the recipe
-   return item_entity:get_component('item'):get_material() == ingredient_data.material
+   
+   return true
 end
 
 function CraftOrder:search_for_ingredients()
-   local inventory = radiant.mods.require('/stonehearth_inventory/')
    local bench_items = self._workshop:get_items_on_bench()
    local workshop_entity = self._workshop:get_entity()
 
@@ -129,7 +138,11 @@ function CraftOrder:search_for_ingredients()
                self._search_running = false
                self:search_for_ingredients()
             end
-            self._pathfinder = inventory.create_item_pathfinder(workshop_entity, solved, ingredient.filter)
+            self._pathfinder = radiant.pathfinder.find_path_to_closest_entity(
+                                 'workshop searching for items',
+                                 workshop_entity,
+                                 solved,
+                                 ingredient.filter)
             self._search_running = true
             return
          end
@@ -137,32 +150,6 @@ function CraftOrder:search_for_ingredients()
    end
    -- we've got everything! woot!
    self._found_all_ingredients = true
-end
-
-function CraftOrder:_search_for_ingredients()
-   local workshop_entity = self._workshop:get_entity() 
-   local inventory = radiant.mods.require('/stonehearth_inventory/')
-   
-   self._ingredient_paths = {}
-   for offset, ingredient_data in radiant.resources.pairs(self._recipe.ingredients) do
-      assert(not ingredient_data.material:find(' '), "todo: add search for multiple tags")
-      
-      local filter = function(item_entity)
-         return item_entity:get_component('item'):get_material() == ingredient_data.material
-      end
-      local solved = function(path)
-         local item = path:get_destination()
-         self._ingredient_paths[offset].path = path
-         self._ingredient_paths[offset].item = item
-      end
-      local pathfinder = inventory.create_item_pathfinder(workshop_entity, solved, filter)    
-      self._ingredient_paths[offset] = {
-         item = nil,
-         path = nil,
-         pathfinder = pathfinder
-      }
-   end
-   --Note: I suppose we could make a function that added status based on conditions
 end
 
 -- Getters and Setters

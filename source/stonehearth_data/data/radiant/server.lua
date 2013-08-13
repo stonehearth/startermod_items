@@ -22,6 +22,7 @@ radiant.components = require 'radiant.modules.components'
 radiant.terrain = require 'radiant.modules.terrain'
 radiant.mods = require 'radiant.modules.mods'
 radiant.music = require 'radiant.modules.bgm_manager'
+radiant.pathfinder = require 'radiant.modules.pathfinder'
 
 radiant.gamestate._start()
 radiant.log.info('radiant api initialized.')

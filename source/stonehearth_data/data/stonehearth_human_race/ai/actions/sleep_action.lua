@@ -71,9 +71,7 @@ function SleepAction:_start_looking_for_bed(result_cb)
    assert(not self._pathfinder)
 
    -- find a bed
-   local inventory = radiant.mods.require('/stonehearth_inventory/')
    local faction = self._entity:get_component('unit_info'):get_faction()
-   local i = inventory.get_inventory(faction)
 
    -- the bed lease is a required component for the sleeping behavior to work
    local bed_lease = self._entity:get_component('stonehearth_sleep_system:bed_lease')
@@ -89,17 +87,18 @@ function SleepAction:_start_looking_for_bed(result_cb)
       local solved_cb = function(path)
          result_cb(bed, path)
       end
-      self._pathfinder = i:find_path_to_entity(desc, self._entity, bed, solved_cb)
+      self._pathfinder = radiant.pathfinder.find_path_to_entity(desc, self._entity, bed, solved_cb)
    else
       -- find a bed and lease it
       local filter_fn = function(item)
          radiant.log.info("looing for a bed")    
+         -- xxx: only look for beds compatible with this entities faction
          local bed_component = item:get_component('stonehearth_sleep_system:bed')
          if bed_component ~= nil then
-           local owner = bed_component:get_owner()
-           return owner == nil
+            local owner = bed_component:get_owner()
+            return owner == nil
          else
-           return false
+            return false
          end
       end
 
@@ -111,7 +110,7 @@ function SleepAction:_start_looking_for_bed(result_cb)
 
       -- go find the path to the bed
       local desc = string.format('finding bed for %s', tostring(self._entity))
-      self._pathfinder = i:find_path_to_closest_entity(desc, self._entity, solved_cb, filter_fn)
+      self._pathfinder = radiant.pathfinder.find_path_to_closest_entity(desc, self._entity, solved_cb, filter_fn)
    end
 
    assert(self._pathfinder)

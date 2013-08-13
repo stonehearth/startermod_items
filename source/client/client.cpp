@@ -246,10 +246,14 @@ void Client::LoadModuleRoutes(std::string const& modname, json::ConstJsonObject 
 
 void Client::handle_connect(const boost::system::error_code& error)
 {
-   ASSERT(!error);
-   recv_queue_ = std::make_shared<protocol::RecvQueue>(_tcp_socket);
-   send_queue_ = protocol::SendQueue::Create(_tcp_socket);
-   recv_queue_->Read();
+   if (error) {
+      LOG(WARNING) << "connection to server failed (" << error << ").  retrying...";
+      setup_connections();
+   } else {
+      recv_queue_ = std::make_shared<protocol::RecvQueue>(_tcp_socket);
+      send_queue_ = protocol::SendQueue::Create(_tcp_socket);
+      recv_queue_->Read();
+   }
 }
 
 void Client::setup_connections()
