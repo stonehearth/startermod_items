@@ -219,6 +219,7 @@ App.StonehearthCrafterView = App.View.extend({
 
          }
       }).disableSelection();
+
       this._initButtonStates();
    },
 

@@ -365,7 +365,7 @@ end
    Helper function, returns the recipe in the current order.
 ]]
 function Workshop:_get_current_recipe()
-   if(self._curr_order) then
+   if self._curr_order then
       return self._curr_order:get_recipe()
    end
 end

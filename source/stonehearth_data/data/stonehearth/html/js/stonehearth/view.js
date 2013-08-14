@@ -8,7 +8,7 @@ App.View = Ember.View.extend({
       this._traces = {};
    },
 
-   destroy: function() {      
+   destroy: function() {
       this._destroyAllTraces();
       this._super();
    },
@@ -45,8 +45,8 @@ App.View = Ember.View.extend({
       this._destroyAllTraces();
       if (this.uri) {
          this._expand_uri(this.uri, this.components)
-            .progress(function(eobj) {               
-               console.log("setting view context for " + self.uri);
+            .progress(function(eobj) {
+               //console.log("setting view context for " + self.uri);
                self.set('context', eobj)
             });
       } else {
@@ -188,7 +188,7 @@ App.View = Ember.View.extend({
       });
 
       self._log(level, 'exiting _expand_object_properties');
-      ok_to_update = true;      
+      ok_to_update = true;
       notify_update();
 
       return deferred;
@@ -196,7 +196,7 @@ App.View = Ember.View.extend({
 
    _expand_array_properties: function(arr, properties, level) {
       var deferred = $.Deferred();
-      var self = this;      
+      var self = this;
       var earr = Ember.A();
       var pending_count = arr.length;
       var ok_to_update = false;

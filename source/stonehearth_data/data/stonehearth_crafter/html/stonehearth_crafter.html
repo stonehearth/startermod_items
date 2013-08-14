@@ -128,7 +128,6 @@
       <a id="orderListUpBtn" {{action scrollOrderListUp target="view"}}><img src="/stonehearth_crafter/html/images/queue_up_arrow.png"></a>
       <a id="orderListDownBtn" {{action scrollOrderListDown target="view"}} ><img src="/stonehearth_crafter/html/images/queue_down_arrow.png"></a>
 
-      {{#if stonehearth_crafter:workshop.order_list}}
       <div id="orderListControls">
          {{#if stonehearth_crafter:workshop.is_paused}}
             <a id="pauseButton" class="showPlay" href="#" {{action togglePause target="view"}}></a>
@@ -139,7 +138,6 @@
             <ul id="garbageList" class="droptrue"></ul>
          </a>
       </div>
-      {{/if}}
 
    </div>
 </script>
