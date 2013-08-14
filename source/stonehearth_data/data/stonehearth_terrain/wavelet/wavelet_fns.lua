@@ -1,14 +1,11 @@
-local WaveletFns = class()
+local WaveletFns = {}
 local Wavelet = radiant.mods.require('/stonehearth_terrain/wavelet/wavelet.lua')
 
-function WaveletFns:__init()
-end
-
-function WaveletFns:scale_high_freq(src, src_width, src_height, current_level, max_level, power)
+function WaveletFns.scale_high_freq(src, src_width, src_height, current_level, max_level, power)
    if current_level > max_level then return end
    local i, j
    local level_width, level_height =
-      Wavelet:get_dimensions_for_level(src_width, src_height, current_level)
+      Wavelet.get_dimensions_for_level(src_width, src_height, current_level)
    local half_width = level_width/2
    local half_height = level_height/2
    local attenuation = power^(max_level-current_level+1)
@@ -23,14 +20,14 @@ function WaveletFns:scale_high_freq(src, src_width, src_height, current_level, m
       row_offset = row_offset + src_width
    end
 
-   self:scale_high_freq(src, src_width, src_height, current_level+1, max_level, power)
+   WaveletFns.scale_high_freq(src, src_width, src_height, current_level+1, max_level, power)
 end
 
-function WaveletFns:calc_attentuation_coefficient(levels, final_coefficient)
+function WaveletFns.calc_attentuation_coefficient(levels, final_coefficient)
    return final_coefficient^(1/levels)
 end
 
-function WaveletFns:average_error(src1, src2, width, height)
+function WaveletFns.average_error(src1, src2, width, height)
    local i, j
    local sum = 0
    local rowoffset = 0

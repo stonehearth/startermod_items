@@ -15,9 +15,13 @@ function TerrainTest:__init()
    --self:_run_unit_tests()
    local terrain_generator = TerrainGenerator(tile_size)
    terrain_generator:generate_tile()
+   --terrain_generator:_erosion_test()
 
-   --local tree = self:place_tree(64, 64)
-   --local worker = self:place_citizen(44, 44)
+   local i
+   for i=1, 10, 1 do
+      self:place_tree(math.random(1, tile_size), math.random(1, tile_size))
+      self:place_citizen(math.random(1, tile_size), math.random(1, tile_size))
+   end
 
    --self:_run_old_sample()
 end

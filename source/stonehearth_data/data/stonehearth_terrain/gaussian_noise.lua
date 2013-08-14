@@ -20,12 +20,12 @@ function GaussianNoise:generate()
    local i
    local sum = 0
 
-   for i=0, self.quality, 1 do
+   for i=1, self.quality, 1 do
       --sum = sum + math.floor(math.random() * self._component_amplitude + 0.5)
       sum = sum + math.random()
    end
+   
    return math.floor(sum * self._component_amplitude + 0.5)
 end
-
 
 return GaussianNoise
