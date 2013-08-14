@@ -3,9 +3,24 @@ $(document).ready(function(){
 
    // When we get the show_workshop event, toggle the crafting window
    // for this entity.
-   $(top).on("stonehearth_crafter.show_workshop", function (_, e) {
+   $(top).on("show_workshop.stonehearth_crafter", function (_, e) {
       //TODO: hide the workshop on X button, etc.
       var view = App.gameView.addView(App.StonehearthCrafterView, { uri: e.entity });
+   });
+
+   // handle requests from elsewhere in the UI that a workshop be created
+   $(top).on("create_workshop.radiant", function (_, e) {
+      // kick off a request to the client to show the cursor for placing
+      // the workshop. The UI is out of the 'create workshop' process after
+      // this. All the work is done in the client and server
+
+      var crafterModUri = '/modules/client/stonehearth_crafter/choose_location';
+      var workbenchEntity = e.workbench;
+
+      $.get(crafterModUri, { entity: workbenchEntity })
+         .done(function(o){
+
+         });
    });
 });
 
