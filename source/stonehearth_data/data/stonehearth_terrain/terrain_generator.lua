@@ -1,12 +1,5 @@
 local TerrainGenerator = class()
 
-local Terrain = _radiant.om.Terrain
-local Cube3 = _radiant.csg.Cube3
-local Point3 = _radiant.csg.Point3
-local Region2 = _radiant.csg.Region2
-local Region3 = _radiant.csg.Region3
-local HeightMapCPP = _radiant.csg.HeightMap
-
 local HeightMap = radiant.mods.require('/stonehearth_terrain/height_map.lua')
 local GaussianNoise = radiant.mods.require('/stonehearth_terrain/gaussian_noise.lua')
 local InverseGaussianNoise = radiant.mods.require('/stonehearth_terrain/inverse_gaussian_noise.lua')
@@ -48,7 +41,7 @@ function TerrainGenerator:generate_tile()
    -- need to figure out baseline height later
    height_map:normalize_map_height(self.foothills_quantization_size)
 
-   self:_render_height_map_to_terrain(height_map)
+   return height_map
 end
 
 function TerrainGenerator:_create_map_template(height_map)
@@ -208,59 +201,6 @@ function TerrainGenerator:_try_grow(height_map, edge_map, x, y, detail_height)
    return true
 end
 
-----------
-
-function TerrainGenerator:_render_height_map_to_terrain(height_map)
-   local r2 = Region2()
-   local r3 = Region3()
-   local terrain = radiant._root_entity:add_component('terrain')
-   local heightMapCPP = HeightMapCPP(self.tile_size, 1)
-
-   self:_copy_heightmap_to_CPP(heightMapCPP, height_map)
-   _radiant.csg.convert_heightmap_to_region2(heightMapCPP, r2)
-
-   for rect in r2:contents() do
-      if rect.tag > 0 then
-         self:_add_land_to_region(r3, rect, rect.tag);         
-      end
-   end
-
-   terrain:add_region(r3)
-end
-
-function TerrainGenerator:_copy_heightmap_to_CPP(heightMapCPP, height_map)
-   local row_offset = 0
-
-   for j=1, height_map.height, 1 do
-      for i=1, height_map.width, 1 do
-         heightMapCPP:set(i-1, j-1, math.abs(height_map[row_offset+i]))
-      end
-      row_offset = row_offset + height_map.width
-   end
-end
-
-function TerrainGenerator:_add_land_to_region(dst, rect, height)
-   dst:add_cube(Cube3(Point3(rect.min.x, -2,       rect.min.y),
-                      Point3(rect.max.x, 0,        rect.max.y),
-                Terrain.BEDROCK))
-
-   if height % self.foothills_quantization_size == 0 then
-      dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
-                         Point3(rect.max.x, height-1, rect.max.y),
-                   Terrain.TOPSOIL))
-
-      dst:add_cube(Cube3(Point3(rect.min.x, height-1, rect.min.y),
-                         Point3(rect.max.x, height,   rect.max.y),
-                   Terrain.GRASS))
-   else
-      dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
-                         Point3(rect.max.x, height,   rect.max.y),
-                   Terrain.TOPSOIL))
-   end
-end
-
-----------
-
 function TerrainGenerator:_erosion_test()
    local levels = 4
    local coeff = 0.5
@@ -281,7 +221,7 @@ function TerrainGenerator:_erosion_test()
    height_map:normalize_map_height(self.foothills_quantization_size)
    height_map:quantize_map_height(self.foothills_quantization_size)
 
-   self:_render_height_map_to_terrain(height_map)
+   return height_map
 end
 
 return TerrainGenerator
