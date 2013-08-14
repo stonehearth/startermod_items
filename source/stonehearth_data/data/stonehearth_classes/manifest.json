@@ -1,0 +1,8 @@
+{
+   "info" :{
+      "name" : "Stonehearth Classes Library"
+   },
+   "components" :  {
+      "talisman_promotion_info" : "file(components/talisman_promotion_info.lua)"
+   }
+}

@@ -1,0 +1,9 @@
+{
+   "info" :{
+      "name" : "Stonehearth Inventory Module"
+   },
+   "ui" :  {
+      "js" : [
+      ]
+   }   
+}

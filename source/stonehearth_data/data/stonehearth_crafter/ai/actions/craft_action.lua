@@ -22,6 +22,10 @@ function CraftAction:run(ai, entity)
    local workshop = crafter_component:get_workshop()
 
    while workshop:work_on_curr_recipe(ai) do
+      --If the user has paused progress, don't continue
+      if workshop:is_paused() or (not workshop:is_currently_crafting()) then
+         return
+      end
    end
    ai:execute('stonehearth_crafter.activities.fill_outbox')
 end

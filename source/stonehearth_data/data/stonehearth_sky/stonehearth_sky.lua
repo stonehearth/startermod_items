@@ -23,6 +23,7 @@ local sky_transitions = {
 
 
 function stonehearth_sky.__init()
+   --stonehearth_sky.add_lights()
 end
 
 function stonehearth_sky.add_lights()
@@ -33,8 +34,8 @@ function stonehearth_sky.add_lights()
    stonehearth_sky._initSun()
    stonehearth_sky._initMoon()
 
-   --stonehearth_sky.dawn()
-   stonehearth_sky.noon()
+   stonehearth_sky.dawn()
+   --stonehearth_sky.noon()
    --stonehearth_sky.dusk()
    --stonehearth_sky.night()
 end
@@ -110,7 +111,7 @@ function stonehearth_sky._on_minute(_, now)
 
 end
 
--- stonehearth_sky.__init()
+stonehearth_sky.__init()
 return stonehearth_sky
 
 

@@ -54,6 +54,7 @@ message Update {
       FetchObjectReply = 10;
       PostCommandReply = 11;
       ScriptCommandReply = 12;
+      DefineRemoteObject = 13;
    }
    required Type     type = 1;
    optional int32    chunk_size = 2;
@@ -144,6 +145,14 @@ message ScriptCommandReply {
       optional ScriptCommandReply extension = 121;
    }
    optional string      result = 1;
+}
+
+message DefineRemoteObject {
+   extend Update {
+      optional DefineRemoteObject extension = 122;
+   }
+   optional string      uri = 1;
+   optional string      object_uri = 2;
 }
 
 message ClientRequest {

@@ -10,7 +10,7 @@ App.StonehearthUnitFrameView = App.View.extend({
       this._super();
 
       var self = this;
-      $(top).on("radiant.events.selection_changed", function (_, evt) {
+      $(top).on("selection_changed.radiant", function (_, evt) {
          self._selected_entity = evt.data.selected_entity;
          if (self._selected_entity) {
             self.set('uri', self._selected_entity);

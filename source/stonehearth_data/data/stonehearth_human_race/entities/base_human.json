@@ -5,9 +5,10 @@
       "radiant:ai" : {
          "actions" : [
             "file(/ai/actions/sleep_action.lua)",
-            "file(/ai/actions/sleep_in_bed_action.lua)"
+            "file(/ai/actions/sleep_in_bed_action.lua)",
+            "/stonehearth_classes/ai/actions/grab_talisman_action.lua"
          ]
-      },      
+      },
 	   "unit_info" : {
 		  "name": "Civilian",
 		  "description": "Citizen of your town",

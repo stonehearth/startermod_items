@@ -5,20 +5,26 @@
    "components" :  {
       "workshop" : "file(components/workshop_component.lua)",
       "crafter"  : "file(components/crafter_component.lua)"
-   }
-
-   /*
-   ,
+   },
    "client" : {
-      "routes" : {
+      "request_handlers" : {
          "choose_location" : "file(routes/location_selector.lua)"
       }
    },
    "server" : {
-      "routes" : {
+      "request_handlers" : {
          "create_workbench" : "file(routes/create_workbench.lua)"
       }
-   }
-   */
-
+   },
+   "ui" :  {
+      "html" : [
+         "file(/html/stonehearth_crafter.html)"
+      ],
+      "js" : [
+         "file(/html/js/stonehearth_crafter.js)"
+      ],
+      "less" : [
+         "file(/html/css/stonehearth_crafter.less)"
+      ]
+   }   
 }

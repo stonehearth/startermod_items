@@ -7,15 +7,24 @@
 local CraftOrder = radiant.mods.require('/stonehearth_crafter/lib/craft_order.lua')
 local ToDoList = class()
 
-function ToDoList:__init(backing_obj)
-   self._backing_obj = backing_obj
+function ToDoList:__init(data_blob)
+   self._data_blob = data_blob
    self._my_list = {}
+   self._is_paused = false
 end
 
 function ToDoList:__tojson()
    return radiant.json.encode(self._my_list)
 end
 
+function ToDoList:togglePause()
+   self._is_paused = not self._is_paused
+   self._data_blob:mark_changed()
+end
+
+function ToDoList:is_paused()
+   return self._is_paused
+end
 --[[
    Add an order to the list
    order:         A table, as defined below, with the values for the order
@@ -28,74 +37,32 @@ function ToDoList:add_order(order, target_index)
    else
       table.insert(self._my_list, order)
    end
-   self._backing_obj:mark_changed()
+   self._data_blob:mark_changed()
 end
 
 --[[
    Iterate through the list from top to bottom. Check for the first enabled,
    relevant craft_order and return it and the paths associated with its
-   ingredients.
+   ingredients. Mark that order as the top task.
    return: nil if the list is empty.
 ]]
-function ToDoList:get_next_task()   
+function ToDoList:get_next_task()
    for i, order in ipairs(self._my_list) do
       if order:should_execute_order() then
          order:search_for_ingredients()
          -- TODO: need a way for the order to say "no, i can't go yet... move onto
          -- the next guy".  this should happens when the search for an ingredient
-         -- gets exhausted.
+         -- gets exhausted. Should also return reasons for failure (can't find wood)
          local ingredients = order:get_all_ingredients()
          if ingredients then
+            order:set_crafting_status(true)
+            self._data_blob:mark_changed()
             return order, ingredients
          end
          return
       end
    end
---[[
-   local i = 1
-   while not self._my_list[i]:can_execute_order() do
-      i = i + 1;
-   end
-   --TODO: figure out inventory syntax. We need the ingredients relevant to this recipe, and paths to each
-   --FOR TESTING ONLY
-   local ingredient_data = {}
-   local recipe = self._my_list[i]:get_recipe().produces[1].item
-   if recipe == '/stonehearth_items/wooden_buckler' then
-      ingredient_data = self:buckler_ingredients()
-   elseif recipe == '/stonehearth_items/wooden_sword' then
-      ingredient_data = self:sword_ingredients()
-   end
-
-   return self._my_list[i], ingredient_data
-   ]]
 end
-
---TESTING FUNCTIONS ONLY
---[[
-function ToDoList:sword_ingredients()
-   local wood = radiant.entities.create_entity('/stonehearth_trees/entities/oak_tree/oak_log')
-   radiant.terrain.place_entity(wood, RadiantIPoint3(-10, 1, 10))
-   local wood2 = radiant.entities.create_entity('/stonehearth_trees/entities/oak_tree/oak_log')
-   radiant.terrain.place_entity(wood2, RadiantIPoint3(-9, 1, 10))
-   local wood3 = radiant.entities.create_entity('/stonehearth_trees/entities/oak_tree/oak_log')
-   radiant.terrain.place_entity(wood3, RadiantIPoint3(-8, 1, 10))
-
-   local ingredient_data = {{item = wood},{item = wood2},{item = wood3}}
-   return ingredient_data
-end
-
---TESTING FUNCTIONS ONLY
-function ToDoList:buckler_ingredients()
-   local wood = radiant.entities.create_entity('/stonehearth_trees/entities/oak_tree/oak_log')
-   radiant.terrain.place_entity(wood, RadiantIPoint3(-10, 1, 10))
-
-   local cloth = radiant.entities.create_entity('/stonehearth_items/cloth_bolt')
-   radiant.terrain.place_entity(cloth, RadiantIPoint3(-7, 1, 10))
-
-   local ingredient_data = {{item = wood}, {item = cloth}}
-   return ingredient_data
-end
---]]
 
 --[[
    When the crafter as completed his current task, call this function
@@ -108,6 +75,8 @@ function ToDoList:chunk_complete(curr_order)
    if i and curr_order:check_complete() then
       table.remove(self._my_list, i)
    end
+   --TODO: updates whole list when any object order is updated. Add data_blob to TODO item?
+   self._data_blob:mark_changed()
 end
 
 -- Helper functions
@@ -128,6 +97,18 @@ function ToDoList:find_index_of(order_id)
    return nil
 end
 
+--[[
+   Remove the object with the ID and insert it into the new positon.
+   Note: do not call existing add/remove or we'll have multiple UI updates.
+]]
+function ToDoList:change_order_position(new, id)
+   local i = self:find_index_of(id)
+   local order = self._my_list[i]
+   table.remove(self._my_list, i)
+   table.insert(self._my_list, new, order)
+   --TODO: comment out when you've fixed the drag/drop problem
+   self._data_blob:mark_changed()
+end
 
 --[[
    Remove a craft_order given its ID. For example, use
@@ -141,10 +122,8 @@ function ToDoList:remove_order(order_id)
     if i then
       local order = self._my_list[i]
       table.remove(self._my_list, i)
-      self._backing_obj:mark_changed()
-      return order
-   else
-      return nil
+      order:destroy()
+      self._data_blob:mark_changed()
    end
 end
 

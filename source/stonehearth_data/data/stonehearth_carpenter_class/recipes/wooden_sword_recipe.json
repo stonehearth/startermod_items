@@ -1,9 +1,13 @@
 {
- "type":"recipe", 
+ "type":"recipe",
 
  "work_units": 3,
-  "recipe_name" : "Wooden Practice Sword",
-  "recipe_icon" : "/stonehearth_items/wooden_sword/html/images/wooden_sword_icon.png",
+ "recipe_name" : "Wooden Practice Sword",
+ "my_location" : "/stonehearth_carpenter_class/recipes/wooden_sword_recipe.json",
+ "description" : "Upgrades a settler into a swordsman.",
+ "flavor"      : "Just pointy enough to get the job done.",
+ "card_art"    : "/stonehearth_items/wooden_sword/wooden_sword_card.png",
+ "queue_art"   : "/stonehearth_items/wooden_sword/wooden_sword_queue.png",
  "category" : "weapons",
 
  "ingredients": [
@@ -13,12 +17,12 @@
       "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
     },
     {
-      "material" : "wood",     
+      "material" : "wood",
       "count" : 1,
       "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
  },
     {
-      "material" : "wood",     
+      "material" : "wood",
       "count" : 1,
       "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
     }
@@ -26,7 +30,7 @@
   "produces": [
       {
          "item":"/stonehearth_items/wooden_sword",
-         "script":"/stonehearth_crafter/", 
+         "script":"/stonehearth_crafter/",
          "command":"produce_item"
       }
   ]

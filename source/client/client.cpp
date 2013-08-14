@@ -205,7 +205,7 @@ void Client::run()
       mainloop();
       int now = platform::get_current_time_in_ms();
       if (now - last_stat_dump > 10000) {
-         // PROFILE_DUMP_STATS();
+         PROFILE_DUMP_STATS();
          // PROFILE_RESET();
          last_stat_dump = now;
       }
@@ -234,7 +234,7 @@ void Client::LoadModuleRoutes(std::string const& modname, json::ConstJsonObject 
 {
    resources::ResourceManager2 &rm = resources::ResourceManager2::GetInstance();
    try {
-      for (auto const& node : block["routes"]) {
+      for (auto const& node : block["request_handlers"]) {
          std::string const& uri_path = SanatizePath("/modules/client/" + modname + "/" + node.name());
          std::string const& lua_path = node.as_string();
          clientRoutes_[uri_path] = scriptHost_->LuaRequire(lua_path);
@@ -246,10 +246,14 @@ void Client::LoadModuleRoutes(std::string const& modname, json::ConstJsonObject 
 
 void Client::handle_connect(const boost::system::error_code& error)
 {
-   ASSERT(!error);
-   recv_queue_ = std::make_shared<protocol::RecvQueue>(_tcp_socket);
-   send_queue_ = protocol::SendQueue::Create(_tcp_socket);
-   recv_queue_->Read();
+   if (error) {
+      LOG(WARNING) << "connection to server failed (" << error << ").  retrying...";
+      setup_connections();
+   } else {
+      recv_queue_ = std::make_shared<protocol::RecvQueue>(_tcp_socket);
+      send_queue_ = protocol::SendQueue::Create(_tcp_socket);
+      recv_queue_->Read();
+   }
 }
 
 void Client::setup_connections()
@@ -359,6 +363,7 @@ bool Client::ProcessMessage(const proto::Update& msg)
       DISPATCH_MSG(UpdateObject);
       DISPATCH_MSG(RemoveObjects);
       DISPATCH_MSG(UpdateDebugShapes);
+      DISPATCH_MSG(DefineRemoteObject);
    default:
       ASSERT(false);
    }
@@ -530,6 +535,21 @@ void Client::RemoveObjects(const proto::RemoveObjects& update)
 void Client::UpdateDebugShapes(const proto::UpdateDebugShapes& msg)
 {
    Renderer::GetInstance().DecodeDebugShapes(msg.shapelist());
+}
+
+void Client::DefineRemoteObject(const proto::DefineRemoteObject& msg)
+{
+   std::string const &key = msg.uri();
+   std::string const &value = msg.object_uri();
+
+   if (value.empty()) { 
+      auto i = serverRemoteObjects_.find(key);
+      if (i != serverRemoteObjects_.end()) {
+         serverRemoteObjects_.erase(i);
+      }
+   } else {
+      serverRemoteObjects_[key] = value;
+   }
 }
 
 void Client::RegisterReplyHandler(const proto::Command* cmd, ReplyFn fn)
@@ -709,7 +729,7 @@ void Client::SelectEntity(om::EntityPtr obj)
          std::string uri = std::string("/object/") + stdutil::ToString(selectedObject_->GetObjectId());
          data.push_back(JSONNode("selected_entity", uri));
       }
-      QueueEvent("radiant.events.selection_changed", data);
+      QueueEvent("selection_changed.radiant", data);
    }
 }
 
@@ -1527,12 +1547,34 @@ void Client::GetEvents(JSONNode const& query, std::shared_ptr<net::IResponse> re
    FlushEvents();
 }
 
+void Client::GetModules(JSONNode const& query, std::shared_ptr<net::IResponse> response)
+{
+   JSONNode result;
+   auto& rm = resources::ResourceManager2::GetInstance();
+   for (std::string const& modname : rm.GetModuleNames()) {
+      JSONNode manifest;
+      try {
+         manifest = rm.LookupManifest(modname);
+      } catch (std::exception const& e) {
+         // Just use an empty manifest...f
+      }
+      manifest.set_name(modname);
+      result.push_back(manifest);
+   }
+   response->SetResponse(200, result.write(), "application/json");
+}
+
 void Client::TraceUri(JSONNode const& query, std::shared_ptr<net::IResponse> response)
 {
    json::ConstJsonObject args(query);
 
    if (args["create"].as_bool()) {
       std::string uri = args["uri"].as_string();
+
+      auto i = serverRemoteObjects_.find(uri);
+      if (i != serverRemoteObjects_.end()) {
+         uri = i->second;
+      }
 
       if (boost::starts_with(uri, "/object")) {
          TraceObjectUri(uri, response);
@@ -1620,6 +1662,8 @@ void Client::BrowserRequestHandler(std::string const& path, JSONNode const& quer
    if (postdata.empty()) {
       if (boost::starts_with(path, "/api/trace")) {
          TraceUri(query, response);
+      } else if (boost::starts_with(path, "/api/get_modules")) {
+         GetModules(query, response);
       } else if (boost::starts_with(path, "/object")) {
          GetRemoteObject(path, query, response);
       } else {

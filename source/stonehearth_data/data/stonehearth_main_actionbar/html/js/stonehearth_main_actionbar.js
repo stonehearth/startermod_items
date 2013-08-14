@@ -1,15 +1,3 @@
-$(document).ready(function(){
-
-   $(top).bind('keyup', function(e){
-      console.log('keyup!');
-      console.log(e);
-      var activeMenu = $("#mainActionbar").boxmenu( 'handleKey', e.keyCode);
-
-      //$( "#mainActionbar" ).boxmenu( 'click', 'build');
-   });
-});
-
-
 App.StonehearthMainActionbarView = App.View.extend({
    templateName: 'stonehearthMainActionbar',
 
@@ -35,7 +23,10 @@ App.StonehearthMainActionbarView = App.View.extend({
                   stockpile: {
                      name: 'Stockpile',
                      icon: imagePath + 'stockpile.png',
-                     hotkey: 's'
+                     hotkey: 's',
+                     click: function () {
+                        $(top).trigger('create_stockpile.radiant');
+                     }
                   },
                   workshop: {
                      name: 'Workshop',
@@ -47,7 +38,7 @@ App.StonehearthMainActionbarView = App.View.extend({
                            icon: imagePath + 'carpenter.png',
                            hotkey: 'c',
                            click: function () {
-                              $(top).trigger('radiant.events.create_workshop', {
+                              $(top).trigger('create_workshop.radiant', {
                                  workbench: '/stonehearth_carpenter_class/entities/carpenter_workbench'
                               });  
                            }
@@ -65,6 +56,7 @@ App.StonehearthMainActionbarView = App.View.extend({
                name: 'Harvest',
                icon: imagePath + 'harvest.png',
                hotkey: 'h',
+               styleClass: 'harvestMenu',
                items: {
                   chop: {
                      name: 'Chop trees',

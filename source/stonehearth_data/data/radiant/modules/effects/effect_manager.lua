@@ -45,8 +45,8 @@ end
 function EffectManager:start_action_at_time(action, when, trigger_handler, args)
    radiant.check.is_string(action)
    radiant.check.is_number(when)
-
-   if trigger_handler then radiant.check.is_callable(trigger_handler) end
+   --TODO: there is no such function as radiant.check.is_callable
+   --if trigger_handler then radiant.check.is_callable(trigger_handler) end
    if args then radiant.check.is_table(args) end
 
    radiant.log.debug("staring effect %s at %d", action, when)

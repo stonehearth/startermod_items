@@ -38,7 +38,6 @@ local data = {
       month = 0,
       year = 1000
    }, --the calendar data to export 
-
    _lastNow = 0,
    _remainderTime = 0,
 }
@@ -51,10 +50,25 @@ radiant.events.register_event('radiant.events.calendar.hourly')
 function stonehearth_calendar.__init()
    radiant.events.listen('radiant.events.gameloop', stonehearth_calendar._on_event_loop)
 
-   -- add the calendar to the root entity
-   -- xxx, move this.
-   local root_entity = radiant.entities.get_root_entity()
-   root_entity:add_component('stonehearth_calendar:calendar'):_set_calendar(stonehearth_calendar)
+   -- publish the current time (up to the minute) to the ui..
+   -- Step 1: create a function which will convert the current time to json and register
+   -- it with a new json storage object.
+   local currentTimeToJson = function()
+      local json = {
+         date = stonehearth_calendar.get_time_and_date()
+      }
+      return radiant.json.encode(json)         
+   end
+   data._uiClock = radiant.mods.create_data_blob(currentTimeToJson)
+   
+   -- Step 2: every minute, mark the storage object as dirty.
+   radiant.events.listen('radiant.events.calendar.hourly', function()
+         data._uiClock:mark_changed()
+      end)
+      
+   -- Step 3: publish the object at the /stonehearth_calendar/clock uri so
+   -- clients can trace it from javascript.
+   radiant.mods.publish_data_blob('/stonehearth_calendar/clock', data._uiClock)
 
    -- xxx, this is a total hack. Need a sensible entry point for the sky mod
    -- stonehearth_sky.add_lights();

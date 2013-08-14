@@ -104,6 +104,7 @@ namespace radiant {
             void UpdateObject(const tesseract::protocol::UpdateObject& msg);
             void RemoveObjects(const tesseract::protocol::RemoveObjects& msg);
             void UpdateDebugShapes(const tesseract::protocol::UpdateDebugShapes& msg);
+            void DefineRemoteObject(const tesseract::protocol::DefineRemoteObject& msg);
 
             void mainloop();
             void setup_connections();
@@ -209,6 +210,7 @@ namespace radiant {
             void HandleClientRouteRequest(luabind::object ctor, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response);
             void GetRemoteObject(std::string const& uri, JSONNode const& query, std::shared_ptr<net::IResponse> response);
             void TraceUri(JSONNode const& query, std::shared_ptr<net::IResponse> response);
+            void GetModules(JSONNode const& query, std::shared_ptr<net::IResponse> response);
             void TraceObjectUri(std::string const& uri, std::shared_ptr<net::IResponse> response);
             void TraceFileUri(std::string const& uri, std::shared_ptr<net::IResponse> response);
             void FlushEvents();
@@ -306,6 +308,7 @@ namespace radiant {
             std::map<dm::TraceId, dm::Guard>         uriTraces_;
             std::vector<MouseEventPromiseRef>   mouseEventPromises_;
             std::unordered_map<std::string, luabind::object>   clientRoutes_;
+            std::unordered_map<std::string, std::string>       serverRemoteObjects_;
       };
    };
 };

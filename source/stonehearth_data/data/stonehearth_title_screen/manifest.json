@@ -1,0 +1,17 @@
+{
+   "info" :{
+      "name" : "Stonehearth Title Screen"
+   },
+
+   "ui" :  {
+      "html" : [
+         "file(/html/stonehearth_title_screen.html)"
+      ],
+      "js" : [
+         "file(/html/js/stonehearth_title_screen.js)"
+      ],
+      "less" : [
+         "file(/html/css/stonehearth_title_screen.less)"
+      ]
+   }
+}

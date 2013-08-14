@@ -678,7 +678,28 @@ void Renderer::OnMouseMove(int x, int y)
       cameraPos_ = cameraTarget_ + pitch.rotate(projection * d);
 
       UpdateCamera();
+   } else {
+      /*     
+      int gutterSize = 10;
+
+      if (mouse_.x < gutterSize) {
+         cameraMoveDirection_.x = (float)-1;
+      } else if (mouse_.x > width_ - gutterSize) {
+         cameraMoveDirection_.x = (float)1;
+      } else {
+         cameraMoveDirection_.x = (float)0;
+      }
+
+      if (mouse_.y < gutterSize) {
+         cameraMoveDirection_.z = (float)-1;
+      } else if (mouse_.y > height_ - gutterSize) {
+         cameraMoveDirection_.z = (float)1;
+      } else {
+         cameraMoveDirection_.z = 0;
+      }
+      */
    }
+
    CallMouseInputCallbacks();
 }
 

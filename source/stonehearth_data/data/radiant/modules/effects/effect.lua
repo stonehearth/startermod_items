@@ -14,7 +14,7 @@ function Effect:_get_start_time()
       return self._info.start_time
    end
    if self._info.start_frame then
-      frame_count_to_time(self._info.start_frame)
+      return self:_frame_count_to_time(self._info.start_frame)
    end
    return 0
 end
@@ -24,7 +24,7 @@ function Effect:_get_end_time()
       return self._info.end_time
    end
    if self._info.end_frame then
-      frame_count_to_time(self._info.end_frame)
+      return self:_frame_count_to_time(self._info.end_frame)
    end
    if self._info.loop then
       return 0
@@ -34,7 +34,7 @@ function Effect:_get_end_time()
          return self._info.start_time + self._info.duration
       end
       if self._info.start_frame then
-         return frame_count_to_time(self._info.end_frame)(self._info.start_frame + self._info.duration)
+         return self:_frame_count_to_time(self._info.end_frame)(self._info.start_frame + self._info.duration)
       end
    end
    if self._info.type == 'animation_effect' then
@@ -47,7 +47,15 @@ function Effect:_get_end_time()
       for _, segment in ipairs(self._info.segments) do
          duration = duration + segment.duration
       end
-      return frame_count_to_time(duration)
+      return self:_frame_count_to_time(duration)
+   end
+   if self._info.type == 'attach_item_effect' then
+      --Assume that if we don't have any other data, attaching is instantaneous
+      if self._info.start_frame then
+      return self:_frame_count_to_time(self._info.start_frame)
+      else
+         return 0
+      end
    end
    assert(false)
    return 0

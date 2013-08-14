@@ -24,6 +24,7 @@
 #include "lua_item_component.h"
 #include "lua_paperdoll_component.h"
 #include "lua_carry_block_component.h"
+#include "lua_data_blob.h"
 
 #include "om/all_object_defs.h"
 #include "om/all_component_defs.h"
@@ -43,7 +44,8 @@ void radiant::om::RegisterLuaTypes(lua_State* L)
             OM_ALL_COMPONENTS
 #undef OM_OBJECT
             LuaEntity::RegisterLuaTypes(L),
-            LuaRegion::RegisterLuaTypes(L)
+            LuaRegion::RegisterLuaTypes(L),
+            LuaDataBlob::RegisterLuaTypes(L)
          ]
       ]
    ];

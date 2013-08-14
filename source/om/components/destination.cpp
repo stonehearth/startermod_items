@@ -18,7 +18,9 @@ void Destination::InitializeRecordFields()
       adjacent_ = GetStore().AllocObject<BoxedRegion3>();
       lastUpdated_ = 0;
 
-      auto update = [=]() { UpdateDerivedValues(); };
+      auto update = [=]() {
+         UpdateDerivedValues();
+      };
 
       guards_ += (*region_)->TraceObjectChanges("updating destination derived values (region changed)", update);
       guards_ += (*reserved_)->TraceObjectChanges("updating destination derived values (reserved changed)", update);
@@ -45,13 +47,21 @@ void Destination::ExtendObject(json::ConstJsonObject const& obj)
 
 void Destination::UpdateDerivedValues()
 {
-   // This last updated business is a deficency in the change tracker design.  if
-   // you need 2 fragments of data to compute a derived value and both of them
-   // change, you get notified twice about them.  What we need is to set a dirty
-   // flag in the callack, then schedule a one-time "before we exit this gameloop,
-   // please let me attend to some business" flag.  Then do the hard computation there.
+   // This serves multiple purposes... all of them quite annoying.
+   // 1) Occasionally, a client asks for the adjacent region after modifiying
+   //    the actual region, but before traces have had a chance to fire.  For
+   //    instance, this happens when a callback from the solved function of a
+   //    multi-pathfinder modifies a shared destination.  In those cases, we
+   //    need to calcaulate a new adjance region on request, which is why this
+   //    function is called from Destination::GetAdjacent().
+   // 2) We only want to recompute the value of the adjacent region when something
+   //    changes, so keep track of the last time we modified it and only update if it's
+   //    out of date.  Even if we weren't doing 1, we would still have to do this as 
+   //    multiple traces could fire if we changed region and reserved since the last
+   //    time we updated adjacent.
+   int lastModified = std::max((*region_)->GetLastModified(), (*reserved_)->GetLastModified());
 
-   if (lastUpdated_ < GetStore().GetCurrentGenerationId()) {
+   if (lastModified > (*adjacent_)->GetLastModified()) {
       csg::Region3 const& region = ***region_;
       csg::Region3 const& reserved = ***reserved_;
       if (reserved.IsEmpty()) {
@@ -59,7 +69,6 @@ void Destination::UpdateDerivedValues()
       } else {
          ComputeAdjacentRegion(region - reserved);
       }
-      lastUpdated_ = GetStore().GetCurrentGenerationId();
    }
 }
 
@@ -81,3 +90,15 @@ void Destination::ComputeAdjacentRegion(csg::Region3 const& r)
    }
    adjacent.Optimize();
 }
+
+BoxedRegion3Ptr Destination::GetReserved() const
+{
+   return reserved_;
+}
+
+BoxedRegion3Ptr Destination::GetAdjacent()
+{
+   UpdateDerivedValues();
+   return adjacent_;
+}
+

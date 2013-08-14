@@ -123,6 +123,11 @@ template <> JSONNode ToJson(const ObjectFormatter& f, UnitInfo const& obj)
    return node;
 }
 
+template <> JSONNode ToJson(const ObjectFormatter& f, DataBlob const& obj)
+{
+   return obj.ToJson();
+}
+
 #define OM_OBJECT(Cls, lower) \
    template <> JSONNode ToJson(const ObjectFormatter& f, Cls const& obj) { \
       JSONNode result; \

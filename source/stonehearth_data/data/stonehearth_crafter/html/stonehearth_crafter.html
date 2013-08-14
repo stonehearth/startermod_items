@@ -1,6 +1,11 @@
 <script type="text/x-handlebars" data-template-name="stonehearthCrafter">
-   
    <div id="craftingWindow">
+      <div id="craftingShingle">
+         <img class="classMarker" src="">
+         {{unit_info.name}}<br/>
+         <small>TODO: insert name here: {{unit_info.description}}</small>
+         <a>Close</a>
+      </div>
       <div class="frame">
         {{unit_info.name}}<br>
         <small>{{unit_info.description}}</small>
@@ -28,7 +33,7 @@
       <h3>All recipes</h3>
       <div>
          {{#each stonehearth_crafter:workshop.crafter.stonehearth_crafter:crafter.craftable_recipes}}
-            <a href="#" {{action select this target="view"}}>{{recipe_name}}</a>
+            <a href="#" {{action select this target="view"}} class="selected">{{recipe_name}}</a>
             <br>
          {{/each}}
       </div>
@@ -45,10 +50,7 @@
       <div id="title">
          <h1>{{model.recipe_name}}</h1>
       </div>
-      <div id="portrait">
-         
-      </div>
-
+      <img id="portrait">
       <div id="description">
          <center>
             <div id="ingredients">
@@ -64,34 +66,37 @@
          </center>
 
          <div id="attributes">
-            The item description goes here, as soon as Tony enables post and lets 
-            me preview the item with no ingredients to grab the name, description,
-            and portrait
+            <div id="usefulText"></div>
+            <div id="flavorText"></div>
          </div>
       </div>
-   </div>      
+   </div>
 </script>
 
 <!--Template for the options and craft button-->
 <script type="text/x-handlebars" data-template-name="_orderOptions">
    <div id="orderOptions">
-      <table>
-         <tr><td>
-            <input type="radio" name="conditionGroup" value="make" class="craftRadioButton" id="make" checked>
-            <label for="make" style='width:auto;'>{{i18n craftingWindow:craftNumber}}</label>
-         <td>
-            <input type="number" name="quantityToMake" value="1" min="1" max="99" class="craftNumericSelect">
-         </td></tr>
-      </table>
+      <div class="orderOptionControls">
+      <input type="radio" name="conditionGroup" value="make" class="craftRadioButton" id="make" checked>
+      <label for="make" style='width:auto;'>{{i18n stonehearth_crafter:craftNumberLeft}}</label>
+      <span>
+         <div class="dec numericButton">-</div>
+         <input type="number" name="quantityToMake" id="makeNumSelector" value="1" min="1" max="99" class="craftNumericSelect">
+         <div class="inc numericButton">+</div>
+      </span>
+      <label class="rightText" for="make" style='width:auto;'>{{i18n stonehearth_crafter:craftNumberRight}}</label>
+      </div>
 
-      <table>
-         <tr><td>
-            <input type="radio" name="conditionGroup" value="mantain" class="craftRadioButton" id="maintain">
-            <label for="maintain" style='width:auto'>{{i18n craftingWindow:craftUpTo}}</label>
-         <td>
-            <input type="number" name="quantityToMantain" value="1" min="1" max="99" class="craftNumericSelect">
-         </td></tr>
-      </table>
+      <div class="orderOptionControls">
+      <input type="radio" name="conditionGroup" value="mantain" class="craftRadioButton" id="maintain">
+      <label for="maintain" style='width:auto'>{{i18n stonehearth_crafter:craftUpToLeft}}</label>
+      <span>
+         <div class="dec numericButton">-</div>
+         <input id="mantainNumSelector" type="number" name="quantityToMantain" value="1" min="1" max="99" class="craftNumericSelect">
+         <div class="inc numericButton">+</div>
+      </span>
+      <label class="rightText" for="maintain" style='width:auto'>{{i18n stonehearth_crafter:craftUpToRight}}</label>
+      </div>
 
       <button class='btn' {{action "craft" target="view"}} id="craftButton"><img src="/stonehearth_crafter/html/images/anvil.png"></button>
    </div>
@@ -103,17 +108,39 @@
 
       <div id="orders">
       {{#each stonehearth_crafter:workshop.order_list}}
-         <div class="orderListItem">
-            <a href="#" {{action select recipe target="view"}}>{{recipe.recipe_name}}</a>
+         {{#if status.is_crafting}}
+            <div class="orderListItem inProgressOrder" {{bindAttr data-orderId = "id"}}>
+               <label class="craftingLabel">{{i18n stonehearth_crafter:crafting_status}}</label>
+         {{else}}
+            <div class="orderListItem normalOrder" {{bindAttr data-orderId = "id"}}>
+         {{/if}}
+            <a href="#" {{action select recipe target="view"}}><img {{bindAttr src = "portrait"}} {{bindAttr title = "recipe.recipe_name"}}></a>
+            {{#if condition.amount}}
+               <label class="amountLabel">{{remaining}}</label>
+            {{else}}
+               <label class="amountLabel"> = {{condition.inventory_below}}</label>
+            {{/if}}
+               <label class="deleteLabel">{{i18n stonehearth_crafter:remove_confirm}}</label>
          </div>
       {{/each}}
       </div>
 
       <a id="orderListUpBtn" {{action scrollOrderListUp target="view"}}><img src="/stonehearth_crafter/html/images/queue_up_arrow.png"></a>
       <a id="orderListDownBtn" {{action scrollOrderListDown target="view"}} ><img src="/stonehearth_crafter/html/images/queue_down_arrow.png"></a>
-   
-      <ul id="garbageList" class="droptrue">
-      </ul>
+
+      {{#if stonehearth_crafter:workshop.order_list}}
+      <div id="orderListControls">
+         {{#if stonehearth_crafter:workshop.is_paused}}
+            <a id="pauseButton" class="showPlay" href="#" {{action togglePause target="view"}}></a>
+         {{else}}
+            <a id="pauseButton" class="showPause" href="#" {{action togglePause target="view"}}></a>
+         {{/if}}
+         <a id="garbageButton" href="#">
+            <ul id="garbageList" class="droptrue"></ul>
+         </a>
+      </div>
+      {{/if}}
+
    </div>
 </script>
 
