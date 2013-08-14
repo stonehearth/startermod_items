@@ -29,6 +29,9 @@
    <script src="js/libs/handlebars-1.0.0-rc.4.js"></script>
    <script src="js/libs/ember-1.0.0-rc.4.js"></script>
 
+   <!-- external widgets -->
+   <script src="js/libs/incrementing.js"></script>
+
    <!-- the app -->
    <script src="js/app.js"></script>
    <script src="js/helpers.js"></script>
@@ -41,13 +44,15 @@
 
    <!-- start the app -->
    <script>
-      i18n.init({ 
+      i18n.init({
          lng: "en",
          fallbackLng: false,
          ns: "stonehearth",
-         resGetPath: '/mods/__ns__/locales/__lng__.json'
+         resGetPath: '../../__ns__/html/locales/__lng__.json'
       });
-      i18n.loadNamespace('mainbar', function() { console.log('loaded mainbar i18n namespace'); });
+      //TODO: Standardize the namespace/mod structure
+      //so mainbar and unit frame etc can be peers of stonehearth_crafter
+      //i18n.loadNamespace('mainbar', function() { console.log('loaded mainbar i18n namespace'); });
    </script>
 
 </body>

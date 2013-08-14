@@ -4,6 +4,7 @@
       "grab_talisman": {
          "type": "attach_item_effect",
          "start_time": 0,
+         "end_time": 0,
          "item": "{{talisman}}",
          "bone": "talisman"
       },

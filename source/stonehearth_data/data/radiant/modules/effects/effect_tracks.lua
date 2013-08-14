@@ -30,7 +30,7 @@ function EffectTracks:__init(mgr, entity, effect_path, effect_name, start_time, 
       if e.type == "animation_effect" then
          table.insert(self._effects, AnimationEffect(e.animation, start_time, e))
       elseif e.type == "trigger_effect" then
-         table.insert(self._effects, TriggerEffect(start_time, trigger_handler, e, self._effect))
+         table.insert(self._effects, TriggerEffect(start_time, trigger_handler, e, self._effect, entity))
       elseif e.type == "attack_frame_data" then
          table.insert(self._effects, FrameDataEffect(start_time, trigger_handler, e, self._effect))
       elseif e.type == "music_effect" or e.type == "sound_effect" then

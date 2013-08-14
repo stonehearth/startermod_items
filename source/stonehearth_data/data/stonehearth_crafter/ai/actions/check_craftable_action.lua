@@ -52,6 +52,11 @@ CheckCraftableAction['radiant.events.gameloop'] = function(self)
       return
    end
 
+   --If the user has paused progress, don't continue
+   if workshop:is_paused() then
+      return
+   end
+
    local new_priority = 0
 
    if workshop:is_currently_crafting() then

@@ -14,6 +14,8 @@ function StockpileTest:__init()
    --self:place_citizen(14, 12)
    --self:place_citizen(15, 12)
    self:place_stockpile_cmd(faction, 10, 10, 2, 2)
+   
+
 end
 
 return StockpileTest

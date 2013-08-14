@@ -205,7 +205,7 @@ void Client::run()
       mainloop();
       int now = platform::get_current_time_in_ms();
       if (now - last_stat_dump > 10000) {
-         // PROFILE_DUMP_STATS();
+         PROFILE_DUMP_STATS();
          // PROFILE_RESET();
          last_stat_dump = now;
       }

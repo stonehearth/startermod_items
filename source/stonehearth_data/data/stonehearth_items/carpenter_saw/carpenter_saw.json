@@ -10,6 +10,14 @@
          "models": [
             "file(carpenter_saw.qb)",
          ]
+      },
+      "radiant:commands" : {
+         "commands" : [
+            "file(/commands/promote_citizen.json)"
+         ]
+      },
+      "stonehearth_classes:talisman_promotion_info": {
+         "class_script": "/stonehearth_carpenter_class/"
       }
    }
 }
