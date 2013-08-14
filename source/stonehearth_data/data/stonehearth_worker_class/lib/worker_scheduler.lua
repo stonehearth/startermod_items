@@ -21,8 +21,8 @@ function WorkerScheduler:__init(faction)
    self._stockpiles = {}
    self._stockpiles_dests = {}
    self._build_orders = {}
-   
-   self.allpf = {}   
+
+   self.allpf = {}
    self.pf = {
       pickup     = self:_create_pf('pickup'), -- generic "put stuff in stockpiles"
       group = {  -- pf's by material (e.g. pickup.wood, construct.wood, etc.)
@@ -30,7 +30,7 @@ function WorkerScheduler:__init(faction)
          restock = {},
          construct = {},
          teardown = {},
-      }, 
+      },
    }
    self._running = true
    radiant.events.listen('radiant.events.gameloop', self)
@@ -45,7 +45,7 @@ function WorkerScheduler:__init(faction)
       self:_remove_item(item:get_id())
       self:_recommend_activity(worker, 'stonehearth_worker.actions.pickup', path, item)
    end
-   
+
    self._dispatch_restock_task = function(path)
       local worker = path:get_source()
       local stockpile = path:get_destination()
@@ -65,7 +65,7 @@ function WorkerScheduler:_install_traces()
    local ec = radiant.entities.get_root_entity():get_component('entity_container');
    local children = ec:get_children()
 
-   -- put a trace on the root entity container to detect when items 
+   -- put a trace on the root entity container to detect when items
    -- go on and off the terrain.  each item is forwarded to the
    -- appropriate tracker.
    self._trace = children:trace('tracking items on terrain')
@@ -75,7 +75,7 @@ function WorkerScheduler:_install_traces()
    self._trace:on_removed(function (id)
          self:_on_remove_entity(id)
       end)
-      
+
    -- UGGGG. ITERATE THROUGH EVERY ITEM IN THE WORLD. =..(
    for id, item in children:items() do
       self:_on_add_entity(id, item)
@@ -133,7 +133,7 @@ end
 
 function WorkerScheduler:_create_pf(name)
    assert(not self.allpf[name])
-  
+
    local pf = native:create_multi_path_finder(name)
    self.allpf[name] = pf
    return pf
@@ -166,18 +166,18 @@ end
 function WorkerScheduler:_add_item(entity)
    radiant.check.is_entity(entity)
    radiant.log.info('tracking new item')
-   
+
    local id = entity:get_id()
    if not self._items[id] then
-      self._items[id] = entity      
+      self._items[id] = entity
 
       local material = entity:get_component('item'):get_material()
       if material ~= "" then
          local pf = self:_alloc_pf('pickup', material)
          pf:add_destination(entity)
-         pf:set_enabled(false) -- start off disabled.  
+         pf:set_enabled(false) -- start off disabled.
       end
-      
+
       local stocked = self:_find_stockpile(entity)
       if not stocked then
          self.pf.pickup:add_destination(entity)
@@ -197,14 +197,17 @@ end
 
 function WorkerScheduler:_remove_item(id)
    radiant.check.is_number(id)
-   
+
    local entity = self._items[id]
-   if entity then
+   if entity and radiant.check.is_entity(entity) then
       radiant.log.info('removing item from pickup pathfinder!')
       self.pf.pickup:remove_destination(id)
-      local material = entity:get_component('item'):get_material()
-      if material and material ~= '' then
-         self.pf.group.pickup[material]:remove_destination(id);
+      local item = entity:get_component('item')
+      if item then
+         local material = item:get_material()
+         if material and material ~= '' then
+            self.pf.group.pickup[material]:remove_destination(id);
+         end
       end
       self._items[id] = nil
    end
@@ -227,28 +230,28 @@ function WorkerScheduler:_can_grab_more_of(worker, material, count)
    radiant.check.is_entity(worker)
    radiant.check.is_string(material)
    radiant.check.is_number(count)
-   
-   local carry_block = worker:get_component('carry_block') 
+
+   local carry_block = worker:get_component('carry_block')
    if not carry_block then
       return false
    end
-   
+
    if not carry_block:is_carrying() then
       -- Not carrying anything.  Good to go!
       return true
    end
-   
+
    local item = carry_block:get_carrying():get_component('item')
    if not item then
       -- Not carrying an item.  Couldn't possibly be a resource, then.
       return false -- this shouldn't be possible, right?
    end
-   
+
    if material ~= item:get_material() then
       -- Wrong item...
       return false
    end
-   
+
    local stacks = item:get_stacks()
    if stacks + count >= item:get_max_stacks() then
       -- Item stacks are full.  Can't grab anymore!
@@ -258,9 +261,9 @@ function WorkerScheduler:_can_grab_more_of(worker, material, count)
 end
 
 function WorkerScheduler:_find_job_for_worker(worker)
-   local item, material = self:_get_carrying(worker)   
+   local item, material = self:_get_carrying(worker)
 
-   if item then   
+   if item then
       self:_add_worker_to_pf('construct', material, worker)
       self:_add_worker_to_pf('restock', material, worker)
       self:_add_worker_to_pf('teardown', material, worker)
@@ -297,17 +300,17 @@ function WorkerScheduler:_alloc_pf(job, material)
    radiant.check.is_string(job)
    radiant.check.is_string(material)
    radiant.check.is_table(self.pf.group[job])
-   
+
    local pf = self.pf.group[job][material]
    if not pf then
       pf = self:_create_pf(job .. '.' .. material)
       self.pf.group[job][material] = pf
-  
+
       for id, entry in pairs(self._workers) do
          self:_add_worker_to_pf(job, material, entry.worker)
-      end      
+      end
       if job == 'restock' then
-         for id, entity in pairs(self._stockpiles) do            
+         for id, entity in pairs(self._stockpiles) do
             pf:add_destination(entity)
          end
       end
@@ -319,7 +322,7 @@ end
 function WorkerScheduler:_get_carrying(worker)
    local carrying = nil
    local material = ""
-   
+
    local c = worker:get_component('carry_block')
    if c and c:is_carrying() then
       carrying = c:get_carrying()
@@ -334,7 +337,7 @@ end
 function WorkerScheduler:add_worker(worker, dispatch_fn)
    assert(worker)
    local id = worker:get_id()
-   
+
    radiant.log.info('adding worker %d.', id)
    assert(self._workers[id] == nil)
 
@@ -342,7 +345,7 @@ function WorkerScheduler:add_worker(worker, dispatch_fn)
       worker = worker,
       dispatch_fn = dispatch_fn
    }
-   
+
    self:_find_job_for_worker(worker)
 end
 
@@ -414,7 +417,7 @@ end
 
 function WorkerScheduler:_check_build_orders()
    local ancestor_is_busy = {}
-   
+
    --radiant.log.info('--- check build orders --------------------------------------------------')
    for _, build_order in ipairs(self:_walk_build_orders()) do
       local id = build_order:get_id()
@@ -422,7 +425,7 @@ function WorkerScheduler:_check_build_orders()
       local entity = build_order:get_entity()
       local entity_id = entity:get_id();
       local should_queue = build_order:needs_more_work()
-      
+
       if should_queue then
          if radiant.components.has_component(entity, 'build_order_dependencies') then
             local dependencies = radiant.components.get_component(build_order:get_entity(), 'build_order_dependencies')
@@ -439,10 +442,10 @@ function WorkerScheduler:_check_build_orders()
       if ancestor_is_busy[entity_id] == nil then
          ancestor_is_busy[entity_id] = should_queue
       end
-      
+
       local material = build_order:get_material()
       local teardown = build_order:should_tear_down()
-      
+
       local destination = self:_get_destination(self:_alloc_pf('construct', material), build_order)
       local teardown_dst = self:_get_destination(self:_alloc_pf('teardown', material), build_order)
 
@@ -459,7 +462,7 @@ function WorkerScheduler:_check_build_orders()
    --radiant.log.info('----------------')
 end
 
-function WorkerScheduler:_enable_pathfinders()   
+function WorkerScheduler:_enable_pathfinders()
    local space_available = self:_stock_space_available()
    -- why do we have a generic pickup finder for restocking!?
    self.pf.pickup:set_enabled(space_available)
@@ -509,14 +512,14 @@ function WorkerScheduler:_dispatch_job(job, worker, path, dst)
          local entity = dst:get_entity();
          local entity_id = entity:get_id();
          local location = path:get_points():last()
-         local stockpile = entity:get_component('stockpile_designation')    
+         local stockpile = entity:get_component('stockpile_designation')
          local success, location = stockpile:reserve_adjacent(location)
          if success then
             self:_recommend_activity(worker, 'restock', path, stockpile, location)
          else
             radiant.log.warning('failed to reserve location adjacent to stockpile.  aborting.')
          end
-         return success         
+         return success
       end
       return true
    elseif job == 'construct' or job == 'teardown' then
@@ -543,10 +546,10 @@ end
 function WorkerScheduler:_add_stockpile(entity)
    radiant.log.info('tracing stockpile available region')
    assert(entity:get_component('radiant:stockpile') ~= nil)
-   
+
    local id = entity:get_id()
    self._stockpiles[id] = entity
-   
+
    for material, pf in pairs(self.pf.group.restock) do
       pf:add_destination(entity)
    end
