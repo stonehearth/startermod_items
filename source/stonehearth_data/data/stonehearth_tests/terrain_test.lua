@@ -1,5 +1,6 @@
 
-local TerrainTest = class()
+local MicroWorld = radiant.mods.require('/stonehearth_tests/lib/micro_world.lua')
+local TerrainTest = class(MicroWorld)
 
 local Terrain = _radiant.om.Terrain
 local Cube3 = _radiant.csg.Cube3
@@ -17,8 +18,14 @@ local TerrainGenerator = radiant.mods.require('/stonehearth_terrain/terrain_gene
 local CDF_97 = radiant.mods.require('/stonehearth_terrain/wavelet/cdf_97.lua')
 local Wavelet = radiant.mods.require('/stonehearth_terrain/wavelet/wavelet.lua')
 
+local tile_size = 256
+
 function TerrainTest:__init()
-   local tile_size = 256
+   self[MicroWorld]:__init()
+   self:create_world()
+end
+
+function TerrainTest:create_world()
    local height_map
 
    --self:_run_unit_tests()
@@ -30,29 +37,15 @@ function TerrainTest:__init()
    self:_render_height_map_to_terrain(height_map)
    --self:_run_old_sample()
 
+   self:decorate_landscape()
+end
+
+function TerrainTest:decorate_landscape()
    local i
    for i=1, 10, 1 do
       self:place_tree(math.random(1, tile_size), math.random(1, tile_size))
       self:place_citizen(math.random(1, tile_size), math.random(1, tile_size))
    end
-end
-
-function TerrainTest:place_tree(x, z)
-   return self:place_item('/stonehearth_trees/entities/oak_tree/medium_oak_tree', x, z)
-end
-
-function TerrainTest:place_item(name, x, z)
-   local tree = radiant.entities.create_entity(name)
-   radiant.terrain.place_entity(tree, RadiantIPoint3(x, 1, z))
-   return tree
-end
-
-function TerrainTest:place_citizen(x, z, profession)
-   local citizen = radiant.mods.load_api('/stonehearth_human_race/').create_entity()
-   profession = profession and profession or 'worker'
-   local profession = radiant.mods.load_api('/stonehearth_' .. profession .. '_class/').promote(citizen)
-   radiant.terrain.place_entity(citizen, RadiantIPoint3(x, 1, z))
-   return citizen
 end
 
 function TerrainTest:_run_unit_tests()
