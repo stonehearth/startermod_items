@@ -1,4 +1,4 @@
-local Daubechies_D4 = class()
+local Daubechies_D4 = {}
 
 -- Daubechies D4 wavelet coefficients
 local H1 =  0.482962913144534
@@ -14,11 +14,10 @@ local G4 = -0.482962913144534
 -- false creates leakage that accumulates on boundary
 local perfect_reconstruction = true
 
-function Daubechies_D4:__init()
-end
-
-function Daubechies_D4:DWT_1D(dst, src, length)
+function Daubechies_D4.DWT_1D(src, length)
    local i, n, A, B, C, D
+   local temp = {}
+
    n = length/2
 
    assert(length % 2 == 0)
@@ -41,13 +40,19 @@ function Daubechies_D4:DWT_1D(dst, src, length)
          end
       end
 
-      dst[i]   = A*H4 + B*H3 + C*H2 + D*H1 -- low frequency
-      dst[n+i] = A*G4 + B*G3 + C*G2 + D*G1 -- high frequency
+      temp[i]   = A*H4 + B*H3 + C*H2 + D*H1 -- low frequency
+      temp[n+i] = A*G4 + B*G3 + C*G2 + D*G1 -- high frequency
+   end
+
+   for i=1, length, 1 do
+      src[i] = temp[i]
    end
 end
 
-function Daubechies_D4:IDWT_1D(dst, src, length)
+function Daubechies_D4.IDWT_1D(src, length)
    local i, n, A, B, C, D
+   local temp = {}
+
    n = length/2
 
    assert(length % 2 == 0)
@@ -70,8 +75,12 @@ function Daubechies_D4:IDWT_1D(dst, src, length)
          end
       end
 
-      dst[2*i-1] = A*H2 + B*H4 + C*G2 + D*G4
-      dst[2*i]   = A*H1 + B*H3 + C*G1 + D*G3
+      temp[2*i-1] = A*H2 + B*H4 + C*G2 + D*G4
+      temp[2*i]   = A*H1 + B*H3 + C*G1 + D*G3
+   end
+
+   for i=1, length, 1 do
+      src[i] = temp[i]
    end
 end
 
