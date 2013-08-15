@@ -10,7 +10,6 @@ RenderDestination::RenderDestination(const RenderEntity& entity, om::Destination
    entity_(entity)
 {
    node_ = h3dAddGroupNode(entity_.GetNode(), "destination region");
-   h3dSetNodeTransform(node_, 0.5f, 0.0f, 0.5f, 0, 0, 0, 1, 1, 1);
    std::string nodeName = h3dGetNodeParamStr(node_, H3DNodeParams::NameStr);
 
    auto create_debug_tracker = [=](std::string regionName, H3DNode& shape, om::BoxedRegion3Ptr region, math3d::color4 const& color) {
