@@ -24,7 +24,8 @@
 #include "lua/script_host.h"
 #include "om/stonehearth.h"
 #include "om/object_formatter/object_formatter.h"
-#include "deferred.h"
+#include "lua_deferred.h"
+#include "deferred_response.h"
 #include "glfw.h"
 
 //  #include "GFx/AS3/AS3_Global.h"
@@ -104,14 +105,17 @@ void Client::run()
    browser_.reset(chromium::CreateBrowser(hwnd_, docroot, width, height, debug_port));
    browser_->SetCursorChangeCb(std::bind(&Client::SetUICursor, this, std::placeholders::_1));
 
-   auto requestHandler = [=](std::string const& uri, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response) {
-      std::lock_guard<std::mutex> guard(lock_);
 
+   auto requestJob = [=](std::string const& uri, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response) {
       if (boost::starts_with(uri, "/api/events")) {
          GetEvents(query, response);         
       } else {
          BrowserRequestHandler(uri, query, postdata, response);
       }
+   };
+
+   auto requestHandler = [=](std::string const& uri, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response) {
+      AddBrowserJob(std::bind(requestJob, uri, query, postdata, response));
    };
    browser_->SetRequestHandler(requestHandler);
 
@@ -264,8 +268,6 @@ void Client::setup_connections()
 
 void Client::mainloop()
 {
-   std::lock_guard<std::mutex> guard(lock_);
-
    PROFILE_BLOCK();
    
    /*
@@ -275,6 +277,7 @@ void Client::mainloop()
    ASSERT(!(currentCommandCursor_ && !currentToolName_.empty()));
 
    process_messages();
+   ProcessBrowserJobQueue();
 
    int currentTime = platform::get_current_time_in_ms();
    float alpha = (currentTime - _client_interval_start) / (float)_server_interval_duration;
@@ -303,6 +306,9 @@ void Client::mainloop()
    if (send_queue_) {
       protocol::SendQueue::Flush(send_queue_);
    }
+   // xxx: GC while waiting for vsync, or GC in another thread while rendering (ooh!)
+   platform::timer t(10);
+   scriptHost_->GC(t);
 }
 
 om::TerrainPtr Client::GetTerrain()
@@ -1144,23 +1150,6 @@ void Client::OnDestroyed(dm::ObjectId id)
    LOG(INFO) << "object "  << id << " has been destroyed.";
 }
 
-void Client::SelectGroundArea(Selector::SelectionFn cb)
-{
-   auto callback = [=](const om::Selection &s) {
-      cb(s);
-      selector_ = nullptr;
-   };
-
-   auto vrs = std::make_shared<VoxelRangeSelector>(GetTerrain(), cb);
-   vrs->SetColor(math3d::color3(192, 192, 192));
-   vrs->SetDimensions(2);
-   vrs->Activate();
-   if (selector_) {
-      selector_->Deactivate();
-   }
-   selector_ = vrs;
-}
-
 
 dm::Guard Client::TraceShowBuildOrders(std::function<void()> cb)
 {
@@ -1493,10 +1482,11 @@ void Client::HandleClientRouteRequest(luabind::object ctor, JSONNode const& quer
             fn = obj[fname];
          }
       }
-      object result = scriptHost_->CallFunction<object>(fn, obj, queryObj, postdata);
-      std::string json = scriptHost_->CallFunction<std::string>(coder["encode"], result);
-
-      response->SetResponse(200, json, "application/json");
+      std::shared_ptr<LuaResponse> luaResponse = std::make_shared<LuaResponse>(GetScriptHost(), response);
+      object result = scriptHost_->CallFunction<object>(fn, obj, queryObj, postdata, luaResponse);
+      if (type(result) == LUA_TTABLE) {
+         luaResponse->Complete(result);
+      }
    } catch (std::exception &e) {
       JSONNode result;
       result.push_back(JSONNode("error", e.what()));
@@ -1555,7 +1545,7 @@ void Client::GetModules(JSONNode const& query, std::shared_ptr<net::IResponse> r
       JSONNode manifest;
       try {
          manifest = rm.LookupManifest(modname);
-      } catch (std::exception const& e) {
+      } catch (std::exception const&) {
          // Just use an empty manifest...f
       }
       manifest.set_name(modname);
@@ -1700,6 +1690,22 @@ MouseEventPromisePtr Client::TraceMouseEvents()
    return result;
 }
 
+void Client::AddBrowserJob(std::function<void()> fn)
+{
+   std::lock_guard<std::mutex> guard(browserJobQueueLock_);
+   browserJobQueue_.push_back(fn);
+}
+
+void Client::ProcessBrowserJobQueue()
+{
+   std::lock_guard<std::mutex> guard(browserJobQueueLock_);
+   for (const auto &fn : browserJobQueue_) {
+      fn();
+   }
+   browserJobQueue_.clear();
+}
+
+
 void client::RegisterLuaTypes(lua_State* L)
 {
    LuaRenderer::RegisterType(L);
@@ -1740,6 +1746,7 @@ Client_QueryScene(lua_State* L, Client const&, int x, int y)
    object result = newtable(L);
    if (s.HasBlock()) {
       result["location"] = object(L, s.GetBlock());
+      result["normal"]   = object(L, math3d::ipoint3(s.GetNormal()));
    }
    return result;
 }
@@ -1779,9 +1786,18 @@ static bool MouseEvent_GetUp(MouseEvent const& me, int button)
    return false;
 }
 
-DeferredPtr Client_Call(lua_State* L, Client& c, std::string const& uri, std::string fn, luabind::object postdataObject)
+static bool MouseEvent_GetDown(MouseEvent const& me, int button)
 {
-   DeferredPtr response = std::make_shared<Deferred>();
+   button--;
+   if (button >= 0 && button < sizeof(me.down)) {
+      return me.down[button];
+   }
+   return false;
+}
+
+std::shared_ptr<LuaDeferred1<DeferredResponse>> Client_Call(lua_State* L, Client& c, std::string const& uri, std::string fn, luabind::object postdataObject)
+{
+   std::shared_ptr<DeferredResponse> response = std::make_shared<DeferredResponse>();
    try {
       using namespace luabind;
 
@@ -1799,23 +1815,32 @@ DeferredPtr Client_Call(lua_State* L, Client& c, std::string const& uri, std::st
       result.push_back(JSONNode("error", e.what()));
       response->SetResponse(500, result.write(), "application/json");
    }
-   return response;
+   return std::make_shared<LuaDeferred1<DeferredResponse>>(c.GetScriptHost(), response);
 }
 
-DeferredPtr Deferred_Always(DeferredPtr d, luabind::object cb)
+bool Client_IsBlocked(lua_State* L, Client& c, math3d::ipoint3 const& pt)
 {
-   if (d) {
-      lua::ScriptHost* scriptHost = Client::GetInstance().GetScriptHost();
-      lua_State* L = scriptHost->GetCallbackState();
-      luabind::object cbObj(L, cb);
-
-      d->Always([=]() {
-         luabind::call_function<void>(cbObj);
-      });
-   }
-   return d;
+   return !c.GetOctTree().CanStand(pt);
 }
 
+std::shared_ptr<LuaDeferred2<VoxelRangeSelector::Deferred>> Client_SelectXZRegion(lua_State* L, Client& c)
+{
+   auto s = std::make_shared<VoxelRangeSelector>(c.GetTerrain());
+   auto deferred = s->Activate();
+   auto luaDeferred = std::make_shared<LuaDeferred2<VoxelRangeSelector::Deferred>>(c.GetScriptHost(), deferred);
+   return luaDeferred;
+}
+
+template <class T>
+luabind::scope RegisterLuaDeferredType(lua_State* L)
+{
+   return
+      lua::RegisterTypePtr<T>()
+         .def("done",     &T::LuaDone)
+         .def("progress", &T::LuaProgress)
+         .def("fail",     &T::LuaFail)
+         .def("always",   &T::LuaAlways);
+}
 
 void Client::RegisterLuaTypes(lua_State* L)
 {
@@ -1827,6 +1852,8 @@ void Client::RegisterLuaTypes(lua_State* L)
          .def("create_render_entity",     &Client_CreateRenderEntity)
          .def("trace_mouse",              &Client::TraceMouseEvents)
          .def("query_scene",              &Client_QueryScene)
+         .def("is_blocked",               &Client_IsBlocked)
+         .def("select_xz_region",         &Client_SelectXZRegion)
          .def("call",                     &Client_Call)
       ,
       lua::RegisterTypePtr<MouseEventPromise>()
@@ -1838,8 +1865,13 @@ void Client::RegisterLuaTypes(lua_State* L)
          .def_readonly("y",       &MouseEvent::y)
          .def_readonly("wheel",   &MouseEvent::wheel)
          .def("up",               &MouseEvent_GetUp)
+         .def("down",             &MouseEvent_GetDown)
       ,
-      lua::RegisterTypePtr<Deferred>()
-         .def("always",           &Deferred_Always)
+      RegisterLuaDeferredType<LuaDeferred1<DeferredResponse>>(L)
+      ,
+      RegisterLuaDeferredType<LuaDeferred2<VoxelRangeSelector::Deferred>>(L)
+      ,
+      lua::RegisterTypePtr<LuaResponse>()
+         .def("complete",        &LuaResponse::Complete)
    ];
 }

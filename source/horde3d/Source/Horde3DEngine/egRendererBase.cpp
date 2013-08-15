@@ -254,11 +254,16 @@ uint32 RenderDevice::registerVertexLayout( uint32 numAttribs, VertexLayoutAttrib
 
 uint32 RenderDevice::createVertexBuffer( uint32 size, const void *data )
 {
-	RDIBuffer buf;
+   RDIBuffer buf = { 0xff };
 
 	buf.type = GL_ARRAY_BUFFER;
 	buf.size = size;
 	glGenBuffers( 1, &buf.glObj );
+   GLenum error = glGetError();
+   ASSERT(error == GL_NO_ERROR);
+   ASSERT(buf.glObj != -1);
+   ASSERT(buf.glObj != 0);
+
 	glBindBuffer( buf.type, buf.glObj );
 	glBufferData( buf.type, size, data, GL_DYNAMIC_DRAW );
 	glBindBuffer( buf.type, 0 );
@@ -270,12 +275,17 @@ uint32 RenderDevice::createVertexBuffer( uint32 size, const void *data )
 
 uint32 RenderDevice::createIndexBuffer( uint32 size, const void *data )
 {
-	RDIBuffer buf;
+   RDIBuffer buf = { 0xff };
 
 	buf.type = GL_ELEMENT_ARRAY_BUFFER;
 	buf.size = size;
 	glGenBuffers( 1, &buf.glObj );
-	glBindBuffer( buf.type, buf.glObj );
+   GLenum error = glGetError();
+   ASSERT(error == GL_NO_ERROR);
+   ASSERT(buf.glObj != -1);
+   ASSERT(buf.glObj != 0);
+
+   glBindBuffer( buf.type, buf.glObj );
 	glBufferData( buf.type, size, data, GL_DYNAMIC_DRAW );
 	glBindBuffer( buf.type, 0 );
 	

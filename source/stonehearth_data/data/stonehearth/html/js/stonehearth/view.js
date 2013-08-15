@@ -42,11 +42,12 @@ App.View = Ember.View.extend({
    _updatedUri: function() {
       var self = this;
 
+
       this._destroyAllTraces();
       if (this.uri) {
+         console.log("setting view context for " + this.uri);
          this._expand_uri(this.uri, this.components)
-            .progress(function(eobj) {               
-               console.log("setting view context for " + self.uri);
+            .progress(function(eobj) {                              
                self.set('context', eobj)
             });
       } else {

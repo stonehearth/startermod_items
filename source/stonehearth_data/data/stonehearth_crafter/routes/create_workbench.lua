@@ -7,7 +7,7 @@ local CreateWorkbench = class()
 function CreateWorkbench:handle_request(query, postdata)
    -- pull the location and entity uri out of the postdata, create that
    -- entity, and move it there.
-   local location = RadiantIPoint3(postdata.location[1], postdata.location[2], postdata.location[3])
+   local location = RadiantIPoint3(postdata.location.x, postdata.location.y, postdata.location.z)
    local entity = radiant.entities.create_entity(postdata.entity)
    radiant.terrain.place_entity(entity, location)
 

@@ -19,18 +19,23 @@ public:
    void GC(platform::timer &timer);
 
    luabind::object JsonToLua(JSONNode const& json);
+   std::string LuaToJson(luabind::object obj);
 
-   template <typename T, typename A0, typename A1, typename A2, typename A3>
-   T CallFunction(A0 const& a0, A1 const& a1, A2 const& a2, A3 const& a3) {
+   template <typename T, typename A0, typename A1, typename A2, typename A3, typename A4>
+   T CallFunction(A0 const& a0, A1 const& a1, A2 const& a2, A3 const& a3, A4 const& a4) {
       try {
          luabind::object caller(cb_thread_, a0);
-         return luabind::call_function<T>(caller, a1, a2, a3);
+         return luabind::call_function<T>(caller, a1, a2, a3, a4);
       } catch (std::exception& e) {
          OnError(e.what());
          throw;
       }
    }
 
+   template <typename T, typename A0, typename A1, typename A2, typename A3>
+   T CallFunction(A0 const& a0, A1 const& a1, A2 const& a2, A3 const& a3) {
+      return CallFunction<T>(a0, a1, a2, a3, luabind::object());
+   }
    template <typename T, typename A0, typename A1, typename A2>
    T CallFunction(A0 const& a0, A1 const& a1, A2 const& a2) {
       return CallFunction<T>(a0, a1, a2, luabind::object());
