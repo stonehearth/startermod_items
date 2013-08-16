@@ -1,0 +1,20 @@
+{
+   "type" : "entity",
+   "extends" : "file(../base_human.json)",
+   "components": {
+      "render_rig": {
+         "animation_table" : "file(/rigs/female)",
+         "models": [
+            {
+               "type": "one_of",
+               "items": [
+                  "file(head_1.qb)",
+                  "file(head_2.qb)",
+                  "file(head_3.qb)"
+               ]
+            },            
+            "file(hands.qb)"
+         ]
+      }
+   }
+}
