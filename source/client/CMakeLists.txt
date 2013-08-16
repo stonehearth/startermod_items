@@ -16,13 +16,13 @@ include_directories(${Lua_INCLUDE_DIRS})
 include_directories(${Luabind_INCLUDE_DIRS})
 
 add_subdirectory(renderer)
-add_subdirectory(selectors)
 
 add_library(client
             application.cpp
             client.cpp
             main.cpp
             mouse_event_promise.cpp
+            xz_region_selector.cpp
             pch.cpp
             )
 
@@ -47,7 +47,6 @@ target_link_libraries(client
 #                             "C:/Program Files (x86)/Microsoft DirectX SDK (June 2010)/Lib/x86/d3d9.lib"
                              chromium_browser
                              client_renderer
-                             client_selectors
                              core
                              csg
                              dm

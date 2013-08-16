@@ -9,7 +9,7 @@
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
-class VoxelRangeSelector : public std::enable_shared_from_this<VoxelRangeSelector>
+class XZRegionSelector : public std::enable_shared_from_this<XZRegionSelector>
 {
    public:
       class Deferred : public core::Deferred2<math3d::ipoint3, math3d::ipoint3>
@@ -17,8 +17,8 @@ class VoxelRangeSelector : public std::enable_shared_from_this<VoxelRangeSelecto
       };
 
    public:
-      VoxelRangeSelector(om::TerrainPtr terrain);
-      ~VoxelRangeSelector();
+      XZRegionSelector(om::TerrainPtr terrain);
+      ~XZRegionSelector();
 
       std::shared_ptr<Deferred> Activate();
 

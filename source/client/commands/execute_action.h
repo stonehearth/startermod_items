@@ -3,8 +3,7 @@
 
 #include "om/om.h"
 #include "pending_command.h"
-#include "client/selectors/actor_selector.h"
-#include "client/selectors/voxel_range_selector.h"
+#include "client/xz_region_selector.h"
 #include "command.h"
 #include <boost/any.hpp>
 
@@ -27,7 +26,6 @@ private:
    //std::shared_ptr<resources::DataResource>  action_;
    std::vector<om::Selection>          actual_;
    int                                 deferredCommandId_;
-   std::shared_ptr<Selector>           selector_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

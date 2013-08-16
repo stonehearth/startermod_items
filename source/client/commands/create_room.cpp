@@ -34,7 +34,7 @@ void CreateRoom::operator()(void)
    room_->AddComponent<om::Room>()->SetInteriorSize(p, p);
    Renderer::GetInstance().CreateRenderObject(1, room_);
 
-   selector_ = std::make_shared<VoxelRangeSelector>(Client::GetInstance().GetTerrain());
+   selector_ = std::make_shared<XZRegionSelector>(Client::GetInstance().GetTerrain());
    selector_->RegisterSelectionFn([=](const om::Selection& s) {
       SendCommand(s);
    });

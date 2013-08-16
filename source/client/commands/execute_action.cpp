@@ -79,7 +79,7 @@ void ExecuteAction::operator()()
             actual_.push_back(area);
             (*this)();
          };
-         auto selector = std::make_shared<VoxelRangeSelector>(Client::GetInstance().GetTerrain());
+         auto selector = std::make_shared<XZRegionSelector>(Client::GetInstance().GetTerrain());
          selector->RegisterSelectionFn(cb);
          selector->SetColor(math3d::color3(192, 192, 192));
          selector->SetDimensions(2);
@@ -168,7 +168,7 @@ bool Client::SetArg_GroundArea(const ObjectModel::ICommand* cmd, const om::Entit
 {
    if (install) {
       auto cb = std::bind(&Client::SetArg_GroundAreaCb, this, cmd, self, args, _1);
-      auto vrs = std::make_shared<VoxelRangeSelector>(GetTerrain(), cb);
+      auto vrs = std::make_shared<XZRegionSelector>(GetTerrain(), cb);
       vrs->SetColor(math3d::color3(192, 192, 192));
       vrs->SetDimensions(2);
       selector_ = vrs;

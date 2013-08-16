@@ -15,7 +15,6 @@
 #include "physics/octtree.h"
 #include "libjson.h"
 #include "core/singleton.h"
-#include "selectors/selector.h"
 #include "chromium/chromium.h"
 #include "lua/namespace.h"
 #include "mouse_event_promise.h"
@@ -37,7 +36,6 @@ IN_RADIANT_LUA_NAMESPACE(
 namespace radiant {
    namespace client {
       class InputEvent;
-      class Selector;
       class Command;
 
       void RegisterLuaTypes(lua_State* L);
@@ -281,7 +279,6 @@ namespace radiant {
             HCURSOR                          currentCursor_;
             HCURSOR                          defaultCursor_;
             HWND                             hwnd_;
-            std::shared_ptr<Selector>             selector_;
             int                              now_;
             int                              nextDeferredCommandId_;
             bool                             showBuildOrders_;

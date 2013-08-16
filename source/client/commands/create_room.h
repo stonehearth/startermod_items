@@ -2,7 +2,7 @@
 #define _RADIANT_CLIENT_CREATE_ROOM_H
 
 #include "pending_command.h"
-#include "client/selectors/voxel_range_selector.h"
+#include "client/xz_region_selector.h"
 #include "om/om.h"
 #include "dm/dm.h"
 #include "command.h"
@@ -22,8 +22,8 @@ private:
    void SendCommand(const om::Selection& s);
 
 private:
-   std::shared_ptr<VoxelRangeSelector> selector_;
-   om::EntityPtr                 room_;
+   std::shared_ptr<XZRegionSelector>   selector_;
+   om::EntityPtr                       room_;
    csg::Point3                   p0_;
    csg::Point3                   p1_;
 };

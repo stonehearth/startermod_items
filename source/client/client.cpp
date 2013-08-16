@@ -2,8 +2,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include "math3d/common/rect2d.h"
-#include "selectors/actor_selector.h"
-#include "selectors/voxel_range_selector.h"
+#include "xz_region_selector.h"
 #include "om/entity.h"
 #include "om/components/terrain.h"
 #include "om/selection.h"
@@ -857,7 +856,7 @@ bool Client::CreateFloor(bool install)
 {
    if (install) {
       auto cb = std::bind(&Client::AddToFloor, this, std::placeholders::_1);
-      auto vrs = std::make_shared<VoxelRangeSelector>(GetTerrain(), cb);
+      auto vrs = std::make_shared<XZRegionSelector>(GetTerrain(), cb);
       vrs->SetColor(math3d::color3(192, 192, 192));
       vrs->SetDimensions(2);
       selector_ = vrs;
@@ -1823,11 +1822,11 @@ bool Client_IsBlocked(lua_State* L, Client& c, math3d::ipoint3 const& pt)
    return !c.GetOctTree().CanStand(pt);
 }
 
-std::shared_ptr<LuaDeferred2<VoxelRangeSelector::Deferred>> Client_SelectXZRegion(lua_State* L, Client& c)
+std::shared_ptr<LuaDeferred2<XZRegionSelector::Deferred>> Client_SelectXZRegion(lua_State* L, Client& c)
 {
-   auto s = std::make_shared<VoxelRangeSelector>(c.GetTerrain());
+   auto s = std::make_shared<XZRegionSelector>(c.GetTerrain());
    auto deferred = s->Activate();
-   auto luaDeferred = std::make_shared<LuaDeferred2<VoxelRangeSelector::Deferred>>(c.GetScriptHost(), deferred);
+   auto luaDeferred = std::make_shared<LuaDeferred2<XZRegionSelector::Deferred>>(c.GetScriptHost(), deferred);
    return luaDeferred;
 }
 
@@ -1869,7 +1868,7 @@ void Client::RegisterLuaTypes(lua_State* L)
       ,
       RegisterLuaDeferredType<LuaDeferred1<DeferredResponse>>(L)
       ,
-      RegisterLuaDeferredType<LuaDeferred2<VoxelRangeSelector::Deferred>>(L)
+      RegisterLuaDeferredType<LuaDeferred2<XZRegionSelector::Deferred>>(L)
       ,
       lua::RegisterTypePtr<LuaResponse>()
          .def("complete",        &LuaResponse::Complete)

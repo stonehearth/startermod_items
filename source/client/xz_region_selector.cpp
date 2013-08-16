@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "voxel_range_selector.h"
+#include "xz_region_selector.h"
 #include "om/components/terrain.h"
 #include "om/selection.h"
 #include "client/client.h"
@@ -8,18 +8,18 @@
 using namespace radiant;
 using namespace radiant::client;
 
-VoxelRangeSelector::VoxelRangeSelector(om::TerrainPtr terrain) :   
+XZRegionSelector::XZRegionSelector(om::TerrainPtr terrain) :   
    _inputHandlerId(0),
    _terrain(terrain)
 {
 }
 
-VoxelRangeSelector::~VoxelRangeSelector()
+XZRegionSelector::~XZRegionSelector()
 {
    ASSERT(_inputHandlerId == 0);
 }
 
-std::shared_ptr<VoxelRangeSelector::Deferred> VoxelRangeSelector::Activate()
+std::shared_ptr<XZRegionSelector::Deferred> XZRegionSelector::Activate()
 {
    _startedP0 = false;
    _finishedP0 = false;
@@ -37,7 +37,7 @@ std::shared_ptr<VoxelRangeSelector::Deferred> VoxelRangeSelector::Activate()
    return deferred_;
 }
 
-void VoxelRangeSelector::Deactivate()
+void XZRegionSelector::Deactivate()
 {
    if (_inputHandlerId) {
       Renderer::GetInstance().RemoveInputEventHandler(_inputHandlerId);
@@ -46,7 +46,7 @@ void VoxelRangeSelector::Deactivate()
    deferred_ = nullptr;
 }
 
-void VoxelRangeSelector::onInputEvent(const MouseEvent &evt, bool &handled, bool &uninstall)
+void XZRegionSelector::onInputEvent(const MouseEvent &evt, bool &handled, bool &uninstall)
 {
    ASSERT(!_finished);
    
@@ -71,7 +71,7 @@ void VoxelRangeSelector::onInputEvent(const MouseEvent &evt, bool &handled, bool
    }
 }
 
-void VoxelRangeSelector::SelectP0(const MouseEvent &me)
+void XZRegionSelector::SelectP0(const MouseEvent &me)
 {
    if (GetHoverBrick(me.x, me.y, _p0)) {
       _startedP0 = true;
@@ -83,7 +83,7 @@ void VoxelRangeSelector::SelectP0(const MouseEvent &me)
    }
 }
 
-void VoxelRangeSelector::SelectP1(const MouseEvent &me)
+void XZRegionSelector::SelectP1(const MouseEvent &me)
 {
    //LOG(WARNING) << "P1...";
    math3d::ipoint3 p;
@@ -95,7 +95,7 @@ void VoxelRangeSelector::SelectP1(const MouseEvent &me)
    }
 }
 
-bool VoxelRangeSelector::GetHoverBrick(int x, int y, math3d::ipoint3 &pt)
+bool XZRegionSelector::GetHoverBrick(int x, int y, math3d::ipoint3 &pt)
 {
    om::Selection s;
 
@@ -114,7 +114,7 @@ bool VoxelRangeSelector::GetHoverBrick(int x, int y, math3d::ipoint3 &pt)
 }
 
 
-void VoxelRangeSelector::ValidateP1(int newx, int newz)
+void XZRegionSelector::ValidateP1(int newx, int newz)
 {
    int dx = (newx >= _p0.x) ? 1 : -1;
    int dz = (newz >= _p0.z) ? 1 : -1;
