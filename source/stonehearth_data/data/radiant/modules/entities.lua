@@ -41,6 +41,37 @@ function entities._init_entity(entity, uri)
    end
 end
 
+--[[
+Opposite of _init_entity. Given a uri, remove
+component influences from the entity.
+--]]
+function entities.unregister_from_entity(entity, uri)
+   local obj = radiant.resources.load_json(uri)
+
+   if obj then
+      if obj.components then
+         for name, json in radiant.resources.pairs(obj.components) do
+            assert(json)
+            if name == 'radiant:ai' then
+               radiant.ai.unregister(entity, json)
+            end
+            --[[
+            -- How to do this generically? Full remove component?
+            local component = entity:get_component(name)
+            --Until then, call unregister on whatever components have it.
+            -- add standard components, based on the kind of entity we want
+            if component and component.unregister or  radiant.mods.load_api(name) and  then
+               component:unregister(entity, json)
+            end
+            if component and component.extend then
+               --TODO: implement an un-extend?
+            end
+            --]]
+         end
+      end
+   end
+end
+
 function entities.get_root_entity()
    return radiant._root_entity
 end

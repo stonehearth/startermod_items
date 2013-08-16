@@ -3,6 +3,7 @@
       "name" : "Stonehearth Classes Library"
    },
    "components" :  {
-      "talisman_promotion_info" : "file(components/talisman_promotion_info.lua)"
+      "talisman_promotion_info" : "file(components/talisman_promotion_info.lua)",
+      "job_info": "file(components/job_info.lua)"
    }
 }
