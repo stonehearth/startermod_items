@@ -10,7 +10,8 @@ App.StonehearthGameUiView = Ember.ContainerView.extend({
             "StonehearthUnitFrameView",
             "StonehearthObjectBrowserView",
             "StonehearthCalendarView",
-            "StonehearthMainActionbarView"
+            "StonehearthMainActionbarView",
+            "StonehearthCanvasTestView"
          ]
       };
 
@@ -19,13 +20,14 @@ App.StonehearthGameUiView = Ember.ContainerView.extend({
          console.log(name);
          var ctor = App[name]
          if (ctor) {
-            console.log("adding view " + App[name]);
             self.addView(ctor);
          }
       });
    },
 
    addView: function(type, options) {
+      console.log("adding view " + type);
+
       var childView = this.createChildView(type, {
          classNames: ['stonehearth-view']
       });

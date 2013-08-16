@@ -1,9 +1,9 @@
 local RadiantIPoint3 = _radiant.math3d.RadiantIPoint3
-local LocationSelector = class()
+local CreateWorkbench = class()
 
 -- client side object to add a new bench to the world.  this method is invoked
 -- by POSTing to the route for this file in the manifest.
-function LocationSelector:handle_request(query, postdata)
+function CreateWorkbench:handle_request(query, postdata, response)
    -- create a new "cursor entity".  this is the entity that will move around the
    -- screen to preview where the workbench will go.  these entities are called
    -- "authoring entities", because they exist only on the client side to help
@@ -21,13 +21,12 @@ function LocationSelector:handle_request(query, postdata)
    -- the entity that we're supposed to create whenever the user clicks.
    self._capture = _client:trace_mouse()
    self._capture:on_mouse_event(function(e)
-                        self:_on_mouse_event(e, query.entity)
+                        self:_on_mouse_event(e, query.entity, response)
                      end)
-   return {}
 end
 
 -- called each time the mouse moves on the client.
-function LocationSelector:_on_mouse_event(e, entity_uri)
+function CreateWorkbench:_on_mouse_event(e, entity_uri, response)
    -- query the scene to figure out what's under the mouse cursor
    local s = _client:query_scene(e.x, e.y)
   
@@ -54,13 +53,14 @@ function LocationSelector:_on_mouse_event(e, entity_uri)
       -- pass "" for the function name so the deafult (handle_request) is
       -- called.  this will return a Deferred object which we can use to track
       -- the call's progress
-      _client:call('/modules/server/samplecode_place_workbench/create_workbench', "", { entity = entity_uri, location = pt })
+      _client:call('/modules/server/stonehearth_crafter/create_workbench', "", { entity = entity_uri, location = pt })
                :always(function ()
                      -- whether the request succeeds or fails, go ahead and destroy
                      -- the authoring entity.  do it after the request returns to avoid
                      -- the ugly flickering that would occur had we destroyed it when
                      -- we uninstalled the mouse cursor
                      _client:destroy_authoring_entity(self._cursor_entity:get_id())
+                     response:complete({ entity = entity_uri })
                   end)
 
    end   
@@ -69,4 +69,4 @@ function LocationSelector:_on_mouse_event(e, entity_uri)
    return true
 end
 
-return LocationSelector
+return CreateWorkbench

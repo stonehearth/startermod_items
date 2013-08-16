@@ -5,13 +5,16 @@
 
    "ui" :  {
       "html" : [
-         "file(/html/stonehearth_main_actionbar.html)"
+         "file(/html/stonehearth_main_actionbar.html)",
+         "file(/html/stonehearth_tip_popup.html)"
       ],
       "js" : [
-         "file(/html/js/stonehearth_main_actionbar.js)"
+         "file(/html/js/stonehearth_main_actionbar.js)",
+         "file(/html/js/stonehearth_tip_popup.js)"
       ],
       "less" : [
-         "file(/html/css/stonehearth_main_actionbar.less)"
+         "file(/html/css/stonehearth_main_actionbar.less)",
+         "file(/html/css/stonehearth_tip_popup.less)"
       ]
    }
 }
