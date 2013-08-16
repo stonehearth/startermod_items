@@ -16,6 +16,7 @@ class Renderer;
 class RenderTerrain : public RenderComponent {
 public:
    RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain);
+   ~RenderTerrain();
 
 private:
    enum TerrainDetailTypes {

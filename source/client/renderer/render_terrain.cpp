@@ -139,6 +139,10 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
    UpdateRenderRegion();
 }
 
+RenderTerrain::~RenderTerrain()
+{
+   h3dRemoveNode(node_);
+}
 
 void RenderTerrain::OnSelected(om::Selection& sel, const math3d::ray3& ray,
                                const math3d::point3& intersection, const math3d::point3& normal)

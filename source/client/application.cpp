@@ -105,9 +105,7 @@ int Application::Start(lua_State* L)
    
    std::thread client([&]() {
       try {
-         auto& c = Client::GetInstance();
-         c.SetScriptHost(&scriptHost_);
-         c.run();
+         Client::GetInstance().run();
       } catch (...) {
          ASSERT(false);
       }

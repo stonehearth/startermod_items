@@ -11,11 +11,6 @@
 #include "om/lua/lua_om.h"
 #include "platform/utils.h"
 #include "resources/res_manager.h"
-#include "commands/command.h"
-#include "commands/trace_entity.h"
-#include "commands/create_room.h"
-#include "commands/create_portal.h"
-#include "commands/execute_action.h"
 #include "renderer/render_entity.h"
 #include "renderer/lua_render_entity.h"
 #include "renderer/lua_renderer.h"
@@ -42,32 +37,28 @@ DEFINE_SINGLETON(Client);
 
 Client::Client() :
    _tcp_socket(_io_service),
-   _send_ahead_commands(3),
    _server_last_update_time(0),
    _server_interval_duration(1),
    selectedObject_(NULL),
-   showBuildOrders_(false),
    last_sequence_number_(-1),
-   nextCmdId_(1),
    rootObject_(NULL),
-   hwnd_(NULL),
    store_(2),
    authoringStore_(3),
    nextTraceId_(1),
-   nextDeferredCommandId_(1),
-   nextResponseHandlerId_(1),
-   currentCommandCursor_(NULL),
+   uiCursor_(NULL),
+   luaCursor_(NULL),
+   currentCursor_(NULL),
    last_server_request_id_(0)
 {
    om::RegisterObjectTypes(store_);
    om::RegisterObjectTypes(authoringStore_);
 
    std::vector<std::pair<dm::ObjectId, dm::ObjectType>>  allocated_;
+   scriptHost_.reset(new lua::ScriptHost());
 }
 
 Client::~Client()
 {
-   guards_.Clear();
    octtree_.release();
 }
 
@@ -84,12 +75,13 @@ void Client::run()
    octtree_ = std::unique_ptr<Physics::OctTree>(new Physics::OctTree());
       
    Renderer& renderer = Renderer::GetInstance();
-   hwnd_ = renderer.GetWindowHandle();
+   renderer.SetCurrentPipeline("pipelines/deferred_pipeline_static.xml");
+
+   HWND hwnd = renderer.GetWindowHandle();
    //defaultCursor_ = (HCURSOR)GetClassLong(hwnd_, GCL_HCURSOR);
 
    renderer.SetMouseInputCallback(std::bind(&Client::OnMouseInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
    renderer.SetKeyboardInputCallback(std::bind(&Client::OnKeyboardInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-   SetRenderPipelineInfo();
 
    int width = renderer.GetWidth();
    int height = renderer.GetHeight();
@@ -101,9 +93,17 @@ void Client::run()
    json::ConstJsonObject manifest(resources::ResourceManager2::GetInstance().LookupManifest(loader));
    std::string docroot = "http://radiant/" + manifest["loader"]["ui"]["homepage"].as_string();
 
-   browser_.reset(chromium::CreateBrowser(hwnd_, docroot, width, height, debug_port));
-   browser_->SetCursorChangeCb(std::bind(&Client::SetUICursor, this, std::placeholders::_1));
-
+   browser_.reset(chromium::CreateBrowser(hwnd, docroot, width, height, debug_port));
+   browser_->SetCursorChangeCb([=](HCURSOR cursor) {
+      if (uiCursor_) {
+         DestroyCursor(uiCursor_);
+      }
+      if (cursor) {
+         uiCursor_ = CopyCursor(cursor);
+      } else {
+         uiCursor_ = NULL;
+      }
+   });
 
    auto requestJob = [=](std::string const& uri, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response) {
       if (boost::starts_with(uri, "/api/events")) {
@@ -130,7 +130,7 @@ void Client::run()
 
 
    lua_State* L = scriptHost_->GetInterpreter();
-   renderer.SetScriptHost(scriptHost_);
+   renderer.SetScriptHost(GetScriptHost());
    lua::RegisterBasicTypes(L);
    om::RegisterLuaTypes(L);
    csg::RegisterLuaTypes(L);
@@ -154,46 +154,11 @@ void Client::run()
       }
    }
 
-#if 0
-   //_commands['S'] = std::bind(&Client::RunGlobalCommand, this, "create-stockpile", std::placeholders::_1);
-   //_commands['F'] = std::bind(&Client::CreateFloor, this, std::placeholders::_1);
-
-   _commands['V'] = std::bind(&Client::RotateViewMode, this, std::placeholders::_1);
-   _commands['B'] = std::bind(&Client::ToggleBuildPlan, this, std::placeholders::_1);
-   _commands['C'] = std::bind(&Client::CapStorey, this, std::placeholders::_1);
-   _commands['E'] = std::bind(&Client::GrowWalls, this, std::placeholders::_1);
-   _commands['R'] = std::bind(&Client::AddFixture, this, std::placeholders::_1, "door");
-   _commands['L'] = std::bind(&Client::AddFixture, this, std::placeholders::_1, "wall-mounted-lantern");
-
-   _mappedCommands["assign-worker"] = std::bind(&Client::AssignWorkerToBuilding, this, std::placeholders::_1);
-
-   _commands[GLFW_KEY_F5] = std::bind(&Client::EvalCommand, this, "reset ai");
-   _commands[GLFW_KEY_F6] = std::bind(&Client::EvalCommand, this, "new");
-   _commands[GLFW_KEY_F10] = std::bind(&Client::FinishStructure, this, std::placeholders::_1);
-   _commands[GLFW_KEY_F9] = [&](bool) { realtime = !realtime; LOG(WARNING) << "REALTIME IS " << realtime; return true; };
-#endif
-
-#if 0
-   _commands[VK_NUMPAD1] = [&](bool) -> bool {
-      auto *msg = _command_list.add_cmds();
-      msg->set_id("save");
-      return true;
-   };
-   _commands[VK_NUMPAD2] = [&](bool) -> bool {
-      auto *msg = _command_list.add_cmds();
-      msg->set_id("load");
-      return true;
-   };
-#endif
    _commands[GLFW_KEY_F9] = std::bind(&Client::EvalCommand, this, "radiant.toggle_debug_nodes");
    _commands[GLFW_KEY_F3] = std::bind(&Client::EvalCommand, this, "radiant.toggle_step_paths");
    _commands[GLFW_KEY_F4] = std::bind(&Client::EvalCommand, this, "radiant.step_paths");
-   _commands[GLFW_KEY_F5] = [=]() { ToggleBuildPlan(); };
    _commands[GLFW_KEY_ESC] = [=]() {
-      currentTool_ = nullptr;
-      currentCommand_ = nullptr;
-      currentCommandCursor_ = NULL;
-      currentToolName_ = "";
+      currentCursor_ = NULL;
    };
 
    // _commands[VK_NUMPAD0] = std::shared_ptr<command>(new command_build_blueprint(*_proxy_manager, *_renderer, 500));
@@ -261,7 +226,7 @@ void Client::handle_connect(const boost::system::error_code& error)
 
 void Client::setup_connections()
 {
-   tcp::endpoint endpoint(boost::asio::ip::address::from_string("127.0.0.1"), 8888);
+   boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string("127.0.0.1"), 8888);
    _tcp_socket.async_connect(endpoint, std::bind(&Client::handle_connect, this, std::placeholders::_1));
 }
 
@@ -269,12 +234,6 @@ void Client::mainloop()
 {
    PROFILE_BLOCK();
    
-   /*
-    * Top of loop validation...
-    */
-   ASSERT(!(currentCommand_ && currentTool_));
-   ASSERT(!(currentCommandCursor_ && !currentToolName_.empty()));
-
    process_messages();
    ProcessBrowserJobQueue();
 
@@ -322,8 +281,6 @@ void Client::Reset()
    octtree_->Cleanup();
 
    store_.Reset();
-
-   //_proxy_manager->SetNotifyLoad(std::bind(&Client::OnObjectLoad, this, std::placeholders::_1));
 
    _server_last_update_time = 0;
    _server_interval_duration = 1;
@@ -374,15 +331,6 @@ bool Client::ProcessMessage(const proto::Update& msg)
    }
 
    return true;
-#if 0
-   for (int i = 0; i < msg.replies_size(); i++) {
-   const ::radiant::proto::Reply &reply = msg.replies(i);
-   ReplyQueue::value_type &head = replyQueue_.front();
-   if (head.first == reply.id()) {
-      head.second(reply);
-      replyQueue_.pop_front();
-   }
-#endif
 }
 
 void Client::BeginUpdate(const proto::BeginUpdate& msg)
@@ -398,30 +346,14 @@ void Client::BeginUpdate(const proto::BeginUpdate& msg)
 
 void Client::EndUpdate(const proto::EndUpdate& msg)
 {
-
-   for (om::EntityRef e : alloced_) {
-      om::EntityPtr entity = e.lock();
-      if (entity) {
-         OnEntityAlloc(entity);
+   if (!rootObject_) {
+      auto rootEntity = GetStore().FetchObject<om::Entity>(1);
+      if (rootEntity) {
+         rootObject_ = rootEntity;
+         Renderer::GetInstance().Initialize(rootObject_);
+         octtree_->SetRootEntity(rootEntity);
       }
    }
-   alloced_.clear();
-
-#if 0
-   for (const auto& entry : _entitiesTraces) {
-      JSONNode data;
-      if (entry.second->Flush(data)) {
-         RestAPI::SessionId sessionId = entry.first.first;
-         dm::TraceId traceId = entry.first.second;
-
-         JSONNode obj;
-         obj.push_back(JSONNode("trace_id", traceId));
-         data.set_name("data");
-         obj.push_back(data);
-         GetAPI().QueueEventFor(sessionId, "radiant.events.trace_fired", obj);
-      }
-   }
-#endif
 
    // Only fire the remote store traces at sequence boundaries.  The
    // data isn't guaranteed to be in a consistent state between
@@ -433,7 +365,7 @@ void Client::QueueEvent(std::string type, JSONNode payload)
 {
    JSONNode e(JSON_NODE);
    e.push_back(JSONNode("type", type));
-   e.push_back(JSONNode("when", Client::GetInstance().Now()));
+   e.push_back(JSONNode("when", now_));
 
    payload.set_name("data");
    e.push_back(payload);
@@ -461,16 +393,7 @@ void Client::AllocObjects(const proto::AllocObjects& update)
       ASSERT(!store_.FetchStaticObject(id));
 
       dm::ObjectPtr obj = store_.AllocSlaveObject(entry.object_type(), id); //om::AllocObject(entry.object_type(), store_);
-
-      ASSERT(obj->GetObjectId() == id);
       objects_[id] = obj;
-      if (obj->GetObjectType() == om::EntityObjectType) {
-         LOG(INFO) << "adding entity " << id << " to alloc list.";
-         alloced_.push_back(std::static_pointer_cast<om::Entity>(obj));
-      }
-
-      guards_ += obj->TraceObjectLifetime("client obj tracking",
-                                          std::bind(&Client::OnDestroyed, this, id));
    }
 }
 
@@ -484,25 +407,6 @@ void Client::UpdateObject(const proto::UpdateObject& update)
    dm::Object* obj = store_.FetchStaticObject(id);
    ASSERT(obj);
    obj->LoadObject(msg);
-
-#if 0
-   if (obj) {
-      obj->LoadObject(msg);
-   } else {
-      dm::ObjectPtr obj = store_.AllocObject(msg);
-
-      ASSERT(!objects_[id]);
-      objects_[id] = obj;
-
-      traces_ += obj->TraceObjectLifetime("client obj tracking",
-                                          std::bind(&Client::OnDestroyed, this, id));
-   }
-#endif
-
-   if (id == 1 && !rootObject_) {
-      rootObject_ = store_.FetchObject<om::Entity>(id);
-      Renderer::GetInstance().Initialize(rootObject_);
-   }
 }
 
 void Client::RemoveObjects(const proto::RemoveObjects& update)
@@ -531,7 +435,6 @@ void Client::RemoveObjects(const proto::RemoveObjects& update)
 
       if (i != objects_.end()) {
          objects_.erase(i);
-         entities_.erase(id);
       }
 
    }
@@ -556,12 +459,6 @@ void Client::DefineRemoteObject(const proto::DefineRemoteObject& msg)
       serverRemoteObjects_[key] = value;
    }
 }
-
-void Client::RegisterReplyHandler(const proto::Command* cmd, ReplyFn fn)
-{
-   replyQueue_.push_back(std::make_pair(cmd->id(), fn));
-}
-
 
 void Client::process_messages()
 {
@@ -593,10 +490,6 @@ void Client::update_interpolation(int time)
    _client_interval_start = platform::get_current_time_in_ms();
 }
 
-void Client::activate_comamnd(int k)
-{
-}
-
 void Client::OnMouseInput(const MouseEvent &mouse, bool &handled, bool &uninstall)
 {
    bool hovering_on_brick = false;
@@ -618,10 +511,7 @@ void Client::OnMouseInput(const MouseEvent &mouse, bool &handled, bool &uninstal
    }
 
    if (!handled) {
-      if (mouse.up[0]) {
-         LOG(WARNING) << "got mouse up... current command:" << currentCommand_;
-      }
-      if (rootObject_ && !currentCommand_ && mouse.up[0]) {
+      if (rootObject_ && mouse.up[0]) {
          LOG(WARNING) << "updating selection...";
          UpdateSelection(mouse);
       } else if (mouse.up[2]) {
@@ -704,9 +594,9 @@ void Client::OnKeyboardInput(const KeyboardEvent &e, bool &handled, bool &uninst
 
 void Client::SelectEntity(dm::ObjectId id)
 {
-   auto i = entities_.find(id);
-   if (i != entities_.end()) {
-      SelectEntity(i->second);
+   auto i = objects_.find(id);
+   if (i != objects_.end() && i->second->GetObjectType() == om::EntityObjectType) {      
+      SelectEntity(std::static_pointer_cast<om::Entity>(i->second));
    }
 }
 
@@ -763,277 +653,6 @@ void Client::EvalCommand(std::string cmd)
    PushServerRequest(msg, reply);
 }
 
-#if 0
-vector<MaterialDescription> Client::GetAvailableMaterials(vector<string> tags)
-{
-   vector<MaterialDescription> result;
-   ASSERT(false);
-   return result;
-#if 0
-   map<string, int> resources;
-
-   Terrain terrain = GetTerrain();
-
-   List &items = *terrain.GetEntity()->Get<List >("items");
-   for (auto obj : items) {
-      Item item(obj);
-      if (item.GetType() == "Item") { // xxx: make this Item::Prototype::Type instead of "Item"
-         if (item.HasTags(tags)) {
-            resources[item.GetIdentifier()]++;
-         }
-      }
-   };
-
-   world::Container &prototypes = *_proxy_manager->GetRootObject()->Get<Container>("prototypes");
-   vector<MaterialDescription> result;
-
-   for_each(resources.begin(), resources.end(), [&](const map<string, int>::value_type &i) {
-      
-      Item::Prototype item(prototypes.Get<Container>(i.first));
-      ASSERT(item.IsValid());
-
-      MaterialDescription md;
-      md.name = item.GetName();
-      md.identifier = i.first;
-      md.count = i.second;
-      result.push_back(md);
-   });
-
-   return result;
-#endif
-}
-#endif
-
-bool Client::ToggleBuildPlan()
-{
-   ShowBuildPlan(!showBuildOrders_);
-   return true;
-}
-
-void Client::ShowBuildPlan(bool visible)
-{
-   if (showBuildOrders_  != visible) {
-      showBuildOrders_ = visible;
-      SetRenderPipelineInfo();
-      traces_.FireTraces(ShowBuildOrdersTraces);
-   }
-
-#if 0
-   auto id = rootObject_->GetBlueprints()->GetId();
-   auto renderObject = Renderer::GetInstance().GetRenderObject(id);   
-
-   bool showBuildPlan = renderObject ? visible : false;
-   if (showBuildPlan != showBuildOrders_) {
-      showBuildOrders_ = showBuildPlan;
-
-      if (renderObject) {
-         renderObject->SetVisible(showBuildOrders_);
-      }
-
-      // xxx - this is really expensive.  the correct way to do this is
-      // to check in each render object after the render list has been
-      // clipped by horde and have them update their state individually.
-      // we have a ton of different view options (z-level view, rpg view,
-      // underground view, etc).
-      for (const auto& entry : allObjects_) {
-         std::string type = entry.second->GetTypeName();
-         if (type != "") {
-            LOG(WARNING) << type;
-         }
-         if (type == "Citizen") {
-            auto renderObj = Renderer::GetInstance().GetRenderObject(entry.first);
-            renderObj->SetVisible(!showBuildOrders_);
-         }
-      }
-
-      SetRenderPipelineInfo();
-   }
-#endif
-}
-
-#if 0
-bool Client::CreateFloor(bool install)
-{
-   if (install) {
-      auto cb = std::bind(&Client::AddToFloor, this, std::placeholders::_1);
-      auto vrs = std::make_shared<XZRegionSelector>(GetTerrain(), cb);
-      vrs->SetColor(math3d::color3(192, 192, 192));
-      vrs->SetDimensions(2);
-      selector_ = vrs;
-      ShowBuildPlan(true);
-   }
-   return false;
-}
-
-bool Client::GrowWalls(bool install)
-{
-
-   // xxx: uninstall the input handler whenever the selection changes.
-   auto onInput = [&](const MouseEvent &mouse, bool &handled, bool &uninstall) {
-      if (mouse.up[0]) {
-         uninstall = true;
-         FinishCurrentCommand();
-         return;
-      } else {
-         ObjectModel::Structure *building = GetSelected<ObjectModel::Structure>();
-
-         if (building) {
-            ObjectModel::Storey *storey = building->GetStorey(building->GetStoreyCount() - 1);
-            if (storey) {
-               math3d::ray3 ray = Renderer::GetInstance().GetCameraToViewportRay(mouse.x, mouse.y);
-               int height = storey->ComputeHeightFromViewRay(ray);
-
-               //auto *msg = _command_list.add_commands();
-               //msg->set_type(::radiant::proto::Command::SetStoreyHeight);
-               //auto *command = msg->MutableExtension(::radiant::proto::SetStoreyHeightCommand::extension);
-               auto command = ADD_COMMAND_TO_QUEUE(SetStoreyHeight);
-               command->set_storey(storey->GetId());
-               command->set_height(height);
-            }
-         }
-      }
-      handled = true;
-   };
-
-   ObjectModel::Structure *building = GetSelected<ObjectModel::Structure>();
-   if (building && install) {
-      Renderer::GetInstance().SetMouseInputCallback(onInput);
-      return false;
-   }
-   return true;
-}
-
-// This entire function is crappy... (see the static, etc.)
-bool Client::PlaceFixture(bool install, dm::ObjectId fixtureId)
-{
-   static InputCallbackId eventHandlerId = 0;
-   
-   if (install) {
-      ObjectModel::Structure* building = GetSelected<ObjectModel::Structure>();
-      if (!building) {
-         return true;
-      }
-
-      ObjectModel::Storey* storey = building->GetStorey(building->GetStoreyCount() - 1);
-
-      // xxx: uninstall the input handler whenever the selection changes.
-      auto onInput = [fixtureId, storey, this](const MouseEvent &mouse, bool &handled, bool &uninstall) {
-         if (mouse.up[0]) {
-            FinishCurrentCommand();
-            return;
-         } else {
-            math3d::ray3 ray = Renderer::GetInstance().GetCameraToViewportRay(mouse.x, mouse.y);
-
-            //auto *msg = _command_list.add_commands();
-            //msg->set_type(::radiant::proto::Command::SetStoreyHeight);
-            //auto *command = msg->MutableExtension(::radiant::proto::SetStoreyHeightCommand::extension);
-            auto command = ADD_COMMAND_TO_QUEUE(SetFixturePosition);
-            command->set_fixture(fixtureId);
-            command->set_storey(storey->GetId());
-            ray.encode(command->mutable_ray());
-         }
-         handled = true;
-      };
-      eventHandlerId = Renderer::GetInstance().SetMouseInputCallback(onInput);
-      return false;
-   }
-   if (eventHandlerId) {
-      Renderer::GetInstance().RemoveInputEventHandler(eventHandlerId);
-      eventHandlerId = 0;
-   }
-   return true;
-}
-
-bool Client::AddFixture(bool install, std::string fixtureName)
-{
-   ObjectModel::Structure* building = GetSelected<ObjectModel::Structure>();
-   if (!building) {
-      return false;
-   }
-   ObjectModel::Storey* storey = building->GetStorey(building->GetStoreyCount() - 1);
-   if (!storey) {
-      return false;
-   }
-
-   auto dispatch = [&](const proto::Reply& reply) {
-      if (reply.type() == proto::Reply::CreateFixture) {
-         auto extension = reply.GetExtension(proto::CreateFixtureReply::extension);
-         RunCommand(std::bind(&Client::PlaceFixture, this, std::placeholders::_1, extension.fixture()));
-      }
-   };
-
-   auto command = ADD_COMMAND_TO_QUEUE_EX(CreateFixture, dispatch);
-   command->set_fixture_name(fixtureName);
-   return true;
-}
-
-bool Client::CapStorey(bool install)
-{
-   ObjectModel::Structure* building = GetSelected<ObjectModel::Structure>();
-
-   if (building) {
-      auto command = ADD_COMMAND_TO_QUEUE(CapStorey);
-      command->set_building(building->GetId());
-   }
-
-   return true;
-}
-
-bool Client::FinishStructure(bool install)
-{
-   ObjectModel::Structure* building = GetSelected<ObjectModel::Structure>();
-
-   if (building) {
-      auto command = ADD_COMMAND_TO_QUEUE(FinishStructure);
-      command->set_building(building->GetId());
-   }
-
-   return true;
-}
-
-
-void Client::AddToFloor(const om::Selection &selection)
-{
-   auto command = ADD_COMMAND_TO_QUEUE(BuildFloor);
-
-   selection.bounds.encode(command->mutable_bounds());
-}
-
-void Client::AssignWorkerToBuilding(vector<om::Selection> args)
-{
-   auto command = ADD_COMMAND_TO_QUEUE(AssignWorkerToBuilding);
-
-   command->set_building(args[0].actors[0]);
-   command->set_worker(args[1].actors[0]);
-}
-#endif
-
-void Client::OnObjectLoad(std::vector<dm::ObjectId> objects)
-{
-#if 1
-   ASSERT(false);
-#else
-   bool initRootObject = false;
-
-   for (auto id : objects) {
-      auto object = ObjectModel::Foo::RestoreObject(_proxy_manager->GetEntity(id));
-      if (object) {
-         ASSERT(allObjects_[id] == NULL);
-         allObjects_[id] = object;
-
-         if (!rootObject_) {
-            rootObject_ = object->GetInterface<ObjectModel::RootObject>();
-            initRootObject = true;
-         }
-      }
-   }
-   if (initRootObject) {
-      octtree_->Initialize(rootObject_);
-      Renderer::GetInstance().Initialize(rootObject_);
-   }
-#endif
-}
-
 om::EntityPtr Client::GetEntity(dm::ObjectId id)
 {
    auto obj = objects_[id];
@@ -1048,14 +667,9 @@ void Client::InstallCursor()
          cursor = uiCursor_;
       } else {
          cursor = NULL;
-         if (!currentToolName_.empty()) {
-            auto i = cursors_.find(currentToolName_);
-            if (i != cursors_.end()) {
-               cursor = i->second.get();
-            }
-         }
-         if (!cursor && currentCommandCursor_) {
-            cursor = currentCommandCursor_;
+         /* which cursor do we want? to be written */
+         if (!cursor && luaCursor_) {
+            cursor = luaCursor_;
          }
          if (!cursor && !hilightedObjects_.empty()) {
             cursor = cursors_["hover"].get();
@@ -1065,269 +679,15 @@ void Client::InstallCursor()
          }
       }
       if (cursor != currentCursor_) {
-         SetClassLong(hwnd_, GCL_HCURSOR, static_cast<LONG>(reinterpret_cast<LONG_PTR>(cursor)));
-         SetCursor(cursor);
+         Renderer& renderer = Renderer::GetInstance();
+         HWND hwnd = renderer.GetWindowHandle();
+
+         SetClassLong(hwnd, GCL_HCURSOR, static_cast<LONG>(reinterpret_cast<LONG_PTR>(cursor)));
+         ::SetCursor(cursor);
          currentCursor_ = cursor;
       }
    }
 }
-
-void Client::SetUICursor(HCURSOR cursor)
-{
-   if (uiCursor_) {
-      DestroyCursor(uiCursor_);
-   }
-   if (cursor) {
-      uiCursor_ = CopyCursor(cursor);
-   } else {
-      uiCursor_ = NULL;
-   }
-}
-
-#if 0
-void Client::ExecuteCommands()
-{  
-   std::vector<PendingCommandPtr> commands = GetAPI().GetPendingCommands();
-   for (PendingCommandPtr cmd : commands) {
-
-      currentCommandCursor_ = NULL;
-      currentCommand_ = nullptr;
-      currentTool_ = nullptr;
-      currentToolName_ = "";
-
-      CommandPtr command;
-
-      JSONNode const& json = cmd->GetJson();
-      std::string type = json["command"].as_string();
-      if (type == "execute_action") {
-         command = std::make_shared<ExecuteAction>(cmd);
-      } else if (type == "select_tool") {
-         SelectToolCommand(cmd);
-      } else if (type == "select_entity") {
-         SelectEntityCommand(cmd);
-      } else if (type == "trace_entities") {
-         TraceEntities(cmd);
-      } else if (type == "trace_entity") {
-         TraceEntity(cmd);
-      } else if (type == "fetch_json_data") {
-         FetchJsonData(cmd);
-      } else if (type == "set_view_mode") {
-         SetViewModeCommand(cmd);
-      } else {
-         cmd->Error("Unknown type: " + type);
-      }
-      if (command) {
-         currentCommand_ = command;
-         (*command)();
-      }
-   }
-}
-#endif
-
-void Client::SetRenderPipelineInfo()
-{
-   std::string pipeline = "pipelines/deferred_pipeline_static.xml";
-   if (showBuildOrders_) {
-      //pipeline = "pipelines/blueprint.deferred.pipeline.xml";
-   }
-   Renderer::GetInstance().SetCurrentPipeline(pipeline);
-}
-
-bool Client::RotateViewMode(bool install)
-{
-   auto& r = Renderer::GetInstance();
-   
-   ViewMode mode = r.GetViewMode();
-   mode = (ViewMode)((mode+ 1) % MaxViewModes);
-
-   r.SetViewMode(mode);
-   return true;
-}
-
-void Client::OnDestroyed(dm::ObjectId id)
-{
-   LOG(INFO) << "object "  << id << " has been destroyed.";
-}
-
-
-dm::Guard Client::TraceShowBuildOrders(std::function<void()> cb)
-{
-   return traces_.AddTrace(ShowBuildOrdersTraces, cb);
-}
-
-void Client::EnumEntities(std::function<void(om::EntityPtr)> cb)
-{
-   for (const auto& entry : entities_) {
-      cb(entry.second);
-   }
-}
-
-#if 0
-
-void Client::TraceEntities(PendingCommandPtr cmd)
-{
-#if 0
-   const auto& args = cmd->GetArgs();
-
-   CHECK_TYPE(cmd, args, "filters", JSON_ARRAY);
-   CHECK_TYPE(cmd, args, "collectors", JSON_ARRAY);
-
-   int traceId = nextTraceId_++;
-   
-   auto trace = std::make_shared<EntitiesTrace>(args);
-   _entitiesTraces[std::make_pair(cmd->GetSession(), traceId)] = trace;
-
-   JSONNode result, data(JSON_ARRAY);
-   trace->Flush(data);
-   data.set_name("data");
-
-   result.push_back(JSONNode("trace_id", traceId));
-   result.push_back(data);
-   cmd->Complete(result);
-#endif
-   ASSERT(false);
-}
-
-void Client::FetchJsonData(PendingCommandPtr cmd)
-{
-#if 0
-   const auto& args = cmd->GetArgs();
-
-   CHECK_TYPE(cmd, args, "entries", JSON_ARRAY);
-   
-   JSONNode result;
-   for (const auto& node : args["entries"]) {
-      if (node.type() == JSON_STRING) {
-         std::string name = node.as_string();
-         JSONNode const& data = resources::ResourceManager2::GetInstance().LookupJson(name);
-         result.push_back(data);
-      }
-   }
-   cmd->Complete(result);
-#endif
-   ASSERT(false);
-}
-
-void Client::TraceEntity(PendingCommandPtr cmd)
-{
-#if 0
-   const auto& args = cmd->GetArgs();
-
-   CHECK_TYPE(cmd, args, "filters", JSON_ARRAY);
-   CHECK_TYPE(cmd, args, "collectors", JSON_ARRAY);
-   CHECK_TYPE(cmd, args, "entity_id", JSON_NUMBER);
-
-   om::EntityPtr entity = GetEntity(args["entity_id"].as_int());
-   if (!entity) {
-      cmd->Error("entity does not exist");
-      return;
-   }
-   int traceId = nextTraceId_++;
-   
-   auto trace = std::make_shared<EntityTrace>(entity, args);
-   _entitiesTraces[std::make_pair(cmd->GetSession(), traceId)] = trace;
-
-   JSONNode result, data(JSON_ARRAY);
-   trace->Flush(data);
-   data.set_name("data");
-
-   result.push_back(JSONNode("trace_id", traceId));
-   result.push_back(data);
-   cmd->Complete(result);
-#endif
-   ASSERT(false);
-}
-
-void Client::SetViewModeCommand(PendingCommandPtr cmd)
-{
-#if 0
-   const auto& args = cmd->GetArgs();
-
-   CHECK_TYPE(cmd, args, "mode", JSON_STRING);
-
-   std::string mode = args["mode"].as_string();
-   if (mode == "build") {
-      ShowBuildPlan(true);
-   } else {
-      ShowBuildPlan(false);
-   }
-   cmd->Complete(JSONNode());
-#endif
-   ASSERT(false);
-}
-
-void Client::SelectEntityCommand(PendingCommandPtr cmd)
-{
-   const auto& json = cmd->GetJson();
-
-   CHECK_TYPE(cmd, json, "entity_id", JSON_NUMBER);
-
-   Client::GetInstance().SelectEntity(json["entity_id"].as_int());
-   cmd->CompleteSuccessObj(JSONNode());
-}
-
-void Client::SelectToolCommand(PendingCommandPtr cmd)
-{
-   const auto& args = cmd->GetJson();
-
-   LOG(WARNING) << args.write();
-   CHECK_TYPE(cmd, args, "tool", JSON_STRING);
-
-   std::shared_ptr<Command>  tool;
-   std::string toolName = args["tool"].as_string();
-   if (toolName == "none") {
-      cmd->CompleteSuccessObj(JSONNode());
-   } else if (toolName == "create_walls") {
-      tool = std::make_shared<CreateRoom>(cmd);
-   } else if (toolName == "create_door") {
-      tool = std::make_shared<CreatePortal>(cmd);
-   } else {
-      cmd->Error(std::string("No toolName named \"") + toolName + std::string("\""));
-      return;
-   }
-
-   currentTool_ = tool;
-   currentToolName_ = tool ? toolName : "";
-
-   currentCommand_ = nullptr;
-   currentCommandCursor_ = NULL;
-
-   if (currentTool_)  {
-      (*currentTool_)();
-   }
-}
-
-int Client::CreatePendingCommandResponse()
-{
-   int id = nextResponseHandlerId_++;
-   responseHandlers_[id] = [=](const proto::DoActionReply* msg) {
-      JSONNode result;
-      result.push_back(JSONNode("pending_command_id", id));
-
-      if (msg) {
-         result.push_back(JSONNode("result", "success"));
-
-         JSONNode data = libjson::parse(msg->json());
-         data.set_name("response");
-         result.push_back(data);
-         LOG(WARNING) << data.write();
-         LOG(WARNING) << result.write();
-      } else {
-         ASSERT(false);
-      }
-      QueueEvent("radiant.events.pending_command_completed", result);
-   };
-   return id;
-}
-
-int Client::CreateCommandResponse(CommandResponseFn fn)
-{
-   int id = nextResponseHandlerId_++;
-   responseHandlers_[id] = fn;
-   return id;
-}
-
-#endif
 
 void Client::HilightMouseover()
 {
@@ -1374,39 +734,14 @@ void Client::LoadCursors()
    }
 }
 
-void Client::SetCommandCursor(std::string name)
+void Client::SetCursor(std::string name)
 {
    auto i = cursors_.find(name);
    if (i != cursors_.end()) {
-      currentCommandCursor_ = i->second.get();
+      currentCursor_ = i->second.get();
    } else {
-      currentCommandCursor_ = NULL;
+      currentCursor_ = NULL;
    }
-}
-
-void Client::OnEntityAlloc(om::EntityPtr entity)
-{
-   dm::ObjectId id = entity->GetObjectId();
-
-   entities_[id] = entity;
-   if (id == 1) {
-      octtree_->SetRootEntity(entity);
-   }
-#if 0
-   LOG(INFO) << "tracing components of entity " << id;
-
-   const auto& components = entity->GetComponents();
-   guards_ += components.TraceMapChanges("client component checking",
-                                          std::bind(&Client::ComponentAdded, this, om::EntityRef(entity), std::placeholders::_1, std::placeholders::_2),
-                                          nullptr);
-   for (const auto& entry : components) {
-      ComponentAdded(entity, entry.first, entry.second);
-   }
-#endif
-}
-
-void Client::ComponentAdded(om::EntityRef e, dm::ObjectType type, std::shared_ptr<dm::Object> component)
-{
 }
 
 static void HandleFileRequest(std::string const& path, std::shared_ptr<net::IResponse> response)
@@ -1661,10 +996,6 @@ void Client::BrowserRequestHandler(std::string const& path, JSONNode const& quer
    } else {
       HandlePostRequest(path, query, postdata, response);
    }
-}
-void Client::SetScriptHost(lua::ScriptHost* scriptHost)
-{
-   scriptHost_ = scriptHost;
 }
 
 om::EntityPtr Client::CreateAuthoringEntity(std::string const& path)
