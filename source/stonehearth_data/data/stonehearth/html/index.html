@@ -53,6 +53,15 @@
       //TODO: Standardize the namespace/mod structure
       //so mainbar and unit frame etc can be peers of stonehearth_crafter
       //i18n.loadNamespace('mainbar', function() { console.log('loaded mainbar i18n namespace'); });
+
+      // global exception catcher
+      window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
+         //console.error("Error occured: " + errorMsg);
+         //console.error(url);
+         //console.error('line ' + lineNumber);
+         return false;
+      }
+
    </script>
 
 </body>

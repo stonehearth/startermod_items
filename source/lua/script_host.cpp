@@ -68,6 +68,12 @@ luabind::object ScriptHost::JsonToLua(JSONNode const& json)
    return object();
 }
 
+std::string ScriptHost::LuaToJson(luabind::object obj)
+{
+   object coder = globals(L_)["radiant"]["json"];
+   return call_function<std::string>(coder["encode"], obj);
+}
+
 ScriptHost::ScriptHost()
 {
    L_ = lua_newstate(LuaAllocFn, this);

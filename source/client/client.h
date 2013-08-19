@@ -66,7 +66,6 @@ namespace radiant {
             void SelectEntity(om::EntityPtr obj);
             void SelectEntity(dm::ObjectId id);
 
-            void SelectGroundArea(Selector::SelectionFn cb);
             om::EntityPtr CreateAuthoringEntity(std::string const& path);
 
             void ShowBuildPlan(bool visible);
@@ -221,6 +220,8 @@ namespace radiant {
 
             typedef std::function<void(tesseract::protocol::Update const& msg)> ServerReplyCb;
             void PushServerRequest(tesseract::protocol::Request& msg, ServerReplyCb replyCb);
+            void AddBrowserJob(std::function<void()> fn);
+            void ProcessBrowserJobQueue();
 
       private:
             enum TraceTypes {
@@ -301,7 +302,6 @@ namespace radiant {
 
             int                              last_server_request_id_;
             std::map<int, std::function<void(tesseract::protocol::Update const& reply)> >  server_requests_;
-            std::mutex                       lock_;
             std::vector<JSONNode>            queued_events_;
             std::shared_ptr<net::IResponse>   get_events_request_;
             lua::ScriptHost*                 scriptHost_;
@@ -309,6 +309,9 @@ namespace radiant {
             std::vector<MouseEventPromiseRef>   mouseEventPromises_;
             std::unordered_map<std::string, luabind::object>   clientRoutes_;
             std::unordered_map<std::string, std::string>       serverRemoteObjects_;
+
+            std::vector<std::function<void()>>     browserJobQueue_;
+            std::mutex                             browserJobQueueLock_;
       };
    };
 };

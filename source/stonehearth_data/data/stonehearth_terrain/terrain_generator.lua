@@ -1,22 +1,18 @@
 local TerrainGenerator = class()
 
-local Terrain = _radiant.om.Terrain
-local Cube3 = _radiant.csg.Cube3
-local Point3 = _radiant.csg.Point3
-local Region2 = _radiant.csg.Region2
-local Region3 = _radiant.csg.Region3
-local HeightMapCPP = _radiant.csg.HeightMap
-
 local HeightMap = radiant.mods.require('/stonehearth_terrain/height_map.lua')
 local GaussianNoise = radiant.mods.require('/stonehearth_terrain/gaussian_noise.lua')
 local InverseGaussianNoise = radiant.mods.require('/stonehearth_terrain/inverse_gaussian_noise.lua')
+local filter_2D = radiant.mods.require('/stonehearth_terrain/filter/filter_2D.lua')
+local filter_ls25 = radiant.mods.require('/stonehearth_terrain/filter/filter_ls25.lua')
 local Wavelet = radiant.mods.require('/stonehearth_terrain/wavelet/wavelet.lua')
 local WaveletFns = radiant.mods.require('/stonehearth_terrain/wavelet/wavelet_fns.lua')
-local Point2D = radiant.mods.require('/stonehearth_terrain/point_2D.lua')
+local Point_2D = radiant.mods.require('/stonehearth_terrain/point_2D.lua')
 
 function TerrainGenerator:__init(tile_size)
-   math.randomseed(2)
+   math.randomseed(3)
    self.tile_size = tile_size
+   self.block_size = 32
    self.foothills_quantization_size = 8
 
    self._detail_noise_generator = InverseGaussianNoise(
@@ -34,9 +30,9 @@ function TerrainGenerator:generate_tile()
    
    local width = height_map.width
    local height = height_map.height
-   Wavelet:DWT_2D(height_map, width, height, 1, levels)
-   WaveletFns:scale_high_freq(height_map, width, height, 1, levels, freq_scaling_coeff)
-   Wavelet:IDWT_2D(height_map, width, height, levels)
+   Wavelet.DWT_2D(height_map, width, height, 1, levels)
+   WaveletFns.scale_high_freq(height_map, width, height, 1, levels, freq_scaling_coeff)
+   Wavelet.IDWT_2D(height_map, width, height, levels)
 
    height_map:quantize_map_height(self.foothills_quantization_size)
    self:_add_detail_blocks(height_map)
@@ -45,51 +41,56 @@ function TerrainGenerator:generate_tile()
    -- need to figure out baseline height later
    height_map:normalize_map_height(self.foothills_quantization_size)
 
-   self:_render_height_map_to_terrain(height_map)
+   return height_map
 end
 
 function TerrainGenerator:_create_map_template(height_map)
-   local temp_map = HeightMap(self.tile_size, self.tile_size)
-   local levels = 5
-   local filter_levels = 1 -- levels to filter the LL sample map
-   --local freq_scaling_coeff = 0.125
-   local freq_scaling_coeff = 0.0
-   local width = temp_map.width
-   local height = temp_map.height
+   local i, j, value, vertical_scaling_factor
+   local mini_width = height_map.width / self.block_size
+   local mini_height = height_map.height / self.block_size
+   local temp_map = HeightMap(mini_width, mini_height)
 
-   -- generate sample terrain into temp_map
-   self:_fill_map_with_gaussian_noise(temp_map, 100, 3)
+   self:_fill_map_with_gaussian_noise(temp_map, 100, GaussianNoise.LOW_QUALITY)
 
-   Wavelet:DWT_2D(temp_map, width, height, 1, levels+filter_levels)
-   WaveletFns:scale_high_freq(temp_map, width, height, 1, levels+filter_levels, freq_scaling_coeff)
-   Wavelet:IDWT_2D(temp_map, width, height, levels+filter_levels, levels+1)
+   local lowpass_filter = filter_ls25
+   filter_2D(temp_map, mini_width, mini_height, lowpass_filter)
 
-   -- normalize LL component back to same scale as original
-   -- conservation of energy in transform
-   -- 1/sqrt(2) per 1D transform, so 1/2 per 2D transform
-   -- will lose energy to high frequency bands
-   local energy_scaling = (0.5)^levels
-   local map_type_scaling = self.foothills_quantization_size*4
-   local scaling_factor = energy_scaling * map_type_scaling
+   vertical_scaling_factor = 2.5
 
-   -- blockify sample terrain for use as the map template
-   local i, j, value
-   local block_width, block_height
-   local level_width, level_height
-   -- add 1 since we want the dimensions of the LL (low frequency) block of level 4
-   level_width, level_height = Wavelet:get_dimensions_for_level(width, height, levels+1)
-   block_width = width / level_width
-   block_height = height / level_height
-
-   radiant.log.info("Terrain template blocksize: %d, %d", block_width, block_height)
-
-   for j=1, level_height, 1 do
-      for i=1, level_width, 1 do
-         value = temp_map:get(i, j) * scaling_factor
-         height_map:set_block((i-1)*block_width+1, (j-1)*block_height+1,
-            block_width, block_height, value)
+   for j=1, mini_height, 1 do
+      for i=1, mini_width, 1 do
+         value = temp_map:get(i, j) * vertical_scaling_factor
+         height_map:set_block((i-1)*self.block_size+1, (j-1)*self.block_size+1,
+            self.block_size, self.block_size, value)
       end
-   end   
+   end
+
+   height_map:normalize_map_height(self.foothills_quantization_size)
+   height_map:quantize_map_height(self.foothills_quantization_size)
+end
+
+-- bad boundary conditions on small maps
+function TerrainGenerator:_create_map_template_old(height_map)
+   local i, j, value, vertical_scaling_factor
+   local mini_width = height_map.width / self.block_size
+   local mini_height = height_map.height / self.block_size
+   local temp_map = HeightMap(mini_width, mini_height)
+
+   self:_fill_map_with_gaussian_noise(temp_map, 100, GaussianNoise.LOW_QUALITY)
+
+   Wavelet.DWT_2D(temp_map, mini_width, mini_height, 1, 2)
+   WaveletFns.scale_high_freq(temp_map, mini_width, mini_height, 1, 2, 0)
+   Wavelet.IDWT_2D(temp_map, mini_width, mini_height, 2, 1)
+
+   vertical_scaling_factor = 4
+
+   for j=1, mini_height, 1 do
+      for i=1, mini_width, 1 do
+         value = temp_map:get(i, j) * vertical_scaling_factor
+         height_map:set_block((i-1)*self.block_size+1, (j-1)*self.block_size+1,
+            self.block_size, self.block_size, value)
+      end
+   end
 
    height_map:normalize_map_height(self.foothills_quantization_size)
    height_map:quantize_map_height(self.foothills_quantization_size)
@@ -122,7 +123,7 @@ function TerrainGenerator:_add_detail_blocks(height_map)
          if is_lower_edge then
             if math.random() < seed_probability then
                num_seeds = num_seeds + 1
-               detail_seeds[num_seeds] = Point2D(i, j)
+               detail_seeds[num_seeds] = Point_2D(i, j)
             end
          end
       end
@@ -200,76 +201,27 @@ function TerrainGenerator:_try_grow(height_map, edge_map, x, y, detail_height)
    return true
 end
 
-----------
-
-function TerrainGenerator:_render_height_map_to_terrain(height_map)
-   local r2 = Region2()
-   local r3 = Region3()
-   local terrain = radiant._root_entity:add_component('terrain')
-   local heightMapCPP = HeightMapCPP(self.tile_size, 1)
-
-   self:_copy_heightmap_to_CPP(heightMapCPP, height_map)
-   _radiant.csg.convert_heightmap_to_region2(heightMapCPP, r2)
-
-   for rect in r2:contents() do
-   --if rect.tag > 0 then
-      self:_add_land_to_region(r3, rect, rect.tag);         
-   --end
-   end
-
-   terrain:add_region(r3)
-end
-
-function TerrainGenerator:_copy_heightmap_to_CPP(heightMapCPP, height_map)
-   local row_offset = 0
-
-   for j=1, height_map.height, 1 do
-      for i=1, height_map.width, 1 do
-         heightMapCPP:set(i-1, j-1, math.abs(height_map[row_offset+i]))
-      end
-      row_offset = row_offset + height_map.width
-   end
-end
-
-function TerrainGenerator:_add_land_to_region(dst, rect, height)
-   dst:add_cube(Cube3(Point3(rect.min.x, -2,       rect.min.y),
-                      Point3(rect.max.x, 0,        rect.max.y),
-                Terrain.BEDROCK))
-
-   if height % self.foothills_quantization_size == 0 then
-      dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
-                         Point3(rect.max.x, height-1, rect.max.y),
-                   Terrain.TOPSOIL))
-
-      dst:add_cube(Cube3(Point3(rect.min.x, height-1, rect.min.y),
-                         Point3(rect.max.x, height,   rect.max.y),
-                   Terrain.GRASS))
-   else
-      dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
-                         Point3(rect.max.x, height,   rect.max.y),
-                   Terrain.TOPSOIL))
-   end
-end
-
-----------
-
 function TerrainGenerator:_erosion_test()
    local levels = 4
-   local coeff = 0.9
-   local height_map = HeightMap(tile_size, tile_size)
-   height_map:set_block(1, 1, tile_size, tile_size, 1)
-   height_map:set_block(1, 1, 16, 16, 11)
+   local coeff = 0.5
+   local height_map = HeightMap(128, 128)
+
+   height_map:process_map(
+      function () return self.foothills_quantization_size end
+   )
+
+   height_map:set_block(32, 32, 32, 32, self.foothills_quantization_size*2)
 
    local width = height_map.width
    local height = height_map.height
-   Wavelet:DWT_2D(height_map, width, height, 1, levels)
-   WaveletFns:scale_high_freq(height_map, width, height, 1, levels, coeff)
-   Wavelet:IDWT_2D(height_map, width, height, levels)
+   Wavelet.DWT_2D(height_map, width, height, 1, levels)
+   WaveletFns.scale_high_freq(height_map, width, height, 1, levels, coeff)
+   Wavelet.IDWT_2D(height_map, width, height, levels)
 
-   height_map:normalize_map_height(quantization_size)
-   height_map:quantize_map_height(quantization_size)
+   height_map:normalize_map_height(self.foothills_quantization_size)
+   height_map:quantize_map_height(self.foothills_quantization_size)
 
-   self:_render_height_map_to_terrain(height_map)
+   return height_map
 end
 
 return TerrainGenerator

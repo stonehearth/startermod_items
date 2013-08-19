@@ -130,6 +130,10 @@ end
 
 function entities.move_to(entity, location)
    radiant.check.is_entity(entity)
+   
+   if type(location) == "table" then
+      location = RadiantIPoint3(location.x, location.y, location.z)
+   end
    entity:add_component('mob'):set_location_grid_aligned(location)
 end
 

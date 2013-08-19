@@ -2,8 +2,19 @@
    "info" :{
       "name" : "Stonehearth Inventory Module"
    },
+   "client" :{
+      "request_handlers": {
+         "create_stockpile" : "file(client/request_handlers/create_stockpile.lua)"
+      }
+   },
+   "server" :{
+      "request_handlers": {
+         "create_stockpile" : "file(server/request_handlers/srh_create_stockpile.lua)"
+      }
+   },
    "ui" :  {
       "js" : [
+         "file(html/js/stonehearth_inventory.js)"
       ]
    }   
 }
