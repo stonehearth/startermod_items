@@ -1,7 +1,32 @@
 {
    "craftable_recipes" : [
-      "/stonehearth_carpenter_class/recipes/wooden_sword_recipe.json",
-      "/stonehearth_carpenter_class/recipes/wooden_buckler_recipe.json",
-      "/stonehearth_carpenter_class/recipes/comfy_bed_recipe.json"
+      {
+         "category" : "Construction",
+         "recipes" : [
+         ]
+      },
+      {
+         "category" : "Furnishings & Decoration",
+         "recipes" : [
+            "/stonehearth_carpenter_class/recipes/comfy_bed_recipe.json"
+         ]
+      },
+      {
+         "category" : "Tools & Goods",
+         "recipes" : [
+         ]
+      },
+      {
+         "category" : "Weapons & Armor",
+         "recipes" : [
+            "/stonehearth_carpenter_class/recipes/wooden_sword_recipe.json",
+            "/stonehearth_carpenter_class/recipes/wooden_buckler_recipe.json"
+         ]
+      },
+      {
+         "category" : "Food, Drink & Supplies",
+         "recipes" : [
+         ]
+      }
    ]
 }

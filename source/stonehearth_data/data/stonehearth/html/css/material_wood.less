@@ -31,7 +31,7 @@
       text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.8);
       color: @gold;
 
-      &:hover { 
+      &:hover {
          color: @hoverColor;
       }
    }
@@ -46,9 +46,13 @@
       }
    }
 
-   .ui-accordion {
+   .ui-lhs {
       border: 8px solid #000;
       background: @woodDarkestColor;
+   }
+
+   .ui-accordion {
+      .ui-lhs;
 
       .ui-accordion-header {
          .control;
