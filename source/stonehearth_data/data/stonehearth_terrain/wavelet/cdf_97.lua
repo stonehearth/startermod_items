@@ -4,8 +4,11 @@ local CDF_97 = {}
 -- lifting implementation so we can use symmetric boundary extension
 -- n < 8 will have increasing boundary condition effects
 
-local coeff = { -1.586134342, -0.05298011854, 0.8829110762, 0.4435068522 }
-local scale = 1/1.149604398
+local P1 = -1.586134342
+local U1 = -0.05298011854
+local P2 =  0.8829110762
+local U2 =  0.4435068522
+local S  = 1/1.149604398
 
 local temp = {}
 
@@ -13,24 +16,24 @@ function CDF_97.DWT_1D(src, length)
    assert(length % 2 == 0)
    assert(length >= 4)
 
-   CDF_97._predict(src, length, coeff[1]) -- Predict 1
-   CDF_97._update(src, length, coeff[2])  -- Update 1
-   CDF_97._predict(src, length, coeff[3]) -- Predict 2
-   CDF_97._update(src, length, coeff[4])  -- Update 2
-   CDF_97._scale(src, length, scale)      -- Scale
-   CDF_97._deinterleave(src, length)      -- consolidate frequncy blocks
+   CDF_97._predict(src, length, P1)  -- Predict 1
+   CDF_97._update(src, length, U1)   -- Update 1
+   CDF_97._predict(src, length, P2)  -- Predict 2
+   CDF_97._update(src, length, U2)   -- Update 2
+   CDF_97._scale(src, length, S)     -- Scale
+   CDF_97._deinterleave(src, length) -- consolidate frequncy components
 end
 
 function CDF_97.IDWT_1D(src, length)
    assert(length % 2 == 0)
    assert(length >= 4)
 
-   CDF_97._interleave(src, length)         -- interleave frequency components
-   CDF_97._scale(src, length, 1/scale)     -- Undo Scale
-   CDF_97._update(src, length, -coeff[4])  -- Undo Update 2
-   CDF_97._predict(src, length, -coeff[3]) -- Predict 2
-   CDF_97._update(src, length, -coeff[2])  -- Update 1
-   CDF_97._predict(src, length, -coeff[1]) -- Predict 1
+   CDF_97._interleave(src, length)   -- interleave frequency components
+   CDF_97._scale(src, length, 1/S)   -- Invert Scale
+   CDF_97._update(src, length, -U2)  -- Invert Update 2
+   CDF_97._predict(src, length, -P2) -- Invert Predict 2
+   CDF_97._update(src, length, -U1)  -- Invert Update 1
+   CDF_97._predict(src, length, -P1) -- Invert Predict 1
 end
 
 function CDF_97._predict(x, n, a)
@@ -93,7 +96,8 @@ end
 
 ----------
 
-function CDF_97._test_perfect_reconstruction()
+-- test for perfect reconstruction
+function CDF_97._test()
    local i, j
    local length = 32
    local x = {}

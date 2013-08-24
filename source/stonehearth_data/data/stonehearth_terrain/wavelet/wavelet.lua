@@ -4,7 +4,9 @@ local CDF_97 = radiant.mods.require('/stonehearth_terrain/wavelet/cdf_97.lua')
 
 local transform = CDF_97
 
-function Wavelet.DWT_2D(src, src_width, src_height, current_level, max_level)
+-- assumes current_level = 1 if not specified
+function Wavelet.DWT_2D(src, src_width, src_height, max_level, current_level)
+   if not current_level then current_level = 1 end
    if current_level > max_level then return end
    local i, j
    local vec = {}
@@ -25,10 +27,10 @@ function Wavelet.DWT_2D(src, src_width, src_height, current_level, max_level)
       Array2DFns.set_column_vector(src, vec, j, src_width, level_height)
    end
 
-   Wavelet.DWT_2D(src, src_width, src_height, current_level+1, max_level)
+   Wavelet.DWT_2D(src, src_width, src_height, max_level, current_level+1)
 end
 
--- if min_level not specified, will perform full inverse
+-- assumes full inverse if min_level not specified
 function Wavelet.IDWT_2D(src, src_width, src_height, current_level, min_level)
    if not min_level then min_level = 1 end
    if current_level < min_level then return end
@@ -63,7 +65,8 @@ end
 
 ---------
 
-function Wavelet._test_perfect_reconstruction()
+-- test for perfect reconstruction
+function Wavelet._test()
    local width, height, levels
    local x = {}
    local y = {}
@@ -82,8 +85,8 @@ function Wavelet._test_perfect_reconstruction()
       y[i] = x[i]
    end
 
-   Wavelet.DWT_2D(y, width, height, 1, levels)
-   Wavelet.IDWT_2D(y, width, height, levels, 1)
+   Wavelet.DWT_2D(y, width, height, levels)
+   Wavelet.IDWT_2D(y, width, height, levels)
 
    local diff
    for i=1, width*height, 1 do
