@@ -195,7 +195,7 @@ App.StonehearthCrafterView = App.View.extend({
       });
       // open the first category
       element.find("h3")[0].click();
-      //element.find("a")[0].click();
+      element.find("a")[0].click();
    },
 
    findAndSelectRecipe: function() {

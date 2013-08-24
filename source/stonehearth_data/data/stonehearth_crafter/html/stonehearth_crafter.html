@@ -12,7 +12,7 @@
             <<div id="pausedLabel" {{action initPauseSign on="mouseEnter" target="view"}}>
                <a id="pauseLink" {{action togglePause target="view"}}>{{i18n stonehearth_crafter:paused}}</a>
             </div>
-        {{/if}}
+         {{/if}}
 
 
       </div>
@@ -39,7 +39,7 @@
 <script type="text/x-handlebars" data-template-name="_recipeList">
    <div id="searchBox">
       <a id="searchButton" {{action findAndSelectRecipe target="view"}}></a>
-      <input id="searchInput" />
+      <input id="searchInput" placeholder="Type to search"/>
    </div>
    <div id="recipeAccordion">
       {{#each stonehearth_crafter:workshop.crafter.stonehearth_crafter:crafter.craftable_recipes}}

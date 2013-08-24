@@ -1,0 +1,16 @@
+{
+   "type": "entity",
+   "extends" : "/stonehearth_items/entities/item/item_properties.json",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Dining Table",
+         "description" : "Sitting down to eat is a sign of civilization."
+      },
+      "render_rig": {
+         "models": [
+            "/stonehearth_items/default_object/default_object.qb"
+         ]
+      }
+   }
+}
+

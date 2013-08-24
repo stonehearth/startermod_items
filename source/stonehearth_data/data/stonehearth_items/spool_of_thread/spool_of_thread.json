@@ -1,0 +1,16 @@
+{
+   "type": "entity",
+   "extends" : "/stonehearth_items/entities/item/item_properties.json",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Spool of Thread",
+         "description" : "Nobody would ever think this started with a sheep. Or a plant."
+      },
+      "render_rig": {
+         "models": [
+            "/stonehearth_items/default_object/default_object.qb"
+         ]
+      }
+   }
+}
+
