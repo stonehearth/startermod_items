@@ -3,6 +3,7 @@ App.StonehearthCalendarView = App.View.extend({
 
    init: function() {
       this._super();
+      this.set('uri', '/stonehearth_calendar/clock');
    },
 
    didInsertElement: function() {
@@ -12,8 +13,6 @@ App.StonehearthCalendarView = App.View.extend({
       this._sunRays = $('#sunRays');
       this._moon = $('#moon');
       this._daySky = $('#skyDay');
-
-      this.set('uri', '/stonehearth_calendar/clock');
    },
 
    _updateClock: function() {

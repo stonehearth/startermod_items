@@ -48,7 +48,7 @@ radiant.events.register_event('radiant.events.calendar.minutely')
 radiant.events.register_event('radiant.events.calendar.hourly')
 
 function stonehearth_calendar.__init()
-   radiant.events.listen('radiant.events.gameloop', stonehearth_calendar._on_event_loop)
+   --radiant.events.listen('radiant.events.gameloop', stonehearth_calendar._on_event_loop)
 
    -- publish the current time (up to the minute) to the ui..
    -- Step 1: create a function which will convert the current time to json and register

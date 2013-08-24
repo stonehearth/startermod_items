@@ -6,7 +6,6 @@
          "description" : "Stores all sorts of things."
       },
       "radiant:stockpile" : {
-         "size" : [ 4, 4 ]
       }
    }
 }

@@ -10,16 +10,25 @@ $(document).ready(function(){
 
    // handle requests from elsewhere in the UI that a workshop be created
    $(top).on("create_workshop.radiant", function (_, e) {
+      // xxx, localize
+      $(top).trigger('show_tip.radiant', { 
+         title : 'Place your workshop',
+         description : 'The carpenter uses his workshop to build stuff!'
+      });
+
       // kick off a request to the client to show the cursor for placing
       // the workshop. The UI is out of the 'create workshop' process after
       // this. All the work is done in the client and server
 
-      var crafterModUri = '/modules/client/stonehearth_crafter/choose_location';
+      var crafterModUri = '/modules/client/stonehearth_crafter/create_workbench';
       var workbenchEntity = e.workbench;
 
       $.get(crafterModUri, { entity: workbenchEntity })
          .done(function(o){
-
+            //xxx, place the outbox
+         })
+         .always(function(o) {
+            $(top).trigger('hide_tip.radiant');
          });
    });
 });

@@ -1,3 +1,5 @@
+local RadiantIPoint3 = _radiant.math3d.RadiantIPoint3
+
 local Terrain = {}
 
 local _terrain = radiant._root_entity:add_component('terrain')
@@ -9,6 +11,10 @@ end
 function Terrain.place_entity(entity, location)
    radiant.entities.add_child(radiant._root_entity, entity, location)
    entity:add_component('render_info'):set_display_iconic(true);
+
+   if type(location) == "table" then
+      location = RadiantIPoint3(location.x, location.y, location.z)
+   end  
    _terrain:place_entity(entity, location)
 end
 

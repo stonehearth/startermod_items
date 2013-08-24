@@ -367,6 +367,7 @@ void Renderer::QuerySceneRay(int windowX, int windowY, om::Selection &result)
 	if (!h3dGetCastRayResult( 0, &node, 0, &pt.x, &normal.x )) {
       return;
    }
+   normal.normalize();
    assert(node);
 
    result.AddLocation(math3d::point3(pt.x, pt.y, pt.z),

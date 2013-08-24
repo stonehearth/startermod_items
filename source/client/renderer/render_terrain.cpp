@@ -19,6 +19,7 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
    terrain_(terrain)
 {
    node_ = h3dAddGroupNode(entity_.GetNode(), "grid");
+   h3dSetNodeTransform(node_, -0.5f, 0.0f, -0.5f, 0, 0, 0, 1, 1, 1);
 
    tracer_ += Renderer::GetInstance().TraceSelected(node_, std::bind(&RenderTerrain::OnSelected, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
    
