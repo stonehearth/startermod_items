@@ -2,7 +2,6 @@
 #define _RADIANT_GAME_ENGINE_CLIENT_H
 
 #include <boost/asio.hpp>
-#include "math3d.h"
 #include "simulation/interfaces.h"
 
 using boost::asio::ip::tcp;

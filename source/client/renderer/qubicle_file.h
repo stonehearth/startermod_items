@@ -16,7 +16,7 @@ public:
    const csg::Point3& GetSize() const { return size_; }
    
    uint32 At(int x, int  y, int z) const;
-   math3d::color3 GetColor(uint32 value) const;
+   csg::Color3 GetColor(uint32 value) const;
 
 public:
    csg::Point3    size_;

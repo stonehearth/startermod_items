@@ -13,27 +13,27 @@ using namespace radiant;
 using namespace radiant::Physics;
 using namespace radiant::simulation;
 
-static const math3d::ipoint3 _adjacent[] = {
-   math3d::ipoint3( 1,  0,  0),
-   math3d::ipoint3(-1,  0,  0),
-   math3d::ipoint3( 0,  0, -1),
-   math3d::ipoint3( 0,  0,  1),
+static const csg::Point3 _adjacent[] = {
+   csg::Point3( 1,  0,  0),
+   csg::Point3(-1,  0,  0),
+   csg::Point3( 0,  0, -1),
+   csg::Point3( 0,  0,  1),
 
-   //math3d::ipoint3( 1, -1,  0),
-   //math3d::ipoint3(-1, -1,  0),
-   //math3d::ipoint3( 0, -1, -1),
-   //math3d::ipoint3( 0, -1,  1),
+   //csg::Point3( 1, -1,  0),
+   //csg::Point3(-1, -1,  0),
+   //csg::Point3( 0, -1, -1),
+   //csg::Point3( 0, -1,  1),
 
-   //math3d::ipoint3( 1,  1,  0),
-   //math3d::ipoint3(-1,  1,  0),
-   //math3d::ipoint3( 0,  1, -1),
-   //math3d::ipoint3( 0,  1,  1),
+   //csg::Point3( 1,  1,  0),
+   //csg::Point3(-1,  1,  0),
+   //csg::Point3( 0,  1, -1),
+   //csg::Point3( 0,  1,  1),
 };
 
 template <class T>
 T WorldToLocal(const T& coord, const om::Entity& entity)
 {
-   math3d::point3 origin(0, 0, 0);
+   csg::Point3f origin(0, 0, 0);
    auto mob = entity.GetComponent<om::Mob>();
    if (mob) {
       origin = mob->GetWorldLocation();
@@ -100,7 +100,7 @@ void OctTree::OnComponentAdded(om::EntityRef e, dm::ObjectType type, std::shared
 }
 
 #if 0
-void OctTree::GetActorsIn(const math3d::aabb &bounds, QueryCallback cb)
+void OctTree::GetActorsIn(const csg::Cube3f &bounds, QueryCallback cb)
 {
    auto filter = [bounds, cb](om::EntityPtr entity) -> bool {
       auto a = entity->GetComponent<om::Mob>();
@@ -116,7 +116,7 @@ void OctTree::GetActorsIn(const math3d::aabb &bounds, QueryCallback cb)
 }
 #endif
 
-void OctTree::TraceRay(const math3d::ray3 &ray, RayQueryCallback cb)
+void OctTree::TraceRay(const csg::Ray3 &ray, RayQueryCallback cb)
 {
    //ASSERT(rootObject_);
 
@@ -124,8 +124,8 @@ void OctTree::TraceRay(const math3d::ray3 &ray, RayQueryCallback cb)
       float t;
       auto mob = entity->GetComponent<om::Mob>();
       if (mob) {
-         math3d::aabb box = mob->GetWorldAABB();
-         if (box.Intersects(t, ray)) {
+         csg::Cube3f box = mob->GetWorldAABB();
+         if (csg::Cube3Intersects(box, ray, t)) {
             cb(entity, t);
             return true;
          }
@@ -170,7 +170,7 @@ om::EntityPtr OctTree::FindFirstActor(om::EntityPtr root, std::function <bool(om
 }
 
 #if 0
-bool OctTree::CanStand(const math3d::ipoint3& at) const
+bool OctTree::CanStand(const csg::Point3& at) const
 {
    PROFILE_BLOCK();
 
@@ -178,7 +178,7 @@ bool OctTree::CanStand(const math3d::ipoint3& at) const
       return false;
    }
 
-   if (!IsPassable(at + math3d::ipoint3(0, -1, 0))) {
+   if (!IsPassable(at + csg::Point3(0, -1, 0))) {
       return true;
    }
 
@@ -188,7 +188,7 @@ bool OctTree::CanStand(const math3d::ipoint3& at) const
          auto region = vpr->GetRegionPtr();
          if (region) {
             const csg::Region3& rgn = **region;
-            const math3d::ipoint3 from = math3d::ipoint3(WorldToLocal(math3d::point3(at), vpr->GetEntity()));
+            const csg::Point3 from = csg::Point3(WorldToLocal(csg::Point3f(at), vpr->GetEntity()));
             if (rgn.Contains(from)) {
                return true;
             }
@@ -198,7 +198,7 @@ bool OctTree::CanStand(const math3d::ipoint3& at) const
    return false;
 }
 
-bool OctTree::IsPassable(const math3d::ipoint3& at) const
+bool OctTree::IsPassable(const csg::Point3& at) const
 {
    return true;
 }
@@ -208,19 +208,19 @@ bool OctTree::IsPassable(const math3d::ipoint3& at) const
 bool OctTree::IsStuck(om::EntityPtr entity)
 {
    auto mob = entity->GetComponent<om::Mob>();
-   return mob ? !navgrid_.IsEmpty(math3d::ipoint3(mob->GetLocation())) : false;
+   return mob ? !navgrid_.IsEmpty(csg::ToInt(mob->GetLocation())) : false;
 }
 
-void OctTree::Unstick(std::vector<math3d::ipoint3> &points)
+void OctTree::Unstick(std::vector<csg::Point3> &points)
 {
    for (unsigned int i = 0; i < points.size(); i++) {
       points[i] = Unstick(points[i]);
    }
 }
 
-math3d::ipoint3 OctTree::Unstick(const math3d::ipoint3 &pt)
+csg::Point3 OctTree::Unstick(const csg::Point3 &pt)
 {
-   math3d::ipoint3 end = pt;
+   csg::Point3 end = pt;
 
    while (!navgrid_.IsEmpty(end)) {
       end.y += 1;
@@ -232,14 +232,14 @@ math3d::ipoint3 OctTree::Unstick(const math3d::ipoint3 &pt)
 #endif
 
    end.y += 1;
-   return math3d::ipoint3(end);
+   return csg::Point3(end);
 }
 
 void OctTree::Unstick(om::EntityPtr entity)
 {
    auto mob = entity->GetComponent<om::Mob>();
    if (mob) {
-      math3d::ipoint3 end = math3d::ipoint3(mob->GetLocation());
+      csg::Point3 end = csg::ToInt(mob->GetLocation());
 
       while (!navgrid_.IsEmpty(end)) {
          end.y += 1;
@@ -248,29 +248,29 @@ void OctTree::Unstick(om::EntityPtr entity)
          end.y -= 1;
       }
       end.y += 1;
-      mob->MoveTo(math3d::point3(end));
+      mob->MoveTo(csg::ToFloat(end));
    }
 }
 
-std::vector<std::pair<math3d::ipoint3, int>> OctTree::ComputeNeighborMovementCost(const math3d::ipoint3& from) const
+std::vector<std::pair<csg::Point3, int>> OctTree::ComputeNeighborMovementCost(const csg::Point3& from) const
 {
-   std::vector<std::pair<math3d::ipoint3, int>> result;
+   std::vector<std::pair<csg::Point3, int>> result;
 
-   static const math3d::ipoint3 directions[] = {
+   static const csg::Point3 directions[] = {
       // cardinals and diagonals
-      math3d::ipoint3( 1, 0, 0 ),
-      math3d::ipoint3(-1, 0, 0 ),
-      math3d::ipoint3( 0, 0, 1 ),
-      math3d::ipoint3( 0, 0,-1 ),
-      math3d::ipoint3( 1, 0, 1 ),
-      math3d::ipoint3(-1, 0,-1 ),
-      math3d::ipoint3(-1, 0, 1 ),
-      math3d::ipoint3( 1, 0,-1 ),
+      csg::Point3( 1, 0, 0 ),
+      csg::Point3(-1, 0, 0 ),
+      csg::Point3( 0, 0, 1 ),
+      csg::Point3( 0, 0,-1 ),
+      csg::Point3( 1, 0, 1 ),
+      csg::Point3(-1, 0,-1 ),
+      csg::Point3(-1, 0, 1 ),
+      csg::Point3( 1, 0,-1 ),
    };
-   static const math3d::ipoint3 climb[] = {
+   static const csg::Point3 climb[] = {
       // ladder climbing
-      math3d::ipoint3( 0, 1, 0 ),
-      math3d::ipoint3( 0,-1, 0 ),
+      csg::Point3( 0, 1, 0 ),
+      csg::Point3( 0,-1, 0 ),
    };
 
    for (const auto& direction : directions) {
@@ -296,10 +296,10 @@ std::vector<std::pair<math3d::ipoint3, int>> OctTree::ComputeNeighborMovementCos
       if (vpr) {
          auto region = vpr->GetRegionPtr();
          if (region) {
-            const math3d::ipoint3 f = math3d::ipoint3(WorldToLocal(math3d::point3(from), vpr->GetEntity()));
+            const csg::Point3 f = csg::Point3(WorldToLocal(csg::Point3f(from), vpr->GetEntity()));
             const csg::Region3& rgn = **region;
             for (const auto& direction : climb) {
-               math3d::ipoint3 to = f + direction;
+               csg::Point3 to = f + direction;
                if (rgn.Contains(f) && rgn.Contains(to) && IsPassable(to)) {
                   result.push_back(std::make_pair(from + direction, EstimateMovementCost(f, to)));
                }
@@ -312,7 +312,7 @@ std::vector<std::pair<math3d::ipoint3, int>> OctTree::ComputeNeighborMovementCos
 }
 
 #if 0
-bool OctTree::CanStepUp(math3d::ipoint3& at) const
+bool OctTree::CanStepUp(csg::Point3& at) const
 {
    for (int i = 0; i < 2; i++) {
       if (IsPassable(at)) {
@@ -323,7 +323,7 @@ bool OctTree::CanStepUp(math3d::ipoint3& at) const
    return false;
 }
 
-bool OctTree::CanFallDown(math3d::ipoint3& at) const
+bool OctTree::CanFallDown(csg::Point3& at) const
 {
    for (int i = 0; i < 2; i++) {
       if (CanStand(at)) {
@@ -335,7 +335,7 @@ bool OctTree::CanFallDown(math3d::ipoint3& at) const
 }
 #endif
 
-int OctTree::EstimateMovementCost(const math3d::ipoint3& start, const math3d::ipoint3& end) const
+int OctTree::EstimateMovementCost(const csg::Point3& start, const csg::Point3& end) const
 {
    static int COST_SCALE = 10;
    int cost = 0;
@@ -357,12 +357,12 @@ int OctTree::EstimateMovementCost(const math3d::ipoint3& start, const math3d::ip
    return cost;
 }
 
-int OctTree::EstimateMovementCost(const math3d::ipoint3& src, const csg::Region3& dst) const
+int OctTree::EstimateMovementCost(const csg::Point3& src, const csg::Region3& dst) const
 {
    return !dst.IsEmpty() ? EstimateMovementCost(src, dst.GetClosestPoint(src)) : INT_MAX;
 }
 
-int OctTree::EstimateMovementCost(const math3d::ipoint3& src, const std::vector<math3d::ipoint3>& points) const
+int OctTree::EstimateMovementCost(const csg::Point3& src, const std::vector<csg::Point3>& points) const
 {
    int cost = INT_MAX;
    for (const auto& pt : points) {
@@ -409,8 +409,8 @@ bool OctTree::UpdateSensor(om::SensorPtr sensor)
    if (!mob) {
       return false;
    }
-   csg::Point3 origin = mob->GetWorldLocation();
-   csg::Cube3 cube = sensor->GetCube() + origin;
+   csg::Point3f origin = mob->GetWorldLocation();
+   csg::Cube3f cube = sensor->GetCube() + origin;
 
    std::vector<dm::ObjectId> intersects;
    auto i = entities_.begin();

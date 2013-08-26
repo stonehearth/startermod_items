@@ -1,4 +1,4 @@
-local RadiantIPoint3 = _radiant.math3d.RadiantIPoint3
+local RadiantIPoint3 = _radiant.csg.Point3
 local CreateWorkbench = class()
 
 -- server side object to handle creation of the workbench.  this is called

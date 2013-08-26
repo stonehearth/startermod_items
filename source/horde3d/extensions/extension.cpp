@@ -85,9 +85,7 @@ bool h3dRadiantResizeStockpileNode(H3DNode node, int width, int height)
 
    APIFUNC_VALIDATE_NODE_TYPE(sceneNode, SNT_StockpileNode, "h3dRadiantResizeStockpileNode", false );
 
-   math3d::ibounds3 bounds(math3d::ipoint3::origin, math3d::ipoint3::origin);
-   bounds._max.x += width;
-   bounds._max.z += height;
+   csg::Cube3 bounds(csg::Point3::zero, csg::Point3(width, 0, height));
    ((StockpileNode*)sceneNode)->UpdateShape(bounds);
    return true;
 }
@@ -156,7 +154,7 @@ DLL bool h3dRadiantCommitDebugShape(H3DNode node)
    return true;
 }
 
-DLL bool h3dRadiantAddDebugBox(H3DNode node, const math3d::aabb& box, const math3d::color4& color)
+DLL bool h3dRadiantAddDebugBox(H3DNode node, const csg::Cube3f& box, const csg::Color4& color)
 {
 	SceneNode *sn = Modules::sceneMan().resolveNodeHandle(node);
    APIFUNC_VALIDATE_NODE_TYPE(sn, SNT_DebugShapesNode, "h3dRadiantAddDebugBox", false);
@@ -165,7 +163,7 @@ DLL bool h3dRadiantAddDebugBox(H3DNode node, const math3d::aabb& box, const math
    return true;
 }
 
-DLL bool h3dRadiantAddDebugRegion(H3DNode node, const csg::Region3& rgn, const math3d::color4& color)
+DLL bool h3dRadiantAddDebugRegion(H3DNode node, const csg::Region3& rgn, const csg::Color4& color)
 {
 	SceneNode *sn = Modules::sceneMan().resolveNodeHandle(node);
    APIFUNC_VALIDATE_NODE_TYPE(sn, SNT_DebugShapesNode, "h3dRadiantAddDebugRegion", false);
@@ -184,7 +182,7 @@ DLL bool h3dRadiantDecodeDebugShapes(H3DNode node, const protocol::shapelist &sh
    return true;
 }
 
-DLL bool h3dRadiantAddDebugQuadXZ(H3DNode node, const ::radiant::math3d::point3& p0, const ::radiant::math3d::point3& p1, const ::radiant::math3d::color4& color)
+DLL bool h3dRadiantAddDebugQuadXZ(H3DNode node, const ::radiant::csg::Point3f& p0, const ::radiant::csg::Point3f& p1, const ::radiant::csg::Color4& color)
 {
 	SceneNode *sn = Modules::sceneMan().resolveNodeHandle(node);
    APIFUNC_VALIDATE_NODE_TYPE(sn, SNT_DebugShapesNode, "h3dRadiantAddDebugBox", false);
@@ -193,7 +191,7 @@ DLL bool h3dRadiantAddDebugQuadXZ(H3DNode node, const ::radiant::math3d::point3&
    return true;
 }
 
-DLL bool h3dRadiantAddDebugLine(H3DNode node, const ::radiant::math3d::point3& p0, const ::radiant::math3d::point3& p1, const ::radiant::math3d::color4& color)
+DLL bool h3dRadiantAddDebugLine(H3DNode node, const ::radiant::csg::Point3f& p0, const ::radiant::csg::Point3f& p1, const ::radiant::csg::Color4& color)
 {
 	SceneNode *sn = Modules::sceneMan().resolveNodeHandle(node);
    APIFUNC_VALIDATE_NODE_TYPE(sn, SNT_DebugShapesNode, "h3dRadiantAddDebugBox", false);

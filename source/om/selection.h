@@ -3,7 +3,7 @@
 
 #include "om.h"
 #include "dm/dm.h"
-#include "math3d.h"
+#include "csg/cube.h"
 #include "protocols/store.pb.h"
 #include "protocols/tesseract.pb.h"
 #include "radiant_luabind.h"
@@ -19,7 +19,7 @@ public:
       string_ = str;
    }
 
-   Selection(math3d::ipoint3 block) {
+   Selection(csg::Point3 block) {
       flags_ = HAS_BLOCK;
       block_ = block;
    }
@@ -37,21 +37,21 @@ public:
    
    void Clear();
 
-   void AddBlock(const math3d::ipoint3& location);
+   void AddBlock(const csg::Point3& location);
    bool HasBlock() const;
-   const math3d::ipoint3& GetBlock() const;
+   const csg::Point3& GetBlock() const;
 
    bool HasLocation() const;
-   void AddLocation(const math3d::point3& location, const math3d::vector3& normal);
-   const math3d::vector3& GetNormal();
+   void AddLocation(const csg::Point3f& location, const csg::Point3f& normal);
+   const csg::Point3f& GetNormal();
    
    bool HasEntities();
    void AddEntity(const dm::ObjectId);
    const std::vector<dm::ObjectId>& GetEntities() { return entities_; }
    
    bool HasBounds() const { return (flags_ & HAS_BOUNDS) != 0; }
-   void SetBounds(const math3d::ibounds3& bounds);
-   const math3d::ibounds3& GetBounds() const { return bounds_; }
+   void SetBounds(const csg::Cube3& bounds);
+   const csg::Cube3& GetBounds() const { return bounds_; }
 
    void AddString(std::string s);
    std::string GetString() const { return (flags_ & HAS_STRING) ? string_ : std::string(); }
@@ -78,10 +78,10 @@ private:
 private:  
    int               flags_;
    int               number_;
-   math3d::ipoint3   block_;
-   math3d::point3    location_;
-   math3d::vector3   normal_;
-   math3d::ibounds3  bounds_;
+   csg::Point3   block_;
+   csg::Point3f    location_;
+   csg::Point3f   normal_;
+   csg::Cube3  bounds_;
    std::string       string_;
    std::vector<dm::ObjectId> entities_;
 

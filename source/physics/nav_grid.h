@@ -2,7 +2,6 @@
 #define _RADIANT_PHYSICS_NAV_GRID_H
 
 #include <unordered_map>
-#include "math3d.h"
 #include "namespace.h"
 #include "csg/region.h"
 #include "om/om.h"

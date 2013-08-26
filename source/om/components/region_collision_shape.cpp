@@ -10,8 +10,8 @@ void RegionCollisionShape::InitializeRecordFields()
    AddRecordField("region", region_);
 }
 
-math3d::aabb RegionCollisionShape::GetAABB() const
+csg::Cube3f RegionCollisionShape::GetAABB() const
 {
    ASSERT(false);
-   return math3d::aabb();
+   return csg::Cube3f();
 }

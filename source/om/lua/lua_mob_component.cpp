@@ -28,6 +28,6 @@ scope LuaMobComponent::RegisterLuaTypes(lua_State* L)
          .def("set_interpolate_movement",    &Mob::SetInterpolateMovement)
          .def("trace_transform",             &Mob_TraceTransform)
       ,
-      dm::Boxed<math3d::transform>::RegisterLuaType(L)
+      dm::Boxed<csg::Transform>::RegisterLuaType(L)
       ;
 }

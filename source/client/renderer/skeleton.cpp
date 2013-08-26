@@ -2,7 +2,8 @@
 #include "skeleton.h"
 #include "renderer.h"
 
-using radiant::math3d::point3;
+using namespace ::radiant;
+using radiant::csg::Point3f;
 using radiant::client::Renderer;
 using radiant::client::Skeleton;
 
@@ -27,7 +28,7 @@ void Skeleton::Clear()
    _bones.clear();
 }
 
-H3DNode Skeleton::AttachEntityToBone(H3DRes res, std::string bone, point3 offset)
+H3DNode Skeleton::AttachEntityToBone(H3DRes res, std::string bone, csg::Point3f const& offset)
 {
    ASSERT(_parent);
 
@@ -35,7 +36,7 @@ H3DNode Skeleton::AttachEntityToBone(H3DRes res, std::string bone, point3 offset
    if (!b) {
       b = CreateBone(bone);
    }
-   if (!offset.is_zero()) {
+   if (offset.x || offset.y || offset.z) {
       assert(false);
       // b = b->createChildSceneNode(name, Vector3(offset));
    }

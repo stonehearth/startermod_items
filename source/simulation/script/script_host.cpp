@@ -266,17 +266,6 @@ void ScriptHost::CreateNew()
       game_ = luabind::call_function<luabind::object>(game_ctor_);
       p1_ = globals(L_)["radiant"]["gamestate"]["_create_player"]('civ');
    } CATCH_LUA_ERROR("initializing environment");
-
-#if 0
-   // Run each scenario once...
-   object options = luabind::newtable(L_);
-   options["box"] = object(L_, math3d::aabb(math3d::point3(-20, 0, -20), math3d::point3(20, 20, 20)));
-   for (const auto& entry : scenarios_) {
-      LOG(WARNING) << "creating new scenario " << entry.first << ".";
-      call_function<object>(entry.second, "construct", options);
-      LOG(WARNING) << "done.";
-   }
-#endif
 }
 
 void ScriptHost::Update(int interval, int& currentGameTime)
@@ -507,7 +496,7 @@ std::shared_ptr<FollowPath> ScriptHost::CreateFollowPath(om::EntityRef entity, f
    return fp;
 }
 
-std::shared_ptr<GotoLocation> ScriptHost::CreateGotoLocation(om::EntityRef entity, float speed, const math3d::point3& location, float close_to_distance, luabind::object arrived_cb)
+std::shared_ptr<GotoLocation> ScriptHost::CreateGotoLocation(om::EntityRef entity, float speed, const csg::Point3f& location, float close_to_distance, luabind::object arrived_cb)
 {
    luabind::object cb(cb_thread_, arrived_cb);
    std::shared_ptr<GotoLocation> fp = std::make_shared<GotoLocation>(entity, speed, location, close_to_distance, cb);

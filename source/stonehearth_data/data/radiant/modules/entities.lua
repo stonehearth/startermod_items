@@ -1,7 +1,7 @@
 local entities = {}
 local singleton = {}
 
-local RadiantIPoint3 = _radiant.math3d.RadiantIPoint3
+local RadiantIPoint3 = _radiant.csg.Point3
 
 function entities.__init()
    singleton._entity_dtors = {}

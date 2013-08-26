@@ -2,7 +2,7 @@ local stonehearth_building = {
    STOREY_HEIGHT = 7
 } 
 
-local RadiantIPoint3 = _radiant.math3d.RadiantIPoint3
+local RadiantIPoint3 = _radiant.csg.Point3
 
 function stonehearth_building.create_column(faction, x, z)
    local entity = radiant.entities.create_entity('/stonehearth_building/entities/column_blueprint')

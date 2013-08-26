@@ -11,7 +11,7 @@ namespace po = boost::program_options;
 
 extern po::variables_map configvm;
 
-GotoLocation::GotoLocation(om::EntityRef entity, float speed, const math3d::point3& location, float close_to_distance, luabind::object arrived_cb) :
+GotoLocation::GotoLocation(om::EntityRef entity, float speed, const csg::Point3f& location, float close_to_distance, luabind::object arrived_cb) :
    Task("goto location"),
    entity_(entity),
    target_location_(location),
@@ -20,7 +20,7 @@ GotoLocation::GotoLocation(om::EntityRef entity, float speed, const math3d::poin
    close_to_distance_(close_to_distance),
    arrived_cb_(arrived_cb)
 {
-   if (math3d::is_zero(speed)) {
+   if (csg::IsZero(speed)) {
       speed_ = 1.0f;
    }
    Report("constructor");
@@ -35,15 +35,15 @@ GotoLocation::GotoLocation(om::EntityRef entity, float speed, const om::EntityRe
    close_to_distance_(close_to_distance),
    arrived_cb_(arrived_cb)
 {
-   if (math3d::is_zero(speed)) {
+   if (csg::IsZero(speed)) {
       speed_ = 1.0f;
    }
    Report("constructor");
 }
 
-static float angle(const math3d::vector3 &v)
+static float angle(const csg::Point3f &v)
 {
-   return math3d::atan2(v.z, -v.x) - math3d::atan2(-1, 0);
+   return (float)(atan2(v.z, -v.x) - atan2(-1, 0));
 }
 
 bool GotoLocation::Work(const platform::timer &timer)
@@ -73,11 +73,11 @@ bool GotoLocation::Work(const platform::timer &timer)
    float speedMultiplier = configvm["game.travel_speed_multiplier"].as<float>();
    float maxDistance = speed_ * speedMultiplier;
 
-   math3d::point3 current = mob->GetLocation();
-   math3d::vector3 direction = math3d::vector3(target_location_ - current);
+   csg::Point3f current = mob->GetLocation();
+   csg::Point3f direction = csg::Point3f(target_location_ - current);
 
-   float togo = direction.length() - close_to_distance_;
-   direction.normalize();
+   float togo = direction.Length() - close_to_distance_;
+   direction.Normalize();
 
    if (togo < maxDistance) {
       mob->MoveTo(current + direction * togo);
@@ -87,7 +87,7 @@ bool GotoLocation::Work(const platform::timer &timer)
       }
       return false;
    }
-   mob->TurnToAngle(angle(direction) * 180 / k_pi);
+   mob->TurnToAngle(angle(direction) * 180 / csg::k_pi);
    mob->MoveTo(current + direction * maxDistance);
    Report("moving");
    return true;
@@ -105,7 +105,7 @@ void GotoLocation::Report(std::string msg)
    if (entity) {
       auto location = entity->GetComponent<om::Mob>()->GetWorldLocation();
       LOG(INFO) << msg << " (entity " << entity->GetObjectId() << " goto location " << (void*)this << " entity:" << entity->GetObjectId() << " " << target_location_ << " currently at " << location << 
-         ".  close to:" << close_to_distance_ << "  current d:" << target_location_.distance(location) <<  ")";
+         ".  close to:" << close_to_distance_ << "  current d:" << target_location_.DistanceTo(location) <<  ")";
    }
 }
 

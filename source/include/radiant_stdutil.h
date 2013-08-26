@@ -154,7 +154,7 @@ namespace radiant {
          return container.find(item) != container.end();
       }
 
-      template <class K, class V> bool contains(const std::hash_map<K, V> &container, const K &item) {
+      template <class K, class V, typename H> bool contains(const std::hash_map<K, V, H> &container, const K &item) {
          return container.find(item) != container.end();
       }
 
@@ -178,6 +178,10 @@ namespace radiant {
             }
          }
          return false;
+      }
+
+      template <typename V, typename I> bool contains(const V &container, const I &item) {
+         return container.find(item) != container.end();
       }
 
       template <class C> typename C::value_type pop_front(C &container) {

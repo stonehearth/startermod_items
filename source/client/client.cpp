@@ -1,7 +1,6 @@
 #include "pch.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include "math3d/common/rect2d.h"
 #include "xz_region_selector.h"
 #include "om/entity.h"
 #include "om/components/terrain.h"
@@ -526,7 +525,7 @@ void Client::CenterMap(const MouseEvent &mouse)
 
    Renderer::GetInstance().QuerySceneRay(mouse.x, mouse.y, s);
    if (s.HasBlock()) {
-      Renderer::GetInstance().PointCamera(math3d::point3(s.GetBlock()));
+      Renderer::GetInstance().PointCamera(csg::ToFloat(s.GetBlock()));
    }
 }
 
@@ -535,7 +534,7 @@ void Client::UpdateSelection(const MouseEvent &mouse)
    om::Selection s;
    Renderer::GetInstance().QuerySceneRay(mouse.x, mouse.y, s);
 
-   math3d::ray3 r = Renderer::GetInstance().GetCameraToViewportRay(mouse.x, mouse.y);
+   csg::Ray3 r = Renderer::GetInstance().GetCameraToViewportRay(mouse.x, mouse.y);
    om::EntityPtr stockpile = NULL;
 
    float minDistance = FLT_MAX;
@@ -1076,7 +1075,7 @@ Client_QueryScene(lua_State* L, Client const&, int x, int y)
    object result = newtable(L);
    if (s.HasBlock()) {
       result["location"] = object(L, s.GetBlock());
-      result["normal"]   = object(L, math3d::ipoint3(s.GetNormal()));
+      result["normal"]   = object(L, csg::ToInt(s.GetNormal()));
    }
    return result;
 }
@@ -1148,7 +1147,7 @@ std::shared_ptr<LuaDeferred1<DeferredResponse>> Client_Call(lua_State* L, Client
    return std::make_shared<LuaDeferred1<DeferredResponse>>(c.GetScriptHost(), response);
 }
 
-bool Client_IsBlocked(lua_State* L, Client& c, math3d::ipoint3 const& pt)
+bool Client_IsBlocked(lua_State* L, Client& c, csg::Point3 const& pt)
 {
    return !c.GetOctTree().CanStand(pt);
 }

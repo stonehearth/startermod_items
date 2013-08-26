@@ -5,7 +5,6 @@ add_library(metrics STATIC
 
 target_link_libraries(metrics
                       core
-                      math3d_common
                       metrics
                       resources
                       platform

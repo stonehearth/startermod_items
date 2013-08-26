@@ -9,7 +9,7 @@ local Region2 = _radiant.csg.Region2
 local Region3 = _radiant.csg.Region3
 local HeightMapCPP = _radiant.csg.HeightMap
 
-local RadiantIPoint3 = _radiant.math3d.RadiantIPoint3
+local RadiantIPoint3 = _radiant.csg.Point3
 
 local TeraGen = radiant.mods.require('/stonehearth_terrain')
 

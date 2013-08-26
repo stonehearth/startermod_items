@@ -88,19 +88,19 @@ message Queue {
 extend Value {
    required int32 integer = 100;
    required string string = 101;
-   required radiant.protocol.point3 point3 = 102;
-   required radiant.protocol.transform transform = 103;
-   required radiant.protocol.ipoint3 ipoint3 = 104;
-   required radiant.protocol.aabb aabb = 105;
-   required radiant.protocol.region2 region2 = 106;
-   required radiant.protocol.sphere sphere = 107;
-   required radiant.protocol.ibounds3 ibounds3 = 108;
-   required radiant.protocol.region region = 109;
-   required radiant.protocol.point point = 110;
-   required radiant.protocol.cube cube = 111;
-   required radiant.protocol.color color = 112;
-   required bool boolean = 113;
-   required float floatingpoint = 114;
+   required bool boolean = 102;
+   required float floatingpoint = 103;
+   required radiant.protocol.transform transform = 104;
+   required radiant.protocol.point2i point2i = 105;
+   required radiant.protocol.point3i point3i = 106;
+   required radiant.protocol.point3f point3f = 107;
+   required radiant.protocol.cube3i cube3i  = 108;
+   required radiant.protocol.cube3f cube3f  = 109;
+   required radiant.protocol.cube2i cube2i  = 110;
+   required radiant.protocol.region3i region3i  = 111;
+   required radiant.protocol.region2i region2i  = 112;
+   required radiant.protocol.sphere3f sphere3f  = 113;
+   required radiant.protocol.color color = 120;
 };
 
 message Animation {
@@ -130,22 +130,13 @@ message Grid {
 
 message Selection {
    optional int32             entity = 1;
-   optional radiant.protocol.ibounds3  bounds = 2;
+   optional radiant.protocol.cube3i  bounds = 2;
    optional int32 object = 3;
    optional int32 object_type = 4;
-   optional radiant.protocol.ipoint3 block = 5;
+   optional radiant.protocol.point3i block = 5;
    optional string string = 6;
    optional int32 number = 7;
    extend Value {
       required Selection extension  = 203;
    }
 }
-
-message TerrainBlock {
-   required int32                   type = 1;
-   required radiant.protocol.cube   cube = 2;
-   extend Value {
-      required TerrainBlock extension  = 204;
-   }
-}
-

@@ -7,7 +7,7 @@
 #include "types.h"
 #include "om/om.h"
 #include "dm/dm.h"
-#include "math3d.h"
+#include "csg/transform.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -27,9 +27,9 @@ private:
    const RenderEntity&  entity_;
    om::MobRef           mob_;
    dm::Guard              tracer_;
-   math3d::transform    _initial;
-   math3d::transform    _final;
-   math3d::transform    _current;
+   csg::Transform    _initial;
+   csg::Transform    _final;
+   csg::Transform    _current;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

@@ -1,7 +1,7 @@
 local MicroWorld = require 'stonehearth_tests.lib.micro_world'
 local ProfessionInfo = radiant.mods.require('/stonehearth_classes/components/profession_info.lua')
 local CraftOrder = radiant.mods.require('/stonehearth_crafter/lib/craft_order.lua')
-local RadiantIPoint3 = _radiant.math3d.RadiantIPoint3
+local RadiantIPoint3 = _radiant.csg.Point3
 
 local CarpenterTest = class(MicroWorld)
 --[[

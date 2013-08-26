@@ -1,5 +1,4 @@
 #include "pch.h"
-#include "math3d.h"
 #include "lua_mob.h"
 #include "lua_worker_scheduler.h"
 #include "luabind/operator.hpp"

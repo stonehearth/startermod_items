@@ -3,8 +3,8 @@
 
 #include "egPrerequisites.h"
 #include "egScene.h"
-#include "math3d.h"
 #include "csg/region.h"
+#include "csg/color.h"
 #include "namespace.h"
 #include "radiant.pb.h"
 #include "../extension.h"
@@ -40,12 +40,12 @@ public:
    void decode(const protocol::shapelist &shapes);
    void clear();
    void createBuffers();
-   void add_aabb(const math3d::aabb& aabb, const math3d::color4& color);
-   void add_region(const csg::Region3& rgn, const math3d::color4& color);
-	void add_quad_xz(const math3d::point3 &p0, const math3d::point3 &p1, const math3d::color4 &color);
-   void add_line(const math3d::point3 &p0, const math3d::point3 &p1, const math3d::color4 &c);
-   void add_triangle(const math3d::point3 points[3], const math3d::color4 &c);
-   void add_quad(const math3d::point3 points[4], const math3d::color4 &c);
+   void add_aabb(const csg::Cube3f& aabb, const csg::Color4& color);
+   void add_region(const csg::Region3& rgn, const csg::Color4& color);
+	void add_quad_xz(const csg::Point3f &p0, const csg::Point3f &p1, const csg::Color4 &color);
+   void add_line(const csg::Point3f &p0, const csg::Point3f &p1, const csg::Color4 &c);
+   void add_triangle(const csg::Point3f points[3], const csg::Color4 &c);
+   void add_quad(const csg::Point3f points[4], const csg::Color4 &c);
 
 private:
    struct Primitives {
@@ -60,7 +60,7 @@ private:
       float             position[3];
       float             color[4];
 
-      Vertex(const math3d::point3& v, const math3d::color4& c) {
+      Vertex(const csg::Point3f& v, const csg::Color4& c) {
          for (int i = 0; i < 3; i++) {
             position[i] = v[i];
          }
@@ -76,9 +76,9 @@ private:
    bool empty();
    void decode_line(const protocol::line &line);
    void decode_quad(const protocol::quad &quad);
-   void decode_coord(const protocol::coord &coord);
    void decode_box(const protocol::box &box);
-   void decode_region(const protocol::region &region);
+   void decode_region(const protocol::region3i &region);
+   void decode_coord(const protocol::coord &coord);
    void onFinishedUpdate() override;
    
 private:

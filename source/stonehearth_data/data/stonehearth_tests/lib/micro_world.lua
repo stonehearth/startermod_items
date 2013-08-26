@@ -1,7 +1,6 @@
 local MicroWorld = class()
 
-local RadiantIPoint3 = _radiant.math3d.RadiantIPoint3
-local RadiantBounds3 = _radiant.math3d.RadiantBounds3
+local RadiantIPoint3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local Terrain = _radiant.om.Terrain
@@ -87,7 +86,7 @@ end
 function MicroWorld:create_room(faction, x, z, w, h)
    w = w and w or 3
    h = h and h or 3
-   local bounds = RadiantBounds3(RadiantIPoint3(x, 1, z),
+   local bounds = Cube3(RadiantIPoint3(x, 1, z),
                                  RadiantIPoint3(x + w, 2, z + h))
 
    return radiant.mods.require('/stonehearth_building').create_room(faction, x, z, w, h)

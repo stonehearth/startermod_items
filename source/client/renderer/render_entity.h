@@ -3,7 +3,8 @@
 
 #include <unordered_map>
 #include "namespace.h"
-#include "math3d.h"
+#include "csg/transform.h"
+#include "csg/ray.h"
 #include "om/om.h"
 #include "dm/dm.h"
 #include "types.h"
@@ -48,14 +49,14 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       void RemoveChildren();
       void AddChild(om::EntityPtr child);
       void RemoveChild(om::EntityPtr child);
-      void MoveSceneNode(H3DNode node, const math3d::transform& transform, float scale = 1.0f);
+      void MoveSceneNode(H3DNode node, const csg::Transform& transform, float scale = 1.0f);
       void UpdateNodeFlags();
       void UpdateComponents();
       void AddComponent(dm::ObjectType key, std::shared_ptr<dm::Object> value);
       void AddLuaComponents(om::LuaComponentsPtr lua_components);
       void RemoveComponent(dm::ObjectType key);
-      void OnSelected(om::Selection& sel, const math3d::ray3& ray,
-                      const math3d::point3& intersection, const math3d::point3& normal);
+      void OnSelected(om::Selection& sel, const csg::Ray3& ray,
+                      const csg::Point3f& intersection, const csg::Point3f& normal);
       void CreateRenderRigs();
 
    protected:

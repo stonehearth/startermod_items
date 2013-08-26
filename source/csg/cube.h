@@ -2,12 +2,11 @@
 #define _RADIANT_CSG_BOX_H
 
 #include "namespace.h"
-#include "math3d.h"
 #include "point.h"
-#include "math3d.h"
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
+class Ray;
 template <typename S, int C> class Region;
 
 template <typename S, int C>
@@ -25,13 +24,15 @@ public:
    Cube();
    Cube(const Point& max, int tag = 0);
    Cube(const Point& min, const Point& max, int tag = 0);
-   Cube(const protocol::cube& msg);
 
-   static Cube Construct(Point min, Point max, int tag = 0);
-
-   // nuke these...
-   Cube(const math3d::aabb& a) : min_(a._min), max_(a._max) { }
-   operator math3d::aabb() const { return math3d::aabb(min_, max_); }
+   static Cube Construct(Point min, Point max, int tag = 0) {
+      for (int i = 0; i < C; i++) {
+         if (min[i] > max[i]) {
+            std::swap(min[i], max[i]);
+         }
+      }
+      return Cube(min, max, tag);
+   }
 
    struct PointIterator {
       PointIterator(const Cube& c, const Point& iter) :
@@ -71,18 +72,18 @@ public:
    PointIterator begin() const { return PointIterator(*this, GetMin()); }
    PointIterator end() const { return PointIterator(*this, Point(min_[0], max_[1], min_[2])); }
 
-   // nuke these
-   Cube(const math3d::ibounds3& b) : min_(b._min), max_(b._max) { }
-   operator math3d::ibounds3() const { return math3d::ibounds3(min_, max_); }
-
    S GetArea() const;
    bool IsEmpty() const { return GetArea() == 0; }
    const Point& GetMin() const { return min_; }
    const Point& GetMax() const { return max_; }
    void SetMin(const Point& min) { min_ = min; }
    void SetMax(const Point& max) { max_ = max; }
-
    void Grow(const Point& pt);
+
+   void SetZero() {
+      min_.SetZero();
+      max_.SetZero();
+   }
 
    template <class U> void Translate(const U& pt) {
       for (int i = 0; i < C; i++) {
@@ -91,7 +92,7 @@ public:
       }
    }
 
-   Cube Scale(S factor) { return Cube(min_.Scale(factor), max_.Scale(factor)); }
+   Cube Scaled(float factor) { return Cube(min_.Scaled(factor), max_.Scaled(factor)); }
    Cube ProjectOnto(int axis, S plane) const;
 
    bool Intersects(const Cube& other) const;
@@ -119,12 +120,12 @@ public:
    void SetTag(int tag) { tag_ = tag; }
 
 public:
-   void SaveValue(protocol::cube* msg) const {
+   template <class T> void SaveValue(T* msg) const {
       min_.SaveValue(msg->mutable_min());
       max_.SaveValue(msg->mutable_max());
       msg->set_tag(tag_);
    }
-   void LoadValue(const protocol::cube& msg) {
+   template <class T> void LoadValue(const T& msg) {
       tag_ = msg.tag();
       min_.LoadValue(msg.min());
       max_.LoadValue(msg.max());
@@ -147,10 +148,14 @@ typedef Cube<int, 2> Rect2;
 typedef Cube<int, 3> Cube3;
 typedef Cube<float, 3> Cube3f;
 
-bool Cube3Intersects(const Cube3& rgn, const math3d::ray3& ray, float& distance);
+class Ray3;
+
+bool Cube3Intersects(const Cube3& rgn, const Ray3& ray, float& distance);
+bool Cube3Intersects(const Cube3f& rgn, const Ray3& ray, float& distance);
 
 END_RADIANT_CSG_NAMESPACE
 
-IMPLEMENT_DM_EXTENSION(::radiant::csg::Cube3, Protocol::cube)
+IMPLEMENT_DM_EXTENSION(::radiant::csg::Cube3, Protocol::cube3i)
+IMPLEMENT_DM_EXTENSION(::radiant::csg::Cube3f, Protocol::cube3f)
 
 #endif // _RADIANT_CSG_BOX_H

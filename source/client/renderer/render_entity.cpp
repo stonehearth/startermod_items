@@ -264,8 +264,8 @@ void RenderEntity::RemoveComponent(dm::ObjectType key)
    components_.erase(key);
 }
 
-void RenderEntity::OnSelected(om::Selection& sel, const math3d::ray3& ray,
-                              const math3d::point3& intersection, const math3d::point3& normal)
+void RenderEntity::OnSelected(om::Selection& sel, const csg::Ray3& ray,
+                              const csg::Point3f& intersection, const csg::Point3f& normal)
 {
    auto entity = entity_.lock();
    if (entity) {

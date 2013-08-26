@@ -28,8 +28,6 @@ public:
    virtual void CreateNew() = 0;
    virtual void Save(std::string id) = 0;
    virtual void Load(std::string id) = 0;
-   virtual void ProcessCommand(const ::radiant::tesseract::protocol::Cmd &cmd) = 0;
-   virtual void ProcessCommand(::google::protobuf::RepeatedPtrField<tesseract::protocol::Reply >* replies, const ::radiant::tesseract::protocol::Command &command) = 0;
    virtual void EncodeUpdates(protocol::SendQueuePtr queue, ClientState& cs) = 0;
    virtual void Step(platform::timer &timer, int interval) = 0;
    virtual void Idle(platform::timer &timer) = 0;

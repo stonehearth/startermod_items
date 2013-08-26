@@ -15,7 +15,7 @@ void Selection::Clear()
    flags_ = 0;
 }
 
-void Selection::AddBlock(const math3d::ipoint3& location)
+void Selection::AddBlock(const csg::Point3& location)
 {
    flags_ |= HAS_BLOCK;
    block_ = location;
@@ -26,7 +26,7 @@ bool Selection::HasBlock() const
    return (flags_ & HAS_BLOCK) != 0;
 }
 
-const math3d::ipoint3& Selection::GetBlock() const
+const csg::Point3& Selection::GetBlock() const
 {
    return block_;
 }
@@ -37,7 +37,7 @@ bool Selection::HasLocation() const
    return (flags_ & HAS_LOCATION) != 0;
 }
 
-void Selection::AddLocation(const math3d::point3& location, const math3d::vector3& normal)
+void Selection::AddLocation(const csg::Point3f& location, const csg::Point3f& normal)
 {
    flags_ |= HAS_LOCATION;
    location_ = location;
@@ -58,7 +58,7 @@ void Selection::AddNumber(int number)
    number_ = number;
 }
 
-const math3d::vector3& Selection::GetNormal()
+const csg::Point3f& Selection::GetNormal()
 {
    return normal_;
 }
@@ -73,7 +73,7 @@ void Selection::AddEntity(const dm::ObjectId id)
    entities_.push_back(id);
 }
    
-void Selection::SetBounds(const math3d::ibounds3& bounds)
+void Selection::SetBounds(const csg::Cube3& bounds)
 {
    flags_ |= HAS_BOUNDS;
    bounds_ = bounds;
@@ -132,10 +132,14 @@ void Selection::LoadValue(const Protocol::Selection& msg)
       AddEntity(entityId);
    }
    if (msg.has_block()) {
-      AddBlock(msg.block());
+      csg::Point3 pt;
+      pt.LoadValue(msg.block());
+      AddBlock(pt);
    }
    if (msg.has_bounds()) {
-      SetBounds(msg.bounds());
+      csg::Cube3 bounds;
+      bounds.LoadValue(msg.bounds());
+      SetBounds(bounds);
    }
    if (msg.has_string()) {
       AddString(msg.string());

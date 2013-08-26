@@ -408,8 +408,8 @@ bool VoxelModelNode::updateVoxelGeometry()
 		// Renormalize tangent space basis
 		for( uint32 i = 0, s = _geometryRes->getVertCount(); i < s; ++i )
 		{
-			tanData[i].normal.normalize();
-			tanData[i].tangent.normalize();
+			tanData[i].normal.Normalize();
+			tanData[i].tangent.Normalize();
 		}
 	}
 #endif

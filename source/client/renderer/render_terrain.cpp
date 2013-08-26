@@ -144,10 +144,10 @@ RenderTerrain::~RenderTerrain()
    h3dRemoveNode(node_);
 }
 
-void RenderTerrain::OnSelected(om::Selection& sel, const math3d::ray3& ray,
-                               const math3d::point3& intersection, const math3d::point3& normal)
+void RenderTerrain::OnSelected(om::Selection& sel, const csg::Ray3& ray,
+                               const csg::Point3f& intersection, const csg::Point3f& normal)
 {
-   math3d::ipoint3 brick;
+   csg::Point3 brick;
 
    for (int i = 0; i < 3; i++) {
       // The brick origin is at the center of mass.  Adding 0.5f to the
@@ -157,7 +157,7 @@ void RenderTerrain::OnSelected(om::Selection& sel, const math3d::ray3& ray,
       // We want to choose the brick that the mouse is currently over.  The
       // intersection point is actually a point on the surface.  So to get the
       // brick, we need to move in the opposite direction of the normal
-      if (fabs(normal[i]) > k_epsilon) {
+      if (fabs(normal[i]) > csg::k_epsilon) {
          brick[i] += normal[i] > 0 ? -1 : 1;
       }
    }

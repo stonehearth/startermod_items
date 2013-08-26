@@ -1,7 +1,6 @@
 #ifndef _RADIANT_OM_DATA_BLOB_H
 #define _RADIANT_OM_DATA_BLOB_H
 
-#include "math3d.h"
 #include "dm/object.h"
 #include "dm/record.h"
 #include "dm/store.h"

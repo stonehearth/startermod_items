@@ -1,7 +1,6 @@
 #ifndef _RADIANT_OM_MOB_H
 #define _RADIANT_OM_MOB_H
 
-#include "math3d.h"
 #include "om/om.h"
 #include "om/object_enums.h"
 #include "dm/boxed.h"
@@ -10,6 +9,8 @@
 #include "dm/store.h"
 #include "namespace.h"
 #include "component.h"
+#include "csg/cube.h"
+#include "csg/transform.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
 
@@ -20,35 +21,35 @@ public:
    virtual void ExtendObject(json::ConstJsonObject const& obj);
    virtual void Describe(std::ostringstream& os) const;
 
-   void MoveTo(const math3d::point3& location);
-   void MoveToGridAligned(const math3d::ipoint3& location);
+   void MoveTo(const csg::Point3f& location);
+   void MoveToGridAligned(const csg::Point3& location);
    
    void TurnToAngle(float degrees);
-   void TurnToFacePoint(const math3d::ipoint3& location);   
+   void TurnToFacePoint(const csg::Point3& location);   
 
-   math3d::aabb GetWorldAABB() const;
-   math3d::aabb GetAABB() const;
-   void SetAABB(const math3d::aabb& box) { aabb_.Modify() = box; }
+   csg::Cube3f GetWorldAABB() const;
+   csg::Cube3f GetAABB() const;
+   void SetAABB(const csg::Cube3f& box) { aabb_.Modify() = box; }
 
-   const math3d::point3 GetLocation() const;
-   const math3d::quaternion& GetRotation() const;
-   const math3d::transform& GetTransform() const;
+   const csg::Point3f GetLocation() const;
+   const csg::Quaternion& GetRotation() const;
+   const csg::Transform& GetTransform() const;
 
    MobPtr GetParent() const { return (*parent_).lock(); }
    void SetMoving(bool m) { moving_ = m; }
    bool GetMoving() const { return moving_; }
 
-   math3d::ipoint3 GetGridLocation() const;
+   csg::Point3 GetGridLocation() const;
 
-   math3d::point3 GetWorldLocation() const;
-   math3d::ipoint3 GetWorldGridLocation() const;
-   math3d::transform GetWorldTransform() const;
+   csg::Point3f GetWorldLocation() const;
+   csg::Point3 GetWorldGridLocation() const;
+   csg::Transform GetWorldTransform() const;
 
    bool InterpolateMovement() const;
    bool IsSelectable() const;
    void SetInterpolateMovement(bool value);
 
-   dm::Boxed<math3d::transform> const& GetBoxedTransform() const { return transform_; }
+   dm::Boxed<csg::Transform> const& GetBoxedTransform() const { return transform_; }
    dm::Boxed<bool> const& GetBoxedMoving() const { return moving_; }
 
 private:
@@ -56,7 +57,7 @@ private:
    void SetParent(MobPtr parent);
 
 private:
-   void TurnTo(const math3d::quaternion& orientation);
+   void TurnTo(const csg::Quaternion& orientation);
 
 private:
    enum Flags {
@@ -67,8 +68,8 @@ private:
 
 public:
    dm::Boxed<MobRef>             parent_;
-   dm::Boxed<math3d::transform>  transform_;
-   dm::Boxed<math3d::aabb>       aabb_;
+   dm::Boxed<csg::Transform>  transform_;
+   dm::Boxed<csg::Cube3f>       aabb_;
    dm::Boxed<int>                flags_;
    dm::Boxed<bool>               moving_;
 };

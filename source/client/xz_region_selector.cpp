@@ -57,7 +57,7 @@ void XZRegionSelector::onInputEvent(const MouseEvent &evt, bool &handled, bool &
    }
 
    if (_startedP0) {
-      math3d::ipoint3 p0, p1;
+      csg::Point3 p0, p1;
       for (int i = 0; i < 3; i++) {
          p0[i] = std::min(_p0[i], _p1[i]);
          p1[i] = std::max(_p0[i], _p1[i]);
@@ -86,7 +86,7 @@ void XZRegionSelector::SelectP0(const MouseEvent &me)
 void XZRegionSelector::SelectP1(const MouseEvent &me)
 {
    //LOG(WARNING) << "P1...";
-   math3d::ipoint3 p;
+   csg::Point3 p;
    if (GetHoverBrick(me.x, me.y, p)) {
       ValidateP1(p.x, p.z);
       if (me.up[0]) {
@@ -95,7 +95,7 @@ void XZRegionSelector::SelectP1(const MouseEvent &me)
    }
 }
 
-bool XZRegionSelector::GetHoverBrick(int x, int y, math3d::ipoint3 &pt)
+bool XZRegionSelector::GetHoverBrick(int x, int y, csg::Point3 &pt)
 {
    om::Selection s;
 
@@ -108,7 +108,7 @@ bool XZRegionSelector::GetHoverBrick(int x, int y, math3d::ipoint3 &pt)
    }
 
    // add in the normal to get the adjacent brick
-   pt = math3d::ipoint3(math3d::point3(s.GetBlock()) + s.GetNormal());
+   pt = csg::ToInt(csg::ToFloat(s.GetBlock()) + s.GetNormal());
 
    return true;
 }
@@ -121,7 +121,7 @@ void XZRegionSelector::ValidateP1(int newx, int newz)
    int validx, validz;
    auto const& octtree = Client::GetInstance().GetOctTree();
 
-#define OK(x, y, z) octtree.CanStand(math3d::ipoint3(x, y, z))
+#define OK(x, y, z) octtree.CanStand(csg::Point3(x, y, z))
 
 //#define OK(x, y, z) (grid->getVoxelResident(x, y, z) == 0 && grid->getVoxelResident(x, y - 1, z) != 0)
 

@@ -7,7 +7,6 @@
 #include "om/om.h"
 #include "dm/dm.h"
 #include "types.h"
-#include "math3d.h"
 #include "render_component.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE

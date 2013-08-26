@@ -8,6 +8,7 @@
 #include "om/components/destination.h"
 #include "om/region.h"
 #include "simulation/script/script_host.h"
+#include "csg/color.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -154,7 +155,7 @@ void PathFinder::Restart()
    h_.clear();
 
    source_.AddAdjacentToOpenSet(open_);
-   for (math3d::ipoint3 const& pt : open_) {
+   for (csg::Point3 const& pt : open_) {
    	int h = EstimateCostToDestination(pt);
 	   f_[pt] = h;
 	   h_[pt] = h;
@@ -173,18 +174,20 @@ void PathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
 {
    PROFILE_BLOCK();
 
-   std::vector<math3d::ipoint3> best;
-   math3d::color4 pathColor;
+   std::vector<csg::Point3> best;
+   csg::Color4 pathColor;
    if (!solution_) {
       RecommendBestPath(best);
-      pathColor = math3d::color4(192, 32, 0);
+      pathColor = csg::Color4(192, 32, 0);
    } else {
       best = solution_->GetPoints();
-      pathColor = math3d::color4(32, 192, 0);
+      pathColor = csg::Color4(32, 192, 0);
    }
 
    for (const auto& pt : best) {
-      pt.SaveValue(msg->add_coords(), pathColor);
+      auto coord = msg->add_coords();
+      pt.SaveValue(coord);
+      pathColor.SaveValue(coord->mutable_color());
    }
 
    int maxF = 0;
@@ -198,13 +201,18 @@ void PathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
       if (std::find(best.begin(), best.end(), pt) == best.end()) {
          auto i = h_.find(pt);
          int shade = (int)(255 * ( (maxF - i->second) / (float)maxF ));
-         pt.SaveValue(msg->add_coords(), math3d::color4(shade, shade, 255, 192));
+
+         auto coord = msg->add_coords();
+         pt.SaveValue(coord);
+         csg::Color4(shade, shade, 255, 192).SaveValue(coord->mutable_color());
       }
    }
    for (const auto& entry: closed_) {
-      math3d::ipoint3 const& pt = entry.first;
+      csg::Point3 const& pt = entry.first;
       if (std::find(best.begin(), best.end(), pt) == best.end()) {
-         pt.SaveValue(msg->add_coords(), math3d::color4(0, 0, 128, 192));
+         auto coord = msg->add_coords();
+         pt.SaveValue(coord);
+         csg::Color4(0, 0, 128, 192).SaveValue(coord->mutable_color());
       }
    }
 }
@@ -227,7 +235,7 @@ void PathFinder::Work(const platform::timer &timer)
    }
 
    VERIFY_HEAPINESS();
-   math3d::ipoint3 current = GetFirstOpen();
+   csg::Point3 current = GetFirstOpen();
    closed_[current] = true;
 
    PathFinderEndpoint* closest;
@@ -251,7 +259,7 @@ void PathFinder::Work(const platform::timer &timer)
 
    VERIFY_HEAPINESS();
    for (const auto& neighbor : neighbors) {
-      const math3d::ipoint3& pt = neighbor.first;
+      const csg::Point3& pt = neighbor.first;
       int cost = neighbor.second;
       VERIFY_HEAPINESS();
       AddEdge(current, pt, cost);
@@ -262,7 +270,7 @@ void PathFinder::Work(const platform::timer &timer)
 }
 
 
-void PathFinder::AddEdge(const math3d::ipoint3 &current, const math3d::ipoint3 &next, int movementCost)
+void PathFinder::AddEdge(const csg::Point3 &current, const csg::Point3 &next, int movementCost)
 {
    // LOG(WARNING) << "       Adding Edge " << neighbor.first << " cost:" << neighbor.second;
 
@@ -322,7 +330,7 @@ int PathFinder::EstimateCostToSolution()
    return f_[open_.front()];
 }
 
-int PathFinder::EstimateCostToDestination(const math3d::ipoint3 &from) const
+int PathFinder::EstimateCostToDestination(const csg::Point3 &from) const
 {
    PROFILE_BLOCK();
 
@@ -331,7 +339,7 @@ int PathFinder::EstimateCostToDestination(const math3d::ipoint3 &from) const
    return EstimateCostToDestination(from, nullptr);
 }
 
-int PathFinder::EstimateCostToDestination(const math3d::ipoint3 &from, PathFinderEndpoint** closest) const
+int PathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFinderEndpoint** closest) const
 {
    int hMin = INT_MAX;
 
@@ -367,7 +375,7 @@ int PathFinder::EstimateCostToDestination(const math3d::ipoint3 &from, PathFinde
    return hMin;
 }
 
-math3d::ipoint3 PathFinder::GetFirstOpen()
+csg::Point3 PathFinder::GetFirstOpen()
 {
    PROFILE_BLOCK();
    auto result = open_.front();
@@ -382,7 +390,7 @@ math3d::ipoint3 PathFinder::GetFirstOpen()
    return result;
 }
 
-void PathFinder::ReconstructPath(std::vector<math3d::ipoint3> &solution, const math3d::ipoint3 &dst) const
+void PathFinder::ReconstructPath(std::vector<csg::Point3> &solution, const csg::Point3 &dst) const
 {
    solution.push_back(dst);
 
@@ -396,7 +404,7 @@ void PathFinder::ReconstructPath(std::vector<math3d::ipoint3> &solution, const m
    }
 }
 
-void PathFinder::RecommendBestPath(std::vector<math3d::ipoint3> &points) const
+void PathFinder::RecommendBestPath(std::vector<csg::Point3> &points) const
 {
    points.clear();
    if (!open_.empty()) {
@@ -412,7 +420,7 @@ void PathFinder::LogProgress(std::ostream& o) const
    o << GetName() << " " << "(open: " << open_.size() << "  closed: " << closed_.size() << ")";
 }
 
-bool PathFinder::CompareEntries(const math3d::ipoint3 &a, const math3d::ipoint3 &b)
+bool PathFinder::CompareEntries(const csg::Point3 &a, const csg::Point3 &b)
 {
    ASSERT(stdutil::contains(f_, a) && stdutil::contains(f_, b));
    return f_[a] > f_[b];
@@ -428,9 +436,9 @@ void PathFinder::RebuildHeap()
    rebuildHeap_ = false;
 }
 
-void PathFinder::SolveSearch(const math3d::ipoint3& last, PathFinderEndpoint* dst)
+void PathFinder::SolveSearch(const csg::Point3& last, PathFinderEndpoint* dst)
 {
-   std::vector<math3d::ipoint3> points;
+   std::vector<csg::Point3> points;
 
    VERIFY_HEAPINESS();
 
@@ -440,8 +448,8 @@ void PathFinder::SolveSearch(const math3d::ipoint3& last, PathFinderEndpoint* ds
       std::swap(src, dst);
    }
 
-   math3d::ipoint3 start_point = src->GetPointInRegionAdjacentTo(points.front());
-   math3d::ipoint3 end_point = dst->GetPointInRegionAdjacentTo(points.back());
+   csg::Point3 start_point = src->GetPointInRegionAdjacentTo(points.front());
+   csg::Point3 end_point = dst->GetPointInRegionAdjacentTo(points.back());
    solution_ = std::make_shared<Path>(points, src->GetEntity(), dst->GetEntity(), start_point, end_point);
    if (solved_cb_.is_valid()) {
       auto L = solved_cb_.interpreter();
@@ -489,7 +497,7 @@ PathFinderEndpoint::PathFinderEndpoint(PathFinder &pf, om::EntityRef e) :
       if (mob) {
          guards_ += mob->GetBoxedTransform().TraceValue(
             "pathfinder entity mob trace (xform)",
-            [=](math3d::transform const&) {
+            [=](csg::Transform const&) {
                restart_fn();
             });
          guards_ += mob->GetBoxedMoving().TraceValue(
@@ -506,13 +514,13 @@ PathFinderEndpoint::PathFinderEndpoint(PathFinder &pf, om::EntityRef e) :
    }
 }
 
-void PathFinderEndpoint::AddAdjacentToOpenSet(std::vector<math3d::ipoint3>& open)
+void PathFinderEndpoint::AddAdjacentToOpenSet(std::vector<csg::Point3>& open)
 {
    auto entity = entity_.lock();
    if (entity) {
       auto mob = entity->GetComponent<om::Mob>();
       if (mob) {
-         math3d::ipoint3 origin;
+         csg::Point3 origin;
          origin = mob->GetWorldGridLocation();
 
          auto destination = entity->GetComponent<om::Destination>();
@@ -526,16 +534,16 @@ void PathFinderEndpoint::AddAdjacentToOpenSet(std::vector<math3d::ipoint3>& open
                }
             }
          } else {
-            open.push_back(origin + math3d::ipoint3(-1, 0,  0));
-            open.push_back(origin + math3d::ipoint3( 1, 0,  0));
-            open.push_back(origin + math3d::ipoint3( 0, 0, -1));
-            open.push_back(origin + math3d::ipoint3( 0, 0,  1));
+            open.push_back(origin + csg::Point3(-1, 0,  0));
+            open.push_back(origin + csg::Point3( 1, 0,  0));
+            open.push_back(origin + csg::Point3( 0, 0, -1));
+            open.push_back(origin + csg::Point3( 0, 0,  1));
          }
       }
    }
 }
 
-int PathFinderEndpoint::EstimateMovementCost(const math3d::ipoint3& from) const
+int PathFinderEndpoint::EstimateMovementCost(const csg::Point3& from) const
 {
    PROFILE_BLOCK();
 
@@ -546,7 +554,7 @@ int PathFinderEndpoint::EstimateMovementCost(const math3d::ipoint3& from) const
    }
 
    // Translate the point to the local coordinate system
-   math3d::ipoint3 start = from;
+   csg::Point3 start = from;
    auto mob = entity->GetComponent<om::Mob>();
    if (mob) {
       start -= mob->GetWorldGridLocation();
@@ -595,7 +603,7 @@ int PathFinderEndpoint::EstimateMovementCost(csg::Point3 const& start, csg::Poin
    return cost;
 }
 
-math3d::ipoint3 PathFinderEndpoint::GetPointInRegionAdjacentTo(math3d::ipoint3 const& adjacent_pt) const
+csg::Point3 PathFinderEndpoint::GetPointInRegionAdjacentTo(csg::Point3 const& adjacent_pt) const
 {
    PROFILE_BLOCK();
 
@@ -603,13 +611,13 @@ math3d::ipoint3 PathFinderEndpoint::GetPointInRegionAdjacentTo(math3d::ipoint3 c
    ASSERT(entity);
 
    // Translate the point to the local coordinate system
-   math3d::ipoint3 origin(0, 0, 0);
+   csg::Point3 origin(0, 0, 0);
    auto mob = entity->GetComponent<om::Mob>();
    if (mob) {
       origin = mob->GetWorldGridLocation();
    }
 
-   math3d::ipoint3 end(0, 0, 0);
+   csg::Point3 end(0, 0, 0);
    om::DestinationPtr dst = entity->GetComponent<om::Destination>();
    if (dst) {
       csg::Region3 const& rgn = **dst->GetRegion();
@@ -617,8 +625,8 @@ math3d::ipoint3 PathFinderEndpoint::GetPointInRegionAdjacentTo(math3d::ipoint3 c
    }
 
    end += origin;
-   math3d::ipoint3 d = end - adjacent_pt;
-   ASSERT(d.distanceSquared() == 1);
+   csg::Point3 d = end - adjacent_pt;
+   ASSERT(d.LengthSquared() == 1);
    return end;
 }
 

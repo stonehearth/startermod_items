@@ -19,8 +19,8 @@ public:
 
 private:
    void UpdateRenderRegion(csg::Region3 const& region);
-   void OnSelected(om::Selection& sel, const math3d::ray3& ray,
-                   const math3d::point3& intersection, const math3d::point3& normal);
+   void OnSelected(om::Selection& sel, const csg::Ray3& ray,
+                   const csg::Point3f& intersection, const csg::Point3f& normal);
 
 private:
    const RenderEntity&  entity_;

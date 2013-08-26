@@ -1,9 +1,9 @@
 #ifndef _RADIANT_OM_COLLSION_SHAPE_H
 #define _RADIANT_OM_COLLSION_SHAPE_H
 
-#include "math3d.h"
 #include "dm/record.h"
 #include "om/object_enums.h"
+#include "csg/cube.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
 
@@ -19,7 +19,7 @@ public:
    };
 
    virtual CollisionType GetType() const = 0;
-   virtual math3d::aabb GetAABB() const = 0;
+   virtual csg::Cube3f GetAABB() const = 0;
 };
 
 END_RADIANT_OM_NAMESPACE

@@ -18,7 +18,7 @@ public:
 public:
    Region();
    Region(const Cube& cube);
-   Region(const protocol::region& msg) { LoadValue(msg); }
+   Region(protocol::region3i const& msg) { LoadValue(msg); }
 
    static const Region empty;
   
@@ -66,15 +66,16 @@ public:
    const Region<S, C>& operator-=(const Point& pt) { return operator-=(Cube(pt)); }
 
 public:
-   void SaveValue(protocol::region* msg) const {
+   template <class T> void SaveValue(T* msg) const {
       for (const auto& c : cubes_) {
          c.SaveValue(msg->add_cubes());
       }
    }
-   void LoadValue(const protocol::region& msg) {
+   template <class T> void LoadValue(const T& msg) {
       cubes_.clear();
       for (const auto &c : msg.cubes()) {
-         cubes_.push_back(Cube(c));
+         cubes_.push_back(Cube());
+         cubes_.back().LoadValue(c);
       }
    }
 
@@ -100,11 +101,11 @@ typedef Region<int, 2>   Region2;
 typedef Region<int, 3>   Region3;
 typedef Region<float, 3> Region3f;
 
-bool Region3Intersects(const Region3& rgn, const math3d::ray3& ray, float& distance);
+bool Region3Intersects(const Region3& rgn, const csg::Ray3& ray, float& distance);
 
 END_RADIANT_CSG_NAMESPACE
 
-IMPLEMENT_DM_EXTENSION(::radiant::csg::Region3, Protocol::region)
-IMPLEMENT_DM_EXTENSION(::radiant::csg::Region2, Protocol::region)
+IMPLEMENT_DM_EXTENSION(::radiant::csg::Region3, Protocol::region3i)
+IMPLEMENT_DM_EXTENSION(::radiant::csg::Region2, Protocol::region2i)
 
 #endif // _RADIANT_CSG_REGION_H

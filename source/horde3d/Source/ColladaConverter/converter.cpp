@@ -391,7 +391,7 @@ void Converter::calcTangentSpaceBasis( vector<Vertex> &verts )
 			++numInvalidBasis;
 		
 		// Gram–Schmidt orthogonalization
-		verts[i].normal.normalize();
+		verts[i].normal.Normalize();
 		Vec3f &n = verts[i].normal;
 		Vec3f &t = verts[i].tangent;
 		verts[i].tangent = (t - n * n.dot( t )).normalized();

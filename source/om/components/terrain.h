@@ -1,7 +1,6 @@
 #ifndef _RADIANT_OM_TERRAIN_H
 #define _RADIANT_OM_TERRAIN_H
 
-#include "math3d.h"
 #include "dm/record.h"
 #include "dm/set.h"
 #include "dm/boxed.h"
@@ -33,7 +32,7 @@ public:
 
    const csg::Region3& GetRegion() const { return *region_; }
    void AddRegion(csg::Region3 const& region);
-   void PlaceEntity(EntityRef e, const math3d::ipoint3& pt);
+   void PlaceEntity(EntityRef e, const csg::Point3& pt);
    void CreateNew();
    void AddCube(csg::Cube3 const& cube);
    void RemoveCube(csg::Cube3 const& region);

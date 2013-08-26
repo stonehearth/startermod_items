@@ -47,7 +47,6 @@ namespace radiant {
             //void on_keyboard_pressed(render3d::RendererInterface *renderer, const render3d::keyboard_event &e);
 
             void process_messages();
-            void process_command_list(std::shared_ptr<client> c, const ::radiant::tesseract::protocol::command_list &cmd);
             
             void start_accept();
             void handle_accept(std::shared_ptr<tcp::socket> s, const boost::system::error_code& error);

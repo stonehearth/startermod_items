@@ -2,9 +2,9 @@
 #define _RADIANT_PHYSICS_OCTTREE_H
 
 #include <unordered_map>
-#include "math3d.h"
 #include "namespace.h"
 #include "csg/region.h"
+#include "csg/ray.h"
 #include "om/om.h"
 #include "dm/dm.h"
 #include "nav_grid.h"
@@ -23,27 +23,27 @@ class OctTree {
       typedef std::function<bool (om::EntityPtr )>   QueryCallback;
       typedef std::function<void (om::EntityPtr, float)> RayQueryCallback;
 
-      void GetActorsIn(const math3d::aabb &bounds, QueryCallback cb);      
-      void TraceRay(const math3d::ray3 &ray, RayQueryCallback cb);
+      void GetActorsIn(const csg::Cube3f &bounds, QueryCallback cb);      
+      void TraceRay(const csg::Ray3 &ray, RayQueryCallback cb);
 
-      bool IsPassable(const math3d::ipoint3& at) const;
-      bool CanStand(const math3d::ipoint3& at) const { return navgrid_.CanStand(at); }
+      bool IsPassable(const csg::Point3& at) const;
+      bool CanStand(const csg::Point3& at) const { return navgrid_.CanStand(at); }
       
       bool IsStuck(om::EntityPtr object);
       void Unstick(om::EntityPtr object);
-      void Unstick(std::vector<math3d::ipoint3> &points);
-      math3d::ipoint3 Unstick(const math3d::ipoint3 &pt);
+      void Unstick(std::vector<csg::Point3> &points);
+      csg::Point3 Unstick(const csg::Point3 &pt);
 
       // Path finding helpers
-      std::vector<std::pair<math3d::ipoint3, int>> ComputeNeighborMovementCost(const math3d::ipoint3& from) const;
-      int EstimateMovementCost(const math3d::ipoint3& src, const math3d::ipoint3& dst) const;
-      int EstimateMovementCost(const math3d::ipoint3& src, const std::vector<math3d::ipoint3>& points) const;
-      int EstimateMovementCost(const math3d::ipoint3& src, const csg::Region3& dst) const;
+      std::vector<std::pair<csg::Point3, int>> ComputeNeighborMovementCost(const csg::Point3& from) const;
+      int EstimateMovementCost(const csg::Point3& src, const csg::Point3& dst) const;
+      int EstimateMovementCost(const csg::Point3& src, const std::vector<csg::Point3>& points) const;
+      int EstimateMovementCost(const csg::Point3& src, const csg::Region3& dst) const;
 
    protected:
-      bool Intersects(math3d::aabb bounds, om::RegionCollisionShapePtr rgnCollsionShape) const;   
-      bool CanStepUp(math3d::ipoint3& at) const;
-      bool CanFallDown(math3d::ipoint3& at) const;
+      bool Intersects(csg::Cube3f bounds, om::RegionCollisionShapePtr rgnCollsionShape) const;   
+      bool CanStepUp(csg::Point3& at) const;
+      bool CanFallDown(csg::Point3& at) const;
 
       void FilterAllActors(std::function <bool(om::EntityPtr)> filter);
       om::EntityPtr FindFirstActor(om::EntityPtr root, std::function <bool(om::EntityPtr)> filter);

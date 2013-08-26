@@ -1,7 +1,6 @@
 #ifndef _RADIANT_OM_SENSOR_LIST_H
 #define _RADIANT_OM_SENSOR_LIST_H
 
-#include "math3d.h"
 #include "dm/boxed.h"
 #include "dm/record.h"
 #include "dm/store.h"
@@ -28,8 +27,8 @@ public:
    std::string GetName() const { return *name_; }
    void SetName(std::string name) { name_ = name; }
 
-   void SetCube(const csg::Cube3& cube) { cube_ = cube; }
-   const csg::Cube3& GetCube() const { return *cube_; }
+   void SetCube(const csg::Cube3f& cube) { cube_ = cube; }
+   const csg::Cube3f& GetCube() const { return *cube_; }
    const dm::Set<EntityId>& GetContents() const { return contains_; }
 
    void UpdateIntersection(std::vector<EntityId> intersection);
@@ -37,7 +36,7 @@ public:
 protected:
    friend SensorList;
 
-   void Construct(om::EntityRef entity, std::string name, const csg::Cube3& cube) {
+   void Construct(om::EntityRef entity, std::string name, const csg::Cube3f& cube) {
       entity_ = entity;
       name_ = name;
       cube_ = cube;
@@ -54,7 +53,7 @@ private:
 
 private:
    dm::Boxed<om::EntityRef>   entity_;
-   dm::Boxed<csg::Cube3>      cube_;
+   dm::Boxed<csg::Cube3f>     cube_;
    dm::Boxed<std::string>     name_;
    dm::Set<EntityId>          contains_;
 };

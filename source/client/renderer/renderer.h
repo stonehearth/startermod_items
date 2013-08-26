@@ -3,7 +3,9 @@
 
 #include "namespace.h"
 #include "Horde3D.h"
-#include "math3d.h"
+#include "csg/transform.h"
+#include "csg/ray.h"
+#include "csg/matrix.h"
 #include "om/om.h"
 #include "resources/namespace.h"
 #include "tesseract.pb.h"
@@ -52,7 +54,7 @@ public:
       int GetHeight() const;
 
       csg::Point2 GetMousePosition() const;
-      math3d::matrix4 GetNodeTransform(H3DNode node) const;
+      csg::Matrix4 GetNodeTransform(H3DNode node) const;
 
       bool IsRunning() const;
       HWND GetWindowHandle() const;
@@ -64,10 +66,10 @@ public:
       std::shared_ptr<RenderEntity> GetRenderObject(int storeId, dm::ObjectId id);
       void RemoveRenderObject(int storeId, dm::ObjectId id);
 
-      typedef std::function<void(om::Selection& sel, const math3d::ray3& ray, const math3d::point3& intersection, const math3d::point3& normal)> UpdateSelectionFn;
+      typedef std::function<void(om::Selection& sel, const csg::Ray3& ray, const csg::Point3f& intersection, const csg::Point3f& normal)> UpdateSelectionFn;
       dm::Guard TraceSelected(H3DNode node, UpdateSelectionFn fn);
 
-      math3d::ray3 GetCameraToViewportRay(int windowX, int windowY);
+      csg::Ray3 GetCameraToViewportRay(int windowX, int windowY);
       void QuerySceneRay(int windowX, int windowY, om::Selection &result);
 
       typedef int InputCallbackId;
@@ -79,13 +81,13 @@ public:
       InputCallbackId SetKeyboardInputCallback(KeyboardInputEventCb fn);
       void RemoveInputEventHandler(InputCallbackId id);
 
-      void PointCamera(const math3d::point3 &location);
+      void PointCamera(const csg::Point3f &location);
       void UpdateUITexture(const csg::Region2& rgn, const char* buffer);
 
       ViewMode GetViewMode() const { return viewMode_; }
       void SetViewMode(ViewMode mode);
       void SetCurrentPipeline(std::string pipeline);
-      bool ShouldHideRenderGrid(const math2d::Point2d& normal);
+      bool ShouldHideRenderGrid(const csg::Point3& normal);
 
       dm::Guard TraceFrameStart(std::function<void()> fn);
       dm::Guard TraceInterpolationStart(std::function<void()> fn);
@@ -104,7 +106,7 @@ public:
       void OnRawInput(UINT msg, WPARAM wParam, LPARAM lParam);
       void Resize(int width, int height);
       void UpdateCamera();
-      math3d::quaternion GetCameraRotation();
+      csg::Quaternion GetCameraRotation();
       void CallMouseInputCallbacks();
 
       typedef std::unordered_map<dm::TraceId, std::function<void()>> TraceMap;
@@ -135,9 +137,9 @@ public:
       H3DRes            uiTexture_;
       H3DNode           camera_;
 
-      math3d::vector3   cameraPos_;
-      math3d::vector3   cameraTarget_;
-      math3d::vector3   cameraMoveDirection_;
+      csg::Point3f   cameraPos_;
+      csg::Point3f   cameraTarget_;
+      csg::Point3f   cameraMoveDirection_;
 
       dm::TraceId       nextTraceId_;
       dm::Guard           traces_;

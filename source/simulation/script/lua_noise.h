@@ -2,7 +2,6 @@
 #define _RADIANT_SIMULATION_LUA_NOISE_H
 
 #include "namespace.h"
-#include "math3d.h"
 
 struct lua_State;
 

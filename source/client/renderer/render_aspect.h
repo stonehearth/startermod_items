@@ -11,7 +11,7 @@ class RenderAspect {
    public:
       virtual ~RenderAspect() { }
       virtual void PrepareToRender(int now, float distance) { }
-      virtual void AddToSelection(om::Selection& sel, const math3d::ray3& ray, const math3d::point3& intersection, const math3d::point3& normal) { }
+      virtual void AddToSelection(om::Selection& sel, const csg::Ray3& ray, const csg::Point3f& intersection, const csg::Point3f& normal) { }
 };
 
 END_RADIANT_CLIENT_NAMESPACE

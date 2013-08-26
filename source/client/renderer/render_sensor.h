@@ -4,7 +4,7 @@
 #include <map>
 #include "render_aspect.h"
 #include "object_model/namespace.h"
-#include "math3d/collision/bounding_sphere.h"
+#include "csg/sphere.h"
 
 IN_RADIANT_OBJECT_MODEL_NAMESPACE(
    class ISensor;
@@ -27,8 +27,8 @@ class RenderSensor : public RenderAspect {
 
    protected:
       om::SensorPtr       sensor_;
-      math3d::bounding_sphere    sphere_;
-      math3d::color4             color_;
+      csg::Sphere    sphere_;
+      csg::Color4             color_;
       H3DNode            debugShape_;
 };
 

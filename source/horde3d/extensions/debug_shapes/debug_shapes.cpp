@@ -9,7 +9,6 @@
 #endif
 
 #include "radiant.h"
-#include "math3d.h"
 #include "debug_shapes.h"
 
 using namespace ::radiant;
@@ -180,8 +179,8 @@ void DebugShapesNode::decode(const protocol::shapelist &shapes)
 
 void DebugShapesNode::decode_line(const protocol::line &line)
 {
-   math3d::point3 p0(line.p0()), p1(line.p1());
-   math3d::color4 color(0xff, 0xff, 0, 0xff);
+   csg::Point3f p0(line.p0()), p1(line.p1());
+   csg::Color4 color(0xff, 0xff, 0, 0xff);
 
    if (line.has_color()) {
       color.LoadValue(line.color());
@@ -191,14 +190,14 @@ void DebugShapesNode::decode_line(const protocol::line &line)
 
 void DebugShapesNode::decode_quad(const protocol::quad &quad)
 {
-   const math3d::point3 points[] = {
-      math3d::point3(quad.p0()),
-      math3d::point3(quad.p1()),
-      math3d::point3(quad.p2()),
-      math3d::point3(quad.p3()),
-      math3d::point3(quad.p0()),
+   const csg::Point3f points[] = {
+      csg::Point3f(quad.p0()),
+      csg::Point3f(quad.p1()),
+      csg::Point3f(quad.p2()),
+      csg::Point3f(quad.p3()),
+      csg::Point3f(quad.p0()),
    };
-   math3d::color4 color(0xff, 0xff, 0, 0xff);
+   csg::Color4 color(0xff, 0xff, 0, 0xff);
    if (quad.has_color()) {
       color.LoadValue(quad.color());
    }
@@ -215,14 +214,14 @@ void DebugShapesNode::decode_quad(const protocol::quad &quad)
 
 void DebugShapesNode::decode_coord(const protocol::coord &coord)
 {
-   const math3d::point3 points[] = {
-      math3d::point3((float)coord.x() - 0.5f, (float)coord.y(), (float)coord.z() - 0.5f),
-      math3d::point3((float)coord.x() - 0.5f, (float)coord.y(), (float)coord.z() + 0.5f),
-      math3d::point3((float)coord.x() + 0.5f, (float)coord.y(), (float)coord.z() + 0.5f),
-      math3d::point3((float)coord.x() + 0.5f, (float)coord.y(), (float)coord.z() - 0.5f),
-      math3d::point3((float)coord.x() - 0.5f, (float)coord.y(), (float)coord.z() - 0.5f),
+   const csg::Point3f points[] = {
+      csg::Point3f((float)coord.x() - 0.5f, (float)coord.y(), (float)coord.z() - 0.5f),
+      csg::Point3f((float)coord.x() - 0.5f, (float)coord.y(), (float)coord.z() + 0.5f),
+      csg::Point3f((float)coord.x() + 0.5f, (float)coord.y(), (float)coord.z() + 0.5f),
+      csg::Point3f((float)coord.x() + 0.5f, (float)coord.y(), (float)coord.z() - 0.5f),
+      csg::Point3f((float)coord.x() - 0.5f, (float)coord.y(), (float)coord.z() - 0.5f),
    };
-   math3d::color4 color(0xff, 0xff, 0, 0xff);
+   csg::Color4 color(0xff, 0xff, 0, 0xff);
    if (coord.has_color()) {
       color.LoadValue(coord.color());
    }
@@ -237,7 +236,7 @@ void DebugShapesNode::decode_coord(const protocol::coord &coord)
 #endif
 }
 
-void DebugShapesNode::add_line(const math3d::point3 &p0, const math3d::point3 &p1, const math3d::color4 &c)
+void DebugShapesNode::add_line(const csg::Point3f &p0, const csg::Point3f &p1, const csg::Color4 &c)
 {
    lines_.push_back(Vertex(p0, c));
    lines_.push_back(Vertex(p1, c));
@@ -246,18 +245,18 @@ void DebugShapesNode::add_line(const math3d::point3 &p0, const math3d::point3 &p
 
 void DebugShapesNode::decode_box(const protocol::box &box)
 {
-   math3d::aabb aabb(math3d::point3(box.minimum()), math3d::point3(box.maximum()));
-   math3d::color4 color(0xff, 0xff, 0, 0xff);
+   csg::Cube3f aabb(csg::Point3f(box.minimum()), csg::Point3f(box.maximum()));
+   csg::Color4 color(0xff, 0xff, 0, 0xff);
    if (box.has_color()) {
       color.LoadValue(box.color());
    }
    add_aabb(aabb, color);
 }
 
-void DebugShapesNode::decode_region(const protocol::region &region)
+void DebugShapesNode::decode_region(const protocol::region3i &region)
 {
    csg::Region3 rgn(region);
-   math3d::color4 color(0xff, 0xff, 0, 0xff);
+   csg::Color4 color(0xff, 0xff, 0, 0xff);
    if (region.has_color()) {
       color.LoadValue(region.color());
    }
@@ -265,50 +264,50 @@ void DebugShapesNode::decode_region(const protocol::region &region)
 }
 
 
-void DebugShapesNode::add_aabb(const math3d::aabb& aabb, const math3d::color4& color)
+void DebugShapesNode::add_aabb(const csg::Cube3f& aabb, const csg::Color4& color)
 {  
-   math3d::point3 a(aabb._min), b(aabb._max);
-   math3d::point3 bot_tris[] = {
-      math3d::point3(a.x, a.y, a.z),
-      math3d::point3(b.x, a.y, a.z),
-      math3d::point3(a.x, a.y, b.z),
-      math3d::point3(b.x, a.y, b.z)
+   csg::Point3f a(aabb.GetMin()), b(aabb.GetMax());
+   csg::Point3f bot_tris[] = {
+      csg::Point3f(a.x, a.y, a.z),
+      csg::Point3f(b.x, a.y, a.z),
+      csg::Point3f(a.x, a.y, b.z),
+      csg::Point3f(b.x, a.y, b.z)
    };
-   math3d::point3 bot[] = {
-      math3d::point3(a.x, a.y, a.z),
-      math3d::point3(b.x, a.y, a.z),
-      math3d::point3(b.x, a.y, b.z),
-      math3d::point3(a.x, a.y, b.z)
+   csg::Point3f bot[] = {
+      csg::Point3f(a.x, a.y, a.z),
+      csg::Point3f(b.x, a.y, a.z),
+      csg::Point3f(b.x, a.y, b.z),
+      csg::Point3f(a.x, a.y, b.z)
    };
-   math3d::point3 top[] = {
-      math3d::point3(a.x, b.y, a.z),
-      math3d::point3(b.x, b.y, a.z),
-      math3d::point3(b.x, b.y, b.z),
-      math3d::point3(a.x, b.y, b.z)
+   csg::Point3f top[] = {
+      csg::Point3f(a.x, b.y, a.z),
+      csg::Point3f(b.x, b.y, a.z),
+      csg::Point3f(b.x, b.y, b.z),
+      csg::Point3f(a.x, b.y, b.z)
    };
-   math3d::point3 left[] = {
-      math3d::point3(a.x, a.y, a.z),
-      math3d::point3(a.x, a.y, b.z),
-      math3d::point3(a.x, b.y, b.z),
-      math3d::point3(a.x, b.y, a.z)
+   csg::Point3f left[] = {
+      csg::Point3f(a.x, a.y, a.z),
+      csg::Point3f(a.x, a.y, b.z),
+      csg::Point3f(a.x, b.y, b.z),
+      csg::Point3f(a.x, b.y, a.z)
    };
-   math3d::point3 right[] = {
-      math3d::point3(b.x, a.y, a.z),
-      math3d::point3(b.x, a.y, b.z),
-      math3d::point3(b.x, b.y, b.z),
-      math3d::point3(b.x, b.y, a.z)
+   csg::Point3f right[] = {
+      csg::Point3f(b.x, a.y, a.z),
+      csg::Point3f(b.x, a.y, b.z),
+      csg::Point3f(b.x, b.y, b.z),
+      csg::Point3f(b.x, b.y, a.z)
    };
-   math3d::point3 front[] = {
-      math3d::point3(a.x, a.y, a.z),
-      math3d::point3(b.x, a.y, a.z),
-      math3d::point3(b.x, b.y, a.z),
-      math3d::point3(a.x, b.y, a.z)
+   csg::Point3f front[] = {
+      csg::Point3f(a.x, a.y, a.z),
+      csg::Point3f(b.x, a.y, a.z),
+      csg::Point3f(b.x, b.y, a.z),
+      csg::Point3f(a.x, b.y, a.z)
    };
-   math3d::point3 back[] = {
-      math3d::point3(a.x, a.y, b.z),
-      math3d::point3(b.x, a.y, b.z),
-      math3d::point3(b.x, b.y, b.z),
-      math3d::point3(a.x, b.y, b.z)
+   csg::Point3f back[] = {
+      csg::Point3f(a.x, a.y, b.z),
+      csg::Point3f(b.x, a.y, b.z),
+      csg::Point3f(b.x, b.y, b.z),
+      csg::Point3f(a.x, b.y, b.z)
    };
 
    add_quad(bot, color);
@@ -325,38 +324,38 @@ void DebugShapesNode::add_aabb(const math3d::aabb& aabb, const math3d::color4& c
 #endif
 }
 
-void DebugShapesNode::add_region(const csg::Region3& rgn, const math3d::color4& color)
+void DebugShapesNode::add_region(const csg::Region3& rgn, const csg::Color4& color)
 {
    for (const auto &c : rgn) {
-      math3d::aabb a;
       static const float offset[] = { 0.5f, 0.0f, 0.5f };
+      csg::Point3f min, max;
       for (int i = 0; i < 3; i++) {
-         a._min[i] = (float)c.GetMin()[i] - offset[i];
-         a._max[i] = (float)c.GetMax()[i] - offset[i];
+         min[i] = (float)c.GetMin()[i] - offset[i];
+         max[i] = (float)c.GetMax()[i] - offset[i];
       }
-      add_aabb(a, color);
+      add_aabb(csg::Cube3f(min, max), color);
    }
 }
 
-void DebugShapesNode::add_quad_xz(const math3d::point3 &p0, const math3d::point3 &p1, const math3d::color4 &color)
+void DebugShapesNode::add_quad_xz(const csg::Point3f &p0, const csg::Point3f &p1, const csg::Color4 &color)
 {
-   math3d::point3 quad[] = {
-      math3d::point3(p0.x - 0.5f, p0.y - 0.5f, p0.z),
-      math3d::point3(p1.x - 0.5f, p0.y - 0.5f, p0.z),
-      math3d::point3(p1.x - 0.5f, p0.y - 0.5f, p1.z),
-      math3d::point3(p0.x - 0.5f, p0.y - 0.5f, p1.z)
+   csg::Point3f quad[] = {
+      csg::Point3f(p0.x - 0.5f, p0.y - 0.5f, p0.z),
+      csg::Point3f(p1.x - 0.5f, p0.y - 0.5f, p0.z),
+      csg::Point3f(p1.x - 0.5f, p0.y - 0.5f, p1.z),
+      csg::Point3f(p0.x - 0.5f, p0.y - 0.5f, p1.z)
    };
    add_quad(quad, color);
 }
 
-void DebugShapesNode::add_quad(const math3d::point3 points[4], const math3d::color4& color)
+void DebugShapesNode::add_quad(const csg::Point3f points[4], const csg::Color4& color)
 {
    for (int i = 0; i < 4; i++) {
       add_line(points[i], points[(i+1) % 4], color);
    }
 }
 
-void DebugShapesNode::add_triangle(const math3d::point3 points[3], const math3d::color4& color)
+void DebugShapesNode::add_triangle(const csg::Point3f points[3], const csg::Color4& color)
 {
    for (int i = 0; i < 3; i++) {
       triangles_.push_back(Vertex(points[i], color));

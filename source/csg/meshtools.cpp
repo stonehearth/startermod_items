@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "color.h"
 #include "meshtools.h"
 
 using namespace ::radiant;
@@ -85,7 +86,7 @@ void mesh_tools::add_region(csg::Region2 const& region, int plane_value, plane_d
       // mesh_tools object with a function that we can call...  or better yet, dump this
       // thing and do tesselation on the server!
       if (tesselators_.empty()) {         
-         math3d::color3 c= math3d::color3::FromInteger(tag);
+         csg::Color3 c= csg::Color3::FromInteger(tag);
          csg::Point3f color(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f);
          m.add_face(points, normal, color);
       } else {

@@ -23,11 +23,11 @@ RenderRenderRegion::RenderRenderRegion(const RenderEntity& entity, om::RenderReg
 }
 
 
-void RenderRenderRegion::OnSelected(om::Selection& sel, const math3d::ray3& ray,
-                                    const math3d::point3& intersection, const math3d::point3& normal)
+void RenderRenderRegion::OnSelected(om::Selection& sel, const csg::Ray3& ray,
+                                    const csg::Point3f& intersection, const csg::Point3f& normal)
 {
 #if 0
-   math3d::ipoint3 brick;
+   csg::Point3 brick;
 
    for (int i = 0; i < 3; i++) {
       // The brick origin is at the center of mass.  Adding 0.5f to the

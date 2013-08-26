@@ -31,7 +31,7 @@ void Terrain::AddRegion(csg::Region3 const& region)
    region_.Modify() += region;
 }
 
-void Terrain::PlaceEntity(EntityRef e, const math3d::ipoint3& pt)
+void Terrain::PlaceEntity(EntityRef e, const csg::Point3& pt)
 {
    auto entity = e.lock();
    if (entity) {
@@ -46,7 +46,7 @@ void Terrain::PlaceEntity(EntityRef e, const math3d::ipoint3& pt)
       if (max_y != INT_MIN) {
          auto mob = entity->GetComponent<Mob>();
          if (mob) {
-            mob->MoveToGridAligned(math3d::ipoint3(pt.x, max_y, pt.z));
+            mob->MoveToGridAligned(csg::Point3(pt.x, max_y, pt.z));
          }
       }
    }

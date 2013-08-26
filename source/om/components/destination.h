@@ -1,7 +1,6 @@
 #ifndef _RADIANT_OM_DESTINATION_H
 #define _RADIANT_OM_DESTINATION_H
 
-#include "math3d.h"
 #include "dm/boxed.h"
 #include "dm/record.h"
 #include "om/om.h"

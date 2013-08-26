@@ -1,4 +1,4 @@
-local RadiantIPoint3 = _radiant.math3d.RadiantIPoint3
+local RadiantIPoint3 = _radiant.csg.Point3
 local CreateStockpile = class()
 
 -- client side object to add a new bench to the world.  this method is invoked

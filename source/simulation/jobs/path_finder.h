@@ -1,9 +1,6 @@
 #ifndef _RADIANT_SIMULATION_JOBS_PATH_FINDER_H
 #define _RADIANT_SIMULATION_JOBS_PATH_FINDER_H
 
-#include "math3d.h"
-#include "math3d/common/color.h"
-#include "math3d_collision.h"
 #include "om/om.h"
 #include "job.h"
 #include "physics/namespace.h"
@@ -20,10 +17,10 @@ class Simulation;
 class PathFinderEndpoint {
 public:
    PathFinderEndpoint(PathFinder& pf, om::EntityRef entity);
-   void AddAdjacentToOpenSet(std::vector<math3d::ipoint3>& open);
-   math3d::ipoint3 GetPointInRegionAdjacentTo(math3d::ipoint3 const& adjacent) const;
+   void AddAdjacentToOpenSet(std::vector<csg::Point3>& open);
+   csg::Point3 GetPointInRegionAdjacentTo(csg::Point3 const& adjacent) const;
 
-   int EstimateMovementCost(const math3d::ipoint3& start) const;
+   int EstimateMovementCost(const csg::Point3& start) const;
    om::EntityPtr GetEntity() const { return entity_.lock(); }
 
 private:
@@ -67,17 +64,17 @@ class PathFinder : public Job {
       void RestartSearch();
 
    private:
-      bool CompareEntries(const math3d::ipoint3 &a, const math3d::ipoint3 &b);
-      void RecommendBestPath(std::vector<math3d::ipoint3> &points) const;
-      int EstimateCostToDestination(const math3d::ipoint3 &pt) const;
-      int EstimateCostToDestination(const math3d::ipoint3 &pt, PathFinderEndpoint** closest) const;
+      bool CompareEntries(const csg::Point3 &a, const csg::Point3 &b);
+      void RecommendBestPath(std::vector<csg::Point3> &points) const;
+      int EstimateCostToDestination(const csg::Point3 &pt) const;
+      int EstimateCostToDestination(const csg::Point3 &pt, PathFinderEndpoint** closest) const;
 
-      math3d::ipoint3 GetFirstOpen();
-      void ReconstructPath(std::vector<math3d::ipoint3> &solution, const math3d::ipoint3 &dst) const;
-      void AddEdge(const math3d::ipoint3 &current, const math3d::ipoint3 &next, int cost);
+      csg::Point3 GetFirstOpen();
+      void ReconstructPath(std::vector<csg::Point3> &solution, const csg::Point3 &dst) const;
+      void AddEdge(const csg::Point3 &current, const csg::Point3 &next, int cost);
       void RebuildHeap();
 
-      void SolveSearch(const math3d::ipoint3& last, PathFinderEndpoint* dst);
+      void SolveSearch(const csg::Point3& last, PathFinderEndpoint* dst);
 
    public:
       om::EntityRef                                entity_;
@@ -91,13 +88,13 @@ class PathFinder : public Job {
       bool                                         reversed_search_;
       bool                                         enabled_;
       mutable PathPtr                              solution_;
-      std::vector<math3d::ipoint3>                      open_;
+      std::vector<csg::Point3>                      open_;
 
-      std::unordered_map<math3d::ipoint3, bool, math3d::ipoint3::hash> closed_;
-      std::hash_map<math3d::ipoint3, int>               f_;
-      std::hash_map<math3d::ipoint3, int>               g_;
-      std::hash_map<math3d::ipoint3, int>               h_;
-      std::hash_map<math3d::ipoint3, math3d::ipoint3>   cameFrom_;
+      std::unordered_map<csg::Point3, bool, csg::Point3::Hash> closed_;
+      std::unordered_map<csg::Point3, int, csg::Point3::Hash>  f_;
+      std::unordered_map<csg::Point3, int, csg::Point3::Hash>  g_;
+      std::unordered_map<csg::Point3, int, csg::Point3::Hash>  h_;
+      std::unordered_map<csg::Point3, csg::Point3, csg::Point3::Hash>  cameFrom_;
 
       PathFinderEndpoint                                 source_;
       mutable std::unordered_map<dm::ObjectId, std::unique_ptr<PathFinderEndpoint>>  destinations_;

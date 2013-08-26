@@ -1,7 +1,6 @@
 #ifndef _RADIANT_OM_VERTICIAL_PATHING_REGION_H
 #define _RADIANT_OM_VERTICIAL_PATHING_REGION_H
 
-#include "math3d.h"
 #include "om/om.h"
 #include "om/region.h"
 #include "om/object_enums.h"
@@ -20,7 +19,7 @@ public:
    DEFINE_OM_OBJECT_TYPE(VerticalPathingRegion, vertical_pathing_region);
 
    CollisionType GetType() const override { return CollisionShape::REGION; }
-   math3d::aabb GetAABB() const override;
+   csg::Cube3f GetAABB() const override;
 
    BoxedRegion3Ptr GetRegionPtr() const { return *region_; }
    void SetRegionPtr(BoxedRegion3Ptr region) { region_ = region; }

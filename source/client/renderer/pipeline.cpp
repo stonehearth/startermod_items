@@ -11,7 +11,7 @@
 using namespace ::radiant;
 
 namespace metrics = ::radiant::metrics;
-using ::radiant::math3d::ipoint3;
+using ::radiant::csg::Point3;
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -148,7 +148,7 @@ H3DNode Pipeline::AddQubicleNode(H3DNode parent, const QubicleMatrix& m, const c
 
                   VoxelGeometryVertex vertex;
                   COPY_VEC(vertex.normal, edge.normal);
-                  math3d::color3 col = m.GetColor(c);
+                  csg::Color3 col = m.GetColor(c);
                   vertex.color[0] = col.r / 255.0;
                   vertex.color[1] = col.g / 255.0;
                   vertex.color[2] = col.b / 255.0;

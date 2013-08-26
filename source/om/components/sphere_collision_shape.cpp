@@ -11,13 +11,13 @@ void SphereCollisionShape::InitializeRecordFields()
 }
 
 
-math3d::aabb SphereCollisionShape::GetAABB() const
+csg::Cube3f SphereCollisionShape::GetAABB() const
 {
    ASSERT(false);
-   return math3d::aabb();
+   return csg::Cube3f();
 }
 
-const math3d::bounding_sphere& SphereCollisionShape::GetSphere() const
+const csg::Sphere& SphereCollisionShape::GetSphere() const
 {
    return *sphere_;
 }

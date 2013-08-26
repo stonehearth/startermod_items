@@ -24,14 +24,14 @@ RenderMob::RenderMob(const RenderEntity& entity, om::MobPtr mob) :
 
 void RenderMob::Move()
 {
-   // xxx - we shouldn't need this normalize, but without it the following assert will
+   // xxx - we shouldn't need this Normalize, but without it the following assert will
    // occasionally fail in release builds.  something happened to this vector... perhaps
    // it got tweaked slightly when being sent over the netwwork, or maybe our value of
    // epislon is just too small.
-   _current.orientation.normalize();
+   _current.orientation.Normalize();
    ASSERT(_current.orientation.is_unit());
 
-   math3d::matrix4 m(_current.orientation);
+   csg::Matrix4 m(_current.orientation);
    
    m[12] = _current.position.x;
    m[13] = _current.position.y;
@@ -59,7 +59,7 @@ void RenderMob::Update()
 void RenderMob::Interpolate()
 {
    float alpha = Renderer::GetInstance().GetCurrentFrameInterp();
-   _current = math3d::interpolate(_initial, _final, alpha);
+   _current = csg::Interpolate(_initial, _final, alpha);
    Move();
 }
 

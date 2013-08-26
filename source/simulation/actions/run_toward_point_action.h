@@ -2,7 +2,6 @@
 #define _RADIANT_SIMULATION_RUN_TOWARD_POINT_ACTION_H
 
 #include "action.h"
-#include "math3d.h"
 #include "simulation/jobs/path.h"
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
@@ -17,7 +16,7 @@ public:
 
 protected:
    om::EntityRef        self_;
-   math3d::point3       dst_;
+   csg::Point3f       dst_;
 };
 
 

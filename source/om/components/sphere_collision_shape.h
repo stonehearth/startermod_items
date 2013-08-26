@@ -1,13 +1,12 @@
 #ifndef _RADIANT_OM_SPHERE_COLLSION_SHAPE_H
 #define _RADIANT_OM_SPHERE_COLLSION_SHAPE_H
 
-#include "math3d.h"
 #include "om/om.h"
 #include "om/object_enums.h"
 #include "dm/boxed.h"
 #include "dm/record.h"
 #include "namespace.h"
-#include "math3d/collision/bounding_sphere.h"
+#include "csg/sphere.h"
 #include "collision_shape.h"
 #include "component.h"
 
@@ -21,14 +20,14 @@ public:
 
    CollisionType GetType() const override { return CollisionShape::SPHERE; }
 
-   math3d::aabb GetAABB() const override;
-   const math3d::bounding_sphere& GetSphere() const;
+   csg::Cube3f GetAABB() const override;
+   const csg::Sphere& GetSphere() const;
 
 private:
    void InitializeRecordFields() override;
 
 private:
-   dm::Boxed<math3d::bounding_sphere>     sphere_;
+   dm::Boxed<csg::Sphere>     sphere_;
 };
 
 END_RADIANT_OM_NAMESPACE

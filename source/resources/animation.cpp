@@ -9,7 +9,7 @@ using namespace ::radiant;
 using namespace ::radiant::resources;
 
 using ::radiant::int32;
-using ::radiant::math3d::transform;
+using ::radiant::csg::Transform;
 
 Animation::Animation(std::string bin) :
    bin_(bin),
@@ -131,16 +131,16 @@ void Animation::MoveNodes(float offset, AnimationFn fn)
       std::string bone(boneptr);
       boneptr += bone.size() + 1;
 
-      math3d::transform b0(math3d::point3(first[0], first[1], first[2]),
-                           math3d::quaternion(first[3], first[4], first[5], first[6]));
-      math3d::transform b1(math3d::point3(next[0], next[1], next[2]),
-                           math3d::quaternion(next[3], next[4], next[5], next[6]));
+      csg::Transform b0(csg::Point3f(first[0], first[1], first[2]),
+                           csg::Quaternion(first[3], first[4], first[5], first[6]));
+      csg::Transform b1(csg::Point3f(next[0], next[1], next[2]),
+                           csg::Quaternion(next[3], next[4], next[5], next[6]));
 
       //LOG(WARNING) << _name << " " << f << " " << bone << " " << "b0: " << b0.position;
       //LOG(WARNING) << _name << " " << n << " " << bone << " " << "b1: " << b1.position;
 
-      math3d::transform t = math3d::interpolate(b0, b1, alpha);
-      //t.orientation = math3d::quaternion(math3d::vector3::unit_y, 0);
+      csg::Transform t = csg::Interpolate(b0, b1, alpha);
+      //t.orientation = csg::Quaternion(csg::Point3f::unit_y, 0);
       fn(bone, t);
 
       first += 7;

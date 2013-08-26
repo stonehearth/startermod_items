@@ -1,5 +1,7 @@
 #include "pch.h"
+#include "csg.h"
 #include "cube.h"
+#include "ray.h"
 #include "region.h"
 
 using namespace ::radiant;
@@ -8,7 +10,8 @@ using namespace ::radiant::csg;
 Cube3 Cube3::zero(Point3(0, 0, 0), Point3(0, 0, 0));
 Cube3 Cube3::one(Point3(0, 0, 0), Point3(1, 1, 1));
 
-bool ::radiant::csg::Cube3Intersects(const Cube3& cube, const math3d::ray3& ray, float& d)
+template <class C>
+static bool Cube3IntersectsImpl(const C& cube, const csg::Ray3& ray, float& d)
 {
    const auto& min = cube.GetMin();
    const auto& max = cube.GetMax();
@@ -18,7 +21,7 @@ bool ::radiant::csg::Cube3Intersects(const Cube3& cube, const math3d::ray3& ray,
    // do tests against three sets of planes
    for (int i = 0; i < 3; ++i) {
       // ray is parallel to plane
-      if (math3d::is_zero(ray.direction[i])) {
+      if (csg::IsZero(ray.direction[i])) {
          // ray passes by box
          if (ray.origin[i] < min[i] || ray.origin[i] > max[i]) {
             return false;
@@ -53,6 +56,17 @@ bool ::radiant::csg::Cube3Intersects(const Cube3& cube, const math3d::ray3& ray,
    return true;
 }
 
+bool csg::Cube3Intersects(const Cube3& rgn, const Ray3& ray, float& distance)
+{
+   return Cube3IntersectsImpl(rgn, ray, distance);
+}
+
+bool csg::Cube3Intersects(const Cube3f& rgn, const Ray3& ray, float& distance)
+{
+   return Cube3IntersectsImpl(rgn, ray, distance);
+}
+
+
 template <typename S, int C>
 Cube<S, C>::Cube() :
    tag_(0)
@@ -78,14 +92,6 @@ Cube<S, C>::Cube(const Point& min, const Point& max, int tag) :
    for (int i = 0; i < C; i++) {
       ASSERT(min_[i] <= max_[i]);
    }
-}
-
-template <typename S, int C>
-Cube<S, C>::Cube(const protocol::cube& msg) :
-   tag_(msg.tag()),
-   min_(msg.min()),
-   max_(msg.max())
-{
 }
 
 template <typename S, int C>
@@ -223,6 +229,7 @@ Cube<S, C> Cube<S, C>::ProjectOnto(int axis, S plane) const
    return Cube(min_.ProjectOnto(axis, plane), max_.ProjectOnto(axis, plane + 1), tag_);
 }
 
+#if 0
 template <class S, int C>
 Cube<S, C> Cube<S, C>::Construct(Point min, Point max, int tag)
 {
@@ -233,13 +240,12 @@ Cube<S, C> Cube<S, C>::Construct(Point min, Point max, int tag)
    }
    return Cube(min, max, tag);
 }
+#endif
 
 #define MAKE_CUBE(Cls) \
    template Cls::Cube(); \
    template Cls::Cube(const Cls::Point&, int); \
    template Cls::Cube(const Cls::Point&, const Cls::Point&, int); \
-   template Cls::Cube(const protocol::cube& msg); \
-   template Cls Cls::Construct(Cls::Point min, Cls::Point max, int tag); \
    template Cls::ScalarType Cls::GetArea() const; \
    template bool Cls::Intersects(const Cls& other) const; \
    template Cls Cls::operator&(const Cls& offset) const; \

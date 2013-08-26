@@ -1,7 +1,6 @@
 #ifndef _RADIANT_OM_EFFECT_TRACKS_H
 #define _RADIANT_OM_EFFECT_TRACKS_H
 
-#include "math3d.h"
 #include "dm/boxed.h"
 #include "dm/record.h"
 #include "dm/store.h"
@@ -44,9 +43,9 @@ private:
    }
 
 private:
-   dm::Boxed<int>             startTime_;
-   dm::Boxed<std::string>     effectName_;
-   dm::Map<std::string, Selection> params_;
+   dm::Boxed<int>                   startTime_;
+   dm::Boxed<std::string>           effectName_;
+   dm::Map<std::string, Selection>  params_;
 };
 std::ostream& operator<<(std::ostream& os, const Effect& o);
 

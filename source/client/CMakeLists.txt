@@ -56,8 +56,6 @@ target_link_libraries(client
                              Horde3DUtils
                              horde3d_extensions
                              lua
-                             math3d_common
-                             math3d_collision
                              metrics
                              om
                              physics

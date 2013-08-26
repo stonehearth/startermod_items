@@ -17,9 +17,9 @@ FollowPathAction::FollowPathAction() :
 {
 }
 
-static float angle(const math3d::vector3 &v)
+static float angle(const csg::Point3f &v)
 {
-   return math3d::atan2(v.z, -v.x) - math3d::atan2(-1, 0);
+   return atan2(v.z, -v.x) - atan2(-1, 0);
 }
 
 void FollowPathAction::Create(lua_State* L)
@@ -84,17 +84,17 @@ bool FollowPathAction::FollowPath()
    bool realtime = true;
 
    float maxDistance = realtime ? 0.4f : 10.0f;
-   const vector<math3d::ipoint3> &points = path_->GetPoints();
+   const vector<csg::Point3> &points = path_->GetPoints();
    auto self = self_.lock();
 
    while (!Arrived() && !Obstructed() && maxDistance > 0)  {
-      const math3d::point3 &current = mob_->GetLocation();
-      const math3d::point3 &goal = math3d::point3(points[pursuing_]);
+      const csg::Point3f &current = mob_->GetLocation();
+      const csg::Point3f &goal = csg::Point3f(points[pursuing_]);
 
-      math3d::vector3 direction = math3d::vector3(goal - current);
+      csg::Point3f direction = csg::Point3f(goal - current);
       float distance = direction.length();
       if (distance < maxDistance) {
-         mob_->MoveTo(math3d::point3(points[pursuing_]));
+         mob_->MoveTo(csg::Point3f(points[pursuing_]));
          maxDistance -= distance;
          pursuing_++;
       } else {
@@ -114,7 +114,7 @@ bool FollowPathAction::FollowPath()
 bool FollowPathAction::Arrived()
 {
    ASSERT(path_);
-   const vector<math3d::ipoint3> &points = path_->GetPoints();
+   const vector<csg::Point3> &points = path_->GetPoints();
 
    return (unsigned int)pursuing_ >= points.size();
 }
@@ -122,7 +122,7 @@ bool FollowPathAction::Arrived()
 bool FollowPathAction::Obstructed()
 {   
    //ASSERT(_terrain && path_);
-   const vector<math3d::ipoint3> &points = path_->GetPoints();
+   const vector<csg::Point3> &points = path_->GetPoints();
 
    // xxx: IGNORE_OBSTRUCTED:
    return false;

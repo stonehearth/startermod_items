@@ -1,9 +1,10 @@
 #ifndef _RADIANT_RESOURCES_ANIMATION_H
 #define _RADIANT_RESOURCES_ANIMATION_H
 
-#include "math3d.h"
+#include <functional>
 #include "libjson.h"
 #include "namespace.h"
+#include "csg/transform.h"
 
 struct lua_State;
 
@@ -17,7 +18,7 @@ public:
 
    float GetDuration();
 
-   typedef std::function<void(std::string, const math3d::transform &)> AnimationFn;
+   typedef std::function<void(std::string, const csg::Transform &)> AnimationFn;
    void MoveNodes(int32 timeOffset, AnimationFn fn);
    bool HasBone(std::string bone);
 

@@ -57,7 +57,7 @@ void csg::HeightmapToRegion2(HeightMap<double> const& h, Region2& r)
    }
 }
 
-bool ::csg::Region3Intersects(const Region3& rgn, const math3d::ray3& ray, float& distance)
+bool ::csg::Region3Intersects(const Region3& rgn, const csg::Ray3& ray, float& distance)
 {
    float best = FLT_MAX;
    for (const auto &r : rgn) { 

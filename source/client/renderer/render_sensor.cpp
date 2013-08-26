@@ -35,8 +35,8 @@ void RenderSensor::UpdateSensor()
 {
 
    color_ = sensor_->GetDebugColor();
-   math3d::point3 p0(0, 0.1f, 0), p1(0, 0.1f, 0);
-   math3d::point3 center = sphere_.get_center();
+   csg::Point3f p0(0, 0.1f, 0), p1(0, 0.1f, 0);
+   csg::Point3f center = sphere_.get_center();
    float r = sphere_.get_radius();
 
    h3dRadiantClearDebugShape(debugShape_);

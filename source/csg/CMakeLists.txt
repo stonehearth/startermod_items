@@ -7,11 +7,18 @@ include_directories(${Lua_INCLUDE_DIRS})
 include_directories(${Luabind_INCLUDE_DIRS})
 
 add_library(csg STATIC
+            color.cpp
             cube.cpp
             csg.cpp
             point.cpp
             region.cpp
+            matrix3.cpp
+            matrix4.cpp
             meshtools.cpp
+            quaternion.cpp
+            ray.cpp
+            sphere.cpp
+            transform.cpp
             voronoi.cpp
             voronoi_map.cpp
             heightmap.cpp

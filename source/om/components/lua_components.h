@@ -1,7 +1,6 @@
 #ifndef _RADIANT_OM_LUA_COMPONENTS_H
 #define _RADIANT_OM_LUA_COMPONENTS_H
 
-#include "math3d.h"
 #include "dm/boxed.h"
 #include "dm/record.h"
 #include "dm/store.h"

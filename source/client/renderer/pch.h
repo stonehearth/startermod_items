@@ -11,7 +11,6 @@
 
 #include "radiant_stdutil.h"
 #include "radiant_luabind.h"
-#include "math3d.h"
 #include "Horde3D.h"
 #include "Horde3DUtils.h"
 #include "render_entity.h"

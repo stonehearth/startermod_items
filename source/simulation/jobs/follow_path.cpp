@@ -28,9 +28,9 @@ FollowPath::FollowPath(om::EntityRef e, float speed, std::shared_ptr<Path> path,
    Report("constructor");
 }
 
-static float angle(const math3d::vector3 &v)
+static float angle(const csg::Point3f &v)
 {
-   return math3d::atan2(v.z, -v.x) - math3d::atan2(-1, 0);
+   return (float)(atan2(v.z, -v.x) - atan2(-1, 0));
 }
 
 
@@ -46,23 +46,23 @@ bool FollowPath::Work(const platform::timer &timer)
    float speedMultiplier = configvm["game.travel_speed_multiplier"].as<float>();
    float maxDistance = speed_ * speedMultiplier;
    auto mob = entity->GetComponent<om::Mob>();
-   const std::vector<math3d::ipoint3> &points = path_->GetPoints();
+   const std::vector<csg::Point3> &points = path_->GetPoints();
 
    while (!Arrived(mob) && !Obstructed() && maxDistance > 0)  {
-      const math3d::point3 &current = mob->GetLocation();
-      const math3d::point3 &goal = math3d::point3(points[pursuing_]);
+      const csg::Point3f &current = mob->GetLocation();
+      const csg::Point3f &goal = csg::ToFloat(points[pursuing_]);
 
-      math3d::vector3 direction = math3d::vector3(goal - current);
-      float distance = direction.length();
+      csg::Point3f direction = csg::Point3f(goal - current);
+      float distance = direction.Length();
       if (distance < maxDistance) {
-         mob->MoveTo(math3d::point3(points[pursuing_]));
+         mob->MoveTo(csg::ToFloat(points[pursuing_]));
          maxDistance -= distance;
          pursuing_++;
       } else {
          mob->MoveTo(current + (direction * (maxDistance / distance)));
          maxDistance = 0;
       }
-      mob->TurnToAngle(angle(direction) * 180 / k_pi);
+      mob->TurnToAngle(angle(direction) * 180 / csg::k_pi);
    }
    if (Arrived(mob)) {
       Report("arrived!");
@@ -86,7 +86,7 @@ bool FollowPath::Arrived(om::MobPtr mob)
 bool FollowPath::Obstructed()
 {   
    //ASSERT(_terrain && path_);
-   const std::vector<math3d::ipoint3> &points = path_->GetPoints();
+   const std::vector<csg::Point3> &points = path_->GetPoints();
 
    // xxx: IGNORE_OBSTRUCTED:
    return false;

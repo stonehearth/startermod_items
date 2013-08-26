@@ -4,7 +4,6 @@
 #include "../../horde3d/Source/Horde3DEngine/egPrerequisites.h"
 #include "../../horde3d/Source/Horde3DEngine/egScene.h"
 #include "../extension.h"
-#include "math3d.h"
 #include "namespace.h"
 
 BEGIN_RADIANT_HORDE3D_NAMESPACE

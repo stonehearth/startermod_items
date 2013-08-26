@@ -1,6 +1,6 @@
 local MicroWorld = require 'stonehearth_tests.lib.micro_world'
 
-local RadiantIPoint3 = _radiant.math3d.RadiantIPoint3
+local RadiantIPoint3 = _radiant.csg.Point3
 local CarryTest = class(MicroWorld)
 
 --[[

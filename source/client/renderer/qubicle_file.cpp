@@ -24,10 +24,10 @@ radiant::uint32 QubicleMatrix::At(int x, int  y, int z) const
    return matrix_[offset];
 }
 
-math3d::color3 QubicleMatrix::GetColor(radiant::uint32 value) const
+csg::Color3 QubicleMatrix::GetColor(radiant::uint32 value) const
 {
-   math3d::color4 c = math3d::color4::FromInteger(value);
-   return math3d::color3(c.r, c.g, c.b);
+   csg::Color4 c = csg::Color4::FromInteger(value);
+   return csg::Color3(c.r, c.g, c.b);
 }
 
 std::istream& QubicleMatrix::Read(const QbHeader& header, std::istream& in)

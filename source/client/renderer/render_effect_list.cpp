@@ -44,9 +44,9 @@ int GetStartTime(const JSONNode& node)
    return 0;
 }
 
-static void MoveSceneNode(H3DNode node, const math3d::transform& t, float scale)
+static void MoveSceneNode(H3DNode node, const csg::Transform& t, float scale)
 {
-   math3d::matrix4 m(t.orientation);
+   csg::Matrix4 m(t.orientation);
    
    m[12] = t.position.x * scale;
    m[13] = t.position.y * scale;
@@ -216,7 +216,7 @@ void RenderAnimationEffect::Update(int now, int dt, bool& finished)
    }
 
    LOG(INFO) << "advancing animation " << animationName_ << " to offset " << offset << "(start_time: " << startTime_ << " now: " << now << " duration: " << duration_ << ")";
-   animation_->MoveNodes(offset, [&](std::string bone, const math3d::transform &transform) {
+   animation_->MoveNodes(offset, [&](std::string bone, const csg::Transform &transform) {
       H3DNode node = entity_.GetSkeleton().GetSceneNode(bone);
       if (node) {
          MoveSceneNode(node, transform, entity_.GetSkeleton().GetScale());
@@ -272,7 +272,7 @@ RenderAttachItemEffect::RenderAttachItemEffect(RenderEntity& e, om::EffectPtr ef
          if (item) {
             auto mob = item->GetComponent<om::Mob>();
             if (mob) {
-               mob->MoveTo(math3d::point3(0, 0, 0));
+               mob->MoveTo(csg::Point3f(0, 0, 0));
                mob->TurnToAngle(0);
             }
          }
@@ -732,7 +732,7 @@ void PlaySoundEffect::Update(int now, int dt, bool& finished)
 {
    om::MobPtr mobP = entity_.GetEntity()->GetComponent<om::Mob>();
    if (mobP) {
-      math3d::point3 loc = mobP -> GetWorldLocation();
+      csg::Point3f loc = mobP -> GetWorldLocation();
       sound_.setPosition(loc.x, loc.y, loc.z);
    }
 

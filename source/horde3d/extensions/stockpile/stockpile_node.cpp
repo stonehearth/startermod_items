@@ -14,7 +14,6 @@
 #include "radiant_stdutil.h"
 #include "decal_node.h"
 #include "stockpile_node.h"
-#include "math3d.h"
 #include "Horde3DRadiant.h"
 
 using namespace ::radiant;
@@ -59,7 +58,7 @@ void StockpileNode::renderFunc(const std::string &shaderContext, const std::stri
 {
 }
 
-void StockpileNode::UpdateShape(const math3d::ibounds3& bounds)
+void StockpileNode::UpdateShape(const csg::Cube3& bounds)
 {
    if (!center_.first) {
       const DecalNode::Vertex cornerQuad[] = {
@@ -81,8 +80,11 @@ void StockpileNode::UpdateShape(const math3d::ibounds3& bounds)
       }
    }
 
-   math3d::point3& p0 = math3d::point3(bounds._min);
-   math3d::point3& p1 = math3d::point3(bounds._max);
+   csg::Point3f p0, p1;
+   for (int i = 0; i < 3; i++ ) {
+      p0[i] = (float)bounds.GetMin()[i];
+      p1[i] = (float)bounds.GetMax()[i];
+   }
    
    //p0.y++;
    //p1.y++;
@@ -121,8 +123,8 @@ void StockpileNode::UpdateShape(const math3d::ibounds3& bounds)
    h3dSetNodeTransform(edges_[3].first, p0.x + 1, p0.y, p1.z - 1,  0, 90,   0, 1, 1, 1);
 
    // Cre-create the center texture and edges...
-   p0 += math3d::point3(-0.5, 0.0, -0.5);
-   p1 += math3d::point3(-0.5, 0.0, -0.5);
+   p0 += csg::Point3f(-0.5, 0.0, -0.5);
+   p1 += csg::Point3f(-0.5, 0.0, -0.5);
 
    u = p1.x - p0.x;
    v = p1.z - p0.z;

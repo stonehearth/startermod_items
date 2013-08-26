@@ -2,6 +2,7 @@
 #define _RADIANT_CLIENT_SKELETON_H
 
 #include "namespace.h"
+#include "csg/point.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -13,7 +14,7 @@ class Skeleton {
       void SetSceneNode(H3DNode parent);
       H3DNode GetSceneNode(std::string bone);
 
-      H3DNode AttachEntityToBone(H3DRes entity, std::string bone, math3d::point3 offset);
+      H3DNode AttachEntityToBone(H3DRes entity, std::string bone, csg::Point3f const& offset);
       void Clear();
       void SetScale(float scale) { _scale = scale; }
       float GetScale() const { return _scale; }

@@ -1,7 +1,6 @@
 #ifndef _RADIANT_OM_RENDER_REGION_H
 #define _RADIANT_OM_RENDER_REGION_H
 
-#include "math3d.h"
 #include "dm/record.h"
 #include "dm/set.h"
 #include "dm/boxed.h"

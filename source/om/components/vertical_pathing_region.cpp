@@ -10,8 +10,8 @@ void VerticalPathingRegion::InitializeRecordFields()
    AddRecordField("region", region_);
 }
 
-math3d::aabb VerticalPathingRegion::GetAABB() const
+csg::Cube3f VerticalPathingRegion::GetAABB() const
 {
    ASSERT(false);
-   return math3d::aabb();
+   return csg::Cube3f();
 }

@@ -31,8 +31,6 @@ target_link_libraries(client_dll
                              csg
                              dm
                              game_engine
-                             math3d_common
-                             math3d_collision
                              metrics
                              om
                              physics

@@ -107,7 +107,7 @@ void RenderRig::AddQubicleResource(const std::string uri)
       // LOG(WARNING) << "Adding render rig node " << node;
 
       /*
-      H3DNode node = entity_.GetSkeleton().AttachEntityToBone(res, bone, math3d::point3(0, 0, 0));
+      H3DNode node = entity_.GetSkeleton().AttachEntityToBone(res, bone, csg::Point3f(0, 0, 0));
       //LOG(WARNING) << "  attaching " << model.GetMesh() << " to " << bone;
       h3dSetNodeTransform(node, 0, 0, 0, 0, 0, 0, .1f, .1f, .1f);
       nodes.push_back(node);

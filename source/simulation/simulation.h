@@ -52,16 +52,11 @@ public:
    void AddTask(std::shared_ptr<Task> task);
    void AddJob(std::shared_ptr<Job> job);
 
-   void ProcessCommand(const ::radiant::tesseract::protocol::Cmd &cmd) override;
-   void ProcessCommand(::google::protobuf::RepeatedPtrField<tesseract::protocol::Reply >* replies, const ::radiant::tesseract::protocol::Command &command) override;
-   // void ProcessCommandList(const ::radiant::tesseract::protocol::command_list &cmd_list) override;
-
    bool ProcessMessage(const ::radiant::tesseract::protocol::Request& msg, protocol::SendQueuePtr queue);
    void EncodeUpdates(protocol::SendQueuePtr queue, ClientState& cs) override;
    void Step(platform::timer &timer, int interval) override;
    void Idle(platform::timer &timer) override;
 
-   void SendCommandReply(::radiant::tesseract::protocol::Reply* reply);
    void RegisterServerRemoteObject(std::string const& uri, dm::ObjectPtr obj);
    om::EntityPtr GetRootEntity();
    Physics::OctTree &GetOctTree();

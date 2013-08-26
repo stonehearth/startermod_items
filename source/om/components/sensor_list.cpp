@@ -59,7 +59,7 @@ SensorPtr SensorList::AddSensor(std::string name, int radius)
 {
    SensorPtr sensor = GetStore().AllocObject<Sensor>();
 
-   csg::Cube3 box(csg::Point3(-radius, -radius, -radius), csg::Point3(radius, radius, radius));
+   csg::Cube3f box(csg::Point3f(-radius, -radius, -radius), csg::Point3f(radius, radius, radius));
    sensor->SetCube(box);
    sensor->SetEntity(GetEntityRef());
 

@@ -123,8 +123,8 @@ Renderer::Renderer() :
 	// Add camera
 	camera_ = h3dAddCameraNode(H3DRootNode, "Camera", currentPipeline_);
    
-   cameraTarget_ = math3d::vector3(0, 10, 0);
-   cameraPos_ = cameraTarget_ + math3d::vector3(24, 24, 24);
+   cameraTarget_ = csg::Point3f(0, 10, 0);
+   cameraPos_ = cameraTarget_ + csg::Point3f(24, 24, 24);
    UpdateCamera();
 
    h3dSetNodeParamI(camera_, H3DCamera::PipeResI, currentPipeline_);
@@ -133,10 +133,10 @@ Renderer::Renderer() :
 	directionalLight = h3dAddLightNode(H3DRootNode, "Sun", lightMatRes, "DIRECTIONAL_LIGHTING", "DIRECTIONAL_SHADOWMAP");
    h3dSetMaterialUniform(lightMatRes, "ambientLightColor", 1.0f, 1.0f, 0.0f, 1.0f);
 #if 0
-   math3d::quaternion q(math3d::vector3::unit_x, -90.0f / 180.0f * k_pi);
-   //q *= math3d::quaternion(math3d::vector3::unit_y, 45.0f / 180 * k_pi);
+   csg::Quaternion q(csg::Point3f::unit_x, -90.0f / 180.0f * csg::k_pi);
+   //q *= csg::Quaternion(csg::Point3f::unit_y, 45.0f / 180 * csg::k_pi);
 
-   math3d::matrix4 mat(q);
+   csg::Matrix4 mat(q);
    h3dSetNodeTransMat(directionalLight, mat.get_float_ptr());
 #else
    h3dSetNodeTransform(directionalLight, 0, 0, 0, -30, -30, 0, 1, 1, 1);
@@ -242,13 +242,13 @@ void Renderer::RenderOneFrame(int now, float alpha)
    currentFrameTime_ =  now;
    currentFrameInterp_ = alpha;
 
-   if (cameraMoveDirection_ != math3d::vector3::origin) {
-         math3d::vector3 targetDir = cameraTarget_ - cameraPos_;
+   if (cameraMoveDirection_ != csg::Point3f::zero) {
+         csg::Point3f targetDir = cameraTarget_ - cameraPos_;
 
-         float angle = atan2(targetDir.z, -targetDir.x) - math3d::atan2(-1, 0);
-         math3d::quaternion rot(math3d::vector3(0, 1, 0), angle);
-         math3d::vector3 delta = rot.rotate(cameraMoveDirection_);
-         delta.normalize();
+         float angle = atan2(targetDir.z, -targetDir.x) - atan2(-1, 0);
+         csg::Quaternion rot(csg::Point3f(0, 1, 0), angle);
+         csg::Point3f delta = rot.rotate(cameraMoveDirection_);
+         delta.Normalize();
          delta = delta * (deltaNow / 45.0f);
          cameraPos_ += delta;
          cameraTarget_ += delta;
@@ -331,7 +331,7 @@ bool Renderer::IsRunning() const
    return true;
 }
 
-math3d::ray3 Renderer::GetCameraToViewportRay(int windowX, int windowY)
+csg::Ray3 Renderer::GetCameraToViewportRay(int windowX, int windowY)
 {
    // compute normalized window coordinates in preparation for casting a ray
    // through the scene
@@ -340,7 +340,7 @@ math3d::ray3 Renderer::GetCameraToViewportRay(int windowX, int windowY)
 
    // calculate the ray starting at the eye position of the camera, casting
    // through the specified window coordinates into the scene
-   math3d::ray3 ray;   
+   csg::Ray3 ray;   
 
 	h3dutPickRay(camera_, nwx, nwy,
                 &ray.origin.x, &ray.origin.y, &ray.origin.z,
@@ -367,19 +367,19 @@ void Renderer::QuerySceneRay(int windowX, int windowY, om::Selection &result)
 
    // Pull out the intersection node and intersection point
 	H3DNode node = 0;
-   math3d::point3 pt, normal;
+   csg::Point3f pt, normal;
 	if (!h3dGetCastRayResult( 0, &node, 0, &pt.x, &normal.x )) {
       return;
    }
-   normal.normalize();
+   normal.Normalize();
    assert(node);
 
-   result.AddLocation(math3d::point3(pt.x, pt.y, pt.z),
-                      math3d::vector3(normal.x, normal.y, normal.z));
+   result.AddLocation(csg::Point3f(pt.x, pt.y, pt.z),
+                      csg::Point3f(normal.x, normal.y, normal.z));
 
    // Lookup the intersection object in the node registery and ask it to
    // fill in the selection structure.
-   math3d::ray3 ray(math3d::point3(ox, oy, oz), math3d::vector3(dx, dy, dz));
+   csg::Ray3 ray(csg::Point3f(ox, oy, oz), csg::Point3f(dx, dy, dz));
 
    while (node) {
       const char *name = h3dGetNodeParamStr(node, H3DNodeParams::NameStr);
@@ -387,7 +387,7 @@ void Renderer::QuerySceneRay(int windowX, int windowY, om::Selection &result)
       if (i != selectableCbs_.end()) {
          // transform the interesection and the normal to the coordinate space
          // of the node.
-         math3d::matrix4 transform = GetNodeTransform(node);
+         csg::Matrix4 transform = GetNodeTransform(node);
          transform.affine_inverse();
 
          i->second(result, ray, transform.transform(pt), transform.rotate(normal));
@@ -396,12 +396,12 @@ void Renderer::QuerySceneRay(int windowX, int windowY, om::Selection &result)
    }
 }
 
-math3d::matrix4 Renderer::GetNodeTransform(H3DNode node) const
+csg::Matrix4 Renderer::GetNodeTransform(H3DNode node) const
 {
    const float *abs;
    h3dGetNodeTransMats(node, NULL, &abs);
 
-   math3d::matrix4 transform;
+   csg::Matrix4 transform;
    memcpy((float*)transform, abs, sizeof(float) * 16);
 
    return transform;
@@ -450,9 +450,9 @@ void Renderer::RemoveInputEventHandler(InputCallbackId id)
    }
 }
 
-void Renderer::PointCamera(const math3d::point3 &location)
+void Renderer::PointCamera(const csg::Point3f &location)
 {
-   math3d::vector3 delta = math3d::vector3(location) - cameraTarget_;
+   csg::Point3f delta = csg::Point3f(location) - cameraTarget_;
    cameraTarget_ += delta;
    cameraPos_ += delta;
    UpdateCamera();
@@ -560,9 +560,9 @@ void Renderer::RemoveRenderObject(int sid, dm::ObjectId id)
 
 void Renderer::UpdateCamera()
 {
-   math3d::matrix4 m;
+   csg::Matrix4 m;
    m.translation(cameraPos_);
-   m *= math3d::matrix4(GetCameraRotation());
+   m *= csg::Matrix4(GetCameraRotation());
 
    //Let the audio listener know where the camera is
    sf::Listener::setPosition(cameraPos_.x, cameraPos_.y, cameraPos_.z);
@@ -570,31 +570,31 @@ void Renderer::UpdateCamera()
    h3dSetNodeTransMat(camera_, m.get_float_ptr());
 }
 
-math3d::quaternion Renderer::GetCameraRotation()
+csg::Quaternion Renderer::GetCameraRotation()
 {
    // Translation is just moving to the eye coordinate.  The rotation
    // rotates from looking down the -z axis to looking at the center
    // point.
-   math3d::vector3 up(0, 1, 0);
+   csg::Point3f up(0, 1, 0);
 
-   math3d::vector3 targetDir = cameraTarget_ - cameraPos_;
-   targetDir.normalize();
+   csg::Point3f targetDir = cameraTarget_ - cameraPos_;
+   targetDir.Normalize();
 
-   math3d::vector3 xVec = up.cross(targetDir);
-   xVec.normalize();
-   math3d::vector3 yVec = targetDir.cross(xVec);
-   yVec.normalize();
+   csg::Point3f xVec = up.Cross(targetDir);
+   xVec.Normalize();
+   csg::Point3f yVec = targetDir.Cross(xVec);
+   yVec.Normalize();
 
-   math3d::matrix3 m3;
+   csg::Matrix3 m3;
    m3.set_columns(xVec, yVec, targetDir);
-   math3d::quaternion rotation(m3);
+   csg::Quaternion rotation(m3);
 
    // I don't pretend to understand why this is necessary...
-   rotation = math3d::quaternion(-rotation.y, -rotation.z, rotation.w, rotation.x);
+   rotation = csg::Quaternion(-rotation.y, -rotation.z, rotation.w, rotation.x);
 
    //// Test it out
-   //math3d::vector3 v(0, 0, -1);
-   //math3d::vector3 tester = rotation.rotate(v);
+   //csg::Point3f v(0, 0, -1);
+   //csg::Point3f tester = rotation.rotate(v);
 
    return rotation;
 
@@ -627,14 +627,14 @@ void Renderer::OnMouseWheel(int value)
    mouse_.wheel = value;
    
    // xxx: move this part out into the client --
-   math3d::vector3 dir = cameraPos_ - cameraTarget_;
+   csg::Point3f dir = cameraPos_ - cameraTarget_;
 
-   float d = dir.length();
+   float d = dir.Length();
 
    d = d + (-dWheel * 10.0f);
    d = std::min(std::max(d, 0.1f), 3000.0f);
 
-   dir.normalize();
+   dir.Normalize();
    cameraPos_ = cameraTarget_ + dir * d;
 
    UpdateCamera(); // xxx - defer to render time?
@@ -654,31 +654,31 @@ void Renderer::OnMouseMove(int x, int y)
    memset(mouse_.down, 0, sizeof mouse_.down);
 
    if (rotateCamera_) {
-      math3d::vector3 offset;
+      csg::Point3f offset;
 
       // rotate about y first.
       float degx = (float)mouse_.dx / -3.0f;
-      math3d::quaternion yaw(math3d::vector3(0, 1, 0), degx * k_pi / 180.0f);
+      csg::Quaternion yaw(csg::Point3f(0, 1, 0), degx * csg::k_pi / 180.0f);
       offset = cameraPos_ - cameraTarget_;
       cameraPos_ = cameraTarget_ + yaw.rotate(offset);
 
       // now change the pitch.
       offset = cameraPos_ - cameraTarget_;
-      float d = offset.length();
-      math3d::vector3 projection(offset.x, 0, offset.z); // project onto the floor 
+      float d = offset.Length();
+      csg::Point3f projection(offset.x, 0, offset.z); // project onto the floor 
 
-      offset.normalize();
-      projection.normalize();
-      math3d::quaternion pitch(projection, offset);      // get the axis angle to get there.
+      offset.Normalize();
+      projection.Normalize();
+      csg::Quaternion pitch(projection, offset);      // get the axis angle to get there.
 
-      math3d::vector3 axis;
+      csg::Point3f axis;
       float angle;
       pitch.get_axis_angle(axis, angle);
 
-      float current = angle / k_pi * 180.0f;
+      float current = angle / csg::k_pi * 180.0f;
       current += (float)mouse_.dy / 2;
       current = std::min(std::max(current, 5.0f), 80.0f);
-      pitch.set(axis, current * k_pi / 180.0f);
+      pitch.set(axis, current * csg::k_pi / 180.0f);
 
       cameraPos_ = cameraTarget_ + pitch.rotate(projection * d);
 
@@ -852,11 +852,12 @@ void Renderer::SetCurrentPipeline(std::string name)
    }
 }
 
-bool Renderer::ShouldHideRenderGrid(const math2d::Point2d& norm2d)
+bool Renderer::ShouldHideRenderGrid(const csg::Point3& normal)
 {
    if (viewMode_ == RPG) {
-      math3d::ipoint3 normal(norm2d, 0);
-      math3d::vector3 toCamera = cameraPos_ - cameraTarget_;
+#if 0
+      csg::Point3 normal(norm2d, 0);
+      csg::Point3f toCamera = cameraPos_ - cameraTarget_;
 
       // If the normal to the render object lies in the XZ plane, we may
       // want to hide it so that objects between the camera and where we
@@ -875,6 +876,7 @@ bool Renderer::ShouldHideRenderGrid(const math2d::Point2d& norm2d)
             }
          }
       }
+#endif
    }
    return false;
 }

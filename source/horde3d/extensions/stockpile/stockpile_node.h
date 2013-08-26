@@ -4,9 +4,9 @@
 #include "../../horde3d/Source/Horde3DEngine/egPrerequisites.h"
 #include "../../horde3d/Source/Horde3DEngine/egScene.h"
 #include "../extension.h"
-#include "math3d.h"
 #include "namespace.h"
 #include "om/om.h"
+#include "csg/cube.h"
 #include "Horde3D.h"
 
 BEGIN_RADIANT_HORDE3D_NAMESPACE
@@ -35,7 +35,7 @@ public:
    static bool InitExtension();
 
 public:
-   void UpdateShape(const math3d::ibounds3& bounds);
+   void UpdateShape(const csg::Cube3& bounds);
 
 private:
 	StockpileNode(const StockpileTpl &terrainTpl);

@@ -148,16 +148,6 @@ std::string Simulation::StepPathFinding(std::string const& cmd)
    return "";
 }
 
-void Simulation::ProcessCommand(const proto::Cmd &cmd)
-{
-   ASSERT(false);
-}
-
-void Simulation::ProcessCommand(::google::protobuf::RepeatedPtrField<proto::Reply >* replies, const proto::Command &command)
-{
-   ASSERT(false);
-}
-
 void Simulation::Save(std::string id)
 {
    ASSERT(false);
@@ -261,10 +251,6 @@ void Simulation::EncodeUpdates(protocol::SendQueuePtr queue, ClientState& cs)
    PushServerRemoteObjects(queue);
 
    cs.last_update = store_.GetNextGenerationId();
-}
-
-void Simulation::SendCommandReply(proto::Reply* reply)
-{
 }
 
 Physics::OctTree &Simulation::GetOctTree()

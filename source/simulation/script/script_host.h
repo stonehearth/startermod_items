@@ -6,7 +6,6 @@
 #include "om/om.h"
 #include "om/entity.h"
 #include "namespace.h"
-#include "math3d.h"
 #include "tesseract.pb.h"
 #include "radiant_json.h"
 #include "resources/animation.h"
@@ -72,7 +71,7 @@ private:
    void DestroyEntity(std::weak_ptr<om::Entity>);
 
    std::shared_ptr<FollowPath> CreateFollowPath(om::EntityRef entity, float speed, std::shared_ptr<Path> path, float close_to_distance, luabind::object arrived_cb);
-   std::shared_ptr<GotoLocation> CreateGotoLocation(om::EntityRef entity, float speed, const math3d::point3& location, float close_to_distance, luabind::object arrived_cb);
+   std::shared_ptr<GotoLocation> CreateGotoLocation(om::EntityRef entity, float speed, const csg::Point3f& location, float close_to_distance, luabind::object arrived_cb);
    std::shared_ptr<GotoLocation> CreateGotoEntity(om::EntityRef entity, float speed, om::EntityRef target, float close_to_distance, luabind::object arrived_cb);
    std::shared_ptr<MultiPathFinder> CreateMultiPathFinder(std::string name);
    std::shared_ptr<PathFinder> CreatePathFinder(std::string name, om::EntityRef e, luabind::object solved, luabind::object dst_filter);
