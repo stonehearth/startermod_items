@@ -1,7 +1,9 @@
 local WaveletFns = {}
 local Wavelet = radiant.mods.require('/stonehearth_terrain/wavelet/wavelet.lua')
 
-function WaveletFns.scale_high_freq(src, src_width, src_height, current_level, max_level, power)
+-- assumes current_level = 1 if not specified
+function WaveletFns.scale_high_freq(src, src_width, src_height, power, max_level, current_level)
+   if not current_level then current_level = 1 end
    if current_level > max_level then return end
    local i, j
    local level_width, level_height =
@@ -20,7 +22,7 @@ function WaveletFns.scale_high_freq(src, src_width, src_height, current_level, m
       row_offset = row_offset + src_width
    end
 
-   WaveletFns.scale_high_freq(src, src_width, src_height, current_level+1, max_level, power)
+   WaveletFns.scale_high_freq(src, src_width, src_height, power, max_level, current_level+1)
 end
 
 function WaveletFns.calc_attentuation_coefficient(levels, final_coefficient)

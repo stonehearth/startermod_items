@@ -1,109 +1,98 @@
 local TerrainGenerator = class()
 
+local Array2D = radiant.mods.require('/stonehearth_terrain/array_2D.lua')
 local HeightMap = radiant.mods.require('/stonehearth_terrain/height_map.lua')
-local GaussianNoise = radiant.mods.require('/stonehearth_terrain/gaussian_noise.lua')
-local InverseGaussianNoise = radiant.mods.require('/stonehearth_terrain/inverse_gaussian_noise.lua')
-local filter_2D = radiant.mods.require('/stonehearth_terrain/filter/filter_2D.lua')
-local filter_ls25 = radiant.mods.require('/stonehearth_terrain/filter/filter_ls25.lua')
+local GaussianRandom = radiant.mods.require('/stonehearth_terrain/math/gaussian_random.lua')
+local InverseGaussianRandom = radiant.mods.require('/stonehearth_terrain/math/inverse_gaussian_random.lua')
+local MathFns = radiant.mods.require('/stonehearth_terrain/math/math_fns.lua')
+local FilterFns = radiant.mods.require('/stonehearth_terrain/filter/filter_fns.lua')
 local Wavelet = radiant.mods.require('/stonehearth_terrain/wavelet/wavelet.lua')
 local WaveletFns = radiant.mods.require('/stonehearth_terrain/wavelet/wavelet_fns.lua')
 local Point_2D = radiant.mods.require('/stonehearth_terrain/point_2D.lua')
 
-function TerrainGenerator:__init(tile_size)
-   math.randomseed(3)
-   self.tile_size = tile_size
-   self.block_size = 32
-   self.foothills_quantization_size = 8
+-- Definitions
+-- Block = atomic unit of terrain
+-- Tile = square unit of flat land, also the chunk size of what is sent to the renderer
+-- Zone = composed of an array of tiles fitting a theme (foothills, plains, mountains)
+-- Biome = a collection of zones fitting a larger theme (tundra, desert)?
+-- World = the entire playspace of a game
 
-   self._detail_noise_generator = InverseGaussianNoise(
-      self.foothills_quantization_size-1, GaussianNoise.LOW_QUALITY
-   )
+function TerrainGenerator:__init(zone_size)
+   math.randomseed(1)
+   self.zone_size = zone_size
+   self.tile_size = 32
+   self.foothills_quantization_size = 8
+   self.foothills_mean_height = 16
+   self.foothills_std_dev = 16
 end
 
--- this API will change to accomodate fitting with adjacent tiles and user templates
-function TerrainGenerator:generate_tile()
-   local height_map = HeightMap(self.tile_size, self.tile_size)
-   local levels = 4
-   local freq_scaling_coeff = 0.7
+function TerrainGenerator:generate_zone(zones, x, y)
+   local height_map = HeightMap(self.zone_size, self.zone_size)
 
-   self:_create_map_template(height_map)
+   self:_create_zone_template(height_map)
    
-   local width = height_map.width
-   local height = height_map.height
-   Wavelet.DWT_2D(height_map, width, height, 1, levels)
-   WaveletFns.scale_high_freq(height_map, width, height, 1, levels, freq_scaling_coeff)
-   Wavelet.IDWT_2D(height_map, width, height, levels)
+   self:_shape_height_map(height_map)
 
    height_map:quantize_map_height(self.foothills_quantization_size)
    self:_add_detail_blocks(height_map)
 
-   -- why doesn't C++ like height of 0? Throws exception in Cube.cpp
-   -- need to figure out baseline height later
-   height_map:normalize_map_height(self.foothills_quantization_size)
-
    return height_map
 end
 
-function TerrainGenerator:_create_map_template(height_map)
+function TerrainGenerator:_create_zone_template(height_map)
    local i, j, value, vertical_scaling_factor
-   local mini_width = height_map.width / self.block_size
-   local mini_height = height_map.height / self.block_size
-   local temp_map = HeightMap(mini_width, mini_height)
+   local mini_width = height_map.width / self.tile_size
+   local mini_height = height_map.height / self.tile_size
+   local noise_map
+   local filtered_map = HeightMap(mini_width, mini_height)
 
-   self:_fill_map_with_gaussian_noise(temp_map, 100, GaussianNoise.LOW_QUALITY)
+   noise_map = self:_generate_random_template(mini_width, mini_height)
 
-   local lowpass_filter = filter_ls25
-   filter_2D(temp_map, mini_width, mini_height, lowpass_filter)
+   FilterFns.filter_2D_025(filtered_map, noise_map, mini_width, mini_height)
 
-   vertical_scaling_factor = 2.5
+   vertical_scaling_factor = 2.2
 
    for j=1, mini_height, 1 do
       for i=1, mini_width, 1 do
-         value = temp_map:get(i, j) * vertical_scaling_factor
-         height_map:set_block((i-1)*self.block_size+1, (j-1)*self.block_size+1,
-            self.block_size, self.block_size, value)
+         value = filtered_map:get(i, j) * vertical_scaling_factor
+         height_map:set_block((i-1)*self.tile_size+1, (j-1)*self.tile_size+1,
+            self.tile_size, self.tile_size, value)
       end
    end
 
-   height_map:normalize_map_height(self.foothills_quantization_size)
    height_map:quantize_map_height(self.foothills_quantization_size)
 end
 
--- bad boundary conditions on small maps
-function TerrainGenerator:_create_map_template_old(height_map)
-   local i, j, value, vertical_scaling_factor
-   local mini_width = height_map.width / self.block_size
-   local mini_height = height_map.height / self.block_size
-   local temp_map = HeightMap(mini_width, mini_height)
+-- transform to frequncy domain and shape frequencies with exponential decay
+function TerrainGenerator:_shape_height_map(height_map)
+   local width = height_map.width
+   local height = height_map.height
+   local levels = 4
+   local freq_scaling_coeff = 0.7
 
-   self:_fill_map_with_gaussian_noise(temp_map, 100, GaussianNoise.LOW_QUALITY)
-
-   Wavelet.DWT_2D(temp_map, mini_width, mini_height, 1, 2)
-   WaveletFns.scale_high_freq(temp_map, mini_width, mini_height, 1, 2, 0)
-   Wavelet.IDWT_2D(temp_map, mini_width, mini_height, 2, 1)
-
-   vertical_scaling_factor = 4
-
-   for j=1, mini_height, 1 do
-      for i=1, mini_width, 1 do
-         value = temp_map:get(i, j) * vertical_scaling_factor
-         height_map:set_block((i-1)*self.block_size+1, (j-1)*self.block_size+1,
-            self.block_size, self.block_size, value)
-      end
-   end
-
-   height_map:normalize_map_height(self.foothills_quantization_size)
-   height_map:quantize_map_height(self.foothills_quantization_size)
+   Wavelet.DWT_2D(height_map, width, height, levels)
+   WaveletFns.scale_high_freq(height_map, width, height, freq_scaling_coeff, levels)
+   Wavelet.IDWT_2D(height_map, width, height, levels)
 end
 
-function TerrainGenerator:_fill_map_with_gaussian_noise(height_map, amplitude, quality)
-   local gaussian_noise = GaussianNoise(amplitude, GaussianNoise.LOW_QUALITY)
+function TerrainGenerator:_generate_random_template(width, height)
+   local template = HeightMap(width, height)
 
-   height_map:process_map(
+   template:process_map(
       function ()
-         return gaussian_noise:generate()
+         return GaussianRandom.generate(self.foothills_mean_height, self.foothills_std_dev)
       end
    )
+
+   return template
+end
+
+function TerrainGenerator:_zone_exists(zones, x, y)
+   if x < 1 then return false end
+   if y < 1 then return false end
+   if x > zones.width then return false end
+   if y > zones.height then return false end
+   return zones:get(x, y)
 end
 
 function TerrainGenerator:_add_detail_blocks(height_map)
@@ -185,13 +174,18 @@ function TerrainGenerator:_grow_seed(height_map, edge_map, x, y)
 end
 
 function TerrainGenerator:_generate_detail_height()
-   -- generate from 1 to quantization_size
-   return self._detail_noise_generator:generate() + 1
+   local min = 0.5
+   local max = self.foothills_quantization_size+0.5
+
+   -- place the midpoint 2 standard deviations away
+   local std_dev = (max-min)*0.25
+   local rand = InverseGaussianRandom.generate(min, max, std_dev)
+   return MathFns.round(rand)
 end
 
 function TerrainGenerator:_try_grow(height_map, edge_map, x, y, detail_height)
    local value
-   local grow_probability = 0.75
+   local grow_probability = 0.80
 
    if not edge_map:get(x, y) then return false end
    if math.random() >= grow_probability then return false end
@@ -200,6 +194,8 @@ function TerrainGenerator:_try_grow(height_map, edge_map, x, y, detail_height)
    edge_map:set(x, y, false)
    return true
 end
+
+----------
 
 function TerrainGenerator:_erosion_test()
    local levels = 4
