@@ -1,0 +1,42 @@
+{
+ "type":"recipe",
+
+ "work_units": 3,
+ "recipe_name" : "Dining Table",
+ "my_location" : "/stonehearth_carpenter_class/recipes/dining_table_recipe.json",
+ "description" : "Allows a group of people to all eat together. Like grown ups.",
+ "flavor"      : "Sitting down to eat is a sign of civilization.",
+ "card_art"    : "/stonehearth_items/dining_table/dining_table_card.png",
+ "queue_art"   : "/stonehearth_items/dining_table/dining_table_queue.png",
+ "category" : "weapons",
+
+ "ingredients": [
+    {
+      "material" : "wood",
+      "count" : 1,
+      "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
+    },
+    {
+      "material" : "wood",
+      "count" : 1,
+      "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
+    },
+    {
+      "material" : "wood",
+      "count" : 1,
+      "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
+    },
+    {
+      "material" : "wood",
+      "count" : 1,
+      "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
+    }
+  ],
+  "produces": [
+      {
+         "item":"/stonehearth_items/dining_table",
+         "script":"/stonehearth_crafter/",
+         "command":"produce_item"
+      }
+  ]
+}

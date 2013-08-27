@@ -19,7 +19,7 @@ function ai._on_event_loop(_, now)
    for id, bm in pairs(singleton._behavior_managers) do
       bm:check_action_stack()
    end
-   
+
    for co, pred in pairs(singleton._waiting_until) do
       local run = false
       if type(pred) == 'function' then
@@ -48,7 +48,7 @@ function ai._on_event_loop(_, now)
          radiant.check.report_thread_error(co, 'co-routine failed: ' .. tostring(wait_obj))
          singleton._scheduled[co] = nil
       end
-     
+
       local status = coroutine.status(co)
       if status == 'suspended' and wait_obj then
          singleton._scheduled[co] = nil
@@ -66,9 +66,31 @@ function ai._on_event_loop(_, now)
 end
 
 function ai.add_action(entity, uri, ...)
-   local ctor = radiant.mods.require(uri)  
+   local ctor = radiant.mods.require(uri)
    local bm = ai._get_bm(entity)
    bm:add_action(uri, ctor(bm, entity))
+end
+
+--[[
+   Given an entity and json object describing
+   how this class affects that entity, remove
+   this class's influences from that entity.
+   In this case, given an object with a list of
+   actions to remove, remove those actions from this entity.
+]]
+function ai.unregister(entity, obj)
+   if obj.actions then
+      for _, uri in radiant.resources.pairs(obj.actions) do
+         ai.remove_action(entity, uri)
+      end
+   end
+   --TODO: handle observers and other elements that are added
+end
+
+function ai.remove_action(entity, uri)
+   local bm = ai._get_bm(entity)
+   --TODO: THIS DOESN'T ACTUALLY HELP; THE ACTION IS STILL THERE?
+   bm:remove_action(uri)
 end
 
 function ai.add_observer(entity, name, ...)
@@ -76,11 +98,11 @@ function ai.add_observer(entity, name, ...)
    local ctor = singleton._observer_registry[name]
    assert(ctor)
    local bm = singleton._get_bm(entity)
-   return bm:add_observer(ctor(entity, ...))  
+   return bm:add_observer(ctor(entity, ...))
 end
 
 function ai.add_debug_hook(entity_id, hookfn)
-   assert(false)  
+   assert(false)
    local bm = singleton._behavior_managers[entity_id]
    if bm then
       bm:set_debug_hook(hookfn)
@@ -98,7 +120,7 @@ function ai._get_bm(arg0)
       entity = arg0
       id = entity:get_id()
    end
-   
+
    if not singleton._behavior_managers[id] then
       singleton._behavior_managers[id] = BehaviorManager(entity)
       radiant.entities.on_destroy(entity, function()
@@ -106,19 +128,19 @@ function ai._get_bm(arg0)
          singleton._behavior_managers[id] = nil
       end)
    end
-   
+
    return singleton._behavior_managers[id]
 end
 
 function ai._init_entity(entity, obj)
    local id = entity:get_id()
-   singleton._entities[id] = entity  
+   singleton._entities[id] = entity
    if obj.actions then
       for _, uri in radiant.resources.pairs(obj.actions) do
          ai.add_action(entity, uri)
       end
    end
-  
+
    if obj.observers then
       for _, uri in radiant.resources.pairs(obj.observers) do
          ai.add_observer(entity, uri)

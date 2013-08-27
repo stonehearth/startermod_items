@@ -8,12 +8,12 @@
    },
    "client" : {
       "request_handlers" : {
-         "choose_location" : "file(routes/location_selector.lua)"
+         "create_workbench" : "file(client/request_handlers/create_workbench.lua)"
       }
    },
    "server" : {
       "request_handlers" : {
-         "create_workbench" : "file(routes/create_workbench.lua)"
+         "create_workbench" : "file(server/request_handlers/srh_create_workbench.lua)"
       }
    },
    "ui" :  {

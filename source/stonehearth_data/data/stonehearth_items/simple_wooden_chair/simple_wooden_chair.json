@@ -1,0 +1,16 @@
+{
+   "type": "entity",
+   "extends" : "/stonehearth_items/entities/item/item_properties.json",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Simple Wooden Chair",
+         "description" : "Culmination of 50,000 years of research."
+      },
+      "render_rig": {
+         "models": [
+            "/stonehearth_items/default_object/default_object.qb"
+         ]
+      }
+   }
+}
+

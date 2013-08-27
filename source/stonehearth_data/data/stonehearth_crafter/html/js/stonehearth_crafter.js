@@ -10,16 +10,25 @@ $(document).ready(function(){
 
    // handle requests from elsewhere in the UI that a workshop be created
    $(top).on("create_workshop.radiant", function (_, e) {
+      // xxx, localize
+      $(top).trigger('show_tip.radiant', {
+         title : 'Place your workshop',
+         description : 'The carpenter uses his workshop to build stuff!'
+      });
+
       // kick off a request to the client to show the cursor for placing
       // the workshop. The UI is out of the 'create workshop' process after
       // this. All the work is done in the client and server
 
-      var crafterModUri = '/modules/client/stonehearth_crafter/choose_location';
+      var crafterModUri = '/modules/client/stonehearth_crafter/create_workbench';
       var workbenchEntity = e.workbench;
 
       $.get(crafterModUri, { entity: workbenchEntity })
          .done(function(o){
-
+            //xxx, place the outbox
+         })
+         .always(function(o) {
+            $(top).trigger('hide_tip.radiant');
          });
    });
 });
@@ -34,7 +43,9 @@ App.StonehearthCrafterView = App.View.extend({
       "stonehearth_crafter:workshop": {
          "crafter": {
             "stonehearth_crafter:crafter": {
-               "craftable_recipes" : []
+               "craftable_recipes" : {
+                  "recipes" : []
+               }
             }
          },
          "order_list" : {
@@ -49,10 +60,12 @@ App.StonehearthCrafterView = App.View.extend({
 
    hide: function() {
       var self = this;
-      $("#craftingWindow")
+      $("#craftingUI")
          .animate({ top: -1900 }, 500, 'easeOutBounce', function() {
             self.destroy();
       });
+      $(".overlay")
+         .animate({ opacity: 0.0 }, {duration: 300, easing: 'easeInQuad'});
    },
 
    _hasLoaded: false,
@@ -68,12 +81,15 @@ App.StonehearthCrafterView = App.View.extend({
       console.log("DidInsertElement is being called on the crafting window");
       console.log(this.get("context.stonehearth_crafter:workshop.order_list"));
       this._super();
+      //this._initPauseSign();
       this._buildAccordion();
       this._buildOrderList();
       initIncrementButtons();
 
-      $("#craftingWindow")
-         .animate({ top: 20 }, {duration: 500, easing: 'easeOutBounce'});
+      $("#craftingUI")
+         .animate({ top: 0 }, {duration: 500, easing: 'easeOutBounce'});
+      $(".overlay")
+         .animate({ opacity: 0.3 }, {duration: 300, easing: 'easeInQuad'});
    },
 
    //Call this function when the selected order changes.
@@ -144,6 +160,7 @@ App.StonehearthCrafterView = App.View.extend({
 
    //Attach accordion functionality to the appropriate div
    _buildAccordion: function() {
+      var self = this;
       var element = $("#recipeAccordion");
       element.accordion({
          active: 1,
@@ -151,10 +168,71 @@ App.StonehearthCrafterView = App.View.extend({
          heightStyle: "fill"
       });
 
+      this._buildRecipeArray();
+
+      $( "#searchInput" ).autocomplete({
+         source: allRecipes,
+         select: function( event, ui ) {
+            event.preventDefault();
+            //TODO: put the values in a hash by their names
+            //TODO: associate functionality with search box
+            //TODO: fix search box
+            console.log("selecting... " + ui.item.value);
+            //$("#searchInput").val(ui.item.label);
+            this.val = ui.item.label;
+            self.select(ui.item.value)
+         },
+         focus: function (event, ui) {
+            event.preventDefault();
+            this.value = ui.item.label;
+         },
+      }).keydown(function(e){
+         //On enter
+         var userInput = this.value.toLowerCase();
+         if (e.keyCode === 13) {
+            self.findAndSelectRecipe();
+         }
+      });
       // open the first category
       element.find("h3")[0].click();
       element.find("a")[0].click();
-      //element.find("h3").find("a")[0].click(); // <-- ugly!
+   },
+
+   findAndSelectRecipe: function() {
+      var userInput = $("#searchInput").val().toLowerCase(),
+          currRecipe = this.get('context.current.recipe_name');
+      if ( !currRecipe || (currRecipe && (currRecipe.toLowerCase() != userInput)) ) {
+         //Look to see if we have a recipe named similar to the contents
+         var numRecipes = allRecipes.length;
+         for (var i=0; i<numRecipes; i++) {
+            if (userInput == allRecipes[i].label.toLowerCase()) {
+               this.select(allRecipes[i].value);
+               $(".ui-autocomplete").hide();
+               break;
+            }
+         }
+      } else if (currRecipe && (currRecipe.toLowerCase() == userInput)) {
+         //If the recipe is already selected and the menu is open, just hide the menu
+         $(".ui-autocomplete").hide();
+      }
+   },
+
+   allRecipes: null,
+
+   _buildRecipeArray: function() {
+      allRecipes = new Array();
+      var craftableRecipeArr = this.get('context.stonehearth_crafter:workshop.crafter.stonehearth_crafter:crafter.craftable_recipes')
+      var numCategories = craftableRecipeArr.length;
+      for (var i = 0; i < numCategories; i++) {
+         var recipes = craftableRecipeArr[i].recipes;
+         var numRecipes = recipes.length;
+         for (var j = 0; j < numRecipes; j++) {
+            allRecipes.push({
+               label: recipes[j].recipe_name ,
+               category: craftableRecipeArr[i].category,
+               value: recipes[j]});
+         }
+      }
    },
 
    //Attach sortable/draggable functionality to the order
@@ -219,6 +297,7 @@ App.StonehearthCrafterView = App.View.extend({
 
          }
       }).disableSelection();
+
       this._initButtonStates();
    },
 
@@ -250,6 +329,24 @@ App.StonehearthCrafterView = App.View.extend({
       var orderList = $('#orders'),
       localScrollTop = orderList.scrollTop() + amount;
       orderList.animate({scrollTop: localScrollTop}, 100);
+   },
+
+   initPauseSign: function() {
+      var $pauseLink = $("#pauseLink");
+      if (!$pauseLink.data('initialized')) {
+         $pauseLink.hover(
+             function() {
+                 var $this = $(this); // caching $(this)
+                 $this.data('initialText', $this.text());
+                 $this.text(i18n.t("stonehearth_crafter:resume"));
+             },
+             function() {
+                 var $this = $(this); // caching $(this)
+                 $this.text($this.data('initialText'));
+             }
+         );
+         $pauseLink.data('initialized', true);
+      }
    }
 
 

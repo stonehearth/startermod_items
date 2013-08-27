@@ -199,7 +199,9 @@ function CraftOrder:_can_use_ingredient(item_entity, ingredient_data)
       return false
    end
 
-   if not item:get_material() == ingredient_data.material then
+   local item_material = item:get_material()
+
+   if item_material ~= ingredient_data.material then
       return false
    end
 

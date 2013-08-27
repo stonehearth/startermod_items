@@ -1,3 +1,17 @@
+var stonehearthMainActionbarElement = null;
+
+$(document).ready(function(){
+
+   $(top).on('show_main_actionbar.radiant', function (_, data) {
+      stonehearthMainActionbarElement.show();
+   });
+
+   $(top).on('hide_main_actionbar.radiant', function (_, e) {
+      stonehearthMainActionbarElement.hide();
+   });
+
+});
+
 App.StonehearthMainActionbarView = App.View.extend({
    templateName: 'stonehearthMainActionbar',
 
@@ -12,6 +26,8 @@ App.StonehearthMainActionbarView = App.View.extend({
 
    didInsertElement: function() {
       var element = $('#mainActionbar');
+      stonehearthMainActionbarElement = element;
+
       var imagePath = '/stonehearth_main_actionbar/html/images/'
       element.boxmenu( { 
          menu: {

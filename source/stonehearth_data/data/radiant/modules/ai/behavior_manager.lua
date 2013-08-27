@@ -4,8 +4,8 @@ function BehaviorManager:__init(entity)
    assert(entity)
    self._entity = entity
    self._observers = {}
-   self._actions = {}   
-   self._action_stack = {}   
+   self._actions = {}
+   self._action_stack = {}
    self._priority_table = {}
    self._valid_actions = {}
 end
@@ -13,11 +13,11 @@ end
 function BehaviorManager:destroy()
    self._dead = true
    self:_clear_action_stack()
-   
+
    if self._debug_hook then
       self._debug_hook:notify_current_thread(nil)
    end
-   
+
    for obs, _ in pairs(self._observers) do
       if obs.destroy then
          obs:destroy(self._entity)
@@ -84,15 +84,22 @@ function BehaviorManager:set_action_priority(action, priority)
    priorities[action] = priority
 end
 
+function BehaviorManager:remove_from_priority_table(action)
+   local activity_name = action.does
+   local priorities = self._priority_table[activity_name]
+   if priorities then
+      priorities[action] = nil
+   end
+end
 
 function BehaviorManager:check_action_stack()
    radiant.check.is_entity(self._entity)
-   
+
    if not self._co or #self._action_stack == 0 then
       self:restart()
       return
    end
-   
+
    -- walk the entire action stack looking for better things to do...
    local unwind_to_action = nil
    for i, entry in ipairs(self._action_stack) do
@@ -109,7 +116,7 @@ function BehaviorManager:check_action_stack()
    --[[
    self._action_stack
    local activity = self:_get_best_activity()
-   if not self._current_activity or not self:_activities_equal(activity, self._current_activity) then     
+   if not self._current_activity or not self:_activities_equal(activity, self._current_activity) then
       radiant.log.debug('behavior switching entity %s behavior:', tostring(self._entity))
       radiant.log.debug('   from: %s', self:_format_activity(self._current_activity))
       radiant.log.debug('   to:   %s', self:_format_activity(activity))
@@ -126,11 +133,11 @@ function BehaviorManager:restart()
 
 
    self._co = radiant.ai._create_thread(self, function()
-      while not self._dead do        
+      while not self._dead do
          self:execute('stonehearth.activities.top')
       end
    end)
-   
+
    if self._debug_hook then
       self._debug_hook:notify_current_thread(self._co)
    end
@@ -159,12 +166,12 @@ end
 
 --[[
 function BehaviorManager:_get_best_activity()
-   radiant.check.is_entity(self._entity)   
+   radiant.check.is_entity(self._entity)
    local debug_info = { priorities = {} }
    k
    radiant.log.debug('computing best activity for %s.', tostring(self._entity))
    local bp, ba = -1, nil
-   for name, action in pairs(self._actions) do      
+   for name, action in pairs(self._actions) do
       local p, a = action:recommend_activity(self._entity)
       if p ~= nil then
          radiant.log.debug('  recommend activity %11d %s', p, self:_format_activity(a))
@@ -173,7 +180,7 @@ function BehaviorManager:_get_best_activity()
          end
          if p > bp then
             bp, ba = p, a
-         end      
+         end
       end
    end
    if self._debug_hook then
@@ -198,23 +205,23 @@ function BehaviorManager:_activities_equal(a, b)
    for i = 1, #a do
       local a_i = a[i]
       local b_i = b[i]
-      
+
       if a_i == b_i then
          return true
       end
-      
+
       local a_type = type(a_i)
       local b_type = type(b_i)
       if a_type ~= b_type then
          return false
       end
-      
+
       if a_type == 'userdata' then
          local a_key = a_i.get_id and a_i:get_id() and a_i:__towatch()
          local b_key = b_i.get_id and b_i:get_id() and b_i:__towatch()
          return a_key == b_key
       end
-      
+
       -- table?  etc...
       return false
    end
@@ -233,13 +240,13 @@ function BehaviorManager:_format_activity(activity)
 end
 
 function BehaviorManager:_format_debug_activity(activity)
-   local result = {}   
+   local result = {}
    for i = 1,#activity do
       local entry = activity[i]
       local et = type(entry)
       if et == 'number' or et == 'string' then
          result[i] = entry
-      else 
+      else
          result[i] = tostring(entry)
       end
    end
@@ -286,7 +293,7 @@ function BehaviorManager:execute(...)
 
    -- just call it and hope for the best.  manually unwind at yields...
    local result = action_main()
-   
+
    --[[
    -- this is a loser. trying to yield in an pcall in a coroutine just doesn't work.
    local traceback
@@ -312,12 +319,12 @@ function BehaviorManager:execute(...)
       -- all the way out to the outer action (returning back to the
       -- ai manager)
       coroutine.yield(result)
-   end   
+   end
    ]]
    if action.stop then
       action:stop(self)
    end
-   
+
    assert(#self._action_stack == len)
    assert(self._action_stack[len].action == action)
    self._action_stack[len] = nil
@@ -329,11 +336,11 @@ function BehaviorManager:execute(...)
       assert(#self._action_stack == 0)
       return
    end
-   
+
    if action.stop then
       action:stop(self, self._entity, true)
    end
-   
+
    assert(#self._action_stack == len)
    assert(self._action_stack[len] == action)
    self._action_stack[len] = nil

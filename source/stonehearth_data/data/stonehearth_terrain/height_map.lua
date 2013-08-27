@@ -45,8 +45,7 @@ function HeightMap:normalize_map_height(base_height)
 end
 
 function HeightMap:find_map_min()
-   local LARGE_NUM = 2000000000
-   local min = LARGE_NUM
+   local min = self[1]
    self:process_map(
       function (value)
          if value < min then min = value end
@@ -65,19 +64,26 @@ function HeightMap:process_map(func)
    end
 end
 
-function HeightMap:set_block(x, y, block_width, block_height, value)
-   local i, j
-   local offset = self:get_offset(x, y)
+function HeightMap:process_map_block(x, y, block_width, block_height, func)
+   local i, j, index
+   local offset = self:get_offset(x, y)-1
 
    for j=1, block_height, 1 do
       for i=1, block_width, 1 do
-         self[offset+i-1] = value
+         index = offset+i
+         self[index] = func(self[index])
       end
       offset = offset + self.width
    end
 end
 
-function HeightMap:copy_map_to(dst)
+function HeightMap:set_block(x, y, block_width, block_height, value)
+   self:process_map_block(x, y, block_width, block_height,
+      function () return value end
+   )
+end
+
+function HeightMap:clone_map_to(dst)
    local i
    local size = self.width * self.height
 
@@ -86,6 +92,20 @@ function HeightMap:copy_map_to(dst)
 
    for i=1, size, 1 do
       dst[i] = self[i]
+   end
+end
+
+function HeightMap:copy_block(dst, src, dstx, dsty, srcx, srcy, block_width, block_height)
+   local i, j
+   local dst_offset = dst:get_offset(dstx, dsty)
+   local src_offset = src:get_offset(srcx, srcy)
+
+   for j=1, block_height, 1 do
+      for i=1, block_width, 1 do
+         dst[dst_offset+i-1] = src[src_offset+i-1]
+      end
+      dst_offset = dst_offset + dst.width
+      src_offset = src_offset + src.width
    end
 end
 

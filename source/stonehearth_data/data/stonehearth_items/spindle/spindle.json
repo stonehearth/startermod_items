@@ -1,0 +1,16 @@
+{
+   "type": "entity",
+   "extends" : "/stonehearth_items/entities/item/item_properties.json",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Spindle",
+         "description" : "Its soporific effect cannot be denied."
+      },
+      "render_rig": {
+         "models": [
+            "/stonehearth_items/default_object/default_object.qb"
+         ]
+      }
+   }
+}
+

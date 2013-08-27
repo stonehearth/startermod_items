@@ -27,6 +27,9 @@ public:
    std::string GetFaction() const { return *faction_; }
    void SetFaction(std::string faction) { faction_ = faction; }
 
+   std::string GetIcon() const {return *icon_;}
+   void SetIcon(std::string icon) { icon_ = icon; }
+
    dm::Guard TraceObjectChanges(const char* reason, std::function<void()> fn) const override;
 
 private:
@@ -36,6 +39,7 @@ public:
    dm::Boxed<std::string>  name_;
    dm::Boxed<std::string>  description_;
    dm::Boxed<std::string>  faction_;
+   dm::Boxed<std::string>  icon_;
 };
 
 END_RADIANT_OM_NAMESPACE

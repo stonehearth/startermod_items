@@ -1,7 +1,42 @@
 {
    "craftable_recipes" : [
-      "/stonehearth_carpenter_class/recipes/wooden_sword_recipe.json",
-      "/stonehearth_carpenter_class/recipes/wooden_buckler_recipe.json",
-      "/stonehearth_carpenter_class/recipes/comfy_bed_recipe.json"
+      {
+         "category" : "Construction",
+         "recipes" : [
+            "/stonehearth_carpenter_class/recipes/wooden_door_recipe.json",
+            "/stonehearth_carpenter_class/recipes/wooden_window_frame_recipe.json",
+            "/stonehearth_carpenter_class/recipes/picket_fence_recipe.json",
+            "/stonehearth_carpenter_class/recipes/picket_fence_gate_recipe.json"
+         ]
+      },
+      {
+         "category" : "Furnishings & Decoration",
+         "recipes" : [
+            "/stonehearth_carpenter_class/recipes/simple_wooden_chair_recipe.json",
+            "/stonehearth_carpenter_class/recipes/arch_backed_chair_recipe.json",
+            "/stonehearth_carpenter_class/recipes/table_for_one_recipe.json",
+            "/stonehearth_carpenter_class/recipes/dining_table_recipe.json",
+            "/stonehearth_carpenter_class/recipes/rough_wooden_cot_recipe.json",
+            "/stonehearth_carpenter_class/recipes/not_much_of_a_bed_recipe.json",
+            "/stonehearth_carpenter_class/recipes/comfy_bed_recipe.json"
+         ]
+      },
+      {
+         "category" : "Tools & Goods",
+         "recipes" : [
+         ]
+      },
+      {
+         "category" : "Weapons & Armor",
+         "recipes" : [
+            "/stonehearth_carpenter_class/recipes/wooden_sword_recipe.json",
+            "/stonehearth_carpenter_class/recipes/wooden_buckler_recipe.json"
+         ]
+      },
+      {
+         "category" : "Food, Drink & Supplies",
+         "recipes" : [
+         ]
+      }
    ]
 }

@@ -6,7 +6,7 @@
 local TalismanPromotionInfo = class()
 
 function TalismanPromotionInfo:__init()
-   self._profession = nil
+   self._class_script = nil
    self._promotion_data = nil
 end
 

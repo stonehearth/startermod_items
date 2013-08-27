@@ -1,46 +1,56 @@
 <script type="text/x-handlebars" data-template-name="stonehearthCrafter">
-   <div id="craftingWindow">
-      <div id="craftingShingle">
-         <img class="classMarker" src="">
-         {{unit_info.name}}<br/>
-         <small>TODO: insert name here: {{unit_info.description}}</small>
-         <a>Close</a>
-      </div>
-      <div class="frame">
-        {{unit_info.name}}<br>
-        <small>{{unit_info.description}}</small>
-      </div>
+   <div class="overlay"></div>
+   <div id="craftingUI">
+      <div id="craftingShingle" class="controlFont;">
+         <a class="closeButton" {{action "hide" target="view"}}></a>
+         <img class="classMarker" {{bindAttr src = "unit_info.icon"}}>
+         <div id="shingleText">
+            <h1>{{unit_info.name}}</h1>
+            <small>TODO: insert crafter name here</small>
+         </div>
+         {{#if stonehearth_crafter:workshop.is_paused}}
+            <<div id="pausedLabel" {{action initPauseSign on="mouseEnter" target="view"}}>
+               <a id="pauseLink" {{action togglePause target="view"}}>{{i18n stonehearth_crafter:paused}}</a>
+            </div>
+         {{/if}}
 
-      <div id="recipeList">
-         {{partial 'recipeList'}}
-      </div>
 
-      <div id="details">
-         {{render 'details' current}}
       </div>
+      <div id="craftingWindow">
+         <div id="recipeList">
+            {{partial 'recipeList'}}
+         </div>
 
-      <div id="order">
-         {{partial 'orderOptions'}}
+         <div id="details">
+            {{render 'details' current}}
+         </div>
+
+         <div id="order">
+            {{partial 'orderOptions'}}
+         </div>
+
+         {{partial 'orderList'}}
       </div>
-
-      {{partial 'orderList'}}
    </div>
+
 </script>
 
 <!--Template for the accordion-->
 <script type="text/x-handlebars" data-template-name="_recipeList">
+   <div id="searchBox">
+      <a id="searchButton" {{action findAndSelectRecipe target="view"}}></a>
+      <input id="searchInput" placeholder="Type to search"/>
+   </div>
    <div id="recipeAccordion">
-      <h3>All recipes</h3>
-      <div>
-         {{#each stonehearth_crafter:workshop.crafter.stonehearth_crafter:crafter.craftable_recipes}}
-            <a href="#" {{action select this target="view"}} class="selected">{{recipe_name}}</a>
-            <br>
-         {{/each}}
-      </div>
-      <!--
-      <h3>wtf</h3>
-      <div>foo<br>bar<br>binky<br></div>
-      -->
+      {{#each stonehearth_crafter:workshop.crafter.stonehearth_crafter:crafter.craftable_recipes}}
+         <h3>{{category}}</h3>
+         <div>
+            {{#each recipes}}
+               <a href="#" {{action select this target="view"}} class="selected">{{this.recipe_name}}</a>
+               <br>
+            {{/each}}
+         </div>
+      {{/each}}
    </div>
 </script>
 
@@ -113,6 +123,7 @@
                <label class="craftingLabel">{{i18n stonehearth_crafter:crafting_status}}</label>
          {{else}}
             <div class="orderListItem normalOrder" {{bindAttr data-orderId = "id"}}>
+               <label class="craftingLabel invisible">{{i18n stonehearth_crafter:crafting_status}}</label>
          {{/if}}
             <a href="#" {{action select recipe target="view"}}><img {{bindAttr src = "portrait"}} {{bindAttr title = "recipe.recipe_name"}}></a>
             {{#if condition.amount}}
@@ -128,7 +139,6 @@
       <a id="orderListUpBtn" {{action scrollOrderListUp target="view"}}><img src="/stonehearth_crafter/html/images/queue_up_arrow.png"></a>
       <a id="orderListDownBtn" {{action scrollOrderListDown target="view"}} ><img src="/stonehearth_crafter/html/images/queue_down_arrow.png"></a>
 
-      {{#if stonehearth_crafter:workshop.order_list}}
       <div id="orderListControls">
          {{#if stonehearth_crafter:workshop.is_paused}}
             <a id="pauseButton" class="showPlay" href="#" {{action togglePause target="view"}}></a>
@@ -139,7 +149,6 @@
             <ul id="garbageList" class="droptrue"></ul>
          </a>
       </div>
-      {{/if}}
 
    </div>
 </script>

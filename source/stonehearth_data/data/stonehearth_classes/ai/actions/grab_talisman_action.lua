@@ -59,6 +59,15 @@ GrabTalismanAction['radiant.animation.on_trigger'] = function(self, info, effect
    for name, e in radiant.resources.pairs(info) do
       if name == "info" then
          if e.event == "change_outfit" then
+            --Time to remove the old class
+            local old_job_info = entity:get_component('stonehearth_classes:job_info')
+            local old_class_script = old_job_info:get_class_script()
+            local old_class_script_api = radiant.mods.load_api(old_class_script)
+            if old_class_script_api.demote then
+               old_class_script_api.demote(self._entity)
+            end
+
+            --Time to add the new class
             local talisman_profession_info = self._talisman_entity:get_component('stonehearth_classes:talisman_promotion_info')
             local class_script = talisman_profession_info:get_class_script()
             radiant.mods.load_api(class_script).promote(self._entity, talisman_profession_info:get_promotion_data())

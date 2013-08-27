@@ -12,6 +12,12 @@
             "file(/ai/actions/worker_pickup_action.lua)",
             "file(/ai/actions/worker_restock_action.lua)"
          ]
+      },
+      "stonehearth_classes:job_info" : {
+        "name" : "Worker",
+        "description" : "Hi ho, hi ho, it's of to work we go...",
+        "icon" : "",
+        "class_script" : "/stonehearth_worker_class/"
       }
    }
 }

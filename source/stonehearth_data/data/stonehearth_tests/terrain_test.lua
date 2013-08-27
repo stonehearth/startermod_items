@@ -14,48 +14,97 @@ local Point3 = _radiant.csg.Point3
 local TeraGen = radiant.mods.require('/stonehearth_terrain')
 
 local HeightMap = radiant.mods.require('/stonehearth_terrain/height_map.lua')
+local Array2D = radiant.mods.require('/stonehearth_terrain/array_2D.lua')
 local TerrainGenerator = radiant.mods.require('/stonehearth_terrain/terrain_generator.lua')
 local CDF_97 = radiant.mods.require('/stonehearth_terrain/wavelet/cdf_97.lua')
 local Wavelet = radiant.mods.require('/stonehearth_terrain/wavelet/wavelet.lua')
+local BoundaryNormalizingFilter = radiant.mods.require('/stonehearth_terrain/filter/boundary_normalizing_filter.lua')
+local FilterFns = radiant.mods.require('/stonehearth_terrain/filter/filter_fns.lua')
+local GaussianRandom = radiant.mods.require('/stonehearth_terrain/math/gaussian_random.lua')
+local InverseGaussianRandom = radiant.mods.require('/stonehearth_terrain/math/inverse_gaussian_random.lua')
+local Timer = radiant.mods.require('/stonehearth_terrain/timer.lua')
 
-local tile_size = 256
+local zone_size = 256
 
 function TerrainTest:__init()
+   --self:_run_timing_tests()
+   --self:_run_unit_tests()
+   
    self[MicroWorld]:__init()
+
+   self._terrain_generator = TerrainGenerator(zone_size)
+   self.foothills_quantization_size = self._terrain_generator.foothills_quantization_size
+
    self:create_world()
+   --self:create_multi_zone_world()
 end
 
 function TerrainTest:create_world()
    local height_map
 
-   --self:_run_unit_tests()
-   local terrain_generator = TerrainGenerator(tile_size)
-   height_map = terrain_generator:generate_tile()
+   height_map = self._terrain_generator:generate_zone()
    --height_map = terrain_generator:_erosion_test()
 
-   self.foothills_quantization_size = terrain_generator.foothills_quantization_size
    self:_render_height_map_to_terrain(height_map)
-   --self:_run_old_sample()
 
    self:decorate_landscape()
 end
 
+function TerrainTest:create_multi_zone_world()
+   local world_map = HeightMap(zone_size*2, zone_size*2)
+   local zones = Array2D(3, 3)
+   local zone_map
+
+   world_map:process_map(function () return 1 end)
+
+   zone_map = self._terrain_generator:generate_zone(zones, 2, 2)
+   zone_map:copy_block(world_map, zone_map, 1, 1, 1, 1, zone_size, zone_size)
+   zones:set(2, 2, zone_map)
+
+   --zone_map = self._terrain_generator:generate_zone(zones, 2, 3)
+   --zone_map:copy_block(world_map, zone_map, 1, zone_size, 1, 1, zone_size, zone_size)
+   --zones:set(2, 3, zone_map)
+
+   self:_render_height_map_to_terrain(world_map)
+
+end
+
+function TerrainTest:create_old_world()
+   local t = TeraGen()
+   t.create()
+end
+
 function TerrainTest:decorate_landscape()
    local i
-   for i=1, 10, 1 do
-      self:place_tree(math.random(1, tile_size), math.random(1, tile_size))
-      self:place_citizen(math.random(1, tile_size), math.random(1, tile_size))
+   for i=1, 20, 1 do
+      self:place_tree(math.random(1, zone_size), math.random(1, zone_size))
+      self:place_citizen(math.random(1, zone_size), math.random(1, zone_size))
    end
 end
 
 function TerrainTest:_run_unit_tests()
-   CDF_97:_test_perfect_reconstruction()
-   Wavelet:_test_perfect_reconstruction()
+   BoundaryNormalizingFilter._test()
+   FilterFns._test()
+   CDF_97._test()
+   Wavelet._test()
 end
 
-function TerrainTest:_run_old_sample()
-   local t = TeraGen()
-   t.create()
+function TerrainTest:_run_timing_tests()
+   local timer = Timer()
+   local iterations = 20000000
+   local i, value
+
+   timer.start()
+
+   for i=1, iterations, 1 do
+      --value = InverseGaussianRandom.generate(1, 8, (8-1)/4)
+      value = GaussianRandom.generate(50, 10)
+      --radiant.log.info("%f", value)
+   end
+
+   timer.stop()
+   radiant.log.info("Duration: %f", timer.duration())
+   assert(false)
 end
 
 ----------
@@ -90,8 +139,8 @@ function TerrainTest:_copy_heightmap_to_CPP(heightMapCPP, height_map)
 end
 
 function TerrainTest:_add_land_to_region(dst, rect, height)
-   dst:add_cube(Cube3(Point3(rect.min.x, -2,       rect.min.y),
-                      Point3(rect.max.x, 0,        rect.max.y),
+   dst:add_cube(Cube3(Point3(rect.min.x, -2, rect.min.y),
+                      Point3(rect.max.x,  0, rect.max.y),
                 Terrain.BEDROCK))
 
    if height % self.foothills_quantization_size == 0 then
