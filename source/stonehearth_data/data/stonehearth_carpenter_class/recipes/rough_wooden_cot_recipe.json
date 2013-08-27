@@ -1,21 +1,21 @@
 {
- "type":"recipe",
+   "type":"recipe",
 
- "work_units": 3,
- "recipe_name" : "Rough Wooden Cot",
- "my_location" : "/stonehearth_carpenter_class/recipes/rough_wooden_cot_recipe.json",
- "description" : "Basic bed. People prefer to sleep here than on the ground.",
- "flavor"      : "Better than sleeping on the floor with the rats.",
- "card_art"    : "/stonehearth_items/rough_wooden_cot/rough_wooden_cot_card.png",
- "queue_art"   : "/stonehearth_items/rough_wooden_cot/rough_wooden_cot_queue.png",
- "category" : "weapons",
+   "work_units"  : 3,
+   "recipe_name" : "Rough Wooden Cot",
+   "my_location" : "/stonehearth_carpenter_class/recipes/rough_wooden_cot_recipe.json",
+   "description" : "Basic bed. People prefer to sleep here than on the ground.",
+   "flavor"      : "Better than sleeping on the floor with the rats.",
+   "card_art"    : "/stonehearth_items/rough_wooden_cot/rough_wooden_cot_card.png",
+   "queue_art"   : "/stonehearth_items/rough_wooden_cot/rough_wooden_cot_queue.png",
+   "category"    : "weapons",
 
- "ingredients": [
-    {
-      "material" : "wood",
-      "count" : 1,
-      "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
-    }
+   "ingredients": [
+      {
+         "material" : "wood",
+         "count" : 2,
+         "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
+      }
   ],
   "produces": [
       {

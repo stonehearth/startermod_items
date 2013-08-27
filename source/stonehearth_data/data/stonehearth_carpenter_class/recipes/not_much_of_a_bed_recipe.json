@@ -1,36 +1,21 @@
 {
- "type":"recipe",
+   "type":"recipe",
 
- "work_units": 3,
- "recipe_name" : "Mean Bed",
- "my_location" : "/stonehearth_carpenter_class/recipes/not_much_of_a_bed_recipe.json",
- "description" : "Slightly more comfortable than sleeping on a board.",
- "flavor"      : "Mean as in poor, not cruel. Though it's that too.",
- "card_art"    : "/stonehearth_items/not_much_of_a_bed/not_much_of_a_bed_card.png",
- "queue_art"   : "/stonehearth_items/not_much_of_a_bed/not_much_of_a_bed_queue.png",
- "category" : "weapons",
+   "work_units"  : 3,
+   "recipe_name" : "Mean Bed",
+   "my_location" : "/stonehearth_carpenter_class/recipes/not_much_of_a_bed_recipe.json",
+   "description" : "Slightly more comfortable than sleeping on a board.",
+   "flavor"      : "Mean as in poor, not cruel. Though it's that too.",
+   "card_art"    : "/stonehearth_items/not_much_of_a_bed/not_much_of_a_bed_card.png",
+   "queue_art"   : "/stonehearth_items/not_much_of_a_bed/not_much_of_a_bed_queue.png",
+   "category"    : "weapons",
 
- "ingredients": [
-    {
-      "material" : "wood",
-      "count" : 1,
-      "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
-    },
-    {
-      "material" : "wood",
-      "count" : 1,
-      "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
-    },
-    {
-      "material" : "wood",
-      "count" : 1,
-      "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
-    },
-    {
-      "material" : "wood",
-      "count" : 1,
-      "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
-    }
+   "ingredients": [
+      {
+         "material" : "wood",
+         "count" : 3,
+         "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
+      }
   ],
   "produces": [
       {
