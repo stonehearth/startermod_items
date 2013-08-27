@@ -34,7 +34,7 @@ class Renderer
       Renderer();
       ~Renderer();
 
-public:
+   public:
       static Renderer& GetInstance();
 
       void Initialize(om::EntityPtr rootObject);
@@ -97,6 +97,7 @@ public:
       NO_COPY_CONSTRUCTOR(Renderer);
 
    private:
+      void OnWindowResized(int newWidth, int newHeight);
       void OnKey(int key, int down);
       void OnMouseWheel(int value);
       void OnMouseMove(int x, int y);
@@ -104,6 +105,7 @@ public:
       void OnRawInput(UINT msg, WPARAM wParam, LPARAM lParam);
       void Resize(int width, int height);
       void UpdateCamera();
+      void WindowToBrowser(int windowX, int windowY, int* const browserX, int* const browserY);
       math3d::quaternion GetCameraRotation();
       void CallMouseInputCallbacks();
 

@@ -176,6 +176,7 @@ Renderer::Renderer() :
    // browser can handle it.
    glfwDisable(GLFW_AUTO_POLL_EVENTS);
 
+   glfwSetWindowSizeCallback([](int newWidth, int newHeight) { Renderer::GetInstance().OnWindowResized(newWidth, newHeight); });
    glfwSetKeyCallback([](int key, int down) { Renderer::GetInstance().OnKey(key, down); });
    glfwSetMouseWheelCallback([](int value) { Renderer::GetInstance().OnMouseWheel(value); });
    glfwSetMousePosCallback([](int x, int y) { Renderer::GetInstance().OnMouseMove(x, y); });
@@ -482,16 +483,16 @@ void Renderer::Resize( int width, int height )
    width_ = width;
    height_ = height;
 
-	// Resize viewport
-	h3dSetNodeParamI( camera_, H3DCamera::ViewportXI, 0 );
-	h3dSetNodeParamI( camera_, H3DCamera::ViewportYI, 0 );
-	h3dSetNodeParamI( camera_, H3DCamera::ViewportWidthI, width );
-	h3dSetNodeParamI( camera_, H3DCamera::ViewportHeightI, height );
+   // Resize viewport
+   h3dSetNodeParamI( camera_, H3DCamera::ViewportXI, 0 );
+   h3dSetNodeParamI( camera_, H3DCamera::ViewportYI, 0 );
+   h3dSetNodeParamI( camera_, H3DCamera::ViewportWidthI, width );
+   h3dSetNodeParamI( camera_, H3DCamera::ViewportHeightI, height );
 	
-	// Set virtual camera parameters
-	h3dSetupCameraView( camera_, 45.0f, (float)width / height, 4.0f, 1000.0f);
+   // Set virtual camera parameters
+   h3dSetupCameraView( camera_, 45.0f, (float)width / height, 4.0f, 1000.0f);
    for (const auto& entry : pipelines_) {
-	   h3dResizePipelineBuffers(entry.second, width, height);
+      h3dResizePipelineBuffers(entry.second, width, height);
    }
 }
 
@@ -617,6 +618,12 @@ math3d::quaternion Renderer::GetCameraRotation()
 
 }
 
+void Renderer::WindowToBrowser(int windowX, int windowY, int* const browserX, int* const browserY) 
+{
+   *browserX = (int)(windowX / (width_ / (float)uiWidth_));
+   *browserY = (int)(windowY / (height_ / (float)uiHeight_));
+}
+
 void Renderer::OnMouseWheel(int value)
 {
    int dWheel = value - mouse_.wheel;
@@ -638,11 +645,14 @@ void Renderer::OnMouseWheel(int value)
 
 void Renderer::OnMouseMove(int x, int y)
 {
-   mouse_.dx = x - mouse_.x;
-   mouse_.dy = y - mouse_.y;
+   int browserX, browserY;
+
+   WindowToBrowser(x, y, &browserX, &browserY);
+   mouse_.dx = browserX - mouse_.x;
+   mouse_.dy = browserY - mouse_.y;
    
-   mouse_.x = x;
-   mouse_.y = y;
+   mouse_.x = browserX;
+   mouse_.y = browserY;
 
    // xxx - this is annoying, but that's what you get... maybe revisit the
    // way we deliver mouse events and up/down tracking...
@@ -816,6 +826,10 @@ void Renderer::OnKey(int key, int down)
          break;
       }
    }
+}
+
+void Renderer::OnWindowResized(int newWidth, int newHeight) {
+   Resize(newWidth, newHeight);
 }
 
 dm::Guard Renderer::TraceSelected(H3DNode node, UpdateSelectionFn fn)
