@@ -18,7 +18,7 @@ local Point_2D = radiant.mods.require('/stonehearth_terrain/point_2D.lua')
 -- World = the entire playspace of a game
 
 function TerrainGenerator:__init(zone_size)
-   math.randomseed(1)
+   math.randomseed(3)
    self.zone_size = zone_size
    self.tile_size = 32
    self.foothills_quantization_size = 8
@@ -27,16 +27,34 @@ function TerrainGenerator:__init(zone_size)
 end
 
 function TerrainGenerator:generate_zone(zones, x, y)
-   local height_map = HeightMap(self.zone_size, self.zone_size)
+   local oversize_zone_size = self.zone_size + self.tile_size
+   local oversize_map = HeightMap(oversize_zone_size, oversize_zone_size)
+   local sub_map = HeightMap(self.zone_size, self.zone_size)
+   local sub_map_origin = self.tile_size/2 + 1
 
-   self:_create_zone_template(height_map)
+   self:_create_zone_template(oversize_map)
    
-   self:_shape_height_map(height_map)
+   self:_shape_height_map(oversize_map)
 
-   height_map:quantize_map_height(self.foothills_quantization_size)
-   self:_add_detail_blocks(height_map)
+   --oversize_map:quantize_map_height_nonuniform(self.foothills_quantization_size)
+   oversize_map:quantize_map_height(self.foothills_quantization_size)
+   self:_add_detail_blocks(oversize_map)
 
-   return height_map
+   oversize_map:copy_block(sub_map, oversize_map,
+      1, 1, sub_map_origin, sub_map_origin, self.zone_size, self.zone_size)
+
+   return sub_map
+end
+
+function TerrainGenerator:_create_micro_map(height_map)
+   local micro_width = height_map.width / self.tile_size
+   local micro_height = height_map.height / self.tile_size
+   local micro_map = HeightMap(micro_width, micro_height)
+
+   FilterFns.downsample_2D(micro_map, height_map,
+      height_map.width, height_map.height, self.tile_size)
+
+   return micro_map
 end
 
 function TerrainGenerator:_create_zone_template(height_map)
