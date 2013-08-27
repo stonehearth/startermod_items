@@ -5,7 +5,7 @@ function promote(player, args)
    radiant.events.broadcast_msg(
       'stonehearth.events.compulsion_event',
       GrabTalismanAction,
-      14, --TODO: replace with the results of the people picker
+      15, --TODO: replace with the results of the people picker
       {talisman = target_talisman})
 end
 

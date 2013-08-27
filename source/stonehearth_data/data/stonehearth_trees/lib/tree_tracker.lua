@@ -19,4 +19,10 @@ function TreeTracker:find_path_to_tree(entity, cb)
    self._pathfinder:add_entity(entity, solved, nil)
 end
 
+function TreeTracker:stop_search(entity)
+   if entity then
+      self._pathfinder:remove_entity(entity:get_id())
+   end
+end
+
 return TreeTracker

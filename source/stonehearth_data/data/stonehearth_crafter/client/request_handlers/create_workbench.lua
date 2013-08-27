@@ -1,4 +1,4 @@
-local Point3 = _radiant.math3d.Point3
+local Point3 = _radiant.csg.Point3
 local CreateWorkbench = class()
 
 -- client side object to add a new bench to the world.  this method is invoked

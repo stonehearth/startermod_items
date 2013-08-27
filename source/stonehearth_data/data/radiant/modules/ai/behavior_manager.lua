@@ -44,17 +44,18 @@ end
 function BehaviorManager:add_action(uri, action)
    assert(not self._actions[uri])
    self._actions[uri] = action
-
+   self._valid_actions[action] = true
    self:set_action_priority(action, action.priority)
 end
 
 function BehaviorManager:remove_action(uri)
    local action = self._actions[uri]
    if action then
-      if action.destroy_action then
-         action:destroy_action()
+      if action.destroy then
+         action:destroy()
       end
       self._actions[uri] = nil
+      self._valid_actions[action] = nil
    end
 end
 
@@ -75,6 +76,11 @@ end
 
 function BehaviorManager:set_action_priority(action, priority)
    -- update the priority table
+   if not self._valid_actions[action] then
+      radiant.log.warning('ignoring priority %d from unregistered action %s', priority, action.name)
+      return
+   end
+   
    local activity_name = action.does
    local priorities = self._priority_table[activity_name]
    if not priorities then

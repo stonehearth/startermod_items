@@ -24,13 +24,10 @@ ChopTreeAction['radiant.events.gameloop'] = function(self)
    radiant.events.unlisten('radiant.events.gameloop', self)
 end
    
-
 function ChopTreeAction:_start_search()
-   
-
    self._path = nil
    self._ai:set_action_priority(self, 0)
-   
+  
    stonehearth_trees.find_path_to_tree(self._entity, function(path)
          self._path = path
          self._ai:set_action_priority(self, 10)
@@ -55,6 +52,10 @@ end
 function ChopTreeAction:stop()
    self._ai:set_action_priority(self, 0)
    self:_start_search()
+end
+
+function ChopTreeAction:destroy()
+   stonehearth_trees.stop_searching(self._entity)
 end
 
 return ChopTreeAction
