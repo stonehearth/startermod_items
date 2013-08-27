@@ -3,7 +3,7 @@ local Wavelet = radiant.mods.require('/stonehearth_terrain/wavelet/wavelet.lua')
 
 -- assumes current_level = 1 if not specified
 function WaveletFns.scale_high_freq(src, src_width, src_height, power, max_level, current_level)
-   if not current_level then current_level = 1 end
+   if current_level == nil then current_level = 1 end
    if current_level > max_level then return end
    local i, j
    local level_width, level_height =

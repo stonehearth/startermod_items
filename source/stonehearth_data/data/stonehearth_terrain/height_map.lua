@@ -1,3 +1,5 @@
+local MathFns = radiant.mods.require('/stonehearth_terrain/math/math_fns.lua')
+
 local HeightMap = class()
 
 function HeightMap:__init(width, height)
@@ -24,13 +26,25 @@ function HeightMap:scale_map(factor)
 end
 
 function HeightMap:quantize_map_height(step_size)
-   local half_step = step_size/2
-
    self:process_map(
       function (value)
-         local temp = value + half_step
-         local remainder = temp % step_size
-         return temp - remainder
+         return MathFns.quantize(value, step_size)
+      end
+   )
+end
+
+function HeightMap:quantize_map_height_nonuniform(step_size)
+   local rounded_value, quantized_value, diff
+   self:process_map(
+      function (value)
+         quantized_value = MathFns.quantize(value, step_size)
+         rounded_value = MathFns.round(value)
+         diff = quantized_value - rounded_value
+         if diff >= 3 and diff <= step_size/2 then
+            return rounded_value
+         else
+            return quantized_value
+         end
       end
    )
 end
@@ -97,12 +111,12 @@ end
 
 function HeightMap:copy_block(dst, src, dstx, dsty, srcx, srcy, block_width, block_height)
    local i, j
-   local dst_offset = dst:get_offset(dstx, dsty)
-   local src_offset = src:get_offset(srcx, srcy)
+   local dst_offset = dst:get_offset(dstx, dsty)-1
+   local src_offset = src:get_offset(srcx, srcy)-1
 
    for j=1, block_height, 1 do
       for i=1, block_width, 1 do
-         dst[dst_offset+i-1] = src[src_offset+i-1]
+         dst[dst_offset+i] = src[src_offset+i]
       end
       dst_offset = dst_offset + dst.width
       src_offset = src_offset + src.width
