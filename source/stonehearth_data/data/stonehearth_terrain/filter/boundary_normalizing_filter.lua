@@ -53,6 +53,8 @@ function BoundaryNormalizingFilter:filter(dst, src, src_len, sampling_interval)
    local offset = -boundary_len-1
    local sum
 
+   -- i indexes the source array
+   -- j indexes the destiation array
    j = 1
    for i=1, src_len, sampling_interval do
       sum = 0
@@ -84,11 +86,7 @@ function BoundaryNormalizingFilter:filter(dst, src, src_len, sampling_interval)
       j = j+1
    end
 
-   assert((j-1) == self:calc_resampled_length(src_len, sampling_interval))
-end
-
-function BoundaryNormalizingFilter:calc_resampled_length(src_len, sampling_interval)
-   return math.ceil(src_len / sampling_interval)
+   --assert((j-1) == FilterFns.calc_resampled_length(src_len, sampling_interval))
 end
 
 ----------

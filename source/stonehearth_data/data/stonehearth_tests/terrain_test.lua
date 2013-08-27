@@ -42,11 +42,9 @@ end
 function TerrainTest:create_world()
    local height_map
 
-   height_map = self._terrain_generator:generate_zone()
    --height_map = terrain_generator:_erosion_test()
-
+   height_map = self._terrain_generator:generate_zone()
    self:_render_height_map_to_terrain(height_map)
-
    self:decorate_landscape()
 end
 
@@ -54,17 +52,19 @@ function TerrainTest:create_multi_zone_world()
    local world_map = HeightMap(zone_size*2, zone_size*2)
    local zones = Array2D(3, 3)
    local zone_map
+   local micro_map
 
    world_map:process_map(function () return 1 end)
 
    zone_map = self._terrain_generator:generate_zone(zones, 2, 2)
    zone_map:copy_block(world_map, zone_map, 1, 1, 1, 1, zone_size, zone_size)
-   zones:set(2, 2, zone_map)
+   micro_map = self._terrain_generator:_create_micro_map(zone_map)
+   zones:set(2, 2, micro_map)
 
-   --zone_map = self._terrain_generator:generate_zone(zones, 2, 3)
-   --zone_map:copy_block(world_map, zone_map, 1, zone_size, 1, 1, zone_size, zone_size)
-   --zones:set(2, 3, zone_map)
-
+   zone_map = self._terrain_generator:generate_zone(zones, 2, 3)
+   zone_map:copy_block(world_map, zone_map, 1, zone_size, 1, 1, zone_size, zone_size)
+   micro_map = self._terrain_generator:_create_micro_map(zone_map)
+   zones:set(2, 3, micro_map)
    self:_render_height_map_to_terrain(world_map)
 
 end
