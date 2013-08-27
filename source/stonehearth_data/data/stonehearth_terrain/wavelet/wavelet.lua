@@ -6,7 +6,7 @@ local transform = CDF_97
 
 -- assumes current_level = 1 if not specified
 function Wavelet.DWT_2D(src, src_width, src_height, max_level, current_level)
-   if not current_level then current_level = 1 end
+   if current_level == nil then current_level = 1 end
    if current_level > max_level then return end
    local i, j
    local vec = {}
@@ -32,7 +32,7 @@ end
 
 -- assumes full inverse if min_level not specified
 function Wavelet.IDWT_2D(src, src_width, src_height, current_level, min_level)
-   if not min_level then min_level = 1 end
+   if min_level == nil then min_level = 1 end
    if current_level < min_level then return end
    local i, j
    local vec = {}

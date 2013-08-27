@@ -24,8 +24,8 @@ function GaussianRandom.generate(mean, std_dev)
    return mean + current_random*std_dev
 end
 
--- Generates pairs of random numbers in normal distribution centering on 0
--- ~95% of numbers returned should fall between -2 and 2
+-- Generates pairs of random numbers in normal distribution with a
+--   mean of 0 and standard deviation of 1
 function GaussianRandom._generate_pair()
    local u, v, r, c
 

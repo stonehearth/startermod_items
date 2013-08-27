@@ -8,13 +8,13 @@ local y = {}
 local temp = {}
 
 function FilterFns.filter_2D_generic(dst, src, src_width, src_height, filter_kernel, sampling_interval)
-   if not sampling_interval then sampling_interval = 1 end
+   if sampling_interval == nil then sampling_interval = 1 end
 
    local i, j
    local dst_width, dst_height
 
    -- horizontal
-   dst_width = filter_kernel:calc_resampled_length(src_width, sampling_interval)
+   dst_width = FilterFns.calc_resampled_length(src_width, sampling_interval)
    for i=1, src_height, 1 do
       Array2DFns.get_row_vector(x, src, i, src_width, src_width)
       filter_kernel:filter(y, x, src_width, sampling_interval)
@@ -24,7 +24,7 @@ function FilterFns.filter_2D_generic(dst, src, src_width, src_height, filter_ker
    -- after horizontal downsampling, temp now has dimensions of dst_width x src_height
 
    -- vertical
-   dst_height = filter_kernel:calc_resampled_length(src_height, sampling_interval)
+   dst_height = FilterFns.calc_resampled_length(src_height, sampling_interval)
    for j=1, dst_width, 1 do
       Array2DFns.get_column_vector(x, temp, j, dst_width, src_height)
       filter_kernel:filter(y, x, src_height, sampling_interval)
@@ -71,6 +71,10 @@ function FilterFns.filter_2D_025(dst, src, src_width, src_height)
    FilterFns.filter_2D_generic(dst, src, src_width, src_height, filter_kernel_4_025, 1)
 end
 
+function FilterFns.calc_resampled_length(src_len, sampling_interval)
+   return math.ceil(src_len / sampling_interval)
+end
+
 ----------
 
 function FilterFns._test()
@@ -85,8 +89,8 @@ function FilterFns._test_basic()
    local src_height = 8
    local src = {}
    local filter_kernel = filter_kernel_4_025
-   local dst_width = filter_kernel:calc_resampled_length(src_width, sampling_interval)
-   local dst_height = filter_kernel:calc_resampled_length(src_height, sampling_interval)
+   local dst_width = FilterFns.calc_resampled_length(src_width, sampling_interval)
+   local dst_height = FilterFns.calc_resampled_length(src_height, sampling_interval)
    local dst = {}
    local i
 

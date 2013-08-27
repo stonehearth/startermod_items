@@ -32,5 +32,11 @@ $(document).ready(function(){
 App.StonehearthTipPopup = App.View.extend({
    templateName: 'stonehearthTipPopup',
 
+   didInsertElement: function() {
+      this._super();
+      console.log(this.element);
+      console.log($('#tipPopup'));
+      $('#tipPopup').pulse();
+   }
 });
 
