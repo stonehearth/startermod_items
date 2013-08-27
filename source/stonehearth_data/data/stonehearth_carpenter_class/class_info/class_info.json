@@ -10,6 +10,12 @@
          "work_effect" : "saw",
          "intermediate_item" : "/stonehearth_carpenter_class/entities/carpenter_intermediate_item",
          "recipe_list": "/stonehearth_carpenter_class/recipes/recipes.json"
+      },
+      "stonehearth_classes:job_info" : {
+        "name" : "Carpenter",
+        "description" : "Has a saw and knows how to use it. Badassedly.",
+        "icon" : "file(saw_icon.png)",
+        "class_script" : "/stonehearth_carpenter_class/"
       }
    }
 }

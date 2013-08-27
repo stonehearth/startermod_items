@@ -1,12 +1,26 @@
 local WorkerScheduler = radiant.mods.require('/stonehearth_worker_class/lib/worker_scheduler.lua')
+local RadiantIPoint3 = _radiant.math3d.RadiantIPoint3
 
 local singleton = {
    _schedulers = {}
 }
 local stonehearth_worker_class = {}
+local class_info_url = '/stonehearth_worker_class/class_info/'
 
 function stonehearth_worker_class.promote(entity)
-   radiant.entities.inject_into_entity(entity, '/stonehearth_worker_class/class_info/')
+   radiant.entities.inject_into_entity(entity, class_info_url)
+end
+
+function stonehearth_worker_class.demote(entity)
+   radiant.entities.unregister_from_entity(entity, class_info_url)
+
+   --drop talisman back into the world (can be a fresh copy)
+   --TODO: move the axe entity elsewhere
+   local axe = radiant.entities.create_entity('/stonehearth_human_race/rigs/male/effects/worker_axe')
+   local dude_loc = radiant.entities.get_location_aligned(entity)
+
+   --TODO: where should he put it? Ideally it would pop out of him and into...?
+   radiant.terrain.place_entity(axe, RadiantIPoint3(dude_loc.x , 3, dude_loc.z + 3))
 end
 
 function stonehearth_worker_class.get_worker_scheduler(faction)

@@ -35,5 +35,4 @@ App.StonehearthGameUiView = Ember.ContainerView.extend({
       this.pushObject(childView)
       return childView;
    }
-
 });

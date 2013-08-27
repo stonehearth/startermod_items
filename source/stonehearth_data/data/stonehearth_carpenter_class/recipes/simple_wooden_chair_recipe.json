@@ -1,0 +1,27 @@
+{
+ "type":"recipe",
+
+ "work_units": 3,
+ "recipe_name" : "Simple Wooden Chair",
+ "my_location" : "/stonehearth_carpenter_class/recipes/simple_wooden_chair_recipe.json",
+ "description" : "Sit on this to maximize the value of the table.",
+ "flavor"      : "Culmination of 50,000 years of research.",
+ "card_art"    : "/stonehearth_items/simple_wooden_chair/simple_wooden_chair_card.png",
+ "queue_art"   : "/stonehearth_items/simple_wooden_chair/simple_wooden_chair_queue.png",
+ "category" : "weapons",
+
+ "ingredients": [
+    {
+      "material" : "wood",
+      "count" : 1,
+      "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
+    }
+  ],
+  "produces": [
+      {
+         "item":"/stonehearth_items/simple_wooden_chair",
+         "script":"/stonehearth_crafter/",
+         "command":"produce_item"
+      }
+  ]
+}

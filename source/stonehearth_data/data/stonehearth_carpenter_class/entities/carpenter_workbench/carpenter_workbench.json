@@ -4,7 +4,8 @@
    "components" : {
       "unit_info" : {
          "name" :  "Carpenter Workbench",
-         "description" : "Clean enough."
+         "description" : "Clean enough.",
+         "icon" : "file(saw_icon.png)"
       },
       "render_rig": {
          "models": [

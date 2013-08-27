@@ -1,8 +1,10 @@
 {
   "craftNumberLeft": "Craft",
   "craftNumberRight": "right now.",
-  "craftUpToLeft": "Mantain",
+  "craftUpToLeft": "Maintain",
   "craftUpToRight": "in inventory.",
   "crafting_status": "crafting...",
-  "remove_confirm": "Remove?"
+  "remove_confirm": "Remove?",
+  "paused" : "Paused!!",
+  "resume" : "Resume?"
 }

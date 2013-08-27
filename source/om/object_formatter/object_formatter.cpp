@@ -120,6 +120,7 @@ template <> JSONNode ToJson(const ObjectFormatter& f, UnitInfo const& obj)
    node.push_back(JSONNode("name", obj.GetDisplayName()));
    node.push_back(JSONNode("description", obj.GetDescription()));
    node.push_back(JSONNode("faction", obj.GetFaction()));
+   node.push_back(JSONNode("icon", obj.GetIcon()));
    return node;
 }
 
