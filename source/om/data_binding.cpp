@@ -1,13 +1,13 @@
 #include "pch.h"
-#include "data_blob.h"
+#include "data_binding.h"
 #include "om/entity.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-std::ostream& om::operator<<(std::ostream& os, const DataBlob& o)
+std::ostream& om::operator<<(std::ostream& os, const DataBinding& o)
 {
-   return (os << "[DataBlob " << o.GetObjectId() << "]");
+   return (os << "[DataBinding " << o.GetObjectId() << "]");
 }
 
 // xxx: move this into a helper or header or somewhere.  EVERYONE needs to
@@ -26,18 +26,34 @@ std::string ToJsonUri(std::weak_ptr<T> o, luabind::object state)
    return output.str();
 }
 
-DataBlob::DataBlob() :
+DataBinding::DataBinding() :
    dm::Object(),
    cached_json_valid_(false)
 {
 }
 
-void DataBlob::SetLuaObject(luabind::object obj)
+void DataBinding::SetDataObject(luabind::object data)
 {
-   obj_ = obj;
+   data_ = data;
+   MarkChanged();
 }
 
-void DataBlob::SaveValue(const dm::Store& store, Protocol::Value* msg) const
+luabind::object DataBinding::GetDataObject() const
+{
+   return data_;
+}
+
+void DataBinding::SetModelObject(luabind::object model)
+{
+   model_ = model;
+}
+
+luabind::object DataBinding::GetModelObject() const
+{
+   return model_;
+}
+
+void DataBinding::SaveValue(const dm::Store& store, Protocol::Value* msg) const
 {
    // xxx: this isn't going to work for save and load.  we need to serialize something
    // which can then be unserialized (probably via eval!!), which means it will have
@@ -46,11 +62,11 @@ void DataBlob::SaveValue(const dm::Store& store, Protocol::Value* msg) const
    // this is idea for remoting, though, so let's do it.  SaveValue/LoadValue should
    // probably be renamed to something which indicates they're for remoting (or
    // removed entirely from the object and moved elsewhere!!!)
-   std::string json = ToJson().write();
+   std::string json = GetJsonData().write();
    dm::SaveImpl<std::string>::SaveValue(store, msg, json);
 }
 
-void DataBlob::LoadValue(const dm::Store& store, const Protocol::Value& msg)
+void DataBinding::LoadValue(const dm::Store& store, const Protocol::Value& msg)
 {
    std::string json;
    dm::SaveImpl<std::string>::LoadValue(store, msg, json);
@@ -58,36 +74,23 @@ void DataBlob::LoadValue(const dm::Store& store, const Protocol::Value& msg)
    cached_json_valid_ = true;
 }
 
-JSONNode DataBlob::ToJson() const
+JSONNode DataBinding::GetJsonData() const
 {
    using namespace luabind;
+
    if (!cached_json_valid_) {
       cached_json_ = JSONNode();
       
-      object result ;
-      if (type(obj_) == LUA_TFUNCTION) {
-         result = call_function<object>(obj_);
-      } else if (type(obj_) == LUA_TTABLE) {
-         object tojson = obj_["__tojson"];
-         if (luabind::type(tojson) == LUA_TFUNCTION) {
-            result = call_function<object>(tojson, obj_);
-         }
-      } else {
-         // xxx: actually, throw an exception
-         return JSONNode();
-      }
+      if (data_.is_valid()) {
+         object coder = globals(data_.interpreter())["radiant"]["json"];
+         std::string json = call_function<std::string>(coder["encode"], data_);
 
-      int t = type(result);
-      if (t != LUA_TSTRING) {
-         // xxx: actually, throw an exception
-         return JSONNode();
+         if (!libjson::is_valid(json)) {
+            // xxx: actually, throw an exception
+            return JSONNode();
+         }
+         cached_json_ = libjson::parse(json);
       }
-      std::string json = object_cast<std::string>(result);
-      if (!libjson::is_valid(json)) {
-         // xxx: actually, throw an exception
-         return JSONNode();
-      }
-      cached_json_ = libjson::parse(json);
       // xxx: skip this until we have legitimate change tracking
       // cached_json_valid_ = true; 
    }

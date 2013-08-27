@@ -429,7 +429,7 @@ void Client::RemoveObjects(const proto::RemoveObjects& update)
       // explicitly hold references to their components!
       // ASSERT(i->second.use_count() == 1);
       if (i->second->GetObjectType() == om::EntityObjectType) {
-         ASSERT(i->second.use_count() == 2);
+         ASSERT(i->second.use_count() <= 2);
       }
 
       if (i != objects_.end()) {

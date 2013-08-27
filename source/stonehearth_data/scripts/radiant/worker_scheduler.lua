@@ -135,10 +135,10 @@ function WorkerScheduler:add_item(entity)
       local material = om:get_component(entity, 'item'):get_material()
       
       local points = PointList()
-      points:insert(RadiantIPoint3(location.x, location.y, location.z + 1))
-      points:insert(RadiantIPoint3(location.x, location.y, location.z - 1))
-      points:insert(RadiantIPoint3(location.x + 1, location.y, location.z))
-      points:insert(RadiantIPoint3(location.x - 1, location.y, location.z))
+      points:insert(Point3(location.x, location.y, location.z + 1))
+      points:insert(Point3(location.x, location.y, location.z - 1))
+      points:insert(Point3(location.x + 1, location.y, location.z))
+      points:insert(Point3(location.x - 1, location.y, location.z))
       
       local dst = EntityDestination(entity, points);
       self._items[id] = entity      

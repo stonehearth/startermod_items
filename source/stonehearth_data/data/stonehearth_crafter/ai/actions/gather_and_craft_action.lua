@@ -13,7 +13,7 @@
    useful, and that now only he can use.
 ]]
 
-local RadiantIPoint3 = _radiant.csg.Point3
+local Point3 = _radiant.csg.Point3
 local GatherAndCraftAction = class()
 
 GatherAndCraftAction.name = 'stonehearth.actions.gather_and_craft'
@@ -55,7 +55,7 @@ function GatherAndCraftAction:run(ai, entity, recipe, ingredients)
 
          -- drop it!!
          ai:execute('stonehearth.activities.run_effect', 'carry_putdown_on_table')
-         radiant.entities.add_child(workshop_entity, item, RadiantIPoint3(0, 1, 0))
+         radiant.entities.add_child(workshop_entity, item, Point3(0, 1, 0))
          entity:get_component('carry_block'):set_carrying(nil)
       end
    end

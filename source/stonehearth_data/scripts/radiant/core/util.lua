@@ -3,7 +3,7 @@ require 'unclasslib'
 local Util = class()
 
 local NativeClasses = {
-   [RadiantIPoint3] = false,
+   [Point3] = false,
    [AnimationResource] = false,
    [Entity] = 'Entity',
    [UnitInfo] = 'UnitInfo',

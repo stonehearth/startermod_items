@@ -15,7 +15,7 @@ GoblinCamp['radiant.md.create'] = function(self, options)
 end
 
 function GoblinCamp:_create_goblin(center, kind)
-   local location = RadiantIPoint3()
+   local location = Point3()
    location.x = center.x + math.random(-8, 8)
    location.y = center.y
    location.z = center.z + math.random(-8, 8)
@@ -32,10 +32,10 @@ function GoblinCamp:_create_goblins()
  
    -- create a stockpile in the center of the camp...
    local stockpile = om:create_entity('stockpile')
-   om:place_on_terrain(stockpile, RadiantIPoint3(center))
+   om:place_on_terrain(stockpile, Point3(center))
    om:add_component(stockpile, 'unit_info'):set_faction('goblin')
-   om:add_component(stockpile, 'stockpile_designation'):set_bounds(RadiantBounds3(RadiantIPoint3(-4, 0, -4),
-                                                                                  RadiantIPoint3( 4, 1,  4)))
+   om:add_component(stockpile, 'stockpile_designation'):set_bounds(RadiantBounds3(Point3(-4, 0, -4),
+                                                                                  Point3( 4, 1,  4)))
    local designation = om:get_component(stockpile, 'stockpile_designation')
    designation:set_container(om:get_component(om:get_root_entity(), 'entity_container')) -- xxx do this automatically as part of becoming a child?                                                                                  
    self._home_stockpile = stockpile
@@ -110,7 +110,7 @@ function GoblinCamp:_choose_raiding_stockpile()
    local total_items = 0
    local closest_stockpile;
    local closest_distance;
-   local origin = RadiantIPoint3(self._options.box:center())
+   local origin = Point3(self._options.box:center())
    
    for id, entity in pairs(self._raid_stockpile_candidates) do
       local stockpile = om:get_component(entity, 'stockpile_designation')

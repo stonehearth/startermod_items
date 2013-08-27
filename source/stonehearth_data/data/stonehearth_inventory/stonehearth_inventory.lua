@@ -5,6 +5,7 @@ local singleton = {}
 
 function stonehearth_inventory.__init()
    singleton._inventories = {}
+   singleton._stockpiles = {}
 end
 
 function stonehearth_inventory.get_inventory(faction)
@@ -17,6 +18,26 @@ function stonehearth_inventory.get_inventory(faction)
    return inventory
 end
 
+function stonehearth_inventory.register_stockpile(stockpile)
+   singleton._stockpiles[stockpile:get_id()] = stockpile
+end
+
+function stonehearth_inventory.unregister_stockpile(id)
+   singleton._stockpiles[id] = nil
+end
+
+function stonehearth_inventory.enumerate_items(faction, cb)
+   local notified = {}
+   
+   for id, stockpile in pairs(singleton._stockpiles) do
+      for item_id, item in pairs(stockpile:get_items()) do
+         if not notified[item_id] then
+            notified[item_id] = true
+            cb(notified)
+         end
+      end
+   end
+end
+
 stonehearth_inventory.__init()
 return stonehearth_inventory
-

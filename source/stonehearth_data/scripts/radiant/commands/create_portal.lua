@@ -5,7 +5,7 @@ local check = require 'radiant.core.check'
 ch:register_cmd("radiant.commands.create_portal", function(wall, kind, location)
    check:is_a(wall, Wall)
    check:is_string(kind)
-   check:is_a(location, RadiantIPoint3)
+   check:is_a(location, Point3)
    
    local normal = wall:get_normal()
    local angle = 0

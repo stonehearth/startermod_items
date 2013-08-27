@@ -1,4 +1,4 @@
-local RadiantIPoint3 = _radiant.csg.Point3
+local Point3 = _radiant.csg.Point3
 local LocationSelector = class()
 
 -- client side object to add a new bench to the world.  this method is invoked
@@ -34,7 +34,7 @@ function LocationSelector:_on_mouse_event(e, entity_uri)
    -- s.location contains the address of the terrain block that the mouse
    -- is currently pointing to.  if there isn't one, move the workshop
    -- way off the screen so it won't get rendered.
-   local pt = s.location and s.location or RadiantIPoint3(0, -100000, 0)
+   local pt = s.location and s.location or Point3(0, -100000, 0)
 
    -- we want the workbench to be on top of that block, so add 1 to y, then
    -- move the cursor workshop to that location

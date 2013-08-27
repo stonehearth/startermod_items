@@ -21,7 +21,7 @@ add_library(om STATIC
             region.cpp
             selection.cpp
             stonehearth.cpp
-            data_blob.cpp
+            data_binding.cpp
             )
 
 if (MSVC)

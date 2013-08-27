@@ -36,7 +36,7 @@ void ::radiant::lua::RegisterBasicTypes(lua_State* L)
             lua::RegisterType<csg::Transform>("RadiantTranform")
                .def(tostring(const_self))
             ,
-            lua::RegisterType<csg::Point3>("RadiantIPoint3")
+            lua::RegisterType<csg::Point3>("Point3")
                .def(constructor<>())
                .def(constructor<const csg::Point3f &>())
                .def(constructor<const csg::Point3 &>())

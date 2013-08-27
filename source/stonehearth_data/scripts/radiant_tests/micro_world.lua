@@ -47,13 +47,13 @@ end
 
 function MicroWorld:place_item(name, x, z)
    local tree = om:create_entity(name)
-   om:place_on_terrain(tree, RadiantIPoint3(x, 1, z))
+   om:place_on_terrain(tree, Point3(x, 1, z))
    return tree
 end
 
 function MicroWorld:place_entity(x, z, name)
    local e = om:create_entity(name)
-   om:place_on_terrain(e, RadiantIPoint3(x, 1, z))
+   om:place_on_terrain(e, Point3(x, 1, z))
    return e
 end
 
@@ -68,29 +68,29 @@ function MicroWorld:place_item_cluster(name, x, z, w, h)
 end
 
 function MicroWorld:place_citizen(x, z, profession)
-   return sh:create_citizen(RadiantIPoint3(x, 1, z), profession)
+   return sh:create_citizen(Point3(x, 1, z), profession)
 end
 
 function MicroWorld:place_stockpile_cmd(x, z, w, h)
    w = w and w or 3
    h = h and h or 3
-   local bounds = RadiantBounds3(RadiantIPoint3(x, 1, z),
-                                 RadiantIPoint3(x + w, 2, z + h))
+   local bounds = RadiantBounds3(Point3(x, 1, z),
+                                 Point3(x + w, 2, z + h))
    return ch:call('radiant.commands.create_stockpile', bounds)
 end
 
 function MicroWorld:create_room_cmd(x, z, w, h)
    w = w and w or 3
    h = h and h or 3
-   local bounds = RadiantBounds3(RadiantIPoint3(x, 1, z),
-                                 RadiantIPoint3(x + w, 2, z + h))
+   local bounds = RadiantBounds3(Point3(x, 1, z),
+                                 Point3(x + w, 2, z + h))
    local json, obj = ch:call('radiant.commands.create_room', bounds)
    return om:get_entity(obj.entity_id)
 end
 
 function MicroWorld:create_door_cmd(wall, x, y, z)
    check:is_a(wall, Wall)
-   local json, obj = ch:call('radiant.commands.create_portal', wall, 'module://stonehearth/buildings/wooden_door', RadiantIPoint3(x, y, z))
+   local json, obj = ch:call('radiant.commands.create_portal', wall, 'module://stonehearth/buildings/wooden_door', Point3(x, y, z))
    return om:get_entity(obj.entity_id)
 end
 

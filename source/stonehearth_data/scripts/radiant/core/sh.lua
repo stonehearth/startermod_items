@@ -52,7 +52,7 @@ Stonehearth.CitizenNames = {
 local first_citizen = false
 function Stonehearth:create_citizen(location, profession)
    profession = profession and profession or 'worker'
-   check:is_a(location, RadiantIPoint3)
+   check:is_a(location, Point3)
    check:is_string(profession)
 
    local entity 

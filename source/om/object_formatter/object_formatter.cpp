@@ -66,11 +66,6 @@ std::string ObjectFormatter::GetPathToObject(dm::ObjectPtr obj) const
    return "null";
 }
 
-template <> JSONNode ToJson(const ObjectFormatter& f, LuaComponent const& obj)
-{
-   return obj.ToJson();
-}
-
 template <> JSONNode ToJson(const ObjectFormatter& f, LuaComponents const& obj)
 {
    JSONNode node;
@@ -123,9 +118,9 @@ template <> JSONNode ToJson(const ObjectFormatter& f, UnitInfo const& obj)
    return node;
 }
 
-template <> JSONNode ToJson(const ObjectFormatter& f, DataBlob const& obj)
+template <> JSONNode ToJson(const ObjectFormatter& f, DataBinding const& obj)
 {
-   return obj.ToJson();
+   return obj.GetJsonData();
 }
 
 #define OM_OBJECT(Cls, lower) \

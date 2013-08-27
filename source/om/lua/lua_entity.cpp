@@ -3,6 +3,7 @@
 #include "lua_entity.h"
 #include "om/all_components.h"
 #include "om/entity.h"
+#include "om/data_binding.h"
 #include "resources/res_manager.h"
 #include "simulation/script/script_host.h" // xxx: NOOOOOOOOOOOOO! Use a generic script host!!!!!!!!
 
@@ -49,9 +50,9 @@ Entity_GetLuaComponent(lua_State* L, om::EntityPtr entity, std::string const& na
 {
    om::LuaComponentsPtr component = entity->GetComponent<om::LuaComponents>();
    if (component) {
-      om::LuaComponentPtr lua_component = component->GetLuaComponent(name);
-      if (lua_component) {
-         return lua_component->GetLuaObject();
+      om::DataBindingPtr db = component->GetLuaComponent(name);
+      if (db) {
+         return db->GetModelObject();
       }
    }
    return luabind::object();
@@ -92,18 +93,19 @@ Entity_AddLuaComponent(lua_State* L, om::EntityPtr entity, std::string const& na
 
    object result;
    om::LuaComponentsPtr component = entity->AddComponent<om::LuaComponents>();
-   om::LuaComponentPtr lua_component = component->GetLuaComponent(name);
-   if (lua_component) {
-      result = lua_component->GetLuaObject();
+   om::DataBindingPtr data_binding = component->GetLuaComponent(name);
+   if (data_binding) {
+      result = data_binding->GetModelObject();
    } else {
       std::string uri = GetLuaComponentUri(name);
       simulation::ScriptHost* host = luabind::object_cast<simulation::ScriptHost*>(globals(L)["native"]);
       ASSERT(host);
       object ctor = host->LuaRequire(uri);
       if (ctor) {
-         lua_component = component->AddLuaComponent(name);         
-         result = call_function<object>(ctor, om::EntityRef(entity), om::LuaComponentRef(lua_component));
-         lua_component->SetLuaObject(name, result);
+         data_binding = component->AddLuaComponent(name);
+         data_binding->SetDataObject(newtable(L));
+         result = call_function<object>(ctor, om::EntityRef(entity), om::DataBindingRef(data_binding));
+         data_binding->SetModelObject(result);
       }
    }
    return result;

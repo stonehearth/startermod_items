@@ -10,7 +10,7 @@ function PromoteTest:start()
    local profession = om:add_component(citizen, 'profession')
    profession:learn_recipe('wooden_practice_sword')
    
-   om:turn_to_face(citizen, RadiantIPoint3(0, 1, 0))
+   om:turn_to_face(citizen, Point3(0, 1, 0))
    local saw = self:place_item('carpenter-saw', 0, 0)
    
    self:at(10,  function()  ch:call('radiant.commands.promote_carpenter', saw, citizen) end)

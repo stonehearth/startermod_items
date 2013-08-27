@@ -1,7 +1,7 @@
 local entities = {}
 local singleton = {}
 
-local RadiantIPoint3 = _radiant.csg.Point3
+local Point3 = _radiant.csg.Point3
 
 function entities.__init()
    singleton._entity_dtors = {}
@@ -94,14 +94,14 @@ function entities.remove_child(parent, child)
    local component = parent:get_component('entity_container')
 
    component:remove_child(child)
-   entities.move_to(child, RadiantIPoint3(0, 0, 0))
+   entities.move_to(child, Point3(0, 0, 0))
 end
 
 function entities.move_to(entity, location)
    radiant.check.is_entity(entity)
    
    if type(location) == "table" then
-      location = RadiantIPoint3(location.x, location.y, location.z)
+      location = Point3(location.x, location.y, location.z)
    end
    entity:add_component('mob'):set_location_grid_aligned(location)
 end
@@ -290,11 +290,11 @@ function entities.place_on_terrain(entity, arg1, arg2, arg3)
 
    local location
    if type(arg1) == 'number' then
-      location = RadiantIPoint3(arg1, arg2, arg3)
+      location = Point3(arg1, arg2, arg3)
    else
       location = arg1
    end
-   radiant.check.is_a(location, RadiantIPoint3)
+   radiant.check.is_a(location, Point3)
 
    singleton.add_child_to_entity(self._root_entity, entity, location)
    entity:add_component('render_info'):set_display_iconic(true);
@@ -563,7 +563,7 @@ function entities.pickup_item(entity, item)
    if item then
       entities.remove_child(radiant._root_entity, item)
       carry_block:set_carrying(item)
-      entities.move_to(item, RadiantIPoint3(0, 0, 0))
+      entities.move_to(item, Point3(0, 0, 0))
    else
       carry_block:set_carrying(nil)
    end
@@ -578,7 +578,7 @@ end
 ]]
 function entities.drop_carrying(entity, location)
    radiant.check.is_entity(entity)
-   radiant.check.is_a(location, RadiantIPoint3)
+   radiant.check.is_a(location, Point3)
 
    local carry_block = entity:get_component('carry_block')
    if carry_block then
@@ -754,8 +754,8 @@ function entities.is_adjacent_to(entity, location)
    local point_a = entities.get_world_grid_location(entity)
    local point_b = location
 
-   radiant.check.is_a(point_a, RadiantIPoint3)
-   radiant.check.is_a(point_b, RadiantIPoint3)
+   radiant.check.is_a(point_a, Point3)
+   radiant.check.is_a(point_b, Point3)
    return point_a:is_adjacent_to(point_b)
 end
 

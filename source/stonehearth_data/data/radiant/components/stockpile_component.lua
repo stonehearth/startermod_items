@@ -1,16 +1,19 @@
 local StockpileComponent = class()
 
-local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
+local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 
-function StockpileComponent:__init(entity)
+function StockpileComponent:__init(entity, data_binding)
    self._entity = entity
    self._destination = entity:add_component('destination')
    self._data = {
       items = {},
       size  = { 0, 0 }
-   }
+   }   
+   self._data_binding = data_binding
+   self._data_binding:update(self._data)
+   
    self._destination:set_region(native:alloc_region())
    radiant.events.listen('radiant.events.gameloop', self)
 end
@@ -46,8 +49,8 @@ function StockpileComponent:extend(json)
    end
 end
 
-function StockpileComponent:__tojson()
-   return radiant.json.encode(self._data)
+function StockpileComponent:get_items()
+   return self._data.items;
 end
 
 function StockpileComponent:_get_bounds()
@@ -132,6 +135,7 @@ function StockpileComponent:_add_item(entity)
          -- update our destination component to *remove* the space
          -- where the item is, since we can't drop anything there
          self:_remove_world_point_from_region(location)
+         self._data_binding:mark_changed()
       end
    end
 end
@@ -140,12 +144,13 @@ function StockpileComponent:_remove_item(id)
    local entity = self._data.items[id]
    if entity then
       self._data.items[id] = nil
+      self._data_binding:mark_changed()
 
       -- add this point to our destination region
       local region = self._destination:get_region()
       local origin = radiant.entities.get_world_grid_location(entity)
       local offset = origin - radiant.entities.get_world_grid_location(self._entity)
-      region:modify():add_point(Point3(offset))
+      region:modify():add_point(Point3(offset))      
    end
 end
 
@@ -155,6 +160,8 @@ function StockpileComponent:_rebuild_item_data()
    cursor:add_cube(self:_get_bounds())
 
    self._data.items = {}
+   self._data_binding:mark_changed()
+   
    local ec = radiant.entities.get_root_entity()
                   :get_component('entity_container')
                   :get_children()

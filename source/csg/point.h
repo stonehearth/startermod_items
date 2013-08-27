@@ -27,7 +27,7 @@ public:
    Derived Scaled(float s) const {
       Derived result;
       for (int i = 0; i < C; i++) {
-         result[i] = (*this)[i] * s;
+         result[i] = static_cast<S>((*this)[i] * s);
       }
       return result;
    }
@@ -98,7 +98,7 @@ public:
    }
 
    float DistanceTo(Derived const& other) const {
-      S l2 = ((*this) - other).LengthSquared();
+      float l2 = ((*this) - other).LengthSquared();
       return csg::Sqrt(l2);
    }
 

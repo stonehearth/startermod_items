@@ -5,7 +5,7 @@
    TODO: Make the outbox an actual entity container?
    TODO: If there are side-effect products, like toxic waste, handle separately
 ]]
-local RadiantIPoint3 = _radiant.csg.Point3
+local Point3 = _radiant.csg.Point3
 local FillOutboxAction = class()
 
 FillOutboxAction.name = 'stonehearth.actions.fill_outbox'
@@ -73,7 +73,7 @@ end
 ]]
 function FillOutboxAction:stop()
    if self._curr_carry and self._outbox_entity then
-      radiant.entities.add_child(self._outbox_entity, self._curr_carry, RadiantIPoint3(0, 1, 0))
+      radiant.entities.add_child(self._outbox_entity, self._curr_carry, Point3(0, 1, 0))
       self._curr_carry = nil
    end
 end

@@ -2,13 +2,13 @@ local stonehearth_building = {
    STOREY_HEIGHT = 7
 } 
 
-local RadiantIPoint3 = _radiant.csg.Point3
+local Point3 = _radiant.csg.Point3
 
 function stonehearth_building.create_column(faction, x, z)
    local entity = radiant.entities.create_entity('/stonehearth_building/entities/column_blueprint')
    
    entity:add_component('unit_info'):set_faction(faction)
-   entity:add_component('mob'):set_location_grid_aligned(RadiantIPoint3(x, 0, z));
+   entity:add_component('mob'):set_location_grid_aligned(Point3(x, 0, z));
 
    local region = native:alloc_region()
    entity:add_component('region_collision_shape'):set_region(region)
@@ -31,7 +31,7 @@ end
 
 function stonehearth_building.create_room(faction, x, z, w, h)
    local building = stonehearth_building._create_new_building(faction, w, h)
-   --radiant.terrain.place_entity(building, RadiantIPoint3(x, 1, z))
+   --radiant.terrain.place_entity(building, Point3(x, 1, z))
    
    return building
 end
@@ -39,7 +39,7 @@ end
 function stonehearth_building._create_structure_from_blueprint(entity, x, y, z)
    local blueprint_list = entity:get_component('stonehearth_building:blueprint_list')
    local structure = blueprint_list:create_structure()
-   radiant.terrain.place_entity(structure, RadiantIPoint3(x, y, z))
+   radiant.terrain.place_entity(structure, Point3(x, y, z))
 end
 
 function stonehearth_building._create_new_building(faction, w, h)

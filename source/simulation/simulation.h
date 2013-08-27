@@ -89,7 +89,8 @@ private:
    void UpdateTargetTables(int now, int interval);
    void HandleRouteRequest(luabind::object ctor, JSONNode const& query, std::string const& postdata, tesseract::protocol::PostCommandReply* response);
    void LoadModuleInitScript(json::ConstJsonObject const& block);
-   void LoadModuleRoutes(std::string const& modname, json::ConstJsonObject const& block);
+   void LoadModuleRequestHandlers(std::string const& modname, json::ConstJsonObject const& block);
+   void LoadModuleGameObjects(std::string const& modname, json::ConstJsonObject const& block);
 
 private:
    static Simulation*                           singleton_;
@@ -125,6 +126,7 @@ private:
    std::vector<om::TargetTablesRef>             targetTables_;   
    lua_State* L_;
    std::unordered_map<std::string, luabind::object>   routes_;
+   std::unordered_map<std::string, luabind::object>   dataBindings_;
    std::vector<std::pair<std::string, std::string>>   serverRemoteObjects_;
 };
 

@@ -12,5 +12,13 @@
       "less" : [
          "file(/html/css/stonehearth_calendar.less)"
       ]
+   },
+   "server" : {
+      "game_objects" : {
+         "calendar_data_object" : {
+            "controller": "file(calendar_data_object.lua)",
+            "publish_at": "clock"
+         }
+      }
    }
 }

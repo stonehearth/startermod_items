@@ -1,6 +1,6 @@
 local MicroWorld = class()
 
-local RadiantIPoint3 = _radiant.csg.Point3
+local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local Terrain = _radiant.om.Terrain
@@ -44,13 +44,13 @@ end
 
 function MicroWorld:place_item(name, x, z)
    local tree = radiant.entities.create_entity(name)
-   radiant.terrain.place_entity(tree, RadiantIPoint3(x, 1, z))
+   radiant.terrain.place_entity(tree, Point3(x, 1, z))
    return tree
 end
 
 function MicroWorld:place_entity(x, z, name)
    local e = radiant.entities.create_entity(name)
-   radiant.terrain.place_entity(e, RadiantIPoint3(x, 1, z))
+   radiant.terrain.place_entity(e, Point3(x, 1, z))
    return e
 end
 
@@ -68,7 +68,7 @@ function MicroWorld:place_citizen(x, z, profession, profession_info)
    local citizen = radiant.mods.load_api('/stonehearth_human_race/').create_entity()
    profession = profession and profession or 'worker'
    local profession = radiant.mods.load_api('/stonehearth_' .. profession .. '_class/').promote(citizen, profession_info)
-   radiant.terrain.place_entity(citizen, RadiantIPoint3(x, 1, z))
+   radiant.terrain.place_entity(citizen, Point3(x, 1, z))
    return citizen
 end
 
@@ -76,7 +76,7 @@ function MicroWorld:place_stockpile_cmd(faction, x, z, w, h)
    w = w and w or 3
    h = h and h or 3
 
-   local location = RadiantIPoint3(x, 1, z)
+   local location = Point3(x, 1, z)
    local size = { w, h }
 
    local inventory = radiant.mods.load_api('/stonehearth_inventory/').get_inventory(faction)
@@ -86,15 +86,15 @@ end
 function MicroWorld:create_room(faction, x, z, w, h)
    w = w and w or 3
    h = h and h or 3
-   local bounds = Cube3(RadiantIPoint3(x, 1, z),
-                                 RadiantIPoint3(x + w, 2, z + h))
+   local bounds = Cube3(Point3(x, 1, z),
+                                 Point3(x + w, 2, z + h))
 
    return radiant.mods.require('/stonehearth_building').create_room(faction, x, z, w, h)
 end
 
 function MicroWorld:create_door_cmd(wall, x, y, z)
    radiant.check.is_a(wall, Wall)
-   local json, obj = radiant.commands.call('radiant.commands.create_portal', wall, '//stonehearth/buildings/wooden_door', RadiantIPoint3(x, y, z))
+   local json, obj = radiant.commands.call('radiant.commands.create_portal', wall, '//stonehearth/buildings/wooden_door', Point3(x, y, z))
    return om:get_entity(obj.entity_id)
 end
 

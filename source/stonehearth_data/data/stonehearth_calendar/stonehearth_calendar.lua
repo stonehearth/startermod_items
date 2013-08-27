@@ -48,27 +48,7 @@ radiant.events.register_event('radiant.events.calendar.minutely')
 radiant.events.register_event('radiant.events.calendar.hourly')
 
 function stonehearth_calendar.__init()
-   --radiant.events.listen('radiant.events.gameloop', stonehearth_calendar._on_event_loop)
-
-   -- publish the current time (up to the minute) to the ui..
-   -- Step 1: create a function which will convert the current time to json and register
-   -- it with a new json storage object.
-   local currentTimeToJson = function()
-      local json = {
-         date = stonehearth_calendar.get_time_and_date()
-      }
-      return radiant.json.encode(json)         
-   end
-   data._uiClock = radiant.mods.create_data_blob(currentTimeToJson)
-   
-   -- Step 2: every minute, mark the storage object as dirty.
-   radiant.events.listen('radiant.events.calendar.hourly', function()
-         data._uiClock:mark_changed()
-      end)
-      
-   -- Step 3: publish the object at the /stonehearth_calendar/clock uri so
-   -- clients can trace it from javascript.
-   radiant.mods.publish_data_blob('/stonehearth_calendar/clock', data._uiClock)
+   radiant.events.listen('radiant.events.gameloop', stonehearth_calendar._on_event_loop)
 
    -- xxx, this is a total hack. Need a sensible entry point for the sky mod
    -- stonehearth_sky.add_lights();
@@ -123,6 +103,7 @@ function stonehearth_calendar._on_event_loop(_, now)
    data.date.date = stonehearth_calendar.format_date()
 
    data._lastNow = now
+   radiant.log.warning(stonehearth_calendar.format_time())
 end
 
 function stonehearth_calendar.format_time()

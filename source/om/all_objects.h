@@ -3,7 +3,7 @@
 
 #include "entity.h"
 #include "region.h"
-#include "data_blob.h"
+#include "data_binding.h"
 #include "components/effect_list.h"
 #include "components/sensor_list.h"
 #include "components/aura_list.h"

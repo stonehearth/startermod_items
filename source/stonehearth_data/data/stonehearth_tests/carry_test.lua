@@ -1,6 +1,6 @@
 local MicroWorld = require 'stonehearth_tests.lib.micro_world'
 
-local RadiantIPoint3 = _radiant.csg.Point3
+local Point3 = _radiant.csg.Point3
 local CarryTest = class(MicroWorld)
 
 --[[
@@ -24,9 +24,9 @@ function CarryTest:__init()
       radiant.events.broadcast_msg('stonehearth.events.compulsion_event', function(ai, entity)
          local y = -11
          for i, obj in ipairs(movable_items) do
-            local target = RadiantIPoint3(-11 , 1, y)
+            local target = Point3(-11 , 1, y)
             ai:execute('stonehearth.activities.pickup_item', obj)
-            ai:execute('stonehearth.activities.goto_location', RadiantIPoint3(target.x, target.y, target.z+1))
+            ai:execute('stonehearth.activities.goto_location', Point3(target.x, target.y, target.z+1))
             ai:execute('stonehearth.activities.drop_carrying', target)
             y = y + 1
          end

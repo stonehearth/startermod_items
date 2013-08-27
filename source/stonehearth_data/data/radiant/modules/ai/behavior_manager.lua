@@ -7,6 +7,7 @@ function BehaviorManager:__init(entity)
    self._actions = {}   
    self._action_stack = {}   
    self._priority_table = {}
+   self._valid_actions = {}
 end
 
 function BehaviorManager:destroy()

@@ -60,11 +60,11 @@ function components.place_on_terrain(entity, arg1, arg2, arg3)
    
    local location
    if type(arg1) == 'number' then
-      location = RadiantIPoint3(arg1, arg2, arg3)
+      location = Point3(arg1, arg2, arg3)
    else
       location = arg1
    end   
-   radiant.check.is_a(location, RadiantIPoint3)
+   radiant.check.is_a(location, Point3)
    
    singleton.add_child_to_entity(self._root_entity, entity, location)
    components.add_component(entity, 'render_info'):set_display_iconic(true);
@@ -348,7 +348,7 @@ function components.pickup_item(entity, item)
    if item then
       singleton.remove_from_terrain(item)
       carry_block:set_carrying(item)
-      singleton.move_to(item, RadiantIPoint3(0, 0, 0))
+      singleton.move_to(item, Point3(0, 0, 0))
    else
       carry_block:set_carrying(nil)
    end
@@ -356,7 +356,7 @@ end
 
 function components.drop_carrying(entity, location)
    radiant.check.is_entity(entity)
-   radiant.check.is_a(location, RadiantIPoint3)
+   radiant.check.is_a(location, Point3)
 
    local carry_block = components.get_component(entity, 'carry_block') 
    if carry_block then
@@ -535,8 +535,8 @@ function components.is_adjacent_to(arg1, arg2)
    local point_a = singleton.get_world_grid_location(arg1)
    local point_b = arg2
    
-   radiant.check.is_a(point_a, RadiantIPoint3)
-   radiant.check.is_a(point_b, RadiantIPoint3)
+   radiant.check.is_a(point_a, Point3)
+   radiant.check.is_a(point_b, Point3)
    return point_a:is_adjacent_to(point_b)
 end
 

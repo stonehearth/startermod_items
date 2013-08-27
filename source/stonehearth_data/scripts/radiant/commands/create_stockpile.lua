@@ -4,9 +4,9 @@ local om = require 'radiant.core.om'
 ch:register_cmd("radiant.commands.create_stockpile", function(bounds)
    local stockpile = om:create_entity('module://stonehearth/buildings/stockpile')
    
-   local origin = RadiantIPoint3(bounds.min)
+   local origin = Point3(bounds.min)
    bounds.max = bounds.max - bounds.min
-   bounds.min = RadiantIPoint3(0, 0, 0)   
+   bounds.min = Point3(0, 0, 0)   
    om:place_on_terrain(stockpile, origin)
    
    local designation = om:add_component(stockpile, 'stockpile_designation') 

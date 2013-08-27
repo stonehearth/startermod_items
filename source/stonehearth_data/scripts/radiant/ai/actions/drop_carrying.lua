@@ -10,7 +10,7 @@ ai_mgr:register_action('radiant.actions.drop_carrying', DropCarrying)
 
 function DropCarrying:run(ai, entity, location)
    check:is_entity(entity)
-   check:is_a(location, RadiantIPoint3)
+   check:is_a(location, Point3)
     
    if om:get_carrying(entity) then
       om:turn_to_face(entity, location)

@@ -111,11 +111,11 @@ function ObjectModel:place_on_terrain(entity, arg1, arg2, arg3)
    
    local location
    if type(arg1) == 'number' then
-      location = RadiantIPoint3(arg1, arg2, arg3)
+      location = Point3(arg1, arg2, arg3)
    else
       location = arg1
    end   
-   check:is_a(location, RadiantIPoint3)
+   check:is_a(location, Point3)
    
    self:add_child_to_entity(self._root_entity, entity, location)
    self:add_component(entity, 'render_info'):set_display_iconic(true);
@@ -365,12 +365,12 @@ function ObjectModel:remove_child_from_entity(parent, child)
    check:is_a(component, EntityContainer)
 
    component:remove_child(child)
-   self:move_entity_to(child, RadiantIPoint3(0, 0, 0))
+   self:move_entity_to(child, Point3(0, 0, 0))
 end
 
 function ObjectModel:move_entity_to(entity, location)
    check:is_entity(entity)
-   check:is_a(location, RadiantIPoint3)
+   check:is_a(location, Point3)
    self:add_component(entity, 'mob'):set_location_grid_aligned(location)
 end
 
@@ -385,7 +385,7 @@ function ObjectModel:turn_to_face(entity, arg2)
    local location = arg2
 
    check:is_entity(entity)
-   check:is_a(location, RadiantIPoint3)
+   check:is_a(location, Point3)
    self:add_component(entity, 'mob'):turn_to_face_point(location)
 end
 
@@ -487,7 +487,7 @@ function ObjectModel:pickup_item(entity, item)
    if item then
       self:remove_from_terrain(item)
       carry_block:set_carrying(item)
-      self:move_entity_to(item, RadiantIPoint3(0, 0, 0))
+      self:move_entity_to(item, Point3(0, 0, 0))
    else
       carry_block:set_carrying(nil)
    end
@@ -495,7 +495,7 @@ end
 
 function ObjectModel:drop_carrying(entity, location)
    check:is_entity(entity)
-   check:is_a(location, RadiantIPoint3)
+   check:is_a(location, Point3)
 
    local carry_block = self:get_component(entity, 'carry_block') 
    if carry_block then
@@ -674,8 +674,8 @@ function ObjectModel:is_adjacent_to(arg1, arg2)
    local point_a = self:get_world_grid_location(arg1)
    local point_b = arg2
    
-   check:is_a(point_a, RadiantIPoint3)
-   check:is_a(point_b, RadiantIPoint3)
+   check:is_a(point_a, Point3)
+   check:is_a(point_b, Point3)
    return point_a:is_adjacent_to(point_b)
 end
 

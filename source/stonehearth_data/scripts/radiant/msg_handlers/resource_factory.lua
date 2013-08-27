@@ -14,14 +14,14 @@ ResourceFactory['radiant.md.create'] = function(self, entity)
 end
 
 ResourceFactory['radiant.resource_node.spawn_resource'] = function(self, location)
-   check:is_a(location, RadiantIPoint3)
+   check:is_a(location, Point3)
    
    log:info("%s spawing resource near %s.", om:get_display_name(self.entity), tostring(location))
 
    local node = om:get_component(self.entity, 'resource_node')
    local resource = om:create_entity(node:get_resource())
    local item = om:get_component(resource, 'item')
-   om:place_on_terrain(resource, location + RadiantIPoint3(math.random(-3, 3), 0, math.random(-3, 3)))
+   om:place_on_terrain(resource, location + Point3(math.random(-3, 3), 0, math.random(-3, 3)))
 
    local durability = node:get_durability() - 1
    node:set_durability(durability)

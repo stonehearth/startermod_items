@@ -1,7 +1,7 @@
 local MicroWorld = require 'stonehearth_tests.lib.micro_world'
 local ProfessionInfo = radiant.mods.require('/stonehearth_classes/components/profession_info.lua')
 local CraftOrder = radiant.mods.require('/stonehearth_crafter/lib/craft_order.lua')
-local RadiantIPoint3 = _radiant.csg.Point3
+local Point3 = _radiant.csg.Point3
 
 local CarpenterTest = class(MicroWorld)
 --[[
@@ -29,7 +29,7 @@ function CarpenterTest:__init()
    --user places both workshop and outbox
    --TODO: make a private stockpile
    local outbox_entity = radiant.entities.create_entity('/stonehearth_inventory/entities/stockpile')
-   local outbox_location = RadiantIPoint3(-8, 1, -12)
+   local outbox_location = Point3(-8, 1, -12)
    radiant.terrain.place_entity(outbox_entity, outbox_location)
    local outbox_component = outbox_entity:get_component('radiant:stockpile')
    outbox_component:set_size({3, 3})

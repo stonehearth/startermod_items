@@ -1,4 +1,4 @@
-local RadiantIPoint3 = _radiant.csg.Point3
+local Point3 = _radiant.csg.Point3
 local CreateStockpile = class()
 
 function CreateStockpile:handle_request(query, postdata)

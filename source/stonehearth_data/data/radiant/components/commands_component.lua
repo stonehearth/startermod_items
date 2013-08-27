@@ -1,8 +1,11 @@
 local CommandsComponent = class()
 
-function CommandsComponent:__init(entity)
+function CommandsComponent:__init(entity, data_binding)
    self._entity = entity
    self._commands = {}
+   
+   self._data_binding = data_binding
+   self._data_binding:update(self._commands)
 end
 
 function CommandsComponent:extend(json)
@@ -14,12 +17,9 @@ function CommandsComponent:extend(json)
          -- expand the json.  just for fun (it's small)
          local t = self:_replace_variables(command)
          table.insert(self._commands, t)
+         self._data_binding:mark_changed()
       end
    end
-end
-
-function CommandsComponent:__tojson()
-   return radiant.json.encode(self._commands)
 end
 
 function CommandsComponent:_replace_variables(res)

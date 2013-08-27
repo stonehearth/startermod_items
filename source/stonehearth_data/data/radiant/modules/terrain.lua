@@ -1,4 +1,4 @@
-local RadiantIPoint3 = _radiant.csg.Point3
+local Point3 = _radiant.csg.Point3
 
 local Terrain = {}
 
@@ -13,7 +13,7 @@ function Terrain.place_entity(entity, location)
    entity:add_component('render_info'):set_display_iconic(true);
 
    if type(location) == "table" then
-      location = RadiantIPoint3(location.x, location.y, location.z)
+      location = Point3(location.x, location.y, location.z)
    end  
    _terrain:place_entity(entity, location)
 end

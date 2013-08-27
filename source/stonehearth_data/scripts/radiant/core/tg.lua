@@ -396,7 +396,7 @@ function FoliageMapper:_add_undergrowth_to_terrain(terrain)
                local pos_x = (x * lod) + math.random(lod)
                local pos_y = (y * lod) + math.random(lod)
                local clutter = om:create_entity(undergrowth[math.random(#undergrowth)])
-               om:place_on_terrain(clutter, RadiantIPoint3(pos_x, 1, pos_y))
+               om:place_on_terrain(clutter, Point3(pos_x, 1, pos_y))
                om:get_component(clutter, 'mob'):turn_to(math.random(0, 360))
             end
          end
@@ -410,7 +410,7 @@ function FoliageMapper:_add_items_to_terrain(terrain, pointmap, items)
       local entity_name = items[site.tag]
       if entity_name then
          local tree = om:create_entity(entity_name)
-         om:place_on_terrain(tree, RadiantIPoint3(site.pos.x, 1, site.pos.y))
+         om:place_on_terrain(tree, Point3(site.pos.x, 1, site.pos.y))
          om:get_component(tree, 'mob'):turn_to(math.random(0, 3) * 90)
       end
    end
@@ -450,7 +450,7 @@ function TeraGen:create()
    log:info('new game!')
    local size = 32
    local height = 16
-   local game_bounds = RadiantBounds3(RadiantIPoint3(-size, -height, -size), RadiantIPoint3(size, height, size))
+   local game_bounds = RadiantBounds3(Point3(-size, -height, -size), Point3(size, height, size))
    
    -- Create the plains...
    local plains = game_bounds;

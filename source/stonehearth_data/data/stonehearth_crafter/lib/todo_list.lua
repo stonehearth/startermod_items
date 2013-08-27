@@ -7,24 +7,19 @@
 local CraftOrder = radiant.mods.require('/stonehearth_crafter/lib/craft_order.lua')
 local ToDoList = class()
 
-function ToDoList:__init(data_blob)
-   self._data_blob = data_blob
+function ToDoList:__init(data_binding)
+   self._data_binding = data_binding
    self._my_list = {}
-   self._is_paused = false
 end
 
 function ToDoList:__tojson()
    return radiant.json.encode(self._my_list)
 end
 
-function ToDoList:togglePause()
-   self._is_paused = not self._is_paused
-   self._data_blob:mark_changed()
+function ToDoList:is_paused()
+   return self._data_binding:get_data().is_paused
 end
 
-function ToDoList:is_paused()
-   return self._is_paused
-end
 --[[
    Add an order to the list
    order:         A table, as defined below, with the values for the order
@@ -37,7 +32,7 @@ function ToDoList:add_order(order, target_index)
    else
       table.insert(self._my_list, order)
    end
-   self._data_blob:mark_changed()
+   self._data_binding:mark_changed()
 end
 
 --[[
@@ -56,7 +51,7 @@ function ToDoList:get_next_task()
          local ingredients = order:get_all_ingredients()
          if ingredients then
             order:set_crafting_status(true)
-            self._data_blob:mark_changed()
+            self._data_binding:mark_changed()
             return order, ingredients
          end
          return
@@ -76,7 +71,7 @@ function ToDoList:chunk_complete(curr_order)
       table.remove(self._my_list, i)
    end
    --TODO: updates whole list when any object order is updated. Add data_blob to TODO item?
-   self._data_blob:mark_changed()
+   self._data_binding:mark_changed()
 end
 
 -- Helper functions
@@ -107,7 +102,7 @@ function ToDoList:change_order_position(new, id)
    table.remove(self._my_list, i)
    table.insert(self._my_list, new, order)
    --TODO: comment out when you've fixed the drag/drop problem
-   self._data_blob:mark_changed()
+   self._data_binding:mark_changed()
 end
 
 --[[
@@ -123,7 +118,7 @@ function ToDoList:remove_order(order_id)
       local order = self._my_list[i]
       table.remove(self._my_list, i)
       order:destroy()
-      self._data_blob:mark_changed()
+      self._data_binding:mark_changed()
    end
 end
 

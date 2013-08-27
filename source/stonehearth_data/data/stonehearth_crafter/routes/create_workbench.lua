@@ -1,4 +1,4 @@
-local RadiantIPoint3 = _radiant.csg.Point3
+local Point3 = _radiant.csg.Point3
 local CreateWorkbench = class()
 
 -- server side object to handle creation of the workbench.  this is called
@@ -7,7 +7,7 @@ local CreateWorkbench = class()
 function CreateWorkbench:handle_request(query, postdata)
    -- pull the location and entity uri out of the postdata, create that
    -- entity, and move it there.
-   local location = RadiantIPoint3(postdata.location.x, postdata.location.y, postdata.location.z)
+   local location = Point3(postdata.location.x, postdata.location.y, postdata.location.z)
    local entity = radiant.entities.create_entity(postdata.entity)
    radiant.terrain.place_entity(entity, location)
 

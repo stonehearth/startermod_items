@@ -81,15 +81,15 @@ end
 local ch = require 'radiant.core.ch'
 
 function create_room(x, y, z, w, h)
-   local bounds = RadiantBounds3(RadiantIPoint3(x, y, z),
-                                 RadiantIPoint3(x + w, y + 1, z + h))
+   local bounds = RadiantBounds3(Point3(x, y, z),
+                                 Point3(x + w, y + 1, z + h))
    local json, obj = ch:call('radiant.commands.create_room', bounds)
    return om:get_entity(obj.entity_id)
 end
 
 function create_door(wall, x, y, z)
    check:is_a(wall, Wall)
-   local json, obj = ch:call('radiant.commands.create_portal', wall, 'module://stonehearth/buildings/wooden_door', RadiantIPoint3(x, y, z))
+   local json, obj = ch:call('radiant.commands.create_portal', wall, 'module://stonehearth/buildings/wooden_door', Point3(x, y, z))
    return om:get_entity(obj.entity_id)
 end
 
@@ -109,8 +109,8 @@ function add_door_to_wall(room, wall_normal, offset)
 end
 
 function create_stockpile(loc, w, h)
-   local bounds = RadiantBounds3(RadiantIPoint3(loc.x, loc.y, loc.z),
-                                 RadiantIPoint3(loc.x + w, loc.y + 1, loc.z + h))
+   local bounds = RadiantBounds3(Point3(loc.x, loc.y, loc.z),
+                                 Point3(loc.x + w, loc.y + 1, loc.z + h))
    return ch:call('radiant.commands.create_stockpile', bounds)
 end
 
@@ -139,22 +139,22 @@ function scene_1()
    --create_stockpile(Point3(ZA.x + 3, 1, ZA.y + 3), 5, 5);
    --create_stockpile(Point3(BC.x, 1, BC.y - 7), 5, 5);
    
-   sh:create_citizen(RadiantIPoint3(ZA.x + 2, 1, ZA.y))
-   sh:create_citizen(RadiantIPoint3(ZA.x + 16, 1, ZA.y + 9))
-   sh:create_citizen(RadiantIPoint3(ZA.x + 22, 1, ZA.y + 13))
+   sh:create_citizen(Point3(ZA.x + 2, 1, ZA.y))
+   sh:create_citizen(Point3(ZA.x + 16, 1, ZA.y + 9))
+   sh:create_citizen(Point3(ZA.x + 22, 1, ZA.y + 13))
    
    for i = 0, 25 do
       local x = math.random(100, 300)
       local z = math.random(100, 300)
       local rabbit = om:create_entity('/stonehearth/critters/rabbit')
-      om:place_on_terrain(rabbit, RadiantIPoint3(x, 1, z))      
+      om:place_on_terrain(rabbit, Point3(x, 1, z))      
    end
 end
 
 function scene_2()
-   sh:create_citizen(RadiantIPoint3(ZA.x + 2, 1, ZA.y + 5))
-   sh:create_citizen(RadiantIPoint3(ZA.x + 16, 1, ZA.y + 15))
-   sh:create_citizen(RadiantIPoint3(ZA.x + 22, 1, ZA.y + 25))
+   sh:create_citizen(Point3(ZA.x + 2, 1, ZA.y + 5))
+   sh:create_citizen(Point3(ZA.x + 16, 1, ZA.y + 15))
+   sh:create_citizen(Point3(ZA.x + 22, 1, ZA.y + 25))
    scene_1()
 end
 
@@ -232,12 +232,12 @@ function scene_4()
    
    local dx, dy = 8, 12
    local tower = om:create_entity('radiant.structures.tower')
-   om:place_on_terrain(tower, RadiantIPoint3(EH.x - dx, 1, EH.y - dy))
+   om:place_on_terrain(tower, Point3(EH.x - dx, 1, EH.y - dy))
 
    --local tower = om:create_entity('radiant.structures.tower')
-   --om:place_on_terrain(tower, RadiantIPoint3(TT.x, 1, TT.y + 6))
+   --om:place_on_terrain(tower, Point3(TT.x, 1, TT.y + 6))
    local tower = om:create_entity('radiant.structures.tower')
-   om:place_on_terrain(tower, RadiantIPoint3(TT.x, 1, TT.y - 18))
+   om:place_on_terrain(tower, Point3(TT.x, 1, TT.y - 18))
 
    create_stairs(Point3(YZ.x, 1, YZ.y), Point3(0, 0, 1), 4, 3)   
    create_road(ZA, YZ, 1); -- Z
@@ -280,7 +280,7 @@ function scene_5()
       
       om:set_attribute(goblin, 'health', 1)
       
-      om:place_on_terrain(goblin, RadiantIPoint3(x, 1, z))
+      om:place_on_terrain(goblin, Point3(x, 1, z))
       om:get_component(goblin, 'mob'):turn_to(math.random(0, 359))     
       
       ai_mgr:add_intention(goblin, 'radiant.intentions.combat_defense')
@@ -295,7 +295,7 @@ function scene_5()
       return goblin
    end
    local spawn_soldier = function(x, z)
-      local footman = sh:create_citizen(RadiantIPoint3(x, 1, z), 'footman')
+      local footman = sh:create_citizen(Point3(x, 1, z), 'footman')
       om:add_combat_ability(footman, 'module://stonehearth/combat_abilities/parry.txt')
       ai_mgr:add_intention(footman, 'radiant.intentions.combat_defense')
       local sword = om:create_entity('module://stonehearth/items/iron_sword')
@@ -387,7 +387,7 @@ function scene_6()
       
       om:set_attribute(goblin, 'health', math.random(16, 29))
       
-      om:place_on_terrain(goblin, RadiantIPoint3(x, 1, z))
+      om:place_on_terrain(goblin, Point3(x, 1, z))
       om:get_component(goblin, 'mob'):turn_to(math.random(0, 359))     
       
       ai_mgr:add_intention(goblin, 'radiant.intentions.combat_defense')
@@ -405,7 +405,7 @@ function scene_6()
       local weapons = {
          'radiant.items.short_sword',
       }
-      local footman = sh:create_citizen(RadiantIPoint3(x, 1, z), 'footman')
+      local footman = sh:create_citizen(Point3(x, 1, z), 'footman')
       om:add_combat_ability(footman, 'module://stonehearth/combat_abilities/parry.txt')
       ai_mgr:add_intention(footman, 'radiant.intentions.combat_defense')
       local sword = om:create_entity(weapons[math.random(#weapons)])
@@ -455,7 +455,7 @@ end
 function scene_7()
    scene_4()
    local boss = om:create_entity('radiant.mobs.cthulu')
-   om:place_on_terrain(boss, RadiantIPoint3(329, 1, 195))
+   om:place_on_terrain(boss, Point3(329, 1, 195))
    
    local done = false
    md:listen('radiant.events.gameloop', function (_, now)    
@@ -470,7 +470,7 @@ end
 function scene_8()
    local add = function(name, x, z, angle)
       local entity = om:create_entity('radiant.mobs.' .. name)
-      om:place_on_terrain(entity, RadiantIPoint3(x, 1, z))
+      om:place_on_terrain(entity, Point3(x, 1, z))
       angle = angle and angle or math.random(0, 359)
       om:get_component(entity, 'mob'):turn_to(angle) 
    end
@@ -493,11 +493,11 @@ function GameMaster:start_new_game()
    scene_2();
    --[[
    -- Put the embark smack in the middle
-   self:start_scenario('stonehearth.embark', RadiantBounds3(RadiantIPoint3(240, 1, 240), RadiantIPoint3(272, 1, 272)))
+   self:start_scenario('stonehearth.embark', RadiantBounds3(Point3(240, 1, 240), Point3(272, 1, 272)))
    
    -- Put a goblin camp opposite the forsest
-   local bounds = RadiantBounds3(RadiantIPoint3(50,   1, 50),
-                                 RadiantIPoint3(100,  1, 100))
+   local bounds = RadiantBounds3(Point3(50,   1, 50),
+                                 Point3(100,  1, 100))
    table.insert(self._scenarios, self:start_scenario('radiant.scenarios.goblin_camp', bounds))
    
    for _, scenario in ipairs(self._scenarios) do
@@ -507,7 +507,7 @@ function GameMaster:start_new_game()
 end
 
 function GameMaster:run_test(name)
-   local bounds = RadiantBounds3(RadiantIPoint3(-16, 1, -16), RadiantIPoint3(16, 1, 16))
+   local bounds = RadiantBounds3(Point3(-16, 1, -16), Point3(16, 1, 16))
    table.insert(self._scenarios, self:start_scenario(name, bounds))
    for _, scenario in ipairs(self._scenarios) do
       md:send_msg(scenario, 'radiant.scenario.set_run_level', Scenario.RunLevel.ACTIVE)

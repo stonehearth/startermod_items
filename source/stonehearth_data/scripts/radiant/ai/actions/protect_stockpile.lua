@@ -23,9 +23,9 @@ function ProtectStockpile:run(ai, entity, stockpile)
    -- compute the patrol corners
    self._patrol = {
       bounds.min,
-      RadiantIPoint3(bounds.max.x, bounds.min.y, bounds.min.z),
-      RadiantIPoint3(bounds.max.x, bounds.min.y, bounds.max.z),
-      RadiantIPoint3(bounds.min.x, bounds.min.y, bounds.max.z),
+      Point3(bounds.max.x, bounds.min.y, bounds.min.z),
+      Point3(bounds.max.x, bounds.min.y, bounds.max.z),
+      Point3(bounds.min.x, bounds.min.y, bounds.max.z),
    }
 
    -- run to the first corner and patrol the rest   

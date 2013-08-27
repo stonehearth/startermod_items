@@ -8,9 +8,14 @@
 
 local Crafter = class()
 
-function Crafter:__init(entity)
-   self._entity = entity  -- the entity this component is attached to
-   self._workshop = {}     -- the component for the crafter's workplace
+function Crafter:__init(entity, data_binding)
+   self._entity = entity   -- the entity this component is attached to
+   self._workshop = nil    -- the component for the crafter's workplace
+   self._data = {
+      craftable_recipes = {}
+   }
+   self._data_binding = data_binding
+   self._data_binding:update(self._data)
 end
 
 --[[
@@ -26,15 +31,13 @@ function Crafter:extend(json)
    end
    if json and json.recipe_list  then
       self._recipe_list = radiant.resources.load_json(json.recipe_list)
+      
+      -- xxx: for now, just grab them all. =)
+      self._data.craftable_recipes = self._recipe_list.craftable_recipes
+      self._data_binding:mark_changed()
    end
 end
 
-function Crafter:__tojson()
-   local json = {
-      craftable_recipes = self._recipe_list.craftable_recipes
-   }
-   return radiant.json.encode(json)
-end
 --[[
    Tell the crafter to perform his work_effect (the animtion he does when he's crafting)
    ai: the ai required for the entity to perform anything

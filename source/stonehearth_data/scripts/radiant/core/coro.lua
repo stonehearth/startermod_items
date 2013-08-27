@@ -109,7 +109,7 @@ function Coroutine:pickup(item)
          log:info('picking up item at %s', tostring(location))
          om:remove_from_terrain(item)
          carry_block:set_carrying(item)
-         om:move_entity_to(item, RadiantIPoint3(0, 0, 0))
+         om:move_entity_to(item, Point3(0, 0, 0))
          om:turn_to_face(self.entity, location)
          self:perform('carry_light_pickup')
       end

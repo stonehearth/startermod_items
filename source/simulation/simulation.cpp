@@ -18,6 +18,7 @@
 #include "om/components/target_tables.h"
 #include "om/components/lua_components.h"
 #include "om/object_formatter/object_formatter.h"
+#include "om/data_binding.h"
 //#include "native_commands/create_room_cmd.h"
 #include "jobs/job.h"
 #include <boost/algorithm/string.hpp>
@@ -59,7 +60,8 @@ Simulation::Simulation(lua_State* L) :
          json::ConstJsonObject const& block = manifest["server"];
          LOG(WARNING) << "loading init script for " << modname << "...";
          LoadModuleInitScript(block);
-         LoadModuleRoutes(modname, block);
+         LoadModuleRequestHandlers(modname, block);
+         LoadModuleGameObjects(modname, block);
       } catch (std::exception const& e) {
          LOG(WARNING) << "load failed: " << e.what();
       }
@@ -97,7 +99,7 @@ static std::string SanatizePath(std::string const& path)
    return std::string("/") + boost::algorithm::join(s, "/");
 }
 
-void Simulation::LoadModuleRoutes(std::string const& modname, json::ConstJsonObject const& block)
+void Simulation::LoadModuleRequestHandlers(std::string const& modname, json::ConstJsonObject const& block)
 {
    resources::ResourceManager2 &rm = resources::ResourceManager2::GetInstance();
    try {
@@ -111,6 +113,29 @@ void Simulation::LoadModuleRoutes(std::string const& modname, json::ConstJsonObj
    }
 }
 
+void Simulation::LoadModuleGameObjects(std::string const& modname, json::ConstJsonObject const& block)
+{
+   resources::ResourceManager2 &rm = resources::ResourceManager2::GetInstance();
+   try {
+      for (auto const& node : block["game_objects"]) {
+         json::ConstJsonObject info(node);
+
+         std::string dataBindingName = modname + std::string(".") + node.name();
+         std::string controller = info["controller"].as_string();
+         dataBindings_[dataBindingName] = scriptHost_->LuaRequire(controller);
+         if (info.has("publish_at")) {
+            om::DataBindingPtr binding = GetStore().AllocObject<om::DataBinding>();
+            luabind::object ctor = dataBindings_[dataBindingName];
+            luabind::object model = luabind::call_function<luabind::object>(ctor, binding);
+            std::ostringstream uri;
+            uri << "/server/objects/" << modname << "/" << info["publish_at"].as_string();
+            RegisterServerRemoteObject(uri.str(), binding);
+         }
+      }
+   } catch (std::exception const& e) {
+      LOG(WARNING) << "load failed: " << e.what();
+   }
+}
 
 void Simulation::CreateNew()
 {
@@ -594,13 +619,13 @@ void Simulation::PostCommand(proto::PostCommandRequest const& request, proto::Po
 
    dm::ObjectPtr obj = om::ObjectFormatter("/object/").GetObject(GetStore(), request.path());
    if (obj) {
-      if (obj->GetObjectType() == om::LuaComponentObjectType) {
+      if (obj->GetObjectType() == om::DataBindingObjectType) {
          JSONNode n = libjson::parse(query); // xxx: turn json::ConstJsonObject into a REAL WRAPPER instead of this const ref crap.
          json::ConstJsonObject node(n);
          try {
-            om::LuaComponentPtr lc = std::static_pointer_cast<om::LuaComponent>(obj);
+            om::DataBindingPtr db = std::static_pointer_cast<om::DataBinding>(obj);
             std::string fname = node["fn"].as_string();
-            luabind::object obj = lc->GetLuaObject();
+            luabind::object obj = db->GetModelObject();
             luabind::object fn = obj[fname];
             response = scriptHost_->PostCommand(fn, obj, data);
          } catch (std::exception const& e) {

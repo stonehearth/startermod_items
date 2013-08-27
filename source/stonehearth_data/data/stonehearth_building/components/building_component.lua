@@ -1,6 +1,6 @@
 local stonehearth_building = radiant.mods.require('stonehearth_building')
 
-local RadiantIPoint3 = _radiant.csg.Point3
+local Point3 = _radiant.csg.Point3
 local BuildingComponent = class()
 
 function BuildingComponent:__init(entity)
@@ -17,7 +17,7 @@ function BuildingComponent:add_storey(storey_entity)
    local y = #self._storeys * stonehearth_building.STOREY_HEIGHT
    
    table.insert(self._storeys, storey_entity)
-   radiant.entities.add_child(self._entity, storey_entity, RadiantIPoint3(0, y, 0))
+   radiant.entities.add_child(self._entity, storey_entity, Point3(0, y, 0))
 end
 
 return BuildingComponent

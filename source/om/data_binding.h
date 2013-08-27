@@ -1,5 +1,5 @@
-#ifndef _RADIANT_OM_DATA_BLOB_H
-#define _RADIANT_OM_DATA_BLOB_H
+#ifndef _RADIANT_OM_DATA_BINDING_H
+#define _RADIANT_OM_DATA_BINDING_H
 
 #include "dm/object.h"
 #include "dm/record.h"
@@ -13,17 +13,19 @@
 
 BEGIN_RADIANT_OM_NAMESPACE
 
-class DataBlob : public dm::Object
+class DataBinding : public dm::Object
 {
 public:
-   DataBlob();
-   DEFINE_OM_OBJECT_TYPE_NO_CONS(DataBlob, data_blob);
+   DataBinding();
+   DEFINE_OM_OBJECT_TYPE_NO_CONS(DataBinding, data_binding);
 
-   void SetLuaObject(luabind::object obj);
-   luabind::object GetLuaObject() const { return obj_; }
+   luabind::object GetDataObject() const;
+   luabind::object GetModelObject() const;
+   JSONNode GetJsonData() const;
 
-   JSONNode ToJson() const;
-
+   void SetDataObject(luabind::object data);
+   void SetModelObject(luabind::object data);
+ 
 #if 0
    dm::Guard Trace(const char* reason, std::function<void(JSONNode const &)> cb) const {
       return TraceObjectChanges(reason, [=]() {
@@ -37,13 +39,14 @@ protected:
    void LoadValue(const dm::Store& store, const Protocol::Value& msg) override;
 
 private:
-   luabind::object      obj_;
+   luabind::object      data_;
+   luabind::object      model_;
    mutable JSONNode     cached_json_;
    mutable bool         cached_json_valid_;
 };
 
-std::ostream& operator<<(std::ostream& os, const DataBlob& o);
+std::ostream& operator<<(std::ostream& os, const DataBinding& o);
 
 END_RADIANT_OM_NAMESPACE
 
-#endif //  _RADIANT_OM_DATA_BLOB_H
+#endif //  _RADIANT_OM_DATA_BINDING_H

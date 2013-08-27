@@ -17,7 +17,7 @@ function Forest:_add_tree(x, y, z)
       'tree-v3'
    }
    local tree = om:create_entity(trees[math.random(1, #trees)])
-   om:place_on_terrain(tree, RadiantIPoint3(x, y, z))
+   om:place_on_terrain(tree, Point3(x, y, z))
    om:get_component(tree, 'mob'):turn_to(90*math.random(0, 3))
 end
 

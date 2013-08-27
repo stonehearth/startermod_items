@@ -11,15 +11,14 @@
 ]]
 
 -- All workshops have a ToDo list through which the user instructs the crafter
-local RadiantIPoint3 = _radiant.csg.Point3
+local Point3 = _radiant.csg.Point3
 local ToDoList = radiant.mods.require('/stonehearth_crafter/lib/todo_list.lua')
 local CraftOrder = radiant.mods.require('/stonehearth_crafter/lib/craft_order.lua')
 
 local Workshop = class()
 
-function Workshop:__init(entity, data_blob)
-   self._todo_list = ToDoList(data_blob)        -- The list of things we need to work on
-   self._data_blob = data_blob
+function Workshop:__init(entity, data_binding)
+   self._todo_list = ToDoList(data_binding)        -- The list of things we need to work on
    self._entity = entity               -- The entity associated with this component
    self._curr_order = nil              -- The order currently being worked on. Nil until we get an order from the todo list
    self._intermediate_item = nil       -- The item currently being worked on. Nil until we actually start crafting
@@ -27,18 +26,16 @@ function Workshop:__init(entity, data_blob)
    self._bench_outputs = {}            -- An array of finished products on the bench, to be added to the outbox. Nil if nothing.
    self._outbox = nil                  -- The outbox entity
    self._saw = nil                     -- The saw for the bench, available when there is no craftsman
+   
+   self._data = data_binding:get_data()
+   self._data.crafter = nil
+   self._data.order_list = self._todo_list
+   
+   self._data_binding = data_binding
+   self._data_binding:mark_changed()
 end
 
 function Workshop:extend(json)
-end
-
-function Workshop:__tojson()
-   local json = {
-      crafter = self._crafter,
-      order_list = self._todo_list,
-      is_paused = self:is_paused()
-   }
-   return radiant.json.encode(json)
 end
 
 --[[UI Interaction Functions
@@ -88,11 +85,12 @@ end
    should_pause: true if we should pause, false if we should unpause.
 ]]
 function Workshop:toggle_pause(player_object, data)
-   self._todo_list:togglePause()
+   self._data.is_paused = not self._data.is_paused
+   self._data_binding:mark_changed()
 end
 
 function Workshop:is_paused()
-   return self._todo_list:is_paused()
+   return self._data.paused
 end
 
 --[[
@@ -134,7 +132,7 @@ end
    Returns the crafter associated with this workshop
 ]]
 function Workshop:get_crafter()
-   return self._crafter
+   return self._data.crafter
 end
 
 function Workshop:get_curr_order()
@@ -158,9 +156,9 @@ end
 function Workshop:set_crafter(crafter)
    local current = self:get_crafter()
    if not crafter or not current or current:get_id() ~= crafter:get_id() then
-      self._crafter = crafter
+      self._data.crafter = crafter
+      self._data_binding:mark_changed()
    end
-   self._data_blob:mark_changed()
 end
 
 --[[
@@ -172,7 +170,7 @@ function Workshop:set_saw_entity(saw_entity)
    self._saw = saw_entity
    local saw_loc = radiant.entities.get_location_aligned(self._entity)
    --TODO: how do we get the saw higher in the world?
-   radiant.terrain.place_entity(saw_entity, RadiantIPoint3(saw_loc.x, 3, saw_loc.z + 3))
+   radiant.terrain.place_entity(saw_entity, Point3(saw_loc.x, 3, saw_loc.z + 3))
 end
 
 function Workshop:get_saw_entity()
@@ -304,7 +302,7 @@ function Workshop:_create_intemediate_item()
    --Create intermediate item (with progress) and place its entity in the world
    local intermediate_item = radiant.entities.create_entity(self:_get_crafter_component():get_intermediate_item())
    --TODO: how to get intermediat item onto the top of the world?
-   radiant.entities.add_child(self._entity, intermediate_item, RadiantIPoint3(0, 1, 0))
+   radiant.entities.add_child(self._entity, intermediate_item, Point3(0, 1, 0))
    self._intermediate_item = {
       progress = 0,
       entity = intermediate_item
@@ -356,7 +354,7 @@ function Workshop:_produce_outputs()
    for i, product in radiant.resources.pairs(outputs) do
       local result = radiant.entities.create_entity(product.item)
       --TODO: use entity container to put items on the bench
-      radiant.terrain.place_entity(result, RadiantIPoint3(-12, -5, -12))
+      radiant.terrain.place_entity(result, Point3(-12, -5, -12))
       table.insert(self._bench_outputs, result)
    end
 end

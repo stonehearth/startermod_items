@@ -24,12 +24,12 @@ Embark['radiant.md.create'] = function(self, options)
       pt.y = 1
       pt.z = pt.z + math.random(-8, 8)
       
-      local citizen = sh:create_citizen(RadiantIPoint3(pt))
+      local citizen = sh:create_citizen(Point3(pt))
     
       om:set_display_name(citizen, names[math.random(1, #names)])     
    end
    local saw = om:create_entity('carpenter-saw')
-   om:place_on_terrain(saw, RadiantIPoint3(center))
+   om:place_on_terrain(saw, Point3(center))
 end
 
 gm:register_scenario('stonehearth.embark', Embark)

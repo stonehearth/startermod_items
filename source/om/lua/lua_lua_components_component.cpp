@@ -13,8 +13,5 @@ scope LuaLuaComponentsComponent::RegisterLuaTypes(lua_State* L)
       lua::RegisterDerivedObject<LuaComponents, Component>()
         .def("get_lua_component",   &LuaComponents::GetLuaComponent)
         .def("add_lua_component",   &LuaComponents::AddLuaComponent)
-      ,
-      lua::RegisterObject<LuaComponent>()
-         .def("mark_changed",       &LuaComponent::MarkChanged)
       ;
 }
