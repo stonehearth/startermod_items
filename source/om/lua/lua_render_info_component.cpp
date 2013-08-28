@@ -22,7 +22,7 @@ scope LuaRenderInfoComponent::RegisterLuaTypes(lua_State* L)
    return
       lua::RegisterDerivedObject<RenderInfo, Component>()
          .def("set_model_variant",       &RenderInfo_SetModelVariant)
-         .def("set_model_variant",       &RenderInfo_GetModelVariant)
+         .def("get_model_variant",       &RenderInfo_GetModelVariant)
          .def("attach_entity",           &RenderInfo::AttachEntity)
          .def("remove_entity",           &RenderInfo::RemoveEntity)
          .def("get_animation_table_name",&RenderInfo::GetAnimationTable)

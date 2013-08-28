@@ -16,7 +16,7 @@
             ]
          },
          {
-            "variant": "female",
+            "variants": "female",
             "layer": "clothing",
             "models": [
                "file(worker_outfit_female.qb)"

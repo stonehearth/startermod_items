@@ -30,13 +30,20 @@ ModelVariantPtr ModelVariants::GetModelVariant(std::string const& v) const
    ModelVariantPtr best;
 
    for (auto const& e : variants_) {
-      std::vector<std::string> tags;
       std::string variants = e->GetVariants();
 
-      if (!best || variants.empty()) {
+      // Fall back to the first entry at all...
+      if (!best) {
          best = e;
       }
-      if (!v.empty()) {
+      // Always prefer the first entry which has no variants...
+      if (v.empty()) {
+         if (variants.empty()) {
+            best = e;
+            break;
+         }
+      } else {
+         std::vector<std::string> tags;
          boost::split(tags, variants, boost::is_any_of(" "));
          if (stdutil::contains(tags, v)) {
             return e;
