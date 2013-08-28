@@ -68,7 +68,7 @@ private:
    std::string GetModelVariant(om::RenderInfoPtr render_info) const;
 
 private:
-   static QubicleFile const& LoadQubicleFile(std::string const& uri);
+   static std::shared_ptr<QubicleFile> LoadQubicleFile(std::string const& uri);
    static QubicleFileMap   qubicle_map__;
 
 private:

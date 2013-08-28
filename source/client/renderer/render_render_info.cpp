@@ -17,11 +17,11 @@ using namespace ::radiant::client;
 
 RenderRenderInfo::QubicleFileMap RenderRenderInfo::qubicle_map__;
 
-QubicleFile const& RenderRenderInfo::LoadQubicleFile(std::string const& uri)
+std::shared_ptr<QubicleFile> RenderRenderInfo::LoadQubicleFile(std::string const& uri)
 {
    auto i = qubicle_map__.find(uri);
    if (i != qubicle_map__.end()) {
-      return *i->second;
+      return i->second;
    }
    std::ifstream input;
    resources::ResourceManager2::GetInstance().OpenResource(uri, input);
@@ -30,7 +30,7 @@ QubicleFile const& RenderRenderInfo::LoadQubicleFile(std::string const& uri)
    input >> *q;
 
    qubicle_map__[uri] = q;
-   return *q;
+   return q;
 }
 
 RenderRenderInfo::RenderRenderInfo(RenderEntity& entity, om::RenderInfoPtr render_info) :
@@ -72,7 +72,14 @@ void RenderRenderInfo::AccumulateModelVariant(ModelMap& m, om::ModelVariantPtr v
       variant_guards_ += v->GetModels().TraceObjectChanges("model variant changed in render_info", set_model_dirty_bit);
 
       for (std::string const& model : v->GetModels()) {
-         for (const auto& entry : LoadQubicleFile(model)) {
+         std::shared_ptr<QubicleFile> qubicle;
+         try {
+            qubicle = LoadQubicleFile(model);
+         } catch (resources::Exception& e) {
+            LOG(WARNING) << "could not load qubicle file: " << e.what();
+            return;
+         }
+         for (const auto& entry : *qubicle) {
             std::string bone = GetBoneName(entry.first);
             QubicleMatrix const* matrix = &entry.second;
 

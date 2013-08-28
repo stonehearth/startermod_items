@@ -439,9 +439,14 @@ PlayMusicEffect::PlayMusicEffect(RenderEntity& e, om::EffectPtr effect, const JS
 	entity_(e)
 {
    startTime_ = effect->GetStartTime();
-   std::string trackName = resources::ResourceManager2::GetInstance().GetResourceFileName(
-      node["track"].as_string(), "");
-
+   std::string trackName = node["track"].as_string();
+   try {
+      trackName = resources::ResourceManager2::GetInstance().GetResourceFileName(trackName, "");
+   } catch (resources::Exception& e) {
+      LOG(WARNING) << "could not load music effect: " << e.what();
+      return;
+   }
+   
    loop_ = PLAY_MUSIC_EFFECT_DEFAULT_LOOP;
 
    auto i = node.find("loop");
@@ -509,8 +514,14 @@ std::shared_ptr<SingMusicEffect> SingMusicEffect::GetMusicInstance(RenderEntity&
 void SingMusicEffect::PlayMusic(om::EffectPtr effect, const JSONNode& node)
 {   
    startTime_ = effect->GetStartTime();
-   std::string trackName = resources::ResourceManager2::GetInstance().GetResourceFileName(
-      node["track"].as_string(), "");
+
+   std::string trackName = node["track"].as_string();
+   try {
+      trackName = resources::ResourceManager2::GetInstance().GetResourceFileName(trackName, "");
+   } catch (resources::Exception& e) {
+      LOG(WARNING) << "could not load music: " << e.what();
+      return;
+   }
    
    loop_ = SING_MUSIC_EFFECT_DEFAULT_LOOP;
 

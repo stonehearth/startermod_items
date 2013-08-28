@@ -1,5 +1,8 @@
 {
-	"males" : [
-		"file(entities/male_1)"
-	]
+   "males" : [
+      "file(entities/male_1)"
+   ],
+   "females" : [
+      "file(entities/female_1)"
+   ]
 }

@@ -3,15 +3,14 @@
    "type": "entity", 
    "components": {
       "render_info" : {
-         "animation_table": "file(/rigs/female)"
+         "animation_table": "file(/rigs/female)",
+         "model_variant": "female"
       },
       "model_variants": [
          {
             "models": [
                {
                   "items": [
-                     "file(head_1.qb)", 
-                     "file(head_2.qb)", 
                      "file(head_3.qb)"
                   ], 
                   "type": "one_of"

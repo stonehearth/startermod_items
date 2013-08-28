@@ -106,7 +106,8 @@ int Application::Start(lua_State* L)
    std::thread client([&]() {
       try {
          Client::GetInstance().run();
-      } catch (...) {
+      } catch (std::exception &e) {
+         LOG(WARNING) << "unhandled exception: " << e.what();
          ASSERT(false);
       }
    });

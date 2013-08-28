@@ -20,7 +20,7 @@
          "type": "sound_effect",
          "duration": 1000,
          "start_delay": 200,
-         "track" : "file(../sounds/axe_tree.ogg)"
+         "track" : "file(../../sounds/axe_tree.ogg)"
       }
    }
 }
