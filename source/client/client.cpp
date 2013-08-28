@@ -79,7 +79,7 @@ void Client::run()
    HWND hwnd = renderer.GetWindowHandle();
    //defaultCursor_ = (HCURSOR)GetClassLong(hwnd_, GCL_HCURSOR);
 
-   renderer.SetMouseInputCallback(std::bind(&Client::OnMouseInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+   renderer.SetMouseInputCallback(std::bind(&Client::OnMouseInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
    renderer.SetKeyboardInputCallback(std::bind(&Client::OnKeyboardInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
    int width = renderer.GetWidth();
@@ -121,8 +121,8 @@ void Client::run()
       browser_->OnRawInput(re, handled, uninstall);
    };
 
-   auto onMouse = [=](MouseEvent const & m, bool& handled, bool& uninstall) {
-      browser_->OnMouseInput(m, handled, uninstall);
+   auto onMouse = [=](MouseEvent const & windowMouse, MouseEvent const & browserMouse, bool& handled, bool& uninstall) {
+      browser_->OnMouseInput(browserMouse, handled, uninstall);
    };
    renderer.SetRawInputCallback(onRawInput);
    renderer.SetMouseInputCallback(onMouse);
@@ -489,7 +489,7 @@ void Client::update_interpolation(int time)
    _client_interval_start = platform::get_current_time_in_ms();
 }
 
-void Client::OnMouseInput(const MouseEvent &mouse, bool &handled, bool &uninstall)
+void Client::OnMouseInput(const MouseEvent &windowMouse, const MouseEvent &browserMouse, bool &handled, bool &uninstall)
 {
    bool hovering_on_brick = false;
 
@@ -502,7 +502,7 @@ void Client::OnMouseInput(const MouseEvent &mouse, bool &handled, bool &uninstal
    while (!handled && i != mouseEventPromises_.end()) {
       auto promise = i->lock();
       if (promise && promise->IsActive()) {
-         promise->OnMouseEvent(mouse, handled);
+         promise->OnMouseEvent(windowMouse, handled);
          i++;
       } else {
          i = mouseEventPromises_.erase(i);
@@ -510,11 +510,11 @@ void Client::OnMouseInput(const MouseEvent &mouse, bool &handled, bool &uninstal
    }
 
    if (!handled) {
-      if (rootObject_ && mouse.up[0]) {
+      if (rootObject_ && windowMouse.up[0]) {
          LOG(WARNING) << "updating selection...";
-         UpdateSelection(mouse);
-      } else if (mouse.up[2]) {
-         CenterMap(mouse);
+         UpdateSelection(windowMouse);
+      } else if (windowMouse.up[2]) {
+         CenterMap(windowMouse);
       }
    }
 }

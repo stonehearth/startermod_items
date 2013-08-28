@@ -90,7 +90,7 @@ function Workshop:toggle_pause(player_object, data)
 end
 
 function Workshop:is_paused()
-   return self._data.paused
+   return self._data.is_paused
 end
 
 --[[
