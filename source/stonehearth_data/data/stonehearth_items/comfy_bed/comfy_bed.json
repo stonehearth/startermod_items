@@ -7,6 +7,12 @@
             "models": [
                "file(comfy_bed.qb)"
             ]
+         },
+         {
+            "variants": "iconic",
+            "models": [
+               "file(comfy_bed_icon.qb)"
+            ]
          }
       ], 
       "destination": {
