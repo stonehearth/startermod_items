@@ -21,7 +21,6 @@
 #include "om/entity.h"
 #include "om/stonehearth.h"
 #include "om/components/mob.h"
-#include "om/components/render_rig.h"
 #include "resources/res_manager.h"
 #include "resources/animation.h"
 #include "radiant_json.h"
@@ -254,8 +253,8 @@ void HideBoneEffect::Update(int now, int dt, bool& finished)
 
 RenderAttachItemEffect::RenderAttachItemEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
    entity_(e),
-   iconicOverride_(-1),
-   finished_(false)
+   finished_(false),
+   use_model_variant_override_(false)
 {
    std::string kind = node["item"].as_string();
    om::EntityPtr item;
@@ -279,7 +278,7 @@ RenderAttachItemEffect::RenderAttachItemEffect(RenderEntity& e, om::EffectPtr ef
 #endif
       }
    } else {
-      item = om::Stonehearth::CreateEntityLegacyDIEDIEDIE(Client::GetInstance().GetAuthoringStore(), kind);
+      item = authored_entity_ = om::Stonehearth::CreateEntityLegacyDIEDIEDIE(Client::GetInstance().GetAuthoringStore(), kind);
    }
 
    if (item) {
@@ -287,14 +286,15 @@ RenderAttachItemEffect::RenderAttachItemEffect(RenderEntity& e, om::EffectPtr ef
       bone_ = node["bone"].as_string();
 
       H3DNode parent = entity_.GetSkeleton().GetSceneNode(bone_);
-      item_ = Renderer::GetInstance().CreateRenderObject(parent, item);
-      item_->SetParent(0);
+      render_item_ = Renderer::GetInstance().CreateRenderObject(parent, item);
+      render_item_->SetParent(0);
 
       auto i = node.find("render_info");
       if (i != node.end()) {
-         auto j = i->find("iconic");
+         auto j = i->find("model_variant");
          if (j != i->end()) {
-            iconicOverride_ = j->as_bool() ? 1 : 0;
+            model_variant_override_ = j->as_string();
+            use_model_variant_override_ = true;
          }
       }
    }
@@ -302,8 +302,9 @@ RenderAttachItemEffect::RenderAttachItemEffect(RenderEntity& e, om::EffectPtr ef
 
 RenderAttachItemEffect::~RenderAttachItemEffect()
 {
-   if (iconicOverride_ != -1) {
-      item_->ClearDisplayIconicOveride();
+   if (use_model_variant_override_) {
+      use_model_variant_override_ = false;
+      render_item_->SetModelVariantOverride(false, "");
    }
 }
 
@@ -317,9 +318,9 @@ void RenderAttachItemEffect::Update(int now, int dt, bool& finished)
    if (now >= startTime_) {
       finished = true;
       H3DNode parent = entity_.GetSkeleton().GetSceneNode(bone_);
-      item_->SetParent(parent);
-      if (iconicOverride_ != -1) {
-         item_->SetDisplayIconicOveride(iconicOverride_ != 0);
+      render_item_->SetParent(parent);
+      if (use_model_variant_override_) {
+         render_item_->SetModelVariantOverride(true, model_variant_override_);
       }
       finished_ = true;
    }
@@ -375,9 +376,9 @@ FloatingCombatTextEffect::FloatingCombatTextEffect(RenderEntity& e, om::EffectPt
    }
    om::EntityPtr entity = Client::GetInstance().GetStore().FetchObject<om::Entity>(e.GetObjectId());
    if (entity) {
-      om::RenderRigPtr rig = entity->GetComponent<om::RenderRig>();
-      if (rig) {
-         std::string animationTableName = rig->GetAnimationTable();
+      om::RenderInfoPtr render_info = entity->GetComponent<om::RenderInfo>();
+      if (render_info) {
+         std::string animationTableName = render_info->GetAnimationTable();
 
          JSONNode const& json = resources::ResourceManager2::GetInstance().LookupJson(animationTableName);
          height_ = json::get<float>(json::get<JSONNode>(json, "collision_shape"), "height", 4.0f);

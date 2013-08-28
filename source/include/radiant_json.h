@@ -84,6 +84,15 @@ namespace radiant {
             return node_.find(name) != node_.end();
          }
 
+         bool fetch(const char* name, std::string& result) const {
+            auto i = node_.find(name);
+            if (i != node_.end()) {
+               result = i->as_string();
+               return true;
+            }
+            return false;
+         }
+
          template <typename T> T get(char const* name, T const& def) const {
             return ::radiant::json::get(GetNode(), name, def);
          }
@@ -132,6 +141,9 @@ namespace radiant {
 
       template <> static JSONNode cast_(JSONNode const& node) {
          return node;
+      }
+      template <> static ConstJsonObject cast_(JSONNode const& node) {
+         return ConstJsonObject(node);
       }
       template <> static float cast_(JSONNode const& node) {
          return static_cast<float>(node.as_float());

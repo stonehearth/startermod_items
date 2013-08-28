@@ -2,9 +2,10 @@
    "type" : "effect",
    "tracks": {
       "animation": {
-      "type": "animation_effect",
-      "start_time": 0,
-      "animation": "file(../animations/run_panic.json)",
-      "loop": true
+         "type": "animation_effect",
+         "start_time": 0,
+         "animation": "file(../animations/run_panic.json)",
+         "loop": true
+      }
    }
 }

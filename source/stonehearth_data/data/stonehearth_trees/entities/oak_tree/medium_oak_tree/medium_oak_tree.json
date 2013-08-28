@@ -1,28 +1,29 @@
 {
-   "type": "entity",
-   "extends": "file(../../tree.json)",
-   "components" : {
-      "radiant:resource_node" : {
-         "resource": "file(../oak_log)",
+   "extends": "file(../../tree.json)", 
+   "type": "entity", 
+   "components": {
+      "model_variants": [
+         {
+            "models": [
+               {
+                  "items": [
+                     "file(medium_oak_tree.qb)", 
+                     "file(medium_oak_tree_2.qb)", 
+                     "file(medium_oak_tree_3.qb)"
+                  ], 
+                  "type": "one_of"
+               }
+            ], 
+            "scale": 1
+         }
+      ], 
+      "unit_info": {
+         "name": "Medium Oak Tree", 
+         "description": "Sturdy, in the prime of life."
+      }, 
+      "radiant:resource_node": {
+         "resource": "file(../oak_log)", 
          "durability": 6
-      },
-      "unit_info" : {
-         "name" :  "Medium Oak Tree",
-         "description" : "Sturdy, in the prime of life."
-      },
-      "render_rig": {
-         "scale": 1,
-         "models": [
-            {
-               "type": "one_of",
-               "items": [
-                  "file(medium_oak_tree.qb)",
-                  "file(medium_oak_tree_2.qb)",
-                  "file(medium_oak_tree_3.qb)"
-               ]
-            }
-         ]
       }
    }
 }
-

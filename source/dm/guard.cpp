@@ -26,7 +26,7 @@ Guard::Guard(std::function<void()> untrack) :
 
 Guard::~Guard()
 {
-   LOG(WARNING) << "destroying guard " << id_;
+   //LOG(WARNING) << "destroying guard " << id_;
    UntrackNodes();
 }
 

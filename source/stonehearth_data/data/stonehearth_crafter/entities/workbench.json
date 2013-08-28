@@ -6,8 +6,6 @@
             "file(/commands/show_craft_ui.json)"
          ]
       },
-      "render_rig": {
-      },
       "stonehearth_crafter:workshop" : {
       }
    }

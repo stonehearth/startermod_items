@@ -1,20 +1,21 @@
 {
-   "type": "entity",
-   "extends" : "/stonehearth_items/entities/item/item_properties.json",
-   "components" : {
-      "item" : {
-        "material": "cloth",
-        "stacks": 10
-      },
-      "unit_info" : {
-         "name" :  "Bolt of Cloth",
-         "description" : "Shimmery."
-      },
-      "render_rig": {
-         "models": [
-            "file(cloth_bolt.qb)",
-         ]
+   "extends": "/stonehearth_items/entities/item/item_properties.json", 
+   "type": "entity", 
+   "components": {
+      "item": {
+         "material": "cloth", 
+         "stacks": 10
+      }, 
+      "model_variants": [
+         {
+            "models": [
+               "file(cloth_bolt.qb)"
+            ]
+         }
+      ], 
+      "unit_info": {
+         "name": "Bolt of Cloth", 
+         "description": "Shimmery."
       }
    }
 }
-

@@ -16,6 +16,12 @@ function carpenter_class.promote(entity, promotion_data)
        crafter_component:set_workshop(workshop_component)
        workshop_component:set_crafter(entity)
     end
+
+   -- xxx: this is strictly temporary.  the code will be factored into stonehearth_classes soon.
+   local outfit = radiant.entities.create_entity('/stonehearth_carpenter_class/entities/carpenter_outfit')
+   local render_info = entity:add_component('render_info')
+   render_info:attach_entity(outfit)
+   -- end xxx:    
 end
 
 return carpenter_class

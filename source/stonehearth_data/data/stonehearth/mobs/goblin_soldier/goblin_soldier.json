@@ -1,23 +1,25 @@
 {
-   "type" : "entity",
-   "extends" : "file(/prototypes/goblin)",
-   "components" : {
-	   "unit_info" : {
-		  "name": "Goblin Soldier",
-		  "description": "Gobble, gobble, gobble..."
-	   },
-	   "render_rig": {
-		  "models": [
-			 {
-				"type": "one_of",
-				"items": [
-				   "file(goblin_outfit_breastplate.qb)",
-				   "file(goblin_outfit_leather_armor.qb)",
-				   "file(goblin_outfit_standard_bearer.qb)",
-				   "file(goblin_outfit_standard_bearer.qb)"
-				]
-			 }
-		  ]
-	   }
-	}
+   "extends": "file(/prototypes/goblin)", 
+   "type": "entity", 
+   "components": {
+      "model_variants": [
+         {
+            "models": [
+               {
+                  "items": [
+                     "file(goblin_outfit_breastplate.qb)", 
+                     "file(goblin_outfit_leather_armor.qb)", 
+                     "file(goblin_outfit_standard_bearer.qb)", 
+                     "file(goblin_outfit_standard_bearer.qb)"
+                  ], 
+                  "type": "one_of"
+               }
+            ]
+         }
+      ], 
+      "unit_info": {
+         "name": "Goblin Soldier", 
+         "description": "Gobble, gobble, gobble..."
+      }
+   }
 }

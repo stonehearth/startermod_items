@@ -1,18 +1,20 @@
 {
-   "type" : "entity",
-   "components" : {
-	   "item" : {
-		  "material": "wood",
-		  "stacks": 20
-	   },
-	   "unit_info" : {
-		  "name" :  "Jupiner Log",
-		  "description" : "Looks a lot like an oak log..."
-	   },
-	   "render_rig": {
-		  "models": [
-			 "file(jupiner_log.qb)"
-		  ]
-	   }
-	}
+   "type": "entity", 
+   "components": {
+      "item": {
+         "material": "wood", 
+         "stacks": 20
+      }, 
+      "model_variants": [
+         {
+            "models": [
+               "file(jupiner_log.qb)"
+            ]
+         }
+      ], 
+      "unit_info": {
+         "name": "Jupiner Log", 
+         "description": "Looks a lot like an oak log..."
+      }
+   }
 }

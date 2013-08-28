@@ -7,11 +7,24 @@ using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+std::string RenderInfo_GetModelVariant(om::RenderInfo const& ri)
+{
+   return *ri.GetModelVariant();
+}
+
+void RenderInfo_SetModelVariant(om::RenderInfo& ri, std::string const& mode)
+{
+   ri.GetModelVariant() = mode;
+}
+
 scope LuaRenderInfoComponent::RegisterLuaTypes(lua_State* L)
 {
    return
       lua::RegisterDerivedObject<RenderInfo, Component>()
-         .def("set_display_iconic",       &om::RenderInfo::SetDisplayIconic)
-         .def("get_display_iconic",       &om::RenderInfo::GetDisplayIconic)
+         .def("set_model_variant",       &RenderInfo_SetModelVariant)
+         .def("set_model_variant",       &RenderInfo_GetModelVariant)
+         .def("attach_entity",           &RenderInfo::AttachEntity)
+         .def("remove_entity",           &RenderInfo::RemoveEntity)
+         .def("get_animation_table_name",&RenderInfo::GetAnimationTable)
       ;
 }

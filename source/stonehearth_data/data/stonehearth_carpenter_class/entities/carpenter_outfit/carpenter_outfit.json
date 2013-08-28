@@ -1,0 +1,20 @@
+{
+   "type": "entity",
+   "extends" : "/stonehearth_items/entities/item/item_properties.json",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Carpenter Outfit",
+         "description" : "Uniform for all carpenters"
+      },
+      "render_info" : {
+      },
+      "model_variants": [
+         {
+            "layer": "clothing",
+            "models": [
+               "file(carpenter_outfit.qb)"
+            ]
+         }
+      ]
+   }
+}

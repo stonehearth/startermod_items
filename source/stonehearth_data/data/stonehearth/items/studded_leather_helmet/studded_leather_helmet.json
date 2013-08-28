@@ -1,20 +1,21 @@
 {
-   "type" : "entity",
-   "components" : {
-	   "item" : {
-		  "material": "tool",
-		  "stacks": 1
-	   },
-	   "armor_info" : {
-	   },
-	   "unit_info" : {
-		  "name" :  "Studded Leather Helmet",
-		  "description" : "Protects your head"
-	   },
-	   "render_rig": {
-		  "models": [
-			 "file(studded_leather_helmet.qb)"
-		  ]
-	   }
-	}
+   "type": "entity", 
+   "components": {
+      "item": {
+         "material": "tool", 
+         "stacks": 1
+      }, 
+      "model_variants": [
+         {
+            "models": [
+               "file(studded_leather_helmet.qb)"
+            ]
+         }
+      ], 
+      "unit_info": {
+         "name": "Studded Leather Helmet", 
+         "description": "Protects your head"
+      }, 
+      "armor_info": {}
+   }
 }

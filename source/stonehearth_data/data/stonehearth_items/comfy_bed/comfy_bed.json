@@ -1,23 +1,34 @@
 {
-   "type": "entity",
-   "extends" : "/stonehearth_items/entities/item/item_properties.json",
-   "components" : {
-      "unit_info" : {
-         "name" :  "Comfy Bed",
-         "description" : "I dreamed... of flying sheep."
-      },
-      "stonehearth_sleep_system:bed" : {
-      },
-      "render_rig": {
-         "models": [
-            "file(comfy_bed.qb)"
+   "extends": "/stonehearth_items/entities/item/item_properties.json", 
+   "type": "entity", 
+   "components": {
+      "model_variants": [
+         {
+            "models": [
+               "file(comfy_bed.qb)"
+            ]
+         }
+      ], 
+      "destination": {
+         "region": [
+            [
+               [
+                  -2, 
+                  0, 
+                  -1
+               ], 
+               [
+                  2, 
+                  2, 
+                  1
+               ]
+            ]
          ]
-      },
-      "destination" : {
-         "region" : [
-            [[-2, 0, -1], [2, 2, 1]]
-         ]
-      }
+      }, 
+      "unit_info": {
+         "name": "Comfy Bed", 
+         "description": "I dreamed... of flying sheep."
+      }, 
+      "stonehearth_sleep_system:bed": {}
    }
 }
-

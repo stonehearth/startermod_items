@@ -1,28 +1,29 @@
 {
-   "type" : "entity",
-   "extends" : "file(../../tree.json)",
-   "components" : {
-      "radiant:resource_node" : {
-         "resource": "file(../oak_log)",
+   "extends": "file(../../tree.json)", 
+   "type": "entity", 
+   "components": {
+      "model_variants": [
+         {
+            "models": [
+               {
+                  "items": [
+                     "file(large_oak_tree.qb)", 
+                     "file(oak_tree_large_2.qb)", 
+                     "file(oak_tree_large_3.qb)"
+                  ], 
+                  "type": "one_of"
+               }
+            ], 
+            "scale": 1
+         }
+      ], 
+      "unit_info": {
+         "name": "Large Oak Tree", 
+         "description": "100's of years old.  Too bad..."
+      }, 
+      "radiant:resource_node": {
+         "resource": "file(../oak_log)", 
          "durability": 6
-      },
-      "unit_info" : {
-         "name" :  "Large Oak Tree",
-         "description" : "100's of years old.  Too bad..."
-      },
-      "render_rig": {
-         "scale": 1,
-         "models": [
-            {
-               "type": "one_of",
-               "items": [
-                  "file(large_oak_tree.qb)",
-                  "file(oak_tree_large_2.qb)",
-                  "file(oak_tree_large_3.qb)"
-               ]
-            }
-         ]
       }
    }
 }
-

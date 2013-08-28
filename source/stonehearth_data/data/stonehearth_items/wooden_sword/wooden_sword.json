@@ -1,16 +1,17 @@
 {
-   "type": "entity",
-   "extends" : "/stonehearth_items/entities/item/item_properties.json",
-   "components" : {
-      "unit_info" : {
-         "name" :  "Wooden Sword",
-         "description" : "Notched from many smites."
-      },
-      "render_rig": {
-         "models": [
-            "file(wooden_sword.qb)"
-         ]
+   "extends": "/stonehearth_items/entities/item/item_properties.json", 
+   "type": "entity", 
+   "components": {
+      "model_variants": [
+         {
+            "models": [
+               "file(wooden_sword.qb)"
+            ]
+         }
+      ], 
+      "unit_info": {
+         "name": "Wooden Sword", 
+         "description": "Notched from many smites."
       }
    }
 }
-

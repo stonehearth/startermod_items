@@ -1,17 +1,21 @@
 {
-   "type" : "entity",
-   "components" : {
-	   "radiant:ai" : {
-		  "intentions" : [
-			 "radiant.intentions.mammoth_ai"
-		  ]
-	   },
-	   "render_rig": {
-		  "animation_table" : "file(/rigs/mammoth)",
-   		  "scale": 2,
-		  "models": [
-			 "file(mammoth.qb)"
-		  ]
-	   }
-	}
+   "type": "entity", 
+   "components": {
+      "radiant:ai": {
+         "intentions": [
+            "radiant.intentions.mammoth_ai"
+         ]
+      },
+      "render_info" : {
+         "animation_table": "file(/rigs/mammoth)", 
+         "scale": 2
+      },
+      "model_variants": [
+         {
+            "models": [
+               "file(mammoth.qb)"
+            ]
+         }
+      ]
+   }
 }

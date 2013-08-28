@@ -1,23 +1,24 @@
 {
-   "type" : "entity",
-   "components" : {
-	   "item" : {
-		  "material": "tool",
-		  "stacks": 1
-	   },
-	   "armor_info" : {
-	   },
-	   "unit_info" : {
-		  "name" :  "Cracked Wooden Buckler",
-		  "description" : "It's not much, but it's something",
-		  "annecdote" : "Signed by Elvis...",
-		  "portrait" : "...",
-		  "icon" : "..."
-	   },
-	   "render_rig": {
-		  "models": [
-			 "file(cracked_wooden_buckler.qb)"
-		  ]
-	   }
-	}
+   "type": "entity", 
+   "components": {
+      "item": {
+         "material": "tool", 
+         "stacks": 1
+      }, 
+      "model_variants": [
+         {
+            "models": [
+               "file(cracked_wooden_buckler.qb)"
+            ]
+         }
+      ], 
+      "unit_info": {
+         "portrait": "...", 
+         "annecdote": "Signed by Elvis...", 
+         "icon": "...", 
+         "name": "Cracked Wooden Buckler", 
+         "description": "It's not much, but it's something"
+      }, 
+      "armor_info": {}
+   }
 }

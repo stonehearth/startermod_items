@@ -6,7 +6,6 @@
 #include "render_entity.h"
 #include "render_paperdoll.h"
 #include "pipeline.h"
-#include "om/components/render_rig.h"
 #include "Horde3DUtils.h"
 #include "resources/res_manager.h"
 #include "qubicle_file.h"

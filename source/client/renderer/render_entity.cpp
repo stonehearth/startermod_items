@@ -8,8 +8,8 @@
 #include "render_mob.h"
 #include "render_terrain.h"
 #include "render_destination.h"
-#include "render_rig.h"
 #include "render_effect_list.h"
+#include "render_render_info.h"
 #include "render_render_region.h"
 #include "render_carry_block.h"
 #include "render_paperdoll.h"
@@ -18,7 +18,6 @@
 #include "om/entity.h"
 #include "om/components/mob.h"
 #include "om/components/entity_container.h"
-#include "om/components/render_rig.h"
 #include "om/components/terrain.h"
 #include "om/components/lua_components.h"
 #include "om/components/effect_list.h"
@@ -35,8 +34,7 @@ int RenderEntity::totalObjectCount_ = 0;
 
 RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
    entity_(entity),
-   initialized_(false),
-   displayIconic_(-1)
+   initialized_(false)
 {
    ASSERT(parent);
 
@@ -65,7 +63,6 @@ void RenderEntity::FinishConstruction()
 {
    UpdateComponents();
    initialized_ = true;
-   CreateRenderRigs();
 }
 
 RenderEntity::~RenderEntity()
@@ -117,44 +114,6 @@ void RenderEntity::UpdateComponents()
    }
 }
 
-void RenderEntity::CreateRenderRigs()
-{
-   if (initialized_) {
-      auto entity = entity_.lock();
-      if (entity) {
-         auto renderRig = entity->GetComponent<om::RenderRig>();
-         auto renderRigIconic = entity->GetComponent<om::RenderRigIconic>();
-         auto renderInfo = entity->GetComponent<om::RenderInfo>();
-         bool renderIconic;
-         
-         // This is annoyingly weird.  We want to be able to change the iconic vs. non-iconic
-         // representation of an item at an arbitrary interpolation frame to support seamless
-         // animation.  This requires overriding the value of the iconic flag in the render
-         // info until we can get an update from the server.
-         if (displayIconic_ != -1) {
-            renderIconic = displayIconic_ != 0;
-         } else {
-            renderIconic = renderInfo ? renderInfo->GetDisplayIconic() : false;
-         }
-
-         if (renderIconic && renderRigIconic) {
-            components_[om::RenderRigObjectType] = nullptr;
-            if (!components_[om::RenderRigIconicObjectType]) {
-               components_[om::RenderRigIconicObjectType] = std::make_shared<RenderRig>(*this, renderRigIconic);
-            }
-         } else if (renderRig) {
-            if (!components_[om::RenderRigObjectType]) {
-               components_[om::RenderRigObjectType] = std::make_shared<RenderRig>(*this, renderRig);
-            }
-            components_[om::RenderRigIconicObjectType] = nullptr;
-         } else {
-            components_[om::RenderRigObjectType] = nullptr;
-            components_[om::RenderRigIconicObjectType] = nullptr;
-         }
-      }
-   }
-}
-
 void RenderEntity::AddComponent(dm::ObjectType key, std::shared_ptr<dm::Object> value)
 {
    ASSERT(value);
@@ -163,14 +122,6 @@ void RenderEntity::AddComponent(dm::ObjectType key, std::shared_ptr<dm::Object> 
    if (entity) {
       switch(key) {
          ASSERT(key == value->GetObjectType());
-         case om::RenderInfoObjectType: {
-            om::RenderInfoPtr renderInfo = std::static_pointer_cast<om::RenderInfo>(value);
-            tracer_ += renderInfo->TraceRecordField("iconic", "render render_info", [=]() {
-               CreateRenderRigs();
-            });
-            break;
-         };
-
          case om::TerrainObjectType: {
             om::TerrainPtr terrain = std::static_pointer_cast<om::Terrain>(value);
             components_[key] = std::make_shared<RenderTerrain>(*this, terrain);
@@ -181,9 +132,9 @@ void RenderEntity::AddComponent(dm::ObjectType key, std::shared_ptr<dm::Object> 
             components_[key] = std::make_shared<RenderMob>(*this, mob);
             break;
          }
-         case om::RenderRigObjectType:
-         case om::RenderRigIconicObjectType: {
-            CreateRenderRigs();
+         case om::RenderInfoObjectType: {
+            om::RenderInfoPtr ri = std::static_pointer_cast<om::RenderInfo>(value);
+            components_[key] = std::make_shared<RenderRenderInfo>(*this, ri);
             break;
          }
          case om::EntityContainerObjectType: {
@@ -315,16 +266,10 @@ bool RenderEntity::ShowDebugRegions() const
    return true;
 }
 
-
-void RenderEntity::SetDisplayIconicOveride(bool value)
+void RenderEntity::SetModelVariantOverride(bool enabled, std::string const& variant)
 {
-   displayIconic_ = value ? 1 : 0;
-   CreateRenderRigs();
+   std::shared_ptr<RenderRenderInfo> ri = std::static_pointer_cast<RenderRenderInfo>(components_[om::RenderInfoObjectType]);
+   if (ri) {
+      ri->SetModelVariantOverride(enabled, variant);
+   }
 }
-
-void RenderEntity::ClearDisplayIconicOveride()
-{
-   displayIconic_= -1;
-   CreateRenderRigs();
-}
-

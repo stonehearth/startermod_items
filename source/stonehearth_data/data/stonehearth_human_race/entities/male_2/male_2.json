@@ -1,18 +1,20 @@
 {
-   "type" : "entity",
-   "extends" : "file(../base_human.json)",
-   "components" : {
-	   "render_rig": {
-		  "models": [
-			 {
-				"type": "one_of",
-				"items": [
-				   "file(head_black_1.qb)",
-				   "file(head_black_2.qb)"
-				]
-			 },            
-			 "file(hands_black.qb)"
-		  ]
-	   }
-	}
+   "extends": "file(../base_human.json)", 
+   "type": "entity", 
+   "components": {
+      "model_variants": [
+         {
+            "models": [
+               {
+                  "items": [
+                     "file(head_black_1.qb)", 
+                     "file(head_black_2.qb)"
+                  ], 
+                  "type": "one_of"
+               }, 
+               "file(hands_black.qb)"
+            ]
+         }
+      ]
+   }
 }

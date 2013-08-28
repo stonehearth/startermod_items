@@ -1,23 +1,29 @@
 {
-   "type" : "entity",
-   "components" : {
-	   "item" : {
-		  "material": "tool",
-		  "stacks": 1
-	   },
-	   "unit_info" : {
-		  "name" :  "Iron Sword",
-		  "description" : "Used to thwack foes"
-	   },
-	   "weapon_info" : {
-		  "range":       4.2,
-		  "damage":      "1d6+1",
-		  "tags":        ["one_handed", "edged", "sword"]
-	   },
-	   "render_rig": {
-		  "models": [
-			 "file(iron_sword.qb)"
-		  ]
-	   }
-	}
+   "type": "entity", 
+   "components": {
+      "weapon_info": {
+         "range": 4.2, 
+         "damage": "1d6+1", 
+         "tags": [
+            "one_handed", 
+            "edged", 
+            "sword"
+         ]
+      }, 
+      "item": {
+         "material": "tool", 
+         "stacks": 1
+      }, 
+      "model_variants": [
+         {
+            "models": [
+               "file(iron_sword.qb)"
+            ]
+         }
+      ], 
+      "unit_info": {
+         "name": "Iron Sword", 
+         "description": "Used to thwack foes"
+      }
+   }
 }

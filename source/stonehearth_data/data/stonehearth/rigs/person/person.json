@@ -1,7 +1,6 @@
 {
    "type" : "rig",
    "skeleton" : {
-		"type": "skeleton",
 		"root": [15.5,15.5,0],
 		"bodyPosition": [15.5,15,7.5],
 		"pelvis": [15.5,15,7.5],

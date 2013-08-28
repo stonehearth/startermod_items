@@ -28,7 +28,7 @@
          "item": "{{talisman}}",
          "bone": "mainHand",
          "render_info": {
-            "iconic": false
+            "model_variant": "equipped"
          }
       }
    }

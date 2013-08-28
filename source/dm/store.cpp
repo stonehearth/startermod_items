@@ -345,7 +345,7 @@ void Store::FireTraces()
                }
             }
          } else {
-            LOG(WARNING) << "ignoring change cb on invalid object " << id;
+            // LOG(WARNING) << "ignoring change cb on invalid object " << id;
          }
       }
 

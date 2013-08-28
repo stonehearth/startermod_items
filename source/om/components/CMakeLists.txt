@@ -25,7 +25,7 @@ add_library(om_components STATIC
             region_collision_shape.cpp
             render_info.cpp
             render_region.cpp
-            render_rig.cpp
+            model_variants.cpp
             sensor_list.cpp
             sphere_collision_shape.cpp
             target_tables.cpp

@@ -1,16 +1,20 @@
 {
-   "type" : "entity",
-   "components" : {
-	   "radiant:ai" : {
-		  "intentions" : [
-			 "radiant.intentions.rabbit_ai"
-		  ]
-	   },
-	   "render_rig": {
-	      "animation_table" : "file(/rigs/rabbit)",
-		  "models": [
-			 "file(rabbit.qb)"
-		  ]
-	   }
-	}
+   "type": "entity", 
+   "components": {
+      "radiant:ai": {
+         "intentions": [
+            "radiant.intentions.rabbit_ai"
+         ]
+      }, 
+      "render_info" : {
+         "animation_table": "file(/rigs/rabbit)"
+      },
+      "model_variants": [
+         {
+            "models": [
+               "file(rabbit.qb)"
+            ]
+         }
+      ]
+   }
 }

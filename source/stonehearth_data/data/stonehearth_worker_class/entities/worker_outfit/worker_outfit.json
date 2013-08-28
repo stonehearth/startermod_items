@@ -1,0 +1,20 @@
+{
+   "type": "entity",
+   "extends" : "/stonehearth_items/entities/item/item_properties.json",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Worker Outfit",
+         "description" : "Uniform for all workers"
+      },
+      "render_info" : {
+      },
+      "model_variants": [
+         {
+            "layer": "clothing",
+            "models": [
+               "file(worker_outfit.qb)"
+            ]
+         }
+      ]
+   }
+}

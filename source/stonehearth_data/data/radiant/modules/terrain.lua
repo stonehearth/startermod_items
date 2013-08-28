@@ -10,7 +10,7 @@ end
 
 function Terrain.place_entity(entity, location)
    radiant.entities.add_child(radiant._root_entity, entity, location)
-   entity:add_component('render_info'):set_display_iconic(true);
+   entity:add_component('render_info'):set_model_variant('iconic');
 
    if type(location) == "table" then
       location = Point3(location.x, location.y, location.z)

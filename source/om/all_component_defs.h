@@ -5,8 +5,7 @@
       OM_OBJECT(Clock,                 clock) \
       OM_OBJECT(EntityContainer,       entity_container) \
       OM_OBJECT(Mob,                   mob) \
-      OM_OBJECT(RenderRig,             render_rig) \
-      OM_OBJECT(RenderRigIconic,       render_rig_iconic) \
+      OM_OBJECT(ModelVariants,         model_variants) \
       OM_OBJECT(SphereCollisionShape,  sphere_collision_shape) \
       OM_OBJECT(RegionCollisionShape,  region_collision_shape) \
       OM_OBJECT(Terrain,               terrain) \

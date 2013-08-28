@@ -9,10 +9,24 @@ local class_info_url = '/stonehearth_worker_class/class_info/'
 
 function stonehearth_worker_class.promote(entity)
    radiant.entities.inject_into_entity(entity, class_info_url)
+
+   -- xxx: this is strictly temporary.  the code will be factored into stonehearth_classes soon.
+   local outfit = radiant.entities.create_entity('/stonehearth_worker_class/entities/worker_outfit')
+   local render_info = entity:add_component('render_info')
+   render_info:attach_entity(outfit)
+   -- end xxx:
 end
 
 function stonehearth_worker_class.demote(entity)
    radiant.entities.unregister_from_entity(entity, class_info_url)
+
+   -- xxx: this is strictly temporary.  the code will be factored into stonehearth_classes soon.
+   local render_info = entity:add_component('render_info')
+   local outfit = render_info:remove_entity('/stonehearth_worker_class/entities/worker_outfit')
+   if outfit then
+      radiant.entities.destroy_entity(outfit)
+   end
+   -- end xxx:
 
    --drop talisman back into the world (can be a fresh copy)
    --TODO: move the axe entity elsewhere

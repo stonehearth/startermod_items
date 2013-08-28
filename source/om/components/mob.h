@@ -68,8 +68,8 @@ private:
 
 public:
    dm::Boxed<MobRef>             parent_;
-   dm::Boxed<csg::Transform>  transform_;
-   dm::Boxed<csg::Cube3f>       aabb_;
+   dm::Boxed<csg::Transform>     transform_;
+   dm::Boxed<csg::Cube3f>        aabb_;
    dm::Boxed<int>                flags_;
    dm::Boxed<bool>               moving_;
 };

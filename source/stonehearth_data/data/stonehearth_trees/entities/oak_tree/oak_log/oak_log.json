@@ -1,19 +1,21 @@
 {
-   "type" : "entity",
-   "extends" : "/stonehearth_items/entities/item/item_properties.json",
-   "components" : {
-	   "item" : {
-		  "material": "wood",
-		  "stacks": 20
-	   },
-	   "unit_info" : {
-		  "name" :  "Oak Log",
-		  "description" : "That's right.  It's a log."
-	   },
-	   "render_rig": {
-		  "models": [
-			 "file(oak_log.qb)"
-		  ]
-	   }
-	}
+   "extends": "/stonehearth_items/entities/item/item_properties.json", 
+   "type": "entity", 
+   "components": {
+      "item": {
+         "material": "wood", 
+         "stacks": 20
+      }, 
+      "model_variants": [
+         {
+            "models": [
+               "file(oak_log.qb)"
+            ]
+         }
+      ], 
+      "unit_info": {
+         "name": "Oak Log", 
+         "description": "That's right.  It's a log."
+      }
+   }
 }

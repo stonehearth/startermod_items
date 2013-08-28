@@ -103,7 +103,6 @@ function stonehearth_calendar._on_event_loop(_, now)
    data.date.date = stonehearth_calendar.format_date()
 
    data._lastNow = now
-   radiant.log.warning(stonehearth_calendar.format_time())
 end
 
 function stonehearth_calendar.format_time()

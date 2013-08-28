@@ -39,8 +39,7 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
 
       Skeleton& GetSkeleton() { return skeleton_; }
 
-      void SetDisplayIconicOveride(bool value);
-      void ClearDisplayIconicOveride();
+      void SetModelVariantOverride(bool enabled, std::string const& variant);
 
    private:
       void LoadAspects(om::EntityPtr obj);
@@ -57,7 +56,6 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       void RemoveComponent(dm::ObjectType key);
       void OnSelected(om::Selection& sel, const csg::Ray3& ray,
                       const csg::Point3f& intersection, const csg::Point3f& normal);
-      void CreateRenderRigs();
 
    protected:
       static int                          totalObjectCount_;
@@ -72,7 +70,6 @@ protected:
       ComponentMap      components_;
       LuaComponentMap   lua_components_;
       bool              initialized_;
-      int               displayIconic_;
 };
 
 typedef std::shared_ptr<RenderEntity>  RenderEntityPtr;

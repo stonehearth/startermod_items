@@ -67,7 +67,7 @@ function components.place_on_terrain(entity, arg1, arg2, arg3)
    radiant.check.is_a(location, Point3)
    
    singleton.add_child_to_entity(self._root_entity, entity, location)
-   components.add_component(entity, 'render_info'):set_display_iconic(true);
+   --components.add_component(entity, 'render_info'):set_display_iconic(true);
    singleton.get_terrain():place_entity(entity, location)
 end
 
@@ -182,34 +182,6 @@ function components._add_animation(entity, obj)
       end
       ani_mgr:get_animation(entity, obj)
    end
-end
-
-function components.add_rig_to_entity(entity, rig)
-   radiant.check.is_entity(entity)
-
-   if type(rig) ~= 'string' then
-      radiant.check.is_a(rig, RigResource);
-      rig = rig:get_resource_identifier()
-   end
-   radiant.check.is_string(rig);
-   log:debug('adding rig "%s" to entity %d.', rig, entity:get_id())
-
-   local rig_component = components.add_component(entity, 'render_rig')
-   rig_component:add_rig(rig)
-end
-
-function components.remove_rig_from_entity(entity, rig)
-   radiant.check.is_entity(entity)
-
-   if type(rig) ~= 'string' then
-      radiant.check.is_a(rig, RigResource);
-      rig = rig:get_resource_identifier()
-   end
-   radiant.check.is_string(rig);
-   log:debug('removing rig "%s" from entity %d.', rig, entity:get_id())
-
-   local rig_component = components.add_component(entity, 'render_rig')
-   rig_component:remove_rig(rig)
 end
 
 function components.set_display_name(entity, name)
@@ -572,19 +544,6 @@ function components.get_movement_info(entity, travel_mode)
       effect_name = travel_mode,
       speed = speed
    }
-end
-
-function components.wear(entity, clothing)
-   radiant.check.is_entity(entity)
-   radiant.check.is_entity(clothing)
-   
-   local clothing_rigs = components.get_component(clothing, 'render_rig')   
-   if clothing_rigs then
-      local entity_rigs = components.add_component(entity, 'render_rig')
-      for article in clothing_rigs:get_rigs():items() do -- xxx :each()
-         entity_rigs:add_rig(article)         
-      end
-   end
 end
 
 function components.is_hostile(faction_a, faction_b)   

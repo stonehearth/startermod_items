@@ -1,14 +1,16 @@
 {
-   "type" : "entity",
-   "components" : {
-	   "unit_info" : {
-		  "name": "Axe",
-		  "description": "..."
-	   },
-	   "render_rig": {
-		  "models": [
-			 "file(worker_axe.qb)"
-		  ]
-	   }
-	}
+   "type": "entity", 
+   "components": {
+      "model_variants": [
+         {
+            "models": [
+               "file(worker_axe.qb)"
+            ]
+         }
+      ], 
+      "unit_info": {
+         "name": "Axe", 
+         "description": "..."
+      }
+   }
 }

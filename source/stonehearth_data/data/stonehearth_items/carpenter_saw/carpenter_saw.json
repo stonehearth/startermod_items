@@ -6,11 +6,19 @@
          "name" :  "The Saw",
          "description" : "The foundation of civilization"
       },
-      "render_rig": {
-         "models": [
-            "file(carpenter_saw.qb)",
-         ]
-      },
+      "model_variants": [
+         {
+            "models": [
+               "file(carpenter_saw.qb)"
+            ]
+         },
+         {
+            "variants": "iconic",
+            "models": [
+               "file(carpenter_saw_icon.qb)"
+            ]
+         }            
+      ],
       "radiant:commands" : {
          "commands" : [
             "file(/commands/promote_citizen.json)"

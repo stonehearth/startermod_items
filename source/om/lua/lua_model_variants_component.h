@@ -1,12 +1,12 @@
-#ifndef _RADIANT_OM_LUA_RENDER_RIG_ICONIC_COMPONENT_H
-#define _RADIANT_OM_LUA_RENDER_RIG_ICONIC_COMPONENT_H
+#ifndef _RADIANT_OM_LUA_MODEL_VARIANTS_COMPONENT_H
+#define _RADIANT_OM_LUA_MODEL_VARIANTS_COMPONENT_H
 
 #include "radiant_luabind.h"
 #include "om/namespace.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
 
-struct LuaRenderRigIconicComponent {
+struct LuaModelVariantsComponent {
    static luabind::scope RegisterLuaTypes(lua_State* L);
 };
 

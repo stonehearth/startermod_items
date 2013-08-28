@@ -247,6 +247,14 @@ function entities.get_entity(id)
    return native:get_entity(id)
 end
 
+function entities.get_animation_table_name(entity)
+   local name
+   local render_info = entity:get_component('render_info')
+   if render_info then
+      name = render_info:get_animation_table_name()
+   end
+   return name
+end
 
 --[[
 local dkjson = require 'lib.dkjson'
@@ -328,7 +336,7 @@ function entities.place_on_terrain(entity, arg1, arg2, arg3)
    radiant.check.is_a(location, Point3)
 
    singleton.add_child_to_entity(self._root_entity, entity, location)
-   entity:add_component('render_info'):set_display_iconic(true);
+   --entity:add_component('render_info'):set_display_iconic(true);
    singleton.get_terrain():place_entity(entity, location)
 end
 
@@ -438,34 +446,6 @@ function entities._add_animation(entity, obj)
       end
       ani_mgr:get_animation(entity, obj)
    end
-end
-
-function entities.add_rig_to_entity(entity, rig)
-   radiant.check.is_entity(entity)
-
-   if type(rig) ~= 'string' then
-      radiant.check.is_a(rig, RigResource);
-      rig = rig:get_resource_identifier()
-   end
-   radiant.check.is_string(rig);
-   radiant.log.debug('adding rig "%s" to entity %d.', rig, entity:get_id())
-
-   local rig_component = entity:add_component('render_rig')
-   rig_component:add_rig(rig)
-end
-
-function entities.remove_rig_from_entity(entity, rig)
-   radiant.check.is_entity(entity)
-
-   if type(rig) ~= 'string' then
-      radiant.check.is_a(rig, RigResource);
-      rig = rig:get_resource_identifier()
-   end
-   radiant.check.is_string(rig);
-   radiant.log.debug('removing rig "%s" from entity %d.', rig, entity:get_id())
-
-   local rig_component = entity:add_component('render_rig')
-   rig_component:remove_rig(rig)
 end
 
 function entities.set_display_name(entity, name)

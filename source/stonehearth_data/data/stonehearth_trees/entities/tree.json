@@ -6,6 +6,9 @@
             "file(/commands/chop.json)"
 			]
 	   },
+      "render_info" : {
+         "scale" : 1
+      },
       "destination" : {
          "region" : [
             [[-3, 0, -3], [3, 1, 3]]

@@ -8,7 +8,8 @@ using radiant::client::Renderer;
 using radiant::client::Skeleton;
 
 Skeleton::Skeleton() :
-   _parent(0)
+   _parent(0),
+   _scale(1.0f)
 {
 }
 

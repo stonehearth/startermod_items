@@ -1,7 +1,6 @@
 {
    "type" : "rig",
 	"skeleton": {
-		"type": "skeleton",
 		"root": [3.5,5,0],
 		"torso": [3.48096,6.5,2.50455],
 		"rightPaw": [0.980955,4.02152,0.998277],

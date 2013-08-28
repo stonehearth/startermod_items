@@ -1,14 +1,16 @@
 {
-   "type" : "entity",
-   "components" : {
-	   "unit_info" : {
-		  "name" :  "Wooden Door",
-		  "description" : "The way in the room..."
-	   },
-	   "render_rig": {
-		  "models": [
-			 "file(wooden_door_frame.qb)"
-		  ]
-	   }
-	}
+   "type": "entity", 
+   "components": {
+      "model_variants": [
+         {
+            "models": [
+               "file(wooden_door_frame.qb)"
+            ]
+         }
+      ], 
+      "unit_info": {
+         "name": "Wooden Door", 
+         "description": "The way in the room..."
+      }
+   }
 }

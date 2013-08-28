@@ -23,8 +23,7 @@ add_library(om_lua STATIC
             lua_region.cpp
             lua_region_collision_shape_component.cpp
             lua_render_info_component.cpp
-            lua_render_rig_component.cpp
-            lua_render_rig_iconic_component.cpp
+            lua_model_variants_component.cpp
             lua_sensor_list_component.cpp
             lua_target_tables_component.cpp
             lua_sphere_collision_shape_component.cpp

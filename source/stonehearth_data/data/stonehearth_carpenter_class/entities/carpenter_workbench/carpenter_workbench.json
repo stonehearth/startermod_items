@@ -1,24 +1,35 @@
 {
-   "type": "entity",
-   "extends" : "/stonehearth_crafter/entities/workbench.json",
-   "components" : {
-      "unit_info" : {
-         "name" :  "Carpenter Workbench",
-         "description" : "Clean enough.",
-         "icon" : "file(saw_icon.png)"
-      },
-      "render_rig": {
-         "models": [
-            "file(carpenter_bench.qb)",
+   "extends": "/stonehearth_crafter/entities/workbench.json", 
+   "type": "entity", 
+   "components": {
+      "stonehearth_crafter:workshop": {}, 
+      "destination": {
+         "region": [
+            [
+               [
+                  0, 
+                  0, 
+                  1
+               ], 
+               [
+                  1, 
+                  1, 
+                  2
+               ]
+            ]
          ]
-      },
-      "destination" : {
-         "region" : [
-            [[0, 0, 1], [1, 1, 2]]
-         ]
-      },
-      "stonehearth_crafter:workshop" : {
-      }
+      }, 
+      "unit_info": {
+         "icon": "file(saw_icon.png)", 
+         "name": "Carpenter Workbench", 
+         "description": "Clean enough."
+      }, 
+      "model_variants": [
+         {
+            "models": [
+               "file(carpenter_bench.qb)"
+            ]
+         }
+      ]
    }
 }
-

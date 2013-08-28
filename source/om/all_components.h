@@ -4,7 +4,7 @@
 #include "components/clock.h"
 #include "components/entity_container.h"
 #include "components/mob.h"
-#include "components/render_rig.h"
+#include "components/model_variants.h"
 #include "components/terrain.h"
 #include "components/region_collision_shape.h"
 #include "components/sphere_collision_shape.h"

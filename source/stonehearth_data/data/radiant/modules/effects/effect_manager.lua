@@ -10,13 +10,8 @@ function EffectManager:__init(entity)
 
    radiant.events.listen('radiant.events.gameloop', self)
 
-   -- xxx: the animation_table should be on the entity?  what if we have no rigs
-   -- at all?  or should "render_rig" be renamed something more appropriate?
-   local render_rig = entity:get_component('render_rig')
-   if render_rig then
-      self.animation_table_name = render_rig:get_animation_table()
-      assert(#self.animation_table_name > 0)
-
+   self.animation_table_name = radiant.entities.get_animation_table_name(self._entity)
+   if self.animation_table_name then
       local obj = radiant.resources.load_json(self.animation_table_name)
       self._effects_root = obj.effects_root
    end

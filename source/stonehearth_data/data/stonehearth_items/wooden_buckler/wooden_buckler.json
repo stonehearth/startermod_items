@@ -1,16 +1,17 @@
 {
-   "type": "entity",
-   "extends" : "/stonehearth_items/entities/item/item_properties.json",
-   "components" : {
-      "unit_info" : {
-         "name" :  "Wooden Buckler",
-         "description" : "Better than using an oak branch to defend your ego."
-      },
-      "render_rig": {
-         "models": [
-            "file(cracked_wooden_buckler.qb)"
-         ]
+   "extends": "/stonehearth_items/entities/item/item_properties.json", 
+   "type": "entity", 
+   "components": {
+      "model_variants": [
+         {
+            "models": [
+               "file(cracked_wooden_buckler.qb)"
+            ]
+         }
+      ], 
+      "unit_info": {
+         "name": "Wooden Buckler", 
+         "description": "Better than using an oak branch to defend your ego."
       }
    }
 }
-

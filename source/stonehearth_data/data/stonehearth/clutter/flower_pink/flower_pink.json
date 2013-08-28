@@ -1,11 +1,13 @@
 {
    "type" : "entity",
    "components" : {
-	   "render_rig": {
-		  "scale": 0.2,
-		  "models": [
-			 "file(flower_pink.qb)"
-		  ]
-	   }
+      "model_variants": [
+         {
+		      "scale": 0.2,
+		      "models": [
+			      "file(flower_pink.qb)"
+		      ]
+   	   }
+      ]
 	}
 }

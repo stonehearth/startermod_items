@@ -1,6 +1,5 @@
 {
-	"civgirl": {
-		"type": "skeleton",
+	"skeleton": {
 		"root": [15.5,15.5,0],
 		"bodyPosition": [15.5,15.5,7.5],
 		"pelvis": [15.5,15.5,7.5],
@@ -32,5 +31,11 @@
 		"mainHand": [9,15,6],
 		"leftFoot": [18.5,14,5],
 		"rightFoot": [12.5,14,5]
-	}
+	},
+   "effects_root" : "file(effects)",
+   "collision_shape" : {
+      "type" : "cylinder_collision_shape",
+      "radius" : 5,
+      "height" : 35
+   }
 }

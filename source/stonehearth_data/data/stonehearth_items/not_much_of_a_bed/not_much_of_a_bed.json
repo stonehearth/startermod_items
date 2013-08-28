@@ -1,16 +1,17 @@
 {
-   "type": "entity",
-   "extends" : "/stonehearth_items/entities/item/item_properties.json",
-   "components" : {
-      "unit_info" : {
-         "name" :  "Mean Bed",
-         "description" : "Mean as in poor, not cruel. Though it's that too."
-      },
-      "render_rig": {
-         "models": [
-            "/stonehearth_items/default_object/default_object.qb"
-         ]
+   "extends": "/stonehearth_items/entities/item/item_properties.json", 
+   "type": "entity", 
+   "components": {
+      "model_variants": [
+         {
+            "models": [
+               "/stonehearth_items/default_object/default_object.qb"
+            ]
+         }
+      ], 
+      "unit_info": {
+         "name": "Mean Bed", 
+         "description": "Mean as in poor, not cruel. Though it's that too."
       }
    }
 }
-

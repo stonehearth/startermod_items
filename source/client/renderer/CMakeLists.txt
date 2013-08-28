@@ -15,7 +15,6 @@ add_library(client_renderer STATIC
             render_entity.cpp
             render_entity_container.cpp
             render_mob.cpp
-            render_rig.cpp
             render_terrain.cpp
             render_effect_list.cpp
             render_destination.cpp
@@ -23,6 +22,7 @@ add_library(client_renderer STATIC
             render_carry_block.cpp
             qubicle_file.cpp
             render_render_region.cpp
+            render_render_info.cpp
             lua_renderer.cpp
             lua_render_entity.cpp
             )

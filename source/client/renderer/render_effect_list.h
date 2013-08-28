@@ -46,10 +46,12 @@ public:
 
 private:
    RenderEntity&                 entity_;
-   std::shared_ptr<RenderEntity> item_;
+   std::shared_ptr<om::Entity>   authored_entity_;
+   std::shared_ptr<RenderEntity> render_item_;
    bool                          finished_;
    int                           startTime_;
-   int                           iconicOverride_;
+   std::string                   model_variant_override_;
+   bool                          use_model_variant_override_;
    std::string                   bone_;
 };
 
