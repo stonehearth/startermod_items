@@ -74,7 +74,7 @@ class Renderer
 
       typedef int InputCallbackId;
       typedef std::function<void (const RawInputEvent&, bool& handled, bool& uninstall)> RawInputEventCb;
-      typedef std::function<void (const MouseEvent&, bool& handled, bool& uninstall)> MouseEventCb;
+      typedef std::function<void (const MouseEvent& windowMouse, const MouseEvent& browserMouse, bool& handled, bool& uninstall)> MouseEventCb;
       typedef std::function<void (const KeyboardEvent&, bool& handled, bool& uninstall)> KeyboardInputEventCb;
       InputCallbackId SetRawInputCallback(RawInputEventCb fn);
       InputCallbackId SetMouseInputCallback(MouseEventCb fn);
@@ -108,7 +108,7 @@ class Renderer
       void Resize(int width, int height);
       void UpdateCamera();
       csg::Quaternion GetCameraRotation();
-      void WindowToBrowser(int windowX, int windowY, int* const browserX, int* const browserY);
+      MouseEvent WindowToBrowser(const MouseEvent& mouse);
       void CallMouseInputCallbacks();
 
       typedef std::unordered_map<dm::TraceId, std::function<void()>> TraceMap;
@@ -159,7 +159,7 @@ class Renderer
       KeyboardInputCallbackMap      keyboardInputCbs_;
 
       bool                          rotateCamera_;
-      MouseEvent                    mouse_;
+      MouseEvent                    mouse_;  // Mouse coordinates in the GL window-space.
       bool                          initialized_;
 
       int                           currentFrameTime_;

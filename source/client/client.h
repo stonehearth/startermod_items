@@ -89,7 +89,7 @@ class Client : public core::Singleton<Client> {
       void process_messages();
       void update_interpolation(int time);
       void handle_connect(const boost::system::error_code& e);
-      void OnMouseInput(const MouseEvent &me, bool &handled, bool &uninstall);
+      void OnMouseInput(const MouseEvent &windowMouse, const MouseEvent &browserMouse, bool &handled, bool &uninstall);
       void OnKeyboardInput(const KeyboardEvent &e, bool &handled, bool &uninstall);
 
       void Reset();

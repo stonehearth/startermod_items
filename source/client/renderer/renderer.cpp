@@ -622,10 +622,17 @@ csg::Quaternion Renderer::GetCameraRotation()
 
 }
 
-void Renderer::WindowToBrowser(int windowX, int windowY, int* const browserX, int* const browserY) 
+MouseEvent Renderer::WindowToBrowser(const MouseEvent& mouse) 
 {
-   *browserX = (int)(windowX / (width_ / (float)uiWidth_));
-   *browserY = (int)(windowY / (height_ / (float)uiHeight_));
+   float xTransform = uiWidth_ / (float)width_;
+   float yTransform = uiHeight_ / (float)height_;
+   MouseEvent result = mouse;
+
+   result.dx = (int)(mouse.dx * xTransform);
+   result.dy = (int)(mouse.dy * yTransform);
+   result.x = (int)(mouse.x * xTransform);
+   result.y = (int)(mouse.y * yTransform);
+   return result;
 }
 
 void Renderer::OnMouseWheel(int value)
@@ -649,14 +656,11 @@ void Renderer::OnMouseWheel(int value)
 
 void Renderer::OnMouseMove(int x, int y)
 {
-   int browserX, browserY;
-
-   WindowToBrowser(x, y, &browserX, &browserY);
-   mouse_.dx = browserX - mouse_.x;
-   mouse_.dy = browserY - mouse_.y;
+   mouse_.dx = x - mouse_.x;
+   mouse_.dy = y - mouse_.y;
    
-   mouse_.x = browserX;
-   mouse_.y = browserY;
+   mouse_.x = x;
+   mouse_.y = y;
 
    // xxx - this is annoying, but that's what you get... maybe revisit the
    // way we deliver mouse events and up/down tracking...
@@ -768,7 +772,7 @@ void Renderer::CallMouseInputCallbacks()
    auto l = mouseInputCbs_;
    for (auto &entry : l) {
       bool uninstall = false;
-      entry.second(mouse_, handled, uninstall);
+      entry.second(mouse_, WindowToBrowser(mouse_), handled, uninstall);
       if (uninstall) {
          mouseInputCbs_.erase(std::find(mouseInputCbs_.begin(), mouseInputCbs_.end(), entry));
       }

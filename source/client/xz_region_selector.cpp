@@ -30,8 +30,8 @@ std::shared_ptr<XZRegionSelector::Deferred> XZRegionSelector::Activate()
    GetHoverBrick(pt.x, pt.y, _p0);
 
    auto self = shared_from_this();
-   _inputHandlerId = Renderer::GetInstance().SetMouseInputCallback([=](const MouseEvent &evt, bool &handled, bool &uninstall) {
-      self->onInputEvent(evt, handled, uninstall);
+   _inputHandlerId = Renderer::GetInstance().SetMouseInputCallback([=](const MouseEvent &windowMouse, const MouseEvent &browserMouse, bool &handled, bool &uninstall) {
+      self->onInputEvent(windowMouse, handled, uninstall);
    });
    
    return deferred_;
