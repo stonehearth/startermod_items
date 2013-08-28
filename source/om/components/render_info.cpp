@@ -13,14 +13,17 @@ void RenderInfo::InitializeRecordFields()
    AddRecordField("animation_table", animation_table_);
    AddRecordField("scale", scale_);
    AddRecordField("attached", attached_);
+   if (!IsRemoteRecord()) {
+      scale_ = 0.1f;
+   }
 }
 
 
 void RenderInfo::ExtendObject(json::ConstJsonObject const& obj)
 {
-   scale_ = obj.get<float>("scale", 0.1f);
-   model_variant_ = obj.get<std::string>("model_variant", "");
-   animation_table_ = obj.get<std::string>("animation_table", "");
+   scale_ = obj.get<float>("scale", *scale_);
+   model_variant_ = obj.get<std::string>("model_variant", *model_variant_);
+   animation_table_ = obj.get<std::string>("animation_table", *animation_table_);
 }
 
 void RenderInfo::AttachEntity(om::EntityRef e)

@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "render_info.h"
 #include "model_variants.h"
 #include <boost/algorithm/string.hpp>
 
@@ -14,6 +15,8 @@ std::ostream& om::operator<<(std::ostream& os, const ModelVariant& o)
 
 void ModelVariants::ExtendObject(json::ConstJsonObject const& obj)
 {
+   // All entities with models must have a render_info...
+   GetEntity().AddComponent<RenderInfo>();
    for (auto const& e : obj) {
       ModelVariantPtr layer = GetStore().AllocObject<ModelVariant>();
       layer->ExtendObject(e);

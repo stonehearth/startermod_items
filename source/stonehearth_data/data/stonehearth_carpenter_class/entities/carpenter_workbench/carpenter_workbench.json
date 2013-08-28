@@ -23,7 +23,7 @@
          "icon": "file(saw_icon.png)", 
          "name": "Carpenter Workbench", 
          "description": "Clean enough."
-      }, 
+      },
       "model_variants": [
          {
             "models": [
