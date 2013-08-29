@@ -142,7 +142,7 @@ Renderer::Renderer() :
    h3dSetNodeTransform(directionalLight, 0, 0, 0, -30, -30, 0, 1, 1, 1);
 #endif
 	h3dSetNodeParamF(directionalLight, H3DLight::RadiusF, 0, 100000);
-	h3dSetNodeParamF(directionalLight, H3DLight::FovF, 0, 0);
+	h3dSetNodeParamF(directionalLight, H3DLight::FovF, 0, 360);
 	h3dSetNodeParamI(directionalLight, H3DLight::ShadowMapCountI, 1);
 	h3dSetNodeParamI(directionalLight, H3DLight::DirectionalI, true);
 	h3dSetNodeParamF(directionalLight, H3DLight::ShadowSplitLambdaF, 0, 0.9f);
@@ -151,7 +151,7 @@ Renderer::Renderer() :
 	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 1, 0.6f);
 	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 2, 0.6f);
 
-	spotLight = h3dAddLightNode(H3DRootNode, "AnotherLight", lightMatRes, "LIGHTING", "SHADOWMAP");
+	/*spotLight = h3dAddLightNode(H3DRootNode, "AnotherLight", lightMatRes, "LIGHTING", "SHADOWMAP");
 	h3dSetNodeTransform(spotLight, 0, 20, 0, -90, 0, 0, 1, 1, 1);
 	h3dSetNodeParamF(spotLight, H3DLight::RadiusF, 0, 50);
 	h3dSetNodeParamF(spotLight, H3DLight::FovF, 0, 160);
@@ -160,7 +160,7 @@ Renderer::Renderer() :
 	h3dSetNodeParamF(spotLight, H3DLight::ShadowMapBiasF, 0, 0.001f);
 	h3dSetNodeParamF(spotLight, H3DLight::ColorF3, 0, 1);
 	h3dSetNodeParamF(spotLight, H3DLight::ColorF3, 1, 1);
-	h3dSetNodeParamF(spotLight, H3DLight::ColorF3, 2, 1);
+	h3dSetNodeParamF(spotLight, H3DLight::ColorF3, 2, 0);*/
 
    // Skybox
 	H3DNode sky = h3dAddNodes( H3DRootNode, skyBoxRes );

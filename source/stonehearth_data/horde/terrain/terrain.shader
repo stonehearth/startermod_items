@@ -1,5 +1,14 @@
 [[FX]]
 
+// Contexts
+context AMBIENT
+{
+	VertexShader = compile GLSL VS_GENERAL;
+	PixelShader = compile GLSL FS_FORWARD_AMBIENT;
+	
+	ZWriteEnable = true;
+}
+
 context ATTRIBPASS
 {
 	VertexShader = compile GLSL VS_GENERAL;
@@ -25,6 +34,16 @@ context LIGHTING
 {
 	VertexShader = compile GLSL VS_GENERAL;
 	PixelShader = compile GLSL FS_LIGHTING;
+	
+	ZWriteEnable = false;
+	BlendMode = Add;
+   CullMode = Back;
+}
+
+context DIRECTIONAL_LIGHTING
+{
+	VertexShader = compile GLSL VS_GENERAL;
+	PixelShader = compile GLSL FS_DIRECTIONAL_LIGHTING;
 	
 	ZWriteEnable = false;
 	BlendMode = Add;
@@ -82,6 +101,24 @@ void main( void )
 	setNormal( normalize( normal ) );
 	setAlbedo( albedo.rgb );
 	setSpecParams( matSpecParams.rgb, matSpecParams.a );
+}
+
+
+[[FS_FORWARD_AMBIENT]]	
+
+uniform vec3 viewerPos;
+uniform vec4 matDiffuseCol;
+uniform vec4 matSpecParams;
+uniform sampler2D albedoMap;
+vec3 ambientLightColor = vec3(0.4, 0.4, 0.4);
+
+varying vec4 pos;
+varying vec3 tsbNormal;
+varying vec3 albedo;
+
+void main( void )
+{
+   gl_FragColor.rgb = ambientLightColor * albedo;
 }
 
 [[VS_SHADOWMAP]]
@@ -143,7 +180,7 @@ varying vec3 lightVec;
 
 void main( void )
 {
-	gl_FragDepth = gl_FragCoord.z + shadowBias;
+	gl_FragDepth = gl_FragCoord.z + 2 * shadowBias;
 	// Clearly better bias but requires SM 3.0
 	//gl_FragDepth = dist + abs( dFdx( dist ) ) + abs( dFdy( dist ) ) + shadowBias;
 }
@@ -163,14 +200,31 @@ varying vec3 tsbNormal;
 
 void main( void )
 {
-#ifdef _F01_Topsoil
-#else
-#endif
 	vec3 normal = tsbNormal;
 	vec3 newPos = pos.xyz;
 
-	gl_FragColor.rgb =
-		calcPhongSpotLight( newPos, normalize( normal ), albedo, matSpecParams.rgb,
+	gl_FragColor.rgb = 
+         calcPhongSpotLight( newPos, normalize( normal ), albedo, matSpecParams.rgb,
 		                    matSpecParams.a, -vsPos.z, 0.3 );
+}
+
+[[FS_DIRECTIONAL_LIGHTING]]
+// =================================================================================================
+
+#include "shaders/utilityLib/fragLighting.glsl" 
+
+uniform vec4 matDiffuseCol;
+uniform vec4 matSpecParams;
+uniform sampler2D albedoMap;
+
+varying vec4 pos, vsPos;
+varying vec3 albedo;
+varying vec3 tsbNormal;
+
+void main( void )
+{
+	gl_FragColor.rgb = 
+		calcPhongDirectionalLight( pos, normalize( tsbNormal ), albedo, vec3(0,0,0),
+		                    0.0, -vsPos.z, 0.3 );
 }
 
