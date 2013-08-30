@@ -1,8 +1,12 @@
 <!-- Forward Shading Pipeline -->
 <Pipeline>
-	<CommandQueue>
+   <Setup>
+      <RenderTarget id="OUTPUT" depthBuf="true" numColBufs="1" format="RGBA8" scale="1.0" maxSamples="4"/>
+   </Setup>
+   <CommandQueue>
       <Stage id="Depth" link="pipelines/globalSettings.material.xml">
-         <ClearTarget depthBuf="true" colBuf0="true" />
+         <SwitchTarget target="OUTPUT" />
+         <ClearTarget depthBuf="true"/>
          <DrawGeometry context="AMBIENT" class="~Translucent" />
       </Stage>
 
@@ -11,11 +15,27 @@
       </Stage>
 
       <Stage id="Translucent">
-         <DrawGeometry context="TRANSLUCENT" class="Translucent" order="BACK_TO_FRONT" />
+         <DrawGeometry context="TRANSLUCENT" order="BACK_TO_FRONT" />
+         <DrawGeometry context="DEBUG_SHAPES" />
+      </Stage>
+
+      <Stage id="Selected">
+         <DrawSelected context="SELECTED" />
+      </Stage>
+
+      <Stage id="Clouds">
+         <DrawGeometry context="CLOUDS" class="~Translucent" />
       </Stage>
 
       <Stage id="Overlays">
 			<DrawOverlays context="OVERLAY" />
 		</Stage>
+
+      <Stage id="Final">
+         <SwitchTarget target="" />
+         <BindBuffer sampler="buf0" sourceRT="OUTPUT" bufIndex="0" />
+         <DrawQuad material="pipelines/outline.material.xml" context="DRAW_COLORBUF" />
+         <UnbindBuffers />
+      </Stage>
 	</CommandQueue>
 </Pipeline>

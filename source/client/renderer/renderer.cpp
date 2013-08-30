@@ -84,8 +84,12 @@ Renderer::Renderer() :
 	h3dSetOption(H3DOptions::ShadowMapSize, 2048);
 	h3dSetOption(H3DOptions::FastAnimation, 1);
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
+   h3dSetOption(H3DOptions::SampleCount, 4);
+
 
 	// Pipelines
+   // TODO: We have to set a default pipeline, otherwise bad things happen(TM).  client.cpp defines
+   // the pipeline that we actually use in rendering.
 	currentPipeline_ = h3dAddResource(H3DResTypes::Pipeline, "pipelines/forward.pipeline.xml", 0);
 	//deferredPipeRes_ = h3dAddResource(H3DResTypes::Pipeline, "pipelines/blueprint.deferred.pipeline.xml", 0);
    //deferredPipeRes_ = h3dAddResource(H3DResTypes::Pipeline, "pipelines/deferred.pipeline.xml", 0);

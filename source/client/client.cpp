@@ -75,6 +75,7 @@ void Client::run()
       
    Renderer& renderer = Renderer::GetInstance();
    renderer.SetCurrentPipeline("pipelines/deferred_pipeline_static.xml");
+   //renderer.SetCurrentPipeline("pipelines/forward.pipeline.xml");
 
    HWND hwnd = renderer.GetWindowHandle();
    //defaultCursor_ = (HCURSOR)GetClassLong(hwnd_, GCL_HCURSOR);

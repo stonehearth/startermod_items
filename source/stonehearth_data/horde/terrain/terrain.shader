@@ -1,5 +1,13 @@
 [[FX]]
 
+// Samplers
+sampler2D cloudMap = sampler_state
+{
+	Texture = "textures/environment/cloudmap.png";
+	Address = Wrap;
+   Filter = None;
+};
+
 // Contexts
 context AMBIENT
 {
@@ -47,6 +55,16 @@ context DIRECTIONAL_LIGHTING
 	
 	ZWriteEnable = false;
 	BlendMode = Add;
+   CullMode = Back;
+}
+
+context CLOUDS
+{
+   VertexShader = compile GLSL VS_GENERAL;
+   PixelShader = compile GLSL FS_CLOUDS;
+
+   ZWriteEnable = false;
+   BlendMode = Mult;
    CullMode = Back;
 }
 
@@ -228,3 +246,18 @@ void main( void )
 		                    0.0, -vsPos.z, 0.3 );
 }
 
+[[FS_CLOUDS]]
+
+varying vec4 pos;
+uniform sampler2D cloudMap;
+uniform float currentTime;
+
+void main( void )
+{
+	vec2 fragCoord = pos.xz * 2.0;
+   float cloudSpeed = currentTime / 80.0;
+   vec4 cloudColor = texture2D(cloudMap, fragCoord.xy / 128.0 + cloudSpeed);
+   cloudColor *= texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0));
+
+	gl_FragColor.rgb = cloudColor;
+}
