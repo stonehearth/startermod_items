@@ -14,6 +14,7 @@
 #include <unordered_map>
 #include <boost/property_tree/ptree.hpp>
 #include "lua/namespace.h"
+#include "camera.h"
 
 IN_RADIANT_LUA_NAMESPACE(
    class ScriptHost;
@@ -81,7 +82,7 @@ class Renderer
       InputCallbackId SetKeyboardInputCallback(KeyboardInputEventCb fn);
       void RemoveInputEventHandler(InputCallbackId id);
 
-      void PointCamera(const csg::Point3f &location);
+      void PlaceCamera(const csg::Point3f &location);
       void UpdateUITexture(const csg::Region2& rgn, const char* buffer);
 
       ViewMode GetViewMode() const { return viewMode_; }
@@ -137,9 +138,9 @@ class Renderer
       H3DRes            panelMatRes_;
       H3DRes            uiMatRes_;
       H3DRes            uiTexture_;
-      H3DNode           camera_;
 
-      csg::Point3f   cameraPos_;
+      Camera*            camera_;
+
       csg::Point3f   cameraTarget_;
       csg::Point3f   cameraMoveDirection_;
 

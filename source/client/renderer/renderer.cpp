@@ -8,6 +8,7 @@
 #include "om/entity.h"
 #include <boost/property_tree/json_parser.hpp>
 #include <SFML/Audio.hpp>
+#include "camera.h"
 
 
 using namespace ::radiant;
@@ -32,7 +33,8 @@ Renderer::Renderer() :
    cameraMoveDirection_(0, 0, 0),
    viewMode_(Standard),
    scriptHost_(nullptr),
-   nextTraceId_(1)
+   nextTraceId_(1),
+   camera_(nullptr)
 {
    try {
       boost::property_tree::json_parser::read_json("renderer_config.json", config_);
@@ -44,18 +46,8 @@ Renderer::Renderer() :
    assert(renderer_.get() == nullptr);
    renderer_.reset(this);
 
-   //width_ = 1920;
-   //height_ = 1080;
-
    uiWidth_ = width_ = 1920;
    uiHeight_ = height_ = 1080;
-
-   //uiWidth_ = width_ = 1280;
-   //uiHeight_ = height_ = 768;
-
-   //uiWidth_ = width_;
-   //uiHeight_ = height_;
-
 
    glfwInit();
 
@@ -87,12 +79,7 @@ Renderer::Renderer() :
    h3dSetOption(H3DOptions::SampleCount, 4);
 
 
-	// Pipelines
-   // TODO: We have to set a default pipeline, otherwise bad things happen(TM).  client.cpp defines
-   // the pipeline that we actually use in rendering.
-	currentPipeline_ = h3dAddResource(H3DResTypes::Pipeline, "pipelines/forward.pipeline.xml", 0);
-	//deferredPipeRes_ = h3dAddResource(H3DResTypes::Pipeline, "pipelines/blueprint.deferred.pipeline.xml", 0);
-   //deferredPipeRes_ = h3dAddResource(H3DResTypes::Pipeline, "pipelines/deferred.pipeline.xml", 0);
+   SetCurrentPipeline("pipelines/forward.pipeline.xml");
 
    // Overlays
 	logoMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/logo.material.xml", 0 );
@@ -125,13 +112,17 @@ Renderer::Renderer() :
    LoadResources();
 
 	// Add camera
-	camera_ = h3dAddCameraNode(H3DRootNode, "Camera", currentPipeline_);
    
+   camera_ = new Camera(h3dAddCameraNode(H3DRootNode, "Camera", currentPipeline_));
+
    cameraTarget_ = csg::Point3f(0, 10, 0);
-   cameraPos_ = cameraTarget_ + csg::Point3f(24, 24, 24);
+
+   camera_->SetPosition(csg::Point3f(24, 34, 24));
+   camera_->LookAt(cameraTarget_);
    UpdateCamera();
 
-   h3dSetNodeParamI(camera_, H3DCamera::PipeResI, currentPipeline_);
+   h3dSetNodeParamI(camera_->GetNode(), H3DCamera::PipeResI, currentPipeline_);
+
 
 	// Add light source
 	directionalLight = h3dAddLightNode(H3DRootNode, "Sun", lightMatRes, "DIRECTIONAL_LIGHTING", "DIRECTIONAL_SHADOWMAP");
@@ -248,15 +239,14 @@ void Renderer::RenderOneFrame(int now, float alpha)
    currentFrameInterp_ = alpha;
 
    if (cameraMoveDirection_ != csg::Point3f::zero) {
-         csg::Point3f targetDir = cameraTarget_ - cameraPos_;
-
-         float angle = atan2(targetDir.z, -targetDir.x) - atan2(-1, 0);
-         csg::Quaternion rot(csg::Point3f(0, 1, 0), angle);
-         csg::Point3f delta = rot.rotate(cameraMoveDirection_);
-         delta.Normalize();
-         delta = delta * (deltaNow / 45.0f);
-         cameraPos_ += delta;
-         cameraTarget_ += delta;
+         csg::Point3f forward, up, left;
+         camera_->GetBases(&forward, &up, &left);
+         forward.y = 0;
+         csg::Point3f camPosDelta = (left * cameraMoveDirection_.x) + (forward * cameraMoveDirection_.z);
+         camPosDelta.Normalize();
+         camPosDelta = camPosDelta * (deltaNow / 45.0f);
+         camera_->SetPosition(camera_->GetPosition() + camPosDelta);
+         cameraTarget_ += camPosDelta;
          UpdateCamera();
    }
 
@@ -272,8 +262,8 @@ void Renderer::RenderOneFrame(int now, float alpha)
    }
 
    bool showUI = true;
-	const float ww = (float)h3dGetNodeParamI(camera_, H3DCamera::ViewportWidthI) /
-	                 (float)h3dGetNodeParamI(camera_, H3DCamera::ViewportHeightI);
+   const float ww = (float)h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportWidthI) /
+	                 (float)h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportHeightI);
 
    // debug = true;
 
@@ -317,7 +307,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    LoadResources();
 
 	// Render scene
-	h3dRender(camera_);
+   h3dRender(camera_->GetNode());
 
 	// Finish rendering of frame
 	h3dFinalizeFrame();
@@ -347,7 +337,7 @@ csg::Ray3 Renderer::GetCameraToViewportRay(int windowX, int windowY)
    // through the specified window coordinates into the scene
    csg::Ray3 ray;   
 
-	h3dutPickRay(camera_, nwx, nwy,
+   h3dutPickRay(camera_->GetNode(), nwx, nwy,
                 &ray.origin.x, &ray.origin.y, &ray.origin.z,
                 &ray.direction.x, &ray.direction.y, &ray.direction.z);
 
@@ -364,7 +354,7 @@ void Renderer::QuerySceneRay(int windowX, int windowY, om::Selection &result)
    float nwy = 1.0f - ((float)windowY) / height_;
    float ox, oy, oz, dx, dy, dz;
 
-	h3dutPickRay(camera_, nwx, nwy, &ox, &oy, &oz, &dx, &dy, &dz);
+   h3dutPickRay(camera_->GetNode(), nwx, nwy, &ox, &oy, &oz, &dx, &dy, &dz);
 
 	if (h3dCastRay(rootRenderObject_->GetNode(), ox, oy, oz, dx, dy, dz, 1) == 0) {
 		return;
@@ -407,7 +397,7 @@ csg::Matrix4 Renderer::GetNodeTransform(H3DNode node) const
    h3dGetNodeTransMats(node, NULL, &abs);
 
    csg::Matrix4 transform;
-   memcpy((float*)transform, abs, sizeof(float) * 16);
+   transform.fill(abs);
 
    return transform;
  }
@@ -455,11 +445,12 @@ void Renderer::RemoveInputEventHandler(InputCallbackId id)
    }
 }
 
-void Renderer::PointCamera(const csg::Point3f &location)
+void Renderer::PlaceCamera(const csg::Point3f &location)
 {
    csg::Point3f delta = csg::Point3f(location) - cameraTarget_;
    cameraTarget_ += delta;
-   cameraPos_ += delta;
+   camera_->SetPosition(camera_->GetPosition() + delta);
+
    UpdateCamera();
 }
 
@@ -491,14 +482,16 @@ void Renderer::Resize( int width, int height )
    width_ = width;
    height_ = height;
 
+   H3DNode camera = camera_->GetNode();
+
    // Resize viewport
-   h3dSetNodeParamI( camera_, H3DCamera::ViewportXI, 0 );
-   h3dSetNodeParamI( camera_, H3DCamera::ViewportYI, 0 );
-   h3dSetNodeParamI( camera_, H3DCamera::ViewportWidthI, width );
-   h3dSetNodeParamI( camera_, H3DCamera::ViewportHeightI, height );
+   h3dSetNodeParamI( camera, H3DCamera::ViewportXI, 0 );
+   h3dSetNodeParamI( camera, H3DCamera::ViewportYI, 0 );
+   h3dSetNodeParamI( camera, H3DCamera::ViewportWidthI, width );
+   h3dSetNodeParamI( camera, H3DCamera::ViewportHeightI, height );
 	
    // Set virtual camera parameters
-   h3dSetupCameraView( camera_, 45.0f, (float)width / height, 4.0f, 1000.0f);
+   h3dSetupCameraView( camera, 45.0f, (float)width / height, 4.0f, 1000.0f);
    for (const auto& entry : pipelines_) {
       h3dResizePipelineBuffers(entry.second, width, height);
    }
@@ -565,65 +558,8 @@ void Renderer::RemoveRenderObject(int sid, dm::ObjectId id)
 
 void Renderer::UpdateCamera()
 {
-   csg::Matrix4 m;
-   m.translation(cameraPos_);
-   m *= csg::Matrix4(GetCameraRotation());
-
    //Let the audio listener know where the camera is
-   sf::Listener::setPosition(cameraPos_.x, cameraPos_.y, cameraPos_.z);
-
-   h3dSetNodeTransMat(camera_, m.get_float_ptr());
-}
-
-csg::Quaternion Renderer::GetCameraRotation()
-{
-   // Translation is just moving to the eye coordinate.  The rotation
-   // rotates from looking down the -z axis to looking at the center
-   // point.
-   csg::Point3f up(0, 1, 0);
-
-   csg::Point3f targetDir = cameraTarget_ - cameraPos_;
-   targetDir.Normalize();
-
-   csg::Point3f xVec = up.Cross(targetDir);
-   xVec.Normalize();
-   csg::Point3f yVec = targetDir.Cross(xVec);
-   yVec.Normalize();
-
-   csg::Matrix3 m3;
-   m3.set_columns(xVec, yVec, targetDir);
-   csg::Quaternion rotation(m3);
-
-   // I don't pretend to understand why this is necessary...
-   rotation = csg::Quaternion(-rotation.y, -rotation.z, rotation.w, rotation.x);
-
-   //// Test it out
-   //csg::Point3f v(0, 0, -1);
-   //csg::Point3f tester = rotation.rotate(v);
-
-   return rotation;
-
-#if 0
-            Vector3 xVec = mYawFixedAxis.crossProduct(targetDir);
-            xVec.normalise();
-            Vector3 yVec = targetDir.crossProduct(xVec);
-            yVec.normalise();
-            Quaternion unitZToTarget = Quaternion(xVec, yVec, targetDir);
-
-            if (localDirectionVector == Vector3::NEGATIVE_UNIT_Z)
-            {
-                // Specail case for avoid calculate 180 degree turn
-                targetOrientation =
-                    Quaternion(-unitZToTarget.y, -unitZToTarget.z, unitZToTarget.w, unitZToTarget.x);
-            }
-            else
-            {
-                // Calculate the quaternion for rotate local direction to target direction
-                Quaternion localToUnitZ = localDirectionVector.getRotationTo(Vector3::UNIT_Z);
-                targetOrientation = unitZToTarget * localToUnitZ;
-            }
-#endif
-
+   sf::Listener::setPosition(camera_->GetPosition().x, camera_->GetPosition().y, camera_->GetPosition().z);
 }
 
 MouseEvent Renderer::WindowToBrowser(const MouseEvent& mouse) 
@@ -645,7 +581,7 @@ void Renderer::OnMouseWheel(int value)
    mouse_.wheel = value;
    
    // xxx: move this part out into the client --
-   csg::Point3f dir = cameraPos_ - cameraTarget_;
+   csg::Point3f dir = camera_->GetPosition() - cameraTarget_;
 
    float d = dir.Length();
 
@@ -653,7 +589,7 @@ void Renderer::OnMouseWheel(int value)
    d = std::min(std::max(d, 0.1f), 3000.0f);
 
    dir.Normalize();
-   cameraPos_ = cameraTarget_ + dir * d;
+   camera_->SetPosition(cameraTarget_ + dir * d);
 
    UpdateCamera(); // xxx - defer to render time?
 }
@@ -672,33 +608,10 @@ void Renderer::OnMouseMove(int x, int y)
    memset(mouse_.down, 0, sizeof mouse_.down);
 
    if (rotateCamera_) {
-      csg::Point3f offset;
-
-      // rotate about y first.
       float degx = (float)mouse_.dx / -3.0f;
-      csg::Quaternion yaw(csg::Point3f(0, 1, 0), degx * csg::k_pi / 180.0f);
-      offset = cameraPos_ - cameraTarget_;
-      cameraPos_ = cameraTarget_ + yaw.rotate(offset);
-
-      // now change the pitch.
-      offset = cameraPos_ - cameraTarget_;
-      float d = offset.Length();
-      csg::Point3f projection(offset.x, 0, offset.z); // project onto the floor 
-
-      offset.Normalize();
-      projection.Normalize();
-      csg::Quaternion pitch(projection, offset);      // get the axis angle to get there.
-
-      csg::Point3f axis;
-      float angle;
-      pitch.get_axis_angle(axis, angle);
-
-      float current = angle / csg::k_pi * 180.0f;
-      current += (float)mouse_.dy / 2;
-      current = std::min(std::max(current, 5.0f), 80.0f);
-      pitch.set(axis, current * csg::k_pi / 180.0f);
-
-      cameraPos_ = cameraTarget_ + pitch.rotate(projection * d);
+      float degy = (float)-mouse_.dy / 2;
+      camera_->OrbitPointBy(cameraTarget_, degy, degx, -160.0f, 160.0f);
+      camera_->LookAt(cameraTarget_);
 
       UpdateCamera();
    } else {
@@ -869,9 +782,10 @@ void Renderer::SetCurrentPipeline(std::string name)
    } else {
       p = i->second;
    }
-   if (p != currentPipeline_) {
-      h3dSetNodeParamI(camera_, H3DCamera::PipeResI, p);
+   if (p != currentPipeline_ && camera_ != NULL) {
+      h3dSetNodeParamI(camera_->GetNode(), H3DCamera::PipeResI, p);
    }
+   currentPipeline_ = p;
 }
 
 bool Renderer::ShouldHideRenderGrid(const csg::Point3& normal)

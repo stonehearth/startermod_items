@@ -98,6 +98,59 @@ Matrix4&
 }   // End of Matrix4::operator=()
 
 
+void Matrix4::fill(const float *values) 
+{
+   v[0] = values[0];
+   v[1] = values[1];
+   v[2] = values[2];
+   v[3] = values[3];
+   v[4] = values[4];
+   v[5] = values[5];
+   v[6] = values[6];
+   v[7] = values[7];
+   v[8] = values[8];
+   v[9] = values[9];
+   v[10] = values[10];
+   v[11] = values[11];
+   v[12] = values[12];
+   v[13] = values[13];
+   v[14] = values[14];
+   v[15] = values[15];
+}
+
+void Matrix4::set_translation(const Point3f& translation)
+{
+   v[12] = translation.x;
+   v[13] = translation.y;
+   v[14] = translation.z;
+}
+
+Point3f Matrix4::get_translation()
+{
+   Point3f result;
+   result.x = v[12];
+   result.y = v[13];
+   result.z = v[14];
+   return result;
+}
+
+void Matrix4::set_rotation_bases(const Point3f& forward, const Point3f& up, const Point3f& left)
+{
+   v[0] = left.x;
+   v[1] = left.y;
+   v[2] = left.z;
+
+   v[4] = up.x;
+   v[5] = up.y;
+   v[6] = up.z;
+   
+   v[8] = forward.x;
+   v[9] = forward.y;
+   v[10] = forward.z;
+}
+
+
+
 //-------------------------------------------------------------------------------
 // @ operator<<()
 //-------------------------------------------------------------------------------

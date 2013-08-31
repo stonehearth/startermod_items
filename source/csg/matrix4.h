@@ -35,6 +35,7 @@ public:
       bool is_identity() const;
 
       // manipulators
+      void set_rotation_bases(const Point3f& forward, const Point3f& up, const Point3f& left);
       void set_rows(const Point4f& row1, const Point4f& row2, 
                   const Point4f& row3, const Point4f& row4); 
       void get_rows(Point4f& row1, Point4f& row2, Point4f& row3, Point4f& row4); 
@@ -98,6 +99,10 @@ public:
       // low-level data accessors - implementation-dependent
       operator float*() { return v; }
       operator const float*() const { return v; }
+
+      void fill(const float *values);
+      void set_translation(const Point3f &translation);
+      Point3f get_translation();
 
 public:
       // member variables

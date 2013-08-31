@@ -526,7 +526,7 @@ void Client::CenterMap(const MouseEvent &mouse)
 
    Renderer::GetInstance().QuerySceneRay(mouse.x, mouse.y, s);
    if (s.HasBlock()) {
-      Renderer::GetInstance().PointCamera(csg::ToFloat(s.GetBlock()));
+      Renderer::GetInstance().PlaceCamera(csg::ToFloat(s.GetBlock()));
    }
 }
 
