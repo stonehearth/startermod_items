@@ -575,6 +575,36 @@ MouseEvent Renderer::WindowToBrowser(const MouseEvent& mouse)
    return result;
 }
 
+float Renderer::DistFunc(float dist, int wheel, float minDist, float maxDist) const {
+   float shortFactor = 0.90f;
+   float medFactor = 0.81f;
+   float farFactor = 0.75f;
+   float result = 0.0f;
+   float factor;
+
+   if (wheel == 0) {
+      return dist;
+   }
+
+   if (dist < 100.0f) {
+      factor = shortFactor;
+   } else if (dist < 500.0f) {
+      factor = medFactor;
+   } else {
+      factor = farFactor;
+   }
+
+   if (wheel > 0) {
+      result = dist * factor;
+   } else {
+      result = dist / factor;
+   }
+
+   result = std::min(std::max(result, minDist), maxDist);
+
+   return result;
+}
+
 void Renderer::OnMouseWheel(int value)
 {
    int dWheel = value - mouse_.wheel;
@@ -582,14 +612,9 @@ void Renderer::OnMouseWheel(int value)
    
    // xxx: move this part out into the client --
    csg::Point3f dir = camera_->GetPosition() - cameraTarget_;
-
-   float d = dir.Length();
-
-   d = d + (-dWheel * 10.0f);
-   d = std::min(std::max(d, 0.1f), 3000.0f);
-
+   float dist = dir.Length();
    dir.Normalize();
-   camera_->SetPosition(cameraTarget_ + dir * d);
+   camera_->SetPosition(cameraTarget_ + dir * DistFunc(dist, dWheel, 10.0f, 3000.0f));
 
    UpdateCamera(); // xxx - defer to render time?
 }
@@ -608,9 +633,9 @@ void Renderer::OnMouseMove(int x, int y)
    memset(mouse_.down, 0, sizeof mouse_.down);
 
    if (rotateCamera_) {
-      float degx = (float)mouse_.dx / -3.0f;
-      float degy = (float)-mouse_.dy / 2;
-      camera_->OrbitPointBy(cameraTarget_, degy, degx, -160.0f, 160.0f);
+      float degx = mouse_.dx / -3.0f;
+      float degy = -mouse_.dy / 2.0f;
+      camera_->OrbitPointBy(cameraTarget_, degy, degx, 10.0f, 85.0f);
       camera_->LookAt(cameraTarget_);
 
       UpdateCamera();

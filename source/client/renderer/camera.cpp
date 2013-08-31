@@ -16,25 +16,26 @@ Camera::Camera(H3DNode cameraNode) :
 
 void Camera::OrbitPointBy(const csg::Point3f &point, float xDeg, float yDeg, float minX, float maxX) 
 {
-   float x, y, z;
    float degToRad = csg::k_pi / 180.0f;
-   GetMatrix().get_fixed_angles(z, y, x);
 
-   csg::Point3f newPosition = GetPosition() - point;
+   csg::Point3f originVec = GetPosition() - point;
+   csg::Point3f newPosition = originVec;
+   originVec.Normalize();
+   float xAng = acos(originVec.y) / degToRad;
 
-   csg::Matrix3 yRot, xRot;
-   yRot.rotation_y(yDeg * degToRad);
-   xRot.rotation_x(xDeg * degToRad);
+   if (xAng + xDeg > maxX) {
+      xDeg = maxX - xAng;
+   } else if (xAng + xDeg < minX) {
+      xDeg = minX - xAng;
+   }
 
-   csg::Matrix3 viewRot;
-   viewRot.rotation(z, y, x);
+   csg::Point3f forward, up, left;
+   GetBases(&forward, &up, &left);
+   csg::Quaternion yRot(csg::Point3f(0, 1, 0), yDeg * degToRad);
+   csg::Quaternion xRot(left, xDeg * degToRad);
 
-   // Undo the current camera's rotation; then, apply the orbit; then, redo the camera's rotation.
-   // STILL clearer than bloody quaternions.
-   newPosition = viewRot.inverse() * newPosition;
-   newPosition = yRot * xRot * newPosition;
-   newPosition = viewRot.inverse() * newPosition;
-
+   newPosition = xRot.rotate(newPosition);
+   newPosition = yRot.rotate(newPosition);
    SetPosition(newPosition + point);
 }
 

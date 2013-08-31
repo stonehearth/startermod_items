@@ -108,7 +108,7 @@ class Renderer
       void OnRawInput(UINT msg, WPARAM wParam, LPARAM lParam);
       void Resize(int width, int height);
       void UpdateCamera();
-      csg::Quaternion GetCameraRotation();
+      float DistFunc(float dist, int wheel, float minDist, float maxDist) const;
       MouseEvent WindowToBrowser(const MouseEvent& mouse);
       void CallMouseInputCallbacks();
 
