@@ -14,6 +14,9 @@ Camera::Camera(H3DNode cameraNode) :
 {
 }
 
+// Orbit the specified point, first by 'yDeg' along the world-space y-axis, and then 'xDeg' along
+// the camera's x-axis (the axis point orthogonally to both 'forward' and 'up').  The angle of
+// movement around the x-axis is bound between minX and maxX.
 void Camera::OrbitPointBy(const csg::Point3f &point, float xDeg, float yDeg, float minX, float maxX) 
 {
    float degToRad = csg::k_pi / 180.0f;
