@@ -7,6 +7,11 @@ using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+dm::Object::LuaPromise<DataBinding>* DataBinding_Trace(DataBinding const& db, const char* reason)
+{
+   return new dm::Object::LuaPromise<DataBinding>(reason, db);
+}
+
 scope LuaDataBinding::RegisterLuaTypes(lua_State* L)
 {
    return
@@ -14,5 +19,8 @@ scope LuaDataBinding::RegisterLuaTypes(lua_State* L)
          .def("update",         &DataBinding::SetDataObject)
          .def("get_data",       &DataBinding::GetDataObject)
          .def("mark_changed",   &DataBinding::MarkChanged)
+         .def("trace",          &DataBinding_Trace)
+      ,
+      dm::Object::LuaPromise<DataBinding>::RegisterLuaType(L)         
       ;
 }

@@ -1,19 +1,41 @@
 local CityPlanRenderer = class()
 
-function CityPlanRenderer:__init(render_entity, json)
-   self._children = {}
+function CityPlanRenderer:__init(render_entity, data_store)
+   self._blueprints = {}
    self._node = render_entity:get_node()
-   local renderer = render_entity:get_renderer()
+   self._data_store = data_store
    
-   if json.blueprints then
-      for _, entity in ipairs(json.blueprints) do
-         local child = renderer:create_render_entity(self._node, entity)
-         table.insert(self._children, child)
+   self._promise = data_store:trace('updating render orders')
+   self._promise:on_changed(function ()
+         self:_update()
+      end)
+   self:_update()
+end
+
+function CityPlanRenderer:_update()
+   local data = self._data_store:get_data()
+   
+   if not data or not data.blueprints then
+      return
+   end
+   
+   -- add new entries.
+   for id, entity in pairs(data.blueprints) do
+      if not self._blueprints[id] then
+         self._blueprints[id] = _client:create_render_entity(self._node, entity)
+      end
+   end
+   
+   -- remove deleted entries.
+   for id, _ in pairs(self._blueprints) do
+      if not data.blueprints[id] then
+         self._blueprints[id] = nil
       end
    end
 end
 
-function CityPlanRenderer:__destroy()
+function CityPlanRenderer:destroy()
+   self._promise:destroy()
 end
 
 return CityPlanRenderer

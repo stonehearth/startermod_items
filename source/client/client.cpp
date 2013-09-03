@@ -134,6 +134,8 @@ void Client::run()
    om::RegisterLuaTypes(L);
    csg::RegisterLuaTypes(L);
    client::RegisterLuaTypes(L);
+   store_.SetInterpreter(L);
+   authoringStore_.SetInterpreter(L);
    luabind::globals(L)["_client"] = luabind::object(L, this);
 
    json::ConstJsonObject::RegisterLuaType(L);

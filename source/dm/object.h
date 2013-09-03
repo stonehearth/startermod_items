@@ -5,6 +5,7 @@
 #include "namespace.h"
 #include "all_objects_types.h"
 #include "dm_save_impl.h"
+#include "radiant_luabind.h"
 #include <unordered_map>
 
 BEGIN_RADIANT_DM_NAMESPACE
@@ -39,6 +40,48 @@ public:
    virtual Guard TraceObjectLifetime(const char* reason, std::function<void()> fn) const;
    virtual Guard TraceObjectChanges(const char* reason, std::function<void()> fn) const;
 
+   template <class T>
+   class LuaPromise
+   {
+   public:
+      LuaPromise(const char* reason, T const& c) {
+         auto changed = [=]() {
+            for (auto& cb : cbs_) {
+               luabind::call_function<void>(cb);
+            }
+         };
+         guard_ = c.TraceObjectChanges(reason, changed);
+      }
+
+   public:
+      static luabind::scope RegisterLuaType(struct lua_State* L) {
+         using namespace luabind;
+         const char* name = typeid(T).name();
+         const char* last = strrchr(name, ':');
+         static std::string tname = std::string(last ? last + 1 : name) + "Trace";
+
+         return
+            class_<LuaPromise<T>>(tname.c_str())
+               .def(tostring(const_self))               
+               .def("on_changed",    &LuaPromise::PushChangedCb)
+               .def("destroy",      &LuaPromise::Destroy)
+            ;
+      }
+
+      void Destroy() {
+         guard_.Clear();
+      }
+
+      LuaPromise* PushChangedCb(luabind::object cb) {
+         cbs_.push_back(cb);
+         return this;
+      }
+
+   private:
+      dm::Guard                     guard_;
+      std::vector<luabind::object>  cbs_;
+   };
+
    void SaveObject(Protocol::Object* msg) const;
    void LoadObject(const Protocol::Object& msg);
    
@@ -66,6 +109,16 @@ private:
    ObjectIdentifier     id_;
    GenerationId         timestamp_;
 };
+
+template <typename T>
+static std::ostream& operator<<(std::ostream& os, const Object::LuaPromise<T>& in)
+{
+   const char* name = typeid(T).name();
+   const char* last = strrchr(name, ':');
+   name = last ? last + 1 : name;
+   os << "[" << name << " Promise]";
+   return os;
+}
 
 // TODO: only for T's which are Objects!
 template <class T>

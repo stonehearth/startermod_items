@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "data_binding.h"
 #include "om/entity.h"
+#include "dm/store.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -72,6 +73,14 @@ void DataBinding::LoadValue(const dm::Store& store, const Protocol::Value& msg)
    dm::SaveImpl<std::string>::LoadValue(store, msg, json);
    cached_json_ = libjson::parse(json);
    cached_json_valid_ = true;
+   
+   try {
+      using namespace luabind;
+      object coder = globals(GetStore().GetInterpreter())["radiant"]["json"];
+      data_ = call_function<object>(coder["decode"], json);
+   } catch (std::exception& e) {
+      LOG(WARNING) << "fatal exception loading DataBinding: " << e.what();
+   }
 }
 
 JSONNode DataBinding::GetJsonData() const

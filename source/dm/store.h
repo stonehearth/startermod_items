@@ -3,8 +3,8 @@
 #include "guard.h"
 #include "namespace.h"
 #include "store.pb.h"
+#include "radiant_luabind.h"
 #include <boost/any.hpp>
-
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -22,6 +22,9 @@ public:
 
    int GetStoreId() const { return storeId_; }
    
+   void SetInterpreter(lua_State* L) { L_ = L; }
+   lua_State* GetInterpreter() const { return L_; }
+              
    int GetObjectCount() const;
    int GetTraceCount() const;
 
@@ -156,6 +159,7 @@ private:
    ObjectId       nextObjectId_;
    GenerationId   nextGenerationId_;
    TraceId        nextTraceId_;
+   lua_State*     L_;
 
    TraceMap                traceCallbacks_;
    TraceObjectMap          allocTraces_;
