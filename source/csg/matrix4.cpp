@@ -98,6 +98,11 @@ Matrix4&
 }   // End of Matrix4::operator=()
 
 
+//-------------------------------------------------------------------------------
+// @ Matrix4::fill()
+//-------------------------------------------------------------------------------
+// Fills up this matrix with the values contained in 'values.
+//-------------------------------------------------------------------------------
 void Matrix4::fill(const float *values) 
 {
    v[0] = values[0];
@@ -118,6 +123,12 @@ void Matrix4::fill(const float *values)
    v[15] = values[15];
 }
 
+
+//-------------------------------------------------------------------------------
+// @ Matrix4::identity()
+//-------------------------------------------------------------------------------
+// Sets the translation part of the matrix to the specified input.
+//-------------------------------------------------------------------------------
 void Matrix4::set_translation(const Point3f& translation)
 {
    v[12] = translation.x;
@@ -125,7 +136,13 @@ void Matrix4::set_translation(const Point3f& translation)
    v[14] = translation.z;
 }
 
-Point3f Matrix4::get_translation()
+
+//-------------------------------------------------------------------------------
+// @ Matrix4::identity()
+//-------------------------------------------------------------------------------
+// Returns the translation part of the matrix as a point.
+//-------------------------------------------------------------------------------
+Point3f Matrix4::get_translation() const
 {
    Point3f result;
    result.x = v[12];
@@ -134,6 +151,12 @@ Point3f Matrix4::get_translation()
    return result;
 }
 
+
+//-------------------------------------------------------------------------------
+// @ Matrix4::set_rotation_bases()
+//-------------------------------------------------------------------------------
+// Overwrites the existing rotation basis vectors, with the specified inputs.
+//-------------------------------------------------------------------------------
 void Matrix4::set_rotation_bases(const Point3f& forward, const Point3f& up, const Point3f& left)
 {
    v[0] = left.x;
@@ -148,7 +171,6 @@ void Matrix4::set_rotation_bases(const Point3f& forward, const Point3f& up, cons
    v[9] = forward.y;
    v[10] = forward.z;
 }
-
 
 
 //-------------------------------------------------------------------------------

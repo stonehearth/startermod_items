@@ -83,7 +83,7 @@ void Camera::SetPosition(const csg::Point3f &newPos)
    h3dSetNodeTransMat(node_, m.get_float_ptr());
 }
 
-void Camera::GetBases(csg::Point3f * const forward, csg::Point3f* const up, csg::Point3f* const left) const
+void Camera::GetBases(csg::Point3f* const forward, csg::Point3f* const up, csg::Point3f* const left) const
 {
    const float *f;
    h3dGetNodeTransMats(node_, NULL, &f);
