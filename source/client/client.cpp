@@ -82,8 +82,8 @@ void Client::run()
    renderer.SetMouseInputCallback(std::bind(&Client::OnMouseInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
    renderer.SetKeyboardInputCallback(std::bind(&Client::OnKeyboardInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
-   int width = renderer.GetWidth();
-   int height = renderer.GetHeight();
+   int ui_width = renderer.GetUIWidth();
+   int ui_height = renderer.GetUIHeight();
    int debug_port = 1338;
 
    namespace po = boost::program_options;
@@ -92,7 +92,7 @@ void Client::run()
    json::ConstJsonObject manifest(resources::ResourceManager2::GetInstance().LookupManifest(loader));
    std::string docroot = "http://radiant/" + manifest["loader"]["ui"]["homepage"].as_string();
 
-   browser_.reset(chromium::CreateBrowser(hwnd, docroot, width, height, debug_port));
+   browser_.reset(chromium::CreateBrowser(hwnd, docroot, ui_width, ui_height, debug_port));
    browser_->SetCursorChangeCb([=](HCURSOR cursor) {
       if (uiCursor_) {
          DestroyCursor(uiCursor_);
