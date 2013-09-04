@@ -167,7 +167,10 @@ std::string Simulation::StepPathFinding(std::string const& cmd)
    radiant::stdutil::ForEachPrune<Job>(jobs_, [&](std::shared_ptr<Job> &p) {
       if (!p->IsFinished() && !p->IsIdle()) {
          p->Work(t);
-         p->LogProgress(LOG(WARNING));
+
+         std::ostringstream progress;
+         p->LogProgress(progress);
+         LOG(WARNING) << progress.str();
       }
    });
    return "";
