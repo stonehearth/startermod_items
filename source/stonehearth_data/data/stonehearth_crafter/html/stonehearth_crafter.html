@@ -90,25 +90,25 @@
    <div id="orderOptions">
       <div id="craftOrderOption" class="orderOptionControls" {{bindAttr data-original-title = "craftRadioTooltip"}}>
       <input type="radio" name="conditionGroup" value="make" class="craftRadioButton" id="make" checked>
-      <label for="make" style='width:auto;'>{{i18n stonehearth_crafter:craftNumberLeft}}</label>
+      <label for="make" style='width:auto;'>{{i18n stonehearth_crafter:craft_number_left}}</label>
       <span>
          <div class="dec numericButton">-</div>
          <input type="number" name="quantityToMake" id="makeNumSelector" value="1" min="1" max="99" class="craftNumericSelect">
          <div class="inc numericButton">+</div>
       </span>
-      <label class="rightText" for="make" style='width:auto;'>{{i18n stonehearth_crafter:craftNumberRight}}</label>
+      <label class="rightText" for="make" style='width:auto;'>{{i18n stonehearth_crafter:craft_number_right}}</label>
       </div>
 
       <div id="maintainOrderOption" class="orderOptionControls"
        {{bindAttr data-original-title = "maintainRadioTooltip"}}>
       <input type="radio" name="conditionGroup" value="mantain" class="craftRadioButton" id="maintain">
-      <label for="maintain" style='width:auto'>{{i18n stonehearth_crafter:craftUpToLeft}}</label>
+      <label for="maintain" style='width:auto'>{{i18n stonehearth_crafter:craft_up_to_left}}</label>
       <span>
          <div class="dec numericButton">-</div>
          <input id="mantainNumSelector" type="number" name="quantityToMantain" value="1" min="1" max="99" class="craftNumericSelect">
          <div class="inc numericButton">+</div>
       </span>
-      <label class="rightText" for="maintain" style='width:auto'>{{i18n stonehearth_crafter:craftUpToRight}}</label>
+      <label class="rightText" for="maintain" style='width:auto'>{{i18n stonehearth_crafter:craft_up_to_right}}</label>
       </div>
 
       <button class='btn' {{action "craft" target="view"}}

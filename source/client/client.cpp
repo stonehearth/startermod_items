@@ -75,6 +75,7 @@ void Client::run()
       
    Renderer& renderer = Renderer::GetInstance();
    renderer.SetCurrentPipeline("pipelines/deferred_pipeline_static.xml");
+   //renderer.SetCurrentPipeline("pipelines/forward.pipeline.xml");
 
    HWND hwnd = renderer.GetWindowHandle();
    //defaultCursor_ = (HCURSOR)GetClassLong(hwnd_, GCL_HCURSOR);
@@ -91,6 +92,10 @@ void Client::run()
    std::string loader = configvm["game.loader"].as<std::string>().c_str();
    json::ConstJsonObject manifest(resources::ResourceManager2::GetInstance().LookupManifest(loader));
    std::string docroot = "http://radiant/" + manifest["loader"]["ui"]["homepage"].as_string();
+
+   if (configvm["game.script"].as<std::string>() != "stonehearth/new_world.lua") {
+      docroot += "?skip_title=true";
+   }
 
    browser_.reset(chromium::CreateBrowser(hwnd, docroot, ui_width, ui_height, debug_port));
    browser_->SetCursorChangeCb([=](HCURSOR cursor) {
@@ -525,7 +530,7 @@ void Client::CenterMap(const MouseEvent &mouse)
 
    Renderer::GetInstance().QuerySceneRay(mouse.x, mouse.y, s);
    if (s.HasBlock()) {
-      Renderer::GetInstance().PointCamera(csg::ToFloat(s.GetBlock()));
+      Renderer::GetInstance().PlaceCamera(csg::ToFloat(s.GetBlock()));
    }
 }
 

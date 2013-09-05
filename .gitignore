@@ -46,3 +46,8 @@ Thumbs.db
 ##########
 build/
 *shdDump*.txt
+
+# Visual Studio files #
+#######################
+stonehearth.deproj
+stonehearth.deuser
