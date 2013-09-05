@@ -96,6 +96,8 @@ class Renderer
       int GetCurrentFrameTime() const { return currentFrameTime_; }
       float GetCurrentFrameInterp() const { return currentFrameInterp_; }
 
+      void FlushMaterials();
+
    private:
       NO_COPY_CONSTRUCTOR(Renderer);
 

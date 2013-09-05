@@ -194,6 +194,28 @@ Renderer::Renderer() :
    initialized_ = true;
 }
 
+void Renderer::FlushMaterials() {
+   H3DRes r = 0;
+   while ((r = h3dGetNextResource(H3DResTypes::Shader, r)) != 0) {
+      h3dUnloadResource(r);
+   }
+
+   r = 0;
+   while ((r = h3dGetNextResource(H3DResTypes::Material, r)) != 0) {
+      // TODO: create a set of manually-loaded materials.
+      if (r != uiMatRes_) {
+         h3dUnloadResource(r);
+      }
+   }
+
+   r = 0;
+   while ((r = h3dGetNextResource(H3DResTypes::Pipeline, r)) != 0) {
+      h3dUnloadResource(r);
+   }
+
+   Resize(width_, height_);
+}
+
 Renderer::~Renderer()
 {
    glfwCloseWindow();
