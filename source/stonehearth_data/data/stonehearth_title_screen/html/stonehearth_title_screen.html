@@ -2,22 +2,19 @@
    <div id="titlescreen">
       
       <div id="menubar">
-         <a href="#">exit</a>
-         <a href="#">credits</a>
-         <a href="#">settings</a>
+         <a href="#">{{i18n stonehearth_title_screen:exit}}</a>
+         <a href="#">{{i18n stonehearth_title_screen:credits}}</a>
+         <a href="#">{{i18n stonehearth_title_screen:settings}}</a>
          
       </div>
       <div id="controls">
          <img id="logo" src="/stonehearth_title_screen/html/images/stonehearth_logo.png"><br>
 
          <a href="#" {{action newGame this target="view"}}>
-            <div class="button">New game</div>
+            <div class="button">{{i18n stonehearth_title_screen:new_game}}</div>
          </a>
          <a href="#" {{action loadGame this target="view"}}>
-            <div class="button">Load game</div>
-         </a>
-         <a href="#" {{action credits this target="view"}}>
-            <div class="button">Credits</div>
+            <div class="button">{{i18n stonehearth_title_screen:load_game}}</div>
          </a>
       </div>
    </div>

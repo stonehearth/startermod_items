@@ -27,6 +27,7 @@ App = Ember.Application.createWithMixins({
         deferreds = deferreds.concat(self._loadJavaScripts(data));
         deferreds = deferreds.concat(self._loadCsss(data));
         deferreds = deferreds.concat(self._loadTemplates(data));
+        deferreds = deferreds.concat(self._loadLocales(data));
 
         // when all the tempalates are loading, contune loading the app
         $.when.apply($, deferreds).then(function() {
@@ -130,11 +131,35 @@ App = Ember.Application.createWithMixins({
   				$(response).filter('script[type="text/x-handlebars"]').each(function() {
 	 		    	templateName = $(this).attr('data-template-name');
 			    	Ember.TEMPLATES[templateName] = Ember.Handlebars.compile($(this).html());
-			    	console.log('  loaded template:' + templateName)
+			    	console.log('loaded template:' + templateName)
 			  	});
 	    	}
 	  	});
   	},
+
+    _loadLocales: function(modules) {
+      var self = this;
+      var deferreds = [];
+
+      $.each( modules, function( name, data ) {
+        if (data.ui && data.ui.html) {
+          deferreds.push(self._loadLocale(name));
+        }
+      });
+
+      return deferreds;
+    },
+
+    _loadLocale: function(namespace) {
+      var deferred = $.Deferred();
+
+      i18n.loadNamespace(namespace, function() { 
+        console.log('loaded locale namespace: ' + namespace); 
+        deferred.resolve();
+      });
+
+      return deferred;
+    },
 
     // parse the querystring into a map of options
     _getOptions: function() {
