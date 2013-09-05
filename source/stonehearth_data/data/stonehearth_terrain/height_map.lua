@@ -25,30 +25,6 @@ function HeightMap:scale_map(factor)
    )
 end
 
-function HeightMap:quantize_map_height(step_size)
-   self:process_map(
-      function (value)
-         return MathFns.quantize(value, step_size)
-      end
-   )
-end
-
-function HeightMap:quantize_map_height_nonuniform(step_size)
-   local rounded_value, quantized_value, diff
-   self:process_map(
-      function (value)
-         quantized_value = MathFns.quantize(value, step_size)
-         rounded_value = MathFns.round(value)
-         diff = quantized_value - rounded_value
-         if diff >= 3 and diff <= step_size/2 then
-            return rounded_value
-         else
-            return quantized_value
-         end
-      end
-   )
-end
-
 function HeightMap:normalize_map_height(base_height)
    local min, offset
    min = self:find_map_min()
@@ -121,32 +97,6 @@ function HeightMap:copy_block(dst, src, dstx, dsty, srcx, srcy, block_width, blo
       dst_offset = dst_offset + dst.width
       src_offset = src_offset + src.width
    end
-end
-
--- move this to another class?
--- returns true if any non-diagonal neighbor has a larger value
-function HeightMap:has_higher_neighbor(x, y)
-   local neighbor
-   local offset = self:get_offset(x, y)
-   local value = self[offset]
-
-   if x > 1 then
-      neighbor = self[offset-1]
-      if neighbor > value then return true end
-   end
-   if x < self.width then
-      neighbor = self[offset+1]
-      if neighbor > value then return true end
-   end
-   if y > 1 then
-      neighbor = self[offset-self.width]
-      if neighbor > value then return true end
-   end
-   if y < self.height then
-      neighbor = self[offset+self.width]
-      if neighbor > value then return true end
-   end
-   return false
 end
 
 return HeightMap
