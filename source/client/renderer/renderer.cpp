@@ -158,9 +158,9 @@ Renderer::Renderer() :
 	h3dSetNodeParamF(spotLight, H3DLight::ColorF3, 2, 0);*/
 
    // Skybox
-	H3DNode sky = h3dAddNodes( H3DRootNode, skyBoxRes );
-	h3dSetNodeTransform( sky, 128, 0, 128, 0, 0, 0, 256, 256, 256 );
-	h3dSetNodeFlags( sky, H3DNodeFlags::NoCastShadow, true );
+	//H3DNode sky = h3dAddNodes( H3DRootNode, skyBoxRes );
+	//h3dSetNodeTransform( sky, 128, 0, 128, 0, 0, 0, 256, 256, 256 );
+	//h3dSetNodeFlags( sky, H3DNodeFlags::NoCastShadow, true );
 
    // Resize
    Resize(width_, height_);
@@ -485,7 +485,7 @@ void Renderer::PlaceCamera(const csg::Point3f &location)
 void Renderer::UpdateUITexture(const csg::Region2& rgn, const char* buffer)
 {
    if (!rgn.IsEmpty()) {
-      LOG(WARNING) << "Updating " << rgn.GetArea() << " pixels from the ui texture.";
+      //LOG(WARNING) << "Updating " << rgn.GetArea() << " pixels from the ui texture.";
 
       int pitch = uiWidth_ * 4;
 

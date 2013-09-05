@@ -36,8 +36,8 @@ function TerrainGenerator:generate_zone(zones, x, y)
    
    self:_shape_height_map(oversize_map)
 
-   --oversize_map:quantize_map_height_nonuniform(self.foothills_quantization_size)
-   oversize_map:quantize_map_height(self.foothills_quantization_size)
+   --self:_quantize_map_height_nonuniform(oversize_map, self.foothills_quantization_size)
+   self:_quantize_map_height(oversize_map, self.foothills_quantization_size)
    self:_add_detail_blocks(oversize_map)
 
    oversize_map:copy_block(sub_map, oversize_map,
@@ -78,7 +78,7 @@ function TerrainGenerator:_create_zone_template(height_map)
       end
    end
 
-   height_map:quantize_map_height(self.foothills_quantization_size)
+   self:_quantize_map_height(height_map, self.foothills_quantization_size)
 end
 
 -- transform to frequncy domain and shape frequencies with exponential decay
@@ -113,21 +113,47 @@ function TerrainGenerator:_zone_exists(zones, x, y)
    return zones:get(x, y)
 end
 
+function TerrainGenerator:_quantize_map_height(height_map, step_size)
+   height_map:process_map(
+      function (value)
+         return MathFns.quantize(value, step_size)
+      end
+   )
+end
+
+function TerrainGenerator:_quantize_map_height_nonuniform(height_map, step_size)
+   local half_step = step_size * 0.5
+   local rounded_value, quantized_value, diff
+   height_map:process_map(
+      function (value)
+         quantized_value = MathFns.quantize(value, step_size)
+         rounded_value = MathFns.round(value)
+         diff = quantized_value - rounded_value
+         if diff >= 3 and diff <= half_step then
+            return rounded_value
+         else
+            return quantized_value
+         end
+      end
+   )
+end
+
 function TerrainGenerator:_add_detail_blocks(height_map)
    local i, j
-   local is_lower_edge
+   local edge
    local edge_map = HeightMap(height_map.width, height_map.height)
    local roll
    local seed_probability = 0.10
    local detail_seeds = {}
    local num_seeds = 0
+   local edge_threshold = self.foothills_quantization_size/2
 
    for j=1, height_map.height, 1 do
       for i=1, height_map.width, 1 do
-         is_lower_edge = height_map:has_higher_neighbor(i, j)
-         edge_map:set(i, j, is_lower_edge)
+         edge = self:_is_edge(height_map, i, j, edge_threshold)
+         edge_map:set(i, j, edge)
 
-         if is_lower_edge then
+         if edge then
             if math.random() < seed_probability then
                num_seeds = num_seeds + 1
                detail_seeds[num_seeds] = Point_2D(i, j)
@@ -136,7 +162,7 @@ function TerrainGenerator:_add_detail_blocks(height_map)
       end
    end
 
-   local x, y, point
+   local point
    for i=1, num_seeds, 1 do
       point = detail_seeds[i]
       self:_grow_seed(height_map, edge_map, point.x, point.y)
@@ -144,11 +170,13 @@ function TerrainGenerator:_add_detail_blocks(height_map)
 end
 
 function TerrainGenerator:_grow_seed(height_map, edge_map, x, y)
-   if not edge_map:get(x, y) then return false end
+   local edge = edge_map:get(x, y)
+   if edge == false then return end
 
    local i, j, continue, value, detail_height
 
-   detail_height = self:_generate_detail_height()
+   -- if edge is not false, edge is the dela to the highest neighbor
+   detail_height = self:_generate_detail_height(edge)
 
    value = height_map:get(x, y)
    height_map:set(x, y, value+detail_height)
@@ -191,9 +219,11 @@ function TerrainGenerator:_grow_seed(height_map, edge_map, x, y)
    end
 end
 
-function TerrainGenerator:_generate_detail_height()
+-- inverse bell curve from 1 to quantization size
+-- extend range by 0.5 on each end so that endpoint distribution is not clipped
+function TerrainGenerator:_generate_detail_height(max_delta)
    local min = 0.5
-   local max = self.foothills_quantization_size+0.5
+   local max = math.min(max_delta, self.foothills_quantization_size) + 0.49
 
    -- place the midpoint 2 standard deviations away
    local std_dev = (max-min)*0.25
@@ -201,19 +231,72 @@ function TerrainGenerator:_generate_detail_height()
    return MathFns.round(rand)
 end
 
-function TerrainGenerator:_try_grow(height_map, edge_map, x, y, detail_height)
-   local value
-   local grow_probability = 0.80
+function TerrainGenerator:_generate_detail_height_uniform(max_delta)
+   local min = 1
+   local max = math.min(max_delta, self.foothills_quantization_size)
+   return math.random(min, max)
+end
 
-   if not edge_map:get(x, y) then return false end
+function TerrainGenerator:_try_grow(height_map, edge_map, x, y, detail_height)
+   local edge, value
+   local grow_probability = 0.85
+
+   edge = edge_map:get(x, y)
+   if edge == false then return false end
    if math.random() >= grow_probability then return false end
+
+   detail_height = math.min(detail_height, edge) -- CHECKCHECK
+
    value = height_map:get(x, y)
    height_map:set(x, y, value+detail_height)
    edge_map:set(x, y, false)
    return true
 end
 
+-- returns false is no non-diagonal neighbor higher by more then threshold
+-- othrewise returns the height delta to the highest neighbor
+function TerrainGenerator:_is_edge(height_map, x, y, threshold)
+   if threshold == nil then threshold = 0.99 end
+   local neighbor
+   local offset = height_map:get_offset(x, y)
+   local value = height_map[offset]
+   local delta
+   local max_delta = threshold
+
+   if x > 1 then
+      neighbor = height_map[offset-1]
+      delta = neighbor - value
+      if delta > max_delta then max_delta = delta end
+   end
+   if x < height_map.width then
+      neighbor = height_map[offset+1]
+      delta = neighbor - value
+      if delta > max_delta then max_delta = delta end
+   end
+   if y > 1 then
+      neighbor = height_map[offset-height_map.width]
+      delta = neighbor - value
+      if delta > max_delta then max_delta = delta end
+   end
+   if y < height_map.height then
+      neighbor = height_map[offset+height_map.width]
+      delta = neighbor - value
+      if delta > max_delta then max_delta = delta end
+   end
+
+   if max_delta > threshold then
+      return max_delta
+   else
+      return false
+   end
+end
+
 ----------
+
+function TerrainGenerator:_create_test_map(height_map)
+   height_map:process_map(function (value) return 16 end)
+   height_map:process_map_block(32, 32, 32, 32, function (value) return 14 end)
+end
 
 function TerrainGenerator:_erosion_test()
    local levels = 4
@@ -232,8 +315,7 @@ function TerrainGenerator:_erosion_test()
    WaveletFns.scale_high_freq(height_map, width, height, 1, levels, coeff)
    Wavelet.IDWT_2D(height_map, width, height, levels)
 
-   height_map:normalize_map_height(self.foothills_quantization_size)
-   height_map:quantize_map_height(self.foothills_quantization_size)
+   self:_quantize_map_height(height_map, self.foothills_quantization_size)
 
    return height_map
 end

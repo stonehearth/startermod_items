@@ -1,3 +1,7 @@
 {
-
+   "exit": "exit",
+   "settings": "settings",
+   "credits": "credits",
+   "new_game": "New Game",
+   "load_game": "Load Game"
 }

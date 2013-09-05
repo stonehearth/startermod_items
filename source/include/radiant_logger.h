@@ -1,25 +1,24 @@
 #ifndef _RADIANT_LOGGER_H
 #define _RADIANT_LOGGER_H
 
-// Use the static libray version
-#define GFLAGS_DLL_DECL
-#define GFLAGS_DLL_DECLARE_FLAG
-#define GFLAGS_DLL_DEFINE_FLAG
-#define GOOGLE_GLOG_DLL_DECL
-
-#if !defined(SWIG)
-#  pragma warning(push)
-#    pragma warning(disable: 4244)
-#    include <glog/logging.h>
-#  pragma warning(pop)
-#endif
+#include <boost/log/core.hpp>
+#include <boost/log/sources/severity_logger.hpp>
+#include <boost/log/sources/record_ostream.hpp>
 
 namespace radiant {
    namespace logger {
+      enum Severity {
+         INFO = 0,
+         WARNING = 1,
+         ERROR = 2
+      };
       void init();
       void exit();
    };
-   void log(char *str);
 };
+
+extern boost::log::sources::severity_logger< ::radiant::logger::Severity > __radiant_log_source;
+
+#define LOG(x)  BOOST_LOG_SEV(__radiant_log_source, ::radiant::logger::x)
 
 #endif // _RADIANT_LOGGER_H

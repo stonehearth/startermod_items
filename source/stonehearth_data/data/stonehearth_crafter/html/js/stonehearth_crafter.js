@@ -1,6 +1,4 @@
 $(document).ready(function(){
-   i18n.loadNamespace('stonehearth_crafter', function() { console.log('loaded crafter i18n namespace'); });
-
    // When we get the show_workshop event, toggle the crafting window
    // for this entity.
    $(top).on("show_workshop.stonehearth_crafter", function (_, e) {
