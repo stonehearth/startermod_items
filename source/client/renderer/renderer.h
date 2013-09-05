@@ -14,6 +14,7 @@
 #include <unordered_map>
 #include <boost/property_tree/ptree.hpp>
 #include "lua/namespace.h"
+#include "camera.h"
 
 IN_RADIANT_LUA_NAMESPACE(
    class ScriptHost;
@@ -81,7 +82,7 @@ class Renderer
       InputCallbackId SetKeyboardInputCallback(KeyboardInputEventCb fn);
       void RemoveInputEventHandler(InputCallbackId id);
 
-      void PointCamera(const csg::Point3f &location);
+      void PlaceCamera(const csg::Point3f &location);
       void UpdateUITexture(const csg::Region2& rgn, const char* buffer);
 
       ViewMode GetViewMode() const { return viewMode_; }
@@ -95,6 +96,8 @@ class Renderer
       int GetCurrentFrameTime() const { return currentFrameTime_; }
       float GetCurrentFrameInterp() const { return currentFrameInterp_; }
 
+      void FlushMaterials();
+
    private:
       NO_COPY_CONSTRUCTOR(Renderer);
 
@@ -107,7 +110,7 @@ class Renderer
       void OnRawInput(UINT msg, WPARAM wParam, LPARAM lParam);
       void Resize(int width, int height);
       void UpdateCamera();
-      csg::Quaternion GetCameraRotation();
+      float DistFunc(float dist, int wheel, float minDist, float maxDist) const;
       MouseEvent WindowToBrowser(const MouseEvent& mouse);
       void CallMouseInputCallbacks();
 
@@ -137,9 +140,9 @@ class Renderer
       H3DRes            panelMatRes_;
       H3DRes            uiMatRes_;
       H3DRes            uiTexture_;
-      H3DNode           camera_;
 
-      csg::Point3f   cameraPos_;
+      Camera*            camera_;
+
       csg::Point3f   cameraTarget_;
       csg::Point3f   cameraMoveDirection_;
 
