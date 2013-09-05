@@ -2,8 +2,10 @@ App.StonehearthUnitFrameView = App.View.extend({
 	templateName: 'unitFrame',
 
    components: {
-      "unit_info": {},
-      "radiant:commands": {}
+      "radiant:commands": {
+         commands: []
+      },
+      "unit_info": {}
    },
 
    init: function() {
@@ -14,22 +16,33 @@ App.StonehearthUnitFrameView = App.View.extend({
          self._selected_entity = evt.data.selected_entity;
          if (self._selected_entity) {
             self.set('uri', self._selected_entity);
-            //$('#unitframe').show()
          } else {
-            //$('#unitframe').hide()
             self.set('uri', null);
          }
 
       });
    },
 
+   //When we hover over a command button, show its tooltip
    didInsertElement: function() {
-      $('.commandButton').tooltip({
-         delay: { show: 400, hide: 0 }
+      $('#commandButtons').on('mouseover', '.commandButton', function(event){
+         var target = event.target, $cmdBtn;
+         if (target.tagName.toLowerCase() == 'img') {
+            $cmdBtn = $(target).parent('.commandButton');
+         } else {
+            $cmdBtn = $(target);
+         }
+         $cmdBtn.tooltip({
+            animation: true
          });
+         $cmdBtn.tooltip('show');
+      });
    },
 
    doCommand: function(command) {
+      if (!command.enabled) {
+         return;
+      }
       if (command.action == 'fire_event') {
          // xxx: error checking would be nice!!
          var e = {
@@ -37,7 +50,7 @@ App.StonehearthUnitFrameView = App.View.extend({
             event_data : command.event_data
          };
          $(top).trigger(command.event_name, e);
-      } else if (command.action == 'post') {         
+      } else if (command.action == 'post') {
          // $.post(command.post_uri, command.post_data);
          $.ajax({
             type: 'post',
@@ -54,6 +67,13 @@ App.StonehearthUnitFrameView = App.View.extend({
       } else {
          $('#unitframe').hide();
       }
+   }.observes('context'),
 
-   }.observes('context')
+   /*
+   //Example of listening on an array
+   _onCommandChange: function() {
+      console.log('commands changing!');
+   }.observes('context.radiant:commands.commands'),
+   */
+
 });

@@ -26,13 +26,14 @@ function Workshop:__init(entity, data_binding)
    self._bench_outputs = {}            -- An array of finished products on the bench, to be added to the outbox. Nil if nothing.
    self._outbox = nil                  -- The outbox entity
    self._saw = nil                     -- The saw for the bench, available when there is no craftsman
-   
+
    self._data = data_binding:get_data()
    self._data.crafter = nil
    self._data.order_list = self._todo_list
-   
+
    self._data_binding = data_binding
    self._data_binding:mark_changed()
+
 end
 
 function Workshop:extend(json)
@@ -158,6 +159,13 @@ function Workshop:set_crafter(crafter)
    if not crafter or not current or current:get_id() ~= crafter:get_id() then
       self._data.crafter = crafter
       self._data_binding:mark_changed()
+
+      local commandComponent = self._entity:get_component('radiant:commands')
+      if crafter then
+         commandComponent:enable_command('show_craft_ui', true)
+      else
+         commandComponent:enable_command('show_craft_ui', false);
+      end
    end
 end
 
@@ -169,7 +177,6 @@ end
 function Workshop:set_saw_entity(saw_entity)
    self._saw = saw_entity
    local saw_loc = radiant.entities.get_location_aligned(self._entity)
-   --TODO: how do we get the saw higher in the world?
    radiant.terrain.place_entity(saw_entity, Point3(saw_loc.x, 3, saw_loc.z + 3))
 end
 

@@ -162,7 +162,7 @@ App.StonehearthCrafterView = App.View.extend({
    togglePause: function(){
       var url = this.get('context.stonehearth_crafter:workshop').__self + "?fn=toggle_pause";
       var data = {};
-      $('.tooltip').remove();
+      $('#pauseButton').tooltip('hide');//remove();
       $.ajax({
             type: 'post',
             url: url,
@@ -345,8 +345,6 @@ App.StonehearthCrafterView = App.View.extend({
          console.log("overflowchanged!");
          $('#orderListUpBtn').toggle();
          $('#orderListDownBtn').toggle();
-         //$('#orderListUpBtn').show();
-         //$('#orderListDownBtn').show();
       });
    },
 
@@ -412,22 +410,16 @@ App.StonehearthCrafterView = App.View.extend({
    _initializeTooltips: function() {
       this.set('context.craftRadioTooltip', i18n.t('stonehearth_crafter:craft_radio_tooltip'));
       this.set('context.maintainRadioTooltip', i18n.t('stonehearth_crafter:maintain_radio_tooltip'));
-
       this.set('context.craftButtonTooltip', i18n.t('stonehearth_crafter:add_order_tooltip'));
-
       this.set('context.pauseLinkTooltip', i18n.t('stonehearth_crafter:pause_tooltip'));
       this.set('context.garbageButtonTooltip', i18n.t('stonehearth_crafter:delete_tooltip'));
 
-      //$('#garbageButton').attr('data-original-title', i18n.t('stonehearth_crafter:delete_tooltip'));
-      //$('#craftButton').attr('data-original-title', i18n.t('stonehearth_crafter:add_order_tooltip'));
-
-      $('#craftOrderOption').tooltip();
-      $('#maintainOrderOption').tooltip();
-
-      $('#pauseLink').tooltip();
-      $('#garbageButton').tooltip();
-      $('#pauseButton').tooltip();
-      $('#craftButton').tooltip();
+      $('#craftOrderOption').tooltip({animate:true});
+      $('#maintainOrderOption').tooltip({animate:true});
+      $('#pauseLink').tooltip({animate:true});
+      $('#garbageButton').tooltip({animate:true});
+      $('#pauseButton').tooltip({animate:true});
+      $('#craftButton').tooltip({animate:true});
    }
 
 
