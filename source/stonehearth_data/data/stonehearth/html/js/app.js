@@ -5,6 +5,7 @@ App = Ember.Application.createWithMixins({
   	init: function() {
   		this.deferReadiness();
   		this._super();
+      this._getOptions();
       this._loadModules();
   	},
 
@@ -12,7 +13,6 @@ App = Ember.Application.createWithMixins({
       //Start the poll
       radiant.events.poll();
   	},
-
 
     _loadModules: function() {
       var self = this;
@@ -135,6 +135,25 @@ App = Ember.Application.createWithMixins({
 	    	}
 	  	});
   	},
+
+    // parse the querystring into a map of options
+    _getOptions: function() {
+      var vars = [], hash;
+      var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+
+      console.log('ui options');
+      console.log('--------------------')
+      for(var i = 0; i < hashes.length; i++)
+      {
+          hash = hashes[i].split('=');
+          vars.push(hash[0]);
+          vars[hash[0]] = hash[1];
+          console.log(hash[0] + ": " + hash[1]);
+      }
+      console.log('--------------------')
+
+      this.options = vars;
+    },
 
   	start: function() {
   		// TODO, hook this up. It's just prettier that way

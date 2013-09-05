@@ -92,6 +92,10 @@ void Client::run()
    json::ConstJsonObject manifest(resources::ResourceManager2::GetInstance().LookupManifest(loader));
    std::string docroot = "http://radiant/" + manifest["loader"]["ui"]["homepage"].as_string();
 
+   if (configvm["game.script"].as<std::string>() != "stonehearth/new_world.lua") {
+      docroot += "?skip_title=true";
+   }
+
    browser_.reset(chromium::CreateBrowser(hwnd, docroot, ui_width, ui_height, debug_port));
    browser_->SetCursorChangeCb([=](HCURSOR cursor) {
       if (uiCursor_) {
