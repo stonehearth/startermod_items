@@ -479,7 +479,7 @@ void Renderer::PlaceCamera(const csg::Point3f &location)
 void Renderer::UpdateUITexture(const csg::Region2& rgn, const char* buffer)
 {
    if (!rgn.IsEmpty()) {
-      LOG(WARNING) << "Updating " << rgn.GetArea() << " pixels from the ui texture.";
+      //LOG(WARNING) << "Updating " << rgn.GetArea() << " pixels from the ui texture.";
 
       int pitch = uiWidth_ * 4;
 
