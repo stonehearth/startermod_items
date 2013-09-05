@@ -17,9 +17,9 @@ local Point_2D = radiant.mods.require('/stonehearth_terrain/point_2D.lua')
 -- Biome = a collection of zones fitting a larger theme (tundra, desert)?
 -- World = the entire playspace of a game
 
-function TerrainGenerator:__init(zone_size)
+function TerrainGenerator:__init()
    math.randomseed(3)
-   self.zone_size = zone_size
+   self.zone_size = 256
    self.tile_size = 32
    self.foothills_quantization_size = 8
    self.foothills_mean_height = 16
