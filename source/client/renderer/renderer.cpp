@@ -191,6 +191,10 @@ Renderer::Renderer() :
 
    //glfwSwapInterval(1); // Enable VSync
 
+   fileWatcher_.addWatch(L"horde", [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
+      Renderer::GetInstance().FlushMaterials();
+   }, true);
+
    initialized_ = true;
 }
 
@@ -326,6 +330,8 @@ void Renderer::RenderOneFrame(int now, float alpha)
       h3dutShowFrameStats( fontMatRes_, panelMatRes_, H3DUTMaxStatMode );
    }
 	
+
+   fileWatcher_.update();
    LoadResources();
 
 	// Render scene
