@@ -12,15 +12,17 @@
          </div>
 
          {{#if stonehearth_crafter:workshop.order_list}}
-            <div id="statusSign" {{bindAttr class="workshopIsPaused:closed:open"}}>
-               <a id="pauseLink" {{action togglePause target="view"}}>
-                  {{#if stonehearth_crafter:workshop.is_paused}}
-                     {{i18n stonehearth_crafter:closed}}
-                  {{else}}
-                     {{i18n stonehearth_crafter:open}}
-                  {{/if}}                     
-               </a>
-            </div>
+            <a id="pauseLink" {{action togglePause target="view"}}>
+               <div id="statusSign" {{bindAttr class="workshopIsPaused:closed:open"}}>
+                  <div id="message">
+                     {{#if stonehearth_crafter:workshop.is_paused}}
+                        {{i18n stonehearth_crafter:closed}}
+                     {{else}}
+                        {{i18n stonehearth_crafter:open}}
+                     {{/if}}
+                  </div>
+               </div>
+            </a>
          {{/if}}
 
       </div>

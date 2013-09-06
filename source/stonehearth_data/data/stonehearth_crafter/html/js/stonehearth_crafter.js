@@ -158,7 +158,38 @@ App.StonehearthCrafterView = App.View.extend({
    workshopIsPaused: Ember.computed.alias("stonehearth_crafter:workshop.is_paused"),
 
    _workshopIsPausedAlias: function() {
-      this.set('context.workshopIsPaused', this.get('context.stonehearth_crafter:workshop.is_paused'))
+      var isPaused = this.get('context.stonehearth_crafter:workshop.is_paused');
+      this.set('context.workshopIsPaused', isPaused)
+
+      var r = isPaused ? 4 : -4;
+
+      // flip the sign
+      $("#statusSign").animate({  
+         rot: r,
+         }, 
+         {
+            duration: 200,
+            step: function(now,fx) {
+               var percentDone;
+               var end = fx.end;
+               var start = fx.start;
+
+               if (end > start) {
+                  console.log('end > start');
+                  percentDone = (now - start) / (end - start);
+               } else {
+                  percentDone = -1 * (now - start) / (start - end);
+               }
+
+               var scaleX = percentDone < .5 ? 1 - (percentDone * 2) : (percentDone * 2) - 1;
+
+               console.log('step = ' + now + ", " + scaleX);
+
+               $(this).css('-webkit-transform', 'rotate(' + now + 'deg) scale(' + scaleX +', 1)');
+            }
+      });
+
+
    }.observes('context.stonehearth_crafter:workshop.is_paused'),
 
    togglePause: function(){

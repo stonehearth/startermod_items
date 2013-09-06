@@ -88,7 +88,7 @@
          height: 128px;
          color: #fff;
 
-         #pauseLink {
+         #message {
             position: absolute;
             top: 80px;
             left: 0px;
@@ -97,11 +97,12 @@
             text-align: center;
             font-family: 'Lemiesz';
             font-size:30px;
-
-            &:hover {
-               color: #ffc000;
-            }
          }
+
+         &:hover {
+            color: #ffc000;
+         }
+
       }
 
       .open {
@@ -436,31 +437,31 @@
    #orders::-webkit-scrollbar { width: 0 }
 
    #orderListControls {
+      position: relative;
       background: url('/stonehearth_crafter/html/images/queue_control_bg.png');
-      width: 400px;
+      width: 150px;
       height: 250px;
       background-repeat: no-repeat;
       background-position: left top;
 
       #garbageButton {
-         position: relative;
-         top: 18px;
-         left: 48px;
+         position: absolute;
+         top: 8px;
+         left: 0px;
+         width: 140px;
+         height: 60px;
          display: block;
          background: url('/stonehearth_crafter/html/images/trash_button.png');
          background-repeat:no-repeat;
-         background-position:left top;
-         width: 250px;
-         height: 200px;
-         margin-left: 10px;
-         margin-top: 18px;
+         background-position:center center;
       }
 
       #garbageList {
-         float: left;
-         width: 250px;
-         height: 250px;
-         margin-left: -34px;
+         position: absolute;
+         top: -20px;
+         left: 0px;
+         width: 140px;
+         height: 100px;
       }
 
    }
