@@ -47,7 +47,7 @@ App.StonehearthUnitFrameView = App.View.extend({
          // xxx: error checking would be nice!!
          var e = {
             entity : this._selected_entity,
-            event_data : command.event_data
+         event_data : command.event_data
          };
          $(top).trigger(command.event_name, e);
       } else if (command.action == 'post') {
