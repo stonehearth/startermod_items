@@ -2,6 +2,7 @@ native:log('requiring microworld')
 
 local MicroWorld = radiant.mods.require('/stonehearth_tests/lib/micro_world.lua')
 local TerrainGenerator = radiant.mods.require('/stonehearth_terrain/terrain_generator.lua')
+local ZoneType = radiant.mods.require('/stonehearth_terrain/zone_type.lua')
 
 local Terrain = _radiant.om.Terrain
 local Cube3 = _radiant.csg.Cube3
@@ -22,7 +23,7 @@ end
 function NewWorld:create_world()
    local height_map
 
-   height_map = self._terrain_generator:generate_zone()
+   height_map = self._terrain_generator:generate_zone(ZoneType.Foothills)
    self:_render_height_map_to_terrain(height_map)
 end
 
@@ -80,7 +81,8 @@ function NewWorld:_copy_heightmap_to_CPP(heightMapCPP, height_map)
 end
 
 function NewWorld:_add_land_to_region(dst, rect, height)
-   local foothills_quantization_size = self._terrain_generator.foothills_quantization_size
+   local foothills_quantization_size = 
+      self._terrain_generator.zone_params[ZoneType.Foothills].quantization_size
 
    dst:add_cube(Cube3(Point3(rect.min.x, -2, rect.min.y),
                       Point3(rect.max.x,  0, rect.max.y),
