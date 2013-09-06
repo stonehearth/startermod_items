@@ -19,14 +19,12 @@ function PromoteTest:__init()
    bench:add_component('unit_info'):set_faction(faction)
 
 
-   local saw = radiant.entities.create_entity('/stonehearth_items/carpenter_saw')
-   workshop_component:set_saw_entity(saw)
+   local saw = workshop_component:init_promotion_talisman(bench)
+   saw:add_component('unit_info'):set_faction(faction)
 
    local tree = self:place_tree(-12, 0)
    local tree2 = self:place_tree(-12, 12)
 
-   saw:add_component('unit_info'):set_faction(faction)
-   saw:get_component('stonehearth_classes:talisman_promotion_info'):set_promotion_data({workshop = workshop_component})
 
    --Human TODO
    --Test that the dude can chop down the tree

@@ -577,10 +577,6 @@ void Simulation::HandleRouteRequest(luabind::object ctor, JSONNode const& query,
       using namespace luabind;
       lua_State* L = scriptHost_->GetCallbackState();
       object queryObj = scriptHost_->JsonToLua(query);
-      object postdataObj;
-      if (!postdata.empty()) {
-         postdataObj = scriptHost_->JsonToLua(libjson::parse(postdata));
-      }
       object coder = globals(L)["radiant"]["json"];
 
       object obj = call_function<object>(ctor);
@@ -592,8 +588,17 @@ void Simulation::HandleRouteRequest(luabind::object ctor, JSONNode const& query,
             fn = obj[fname];
          }
       }
+#if 0
+      // tony, remove this please!
+      object postdataObj;
+      if (!postdata.empty()) {
+         postdataObj = scriptHost_->JsonToLua(libjson::parse(postdata));
+      }
       object result = call_function<object>(fn, obj, queryObj, postdataObj);
       std::string json = call_function<std::string>(coder["encode"], result);
+#else
+      std::string json = scriptHost_->PostCommand(fn, obj, postdata);
+#endif
 
       reply->set_status_code(200);
       reply->set_content(json);

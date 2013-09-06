@@ -19,9 +19,9 @@ $(document).ready(function(){
       // this. All the work is done in the client and server
 
       var crafterModUri = '/modules/client/stonehearth_crafter/create_workbench';
-      var workbenchEntity = e.workbench;
+      var workbench_uri = e.workbench_uri;
 
-      $.get(crafterModUri, { entity: workbenchEntity })
+      $.get(crafterModUri, { workbench_uri: workbench_uri })
          .done(function(o){
             //xxx, place the outbox
          })

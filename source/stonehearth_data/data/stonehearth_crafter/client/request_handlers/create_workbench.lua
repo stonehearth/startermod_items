@@ -8,7 +8,7 @@ function CreateWorkbench:handle_request(query, postdata, response)
    -- screen to preview where the workbench will go.  these entities are called
    -- "authoring entities", because they exist only on the client side to help
    -- in the authoring of new content.
-   self._cursor_entity = _client:create_authoring_entity(query.entity)
+   self._cursor_entity = _client:create_authoring_entity(query.workbench_uri)
 
    -- add a render object so the cursor entity gets rendered.
    local re = _client:create_render_entity(1, self._cursor_entity)
@@ -21,12 +21,12 @@ function CreateWorkbench:handle_request(query, postdata, response)
    -- the entity that we're supposed to create whenever the user clicks.
    self._capture = _client:trace_mouse()
    self._capture:on_mouse_event(function(e)
-                        self:_on_mouse_event(e, query.entity, response)
+                        self:_on_mouse_event(e, query.workbench_uri, response)
                      end)
 end
 
 -- called each time the mouse moves on the client.
-function CreateWorkbench:_on_mouse_event(e, entity_uri, response)
+function CreateWorkbench:_on_mouse_event(e, workbench_uri, response)
    -- query the scene to figure out what's under the mouse cursor
    local s = _client:query_scene(e.x, e.y)
   
@@ -53,14 +53,14 @@ function CreateWorkbench:_on_mouse_event(e, entity_uri, response)
       -- pass "" for the function name so the deafult (handle_request) is
       -- called.  this will return a Deferred object which we can use to track
       -- the call's progress
-      _client:call('/modules/server/stonehearth_crafter/create_workbench', "", { entity = entity_uri, location = pt })
+      _client:call('/modules/server/stonehearth_crafter/create_workbench', "", { workbench_uri = workbench_uri, location = pt })
                :always(function ()
                      -- whether the request succeeds or fails, go ahead and destroy
                      -- the authoring entity.  do it after the request returns to avoid
                      -- the ugly flickering that would occur had we destroyed it when
                      -- we uninstalled the mouse cursor
                      _client:destroy_authoring_entity(self._cursor_entity:get_id())
-                     response:complete({ entity = entity_uri })
+                     response:complete({})
                   end)
 
    end   
