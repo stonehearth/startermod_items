@@ -125,6 +125,7 @@ void Simulation::LoadModuleGameObjects(std::string const& modname, json::ConstJs
          dataBindings_[dataBindingName] = scriptHost_->LuaRequire(controller);
          if (info.has("publish_at")) {
             om::DataBindingPtr binding = GetStore().AllocObject<om::DataBinding>();
+            binding->SetDataObject(luabind::newtable(scriptHost_->GetInterpreter()));
             luabind::object ctor = dataBindings_[dataBindingName];
             luabind::object model = luabind::call_function<luabind::object>(ctor, binding);
             std::ostringstream uri;

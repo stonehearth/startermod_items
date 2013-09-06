@@ -13,6 +13,9 @@ end
 
 function JobInfo:extend(json)
    if json then
+      if json.id then
+         self._id = json.id
+      end
       if json.name then
          self._name = json.name
       end
@@ -26,6 +29,14 @@ function JobInfo:extend(json)
          self._class_script = json.class_script
       end
    end
+end
+
+function JobInfo:get_name()
+   return self._name
+end
+
+function JobInfo:get_id()
+   return self._id
 end
 
 function JobInfo:get_class_script()

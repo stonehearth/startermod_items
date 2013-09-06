@@ -25,6 +25,9 @@ function PromoteTest:__init()
    local tree = self:place_tree(-12, 0)
    local tree2 = self:place_tree(-12, 12)
 
+   self:at(10000, function()
+         self:place_citizen(12, 10)
+      end)
 
    --Human TODO
    --Test that the dude can chop down the tree

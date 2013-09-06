@@ -1,9 +1,10 @@
 {
    "components": {
       "stonehearth_classes:job_info": {
+         "id": "worker", 
+         "name": "Worker",
          "class_script": "/stonehearth_worker_class/", 
          "icon": "", 
-         "name": "Worker", 
          "description": "Hi ho, hi ho, it's of to work we go..."
       }, 
       "radiant:ai": {
