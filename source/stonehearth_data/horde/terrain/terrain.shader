@@ -128,7 +128,7 @@ uniform vec3 viewerPos;
 uniform vec4 matDiffuseCol;
 uniform vec4 matSpecParams;
 uniform sampler2D albedoMap;
-vec3 ambientLightColor = vec3(0.4, 0.4, 0.4);
+vec3 ambientLightColor = vec3(0.01, 0.01, 0.01);
 
 varying vec4 pos;
 varying vec3 tsbNormal;
