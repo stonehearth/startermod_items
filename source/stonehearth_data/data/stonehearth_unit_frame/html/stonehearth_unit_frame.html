@@ -6,9 +6,10 @@
       <div class="description">{{unit_info.description}}</div>
    </div>
    <div id="commandButtons">
-      {{#each radiant:commands}}
+      {{#each radiant:commands.commands}}
          <a href="#" {{action doCommand this target="view"}}>
-            <div class="commandButton" {{bindAttr title="tooltip"}}>
+            <div {{bindAttr class = ":commandButton enabled:buttonEnabled:buttonDisabled"}}
+             {{bindAttr title="tooltip"}}>
                <img {{bindAttr src="icon"}} >
             </div>
          </a>

@@ -79,7 +79,6 @@ App.StonehearthCrafterView = App.View.extend({
       console.log("DidInsertElement is being called on the crafting window");
       console.log(this.get("context.stonehearth_crafter:workshop.order_list"));
       this._super();
-      //this._initPauseSign();
       this._buildAccordion();
       this._buildOrderList();
       initIncrementButtons();
@@ -91,10 +90,32 @@ App.StonehearthCrafterView = App.View.extend({
    },
 
    //Call this function when the selected order changes.
-   select: function(object) {
+   select: function(object, remaining, maintainNumber) {
       this.set('context.current', object);
+      this._setRadioButtons(remaining, maintainNumber);
       //TODO: make the selected item visually distinct
       this.preview();
+   },
+
+   _setRadioButtons: function(remaining, maintainNumber) {
+      //Set the radio buttons correctly
+      if (remaining) {
+         $("#makeNumSelector").val(remaining);
+         $("#make").prop("checked", "checked");
+      } else {
+         $("#makeNumSelector").val("1");
+         $("#make").prop("checked", false);
+      }
+      if (maintainNumber) {
+         $("#mantainNumSelector").val(maintainNumber);
+         $("#maintain").prop("checked", "checked");
+      } else {
+         $("#mantainNumSelector").val("1");
+         $("#maintain").prop("checked", false);
+      }
+      if (!remaining && !maintainNumber) {
+         $("#make").prop("checked", "checked");
+      }
    },
 
    preview: function() {
@@ -134,6 +155,12 @@ App.StonehearthCrafterView = App.View.extend({
          });
    },
 
+   workshopIsPaused: Ember.computed.alias("stonehearth_crafter:workshop.is_paused"),
+
+   _workshopIsPausedAlias: function() {
+      this.set('context.workshopIsPaused', this.get('context.stonehearth_crafter:workshop.is_paused'))
+   }.observes('context.stonehearth_crafter:workshop.is_paused'),
+
    togglePause: function(){
       var url = this.get('context.stonehearth_crafter:workshop').__self + "?fn=toggle_pause";
       var data = {};
@@ -162,7 +189,7 @@ App.StonehearthCrafterView = App.View.extend({
       var element = $("#recipeAccordion");
       element.accordion({
          active: 1,
-         animate: false,
+         animate: true,
          heightStyle: "fill"
       });
 
@@ -239,6 +266,7 @@ App.StonehearthCrafterView = App.View.extend({
    _buildOrderList: function(){
       var self = this;
       $( "#orders, #garbageList" ).sortable({
+         axis: "y",
          connectWith: "#garbageList",
          beforeStop: function (event, ui) {
             //Called right after an object is dropped
@@ -297,6 +325,7 @@ App.StonehearthCrafterView = App.View.extend({
       }).disableSelection();
 
       this._initButtonStates();
+      this._enableDisableTrash();
    },
 
    //Initialize button states to visible/not based on contents of
@@ -318,8 +347,6 @@ App.StonehearthCrafterView = App.View.extend({
          console.log("overflowchanged!");
          $('#orderListUpBtn').toggle();
          $('#orderListDownBtn').toggle();
-         //$('#orderListUpBtn').show();
-         //$('#orderListDownBtn').show();
       });
    },
 
@@ -329,23 +356,37 @@ App.StonehearthCrafterView = App.View.extend({
       orderList.animate({scrollTop: localScrollTop}, 100);
    },
 
-   initPauseSign: function() {
-      var $pauseLink = $("#pauseLink");
-      if (!$pauseLink.data('initialized')) {
-         $pauseLink.hover(
-             function() {
-                 var $this = $(this); // caching $(this)
-                 $this.data('initialText', $this.text());
-                 $this.text(i18n.t("stonehearth_crafter:resume"));
-             },
-             function() {
-                 var $this = $(this); // caching $(this)
-                 $this.text($this.data('initialText'));
-             }
-         );
-         $pauseLink.data('initialized', true);
+   _isPausedObserver: function() {
+      this._playPause();
+   }.observes('context.stonehearth_crafter:workshop.is_paused'),
+
+
+   _playPause: function() {
+      var $pauseBtn = $('#pauseButton');
+      if (this.get('context.stonehearth_crafter:workshop.is_paused')) {
+         $('#pausedLabel').show();
+         this.set('context.craftingStatus', i18n.t('stonehearth_crafter:paused_status'));
+         $pauseBtn.removeClass('showPause');
+         $pauseBtn.addClass('showPlay');
+      } else {
+         $('#pausedLabel').hide();
+         this.set('context.craftingStatus', i18n.t('stonehearth_crafter:crafting_status'));
+         $pauseBtn.removeClass('showPlay');
+         $pauseBtn.addClass('showPause');
+      }
+   },
+
+   _orderListObserver: function() {
+      this._enableDisableTrash();
+   }.observes('context.stonehearth_crafter:workshop.order_list'),
+
+   _enableDisableTrash: function() {
+      var list = this.get('context.stonehearth_crafter:workshop.order_list');
+      if (list && list.length > 0) {
+         $('#garbageButton').css('opacity', '1');
+      } else {
+         $('#garbageButton').css('opacity', '0.3');
       }
    }
-
 
 });

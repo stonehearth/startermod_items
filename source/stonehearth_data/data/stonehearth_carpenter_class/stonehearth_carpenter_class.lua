@@ -21,7 +21,16 @@ function carpenter_class.promote(entity, promotion_data)
    local outfit = radiant.entities.create_entity('/stonehearth_carpenter_class/entities/carpenter_outfit')
    local render_info = entity:add_component('render_info')
    render_info:attach_entity(outfit)
-   -- end xxx:    
+   -- end xxx:
+end
+
+function carpenter_class.demote(entity)
+  --move saw back to the bench
+  --local crafter_component = entity:get_component("stonehearth_crafter:crafter")
+  --local bench_component = crafter_component:get_workshop()
+
+
+
 end
 
 return carpenter_class
