@@ -9,8 +9,6 @@ local Region2 = _radiant.csg.Region2
 local Region3 = _radiant.csg.Region3
 local HeightMapCPP = _radiant.csg.HeightMap
 
-local Point3 = _radiant.csg.Point3
-
 local TeraGen = radiant.mods.require('/stonehearth_terrain')
 
 local HeightMap = radiant.mods.require('/stonehearth_terrain/height_map.lua')
@@ -24,16 +22,13 @@ local GaussianRandom = radiant.mods.require('/stonehearth_terrain/math/gaussian_
 local InverseGaussianRandom = radiant.mods.require('/stonehearth_terrain/math/inverse_gaussian_random.lua')
 local Timer = radiant.mods.require('/stonehearth_terrain/timer.lua')
 
-local zone_size = 256
-
 function TerrainTest:__init()
    --self:_run_timing_tests()
    --self:_run_unit_tests()
    
    self[MicroWorld]:__init()
 
-   self._terrain_generator = TerrainGenerator(zone_size)
-   self.foothills_quantization_size = self._terrain_generator.foothills_quantization_size
+   self._terrain_generator = TerrainGenerator()
 
    self:create_world()
    --self:create_multi_zone_world()
@@ -49,6 +44,7 @@ function TerrainTest:create_world()
 end
 
 function TerrainTest:create_multi_zone_world()
+   local zone_size = self._terrain_generator.zone_size
    local world_map = HeightMap(zone_size*2, zone_size*2)
    local zones = Array2D(3, 3)
    local zone_map
@@ -66,7 +62,6 @@ function TerrainTest:create_multi_zone_world()
    micro_map = self._terrain_generator:_create_micro_map(zone_map)
    zones:set(2, 3, micro_map)
    self:_render_height_map_to_terrain(world_map)
-
 end
 
 function TerrainTest:create_old_world()
@@ -75,6 +70,7 @@ function TerrainTest:create_old_world()
 end
 
 function TerrainTest:decorate_landscape()
+   local zone_size = self._terrain_generator.zone_size
    local i
    for i=1, 20, 1 do
       self:place_tree(math.random(1, zone_size), math.random(1, zone_size))
@@ -109,6 +105,7 @@ end
 
 ----------
 
+-- delegate to C++ to "tesselate" heightmap into rectangles
 function TerrainTest:_render_height_map_to_terrain(height_map)
    local r2 = Region2()
    local r3 = Region3()
@@ -139,11 +136,13 @@ function TerrainTest:_copy_heightmap_to_CPP(heightMapCPP, height_map)
 end
 
 function TerrainTest:_add_land_to_region(dst, rect, height)
+   local foothills_quantization_size = self._terrain_generator.foothills_quantization_size
+
    dst:add_cube(Cube3(Point3(rect.min.x, -2, rect.min.y),
                       Point3(rect.max.x,  0, rect.max.y),
                 Terrain.BEDROCK))
 
-   if height % self.foothills_quantization_size == 0 then
+   if height % foothills_quantization_size == 0 then
       dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
                          Point3(rect.max.x, height-1, rect.max.y),
                    Terrain.TOPSOIL))
