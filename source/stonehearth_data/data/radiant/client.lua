@@ -11,5 +11,6 @@ radiant.util = require 'radiant.lib.util'
 radiant.json = require 'radiant.lualibs.dkjson'
 radiant.check = require 'radiant.lib.check'
 radiant.events = require 'radiant.modules.events'
+radiant.mods = require 'radiant.modules.mods'
 
 return api
