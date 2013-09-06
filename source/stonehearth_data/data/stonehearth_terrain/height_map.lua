@@ -19,32 +19,6 @@ function HeightMap:get_offset(x, y)
    return (y-1)*self.width + x
 end
 
-function HeightMap:scale_map(factor)
-   self:process_map(
-      function (value) return value*factor end
-   )
-end
-
-function HeightMap:normalize_map_height(base_height)
-   local min, offset
-   min = self:find_map_min()
-   offset = min-base_height
-   self:process_map(
-      function (value) return value-offset end
-   )
-end
-
-function HeightMap:find_map_min()
-   local min = self[1]
-   self:process_map(
-      function (value)
-         if value < min then min = value end
-         return value
-      end
-   )
-   return min
-end
-
 function HeightMap:process_map(func)
    local i
    local size = self.width * self.height

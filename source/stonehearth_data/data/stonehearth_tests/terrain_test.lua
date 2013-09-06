@@ -11,6 +11,7 @@ local HeightMapCPP = _radiant.csg.HeightMap
 
 local TeraGen = radiant.mods.require('/stonehearth_terrain')
 
+local ZoneType = radiant.mods.require('/stonehearth_terrain/zone_type.lua')
 local HeightMap = radiant.mods.require('/stonehearth_terrain/height_map.lua')
 local Array2D = radiant.mods.require('/stonehearth_terrain/array_2D.lua')
 local TerrainGenerator = radiant.mods.require('/stonehearth_terrain/terrain_generator.lua')
@@ -38,7 +39,7 @@ function TerrainTest:create_world()
    local height_map
 
    --height_map = terrain_generator:_erosion_test()
-   height_map = self._terrain_generator:generate_zone()
+   height_map = self._terrain_generator:generate_zone(ZoneType.Foothills)
    self:_render_height_map_to_terrain(height_map)
    self:decorate_landscape()
 end
@@ -136,7 +137,8 @@ function TerrainTest:_copy_heightmap_to_CPP(heightMapCPP, height_map)
 end
 
 function TerrainTest:_add_land_to_region(dst, rect, height)
-   local foothills_quantization_size = self._terrain_generator.foothills_quantization_size
+   local foothills_quantization_size = 
+      self._terrain_generator.zone_params[ZoneType.Foothills].quantization_size
 
    dst:add_cube(Cube3(Point3(rect.min.x, -2, rect.min.y),
                       Point3(rect.max.x,  0, rect.max.y),
