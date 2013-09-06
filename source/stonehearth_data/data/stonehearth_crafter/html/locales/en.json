@@ -6,12 +6,6 @@
   "crafting_status": "crafting...",
   "paused_status": "paused...",
   "remove_confirm": "Remove?",
-  "paused" : "Paused!!",
-  "resume" : "Resume?",
-  "pause_tooltip" : "Click to resume work",
-  "play_tooltip" : "Pause crafting",
-  "delete_tooltip" : "Drag an order here to delete it",
-  "add_order_tooltip" : "Add an order to the queue",
-  "craft_radio_tooltip": "Make items right now",
-  "maintain_radio_tooltip" : "Make items whenever stocks fall below amount"
+  "open" : "Open!",
+  "closed" : "Closed"
 }

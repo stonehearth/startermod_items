@@ -79,11 +79,9 @@ App.StonehearthCrafterView = App.View.extend({
       console.log("DidInsertElement is being called on the crafting window");
       console.log(this.get("context.stonehearth_crafter:workshop.order_list"));
       this._super();
-      this._initPauseSign();
       this._buildAccordion();
       this._buildOrderList();
       initIncrementButtons();
-      this._initializeTooltips();
 
       $("#craftingUI")
          .animate({ top: 0 }, {duration: 500, easing: 'easeOutBounce'});
@@ -157,10 +155,15 @@ App.StonehearthCrafterView = App.View.extend({
          });
    },
 
+   workshopIsPaused: Ember.computed.alias("stonehearth_crafter:workshop.is_paused"),
+
+   _workshopIsPausedAlias: function() {
+      this.set('context.workshopIsPaused', this.get('context.stonehearth_crafter:workshop.is_paused'))
+   }.observes('context.stonehearth_crafter:workshop.is_paused'),
+
    togglePause: function(){
       var url = this.get('context.stonehearth_crafter:workshop').__self + "?fn=toggle_pause";
       var data = {};
-      $('#pauseButton').tooltip('hide');//remove();
       $.ajax({
             type: 'post',
             url: url,
@@ -186,7 +189,7 @@ App.StonehearthCrafterView = App.View.extend({
       var element = $("#recipeAccordion");
       element.accordion({
          active: 1,
-         animate: false,
+         animate: true,
          heightStyle: "fill"
       });
 
@@ -263,6 +266,7 @@ App.StonehearthCrafterView = App.View.extend({
    _buildOrderList: function(){
       var self = this;
       $( "#orders, #garbageList" ).sortable({
+         axis: "y",
          connectWith: "#garbageList",
          beforeStop: function (event, ui) {
             //Called right after an object is dropped
@@ -352,24 +356,6 @@ App.StonehearthCrafterView = App.View.extend({
       orderList.animate({scrollTop: localScrollTop}, 100);
    },
 
-   _initPauseSign: function() {
-      this._playPause();
-      var $pauseLink = $('#pauseLink');
-      $pauseLink.hover(
-          function() {
-              var $this = $(this); // caching $(this)
-              $this.data('initialText', $this.text());
-              $this.text(i18n.t('stonehearth_crafter:resume'));
-          },
-          function() {
-              var $this = $(this); // caching $(this)
-              $this.text($this.data('initialText'));
-          }
-      );
-      //TODO: is this ok? How did the template get restricted to just context?
-      this.set('context.craftingStatus', '');
-   },
-
    _isPausedObserver: function() {
       this._playPause();
    }.observes('context.stonehearth_crafter:workshop.is_paused'),
@@ -382,13 +368,11 @@ App.StonehearthCrafterView = App.View.extend({
          this.set('context.craftingStatus', i18n.t('stonehearth_crafter:paused_status'));
          $pauseBtn.removeClass('showPause');
          $pauseBtn.addClass('showPlay');
-         $pauseBtn.attr('data-original-title',i18n.t('stonehearth_crafter:pause_tooltip'));
       } else {
          $('#pausedLabel').hide();
          this.set('context.craftingStatus', i18n.t('stonehearth_crafter:crafting_status'));
          $pauseBtn.removeClass('showPlay');
          $pauseBtn.addClass('showPause');
-         $pauseBtn.attr('data-original-title',i18n.t('stonehearth_crafter:play_tooltip'));
       }
    },
 
@@ -403,22 +387,6 @@ App.StonehearthCrafterView = App.View.extend({
       } else {
          $('#garbageButton').css('opacity', '0.3');
       }
-   },
-
-   _initializeTooltips: function() {
-      this.set('context.craftRadioTooltip', i18n.t('stonehearth_crafter:craft_radio_tooltip'));
-      this.set('context.maintainRadioTooltip', i18n.t('stonehearth_crafter:maintain_radio_tooltip'));
-      this.set('context.craftButtonTooltip', i18n.t('stonehearth_crafter:add_order_tooltip'));
-      this.set('context.pauseLinkTooltip', i18n.t('stonehearth_crafter:pause_tooltip'));
-      this.set('context.garbageButtonTooltip', i18n.t('stonehearth_crafter:delete_tooltip'));
-
-      $('#craftOrderOption').tooltip({animate:true});
-      $('#maintainOrderOption').tooltip({animate:true});
-      $('#pauseLink').tooltip({animate:true});
-      $('#garbageButton').tooltip({animate:true});
-      $('#pauseButton').tooltip({animate:true});
-      $('#craftButton').tooltip({animate:true});
    }
-
 
 });

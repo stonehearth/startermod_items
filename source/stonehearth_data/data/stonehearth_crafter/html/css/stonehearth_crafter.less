@@ -80,30 +80,38 @@
          margin-top: 44px;
       }
 
-      #pausedLabel {
+      #statusSign {
          position: absolute;
-         background: url('/stonehearth_crafter/html/images/paused_sign.png');
-         width: 182px;
-         height:57px;
-         .outlined;
-         font-size:25px;
-         color: #f97500;
-         top:90px;
-         left: 400px;
-         -webkit-transform: rotate(-8deg);
+         top: -10px;
+         left: 760px;
+         width: 175px;
+         height: 128px;
+         color: #fff;
 
          #pauseLink {
-            display: block;
             position: absolute;
-            top: 10px;
-            left: 8px;
-            padding: 10px;
-            font-weight: bold;
+            top: 80px;
+            left: 0px;
+            right: 0px;
+            display: table-cell;
+            text-align: center;
+            font-family: 'Lemiesz';
+            font-size:30px;
 
             &:hover {
-               color: #62ad00;
+               color: #ffc000;
             }
          }
+      }
+
+      .open {
+         background: url('/stonehearth_crafter/html/images/sign_green.png');
+         -webkit-transform: rotate(-4deg);
+      }
+
+      .closed {
+         background: url('/stonehearth_crafter/html/images/sign_yellow.png');
+         -webkit-transform: rotate(4deg);
       }
    }
 }
@@ -434,31 +442,16 @@
       background-repeat: no-repeat;
       background-position: left top;
 
-      #pauseButton {
-         display: block;
-         width: 29px;
-         height: 41px;
-         float: left;
-         margin-left: 35px;
-         margin-top: 18px;
-      }
-
-      .showPause {
-         background: url('/stonehearth_crafter/html/images/pause_button.png');
-      }
-
-      .showPlay {
-         background: url('/stonehearth_crafter/html/images/play_button3.png');
-      }
-
       #garbageButton {
+         position: relative;
+         top: 18px;
+         left: 48px;
          display: block;
          background: url('/stonehearth_crafter/html/images/trash_button.png');
          background-repeat:no-repeat;
          background-position:left top;
-         float: left;
-         width: 34px;
-         height: 41px;
+         width: 250px;
+         height: 200px;
          margin-left: 10px;
          margin-top: 18px;
       }

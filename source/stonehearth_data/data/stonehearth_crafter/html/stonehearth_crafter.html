@@ -10,12 +10,19 @@
             <h1>{{unit_info.name}}</h1>
             <small>TODO: insert crafter name here</small>
          </div>
-         <div id="pausedLabel">
-            <a id="pauseLink" {{action togglePause target="view"}}
-               {{bindAttr data-original-title = "pauseLinkTooltip"}}>
-               {{i18n stonehearth_crafter:paused}}
-            </a>
-         </div>
+
+         {{#if stonehearth_crafter:workshop.order_list}}
+            <div id="statusSign" {{bindAttr class="workshopIsPaused:closed:open"}}>
+               <a id="pauseLink" {{action togglePause target="view"}}>
+                  {{#if stonehearth_crafter:workshop.is_paused}}
+                     {{i18n stonehearth_crafter:closed}}
+                  {{else}}
+                     {{i18n stonehearth_crafter:open}}
+                  {{/if}}                     
+               </a>
+            </div>
+         {{/if}}
+
       </div>
 
       <div id="craftingWindow">
@@ -88,7 +95,7 @@
 <!--Template for the options and craft button-->
 <script type="text/x-handlebars" data-template-name="_orderOptions">
    <div id="orderOptions">
-      <div id="craftOrderOption" class="orderOptionControls" {{bindAttr data-original-title = "craftRadioTooltip"}}>
+      <div id="craftOrderOption" class="orderOptionControls">
       <input type="radio" name="conditionGroup" value="make" class="craftRadioButton" id="make" checked>
       <label for="make" style='width:auto;'>{{i18n stonehearth_crafter:craft_number_left}}</label>
       <span>
@@ -99,8 +106,7 @@
       <label class="rightText" for="make" style='width:auto;'>{{i18n stonehearth_crafter:craft_number_right}}</label>
       </div>
 
-      <div id="maintainOrderOption" class="orderOptionControls"
-       {{bindAttr data-original-title = "maintainRadioTooltip"}}>
+      <div id="maintainOrderOption" class="orderOptionControls">
       <input type="radio" name="conditionGroup" value="mantain" class="craftRadioButton" id="maintain">
       <label for="maintain" style='width:auto'>{{i18n stonehearth_crafter:craft_up_to_left}}</label>
       <span>
@@ -111,8 +117,7 @@
       <label class="rightText" for="maintain" style='width:auto'>{{i18n stonehearth_crafter:craft_up_to_right}}</label>
       </div>
 
-      <button class='btn' {{action "craft" target="view"}}
-       id="craftButton" {{bindAttr data-original-title = "craftButtonTooltip"}}>
+      <button class='btn' {{action "craft" target="view"}} id="craftButton">
          <img src="/stonehearth_crafter/html/images/anvil.png">
       </button>
    </div>
@@ -146,8 +151,7 @@
       <a id="orderListDownBtn" {{action scrollOrderListDown target="view"}} ><img src="/stonehearth_crafter/html/images/queue_down_arrow.png"></a>
 
       <div id="orderListControls">
-         <a id="pauseButton" href="#" {{action togglePause target="view"}}></a>
-         <a id="garbageButton" href="#" {{bindAttr data-original-title = "garbageButtonTooltip"}}></a>
+         <a id="garbageButton" href="#"></a>
          <ul id="garbageList" class="droptrue"></ul>
       </div>
 
