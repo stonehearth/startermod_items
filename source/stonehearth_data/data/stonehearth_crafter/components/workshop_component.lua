@@ -18,24 +18,27 @@ local CraftOrder = radiant.mods.require('/stonehearth_crafter/lib/craft_order.lu
 local Workshop = class()
 
 function Workshop:__init(entity, data_binding)
-   self._todo_list = ToDoList(data_binding)        -- The list of things we need to work on
-   self._entity = entity               -- The entity associated with this component
-   self._curr_order = nil              -- The order currently being worked on. Nil until we get an order from the todo list
-   self._intermediate_item = nil       -- The item currently being worked on. Nil until we actually start crafting
-                                       -- TODO: revise all three of these to use entity-container
-   self._bench_outputs = {}            -- An array of finished products on the bench, to be added to the outbox. Nil if nothing.
-   self._outbox = nil                  -- The outbox entity
-   self._saw = nil                     -- The saw for the bench, available when there is no craftsman
-   
+   self._todo_list = ToDoList(data_binding)  -- The list of things we need to work on
+   self._entity = entity                 -- The entity associated with this component
+   self._curr_order = nil                -- The order currently being worked on. Nil until we get an order from the todo list
+   self._intermediate_item = nil         -- The item currently being worked on. Nil until we actually start crafting
+                                         -- TODO: revise all three of these to use entity-container
+   self._bench_outputs = {}              -- An array of finished products on the bench, to be added to the outbox. Nil if nothing.
+   self._outbox = nil                    -- The outbox entity
+   self._promotion_talisman_entity = nil -- The talisman for the bench, available when there is no craftsman
+
    self._data = data_binding:get_data()
    self._data.crafter = nil
    self._data.order_list = self._todo_list
-   
+
    self._data_binding = data_binding
    self._data_binding:mark_changed()
+
 end
 
 function Workshop:extend(json)
+   self._promotion_talisman_entity_uri = json.promotion_talisman.entity
+   self._promotion_talisman_offset = json.promotion_talisman.offset
 end
 
 --[[UI Interaction Functions
@@ -158,24 +161,38 @@ function Workshop:set_crafter(crafter)
    if not crafter or not current or current:get_id() ~= crafter:get_id() then
       self._data.crafter = crafter
       self._data_binding:mark_changed()
+
+      local commandComponent = self._entity:get_component('radiant:commands')
+      if crafter then
+         commandComponent:enable_command('show_craft_ui', true)
+      else
+         commandComponent:enable_command('show_craft_ui', false);
+      end
    end
 end
 
 --[[
-   When there isn't a crafter yet, associate a saw
-   If the saw is nil, and a saw currently exists, remove the saw from the bench
+   Associate a promotion talisman with the workbench. A worker will use the talisman
+   to promote himself to a crafter
+   If the talisman is nil, and a talisman currently exists, remove the talisman from the bench
 ]]
+function Workshop:init_promotion_talisman()
+   local loc = radiant.entities.get_location_aligned(self._entity)
+   local offset = self._promotion_talisman_offset
 
-function Workshop:set_saw_entity(saw_entity)
-   self._saw = saw_entity
-   local saw_loc = radiant.entities.get_location_aligned(self._entity)
-   --TODO: how do we get the saw higher in the world?
-   radiant.terrain.place_entity(saw_entity, Point3(saw_loc.x, 3, saw_loc.z + 3))
+   self._promotion_talisman_entity = radiant.entities.create_entity(self._promotion_talisman_entity_uri)   
+   self._entity:add_component('entity_container'):add_child(self._promotion_talisman_entity)
+   self._promotion_talisman_entity:add_component('mob'):set_location_grid_aligned(Point3(offset[1], offset[2], offset[3]))
+
+   self._promotion_talisman_entity:get_component('stonehearth_classes:talisman_promotion_info'):set_promotion_data({workshop = self})
+
+   return self._promotion_talisman_entity
 end
 
-function Workshop:get_saw_entity()
-   return self._saw
+function Workshop:get_promotion_talisman_entity_uri()
+   return self._promotion_talisman_entity_uri
 end
+
 
 --[[
    Get the crafter component of the crafter entity associated with

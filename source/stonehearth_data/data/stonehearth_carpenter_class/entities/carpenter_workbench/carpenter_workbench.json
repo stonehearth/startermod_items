@@ -2,7 +2,12 @@
    "extends": "/stonehearth_crafter/entities/workbench.json", 
    "type": "entity", 
    "components": {
-      "stonehearth_crafter:workshop": {}, 
+      "stonehearth_crafter:workshop": {
+         "promotion_talisman" : {
+            "entity" : "/stonehearth_items/carpenter_saw",
+            "offset" : [0, 3, 0]
+         }
+      }, 
       "destination": {
          "region": [
             [

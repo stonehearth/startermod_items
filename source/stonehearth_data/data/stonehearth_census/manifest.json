@@ -1,0 +1,25 @@
+
+{
+   "info" :{
+      "name" : "Stonehearth People Tracker"
+   },
+   "ui" :  {
+      "html" : [
+         "file(/html/stonehearth_people_picker.html)"
+      ],
+      "js" : [
+         "file(/html/js/stonehearth_people_picker.js)"
+      ],
+      "less" : [
+         "file(/html/css/stonehearth_people_picker.less)"
+      ]
+   },   
+   "server" : {
+      "game_objects" : {
+         "worker_tracker" : {
+            "controller": "file(worker_tracker.lua)",
+            "publish_at": "worker_tracker"
+         }
+      }
+   }
+}

@@ -4,7 +4,8 @@
   "craft_up_to_left": "Maintain",
   "craft_up_to_right": "in inventory.",
   "crafting_status": "crafting...",
+  "paused_status": "paused...",
   "remove_confirm": "Remove?",
-  "paused" : "Paused!!",
-  "resume" : "Resume?"
+  "open" : "Open!",
+  "closed" : "Closed"
 }

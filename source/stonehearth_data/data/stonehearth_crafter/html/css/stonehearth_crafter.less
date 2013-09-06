@@ -49,7 +49,7 @@
          .outlined;
          color: @controlFontColor;
          font-size: 30px;
-         padding-top: 34px;
+         padding-top: 32px;
          margin-left: 110px;
 
          small {
@@ -58,6 +58,7 @@
             font-weight: bold;
             display: block;
             height: 20px;
+            margin-top: 8px;
          }
       }
 
@@ -79,30 +80,39 @@
          margin-top: 44px;
       }
 
-      #pausedLabel {
+      #statusSign {
          position: absolute;
-         background: url('/stonehearth_crafter/html/images/paused_sign.png');
-         width: 182px;
-         height:57px;
-         .outlined;
-         font-size:25px;
-         color: #f97500;
-         top:90px;
-         left: 400px;
-         -webkit-transform: rotate(-8deg);
+         top: -10px;
+         left: 760px;
+         width: 175px;
+         height: 128px;
+         color: #fff;
 
-         #pauseLink {
-            display: block;
+         #message {
             position: absolute;
-            top: 10px;
-            left: 8px;
-            padding: 10px;
-            font-weight: bold;
-
-            &:hover {
-               color: #62ad00;
-            }
+            top: 80px;
+            left: 0px;
+            right: 0px;
+            display: table-cell;
+            text-align: center;
+            font-family: 'Lemiesz';
+            font-size:30px;
          }
+
+         &:hover {
+            color: #ffc000;
+         }
+
+      }
+
+      .open {
+         background: url('/stonehearth_crafter/html/images/sign_green.png');
+         -webkit-transform: rotate(-4deg);
+      }
+
+      .closed {
+         background: url('/stonehearth_crafter/html/images/sign_yellow.png');
+         -webkit-transform: rotate(4deg);
       }
    }
 }
@@ -169,6 +179,11 @@
       #recipeAccordion {
          a:hover {
             color:  @goldColor;
+         }
+
+         .recipeLink {
+            display: block;
+            margin-bottom: -15px;
          }
       }
    }
@@ -422,47 +437,31 @@
    #orders::-webkit-scrollbar { width: 0 }
 
    #orderListControls {
+      position: relative;
       background: url('/stonehearth_crafter/html/images/queue_control_bg.png');
-      width: 400px;
+      width: 150px;
       height: 250px;
       background-repeat: no-repeat;
       background-position: left top;
 
-      #pauseButton {
-         display: block;
-         width: 29px;
-         height: 41px;
-         float: left;
-         margin-left: 35px;
-         margin-top: 18px;
-      }
-
-      .showPause {
-         background: url('/stonehearth_crafter/html/images/pause_button.png');
-      }
-
-      .showPlay {
-         background: url('/stonehearth_crafter/html/images/play_button3.png');
-      }
-
       #garbageButton {
+         position: absolute;
+         top: 8px;
+         left: 0px;
+         width: 140px;
+         height: 60px;
          display: block;
          background: url('/stonehearth_crafter/html/images/trash_button.png');
          background-repeat:no-repeat;
-         background-position:left top;
-         float: left;
-         width: 250px;
-         height: 200px;
-         margin-left: 10px;
-         margin-top: 18px;
+         background-position:center center;
+      }
 
-
-         #garbageList {
-            float: left;
-            width: 200px;
-            height: 200px;
-            margin-left: 0px;
-         }
+      #garbageList {
+         position: absolute;
+         top: -20px;
+         left: 0px;
+         width: 140px;
+         height: 100px;
       }
 
    }

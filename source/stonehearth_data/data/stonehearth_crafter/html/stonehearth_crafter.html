@@ -1,6 +1,8 @@
 <script type="text/x-handlebars" data-template-name="stonehearthCrafter">
    <div class="overlay"></div>
+
    <div id="craftingUI">
+
       <div id="craftingShingle" class="controlFont;">
          <a class="closeButton" {{action "hide" target="view"}}></a>
          <img class="classMarker" {{bindAttr src = "unit_info.icon"}}>
@@ -8,14 +10,23 @@
             <h1>{{unit_info.name}}</h1>
             <small>TODO: insert crafter name here</small>
          </div>
-         {{#if stonehearth_crafter:workshop.is_paused}}
-            <<div id="pausedLabel" {{action initPauseSign on="mouseEnter" target="view"}}>
-               <a id="pauseLink" {{action togglePause target="view"}}>{{i18n stonehearth_crafter:paused}}</a>
-            </div>
+
+         {{#if stonehearth_crafter:workshop.order_list}}
+            <a id="pauseLink" {{action togglePause target="view"}}>
+               <div id="statusSign" {{bindAttr class="workshopIsPaused:closed:open"}}>
+                  <div id="message">
+                     {{#if stonehearth_crafter:workshop.is_paused}}
+                        {{i18n stonehearth_crafter:closed}}
+                     {{else}}
+                        {{i18n stonehearth_crafter:open}}
+                     {{/if}}
+                  </div>
+               </div>
+            </a>
          {{/if}}
 
-
       </div>
+
       <div id="craftingWindow">
          <div id="recipeList">
             {{partial 'recipeList'}}
@@ -46,7 +57,7 @@
          <h3>{{category}}</h3>
          <div>
             {{#each recipes}}
-               <a href="#" {{action select this target="view"}} class="selected">{{this.recipe_name}}</a>
+               <a href="#" {{action select this target="view"}} class="recipeLink">{{this.recipe_name}}</a>
                <br>
             {{/each}}
          </div>
@@ -86,7 +97,7 @@
 <!--Template for the options and craft button-->
 <script type="text/x-handlebars" data-template-name="_orderOptions">
    <div id="orderOptions">
-      <div class="orderOptionControls">
+      <div id="craftOrderOption" class="orderOptionControls">
       <input type="radio" name="conditionGroup" value="make" class="craftRadioButton" id="make" checked>
       <label for="make" style='width:auto;'>{{i18n stonehearth_crafter:craft_number_left}}</label>
       <span>
@@ -97,7 +108,7 @@
       <label class="rightText" for="make" style='width:auto;'>{{i18n stonehearth_crafter:craft_number_right}}</label>
       </div>
 
-      <div class="orderOptionControls">
+      <div id="maintainOrderOption" class="orderOptionControls">
       <input type="radio" name="conditionGroup" value="mantain" class="craftRadioButton" id="maintain">
       <label for="maintain" style='width:auto'>{{i18n stonehearth_crafter:craft_up_to_left}}</label>
       <span>
@@ -108,7 +119,9 @@
       <label class="rightText" for="maintain" style='width:auto'>{{i18n stonehearth_crafter:craft_up_to_right}}</label>
       </div>
 
-      <button class='btn' {{action "craft" target="view"}} id="craftButton"><img src="/stonehearth_crafter/html/images/anvil.png"></button>
+      <button class='btn' {{action "craft" target="view"}} id="craftButton">
+         <img src="/stonehearth_crafter/html/images/anvil.png">
+      </button>
    </div>
 </script>
 
@@ -120,12 +133,12 @@
       {{#each stonehearth_crafter:workshop.order_list}}
          {{#if status.is_crafting}}
             <div class="orderListItem inProgressOrder" {{bindAttr data-orderId = "id"}}>
-               <label class="craftingLabel">{{i18n stonehearth_crafter:crafting_status}}</label>
+               <label class="craftingLabel">{{../../craftingStatus}}</label>
          {{else}}
             <div class="orderListItem normalOrder" {{bindAttr data-orderId = "id"}}>
-               <label class="craftingLabel invisible">{{i18n stonehearth_crafter:crafting_status}}</label>
+               <label class="craftingLabel invisible">{{../../craftingStatus}}</label>
          {{/if}}
-            <a href="#" {{action select recipe target="view"}}><img {{bindAttr src = "portrait"}} {{bindAttr title = "recipe.recipe_name"}}></a>
+            <a href="#" {{action select recipe remaining condition.inventory_below target="view"}}><img {{bindAttr src = "portrait"}} {{bindAttr title = "recipe.recipe_name"}}></a>
             {{#if condition.amount}}
                <label class="amountLabel">{{remaining}}</label>
             {{else}}
@@ -140,14 +153,8 @@
       <a id="orderListDownBtn" {{action scrollOrderListDown target="view"}} ><img src="/stonehearth_crafter/html/images/queue_down_arrow.png"></a>
 
       <div id="orderListControls">
-         {{#if stonehearth_crafter:workshop.is_paused}}
-            <a id="pauseButton" class="showPlay" href="#" {{action togglePause target="view"}}></a>
-         {{else}}
-            <a id="pauseButton" class="showPause" href="#" {{action togglePause target="view"}}></a>
-         {{/if}}
-         <a id="garbageButton" href="#">
-            <ul id="garbageList" class="droptrue"></ul>
-         </a>
+         <a id="garbageButton" href="#"></a>
+         <ul id="garbageList" class="droptrue"></ul>
       </div>
 
    </div>
