@@ -1,0 +1,3 @@
+[submodule "chromium-embedded"]
+	path = chromium-embedded
+	url = https://github.com/radent/chromium-embedded.git
