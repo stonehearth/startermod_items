@@ -35,13 +35,10 @@ public:
       bool is_identity() const;
 
       // manipulators
-      void set_rows(const Point4f& row1, const Point4f& row2, 
-                  const Point4f& row3, const Point4f& row4); 
-      void get_rows(Point4f& row1, Point4f& row2, Point4f& row3, Point4f& row4); 
+      void set_rotation_bases(const Point3f& forward, const Point3f& up, const Point3f& left);
 
-      void set_columns(const Point4f& col1, const Point4f& col2, 
-                     const Point4f& col3, const Point4f& col4); 
-      void get_columns(Point4f& col1, Point4f& col2, Point4f& col3, Point4f& col4); 
+      void set_translation(const Point3f &translation);
+      Point3f get_translation() const;
 
       void clean();
       void identity();
@@ -99,6 +96,7 @@ public:
       operator float*() { return v; }
       operator const float*() const { return v; }
 
+      void fill(const float *values);
 public:
       // member variables
       float v[16];

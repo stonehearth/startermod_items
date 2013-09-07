@@ -125,6 +125,7 @@ void Simulation::LoadModuleGameObjects(std::string const& modname, json::ConstJs
          dataBindings_[dataBindingName] = scriptHost_->LuaRequire(controller);
          if (info.has("publish_at")) {
             om::DataBindingPtr binding = GetStore().AllocObject<om::DataBinding>();
+            binding->SetDataObject(luabind::newtable(scriptHost_->GetInterpreter()));
             luabind::object ctor = dataBindings_[dataBindingName];
             luabind::object model = luabind::call_function<luabind::object>(ctor, binding);
             std::ostringstream uri;
@@ -167,7 +168,10 @@ std::string Simulation::StepPathFinding(std::string const& cmd)
    radiant::stdutil::ForEachPrune<Job>(jobs_, [&](std::shared_ptr<Job> &p) {
       if (!p->IsFinished() && !p->IsIdle()) {
          p->Work(t);
-         p->LogProgress(LOG(WARNING));
+
+         std::ostringstream progress;
+         p->LogProgress(progress);
+         LOG(WARNING) << progress.str();
       }
    });
    return "";
@@ -574,10 +578,6 @@ void Simulation::HandleRouteRequest(luabind::object ctor, JSONNode const& query,
       using namespace luabind;
       lua_State* L = scriptHost_->GetCallbackState();
       object queryObj = scriptHost_->JsonToLua(query);
-      object postdataObj;
-      if (!postdata.empty()) {
-         postdataObj = scriptHost_->JsonToLua(libjson::parse(postdata));
-      }
       object coder = globals(L)["radiant"]["json"];
 
       object obj = call_function<object>(ctor);
@@ -589,8 +589,17 @@ void Simulation::HandleRouteRequest(luabind::object ctor, JSONNode const& query,
             fn = obj[fname];
          }
       }
+#if 0
+      // tony, remove this please!
+      object postdataObj;
+      if (!postdata.empty()) {
+         postdataObj = scriptHost_->JsonToLua(libjson::parse(postdata));
+      }
       object result = call_function<object>(fn, obj, queryObj, postdataObj);
       std::string json = call_function<std::string>(coder["encode"], result);
+#else
+      std::string json = scriptHost_->PostCommand(fn, obj, postdata);
+#endif
 
       reply->set_status_code(200);
       reply->set_content(json);

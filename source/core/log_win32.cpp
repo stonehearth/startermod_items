@@ -3,7 +3,6 @@
 #include <io.h>
 #include <fcntl.h>
 
-#undef ERROR
 #include "radiant.h"
 #include "log_internal.h"
 
@@ -33,44 +32,9 @@ static void redirect_io_to_console()
 }
 #pragma warning(pop)
 
-
-class console_logger : public google::LogSink
-{
-   public:
-      console_logger() {
-         InitializeCriticalSection(&cs);
-      }
-
-      ~console_logger() {
-         DeleteCriticalSection(&cs);
-      }
-
-      // Sink's logging logic (message_len is such as to exclude '\n' at the end).
-      // This method can't use LOG() or CHECK() as logging system mutex(s) are held
-      // during this call.
-      virtual void send(google::LogSeverity severity, const char* full_filename,
-                        const char* base_filename, int line,
-                        const struct ::tm* tm_time,
-                        const char* message, size_t message_len) override
-      {
-         if (severity >= google::WARNING) {
-            std::string msg = ToString(severity, base_filename, line, tm_time, message, message_len);
-            // std::string msg(message, message_len);
-
-            EnterCriticalSection(&cs);
-            printf("%s\n", msg.c_str());
-            LeaveCriticalSection(&cs);
-         }
-      }
-
-   protected:
-      CRITICAL_SECTION     cs;
-};
-
 void radiant::logger::platform_init()
 {
    redirect_io_to_console();
-   google::AddLogSink(new console_logger());
 }
 
 void radiant::logger::platform_exit()

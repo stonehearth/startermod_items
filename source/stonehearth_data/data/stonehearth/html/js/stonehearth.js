@@ -13,7 +13,7 @@ App.StonehearthView = Ember.ContainerView.extend({
 
       // push em
       this.pushObject(this._gameView)
-      //this.pushObject(this._titleScreenView)
+      this.pushObject(this._titleScreenView)
 
       // accessors for easy access throughout the app
       App.gameView = this._gameView;
@@ -26,7 +26,12 @@ App.StonehearthView = Ember.ContainerView.extend({
       App.gotoTitleScreen = function() {
          self.gotoTitleScreen();
       }
+   },
 
+   didInsertElement: function() {
+      if (App.options['skip_title']) {
+         App.gotoGame();
+      }
    },
 
    gotoGame: function() {

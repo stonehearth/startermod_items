@@ -11,7 +11,7 @@ using namespace ::radiant;
 void protobuf_log_handler(google::protobuf::LogLevel level, const char* filename,
                           int line, const std::string& message)
 {
-   DLOG(INFO) << message;
+   LOG(INFO) << message;
 }
 
 int lua_main(lua_State* L, int argc, const char** argv)

@@ -25,6 +25,7 @@ add_library(client_renderer STATIC
             render_render_info.cpp
             lua_renderer.cpp
             lua_render_entity.cpp
+            camera.cpp
             )
 
 if (MSVC)
