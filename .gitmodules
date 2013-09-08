@@ -2,3 +2,15 @@
 	path = modules/chromium-embedded
 	url = https://github.com/radent/chromium-embedded.git
    ignore = dirty
+[submodule "modules/protobuf"]
+	path = modules/protobuf
+	url = https://github.com/radent/protobuf.git
+   ignore = dirty
+[submodule "modules/lua"]
+	path = modules/lua
+	url = https://github.com/radent/lua.git
+   ignore = dirty
+[submodule "modules/libjson"]
+	path = modules/libjson
+	url = https://github.com/radent/libjson.git
+   ignore = dirty
