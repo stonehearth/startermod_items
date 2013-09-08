@@ -6,3 +6,7 @@
 	path = modules/protobuf-2.5.0
 	url = https://github.com/radent/protobuf-2.5.0.git
    ignore = dirty
+[submodule "modules\\libjson-7.6.1"]
+	path = modules/libjson-7.6.1
+	url = https://github.com/radent/libjson-7.6.1.git
+   ignore = dirty
