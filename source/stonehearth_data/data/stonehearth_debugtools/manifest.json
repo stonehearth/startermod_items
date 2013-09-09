@@ -1,0 +1,19 @@
+{
+   "info" :{
+      "name" : "Stonehearth Debug Tools"
+   },
+
+   "ui" :  {
+      "html" : [
+         "file(/html/stonehearth_object_browser.html)",
+         "file(/html/stonehearth_error_dialog.html)"
+      ],
+      "js" : [
+         "file(/html/js/stonehearth_object_browser.js)",
+         "file(/html/js/stonehearth_error_dialog.js)"
+      ],
+      "less" : [
+         "file(/html/css/stonehearth_object_browser.less)"
+      ]
+   }
+}

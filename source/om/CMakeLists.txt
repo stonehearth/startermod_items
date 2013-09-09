@@ -22,6 +22,7 @@ add_library(om STATIC
             selection.cpp
             stonehearth.cpp
             data_binding.cpp
+            json_store.cpp
             )
 
 if (MSVC)

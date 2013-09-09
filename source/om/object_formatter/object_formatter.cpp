@@ -1,5 +1,6 @@
 #include "radiant.h"
 #include "object_formatter.h"
+#include <regex>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
@@ -20,9 +21,7 @@ static void CreateDispatchTable();
 
 template <typename T> JSONNode ToJson(const ObjectFormatter& f, T const& obj);
 
-
-ObjectFormatter::ObjectFormatter(std::string const& root) :
-   root_(root)
+ObjectFormatter::ObjectFormatter()
 {
 }
 
@@ -46,11 +45,15 @@ JSONNode ObjectFormatter::ObjectToJson(dm::ObjectPtr obj) const
 
 dm::ObjectPtr ObjectFormatter::GetObject(dm::Store const& store, std::string const& path) const
 {
-   std::vector<std::string> parts;
-   boost::algorithm::split(parts, path, boost::is_any_of("/"));
-   if (parts.size() == 3) {
-      dm::ObjectId id = atoi(parts.back().c_str());
-      return store.FetchObject<dm::Object>(id);
+   std::regex exp("/o/stores/([^/]*)/objects/(\\d+)");
+   std::smatch match;
+
+   if (std::regex_match(path, match, exp)) {
+      std::string store_name = match[1].str();
+      if (store.GetName() == store_name) {
+         std::string object_id = match[2].str();
+         return store.FetchObject<dm::Object>(atoi(object_id.c_str()));
+      }
    }
    return nullptr;
 }
@@ -59,7 +62,7 @@ std::string ObjectFormatter::GetPathToObject(dm::ObjectPtr obj) const
 {
    if (obj) {
       std::ostringstream output;
-      output << root_ << obj->GetObjectId();
+      output << "/o/stores/" << obj->GetStore().GetName() << "/objects/" << obj->GetObjectId();
       return output.str();
    }
    return "null";
@@ -90,9 +93,6 @@ template <> JSONNode ToJson(const ObjectFormatter& f, Entity const& obj)
          node.push_back(JSONNode(GetObjectNameLower(c), f.GetPathToObject(c)));
       }
    }
-#define OM_OBJECT(Cls, lower) \
-   OM_ALL_COMPONENTS   
-#undef OM_OBJECT
    return node;
 }
 
@@ -121,6 +121,11 @@ template <> JSONNode ToJson(const ObjectFormatter& f, UnitInfo const& obj)
 template <> JSONNode ToJson(const ObjectFormatter& f, DataBinding const& obj)
 {
    return obj.GetJsonData();
+}
+
+template <> JSONNode ToJson(const ObjectFormatter& f, JsonStore const& obj)
+{
+   return obj.Get();
 }
 
 #define OM_OBJECT(Cls, lower) \

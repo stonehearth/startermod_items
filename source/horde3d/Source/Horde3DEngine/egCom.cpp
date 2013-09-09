@@ -19,7 +19,6 @@
 
 #include "utDebug.h"
 
-
 namespace Horde3D {
 
 // *************************************************************************************************
@@ -253,6 +252,24 @@ bool EngineLog::getMessage( LogMessage &msg )
 	}
 	else
 		return false;
+}
+
+void EngineLog::SetNotifyErrorCb(ReportErrorCb const& cb)
+{
+   error_cb_ = cb;
+   for (auto const& record : errors_) {
+      cb(record);
+   }
+   errors_.clear();
+}
+
+void EngineLog::ReportError(::radiant::lib::ErrorBrowser::Record const& record)
+{
+   if (error_cb_) {
+      error_cb_(record);
+   } else {
+      errors_.emplace_back(record);
+   }
 }
 
 

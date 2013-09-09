@@ -88,7 +88,7 @@ App.StonehearthObjectBrowserView = App.View.extend({
    },
 
    goHome: function() {
-      this.fetch('/objects/1');
+      this.fetch('/o/stores/game/objects/1');
    }
 
 });

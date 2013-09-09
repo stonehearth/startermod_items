@@ -17,12 +17,13 @@ Store& Store::GetStore(int id)
    return *stores_[id];
 }
 
-Store::Store(int which) :
+Store::Store(int which, std::string const& name) :
    storeId_(which),
    nextObjectId_(1),
    nextGenerationId_(1),
    nextTraceId_(1),
-   firingCallbacks_(false)
+   firingCallbacks_(false),
+   name_(name)
 {
    ASSERT(storeId_);
 

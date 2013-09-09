@@ -2,6 +2,7 @@
 #define _RADIANT_LUA_REGISTER_H
 
 #include "namespace.h"
+#include "om/object_formatter/object_formatter.h" // xxx: for GetPathToObject...
 
 BEGIN_RADIANT_LUA_NAMESPACE
 
@@ -25,7 +26,7 @@ std::string Type_ToJson(std::weak_ptr<T> o, luabind::object state)
    std::ostringstream output;
    std::shared_ptr<T> obj = o.lock();
    if (obj) {
-      output << "\"/object/" << obj->GetObjectId() << "\"";
+      output << om::ObjectFormatter().GetPathToObject(obj);
    } else {
       output << "null";
    }

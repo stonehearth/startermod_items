@@ -21,10 +21,9 @@
 #include "core/singleton.h"
 #include "chromium/chromium.h"
 #include "lua/namespace.h"
+#include "lib/error_browser/error_browser.h"
 #include "mouse_event_promise.h"
 #include "radiant_json.h"
-
-//class ScaleformGFx;
 
 IN_RADIANT_LUA_NAMESPACE(
    class ScriptHost;
@@ -103,10 +102,9 @@ class Client : public core::Singleton<Client> {
       void GetEvents(JSONNode const& query, std::shared_ptr<net::IResponse> response);
       void HandlePostRequest(std::string const& path, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response);
       void HandleClientRouteRequest(luabind::object ctor, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response);
-      void GetRemoteObject(std::string const& uri, JSONNode const& query, std::shared_ptr<net::IResponse> response);
       void TraceUri(JSONNode const& query, std::shared_ptr<net::IResponse> response);
       void GetModules(JSONNode const& query, std::shared_ptr<net::IResponse> response);
-      void TraceObjectUri(std::string const& uri, std::shared_ptr<net::IResponse> response);
+      bool TraceObjectUri(std::string const& uri, std::shared_ptr<net::IResponse> response);
       void TraceFileUri(std::string const& uri, std::shared_ptr<net::IResponse> response);
       void FlushEvents();
       void DestroyAuthoringEntity(dm::ObjectId id);
@@ -185,7 +183,9 @@ private:
       std::map<int, std::function<void(tesseract::protocol::Update const& reply)> >  server_requests_;
 
       // server side remote object tracking...
-      std::unordered_map<std::string, std::string>       serverRemoteObjects_;
+      std::unordered_map<std::string, std::string>    serverRemoteObjects_;
+      std::unordered_map<std::string, std::string>    clientRemoteObjects_;
+      std::unique_ptr<lib::ErrorBrowser>              error_browser_;
 
       // client side lua...
       std::unique_ptr<lua::ScriptHost>  scriptHost_;

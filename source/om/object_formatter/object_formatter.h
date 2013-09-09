@@ -10,13 +10,10 @@ BEGIN_RADIANT_OM_NAMESPACE
 class ObjectFormatter
 {
 public:
-   ObjectFormatter(std::string const& root);
+   ObjectFormatter();
    JSONNode ObjectToJson(dm::ObjectPtr obj) const;
    dm::ObjectPtr GetObject(dm::Store const& store, std::string const& path) const;
    std::string GetPathToObject(dm::ObjectPtr obj) const;
-
-private:
-   std::string    root_;
 };
 
 END_RADIANT_OM_NAMESPACE

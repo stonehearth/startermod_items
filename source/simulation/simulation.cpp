@@ -42,7 +42,7 @@ Simulation::Simulation(lua_State* L) :
    _showDebugNodes(true),
    _singleStepPathFinding(false),
    L_(L),
-   store_(1)
+   store_(1, "game")
 {
    singleton_ = this;
    octtree_ = std::unique_ptr<Physics::OctTree>(new Physics::OctTree());
@@ -533,39 +533,6 @@ void Simulation::UpdateTargetTables(int now, int interval)
    }
 }
 
-
-void Simulation::FetchObject(proto::FetchObjectRequest const& request, proto::FetchObjectReply* reply)
-{
-   std::vector<std::string> parts;
-   std::string const& uri = request.uri();
-
-   boost::algorithm::split(parts, uri, boost::is_any_of("/"));
-
-   // should be "", "object", "13"...
-   if (parts.size() < 3) {
-      reply->set_status_code(404);
-      reply->set_content("unknown uri " + uri);
-      return;
-
-   }
-   dm::ObjectId id;
-   std::stringstream(parts[2]) >> id;
-
-   dm::ObjectPtr obj = store_.FetchObject<dm::Object>(id);
-   if (!obj) {
-      std::ostringstream error;
-      error << "No object exists with id " << id;
-      reply->set_status_code(500);
-      reply->set_content(error.str());
-   }
-
-   JSONNode node = om::ObjectFormatter("/object/").ObjectToJson(obj);
-   reply->set_status_code(200);
-   reply->set_content(node.write());
-   reply->set_mime_type("application/json");
-   return;
-}
-
 // xxx: Merge into a common route thingy...
 void Simulation::HandleRouteRequest(luabind::object ctor, JSONNode const& query, std::string const& postdata, proto::PostCommandReply* reply)
 {
@@ -617,7 +584,7 @@ void Simulation::PostCommand(proto::PostCommandRequest const& request, proto::Po
       return;
    }
 
-   dm::ObjectPtr obj = om::ObjectFormatter("/object/").GetObject(GetStore(), request.path());
+   dm::ObjectPtr obj = om::ObjectFormatter().GetObject(GetStore(), request.path());
    if (obj) {
       if (obj->GetObjectType() == om::DataBindingObjectType) {
          JSONNode n = libjson::parse(query); // xxx: turn json::ConstJsonObject into a REAL WRAPPER instead of this const ref crap.
@@ -665,7 +632,6 @@ bool Simulation::ProcessMessage(const proto::Request& msg, protocol::SendQueuePt
       break;
 
    switch (msg.type()) {
-      DISPATCH_MSG(FetchObject)
       DISPATCH_MSG(ScriptCommand)
       DISPATCH_MSG(PostCommand)
    default:

@@ -10,13 +10,16 @@
 //
 // *************************************************************************************************
 
+#include <regex>
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include "egRendererBase.h"
 #include "egModules.h"
 #include "egCom.h"
 #include "utOpenGL.h"
 
 #include "utDebug.h"
-
+#include "lib/error_browser/error_browser.h"
 
 namespace Horde3D {
 
@@ -565,14 +568,9 @@ bool RenderDevice::getTextureData( uint32 texObj, int slice, int mipLevel, void 
 // Shaders
 // =================================================================================================
 
-uint32 RenderDevice::createShaderProgram( const char *vertexShaderSrc, const char *fragmentShaderSrc )
+uint32 RenderDevice::createShaderProgram( const char* filename, const char *vertexShaderSrc, const char *fragmentShaderSrc )
 {
-	int infologLength = 0;
-	int charsWritten = 0;
-	char *infoLog = 0x0;
 	int status;
-
-	_shaderLog = "";
 
 	// Vertex shader
 	uint32 vs = glCreateShader( GL_VERTEX_SHADER );
@@ -580,17 +578,8 @@ uint32 RenderDevice::createShaderProgram( const char *vertexShaderSrc, const cha
 	glCompileShader( vs );
 	glGetShaderiv( vs, GL_COMPILE_STATUS, &status );
 	if( !status )
-	{	
-		// Get info
-		glGetShaderiv( vs, GL_INFO_LOG_LENGTH, &infologLength );
-		if( infologLength > 1 )
-		{
-			infoLog = new char[infologLength];
-			glGetShaderInfoLog( vs, infologLength, &charsWritten, infoLog );
-			_shaderLog = _shaderLog + "[Vertex Shader]\n" + infoLog;
-			delete[] infoLog; infoLog = 0x0;
-		}
-
+	{
+      ReportShaderError(vs, "vertex shader", false, filename, vertexShaderSrc);
 		glDeleteShader( vs );
 		return 0;
 	}
@@ -602,15 +591,7 @@ uint32 RenderDevice::createShaderProgram( const char *vertexShaderSrc, const cha
 	glGetShaderiv( fs, GL_COMPILE_STATUS, &status );
 	if( !status )
 	{	
-		glGetShaderiv( fs, GL_INFO_LOG_LENGTH, &infologLength );
-		if( infologLength > 1 )
-		{
-			infoLog = new char[infologLength];
-			glGetShaderInfoLog( fs, infologLength, &charsWritten, infoLog );
-			_shaderLog = _shaderLog + "[Fragment Shader]\n" + infoLog;
-			delete[] infoLog; infoLog = 0x0;
-		}
-
+      ReportShaderError(fs, "fragment shader", false, filename, vertexShaderSrc);
 		glDeleteShader( vs );
 		glDeleteShader( fs );
 		return 0;
@@ -627,23 +608,21 @@ uint32 RenderDevice::createShaderProgram( const char *vertexShaderSrc, const cha
 }
 
 
-bool RenderDevice::linkShaderProgram( uint32 programObj )
+bool RenderDevice::linkShaderProgram( uint32 programObj, const char* filename, const char *vertexShaderSrc, const char *fragmentShaderSrc)
 {
 	int infologLength = 0;
 	int charsWritten = 0;
 	char *infoLog = 0x0;
 	int status;
 
-	_shaderLog = "";
-	
 	glLinkProgram( programObj );
 	glGetProgramiv( programObj, GL_INFO_LOG_LENGTH, &infologLength );
 	if( infologLength > 1 )
 	{
-		infoLog = new char[infologLength];
-		glGetProgramInfoLog( programObj, infologLength, &charsWritten, infoLog );
-		_shaderLog = _shaderLog + "[Linking]\n" + infoLog;
-		delete[] infoLog; infoLog = 0x0;
+      std::ostringstream src;
+      src << "Vertex Shader Source" << std::endl << vertexShaderSrc << std::endl;
+      src << "Fragment Shader Source" << std::endl << fragmentShaderSrc << std::endl;
+      ReportShaderError(programObj, "linking", true, filename, src.str().c_str());
 	}
 	
 	glGetProgramiv( programObj, GL_LINK_STATUS, &status );
@@ -653,12 +632,12 @@ bool RenderDevice::linkShaderProgram( uint32 programObj )
 }
 
 
-uint32 RenderDevice::createShader( const char *vertexShaderSrc, const char *fragmentShaderSrc )
+uint32 RenderDevice::createShader( const char* filename, const char *vertexShaderSrc, const char *fragmentShaderSrc )
 {
 	// Compile and link shader
-	uint32 programObj = createShaderProgram( vertexShaderSrc, fragmentShaderSrc );
+	uint32 programObj = createShaderProgram( filename, vertexShaderSrc, fragmentShaderSrc );
 	if( programObj == 0 ) return 0;
-	if( !linkShaderProgram( programObj ) ) return 0;
+	if( !linkShaderProgram( programObj, filename, vertexShaderSrc, fragmentShaderSrc ) ) return 0;
 	
 	uint32 shaderId = _shaders.add( RDIShader() );
 	RDIShader &shader = _shaders.getRef( shaderId );
@@ -1388,5 +1367,63 @@ void RenderDevice::drawIndexed( RDIPrimType primType, uint32 firstIndex, uint32 
 
 	CHECK_GL_ERROR
 }
+
+void RenderDevice::ReportShaderError(uint32 shader_id, std::string const& which, bool program_shader, const char* filename, const char* src)
+{
+	int info_len = 0;
+
+   ::radiant::lib::ErrorBrowser::Record record;
+   if (filename) {
+      record.SetFilename(filename);
+   }
+   if (src) {
+      record.SetFileContent(src);
+   }
+
+	// Get info
+	(program_shader ? glGetProgramiv : glGetShaderiv)(shader_id, GL_INFO_LOG_LENGTH, &info_len);
+	if (info_len == 0) {
+      std::ostringstream s;
+      s << "unknown error compling " << which << ".";
+      record.SetCategory(record.SEVERE);
+      record.SetSummary(s.str());
+      Modules::log().ReportError(record);
+   } else {
+      int c = 0;
+      char *info = NULL;
+
+      info = new char[info_len + 1];
+      if (info) {
+		   (program_shader ? glGetProgramInfoLog : glGetShaderInfoLog)(shader_id, info_len, &c, info);
+
+         Modules::log().writeError("raw shader compile error: %s", info);
+
+         std::vector<std::string> lines;
+         boost::split(lines, info, boost::is_any_of("\n\r"));
+         lines.erase(std::remove(lines.begin(), lines.end(), ""), lines.end());
+
+         for (std::string const& line : lines) {
+            std::regex exp("(\\d+)\\((\\d+)\\)(.*)");
+            std::smatch match;
+            if (std::regex_match(line, match, exp)) {
+               int char_offset = atoi(match[2].str().c_str());
+               int line_number = atoi(match[3].str().c_str());
+               std::string summary = match[3].str();
+               if (strstr(line.c_str(), "error")) {
+                  record.SetCategory(record.SEVERE);
+               } else {
+                  record.SetCategory(record.WARNING);
+               }
+               record.SetCharOffset(char_offset);
+               record.SetLineNumber(line_number);
+               record.SetSummary(summary);
+               Modules::log().ReportError(record);
+            }
+         }
+         delete [] info;
+      }
+	}
+}
+
 
 }  // namespace

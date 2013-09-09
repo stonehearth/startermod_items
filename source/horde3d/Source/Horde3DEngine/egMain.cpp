@@ -98,7 +98,6 @@ DLLEXP bool h3dInit()
 	return Modules::init();
 }
 
-
 DLLEXP void h3dRelease()
 {
 	Modules::release();

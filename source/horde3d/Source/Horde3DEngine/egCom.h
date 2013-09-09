@@ -17,8 +17,10 @@
 #include <string>
 #include <queue>
 #include <cstdarg>
+#include <functional>
+#include "lib/namespace.h"
 #include "utTimer.h"
-
+#include "lib/error_browser/error_browser.h"
 
 namespace Horde3D {
 
@@ -113,6 +115,10 @@ public:
 	uint32 getMaxNumMessages() { return _maxNumMessages; }
 	void setMaxNumMessages( uint32 maxNumMessages ) { _maxNumMessages = maxNumMessages; }
 	
+   typedef std::function<void(::radiant::lib::ErrorBrowser::Record const&)> ReportErrorCb;
+   void SetNotifyErrorCb(ReportErrorCb const& cb);
+   void ReportError(::radiant::lib::ErrorBrowser::Record const&);
+
 protected:
 	void pushMessage( const std::string &text, uint32 level );
 	void pushMessage( int level, const char *msg, va_list ap );
@@ -122,6 +128,10 @@ protected:
 	char                      _textBuf[2048];
 	uint32                    _maxNumMessages;
 	std::queue< LogMessage >  _messages;
+
+   ReportErrorCb             error_cb_;
+   std::vector<::radiant::lib::ErrorBrowser::Record> errors_;
+
 };
 
 
