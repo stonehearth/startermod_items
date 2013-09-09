@@ -5,10 +5,9 @@
    "tooltip": "Promote",
    "icon": "file(/images/promote.png)",
 
-   "action": "post",
-   "post_uri": "file(promote_command.lua)",
-   "post_data": {
-      "talisman": "{{entity_id}}"
+   "action": "fire_event",
+   "event_name" : "pick_person.stonehearth_items",
+   "event_data" : {
+      "post_target" : "/modules/server/stonehearth_items/promote_command"
    }
-
 }

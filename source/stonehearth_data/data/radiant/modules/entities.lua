@@ -130,7 +130,7 @@ end
 
 function entities.move_to(entity, location)
    radiant.check.is_entity(entity)
-   
+
    if type(location) == "table" then
       location = Point3(location.x, location.y, location.z)
    end
@@ -242,9 +242,17 @@ function entities.do_ability(entity, ability_name, ...)
    end
 end
 
+--Get an entity given its numeric ID
 function entities.get_entity(id)
    radiant.check.is_number(id)
    return native:get_entity(id)
+end
+
+--Get an entity given its string ID (from client,
+--something like "/object/31"
+function entities.get_entity_by_string(string_id)
+   local numeric_part = string.sub(string_id, 9)
+   return entities.get_entity(tonumber(numeric_part))
 end
 
 function entities.get_animation_table_name(entity)

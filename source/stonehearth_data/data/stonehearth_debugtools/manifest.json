@@ -4,6 +4,13 @@
    },
 
    "ui" :  {
+      "dock" : [
+         {
+            "icon" : "file(/html/images/dock_icon.png)",
+            "class" : "StonehearthObjectBrowserView"      
+         }
+      ],
+
       "html" : [
          "file(/html/stonehearth_object_browser.html)",
          "file(/html/stonehearth_error_browser.html)",
