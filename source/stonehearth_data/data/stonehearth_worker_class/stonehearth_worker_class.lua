@@ -34,7 +34,7 @@ function stonehearth_worker_class.demote(entity)
    local dude_loc = radiant.entities.get_location_aligned(entity)
 
    --TODO: where should he put it? Ideally it would pop out of him and into...?
-   radiant.terrain.place_entity(axe, Point3(dude_loc.x , 3, dude_loc.z + 3))
+   radiant.terrain.place_entity(axe, Point3(dude_loc.x , 6, dude_loc.z + 3))
 end
 
 function stonehearth_worker_class.get_worker_scheduler(faction)

@@ -2,17 +2,10 @@
 local MicroWorld = radiant.mods.require('/stonehearth_tests/lib/micro_world.lua')
 local TerrainTest = class(MicroWorld)
 
-local Terrain = _radiant.om.Terrain
-local Cube3 = _radiant.csg.Cube3
-local Point3 = _radiant.csg.Point3
-local Region2 = _radiant.csg.Region2
-local Region3 = _radiant.csg.Region3
-local HeightMapCPP = _radiant.csg.HeightMap
+local HeightMapRenderer = radiant.mods.require('/stonehearth_terrain/height_map_renderer.lua')
+--local TeraGen = radiant.mods.require('/stonehearth_terrain/stonehearth_terrain.lua')
 
-local Point3 = _radiant.csg.Point3
-
-local TeraGen = radiant.mods.require('/stonehearth_terrain')
-
+local ZoneType = radiant.mods.require('/stonehearth_terrain/zone_type.lua')
 local HeightMap = radiant.mods.require('/stonehearth_terrain/height_map.lua')
 local Array2D = radiant.mods.require('/stonehearth_terrain/array_2D.lua')
 local TerrainGenerator = radiant.mods.require('/stonehearth_terrain/terrain_generator.lua')
@@ -22,9 +15,7 @@ local BoundaryNormalizingFilter = radiant.mods.require('/stonehearth_terrain/fil
 local FilterFns = radiant.mods.require('/stonehearth_terrain/filter/filter_fns.lua')
 local GaussianRandom = radiant.mods.require('/stonehearth_terrain/math/gaussian_random.lua')
 local InverseGaussianRandom = radiant.mods.require('/stonehearth_terrain/math/inverse_gaussian_random.lua')
-local Timer = radiant.mods.require('/stonehearth_terrain/timer.lua')
-
-local zone_size = 256
+--local Timer = radiant.mods.require('/stonehearth_terrain/timer.lua')
 
 function TerrainTest:__init()
    --self:_run_timing_tests()
@@ -32,8 +23,7 @@ function TerrainTest:__init()
    
    self[MicroWorld]:__init()
 
-   self._terrain_generator = TerrainGenerator(zone_size)
-   self.foothills_quantization_size = self._terrain_generator.foothills_quantization_size
+   self._terrain_generator = TerrainGenerator()
 
    self:create_world()
    --self:create_multi_zone_world()
@@ -43,12 +33,13 @@ function TerrainTest:create_world()
    local height_map
 
    --height_map = terrain_generator:_erosion_test()
-   height_map = self._terrain_generator:generate_zone()
-   self:_render_height_map_to_terrain(height_map)
+   height_map = self._terrain_generator:generate_zone(ZoneType.Foothills)
+   HeightMapRenderer.render_height_map_to_terrain(height_map, self._terrain_generator.zone_params)
    self:decorate_landscape()
 end
 
 function TerrainTest:create_multi_zone_world()
+   local zone_size = self._terrain_generator.zone_size
    local world_map = HeightMap(zone_size*2, zone_size*2)
    local zones = Array2D(3, 3)
    local zone_map
@@ -65,8 +56,7 @@ function TerrainTest:create_multi_zone_world()
    zone_map:copy_block(world_map, zone_map, 1, zone_size, 1, 1, zone_size, zone_size)
    micro_map = self._terrain_generator:_create_micro_map(zone_map)
    zones:set(2, 3, micro_map)
-   self:_render_height_map_to_terrain(world_map)
-
+   HeightMapRenderer.render_height_map_to_terrain(world_map, self._terrain_generator.zone_params)
 end
 
 function TerrainTest:create_old_world()
@@ -75,6 +65,7 @@ function TerrainTest:create_old_world()
 end
 
 function TerrainTest:decorate_landscape()
+   local zone_size = self._terrain_generator.zone_size
    local i
    for i=1, 20, 1 do
       self:place_tree(math.random(1, zone_size), math.random(1, zone_size))
@@ -105,57 +96,6 @@ function TerrainTest:_run_timing_tests()
    timer.stop()
    radiant.log.info("Duration: %f", timer.duration())
    assert(false)
-end
-
-----------
-
-function TerrainTest:_render_height_map_to_terrain(height_map)
-   local r2 = Region2()
-   local r3 = Region3()
-   local heightMapCPP = HeightMapCPP(height_map.width, 1) -- Assumes square map!
-   local terrain = radiant._root_entity:add_component('terrain')
-
-   self:_copy_heightmap_to_CPP(heightMapCPP, height_map)
-   _radiant.csg.convert_heightmap_to_region2(heightMapCPP, r2)
-
-   for rect in r2:contents() do
-      if rect.tag > 0 then
-         self:_add_land_to_region(r3, rect, rect.tag);         
-      end
-   end
-
-   terrain:add_region(r3)
-end
-
-function TerrainTest:_copy_heightmap_to_CPP(heightMapCPP, height_map)
-   local row_offset = 0
-
-   for j=1, height_map.height, 1 do
-      for i=1, height_map.width, 1 do
-         heightMapCPP:set(i-1, j-1, math.abs(height_map[row_offset+i]))
-      end
-      row_offset = row_offset + height_map.width
-   end
-end
-
-function TerrainTest:_add_land_to_region(dst, rect, height)
-   dst:add_cube(Cube3(Point3(rect.min.x, -2, rect.min.y),
-                      Point3(rect.max.x,  0, rect.max.y),
-                Terrain.BEDROCK))
-
-   if height % self.foothills_quantization_size == 0 then
-      dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
-                         Point3(rect.max.x, height-1, rect.max.y),
-                   Terrain.TOPSOIL))
-
-      dst:add_cube(Cube3(Point3(rect.min.x, height-1, rect.min.y),
-                         Point3(rect.max.x, height,   rect.max.y),
-                   Terrain.GRASS))
-   else
-      dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
-                         Point3(rect.max.x, height,   rect.max.y),
-                   Terrain.TOPSOIL))
-   end
 end
 
 return TerrainTest

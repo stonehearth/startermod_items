@@ -10,8 +10,6 @@ Store& Store::GetStore(int id)
 {
    if (!id) {
       LOG(WARNING) << "object asked for store id 0.  we're about to die...";
-      google::FlushLogFiles(google::INFO);
-      google::FlushLogFiles(google::WARNING);
    }
    ASSERT(id);
    return *stores_[id];

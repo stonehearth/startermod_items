@@ -30,12 +30,14 @@ end
 function GrabTalismanAction:run(ai, entity, action_data)
    if action_data and action_data.talisman then
       self._talisman_entity = action_data.talisman
+      local promotion_info_component = self._talisman_entity:get_component('stonehearth_classes:talisman_promotion_info')
+      local workbench_entity = promotion_info_component:get_promotion_data().workshop:get_entity();
 
       --TODO: if the dude is currently not a worker, he should drop his talisman
       --and/or tell his place of work to spawn a new one. (Disassociate worker from queue?)
 
-      ai:execute('stonehearth.activities.goto_entity', self._talisman_entity)
-      radiant.entities.remove_child(radiant._root_entity, self._talisman_entity)
+      ai:execute('stonehearth.activities.goto_entity', workbench_entity)
+      radiant.entities.remove_child(workbench_entity, self._talisman_entity)
       ai:execute('stonehearth.activities.run_effect', 'promote', nil, {talisman = self._talisman_entity})
 
       --Remove the entity from the world

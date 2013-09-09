@@ -3,7 +3,23 @@ App.StonehearthCalendarView = App.View.extend({
 
    init: function() {
       this._super();
+      var self = this;
       //this.set('uri', '/server/objects/stonehearth_calendar/clock');
+      
+      self.set('context', {});
+
+      this.trace = radiant.trace('/server/objects/stonehearth_calendar/clock')
+         .progress(function(json) {
+            self.set('context.date', json.date);
+         })
+         .fail(function(e) {
+            console.log(e);
+         });
+   },
+
+   destroy: function() {
+      this._super();
+      this.trace.destroy();
    },
 
    didInsertElement: function() {

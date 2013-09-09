@@ -2,7 +2,9 @@
    "type" : "command",
 
    "name": "show_craft_ui",
-   "tooltip": "Craft",
+   "enabled_tooltip": "Craft!",
+   "disabled_tooltip": "Disabled! Click on the saw to promote a crafter",
+   "default_enabled": false,
    "icon": "file(/html/images/show_workshop.png)",
 
    "action": "fire_event",
