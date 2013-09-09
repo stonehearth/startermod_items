@@ -14,7 +14,7 @@
 #include "egModules.h"
 #include "egCom.h"
 #include "egRenderer.h"
-#include "lib/error_browser/error_browser.h"
+#include "om/error_browser/error_browser.h"
 #include <fstream>
 #include <cstring>
 

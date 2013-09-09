@@ -16,7 +16,7 @@
 #include "egPrerequisites.h"
 #include "utMath.h"
 #include "utOpenGL.h"
-#include "lib/error_browser/error_browser.h"
+#include "om/error_browser/error_browser.h"
 #include <string>
 #include <vector>
 
@@ -444,7 +444,13 @@ protected:
 	void checkGLError();
 	bool applyVertexLayout();
 	void applySamplerState( RDITexture &tex );
-   void ReportShaderError(uint32 shader_id, std::string const& which, bool program_shader = false, const char* filename = NULL, const char* src = NULL);
+
+   enum ShaderType {
+      VERTEX_SHADER,
+      FRAGMENT_SHADER,
+      PROGRAM
+   };
+   void ReportShaderError(uint32 shader_id, ShaderType type, const char* filename, const char* vs, const char* fs);
 
 protected:
 

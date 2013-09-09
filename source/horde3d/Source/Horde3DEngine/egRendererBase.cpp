@@ -19,7 +19,7 @@
 #include "utOpenGL.h"
 
 #include "utDebug.h"
-#include "lib/error_browser/error_browser.h"
+#include "om/error_browser/error_browser.h"
 
 namespace Horde3D {
 
@@ -579,7 +579,7 @@ uint32 RenderDevice::createShaderProgram( const char* filename, const char *vert
 	glGetShaderiv( vs, GL_COMPILE_STATUS, &status );
 	if( !status )
 	{
-      ReportShaderError(vs, "vertex shader", false, filename, vertexShaderSrc);
+      ReportShaderError(vs, VERTEX_SHADER, filename, vertexShaderSrc, fragmentShaderSrc);
 		glDeleteShader( vs );
 		return 0;
 	}
@@ -591,7 +591,7 @@ uint32 RenderDevice::createShaderProgram( const char* filename, const char *vert
 	glGetShaderiv( fs, GL_COMPILE_STATUS, &status );
 	if( !status )
 	{	
-      ReportShaderError(fs, "fragment shader", false, filename, vertexShaderSrc);
+      ReportShaderError(fs, FRAGMENT_SHADER, filename, vertexShaderSrc, fragmentShaderSrc);
 		glDeleteShader( vs );
 		glDeleteShader( fs );
 		return 0;
@@ -619,10 +619,7 @@ bool RenderDevice::linkShaderProgram( uint32 programObj, const char* filename, c
 	glGetProgramiv( programObj, GL_INFO_LOG_LENGTH, &infologLength );
 	if( infologLength > 1 )
 	{
-      std::ostringstream src;
-      src << "Vertex Shader Source" << std::endl << vertexShaderSrc << std::endl;
-      src << "Fragment Shader Source" << std::endl << fragmentShaderSrc << std::endl;
-      ReportShaderError(programObj, "linking", true, filename, src.str().c_str());
+      ReportShaderError(programObj, PROGRAM, filename, vertexShaderSrc, fragmentShaderSrc);
 	}
 	
 	glGetProgramiv( programObj, GL_LINK_STATUS, &status );
@@ -1368,61 +1365,92 @@ void RenderDevice::drawIndexed( RDIPrimType primType, uint32 firstIndex, uint32 
 	CHECK_GL_ERROR
 }
 
-void RenderDevice::ReportShaderError(uint32 shader_id, std::string const& which, bool program_shader, const char* filename, const char* src)
+void RenderDevice::ReportShaderError(uint32 shader_id, ShaderType type, const char* filename, const char* vs, const char* fs)
 {
 	int info_len = 0;
+   bool program_shader = type == PROGRAM;
+   const char *src = NULL;
+   std::ostringstream program_src_stream;
+   std::string program_src;
 
-   ::radiant::lib::ErrorBrowser::Record record;
-   if (filename) {
-      record.SetFilename(filename);
-   }
-   if (src) {
-      record.SetFileContent(src);
+   if (type == PROGRAM) {
+      program_src_stream << "Vertex Info" << std::endl << vs << std::endl;
+      program_src_stream << "Fragment Info" << std::endl << fs << std::endl;
+      program_src = program_src_stream.str();
+      src = program_src.c_str();
+   } else if (type == VERTEX_SHADER) { 
+      src = vs;
+   } else if (type == FRAGMENT_SHADER) {
+      src = fs;
    }
 
 	// Get info
 	(program_shader ? glGetProgramiv : glGetShaderiv)(shader_id, GL_INFO_LOG_LENGTH, &info_len);
 	if (info_len == 0) {
+      ::radiant::om::ErrorBrowser::Record record;
+
       std::ostringstream s;
-      s << "unknown error compling " << which << ".";
+      s << "unknown error compling shader";
       record.SetCategory(record.SEVERE);
       record.SetSummary(s.str());
-      Modules::log().ReportError(record);
-   } else {
-      int c = 0;
-      char *info = NULL;
-
-      info = new char[info_len + 1];
-      if (info) {
-		   (program_shader ? glGetProgramInfoLog : glGetShaderInfoLog)(shader_id, info_len, &c, info);
-
-         Modules::log().writeError("raw shader compile error: %s", info);
-
-         std::vector<std::string> lines;
-         boost::split(lines, info, boost::is_any_of("\n\r"));
-         lines.erase(std::remove(lines.begin(), lines.end(), ""), lines.end());
-
-         for (std::string const& line : lines) {
-            std::regex exp("(\\d+)\\((\\d+)\\)(.*)");
-            std::smatch match;
-            if (std::regex_match(line, match, exp)) {
-               int char_offset = atoi(match[2].str().c_str());
-               int line_number = atoi(match[3].str().c_str());
-               std::string summary = match[3].str();
-               if (strstr(line.c_str(), "error")) {
-                  record.SetCategory(record.SEVERE);
-               } else {
-                  record.SetCategory(record.WARNING);
-               }
-               record.SetCharOffset(char_offset);
-               record.SetLineNumber(line_number);
-               record.SetSummary(summary);
-               Modules::log().ReportError(record);
-            }
-         }
-         delete [] info;
+      if (filename) {
+         record.SetFilename(filename);
       }
-	}
+      Modules::log().ReportError(record);
+      return;
+   }
+   int c = 0;
+   char *info = NULL;
+
+   info = new char[info_len + 1];
+   if (info) {
+		(program_shader ? glGetProgramInfoLog : glGetShaderInfoLog)(shader_id, info_len, &c, info);
+
+      Modules::log().writeError("raw shader compile error: %s", info);
+
+      std::vector<std::string> lines;
+      boost::split(lines, info, boost::is_any_of("\n\r"));
+      lines.erase(std::remove(lines.begin(), lines.end(), ""), lines.end());
+
+      for (std::string const& line : lines) {
+         ::radiant::om::ErrorBrowser::Record record;
+
+         std::regex exp("(\\d+)\\((\\d+)\\)(.*)");
+         std::smatch match;
+         if (line == "Vertex info") {
+            type = VERTEX_SHADER;
+            src = vs;
+         } else if (line == "Fragment info") {
+            type = FRAGMENT_SHADER;
+            src = fs;
+         } else if (std::regex_match(line, match, exp)) {
+            int char_offset = atoi(match[1].str().c_str());
+            int line_number = atoi(match[2].str().c_str());
+            std::string summary = match[3].str();
+
+            record.SetSummary(summary);
+
+            if (strstr(line.c_str(), "error")) {
+               record.SetCategory(record.SEVERE);
+            } else {
+               record.SetCategory(record.WARNING);
+            }
+
+            if (filename) {
+               record.SetFilename(filename);
+            }
+            if (src) {
+               record.SetFileContent(src);
+               if (type != PROGRAM) {
+                  record.SetCharOffset(char_offset);
+                  record.SetLineNumber(line_number);
+               }
+            }
+            Modules::log().ReportError(record);
+         }
+      }
+      delete [] info;
+   }
 }
 
 

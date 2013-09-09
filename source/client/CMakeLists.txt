@@ -63,5 +63,4 @@ target_link_libraries(client
                              protocols
                              resources
                              simulation
-                             error_browser
                              )

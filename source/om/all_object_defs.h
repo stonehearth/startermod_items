@@ -12,5 +12,6 @@
     OM_OBJECT(DataBinding,       data_binding) \
     OM_OBJECT(JsonStore,         json_store) \
     OM_OBJECT(ModelVariant,      model_variant) \
+    OM_OBJECT(ErrorBrowser,      error_browser) \
 
 #endif

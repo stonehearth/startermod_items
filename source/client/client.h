@@ -21,7 +21,6 @@
 #include "core/singleton.h"
 #include "chromium/chromium.h"
 #include "lua/namespace.h"
-#include "lib/error_browser/error_browser.h"
 #include "mouse_event_promise.h"
 #include "radiant_json.h"
 
@@ -185,7 +184,7 @@ private:
       // server side remote object tracking...
       std::unordered_map<std::string, std::string>    serverRemoteObjects_;
       std::unordered_map<std::string, std::string>    clientRemoteObjects_;
-      std::unique_ptr<lib::ErrorBrowser>              error_browser_;
+      om::ErrorBrowserPtr                             error_browser_;
 
       // client side lua...
       std::unique_ptr<lua::ScriptHost>  scriptHost_;

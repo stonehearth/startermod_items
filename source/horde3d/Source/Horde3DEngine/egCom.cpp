@@ -263,7 +263,7 @@ void EngineLog::SetNotifyErrorCb(ReportErrorCb const& cb)
    errors_.clear();
 }
 
-void EngineLog::ReportError(::radiant::lib::ErrorBrowser::Record const& record)
+void EngineLog::ReportError(::radiant::om::ErrorBrowser::Record const& record)
 {
    if (error_cb_) {
       error_cb_(record);

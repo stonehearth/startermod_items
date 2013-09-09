@@ -19,7 +19,7 @@ App.View = Ember.View.extend({
       }
    },
 
-   _debug : true,
+   _debug : false,
 
    _log : function(level, str, obj) {
       if (!this._debug) {
@@ -41,7 +41,6 @@ App.View = Ember.View.extend({
 
    _updatedUri: function() {
       var self = this;
-
 
       this._destroyAllTraces();
       if (this.uri) {

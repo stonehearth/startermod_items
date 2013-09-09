@@ -4,6 +4,7 @@
 #include "xz_region_selector.h"
 #include "om/entity.h"
 #include "om/components/terrain.h"
+#include "om/error_browser/error_browser.h"
 #include "om/selection.h"
 #include "om/om_alloc.h"
 #include "csg/lua/lua_csg.h"
@@ -56,11 +57,11 @@ Client::Client() :
    om::RegisterObjectTypes(store_);
    om::RegisterObjectTypes(authoringStore_);
 
-   error_browser_.reset(new lib::ErrorBrowser(authoringStore_));
    std::vector<std::pair<dm::ObjectId, dm::ObjectType>>  allocated_;
    scriptHost_.reset(new lua::ScriptHost());
 
-   clientRemoteObjects_["/o/named_objects/client_error_browser"] = om::ObjectFormatter().GetPathToObject(error_browser_->GetJsonStoreObject());
+   error_browser_ = authoringStore_.AllocObject<om::ErrorBrowser>();
+   clientRemoteObjects_["/o/named_objects/client/error_browser"] = om::ObjectFormatter().GetPathToObject(error_browser_);
 }
 
 Client::~Client()
@@ -84,7 +85,7 @@ void Client::run()
    renderer.SetCurrentPipeline("pipelines/deferred_pipeline_static.xml");
    //renderer.SetCurrentPipeline("pipelines/forward.pipeline.xml");
 
-   Horde3D::Modules::log().SetNotifyErrorCb([=](lib::ErrorBrowser::Record const& r) {
+   Horde3D::Modules::log().SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
       error_browser_->AddRecord(r);
    });
 

@@ -128,6 +128,20 @@ template <> JSONNode ToJson(const ObjectFormatter& f, JsonStore const& obj)
    return obj.Get();
 }
 
+template <> JSONNode ToJson(const ObjectFormatter& f, ErrorBrowser const& obj)
+{
+   JSONNode node;
+
+   JSONNode entries(JSON_ARRAY);
+   entries.set_name("entries");
+   for (auto const& e: obj.GetEntries()) {
+      entries.push_back(JSONNode("", f.GetPathToObject(e)));
+   }
+   node.push_back(entries);
+
+   return node;
+}
+
 #define OM_OBJECT(Cls, lower) \
    template <> JSONNode ToJson(const ObjectFormatter& f, Cls const& obj) { \
       JSONNode result; \
