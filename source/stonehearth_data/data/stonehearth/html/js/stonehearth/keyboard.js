@@ -16,7 +16,7 @@ $(document).ready(function(){
       radiant.keyboard.handleKeyEvent(e);
    });
 
-   radiant.keyboard.setFocus($('body'));
+   radiant.keyboard.setFocus(null);
 
 });
 
@@ -37,6 +37,7 @@ $(document).ready(function(){
       },
 
       setFocus: function(element) {
+         element = element || $('body');
          this._hotkeyScope = element;
       },
 

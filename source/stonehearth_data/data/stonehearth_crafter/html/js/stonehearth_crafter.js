@@ -56,29 +56,89 @@ App.StonehearthCrafterView = App.View.extend({
    //alias for stonehearth_crafter:workshop.crafter.stonehearth_crafter:crafter.craftable_recipes
    recipes: null,
 
-   hide: function() {
-      var self = this;
-      $("#craftingUI")
-         .animate({ top: -1900 }, 500, 'easeOutBounce', function() {
-            self.destroy();
-      });
-      $(".overlay")
-         .animate({ opacity: 0.0 }, {duration: 300, easing: 'easeInQuad'});
+   init: function() {
+      this._super();
    },
 
-   _hasLoaded: false,
+   destroy: function() {
+      radiant.keyboard.setFocus(null);
+      this._super();
+   },
+
+   actions: {
+      hide: function() {
+         var self = this;
+         $("#craftingUI")
+            .animate({ top: -1900 }, 500, 'easeOutBounce', function() {
+               self.destroy();
+         });
+         $(".overlay")
+            .animate({ opacity: 0.0 }, {duration: 300, easing: 'easeInQuad'});
+      },
+
+      select: function(object, remaining, maintainNumber) {
+         this.set('context.current', object);
+         this._setRadioButtons(remaining, maintainNumber);
+         //TODO: make the selected item visually distinct
+         this.preview();
+      },
+
+      //Call this function when the user is ready to submit an order
+      craft: function() {
+         var url = this.get('context.stonehearth_crafter:workshop').__self + "?fn=add_order";
+         var data = {};
+         data.recipe_url = this.get('context.current').my_location;
+         var type = $('input[name=conditionGroup]:checked').val();
+         if (type == "make") {
+            data.condition_amount = $('#makeNumSelector').val();
+         } else {
+            data.condition_inventory_below = $('#mantainNumSelector').val();
+         }
+         $.ajax({
+               type: 'post',
+               url: url,
+               contentType: 'application/json',
+               data: JSON.stringify(data)
+            }).done(function(return_data){
+               //TODO: maybe stuff goes here?
+            });
+      },
+
+      togglePause: function(){
+         var url = this.get('context.stonehearth_crafter:workshop').__self + "?fn=toggle_pause";
+         var data = {};
+         $.ajax({
+               type: 'post',
+               url: url,
+               contentType: 'application/json',
+               data: JSON.stringify(data)
+            }).done(function(return_data){
+               //TODO: change other things to reflect pause?
+            });
+
+      },
+
+      scrollOrderListUp: function() {
+         this._scrollOrderList(-157)
+      },
+
+      scrollOrderListDown: function() {
+         this._scrollOrderList(157)
+      }
+   },
 
    //Fired when the template has loaded. Continue to
    //run until all relevant children are inserted.
    //Then attach all jquery functionality to items
    didInsertElement: function() {
+      this._super();
+
       if (this.get('context.stonehearth_crafter:workshop') == undefined) {
          return;
       }
 
-      console.log("DidInsertElement is being called on the crafting window");
-      console.log(this.get("context.stonehearth_crafter:workshop.order_list"));
-      this._super();
+      radiant.keyboard.setFocus($("#craftingUI")); // xxx change this to a higher level api, like a 'modal' property on the view
+
       this._buildAccordion();
       this._buildOrderList();
       initIncrementButtons();
@@ -87,14 +147,6 @@ App.StonehearthCrafterView = App.View.extend({
          .animate({ top: 0 }, {duration: 500, easing: 'easeOutBounce'});
       $(".overlay")
          .animate({ opacity: 0.3 }, {duration: 300, easing: 'easeInQuad'});
-   },
-
-   //Call this function when the selected order changes.
-   select: function(object, remaining, maintainNumber) {
-      this.set('context.current', object);
-      this._setRadioButtons(remaining, maintainNumber);
-      //TODO: make the selected item visually distinct
-      this.preview();
    },
 
    _setRadioButtons: function(remaining, maintainNumber) {
@@ -134,54 +186,42 @@ App.StonehearthCrafterView = App.View.extend({
          });
    },
 
-   //Call this function when the user is ready to submit an order
-   craft: function() {
-      var url = this.get('context.stonehearth_crafter:workshop').__self + "?fn=add_order";
-      var data = {};
-      data.recipe_url = this.get('context.current').my_location;
-      var type = $('input[name=conditionGroup]:checked').val();
-      if (type == "make") {
-         data.condition_amount = $('#makeNumSelector').val();
-      } else {
-         data.condition_inventory_below = $('#mantainNumSelector').val();
-      }
-      $.ajax({
-            type: 'post',
-            url: url,
-            contentType: 'application/json',
-            data: JSON.stringify(data)
-         }).done(function(return_data){
-            //TODO: maybe stuff goes here?
-         });
-   },
-
    workshopIsPaused: Ember.computed.alias("stonehearth_crafter:workshop.is_paused"),
 
    _workshopIsPausedAlias: function() {
-      this.set('context.workshopIsPaused', this.get('context.stonehearth_crafter:workshop.is_paused'))
+      var isPaused = this.get('context.stonehearth_crafter:workshop.is_paused');
+      this.set('context.workshopIsPaused', isPaused)
+
+      var r = isPaused ? 4 : -4;
+
+      // flip the sign
+      $("#statusSign").animate({  
+         rot: r,
+         }, 
+         {
+            duration: 200,
+            step: function(now,fx) {
+               var percentDone;
+               var end = fx.end;
+               var start = fx.start;
+
+               if (end > start) {
+                  console.log('end > start');
+                  percentDone = (now - start) / (end - start);
+               } else {
+                  percentDone = -1 * (now - start) / (start - end);
+               }
+
+               var scaleX = percentDone < .5 ? 1 - (percentDone * 2) : (percentDone * 2) - 1;
+
+               console.log('step = ' + now + ", " + scaleX);
+
+               $(this).css('-webkit-transform', 'rotate(' + now + 'deg) scale(' + scaleX +', 1)');
+            }
+      });
+
+
    }.observes('context.stonehearth_crafter:workshop.is_paused'),
-
-   togglePause: function(){
-      var url = this.get('context.stonehearth_crafter:workshop').__self + "?fn=toggle_pause";
-      var data = {};
-      $.ajax({
-            type: 'post',
-            url: url,
-            contentType: 'application/json',
-            data: JSON.stringify(data)
-         }).done(function(return_data){
-            //TODO: change other things to reflect pause?
-         });
-
-   },
-
-   scrollOrderListUp: function() {
-      this._scrollOrderList(-157)
-   },
-
-   scrollOrderListDown: function() {
-      this._scrollOrderList(157)
-   },
 
    //Attach accordion functionality to the appropriate div
    _buildAccordion: function() {
@@ -354,26 +394,6 @@ App.StonehearthCrafterView = App.View.extend({
       var orderList = $('#orders'),
       localScrollTop = orderList.scrollTop() + amount;
       orderList.animate({scrollTop: localScrollTop}, 100);
-   },
-
-   _isPausedObserver: function() {
-      this._playPause();
-   }.observes('context.stonehearth_crafter:workshop.is_paused'),
-
-
-   _playPause: function() {
-      var $pauseBtn = $('#pauseButton');
-      if (this.get('context.stonehearth_crafter:workshop.is_paused')) {
-         $('#pausedLabel').show();
-         this.set('context.craftingStatus', i18n.t('stonehearth_crafter:paused_status'));
-         $pauseBtn.removeClass('showPause');
-         $pauseBtn.addClass('showPlay');
-      } else {
-         $('#pausedLabel').hide();
-         this.set('context.craftingStatus', i18n.t('stonehearth_crafter:crafting_status'));
-         $pauseBtn.removeClass('showPlay');
-         $pauseBtn.addClass('showPause');
-      }
    },
 
    _orderListObserver: function() {
