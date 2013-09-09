@@ -14,3 +14,27 @@
 	path = modules/libjson
 	url = https://github.com/radent/libjson.git
    ignore = dirty
+[submodule "modules/sfml"]
+	path = modules/sfml
+	url = https://github.com/radent/sfml.git
+[submodule "modules/googletest"]
+	path = modules/googletest
+	url = https://github.com/radent/googletest.git
+[submodule "modules/libnoise"]
+	path = modules/libnoise
+	url = https://github.com/radent/libnoise.git
+[submodule "modules/libclaw"]
+	path = modules/libclaw
+	url = https://github.com/radent/libclaw.git
+[submodule "modules/cryptopp"]
+	path = modules/cryptopp
+	url = https://github.com/radent/cryptopp.git
+[submodule "modules/snappy"]
+	path = modules/snappy
+	url = https://github.com/radent/snappy.git
+[submodule "modules/luabind"]
+	path = modules/luabind
+	url = https://github.com/radent/luabind.git
+[submodule "modules/boost"]
+	path = modules/boost
+	url = https://github.com/radent/boost.git
