@@ -11,8 +11,7 @@ App.StonehearthGameUiView = Ember.ContainerView.extend({
             "StonehearthObjectBrowserView",
             "StonehearthCalendarView",
             "StonehearthMainActionbarView",
-            "StonehearthCanvasTestView",
-            "StonehearthPeoplePickerView"
+            "StonehearthCanvasTestView"
          ]
       };
 

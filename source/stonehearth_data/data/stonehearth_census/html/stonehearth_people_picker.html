@@ -3,7 +3,7 @@
       People!!
       <div id="list">
          {{#each entities}}
-            {{this.unit_info.name}}
+            <a href="#" {{action selectPerson this target="view"}}>{{this.unit_info.name}}</a>
          {{/each}}
       </div>
    </div>

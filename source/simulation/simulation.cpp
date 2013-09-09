@@ -622,7 +622,12 @@ void Simulation::PostCommand(proto::PostCommandRequest const& request, proto::Po
 
    auto i = routes_.find(path);
    if (i != routes_.end()) {
-      HandleRouteRequest(i->second, libjson::parse(query), data, reply);
+      JSONNode args;
+      // xxx: what about data?  if it's empty, we're in trouble, right?
+      if (!query.empty()) {
+         args = libjson::parse(query); // xxx: what if this throws an exception?  we're going to die!!
+      }
+      HandleRouteRequest(i->second, args, data, reply);
       return;
    }
 

@@ -1,0 +1,7 @@
+{
+   "server" : {
+      "request_handlers" : {
+         "promote_command" : "file(commands/promote_command.lua)"
+      }
+   }
+}
