@@ -14,6 +14,7 @@
 #include "egModules.h"
 #include "egCom.h"
 #include "egRenderer.h"
+#include "om/error_browser/error_browser.h"
 #include <fstream>
 #include <cstring>
 
@@ -854,7 +855,7 @@ void ShaderResource::compileCombination( ShaderContext &context, ShaderCombinati
 	}
 	
 	// Compile shader
-	if( !Modules::renderer().createShaderComb( _tmpCode0.c_str(), _tmpCode1.c_str(), sc ) )
+	if( !Modules::renderer().createShaderComb( _name.c_str(), _tmpCode0.c_str(), _tmpCode1.c_str(), sc ) )
 	{
 		Modules::log().writeError( "Shader resource '%s': Failed to compile shader context '%s' (comb %i)",
 			_name.c_str(), context.id.c_str(), sc.combMask );
@@ -894,10 +895,6 @@ void ShaderResource::compileCombination( ShaderContext &context, ShaderCombinati
 	}
 
 	gRDI->bindShader( 0 );
-
-	// Output shader log
-	if( gRDI->getShaderLog() != "" )
-		Modules::log().writeInfo( "Shader resource '%s': ShaderLog: %s", _name.c_str(), gRDI->getShaderLog().c_str() );
 }
 
 

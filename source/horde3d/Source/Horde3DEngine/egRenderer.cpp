@@ -160,7 +160,7 @@ bool Renderer::init()
 	_vlParticle = gRDI->registerVertexLayout( 2, attribsParticle );
 	
 	// Upload default shaders
-	if( !createShaderComb( vsDefColor, fsDefColor, _defColorShader ) )
+	if( !createShaderComb( NULL, vsDefColor, fsDefColor, _defColorShader ) )
 	{
 		Modules::log().writeError( "Failed to compile default shaders" );
 		return false;
@@ -376,7 +376,7 @@ void Renderer::drawCone( float height, float radius, const Matrix4f &transMat )
 // Material System
 // =================================================================================================
 
-bool Renderer::createShaderComb( const char *vertexShader, const char *fragmentShader, ShaderCombination &sc )
+bool Renderer::createShaderComb( const char* filename, const char *vertexShader, const char *fragmentShader, ShaderCombination &sc )
 {
 #if defined(OPTIMIZE_GSLS)
    auto optimize = [=](const char* input, glslopt_shader_type type) -> std::string {
@@ -401,7 +401,7 @@ bool Renderer::createShaderComb( const char *vertexShader, const char *fragmentS
 #endif
 
 	// Create shader program
-	uint32 shdObj = gRDI->createShader( vertexShader, fragmentShader );
+	uint32 shdObj = gRDI->createShader( filename, vertexShader, fragmentShader );
 	if( shdObj == 0 ) return false;
 	
 	sc.shaderObj = shdObj;

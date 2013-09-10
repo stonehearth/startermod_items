@@ -16,8 +16,7 @@ function CityPlanComponent:extend(json)
 end
 
 function CityPlanComponent:add_blueprint(entity)
-   radiant.check.is_entity(entity)
-   table.insert(self._blueprints, entity)
+   self._blueprints[entity:get_id()] = entity
 end
 
 return CityPlanComponent

@@ -58,7 +58,7 @@ end
 -- recompute the game calendar based on the time
 function stonehearth_calendar._on_event_loop(_, now)
    local t
-
+      
    -- determine how many seconds have gone by since the last loop
    local dt = now - data._lastNow + data._remainderTime
    data._remainderTime = dt % constants.TICKS_PER_SECOND;

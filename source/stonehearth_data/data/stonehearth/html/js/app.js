@@ -14,6 +14,10 @@ App = Ember.Application.createWithMixins({
       radiant.events.poll();
   	},
 
+    getModuleData: function() {
+      return this._moduleData;
+    },
+
     _loadModules: function() {
       var self = this;
 
@@ -23,6 +27,8 @@ App = Ember.Application.createWithMixins({
         url: '/api/get_modules'
       }).done( function(data) {
         console.log(data);
+
+        self._moduleData = data;
 
         deferreds = deferreds.concat(self._loadJavaScripts(data));
         deferreds = deferreds.concat(self._loadCsss(data));

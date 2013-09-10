@@ -8,6 +8,31 @@ App.StonehearthUnitFrameView = App.View.extend({
       "unit_info": {}
    },
 
+   actions: {
+      doCommand: function(command) {
+         if (!command.enabled) {
+            return;
+         }
+         if (command.action == 'fire_event') {
+            // xxx: error checking would be nice!!
+            var e = {
+               entity : this._selected_entity,
+            event_data : command.event_data
+            };
+            $(top).trigger(command.event_name, e);
+         } else if (command.action == 'post') {
+            // $.post(command.post_uri, command.post_data);
+            $.ajax({
+               type: 'post',
+               url: command.post_uri,
+               contentType: 'application/json',
+               data: JSON.stringify(command.post_data)
+            });
+         }
+      }
+   },
+   
+
    init: function() {
       this._super();
 
@@ -37,28 +62,6 @@ App.StonehearthUnitFrameView = App.View.extend({
          });
          $cmdBtn.tooltip('show');
       });
-   },
-
-   doCommand: function(command) {
-      if (!command.enabled) {
-         return;
-      }
-      if (command.action == 'fire_event') {
-         // xxx: error checking would be nice!!
-         var e = {
-            entity : this._selected_entity,
-         event_data : command.event_data
-         };
-         $(top).trigger(command.event_name, e);
-      } else if (command.action == 'post') {
-         // $.post(command.post_uri, command.post_data);
-         $.ajax({
-            type: 'post',
-            url: command.post_uri,
-            contentType: 'application/json',
-            data: JSON.stringify(command.post_data)
-         });
-      }
    },
 
    _setVisibility: function() {

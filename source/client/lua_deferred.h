@@ -39,7 +39,10 @@ template <typename Deferred>
 class LuaDeferred1 : public LuaDeferred<Deferred, LuaDeferred1<Deferred>>
 {
 public:
+   typedef std::function<luabind::object(typename Deferred::Type0 const&)> EncodeFn;
+
    LuaDeferred1(lua::ScriptHost* sh, std::shared_ptr<Deferred> d) : LuaDeferred(sh, d) { }
+   LuaDeferred1(lua::ScriptHost* sh, std::shared_ptr<Deferred> d, EncodeFn encode) : LuaDeferred(sh, d), encode_(encode) { }
 
 public: // the lua promise...
    static std::shared_ptr<LuaDeferred1> LuaDone(std::shared_ptr<LuaDeferred1> obj, luabind::object cb) {
@@ -50,10 +53,17 @@ public: // the lua promise...
    }
    static std::shared_ptr<LuaDeferred1> LuaProgress(std::shared_ptr<LuaDeferred1> obj, luabind::object cb) {
       obj->deferred_->Progress([=](typename Deferred::Type0 const& r) {
-         obj->scriptHost_->CallFunction<luabind::object>(cb, r);
+         if (obj->encode_) {
+            obj->scriptHost_->CallFunction<luabind::object>(cb, obj->encode_(r));
+         } else {
+            obj->scriptHost_->CallFunction<luabind::object>(cb, r);
+         }
       });
       return obj;
    }
+
+public:
+   EncodeFn encode_;
 };
 
 template <typename Deferred>

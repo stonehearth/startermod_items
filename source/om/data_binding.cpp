@@ -1,29 +1,14 @@
 #include "pch.h"
 #include "data_binding.h"
 #include "om/entity.h"
+#include "dm/store.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-std::ostream& om::operator<<(std::ostream& os, const DataBinding& o)
+std::ostream& om::operator<<(std::ostream& os, DataBinding const& o)
 {
    return (os << "[DataBinding " << o.GetObjectId() << "]");
-}
-
-// xxx: move this into a helper or header or somewhere.  EVERYONE needs to
-// do this.  actually, we can't we just inherit it in the luabind registration
-// stuff???
-template <class T>
-std::string ToJsonUri(std::weak_ptr<T> o, luabind::object state)
-{
-   std::ostringstream output;
-   std::shared_ptr<T> obj = o.lock();
-   if (obj) {
-      output << "\"/object/" << obj->GetObjectId() << "\"";
-   } else {
-      output << "null";
-   }
-   return output.str();
 }
 
 DataBinding::DataBinding() :
@@ -72,6 +57,14 @@ void DataBinding::LoadValue(const dm::Store& store, const Protocol::Value& msg)
    dm::SaveImpl<std::string>::LoadValue(store, msg, json);
    cached_json_ = libjson::parse(json);
    cached_json_valid_ = true;
+   
+   try {
+      using namespace luabind;
+      object coder = globals(GetStore().GetInterpreter())["radiant"]["json"];
+      data_ = call_function<object>(coder["decode"], json);
+   } catch (std::exception& e) {
+      LOG(WARNING) << "fatal exception loading DataBinding: " << e.what();
+   }
 }
 
 JSONNode DataBinding::GetJsonData() const

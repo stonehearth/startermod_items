@@ -25,9 +25,10 @@ end
    TODO: ability to pass in a set of people to check against
    Pass in any event_data needed
 ]]
-CompelToAction['stonehearth.events.compulsion_event'] = function(self, target_action, target_person, action_data)
+CompelToAction['stonehearth.events.compulsion_event'] = function(self, target_action, target_person_entity, action_data)
    local entity_id = self._entity:get_id()
-   if entity_id and target_person and entity_id ~= target_person then
+   local target_person_entity_id = target_person_entity:get_id()
+   if entity_id and target_person_entity_id and entity_id ~= target_person_entity_id then
       return
    end
    self._target_action = target_action

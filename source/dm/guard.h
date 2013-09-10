@@ -2,6 +2,7 @@
 #include <list>
 #include <memory>
 
+#include "radiant_macros.h"
 #include "namespace.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
