@@ -26,14 +26,6 @@ public:
    void SetDataObject(luabind::object data);
    void SetModelObject(luabind::object data);
  
-#if 0
-   dm::Guard Trace(const char* reason, std::function<void(JSONNode const &)> cb) const {
-      return TraceObjectChanges(reason, [=]() {
-         cb(json_);
-      });
-   }
-#endif
-
 protected:
    void SaveValue(const dm::Store& store, Protocol::Value* msg) const override;
    void LoadValue(const dm::Store& store, const Protocol::Value& msg) override;
@@ -45,7 +37,7 @@ private:
    mutable bool         cached_json_valid_;
 };
 
-std::ostream& operator<<(std::ostream& os, const DataBinding& o);
+std::ostream& operator<<(std::ostream& os, DataBinding const& o);
 
 END_RADIANT_OM_NAMESPACE
 

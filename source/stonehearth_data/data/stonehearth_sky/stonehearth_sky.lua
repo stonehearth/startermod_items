@@ -24,6 +24,12 @@ local sky_transitions = {
 
 function stonehearth_sky.__init()
    --stonehearth_sky.add_lights()
+   stonehearth_sky._promise = _client:trace_object('/server/objects/stonehearth_calendar/clock', 'rendering the sky')
+   if stonehearth_sky._promise then
+      stonehearth_sky._promise:progress(function (data)
+            radiant.log.warning('sky got data update: %s', radiant.json.encode(data))
+         end)
+   end
 end
 
 function stonehearth_sky.add_lights()

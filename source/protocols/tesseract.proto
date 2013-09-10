@@ -9,20 +9,12 @@ option optimize_for = SPEED;
 message Request {
    extensions 100 to max;
    enum Type {
-      FetchObjectRequest = 1;
       PostCommandRequest = 2;
       ScriptCommandRequest = 3;
    }
    required Type     type = 1;
    required uint32   request_id = 2;
 };
-
-message FetchObjectRequest {
-   extend Request {
-      optional FetchObjectRequest extension = 101;
-   }
-   required string   uri = 1;
-}
 
 message PostCommandRequest {
    extend Request {
@@ -51,7 +43,6 @@ message Update {
       AllocObjects = 6;
       UpdateDebugShapes = 7;
       EndUpdate = 9;
-      FetchObjectReply = 10;
       PostCommandReply = 11;
       ScriptCommandReply = 12;
       DefineRemoteObject = 13;
@@ -120,15 +111,6 @@ message EndUpdate {
    extend Update {
       optional EndUpdate extension = 109;
    }
-}
-
-message FetchObjectReply {
-   extend Update {
-      optional FetchObjectReply extension = 119;
-   }
-   required int32       status_code = 1;
-   optional string      mime_type = 2;
-   optional string      content = 3;
 }
 
 message PostCommandReply {

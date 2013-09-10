@@ -4,6 +4,7 @@
 #include <vector>
 #include "namespace.h"
 #include "radiant_luabind.h"
+#include "radiant_stdutil.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 

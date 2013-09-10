@@ -4,6 +4,11 @@
 #define OFFSET_OF(t, f)    (int)(&((t *)(NULL))->f)
 #define ARRAY_SIZE(a)      ((sizeof (a)) / sizeof((a)[0]))
 
+#if defined(ASSERT)
+// xxx: find them and kill them!
+#undef ASSERT
+#endif
+
 #define ASSERT(x)          do { if (!(x)) { DebugBreak(); } } while(false)
 #define NYI_ERROR_CHECK(x) ASSERT(x)
 

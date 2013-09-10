@@ -10,7 +10,7 @@ function SimpleRoomTest:__init()
    --self:place_item_cluster('/stonehearth_trees/entities/oak_tree/oak_log', 4, 8)
    --self:place_stockpile_cmd(faction, 12, -12)
    
-   local house = self:create_room(faction, -16, -16, 4, 4)   
+   local house = self:create_room(faction, -16, -16, 4, 4)
    self:at(10, function()
          -- self:start_project_cmd(house)
       end)

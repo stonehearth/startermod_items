@@ -199,8 +199,8 @@ void RenderEntity::AddLuaComponents(om::LuaComponentsPtr lua_components)
          std::weak_ptr<RenderEntity> re = shared_from_this();
          luabind::object render_component;
          try {
-            luabind::object json = script->JsonToLua(entry.second->GetJsonData());
-            render_component = script->CallFunction<luabind::object>(ctor, re, json);
+            om::DataBindingRef data_store = entry.second;
+            render_component = script->CallFunction<luabind::object>(ctor, re, data_store);
          } catch (std::exception const& e) {
             LOG(WARNING) << e.what();
             continue;

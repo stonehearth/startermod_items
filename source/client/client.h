@@ -22,9 +22,8 @@
 #include "chromium/chromium.h"
 #include "lua/namespace.h"
 #include "mouse_event_promise.h"
+#include "trace_object_deferred.h"
 #include "radiant_json.h"
-
-//class ScaleformGFx;
 
 IN_RADIANT_LUA_NAMESPACE(
    class ScriptHost;
@@ -46,6 +45,7 @@ class Client : public core::Singleton<Client> {
             
    public: // xxx: just for lua...
       void BrowserRequestHandler(std::string const& uri, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response);
+      TraceObjectDeferredPtr TraceObject(std::string const& uri, const char* reason);
 
    public:
       void GetConfigOptions(boost::program_options::options_description& options);
@@ -103,10 +103,9 @@ class Client : public core::Singleton<Client> {
       void GetEvents(JSONNode const& query, std::shared_ptr<net::IResponse> response);
       void HandlePostRequest(std::string const& path, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response);
       void HandleClientRouteRequest(luabind::object ctor, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response);
-      void GetRemoteObject(std::string const& uri, JSONNode const& query, std::shared_ptr<net::IResponse> response);
       void TraceUri(JSONNode const& query, std::shared_ptr<net::IResponse> response);
       void GetModules(JSONNode const& query, std::shared_ptr<net::IResponse> response);
-      void TraceObjectUri(std::string const& uri, std::shared_ptr<net::IResponse> response);
+      bool TraceObjectUri(std::string const& uri, std::shared_ptr<net::IResponse> response);
       void TraceFileUri(std::string const& uri, std::shared_ptr<net::IResponse> response);
       void FlushEvents();
       void DestroyAuthoringEntity(dm::ObjectId id);
@@ -185,7 +184,10 @@ private:
       std::map<int, std::function<void(tesseract::protocol::Update const& reply)> >  server_requests_;
 
       // server side remote object tracking...
-      std::unordered_map<std::string, std::string>       serverRemoteObjects_;
+      std::unordered_map<std::string, std::string>    serverRemoteObjects_;
+      std::unordered_map<std::string, std::string>    clientRemoteObjects_;
+      std::unordered_map<std::string, TraceObjectDeferredRef>  deferredObjectTraces_;
+      om::ErrorBrowserPtr                             error_browser_;
 
       // client side lua...
       std::unique_ptr<lua::ScriptHost>  scriptHost_;

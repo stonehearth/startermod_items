@@ -17,6 +17,9 @@ sampler2D characterMap = sampler_state
 
 [[VS_GENERAL]]
 
+
+
+
 uniform   mat4    viewProjMat;
 uniform   mat4    projMat;
 uniform   mat4    viewMat;
@@ -37,6 +40,9 @@ void main() {
 }
 
 [[FS_AMBIENT]]	
+
+
+
 
 uniform sampler2D characterMap;
 varying vec2 texCoords;
