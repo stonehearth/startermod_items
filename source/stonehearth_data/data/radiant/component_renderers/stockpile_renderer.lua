@@ -8,7 +8,8 @@ function StockpileRenderer:__init(render_entity, data_store)
    self._promise = data_store:trace('rendering stockpile designation')
    self._promise:on_changed(function()
          self:_update()
-      end)      
+      end)
+   self:_update()      
 end
 
 --- xxx: someone call destroy please!!
