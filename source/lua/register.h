@@ -26,7 +26,7 @@ std::string Type_ToJson(std::weak_ptr<T> o, luabind::object state)
    std::ostringstream output;
    std::shared_ptr<T> obj = o.lock();
    if (obj) {
-      output << om::ObjectFormatter().GetPathToObject(obj);
+      output << '"' << om::ObjectFormatter().GetPathToObject(obj) << '"';
    } else {
       output << "null";
    }

@@ -6,7 +6,7 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-std::ostream& om::operator<<(std::ostream& os, const DataBinding& o)
+std::ostream& om::operator<<(std::ostream& os, DataBinding const& o)
 {
    return (os << "[DataBinding " << o.GetObjectId() << "]");
 }

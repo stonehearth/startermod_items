@@ -10,6 +10,7 @@
 #include "csg/lua/lua_csg.h"
 #include "om/lua/lua_om.h"
 #include "om/json_store.h"
+#include "om/data_binding.h"
 #include "platform/utils.h"
 #include "resources/res_manager.h"
 #include "renderer/render_entity.h"
@@ -471,6 +472,17 @@ void Client::DefineRemoteObject(const proto::DefineRemoteObject& msg)
       }
    } else {
       serverRemoteObjects_[key] = value;
+      auto i = deferredObjectTraces_.find(key);
+      if (i != deferredObjectTraces_.end()) {
+         auto deferred = i->second.lock();
+         if (deferred) {
+            dm::ObjectPtr obj = om::ObjectFormatter().GetObject(store_, value);
+            if (obj) {
+               deferred->Reset(obj);
+            }
+         }
+         deferredObjectTraces_.erase(i);
+      }
    }
 }
 
@@ -912,6 +924,61 @@ void Client::TraceUri(JSONNode const& query, std::shared_ptr<net::IResponse> res
    }
 }
 
+
+TraceObjectDeferredPtr Client::TraceObject(std::string const& uri, const char* reason)
+{
+   std::string path = uri;
+   TraceObjectDeferredPtr result;
+
+   auto i = serverRemoteObjects_.find(path);
+   if (i != serverRemoteObjects_.end()) {
+      path = i->second;
+   } else {
+      auto i = clientRemoteObjects_.find(path);
+      if (i != clientRemoteObjects_.end()) {
+         path = i->second;
+      }
+   }
+   om::ObjectFormatter of;
+   dm::ObjectPtr obj = of.GetObject(store_, path);
+   if (!obj) {
+      obj = of.GetObject(authoringStore_, path);
+   }
+   // xxx: this can be greatly improved... but is OK for now, right?
+   if (obj) {
+      result = std::make_shared<TraceObjectDeferred>(obj, reason);
+   } else {
+      if (boost::starts_with(uri, "/server/objects") || boost::starts_with(uri, "/client/objects")) {
+         result = std::make_shared<TraceObjectDeferred>(obj, reason);
+         deferredObjectTraces_[uri] = result;
+      }
+   }
+   return result;
+}
+
+typedef LuaDeferred1<TraceObjectDeferred> LuaTraceObjectDeferred;
+typedef std::shared_ptr<LuaTraceObjectDeferred> LuaTraceObjectDeferredPtr;
+typedef std::weak_ptr<LuaTraceObjectDeferred> LuaTraceObjectDeferredRef;
+
+LuaTraceObjectDeferredPtr Client_TraceObject(Client& client, std::string const& uri, const char* reason)
+{
+   TraceObjectDeferredPtr deferred = client.TraceObject(uri, reason);
+   if (!deferred) {
+      return nullptr;
+   }
+   auto encode = [](dm::ObjectRef o) -> luabind::object {
+      luabind::object result;
+      dm::ObjectPtr obj = o.lock();
+      ASSERT(obj->GetObjectType() == om::DataBindingObjectType);
+      if (obj  && obj->GetObjectType() == om::DataBindingObjectType) {
+         om::DataBindingPtr p = std::static_pointer_cast<om::DataBinding>(obj);
+         result = p->GetDataObject();
+      }
+      return result;
+   };
+   return std::make_shared<LuaTraceObjectDeferred>(client.GetScriptHost(), deferred, encode);
+}
+
 bool Client::TraceObjectUri(std::string const& uri, std::shared_ptr<net::IResponse> response)
 {
    om::ObjectFormatter of;
@@ -1188,6 +1255,7 @@ void Client::RegisterLuaTypes(lua_State* L)
          .def("destroy_authoring_entity", &Client::DestroyAuthoringEntity)
          .def("create_render_entity",     &Client_CreateRenderEntity)
          .def("trace_mouse",              &Client::TraceMouseEvents)
+         .def("trace_object",             &Client_TraceObject)
          .def("query_scene",              &Client_QueryScene)
          .def("is_blocked",               &Client_IsBlocked)
          .def("select_xz_region",         &Client_SelectXZRegion)
@@ -1207,6 +1275,8 @@ void Client::RegisterLuaTypes(lua_State* L)
       RegisterLuaDeferredType<LuaDeferred1<DeferredResponse>>(L)
       ,
       RegisterLuaDeferredType<LuaDeferred2<XZRegionSelector::Deferred>>(L)
+      ,
+      RegisterLuaDeferredType<LuaTraceObjectDeferred>(L)
       ,
       lua::RegisterTypePtr<LuaResponse>()
          .def("complete",        &LuaResponse::Complete)

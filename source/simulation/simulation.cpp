@@ -660,6 +660,6 @@ void Simulation::RegisterServerRemoteObject(std::string const& uri, dm::ObjectPt
    std::pair<std::string, std::string> entry;
 
    entry.first = uri;
-   entry.second = std::string("/object/") + stdutil::ToString(obj->GetObjectId());
+   entry.second = om::ObjectFormatter().GetPathToObject(obj);
    serverRemoteObjects_.push_back(entry);
 }

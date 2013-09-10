@@ -37,7 +37,7 @@ private:
    mutable bool         cached_json_valid_;
 };
 
-std::ostream& operator<<(std::ostream& os, const DataBinding& o);
+std::ostream& operator<<(std::ostream& os, DataBinding const& o);
 
 END_RADIANT_OM_NAMESPACE
 

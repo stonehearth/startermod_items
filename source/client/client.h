@@ -22,6 +22,7 @@
 #include "chromium/chromium.h"
 #include "lua/namespace.h"
 #include "mouse_event_promise.h"
+#include "trace_object_deferred.h"
 #include "radiant_json.h"
 
 IN_RADIANT_LUA_NAMESPACE(
@@ -44,6 +45,7 @@ class Client : public core::Singleton<Client> {
             
    public: // xxx: just for lua...
       void BrowserRequestHandler(std::string const& uri, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response);
+      TraceObjectDeferredPtr TraceObject(std::string const& uri, const char* reason);
 
    public:
       void GetConfigOptions(boost::program_options::options_description& options);
@@ -184,6 +186,7 @@ private:
       // server side remote object tracking...
       std::unordered_map<std::string, std::string>    serverRemoteObjects_;
       std::unordered_map<std::string, std::string>    clientRemoteObjects_;
+      std::unordered_map<std::string, TraceObjectDeferredRef>  deferredObjectTraces_;
       om::ErrorBrowserPtr                             error_browser_;
 
       // client side lua...
