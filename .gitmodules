@@ -1,19 +1,15 @@
 [submodule "modules/chromium-embedded"]
 	path = modules/chromium-embedded
 	url = https://github.com/radent/chromium-embedded.git
-   ignore = dirty
 [submodule "modules/protobuf"]
 	path = modules/protobuf
 	url = https://github.com/radent/protobuf.git
-   ignore = dirty
 [submodule "modules/lua"]
 	path = modules/lua
 	url = https://github.com/radent/lua.git
-   ignore = dirty
 [submodule "modules/libjson"]
 	path = modules/libjson
 	url = https://github.com/radent/libjson.git
-   ignore = dirty
 [submodule "modules/sfml"]
 	path = modules/sfml
 	url = https://github.com/radent/sfml.git
@@ -26,9 +22,6 @@
 [submodule "modules/libclaw"]
 	path = modules/libclaw
 	url = https://github.com/radent/libclaw.git
-[submodule "modules/cryptopp"]
-	path = modules/cryptopp
-	url = https://github.com/radent/cryptopp.git
 [submodule "modules/snappy"]
 	path = modules/snappy
 	url = https://github.com/radent/snappy.git
