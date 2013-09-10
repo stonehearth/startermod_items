@@ -28,13 +28,7 @@ function stonehearth_worker_class.demote(entity)
    end
    -- end xxx:
 
-   --drop talisman back into the world (can be a fresh copy)
-   --TODO: move the axe entity elsewhere
-   local axe = radiant.entities.create_entity('/stonehearth_human_race/rigs/male/effects/worker_axe')
-   local dude_loc = radiant.entities.get_location_aligned(entity)
-
-   --TODO: where should he put it? Ideally it would pop out of him and into...?
-   radiant.terrain.place_entity(axe, Point3(dude_loc.x , 6, dude_loc.z + 3))
+   --The worker doesn't have to drop his axe on demote since all people can be demoted
 end
 
 function stonehearth_worker_class.get_worker_scheduler(faction)
