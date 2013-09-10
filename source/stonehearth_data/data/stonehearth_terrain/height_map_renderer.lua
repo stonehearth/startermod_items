@@ -43,11 +43,29 @@ function HeightMapRenderer._copy_heightmap_to_CPP(heightMapCPP, height_map)
 end
 
 function HeightMapRenderer._add_land_to_region(dst, rect, height, foothills_quantization_size)
+   local grass_transition_height = foothills_quantization_size*1.5
+   local rock_transition_height = foothills_quantization_size*5
+
    dst:add_cube(Cube3(Point3(rect.min.x, -2, rect.min.y),
                       Point3(rect.max.x,  0, rect.max.y),
                 Terrain.BEDROCK))
 
-   if height % foothills_quantization_size == 0 then
+   if (height > rock_transition_height) and
+      (height % foothills_quantization_size == 0) then
+      
+      dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
+                         Point3(rect.max.x, height-1, rect.max.y),
+                   Terrain.TOPSOIL))
+
+      dst:add_cube(Cube3(Point3(rect.min.x, height-1, rect.min.y),
+                         Point3(rect.max.x, height,   rect.max.y),
+                   Terrain.TOPSOIL_DETAIL))
+      return
+   end
+
+   if (height <= grass_transition_height) or
+      (height % foothills_quantization_size == 0) then
+
       dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
                          Point3(rect.max.x, height-1, rect.max.y),
                    Terrain.TOPSOIL))
@@ -55,11 +73,12 @@ function HeightMapRenderer._add_land_to_region(dst, rect, height, foothills_quan
       dst:add_cube(Cube3(Point3(rect.min.x, height-1, rect.min.y),
                          Point3(rect.max.x, height,   rect.max.y),
                    Terrain.GRASS))
-   else
-      dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
-                         Point3(rect.max.x, height,   rect.max.y),
-                   Terrain.TOPSOIL))
+      return
    end
+
+   dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
+                      Point3(rect.max.x, height,   rect.max.y),
+                Terrain.TOPSOIL))
 end
 
 return HeightMapRenderer
