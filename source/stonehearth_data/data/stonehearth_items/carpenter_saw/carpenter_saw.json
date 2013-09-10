@@ -21,7 +21,7 @@
       ],
       "radiant:commands" : {
          "commands" : [
-            "file(/commands/promote_citizen.json)"
+            "/stonehearth_classes/commands/promote_citizen.json"
          ]
       },
       "stonehearth_classes:talisman_promotion_info": {
