@@ -13,7 +13,7 @@
 
 using namespace ::radiant;
 using namespace ::radiant::client;
-H3DNode fireNode;
+
 static std::unique_ptr<Renderer> renderer_;
 Renderer& Renderer::GetInstance()
 {
@@ -121,16 +121,6 @@ Renderer::Renderer() :
 
    h3dSetNodeParamI(camera_->GetNode(), H3DCamera::PipeResI, currentPipeline_);
 
-
-   H3DRes fireRes = h3dAddResource(H3DResTypes::ParticleEffect, "particles/fire/fire.particle.xml", 0);
-   H3DRes fireMat = h3dAddResource(H3DResTypes::Material, "particles/fire/fire.material.xml", 0);
-
-   fireNode = h3dAddEmitterNode(H3DRootNode, "Fire", fireMat, fireRes, 1000, -1);
-   h3dSetNodeParamF(fireNode, H3DEmitter::EmissionRateF, 0, 10.0f);
-   h3dSetNodeParamF(fireNode, H3DEmitter::ForceF3, 0, 0.0f);
-   h3dSetNodeParamF(fireNode, H3DEmitter::ForceF3, 1, 0.0f);
-   h3dSetNodeParamF(fireNode, H3DEmitter::ForceF3, 2, 0.0f);
-   h3dSetNodeTransform(fireNode, 0, 3, 0, 90, 0, 0, 1, 1, 1);
 
 	// Add light source
 	/*H3DNode directionalLight = h3dAddLightNode(H3DRootNode, "Sun", lightMatRes, "DIRECTIONAL_LIGHTING", "DIRECTIONAL_SHADOWMAP");
@@ -328,9 +318,6 @@ void Renderer::RenderOneFrame(int now, float alpha)
    fileWatcher_.update();
    LoadResources();
 
-   if (deltaNow < 100) {
-      h3dAdvanceEmitterTime(fireNode, deltaNow / 1000.0f);
-   }
 	// Render scene
    h3dRender(camera_->GetNode());
 

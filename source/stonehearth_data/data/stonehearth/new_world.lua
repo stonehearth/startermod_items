@@ -1,6 +1,6 @@
 native:log('requiring microworld')
 
-local MicroWorld = require 'stonehearth_tests.lib.micro_world' --radiant.mods.require('/stonehearth_tests/lib/micro_world.lua')
+local MicroWorld = radiant.mods.require('/stonehearth_tests/lib/micro_world.lua')
 local HeightMapRenderer = radiant.mods.require('/stonehearth_terrain/height_map_renderer.lua')
 local TerrainGenerator = radiant.mods.require('/stonehearth_terrain/terrain_generator.lua')
 local ZoneType = radiant.mods.require('/stonehearth_terrain/zone_type.lua')
@@ -9,21 +9,21 @@ local NewWorld = class(MicroWorld)
 
 function NewWorld:__init()
    self[MicroWorld]:__init()
-   --self._terrain_generator = TerrainGenerator()
+   self._terrain_generator = TerrainGenerator()
    self:create_world()
    self:place_objects()
 end
 
---function NewWorld:create_world()
---   local height_map
---
---   height_map = self._terrain_generator:generate_zone(ZoneType.Foothills)
---   HeightMapRenderer.render_height_map_to_terrain(height_map, self._terrain_generator.zone_params)
---end
+function NewWorld:create_world()
+   local height_map
+
+   height_map = self._terrain_generator:generate_zone(ZoneType.Foothills)
+   HeightMapRenderer.render_height_map_to_terrain(height_map, self._terrain_generator.zone_params)
+end
 
 function NewWorld:place_objects()
-   local camp_x = 0
-   local camp_z = 0
+   local camp_x = 100
+   local camp_z = 100
 
    local tree = self:place_tree(camp_x-12, camp_z-12)
    --local worker = self:place_citizen(camp_x-8, camp_z-8)
