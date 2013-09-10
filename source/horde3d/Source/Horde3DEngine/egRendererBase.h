@@ -16,6 +16,7 @@
 #include "egPrerequisites.h"
 #include "utMath.h"
 #include "utOpenGL.h"
+#include "om/error_browser/error_browser.h"
 #include <string>
 #include <vector>
 
@@ -359,10 +360,10 @@ public:
 	uint32 getTextureMem() { return _textureMem; }
 
 	// Shaders
-	uint32 createShader( const char *vertexShaderSrc, const char *fragmentShaderSrc );
+	uint32 createShader( const char* filename, const char *vertexShaderSrc, const char *fragmentShaderSrc );
 	void destroyShader( uint32 shaderId );
 	void bindShader( uint32 shaderId );
-	std::string &getShaderLog() { return _shaderLog; }
+
 	int getShaderConstLoc( uint32 shaderId, const char *name );
 	int getShaderSamplerLoc( uint32 shaderId, const char *name );
 	void setShaderConst( int loc, RDIShaderConstType type, void *values, uint32 count = 1 );
@@ -436,13 +437,20 @@ protected:
 
 protected:
 
-	uint32 createShaderProgram( const char *vertexShaderSrc, const char *fragmentShaderSrc );
-	bool linkShaderProgram( uint32 programObj );
+	uint32 createShaderProgram( const char* filename, const char *vertexShaderSrc, const char *fragmentShaderSrc );
+	bool linkShaderProgram(uint32 programObj, const char* filename, const char *vertexShaderSrc, const char *fragmentShaderSrc);
 	void resolveRenderBuffer( uint32 rbObj );
 
 	void checkGLError();
 	bool applyVertexLayout();
 	void applySamplerState( RDITexture &tex );
+
+   enum ShaderType {
+      VERTEX_SHADER,
+      FRAGMENT_SHADER,
+      PROGRAM
+   };
+   void ReportShaderError(uint32 shader_id, ShaderType type, const char* filename, const char* vs, const char* fs);
 
 protected:
 
@@ -451,8 +459,7 @@ protected:
 	uint32        _depthFormat;
 	int           _vpX, _vpY, _vpWidth, _vpHeight;
 	int           _scX, _scY, _scWidth, _scHeight;
-	int           _fbWidth, _fbHeight;
-	std::string   _shaderLog;
+	int           _fbWidth, _fbHeight;  
 	uint32        _curRendBuf;
 	int           _outputBufferIndex;  // Left and right eye for stereo rendering
 	uint32        _textureMem, _bufferMem;

@@ -130,7 +130,7 @@ end
 
 function entities.move_to(entity, location)
    radiant.check.is_entity(entity)
-   
+
    if type(location) == "table" then
       location = Point3(location.x, location.y, location.z)
    end
@@ -242,10 +242,11 @@ function entities.do_ability(entity, ability_name, ...)
    end
 end
 
+-- id here can be an int (e.g. 999) or uri (e.g. '/o/stores/server/objects/999')
 function entities.get_entity(id)
-   radiant.check.is_number(id)
    return native:get_entity(id)
 end
+
 
 function entities.get_animation_table_name(entity)
    local name
@@ -564,7 +565,7 @@ end
    entity: probably a mob
    item:   the thing to pick up
 ]]
-function entities.pickup_item(entity, item)
+function entities.pickup_item(entity, item, parent)
    radiant.check.is_entity(entity)
    radiant.check.is_entity(item)
 
@@ -572,7 +573,10 @@ function entities.pickup_item(entity, item)
    radiant.check.verify(carry_block ~= nil)
 
    if item then
-      entities.remove_child(radiant._root_entity, item)
+      if not parent then
+         parent = radiant._root_entity
+      end
+      entities.remove_child(parent, item)
       carry_block:set_carrying(item)
       entities.move_to(item, Point3(0, 0, 0))
    else

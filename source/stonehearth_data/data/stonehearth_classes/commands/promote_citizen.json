@@ -1,0 +1,13 @@
+{
+   "type" : "command",
+
+   "name": "promote_citizen",
+   "tooltip": "Promote",
+   "icon": "file(/images/promote.png)",
+
+   "action": "fire_event",
+   "event_name" : "promote_citizen.stonehearth_classes",
+   "event_data" : {
+      "post_target" : "/modules/server/stonehearth_classes/promote_command"
+   }
+}

@@ -14,8 +14,6 @@
 using namespace ::radiant;
 using namespace ::radiant::client;
 
-H3DNode spotLight, directionalLight;
-
 static std::unique_ptr<Renderer> renderer_;
 Renderer& Renderer::GetInstance()
 {
@@ -125,17 +123,9 @@ Renderer::Renderer() :
 
 
 	// Add light source
-	directionalLight = h3dAddLightNode(H3DRootNode, "Sun", lightMatRes, "DIRECTIONAL_LIGHTING", "DIRECTIONAL_SHADOWMAP");
+	/*H3DNode directionalLight = h3dAddLightNode(H3DRootNode, "Sun", lightMatRes, "DIRECTIONAL_LIGHTING", "DIRECTIONAL_SHADOWMAP");
    h3dSetMaterialUniform(lightMatRes, "ambientLightColor", 1.0f, 1.0f, 0.0f, 1.0f);
-#if 0
-   csg::Quaternion q(csg::Point3f::unit_x, -90.0f / 180.0f * csg::k_pi);
-   //q *= csg::Quaternion(csg::Point3f::unit_y, 45.0f / 180 * csg::k_pi);
-
-   csg::Matrix4 mat(q);
-   h3dSetNodeTransMat(directionalLight, mat.get_float_ptr());
-#else
    h3dSetNodeTransform(directionalLight, 0, 0, 0, -30, -30, 0, 1, 1, 1);
-#endif
 	h3dSetNodeParamF(directionalLight, H3DLight::RadiusF, 0, 100000);
 	h3dSetNodeParamF(directionalLight, H3DLight::FovF, 0, 360);
 	h3dSetNodeParamI(directionalLight, H3DLight::ShadowMapCountI, 1);
@@ -144,18 +134,7 @@ Renderer::Renderer() :
 	h3dSetNodeParamF(directionalLight, H3DLight::ShadowMapBiasF, 0, 0.001f);
 	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 0, 0.6f);
 	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 1, 0.6f);
-	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 2, 0.6f);
-
-	/*spotLight = h3dAddLightNode(H3DRootNode, "AnotherLight", lightMatRes, "LIGHTING", "SHADOWMAP");
-	h3dSetNodeTransform(spotLight, 0, 20, 0, -90, 0, 0, 1, 1, 1);
-	h3dSetNodeParamF(spotLight, H3DLight::RadiusF, 0, 50);
-	h3dSetNodeParamF(spotLight, H3DLight::FovF, 0, 160);
-	h3dSetNodeParamI(spotLight, H3DLight::ShadowMapCountI, 1);
-	h3dSetNodeParamF(spotLight, H3DLight::ShadowSplitLambdaF, 0, 0.9f);
-	h3dSetNodeParamF(spotLight, H3DLight::ShadowMapBiasF, 0, 0.001f);
-	h3dSetNodeParamF(spotLight, H3DLight::ColorF3, 0, 1);
-	h3dSetNodeParamF(spotLight, H3DLight::ColorF3, 1, 1);
-	h3dSetNodeParamF(spotLight, H3DLight::ColorF3, 2, 0);*/
+	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 2, 0.6f);*/
 
    // Skybox
 	//H3DNode sky = h3dAddNodes( H3DRootNode, skyBoxRes );
@@ -191,6 +170,10 @@ Renderer::Renderer() :
 
    //glfwSwapInterval(1); // Enable VSync
 
+   fileWatcher_.addWatch(L"horde", [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
+      Renderer::GetInstance().FlushMaterials();
+   }, true);
+
    initialized_ = true;
 }
 
@@ -210,6 +193,11 @@ void Renderer::FlushMaterials() {
 
    r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::Pipeline, r)) != 0) {
+      h3dUnloadResource(r);
+   }
+
+   r = 0;
+   while ((r = h3dGetNextResource(H3DResTypes::ParticleEffect, r)) != 0) {
       h3dUnloadResource(r);
    }
 
@@ -275,13 +263,13 @@ void Renderer::RenderOneFrame(int now, float alpha)
    bool debug = (GetAsyncKeyState(VK_SPACE) & 0x8000) != 0;
    bool showStats = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
   
-   if (false && (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0) {
+   /*if (false && (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0) {
       h3dSetNodeFlags(spotLight, 0, true);
       h3dSetNodeFlags(directionalLight, H3DNodeFlags::NoDraw, true);
    } else {
       h3dSetNodeFlags(directionalLight, 0, true);
       h3dSetNodeFlags(spotLight, H3DNodeFlags::NoDraw, true);
-   }
+   }*/
 
    bool showUI = true;
    const float ww = (float)h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportWidthI) /
@@ -326,6 +314,8 @@ void Renderer::RenderOneFrame(int now, float alpha)
       h3dutShowFrameStats( fontMatRes_, panelMatRes_, H3DUTMaxStatMode );
    }
 	
+
+   fileWatcher_.update();
    LoadResources();
 
 	// Render scene

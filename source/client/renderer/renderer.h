@@ -15,6 +15,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include "lua/namespace.h"
 #include "camera.h"
+#include "platform/FileWatcher.h"
 
 IN_RADIANT_LUA_NAMESPACE(
    class ScriptHost;
@@ -142,6 +143,7 @@ class Renderer
       H3DRes            uiTexture_;
 
       Camera*            camera_;
+      FW::FileWatcher   fileWatcher_;
 
       csg::Point3f   cameraTarget_;
       csg::Point3f   cameraMoveDirection_;

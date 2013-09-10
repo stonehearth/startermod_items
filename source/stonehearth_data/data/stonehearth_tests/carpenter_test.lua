@@ -25,9 +25,14 @@ function CarpenterTest:__init()
    local faction = carpenter:get_component('unit_info'):get_faction()
    bench:add_component('unit_info'):set_faction(faction)
 
+   local outbox = workshop_component:init_outbox()
+   outbox:add_component('unit_info'):set_faction(faction)
+
    --initialize the outbox
    --user places both workshop and outbox
    --TODO: make a private stockpile
+
+   --[[
    local outbox_entity = radiant.entities.create_entity('/stonehearth_inventory/entities/stockpile')
    local outbox_location = Point3(-8, 1, -12)
    radiant.terrain.place_entity(outbox_entity, outbox_location)
@@ -35,7 +40,7 @@ function CarpenterTest:__init()
    outbox_component:set_size({3, 3})
    outbox_entity:get_component('unit_info'):set_faction(faction)
    workshop_component:set_outbox(outbox_entity)
-
+   ]]
    -- end TODO
 
    -- put some items in the world

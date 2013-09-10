@@ -67,7 +67,6 @@ public:
    BuildingScheduler* GetBuildingScehduler(dm::ObjectId id);
 
 private:
-   void FetchObject(tesseract::protocol::FetchObjectRequest const& request, tesseract::protocol::FetchObjectReply* reply);
    void PostCommand(tesseract::protocol::PostCommandRequest const& request, tesseract::protocol::PostCommandReply* reply);
    void ScriptCommand(tesseract::protocol::ScriptCommandRequest const& request, tesseract::protocol::ScriptCommandReply* reply);
    void EncodeDebugShapes(protocol::SendQueuePtr queue);

@@ -1,32 +1,36 @@
 {
-   "extends": "/stonehearth_crafter/entities/workbench.json", 
-   "type": "entity", 
+   "extends": "/stonehearth_crafter/entities/workbench.json",
+   "type": "entity",
    "components": {
       "stonehearth_crafter:workshop": {
          "promotion_talisman" : {
             "entity" : "/stonehearth_items/carpenter_saw",
             "offset" : [0, 3, 0]
+         },
+         "outbox_settings" : {
+            "offset" : [2, 0, 0],
+            "size" : [3, 3]
          }
-      }, 
+      },
       "destination": {
          "region": [
             [
                [
-                  0, 
-                  0, 
+                  0,
+                  0,
                   1
-               ], 
+               ],
                [
-                  1, 
-                  1, 
+                  1,
+                  1,
                   2
                ]
             ]
          ]
-      }, 
+      },
       "unit_info": {
-         "icon": "file(saw_icon.png)", 
-         "name": "Carpenter Workbench", 
+         "icon": "file(saw_icon.png)",
+         "name": "Carpenter Workbench",
          "description": "Clean enough."
       },
       "model_variants": [

@@ -1,5 +1,3 @@
-local stonehearth_sky = radiant.mods.require('stonehearth_sky') -- xxx, hack, see below
-
 local constants = {
    TICKS_PER_SECOND = 2,
 
@@ -49,9 +47,6 @@ radiant.events.register_event('radiant.events.calendar.hourly')
 
 function stonehearth_calendar.__init()
    radiant.events.listen('radiant.events.gameloop', stonehearth_calendar._on_event_loop)
-
-   -- xxx, this is a total hack. Need a sensible entry point for the sky mod
-   -- stonehearth_sky.add_lights();
 end
 
 function stonehearth_calendar.set_time(second, minute, hour)
@@ -63,7 +58,7 @@ end
 -- recompute the game calendar based on the time
 function stonehearth_calendar._on_event_loop(_, now)
    local t
-
+      
    -- determine how many seconds have gone by since the last loop
    local dt = now - data._lastNow + data._remainderTime
    data._remainderTime = dt % constants.TICKS_PER_SECOND;

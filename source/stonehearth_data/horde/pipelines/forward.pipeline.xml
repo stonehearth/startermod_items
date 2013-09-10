@@ -6,7 +6,7 @@
    <CommandQueue>
       <Stage id="Depth" link="pipelines/globalSettings.material.xml">
          <SwitchTarget target="OUTPUT" />
-         <ClearTarget depthBuf="true"/>
+         <ClearTarget depthBuf="true" colBuf0="true"/>
          <DrawGeometry context="AMBIENT" class="~Translucent" />
       </Stage>
 

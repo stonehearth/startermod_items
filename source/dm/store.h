@@ -3,15 +3,15 @@
 #include "guard.h"
 #include "namespace.h"
 #include "store.pb.h"
+#include "radiant_luabind.h"
 #include <boost/any.hpp>
-
 
 BEGIN_RADIANT_DM_NAMESPACE
 
 class Store
 {
 public:
-   Store(int id);
+   Store(int id, std::string const& name);
    ~Store(void);
 
    typedef std::function<void()> ObjectChangeCb;
@@ -22,6 +22,12 @@ public:
 
    int GetStoreId() const { return storeId_; }
    
+   void SetInterpreter(lua_State* L) { L_ = L; }
+   lua_State* GetInterpreter() const { return L_; }
+              
+   std::string const& GetName() const { return name_; }
+   void SetName(std::string const& name);
+
    int GetObjectCount() const;
    int GetTraceCount() const;
 
@@ -153,9 +159,11 @@ private:
    typedef std::unordered_map<dm::TraceId, std::function<void(ObjectPtr)>> TraceAllocMap;
 
    int            storeId_;
+   std::string    name_;
    ObjectId       nextObjectId_;
    GenerationId   nextGenerationId_;
    TraceId        nextTraceId_;
+   lua_State*     L_;
 
    TraceMap                traceCallbacks_;
    TraceObjectMap          allocTraces_;
