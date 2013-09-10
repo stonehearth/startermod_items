@@ -18,6 +18,7 @@
 #include "csg/lua/lua_csg.h"
 #include "om/lua/lua_om.h"
 #include "om/data_binding.h"
+#include "om/object_formatter/object_formatter.h"
 
 #define DEFINE_ALL_COMPONENTS
 #include "om/all_components.h"
@@ -192,6 +193,23 @@ om::BoxedRegion3Ptr ScriptHostAllocRegion(ScriptHost const& sh)
    return Simulation::GetInstance().GetStore().AllocObject<om::BoxedRegion3>();
 }
 
+om::EntityRef ScriptHost_GetEntity(ScriptHost& host, luabind::object id)
+{
+   using namespace luabind;
+   if (type(id) == LUA_TNUMBER) {
+      return host.GetEntity(object_cast<int>(id));
+   }
+   if (type(id) == LUA_TSTRING) {
+      dm::Store& store = Simulation::GetInstance().GetStore();
+      dm::ObjectPtr obj = om::ObjectFormatter().GetObject(store, object_cast<std::string>(id));
+      if (obj->GetObjectType() == om::EntityObjectType) {
+         return std::static_pointer_cast<om::Entity>(obj);
+      }
+   }
+   return om::EntityRef();
+}
+
+
 void ScriptHost::InitEnvironment()
 {
    int ii = lua_gettop(L_);
@@ -205,7 +223,7 @@ void ScriptHost::InitEnvironment()
          .def("load_animation",           &ScriptHost::LoadAnimation)
          .def("report_error",             &ScriptHost::ReportError)
          .def("create_entity",            &ScriptHost::CreateEntity)
-         .def("get_entity",               &ScriptHost::GetEntity)
+         .def("get_entity",               &ScriptHost_GetEntity)
          .def("destroy_entity",           &ScriptHost::DestroyEntity)
          .def("create_multi_path_finder", &ScriptHost::CreateMultiPathFinder)
          .def("create_path_finder",       &ScriptHost::CreatePathFinder)
