@@ -6,22 +6,33 @@ local Vec3 = _radiant.csg.Point3f
 function stonehearth_sky:__init()
    self.timing = {
       min = 0,
+      midnight = 0,
       pre_sunrise = 280,
+      moonset = 360,
       sunrise = 360,
       morning = 540,
       midday = 720,
       afternoon = 900,
       sunset = 1080,
+      pre_moonrise = 1000,
+      moonrise = 1080,
       post_sunset = 1160,
       max = 1440
    }
    self._celestials = {}
 
    self:_init_sun()
+   self:_init_moon()
+   self._minutes = 1000
 
    self._promise = _client:trace_object('/server/objects/stonehearth_calendar/clock', 'rendering the sky')
    if self._promise then
       self._promise:progress(function (data)
+            --self._minutes = self._minutes + 10
+            --if self._minutes >= 1440 then
+            --   self._minutes = 0
+            --end
+            --self:_update(self._minutes)
             self:_update(data.date.minute + (data.date.hour * 60))
          end)
    end
@@ -145,6 +156,49 @@ function stonehearth_sky:_init_sun()
    }
 
    self:add_celestial("sun", sun_colors, sun_angles, sun_ambient_colors)
+end
+
+
+function stonehearth_sky:_init_moon()
+   local angles = {
+      moonrise = Vec3(0, -35, 0),
+      midnight = Vec3(-90, 0, 0),
+      moonset = Vec3(-180, -35, 0)
+   }
+
+   local colors = {
+      moonrise = Vec3(0.01, 0.1, 0.2),
+      midnight = Vec3(0.01, 0.21, 0.41),
+      moonset = Vec3(0.01, 0.1, 0.2),
+      daylight = Vec3(0, 0, 0)
+   }
+   local ambient_colors = {
+      moonrise = Vec3(0.1, 0.1, 0.1),
+      midnight = Vec3(0.2, 0.2, 0.2),
+      moonset = Vec3(0.1, 0.1, 0.1),
+      daylight = Vec3(0, 0, 0)
+   }
+
+   local moon_colors = {
+      {self.timing.pre_moonrise, self.timing.moonrise, colors.daylight, colors.moonrise},
+      {self.timing.moonrise, self.timing.max, colors.moonrise, colors.midnight},
+      {self.timing.midnight, self.timing.moonset, colors.midnight, colors.moonset},
+      {self.timing.sunrise, self.timing.sunset, colors.daylight, colors.daylight}
+   }
+   local moon_ambient_colors = {
+      {self.timing.moonrise, self.timing.max, ambient_colors.moonrise, ambient_colors.midnight},
+      {self.timing.midnight, self.timing.pre_sunrise, ambient_colors.midnight, ambient_colors.moonset},
+      {self.timing.pre_sunrise, self.timing.moonset, ambient_colors.moonset, ambient_colors.daylight},
+      {self.timing.sunrise, self.timing.sunset, ambient_colors.daylight, ambient_colors.daylight}
+   }
+
+   local moon_angles = {
+      {self.timing.moonrise, self.timing.max, angles.moonrise, angles.midnight},
+      {self.timing.midnight, self.timing.moonset, angles.midnight, angles.moonset},
+      {self.timing.sunrise, self.timing.sunset, angles.moonset, angles.moonrise}
+   }
+
+   self:add_celestial("moon", moon_colors, moon_angles, moon_ambient_colors)
 end
 
 function stonehearth_sky:_light_color(light, r, g, b)
