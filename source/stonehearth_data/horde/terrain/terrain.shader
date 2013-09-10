@@ -55,7 +55,7 @@ context DIRECTIONAL_LIGHTING
 	
 	ZWriteEnable = false;
 	BlendMode = Add;
-   CullMode = Back;
+    CullMode = Back;
 }
 
 context CLOUDS
@@ -128,7 +128,6 @@ uniform vec3 viewerPos;
 uniform vec4 matDiffuseCol;
 uniform vec4 matSpecParams;
 uniform sampler2D albedoMap;
-vec3 ambientLightColor = vec3(0.01, 0.01, 0.01);
 
 varying vec4 pos;
 varying vec3 tsbNormal;
@@ -136,7 +135,7 @@ varying vec3 albedo;
 
 void main( void )
 {
-   gl_FragColor.rgb = ambientLightColor * albedo;
+   gl_FragColor.rgb = vec3(0, 0, 0);
 }
 
 [[VS_SHADOWMAP]]
@@ -234,6 +233,7 @@ void main( void )
 uniform vec4 matDiffuseCol;
 uniform vec4 matSpecParams;
 uniform sampler2D albedoMap;
+uniform vec3 lightAmbientColor;
 
 varying vec4 pos, vsPos;
 varying vec3 albedo;
@@ -241,9 +241,9 @@ varying vec3 tsbNormal;
 
 void main( void )
 {
-	gl_FragColor.rgb = 
+	gl_FragColor.rgb =
 		calcPhongDirectionalLight( pos, normalize( tsbNormal ), albedo, vec3(0,0,0),
-		                    0.0, -vsPos.z, 0.3 );
+		                    0.0, -vsPos.z, 0.3 ) + (lightAmbientColor * albedo);
 }
 
 [[FS_CLOUDS]]
