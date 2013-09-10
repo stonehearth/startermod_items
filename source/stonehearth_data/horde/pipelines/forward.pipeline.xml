@@ -6,12 +6,16 @@
    <CommandQueue>
       <Stage id="Depth" link="pipelines/globalSettings.material.xml">
          <SwitchTarget target="OUTPUT" />
-         <ClearTarget depthBuf="true"/>
+         <ClearTarget depthBuf="true" colBuf0="true"/>
          <DrawGeometry context="AMBIENT" class="~Translucent" />
       </Stage>
 
       <Stage id="Light">
          <DoForwardLightLoop class="~Translucent" noShadows="false"/>
+      </Stage>
+
+      <Stage id="Clouds">
+         <DrawGeometry context="CLOUDS" class="~Translucent" />
       </Stage>
 
       <Stage id="Translucent">
@@ -21,10 +25,6 @@
 
       <Stage id="Selected">
          <DrawSelected context="SELECTED" />
-      </Stage>
-
-      <Stage id="Clouds">
-         <DrawGeometry context="CLOUDS" class="~Translucent" />
       </Stage>
 
       <Stage id="Overlays">

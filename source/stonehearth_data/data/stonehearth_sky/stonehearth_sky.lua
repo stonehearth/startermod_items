@@ -1,123 +1,221 @@
-local sun
-local moon
-local lightMatRes
+radiant.mods.require('stonehearth_calendar')
 
-local stonehearth_sky = {}
+local stonehearth_sky = class()
+local Vec3 = _radiant.csg.Point3f
 
-local constants = {
-    ANGLE_X_EAST = 0,
-    ANGLE_X_WEST = -180,
-    ANGLE_Y = 90
-}
-
-local sky_transitions = {
-   { 
-      t = 0,
-      sun_angle = { constants.ANGLE_X_EAST, 90, 0 }
-   },
-   {
-      t = 1,
-      sun_angle = { constants.ANGLE_X_WEST, 90, 0 }
+function stonehearth_sky:__init()
+   self.timing = {
+      min = 0,
+      midnight = 0,
+      pre_sunrise = 280,
+      moonset = 360,
+      sunrise = 360,
+      morning = 540,
+      midday = 720,
+      afternoon = 900,
+      sunset = 1080,
+      pre_moonrise = 1000,
+      moonrise = 1080,
+      post_sunset = 1160,
+      max = 1440
    }
-}
+   self._celestials = {}
 
+   self:_init_sun()
+   self:_init_moon()
+   self._minutes = 1000
 
-function stonehearth_sky.__init()
-   --stonehearth_sky.add_lights()
-   stonehearth_sky._promise = _client:trace_object('/server/objects/stonehearth_calendar/clock', 'rendering the sky')
-   if stonehearth_sky._promise then
-      stonehearth_sky._promise:progress(function (data)
-            radiant.log.warning('sky got data update: %s', radiant.json.encode(data))
+   self._promise = _client:trace_object('/server/objects/stonehearth_calendar/clock', 'rendering the sky')
+   if self._promise then
+      self._promise:progress(function (data)
+            --self._minutes = self._minutes + 10
+            --if self._minutes >= 1440 then
+            --   self._minutes = 0
+            --end
+            --self:_update(self._minutes)
+            self:_update(data.date.minute + (data.date.hour * 60))
          end)
    end
 end
 
-function stonehearth_sky.add_lights()
-   --radiant.events.listen('radiant.events.calendar.minutely', stonehearth_calendar._on_minute)
-   lightMatRes = h3dAddResource(H3DResTypes.Material, "materials/light.material.xml", 0)
-   h3dSetMaterialUniform(lightMatRes, "ambientLightColor", 1, 1, 1, 1 )
-   
-   stonehearth_sky._initSun()
-   stonehearth_sky._initMoon()
+function stonehearth_sky:add_celestial(name, colors, angles, ambient_colors)
+   -- TODO: how do we support multiple (deferred) renderers here?
+   local light_mat = h3dAddResource(H3DResTypes.Material, "materials/light.material.xml", 0)
+   local new_celestial = {
+      name = name,
+      node = h3dAddLightNode(H3DRootNode, name, light_mat, "DIRECTIONAL_LIGHTING", "DIRECTIONAL_SHADOWMAP"),
+      colors = colors,
+      ambient_colors = ambient_colors,
+      angles = angles,
+      light_mat = light_mat
+   }
 
-   stonehearth_sky.dawn()
-   --stonehearth_sky.noon()
-   --stonehearth_sky.dusk()
-   --stonehearth_sky.night()
+   h3dSetNodeTransform(new_celestial.node,  0, 0, 100, 0, 0, 0, 1, 1, 1)
+   h3dSetNodeParamF(new_celestial.node, H3DLight.RadiusF, 0, 100000)
+   h3dSetNodeParamF(new_celestial.node, H3DLight.FovF, 0, 360)
+   h3dSetNodeParamI(new_celestial.node, H3DLight.ShadowMapCountI, 1)
+   h3dSetNodeParamI(new_celestial.node, H3DLight.DirectionalI, 1)
+   h3dSetNodeParamF(new_celestial.node, H3DLight.ShadowSplitLambdaF, 0, 0.9)
+   h3dSetNodeParamF(new_celestial.node, H3DLight.ShadowMapBiasF, 0, 0.001)
+
+   table.insert(self._celestials, new_celestial)
+
+   self:_update_light(0, new_celestial)
 end
 
--- hardcoded times of day for now
-function stonehearth_sky.dawn()
-   stonehearth_sky._light_off(moon)
-   stonehearth_sky._light_move(sun, constants.ANGLE_X_EAST)
+function stonehearth_sky:get_celestial(name)
+   for _, o in pairs(self._celestials) do
+      if o.name == name then
+         return o
+      end
+   end
+   return nil
 end
 
-function stonehearth_sky.noon()
-   stonehearth_sky._light_off(moon)
-   stonehearth_sky._light_move(sun, (constants.ANGLE_X_EAST + constants.ANGLE_X_WEST) / 2)
+function stonehearth_sky:_update(minutes)
+   for _, o in pairs(self._celestials) do
+      self:_update_light(minutes, o)
+   end
 end
 
-function stonehearth_sky.dusk()
-   stonehearth_sky._light_off(moon)
-   stonehearth_sky._light_move(sun, constants.ANGLE_X_WEST)
+function stonehearth_sky:_update_light(minutes, light)
+   local color = self:_find_value(minutes, light.colors)
+   local ambient_color = self:_find_value(minutes, light.ambient_colors)
+   local angles = self:_find_value(minutes, light.angles)
+   self:_light_color(light, color.x, color.y, color.z)
+   self:_light_ambient_color(light, ambient_color.x, ambient_color.y, ambient_color.z)
+   self:_light_angles(light, angles.x, angles.y, angles.z)
 end
 
-function stonehearth_sky.night()
-   stonehearth_sky._light_off(sun)
-   stonehearth_sky._light_color(moon, 0, 0, .5)
-   stonehearth_sky._light_move(moon, (constants.ANGLE_X_EAST + constants.ANGLE_X_WEST) / 4)
+function stonehearth_sky:_find_value(time, data)
+   for _,d in pairs(data) do
+      local t_start = d[1]
+      local t_end = d[2]
+      local v_start = d[3]
+      local v_end = d[4]
+
+      if time >= t_start and time < t_end then
+         local frac = (time - t_start) / (t_end - t_start)
+         return self:_interpolate(v_start, v_end, frac)
+      end
+   end
+   return Vec3(0, 0, 0)
 end
 
-function stonehearth_sky._initSun()
-   -- put the sun in the sky
-   sun = h3dAddLightNode(H3DRootNode, "Sun", lightMatRes, "DIRECTIONAL_LIGHTING", "DIRECTIONAL_SHADOWMAP")
-   h3dSetNodeTransform(sun, 0, 0, 0, -45, 90, 0, 1, 1, 1)
-   h3dSetNodeParamF(sun, H3DLight.RadiusF, 0, 100000)
-   h3dSetNodeParamF(sun, H3DLight.FovF, 0, 0)
-   h3dSetNodeParamI(sun, H3DLight.ShadowMapCountI, 1)
-   h3dSetNodeParamI(sun, H3DLight.DirectionalI, 1)
-   h3dSetNodeParamF(sun, H3DLight.ShadowSplitLambdaF, 0, 0.9)
-   h3dSetNodeParamF(sun, H3DLight.ShadowMapBiasF, 0, 0.001)
-   h3dSetNodeParamF(sun, H3DLight.ColorF3, 0, 0.5)
-   h3dSetNodeParamF(sun, H3DLight.ColorF3, 1, 0.5)
-   h3dSetNodeParamF(sun, H3DLight.ColorF3, 2, 0.5)
+function stonehearth_sky:_interpolate(a, b, frac)
+   local result = Vec3(0, 0, 0)
+   result.x = (a.x * (1.0 - frac)) + (b.x * frac)
+   result.y = (a.y * (1.0 - frac)) + (b.y * frac)
+   result.z = (a.z * (1.0 - frac)) + (b.z * frac)
+   return result
 end
 
-function stonehearth_sky._initMoon()
-   -- put the sun in the sky
-   moon = h3dAddLightNode(H3DRootNode, "Moon", lightMatRes, "DIRECTIONAL_LIGHTING", "DIRECTIONAL_SHADOWMAP")
-   h3dSetNodeTransform(moon, 0, 0, 0, -45, 90, 0, 1, 1, 1)
-   h3dSetNodeParamF(moon, H3DLight.RadiusF, 0, 100000)
-   h3dSetNodeParamF(moon, H3DLight.FovF, 0, 0)
-   h3dSetNodeParamI(moon, H3DLight.ShadowMapCountI, 1)
-   h3dSetNodeParamI(moon, H3DLight.DirectionalI, 1)
-   h3dSetNodeParamF(moon, H3DLight.ShadowSplitLambdaF, 0, 0.9)
-   h3dSetNodeParamF(moon, H3DLight.ShadowMapBiasF, 0, 0.001)
-   h3dSetNodeParamF(moon, H3DLight.ColorF3, 0, 0.2)
-   h3dSetNodeParamF(moon, H3DLight.ColorF3, 1, 0.2)
-   h3dSetNodeParamF(moon, H3DLight.ColorF3, 2, 0.5)
+function stonehearth_sky:_init_sun()
+   local angles = {
+      sunrise = Vec3(0, 35, 0),
+      midday = Vec3(-90, 0, 0),
+      sunset = Vec3(-180, 35, 0)
+   }
+
+   local colors = {
+      sunrise = Vec3(0.6, 0.25, 0.1),
+      morning = Vec3(0.8, 0.6, 0.7),
+      midday = Vec3(1, 1, 1),
+      afternoon = Vec3(0.8, 0.6, 0.7),
+      sunset = Vec3(0.6, 0.25, 0.1),
+      night = Vec3(0.0, 0.0, 0.0)
+   }
+   local ambient_colors = {
+      sunrise = Vec3(0.1, 0.1, 0.1),
+      midday = Vec3(0.4, 0.4, 0.4),
+      sunset = Vec3(0.1, 0.1, 0.1),
+      night = Vec3(0, 0, 0)
+   }
+   local sun_colors = {
+      {self.timing.min, self.timing.pre_sunrise, colors.night, colors.night},
+      {self.timing.pre_sunrise, self.timing.sunrise, colors.night, colors.sunrise},
+      {self.timing.sunrise, self.timing.morning, colors.sunrise, colors.morning},
+      {self.timing.morning, self.timing.midday, colors.morning, colors.midday},
+      {self.timing.midday, self.timing.afternoon, colors.midday, colors.afternoon},
+      {self.timing.afternoon, self.timing.sunset, colors.afternoon, colors.sunset},
+      {self.timing.sunset, self.timing.post_sunset, colors.sunset, colors.night},
+      {self.timing.post_sunset, self.timing.max, colors.night, colors.night}
+   }
+   local sun_ambient_colors = {
+      {self.timing.min, self.timing.sunrise, ambient_colors.night, ambient_colors.sunrise},
+      {self.timing.sunrise, self.timing.midday, ambient_colors.sunrise, ambient_colors.midday},
+      {self.timing.midday, self.timing.sunset, ambient_colors.midday, ambient_colors.sunset},
+      {self.timing.sunset, self.timing.max, ambient_colors.night, ambient_colors.night}
+   }
+
+   local sun_angles = {
+      {self.timing.min, self.timing.sunrise, angles.sunrise, angles.sunrise},
+      {self.timing.sunrise, self.timing.midday, angles.sunrise, angles.midday},
+      {self.timing.midday, self.timing.sunset, angles.midday, angles.sunset},
+      {self.timing.sunset, self.timing.max, angles.sunset, angles.sunset}
+   }
+
+   self:add_celestial("sun", sun_colors, sun_angles, sun_ambient_colors)
 end
 
-function stonehearth_sky._light_move(node, angle) 
-    h3dSetNodeTransform(node, 0, 0, 0, angle, 90, 0, 1, 1, 1)
+
+function stonehearth_sky:_init_moon()
+   local angles = {
+      moonrise = Vec3(0, -35, 0),
+      midnight = Vec3(-90, 0, 0),
+      moonset = Vec3(-180, -35, 0)
+   }
+
+   local colors = {
+      moonrise = Vec3(0.01, 0.1, 0.2),
+      midnight = Vec3(0.01, 0.21, 0.41),
+      moonset = Vec3(0.01, 0.1, 0.2),
+      daylight = Vec3(0, 0, 0)
+   }
+   local ambient_colors = {
+      moonrise = Vec3(0.1, 0.1, 0.1),
+      midnight = Vec3(0.2, 0.2, 0.2),
+      moonset = Vec3(0.1, 0.1, 0.1),
+      daylight = Vec3(0, 0, 0)
+   }
+
+   local moon_colors = {
+      {self.timing.pre_moonrise, self.timing.moonrise, colors.daylight, colors.moonrise},
+      {self.timing.moonrise, self.timing.max, colors.moonrise, colors.midnight},
+      {self.timing.midnight, self.timing.moonset, colors.midnight, colors.moonset},
+      {self.timing.sunrise, self.timing.sunset, colors.daylight, colors.daylight}
+   }
+   local moon_ambient_colors = {
+      {self.timing.moonrise, self.timing.max, ambient_colors.moonrise, ambient_colors.midnight},
+      {self.timing.midnight, self.timing.pre_sunrise, ambient_colors.midnight, ambient_colors.moonset},
+      {self.timing.pre_sunrise, self.timing.moonset, ambient_colors.moonset, ambient_colors.daylight},
+      {self.timing.sunrise, self.timing.sunset, ambient_colors.daylight, ambient_colors.daylight}
+   }
+
+   local moon_angles = {
+      {self.timing.moonrise, self.timing.max, angles.moonrise, angles.midnight},
+      {self.timing.midnight, self.timing.moonset, angles.midnight, angles.moonset},
+      {self.timing.sunrise, self.timing.sunset, angles.moonset, angles.moonrise}
+   }
+
+   self:add_celestial("moon", moon_colors, moon_angles, moon_ambient_colors)
 end
 
-function stonehearth_sky._light_color(node, r, g, b) 
-   h3dSetNodeParamF(node, H3DLight.ColorF3, 0, r)
-   h3dSetNodeParamF(node, H3DLight.ColorF3, 1, g)
-   h3dSetNodeParamF(node, H3DLight.ColorF3, 2, b)
+function stonehearth_sky:_light_color(light, r, g, b)
+   h3dSetNodeParamF(light.node, H3DLight.ColorF3, 0, r)
+   h3dSetNodeParamF(light.node, H3DLight.ColorF3, 1, g)
+   h3dSetNodeParamF(light.node, H3DLight.ColorF3, 2, b)
 end
 
-function stonehearth_sky._light_off(node)
-   stonehearth_sky._light_color(node, 0.0, 0.0, 0.0)
+function stonehearth_sky:_light_ambient_color(light, r, g, b)
+   h3dSetNodeParamF(light.node, H3DLight.AmbientColorF3, 0, r)
+   h3dSetNodeParamF(light.node, H3DLight.AmbientColorF3, 1, g)
+   h3dSetNodeParamF(light.node, H3DLight.AmbientColorF3, 2, b)
 end
 
--- stub event handler, for when we can pipe the time of day into this thing
-function stonehearth_sky._on_minute(_, now)
-
+function stonehearth_sky:_light_angles(light, x, y, z) 
+   h3dSetNodeTransform(light.node, 0, 10, 0, x, y, z, 1, 1, 1)
 end
 
-stonehearth_sky.__init()
+stonehearth_sky:__init()
 return stonehearth_sky
-
-
