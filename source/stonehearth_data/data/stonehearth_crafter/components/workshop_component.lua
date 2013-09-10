@@ -24,8 +24,12 @@ function Workshop:__init(entity, data_binding)
    self._intermediate_item = nil         -- The item currently being worked on. Nil until we actually start crafting
                                          -- TODO: revise all three of these to use entity-container
    self._bench_outputs = {}              -- An array of finished products on the bench, to be added to the outbox. Nil if nothing.
-   self._outbox = nil                    -- The outbox entity
-   self._promotion_talisman_entity = nil -- The talisman for the bench, available when there is no craftsman
+   self._outbox_entity = nil
+   self._outbox_component = nil          -- The outbox
+      self._promotion_talisman_entity = nil -- The talisman for the bench, available when there is no craftsman
+   self._promotion_talisman_offset = {0, 3, 0}  -- Default offset for the talisman (on the bench)
+   self._outbox_offset = {2, 0, 0}              -- Default offset for the outbox
+   self._outbox_size = {3, 3}                   -- Default size for the outbox
 
    self._data = data_binding:get_data()
    self._data.crafter = nil
@@ -37,8 +41,20 @@ function Workshop:__init(entity, data_binding)
 end
 
 function Workshop:extend(json)
-   self._promotion_talisman_entity_uri = json.promotion_talisman.entity
-   self._promotion_talisman_offset = json.promotion_talisman.offset
+   if json then
+      if json.promotion_talisman.entity then
+         self._promotion_talisman_entity_uri = json.promotion_talisman.entity
+      end
+      if json.promotion_talisman.offset then
+         self._promotion_talisman_offset = json.promotion_talisman.offset
+      end
+      if json.outbox_settings.offset then
+         self._outbox_offset = json.outbox_settings.offset
+      end
+      if json.outbox_settings.size then
+         self._outbox_size = json.outbox_settings.size
+      end
+   end
 end
 
 --[[UI Interaction Functions
@@ -142,16 +158,6 @@ function Workshop:get_curr_order()
    return self._curr_order
 end
 
---[[
-   This is the outbox component (not the entity)
-]]
-function Workshop:set_outbox(outbox)
-   self._outbox = outbox
-end
-
-function Workshop:get_outbox()
-   return self._outbox
-end
 
 --[[
    Associate a crafter entity with this bench.
@@ -171,16 +177,19 @@ function Workshop:set_crafter(crafter)
    end
 end
 
+function Workshop:init_from_scratch()
+   return self:init_promotion_talisman(), self:init_outbox()
+end
+
 --[[
    Associate a promotion talisman with the workbench. A worker will use the talisman
    to promote himself to a crafter
    If the talisman is nil, and a talisman currently exists, remove the talisman from the bench
 ]]
 function Workshop:init_promotion_talisman()
-   local loc = radiant.entities.get_location_aligned(self._entity)
    local offset = self._promotion_talisman_offset
 
-   self._promotion_talisman_entity = radiant.entities.create_entity(self._promotion_talisman_entity_uri)   
+   self._promotion_talisman_entity = radiant.entities.create_entity(self._promotion_talisman_entity_uri)
    self._entity:add_component('entity_container'):add_child(self._promotion_talisman_entity)
    self._promotion_talisman_entity:add_component('mob'):set_location_grid_aligned(Point3(offset[1], offset[2], offset[3]))
 
@@ -191,6 +200,38 @@ end
 
 function Workshop:get_promotion_talisman_entity_uri()
    return self._promotion_talisman_entity_uri
+end
+
+--[[
+   This is the outbox component (not the entity)
+   location: place in the world, relative to workbench, to put the outbox
+   size: size of outbox, {width,depth}
+   returns: outbox_entity
+   TODO: Make this a speciatly stockpile, not like other stockpiles!
+]]
+function Workshop:init_outbox(custom_offset, custom_size)
+   self._outbox_entity = radiant.entities.create_entity('/stonehearth_inventory/entities/stockpile')
+   local bench_loc = radiant.entities.get_location_aligned(self._entity)
+
+   if custom_offset then
+      self._outbox_offset = custom_offset
+   end
+   local offset = self._outbox_offset
+   radiant.terrain.place_entity(self._outbox_entity,
+      Point3(bench_loc.x + offset[1], bench_loc.y + offset[2], bench_loc.z + offset[3]))
+   local outbox_component = self._outbox_entity:get_component('radiant:stockpile')
+
+   if custom_size then
+      self._outbox_size = custom_size
+   end
+   outbox_component:set_size(self._outbox_size)
+
+   self._outbox_component = outbox_component
+   return self._outbox_entity
+end
+
+function Workshop:get_outbox_entity()
+   return self._outbox_entity
 end
 
 
@@ -370,8 +411,9 @@ function Workshop:_produce_outputs()
    self._bench_outputs = {}
    for i, product in radiant.resources.pairs(outputs) do
       local result = radiant.entities.create_entity(product.item)
-      --TODO: use entity container to put items on the bench
-      radiant.terrain.place_entity(result, Point3(-12, -5, -12))
+
+      self._entity:add_component('entity_container'):add_child(result)
+      result:add_component('mob'):set_location_grid_aligned(Point3(0, 1, 0))
       table.insert(self._bench_outputs, result)
    end
 end

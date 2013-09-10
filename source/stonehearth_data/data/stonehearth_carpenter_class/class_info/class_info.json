@@ -1,15 +1,16 @@
 {
-   "extends": "/stonehearth_crafter/class_info", 
+   "extends": "/stonehearth_crafter/class_info",
    "components": {
       "stonehearth_classes:job_info": {
-         "class_script": "/stonehearth_carpenter_class/", 
-         "icon": "file(saw_icon.png)", 
-         "name": "Carpenter", 
+         "class_script": "/stonehearth_carpenter_class/",
+         "icon": "file(saw_icon.png)",
+         "id": "carpenter",
+         "name": "Carpenter",
          "description": "Has a saw and knows how to use it. Badassedly."
-      }, 
+      },
       "stonehearth_crafter:crafter": {
-         "work_effect": "saw", 
-         "recipe_list": "/stonehearth_carpenter_class/recipes/recipes.json", 
+         "work_effect": "saw",
+         "recipe_list": "/stonehearth_carpenter_class/recipes/recipes.json",
          "intermediate_item": "/stonehearth_carpenter_class/entities/carpenter_intermediate_item"
       }
    }

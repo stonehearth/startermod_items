@@ -16,11 +16,13 @@ function PromoteTest:__init()
    local bench = self:place_item('/stonehearth_carpenter_class/entities/carpenter_workbench', -12, -12)
    local workshop_component = bench:get_component('stonehearth_crafter:workshop')
    local faction = worker:get_component('unit_info'):get_faction()
+
+   --TODO: we need a way to add unitinfo to these all these guys
    bench:add_component('unit_info'):set_faction(faction)
 
-
-   local saw = workshop_component:init_promotion_talisman(bench)
+   local saw, outbox = workshop_component:init_from_scratch()
    saw:add_component('unit_info'):set_faction(faction)
+   outbox:add_component('unit_info'):set_faction(faction)
 
    local tree = self:place_tree(-12, 0)
    local tree2 = self:place_tree(-12, 12)
