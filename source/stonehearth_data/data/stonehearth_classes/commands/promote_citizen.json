@@ -6,8 +6,8 @@
    "icon": "file(/images/promote.png)",
 
    "action": "fire_event",
-   "event_name" : "pick_person.stonehearth_items",
+   "event_name" : "promote_citizen.stonehearth_classes",
    "event_data" : {
-      "post_target" : "/modules/server/stonehearth_items/promote_command"
+      "post_target" : "/modules/server/stonehearth_classes/promote_command"
    }
 }

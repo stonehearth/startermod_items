@@ -242,6 +242,7 @@ function entities.do_ability(entity, ability_name, ...)
    end
 end
 
+-- id here can be an int (e.g. 999) or uri (e.g. '/o/stores/server/objects/999')
 function entities.get_entity(id)
    return native:get_entity(id)
 end
