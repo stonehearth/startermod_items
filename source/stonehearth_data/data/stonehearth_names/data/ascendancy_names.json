@@ -11,7 +11,14 @@
       "Edessa",
       "Nonac",
       "Keloch",
-      "Brightwell"
+      "Brightwell",
+      "Northpoint",
+      "Berall",
+      "Carlwine",
+      "Framer",
+      "Hunterton",
+      "Winset",
+      "Jondal"
    ],
    "given_names" : {
       "male" : [
@@ -24,7 +31,8 @@
          "Nol",
          "Pantor",
          "Daff",
-         "Willad"
+         "Willad",
+         "Irving"
       ],
       "female" : [
          "Dara",
