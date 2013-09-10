@@ -5,7 +5,7 @@
 #include "egScene.h"
 #include "csg/region.h"
 #include "csg/color.h"
-#include "namespace.h"
+#include "../namespace.h"
 #include "radiant.pb.h"
 #include "../extension.h"
 

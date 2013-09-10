@@ -1,6 +1,4 @@
 FIND_PACKAGE(Boost 1.48.0 COMPONENTS system regex date_time program_options REQUIRED)
-FIND_PACKAGE(Gflags     REQUIRED)
-FIND_PACKAGE(Glog       REQUIRED)
 FIND_PACKAGE(Cryptopp   REQUIRED)
 FIND_PACKAGE(Libjson REQUIRED)
 FIND_PACKAGE(Lua REQUIRED)
@@ -25,8 +23,6 @@ endif(MSVC)
 target_link_libraries(lua
                       ${PROTOBUF_LIBRARIES}
                       ${Boost_LIBRARIES}
-                      ${Glog_LIBRARIES}
-                      ${Gflags_LIBRARIES}
                       ${Python_LIBRARIES}
                       ${Cryptopp_LIBRARIES}
                       ${Libjson_LIBRARIES}

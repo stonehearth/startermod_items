@@ -2,25 +2,19 @@
 # level.  no, i'm not proud of this
 FIND_PACKAGE(Protobuf REQUIRED)
 
-FIND_PACKAGE(Gflags REQUIRED)
-FIND_PACKAGE(Glog   REQUIRED)
-FIND_PACKAGE(Snappy REQUIRED)
 FIND_PACKAGE(Boost COMPONENTS chrono filesystem log log_setup thread REQUIRED)
 FIND_PACKAGE(Lua REQUIRED)
 FIND_PACKAGE(Luabind REQUIRED)
 FIND_PACKAGE(GTest REQUIRED NO_MODULE)
-FIND_PACKAGE(CppNetlib REQUIRED)
 FIND_PACKAGE(Libjson REQUIRED)
+FIND_PACKAGE(Snappy REQUIRED)
 
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${PROTOBUF_INCLUDE_DIRS})
-include_directories(${Glog_INCLUDE_DIRS})
-include_directories(${Gflags_INCLUDE_DIRS})
 include_directories(${Snappy_INCLUDE_DIRS})
 include_directories(${Lua_INCLUDE_DIRS})
 include_directories(${Luabind_INCLUDE_DIRS})
 include_directories(${GTest_INCLUDE_DIRS})
-include_directories(${CppNetlib_INCLUDE_DIRS})
 include_directories(${Libjson_INCLUDE_DIRS})
 
 include_directories(.)

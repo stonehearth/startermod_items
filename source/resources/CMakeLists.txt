@@ -10,5 +10,4 @@ add_library(resources STATIC
             )
 
 target_link_libraries(resources
-                      ${CppNetlib_LIBRARIES}
                      )

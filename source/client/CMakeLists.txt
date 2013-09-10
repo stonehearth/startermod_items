@@ -1,12 +1,9 @@
 FIND_PACKAGE(ChromiumEmbedded REQUIRED)
 FIND_PACKAGE(Boost 1.48.0 COMPONENTS system regex date_time program_options REQUIRED)
-FIND_PACKAGE(Gflags     REQUIRED)
-FIND_PACKAGE(Glog       REQUIRED)
 FIND_PACKAGE(Cryptopp   REQUIRED)
 FIND_PACKAGE(Libjson REQUIRED)
 FIND_PACKAGE(Lua REQUIRED)
 FIND_PACKAGE(Luabind REQUIRED)
-# FIND_PACKAGE(Bullet     REQUIRED NO_MODULE)
 
 include_directories(${Boost_INCLUDE_DIR})
 INCLUDE_DIRECTORIES(${ChromiumEmbedded_INCLUDE_DIRS})
@@ -35,8 +32,6 @@ endif(MSVC)
 target_link_libraries(client 
                              ${PROTOBUF_LIBRARIES}
                              ${Boost_LIBRARIES}
-                             ${Glog_LIBRARIES}
-                             ${Gflags_LIBRARIES}
                              ${Python_LIBRARIES}
                              ${Cryptopp_LIBRARIES}
                              ${Libjson_LIBRARIES}
