@@ -18,4 +18,7 @@ function api.promote(entity, uri)
    end
 end
 
+--radiant.events.register_event('stonehearth.events.classes.demotion')
+--radiant.events.register_event('stonehearth.events.classes.promotion')
+
 return api

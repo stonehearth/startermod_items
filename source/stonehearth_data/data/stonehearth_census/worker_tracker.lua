@@ -18,9 +18,10 @@ function WorkerTracker:__init(data_store)
 
    self._data_store = data_store
    self._tracked_entities = {} -- used to avoid an O(n) removal for non workers
+
 end
 
-function WorkerTracker:_on_entity_add(id, entity) 
+function WorkerTracker:_on_entity_add(id, entity)
    local job_info = entity:get_component('stonehearth_classes:job_info')
    if job_info then
       if job_info:get_id() == 'worker' then
@@ -32,7 +33,7 @@ function WorkerTracker:_on_entity_add(id, entity)
 end
 
 function WorkerTracker:_on_entity_remove(id)
-   if self._tracked_entities[id] then      
+   if self._tracked_entities[id] then
       self._tracked_entities[id] = nil
       self._data_store:mark_changed()
 

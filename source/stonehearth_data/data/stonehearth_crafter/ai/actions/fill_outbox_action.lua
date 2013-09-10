@@ -27,15 +27,16 @@ function FillOutboxAction:run(ai, entity)
    local crafter_component = entity:get_component('stonehearth_crafter:crafter')
    local workshop = crafter_component:get_workshop()
    local workshop_entity = workshop:get_entity()
-   self._outbox_entity = workshop:get_outbox()
+   self._outbox_entity = workshop:get_outbox_entity()
 
    assert(workshop:has_bench_outputs(), 'Trying to fill outbox, but the bench has no products!')
 
     repeat
       self._curr_carry = workshop:pop_bench_output()
 
-      --TODO: pickup from table?
-      ai:execute('stonehearth.activities.pickup_item', self._curr_carry)
+      --TODO: pickup from table action which removes from a parent entity
+      --ai:execute('stonehearth.activities.run_effect', 'pickup_item_from_table')
+      ai:execute('stonehearth.activities.pickup_item', self._curr_carry, workshop_entity)
 
       --Find path
       --Something like:

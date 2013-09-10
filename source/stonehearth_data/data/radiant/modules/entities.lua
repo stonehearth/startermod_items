@@ -242,18 +242,11 @@ function entities.do_ability(entity, ability_name, ...)
    end
 end
 
---Get an entity given its numeric ID
+-- id here can be an int (e.g. 999) or uri (e.g. '/o/stores/server/objects/999')
 function entities.get_entity(id)
-   radiant.check.is_number(id)
    return native:get_entity(id)
 end
 
---Get an entity given its string ID (from client,
---something like "/object/31"
-function entities.get_entity_by_string(string_id)
-   local numeric_part = string.sub(string_id, 9)
-   return entities.get_entity(tonumber(numeric_part))
-end
 
 function entities.get_animation_table_name(entity)
    local name
@@ -572,7 +565,7 @@ end
    entity: probably a mob
    item:   the thing to pick up
 ]]
-function entities.pickup_item(entity, item)
+function entities.pickup_item(entity, item, parent)
    radiant.check.is_entity(entity)
    radiant.check.is_entity(item)
 
@@ -580,7 +573,10 @@ function entities.pickup_item(entity, item)
    radiant.check.verify(carry_block ~= nil)
 
    if item then
-      entities.remove_child(radiant._root_entity, item)
+      if not parent then
+         parent = radiant._root_entity
+      end
+      entities.remove_child(parent, item)
       carry_block:set_carrying(item)
       entities.move_to(item, Point3(0, 0, 0))
    else

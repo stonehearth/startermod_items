@@ -5,5 +5,23 @@
    "components" :  {
       "talisman_promotion_info" : "file(components/talisman_promotion_info.lua)",
       "job_info": "file(components/job_info.lua)"
-   }
+   },
+
+   "server" : {
+      "request_handlers" : {
+         "promote_command" : "file(commands/promote_command.lua)"
+      }
+   },
+   "ui" :  {
+      "html" : [
+         "file(/html/stonehearth_classes_promote.html)"
+      ],
+      "js" : [
+         "file(/html/js/stonehearth_classes_promote.js)"
+      ],
+      "less" : [
+         "file(/html/css/stonehearth_classes_promote.less)"
+      ]
+   }   
+
 }

@@ -15,11 +15,12 @@ function CreateWorkbench:handle_request(session, postdata)
    radiant.terrain.place_entity(workbench_entity, location)
 
    -- Place the promotion talisman on the workbench, if there is one
-   local promotion_talisman_entity = workshop_component:init_promotion_talisman(workbench_entity)
-   
+   local promotion_talisman_entity, outbox_entity = workshop_component:init_from_scratch()
+
    -- set the faction of the bench and talisman
    workbench_entity:get_component('unit_info'):set_faction(session.faction)
    promotion_talisman_entity:get_component('unit_info'):set_faction(session.faction)
+   outbox_entity:get_component('unit_info'):set_faction(session.faction)
 
    -- return the entity, in case the client cares (e.g. if they want to make that
    -- the selected item)
