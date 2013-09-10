@@ -31,3 +31,6 @@
 [submodule "modules/boost"]
 	path = modules/boost
 	url = https://github.com/radent/boost.git
+[submodule "modules/cryptopp"]
+	path = modules/cryptopp
+	url = https://github.com/radent/cryptopp.git
