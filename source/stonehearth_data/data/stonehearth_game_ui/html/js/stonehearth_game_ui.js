@@ -23,6 +23,13 @@ App.StonehearthGameUiView = Ember.ContainerView.extend({
             self.addView(ctor);
          }
       });
+
+      this._traceCalendar();
+   },
+
+   destroy: function() {
+      this._super();
+      this._calendarTrace.destroy();
    },
 
    addView: function(type, options) {
@@ -32,7 +39,29 @@ App.StonehearthGameUiView = Ember.ContainerView.extend({
          classNames: ['stonehearth-view']
       });
       childView.setProperties(options);
-      this.pushObject(childView)
+
+      if (childView.get('modal')) {
+         var modalOverlay = App.gameView.addView('StonehearthModalOverlay', { modalView: childView });
+         childView.modalOverlay = modalOverlay;
+         this.pushObject(modalOverlay);
+      }
+
+      this.pushObject(childView);
       return childView;
-   }
+   },
+
+   getDate: function() {
+      return this._date;
+   },
+
+   _traceCalendar: function() {
+      var self = this;
+      this._calendarTrace = radiant.trace('/server/objects/stonehearth_calendar/clock')
+         .progress(function(json) {
+            self._date = json.date;
+         })
+         .fail(function(e) {
+            console.log(e);
+         });
+   },
 });

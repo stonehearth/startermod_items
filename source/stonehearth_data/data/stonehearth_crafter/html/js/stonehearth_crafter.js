@@ -53,6 +53,8 @@ App.StonehearthCrafterView = App.View.extend({
 
    },
 
+   modal: true,
+
    //alias for stonehearth_crafter:workshop.crafter.stonehearth_crafter:crafter.craftable_recipes
    recipes: null,
 
@@ -72,8 +74,6 @@ App.StonehearthCrafterView = App.View.extend({
             .animate({ top: -1900 }, 500, 'easeOutBounce', function() {
                self.destroy();
          });
-         $(".overlay")
-            .animate({ opacity: 0.0 }, {duration: 300, easing: 'easeInQuad'});
       },
 
       select: function(object, remaining, maintainNumber) {
@@ -145,8 +145,6 @@ App.StonehearthCrafterView = App.View.extend({
 
       $("#craftingUI")
          .animate({ top: 0 }, {duration: 500, easing: 'easeOutBounce'});
-      $(".overlay")
-         .animate({ opacity: 0.3 }, {duration: 300, easing: 'easeInQuad'});
    },
 
    _setRadioButtons: function(remaining, maintainNumber) {

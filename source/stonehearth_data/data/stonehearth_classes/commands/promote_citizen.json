@@ -3,7 +3,7 @@
 
    "name": "promote_citizen",
    "tooltip": "Promote",
-   "icon": "file(/images/promote.png)",
+   "icon": "file(/html/images/promote_action_button_icon.png)",
 
    "action": "fire_event",
    "event_name" : "promote_citizen.stonehearth_classes",

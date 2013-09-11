@@ -1,17 +1,6 @@
-/*Listen for the event that signals that someone wants to be promoted*/
-$(document).ready(function(){
-   // When we get the pick people event, show the people picker
-   $(top).on("pick_person.stonehearth_census", function (_, e) {
-      var view = App.gameView.addView(App.StonehearthPeoplePickerView, {
-         uri: e.uri,
-         callback: e.callback
-      });
-   });
-});
-
 App.StonehearthPeoplePickerView = App.View.extend({
    templateName: 'stonehearthPeoplePicker',
-
+   modal: true,
    components: {
       'entities': {
          'unit_info' : {}
@@ -22,13 +11,28 @@ App.StonehearthPeoplePickerView = App.View.extend({
       this._super();
    },
 
+
    didInsertElement: function() {
       //TODO: animate in
+      var css = this.get('css');
+      if (css) {
+         $('#peoplePicker').css(css)
+      }
+
+      var title = this.get('title');
+      var c = this.get('context');
+
+      if(!this.pulsed) {
+         //$('#peoplePicker').pulse();
+         this.pulsed = true;
+      }
    },
 
-   selectPerson: function(person) {
-      this.callback(person);
-      this.destroy();
+   actions: {
+      selectPerson: function(person) {
+         this.callback(person);
+         this.destroy();
+      }
    }
 
 });
