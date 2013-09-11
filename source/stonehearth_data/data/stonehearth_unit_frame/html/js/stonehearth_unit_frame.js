@@ -61,8 +61,8 @@ App.StonehearthCommandButtonView = App.View.extend({
          if (command.action == 'fire_event') {
             // xxx: error checking would be nice!!
             var e = {
-               entity : this._selected_entity,
-            event_data : command.event_data
+               entity : this.get("parentView.uri"),
+               event_data : command.event_data
             };
             $(top).trigger(command.event_name, e);
          } else if (command.action == 'post') {
