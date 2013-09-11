@@ -48,6 +48,7 @@
       //background: url('../unitframe/images/command_button_well.png');
 
       .commandButton {
+         position: relative;
          display: inline-block;
          width: 63px;
          height: 65px;
@@ -61,6 +62,15 @@
          img {
 
          }
+
+         #hotkey {
+            .controlFont;
+            font-size: 24px;
+            color: #fff;
+            position: absolute;
+            bottom: 2px;
+            right: 6px;
+         }
       }
 
       .buttonEnabled {
@@ -68,7 +78,7 @@
       }
 
       .buttonDisabled {
-         opacity: 0.3;
+         opacity: 0.6;
       }
 
    }

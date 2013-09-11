@@ -20,8 +20,25 @@ App.StonehearthClassesPromoteView = App.View.extend({
    },
 
    destroy: function() {
-      radiant.keyboard.setFocus(null);
+      var self = this;
+      
+      this.set('context.citizenToPromote', null);
       this._super();
+
+      /*
+      $('#crafterPromoteScroll').fadeOut(function() {
+         //...
+      });
+      */
+
+   },
+
+   didInsertElement: function() {
+      if (this.get('context')) {
+         $('#crafterPromoteScroll')
+            .hide()
+            .fadeIn();
+      }
    },
 
    actions: {
