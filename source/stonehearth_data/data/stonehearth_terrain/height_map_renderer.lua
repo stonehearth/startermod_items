@@ -20,11 +20,9 @@ function HeightMapRenderer.render_height_map_to_terrain(height_map, zone_params)
    HeightMapRenderer._copy_heightmap_to_CPP(heightMapCPP, height_map)
    _radiant.csg.convert_heightmap_to_region2(heightMapCPP, r2)
 
-   local foothills_quantization_size = zone_params[ZoneType.Foothills].quantization_size
-
    for rect in r2:contents() do
       if rect.tag > 0 then
-         HeightMapRenderer._add_land_to_region(r3, rect, rect.tag, foothills_quantization_size);         
+         HeightMapRenderer._add_land_to_region(r3, rect, rect.tag, zone_params);         
       end
    end
 
@@ -36,22 +34,24 @@ function HeightMapRenderer._copy_heightmap_to_CPP(heightMapCPP, height_map)
 
    for j=1, height_map.height, 1 do
       for i=1, height_map.width, 1 do
-         heightMapCPP:set(i-1, j-1, math.abs(height_map[row_offset+i]))
+         heightMapCPP:set(i-1, j-1, height_map[row_offset+i])
       end
       row_offset = row_offset + height_map.width
    end
 end
 
-function HeightMapRenderer._add_land_to_region(dst, rect, height, foothills_quantization_size)
-   local grass_transition_height = foothills_quantization_size*1.5
-   local rock_transition_height = foothills_quantization_size*5
+function HeightMapRenderer._add_land_to_region(dst, rect, height, zone_params)
+   local foothills_step_size = zone_params[ZoneType.Foothills].step_size
+   local grass_transition_height = zone_params.grass_transition_height
+   local rock_transition_height = zone_params.rock_transition_height
 
    dst:add_cube(Cube3(Point3(rect.min.x, -2, rect.min.y),
                       Point3(rect.max.x,  0, rect.max.y),
                 Terrain.BEDROCK))
 
+   -- Mountains
    if (height > rock_transition_height) and
-      (height % foothills_quantization_size == 0) then
+      (height % foothills_step_size == 0) then
       
       dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
                          Point3(rect.max.x, height-1, rect.max.y),
@@ -59,12 +59,25 @@ function HeightMapRenderer._add_land_to_region(dst, rect, height, foothills_quan
 
       dst:add_cube(Cube3(Point3(rect.min.x, height-1, rect.min.y),
                          Point3(rect.max.x, height,   rect.max.y),
-                   Terrain.TOPSOIL_DETAIL))
+                   Terrain.TOPSOIL)) -- need mountain plateau color
       return
    end
 
-   if (height <= grass_transition_height) or
-      (height % foothills_quantization_size == 0) then
+   -- Plains
+   if (height <= grass_transition_height) then
+
+      dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
+                         Point3(rect.max.x, height-1, rect.max.y),
+                   Terrain.TOPSOIL))
+
+      dst:add_cube(Cube3(Point3(rect.min.x, height-1, rect.min.y),
+                         Point3(rect.max.x, height,   rect.max.y),
+                   Terrain.PLAINS))
+      return
+   end
+
+   -- Foothills
+   if (height % foothills_step_size == 0) then
 
       dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
                          Point3(rect.max.x, height-1, rect.max.y),

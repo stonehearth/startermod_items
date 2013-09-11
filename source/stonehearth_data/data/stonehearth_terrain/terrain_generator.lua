@@ -9,7 +9,7 @@ local MathFns = radiant.mods.require('/stonehearth_terrain/math/math_fns.lua')
 local FilterFns = radiant.mods.require('/stonehearth_terrain/filter/filter_fns.lua')
 local Wavelet = radiant.mods.require('/stonehearth_terrain/wavelet/wavelet.lua')
 local WaveletFns = radiant.mods.require('/stonehearth_terrain/wavelet/wavelet_fns.lua')
-local Point_2D = radiant.mods.require('/stonehearth_terrain/point_2D.lua')
+local Point2 = _radiant.csg.Point2
 
 -- Definitions
 -- Block = atomic unit of terrain
@@ -20,7 +20,7 @@ local Point_2D = radiant.mods.require('/stonehearth_terrain/point_2D.lua')
 
 function TerrainGenerator:__init()
    local zone_type
-   math.randomseed(3)
+   math.randomseed(1)
 
    self.zone_size = 256
    self.tile_size = 32
@@ -35,21 +35,25 @@ function TerrainGenerator:__init()
 
    zone_type = ZoneType.Plains
    self.zone_params[zone_type] = {}
-   self.zone_params[zone_type].quantization_size = 2
+   self.zone_params[zone_type].step_size = 2
    self.zone_params[zone_type].mean_height = 8
-   self.zone_params[zone_type].std_dev = 4
+   self.zone_params[zone_type].std_dev = 10
 
    zone_type = ZoneType.Foothills
    self.zone_params[zone_type] = {}
-   self.zone_params[zone_type].quantization_size = 8
+   self.zone_params[zone_type].step_size = 8
    self.zone_params[zone_type].mean_height = 24
    self.zone_params[zone_type].std_dev = 32
 
    zone_type = ZoneType.Mountains
    self.zone_params[zone_type] = {}
-   self.zone_params[zone_type].quantization_size = 8
+   self.zone_params[zone_type].step_size = 16
    self.zone_params[zone_type].mean_height = 48
    self.zone_params[zone_type].std_dev = 48
+
+   local foothills_step_size = self.zone_params[ZoneType.Foothills].step_size
+   self.zone_params.grass_transition_height = foothills_step_size*1
+   self.zone_params.rock_transition_height = foothills_step_size*6
 
    local oversize_zone_size = self.zone_size + self.tile_size
    self.oversize_map_buffer = HeightMap(oversize_zone_size, oversize_zone_size)
@@ -57,7 +61,6 @@ end
 
 function TerrainGenerator:generate_zone(zone_type, zones, x, y)
    local zone_map, micro_map, noise_map
-   local quantization_size = self.zone_params[zone_type].quantization_size
    local oversize_map = self.oversize_map_buffer
    local micro_width = oversize_map.width / self.tile_size
    local micro_height = oversize_map.height / self.tile_size
@@ -77,8 +80,8 @@ function TerrainGenerator:generate_zone(zone_type, zones, x, y)
    
    self:_shape_height_map(oversize_map)
 
-   self:_quantize_height_map_nonuniform(oversize_map, quantization_size)
-   --self:_quantize_height_map(oversize_map, quantization_size)
+   self:_quantize_height_map(oversize_map, true)
+   --self:_quantize_height_map(oversize_map, false)
 
    self:_add_detail_blocks(oversize_map, zone_type)
 
@@ -237,9 +240,7 @@ function TerrainGenerator:_filter_and_quantize_noise_map(noise_map)
    filtered_map.zone_type = zone_type
    FilterFns.filter_2D_025(filtered_map, noise_map, width, height)
 
-   local quantization_size
-   quantization_size = self.zone_params[zone_type].quantization_size
-   self:_quantize_height_map(filtered_map, quantization_size)
+   self:_quantize_height_map(filtered_map, false)
 
    return filtered_map
 end
@@ -306,30 +307,51 @@ function TerrainGenerator:_create_micro_map(oversize_map)
    return micro_map
 end
 
-function TerrainGenerator:_quantize_height_map(height_map, step_size)
-   height_map:process_map(
-      function (value)
-         return MathFns.quantize(value, step_size)
-      end
-   )
-end
+function TerrainGenerator:_quantize_height_map(height_map, fancy_mode)
+   local zone_params = self.zone_params
+   local zone_type = height_map.zone_type
 
-function TerrainGenerator:_quantize_height_map_nonuniform(height_map, step_size)
-   local half_step = step_size * 0.5
    height_map:process_map(
       function (value)
-         local rounded_value, quantized_value, diff
-         quantized_value = MathFns.quantize(value, step_size)
+         local step_size = self:_get_step_size(zone_type, value)
+
+         if value <= step_size then return step_size end
+
+         local quantized_value = MathFns.quantize(value, step_size)
+         if not fancy_mode then return quantized_value end
+
+         -- disable fancy mode for Plains?
+         --if value < 8 then return quantized_value end
+
+         local rounded_value, diff
          rounded_value = MathFns.round(value)
          diff = quantized_value - rounded_value
-         --if diff >= 3 and diff <= half_step then
-         if diff == half_step then
+
+         if diff == step_size*0.5 then
             return rounded_value
          else
             return quantized_value
          end
       end
    )
+end
+
+function TerrainGenerator:_get_step_size(zone_type, value)
+   local zone_params = self.zone_params
+
+   if zone_type == ZoneType.Plains then
+      if value <= zone_params.grass_transition_height then
+         return zone_params[ZoneType.Plains].step_size
+      else
+         return zone_params[ZoneType.Foothills].step_size
+      end
+   else
+      if value <= zone_params.rock_transition_height then
+         return zone_params[ZoneType.Foothills].step_size
+      else
+         return zone_params[ZoneType.Mountains].step_size
+      end
+   end
 end
 
 function TerrainGenerator:_add_detail_blocks(height_map, zone_type)
@@ -339,8 +361,8 @@ function TerrainGenerator:_add_detail_blocks(height_map, zone_type)
    local roll
    local detail_seeds = {}
    local num_seeds = 0
-   local quantization_size = self.zone_params[zone_type].quantization_size
-   local edge_threshold = quantization_size/2
+   local step_size = self.zone_params[zone_type].step_size
+   local edge_threshold = step_size/2
 
    for j=1, height_map.height, 1 do
       for i=1, height_map.width, 1 do
@@ -350,7 +372,7 @@ function TerrainGenerator:_add_detail_blocks(height_map, zone_type)
          if edge then
             if math.random() < self.detail_seed_probability then
                num_seeds = num_seeds + 1
-               detail_seeds[num_seeds] = Point_2D(i, j)
+               detail_seeds[num_seeds] = Point2(i, j)
             end
          end
       end
@@ -491,29 +513,6 @@ end
 function TerrainGenerator:_create_test_map(height_map)
    height_map:clear(8)
    height_map:set_block(192, 192, 32, 32, 16)
-end
-
-function TerrainGenerator:_erosion_test()
-   local levels = 4
-   local coeff = 0.5
-   local height_map = HeightMap(128, 128)
-   local quantization_size = self.zone_params[ZoneType.Foothills].quantization_size
-
-   height_map:process_map(
-      function () return self.quantization_size end
-   )
-
-   height_map:set_block(32, 32, 32, 32, self.quantization_size*2)
-
-   local width = height_map.width
-   local height = height_map.height
-   Wavelet.DWT_2D(height_map, width, height, 1, levels)
-   WaveletFns.scale_high_freq(height_map, width, height, 1, levels, coeff)
-   Wavelet.IDWT_2D(height_map, width, height, levels)
-
-   self:_quantize_height_map(height_map, self.quantization_size)
-
-   return height_map
 end
 
 return TerrainGenerator
