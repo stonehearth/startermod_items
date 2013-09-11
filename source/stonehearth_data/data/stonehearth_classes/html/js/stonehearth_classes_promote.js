@@ -28,7 +28,7 @@ App.StonehearthClassesPromoteView = App.View.extend({
       chooseCitizen: function() {
          console.log('instantiate the picker!');
 
-         var self = this;
+      var self = this;
          var picker = App.gameView.addView(App.StonehearthPeoplePickerView, {
             uri: '/server/objects/stonehearth_census/worker_tracker',
             title: 'Choose the worker to promote', //xxx localize
@@ -39,7 +39,9 @@ App.StonehearthClassesPromoteView = App.View.extend({
             callback: function(person) {
                self.set('context.citizenToPromote', person);
 
-               $('#promoteButton').fadeIn('slow');
+               $('#promoteButton')
+                  .show()
+                  .pulse()
             }
          });
       },
