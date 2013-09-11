@@ -33,6 +33,7 @@ struct LightNodeParams
 		FovF,
 		ColorF3,
 		ColorMultiplierF,
+      AmbientColorF3,
 		ShadowMapCountI,
 		ShadowSplitLambdaF,
 		ShadowMapBiasF,
@@ -50,6 +51,7 @@ struct LightNodeTpl : public SceneNodeTpl
 	std::string        lightingContext, shadowContext;
 	float              radius, fov;
 	float              col_R, col_G, col_B, colMult;
+	float              ambCol_R, ambCol_G, ambCol_B;
 	uint32             shadowMapCount;
 	float              shadowSplitLambda;
 	float              shadowMapBias;
@@ -60,7 +62,8 @@ struct LightNodeTpl : public SceneNodeTpl
 		SceneNodeTpl( SceneNodeTypes::Light, name ), matRes( materialRes ),
 		lightingContext( lightingContext ), shadowContext( shadowContext ),
 		radius( 100 ), fov( 90 ), col_R( 1 ), col_G( 1 ), col_B( 1 ), colMult( 1 ),
-		shadowMapCount( 0 ), shadowSplitLambda( 0.5f ), shadowMapBias( 0.005f ), directional(false)
+      ambCol_R( 0 ), ambCol_G( 0 ), ambCol_B( 0 ), shadowMapCount( 0 ), shadowSplitLambda( 0.5f ), 
+      shadowMapBias( 0.005f ), directional(false)
 	{
 	}
 };
@@ -101,6 +104,7 @@ private:
 	float                  _radius, _fov;
    bool                   _directional;
 	Vec3f                  _diffuseCol;
+	Vec3f                  _ambientCol;
 	float                  _diffuseColMult;
 	uint32                 _shadowMapCount;
 	float                  _shadowSplitLambda, _shadowMapBias;

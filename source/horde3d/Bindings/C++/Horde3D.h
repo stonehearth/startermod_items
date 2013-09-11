@@ -556,6 +556,7 @@ struct H3DLight
 		FovF                - Field of view (FOV) angle (default: 90.0)
 		ColorF3             - Diffuse color RGB (default: 1.0, 1.0, 1.0)
 		ColorMultiplierF    - Diffuse color multiplier for altering intensity, mainly useful for HDR (default: 1.0)
+		AmbientColorF3      - Ambient color RGB (default: 0.0, 0.0, 0.0).  Useful for faking a little radiosity with big area lights.
 		ShadowMapCountI     - Number of shadow maps used for light source (values: 0, 1, 2, 3, 4; default: 0)]
 		ShadowSplitLambdaF  - Constant determining segmentation of view frustum for Parallel Split Shadow Maps (default: 0.5)
 		ShadowMapBiasF      - Bias value for shadow mapping to reduce shadow acne (default: 0.005)
@@ -569,6 +570,7 @@ struct H3DLight
 		FovF,
 		ColorF3,
 		ColorMultiplierF,
+		AmbientColorF3,
 		ShadowMapCountI,
 		ShadowSplitLambdaF,
 		ShadowMapBiasF,
