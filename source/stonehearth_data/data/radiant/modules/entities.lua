@@ -76,7 +76,18 @@ function entities.get_root_entity()
    return radiant._root_entity
 end
 
-function entities.create_entity(uri)
+function entities.create_entity(arg1, arg2)
+   local uri
+   if arg2 then
+      uri = native:get_entity_uri(arg1, arg2)
+   else
+      uri = arg1
+      radiant.log.warning('!!!!!!!! WARNING : Entity created via direct uri: %s', uri)
+   end
+   return entities._create_entity_legacy(arg1)
+end
+
+function entities._create_entity_legacy(uri)
    assert(radiant.gamestate.is_initialized())
    assert(not uri or type(uri) == 'string')
 
@@ -105,6 +116,7 @@ function entities.destroy_entity(entity)
 end
 
 function entities.inject_into_entity(entity, uri)
+   radiant.log.warning('!!!!!!!! WARNING : Injecting into entity via direct uri: %s', uri)
    entities._init_entity(entity, uri)
 end
 
