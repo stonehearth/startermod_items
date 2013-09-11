@@ -244,12 +244,28 @@ uint32 RenderDevice::registerVertexLayout( uint32 numAttribs, VertexLayoutAttrib
 	
 	_vertexLayouts[_numVertexLayouts].numAttribs = numAttribs;
 
-	for( uint32 i = 0; i < numAttribs; ++i )
+	for( uint32 i = 0; i < numAttribs; ++i ) {
 		_vertexLayouts[_numVertexLayouts].attribs[i] = attribs[i];
+      _vertexLayouts[_numVertexLayouts].divisors[i].divisor = 0;
+   }
 
 	return ++_numVertexLayouts;
 }
 
+uint32 RenderDevice::registerVertexLayout( uint32 numAttribs, VertexLayoutAttrib *attribs, VertexDivisorAttrib *divisors )
+{
+	if( _numVertexLayouts == MaxNumVertexLayouts )
+		return 0;
+	
+	_vertexLayouts[_numVertexLayouts].numAttribs = numAttribs;
+
+	for( uint32 i = 0; i < numAttribs; ++i ) {
+		_vertexLayouts[_numVertexLayouts].attribs[i] = attribs[i];
+      _vertexLayouts[_numVertexLayouts].divisors[i] = divisors[i];
+   }
+
+	return ++_numVertexLayouts;
+}
 
 // =================================================================================================
 // Buffers
@@ -1148,10 +1164,23 @@ bool RenderDevice::applyVertexLayout()
 			        _buffers.getRef( _vertBufSlots[attrib.vbSlot].vbObj ).type == GL_ARRAY_BUFFER );
 			
 			glBindBuffer( GL_ARRAY_BUFFER, _buffers.getRef( _vertBufSlots[attrib.vbSlot].vbObj ).glObj );
-			glVertexAttribPointer( attribIndex, attrib.size, GL_FLOAT, GL_FALSE,
-			                       vbSlot.stride, (char *)0 + vbSlot.offset + attrib.offset );
 
-			newVertexAttribMask |= 1 << attribIndex;
+         int numPositions = attrib.size / 4;
+         if (numPositions == 0) {
+            numPositions = 1;
+         }
+         // If we have more than one position to fill, assume we're filling an entire vec4.
+         // (The current vertex layour only gives size, so we can't tell a 4x3 from a 3x4).
+         int realSize = numPositions > 1 ? 4 : attrib.size;
+         for ( int curPos = 0; curPos < numPositions; curPos++) {
+			   glVertexAttribPointer( attribIndex + curPos, realSize, GL_FLOAT, GL_FALSE,
+			                          vbSlot.stride, 
+                                   (char *)0 + vbSlot.offset + attrib.offset + (curPos * 4 * sizeof(float)));
+
+            glVertexAttribDivisor(attribIndex + curPos, vl.divisors[i].divisor);
+
+            newVertexAttribMask |= 1 << (attribIndex + curPos);
+         }
 		}
 	}
 	
@@ -1160,8 +1189,12 @@ bool RenderDevice::applyVertexLayout()
 		uint32 curBit = 1 << i;
 		if( (newVertexAttribMask & curBit) != (_activeVertexAttribsMask & curBit) )
 		{
-			if( newVertexAttribMask & curBit ) glEnableVertexAttribArray( i );
-			else glDisableVertexAttribArray( i );
+			if( newVertexAttribMask & curBit ) 
+         {
+            glEnableVertexAttribArray( i );
+         } else {
+            glDisableVertexAttribArray( i );
+         }
 		}
 	}
 	_activeVertexAttribsMask = newVertexAttribMask;
@@ -1360,6 +1393,18 @@ void RenderDevice::drawIndexed( RDIPrimType primType, uint32 firstIndex, uint32 
 		
 		glDrawRangeElements( (uint32)primType, firstVert, firstVert + numVerts,
 		                     numIndices, _indexFormat, (char *)0 + firstIndex );
+	}
+
+	CHECK_GL_ERROR
+}
+
+void RenderDevice::drawInstanced( RDIPrimType primType, uint32 firstIndex, uint32 numVerts, uint32 numPrims)
+{
+	if( commitStates() )
+	{
+		firstIndex *= (_indexFormat == IDXFMT_16) ? sizeof( short ) : sizeof( int );
+		
+		glDrawArraysInstanced( (uint32)primType, firstIndex, numVerts, numPrims );
 	}
 
 	CHECK_GL_ERROR
