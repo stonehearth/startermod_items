@@ -1,0 +1,50 @@
+{
+   "faction_name" : "Ascendancy",
+   "faction_id" : "ascendancy",
+   "surnames" : [
+      "Burlyhands",
+      "Farstrider",
+      "Gwarin",
+      "Boltoose",
+      "Freywind",
+      "Carvad",
+      "Edessa",
+      "Nonac",
+      "Keloch",
+      "Brightwell",
+      "Northpoint",
+      "Berall",
+      "Carlwine",
+      "Framer",
+      "Hunterton",
+      "Winset",
+      "Jondal"
+   ],
+   "given_names" : {
+      "male" : [
+         "Mer",
+         "Campton",
+         "Brom",
+         "Illowyn",
+         "Sean",
+         "Gareth",
+         "Nol",
+         "Pantor",
+         "Daff",
+         "Willad",
+         "Irving"
+      ],
+      "female" : [
+         "Dara",
+         "Alaina",
+         "Abi",
+         "Scarlett",
+         "Elena",
+         "Leah",
+         "Autumn",
+         "Senn",
+         "Raven",
+         "Vio"
+      ]
+   }
+}

@@ -1,0 +1,7 @@
+{
+   "factions" : [
+      "file(ascendancy_names.json)",
+      "file(northern_alliance_names.json)",
+      "file(rayyas_children_names.json)"
+   ]
+}
