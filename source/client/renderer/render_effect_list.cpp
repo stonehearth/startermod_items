@@ -380,8 +380,9 @@ FloatingCombatTextEffect::FloatingCombatTextEffect(RenderEntity& e, om::EffectPt
       if (render_info) {
          std::string animationTableName = render_info->GetAnimationTable();
 
-         JSONNode const& json = resources::ResourceManager2::GetInstance().LookupJson(animationTableName);
-         height_ = json::get<float>(json::get<JSONNode>(json, "collision_shape"), "height", 4.0f);
+         json::ConstJsonObject json = resources::ResourceManager2::GetInstance().LookupJson(animationTableName);
+         json::ConstJsonObject cs = json.get<JSONNode>("collision_shape");
+         height_ = cs.get<float>("height", 4.0f);
          height_ *= 0.1f; // xxx - take this out of the same place where we store the face that the model is 10x too big
       }
    }

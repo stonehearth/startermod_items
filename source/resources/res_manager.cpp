@@ -99,7 +99,7 @@ AnimationPtr ResourceManager2::LoadAnimation(std::string const& canonical_path) 
    }
    if (buffer.empty()) {
       JSONNode node = libjson::parse(jsonfile);
-      std::string type = json::get<std::string>(node, "type", "");
+      std::string type = json::ConstJsonObject(node).get<std::string>("type");
       if (type.empty()) {
          throw InvalidResourceException(canonical_path, "'type' field missing");
       }
@@ -273,7 +273,7 @@ JSONNode ResourceManager2::LoadJson(std::string const& canonical_path) const
 
 void ResourceManager2::ParseNodeExtension(std::string const& path, JSONNode& node) const
 {
-   std::string extends = json::get<std::string>(node, "extends", "");
+   std::string extends = json::ConstJsonObject(node).get<std::string>("extends");
    if (!extends.empty()) {
       std::string absolute_path = ConvertToAbsolutePath(path, extends);
 

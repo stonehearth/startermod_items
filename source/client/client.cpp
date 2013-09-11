@@ -104,7 +104,7 @@ void Client::run()
    extern po::variables_map configvm;
    std::string loader = configvm["game.loader"].as<std::string>().c_str();
    json::ConstJsonObject manifest(resources::ResourceManager2::GetInstance().LookupManifest(loader));
-   std::string docroot = "http://radiant/" + manifest["loader"]["ui"]["homepage"].as_string();
+   std::string docroot = "http://radiant/" + manifest.getn("loader").getn("ui").get<std::string>("homepage");
 
    if (configvm["game.script"].as<std::string>() != "stonehearth/new_world.lua") {
       docroot += "?skip_title=true";
@@ -160,10 +160,12 @@ void Client::run()
    for (std::string const& modname : rm.GetModuleNames()) {
       try {
          json::ConstJsonObject manifest = rm.LookupManifest(modname);
-         json::ConstJsonObject const& block = manifest["client"];
-         LOG(WARNING) << "loading init script for " << modname << "...";
-         LoadModuleInitScript(block);
-         LoadModuleRoutes(modname, block);
+         json::ConstJsonObject const& block = manifest.getn("client");
+         if (!block.empty()) {
+            LOG(WARNING) << "loading init script for " << modname << "...";
+            LoadModuleInitScript(block);
+            LoadModuleRoutes(modname, block);
+         }
       } catch (std::exception const& e) {
          LOG(WARNING) << "load failed: " << e.what();
       }
@@ -197,11 +199,9 @@ void Client::run()
 
 void Client::LoadModuleInitScript(json::ConstJsonObject const& block)
 {
-   try {
-      std::string filename = block["init_script"].as_string();
+   std::string filename = block.get<std::string>("init_script");
+   if (!filename.empty()) {
       scriptHost_->LuaRequire(filename);
-   } catch (std::exception const& e) {
-      LOG(WARNING) << "load failed: " << e.what();
    }
 }
 
@@ -216,14 +216,10 @@ static std::string SanatizePath(std::string const& path)
 void Client::LoadModuleRoutes(std::string const& modname, json::ConstJsonObject const& block)
 {
    resources::ResourceManager2 &rm = resources::ResourceManager2::GetInstance();
-   try {
-      for (auto const& node : block["request_handlers"]) {
-         std::string const& uri_path = SanatizePath("/modules/client/" + modname + "/" + node.name());
-         std::string const& lua_path = node.as_string();
-         clientRoutes_[uri_path] = scriptHost_->LuaRequire(lua_path);
-      }
-   } catch (std::exception const& e) {
-      LOG(WARNING) << "load failed: " << e.what();
+   for (auto const& node : block.getn("request_handlers")) {
+      std::string const& uri_path = SanatizePath("/modules/client/" + modname + "/" + node.name());
+      std::string const& lua_path = node.as_string();
+      clientRoutes_[uri_path] = scriptHost_->LuaRequire(lua_path);
    }
 }
 
@@ -902,8 +898,8 @@ void Client::TraceUri(JSONNode const& query, std::shared_ptr<net::IResponse> res
 {
    json::ConstJsonObject args(query);
 
-   if (args["create"].as_bool()) {
-      std::string uri = args["uri"].as_string();
+   if (args.get<bool>("create")) {
+      std::string uri = args.get<std::string>("uri");
 
       auto i = serverRemoteObjects_.find(uri);
       if (i != serverRemoteObjects_.end()) {
@@ -919,7 +915,7 @@ void Client::TraceUri(JSONNode const& query, std::shared_ptr<net::IResponse> res
          TraceFileUri(uri, response);
       }
    } else {
-      dm::TraceId traceId = args["trace_id"].as_integer();
+      dm::TraceId traceId = args.get<int>("trace_id");
       uriTraces_.erase(traceId);
    }
 }

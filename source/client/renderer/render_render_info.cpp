@@ -40,7 +40,9 @@ RenderRenderInfo::RenderRenderInfo(RenderEntity& entity, om::RenderInfoPtr rende
    use_model_variant_override_(false)
 {
    // xxx: ideally we would only have the trace installed when our dirty bit is set.
-   renderer_frame_trace_ = Renderer::GetInstance().TraceFrameStart([=]() { Update(); });
+   renderer_frame_trace_ = Renderer::GetInstance().TraceFrameStart([=]() {
+      Update();
+   });
 
    auto set_scale_dirty_bit = [=]() {
       dirty_ |= SCALE_DIRTY;
