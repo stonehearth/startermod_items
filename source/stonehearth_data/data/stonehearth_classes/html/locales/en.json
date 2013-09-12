@@ -1,11 +1,7 @@
 {
-  "craft_number_left": "Craft",
-  "craft_number_right": "right now.",
-  "craft_up_to_left": "Maintain",
-  "craft_up_to_right": "in inventory.",
-  "crafting_status": "crafting...",
-  "paused_status": "paused...",
-  "remove_confirm": "Remove?",
-  "open" : "Open!",
-  "closed" : "Closed"
+  "promote_scroll_title": "Proclamation",
+  "promote_scroll_sub_title": "of Promotion!",
+  "promote_scroll_text_1" : "In honor of steadfast efforts and resilience, we hereby advance",
+  "promote_scroll_choose": "choose a citizen...",
+  "promote_scroll_text_2": "to the role of __promotionClass__ this __date__"
 }

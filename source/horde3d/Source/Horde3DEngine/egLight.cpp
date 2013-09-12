@@ -32,6 +32,7 @@ LightNode::LightNode( const LightNodeTpl &lightTpl ) :
 	_shadowContext = lightTpl.shadowContext;
 	_radius = lightTpl.radius; _fov = lightTpl.fov;
 	_diffuseCol = Vec3f( lightTpl.col_R, lightTpl.col_G, lightTpl.col_B );
+   _ambientCol = Vec3f( lightTpl.ambCol_R, lightTpl.ambCol_G, lightTpl.ambCol_B );
 	_diffuseColMult = lightTpl.colMult;
 	_shadowMapCount = lightTpl.shadowMapCount;
 	_shadowSplitLambda = lightTpl.shadowSplitLambda;
@@ -81,6 +82,12 @@ SceneNodeTpl *LightNode::parsingFunc( map< string, std::string > &attribs )
 	if( itr != attribs.end() ) lightTpl->col_B = (float)atof( itr->second.c_str() );
 	itr = attribs.find( "colMult" );
 	if( itr != attribs.end() ) lightTpl->colMult = (float)atof( itr->second.c_str() );
+	itr = attribs.find( "ambCol_R" );
+	if( itr != attribs.end() ) lightTpl->ambCol_R = (float)atof( itr->second.c_str() );
+	itr = attribs.find( "ambCol_G" );
+	if( itr != attribs.end() ) lightTpl->ambCol_G = (float)atof( itr->second.c_str() );
+	itr = attribs.find( "ambCol_B" );
+	if( itr != attribs.end() ) lightTpl->ambCol_B = (float)atof( itr->second.c_str() );
 	itr = attribs.find( "shadowMapCount" );
 	if( itr != attribs.end() ) lightTpl->shadowMapCount = atoi( itr->second.c_str() );
 	itr = attribs.find( "shadowSplitLambda" );
@@ -160,6 +167,9 @@ float LightNode::getParamF( int param, int compIdx )
 		break;
 	case LightNodeParams::ColorMultiplierF:
 		return _diffuseColMult;
+	case LightNodeParams::AmbientColorF3:
+		if( (unsigned)compIdx < 3 ) return _ambientCol[compIdx];
+		break;
 	case LightNodeParams::FovF:
 		return _fov;
 	case LightNodeParams::ShadowSplitLambdaF:
@@ -194,6 +204,13 @@ void LightNode::setParamF( int param, int compIdx, float value )
 	case LightNodeParams::ColorMultiplierF:
 		_diffuseColMult = value;
 		return;
+	case LightNodeParams::AmbientColorF3:
+		if( (unsigned)compIdx < 3 )
+		{
+			_ambientCol[compIdx] = value;
+			return;
+		}
+		break;
 	case LightNodeParams::ShadowSplitLambdaF:
 		_shadowSplitLambda = value;
 		return;

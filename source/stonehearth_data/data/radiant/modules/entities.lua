@@ -257,6 +257,27 @@ function entities.get_animation_table_name(entity)
    return name
 end
 
+function entities.get_display_name(entity)
+   radiant.check.is_entity(entity)
+
+   local component = entity:get_component('unit_info')
+   --radiant.check.is_a(component, UnitInfo)
+
+   return component:get_display_name()
+end
+
+function entities.set_display_name(entity, name)
+   radiant.check.is_entity(entity)
+   radiant.check.is_string(name)
+
+   local component = entity:add_component('unit_info')
+   --radiant.check.is_a(component, UnitInfo)
+
+   component:set_display_name(name)
+end
+
+
+
 --[[
 local dkjson = require 'lib.dkjson'
 local log = require 'radiant.core.log'
@@ -449,15 +470,6 @@ function entities._add_animation(entity, obj)
    end
 end
 
-function entities.set_display_name(entity, name)
-   radiant.check.is_entity(entity)
-   radiant.check.is_string(name)
-
-   local component = entity:add_component('unit_info')
-   radiant.check.is_a(component, UnitInfo)
-
-   component:set_display_name(name)
-end
 
 function entities.set_description(entity, name)
    radiant.check.is_entity(entity)
@@ -478,14 +490,6 @@ function entities.get_faction(entity)
    return entity:get_component('unit_info'):get_faction()
 end
 
-function entities.get_display_name(entity)
-   radiant.check.is_entity(entity)
-
-   local component = entity:get_component('unit_info')
-   radiant.check.is_a(component, UnitInfo)
-
-   return component:get_display_name()
-end
 
 function entities.get_location(entity)
    radiant.check.is_entity(entity)

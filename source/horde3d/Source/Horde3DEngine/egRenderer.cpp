@@ -435,6 +435,7 @@ bool Renderer::createShaderComb( const char* filename, const char *vertexShader,
 	sc.uni_lightPos = gRDI->getShaderConstLoc( shdObj, "lightPos" );
 	sc.uni_lightDir = gRDI->getShaderConstLoc( shdObj, "lightDir" );
 	sc.uni_lightColor = gRDI->getShaderConstLoc( shdObj, "lightColor" );
+	sc.uni_lightAmbientColor = gRDI->getShaderConstLoc( shdObj, "lightAmbientColor" );
 	sc.uni_shadowSplitDists = gRDI->getShaderConstLoc( shdObj, "shadowSplitDists" );
 	sc.uni_shadowMats = gRDI->getShaderConstLoc( shdObj, "shadowMats" );
 	sc.uni_shadowMapSize = gRDI->getShaderConstLoc( shdObj, "shadowMapSize" );
@@ -527,7 +528,13 @@ void Renderer::commitGeneralUniforms()
 				gRDI->setShaderConst( _curShader->uni_lightColor, CONST_FLOAT3, &col.x );
 			}
 			
-			if( _curShader->uni_shadowSplitDists >= 0 )
+			if( _curShader->uni_lightAmbientColor >= 0 )
+			{
+				Vec3f col = _curLight->_ambientCol;
+				gRDI->setShaderConst( _curShader->uni_lightAmbientColor, CONST_FLOAT3, &col.x );
+			}
+
+         if( _curShader->uni_shadowSplitDists >= 0 )
 				gRDI->setShaderConst( _curShader->uni_shadowSplitDists, CONST_FLOAT4, &_splitPlanes[1] );
 
 			if( _curShader->uni_shadowMats >= 0 )

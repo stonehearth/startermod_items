@@ -35,7 +35,6 @@
       <BindBuffer sampler="gbuf2" sourceRT="GBUFFER" bufIndex="2" />
       <BindBuffer sampler="gbuf3" sourceRT="GBUFFER" bufIndex="3" />
 
-      <SetUniform material="materials/light.material.xml" uniform="ambientLightColor" a="0.0" b="1.0" c="0.0" />
       <DrawQuad material="materials/light.material.xml" context="AMBIENT" />
 
       <DoDeferredLightLoop class="~Translucent"/>

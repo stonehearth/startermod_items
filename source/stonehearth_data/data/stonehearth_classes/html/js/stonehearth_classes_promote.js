@@ -1,12 +1,10 @@
 $(document).ready(function(){
 
    $(top).on("promote_citizen.stonehearth_classes", function (_, e) {
-      var promoteUri = e.event_data.post_target;
-      var promoteParams =  {talisman: e.entity};
-
       var view = App.gameView.addView(App.StonehearthClassesPromoteView, { 
-         promoteUri : promoteUri,
-         promoteParams : promoteParams
+         promoteUri : e.event_data.post_target,
+         promoteParams : {talisman: e.entity},
+         promotionClass : 'XXX_TODO_INSERT_CLASS_NAME'
       });
    });
 });
@@ -15,48 +13,77 @@ $(document).ready(function(){
 // component
 App.StonehearthClassesPromoteView = App.View.extend({
    templateName: 'stonehearthClassesPromote',
+   modal: true,
 
    init: function() {
       this._super();
    },
 
    destroy: function() {
-      radiant.keyboard.setFocus(null);
+      var self = this;
+      
+      this.set('context.citizenToPromote', null);
       this._super();
+
+      /*
+      $('#crafterPromoteScroll').fadeOut(function() {
+         //...
+      });
+      */
+
+   },
+
+   didInsertElement: function() {
+      if (this.get('context')) {
+         $('#crafterPromoteScroll')
+            .hide()
+            .fadeIn();
+      }
    },
 
    actions: {
-
       chooseCitizen: function() {
          console.log('instantiate the picker!');
 
-         var self = this;
-         $(top).trigger("pick_person.stonehearth_census", {
+      var self = this;
+         var picker = App.gameView.addView(App.StonehearthPeoplePickerView, {
             uri: '/server/objects/stonehearth_census/worker_tracker',
+            title: 'Choose the worker to promote', //xxx localize
+            css: {
+               top: 350,
+               left: 105
+            },
             callback: function(person) {
-               self.promoteCitizen(person);
+               self.set('context.citizenToPromote', person);
+
+               $('#promoteButton')
+                  .show()
+                  .pulse()
             }
          });
       },
+
+      promoteCitizen: function() {
+         var person = this.get('context.citizenToPromote');
+
+         var data = {
+            targetPerson: person.__self,
+            data: this.promoteParams
+         };
+
+         var self = this;
+         $.ajax({
+            type: 'post',
+            url: this.promoteUri,
+            contentType: 'application/json',
+            data: JSON.stringify(data)
+         }).done(function(return_data){
+            self.destroy();
+         });
+      }
    },
 
-   promoteCitizen: function(person) {
-
-      var data = {
-         targetPerson: person.__self,
-         data: this.promoteParams
-      };
-
-      var self = this;
-      $.ajax({
-         type: 'post',
-         url: this.promoteUri,
-         contentType: 'application/json',
-         data: JSON.stringify(data)
-      }).done(function(return_data){
-         self.destroy();
-      });
-
+   dateString: function() {
+      return App.gameView.getDate().date;
    }
-
 });

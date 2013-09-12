@@ -42,6 +42,7 @@ void LuaRenderer::RegisterType(lua_State* L)
 		   value("FovF",                       H3DLight::FovF),
 		   value("ColorF3",                    H3DLight::ColorF3),
 		   value("ColorMultiplierF",           H3DLight::ColorMultiplierF),
+		   value("AmbientColorF3",             H3DLight::AmbientColorF3),
 		   value("ShadowMapCountI",            H3DLight::ShadowMapCountI),
 		   value("ShadowSplitLambdaF",         H3DLight::ShadowSplitLambdaF),
 		   value("ShadowMapBiasF",             H3DLight::ShadowMapBiasF),
