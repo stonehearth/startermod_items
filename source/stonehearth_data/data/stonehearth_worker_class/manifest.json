@@ -1,0 +1,11 @@
+{
+   "info" : {
+      "name" : "Stonehearth Worker Class"
+   },
+   "radiant": {
+      "entities" : {
+         "class_info" : "file(entities/class_info)",
+         "worker_outfit" : "file(entities/worker_outfit)"
+      }
+   }
+}

@@ -1,0 +1,11 @@
+{
+   "info" : {
+      "name" : "Stonehearth Human Race"
+   },
+   "radiant": {
+      "entities" : {
+         "male_1" : "file(entities/male_1)",
+         "female_1" : "file(entities/female_1)"
+      }
+   }
+}
