@@ -15,4 +15,16 @@ function MathFns.quantize(value, step_size)
    return temp - remainder
 end
 
+function MathFns.bound(value, min, max)
+   if value < min then return min end
+   if value > max then return max end
+   return value
+end
+
+function MathFns.in_bounds(value, min, max)
+	if value < min then return false end
+	if value > max then return false end
+	return true
+end
+
 return MathFns
