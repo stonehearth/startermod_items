@@ -6,12 +6,12 @@
          {
             "models": [
                {
+                  "type": "one_of",
                   "items": [
                      "file(medium_oak_tree.qb)", 
                      "file(medium_oak_tree_2.qb)", 
                      "file(medium_oak_tree_3.qb)"
-                  ], 
-                  "type": "one_of"
+                  ]
                }
             ], 
             "scale": 1

@@ -5,13 +5,13 @@
    "radiant": {
       "entities" : {
          "oak_log" : "file(entities/oak_tree/oak_log)",
-         "juniper_log" : "entity(stonehearth_trees, oak_log)",
          "small_oak_tree" : "file(entities/oak_tree/small_oak_tree)",
          "medium_oak_tree" : "file(entities/oak_tree/medium_oak_tree)",
          "large_oak_tree" : "file(entities/oak_tree/large_oak_tree)",
+         "juniper_log" : "file(entities/juniper_tree/juniper_log)",
          "small_juniper_tree" : "file(entities/juniper_tree/small_juniper_tree)",
          "medium_juniper_tree" : "file(entities/juniper_tree/medium_juniper_tree)",
-         "large_juniper_tree" : "file(entities/juniper_tree/large_oak_tree)"
+         "large_juniper_tree" : "file(entities/juniper_tree/large_juniper_tree)"
       }
    }
 }

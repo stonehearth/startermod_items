@@ -17,16 +17,9 @@
             "scale": 1
          }
       ],
-      "collision_shapes" : {
-         "shapes" : [
-            {
-               "type": "current_model"
-            }
-         ]
-      },
       "unit_info": {
          "name": "Large Oak Tree", 
-         "description": "100's of years old.  Too bad..."
+         "description": "100's of years old. Too bad..."
       }, 
       "radiant:resource_node": {
          "resource": "entity(stonehearth_trees, oak_log)", 
