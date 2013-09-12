@@ -4,6 +4,7 @@
 #include "egRenderer.h"
 #include "extension.h"
 #include "radiant.h"
+#include "cubemitter/cubemitter.h"
 #include "debug_shapes/debug_shapes.h"
 #include "stockpile/decal_node.h"
 #include "stockpile/stockpile_node.h"
@@ -43,6 +44,10 @@ bool Extension::init()
 		                              DebugShapesNode::parsingFunc,
                                     DebugShapesNode::factoryFunc,
                                     DebugShapesNode::renderFunc);
+   Modules::sceneMan().registerType(SNT_CubemitterNode, "Cubemitter",
+		                              CubemitterNode::parsingFunc,
+                                    CubemitterNode::factoryFunc,
+                                    CubemitterNode::renderFunc);
 
 	VertexLayoutAttrib attribs[2] = {
 		"vertPos",     0, 3, 0,
@@ -130,9 +135,22 @@ DLL H3DNode h3dRadiantAddDebugShapes(H3DNode parent, const char* nam)
 	Modules::log().writeInfo( "Adding Debug Shape node '%s'", name.c_str() );
 	
 	DebugShapesTpl tpl(name);
-   //tpl.material = Modules::resMan().
 
 	SceneNode *sn = Modules::sceneMan().findType(SNT_DebugShapesNode)->factoryFunc(tpl);
+	return Modules::sceneMan().addNode(sn, *parentNode);
+}
+
+DLL H3DNode h3dRadiantAddCubemitterNode(H3DNode parent, const char* nam, radiant::uint32 maxParticleCount, H3DRes mat)
+{
+   std::string name(nam);
+	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
+	APIFUNC_VALIDATE_NODE(parentNode, "h3dRadiantAddCubemitterNode", 0);
+	
+	CubemitterNodeTpl tpl(name, maxParticleCount);
+   tpl.matRes = (MaterialResource *)Modules::resMan().resolveResHandle(mat);
+   APIFUNC_VALIDATE_RES_TYPE(tpl.matRes, ResourceTypes::Material, "h3dRadiantAddCubemitterNode", 0)
+
+	SceneNode *sn = Modules::sceneMan().findType(SNT_CubemitterNode)->factoryFunc(tpl);
 	return Modules::sceneMan().addNode(sn, *parentNode);
 }
 

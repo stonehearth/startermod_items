@@ -105,6 +105,8 @@ Renderer::Renderer() :
    // xxx - should move this into the horde extension for debug shapes, but it doesn't know
    // how to actually get the resource loaded!
    h3dAddResource(H3DResTypes::Material, "materials/debug_shape.material.xml", 0); 
+   H3DRes c = h3dAddResource(H3DResTypes::Material, "materials/cubemitter.material.xml", 0);
+   h3dRadiantAddCubemitterNode(H3DRootNode, "first_cubemitter!", 1, c);
    LoadResources();
 
 	// Add camera
@@ -156,6 +158,7 @@ Renderer::Renderer() :
    fileWatcher_.addWatch(L"horde", [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
       Renderer::GetInstance().FlushMaterials();
    }, true);
+
 
    initialized_ = true;
 }
