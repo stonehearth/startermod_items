@@ -177,7 +177,7 @@ end
 ]]
 function CraftOrder:_prep_ingredient_data()
    self._ingredients = {}
-   for offset, ingredient_data in radiant.resources.pairs(self._recipe.ingredients) do
+   for offset, ingredient_data in ipairs(self._recipe.ingredients) do
       local filter = function(item_entity)
          return self:_can_use_ingredient(item_entity, ingredient_data)
       end
@@ -221,7 +221,7 @@ function CraftOrder:_search_for_ingredients()
    local inventory = radiant.mods.require('/stonehearth_inventory/')
 
    self._ingredient_paths = {}
-   for offset, ingredient_data in radiant.resources.pairs(self._recipe.ingredients) do
+   for offset, ingredient_data in ipairs(self._recipe.ingredients) do
       assert(not ingredient_data.material:find(' '), "todo: add search for multiple tags")
 
       local filter = function(item_entity)

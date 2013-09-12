@@ -29,7 +29,7 @@ public:
 
    dm::Set<om::EntityRef> const& GetAttachedEntities() const { return attached_; };
    void AttachEntity(om::EntityRef e);
-   EntityRef RemoveEntity(std::string const&);
+   EntityRef RemoveEntity(std::string const& mod_name, std::string const& entity_name);
 
 private:
    void RemoveFromWorld(EntityPtr entity);

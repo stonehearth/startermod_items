@@ -1,5 +1,5 @@
-#ifndef _RADIANT_CLIENT_PCH_H
-#define _RADIANT_CLIENT_PCH_H
+#ifndef _RADIANT_LUA_PCH_H
+#define _RADIANT_LUA_PCH_H
 
 #include "radiant.h"
 #include "radiant_luabind.h"

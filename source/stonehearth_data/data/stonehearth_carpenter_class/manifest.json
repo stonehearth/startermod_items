@@ -1,10 +1,13 @@
 {
-   "info" :{
-      "name" : "Stonehearth Unit Tests"
+   "info" : {
+      "name" : "Stonehearth Carpenter"
    },
-   "loader" :  {
-      "ui" : {
-         "homepage" : "http://mods/stonehearth_tests/html/index.html"
+   "radiant": {
+      "entities" : {
+         "class_info" : "file(entities/class_info)",
+         "carpenter_workbench" : "file(entities/carpenter_workbench)",
+         "carpenter_outfit" : "file(entities/carpenter_outfit)",
+         "carpenter_intermediate_item" : "file(entities/carpenter_intermediate_item)"
       }
    }
 }

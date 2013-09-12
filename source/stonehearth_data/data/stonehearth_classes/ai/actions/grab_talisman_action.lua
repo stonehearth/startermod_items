@@ -58,7 +58,7 @@ GrabTalismanAction['radiant.animation.on_trigger'] = function(self, info, effect
    end
 
    --TODO: BUG somewhere, this should only be the info inside the event, not the whole event blob
-   for name, e in radiant.resources.pairs(info) do
+   for name, e in pairs(info) do
       if name == "info" then
          if e.event == "change_outfit" then
             --Time to remove the old class

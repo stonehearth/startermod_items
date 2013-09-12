@@ -26,13 +26,10 @@ function entities._init_entity(entity, uri)
 
    if obj then
       if obj.components then
-         for name, json in radiant.resources.pairs(obj.components) do
+         for name, json in pairs(obj.components) do
             assert(json)
             local component = entity:add_component(name)
             if component and component.extend then
-               if type(component) == 'userdata' then
-                  json = radiant.resources.get_native_obj(json)
-               end
                component:extend(json)
             end
          end
@@ -45,12 +42,15 @@ end
 Opposite of _init_entity. Given a uri, remove
 component influences from the entity.
 --]]
-function entities.unregister_from_entity(entity, uri)
+-- xxx: this function must go, too -- tony
+function entities.xxx_unregister_from_entity(entity, mod_name, entity_name)
+   assert(entity_name)
+   local uri = native:xxx_get_entity_uri(mod_name, entity_name)
    local obj = radiant.resources.load_json(uri)
 
    if obj then
       if obj.components then
-         for name, json in radiant.resources.pairs(obj.components) do
+         for name, json in pairs(obj.components) do
             assert(json)
             if name == 'radiant:ai' then
                radiant.ai.unregister(entity, json)
@@ -77,29 +77,16 @@ function entities.get_root_entity()
 end
 
 function entities.create_entity(arg1, arg2)
-   local uri
-   if arg2 then
-      uri = native:get_entity_uri(arg1, arg2)
-   else
-      uri = arg1
-      radiant.log.warning('!!!!!!!! WARNING : Entity created via direct uri: %s', uri)
+   if not arg2 then
+      local entity_ref = arg1 -- something like 'entity(stonehearth, wooden_sword)'
+      assert(entity_ref:sub(1, 7) == 'entity(')
+      radiant.log.info('creating entity %s', entity_ref)
+      return native:create_entity_by_ref(entity_ref)
    end
-   return entities._create_entity_legacy(arg1)
-end
-
-function entities._create_entity_legacy(uri)
-   assert(radiant.gamestate.is_initialized())
-   assert(not uri or type(uri) == 'string')
-
-   local entity = native:create_entity()
-   radiant.log.info('creating new entity %d (uri: %s)', entity:get_id(), uri and uri or '-empty-')
-   entity:set_debug_name(uri and uri or '-unknown-')
-
-   if uri then
-      entity:set_resource_uri(uri)
-      entities._init_entity(entity, uri);
-   end
-   return entity
+   local mod_name = arg1 -- 'stonehearth'
+   local entity_name = arg2 -- 'wooden_sword'
+   radiant.log.info('creating entity %s, %s', mod_name, entity_name)
+   return native:create_entity(mod_name, entity_name)
 end
 
 function entities.destroy_entity(entity)
@@ -115,9 +102,11 @@ function entities.destroy_entity(entity)
    native:destroy_entity(entity)
 end
 
-function entities.inject_into_entity(entity, uri)
-   radiant.log.warning('!!!!!!!! WARNING : Injecting into entity via direct uri: %s', uri)
-   entities._init_entity(entity, uri)
+function entities.xxx_inject_into_entity(entity, mod_name, entity_name)
+   if not entity_name then
+      assert(false)
+   end
+   return native:xxx_extend_entity(entity, mod_name, entity_name)
 end
 
 function entities.add_child(parent, child, location)

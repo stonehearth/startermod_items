@@ -5,7 +5,7 @@ require 'radiant.lib.env'
 decoda_name = "radiant server"
 
 radiant = {
-   _root_entity = native:create_entity()
+   _root_entity = native:create_empty_entity()
 }
 
 radiant.log = require 'radiant.modules.log'

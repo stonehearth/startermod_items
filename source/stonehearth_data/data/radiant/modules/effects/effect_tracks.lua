@@ -26,7 +26,7 @@ function EffectTracks:__init(mgr, entity, effect_path, effect_name, start_time, 
    radiant.check.verify(effect)
 
    self._effects = {}
-   for name, e in radiant.resources.pairs(effect.tracks) do
+   for name, e in pairs(effect.tracks) do
       if e.type == "animation_effect" then
          table.insert(self._effects, AnimationEffect(e.animation, start_time, e))
       elseif e.type == "trigger_effect" then

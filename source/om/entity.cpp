@@ -4,12 +4,26 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+std::ostream& ::radiant::om::operator<<(std::ostream& os, EntityPtr o)
+{
+   if (o) {
+      return os << *o;
+   } else {
+      return os << "[Entity null!]";
+   }
+}
+
 std::ostream& ::radiant::om::operator<<(std::ostream& os, Entity const& o)
 {
-   std::string uri = o.GetResourceUri();
+   std::string mod_name = o.GetModuleName();
+   std::string entity_name = o.GetEntityName();
+
    os << "[Entity " << o.GetObjectId();
-   if (!uri.empty()) {
-      os << " from: " << o.GetResourceUri();
+   if (!entity_name.empty()) {
+      os << " " << entity_name;
+   }
+   if (!mod_name.empty()) {
+      os << " from: " << mod_name;
    }
    os << "]";
 
@@ -20,8 +34,9 @@ void Entity::InitializeRecordFields()
 {
    // LOG(WARNING) << "creating entity " << GetObjectId();
    AddRecordField("components",     components_);
-   AddRecordField("debugname",      debugname_);
-   AddRecordField("resource_uri",   resource_uri_);
+   AddRecordField("debug_text",     debug_text_);
+   AddRecordField("mod_name",       mod_name_);
+   AddRecordField("entity_name",    entity_name_);
 }
 
 template <class T> std::shared_ptr<T> Entity::AddComponent()

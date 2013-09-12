@@ -8,6 +8,9 @@ BEGIN_RADIANT_RESOURCES_NAMESPACE
 
 class Exception : public std::exception {
 public:
+   Exception() { }
+   Exception(std::string const& error) : error_(error) {}
+
    void SetError(std::string const& error) {
       error_ = error;
    }

@@ -149,9 +149,9 @@ H3DNode Pipeline::AddQubicleNode(H3DNode parent, const QubicleMatrix& m, const c
                   VoxelGeometryVertex vertex;
                   COPY_VEC(vertex.normal, edge.normal);
                   csg::Color3 col = m.GetColor(c);
-                  vertex.color[0] = col.r / 255.0;
-                  vertex.color[1] = col.g / 255.0;
-                  vertex.color[2] = col.b / 255.0;
+                  vertex.color[0] = col.r / 255.0f;
+                  vertex.color[1] = col.g / 255.0f;
+                  vertex.color[2] = col.b / 255.0f;
 
                   // UGGGGGGGGGGGGGE
                   int voffset = vertices.size();

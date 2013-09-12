@@ -13,7 +13,7 @@
          "type": "attach_item_effect",
          "start_time": 0,
          "end_time": 0,
-         "item": "file(worker_axe)",
+         "item": "entity(stonehearth, worker_axe)",
          "bone": "mainHand"
       },
       "sound": {

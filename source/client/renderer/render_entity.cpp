@@ -43,7 +43,7 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
    dm::ObjectId id = entity->GetObjectId();
 
    std::ostringstream name;
-   name << "RenderEntity " << entity->GetDebugName() << " (" << entity->GetStoreId() << ", " << id << ")";
+   name << "RenderEntity " << entity->GetModuleName() << " " << entity->GetEntityName() << " (" << entity->GetStoreId() << ", " << id << ")";
 
    // LOG(WARNING) << "creating new entity " << name.str() << ".";
 
@@ -187,8 +187,8 @@ void RenderEntity::AddLuaComponents(om::LuaComponentsPtr lua_components)
 
          auto const& res = resources::ResourceManager2::GetInstance();
          json::ConstJsonObject const& manifest = res.LookupManifest(modname);
-         json::ConstJsonObject cr = manifest.get<JSONNode>("component_renderers");
-         std::string path = manifest.get<std::string>(component_name);
+         json::ConstJsonObject cr = manifest.getn("component_renderers");
+         std::string path = cr.get<std::string>(component_name);
 
          if (!path.empty()) {
             lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();

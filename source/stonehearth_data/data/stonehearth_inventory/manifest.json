@@ -2,6 +2,11 @@
    "info" :{
       "name" : "Stonehearth Inventory Module"
    },
+   "radiant" : {
+      "entities" : {
+         "stockpile" : "file(entities/stockpile)"
+      }
+   },
    "client" :{
       "request_handlers": {
          "create_stockpile" : "file(client/request_handlers/create_stockpile.lua)"

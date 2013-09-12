@@ -19,6 +19,7 @@
 #include "om/lua/lua_om.h"
 #include "om/data_binding.h"
 #include "om/object_formatter/object_formatter.h"
+#include "lua/radiant_lua.h"
 
 #define DEFINE_ALL_COMPONENTS
 #include "om/all_components.h"
@@ -209,6 +210,10 @@ om::EntityRef ScriptHost_GetEntity(ScriptHost& host, luabind::object id)
    return om::EntityRef();
 }
 
+std::string ScriptHost_XXXGetEntityUri(ScriptHost&, std::string const& mod_name, std::string const& entity_name)
+{
+   return resources::ResourceManager2::GetInstance().GetEntityUri(mod_name, entity_name);
+}
 
 void ScriptHost::InitEnvironment()
 {
@@ -223,6 +228,10 @@ void ScriptHost::InitEnvironment()
          .def("load_animation",           &ScriptHost::LoadAnimation)
          .def("report_error",             &ScriptHost::ReportError)
          .def("create_entity",            &ScriptHost::CreateEntity)
+         .def("create_entity_by_ref",     &ScriptHost::CreateEntityByRef)
+         .def("xxx_extend_entity",        &ScriptHost::ExtendEntity)
+         .def("create_empty_entity",      &ScriptHost::CreateEmptyEntity)
+         .def("xxx_get_entity_uri",       &ScriptHost_XXXGetEntityUri)
          .def("get_entity",               &ScriptHost_GetEntity)
          .def("destroy_entity",           &ScriptHost::DestroyEntity)
          .def("create_multi_path_finder", &ScriptHost::CreateMultiPathFinder)
@@ -416,14 +425,16 @@ void ScriptHost::OnError(std::string description)
 #endif
 }
 
-json::ConstJsonObject ScriptHost::LoadJson(std::string uri)
+luabind::object ScriptHost::LoadJson(std::string uri)
 {
-   return json::ConstJsonObject(resources::ResourceManager2::GetInstance().LookupJson(uri));
+   json::ConstJsonObject json = resources::ResourceManager2::GetInstance().LookupJson(uri);
+   return lua::JsonToLua(L_, json.GetNode());
 }
 
-json::ConstJsonObject ScriptHost::LoadManifest(std::string uri)
+luabind::object ScriptHost::LoadManifest(std::string uri)
 {
-   return json::ConstJsonObject(resources::ResourceManager2::GetInstance().LookupManifest(uri));
+   json::ConstJsonObject json = json::ConstJsonObject(resources::ResourceManager2::GetInstance().LookupManifest(uri));
+   return lua::JsonToLua(L_, json.GetNode());
 }
 
 resources::AnimationPtr ScriptHost::LoadAnimation(std::string uri)
@@ -474,7 +485,7 @@ om::EntityRef ScriptHost::GetEntity(dm::ObjectId id)
    return om::EntityRef();
 }
 
-om::EntityRef ScriptHost::CreateEntity()
+om::EntityRef ScriptHost::CreateEmptyEntity()
 {
    dm::Store& store = Simulation::GetInstance().GetStore();
    om::EntityPtr entity = store.AllocObject<om::Entity>();
@@ -482,6 +493,28 @@ om::EntityRef ScriptHost::CreateEntity()
    entityMap_[entity->GetObjectId()] = entity;
 
    return entity;
+}
+
+om::EntityRef ScriptHost::CreateEntityByRef(std::string const& entity_ref)
+{
+   om::EntityPtr entity = CreateEmptyEntity().lock();
+   om::Stonehearth::InitEntityByRef(entity, entity_ref, L_);
+   return entity;
+}
+
+om::EntityRef ScriptHost::CreateEntity(std::string const& mod_name, std::string const& entity_name)
+{
+   om::EntityPtr entity = CreateEmptyEntity().lock();
+   om::Stonehearth::InitEntity(entity, mod_name, entity_name, L_);
+   return entity;
+}
+
+void ScriptHost::ExtendEntity(om::EntityRef e, std::string const& mod_name, std::string const& entity_name)
+{
+   om::EntityPtr entity = e.lock();
+   if (entity) {
+      om::Stonehearth::InitEntity(entity, mod_name, entity_name, L_);
+   }
 }
 
 void ScriptHost::DestroyEntity(std::weak_ptr<om::Entity> e)
@@ -616,31 +649,4 @@ std::string ScriptHost::PostCommand(luabind::object fn, luabind::object self, st
    }
    // UNREACHABLE
    return "";
-}
-
-luabind::object ScriptHost::JsonToLua(JSONNode const& json)
-{
-   using namespace luabind;
-
-   if (json.type() == JSON_NODE) {
-      object table = newtable(L_);
-      for (auto const& entry : json) {
-         table[entry.name()] = JsonToLua(entry);
-      }
-      return table;
-   } else if (json.type() == JSON_ARRAY) {
-      object table = newtable(L_);
-      for (unsigned int i = 0; i < json.size(); i++) {
-         table[i + 1] = JsonToLua(json[i]);
-      }
-      return table;
-   } else if (json.type() == JSON_STRING) {
-      return object(L_, json.as_string());
-   } else if (json.type() == JSON_NUMBER) {
-      return object(L_, json.as_float());
-   } else if (json.type() == JSON_BOOL) {
-      return object(L_, json.as_bool());
-   }
-   ASSERT(false);
-   return object();
 }

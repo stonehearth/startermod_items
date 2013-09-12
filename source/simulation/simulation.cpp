@@ -8,6 +8,7 @@
 #include "jobs/goto_location.h"
 #include "script/script_host.h"
 #include "resources/res_manager.h"
+#include "lua/radiant_lua.h"
 #include "dm/store.h"
 #include "om/entity.h"
 #include "om/components/clock.h"
@@ -536,7 +537,7 @@ void Simulation::HandleRouteRequest(luabind::object ctor, JSONNode const& query,
    try {
       using namespace luabind;
       lua_State* L = scriptHost_->GetCallbackState();
-      object queryObj = scriptHost_->JsonToLua(query);
+      object queryObj = lua::JsonToLua(L, query);
       object coder = globals(L)["radiant"]["json"];
 
       object obj = call_function<object>(ctor);
@@ -548,17 +549,7 @@ void Simulation::HandleRouteRequest(luabind::object ctor, JSONNode const& query,
             fn = obj[fname];
          }
       }
-#if 0
-      // tony, remove this please!
-      object postdataObj;
-      if (!postdata.empty()) {
-         postdataObj = scriptHost_->JsonToLua(libjson::parse(postdata));
-      }
-      object result = call_function<object>(fn, obj, queryObj, postdataObj);
-      std::string json = call_function<std::string>(coder["encode"], result);
-#else
       std::string json = scriptHost_->PostCommand(fn, obj, postdata);
-#endif
 
       reply->set_status_code(200);
       reply->set_content(json);

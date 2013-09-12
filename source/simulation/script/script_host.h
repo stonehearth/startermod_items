@@ -34,7 +34,6 @@ public:
 
    lua_State* GetInterpreter() const { return L_; }
    lua_State* GetCallbackState() const { return cb_thread_; }
-   luabind::object JsonToLua(JSONNode const& json);
 
    std::string PostCommand(luabind::object obj, std::string const& json);
    std::string PostCommand(luabind::object fn, luabind::object self, std::string const& json);
@@ -49,7 +48,10 @@ public:
    void Update(int interval, int& currentGameTime);
    void CallGameHook(std::string const& stage);
    void Idle(platform::timer &timer);
-   om::EntityRef CreateEntity();
+   om::EntityRef CreateEmptyEntity();
+   om::EntityRef CreateEntity(std::string const& mod_name, std::string const& entity_name);
+   om::EntityRef CreateEntityByRef(std::string const& entity_ref);
+   void ExtendEntity(om::EntityRef e, std::string const& mod_name, std::string const& entity_name);
    om::EntityRef GetEntity(dm::ObjectId id);
 
 private:
@@ -58,11 +60,11 @@ private:
    void InitEnvironment();
    void LoadRecursive(std::string root, std::string directory);
    luabind::object LoadScript(std::string path);
+   luabind::object LoadJson(std::string uri);
+   luabind::object LoadManifest(std::string uri);
 
    void RegisterScenario(luabind::object name, luabind::object scenario);
    void ReportError(luabind::object error);
-   json::ConstJsonObject LoadJson(std::string uri);
-   json::ConstJsonObject LoadManifest(std::string uri);
    resources::AnimationPtr LoadAnimation(std::string uri);
    void Log(std::string str);
 

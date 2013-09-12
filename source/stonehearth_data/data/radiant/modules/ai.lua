@@ -80,7 +80,7 @@ end
 ]]
 function ai.unregister(entity, obj)
    if obj.actions then
-      for _, uri in radiant.resources.pairs(obj.actions) do
+      for _, uri in ipairs(obj.actions) do
          ai.remove_action(entity, uri)
       end
    end
@@ -136,13 +136,13 @@ function ai._init_entity(entity, obj)
    local id = entity:get_id()
    singleton._entities[id] = entity
    if obj.actions then
-      for _, uri in radiant.resources.pairs(obj.actions) do
+      for _, uri in ipairs(obj.actions) do
          ai.add_action(entity, uri)
       end
    end
 
    if obj.observers then
-      for _, uri in radiant.resources.pairs(obj.observers) do
+      for _, uri in ipairs(obj.observers) do
          ai.add_observer(entity, uri)
       end
    end

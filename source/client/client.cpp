@@ -16,6 +16,7 @@
 #include "renderer/render_entity.h"
 #include "renderer/lua_render_entity.h"
 #include "renderer/lua_renderer.h"
+#include "lua/radiant_lua.h"
 #include "lua/register.h"
 #include "lua/script_host.h"
 #include "om/stonehearth.h"
@@ -625,6 +626,11 @@ void Client::SelectEntity(dm::ObjectId id)
 void Client::SelectEntity(om::EntityPtr obj)
 {
    if (selectedObject_ != obj) {
+      if (obj && obj->GetStore().GetStoreId() != GetStore().GetStoreId()) {
+         LOG(WARNING) << "ignoring selected object with non-client store id.";
+         return;
+      }
+
       auto renderEntity = Renderer::GetInstance().GetRenderObject(selectedObject_);
       if (renderEntity) {
          renderEntity->SetSelected(false);
@@ -826,7 +832,7 @@ void Client::HandleClientRouteRequest(luabind::object ctor, JSONNode const& quer
    try {
       using namespace luabind;
       lua_State* L = scriptHost_->GetCallbackState();
-      object queryObj = scriptHost_->JsonToLua(query);
+      object queryObj = lua::JsonToLua(L, query);
       object coder = globals(L)["radiant"]["json"];
 
       object obj = scriptHost_->CallFunction<object>(ctor);
@@ -1068,10 +1074,13 @@ void Client::BrowserRequestHandler(std::string const& path, JSONNode const& quer
    }
 }
 
-om::EntityPtr Client::CreateAuthoringEntity(std::string const& path)
+om::EntityPtr Client::CreateAuthoringEntity(std::string const& mod_name, std::string const& entity_name)
 {
-   om::EntityPtr entity = om::Stonehearth::CreateEntityLegacyDIEDIEDIE(authoringStore_, path);
+   om::EntityPtr entity = authoringStore_.AllocObject<om::Entity>();   
    authoredEntities_[entity->GetObjectId()] = entity;
+   if (!mod_name.empty() && !entity_name.empty()) {
+      om::Stonehearth::InitEntity(entity, mod_name, entity_name, nullptr);
+   }
    return entity;
 }
 
@@ -1130,11 +1139,15 @@ void MouseEventPromise_Destroy(MouseEventPromisePtr me)
    me->Uninstall();
 }
 
-om::EntityRef Client_CreateAuthoringEntity(Client& client, std::string const& path)
+om::EntityRef Client_CreateAuthoringEntity(Client& client, std::string const& mod_name, std::string const& entity_name)
 {
-   return client.CreateAuthoringEntity(path);
+   return client.CreateAuthoringEntity(mod_name, entity_name);
 }
 
+om::EntityRef Client_CreateEmptyAuthoringEntity(Client& client)
+{
+   return client.CreateAuthoringEntity("", "");
+}
 
 static luabind::object
 Client_QueryScene(lua_State* L, Client const&, int x, int y)
@@ -1247,7 +1260,8 @@ void Client::RegisterLuaTypes(lua_State* L)
    using namespace luabind;
    module(L) [
       lua::RegisterType<Client>()
-         .def("create_authoring_entity",  &Client_CreateAuthoringEntity)
+         .def("create_authoring_entity",        &Client_CreateAuthoringEntity)
+         .def("create_empty_authoring_entity",  &Client_CreateEmptyAuthoringEntity)
          .def("destroy_authoring_entity", &Client::DestroyAuthoringEntity)
          .def("create_render_entity",     &Client_CreateRenderEntity)
          .def("trace_mouse",              &Client::TraceMouseEvents)
