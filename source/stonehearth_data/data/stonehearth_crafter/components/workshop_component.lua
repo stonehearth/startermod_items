@@ -398,7 +398,6 @@ function Workshop:_crafting_complete()
 
    self._todo_list:chunk_complete(self._curr_order)
    self._curr_order = nil
-
 end
 
 --[[
@@ -406,12 +405,12 @@ end
    TODO: handle unwanted outputs, like toxic waste
 ]]
 function Workshop:_produce_outputs()
+
    local recipe = self:_get_current_recipe()
    local outputs = recipe.produces
    self._bench_outputs = {}
    for i, product in radiant.resources.pairs(outputs) do
       local result = radiant.entities.create_entity(product.item)
-
       self._entity:add_component('entity_container'):add_child(result)
       result:add_component('mob'):set_location_grid_aligned(Point3(0, 1, 0))
       table.insert(self._bench_outputs, result)

@@ -29,15 +29,8 @@ function PromoteTest:__init()
    local tree2 = self:place_tree(-12, 12)
 
    self:at(10000, function()
-         self:place_citizen(12, 10)
-      end)
-
-   --Human TODO
-   --Test that the dude can chop down the tree
-   --Test that the dude can be promoted to carpenter
-   --Test that he can craft a sword
-   --Test that he can no longer chop down the tree
-
+      self:place_citizen(12, 10)
+   end)
 end
 
 return PromoteTest

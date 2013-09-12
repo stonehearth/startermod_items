@@ -74,9 +74,17 @@ JSONNode DataBinding::GetJsonData() const
    if (!cached_json_valid_) {
       cached_json_ = JSONNode();
       
-      if (data_.is_valid()) {
-         object coder = globals(data_.interpreter())["radiant"]["json"];
-         std::string json = call_function<std::string>(coder["encode"], data_);
+      if (data_.is_valid() && type(data_) != LUA_TNIL) {
+         std::string json;
+
+         try {
+            object coder = globals(data_.interpreter())["radiant"]["json"];
+            json = call_function<std::string>(coder["encode"], data_);
+         } catch (std::exception& e) {
+            LOG(WARNING) << "error saving DataBinding: " << e.what();
+            LOG(WARNING) << "everything about this object is corrupt! =..(";
+            return JSONNode();
+         }
 
          if (!libjson::is_valid(json)) {
             // xxx: actually, throw an exception

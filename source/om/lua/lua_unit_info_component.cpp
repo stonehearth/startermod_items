@@ -17,5 +17,7 @@ scope LuaUnitInfoComponent::RegisterLuaTypes(lua_State* L)
          .def("get_description",       &om::UnitInfo::GetDescription)
          .def("set_faction",           &om::UnitInfo::SetFaction)
          .def("get_faction",           &om::UnitInfo::GetFaction)
+         .def("set_icon",           &om::UnitInfo::SetIcon)
+         .def("get_icon",           &om::UnitInfo::GetIcon)
       ;
 }

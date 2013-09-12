@@ -100,7 +100,7 @@ App = Ember.Application.createWithMixins({
           paths: ['css/']
         }).parse(data, function (err, t) {
             if (err) {
-              console.error(err) 
+              console.error(err)
             }
 
             css = t.toCSS();
@@ -148,7 +148,7 @@ App = Ember.Application.createWithMixins({
       var deferreds = [];
 
       $.each( modules, function( name, data ) {
-        if (data.ui && data.ui.html) {
+        if (data.ui && (data.ui.html || data.ui.js))  {
           deferreds.push(self._loadLocale(name));
         }
       });
@@ -159,8 +159,8 @@ App = Ember.Application.createWithMixins({
     _loadLocale: function(namespace) {
       var deferred = $.Deferred();
 
-      i18n.loadNamespace(namespace, function() { 
-        console.log('loaded locale namespace: ' + namespace); 
+      i18n.loadNamespace(namespace, function() {
+        console.log('loaded locale namespace: ' + namespace);
         deferred.resolve();
       });
 
@@ -192,5 +192,5 @@ App = Ember.Application.createWithMixins({
 });
 
 App.Router.map(function() {
-  
+
 });

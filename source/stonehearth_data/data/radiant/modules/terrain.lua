@@ -18,15 +18,19 @@ function Terrain.place_entity(entity, location)
 
    if type(location) == "table" then
       location = Point3(location.x, location.y, location.z)
-   end  
+   end
    _terrain:place_entity(entity, location)
+end
+
+function Terrain.remove_entity(entity)
+   radiant.entities.remove_child(radiant._root_entity, entity)
 end
 
 function Terrain.trace_world_entities(reason, added_cb, removed_cb)
    local ec = radiant.entities.get_root_entity():add_component('entity_container');
    local children = ec:get_children()
 
-   -- put a trace on the root entity container to detect when items 
+   -- put a trace on the root entity container to detect when items
    -- go on and off the terrain.  each item is forwarded to the
    -- appropriate tracker.
    local trace = children:trace('radiant.terrain: ' .. reason)
@@ -34,7 +38,7 @@ function Terrain.trace_world_entities(reason, added_cb, removed_cb)
                      :on_removed(removed_cb)
    for id, entity in children:items() do
       added_cb(id, entity)
-   end  
+   end
    return trace
 end
 

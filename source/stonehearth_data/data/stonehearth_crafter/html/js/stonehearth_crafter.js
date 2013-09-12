@@ -2,7 +2,6 @@ $(document).ready(function(){
    // When we get the show_workshop event, toggle the crafting window
    // for this entity.
    $(top).on("show_workshop.stonehearth_crafter", function (_, e) {
-      //TODO: hide the workshop on X button, etc.
       var view = App.gameView.addView(App.StonehearthCrafterView, { uri: e.entity });
    });
 
@@ -195,9 +194,9 @@ App.StonehearthCrafterView = App.View.extend({
       var r = isPaused ? 4 : -4;
 
       // flip the sign
-      $("#statusSign").animate({  
+      $("#statusSign").animate({
          rot: r,
-         }, 
+         },
          {
             duration: 200,
             step: function(now,fx) {

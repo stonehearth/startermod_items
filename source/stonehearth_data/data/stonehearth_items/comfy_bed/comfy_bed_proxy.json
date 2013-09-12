@@ -1,0 +1,21 @@
+{
+   "extends": "/stonehearth_items/entities/item/item_properties.json",
+   "type": "entity",
+   "components": {
+      "model_variants": [
+         {
+            "models": [
+               "file(comfy_bed_icon.qb)"
+            ]
+         }
+      ],
+      "radiant:commands" : {
+         "commands" : [
+            "/stonehearth_items/commands/place_command.json"
+         ]
+      },
+      "stonehearth_items:placeable_item_proxy" : {
+         "full_sized_entity_uri" : "file(comfy_bed.json)"
+      }
+   }
+}

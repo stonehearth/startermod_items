@@ -1,7 +1,7 @@
 {
    "type":"recipe",
 
-   "work_units"  : 3,
+   "work_units"  : 2,
    "recipe_name" : "Cathedral-Arch Chair",
    "my_location" : "/stonehearth_carpenter_class/recipes/arch_backed_chair_recipe.json",
    "description" : "Just like a normal chair, except it impresses your neighbors.",
@@ -19,7 +19,7 @@
    ],
   "produces": [
       {
-         "item":"/stonehearth_items/arch_backed_chair",
+         "item":"/stonehearth_items/arch_backed_chair/arch_backed_chair_proxy.json",
          "script":"/stonehearth_crafter/",
          "command":"produce_item"
       }

@@ -1,3 +1,21 @@
 {
-
+   "components" :  {
+      "placeable_item_proxy" : "file(components/placeable_item_proxy.lua)",
+      "placeable_item_pointer": "file(components/placeable_item_pointer.lua)"
+   },
+   "ui" :  {
+      "js" : [
+         "file(/html/js/placement.js)"
+      ]
+   },
+   "client" : {
+      "request_handlers" : {
+         "place_item" : "file(client/request_handlers/place_item.lua)"
+      }
+   },
+   "server" : {
+      "request_handlers" : {
+         "place_item_server" : "file(server/request_handlers/place_command_server.lua)"
+      }
+   }
 }

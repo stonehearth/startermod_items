@@ -24,9 +24,7 @@
   ],
   "produces": [
       {
-         "item":"/stonehearth_items/comfy_bed",
-         "script":"/stonehearth_crafter/",
-         "command":"produce_item"
+         "item":"/stonehearth_items/comfy_bed/comfy_bed_proxy.json"
       }
   ]
 }

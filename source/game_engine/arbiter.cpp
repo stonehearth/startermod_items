@@ -59,10 +59,15 @@ arbiter::~arbiter()
 
 void arbiter::Run(lua_State* L)
 {
-   Start(L);
-   main();
+   try {
+      Start(L);
+      main();
+   } catch (std::exception &e) {
+      LOG(WARNING) << "Unhandled exception in game loop: " << e.what();
+      LOG(WARNING) << "DYING! =..(";
+      ASSERT(false);
+   }
 }
-
 extern "C" int luaopen_lpeg (lua_State *L);
 
 void arbiter::Start(lua_State* L)
