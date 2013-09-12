@@ -7,7 +7,18 @@
       "ui" : {
          "homepage" : "file(/html/index.html)"
       }
-   }
+   },
 
+   "ui" :  {
+      "html" : [
+         "file(/html/stonehearth_modal_overlay.html)"
+      ],
+      "js" : [
+         "file(/html/js/stonehearth_modal_overlay.js)"
+      ],
+      "less" : [
+         "file(/html/css/stonehearth_modal_overlay.less)"
+      ]
+   }
 }
 

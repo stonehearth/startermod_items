@@ -8,31 +8,6 @@ App.StonehearthUnitFrameView = App.View.extend({
       "unit_info": {}
    },
 
-   actions: {
-      doCommand: function(command) {
-         if (!command.enabled) {
-            return;
-         }
-         if (command.action == 'fire_event') {
-            // xxx: error checking would be nice!!
-            var e = {
-               entity : this._selected_entity,
-            event_data : command.event_data
-            };
-            $(top).trigger(command.event_name, e);
-         } else if (command.action == 'post') {
-            // $.post(command.post_uri, command.post_data);
-            $.ajax({
-               type: 'post',
-               url: command.post_uri,
-               contentType: 'application/json',
-               data: JSON.stringify(command.post_data)
-            });
-         }
-      }
-   },
-   
-
    init: function() {
       this._super();
 
@@ -44,7 +19,6 @@ App.StonehearthUnitFrameView = App.View.extend({
          } else {
             self.set('uri', null);
          }
-
       });
    },
 
@@ -70,13 +44,36 @@ App.StonehearthUnitFrameView = App.View.extend({
       } else {
          $('#unitframe').hide();
       }
-   }.observes('context'),
+   }.observes('context')
 
-   /*
-   //Example of listening on an array
-   _onCommandChange: function() {
-      console.log('commands changing!');
-   }.observes('context.radiant:commands.commands'),
-   */
+});
 
+App.StonehearthCommandButtonView = App.View.extend({
+   oneBasedIndex: function() {
+      return this.contentIndex + 1;
+   }.property(),
+
+   actions: {
+      doCommand: function(command) {
+         if (!command.enabled) {
+            return;
+         }
+         if (command.action == 'fire_event') {
+            // xxx: error checking would be nice!!
+            var e = {
+               entity : this.get("parentView.uri"),
+               event_data : command.event_data
+            };
+            $(top).trigger(command.event_name, e);
+         } else if (command.action == 'post') {
+            // $.post(command.post_uri, command.post_data);
+            $.ajax({
+               type: 'post',
+               url: command.post_uri,
+               contentType: 'application/json',
+               data: JSON.stringify(command.post_data)
+            });
+         }         
+      }
+   }
 });
