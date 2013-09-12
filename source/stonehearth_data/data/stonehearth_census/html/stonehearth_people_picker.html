@@ -1,9 +1,11 @@
 <script type="text/x-handlebars" data-template-name="stonehearthPeoplePicker">
    <div id="peoplePicker">
-      People!!
+      <div id="title">{{view.title}}</div>
       <div id="list">
          {{#each entities}}
-            <a href="#" {{action selectPerson this target="view"}}>{{this.unit_info.name}}</a>
+            <a href="#" {{action selectPerson this target="view"}}>
+               <div>{{this.unit_info.name}}</div>
+            </a>
          {{/each}}
       </div>
    </div>

@@ -1,4 +1,4 @@
-App.View = Ember.View.extend({
+   App.View = Ember.View.extend({
 
    //the components to retrieve from the object
    components: {},
@@ -10,6 +10,9 @@ App.View = Ember.View.extend({
 
    destroy: function() {
       this._destroyAllTraces();
+      if (this.modalOverlay) {
+         this.modalOverlay.destroy();
+      }
       this._super();
    },
 

@@ -2,9 +2,6 @@
 local MicroWorld = radiant.mods.require('/stonehearth_tests/lib/micro_world.lua')
 local TerrainTest = class(MicroWorld)
 
-local HeightMapRenderer = radiant.mods.require('/stonehearth_terrain/height_map_renderer.lua')
---local TeraGen = radiant.mods.require('/stonehearth_terrain/stonehearth_terrain.lua')
-
 local ZoneType = radiant.mods.require('/stonehearth_terrain/zone_type.lua')
 local HeightMap = radiant.mods.require('/stonehearth_terrain/height_map.lua')
 local Array2D = radiant.mods.require('/stonehearth_terrain/array_2D.lua')
@@ -15,6 +12,8 @@ local BoundaryNormalizingFilter = radiant.mods.require('/stonehearth_terrain/fil
 local FilterFns = radiant.mods.require('/stonehearth_terrain/filter/filter_fns.lua')
 local GaussianRandom = radiant.mods.require('/stonehearth_terrain/math/gaussian_random.lua')
 local InverseGaussianRandom = radiant.mods.require('/stonehearth_terrain/math/inverse_gaussian_random.lua')
+local Landscaper = radiant.mods.require('/stonehearth_terrain/landscaper.lua')
+local HeightMapRenderer = radiant.mods.require('/stonehearth_terrain/height_map_renderer.lua')
 --local Timer = radiant.mods.require('/stonehearth_terrain/timer.lua')
 
 function TerrainTest:__init()
@@ -35,7 +34,8 @@ function TerrainTest:create_world()
    --height_map = terrain_generator:_erosion_test()
    height_map = self._terrain_generator:generate_zone(ZoneType.Foothills)
    HeightMapRenderer.render_height_map_to_terrain(height_map, self._terrain_generator.zone_params)
-   self:decorate_landscape()
+
+   Landscaper:place_trees(height_map)
 end
 
 function TerrainTest:create_multi_zone_world()
@@ -47,7 +47,7 @@ function TerrainTest:create_multi_zone_world()
 
    world_map:clear(1)
 
-   zone_map, micro_map = self._terrain_generator:generate_zone(ZoneType.Foothills, zones, 2, 2)
+   zone_map, micro_map = self._terrain_generator:generate_zone(ZoneType.Mountains, zones, 2, 2)
    zone_map:copy_block(world_map, zone_map, 1, 1, 1, 1, zone_size, zone_size)
    zones:set(2, 2, micro_map)
 
@@ -59,11 +59,13 @@ function TerrainTest:create_multi_zone_world()
    zone_map:copy_block(world_map, zone_map, zone_size+1, 1, 1, 1, zone_size, zone_size)
    zones:set(3, 2, micro_map)
 
-   zone_map, micro_map = self._terrain_generator:generate_zone(ZoneType.Foothills, zones, 3, 3)
+   zone_map, micro_map = self._terrain_generator:generate_zone(ZoneType.Plains, zones, 3, 3)
    zone_map:copy_block(world_map, zone_map, zone_size+1, zone_size+1, 1, 1, zone_size, zone_size)
    zones:set(3, 3, micro_map)
 
    HeightMapRenderer.render_height_map_to_terrain(world_map, self._terrain_generator.zone_params)
+
+   Landscaper:place_trees(world_map)
 end
 
 function TerrainTest:create_old_world()

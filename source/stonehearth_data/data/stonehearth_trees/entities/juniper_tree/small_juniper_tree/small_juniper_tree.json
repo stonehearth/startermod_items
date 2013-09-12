@@ -1,22 +1,27 @@
 {
-   "extends": "file(/prototypes/tree)",
-   "radiant:resource_node" : {
-      "resource": "file(../juniper_log)",
-      "durability": 6
-   },
-   "unit_info" : {
-      "name" :  "Small Juniper Tree",
-      "description" : "Just a sapling."
-   },
-   "render_rig": {
-      "scale": 1,
-      "models": [
+   "extends": "file(../../tree.json)", 
+   "type": "entity", 
+   "components": {
+      "model_variants": [
          {
-            "type": "one_of",
-            "items": [
-               "file(tree_juniper_small.qb)"
-            ]
+            "models": [
+               {
+                  "items": [
+                     "file(small_juniper_tree.qb)"
+                  ], 
+                  "type": "one_of"
+               }
+            ], 
+            "scale": 1
          }
-      ]
+      ], 
+      "unit_info": {
+         "name": "Small Juniper Tree", 
+         "description": "Just a sapling."
+      }, 
+      "radiant:resource_node": {
+         "resource": "file(../juniper_log)", 
+         "durability": 6
+      }
    }
 }

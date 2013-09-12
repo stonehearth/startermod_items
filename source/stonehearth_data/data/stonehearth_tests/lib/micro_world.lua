@@ -4,12 +4,14 @@ local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local Terrain = _radiant.om.Terrain
+local Names = radiant.mods.require('/stonehearth_names/stonehearth_names.lua')
 
 function MicroWorld:__init()
    self._nextTime = 1
    self._times = {}
    self._timers = {}
-   self._running = false;
+   self._running = false
+   self._names = Names()
 
    radiant.events.listen('radiant.events.gameloop', self)
 end
@@ -68,6 +70,8 @@ function MicroWorld:place_citizen(x, z, profession, profession_info)
    local citizen = radiant.mods.load_api('/stonehearth_human_race/').create_entity()
    profession = profession and profession or 'worker'
    local profession = radiant.mods.load_api('/stonehearth_' .. profession .. '_class/').promote(citizen, profession_info)
+   --TODO: how do we handle different kingdoms/factions?
+   radiant.entities.set_display_name(citizen, self._names:get_random_name('ascendancy','male'))
    radiant.terrain.place_entity(citizen, Point3(x, 1, z))
    return citizen
 end

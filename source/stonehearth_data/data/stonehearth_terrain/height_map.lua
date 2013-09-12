@@ -81,9 +81,9 @@ function HeightMap:print()
    local i, j, str
 
    for j=1, self.height, 1 do
-      str = ""
+      str = ''
       for i=1, self.width, 1 do
-         str = str .. " " .. string.format("%6.1f" , self:get(i, j))
+         str = str .. ' ' .. string.format('%6.1f' , self:get(i, j))
       end
       radiant.log.info(str)
    end

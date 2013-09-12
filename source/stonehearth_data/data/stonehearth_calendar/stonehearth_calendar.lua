@@ -1,5 +1,5 @@
 local constants = {
-   TICKS_PER_SECOND = 2,
+   TICKS_PER_SECOND = 20,
 
    SECONDS_IN_MINUTE = 60,
    MINUTES_IN_HOUR = 60,
@@ -29,7 +29,7 @@ local constants = {
 
 local data = {
    date = {
-      hour = 6,
+      hour = 10,
       minute = 0,
       second = 0,
       day = 0,
