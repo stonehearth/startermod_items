@@ -18,9 +18,9 @@ $(document).ready(function(){
       // this. All the work is done in the client and server
 
       var crafterModUri = '/modules/client/stonehearth_crafter/create_workbench';
-      var workbench_uri = e.workbench_uri;
+      var workbench_entity = e.workbench_entity;
 
-      $.get(crafterModUri, { workbench_uri: workbench_uri })
+      $.get(crafterModUri, { workbench_entity: workbench_entity })
          .done(function(o){
             //xxx, place the outbox
          })
@@ -52,6 +52,8 @@ App.StonehearthCrafterView = App.View.extend({
 
    },
 
+   modal: true,
+
    //alias for stonehearth_crafter:workshop.crafter.stonehearth_crafter:crafter.craftable_recipes
    recipes: null,
 
@@ -71,8 +73,6 @@ App.StonehearthCrafterView = App.View.extend({
             .animate({ top: -1900 }, 500, 'easeOutBounce', function() {
                self.destroy();
          });
-         $(".overlay")
-            .animate({ opacity: 0.0 }, {duration: 300, easing: 'easeInQuad'});
       },
 
       select: function(object, remaining, maintainNumber) {
@@ -144,8 +144,6 @@ App.StonehearthCrafterView = App.View.extend({
 
       $("#craftingUI")
          .animate({ top: 0 }, {duration: 500, easing: 'easeOutBounce'});
-      $(".overlay")
-         .animate({ opacity: 0.3 }, {duration: 300, easing: 'easeInQuad'});
    },
 
    _setRadioButtons: function(remaining, maintainNumber) {

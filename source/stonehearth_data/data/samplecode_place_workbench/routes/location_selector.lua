@@ -8,7 +8,7 @@ function LocationSelector:handle_request(query, postdata)
    -- screen to preview where the workbench will go.  these entities are called
    -- "authoring entities", because they exist only on the client side to help
    -- in the authoring of new content.
-   self._cursor_entity = _client:create_authoring_entity(query.entity)
+   self._cursor_entity = radiant.entities.create_entity(query.entity)
 
    -- add a render object so the cursor entity gets rendered.
    local re = _client:create_render_entity(1, self._cursor_entity)

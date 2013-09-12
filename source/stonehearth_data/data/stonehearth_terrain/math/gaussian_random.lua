@@ -6,6 +6,8 @@
 -- two standard deviations contains 95.45% of the values
 -- three standard deviations contains 99.73% of the values
 
+local MathFns = radiant.mods.require('/stonehearth_terrain/math/math_fns.lua')
+
 local GaussianRandom = class()
 
 local next_random = nil
@@ -22,6 +24,22 @@ function GaussianRandom.generate(mean, std_dev)
    end
 
    return mean + current_random*std_dev
+end
+
+function GaussianRandom.generate_int(min, max, std_dev)
+   local mean = (min+max)*0.5
+   local min_float = min-0.5
+   local max_float = max+0.5
+   local rand
+
+   while true do
+      rand = GaussianRandom.generate(mean, std_dev)
+
+      -- do not break when rand == max_float because of 0.5 rounding
+      if rand >= min_float and rand < max_float then break end
+   end
+
+   return MathFns.round(rand)
 end
 
 -- Generates pairs of random numbers in normal distribution with a
@@ -44,6 +62,36 @@ function GaussianRandom._generate_pair()
    c = math.sqrt(-2*math.log(r)/r)
 
    return u*c, v*c
+end
+
+function GaussianRandom.simulate_probabilities(min, max, std_dev, iterations)
+   local counts = {}
+   local probabilities = {}
+   local i, rand
+
+   for i=min, max, 1 do
+      counts[i] = 0
+   end
+
+   for i=1, iterations, 1 do
+      rand = GaussianRandom.generate_int(min, max, std_dev)
+      counts[rand] = counts[rand] + 1
+   end
+
+   for i=min, max, 1 do
+      probabilities[i] = counts[i] / iterations
+   end
+
+   return probabilities
+end
+
+function GaussianRandom.print_probabilities(min, max, std_dev, iterations)
+   local i, probabilities
+   probabilities = GaussianRandom.simulate_probabilities(min, max, std_dev, iterations)
+
+   for i=min, max, 1 do
+      radiant.log.info('%d: %.2f%%', i, probabilities[i]*100)
+   end
 end
 
 return GaussianRandom

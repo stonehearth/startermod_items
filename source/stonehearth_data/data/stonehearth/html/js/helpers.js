@@ -1,7 +1,15 @@
-Handlebars.registerHelper('i18n', function(i18n_key) {
-  var result = i18n.t(i18n_key);
+Handlebars.registerHelper('i18n', function(i18n_key, options) {
 
-  return new Handlebars.SafeString(result);
+   var view = options.data.view;
+   var attrs = options.hash;
+
+   $.each(Ember.keys(attrs), function (i, key) {
+      attrs[key] = view[attrs[key]];
+   });
+
+   var result = i18n.t(i18n_key, attrs);
+
+   return new Handlebars.SafeString(result);
 });
 
 Handlebars.registerHelper('tr', function(context, options) { 

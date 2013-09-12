@@ -210,7 +210,7 @@ end
    TODO: Make this a speciatly stockpile, not like other stockpiles!
 ]]
 function Workshop:init_outbox(custom_offset, custom_size)
-   self._outbox_entity = radiant.entities.create_entity('/stonehearth_inventory/entities/stockpile')
+   self._outbox_entity = radiant.entities.create_entity('stonehearth_inventory', 'stockpile')
    local bench_loc = radiant.entities.get_location_aligned(self._entity)
 
    if custom_offset then
@@ -409,7 +409,7 @@ function Workshop:_produce_outputs()
    local recipe = self:_get_current_recipe()
    local outputs = recipe.produces
    self._bench_outputs = {}
-   for i, product in radiant.resources.pairs(outputs) do
+   for i, product in ipairs(outputs) do
       local result = radiant.entities.create_entity(product.item)
       self._entity:add_component('entity_container'):add_child(result)
       result:add_component('mob'):set_location_grid_aligned(Point3(0, 1, 0))

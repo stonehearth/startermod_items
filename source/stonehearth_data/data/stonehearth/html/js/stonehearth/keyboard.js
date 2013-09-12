@@ -38,7 +38,7 @@ $(document).ready(function(){
 
       setFocus: function(element) {
          element = element || $('body');
-         this._hotkeyScope = element;
+         this._hotkeyScope = $(element);
       },
 
       handleKeyEvent: function(e) {

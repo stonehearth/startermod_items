@@ -1,23 +1,27 @@
 {
-   "extends": "file(/prototypes/tree)",
-   "radiant:resource_node" : {
-      "resource": "file(../juniper_log)",
-      "durability": 6
-   },
-   "unit_info" : {
-      "name" :  "Juniper Tree",
-      "description" : "Strong and tall."
-   },
-   "render_rig": {
-      "scale": 1,
-      "models": [
+   "extends": "file(../../tree.json)", 
+   "type": "entity", 
+   "components": {
+      "model_variants": [
          {
-            "type": "one_of",
-            "items": [
-               "file(tree_juniper_medium.qb)"
-            ]
+            "models": [
+               {
+                  "type": "one_of",
+                  "items": [
+                     "file(medium_juniper_tree.qb)"
+                  ]
+               }
+            ], 
+            "scale": 1
          }
-      ]
+      ], 
+      "unit_info": {
+         "name": "Juniper Tree", 
+         "description": "Strong and tall."
+      }, 
+      "radiant:resource_node": {
+         "resource": "entity(stonehearth_trees, juniper_log)", 
+         "durability": 9
+      }
    }
 }
-

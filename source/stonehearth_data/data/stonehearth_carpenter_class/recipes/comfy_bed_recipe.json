@@ -6,8 +6,8 @@
    "my_location" : "/stonehearth_carpenter_class/recipes/comfy_bed_recipe.json",
    "description" : "Eight hours will leave you as refreshed as the day you were born.",
    "flavor"      : "Nobody ever wants to get out. It makes emergency evacuations awkward.",
-   "card_art"    : "/stonehearth_items/comfy_bed/comfy_bed_card.png",
-   "queue_art"   : "/stonehearth_items/comfy_bed/comfy_bed_queue.png",
+   "card_art"    : "/stonehearth_items/entities/comfy_bed/comfy_bed_card.png",
+   "queue_art"   : "/stonehearth_items/entities/comfy_bed/comfy_bed_queue.png",
    "category"    : "furniture",
 
    "ingredients": [
@@ -24,7 +24,9 @@
   ],
   "produces": [
       {
-         "item":"/stonehearth_items/comfy_bed/comfy_bed_proxy.json"
+         "item":"entity(stonehearth_items, comfy_bed_proxy)",
+         "script":"/stonehearth_crafter/",
+         "command":"produce_item"
       }
   ]
 }

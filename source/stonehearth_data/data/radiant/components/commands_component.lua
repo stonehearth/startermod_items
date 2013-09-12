@@ -13,7 +13,7 @@ end
 function CommandsComponent:extend(json)
    -- not really...
    if json.commands then
-      for _, uri in radiant.resources.pairs(json.commands) do
+      for _, uri in pairs(json.commands) do
          local command = radiant.resources.load_json(uri)
 
          -- expand the json. just for fun (it's small)
@@ -48,7 +48,7 @@ end
 function CommandsComponent:_replace_variables(res)
    if type(res) == 'table' then
       local result = {}
-      for k, v in radiant.resources.pairs(res) do
+      for k, v in pairs(res) do
          result[k] = self:_replace_variables(v)
       end
       return result

@@ -1,25 +1,29 @@
 {
-   "extends": "file(../../tree.json)",
-   "radiant:resource_node" : {
-      "resource": "file(../oak_log)",
-      "durability": 6
-   },
-   "unit_info" : {
-      "name" :  "Small Oak Tree",
-      "description" : "He's just a sapling!"
-   },
-   "render_rig": {
-      "scale": 1,
-      "models": [
+   "extends": "file(../../tree.json)", 
+   "type": "entity", 
+   "components": {
+      "model_variants": [
          {
-            "type": "one_of",
-            "items": [
-               "file(small_oak_tree.qb)",
-               "file(tree_oak_small_2.qb)",
-               "file(tree_oak_small_3.qb)"
-            ]
+            "models": [
+               {
+                  "type": "one_of",
+                  "items": [
+                     "file(small_oak_tree.qb)", 
+                     "file(small_oak_tree_2.qb)", 
+                     "file(small_oak_tree_3.qb)"
+                  ]
+               }
+            ], 
+            "scale": 1
          }
-      ]
+      ], 
+      "unit_info": {
+         "name": "Small Oak Tree", 
+         "description": "He's just a sapling!"
+      }, 
+      "radiant:resource_node": {
+         "resource": "entity(stonehearth_trees, oak_log)", 
+         "durability": 4
+      }
    }
 }
-

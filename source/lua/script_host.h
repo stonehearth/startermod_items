@@ -18,7 +18,6 @@ public:
    luabind::object LuaRequire(std::string name);
    void GC(platform::timer &timer);
 
-   luabind::object JsonToLua(JSONNode const& json);
    std::string LuaToJson(luabind::object obj);
 
    template <typename T, typename A0, typename A1, typename A2, typename A3, typename A4>

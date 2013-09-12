@@ -6,8 +6,8 @@
    "my_location" : "/stonehearth_carpenter_class/recipes/arch_backed_chair_recipe.json",
    "description" : "Just like a normal chair, except it impresses your neighbors.",
    "flavor"      : "Borrows class from the impression of piety.",
-   "card_art"    : "/stonehearth_items/arch_backed_chair/arch_backed_chair_card.png",
-   "queue_art"   : "/stonehearth_items/arch_backed_chair/arch_backed_chair_queue.png",
+   "card_art"    : "/stonehearth_items/entities/arch_backed_chair/arch_backed_chair_card.png",
+   "queue_art"   : "/stonehearth_items/entities/arch_backed_chair/arch_backed_chair_queue.png",
    "category"    : "weapons",
 
    "ingredients": [
@@ -19,7 +19,7 @@
    ],
   "produces": [
       {
-         "item":"/stonehearth_items/arch_backed_chair/arch_backed_chair_proxy.json",
+         "item":"entity(stonehearth_items, arch_backed_chair_proxy)",
          "script":"/stonehearth_crafter/",
          "command":"produce_item"
       }

@@ -40,7 +40,9 @@ RenderRenderInfo::RenderRenderInfo(RenderEntity& entity, om::RenderInfoPtr rende
    use_model_variant_override_(false)
 {
    // xxx: ideally we would only have the trace installed when our dirty bit is set.
-   renderer_frame_trace_ = Renderer::GetInstance().TraceFrameStart([=]() { Update(); });
+   renderer_frame_trace_ = Renderer::GetInstance().TraceFrameStart([=]() {
+      Update();
+   });
 
    auto set_scale_dirty_bit = [=]() {
       dirty_ |= SCALE_DIRTY;
@@ -215,7 +217,7 @@ void RenderRenderInfo::Update()
    if (dirty_) {
       auto render_info = render_info_.lock();
       if (render_info) {
-         LOG(WARNING) << "updating render_info for " << entity_.GetEntity()->GetResourceUri();
+         LOG(WARNING) << "updating render_info for " << entity_.GetEntity();
          if (dirty_ & ANIMATION_TABLE_DIRTY) {
             RebuildBoneOffsets(render_info);
             dirty_ |= MODEL_DIRTY;

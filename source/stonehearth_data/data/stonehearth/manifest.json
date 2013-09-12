@@ -3,11 +3,29 @@
       "name" : "Stonehearth"
    },
 
+   "radiant": {
+      "entities" : {
+         "worker_axe" : "file(entities/worker_axe)",
+         "worker_hammer" : "file(entities/worker_hammer)"
+      }
+   },
+
    "loader" :  {
       "ui" : {
          "homepage" : "file(/html/index.html)"
       }
-   }
+   },
 
+   "ui" :  {
+      "html" : [
+         "file(/html/stonehearth_modal_overlay.html)"
+      ],
+      "js" : [
+         "file(/html/js/stonehearth_modal_overlay.js)"
+      ],
+      "less" : [
+         "file(/html/css/stonehearth_modal_overlay.less)"
+      ]
+   }
 }
 

@@ -55,7 +55,7 @@ App.StonehearthMainActionbarView = App.View.extend({
                            hotkey: 'c',
                            click: function () {
                               $(top).trigger('create_workshop.radiant', {
-                                 workbench_uri: '/stonehearth_carpenter_class/entities/carpenter_workbench'
+                                 workbench_entity: 'entity(stonehearth_carpenter_class, carpenter_workbench)'
                               });  
                            }
                         }

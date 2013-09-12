@@ -1,0 +1,32 @@
+{
+   "type": "entity",
+   "extends" : "entity(stonehearth_items, item_properties)",
+   "components" : {
+      "unit_info" : {
+         "name" :  "The Saw",
+         "description" : "The foundation of civilization"
+      },
+      "model_variants": [
+         {
+            "models": [
+               "file(carpenter_saw.qb)"
+            ]
+         },
+         {
+            "variants": "iconic",
+            "models": [
+               "file(carpenter_saw_icon.qb)"
+            ]
+         }            
+      ],
+      "radiant:commands" : {
+         "commands" : [
+            "/stonehearth_classes/commands/promote_citizen.json"
+         ]
+      },
+      "stonehearth_classes:talisman_promotion_info": {
+         "class_script": "/stonehearth_carpenter_class/"
+      }
+   }
+}
+

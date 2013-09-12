@@ -1,10 +1,10 @@
 {
-   "extends": "/stonehearth_crafter/entities/workbench.json",
+   "extends": "entity(stonehearth_crafter, workbench)",
    "type": "entity",
    "components": {
       "stonehearth_crafter:workshop": {
          "promotion_talisman" : {
-            "entity" : "/stonehearth_items/carpenter_saw",
+            "entity" : "entity(stonehearth_items, carpenter_saw)",
             "offset" : [0, 3, 0]
          },
          "outbox_settings" : {

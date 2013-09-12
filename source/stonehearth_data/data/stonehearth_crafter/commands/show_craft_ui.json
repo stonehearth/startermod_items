@@ -3,7 +3,7 @@
 
    "name": "show_craft_ui",
    "enabled_tooltip": "Craft!",
-   "disabled_tooltip": "Disabled! Click on the saw to promote a crafter",
+   "disabled_tooltip": "Before you can craft you need to promote a crafter to this workshop",
    "default_enabled": false,
    "icon": "file(/html/images/show_workshop.png)",
 
