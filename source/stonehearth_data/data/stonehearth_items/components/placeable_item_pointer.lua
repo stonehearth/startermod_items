@@ -7,13 +7,10 @@
 
 local PlaceableItemPointer = class()
 
-function PlaceableItemPointer:__init(entity, data_binding)
+function PlaceableItemPointer:__init(entity)
    self._entity = entity
    self._proxy_entity = nil               --the 1x1 entity that we need to shrink to to be carried, etc
    
-   self._data = data_binding:get_data()
-   self._data_binding = data_binding
-   self._data_binding:mark_changed()
 end
 
 function PlaceableItemPointer:extend(json)

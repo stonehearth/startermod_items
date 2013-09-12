@@ -9,14 +9,10 @@
 
 local PlaceableItemProxy = class()
 
-function PlaceableItemProxy:__init(entity, data_binding)
+function PlaceableItemProxy:__init(entity)
    self._entity = entity               --The 1x1 placeable cube
    self._full_sized_entity_uri = ''    --Where to find a description of the full sized entity
    self._full_sized_entity = nil       --Onced initialized, the actual full-sized entity
-   
-   self._data = data_binding:get_data()
-   self._data_binding = data_binding
-   self._data_binding:mark_changed()
 end
 
 function PlaceableItemProxy:extend(json)
