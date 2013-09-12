@@ -45,9 +45,9 @@
 
          this._menu.delegate('.clickable','mouseenter mouseleave', function(event) {
             if(event.type === 'mouseenter') {
-               $(this).find('.label').addClass('hover');
+               $(this).find('.label').fadeIn({duration: 150});
             } else {
-               $(this).find('.label').removeClass('hover');
+               $(this).find('.label').fadeOut({duration: 150});
             }
          });
 
@@ -119,7 +119,9 @@
                .attr('hotkey', data.hotkey)
                .css('bottom', this._numButtons * 80)
                .html('<img src="' + data.icon + '"/>')
+               .append('<div class=hotkey>' + data.hotkey + '</div>')
                .append('<div class=label>' + data.name + '</div>');
+
                /*
                .tooltip({
                   delay: { show: 400, hide: 0 },
@@ -185,6 +187,7 @@
                   .addClass('clickable')
                   .css('left', menu.find('.menuItem').length * 90)
                   .html('<img class=icon src="' + v.icon + '"/>')
+                  .append('<div class=hotkey>' + v.hotkey + '</div>')
                   .append('<div class=label>' + v.name + '</div>');
                
                // wire up the click handler
