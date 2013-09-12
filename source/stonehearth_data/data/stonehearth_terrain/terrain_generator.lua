@@ -4,12 +4,11 @@ local ZoneType = radiant.mods.require('/stonehearth_terrain/zone_type.lua')
 local Array2D = radiant.mods.require('/stonehearth_terrain/array_2D.lua')
 local HeightMap = radiant.mods.require('/stonehearth_terrain/height_map.lua')
 local GaussianRandom = radiant.mods.require('/stonehearth_terrain/math/gaussian_random.lua')
-local InverseGaussianRandom = radiant.mods.require('/stonehearth_terrain/math/inverse_gaussian_random.lua')
 local MathFns = radiant.mods.require('/stonehearth_terrain/math/math_fns.lua')
 local FilterFns = radiant.mods.require('/stonehearth_terrain/filter/filter_fns.lua')
 local Wavelet = radiant.mods.require('/stonehearth_terrain/wavelet/wavelet.lua')
 local WaveletFns = radiant.mods.require('/stonehearth_terrain/wavelet/wavelet_fns.lua')
-local Point2 = _radiant.csg.Point2
+local EdgeDetailer = radiant.mods.require('/stonehearth_terrain/edge_detailer.lua')
 
 -- Definitions
 -- Block = atomic unit of terrain
@@ -20,16 +19,13 @@ local Point2 = _radiant.csg.Point2
 
 function TerrainGenerator:__init()
    local zone_type
-   math.randomseed(1)
+   math.randomseed(3)
 
    self.zone_size = 256
    self.tile_size = 32
 
    self.wavelet_levels = 4
    self.frequency_scaling_coeff = 0.7
-
-   self.detail_seed_probability = 0.10
-   self.detail_grow_probability = 0.85
 
    self.zone_params = {}
 
@@ -57,6 +53,8 @@ function TerrainGenerator:__init()
 
    local oversize_zone_size = self.zone_size + self.tile_size
    self.oversize_map_buffer = HeightMap(oversize_zone_size, oversize_zone_size)
+
+   self._edge_detailer = EdgeDetailer()
 end
 
 function TerrainGenerator:generate_zone(zone_type, zones, x, y)
@@ -83,7 +81,7 @@ function TerrainGenerator:generate_zone(zone_type, zones, x, y)
    self:_quantize_height_map(oversize_map, true)
    --self:_quantize_height_map(oversize_map, false)
 
-   self:_add_detail_blocks(oversize_map, zone_type)
+   self._edge_detailer:add_detail_blocks(oversize_map, zone_type, self.zone_params)
 
    -- copy the offset zone map from the oversize map
    zone_map = self:_create_zone_map(oversize_map)
@@ -339,172 +337,18 @@ end
 function TerrainGenerator:_get_step_size(zone_type, value)
    local zone_params = self.zone_params
 
+   if value > zone_params.rock_transition_height then
+      return zone_params[ZoneType.Mountains].step_size
+   end
+
+   if value > zone_params.grass_transition_height then
+      return zone_params[ZoneType.Foothills].step_size
+   end
+
    if zone_type == ZoneType.Plains then
-      if value <= zone_params.grass_transition_height then
-         return zone_params[ZoneType.Plains].step_size
-      else
-         return zone_params[ZoneType.Foothills].step_size
-      end
+      return zone_params[ZoneType.Plains].step_size
    else
-      if value <= zone_params.rock_transition_height then
-         return zone_params[ZoneType.Foothills].step_size
-      else
-         return zone_params[ZoneType.Mountains].step_size
-      end
-   end
-end
-
-function TerrainGenerator:_add_detail_blocks(height_map, zone_type)
-   local i, j
-   local edge
-   local edge_map = HeightMap(height_map.width, height_map.height)
-   local roll
-   local detail_seeds = {}
-   local num_seeds = 0
-   local step_size = self.zone_params[zone_type].step_size
-   local edge_threshold = step_size/2
-
-   for j=1, height_map.height, 1 do
-      for i=1, height_map.width, 1 do
-         edge = self:_is_edge(height_map, i, j, edge_threshold)
-         edge_map:set(i, j, edge)
-
-         if edge then
-            if math.random() < self.detail_seed_probability then
-               num_seeds = num_seeds + 1
-               detail_seeds[num_seeds] = Point2(i, j)
-            end
-         end
-      end
-   end
-
-   local point
-   for i=1, num_seeds, 1 do
-      point = detail_seeds[i]
-      self:_grow_seed(height_map, edge_map, point.x, point.y)
-   end
-end
-
-function TerrainGenerator:_grow_seed(height_map, edge_map, x, y)
-   local edge = edge_map:get(x, y)
-   if edge == false then return end
-
-   local i, j, continue, value, detail_height
-
-   -- if edge is not false, edge is the dela to the highest neighbor
-   detail_height = self:_generate_detail_height(edge)
-
-   value = height_map:get(x, y)
-   height_map:set(x, y, value+detail_height)
-   edge_map:set(x, y, false)
-
-   i = x
-   j = y
-   while true do
-      -- grow left
-      i = i - 1
-      if i < 1 then break end
-      continue = self:_try_grow(height_map, edge_map, i, j, detail_height)
-      if not continue then break end
-   end
-
-   i = x
-   j = y
-   while true do
-      -- grow right
-      i = i + 1
-      if i > height_map.width then break end
-      continue = self:_try_grow(height_map, edge_map, i, j, detail_height)
-      if not continue then break end
-   end
-
-   i = x
-   j = y
-   while true do
-      -- grow up
-      j = j - 1
-      if j < 1 then break end
-      continue = self:_try_grow(height_map, edge_map, i, j, detail_height)
-      if not continue then break end
-   end
-
-   i = x
-   j = y
-   while true do
-      -- grow down
-      j = j + 1
-      if j > height_map.height then break end
-      continue = self:_try_grow(height_map, edge_map, i, j, detail_height)
-      if not continue then break end
-   end
-end
-
--- inverse bell curve from 1 to quantization size
--- extend range by 0.5 on each end so that endpoint distribution is not clipped
-function TerrainGenerator:_generate_detail_height(max_delta)
-   local min = 0.5
-   local max = max_delta + 0.49
-
-   -- place the midpoint 2 standard deviations away
-   local std_dev = (max-min)*0.25
-   local rand = InverseGaussianRandom.generate(min, max, std_dev)
-   return MathFns.round(rand)
-end
-
-function TerrainGenerator:_generate_detail_height_uniform(max_delta)
-   return math.random(1, max_delta)
-end
-
-function TerrainGenerator:_try_grow(height_map, edge_map, x, y, detail_height)
-   local edge, value
-
-   edge = edge_map:get(x, y)
-   if edge == false then return false end
-   if math.random() >= self.detail_grow_probability then return false end
-
-   detail_height = math.min(detail_height, edge)
-
-   value = height_map:get(x, y)
-   height_map:set(x, y, value+detail_height)
-   edge_map:set(x, y, false)
-   return true
-end
-
--- returns false is no non-diagonal neighbor higher by more then threshold
--- othrewise returns the height delta to the highest neighbor
-function TerrainGenerator:_is_edge(height_map, x, y, threshold)
-   if threshold == nil then threshold = 0.99 end
-   local neighbor
-   local offset = height_map:get_offset(x, y)
-   local value = height_map[offset]
-   local delta
-   local max_delta = threshold
-
-   if x > 1 then
-      neighbor = height_map[offset-1]
-      delta = neighbor - value
-      if delta > max_delta then max_delta = delta end
-   end
-   if x < height_map.width then
-      neighbor = height_map[offset+1]
-      delta = neighbor - value
-      if delta > max_delta then max_delta = delta end
-   end
-   if y > 1 then
-      neighbor = height_map[offset-height_map.width]
-      delta = neighbor - value
-      if delta > max_delta then max_delta = delta end
-   end
-   if y < height_map.height then
-      neighbor = height_map[offset+height_map.width]
-      delta = neighbor - value
-      if delta > max_delta then max_delta = delta end
-   end
-
-   if max_delta > threshold then
-      return max_delta
-   else
-      return false
+      return zone_params[ZoneType.Foothills].step_size
    end
 end
 
