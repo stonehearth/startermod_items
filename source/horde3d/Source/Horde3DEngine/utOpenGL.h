@@ -923,9 +923,10 @@ extern PFNGLGETSTRINGIPROC glGetStringi;
 
 typedef void (GLAPIENTRYP PFNGLVERTEXATTRIBDIVISORPROC) (GLuint index, GLint divisor);
 typedef void (GLAPIENTRYP PFNGLDRAWARRAYSINSTANCEDPROC) (GLenum mode, GLint first, GLsizei count, GLsizei primcount);
+typedef void (GLAPIENTRYP PFNGLDRAWELEMENTSINSTANCEDPROC) (GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei primcount);
 extern PFNGLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
 extern PFNGLDRAWARRAYSINSTANCEDPROC glDrawArraysInstanced;
-
+extern PFNGLDRAWELEMENTSINSTANCEDPROC glDrawElementsInstanced;
 #endif // GL_VERSION_3_3
 }  // namespace h3dGL
 

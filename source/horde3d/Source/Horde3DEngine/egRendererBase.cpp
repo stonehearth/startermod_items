@@ -1170,7 +1170,7 @@ bool RenderDevice::applyVertexLayout()
             numPositions = 1;
          }
          // If we have more than one position to fill, assume we're filling an entire vec4.
-         // (The current vertex layour only gives size, so we can't tell a 4x3 from a 3x4).
+         // (The current vertex layout only gives size, so we can't tell a 4x3 from a 3x4).
          int realSize = numPositions > 1 ? 4 : attrib.size;
          for ( int curPos = 0; curPos < numPositions; curPos++) {
 			   glVertexAttribPointer( attribIndex + curPos, realSize, GL_FLOAT, GL_FALSE,
@@ -1398,13 +1398,13 @@ void RenderDevice::drawIndexed( RDIPrimType primType, uint32 firstIndex, uint32 
 	CHECK_GL_ERROR
 }
 
-void RenderDevice::drawInstanced( RDIPrimType primType, uint32 firstIndex, uint32 numVerts, uint32 numPrims)
+void RenderDevice::drawInstanced( RDIPrimType primType, uint32 count, uint32 firstIndex, GLsizei primcount)
 {
 	if( commitStates() )
 	{
 		firstIndex *= (_indexFormat == IDXFMT_16) ? sizeof( short ) : sizeof( int );
-		
-		glDrawArraysInstanced( (uint32)primType, firstIndex, numVerts, numPrims );
+
+      glDrawElementsInstanced((uint32)primType, count, _indexFormat, (char *)0 + firstIndex, primcount);
 	}
 
 	CHECK_GL_ERROR

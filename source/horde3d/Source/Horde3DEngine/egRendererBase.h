@@ -419,7 +419,9 @@ public:
 	void draw( RDIPrimType primType, uint32 firstVert, uint32 numVerts );
 	void drawIndexed( RDIPrimType primType, uint32 firstIndex, uint32 numIndices,
 	                  uint32 firstVert, uint32 numVerts );
-   void drawInstanced( RDIPrimType primType, uint32 firstIndex, uint32 numVerts, uint32 numPrims);
+   //void drawInstanced( RDIPrimType primType, uint32 firstIndex, uint32 numVerts, uint32 numPrims);
+   void drawInstanced( RDIPrimType primType, uint32 count, uint32 firstIndex, GLsizei primcount);
+
 // -----------------------------------------------------------------------------
 // Getters
 // -----------------------------------------------------------------------------

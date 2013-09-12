@@ -155,8 +155,9 @@ PFNGLUNIFORMMATRIX4X3FVPROC glUniformMatrix4x3fv = 0x0;
 PFNGLGETSTRINGIPROC glGetStringi = 0x0;
 
 // GL 3.3
-PFNGLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor = 0x0;
-PFNGLDRAWARRAYSINSTANCEDPROC glDrawArraysInstanced = 0x0;
+PFNGLVERTEXATTRIBDIVISORPROC   glVertexAttribDivisor = 0x0;
+PFNGLDRAWARRAYSINSTANCEDPROC   glDrawArraysInstanced = 0x0;
+PFNGLDRAWELEMENTSINSTANCEDPROC glDrawElementsInstanced = 0x0;
 
 // GL_EXT_framebuffer_object
 PFNGLISRENDERBUFFEREXTPROC glIsRenderbufferEXT = 0x0;
@@ -402,6 +403,7 @@ bool initOpenGLExtensions()
       if (glExt::minorVersion >= 3 ) {
          r &= (glVertexAttribDivisor = (PFNGLVERTEXATTRIBDIVISORPROC) platGetProcAddress( "glVertexAttribDivisor" )) != 0x0;
          r &= (glDrawArraysInstanced = (PFNGLDRAWARRAYSINSTANCEDPROC) platGetProcAddress( "glDrawArraysInstanced" )) != 0x0;
+         r &= (glDrawElementsInstanced = (PFNGLDRAWELEMENTSINSTANCEDPROC) platGetProcAddress( "glDrawElementsInstanced" )) != 0x0;
       }
 	}
 
