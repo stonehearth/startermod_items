@@ -259,12 +259,7 @@ void ScriptHost::InitEnvironment()
    //LuaWorkerScheduler::RegisterType(L_);
 
    globals(L_)["native"] = object(L_, this);
-   //globals(L_)["require"] = globals(L_)["radiant_require"];
-
-   //globals(L_)["package"]["path"] = "./scripts/?.lua;./scripts/lib/?.lua";
-   //globals(L_)["package"]["cpath"] = "./scripts/?.lua;./scripts/clib/?.dll";
-
-   globals(L_)["package"]["path"] = "./data/?.lua";
+   globals(L_)["package"]["path"] = "data/?.lua";
    globals(L_)["package"]["cpath"] = "";
 }
 

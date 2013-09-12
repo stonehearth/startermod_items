@@ -1,4 +1,4 @@
-local MicroWorld = require 'stonehearth_tests.lib.micro_world'
+local MicroWorld = require 'lib.micro_world'
 
 local PromoteTest = class(MicroWorld)
 --[[

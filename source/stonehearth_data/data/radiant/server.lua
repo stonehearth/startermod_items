@@ -2,27 +2,28 @@ local api = {}
 
 native:log('loading server radiant script')
 require 'radiant.lib.env'
+
 decoda_name = "radiant server"
 
 radiant = {
    _root_entity = native:create_empty_entity()
 }
 
-radiant.log = require 'radiant.modules.log'
-radiant.util = require 'radiant.lib.util'
-radiant.check = require 'radiant.lib.check'
-radiant.json = require 'radiant.lualibs.dkjson'
-radiant.gamestate = require 'radiant.modules.gamestate'
-radiant.resources = require 'radiant.modules.resources'
-radiant.events = require 'radiant.modules.events'
-radiant.ai = require 'radiant.modules.ai'
-radiant.effects = require 'radiant.modules.effects'
-radiant.entities = require 'radiant.modules.entities'
-radiant.components = require 'radiant.modules.components'
-radiant.terrain = require 'radiant.modules.terrain'
-radiant.mods = require 'radiant.modules.mods'
-radiant.music = require 'radiant.modules.bgm_manager'
-radiant.pathfinder = require 'radiant.modules.pathfinder'
+radiant.log = require 'modules.log'
+radiant.util = require 'lib.util'
+radiant.check = require 'lib.check'
+radiant.json = require 'lualibs.dkjson'
+radiant.gamestate = require 'modules.gamestate'
+radiant.resources = require 'modules.resources'
+radiant.events = require 'modules.events'
+radiant.ai = require 'modules.ai'
+radiant.effects = require 'modules.effects'
+radiant.entities = require 'modules.entities'
+radiant.components = require 'modules.components'
+radiant.terrain = require 'modules.terrain'
+radiant.mods = require 'modules.mods'
+radiant.music = require 'modules.bgm_manager'
+radiant.pathfinder = require 'modules.pathfinder'
 
 radiant.gamestate._start()
 radiant.log.info('radiant api initialized.')

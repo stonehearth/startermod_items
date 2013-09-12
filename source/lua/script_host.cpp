@@ -70,7 +70,7 @@ ScriptHost::ScriptHost()
    ];
    globals(L_)["native"] = object(L_, this);
 
-   globals(L_)["package"]["path"] = "./data/?.lua";
+   globals(L_)["package"]["path"] = "data/?.lua";
    globals(L_)["package"]["cpath"] = "";
 
    // xxx : all c -> lua functions (except maybe update) should be on this clean callback thread.

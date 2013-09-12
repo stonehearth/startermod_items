@@ -334,7 +334,13 @@ std::string ResourceManager2::GetEntityUri(std::string const& mod_name, std::str
 {
    json::ConstJsonObject manifest = resources::ResourceManager2::GetInstance().LookupManifest(mod_name);
    json::ConstJsonObject entities = manifest.getn("radiant").getn("entities");
-   return entities.get<std::string>(entity_name);
+   std::string uri = entities.get<std::string>(entity_name);
+   if (uri.empty()) {
+      std::ostringstream error;
+      error << "'" << mod_name << "' has no entity named '" << entity_name << "' in the manifest.";
+      throw resources::Exception(error.str());
+   }
+   return uri;
 }
 
 std::string ResourceManager2::ExpandMacro(std::string const& current, std::string const& base_path, bool full) const

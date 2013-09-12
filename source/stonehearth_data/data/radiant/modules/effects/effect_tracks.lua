@@ -1,8 +1,8 @@
-local GenericEffect = require 'radiant.modules.effects.generic_effect'
-local AnimationEffect = require 'radiant.modules.effects.animation_effect'
-local FrameDataEffect = require 'radiant.modules.effects.frame_data_effect'
-local TriggerEffect = require 'radiant.modules.effects.trigger_effect'
-local MusicEffect = require 'radiant.modules.effects.music_effect'
+local GenericEffect = require 'modules.effects.generic_effect'
+local AnimationEffect = require 'modules.effects.animation_effect'
+local FrameDataEffect = require 'modules.effects.frame_data_effect'
+local TriggerEffect = require 'modules.effects.trigger_effect'
+local MusicEffect = require 'modules.effects.music_effect'
 
 local EffectTracks = class()
 function EffectTracks:__init(mgr, entity, effect_path, effect_name, start_time, trigger_handler, args)

@@ -1,6 +1,6 @@
 local ai = {}
 local singleton = {}
-local BehaviorManager = require 'radiant.modules.ai.behavior_manager'
+local BehaviorManager = require 'modules.ai.behavior_manager'
 
 function ai.__init()
    ai.SUSPEND_THREAD = {}

@@ -1,4 +1,4 @@
-local MicroWorld = require 'stonehearth_tests.lib.micro_world'
+local MicroWorld = require 'lib.micro_world'
 
 local Point3 = _radiant.csg.Point3
 local CarryTest = class(MicroWorld)

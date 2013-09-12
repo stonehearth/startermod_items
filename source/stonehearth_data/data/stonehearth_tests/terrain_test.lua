@@ -1,5 +1,5 @@
 
-local MicroWorld = radiant.mods.require('/stonehearth_tests/lib/micro_world.lua')
+local MicroWorld = require 'lib/micro_world'
 local TerrainTest = class(MicroWorld)
 
 local ZoneType = radiant.mods.require('/stonehearth_terrain/zone_type.lua')

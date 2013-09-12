@@ -7,37 +7,6 @@ function entities.__init()
    singleton._entity_dtors = {}
 end
 
-function entities._add_scripts(entity, obj)
-   if obj.scripts then
-      for _, name in ipairs(obj.scripts) do
-         -- the correct way to do this is to have the entity loader
-         -- attach scripts directly... not by name!!
-         radiant.log.info("adding msg handler %s.", name);
-
-         local ctor = radiant.resources.lua_require(name)
-         radiant.events.add_msg_handler(entity, ctor)
-      end
-   end
-end
-
-function entities._init_entity(entity, uri)
-   -- add standard components, based on the kind of entity we want
-   local obj = radiant.resources.load_json(uri)
-
-   if obj then
-      if obj.components then
-         for name, json in pairs(obj.components) do
-            assert(json)
-            local component = entity:add_component(name)
-            if component and component.extend then
-               component:extend(json)
-            end
-         end
-      end
-      --entities._add_scripts(entity, obj)
-   end
-end
-
 --[[
 Opposite of _init_entity. Given a uri, remove
 component influences from the entity.
@@ -281,11 +250,11 @@ end
 
 --[[
 local dkjson = require 'lib.dkjson'
-local log = require 'radiant.core.log'
-local util = require 'radiant.core.util'
-local check = require 'radiant.core.check'
-local md = require 'radiant.core.md'
-local ai_mgr = require 'radiant.ai.ai_mgr'
+local log = require 'core.log'
+local util = require 'core.util'
+local check = require 'core.check'
+local md = require 'core.md'
+local ai_mgr = require 'ai.ai_mgr'
 local ani_mgr
 
 -- xxx: break this up into the init-time and the run-time reactor?
@@ -465,7 +434,7 @@ end
 function entities._add_animation(entity, obj)
    if obj.animation_table then
       if not ani_mgr then
-         ani_mgr = require 'radiant.core.animation'
+         ani_mgr = require 'core.animation'
       end
       ani_mgr:get_animation(entity, obj)
    end
