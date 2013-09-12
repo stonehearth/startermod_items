@@ -59,7 +59,9 @@ class Client : public core::Singleton<Client> {
       void SelectEntity(om::EntityPtr obj);
       void SelectEntity(dm::ObjectId id);
 
+      om::EntityPtr CreateEmptyAuthoringEntity();
       om::EntityPtr CreateAuthoringEntity(std::string const& mod_name, std::string const& entity_name);
+      om::EntityPtr CreateAuthoringEntityByRef(std::string const& ref);
 
       dm::Store& GetStore() { return store_; }
       dm::Store& GetAuthoringStore() { return authoringStore_; }

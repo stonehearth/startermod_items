@@ -22,8 +22,8 @@
          "description": "He's just a sapling!"
       }, 
       "radiant:resource_node": {
-         "resource": "file(../oak_log)", 
-         "durability": 6
+         "resource": "entity(stonehearth_trees, oak_log)", 
+         "durability": 4
       }
    }
 }

@@ -8,7 +8,7 @@ function CreateWorkbench:handle_request(session, postdata)
    -- pull the location and entity uri out of the postdata, create that
    -- entity, and move it there.
    local location = Point3(postdata.location.x, postdata.location.y, postdata.location.z)
-   local workbench_entity = radiant.entities.create_entity(postdata.workbench_uri)
+   local workbench_entity = radiant.entities.create_entity(postdata.workbench_entity)
    local workshop_component = workbench_entity:get_component('stonehearth_crafter:workshop')
 
    -- Plasde the bench in the world

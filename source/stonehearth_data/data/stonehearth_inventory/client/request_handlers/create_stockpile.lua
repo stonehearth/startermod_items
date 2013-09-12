@@ -8,7 +8,7 @@ function CreateStockpile:handle_request(query, postdata, response)
    -- screen to preview where the workbench will go.  these entities are called
    -- "authoring entities", because they exist only on the client side to help
    -- in the authoring of new content.
-   local cursor_entity = _client:create_empty_authoring_entity()
+   local cursor_entity = radiant.entities.create_entity()
    local mob = cursor_entity:add_component('mob')
    mob:set_interpolate_movement(false)
    

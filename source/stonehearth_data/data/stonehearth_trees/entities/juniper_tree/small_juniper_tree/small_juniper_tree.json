@@ -20,7 +20,7 @@
          "description": "Just a sapling."
       }, 
       "radiant:resource_node": {
-         "resource": "file(../juniper_log)", 
+         "resource": "entity(stonehearth_trees, juniper_log)", 
          "durability": 6
       }
    }

@@ -1074,13 +1074,25 @@ void Client::BrowserRequestHandler(std::string const& path, JSONNode const& quer
    }
 }
 
-om::EntityPtr Client::CreateAuthoringEntity(std::string const& mod_name, std::string const& entity_name)
+om::EntityPtr Client::CreateEmptyAuthoringEntity()
 {
    om::EntityPtr entity = authoringStore_.AllocObject<om::Entity>();   
    authoredEntities_[entity->GetObjectId()] = entity;
-   if (!mod_name.empty() && !entity_name.empty()) {
-      om::Stonehearth::InitEntity(entity, mod_name, entity_name, nullptr);
-   }
+   return entity;
+}
+
+
+om::EntityPtr Client::CreateAuthoringEntity(std::string const& mod_name, std::string const& entity_name)
+{
+   om::EntityPtr entity = CreateEmptyAuthoringEntity();
+   om::Stonehearth::InitEntity(entity, mod_name, entity_name, nullptr);
+   return entity;
+}
+
+om::EntityPtr Client::CreateAuthoringEntityByRef(std::string const& ref)
+{
+   om::EntityPtr entity = CreateEmptyAuthoringEntity();
+   om::Stonehearth::InitEntityByRef(entity, ref, nullptr);
    return entity;
 }
 
@@ -1137,16 +1149,6 @@ MouseEventPromisePtr MouseEventPromise_OnMouseEvent(MouseEventPromisePtr me, lua
 void MouseEventPromise_Destroy(MouseEventPromisePtr me)
 {
    me->Uninstall();
-}
-
-om::EntityRef Client_CreateAuthoringEntity(Client& client, std::string const& mod_name, std::string const& entity_name)
-{
-   return client.CreateAuthoringEntity(mod_name, entity_name);
-}
-
-om::EntityRef Client_CreateEmptyAuthoringEntity(Client& client)
-{
-   return client.CreateAuthoringEntity("", "");
 }
 
 static luabind::object
@@ -1244,6 +1246,21 @@ std::shared_ptr<LuaDeferred2<XZRegionSelector::Deferred>> Client_SelectXZRegion(
    return luaDeferred;
 }
 
+om::EntityRef Client_CreateEmptyAuthoringEntity(Client& client)
+{
+   return client.CreateEmptyAuthoringEntity();
+}
+
+om::EntityRef Client_CreateAuthoringEntity(Client& client, std::string const& mod_name, std::string const& entity_name)
+{
+   return client.CreateAuthoringEntity(mod_name, entity_name);
+}
+
+om::EntityRef Client_CreateAuthoringEntityByRef(Client& client, std::string const& ref)
+{
+   return client.CreateAuthoringEntityByRef(ref);
+}
+
 template <class T>
 luabind::scope RegisterLuaDeferredType(lua_State* L)
 {
@@ -1260,8 +1277,9 @@ void Client::RegisterLuaTypes(lua_State* L)
    using namespace luabind;
    module(L) [
       lua::RegisterType<Client>()
-         .def("create_authoring_entity",        &Client_CreateAuthoringEntity)
          .def("create_empty_authoring_entity",  &Client_CreateEmptyAuthoringEntity)
+         .def("create_authoring_entity",        &Client_CreateAuthoringEntity)
+         .def("create_authoring_entity_by_ref", &Client_CreateAuthoringEntityByRef)
          .def("destroy_authoring_entity", &Client::DestroyAuthoringEntity)
          .def("create_render_entity",     &Client_CreateRenderEntity)
          .def("trace_mouse",              &Client::TraceMouseEvents)
