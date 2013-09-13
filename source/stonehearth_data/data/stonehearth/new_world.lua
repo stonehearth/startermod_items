@@ -20,13 +20,16 @@ function NewWorld:create_world()
    HeightMapRenderer.render_height_map_to_terrain(height_map, self._terrain_generator.zone_params)
 
    local landscaper = Landscaper()
-   landscaper:place_forest(height_map)
-   landscaper:place_forest(height_map)
+
+   local i
+   for i=1, 3 do
+      landscaper:place_forest(height_map)
+   end
 end
 
 function NewWorld:place_objects()
-   local camp_x = 100
-   local camp_z = 100
+   local camp_x = 128
+   local camp_z = 128
 
    local tree = self:place_tree(camp_x-12, camp_z-12)
    --local worker = self:place_citizen(camp_x-8, camp_z-8)
