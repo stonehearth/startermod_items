@@ -42,29 +42,33 @@ end
 
 function HeightMapRenderer._add_land_to_region(dst, rect, height, zone_params)
    local foothills_step_size = zone_params[ZoneType.Foothills].step_size
-   local grass_transition_height = zone_params.grass_transition_height
-   local rock_transition_height = zone_params.rock_transition_height
+   local foothills_max_height = zone_params[ZoneType.Foothills].max_height
+   local tree_line = zone_params.tree_line
 
    dst:add_cube(Cube3(Point3(rect.min.x, -2, rect.min.y),
                       Point3(rect.max.x,  0, rect.max.y),
                 Terrain.BEDROCK))
 
    -- Mountains
-   if (height > rock_transition_height) and
-      (height % foothills_step_size == 0) then
-      
-      dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
-                         Point3(rect.max.x, height-1, rect.max.y),
-                   Terrain.TOPSOIL))
+   if height > zone_params[ZoneType.Foothills].max_height then
+      if height > tree_line then
+         dst:add_cube(Cube3(Point3(rect.min.x, 0,         rect.min.y),
+                            Point3(rect.max.x, tree_line, rect.max.y),
+                      Terrain.TOPSOIL))
 
-      dst:add_cube(Cube3(Point3(rect.min.x, height-1, rect.min.y),
-                         Point3(rect.max.x, height,   rect.max.y),
-                   Terrain.TOPSOIL)) -- need mountain plateau color
+         dst:add_cube(Cube3(Point3(rect.min.x, tree_line, rect.min.y),
+                            Point3(rect.max.x, height,    rect.max.y),
+                      Terrain.BEDROCK))
+      else
+         dst:add_cube(Cube3(Point3(rect.min.x, 0,         rect.min.y),
+                            Point3(rect.max.x, height, rect.max.y),
+                      Terrain.TOPSOIL))
+      end
       return
    end
 
    -- Plains
-   if (height <= grass_transition_height) then
+   if height <= zone_params[ZoneType.Plains].max_height then
 
       dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
                          Point3(rect.max.x, height-1, rect.max.y),
@@ -77,7 +81,7 @@ function HeightMapRenderer._add_land_to_region(dst, rect, height, zone_params)
    end
 
    -- Foothills
-   if (height % foothills_step_size == 0) then
+   if height % foothills_step_size == 0 then
 
       dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
                          Point3(rect.max.x, height-1, rect.max.y),
@@ -86,12 +90,11 @@ function HeightMapRenderer._add_land_to_region(dst, rect, height, zone_params)
       dst:add_cube(Cube3(Point3(rect.min.x, height-1, rect.min.y),
                          Point3(rect.max.x, height,   rect.max.y),
                    Terrain.GRASS))
-      return
+   else
+      dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
+                         Point3(rect.max.x, height,   rect.max.y),
+                   Terrain.TOPSOIL))
    end
-
-   dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
-                      Point3(rect.max.x, height,   rect.max.y),
-                Terrain.TOPSOIL))
 end
 
 return HeightMapRenderer

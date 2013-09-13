@@ -18,7 +18,7 @@ local EdgeDetailer = radiant.mods.require('/stonehearth_terrain/edge_detailer.lu
 -- World = the entire playspace of a game
 
 function TerrainGenerator:__init()
-   local zone_type
+   local zone_type, zone_params
    math.randomseed(3)
 
    self.zone_size = 256
@@ -27,29 +27,32 @@ function TerrainGenerator:__init()
    self.wavelet_levels = 4
    self.frequency_scaling_coeff = 0.7
 
+   local base_step_size = 8
    self.zone_params = {}
+   zone_params = self.zone_params
 
    zone_type = ZoneType.Plains
-   self.zone_params[zone_type] = {}
-   self.zone_params[zone_type].step_size = 2
-   self.zone_params[zone_type].mean_height = 8
-   self.zone_params[zone_type].std_dev = 10
+   zone_params[zone_type] = {}
+   zone_params[zone_type].step_size = 2
+   zone_params[zone_type].mean_height = base_step_size
+   zone_params[zone_type].std_dev = 10
+   zone_params[zone_type].max_height = 8
 
    zone_type = ZoneType.Foothills
-   self.zone_params[zone_type] = {}
-   self.zone_params[zone_type].step_size = 8
-   self.zone_params[zone_type].mean_height = 24
-   self.zone_params[zone_type].std_dev = 32
+   zone_params[zone_type] = {}
+   zone_params[zone_type].step_size = base_step_size
+   zone_params[zone_type].mean_height = 24
+   zone_params[zone_type].std_dev = 32
+   zone_params[zone_type].max_height = 32
 
    zone_type = ZoneType.Mountains
-   self.zone_params[zone_type] = {}
-   self.zone_params[zone_type].step_size = 16
-   self.zone_params[zone_type].mean_height = 48
-   self.zone_params[zone_type].std_dev = 48
+   zone_params[zone_type] = {}
+   zone_params[zone_type].step_size = base_step_size * 2
+   zone_params[zone_type].mean_height = 48
+   zone_params[zone_type].std_dev = 96
 
-   local foothills_step_size = self.zone_params[ZoneType.Foothills].step_size
-   self.zone_params.grass_transition_height = foothills_step_size*1
-   self.zone_params.rock_transition_height = foothills_step_size*6
+   zone_params.tree_line = zone_params[ZoneType.Foothills].max_height +
+      zone_params[ZoneType.Mountains].step_size
 
    local oversize_zone_size = self.zone_size + self.tile_size
    self.oversize_map_buffer = HeightMap(oversize_zone_size, oversize_zone_size)
@@ -311,8 +314,8 @@ function TerrainGenerator:_quantize_height_map(height_map, fancy_mode)
 
    height_map:process_map(
       function (value)
+         -- step_size depends on altitude and zone type
          local step_size = self:_get_step_size(zone_type, value)
-
          if value <= step_size then return step_size end
 
          local quantized_value = MathFns.quantize(value, step_size)
@@ -321,6 +324,7 @@ function TerrainGenerator:_quantize_height_map(height_map, fancy_mode)
          -- disable fancy mode for Plains?
          --if value < 8 then return quantized_value end
 
+         -- fancy mode
          local rounded_value, diff
          rounded_value = MathFns.round(value)
          diff = quantized_value - rounded_value
@@ -337,11 +341,11 @@ end
 function TerrainGenerator:_get_step_size(zone_type, value)
    local zone_params = self.zone_params
 
-   if value > zone_params.rock_transition_height then
+   if value > zone_params[ZoneType.Foothills].max_height then
       return zone_params[ZoneType.Mountains].step_size
    end
 
-   if value > zone_params.grass_transition_height then
+   if value > zone_params[ZoneType.Plains].max_height then
       return zone_params[ZoneType.Foothills].step_size
    end
 
