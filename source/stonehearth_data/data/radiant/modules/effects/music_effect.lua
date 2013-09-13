@@ -1,4 +1,4 @@
-local Effect = require 'radiant.modules.effects.effect'
+local Effect = require 'modules.effects.effect'
 local MusicEffect = class(Effect)
 
 function MusicEffect:__init(start_time, handler, info, effect)

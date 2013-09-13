@@ -1,8 +1,8 @@
-local GenericEffect = require 'radiant.modules.effects.generic_effect'
-local AnimationEffect = require 'radiant.modules.effects.animation_effect'
-local FrameDataEffect = require 'radiant.modules.effects.frame_data_effect'
-local TriggerEffect = require 'radiant.modules.effects.trigger_effect'
-local MusicEffect = require 'radiant.modules.effects.music_effect'
+local GenericEffect = require 'modules.effects.generic_effect'
+local AnimationEffect = require 'modules.effects.animation_effect'
+local FrameDataEffect = require 'modules.effects.frame_data_effect'
+local TriggerEffect = require 'modules.effects.trigger_effect'
+local MusicEffect = require 'modules.effects.music_effect'
 
 local EffectTracks = class()
 function EffectTracks:__init(mgr, entity, effect_path, effect_name, start_time, trigger_handler, args)
@@ -26,7 +26,7 @@ function EffectTracks:__init(mgr, entity, effect_path, effect_name, start_time, 
    radiant.check.verify(effect)
 
    self._effects = {}
-   for name, e in radiant.resources.pairs(effect.tracks) do
+   for name, e in pairs(effect.tracks) do
       if e.type == "animation_effect" then
          table.insert(self._effects, AnimationEffect(e.animation, start_time, e))
       elseif e.type == "trigger_effect" then

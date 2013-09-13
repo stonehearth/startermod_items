@@ -1,0 +1,17 @@
+{
+   "extends": "entity(stonehearth_items, item_properties)", 
+   "type": "entity", 
+   "components": {
+      "model_variants": [
+         {
+            "models": [
+               "file(../default_object/default_object.qb)"
+            ]
+         }
+      ], 
+      "unit_info": {
+         "name": "Dining Table", 
+         "description": "Sitting down to eat is a sign of civilization."
+      }
+   }
+}

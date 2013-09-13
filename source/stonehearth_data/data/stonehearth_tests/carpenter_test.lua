@@ -1,5 +1,4 @@
-local MicroWorld = require 'stonehearth_tests.lib.micro_world'
-local ProfessionInfo = radiant.mods.require('/stonehearth_classes/components/profession_info.lua')
+local MicroWorld = require 'lib.micro_world'
 local CraftOrder = radiant.mods.require('/stonehearth_crafter/lib/craft_order.lua')
 local Point3 = _radiant.csg.Point3
 
@@ -15,11 +14,9 @@ function CarpenterTest:__init()
 
    --Create the carpenter, bench, and instantiate them to each other
 
-   local bench = self:place_item('/stonehearth_carpenter_class/entities/carpenter_workbench', -12, -12)
+   local bench = self:place_item('stonehearth_carpenter_class', 'carpenter_workbench', -12, -12)
    local workshop_component = bench:get_component('stonehearth_crafter:workshop')
 
-   --local profession_info = ProfessionInfo()
-   --profession_info:set_promotion_data({workshop = workshop_component})
    local carpenter = self:place_citizen(12, 12,'carpenter', {workshop = workshop_component})
 
    local faction = carpenter:get_component('unit_info'):get_faction()
@@ -33,7 +30,7 @@ function CarpenterTest:__init()
    --TODO: make a private stockpile
 
    --[[
-   local outbox_entity = radiant.entities.create_entity('/stonehearth_inventory/entities/stockpile')
+   local outbox_entity = radiant.entities.create_entity('/stonehearth_inventory', 'stockpile')
    local outbox_location = Point3(-8, 1, -12)
    radiant.terrain.place_entity(outbox_entity, outbox_location)
    local outbox_component = outbox_entity:get_component('radiant:stockpile')
@@ -44,11 +41,11 @@ function CarpenterTest:__init()
    -- end TODO
 
    -- put some items in the world
-   self:place_item_cluster('/stonehearth_trees/entities/oak_tree/oak_log', -10, 10, 3, 3)
-   self:place_item_cluster('/stonehearth_items/cloth_bolt', -7, 10, 2, 2)
+   self:place_item_cluster('stonehearth_trees', 'oak_log', -10, 10, 3, 3)
+   self:place_item_cluster('stonehearth_items', 'cloth_bolt', -7, 10, 2, 2)
 
    --TODO: figure out iconic objects
-   --self:place_item_cluster('stonehearth_items/comfy_bed/', 0, 0, 2, 2)
+   --self:place_item_cluster('stonehearth_items', 'comfy_bed', 0, 0, 2, 2)
 
  -- Tests!
 

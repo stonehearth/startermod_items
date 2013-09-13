@@ -35,11 +35,11 @@ void RenderInfo::AttachEntity(om::EntityRef e)
    }
 }
 
-EntityRef RenderInfo::RemoveEntity(std::string const& uri)
+EntityRef RenderInfo::RemoveEntity(std::string const& mod_name, std::string const& entity_name)
 {
    for (auto const& e : attached_) {
       auto entity = e.lock();
-      if (entity && entity->GetResourceUri() == uri) {
+      if (entity && entity->GetModuleName() == mod_name && entity->GetEntityName() == entity_name) {
          attached_.Remove(e);
          return e;
       }

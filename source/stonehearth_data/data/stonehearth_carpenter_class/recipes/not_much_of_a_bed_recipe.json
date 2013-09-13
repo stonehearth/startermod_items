@@ -6,8 +6,8 @@
    "my_location" : "/stonehearth_carpenter_class/recipes/not_much_of_a_bed_recipe.json",
    "description" : "Slightly more comfortable than sleeping on a board.",
    "flavor"      : "Mean as in poor, not cruel. Though it's that too.",
-   "card_art"    : "/stonehearth_items/not_much_of_a_bed/not_much_of_a_bed_card.png",
-   "queue_art"   : "/stonehearth_items/not_much_of_a_bed/not_much_of_a_bed_queue.png",
+   "card_art"    : "/stonehearth_items/entities/not_much_of_a_bed/not_much_of_a_bed_card.png",
+   "queue_art"   : "/stonehearth_items/entities/not_much_of_a_bed/not_much_of_a_bed_queue.png",
    "category"    : "weapons",
 
    "ingredients": [
@@ -19,7 +19,7 @@
   ],
   "produces": [
       {
-         "item":"/stonehearth_items/not_much_of_a_bed",
+         "item":"entity(stonehearth_items, not_much_of_a_bed)",
          "script":"/stonehearth_crafter/",
          "command":"produce_item"
       }

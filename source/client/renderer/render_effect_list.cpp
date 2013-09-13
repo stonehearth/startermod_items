@@ -278,7 +278,13 @@ RenderAttachItemEffect::RenderAttachItemEffect(RenderEntity& e, om::EffectPtr ef
 #endif
       }
    } else {
-      item = authored_entity_ = om::Stonehearth::CreateEntityLegacyDIEDIEDIE(Client::GetInstance().GetAuthoringStore(), kind);
+      item = authored_entity_ = Client::GetInstance().GetAuthoringStore().AllocObject<om::Entity>();
+      try {
+         om::Stonehearth::InitEntityByRef(item, kind, nullptr);
+      } catch (resources::Exception &e) {
+         // xxx: put this in the error browser!!
+         LOG(WARNING) << "!!!!!!! ERROR IN RenderAttachItemEffect: " << e.what();
+      }
    }
 
    if (item) {
@@ -380,8 +386,9 @@ FloatingCombatTextEffect::FloatingCombatTextEffect(RenderEntity& e, om::EffectPt
       if (render_info) {
          std::string animationTableName = render_info->GetAnimationTable();
 
-         JSONNode const& json = resources::ResourceManager2::GetInstance().LookupJson(animationTableName);
-         height_ = json::get<float>(json::get<JSONNode>(json, "collision_shape"), "height", 4.0f);
+         json::ConstJsonObject json = resources::ResourceManager2::GetInstance().LookupJson(animationTableName);
+         json::ConstJsonObject cs = json.get<JSONNode>("collision_shape");
+         height_ = cs.get<float>("height", 4.0f);
          height_ *= 0.1f; // xxx - take this out of the same place where we store the face that the model is 10x too big
       }
    }
@@ -537,7 +544,7 @@ void SingMusicEffect::PlayMusic(om::EffectPtr effect, const JSONNode& node)
       //If there is no music, immediately start bg music
       if (music_.openFromFile(trackName)) {
          music_.setLoop(loop_);
-         music_.setVolume(volume_);
+         music_.setVolume((float)volume_);
 	      music_.play();
       } else { 
          LOG(INFO) << "Can't find Music! " << trackName;
@@ -588,7 +595,7 @@ void SingMusicEffect::Update(int now, int dt, bool& finished)
             if (music_.openFromFile(nextTrack_)) {
             //TODO: crossfade
             volume_ = SING_MUSIC_EFFECT_DEF_VOL;
-            music_.setVolume(volume_);
+            music_.setVolume((float)volume_);
             music_.setLoop(loop_);
             music_.play();
             } else { 
@@ -598,7 +605,7 @@ void SingMusicEffect::Update(int now, int dt, bool& finished)
          } else {
             //If the tweener is not finished, soften the volume
             tweener_->update((double)dt);
-            music_.setVolume(volume_);
+            music_.setVolume((float)volume_);
          }
       }
    }
@@ -707,7 +714,7 @@ void PlaySoundEffect::AssignFromJSON_(const JSONNode& node) {
    //Set sound parameters
    sound_.setLoop(loop);
    sound_.setAttenuation(attenuation);
-   sound_.setMinDistance(minDistance);
+   sound_.setMinDistance((float)minDistance);
 }
 
 /* PlaySoundEffect::CalculateAttenuation
@@ -721,9 +728,9 @@ void PlaySoundEffect::AssignFromJSON_(const JSONNode& node) {
  * Returns a float. 1 means the sound sticks around for a long time. Higher numbers means it softens faster.
 */
 float PlaySoundEffect::CalculateAttenuation_(int maxDistance, int minDistance) {
-   float interm1 = maxDistance/PLAY_SOUND_EFFECT_MIN_VOLUME;
+   float interm1 = maxDistance / PLAY_SOUND_EFFECT_MIN_VOLUME;
    float interm2 = interm1 - minDistance;
-   float interm3 = maxDistance - minDistance;
+   float interm3 = (float)(maxDistance - minDistance);
    return (interm2/interm3);
 }
 

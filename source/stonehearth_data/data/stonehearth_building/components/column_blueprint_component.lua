@@ -15,7 +15,7 @@ end
 function ColumnBlueprintComponent:extend(json)
    self._colors = {}
    if json.colors then
-      for _, rgb in radiant.resources.pairs(json.colors) do
+      for i, rgb in ipairs(json.colors) do
          table.insert(self._colors, radiant.util.colorcode_to_integer(rgb))
       end
    end

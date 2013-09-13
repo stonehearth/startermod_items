@@ -6,24 +6,24 @@
          {
             "models": [
                {
+                  "type": "one_of",
                   "items": [
                      "file(large_oak_tree.qb)", 
                      "file(large_oak_tree_2.qb)", 
                      "file(large_oak_tree_3.qb)"
-                  ], 
-                  "type": "one_of"
+                  ]
                }
             ], 
             "scale": 1
          }
-      ], 
+      ],
       "unit_info": {
          "name": "Large Oak Tree", 
-         "description": "100's of years old.  Too bad..."
+         "description": "100's of years old. Too bad..."
       }, 
       "radiant:resource_node": {
-         "resource": "file(../oak_log)", 
-         "durability": 6
+         "resource": "entity(stonehearth_trees, oak_log)", 
+         "durability": 20
       }
    }
 }

@@ -43,7 +43,7 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
    dm::ObjectId id = entity->GetObjectId();
 
    std::ostringstream name;
-   name << "RenderEntity " << entity->GetDebugName() << " (" << entity->GetStoreId() << ", " << id << ")";
+   name << "RenderEntity " << entity->GetModuleName() << " " << entity->GetEntityName() << " (" << entity->GetStoreId() << ", " << id << ")";
 
    // LOG(WARNING) << "creating new entity " << name.str() << ".";
 
@@ -187,25 +187,24 @@ void RenderEntity::AddLuaComponents(om::LuaComponentsPtr lua_components)
 
          auto const& res = resources::ResourceManager2::GetInstance();
          json::ConstJsonObject const& manifest = res.LookupManifest(modname);
-         std::string path;
-         try {
-            path = manifest["component_renderers"][component_name].as_string();
-         } catch (json::Exception&) {
-            continue;
-         }
-         lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
-         luabind::object ctor = script->LuaRequire(path);
+         json::ConstJsonObject cr = manifest.getn("component_renderers");
+         std::string path = cr.get<std::string>(component_name);
 
-         std::weak_ptr<RenderEntity> re = shared_from_this();
-         luabind::object render_component;
-         try {
-            om::DataBindingRef data_store = entry.second;
-            render_component = script->CallFunction<luabind::object>(ctor, re, data_store);
-         } catch (std::exception const& e) {
-            LOG(WARNING) << e.what();
-            continue;
+         if (!path.empty()) {
+            lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
+            luabind::object ctor = script->LuaRequire(path);
+
+            std::weak_ptr<RenderEntity> re = shared_from_this();
+            luabind::object render_component;
+            try {
+               om::DataBindingRef data_store = entry.second;
+               render_component = script->CallFunction<luabind::object>(ctor, re, data_store);
+            } catch (std::exception const& e) {
+               LOG(WARNING) << e.what();
+               continue;
+            }
+            lua_components_[name] = render_component;
          }
-         lua_components_[name] = render_component;
       }
    }
 }

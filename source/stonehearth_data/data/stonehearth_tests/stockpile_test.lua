@@ -1,11 +1,11 @@
-local MicroWorld = require 'stonehearth_tests.lib.micro_world'
+local MicroWorld = require 'lib.micro_world'
 local StockpileTest = class(MicroWorld)
 
 function StockpileTest:__init()
    self[MicroWorld]:__init()
    self:create_world()
 
-   self:place_item_cluster('/stonehearth_trees/entities/oak_tree/oak_log', -15, -15, 4, 4);
+   self:place_item_cluster('stonehearth_trees', 'oak_log', -15, -15, 4, 4);
    --self:place_citizen(15, 15)
    local worker = self:place_citizen(13, 13)
    local faction = worker:get_component('unit_info'):get_faction()   

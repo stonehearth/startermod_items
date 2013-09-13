@@ -8,6 +8,8 @@
 
 // This file clearly does not belong in the om.
 
+struct lua_State;
+
 BEGIN_RADIANT_OM_NAMESPACE
 
 class Stonehearth
@@ -15,7 +17,14 @@ class Stonehearth
 public:
    // xxx this file has no reason to exist anymore now that lua handles most of this
    static csg::Region3 ComputeStandingRegion(const csg::Region3& r, int height);
-   static om::EntityPtr CreateEntityLegacyDIEDIEDIE(dm::Store& store, std::string uri);
+
+   static void InitEntity(om::EntityPtr entity, std::string const& mod_name, std::string const& entity_name, lua_State* L);
+   static void InitEntityByRef(om::EntityPtr entity, std::string const& ref, lua_State* L);
+   static luabind::object om::Stonehearth::AddComponent(lua_State* L, om::EntityRef e, std::string name);
+   static luabind::object om::Stonehearth::GetComponent(lua_State* L, om::EntityRef e, std::string name);
+
+private:
+   static void InitEntityByUri(om::EntityPtr entity, std::string const& uri, lua_State* L);
 };
 
 END_RADIANT_OM_NAMESPACE

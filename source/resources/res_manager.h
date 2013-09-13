@@ -19,13 +19,15 @@ public:
    static ResourceManager2& GetInstance();
 
    std::vector<std::string> const& GetModuleNames() const;
-   JSONNode const& LookupManifest(std::string const& modname) const;
+   JSONNode LookupManifest(std::string const& modname) const;
    JSONNode const& LookupJson(std::string path) const;
    AnimationPtr LookupAnimation(std::string path) const;
 
    void OpenResource(std::string const& path, std::ifstream& in) const;
    std::string GetResourceFileName(std::string const& path, const char* serach_ext) const;  // xxx: used only for lua... it's bad!
    std::string ConvertToCanonicalPath(std::string const& path, const char* search_ext) const;
+
+   std::string GetEntityUri(std::string const& mod_name, std::string const& entity_name) const;
 
 private:
    ResourceManager2();
@@ -40,7 +42,9 @@ private:
    JSONNode LoadJson(std::string const& path) const;
    void ParseNodeExtension(std::string const& path, JSONNode& node) const;
    void ExtendNode(JSONNode& node, const JSONNode& parent) const;
-   void ConvertToAbsolutePaths(std::string const& base_path, JSONNode& node) const;
+   std::string ExpandMacro(std::string const& current, std::string const& base_path, bool full) const;
+   void ExpandMacros(std::string const& base_path, JSONNode& node, bool full) const;
+   std::string ConvertToAbsolutePath(std::string const& current, std::string const& base_path) const;
 
 private:
    boost::filesystem::path                       resource_dir_;

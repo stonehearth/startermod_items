@@ -2,6 +2,12 @@
    "info" :{
       "name" : "Stonehearth Crafter Library"
    },
+   "radiant" : {
+      "entities" : {
+         "class_info" : "file(entities/class_info)",
+         "workbench" : "file(entities/workbench)"
+      }
+   },
    "components" :  {
       "workshop" : "file(components/workshop_component.lua)",
       "crafter"  : "file(components/crafter_component.lua)"

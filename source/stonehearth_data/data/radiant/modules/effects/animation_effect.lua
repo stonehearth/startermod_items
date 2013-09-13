@@ -1,4 +1,4 @@
-local Effect = require 'radiant.modules.effects.effect'
+local Effect = require 'modules.effects.effect'
 local AnimationEffect = class(Effect)
 
 function AnimationEffect:__init(animation_path, start_time, info)  
