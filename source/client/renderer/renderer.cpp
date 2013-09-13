@@ -106,6 +106,7 @@ Renderer::Renderer() :
    // how to actually get the resource loaded!
    h3dAddResource(H3DResTypes::Material, "materials/debug_shape.material.xml", 0); 
    H3DRes c = h3dAddResource(H3DResTypes::Material, "materials/cubemitter.material.xml", 0);
+   H3DRes d = h3dAddResource(RT_CubemitterResource, "particles/fire/fire.cubemitter.json", 0);
    h3dRadiantAddCubemitterNode(H3DRootNode, "first_cubemitter!", 1, c);
    LoadResources();
 
@@ -184,6 +185,11 @@ void Renderer::FlushMaterials() {
 
    r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::ParticleEffect, r)) != 0) {
+      h3dUnloadResource(r);
+   }
+
+   r = 0;
+   while ((r = h3dGetNextResource(RT_CubemitterResource, r)) != 0) {
       h3dUnloadResource(r);
    }
 

@@ -33,6 +33,66 @@ struct CubemitterNodeParams
 	};
 };
 
+struct DataChannel
+{
+   enum Kind
+   {
+      CONSTANT,
+      RANDOM_BETWEEN
+   };
+
+   enum DataKind
+   {
+      SCALAR,
+      TRIPLE
+   };
+
+   struct Triple {
+      float v0, v1, v2;
+   };
+
+   struct ChannelValue {
+      union {
+         float scalar;
+         Triple triple;
+      } value;
+
+      ChannelValue(float f) {
+         value.scalar = f;
+      }
+
+      ChannelValue(float v0, float v1, float v2) {
+         value.triple.v0 = v0;
+         value.triple.v1 = v1;
+         value.triple.v2 = v2;
+      }
+   };
+
+   DataKind dataKind;
+   Kind kind;
+   std::vector<ChannelValue> values;
+};
+
+struct EmissionData {
+   DataChannel rate;
+};
+
+struct ColorData {
+   DataChannel start;
+};
+
+struct ParticleData {
+   DataChannel start_lifetime;
+   DataChannel start_speed;
+   ColorData color;
+};
+
+struct CubemitterData {
+   float duration;
+   EmissionData emission;
+   ParticleData particle;
+};
+
 struct CubeData
 {
 	float   life, maxLife;
@@ -44,6 +104,45 @@ struct CubeData
 	float  size0;
 	float  r0, g0, b0, a0;
 };
+
+// =================================================================================================
+
+class CubemitterResource : public Resource
+{
+public:
+	static Resource *factoryFunc( const std::string &name, int flags )
+		{ return new CubemitterResource( name, flags ); }
+	
+	CubemitterResource( const std::string &name, int flags );
+	~CubemitterResource();
+	
+	void initDefault();
+	void release();
+	bool load( const char *data, int size );
+
+	int getElemCount( int elem );
+	float getElemParamF( int elem, int elemIdx, int param, int compIdx );
+	void setElemParamF( int elem, int elemIdx, int param, int compIdx, float value );
+
+private:
+	bool raiseError( const std::string &msg, int line = -1 );
+   EmissionData parseEmission(JSONNode& n);
+   ParticleData parseParticle(JSONNode& n);
+   ColorData parseColor(JSONNode& n);
+   DataChannel parseDataChannel(JSONNode& n);
+   std::vector<DataChannel::ChannelValue> parseChannelValues(JSONNode& n);
+   DataChannel::Kind parseChannelKind(std::string& kindName);
+   DataChannel::DataKind extractDataKind(std::vector<DataChannel::ChannelValue> &values);
+
+private:
+   CubemitterData emitterData;
+
+	friend class EmitterNode;
+};
+
+typedef SmartResPtr< CubemitterResource > PCubemitterResource;
+
+// =================================================================================================
 
 
 class CubemitterNode : public SceneNode

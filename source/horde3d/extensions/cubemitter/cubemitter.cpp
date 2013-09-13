@@ -3,6 +3,8 @@
 #include "egRenderer.h"
 #include "egMaterial.h"
 #include "egCamera.h"
+#include "libjson.h"
+#include "radiant_json.h"
 
 #if defined(ASSERT)
 #  undef ASSERT
@@ -13,6 +15,151 @@
 
 using namespace ::radiant;
 using namespace ::radiant::horde3d;
+
+
+
+// *************************************************************************************************
+// CubemitterResource
+// *************************************************************************************************
+
+CubemitterResource::CubemitterResource( const std::string &name, int flags ) :
+   Resource( RT_CubemitterResource, name, flags )
+{
+	initDefault();	
+}
+
+CubemitterResource::~CubemitterResource()
+{
+	release();
+}
+
+void CubemitterResource::initDefault()
+{
+}
+
+void CubemitterResource::release()
+{
+}
+
+bool CubemitterResource::raiseError( const std::string &msg, int line )
+{
+	// Reset
+	release();
+	initDefault();
+
+	if( line < 0 )
+		Modules::log().writeError( "Cubemitter resource '%s': %s", _name.c_str(), msg.c_str() );
+	else
+		Modules::log().writeError( "Cubemitter resource '%s' in line %i: %s", _name.c_str(), line, msg.c_str() );
+	
+	return false;
+}
+
+bool CubemitterResource::load( const char *data, int size )
+{
+	if( !Resource::load( data, size ) ) return false;
+
+   std::string jsonData(data, size);
+   JSONNode root;
+   try {
+      root = libjson::parse(jsonData);
+   } catch (std::invalid_argument &ia) {
+      return raiseError( "JSON parsing error" );
+   }
+
+   emitterData.duration = radiant::json::get(root, "duration", 10.0f);
+
+   emitterData.particle = parseParticle(root.at("particle"));
+   emitterData.emission = parseEmission(root.at("emission"));
+	return true;
+}
+
+EmissionData CubemitterResource::parseEmission(JSONNode& n) {
+   EmissionData result;
+   result.rate = parseDataChannel(n.at("rate"));
+   return result;
+}
+
+ParticleData CubemitterResource::parseParticle(JSONNode& n) {
+   ParticleData result;
+
+   result.start_lifetime = parseDataChannel(n.at("start_lifetime"));
+   result.start_speed = parseDataChannel(n.at("start_speed"));
+   result.color = parseColor(n.at("color"));
+   return result;
+}
+
+ColorData CubemitterResource::parseColor(JSONNode& n) {
+   ColorData result;
+   result.start = parseDataChannel(n.at("start"));
+   return result;
+}
+
+DataChannel CubemitterResource::parseDataChannel(JSONNode& n) {
+   DataChannel result;
+   result.dataKind = DataChannel::DataKind::SCALAR;
+   result.kind = DataChannel::Kind::CONSTANT;
+   result.values.push_back(DataChannel::ChannelValue(1));
+
+   if (!n.empty()) {
+      result.kind = parseChannelKind(radiant::json::get(n, "kind", std::string("CONSTANT")));
+      result.values = parseChannelValues(n.at("values"));
+      result.dataKind = extractDataKind(result.values);
+   }
+
+   return result;
+}
+
+std::vector<DataChannel::ChannelValue> CubemitterResource::parseChannelValues(JSONNode& n) {
+   std::vector<DataChannel::ChannelValue> result;
+   for (auto const& v : n) {
+      // For now, we only handle fixed sizes.
+      int s = v.size();
+      if (v.size() == 0) {
+         result.push_back(DataChannel::ChannelValue(v.as_float()));
+      } else if (v.size() == 3) {
+         result.push_back(DataChannel::ChannelValue(v.at(0).as_float(), v.at(1).as_float(), v.at(2).as_float()));
+      }
+   }
+   return result;
+}
+
+DataChannel::DataKind CubemitterResource::extractDataKind(std::vector<DataChannel::ChannelValue> &values) {
+   if (values.size() == 3) {
+      return DataChannel::DataKind::TRIPLE;
+   }
+   return DataChannel::DataKind::SCALAR;
+}
+
+
+DataChannel::Kind CubemitterResource::parseChannelKind(std::string& kindName) {
+   if (kindName == "CONSTANT") {
+      return DataChannel::Kind::CONSTANT;
+   } else if (kindName == "RANDOM_BETWEEN") {
+      return DataChannel::Kind::RANDOM_BETWEEN;
+   }
+   return DataChannel::Kind::CONSTANT;
+}
+
+int CubemitterResource::getElemCount( int elem )
+{
+	return Resource::getElemCount( elem );
+}
+
+float CubemitterResource::getElemParamF( int elem, int elemIdx, int param, int compIdx )
+{
+	return Resource::getElemParamF( elem, elemIdx, param, compIdx );
+}
+
+void CubemitterResource::setElemParamF( int elem, int elemIdx, int param, int compIdx, float value )
+{
+	Resource::setElemParamF( elem, elemIdx, param, compIdx, value );
+}
+
+// *************************************************************************************************
+// CubemitterNode
+// *************************************************************************************************
+
 
 CubemitterNode::CubemitterNode( const CubemitterNodeTpl &emitterTpl ) :
 	SceneNode( emitterTpl )
@@ -390,7 +537,8 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 				                      (float *)emitter->_parPositions + j*ParticlesPerBatch*3, ParticlesPerBatch );
 			if( curShader->uni_parSizeAndRotArray >= 0 )
 				gRDI->setShaderConst( curShader->uni_parSizeAndRotArray, CONST_FLOAT2,
-				                      (float *)emitter->_parSizesANDRotations + j*ParticlesPerBatch*2, ParticlesPerBatch );
+				                      (float *)emitter->_parSizesANDRotations + j*ParticlesPerBatch*2, 
+                                  ParticlesPerBatch );
 			if( curShader->uni_parColorArray >= 0 )
 				gRDI->setShaderConst( curShader->uni_parColorArray, CONST_FLOAT4,
 				                      (float *)emitter->_parColors + j*ParticlesPerBatch*4, ParticlesPerBatch );

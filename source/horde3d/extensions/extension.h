@@ -11,6 +11,7 @@ static const int SNT_DecalNode         = 1002;
 static const int SNT_ToastNode         = 1003;
 static const int SNT_RegionNode        = 1005;
 static const int SNT_CubemitterNode    = 1006;
+static const int RT_CubemitterResource = 1007;
 
 BEGIN_RADIANT_HORDE3D_NAMESPACE
 

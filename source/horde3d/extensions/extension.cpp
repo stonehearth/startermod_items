@@ -49,6 +49,9 @@ bool Extension::init()
                                     CubemitterNode::factoryFunc,
                                     CubemitterNode::renderFunc);
 
+   Modules::resMan().registerType(RT_CubemitterResource, "Cubemitter", 0x0, 0x0, 
+      CubemitterResource::factoryFunc);
+
 	VertexLayoutAttrib attribs[2] = {
 		"vertPos",     0, 3, 0,
 		"inputColor",  0, 3, 12,
