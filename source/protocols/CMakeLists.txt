@@ -1,4 +1,3 @@
-FIND_PACKAGE(Boost 1.48.0 COMPONENTS system)
 FIND_PACKAGE(Protobuf REQUIRED)
 
 include_directories(${PROTOBUF_INCLUDE_DIRS})

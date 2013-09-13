@@ -1,5 +1,4 @@
 FIND_PACKAGE(ChromiumEmbedded REQUIRED)
-FIND_PACKAGE(Boost 1.48.0 COMPONENTS system regex date_time program_options REQUIRED)
 FIND_PACKAGE(Cryptopp   REQUIRED)
 FIND_PACKAGE(Libjson REQUIRED)
 FIND_PACKAGE(Lua REQUIRED)

@@ -1,6 +1,6 @@
 set CFG=%1
 set DST=%2
-set CHROMIUM_ROOT=%RADIANT_ROOT%\cef_binary_3.1453.1255_windows\package
+set CHROMIUM_ROOT=%RADIANT_ROOT%\stonehearth\modules\chromium-embedded\package\cef_binary_3.1547.1412_windows32
 if "%CFG%"=="RelWithDebInfo" set CFG=Release
 ::
 :: convert / to \

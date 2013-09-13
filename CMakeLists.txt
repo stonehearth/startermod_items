@@ -6,7 +6,10 @@ PROJECT(Stonehearth)
 
 ## Fix precompiled headers...
 ## See http://connect.microsoft.com/VisualStudio/feedback/details/746718/frequently-get-c1027-from-vc-100-compiler-after-installing-vs-2012-rc
-string(REPLACE "[/\\-]Zm[0-9]+" " " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+#string(REPLACE "/Zm[0-9]+" "/Zm200" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+SET(CMAKE_C_FLAGS   " /Zm200${CMAKE_C_FLAGS}")
+SET(CMAKE_CXX_FLAGS " /Zm200${CMAKE_CXX_FLAGS}")
+MESSAGE(flags are ${CMAKE_CXX_FLAGS_DEBUG})
 
 ## See http://connect.microsoft.com/VisualStudio/feedback/details/746718/frequently-get-c1027-from-vc-100-compiler-after-installing-vs-2012-rc
 SET(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} /Ym0x20000000 ")
@@ -74,6 +77,13 @@ INCLUDE(${RADIANT_MODULE_ROOT}/luabind/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/protobuf/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/sfml/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/snappy/cmake/config.txt)
+
+set(Boost_USE_STATIC_LIBS     ON)
+set(Boost_USE_STATIC_RUNTIME  ON)
+set(Boost_USE_MULTITHREADED   ON)
+
+FIND_PACKAGE(Boost 1.48.0 COMPONENTS filesystem thread system regex date_time program_options log log_setup chrono REQUIRED)
+INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 
 add_subdirectory(source)
 

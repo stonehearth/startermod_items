@@ -210,7 +210,7 @@ std::string ResourceManager2::ConvertToCanonicalPath(std::string const& path, co
    std::vector<std::string> parts = SplitPath(path);
 
    if (parts.size() < 1) {
-      throw InvalidUriException(path);
+      throw InvalidFilePath(path);
    }
 
    fs::path filepath = fs::path(resource_dir_);
@@ -227,7 +227,7 @@ std::string ResourceManager2::ConvertToCanonicalPath(std::string const& path, co
    }
 
    if (!fs::is_regular_file(filepath)) {
-      throw InvalidUriException(path);
+      throw InvalidFilePath(path);
    }
    return boost::algorithm::join(parts, "/");
 }
@@ -252,7 +252,7 @@ JSONNode ResourceManager2::LoadJson(std::string const& canonical_path) const
 
    std::ifstream in(filepath, std::ios::in);
    if (!in.good()) {
-      throw InvalidUriException(canonical_path);
+      throw InvalidFilePath(canonical_path);
    }
 
    std::stringstream reader;
@@ -260,7 +260,7 @@ JSONNode ResourceManager2::LoadJson(std::string const& canonical_path) const
 
    json_string json = reader.str();
    if (!libjson::is_valid(json)) {
-      throw InvalidJsonAtUriException(canonical_path);
+      throw InvalidJsonAtPathException(canonical_path);
    }
 
    JSONNode node = libjson::parse(json);
