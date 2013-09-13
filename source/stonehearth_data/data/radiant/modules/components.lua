@@ -9,11 +9,11 @@ return components
 
 --[[
 local dkjson = require 'lib.dkjson'
-local log = require 'radiant.core.log'
-local util = require 'radiant.core.util'
-local check = require 'radiant.core.check'
-local md = require 'radiant.core.md'
-local ai_mgr = require 'radiant.ai.ai_mgr'
+local log = require 'core.log'
+local util = require 'core.util'
+local check = require 'core.check'
+local md = require 'core.md'
+local ai_mgr = require 'ai.ai_mgr'
 local ani_mgr
 
 -- xxx: break this up into the init-time and the run-time reactor?
@@ -178,7 +178,7 @@ end
 function components._add_animation(entity, obj)
    if obj.animation_table then
       if not ani_mgr then
-         ani_mgr = require 'radiant.core.animation'
+         ani_mgr = require 'core.animation'
       end
       ani_mgr:get_animation(entity, obj)
    end

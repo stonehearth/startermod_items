@@ -1,4 +1,4 @@
-local EffectTracks = require 'radiant.modules.effects.effect_tracks'
+local EffectTracks = require 'modules.effects.effect_tracks'
 
 local EffectManager = class()
 

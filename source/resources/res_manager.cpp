@@ -34,36 +34,6 @@ static std::vector<std::string> SplitPath(std::string const& path)
    return s;
 }
 
-static std::string ConvertToAbsolutePath(std::string const& current, std::string const& p)
-{
-   if (!boost::starts_with(p, "file(") || !boost::ends_with(p, ")")) {
-      return p;
-   }
-
-   std::string path = p.substr(5, p.size() - 6);
-   std::vector<std::string> newpath;
-
-   if (path[0] == '/') {
-      // absolute paths (relative the the current mod).
-      std::vector<std::string> current_path = SplitPath(current);
-      newpath.push_back(*current_path.begin());
-   } else {
-      // relatives paths (to the current directory)
-      newpath = SplitPath(current);
-      newpath.pop_back();
-   }
-
-   for (auto const& elem : SplitPath(path)) {
-      if (elem == ".") {
-      } else if (elem == "..") {
-         newpath.pop_back();
-      } else {
-         newpath.push_back(elem);
-      }
-   }
-   return std::string("/") + boost::algorithm::join(newpath, "/");
-}
-
 static std::string Checksum(std::string input)
 {
    CryptoPP::SHA256 hash;
@@ -99,7 +69,7 @@ AnimationPtr ResourceManager2::LoadAnimation(std::string const& canonical_path) 
    }
    if (buffer.empty()) {
       JSONNode node = libjson::parse(jsonfile);
-      std::string type = json::get<std::string>(node, "type", "");
+      std::string type = json::ConstJsonObject(node).get<std::string>("type");
       if (type.empty()) {
          throw InvalidResourceException(canonical_path, "'type' field missing");
       }
@@ -144,9 +114,15 @@ ResourceManager2::~ResourceManager2()
 {
 }
 
-JSONNode const& ResourceManager2::LookupManifest(std::string const& modname) const
+JSONNode ResourceManager2::LookupManifest(std::string const& modname) const
 {
-   return LookupJson(modname + "/manifest.json");
+   JSONNode result;
+   try {
+      result = LookupJson(modname + "/manifest.json");
+   } catch (Exception &e) {
+      LOG(WARNING) << "error looking for manifest in " << modname << ": " << e.what();
+   }
+   return result;
 }
 
 JSONNode const& ResourceManager2::LookupJson(std::string path) const
@@ -192,16 +168,16 @@ std::string ResourceManager2::GetResourceFileName(std::string const& path, const
    return GetFilepath(ConvertToCanonicalPath(path, search_ext));
 }
 
-void ResourceManager2::ConvertToAbsolutePaths(std::string const& base_path, JSONNode& node) const
+void ResourceManager2::ExpandMacros(std::string const& base_path, JSONNode& node, bool full) const
 {
    int type = node.type();
    if (type == JSON_NODE || type == JSON_ARRAY) {
       for (auto& i : node) {
-         ConvertToAbsolutePaths(base_path, i);
+         ExpandMacros(base_path, i, full);
       }
    } else if (type == JSON_STRING) {
-      std::string absolute_path = ConvertToAbsolutePath(base_path, node.as_string());
-      node = JSONNode(node.name(), absolute_path);
+      std::string expanded = ExpandMacro(node.as_string(), base_path, full);
+      node = JSONNode(node.name(), expanded);
    }
 }
 
@@ -264,7 +240,7 @@ JSONNode ResourceManager2::LoadJson(std::string const& canonical_path) const
    }
 
    JSONNode node = libjson::parse(json);
-   ConvertToAbsolutePaths(canonical_path, node);
+   ExpandMacros(canonical_path, node, false);
    ParseNodeExtension(canonical_path, node);
 
    return node;
@@ -273,11 +249,16 @@ JSONNode ResourceManager2::LoadJson(std::string const& canonical_path) const
 
 void ResourceManager2::ParseNodeExtension(std::string const& path, JSONNode& node) const
 {
-   std::string extends = json::get<std::string>(node, "extends", "");
+   std::string extends = json::ConstJsonObject(node).get<std::string>("extends");
    if (!extends.empty()) {
-      std::string absolute_path = ConvertToAbsolutePath(path, extends);
+      JSONNode parent;
+      std::string uri = ExpandMacro(extends, extends, true);
 
-      JSONNode const& parent = LookupJson(absolute_path);
+      try {
+         parent = LookupJson(uri);
+      } catch (InvalidUriException &) {
+         throw InvalidUriException(extends);
+      }
 
       LOG(WARNING) << "node pre-extend: " << node.write_formatted();
       LOG(WARNING) << "extending with: " << parent.write_formatted();
@@ -322,4 +303,60 @@ void ResourceManager2::ExtendNode(JSONNode& node, const JSONNode& parent) const
 std::vector<std::string> const& ResourceManager2::GetModuleNames() const
 {
    return moduleNames_;
+}
+
+std::string ResourceManager2::ConvertToAbsolutePath(std::string const& path, std::string const& base_path) const
+{
+   std::vector<std::string> newpath;
+
+   if (path[0] == '/') {
+      // absolute paths (relative the the current mod).
+      std::vector<std::string> current_path = SplitPath(base_path);
+      newpath.push_back(*current_path.begin());
+   } else {
+      // relatives paths (to the base_path directory)
+      newpath = SplitPath(base_path);
+      newpath.pop_back();
+   }
+
+   for (auto const& elem : SplitPath(path)) {
+      if (elem == ".") {
+      } else if (elem == "..") {
+         newpath.pop_back();
+      } else {
+         newpath.push_back(elem);
+      }
+   }
+   return std::string("/") + boost::algorithm::join(newpath, "/");
+}
+
+std::string ResourceManager2::GetEntityUri(std::string const& mod_name, std::string const& entity_name) const
+{
+   json::ConstJsonObject manifest = resources::ResourceManager2::GetInstance().LookupManifest(mod_name);
+   json::ConstJsonObject entities = manifest.getn("radiant").getn("entities");
+   std::string uri = entities.get<std::string>(entity_name);
+   if (uri.empty()) {
+      std::ostringstream error;
+      error << "'" << mod_name << "' has no entity named '" << entity_name << "' in the manifest.";
+      throw resources::Exception(error.str());
+   }
+   return uri;
+}
+
+std::string ResourceManager2::ExpandMacro(std::string const& current, std::string const& base_path, bool full) const
+{
+   static std::regex file_macro("^file\\((.*)\\)$");
+   std::smatch match;
+
+   if (std::regex_match(current, match, file_macro)) {
+      return ConvertToAbsolutePath(match[1], base_path);
+   }
+   if (full) {
+      static std::regex entity_macro("^entity\\((.*), (.*)\\)$");
+
+      if (std::regex_match(current, match, entity_macro)) {
+         return GetEntityUri(match[1], match[2]);
+      }
+   }
+   return current;
 }

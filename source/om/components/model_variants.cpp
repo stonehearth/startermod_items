@@ -65,8 +65,8 @@ void ModelVariant::ExtendObject(json::ConstJsonObject const& obj)
       __str_to_layer["cloak"] = Layer::CLOAK;
    }
 
-   std::string layer_type;
-   if (!obj.fetch("layer", layer_type)) {
+   std::string layer_type = obj.get<std::string>("layer");
+   if (layer_type.empty()) {
       layer_type = "skin";
    }
    auto i = __str_to_layer.find(layer_type);
@@ -78,9 +78,9 @@ void ModelVariant::ExtendObject(json::ConstJsonObject const& obj)
       json::ConstJsonObject e(node);
       std::string model_name;
       if (e.type() == JSON_STRING) {
-         model_name = e.as_string();
+         model_name = e.GetNode().as_string();
       } else if (e.type() == JSON_NODE) {
-         if (e["type"].as_string() == "one_of") {
+         if (e.get<std::string>("type") == "one_of") {
             JSONNode items = e.get("items", JSONNode());
             uint c = rand() * items.size() / RAND_MAX;
             ASSERT(c < items.size());

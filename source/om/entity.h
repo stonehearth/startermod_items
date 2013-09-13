@@ -33,11 +33,15 @@ public:
    std::weak_ptr<Entity> GetRef() { return shared_from_this(); }
    std::shared_ptr<Entity> GetPtr() { return shared_from_this(); }
 
-   std::string GetDebugName() const { return *debugname_; }
-   void SetDebugName(std::string str) { debugname_ = str; }
+   std::string GetDebugText() const { return *debug_text_; }
+   void SetDebugText(std::string str) { debug_text_ = str; }
 
-   std::string GetResourceUri() const { return *resource_uri_; }
-   void SetResourceUri(std::string str) { resource_uri_ = str; }
+   void SetName(std::string const &mod_name, std::string const& entity_name) {
+      mod_name_ = mod_name;
+      entity_name_ = entity_name;
+   }
+   std::string GetModuleName() const { return *mod_name_; }
+   std::string GetEntityName() const { return *entity_name_; }
 
 private:
    void InitializeRecordFields() override;
@@ -47,11 +51,13 @@ private:
    typedef std::unordered_map<dm::TraceId, std::function<void(dm::ObjectPtr)>> ComponentTraceMap;
 
 private:
-   dm::Boxed<std::string>  debugname_;
-   dm::Boxed<std::string>  resource_uri_;
+   dm::Boxed<std::string>  debug_text_;
+   dm::Boxed<std::string>  mod_name_;
+   dm::Boxed<std::string>  entity_name_;
    ComponentMap            components_;
 };
 std::ostream& operator<<(std::ostream& os, const Entity& o);
+std::ostream& operator<<(std::ostream& os, EntityPtr o);
 
 END_RADIANT_OM_NAMESPACE
 

@@ -1,4 +1,4 @@
-local Effect = require 'radiant.modules.effects.effect'
+local Effect = require 'modules.effects.effect'
 local TriggerEffect = class(Effect)
 
 function TriggerEffect:__init(start_time, handler, info, effect, entity)

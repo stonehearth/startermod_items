@@ -6,8 +6,8 @@
    "my_location" : "/stonehearth_carpenter_class/recipes/wooden_window_frame_recipe.json",
    "description" : "Lets light into the room.",
    "flavor"      : "So much for privacy...",
-   "card_art"    : "/stonehearth_items/wooden_window_frame/wooden_window_frame_card.png",
-   "queue_art"   : "/stonehearth_items/wooden_window_frame/wooden_window_frame_queue.png",
+   "card_art"    : "/stonehearth_items/entities/wooden_window_frame/wooden_window_frame_card.png",
+   "queue_art"   : "/stonehearth_items/entities/wooden_window_frame/wooden_window_frame_queue.png",
    "category"    : "weapons",
 
    "ingredients": [
@@ -19,7 +19,7 @@
    ],
   "produces": [
       {
-         "item":"/stonehearth_items/wooden_window_frame",
+         "item":"entity(stonehearth_items, wooden_window_frame)",
          "script":"/stonehearth_crafter/",
          "command":"produce_item"
       }

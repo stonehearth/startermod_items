@@ -7,50 +7,19 @@ function entities.__init()
    singleton._entity_dtors = {}
 end
 
-function entities._add_scripts(entity, obj)
-   if obj.scripts then
-      for _, name in ipairs(obj.scripts) do
-         -- the correct way to do this is to have the entity loader
-         -- attach scripts directly... not by name!!
-         radiant.log.info("adding msg handler %s.", name);
-
-         local ctor = radiant.resources.lua_require(name)
-         radiant.events.add_msg_handler(entity, ctor)
-      end
-   end
-end
-
-function entities._init_entity(entity, uri)
-   -- add standard components, based on the kind of entity we want
-   local obj = radiant.resources.load_json(uri)
-
-   if obj then
-      if obj.components then
-         for name, json in radiant.resources.pairs(obj.components) do
-            assert(json)
-            local component = entity:add_component(name)
-            if component and component.extend then
-               if type(component) == 'userdata' then
-                  json = radiant.resources.get_native_obj(json)
-               end
-               component:extend(json)
-            end
-         end
-      end
-      --entities._add_scripts(entity, obj)
-   end
-end
-
 --[[
 Opposite of _init_entity. Given a uri, remove
 component influences from the entity.
 --]]
-function entities.unregister_from_entity(entity, uri)
+-- xxx: this function must go, too -- tony
+function entities.xxx_unregister_from_entity(entity, mod_name, entity_name)
+   assert(entity_name)
+   local uri = native:xxx_get_entity_uri(mod_name, entity_name)
    local obj = radiant.resources.load_json(uri)
 
    if obj then
       if obj.components then
-         for name, json in radiant.resources.pairs(obj.components) do
+         for name, json in pairs(obj.components) do
             assert(json)
             if name == 'radiant:ai' then
                radiant.ai.unregister(entity, json)
@@ -76,19 +45,17 @@ function entities.get_root_entity()
    return radiant._root_entity
 end
 
-function entities.create_entity(uri)
-   assert(radiant.gamestate.is_initialized())
-   assert(not uri or type(uri) == 'string')
-
-   local entity = native:create_entity()
-   radiant.log.info('creating new entity %d (uri: %s)', entity:get_id(), uri and uri or '-empty-')
-   entity:set_debug_name(uri and uri or '-unknown-')
-
-   if uri then
-      entity:set_resource_uri(uri)
-      entities._init_entity(entity, uri);
+function entities.create_entity(arg1, arg2)
+   if not arg2 then
+      local entity_ref = arg1 -- something like 'entity(stonehearth, wooden_sword)'
+      assert(entity_ref:sub(1, 7) == 'entity(')
+      radiant.log.info('creating entity %s', entity_ref)
+      return native:create_entity_by_ref(entity_ref)
    end
-   return entity
+   local mod_name = arg1 -- 'stonehearth'
+   local entity_name = arg2 -- 'wooden_sword'
+   radiant.log.info('creating entity %s, %s', mod_name, entity_name)
+   return native:create_entity(mod_name, entity_name)
 end
 
 function entities.destroy_entity(entity)
@@ -104,8 +71,11 @@ function entities.destroy_entity(entity)
    native:destroy_entity(entity)
 end
 
-function entities.inject_into_entity(entity, uri)
-   entities._init_entity(entity, uri)
+function entities.xxx_inject_into_entity(entity, mod_name, entity_name)
+   if not entity_name then
+      assert(false)
+   end
+   return native:xxx_extend_entity(entity, mod_name, entity_name)
 end
 
 function entities.add_child(parent, child, location)
@@ -280,11 +250,11 @@ end
 
 --[[
 local dkjson = require 'lib.dkjson'
-local log = require 'radiant.core.log'
-local util = require 'radiant.core.util'
-local check = require 'radiant.core.check'
-local md = require 'radiant.core.md'
-local ai_mgr = require 'radiant.ai.ai_mgr'
+local log = require 'core.log'
+local util = require 'core.util'
+local check = require 'core.check'
+local md = require 'core.md'
+local ai_mgr = require 'ai.ai_mgr'
 local ani_mgr
 
 -- xxx: break this up into the init-time and the run-time reactor?
@@ -464,7 +434,7 @@ end
 function entities._add_animation(entity, obj)
    if obj.animation_table then
       if not ani_mgr then
-         ani_mgr = require 'radiant.core.animation'
+         ani_mgr = require 'core.animation'
       end
       ani_mgr:get_animation(entity, obj)
    end

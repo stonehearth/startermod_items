@@ -275,7 +275,9 @@ end
 
 function BehaviorManager:abort(reason)
    -- xxx: assert that we're running inthe context of the coroutine
-   assert(false)
+   if reason == nil then reason = 'no reason given' end
+   radiant.log.info('Aborting current action because: ' .. reason)
+   self:restart()
 end
 
 function BehaviorManager:execute(...)

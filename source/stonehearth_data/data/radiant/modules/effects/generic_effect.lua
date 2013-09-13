@@ -1,4 +1,4 @@
-local Effect = require 'radiant.modules.effects.effect'
+local Effect = require 'modules.effects.effect'
 local GenericEffect = class(Effect)
 
 function GenericEffect:__init(start_time, handler, info, effect)

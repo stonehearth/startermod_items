@@ -16,6 +16,7 @@
 #include "renderer/render_entity.h"
 #include "renderer/lua_render_entity.h"
 #include "renderer/lua_renderer.h"
+#include "lua/radiant_lua.h"
 #include "lua/register.h"
 #include "lua/script_host.h"
 #include "om/stonehearth.h"
@@ -104,7 +105,7 @@ void Client::run()
    extern po::variables_map configvm;
    std::string loader = configvm["game.loader"].as<std::string>().c_str();
    json::ConstJsonObject manifest(resources::ResourceManager2::GetInstance().LookupManifest(loader));
-   std::string docroot = "http://radiant/" + manifest["loader"]["ui"]["homepage"].as_string();
+   std::string docroot = "http://radiant/" + manifest.getn("loader").getn("ui").get<std::string>("homepage");
 
    if (configvm["game.script"].as<std::string>() != "stonehearth/new_world.lua") {
       docroot += "?skip_title=true";
@@ -160,10 +161,12 @@ void Client::run()
    for (std::string const& modname : rm.GetModuleNames()) {
       try {
          json::ConstJsonObject manifest = rm.LookupManifest(modname);
-         json::ConstJsonObject const& block = manifest["client"];
-         LOG(WARNING) << "loading init script for " << modname << "...";
-         LoadModuleInitScript(block);
-         LoadModuleRoutes(modname, block);
+         json::ConstJsonObject const& block = manifest.getn("client");
+         if (!block.empty()) {
+            LOG(WARNING) << "loading init script for " << modname << "...";
+            LoadModuleInitScript(block);
+            LoadModuleRoutes(modname, block);
+         }
       } catch (std::exception const& e) {
          LOG(WARNING) << "load failed: " << e.what();
       }
@@ -197,11 +200,9 @@ void Client::run()
 
 void Client::LoadModuleInitScript(json::ConstJsonObject const& block)
 {
-   try {
-      std::string filename = block["init_script"].as_string();
+   std::string filename = block.get<std::string>("init_script");
+   if (!filename.empty()) {
       scriptHost_->LuaRequire(filename);
-   } catch (std::exception const& e) {
-      LOG(WARNING) << "load failed: " << e.what();
    }
 }
 
@@ -216,14 +217,10 @@ static std::string SanatizePath(std::string const& path)
 void Client::LoadModuleRoutes(std::string const& modname, json::ConstJsonObject const& block)
 {
    resources::ResourceManager2 &rm = resources::ResourceManager2::GetInstance();
-   try {
-      for (auto const& node : block["request_handlers"]) {
-         std::string const& uri_path = SanatizePath("/modules/client/" + modname + "/" + node.name());
-         std::string const& lua_path = node.as_string();
-         clientRoutes_[uri_path] = scriptHost_->LuaRequire(lua_path);
-      }
-   } catch (std::exception const& e) {
-      LOG(WARNING) << "load failed: " << e.what();
+   for (auto const& node : block.getn("request_handlers")) {
+      std::string const& uri_path = SanatizePath("/modules/client/" + modname + "/" + node.name());
+      std::string const& lua_path = node.as_string();
+      clientRoutes_[uri_path] = scriptHost_->LuaRequire(lua_path);
    }
 }
 
@@ -629,6 +626,11 @@ void Client::SelectEntity(dm::ObjectId id)
 void Client::SelectEntity(om::EntityPtr obj)
 {
    if (selectedObject_ != obj) {
+      if (obj && obj->GetStore().GetStoreId() != GetStore().GetStoreId()) {
+         LOG(WARNING) << "ignoring selected object with non-client store id.";
+         return;
+      }
+
       auto renderEntity = Renderer::GetInstance().GetRenderObject(selectedObject_);
       if (renderEntity) {
          renderEntity->SetSelected(false);
@@ -830,7 +832,7 @@ void Client::HandleClientRouteRequest(luabind::object ctor, JSONNode const& quer
    try {
       using namespace luabind;
       lua_State* L = scriptHost_->GetCallbackState();
-      object queryObj = scriptHost_->JsonToLua(query);
+      object queryObj = lua::JsonToLua(L, query);
       object coder = globals(L)["radiant"]["json"];
 
       object obj = scriptHost_->CallFunction<object>(ctor);
@@ -902,8 +904,8 @@ void Client::TraceUri(JSONNode const& query, std::shared_ptr<net::IResponse> res
 {
    json::ConstJsonObject args(query);
 
-   if (args["create"].as_bool()) {
-      std::string uri = args["uri"].as_string();
+   if (args.get<bool>("create")) {
+      std::string uri = args.get<std::string>("uri");
 
       auto i = serverRemoteObjects_.find(uri);
       if (i != serverRemoteObjects_.end()) {
@@ -919,7 +921,7 @@ void Client::TraceUri(JSONNode const& query, std::shared_ptr<net::IResponse> res
          TraceFileUri(uri, response);
       }
    } else {
-      dm::TraceId traceId = args["trace_id"].as_integer();
+      dm::TraceId traceId = args.get<int>("trace_id");
       uriTraces_.erase(traceId);
    }
 }
@@ -1072,10 +1074,25 @@ void Client::BrowserRequestHandler(std::string const& path, JSONNode const& quer
    }
 }
 
-om::EntityPtr Client::CreateAuthoringEntity(std::string const& path)
+om::EntityPtr Client::CreateEmptyAuthoringEntity()
 {
-   om::EntityPtr entity = om::Stonehearth::CreateEntityLegacyDIEDIEDIE(authoringStore_, path);
+   om::EntityPtr entity = authoringStore_.AllocObject<om::Entity>();   
    authoredEntities_[entity->GetObjectId()] = entity;
+   return entity;
+}
+
+
+om::EntityPtr Client::CreateAuthoringEntity(std::string const& mod_name, std::string const& entity_name)
+{
+   om::EntityPtr entity = CreateEmptyAuthoringEntity();
+   om::Stonehearth::InitEntity(entity, mod_name, entity_name, nullptr);
+   return entity;
+}
+
+om::EntityPtr Client::CreateAuthoringEntityByRef(std::string const& ref)
+{
+   om::EntityPtr entity = CreateEmptyAuthoringEntity();
+   om::Stonehearth::InitEntityByRef(entity, ref, nullptr);
    return entity;
 }
 
@@ -1133,12 +1150,6 @@ void MouseEventPromise_Destroy(MouseEventPromisePtr me)
 {
    me->Uninstall();
 }
-
-om::EntityRef Client_CreateAuthoringEntity(Client& client, std::string const& path)
-{
-   return client.CreateAuthoringEntity(path);
-}
-
 
 static luabind::object
 Client_QueryScene(lua_State* L, Client const&, int x, int y)
@@ -1235,6 +1246,21 @@ std::shared_ptr<LuaDeferred2<XZRegionSelector::Deferred>> Client_SelectXZRegion(
    return luaDeferred;
 }
 
+om::EntityRef Client_CreateEmptyAuthoringEntity(Client& client)
+{
+   return client.CreateEmptyAuthoringEntity();
+}
+
+om::EntityRef Client_CreateAuthoringEntity(Client& client, std::string const& mod_name, std::string const& entity_name)
+{
+   return client.CreateAuthoringEntity(mod_name, entity_name);
+}
+
+om::EntityRef Client_CreateAuthoringEntityByRef(Client& client, std::string const& ref)
+{
+   return client.CreateAuthoringEntityByRef(ref);
+}
+
 template <class T>
 luabind::scope RegisterLuaDeferredType(lua_State* L)
 {
@@ -1251,7 +1277,9 @@ void Client::RegisterLuaTypes(lua_State* L)
    using namespace luabind;
    module(L) [
       lua::RegisterType<Client>()
-         .def("create_authoring_entity",  &Client_CreateAuthoringEntity)
+         .def("create_empty_authoring_entity",  &Client_CreateEmptyAuthoringEntity)
+         .def("create_authoring_entity",        &Client_CreateAuthoringEntity)
+         .def("create_authoring_entity_by_ref", &Client_CreateAuthoringEntityByRef)
          .def("destroy_authoring_entity", &Client::DestroyAuthoringEntity)
          .def("create_render_entity",     &Client_CreateRenderEntity)
          .def("trace_mouse",              &Client::TraceMouseEvents)

@@ -1,5 +1,5 @@
 {
-   "extends": "/stonehearth_items/entities/item/item_properties.json", 
+   "extends": "entity(stonehearth_items, item_properties)", 
    "type": "entity", 
    "components": {
       "item": {

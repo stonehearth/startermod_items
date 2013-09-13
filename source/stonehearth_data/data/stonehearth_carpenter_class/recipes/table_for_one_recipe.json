@@ -6,8 +6,8 @@
    "my_location" : "/stonehearth_carpenter_class/recipes/table_for_one_recipe.json",
    "description" : "Better than eating standing up. Unless you're watching your weight.",
    "flavor"      : "Dining furniture for introverts.",
-   "card_art"    : "/stonehearth_items/table_for_one/table_for_one_card.png",
-   "queue_art"   : "/stonehearth_items/table_for_one/table_for_one_queue.png",
+   "card_art"    : "/stonehearth_items/entities/table_for_one/table_for_one_card.png",
+   "queue_art"   : "/stonehearth_items/entities/table_for_one/table_for_one_queue.png",
    "category"    : "weapons",
 
    "ingredients": [
@@ -19,7 +19,7 @@
   ],
   "produces": [
       {
-         "item":"/stonehearth_items/table_for_one",
+         "item":"entity(stonehearth_items, table_for_one)",
          "script":"/stonehearth_crafter/",
          "command":"produce_item"
       }

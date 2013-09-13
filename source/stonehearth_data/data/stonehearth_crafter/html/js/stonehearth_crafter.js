@@ -2,7 +2,6 @@ $(document).ready(function(){
    // When we get the show_workshop event, toggle the crafting window
    // for this entity.
    $(top).on("show_workshop.stonehearth_crafter", function (_, e) {
-      //TODO: hide the workshop on X button, etc.
       var view = App.gameView.addView(App.StonehearthCrafterView, { uri: e.entity });
    });
 
@@ -19,9 +18,9 @@ $(document).ready(function(){
       // this. All the work is done in the client and server
 
       var crafterModUri = '/modules/client/stonehearth_crafter/create_workbench';
-      var workbench_uri = e.workbench_uri;
+      var workbench_entity = e.workbench_entity;
 
-      $.get(crafterModUri, { workbench_uri: workbench_uri })
+      $.get(crafterModUri, { workbench_entity: workbench_entity })
          .done(function(o){
             //xxx, place the outbox
          })
@@ -193,9 +192,9 @@ App.StonehearthCrafterView = App.View.extend({
       var r = isPaused ? 4 : -4;
 
       // flip the sign
-      $("#statusSign").animate({  
+      $("#statusSign").animate({
          rot: r,
-         }, 
+         },
          {
             duration: 200,
             step: function(now,fx) {

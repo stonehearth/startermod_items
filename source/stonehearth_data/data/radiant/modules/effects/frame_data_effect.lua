@@ -1,4 +1,4 @@
-local Effect = require 'radiant.modules.effects.effect'
+local Effect = require 'modules.effects.effect'
 local FrameDataEffect = class(Effect)
 
 function FrameDataEffect:__init(start_time, handler, info, effect)

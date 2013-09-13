@@ -1,4 +1,4 @@
-local EffectManager = require 'radiant.modules.effects.effect_manager'
+local EffectManager = require 'modules.effects.effect_manager'
 
 local effects = {}
 local singleton = {}

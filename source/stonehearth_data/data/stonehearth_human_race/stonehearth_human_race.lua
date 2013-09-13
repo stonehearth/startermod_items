@@ -5,7 +5,7 @@ local api = {}
 function api.create_entity()
    if index then
       local gender = index.males
-      local kind = gender[math.random(radiant.resources.len(gender))]
+      local kind = gender[math.random(#gender)]
       return radiant.entities.create_entity(kind)
    end
 end

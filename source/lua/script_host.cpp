@@ -41,33 +41,6 @@ static int PCallCallbackFn(lua_State* L)
    return 1;
 }
 
-luabind::object ScriptHost::JsonToLua(JSONNode const& json)
-{
-   using namespace luabind;
-
-   if (json.type() == JSON_NODE) {
-      object table = newtable(L_);
-      for (auto const& entry : json) {
-         table[entry.name()] = JsonToLua(entry);
-      }
-      return table;
-   } else if (json.type() == JSON_ARRAY) {
-      object table = newtable(L_);
-      for (unsigned int i = 0; i < json.size(); i++) {
-         table[i + 1] = JsonToLua(json[i]);
-      }
-      return table;
-   } else if (json.type() == JSON_STRING) {
-      return object(L_, json.as_string());
-   } else if (json.type() == JSON_NUMBER) {
-      return object(L_, json.as_float());
-   } else if (json.type() == JSON_BOOL) {
-      return object(L_, json.as_bool());
-   }
-   ASSERT(false);
-   return object();
-}
-
 std::string ScriptHost::LuaToJson(luabind::object obj)
 {
    object coder = globals(L_)["radiant"]["json"];
@@ -97,7 +70,7 @@ ScriptHost::ScriptHost()
    ];
    globals(L_)["native"] = object(L_, this);
 
-   globals(L_)["package"]["path"] = "./data/?.lua";
+   globals(L_)["package"]["path"] = "data/?.lua";
    globals(L_)["package"]["cpath"] = "";
 
    // xxx : all c -> lua functions (except maybe update) should be on this clean callback thread.

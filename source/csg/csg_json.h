@@ -5,23 +5,31 @@
 
 namespace radiant {
    namespace json {
-      template <> static csg::Point3 cast_(JSONNode const& node) {
-         int x(cast_<int>(node.at(0)));
-         int y(cast_<int>(node.at(1)));
-         int z(cast_<int>(node.at(2)));
-         return csg::Point3(x, y, z);
+      template <> static csg::Point3 cast(ConstJsonObject const & node, csg::Point3 const& def) {
+         if (node.type() != JSON_ARRAY || node.size() != 3) {
+            return def;
+         }
+
+         JSONNode const& n = node.GetNode();
+         csg::Point3 result;
+         for (int i = 0; i < 3; i++) {
+            if (n.at(i).type() != JSON_NUMBER) {
+               return def;
+            }
+            result[i] = n.at(i).as_int();
+         }
+         return result;
       }
 
-      template <> static csg::Cube3 cast_(JSONNode const& node) {
-         csg::Point3 min(cast_<csg::Point3>(node.at(0)));
-         csg::Point3 max(cast_<csg::Point3>(node.at(1)));
-         return csg::Cube3(min, max);
+      template <> static csg::Cube3 cast(ConstJsonObject const & node, csg::Cube3 const& def) {
+         return csg::Cube3(node.get<csg::Point3>(0),
+                           node.get<csg::Point3>(1));
       }
 
-      template <> static csg::Region3 cast_(JSONNode const& node) {
+      template <> static csg::Region3 cast(ConstJsonObject const & node, csg::Region3 const& def) {
          csg::Region3 result;
          for (auto const& entry : node) {
-            result += cast_<csg::Cube3>(entry);
+            result += ConstJsonObject(entry).as<csg::Cube3>();
          }
          return result;
       }

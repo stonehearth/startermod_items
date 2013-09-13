@@ -6,10 +6,10 @@
          {
             "models": [
                {
+                  "type": "one_of",
                   "items": [
                      "file(small_juniper_tree.qb)"
-                  ], 
-                  "type": "one_of"
+                  ]
                }
             ], 
             "scale": 1
@@ -20,8 +20,8 @@
          "description": "Just a sapling."
       }, 
       "radiant:resource_node": {
-         "resource": "file(../juniper_log)", 
-         "durability": 6
+         "resource": "entity(stonehearth_trees, juniper_log)", 
+         "durability": 3
       }
    }
 }

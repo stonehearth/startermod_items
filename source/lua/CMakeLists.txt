@@ -9,6 +9,7 @@ include_directories(${Lua_INCLUDE_DIRS})
 include_directories(${Luabind_INCLUDE_DIRS})
 
 add_library(lua
+            radiant_lua.cpp
             register.cpp
             script_host.cpp
             pch.cpp

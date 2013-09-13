@@ -26,11 +26,15 @@ function NameGenerator:__init()
    self._names = {}
    --Read in all the factions
    --TODO: put this in a manifest? I mean, it's inside the same module...
-   local name_index = radiant.resources.load_json('/stonehearth_names/data/name_index.json')
-   local table_len = radiant.resources.len(name_index.factions)
-   for i = 1, table_len do
-      local faction_data = radiant.resources.load_json(name_index.factions[i])
-      self._names[faction_data.faction_id] = faction_data
+
+   local json = radiant.resources.load_json('/stonehearth_names/data/name_index.json')
+   if json and json.factions then
+      for i, faction_file in ipairs(json.factions) do
+         local faction_data = radiant.resources.load_json(faction_file)
+         if faction_data then
+            self._names[faction_data.faction_id] = faction_data
+         end
+      end
    end
 end
 
@@ -44,20 +48,10 @@ function NameGenerator:get_random_name(faction_id, gender)
       return 'Faction NotFound'
    end
 
-   local random_surname = self:_pick_random_from_array(faction_data.surnames)
-   local random_first = 'default'
-   if gender == 'female' then
-      random_first = self:_pick_random_from_array(faction_data.given_names.female)
-   else
-      random_first = self:_pick_random_from_array(faction_data.given_names.male)
-   end
+   local first_names = gender == 'female' and faction_data.given_names.female or faction_data.given_names.male
+   local random_first = first_names[math.random(#first_names)]
+   local random_surname = faction_data.surnames[math.random(#faction_data.surnames)]
    return random_first .. ' ' .. random_surname
-end
-
-function NameGenerator:_pick_random_from_array(array)
-   local numContents = radiant.resources.len(array)
-   local random_index = math.random(numContents)
-   return array[random_index]
 end
 
 return NameGenerator
