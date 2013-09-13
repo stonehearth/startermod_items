@@ -17,7 +17,7 @@ function NewWorld:create_world()
    local height_map
 
    height_map = self._terrain_generator:generate_zone(TerrainType.Foothills)
-   HeightMapRenderer.render_height_map_to_terrain(height_map, self._terrain_generator.zone_params)
+   HeightMapRenderer.render_height_map_to_terrain(height_map, self._terrain_generator.terrain_info)
 
    local landscaper = Landscaper()
 

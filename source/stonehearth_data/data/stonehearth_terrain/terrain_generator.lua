@@ -18,8 +18,8 @@ local EdgeDetailer = radiant.mods.require('/stonehearth_terrain/edge_detailer.lu
 -- World = the entire playspace of a game
 
 function TerrainGenerator:__init()
-   local zone_type, zone_params
-   math.randomseed(3)
+   local terrain_type, terrain_info
+   math.randomseed(1)
 
    self.zone_size = 256
    self.tile_size = 32
@@ -28,31 +28,31 @@ function TerrainGenerator:__init()
    self.frequency_scaling_coeff = 0.7
 
    local base_step_size = 8
-   self.zone_params = {}
-   zone_params = self.zone_params
+   self.terrain_info = {}
+   terrain_info = self.terrain_info
 
-   zone_type = TerrainType.Plains
-   zone_params[zone_type] = {}
-   zone_params[zone_type].step_size = 2
-   zone_params[zone_type].mean_height = base_step_size
-   zone_params[zone_type].std_dev = 10
-   zone_params[zone_type].max_height = 8
+   terrain_type = TerrainType.Plains
+   terrain_info[terrain_type] = {}
+   terrain_info[terrain_type].step_size = 2
+   terrain_info[terrain_type].mean_height = base_step_size
+   terrain_info[terrain_type].std_dev = 10
+   terrain_info[terrain_type].max_height = 8
 
-   zone_type = TerrainType.Foothills
-   zone_params[zone_type] = {}
-   zone_params[zone_type].step_size = base_step_size
-   zone_params[zone_type].mean_height = 24
-   zone_params[zone_type].std_dev = 32
-   zone_params[zone_type].max_height = 32
+   terrain_type = TerrainType.Foothills
+   terrain_info[terrain_type] = {}
+   terrain_info[terrain_type].step_size = base_step_size
+   terrain_info[terrain_type].mean_height = 24
+   terrain_info[terrain_type].std_dev = 32
+   terrain_info[terrain_type].max_height = 32
 
-   zone_type = TerrainType.Mountains
-   zone_params[zone_type] = {}
-   zone_params[zone_type].step_size = base_step_size * 2
-   zone_params[zone_type].mean_height = 72
-   zone_params[zone_type].std_dev = 96
+   terrain_type = TerrainType.Mountains
+   terrain_info[terrain_type] = {}
+   terrain_info[terrain_type].step_size = base_step_size*2
+   terrain_info[terrain_type].mean_height = 72
+   terrain_info[terrain_type].std_dev = 96
 
-   zone_params.tree_line = zone_params[TerrainType.Foothills].max_height +
-      zone_params[TerrainType.Mountains].step_size
+   terrain_info.tree_line = terrain_info[TerrainType.Foothills].max_height +
+      terrain_info[TerrainType.Mountains].step_size
 
    local oversize_zone_size = self.zone_size + self.tile_size
    self.oversize_map_buffer = HeightMap(oversize_zone_size, oversize_zone_size)
@@ -60,14 +60,14 @@ function TerrainGenerator:__init()
    self._edge_detailer = EdgeDetailer()
 end
 
-function TerrainGenerator:generate_zone(zone_type, zones, x, y)
+function TerrainGenerator:generate_zone(terrain_type, zones, x, y)
    local zone_map, micro_map, noise_map
    local oversize_map = self.oversize_map_buffer
    local micro_width = oversize_map.width / self.tile_size
    local micro_height = oversize_map.height / self.tile_size
-   oversize_map.zone_type = zone_type
+   oversize_map.terrain_type = terrain_type
 
-   noise_map = self:_generate_noise_map(zone_type, micro_width, micro_height)
+   noise_map = self:_generate_noise_map(terrain_type, micro_width, micro_height)
 
    -- propagate edge information from surrounding zones into current map
    self:_copy_zone_context(noise_map, zones, x, y, true)
@@ -84,7 +84,7 @@ function TerrainGenerator:generate_zone(zone_type, zones, x, y)
    self:_quantize_height_map(oversize_map, true)
    --self:_quantize_height_map(oversize_map, false)
 
-   self._edge_detailer:add_detail_blocks(oversize_map, zone_type, self.zone_params)
+   self._edge_detailer:add_detail_blocks(oversize_map, terrain_type, self.terrain_info)
 
    -- copy the offset zone map from the oversize map
    zone_map = self:_create_zone_map(oversize_map)
@@ -92,12 +92,12 @@ function TerrainGenerator:generate_zone(zone_type, zones, x, y)
    return zone_map, micro_map
 end
 
-function TerrainGenerator:_generate_noise_map(zone_type, width, height)
+function TerrainGenerator:_generate_noise_map(terrain_type, width, height)
    local noise_map = HeightMap(width, height)
-   local std_dev = self.zone_params[zone_type].std_dev
-   local mean_height = self.zone_params[zone_type].mean_height
+   local std_dev = self.terrain_info[terrain_type].std_dev
+   local mean_height = self.terrain_info[terrain_type].mean_height
 
-   noise_map.zone_type = zone_type
+   noise_map.terrain_type = terrain_type
 
    noise_map:process_map(
       function ()
@@ -144,8 +144,8 @@ end
 function TerrainGenerator:_copy_zone_context(micro_map, zones, x, y, blend_rows)
    if zones == nil then return end
 
-   local zone_type = micro_map.zone_type
-   local noise_mean = self.zone_params[zone_type].mean_height
+   local terrain_type = micro_map.terrain_type
+   local noise_mean = self.terrain_info[terrain_type].mean_height
    local micro_width = micro_map.width
    local micro_height = micro_map.height
    local i, adjacent_map, offset, adj_val, noise_val, blend_val
@@ -233,12 +233,12 @@ function TerrainGenerator:_get_zone(zones, x, y)
 end
 
 function TerrainGenerator:_filter_and_quantize_noise_map(noise_map)
-   local zone_type = noise_map.zone_type
+   local terrain_type = noise_map.terrain_type
    local width = noise_map.width
    local height = noise_map.height
    local filtered_map = HeightMap(width, height)
 
-   filtered_map.zone_type = zone_type
+   filtered_map.terrain_type = terrain_type
    FilterFns.filter_2D_025(filtered_map, noise_map, width, height)
 
    self:_quantize_height_map(filtered_map, false)
@@ -248,7 +248,7 @@ end
 
 function TerrainGenerator:_create_macro_map_from_micro_map(oversize_map, micro_map)
    local i, j, value
-   local zone_type = micro_map.zone_type
+   local terrain_type = micro_map.terrain_type
    local micro_width = micro_map.width
    local micro_height = micro_map.height
 
@@ -262,7 +262,7 @@ function TerrainGenerator:_create_macro_map_from_micro_map(oversize_map, micro_m
       end
    end
 
-   oversize_map.zone_type = zone_type
+   oversize_map.terrain_type = terrain_type
 end
 
 -- transform to frequncy domain and shape frequencies with exponential decay
@@ -281,7 +281,7 @@ function TerrainGenerator:_create_zone_map(oversize_map)
    local zone_map_origin = self.tile_size/2 + 1
    local zone_map = HeightMap(self.zone_size, self.zone_size)
 
-   zone_map.zone_type = oversize_map.zone_type
+   zone_map.terrain_type = oversize_map.terrain_type
 
    oversize_map:copy_block(zone_map, oversize_map,
       1, 1, zone_map_origin, zone_map_origin, self.zone_size, self.zone_size)
@@ -309,13 +309,13 @@ function TerrainGenerator:_create_micro_map(oversize_map)
 end
 
 function TerrainGenerator:_quantize_height_map(height_map, fancy_mode)
-   local zone_params = self.zone_params
-   local zone_type = height_map.zone_type
+   local terrain_info = self.terrain_info
+   local terrain_type = height_map.terrain_type
 
    height_map:process_map(
       function (value)
          -- step_size depends on altitude and zone type
-         local step_size = self:_get_step_size(zone_type, value)
+         local step_size = self:_get_step_size(terrain_type, value)
          if value <= step_size then return step_size end
 
          local quantized_value = MathFns.quantize(value, step_size)
@@ -338,21 +338,21 @@ function TerrainGenerator:_quantize_height_map(height_map, fancy_mode)
    )
 end
 
-function TerrainGenerator:_get_step_size(zone_type, value)
-   local zone_params = self.zone_params
+function TerrainGenerator:_get_step_size(terrain_type, value)
+   local terrain_info = self.terrain_info
 
-   if value > zone_params[TerrainType.Foothills].max_height then
-      return zone_params[TerrainType.Mountains].step_size
+   if value > terrain_info[TerrainType.Foothills].max_height then
+      return terrain_info[TerrainType.Mountains].step_size
    end
 
-   if value > zone_params[TerrainType.Plains].max_height then
-      return zone_params[TerrainType.Foothills].step_size
+   if value > terrain_info[TerrainType.Plains].max_height then
+      return terrain_info[TerrainType.Foothills].step_size
    end
 
-   if zone_type == TerrainType.Plains then
-      return zone_params[TerrainType.Plains].step_size
+   if terrain_type == TerrainType.Plains then
+      return terrain_info[TerrainType.Plains].step_size
    else
-      return zone_params[TerrainType.Foothills].step_size
+      return terrain_info[TerrainType.Foothills].step_size
    end
 end
 

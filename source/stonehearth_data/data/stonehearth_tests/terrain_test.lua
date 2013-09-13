@@ -39,7 +39,7 @@ function TerrainTest:create_world()
 
    --height_map = terrain_generator:_erosion_test()
    height_map = self._terrain_generator:generate_zone(TerrainType.Foothills)
-   HeightMapRenderer.render_height_map_to_terrain(height_map, self._terrain_generator.zone_params)
+   HeightMapRenderer.render_height_map_to_terrain(height_map, self._terrain_generator.terrain_info)
 
    Landscaper:place_trees(height_map)
 end
@@ -69,7 +69,7 @@ function TerrainTest:create_multi_zone_world()
    zone_map:copy_block(world_map, zone_map, zone_size+1, zone_size+1, 1, 1, zone_size, zone_size)
    zones:set(3, 3, micro_map)
 
-   HeightMapRenderer.render_height_map_to_terrain(world_map, self._terrain_generator.zone_params)
+   HeightMapRenderer.render_height_map_to_terrain(world_map, self._terrain_generator.terrain_info)
 
    Landscaper:place_trees(world_map)
 end

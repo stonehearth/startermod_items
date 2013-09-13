@@ -11,7 +11,7 @@ local HeightMapCPP = _radiant.csg.HeightMap
 local HeightMapRenderer = class()
 
 -- delegate to C++ to "tesselate" heightmap into rectangles
-function HeightMapRenderer.render_height_map_to_terrain(height_map, zone_params)
+function HeightMapRenderer.render_height_map_to_terrain(height_map, terrain_info)
    local r2 = Region2()
    local r3 = Region3()
    local heightMapCPP = HeightMapCPP(height_map.width, 1) -- Assumes square map!
@@ -22,7 +22,7 @@ function HeightMapRenderer.render_height_map_to_terrain(height_map, zone_params)
 
    for rect in r2:contents() do
       if rect.tag > 0 then
-         HeightMapRenderer._add_land_to_region(r3, rect, rect.tag, zone_params);         
+         HeightMapRenderer._add_land_to_region(r3, rect, rect.tag, terrain_info);         
       end
    end
 
@@ -40,17 +40,17 @@ function HeightMapRenderer._copy_heightmap_to_CPP(heightMapCPP, height_map)
    end
 end
 
-function HeightMapRenderer._add_land_to_region(dst, rect, height, zone_params)
-   local foothills_step_size = zone_params[TerrainType.Foothills].step_size
-   local foothills_max_height = zone_params[TerrainType.Foothills].max_height
-   local tree_line = zone_params.tree_line
+function HeightMapRenderer._add_land_to_region(dst, rect, height, terrain_info)
+   local foothills_step_size = terrain_info[TerrainType.Foothills].step_size
+   local foothills_max_height = terrain_info[TerrainType.Foothills].max_height
+   local tree_line = terrain_info.tree_line
 
    dst:add_cube(Cube3(Point3(rect.min.x, -2, rect.min.y),
                       Point3(rect.max.x,  0, rect.max.y),
                 Terrain.BEDROCK))
 
    -- Mountains
-   if height > zone_params[TerrainType.Foothills].max_height then
+   if height > terrain_info[TerrainType.Foothills].max_height then
       if height > tree_line then
          dst:add_cube(Cube3(Point3(rect.min.x, 0,         rect.min.y),
                             Point3(rect.max.x, tree_line, rect.max.y),
@@ -61,14 +61,14 @@ function HeightMapRenderer._add_land_to_region(dst, rect, height, zone_params)
                       Terrain.BEDROCK))
       else
          dst:add_cube(Cube3(Point3(rect.min.x, 0,         rect.min.y),
-                            Point3(rect.max.x, height, rect.max.y),
+                            Point3(rect.max.x, height,    rect.max.y),
                       Terrain.TOPSOIL))
       end
       return
    end
 
    -- Plains
-   if height <= zone_params[TerrainType.Plains].max_height then
+   if height <= terrain_info[TerrainType.Plains].max_height then
 
       dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
                          Point3(rect.max.x, height-1, rect.max.y),

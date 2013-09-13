@@ -9,7 +9,7 @@ function EdgeDetailer:__init()
    self.detail_grow_probability = 0.85
 end
 
-function EdgeDetailer:add_detail_blocks(height_map, zone_type, zone_params)
+function EdgeDetailer:add_detail_blocks(height_map, terrain_type, terrain_info)
    local i, j
    local edge
    local edge_map = HeightMap(height_map.width, height_map.height)
@@ -18,7 +18,7 @@ function EdgeDetailer:add_detail_blocks(height_map, zone_type, zone_params)
    local num_seeds = 0
 
    -- step_size is no longer determined by zone type -- CHECKCHECK
-   local step_size = zone_params[zone_type].step_size
+   local step_size = terrain_info[terrain_type].step_size
    local edge_threshold = step_size/2
 
    for j=1, height_map.height do
@@ -36,7 +36,7 @@ function EdgeDetailer:add_detail_blocks(height_map, zone_type, zone_params)
    end
 
    local point
-   for i=1, num_seeds, 1 do
+   for i=1, num_seeds do
       point = detail_seeds[i]
       self:_grow_seed(height_map, edge_map, point.x, point.y)
    end
