@@ -15,7 +15,7 @@ function CreateWorkbench:handle_request(query, postdata, response)
 
    -- at this point we could manipulate re to change the way the cursor gets
    -- rendered (e.g. transparent)...
-   
+
 
    -- capture the mouse.  Call our _on_mouse_event each time, passing in
    -- the entity that we're supposed to create whenever the user clicks.
@@ -29,7 +29,7 @@ end
 function CreateWorkbench:_on_mouse_event(e, workbench_entity, response)
    -- query the scene to figure out what's under the mouse cursor
    local s = _client:query_scene(e.x, e.y)
-  
+
    -- s.location contains the address of the terrain block that the mouse
    -- is currently pointing to.  if there isn't one, move the workshop
    -- way off the screen so it won't get rendered.
@@ -48,7 +48,7 @@ function CreateWorkbench:_on_mouse_event(e, workbench_entity, response)
       -- destroy the authoring object yet!  doing so now will result in a brief period
       -- of time where the server side object has not yet been created, yet the client
       -- authoring object has been destroyed.  that leads to flicker, which is ugly.
-      self._capture:destroy()                     
+      self._capture:destroy()
 
       -- pass "" for the function name so the deafult (handle_request) is
       -- called.  this will return a Deferred object which we can use to track
@@ -63,7 +63,7 @@ function CreateWorkbench:_on_mouse_event(e, workbench_entity, response)
                      response:complete({})
                   end)
 
-   end   
+   end
 
    -- return true to prevent the mouse event from propogating to the UI
    return true

@@ -26,7 +26,7 @@
       "entities" : {
          "item_properties" : "file(entities/.mixins/item_properties.json)",
 
-         "arch_backed_chair" : "file(entities/arch_backed_chair)",
+         "arch_backed_chair" :       "file(entities/arch_backed_chair)",
          "arch_backed_chair_proxy" : "file(entities/arch_backed_chair/arch_backed_chair_proxy.json)",
          "dining_table" : "file(entities/dining_table)",
          "rough_wooden_cot" : "file(entities/rough_wooden_cot)",
@@ -42,8 +42,8 @@
          "cloth_bolt" : "file(entities/cloth_bolt)",
          "picket_fence" : "file(entities/picket_fence)",
          "spool_of_thread" : "file(entities/spool_of_thread)",
-         "comfy_bed" : "file(entities/comfy_bed)",
-         "comfy_bed" : "file(entities/comfy_bed/comfy_bed_proxy.json)",
+         "comfy_bed" :       "file(entities/comfy_bed)",
+         "comfy_bed_proxy" : "file(entities/comfy_bed/comfy_bed_proxy.json)",
          "picket_fence_gate" : "file(entities/picket_fence_gate)",
          "table_for_one" : "file(entities/table_for_one)",
          "properties" : "file(entities/properties)",

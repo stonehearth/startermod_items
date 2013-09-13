@@ -16,8 +16,9 @@ function PlaceableItemProxy:__init(entity)
 end
 
 function PlaceableItemProxy:extend(json)
-   if json and json.full_sized_entity_uri then
-      self._full_sized_entity_uri = json.full_sized_entity_uri
+   if json and json.full_sized_entity_mod and json.full_sized_entity_name then
+      self._full_sized_entity_mod = json.full_sized_entity_mod
+      self._full_sized_entity_name = json.full_sized_entity_name
       self:_create_full_sized_entity()
    end
 end
@@ -34,13 +35,14 @@ end
    Create the entity and extract our own unit info from its unit info.
 ]]
 function PlaceableItemProxy:_create_full_sized_entity()
-   self._full_sized_entity = radiant.entities.create_entity(self._full_sized_entity_uri)
+   self._full_sized_entity = radiant.entities.create_entity(self._full_sized_entity_mod, self._full_sized_entity_name) --radiant.entities.create_entity(self._full_sized_entity_uri)
    self._full_sized_entity:add_component('stonehearth_items:placeable_item_pointer'):set_proxy(self._entity)
    self:_create_unit_info()
 
    --Get the uri of the full sized entity to the place command
    local place_command = self._entity:get_component('radiant:commands')
-   place_command:add_event_data('place_item', 'target_uri', self._full_sized_entity_uri)
+   place_command:add_event_data('place_item', 'target_mod', self._full_sized_entity_mod)
+   place_command:add_event_data('place_item', 'target_name', self._full_sized_entity_name)
    place_command:add_event_data('place_item', 'item_name', self._display_name)
 end
 

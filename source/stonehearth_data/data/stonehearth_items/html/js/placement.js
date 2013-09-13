@@ -11,7 +11,10 @@ $(document).ready(function(){
       //
 
       var placementModUri = '/modules/client/stonehearth_items/place_item';
-      $.get(placementModUri, {proxy_entity_id: e.event_data.entity_id, target_uri : e.event_data.target_uri})
+      $.get(placementModUri, {proxy_entity_id: e.event_data.entity_id,
+                              target_mod : e.event_data.target_mod,
+                              target_name : e.event_data.target_name
+                             })
          .done(function(o){
          })
          .always(function(o) {

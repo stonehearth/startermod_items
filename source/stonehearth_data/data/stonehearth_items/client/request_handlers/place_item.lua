@@ -11,17 +11,16 @@ function PlaceItem:handle_request(query, postdata, response)
    -- in the authoring of new content.
    -- TODO: show places the item cannot/should not be placed
 
-   --query.proxy is the entity of the proxy. We need to get the uri of the main item
-   --local proxy_entity_id =  radiant.entities.get_entity(query.proxy_entity_id)
-   --local proxy_entity =  radiant.entities.get_entity(query.proxy_item)
-   --local placeable_item_proxy = proxy_entity:get_component('stonehearth_items:placeable_item_proxy')
-   --local item_uri = '/stonehearth_items/comfy_bed' --'--placeable_item_proxy:get_get_full_sized_entity_uri()
-   local item_uri = query.target_uri
+   local item_name = query.target_name
+   local item_mod = query.target_mod
 
-   self._cursor_entity = _client:create_authoring_entity(item_uri)
+   --TODO: I don't know why radiant.entities.create_entity(item_mod, item_name) doesn't work here...
+   self._cursor_entity = radiant.entities.create_entity('entity(' .. item_mod .. ', ' .. item_name ..')')
 
    -- add a render object so the cursor entity gets rendered.
    local re = _client:create_render_entity(1, self._cursor_entity)
+
+   radiant.log.info("created render entity")
 
    -- at this point we could manipulate re to change the way the cursor gets
    -- rendered (e.g. transparent)...

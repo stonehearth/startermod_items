@@ -1,5 +1,5 @@
 {
-   "extends": "/stonehearth_items/entities/item/item_properties.json",
+   "extends": "entity(stonehearth_items, item_properties)",
    "type": "entity",
    "components": {
       "model_variants": [
@@ -15,7 +15,8 @@
          ]
       },
       "stonehearth_items:placeable_item_proxy" : {
-         "full_sized_entity_uri" : "file(comfy_bed.json)"
+         "full_sized_entity_mod" : "stonehearth_items",
+         "full_sized_entity_name" : "comfy_bed"
       }
    }
 }
