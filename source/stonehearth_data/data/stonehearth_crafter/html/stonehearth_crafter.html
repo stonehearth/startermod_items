@@ -1,5 +1,5 @@
 <script type="text/x-handlebars" data-template-name="stonehearthCrafter">
-   <div id="craftingUI">
+   <div id="craftWindow">
 
       <div id="craftingShingle" class="controlFont;">
          <a class="closeButton" {{action hide target="view"}}></a>
@@ -70,19 +70,26 @@
          <h1>{{model.recipe_name}}</h1>
       </div>
       <img id="portrait">
+
       <div id="description">
-         <center>
-            <div id="ingredients">
-               <img src="/stonehearth_crafter/html/images/scroll_socket_left_bookend.png">
-               {{#each model.ingredients}}
-                  <div class="ingredientSocket">
-                     <img {{bindAttr src="socket_background"}}>
-                     <span class="count">{{count}}</span>
-                  </div>
-               {{/each}}
-               <img src="/stonehearth_crafter/html/images/scroll_socket_right_bookend.png">
-            </div>
-         </center>
+         <table id="ingredients" cellspacing=0 cellpadding=0>
+            <tr>
+               <td class="border"></td>
+               <td valign=bottom><img class="leftBookend" /></td>
+               <td valign=bottom>
+                  <nobr>
+                  {{#each model.ingredients}}
+                     <div class="ingredientSocket">
+                        <img {{bindAttr src="socket_background"}}>
+                        <span class="count">{{count}}</span>
+                     </div>
+                  {{/each}}
+                  </nobr>
+               </td>
+               <td valign=bottom><img class="rightBookend" /></td>
+               <td class="border"></td>
+            </tr>
+         </table>
 
          <div id="attributes">
             <div id="usefulText"></div>
@@ -117,9 +124,9 @@
       <label class="rightText" for="maintain" style='width:auto'>{{i18n stonehearth_crafter:craft_up_to_right}}</label>
       </div>
 
-      <button class='btn' {{action "craft" target="view"}} id="craftButton">
-         <img src="/stonehearth_crafter/html/images/anvil.png">
-      </button>
+      <a id="craftButton" href='#' {{action craft target=view}}>
+         <img />
+      </a>
    </div>
 </script>
 
@@ -147,8 +154,8 @@
       {{/each}}
       </div>
 
-      <a id="orderListUpBtn" {{action scrollOrderListUp target="view"}}><img src="/stonehearth_crafter/html/images/queue_up_arrow.png"></a>
-      <a id="orderListDownBtn" {{action scrollOrderListDown target="view"}} ><img src="/stonehearth_crafter/html/images/queue_down_arrow.png"></a>
+      <a id="orderListUpBtn" {{action scrollOrderListUp target="view"}}><img /></a>
+      <a id="orderListDownBtn" {{action scrollOrderListDown target="view"}} ><img /></a>
 
       <div id="orderListControls">
          <a id="garbageButton" href="#"></a>

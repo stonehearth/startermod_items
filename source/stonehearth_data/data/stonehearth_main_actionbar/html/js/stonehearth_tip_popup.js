@@ -6,12 +6,7 @@ $(document).ready(function(){
       destroyCurrentTip();
 
       $(top).trigger('hide_main_actionbar.radiant');
-      stonehearthTipData.currentTip = App.gameView.addView(App.StonehearthTipPopup, { 
-         context: {
-            title: data.title,
-            description: data.description
-         }
-      });
+      stonehearthTipData.currentTip = App.gameView.addView(App.StonehearthTipPopup, data);
 
    });
 
@@ -34,6 +29,17 @@ App.StonehearthTipPopup = App.View.extend({
 
    didInsertElement: function() {
       this._super();
+
+      var css = this.get('css');
+      if (css) {
+         $('#tipPopup').css(css);
+      }
+
+      var cssClass =this.get('cssClass')
+      if (cssClass) {
+         $('#tipPopup').addClass(cssClass);
+      }
+
       console.log(this.element);
       console.log($('#tipPopup'));
       $('#tipPopup').pulse();
