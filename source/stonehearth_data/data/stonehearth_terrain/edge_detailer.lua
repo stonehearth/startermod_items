@@ -21,8 +21,8 @@ function EdgeDetailer:add_detail_blocks(height_map, zone_type, zone_params)
    local step_size = zone_params[zone_type].step_size
    local edge_threshold = step_size/2
 
-   for j=1, height_map.height, 1 do
-      for i=1, height_map.width, 1 do
+   for j=1, height_map.height do
+      for i=1, height_map.width do
          edge = self:_is_edge(height_map, i, j, edge_threshold)
          edge_map:set(i, j, edge)
 

@@ -2,7 +2,7 @@ local MicroWorld = radiant.mods.require('/stonehearth_tests/lib/micro_world.lua'
 local HeightMapRenderer = radiant.mods.require('/stonehearth_terrain/height_map_renderer.lua')
 local TerrainGenerator = radiant.mods.require('/stonehearth_terrain/terrain_generator.lua')
 local Landscaper = radiant.mods.require('/stonehearth_terrain/landscaper.lua')
-local ZoneType = radiant.mods.require('/stonehearth_terrain/zone_type.lua')
+local TerrainType = radiant.mods.require('/stonehearth_terrain/terrain_type.lua')
 
 local NewWorld = class(MicroWorld)
 
@@ -16,7 +16,7 @@ end
 function NewWorld:create_world()
    local height_map
 
-   height_map = self._terrain_generator:generate_zone(ZoneType.Foothills)
+   height_map = self._terrain_generator:generate_zone(TerrainType.Foothills)
    HeightMapRenderer.render_height_map_to_terrain(height_map, self._terrain_generator.zone_params)
 
    local landscaper = Landscaper()

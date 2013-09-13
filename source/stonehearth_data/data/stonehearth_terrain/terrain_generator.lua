@@ -1,6 +1,6 @@
 local TerrainGenerator = class()
 
-local ZoneType = radiant.mods.require('/stonehearth_terrain/zone_type.lua')
+local TerrainType = radiant.mods.require('/stonehearth_terrain/terrain_type.lua')
 local Array2D = radiant.mods.require('/stonehearth_terrain/array_2D.lua')
 local HeightMap = radiant.mods.require('/stonehearth_terrain/height_map.lua')
 local GaussianRandom = radiant.mods.require('/stonehearth_terrain/math/gaussian_random.lua')
@@ -31,28 +31,28 @@ function TerrainGenerator:__init()
    self.zone_params = {}
    zone_params = self.zone_params
 
-   zone_type = ZoneType.Plains
+   zone_type = TerrainType.Plains
    zone_params[zone_type] = {}
    zone_params[zone_type].step_size = 2
    zone_params[zone_type].mean_height = base_step_size
    zone_params[zone_type].std_dev = 10
    zone_params[zone_type].max_height = 8
 
-   zone_type = ZoneType.Foothills
+   zone_type = TerrainType.Foothills
    zone_params[zone_type] = {}
    zone_params[zone_type].step_size = base_step_size
    zone_params[zone_type].mean_height = 24
    zone_params[zone_type].std_dev = 32
    zone_params[zone_type].max_height = 32
 
-   zone_type = ZoneType.Mountains
+   zone_type = TerrainType.Mountains
    zone_params[zone_type] = {}
    zone_params[zone_type].step_size = base_step_size * 2
-   zone_params[zone_type].mean_height = 48
+   zone_params[zone_type].mean_height = 72
    zone_params[zone_type].std_dev = 96
 
-   zone_params.tree_line = zone_params[ZoneType.Foothills].max_height +
-      zone_params[ZoneType.Mountains].step_size
+   zone_params.tree_line = zone_params[TerrainType.Foothills].max_height +
+      zone_params[TerrainType.Mountains].step_size
 
    local oversize_zone_size = self.zone_size + self.tile_size
    self.oversize_map_buffer = HeightMap(oversize_zone_size, oversize_zone_size)
@@ -122,7 +122,7 @@ function TerrainGenerator:_generate_noise_map(zone_type, width, height)
    --[[
    -- avoid extreme values along edges
    local i
-   for i=1, width, 1 do
+   for i=1, width do
       offset = noise_map:get_offset(i, 1)
       noise_map[offset] = (noise_map[offset] + mean_height) * 0.5
 
@@ -130,7 +130,7 @@ function TerrainGenerator:_generate_noise_map(zone_type, width, height)
       noise_map[offset] = (noise_map[offset] + mean_height) * 0.5
    end
 
-   for i=2, height-1, 1 do
+   for i=2, height-1 do
       offset = noise_map:get_offset(1, i)
       noise_map[offset] = (noise_map[offset] + mean_height) * 0.5
 
@@ -152,7 +152,7 @@ function TerrainGenerator:_copy_zone_context(micro_map, zones, x, y, blend_rows)
 
    adjacent_map = self:_get_zone(zones, x-1, y)
    if adjacent_map then
-      for i=1, micro_height, 1 do
+      for i=1, micro_height do
          -- copy right edge of adjacent to left edge of current
          adj_val = adjacent_map:get(micro_width, i)
          micro_map:set(1, i, adj_val)
@@ -168,7 +168,7 @@ function TerrainGenerator:_copy_zone_context(micro_map, zones, x, y, blend_rows)
 
    adjacent_map = self:_get_zone(zones, x+1, y)
    if adjacent_map then
-      for i=1, micro_height, 1 do
+      for i=1, micro_height do
          -- copy left edge of adjacent to right edge of current
          adj_val = adjacent_map:get(1, i)
          micro_map:set(micro_width, i, adj_val)
@@ -184,7 +184,7 @@ function TerrainGenerator:_copy_zone_context(micro_map, zones, x, y, blend_rows)
 
    adjacent_map = self:_get_zone(zones, x, y-1)
    if adjacent_map then
-      for i=1, micro_width, 1 do
+      for i=1, micro_width do
          -- copy bottom edge of adjacent to top edge of current
          adj_val = adjacent_map:get(i, micro_height)
          micro_map:set(i, 1, adj_val)
@@ -200,7 +200,7 @@ function TerrainGenerator:_copy_zone_context(micro_map, zones, x, y, blend_rows)
 
    adjacent_map = self:_get_zone(zones, x, y+1)
    if adjacent_map then
-      for i=1, micro_width, 1 do
+      for i=1, micro_width do
          -- copy top edge of adjacent to bottom edge of current
          adj_val = adjacent_map:get(i, 1)
          micro_map:set(i, micro_height, adj_val)
@@ -254,8 +254,8 @@ function TerrainGenerator:_create_macro_map_from_micro_map(oversize_map, micro_m
 
    -- micro_map should already be quantized by this point
    -- otherwise quantize before wavelet shaping
-   for j=1, micro_height, 1 do
-      for i=1, micro_width, 1 do
+   for j=1, micro_height do
+      for i=1, micro_width do
          value = micro_map:get(i, j)
          oversize_map:set_block((i-1)*self.tile_size+1, (j-1)*self.tile_size+1,
             self.tile_size, self.tile_size, value)
@@ -341,18 +341,18 @@ end
 function TerrainGenerator:_get_step_size(zone_type, value)
    local zone_params = self.zone_params
 
-   if value > zone_params[ZoneType.Foothills].max_height then
-      return zone_params[ZoneType.Mountains].step_size
+   if value > zone_params[TerrainType.Foothills].max_height then
+      return zone_params[TerrainType.Mountains].step_size
    end
 
-   if value > zone_params[ZoneType.Plains].max_height then
-      return zone_params[ZoneType.Foothills].step_size
+   if value > zone_params[TerrainType.Plains].max_height then
+      return zone_params[TerrainType.Foothills].step_size
    end
 
-   if zone_type == ZoneType.Plains then
-      return zone_params[ZoneType.Plains].step_size
+   if zone_type == TerrainType.Plains then
+      return zone_params[TerrainType.Plains].step_size
    else
-      return zone_params[ZoneType.Foothills].step_size
+      return zone_params[TerrainType.Foothills].step_size
    end
 end
 

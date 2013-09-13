@@ -1,5 +1,5 @@
 local HeightMap = radiant.mods.require('/stonehearth_terrain/height_map.lua')
-local ZoneType = radiant.mods.require('/stonehearth_terrain/zone_type.lua')
+local TerrainType = radiant.mods.require('/stonehearth_terrain/terrain_type.lua')
 
 local Terrain = _radiant.om.Terrain
 local Cube3 = _radiant.csg.Cube3
@@ -32,8 +32,8 @@ end
 function HeightMapRenderer._copy_heightmap_to_CPP(heightMapCPP, height_map)
    local row_offset = 0
 
-   for j=1, height_map.height, 1 do
-      for i=1, height_map.width, 1 do
+   for j=1, height_map.height do
+      for i=1, height_map.width do
          heightMapCPP:set(i-1, j-1, height_map[row_offset+i])
       end
       row_offset = row_offset + height_map.width
@@ -41,8 +41,8 @@ function HeightMapRenderer._copy_heightmap_to_CPP(heightMapCPP, height_map)
 end
 
 function HeightMapRenderer._add_land_to_region(dst, rect, height, zone_params)
-   local foothills_step_size = zone_params[ZoneType.Foothills].step_size
-   local foothills_max_height = zone_params[ZoneType.Foothills].max_height
+   local foothills_step_size = zone_params[TerrainType.Foothills].step_size
+   local foothills_max_height = zone_params[TerrainType.Foothills].max_height
    local tree_line = zone_params.tree_line
 
    dst:add_cube(Cube3(Point3(rect.min.x, -2, rect.min.y),
@@ -50,7 +50,7 @@ function HeightMapRenderer._add_land_to_region(dst, rect, height, zone_params)
                 Terrain.BEDROCK))
 
    -- Mountains
-   if height > zone_params[ZoneType.Foothills].max_height then
+   if height > zone_params[TerrainType.Foothills].max_height then
       if height > tree_line then
          dst:add_cube(Cube3(Point3(rect.min.x, 0,         rect.min.y),
                             Point3(rect.max.x, tree_line, rect.max.y),
@@ -68,7 +68,7 @@ function HeightMapRenderer._add_land_to_region(dst, rect, height, zone_params)
    end
 
    -- Plains
-   if height <= zone_params[ZoneType.Plains].max_height then
+   if height <= zone_params[TerrainType.Plains].max_height then
 
       dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
                          Point3(rect.max.x, height-1, rect.max.y),

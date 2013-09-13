@@ -21,7 +21,7 @@ end
 function Landscaper:place_trees(zone_map)
    local num_forests = 15
    local i
-   for i=1, num_forests, 1 do
+   for i=1, num_forests do
       self:place_forest(zone_map)
    end
 end
@@ -45,7 +45,7 @@ function Landscaper:place_forest(zone_map)
    x = math.random(1, width)
    z = math.random(1, height)
 
-   for i=1, num_trees, 1 do
+   for i=1, num_trees do
       tree_name = self:random_tree(tree_type)
       x, z = self:_next_coord(x, z, min_x, min_z, max_x, max_z)
       self:_place_tree(tree_name, x, z)
