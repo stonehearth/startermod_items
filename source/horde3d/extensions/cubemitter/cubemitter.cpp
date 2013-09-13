@@ -67,7 +67,8 @@ bool CubemitterResource::load( const char *data, int size )
       return raiseError( "JSON parsing error" );
    }
 
-   emitterData.duration = radiant::json::get(root, "duration", 10.0f);
+   auto croot = radiant::json::ConstJsonObject(root);
+   emitterData.duration = croot.get("duration", 10.0f);
 
    emitterData.particle = parseParticle(root.at("particle"));
    emitterData.emission = parseEmission(root.at("emission"));
@@ -102,7 +103,8 @@ DataChannel CubemitterResource::parseDataChannel(JSONNode& n) {
    result.values.push_back(DataChannel::ChannelValue(1));
 
    if (!n.empty()) {
-      result.kind = parseChannelKind(radiant::json::get(n, "kind", std::string("CONSTANT")));
+      auto cn = radiant::json::ConstJsonObject(n);
+      result.kind = parseChannelKind(cn.get("kind", std::string("CONSTANT")));
       result.values = parseChannelValues(n.at("values"));
       result.dataKind = extractDataKind(result.values);
    }
