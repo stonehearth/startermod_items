@@ -76,89 +76,53 @@ bool CubemitterResource::load( const char *data, int size )
 	return true;
 }
 
-EmissionData CubemitterResource::parseEmission(JSONNode& n) {
+EmissionData CubemitterResource::parseEmission(JSONNode& n) 
+{
    EmissionData result;
-   result.rate = parseDataChannel(n.at("rate"));
+   result.rate = new DataChannel<float>(n, "rate", 1.0f);
    return result;
 }
 
-ParticleData CubemitterResource::parseParticle(JSONNode& n) {
+ParticleData CubemitterResource::parseParticle(JSONNode& n) 
+{
    ParticleData result;
-
-   result.start_lifetime = parseDataChannel(n.at("start_lifetime"));
-   result.start_speed = parseDataChannel(n.at("start_speed"));
+   result.speed = parseSpeed(n.at("speed"));
+   result.lifetime = parseLifetime(n.at("lifetime"));
    result.color = parseColor(n.at("color"));
    result.scale = parseScale(n.at("scale"));
    return result;
 }
 
-ColorData CubemitterResource::parseColor(JSONNode& n) {
+LifetimeData CubemitterResource::parseLifetime(JSONNode& n)
+{
+   LifetimeData result;
+   result.start = new DataChannel<float>(n, "start", 5.0f);
+   return result;
+}
+
+SpeedData CubemitterResource::parseSpeed(JSONNode& n)
+{
+   SpeedData result;
+   result.start = new DataChannel<float>(n, "start", 5.0f);
+   return result;
+}
+
+ColorData CubemitterResource::parseColor(JSONNode& n)
+{
    ColorData result;
-   result.start = parseDataChannel(n.at("start"));
-   //result.over_lifetime = parseDataChannel(n.at("over_lifetime"));
+   result.start = new DataChannel<Vec3f>(n, "start", Vec3f(1, 0, 0));
+   result.over_lifetime_r = new DataChannel<float>(n, "over_lifetime_r", result.start->nextValue(0).x);
+   result.over_lifetime_g = new DataChannel<float>(n, "over_lifetime_g", result.start->nextValue(0).y);
+   result.over_lifetime_b = new DataChannel<float>(n, "over_lifetime_b", result.start->nextValue(0).z);
    return result;
 }
 
-ScaleData CubemitterResource::parseScale(JSONNode& n) {
+ScaleData CubemitterResource::parseScale(JSONNode& n)
+{
    ScaleData result;
-   result.start = parseDataChannel(n.at("start"));
-   result.over_lifetime = parseDataChannel(n.at("over_lifetime"));
+   result.start = new DataChannel<float>(n, "start", 1.0f);
+   result.over_lifetime = new DataChannel<float>(n, "over_lifetime", 1.0f);
    return result;
-}
-
-DataChannel CubemitterResource::parseDataChannel(JSONNode& n) {
-   DataChannel result;
-   result.dataKind = DataChannel::DataKind::SCALAR;
-   result.kind = DataChannel::Kind::CONSTANT;
-   result.values.push_back(DataChannel::ChannelValue(1));
-
-   if (!n.empty()) {
-      auto cn = radiant::json::ConstJsonObject(n);
-      result.kind = parseChannelKind(cn.get("kind", std::string("CONSTANT")));
-      result.values = parseChannelValues(n.at("values"));
-      result.dataKind = extractDataKind(n.at("values"));
-   }
-
-   return result;
-}
-
-std::vector<DataChannel::ChannelValue> CubemitterResource::parseChannelValues(JSONNode& n) {
-   std::vector<DataChannel::ChannelValue> result;
-   for (auto const& v : n) {
-      // For now, we only handle fixed sizes.
-      int s = v.size();
-      if (v.size() == 0) {
-         result.push_back(DataChannel::ChannelValue(v.as_float()));
-      } else if (v.size() == 3) {
-         result.push_back(DataChannel::ChannelValue(v.at(0).as_float(), v.at(1).as_float(), v.at(2).as_float()));
-      } else if (v.size() == 2) {
-         result.push_back(DataChannel::ChannelValue(v.at(0).as_float(), v.at(1).as_float()));
-      }
-   }
-   return result;
-}
-
-DataChannel::DataKind CubemitterResource::extractDataKind(JSONNode& n) {
-   if (n.size() > 0) {
-      if (n[0].size() == 3) {
-         return DataChannel::DataKind::TRIPLE;
-      } else if (n[0].size() == 2) {
-         return DataChannel::DataKind::DOUBLE;
-      }
-   }
-   return DataChannel::DataKind::SCALAR;
-}
-
-
-DataChannel::Kind CubemitterResource::parseChannelKind(std::string& kindName) {
-   if (kindName == "CONSTANT") {
-      return DataChannel::Kind::CONSTANT;
-   } else if (kindName == "RANDOM_BETWEEN") {
-      return DataChannel::Kind::RANDOM_BETWEEN;
-   } else if (kindName == "CURVE") {
-      return DataChannel::Kind::CURVE;
-   }
-   return DataChannel::Kind::CONSTANT;
 }
 
 int CubemitterResource::getElemCount( int elem )
@@ -268,6 +232,7 @@ float randomF( float min, float max )
 {
 	return (rand() / (float)RAND_MAX) * (max - min) + min;
 }
+
 
 Vec3f randomV ( const Vec3f &min, const Vec3f &max ) {
    Vec3f result;
@@ -405,50 +370,6 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 	gRDI->setVertexLayout( 0 );
 }
 
-DataChannel::ChannelValue CubemitterNode::nextValue(float t, DataChannel dc) {
-   if (dc.kind == DataChannel::Kind::CONSTANT) {
-      return dc.values[0];
-   }
-
-   if (dc.kind == DataChannel::Kind::RANDOM_BETWEEN) {
-      if (dc.dataKind == DataChannel::DataKind::SCALAR) {
-         float r0 = dc.values[0].value.scalar;
-         float r1 = dc.values[1].value.scalar;
-         return DataChannel::ChannelValue(randomF(r0, r1));
-      } else if (dc.dataKind == DataChannel::DataKind::TRIPLE) {
-         Vec3f v1(dc.values[0].value.triple.v0, dc.values[0].value.triple.v1, dc.values[0].value.triple.v2);
-         Vec3f v2(dc.values[1].value.triple.v0, dc.values[1].value.triple.v1, dc.values[1].value.triple.v2);
-         Vec3f r = randomV(v1, v2);
-         return DataChannel::ChannelValue(r.x, r.y, r.z);
-      }
-   } else if (dc.kind == DataChannel::Kind::CURVE) {
-      if (dc.dataKind == DataChannel::DataKind::DOUBLE) {
-         float t_start = dc.values[0].value.duble.v0;
-         float v_start = dc.values[0].value.duble.v1;
-
-         float t_end = dc.values[1].value.duble.v0;
-         float v_end = dc.values[1].value.duble.v1;
-
-         int i = 2;
-         while (t_end <= t && i < dc.values.size()) {
-            t_start = t_end;
-            v_start = v_end;
-
-            t_end = dc.values[i].value.duble.v0;
-            v_end = dc.values[i].value.duble.v1;
-            i++;
-         }
-
-         float frac = (t - t_start) / (t_end - t_start);
-
-         return DataChannel::ChannelValue(frac * v_end + (1.0f - frac) * v_start);
-      }
-   }
-
-   return DataChannel::ChannelValue(0);
-}
-
-
 void CubemitterNode::onPostUpdate()
 {	
 	if( _timeDelta <= 0 /*|| _effectRes == 0x0*/ ) return;
@@ -473,7 +394,7 @@ void CubemitterNode::onPostUpdate()
    int numberToSpawn = 0;
    while (timeAvailableToSpawn > 0) 
    {
-      _nextSpawnTime = 1.0f / nextValue(_curEmitterTime, d.emission.rate).value.scalar;
+      _nextSpawnTime = 1.0f / d.emission.rate->nextValue(_curEmitterTime);
       timeAvailableToSpawn -= _nextSpawnTime;
       numberToSpawn++;
    }
@@ -504,7 +425,7 @@ void CubemitterNode::spawnCube(CubeData &d, CubeAttribute &ca)
 {
    CubemitterData data = _cubemitterRes.getPtr()->emitterData;
 
-   d.maxLife = nextValue(_curEmitterTime, data.particle.start_lifetime).value.scalar;
+   d.maxLife = data.particle.lifetime.start->nextValue(_curEmitterTime);
    d.currentLife = d.maxLife;
 
    Matrix4f m = _absTrans;
@@ -515,12 +436,13 @@ void CubemitterNode::spawnCube(CubeData &d, CubeAttribute &ca)
    m.rotate( randomF( -angle, angle ), randomF( -angle, angle ), randomF( -angle, angle ) );
    d.direction = (m * Vec3f( 0, 0, -1 )).normalized();
 
-   auto startCol = nextValue(_curEmitterTime, data.particle.color.start).value.triple;
-   d.color = Vec4f(startCol.v0, startCol.v1, startCol.v2, 1);
+   auto startCol = data.particle.color.start->nextValue(_curEmitterTime);
+   d.color = Vec4f(startCol.x, startCol.y, startCol.z, 1);
+   data.particle.color.over_lifetime_r->init();
 
-   d.speed = nextValue(_curEmitterTime, data.particle.start_speed).value.scalar;
+   d.speed = data.particle.speed.start->nextValue(_curEmitterTime);
 
-   d.startScale = nextValue(_curEmitterTime, data.particle.scale.start).value.scalar;
+   d.startScale = data.particle.scale.start->nextValue(_curEmitterTime);
    d.scale = d.startScale;
 
    ca.matrix = Matrix4f::TransMat(d.position.x, d.position.y, d.position.z);
@@ -541,7 +463,10 @@ void CubemitterNode::updateCube(CubeData &d, CubeAttribute &ca)
 
    d.position += d.direction * d.speed * _timeDelta;
    d.currentLife -= _timeDelta;
-   d.scale = d.startScale * nextValue(fr, data.particle.scale.over_lifetime).value.scalar;
+   d.scale = d.startScale * data.particle.scale.over_lifetime->nextValue(fr);
+   d.color.x = data.particle.color.over_lifetime_r->nextValue(fr);
+   d.color.y = data.particle.color.over_lifetime_g->nextValue(fr);
+   d.color.z = data.particle.color.over_lifetime_b->nextValue(fr);
 
 
    // This is our actual vbo data.

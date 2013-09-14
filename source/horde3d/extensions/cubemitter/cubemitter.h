@@ -1,6 +1,7 @@
 #ifndef _RADIANT_HORDE3D_EXTENSIONS_CUBEMITTER_H
 #define _RADIANT_HORDE3D_EXTENSIONS_CUBEMITTER_H
 
+#include "datachannel.h"
 #include "egPrerequisites.h"
 #include "egScene.h"
 #include "csg/region.h"
@@ -36,78 +37,44 @@ struct CubemitterNodeParams
 	};
 };
 
-struct DataChannel
+
+struct EmissionData 
 {
-   enum Kind
-   {
-      CONSTANT,
-      RANDOM_BETWEEN,
-      CURVE
-   };
-
-   enum DataKind
-   {
-      SCALAR,
-      DOUBLE,
-      TRIPLE
-   };
-
-   struct Double {
-      float v0, v1;
-   };
-
-   struct Triple {
-      float v0, v1, v2;
-   };
-
-   struct ChannelValue {
-      union {
-         float scalar;
-         Double duble;
-         Triple triple;
-      } value;
-
-      ChannelValue(float f) {
-         value.scalar = f;
-      }
-
-      ChannelValue(float v0, float v1) {
-         value.duble.v0 = v0;
-         value.duble.v1 = v1;
-      }
-
-      ChannelValue(float v0, float v1, float v2) {
-         value.triple.v0 = v0;
-         value.triple.v1 = v1;
-         value.triple.v2 = v2;
-      }
-   };
-
-   DataKind dataKind;
-   Kind kind;
-   std::vector<ChannelValue> values;
+   DataChannel<float> *rate;
 };
 
-struct EmissionData {
-   DataChannel rate;
+struct ColorData 
+{
+   DataChannel<Vec3f> *start;
+   DataChannel<float> *over_lifetime_r;
+   DataChannel<float> *over_lifetime_g;
+   DataChannel<float> *over_lifetime_b;
 };
 
-struct ColorData {
-   DataChannel start;
-   DataChannel over_lifetime;
+struct ScaleData 
+{
+   DataChannel<float> *start;
+   DataChannel<float> *over_lifetime;
 };
 
-struct ScaleData {
-   DataChannel start;
-   DataChannel over_lifetime;
+struct LifetimeData 
+{
+   DataChannel<float> *start;
 };
 
-struct ParticleData {
-   DataChannel start_lifetime;
-   DataChannel start_speed;
+struct SpeedData
+{
+   DataChannel<float> *start;
+};
+
+struct ParticleData 
+{
+   LifetimeData lifetime;
+   SpeedData speed;
    ColorData color;
    ScaleData scale;
 };
+
 
 struct CubemitterData {
    float duration;
@@ -157,12 +124,10 @@ private:
    ParticleData parseParticle(JSONNode& n);
    ColorData parseColor(JSONNode& n);
    ScaleData parseScale(JSONNode& n);
+   LifetimeData parseLifetime(JSONNode& n);
+   SpeedData parseSpeed(JSONNode& n);
 
-   DataChannel parseDataChannel(JSONNode& n);
-   std::vector<DataChannel::ChannelValue> parseChannelValues(JSONNode& n);
-   DataChannel::Kind parseChannelKind(std::string& kindName);
-   DataChannel::DataKind extractDataKind(JSONNode& n);
-
+   
 private:
 
 	friend class EmitterNode;
@@ -202,7 +167,6 @@ protected:
    void updateAndSpawnCubes(int numToSpawn);
    void spawnCube(CubeData &d, CubeAttribute &ca);
    void updateCube(CubeData &d, CubeAttribute &ca);
-   DataChannel::ChannelValue nextValue(float t, DataChannel dc);
 
 protected:
 

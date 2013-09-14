@@ -4,5 +4,6 @@ include_directories(. ../../Source/Shared ../../Source/Horde3dEngine ../../Sourc
 add_definitions(-DCMAKE )
 
 add_library(horde3d_cubemitter STATIC
+	    datachannel.cpp
             cubemitter.cpp
             )
