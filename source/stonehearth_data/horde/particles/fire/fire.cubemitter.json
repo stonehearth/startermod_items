@@ -4,33 +4,26 @@
     "particle": {
         "start_lifetime": {
             "kind": "RANDOM_BETWEEN",
-            "values": [
-                10,
-                23
-            ]
+            "values": [1,5]
         },
         "start_speed": {
             "kind": "CONSTANT",
-            "values": [
-                5
-            ]
+            "values": [2]
         },
         "color": {
             "start": {
                 "kind": "RANDOM_BETWEEN",
                 "values": [
-                    [
-                        1,
-                        0,0],
-                    [0.5,0.5,0]
+                    [1.0, 0.0, 0.0],
+                    [0.6, 0.3, 0.0]
                 ]
             }
         }
     },
     "emission": {
         "rate": {
-            "kind": "CONSTANT",
-            "values": [20]
+            "kind": "RANDOM_BETWEEN",
+            "values": [1, 50]
         }
     }
 }

@@ -165,9 +165,6 @@ public:
 	uint32 getQuadIdxBuf() { return _quadIdxBuf; }
 	uint32 getParticleVBO() { return _particleVBO; }
 
-	uint32 getCubeIdxBuf() { return _cubeIdxBuf; }
-	uint32 getCubeVBO() { return _cubeVBO; }
-
    void setCurrentTime(float time) { _currentTime = time; }
    uint32 getShadowRendBuf() const { return _shadowRB; }
 
@@ -220,9 +217,6 @@ protected:
 	uint32                             _quadIdxBuf;
 	uint32                             _particleVBO;
 
-   uint32                             _cubeVBO;
-   uint32                             _cubeIdxBuf;
-
 	MaterialResource                   *_curStageMatLink;
 	CameraNode                         *_curCamera;
 	LightNode                          *_curLight;
@@ -243,7 +237,6 @@ public:
    glslopt_ctx*                       _glsl_opt_ctx;
 	ShaderCombination                  _defColorShader;
 	int                                _defColShader_color;  // Uniform location
-   uint32                             _vlCube, _attributeBuf; // Temporary!
 };
 
 }

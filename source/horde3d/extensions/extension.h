@@ -25,6 +25,16 @@ public:
 	virtual const char *getName();
 	virtual bool init();
 	virtual void release();
+
+   static uint32 getCubemitterCubeVBO() { return _cubeVBO; }
+   static uint32 getCubemitterCubeIBO() { return _cubeIdxBuf; }
+   static uint32 getCubemitterCubeVL() { return _vlCube; }
+
+private:
+   static uint32 _cubeVBO;
+   static uint32 _cubeIdxBuf;
+   static uint32 _vlCube;
+
 };
 
 END_RADIANT_HORDE3D_NAMESPACE

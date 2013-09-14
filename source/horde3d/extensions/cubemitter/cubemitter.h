@@ -13,14 +13,17 @@ using namespace ::Horde3D;
 
 BEGIN_RADIANT_HORDE3D_NAMESPACE
 
+class CubemitterResource;
+typedef SmartResPtr< CubemitterResource > PCubemitterResource;
+
 struct CubemitterNodeTpl : public SceneNodeTpl
 {
-   uint32 maxParticleCount;
-   PMaterialResource matRes;
+   PCubemitterResource _cubemitterRes;
+   PMaterialResource _matRes;
 
-   CubemitterNodeTpl(const std::string &name, uint32 maxParticleCount) :
+   CubemitterNodeTpl(const std::string &name, const PCubemitterResource &cubeRes, const PMaterialResource &matRes) :
       SceneNodeTpl(SNT_CubemitterNode, name),
-      maxParticleCount(maxParticleCount)
+      _cubemitterRes(cubeRes), _matRes(matRes)
    {
    }
 };
@@ -95,14 +98,17 @@ struct CubemitterData {
 
 struct CubeData
 {
-	float   life, maxLife;
-	Vec3f   dir, dragVec;
-	uint32  respawnCounter;
+   float currentLife, maxLife;
+   Vec3f position;
+   Vec3f direction;
+   Vec4f color;
+   float speed;
+};
 
-	// Start values
-	float  moveVel0, rotVel0, drag0;
-	float  size0;
-	float  r0, g0, b0, a0;
+struct CubeAttribute
+{
+   Matrix4f matrix;
+   Vec4f color;
 };
 
 // =================================================================================================
@@ -112,7 +118,7 @@ class CubemitterResource : public Resource
 public:
 	static Resource *factoryFunc( const std::string &name, int flags )
 		{ return new CubemitterResource( name, flags ); }
-	
+
 	CubemitterResource( const std::string &name, int flags );
 	~CubemitterResource();
 	
@@ -123,6 +129,7 @@ public:
 	int getElemCount( int elem );
 	float getElemParamF( int elem, int elemIdx, int param, int compIdx );
 	void setElemParamF( int elem, int elemIdx, int param, int compIdx, float value );
+   CubemitterData emitterData;
 
 private:
 	bool raiseError( const std::string &msg, int line = -1 );
@@ -132,10 +139,9 @@ private:
    DataChannel parseDataChannel(JSONNode& n);
    std::vector<DataChannel::ChannelValue> parseChannelValues(JSONNode& n);
    DataChannel::Kind parseChannelKind(std::string& kindName);
-   DataChannel::DataKind extractDataKind(std::vector<DataChannel::ChannelValue> &values);
+   DataChannel::DataKind extractDataKind(JSONNode& n);
 
 private:
-   CubemitterData emitterData;
 
 	friend class EmitterNode;
 };
@@ -171,8 +177,26 @@ protected:
                    const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet);
 
 	void onPostUpdate();
+   void updateAndSpawnCubes(int numToSpawn);
+   void spawnCube(CubeData &d, CubeAttribute &ca);
+   void updateCube(CubeData &d, CubeAttribute &ca);
+   DataChannel::ChannelValue nextValue(float t, DataChannel dc);
 
 protected:
+
+   uint32                   _attributeBuf;
+   PCubemitterResource      _cubemitterRes;
+   uint32                   _maxCubes;
+   float                    _nextSpawnTime;
+   float                    _curEmitterTime;  // Bounded between 0 and the duration of the emitter.
+
+   CubeAttribute            *_attributesBuff;
+
+
+
+
+
+
 	// Emitter data
 	float                    _timeDelta;
 	float                    _emissionAccum;
@@ -191,8 +215,6 @@ protected:
 	float                    *_parPositions;
 	float                    *_parSizesANDRotations;
 	float                    *_parColors;
-
-   uint32                   _attributeBuf;
 
 	std::vector< uint32 >    _occQueries;
 	std::vector< uint32 >    _lastVisited;

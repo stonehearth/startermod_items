@@ -14,6 +14,8 @@
 using namespace ::radiant;
 using namespace ::radiant::client;
 
+H3DNode cubemitterNode;
+
 static std::unique_ptr<Renderer> renderer_;
 Renderer& Renderer::GetInstance()
 {
@@ -107,7 +109,8 @@ Renderer::Renderer() :
    h3dAddResource(H3DResTypes::Material, "materials/debug_shape.material.xml", 0); 
    H3DRes c = h3dAddResource(H3DResTypes::Material, "materials/cubemitter.material.xml", 0);
    H3DRes d = h3dAddResource(RT_CubemitterResource, "particles/fire/fire.cubemitter.json", 0);
-   h3dRadiantAddCubemitterNode(H3DRootNode, "first_cubemitter!", 1, c);
+   cubemitterNode = h3dRadiantAddCubemitterNode(H3DRootNode, "first_cubemitter!", d, c);
+   h3dSetNodeTransform(cubemitterNode, 0, 20, 0, -45, 0, 0, 1, 1, 1);
    LoadResources();
 
 	// Add camera
@@ -309,6 +312,8 @@ void Renderer::RenderOneFrame(int now, float alpha)
 
    fileWatcher_.update();
    LoadResources();
+
+   h3dRadiantAdvanceCubemitterTime(cubemitterNode, deltaNow / 1000.0f);
 
 	// Render scene
    h3dRender(camera_->GetNode());

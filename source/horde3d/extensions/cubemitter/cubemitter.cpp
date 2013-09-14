@@ -10,6 +10,7 @@
 #  undef ASSERT
 #endif
 
+#include "extension.h"
 #include "radiant.h"
 #include "cubemitter.h"
 
@@ -106,7 +107,7 @@ DataChannel CubemitterResource::parseDataChannel(JSONNode& n) {
       auto cn = radiant::json::ConstJsonObject(n);
       result.kind = parseChannelKind(cn.get("kind", std::string("CONSTANT")));
       result.values = parseChannelValues(n.at("values"));
-      result.dataKind = extractDataKind(result.values);
+      result.dataKind = extractDataKind(n.at("values"));
    }
 
    return result;
@@ -126,9 +127,11 @@ std::vector<DataChannel::ChannelValue> CubemitterResource::parseChannelValues(JS
    return result;
 }
 
-DataChannel::DataKind CubemitterResource::extractDataKind(std::vector<DataChannel::ChannelValue> &values) {
-   if (values.size() == 3) {
-      return DataChannel::DataKind::TRIPLE;
+DataChannel::DataKind CubemitterResource::extractDataKind(JSONNode& n) {
+   if (n.size() > 0) {
+      if (n[0].size () == 3) {
+         return DataChannel::DataKind::TRIPLE;
+      }
    }
    return DataChannel::DataKind::SCALAR;
 }
@@ -167,25 +170,21 @@ CubemitterNode::CubemitterNode( const CubemitterNodeTpl &emitterTpl ) :
 	SceneNode( emitterTpl )
 {
 	_renderable = true;
-	_materialRes = emitterTpl.matRes;
-	//_effectRes = emitterTpl.effectRes;
-	_particleCount = emitterTpl.maxParticleCount;
-	//_respawnCount = emitterTpl.respawnCount;
-	//_delay = emitterTpl.delay;
-	//_emissionRate = emitterTpl.emissionRate;
-	//_spreadAngle = emitterTpl.spreadAngle;
-	//_force = Vec3f( emitterTpl.fx, emitterTpl.fy, emitterTpl.fz );
+   _materialRes = emitterTpl._matRes;
+   _cubemitterRes = emitterTpl._cubemitterRes;
+   _maxCubes = 100;
+	_cubes = new CubeData[_maxCubes];
+   _attributesBuff = new CubeAttribute[_maxCubes];
+   _timeDelta = 0.0f;
+   _nextSpawnTime = 0.0f;
+   _curEmitterTime = 0.0f;
 
-	_timeDelta = 0;
-	_emissionAccum = 0;
-	_prevAbsTrans = _absTrans;
+   _attributeBuf = gRDI->createVertexBuffer(sizeof(CubeAttribute) * _maxCubes, 0x0);
 
-	_cubes = 0x0;
-	_parPositions = 0x0;
-	_parSizesANDRotations = 0x0;
-	_parColors = 0x0;
-
-	setMaxParticleCount( _particleCount );
+   for (int i = 0; i < _maxCubes; i++) {
+      _attributesBuff[i].matrix.toIdentity();
+      _cubes[i].currentLife = 0.0f;
+   }
 }
 
 
@@ -197,7 +196,8 @@ CubemitterNode::~CubemitterNode()
 			gRDI->destroyQuery( _occQueries[i] );
 	}
 	
-	delete[] _cubes;
+   delete[] _cubes;
+   delete[] _attributesBuff;
 	delete[] _parPositions;
 	delete[] _parSizesANDRotations;
 	delete[] _parColors;
@@ -208,8 +208,8 @@ SceneNodeTpl *CubemitterNode::parsingFunc( std::map< std::string, std::string > 
 {
 	bool result = true;
 	
-	std::map< std::string, std::string >::iterator itr;
-	CubemitterNodeTpl *emitterTpl = new CubemitterNodeTpl("", 0 );
+	//std::map< std::string, std::string >::iterator itr;
+	//CubemitterNodeTpl *emitterTpl = new CubemitterNodeTpl("", 0 );
 
 	/*itr = attribs.find( "material" );
 	if( itr != attribs.end() )
@@ -251,7 +251,7 @@ SceneNodeTpl *CubemitterNode::parsingFunc( std::map< std::string, std::string > 
 		delete emitterTpl; emitterTpl = 0x0;
 	}*/
 	
-	return emitterTpl;
+   return nullptr;
 }
 
 
@@ -266,7 +266,7 @@ SceneNode *CubemitterNode::factoryFunc( const SceneNodeTpl &nodeTpl )
 void CubemitterNode::setMaxParticleCount( radiant::uint32 maxParticleCount )
 {
 	// Delete particles
-	delete[] _cubes; _cubes = 0x0;
+	/*delete[] _cubes; _cubes = 0x0;
 	delete[] _parPositions; _parPositions = 0x0;
 	delete[] _parSizesANDRotations; _parSizesANDRotations = 0x0;
 	delete[] _parColors; _parColors = 0x0;
@@ -291,7 +291,7 @@ void CubemitterNode::setMaxParticleCount( radiant::uint32 maxParticleCount )
 		_parColors[i*4+1] = 0.0f;
 		_parColors[i*4+2] = 0.0f;
 		_parColors[i*4+3] = 0.0f;
-	}
+	}*/
 }
 
 
@@ -395,6 +395,15 @@ float randomF( float min, float max )
 	return (rand() / (float)RAND_MAX) * (max - min) + min;
 }
 
+Vec3f randomV ( const Vec3f &min, const Vec3f &max ) {
+   Vec3f result;
+   result.x = randomF(min.x, max.x);
+   result.y = randomF(min.y, max.y);
+   result.z = randomF(min.z, max.z);
+
+   return result;
+}
+
 
 void CubemitterNode::advanceTime( float timeDelta )
 {
@@ -410,7 +419,7 @@ bool CubemitterNode::hasFinished()
 
 	for( uint32 i = 0; i < _particleCount; ++i )
 	{	
-		if( _cubes[i].life > 0 || (int)_cubes[i].respawnCounter < _respawnCount )
+      if( _cubes[i].currentLife > 0)
 		{
 			return false;
 		}
@@ -431,10 +440,10 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 	if( Modules::config().gatherTimeStats ) timer->beginQuery( Modules::renderer().getFrameID() );
 
 	// Bind cube geometry
-	gRDI->setVertexBuffer( 0, Modules::renderer().getCubeVBO(), 0, sizeof( CubeVert ) );
-   gRDI->setIndexBuffer( Modules::renderer().getCubeIdxBuf(), IDXFMT_16 );
+   gRDI->setVertexBuffer( 0, Extension::getCubemitterCubeVBO(), 0, sizeof( CubeVert ) );
+   gRDI->setIndexBuffer( Extension::getCubemitterCubeIBO(), IDXFMT_16 );
 
-	// Loop through Cubemitter queue
+	// Loop through and find all Cubemitters.
 	for( const auto &entry : Modules::sceneMan().getRenderableQueue() )
 	{
       if( entry.type != SNT_CubemitterNode ) continue; 
@@ -490,7 +499,7 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 		}
 
 		// Set vertex layout
-      gRDI->setVertexLayout( Modules::renderer()._vlCube );
+      gRDI->setVertexLayout( Extension::getCubemitterCubeVL() );
 		
 		//if( queryObj )
 		//	gRDI->beginQuery( queryObj );
@@ -503,89 +512,13 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 			gRDI->setShaderConst( curShader->uni_nodeId, CONST_FLOAT, &id );
 		}
 
-      float mat[32] = { 
-         1, 0, 0, 0,
-         0, 1, 0, 0,
-         0, 0, 1, 0,
-         0, 10, 0, 1,
+      gRDI->updateBufferData(emitter->_attributeBuf, 0, sizeof(CubeAttribute) * emitter->_maxCubes, emitter->_attributesBuff);
+      gRDI->setVertexBuffer(1, emitter->_attributeBuf, 0, sizeof(CubeAttribute));
+      gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, 36, 0, emitter->_maxCubes);
 
-         1, 0, 0, 0,
-         0, 1, 0, 0,
-         0, 0, 1, 0,
-         10, 20, 10, 1 
-      };
-      gRDI->updateBufferData(Modules::renderer()._attributeBuf, 0, sizeof(float) * 16 * 2, mat);
-      gRDI->setVertexBuffer(1, Modules::renderer()._attributeBuf, 0, sizeof(float) * 16);
-      gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, 36, 0, 2);
 
-		// Divide particles in batches and render them
-		/*for( uint32 j = 0; j < emitter->_particleCount / ParticlesPerBatch; ++j )
-		{
-			// Check if batch needs to be rendered
-			bool allDead = true;
-			for( uint32 k = 0; k < ParticlesPerBatch; ++k )
-			{
-				if( emitter->_cubes[j*ParticlesPerBatch + k].life > 0 )
-				{
-					allDead = false;
-					break;
-				}
-			}
-			if( allDead ) continue;
 
-			// Render batch
-			if( curShader->uni_parPosArray >= 0 )
-				gRDI->setShaderConst( curShader->uni_parPosArray, CONST_FLOAT3,
-				                      (float *)emitter->_parPositions + j*ParticlesPerBatch*3, ParticlesPerBatch );
-			if( curShader->uni_parSizeAndRotArray >= 0 )
-				gRDI->setShaderConst( curShader->uni_parSizeAndRotArray, CONST_FLOAT2,
-				                      (float *)emitter->_parSizesANDRotations + j*ParticlesPerBatch*2, 
-                                  ParticlesPerBatch );
-			if( curShader->uni_parColorArray >= 0 )
-				gRDI->setShaderConst( curShader->uni_parColorArray, CONST_FLOAT4,
-				                      (float *)emitter->_parColors + j*ParticlesPerBatch*4, ParticlesPerBatch );
-
-			gRDI->drawIndexed( PRIM_TRILIST, 0, ParticlesPerBatch * 6, 0, ParticlesPerBatch * 4 );
-			Modules::stats().incStat( EngineStats::BatchCount, 1 );
-			Modules::stats().incStat( EngineStats::TriCount, ParticlesPerBatch * 2.0f );
-		}*/
-
-		/*uint32 count = emitter->_particleCount % ParticlesPerBatch;
-		if( count > 0 )
-		{
-			uint32 offset = (emitter->_particleCount / ParticlesPerBatch) * ParticlesPerBatch;
-			
-			// Check if batch needs to be rendered
-			bool allDead = true;
-			for( uint32 k = 0; k < count; ++k )
-			{
-				if( emitter->_cubes[offset + k].life > 0 )
-				{
-					allDead = false;
-					break;
-				}
-			}
-			
-			if( !allDead )
-			{
-				// Render batch
-				if( curShader->uni_parPosArray >= 0 )
-					gRDI->setShaderConst( curShader->uni_parPosArray, CONST_FLOAT3,
-					                      (float *)emitter->_parPositions + offset*3, count );
-				if( curShader->uni_parSizeAndRotArray >= 0 )
-					gRDI->setShaderConst( curShader->uni_parSizeAndRotArray, CONST_FLOAT2,
-					                      (float *)emitter->_parSizesANDRotations + offset*2, count );
-				if( curShader->uni_parColorArray >= 0 )
-					gRDI->setShaderConst( curShader->uni_parColorArray, CONST_FLOAT4,
-					                      (float *)emitter->_parColors + offset*4, count );
-				
-				gRDI->drawIndexed( PRIM_TRILIST, 0, count * 6, 0, count * 4 );
-				Modules::stats().incStat( EngineStats::BatchCount, 1 );
-				Modules::stats().incStat( EngineStats::TriCount, count * 2.0f );
-			}
-		}
-
-		if( queryObj )
+		/*if( queryObj )
 			gRDI->endQuery( queryObj );*/
 	}
 
@@ -598,121 +531,128 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 	gRDI->setVertexLayout( 0 );
 }
 
+DataChannel::ChannelValue CubemitterNode::nextValue(float t, DataChannel dc) {
+   if (dc.kind == DataChannel::Kind::CONSTANT) {
+      return dc.values[0];
+   }
+
+   if (dc.kind == DataChannel::Kind::RANDOM_BETWEEN) {
+      if (dc.dataKind == DataChannel::DataKind::SCALAR) {
+         float r0 = dc.values[0].value.scalar;
+         float r1 = dc.values[1].value.scalar;
+         return DataChannel::ChannelValue(randomF(r0, r1));
+      } else if (dc.dataKind == DataChannel::DataKind::TRIPLE) {
+         Vec3f v1(dc.values[0].value.triple.v0, dc.values[0].value.triple.v1, dc.values[0].value.triple.v2);
+         Vec3f v2(dc.values[1].value.triple.v0, dc.values[1].value.triple.v1, dc.values[1].value.triple.v2);
+         Vec3f r = randomV(v1, v2);
+         return DataChannel::ChannelValue(r.x, r.y, r.z);
+      }
+   }
+
+   return DataChannel::ChannelValue(0);
+}
+
+
 void CubemitterNode::onPostUpdate()
 {	
-	if( _timeDelta == 0 /*|| _effectRes == 0x0*/ ) return;
+	if( _timeDelta <= 0 /*|| _effectRes == 0x0*/ ) return;
 	
-	/*Timer *timer = Modules::stats().getTimer( EngineStats::ParticleSimTime );
+	Timer *timer = Modules::stats().getTimer( EngineStats::ParticleSimTime );
 	if( Modules::config().gatherTimeStats ) timer->setEnabled( true );
 	
 	Vec3f bBMin( Math::MaxFloat, Math::MaxFloat, Math::MaxFloat );
 	Vec3f bBMax( -Math::MaxFloat, -Math::MaxFloat, -Math::MaxFloat );
 	
-	if( _delay <= 0 )
+	/*
+   if( _delay <= 0 )
 		_emissionAccum += _emissionRate * _timeDelta;
 	else
 		_delay -= _timeDelta;
+   */
 
-	Vec3f motionVec = _absTrans.getTrans() - _prevAbsTrans.getTrans();
+   CubemitterData d = _cubemitterRes.getPtr()->emitterData;
 
-	// Check how many particles will be spawned
-	float spawnCount = 0;
-	for( uint32 i = 0; i < _particleCount; ++i )
-	{
-		CubeData &p = _cubes[i];
-		if( p.life <= 0 && ((int)p.respawnCounter < _respawnCount || _respawnCount < 0) )
-		{
-			spawnCount += 1.0f;
-			if( spawnCount >= _emissionAccum ) break;
-		}
-	}
+   float timeAvailableToSpawn = _timeDelta - _nextSpawnTime;
+   _nextSpawnTime -= _timeDelta;
+   int numberToSpawn = 0;
+   while (timeAvailableToSpawn > 0) 
+   {
+      _nextSpawnTime = 1.0f / nextValue(_curEmitterTime, d.emission.rate).value.scalar;
+      timeAvailableToSpawn -= _nextSpawnTime;
+      numberToSpawn++;
+   }
+   
+   updateAndSpawnCubes(numberToSpawn);
+   
+   _timeDelta = 0.0f;
+}
 
-	// Particles are distributed along emitter's motion vector to avoid blobs when fps is low
-	float curStep = 0, stepWidth = 0.5f;
-	if( spawnCount > 2.0f ) stepWidth = motionVec.length() / spawnCount;
-	
-	for( uint32 i = 0; i < _particleCount; ++i )
-	{
-		CubeData &p = _cubes[i];
-		
-		// Create particle
-		if( p.life <= 0 && ((int)p.respawnCounter < _respawnCount || _respawnCount < 0) )
-		{
-			if( _emissionAccum >= 1.0f )
-			{
-				// Respawn
-				p.maxLife = randomF( _effectRes->_lifeMin, _effectRes->_lifeMax );
-				p.life = p.maxLife;
-				float angle = degToRad( _spreadAngle / 2 );
-				Matrix4f m = _absTrans;
-				m.c[3][0] = 0; m.c[3][1] = 0; m.c[3][2] = 0;
-				m.rotate( randomF( -angle, angle ), randomF( -angle, angle ), randomF( -angle, angle ) );
-				p.dir = (m * Vec3f( 0, 0, -1 )).normalized();
-				p.dragVec = motionVec / _timeDelta;
-				++p.respawnCounter;
+void CubemitterNode::updateAndSpawnCubes(int numToSpawn) 
+{
+   for (uint32 i = 0; i < _maxCubes; i++)
+   {
+      CubeData &d = _cubes[i];
+      CubeAttribute &ca = _attributesBuff[i];
 
-				// Generate start values
-				p.moveVel0 = randomF( _effectRes->_moveVel.startMin, _effectRes->_moveVel.startMax );
-				p.rotVel0 = randomF( _effectRes->_rotVel.startMin, _effectRes->_rotVel.startMax );
-				p.drag0 = randomF( _effectRes->_drag.startMin, _effectRes->_drag.startMax );
-				p.size0 = randomF( _effectRes->_size.startMin, _effectRes->_size.startMax );
-				p.r0 = randomF( _effectRes->_colR.startMin, _effectRes->_colR.startMax );
-				p.g0 = randomF( _effectRes->_colG.startMin, _effectRes->_colG.startMax );
-				p.b0 = randomF( _effectRes->_colB.startMin, _effectRes->_colB.startMax );
-				p.a0 = randomF( _effectRes->_colA.startMin, _effectRes->_colA.startMax );
-				
-				// Update arrays
-				_parPositions[i * 3 + 0] = _absTrans.c[3][0] - motionVec.x * curStep;
-				_parPositions[i * 3 + 1] = _absTrans.c[3][1] - motionVec.y * curStep;
-				_parPositions[i * 3 + 2] = _absTrans.c[3][2] - motionVec.z * curStep;
-				_parSizesANDRotations[i * 2 + 0] = p.size0;
-				_parSizesANDRotations[i * 2 + 1] = randomF( 0, 360 );
-				_parColors[i * 4 + 0] = p.r0;
-				_parColors[i * 4 + 1] = p.g0;
-				_parColors[i * 4 + 2] = p.b0;
-				_parColors[i * 4 + 3] = p.a0;
+      if (d.currentLife <= 0 && numToSpawn > 0) 
+      {
+         spawnCube(d, ca);
+         numToSpawn--;
+      }
 
-				// Update emitter
-				_emissionAccum -= 1.f;
-				if( _emissionAccum < 0 ) _emissionAccum = 0.f;
+      updateCube(d, ca);
+   }
+}
 
-				curStep += stepWidth;
-			}
-		}
-		
-		// Update particle
-		if( p.life > 0 )
-		{
-			// Interpolate data
-			float fac = 1.0f - (p.life / p.maxLife);
-			
-			float moveVel = p.moveVel0 * (1.0f + (_effectRes->_moveVel.endRate - 1.0f) * fac);
-			float rotVel = p.rotVel0 * (1.0f + (_effectRes->_rotVel.endRate - 1.0f) * fac);
-			float drag = p.drag0 * (1.0f + (_effectRes->_drag.endRate - 1.0f) * fac);
-			_parSizesANDRotations[i * 2 + 0] = p.size0 * (1.0f + (_effectRes->_size.endRate - 1.0f) * fac);
-			_parSizesANDRotations[i * 2 + 0] *= 2;  // Keep compatibility with old particle vertex shader
-			_parColors[i * 4 + 0] = p.r0 * (1.0f + (_effectRes->_colR.endRate - 1.0f) * fac);
-			_parColors[i * 4 + 1] = p.g0 * (1.0f + (_effectRes->_colG.endRate - 1.0f) * fac);
-			_parColors[i * 4 + 2] = p.b0 * (1.0f + (_effectRes->_colB.endRate - 1.0f) * fac);
-			_parColors[i * 4 + 3] = p.a0 * (1.0f + (_effectRes->_colA.endRate - 1.0f) * fac);
+void CubemitterNode::spawnCube(CubeData &d, CubeAttribute &ca)
+{
+   CubemitterData data = _cubemitterRes.getPtr()->emitterData;
 
-			// Update particle position and rotation
-			_parPositions[i * 3 + 0] += (p.dir.x * moveVel + p.dragVec.x * drag + _force.x) * _timeDelta;
-			_parPositions[i * 3 + 1] += (p.dir.y * moveVel + p.dragVec.y * drag + _force.y) * _timeDelta;
-			_parPositions[i * 3 + 2] += (p.dir.z * moveVel + p.dragVec.z * drag + _force.z) * _timeDelta;
-			_parSizesANDRotations[i * 2 + 1] += degToRad( rotVel ) * _timeDelta;
+   d.maxLife = nextValue(_curEmitterTime, data.particle.start_lifetime).value.scalar;
+   d.currentLife = d.maxLife;
 
-			// Decrease lifetime
-			p.life -= _timeDelta;
-			
-			// Check if particle is dying
-			if( p.life <= 0 )
-			{
-				_parSizesANDRotations[i * 2 + 0] = 0.0f;
-			}
-		}
+   Matrix4f m = _absTrans;
+   d.position = m.getTrans();
 
-		// Update bounding box
+   float angle = degToRad( 25.0f / 2 );
+   m.c[3][0] = 0; m.c[3][1] = 0; m.c[3][2] = 0;
+   m.rotate( randomF( -angle, angle ), randomF( -angle, angle ), randomF( -angle, angle ) );
+   d.direction = (m * Vec3f( 0, 0, -1 )).normalized();
+
+   auto startCol = nextValue(_curEmitterTime, data.particle.color.start).value.triple;
+   d.color = Vec4f(startCol.v0, startCol.v1, startCol.v2, 1);
+
+   d.speed = nextValue(_curEmitterTime, data.particle.start_speed).value.scalar;
+
+
+   ca.matrix = Matrix4f::TransMat(d.position.x, d.position.y, d.position.z);
+   ca.color = d.color;
+}
+
+void CubemitterNode::updateCube(CubeData &d, CubeAttribute &ca)
+{
+   if (d.currentLife <= 0) {
+      // Set the scale to zero, so nothing is rasterized (burning vertex ops should be fine).
+      ca.matrix.x[0] = 0; ca.matrix.x[5] = 0; ca.matrix.x[10] = 0;
+      return;
+   }
+   CubemitterData data = _cubemitterRes.getPtr()->emitterData;
+
+   float fr = 1.0f - (d.currentLife / d.maxLife);
+
+   d.position += d.direction * d.speed * _timeDelta;
+   d.currentLife -= _timeDelta;
+
+   // This is our actual vbo data.
+   ca.matrix.x[12] = d.position.x;
+   ca.matrix.x[13] = d.position.y;
+   ca.matrix.x[14] = d.position.z;
+
+   ca.color = d.color;
+}
+
+
+/*		// Update bounding box
 		Vec3f vertPos( _parPositions[i*3+0], _parPositions[i*3+1], _parPositions[i*3+2] );
 		if( vertPos.x < bBMin.x ) bBMin.x = vertPos.x;
 		if( vertPos.y < bBMin.y ) bBMin.y = vertPos.y;
@@ -734,4 +674,4 @@ void CubemitterNode::onPostUpdate()
 	_prevAbsTrans = _absTrans;
 
 	timer->setEnabled( false );*/
-}
+//}

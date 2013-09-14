@@ -6,7 +6,7 @@ context TRANSLUCENT
 	PixelShader = compile GLSL FS_TRANSLUCENT;
 	
 	ZWriteEnable = false;
-	BlendMode = AddBlended;
+	//BlendMode = AddBlended;
 	CullMode = None;
 }
 
@@ -18,9 +18,11 @@ context TRANSLUCENT
 uniform mat4 viewProjMat;
 attribute mat4 particleWorldMatrix;
 attribute vec3 vertPos;
-
+attribute vec4 cubeColor;
+varying vec4 c1;
 void main(void)
 {
+	c1 = cubeColor;
 	gl_Position = viewProjMat * particleWorldMatrix * vec4(vertPos, 1);
 }
 
@@ -28,8 +30,9 @@ void main(void)
 [[FS_TRANSLUCENT]]
 // =================================================================================================
 
+varying vec4 c1;
 void main( void )
 {
 	
-	gl_FragColor.rgba = vec4(1, 1, 1, 1);
+	gl_FragColor.rgba = c1;
 }

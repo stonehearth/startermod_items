@@ -84,8 +84,6 @@ Renderer::~Renderer()
 	releaseShadowRB();
 	gRDI->destroyTexture( _defShadowMap );
 	gRDI->destroyBuffer( _particleVBO );
-   gRDI->destroyBuffer( _cubeVBO );
-   gRDI->destroyBuffer( _cubeIdxBuf );
 	releaseShaderComb( _defColorShader );
 #if defined(OPTIMIZE_GSLS)
    glslopt_cleanup(_glsl_opt_ctx);
@@ -161,16 +159,6 @@ bool Renderer::init()
 	};
 	_vlParticle = gRDI->registerVertexLayout( 2, attribsParticle );
 	
-	VertexLayoutAttrib attribsCube[2] = {
-		"vertPos", 0, 3, 0,
-		"particleWorldMatrix", 1, 4 * 4, 0
-	};
-   VertexDivisorAttrib divisors[2] = {
-      0, // vertPos is just a normal attribute
-      1  // The world-matrix is a per-instance field.
-   };
-	_vlCube = gRDI->registerVertexLayout( 2, attribsCube, divisors );
-
    // Upload default shaders
 	if( !createShaderComb( NULL, vsDefColor, fsDefColor, _defColorShader ) )
 	{
@@ -219,26 +207,6 @@ bool Renderer::init()
 	}
 	_particleVBO = gRDI->createVertexBuffer( ParticlesPerBatch * 4 * sizeof( ParticleVert ), (float *)parVerts );
 	delete[] parVerts; parVerts = 0x0;
-
-	// Create cube geometry array
-	CubeVert cvs[8];
-   cvs[0] = CubeVert( -0.5, -0.5, 0.5);
-	cvs[1] = CubeVert( 0.5, -0.5,  0.5);
-	cvs[2] = CubeVert( 0.5,  0.5, 0.5);
-	cvs[3] = CubeVert( -0.5,  0.5,  0.5);
-	cvs[4] = CubeVert(  -0.5, -0.5, -0.5);
-	cvs[5] = CubeVert(  0.5, -0.5,  -0.5);
-	cvs[6] = CubeVert(  0.5,  0.5, -0.5);
-	cvs[7] = CubeVert(  -0.5,  0.5,  -0.5);
-	
-	_cubeVBO = gRDI->createVertexBuffer( 8 * sizeof( CubeVert ), (float *)cvs );
-	uint16 cubeInds[36] = {
-		0, 1, 2, 2, 3, 0,   1, 5, 6, 6, 2, 1,   5, 4, 7, 7, 6, 5,
-		4, 0, 3, 3, 7, 4,   3, 2, 6, 6, 7, 3,   4, 5, 1, 1, 0, 4
-	};
-   _cubeIdxBuf = gRDI->createIndexBuffer(36 * sizeof(uint16), (void *)cubeInds);
-   _attributeBuf = gRDI->createVertexBuffer(sizeof(float) * 4 * 4 * 100, 0x0);
-
 
    // Create overlay geometry array;
    _overlayBatches.reserve( 64 );

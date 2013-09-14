@@ -15,6 +15,10 @@
 using namespace ::radiant;
 using namespace ::radiant::horde3d;
 
+radiant::uint32 Extension::_cubeVBO;
+radiant::uint32 Extension::_cubeIdxBuf;
+radiant::uint32 Extension::_vlCube;
+
 Extension::Extension()
 {
 }
@@ -65,11 +69,47 @@ bool Extension::init()
    }
    DebugShapesNode::material = (MaterialResource *)matRes;
 
+
+   const int numCubeAttributes = 3;
+   VertexLayoutAttrib attribsCube[numCubeAttributes] = {
+      {"vertPos", 0, 3, 0},
+      {"particleWorldMatrix", 1, 4 * 4, 0},
+      {"cubeColor", 1, 4, 64},
+	};
+   VertexDivisorAttrib divisors[numCubeAttributes] = {
+      0, // vertPos is just a normal attribute
+      1, // The world-matrix is a per-instance field.
+      1  // The color is a per-instance field.
+   };
+	_vlCube = gRDI->registerVertexLayout( numCubeAttributes, attribsCube, divisors );
+
+   // Create cube geometry array
+	CubeVert cvs[8];
+   cvs[0] = CubeVert( -0.5, -0.5, 0.5);
+	cvs[1] = CubeVert( 0.5, -0.5,  0.5);
+	cvs[2] = CubeVert( 0.5,  0.5, 0.5);
+	cvs[3] = CubeVert( -0.5,  0.5,  0.5);
+	cvs[4] = CubeVert(  -0.5, -0.5, -0.5);
+	cvs[5] = CubeVert(  0.5, -0.5,  -0.5);
+	cvs[6] = CubeVert(  0.5,  0.5, -0.5);
+	cvs[7] = CubeVert(  -0.5,  0.5,  -0.5);
+	
+	_cubeVBO = gRDI->createVertexBuffer( 8 * sizeof( CubeVert ), (float *)cvs );
+	uint16 cubeInds[36] = {
+		0, 1, 2, 2, 3, 0,   1, 5, 6, 6, 2, 1,   5, 4, 7, 7, 6, 5,
+		4, 0, 3, 3, 7, 4,   3, 2, 6, 6, 7, 3,   4, 5, 1, 1, 0, 4
+	};
+   _cubeIdxBuf = gRDI->createIndexBuffer(36 * sizeof(uint16), (void *)cubeInds);
+
+
    return true;
 }
 
 void Extension::release()
 {
+   gRDI->destroyBuffer( _cubeVBO );
+   gRDI->destroyBuffer( _cubeIdxBuf );
+
    // xxx: nuke the material
 }
 
@@ -143,18 +183,29 @@ DLL H3DNode h3dRadiantAddDebugShapes(H3DNode parent, const char* nam)
 	return Modules::sceneMan().addNode(sn, *parentNode);
 }
 
-DLL H3DNode h3dRadiantAddCubemitterNode(H3DNode parent, const char* nam, radiant::uint32 maxParticleCount, H3DRes mat)
+DLL H3DNode h3dRadiantAddCubemitterNode(H3DNode parent, const char* nam, H3DRes cubemitter, H3DRes mat)
 {
    std::string name(nam);
 	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
 	APIFUNC_VALIDATE_NODE(parentNode, "h3dRadiantAddCubemitterNode", 0);
 	
-	CubemitterNodeTpl tpl(name, maxParticleCount);
-   tpl.matRes = (MaterialResource *)Modules::resMan().resolveResHandle(mat);
-   APIFUNC_VALIDATE_RES_TYPE(tpl.matRes, ResourceTypes::Material, "h3dRadiantAddCubemitterNode", 0)
+   CubemitterResource *cubeRes = (CubemitterResource *)Modules::resMan().resolveResHandle(cubemitter);
+   MaterialResource *matRes = (MaterialResource *)Modules::resMan().resolveResHandle(mat);
+   
+   APIFUNC_VALIDATE_RES_TYPE(matRes, ResourceTypes::Material, "h3dRadiantAddCubemitterNode", 0);
+   APIFUNC_VALIDATE_RES_TYPE(cubeRes, RT_CubemitterResource, "h3dRadiantAddCubemitterNode", 0);
+
+   CubemitterNodeTpl tpl(name, cubeRes, matRes);
 
 	SceneNode *sn = Modules::sceneMan().findType(SNT_CubemitterNode)->factoryFunc(tpl);
 	return Modules::sceneMan().addNode(sn, *parentNode);
+}
+
+DLL void h3dRadiantAdvanceCubemitterTime(H3DNode cubemitterNode, float timeDelta) {
+   SceneNode *sn = Modules::sceneMan().resolveNodeHandle( cubemitterNode );
+   APIFUNC_VALIDATE_NODE_TYPE( sn, SNT_CubemitterNode, "h3dAdvanceCubemitterTime", APIFUNC_RET_VOID );
+
+   ((CubemitterNode *)sn)->advanceTime( timeDelta );
 }
 
 DLL bool h3dRadiantClearDebugShape(H3DNode node)
