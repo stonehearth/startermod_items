@@ -28,9 +28,9 @@
 [submodule "modules/luabind"]
 	path = modules/luabind
 	url = https://github.com/radent/luabind.git
-[submodule "modules/boost"]
-	path = modules/boost
-	url = https://github.com/radent/boost.git
 [submodule "modules/cryptopp"]
 	path = modules/cryptopp
 	url = https://github.com/radent/cryptopp.git
+[submodule "modules/boost_bin"]
+	path = modules/boost_bin
+	url = https://github.com/radent/boost_bin.git

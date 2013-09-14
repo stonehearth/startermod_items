@@ -6,11 +6,10 @@ MAKE_ROOT_DOS    = $(shell pwd -W)/make
 BUILD_ROOT       = $(STONEHEARTH_ROOT)/build
 
 .PHONY: default
-default: configure submodules stonehearth
+default: submodules configure stonehearth
 
-# TODO : put rm in the devroot bin dir
 clean:
-	rmdir /q/s build
+	rm -rf build
 
 .PHONY: submodules
 submodules:
