@@ -256,8 +256,8 @@ void ResourceManager2::ParseNodeExtension(std::string const& path, JSONNode& nod
 
       try {
          parent = LookupJson(uri);
-      } catch (InvalidFilePathException &e) {
-         throw InvalidFilePathException(extends);
+      } catch (InvalidFilePath &) {
+         throw InvalidFilePath(extends);
       }
 
       LOG(WARNING) << "node pre-extend: " << node.write_formatted();

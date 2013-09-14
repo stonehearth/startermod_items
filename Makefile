@@ -29,11 +29,10 @@ ide: configure
 	start build/Stonehearth.sln
 
 run-%:
-	cd source/stonehearth_data && ../../build/source/client_app/client_app.exe \
-		--game.script=stonehearth_tests/
+	cd source/stonehearth_data && ../../build/source/client_app/client_app.exe
 
 run:
-	cd source/stonehearth_data && ../../build/source/client_app/Debug/client_app.exe 
+	cd source/stonehearth_data && ../../build/source/client_app/Debug/client_app.exe --game.script=stonehearth_tests/harvest_test.lua&
 
 .PHONY: dependency-graph
 dependency-graph:
