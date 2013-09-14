@@ -1,6 +1,7 @@
 #ifndef _RADIANT_RESOURCES_EXCEPTIONS_H
 #define _RADIANT_RESOURCES_EXCEPTIONS_H
 
+#include <sstream>
 #include "namespace.h"
 
 BEGIN_RADIANT_RESOURCES_NAMESPACE

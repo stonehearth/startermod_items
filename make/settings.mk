@@ -1,4 +1,17 @@
 
+BUILD_TYPE   ?= opt
+
+ifeq ($(BUILD_TYPE), opt)
+	MSBUILD_CONFIGURATION=relwithdebinfo
+endif
+ifeq ($(BUILD_TYPE), debug)
+	MSBUILD_CONFIGURATION=debug
+endif
+
+ifeq (_$(MSBUILD_CONFIGURATION)_, __)
+   $(error Unknown BUILD_TYPE=$(BUILD_TYPE).  Must be debug or opt.)
+endif
+
 # default commands and such
 7ZA=7za
 MSBUILD=msbuild.exe -nologo -maxcpucount -p:PlatformToolset=v110 

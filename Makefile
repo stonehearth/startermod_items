@@ -1,3 +1,4 @@
+-include local.mk
 include make/settings.mk
 
 STONEHEARTH_ROOT = ${CURDIR}
@@ -21,18 +22,19 @@ configure:
 
 .PHONY: stonehearth
 stonehearth:
-	$(MSBUILD) $(BUILD_ROOT)/Stonehearth.sln -p:configuration=debug -t:protocols
-	$(MSBUILD) $(BUILD_ROOT)/Stonehearth.sln -p:configuration=debug
+	@echo Build type is ${BUILD_TYPE}.
+	$(MSBUILD) $(BUILD_ROOT)/Stonehearth.sln -p:configuration=$(MSBUILD_CONFIGURATION) -t:protocols
+	$(MSBUILD) $(BUILD_ROOT)/Stonehearth.sln -p:configuration=$(MSBUILD_CONFIGURATION)
 
 .PHONY: ide
 ide: configure
 	start build/Stonehearth.sln
 
 run-%:
-	cd source/stonehearth_data && ../../build/source/client_app/client_app.exe
+	cd source/stonehearth_data && ../../build/source/client_app/$(MSBUILD_CONFIGURATION)/client_app.exe --game.script=stonehearth_tests/harvest_test.lua&
 
 run:
-	cd source/stonehearth_data && ../../build/source/client_app/Debug/client_app.exe --game.script=stonehearth_tests/harvest_test.lua&
+	cd source/stonehearth_data && ../../build/source/client_app/$(MSBUILD_CONFIGURATION)/client_app.exe 
 
 .PHONY: dependency-graph
 dependency-graph:
