@@ -57,25 +57,32 @@ function TerrainGenerator:__init()
    local oversize_zone_size = self.zone_size + self.tile_size
    self.oversize_map_buffer = HeightMap(oversize_zone_size, oversize_zone_size)
 
+   local micro_size = oversize_zone_size / self.tile_size
+   self.noise_map_buffer = HeightMap(micro_size, micro_size)
+
    self._edge_detailer = EdgeDetailer()
 end
 
 function TerrainGenerator:generate_zone(terrain_type, zones, x, y)
    local zone_map, micro_map, noise_map
+   local noise_map = self.noise_map_buffer
    local oversize_map = self.oversize_map_buffer
-   local micro_width = oversize_map.width / self.tile_size
-   local micro_height = oversize_map.height / self.tile_size
+
+   noise_map.terrain_type = terrain_type
    oversize_map.terrain_type = terrain_type
 
-   noise_map = self:_generate_noise_map(terrain_type, micro_width, micro_height)
+   self:_fill_noise_map(noise_map)
 
    -- propagate edge information from surrounding zones into current map
    self:_copy_zone_context(noise_map, zones, x, y, true)
 
+   -- micro_map must be a new HeightMap as it is returned from the function
    micro_map = self:_filter_and_quantize_noise_map(noise_map)
 
    -- force shared tiles to same value from adjacent zones
    self:_copy_zone_context(micro_map, zones, x, y, false)
+
+   self:_postprocess_micro_map(micro_map)
 
    self:_create_macro_map_from_micro_map(oversize_map, micro_map)
    
@@ -87,17 +94,18 @@ function TerrainGenerator:generate_zone(terrain_type, zones, x, y)
    self._edge_detailer:add_detail_blocks(oversize_map, terrain_type, self.terrain_info)
 
    -- copy the offset zone map from the oversize map
+   -- zone_map must be a new HeightMap as it is returned from the function
    zone_map = self:_create_zone_map(oversize_map)
 
    return zone_map, micro_map
 end
 
-function TerrainGenerator:_generate_noise_map(terrain_type, width, height)
-   local noise_map = HeightMap(width, height)
+function TerrainGenerator:_fill_noise_map(noise_map)
+   local width = noise_map.width
+   local height = noise_map.height
+   local terrain_type = noise_map.terrain_type
    local std_dev = self.terrain_info[terrain_type].std_dev
    local mean_height = self.terrain_info[terrain_type].mean_height
-
-   noise_map.terrain_type = terrain_type
 
    noise_map:process_map(
       function ()
@@ -138,7 +146,6 @@ function TerrainGenerator:_generate_noise_map(terrain_type, width, height)
       noise_map[offset] = (noise_map[offset] + mean_height) * 0.5
    end
    ]]
-   return noise_map
 end
 
 function TerrainGenerator:_copy_zone_context(micro_map, zones, x, y, blend_rows)
@@ -244,6 +251,49 @@ function TerrainGenerator:_filter_and_quantize_noise_map(noise_map)
    self:_quantize_height_map(filtered_map, false)
 
    return filtered_map
+end
+
+function TerrainGenerator:_postprocess_micro_map(micro_map)
+   local i, j
+
+   for j=1, micro_map.height do
+      for i=1, micro_map.width do
+         -- no need for a separate destination map, can fill in place
+         self:_fill_hole(micro_map, i, j)
+      end
+   end
+end
+
+function TerrainGenerator:_fill_hole(height_map, x, y)
+   local width = height_map.width
+   local height = height_map.height
+   local offset = height_map:get_offset(x, y)
+   local value = height_map[offset]
+   local new_value = 2000000000
+   local neighbor
+
+   if x > 1 then
+      neighbor = height_map[offset-1]
+      if neighbor <= value then return end
+      if neighbor < new_value then new_value = neighbor end
+   end
+   if x < width then
+      neighbor = height_map[offset+1]
+      if neighbor <= value then return end
+      if neighbor < new_value then new_value = neighbor end
+   end
+   if y > 1 then
+      neighbor = height_map[offset-width]
+      if neighbor <= value then return end
+      if neighbor < new_value then new_value = neighbor end
+   end
+   if y < height then
+      neighbor = height_map[offset+width]
+      if neighbor <= value then return end
+      if neighbor < new_value then new_value = neighbor end
+   end
+
+   height_map[offset] = new_value
 end
 
 function TerrainGenerator:_create_macro_map_from_micro_map(oversize_map, micro_map)
