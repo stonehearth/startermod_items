@@ -5,7 +5,7 @@ function Array2DFns.copy_vector(dst, src, dst_start, dst_inc, src_start, src_inc
    local x = src_start
    local y = dst_start
 
-   for i=1, length, 1 do
+   for i=1, length do
       dst[y] = src[x]
       x = x + src_inc
       y = y + dst_inc

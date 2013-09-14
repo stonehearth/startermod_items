@@ -13,19 +13,19 @@ function BoundaryNormalizingFilter:__init(coefficients)
    assert(f[1] == f[f_len]) -- symmetry check, should check other values too
 
    local f_sum = 0
-   for i=1, f_len, 1 do
+   for i=1, f_len do
       f_sum = f_sum + f[i]
    end
 
    -- calculate normalizaion coefficients for boundary conditions
    local boundary_len = (f_len-1)/2 -- number of elements with boundary effects
    local norm_sum = 0
-   for i=1, boundary_len, 1 do
+   for i=1, boundary_len do
       norm_sum = norm_sum + f[i]
    end
 
    -- lower indicies of n are closer to the boundary (and sum the fewest components of f)
-   for i=1, boundary_len, 1 do
+   for i=1, boundary_len do
       norm_sum = norm_sum + f[i+boundary_len]
       n[i] = f_sum / norm_sum
    end
@@ -62,7 +62,7 @@ function BoundaryNormalizingFilter:filter(dst, src, src_len, sampling_interval)
       if i <= boundary_len then
          -- handle boundary conditions at start
          k_start = boundary_len+2 - i
-         for k=k_start, f_len, 1 do
+         for k=k_start, f_len do
             sum = sum + src[i+offset+k]*f[k]
          end
          dst[j] = sum * n[i]
@@ -70,13 +70,13 @@ function BoundaryNormalizingFilter:filter(dst, src, src_len, sampling_interval)
          if i > src_len-boundary_len then
             -- handle boundary conditions at end
             k_end = f_len-boundary_len + src_len-i 
-            for k=1, k_end, 1 do
+            for k=1, k_end do
                sum = sum + src[i+offset+k]*f[k]
             end
             dst[j] = sum * n[src_len-i+1]
          else
             -- main convolution loop
-            for k=1, f_len, 1 do
+            for k=1, f_len do
                sum = sum + src[i+offset+k]*f[k]
             end
             dst[j] = sum
@@ -118,7 +118,7 @@ function BoundaryNormalizingFilter._test_impulse_response(f)
    local dst = {}
    local i, k
 
-   for i=1, length, 1 do
+   for i=1, length do
       src[i] = 0
    end
    src[20] = 1
@@ -126,7 +126,7 @@ function BoundaryNormalizingFilter._test_impulse_response(f)
    flt:filter(dst, src, length)
 
    k = 1
-   for i=20-flt._boundary_len, 20+flt._boundary_len, 1 do
+   for i=20-flt._boundary_len, 20+flt._boundary_len do
       assert(math.abs(f[k]-dst[i]) < delta)
       k = k + 1
    end
@@ -140,13 +140,13 @@ function BoundaryNormalizingFilter._test_boundary_normalization(f)
    local dst = {}
    local i, k
 
-   for i=1, length, 1 do
+   for i=1, length do
       src[i] = 1
    end
 
    flt:filter(dst, src, length)
 
-   for i=1, length, 1 do
+   for i=1, length do
       assert(math.abs(flt._f_sum-dst[i]) < delta)
    end
 end
@@ -158,13 +158,13 @@ function BoundaryNormalizingFilter._test_resampling(f)
    local dst = {}
    local i, k
 
-   for i=1, length, 1 do
+   for i=1, length do
       src[i] = 1
    end
 
    flt:filter(dst, src, length, 4)
 
-   for i=1, length/4, 1 do
+   for i=1, length/4 do
       assert(math.abs(flt._f_sum-dst[i]) < delta)
    end
 end

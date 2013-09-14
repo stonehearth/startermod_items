@@ -23,7 +23,7 @@ function Daubechies_D4.DWT_1D(src, length)
    assert(length % 2 == 0)
    assert(length >= 4)
 
-   for i=1, n, 1 do
+   for i=1, n do
       A = src[2*i-1]
       B = src[2*i]
       
@@ -44,7 +44,7 @@ function Daubechies_D4.DWT_1D(src, length)
       temp[n+i] = A*G4 + B*G3 + C*G2 + D*G1 -- high frequency
    end
 
-   for i=1, length, 1 do
+   for i=1, length do
       src[i] = temp[i]
    end
 end
@@ -58,7 +58,7 @@ function Daubechies_D4.IDWT_1D(src, length)
    assert(length % 2 == 0)
    assert(length >= 4)
 
-   for i=1, n, 1 do
+   for i=1, n do
       B = src[i]
       D = src[n+i]
 
@@ -79,7 +79,7 @@ function Daubechies_D4.IDWT_1D(src, length)
       temp[2*i]   = A*H1 + B*H3 + C*G1 + D*G3
    end
 
-   for i=1, length, 1 do
+   for i=1, length do
       src[i] = temp[i]
    end
 end

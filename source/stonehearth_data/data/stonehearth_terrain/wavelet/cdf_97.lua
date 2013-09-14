@@ -70,12 +70,12 @@ function CDF_97._deinterleave(x, n)
    local i
    local w = n*0.5
 
-   for i=1, w, 1 do
+   for i=1, w do
       temp[i] = x[i*2-1]
       temp[i+w] = x[i*2]
    end
 
-   for i=1, n, 1 do
+   for i=1, n do
       x[i] = temp[i]
    end
 end
@@ -84,12 +84,12 @@ function CDF_97._interleave(x, n)
    local i
    local w = n*0.5
 
-   for i=1, w, 1 do
+   for i=1, w do
       temp[i*2-1] = x[i]
       temp[i*2] = x[i+w]
    end
 
-   for i=1, n, 1 do
+   for i=1, n do
       x[i] = temp[i]
    end
 end
@@ -105,12 +105,12 @@ function CDF_97._test()
    local DELTA = 1e-13
 
    -- Makes a fancy cubic signal
-   for i=1, length, 1 do
+   for i=1, length do
       j = i-1
       x[i] = 5 + j + 0.4*j^2 - 0.02*j^3
    end
 
-   for i=1, length, 1 do
+   for i=1, length do
       y[i] = x[i]
    end
 
@@ -118,7 +118,7 @@ function CDF_97._test()
    CDF_97.IDWT_1D(y, length)
 
    local diff
-   for i=1, length, 1 do
+   for i=1, length do
       diff = math.abs(y[i]-x[i])
       assert(diff < DELTA)
    end
