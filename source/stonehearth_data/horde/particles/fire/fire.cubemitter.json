@@ -4,12 +4,13 @@
     "particle": {
         "start_lifetime": {
             "kind": "RANDOM_BETWEEN",
-            "values": [1,5]
+            "values": [5,5]
         },
         "start_speed": {
-            "kind": "CONSTANT",
-            "values": [2]
+            "kind": "RANDOM_BETWEEN",
+            "values": [5, 7]
         },
+
         "color": {
             "start": {
                 "kind": "RANDOM_BETWEEN",
@@ -18,12 +19,25 @@
                     [0.6, 0.3, 0.0]
                 ]
             }
+        },
+
+        "scale": {
+            "start": {
+                "kind": "RANDOM_BETWEEN",
+                "values": [1, 1]
+            },
+            "over_lifetime": {
+                "kind": "CURVE",
+                "values": [
+                    [0.0, 1.0],[1.0, 3.0]
+                ]
+            }
         }
     },
     "emission": {
         "rate": {
             "kind": "RANDOM_BETWEEN",
-            "values": [1, 50]
+            "values": [1, 5]
         }
     }
 }

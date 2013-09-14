@@ -88,12 +88,21 @@ ParticleData CubemitterResource::parseParticle(JSONNode& n) {
    result.start_lifetime = parseDataChannel(n.at("start_lifetime"));
    result.start_speed = parseDataChannel(n.at("start_speed"));
    result.color = parseColor(n.at("color"));
+   result.scale = parseScale(n.at("scale"));
    return result;
 }
 
 ColorData CubemitterResource::parseColor(JSONNode& n) {
    ColorData result;
    result.start = parseDataChannel(n.at("start"));
+   //result.over_lifetime = parseDataChannel(n.at("over_lifetime"));
+   return result;
+}
+
+ScaleData CubemitterResource::parseScale(JSONNode& n) {
+   ScaleData result;
+   result.start = parseDataChannel(n.at("start"));
+   result.over_lifetime = parseDataChannel(n.at("over_lifetime"));
    return result;
 }
 
@@ -122,6 +131,8 @@ std::vector<DataChannel::ChannelValue> CubemitterResource::parseChannelValues(JS
          result.push_back(DataChannel::ChannelValue(v.as_float()));
       } else if (v.size() == 3) {
          result.push_back(DataChannel::ChannelValue(v.at(0).as_float(), v.at(1).as_float(), v.at(2).as_float()));
+      } else if (v.size() == 2) {
+         result.push_back(DataChannel::ChannelValue(v.at(0).as_float(), v.at(1).as_float()));
       }
    }
    return result;
@@ -129,8 +140,10 @@ std::vector<DataChannel::ChannelValue> CubemitterResource::parseChannelValues(JS
 
 DataChannel::DataKind CubemitterResource::extractDataKind(JSONNode& n) {
    if (n.size() > 0) {
-      if (n[0].size () == 3) {
+      if (n[0].size() == 3) {
          return DataChannel::DataKind::TRIPLE;
+      } else if (n[0].size() == 2) {
+         return DataChannel::DataKind::DOUBLE;
       }
    }
    return DataChannel::DataKind::SCALAR;
@@ -142,6 +155,8 @@ DataChannel::Kind CubemitterResource::parseChannelKind(std::string& kindName) {
       return DataChannel::Kind::CONSTANT;
    } else if (kindName == "RANDOM_BETWEEN") {
       return DataChannel::Kind::RANDOM_BETWEEN;
+   } else if (kindName == "CURVE") {
+      return DataChannel::Kind::CURVE;
    }
    return DataChannel::Kind::CONSTANT;
 }
@@ -208,49 +223,6 @@ SceneNodeTpl *CubemitterNode::parsingFunc( std::map< std::string, std::string > 
 {
 	bool result = true;
 	
-	//std::map< std::string, std::string >::iterator itr;
-	//CubemitterNodeTpl *emitterTpl = new CubemitterNodeTpl("", 0 );
-
-	/*itr = attribs.find( "material" );
-	if( itr != attribs.end() )
-	{
-		uint32 res = Modules::resMan().addResource( ResourceTypes::Material, itr->second, 0, false );
-		if( res != 0 )
-			emitterTpl->matRes = (MaterialResource *)Modules::resMan().resolveResHandle( res );
-	}
-	else result = false;
-	itr = attribs.find( "particleEffect" );
-	if( itr != attribs.end() )
-	{
-		uint32 res = Modules::resMan().addResource( ResourceTypes::ParticleEffect, itr->second, 0, false );
-		if( res != 0 )
-			emitterTpl->effectRes = (ParticleEffectResource *)Modules::resMan().resolveResHandle( res );
-	}
-	else result = false;
-	itr = attribs.find( "maxCount" );
-	if( itr != attribs.end() ) emitterTpl->maxParticleCount = atoi( itr->second.c_str() );
-   	else result = false;
-	itr = attribs.find( "respawnCount" );
-	if( itr != attribs.end() ) emitterTpl->respawnCount = atoi( itr->second.c_str() );
-	   else result = false;
-	itr = attribs.find( "delay" );
-	if( itr != attribs.end() ) emitterTpl->delay = (float)atof( itr->second.c_str() );
-	itr = attribs.find( "emissionRate" );
-	if( itr != attribs.end() ) emitterTpl->emissionRate = (float)atof( itr->second.c_str() );
-	itr = attribs.find( "spreadAngle" );
-	if( itr != attribs.end() ) emitterTpl->spreadAngle = (float)atof( itr->second.c_str() );
-	itr = attribs.find( "forceX" );
-	if( itr != attribs.end() ) emitterTpl->fx = (float)atof( itr->second.c_str() );
-	itr = attribs.find( "forceY" );
-	if( itr != attribs.end() ) emitterTpl->fy = (float)atof( itr->second.c_str() );
-	itr = attribs.find( "forceZ" );
-	if( itr != attribs.end() ) emitterTpl->fz = (float)atof( itr->second.c_str() );
-	
-	if( !result )
-	{
-		delete emitterTpl; emitterTpl = 0x0;
-	}*/
-	
    return nullptr;
 }
 
@@ -265,127 +237,29 @@ SceneNode *CubemitterNode::factoryFunc( const SceneNodeTpl &nodeTpl )
 
 void CubemitterNode::setMaxParticleCount( radiant::uint32 maxParticleCount )
 {
-	// Delete particles
-	/*delete[] _cubes; _cubes = 0x0;
-	delete[] _parPositions; _parPositions = 0x0;
-	delete[] _parSizesANDRotations; _parSizesANDRotations = 0x0;
-	delete[] _parColors; _parColors = 0x0;
-	
-	// Initialize particles
-	_particleCount = maxParticleCount;
-	_cubes = new CubeData[_particleCount];
-	_parPositions = new float[_particleCount * 3];
-	_parSizesANDRotations = new float[_particleCount * 2];
-	_parColors = new float[_particleCount * 4];
-	for( uint32 i = 0; i < _particleCount; ++i )
-	{
-		_cubes[i].life = 0;
-		_cubes[i].respawnCounter = 0;
-		
-		_parPositions[i*3+0] = 0.0f;
-		_parPositions[i*3+1] = 0.0f;
-		_parPositions[i*3+2] = 0.0f;
-		_parSizesANDRotations[i*2+0] = 0.0f;
-		_parSizesANDRotations[i*2+1] = 0.0f;
-		_parColors[i*4+0] = 0.0f;
-		_parColors[i*4+1] = 0.0f;
-		_parColors[i*4+2] = 0.0f;
-		_parColors[i*4+3] = 0.0f;
-	}*/
 }
 
 
 int CubemitterNode::getParamI( int param )
 {
-	switch( param )
-	{
-	/*case CubemitterNodeParams::MatResI:
-		if( _materialRes != 0x0 ) return _materialRes->getHandle();
-		else return 0;
-	case EmitterNodeParams::PartEffResI:
-		if( _effectRes != 0x0 ) return _effectRes->getHandle();
-		else return 0;*/
-	case CubemitterNodeParams::MaxCountI:
-		return (int)_particleCount;
-	/*case EmitterNodeParams::RespawnCountI:
-		return _respawnCount;*/
-	}
-
 	return SceneNode::getParamI( param );
 }
 
 
 void CubemitterNode::setParamI( int param, int value )
 {
-	switch( param )
-	{
-	/*case EmitterNodeParams::MatResI:
-		res = Modules::resMan().resolveResHandle( value );
-		if( res != 0x0 && res->getType() == ResourceTypes::Material )
-			_materialRes = (MaterialResource *)res;
-		else
-			Modules::setError( "Invalid handle in h3dSetNodeParamI for H3DEmitter::MatResI" );
-		return;
-	case EmitterNodeParams::PartEffResI:
-		res = Modules::resMan().resolveResHandle( value );
-		if( res != 0x0 && res->getType() == ResourceTypes::ParticleEffect )
-			_effectRes = (ParticleEffectResource *)res;
-		else
-			Modules::setError( "Invalid handle in h3dSetNodeParamI for H3DLight::PartEffResI" );
-		return;*/
-	case CubemitterNodeParams::MaxCountI:
-		setMaxParticleCount( (uint32)value );
-		return;
-	/*case EmitterNodeParams::RespawnCountI:
-		_respawnCount = value;
-		return;*/
-	}
-
 	SceneNode::setParamI( param, value );
 }
 
 
 float CubemitterNode::getParamF( int param, int compIdx )
 {
-	/*switch( param )
-	{
-	case EmitterNodeParams::DelayF:
-		return _delay;
-	case EmitterNodeParams::EmissionRateF:
-		return _emissionRate;
-	case EmitterNodeParams::SpreadAngleF:
-		return _spreadAngle;
-	case EmitterNodeParams::ForceF3:
-		if( (unsigned)compIdx < 3 ) return _force[compIdx];
-		break;
-	}*/
-
 	return SceneNode::getParamF( param, compIdx );
 }
 
 
 void CubemitterNode::setParamF( int param, int compIdx, float value )
 {
-	/*switch( param )
-	{
-	case EmitterNodeParams::DelayF:
-		_delay = value;
-		return;
-	case EmitterNodeParams::EmissionRateF:
-		_emissionRate = value;
-		return;
-	case EmitterNodeParams::SpreadAngleF:
-		_spreadAngle = value;
-		return;
-	case EmitterNodeParams::ForceF3:
-		if( (unsigned)compIdx < 3 )
-		{
-			_force[compIdx] = value;
-			return;
-		}
-		break;
-	}*/
-
 	SceneNode::setParamF( param, compIdx, value );
 }
 
@@ -547,6 +421,28 @@ DataChannel::ChannelValue CubemitterNode::nextValue(float t, DataChannel dc) {
          Vec3f r = randomV(v1, v2);
          return DataChannel::ChannelValue(r.x, r.y, r.z);
       }
+   } else if (dc.kind == DataChannel::Kind::CURVE) {
+      if (dc.dataKind == DataChannel::DataKind::DOUBLE) {
+         float t_start = dc.values[0].value.duble.v0;
+         float v_start = dc.values[0].value.duble.v1;
+
+         float t_end = dc.values[1].value.duble.v0;
+         float v_end = dc.values[1].value.duble.v1;
+
+         int i = 2;
+         while (t_end <= t && i < dc.values.size()) {
+            t_start = t_end;
+            v_start = v_end;
+
+            t_end = dc.values[i].value.duble.v0;
+            v_end = dc.values[i].value.duble.v1;
+            i++;
+         }
+
+         float frac = (t - t_start) / (t_end - t_start);
+
+         return DataChannel::ChannelValue(frac * v_end + (1.0f - frac) * v_start);
+      }
    }
 
    return DataChannel::ChannelValue(0);
@@ -624,8 +520,11 @@ void CubemitterNode::spawnCube(CubeData &d, CubeAttribute &ca)
 
    d.speed = nextValue(_curEmitterTime, data.particle.start_speed).value.scalar;
 
+   d.startScale = nextValue(_curEmitterTime, data.particle.scale.start).value.scalar;
+   d.scale = d.startScale;
 
    ca.matrix = Matrix4f::TransMat(d.position.x, d.position.y, d.position.z);
+   ca.matrix.scale(d.scale, d.scale, d.scale);
    ca.color = d.color;
 }
 
@@ -642,12 +541,16 @@ void CubemitterNode::updateCube(CubeData &d, CubeAttribute &ca)
 
    d.position += d.direction * d.speed * _timeDelta;
    d.currentLife -= _timeDelta;
+   d.scale = d.startScale * nextValue(fr, data.particle.scale.over_lifetime).value.scalar;
+
 
    // This is our actual vbo data.
    ca.matrix.x[12] = d.position.x;
    ca.matrix.x[13] = d.position.y;
    ca.matrix.x[14] = d.position.z;
-
+   ca.matrix.x[0] = d.scale;
+   ca.matrix.x[5] = d.scale;
+   ca.matrix.x[10] = d.scale;
    ca.color = d.color;
 }
 

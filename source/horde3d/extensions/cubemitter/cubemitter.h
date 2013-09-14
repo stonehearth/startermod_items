@@ -41,13 +41,19 @@ struct DataChannel
    enum Kind
    {
       CONSTANT,
-      RANDOM_BETWEEN
+      RANDOM_BETWEEN,
+      CURVE
    };
 
    enum DataKind
    {
       SCALAR,
+      DOUBLE,
       TRIPLE
+   };
+
+   struct Double {
+      float v0, v1;
    };
 
    struct Triple {
@@ -57,11 +63,17 @@ struct DataChannel
    struct ChannelValue {
       union {
          float scalar;
+         Double duble;
          Triple triple;
       } value;
 
       ChannelValue(float f) {
          value.scalar = f;
+      }
+
+      ChannelValue(float v0, float v1) {
+         value.duble.v0 = v0;
+         value.duble.v1 = v1;
       }
 
       ChannelValue(float v0, float v1, float v2) {
@@ -82,12 +94,19 @@ struct EmissionData {
 
 struct ColorData {
    DataChannel start;
+   DataChannel over_lifetime;
+};
+
+struct ScaleData {
+   DataChannel start;
+   DataChannel over_lifetime;
 };
 
 struct ParticleData {
    DataChannel start_lifetime;
    DataChannel start_speed;
    ColorData color;
+   ScaleData scale;
 };
 
 struct CubemitterData {
@@ -100,6 +119,7 @@ struct CubeData
 {
    float currentLife, maxLife;
    Vec3f position;
+   float startScale, scale;
    Vec3f direction;
    Vec4f color;
    float speed;
@@ -136,6 +156,8 @@ private:
    EmissionData parseEmission(JSONNode& n);
    ParticleData parseParticle(JSONNode& n);
    ColorData parseColor(JSONNode& n);
+   ScaleData parseScale(JSONNode& n);
+
    DataChannel parseDataChannel(JSONNode& n);
    std::vector<DataChannel::ChannelValue> parseChannelValues(JSONNode& n);
    DataChannel::Kind parseChannelKind(std::string& kindName);
