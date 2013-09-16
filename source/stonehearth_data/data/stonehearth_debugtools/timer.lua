@@ -10,27 +10,45 @@ function Timer:__init(mode)
 end
 
 function Timer:reset()
-   self.start_time = nil
-   self.stop_time = nil
+   self._accumulated_seconds = 0
+   self._start_time = nil
+   self._stop_time = nil
 end
 
 function Timer:start()
    self:reset()
-   self.start_time = self:_get_time()
+   self:resume()
 end
 
 function Timer:stop()
-   self.stop_time = self:_get_time()
+   self:pause()
+end
+
+function Timer:resume()
+   assert(self._start_time == nil)
+   self._start_time = self:_get_time()
+end
+
+function Timer:pause()
+   self._stop_time = self:_get_time()
+
+   assert(self._start_time)
+   local current_interval = self._stop_time - self._start_time
+   self._accumulated_seconds = self._accumulated_seconds + current_interval
+
+   self._start_time = nil
+   self._stop_time = nil
 end
 
 function Timer:seconds()
-   if not self.start_time then return 0 end
+   local current_interval = 0
 
-   if self.stop_time then
-      return self.stop_time - self.start_time
-   else
-      return self:_get_time() - self.start_time
+   if self._start_time then
+      -- still running
+      current_interval = self:_get_time() - self._start_time
    end
+
+   return self._accumulated_seconds + current_interval
 end
 
 function Timer:_get_time()

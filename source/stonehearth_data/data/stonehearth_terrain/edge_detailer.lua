@@ -9,7 +9,7 @@ function EdgeDetailer:__init()
    self.detail_grow_probability = 0.85
 end
 
-function EdgeDetailer:add_detail_blocks(height_map, terrain_type, terrain_info)
+function EdgeDetailer:add_detail_blocks(height_map)
    local i, j, edge
    local edge_threshold = 4
    local edge_map = HeightMap(height_map.width, height_map.height)
