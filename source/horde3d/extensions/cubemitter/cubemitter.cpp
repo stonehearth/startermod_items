@@ -76,10 +76,93 @@ bool CubemitterResource::load( const char *data, int size )
 	return true;
 }
 
+float parseValue(const JSONNode &n, const char *childName, float def)
+{
+   auto itr = n.find(childName);
+   if (itr == n.end()) {
+      return def;
+   }
+   auto childNode = n.at(childName);
+   std::string kind = childNode.at("kind").as_string();
+   auto vals = childNode.at("values").as_array();
+
+   return vals.at(0).as_float();
+}
+
+Vec3f parseValue(const JSONNode &n, const char *childName, const Vec3f &def)
+{
+   auto itr = n.find(childName);
+   if (itr == n.end()) {
+      return def;
+   }
+   auto childNode = n.at(childName);
+   std::string kind = childNode.at("kind").as_string();
+   auto vals = childNode.at("values").as_array();
+
+   return Vec3f(vals.at(0).as_float(), vals.at(1).as_float(), vals.at(2).as_float());
+}
+
+std::vector<std::pair<float, float> > parseCurveValues(const JSONNode &n) {
+   std::vector<std::pair<float, float> > result;
+
+   for (const auto &child : n)
+   {
+      result.push_back(std::pair<float, float>(child.at(0).as_float(), child.at(1).as_float()));
+   }
+
+   return result;
+}
+
+DataChannel<float>* parseChannel(const JSONNode &n, const char *childName, float def)
+{
+   auto itr = n.find(childName);
+   if (itr == n.end()) {
+      return new DataChannel<float>(def);
+   }
+   auto childNode = n.at(childName);
+   auto vals = childNode.at("values").as_array();
+   std::string kind = childNode.at("kind").as_string();
+
+   if (kind == "CONSTANT")
+   {
+      return new DataChannel<float>(vals.at(0).as_float());
+   } else if (kind == "RANDOM_BETWEEN")
+   {
+      return new DataChannel<float>(vals.at(0).as_float(), vals.at(1).as_float());
+   } else if (kind == "CURVE")
+   {
+      return new DataChannel<float>(parseCurveValues(vals));
+   } //else kind == "RANDOM_BETWEEN_CURVES"
+
+   return new DataChannel<float>(parseCurveValues(vals.at(0)), parseCurveValues(vals.at(1)));
+}
+
+DataChannel<Vec3f>* parseChannel(const JSONNode &n, const char *childName, const Vec3f &def)
+{
+   auto itr = n.find(childName);
+   if (itr == n.end()) {
+      return new DataChannel<Vec3f>(def);
+   }
+   auto childNode = n.at(childName);
+   auto vals = childNode.at("values").as_array();
+   std::string kind = childNode.at("kind").as_string();
+
+   if (kind == "CONSTANT")
+   {
+      Vec3f val(vals.at(0).as_float(), vals.at(1).as_float(), vals.at(2).as_float());
+      return new DataChannel<Vec3f>(val);
+   } //else kind == "RANDOM_BETWEEN"
+
+   Vec3f val1(vals.at(0).at(0).as_float(), vals.at(0).at(1).as_float(), vals.at(0).at(2).as_float());
+   Vec3f val2(vals.at(1).at(0).as_float(), vals.at(1).at(1).as_float(), vals.at(1).at(2).as_float());
+   
+   return new DataChannel<Vec3f>(val1, val2);
+}
+
 EmissionData CubemitterResource::parseEmission(JSONNode& n) 
 {
    EmissionData result;
-   result.rate = new DataChannel<float>(n, "rate", 1.0f);
+   result.rate = parseChannel(n, "rate", 1.0f);
    return result;
 }
 
@@ -96,32 +179,32 @@ ParticleData CubemitterResource::parseParticle(JSONNode& n)
 LifetimeData CubemitterResource::parseLifetime(JSONNode& n)
 {
    LifetimeData result;
-   result.start = new DataChannel<float>(n, "start", 5.0f);
+   result.start = parseChannel(n, "start", 5.0f);
    return result;
 }
 
 SpeedData CubemitterResource::parseSpeed(JSONNode& n)
 {
    SpeedData result;
-   result.start = new DataChannel<float>(n, "start", 5.0f);
+   result.start = parseChannel(n, "start", 5.0f);
    return result;
 }
 
 ColorData CubemitterResource::parseColor(JSONNode& n)
 {
    ColorData result;
-   result.start = new DataChannel<Vec3f>(n, "start", Vec3f(1, 0, 0));
-   result.over_lifetime_r = new DataChannel<float>(n, "over_lifetime_r", result.start->nextValue(0).x);
-   result.over_lifetime_g = new DataChannel<float>(n, "over_lifetime_g", result.start->nextValue(0).y);
-   result.over_lifetime_b = new DataChannel<float>(n, "over_lifetime_b", result.start->nextValue(0).z);
+   result.start = parseChannel(n, "start", Vec3f(1, 0, 0));
+   result.over_lifetime_r = parseChannel(n, "over_lifetime_r", result.start->nextValue(0).x);
+   result.over_lifetime_g = parseChannel(n, "over_lifetime_g", result.start->nextValue(0).y);
+   result.over_lifetime_b = parseChannel(n, "over_lifetime_b", result.start->nextValue(0).z);
    return result;
 }
 
 ScaleData CubemitterResource::parseScale(JSONNode& n)
 {
    ScaleData result;
-   result.start = new DataChannel<float>(n, "start", 1.0f);
-   result.over_lifetime = new DataChannel<float>(n, "over_lifetime", 1.0f);
+   result.start = parseChannel(n, "start", 1.0f);
+   result.over_lifetime = parseChannel(n, "over_lifetime", 1.0f);
    return result;
 }
 

@@ -237,12 +237,6 @@ private:
 template<typename T> class DataChannel
 {
 public:
-   DataChannel(JSONNode &node, const char * childName, T defaultValue) :
-      _v(nullptr), _defaultValue(defaultValue)
-   {
-      // Throw, because this should not happen.
-   }
-
    virtual ~DataChannel() 
    {
    }
@@ -253,135 +247,87 @@ public:
 
    T nextValue(float time) 
    {
-      return _defaultValue;
+      return 0.0f;
    }
-
-private:
-   ValueEmitter<T> *_v;
-   T _defaultValue;
 };
 
 template<> 
 class DataChannel<Vec3f>
 {
 public:
-   DataChannel(JSONNode &node, const char * childName, Vec3f defaultValue) :
-      _v(nullptr), _defaultValue(defaultValue)
+   DataChannel(const Vec3f& val)
    {
-      auto itr = node.find(childName);
-      if (itr == node.end()) {
-         return;
-      }
-      auto childNode = node.at(childName);
-      std::string kind = childNode.at("kind").as_string();
-      auto vals = childNode.at("values").as_array();
-      if (kind == "CONSTANT") {
-         Vec3f val(vals.at(0).as_float(), vals.at(1).as_float(), vals.at(2).as_float());
-         _v = new ConstantValueEmitter<Vec3f>(val);
-      } else if (kind == "RANDOM_BETWEEN") {
-         Vec3f val1(vals.at(0).at(0).as_float(), vals.at(0).at(1).as_float(), vals.at(0).at(2).as_float());
-         Vec3f val2(vals.at(1).at(0).as_float(), vals.at(1).at(1).as_float(), vals.at(1).at(2).as_float());
-         _v = new RandomBetweenVec3fEmitter(val1, val2);
-      }
-      // else, throw an error, otherwise!
+      _v = new ConstantValueEmitter<Vec3f>(val);
+   }
+
+   DataChannel(const Vec3f& min, const Vec3f& max)
+   {
+      _v = new RandomBetweenVec3fEmitter(min, max);
    }
 
    virtual ~DataChannel() 
    {
-      if (_v != nullptr) 
-      {
-         delete _v;
-         _v = nullptr;
-      }
+      delete _v;
    }
 
    void init() 
    {
-      if (_v != nullptr) 
-      {
-         _v->init();
-      }
+      _v->init();
    }
 
    Vec3f nextValue(float time) 
    {
-      if (_v == nullptr) 
-      {
-         return _defaultValue;
-      }
       return _v->nextValue(time);
    }
 
 private:
    ValueEmitter<Vec3f> *_v;
-   Vec3f _defaultValue;
 };
 
 template<> 
 class DataChannel<float>
 {
 public:
-   DataChannel(JSONNode &node, const char * childName, float defaultValue) :
-      _v(nullptr), _defaultValue(defaultValue)
+   DataChannel(float constantValue)
    {
-      auto itr = node.find(childName);
-      if (itr == node.end()) {
-         return;
-      }
-      auto childNode = node.at(childName);
-      std::string kind = childNode.at("kind").as_string();
-      auto vals = childNode.at("values").as_array();
-      if (kind == "CONSTANT") {
-         _v = new ConstantValueEmitter<float>(vals.at(0).as_float());
-      } else if (kind == "RANDOM_BETWEEN") {
-         _v = new RandomBetweenValueEmitter(vals.at(0).as_float(), vals.at(1).as_float());
-      } else if (kind == "CURVE") {
-         _v = new LinearCurveValueEmitter(parseCurveValues(vals));
-      } else if (kind == "RANDOM_BETWEEN_CURVES") {
-         _v = new RandomBetweenLinearCurvesValueEmitter(parseCurveValues(vals[0]), parseCurveValues(vals[1]));
-      }
+      _v = new ConstantValueEmitter<float>(constantValue);
+   }
+
+   DataChannel(float minV, float maxV)
+   {
+      _v = new RandomBetweenValueEmitter(minV, maxV);
+   }
+
+   DataChannel(const std::vector<std::pair<float, float> > &curveVals)
+   {
+      _v = new LinearCurveValueEmitter(curveVals);
+   }
+
+   DataChannel(
+      const std::vector<std::pair<float, float> > &bottomCurve, 
+      const std::vector<std::pair<float, float> > &topCurve)
+   {
+      _v = new RandomBetweenLinearCurvesValueEmitter(bottomCurve, topCurve);
    }
 
    virtual ~DataChannel() 
    {
-      if (_v != nullptr) 
-      {
-         delete _v;
-         _v = nullptr;
-      }
+      delete _v;
+      _v = nullptr;
    }
 
    void init() 
    {
-      if (_v != nullptr) 
-      {
-         _v->init();
-      }
+      _v->init();
    }
 
    float nextValue(float time) 
    {
-      if (_v == nullptr) 
-      {
-         return _defaultValue;
-      }
       return _v->nextValue(time);
    }
 
 private:
-   std::vector<std::pair<float, float> > parseCurveValues(const JSONNode &n) {
-      std::vector<std::pair<float, float> > result;
-
-      for (const auto &child : n)
-      {
-         result.push_back(std::pair<float, float>(child.at(0).as_float(), child.at(1).as_float()));
-      }
-
-      return result;
-   }
-
    ValueEmitter<float> *_v;
-   float _defaultValue;
 };
 
 END_RADIANT_HORDE3D_NAMESPACE
