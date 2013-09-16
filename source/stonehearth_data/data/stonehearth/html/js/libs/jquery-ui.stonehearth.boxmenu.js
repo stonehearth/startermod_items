@@ -45,10 +45,11 @@
 
          this._menu.delegate('.clickable','mouseenter mouseleave', function(event) {
             if(event.type === 'mouseenter') {
-               $(this).find('.label').fadeIn({duration: 150});
+               $(this).find('.hotkey').fadeIn({duration: 150});
             } else {
-               $(this).find('.label').fadeOut({duration: 150});
+               $(this).find('.hotkey').fadeOut({duration: 150});
             }
+
          });
 
 
@@ -119,8 +120,9 @@
                .attr('hotkey', data.hotkey)
                .css('bottom', this._numButtons * 80)
                .html('<img src="' + data.icon + '"/>')
-               .append('<div class=hotkey>' + data.hotkey + '</div>')
-               .append('<div class=label>' + data.name + '</div>');
+               .append('<div class=label>' + data.name + '</div>')
+               .append('<div class=hotkey>' + data.hotkey + '</div>');
+
 
                /*
                .tooltip({
@@ -187,8 +189,9 @@
                   .addClass('clickable')
                   .css('left', menu.find('.menuItem').length * 90)
                   .html('<img class=icon src="' + v.icon + '"/>')
-                  .append('<div class=hotkey>' + v.hotkey + '</div>')
-                  .append('<div class=label>' + v.name + '</div>');
+                  .append('<div class=label>' + v.name + '</div>')
+                  .append('<div class=hotkey>' + v.hotkey + '</div>');
+                  
                
                // wire up the click handler
                if (v.click) {
