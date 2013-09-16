@@ -110,7 +110,7 @@ Renderer::Renderer() :
    H3DRes c = h3dAddResource(H3DResTypes::Material, "materials/cubemitter.material.xml", 0);
    H3DRes d = h3dAddResource(RT_CubemitterResource, "particles/fire/fire.cubemitter.json", 0);
    cubemitterNode = h3dRadiantAddCubemitterNode(H3DRootNode, "first_cubemitter!", d, c);
-   h3dSetNodeTransform(cubemitterNode, 0, 20, 0, -45, 0, 0, 1, 1, 1);
+   h3dSetNodeTransform(cubemitterNode, 0, 0, 0, 90, 0, 0, 1, 1, 1);
    LoadResources();
 
 	// Add camera

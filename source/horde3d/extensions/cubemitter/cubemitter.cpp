@@ -102,6 +102,19 @@ Vec3f parseValue(const JSONNode &n, const char *childName, const Vec3f &def)
    return Vec3f(vals.at(0).as_float(), vals.at(1).as_float(), vals.at(2).as_float());
 }
 
+Vec4f parseValue(const JSONNode &n, const char *childName, const Vec4f &def)
+{
+   auto itr = n.find(childName);
+   if (itr == n.end()) {
+      return def;
+   }
+   auto childNode = n.at(childName);
+   std::string kind = childNode.at("kind").as_string();
+   auto vals = childNode.at("values").as_array();
+
+   return Vec4f(vals.at(0).as_float(), vals.at(1).as_float(), vals.at(2).as_float(), vals.at(3).as_float());
+}
+
 std::vector<std::pair<float, float> > parseCurveValues(const JSONNode &n) {
    std::vector<std::pair<float, float> > result;
 
@@ -159,6 +172,28 @@ ValueEmitter<Vec3f>* parseChannel(const JSONNode &n, const char *childName, cons
    return new RandomBetweenVec3fEmitter(val1, val2);
 }
 
+ValueEmitter<Vec4f>* parseChannel(const JSONNode &n, const char *childName, const Vec4f &def)
+{
+   auto itr = n.find(childName);
+   if (itr == n.end()) {
+      return new ConstantValueEmitter<Vec4f>(def);
+   }
+   auto childNode = n.at(childName);
+   auto vals = childNode.at("values").as_array();
+   std::string kind = childNode.at("kind").as_string();
+
+   if (kind == "CONSTANT")
+   {
+      Vec4f val(vals.at(0).as_float(), vals.at(1).as_float(), vals.at(2).as_float(), vals.at(3).as_float());
+      return new ConstantValueEmitter<Vec4f>(val);
+   } //else kind == "RANDOM_BETWEEN"
+
+   Vec4f val1(vals.at(0).at(0).as_float(), vals.at(0).at(1).as_float(), vals.at(0).at(2).as_float(), vals.at(0).at(3).as_float());
+   Vec4f val2(vals.at(1).at(0).as_float(), vals.at(1).at(1).as_float(), vals.at(1).at(2).as_float(), vals.at(1).at(3).as_float());
+   
+   return new RandomBetweenVec4fEmitter(val1, val2);
+}
+
 EmissionData CubemitterResource::parseEmission(JSONNode& n) 
 {
    EmissionData result;
@@ -187,16 +222,18 @@ SpeedData CubemitterResource::parseSpeed(JSONNode& n)
 {
    SpeedData result;
    result.start = parseChannel(n, "start", 5.0f);
+   result.over_lifetime = parseChannel(n, "over_lifetime", 1.0f);
    return result;
 }
 
 ColorData CubemitterResource::parseColor(JSONNode& n)
 {
    ColorData result;
-   result.start = parseChannel(n, "start", Vec3f(1, 0, 0));
+   result.start = parseChannel(n, "start", Vec4f(1, 0, 0, 1));
    result.over_lifetime_r = parseChannel(n, "over_lifetime_r", result.start->nextValue(0).x);
    result.over_lifetime_g = parseChannel(n, "over_lifetime_g", result.start->nextValue(0).y);
    result.over_lifetime_b = parseChannel(n, "over_lifetime_b", result.start->nextValue(0).z);
+   result.over_lifetime_a = parseChannel(n, "over_lifetime_a", result.start->nextValue(0).w);
    return result;
 }
 
@@ -246,6 +283,12 @@ CubemitterNode::CubemitterNode( const CubemitterNodeTpl &emitterTpl ) :
    for (int i = 0; i < _maxCubes; i++) {
       _attributesBuff[i].matrix.toIdentity();
       _cubes[i].currentLife = 0.0f;
+      _cubes[i].color_a = nullptr;
+      _cubes[i].color_r = nullptr;
+      _cubes[i].color_g = nullptr;
+      _cubes[i].color_b = nullptr;
+      _cubes[i].scale = nullptr;
+      _cubes[i].speed = nullptr;
    }
 }
 
@@ -520,17 +563,45 @@ void CubemitterNode::spawnCube(CubeData &d, CubeAttribute &ca)
    d.direction = (m * Vec3f( 0, 0, -1 )).normalized();
 
    auto startCol = data.particle.color.start->nextValue(_curEmitterTime);
-   d.color = Vec4f(startCol.x, startCol.y, startCol.z, 1);
-   data.particle.color.over_lifetime_r->init();
+   d.startColor = Vec4f(startCol.x, startCol.y, startCol.z, startCol.w);
+   d.currentColor = d.startColor;
 
-   d.speed = data.particle.speed.start->nextValue(_curEmitterTime);
+   // TODO, soon: we _probably_ don't want allocs/deallocs in an inner particle loop.  Probably.
+   if (d.color_r != nullptr) {
+      delete d.color_r;
+   }
+   if (d.color_g != nullptr) {
+      delete d.color_g;
+   }
+   if (d.color_b != nullptr) {
+      delete d.color_b;
+   }
+   if (d.color_a != nullptr) {
+      delete d.color_a;
+   }
+
+   d.color_r = data.particle.color.over_lifetime_r->clone();
+   d.color_g = data.particle.color.over_lifetime_g->clone();
+   d.color_b = data.particle.color.over_lifetime_b->clone();
+   d.color_a = data.particle.color.over_lifetime_a->clone();
+
+   d.startSpeed = data.particle.speed.start->nextValue(_curEmitterTime);
+   d.currentSpeed = d.startSpeed;
+   if (d.speed != nullptr) {
+      delete d.speed;
+   }
+   d.speed = data.particle.speed.over_lifetime->clone();
 
    d.startScale = data.particle.scale.start->nextValue(_curEmitterTime);
-   d.scale = d.startScale;
+
+   if (d.scale != nullptr) {
+      delete d.scale;
+   }
+   d.scale = data.particle.scale.over_lifetime->clone();
 
    ca.matrix = Matrix4f::TransMat(d.position.x, d.position.y, d.position.z);
-   ca.matrix.scale(d.scale, d.scale, d.scale);
-   ca.color = d.color;
+   ca.matrix.scale(d.startScale, d.startScale, d.startScale);
+   ca.color = d.currentColor;
 }
 
 void CubemitterNode::updateCube(CubeData &d, CubeAttribute &ca)
@@ -544,22 +615,24 @@ void CubemitterNode::updateCube(CubeData &d, CubeAttribute &ca)
 
    float fr = 1.0f - (d.currentLife / d.maxLife);
 
-   d.position += d.direction * d.speed * _timeDelta;
+   d.position += d.direction * d.currentSpeed * _timeDelta;
    d.currentLife -= _timeDelta;
-   d.scale = d.startScale * data.particle.scale.over_lifetime->nextValue(fr);
-   d.color.x = data.particle.color.over_lifetime_r->nextValue(fr);
-   d.color.y = data.particle.color.over_lifetime_g->nextValue(fr);
-   d.color.z = data.particle.color.over_lifetime_b->nextValue(fr);
+   d.currentColor.x = d.color_r->nextValue(fr);
+   d.currentColor.y = d.color_g->nextValue(fr);
+   d.currentColor.z = d.color_b->nextValue(fr);
+   d.currentColor.w = d.color_a->nextValue(fr);
+   d.currentScale = d.startScale * d.scale->nextValue(fr);
+   d.currentSpeed = d.startSpeed * d.speed->nextValue(fr);
 
 
    // This is our actual vbo data.
    ca.matrix.x[12] = d.position.x;
    ca.matrix.x[13] = d.position.y;
    ca.matrix.x[14] = d.position.z;
-   ca.matrix.x[0] = d.scale;
-   ca.matrix.x[5] = d.scale;
-   ca.matrix.x[10] = d.scale;
-   ca.color = d.color;
+   ca.matrix.x[0] = d.currentScale;
+   ca.matrix.x[5] = d.currentScale;
+   ca.matrix.x[10] = d.currentScale;
+   ca.color = d.currentColor;
 }
 
 

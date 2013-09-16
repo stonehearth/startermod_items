@@ -5,7 +5,7 @@
         "lifetime": {
             "start": {
                 "kind": "RANDOM_BETWEEN",
-                "values": [5,5]
+                "values": [3,3.3]
             }
         },
         "speed": {
@@ -18,13 +18,19 @@
         "color": {
             "start": {
                 "kind": "CONSTANT",
-                "values": [1.0, 0.0, 0.0]
+                "values": [1.0, 0.0, 0.0, 1.0]
             },
             "over_lifetime_r": {
                 "kind": "RANDOM_BETWEEN_CURVES",
                 "values": [
                     [[0.0, 0.0], [1.0, 0.0]],
-                    [[0.0, 0.0], [1.0, 0.3]]
+                    [[0.0, 0.0], [1.0, 1.0]]
+                ]
+            },
+            "over_lifetime_a": {
+                "kind": "CURVE",
+                "values": [
+                    [0.0, 1.0], [0.7, 1.0], [1.0, 0.0]
                 ]
             }
         },
@@ -35,9 +41,10 @@
                 "values": [1, 1]
             },
             "over_lifetime": {
-                "kind": "CURVE",
+                "kind": "RANDOM_BETWEEN_CURVES",
                 "values": [
-                    [0.0, 0.0],[1.0, 5.0]
+                    [[0.0, 0.2],[1.0, 2.5]],
+                    [[0.0, 0.4],[1.0, 3.5]]
                 ]
             }
         }
@@ -45,7 +52,7 @@
     "emission": {
         "rate": {
             "kind": "CONSTANT",
-            "values": [0.2]
+            "values": [10]
         }
     }
 }

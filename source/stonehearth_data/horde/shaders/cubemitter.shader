@@ -6,7 +6,7 @@ context TRANSLUCENT
 	PixelShader = compile GLSL FS_TRANSLUCENT;
 	
 	ZWriteEnable = false;
-	//BlendMode = AddBlended;
+	BlendMode = Blend;
 	CullMode = None;
 }
 

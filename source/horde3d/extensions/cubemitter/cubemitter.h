@@ -45,10 +45,11 @@ struct EmissionData
 
 struct ColorData 
 {
-   ValueEmitter<Vec3f> *start;
+   ValueEmitter<Vec4f> *start;
    ValueEmitter<float> *over_lifetime_r;
    ValueEmitter<float> *over_lifetime_g;
    ValueEmitter<float> *over_lifetime_b;
+   ValueEmitter<float> *over_lifetime_a;
 };
 
 struct ScaleData 
@@ -65,6 +66,7 @@ struct LifetimeData
 struct SpeedData
 {
    ValueEmitter<float> *start;
+   ValueEmitter<float> *over_lifetime;
 };
 
 struct ParticleData 
@@ -85,11 +87,20 @@ struct CubemitterData {
 struct CubeData
 {
    float currentLife, maxLife;
+   float currentScale, startScale;
+   float currentSpeed, startSpeed;
+   Vec4f currentColor, startColor;
+
    Vec3f position;
-   float startScale, scale;
    Vec3f direction;
-   Vec4f color;
-   float speed;
+
+   // Values that change over time, with respect to the individual particle.
+   ValueEmitter<float> *color_r;
+   ValueEmitter<float> *color_g;
+   ValueEmitter<float> *color_b;
+   ValueEmitter<float> *color_a;
+   ValueEmitter<float> *scale;
+   ValueEmitter<float> *speed;
 };
 
 struct CubeAttribute

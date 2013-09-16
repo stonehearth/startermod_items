@@ -24,6 +24,8 @@ public:
 	   return (rand() / (float)RAND_MAX) * (max - min) + min;
    }
 
+   virtual ValueEmitter<T>* clone() = 0;
+
 };
 
 template<typename T> class ConstantValueEmitter : public ValueEmitter<T>
@@ -38,6 +40,11 @@ public:
    T nextValue(float time) 
    { 
       return _value; 
+   }
+
+   ConstantValueEmitter<T>* clone()
+   {
+      return new ConstantValueEmitter<T>(_value);
    }
 
 private:
@@ -57,6 +64,12 @@ public:
    {
       return random(_small, _big);
    }
+
+   RandomBetweenValueEmitter* clone()
+   {
+      return new RandomBetweenValueEmitter(_small, _big);
+   }
+
 
 private:
    float _small, _big;
@@ -94,9 +107,65 @@ public:
          random(_small.z, _big.z));
    }
 
+   RandomBetweenVec3fEmitter* clone()
+   {
+      return new RandomBetweenVec3fEmitter(_small, _big);
+   }
+
+
 private:
    Vec3f _small, _big;
 };
+
+class RandomBetweenVec4fEmitter : public ValueEmitter<Vec4f>
+{
+public:
+   RandomBetweenVec4fEmitter(Vec4f small, Vec4f big) : _small(small), _big(big)
+   {
+      if (small.x > big.x) {
+         float t = small.x;
+         small.x = big.x;
+         big.x = t;
+      }
+      if (small.y > big.y) {
+         float t = small.y;
+         small.y = big.y;
+         big.y = t;
+      }
+      if (small.z > big.z) {
+         float t = small.z;
+         small.z = big.z;
+         big.z = t;
+      }
+      if (small.w > big.w) {
+         float t = small.w;
+         small.w = big.w;
+         big.w = t;
+      }
+   }
+
+   void init() {}
+   
+   Vec4f nextValue(float time)
+   {
+      return Vec4f(
+         random(_small.x, _big.x),
+         random(_small.y, _big.y),
+         random(_small.z, _big.z),
+         random(_small.w, _big.w));
+   }
+
+   RandomBetweenVec4fEmitter* clone()
+   {
+      return new RandomBetweenVec4fEmitter(_small, _big);
+   }
+
+
+private:
+   Vec4f _small, _big;
+};
+
+
 
 class CurveValueEmitter : public ValueEmitter<float>
 {
@@ -144,6 +213,11 @@ public:
       return curveValueAt(time, _curveValues);
    }
 
+   LinearCurveValueEmitter* clone()
+   {
+      return new LinearCurveValueEmitter(_curveValues);
+   }
+
 private:
    const std::vector<std::pair<float, float> > _curveValues;
 };
@@ -153,9 +227,10 @@ class RandomBetweenLinearCurvesValueEmitter : public CurveValueEmitter
 public:
    RandomBetweenLinearCurvesValueEmitter(
       const std::vector<std::pair<float, float> > &bottomValues,
-      const std::vector<std::pair<float, float> > &topValues) : _topValues(topValues), _bottomValues(bottomValues)
+      const std::vector<std::pair<float, float> > &topValues) : 
+         _topValues(topValues), _bottomValues(bottomValues), _times(collectTimes(bottomValues, topValues))
    {
-      _times = collectTimes(_bottomValues, _topValues);
+      init();
    }
 
    void init()
@@ -172,6 +247,11 @@ public:
    float nextValue(float time)
    {
       return curveValueAt(time, _randomValues);
+   }
+
+   RandomBetweenLinearCurvesValueEmitter* clone()
+   {
+      return new RandomBetweenLinearCurvesValueEmitter(_bottomValues, _topValues);
    }
 
 private:
@@ -230,7 +310,7 @@ private:
    const std::vector<std::pair<float, float> > _topValues;
    const std::vector<std::pair<float, float> > _bottomValues;
    std::vector<std::pair<float, float> > _randomValues;
-   std::vector<float> _times;
+   const std::vector<float> _times;
 };
 
 END_RADIANT_HORDE3D_NAMESPACE
