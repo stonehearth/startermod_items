@@ -194,10 +194,30 @@ ValueEmitter<Vec4f>* parseChannel(const JSONNode &n, const char *childName, cons
    return new RandomBetweenVec4fEmitter(val1, val2);
 }
 
+OriginData::SurfaceKind parseSurfaceKind(JSONNode &n)
+{
+   if (n.as_string() == "POINT") {
+      return OriginData::POINT;
+   }
+   return OriginData::RECTANGLE;
+}
+
 EmissionData CubemitterResource::parseEmission(JSONNode& n) 
 {
    EmissionData result;
    result.rate = parseChannel(n, "rate", 1.0f);
+   result.angle = parseChannel(n, "angle", 25.0f);
+   result.origin = parseOrigin(n.at("origin"));
+   return result;
+}
+
+OriginData CubemitterResource::parseOrigin(JSONNode &n) {
+   OriginData result;
+   result.surfaceKind = parseSurfaceKind(n.at("surface"));
+   if (result.surfaceKind == OriginData::SurfaceKind::RECTANGLE) {
+      result.length = n.at("values").at(0).as_float();
+      result.width = n.at("values").at(1).as_float();
+   }
    return result;
 }
 
@@ -208,6 +228,7 @@ ParticleData CubemitterResource::parseParticle(JSONNode& n)
    result.lifetime = parseLifetime(n.at("lifetime"));
    result.color = parseColor(n.at("color"));
    result.scale = parseScale(n.at("scale"));
+   result.rotation = parseRotation(n.at("rotation"));
    return result;
 }
 
@@ -223,6 +244,15 @@ SpeedData CubemitterResource::parseSpeed(JSONNode& n)
    SpeedData result;
    result.start = parseChannel(n, "start", 5.0f);
    result.over_lifetime = parseChannel(n, "over_lifetime", 1.0f);
+   return result;
+}
+
+RotationData CubemitterResource::parseRotation(JSONNode& n)
+{
+   RotationData result;
+   result.over_lifetime_x = parseChannel(n, "over_lifetime_x", 0.0f);
+   result.over_lifetime_y = parseChannel(n, "over_lifetime_y", 0.0f);
+   result.over_lifetime_z = parseChannel(n, "over_lifetime_z", 0.0f);
    return result;
 }
 
@@ -289,6 +319,9 @@ CubemitterNode::CubemitterNode( const CubemitterNodeTpl &emitterTpl ) :
       _cubes[i].color_b = nullptr;
       _cubes[i].scale = nullptr;
       _cubes[i].speed = nullptr;
+      _cubes[i].rotation_x = nullptr;
+      _cubes[i].rotation_y = nullptr;
+      _cubes[i].rotation_z = nullptr;
    }
 }
 
@@ -303,9 +336,6 @@ CubemitterNode::~CubemitterNode()
 	
    delete[] _cubes;
    delete[] _attributesBuff;
-	delete[] _parPositions;
-	delete[] _parSizesANDRotations;
-	delete[] _parColors;
 }
 
 
@@ -527,6 +557,10 @@ void CubemitterNode::onPostUpdate()
    
    updateAndSpawnCubes(numberToSpawn);
    
+   _curEmitterTime += _timeDelta;
+   if (_curEmitterTime > _emitterDuration) {
+      _curEmitterTime -= _emitterDuration;
+   }
    _timeDelta = 0.0f;
 }
 
@@ -557,7 +591,19 @@ void CubemitterNode::spawnCube(CubeData &d, CubeAttribute &ca)
    Matrix4f m = _absTrans;
    d.position = m.getTrans();
 
-   float angle = degToRad( 25.0f / 2 );
+   if (data.emission.origin.surfaceKind == OriginData::SurfaceKind::RECTANGLE)
+   {
+      float randWidth = randomF(0, data.emission.origin.width);
+      float randLength = randomF(0, data.emission.origin.length);
+      Vec3f v1(m.c[0][0], m.c[0][1], m.c[0][2]);
+      Vec3f v2(m.c[1][0], m.c[1][1], m.c[1][2]);
+
+      d.position += (v1 * randWidth) + (v2 * randLength);
+   }
+
+   float newAngle = data.emission.angle->nextValue(_curEmitterTime);
+
+   float angle = degToRad( newAngle );
    m.c[3][0] = 0; m.c[3][1] = 0; m.c[3][2] = 0;
    m.rotate( randomF( -angle, angle ), randomF( -angle, angle ), randomF( -angle, angle ) );
    d.direction = (m * Vec3f( 0, 0, -1 )).normalized();
@@ -567,16 +613,20 @@ void CubemitterNode::spawnCube(CubeData &d, CubeAttribute &ca)
    d.currentColor = d.startColor;
 
    // TODO, soon: we _probably_ don't want allocs/deallocs in an inner particle loop.  Probably.
-   if (d.color_r != nullptr) {
+   if (d.color_r != nullptr) 
+   {
       delete d.color_r;
    }
-   if (d.color_g != nullptr) {
+   if (d.color_g != nullptr)
+   {
       delete d.color_g;
    }
-   if (d.color_b != nullptr) {
+   if (d.color_b != nullptr)
+   {
       delete d.color_b;
    }
-   if (d.color_a != nullptr) {
+   if (d.color_a != nullptr) 
+   {
       delete d.color_a;
    }
 
@@ -587,7 +637,8 @@ void CubemitterNode::spawnCube(CubeData &d, CubeAttribute &ca)
 
    d.startSpeed = data.particle.speed.start->nextValue(_curEmitterTime);
    d.currentSpeed = d.startSpeed;
-   if (d.speed != nullptr) {
+   if (d.speed != nullptr) 
+   {
       delete d.speed;
    }
    d.speed = data.particle.speed.over_lifetime->clone();
@@ -598,6 +649,23 @@ void CubemitterNode::spawnCube(CubeData &d, CubeAttribute &ca)
       delete d.scale;
    }
    d.scale = data.particle.scale.over_lifetime->clone();
+
+   if (d.rotation_x != nullptr)
+   {
+      delete d.rotation_x;
+   }
+   if (d.rotation_y != nullptr)
+   {
+      delete d.rotation_y;
+   }
+   if (d.rotation_z != nullptr)
+   {
+      delete d.rotation_z;
+   }
+
+   d.rotation_x = data.particle.rotation.over_lifetime_x->clone();
+   d.rotation_y = data.particle.rotation.over_lifetime_y->clone();
+   d.rotation_z = data.particle.rotation.over_lifetime_z->clone();
 
    ca.matrix = Matrix4f::TransMat(d.position.x, d.position.y, d.position.z);
    ca.matrix.scale(d.startScale, d.startScale, d.startScale);
@@ -623,15 +691,29 @@ void CubemitterNode::updateCube(CubeData &d, CubeAttribute &ca)
    d.currentColor.w = d.color_a->nextValue(fr);
    d.currentScale = d.startScale * d.scale->nextValue(fr);
    d.currentSpeed = d.startSpeed * d.speed->nextValue(fr);
+   
+   float rotX = degToRad(d.rotation_x->nextValue(fr));
+   float rotY = degToRad(d.rotation_y->nextValue(fr));
+   float rotZ = degToRad(d.rotation_z->nextValue(fr));
 
+
+   Matrix4f rot = Matrix4f::RotMat(rotX, rotY, rotZ);
+   Matrix4f scale = Matrix4f::ScaleMat(d.currentScale, d.currentScale, d.currentScale);
+   rot = rot * scale;
 
    // This is our actual vbo data.
+   ca.matrix.x[0] = rot.x[0];
+   ca.matrix.x[1] = rot.x[1];
+   ca.matrix.x[2] = rot.x[2];
+   ca.matrix.x[4] = rot.x[4];
+   ca.matrix.x[5] = rot.x[5];
+   ca.matrix.x[6] = rot.x[6];
+   ca.matrix.x[8] = rot.x[8];
+   ca.matrix.x[9] = rot.x[9];
+   ca.matrix.x[10] = rot.x[10];
    ca.matrix.x[12] = d.position.x;
    ca.matrix.x[13] = d.position.y;
    ca.matrix.x[14] = d.position.z;
-   ca.matrix.x[0] = d.currentScale;
-   ca.matrix.x[5] = d.currentScale;
-   ca.matrix.x[10] = d.currentScale;
    ca.color = d.currentColor;
 }
 

@@ -38,9 +38,23 @@ struct CubemitterNodeParams
 };
 
 
+struct OriginData
+{
+   enum SurfaceKind
+   {
+      POINT,
+      RECTANGLE
+   };
+   SurfaceKind surfaceKind;
+
+   float length, width;
+};
+
 struct EmissionData 
 {
    ValueEmitter<float> *rate;
+   ValueEmitter<float> *angle;
+   OriginData origin;
 };
 
 struct ColorData 
@@ -56,6 +70,13 @@ struct ScaleData
 {
    ValueEmitter<float> *start;
    ValueEmitter<float> *over_lifetime;
+};
+
+struct RotationData
+{
+   ValueEmitter<float> *over_lifetime_x;
+   ValueEmitter<float> *over_lifetime_y;
+   ValueEmitter<float> *over_lifetime_z;
 };
 
 struct LifetimeData 
@@ -75,6 +96,7 @@ struct ParticleData
    SpeedData speed;
    ColorData color;
    ScaleData scale;
+   RotationData rotation;
 };
 
 
@@ -84,6 +106,7 @@ struct CubemitterData {
    ParticleData particle;
 };
 
+// The data for an individual cube, as used within the particle system.
 struct CubeData
 {
    float currentLife, maxLife;
@@ -99,10 +122,16 @@ struct CubeData
    ValueEmitter<float> *color_g;
    ValueEmitter<float> *color_b;
    ValueEmitter<float> *color_a;
+
+   ValueEmitter<float> *rotation_x;
+   ValueEmitter<float> *rotation_y;
+   ValueEmitter<float> *rotation_z;
+
    ValueEmitter<float> *scale;
    ValueEmitter<float> *speed;
 };
 
+// Layout of data for VBOs.
 struct CubeAttribute
 {
    Matrix4f matrix;
@@ -137,10 +166,10 @@ private:
    ScaleData parseScale(JSONNode& n);
    LifetimeData parseLifetime(JSONNode& n);
    SpeedData parseSpeed(JSONNode& n);
+   OriginData parseOrigin(JSONNode &n);
+   RotationData parseRotation(JSONNode& n);
 
-   
 private:
-
 	friend class EmitterNode;
 };
 
@@ -183,9 +212,11 @@ protected:
 
    uint32                   _attributeBuf;
    PCubemitterResource      _cubemitterRes;
+	PMaterialResource        _materialRes;
    uint32                   _maxCubes;
    float                    _nextSpawnTime;
-   float                    _curEmitterTime;  // Bounded between 0 and the duration of the emitter.
+   float                    _curEmitterTime, _emitterDuration;  // Bounded between 0 and the duration of the emitter.
+	float                    _emissionRate, _spreadAngle;
 
    CubeAttribute            *_attributesBuff;
 
@@ -200,18 +231,12 @@ protected:
 	Matrix4f                 _prevAbsTrans;
 	
 	// Emitter params
-	PMaterialResource        _materialRes;
-	//PParticleEffectResource  _effectRes;
 	uint32                   _particleCount;
 	int                      _respawnCount;
-	float                    _delay, _emissionRate, _spreadAngle;
 	Vec3f                    _force;
 
 	// Particle data
 	CubeData                 *_cubes;
-	float                    *_parPositions;
-	float                    *_parSizesANDRotations;
-	float                    *_parColors;
 
 	std::vector< uint32 >    _occQueries;
 	std::vector< uint32 >    _lastVisited;
