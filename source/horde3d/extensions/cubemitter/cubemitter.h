@@ -40,31 +40,31 @@ struct CubemitterNodeParams
 
 struct EmissionData 
 {
-   DataChannel<float> *rate;
+   ValueEmitter<float> *rate;
 };
 
 struct ColorData 
 {
-   DataChannel<Vec3f> *start;
-   DataChannel<float> *over_lifetime_r;
-   DataChannel<float> *over_lifetime_g;
-   DataChannel<float> *over_lifetime_b;
+   ValueEmitter<Vec3f> *start;
+   ValueEmitter<float> *over_lifetime_r;
+   ValueEmitter<float> *over_lifetime_g;
+   ValueEmitter<float> *over_lifetime_b;
 };
 
 struct ScaleData 
 {
-   DataChannel<float> *start;
-   DataChannel<float> *over_lifetime;
+   ValueEmitter<float> *start;
+   ValueEmitter<float> *over_lifetime;
 };
 
 struct LifetimeData 
 {
-   DataChannel<float> *start;
+   ValueEmitter<float> *start;
 };
 
 struct SpeedData
 {
-   DataChannel<float> *start;
+   ValueEmitter<float> *start;
 };
 
 struct ParticleData 

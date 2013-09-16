@@ -113,11 +113,11 @@ std::vector<std::pair<float, float> > parseCurveValues(const JSONNode &n) {
    return result;
 }
 
-DataChannel<float>* parseChannel(const JSONNode &n, const char *childName, float def)
+ValueEmitter<float>* parseChannel(const JSONNode &n, const char *childName, float def)
 {
    auto itr = n.find(childName);
    if (itr == n.end()) {
-      return new DataChannel<float>(def);
+      return new ConstantValueEmitter<float>(def);
    }
    auto childNode = n.at(childName);
    auto vals = childNode.at("values").as_array();
@@ -125,23 +125,23 @@ DataChannel<float>* parseChannel(const JSONNode &n, const char *childName, float
 
    if (kind == "CONSTANT")
    {
-      return new DataChannel<float>(vals.at(0).as_float());
+      return new ConstantValueEmitter<float>(vals.at(0).as_float());
    } else if (kind == "RANDOM_BETWEEN")
    {
-      return new DataChannel<float>(vals.at(0).as_float(), vals.at(1).as_float());
+      return new RandomBetweenValueEmitter(vals.at(0).as_float(), vals.at(1).as_float());
    } else if (kind == "CURVE")
    {
-      return new DataChannel<float>(parseCurveValues(vals));
+      return new LinearCurveValueEmitter(parseCurveValues(vals));
    } //else kind == "RANDOM_BETWEEN_CURVES"
 
-   return new DataChannel<float>(parseCurveValues(vals.at(0)), parseCurveValues(vals.at(1)));
+   return new RandomBetweenLinearCurvesValueEmitter(parseCurveValues(vals.at(0)), parseCurveValues(vals.at(1)));
 }
 
-DataChannel<Vec3f>* parseChannel(const JSONNode &n, const char *childName, const Vec3f &def)
+ValueEmitter<Vec3f>* parseChannel(const JSONNode &n, const char *childName, const Vec3f &def)
 {
    auto itr = n.find(childName);
    if (itr == n.end()) {
-      return new DataChannel<Vec3f>(def);
+      return new ConstantValueEmitter<Vec3f>(def);
    }
    auto childNode = n.at(childName);
    auto vals = childNode.at("values").as_array();
@@ -150,13 +150,13 @@ DataChannel<Vec3f>* parseChannel(const JSONNode &n, const char *childName, const
    if (kind == "CONSTANT")
    {
       Vec3f val(vals.at(0).as_float(), vals.at(1).as_float(), vals.at(2).as_float());
-      return new DataChannel<Vec3f>(val);
+      return new ConstantValueEmitter<Vec3f>(val);
    } //else kind == "RANDOM_BETWEEN"
 
    Vec3f val1(vals.at(0).at(0).as_float(), vals.at(0).at(1).as_float(), vals.at(0).at(2).as_float());
    Vec3f val2(vals.at(1).at(0).as_float(), vals.at(1).at(1).as_float(), vals.at(1).at(2).as_float());
    
-   return new DataChannel<Vec3f>(val1, val2);
+   return new RandomBetweenVec3fEmitter(val1, val2);
 }
 
 EmissionData CubemitterResource::parseEmission(JSONNode& n) 
