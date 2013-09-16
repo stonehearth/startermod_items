@@ -196,13 +196,17 @@
 
       }
 
-      #portrait {
+      #portraitContainer {
          position: absolute;
          top: 90px;
-         left: 20px;
-         width: 380px;
-         height: 200px;
-         //background: rgba(0,0,0,0.1);
+         width: 430px;
+         display: block;
+         text-align: center;
+
+         #portrait {
+            width: auto;
+            height: 200px;
+         }
       }
 
       #description {
@@ -383,9 +387,10 @@
    }
 
    .orderListItem {
+      position: relative;
       .controlFont;
       width: 144px;
-      height:153px;
+      height: 153px;
       text-align: center;
       margin-bottom: 4px;
 
@@ -409,16 +414,16 @@
 
          img {
             width: 80px;
-            height: 80px;
+            height: auto;
          }
       }
 
       .amountLabel {
          font-size: 30px;
-         position: relative;
+         position: absolute;
          text-align: right;
-         right: 25px;
-         bottom: 43px;
+         right: 14px;
+         bottom: 44px;
          width: 144px;
          display: block;
       }

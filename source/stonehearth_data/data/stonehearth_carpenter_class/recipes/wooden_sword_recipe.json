@@ -6,8 +6,7 @@
    "my_location" : "/stonehearth_carpenter_class/recipes/wooden_sword_recipe.json",
    "description" : "Upgrades a settler into a swordsman.",
    "flavor"      : "Just pointy enough to get the job done.",
-   "card_art"    : "/stonehearth_items/entities/wooden_sword/wooden_sword_card.png",
-   "queue_art"   : "/stonehearth_items/entities/wooden_sword/wooden_sword_queue.png",
+   "portrait"    : "/stonehearth_items/entities/wooden_sword/wooden_sword.png",
    "category"    : "weapons",
 
    "ingredients": [

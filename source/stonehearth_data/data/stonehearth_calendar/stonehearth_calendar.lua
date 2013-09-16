@@ -1,5 +1,5 @@
 local constants = {
-   TICKS_PER_SECOND = 20,
+   TICKS_PER_SECOND = 2,
 
    SECONDS_IN_MINUTE = 60,
    MINUTES_IN_HOUR = 60,

@@ -5,7 +5,7 @@
       "model_variants": [
          {
             "models": [
-               "file(comfy_bed_icon.qb)"
+               "file(comfy_bed_proxy.qb)"
             ]
          }
       ],

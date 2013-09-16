@@ -15,7 +15,7 @@ $(document).ready(function(){
          cssClass : 'blueprint',
          css : {
             top: 400,
-            left: 20
+            right: 20
          }
       });
 

@@ -69,7 +69,11 @@
       <div id="title">
          <h1>{{model.recipe_name}}</h1>
       </div>
-      <img id="portrait">
+
+      <div id='portraitContainer'>
+         <img id="portrait">
+      </div>
+
 
       <div id="description">
          <table id="ingredients" cellspacing=0 cellpadding=0>
@@ -143,14 +147,16 @@
             <div class="orderListItem normalOrder" {{bindAttr data-orderId = "id"}}>
                <label class="craftingLabel invisible">{{../../craftingStatus}}</label>
          {{/if}}
-            <a href="#" {{action select recipe remaining condition.inventory_below target="view"}}><img {{bindAttr src = "portrait"}} {{bindAttr title = "recipe.recipe_name"}}></a>
+            <a href="#" {{action select recipe remaining condition.inventory_below target="view"}}>
+               <img {{bindAttr src = "portrait"}} {{bindAttr title = "recipe.recipe_name"}}>
+            </a>
             {{#if condition.amount}}
                <label class="amountLabel">{{remaining}}</label>
             {{else}}
                <label class="amountLabel"> = {{condition.inventory_below}}</label>
             {{/if}}
                <label class="deleteLabel">{{i18n stonehearth_crafter:remove_confirm}}</label>
-         </div>
+            </div>
       {{/each}}
       </div>
 
