@@ -1,0 +1,12 @@
+<script type="text/x-handlebars" data-template-name="stonehearthItemPicker">
+   <div id="itemPicker">
+      HELLO WORLD???
+      <div class="pickerGrid">
+         {{#each entities}}
+            <a href="#" {{action selectItem this target="view" allowedKeys="shift"}}>
+               <div>{{this.unit_info.name}}</div>
+            </a>
+         {{/each}}
+      </div>
+   </div>
+</script>
