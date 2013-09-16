@@ -6,8 +6,7 @@
    "my_location" : "/stonehearth_carpenter_class/recipes/picket_fence_gate_recipe.json",
    "description" : "Lets people through your picket fence.",
    "flavor"      : "Don't like your neighbors? Don't install.",
-   "card_art"    : "/stonehearth_items/entities/picket_fence_gate/picket_fence_gate_card.png",
-   "queue_art"   : "/stonehearth_items/entities/picket_fence_gate/picket_fence_gate_queue.png",
+   "portrait"    : "/stonehearth_items/entities/picket_fence_gate/picket_fence_gate.png",
    "category"    : "weapons",
 
    "ingredients": [
@@ -19,7 +18,7 @@
   ],
   "produces": [
       {
-         "item":"entity(stonehearth_items, picket_fence_gate)",
+         "item":"entity(stonehearth_items, picket_fence_gate_proxy)",
          "script":"/stonehearth_crafter/",
          "command":"produce_item"
       }

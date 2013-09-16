@@ -56,7 +56,7 @@ function CraftOrder:__init(recipe, enabled, condition, workshop)
    self._workshop = workshop
 
    --TODO: call a function to figure out the queue art from the ingredients
-   self._portrait = recipe.queue_art
+   self._portrait = recipe.portrait
 
    local faction = self._workshop:get_entity():add_component('unit_info'):get_faction()
    assert(faction and (#faction > 0), "workshop has no faction.")
