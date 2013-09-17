@@ -117,7 +117,21 @@ public:
       over_lifetime_y = new ConstantValueEmitter<float>(0.0f);
       over_lifetime_z = new ConstantValueEmitter<float>(0.0f);
    }
+};
 
+class VelocityData
+{
+public:
+   ValueEmitter<float>* over_lifetime_x;
+   ValueEmitter<float>* over_lifetime_y;
+   ValueEmitter<float>* over_lifetime_z;
+
+   VelocityData()
+   {
+      over_lifetime_x = new ConstantValueEmitter<float>(0.0f);
+      over_lifetime_y = new ConstantValueEmitter<float>(0.0f);
+      over_lifetime_z = new ConstantValueEmitter<float>(0.0f);
+   }
 };
 
 class LifetimeData 
@@ -153,6 +167,7 @@ public:
    ColorData color;
    ScaleData scale;
    RotationData rotation;
+   VelocityData velocity;
 };
 
 class CubemitterData 
@@ -188,6 +203,10 @@ struct CubeData
    ValueEmitter<float> *rotation_x;
    ValueEmitter<float> *rotation_y;
    ValueEmitter<float> *rotation_z;
+
+   ValueEmitter<float> *velocity_x;
+   ValueEmitter<float> *velocity_y;
+   ValueEmitter<float> *velocity_z;
 
    ValueEmitter<float> *scale;
    ValueEmitter<float> *speed;
@@ -230,6 +249,7 @@ private:
    SpeedData parseSpeed(ConstJsonObject& n);
    OriginData parseOrigin(ConstJsonObject &n);
    RotationData parseRotation(ConstJsonObject& n);
+   VelocityData parseVelocity(ConstJsonObject& n);
 
 private:
 	friend class EmitterNode;
