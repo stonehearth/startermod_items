@@ -188,7 +188,7 @@ public:
          if (t < val.first)
          {
             float frac = (t - oldT) / (val.first - oldT);
-            return (1.0 - frac) * oldVal + (frac * val.second);
+            return (1.0f - frac) * oldVal + (frac * val.second);
          }
 
          oldT = val.first;
@@ -276,7 +276,7 @@ private:
 
       std::pair<float, float> v1;
       std::pair<float, float> v2;
-      int i1 = 0, i2 = 0;
+      unsigned int i1 = 0, i2 = 0;
 
       while (i1 < curve1.size() || i2 < curve2.size()) 
       {

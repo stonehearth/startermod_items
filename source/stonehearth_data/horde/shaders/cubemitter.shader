@@ -7,7 +7,7 @@ context TRANSLUCENT
 	
 	ZWriteEnable = false;
 	BlendMode = Blend;
-	CullMode = None;
+	CullMode = Back;
 }
 
 

@@ -56,9 +56,10 @@
         },
         "rotation": {
             "over_lifetime_x": {
-                "kind": "CURVE",
+                "kind": "RANDOM_BETWEEN_CURVES",
                 "values": [
-                    [0.0, 0.0], [1.0, 360.0]
+                    [[0.0, 0.0], [1.0, 0.0]],
+                    [[0.0, 360.0], [1.0, 360.0]]
                 ]
             }
         }

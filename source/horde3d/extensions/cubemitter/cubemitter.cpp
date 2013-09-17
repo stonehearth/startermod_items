@@ -15,6 +15,7 @@
 #include "cubemitter.h"
 
 using namespace ::radiant;
+using namespace ::radiant::json;
 using namespace ::radiant::horde3d;
 
 
@@ -61,185 +62,200 @@ bool CubemitterResource::load( const char *data, int size )
 	if( !Resource::load( data, size ) ) return false;
 
    std::string jsonData(data, size);
-   JSONNode root;
-   try {
-      root = libjson::parse(jsonData);
-   } catch (std::invalid_argument &ia) {
-      return raiseError( "JSON parsing error" );
+   ConstJsonObject root(libjson::parse(jsonData));
+
+   emitterData.duration = root.get("duration", 10.0f);
+
+   if (root.has("particle"))
+   {
+      emitterData.particle = parseParticle(root.getn("particle"));
    }
-
-   auto croot = radiant::json::ConstJsonObject(root);
-   emitterData.duration = croot.get("duration", 10.0f);
-
-   emitterData.particle = parseParticle(root.at("particle"));
-   emitterData.emission = parseEmission(root.at("emission"));
+   if (root.has("emission"))
+   {
+      emitterData.emission = parseEmission(root.getn("emission"));
+   }
 	return true;
 }
 
-float parseValue(const JSONNode &n, const char *childName, float def)
+Vec4f parseVec4f(ConstJsonObject &vals, const Vec4f& def)
 {
-   auto itr = n.find(childName);
-   if (itr == n.end()) {
-      return def;
-   }
-   auto childNode = n.at(childName);
-   std::string kind = childNode.at("kind").as_string();
-   auto vals = childNode.at("values").as_array();
-
-   return vals.at(0).as_float();
+   return Vec4f(vals.get(0, def.x), vals.get(1, def.y), vals.get(2, def.z), vals.get(3, def.w));
 }
 
-Vec3f parseValue(const JSONNode &n, const char *childName, const Vec3f &def)
+Vec3f parseVec3f(ConstJsonObject &vals, const Vec3f& def)
 {
-   auto itr = n.find(childName);
-   if (itr == n.end()) {
-      return def;
-   }
-   auto childNode = n.at(childName);
-   std::string kind = childNode.at("kind").as_string();
-   auto vals = childNode.at("values").as_array();
-
-   return Vec3f(vals.at(0).as_float(), vals.at(1).as_float(), vals.at(2).as_float());
+   return Vec3f(vals.get(0, def.x), vals.get(1, def.y), vals.get(2, def.z));
 }
 
-Vec4f parseValue(const JSONNode &n, const char *childName, const Vec4f &def)
-{
-   auto itr = n.find(childName);
-   if (itr == n.end()) {
-      return def;
-   }
-   auto childNode = n.at(childName);
-   std::string kind = childNode.at("kind").as_string();
-   auto vals = childNode.at("values").as_array();
-
-   return Vec4f(vals.at(0).as_float(), vals.at(1).as_float(), vals.at(2).as_float(), vals.at(3).as_float());
-}
-
-std::vector<std::pair<float, float> > parseCurveValues(const JSONNode &n) {
+std::vector<std::pair<float, float> > parseCurveValues(ConstJsonObject &n) {
    std::vector<std::pair<float, float> > result;
 
    for (const auto &child : n)
    {
-      result.push_back(std::pair<float, float>(child.at(0).as_float(), child.at(1).as_float()));
+      result.push_back(std::pair<float, float>((float)child.at(0).as_float(), (float)child.at(1).as_float()));
    }
 
    return result;
 }
 
-ValueEmitter<float>* parseChannel(const JSONNode &n, const char *childName, float def)
+ValueEmitter<float>* parseChannel(ConstJsonObject &n, const char *childName, float def)
 {
-   auto itr = n.find(childName);
-   if (itr == n.end()) {
+   if (!n.has(childName))
+   {
       return new ConstantValueEmitter<float>(def);
    }
-   auto childNode = n.at(childName);
-   auto vals = childNode.at("values").as_array();
-   std::string kind = childNode.at("kind").as_string();
+
+   auto childNode = n.getn(childName);
+
+   if (!childNode.has("values") || !childNode.has("kind"))
+   {
+      return new ConstantValueEmitter<float>(def);
+   }
+   auto vals = childNode.getn("values");
+   std::string kind = childNode.get<std::string>("kind");
 
    if (kind == "CONSTANT")
    {
-      return new ConstantValueEmitter<float>(vals.at(0).as_float());
+      return new ConstantValueEmitter<float>(vals.get(0, def));
    } else if (kind == "RANDOM_BETWEEN")
    {
-      return new RandomBetweenValueEmitter(vals.at(0).as_float(), vals.at(1).as_float());
+      return new RandomBetweenValueEmitter(vals.get(0, def), vals.get(1, def));
    } else if (kind == "CURVE")
    {
       return new LinearCurveValueEmitter(parseCurveValues(vals));
    } //else kind == "RANDOM_BETWEEN_CURVES"
 
-   return new RandomBetweenLinearCurvesValueEmitter(parseCurveValues(vals.at(0)), parseCurveValues(vals.at(1)));
+   return new RandomBetweenLinearCurvesValueEmitter(
+      parseCurveValues(vals.getn(0)), parseCurveValues(vals.getn(1)));
 }
 
-ValueEmitter<Vec3f>* parseChannel(const JSONNode &n, const char *childName, const Vec3f &def)
+ValueEmitter<Vec3f>* parseChannel(ConstJsonObject &n, const char *childName, const Vec3f &def)
 {
-   auto itr = n.find(childName);
-   if (itr == n.end()) {
+   if (!n.has(childName))
+   {
       return new ConstantValueEmitter<Vec3f>(def);
    }
-   auto childNode = n.at(childName);
-   auto vals = childNode.at("values").as_array();
-   std::string kind = childNode.at("kind").as_string();
+
+   auto childNode = n.getn(childName);
+
+   if (!childNode.has("values") || !childNode.has("kind"))
+   {
+      return new ConstantValueEmitter<Vec3f>(def);
+   }
+   auto vals = childNode.getn("values");
+   std::string kind = childNode.get<std::string>("kind");
 
    if (kind == "CONSTANT")
    {
-      Vec3f val(vals.at(0).as_float(), vals.at(1).as_float(), vals.at(2).as_float());
+      Vec3f val(parseVec3f(vals, def));
       return new ConstantValueEmitter<Vec3f>(val);
    } //else kind == "RANDOM_BETWEEN"
 
-   Vec3f val1(vals.at(0).at(0).as_float(), vals.at(0).at(1).as_float(), vals.at(0).at(2).as_float());
-   Vec3f val2(vals.at(1).at(0).as_float(), vals.at(1).at(1).as_float(), vals.at(1).at(2).as_float());
-   
-   return new RandomBetweenVec3fEmitter(val1, val2);
+   ConstJsonObject vec1node = vals.getn(0);
+   ConstJsonObject vec2node = vals.getn(1);
+
+   return new RandomBetweenVec3fEmitter(parseVec3f(vec1node, def), parseVec3f(vec2node, def));
 }
 
-ValueEmitter<Vec4f>* parseChannel(const JSONNode &n, const char *childName, const Vec4f &def)
+ValueEmitter<Vec4f>* parseChannel(ConstJsonObject &n, const char *childName, const Vec4f &def)
 {
-   auto itr = n.find(childName);
-   if (itr == n.end()) {
+   if (!n.has(childName))
+   {
       return new ConstantValueEmitter<Vec4f>(def);
    }
-   auto childNode = n.at(childName);
-   auto vals = childNode.at("values").as_array();
-   std::string kind = childNode.at("kind").as_string();
+
+   auto childNode = n.getn(childName);
+
+   if (!childNode.has("values") || !childNode.has("kind"))
+   {
+      return new ConstantValueEmitter<Vec4f>(def);
+   }
+   auto vals = childNode.getn("values");
+   std::string kind = childNode.get<std::string>("kind");
 
    if (kind == "CONSTANT")
    {
-      Vec4f val(vals.at(0).as_float(), vals.at(1).as_float(), vals.at(2).as_float(), vals.at(3).as_float());
-      return new ConstantValueEmitter<Vec4f>(val);
+      return new ConstantValueEmitter<Vec4f>(parseVec4f(vals, def));
    } //else kind == "RANDOM_BETWEEN"
 
-   Vec4f val1(vals.at(0).at(0).as_float(), vals.at(0).at(1).as_float(), vals.at(0).at(2).as_float(), vals.at(0).at(3).as_float());
-   Vec4f val2(vals.at(1).at(0).as_float(), vals.at(1).at(1).as_float(), vals.at(1).at(2).as_float(), vals.at(1).at(3).as_float());
-   
-   return new RandomBetweenVec4fEmitter(val1, val2);
+   return new RandomBetweenVec4fEmitter(parseVec4f(vals.getn(0), def), 
+      parseVec4f(vals.getn(1), def));
 }
 
-OriginData::SurfaceKind parseSurfaceKind(JSONNode &n)
+OriginData::SurfaceKind parseSurfaceKind(ConstJsonObject &n)
 {
-   if (n.as_string() == "POINT") {
+   if (n.as<std::string>() == "POINT") {
       return OriginData::POINT;
    }
    return OriginData::RECTANGLE;
 }
 
-EmissionData CubemitterResource::parseEmission(JSONNode& n) 
+EmissionData CubemitterResource::parseEmission(ConstJsonObject& n) 
 {
    EmissionData result;
    result.rate = parseChannel(n, "rate", 1.0f);
    result.angle = parseChannel(n, "angle", 25.0f);
-   result.origin = parseOrigin(n.at("origin"));
-   return result;
-}
-
-OriginData CubemitterResource::parseOrigin(JSONNode &n) {
-   OriginData result;
-   result.surfaceKind = parseSurfaceKind(n.at("surface"));
-   if (result.surfaceKind == OriginData::SurfaceKind::RECTANGLE) {
-      result.length = n.at("values").at(0).as_float();
-      result.width = n.at("values").at(1).as_float();
+   if (n.has("origin"))
+   {
+      result.origin = parseOrigin(n.getn("origin"));
    }
    return result;
 }
 
-ParticleData CubemitterResource::parseParticle(JSONNode& n) 
-{
-   ParticleData result;
-   result.speed = parseSpeed(n.at("speed"));
-   result.lifetime = parseLifetime(n.at("lifetime"));
-   result.color = parseColor(n.at("color"));
-   result.scale = parseScale(n.at("scale"));
-   result.rotation = parseRotation(n.at("rotation"));
+OriginData CubemitterResource::parseOrigin(ConstJsonObject &n) {
+   OriginData result;
+   if (n.has("surface"))
+   {
+      result.surfaceKind = parseSurfaceKind(n.getn("surface"));
+   }
+   if (result.surfaceKind == OriginData::SurfaceKind::RECTANGLE) {
+      if (n.has("values"))
+      {
+         result.length = n.getn("values").get<float>(0);
+         result.width = n.getn("values").get<float>(1);
+      }
+   }
    return result;
 }
 
-LifetimeData CubemitterResource::parseLifetime(JSONNode& n)
+ParticleData CubemitterResource::parseParticle(ConstJsonObject& n) 
+{
+   ParticleData result;
+   if (n.has("speed"))
+   {
+      result.speed = parseSpeed(n.getn("speed"));
+   }
+
+   if (n.has("lifetime"))
+   {
+      result.lifetime = parseLifetime(n.getn("lifetime"));
+   }
+
+   if (n.has("color"))
+   {
+      result.color = parseColor(n.getn("color"));
+   }
+
+   if (n.has("scale"))
+   {
+      result.scale = parseScale(n.getn("scale"));
+   }
+
+   if (n.has("rotation"))
+   {
+      result.rotation = parseRotation(n.getn("rotation"));
+   }
+   return result;
+}
+
+LifetimeData CubemitterResource::parseLifetime(ConstJsonObject& n)
 {
    LifetimeData result;
    result.start = parseChannel(n, "start", 5.0f);
    return result;
 }
 
-SpeedData CubemitterResource::parseSpeed(JSONNode& n)
+SpeedData CubemitterResource::parseSpeed(ConstJsonObject& n)
 {
    SpeedData result;
    result.start = parseChannel(n, "start", 5.0f);
@@ -247,7 +263,7 @@ SpeedData CubemitterResource::parseSpeed(JSONNode& n)
    return result;
 }
 
-RotationData CubemitterResource::parseRotation(JSONNode& n)
+RotationData CubemitterResource::parseRotation(ConstJsonObject& n)
 {
    RotationData result;
    result.over_lifetime_x = parseChannel(n, "over_lifetime_x", 0.0f);
@@ -256,7 +272,7 @@ RotationData CubemitterResource::parseRotation(JSONNode& n)
    return result;
 }
 
-ColorData CubemitterResource::parseColor(JSONNode& n)
+ColorData CubemitterResource::parseColor(ConstJsonObject& n)
 {
    ColorData result;
    result.start = parseChannel(n, "start", Vec4f(1, 0, 0, 1));
@@ -267,7 +283,7 @@ ColorData CubemitterResource::parseColor(JSONNode& n)
    return result;
 }
 
-ScaleData CubemitterResource::parseScale(JSONNode& n)
+ScaleData CubemitterResource::parseScale(ConstJsonObject& n)
 {
    ScaleData result;
    result.start = parseChannel(n, "start", 1.0f);
@@ -310,7 +326,7 @@ CubemitterNode::CubemitterNode( const CubemitterNodeTpl &emitterTpl ) :
 
    _attributeBuf = gRDI->createVertexBuffer(sizeof(CubeAttribute) * _maxCubes, 0x0);
 
-   for (int i = 0; i < _maxCubes; i++) {
+   for (unsigned int i = 0; i < _maxCubes; i++) {
       _attributesBuff[i].matrix.toIdentity();
       _cubes[i].currentLife = 0.0f;
       _cubes[i].color_a = nullptr;
@@ -676,7 +692,7 @@ void CubemitterNode::updateCube(CubeData &d, CubeAttribute &ca)
 {
    if (d.currentLife <= 0) {
       // Set the scale to zero, so nothing is rasterized (burning vertex ops should be fine).
-      ca.matrix.x[0] = 0; ca.matrix.x[5] = 0; ca.matrix.x[10] = 0;
+      ca.matrix.scale(0, 0, 0);
       return;
    }
    CubemitterData data = _cubemitterRes.getPtr()->emitterData;

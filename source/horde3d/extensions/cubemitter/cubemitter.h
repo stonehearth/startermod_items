@@ -7,10 +7,10 @@
 #include "csg/region.h"
 #include "csg/color.h"
 #include "namespace.h"
-//#include "radiant.pb.h"
 #include "../extension.h"
 
 using namespace ::Horde3D;
+using namespace radiant::json;
 
 BEGIN_RADIANT_HORDE3D_NAMESPACE
 
@@ -38,8 +38,9 @@ struct CubemitterNodeParams
 };
 
 
-struct OriginData
+class OriginData
 {
+public:
    enum SurfaceKind
    {
       POINT,
@@ -48,50 +49,105 @@ struct OriginData
    SurfaceKind surfaceKind;
 
    float length, width;
+
+   OriginData()
+   {
+      surfaceKind = SurfaceKind::POINT;
+      length = 0;
+      width = 0;
+   }
 };
 
-struct EmissionData 
+class EmissionData 
 {
+public:
    ValueEmitter<float> *rate;
    ValueEmitter<float> *angle;
    OriginData origin;
+
+   EmissionData()
+   {
+      rate = new ConstantValueEmitter<float>(5.0f);
+      angle = new ConstantValueEmitter<float>(25.0f);
+   }
 };
 
-struct ColorData 
+class ColorData 
 {
+public:
    ValueEmitter<Vec4f> *start;
    ValueEmitter<float> *over_lifetime_r;
    ValueEmitter<float> *over_lifetime_g;
    ValueEmitter<float> *over_lifetime_b;
    ValueEmitter<float> *over_lifetime_a;
+
+   ColorData()
+   {
+      start = new ConstantValueEmitter<Vec4f>(Vec4f(1.0f, 0.0f, 0.0f, 1.0f));
+      over_lifetime_a = new ConstantValueEmitter<float>(1.0f);
+      over_lifetime_r = new ConstantValueEmitter<float>(1.0f);
+      over_lifetime_g = new ConstantValueEmitter<float>(0.0f);
+      over_lifetime_b = new ConstantValueEmitter<float>(0.0f);
+   }
 };
 
-struct ScaleData 
+class ScaleData 
 {
+public:
    ValueEmitter<float> *start;
    ValueEmitter<float> *over_lifetime;
+
+   ScaleData()
+   {
+      start = new ConstantValueEmitter<float>(1.0f);
+      over_lifetime = new ConstantValueEmitter<float>(1.0f);
+   }
 };
 
-struct RotationData
+class RotationData
 {
+public:
    ValueEmitter<float> *over_lifetime_x;
    ValueEmitter<float> *over_lifetime_y;
    ValueEmitter<float> *over_lifetime_z;
+
+   RotationData()
+   {
+      over_lifetime_x = new ConstantValueEmitter<float>(0.0f);
+      over_lifetime_y = new ConstantValueEmitter<float>(0.0f);
+      over_lifetime_z = new ConstantValueEmitter<float>(0.0f);
+   }
+
 };
 
-struct LifetimeData 
+class LifetimeData 
 {
+public:
    ValueEmitter<float> *start;
+
+   LifetimeData()
+   {
+      start = new ConstantValueEmitter<float>(10.0f);
+   }
 };
 
-struct SpeedData
+class SpeedData
 {
+public:
+
    ValueEmitter<float> *start;
    ValueEmitter<float> *over_lifetime;
+
+   SpeedData()
+   {
+      start = new ConstantValueEmitter<float>(5.0f);
+      over_lifetime = new ConstantValueEmitter<float>(5.0f);
+   }
 };
 
-struct ParticleData 
+class ParticleData 
 {
+public:
    LifetimeData lifetime;
    SpeedData speed;
    ColorData color;
@@ -99,11 +155,17 @@ struct ParticleData
    RotationData rotation;
 };
 
-
-struct CubemitterData {
+class CubemitterData 
+{
+public:
    float duration;
    EmissionData emission;
    ParticleData particle;
+
+   CubemitterData()
+   {
+      duration = 20.0f;
+   }
 };
 
 // The data for an individual cube, as used within the particle system.
@@ -160,14 +222,14 @@ public:
 
 private:
 	bool raiseError( const std::string &msg, int line = -1 );
-   EmissionData parseEmission(JSONNode& n);
-   ParticleData parseParticle(JSONNode& n);
-   ColorData parseColor(JSONNode& n);
-   ScaleData parseScale(JSONNode& n);
-   LifetimeData parseLifetime(JSONNode& n);
-   SpeedData parseSpeed(JSONNode& n);
-   OriginData parseOrigin(JSONNode &n);
-   RotationData parseRotation(JSONNode& n);
+   EmissionData parseEmission(ConstJsonObject& n);
+   ParticleData parseParticle(ConstJsonObject& n);
+   ColorData parseColor(ConstJsonObject& n);
+   ScaleData parseScale(ConstJsonObject& n);
+   LifetimeData parseLifetime(ConstJsonObject& n);
+   SpeedData parseSpeed(ConstJsonObject& n);
+   OriginData parseOrigin(ConstJsonObject &n);
+   RotationData parseRotation(ConstJsonObject& n);
 
 private:
 	friend class EmitterNode;
