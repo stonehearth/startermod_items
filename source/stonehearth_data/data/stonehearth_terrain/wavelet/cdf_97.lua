@@ -21,7 +21,7 @@ function CDF_97.DWT_1D(src, length)
    CDF_97._predict(src, length, P2)  -- Predict 2
    CDF_97._update(src, length, U2)   -- Update 2
    CDF_97._scale(src, length, S)     -- Scale
-   CDF_97._deinterleave(src, length) -- consolidate frequncy components
+   CDF_97._deinterleave(src, length) -- consolidate frequency components
 end
 
 function CDF_97.IDWT_1D(src, length)

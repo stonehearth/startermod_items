@@ -42,8 +42,8 @@ function Landscaper:place_forest(zone_map)
    tree_type = self:random_tree_type()
    num_trees = math.random(1, max_trees)
 
-   x = math.random(1, width)
-   z = math.random(1, height)
+   x = math.random(min_x, max_x)
+   z = math.random(min_z, max_z)
 
    for i=1, num_trees do
       tree_name = self:random_tree(tree_type)

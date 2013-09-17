@@ -28,26 +28,50 @@
 
          "arch_backed_chair" :       "file(entities/arch_backed_chair)",
          "arch_backed_chair_proxy" : "file(entities/arch_backed_chair/arch_backed_chair_proxy.json)",
-         "dining_table" : "file(entities/dining_table)",
-         "rough_wooden_cot" : "file(entities/rough_wooden_cot)",
-         "wooden_door" : "file(entities/wooden_door)",
-         "bolt_of_cloth" : "file(entities/bolt_of_cloth)",
-         "fire_pit" : "file(entities/fire_pit)",
-         "simple_wooden_chair" : "file(entities/simple_wooden_chair)",
-         "wooden_sword" : "file(entities/wooden_sword)",
+         
          "carpenter_saw" : "file(entities/carpenter_saw)",
-         "not_much_of_a_bed" : "file(entities/not_much_of_a_bed)",
-         "spindle" : "file(entities/spindle)",
-         "wooden_window_frame" : "file(entities/wooden_window_frame)",
+
          "cloth_bolt" : "file(entities/cloth_bolt)",
-         "picket_fence" : "file(entities/picket_fence)",
-         "spool_of_thread" : "file(entities/spool_of_thread)",
+
          "comfy_bed" :       "file(entities/comfy_bed)",
          "comfy_bed_proxy" : "file(entities/comfy_bed/comfy_bed_proxy.json)",
+
+         "dining_table" : "file(entities/dining_table)",
+         "dining_table_proxy" : "file(entities/dining_table/dining_table_proxy.json)",
+         
+         "fire_pit" : "file(entities/fire_pit)",
+
+         "not_much_of_a_bed" : "file(entities/not_much_of_a_bed)",
+         "not_much_of_a_bed_proxy" : "file(entities/not_much_of_a_bed/not_much_of_a_bed_proxy.json)",
+
+         "picket_fence" : "file(entities/picket_fence)",
+         "picket_fence_proxy" : "file(entities/picket_fence/picket_fence_proxy.json)",
+
          "picket_fence_gate" : "file(entities/picket_fence_gate)",
+         "picket_fence_gate_proxy" : "file(entities/picket_fence_gate/picket_fence_gate_proxy.json)",
+
+         "simple_wooden_chair" : "file(entities/simple_wooden_chair)",
+         "simple_wooden_chair_proxy" : "file(entities/simple_wooden_chair/simple_wooden_chair_proxy.json)",
+
+         "spindle" : "file(entities/spindle)",
+
+         "spool_of_thread" : "file(entities/spool_of_thread)",
+
          "table_for_one" : "file(entities/table_for_one)",
+         "table_for_one_proxy" : "file(entities/table_for_one/table_for_one_proxy.json)",
+
          "properties" : "file(entities/properties)",
-         "wooden_buckler" : "file(entities/wooden_buckler)"
+
+         "wooden_buckler" : "file(entities/wooden_buckler)",
+
+         "wooden_door" : "file(entities/wooden_door)",
+         "wooden_door_proxy" : "file(entities/wooden_door/wooden_door_proxy.json)",
+
+         "wooden_sword" : "file(entities/wooden_sword)",
+
+         "wooden_window_frame" : "file(entities/wooden_window_frame)",
+         "wooden_window_frame_proxy" : "file(entities/wooden_window_frame/wooden_window_frame_proxy.json)"
+
       }
    }
 }

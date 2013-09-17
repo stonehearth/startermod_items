@@ -917,6 +917,17 @@ typedef const GLubyte * (GLAPIENTRYP PFNGLGETSTRINGIPROC) (GLenum, GLuint);
 extern PFNGLGETSTRINGIPROC glGetStringi;
 
 #endif // GL_VERSION_3_0
+
+#ifndef GL_VERSION_3_3
+#define GL_VERSION_3_3
+
+typedef void (GLAPIENTRYP PFNGLVERTEXATTRIBDIVISORPROC) (GLuint index, GLint divisor);
+typedef void (GLAPIENTRYP PFNGLDRAWARRAYSINSTANCEDPROC) (GLenum mode, GLint first, GLsizei count, GLsizei primcount);
+typedef void (GLAPIENTRYP PFNGLDRAWELEMENTSINSTANCEDPROC) (GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei primcount);
+extern PFNGLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
+extern PFNGLDRAWARRAYSINSTANCEDPROC glDrawArraysInstanced;
+extern PFNGLDRAWELEMENTSINSTANCEDPROC glDrawElementsInstanced;
+#endif // GL_VERSION_3_3
 }  // namespace h3dGL
 
 

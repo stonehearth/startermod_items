@@ -14,11 +14,11 @@ local HeightMapRenderer = class()
 function HeightMapRenderer.render_height_map_to_terrain(height_map, terrain_info)
    local r2 = Region2()
    local r3 = Region3()
-   local heightMapCPP = HeightMapCPP(height_map.width, 1) -- Assumes square map!
+   local height_map_cpp = HeightMapCPP(height_map.width, 1) -- Assumes square map!
    local terrain = radiant._root_entity:add_component('terrain')
 
-   HeightMapRenderer._copy_heightmap_to_CPP(heightMapCPP, height_map)
-   _radiant.csg.convert_heightmap_to_region2(heightMapCPP, r2)
+   HeightMapRenderer._copy_heightmap_to_CPP(height_map_cpp, height_map)
+   _radiant.csg.convert_heightmap_to_region2(height_map_cpp, r2)
 
    for rect in r2:contents() do
       if rect.tag > 0 then
@@ -29,12 +29,12 @@ function HeightMapRenderer.render_height_map_to_terrain(height_map, terrain_info
    terrain:add_region(r3)
 end
 
-function HeightMapRenderer._copy_heightmap_to_CPP(heightMapCPP, height_map)
+function HeightMapRenderer._copy_heightmap_to_CPP(height_map_cpp, height_map)
    local row_offset = 0
 
    for j=1, height_map.height do
       for i=1, height_map.width do
-         heightMapCPP:set(i-1, j-1, height_map[row_offset+i])
+         height_map_cpp:set(i-1, j-1, height_map[row_offset+i])
       end
       row_offset = row_offset + height_map.width
    end

@@ -99,6 +99,10 @@ namespace radiant {
             return ConstJsonObject(get<JSONNode>(name));
          }
 
+         ConstJsonObject getn(unsigned int index) const {
+            return ConstJsonObject(get<JSONNode>(index));
+         }
+
          // xxx: these shoudl return ConstJsonObject's, right?
          JSONNode::const_iterator begin() const { return node_.begin(); }
          JSONNode::const_iterator end() const { return node_.end(); }

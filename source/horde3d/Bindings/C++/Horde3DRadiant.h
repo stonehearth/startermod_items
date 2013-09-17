@@ -16,6 +16,9 @@ DLL bool h3dRadiantAddDebugRegion(H3DNode node, const ::radiant::csg::Region3& r
 DLL bool h3dRadiantAddDebugQuadXZ(H3DNode node, const ::radiant::csg::Point3f& p0, const ::radiant::csg::Point3f& p1, const ::radiant::csg::Color4& color);
 DLL bool h3dRadiantAddDebugLine(H3DNode node, const ::radiant::csg::Point3f& p0, const ::radiant::csg::Point3f& p1, const ::radiant::csg::Color4& color);
 DLL bool h3dRadiantCommitDebugShape(H3DNode node);
+DLL H3DNode h3dRadiantAddCubemitterNode(H3DNode parent, const char* nam, H3DRes cubeRes, H3DRes mat);
+DLL void h3dRadiantAdvanceCubemitterTime(H3DNode cubemitterNode, float timeDelta);
+
 
 #include "../extensions/stockpile/stockpile_node.h"
 #include "../extensions/stockpile/decal_node.h"

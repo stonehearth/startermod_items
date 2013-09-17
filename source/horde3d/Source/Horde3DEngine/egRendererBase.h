@@ -123,10 +123,16 @@ struct VertexLayoutAttrib
 	uint32       offset;
 };
 
+struct VertexDivisorAttrib
+{
+   uint32       divisor;
+};
+
 struct RDIVertexLayout
 {
 	uint32              numAttribs;
 	VertexLayoutAttrib  attribs[16];
+   VertexDivisorAttrib divisors[16];
 };
 
 
@@ -341,6 +347,7 @@ public:
 
 	// Vertex layouts
 	uint32 registerVertexLayout( uint32 numAttribs, VertexLayoutAttrib *attribs );
+	uint32 registerVertexLayout( uint32 numAttribs, VertexLayoutAttrib *attribs, VertexDivisorAttrib *divisors );
 	
 	// Buffers
 	uint32 createVertexBuffer( uint32 size, const void *data );
@@ -412,6 +419,8 @@ public:
 	void draw( RDIPrimType primType, uint32 firstVert, uint32 numVerts );
 	void drawIndexed( RDIPrimType primType, uint32 firstIndex, uint32 numIndices,
 	                  uint32 firstVert, uint32 numVerts );
+   //void drawInstanced( RDIPrimType primType, uint32 firstIndex, uint32 numVerts, uint32 numPrims);
+   void drawInstanced( RDIPrimType primType, uint32 count, uint32 firstIndex, GLsizei primcount);
 
 // -----------------------------------------------------------------------------
 // Getters

@@ -6,8 +6,7 @@
    "my_location" : "/stonehearth_carpenter_class/recipes/wooden_door_recipe.json",
    "description" : "Minor obstacle for intruders.",
    "flavor"      : "Privacy at last!",
-   "card_art"    : "/stonehearth_items/entities/wooden_door/wooden_door_card.png",
-   "queue_art"   : "/stonehearth_items/entities/wooden_door/wooden_door_queue.png",
+   "portrait"    : "/stonehearth_items/entities/wooden_door/wooden_door.png",
    "category"    : "weapons",
 
    "ingredients": [
@@ -19,7 +18,7 @@
   ],
   "produces": [
       {
-         "item":"entity(stonehearth_items, wooden_door)",
+         "item":"entity(stonehearth_items, wooden_door_proxy)",
          "script":"/stonehearth_crafter/",
          "command":"produce_item"
       }
