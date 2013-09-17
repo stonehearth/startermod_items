@@ -49,12 +49,12 @@ function entities.create_entity(arg1, arg2)
    if not arg2 then
       local entity_ref = arg1 -- something like 'entity(stonehearth, wooden_sword)'
       assert(entity_ref:sub(1, 7) == 'entity(')
-      radiant.log.info('creating entity %s', entity_ref)
+      --radiant.log.info('creating entity %s', entity_ref)
       return native:create_entity_by_ref(entity_ref)
    end
    local mod_name = arg1 -- 'stonehearth'
    local entity_name = arg2 -- 'wooden_sword'
-   radiant.log.info('creating entity %s, %s', mod_name, entity_name)
+   --radiant.log.info('creating entity %s, %s', mod_name, entity_name)
    return native:create_entity(mod_name, entity_name)
 end
 
