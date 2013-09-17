@@ -317,8 +317,6 @@ void Renderer::RenderOneFrame(int now, float alpha)
    fileWatcher_.update();
    LoadResources();
 
-   h3dRadiantAdvanceCubemitterTime(deltaNow / 1000.0f);
-
 	// Render scene
    h3dRender(camera_->GetNode());
 
@@ -326,7 +324,11 @@ void Renderer::RenderOneFrame(int now, float alpha)
 	h3dFinalizeFrame();
    //glFinish();
 
-	// Remove all overlays
+   // Advance emitter time; this must come AFTER rendering, because we only know which emitters
+   // to update after doing a render pass.
+   h3dRadiantAdvanceCubemitterTime(deltaNow / 1000.0f);
+
+   // Remove all overlays
 	h3dClearOverlays();
 
 	// Write all messages to log file

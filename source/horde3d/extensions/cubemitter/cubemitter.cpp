@@ -415,7 +415,6 @@ void CubemitterNode::advanceTime( float timeDelta )
 
    if (_wasVisible)
    {
-      _wasVisible = false;
 	   _timeDelta += timeDelta;
    	markDirty();
    }
@@ -490,6 +489,7 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 					{
 						Modules::renderer().pushOccProxy( 0, emitter->getBBox().min,
 							emitter->getBBox().max, emitter->_occQueries[occSet] );
+                  _wasVisible = false;
 						continue;
 					}
 					else
