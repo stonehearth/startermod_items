@@ -201,11 +201,14 @@ DLL H3DNode h3dRadiantAddCubemitterNode(H3DNode parent, const char* nam, H3DRes 
 	return Modules::sceneMan().addNode(sn, *parentNode);
 }
 
-DLL void h3dRadiantAdvanceCubemitterTime(H3DNode cubemitterNode, float timeDelta) {
-   SceneNode *sn = Modules::sceneMan().resolveNodeHandle( cubemitterNode );
-   APIFUNC_VALIDATE_NODE_TYPE( sn, SNT_CubemitterNode, "h3dAdvanceCubemitterTime", APIFUNC_RET_VOID );
-
-   ((CubemitterNode *)sn)->advanceTime( timeDelta );
+DLL void h3dRadiantAdvanceCubemitterTime(float timeDelta) {
+   int numNodes = h3dFindNodes(H3DRootNode, "", SNT_CubemitterNode);
+   while (numNodes > 0) {
+      H3DNode n = h3dGetNodeFindResult(--numNodes);
+      SceneNode *sn = Modules::sceneMan().resolveNodeHandle( n );
+      APIFUNC_VALIDATE_NODE_TYPE( sn, SNT_CubemitterNode, "h3dAdvanceCubemitterTime", APIFUNC_RET_VOID );
+      ((CubemitterNode *)sn)->advanceTime( timeDelta );
+   }
 }
 
 DLL bool h3dRadiantClearDebugShape(H3DNode node)

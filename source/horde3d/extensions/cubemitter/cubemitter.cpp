@@ -406,21 +406,19 @@ float randomF( float min, float max )
 }
 
 
-Vec3f randomV ( const Vec3f &min, const Vec3f &max ) {
-   Vec3f result;
-   result.x = randomF(min.x, max.x);
-   result.y = randomF(min.y, max.y);
-   result.z = randomF(min.z, max.z);
-
-   return result;
-}
-
-
 void CubemitterNode::advanceTime( float timeDelta )
 {
-	_timeDelta += timeDelta;
+   _curEmitterTime += timeDelta;
+   if (_curEmitterTime > _emitterDuration) {
+      _curEmitterTime -= _emitterDuration;
+   }
 
-	markDirty();
+   if (_wasVisible)
+   {
+      _wasVisible = false;
+	   _timeDelta += timeDelta;
+   	markDirty();
+   }
 }
 
 
@@ -460,7 +458,7 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
       if( entry.type != SNT_CubemitterNode ) continue; 
 		
 		CubemitterNode *emitter = (CubemitterNode *)entry.node;
-		
+
 		/*if( emitter->_particleCount == 0 ) continue;
 		if( !emitter->_materialRes->isOfClass( theClass ) ) continue;
 		
@@ -526,8 +524,8 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
       gRDI->updateBufferData(emitter->_attributeBuf, 0, sizeof(CubeAttribute) * emitter->_maxCubes, emitter->_attributesBuff);
       gRDI->setVertexBuffer(1, emitter->_attributeBuf, 0, sizeof(CubeAttribute));
       gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, 36, 0, emitter->_maxCubes);
-
-
+      
+      emitter->_wasVisible = true;
 
 		/*if( queryObj )
 			gRDI->endQuery( queryObj );*/
@@ -535,7 +533,8 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 
 	timer->endQuery();
 
-	// Draw occlusion proxies
+
+   // Draw occlusion proxies
 	//if( occSet >= 0 )
 	//	Modules::renderer().drawOccProxies( 0 );
 	
@@ -544,7 +543,7 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 
 void CubemitterNode::onPostUpdate()
 {	
-	if( _timeDelta <= 0 /*|| _effectRes == 0x0*/ ) return;
+   if( _timeDelta <= 0 || !_wasVisible /*|| _effectRes == 0x0*/ ) return;
 	
 	Timer *timer = Modules::stats().getTimer( EngineStats::ParticleSimTime );
 	if( Modules::config().gatherTimeStats ) timer->setEnabled( true );
@@ -573,11 +572,9 @@ void CubemitterNode::onPostUpdate()
    
    updateAndSpawnCubes(numberToSpawn);
    
-   _curEmitterTime += _timeDelta;
-   if (_curEmitterTime > _emitterDuration) {
-      _curEmitterTime -= _emitterDuration;
-   }
    _timeDelta = 0.0f;
+
+   timer->setEnabled(false);
 }
 
 void CubemitterNode::updateAndSpawnCubes(int numToSpawn) 

@@ -317,7 +317,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    fileWatcher_.update();
    LoadResources();
 
-   h3dRadiantAdvanceCubemitterTime(cubemitterNode, deltaNow / 1000.0f);
+   h3dRadiantAdvanceCubemitterTime(deltaNow / 1000.0f);
 
 	// Render scene
    h3dRender(camera_->GetNode());

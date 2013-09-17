@@ -279,7 +279,7 @@ protected:
    float                    _nextSpawnTime;
    float                    _curEmitterTime, _emitterDuration;  // Bounded between 0 and the duration of the emitter.
 	float                    _emissionRate, _spreadAngle;
-
+   bool                     _wasVisible;
    CubeAttribute            *_attributesBuff;
 
 
