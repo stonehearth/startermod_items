@@ -5,7 +5,7 @@
       "model_variants": [
          {
             "models": [
-               "file(../default_object/default_object.qb)"
+               "file(simple_wooden_chair.qb)"
             ]
          }
       ], 

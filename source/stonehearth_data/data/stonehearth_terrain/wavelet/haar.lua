@@ -17,7 +17,7 @@ function Haar.DWT_1D(src, length)
 
    assert(length >= 2)
 
-   for i=1, n, 1 do
+   for i=1, n do
       A = src[2*i-1]
       B = src[2*i]
 
@@ -25,7 +25,7 @@ function Haar.DWT_1D(src, length)
       temp[n+i] = A*G2 + B*G1 -- high frequency
    end
 
-   for i=1, length, 1 do
+   for i=1, length do
       src[i] = temp[i]
    end
 end
@@ -38,7 +38,7 @@ function Haar.IDWT_1D(src, length)
 
    assert(length >= 2)
 
-   for i=1, n, 1 do
+   for i=1, n do
       A = src[i]
       B = src[n+i]
 
@@ -46,7 +46,7 @@ function Haar.IDWT_1D(src, length)
       temp[2*i]   = A*H1 + B*G1
    end
 
-   for i=1, length, 1 do
+   for i=1, length do
       src[i] = temp[i]
    end
 end

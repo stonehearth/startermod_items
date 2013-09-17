@@ -15,7 +15,7 @@
          {
             "variants": "iconic",
             "models": [
-               "file(carpenter_saw_icon.qb)"
+               "file(carpenter_saw_proxy.qb)"
             ]
          }            
       ],
