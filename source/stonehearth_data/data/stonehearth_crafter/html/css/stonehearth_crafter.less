@@ -4,7 +4,7 @@
 }
 
 .ui-autocomplete {
-   .wood;
+   .woodthin;
    padding: 10px;
    max-height: 600px;
    width: 300px;
@@ -113,7 +113,7 @@
 }
 
 #craftingWindow {
-   .wood;
+   .woodthick;
 
    .ui-accordion-header {
       background: url('/stonehearth_crafter/html/images/craft_window/ui_accordion_header_bg.png') !important;
@@ -250,24 +250,44 @@
 
             .rightBookend {
                content: url('/stonehearth_crafter/html/images/craft_window/scroll_socket_right_bookend.png');
-               padding-left: 4px;
             }
 
             .ingredientSocket {
                .handCursor;
-               display: inline-block;
                position: relative;
+               position: -20px;
+               display: inline-block;
                width: 62px;
                height: 62px;
 
+               div {
+                  position: absolute;
+                  top: 0px;
+                  left: 0px;
+                  width: 62px;
+                  height: 62px;
+               }
+
+               img {
+                  position: absolute;
+                  top: 0px;
+                  left: 0px;
+                  width: 62px;
+                  height: 62px;                  
+               }
+
                .count {
                   .outlined(#d1c096);
-                  display: inline;
                   position: absolute;
-                  right: 4px;
-                  bottom: 2px;
+                  left: 40px;
+                  top: 35px;
                   font-size: 22px;
                   color: #908467;
+               }
+
+               .selectionNeeded {
+                  background: url('/stonehearth_crafter/html/images/recipe_sockets/socket_ants.gif') no-repeat;
+                  opacity: 0.3;
                }
             }
          }

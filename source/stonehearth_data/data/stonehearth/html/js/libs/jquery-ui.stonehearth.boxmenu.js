@@ -69,7 +69,7 @@
 
             } else {
                // we're a leaf menu item, so close all the menus
-               //self._hideAllMenus();
+               self._hideAllMenus();
                menuItem.addClass('invoked');
             }
 
