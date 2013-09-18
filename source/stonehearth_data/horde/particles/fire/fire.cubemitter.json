@@ -5,7 +5,7 @@
         "lifetime": {
             "start": {
                 "kind": "RANDOM_BETWEEN",
-                "values": [3,3.3]
+                "values": [5,5.3]
             }
         },
         "speed": {
@@ -62,6 +62,23 @@
                     [[0.0, 360.0], [1.0, 360.0]]
                 ]
             }
+        },
+        "velocity": {
+            "over_lifetime_z": {
+                "kind": "RANDOM_BETWEEN_CURVES",
+                "values": [
+                    [[0.0, 0.0], [0.4, 0.0], [0.6, -7.0], [1.0, -7.0]],
+                    [[0.0, 0.0], [0.4, 0.0], [0.6, 7.0], [1.0, 7.0]]
+                ]
+            },
+            "over_lifetime_x": {
+                "kind": "RANDOM_BETWEEN_CURVES",
+                "values": [
+                    [[0.0, 0.0], [0.4, 0.0], [0.6, -7.0], [1.0, -7.0]],
+                    [[0.0, 0.0], [0.4, 0.0], [0.6, 7.0], [1.0, 7.0]]
+                ]
+            }
+
         }
     },
     "emission": {
@@ -74,8 +91,8 @@
             "values": [5, 5]
         },
         "angle": {
-            "kind": "RANDOM_BETWEEN",
-            "values": [0.0, 0.0]
+            "kind": "CONSTANT",
+            "values": [0]
         }
     }
 }
