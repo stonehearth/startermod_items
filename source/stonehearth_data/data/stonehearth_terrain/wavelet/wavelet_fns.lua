@@ -13,8 +13,8 @@ function WaveletFns.scale_high_freq(src, src_width, src_height, power, max_level
    local attenuation = power^(max_level-current_level+1)
    local row_offset = 0
 
-   for j=1, level_height, 1 do
-      for i=1, level_width, 1 do
+   for j=1, level_height do
+      for i=1, level_width do
          if (i > half_width) or (j > half_height) then
             src[row_offset+i] = src[row_offset+i] * attenuation
          end
@@ -34,8 +34,8 @@ function WaveletFns.average_error(src1, src2, width, height)
    local sum = 0
    local rowoffset = 0
 
-   for j=1, height, 1 do
-      for i=1, width, 1 do
+   for j=1, height do
+      for i=1, width do
          sum = sum + math.abs(src1[rowoffset+i] - src2[rowoffset+i])
       end
       rowoffset = rowoffset + width

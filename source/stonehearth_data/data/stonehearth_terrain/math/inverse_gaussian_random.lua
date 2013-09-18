@@ -51,16 +51,16 @@ function InverseGaussianRandom.simulate_probabilities(min, max, std_dev, iterati
    local probabilities = {}
    local i, rand
 
-   for i=min, max, 1 do
+   for i=min, max do
       counts[i] = 0
    end
 
-   for i=1, iterations, 1 do
+   for i=1, iterations do
       rand = InverseGaussianRandom.generate_int(min, max, std_dev)
       counts[rand] = counts[rand] + 1
    end
 
-   for i=min, max, 1 do
+   for i=min, max do
       probabilities[i] = counts[i] / iterations
    end
 
@@ -71,7 +71,7 @@ function InverseGaussianRandom.print_probabilities(min, max, std_dev, iterations
    local i, probabilities
    probabilities = InverseGaussianRandom.simulate_probabilities(min, max, std_dev, iterations)
 
-   for i=min, max, 1 do
+   for i=min, max do
       radiant.log.info('%d: %.2f%%', i, probabilities[i]*100)
    end
 end

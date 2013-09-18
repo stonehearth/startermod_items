@@ -3,19 +3,18 @@ local FilterFns = class()
 local Array2DFns = require 'filter.array_2D_fns'
 local BoundaryNormalizingFilter = require 'filter.boundary_normalizing_filter'
 
-local x = {}
-local y = {}
-local temp = {}
-
 function FilterFns.filter_2D_generic(dst, src, src_width, src_height, filter_kernel, sampling_interval)
    if sampling_interval == nil then sampling_interval = 1 end
 
+   local x = {}
+   local y = {}
+   local temp = {}
    local i, j
    local dst_width, dst_height
 
    -- horizontal
    dst_width = FilterFns.calc_resampled_length(src_width, sampling_interval)
-   for i=1, src_height, 1 do
+   for i=1, src_height do
       Array2DFns.get_row_vector(x, src, i, src_width, src_width)
       filter_kernel:filter(y, x, src_width, sampling_interval)
       Array2DFns.set_row_vector(temp, y, i, dst_width, dst_width)
@@ -25,7 +24,7 @@ function FilterFns.filter_2D_generic(dst, src, src_width, src_height, filter_ker
 
    -- vertical
    dst_height = FilterFns.calc_resampled_length(src_height, sampling_interval)
-   for j=1, dst_width, 1 do
+   for j=1, dst_width do
       Array2DFns.get_column_vector(x, temp, j, dst_width, src_height)
       filter_kernel:filter(y, x, src_height, sampling_interval)
       Array2DFns.set_column_vector(dst, y, j, dst_width, dst_height)
@@ -94,7 +93,7 @@ function FilterFns._test_basic()
    local dst = {}
    local i
 
-   for i=1, src_width*src_height, 1 do
+   for i=1, src_width*src_height do
       src[i] = 1
    end
 
@@ -102,7 +101,7 @@ function FilterFns._test_basic()
 
    local i
    local value = filter_kernel._f_sum^2
-   for i=1, dst_width*dst_height, 1 do
+   for i=1, dst_width*dst_height do
       assert(math.abs(value-dst[i]) < delta)
    end
 end
@@ -118,7 +117,7 @@ function FilterFns._test_iterative_downsample()
    local dst = {}
    local i
 
-   for i=1, src_width*src_height, 1 do
+   for i=1, src_width*src_height do
       src[i] = 1
    end
 
@@ -127,7 +126,7 @@ function FilterFns._test_iterative_downsample()
    local i
    local filter_kernel = filter_kernel_4_050 -- needs to match the filter in downsample_2D
    local value = filter_kernel._f_sum^2
-   for i=1, dst_width*dst_height, 1 do
+   for i=1, dst_width*dst_height do
       assert(math.abs(value-dst[i]) < delta)
    end
 end

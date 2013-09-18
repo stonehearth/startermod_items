@@ -14,14 +14,14 @@ function Wavelet.DWT_2D(src, src_width, src_height, max_level, current_level)
       Wavelet.get_dimensions_for_level(src_width, src_height, current_level)
 
    -- horizontal transform
-   for i=1, level_height, 1 do
+   for i=1, level_height do
       Array2DFns.get_row_vector(vec, src, i, src_width, level_width)
       transform.DWT_1D(vec, level_width)
       Array2DFns.set_row_vector(src, vec, i, src_width, level_width)
    end
 
    -- vertical transform
-   for j=1, level_width, 1 do
+   for j=1, level_width do
       Array2DFns.get_column_vector(vec, src, j, src_width, level_height)
       transform.DWT_1D(vec, level_height)
       Array2DFns.set_column_vector(src, vec, j, src_width, level_height)
@@ -40,14 +40,14 @@ function Wavelet.IDWT_2D(src, src_width, src_height, current_level, min_level)
       Wavelet.get_dimensions_for_level(src_width, src_height, current_level)
 
    -- vertical transform
-   for j=1, level_width, 1 do
+   for j=1, level_width do
       Array2DFns.get_column_vector(vec, src, j, src_width, level_height)
       transform.IDWT_1D(vec, level_height)
       Array2DFns.set_column_vector(src, vec, j, src_width, level_height)
    end
 
    -- horizontal transform
-   for i=1, level_height, 1 do
+   for i=1, level_height do
       Array2DFns.get_row_vector(vec, src, i, src_width, level_width)
       transform.IDWT_1D(vec, level_width)
       Array2DFns.set_row_vector(src, vec, i, src_width, level_width)
@@ -77,11 +77,11 @@ function Wavelet._test()
    height = 64
    levels = 3
 
-   for i=1, width*height, 1 do
+   for i=1, width*height do
       x[i] = math.random(0, 100)
    end
 
-   for i=1, width*height, 1 do
+   for i=1, width*height do
       y[i] = x[i]
    end
 
@@ -89,7 +89,7 @@ function Wavelet._test()
    Wavelet.IDWT_2D(y, width, height, levels)
 
    local diff
-   for i=1, width*height, 1 do
+   for i=1, width*height do
       diff = math.abs(y[i]-x[i])
       assert(diff < DELTA)
    end

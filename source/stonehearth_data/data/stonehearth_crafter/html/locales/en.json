@@ -7,5 +7,9 @@
   "paused_status": "paused...",
   "remove_confirm": "Remove?",
   "open" : "Open!",
-  "closed" : "Closed"
+  "closed" : "Closed",
+
+  "build_workshop_scroll_title" : "Carpenter's Wk (xxx param)",
+  "build_workshop_pending" : "PENDING APPROVAL OF MATERIALS",
+  "build_workshop_approved" : "APPROVED!"
 }

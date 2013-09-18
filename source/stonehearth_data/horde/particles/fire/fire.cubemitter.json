@@ -1,0 +1,98 @@
+{
+    "name": "fire",
+    "duration": 20,
+    "particle": {
+        "lifetime": {
+            "start": {
+                "kind": "RANDOM_BETWEEN",
+                "values": [5,5.3]
+            }
+        },
+        "speed": {
+            "start": {
+                "kind": "RANDOM_BETWEEN",
+                "values": [5, 7]
+            },
+            "over_lifetime": {
+                "kind": "CURVE",
+                "values": [
+                    [0.0, 1.0], [0.7, 1.0], [0.80, 0.4], [1.0, 0.0]
+                ]
+            }
+        },
+
+        "color": {
+            "start": {
+                "kind": "CONSTANT",
+                "values": [0.7, 0.0, 0.0, 1.0]
+            },
+            "over_lifetime_r": {
+                "kind": "RANDOM_BETWEEN_CURVES",
+                "values": [
+                    [[0.0, 0.7], [0.4, 0.7], [0.7, 0.1], [1.0, 0.0]],
+                    [[0.0, 0.8], [0.4, 0.8], [0.7, 0.2], [1.0, 0.2]]
+                ]
+            },
+            "over_lifetime_a": {
+                "kind": "CURVE",
+                "values": [
+                    [0.0, 1.0], [0.9, 1.0], [1.0, 0.0]
+                ]
+            }
+        },
+
+        "scale": {
+            "start": {
+                "kind": "RANDOM_BETWEEN",
+                "values": [1, 1]
+            },
+            "over_lifetime": {
+                "kind": "RANDOM_BETWEEN_CURVES",
+                "values": [
+                    [[0.0, 0.6],[1.0, 2.5]],
+                    [[0.0, 0.8],[1.0, 3.5]]
+                ]
+            }
+        },
+        "rotation": {
+            "over_lifetime_x": {
+                "kind": "RANDOM_BETWEEN_CURVES",
+                "values": [
+                    [[0.0, 0.0], [1.0, 0.0]],
+                    [[0.0, 360.0], [1.0, 360.0]]
+                ]
+            }
+        },
+        "velocity": {
+            "over_lifetime_z": {
+                "kind": "RANDOM_BETWEEN_CURVES",
+                "values": [
+                    [[0.0, 0.0], [0.4, 0.0], [0.6, -7.0], [1.0, -7.0]],
+                    [[0.0, 0.0], [0.4, 0.0], [0.6, 7.0], [1.0, 7.0]]
+                ]
+            },
+            "over_lifetime_x": {
+                "kind": "RANDOM_BETWEEN_CURVES",
+                "values": [
+                    [[0.0, 0.0], [0.4, 0.0], [0.6, -7.0], [1.0, -7.0]],
+                    [[0.0, 0.0], [0.4, 0.0], [0.6, 7.0], [1.0, 7.0]]
+                ]
+            }
+
+        }
+    },
+    "emission": {
+        "rate": {
+            "kind": "CONSTANT",
+            "values": [20]
+        },
+        "origin": {
+            "surface": "RECTANGLE",
+            "values": [5, 5]
+        },
+        "angle": {
+            "kind": "CONSTANT",
+            "values": [0]
+        }
+    }
+}

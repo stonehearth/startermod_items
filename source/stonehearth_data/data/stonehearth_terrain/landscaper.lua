@@ -4,7 +4,7 @@ local Point3 = _radiant.csg.Point3
 
 local Landscaper = class()
 
-local folder = '/stonehearth_trees/entities/'
+local tree_mod_name = 'stonehearth_trees'
 
 local oak = 'oak_tree'
 local juniper = 'juniper_tree'
@@ -21,7 +21,7 @@ end
 function Landscaper:place_trees(zone_map)
    local num_forests = 15
    local i
-   for i=1, num_forests, 1 do
+   for i=1, num_forests do
       self:place_forest(zone_map)
    end
 end
@@ -35,20 +35,20 @@ function Landscaper:place_forest(zone_map)
    local min_z = 1 + margin_size
    local max_x = width - margin_size
    local max_z = height - margin_size
-   local i, x, z, tree
+   local i, x, z, tree_name
    local tree_type
    local num_trees
 
    tree_type = self:random_tree_type()
    num_trees = math.random(1, max_trees)
 
-   x = math.random(1, width)
-   z = math.random(1, height)
+   x = math.random(min_x, max_x)
+   z = math.random(min_z, max_z)
 
-   for i=1, num_trees, 1 do
-      tree = self:random_tree(tree_type)
+   for i=1, num_trees do
+      tree_name = self:random_tree(tree_type)
       x, z = self:_next_coord(x, z, min_x, min_z, max_x, max_z)
-      self:_place_item(tree, x, z)
+      self:_place_tree(tree_name, x, z)
    end
 end
 
@@ -59,7 +59,7 @@ function Landscaper:random_tree(tree_type, tree_size)
    if tree_size == nil then
       tree_size = self:random_tree_size()
    end
-   return self:_get_tree_resource_name(tree_type, tree_size)
+   return self:_get_tree_name(tree_type, tree_size)
 end
 
 function Landscaper:random_tree_type()
@@ -77,16 +77,20 @@ end
 function Landscaper:_next_coord(x, z, min_x, min_z, max_x, max_z)
    local dx, dz, next_x, next_z
 
-   while true do
-      dx, dz = self:_next_delta(7, 32)
+   dx, dz = self:_next_delta(7, 32)
 
-      next_x = x + dx
-      next_z = z + dz
+   next_x = x + dx
+   if not MathFns.in_bounds(next_x, min_x, max_x) then
+      -- no longer uniformly distributed, and biases away from boundary
+      next_x = x - dx
+      assert(MathFns.in_bounds(next_x, min_x, max_x))
+   end
 
-      if MathFns.in_bounds(next_x, min_x, max_x) and
-         MathFns.in_bounds(next_z, min_z, max_z) then
-         break
-      end
+   next_z = z + dz
+   if not MathFns.in_bounds(next_z, min_z, max_z) then
+      -- no longer uniformly distributed, and biases away from boundary
+      next_z = z - dz
+      assert(MathFns.in_bounds(next_z, min_z, max_z))
    end
 
    return next_x, next_z
@@ -110,13 +114,17 @@ function Landscaper:_next_delta(min_dist, max_dist)
    return dx, dz
 end
 
-function Landscaper:_place_item(name, x, z)
-   local entity = radiant.entities.create_entity(name)
+function Landscaper:_place_tree(tree_name, x, z)
+   return self:_place_item(tree_mod_name, tree_name, x, z)
+end
+
+function Landscaper:_place_item(mod, name, x, z)
+   local entity = radiant.entities.create_entity(mod, name)
    radiant.terrain.place_entity(entity, Point3(x, 1, z))
 end
 
-function Landscaper:_get_tree_resource_name(tree_type, tree_size)
-   return folder .. tree_type .. '/' .. tree_size .. '_' .. tree_type
+function Landscaper:_get_tree_name(tree_type, tree_size)
+   return tree_size .. '_' .. tree_type
 end
 
 return Landscaper

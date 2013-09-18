@@ -8,7 +8,6 @@ function CommandsComponent:__init(entity, data_binding)
    self._data.commands = {}
    self._data_binding = data_binding
    self._data_binding:mark_changed()
-   --self._data_binding:update(self._commands)
 end
 
 function CommandsComponent:extend(json)
@@ -65,21 +64,40 @@ end
 
 --Given the name of a command, set its enabled/disabled status
 function CommandsComponent:enable_command(name, status)
+   local command = self:_find_command_by_name(name)
+   if command then
+      command.enabled = status
+      if status and command.enabled_tooltip then
+         command.tooltip = command.enabled_tooltip
+      else
+         if not status and command.disabled_tooltip then
+            command.tooltip = command.disabled_tooltip
+         end
+      end
+      self._data_binding:mark_changed()
+   end
+end
+
+--Given the name of a command, add or edit a field in its event_data
+--A command's event_data is passed to the target of the command (ie, an event)
+function CommandsComponent:add_event_data(name, key, value)
+   local command = self:_find_command_by_name(name)
+   if command and command.action == 'fire_event' then
+      command.event_data[key] = value
+   end
+end
+
+--[[
+   Given a command's name, return the command, or nil if
+   we can't find a command by that name.
+]]
+function CommandsComponent:_find_command_by_name(name)
    for i, command in ipairs(self._data.commands) do
       if command.name == name then
-         command.enabled = status
-
-         if status and command.enabled_tooltip then
-            command.tooltip = command.enabled_tooltip
-         else
-            if not status and command.disabled_tooltip then
-               command.tooltip = command.disabled_tooltip
-            end
-         end
-
-         self._data_binding:mark_changed()
+         return command
       end
    end
+   return nil
 end
 
 return CommandsComponent

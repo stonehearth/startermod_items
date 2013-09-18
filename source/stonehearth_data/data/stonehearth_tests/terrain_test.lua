@@ -2,19 +2,19 @@
 local MicroWorld = require 'lib.micro_world'
 local TerrainTest = class(MicroWorld)
 
-local ZoneType = require 'zone_type'
-local HeightMap = require 'height_map'
-local Array2D = require 'array_2D'
-local TerrainGenerator = require 'terrain_generator'
-local CDF_97 = require 'wavelet.cdf_97'
-local Wavelet = require 'wavelet.wavelet'
-local BoundaryNormalizingFilter = require 'filter.boundary_normalizing_filter'
-local FilterFns = require 'filter.filter_fns'
-local GaussianRandom = require 'math.gaussian_random'
-local InverseGaussianRandom = require 'math.inverse_gaussian_random'
-local Landscaper = require 'landscaper'
-local HeightMapRenderer = require 'height_map_renderer'
---local Timer = require 'timer'
+local TerrainType = radiant.mods.require('/stonehearth_terrain/terrain_type.lua')
+local HeightMap = radiant.mods.require('/stonehearth_terrain/height_map.lua')
+local Array2D = radiant.mods.require('/stonehearth_terrain/array_2D.lua')
+local TerrainGenerator = radiant.mods.require('/stonehearth_terrain/terrain_generator.lua')
+local CDF_97 = radiant.mods.require('/stonehearth_terrain/wavelet/cdf_97.lua')
+local Wavelet = radiant.mods.require('/stonehearth_terrain/wavelet/wavelet.lua')
+local BoundaryNormalizingFilter = radiant.mods.require('/stonehearth_terrain/filter/boundary_normalizing_filter.lua')
+local FilterFns = radiant.mods.require('/stonehearth_terrain/filter/filter_fns.lua')
+local GaussianRandom = radiant.mods.require('/stonehearth_terrain/math/gaussian_random.lua')
+local InverseGaussianRandom = radiant.mods.require('/stonehearth_terrain/math/inverse_gaussian_random.lua')
+local Landscaper = radiant.mods.require('/stonehearth_terrain/landscaper.lua')
+local HeightMapRenderer = radiant.mods.require('/stonehearth_terrain/height_map_renderer.lua')
+local Timer = radiant.mods.require('/stonehearth_debugtools/timer.lua')
 
 function TerrainTest:__init()
    --self:_run_timing_tests()
@@ -22,50 +22,85 @@ function TerrainTest:__init()
 
    self[MicroWorld]:__init()
 
+   local timer = Timer(Timer.CPU_TIME)
+   timer:start()
+
    self._terrain_generator = TerrainGenerator()
 
    --self:create_world()
    self:create_multi_zone_world()
+
+   timer:stop()
+   radiant.log.info('Terrain generation time: %.3fs', timer:seconds())
 end
 
 function TerrainTest:create_world()
    local height_map
 
    --height_map = terrain_generator:_erosion_test()
-   height_map = self._terrain_generator:generate_zone(ZoneType.Foothills)
-   HeightMapRenderer.render_height_map_to_terrain(height_map, self._terrain_generator.zone_params)
+   height_map = self._terrain_generator:generate_zone(TerrainType.Foothills)
+   HeightMapRenderer.render_height_map_to_terrain(height_map, self._terrain_generator.terrain_info)
 
    Landscaper:place_trees(height_map)
 end
 
 function TerrainTest:create_multi_zone_world()
+   local zones = self:_create_world_blueprint()
+   local num_zones_x = zones.width
+   local num_zones_y = zones.height
    local zone_size = self._terrain_generator.zone_size
-   local world_map = HeightMap(zone_size*2, zone_size*2)
-   local zones = Array2D(3, 3)
-   local zone_map
-   local micro_map
+   local world_map = HeightMap(zone_size*num_zones_x, zone_size*num_zones_y)
+   local i, j, zone_map, micro_map, terrain_type
 
    world_map:clear(1)
 
-   zone_map, micro_map = self._terrain_generator:generate_zone(ZoneType.Mountains, zones, 2, 2)
-   zone_map:copy_block(world_map, zone_map, 1, 1, 1, 1, zone_size, zone_size)
-   zones:set(2, 2, micro_map)
+   for j=1, num_zones_y do
+      for i=1, num_zones_x do
+         terrain_type = zones:get(i, j).terrain_type
+         zone_map, micro_map = self._terrain_generator:generate_zone(terrain_type, zones, i, j)
+         zone_map:copy_block(world_map, zone_map,
+            (i-1)*zone_size+1, (j-1)*zone_size+1, 1, 1, zone_size, zone_size)
+         zones:set(i, j, micro_map)
+      end
+   end
 
-   zone_map, micro_map = self._terrain_generator:generate_zone(ZoneType.Foothills, zones, 2, 3)
-   zone_map:copy_block(world_map, zone_map, 1, zone_size+1, 1, 1, zone_size, zone_size)
-   zones:set(2, 3, micro_map)
-
-   zone_map, micro_map = self._terrain_generator:generate_zone(ZoneType.Foothills, zones, 3, 2)
-   zone_map:copy_block(world_map, zone_map, zone_size+1, 1, 1, 1, zone_size, zone_size)
-   zones:set(3, 2, micro_map)
-
-   zone_map, micro_map = self._terrain_generator:generate_zone(ZoneType.Plains, zones, 3, 3)
-   zone_map:copy_block(world_map, zone_map, zone_size+1, zone_size+1, 1, 1, zone_size, zone_size)
-   zones:set(3, 3, micro_map)
-
-   HeightMapRenderer.render_height_map_to_terrain(world_map, self._terrain_generator.zone_params)
+   HeightMapRenderer.render_height_map_to_terrain(world_map, self._terrain_generator.terrain_info)
 
    Landscaper:place_trees(world_map)
+end
+
+function TerrainTest:_create_world_blueprint()
+   local zones = Array2D(2, 2)
+   local zone_info
+   local i, j
+
+   for j=1, zones.height do
+      for i=1, zones.width do
+         zone_info = {}
+         zone_info.generated = false
+         zones:set(i, j, zone_info)
+      end
+   end
+
+   zones:get(1, 1).terrain_type = TerrainType.Mountains
+   zones:get(2, 1).terrain_type = TerrainType.Foothills
+
+   zones:get(1, 2).terrain_type = TerrainType.Foothills
+   zones:get(2, 2).terrain_type = TerrainType.Plains
+--[[
+   zones:get(1, 1).terrain_type = TerrainType.Mountains
+   zones:get(2, 1).terrain_type = TerrainType.Mountains
+   zones:get(3, 1).terrain_type = TerrainType.Foothills
+
+   zones:get(1, 2).terrain_type = TerrainType.Mountains
+   zones:get(2, 2).terrain_type = TerrainType.Foothills
+   zones:get(3, 2).terrain_type = TerrainType.Plains
+
+   zones:get(1, 3).terrain_type = TerrainType.Foothills
+   zones:get(2, 3).terrain_type = TerrainType.Plains
+   zones:get(3, 3).terrain_type = TerrainType.Plains
+]]
+   return zones
 end
 
 function TerrainTest:create_old_world()
@@ -76,7 +111,7 @@ end
 function TerrainTest:decorate_landscape()
    local zone_size = self._terrain_generator.zone_size
    local i
-   for i=1, 20, 1 do
+   for i=1, 20 do
       self:place_tree(math.random(1, zone_size), math.random(1, zone_size))
       self:place_citizen(math.random(1, zone_size), math.random(1, zone_size))
    end
@@ -89,21 +124,33 @@ function TerrainTest:_run_unit_tests()
    Wavelet._test()
 end
 
+function abs_lua(x)
+   if x >= 0 then return x end
+   return -x
+end
+
 function TerrainTest:_run_timing_tests()
-   local timer = Timer()
-   local iterations = 20000000
-   local i, value
+   local abs = math.abs
+   local timer = Timer(Timer.CPU_TIME)
+   local iterations = 50000000
 
-   timer.start()
+   timer:start()
 
+<<<<<<< HEAD
    for i=1, iterations, 1 do
       --value = InverseGaussianRandom.generate(1, 8, (8-1).4)
       value = GaussianRandom.generate(50, 10)
       --radiant.log.info("%f", value)
+=======
+   for i = 1, iterations do
+      local x
+      x = abs(i)
+>>>>>>> db300f215d0149dd85bd73a67d210bc764d92fcb
    end
 
-   timer.stop()
-   radiant.log.info("Duration: %f", timer.duration())
+   timer:stop()
+   radiant.log.info("Duration: %.3fs", timer:seconds())
+   radiant.log.info("Iterations/s: %d", iterations/timer:seconds())
    assert(false)
 end
 

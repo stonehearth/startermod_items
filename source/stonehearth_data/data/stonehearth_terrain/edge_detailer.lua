@@ -9,20 +9,15 @@ function EdgeDetailer:__init()
    self.detail_grow_probability = 0.85
 end
 
-function EdgeDetailer:add_detail_blocks(height_map, zone_type, zone_params)
-   local i, j
-   local edge
+function EdgeDetailer:add_detail_blocks(height_map)
+   local i, j, edge
+   local edge_threshold = 4
    local edge_map = HeightMap(height_map.width, height_map.height)
-   local roll
    local detail_seeds = {}
    local num_seeds = 0
 
-   -- step_size is no longer determined by zone type -- CHECKCHECK
-   local step_size = zone_params[zone_type].step_size
-   local edge_threshold = step_size/2
-
-   for j=1, height_map.height, 1 do
-      for i=1, height_map.width, 1 do
+   for j=1, height_map.height do
+      for i=1, height_map.width do
          edge = self:_is_edge(height_map, i, j, edge_threshold)
          edge_map:set(i, j, edge)
 
@@ -36,7 +31,7 @@ function EdgeDetailer:add_detail_blocks(height_map, zone_type, zone_params)
    end
 
    local point
-   for i=1, num_seeds, 1 do
+   for i=1, num_seeds do
       point = detail_seeds[i]
       self:_grow_seed(height_map, edge_map, point.x, point.y)
    end
@@ -100,7 +95,7 @@ end
 function EdgeDetailer:_generate_detail_height(max_delta)
    -- place the midpoint 2 standard deviations away
    -- edge values about 4x more likely than center value
-   -- actually: ((max_delta+0.5) - (1-0.5)) / 2 / 2
+   -- expanded form: ((max_delta+0.5) - (1-0.5)) / 2 / 2
    local std_dev = max_delta*0.25
    return InverseGaussianRandom.generate_int(1, max_delta, std_dev)
 end
@@ -131,6 +126,8 @@ function EdgeDetailer:_is_edge(height_map, x, y, threshold)
    local neighbor
    local offset = height_map:get_offset(x, y)
    local value = height_map[offset]
+   local width = height_map.width
+   local height = height_map.height
    local delta
    local max_delta = threshold
 
@@ -139,18 +136,18 @@ function EdgeDetailer:_is_edge(height_map, x, y, threshold)
       delta = neighbor - value
       if delta > max_delta then max_delta = delta end
    end
-   if x < height_map.width then
+   if x < width then
       neighbor = height_map[offset+1]
       delta = neighbor - value
       if delta > max_delta then max_delta = delta end
    end
    if y > 1 then
-      neighbor = height_map[offset-height_map.width]
+      neighbor = height_map[offset-width]
       delta = neighbor - value
       if delta > max_delta then max_delta = delta end
    end
-   if y < height_map.height then
-      neighbor = height_map[offset+height_map.width]
+   if y < height then
+      neighbor = height_map[offset+width]
       delta = neighbor - value
       if delta > max_delta then max_delta = delta end
    end

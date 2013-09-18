@@ -95,7 +95,7 @@ end
 ]]
 function Workshop:resolve_order_options(player_object, order_options)
    local recipe = radiant.resources.load_json(order_options.recipe_url)
-   return {portrait = recipe.card_art, desc = recipe.description, flavor = recipe.flavor}
+   return {portrait = recipe.portrait, desc = recipe.description, flavor = recipe.flavor}
 end
 
 --[[

@@ -6,13 +6,12 @@
          {
             "models": [
                {
+                  "type": "one_of",
                   "items": [
                      "file(medium_juniper_tree.qb)"
-                  ], 
-                  "type": "one_of"
+                  ]
                }
-            ], 
-            "scale": 1
+            ]
          }
       ], 
       "unit_info": {
@@ -21,7 +20,7 @@
       }, 
       "radiant:resource_node": {
          "resource": "entity(stonehearth_trees, juniper_log)", 
-         "durability": 6
+         "durability": 9
       }
    }
 }

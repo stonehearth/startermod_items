@@ -4,14 +4,13 @@
 
    .label {
       .controlFont;
-      color: #fff;
-      display: none;
+      color: #ffc000;
       letter-spacing: 0;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: normal;
       background: none;
       position: absolute;
-      top: 0px;
+      bottom: 0px;
       left: 0px;
       right: 0px;
       text-align: center;
@@ -22,6 +21,7 @@
       position: absolute;
       right: 0px;
       bottom: -4px;
+      display: none;
    }
 
    .hover {
@@ -66,17 +66,20 @@
 
    .menuButton {
       position: absolute;
-      border-width: 11px 8px 12px 8px;
-      border-image: url(../images/boxmenu/menuButtonBorder.png) 11 8 12 8 repeat;
+      background: url(../images/boxmenu/menuButtonBorder.png);
 
       right: 0px;
-      width: 55px;
-      height: 53px;
-      background: #ccc;
+      width: 71px;
+      height: 76px;
       margin-top: 8px;
+      overflow: visible;
+
+      .label {
+         bottom: 5px;
+      }
 
       &:hover {
-         border-image: url(../images/boxmenu/menuButtonBorderActive.png) 11 8 12 8 repeat;
+         //border-image: url(../images/boxmenu/menuButtonBorderActive.png) 11 8 12 8 repeat;
       }
 
       .arrow {

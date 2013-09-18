@@ -1,8 +1,8 @@
-local MicroWorld = radiant.mods.require('stonehearth_tests', 'micro_world')
-local HeightMapRenderer = radiant.mods.require('stonehearth_terrain', 'height_map_renderer')
-local TerrainGenerator = radiant.mods.require('stonehearth_terrain', 'terrain_generator')
-local Landscaper = radiant.mods.require('stonehearth_terrain', 'landscaper')
-local ZoneType = radiant.mods.require('stonehearth_terrain', 'zone_type')
+local MicroWorld = radiant.mods.require('/stonehearth_tests/lib/micro_world.lua')
+local HeightMapRenderer = radiant.mods.require('/stonehearth_terrain/height_map_renderer.lua')
+local TerrainGenerator = radiant.mods.require('/stonehearth_terrain/terrain_generator.lua')
+local Landscaper = radiant.mods.require('/stonehearth_terrain/landscaper.lua')
+local TerrainType = radiant.mods.require('/stonehearth_terrain/terrain_type.lua')
 
 local NewWorld = class(MicroWorld)
 
@@ -16,17 +16,20 @@ end
 function NewWorld:create_world()
    local height_map
 
-   height_map = self._terrain_generator:generate_zone(ZoneType.Foothills)
-   HeightMapRenderer.render_height_map_to_terrain(height_map, self._terrain_generator.zone_params)
+   height_map = self._terrain_generator:generate_zone(TerrainType.Foothills)
+   HeightMapRenderer.render_height_map_to_terrain(height_map, self._terrain_generator.terrain_info)
 
    local landscaper = Landscaper()
-   landscaper:place_forest(height_map)
-   landscaper:place_forest(height_map)
+
+   local i
+   for i=1, 3 do
+      landscaper:place_forest(height_map)
+   end
 end
 
 function NewWorld:place_objects()
-   local camp_x = 100
-   local camp_z = 100
+   local camp_x = 128
+   local camp_z = 128
 
    local tree = self:place_tree(camp_x-12, camp_z-12)
    --local worker = self:place_citizen(camp_x-8, camp_z-8)

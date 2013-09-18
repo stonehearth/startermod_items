@@ -24,13 +24,16 @@
    },
    "ui" :  {
       "html" : [
-         "file(/html/stonehearth_crafter.html)"
+         "file(/html/stonehearth_crafter.html)",
+         "file(/html/stonehearth_crafter_build_workshop.html)"
       ],
       "js" : [
-         "file(/html/js/stonehearth_crafter.js)"
+         "file(/html/js/stonehearth_crafter.js)",
+         "file(/html/js/stonehearth_crafter_build_workshop.js)"
       ],
       "less" : [
-         "file(/html/css/stonehearth_crafter.less)"
+         "file(/html/css/stonehearth_crafter.less)",
+         "file(/html/css/stonehearth_crafter_build_workshop.less)"
       ]
    }   
 }

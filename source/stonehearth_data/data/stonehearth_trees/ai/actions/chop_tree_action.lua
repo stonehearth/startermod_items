@@ -38,14 +38,20 @@ function ChopTreeAction:run(ai, entity)
    assert(self._path)
    local tree = self._path:get_destination()
 
-   ai:execute('stonehearth.activities.follow_path', self._path)
-   radiant.entities.turn_to_face(entity, tree)
-   ai:execute('stonehearth.activities.run_effect', 'chop')
+   if tree == nil then
+      -- should call abort, but the coroutine continues to execute
+      --    leading to an assertion failure
+      --ai:abort('Tree no longer exists')
+   else
+      ai:execute('stonehearth.activities.follow_path', self._path)
+      radiant.entities.turn_to_face(entity, tree)
+      ai:execute('stonehearth.activities.run_effect', 'chop')
    
-   local factory = tree:get_component('radiant:resource_node')
-   if factory then
-      local location = radiant.entities.get_world_grid_location(entity)
-      factory:spawn_resource(location)
+      local factory = tree:get_component('radiant:resource_node')
+      if factory then
+         local location = radiant.entities.get_world_grid_location(entity)
+         factory:spawn_resource(location)
+      end
    end
 end
 

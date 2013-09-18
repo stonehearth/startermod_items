@@ -254,7 +254,7 @@ uniform float currentTime;
 
 void main( void )
 {
-	vec2 fragCoord = pos.xz * 2.0;
+	vec2 fragCoord = pos.xz * 0.3;
    float cloudSpeed = currentTime / 80.0;
    vec4 cloudColor = texture2D(cloudMap, fragCoord.xy / 128.0 + cloudSpeed);
    cloudColor *= texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0));

@@ -2,32 +2,7 @@ $(document).ready(function(){
    // When we get the show_workshop event, toggle the crafting window
    // for this entity.
    $(top).on("show_workshop.stonehearth_crafter", function (_, e) {
-      //TODO: hide the workshop on X button, etc.
       var view = App.gameView.addView(App.StonehearthCrafterView, { uri: e.entity });
-   });
-
-   // handle requests from elsewhere in the UI that a workshop be created
-   $(top).on("create_workshop.radiant", function (_, e) {
-      // xxx, localize
-      $(top).trigger('show_tip.radiant', {
-         title : 'Place your workshop',
-         description : 'The carpenter uses his workshop to build stuff!'
-      });
-
-      // kick off a request to the client to show the cursor for placing
-      // the workshop. The UI is out of the 'create workshop' process after
-      // this. All the work is done in the client and server
-
-      var crafterModUri = '/modules/client/stonehearth_crafter/create_workbench';
-      var workbench_entity = e.workbench_entity;
-
-      $.get(crafterModUri, { workbench_entity: workbench_entity })
-         .done(function(o){
-            //xxx, place the outbox
-         })
-         .always(function(o) {
-            $(top).trigger('hide_tip.radiant');
-         });
    });
 });
 
@@ -70,7 +45,7 @@ App.StonehearthCrafterView = App.View.extend({
    actions: {
       hide: function() {
          var self = this;
-         $("#craftingUI")
+         $("#craftWindow")
             .animate({ top: -1900 }, 500, 'easeOutBounce', function() {
                self.destroy();
          });
@@ -137,13 +112,11 @@ App.StonehearthCrafterView = App.View.extend({
          return;
       }
 
-      radiant.keyboard.setFocus($("#craftingUI")); // xxx change this to a higher level api, like a 'modal' property on the view
-
       this._buildAccordion();
       this._buildOrderList();
       initIncrementButtons();
 
-      $("#craftingUI")
+      $("#craftWindow")
          .animate({ top: 0 }, {duration: 500, easing: 'easeOutBounce'});
    },
 
@@ -193,9 +166,9 @@ App.StonehearthCrafterView = App.View.extend({
       var r = isPaused ? 4 : -4;
 
       // flip the sign
-      $("#statusSign").animate({  
+      $("#statusSign").animate({
          rot: r,
-         }, 
+         },
          {
             duration: 200,
             step: function(now,fx) {
