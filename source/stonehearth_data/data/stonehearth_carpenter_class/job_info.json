@@ -1,7 +1,14 @@
 {
-    "name": "Carpenter's Workshop",
-    "description": "Has a saw and knows how to use it. Badassedly.",
-    "long_description" : "xxx fix - The carpenter makes things from wood. Things you will need...quite a lot.\nSo honestly, you should really make this guy first. Otherwise you’re just asking for trouble.",
-    "portrait" : "file(images/portrait.png)",
-    "icon": "file(saw_icon.png)"
+   "name": "Carpenter's Workshop",
+   "description": "Has a saw and knows how to use it. Badassedly.",
+   "long_description" : "xxx fix - The carpenter makes things from wood. Things you will need...quite a lot.\nSo honestly, you should really make this guy first. Otherwise you’re just asking for trouble.",
+   "portrait" : "file(images/portrait.png)",
+   "icon": "file(saw_icon.png)",
+   "ingredients": [
+      {
+         "material" : "wood",
+         "count" : 2,
+         "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
+      }
+   ]
 }

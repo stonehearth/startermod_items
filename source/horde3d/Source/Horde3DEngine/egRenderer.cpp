@@ -159,7 +159,7 @@ bool Renderer::init()
 	};
 	_vlParticle = gRDI->registerVertexLayout( 2, attribsParticle );
 	
-	// Upload default shaders
+   // Upload default shaders
 	if( !createShaderComb( NULL, vsDefColor, fsDefColor, _defColorShader ) )
 	{
 		Modules::log().writeError( "Failed to compile default shaders" );
@@ -208,7 +208,8 @@ bool Renderer::init()
 	_particleVBO = gRDI->createVertexBuffer( ParticlesPerBatch * 4 * sizeof( ParticleVert ), (float *)parVerts );
 	delete[] parVerts; parVerts = 0x0;
 
-	_overlayBatches.reserve( 64 );
+   // Create overlay geometry array;
+   _overlayBatches.reserve( 64 );
 	_overlayVerts = new OverlayVert[MaxNumOverlayVerts];
 	_overlayVB = gRDI->createVertexBuffer( MaxNumOverlayVerts * sizeof( OverlayVert ), 0x0 );
 

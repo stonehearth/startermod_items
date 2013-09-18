@@ -79,6 +79,20 @@ struct ParticleVert
 	}
 };
 
+struct CubeVert
+{
+   float x, y, z;       // Object-space location.
+	// float  u, v;         // Texture coordinates
+	//float  index;        // Index in property array
+
+	CubeVert() {}
+
+	CubeVert( float x, float y, float z ):
+		x( x ), y( y ), z( z )
+	{
+	}
+};
+
 // =================================================================================================
 
 struct OccProxy
@@ -202,6 +216,7 @@ protected:
 	uint32                             _defShadowMap;
 	uint32                             _quadIdxBuf;
 	uint32                             _particleVBO;
+
 	MaterialResource                   *_curStageMatLink;
 	CameraNode                         *_curCamera;
 	LightNode                          *_curLight;

@@ -14,6 +14,8 @@
 using namespace ::radiant;
 using namespace ::radiant::client;
 
+H3DNode cubemitterNode;
+
 static std::unique_ptr<Renderer> renderer_;
 Renderer& Renderer::GetInstance()
 {
@@ -100,13 +102,19 @@ Renderer::Renderer() :
    bool result = h3dLoadResource(uiMatRes_, material.str().c_str(), material.str().length());
    assert(result);
 
-	H3DRes lightMatRes = h3dAddResource(H3DResTypes::Material, "materials/light.material.xml", 0);
    H3DRes skyBoxRes = h3dAddResource( H3DResTypes::SceneGraph, "models/skybox/skybox.scene.xml", 0 );
    
-
    // xxx - should move this into the horde extension for debug shapes, but it doesn't know
    // how to actually get the resource loaded!
    h3dAddResource(H3DResTypes::Material, "materials/debug_shape.material.xml", 0); 
+   
+   /* // Uncomment this for the Cubemitter!
+   H3DRes c = h3dAddResource(H3DResTypes::Material, "materials/cubemitter.material.xml", 0);
+   H3DRes d = h3dAddResource(RT_CubemitterResource, "particles/fire/fire.cubemitter.json", 0);
+   cubemitterNode = h3dRadiantAddCubemitterNode(H3DRootNode, "first_cubemitter!", d, c);
+   h3dSetNodeTransform(cubemitterNode, 0, 0, 0, 90, 0, 0, 1, 1, 1);
+   */
+   
    LoadResources();
 
 	// Add camera
@@ -120,21 +128,6 @@ Renderer::Renderer() :
    UpdateCamera();
 
    h3dSetNodeParamI(camera_->GetNode(), H3DCamera::PipeResI, currentPipeline_);
-
-
-	// Add light source
-	/*H3DNode directionalLight = h3dAddLightNode(H3DRootNode, "Sun", lightMatRes, "DIRECTIONAL_LIGHTING", "DIRECTIONAL_SHADOWMAP");
-   h3dSetMaterialUniform(lightMatRes, "ambientLightColor", 1.0f, 1.0f, 0.0f, 1.0f);
-   h3dSetNodeTransform(directionalLight, 0, 0, 0, -30, -30, 0, 1, 1, 1);
-	h3dSetNodeParamF(directionalLight, H3DLight::RadiusF, 0, 100000);
-	h3dSetNodeParamF(directionalLight, H3DLight::FovF, 0, 360);
-	h3dSetNodeParamI(directionalLight, H3DLight::ShadowMapCountI, 1);
-	h3dSetNodeParamI(directionalLight, H3DLight::DirectionalI, true);
-	h3dSetNodeParamF(directionalLight, H3DLight::ShadowSplitLambdaF, 0, 0.9f);
-	h3dSetNodeParamF(directionalLight, H3DLight::ShadowMapBiasF, 0, 0.001f);
-	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 0, 0.6f);
-	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 1, 0.6f);
-	h3dSetNodeParamF(directionalLight, H3DLight::ColorF3, 2, 0.6f);*/
 
    // Skybox
 	//H3DNode sky = h3dAddNodes( H3DRootNode, skyBoxRes );
@@ -174,6 +167,7 @@ Renderer::Renderer() :
       Renderer::GetInstance().FlushMaterials();
    }, true);
 
+
    initialized_ = true;
 }
 
@@ -198,6 +192,11 @@ void Renderer::FlushMaterials() {
 
    r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::ParticleEffect, r)) != 0) {
+      h3dUnloadResource(r);
+   }
+
+   r = 0;
+   while ((r = h3dGetNextResource(RT_CubemitterResource, r)) != 0) {
       h3dUnloadResource(r);
    }
 
@@ -325,7 +324,11 @@ void Renderer::RenderOneFrame(int now, float alpha)
 	h3dFinalizeFrame();
    //glFinish();
 
-	// Remove all overlays
+   // Advance emitter time; this must come AFTER rendering, because we only know which emitters
+   // to update after doing a render pass.
+   h3dRadiantAdvanceCubemitterTime(deltaNow / 1000.0f);
+
+   // Remove all overlays
 	h3dClearOverlays();
 
 	// Write all messages to log file

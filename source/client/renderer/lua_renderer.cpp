@@ -32,7 +32,8 @@ void LuaRenderer::RegisterType(lua_State* L)
 		   value("Shader",                     H3DResTypes::Shader),
 		   value("Texture",                    H3DResTypes::Texture),
 		   value("ParticleEffect",             H3DResTypes::ParticleEffect),
-		   value("Pipeline",                   H3DResTypes::Pipeline)
+		   value("Pipeline",                   H3DResTypes::Pipeline),
+         value("Cubemitter",                 RT_CubemitterResource)
       ],
       class_<H3DLight>("H3DLight")
          .enum_("constants")
@@ -53,6 +54,7 @@ void LuaRenderer::RegisterType(lua_State* L)
       def("h3dGetNodeParamStr",              &h3dGetNodeParamStr),
       def("h3dRemoveNode",                   &h3dRemoveNode),
       def("h3dAddLightNode",                 &h3dAddLightNode),
+      def("h3dRadiantAddCubemitterNode",     &h3dRadiantAddCubemitterNode),
       def("h3dAddResource",                  &h3dAddResource),
       def("h3dRadiantCreateStockpileNode",   &h3dRadiantCreateStockpileNode),
       def("h3dRadiantResizeStockpileNode",   &h3dRadiantResizeStockpileNode),

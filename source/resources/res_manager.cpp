@@ -260,10 +260,10 @@ void ResourceManager2::ParseNodeExtension(std::string const& path, JSONNode& nod
          throw InvalidUriException(extends);
       }
 
-      LOG(WARNING) << "node pre-extend: " << node.write_formatted();
-      LOG(WARNING) << "extending with: " << parent.write_formatted();
+      //LOG(WARNING) << "node pre-extend: " << node.write_formatted();
+      //LOG(WARNING) << "extending with: " << parent.write_formatted();
       ExtendNode(node, parent);
-      LOG(WARNING) << "node post-extend: " << node.write_formatted();
+      //LOG(WARNING) << "node post-extend: " << node.write_formatted();
    }
 }
 

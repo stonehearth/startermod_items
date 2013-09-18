@@ -1,23 +1,19 @@
 <script type="text/x-handlebars" data-template-name="unitFrame">
-
-<div id="unitFrame">
-   <div id="info">
-      <div class="name">{{unit_info.name}}</div>
-      <div class="description">{{unit_info.description}}</div>
+   <div id="unitFrame">
+      <div id="commandButtons">
+         {{#each radiant:commands.commands itemViewClass="App.StonehearthCommandButtonView"}}
+            <a href="#" {{action doCommand this target="view"}}>
+               <div {{bindAttr class=":commandButton enabled:buttonEnabled:buttonDisabled"}}
+                {{bindAttr title="tooltip"}}>
+                  <img {{bindAttr src="icon"}} >
+                  <div id="hotkey" {{bindAttr hotkey=view.oneBasedIndex}}>{{view.oneBasedIndex}}</div>
+               </div>
+            </a>
+         {{/each}}
+      </div>
+      <div id="info">
+         <div class="name">{{unit_info.name}}</div>
+         <div class="description">{{unit_info.description}}</div>
+      </div>
    </div>
-   <div id="commandButtons">
-      {{#each radiant:commands.commands itemViewClass="App.StonehearthCommandButtonView"}}
-         <a href="#" {{action doCommand this target="view"}}>
-            <div {{bindAttr class=":commandButton enabled:buttonEnabled:buttonDisabled"}}
-             {{bindAttr title="tooltip"}}>
-               <img {{bindAttr src="icon"}} >
-               <div id="hotkey" {{bindAttr hotkey=view.oneBasedIndex}}>{{view.oneBasedIndex}}</div>
-            </div>
-         </a>
-      {{/each}}
-
-   </div>
-</div>
-
-
 </script>

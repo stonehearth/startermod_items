@@ -45,33 +45,62 @@ function TerrainTest:create_world()
 end
 
 function TerrainTest:create_multi_zone_world()
+   local zones = self:_create_world_blueprint()
+   local num_zones_x = zones.width
+   local num_zones_y = zones.height
    local zone_size = self._terrain_generator.zone_size
-   local world_map = HeightMap(zone_size*2, zone_size*2)
-   local zones = Array2D(3, 3)
-   local zone_map
-   local micro_map
+   local world_map = HeightMap(zone_size*num_zones_x, zone_size*num_zones_y)
+   local i, j, zone_map, micro_map, terrain_type
 
    world_map:clear(1)
 
-   zone_map, micro_map = self._terrain_generator:generate_zone(TerrainType.Mountains, zones, 2, 2)
-   zone_map:copy_block(world_map, zone_map, 1, 1, 1, 1, zone_size, zone_size)
-   zones:set(2, 2, micro_map)
-
-   zone_map, micro_map = self._terrain_generator:generate_zone(TerrainType.Foothills, zones, 2, 3)
-   zone_map:copy_block(world_map, zone_map, 1, zone_size+1, 1, 1, zone_size, zone_size)
-   zones:set(2, 3, micro_map)
-
-   zone_map, micro_map = self._terrain_generator:generate_zone(TerrainType.Foothills, zones, 3, 2)
-   zone_map:copy_block(world_map, zone_map, zone_size+1, 1, 1, 1, zone_size, zone_size)
-   zones:set(3, 2, micro_map)
-
-   zone_map, micro_map = self._terrain_generator:generate_zone(TerrainType.Plains, zones, 3, 3)
-   zone_map:copy_block(world_map, zone_map, zone_size+1, zone_size+1, 1, 1, zone_size, zone_size)
-   zones:set(3, 3, micro_map)
+   for j=1, num_zones_y do
+      for i=1, num_zones_x do
+         terrain_type = zones:get(i, j).terrain_type
+         zone_map, micro_map = self._terrain_generator:generate_zone(terrain_type, zones, i, j)
+         zone_map:copy_block(world_map, zone_map,
+            (i-1)*zone_size+1, (j-1)*zone_size+1, 1, 1, zone_size, zone_size)
+         zones:set(i, j, micro_map)
+      end
+   end
 
    HeightMapRenderer.render_height_map_to_terrain(world_map, self._terrain_generator.terrain_info)
 
    Landscaper:place_trees(world_map)
+end
+
+function TerrainTest:_create_world_blueprint()
+   local zones = Array2D(2, 2)
+   local zone_info
+   local i, j
+
+   for j=1, zones.height do
+      for i=1, zones.width do
+         zone_info = {}
+         zone_info.generated = false
+         zones:set(i, j, zone_info)
+      end
+   end
+
+   zones:get(1, 1).terrain_type = TerrainType.Mountains
+   zones:get(2, 1).terrain_type = TerrainType.Foothills
+
+   zones:get(1, 2).terrain_type = TerrainType.Foothills
+   zones:get(2, 2).terrain_type = TerrainType.Plains
+--[[
+   zones:get(1, 1).terrain_type = TerrainType.Mountains
+   zones:get(2, 1).terrain_type = TerrainType.Mountains
+   zones:get(3, 1).terrain_type = TerrainType.Foothills
+
+   zones:get(1, 2).terrain_type = TerrainType.Mountains
+   zones:get(2, 2).terrain_type = TerrainType.Foothills
+   zones:get(3, 2).terrain_type = TerrainType.Plains
+
+   zones:get(1, 3).terrain_type = TerrainType.Foothills
+   zones:get(2, 3).terrain_type = TerrainType.Plains
+   zones:get(3, 3).terrain_type = TerrainType.Plains
+]]
+   return zones
 end
 
 function TerrainTest:create_old_world()
@@ -95,21 +124,26 @@ function TerrainTest:_run_unit_tests()
    Wavelet._test()
 end
 
+function abs_lua(x)
+   if x >= 0 then return x end
+   return -x
+end
+
 function TerrainTest:_run_timing_tests()
+   local abs = math.abs
    local timer = Timer(Timer.CPU_TIME)
-   local iterations = 20000000
-   local i, value
+   local iterations = 50000000
 
-   timer.start()
+   timer:start()
 
-   for i=1, iterations do
-      --value = InverseGaussianRandom.generate(1, 8, (8-1)/4)
-      value = GaussianRandom.generate(50, 10)
-      --radiant.log.info("%f", value)
+   for i = 1, iterations do
+      local x
+      x = abs(i)
    end
 
-   timer.stop()
-   radiant.log.info("Duration: %f", timer.duration())
+   timer:stop()
+   radiant.log.info("Duration: %.3fs", timer:seconds())
+   radiant.log.info("Iterations/s: %d", iterations/timer:seconds())
    assert(false)
 end
 

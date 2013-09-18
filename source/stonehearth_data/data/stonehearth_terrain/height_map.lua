@@ -32,13 +32,13 @@ function HeightMap:clone()
 end
 
 function HeightMap:clear(value)
-   self:process_map(function () return value end)
+   local function fn() return value end
+   self:process_map(fn)
 end
 
 function HeightMap:set_block(x, y, block_width, block_height, value)
-   self:process_map_block(x, y, block_width, block_height,
-      function () return value end
-   )
+   local function fn() return value end
+   self:process_map_block(x, y, block_width, block_height, fn)
 end
 
 function HeightMap:copy_block(dst, src, dstx, dsty, srcx, srcy, block_width, block_height)
