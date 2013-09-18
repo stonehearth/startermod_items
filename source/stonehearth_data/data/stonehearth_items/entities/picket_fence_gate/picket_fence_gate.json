@@ -1,6 +1,6 @@
 {
-   "extends": "entity(stonehearth_items, item_properties)", 
-   "type": "entity", 
+   "extends": "entity(stonehearth_items, item_properties)",
+   "type": "entity",
    "components": {
       "model_variants": [
          {
@@ -8,10 +8,15 @@
                "file(picket_fence_gate.qb)"
             ]
          }
-      ], 
+      ],
       "unit_info": {
-         "name": "Picket Fence Gate", 
-         "description": "Don't like your neighbors? Don't install."
+         "name": "Picket Fence Gate",
+         "description": "Don't like your neighbors? Don't install.",
+         "icon" : "file(picket_fence_gate.png)"
+      },
+      "item" : {
+         "identifier": "picket_fence_gate",
+         "category" : "construction"
       }
    }
 }

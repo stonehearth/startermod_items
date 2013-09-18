@@ -47,6 +47,7 @@ function PlaceableItemProxy:_create_full_sized_entity()
    self._full_sized_entity = radiant.entities.create_entity(self._data.full_sized_entity_mod, self._data.full_sized_entity_name) --radiant.entities.create_entity(self._full_sized_entity_uri)
    self._full_sized_entity:add_component('stonehearth_items:placeable_item_pointer'):set_proxy(self._entity)
    self:_create_unit_info()
+   self:_create_item_data()
 
    --Get the uri of the full sized entity to the place command
    local place_command = self._entity:get_component('radiant:commands')
@@ -65,5 +66,18 @@ function PlaceableItemProxy:_create_unit_info()
    unit_info_component:set_icon(full_sized_info:get_icon())
    --TODO: faction??? Take care of this centrally?
 end
+
+--Copy item properties from the big entity into the proxy
+function PlaceableItemProxy:_create_item_data()
+   local full_sized_item_info = self._full_sized_entity:get_component('item')
+   local item_component = self._entity:add_component('item')
+   item_component:set_stacks(full_sized_item_info:get_stacks())
+   item_component:set_max_stacks(full_sized_item_info:get_max_stacks())
+   item_component:set_material(full_sized_item_info:get_material())
+   item_component:set_category(full_sized_item_info:get_category())
+   item_component:set_identifier(full_sized_item_info:get_identifier())
+end
+
+
 
 return PlaceableItemProxy

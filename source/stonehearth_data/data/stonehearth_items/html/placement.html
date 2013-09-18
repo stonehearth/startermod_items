@@ -1,12 +1,19 @@
 <script type="text/x-handlebars" data-template-name="stonehearthItemPicker">
    <div id="itemPicker">
-      HELLO WORLD???
       <div class="pickerGrid">
-         {{#each entities}}
-            <a href="#" {{action selectItem this target="view" allowedKeys="shift"}}>
-               <div>{{this.unit_info.name}}</div>
+         {{#each entity_types}}
+            {{#if this.entities.length}}
+            <a href="#" {{action onSelectItemButton this target="view" allowedKeys="ctrl"}}>
+               <div class="pickable_item" {{bindAttr title=this.entity_name}}>
+                  <span class="num_pickable">{{this.entities.length}}</span>
+                  <img class="pickable_image" {{bindAttr src= this.entity_icon}}>
+               </div>
             </a>
+            {{/if}}
          {{/each}}
+         {{#unless num_entities}}
+            <div class="placementDiv">{{i18n stonehearth_items:no_entities}}</div>
+         {{/unless}}
       </div>
    </div>
 </script>

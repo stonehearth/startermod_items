@@ -65,7 +65,6 @@ function PlaceItem:_on_mouse_event(e, proxy_id, response)
       -- called.  this will return a Deferred object which we can use to track
       -- the call's progress
       _client:call('/modules/server/stonehearth_items/place_item_server', "", { proxy_id = proxy_id, location = pt })
-      --_client:call('/modules/server/stonehearth_crafter/create_workbench', "", { workbench_uri = '/stonehearth_carpenter_class/entities/carpenter_workbench', location = pt })
                :always(function ()
                      -- whether the request succeeds or fails, go ahead and destroy
                      -- the authoring entity.  do it after the request returns to avoid

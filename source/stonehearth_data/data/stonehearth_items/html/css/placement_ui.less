@@ -1,12 +1,41 @@
 #itemPicker {
    .wood;
    position: absolute;
-   right: 20px;
-   bottom: 50px;
-   max-height: 400px;
-   width: 300px;
+   right: 95px;
+   bottom: 200px;
+   min-height: 200px;
+   max-height: 700px;
+   width: 450px;
 
    .pickerGrid {
+
+      .pickable_item {
+         width: 70px;
+         height: 85px;
+         float: left;
+         margin-left: 15px;
+
+         .pickable_image {
+            width: 70px;
+            height: auto;
+            position: relative;
+            top: -15px;
+         }
+
+         .num_pickable {
+            position: relative;
+            left: 60px;
+            top: 55px;
+            z-index: 4;
+            .controlFont;
+            color: white;
+         }
+      }
+
+      .placementDiv {
+         margin-top: 50px;
+         text-align: center;
+      }
 
    }
 
