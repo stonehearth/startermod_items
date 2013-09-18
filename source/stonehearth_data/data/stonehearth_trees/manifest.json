@@ -12,6 +12,12 @@
          "small_juniper_tree" : "file(entities/juniper_tree/small_juniper_tree)",
          "medium_juniper_tree" : "file(entities/juniper_tree/medium_juniper_tree)",
          "large_juniper_tree" : "file(entities/juniper_tree/large_oak_tree)"
-      }
+      },
+      "functions" : {
+         "chop" : {
+            "controller": "file(commands/chop_command.lua)",
+            "endpoint" : "server"
+         }
+      }      
    }
 }

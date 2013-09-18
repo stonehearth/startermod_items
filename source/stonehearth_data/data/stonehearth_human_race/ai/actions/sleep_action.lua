@@ -2,9 +2,7 @@
    Need a more robust implementation later. For now,
    go to sleep at 9pm and wake up at 6am
 --]]
-
--- make sure the calendar is loaded
-radiant.mods.require('stonehearth_calendar') 
+radiant.mods.get_singleton('stonehearth_calendar') -- make sure it's loaded...
 
 local SleepAction = class()
 

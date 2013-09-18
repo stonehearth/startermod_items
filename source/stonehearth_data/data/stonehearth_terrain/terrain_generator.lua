@@ -1,14 +1,14 @@
 local TerrainGenerator = class()
 
-local ZoneType = radiant.mods.require('/stonehearth_terrain/zone_type.lua')
-local Array2D = radiant.mods.require('/stonehearth_terrain/array_2D.lua')
-local HeightMap = radiant.mods.require('/stonehearth_terrain/height_map.lua')
-local GaussianRandom = radiant.mods.require('/stonehearth_terrain/math/gaussian_random.lua')
-local MathFns = radiant.mods.require('/stonehearth_terrain/math/math_fns.lua')
-local FilterFns = radiant.mods.require('/stonehearth_terrain/filter/filter_fns.lua')
-local Wavelet = radiant.mods.require('/stonehearth_terrain/wavelet/wavelet.lua')
-local WaveletFns = radiant.mods.require('/stonehearth_terrain/wavelet/wavelet_fns.lua')
-local EdgeDetailer = radiant.mods.require('/stonehearth_terrain/edge_detailer.lua')
+local ZoneType = require 'zone_type'
+local Array2D = require 'array_2D'
+local HeightMap = require 'height_map'
+local GaussianRandom = require 'math.gaussian_random'
+local MathFns = require 'math.math_fns'
+local FilterFns = require 'filter.filter_fns'
+local Wavelet = require 'wavelet.wavelet'
+local WaveletFns = require 'wavelet.wavelet_fns'
+local EdgeDetailer = require 'edge_detailer'
 
 -- Definitions
 -- Block = atomic unit of terrain

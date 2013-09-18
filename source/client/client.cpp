@@ -1,6 +1,8 @@
 #include "pch.h"
+#include <regex>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include "radiant_exceptions.h"
 #include "xz_region_selector.h"
 #include "om/entity.h"
 #include "om/components/terrain.h"
@@ -12,6 +14,7 @@
 #include "om/json_store.h"
 #include "om/data_binding.h"
 #include "platform/utils.h"
+#include "resources/manifest.h"
 #include "resources/res_manager.h"
 #include "renderer/render_entity.h"
 #include "renderer/lua_render_entity.h"
@@ -21,10 +24,20 @@
 #include "lua/script_host.h"
 #include "om/stonehearth.h"
 #include "om/object_formatter/object_formatter.h"
-#include "lua_deferred.h"
-#include "deferred_response.h"
 #include "horde3d/Source/Horde3DEngine/egModules.h"
 #include "horde3d/Source/Horde3DEngine/egCom.h"
+#include "lib/rpc/trace.h"
+#include "lib/rpc/untrace.h"
+#include "lib/rpc/function.h"
+#include "lib/rpc/core_reactor.h"
+#include "lib/rpc/http_reactor.h"
+#include "lib/rpc/reactor_deferred.h"
+#include "lib/rpc/protobuf_router.h"
+#include "lib/rpc/trace_object_router.h"
+#include "lib/rpc/http_deferred.h" // xxx: does not belong in rpc!
+#include "lua/client/open.h"
+#include "lua/rpc/open.h"
+#include "lua/om/open.h"
 
 #include "glfw.h"
 
@@ -63,7 +76,38 @@ Client::Client() :
    scriptHost_.reset(new lua::ScriptHost());
 
    error_browser_ = authoringStore_.AllocObject<om::ErrorBrowser>();
-   clientRemoteObjects_["/o/named_objects/client/error_browser"] = om::ObjectFormatter().GetPathToObject(error_browser_);
+   
+
+   // Reactors...
+   core_reactor_ = std::make_shared<rpc::CoreReactor>();
+   http_reactor_ = std::make_shared<rpc::HttpReactor>(*core_reactor_);
+
+   // Routers...
+   rpc::TraceObjectRouterPtr trace_router = std::make_shared<rpc::TraceObjectRouter>(GetStore());
+   core_reactor_->AddRouter(trace_router);
+
+   // protobuf router should be last!
+   protobuf_router_ = std::make_shared<rpc::ProtobufRouter>([this](proto::PostCommandRequest const& request) {
+      proto::Request msg;
+      msg.set_type(proto::Request::PostCommandRequest);   
+      proto::PostCommandRequest* r = msg.MutableExtension(proto::PostCommandRequest::extension);
+      *r = request;
+
+      send_queue_->Push(msg);
+   });
+   core_reactor_->AddRouter(protobuf_router_);
+
+   // core functionality exposed by the client...
+   core_reactor_->AddRoute("radiant.get_modules", [this](rpc::Function const& f) {
+      return GetModules(f);
+   });
+   core_reactor_->AddRoute("radiant.install_trace", [this](rpc::Function const& f) {
+      std::string uri = f.args.get<std::string>(0);
+      return core_reactor_->InstallTrace(rpc::Trace(f.caller, f.call_id, uri));
+   });
+   core_reactor_->AddRoute("radiant.remove_trace", [this](rpc::Function const& f) {
+      return core_reactor_->RemoveTrace(rpc::UnTrace(f.caller, f.call_id));
+   });
 }
 
 Client::~Client()
@@ -104,7 +148,7 @@ void Client::run()
    namespace po = boost::program_options;
    extern po::variables_map configvm;
    std::string loader = configvm["game.loader"].as<std::string>().c_str();
-   json::ConstJsonObject manifest(resources::ResourceManager2::GetInstance().LookupManifest(loader));
+   json::ConstJsonObject manifest(res::ResourceManager2::GetInstance().LookupManifest(loader));
    std::string docroot = "http://radiant/" + manifest.getn("loader").getn("ui").get<std::string>("homepage");
 
    if (configvm["game.script"].as<std::string>() != "stonehearth/new_world.lua") {
@@ -123,12 +167,8 @@ void Client::run()
       }
    });
 
-   auto requestJob = [=](std::string const& uri, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response) {
+   auto requestHandler = [=](std::string const& uri, JSONNode const& query, std::string const& postdata, rpc::HttpDeferredPtr response) {
       BrowserRequestHandler(uri, query, postdata, response);
-   };
-
-   auto requestHandler = [=](std::string const& uri, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response) {
-      AddBrowserJob(std::bind(requestJob, uri, query, postdata, response));
    };
    browser_->SetRequestHandler(requestHandler);
 
@@ -149,32 +189,24 @@ void Client::run()
    om::RegisterLuaTypes(L);
    csg::RegisterLuaTypes(L);
    client::RegisterLuaTypes(L);
-   store_.SetInterpreter(L);
-   authoringStore_.SetInterpreter(L);
+   store_.SetInterpreter(L); // xxx move to dm open or something
+   authoringStore_.SetInterpreter(L); // xxx move to dm open or something
+   lua::om::register_json_to_lua_objects(L, store_);
+   lua::om::register_json_to_lua_objects(L, authoringStore_);
+
    luabind::globals(L)["_client"] = luabind::object(L, this);
 
    json::ConstJsonObject::RegisterLuaType(L);
 
    // this locks down the environment!  all types must be registered by now!!
-   scriptHost_->LuaRequire("/radiant/client.lua");
-   auto& rm = resources::ResourceManager2::GetInstance();
-   for (std::string const& modname : rm.GetModuleNames()) {
-      try {
-         json::ConstJsonObject manifest = rm.LookupManifest(modname);
-         json::ConstJsonObject const& block = manifest.getn("client");
-         if (!block.empty()) {
-            LOG(WARNING) << "loading init script for " << modname << "...";
-            LoadModuleInitScript(block);
-            LoadModuleRoutes(modname, block);
-         }
-      } catch (std::exception const& e) {
-         LOG(WARNING) << "load failed: " << e.what();
-      }
-   }
+   scriptHost_->Require("radiant.client");
 
+#if 0
+   // xxx: use Call on the reactor for this stuff...
    _commands[GLFW_KEY_F9] = std::bind(&Client::EvalCommand, this, "radiant.toggle_debug_nodes");
    _commands[GLFW_KEY_F3] = std::bind(&Client::EvalCommand, this, "radiant.toggle_step_paths");
    _commands[GLFW_KEY_F4] = std::bind(&Client::EvalCommand, this, "radiant.step_paths");
+#endif
    _commands[GLFW_KEY_ESC] = [=]() {
       currentCursor_ = NULL;
    };
@@ -182,6 +214,7 @@ void Client::run()
    // _commands[VK_NUMPAD0] = std::shared_ptr<command>(new command_build_blueprint(*_proxy_manager, *_renderer, 500));
 
    setup_connections();
+   InitializeModules();
 
    _client_interval_start = platform::get_current_time_in_ms();
    _server_last_update_time = 0;
@@ -198,30 +231,34 @@ void Client::run()
    }
 }
 
+void Client::InitializeModules()
+{
+   auto& rm = res::ResourceManager2::GetInstance();
+   for (std::string const& modname : rm.GetModuleNames()) {
+      try {
+         json::ConstJsonObject manifest = rm.LookupManifest(modname);
+         json::ConstJsonObject const& block = manifest.getn("client");
+         if (!block.empty()) {
+            LOG(WARNING) << "loading init script for " << modname << "...";
+            LoadModuleInitScript(block);
+         }
+      } catch (std::exception const& e) {
+         LOG(WARNING) << "load failed: " << e.what();
+      }
+   }
+}
+
 void Client::LoadModuleInitScript(json::ConstJsonObject const& block)
 {
    std::string filename = block.get<std::string>("init_script");
    if (!filename.empty()) {
-      scriptHost_->LuaRequire(filename);
+      scriptHost_->RequireScript(filename);
    }
 }
 
 static std::string SanatizePath(std::string const& path)
 {
-   std::vector<std::string> s;
-   boost::split(s, path, boost::is_any_of("/"));
-   s.erase(std::remove(s.begin(), s.end(), ""), s.end());
-   return std::string("/") + boost::algorithm::join(s, "/");
-}
-
-void Client::LoadModuleRoutes(std::string const& modname, json::ConstJsonObject const& block)
-{
-   resources::ResourceManager2 &rm = resources::ResourceManager2::GetInstance();
-   for (auto const& node : block.getn("request_handlers")) {
-      std::string const& uri_path = SanatizePath("/modules/client/" + modname + "/" + node.name());
-      std::string const& lua_path = node.as_string();
-      clientRoutes_[uri_path] = scriptHost_->LuaRequire(lua_path);
-   }
+   return std::string("/") + strutil::join(strutil::split(path, "/"), "/");
 }
 
 void Client::handle_connect(const boost::system::error_code& error)
@@ -230,14 +267,15 @@ void Client::handle_connect(const boost::system::error_code& error)
       LOG(WARNING) << "connection to server failed (" << error << ").  retrying...";
       setup_connections();
    } else {
-      recv_queue_ = std::make_shared<protocol::RecvQueue>(_tcp_socket);
-      send_queue_ = protocol::SendQueue::Create(_tcp_socket);
       recv_queue_->Read();
    }
 }
 
 void Client::setup_connections()
 {
+   recv_queue_ = std::make_shared<protocol::RecvQueue>(_tcp_socket);
+   send_queue_ = protocol::SendQueue::Create(_tcp_socket);
+
    boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string("127.0.0.1"), 8888);
    _tcp_socket.async_connect(endpoint, std::bind(&Client::handle_connect, this, std::placeholders::_1));
 }
@@ -255,7 +293,7 @@ void Client::mainloop()
    alpha = std::min(1.0f, std::max(alpha, 0.0f));
    now_ = (int)(_server_last_update_time + (_server_interval_duration * alpha));
 
-   FlushEvents();
+   http_reactor_->FlushEvents();
    if (browser_) {
       auto cb = [](const csg::Region2 &rgn, const char* buffer) {
          Renderer::GetInstance().UpdateUITexture(rgn, buffer);
@@ -303,27 +341,8 @@ void Client::Reset()
    objects_.clear();
 }
 
-bool Client::ProcessRequestReply(const proto::Update& msg)
-{
-   int reply_id = msg.reply_id();
-   if (reply_id == 0) {
-      return false;
-   }
-
-   auto i = server_requests_.find(reply_id);
-   if (i != server_requests_.end()) {
-      i->second(msg);
-      server_requests_.erase(i);
-   }
-   return true;
-}
-
 bool Client::ProcessMessage(const proto::Update& msg)
 {
-   if (ProcessRequestReply(msg)) {
-      return true;
-   }
-
 #define DISPATCH_MSG(MsgName) \
    case proto::Update::MsgName: \
       MsgName(msg.GetExtension(proto::MsgName::extension)); \
@@ -337,12 +356,17 @@ bool Client::ProcessMessage(const proto::Update& msg)
       DISPATCH_MSG(UpdateObject);
       DISPATCH_MSG(RemoveObjects);
       DISPATCH_MSG(UpdateDebugShapes);
-      DISPATCH_MSG(DefineRemoteObject);
+      DISPATCH_MSG(PostCommandReply);
    default:
       ASSERT(false);
    }
 
    return true;
+}
+
+void Client::PostCommandReply(const proto::PostCommandReply& msg)
+{
+   protobuf_router_->OnPostCommandReply(msg);
 }
 
 void Client::BeginUpdate(const proto::BeginUpdate& msg)
@@ -373,18 +397,6 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
    store_.FireTraces();
 }
 
-void Client::QueueEvent(std::string type, JSONNode payload)
-{
-   JSONNode e(JSON_NODE);
-   e.push_back(JSONNode("type", type));
-   e.push_back(JSONNode("when", now_));
-
-   payload.set_name("data");
-   e.push_back(payload);
-
-   queued_events_.push_back(e);
-}
-
 void Client::SetServerTick(const proto::SetServerTick& msg)
 {
    int now = msg.now();
@@ -398,14 +410,9 @@ void Client::AllocObjects(const proto::AllocObjects& update)
 
    for (const proto::AllocObjects::Entry& entry : msg) {
       dm::ObjectId id = entry.object_id();
-
-      // Some objects are created and registered by other objects, so
-      // this 
-      // LOG(WARNING) << "Allocating new client object " << id;
       ASSERT(!store_.FetchStaticObject(id));
 
-      dm::ObjectPtr obj = store_.AllocSlaveObject(entry.object_type(), id); //om::AllocObject(entry.object_type(), store_);
-      objects_[id] = obj;
+      objects_[id] = store_.AllocSlaveObject(entry.object_type(), id);
    }
 }
 
@@ -455,32 +462,6 @@ void Client::RemoveObjects(const proto::RemoveObjects& update)
 void Client::UpdateDebugShapes(const proto::UpdateDebugShapes& msg)
 {
    Renderer::GetInstance().DecodeDebugShapes(msg.shapelist());
-}
-
-void Client::DefineRemoteObject(const proto::DefineRemoteObject& msg)
-{
-   std::string const &key = msg.uri();
-   std::string const &value = msg.object_uri();
-
-   if (value.empty()) { 
-      auto i = serverRemoteObjects_.find(key);
-      if (i != serverRemoteObjects_.end()) {
-         serverRemoteObjects_.erase(i);
-      }
-   } else {
-      serverRemoteObjects_[key] = value;
-      auto i = deferredObjectTraces_.find(key);
-      if (i != deferredObjectTraces_.end()) {
-         auto deferred = i->second.lock();
-         if (deferred) {
-            dm::ObjectPtr obj = om::ObjectFormatter().GetObject(store_, value);
-            if (obj) {
-               deferred->Reset(obj);
-            }
-         }
-         deferredObjectTraces_.erase(i);
-      }
-   }
 }
 
 void Client::process_messages()
@@ -652,33 +633,8 @@ void Client::SelectEntity(om::EntityPtr obj)
          std::string uri = om::ObjectFormatter().GetPathToObject(selectedObject_);
          data.push_back(JSONNode("selected_entity", uri));
       }
-      QueueEvent("selection_changed.radiant", data);
+      http_reactor_->QueueEvent("selection_changed.radiant", data);
    }
-}
-
-void Client::PushServerRequest(proto::Request& msg, ServerReplyCb replyCb)
-{
-   int id = ++last_server_request_id_;
-   msg.set_request_id(id);
-   server_requests_[id] = replyCb;
-
-   send_queue_->Push(msg);
-}
-
-void Client::EvalCommand(std::string cmd)
-{
-   auto reply = [=](tesseract::protocol::Update const& msg) {
-      proto::ScriptCommandReply const& reply = msg.GetExtension(proto::ScriptCommandReply::extension);
-      LOG(WARNING) << reply.result();
-   };
-
-   proto::Request msg;
-   msg.set_type(proto::Request::ScriptCommandRequest);
-   
-   proto::ScriptCommandRequest* request = msg.MutableExtension(proto::ScriptCommandRequest::extension);
-   request->set_cmd(cmd);
-
-   PushServerRequest(msg, reply);
 }
 
 om::EntityPtr Client::GetEntity(dm::ObjectId id)
@@ -772,7 +728,7 @@ void Client::SetCursor(std::string name)
    }
 }
 
-static void HandleFileRequest(std::string const& path, std::shared_ptr<net::IResponse> response)
+static void HandleFileRequest(std::string const& path, rpc::HttpDeferredPtr response)
 {
    static const struct {
       char *extension;
@@ -792,7 +748,7 @@ static void HandleFileRequest(std::string const& path, std::shared_ptr<net::IRes
       { "cur",  "image/vnd.microsoft.icon" },
    };
    std::ifstream infile;
-   auto const& rm = resources::ResourceManager2::GetInstance();
+   auto const& rm = res::ResourceManager2::GetInstance();
 
    std::string data;
    try {
@@ -800,12 +756,13 @@ static void HandleFileRequest(std::string const& path, std::shared_ptr<net::IRes
          JSONNode const& node = rm.LookupJson(path);
          data = node.write();
       } else {
+         LOG(WARNING) << "reading file " << path;
          rm.OpenResource(path, infile);
          data = io::read_contents(infile);
       }
-   } catch (resources::Exception const& e) {
+   } catch (res::Exception const& e) {
       LOG(WARNING) << "error code 404: " << e.what();
-      response->SetResponse(404);
+      response->Reject(rpc::HttpError(404, e.what()));
       return;
    }
 
@@ -823,255 +780,78 @@ static void HandleFileRequest(std::string const& path, std::shared_ptr<net::IRes
       }
    }
    ASSERT(!mimeType.empty());
-   response->SetResponse(200, data, mimeType);
+   response->Resolve(rpc::HttpResponse(200, data, mimeType));
 }
 
-void Client::HandleClientRouteRequest(luabind::object ctor, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response)
+rpc::ReactorDeferredPtr Client::GetModules(rpc::Function const& fn)
 {
-   // convert the json query data to a lua table...
-   try {
-      using namespace luabind;
-      lua_State* L = scriptHost_->GetCallbackState();
-      object queryObj = lua::JsonToLua(L, query);
-      object coder = globals(L)["radiant"]["json"];
-
-      object obj = scriptHost_->CallFunction<object>(ctor);
-      object fn = obj["handle_request"];
-      auto i = query.find("fn");
-      if (i != query.end() && i->type() == JSON_STRING) {
-         std::string fname = i->as_string();
-         if (!fname.empty())  {
-            fn = obj[fname];
-         }
-      }
-      std::shared_ptr<LuaResponse> luaResponse = std::make_shared<LuaResponse>(GetScriptHost(), response);
-      object result = scriptHost_->CallFunction<object>(fn, obj, queryObj, postdata, luaResponse);
-      if (type(result) == LUA_TTABLE) {
-         luaResponse->Complete(result);
-      }
-   } catch (std::exception &e) {
-      JSONNode result;
-      result.push_back(JSONNode("error", e.what()));
-      response->SetResponse(500, result.write(), "application/json");
-   }
-}
-
-void Client::HandlePostRequest(std::string const& path, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response)
-{
-   auto replyCb = [=](tesseract::protocol::Update const& msg) {
-      proto::PostCommandReply const& reply = msg.GetExtension(proto::PostCommandReply::extension);
-      response->SetResponse(reply.status_code(), reply.content(), reply.mime_type());
-   };
-   proto::Request msg;
-   msg.set_type(proto::Request::PostCommandRequest);
-   
-   proto::PostCommandRequest* request = msg.MutableExtension(proto::PostCommandRequest::extension);
-   request->set_path(path);
-   request->set_data(postdata);
-   if (!query.empty()) {
-      request->set_query(query.write());
-   }
-   PushServerRequest(msg, replyCb);
-}
-
-void Client::GetEvents(JSONNode const& query, std::shared_ptr<net::IResponse> response)
-{
-   if (get_events_request_) {
-      get_events_request_->SetResponse(504);
-   }
-   get_events_request_ = response;
-   FlushEvents();
-}
-
-void Client::GetModules(JSONNode const& query, std::shared_ptr<net::IResponse> response)
-{
+   rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>(fn.route);
    JSONNode result;
-   auto& rm = resources::ResourceManager2::GetInstance();
+   auto& rm = res::ResourceManager2::GetInstance();
    for (std::string const& modname : rm.GetModuleNames()) {
       JSONNode manifest;
       try {
-         manifest = rm.LookupManifest(modname);
+         manifest = rm.LookupManifest(modname).GetNode();
       } catch (std::exception const&) {
          // Just use an empty manifest...f
       }
       manifest.set_name(modname);
       result.push_back(manifest);
    }
-   response->SetResponse(200, result.write(), "application/json");
+   d->Resolve(result);
+   return d;
 }
 
-void Client::TraceUri(JSONNode const& query, std::shared_ptr<net::IResponse> response)
+// This function is called on the chrome thread!
+void Client::BrowserRequestHandler(std::string const& path, json::ConstJsonObject const& query, std::string const& postdata, rpc::HttpDeferredPtr response)
 {
-   json::ConstJsonObject args(query);
-
-   if (args.get<bool>("create")) {
-      std::string uri = args.get<std::string>("uri");
-
-      auto i = serverRemoteObjects_.find(uri);
-      if (i != serverRemoteObjects_.end()) {
-         uri = i->second;
-      } else {
-         auto i = clientRemoteObjects_.find(uri);
-         if (i != clientRemoteObjects_.end()) {
-            uri = i->second;
-         }
-      }
-
-      if (!TraceObjectUri(uri, response)) {
-         TraceFileUri(uri, response);
-      }
-   } else {
-      dm::TraceId traceId = args.get<int>("trace_id");
-      uriTraces_.erase(traceId);
-   }
-}
-
-
-TraceObjectDeferredPtr Client::TraceObject(std::string const& uri, const char* reason)
-{
-   std::string path = uri;
-   TraceObjectDeferredPtr result;
-
-   auto i = serverRemoteObjects_.find(path);
-   if (i != serverRemoteObjects_.end()) {
-      path = i->second;
-   } else {
-      auto i = clientRemoteObjects_.find(path);
-      if (i != clientRemoteObjects_.end()) {
-         path = i->second;
-      }
-   }
-   om::ObjectFormatter of;
-   dm::ObjectPtr obj = of.GetObject(store_, path);
-   if (!obj) {
-      obj = of.GetObject(authoringStore_, path);
-   }
-   // xxx: this can be greatly improved... but is OK for now, right?
-   if (obj) {
-      result = std::make_shared<TraceObjectDeferred>(obj, reason);
-   } else {
-      if (boost::starts_with(uri, "/server/objects") || boost::starts_with(uri, "/client/objects")) {
-         result = std::make_shared<TraceObjectDeferred>(obj, reason);
-         deferredObjectTraces_[uri] = result;
-      }
-   }
-   return result;
-}
-
-typedef LuaDeferred1<TraceObjectDeferred> LuaTraceObjectDeferred;
-typedef std::shared_ptr<LuaTraceObjectDeferred> LuaTraceObjectDeferredPtr;
-typedef std::weak_ptr<LuaTraceObjectDeferred> LuaTraceObjectDeferredRef;
-
-LuaTraceObjectDeferredPtr Client_TraceObject(Client& client, std::string const& uri, const char* reason)
-{
-   TraceObjectDeferredPtr deferred = client.TraceObject(uri, reason);
-   if (!deferred) {
-      return nullptr;
-   }
-   auto encode = [](dm::ObjectRef o) -> luabind::object {
-      luabind::object result;
-      dm::ObjectPtr obj = o.lock();
-      ASSERT(obj->GetObjectType() == om::DataBindingObjectType);
-      if (obj  && obj->GetObjectType() == om::DataBindingObjectType) {
-         om::DataBindingPtr p = std::static_pointer_cast<om::DataBinding>(obj);
-         result = p->GetDataObject();
-      }
-      return result;
-   };
-   return std::make_shared<LuaTraceObjectDeferred>(client.GetScriptHost(), deferred, encode);
-}
-
-bool Client::TraceObjectUri(std::string const& uri, std::shared_ptr<net::IResponse> response)
-{
-   om::ObjectFormatter of;
-
-   dm::ObjectPtr obj = of.GetObject(store_, uri);
-   if (!obj) {
-      obj = of.GetObject(authoringStore_, uri);
-   }
-   if (!obj) {
-      return false;
-   }
-
-   int traceId = nextTraceId_++;
-   std::weak_ptr<dm::Object> o = obj;
-
-   auto createResponse = [traceId, uri, o]() -> JSONNode {
-      JSONNode node;
-      node.push_back(JSONNode("trace_id", traceId));
-      node.push_back(JSONNode("uri",      uri));
-      auto obj = o.lock();
-      if (obj) {
-         JSONNode data = om::ObjectFormatter().ObjectToJson(obj);
-         data.set_name("data");
-         node.push_back(data);
-      }
-      return node;
-   };
-
-   auto objectChanged = [this, createResponse]() {
-      QueueEvent("radiant.trace_fired", createResponse());
-   };
-
-   uriTraces_[traceId] = obj->TraceObjectChanges("tracing uri", objectChanged);
-   JSONNode res = createResponse();
-   response->SetResponse(200, res.write(), "application/json");
-   return true;
-}
-
-void Client::TraceFileUri(std::string const& uri, std::shared_ptr<net::IResponse> response)
-{
-   if (boost::ends_with(uri, ".json")) {
-      auto const& rm = resources::ResourceManager2::GetInstance();
-      JSONNode data = rm.LookupJson(uri);
-
-      JSONNode node;
-      int traceId = nextTraceId_++;
-      node.push_back(JSONNode("trace_id", traceId));
-      node.push_back(JSONNode("uri",      uri));
-      data.set_name("data");
-      node.push_back(data);
-      response->SetResponse(200, node.write(), "application/json");
-      return;
-   }
-   LOG(WARNING) << "attempting to trace non-json uri " << uri << " NOT IMPLEMENTED!!! Returning 404";
-   response->SetResponse(404, "", "");
-}
-
-void Client::FlushEvents()
-{
-   if (get_events_request_ && !queued_events_.empty()) {
-      JSONNode events(JSON_ARRAY);
-      for (const auto& e : queued_events_) {
-         events.push_back(e);
-      }
-      queued_events_.clear();
-      get_events_request_->SetResponse(200, events.write(), "application/json");
-      get_events_request_ = nullptr;
-   }
-}
-
-void Client::BrowserRequestHandler(std::string const& path, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response)
-{
-   auto i = clientRoutes_.find(path);
-   if (i != clientRoutes_.end()) {
-      HandleClientRouteRequest(i->second, query, postdata, response);
-      return;
-   }
-
-   if (postdata.empty()) {
-      if (boost::starts_with(path, "/api/events")) {
-         GetEvents(query, response);         
-      } else if (boost::starts_with(path, "/api/trace")) {
-         TraceUri(query, response);
-      } else if (boost::starts_with(path, "/api/get_modules")) {
-         GetModules(query, response);
-      } else {
+   try {
+      // file requests can be dispatched immediately.
+      if (!boost::starts_with(path, "/r/")) {
          HandleFileRequest(path, response);
+      } else {
+         std::lock_guard<std::mutex> guard(browserJobQueueLock_);
+         browserJobQueue_.emplace_back([=]() {
+            CallHttpReactor(path, query, postdata, response);
+         });
       }
-   } else {
-      HandlePostRequest(path, query, postdata, response);
+   } catch (std::exception &e) {
+      JSONNode fail;
+      fail.push_back(JSONNode("error", e.what()));
+      response->Reject(rpc::HttpError(500, fail.write()));
    }
+}
+
+void Client::CallHttpReactor(std::string path, json::ConstJsonObject query, std::string postdata, rpc::HttpDeferredPtr response)
+{
+   JSONNode node;
+   int status = 404;
+   rpc::ReactorDeferredPtr d;
+
+   static std::regex call_path("/r/call/?");
+   std::smatch match;
+   if (std::regex_match(path, match, call_path)) {
+      d = http_reactor_->Call(query, postdata);
+   }
+   if (!d) {
+      response->Reject(rpc::HttpError(500, BUILD_STRING("failed to dispatch " << query)));
+      return;
+   }
+   d->Progress([response](JSONNode n) {
+      LOG(WARNING) << "error: got progress from deferred meant for rpc::HttpDeferredPtr! (logical error)";
+      JSONNode result;
+      n.set_name("data");
+      result.push_back(JSONNode("error", "incomplete response"));
+      result.push_back(n);
+      response->Reject(rpc::HttpError(500, result.write()));
+   });
+   d->Done([response](JSONNode const& n) {
+      response->Resolve(rpc::HttpResponse(200, n.write(), "application/json"));
+   });
+   d->Fail([response](JSONNode const& n) {
+      response->Reject(rpc::HttpError(500, n.write()));
+   });
+   return;
 }
 
 om::EntityPtr Client::CreateEmptyAuthoringEntity()
@@ -1111,12 +891,6 @@ MouseEventPromisePtr Client::TraceMouseEvents()
    return result;
 }
 
-void Client::AddBrowserJob(std::function<void()> fn)
-{
-   std::lock_guard<std::mutex> guard(browserJobQueueLock_);
-   browserJobQueue_.push_back(fn);
-}
-
 void Client::ProcessBrowserJobQueue()
 {
    std::lock_guard<std::mutex> guard(browserJobQueueLock_);
@@ -1132,6 +906,8 @@ void client::RegisterLuaTypes(lua_State* L)
    LuaRenderer::RegisterType(L);
    LuaRenderEntity::RegisterType(L);
    Client::RegisterLuaTypes(L);
+   lua::client::open(L);
+   lua::rpc::open(L);
 }
 
 MouseEventPromisePtr MouseEventPromise_OnMouseEvent(MouseEventPromisePtr me, luabind::object cb)
@@ -1210,34 +986,7 @@ static bool MouseEvent_GetDown(MouseEvent const& me, int button)
    return false;
 }
 
-std::shared_ptr<LuaDeferred1<DeferredResponse>> Client_Call(lua_State* L, Client& c, std::string const& uri, std::string fn, luabind::object postdataObject)
-{
-   std::shared_ptr<DeferredResponse> response = std::make_shared<DeferredResponse>();
-   try {
-      using namespace luabind;
-
-      JSONNode query;
-      query.push_back(JSONNode("fn", fn));
-
-      lua::ScriptHost* scriptHost = Client::GetInstance().GetScriptHost();
-      lua_State* L = scriptHost->GetCallbackState();
-      object coder = globals(L)["radiant"]["json"];
-      std::string postdata = scriptHost->CallFunction<std::string>(coder["encode"], postdataObject);
-
-      c.BrowserRequestHandler(uri, query, postdata, response);
-   } catch (std::exception const& e) {
-      JSONNode result;
-      result.push_back(JSONNode("error", e.what()));
-      response->SetResponse(500, result.write(), "application/json");
-   }
-   return std::make_shared<LuaDeferred1<DeferredResponse>>(c.GetScriptHost(), response);
-}
-
-bool Client_IsBlocked(lua_State* L, Client& c, csg::Point3 const& pt)
-{
-   return !c.GetOctTree().CanStand(pt);
-}
-
+#if 0
 std::shared_ptr<LuaDeferred2<XZRegionSelector::Deferred>> Client_SelectXZRegion(lua_State* L, Client& c)
 {
    auto s = std::make_shared<XZRegionSelector>(c.GetTerrain());
@@ -1245,6 +994,7 @@ std::shared_ptr<LuaDeferred2<XZRegionSelector::Deferred>> Client_SelectXZRegion(
    auto luaDeferred = std::make_shared<LuaDeferred2<XZRegionSelector::Deferred>>(c.GetScriptHost(), deferred);
    return luaDeferred;
 }
+#endif
 
 om::EntityRef Client_CreateEmptyAuthoringEntity(Client& client)
 {
@@ -1272,6 +1022,10 @@ luabind::scope RegisterLuaDeferredType(lua_State* L)
          .def("always",   &T::LuaAlways);
 }
 
+IMPLEMENT_TRIVIAL_TOSTRING(Client)
+IMPLEMENT_TRIVIAL_TOSTRING(MouseEventPromise)
+IMPLEMENT_TRIVIAL_TOSTRING(MouseEvent)
+
 void Client::RegisterLuaTypes(lua_State* L)
 {
    using namespace luabind;
@@ -1283,11 +1037,11 @@ void Client::RegisterLuaTypes(lua_State* L)
          .def("destroy_authoring_entity", &Client::DestroyAuthoringEntity)
          .def("create_render_entity",     &Client_CreateRenderEntity)
          .def("trace_mouse",              &Client::TraceMouseEvents)
-         .def("trace_object",             &Client_TraceObject)
          .def("query_scene",              &Client_QueryScene)
-         .def("is_blocked",               &Client_IsBlocked)
+#if 0
          .def("select_xz_region",         &Client_SelectXZRegion)
          .def("call",                     &Client_Call)
+#endif
       ,
       lua::RegisterTypePtr<MouseEventPromise>()
          .def("on_mouse_event",     &MouseEventPromise_OnMouseEvent)
@@ -1299,14 +1053,5 @@ void Client::RegisterLuaTypes(lua_State* L)
          .def_readonly("wheel",   &MouseEvent::wheel)
          .def("up",               &MouseEvent_GetUp)
          .def("down",             &MouseEvent_GetDown)
-      ,
-      RegisterLuaDeferredType<LuaDeferred1<DeferredResponse>>(L)
-      ,
-      RegisterLuaDeferredType<LuaDeferred2<XZRegionSelector::Deferred>>(L)
-      ,
-      RegisterLuaDeferredType<LuaTraceObjectDeferred>(L)
-      ,
-      lua::RegisterTypePtr<LuaResponse>()
-         .def("complete",        &LuaResponse::Complete)
    ];
 }

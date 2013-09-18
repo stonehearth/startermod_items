@@ -1,20 +1,20 @@
 
-local MicroWorld = require 'lib/micro_world'
+local MicroWorld = require 'lib.micro_world'
 local TerrainTest = class(MicroWorld)
 
-local ZoneType = radiant.mods.require('/stonehearth_terrain/zone_type.lua')
-local HeightMap = radiant.mods.require('/stonehearth_terrain/height_map.lua')
-local Array2D = radiant.mods.require('/stonehearth_terrain/array_2D.lua')
-local TerrainGenerator = radiant.mods.require('/stonehearth_terrain/terrain_generator.lua')
-local CDF_97 = radiant.mods.require('/stonehearth_terrain/wavelet/cdf_97.lua')
-local Wavelet = radiant.mods.require('/stonehearth_terrain/wavelet/wavelet.lua')
-local BoundaryNormalizingFilter = radiant.mods.require('/stonehearth_terrain/filter/boundary_normalizing_filter.lua')
-local FilterFns = radiant.mods.require('/stonehearth_terrain/filter/filter_fns.lua')
-local GaussianRandom = radiant.mods.require('/stonehearth_terrain/math/gaussian_random.lua')
-local InverseGaussianRandom = radiant.mods.require('/stonehearth_terrain/math/inverse_gaussian_random.lua')
-local Landscaper = radiant.mods.require('/stonehearth_terrain/landscaper.lua')
-local HeightMapRenderer = radiant.mods.require('/stonehearth_terrain/height_map_renderer.lua')
---local Timer = radiant.mods.require('/stonehearth_terrain/timer.lua')
+local ZoneType = require 'zone_type'
+local HeightMap = require 'height_map'
+local Array2D = require 'array_2D'
+local TerrainGenerator = require 'terrain_generator'
+local CDF_97 = require 'wavelet.cdf_97'
+local Wavelet = require 'wavelet.wavelet'
+local BoundaryNormalizingFilter = require 'filter.boundary_normalizing_filter'
+local FilterFns = require 'filter.filter_fns'
+local GaussianRandom = require 'math.gaussian_random'
+local InverseGaussianRandom = require 'math.inverse_gaussian_random'
+local Landscaper = require 'landscaper'
+local HeightMapRenderer = require 'height_map_renderer'
+--local Timer = require 'timer'
 
 function TerrainTest:__init()
    --self:_run_timing_tests()
@@ -97,7 +97,7 @@ function TerrainTest:_run_timing_tests()
    timer.start()
 
    for i=1, iterations, 1 do
-      --value = InverseGaussianRandom.generate(1, 8, (8-1)/4)
+      --value = InverseGaussianRandom.generate(1, 8, (8-1).4)
       value = GaussianRandom.generate(50, 10)
       --radiant.log.info("%f", value)
    end

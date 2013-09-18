@@ -1,7 +1,8 @@
+
 local ClockDataObject = class()
 
 function ClockDataObject:__init(data_binding)
-   local calendar = radiant.mods.require('stonehearth_calendar')
+   local calendar = require 'stonehearth_calendar'
    radiant.events.listen('radiant.events.calendar.minutely', function()
          self:_update(calendar, data_binding)
       end)

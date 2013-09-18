@@ -1,4 +1,4 @@
-local Structure = radiant.mods.require('/stonehearth_building/lib/structure.lua')
+local Structure = 'lib.structure'
 
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3

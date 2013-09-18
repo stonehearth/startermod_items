@@ -1,4 +1,4 @@
-local MathFns = radiant.mods.require('/stonehearth_terrain/math/math_fns.lua')
+local MathFns = require 'math.math_fns'
 
 local HeightMap = class()
 

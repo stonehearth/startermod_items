@@ -1,0 +1,14 @@
+{
+   "info" :{
+      "name" : "Stonehearth Terrain"
+   },
+
+   "radiant" : {
+      "game_objects" : {
+         "height_map_renderer" : "file(/height_map_renderer.lua)",
+         "terrain_generator" : "file(/terrain_generator.lua)",
+         "landscaper" : "file(/landscaper.lua)",
+         "zone_type" : "file(/zone_type.lua)"
+      }
+   }
+}

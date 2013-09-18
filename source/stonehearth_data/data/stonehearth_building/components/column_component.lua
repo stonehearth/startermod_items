@@ -1,4 +1,4 @@
-local Structure = radiant.mods.require('/stonehearth_building/lib/structure.lua')
+local Structure = require 'lib/structure'
 
 local ColumnComponent = class(Structure)
 

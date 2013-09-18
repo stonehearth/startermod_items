@@ -14,10 +14,16 @@ public:
    ~ScriptHost();
 
    lua_State* GetInterpreter();
-   lua_State* GetCallbackState();
-   luabind::object LuaRequire(std::string name);
+   lua_State* GetCallbackThread();
+
+   luabind::object Require(std::string const& name);
+   luabind::object RequireScript(std::string const& path);
    void GC(platform::timer &timer);
 
+   typedef std::function<luabind::object(lua_State* L, JSONNode const& json)> JsonToLuaFn;
+   void AddJsonToLuaConverter(JsonToLuaFn fn);
+
+   luabind::object JsonToLua(JSONNode const& json);
    std::string LuaToJson(luabind::object obj);
 
    template <typename T, typename A0, typename A1, typename A2, typename A3, typename A4>
@@ -48,17 +54,26 @@ public:
       return CallFunction<T>(a0, luabind::object());
    }
 
+public: // the static interface
+   static ScriptHost* GetScriptHost(lua_State*);
+   static lua_State* GetCallbackThread(lua_State* L) { return GetScriptHost(L)->GetCallbackThread(); }
+   static luabind::object Require(lua_State* L, std::string const& path) { return GetScriptHost(L)->Require(path); }
+   static luabind::object RequireScript(lua_State* L, std::string const& path) { return GetScriptHost(L)->RequireScript(path); }
+   static luabind::object JsonToLua(lua_State* L, JSONNode const& json) { return GetScriptHost(L)->JsonToLua(json); }
+
 private:
    static void* LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize);
-   luabind::object LoadScript(std::string path);
    void Log(std::string str);
 
 public:
    void NotifyError(std::string const& error, std::string const& traceback);
    
 private:
+   luabind::object LoadScript(std::string path);
    void OnError(std::string description);
    void AssertFailed(std::string reason);
+   luabind::object GetManifest(std::string const& mod_name);
+   luabind::object GetJson(std::string const& mod_name);
 
 private:
    lua_State*           L_;
@@ -66,6 +81,7 @@ private:
    std::string          lastError_;
    std::string          lastTraceback_;
    std::map<std::string, luabind::object> required_;
+   std::vector<JsonToLuaFn>   to_lua_converters_;
 };
 
 END_RADIANT_LUA_NAMESPACE

@@ -33,7 +33,8 @@ public:
    static ScriptHost& GetInstance();
 
    lua_State* GetInterpreter() const { return L_; }
-   lua_State* GetCallbackState() const { return cb_thread_; }
+   lua_State* GetCallbackThread() const { return cb_thread_; }
+   luabind::object Require(std::string name);
 
    std::string PostCommand(luabind::object obj, std::string const& json);
    std::string PostCommand(luabind::object fn, luabind::object self, std::string const& json);
@@ -42,7 +43,6 @@ public:
    void SendMsg(om::EntityRef entity, std::string msg, const luabind::object& arg0);
 
    void Call(luabind::object fn, luabind::object arg1);
-   luabind::object LuaRequire(std::string name);
    
    void CreateNew();
    void Update(int interval, int& currentGameTime);
@@ -65,7 +65,7 @@ private:
 
    void RegisterScenario(luabind::object name, luabind::object scenario);
    void ReportError(luabind::object error);
-   resources::AnimationPtr LoadAnimation(std::string uri);
+   res::AnimationPtr LoadAnimation(std::string uri);
    void Log(std::string str);
 
 private:

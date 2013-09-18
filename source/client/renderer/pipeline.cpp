@@ -245,7 +245,7 @@ Pipeline::NamedNodeMap Pipeline::LoadQubicleFile(std::string const& uri)
    QubicleFile f;
    std::ifstream input;
 
-   resources::ResourceManager2::GetInstance().OpenResource(uri, input);
+   res::ResourceManager2::GetInstance().OpenResource(uri, input);
    input >> f;
 
    for (const auto& entry : f) {

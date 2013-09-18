@@ -146,6 +146,8 @@ private:
    void ValidateObjectId(ObjectId oid) const;
 
 private:
+   NO_COPY_CONSTRUCTOR(Store);
+
    static Store*  stores_[5];
 
    struct DynamicObject {

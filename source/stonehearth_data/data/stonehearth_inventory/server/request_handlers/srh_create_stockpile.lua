@@ -2,7 +2,7 @@ local Point3 = _radiant.csg.Point3
 local CreateStockpile = class()
 
 function CreateStockpile:handle_request(query, postdata)
-   local inventory = radiant.mods.require('/stonehearth_inventory').get_inventory(postdata.faction)
+   local inventory = radiant.mods.get_singleton('stonehearth_inventory').get_inventory(postdata.faction)
    local size = {
       postdata.p1.x - postdata.p0.x + 1,
       postdata.p1.z - postdata.p0.z + 1,

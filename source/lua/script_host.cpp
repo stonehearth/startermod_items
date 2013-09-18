@@ -35,10 +35,24 @@ static int PCallCallbackFn(lua_State* L)
    std::string lastTraceback_ = std::string(lua_tostring(L, -1));
    lua_pop(L, 1);
 
-   ScriptHost* sh = object_cast<ScriptHost*>(globals(L)["script_host"]);
+   ScriptHost* sh = object_cast<ScriptHost*>(globals(L)["_host"]);
    sh->NotifyError(last_error, lastTraceback_);
 
    return 1;
+}
+
+ScriptHost* ScriptHost::GetScriptHost(lua_State *L)
+{
+   ScriptHost* sh = object_cast<ScriptHost*>(globals(L)["_host"]);
+   if (!sh) {
+      throw std::logic_error("could not find script host in interpreter");
+   }
+   return sh;
+}
+
+void ScriptHost::AddJsonToLuaConverter(JsonToLuaFn fn)
+{
+   to_lua_converters_.emplace_back(fn);
 }
 
 std::string ScriptHost::LuaToJson(luabind::object obj)
@@ -46,6 +60,53 @@ std::string ScriptHost::LuaToJson(luabind::object obj)
    object coder = globals(L_)["radiant"]["json"];
    return call_function<std::string>(coder["encode"], obj);
 }
+
+luabind::object ScriptHost::JsonToLua(JSONNode const& json)
+{
+   using namespace luabind;
+
+   for (const auto& fn : to_lua_converters_) {
+      object o = fn(L_, json);
+      if (o.is_valid()) {
+         return o;
+      }
+   }
+
+   if (json.type() == JSON_NODE) {
+      object table = newtable(L_);
+      for (auto const& entry : json) {
+         table[entry.name()] = JsonToLua(L_, entry);
+      }
+      return table;
+   } else if (json.type() == JSON_ARRAY) {
+      object table = newtable(L_);
+      for (unsigned int i = 0; i < json.size(); i++) {
+         table[i + 1] = JsonToLua(L_, json[i]);
+      }
+      return table;
+   } else if (json.type() == JSON_STRING) {
+      return object(L_, json.as_string());
+   } else if (json.type() == JSON_NUMBER) {
+      return object(L_, json.as_float());
+   } else if (json.type() == JSON_BOOL) {
+      return object(L_, json.as_bool());
+   }
+
+   return object();
+}
+
+luabind::object ScriptHost::GetJson(std::string const& uri)
+{
+   json::ConstJsonObject json = res::ResourceManager2::GetInstance().LookupJson(uri);
+   return JsonToLua(json.GetNode());
+}
+
+res::AnimationPtr ScriptHost_LoadAnimation(std::string uri)
+{
+   return res::ResourceManager2::GetInstance().LookupAnimation(uri);
+}
+
+IMPLEMENT_TRIVIAL_TOSTRING(ScriptHost);
 
 ScriptHost::ScriptHost()
 {
@@ -61,15 +122,15 @@ ScriptHost::ScriptHost()
    module(L_) [
       namespace_("_radiant") [
          namespace_("lua") [
-            class_<ScriptHost>("ScriptHost")
-               .def("lua_require",     &ScriptHost::LuaRequire)
+            lua::RegisterType<ScriptHost>()
                .def("log",             &ScriptHost::Log)
                .def("assert_failed",   &ScriptHost::AssertFailed)
+               .def("require",         (luabind::object (ScriptHost::*)(std::string const& name))&ScriptHost::Require)
+               .def("require_script",  (luabind::object (ScriptHost::*)(std::string const& name))&ScriptHost::RequireScript)
          ]
       ]
    ];
-   globals(L_)["native"] = object(L_, this);
-
+   globals(L_)["_host"] = object(L_, this);
    globals(L_)["package"]["path"] = "data/?.lua";
    globals(L_)["package"]["cpath"] = "";
 
@@ -95,6 +156,19 @@ void* ScriptHost::LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize)
 
 void ScriptHost::NotifyError(std::string const& error, std::string const& traceback)
 {
+   LOG(WARNING) << "-- Lua Error Begin ------------------------------- ";
+   if (!error.empty()) {
+      LOG(WARNING) << lastError_;
+
+      std::string item;
+      std::stringstream ss(traceback);
+      while(std::getline(ss, item)) {
+         LOG(WARNING) << "   " << item;
+      }
+      lastError_.clear();
+      lastTraceback_.clear();
+   }
+   LOG(WARNING) << "-- Lua Error End   ------------------------------- ";
    lastError_ = error;
    lastTraceback_ = traceback;
 }
@@ -104,7 +178,7 @@ lua_State* ScriptHost::GetInterpreter()
    return L_;
 }
 
-lua_State* ScriptHost::GetCallbackState()
+lua_State* ScriptHost::GetCallbackThread()
 {
    return cb_thread_;
 }
@@ -126,8 +200,8 @@ luabind::object ScriptHost::LoadScript(std::string path)
    // this is the slightly crappier version
    std::string filepath;
    try {
-       filepath = resources::ResourceManager2::GetInstance().GetResourceFileName(path, ".lua");
-   } catch (resources::Exception& e) {
+       filepath = res::ResourceManager2::GetInstance().GetResourceFileName(path, ".lua");
+   } catch (res::Exception& e) {
       LOG(WARNING) << e.what();
 	   return obj;
    }
@@ -190,27 +264,37 @@ void ScriptHost::OnError(std::string description)
 #endif
 }
 
-luabind::object ScriptHost::LuaRequire(std::string uri)
+luabind::object ScriptHost::Require(std::string const& s)
 {
    std::string path, name;
    std::ostringstream script;
+
+   ASSERT(!boost::ends_with(s, ".lua"));
+   ASSERT(s.find('/') == std::string::npos);
+   ASSERT(s.find('\\') == std::string::npos);
+
+   std::vector<std::string> parts;
+   boost::split(parts, s, boost::is_any_of("."));
+   parts.erase(std::remove(parts.begin(), parts.end(), ""), parts.end());
+
+   path = boost::algorithm::join(parts, "/") + ".lua";
+
+   return RequireScript(path);
+}
+
+luabind::object ScriptHost::RequireScript(std::string const& path)
+{
+   std::string canonical_path = res::ResourceManager2::GetInstance().ConvertToCanonicalPath(path, nullptr);
    luabind::object obj;
 
-   std::string canonical_path;
-   try {
-      canonical_path = resources::ResourceManager2::GetInstance().ConvertToCanonicalPath(uri, ".lua");
-   } catch (resources::Exception& e) {
-      LOG(WARNING) << e.what();
-      return obj;
-   }
-   std::string key = canonical_path;
-
-   auto i = required_.find(key);
+   auto i = required_.find(canonical_path);
    if (i != required_.end()) {
       obj = i->second;
    } else {
+      LOG(WARNING) << "requiring script " << canonical_path;
+      required_[canonical_path] = luabind::object();
       obj = LoadScript(canonical_path);
-      required_[key] = obj;
+      required_[canonical_path] = obj;
    }
    return obj;
 }

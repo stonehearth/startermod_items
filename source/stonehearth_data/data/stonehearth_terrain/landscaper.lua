@@ -1,5 +1,5 @@
-local MathFns = radiant.mods.require('/stonehearth_terrain/math/math_fns.lua')
-local GaussianRandom = radiant.mods.require('/stonehearth_terrain/math/gaussian_random.lua')
+local MathFns = require 'math.math_fns'
+local GaussianRandom = require 'math.gaussian_random'
 local Point3 = _radiant.csg.Point3
 
 local Landscaper = class()

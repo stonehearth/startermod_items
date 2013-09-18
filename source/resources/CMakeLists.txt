@@ -6,6 +6,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 add_library(resources STATIC
             animation.cpp
+            manifest.cpp
             res_manager.cpp
             )
 

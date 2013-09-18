@@ -1,4 +1,5 @@
 local RestockStockpileAction = class()
+local swc = require 'stonehearth_worker_class'
 
 RestockStockpileAction.name = 'stonehearth.actions.restock_stockpile'
 RestockStockpileAction.does = 'stonehearth.activities.top'
@@ -10,7 +11,7 @@ function RestockStockpileAction:__init(ai, entity)
    self._entity = entity
    
    local faction = self._entity:get_component('unit_info'):get_faction()
-   self._scheduler = radiant.mods.require('/stonehearth_worker_class').get_worker_scheduler(faction)
+   self._scheduler = swc.get_worker_scheduler(faction)
 
    self:_wait_for_next_task()
 end

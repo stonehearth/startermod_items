@@ -13,7 +13,7 @@ include_directories(${Luabind_INCLUDE_DIRS})
 add_subdirectory(actions)
 add_subdirectory(jobs)
 # add_subdirectory(scheduler)
-add_subdirectory(script)
+# add_subdirectory(script)
 
 add_library(simulation STATIC
             interfaces.cpp
@@ -33,5 +33,4 @@ target_link_libraries(simulation
                       resources
                       simulation_actions
                       simulation_jobs
-                      simulation_script
                       )

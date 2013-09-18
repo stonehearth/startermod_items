@@ -6,6 +6,27 @@ using namespace ::radiant::csg;
 
 // #define LOG_EDGES
 
+std::ostream& csg::operator<<(std::ostream& os, EdgePoint const& f)
+{
+   return os << "[EdgePoint (" << f.x << ", " << f.y << ")  facing: " << f.normals << "]";
+}
+
+std::ostream& csg::operator<<(std::ostream& os, Edge const& f)
+{
+   if (!f.start || !f.end) {
+      return os << "[Edge with invalid start or end points]";
+   }
+   return os << "[Edge (" << f.start->x << ", " << f.start->y << ") to "
+                          << f.end->x << ", " << f.end->y << ")  facing: "
+                          << f.normal << "]";
+}
+
+std::ostream& csg::operator<<(std::ostream& os, EdgeList const& f)
+{
+   return os << "[EdgeList of " << f.points.size() << " points]";
+}
+
+
 void csg::HeightmapToRegion2(HeightMap<double> const& h, Region2& r)
 {
    HeightMap<int> n(h);

@@ -13,16 +13,22 @@ message Request {
       ScriptCommandRequest = 3;
    }
    required Type     type = 1;
-   required uint32   request_id = 2;
 };
 
 message PostCommandRequest {
    extend Request {
       optional PostCommandRequest extension = 102;
    }
-   required string   path = 1;
-   optional string   query = 2;
-   optional string   data = 3;
+   enum Op {
+      CALL = 1;
+      INSTALL_TRACE = 2;
+      REMOVE_TRACE = 3;
+   }
+   required int32    call_id = 1;
+   required Op       op = 2;
+   optional string   object = 3;
+   optional string   route = 4;
+   optional string   args = 5;
 }
 
 message ScriptCommandRequest {
@@ -117,8 +123,13 @@ message PostCommandReply {
    extend Update {
       optional PostCommandReply extension = 120;
    }
-   required int32       status_code = 1;
-   optional string      mime_type = 2;
+   enum Type {
+      PROGRESS = 1;
+      DONE = 2;
+      FAIL = 3;
+   }
+   required int32       call_id = 1;
+   optional Type        type = 2;
    optional string      content = 3;
 }
 

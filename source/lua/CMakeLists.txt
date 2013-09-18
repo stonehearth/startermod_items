@@ -15,6 +15,11 @@ add_library(lua
             radiant_lua.cpp
             register.cpp
             script_host.cpp
+            res/open_res.cpp
+            sim/open_sim.cpp
+            client/open_client.cpp
+            rpc/open_rpc.cpp
+            om/open_om.cpp
             pch.cpp
             )
 
@@ -31,5 +36,7 @@ target_link_libraries(lua
                       ${Python_LIBRARIES}
                       ${Cryptopp_LIBRARIES}
                       ${Libjson_LIBRARIES}
+                      ${Lua_LIBRARIES}
+                      ${Luabind_LIBRARIES}
                       )
 

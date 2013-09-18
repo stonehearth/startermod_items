@@ -40,9 +40,9 @@ function check.report_error(...)
 end
 
 function check.report_thread_error(thread, ...)
-   native:log('!! ' .. string.format('error: %s', ...))
+   _host:log('!! ' .. string.format('error: %s', ...))
    local msg = thread and debug.traceback(thread) or debug.traceback()
-   native:log(msg)
+   _host:log(msg)
 end
 
 function check.contains(t, value)

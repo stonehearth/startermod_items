@@ -56,24 +56,11 @@ function CommandsComponent:_replace_variables(res)
    end
 
    if type(res) == 'string' then
-      if res == '{{entity_id}}' then
-         res = self._entity:get_id()
+      if res == '{{self}}' then
+         res = self._entity
       end
    end
    return res
-end
-
-function CommandsComponent:do_command(name, ...)
-   for i, command in ipairs(self._data.commands) do
-      if command.name == name then
-         local api = radiant.mods.require(command.handler)
-         if api and api[command.name] then
-            -- xxx: validate args...
-            return api[command.name](self._entity, ...)
-         end
-         return
-      end
-   end
 end
 
 --Given the name of a command, set its enabled/disabled status

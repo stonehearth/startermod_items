@@ -1,4 +1,4 @@
-local stonehearth_trees = radiant.mods.require('/stonehearth_trees')
+local stonehearth_trees = require 'stonehearth_trees'
 
 local ChopTreeAction = class()
 

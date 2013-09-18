@@ -5,9 +5,9 @@
 using ::radiant::simulation::Simulation;
 using ::radiant::simulation::SimulationInterface;
 
-SimulationInterface *::radiant::simulation::CreateSimulation(lua_State* L)
+SimulationInterface *::radiant::simulation::CreateSimulation()
 {
-   return new Simulation(L);
+   return new Simulation();
 }
 
 SimulationInterface::~SimulationInterface()

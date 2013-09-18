@@ -13,7 +13,7 @@ BEGIN_RADIANT_CLIENT_NAMESPACE
 class XZRegionSelector : public std::enable_shared_from_this<XZRegionSelector>
 {
    public:
-      class Deferred : public core::Deferred2<csg::Point3, csg::Point3>
+      class Deferred : public core::Deferred<csg::Cube3, std::string>
       {
       };
 

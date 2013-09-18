@@ -1,8 +1,8 @@
-local MicroWorld = radiant.mods.require('/stonehearth_tests/lib/micro_world.lua')
-local HeightMapRenderer = radiant.mods.require('/stonehearth_terrain/height_map_renderer.lua')
-local TerrainGenerator = radiant.mods.require('/stonehearth_terrain/terrain_generator.lua')
-local Landscaper = radiant.mods.require('/stonehearth_terrain/landscaper.lua')
-local ZoneType = radiant.mods.require('/stonehearth_terrain/zone_type.lua')
+local MicroWorld = radiant.mods.require('stonehearth_tests', 'micro_world')
+local HeightMapRenderer = radiant.mods.require('stonehearth_terrain', 'height_map_renderer')
+local TerrainGenerator = radiant.mods.require('stonehearth_terrain', 'terrain_generator')
+local Landscaper = radiant.mods.require('stonehearth_terrain', 'landscaper')
+local ZoneType = radiant.mods.require('stonehearth_terrain', 'zone_type')
 
 local NewWorld = class(MicroWorld)
 

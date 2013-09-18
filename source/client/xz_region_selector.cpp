@@ -63,10 +63,10 @@ void XZRegionSelector::onInputEvent(const MouseEvent &evt, bool &handled, bool &
          p1[i] = std::max(_p0[i], _p1[i]);
       }
       if (_finished) {
-         deferred_->Resolve(p0, p1);
+         deferred_->Resolve(csg::Cube3::Construct(p0, p1));
          Deactivate();
       } else {
-         deferred_->Notify(p0, p1);
+         deferred_->Notify(csg::Cube3::Construct(p0, p1));
       }
    }
 }

@@ -6,6 +6,7 @@
 
 #include "radiant_file.h"
 #include "chromium/app/app.h"
+#include "lib/rpc/http_deferred.h"
 #include "browser.h"
 #include "response.h"
 #include <fstream>
@@ -137,7 +138,7 @@ bool Browser::OnConsoleMessage(CefRefPtr<CefBrowser> browser, const CefString& m
       char msg[128];
       std::wcstombs(msg, message.c_str(), sizeof msg);
 
-      LOG(WARNING) << "chromium: " << msg;
+      // LOG(WARNING) << "chromium: " << msg;
    }
    return false;
 }
@@ -312,7 +313,7 @@ void Browser::OnRawInput(const RawInputEvent &msg, bool& handled, bool& uninstal
          evt.type = KEYEVENT_CHAR;
       }
       evt.modifiers = GetCefKeyboardModifiers(msg.wp, msg.lp);
-      LOG(WARNING) << " -------- SENDING KEY " << ((char)evt.windows_key_code) << " " << evt.type << " --------";
+      // LOG(WARNING) << " -------- SENDING KEY " << ((char)evt.windows_key_code) << " " << evt.type << " --------";
 
       browser_->GetHost()->SendKeyEvent(evt);
       break;
@@ -392,15 +393,28 @@ CefRefPtr<CefResourceHandler> Browser::GetResourceHandler(CefRefPtr<CefBrowser> 
    JSONNode query = GetQuery(CefString(&url_parts.query));
    std::string postdata = GetPostData(request);
 
-   Response *r = new Response(request);
-   r->AddRef();
-   std::shared_ptr<net::IResponse> response(r, [](Response* p) {
-      p->Release();
+   // Create a new Response object.  Response implements CefResourceHandler and will
+   // be used to communicate the response to chrome.
+   Response *response = new Response(request);
+
+   // Hold a reference to the response in an HttpDeferred deferred object.  This
+   // will be used to interface with the rest of the system.  Chrome will be handed
+   // the data whenever someone calls Complete.
+   response->AddRef();
+   std::shared_ptr<rpc::HttpDeferred> deferred(new rpc::HttpDeferred("browser response"), [=](rpc::HttpDeferred* p) {
+      response->Release();
+      delete p;
+   });
+   deferred->Done([=](rpc::HttpResponse const& r) {
+      response->SetResponse(r.code, r.content, r.mime_type);
+   });
+   deferred->Fail([=](rpc::HttpError const& r) {
+      response->SetResponse(r.code, r.response, "text/plain");
    });
 
-   requestHandler_(path, query, postdata, response);
+   requestHandler_(path, query, postdata, deferred);
 
-   return CefRefPtr<CefResourceHandler>(r);
+   return CefRefPtr<CefResourceHandler>(response);
 }
 
 

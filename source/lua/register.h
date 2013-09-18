@@ -6,6 +6,12 @@
 
 BEGIN_RADIANT_LUA_NAMESPACE
 
+#define IMPLEMENT_TRIVIAL_TOSTRING(Cls)                           \
+std::ostream& operator<<(std::ostream& os, Cls const& f)          \
+{                                                                 \
+   return os << "[" << ::radiant::lua::GetTypeName<Cls>() << "]"; \
+}
+
 template <class Derived>
 const char* GetTypeName()
 {
@@ -50,7 +56,7 @@ template <typename LuaBindType, typename T>
 void RegisterBaseMethods(LuaBindType& type)
 {
    type
-      .def(tostring(self))
+      .def(tostring(luabind::self))
       .def("__towatch",      &Type_ToWatch<T>)
       .def("__tojson",       &Type_ToJson<T>)
       .def("get_id",         &T::GetObjectId)
@@ -63,6 +69,7 @@ luabind::class_<T> RegisterType(const char* name = nullptr)
    name = name ? name : GetTypeName<T>();
    auto type = luabind::class_<T>(name);
    type
+      .def(tostring(luabind::self))
       .def("__towatch",      &Type_ToWatch<T>)
       .def("get_type_name",  &Type_GetTypeName<T>);
    return type;
@@ -74,6 +81,7 @@ luabind::class_<T, std::shared_ptr<T>> RegisterTypePtr(const char* name = nullpt
    name = name ? name : GetTypeName<T>();
    auto type = luabind::class_<T, std::shared_ptr<T>>(name);
    type
+      .def(tostring(luabind::self))
       .def("__towatch",      &Type_ToWatch<T>)
       .def("get_type_name",  &Type_GetTypeName<T>);
    return type;

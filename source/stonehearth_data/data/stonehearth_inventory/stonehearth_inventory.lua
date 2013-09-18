@@ -1,4 +1,4 @@
-local Inventory = radiant.mods.require('/stonehearth_inventory/lib/inventory.lua')
+local Inventory = require 'lib.inventory'
 
 local stonehearth_inventory = {}
 local singleton = {}

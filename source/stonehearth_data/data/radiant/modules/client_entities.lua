@@ -22,7 +22,7 @@ function client_entities.create_entity(arg1, arg2)
    local mod_name = arg1 -- 'stonehearth'
    local entity_name = arg2 -- 'wooden_sword'
    radiant.log.info('creating entity %s, %s', mod_name, entity_name)
-   return native:create_authoring_entity(mod_name, entity_name)
+   return _radiant.client:create_authoring_entity(mod_name, entity_name)
 end
 
 function client_entities.destroy_entity(entity)

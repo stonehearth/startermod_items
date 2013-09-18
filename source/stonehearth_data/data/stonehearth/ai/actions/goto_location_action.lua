@@ -16,7 +16,7 @@ function GotoLocationAction:run(ai, entity, dest)
    -- anyway, the pathfinder can only find paths between two entities,
    -- so go ahead and make a new one.  this is HORRIBLY INEFFICENT. =..(
    local bounds = Cube3(Point3(0, 0, 0), Point3(1, 1, 1))
-   local region = native:alloc_region()
+   local region = _radiant.sim.alloc_region() -- xxx: should be _radiant.om:alloc_region(), right?
    region:modify():add_cube(bounds)
    
    self._dest_entity = radiant.entities.create_entity()
@@ -30,7 +30,7 @@ function GotoLocationAction:run(ai, entity, dest)
       path = p
    end
    
-   local pf = native:create_path_finder('goto_location', entity, solved, nil)
+   local pf = _radiant.sim.create_path_finder('goto_location', entity, solved, nil)
    pf:add_destination(self._dest_entity)
    ai:wait_until(function()
          return path ~= nil

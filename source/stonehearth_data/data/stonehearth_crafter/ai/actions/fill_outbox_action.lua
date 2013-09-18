@@ -45,7 +45,7 @@ function FillOutboxAction:run(ai, entity)
          path = solution
       end
 
-      local pathfinder = native:create_path_finder('goto entity action', entity, solved, nil)
+      local pathfinder = _radiant.sim.create_path_finder('goto entity action', entity, solved, nil)
       pathfinder:add_destination(self._outbox_entity)
 
       ai:wait_until(function()

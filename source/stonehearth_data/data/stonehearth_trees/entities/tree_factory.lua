@@ -22,7 +22,7 @@ ResourceFactory['radiant.resource_node.spawn_resource'] = function(self, locatio
    node:set_durability(durability)
    log:info('resource node %s durability now at %d.', tostring(self.entity), durability)
    if durability <= 0 then
-      native:destroy_entity(self.entity)
+      _radiant.sim.destroy_entity(self.entity)
    end
 end
 

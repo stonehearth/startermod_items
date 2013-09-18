@@ -13,7 +13,7 @@ function GotoEntityAction:run(ai, entity, target)
       path = solution
    end
    
-   local pathfinder = native:create_path_finder('goto entity action', entity, solved, nil)
+   local pathfinder = _radiant.sim.create_path_finder('goto entity action', entity, solved, nil)
    pathfinder:add_destination(target)
    
    -- xxx: if the item moves, we want to bail immediately, not run to its new

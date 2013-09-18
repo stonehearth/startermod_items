@@ -1,7 +1,7 @@
 local Log = {}
 
 local _write = function(prefix, format, ...)
-   native:log(string.format('%8d : %2s %s', 0, prefix, string.format(format, ...)))
+   _host:log(string.format('%8d : %2s %s', 0, prefix, string.format(format, ...)))
 end
 
 function Log.info(format, ...)

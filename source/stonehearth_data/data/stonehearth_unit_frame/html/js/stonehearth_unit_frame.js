@@ -12,8 +12,8 @@ App.StonehearthUnitFrameView = App.View.extend({
       this._super();
 
       var self = this;
-      $(top).on("selection_changed.radiant", function (_, evt) {
-         self._selected_entity = evt.data.selected_entity;
+      $(top).on("selection_changed.radiant", function (_, data) {
+         self._selected_entity = data.selected_entity;
          if (self._selected_entity) {
             self.set('uri', self._selected_entity);
          } else {
@@ -65,15 +65,16 @@ App.StonehearthCommandButtonView = App.View.extend({
                event_data : command.event_data
             };
             $(top).trigger(command.event_name, e);
-         } else if (command.action == 'post') {
-            // $.post(command.post_uri, command.post_data);
-            $.ajax({
-               type: 'post',
-               url: command.post_uri,
-               contentType: 'application/json',
-               data: JSON.stringify(command.post_data)
-            });
-         }         
+         } else if (command.action == 'call') {
+            var object = command.mod ? command.mod : command.object
+            if (object) {
+               radiant.object.call_objv(object, command['function'], command.args)
+            } else {
+               radiant.object.callv(command['function'], command.args)
+            }
+         } else {
+            throw "unknown command.action " + command.action
+         }
       }
    }
 });

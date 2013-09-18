@@ -1,5 +1,3 @@
-native:log('requiring microworld')
-
 local MicroWorld = require 'lib.micro_world'
 local HarvestTest = class(MicroWorld)
 

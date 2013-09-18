@@ -74,7 +74,7 @@
          uri: uri,
          refcount: 1,
          deferred: $.Deferred(),
-         trace: radiant.trace(uri),
+         trace: radiant.object.trace(uri),
       };
       this._traces[uri] = info;
       return info;

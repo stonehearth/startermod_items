@@ -1,10 +1,10 @@
-#ifndef _RADIANT_RESOURCES_EXCEPTIONS_H
-#define _RADIANT_RESOURCES_EXCEPTIONS_H
+#ifndef _RADIANT_RES_EXCEPTIONS_H
+#define _RADIANT_RES_EXCEPTIONS_H
 
 #include "namespace.h"
 #include <boost/network/uri/uri.hpp>
 
-BEGIN_RADIANT_RESOURCES_NAMESPACE
+BEGIN_RADIANT_RES_NAMESPACE
 
 class Exception : public std::exception {
 public:
@@ -58,6 +58,6 @@ public:
    }
 };
 
-END_RADIANT_RESOURCES_NAMESPACE
+END_RADIANT_RES_NAMESPACE
 
-#endif // _RADIANT_RESOURCES_EXCEPTIONS_H
+#endif // _RADIANT_RES_EXCEPTIONS_H

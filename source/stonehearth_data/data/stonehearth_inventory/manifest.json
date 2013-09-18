@@ -5,16 +5,19 @@
    "radiant" : {
       "entities" : {
          "stockpile" : "file(entities/stockpile)"
-      }
-   },
-   "client" :{
-      "request_handlers": {
-         "create_stockpile" : "file(client/request_handlers/create_stockpile.lua)"
-      }
-   },
-   "server" :{
-      "request_handlers": {
-         "create_stockpile" : "file(server/request_handlers/srh_create_stockpile.lua)"
+      },
+      "game_objects" : {
+         "singleton" : "file(stonehearth_inventory.lua)"
+      },
+      "functions" : {
+         "choose_stockpile_location": {
+            "controller" : "file(client/request_handlers/create_stockpile.lua)",
+            "endpoint" : "client"
+         },
+         "create_stockpile": {
+            "controller" : "file(server/request_handlers/srh_create_stockpile.lua)",
+            "endpoint" : "server"
+         }
       }
    },
    "ui" :  {

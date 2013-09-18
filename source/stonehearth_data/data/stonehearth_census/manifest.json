@@ -17,8 +17,7 @@
    "server" : {
       "game_objects" : {
          "worker_tracker" : {
-            "controller": "file(worker_tracker.lua)",
-            "publish_at": "worker_tracker"
+            "controller": "file(worker_tracker.lua)"
          }
       }
    }

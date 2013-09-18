@@ -1,37 +1,15 @@
 #include <signal.h>
+#include <boost/filesystem.hpp>
 #include "radiant.h"
 
-struct lua_State;
-extern int lua_main(lua_State* L, int argc, const char **argv);
-
-static void f()
-{
-   static volatile int i = 0;
-   i++;
-}
-
-static void f2(int)
-{
-   f();
-}
-
-int filter(struct _EXCEPTION_POINTERS *ep, unsigned int code) {
-   f();
-   return 0;
-}
-
+extern int lua_main(int argc, const char **argv);
 
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-   std::set_terminate(f);
-   signal(SIGABRT, f2);
-
-   __try {
-      atexit(f);
-      return lua_main(NULL, __argc, (const char **)__argv);
-   //} __except (radiant::platform::PrintBacktrace(GetExceptionInformation(), GetExceptionCode())) {
-   } __except (filter(GetExceptionInformation(), GetExceptionCode())) {
-      return 1;
-   }
-   return 0;
+#ifdef _MSC_VER
+	// fix for https://svn.boost.org/trac/boost/ticket/6320
+   std::locale default("");
+   boost::filesystem::path::imbue(default);
+#endif 
+   return lua_main(__argc, (const char **)__argv);
 }

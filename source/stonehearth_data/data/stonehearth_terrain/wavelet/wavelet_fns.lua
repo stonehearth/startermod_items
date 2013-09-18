@@ -1,5 +1,5 @@
 local WaveletFns = {}
-local Wavelet = radiant.mods.require('/stonehearth_terrain/wavelet/wavelet.lua')
+local Wavelet =  require 'wavelet.wavelet'
 
 -- assumes current_level = 1 if not specified
 function WaveletFns.scale_high_freq(src, src_width, src_height, power, max_level, current_level)

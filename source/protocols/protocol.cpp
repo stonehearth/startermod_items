@@ -31,7 +31,7 @@ void SendQueue::Flush(std::shared_ptr<SendQueue> sendQueue)
    }
 }
 
-void SendQueue::Push(google::protobuf::MessageLite &protobuf)
+void SendQueue::Push(google::protobuf::MessageLite const& protobuf)
 {
    Push(Encode(protobuf));
 }
@@ -93,7 +93,7 @@ void RecvQueue::HandleRead(RecvQueuePtr q, const boost::system::error_code& e, s
 }
 
 
-std::string protocol::Encode(google::protobuf::MessageLite &msg)
+std::string protocol::Encode(google::protobuf::MessageLite const &msg)
 {
    std::string buf;
    

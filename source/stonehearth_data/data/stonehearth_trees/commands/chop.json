@@ -5,9 +5,10 @@
    "tooltip": "Chop Tree",
    "icon": "file(/images/chop.png)",
 
-   "action": "post",
-   "post_uri": "file(chop_command.lua)",
-   "post_data": {
-      "tree": "{{entity_id}}"
-   } 
+   "action": "call",
+   "mod": "stonehearth_trees",
+   "function": "chop",
+   "args": [
+      "{{self}}"
+   ]
 }

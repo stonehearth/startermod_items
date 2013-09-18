@@ -25,7 +25,7 @@
          ]
       },
       "stonehearth_classes:talisman_promotion_info": {
-         "class_script": "/stonehearth_carpenter_class/"
+         "class_script": "stonehearth_carpenter_class"
       }
    }
 }

@@ -33,8 +33,7 @@ arbiter::arbiter() :
    _tcp_acceptor(_io_service),
    _next_tick(0),
    sequence_number_(1),
-   paused_(false),
-   L_(nullptr)
+   paused_(false)
 {
 }
 
@@ -52,32 +51,17 @@ void arbiter::GetConfigOptions(po::options_description& options)
 
 arbiter::~arbiter()
 {
-   if (L_) {
-      lua_close(L_);
-   }
 }
 
-void arbiter::Run(lua_State* L)
+void arbiter::Run()
 {
-   Start(L);
+   Start();
    main();
 }
 
-extern "C" int luaopen_lpeg (lua_State *L);
-
-void arbiter::Start(lua_State* L)
+void arbiter::Start()
 {
-   L_ = L;
-   if (!L_) {
-      L_ = lua_newstate(LuaAllocFn, this);
-
-	   luaL_openlibs(L_);
-      luaopen_lpeg(L_);
-   }
-   luabind::open(L_);
-   luabind::bind_class_info(L_);
-
-   _simulation.reset(::radiant::simulation::CreateSimulation(L_));
+   _simulation.reset(::radiant::simulation::CreateSimulation());
 }
 
 bool arbiter::ProcessMessage(std::shared_ptr<client> c, const proto::Request& msg)
