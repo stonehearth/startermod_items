@@ -1,6 +1,6 @@
 {
-   "extends": "entity(stonehearth_items, item_properties)", 
-   "type": "entity", 
+   "extends": "entity(stonehearth_items, item_properties)",
+   "type": "entity",
    "components": {
       "model_variants": [
          {
@@ -8,10 +8,15 @@
                "/stonehearth_items/fire_pit/fire_pit.qb"
             ]
          }
-      ], 
+      ],
       "unit_info": {
-         "name": "Fire Pit", 
-         "description": "Provides warmth and light"
+         "name": "Fire Pit",
+         "description": "Provides warmth and light",
+         "icon" : "file(../default_object/default_object.png)"
+      },
+      "item" : {
+         "identifier": "fire_pit",
+         "category" : "supplies"
       }
    }
 }
