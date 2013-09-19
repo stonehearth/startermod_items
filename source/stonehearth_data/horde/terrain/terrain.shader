@@ -89,7 +89,7 @@ void main( void )
    albedo = color;
 
    vec4 vl = viewProjMat * pos;
-   vl.z = vl.z * vl.w / 2000;
+   //vl.z = vl.z * vl.w / 2000;
 
 	// Calculate texture coordinates and clip space position
 	gl_Position = vl;//viewProjMat * pos;
@@ -111,9 +111,6 @@ varying vec3 albedo;
 
 void main( void )
 {
-#ifdef _F01_Topsoil
-#else
-#endif
 	vec3 newPos = pos.xyz;
 	vec3 normal = tsbNormal;
 
