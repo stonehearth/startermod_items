@@ -88,8 +88,11 @@ void main( void )
    tsbNormal = normal;
    albedo = color;
 
+   vec4 vl = viewProjMat * pos;
+   vl.z = vl.z * vl.w / 2000;
+
 	// Calculate texture coordinates and clip space position
-	gl_Position = viewProjMat * pos;
+	gl_Position = vl;//viewProjMat * pos;
 }
 
 
