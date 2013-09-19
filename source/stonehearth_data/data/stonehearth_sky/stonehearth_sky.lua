@@ -42,12 +42,12 @@ function stonehearth_sky:add_celestial(name, colors, angles, ambient_colors)
       light_mat = light_mat
    }
 
-   h3dSetNodeTransform(new_celestial.node,  0, 0, 100, 0, 0, 0, 1, 1, 1)
-   h3dSetNodeParamF(new_celestial.node, H3DLight.RadiusF, 0, 100000)
+   h3dSetNodeTransform(new_celestial.node,  0, 0, 0, 0, 0, 0, 1, 1, 1)
+   h3dSetNodeParamF(new_celestial.node, H3DLight.RadiusF, 0, 10000)
    h3dSetNodeParamF(new_celestial.node, H3DLight.FovF, 0, 360)
    h3dSetNodeParamI(new_celestial.node, H3DLight.ShadowMapCountI, 1)
    h3dSetNodeParamI(new_celestial.node, H3DLight.DirectionalI, 1)
-   h3dSetNodeParamF(new_celestial.node, H3DLight.ShadowSplitLambdaF, 0, 0.9)
+   h3dSetNodeParamF(new_celestial.node, H3DLight.ShadowSplitLambdaF, 0, 0.5)
    h3dSetNodeParamF(new_celestial.node, H3DLight.ShadowMapBiasF, 0, 0.001)
 
    table.insert(self._celestials, new_celestial)
@@ -204,7 +204,7 @@ function stonehearth_sky:_light_ambient_color(light, r, g, b)
 end
 
 function stonehearth_sky:_light_angles(light, x, y, z) 
-   h3dSetNodeTransform(light.node, 0, 10, 0, x, y, z, 1, 1, 1)
+   h3dSetNodeTransform(light.node, 0, 0, 0, x, y, z, 1, 1, 1)
 end
 
 stonehearth_sky:__init()

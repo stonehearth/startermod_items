@@ -61,7 +61,7 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
 
    CefBrowserSettings browserSettings;
    browserSettings.Reset();
-   browserSettings.developer_tools = STATE_ENABLED;
+   // browserSettings.developer_tools = STATE_ENABLED;
    browserSettings.java = STATE_DISABLED;
    browserSettings.plugins = STATE_DISABLED;
 

@@ -10,15 +10,13 @@ local CDF_97 = radiant.mods.require('stonehearth_terrain.wavelet.cdf_97')
 local Wavelet = radiant.mods.require('stonehearth_terrain.wavelet.wavelet')
 local BoundaryNormalizingFilter = radiant.mods.require('stonehearth_terrain.filter.boundary_normalizing_filter')
 local FilterFns = radiant.mods.require('stonehearth_terrain.filter.filter_fns')
-local GaussianRandom = radiant.mods.require('stonehearth_terrain.math.gaussian_random')
-local InverseGaussianRandom = radiant.mods.require('stonehearth_terrain.math.inverse_gaussian_random')
 local Landscaper = radiant.mods.require('stonehearth_terrain.landscaper')
 local HeightMapRenderer = radiant.mods.require('stonehearth_terrain.height_map_renderer')
 local Timer = radiant.mods.require('stonehearth_debugtools.timer')
 
 function TerrainTest:__init()
-   --self:_run_timing_tests()
-   --self:_run_unit_tests()
+   --run_unit_tests()
+   --run_timing_tests()
 
    self[MicroWorld]:__init()
 
@@ -31,7 +29,7 @@ function TerrainTest:__init()
    self:create_multi_zone_world()
 
    timer:stop()
-   radiant.log.info('Terrain generation time: %.3fs', timer:seconds())
+   radiant.log.info('World generation time: %.3fs', timer:seconds())
 end
 
 function TerrainTest:create_world()
@@ -64,9 +62,16 @@ function TerrainTest:create_multi_zone_world()
       end
    end
 
+   local timer = Timer(Timer.CPU_TIME)
+   timer:start()
    HeightMapRenderer.render_height_map_to_terrain(world_map, self._terrain_generator.terrain_info)
+   timer:stop()
+   radiant.log.info('HeightMapRenderer time: %.3fs', timer:seconds())
 
+   timer:start()
    Landscaper:place_trees(world_map)
+   timer:stop()
+   radiant.log.info('Landscaper time: %.3fs', timer:seconds())
 end
 
 function TerrainTest:_create_world_blueprint()
@@ -87,6 +92,7 @@ function TerrainTest:_create_world_blueprint()
 
    zones:get(1, 2).terrain_type = TerrainType.Foothills
    zones:get(2, 2).terrain_type = TerrainType.Plains
+
 --[[
    zones:get(1, 1).terrain_type = TerrainType.Mountains
    zones:get(2, 1).terrain_type = TerrainType.Mountains
@@ -117,7 +123,7 @@ function TerrainTest:decorate_landscape()
    end
 end
 
-function TerrainTest:_run_unit_tests()
+function run_unit_tests()
    BoundaryNormalizingFilter._test()
    FilterFns._test()
    CDF_97._test()
@@ -129,23 +135,16 @@ function abs_lua(x)
    return -x
 end
 
-function TerrainTest:_run_timing_tests()
+function run_timing_tests()
    local abs = math.abs
    local timer = Timer(Timer.CPU_TIME)
    local iterations = 50000000
 
    timer:start()
 
-<<<<<<< HEAD
-   for i=1, iterations, 1 do
-      --value = InverseGaussianRandom.generate(1, 8, (8-1).4)
-      value = GaussianRandom.generate(50, 10)
-      --radiant.log.info("%f", value)
-=======
    for i = 1, iterations do
       local x
       x = abs(i)
->>>>>>> db300f215d0149dd85bd73a67d210bc764d92fcb
    end
 
    timer:stop()
@@ -154,14 +153,13 @@ function TerrainTest:_run_timing_tests()
    assert(false)
 end
 
-function TerrainTest._check_wavelet_impulse_function()
+function check_wavelet_impulse_function()
    local height_map = HeightMap(8, 8)
    height_map:clear(0)
    height_map:set(4, 4, 100)
    Wavelet.DWT_2D(height_map, 8, 8, 1, 1)
    local dummy = 1
 end
-
 
 return TerrainTest
 

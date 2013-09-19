@@ -1,6 +1,6 @@
 {
-   "extends": "entity(stonehearth_items, item_properties)", 
-   "type": "entity", 
+   "extends": "entity(stonehearth_items, item_properties)",
+   "type": "entity",
    "components": {
       "model_variants": [
          {
@@ -8,10 +8,15 @@
                "file(table_for_one.qb)"
             ]
          }
-      ], 
+      ],
       "unit_info": {
-         "name": "Table for One", 
-         "description": "Dining furniture for introverts."
+         "name": "Table for One",
+         "description": "Dining furniture for introverts.",
+         "icon" : "file(table_for_one.png)"
+      },
+      "item" : {
+         "identifier": "table_for_one",
+         "category" : "furniture"
       }
    }
 }

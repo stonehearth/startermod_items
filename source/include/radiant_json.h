@@ -1,7 +1,7 @@
 #ifndef _RADIANT_JSON_H
 #define _RADIANT_JSON_H
 
-#include "libjson.h"
+#include <libjson.h>
 #include <luabind/luabind.hpp>
 
 namespace radiant {

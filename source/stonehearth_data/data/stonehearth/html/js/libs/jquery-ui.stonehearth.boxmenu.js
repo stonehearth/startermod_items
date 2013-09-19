@@ -15,7 +15,7 @@
          var self = this;
          var o = this.options;
          //this.element.append("this is the menu<br>");
-         
+
          // build the container
          this._menu = $('<div class="boxmenu"></div>');
 
@@ -86,7 +86,7 @@
                self._clickHandlers[id]();
             }
 
-            
+
          });
 
 
@@ -191,8 +191,8 @@
                   .html('<img class=icon src="' + v.icon + '"/>')
                   .append('<div class=label>' + v.name + '</div>')
                   .append('<div class=hotkey>' + v.hotkey + '</div>');
-                  
-               
+
+
                // wire up the click handler
                if (v.click) {
                   self._clickHandlers[k] = v.click;

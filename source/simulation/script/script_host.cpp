@@ -6,7 +6,6 @@
 #include "radiant_file.h"
 #include "script_host.h"
 #include "lua_jobs.h"
-#include "lua_noise.h"
 #include "simulation/simulation.h"
 #include "simulation/jobs/multi_path_finder.h"
 #include "simulation/jobs/follow_path.h"
@@ -251,7 +250,6 @@ void ScriptHost::InitEnvironment()
    csg::RegisterLuaTypes(L_);
    lua::RegisterBasicTypes(L_);
    LuaJobs::RegisterType(L_);
-   LuaNoise::RegisterType(L_);
    res::Animation::RegisterType(L_);
    json::ConstJsonObject::RegisterLuaType(L_);
 

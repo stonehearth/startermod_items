@@ -4,7 +4,12 @@
    "components" : {
       "unit_info" : {
          "name" :  "The Saw",
-         "description" : "The foundation of civilization"
+         "description" : "The foundation of civilization",
+         "icon" : "file(../default_object/default_object.png)"
+      },
+      "item" : {
+         "identifier": "carpenter_saw",
+         "category" : "tools_and_goods"
       },
       "model_variants": [
          {
@@ -17,7 +22,7 @@
             "models": [
                "file(carpenter_saw_proxy.qb)"
             ]
-         }            
+         }
       ],
       "radiant:commands" : {
          "commands" : [

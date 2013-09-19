@@ -40,6 +40,7 @@ public:
    dm::Boxed<std::string>  description_;
    dm::Boxed<std::string>  faction_;
    dm::Boxed<std::string>  icon_;
+
 };
 
 END_RADIANT_OM_NAMESPACE

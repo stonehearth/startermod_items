@@ -1,7 +1,5 @@
-FIND_PACKAGE(GLSLOptimizer REQUIRED)
-
 # CMAKE_BINARY_DIR is used for inclusion of automatically generated files
-include_directories(. ../Shared ../../Bindings/C++ ../../../ ${CMAKE_BINARY_DIR} ${GLSLOptimizer_INCLUDE_DIRS} ${HORDE3D_EXTENSION_INCLUDE_DIRS})
+include_directories(${Horde3D_INCLUDE_DIRS})
 
 set(HORDE3D_SOURCES 
 	egAnimatables.cpp
@@ -68,7 +66,6 @@ add_library(Horde3D STATIC
 
 
 target_link_libraries(Horde3D
-                        ${GLSLOptimizer_LIBRARIES}
                      )
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	IF(MSVC)

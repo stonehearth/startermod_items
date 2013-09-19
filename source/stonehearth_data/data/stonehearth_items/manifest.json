@@ -10,6 +10,12 @@
    "ui" :  {
       "js" : [
          "file(/html/js/placement.js)"
+      ],
+      "html" : [
+         "file(/html/placement.html)"
+      ],
+      "less" : [
+         "file(/html/css/placement_ui.less)"
       ]
    },
    "client" : {

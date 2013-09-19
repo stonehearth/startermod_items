@@ -39,7 +39,7 @@ end
 
 -- f is symmetric, so no need to reverse axis for convolution
 function BoundaryNormalizingFilter:filter(dst, src, src_len, sampling_interval)
-   if not sampling_interval then sampling_interval = 1 end
+   if sampling_interval == nil then sampling_interval = 1 end
 
    -- using locals for readability and performance
    local f = self._f

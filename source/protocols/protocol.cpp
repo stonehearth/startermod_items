@@ -1,5 +1,6 @@
 #include "radiant.h"
 #include <google/protobuf/text_format.h>
+#include <google/protobuf/io/coded_stream.h>
 #include "protocol.h"
 
 using namespace ::radiant;

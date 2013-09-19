@@ -17,5 +17,10 @@ scope LuaItemComponent::RegisterLuaTypes(lua_State* L)
          .def("get_max_stacks",        &om::Item::GetMaxStacks)
          .def("get_material",          &om::Item::GetMaterial)
          .def("set_material",          &om::Item::SetMaterial)
+         .def("set_category",          &om::Item::SetCategory)
+         .def("get_category",          &om::Item::GetCategory)
+         .def("set_identifier",        &om::Item::SetIdentifier)
+         .def("get_identifier",        &om::Item::GetIdentifier)
+
       ;
 }

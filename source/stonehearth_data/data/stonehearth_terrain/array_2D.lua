@@ -17,4 +17,12 @@ function Array2D:get_offset(x, y)
    return (y-1)*self.width + x
 end
 
+function Array2D:clear(value)
+   local i
+
+   for i=1, self.width*self.height do
+      self[i] = value
+   end
+end
+
 return Array2D
