@@ -1,9 +1,7 @@
 FIND_PACKAGE(Protobuf REQUIRED)
 FIND_PACKAGE(Snappy  REQUIRED)
-FIND_PACKAGE(Boost COMPONENTS filesystem REQUIRED)
 
 include_directories(${PROTOBUF_INCLUDE_DIRS})
-include_directories(${Boost_INCLUDE_DIRS})
 
 add_library(dm STATIC
             guard.cpp

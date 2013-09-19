@@ -1,6 +1,3 @@
-FIND_PACKAGE(Boost 1.48.0 COMPONENTS system regex date_time REQUIRED)
-FIND_PACKAGE(Gflags     REQUIRED)
-FIND_PACKAGE(Glog       REQUIRED)
 FIND_PACKAGE(Cryptopp   REQUIRED)
 FIND_PACKAGE(Libjson REQUIRED)
 FIND_PACKAGE(Lua REQUIRED)
@@ -25,8 +22,6 @@ add_executable(client_app
 target_link_libraries(client_app
                              ${PROTOBUF_LIBRARIES}
                              ${Boost_LIBRARIES}
-                             ${Glog_LIBRARIES}
-                             ${Gflags_LIBRARIES}
                              ${Cryptopp_LIBRARIES}
                              ${Libjson_LIBRARIES}
                              comctl32
@@ -46,7 +41,7 @@ target_link_libraries(client_app
                              simulation
                              )
 
-FILE(TO_NATIVE_PATH ${Stonehearth_SOURCE_DIR} STAGE_SCRIPT)
+FILE(TO_NATIVE_PATH ${Stonehearth_SOURCE_DIR}/source STAGE_SCRIPT)
 add_custom_command(TARGET client_app
                    POST_BUILD
                    COMMAND ${STAGE_SCRIPT}\\stage.cmd $<CONFIGURATION> $<TARGET_FILE_DIR:client_app>)

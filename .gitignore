@@ -1,3 +1,5 @@
+local.mk
+
 # Compiled source #
 ###################
 *.com
@@ -46,6 +48,7 @@ Thumbs.db
 ##########
 build/
 *shdDump*.txt
+*~
 
 # Visual Studio files #
 #######################
