@@ -1,5 +1,5 @@
 
-BUILD_TYPE   ?= opt
+BUILD_TYPE   ?= debug
 
 ifeq ($(BUILD_TYPE), opt)
 	MSBUILD_CONFIGURATION=relwithdebinfo
