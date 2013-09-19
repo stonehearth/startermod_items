@@ -24,9 +24,6 @@ if (MSVC)
    set_source_files_properties(pch.cpp PROPERTIES COMPILE_FLAGS "/Ycpch.h")
 endif(MSVC)
 
-# also have to turn off /RTC1.  ug!
-#SET_SOURCE_FILES_PROPERTIES(simplexnoise1234.cpp PROPERTIES COMPILE_FLAGS -O2)
-
 target_link_libraries(simulation
                       resources
                       simulation_actions

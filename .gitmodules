@@ -16,9 +16,6 @@
 [submodule "modules/googletest"]
 	path = modules/googletest
 	url = https://github.com/radent/googletest.git
-[submodule "modules/libnoise"]
-	path = modules/libnoise
-	url = https://github.com/radent/libnoise.git
 [submodule "modules/libclaw"]
 	path = modules/libclaw
 	url = https://github.com/radent/libclaw.git
