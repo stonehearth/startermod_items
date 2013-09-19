@@ -9,6 +9,7 @@ local FilterFns = radiant.mods.require('/stonehearth_terrain/filter/filter_fns.l
 local Wavelet = radiant.mods.require('/stonehearth_terrain/wavelet/wavelet.lua')
 local WaveletFns = radiant.mods.require('/stonehearth_terrain/wavelet/wavelet_fns.lua')
 local EdgeDetailer = radiant.mods.require('/stonehearth_terrain/edge_detailer.lua')
+local TileInfo = radiant.mods.require('/stonehearth_terrain/tile_info.lua')
 local Timer = radiant.mods.require('/stonehearth_debugtools/timer.lua')
 
 -- Definitions
@@ -20,7 +21,8 @@ local Timer = radiant.mods.require('/stonehearth_debugtools/timer.lua')
 
 function TerrainGenerator:__init()
    local terrain_type, terrain_info
-   math.randomseed(3)
+
+   self.base_random_seed = 3
 
    self.zone_size = 256
    self.tile_size = 32
@@ -64,33 +66,42 @@ function TerrainGenerator:__init()
    self._edge_detailer = EdgeDetailer()
 end
 
+function TerrainGenerator:_set_random_seed(x, y)
+   local seed = self.base_random_seed
+   if x ~= nil and y ~= nil then 
+      seed = seed + y*10000 + x*100
+   end
+   math.randomseed(seed)
+end
+
 function TerrainGenerator:generate_zone(terrain_type, zones, x, y)
-   local zone_map, micro_map, noise_map
+   local zone_map, micro_map, noise_map, blend_map
    local noise_map = self.noise_map_buffer
    local oversize_map = self.oversize_map_buffer
+   local micro_width = oversize_map.width / self.tile_size
+   local micro_height = oversize_map.height / self.tile_size
+   local timer = Timer(Timer.CPU_TIME)
 
-   local total_timer = Timer(Timer.CPU_TIME)
-   local subset_timer = Timer(Timer.CPU_TIME)
-   total_timer:start()
+   if zones ~= nil then
+      radiant.log.info('Generating zone %d, %d', x, y)
+   end
+   self:_set_random_seed(x, y)
+   timer:start()
 
    noise_map.terrain_type = terrain_type
    oversize_map.terrain_type = terrain_type
 
-   self:_fill_noise_map(noise_map, zones, x, y)
-
-   -- propagate edge information from surrounding zones into current map
-   self:_copy_zone_context(noise_map, zones, x, y, true)
+   blend_map = self:_create_blend_map(micro_width, micro_height,
+      terrain_type, zones, x, y)
+   self:_fill_noise_map(noise_map, blend_map)
 
    -- micro_map must be a new HeightMap as it is returned from the function
    micro_map = self:_filter_and_quantize_noise_map(noise_map)
 
    -- force shared tiles to same value from adjacent zones
-   self:_copy_zone_context(micro_map, zones, x, y, false)
+   self:_copy_forced_edge_values(micro_map, zones, x, y)
 
    self:_postprocess_micro_map(micro_map)
-
-   --radiant.log.info('micro_map %d, %d:', x, y)
-   --micro_map:print()
 
    self:_create_macro_map_from_micro_map(oversize_map, micro_map)
 
@@ -98,7 +109,6 @@ function TerrainGenerator:generate_zone(terrain_type, zones, x, y)
    -- zone_map must be a new HeightMap as it is returned from the function
    zone_map = self:_extract_zone_map(oversize_map)
    
-   subset_timer:start()
    self:_shape_height_map(zone_map)
 
    -- enable non-uniform quantizer within a terrain type
@@ -106,237 +116,186 @@ function TerrainGenerator:generate_zone(terrain_type, zones, x, y)
    self:_quantize_height_map(zone_map, true)
    
    self._edge_detailer:add_detail_blocks(zone_map)
-   subset_timer:stop()
 
-   total_timer:stop()
-   --radiant.log.info('Zone generation time: %f', total_timer:seconds())
-   --radiant.log.info('Subset time: %f', subset_timer:seconds())
-   --radiant.log.info('Percent subset: %f', subset_timer:seconds()/total_timer:seconds())
+   timer:stop()
+   radiant.log.info('Zone generation time: %f', timer:seconds())
 
    return zone_map, micro_map
 end
 
-function TerrainGenerator:_fill_noise_map(noise_map, zones, x, y)
-   local terrain_info = self.terrain_info
+function TerrainGenerator:_create_blend_map(width, height, terrain_type, zones, x, y)
+   local i, j, adjacent_zone, tile
+   local terrain_mean = self.terrain_info[terrain_type].mean_height
+   local terrain_std_dev = self.terrain_info[terrain_type].std_dev
+   local blend_map = Array2D(width, height)
+   blend_map.terrain_type = terrain_type
+
+   -- default all tiles to the desired terrain_type for this zone
+   for j=1, height do
+      for i=1, width do
+         tile = TileInfo()
+         tile.mean = terrain_mean
+         tile.std_dev = terrain_std_dev
+         tile.mean_weight = 1
+         tile.std_dev_weight = 1
+         blend_map:set(i, j, tile)
+      end
+   end
+
+   if zones == nil then return blend_map end
+
+   -- blend values with left zone
+   adjacent_zone = self:_get_zone(zones, x-1, y)
+   self:_fill_blend_map(blend_map, adjacent_zone, height,      1,  1,  width, 1)
+
+   -- blend values with right zone
+   adjacent_zone = self:_get_zone(zones, x+1, y)
+   self:_fill_blend_map(blend_map, adjacent_zone, height,  width, -1,      1, 1)
+
+   -- blend values with top zone
+   adjacent_zone = self:_get_zone(zones, x, y-1)
+   self:_fill_blend_map(blend_map, adjacent_zone,  width,      1,  1, height, 2)
+
+   -- blend values with bottom zone
+   adjacent_zone = self:_get_zone(zones, x, y+1)
+   self:_fill_blend_map(blend_map, adjacent_zone,  width, height, -1,      1, 2)
+
+   -- avoid extreme values on corners by halving std_dev
+   _halve_tile_std_dev(blend_map:get(1, 1))
+   _halve_tile_std_dev(blend_map:get(width, 1))
+   _halve_tile_std_dev(blend_map:get(1,     height))
+   _halve_tile_std_dev(blend_map:get(width, height))
+
+   radiant.log.info('Blend map:')
+   _print_blend_map(blend_map)
+
+   return blend_map
+end
+
+function _halve_tile_std_dev(tile)
+   if tile.std_dev then tile.std_dev = tile.std_dev * 0.5 end
+end
+
+function _get_coords(x, y, orientation)
+   if orientation == 1 then return x, y
+   else                     return y, x end
+end
+
+function TerrainGenerator:_fill_blend_map(blend_map, adj_zone,
+   edge_length, edge_index, inc, adj_edge_index, orientation)
+   if adj_zone == nil then return end
+
+   local adj_terrain_type = adj_zone.terrain_type
+   local adj_mean = self.terrain_info[adj_terrain_type].mean_height
+   local adj_std_dev = self.terrain_info[adj_terrain_type].std_dev
+   local blend_tile
+   local cur_tile = TileInfo()
+   local i, edge_value, x, y
+
+   for i=1, edge_length do
+      -- row/column on edge
+      cur_tile:clear()
+      if adj_zone.generated then
+         -- force edge values since they are shared
+         x, y = _get_coords(adj_edge_index, i, orientation)
+         edge_value = adj_zone:get(x, y)
+         cur_tile.forced_value = edge_value
+      else
+         cur_tile.mean = adj_mean
+         cur_tile.std_dev = adj_std_dev
+         cur_tile.mean_weight = 3
+         cur_tile.std_dev_weight = 3
+      end
+      x, y = _get_coords(edge_index, i, orientation)
+      blend_map:get(x, y):blend_stats_from(cur_tile)
+
+      -- row/column next to edge
+      -- refactor this after we settle on weights
+      cur_tile:clear()
+      if adj_zone.generated then
+         cur_tile.mean = edge_value
+         cur_tile.std_dev = adj_std_dev
+         cur_tile.mean_weight = 1
+         cur_tile.std_dev_weight = 1
+      else
+         cur_tile.mean = adj_mean
+         cur_tile.std_dev = adj_std_dev
+         cur_tile.mean_weight = 1
+         cur_tile.std_dev_weight = 1
+      end
+      x, y = _get_coords(edge_index+inc, i, orientation)
+      blend_map:get(x, y):blend_stats_from(cur_tile)
+
+      -- row/column two from edge
+      -- refactor this after we settle on weights
+      cur_tile:clear()
+      if adj_zone.generated then
+         cur_tile.mean = edge_value
+         cur_tile.std_dev = adj_std_dev
+         cur_tile.mean_weight = 0.33
+         cur_tile.std_dev_weight = 0.33
+      else
+         cur_tile.mean = adj_mean
+         cur_tile.std_dev = adj_std_dev
+         cur_tile.mean_weight = 0.33
+         cur_tile.std_dev_weight = 0.33
+      end
+      x, y = _get_coords(edge_index+inc+inc, i, orientation)
+      blend_map:get(x, y):blend_stats_from(cur_tile)
+   end
+end
+
+function TerrainGenerator:_fill_noise_map(noise_map, blend_map)
    local width = noise_map.width
    local height = noise_map.height
-   local terrain_type = noise_map.terrain_type
-   local std_dev = terrain_info[terrain_type].std_dev
-   local mean_height = terrain_info[terrain_type].mean_height
+   local i, j, tile, value
 
-   noise_map:process_map(
-      function ()
-         return GaussianRandom.generate(mean_height, std_dev)
+   for j=1, height do
+      for i=1, width do
+         tile = blend_map:get(i, j)
+         if tile.forced_value then
+            value = tile.forced_value
+         else
+            value = GaussianRandom.generate(tile.mean, tile.std_dev)
+         end
+         noise_map:set(i, j, value)
       end
-   )
+   end
+end
 
+function TerrainGenerator:_copy_forced_edge_values(micro_map, zones, x, y)
    if zones == nil then return end
 
-   local left_terrain_type   = self:_get_terrain_type(zones, x-1, y)
-   local right_terrain_type  = self:_get_terrain_type(zones, x+1, y)
-   local top_terrain_type    = self:_get_terrain_type(zones, x,   y-1)
-   local bottom_terrain_type = self:_get_terrain_type(zones, x,   y+1)
-   local left_mean, right_mean, top_mean, bottom_mean, corner_mean
-   local i, offset, start, stop
+   local width = micro_map.width
+   local height = micro_map.height
+   local adj_map
 
-   if left_terrain_type   then left_mean   = terrain_info[left_terrain_type].mean_height   end
-   if right_terrain_type  then right_mean  = terrain_info[right_terrain_type].mean_height  end
-   if top_terrain_type    then top_mean    = terrain_info[top_terrain_type].mean_height    end
-   if bottom_terrain_type then bottom_mean = terrain_info[bottom_terrain_type].mean_height end
-
-   -- walk the four edges, but handle corners with multiple neighbors later
-   start, stop = self:_calc_edge_range(1, height, top_terrain_type, bottom_terrain_type)
-
-   if left_terrain_type then
-      for i=start, stop do
-         noise_map:set(1, i, left_mean)
-         --offset = noise_map:get_offset(1, i)
-         --noise_map[offset] = noise_map[offset] - mean_height + left_mean
-      end
+   -- left zone
+   adj_map = self:_get_generated_zone(zones, x-1, y)
+   if adj_map then
+      adj_map:copy_block(micro_map, adj_map, 1, 1, width, 1, 1, height)
    end
 
-   if right_terrain_type then
-      for i=start, stop do
-         noise_map:set(width, i, right_mean)
-         --offset = noise_map:get_offset(width, i)
-         --noise_map[offset] = noise_map[offset] - mean_height + right_mean
-      end
+   -- right zone
+   adj_map = self:_get_generated_zone(zones, x+1, y)
+   if adj_map then
+      adj_map:copy_block(micro_map, adj_map, width, 1, 1, 1, 1, height)
    end
 
-   start, stop = self:_calc_edge_range(1, width, left_terrain_type, right_terrain_type)
-
-   if top_terrain_type then
-      for i=start, stop do
-         noise_map:set(i, 1, top_mean)
-         --offset = noise_map:get_offset(i, 1)
-         --noise_map[offset] = noise_map[offset] - mean_height + top_mean
-      end
+   -- top zone
+   adj_map = self:_get_generated_zone(zones, x, y-1)
+   if adj_map then
+      adj_map:copy_block(micro_map, adj_map, 1, 1, 1, height, width, 1)
    end
 
-   if bottom_terrain_type then
-      for i=start, stop do
-         noise_map:set(i, height, bottom_mean)
-         --offset = noise_map:get_offset(i, height)
-         --noise_map[offset] = noise_map[offset] - mean_height + bottom_mean
-      end
-   end
-
-   -- handle corners with multiple bordering zones
-   local diagonal_terrain_type, diagonal_mean
-
-   if left_terrain_type then
-      if top_terrain_type then
-         diagonal_terrain_type = self:_get_terrain_type(zones, x-1, y-1)
-         diagonal_mean = terrain_info[diagonal_terrain_type].mean_height 
-         corner_mean = (left_mean + top_mean + diagonal_mean) * 0.333333333333333
-         noise_map:set(1, 1, corner_mean)
-         --offset = noise_map:get_offset(1, 1)
-         --noise_map[offset] = noise_map[offset] - mean_height + corner_mean
-      end
-      if bottom_terrain_type then
-         diagonal_terrain_type = self:_get_terrain_type(zones, x-1, y+1)
-         diagonal_mean = terrain_info[diagonal_terrain_type].mean_height 
-         corner_mean = (left_mean + bottom_mean + diagonal_mean) * 0.333333333333333
-         noise_map:set(1, height, corner_mean)
-         --offset = noise_map:get_offset(1, height)
-         --noise_map[offset] = noise_map[offset] - mean_height + corner_mean
-      end
-   end
-
-   if right_terrain_type then
-      if top_terrain_type then
-         diagonal_terrain_type = self:_get_terrain_type(zones, x+1, y-1)
-         diagonal_mean = terrain_info[diagonal_terrain_type].mean_height 
-         corner_mean = (right_mean + top_mean + diagonal_mean) * 0.333333333333333
-         noise_map:set(width, 1, corner_mean)
-         --offset = noise_map:get_offset(width, 1)
-         --noise_map[offset] = noise_map[offset] - mean_height + corner_mean
-      end
-      if bottom_terrain_type then
-         diagonal_terrain_type = self:_get_terrain_type(zones, x+1, y+1)
-         diagonal_mean = terrain_info[diagonal_terrain_type].mean_height 
-         corner_mean = (right_mean + bottom_mean + diagonal_mean) * 0.333333333333333
-         noise_map:set(width, height, corner_mean)
-         --offset = noise_map:get_offset(width, height)
-         --noise_map[offset] = noise_map[offset] - mean_height + corner_mean
-      end
-   end
-
-   -- these are corners with no defined neighbors
-   -- avoid extreme values on corners
-   -- this halves the standard deviation
-   if not left_terrain_type and not top_terrain_type then
-      offset = noise_map:get_offset(1, 1)
-      noise_map[offset] = (noise_map[offset] + mean_height) * 0.5
-   end
-
-   if not left_terrain_type and not bottom_terrain_type then
-      offset = noise_map:get_offset(1, height)
-      noise_map[offset] = (noise_map[offset] + mean_height) * 0.5
-   end
-
-   if not right_terrain_type and not top_terrain_type then
-      offset = noise_map:get_offset(width, 1)
-      noise_map[offset] = (noise_map[offset] + mean_height) * 0.5
-   end
-
-   if not right_terrain_type and not bottom_terrain_type then
-      offset = noise_map:get_offset(width, height)
-      noise_map[offset] = (noise_map[offset] + mean_height) * 0.5
+   -- bottom zone
+   adj_map = self:_get_generated_zone(zones, x, y+1)
+   if adj_map then
+      adj_map:copy_block(micro_map, adj_map, 1, height, 1, 1, width, 1)
    end
 end
 
-function TerrainGenerator:_calc_edge_range(start, stop, start_map, stop_map)
-   if start_map then start = start + 1 end
-   if stop_map then stop = stop - 1 end
-   return start, stop
-end
-
--- Note: double blends the inner corners when blend_rows is on. Not a big deal.
-function TerrainGenerator:_copy_zone_context(micro_map, zones, x, y, blend_rows)
-   if zones == nil then return end
-
-   local terrain_type = micro_map.terrain_type
-   local noise_mean = self.terrain_info[terrain_type].mean_height
-   local micro_width = micro_map.width
-   local micro_height = micro_map.height
-   local i, adjacent_map, offset, adj_val, noise_val, blend_val
-
-   adjacent_map = self:_get_existing_zone(zones, x-1, y)
-   if adjacent_map then
-      for i=1, micro_height do
-         -- copy right edge of adjacent to left edge of current
-         adj_val = adjacent_map:get(micro_width, i)
-         micro_map:set(1, i, adj_val)
-
-         if (blend_rows) then
-            offset = micro_map:get_offset(2, i)
-            noise_val = micro_map[offset]
-            blend_val = self:_calc_blended_edge_value(adj_val, noise_val, noise_mean)
-            micro_map[offset] = blend_val
-         end
-      end
-   end
-
-   adjacent_map = self:_get_existing_zone(zones, x+1, y)
-   if adjacent_map then
-      for i=1, micro_height do
-         -- copy left edge of adjacent to right edge of current
-         adj_val = adjacent_map:get(1, i)
-         micro_map:set(micro_width, i, adj_val)
-
-         if (blend_rows) then
-            offset = micro_map:get_offset(micro_width-1, i)
-            noise_val = micro_map[offset]
-            blend_val = self:_calc_blended_edge_value(adj_val, noise_val, noise_mean)
-            micro_map[offset] = blend_val
-         end
-      end
-   end
-
-   adjacent_map = self:_get_existing_zone(zones, x, y-1)
-   if adjacent_map then
-      for i=1, micro_width do
-         -- copy bottom edge of adjacent to top edge of current
-         adj_val = adjacent_map:get(i, micro_height)
-         micro_map:set(i, 1, adj_val)
-
-         if (blend_rows) then
-            offset = micro_map:get_offset(i, 2)
-            noise_val = micro_map[offset]
-            blend_val = self:_calc_blended_edge_value(adj_val, noise_val, noise_mean)
-            micro_map[offset] = blend_val
-         end
-      end
-   end
-
-   adjacent_map = self:_get_existing_zone(zones, x, y+1)
-   if adjacent_map then
-      for i=1, micro_width do
-         -- copy top edge of adjacent to bottom edge of current
-         adj_val = adjacent_map:get(i, 1)
-         micro_map:set(i, micro_height, adj_val)
-
-         if (blend_rows) then
-            offset = micro_map:get_offset(i, micro_height-1)
-            noise_val = micro_map[offset]
-            blend_val = self:_calc_blended_edge_value(adj_val, noise_val, noise_mean)
-            micro_map[offset] = blend_val
-         end
-      end
-   end
-end
-
-function TerrainGenerator:_calc_blended_edge_value(adj_val, noise_val, noise_mean)
-   -- extract the AC component and add to the DC mean
-   -- equivalent to:
-   -- return (noise_val-noise_mean) + (adj_val+noise_mean)/2
-   --return noise_val + (adj_val-noise_mean)*0.5
-   return noise_val - noise_mean + adj_val
-   --return adj_val
-end
-
-function TerrainGenerator:_get_zone_proxy(zones, x, y)
+function TerrainGenerator:_get_zone(zones, x, y)
    if x < 1 then return nil end
    if y < 1 then return nil end
    if x > zones.width then return nil end
@@ -344,15 +303,15 @@ function TerrainGenerator:_get_zone_proxy(zones, x, y)
    return zones:get(x, y)
 end
 
-function TerrainGenerator:_get_existing_zone(zones, x, y)
-   local zone = self:_get_zone_proxy(zones, x, y)
+function TerrainGenerator:_get_generated_zone(zones, x, y)
+   local zone = self:_get_zone(zones, x, y)
    if zone == nil then return nil end
    if not zone.generated then return nil end
    return zone
 end
 
 function TerrainGenerator:_get_terrain_type(zones, x, y)
-   local zone = self:_get_zone_proxy(zones, x, y)
+   local zone = self:_get_zone(zones, x, y)
    if zone == nil then return nil end
    return zone.terrain_type
 end
@@ -528,6 +487,25 @@ function TerrainGenerator:_get_step_size(terrain_type, value)
       return terrain_info[TerrainType.Plains].step_size
    else
       return terrain_info[TerrainType.Foothills].step_size
+   end
+end
+
+function _print_blend_map(blend_map)
+   local i, j, tile, str
+
+   for j=1, blend_map.height do
+      str = ''
+      for i=1, blend_map.width do
+         tile = blend_map:get(i, j)
+         if tile == nil then
+            str = str .. '   nil    '
+         elseif tile.forced_value then
+            str = str .. '  forced  '
+         else
+            str = str .. ' ' .. string.format('%4.1f/%4.1f' , tile.mean, tile.std_dev)
+         end
+      end
+      radiant.log.info(str)
    end
 end
 
