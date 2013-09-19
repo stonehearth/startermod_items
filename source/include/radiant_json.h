@@ -98,10 +98,6 @@ namespace radiant {
          ConstJsonObject getn(std::string const& name) const {
             return ConstJsonObject(get<JSONNode>(name));
          }
-         ConstJsonObject getn(unsigned int i) const {
-            return ConstJsonObject(get<JSONNode>(i));
-         }
-
          ConstJsonObject getn(unsigned int index) const {
             return ConstJsonObject(get<JSONNode>(index));
          }

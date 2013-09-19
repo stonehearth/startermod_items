@@ -13,18 +13,7 @@ object Client_TraceObject(lua_State* L, std::string const& uri, const char* reas
 {
    rpc::ReactorDeferredPtr d = Client::GetInstance().TraceObject(uri, reason);
    if (d) {
-      rpc::LuaDeferredPtr result = std::make_shared<rpc::LuaDeferred>(BUILD_STRING(uri << " trace"));
-      lua::ScriptHost* sh = lua::ScriptHost::GetScriptHost(L);
-
-      d->Progress([sh, result](JSONNode const& n) {
-         result->Notify(sh->JsonToLua(n));
-      });
-      d->Done([sh, result, d](JSONNode const& n) {
-         result->Resolve(sh->JsonToLua(n));
-      });
-      d->Fail([sh, result, d](JSONNode const& n) {
-         result->Reject(sh->JsonToLua(n));
-      });
+      rpc::LuaDeferredPtr result = rpc::LuaDeferred::Wrap(L, BUILD_STRING(uri << " trace"), d);
       return object(L, result);
    }
    return object();

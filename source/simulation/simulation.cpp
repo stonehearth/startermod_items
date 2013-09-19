@@ -85,7 +85,7 @@ Simulation::Simulation() :
    });
 
    // routers...
-   rpc::LuaRouterPtr lua_router = std::make_shared<rpc::LuaRouter>(*scriptHost_, "server");
+   rpc::LuaRouterPtr lua_router = std::make_shared<rpc::LuaRouter>(scriptHost_->GetCallbackThread(), "server");
    core_reactor_->AddRouter(lua_router);
 
    trace_router_ = std::make_shared<rpc::TraceObjectRouter>(GetStore());
@@ -175,7 +175,7 @@ void Simulation::CreateNew()
       lua::RegisterBasicTypes(L);
       lua::sim::open(L);
       lua::res::open(L);
-      lua::rpc::open(L);
+      lua::rpc::open(L, core_reactor_);
       lua::om::register_json_to_lua_objects(L, store_);
       om::RegisterObjectTypes(store_);
 

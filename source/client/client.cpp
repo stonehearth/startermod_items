@@ -33,6 +33,7 @@
 #include "lib/rpc/http_reactor.h"
 #include "lib/rpc/reactor_deferred.h"
 #include "lib/rpc/protobuf_router.h"
+#include "lib/rpc/lua_router.h"
 #include "lib/rpc/trace_object_router.h"
 #include "lib/rpc/http_deferred.h" // xxx: does not belong in rpc!
 #include "lua/client/open.h"
@@ -83,6 +84,9 @@ Client::Client() :
    http_reactor_ = std::make_shared<rpc::HttpReactor>(*core_reactor_);
 
    // Routers...
+   rpc::LuaRouterPtr lua_router = std::make_shared<rpc::LuaRouter>(scriptHost_->GetCallbackThread(), "client");
+   core_reactor_->AddRouter(lua_router);
+
    rpc::TraceObjectRouterPtr trace_router = std::make_shared<rpc::TraceObjectRouter>(GetStore());
    core_reactor_->AddRouter(trace_router);
 
@@ -193,6 +197,9 @@ void Client::run()
    authoringStore_.SetInterpreter(L); // xxx move to dm open or something
    lua::om::register_json_to_lua_objects(L, store_);
    lua::om::register_json_to_lua_objects(L, authoringStore_);
+   lua::client::open(L);
+   lua::rpc::open(L, core_reactor_);
+
 
    luabind::globals(L)["_client"] = luabind::object(L, this);
 
@@ -900,14 +907,16 @@ void Client::ProcessBrowserJobQueue()
    browserJobQueue_.clear();
 }
 
+rpc::ReactorDeferredPtr Client::TraceObject(std::string const& uri, const char* reason)
+{
+   return core_reactor_->InstallTrace(rpc::Trace(uri));
+}
 
 void client::RegisterLuaTypes(lua_State* L)
 {
    LuaRenderer::RegisterType(L);
    LuaRenderEntity::RegisterType(L);
    Client::RegisterLuaTypes(L);
-   lua::client::open(L);
-   lua::rpc::open(L);
 }
 
 MouseEventPromisePtr MouseEventPromise_OnMouseEvent(MouseEventPromisePtr me, luabind::object cb)

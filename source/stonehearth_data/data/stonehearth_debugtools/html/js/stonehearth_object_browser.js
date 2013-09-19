@@ -56,7 +56,7 @@ App.StonehearthObjectBrowserView = App.View.extend({
          self.trace.destroy();
       }
 
-      self.trace = radiant.object.trace(uri)
+      self.trace = radiant.trace(uri)
          .progress(function(json) {
             self.set('context.loading', false);
             self.set('context.objectHtml', self.formatJson(json));

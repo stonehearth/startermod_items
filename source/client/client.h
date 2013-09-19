@@ -65,7 +65,7 @@ class Client : public core::Singleton<Client> {
       Physics::OctTree& GetOctTree() const { return *octtree_; }
 
       void SetCursor(std::string name);            
-
+      rpc::ReactorDeferredPtr TraceObject(std::string const& uri, const char* reason);
    private:
       typedef std::function<void()>  CommandFn;
       typedef std::function<void(std::vector<om::Selection>)> CommandMapperFn;

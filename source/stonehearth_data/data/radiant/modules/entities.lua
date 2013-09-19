@@ -50,12 +50,12 @@ function entities.create_entity(arg1, arg2)
       local entity_ref = arg1 -- something like 'entity(stonehearth, wooden_sword)'
       assert(entity_ref:sub(1, 7) == 'entity(')
       --radiant.log.info('creating entity %s', entity_ref)
-      return native:create_entity_by_ref(entity_ref)
+      return _radiant.sim.create_entity_by_ref(entity_ref)
    end
    local mod_name = arg1 -- 'stonehearth'
    local entity_name = arg2 -- 'wooden_sword'
    --radiant.log.info('creating entity %s, %s', mod_name, entity_name)
-   return native:create_entity(mod_name, entity_name)
+   return _radiant.sim.create_entity(mod_name, entity_name)
 end
 
 function entities.destroy_entity(entity)
@@ -231,6 +231,75 @@ function entities.set_display_name(entity, name)
    --radiant.check.is_a(component, UnitInfo)
 
    component:set_display_name(name)
+end
+
+--[[
+   Tell the entity (a mob, probably) to pick up the item
+   entity: probably a mob
+   item: the thing to pick up
+]]
+function entities.pickup_item(entity, item, parent)
+   radiant.check.is_entity(entity)
+   radiant.check.is_entity(item)
+
+   local carry_block = entity:get_component('carry_block')
+   radiant.check.verify(carry_block ~= nil)
+
+   if item then
+      if not parent then
+         parent = radiant._root_entity
+      end
+      entities.remove_child(parent, item)
+      carry_block:set_carrying(item)
+      entities.move_to(item, Point3(0, 0, 0))
+   else
+      carry_block:set_carrying(nil)
+   end
+end
+
+--[[
+   Tell the entity (a mob, probably) to drop
+   whatever it's carrying at a certain location
+   TODO: doesn't the target location have to match the put down animation? Revisit
+   entity: probably a mob
+   location: the place where we want to put the item
+]]
+function entities.drop_carrying(entity, location)
+   radiant.check.is_entity(entity)
+   radiant.check.is_a(location, Point3)
+
+   local carry_block = entity:get_component('carry_block')
+   if carry_block then
+      local item = carry_block:get_carrying()
+      if item then
+         local loc = radiant.entities.get_world_grid_location(item)
+         carry_block:set_carrying(nil)
+         radiant.terrain.place_entity(item, location)
+      end
+   end
+end
+
+
+--[[
+   Checks if an entity is next to a location, updated
+   to use get_world_grid location.
+   TODO: Still relevant with Tony's pathfinder?
+   entity: the entity to check
+   location: the target location
+   returns: true if the entity is adjacent to the specified ocation
+]]
+function entities.is_adjacent_to(entity, location)
+   --TODO: can I blow away these comments?
+   -- xxx: this style doesn't work until we fix util:is_a().
+   --local point_a = util:is_a(arg1, Entity) and singleton.get_world_grid_location(arg1) or arg1
+   --local point_b = util:is_a(arg2, Entity) and singleton.get_world_grid_location(arg2) or arg2
+   --local point_a = singleton.get_world_grid_location(entity)
+   local point_a = entities.get_world_grid_location(entity)
+   local point_b = location
+
+   radiant.check.is_a(point_a, Point3)
+   radiant.check.is_a(point_b, Point3)
+   return point_a:is_adjacent_to(point_b)
 end
 
 entities.__init()

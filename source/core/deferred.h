@@ -31,6 +31,8 @@ public:
       return os.str();
    }
 
+   std::string GetDebugStr() const { return dbg_name_; }
+
 protected:
    typedef int DeferredId;
    static std::atomic<DeferredId> next_deferred_id_;

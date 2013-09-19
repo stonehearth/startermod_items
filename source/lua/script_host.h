@@ -60,6 +60,7 @@ public: // the static interface
    static luabind::object Require(lua_State* L, std::string const& path) { return GetScriptHost(L)->Require(path); }
    static luabind::object RequireScript(lua_State* L, std::string const& path) { return GetScriptHost(L)->RequireScript(path); }
    static luabind::object JsonToLua(lua_State* L, JSONNode const& json) { return GetScriptHost(L)->JsonToLua(json); }
+   static std::string LuaToJson(lua_State* L, luabind::object obj) { return GetScriptHost(L)->LuaToJson(obj); }
 
 private:
    static void* LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize);

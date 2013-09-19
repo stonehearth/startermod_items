@@ -1,4 +1,5 @@
 #include "pch.h"
+#include <stdexcept>
 #include "script_host.h"
 #include "client/renderer/render_entity.h"
 
@@ -269,9 +270,9 @@ luabind::object ScriptHost::Require(std::string const& s)
    std::string path, name;
    std::ostringstream script;
 
-   ASSERT(!boost::ends_with(s, ".lua"));
-   ASSERT(s.find('/') == std::string::npos);
-   ASSERT(s.find('\\') == std::string::npos);
+   if (boost::ends_with(s, ".lua") || s.find('/') != std::string::npos || s.find('\\') != std::string::npos) {
+      throw std::logic_error(BUILD_STRING("invalid path in require: " << s));
+   }
 
    std::vector<std::string> parts;
    boost::split(parts, s, boost::is_any_of("."));

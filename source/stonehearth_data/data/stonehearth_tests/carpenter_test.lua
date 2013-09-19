@@ -1,5 +1,5 @@
 local MicroWorld = require 'lib.micro_world'
---local CraftOrder = radiant.mods.require('/stonehearth_crafter/lib/craft_order.lua')
+--local CraftOrder = radiant.mods.require('stonehearth_crafter.lib.craft_order')
 local Point3 = _radiant.csg.Point3
 
 local CarpenterTest = class(MicroWorld)

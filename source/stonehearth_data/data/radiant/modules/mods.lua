@@ -4,6 +4,10 @@ function mods.__init()
 end
 
 function mods.require(s)
+   return _host:require(s)
+end
+
+function mods.load_script(s)
    return _host:require_script(s)
 end
 

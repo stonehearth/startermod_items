@@ -10,7 +10,7 @@ console.log('loading events...');
          return;
 
          var self = this;
-         radiant.object.call('radiant.get_events')
+         radiant.call('radiant.get_events')
             .done(function (data) {
                $.each(data, function (_, o) {
                   $(top).trigger('radiant.events.*', o);
