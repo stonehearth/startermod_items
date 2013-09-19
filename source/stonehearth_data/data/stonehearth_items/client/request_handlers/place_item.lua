@@ -22,6 +22,9 @@ function PlaceItem:handle_request(query, postdata, response)
 
    radiant.log.info("created render entity")
 
+   -- set self._curr_rotation to 0, since there has been no rotation for this object yet
+   self._curr_rotation = 0
+
    -- at this point we could manipulate re to change the way the cursor gets
    -- rendered (e.g. transparent)...
 
@@ -51,6 +54,15 @@ function PlaceItem:_on_mouse_event(e, proxy_id, response)
    -- if the mouse button just transitioned to up and we're actually pointing
    -- to a box on the terrain, send a message to the server to create the
    -- entity.  this is done by posting to the correct route.
+   
+   --test for mouse right-click
+   if e:up(2) and s.location then
+      radiant.log.info('Pressed right click')
+      self._curr_rotation = self._curr_rotation + 90
+      self._curr_rotation = self._curr_rotation % 360
+      self._cursor_entity:add_component('mob'):turn_to(self._curr_rotation + 180)
+   end
+   
    if e:up(1) and s.location then
       -- destroy our capture object to release the mouse back to the client.  don't
       -- destroy the authoring object yet!  doing so now will result in a brief period
@@ -58,13 +70,10 @@ function PlaceItem:_on_mouse_event(e, proxy_id, response)
       -- authoring object has been destroyed.  that leads to flicker, which is ugly.
       self._capture:destroy()
 
-      radiant.log.info('about to call server!!!')
-      --'/stonehearth_carpenter_class/entities/carpenter_workbench'
-
       -- pass "" for the function name so the deafult (handle_request) is
       -- called.  this will return a Deferred object which we can use to track
       -- the call's progress
-      _client:call('/modules/server/stonehearth_items/place_item_server', "", { proxy_id = proxy_id, location = pt })
+      _client:call('/modules/server/stonehearth_items/place_item_server', "", { proxy_id = proxy_id, location = pt, curr_rotation = self._curr_rotation + 180 })
                :always(function ()
                      -- whether the request succeeds or fails, go ahead and destroy
                      -- the authoring entity.  do it after the request returns to avoid

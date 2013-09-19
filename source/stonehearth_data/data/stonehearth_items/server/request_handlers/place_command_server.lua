@@ -16,6 +16,7 @@ function PlaceItemServer:handle_request(session, postdata)
 
 
    local item_entity = proxy_entity:get_component('stonehearth_items:placeable_item_proxy'):get_full_sized_entity()
+   radiant.entities.turn_to(item_entity, postdata.curr_rotation)
 
    -- Remove the icon (TODO: what about stacked icons? Remove just one of the stack?)
    radiant.terrain.remove_entity(proxy_entity)
