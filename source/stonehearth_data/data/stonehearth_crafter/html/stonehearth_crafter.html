@@ -84,8 +84,9 @@
                   <nobr>
                   {{#each model.ingredients}}
                      <div class="ingredientSocket">
-                        <img {{bindAttr src="socket_background"}}>
-                        <span class="count">{{count}}</span>
+                        <div class="selectionNeeded"></div>
+                        <img {{bindAttr src="socket_background"}} />
+                        <div class="count">{{count}}</div>
                      </div>
                   {{/each}}
                   </nobr>

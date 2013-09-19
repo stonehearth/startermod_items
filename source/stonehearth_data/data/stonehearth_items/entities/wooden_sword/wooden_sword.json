@@ -1,6 +1,6 @@
 {
-   "extends": "entity(stonehearth_items, item_properties)", 
-   "type": "entity", 
+   "extends": "entity(stonehearth_items, item_properties)",
+   "type": "entity",
    "components": {
       "model_variants": [
          {
@@ -8,10 +8,11 @@
                "file(wooden_sword.qb)"
             ]
          }
-      ], 
+      ],
       "unit_info": {
-         "name": "Wooden Sword", 
-         "description": "Notched from many smites."
+         "name": "Wooden Sword",
+         "description": "Notched from many smites.",
+         "icon" : "file(wooden_sword.png)"
       }
    }
 }

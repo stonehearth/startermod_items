@@ -27,8 +27,6 @@ App.StonehearthModalOverlayView = App.View.extend({
 
    didInsertElement: function() {
       radiant.keyboard.setFocus(this.modalView);
-      $("#modalOverlay")
-         .animate({ opacity: 0.5 }, {duration: 300, easing: 'easeInQuad'});
    },
 
    actions: {

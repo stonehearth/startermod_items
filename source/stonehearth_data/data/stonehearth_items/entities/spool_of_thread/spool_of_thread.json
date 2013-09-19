@@ -1,6 +1,6 @@
 {
-   "extends": "entity(stonehearth_items, item_properties)", 
-   "type": "entity", 
+   "extends": "entity(stonehearth_items, item_properties)",
+   "type": "entity",
    "components": {
       "model_variants": [
          {
@@ -8,10 +8,16 @@
                "file(../default_object/default_object.qb)"
             ]
          }
-      ], 
+      ],
       "unit_info": {
-         "name": "Spool of Thread", 
-         "description": "Nobody would ever think this started with a sheep. Or a plant."
+         "name": "Spool of Thread",
+         "description": "Nobody would ever think this started with a sheep. Or a plant.",
+         "icon" : "file(spool_of_thread.png)"
+
+      },
+      "item" : {
+         "identifier": "spool_of_thread",
+         "category" : "tools_and_goods"
       }
    }
 }

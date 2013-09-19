@@ -260,22 +260,17 @@ private:
                                                const std::vector<std::pair<float, float> > &curve2)
    {
       std::vector<float> result;
-
-      if (curve1.size() == 0) 
-      {
-         if (curve2.size() == 0) 
-         {
-            return result;
-         }
-         //result.insert(result.end(), curve2.begin(), curve2.end());
-         return result;
-      } else if (curve2.size() == 0) {
-         //result.insert(result.end(), curve1.begin(), curve1.end());
-         return result;
-      }
-
       std::pair<float, float> v1;
       std::pair<float, float> v2;
+
+      if (curve1.size() == 0)
+      {
+         v1 = std::pair<float, float>(-1.0f, -1.0f);
+      }
+      if (curve2.size() == 0)
+      {
+         v2 = std::pair<float, float>(-1.0f, -1.0f);
+      }
       unsigned int i1 = 0, i2 = 0;
 
       while (i1 < curve1.size() || i2 < curve2.size()) 
@@ -306,11 +301,11 @@ private:
       return result;
    }
 
-
    const std::vector<std::pair<float, float> > _topValues;
    const std::vector<std::pair<float, float> > _bottomValues;
-   std::vector<std::pair<float, float> > _randomValues;
    const std::vector<float> _times;
+
+   std::vector<std::pair<float, float> > _randomValues;
 };
 
 END_RADIANT_HORDE3D_NAMESPACE

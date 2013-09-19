@@ -973,7 +973,8 @@ void Renderer::updateShadowMap()
 		RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
 	for( size_t j = 0, s = Modules::sceneMan().getRenderableQueue().size(); j < s; ++j )
 	{
-		aabb.makeUnion( Modules::sceneMan().getRenderableQueue()[j].node->getBBox() ); 
+      SceneNode* n = Modules::sceneMan().getRenderableQueue()[j].node;
+		aabb.makeUnion( n->getBBox() ); 
 	}
 
 	// Find depth range of lit geometry
@@ -1034,30 +1035,37 @@ void Renderer::updateShadowMap()
 		
 		// Get light projection matrix
 		Matrix4f lightProjMat;
+      Matrix4f lightViewMat = _curLight->getViewMat();
       if ( !_curLight->_directional ) {
 		   float ymax = _curCamera->_frustNear * tanf( degToRad( _curLight->_fov / 2 ) );
 		   float xmax = ymax * 1.0f;  // ymax * aspect
          lightProjMat = Matrix4f::PerspectiveMat(-xmax, xmax, -ymax, ymax, _curCamera->_frustNear, _curLight->_radius );
 
 		   // Build optimized light projection matrix
-		   Matrix4f lightViewProjMat = lightProjMat * _curLight->getViewMat();
+		   Matrix4f lightViewProjMat = lightProjMat * lightViewMat;
 		   lightProjMat = calcCropMatrix( frustum, _curLight->_absPos, lightViewProjMat ) * lightProjMat;
       } else {
+         Vec3f lightOrigin = Vec3f((aabb.min.x + aabb.max.x) / 2.0f, (aabb.min.y + aabb.max.y) / 2.0f, (aabb.min.z + aabb.max.z) / 2.0f);
+         lightViewMat = Matrix4f(_curLight->getViewMat());
+         lightViewMat.x[12] = lightOrigin.x;
+         lightViewMat.x[13] = lightOrigin.y;
+         lightViewMat.x[14] = lightOrigin.z;
+
          Vec3f min, max;
-         min = max = _curLight->getViewMat() * aabb.getCorner(0);
+         min = max = lightViewMat * aabb.getCorner(0);
 	      for( uint32 i = 1; i < 8; ++i ) {
-            Vec3f pt = _curLight->getViewMat() * aabb.getCorner(i);
+            Vec3f pt = lightViewMat * aabb.getCorner(i);
             for (int j = 0; j < 3; j++) {
                min[j] = std::min(min[j], pt[j]);
                max[j] = std::max(max[j], pt[j]);
             }
 	      }
-         //lightProjMat = Matrix4f::OrthoMat(-100000, 100000, -100000, 100000, _curCamera->_frustNear, _curCamera->_frustFar );
-         lightProjMat = Matrix4f::OrthoMat(min.x, max.x, min.y, max.y, min.z, max.z);
+
+         lightProjMat = Matrix4f::OrthoMat(min.x, max.x, min.y, max.y, -max.z, -min.z);
       }
 	
 		// Generate render queue with shadow casters for current slice
-		frustum.buildViewFrustum( _curLight->getViewMat(), lightProjMat );
+		frustum.buildViewFrustum( lightViewMat, lightProjMat );
 		Modules::sceneMan().updateQueues("rendering shadowmap", frustum, 0x0, RenderingOrder::None,
 			SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
 		
@@ -1076,8 +1084,8 @@ void Renderer::updateShadowMap()
 			gRDI->setScissorRect( scissorXY[i * 2], scissorXY[i * 2 + 1], hsm, hsm );
 		}
 	
-		_lightMats[i] = lightProjMat * _curLight->getViewMat();
-		setupViewMatrices( _curLight->getViewMat(), lightProjMat );
+      _lightMats[i] = lightProjMat * lightViewMat;
+		setupViewMatrices( lightViewMat, lightProjMat );
 		
 		// Render
 		drawRenderables( _curLight->_shadowContext, "", false, &frustum, 0x0, RenderingOrder::None, -1 );

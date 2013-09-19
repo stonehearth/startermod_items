@@ -16,7 +16,7 @@ App.StonehearthMainActionbarView = App.View.extend({
    templateName: 'stonehearthMainActionbar',
 
    components: {
-      
+
    },
 
    init: function() {
@@ -29,7 +29,7 @@ App.StonehearthMainActionbarView = App.View.extend({
       stonehearthMainActionbarElement = element;
 
       var imagePath = '/stonehearth_main_actionbar/html/images/'
-      element.boxmenu( { 
+      element.boxmenu( {
          menu: {
             build: {
                name: 'Build',
@@ -65,6 +65,14 @@ App.StonehearthMainActionbarView = App.View.extend({
                      name: 'Building',
                      icon: imagePath + 'building.png',
                      hotkey: 'b'
+                  },
+                  placement: {
+                     name: 'Place Item',
+                     icon: imagePath + 'place_item.png',
+                     hotkey: 'p',
+                     click: function () {
+                        $(top).trigger('placement_menu.radiant');
+                     }
                   }
                }
             },

@@ -1,0 +1,48 @@
+#itemPicker {
+
+   position: absolute;
+   right: 95px;
+   bottom: -1000px;
+   min-height: 100px;
+   max-height: 700px;
+   width: 450px;
+
+   background: #2870b2;
+   background-clip: padding-box;
+   border-width: 20px 20px 25px 20px;
+   border-image: url(/stonehearth/html/css/images/blueprint/bg.png) 20 20 25 20 repeat;
+
+   .pickerGrid {
+
+      .pickable_item {
+         width: 70px;
+         height: 85px;
+         float: left;
+         margin-left: 15px;
+
+         .pickable_image {
+            width: 70px;
+            height: auto;
+            position: relative;
+            top: -15px;
+         }
+
+         .num_pickable {
+            position: relative;
+            left: 60px;
+            top: 55px;
+            z-index: 4;
+            .controlFont;
+            color: white;
+         }
+      }
+
+      .placementDiv {
+         margin-top: 40px;
+         text-align: center;
+      }
+   }
+
+
+
+}

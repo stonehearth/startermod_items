@@ -245,6 +245,11 @@ ParticleData CubemitterResource::parseParticle(ConstJsonObject& n)
    {
       result.rotation = parseRotation(n.getn("rotation"));
    }
+
+   if (n.has("velocity"))
+   {
+      result.velocity = parseVelocity(n.getn("velocity"));
+   }
    return result;
 }
 
@@ -266,6 +271,15 @@ SpeedData CubemitterResource::parseSpeed(ConstJsonObject& n)
 RotationData CubemitterResource::parseRotation(ConstJsonObject& n)
 {
    RotationData result;
+   result.over_lifetime_x = parseChannel(n, "over_lifetime_x", 0.0f);
+   result.over_lifetime_y = parseChannel(n, "over_lifetime_y", 0.0f);
+   result.over_lifetime_z = parseChannel(n, "over_lifetime_z", 0.0f);
+   return result;
+}
+
+VelocityData CubemitterResource::parseVelocity(ConstJsonObject& n)
+{
+   VelocityData result;
    result.over_lifetime_x = parseChannel(n, "over_lifetime_x", 0.0f);
    result.over_lifetime_y = parseChannel(n, "over_lifetime_y", 0.0f);
    result.over_lifetime_z = parseChannel(n, "over_lifetime_z", 0.0f);
@@ -338,6 +352,9 @@ CubemitterNode::CubemitterNode( const CubemitterNodeTpl &emitterTpl ) :
       _cubes[i].rotation_x = nullptr;
       _cubes[i].rotation_y = nullptr;
       _cubes[i].rotation_z = nullptr;
+      _cubes[i].velocity_x = nullptr;
+      _cubes[i].velocity_y = nullptr;
+      _cubes[i].velocity_z = nullptr;
    }
 }
 
@@ -406,21 +423,18 @@ float randomF( float min, float max )
 }
 
 
-Vec3f randomV ( const Vec3f &min, const Vec3f &max ) {
-   Vec3f result;
-   result.x = randomF(min.x, max.x);
-   result.y = randomF(min.y, max.y);
-   result.z = randomF(min.z, max.z);
-
-   return result;
-}
-
-
 void CubemitterNode::advanceTime( float timeDelta )
 {
-	_timeDelta += timeDelta;
+   _curEmitterTime += timeDelta;
+   if (_curEmitterTime > _emitterDuration) {
+      _curEmitterTime -= _emitterDuration;
+   }
 
-	markDirty();
+   if (_wasVisible)
+   {
+	   _timeDelta += timeDelta;
+   	markDirty();
+   }
 }
 
 
@@ -460,7 +474,7 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
       if( entry.type != SNT_CubemitterNode ) continue; 
 		
 		CubemitterNode *emitter = (CubemitterNode *)entry.node;
-		
+
 		/*if( emitter->_particleCount == 0 ) continue;
 		if( !emitter->_materialRes->isOfClass( theClass ) ) continue;
 		
@@ -492,6 +506,7 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 					{
 						Modules::renderer().pushOccProxy( 0, emitter->getBBox().min,
 							emitter->getBBox().max, emitter->_occQueries[occSet] );
+                  _wasVisible = false;
 						continue;
 					}
 					else
@@ -526,8 +541,8 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
       gRDI->updateBufferData(emitter->_attributeBuf, 0, sizeof(CubeAttribute) * emitter->_maxCubes, emitter->_attributesBuff);
       gRDI->setVertexBuffer(1, emitter->_attributeBuf, 0, sizeof(CubeAttribute));
       gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, 36, 0, emitter->_maxCubes);
-
-
+      
+      emitter->_wasVisible = true;
 
 		/*if( queryObj )
 			gRDI->endQuery( queryObj );*/
@@ -535,7 +550,8 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 
 	timer->endQuery();
 
-	// Draw occlusion proxies
+
+   // Draw occlusion proxies
 	//if( occSet >= 0 )
 	//	Modules::renderer().drawOccProxies( 0 );
 	
@@ -544,7 +560,7 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 
 void CubemitterNode::onPostUpdate()
 {	
-	if( _timeDelta <= 0 /*|| _effectRes == 0x0*/ ) return;
+   if( _timeDelta <= 0 || !_wasVisible /*|| _effectRes == 0x0*/ ) return;
 	
 	Timer *timer = Modules::stats().getTimer( EngineStats::ParticleSimTime );
 	if( Modules::config().gatherTimeStats ) timer->setEnabled( true );
@@ -573,11 +589,9 @@ void CubemitterNode::onPostUpdate()
    
    updateAndSpawnCubes(numberToSpawn);
    
-   _curEmitterTime += _timeDelta;
-   if (_curEmitterTime > _emitterDuration) {
-      _curEmitterTime -= _emitterDuration;
-   }
    _timeDelta = 0.0f;
+
+   timer->setEnabled(false);
 }
 
 void CubemitterNode::updateAndSpawnCubes(int numToSpawn) 
@@ -683,6 +697,23 @@ void CubemitterNode::spawnCube(CubeData &d, CubeAttribute &ca)
    d.rotation_y = data.particle.rotation.over_lifetime_y->clone();
    d.rotation_z = data.particle.rotation.over_lifetime_z->clone();
 
+   if (d.velocity_x != nullptr)
+   {
+      delete d.velocity_x;
+   }
+   if (d.velocity_y != nullptr)
+   {
+      delete d.velocity_y;
+   }
+   if (d.velocity_z != nullptr)
+   {
+      delete d.velocity_z;
+   }
+
+   d.velocity_x = data.particle.velocity.over_lifetime_x->clone();
+   d.velocity_y = data.particle.velocity.over_lifetime_y->clone();
+   d.velocity_z = data.particle.velocity.over_lifetime_z->clone();
+
    ca.matrix = Matrix4f::TransMat(d.position.x, d.position.y, d.position.z);
    ca.matrix.scale(d.startScale, d.startScale, d.startScale);
    ca.color = d.currentColor;
@@ -700,6 +731,10 @@ void CubemitterNode::updateCube(CubeData &d, CubeAttribute &ca)
    float fr = 1.0f - (d.currentLife / d.maxLife);
 
    d.position += d.direction * d.currentSpeed * _timeDelta;
+   d.position.x += d.velocity_x->nextValue(fr) * _timeDelta;
+   d.position.y += d.velocity_y->nextValue(fr) * _timeDelta;
+   d.position.z += d.velocity_z->nextValue(fr) * _timeDelta;
+
    d.currentLife -= _timeDelta;
    d.currentColor.x = d.color_r->nextValue(fr);
    d.currentColor.y = d.color_g->nextValue(fr);
