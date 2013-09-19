@@ -1,0 +1,4 @@
+<Material>
+  <Sampler name="randomVectorLookup" map="RandomVectorLookup" />
+  <Shader source="shaders/ssao2.shader" />
+</Material>
