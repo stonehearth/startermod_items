@@ -2,35 +2,21 @@
 
 // Samplers
 
-sampler2D gbuf0 = sampler_state
+sampler2D depthbuff = sampler_state
 {
 	Address = Clamp;
+  Filter = None;
 };
 
-sampler2D gbuf1 = sampler_state
+sampler2D ssaobuff = sampler_state
 {
 	Address = Clamp;
-};
-
-sampler2D gbuf2 = sampler_state
-{
-	Address = Clamp;
-};
-
-sampler2D gbuf3 = sampler_state
-{
-	Address = Clamp;
+  Filter = None;
 };
 
 sampler2D randomVectorLookup = sampler_state
 {
   Address = Wrap;
-  Filter = None;
-};
-
-sampler2D buf0 = sampler_state
-{
-  Address = Clamp;
   Filter = None;
 };
 
@@ -40,16 +26,23 @@ context SSAO
   PixelShader = compile GLSL FS_SSAO;
 }
 
-context VERTICALBLUR
+
+context DEPTH_OUTPUT
 {
   VertexShader = compile GLSL VS_FSQUAD;
-  PixelShader = compile GLSL FS_VERTICALBLUR;
+  PixelShader = compile GLSL FS_DEPTH_OUTPUT;
 }
 
-context HORIZONTALBLUR
+context BLUR_Y
 {
   VertexShader = compile GLSL VS_FSQUAD;
-  PixelShader = compile GLSL FS_HORIZONTALBLUR;
+  PixelShader = compile GLSL FS_BLUR_Y;
+}
+
+context BLUR_X
+{
+  VertexShader = compile GLSL VS_FSQUAD;
+  PixelShader = compile GLSL FS_BLUR_X;
 }
 
 [[VS_FSQUAD]]
@@ -65,10 +58,19 @@ void main( void )
 }
 
 
-[[FS_SSAO]]
-#include "shaders/utilityLib/fragDeferredRead.glsl"
+[[FS_DEPTH_OUTPUT]]
 
+varying vec2 texCoords;
+uniform sampler2D gbuf0;
+        
+void main( void )
+{
+  gl_FragColor = vec4(texture2D(gbuf0, texCoords).rrr, 1);
+}
+
+[[FS_SSAO]]
 uniform sampler2D randomVectorLookup;
+uniform sampler2D depthbuff;
 uniform vec2 frameBufSize;
 varying vec2 texCoords;
 
@@ -99,8 +101,8 @@ float ComputeSSAO (
 
   float fSceneDepthP = texture2D(sSceneDepthSampler, screenTC).r * farClipDist;
 
-  const int nSamplesNum = 16;
-  float offsetScale = 0.01;
+  const int nSamplesNum = 8;
+  float offsetScale = 0.003;
   const float offsetScaleStep = 1 + 2.4/nSamplesNum;
   float result = 0;
 
@@ -117,77 +119,81 @@ float ComputeSSAO (
           vec3 rotatedOffset = rotMat * offset;
 
           vec3 samplePos = vec3(screenTC, fSceneDepthP);
-          samplePos += rotatedOffset;  //vec3(rotatedOffset.xy, rotatedOffset.z * fSceneDepthP * 2);
-          float fSceneDepthS = texture2D(sSceneDepthSampler, samplePos.xy) * farClipDist;
+          samplePos += vec3(rotatedOffset.xy, rotatedOffset.z);
+          float fSceneDepthSampled = texture2D(sSceneDepthSampler, samplePos.xy) * farClipDist;
           
-          //result += fSceneDepthS > samplePos.z ? 1 : 0;
+          float fRangeIsInvalid = clamp((fSceneDepthP - fSceneDepthSampled) / fSceneDepthSampled, 0.2, 1.0);
 
-          float fRangeIsInvalid = clamp((fSceneDepthP - fSceneDepthS) / fSceneDepthS, 0.0, 1.0);
-
-          result += mix(fSceneDepthS > samplePos.z ? 1 : 0, 0.5, fRangeIsInvalid);
+          result += mix(fSceneDepthSampled > samplePos.z ? 1 : 0, 1, fRangeIsInvalid);
         }
       } 
     }
   }
   result = result / nSamplesNum;
-  return clamp(result + result, 0.0, 1.0);
+
+  return clamp(result * result + result, 0.0, 1.0);
 }
 
 void main()
 {
-  float ao = ComputeSSAO(randomVectorLookup, gbuf0, texCoords, frameBufSize, 2000);
+  float ao = ComputeSSAO(randomVectorLookup, depthbuff, texCoords, frameBufSize, 2000);
   gl_FragColor = vec4(ao, ao, ao, 1);
-  //vec2 f = texCoords * frameBufSize / 4;
-  //gl_FragColor = texture2D(randomVectorLookup, f);
 }
 
-[[FS_VERTICALBLUR]]
-uniform sampler2D buf0;
-uniform vec2 frameBufSize;
+
+[[FS_BLUR_Y]]
+#include "shaders/utilityLib/blur.glsl"
+
 varying vec2 texCoords;
+uniform sampler2D depthbuff;
+uniform sampler2D ssaobuff;
+uniform vec2 frameBufSize;
 
-void main( void )
+void main()
 {
-  float blur[7];
-  blur[0] = 1;
-  blur[1] = 1;
-  blur[2] = 2;
-  blur[3] = 3;
-  blur[4] = 2;
-  blur[5] = 1;
-  blur[6] = 1;
+    float b = 0;
+    float w_total = 0;
+    float center_c = texture2D(ssaobuff, texCoords).r;
+    float center_d = fetch_eye_z(texCoords, depthbuff);
 
-  float dev = 11.0;
-  float width = 3.5;
+    float g_BlurRadius = 4.0;
+    vec2 g_InvResolution = 1.0 / frameBufSize;
+    
+    for (float r = -g_BlurRadius; r <= g_BlurRadius; ++r)
+    {
+        vec2 uv = texCoords + vec2(0, r*g_InvResolution.y); 
+        b += BlurFunction(uv, r, center_c, center_d, w_total, depthbuff, ssaobuff);
+    }
 
-  vec4 outCol = vec4(0.0, 0.0, 0.0, 0.0);
-  for (int i = 0; i < 7; ++i ) {
-    outCol += texture2D(buf0, texCoords+vec2(0, width*(i-3))/frameBufSize)/dev*blur[i];
-  }
-  gl_FragColor = outCol;
+    float result = b / w_total;
+    gl_FragColor = vec4(result, result, result, 1);
 }
 
-[[FS_HORIZONTALBLUR]]
-uniform sampler2D buf0;
-uniform vec2 frameBufSize;
+
+[[FS_BLUR_X]]
+#include "shaders/utilityLib/blur.glsl"
+
 varying vec2 texCoords;
+uniform sampler2D depthbuff;
+uniform sampler2D ssaobuff;
+uniform vec2 frameBufSize;
 
-void main( void )
+void main()
 {
-  float blur[7];
-  blur[0] = 1;
-  blur[1] = 1;
-  blur[2] = 2;
-  blur[3] = 3;
-  blur[4] = 2;
-  blur[5] = 1;
-  blur[6] = 1;
-  float dev = 11.0;
-  float width = 3.5;
+    float b = 0;
+    float w_total = 0;
+    float center_c = texture2D(ssaobuff, texCoords).r;
+    float center_d = fetch_eye_z(texCoords, depthbuff);
 
-  vec4 outCol = vec4(0.0, 0.0, 0.0, 0.0);
-  for (int i = 0; i < 7; ++i ) {
-    outCol += texture2D(buf0, texCoords+vec2(width*(i-3), 0)/frameBufSize)/dev*blur[i];
-  }
-  gl_FragColor = outCol;
+    float g_BlurRadius = 4.0;
+    vec2 g_InvResolution = 1.0 / frameBufSize;
+    
+    for (float r = -g_BlurRadius; r <= g_BlurRadius; ++r)
+    {
+        vec2 uv = texCoords + vec2(r*g_InvResolution.x, 0); 
+        b += BlurFunction(uv, r, center_c, center_d, w_total, depthbuff, ssaobuff);
+    }
+
+    float result = b / w_total;
+    gl_FragColor = vec4(result, result, result, 1);
 }
