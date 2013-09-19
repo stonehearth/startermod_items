@@ -5,6 +5,10 @@ import subprocess
 
 GIT = 'C:\\Program Files (x86)\\Git\\bin\\git.exe'
 
+def shell(*args):
+   print 'running', ' '.join(*args)
+   return subprocess.Popen(*args, shell=True)
+
 def run(*args):
    print 'running', ' '.join(*args)
    return subprocess.Popen(*args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -17,9 +21,10 @@ def build_submodule(sha1, submodule):
    build the submodule. if successful, write the sha1 hash to .last_build.
    """
    print ' * building submodule %s.' % submodule
-   p = run(['make', '-C', submodule])
-   for line in iter(p.stdout.readline, ''):
-      print line
+   name = os.path.split(submodule)[-1]
+   p = shell(['make', name+'-module'])
+   #for line in iter(p.stdout.readline, ''):
+   #   print line
 
    p.wait()
    if p.returncode !=0:
@@ -82,6 +87,5 @@ def check_submodules():
             flag = None
          check_submodule(flag, sha1, submodule)
 
-print os.environ.get('MAKE_ROOT', 'xxxxxxxxxxxxxxxx')
 check_submodules()
 

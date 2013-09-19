@@ -14,7 +14,10 @@ clean:
 
 .PHONY: submodules
 submodules:
-	MAKE_ROOT=$(MAKE_ROOT) $(MAKE_ROOT)/build-submodules.py
+	$(MAKE_ROOT)/build-submodules.py
+
+%-module:
+	MAKE_ROOT=$(MAKE_ROOT) MAKE_ROOT_DOS=$(MAKE_ROOT_DOS) make -C modules/$*
 
 .PHONY: configure
 configure:
@@ -30,8 +33,8 @@ stonehearth:
 ide: configure
 	start build/Stonehearth.sln
 
-run-%:
-	cd source/stonehearth_data && ../../build/source/client_app/$(MSBUILD_CONFIGURATION)/client_app.exe --game.script=stonehearth_tests/harvest_test.lua&
+run-%-test:
+	cd source/stonehearth_data && ../../build/source/client_app/$(MSBUILD_CONFIGURATION)/client_app.exe --game.script=stonehearth_tests/$*_test.lua&
 
 run:
 	cd source/stonehearth_data && ../../build/source/client_app/$(MSBUILD_CONFIGURATION)/client_app.exe 

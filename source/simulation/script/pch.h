@@ -4,7 +4,6 @@
 #include "radiant.h"
 #include "radiant_stdutil.h"
 #include "radiant_luabind.h"
-#include <noise.h>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/predicate.hpp>

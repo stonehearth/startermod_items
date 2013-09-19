@@ -7,6 +7,7 @@ include_directories(${Boost_INCLUDE_DIR})
 include_directories(${Libjson_INCLUDE_DIRS})
 include_directories(${Lua_INCLUDE_DIRS})
 include_directories(${Luabind_INCLUDE_DIRS})
+include_directories(${Horde3D_INCLUDE_DIRS})
 
 add_library(lua
             radiant_lua.cpp

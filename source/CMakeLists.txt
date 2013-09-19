@@ -23,8 +23,7 @@ include_directories("c:/program files (x86)/microsoft directx sdk (june 2010)/in
 include_directories(${CMAKE_CURRENT_BINARY_DIR}) # why?
 include_directories(${CMAKE_BINARY_DIR}/source/protocols) # xxx: BADDD
 SET(Horde3D_ROOT_DIR "${Stonehearth_SOURCE_DIR}/source/horde3d/")
-SET(Horde3D_INCLUDE_DIRS "${Horde3D_ROOT_DIR}/Source/Shared" "${Horde3D_ROOT_DIR}/Source/Horde3dEngine" "${Horde3D_ROOT_DIR}/Bindings/C++" "${Horde3D_ROOT_DIR}/glfw")
-include_directories(${Horde3D_INCLUDE_DIRS})
+SET(Horde3D_INCLUDE_DIRS "${Horde3D_ROOT_DIR}/Source/Shared" "${Horde3D_ROOT_DIR}/Source/Horde3dEngine" "${Horde3D_ROOT_DIR}/Bindings/C++" "${Horde3D_ROOT_DIR}/glfw" "${Horde3D_ROOT_DIR}/extensions/")
 
 add_definitions(-DUNICODE -D_UNICODE -D_CRT_SECURE_NO_WARNINGS -wd4996)
 
