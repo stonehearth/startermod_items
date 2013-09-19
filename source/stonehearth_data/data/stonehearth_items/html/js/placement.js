@@ -77,8 +77,9 @@ App.StonehearthPlaceItemView = App.View.extend({
 
    didInsertElement: function() {
       this._super();
-      //TODO: animate in from elsewhere
-      //TODO: find out why there is this flicker for no-entities
+      $("#itemPicker")
+         .animate({ bottom: 10 }, {duration: 300, easing: 'easeOutCirc'});
+      //TODO: Flicker happens because the data_store needs to be distinguished for subsections
    },
 
    actions: {

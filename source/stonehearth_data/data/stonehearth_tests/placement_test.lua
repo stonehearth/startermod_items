@@ -19,7 +19,7 @@ function PlacementTest:__init()
    self:at(5000, function()
       self:place_item('stonehearth_items', 'comfy_bed_proxy', 1, 0)
    end)
-
+  
    self:at(10000, function()
       self:place_item('stonehearth_items', 'comfy_bed_proxy', 2, 0)
    end)
