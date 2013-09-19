@@ -367,19 +367,17 @@ void main( void )
 uniform sampler2D buf0; // is actually the shadow map...
 varying vec2 texCoords;
 
-float LinearizeDepth(float depth)
-{
-  float n = 4.0; // camera z near
-  float f = 1000.0; // camera z far
-
-  float distance = (2.0 * n) / (f + n - depth * (f - n));
-  return distance;
-}
-
 void main( void )
 {
-   float depth = LinearizeDepth(texture2D(buf0, texCoords).r);
-   gl_FragColor.rgb = vec3(depth, depth, depth);
+   float d = texture2D(buf0, texCoords).r;
+   gl_FragColor.rgb = vec3(d, d, d);
+
+   /*if (d < 1)
+   {
+     gl_FragColor.rgb = vec3(0, 0, 0);
+   } else {
+     gl_FragColor.rgb = vec3(1, 1, 1);
+   }*/
 }
 
 [[FS_DRAW_COLORBUF]]

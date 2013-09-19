@@ -31,6 +31,13 @@
 			<DrawOverlays context="OVERLAY" />
 		</Stage>
 
+      <!--Stage id="RenderShadowmap">
+         <SwitchTarget target=""/>
+         <BindBuffer sampler="buf0" sourceRT="shadowMap" bufIndex="32" />
+         <DrawQuad material="pipelines/outline.material.xml" context="DRAW_SHADOWMAP" />
+         <UnbindBuffers />
+      </Stage-->
+
       <Stage id="Final">
          <SwitchTarget target="" />
          <BindBuffer sampler="buf0" sourceRT="OUTPUT" bufIndex="0" />
