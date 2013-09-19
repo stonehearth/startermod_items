@@ -89,11 +89,7 @@ void main( void )
    albedo = color;
 
 	// Calculate texture coordinates and clip space position
-	vec4 vl = viewProjMat * pos;
-
-	// Linear depth...?
-	vl.z = vl.z * vl.w / 2000;
-	gl_Position = vl;//viewProjMat * pos;
+	gl_Position = viewProjMat * pos;
 }
 
 

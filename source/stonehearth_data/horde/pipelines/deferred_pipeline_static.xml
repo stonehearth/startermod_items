@@ -41,22 +41,22 @@
 
       <UnbindBuffers />
     </Stage>
-    <!--Stage id="Translucent">
+    <Stage id="Translucent">
       <SwitchTarget target="MBUFF" />
       <DrawGeometry context="TRANSLUCENT"/>
       <DrawGeometry context="DEBUG_SHAPES" />
-    </Stage-->
-    <!--Stage id="Selected">
+    </Stage>
+    <Stage id="Selected">
       <DrawSelected context="SELECTED" />
-    </Stage-->
+    </Stage>
     <Stage id="SSAO">
-      <SwitchTarget target="" />
-      <BindBuffer sampler="gbuf0" sourceRT="GBUFFER" bufIndex="32" />
+      <SwitchTarget target="SSAOBUF" />
+      <BindBuffer sampler="gbuf0" sourceRT="GBUFFER" bufIndex="0" />
       <BindBuffer sampler="gbuf1" sourceRT="GBUFFER" bufIndex="1" />
-      <DrawQuad material="materials/ssao.material.xml" context="SSAO"/>
+      <DrawQuad material="pipelines/ssao.material.xml" context="SSAO"/>
       <UnbindBuffers />
     </Stage>
-    <!--Stage id="blurSSAO" >
+    <Stage id="blurSSAO" >
       <SwitchTarget target="TEMPSSAOBLUR" />
       <BindBuffer sampler="buf0" sourceRT="SSAOBUF" bufIndex="0" />
       <DrawQuad material="pipelines/ssao.material.xml" context="VERTICALBLUR" />
@@ -65,9 +65,10 @@
       <BindBuffer sampler="buf0" sourceRT="TEMPSSAOBLUR" bufIndex="0" />
       <DrawQuad material="pipelines/ssao.material.xml" context="HORIZONTALBLUR" />
       <UnbindBuffers />
-    </Stage-->
-    <!--Stage id="Combination">
-      <SwitchTarget target="" />
+    </Stage>
+    <Stage id="Combination">
+      <SwitchTarget target="FINALIMAGE" />
+      <ClearTarget colBuf0="true" />
 
       <BindBuffer sampler="depthBuf" sourceRT="GBUFFER" bufIndex="32" />
       <BindBuffer sampler="buf0" sourceRT="MBUFF" bufIndex="0" />
@@ -76,13 +77,13 @@
       <BindBuffer sampler="buf3" sourceRT="SSAOBLUR" bufIndex="0" />
       <DrawQuad material="pipelines/outline.material.xml" context="FINALPASS" />
       <UnbindBuffers />
-    </Stage-->
-    <!--Stage id="FXAA">
+    </Stage>
+    <Stage id="FXAA">
       <SwitchTarget target=""/>
       <BindBuffer sampler="buf0" sourceRT="FINALIMAGE" bufIndex="0" />
       <DrawQuad material="pipelines/outline.material.xml" context="FXAA" />
       <UnbindBuffers />
-    </Stage-->
+    </Stage>
     <Stage id="Overlays">
       <DrawOverlays context="OVERLAY" />
     </Stage>
