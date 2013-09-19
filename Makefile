@@ -14,6 +14,8 @@ clean:
 
 .PHONY: submodules
 submodules:
+	git submodule init
+	git submodule update --remote
 	$(MAKE_ROOT)/build-submodules.py
 
 %-module:
