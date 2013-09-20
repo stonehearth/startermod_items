@@ -1,0 +1,8 @@
+{
+   "info" :{
+      "name" : "Stonehearth Fire and Light"
+   },
+   "components" :  {
+      "firepit" : "file(components/firepit.lua)"
+   }
+}
