@@ -1,6 +1,6 @@
 <script type="text/x-handlebars" data-template-name="stonehearthCrafterBuildWorkshop">
    <div id="crafterBuildWorkshopScroll">
-      <div id="promoteScroll">
+      <div id="scroll">
          <div id="content">
             <div id="title">
                {{name}}
@@ -14,7 +14,7 @@
                <table id="ingredients" cellspacing=0 cellpadding=0>
                   <tr>
                      <td class="border"></td>
-                     <td valign=bottom><img src="/stonehearth_crafter/html/images/build_workshop/scroll_socket_left_bookend.png"></td>
+                     <td valign=bottom><img class="leftBookend" /></td>
                      <td valign=bottom>
                         <nobr>
                         {{#each ingredients}}
@@ -26,7 +26,7 @@
                         {{/each}}
                         </nobr>
                      </td>
-                     <td valign=bottom><img src="/stonehearth_crafter/html/images/build_workshop/scroll_socket_right_bookend.png"></td>
+                     <td valign=bottom><img class="rightBookend" /></td>
                      <td class="border"></td>
                   </tr>
                </table>

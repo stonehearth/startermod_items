@@ -245,10 +245,11 @@
 
             .leftBookend {
                content: url('/stonehearth_crafter/html/images/craft_window/scroll_socket_left_bookend.png');
-               padding-right: 4px;
+               padding-right: 6px;
             }
 
             .rightBookend {
+               padding-left: 8px;
                content: url('/stonehearth_crafter/html/images/craft_window/scroll_socket_right_bookend.png');
             }
 
@@ -270,24 +271,28 @@
 
                img {
                   position: absolute;
-                  top: 0px;
-                  left: 0px;
+                  top: 4px;
+                  left: 4px;
                   width: 62px;
                   height: 62px;                  
                }
 
                .count {
-                  .outlined(#d1c096);
+                  .outlined(#ebe9da);
                   position: absolute;
-                  left: 40px;
-                  top: 35px;
+                  left: 43px;
+                  top: 38px;
                   font-size: 22px;
-                  color: #908467;
+                  color: #463c2a;
                }
 
                .selectionNeeded {
-                  background: url('/stonehearth_crafter/html/images/recipe_sockets/socket_ants.gif') no-repeat;
-                  opacity: 0.3;
+                  position: relative;
+                  top: -4px;
+                  left: -4px;
+                  background: url('/stonehearth_crafter/html/images/recipe_sockets/initial_border.png') no-repeat;
+                  width: 78px;
+                  height: 78px;
                }
             }
          }
