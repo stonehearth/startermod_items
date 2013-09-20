@@ -101,37 +101,43 @@ float ComputeSSAO (
 
   float fSceneDepthP = texture2D(sSceneDepthSampler, screenTC).r * farClipDist;
 
-  const int nSamplesNum = 8;
-  float offsetScale = 0.003;
-  const float offsetScaleStep = 1 + 2.4/nSamplesNum;
+  const int nSamplesNum = 27;
+  //float offsetScale = 0.003;
+  //const float offsetScaleStep = 1 + 2.4/nSamplesNum;
   float result = 0;
+  float probeLength =  (10.0 / screenSize.x );
 
-  for(int i = 0; i < (nSamplesNum / 8); i++)
+  for (int x = -1; x <= 1; x += 1)
   {
-    for (int x = -1; x <= 1; x += 2)
+    for (int y = -1; y <= 1; y += 1)
     {
-      for (int y = -1; y <= 1; y += 2)
+      for (int z = -1; z <= 1; z += 1)
       {
-        for (int z = -1; z <= 1; z += 2)
-        {
-          vec3 offset = normalize(vec3(x, y, z)) * (offsetScale *= offsetScaleStep);
+        vec3 offset = normalize(vec3(x, y, z)) * probeLength;//(offsetScale *= offsetScaleStep);
+        probeLength *= 0.9;
 
-          vec3 rotatedOffset = rotMat * offset;
+        vec3 rotatedOffset = rotMat * offset;
 
-          vec3 samplePos = vec3(screenTC, fSceneDepthP);
-          samplePos += vec3(rotatedOffset.xy, rotatedOffset.z);
-          float fSceneDepthSampled = texture2D(sSceneDepthSampler, samplePos.xy) * farClipDist;
-          
-          float fRangeIsInvalid = clamp((fSceneDepthP - fSceneDepthSampled) / fSceneDepthSampled, 0.2, 1.0);
-
-          result += mix(fSceneDepthSampled > samplePos.z ? 1 : 0, 1, fRangeIsInvalid);
+        vec3 samplePos = vec3(screenTC, fSceneDepthP);
+        samplePos += vec3(rotatedOffset.xy, rotatedOffset.z);
+        float fSceneDepthSampled = texture2D(sSceneDepthSampler, samplePos.xy) * farClipDist;
+        
+        if (fSceneDepthP - fSceneDepthSampled < 50.5) {
+          if (fSceneDepthSampled > samplePos.z) {
+            result += 0.9;
+          }
+        } else {
+          result += 0.9;
         }
-      } 
-    }
+        //float fRangeIsInvalid = clamp((fSceneDepthP - fSceneDepthSampled) / fSceneDepthSampled, 0.1, 1);
+
+        //result += mix(fSceneDepthSampled > samplePos.z ? 1 : 0, 1, fRangeIsInvalid);
+      }
+    } 
   }
   result = result / nSamplesNum;
 
-  return clamp(result * result + result, 0.0, 1.0);
+  return clamp(result * 2, 0.0, 1.0);
 }
 
 void main()
@@ -165,7 +171,7 @@ void main()
         b += BlurFunction(uv, r, center_c, center_d, w_total, depthbuff, ssaobuff);
     }
 
-    float result = b / w_total;
+    float result = b / w_total * 0.8;
     gl_FragColor = vec4(result, result, result, 1);
 }
 
@@ -194,6 +200,6 @@ void main()
         b += BlurFunction(uv, r, center_c, center_d, w_total, depthbuff, ssaobuff);
     }
 
-    float result = b / w_total;
+    float result = b / w_total * 0.8;
     gl_FragColor = vec4(result, result, result, 1);
 }
