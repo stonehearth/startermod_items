@@ -11,18 +11,18 @@ using namespace ::radiant::rpc;
 LuaDeferredPtr LuaDeferred::Wrap(lua_State* L, std::string const& name, ReactorDeferredPtr d)
 {
    if (d) {
-      rpc::LuaDeferredPtr result = std::make_shared<rpc::LuaDeferred>(name);
+      rpc::LuaDeferredPtr lua_deferred = std::make_shared<rpc::LuaDeferred>(name);
 
-      d->Progress([L, result](JSONNode const& n) {
-         result->Notify(lua::ScriptHost::JsonToLua(L, n));
+      d->Progress([L, lua_deferred](JSONNode const& n) {
+         lua_deferred->Notify(lua::ScriptHost::JsonToLua(L, n));
       });
-      d->Done([L, result, d](JSONNode const& n) {
-         result->Resolve(lua::ScriptHost::JsonToLua(L, n));
+      d->Done([L, lua_deferred, d](JSONNode const& n) {
+         lua_deferred->Resolve(lua::ScriptHost::JsonToLua(L, n));
       });
-      d->Fail([L, result, d](JSONNode const& n) {
-         result->Reject(lua::ScriptHost::JsonToLua(L, n));
+      d->Fail([L, lua_deferred, d](JSONNode const& n) {
+         lua_deferred->Reject(lua::ScriptHost::JsonToLua(L, n));
       });
-      return result;
+      return lua_deferred;
    }
    return nullptr;
 }

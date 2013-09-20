@@ -3,7 +3,7 @@
 #include "om/components/terrain.h"
 #include "om/selection.h"
 #include "client/client.h"
-#include "client/renderer/renderer.h"
+#include "client/renderer/renderer.h" // xxx: move to Client
 
 using namespace radiant;
 using namespace radiant::client;
@@ -30,8 +30,8 @@ std::shared_ptr<XZRegionSelector::Deferred> XZRegionSelector::Activate()
    GetHoverBrick(pt.x, pt.y, _p0);
 
    auto self = shared_from_this();
-   _inputHandlerId = Renderer::GetInstance().SetMouseInputCallback([=](const MouseEvent &windowMouse, const MouseEvent &browserMouse, bool &handled, bool &uninstall) {
-      self->onInputEvent(windowMouse, handled, uninstall);
+   _inputHandlerId = Client::GetInstance().AddInputHandler([=](Input const& input) -> bool {
+      return self->onInputEvent(input);
    });
    
    return deferred_;
@@ -40,38 +40,41 @@ std::shared_ptr<XZRegionSelector::Deferred> XZRegionSelector::Activate()
 void XZRegionSelector::Deactivate()
 {
    if (_inputHandlerId) {
-      Renderer::GetInstance().RemoveInputEventHandler(_inputHandlerId);
+      Client::GetInstance().RemoveInputHandler(_inputHandlerId);
       _inputHandlerId = 0;
    }
    deferred_ = nullptr;
 }
 
-void XZRegionSelector::onInputEvent(const MouseEvent &evt, bool &handled, bool &uninstall)
+bool XZRegionSelector::onInputEvent(Input const& evt)
 {
    ASSERT(!_finished);
-   
-   if (!_finishedP0) {
-      SelectP0(evt);
-   } else {
-      SelectP1(evt);
-   }
-
-   if (_startedP0) {
-      csg::Point3 p0, p1;
-      for (int i = 0; i < 3; i++) {
-         p0[i] = std::min(_p0[i], _p1[i]);
-         p1[i] = std::max(_p0[i], _p1[i]);
-      }
-      if (_finished) {
-         deferred_->Resolve(csg::Cube3::Construct(p0, p1));
-         Deactivate();
+   if (evt.type == Input::MOUSE) {   
+      if (!_finishedP0) {
+         SelectP0(evt.mouse);
       } else {
-         deferred_->Notify(csg::Cube3::Construct(p0, p1));
+         SelectP1(evt.mouse);
       }
+
+      if (_startedP0) {
+         csg::Point3 p0, p1;
+         for (int i = 0; i < 3; i++) {
+            p0[i] = std::min(_p0[i], _p1[i]);
+            p1[i] = std::max(_p0[i], _p1[i]);
+         }
+         if (_finished) {
+            deferred_->Resolve(csg::Cube3::Construct(p0, p1));
+            Deactivate();
+         } else {
+            deferred_->Notify(csg::Cube3::Construct(p0, p1));
+         }
+      }
+      return true;
    }
+   return false;
 }
 
-void XZRegionSelector::SelectP0(const MouseEvent &me)
+void XZRegionSelector::SelectP0(const MouseInput &me)
 {
    if (GetHoverBrick(me.x, me.y, _p0)) {
       _startedP0 = true;
@@ -83,7 +86,7 @@ void XZRegionSelector::SelectP0(const MouseEvent &me)
    }
 }
 
-void XZRegionSelector::SelectP1(const MouseEvent &me)
+void XZRegionSelector::SelectP1(const MouseInput &me)
 {
    //LOG(WARNING) << "P1...";
    csg::Point3 p;

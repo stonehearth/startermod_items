@@ -11,7 +11,7 @@ function LocationSelector:handle_request(query, postdata)
    self._cursor_entity = radiant.entities.create_entity(query.entity)
 
    -- add a render object so the cursor entity gets rendered.
-   local re = _client:create_render_entity(1, self._cursor_entity)
+   local re = radiant.entities.create_render_entity(1, self._cursor_entity)
 
    -- at this point we could manipulate re to change the way the cursor gets
    -- rendered (e.g. transparent)...
@@ -19,17 +19,17 @@ function LocationSelector:handle_request(query, postdata)
 
    -- capture the mouse.  Call our _on_mouse_event each time, passing in
    -- the entity that we're supposed to create whenever the user clicks.
-   self._capture = _client:trace_mouse()
-   self._capture:on_mouse_event(function(e)
-                        self:_on_mouse_event(e, query.entity)
-                     end)
+   self._capture = _radiant.client.trace_input()
+   self._capture:on_input(function(e)
+                                self:_on_mouse_event(e, query.entity)
+                             end)
    return {}
 end
 
 -- called each time the mouse moves on the client.
 function LocationSelector:_on_mouse_event(e, entity_uri)
    -- query the scene to figure out what's under the mouse cursor
-   local s = _client:query_scene(e.x, e.y)
+   local s = _radiant.client.query_scene(e.x, e.y)
   
    -- s.location contains the address of the terrain block that the mouse
    -- is currently pointing to.  if there isn't one, move the workshop
@@ -54,7 +54,7 @@ function LocationSelector:_on_mouse_event(e, entity_uri)
       -- pass "" for the function name so the deafult (handle_request) is
       -- called.  this will return a Deferred object which we can use to track
       -- the call's progress
-      _client:call('/modules/server/samplecode_place_workbench/create_workbench', "", { entity = entity_uri, location = pt })
+      radiant.call_obj('/modules/server/samplecode_place_workbench/create_workbench', "", { entity = entity_uri, location = pt })
                :always(function ()
                      -- whether the request succeeds or fails, go ahead and destroy
                      -- the authoring entity.  do it after the request returns to avoid

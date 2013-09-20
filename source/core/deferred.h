@@ -116,57 +116,73 @@ public:  // the deferred...
    }
 
    void Resolve(CompleteT result) {
-      if (IsPending()) {
-         LOG(INFO) << LogPrefix() << "resolve called in wait state. firing all done cbs.";
-         state_ = Resolved;
-         result_ = result;
-         for (const auto &cb : done_) {
-            cb(result_);
+      try {
+         if (IsPending()) {
+            LOG(INFO) << LogPrefix() << "resolve called in wait state. firing all done cbs.";
+            state_ = Resolved;
+            result_ = result;
+            for (const auto &cb : done_) {
+               cb(result_);
+            }
+            Cleanup();
+         } else {
+            LOG(ERROR) << LogPrefix() << "resolve called in non-wait state!";
          }
-         Cleanup();
-      } else {
-         LOG(ERROR) << LogPrefix() << "resolve called in non-wait state!";
+      } catch (std::exception &e) {
+         LOG(ERROR) << LogPrefix() << " caught exception in Resolve: " << e.what();
       }
    }
 
    void Notify(CompleteT obj) {
-      if (IsPending()) {
-         LOG(INFO) << LogPrefix() << "notify called in wait state. firing all progress cbs.";
-         for (const auto &cb : progress_) {
-            cb(obj);
+      try {
+         if (IsPending()) {
+            LOG(INFO) << LogPrefix() << "notify called in wait state. firing all progress cbs.";
+            for (const auto &cb : progress_) {
+               cb(obj);
+            }
+            result_ = obj;
+            state_ = InProgress;
+         } else {
+            LOG(ERROR) << LogPrefix() << "notify called in non-wait state!";
          }
-         result_ = obj;
-         state_ = InProgress;
-      } else {
-         LOG(ERROR) << LogPrefix() << "notify called in non-wait state!";
+      } catch (std::exception &e) {
+         LOG(ERROR) << LogPrefix() << " caught exception in Notify: " << e.what();
       }
    }
    void Reject(FailT const& reason) {
-      if (IsPending()) {
-         LOG(INFO) << LogPrefix() << "reject called in wait state. firing all fail cbs.";
-         state_ = Rejected;
-         error_ = reason;
-         for (const auto &fn : fail_) {
-            fn(reason);
+      try {
+         if (IsPending()) {
+            LOG(INFO) << LogPrefix() << "reject called in wait state. firing all fail cbs.";
+            state_ = Rejected;
+            error_ = reason;
+            for (const auto &fn : fail_) {
+               fn(reason);
+            }
+            Cleanup();
+         } else {
+            LOG(ERROR) << LogPrefix() << "reject called in non-wait state!";
          }
-         Cleanup();
-      } else {
-         LOG(ERROR) << LogPrefix() << "reject called in non-wait state!";
+      } catch (std::exception &e) {
+         LOG(ERROR) << LogPrefix() << " caught exception in Reject: " << e.what();
       }
    }
 
 private:
    void Cleanup() {
-      if (state_ != InProgress) {
-         for (const auto& fn : always_) {
-            fn();
+      try {
+         if (state_ != InProgress) {
+            for (const auto& fn : always_) {
+               fn();
+            }
+            always_.clear();
+            done_.clear();
+            progress_.clear();
+            fail_.clear();
+         } else {
+            LOG(ERROR) << LogPrefix() << "cleanup called in non-wait state!";
          }
-         always_.clear();
-         done_.clear();
-         progress_.clear();
-         fail_.clear();
-      } else {
-         LOG(ERROR) << LogPrefix() << "cleanup called in non-wait state!";
+      } catch (std::exception &e) {
+         LOG(ERROR) << LogPrefix() << " caught exception in Reject: " << e.what();
       }
    }
 

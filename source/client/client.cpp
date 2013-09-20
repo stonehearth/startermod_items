@@ -16,9 +16,6 @@
 #include "platform/utils.h"
 #include "resources/manifest.h"
 #include "resources/res_manager.h"
-#include "renderer/render_entity.h"
-#include "renderer/lua_render_entity.h"
-#include "renderer/lua_renderer.h"
 #include "lua/radiant_lua.h"
 #include "lua/register.h"
 #include "lua/script_host.h"
@@ -39,6 +36,7 @@
 #include "lua/client/open.h"
 #include "lua/rpc/open.h"
 #include "lua/om/open.h"
+#include "client/renderer/render_entity.h"
 
 #include "glfw.h"
 
@@ -68,7 +66,10 @@ Client::Client() :
    uiCursor_(NULL),
    luaCursor_(NULL),
    currentCursor_(NULL),
-   last_server_request_id_(0)
+   last_server_request_id_(0),
+   next_input_id_(1),
+   mouse_x_(0),
+   mouse_y_(0)
 {
    om::RegisterObjectTypes(store_);
    om::RegisterObjectTypes(authoringStore_);
@@ -142,12 +143,9 @@ void Client::run()
    HWND hwnd = renderer.GetWindowHandle();
    //defaultCursor_ = (HCURSOR)GetClassLong(hwnd_, GCL_HCURSOR);
 
-   renderer.SetMouseInputCallback(std::bind(&Client::OnMouseInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-   renderer.SetKeyboardInputCallback(std::bind(&Client::OnKeyboardInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-
-   int ui_width = renderer.GetUIWidth();
-   int ui_height = renderer.GetUIHeight();
-   int debug_port = 1338;
+   renderer.SetInputHandler([=](Input const& input) {
+      OnInput(input);
+   });
 
    namespace po = boost::program_options;
    extern po::variables_map configvm;
@@ -159,7 +157,9 @@ void Client::run()
       docroot += "?skip_title=true";
    }
 
-   browser_.reset(chromium::CreateBrowser(hwnd, docroot, ui_width, ui_height, debug_port));
+   int screen_width = renderer.GetWidth();
+   int screen_height = renderer.GetHeight();
+   browser_.reset(chromium::CreateBrowser(hwnd, docroot, screen_width, screen_height, 1338));
    browser_->SetCursorChangeCb([=](HCURSOR cursor) {
       if (uiCursor_) {
          DestroyCursor(uiCursor_);
@@ -170,29 +170,30 @@ void Client::run()
          uiCursor_ = NULL;
       }
    });
+  
 
-   auto requestHandler = [=](std::string const& uri, JSONNode const& query, std::string const& postdata, rpc::HttpDeferredPtr response) {
+   browser_->SetRequestHandler([=](std::string const& uri, JSONNode const& query, std::string const& postdata, rpc::HttpDeferredPtr response) {
       BrowserRequestHandler(uri, query, postdata, response);
-   };
-   browser_->SetRequestHandler(requestHandler);
+   });
 
-   auto onRawInput = [=](RawInputEvent const & re, bool& handled, bool& uninstall) {
-      browser_->OnRawInput(re, handled, uninstall);
+   auto resize_ui_texture = [&](int w, int h) {
+      renderer.SetUITextureSize(w, h);
    };
+   int ui_width, ui_height;
+   browser_->GetBrowserSize(ui_width, ui_height);
+   browser_->SetBrowserResizeCb(resize_ui_texture);
+   resize_ui_texture(ui_width, ui_height);
 
-   auto onMouse = [=](MouseEvent const & windowMouse, MouseEvent const & browserMouse, bool& handled, bool& uninstall) {
-      browser_->OnMouseInput(browserMouse, handled, uninstall);
+   auto resize_browser = [&](int w, int h) {
+      browser_->OnScreenResize(w, h);
    };
-   renderer.SetRawInputCallback(onRawInput);
-   renderer.SetMouseInputCallback(onMouse);
-
+   renderer.SetScreenResizeCb(resize_browser);
 
    lua_State* L = scriptHost_->GetInterpreter();
    renderer.SetScriptHost(GetScriptHost());
    lua::RegisterBasicTypes(L);
    om::RegisterLuaTypes(L);
    csg::RegisterLuaTypes(L);
-   client::RegisterLuaTypes(L);
    store_.SetInterpreter(L); // xxx move to dm open or something
    authoringStore_.SetInterpreter(L); // xxx move to dm open or something
    lua::om::register_json_to_lua_objects(L, store_);
@@ -201,7 +202,7 @@ void Client::run()
    lua::rpc::open(L, core_reactor_);
 
 
-   luabind::globals(L)["_client"] = luabind::object(L, this);
+   //luabind::globals(L)["_client"] = luabind::object(L, this);
 
    json::ConstJsonObject::RegisterLuaType(L);
 
@@ -501,37 +502,101 @@ void Client::update_interpolation(int time)
    _client_interval_start = platform::get_current_time_in_ms();
 }
 
-void Client::OnMouseInput(const MouseEvent &windowMouse, const MouseEvent &browserMouse, bool &handled, bool &uninstall)
-{
-   bool hovering_on_brick = false;
+void Client::OnInput(Input const& input) {
+   try {
+      if (input.type == Input::MOUSE) {
+         OnMouseInput(input);
+      } else if (input.type == Input::KEYBOARD) {
+         OnKeyboardInput(input);
+      } else if (input.type == Input::RAW_INPUT) {
+         OnRawInput(input);
+      }
+   } catch (std::exception &e) {
+      LOG(WARNING) << "error dispatching input: " << e.what();
+   }
+}
 
-   if (browser_->HasMouseFocus()) {
-      // xxx: not quite right...
+void Client::OnMouseInput(Input const& input)
+{
+   bool handled = false, uninstall = false;
+
+   mouse_x_ = input.mouse.x;
+   mouse_y_ = input.mouse.y;
+   if (browser_->HasMouseFocus(input.mouse.x, input.mouse.y)) {
+      browser_->OnInput(input); // not quite right...
       return;
    }
 
-   auto i = mouseEventPromises_.begin();
-   while (!handled && i != mouseEventPromises_.end()) {
-      auto promise = i->lock();
-      if (promise && promise->IsActive()) {
-         promise->OnMouseEvent(windowMouse, handled);
-         i++;
-      } else {
-         i = mouseEventPromises_.erase(i);
-      }
-   }
-
-   if (!handled) {
-      if (rootObject_ && windowMouse.up[0]) {
+   if (!CallInputHandlers(input)) {
+      if (rootObject_ && input.mouse.up[0]) {
          LOG(WARNING) << "updating selection...";
-         UpdateSelection(windowMouse);
-      } else if (windowMouse.up[2]) {
-         CenterMap(windowMouse);
+         UpdateSelection(input.mouse);
+      } else if (input.mouse.up[2]) {
+         CenterMap(input.mouse);
       }
    }
 }
 
-void Client::CenterMap(const MouseEvent &mouse)
+void Client::OnKeyboardInput(Input const& input)
+{
+   if (input.keyboard.down) {
+      auto i = _commands.find(input.keyboard.key);
+      if (i != _commands.end()) {
+         i->second();
+         return;
+      }
+   }
+   browser_->OnInput(input);
+   CallInputHandlers(input);
+}
+
+void Client::OnRawInput(Input const& input)
+{
+   browser_->OnInput(input);
+   CallInputHandlers(input);
+}
+
+
+Client::InputHandlerId Client::AddInputHandler(InputHandlerCb const& cb)
+{
+   InputHandlerId id = ReserveInputHandler();
+   SetInputHandler(id, cb);
+   return id;
+}
+
+void Client::SetInputHandler(InputHandlerId id, InputHandlerCb const& cb)
+{
+   input_handlers_.emplace_back(std::make_pair(id, cb));
+}
+
+Client::InputHandlerId Client::ReserveInputHandler() {
+   return next_input_id_++;
+}
+
+void Client::RemoveInputHandler(InputHandlerId id)
+{
+   auto i = input_handlers_.begin();
+   while (i != input_handlers_.end()) {
+      if (i->first == id) {
+         input_handlers_.erase(i);
+         break;
+      }
+   }
+};
+
+bool Client::CallInputHandlers(Input const& input)
+{
+   auto handlers = input_handlers_;
+   for (int i = (int)handlers.size() - 1; i >= 0; i--) {
+      const auto& cb = handlers[i].second;
+      if (cb && cb(input)) {
+         return true;
+      }
+   }
+   return false;
+}
+
+void Client::CenterMap(const MouseInput &mouse)
 {
    om::Selection s;
 
@@ -541,7 +606,7 @@ void Client::CenterMap(const MouseEvent &mouse)
    }
 }
 
-void Client::UpdateSelection(const MouseEvent &mouse)
+void Client::UpdateSelection(const MouseInput &mouse)
 {
    om::Selection s;
    Renderer::GetInstance().QuerySceneRay(mouse.x, mouse.y, s);
@@ -590,18 +655,6 @@ void Client::UpdateSelection(const MouseEvent &mouse)
    }
 }
 
-
-// xxx: move this crap into a separate class
-void Client::OnKeyboardInput(const KeyboardEvent &e, bool &handled, bool &uninstall)
-{
-   if (e.down) {
-      auto i = _commands.find(e.key);
-      if (i != _commands.end()) {
-         i->second();
-         return;
-      }
-   }
-}
 
 void Client::SelectEntity(dm::ObjectId id)
 {
@@ -654,7 +707,7 @@ void Client::InstallCursor()
 {
    if (browser_) {
       HCURSOR cursor;
-      if (browser_->HasMouseFocus()) {
+      if (browser_->HasMouseFocus(mouse_x_, mouse_y_)) {
          cursor = uiCursor_;
       } else {
          cursor = NULL;
@@ -891,12 +944,6 @@ void Client::DestroyAuthoringEntity(dm::ObjectId id)
    }
 }
 
-MouseEventPromisePtr Client::TraceMouseEvents()
-{
-   MouseEventPromisePtr result = std::make_shared<MouseEventPromise>();
-   mouseEventPromises_.push_back(result);
-   return result;
-}
 
 void Client::ProcessBrowserJobQueue()
 {
@@ -905,162 +952,4 @@ void Client::ProcessBrowserJobQueue()
       fn();
    }
    browserJobQueue_.clear();
-}
-
-rpc::ReactorDeferredPtr Client::TraceObject(std::string const& uri, const char* reason)
-{
-   return core_reactor_->InstallTrace(rpc::Trace(uri));
-}
-
-void client::RegisterLuaTypes(lua_State* L)
-{
-   LuaRenderer::RegisterType(L);
-   LuaRenderEntity::RegisterType(L);
-   Client::RegisterLuaTypes(L);
-}
-
-MouseEventPromisePtr MouseEventPromise_OnMouseEvent(MouseEventPromisePtr me, luabind::object cb)
-{
-   lua::ScriptHost* host = Client::GetInstance().GetScriptHost();
-
-   using namespace luabind;
-   me->TraceMouseEvent([=](const MouseEvent &e) -> bool {
-      object result = host->CallFunction<object>(cb, e);
-      return type(result) == LUA_TBOOLEAN && object_cast<bool>(result);
-   });
-   return me;
-}
-
-void MouseEventPromise_Destroy(MouseEventPromisePtr me)
-{
-   me->Uninstall();
-}
-
-static luabind::object
-Client_QueryScene(lua_State* L, Client const&, int x, int y)
-{
-   om::Selection s;
-   Renderer::GetInstance().QuerySceneRay(x, y, s);
-
-   using namespace luabind;
-   object result = newtable(L);
-   if (s.HasBlock()) {
-      result["location"] = object(L, s.GetBlock());
-      result["normal"]   = object(L, csg::ToInt(s.GetNormal()));
-   }
-   return result;
-}
-
-std::weak_ptr<RenderEntity> Client_CreateRenderEntity(Client& c, H3DNode parent, luabind::object arg)
-{
-   om::EntityPtr entity;
-   std::weak_ptr<RenderEntity> result;
-
-   if (luabind::type(arg) == LUA_TSTRING) {
-      // arg is a path to an object (e.g. /objects/3).  If this leads to a Entity, we're all good
-      std::string path = luabind::object_cast<std::string>(arg);
-      dm::Store& store = Client::GetInstance().GetStore();
-      dm::ObjectPtr obj =  om::ObjectFormatter().GetObject(store, path);
-      if (obj && obj->GetObjectType() == om::Entity::DmType) {
-         entity = std::static_pointer_cast<om::Entity>(obj);
-      }
-   } else {
-      try {
-         entity = luabind::object_cast<om::EntityRef>(arg).lock();
-      } catch (luabind::cast_failed&) {
-      }
-   }
-   if (entity) {
-      result = Renderer::GetInstance().CreateRenderObject(parent, entity);
-   }
-   return result;
-}
-
-
-static bool MouseEvent_GetUp(MouseEvent const& me, int button)
-{
-   button--;
-   if (button >= 0 && button < sizeof(me.up)) {
-      return me.up[button];
-   }
-   return false;
-}
-
-static bool MouseEvent_GetDown(MouseEvent const& me, int button)
-{
-   button--;
-   if (button >= 0 && button < sizeof(me.down)) {
-      return me.down[button];
-   }
-   return false;
-}
-
-#if 0
-std::shared_ptr<LuaDeferred2<XZRegionSelector::Deferred>> Client_SelectXZRegion(lua_State* L, Client& c)
-{
-   auto s = std::make_shared<XZRegionSelector>(c.GetTerrain());
-   auto deferred = s->Activate();
-   auto luaDeferred = std::make_shared<LuaDeferred2<XZRegionSelector::Deferred>>(c.GetScriptHost(), deferred);
-   return luaDeferred;
-}
-#endif
-
-om::EntityRef Client_CreateEmptyAuthoringEntity(Client& client)
-{
-   return client.CreateEmptyAuthoringEntity();
-}
-
-om::EntityRef Client_CreateAuthoringEntity(Client& client, std::string const& mod_name, std::string const& entity_name)
-{
-   return client.CreateAuthoringEntity(mod_name, entity_name);
-}
-
-om::EntityRef Client_CreateAuthoringEntityByRef(Client& client, std::string const& ref)
-{
-   return client.CreateAuthoringEntityByRef(ref);
-}
-
-template <class T>
-luabind::scope RegisterLuaDeferredType(lua_State* L)
-{
-   return
-      lua::RegisterTypePtr<T>()
-         .def("done",     &T::LuaDone)
-         .def("progress", &T::LuaProgress)
-         .def("fail",     &T::LuaFail)
-         .def("always",   &T::LuaAlways);
-}
-
-IMPLEMENT_TRIVIAL_TOSTRING(Client)
-IMPLEMENT_TRIVIAL_TOSTRING(MouseEventPromise)
-IMPLEMENT_TRIVIAL_TOSTRING(MouseEvent)
-
-void Client::RegisterLuaTypes(lua_State* L)
-{
-   using namespace luabind;
-   module(L) [
-      lua::RegisterType<Client>()
-         .def("create_empty_authoring_entity",  &Client_CreateEmptyAuthoringEntity)
-         .def("create_authoring_entity",        &Client_CreateAuthoringEntity)
-         .def("create_authoring_entity_by_ref", &Client_CreateAuthoringEntityByRef)
-         .def("destroy_authoring_entity", &Client::DestroyAuthoringEntity)
-         .def("create_render_entity",     &Client_CreateRenderEntity)
-         .def("trace_mouse",              &Client::TraceMouseEvents)
-         .def("query_scene",              &Client_QueryScene)
-#if 0
-         .def("select_xz_region",         &Client_SelectXZRegion)
-         .def("call",                     &Client_Call)
-#endif
-      ,
-      lua::RegisterTypePtr<MouseEventPromise>()
-         .def("on_mouse_event",     &MouseEventPromise_OnMouseEvent)
-         .def("destroy",            &MouseEventPromise_Destroy)
-      ,
-      lua::RegisterType<MouseEvent>()
-         .def_readonly("x",       &MouseEvent::x)
-         .def_readonly("y",       &MouseEvent::y)
-         .def_readonly("wheel",   &MouseEvent::wheel)
-         .def("up",               &MouseEvent_GetUp)
-         .def("down",             &MouseEvent_GetDown)
-   ];
 }

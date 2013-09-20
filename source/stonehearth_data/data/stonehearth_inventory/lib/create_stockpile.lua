@@ -12,28 +12,29 @@ function CreateStockpile:choose_stockpile_location(session, response)
    mob:set_interpolate_movement(false)
    
    -- add a render object so the cursor entity gets rendered.
-   local cursor_render_entity = _client:create_render_entity(1, cursor_entity)
+   local cursor_render_entity = _radiant.client.create_render_entity(1, cursor_entity)
    local node = h3dRadiantCreateStockpileNode(cursor_render_entity:get_node(), 'stockpile designation')
 
-   local cleanup = function(data)
-      data = data and {}
-      _client:destroy_authoring_entity(cursor_entity:get_id())
-      response:resolve(data)
+   local cleanup = function()
+      _radiant.client.destroy_authoring_entity(cursor_entity:get_id())
    end
 
-   _client:select_xz_region()
-      :progress(function (p0, p1)
-            mob:set_location_grid_aligned(p0)
-            h3dRadiantResizeStockpileNode(node, p1.x - p0.x + 1, p1.z - p0.z + 1);
+   _radiant.client.select_xz_region()
+      :progress(function (box)
+            mob:set_location_grid_aligned(box.min)
+            h3dRadiantResizeStockpileNode(node, box.max.x - box.min.x + 1, box.max.z - box.min.z + 1);
          end)
-      :done(function (p0, p1)
+      :done(function (box)
             local size = {
-               p1.x - p0.x + 1,
-               p1.z - p0.z + 1,
+               box.max.x - box.min.x + 1,
+               box.max.z - box.min.z + 1,
             }
-            _radiant.call_obj('stonehearth_inventory', 'create_stockpile', p0, size)
-                     :always(function(data)
-                           cleanup(data)
+            _radiant.call_obj('stonehearth_inventory', 'create_stockpile', box.min, size)
+                     :done(function(r)
+                           response:resolve(r)
+                        end)
+                     :always(function()
+                           cleanup()
                         end)
          end)
       :fail(function()

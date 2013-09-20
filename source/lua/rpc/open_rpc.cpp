@@ -4,6 +4,8 @@
 #include "lib/rpc/lua_deferred.h"
 #include "lib/rpc/session.h"
 #include "lib/rpc/function.h"
+#include "lib/rpc/trace.h"
+#include "lib/rpc/untrace.h"
 #include "lib/rpc/core_reactor.h"
 #include "lua/script_host.h"
 #include "lua/register.h"
@@ -17,7 +19,18 @@ LuaDeferredPtr LuaDeferred_Done(lua_State* L, LuaDeferredPtr deferred, object cb
    L = lua::ScriptHost::GetCallbackThread(L);
    if (deferred) {
       deferred->Done([L, cb](luabind::object result) {
-         call_function<void>(cb, result);
+         call_function<void>(object(L, cb), result);
+      });
+   }
+   return deferred;
+}
+
+LuaDeferredPtr LuaDeferred_Always(lua_State* L, LuaDeferredPtr deferred, object cb)
+{
+   L = lua::ScriptHost::GetCallbackThread(L);
+   if (deferred) {
+      deferred->Always([L, cb]() {
+         call_function<void>(object(L, cb));
       });
    }
    return deferred;
@@ -28,7 +41,7 @@ LuaDeferredPtr LuaDeferred_Progress(lua_State* L, LuaDeferredPtr deferred, objec
    L = lua::ScriptHost::GetCallbackThread(L);
    if (deferred) {
       deferred->Progress([L, cb](luabind::object result) {
-         call_function<void>(cb, result);
+         call_function<void>(object(L, cb), result);
       });
    }
    return deferred;
@@ -39,7 +52,7 @@ LuaDeferredPtr LuaDeferred_Fail(lua_State* L, LuaDeferredPtr deferred, object cb
    L = lua::ScriptHost::GetCallbackThread(L);
    if (deferred) {
       deferred->Fail([L, cb](luabind::object result) {
-         call_function<void>(cb, result);
+         call_function<void>(object(L, cb), result);
       });
    }
    return deferred;
@@ -54,13 +67,13 @@ CoreReactor* GetReactor(lua_State* L)
    return reactor;
 }
 
-LuaDeferredPtr call_impl(lua_State* L, int start, std::string const& obj, std::string const& route)
+int call_impl(lua_State* L, int start, std::string const& obj, std::string const& route)
 {
    int top = lua_gettop(L);
 
    JSONNode args;
-   for (int i = start; i < top; i++) {
-      std::string arg = lua::ScriptHost::LuaToJson(L, object(L, from_stack(L, i)));
+   for (int i = start; i <= top; i++) {
+      std::string arg = lua::ScriptHost::LuaToJson(L, object(from_stack(L, i)));
       args.push_back(libjson::parse(arg));
    }
    Function fn;
@@ -70,17 +83,32 @@ LuaDeferredPtr call_impl(lua_State* L, int start, std::string const& obj, std::s
 
    std::string name = BUILD_STRING("lua " << fn);
    ReactorDeferredPtr d = GetReactor(L)->Call(fn);
-   return LuaDeferred::Wrap(L, name, d);
+
+   object(L, LuaDeferred::Wrap(L, name, d)).push(L);
+   return 1;
 }
 
-LuaDeferredPtr call(lua_State* L)
+int call(lua_State* L)
 {
    return call_impl(L, 2, "", luaL_checkstring(L, 1));
 }
 
-LuaDeferredPtr call_obj(lua_State* L)
+int call_obj(lua_State* L)
 {
    return call_impl(L, 3, luaL_checkstring(L, 1), luaL_checkstring(L, 2));
+}
+
+LuaDeferredPtr trace_obj(lua_State* L, std::string const& object)
+{
+   Trace t(object);
+
+   ReactorDeferredPtr d = GetReactor(L)->InstallTrace(t);
+   LuaDeferredPtr l = LuaDeferred::Wrap(L, BUILD_STRING("lua " << t), d);
+
+   l->Always([L, t]() {
+      GetReactor(L)->RemoveTrace(UnTrace(t.caller, t.call_id));
+   });
+   return l;
 }
 
 IMPLEMENT_TRIVIAL_TOSTRING(CoreReactor);
@@ -91,16 +119,30 @@ void lua::rpc::open(lua_State* L, CoreReactorPtr reactor)
       namespace_("_radiant") [
          def("call",             &call),
          def("call_obj",         &call_obj),
+         def("trace_obj",        &trace_obj),
          namespace_("rpc") [
             lua::RegisterType<CoreReactor>(),
             lua::RegisterTypePtr<LuaDeferred>()
+               .def("resolve",    &LuaDeferred::Resolve)
+               .def("reject",     &LuaDeferred::Reject)
+               .def("notify",     &LuaDeferred::Notify)
                .def("done",       &LuaDeferred_Done)
                .def("fail",       &LuaDeferred_Fail)
-               .def("progress",   &LuaDeferred_Progress),
+               .def("progress",   &LuaDeferred_Progress)
+               .def("always",     &LuaDeferred_Always),
             lua::RegisterTypePtr<Session>()
                .def_readonly("faction", &Session::faction)
          ]
       ]
    ];
    globals(L)["_reactor"] = object(L, reactor.get());
+
+   auto register_var_args_fn = [=](lua_CFunction f) -> object {
+      lua_register(L, "_radiant_tmp_fn", f);
+      return globals(L)["_radiant_tmp_fn"];
+   };
+
+   object radiant = globals(L)["_radiant"];
+   radiant["call"] = register_var_args_fn(&call);
+   radiant["call_obj"] = register_var_args_fn(&call_obj);
 }

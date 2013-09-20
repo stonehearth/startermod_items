@@ -1,10 +1,11 @@
 #ifndef _RADIANT_CHROMIUM_CHROMIUM_H
 #define _RADIANT_CHROMIUM_CHROMIUM_H
 
+#include <functional>
 #include "radiant_net.h"
 #include "csg/region.h"
 #include "namespace.h"
-#include "radiant_file.h"
+#include "core/input.h"
 #include "lib/rpc/forward_defines.h"
 
 BEGIN_RADIANT_CHROMIUM_NAMESPACE
@@ -19,13 +20,15 @@ public:
 
    typedef std::function<void(std::string const& uri, JSONNode const& query, std::string const& postdata, rpc::HttpDeferredPtr response)> HandleRequestCb;
 
-   virtual bool HasMouseFocus() = 0;
+   virtual bool HasMouseFocus(int screen_x, int screen_y) = 0;
    virtual void UpdateDisplay(PaintCb cb) = 0;
    virtual void Work() = 0;
-   virtual void OnRawInput(const RawInputEvent &evt, bool& handled, bool& uninstall) = 0;
-   virtual void OnMouseInput(const MouseEvent &evt, bool& handled, bool& uninstall) = 0;
+   virtual bool OnInput(Input const& evt) = 0;
    virtual void SetCursorChangeCb(CursorChangeCb cb) = 0;
    virtual void SetRequestHandler(HandleRequestCb cb) = 0;
+   virtual void SetBrowserResizeCb(std::function<void(int, int)> cb) = 0;
+   virtual void OnScreenResize(int w, int h) = 0;
+   virtual void GetBrowserSize(int& w, int& h) = 0;
 };
 
 IBrowser* CreateBrowser(HWND parentWindow, std::string const& docroot, int width, int height, int debug_port);

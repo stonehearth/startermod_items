@@ -21,9 +21,9 @@
 #include "core/singleton.h"
 #include "chromium/chromium.h"
 #include "lua/namespace.h"
-#include "mouse_event_promise.h"
 #include "radiant_json.h"
 #include "lib/rpc/forward_defines.h"
+#include "core/input.h"
 
 IN_RADIANT_LUA_NAMESPACE(
    class ScriptHost;
@@ -59,14 +59,25 @@ class Client : public core::Singleton<Client> {
       om::EntityPtr CreateEmptyAuthoringEntity();
       om::EntityPtr CreateAuthoringEntity(std::string const& mod_name, std::string const& entity_name);
       om::EntityPtr CreateAuthoringEntityByRef(std::string const& ref);
+      void DestroyAuthoringEntity(dm::ObjectId id);
 
       dm::Store& GetStore() { return store_; }
       dm::Store& GetAuthoringStore() { return authoringStore_; }
       Physics::OctTree& GetOctTree() const { return *octtree_; }
 
-      void SetCursor(std::string name);            
-      rpc::ReactorDeferredPtr TraceObject(std::string const& uri, const char* reason);
+      void SetCursor(std::string name);
+
+      typedef int InputHandlerId;
+      typedef std::function<int(Input const&)> InputHandlerCb;
+
+      InputHandlerId AddInputHandler(InputHandlerCb const& cb);
+      InputHandlerId ReserveInputHandler();
+      void SetInputHandler(InputHandlerId id, InputHandlerCb const& cb);
+      void RemoveInputHandler(InputHandlerId id);
+
    private:
+      NO_COPY_CONSTRUCTOR(Client);
+
       typedef std::function<void()>  CommandFn;
       typedef std::function<void(std::vector<om::Selection>)> CommandMapperFn;
 
@@ -89,12 +100,15 @@ class Client : public core::Singleton<Client> {
       void process_messages();
       void update_interpolation(int time);
       void handle_connect(const boost::system::error_code& e);
-      void OnMouseInput(const MouseEvent &windowMouse, const MouseEvent &browserMouse, bool &handled, bool &uninstall);
-      void OnKeyboardInput(const KeyboardEvent &e, bool &handled, bool &uninstall);
+      void OnInput(Input const& input);
+      void OnMouseInput(Input const& mouse);
+      void OnKeyboardInput(Input const& keyboard);
+      void OnRawInput(Input const& keyboard);
+      bool CallInputHandlers(Input const& input);
 
       void Reset();
-      void UpdateSelection(const MouseEvent &mouse);
-      void CenterMap(const MouseEvent &mouse);
+      void UpdateSelection(const MouseInput &mouse);
+      void CenterMap(const MouseInput &mouse);
 
       void InstallCursor();
       void HilightMouseover();
@@ -104,8 +118,6 @@ class Client : public core::Singleton<Client> {
       void TraceUri(JSONNode const& query, rpc::HttpDeferredPtr response);
       bool TraceObjectUri(std::string const& uri, rpc::HttpDeferredPtr response);
       void TraceFileUri(std::string const& uri, rpc::HttpDeferredPtr response);
-      void DestroyAuthoringEntity(dm::ObjectId id);
-      MouseEventPromisePtr TraceMouseEvents();
       void LoadModuleInitScript(json::ConstJsonObject const& block);
       void LoadModuleRoutes(std::string const& modulename, json::ConstJsonObject const& block);
 
@@ -186,13 +198,17 @@ private:
 
       // client side lua...
       std::unique_ptr<lua::ScriptHost>  scriptHost_;
-      std::vector<MouseEventPromiseRef>   mouseEventPromises_;
+
+      InputHandlerId                                           next_input_id_;
+      std::vector<std::pair<InputHandlerId, InputHandlerCb>>   input_handlers_;
 
       // reactor...
       rpc::CoreReactorPtr         core_reactor_;
       rpc::HttpReactorPtr         http_reactor_;
       rpc::HttpDeferredPtr        get_events_deferred_;
       rpc::ProtobufRouterPtr      protobuf_router_;
+      int                         mouse_x_;
+      int                         mouse_y_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

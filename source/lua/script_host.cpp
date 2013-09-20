@@ -58,8 +58,25 @@ void ScriptHost::AddJsonToLuaConverter(JsonToLuaFn fn)
 
 std::string ScriptHost::LuaToJson(luabind::object obj)
 {
-   object coder = globals(L_)["radiant"]["json"];
-   return call_function<std::string>(coder["encode"], obj);
+   int t = type(obj);
+   if (t == LUA_TTABLE || t == LUA_TUSERDATA) {
+      object coder = globals(L_)["radiant"]["json"];
+      return call_function<std::string>(coder["encode"], obj);
+   } else if (t == LUA_TSTRING) {
+      return object_cast<std::string>(obj);
+   } else if (t == LUA_TNUMBER) {
+      std::ostringstream formatter;
+      float v = object_cast<float>(obj);
+      if (csg::IsZero(v)) {
+         formatter << (int)v;
+      } else {
+         formatter << v;
+      }
+      return formatter.str();
+   } else if (t == LUA_TBOOLEAN) {
+      return object_cast<bool>(obj) ? "true" : "false";
+   }
+   return "";
 }
 
 luabind::object ScriptHost::JsonToLua(JSONNode const& json)

@@ -17,7 +17,6 @@ add_library(client
             application.cpp
             client.cpp
             main.cpp
-            mouse_event_promise.cpp
             xz_region_selector.cpp
             pch.cpp
             )

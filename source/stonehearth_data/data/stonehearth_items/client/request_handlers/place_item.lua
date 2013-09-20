@@ -18,7 +18,7 @@ function PlaceItem:handle_request(query, postdata, response)
    self._cursor_entity = radiant.entities.create_entity('entity(' .. item_mod .. ', ' .. item_name ..')')
 
    -- add a render object so the cursor entity gets rendered.
-   local re = _client:create_render_entity(1, self._cursor_entity)
+   local re = _radiant.client.create_render_entity(1, self._cursor_entity)
 
    radiant.log.info("created render entity")
 
@@ -27,16 +27,20 @@ function PlaceItem:handle_request(query, postdata, response)
 
    -- capture the mouse.  Call our _on_mouse_event each time, passing in
    -- the entity that we're supposed to create whenever the user clicks.
-   self._capture = _client:trace_mouse()
-   self._capture:on_mouse_event(function(e)
-                        self:_on_mouse_event(e, query.proxy_entity_id, response)
-                     end)
+   self._capture = _radiant.client.capture_input()
+   self._capture:on_input(function(e)
+         if e.type == _radiant.client.MOUSE_INPUT then
+            self:_on_mouse_event(e, query.proxy_entity_id, response)
+            return true
+         end
+         return false
+      end)
 end
 
 -- called each time the mouse moves on the client.
 function PlaceItem:_on_mouse_event(e, proxy_id, response)
    -- query the scene to figure out what's under the mouse cursor
-   local s = _client:query_scene(e.x, e.y)
+   local s = _radiant.client.query_scene(e.x, e.y)
 
    -- s.location contains the address of the terrain block that the mouse
    -- is currently pointing to.  if there isn't one, move the workshop
@@ -64,13 +68,13 @@ function PlaceItem:_on_mouse_event(e, proxy_id, response)
       -- pass "" for the function name so the deafult (handle_request) is
       -- called.  this will return a Deferred object which we can use to track
       -- the call's progress
-      _client:call('/modules/server/stonehearth_items/place_item_server', "", { proxy_id = proxy_id, location = pt })
+      _radiant.call('stonehearth_items', 'place_item_server', proxy_id, pt)
                :always(function ()
                      -- whether the request succeeds or fails, go ahead and destroy
                      -- the authoring entity.  do it after the request returns to avoid
                      -- the ugly flickering that would occur had we destroyed it when
                      -- we uninstalled the mouse cursor
-                     _client:destroy_authoring_entity(self._cursor_entity:get_id())
+                     _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
                      response:complete({})
                   end)
 

@@ -32,12 +32,12 @@ IBrowser* ::radiant::chromium::CreateBrowser(HWND parentWindow, std::string cons
 
 Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int height, int debug_port) :
    hwnd_(parentWindow),
-   width_(width),
-   height_(height),
-   mouseX_(0),
-   mouseY_(0)
+   screenWidth_(width),
+   screenHeight_(height)
 { 
-   framebuffer_ = new uint32[width_ * height_];
+   uiWidth_ = 1920;
+   uiHeight_ = 1080;
+   browser_framebuffer_ = new uint32[uiWidth_ * uiHeight_];
 
    CefMainArgs main_args(GetModuleHandle(NULL));
    if (!CefExecuteProcess(main_args, app_)) {
@@ -76,7 +76,7 @@ void Browser::Work()
 Browser::~Browser()
 {
    CefShutdown();
-   delete [] framebuffer_;
+   delete [] browser_framebuffer_;
 }
 
 bool Browser::OnBeforePopup(CefRefPtr<CefBrowser> parentBrowser,
@@ -93,7 +93,7 @@ void Browser::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
    if (browser_ == nullptr) {
       browser_ = browser;
-      //browser_->SetSize(PET_VIEW, width_, height_);
+      //browser_->SetSize(PET_VIEW, uiWidth_, uiHeight_);
    }
 }
 
@@ -147,13 +147,13 @@ bool Browser::OnConsoleMessage(CefRefPtr<CefBrowser> browser, const CefString& m
 bool Browser::GetRootScreenRect(CefRefPtr<CefBrowser> browser,
                                  CefRect& rect)
 {
-   rect.Set(0, 0, width_, height_);
+   rect.Set(0, 0, uiWidth_, uiHeight_);
    return true;
 }
 
 bool Browser::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) 
 {
-   rect.Set(0, 0, width_, height_);
+   rect.Set(0, 0, uiWidth_, uiHeight_);
    return true;
 }
 
@@ -184,10 +184,10 @@ void Browser::OnPaint(CefRefPtr<CefBrowser> browser,
 
    const uint32* src = (const uint32*)buffer;
    for (auto& r : dirtyRects) {
-      int offset = r.x + (r.y * width_);
+      int offset = r.x + (r.y * uiWidth_);
       for (int dy = 0; dy < r.height; dy++) {
-         memcpy(framebuffer_ + offset, src + offset, r.width * 4);
-         offset += width_;
+         memcpy(browser_framebuffer_ + offset, src + offset, r.width * 4);
+         offset += uiWidth_;
       }
       dirtyRegion_ += csg::Rect2(csg::Point2(r.x, r.y), csg::Point2(r.x + r.width, r.y + r.height));
    }
@@ -197,7 +197,7 @@ void Browser::UpdateDisplay(PaintCb cb)
 {
    std::lock_guard<std::mutex> guard(ui_lock_);
 
-   cb(dirtyRegion_, (const char*)framebuffer_);
+   cb(dirtyRegion_, (const char*)browser_framebuffer_);
    dirtyRegion_.Clear();
 }
 
@@ -286,7 +286,17 @@ int Browser::GetCefKeyboardModifiers(WPARAM wparam, LPARAM lparam)
    return modifiers;
 }
 
-void Browser::OnRawInput(const RawInputEvent &msg, bool& handled, bool& uninstall)
+bool Browser::OnInput(Input const& evt)
+{
+   if (evt.type == evt.MOUSE) {
+      OnMouseInput(evt.mouse);
+   } else if (evt.type == evt.RAW_INPUT) {
+      OnRawInput(evt.raw_input);
+   }
+   return true;
+}
+
+void Browser::OnRawInput(const RawInput &msg)
 {
    if (!browser_) {
       return;
@@ -325,7 +335,7 @@ void Browser::SetCursorChangeCb(CursorChangeCb cb) {
    cursorChangeCb_ = cb;
 }
 
-void Browser::OnMouseInput(const MouseEvent& mouse, bool& handled, bool& uninstall)
+void Browser::OnMouseInput(const MouseInput& mouse)
 {
    static const CefBrowserHost::MouseButtonType types[] = {
       MBT_LEFT,
@@ -336,10 +346,13 @@ void Browser::OnMouseInput(const MouseEvent& mouse, bool& handled, bool& uninsta
    if (!browser_) {
       return;
    }
+   int x = mouse.x;
+   int y = mouse.y;
+   WindowToBrowser(x, y);
 
    CefMouseEvent evt;
-   evt.x = mouseX_ = mouse.x;
-   evt.y = mouseY_ = mouse.y;
+   evt.x = x;
+   evt.y = y;
    evt.modifiers = 0;
 
    auto host = browser_->GetHost();
@@ -368,12 +381,14 @@ void Browser::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle curs
 }
 
 // xxx - nuke this...
-bool Browser::HasMouseFocus()
+bool Browser::HasMouseFocus(int x, int y)
 {
-   if (mouseX_ < 0 || mouseY_ < 0 || mouseX_ >= width_ || mouseY_ >= height_) {
+   WindowToBrowser(x, y);
+
+   if (x < 0 || y < 0 || x >= uiWidth_ || y >= uiHeight_) {
       return false;
    }
-   uint32 pixel = framebuffer_[mouseX_ + (mouseY_ * width_)];
+   uint32 pixel = browser_framebuffer_[x + (y * uiWidth_)];
    return ((pixel >> 24) && 0xff) != 0;
 }
 
@@ -527,3 +542,32 @@ void Browser::SetRequestHandler(HandleRequestCb cb)
 {
    requestHandler_ = cb;
 }
+
+void Browser::WindowToBrowser(int& x, int& y) 
+{
+   float xTransform = uiWidth_ / (float)screenWidth_;
+   float yTransform = uiHeight_ / (float)screenHeight_;
+
+   x = (int)(x * xTransform);
+   y = (int)(y * yTransform);
+}
+
+void Browser::SetBrowserResizeCb(std::function<void(int, int)> cb)
+{
+   resize_cb_ = cb;
+}
+
+void Browser::OnScreenResize(int w, int h)
+{
+   screenWidth_ = w;
+   screenHeight_ =  h;
+   // now would be a good time to resize the browser window if the aspect
+   // ratio has changed!
+}
+
+void Browser::GetBrowserSize(int& w, int& h)
+{
+   w = uiWidth_;
+   h = uiHeight_;
+}
+
