@@ -24,16 +24,11 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
    tracer_ += Renderer::GetInstance().TraceSelected(node_, std::bind(&RenderTerrain::OnSelected, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
    
    if (tess_map.empty()) {
-      foothillGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(1, GrassDetailBase));
-      foothillGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(2, GrassDetailBase + 1));
-      foothillGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(6, GrassDetailBase + 2));
-      foothillGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(8, GrassDetailBase + 3));
-      foothillGrassRingInfo_.inner = (TerrainDetailTypes)(GrassDetailBase + 4);
+      foothillGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(4, FoothillsDetailBase));
+      foothillGrassRingInfo_.inner = (TerrainDetailTypes)(FoothillsDetailBase + 1);
 
-      plainsGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(1,  FoothillsDetailBase));
-      plainsGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(4,  FoothillsDetailBase + 1));
-      plainsGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(12, FoothillsDetailBase + 2));
-      plainsGrassRingInfo_.inner = (TerrainDetailTypes)(FoothillsDetailBase + 3);
+      plainsGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(4,  GrassDetailBase));
+      plainsGrassRingInfo_.inner = (TerrainDetailTypes)(GrassDetailBase + 1);
 
       dirtRoadRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(1, DirtRoadBase));
       dirtRoadRingInfo_.inner = (TerrainDetailTypes)(DirtRoadBase + 1);
@@ -71,14 +66,8 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
       static csg::Point3f detail_bands[] = {
          parse_color(config.get<std::string>("foothills.band_0_color", "#ff00ff")),
          parse_color(config.get<std::string>("foothills.band_1_color", "#ff00ff")),
-         parse_color(config.get<std::string>("foothills.band_2_color", "#ff00ff")),
-         parse_color(config.get<std::string>("foothills.band_3_color", "#ff00ff")),
-         parse_color(config.get<std::string>("foothills.band_4_color", "#ff00ff")),
          parse_color(config.get<std::string>("plains.band_0_color", "#ff00ff")),
          parse_color(config.get<std::string>("plains.band_1_color", "#ff00ff")),
-         parse_color(config.get<std::string>("plains.band_2_color", "#ff00ff")),
-         parse_color(config.get<std::string>("plains.band_3_color", "#ff00ff")),
-         parse_color(config.get<std::string>("plains.band_4_color", "#ff00ff")),
          parse_color(config.get<std::string>("dirtpath.edges", "#ff00ff")),
          parse_color(config.get<std::string>("dirtpath.center", "#ff00ff")),
       };

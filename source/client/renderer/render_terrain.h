@@ -23,10 +23,10 @@ private:
       RenderDetailBase = 1000,
 
       FoothillsDetailBase = RenderDetailBase,
-      FoothillsDetailMax  = FoothillsDetailBase + 4,
+      FoothillsDetailMax  = FoothillsDetailBase + 1,
 
       GrassDetailBase,
-      GrassDetailMax  = GrassDetailBase + 4,
+      GrassDetailMax  = GrassDetailBase + 1,
 
       DirtRoadBase,
       DirtRoadMax = DirtRoadBase + 1,
