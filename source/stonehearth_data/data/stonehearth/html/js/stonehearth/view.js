@@ -22,7 +22,7 @@
       }
    },
 
-   _debug : false,
+   _debug : true,
 
    _log : function(level, str, obj) {
       if (!this._debug) {
