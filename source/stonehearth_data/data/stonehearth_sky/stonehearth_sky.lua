@@ -17,17 +17,17 @@ function stonehearth_sky:__init()
    self._celestials = {}
 
    self:_init_sun()
-   self._minutes = 0
+   self._minutes = 0;
 
    self._promise = _client:trace_object('/server/objects/stonehearth_calendar/clock', 'rendering the sky')
    if self._promise then
       self._promise:progress(function (data)
-            --self._minutes = self._minutes + 10
-            --if self._minutes >= 1440 then
-            --   self._minutes = 0
-            --end
-            --self:_update(self._minutes)
-            self:_update(data.date.minute + (data.date.hour * 60))
+            self._minutes = self._minutes + 10
+            if self._minutes >= 1440 then
+               self._minutes = 0
+            end
+            self:_update(self._minutes)
+            --self:_update(data.date.minute + (data.date.hour * 60))
          end)
    end
 end
@@ -153,17 +153,19 @@ function stonehearth_sky:_init_sun()
       {self.timing.sunrise_start, colors.night},
 
       -- sunrise
-      {self.timing.sunrise_start + t, colors.sunrise},
-      {self.timing.sunrise_end, colors.sunrise},
-      {self.timing.sunrise_end + t, colors.midday},
+      --{self.timing.sunrise_start + t, colors.sunrise},
+      --{self.timing.sunrise_end, colors.sunrise},
+      --{self.timing.sunrise_end + t, colors.midday},
+      {self.timing.sunrise_end, colors.midday},
 
       -- midday
       {self.timing.sunset_start, colors.midday},
 
       -- sunset
-      {self.timing.sunset_start + t, colors.sunset},
-      {self.timing.sunset_end, colors.sunset},
-      {self.timing.sunset_end + t, colors.night}
+      --{self.timing.sunset_start + t, colors.sunset},
+      --{self.timing.sunset_end, colors.sunset},
+      --{self.timing.sunset_end + t, colors.night}
+      {self.timing.sunset_end, colors.night}
    }
 
    local sun_ambient_colors = {
@@ -171,16 +173,18 @@ function stonehearth_sky:_init_sun()
       {self.timing.sunrise_start, ambient_colors.night},
 
       -- sunrise
-      {self.timing.sunrise_start + t, ambient_colors.sunrise},
-      {self.timing.sunrise_end, ambient_colors.sunrise},
+      --{self.timing.sunrise_start + t, ambient_colors.sunrise},
+      --{self.timing.sunrise_end, ambient_colors.sunrise},
+      --{self.timing.sunrise_end + t, ambient_colors.midday},
       {self.timing.sunrise_end + t, ambient_colors.midday},
 
       -- midday
       {self.timing.sunset_start, ambient_colors.midday},
 
       -- sunset
-      {self.timing.sunset_start + t, ambient_colors.sunset},
-      {self.timing.sunset_end, ambient_colors.sunset},
+      --{self.timing.sunset_start + t, ambient_colors.sunset},
+      --{self.timing.sunset_end, ambient_colors.sunset},
+      --{self.timing.sunset_end + t, ambient_colors.night},
       {self.timing.sunset_end + t, ambient_colors.night},
    }
 

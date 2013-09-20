@@ -29,7 +29,7 @@ local constants = {
 
 local data = {
    date = {
-      hour = 10,
+      hour = 6,
       minute = 0,
       second = 0,
       day = 0,

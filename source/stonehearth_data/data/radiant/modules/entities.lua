@@ -46,6 +46,9 @@ function entities.get_root_entity()
 end
 
 function entities.create_entity(arg1, arg2)
+   if not arg1 then
+      return native:create_empty_entity()
+   end
    if not arg2 then
       local entity_ref = arg1 -- something like 'entity(stonehearth, wooden_sword)'
       assert(entity_ref:sub(1, 7) == 'entity(')
