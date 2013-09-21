@@ -34,6 +34,9 @@ end
 function Firepit:light_fire()
    self._my_wood = radiant.entities.create_entity('stonehearth_trees', 'oak_log')
    radiant.entities.add_child(self._entity, self._my_wood, Point3(0, 0, 0))
+
+   self._curr_fire_effect =
+      radiant.effects.run_effect(self._entity, '/stonehearth_fire_and_light/effects/firepit/firepit_effect.json')
 end
 
 function Firepit:extinguish()
@@ -41,6 +44,7 @@ function Firepit:extinguish()
       radiant.entities.remove_child(self._entity, self._my_wood)
       radiant.entities.destroy_entity(self._my_wood)
       self._my_wood = nil
+      self._curr_fire_effect:stop()
    end
 end
 

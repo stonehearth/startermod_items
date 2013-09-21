@@ -158,7 +158,7 @@ function stonehearth_calendar.fire_time_of_day_events()
 
       radiant.events.broadcast_msg('radiant.events.calendar.midnight')
       data._fired_midnight_today = true
-      
+
       data._fired_sunrise_today = false
       data._fired_noon_today = false
       data._fired_sunset_today = false

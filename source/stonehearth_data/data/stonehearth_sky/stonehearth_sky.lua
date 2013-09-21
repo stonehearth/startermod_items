@@ -24,12 +24,7 @@ function StonehearthSky:__init()
    self._promise = _client:trace_object('/server/objects/stonehearth_calendar/clock', 'rendering the sky')
    if self._promise then
       self._promise:progress(function (data)
-            self._minutes = self._minutes + 10
-            if self._minutes >= self.timing.day_length then
-               self._minutes = 0
-            end
-            self:_update(self._minutes)
-            --self:_update(data.date.minute + (data.date.hour * 60))
+            self:_update(data.date.minute + (data.date.hour * 60))
          end)
    end
 end
