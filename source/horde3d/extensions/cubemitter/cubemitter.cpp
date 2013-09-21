@@ -437,11 +437,18 @@ void CubemitterNode::advanceTime( float timeDelta )
    }
 }
 
+// Stops production of new particles, but lets the remainder finish up.  Horde will reap the node
+// once all particles are gone.
+void CubemitterNode::stop()
+{
+   _active = false;
+}
 
 bool CubemitterNode::hasFinished()
 {
-	if( _respawnCount < 0 ) return false;
-
+   if (_active) {
+      return false;
+   }
 	for( uint32 i = 0; i < _particleCount; ++i )
 	{	
       if( _cubes[i].currentLife > 0)
@@ -580,7 +587,7 @@ void CubemitterNode::onPostUpdate()
    float timeAvailableToSpawn = _timeDelta - _nextSpawnTime;
    _nextSpawnTime -= _timeDelta;
    int numberToSpawn = 0;
-   while (timeAvailableToSpawn > 0) 
+   while (_active && timeAvailableToSpawn > 0) 
    {
       _nextSpawnTime = 1.0f / d.emission.rate->nextValue(_curEmitterTime);
       timeAvailableToSpawn -= _nextSpawnTime;

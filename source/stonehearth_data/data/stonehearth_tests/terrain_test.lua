@@ -39,7 +39,7 @@ function TerrainTest:create_world()
    height_map = self._terrain_generator:generate_zone(TerrainType.Foothills)
    HeightMapRenderer.render_height_map_to_terrain(height_map, self._terrain_generator.terrain_info)
 
-   Landscaper:place_trees(height_map)
+   --Landscaper:place_trees(height_map)
 end
 
 function TerrainTest:create_multi_zone_world()
@@ -75,7 +75,7 @@ function TerrainTest:create_multi_zone_world()
 end
 
 function TerrainTest:_create_world_blueprint()
-   local zones = Array2D(2, 2)
+   local zones = Array2D(3, 3)
    local zone_info
    local i, j
 
@@ -86,14 +86,14 @@ function TerrainTest:_create_world_blueprint()
          zones:set(i, j, zone_info)
       end
    end
-
+--[[
    zones:get(1, 1).terrain_type = TerrainType.Mountains
    zones:get(2, 1).terrain_type = TerrainType.Foothills
 
    zones:get(1, 2).terrain_type = TerrainType.Foothills
    zones:get(2, 2).terrain_type = TerrainType.Plains
+]]
 
---[[
    zones:get(1, 1).terrain_type = TerrainType.Mountains
    zones:get(2, 1).terrain_type = TerrainType.Mountains
    zones:get(3, 1).terrain_type = TerrainType.Foothills
@@ -105,7 +105,7 @@ function TerrainTest:_create_world_blueprint()
    zones:get(1, 3).terrain_type = TerrainType.Foothills
    zones:get(2, 3).terrain_type = TerrainType.Plains
    zones:get(3, 3).terrain_type = TerrainType.Plains
-]]
+
    return zones
 end
 
