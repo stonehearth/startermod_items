@@ -630,8 +630,8 @@ void CubemitterNode::spawnCube(CubeData &d, CubeAttribute &ca)
 
    if (data.emission.origin.surfaceKind == OriginData::SurfaceKind::RECTANGLE)
    {
-      float randWidth = randomF(0, data.emission.origin.width);
-      float randLength = randomF(0, data.emission.origin.length);
+      float randWidth = randomF(-data.emission.origin.width / 2.0f, data.emission.origin.width / 2.0f);
+      float randLength = randomF(-data.emission.origin.length / 2.0f, data.emission.origin.length / 2.0f);
       Vec3f v1(m.c[0][0], m.c[0][1], m.c[0][2]);
       Vec3f v2(m.c[1][0], m.c[1][1], m.c[1][2]);
 
