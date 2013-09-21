@@ -1,0 +1,94 @@
+<Pipeline>
+  <Setup>
+    <RenderTarget id="AttributeBuffer" depthBuf="true" numColBufs="2" format="RGBA32F" scale="1.0"/>
+    <RenderTarget id="LightingBuffer" depthBuf="false" numColBufs="1" format="RGBA32F" scale="1.0"/>
+    <RenderTarget id="OUTPUT" depthBuf="true" numColBufs="1" format="RGBA8" maxSamples="4" scale="1.0" />
+    <RenderTarget id="SSAOBUF" depthBuf="false" numColBufs="1" format="RGBA8" scale="1.0" />
+    <RenderTarget id="SSAOBLUR" depthBuf="false" numColBufs="1" format="RGBA8" scale="1.0" />
+    <RenderTarget id="TEMPSSAOBLUR" depthBuf="false" numColBufs="1" format="RGBA8" scale="1.0" />
+  </Setup>
+  <CommandQueue>
+
+    <Stage id="Setup">
+      <SwitchTarget target="OUTPUT" />
+      <ClearTarget colBuf0="true" depthBuf="true"/>
+    </Stage>
+
+    <Stage id="AttributePass">
+      <SwitchTarget target="AttributeBuffer" />
+      <ClearTarget depthBuf="true" />
+      <DrawGeometry context="DEPTH_AND_LIGHT_ATTRIBUTES" class="~Translucent" />
+    </Stage>
+
+    <Stage id="Lighting">
+      <SwitchTarget target="LightingBuffer" />
+      <ClearTarget colBuf0="true" />
+      <BindBuffer sampler="normals" sourceRT="AttributeBuffer" bufIndex="0" />
+      <BindBuffer sampler="positions" sourceRT="AttributeBuffer" bufIndex="1" />
+      <BindBuffer sampler="depth" sourceRT="AttributeBuffer" bufIndex="32" />
+
+      <DoDeferredLightLoop class="~Translucent" />
+
+      <UnbindBuffers />
+    </Stage>
+
+    <Stage id="SSAO">
+      <SwitchTarget target="SSAOBUF" />
+      <BindBuffer sampler="depthbuff" sourceRT="AttributeBuffer" bufIndex="32" />
+      <DrawQuad material="materials/ssao.material.xml" context="SSAO"/>
+      <UnbindBuffers />
+    </Stage>
+
+    <Stage id="SSAO Blur" >
+      <SwitchTarget target="TEMPSSAOBLUR" />
+      <BindBuffer sampler="depthbuff" sourceRT="AttributeBuffer" bufIndex="32" />
+      <BindBuffer sampler="ssaobuff" sourceRT="SSAOBUF" bufIndex="0" />
+      <DrawQuad material="materials/ssao.material.xml" context="BLUR_X" />
+      <UnbindBuffers />
+
+      <SwitchTarget target="SSAOBLUR" />
+      <BindBuffer sampler="depthbuff" sourceRT="AttributeBuffer" bufIndex="32" />
+      <BindBuffer sampler="ssaobuff" sourceRT="TEMPSSAOBLUR" bufIndex="0" />
+      <DrawQuad material="materials/ssao.material.xml" context="BLUR_Y" />
+      <UnbindBuffers />
+
+    </Stage>
+    <Stage id="Material">
+      <SwitchTarget target="OUTPUT" />
+      <BindBuffer sampler="lightingBuffer" sourceRT="LightingBuffer" bufIndex="0"/>
+      <BindBuffer sampler="ssaoBuffer" sourceRT="SSAOBLUR" bufIndex="0"/>
+      
+      <DrawGeometry context="MATERIAL" class="~Translucent" />
+      
+      <UnbindBuffers />
+    </Stage>
+
+    <Stage id="Final">
+       <SwitchTarget target="" />
+       <BindBuffer sampler="buf0" sourceRT="OUTPUT" bufIndex="0" />
+       <DrawQuad material="pipelines/outline.material.xml" context="DRAW_COLORBUF" />
+       <UnbindBuffers />
+    </Stage>
+
+    <Stage id="Overlays">
+      <DrawOverlays context="OVERLAY" />
+    </Stage>
+
+
+
+
+
+
+    <!--Stage id="Translucent">
+      <SwitchTarget target="MBUFF" />
+      <DrawGeometry context="TRANSLUCENT"/>
+      <DrawGeometry context="DEBUG_SHAPES" />
+    </Stage-->
+    <!--Stage id="Selected">
+      <DrawSelected context="SELECTED" />
+    </Stage-->
+    
+
+
+  </CommandQueue>
+</Pipeline>

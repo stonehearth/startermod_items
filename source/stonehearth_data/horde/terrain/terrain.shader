@@ -3,58 +3,82 @@
 // Samplers
 sampler2D cloudMap = sampler_state
 {
-	Texture = "textures/environment/cloudmap.png";
-	Address = Wrap;
+  Texture = "textures/environment/cloudmap.png";
+  Address = Wrap;
    Filter = None;
+};
+
+sampler2D lightingBuffer = sampler_state
+{
+  Address = Clamp;
+  Filter = Bilinear;
+};
+
+sampler2D ssaoBuffer = sampler_state
+{
+  Address = Clamp;
+  Filter = Bilinear;
 };
 
 // Contexts
 context AMBIENT
 {
-	VertexShader = compile GLSL VS_GENERAL;
-	PixelShader = compile GLSL FS_FORWARD_AMBIENT;
-	
-	ZWriteEnable = true;
+  VertexShader = compile GLSL VS_GENERAL;
+  PixelShader = compile GLSL FS_FORWARD_AMBIENT;
+  
+  ZWriteEnable = true;
 }
 
 context ATTRIBPASS
 {
-	VertexShader = compile GLSL VS_GENERAL;
-	PixelShader = compile GLSL FS_AMBIENT;
+  VertexShader = compile GLSL VS_GENERAL;
+  PixelShader = compile GLSL FS_AMBIENT;
    CullMode = Back;
+}
+
+context DEPTH_AND_LIGHT_ATTRIBUTES
+{
+  VertexShader = compile GLSL VS_GENERAL;
+  PixelShader = compile GLSL FS_DEFERRED_DEPTH_AND_LIGHT;
+}
+
+context MATERIAL
+{
+  VertexShader = compile GLSL VS_GENERAL;
+  PixelShader = compile GLSL FS_DEFERRED_MATERIAL;  
 }
 
 context SHADOWMAP
 {
-	VertexShader = compile GLSL VS_SHADOWMAP;
-	PixelShader = compile GLSL FS_SHADOWMAP;
+  VertexShader = compile GLSL VS_SHADOWMAP;
+  PixelShader = compile GLSL FS_SHADOWMAP;
    CullMode = Back;
 }
 
 context DIRECTIONAL_SHADOWMAP
 {
-	VertexShader = compile GLSL VS_DIRECTIONAL_SHADOWMAP;
-	PixelShader = compile GLSL FS_DIRECTIONAL_SHADOWMAP;
+  VertexShader = compile GLSL VS_DIRECTIONAL_SHADOWMAP;
+  PixelShader = compile GLSL FS_DIRECTIONAL_SHADOWMAP;
    CullMode = Back;
 }
 
 context LIGHTING
 {
-	VertexShader = compile GLSL VS_GENERAL;
-	PixelShader = compile GLSL FS_LIGHTING;
-	
-	ZWriteEnable = false;
-	BlendMode = Add;
+  VertexShader = compile GLSL VS_GENERAL;
+  PixelShader = compile GLSL FS_LIGHTING;
+  
+  ZWriteEnable = false;
+  BlendMode = Add;
    CullMode = Back;
 }
 
 context DIRECTIONAL_LIGHTING
 {
-	VertexShader = compile GLSL VS_GENERAL;
-	PixelShader = compile GLSL FS_DIRECTIONAL_LIGHTING;
-	
-	ZWriteEnable = false;
-	BlendMode = Add;
+  VertexShader = compile GLSL VS_GENERAL;
+  PixelShader = compile GLSL FS_DIRECTIONAL_LIGHTING;
+  
+  ZWriteEnable = false;
+  BlendMode = Add;
     CullMode = Back;
 }
 
@@ -77,26 +101,26 @@ uniform vec3 viewerPos;
 attribute vec3 vertPos;
 attribute vec3 normal;
 attribute vec3 color;
-varying vec4 pos, vsPos;
+varying vec4 pos, vsPos, cPos;
 varying vec3 tsbNormal;
 varying vec3 albedo;
 
 void main( void )
 {
-	pos = calcWorldPos( vec4( vertPos, 1.0 ) );
-	vsPos = calcViewPos( pos );
-   tsbNormal = normal;
-   albedo = color;
+  pos = calcWorldPos( vec4( vertPos, 1.0 ) );
+  vsPos = calcViewPos( pos );
+  tsbNormal = normal;
+  albedo = color;
 
-   vec4 vl = viewProjMat * pos;
-   //vl.z = vl.z * vl.w / 2000;
+  vec4 vl = viewProjMat * pos;
+  //vl.z = vl.z * vl.w / 2000;
 
-	// Calculate texture coordinates and clip space position
-	gl_Position = vl;//viewProjMat * pos;
+  // Calculate texture coordinates and clip space position
+  gl_Position = vl;//viewProjMat * pos;
 }
 
 
-[[FS_AMBIENT]]	
+[[FS_AMBIENT]]  
 
 #include "shaders/utilityLib/fragDeferredWrite.glsl" 
 
@@ -111,18 +135,31 @@ varying vec3 albedo;
 
 void main( void )
 {
-	vec3 newPos = pos.xyz;
-	vec3 normal = tsbNormal;
+  vec3 newPos = pos.xyz;
+  vec3 normal = tsbNormal;
 
-	setMatID( 1.0 );
-	setPos( newPos - viewerPos );
-	setNormal( normalize( normal ) );
-	setAlbedo( albedo.rgb );
-	setSpecParams( matSpecParams.rgb, matSpecParams.a );
+  setMatID( 1.0 );
+  setPos( newPos - viewerPos );
+  setNormal( normalize( normal ) );
+  setAlbedo( albedo.rgb );
+  setSpecParams( matSpecParams.rgb, matSpecParams.a );
 }
 
 
-[[FS_FORWARD_AMBIENT]]	
+[[FS_DEFERRED_DEPTH_AND_LIGHT]] 
+
+uniform vec3 viewerPos;
+varying vec4 pos;
+varying vec3 tsbNormal;
+
+void main( void )
+{
+  gl_FragData[0].rgb = normalize(tsbNormal).xyz;
+  gl_FragData[1].rgb = pos.xyz - viewerPos;
+}
+
+
+[[FS_FORWARD_AMBIENT]]  
 
 uniform vec3 viewerPos;
 uniform vec4 matDiffuseCol;
@@ -140,7 +177,7 @@ void main( void )
 
 [[VS_SHADOWMAP]]
 // =================================================================================================
-	
+  
 #include "shaders/utilityLib/vertCommon.glsl"
 #include "shaders/utilityLib/vertSkinning.glsl"
 
@@ -151,12 +188,12 @@ varying vec3 lightVec;
 
 void main( void )
 {
-	vec4 pos = calcWorldPos( vec4( vertPos, 1.0 ) );
-	lightVec = lightPos.xyz - pos.xyz;
-	gl_Position = viewProjMat * pos;
+  vec4 pos = calcWorldPos( vec4( vertPos, 1.0 ) );
+  lightVec = lightPos.xyz - pos.xyz;
+  gl_Position = viewProjMat * pos;
 }
-	
-	
+  
+  
 [[FS_SHADOWMAP]]
 // =================================================================================================
 
@@ -166,16 +203,16 @@ varying vec3 lightVec;
 
 void main( void )
 {
-	float dist = length( lightVec ) / lightPos.w;
-	gl_FragDepth = dist + shadowBias;
-	
-	// Clearly better bias but requires SM 3.0
-	//gl_FragDepth = dist + abs( dFdx( dist ) ) + abs( dFdy( dist ) ) + shadowBias;
+  float dist = length( lightVec ) / lightPos.w;
+  gl_FragDepth = dist + shadowBias;
+  
+  // Clearly better bias but requires SM 3.0
+  //gl_FragDepth = dist + abs( dFdx( dist ) ) + abs( dFdy( dist ) ) + shadowBias;
 }
 
 [[VS_DIRECTIONAL_SHADOWMAP]]
 // =================================================================================================
-	
+  
 #include "shaders/utilityLib/vertCommon.glsl"
 #include "shaders/utilityLib/vertSkinning.glsl"
 
@@ -184,11 +221,11 @@ attribute vec3 vertPos;
 
 void main( void )
 {
-	vec4 pos = calcWorldPos( vec4( vertPos, 1.0 ) );
-	gl_Position = viewProjMat * pos;
+  vec4 pos = calcWorldPos( vec4( vertPos, 1.0 ) );
+  gl_Position = viewProjMat * pos;
 }
-	
-	
+  
+  
 [[FS_DIRECTIONAL_SHADOWMAP]]
 // =================================================================================================
 
@@ -197,9 +234,9 @@ varying vec3 lightVec;
 
 void main( void )
 {
-	gl_FragDepth = gl_FragCoord.z + 2 * shadowBias;
-	// Clearly better bias but requires SM 3.0
-	//gl_FragDepth = dist + abs( dFdx( dist ) ) + abs( dFdy( dist ) ) + shadowBias;
+  gl_FragDepth = gl_FragCoord.z + 2 * shadowBias;
+  // Clearly better bias but requires SM 3.0
+  //gl_FragDepth = dist + abs( dFdx( dist ) ) + abs( dFdy( dist ) ) + shadowBias;
 }
 
 [[FS_LIGHTING]]
@@ -217,12 +254,12 @@ varying vec3 tsbNormal;
 
 void main( void )
 {
-	vec3 normal = tsbNormal;
-	vec3 newPos = pos.xyz;
+  vec3 normal = tsbNormal;
+  vec3 newPos = pos.xyz;
 
-	gl_FragColor.rgb = 
+  gl_FragColor.rgb = 
          calcPhongSpotLight( newPos, normalize( normal ), albedo, matSpecParams.rgb,
-		                    matSpecParams.a, -vsPos.z, 0.3 );
+                        matSpecParams.a, -vsPos.z, 0.3 );
 }
 
 [[FS_DIRECTIONAL_LIGHTING]]
@@ -241,9 +278,9 @@ varying vec3 tsbNormal;
 
 void main( void )
 {
-	gl_FragColor.rgb =
-		calcPhongDirectionalLight( pos, normalize( tsbNormal ), albedo, vec3(0,0,0),
-		                    0.0, -vsPos.z, 0.3 ) + (lightAmbientColor * albedo);
+  gl_FragColor.rgb =
+    calcPhongDirectionalLight( pos, normalize( tsbNormal ), albedo, vec3(0,0,0),
+                        0.0, -vsPos.z, 0.3 ) + (lightAmbientColor * albedo);
 }
 
 [[FS_CLOUDS]]
@@ -254,10 +291,26 @@ uniform float currentTime;
 
 void main( void )
 {
-	vec2 fragCoord = pos.xz * 0.3;
-   float cloudSpeed = currentTime / 80.0;
-   vec4 cloudColor = texture2D(cloudMap, fragCoord.xy / 128.0 + cloudSpeed);
-   cloudColor *= texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0));
+  vec2 fragCoord = pos.xz * 0.3;
+  float cloudSpeed = currentTime / 80.0;
+  vec4 cloudColor = texture2D(cloudMap, fragCoord.xy / 128.0 + cloudSpeed);
+  cloudColor *= texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0));
 
-	gl_FragColor.rgb = cloudColor;
+  gl_FragColor.rgb = cloudColor;
+}
+
+
+[[FS_DEFERRED_MATERIAL]]
+
+uniform sampler2D lightingBuffer;
+uniform sampler2D ssaoBuffer;
+uniform vec2 frameBufSize;
+varying vec3 albedo;
+
+void main(void)
+{
+  vec2 fragCoord = vec2(gl_FragCoord.xy / frameBufSize);
+  vec3 lightColor = texture2D(lightingBuffer, fragCoord);
+  float ssaoIntensity = texture2D(ssaoBuffer, fragCoord);
+  gl_FragColor.rgb = lightColor * albedo * ssaoIntensity;
 }

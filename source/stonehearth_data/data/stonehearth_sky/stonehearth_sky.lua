@@ -27,14 +27,14 @@ function stonehearth_sky:__init()
             --   self._minutes = 0
             --end
             --self:_update(self._minutes)
-            self:_update(data.date.minute + (data.date.hour * 60))
+            self:_update(500)--data.date.minute + (data.date.hour * 60))
          end)
    end
 end
 
 function stonehearth_sky:add_celestial(name, colors, angles, ambient_colors)
    -- TODO: how do we support multiple (deferred) renderers here?
-   local light_mat = h3dAddResource(H3DResTypes.Material, "materials/light.material.xml", 0)
+   local light_mat = h3dAddResource(H3DResTypes.Material, "materials/deferred_light.material.xml", 0)
    local new_celestial = {
       name = name,
       node = h3dAddLightNode(H3DRootNode, name, light_mat, "DIRECTIONAL_LIGHTING", "DIRECTIONAL_SHADOWMAP"),
