@@ -151,7 +151,11 @@ EdgeListPtr csg::Region2ToEdgeList(Region2 const& rgn, int height, Region3 const
          int coord3d = (plane == 0 ? 2 : 0);
          int plane3d = (plane == 0 ? 0 : 2);
 
-         if (min.y <= height && max.y >= height) {
+         // line below was:
+         //    if (min.y <= height && max.y >= height) {
+         // height of this layer was defined by height = Cube.GetMax().y-1
+         // therefore to intersect this layer, max.y-1 >= height or max.y > height
+         if (min.y <= height && max.y > height) {
             Point1 p0(min[coord3d]);
             Point1 p1(max[coord3d]);
             Line1 segment(p0, p1);
