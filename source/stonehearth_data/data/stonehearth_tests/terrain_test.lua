@@ -25,11 +25,29 @@ function TerrainTest:__init()
 
    self._terrain_generator = TerrainGenerator()
 
+   --self:tesselator_test()
+   --self:tree_test()
    --self:create_world()
    self:create_multi_zone_world()
 
    timer:stop()
    radiant.log.info('World generation time: %.3fs', timer:seconds())
+end
+
+function TerrainTest:tesselator_test()
+   local height_map = HeightMap(32, 32)
+   height_map:set_block(1, 1, 16, 32, 24)
+   height_map:set_block(17, 1, 16, 16, 23)
+   height_map:set_block(17, 17, 16, 16, 25)
+   HeightMapRenderer.render_height_map_to_terrain(height_map, self._terrain_generator.terrain_info)
+end
+
+function TerrainTest:tree_test()
+   math.randomseed(2)
+   local height_map = HeightMap(256, 256)
+   height_map:clear(8)
+   HeightMapRenderer.render_height_map_to_terrain(height_map, self._terrain_generator.terrain_info)
+   Landscaper:place_trees(height_map, self._terrain_generator.terrain_info)
 end
 
 function TerrainTest:create_world()
@@ -39,7 +57,8 @@ function TerrainTest:create_world()
    height_map = self._terrain_generator:generate_zone(TerrainType.Foothills)
    HeightMapRenderer.render_height_map_to_terrain(height_map, self._terrain_generator.terrain_info)
 
-   --Landscaper:place_trees(height_map)
+   Landscaper:place_trees(height_map, self._terrain_generator.terrain_info)
+   --self:_place_people(height_map)
 end
 
 function TerrainTest:create_multi_zone_world()
@@ -69,13 +88,14 @@ function TerrainTest:create_multi_zone_world()
    radiant.log.info('HeightMapRenderer time: %.3fs', timer:seconds())
 
    timer:start()
-   Landscaper:place_trees(world_map)
+   Landscaper:place_trees(world_map, self._terrain_generator.terrain_info)
+   --self:_place_people(world_map)
    timer:stop()
    radiant.log.info('Landscaper time: %.3fs', timer:seconds())
 end
 
 function TerrainTest:_create_world_blueprint()
-   local zones = Array2D(3, 3)
+   local zones = Array2D(2, 2)
    local zone_info
    local i, j
 
@@ -86,40 +106,38 @@ function TerrainTest:_create_world_blueprint()
          zones:set(i, j, zone_info)
       end
    end
---[[
+
    zones:get(1, 1).terrain_type = TerrainType.Mountains
    zones:get(2, 1).terrain_type = TerrainType.Foothills
 
    zones:get(1, 2).terrain_type = TerrainType.Foothills
    zones:get(2, 2).terrain_type = TerrainType.Plains
-]]
 
-   zones:get(1, 1).terrain_type = TerrainType.Mountains
-   zones:get(2, 1).terrain_type = TerrainType.Mountains
-   zones:get(3, 1).terrain_type = TerrainType.Foothills
+   -- zones:get(1, 1).terrain_type = TerrainType.Mountains
+   -- zones:get(2, 1).terrain_type = TerrainType.Mountains
+   -- zones:get(3, 1).terrain_type = TerrainType.Foothills
 
-   zones:get(1, 2).terrain_type = TerrainType.Mountains
-   zones:get(2, 2).terrain_type = TerrainType.Foothills
-   zones:get(3, 2).terrain_type = TerrainType.Plains
+   -- zones:get(1, 2).terrain_type = TerrainType.Mountains
+   -- zones:get(2, 2).terrain_type = TerrainType.Foothills
+   -- zones:get(3, 2).terrain_type = TerrainType.Plains
 
-   zones:get(1, 3).terrain_type = TerrainType.Foothills
-   zones:get(2, 3).terrain_type = TerrainType.Plains
-   zones:get(3, 3).terrain_type = TerrainType.Plains
+   -- zones:get(1, 3).terrain_type = TerrainType.Foothills
+   -- zones:get(2, 3).terrain_type = TerrainType.Plains
+   -- zones:get(3, 3).terrain_type = TerrainType.Plains
 
    return zones
 end
 
-function TerrainTest:create_old_world()
-   local t = TeraGen()
-   t.create()
-end
-
-function TerrainTest:decorate_landscape()
-   local zone_size = self._terrain_generator.zone_size
+function TerrainTest:_place_people(height_map)
+   local margin = 4
+   local width = height_map.width
+   local height = height_map.height
+   local num_people = width*height / 16
    local i
-   for i=1, 20 do
-      self:place_tree(math.random(1, zone_size), math.random(1, zone_size))
-      self:place_citizen(math.random(1, zone_size), math.random(1, zone_size))
+   num_people = 10
+   for i=1, num_people do
+      self:place_citizen(math.random(1+margin, width-margin),
+                         math.random(1+margin, height-margin))
    end
 end
 
@@ -130,11 +148,6 @@ function run_unit_tests()
    Wavelet._test()
 end
 
-function abs_lua(x)
-   if x >= 0 then return x end
-   return -x
-end
-
 function run_timing_tests()
    local abs = math.abs
    local timer = Timer(Timer.CPU_TIME)
@@ -143,8 +156,7 @@ function run_timing_tests()
    timer:start()
 
    for i = 1, iterations do
-      local x
-      x = abs(i)
+      -- do something
    end
 
    timer:stop()

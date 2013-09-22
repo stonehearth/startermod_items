@@ -43,32 +43,26 @@ end
 function HeightMapRenderer._add_land_to_region(dst, rect, height, terrain_info)
    local foothills_step_size = terrain_info[TerrainType.Foothills].step_size
    local foothills_max_height = terrain_info[TerrainType.Foothills].max_height
-   local tree_line = terrain_info.tree_line
+   local plains_max_height = terrain_info[TerrainType.Plains].max_height
 
    dst:add_cube(Cube3(Point3(rect.min.x, -2, rect.min.y),
                       Point3(rect.max.x,  0, rect.max.y),
                 Terrain.BEDROCK))
 
    -- Mountains
-   if height > terrain_info[TerrainType.Foothills].max_height then
-      if height > tree_line then
-         dst:add_cube(Cube3(Point3(rect.min.x, 0,         rect.min.y),
-                            Point3(rect.max.x, tree_line, rect.max.y),
-                      Terrain.TOPSOIL))
+   if height > foothills_max_height then
+      dst:add_cube(Cube3(Point3(rect.min.x, 0,                    rect.min.y),
+                         Point3(rect.max.x, foothills_max_height, rect.max.y),
+                   Terrain.TOPSOIL))
 
-         dst:add_cube(Cube3(Point3(rect.min.x, tree_line, rect.min.y),
-                            Point3(rect.max.x, height,    rect.max.y),
-                      Terrain.BEDROCK))
-      else
-         dst:add_cube(Cube3(Point3(rect.min.x, 0,         rect.min.y),
-                            Point3(rect.max.x, height,    rect.max.y),
-                      Terrain.TOPSOIL))
-      end
+      dst:add_cube(Cube3(Point3(rect.min.x, foothills_max_height, rect.min.y),
+                         Point3(rect.max.x, height,               rect.max.y),
+                   Terrain.BEDROCK))
       return
    end
 
    -- Plains
-   if height <= terrain_info[TerrainType.Plains].max_height then
+   if height <= plains_max_height then
 
       dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
                          Point3(rect.max.x, height-1, rect.max.y),

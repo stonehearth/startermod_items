@@ -27,7 +27,7 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
       foothillGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(4, FoothillsDetailBase));
       foothillGrassRingInfo_.inner = (TerrainDetailTypes)(FoothillsDetailBase + 1);
 
-      plainsGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(4,  GrassDetailBase));
+      plainsGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(2,  GrassDetailBase));
       plainsGrassRingInfo_.inner = (TerrainDetailTypes)(GrassDetailBase + 1);
 
       dirtRoadRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(1, DirtRoadBase));
