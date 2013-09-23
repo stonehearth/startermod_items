@@ -136,6 +136,8 @@ RenderInnerEffectList::RenderInnerEffectList(RenderEntity& renderEntity, om::Eff
          if (PlaySoundEffect::ShouldCreateSound()) {
             e = std::make_shared<PlaySoundEffect>(renderEntity, effect, node); 
          }
+      } else if (type == "cubemitter") {
+         e = std::make_shared<CubemitterEffect>(renderEntity, effect, node);
       }
       if (e) {
          effects_.push_back(e);
@@ -168,6 +170,10 @@ void RenderInnerEffectList::Update(int now, int dt, bool& finished)
       finished_.clear();
    }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// RenderAnimationEffect
+///////////////////////////////////////////////////////////////////////////////
 
 RenderAnimationEffect::RenderAnimationEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
    entity_(e)
@@ -222,6 +228,9 @@ void RenderAnimationEffect::Update(int now, int dt, bool& finished)
    });
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// HideBoneEffect
+///////////////////////////////////////////////////////////////////////////////
 
 HideBoneEffect::HideBoneEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
    entity_(e),
@@ -249,6 +258,54 @@ void HideBoneEffect::Update(int now, int dt, bool& finished)
    }
    finished = true;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// HideBoneEffect
+///////////////////////////////////////////////////////////////////////////////
+
+CubemitterEffect::CubemitterEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
+   entity_(e),
+   cubemitterNode_(0)
+{
+   auto cubemitterFileName = node["cubemitter"].as_string();
+
+   H3DRes matRes = h3dAddResource(H3DResTypes::Material, "materials/cubemitter.material.xml", 0);
+   H3DRes cubeRes = h3dAddResource(RT_CubemitterResource, cubemitterFileName.c_str(), 0);
+
+   cubemitterNode_ = h3dRadiantAddCubemitterNode(e.GetNode(), "cu", cubeRes, matRes);
+   float x, y, z, rx, ry, rz;
+
+   parseTransforms(node["transforms"], &x, &y, &z, &rx, &ry, &rz);
+   h3dSetNodeTransform(cubemitterNode_, x, y, z, rx, ry, rz, 1, 1, 1);
+}
+
+void CubemitterEffect::parseTransforms(const JSONNode& node, float *x, float *y, float *z, float *rx, float *ry, float *rz)
+{
+   radiant::json::ConstJsonObject o(node);
+
+   *x = o.get("x", 0.0f);
+   *y = o.get("y", 0.0f);
+   *z = o.get("z", 0.0f);
+   *rx = o.get("rx", 0.0f);
+   *ry = o.get("ry", 0.0f);
+   *rz = o.get("rz", 0.0f);
+}
+
+CubemitterEffect::~CubemitterEffect()
+{
+   if (cubemitterNode_ != 0) {
+      h3dRadiantStopCubemitterNode(cubemitterNode_);
+   }
+}
+
+void CubemitterEffect::Update(int now, int dt, bool& finished)
+{
+   finished = false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// RenderAttachItemEffect
+///////////////////////////////////////////////////////////////////////////////
 
 RenderAttachItemEffect::RenderAttachItemEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
    entity_(e),
@@ -363,6 +420,10 @@ get_easing_function(std::string easing)
    return claw::tween::easing_linear::ease_in;
 #undef GET_EASING_FUNCTION
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// FloatingCombatTextEffect
+///////////////////////////////////////////////////////////////////////////////
 
 FloatingCombatTextEffect::FloatingCombatTextEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
    entity_(e),

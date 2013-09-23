@@ -20,7 +20,7 @@ App.StonehearthClassesPromoteView = App.View.extend({
 
    destroy: function() {
       var self = this;
-      
+
       this.set('context.citizenToPromote', null);
       this._super();
 
@@ -67,8 +67,8 @@ App.StonehearthClassesPromoteView = App.View.extend({
 
       promoteCitizen: function() {
          var self = this;
-         var person = this.get('context.citizenToPromote');
-         radiant.call_obj('stonehearth_classes', 'promote', person.__self, this.talisman)
+         var person = this.get('context.citizenToPromote').__self;
+         radiant.call_obj('stonehearth_classes', 'promote', person, this.talisman)
             .done(function(data) {
                radiant.log.info("stonehearth_classes.promote finished!", data)
             })
@@ -82,6 +82,13 @@ App.StonehearthClassesPromoteView = App.View.extend({
    },
 
    dateString: function() {
+      var dateObject = App.gameView.getDate();
+      var date;
+      if (dateObject) {
+         date = dateObject.date;
+      } else {
+         date = "Ooops, clock's broken."
+      }
       return App.gameView.getDate().date;
    }
 });

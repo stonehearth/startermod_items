@@ -3,6 +3,7 @@ local AnimationEffect = require 'modules.effects.animation_effect'
 local FrameDataEffect = require 'modules.effects.frame_data_effect'
 local TriggerEffect = require 'modules.effects.trigger_effect'
 local MusicEffect = require 'modules.effects.music_effect'
+local CubemitterEffect = require 'modules.effects.cubemitter_effect'
 
 local EffectTracks = class()
 function EffectTracks:__init(mgr, entity, effect_path, effect_name, start_time, trigger_handler, args)
@@ -35,6 +36,8 @@ function EffectTracks:__init(mgr, entity, effect_path, effect_name, start_time, 
          table.insert(self._effects, FrameDataEffect(start_time, trigger_handler, e, self._effect))
       elseif e.type == "music_effect" or e.type == "sound_effect" then
          table.insert(self._effects, MusicEffect(start_time, trigger_handler, e, self._effect, args))
+      elseif e.type == "cubemitter" then
+         table.insert(self._effects, CubemitterEffect(e))
       else
          radiant.log.info('unknown effect type "%s".  using generic', e.type)
          table.insert(self._effects, GenericEffect(start_time, trigger_handler, e, self._effect))

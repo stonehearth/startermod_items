@@ -1,17 +1,21 @@
-local stonehearth_sky = class()
+radiant.mods.require('stonehearth_calendar')
+
+local StonehearthSky = class()
 local Vec3 = _radiant.csg.Point3f
 
-function stonehearth_sky:__init()
-   self.timing = {
-      midnight = 0,
-      sunrise_start = 360,
-      sunrise_end = 390,
-      midday = 720,
-      sunset_start = 1080,
-      sunset_end = 1110,
-      day_length = 1440,
-      transition_length = 10
-   }
+--[[
+   Expose so other classes can do things at certain times of the day. Makes
+   sense since people look at the sky to tell them when to do things.
+   TODO: day lengths should change based on seasons.
+]]
+
+local constants = {
+   rise_set_length = 30,
+   transition_length = 10
+}
+
+function StonehearthSky:__init()
+   StonehearthSky:set_sky_constants()
    self._celestials = {}
 
    self:_init_sun()
@@ -20,17 +24,30 @@ function stonehearth_sky:__init()
    self._promise = _radiant.trace_obj('stonehearth_calendar.clock')
    if self._promise then
       self._promise:progress(function (data)
-            self._minutes = self._minutes + 10
-            if self._minutes >= 1440 then
-               self._minutes = 0
-            end
-            self:_update(self._minutes)
-            --self:_update(data.date.minute + (data.date.hour * 60))
+            self:_update(data.date.minute + (data.date.hour * 60))
          end)
    end
 end
 
-function stonehearth_sky:add_celestial(name, colors, angles, ambient_colors)
+function StonehearthSky:set_sky_constants()
+   self.timing = {}
+
+   --get some times from the calendar
+   local base_times = stonehearth_calendar.get_curr_times_of_day()
+   local time_constants = stonehearth_calendar.get_constants()
+
+   self.timing.midnight = base_times.midnight * time_constants.MINUTES_IN_HOUR
+   self.timing.sunrise_start = base_times.sunrise *time_constants.MINUTES_IN_HOUR
+   self.timing.sunrise_end = (base_times.sunrise * time_constants.MINUTES_IN_HOUR) + constants.rise_set_length
+   self.timing.midday = base_times.midday * time_constants.MINUTES_IN_HOUR
+   self.timing.sunset_start = base_times.sunset * time_constants.MINUTES_IN_HOUR
+   self.timing.sunset_end = (base_times.sunset * time_constants.MINUTES_IN_HOUR) + constants.rise_set_length
+   self.timing.day_length = time_constants.HOURS_IN_DAY * time_constants.MINUTES_IN_HOUR
+   self.timing.transition_length = constants.transition_length
+end
+
+
+function StonehearthSky:add_celestial(name, colors, angles, ambient_colors)
    -- TODO: how do we support multiple (deferred) renderers here?
    local light_mat = h3dAddResource(H3DResTypes.Material, "materials/light.material.xml", 0)
    local new_celestial = {
@@ -55,7 +72,7 @@ function stonehearth_sky:add_celestial(name, colors, angles, ambient_colors)
    self:_update_light(0, new_celestial)
 end
 
-function stonehearth_sky:get_celestial(name)
+function StonehearthSky:get_celestial(name)
    for _, o in pairs(self._celestials) do
       if o.name == name then
          return o
@@ -64,13 +81,13 @@ function stonehearth_sky:get_celestial(name)
    return nil
 end
 
-function stonehearth_sky:_update(minutes)
+function StonehearthSky:_update(minutes)
    for _, o in pairs(self._celestials) do
       self:_update_light(minutes, o)
    end
 end
 
-function stonehearth_sky:_update_light(minutes, light)
+function StonehearthSky:_update_light(minutes, light)
    local color = self:_find_value2(minutes, light.colors)
    local ambient_color = self:_find_value2(minutes, light.ambient_colors)
    local angles = self:_find_value2(minutes, light.angles)
@@ -80,10 +97,10 @@ function stonehearth_sky:_update_light(minutes, light)
    self:_light_angles(light, angles.x, angles.y, angles.z)
 end
 
-function stonehearth_sky:_find_value2(time, data)
+function StonehearthSky:_find_value2(time, data)
    local t_start = data[1][1]
    local v_start = data[1][2]
-   
+
    if time < t_start then
       return self:_interpolate(time, data[#data][1], t_start, data[#data][2], v_start)
    end
@@ -105,7 +122,7 @@ function stonehearth_sky:_find_value2(time, data)
    return self:_interpolate(time, t_end, data[1][1], v_end, data[1][2])
 end
 
-function stonehearth_sky:_interpolate(time, t_start, t_end, v_start, v_end)
+function StonehearthSky:_interpolate(time, t_start, t_end, v_start, v_end)
    if t_start > t_end then
       t_end = t_end + self.timing.day_length
       time = time + self.timing.day_length
@@ -115,7 +132,7 @@ function stonehearth_sky:_interpolate(time, t_start, t_end, v_start, v_end)
    return self:_vec_interpolate(v_start, v_end, frac)
 end
 
-function stonehearth_sky:_vec_interpolate(a, b, frac)
+function StonehearthSky:_vec_interpolate(a, b, frac)
    local result = Vec3(0, 0, 0)
    result.x = (a.x * (1.0 - frac)) + (b.x * frac)
    result.y = (a.y * (1.0 - frac)) + (b.y * frac)
@@ -123,7 +140,7 @@ function stonehearth_sky:_vec_interpolate(a, b, frac)
    return result
 end
 
-function stonehearth_sky:_init_sun()
+function StonehearthSky:_init_sun()
    local t = self.timing.transition_length;
 
    local angles = {
@@ -195,21 +212,21 @@ function stonehearth_sky:_init_sun()
    self:add_celestial("sun", sun_colors, sun_angles, sun_ambient_colors)
 end
 
-function stonehearth_sky:_light_color(light, r, g, b)
+function StonehearthSky:_light_color(light, r, g, b)
    h3dSetNodeParamF(light.node, H3DLight.ColorF3, 0, r)
    h3dSetNodeParamF(light.node, H3DLight.ColorF3, 1, g)
    h3dSetNodeParamF(light.node, H3DLight.ColorF3, 2, b)
 end
 
-function stonehearth_sky:_light_ambient_color(light, r, g, b)
+function StonehearthSky:_light_ambient_color(light, r, g, b)
    h3dSetNodeParamF(light.node, H3DLight.AmbientColorF3, 0, r)
    h3dSetNodeParamF(light.node, H3DLight.AmbientColorF3, 1, g)
    h3dSetNodeParamF(light.node, H3DLight.AmbientColorF3, 2, b)
 end
 
-function stonehearth_sky:_light_angles(light, x, y, z) 
+function StonehearthSky:_light_angles(light, x, y, z)
    h3dSetNodeTransform(light.node, 0, 0, 0, x, y, z, 1, 1, 1)
 end
 
-stonehearth_sky:__init()
-return stonehearth_sky
+StonehearthSky:__init()
+return StonehearthSky

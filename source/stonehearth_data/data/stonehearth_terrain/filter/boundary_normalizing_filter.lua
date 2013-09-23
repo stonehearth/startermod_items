@@ -50,11 +50,11 @@ function BoundaryNormalizingFilter:filter(dst, src, src_len, sampling_interval)
 
    local i, j
    local k, k_start, k_end
-   local offset = -boundary_len-1
+   local offset = -boundary_len-1 -- centers f[k] around index i
    local sum
 
    -- i indexes the source array
-   -- j indexes the destiation array
+   -- j indexes the destination array
    j = 1
    for i=1, src_len, sampling_interval do
       sum = 0
@@ -66,21 +66,19 @@ function BoundaryNormalizingFilter:filter(dst, src, src_len, sampling_interval)
             sum = sum + src[i+offset+k]*f[k]
          end
          dst[j] = sum * n[i]
-      else
-         if i > src_len-boundary_len then
-            -- handle boundary conditions at end
-            k_end = f_len-boundary_len + src_len-i 
-            for k=1, k_end do
-               sum = sum + src[i+offset+k]*f[k]
-            end
-            dst[j] = sum * n[src_len-i+1]
-         else
-            -- main convolution loop
-            for k=1, f_len do
-               sum = sum + src[i+offset+k]*f[k]
-            end
-            dst[j] = sum
+      elseif i > src_len-boundary_len then
+         -- handle boundary conditions at end
+         k_end = f_len-boundary_len + src_len-i 
+         for k=1, k_end do
+            sum = sum + src[i+offset+k]*f[k]
          end
+         dst[j] = sum * n[src_len-i+1]
+      else
+         -- main convolution loop
+         for k=1, f_len do
+            sum = sum + src[i+offset+k]*f[k]
+         end
+         dst[j] = sum
       end
 
       j = j+1

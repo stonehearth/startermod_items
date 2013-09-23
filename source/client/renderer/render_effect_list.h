@@ -83,6 +83,20 @@ private:
    int                           boneNodeFlags_;
 };
 
+/* For creating cubemitters from a given JSON file. */
+struct CubemitterEffect : public RenderEffect {
+public:
+   CubemitterEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
+   ~CubemitterEffect();
+
+   void Update(int now, int dt, bool& done) override;
+
+private:
+   void parseTransforms(const JSONNode& node, float *x, float *y, float *z, float *rx, float *ry, float *rz);
+   RenderEntity&                 entity_;
+   H3DNode                       cubemitterNode_;
+};
+
 /* For playing simple background music*/
 struct PlayMusicEffect : public RenderEffect {
 public:

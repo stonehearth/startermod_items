@@ -4,7 +4,7 @@
 using namespace ::radiant;
 using namespace ::radiant::csg;
 
-// #define LOG_EDGES
+//#define LOG_EDGES
 
 std::ostream& csg::operator<<(std::ostream& os, EdgePoint const& f)
 {
@@ -172,7 +172,11 @@ EdgeListPtr csg::Region2ToEdgeList(Region2 const& rgn, int height, Region3 const
          int coord3d = (plane == 0 ? 2 : 0);
          int plane3d = (plane == 0 ? 0 : 2);
 
-         if (min.y <= height && max.y >= height) {
+         // line below was:
+         //    if (min.y <= height && max.y >= height) {
+         // height of this layer was defined by height = Cube.GetMax().y-1
+         // therefore to intersect this layer, max.y-1 >= height or max.y > height
+         if (min.y <= height && max.y > height) {
             Point1 p0(min[coord3d]);
             Point1 p1(max[coord3d]);
             Line1 segment(p0, p1);
@@ -232,12 +236,12 @@ csg::Region2 csg::EdgeListToRegion2(EdgeListPtr edges, int width, csg::Region2 c
             //rect = csg::Rect2(p0, p1);
             rect = csg::Rect2::Construct(p0, p1);
          } else if (segment->normal.y == 1) {
-            p0 = *segment->start - (segment->end->normals * width);
+            p0 = *segment->start - (segment->start->normals * width);
             p1 = *segment->end;
             //rect = csg::Rect2(p0, p1);
             rect = csg::Rect2::Construct(p0, p1);
          } else if (segment->normal.x == -1) {
-            p0 = *segment->start - (segment->end->normals * width);
+            p0 = *segment->start - (segment->start->normals * width);
             p1 = *segment->end;
             rect = csg::Rect2::Construct(p0, p1);
          } else {

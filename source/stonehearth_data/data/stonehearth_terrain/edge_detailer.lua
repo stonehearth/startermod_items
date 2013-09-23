@@ -1,10 +1,12 @@
-local HeightMap = require 'height_map'
-local InverseGaussianRandom = require 'math.inverse_gaussian_random.lua'
+local TerrainType = require 'stonehearth_terrain.terrain_type'
+local HeightMap = require 'stonehearth_terrain.height_map'
+local InverseGaussianRandom = require 'stonehearth_terrain.math.inverse_gaussian_random'
 local Point2 = _radiant.csg.Point2
 
 local EdgeDetailer = class()
 
-function EdgeDetailer:__init()
+function EdgeDetailer:__init(terrain_info)
+   self.terrain_info = terrain_info
    self.detail_seed_probability = 0.10
    self.detail_grow_probability = 0.85
 end
@@ -122,14 +124,14 @@ end
 -- returns false is no non-diagonal neighbor higher by more then threshold
 -- othrewise returns the height delta to the highest neighbor
 function EdgeDetailer:_is_edge(height_map, x, y, threshold)
-   if threshold == nil then threshold = 0.99 end
    local neighbor
    local offset = height_map:get_offset(x, y)
    local value = height_map[offset]
    local width = height_map.width
    local height = height_map.height
-   local delta
-   local max_delta = threshold
+   local delta, max_delta
+
+   max_delta = threshold
 
    if x > 1 then
       neighbor = height_map[offset-1]
@@ -157,6 +159,55 @@ function EdgeDetailer:_is_edge(height_map, x, y, threshold)
    else
       return false
    end
+end
+
+-----
+
+-- makes lots of assumptions about how plains are quantized
+-- ok since this will change anyway if plains are quantized differently
+function EdgeDetailer:add_plains_details(height_map)
+   local edge_threshold = 2
+   local i, j
+
+   for j=1, height_map.width do
+      for i=1, height_map.height do
+         if self:_is_plains_edge(height_map, i, j, edge_threshold) then
+            local offset = height_map:get_offset(i, j)
+            height_map[offset] = height_map[offset] + 1
+         end
+      end
+   end
+end
+
+function EdgeDetailer:_is_plains_edge(height_map, x, y, threshold)
+   local offset = height_map:get_offset(x, y)
+   local value = height_map[offset]
+   local width = height_map.width
+   local height = height_map.height
+   local neighbor
+
+   if value >= self.terrain_info[TerrainType.Plains].max_height then
+      return false
+   end
+
+   if x > 1 then
+      neighbor = height_map[offset-1]
+      if neighbor - value == threshold then return true end
+   end
+   if x < width then
+      neighbor = height_map[offset+1]
+      if neighbor - value == threshold then return true end
+   end
+   if y > 1 then
+      neighbor = height_map[offset-width]
+      if neighbor - value == threshold then return true end
+   end
+   if y < height then
+      neighbor = height_map[offset+width]
+      if neighbor - value == threshold then return true end
+   end
+
+   return false
 end
 
 return EdgeDetailer
