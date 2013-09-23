@@ -425,6 +425,8 @@ bool Renderer::createShaderComb( const char* filename, const char *vertexShader,
 	sc.uni_viewProjMat = gRDI->getShaderConstLoc( shdObj, "viewProjMat" );
 	sc.uni_viewProjMatInv = gRDI->getShaderConstLoc( shdObj, "viewProjMatInv" );
 	sc.uni_viewerPos = gRDI->getShaderConstLoc( shdObj, "viewerPos" );
+   sc.uni_camViewProjMat = gRDI->getShaderConstLoc( shdObj, "camViewProjMat" );
+   sc.uni_camProjMat = gRDI->getShaderConstLoc( shdObj, "camProjMat" );
 	
 	// Per-instance uniforms
 	sc.uni_worldMat = gRDI->getShaderConstLoc( shdObj, "worldMat" );
@@ -505,6 +507,21 @@ void Renderer::commitGeneralUniforms()
 		
 		if( _curShader->uni_viewerPos >= 0 )
 			gRDI->setShaderConst( _curShader->uni_viewerPos, CONST_FLOAT3, &_viewMatInv.x[12] );
+
+      if( _curShader->uni_camProjMat >= 0 )
+      {
+         Matrix4f m = getCurCamera()->getProjMat();
+         Vec4f v(0, 0, 200, 1);
+         Vec4f r = m * v;
+         Vec4f h = Vec4f(r.x / r.w, r.y / r.w, r.z / r.w, r.w / r.w);
+			gRDI->setShaderConst( _curShader->uni_camProjMat, CONST_FLOAT44, m.x );
+      }
+
+      if( _curShader->uni_camViewProjMat >= 0)
+      {
+         Matrix4f m = getCurCamera()->getProjMat() * getCurCamera()->getViewMat();
+			gRDI->setShaderConst( _curShader->uni_camViewProjMat, CONST_FLOAT44, m.x );
+      }
 		
 		// Light params
 		if( _curLight != 0x0 )
