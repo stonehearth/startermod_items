@@ -35,11 +35,7 @@ function TerrainTest:__init()
 end
 
 function TerrainTest:tesselator_test()
-   local height_map = HeightMap(32, 32)
-   height_map:set_block(1, 1, 16, 32, 24)
-   height_map:set_block(17, 1, 16, 16, 23)
-   height_map:set_block(17, 17, 16, 16, 25)
-   HeightMapRenderer.render_height_map_to_terrain(height_map, self._terrain_generator.terrain_info)
+   HeightMapRenderer.tesselator_test()   
 end
 
 function TerrainTest:tree_test()

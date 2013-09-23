@@ -23,7 +23,7 @@ private:
       RenderDetailBase = 1000,
 
       FoothillsDetailBase = RenderDetailBase,
-      FoothillsDetailMax  = FoothillsDetailBase + 1,
+      FoothillsDetailMax  = FoothillsDetailBase + 2,
 
       GrassDetailBase,
       GrassDetailMax  = GrassDetailBase + 1,

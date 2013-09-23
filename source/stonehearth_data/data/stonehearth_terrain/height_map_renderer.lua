@@ -91,4 +91,19 @@ function HeightMapRenderer._add_land_to_region(dst, rect, height, terrain_info)
    end
 end
 
+-----
+
+function HeightMapRenderer.tesselator_test()
+   local terrain = radiant._root_entity:add_component('terrain')
+   local r3 = Region3()
+   local height = 10
+
+   r3:add_cube(Cube3(Point3(0, height-1, 0), Point3(16, height, 16), Terrain.GRASS))
+   r3:add_cube(Cube3(Point3(16, height-1, 1), Point3(17, height, 15), Terrain.TOPSOIL))
+   terrain:add_region(r3)
+
+   --r3:add_cube(Cube3(Point3(0, height-1, 16), Point3(16, height, 32), Terrain.GRASS))
+   --terrain:add_region(r3)
+end
+
 return HeightMapRenderer

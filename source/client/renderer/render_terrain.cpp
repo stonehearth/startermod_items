@@ -24,8 +24,9 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
    tracer_ += Renderer::GetInstance().TraceSelected(node_, std::bind(&RenderTerrain::OnSelected, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
    
    if (tess_map.empty()) {
-      foothillGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(4, FoothillsDetailBase));
-      foothillGrassRingInfo_.inner = (TerrainDetailTypes)(FoothillsDetailBase + 1);
+      foothillGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(8, FoothillsDetailBase));
+      //foothillGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(8, FoothillsDetailBase+1));
+      foothillGrassRingInfo_.inner = (TerrainDetailTypes)(FoothillsDetailBase + 2);
 
       plainsGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(2,  GrassDetailBase));
       plainsGrassRingInfo_.inner = (TerrainDetailTypes)(GrassDetailBase + 1);
@@ -66,6 +67,7 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
       static csg::Point3f detail_bands[] = {
          parse_color(config.get<std::string>("foothills.band_0_color", "#ff00ff")),
          parse_color(config.get<std::string>("foothills.band_1_color", "#ff00ff")),
+         parse_color(config.get<std::string>("foothills.band_2_color", "#ff00ff")),
          parse_color(config.get<std::string>("plains.band_0_color", "#ff00ff")),
          parse_color(config.get<std::string>("plains.band_1_color", "#ff00ff")),
          parse_color(config.get<std::string>("dirtpath.edges", "#ff00ff")),

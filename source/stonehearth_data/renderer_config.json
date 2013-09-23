@@ -6,7 +6,8 @@
    },
    "foothills": {
       "band_0_color": "#69A165",
-      "band_1_color": "#5A955F"
+      "band_1_color": "#5A955F",
+      "band_2_color": "#5A955F"
    },
    "plains": {
       "band_0_color": "#519663",

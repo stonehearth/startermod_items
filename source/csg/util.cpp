@@ -4,7 +4,7 @@
 using namespace ::radiant;
 using namespace ::radiant::csg;
 
-// #define LOG_EDGES
+//#define LOG_EDGES
 
 void csg::HeightmapToRegion2(HeightMap<double> const& h, Region2& r)
 {
@@ -215,12 +215,12 @@ csg::Region2 csg::EdgeListToRegion2(EdgeListPtr edges, int width, csg::Region2 c
             //rect = csg::Rect2(p0, p1);
             rect = csg::Rect2::Construct(p0, p1);
          } else if (segment->normal.y == 1) {
-            p0 = *segment->start - (segment->end->normals * width);
+            p0 = *segment->start - (segment->start->normals * width);
             p1 = *segment->end;
             //rect = csg::Rect2(p0, p1);
             rect = csg::Rect2::Construct(p0, p1);
          } else if (segment->normal.x == -1) {
-            p0 = *segment->start - (segment->end->normals * width);
+            p0 = *segment->start - (segment->start->normals * width);
             p1 = *segment->end;
             rect = csg::Rect2::Construct(p0, p1);
          } else {
