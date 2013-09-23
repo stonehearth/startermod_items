@@ -30,20 +30,20 @@ public:
       DirtPath      = 8, 
    };
 
-   const csg::Region3& GetRegion() const { return *region_; }
-   void AddRegion(csg::Region3 const& region);
+   typedef dm::Map<csg::Point3, BoxedRegion3Ptr, csg::Point3::Hash> TileMap;
+
+   void AddRegion(csg::Point3 const& location, BoxedRegion3Ptr r);
    void PlaceEntity(EntityRef e, const csg::Point3& pt);
    void CreateNew();
-   void AddCube(csg::Cube3 const& cube);
-   void RemoveCube(csg::Cube3 const& region);
+
+   TileMap const& GetTileMap() const { return tiles_; }
 
 private:
    void InitializeRecordFields() override;
+   BoxedRegion3Ptr GetRegion(csg::Point3 const& pt);
 
 public:
-   BoxedRegion3      region_;
-   //dm::Set<dm::Ref<Entity>>      mobs_;
-   //dm::Set<dm::Ref<Entity>>      items_;
+   TileMap  tiles_;
 };
 
 END_RADIANT_OM_NAMESPACE

@@ -14,23 +14,29 @@ typedef std::shared_ptr<RenderEntity> RenderEntityPtr;
 
 class RenderNode {
 public:
-   RenderNode(H3DNode node) : node_((void*)node, RemoveNode) { }
+   RenderNode() : node_(0) { }
+   RenderNode(H3DNode node) : node_((void*)node, RemoveNode) {
+   }
 
    operator H3DNode() {
       return (H3DNode)(node_.get());
    }
 
+   RenderNode const& operator=(H3DNode node) {
+      node_ = std::shared_ptr<void>((void*)node, RemoveNode);
+      return *this;
+   }
+
 private:
    static void RemoveNode(void *n) {
-      h3dRemoveNode((H3DNode)n);
+      if (n) {
+         h3dRemoveNode((H3DNode)n);
+      }
    }
 
 private:
    std::shared_ptr<void> node_;
 };
-
-
-typedef std::shared_ptr<H3DNode> RenderH3dNode;
 
 
 END_RADIANT_CLIENT_NAMESPACE

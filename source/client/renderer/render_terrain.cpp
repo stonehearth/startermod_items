@@ -17,12 +17,15 @@ RenderTerrain::LayerDetailRingInfo RenderTerrain::dirtRoadRingInfo_;
 RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain) :
    entity_(entity),
    terrain_(terrain)
-{
-   node_ = h3dAddGroupNode(entity_.GetNode(), "grid");
-   h3dSetNodeTransform(node_, -0.5f, 0.0f, -0.5f, 0, 0, 0, 1, 1, 1);
+{  
+   terrain_root_node_ = h3dAddGroupNode(entity_.GetNode(), "terrain root node");
+   tracer_ += Renderer::GetInstance().TraceSelected(terrain_root_node_, [this](om::Selection& sel, const csg::Ray3& ray, const csg::Point3f& intersection, const csg::Point3f& normal) {
+      OnSelected(sel, ray, intersection, normal);
+   });
+   tracer_ += Renderer::GetInstance().TraceFrameStart([=]() {
+      Update();
+   });
 
-   tracer_ += Renderer::GetInstance().TraceSelected(node_, std::bind(&RenderTerrain::OnSelected, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-   
    if (tess_map.empty()) {
       foothillGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(8, FoothillsDetailBase));
       //foothillGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(8, FoothillsDetailBase+1));
@@ -126,13 +129,42 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
       }
    }
    ASSERT(terrain);
-   tracer_ += terrain->region_.TraceObjectChanges("terrain renderer", [=](){ UpdateRenderRegion(); });
-   UpdateRenderRegion();
+
+   auto on_add_tile = [this](csg::Point3 location, om::BoxedRegion3Ptr const& region) {
+      RenderTilePtr render_tile;
+      if (region) {
+         auto i = tiles_.find(location);
+         if (i != tiles_.end()) {
+            render_tile = i->second;
+         } else {
+            render_tile = std::make_shared<RenderTile>();
+            render_tile->location = location;
+            render_tile->region = region;
+            tiles_[location] = render_tile;
+         }
+         RenderTileRef rt = render_tile;
+         render_tile->guard = region->TraceObjectChanges("rendering terrain tile", [this, rt]() {
+            dirty_tiles_.push_back(rt);
+         });
+         dirty_tiles_.push_back(rt);
+      } else {
+         tiles_.erase(location);
+      }
+   };
+
+   auto on_remove_tile = [this](csg::Point3 const& location) {
+      tiles_.erase(location);
+   };
+
+   auto const& tile_map = terrain->GetTileMap();
+   tile_map.TraceMapChanges("terrain renderer", on_add_tile, on_remove_tile);
+   for (const auto& entry : tile_map) {
+      on_add_tile(entry.first, entry.second);
+   }
 }
 
 RenderTerrain::~RenderTerrain()
 {
-   h3dRemoveNode(node_);
 }
 
 void RenderTerrain::OnSelected(om::Selection& sel, const csg::Ray3& ray,
@@ -155,19 +187,30 @@ void RenderTerrain::OnSelected(om::Selection& sel, const csg::Ray3& ray,
    sel.AddBlock(brick);
 }
 
-void RenderTerrain::UpdateRenderRegion()
+void RenderTerrain::UpdateRenderRegion(RenderTilePtr render_tile)
 {
-   om::TerrainPtr terrain = terrain_.lock();
-   if (terrain) {
+   om::BoxedRegion3Ptr region_ptr = render_tile->region.lock();
+
+   render_tile->node = 0;
+   render_tile->meshes.clear();
+
+   if (region_ptr) {
+      ASSERT(render_tile);
+      csg::Region3 const& region = region_ptr->Get();
       csg::Region3 tesselatedRegion;
 
-      TesselateTerrain(terrain->GetRegion(), tesselatedRegion);
+      TesselateTerrain(region, tesselatedRegion);
 
       csg::mesh_tools::meshmap meshmap;
       csg::mesh_tools(tess_map).optimize_region(tesselatedRegion, meshmap);
    
+      render_tile->node = h3dAddGroupNode(terrain_root_node_, "grid");
+      h3dSetNodeTransform(render_tile->node, render_tile->location.x - 0.5f, (float)render_tile->location.y, render_tile->location.z - 0.5f, 0, 0, 0, 1, 1, 1);
+
+      render_tile->meshes.clear();
       for (auto const& entry : meshmap) {
-         H3DNode node = Pipeline::GetInstance().AddMeshNode(node_, entry.second);
+         H3DNode node = Pipeline::GetInstance().AddMeshNode(render_tile->node, entry.second);
+         render_tile->meshes.push_back(node);
       }
    }
 }
@@ -237,5 +280,16 @@ void RenderTerrain::AddGrassLayerToTesselation(csg::Region2 const& grass, int he
                                 csg::Point3(rect.GetMax().x, height + 1, rect.GetMax().y),
                                 ringInfo.inner));
    }
+}
+
+void RenderTerrain::Update()
+{
+   for (RenderTileRef t : dirty_tiles_) {
+      RenderTilePtr tile = t.lock();
+      if (tile) {
+         UpdateRenderRegion(tile);
+      }
+   }
+   dirty_tiles_.clear();
 }
 
