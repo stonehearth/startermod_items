@@ -13,15 +13,19 @@ function GotoLocationAction:run(ai, entity, dest)
    -- thing to do.  why did we not path find to an entity?  why is
    -- this location special?
    
+   -- Commentary: No it's not. It's useful when coding ambient behavior
+   -- like wandering around, running away, etc. - tom, 9/23/2013
+
    -- anyway, the pathfinder can only find paths between two entities,
    -- so go ahead and make a new one.  this is HORRIBLY INEFFICENT. =..(
+   
    local bounds = Cube3(Point3(0, 0, 0), Point3(1, 1, 1))
    local region = native:alloc_region()
-   region:modify():add_cube(bounds)
+   --region:modify():add_cube(bounds)
    
    self._dest_entity = radiant.entities.create_entity()
-   local standing = self._dest_entity:add_component('destination')
-   standing:set_region(region)
+   --local standing = self._dest_entity:add_component('destination')
+   --standing:set_region(region)
    
    radiant.terrain.place_entity(self._dest_entity, dest)
 

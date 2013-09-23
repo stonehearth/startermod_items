@@ -290,9 +290,18 @@
                   position: relative;
                   top: -4px;
                   left: -4px;
-                  background: url('/stonehearth_crafter/html/images/recipe_sockets/initial_border.png') no-repeat;
                   width: 78px;
                   height: 78px;
+                  background: url('/stonehearth_crafter/html/images/recipe_sockets/initial_border.png') no-repeat;
+                  -webkit-animation:pulse 1.5s infinite;
+               }
+
+               @-webkit-keyframes pulse /* Safari and Chrome */
+               {
+                  0%   {-webkit-transform: scale(1.0,1.0)}
+                  12%  {-webkit-transform: scale(1.2,1.2)}
+                  25%  {-webkit-transform: scale(1.0,1.0)}
+                  100%  {-webkit-transform: scale(1.0,1.0)}
                }
             }
          }

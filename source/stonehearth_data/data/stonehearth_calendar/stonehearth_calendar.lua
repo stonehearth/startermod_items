@@ -1,7 +1,7 @@
 local constants = {
    TICKS_PER_SECOND = 2,
 
-   SECONDS_IN_MINUTE = 60,
+   SECONDS_IN_MINUTE = 10,
    MINUTES_IN_HOUR = 60,
    HOURS_IN_DAY = 24,
    DAYS_IN_MONTH = 30,
