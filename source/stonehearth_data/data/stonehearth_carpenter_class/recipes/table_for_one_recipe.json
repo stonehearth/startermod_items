@@ -3,7 +3,6 @@
 
    "work_units"  : 3,
    "recipe_name" : "Table for One",
-   "my_location" : "/stonehearth_carpenter_class/recipes/table_for_one_recipe.json",
    "description" : "Better than eating standing up. Unless you're watching your weight.",
    "flavor"      : "Dining furniture for introverts.",
    "portrait"    : "/stonehearth_items/entities/table_for_one/table_for_one.png",
