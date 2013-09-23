@@ -61,30 +61,39 @@ function TerrainTest:create_multi_zone_world()
    local zones = self:_create_world_blueprint()
    local num_zones_x = zones.width
    local num_zones_y = zones.height
+   local terrain_info = self._terrain_generator.terrain_info
    local zone_size = self._terrain_generator.zone_size
-   local world_map = HeightMap(zone_size*num_zones_x, zone_size*num_zones_y)
-   local i, j, zone_map, micro_map, terrain_type
+   --local world_map = HeightMap(zone_size*num_zones_x, zone_size*num_zones_y)
+   local timer = Timer(Timer.CPU_TIME)
+   local i, j, offset_x, offset_y, zone_map, micro_map, terrain_type
 
-   world_map:clear(1)
+   --world_map:clear(1)
 
    for j=1, num_zones_y do
       for i=1, num_zones_x do
          terrain_type = zones:get(i, j).terrain_type
          zone_map, micro_map = self._terrain_generator:generate_zone(terrain_type, zones, i, j)
-         zone_map:copy_block(world_map, zone_map,
-            (i-1)*zone_size+1, (j-1)*zone_size+1, 1, 1, zone_size, zone_size)
          zones:set(i, j, micro_map)
+
+         offset_x = (i-1)*zone_size
+         offset_y = (j-1)*zone_size
+
+         timer:start()
+         HeightMapRenderer.render_height_map_to_terrain(zone_map, terrain_info, offset_x, offset_y)
+         timer:stop()
+         radiant.log.info('HeightMapRenderer time: %.3fs', timer:seconds())
+
+         --zone_map:copy_block(world_map, zone_map, offset_x+1, offset_y+1, 1, 1, zone_size, zone_size)
       end
    end
 
-   local timer = Timer(Timer.CPU_TIME)
-   timer:start()
-   HeightMapRenderer.render_height_map_to_terrain(world_map, self._terrain_generator.terrain_info)
-   timer:stop()
-   radiant.log.info('HeightMapRenderer time: %.3fs', timer:seconds())
+   --timer:start()
+   --HeightMapRenderer.render_height_map_to_terrain(world_map, self._terrain_generator.terrain_info, 0, 0)
+   --timer:stop()
+   --radiant.log.info('HeightMapRenderer time: %.3fs', timer:seconds())
 
    timer:start()
-   Landscaper:place_trees(world_map, self._terrain_generator.terrain_info)
+   --Landscaper:place_trees(world_map, self._terrain_generator.terrain_info)
    --self:_place_people(world_map)
    timer:stop()
    radiant.log.info('Landscaper time: %.3fs', timer:seconds())

@@ -1,5 +1,8 @@
-local MathFns = radiant.mods.require('/stonehearth_terrain/math/math_fns.lua')
-local GaussianRandom = radiant.mods.require('/stonehearth_terrain/math/gaussian_random.lua')
+local HeightMap = require 'height_map.lua'
+local MathFns = require 'math.math_fns.lua'
+local GaussianRandom = require 'math.gaussian_random.lua'
+local Wavelet = require 'wavelet.wavelet.lua'
+local WaveletFns = require 'wavelet.wavelet_fns.lua'
 local Point3 = _radiant.csg.Point3
 
 local Landscaper = class()
@@ -18,7 +21,46 @@ local tree_sizes = { small, medium, large }
 function Landscaper:__init()
 end
 
-function Landscaper:place_trees(zone_map)
+function Landscaper:place_trees(zone_map, terrain_info)
+   local wavelet_levels = 3
+   local freq_scaling_coeff = 0.4
+   local grid_spacing = 16
+   local perturbation_dist = grid_spacing/4
+   local tree_map_width = zone_map.width / grid_spacing
+   local tree_map_height = zone_map.height / grid_spacing
+   local tree_map = HeightMap(tree_map_width, tree_map_height)
+
+   tree_map:process_map(function () return GaussianRandom.generate(0, 3) end)
+
+   WaveletFns.shape_height_map(tree_map, freq_scaling_coeff, wavelet_levels)
+
+   local grid_offset_x = grid_spacing/2
+   local grid_offset_y = grid_spacing/2
+   local tree_name, value, elevation
+   local i, j, x, y, perturbation_x, perturbation_y
+
+   for j=1, tree_map_height do
+      for i=1, tree_map_width do
+         value = tree_map:get(i, j)
+
+         -- reduce probability on mountains
+         if value > 0 and math.random() < value then
+            tree_name = self:random_tree(oak)
+            perturbation_x = math.random(-perturbation_dist, perturbation_dist)
+            perturbation_y = math.random(-perturbation_dist, perturbation_dist)
+            x = (i-1)*grid_spacing + grid_offset_x + perturbation_x
+            y = (j-1)*grid_spacing + grid_offset_y + perturbation_y
+
+            elevation = zone_map:get(x, y)
+            if elevation <= terrain_info.tree_line then
+               self:_place_tree(tree_name, x, y)
+            end
+         end
+      end
+   end
+end
+
+function Landscaper:place_trees_old(zone_map)
    local num_forests = 15
    local i
    for i=1, num_forests do

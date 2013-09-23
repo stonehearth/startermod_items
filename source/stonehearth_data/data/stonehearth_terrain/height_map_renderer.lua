@@ -3,6 +3,7 @@ local TerrainType = radiant.mods.require('/stonehearth_terrain/terrain_type.lua'
 
 local Terrain = _radiant.om.Terrain
 local Cube3 = _radiant.csg.Cube3
+local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 local Region2 = _radiant.csg.Region2
 local Region3 = _radiant.csg.Region3
@@ -11,7 +12,10 @@ local HeightMapCPP = _radiant.csg.HeightMap
 local HeightMapRenderer = class()
 
 -- delegate to C++ to "tesselate" heightmap into rectangles
-function HeightMapRenderer.render_height_map_to_terrain(height_map, terrain_info)
+function HeightMapRenderer.render_height_map_to_terrain(height_map, terrain_info, offset_x, offset_y)
+   if offset_x == nil then offset_x = 0 end
+   if offset_y == nil then offset_y = 0 end
+
    local r2 = Region2()
    local r3 = Region3()
    local height_map_cpp = HeightMapCPP(height_map.width, 1) -- Assumes square map!
@@ -22,6 +26,7 @@ function HeightMapRenderer.render_height_map_to_terrain(height_map, terrain_info
 
    for rect in r2:contents() do
       if rect.tag > 0 then
+         translate_rect2(rect, offset_x, offset_y)
          HeightMapRenderer._add_land_to_region(r3, rect, rect.tag, terrain_info);         
       end
    end
@@ -89,6 +94,11 @@ function HeightMapRenderer._add_land_to_region(dst, rect, height, terrain_info)
                          Point3(rect.max.x, height,   rect.max.y),
                    Terrain.TOPSOIL))
    end
+end
+
+function translate_rect2(rect, x, y)
+   rect.min = Point2(rect.min.x + x, rect.min.y + y)
+   rect.max = Point2(rect.max.x + x, rect.max.y + y)
 end
 
 -----
