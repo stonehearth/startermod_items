@@ -35,7 +35,6 @@ function GatherAndCraftAction:run(ai, entity, recipe, ingredients)
    local crafter_component = self._entity:get_component('stonehearth_crafter:crafter')
    local workshop = crafter_component:get_workshop()
    local workshop_entity = workshop:get_entity()
-   local workshop_ec = workshop_entity:add_component('entity_container'):get_children()
    for _, ing_data in ipairs(ingredients) do
 
       --If the user has paused progress, or cancelled the orderdon't continue.
@@ -45,8 +44,7 @@ function GatherAndCraftAction:run(ai, entity, recipe, ingredients)
       end
 
       local item = ing_data.item
-      -- is the item already on the bench?  if so, there's nothing to do.
-      if not workshop_ec:get(item:get_id()) then
+      if not radiant.entities.has_child_by_id(workshop_entity, item:get_id()) then 
          -- grab it!
          ai:execute('stonehearth.activities.pickup_item', ing_data.item)
 

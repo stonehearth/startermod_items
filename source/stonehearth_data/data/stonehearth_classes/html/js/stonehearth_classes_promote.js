@@ -1,7 +1,7 @@
 $(document).ready(function(){
 
    $(top).on("promote_citizen.stonehearth_classes", function (_, e) {
-      var view = App.gameView.addView(App.StonehearthClassesPromoteView, { 
+      var view = App.gameView.addView(App.StonehearthClassesPromoteView, {
          promoteUri : e.event_data.post_target,
          promoteParams : {talisman: e.entity},
          promotionClass : 'XXX_TODO_INSERT_CLASS_NAME'
@@ -21,7 +21,7 @@ App.StonehearthClassesPromoteView = App.View.extend({
 
    destroy: function() {
       var self = this;
-      
+
       this.set('context.citizenToPromote', null);
       this._super();
 
@@ -84,6 +84,13 @@ App.StonehearthClassesPromoteView = App.View.extend({
    },
 
    dateString: function() {
+      var dateObject = App.gameView.getDate();
+      var date;
+      if (dateObject) {
+         date = dateObject.date;
+      } else {
+         date = "Ooops, clock's broken."
+      }
       return App.gameView.getDate().date;
    }
 });

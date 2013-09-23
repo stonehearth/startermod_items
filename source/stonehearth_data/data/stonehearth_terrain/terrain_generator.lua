@@ -1,5 +1,3 @@
-local TerrainGenerator = class()
-
 local TerrainType = radiant.mods.require('/stonehearth_terrain/terrain_type.lua')
 local Array2D = radiant.mods.require('/stonehearth_terrain/array_2D.lua')
 local HeightMap = radiant.mods.require('/stonehearth_terrain/height_map.lua')
@@ -12,6 +10,8 @@ local EdgeDetailer = radiant.mods.require('/stonehearth_terrain/edge_detailer.lu
 local TileInfo = radiant.mods.require('/stonehearth_terrain/tile_info.lua')
 local Timer = radiant.mods.require('/stonehearth_debugtools/timer.lua')
 
+local TerrainGenerator = class()
+
 -- Definitions
 -- Block = atomic unit of terrain
 -- Tile = square unit of flat land, also the chunk size of what is sent to the renderer
@@ -22,7 +22,7 @@ local Timer = radiant.mods.require('/stonehearth_debugtools/timer.lua')
 function TerrainGenerator:__init()
    local terrain_type, terrain_info
 
-   self.base_random_seed = 3
+   self.base_random_seed = 2
 
    self.zone_size = 256
    self.tile_size = 32
@@ -34,36 +34,47 @@ function TerrainGenerator:__init()
    self.terrain_info = {}
    terrain_info = self.terrain_info
 
-   terrain_type = TerrainType.Plains
-   terrain_info[terrain_type] = {}
-   terrain_info[terrain_type].step_size = 2
-   terrain_info[terrain_type].mean_height = base_step_size
-   terrain_info[terrain_type].std_dev = 10
-   terrain_info[terrain_type].max_height = 8
+   local plains_info = {}
+   plains_info.step_size = 2
+   plains_info.mean_height = 16
+   plains_info.std_dev = 8
+   plains_info.min_height = 12
+   plains_info.max_height = 16
+   terrain_info[TerrainType.Plains] = plains_info
+   assert(plains_info.max_height % plains_info.step_size == 0)
 
-   terrain_type = TerrainType.Foothills
-   terrain_info[terrain_type] = {}
-   terrain_info[terrain_type].step_size = base_step_size
-   terrain_info[terrain_type].mean_height = 24
-   terrain_info[terrain_type].std_dev = 32
-   terrain_info[terrain_type].max_height = 32
+   local foothills_info = {}
+   foothills_info.step_size = base_step_size
+   foothills_info.mean_height = 24
+   foothills_info.std_dev = 32
+   foothills_info.min_height = plains_info.max_height - plains_info.step_size
+   foothills_info.max_height = 32
+   terrain_info[TerrainType.Foothills] = foothills_info
+   assert(foothills_info.max_height % foothills_info.step_size == 0)
 
-   terrain_type = TerrainType.Mountains
-   terrain_info[terrain_type] = {}
-   terrain_info[terrain_type].step_size = base_step_size*2
-   terrain_info[terrain_type].mean_height = 72
-   terrain_info[terrain_type].std_dev = 96
+   local mountains_info = {}
+   mountains_info.step_size = base_step_size*4
+   mountains_info.mean_height = 96
+   mountains_info.std_dev = 128
+   mountains_info.min_height = plains_info.max_height + foothills_info.step_size
+   terrain_info[TerrainType.Mountains] = mountains_info
 
-   terrain_info.tree_line = terrain_info[TerrainType.Foothills].max_height +
-      terrain_info[TerrainType.Mountains].step_size
+   -- make sure that next step size is a multiple of the prior max height
+   assert(plains_info.max_height % foothills_info.step_size == 0)
+   assert(foothills_info.max_height % mountains_info.step_size == 0)
+
+   terrain_info.tree_line = foothills_info.max_height + mountains_info.step_size*2
+   terrain_info.max_deciduous_height = foothills_info.max_height
+   terrain_info.min_evergreen_height = plains_info.max_height + 1
 
    local oversize_zone_size = self.zone_size + self.tile_size
    self.oversize_map_buffer = HeightMap(oversize_zone_size, oversize_zone_size)
 
    local micro_size = oversize_zone_size / self.tile_size
+   self.blend_map_buffer = self:_create_blend_map(micro_size, micro_size)
    self.noise_map_buffer = HeightMap(micro_size, micro_size)
 
-   self._edge_detailer = EdgeDetailer()
+   self._edge_detailer = EdgeDetailer(terrain_info)
 end
 
 function TerrainGenerator:_set_random_seed(x, y)
@@ -74,12 +85,24 @@ function TerrainGenerator:_set_random_seed(x, y)
    math.randomseed(seed)
 end
 
+function TerrainGenerator:_create_blend_map(width, height)
+   local i, j
+   local blend_map = Array2D(width, height)
+
+   for j=1, width do
+      for i=1, height do
+         blend_map:set(i, j, TileInfo())
+      end
+   end
+
+   return blend_map
+end
+
 function TerrainGenerator:generate_zone(terrain_type, zones, x, y)
-   local zone_map, micro_map, noise_map, blend_map
-   local noise_map = self.noise_map_buffer
    local oversize_map = self.oversize_map_buffer
-   local micro_width = oversize_map.width / self.tile_size
-   local micro_height = oversize_map.height / self.tile_size
+   local blend_map = self.blend_map_buffer
+   local noise_map = self.noise_map_buffer
+   local micro_map, zone_map
    local timer = Timer(Timer.CPU_TIME)
 
    if zones ~= nil then
@@ -88,34 +111,41 @@ function TerrainGenerator:generate_zone(terrain_type, zones, x, y)
    self:_set_random_seed(x, y)
    timer:start()
 
+   blend_map.terrain_type = terrain_type
    noise_map.terrain_type = terrain_type
-   oversize_map.terrain_type = terrain_type
 
-   blend_map = self:_create_blend_map(micro_width, micro_height,
-      terrain_type, zones, x, y)
+   self:_fill_blend_map(blend_map, zones, x, y)
    self:_fill_noise_map(noise_map, blend_map)
 
    -- micro_map must be a new HeightMap as it is returned from the function
-   micro_map = self:_filter_and_quantize_noise_map(noise_map)
+   micro_map = self:_filter_noise_map(noise_map)
+
+   --radiant.log.info('Blend map:'); _print_blend_map(blend_map)
+   --radiant.log.info('Noise map:'); noise_map:print()
+   --radiant.log.info('Filtered Noise map:'); micro_map:print()
+   
+   self:_quantize_micro_map(micro_map)
 
    -- force shared tiles to same value from adjacent zones
    self:_copy_forced_edge_values(micro_map, zones, x, y)
 
    self:_postprocess_micro_map(micro_map)
 
-   self:_create_macro_map_from_micro_map(oversize_map, micro_map)
-
-   -- copy the offset zone map from the oversize map
    -- zone_map must be a new HeightMap as it is returned from the function
-   zone_map = self:_extract_zone_map(oversize_map)
-   
-   self:_shape_height_map(zone_map)
+   self:_create_oversize_map_from_micro_map(oversize_map, micro_map)
+
+   -- transform to frequncy domain and shape frequencies with exponential decay
+   --self:_shape_height_map(zone_map)
+   WaveletFns.shape_height_map(oversize_map, self.frequency_scaling_coeff, self.wavelet_levels)
 
    -- enable non-uniform quantizer within a terrain type
    -- generates additional edge details
-   self:_quantize_height_map(zone_map, true)
-   
-   self._edge_detailer:add_detail_blocks(zone_map)
+   self:_quantize_height_map(oversize_map, true)
+
+   self:_add_additional_details(oversize_map)
+
+   -- copy the offset zone map from the oversize map
+   zone_map = self:_extract_zone_map(oversize_map)
 
    timer:stop()
    radiant.log.info('Zone generation time: %f', timer:seconds())
@@ -123,51 +153,48 @@ function TerrainGenerator:generate_zone(terrain_type, zones, x, y)
    return zone_map, micro_map
 end
 
-function TerrainGenerator:_create_blend_map(width, height, terrain_type, zones, x, y)
+function TerrainGenerator:_fill_blend_map(blend_map, zones, x, y)
    local i, j, adjacent_zone, tile
+   local width = blend_map.width
+   local height = blend_map.height
+   local terrain_type = blend_map.terrain_type
    local terrain_mean = self.terrain_info[terrain_type].mean_height
    local terrain_std_dev = self.terrain_info[terrain_type].std_dev
-   local blend_map = Array2D(width, height)
-   blend_map.terrain_type = terrain_type
 
-   -- default all tiles to the desired terrain_type for this zone
    for j=1, height do
       for i=1, width do
-         tile = TileInfo()
+         tile = blend_map:get(i, j)
+         tile:clear()
          tile.mean = terrain_mean
          tile.std_dev = terrain_std_dev
          tile.mean_weight = 1
          tile.std_dev_weight = 1
-         blend_map:set(i, j, tile)
       end
    end
 
-   if zones == nil then return blend_map end
+   if zones ~= nil then
+      -- blend values with left zone
+      adjacent_zone = self:_get_zone(zones, x-1, y)
+      self:_blend_zone(blend_map, adjacent_zone, height,      1,  1,  width, 1)
 
-   -- blend values with left zone
-   adjacent_zone = self:_get_zone(zones, x-1, y)
-   self:_fill_blend_map(blend_map, adjacent_zone, height,      1,  1,  width, 1)
+      -- blend values with right zone
+      adjacent_zone = self:_get_zone(zones, x+1, y)
+      self:_blend_zone(blend_map, adjacent_zone, height,  width, -1,      1, 1)
 
-   -- blend values with right zone
-   adjacent_zone = self:_get_zone(zones, x+1, y)
-   self:_fill_blend_map(blend_map, adjacent_zone, height,  width, -1,      1, 1)
+      -- blend values with top zone
+      adjacent_zone = self:_get_zone(zones, x, y-1)
+      self:_blend_zone(blend_map, adjacent_zone,  width,      1,  1, height, 2)
 
-   -- blend values with top zone
-   adjacent_zone = self:_get_zone(zones, x, y-1)
-   self:_fill_blend_map(blend_map, adjacent_zone,  width,      1,  1, height, 2)
-
-   -- blend values with bottom zone
-   adjacent_zone = self:_get_zone(zones, x, y+1)
-   self:_fill_blend_map(blend_map, adjacent_zone,  width, height, -1,      1, 2)
+      -- blend values with bottom zone
+      adjacent_zone = self:_get_zone(zones, x, y+1)
+      self:_blend_zone(blend_map, adjacent_zone,  width, height, -1,      1, 2)
+   end
 
    -- avoid extreme values on corners by halving std_dev
    _halve_tile_std_dev(blend_map:get(1, 1))
    _halve_tile_std_dev(blend_map:get(width, 1))
    _halve_tile_std_dev(blend_map:get(1,     height))
    _halve_tile_std_dev(blend_map:get(width, height))
-
-   radiant.log.info('Blend map:')
-   _print_blend_map(blend_map)
 
    return blend_map
 end
@@ -181,7 +208,7 @@ function _get_coords(x, y, orientation)
    else                     return y, x end
 end
 
-function TerrainGenerator:_fill_blend_map(blend_map, adj_zone,
+function TerrainGenerator:_blend_zone(blend_map, adj_zone,
    edge_length, edge_index, inc, adj_edge_index, orientation)
    if adj_zone == nil then return end
 
@@ -203,19 +230,19 @@ function TerrainGenerator:_fill_blend_map(blend_map, adj_zone,
       else
          cur_tile.mean = adj_mean
          cur_tile.std_dev = adj_std_dev
-         cur_tile.mean_weight = 3
-         cur_tile.std_dev_weight = 3
+         cur_tile.mean_weight = 1
+         cur_tile.std_dev_weight = 1
       end
       x, y = _get_coords(edge_index, i, orientation)
       blend_map:get(x, y):blend_stats_from(cur_tile)
 
-      -- row/column next to edge
+      -- 2nd row/column
       -- refactor this after we settle on weights
       cur_tile:clear()
       if adj_zone.generated then
          cur_tile.mean = edge_value
          cur_tile.std_dev = adj_std_dev
-         cur_tile.mean_weight = 1
+         cur_tile.mean_weight = 3
          cur_tile.std_dev_weight = 1
       else
          cur_tile.mean = adj_mean
@@ -226,7 +253,24 @@ function TerrainGenerator:_fill_blend_map(blend_map, adj_zone,
       x, y = _get_coords(edge_index+inc, i, orientation)
       blend_map:get(x, y):blend_stats_from(cur_tile)
 
-      -- row/column two from edge
+      -- 3rd row/column
+      -- refactor this after we settle on weights
+      cur_tile:clear()
+      if adj_zone.generated then
+         cur_tile.mean = edge_value
+         cur_tile.std_dev = adj_std_dev
+         cur_tile.mean_weight = 1
+         cur_tile.std_dev_weight = 1
+      else
+         cur_tile.mean = adj_mean
+         cur_tile.std_dev = adj_std_dev
+         cur_tile.mean_weight = 0.33
+         cur_tile.std_dev_weight = 0.33
+      end
+      x, y = _get_coords(edge_index+inc+inc, i, orientation)
+      blend_map:get(x, y):blend_stats_from(cur_tile)
+
+      -- 4th row/column
       -- refactor this after we settle on weights
       cur_tile:clear()
       if adj_zone.generated then
@@ -237,8 +281,8 @@ function TerrainGenerator:_fill_blend_map(blend_map, adj_zone,
       else
          cur_tile.mean = adj_mean
          cur_tile.std_dev = adj_std_dev
-         cur_tile.mean_weight = 0.33
-         cur_tile.std_dev_weight = 0.33
+         cur_tile.mean_weight = 0.11
+         cur_tile.std_dev_weight = 0.11
       end
       x, y = _get_coords(edge_index+inc+inc, i, orientation)
       blend_map:get(x, y):blend_stats_from(cur_tile)
@@ -316,7 +360,7 @@ function TerrainGenerator:_get_terrain_type(zones, x, y)
    return zone.terrain_type
 end
 
-function TerrainGenerator:_filter_and_quantize_noise_map(noise_map)
+function TerrainGenerator:_filter_noise_map(noise_map)
    local terrain_type = noise_map.terrain_type
    local width = noise_map.width
    local height = noise_map.height
@@ -324,12 +368,14 @@ function TerrainGenerator:_filter_and_quantize_noise_map(noise_map)
 
    filtered_map.terrain_type = terrain_type
    FilterFns.filter_2D_025(filtered_map, noise_map, width, height)
-
-   -- non-uniform quantizer is not for the micro_map
-   self:_quantize_height_map(filtered_map, false)
    filtered_map.generated = true
 
    return filtered_map
+end
+
+function TerrainGenerator:_quantize_micro_map(micro_map)
+   -- non-uniform quantizer is not for the micro_map
+   self:_quantize_height_map(micro_map, false)
 end
 
 -- edge values may not change values! they are shared with the adjacent zone
@@ -380,11 +426,11 @@ function TerrainGenerator:_fill_hole(height_map, x, y)
    height_map[offset] = new_value
 end
 
-function TerrainGenerator:_create_macro_map_from_micro_map(oversize_map, micro_map)
+function TerrainGenerator:_create_oversize_map_from_micro_map(oversize_map, micro_map)
    local i, j, value
-   local terrain_type = micro_map.terrain_type
    local micro_width = micro_map.width
    local micro_height = micro_map.height
+   oversize_map.terrain_type = micro_map.terrain_type
 
    -- micro_map should already be quantized by this point
    -- otherwise quantize before wavelet shaping
@@ -395,20 +441,6 @@ function TerrainGenerator:_create_macro_map_from_micro_map(oversize_map, micro_m
             self.tile_size, self.tile_size, value)
       end
    end
-
-   oversize_map.terrain_type = terrain_type
-end
-
--- transform to frequncy domain and shape frequencies with exponential decay
-function TerrainGenerator:_shape_height_map(height_map)
-   local width = height_map.width
-   local height = height_map.height
-   local levels = self.wavelet_levels
-   local freq_scaling_coeff = self.frequency_scaling_coeff
-
-   Wavelet.DWT_2D(height_map, width, height, levels)
-   WaveletFns.scale_high_freq(height_map, width, height, freq_scaling_coeff, levels)
-   Wavelet.IDWT_2D(height_map, width, height, levels)
 end
 
 function TerrainGenerator:_extract_zone_map(oversize_map)
@@ -423,45 +455,28 @@ function TerrainGenerator:_extract_zone_map(oversize_map)
    return zone_map
 end
 
-function TerrainGenerator:_create_micro_map(oversize_map)
-   local offset_map_origin = self.tile_size/2 + 1
-   local offset_map_width = oversize_map.width - self.tile_size/2
-   local offset_map_height = oversize_map.height - self.tile_size/2
-   local offset_map = HeightMap(offset_map_width, offset_map_height)
-
-   oversize_map:copy_block(offset_map, oversize_map,
-      1, 1, offset_map_origin, offset_map_origin, offset_map_width, offset_map_height)
-
-   local micro_width = FilterFns.calc_resampled_length(offset_map_width, self.tile_size)
-   local micro_height = FilterFns.calc_resampled_length(offset_map_height, self.tile_size)
-   local micro_map = HeightMap(micro_width, micro_height)
-
-   FilterFns.downsample_2D(micro_map, offset_map,
-      offset_map_width, offset_map_height, self.tile_size)
-
-   return micro_map
-end
-
 function TerrainGenerator:_quantize_height_map(height_map, enable_nonuniform_quantizer)
    local terrain_info = self.terrain_info
    local terrain_type = height_map.terrain_type
+   local zone_min_height = terrain_info[terrain_type].min_height
 
    height_map:process_map(
       function (value)
-         -- step_size depends on altitude and zone type
-         local step_size = self:_get_step_size(terrain_type, value)
-         if value <= step_size then return step_size end
+         if value <= zone_min_height then return zone_min_height end
 
+         -- step_size depends on altitude and zone type
+         local step_size = self:_get_step_size(value)
          local quantized_value = MathFns.quantize(value, step_size)
          if not enable_nonuniform_quantizer then return quantized_value end
 
-         -- disable fancy mode for Plains?
-         --if value < 8 then return quantized_value end
+         -- disable fancy mode for Plains
+         if quantized_value <= terrain_info[TerrainType.Plains].max_height then
+            return quantized_value
+         end
 
          -- non-uniform quantizer
-         local rounded_value, diff
-         rounded_value = MathFns.round(value)
-         diff = quantized_value - rounded_value
+         local rounded_value = MathFns.round(value)
+         local diff = quantized_value - rounded_value
 
          if diff == step_size*0.5 then
             return rounded_value
@@ -472,7 +487,7 @@ function TerrainGenerator:_quantize_height_map(height_map, enable_nonuniform_qua
    )
 end
 
-function TerrainGenerator:_get_step_size(terrain_type, value)
+function TerrainGenerator:_get_step_size(value)
    local terrain_info = self.terrain_info
 
    if value > terrain_info[TerrainType.Foothills].max_height then
@@ -483,11 +498,14 @@ function TerrainGenerator:_get_step_size(terrain_type, value)
       return terrain_info[TerrainType.Foothills].step_size
    end
 
-   if terrain_type == TerrainType.Plains then
-      return terrain_info[TerrainType.Plains].step_size
-   else
-      return terrain_info[TerrainType.Foothills].step_size
-   end
+   return terrain_info[TerrainType.Plains].step_size
+end
+
+function TerrainGenerator:_add_additional_details(zone_map)
+   self._edge_detailer:add_detail_blocks(zone_map)
+
+   -- handle plains separately - don't screw up edge detailer code
+   self._edge_detailer:add_plains_details(zone_map)
 end
 
 function _print_blend_map(blend_map)
@@ -500,7 +518,7 @@ function _print_blend_map(blend_map)
          if tile == nil then
             str = str .. '   nil    '
          elseif tile.forced_value then
-            str = str .. '  forced  '
+            str = str .. string.format(' (%4.1f) ', tile.forced_value)
          else
             str = str .. ' ' .. string.format('%4.1f/%4.1f' , tile.mean, tile.std_dev)
          end

@@ -437,11 +437,18 @@ void CubemitterNode::advanceTime( float timeDelta )
    }
 }
 
+// Stops production of new particles, but lets the remainder finish up.  Horde will reap the node
+// once all particles are gone.
+void CubemitterNode::stop()
+{
+   _active = false;
+}
 
 bool CubemitterNode::hasFinished()
 {
-	if( _respawnCount < 0 ) return false;
-
+   if (_active) {
+      return false;
+   }
 	for( uint32 i = 0; i < _particleCount; ++i )
 	{	
       if( _cubes[i].currentLife > 0)
@@ -580,7 +587,7 @@ void CubemitterNode::onPostUpdate()
    float timeAvailableToSpawn = _timeDelta - _nextSpawnTime;
    _nextSpawnTime -= _timeDelta;
    int numberToSpawn = 0;
-   while (timeAvailableToSpawn > 0) 
+   while (_active && timeAvailableToSpawn > 0) 
    {
       _nextSpawnTime = 1.0f / d.emission.rate->nextValue(_curEmitterTime);
       timeAvailableToSpawn -= _nextSpawnTime;
@@ -623,8 +630,8 @@ void CubemitterNode::spawnCube(CubeData &d, CubeAttribute &ca)
 
    if (data.emission.origin.surfaceKind == OriginData::SurfaceKind::RECTANGLE)
    {
-      float randWidth = randomF(0, data.emission.origin.width);
-      float randLength = randomF(0, data.emission.origin.length);
+      float randWidth = randomF(-data.emission.origin.width / 2.0f, data.emission.origin.width / 2.0f);
+      float randLength = randomF(-data.emission.origin.length / 2.0f, data.emission.origin.length / 2.0f);
       Vec3f v1(m.c[0][0], m.c[0][1], m.c[0][2]);
       Vec3f v2(m.c[1][0], m.c[1][1], m.c[1][2]);
 
