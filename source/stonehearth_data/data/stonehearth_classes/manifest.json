@@ -9,7 +9,7 @@
 
    "radiant" : {
       "functions" : {
-         "promote_command" : {
+         "promote" : {
             "controller": "file(commands/promote_command.lua)",
             "endpoint" : "server"
          }

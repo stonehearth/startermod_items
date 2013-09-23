@@ -2,6 +2,7 @@
 #include "data_binding.h"
 #include "om/entity.h"
 #include "dm/store.h"
+#include "lua/script_host.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -75,7 +76,10 @@ JSONNode DataBinding::GetJsonData() const
       cached_json_ = JSONNode();
       
       if (data_.is_valid() && type(data_) != LUA_TNIL) {
+         cached_json_ = lua::ScriptHost::LuaToJson(data_.interpreter(), data_);
+#if 0
          std::string json;
+
 
          try {
             object coder = globals(data_.interpreter())["radiant"]["json"];
@@ -91,6 +95,7 @@ JSONNode DataBinding::GetJsonData() const
             return JSONNode();
          }
          cached_json_ = libjson::parse(json);
+#endif
       }
       // xxx: skip this until we have legitimate change tracking
       // cached_json_valid_ = true; 

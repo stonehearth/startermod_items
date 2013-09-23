@@ -1,13 +1,64 @@
 
 (function () {
-   var Trace = SimpleClass.extend({
-      init: function (deferred) {
+   var tracerMap = {};
+   var Tracer = SimpleClass.extend({
+      init: function(o, uri) {
+         this._uri = uri;
+         this._traces = [];
+
          var self = this;
-         this._deferred = deferred;
+         o.request.done(function(data) {
+            this._callId = data.call_id;
+         });
+         o.deferred.done(function(data) {
+            self._result = data;
+            _.each(self._traces, function (trace) {
+               trace._deferred.resolve(data);
+            });
+         });
+         o.deferred.fail(function(data) {
+            self._error = data;
+            _.each(self._traces, function (trace) {
+               trace._deferred.reject(data);
+            });
+         });
+         o.deferred.progress(function(data) {
+            self._progress = data;
+            _.each(self._traces, function (trace) {
+               trace._deferred.notify(data);
+            });
+         });
+         tracerMap[uri] = this;
       },
 
-      _setCallId: function(callId) {
-         this._callId = callId;
+      addTrace: function(trace) {
+         this._traces.push(trace);
+         if (this._result) {
+            trace._deferred.resolve(this._result);
+         } else if (this._error) {
+            trace._deferred.reject(this._error);
+         } else if (this._progress) {
+            trace._deferred.notify(this._progress);
+         }
+         return trace;
+      },
+
+      removeTrace: function(trace) {
+         var offset = this._traces.indexOf(trace);
+         radiant.assert(offset >= 0, 'trace not found in remove_trace');
+         this._traces.splice(offset, 1); // remove it
+         if (_.isEmpty(this._traces)) {
+            radiant.call('radiant.remove_trace', this._callId);
+            delete tracerMap[this.uri];
+         }
+      }
+   });
+
+   var Trace = SimpleClass.extend({
+      init: function (tracer) {
+         this._deferred = $.Deferred();
+         this._tracer = tracer;
+         this._tracer.addTrace(this);
       },
 
       progress: function (cb) {
@@ -31,9 +82,9 @@
       },
 
       destroy: function() {
-         if (this._deferred && this._callId) {
-            radiant.call('radiant.remove_trace', this._callId);
-            this._deferred = null;
+         if (this._tracer) {
+            this._tracer.removeTrace(this);
+            this._tracer = undefined;
          }
       }
    });
@@ -51,13 +102,13 @@
                   var f = {
                      'call_progress' : d.notify,
                      'call_done' : d.resolve,
-                     'call_fail' : d.reject,
+                     'call_fail' : d.reject
                   }[e.type];
                   if (f) {
                      f(o.data);
                   }
                }
-            }
+            };
             $(top).on("call_progress.radiant", foward_fn);
             $(top).on("call_done.radiant", foward_fn);
             $(top).on("call_fail.radiant", foward_fn);
@@ -66,7 +117,8 @@
 
       _start_poll : function() {
          var self = this;
-         self._docall('/r/call?fn=radiant.get_events&long_poll=1', []).deferred
+         var deferred = self._docall('/r/call?fn=radiant.get_events&long_poll=1', []).deferred
+         deferred
             .done(function (data) {
                $.each(data, function (_, o) {
                   $(top).trigger(o.type, o.data);
@@ -122,7 +174,7 @@
       return radiant.callv(fn, args).deferred;
    };
 
-   radiant.call_obj = function(obj, fn, args) {
+   radiant.call_obj = function() {
       var args = Array.prototype.slice.call(arguments);
       if (args.length < 2) {
          throw "radiant.call_obj requires at least 2 arguments.";
@@ -134,12 +186,12 @@
    };
 
    radiant.trace = function(uri) {
-      var o = object._docall('/r/call/?fn=radiant.install_trace', [uri, 'ui requested trace']);
-      var trace = new Trace(o.deferred);
-      o.request.done(function(data) {
-         trace._setCallId(data.call_id);
-      });
-      return trace;
+      var tracer = tracerMap[uri];
+      if (tracer == undefined) {
+         var o = object._docall('/r/call/?fn=radiant.install_trace', [uri, 'ui requested trace']);
+         tracer = new Tracer(o, uri);
+      }
+      return new Trace(tracer);
    };
 
 })();

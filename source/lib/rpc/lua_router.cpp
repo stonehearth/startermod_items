@@ -16,48 +16,17 @@
 using namespace ::radiant;
 using namespace ::radiant::rpc;
 
-LuaRouter::LuaRouter(lua_State* L, std::string const& endpoint) :
-   L_(L),
-   endpoint_(endpoint)
+using namespace luabind;
+
+LuaRouter::LuaRouter(lua::ScriptHost* s) :
+   scriptHost_(s)
 {
 }
 
-ReactorDeferredPtr LuaRouter::Call(Function const& fn)
+void LuaRouter::CallLuaMethod(ReactorDeferredPtr d, object obj, object method, Function const& fn)
 {
    try {
-      res::Manifest manifest = res::ResourceManager2::GetInstance().LookupManifest(fn.object);
-      res::Function f = manifest.get_function(fn.route);
-      if (f) {
-         if (f.endpoint() != endpoint_) {
-            return nullptr;
-         }
-         return CallModuleFunction(fn, f.script());
-      }
-   } catch (std::exception &e) {
-      LOG(WARNING) << "error dispatching " << fn << " in lua router: " << e.what();
-   }
-   return nullptr;
-}
-
-ReactorDeferredPtr LuaRouter::CallModuleFunction(Function const& fn, std::string const& script)
-{
-
-   using namespace luabind;
-   ReactorDeferredPtr d = std::make_shared<ReactorDeferred>(fn.desc());
-
-   try {
-      LOG(INFO) << "lua router dispatching call '" << fn << "'...";
-      lua::ScriptHost* sh = lua::ScriptHost::GetScriptHost(L_);
-      lua_State* L = sh->GetCallbackThread();
-      object ctor(L, sh->RequireScript(script));
-      if (!ctor.is_valid() || type(ctor) == LUA_TNIL) {
-         throw core::Exception(BUILD_STRING("failed to retrieve lua call handler while processing " << fn));
-      }
-      object obj = call_function<object>(ctor);
-      object method = obj[fn.route]; 
-      if (!method.is_valid() || type(method) != LUA_TFUNCTION) {
-         throw core::Exception(BUILD_STRING("constructed lua handler does not implement " << fn));
-      }
+      lua_State* L = scriptHost_->GetCallbackThread();
 
       auto lua_to_json = [L, this](object o) -> JSONNode {
          JSONNode result;
@@ -65,10 +34,12 @@ ReactorDeferredPtr LuaRouter::CallModuleFunction(Function const& fn, std::string
             result.push_back(JSONNode("error", "call returned invalid json object"));
          } else {
             try {
-               if (type(o) == LUA_TTABLE) {
-                  result = libjson::parse(lua::ScriptHost::LuaToJson(L, o));
+               JSONNode value = lua::ScriptHost::LuaToJson(L, o);
+               if (value.type() == JSON_NODE || value.type() == JSON_ARRAY) {
+                  result = value;
                } else {
-                  result.push_back(JSONNode("result", lua::ScriptHost::LuaToJson(L, o)));
+                  value.set_name("result");
+                  result.push_back(value);
                }
             } catch (std::exception& e) {
                std::string err = BUILD_STRING("error converting call result: " << e.what());
@@ -99,7 +70,7 @@ ReactorDeferredPtr LuaRouter::CallModuleFunction(Function const& fn, std::string
       detail::push(L, fn.caller);            // session
       detail::push(L, lua_deferred);         // response
       for (const auto& arg : fn.args) {
-         detail::push(L, sh->JsonToLua(L, arg));
+         detail::push(L, scriptHost_->JsonToLua(L, arg));
       }
       if (detail::pcall(L, nargs, 1)) {
          throw luabind::error(L);
@@ -111,9 +82,7 @@ ReactorDeferredPtr LuaRouter::CallModuleFunction(Function const& fn, std::string
          lua_deferred->Resolve(result);
       }
    } catch (std::exception const& e) {
-      LOG(WARNING) << "error attempting to call module function in lua router: " << e.what();
+      LOG(WARNING) << "error attempting to call " << fn << " in lua router: " << e.what();
       d->RejectWithMsg(e.what());
    }
-
-   return d;
 }

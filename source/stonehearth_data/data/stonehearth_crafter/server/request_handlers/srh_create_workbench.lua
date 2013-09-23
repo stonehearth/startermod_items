@@ -4,11 +4,11 @@ local CreateWorkbench = class()
 -- server side object to handle creation of the workbench.  this is called
 -- by doing a POST to the route for this file specified in the manifest.
 
-function CreateWorkbench:handle_request(session, postdata)
+function CreateWorkbench:create_workbench(session, response, workbench_entity_uri, pt)
    -- pull the location and entity uri out of the postdata, create that
    -- entity, and move it there.
-   local location = Point3(postdata.location.x, postdata.location.y, postdata.location.z)
-   local workbench_entity = radiant.entities.create_entity(postdata.workbench_entity)
+   local location = Point3(pt.x, pt.y, pt.z)
+   local workbench_entity = radiant.entities.create_entity(workbench_entity_uri)
    local workshop_component = workbench_entity:get_component('stonehearth_crafter:workshop')
 
    -- Plasde the bench in the world

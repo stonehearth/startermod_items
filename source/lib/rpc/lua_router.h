@@ -7,23 +7,18 @@
 #include "lib/rpc/forward_defines.h"
 #include "lua/forward_defines.h"
 
-struct lua_State;
-
 BEGIN_RADIANT_RPC_NAMESPACE
 
 class LuaRouter : public IRouter {
 public:
-   LuaRouter(lua_State* L, std::string const& endpoint);
+   LuaRouter(lua::ScriptHost* s);
 
-public:     // IRouter
-   ReactorDeferredPtr Call(Function const& fn) override;
-
-private:
-   ReactorDeferredPtr CallModuleFunction(Function const& fn, std::string const& script);
-
+protected:
+   void CallLuaMethod(ReactorDeferredPtr d, luabind::object obj, luabind::object method, Function const& fn);
+   lua::ScriptHost* GetScriptHost() { return scriptHost_; } 
 private:
    lua_State*        L_;
-   std::string       endpoint_;
+   lua::ScriptHost*  scriptHost_;
 };
 
 END_RADIANT_RPC_NAMESPACE

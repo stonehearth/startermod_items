@@ -62,7 +62,7 @@ std::weak_ptr<RenderEntity> Client_CreateRenderEntity(H3DNode parent, luabind::o
 }
 
 static luabind::object
-Client_QueryScene(lua_State* L, Client const&, int x, int y)
+Client_QueryScene(lua_State* L, int x, int y)
 {
    om::Selection s;
    Renderer::GetInstance().QuerySceneRay(x, y, s);
@@ -176,6 +176,11 @@ void lua::client::open(lua_State* L)
                .def("on_input",           &LuaCallback::Progress)
             ,
             lua::RegisterType<Input>()
+               .enum_("constants") [
+                  value("MOUSE", Input::MOUSE),
+                  value("KEYBOARD", Input::KEYBOARD),
+                  value("RAW_INPUT", Input::RAW_INPUT)
+               ]
                .def_readonly("type",      &Input::type)
                .def_readonly("mouse",     &Input::mouse)
                .def_readonly("keyboard",  &Input::keyboard)

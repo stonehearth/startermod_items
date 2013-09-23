@@ -13,7 +13,7 @@
             "endpoint" : "client"
          },
          "create_workbench" : {
-            "create_workbench" : "file(server/request_handlers/srh_create_workbench.lua)",
+            "controller" : "file(server/request_handlers/srh_create_workbench.lua)",
             "endpoint" : "server"
          }
       }

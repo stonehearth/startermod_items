@@ -129,6 +129,8 @@ JSONNode const& ResourceManager2::LookupJson(std::string path) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
 
+   // xxx: remove this when we get rid of entity(x, y)
+   path = ExpandMacro(path, ".", true);
    std::string key = ConvertToCanonicalPath(path, ".json");
 
    auto i = jsons_.find(key);

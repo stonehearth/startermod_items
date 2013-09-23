@@ -26,11 +26,11 @@ const char* Type_GetTypeName(T const&)
    return typeid(T).name();
 }
 
+
 template <class T>
-std::string Type_ToJson(std::weak_ptr<T> o, luabind::object state)
+std::string TypePtr_ToJson(std::shared_ptr<T> obj, luabind::object state)
 {
    std::ostringstream output;
-   std::shared_ptr<T> obj = o.lock();
    if (obj) {
       output << '"' << om::ObjectFormatter().GetPathToObject(obj) << '"';
    } else {
@@ -40,27 +40,15 @@ std::string Type_ToJson(std::weak_ptr<T> o, luabind::object state)
 }
 
 template <class T>
-std::string Type_ToWatch(std::weak_ptr<T> o)
+std::string TypeRef_ToJson(std::weak_ptr<T> o, luabind::object state)
 {
-   std::ostringstream output;
    std::shared_ptr<T> obj = o.lock();
    if (obj) {
-      output << obj.get();
-   } else {
-      output << "Invalid " << GetTypeName<T>() << " reference.";
+      return TypePtr_ToJson(obj, state);
    }
+   std::ostringstream output;
+   output << "null";
    return output.str();
-}
-
-template <typename LuaBindType, typename T>
-void RegisterBaseMethods(LuaBindType& type)
-{
-   type
-      .def(tostring(luabind::self))
-      .def("__towatch",      &Type_ToWatch<T>)
-      .def("__tojson",       &Type_ToJson<T>)
-      .def("get_id",         &T::GetObjectId)
-      .def("get_type_name",  &Type_GetTypeName<T>);
 }
 
 template <typename T>
@@ -70,7 +58,6 @@ luabind::class_<T> RegisterType(const char* name = nullptr)
    auto type = luabind::class_<T>(name);
    type
       .def(tostring(luabind::self))
-      .def("__towatch",      &Type_ToWatch<T>)
       .def("get_type_name",  &Type_GetTypeName<T>);
    return type;
 }
@@ -79,31 +66,43 @@ template <typename T>
 luabind::class_<T, std::shared_ptr<T>> RegisterTypePtr(const char* name = nullptr)
 {
    name = name ? name : GetTypeName<T>();
-   auto type = luabind::class_<T, std::shared_ptr<T>>(name);
-   type
+   return luabind::class_<T, std::shared_ptr<T>>(name)
       .def(tostring(luabind::self))
-      .def("__towatch",      &Type_ToWatch<T>)
       .def("get_type_name",  &Type_GetTypeName<T>);
-   return type;
 }
 
 template <typename T>
 luabind::class_<T, std::weak_ptr<T>> RegisterObject(const char* name = nullptr)
 {
    name = name ? name : GetTypeName<T>();
-   auto type = luabind::class_<T, std::weak_ptr<T>>(name);
-   lua::RegisterBaseMethods<decltype(type), T>(type);
-   return type;
+   return luabind::class_<T, std::weak_ptr<T>>(name)
+      .def(tostring(luabind::self))
+      .def("__tojson",       &TypeRef_ToJson<T>)
+      .def("get_id",         &T::GetObjectId)
+      .def("get_type_name",  &Type_GetTypeName<T>);
+}
+
+template <typename T>
+luabind::class_<T, std::shared_ptr<T>> RegisterObjectPtr(const char* name = nullptr)
+{
+   name = name ? name : GetTypeName<T>();
+   return luabind::class_<T, std::shared_ptr<T>>(name)
+      .def(tostring(luabind::self))
+      .def("__tojson",       &TypePtr_ToJson<T>)
+      .def("get_id",         &T::GetObjectId)
+      .def("get_type_name",  &Type_GetTypeName<T>);
 }
 
 template<class Derived, class Base>
 luabind::class_<Derived, Base, std::weak_ptr<Derived>> RegisterDerivedObject(const char* name = nullptr)
 {
    name = name ? name : GetTypeName<Derived>();
-   return class_<Derived, Base, std::weak_ptr<Derived>>(name);
+   return luabind::class_<Derived, Base, std::weak_ptr<Derived>>(name)
+      .def(tostring(luabind::self))
+      .def("__tojson",       &TypePtr_ToJson<Derived>)
+      .def("get_id",         &Derived::GetObjectId)
+      .def("get_type_name",  &Type_GetTypeName<Derived>);
 }
-
-void RegisterBasicTypes(lua_State* L); // xxx: Must GO!
 
 END_RADIANT_LUA_NAMESPACE
 

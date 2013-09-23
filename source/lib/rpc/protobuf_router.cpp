@@ -69,6 +69,14 @@ ReactorDeferredPtr ProtobufRouter::SendNewRequest(proto::PostCommandRequest& r)
 ReactorDeferredPtr ProtobufRouter::RemoveTrace(UnTrace const& u)
 {
    LOG(INFO) << "protobuf router removing trace " << u;
+   for (const auto& entry : pending_calls_) {
+      auto obj = entry.second.lock();
+      if (obj) {
+         LOG(INFO) << "  " << entry.first << " -> " << *obj;
+      } else {
+         LOG(INFO) << "  " << entry.first << " -> " << "expired";
+      }
+   }
 
    auto i = pending_calls_.find(u.call_id);
    if (i != pending_calls_.end()) {

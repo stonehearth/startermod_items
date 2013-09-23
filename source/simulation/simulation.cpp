@@ -41,7 +41,8 @@
 #include "lib/rpc/reactor_deferred.h"
 #include "lib/rpc/protobuf_reactor.h"
 #include "lib/rpc/trace_object_router.h"
-#include "lib/rpc/lua_router.h"
+#include "lib/rpc/lua_module_router.h"
+#include "lib/rpc/lua_object_router.h"
 
 static const int __initialCivCount = 3;
 
@@ -85,10 +86,9 @@ Simulation::Simulation() :
    });
 
    // routers...
-   rpc::LuaRouterPtr lua_router = std::make_shared<rpc::LuaRouter>(scriptHost_->GetCallbackThread(), "server");
-   core_reactor_->AddRouter(lua_router);
-
-   trace_router_ = std::make_shared<rpc::TraceObjectRouter>(GetStore());
+   core_reactor_->AddRouter(std::make_shared<rpc::LuaModuleRouter>(scriptHost_.get(), "server"));
+   core_reactor_->AddRouter(std::make_shared<rpc::LuaObjectRouter>(scriptHost_.get(), store_));
+   trace_router_ = std::make_shared<rpc::TraceObjectRouter>(store_);
    core_reactor_->AddRouter(trace_router_);
 }
 
@@ -172,7 +172,6 @@ void Simulation::CreateNew()
       lua_State* L = scriptHost_->GetInterpreter();
       om::RegisterLuaTypes(L);
       csg::RegisterLuaTypes(L);
-      lua::RegisterBasicTypes(L);
       lua::sim::open(L);
       lua::res::open(L);
       lua::rpc::open(L, core_reactor_);

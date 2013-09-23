@@ -24,7 +24,7 @@ public:
    void AddJsonToLuaConverter(JsonToLuaFn fn);
 
    luabind::object JsonToLua(JSONNode const& json);
-   std::string LuaToJson(luabind::object obj);
+   JSONNode LuaToJson(luabind::object obj);
 
    template <typename T, typename A0, typename A1, typename A2, typename A3, typename A4>
    T CallFunction(A0 const& a0, A1 const& a1, A2 const& a2, A3 const& a3, A4 const& a4) {
@@ -60,7 +60,7 @@ public: // the static interface
    static luabind::object Require(lua_State* L, std::string const& path) { return GetScriptHost(L)->Require(path); }
    static luabind::object RequireScript(lua_State* L, std::string const& path) { return GetScriptHost(L)->RequireScript(path); }
    static luabind::object JsonToLua(lua_State* L, JSONNode const& json) { return GetScriptHost(L)->JsonToLua(json); }
-   static std::string LuaToJson(lua_State* L, luabind::object obj) { return GetScriptHost(L)->LuaToJson(obj); }
+   static JSONNode LuaToJson(lua_State* L, luabind::object obj) { return GetScriptHost(L)->LuaToJson(obj); }
 
 private:
    static void* LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize);

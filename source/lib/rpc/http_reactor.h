@@ -13,6 +13,9 @@ public:
    HttpReactor(CoreReactor &core);
 
    ReactorDeferredPtr Call(json::ConstJsonObject const& query, std::string const& postdata);
+   ReactorDeferredPtr InstallTrace(Trace const& t);
+
+   bool HttpGetFile(std::string const& uri, int &code, std::string& content, std::string& mimetype);
    void QueueEvent(std::string type, JSONNode payload);
    void FlushEvents();
 

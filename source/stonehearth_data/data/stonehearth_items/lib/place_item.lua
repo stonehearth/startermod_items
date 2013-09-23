@@ -4,18 +4,14 @@ local PlaceItem = class()
 -- Client side object to place an item in the world. The item exists as an icon first
 -- This method is invoked by POSTing to the route for this file in the manifest.
 -- TODO: merge/factor out with CreateWorkshop?
-function PlaceItem:handle_request(query, postdata, response)
+function PlaceItem:choose_place_item_location(session, response, entity_uri)
    -- create a new "cursor entity".  this is the entity that will move around the
    -- screen to preview where the object will go.  these entities are called
    -- "authoring entities", because they exist only on the client side to help
    -- in the authoring of new content.
    -- TODO: show places the item cannot/should not be placed
-
-   local item_name = query.target_name
-   local item_mod = query.target_mod
-
-   --TODO: I don't know why radiant.entities.create_entity(item_mod, item_name) doesn't work here...
-   self._cursor_entity = radiant.entities.create_entity('entity(' .. item_mod .. ', ' .. item_name ..')')
+ 
+   self._cursor_entity = radiant.entities.create_entity(entity_uri)
 
    -- add a render object so the cursor entity gets rendered.
    local re = _radiant.client.create_render_entity(1, self._cursor_entity)
@@ -32,8 +28,8 @@ function PlaceItem:handle_request(query, postdata, response)
    -- the entity that we're supposed to create whenever the user clicks.
    self._capture = _radiant.client.capture_input()
    self._capture:on_input(function(e)
-         if e.type == _radiant.client.MOUSE_INPUT then
-            self:_on_mouse_event(e, query.proxy_entity_id, response)
+         if e.type == _radiant.client.Input.MOUSE then
+            self:_on_mouse_event(e.mouse, response)
             return true
          end
          return false
@@ -41,7 +37,7 @@ function PlaceItem:handle_request(query, postdata, response)
 end
 
 -- called each time the mouse moves on the client.
-function PlaceItem:_on_mouse_event(e, proxy_id, response)
+function PlaceItem:_on_mouse_event(e, response)
    -- query the scene to figure out what's under the mouse cursor
    local s = _radiant.client.query_scene(e.x, e.y)
 
@@ -72,24 +68,46 @@ function PlaceItem:_on_mouse_event(e, proxy_id, response)
       -- destroy the authoring object yet!  doing so now will result in a brief period
       -- of time where the server side object has not yet been created, yet the client
       -- authoring object has been destroyed.  that leads to flicker, which is ugly.
-      self._capture:destroy()
-
-      -- pass "" for the function name so the deafult (handle_request) is
-      -- called.  this will return a Deferred object which we can use to track
-      -- the call's progress
-      _radiant.call('stonehearth_items', 'place_item_server', "", proxy_id, pt, self._curr_rotation + 180 )
-               :always(function ()
-                     -- whether the request succeeds or fails, go ahead and destroy
-                     -- the authoring entity.  do it after the request returns to avoid
-                     -- the ugly flickering that would occur had we destroyed it when
-                     -- we uninstalled the mouse cursor
-                     _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
-                     response:complete({})
-                  end)
-
+      self._capture = nil
+      
+      response:resolve({
+         location = pt,
+         rotation = self._curr_rotation + 180
+      })
+      _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
    end
 
    -- return true to prevent the mouse event from propogating to the UI
+   return true
+end
+
+-- server side object to handle creation of the workbench.  this is called
+-- by doing a POST to the route for this file specified in the manifest.
+function PlaceItem:place_item_in_world(session, response, proxy_entity, location, rotation)
+
+   -- pull the location and entity uri out of the postdata, create that
+   -- entity, and move it there.
+   local location = Point3(location.x, location.y, location.z)
+   --local item_entity = radiant.entities.create_entity(postdata.item_uri)
+   radiant.log.info('in server, placing item in the world!!! %s', tostring(proxy_entity))
+
+   local full_sized_entity = proxy_entity:get_component('stonehearth_items:placeable_item_proxy'):get_full_sized_entity()
+
+   -- Remove the icon (TODO: what about stacked icons? Remove just one of the stack?)
+   radiant.terrain.remove_entity(proxy_entity)
+
+   -- Place the item in the world
+   radiant.terrain.place_entity(full_sized_entity, location)
+   radiant.entities.turn_to(full_sized_entity, rotation)
+   
+   --item_entity:get_component('unit_info'):set_faction(session.faction)
+   return { full_sized_entity = full_sized_entity }
+end
+
+-- server side object to handle creation of the workbench.  this is called
+-- by doing a POST to the route for this file specified in the manifest.
+function PlaceItem:place_item_type_in_world(session, response, full_sized_entity_uri, location, rotation)
+   -- xxx: we really want a worker to just find one, but this is ok for now.__call
    return true
 end
 

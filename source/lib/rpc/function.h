@@ -14,13 +14,13 @@ public:
    {
    }
 
-   Function(std::string const& r, json::ConstJsonObject const& a) :
+   Function(std::string const& r, JSONNode const& a) :
       route(r),
       args(a)
    {
    }
 
-   Function(SessionPtr s, int id, std::string const& r, json::ConstJsonObject const& a) :
+   Function(SessionPtr s, int id, std::string const& r, JSONNode const& a) :
       Request(s, id),
       route(r),
       args(a)
@@ -32,7 +32,7 @@ public:
 public:
    std::string                object;
    std::string                route;
-   json::ConstJsonObject      args;
+   JSONNode                   args;
 };
 
 static inline std::ostream& operator<<(std::ostream& os, Function const& f) {

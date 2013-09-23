@@ -66,22 +66,17 @@ end
    Order_data has to contain
    recipe_url: url to the recipe
    TODO: types of ingredients
-   condition_amount: an integer,
+   amount: an integer,
          OR
-   condition_inventory_below:integer to mantain at
+   inventory_below:integer to mantain at
    Returns: true if successful add, false otherwise
 --]]
-function Workshop:add_order(player_object, order_data)
-   local condition = {}
-   if order_data.condition_amount then
-      condition.amount = tonumber(order_data.condition_amount)
-   else
-      condition.inventory_below = tonumber(order_data.condition_inventory_below)
-   end
-   local order = CraftOrder(radiant.resources.load_json(order_data.recipe_url), true,  condition, self)
+function Workshop:add_order(session, response, recipe, condition)
+   local order = CraftOrder(recipe, true,  condition, self)
    self._todo_list:add_order(order)
    --TODO: if something fails and we know it, send error("string explaining the error") anywhere
    --to be caught by the result variable
+   return true
 end
 
 --[[
@@ -93,9 +88,9 @@ end
    Returns: true if successful, false with message otherwise,
    and url and description of image
 ]]
-function Workshop:resolve_order_options(player_object, order_options)
-   local recipe = radiant.resources.load_json(order_options.recipe_url)
-   return {portrait = recipe.portrait, desc = recipe.description, flavor = recipe.flavor}
+function Workshop:resolve_order_options(session, response, recipe)
+   return {portrait = recipe.portrait, description = recipe.description, flavor = recipe.flavor}
+
 end
 
 --[[
@@ -103,7 +98,7 @@ end
    at the next convenient moment.
    should_pause: true if we should pause, false if we should unpause.
 ]]
-function Workshop:toggle_pause(player_object, data)
+function Workshop:toggle_pause(sesion, response)
    self._data.is_paused = not self._data.is_paused
    self._data_binding:mark_changed()
 end
@@ -116,22 +111,24 @@ end
    Tell the todo list to move the order (by id) to the new position
    order_list_data.newPos.
 ]]
-function Workshop:move_order(player_object, order_list_data)
-   self._todo_list:change_order_position(order_list_data.newPos, order_list_data.id)
+function Workshop:move_order(session, response, id, newPos)
+   self._todo_list:change_order_position(newPos, id)
+   return true
 end
 
 --[[
    Delete an order and clean up if it's the current order
 ]]
-function Workshop:delete_order(player_object, target_order)
-   self._todo_list:remove_order(target_order.id)
-   if  self._curr_order and target_order.id == self._curr_order:get_id() then
+function Workshop:delete_order(session, response, id)
+   self._todo_list:remove_order(id)
+   if self._curr_order and id == self._curr_order:get_id() then
       if self._intermediate_item then
          radiant.entities.destroy_entity(self._intermediate_item.entity)
          self._intermediate_item = nil
       end
       self._curr_order = nil
    end
+   return true
 end
 
 --[[

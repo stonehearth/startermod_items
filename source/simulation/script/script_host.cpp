@@ -248,7 +248,6 @@ void ScriptHost::InitEnvironment()
 
    om::RegisterLuaTypes(L_);
    csg::RegisterLuaTypes(L_);
-   lua::RegisterBasicTypes(L_);
    LuaJobs::RegisterType(L_);
    res::Animation::RegisterType(L_);
    json::ConstJsonObject::RegisterLuaType(L_);

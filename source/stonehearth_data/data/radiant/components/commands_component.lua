@@ -14,20 +14,29 @@ function CommandsComponent:extend(json)
    -- not really...
    if json.commands then
       for _, uri in pairs(json.commands) do
-         local command = radiant.resources.load_json(uri)
-
-         -- expand the json. just for fun (it's small)
-         local t = self:_replace_variables(command)
-         t = self:_set_enabled_defaults(t)
-
-         table.insert(self._data.commands, t)
-         self._data_binding:mark_changed()
+         self:add_command(radiant.resources.load_json(uri))
       end
    end
 end
 
+function CommandsComponent:add_command(json)
+   local t = self:_replace_variables(json)
+   self:_set_defaults(t)
+
+   table.insert(self._data.commands, t)
+   self._data_binding:mark_changed()
+end
+
+function CommandsComponent:modify_command(name)
+   local command = self:_find_command_by_name(name)
+   if command then
+      self._data_binding:mark_changed()
+   end
+   return command
+end
+
 --Set the runtime properties like enabled or tooltip
-function CommandsComponent:_set_enabled_defaults(data_table)
+function CommandsComponent:_set_defaults(data_table)
    if data_table.default_enabled == nil then
       data_table.enabled = true;
    else
@@ -41,8 +50,6 @@ function CommandsComponent:_set_enabled_defaults(data_table)
          data_table.tooltip = data_table.disabled_tooltip
       end
    end
-
-   return data_table
 end
 
 function CommandsComponent:_replace_variables(res)
@@ -63,6 +70,9 @@ function CommandsComponent:_replace_variables(res)
 end
 
 --Given the name of a command, set its enabled/disabled status
+-- xxx: ideally the only thing that would ever change about a command
+-- is the enable bit, and the ui would set the tooltip based on 
+-- that.
 function CommandsComponent:enable_command(name, status)
    local command = self:_find_command_by_name(name)
    if command then
@@ -75,15 +85,6 @@ function CommandsComponent:enable_command(name, status)
          end
       end
       self._data_binding:mark_changed()
-   end
-end
-
---Given the name of a command, add or edit a field in its event_data
---A command's event_data is passed to the target of the command (ie, an event)
-function CommandsComponent:add_event_data(name, key, value)
-   local command = self:_find_command_by_name(name)
-   if command and command.action == 'fire_event' then
-      command.event_data[key] = value
    end
 end
 

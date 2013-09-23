@@ -56,27 +56,33 @@ void ScriptHost::AddJsonToLuaConverter(JsonToLuaFn fn)
    to_lua_converters_.emplace_back(fn);
 }
 
-std::string ScriptHost::LuaToJson(luabind::object obj)
+JSONNode ScriptHost::LuaToJson(luabind::object obj)
 {
    int t = type(obj);
    if (t == LUA_TTABLE || t == LUA_TUSERDATA) {
-      object coder = globals(L_)["radiant"]["json"];
-      return call_function<std::string>(coder["encode"], obj);
+      try {
+         object coder = globals(L_)["radiant"]["json"];
+         std::string json = call_function<std::string>(coder["encode"], obj);
+         return libjson::parse(json);
+      } catch (std::exception& e) {
+         LOG(WARNING) << "failed to convert coded json string to node: " << e.what();
+         return JSONNode();
+      }
    } else if (t == LUA_TSTRING) {
-      return object_cast<std::string>(obj);
+      return JSONNode("", object_cast<std::string>(obj));
    } else if (t == LUA_TNUMBER) {
       std::ostringstream formatter;
-      float v = object_cast<float>(obj);
-      if (csg::IsZero(v)) {
-         formatter << (int)v;
-      } else {
-         formatter << v;
+      float value = object_cast<float>(obj);
+      int int_value = static_cast<int>(value);
+      if (csg::IsZero(value - int_value)) {
+         return JSONNode("", int_value);
       }
-      return formatter.str();
+      return JSONNode("", value);
    } else if (t == LUA_TBOOLEAN) {
-      return object_cast<bool>(obj) ? "true" : "false";
+      return JSONNode("", object_cast<bool>(obj));
    }
-   return "";
+   LOG(WARNING) << "unknown type converting lua to json: " << t;
+   return JSONNode();
 }
 
 luabind::object ScriptHost::JsonToLua(JSONNode const& json)

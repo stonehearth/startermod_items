@@ -30,7 +30,8 @@
 #include "lib/rpc/http_reactor.h"
 #include "lib/rpc/reactor_deferred.h"
 #include "lib/rpc/protobuf_router.h"
-#include "lib/rpc/lua_router.h"
+#include "lib/rpc/lua_module_router.h"
+#include "lib/rpc/lua_object_router.h"
 #include "lib/rpc/trace_object_router.h"
 #include "lib/rpc/http_deferred.h" // xxx: does not belong in rpc!
 #include "lua/client/open.h"
@@ -85,11 +86,9 @@ Client::Client() :
    http_reactor_ = std::make_shared<rpc::HttpReactor>(*core_reactor_);
 
    // Routers...
-   rpc::LuaRouterPtr lua_router = std::make_shared<rpc::LuaRouter>(scriptHost_->GetCallbackThread(), "client");
-   core_reactor_->AddRouter(lua_router);
-
-   rpc::TraceObjectRouterPtr trace_router = std::make_shared<rpc::TraceObjectRouter>(GetStore());
-   core_reactor_->AddRouter(trace_router);
+   core_reactor_->AddRouter(std::make_shared<rpc::LuaModuleRouter>(scriptHost_.get(), "client"));
+   core_reactor_->AddRouter(std::make_shared<rpc::LuaObjectRouter>(scriptHost_.get(), authoringStore_));
+   core_reactor_->AddRouter(std::make_shared<rpc::TraceObjectRouter>(GetStore()));
 
    // protobuf router should be last!
    protobuf_router_ = std::make_shared<rpc::ProtobufRouter>([this](proto::PostCommandRequest const& request) {
@@ -107,8 +106,9 @@ Client::Client() :
       return GetModules(f);
    });
    core_reactor_->AddRoute("radiant.install_trace", [this](rpc::Function const& f) {
-      std::string uri = f.args.get<std::string>(0);
-      return core_reactor_->InstallTrace(rpc::Trace(f.caller, f.call_id, uri));
+      json::ConstJsonObject args(f.args);
+      std::string uri = args.get<std::string>(0);
+      return http_reactor_->InstallTrace(rpc::Trace(f.caller, f.call_id, uri));
    });
    core_reactor_->AddRoute("radiant.remove_trace", [this](rpc::Function const& f) {
       return core_reactor_->RemoveTrace(rpc::UnTrace(f.caller, f.call_id));
@@ -191,7 +191,6 @@ void Client::run()
 
    lua_State* L = scriptHost_->GetInterpreter();
    renderer.SetScriptHost(GetScriptHost());
-   lua::RegisterBasicTypes(L);
    om::RegisterLuaTypes(L);
    csg::RegisterLuaTypes(L);
    store_.SetInterpreter(L); // xxx move to dm open or something
@@ -788,61 +787,6 @@ void Client::SetCursor(std::string name)
    }
 }
 
-static void HandleFileRequest(std::string const& path, rpc::HttpDeferredPtr response)
-{
-   static const struct {
-      char *extension;
-      char *mimeType;
-   } mimeTypes_[] = {
-      { "htm",  "text/html" },
-      { "html", "text/html" },
-      {  "css",  "text/css" },
-      { "less",  "text/css" },
-      { "js",   "application/x-javascript" },
-      { "json", "application/json" },
-      { "txt",  "text/plain" },
-      { "jpg",  "image/jpeg" },
-      { "png",  "image/png" },
-      { "gif",  "image/gif" },
-      { "woff", "application/font-woff" },
-      { "cur",  "image/vnd.microsoft.icon" },
-   };
-   std::ifstream infile;
-   auto const& rm = res::ResourceManager2::GetInstance();
-
-   std::string data;
-   try {
-      if (boost::ends_with(path, ".json")) {
-         JSONNode const& node = rm.LookupJson(path);
-         data = node.write();
-      } else {
-         LOG(WARNING) << "reading file " << path;
-         rm.OpenResource(path, infile);
-         data = io::read_contents(infile);
-      }
-   } catch (res::Exception const& e) {
-      LOG(WARNING) << "error code 404: " << e.what();
-      response->Reject(rpc::HttpError(404, e.what()));
-      return;
-   }
-
-
-   // Determine the file extension.
-   std::string mimeType;
-   std::size_t last_dot_pos = path.find_last_of(".");
-   if (last_dot_pos != std::string::npos) {
-      std::string extension = path.substr(last_dot_pos + 1);
-      for (auto &entry : mimeTypes_) {
-         if (extension == entry.extension) {
-            mimeType = entry.mimeType;
-            break;
-         }
-      }
-   }
-   ASSERT(!mimeType.empty());
-   response->Resolve(rpc::HttpResponse(200, data, mimeType));
-}
-
 rpc::ReactorDeferredPtr Client::GetModules(rpc::Function const& fn)
 {
    rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>(fn.route);
@@ -868,7 +812,13 @@ void Client::BrowserRequestHandler(std::string const& path, json::ConstJsonObjec
    try {
       // file requests can be dispatched immediately.
       if (!boost::starts_with(path, "/r/")) {
-         HandleFileRequest(path, response);
+         int code;
+         std::string content, mimetype;
+         if (http_reactor_->HttpGetFile(path, code, content, mimetype)) {
+            response->Resolve(rpc::HttpResponse(code, content, mimetype));
+         } else {
+            response->Reject(rpc::HttpError(code, content));
+         }
       } else {
          std::lock_guard<std::mutex> guard(browserJobQueueLock_);
          browserJobQueue_.emplace_back([=]() {

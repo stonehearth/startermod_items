@@ -124,6 +124,11 @@ function entities.has_child_by_id(parent, child_id)
    return found
 end
 
+function entities.get_faction(entity)
+   local unit_info = entity:get_component('unit_info')
+   return unit_info and unit_info:get_faction() or nil
+end
+
 function entities.move_to(entity, location)
    radiant.check.is_entity(entity)
 

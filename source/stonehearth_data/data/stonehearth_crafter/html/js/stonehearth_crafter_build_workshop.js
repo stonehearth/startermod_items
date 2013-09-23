@@ -23,10 +23,9 @@ $(document).ready(function(){
       // the workshop. The UI is out of the 'create workshop' process after
       // this. All the work is done in the client and server
 
-      var crafterModUri = '/modules/client/stonehearth_crafter/create_workbench';
       var workbench_entity = e.workbench_entity;
 
-      $.get(crafterModUri, { workbench_entity: workbench_entity })
+      radiant.call_obj('stonehearth_crafter', 'choose_workbench_location', workbench_entity)
          .done(function(o){
             //xxx, place the outbox
          })

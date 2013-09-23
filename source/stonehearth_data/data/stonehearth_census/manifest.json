@@ -3,6 +3,18 @@
    "info" :{
       "name" : "Stonehearth People Tracker"
    },
+   "radiant" : {
+      "functions" : {
+         "get_worker_tracker" : {
+            "endpoint" : "server",
+            "controller" : "file(tracker_manager.lua)"
+         },
+         "get_placable_items_tracker" : {
+            "endpoint" : "server",
+            "controller" : "file(tracker_manager.lua)"
+         }
+      }
+   },
    "ui" :  {
       "html" : [
          "file(/html/stonehearth_people_picker.html)"
@@ -13,12 +25,5 @@
       "less" : [
          "file(/html/css/stonehearth_people_picker.less)"
       ]
-   },   
-   "server" : {
-      "game_objects" : {
-         "worker_tracker" : {
-            "controller": "file(worker_tracker.lua)"
-         }
-      }
    }
 }

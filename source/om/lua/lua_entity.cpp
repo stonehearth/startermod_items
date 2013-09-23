@@ -12,11 +12,23 @@ using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+std::string Entity_GetUri(std::weak_ptr<Entity> e)
+{
+   auto entity = e.lock();
+   if (entity) {
+      std::ostringstream os;
+      os << "entity(" << entity->GetModuleName() << ", " << entity->GetEntityName() << ")";
+      return os.str();
+   }
+   return "";
+}
+
 scope LuaEntity::RegisterLuaTypes(lua_State* L)
 {
    return
       //class_<Entity, std::weak_ptr<Entity>>(name)
       lua::RegisterObject<Entity>()
+         .def("get_uri",            &Entity_GetUri)
          .def("get_debug_text",     &Entity::GetDebugText)
          .def("set_debug_text",     &Entity::SetDebugText)
          .def("get_component" ,     &om::Stonehearth::GetComponent)

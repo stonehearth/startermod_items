@@ -8,6 +8,8 @@ add_library(rpc
             http_reactor.cpp
             protobuf_reactor.cpp
             lua_router.cpp
+            lua_module_router.cpp
+            lua_object_router.cpp
             lua_deferred.cpp
             protobuf_router.cpp
             trace_object_router.cpp

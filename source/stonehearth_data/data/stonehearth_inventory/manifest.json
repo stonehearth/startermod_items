@@ -17,14 +17,6 @@
          }
       }
    },
-   "server" :{
-      "game_objects" : {
-         "inventory_tracker" : {
-            "controller": "file(inventory_tracker.lua)",
-            "publish_at": "inventory_tracker"
-         }
-      }
-   },
    "ui" :  {
       "js" : [
          "file(html/js/stonehearth_inventory.js)"

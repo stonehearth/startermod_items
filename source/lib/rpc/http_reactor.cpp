@@ -1,10 +1,16 @@
 #include "pch.h"
+#include <fstream>
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include "radiant_file.h"
 #include "radiant_exceptions.h"
 #include "http_reactor.h"
 #include "http_deferred.h"
+#include "resources/res_manager.h"
 #include "core_reactor.h"
 #include "reactor_deferred.h"
 #include "function.h"
+#include "trace.h"
 
 using namespace ::radiant;
 using namespace ::radiant::rpc;
@@ -45,6 +51,26 @@ ReactorDeferredPtr HttpReactor::Call(json::ConstJsonObject const& query, std::st
       LOG(WARNING) << "critical error in http reactor: " << e.what();
    }
    return nullptr;
+}
+
+ReactorDeferredPtr HttpReactor::InstallTrace(Trace const& t)
+{
+   int code;
+   std::string content, mimetype;
+   if (boost::ends_with(t.route, ".json") && HttpGetFile(t.route, code, content, mimetype)) {
+      // if we wanted to, we could put a file system watcher on this path now
+      // and call Notify again later. =)
+      ReactorDeferredPtr d = std::make_shared<ReactorDeferred>(BUILD_STRING("http response to " << t));
+      try {
+         d->Notify(libjson::parse(content));
+      } catch (std::exception& e) {
+         LOG(WARNING) << "error trying to trace filesystem .json file: " << e.what();
+         return nullptr;
+      }
+      return d;
+   }
+
+   return core_.InstallTrace(t);
 }
 
 ReactorDeferredPtr HttpReactor::CreateDeferredResponse(Function const& fn, ReactorDeferredPtr d)
@@ -114,4 +140,63 @@ void HttpReactor::QueueEvent(std::string type, JSONNode payload)
    e.push_back(payload);
 
    queued_events_.push_back(e);
+}
+
+// must be thread safe.  called from the client browser thread
+bool HttpReactor::HttpGetFile(std::string const& uri, int &code, std::string& content, std::string& mimetype)
+{
+   static const struct {
+      char *extension;
+      char *mimeType;
+   } mimeTypes_[] = {
+      { "htm",  "text/html" },
+      { "html", "text/html" },
+      {  "css",  "text/css" },
+      { "less",  "text/css" },
+      { "js",   "application/x-javascript" },
+      { "json", "application/json" },
+      { "txt",  "text/plain" },
+      { "jpg",  "image/jpeg" },
+      { "png",  "image/png" },
+      { "gif",  "image/gif" },
+      { "woff", "application/font-woff" },
+      { "cur",  "image/vnd.microsoft.icon" },
+   };
+   std::ifstream infile;
+   auto const& rm = res::ResourceManager2::GetInstance();
+
+   try {
+      if (boost::ends_with(uri, ".json")) {
+         JSONNode const& node = rm.LookupJson(uri);
+         content = node.write();
+      } else {
+         LOG(WARNING) << "reading file " << uri;
+         rm.OpenResource(uri, infile);
+         content = io::read_contents(infile);
+      }
+   } catch (std::exception& e) {
+      LOG(WARNING) << "error code 404: " << e.what();
+      code = 404;
+      content = e.what();
+      return false;
+   }
+
+   code = 200;
+
+   // Determine the file extension.
+   std::string mimeType;
+   std::size_t last_dot_pos = uri.find_last_of(".");
+   if (last_dot_pos != std::string::npos) {
+      std::string extension = uri.substr(last_dot_pos + 1);
+      for (auto &entry : mimeTypes_) {
+         if (extension == entry.extension) {
+            mimetype = entry.mimeType;
+            break;
+         }
+      }
+   }
+   if (mimetype.empty()) {
+      LOG(WARNING) << "unrecognized mime type for uri: " <<  uri;
+   }
+   return true;
 }

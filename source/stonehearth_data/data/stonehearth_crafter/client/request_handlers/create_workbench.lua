@@ -3,12 +3,12 @@ local CreateWorkbench = class()
 
 -- client side object to add a new bench to the world.  this method is invoked
 -- by POSTing to the route for this file in the manifest.
-function CreateWorkbench:handle_request(query, postdata, response)
+function CreateWorkbench:choose_workbench_location(session, response, workbench_entity)
    -- create a new "cursor entity".  this is the entity that will move around the
    -- screen to preview where the workbench will go.  these entities are called
    -- "authoring entities", because they exist only on the client side to help
    -- in the authoring of new content.
-   self._cursor_entity = radiant.entities.create_entity(query.workbench_entity)
+   self._cursor_entity = radiant.entities.create_entity(workbench_entity)
 
    -- add a render object so the cursor entity gets rendered.
    local re = _radiant.client.create_render_entity(1, self._cursor_entity)
@@ -19,10 +19,10 @@ function CreateWorkbench:handle_request(query, postdata, response)
 
    -- capture the mouse.  Call our _on_mouse_event each time, passing in
    -- the entity that we're supposed to create whenever the user clicks.
-   self._capture = _radiant.client.trace_input()
+   self._capture = _radiant.client.capture_input()
    self._capture:on_input(function(e)
-         if e.type == _radiant.client.MOUSE_INPUT then
-            self:_on_mouse_event(e, query.workbench_entity, response)
+         if e.type == _radiant.client.Input.MOUSE then
+            self:_on_mouse_event(e.mouse, workbench_entity, response)
             return true
          end
          return false
@@ -31,6 +31,8 @@ end
 
 -- called each time the mouse moves on the client.
 function CreateWorkbench:_on_mouse_event(e, workbench_entity, response)
+   assert(self._capture, "got mouse event after releasing capture")
+   
    -- query the scene to figure out what's under the mouse cursor
    local s = _radiant.client.query_scene(e.x, e.y)
 
@@ -52,19 +54,19 @@ function CreateWorkbench:_on_mouse_event(e, workbench_entity, response)
       -- destroy the authoring object yet!  doing so now will result in a brief period
       -- of time where the server side object has not yet been created, yet the client
       -- authoring object has been destroyed.  that leads to flicker, which is ugly.
-      self._capture:destroy()
+      self._capture = nil
 
       -- pass "" for the function name so the deafult (handle_request) is
       -- called.  this will return a Deferred object which we can use to track
       -- the call's progress
-      _radiant.call('stonehearth_crafter', 'create_workbench', workbench_entity, pt)
+      _radiant.call_obj('stonehearth_crafter', 'create_workbench', workbench_entity, pt)
                :always(function ()
                      -- whether the request succeeds or fails, go ahead and destroy
                      -- the authoring entity.  do it after the request returns to avoid
                      -- the ugly flickering that would occur had we destroyed it when
                      -- we uninstalled the mouse cursor
                      _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
-                     response:complete({})
+                     response:resolve({})
                   end)
 
    end

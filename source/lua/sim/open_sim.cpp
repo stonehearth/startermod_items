@@ -8,6 +8,8 @@
 #include "om/entity.h"
 #include "om/stonehearth.h"
 #include "om/region.h"
+#include "om/json_store.h"
+#include "om/data_binding.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -79,6 +81,14 @@ template <typename T>
 std::shared_ptr<T> Sim_AllocObject()
 {
    return Simulation::GetInstance().GetStore().AllocObject<T>();
+}
+
+om::DataBindingPPtr Sim_AllocDataStore(lua_State* L)
+{
+   // make sure we return the strong pointer version
+   om::DataBindingPPtr db = Sim_AllocObject<om::DataBindingP>();
+   db->SetDataObject(newtable(L));
+   return db;
 }
 
 
@@ -162,6 +172,7 @@ void lua::sim::open(lua_State* L)
             def("get_entity",               &Sim_GetEntity),
             def("destroy_entity",           &Sim_DestroyEntity),
             def("alloc_region",             &Sim_AllocObject<om::BoxedRegion3>),
+            def("create_data_store",        &Sim_AllocDataStore),
             def("create_multi_path_finder", &Sim_CreateMultiPathFinder),
             def("create_path_finder",       &Sim_CreatePathFinder),
             def("create_follow_path",       &Sim_CreateFollowPath),
