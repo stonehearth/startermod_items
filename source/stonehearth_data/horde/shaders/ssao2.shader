@@ -193,7 +193,7 @@ out vec4 fragColor;
 void main() {
   vec2 texelSize = 1.0 / frameBufSize;
   float result = 0.0;
-  vec2 hlim = vec2(float(-4) * 0.5);
+  vec2 hlim = vec2(float(-4) * 0.5 + 0.5);
   for (int i = 0; i < 4; ++i) {
     for (int j = 0; j < 4; ++j) {
       vec2 offset = (hlim + vec2(float(i), float(j))) * texelSize;
@@ -270,30 +270,38 @@ uniform mat4 projMat;
 attribute vec3 vertPos;
 
 out vec2 texCoords;
-out vec3 viewRay;
+noperspective out vec3 viewRay;
 
 void main()
 {
   texCoords = vertPos.xy; 
 
-  viewRay = vec3(vertPos.xy * 2 - 1, 1);
+  float halfTan = 0.4142135675;
+  float aspect = 0.943056941;
+
+  viewRay = vec3(
+    (1 - 2 * vertPos.x) * halfTan * aspect,
+    (1 - 2 * vertPos.y) * halfTan,
+    1);
   gl_Position = projMat * vec4( vertPos, 1.0 );
 }
 
 [[FS_SSAO2]]
 #version 150
 
+#include "shaders/utilityLib/vertCommon.glsl"
+
 float linDepth(float d, float zNear, float zFar)
 {
   float z_n = 2.0 * d - 1.0;
   float z_e = 2.0 * zNear * zFar / (zFar + zNear - z_n * (zFar - zNear));
-  return d;
-}
+  return z_e;
+}  
 
 uniform sampler2D randomVectorLookup;
 uniform sampler2D normals;
-uniform sampler2D positions;
 uniform sampler2D depth;
+
 vec3 samplerKernel[8] = vec3[](
   vec3(-0.0310600102, -0.0933341458, 0.0180003643),
   vec3(0.0244238228, 0.0642591938, 0.0910191536),
@@ -306,24 +314,21 @@ vec3 samplerKernel[8] = vec3[](
 );
 uniform vec2 frameBufSize;
 uniform mat4 camProjMat;
-uniform vec3 viewerPos;
-uniform mat4 projMat;
 
 in vec2 texCoords;
-in vec3 viewRay;
+noperspective in vec3 viewRay;
 out vec4 fragColor;
 
 void main()
 {
   vec2 noiseScale = frameBufSize / 4.0;
-  float radius = 1.1;
-  vec3 nViewRay = normalize(viewRay);
+  float radius = 1;
 
-  vec3 normal = texture2D(normals, texCoords).xyz;
-  vec3 origin = texture2D(depth, texCoords).x * nViewRay; 
+  vec3 origin = viewRay * linDepth(texture2D(depth, texCoords).x, 4, 2000);
   vec3 rvec = texture2D(randomVectorLookup, texCoords * noiseScale).xyz;
+  vec3 normal = calcWorldVec(texture2D(normals, texCoords).xyz).xyz;
 
-  vec3 tangent = normalize(rvec - normal * dot(rvec, normal));
+  vec3 tangent = normalize(rvec - (normal * dot(rvec, normal)));
   vec3 bitangent = cross(normal, tangent);
   mat3 tbn = mat3(tangent, bitangent, normal);
 
@@ -339,15 +344,14 @@ void main()
     offset.xy = (offset.xy * 0.5) + 0.5;
 
     // get sample location:
-    float sampleDepth = texture2D(depth, offset.xy).x;
+    float realDepth = texture2D(depth, offset.xy).x;
+    float sampleDepth = linDepth(realDepth, 4, 2000);
 
     // range check & accumulate:
-    float rangeCheck = abs(origin.z - sampleDepth) < radius ? 1.0 : 0.0;
-    occlusion += (sampleDepth <= sample.z ? 0.0 : 1.0) * rangeCheck;
+    float rangeCheck = abs(origin.z - sampleDepth) < radius * 10 ? 1.0 : 0.0;
+    occlusion += (sampleDepth <= sample.z ? 0.5 : 0.0) * rangeCheck;
   }
-  occlusion = 1.0 - (occlusion / 8.0);
 
-  //fragColor = vec4(abs(nViewRay), 1);
+  occlusion = 1.0 - (occlusion / 8.0);
   fragColor = vec4(occlusion,occlusion,occlusion, 1);
-  //fragColor = vec4(offset.xy, 0, 1);
 }
