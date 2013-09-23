@@ -1,7 +1,7 @@
 local TreeTracker = class()
 
 function TreeTracker:__init(faction)
-   self._pathfinder = native:create_multi_path_finder('tree tracker')
+   self._pathfinder = _radiant.sim.create_multi_path_finder('tree tracker')
 end
 
 function TreeTracker:harvest_tree(tree)

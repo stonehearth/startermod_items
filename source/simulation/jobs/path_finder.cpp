@@ -454,7 +454,7 @@ void PathFinder::SolveSearch(const csg::Point3& last, PathFinderEndpoint* dst)
    if (solved_cb_.is_valid()) {
       auto L = solved_cb_.interpreter();
       luabind::object path(L, solution_);
-      ScriptHost::GetInstance().Call(solved_cb_, path);
+      luabind::call_function<void>(solved_cb_, path);
    }
 
    VERIFY_HEAPINESS();

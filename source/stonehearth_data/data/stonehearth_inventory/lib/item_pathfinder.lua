@@ -2,7 +2,7 @@ local ItemPathfinder = class()
 
 function ItemPathfinder:__init(entity, solved, filter)
    self._filter = filter
-   self._path_finder = native:create_path_finder('items tracker', entity, solved, filter)
+   self._path_finder = _radiant.sim.create_path_finder('items tracker', entity, solved, filter)
 
    local ec = radiant.entities.get_root_entity():get_component('entity_container'):get_children()
 

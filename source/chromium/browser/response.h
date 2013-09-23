@@ -6,14 +6,13 @@
 
 BEGIN_RADIANT_CHROMIUM_NAMESPACE
 
-class Response : public net::IResponse,
-                 public CefResourceHandler
+class Response : public CefResourceHandler
 {
 public:
    Response(CefRefPtr<CefRequest> request);
    virtual ~Response();
 
-   void SetResponse(int status, std::string const& response, std::string const& mimeType) override;
+   void SetResponse(int status_code, std::string const& response, std::string const& mimeType);
 
 public:
    // CefBase overrides

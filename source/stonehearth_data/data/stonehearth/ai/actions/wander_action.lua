@@ -2,7 +2,7 @@ local WanderAction = class()
 
 WanderAction.name = 'stonehearth.actions.wander'
 WanderAction.does = 'stonehearth.activities.top'
-WanderAction.priority = 0
+WanderAction.priority = 2
 
 function WanderAction:run(ai, entity)
 
@@ -12,6 +12,7 @@ function WanderAction:run(ai, entity)
 
    ai:execute('stonehearth.activities.goto_location', location)
    --self._ai:set_action_priority(self, 0)
+
 end
 
 return WanderAction

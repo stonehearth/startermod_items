@@ -7,11 +7,15 @@
       "job_info": "file(components/job_info.lua)"
    },
 
-   "server" : {
-      "request_handlers" : {
-         "promote_command" : "file(commands/promote_command.lua)"
+   "radiant" : {
+      "functions" : {
+         "promote" : {
+            "controller": "file(commands/promote_command.lua)",
+            "endpoint" : "server"
+         }
       }
    },
+
    "ui" :  {
       "html" : [
          "file(/html/stonehearth_classes_promote.html)"

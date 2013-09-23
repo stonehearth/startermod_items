@@ -67,7 +67,7 @@
       },
 
       _installTrace: function () {
-         radiant.log('installing trace.');
+         radiant.log.info('installing trace.');
 
          var self = this;
          var options = {
@@ -85,11 +85,11 @@
          cmd
             .done(function (res) {
                self._traceId = res.trace_id;
-               radiant.log('trace id is ' + self._traceId);
+               radiant.log.info('trace id is ' + self._traceId);
                if (self._traceInstalled) {
                   self._handler = function (_, e) {
                      var o = e.data;
-                     //radiant.log('got trace fired (' + o.trace_id + ' vs. ' + self._traceId + ')');
+                     //radiant.log.info('got trace fired (' + o.trace_id + ' vs. ' + self._traceId + ')');
                      self._onTraceFired(o);
                   }
                   $(top).on("radiant.events.trace_fired", self._handler);

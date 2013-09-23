@@ -3,8 +3,7 @@
 
    "work_units"  : 5,
    "recipe_name" : "Comfy Bed",
-   "my_location" : "/stonehearth_carpenter_class/recipes/comfy_bed_recipe.json",
-   "description" : "Eight hours will leave you as refreshed as the day you were born.",
+    "description" : "Eight hours will leave you as refreshed as the day you were born.",
    "flavor"      : "Nobody ever wants to get out. It makes emergency evacuations awkward.",
    "portrait"    : "/stonehearth_items/entities/comfy_bed/comfy_bed.png",
    "category"    : "furniture",

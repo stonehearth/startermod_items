@@ -1,4 +1,4 @@
-radiant.mods.require('stonehearth_calendar')
+radiant.mods.require('stonehearth_calendar.stonehearth_calendar')
 
 local StonehearthSky = class()
 local Vec3 = _radiant.csg.Point3f
@@ -21,7 +21,7 @@ function StonehearthSky:__init()
    self:_init_sun()
    self._minutes = 0;
 
-   self._promise = _client:trace_object('/server/objects/stonehearth_calendar/clock', 'rendering the sky')
+   self._promise = _radiant.trace_obj('stonehearth_calendar.clock')
    if self._promise then
       self._promise:progress(function (data)
             self:_update(data.date.minute + (data.date.hour * 60))

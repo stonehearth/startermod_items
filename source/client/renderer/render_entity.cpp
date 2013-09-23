@@ -185,14 +185,14 @@ void RenderEntity::AddLuaComponents(om::LuaComponentsPtr lua_components)
          std::string modname = name.substr(0, offset);
          std::string component_name = name.substr(offset + 1, std::string::npos);
 
-         auto const& res = resources::ResourceManager2::GetInstance();
+         auto const& res = res::ResourceManager2::GetInstance();
          json::ConstJsonObject const& manifest = res.LookupManifest(modname);
          json::ConstJsonObject cr = manifest.getn("component_renderers");
          std::string path = cr.get<std::string>(component_name);
 
          if (!path.empty()) {
             lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
-            luabind::object ctor = script->LuaRequire(path);
+            luabind::object ctor = script->RequireScript(path);
 
             std::weak_ptr<RenderEntity> re = shared_from_this();
             luabind::object render_component;

@@ -1,5 +1,5 @@
-local HeightMap = radiant.mods.require('/stonehearth_terrain/height_map.lua')
-local TerrainType = radiant.mods.require('/stonehearth_terrain/terrain_type.lua')
+local HeightMap = require 'height_map'
+local TerrainType = require 'terrain_type'
 
 local Terrain = _radiant.om.Terrain
 local Cube3 = _radiant.csg.Cube3

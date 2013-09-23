@@ -20,7 +20,7 @@
 namespace fs = ::boost::filesystem;
 
 using namespace ::radiant;
-using namespace ::radiant::resources;
+using namespace ::radiant::res;
 
 
 // === Helper Functions ======================================================
@@ -114,7 +114,7 @@ ResourceManager2::~ResourceManager2()
 {
 }
 
-JSONNode ResourceManager2::LookupManifest(std::string const& modname) const
+Manifest ResourceManager2::LookupManifest(std::string const& modname) const
 {
    JSONNode result;
    try {
@@ -122,13 +122,15 @@ JSONNode ResourceManager2::LookupManifest(std::string const& modname) const
    } catch (Exception &e) {
       LOG(WARNING) << "error looking for manifest in " << modname << ": " << e.what();
    }
-   return result;
+   return Manifest(modname, result);
 }
 
 JSONNode const& ResourceManager2::LookupJson(std::string path) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
 
+   // xxx: remove this when we get rid of entity(x, y)
+   path = ExpandMacro(path, ".", true);
    std::string key = ConvertToCanonicalPath(path, ".json");
 
    auto i = jsons_.find(key);
@@ -190,7 +192,7 @@ std::string ResourceManager2::ConvertToCanonicalPath(std::string const& path, co
    }
 
    fs::path filepath = fs::path(resource_dir_);
-   for (std::string const& part : parts) {
+   for (std::string part : parts) {
       filepath /= part;
    }
 
@@ -332,13 +334,13 @@ std::string ResourceManager2::ConvertToAbsolutePath(std::string const& path, std
 
 std::string ResourceManager2::GetEntityUri(std::string const& mod_name, std::string const& entity_name) const
 {
-   json::ConstJsonObject manifest = resources::ResourceManager2::GetInstance().LookupManifest(mod_name);
+   json::ConstJsonObject manifest = res::ResourceManager2::GetInstance().LookupManifest(mod_name);
    json::ConstJsonObject entities = manifest.getn("radiant").getn("entities");
    std::string uri = entities.get<std::string>(entity_name);
    if (uri.empty()) {
       std::ostringstream error;
       error << "'" << mod_name << "' has no entity named '" << entity_name << "' in the manifest.";
-      throw resources::Exception(error.str());
+      throw res::Exception(error.str());
    }
    return uri;
 }

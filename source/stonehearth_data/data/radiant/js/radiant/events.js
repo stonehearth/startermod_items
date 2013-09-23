@@ -7,12 +7,14 @@ console.log('loading events...');
       },
 
       poll: function () {
+         return;
+
          var self = this;
-         $.getJSON('/api/events')
+         radiant.call('radiant.get_events')
             .done(function (data) {
                $.each(data, function (_, o) {
                   $(top).trigger('radiant.events.*', o);
-                  $(top).trigger(o.type, o);
+                  $(top).trigger(o.type, o.data);
                });
             })
             .fail(function (jqxhr, statusTxt, errorThrown) {

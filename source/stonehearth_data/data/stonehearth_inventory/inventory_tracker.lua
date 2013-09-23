@@ -8,25 +8,28 @@
 ]]
 local InventoryTracker = class()
 
-function InventoryTracker:__init(data_store)
+function InventoryTracker:__init()
+   self._data_store = _radiant.sim.create_data_store()
+   self._data = self._data_store:get_data()
+   
+   if not self._data.entity_types then
+      self._data.entity_types = {}
+   end
+   self._data.num_entities = 0;
+   self._tracked_entities = {} -- used to avoid an O(n) removal for non workers
+   self._tracked_identifiers = {}  --map identifiers to array of entities of that identifiers
+
    local added_cb = function(id, entity)
       self:_on_entity_add(id, entity)
    end
    local removed_cb = function(id)
       self:_on_entity_remove(id)
    end
-
    self._promise = radiant.terrain.trace_world_entities('inventory tracker', added_cb, removed_cb)
+end
 
-   self._data = data_store:get_data()
-   if not self._data.entity_types then
-      self._data.entity_types = {}
-   end
-   self._data.num_entities = 0;
-
-   self._data_store = data_store
-   self._tracked_entities = {} -- used to avoid an O(n) removal for non workers
-   self._tracked_identifiers = {}  --map identifiers to array of entities of that identifiers
+function InventoryTracker:get_data_store()
+   return self._data_store;
 end
 
 --[[
@@ -44,24 +47,27 @@ function InventoryTracker:_on_entity_add(id, entity)
 
       self._data.num_entities = self._data.num_entities + 1
 
-      local identifier = item_info:get_identifier()
+      local entity_uri = placeable:get_full_sized_entity_uri()
       local category = item_info:get_category()
 
       --array of entities that are of the same type
-      local entities_of_this_type = self._tracked_identifiers[identifier]
+      local entities_of_this_type = self._tracked_identifiers[entity_uri]
 
       if entities_of_this_type then
+         -- question: do we need to know all the entities?  is it enough to just know
+         -- a count of the entities?  certainly for the item picker, just a count should
+         -- be enough... tony
          table.insert(entities_of_this_type, entity)
       else
          entities_of_this_type = {}
          table.insert(entities_of_this_type, entity)
-         self._tracked_identifiers[identifier] = entities_of_this_type
+         self._tracked_identifiers[entity_uri] = entities_of_this_type
 
          local new_entity_data = {
             entity_name = unit_info:get_display_name(),
             entity_icon = unit_info:get_icon(),
             entity_category = item_info:get_category(),
-            entity_identifier = item_info:get_identifier(),
+            full_sized_entity_uri = entity_uri,
             entities = entities_of_this_type
          }
          table.insert(self._data.entity_types, new_entity_data)
@@ -79,8 +85,8 @@ function InventoryTracker:_on_entity_remove(id)
       self._data_store:mark_changed()
 
       local target_entity = radiant.entities.get_entity(id)
-      local identifier = target_entity:get_component('item'):get_identifier()
-      local entities_of_this_type = self._tracked_identifiers[identifier]
+      local uri = target_entity:get_uri()
+      local entities_of_this_type = self._tracked_identifiers[uri]
 
       -- Handlebars can't handle (heh) associative arrays (GAH!)
       for i, entity in ipairs(entities_of_this_type) do

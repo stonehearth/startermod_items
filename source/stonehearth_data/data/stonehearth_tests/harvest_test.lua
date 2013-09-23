@@ -1,5 +1,3 @@
-native:log('requiring microworld')
-
 local MicroWorld = require 'lib.micro_world'
 local HarvestTest = class(MicroWorld)
 
@@ -18,7 +16,6 @@ function HarvestTest:__init()
 
    self:at(100, function()
          --tree:get_component('radiant:commands'):do_command('chop', faction)
-         --/server/objects/stonehearth_census/worker_tracker
       end)
 end
 

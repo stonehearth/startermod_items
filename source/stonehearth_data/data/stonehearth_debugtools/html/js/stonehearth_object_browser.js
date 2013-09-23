@@ -12,8 +12,8 @@ App.StonehearthObjectBrowserView = App.View.extend({
    didInsertElement: function() {
       var self = this;
 
-      $(top).on("selection_changed.radiant", function (_, evt) {
-         var uri = evt.data.selected_entity;
+      $(top).on("selection_changed.radiant", function (_, data) {
+         var uri = data.selected_entity;
          if (uri) {
             self.fetch(uri);
          }

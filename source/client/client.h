@@ -21,9 +21,9 @@
 #include "core/singleton.h"
 #include "chromium/chromium.h"
 #include "lua/namespace.h"
-#include "mouse_event_promise.h"
-#include "trace_object_deferred.h"
 #include "radiant_json.h"
+#include "lib/rpc/forward_defines.h"
+#include "core/input.h"
 
 IN_RADIANT_LUA_NAMESPACE(
    class ScriptHost;
@@ -43,15 +43,12 @@ class Client : public core::Singleton<Client> {
 
       static void RegisterLuaTypes(lua_State* L);
             
-   public: // xxx: just for lua...
-      void BrowserRequestHandler(std::string const& uri, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response);
-      TraceObjectDeferredPtr TraceObject(std::string const& uri, const char* reason);
-
    public:
       void GetConfigOptions(boost::program_options::options_description& options);
 
       void run();
       lua::ScriptHost* GetScriptHost() const { return scriptHost_.get(); }
+      void BrowserRequestHandler(std::string const& uri, json::ConstJsonObject const& query, std::string const& postdata, rpc::HttpDeferredPtr response);
             
       om::EntityPtr GetEntity(dm::ObjectId id);
       om::TerrainPtr GetTerrain();
@@ -62,21 +59,32 @@ class Client : public core::Singleton<Client> {
       om::EntityPtr CreateEmptyAuthoringEntity();
       om::EntityPtr CreateAuthoringEntity(std::string const& mod_name, std::string const& entity_name);
       om::EntityPtr CreateAuthoringEntityByRef(std::string const& ref);
+      void DestroyAuthoringEntity(dm::ObjectId id);
 
       dm::Store& GetStore() { return store_; }
       dm::Store& GetAuthoringStore() { return authoringStore_; }
       Physics::OctTree& GetOctTree() const { return *octtree_; }
 
-      void SetCursor(std::string name);            
+      void SetCursor(std::string name);
+
+      typedef int InputHandlerId;
+      typedef std::function<int(Input const&)> InputHandlerCb;
+
+      InputHandlerId AddInputHandler(InputHandlerCb const& cb);
+      InputHandlerId ReserveInputHandler();
+      void SetInputHandler(InputHandlerId id, InputHandlerCb const& cb);
+      void RemoveInputHandler(InputHandlerId id);
 
    private:
+      NO_COPY_CONSTRUCTOR(Client);
+
       typedef std::function<void()>  CommandFn;
       typedef std::function<void(std::vector<om::Selection>)> CommandMapperFn;
 
-      void QueueEvent(std::string type, JSONNode payload);
       void ProcessReadQueue();
       bool ProcessMessage(const tesseract::protocol::Update& msg);
       bool ProcessRequestReply(const tesseract::protocol::Update& msg);
+      void PostCommandReply(const tesseract::protocol::PostCommandReply& msg);
       void BeginUpdate(const tesseract::protocol::BeginUpdate& msg);
       void EndUpdate(const tesseract::protocol::EndUpdate& msg);
       void SetServerTick(const tesseract::protocol::SetServerTick& msg);
@@ -87,38 +95,40 @@ class Client : public core::Singleton<Client> {
       void DefineRemoteObject(const tesseract::protocol::DefineRemoteObject& msg);
 
       void mainloop();
+      void InitializeModules();
       void setup_connections();
       void process_messages();
       void update_interpolation(int time);
       void handle_connect(const boost::system::error_code& e);
-      void OnMouseInput(const MouseEvent &windowMouse, const MouseEvent &browserMouse, bool &handled, bool &uninstall);
-      void OnKeyboardInput(const KeyboardEvent &e, bool &handled, bool &uninstall);
+      void OnInput(Input const& input);
+      void OnMouseInput(Input const& mouse);
+      void OnKeyboardInput(Input const& keyboard);
+      void OnRawInput(Input const& keyboard);
+      bool CallInputHandlers(Input const& input);
 
       void Reset();
-      void UpdateSelection(const MouseEvent &mouse);
-      void CenterMap(const MouseEvent &mouse);
+      void UpdateSelection(const MouseInput &mouse);
+      void CenterMap(const MouseInput &mouse);
 
-      void EvalCommand(std::string cmd);
       void InstallCursor();
       void HilightMouseover();
       void LoadCursors();
-      void GetEvents(JSONNode const& query, std::shared_ptr<net::IResponse> response);
-      void HandlePostRequest(std::string const& path, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response);
-      void HandleClientRouteRequest(luabind::object ctor, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response);
-      void TraceUri(JSONNode const& query, std::shared_ptr<net::IResponse> response);
-      void GetModules(JSONNode const& query, std::shared_ptr<net::IResponse> response);
-      bool TraceObjectUri(std::string const& uri, std::shared_ptr<net::IResponse> response);
-      void TraceFileUri(std::string const& uri, std::shared_ptr<net::IResponse> response);
-      void FlushEvents();
-      void DestroyAuthoringEntity(dm::ObjectId id);
-      MouseEventPromisePtr TraceMouseEvents();
+      rpc::ReactorDeferredPtr GetModules(rpc::Function const&);
+      void HandlePostRequest(std::string const& path, JSONNode const& query, std::string const& postdata, rpc::HttpDeferredPtr response);
+      void TraceUri(JSONNode const& query, rpc::HttpDeferredPtr response);
+      bool TraceObjectUri(std::string const& uri, rpc::HttpDeferredPtr response);
+      void TraceFileUri(std::string const& uri, rpc::HttpDeferredPtr response);
       void LoadModuleInitScript(json::ConstJsonObject const& block);
       void LoadModuleRoutes(std::string const& modulename, json::ConstJsonObject const& block);
 
       typedef std::function<void(tesseract::protocol::Update const& msg)> ServerReplyCb;
       void PushServerRequest(tesseract::protocol::Request& msg, ServerReplyCb replyCb);
       void AddBrowserJob(std::function<void()> fn);
+      void HandleCallRequest(json::ConstJsonObject const& node, rpc::HttpDeferredPtr response);
       void ProcessBrowserJobQueue();
+      void HandleServerCallRequest(std::string const& obj, std::string const& function_name, json::ConstJsonObject const& node, rpc::HttpDeferredPtr response);
+      void BrowserCallRequestHandler(json::ConstJsonObject const& query, std::string const& postdata, rpc::HttpDeferredPtr response);
+      void CallHttpReactor(std::string parts, json::ConstJsonObject query, std::string postdata, rpc::HttpDeferredPtr response);
 
 private:
       class CursorDeleter {
@@ -165,9 +175,7 @@ private:
       std::unique_ptr<Physics::OctTree>     octtree_;
 
       // the ui browser object...
-      std::unique_ptr<chromium::IBrowser>   browser_;
-      std::vector<JSONNode>            queued_events_;
-      std::shared_ptr<net::IResponse>   get_events_request_;
+      std::unique_ptr<chromium::IBrowser>   browser_;      
       std::unordered_map<std::string, luabind::object>   clientRoutes_;
       std::vector<std::function<void()>>     browserJobQueue_;
       std::mutex                             browserJobQueueLock_;
@@ -186,15 +194,21 @@ private:
       std::map<int, std::function<void(tesseract::protocol::Update const& reply)> >  server_requests_;
 
       // server side remote object tracking...
-      std::unordered_map<std::string, std::string>    serverRemoteObjects_;
-      std::unordered_map<std::string, std::string>    clientRemoteObjects_;
-      std::unordered_map<std::string, TraceObjectDeferredRef>  deferredObjectTraces_;
       om::ErrorBrowserPtr                             error_browser_;
 
       // client side lua...
       std::unique_ptr<lua::ScriptHost>  scriptHost_;
-      std::vector<MouseEventPromiseRef>   mouseEventPromises_;
 
+      InputHandlerId                                           next_input_id_;
+      std::vector<std::pair<InputHandlerId, InputHandlerCb>>   input_handlers_;
+
+      // reactor...
+      rpc::CoreReactorPtr         core_reactor_;
+      rpc::HttpReactorPtr         http_reactor_;
+      rpc::HttpDeferredPtr        get_events_deferred_;
+      rpc::ProtobufRouterPtr      protobuf_router_;
+      int                         mouse_x_;
+      int                         mouse_y_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

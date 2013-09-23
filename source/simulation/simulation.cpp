@@ -1,4 +1,9 @@
 #include "pch.h"
+#include <sstream>
+#include <boost/program_options.hpp>
+#include <boost/algorithm/string.hpp>
+#include "resources/manifest.h"
+#include "radiant_exceptions.h"
 #include "platform/utils.h"
 #include "simulation.h"
 #include "metrics.h"
@@ -22,7 +27,22 @@
 #include "om/data_binding.h"
 //#include "native_commands/create_room_cmd.h"
 #include "jobs/job.h"
-#include <boost/algorithm/string.hpp>
+#include "lib/rpc/core_reactor.h"
+#include "lua/script_host.h"
+#include "lua/res/open.h"
+#include "lua/rpc/open.h"
+#include "lua/sim/open.h"
+#include "lua/om/open.h"
+#include "om/lua/lua_om.h"
+#include "csg/lua/lua_csg.h"
+#include "lib/rpc/session.h"
+#include "lib/rpc/function.h"
+#include "lib/rpc/core_reactor.h"
+#include "lib/rpc/reactor_deferred.h"
+#include "lib/rpc/protobuf_reactor.h"
+#include "lib/rpc/trace_object_router.h"
+#include "lib/rpc/lua_module_router.h"
+#include "lib/rpc/lua_object_router.h"
 
 static const int __initialCivCount = 3;
 
@@ -30,6 +50,7 @@ using namespace ::radiant;
 using namespace ::radiant::simulation;
 
 namespace proto = ::radiant::tesseract::protocol;
+namespace po = boost::program_options;
 
 Simulation* Simulation::singleton_;
 
@@ -39,22 +60,41 @@ Simulation& Simulation::GetInstance()
    return *singleton_;
 }
 
-Simulation::Simulation(lua_State* L) :
+Simulation::Simulation() :
    _showDebugNodes(true),
    _singleStepPathFinding(false),
-   L_(L),
    store_(1, "game")
 {
    singleton_ = this;
    octtree_ = std::unique_ptr<Physics::OctTree>(new Physics::OctTree());
-   scriptHost_.reset(new ScriptHost(L_));
+   scriptHost_.reset(new lua::ScriptHost());
 
    commands_["radiant.toggle_debug_nodes"] = std::bind(&Simulation::ToggleDebugShapes, this, std::placeholders::_1);
    commands_["radiant.toggle_step_paths"] = std::bind(&Simulation::ToggleStepPathFinding, this, std::placeholders::_1);
    commands_["radiant.step_paths"] = std::bind(&Simulation::StepPathFinding, this, std::placeholders::_1);
    //commands_["create_room"] = [](const proto::DoAction& msg) { return CreateRoomCmd()(msg); };
 
-   auto& rm = resources::ResourceManager2::GetInstance();
+
+   // sessions (xxx: stub it out for single player)
+   session_ = std::make_shared<rpc::Session>();
+   session_->faction = "civ";
+
+   // reactors...
+   core_reactor_ = std::make_shared<rpc::CoreReactor>();
+   protobuf_reactor_ = std::make_shared<rpc::ProtobufReactor>(*core_reactor_, [this](proto::PostCommandReply const& r) {
+      SendReply(r);
+   });
+
+   // routers...
+   core_reactor_->AddRouter(std::make_shared<rpc::LuaModuleRouter>(scriptHost_.get(), "server"));
+   core_reactor_->AddRouter(std::make_shared<rpc::LuaObjectRouter>(scriptHost_.get(), store_));
+   trace_router_ = std::make_shared<rpc::TraceObjectRouter>(store_);
+   core_reactor_->AddRouter(trace_router_);
+}
+
+void Simulation::InitializeModules()
+{
+   auto& rm = res::ResourceManager2::GetInstance();
    for (std::string const& modname : rm.GetModuleNames()) {
       try {
          json::ConstJsonObject manifest = rm.LookupManifest(modname);
@@ -62,14 +102,12 @@ Simulation::Simulation(lua_State* L) :
          if (!block.empty()) {
             LOG(WARNING) << "loading init script for " << modname << "...";
             LoadModuleInitScript(block);
-            LoadModuleRequestHandlers(modname, block);
             LoadModuleGameObjects(modname, block);
          }
       } catch (std::exception const& e) {
          LOG(WARNING) << "load failed: " << e.what();
       }
    }
-   om::RegisterObjectTypes(store_);
 }
 
 Simulation::~Simulation()
@@ -88,7 +126,7 @@ void Simulation::LoadModuleInitScript(json::ConstJsonObject const& block)
 {
    std::string filename = block.get<std::string>("init_script");
    if (!filename.empty()) {
-      scriptHost_->LuaRequire(filename);
+      scriptHost_->RequireScript(filename);
    }
 }
 
@@ -100,45 +138,69 @@ static std::string SanatizePath(std::string const& path)
    return std::string("/") + boost::algorithm::join(s, "/");
 }
 
-void Simulation::LoadModuleRequestHandlers(std::string const& modname, json::ConstJsonObject const& block)
-{
-   resources::ResourceManager2 &rm = resources::ResourceManager2::GetInstance();
-   for (auto const& node : block.get<JSONNode>("request_handlers")) {
-      std::string const& uri_path = SanatizePath("/modules/server/" + modname + "/" + node.name());
-      std::string const& lua_path = node.as_string();
-      routes_[uri_path] = scriptHost_->LuaRequire(lua_path);
-   }
-}
-
 void Simulation::LoadModuleGameObjects(std::string const& modname, json::ConstJsonObject const& block)
 {
-   resources::ResourceManager2 &rm = resources::ResourceManager2::GetInstance();
+   res::ResourceManager2 &rm = res::ResourceManager2::GetInstance();
    for (auto const& node : block.get<JSONNode>("game_objects")) {
       json::ConstJsonObject info(node);
 
       std::string dataBindingName = modname + std::string(".") + node.name();
       std::string controller = info.get<std::string>("controller");
-      dataBindings_[dataBindingName] = scriptHost_->LuaRequire(controller);
-      if (info.has("publish_at")) {
-         om::DataBindingPtr binding = GetStore().AllocObject<om::DataBinding>();
-         binding->SetDataObject(luabind::newtable(scriptHost_->GetInterpreter()));
-         luabind::object ctor = dataBindings_[dataBindingName];
-         luabind::object model = luabind::call_function<luabind::object>(ctor, binding);
-         std::ostringstream uri;
-         uri << "/server/objects/" << modname << "/" << info.get<std::string>("publish_at");
-         RegisterServerRemoteObject(uri.str(), binding);
-      }
+
+      om::DataBindingPtr binding = GetStore().AllocObject<om::DataBinding>();
+      binding->SetDataObject(luabind::newtable(scriptHost_->GetInterpreter()));
+      luabind::object ctor = scriptHost_->RequireScript(controller);
+      luabind::object model = luabind::call_function<luabind::object>(ctor, binding);
+      std::ostringstream uri;
+      uri << modname << "." << node.name();
+      trace_router_->AddObject(uri.str(), binding);
    }
 }
 
 void Simulation::CreateNew()
 {
-   ASSERT(this == &Simulation::GetInstance());
+   try {
+      ASSERT(this == &Simulation::GetInstance());
 
-   guards_ += store_.TraceDynamicObjectAlloc(std::bind(&Simulation::OnObjectAllocated, this, std::placeholders::_1));
+      guards_ += store_.TraceDynamicObjectAlloc(std::bind(&Simulation::OnObjectAllocated, this, std::placeholders::_1));
 
-   scriptHost_->CreateNew();
-   now_ = 0;
+      extern po::variables_map configvm;
+      std::string game = configvm["game.script"].as<std::string>();
+
+      using namespace luabind;
+
+      lua_State* L = scriptHost_->GetInterpreter();
+      om::RegisterLuaTypes(L);
+      csg::RegisterLuaTypes(L);
+      lua::sim::open(L);
+      lua::res::open(L);
+      lua::rpc::open(L, core_reactor_);
+      lua::om::register_json_to_lua_objects(L, store_);
+      om::RegisterObjectTypes(store_);
+
+      game_api_ = scriptHost_->Require("radiant.server");
+
+      InitializeModules();
+
+      object game_ctor = scriptHost_->RequireScript(game);
+      game_ = luabind::call_function<luabind::object>(game_ctor);
+      
+      /* xxx: this is all SUPER SUPER dangerous.  if any of these things cause lua
+         to blow up, the process will exit(), since there's no protected handler installed!
+         */
+      object radiant = globals(L)["radiant"];
+      object gs = radiant["gamestate"];
+      object create_player = gs["_create_player"];
+      if (type(create_player) == LUA_TFUNCTION) {
+         p1_ = luabind::call_function<object>(create_player, 'civ');
+      }
+      now_ = 0;
+   } catch (std::exception const& e) {
+      LOG(WARNING) << "fatal error initializing game: " << e.what();
+      while (1) {
+         Sleep(1);
+      }
+   }
 }
 
 std::string Simulation::ToggleDebugShapes(std::string const& cmd)
@@ -188,7 +250,11 @@ void Simulation::Step(platform::timer &timer, int interval)
    //IncrementClock(interval);
 
    // Run AI...
-   scriptHost_->Update(interval, now_);
+   try {
+      now_ = luabind::call_function<int>(game_api_["update"], interval);
+   } catch (std::exception const& e) {
+      LOG(WARNING) << "fatal error initializing game update: " << e.what();
+   }
 
    // Collision detection...
    GetOctTree().Update(now_);
@@ -198,21 +264,13 @@ void Simulation::Step(platform::timer &timer, int interval)
    // Send out change notifications
    store_.FireTraces();
 
-   // One last opportunity for the script layer to do something.
-   // Some objects may accumulate state when traces fire (e.g.
-   // setting dirty bits).  This gives them an opportunity to
-   // actually change state before we push a change over the
-   // network or start doing some heavy lifting (like pathfinding
-   // jobs).
-   scriptHost_->CallGameHook("post_trace_firing");
-
    // Run jobs with the time left over
    ProcessJobList(timer);
 }
 
 void Simulation::Idle(platform::timer &timer)
 {
-   scriptHost_->Idle(timer);
+   scriptHost_->GC(timer);
 }
 
 void Simulation::EncodeUpdates(protocol::SendQueuePtr queue, ClientState& cs)
@@ -272,6 +330,12 @@ void Simulation::EncodeUpdates(protocol::SendQueuePtr queue, ClientState& cs)
    EncodeDebugShapes(queue);
    PushServerRemoteObjects(queue);
 
+   // buffered stuff...
+   for (const auto& msg : buffered_updates_) {
+      queue->Push(msg);
+   }
+   buffered_updates_.clear();
+
    cs.last_update = store_.GetNextGenerationId();
 }
 
@@ -280,10 +344,24 @@ Physics::OctTree &Simulation::GetOctTree()
    return *octtree_;
 }
 
-om::EntityPtr Simulation::GetRootEntity()
+om::EntityPtr Simulation::CreateEntity()
 {
-   return scriptHost_->GetEntity(1).lock();
+   om::EntityPtr entity = GetStore().AllocObject<om::Entity>();
+   entityMap_[entity->GetObjectId()] = entity;
+   return entity;
 }
+
+om::EntityPtr Simulation::GetEntity(dm::ObjectId id)
+{
+   auto i = entityMap_.find(id);
+   return i != entityMap_.end() ? i->second : nullptr;
+}
+
+void Simulation::DestroyEntity(dm::ObjectId id)
+{
+   entityMap_.erase(id);
+}
+
 
 dm::Store& Simulation::GetStore()
 {
@@ -301,7 +379,7 @@ void Simulation::AddJob(std::shared_ptr<Job> job)
    jobs_.push_back(job);
 }
 
-void Simulation::ScriptCommand(tesseract::protocol::ScriptCommandRequest const& request, tesseract::protocol::ScriptCommandReply* reply)
+void Simulation::ScriptCommand(tesseract::protocol::ScriptCommandRequest const& request)
 {
    std::string result;
    std::string const& cmd = request.cmd();
@@ -309,9 +387,6 @@ void Simulation::ScriptCommand(tesseract::protocol::ScriptCommandRequest const& 
    auto i = commands_.find(cmd);
    if (i != commands_.end()) {
       result = i->second(cmd);
-   }
-   if (reply) {
-      reply->set_result(result);
    }
 }
 
@@ -533,11 +608,12 @@ void Simulation::UpdateTargetTables(int now, int interval)
 // xxx: Merge into a common route thingy...
 void Simulation::HandleRouteRequest(luabind::object ctor, JSONNode const& query, std::string const& postdata, proto::PostCommandReply* reply)
 {
+#if 0
    // convert the json query data to a lua table...
    try {
       using namespace luabind;
-      lua_State* L = scriptHost_->GetCallbackState();
-      object queryObj = lua::JsonToLua(L, query);
+      lua_State* L = scriptHost_->GetCallbackThread();
+      object queryObj = ScriptHost::JsonToLua(L, query);
       object coder = globals(L)["radiant"]["json"];
 
       object obj = call_function<object>(ctor);
@@ -561,15 +637,82 @@ void Simulation::HandleRouteRequest(luabind::object ctor, JSONNode const& query,
       reply->set_content(result.write());
       reply->set_mime_type("application/json");
    }
+#endif
 }
 
-void Simulation::PostCommand(proto::PostCommandRequest const& request, proto::PostCommandReply* reply)
+void Simulation::ProcessCallModuleRequest(std::string const& mod_name, std::string const& function_name, proto::PostCommandRequest const& request, proto::PostCommandReply* reply)
 {
-   std::string response, error;
-   std::string const& path = request.path();
-   std::string const& query = request.query();
-   std::string const& data = request.data();
+#if 0
+   res::Manifest manifest = res::ResourceManager2::GetInstance().LookupManifest(mod_name);
+   res::Function f = manifest.get_function(function_name);
+   std::string what = BUILD_STRING("'" << mod_name << "', '" << function_name << "'");
+   if (!f) {
+      throw core::InvalidArgumentException(what + " is not exported from manifest");
+   }
 
+   if (f.endpoint() != f.SERVER) {
+      throw core::InvalidArgumentException(what + " is not a server endpoint");
+   }
+
+   res::FilePath path = f.script();
+   if (!path) {
+      throw core::InvalidArgumentException(what + " script path is invalid");
+   }
+
+   using namespace luabind;
+   object fn;
+   try {
+      lua_State *L = scriptHost_->GetCallbackThread();
+      object ctor(L, scriptHost_->LuaRequire(path));
+      if (!ctor.is_valid() || type(ctor) == LUA_TNIL) {
+         throw core::Exception(BUILD_STRING("failed to retrieve lua call handler while processing " << what));
+      }
+      object obj = call_function<object>(ctor);
+      object fn = obj[function_name];
+      if (!fn.is_valid() || type(fn) != LUA_TFUNCTION) {
+         throw core::Exception(BUILD_STRING("constructed lua handler does not implement " << what));
+      }
+      object result = call_function<object>(fn, obj, session, response);
+   }
+
+   luabind::object obj = scriptHost_->LuaRequire(path);
+   if (!obj.is_valid() || luabind::type(obj) != LUA_TNIL) { // xxx: Just let the exception thing happen!
+      response = scriptHost_->PostCommand(obj, data);
+   } else {
+      error = "no such object";
+   }
+#endif
+}
+
+void Simulation::PostCommand(proto::PostCommandRequest const& request)
+{
+   protobuf_reactor_->Dispatch(session_, request);
+#if 0
+   try {
+      luabind::object obj, fn;
+      std::string const& object_name = request.object();
+      std::string const& function_name = request.function();
+
+      dm::ObjectPtr obj = om::ObjectFormatter().GetObject(GetStore(), object_name);
+      if (obj) {
+      } else {
+         ProcessCallModuleRequest(object_name, function_name, request, reply);
+      }
+      luabind::object caller(cb_thread_, obj);
+      om::DataBindingPtr db = std::static_pointer_cast<om::DataBinding>(obj);
+      std::string fname = node.get<std::string>("fn");
+      luabind::object obj = db->GetModelObject();
+      luabind::object fn = obj[fname];
+      response = scriptHost_->PostCommand(fn, obj, data);
+
+   } catch (std::exception &e) {
+      JSONNode error;
+      error.push_back(JSONNode("error", "failed to dispatch call on server"));
+      error.push_back(JSONNode("reason", e.what());
+      reply->set_status_code(500);
+      reply->set_mime_type("application/json");
+      reply->set_content(error.write_formatted());
+   }
    auto i = routes_.find(path);
    if (i != routes_.end()) {
       JSONNode args;
@@ -614,6 +757,7 @@ void Simulation::PostCommand(proto::PostCommandRequest const& request, proto::Po
       errorNode.push_back(JSONNode("error", error));
       reply->set_content(errorNode.write());
    }
+#endif
 }
 
 bool Simulation::ProcessMessage(const proto::Request& msg, protocol::SendQueuePtr queue)
@@ -622,10 +766,7 @@ bool Simulation::ProcessMessage(const proto::Request& msg, protocol::SendQueuePt
 
 #define DISPATCH_MSG(MsgName) \
    case proto::Request::MsgName ## Request: \
-      reply.set_type(proto::Update::MsgName ## Reply); \
-      reply.set_reply_id(msg.request_id()); \
-      MsgName(msg.GetExtension(proto::MsgName ## Request::extension), \
-              reply.MutableExtension(proto::MsgName ## Reply::extension)); \
+      MsgName(msg.GetExtension(proto::MsgName ## Request::extension)); \
       break;
 
    switch (msg.type()) {
@@ -634,9 +775,20 @@ bool Simulation::ProcessMessage(const proto::Request& msg, protocol::SendQueuePt
    default:
       ASSERT(false);
    }
-   queue->Push(protocol::Encode(reply));
    return true;
 }
+
+void Simulation::SendReply(proto::PostCommandReply const& reply)
+{
+   proto::Update msg;
+   msg.set_type(proto::Update::PostCommandReply);
+   proto::PostCommandReply* r = msg.MutableExtension(proto::PostCommandReply::extension);
+   *r = reply; // is this kosher?
+
+   buffered_updates_.emplace_back(msg);
+}
+
+
 
 void Simulation::RegisterServerRemoteObject(std::string const& uri, dm::ObjectPtr obj)
 {
@@ -645,4 +797,8 @@ void Simulation::RegisterServerRemoteObject(std::string const& uri, dm::ObjectPt
    entry.first = uri;
    entry.second = om::ObjectFormatter().GetPathToObject(obj);
    serverRemoteObjects_.push_back(entry);
+}
+
+lua::ScriptHost& Simulation::GetScript() {
+   return *scriptHost_;
 }

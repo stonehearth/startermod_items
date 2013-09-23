@@ -10,7 +10,7 @@ function stonehearth_building.create_column(faction, x, z)
    entity:add_component('unit_info'):set_faction(faction)
    entity:add_component('mob'):set_location_grid_aligned(Point3(x, 0, z));
 
-   local region = native:alloc_region()
+   local region = _radiant.sim.alloc_region()
    entity:add_component('region_collision_shape'):set_region(region)
    
    entity:add_component('stonehearth_building:column_blueprint'):set_height(stonehearth_building.STOREY_HEIGHT)

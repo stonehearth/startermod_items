@@ -211,7 +211,7 @@ om::EntityRef ScriptHost_GetEntity(ScriptHost& host, luabind::object id)
 
 std::string ScriptHost_XXXGetEntityUri(ScriptHost&, std::string const& mod_name, std::string const& entity_name)
 {
-   return resources::ResourceManager2::GetInstance().GetEntityUri(mod_name, entity_name);
+   return res::ResourceManager2::GetInstance().GetEntityUri(mod_name, entity_name);
 }
 
 void ScriptHost::InitEnvironment()
@@ -241,16 +241,15 @@ void ScriptHost::InitEnvironment()
          .def("log",                      &ScriptHost::Log)
          .def("assert_failed",            &ScriptHost::AssertFailed)
          .def("unstick",                  &ScriptHost::Unstick)
-         .def("lua_require",              &ScriptHost::LuaRequire)
+         .def("require",                  &ScriptHost::Require)
          .def("alloc_region",             &ScriptHostAllocRegion)
    ];
    lua_register(L_, "get_config_option", GetConfigOptions);
 
    om::RegisterLuaTypes(L_);
    csg::RegisterLuaTypes(L_);
-   lua::RegisterBasicTypes(L_);
    LuaJobs::RegisterType(L_);
-   resources::Animation::RegisterType(L_);
+   res::Animation::RegisterType(L_);
    json::ConstJsonObject::RegisterLuaType(L_);
 
 
@@ -331,7 +330,7 @@ luabind::object ScriptHost::LoadScript(std::string path)
 #if 0
    // this is the awesome version that we'll use eventually, but we'll need
    // to ship our own decoda that knows how to load files from mods.
-   if (!resources::ResourceManager2::GetInstance().OpenResource(uri, in)) {
+   if (!res::ResourceManager2::GetInstance().OpenResource(uri, in)) {
       return obj;
    }
 
@@ -353,8 +352,8 @@ luabind::object ScriptHost::LoadScript(std::string path)
    // this is the slightly crappier version
    std::string filepath;
    try {
-       filepath = resources::ResourceManager2::GetInstance().GetResourceFileName(path, ".lua");
-   } catch (resources::Exception& e) {
+       filepath = res::ResourceManager2::GetInstance().GetResourceFileName(path, ".lua");
+   } catch (res::Exception& e) {
       LOG(WARNING) << e.what();
 	   return obj;
    }
@@ -420,31 +419,27 @@ void ScriptHost::OnError(std::string description)
 
 luabind::object ScriptHost::LoadJson(std::string uri)
 {
-   json::ConstJsonObject json = resources::ResourceManager2::GetInstance().LookupJson(uri);
-   return lua::JsonToLua(L_, json.GetNode());
+   json::ConstJsonObject json = res::ResourceManager2::GetInstance().LookupJson(uri);
+   return JsonToLua(json.GetNode());
 }
 
 luabind::object ScriptHost::LoadManifest(std::string uri)
 {
-   json::ConstJsonObject json = json::ConstJsonObject(resources::ResourceManager2::GetInstance().LookupManifest(uri));
-   return lua::JsonToLua(L_, json.GetNode());
+   json::ConstJsonObject json = json::ConstJsonObject(res::ResourceManager2::GetInstance().LookupManifest(uri));
+   return JsonToLua(json.GetNode());
 }
 
-resources::AnimationPtr ScriptHost::LoadAnimation(std::string uri)
-{
-   return resources::ResourceManager2::GetInstance().LookupAnimation(uri);
-}
-
-luabind::object ScriptHost::LuaRequire(std::string uri)
+luabind::object ScriptHost::Require(std::string uri)
 {
    std::string path, name;
    std::ostringstream script;
    luabind::object obj;
 
+   // xxx: gotta change / to . and remove .lua...
    std::string canonical_path;
    try {
-      canonical_path = resources::ResourceManager2::GetInstance().ConvertToCanonicalPath(uri, ".lua");
-   } catch (resources::Exception& e) {
+      canonical_path = res::ResourceManager2::GetInstance().ConvertToCanonicalPath(uri, ".lua");
+   } catch (res::Exception& e) {
       LOG(WARNING) << e.what();
       return obj;
    }

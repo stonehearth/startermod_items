@@ -66,7 +66,7 @@ function ai._on_event_loop(_, now)
 end
 
 function ai.add_action(entity, uri, ...)
-   local ctor = radiant.mods.require(uri)
+   local ctor = radiant.mods.load_script(uri)
    local bm = ai._get_bm(entity)
    bm:add_action(uri, ctor(bm, entity))
 end

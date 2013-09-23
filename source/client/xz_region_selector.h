@@ -13,9 +13,10 @@ BEGIN_RADIANT_CLIENT_NAMESPACE
 class XZRegionSelector : public std::enable_shared_from_this<XZRegionSelector>
 {
    public:
-      class Deferred : public core::Deferred2<csg::Point3, csg::Point3>
+      class Deferred : public core::Deferred<csg::Cube3, std::string>
       {
       };
+      DECLARE_SHARED_POINTER_TYPES(Deferred)
 
    public:
       XZRegionSelector(om::TerrainPtr terrain);
@@ -25,9 +26,9 @@ class XZRegionSelector : public std::enable_shared_from_this<XZRegionSelector>
 
    protected:
       void Deactivate();
-      void onInputEvent(const MouseEvent &evt, bool &handled, bool &uninstall);
-      void SelectP0(const MouseEvent &me);
-      void SelectP1(const MouseEvent &me);
+      bool onInputEvent(Input const& evt);
+      void SelectP0(const MouseInput &me);
+      void SelectP1(const MouseInput &me);
 
       bool GetHoverBrick(int x, int y, csg::Point3 &pt);
       void ValidateP1(int x, int z);
@@ -43,6 +44,7 @@ class XZRegionSelector : public std::enable_shared_from_this<XZRegionSelector>
       bool                             _startedP0;
       bool                             _finished;
 };
+
 
 END_RADIANT_CLIENT_NAMESPACE
 

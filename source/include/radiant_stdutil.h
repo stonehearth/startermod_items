@@ -1,6 +1,8 @@
 #ifndef _RADIANT_STDUTIL_H
 #define _RADIANT_STDUTIL_H
 
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <sstream>
 #include <vector>
 #include <unordered_map>
@@ -28,6 +30,15 @@ namespace radiant {
             pos += newStr.length();
          }
          return result;
+      }
+      static inline std::vector<std::string> split(std::string const& s, std::string const& by) {
+         std::vector<std::string> parts;
+         boost::split(parts, s, boost::is_any_of(by));
+         parts.erase(std::remove(parts.begin(), parts.end(), ""), parts.end());
+         return std::move(parts);
+      }
+      static inline std::string join(std::vector<std::string> const& parts, std::string const& with) {
+         return std::move(boost::algorithm::join(parts, with));
       }
    }
 

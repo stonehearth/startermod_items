@@ -1,18 +1,18 @@
 
-local MicroWorld = require 'lib/micro_world'
+local MicroWorld = require 'lib.micro_world'
 local TerrainTest = class(MicroWorld)
 
-local TerrainType = radiant.mods.require('/stonehearth_terrain/terrain_type.lua')
-local HeightMap = radiant.mods.require('/stonehearth_terrain/height_map.lua')
-local Array2D = radiant.mods.require('/stonehearth_terrain/array_2D.lua')
-local TerrainGenerator = radiant.mods.require('/stonehearth_terrain/terrain_generator.lua')
-local CDF_97 = radiant.mods.require('/stonehearth_terrain/wavelet/cdf_97.lua')
-local Wavelet = radiant.mods.require('/stonehearth_terrain/wavelet/wavelet.lua')
-local BoundaryNormalizingFilter = radiant.mods.require('/stonehearth_terrain/filter/boundary_normalizing_filter.lua')
-local FilterFns = radiant.mods.require('/stonehearth_terrain/filter/filter_fns.lua')
-local Landscaper = radiant.mods.require('/stonehearth_terrain/landscaper.lua')
-local HeightMapRenderer = radiant.mods.require('/stonehearth_terrain/height_map_renderer.lua')
-local Timer = radiant.mods.require('/stonehearth_debugtools/timer.lua')
+local TerrainType = radiant.mods.require('stonehearth_terrain.terrain_type')
+local HeightMap = radiant.mods.require('stonehearth_terrain.height_map')
+local Array2D = radiant.mods.require('stonehearth_terrain.array_2D')
+local TerrainGenerator = radiant.mods.require('stonehearth_terrain.terrain_generator')
+local CDF_97 = radiant.mods.require('stonehearth_terrain.wavelet.cdf_97')
+local Wavelet = radiant.mods.require('stonehearth_terrain.wavelet.wavelet')
+local BoundaryNormalizingFilter = radiant.mods.require('stonehearth_terrain.filter.boundary_normalizing_filter')
+local FilterFns = radiant.mods.require('stonehearth_terrain.filter.filter_fns')
+local Landscaper = radiant.mods.require('stonehearth_terrain.landscaper')
+local HeightMapRenderer = radiant.mods.require('stonehearth_terrain.height_map_renderer')
+local Timer = radiant.mods.require('stonehearth_debugtools.timer')
 
 function TerrainTest:__init()
    --run_unit_tests()

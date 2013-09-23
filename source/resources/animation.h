@@ -1,19 +1,16 @@
-#ifndef _RADIANT_RESOURCES_ANIMATION_H
-#define _RADIANT_RESOURCES_ANIMATION_H
+#ifndef _RADIANT_RES_ANIMATION_H
+#define _RADIANT_RES_ANIMATION_H
 
 #include <functional>
 #include "libjson.h"
 #include "namespace.h"
 #include "csg/transform.h"
 
-struct lua_State;
-
-BEGIN_RADIANT_RESOURCES_NAMESPACE
+BEGIN_RADIANT_RES_NAMESPACE
 
 class Animation {
 public:
    Animation(std::string bin);
-   static void RegisterType(lua_State* L);
    static std::string JsonToBinary(const JSONNode &obj);
 
    float GetDuration();
@@ -53,6 +50,6 @@ typedef std::shared_ptr<Animation> AnimationPtr;
 
 std::ostream& operator<<(std::ostream& out, const Animation& source);
 
-END_RADIANT_RESOURCES_NAMESPACE
+END_RADIANT_RES_NAMESPACE
 
-#endif //  _RADIANT_RESOURCES_ANIMATION_H
+#endif //  _RADIANT_RES_ANIMATION_H

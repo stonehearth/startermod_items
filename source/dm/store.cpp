@@ -335,7 +335,7 @@ void Store::FireTraces()
                for (TraceId tid : i->second) {
                   if (!stdutil::contains(deadTraces_, tid)) {
                      ValidateTraceId(tid);
-                     LOG(INFO) << "firing trace " << tid << " : " << traceCallbacks_[tid].reason;
+                     LOG(INFO) << "firing trace " << tid;
                      ObjectChangeCb cb = boost::any_cast<ObjectChangeCb>(traceCallbacks_[tid].cb);
                      if (cb) {
                         cb();

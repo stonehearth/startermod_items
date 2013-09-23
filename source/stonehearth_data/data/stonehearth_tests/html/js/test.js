@@ -26,8 +26,8 @@ $(document).ready(function() {
       fetch(uri);      
    });
 
-   $(top).on("selection_changed.radiant", function (_, evt) {
-      var uri = evt.data.selected_entity;
+   $(top).on("selection_changed.radiant", function (_, data) {
+      var uri = data.selected_entity;
       if (uri) {
          fetch(uri);
       }

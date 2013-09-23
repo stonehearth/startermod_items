@@ -32,13 +32,13 @@ function _remove_entity_from_terrain(id)
 end
 
 function pathfinder.find_path_to_entity(reason, src_entity, dst_entity, solved_cb)
-   local pathfinder = native:create_path_finder(reason, src_entity, solved_cb, nil)
+   local pathfinder = _radiant.sim.create_path_finder(reason, src_entity, solved_cb, nil)
    pathfinder:add_destination(dst_entity)
    return pathfinder
 end
 
 function pathfinder.find_path_to_closest_entity(reason, src_entity, solved_cb, filter_fn)
-   local pathfinder = native:create_path_finder(reason, src_entity, solved_cb, filter_fn)
+   local pathfinder = _radiant.sim.create_path_finder(reason, src_entity, solved_cb, filter_fn)
    singleton.pathfinders[pathfinder:get_id()] = pathfinder:to_weak_ref()
 
    -- xxx: iterate through every item in a range provided by the client

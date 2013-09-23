@@ -123,6 +123,11 @@ template <> JSONNode ToJson(const ObjectFormatter& f, DataBinding const& obj)
    return obj.GetJsonData();
 }
 
+template <> JSONNode ToJson(const ObjectFormatter& f, DataBindingP const& obj)
+{
+   return obj.GetJsonData();
+}
+
 template <> JSONNode ToJson(const ObjectFormatter& f, JsonStore const& obj)
 {
    return obj.Get();

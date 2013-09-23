@@ -37,6 +37,15 @@ private:
    mutable bool         cached_json_valid_;
 };
 
+// Create a new type for luabuild.
+class DataBindingP : public DataBinding
+{
+public:
+   DataBindingP() : DataBinding() { }
+   DEFINE_OM_OBJECT_TYPE_NO_CONS(DataBindingP, data_binding_p);
+};
+
+
 std::ostream& operator<<(std::ostream& os, DataBinding const& o);
 
 END_RADIANT_OM_NAMESPACE

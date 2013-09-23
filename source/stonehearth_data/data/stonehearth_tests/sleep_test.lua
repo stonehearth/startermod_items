@@ -1,5 +1,5 @@
 local MicroWorld = require 'lib.micro_world'
-local stonehearth_calendar = radiant.mods.require('stonehearth_calendar')
+local stonehearth_calendar = radiant.mods.get_singleton('stonehearth_calendar')
 
 local SleepTest = class(MicroWorld)
 --[[

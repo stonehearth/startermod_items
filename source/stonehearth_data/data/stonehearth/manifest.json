@@ -10,7 +10,9 @@
          "rabbit" : "file(entities/critters/rabbit)"
       }
    },
-
+   "components" :  {
+      "leash" : "file(components/leash.lua)"
+   },
    "loader" :  {
       "ui" : {
          "homepage" : "file(/html/index.html)"

@@ -4,6 +4,7 @@ include_directories(${Cryptopp_INCLUDE_DIRS})
 
 add_library(resources STATIC
             animation.cpp
+            manifest.cpp
             res_manager.cpp
             )
 

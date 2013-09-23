@@ -7,9 +7,13 @@
         "description": "Om nom nom",
         "faction": "critter"
       },
+      "stonehearth:leash" : {
+        "leash_radius" : 4
+      },
       "radiant:ai" : {
          "actions" : [
-            "file(/ai/actions/idle_look_around_action.lua)"
+            "file(/ai/actions/idle_look_around_action.lua)",
+            "file(/ai/actions/wander_action.lua)"
          ]
       },
       "sensor_list" : {

@@ -1,25 +1,28 @@
 local api = {}
 
-native:log('loading server radiant script')
+_host:log('loading server radiant script')
+
+local dkjson = require 'radiant.lualibs.dkjson'
+-- load external libraries before we blow away require...
+
 require 'radiant.lib.env'
 
 decoda_name = "radiant server"
 
 radiant = {
-   _root_entity = native:create_empty_entity()
+   _root_entity = _radiant.sim.create_empty_entity()
 }
 
 radiant.log = require 'modules.log'
 radiant.util = require 'lib.util'
 radiant.check = require 'lib.check'
-radiant.json = require 'lualibs.dkjson'
+radiant.json = dkjson
 radiant.gamestate = require 'modules.gamestate'
 radiant.resources = require 'modules.resources'
 radiant.events = require 'modules.events'
 radiant.ai = require 'modules.ai'
 radiant.effects = require 'modules.effects'
 radiant.entities = require 'modules.entities'
-radiant.components = require 'modules.components'
 radiant.terrain = require 'modules.terrain'
 radiant.mods = require 'modules.mods'
 radiant.music = require 'modules.bgm_manager'

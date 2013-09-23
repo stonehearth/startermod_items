@@ -19,6 +19,12 @@
 #define NOT_YET_IMPLEMENTED()       (LOG(WARNING) << __FUNCTION__  << " not implemented (" << __FILE__ << ":" << __LINE__)
 #define NOT_REACHED()      ASSERT(false)
 
+#define BUILD_STRING(x) static_cast<std::ostringstream&>(std::ostringstream() << x).str()
+
+#define DECLARE_SHARED_POINTER_TYPES(Cls) \
+   typedef std::shared_ptr<Cls>  Cls ## Ptr; \
+   typedef std::weak_ptr<Cls>    Cls ## Ref;
+
 #define NO_COPY_CONSTRUCTOR(Cls) \
    Cls(const Cls& other); \
    const Cls& operator=(const Cls& rhs);
