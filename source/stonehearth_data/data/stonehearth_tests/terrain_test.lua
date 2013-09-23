@@ -92,11 +92,11 @@ function TerrainTest:create_multi_zone_world()
    --timer:stop()
    --radiant.log.info('HeightMapRenderer time: %.3fs', timer:seconds())
 
-   timer:start()
+   --timer:start()
    --Landscaper:place_trees(world_map, self._terrain_generator.terrain_info)
    --self:_place_people(world_map)
-   timer:stop()
-   radiant.log.info('Landscaper time: %.3fs', timer:seconds())
+   --timer:stop()
+   --radiant.log.info('Landscaper time: %.3fs', timer:seconds())
 end
 
 function TerrainTest:_create_world_blueprint()

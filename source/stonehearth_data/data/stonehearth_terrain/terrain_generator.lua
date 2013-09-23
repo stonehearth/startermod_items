@@ -135,7 +135,6 @@ function TerrainGenerator:generate_zone(terrain_type, zones, x, y)
    self:_create_oversize_map_from_micro_map(oversize_map, micro_map)
 
    -- transform to frequncy domain and shape frequencies with exponential decay
-   --self:_shape_height_map(zone_map)
    WaveletFns.shape_height_map(oversize_map, self.frequency_scaling_coeff, self.wavelet_levels)
 
    -- enable non-uniform quantizer within a terrain type

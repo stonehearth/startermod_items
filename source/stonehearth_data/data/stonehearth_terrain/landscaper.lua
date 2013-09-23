@@ -1,8 +1,8 @@
-local HeightMap = require 'height_map.lua'
-local MathFns = require 'math.math_fns.lua'
-local GaussianRandom = require 'math.gaussian_random.lua'
-local Wavelet = require 'wavelet.wavelet.lua'
-local WaveletFns = require 'wavelet.wavelet_fns.lua'
+local HeightMap = require 'height_map'
+local MathFns = require 'math.math_fns'
+local GaussianRandom = require 'math.gaussian_random'
+local Wavelet = require 'wavelet.wavelet'
+local WaveletFns = require 'wavelet.wavelet_fns'
 local Point3 = _radiant.csg.Point3
 
 local Landscaper = class()
@@ -21,6 +21,7 @@ local tree_sizes = { small, medium, large }
 function Landscaper:__init()
 end
 
+-- not ready, just testing density function
 function Landscaper:place_trees(zone_map, terrain_info)
    local wavelet_levels = 3
    local freq_scaling_coeff = 0.4
