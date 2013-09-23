@@ -5,7 +5,7 @@ $(document).ready(function(){
          title : 'Drag to create your stockpile',
          description : 'Workers place resources and crafted goods in stockpiles for safe keeping!'
       });
-      $.get('/modules/client/stonehearth_inventory/create_stockpile') // modules/client blows!! =(
+      radiant.call_obj('stonehearth_inventory', 'choose_stockpile_location')
          .always(function() {
             $(top).trigger('hide_tip.radiant');
             console.log('stockpile created!');

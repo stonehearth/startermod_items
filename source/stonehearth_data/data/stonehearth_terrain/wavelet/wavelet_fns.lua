@@ -1,5 +1,5 @@
 local WaveletFns = {}
-local Wavelet = radiant.mods.require('/stonehearth_terrain/wavelet/wavelet.lua')
+local Wavelet =  require 'wavelet.wavelet'
 
 function WaveletFns.shape_height_map(height_map, freq_scaling_coeff, levels)
    local width = height_map.width

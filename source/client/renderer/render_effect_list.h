@@ -34,7 +34,7 @@ private:
    int            startTime_;
    float          duration_;
    std::string    animationName_;
-   resources::AnimationPtr  animation_;
+   res::AnimationPtr  animation_;
 };
 
 struct RenderAttachItemEffect : public RenderEffect {

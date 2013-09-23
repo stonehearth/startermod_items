@@ -67,7 +67,7 @@ namespace radiant {
 
       public:
          bool Empty() const { return queue_.empty(); }
-         void Push(google::protobuf::MessageLite &protobuf);
+         void Push(google::protobuf::MessageLite const &protobuf);
          void Push(std::string&& s);
 
       public: // xxx - only because make_shared is silly
@@ -142,7 +142,7 @@ namespace radiant {
          Buffer                           readBuf_;
       };
 
-     std::string Encode(google::protobuf::MessageLite &protobuf);
+     std::string Encode(google::protobuf::MessageLite const& protobuf);
    };
 };
 

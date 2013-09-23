@@ -1,4 +1,4 @@
-local WorkerScheduler = radiant.mods.require('/stonehearth_worker_class/lib/worker_scheduler.lua')
+local WorkerScheduler = require 'lib.worker_scheduler'
 local Point3 = _radiant.csg.Point3
 
 local singleton = {

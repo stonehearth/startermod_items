@@ -11,6 +11,11 @@ namespace po = boost::program_options;
 
 extern po::variables_map configvm;
 
+std::ostream& simulation::operator<<(std::ostream& os, FollowPath const& o)
+{
+   return os << "[FollowPath ...]";
+}
+
 FollowPath::FollowPath(om::EntityRef e, float speed, std::shared_ptr<Path> path, float close_to_distance, luabind::object arrived_cb) :
    Task("follow path"),
    entity_(e),
@@ -114,13 +119,3 @@ void FollowPath::Report(std::string msg)
       LOG(INFO) << msg << " (follow path " << (void*)this << " entity:" << entity->GetObjectId() << " " << start << " -> " << end << " currently at " << location << ")";
    }
 }
-
-luabind::scope FollowPath::RegisterLuaType(struct lua_State* L, const char* name)
-{
-   using namespace luabind;
-   return
-      class_<FollowPath, std::shared_ptr<FollowPath>>(name)
-         .def("stop",     &FollowPath::Stop)
-      ;
-}
-

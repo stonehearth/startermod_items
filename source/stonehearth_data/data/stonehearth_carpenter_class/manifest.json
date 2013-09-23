@@ -8,6 +8,9 @@
          "carpenter_workbench" : "file(entities/carpenter_workbench)",
          "carpenter_outfit" : "file(entities/carpenter_outfit)",
          "carpenter_intermediate_item" : "file(entities/carpenter_intermediate_item)"
+      },
+      "game_objects" : {
+         "singleton" : "file(stonehearth_carpenter_class.lua)"
       }
    }
 }

@@ -1,5 +1,5 @@
 local StonehearthTrees = {}
-local TreeTracker = radiant.mods.require('/stonehearth_trees/lib/tree_tracker.lua')
+local TreeTracker = require 'lib.tree_tracker'
 local singleton = {
    trackers = {}
 }

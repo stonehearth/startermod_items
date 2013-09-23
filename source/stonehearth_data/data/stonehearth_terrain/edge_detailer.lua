@@ -1,6 +1,6 @@
-local TerrainType = radiant.mods.require('/stonehearth_terrain/terrain_type.lua')
-local HeightMap = radiant.mods.require('/stonehearth_terrain/height_map.lua')
-local InverseGaussianRandom = radiant.mods.require('/stonehearth_terrain/math/inverse_gaussian_random.lua')
+local TerrainType = require 'terrain_type'
+local HeightMap = require 'height_map'
+local InverseGaussianRandom = require 'math.inverse_gaussian_random'
 local Point2 = _radiant.csg.Point2
 
 local EdgeDetailer = class()

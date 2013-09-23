@@ -134,7 +134,7 @@ end
 function WorkerScheduler:_create_pf(name)
    assert(not self.allpf[name])
 
-   local pf = native:create_multi_path_finder(name)
+   local pf = _radiant.sim.create_multi_path_finder(name)
    self.allpf[name] = pf
    return pf
 end
@@ -382,7 +382,7 @@ function WorkerScheduler:_collect_build_order_deps(build_order, checked, check_o
    if not checked[id] then
       local entity = build_order:get_entity()
       checked[id] = true
-      if radiant.components.has_component(entity, 'build_order_dependencies') then
+      if entity:has_component('build_order_dependencies') then
          local dependencies = entity:get_component('build_order_dependencies')
          for dep_entity in dependencies:get_dependencies() do
             local dep_bo = self._get_build_order(dep_entity)
@@ -427,8 +427,8 @@ function WorkerScheduler:_check_build_orders()
       local should_queue = build_order:needs_more_work()
 
       if should_queue then
-         if radiant.components.has_component(entity, 'build_order_dependencies') then
-            local dependencies = radiant.components.get_component(build_order:get_entity(), 'build_order_dependencies')
+         local dependencies = entity:get_component('build_order_dependencies')
+         if dependencies then
             for e in dependencies:get_dependencies() do
                if ancestor_is_busy[e:get_id()] then
                   reason = string.format('dependency %s in progress', tostring(self._get_build_order(e)))

@@ -14,7 +14,7 @@ function StockpileComponent:__init(entity, data_binding)
    self._data_binding = data_binding
    self._data_binding:update(self._data)
    
-   self._destination:set_region(native:alloc_region())
+   self._destination:set_region(_radiant.sim.alloc_region())
    radiant.events.listen('radiant.events.gameloop', self)
 end
 

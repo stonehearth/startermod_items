@@ -1,9 +1,8 @@
 $(document).ready(function(){
 
    $(top).on("promote_citizen.stonehearth_classes", function (_, e) {
-      var view = App.gameView.addView(App.StonehearthClassesPromoteView, {
-         promoteUri : e.event_data.post_target,
-         promoteParams : {talisman: e.entity},
+      var view = App.gameView.addView(App.StonehearthClassesPromoteView, { 
+         talisman: e.entity,
          promotionClass : 'XXX_TODO_INSERT_CLASS_NAME'
       });
    });
@@ -45,41 +44,40 @@ App.StonehearthClassesPromoteView = App.View.extend({
       chooseCitizen: function() {
          console.log('instantiate the picker!');
 
-      var self = this;
-         var picker = App.gameView.addView(App.StonehearthPeoplePickerView, {
-            uri: '/server/objects/stonehearth_census/worker_tracker',
-            title: 'Choose the worker to promote', //xxx localize
-            css: {
-               top: 350,
-               left: 105
-            },
-            callback: function(person) {
-               self.set('context.citizenToPromote', person);
+         var self = this;
+         radiant.call_obj('stonehearth_census', 'get_worker_tracker')
+            .done(function(response) {
+               App.gameView.addView(App.StonehearthPeoplePickerView, {
+                           uri: response.tracker,
+                           title: 'Choose the worker to promote', //xxx localize
+                           css: {
+                              top: 350,
+                              left: 105
+                           },
+                           callback: function(person) {
+                              self.set('context.citizenToPromote', person);
 
-               $('#promoteButton')
-                  .show()
-                  .pulse()
-            }
-         });
+                              $('#promoteButton')
+                                 .show()
+                                 .pulse()
+                           }
+                        });
+            });
       },
 
       promoteCitizen: function() {
-         var person = this.get('context.citizenToPromote');
-
-         var data = {
-            targetPerson: person.__self,
-            data: this.promoteParams
-         };
-
          var self = this;
-         $.ajax({
-            type: 'post',
-            url: this.promoteUri,
-            contentType: 'application/json',
-            data: JSON.stringify(data)
-         }).done(function(return_data){
-            self.destroy();
-         });
+         var person = this.get('context.citizenToPromote').__self;
+         radiant.call_obj('stonehearth_classes', 'promote', person, this.talisman)
+            .done(function(data) {
+               radiant.log.info("stonehearth_classes.promote finished!", data)
+            })
+            .fail(function(data) {
+               radiant.log.warning("stonehearth_classes.promote failed:", data)
+            })
+            .always(function(return_data){
+               self.destroy();
+            });
       }
    },
 

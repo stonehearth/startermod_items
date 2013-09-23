@@ -38,7 +38,7 @@ namespace radiant {
             return node_;
          }
 
-         bool has(const char* name) const {
+         bool has(std::string const& name) const {
             return node_.find(name) != node_.end();
          }
 
@@ -98,7 +98,6 @@ namespace radiant {
          ConstJsonObject getn(std::string const& name) const {
             return ConstJsonObject(get<JSONNode>(name));
          }
-
          ConstJsonObject getn(unsigned int index) const {
             return ConstJsonObject(get<JSONNode>(index));
          }
@@ -106,6 +105,7 @@ namespace radiant {
          // xxx: these shoudl return ConstJsonObject's, right?
          JSONNode::const_iterator begin() const { return node_.begin(); }
          JSONNode::const_iterator end() const { return node_.end(); }
+         JSONNode::const_iterator find(std::string const& name) const { return node_.find(name); }
 
       private:
          JSONNode node_;

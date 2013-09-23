@@ -1,12 +1,11 @@
 #include "radiant.h"
 #include "animation.h"
 #include "exceptions.h"
-#include "radiant_luabind.h"
 
 static const float FRAME_DURATION_MS = (1000.0f / 30.0f);
 
 using namespace ::radiant;
-using namespace ::radiant::resources;
+using namespace ::radiant::res;
 
 using ::radiant::int32;
 using ::radiant::csg::Transform;
@@ -16,18 +15,6 @@ Animation::Animation(std::string bin) :
    _base(&bin_[0]),
    _len(bin_.size())
 {
-}
-
-
-void Animation::RegisterType(lua_State* L)
-{
-   using namespace luabind;
-
-   module(L) [
-      class_<Animation, AnimationPtr>("Animation")
-         .def(tostring(self))
-         .def("get_duration", &resources::Animation::GetDuration)
-   ];
 }
 
 std::string Animation::JsonToBinary(const JSONNode &node)
@@ -196,6 +183,6 @@ bool Animation::HasBone(std::string name)
    return false;
 }
 
-std::ostream& ::radiant::resources::operator<<(std::ostream& out, const Animation& source) {
+std::ostream& ::radiant::res::operator<<(std::ostream& out, const Animation& source) {
    return (out << "[Animation]");
 }

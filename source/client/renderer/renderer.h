@@ -16,6 +16,7 @@
 #include "lua/namespace.h"
 #include "camera.h"
 #include "platform/FileWatcher.h"
+#include "core/input.h"
 
 IN_RADIANT_LUA_NAMESPACE(
    class ScriptHost;
@@ -50,10 +51,9 @@ class Renderer
       void Cleanup();
       void LoadResources();
 
-      int GetUIWidth() const;
-      int GetUIHeight() const;
       int GetWidth() const;
       int GetHeight() const;
+      void SetUITextureSize(int width, int height);
 
       csg::Point2 GetMousePosition() const;
       csg::Matrix4 GetNodeTransform(H3DNode node) const;
@@ -74,14 +74,10 @@ class Renderer
       csg::Ray3 GetCameraToViewportRay(int windowX, int windowY);
       void QuerySceneRay(int windowX, int windowY, om::Selection &result);
 
-      typedef int InputCallbackId;
-      typedef std::function<void (const RawInputEvent&, bool& handled, bool& uninstall)> RawInputEventCb;
-      typedef std::function<void (const MouseEvent& windowMouse, const MouseEvent& browserMouse, bool& handled, bool& uninstall)> MouseEventCb;
-      typedef std::function<void (const KeyboardEvent&, bool& handled, bool& uninstall)> KeyboardInputEventCb;
-      InputCallbackId SetRawInputCallback(RawInputEventCb fn);
-      InputCallbackId SetMouseInputCallback(MouseEventCb fn);
-      InputCallbackId SetKeyboardInputCallback(KeyboardInputEventCb fn);
-      void RemoveInputEventHandler(InputCallbackId id);
+      typedef std::function<void (const Input&)> InputEventCb;
+      void SetInputHandler(InputEventCb fn) { input_cb_ = fn; }
+
+      void SetScreenResizeCb(std::function<void(int, int)> cb) { screen_resize_cb_ = cb; }
 
       void PlaceCamera(const csg::Point3f &location);
       void UpdateUITexture(const csg::Region2& rgn, const char* buffer);
@@ -112,7 +108,7 @@ class Renderer
       void Resize(int width, int height);
       void UpdateCamera();
       float DistFunc(float dist, int wheel, float minDist, float maxDist) const;
-      MouseEvent WindowToBrowser(const MouseEvent& mouse);
+      MouseInput WindowToBrowser(const MouseInput& mouse);
       void CallMouseInputCallbacks();
 
       typedef std::unordered_map<dm::TraceId, std::function<void()>> TraceMap;
@@ -120,13 +116,11 @@ class Renderer
       dm::Guard AddTrace(TraceMap& m, std::function<void()> fn);
       void RemoveTrace(TraceMap& m, dm::TraceId tid);
       void FireTraces(const TraceMap& m);
+      void DispatchInputEvent();
 
    protected:
       typedef std::unordered_map<H3DNode, UpdateSelectionFn> SelectableMap;
       typedef std::unordered_map<dm::ObjectId, std::shared_ptr<RenderEntity>> RenderEntityMap;
-      typedef std::vector<std::pair<InputCallbackId, RawInputEventCb>> RawInputCallbackMap;
-      typedef std::vector<std::pair<InputCallbackId, MouseEventCb>> MouseInputCallbackMap;
-      typedef std::vector<std::pair<InputCallbackId, KeyboardInputEventCb>> KeyboardInputCallbackMap;
       typedef std::unordered_map<std::string, H3DRes>    H3DResourceMap;
       int               width_;
       int               height_;
@@ -158,13 +152,10 @@ class Renderer
 
       RenderEntityMap               entities_[5]; // by store id
       SelectableMap                 selectableCbs_;
-      InputCallbackId               nextInputCbId_;
-      RawInputCallbackMap           rawInputCbs_;
-      MouseInputCallbackMap         mouseInputCbs_;
-      KeyboardInputCallbackMap      keyboardInputCbs_;
+      InputEventCb                  input_cb_;
 
       bool                          rotateCamera_;
-      MouseEvent                    mouse_;  // Mouse coordinates in the GL window-space.
+      Input                         input_;  // Mouse coordinates in the GL window-space.
       bool                          initialized_;
 
       int                           currentFrameTime_;
@@ -172,6 +163,7 @@ class Renderer
       ViewMode                      viewMode_;
       boost::property_tree::basic_ptree<std::string, std::string> config_;
       lua::ScriptHost*              scriptHost_;
+      std::function<void(int, int)> screen_resize_cb_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

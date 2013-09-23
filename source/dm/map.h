@@ -129,8 +129,8 @@ public:
    static void LuaIteratorStart(lua_State *L, const Map& s)
    {
       using namespace luabind;
-      lua_pushcfunction(L, &LuaIterator<decltype(items_)>::NextIteration); // f
-      object(L, new LuaIterator<decltype(items_)>(s.items_)).push(L); // s
+      lua_pushcfunction(L, &LuaIterator<ContainerType>::NextIteration); // f
+      object(L, new LuaIterator<ContainerType>(s.items_)).push(L); // s
       object(L, 1).push(L); // var (ignored)
    }
 
@@ -204,7 +204,7 @@ public:
             .def("items",        &Map::LuaIteratorStart)
             .def("trace",        &Map::LuaTrace)
          ,
-         lua::RegisterType<LuaIterator<decltype(items_)>>()
+         lua::RegisterType<LuaIterator<ContainerType>>()
          ,
          lua::RegisterType<LuaPromise>()
             .def("on_added",     &LuaPromise::PushAddedCb)
@@ -212,6 +212,7 @@ public:
             .def("destroy",      &LuaPromise::Destroy) // xxx: make this __gc!!
          ;
    }
+   typedef LuaIterator<ContainerType>  LuaIteratorType;
 
 public:
    void SaveValue(const Store& store, Protocol::Value* valmsg) const override {

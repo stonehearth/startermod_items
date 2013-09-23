@@ -34,7 +34,7 @@ public:
    virtual bool ProcessMessage(const ::radiant::tesseract::protocol::Request& msg, protocol::SendQueuePtr queue) = 0;
 };
 
-SimulationInterface *CreateSimulation(lua_State* L);
+SimulationInterface *CreateSimulation();
 
 END_RADIANT_SIMULATION_NAMESPACE
 

@@ -6,21 +6,21 @@
       "entities" : {
          "class_info" : "file(entities/class_info)",
          "workbench" : "file(entities/workbench)"
+      },
+      "functions" : {
+         "choose_workbench_location" : {
+            "controller" : "file(client/request_handlers/create_workbench.lua)",
+            "endpoint" : "client"
+         },
+         "create_workbench" : {
+            "controller" : "file(server/request_handlers/srh_create_workbench.lua)",
+            "endpoint" : "server"
+         }
       }
    },
    "components" :  {
       "workshop" : "file(components/workshop_component.lua)",
       "crafter"  : "file(components/crafter_component.lua)"
-   },
-   "client" : {
-      "request_handlers" : {
-         "create_workbench" : "file(client/request_handlers/create_workbench.lua)"
-      }
-   },
-   "server" : {
-      "request_handlers" : {
-         "create_workbench" : "file(server/request_handlers/srh_create_workbench.lua)"
-      }
    },
    "ui" :  {
       "html" : [

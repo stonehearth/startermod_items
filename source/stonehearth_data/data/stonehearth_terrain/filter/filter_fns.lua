@@ -1,7 +1,7 @@
 local FilterFns = class()
 
-local Array2DFns = radiant.mods.require('/stonehearth_terrain/filter/array_2D_fns.lua')
-local BoundaryNormalizingFilter = radiant.mods.require('/stonehearth_terrain/filter/boundary_normalizing_filter.lua')
+local Array2DFns = require 'filter.array_2D_fns'
+local BoundaryNormalizingFilter = require 'filter.boundary_normalizing_filter'
 
 function FilterFns.filter_2D_generic(dst, src, src_width, src_height, filter_kernel, sampling_interval)
    if sampling_interval == nil then sampling_interval = 1 end

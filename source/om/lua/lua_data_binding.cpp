@@ -7,7 +7,8 @@ using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-dm::Object::LuaPromise<DataBinding>* DataBinding_Trace(DataBinding const& db, const char* reason)
+template <typename T>
+dm::Object::LuaPromise<DataBinding>* DataBinding_Trace(T const& db, const char* reason)
 {
    return new dm::Object::LuaPromise<DataBinding>(reason, db);
 }
@@ -15,11 +16,19 @@ dm::Object::LuaPromise<DataBinding>* DataBinding_Trace(DataBinding const& db, co
 scope LuaDataBinding::RegisterLuaTypes(lua_State* L)
 {
    return
+      // shared pointers to DataBinding's are used where lua expliclity creates data bindings
       lua::RegisterObject<DataBinding>()
          .def("update",         &DataBinding::SetDataObject)
          .def("get_data",       &DataBinding::GetDataObject)
          .def("mark_changed",   &DataBinding::MarkChanged)
-         .def("trace",          &DataBinding_Trace)
+         .def("trace",          &DataBinding_Trace<DataBinding>)
+      ,
+      // references to DataBinding's are used where lua should not be able to keep objects alive, e.g. component data
+      lua::RegisterObjectPtr<DataBindingP>()
+         .def("update",         &DataBindingP::SetDataObject)
+         .def("get_data",       &DataBindingP::GetDataObject)
+         .def("mark_changed",   &DataBindingP::MarkChanged)
+         .def("trace",          &DataBinding_Trace<DataBindingP>)
       ,
       dm::Object::LuaPromise<DataBinding>::RegisterLuaType(L)         
       ;

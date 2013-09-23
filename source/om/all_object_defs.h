@@ -10,6 +10,7 @@
     OM_OBJECT(TargetTableGroup,  target_table_group) \
     OM_OBJECT(TargetTableEntry,  target_table_entry) \
     OM_OBJECT(DataBinding,       data_binding) \
+    OM_OBJECT(DataBindingP,      data_binding_p) \
     OM_OBJECT(JsonStore,         json_store) \
     OM_OBJECT(ModelVariant,      model_variant) \
     OM_OBJECT(ErrorBrowser,      error_browser) \

@@ -1,6 +1,8 @@
 #include "pch.h"
+#include <regex>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include "radiant_exceptions.h"
 #include "xz_region_selector.h"
 #include "om/entity.h"
 #include "om/components/terrain.h"
@@ -12,19 +14,30 @@
 #include "om/json_store.h"
 #include "om/data_binding.h"
 #include "platform/utils.h"
+#include "resources/manifest.h"
 #include "resources/res_manager.h"
-#include "renderer/render_entity.h"
-#include "renderer/lua_render_entity.h"
-#include "renderer/lua_renderer.h"
 #include "lua/radiant_lua.h"
 #include "lua/register.h"
 #include "lua/script_host.h"
 #include "om/stonehearth.h"
 #include "om/object_formatter/object_formatter.h"
-#include "lua_deferred.h"
-#include "deferred_response.h"
 #include "horde3d/Source/Horde3DEngine/egModules.h"
 #include "horde3d/Source/Horde3DEngine/egCom.h"
+#include "lib/rpc/trace.h"
+#include "lib/rpc/untrace.h"
+#include "lib/rpc/function.h"
+#include "lib/rpc/core_reactor.h"
+#include "lib/rpc/http_reactor.h"
+#include "lib/rpc/reactor_deferred.h"
+#include "lib/rpc/protobuf_router.h"
+#include "lib/rpc/lua_module_router.h"
+#include "lib/rpc/lua_object_router.h"
+#include "lib/rpc/trace_object_router.h"
+#include "lib/rpc/http_deferred.h" // xxx: does not belong in rpc!
+#include "lua/client/open.h"
+#include "lua/rpc/open.h"
+#include "lua/om/open.h"
+#include "client/renderer/render_entity.h"
 
 #include "glfw.h"
 
@@ -54,7 +67,10 @@ Client::Client() :
    uiCursor_(NULL),
    luaCursor_(NULL),
    currentCursor_(NULL),
-   last_server_request_id_(0)
+   last_server_request_id_(0),
+   next_input_id_(1),
+   mouse_x_(0),
+   mouse_y_(0)
 {
    om::RegisterObjectTypes(store_);
    om::RegisterObjectTypes(authoringStore_);
@@ -63,7 +79,40 @@ Client::Client() :
    scriptHost_.reset(new lua::ScriptHost());
 
    error_browser_ = authoringStore_.AllocObject<om::ErrorBrowser>();
-   clientRemoteObjects_["/o/named_objects/client/error_browser"] = om::ObjectFormatter().GetPathToObject(error_browser_);
+   
+
+   // Reactors...
+   core_reactor_ = std::make_shared<rpc::CoreReactor>();
+   http_reactor_ = std::make_shared<rpc::HttpReactor>(*core_reactor_);
+
+   // Routers...
+   core_reactor_->AddRouter(std::make_shared<rpc::LuaModuleRouter>(scriptHost_.get(), "client"));
+   core_reactor_->AddRouter(std::make_shared<rpc::LuaObjectRouter>(scriptHost_.get(), authoringStore_));
+   core_reactor_->AddRouter(std::make_shared<rpc::TraceObjectRouter>(GetStore()));
+
+   // protobuf router should be last!
+   protobuf_router_ = std::make_shared<rpc::ProtobufRouter>([this](proto::PostCommandRequest const& request) {
+      proto::Request msg;
+      msg.set_type(proto::Request::PostCommandRequest);   
+      proto::PostCommandRequest* r = msg.MutableExtension(proto::PostCommandRequest::extension);
+      *r = request;
+
+      send_queue_->Push(msg);
+   });
+   core_reactor_->AddRouter(protobuf_router_);
+
+   // core functionality exposed by the client...
+   core_reactor_->AddRoute("radiant.get_modules", [this](rpc::Function const& f) {
+      return GetModules(f);
+   });
+   core_reactor_->AddRoute("radiant.install_trace", [this](rpc::Function const& f) {
+      json::ConstJsonObject args(f.args);
+      std::string uri = args.get<std::string>(0);
+      return http_reactor_->InstallTrace(rpc::Trace(f.caller, f.call_id, uri));
+   });
+   core_reactor_->AddRoute("radiant.remove_trace", [this](rpc::Function const& f) {
+      return core_reactor_->RemoveTrace(rpc::UnTrace(f.caller, f.call_id));
+   });
 }
 
 Client::~Client()
@@ -94,24 +143,23 @@ void Client::run()
    HWND hwnd = renderer.GetWindowHandle();
    //defaultCursor_ = (HCURSOR)GetClassLong(hwnd_, GCL_HCURSOR);
 
-   renderer.SetMouseInputCallback(std::bind(&Client::OnMouseInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-   renderer.SetKeyboardInputCallback(std::bind(&Client::OnKeyboardInput, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-
-   int ui_width = renderer.GetUIWidth();
-   int ui_height = renderer.GetUIHeight();
-   int debug_port = 1338;
+   renderer.SetInputHandler([=](Input const& input) {
+      OnInput(input);
+   });
 
    namespace po = boost::program_options;
    extern po::variables_map configvm;
    std::string loader = configvm["game.loader"].as<std::string>().c_str();
-   json::ConstJsonObject manifest(resources::ResourceManager2::GetInstance().LookupManifest(loader));
+   json::ConstJsonObject manifest(res::ResourceManager2::GetInstance().LookupManifest(loader));
    std::string docroot = "http://radiant/" + manifest.getn("loader").getn("ui").get<std::string>("homepage");
 
    if (configvm["game.script"].as<std::string>() != "stonehearth/new_world.lua") {
       docroot += "?skip_title=true";
    }
 
-   browser_.reset(chromium::CreateBrowser(hwnd, docroot, ui_width, ui_height, debug_port));
+   int screen_width = renderer.GetWidth();
+   int screen_height = renderer.GetHeight();
+   browser_.reset(chromium::CreateBrowser(hwnd, docroot, screen_width, screen_height, 1338));
    browser_->SetCursorChangeCb([=](HCURSOR cursor) {
       if (uiCursor_) {
          DestroyCursor(uiCursor_);
@@ -122,59 +170,50 @@ void Client::run()
          uiCursor_ = NULL;
       }
    });
+  
 
-   auto requestJob = [=](std::string const& uri, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response) {
+   browser_->SetRequestHandler([=](std::string const& uri, JSONNode const& query, std::string const& postdata, rpc::HttpDeferredPtr response) {
       BrowserRequestHandler(uri, query, postdata, response);
-   };
+   });
 
-   auto requestHandler = [=](std::string const& uri, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response) {
-      AddBrowserJob(std::bind(requestJob, uri, query, postdata, response));
+   auto resize_ui_texture = [&](int w, int h) {
+      renderer.SetUITextureSize(w, h);
    };
-   browser_->SetRequestHandler(requestHandler);
+   int ui_width, ui_height;
+   browser_->GetBrowserSize(ui_width, ui_height);
+   browser_->SetBrowserResizeCb(resize_ui_texture);
+   resize_ui_texture(ui_width, ui_height);
 
-   auto onRawInput = [=](RawInputEvent const & re, bool& handled, bool& uninstall) {
-      browser_->OnRawInput(re, handled, uninstall);
+   auto resize_browser = [&](int w, int h) {
+      browser_->OnScreenResize(w, h);
    };
-
-   auto onMouse = [=](MouseEvent const & windowMouse, MouseEvent const & browserMouse, bool& handled, bool& uninstall) {
-      browser_->OnMouseInput(browserMouse, handled, uninstall);
-   };
-   renderer.SetRawInputCallback(onRawInput);
-   renderer.SetMouseInputCallback(onMouse);
-
+   renderer.SetScreenResizeCb(resize_browser);
 
    lua_State* L = scriptHost_->GetInterpreter();
    renderer.SetScriptHost(GetScriptHost());
-   lua::RegisterBasicTypes(L);
    om::RegisterLuaTypes(L);
    csg::RegisterLuaTypes(L);
-   client::RegisterLuaTypes(L);
-   store_.SetInterpreter(L);
-   authoringStore_.SetInterpreter(L);
-   luabind::globals(L)["_client"] = luabind::object(L, this);
+   store_.SetInterpreter(L); // xxx move to dm open or something
+   authoringStore_.SetInterpreter(L); // xxx move to dm open or something
+   lua::om::register_json_to_lua_objects(L, store_);
+   lua::om::register_json_to_lua_objects(L, authoringStore_);
+   lua::client::open(L);
+   lua::rpc::open(L, core_reactor_);
+
+
+   //luabind::globals(L)["_client"] = luabind::object(L, this);
 
    json::ConstJsonObject::RegisterLuaType(L);
 
    // this locks down the environment!  all types must be registered by now!!
-   scriptHost_->LuaRequire("/radiant/client.lua");
-   auto& rm = resources::ResourceManager2::GetInstance();
-   for (std::string const& modname : rm.GetModuleNames()) {
-      try {
-         json::ConstJsonObject manifest = rm.LookupManifest(modname);
-         json::ConstJsonObject const& block = manifest.getn("client");
-         if (!block.empty()) {
-            LOG(WARNING) << "loading init script for " << modname << "...";
-            LoadModuleInitScript(block);
-            LoadModuleRoutes(modname, block);
-         }
-      } catch (std::exception const& e) {
-         LOG(WARNING) << "load failed: " << e.what();
-      }
-   }
+   scriptHost_->Require("radiant.client");
 
+#if 0
+   // xxx: use Call on the reactor for this stuff...
    _commands[GLFW_KEY_F9] = std::bind(&Client::EvalCommand, this, "radiant.toggle_debug_nodes");
    _commands[GLFW_KEY_F3] = std::bind(&Client::EvalCommand, this, "radiant.toggle_step_paths");
    _commands[GLFW_KEY_F4] = std::bind(&Client::EvalCommand, this, "radiant.step_paths");
+#endif
    _commands[GLFW_KEY_ESC] = [=]() {
       currentCursor_ = NULL;
    };
@@ -182,6 +221,7 @@ void Client::run()
    // _commands[VK_NUMPAD0] = std::shared_ptr<command>(new command_build_blueprint(*_proxy_manager, *_renderer, 500));
 
    setup_connections();
+   InitializeModules();
 
    _client_interval_start = platform::get_current_time_in_ms();
    _server_last_update_time = 0;
@@ -198,30 +238,34 @@ void Client::run()
    }
 }
 
+void Client::InitializeModules()
+{
+   auto& rm = res::ResourceManager2::GetInstance();
+   for (std::string const& modname : rm.GetModuleNames()) {
+      try {
+         json::ConstJsonObject manifest = rm.LookupManifest(modname);
+         json::ConstJsonObject const& block = manifest.getn("client");
+         if (!block.empty()) {
+            LOG(WARNING) << "loading init script for " << modname << "...";
+            LoadModuleInitScript(block);
+         }
+      } catch (std::exception const& e) {
+         LOG(WARNING) << "load failed: " << e.what();
+      }
+   }
+}
+
 void Client::LoadModuleInitScript(json::ConstJsonObject const& block)
 {
    std::string filename = block.get<std::string>("init_script");
    if (!filename.empty()) {
-      scriptHost_->LuaRequire(filename);
+      scriptHost_->RequireScript(filename);
    }
 }
 
 static std::string SanatizePath(std::string const& path)
 {
-   std::vector<std::string> s;
-   boost::split(s, path, boost::is_any_of("/"));
-   s.erase(std::remove(s.begin(), s.end(), ""), s.end());
-   return std::string("/") + boost::algorithm::join(s, "/");
-}
-
-void Client::LoadModuleRoutes(std::string const& modname, json::ConstJsonObject const& block)
-{
-   resources::ResourceManager2 &rm = resources::ResourceManager2::GetInstance();
-   for (auto const& node : block.getn("request_handlers")) {
-      std::string const& uri_path = SanatizePath("/modules/client/" + modname + "/" + node.name());
-      std::string const& lua_path = node.as_string();
-      clientRoutes_[uri_path] = scriptHost_->LuaRequire(lua_path);
-   }
+   return std::string("/") + strutil::join(strutil::split(path, "/"), "/");
 }
 
 void Client::handle_connect(const boost::system::error_code& error)
@@ -230,14 +274,15 @@ void Client::handle_connect(const boost::system::error_code& error)
       LOG(WARNING) << "connection to server failed (" << error << ").  retrying...";
       setup_connections();
    } else {
-      recv_queue_ = std::make_shared<protocol::RecvQueue>(_tcp_socket);
-      send_queue_ = protocol::SendQueue::Create(_tcp_socket);
       recv_queue_->Read();
    }
 }
 
 void Client::setup_connections()
 {
+   recv_queue_ = std::make_shared<protocol::RecvQueue>(_tcp_socket);
+   send_queue_ = protocol::SendQueue::Create(_tcp_socket);
+
    boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string("127.0.0.1"), 8888);
    _tcp_socket.async_connect(endpoint, std::bind(&Client::handle_connect, this, std::placeholders::_1));
 }
@@ -255,7 +300,7 @@ void Client::mainloop()
    alpha = std::min(1.0f, std::max(alpha, 0.0f));
    now_ = (int)(_server_last_update_time + (_server_interval_duration * alpha));
 
-   FlushEvents();
+   http_reactor_->FlushEvents();
    if (browser_) {
       auto cb = [](const csg::Region2 &rgn, const char* buffer) {
          Renderer::GetInstance().UpdateUITexture(rgn, buffer);
@@ -303,27 +348,8 @@ void Client::Reset()
    objects_.clear();
 }
 
-bool Client::ProcessRequestReply(const proto::Update& msg)
-{
-   int reply_id = msg.reply_id();
-   if (reply_id == 0) {
-      return false;
-   }
-
-   auto i = server_requests_.find(reply_id);
-   if (i != server_requests_.end()) {
-      i->second(msg);
-      server_requests_.erase(i);
-   }
-   return true;
-}
-
 bool Client::ProcessMessage(const proto::Update& msg)
 {
-   if (ProcessRequestReply(msg)) {
-      return true;
-   }
-
 #define DISPATCH_MSG(MsgName) \
    case proto::Update::MsgName: \
       MsgName(msg.GetExtension(proto::MsgName::extension)); \
@@ -337,12 +363,17 @@ bool Client::ProcessMessage(const proto::Update& msg)
       DISPATCH_MSG(UpdateObject);
       DISPATCH_MSG(RemoveObjects);
       DISPATCH_MSG(UpdateDebugShapes);
-      DISPATCH_MSG(DefineRemoteObject);
+      DISPATCH_MSG(PostCommandReply);
    default:
       ASSERT(false);
    }
 
    return true;
+}
+
+void Client::PostCommandReply(const proto::PostCommandReply& msg)
+{
+   protobuf_router_->OnPostCommandReply(msg);
 }
 
 void Client::BeginUpdate(const proto::BeginUpdate& msg)
@@ -373,18 +404,6 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
    store_.FireTraces();
 }
 
-void Client::QueueEvent(std::string type, JSONNode payload)
-{
-   JSONNode e(JSON_NODE);
-   e.push_back(JSONNode("type", type));
-   e.push_back(JSONNode("when", now_));
-
-   payload.set_name("data");
-   e.push_back(payload);
-
-   queued_events_.push_back(e);
-}
-
 void Client::SetServerTick(const proto::SetServerTick& msg)
 {
    int now = msg.now();
@@ -398,14 +417,9 @@ void Client::AllocObjects(const proto::AllocObjects& update)
 
    for (const proto::AllocObjects::Entry& entry : msg) {
       dm::ObjectId id = entry.object_id();
-
-      // Some objects are created and registered by other objects, so
-      // this 
-      // LOG(WARNING) << "Allocating new client object " << id;
       ASSERT(!store_.FetchStaticObject(id));
 
-      dm::ObjectPtr obj = store_.AllocSlaveObject(entry.object_type(), id); //om::AllocObject(entry.object_type(), store_);
-      objects_[id] = obj;
+      objects_[id] = store_.AllocSlaveObject(entry.object_type(), id);
    }
 }
 
@@ -457,32 +471,6 @@ void Client::UpdateDebugShapes(const proto::UpdateDebugShapes& msg)
    Renderer::GetInstance().DecodeDebugShapes(msg.shapelist());
 }
 
-void Client::DefineRemoteObject(const proto::DefineRemoteObject& msg)
-{
-   std::string const &key = msg.uri();
-   std::string const &value = msg.object_uri();
-
-   if (value.empty()) { 
-      auto i = serverRemoteObjects_.find(key);
-      if (i != serverRemoteObjects_.end()) {
-         serverRemoteObjects_.erase(i);
-      }
-   } else {
-      serverRemoteObjects_[key] = value;
-      auto i = deferredObjectTraces_.find(key);
-      if (i != deferredObjectTraces_.end()) {
-         auto deferred = i->second.lock();
-         if (deferred) {
-            dm::ObjectPtr obj = om::ObjectFormatter().GetObject(store_, value);
-            if (obj) {
-               deferred->Reset(obj);
-            }
-         }
-         deferredObjectTraces_.erase(i);
-      }
-   }
-}
-
 void Client::process_messages()
 {
    PROFILE_BLOCK();
@@ -513,37 +501,101 @@ void Client::update_interpolation(int time)
    _client_interval_start = platform::get_current_time_in_ms();
 }
 
-void Client::OnMouseInput(const MouseEvent &windowMouse, const MouseEvent &browserMouse, bool &handled, bool &uninstall)
-{
-   bool hovering_on_brick = false;
+void Client::OnInput(Input const& input) {
+   try {
+      if (input.type == Input::MOUSE) {
+         OnMouseInput(input);
+      } else if (input.type == Input::KEYBOARD) {
+         OnKeyboardInput(input);
+      } else if (input.type == Input::RAW_INPUT) {
+         OnRawInput(input);
+      }
+   } catch (std::exception &e) {
+      LOG(WARNING) << "error dispatching input: " << e.what();
+   }
+}
 
-   if (browser_->HasMouseFocus()) {
-      // xxx: not quite right...
+void Client::OnMouseInput(Input const& input)
+{
+   bool handled = false, uninstall = false;
+
+   mouse_x_ = input.mouse.x;
+   mouse_y_ = input.mouse.y;
+   if (browser_->HasMouseFocus(input.mouse.x, input.mouse.y)) {
+      browser_->OnInput(input); // not quite right...
       return;
    }
 
-   auto i = mouseEventPromises_.begin();
-   while (!handled && i != mouseEventPromises_.end()) {
-      auto promise = i->lock();
-      if (promise && promise->IsActive()) {
-         promise->OnMouseEvent(windowMouse, handled);
-         i++;
-      } else {
-         i = mouseEventPromises_.erase(i);
-      }
-   }
-
-   if (!handled) {
-      if (rootObject_ && windowMouse.up[0]) {
+   if (!CallInputHandlers(input)) {
+      if (rootObject_ && input.mouse.up[0]) {
          LOG(WARNING) << "updating selection...";
-         UpdateSelection(windowMouse);
-      } else if (windowMouse.up[2]) {
-         CenterMap(windowMouse);
+         UpdateSelection(input.mouse);
+      } else if (input.mouse.up[2]) {
+         CenterMap(input.mouse);
       }
    }
 }
 
-void Client::CenterMap(const MouseEvent &mouse)
+void Client::OnKeyboardInput(Input const& input)
+{
+   if (input.keyboard.down) {
+      auto i = _commands.find(input.keyboard.key);
+      if (i != _commands.end()) {
+         i->second();
+         return;
+      }
+   }
+   browser_->OnInput(input);
+   CallInputHandlers(input);
+}
+
+void Client::OnRawInput(Input const& input)
+{
+   browser_->OnInput(input);
+   CallInputHandlers(input);
+}
+
+
+Client::InputHandlerId Client::AddInputHandler(InputHandlerCb const& cb)
+{
+   InputHandlerId id = ReserveInputHandler();
+   SetInputHandler(id, cb);
+   return id;
+}
+
+void Client::SetInputHandler(InputHandlerId id, InputHandlerCb const& cb)
+{
+   input_handlers_.emplace_back(std::make_pair(id, cb));
+}
+
+Client::InputHandlerId Client::ReserveInputHandler() {
+   return next_input_id_++;
+}
+
+void Client::RemoveInputHandler(InputHandlerId id)
+{
+   auto i = input_handlers_.begin();
+   while (i != input_handlers_.end()) {
+      if (i->first == id) {
+         input_handlers_.erase(i);
+         break;
+      }
+   }
+};
+
+bool Client::CallInputHandlers(Input const& input)
+{
+   auto handlers = input_handlers_;
+   for (int i = (int)handlers.size() - 1; i >= 0; i--) {
+      const auto& cb = handlers[i].second;
+      if (cb && cb(input)) {
+         return true;
+      }
+   }
+   return false;
+}
+
+void Client::CenterMap(const MouseInput &mouse)
 {
    om::Selection s;
 
@@ -553,7 +605,7 @@ void Client::CenterMap(const MouseEvent &mouse)
    }
 }
 
-void Client::UpdateSelection(const MouseEvent &mouse)
+void Client::UpdateSelection(const MouseInput &mouse)
 {
    om::Selection s;
    Renderer::GetInstance().QuerySceneRay(mouse.x, mouse.y, s);
@@ -603,18 +655,6 @@ void Client::UpdateSelection(const MouseEvent &mouse)
 }
 
 
-// xxx: move this crap into a separate class
-void Client::OnKeyboardInput(const KeyboardEvent &e, bool &handled, bool &uninstall)
-{
-   if (e.down) {
-      auto i = _commands.find(e.key);
-      if (i != _commands.end()) {
-         i->second();
-         return;
-      }
-   }
-}
-
 void Client::SelectEntity(dm::ObjectId id)
 {
    auto i = objects_.find(id);
@@ -652,33 +692,8 @@ void Client::SelectEntity(om::EntityPtr obj)
          std::string uri = om::ObjectFormatter().GetPathToObject(selectedObject_);
          data.push_back(JSONNode("selected_entity", uri));
       }
-      QueueEvent("selection_changed.radiant", data);
+      http_reactor_->QueueEvent("selection_changed.radiant", data);
    }
-}
-
-void Client::PushServerRequest(proto::Request& msg, ServerReplyCb replyCb)
-{
-   int id = ++last_server_request_id_;
-   msg.set_request_id(id);
-   server_requests_[id] = replyCb;
-
-   send_queue_->Push(msg);
-}
-
-void Client::EvalCommand(std::string cmd)
-{
-   auto reply = [=](tesseract::protocol::Update const& msg) {
-      proto::ScriptCommandReply const& reply = msg.GetExtension(proto::ScriptCommandReply::extension);
-      LOG(WARNING) << reply.result();
-   };
-
-   proto::Request msg;
-   msg.set_type(proto::Request::ScriptCommandRequest);
-   
-   proto::ScriptCommandRequest* request = msg.MutableExtension(proto::ScriptCommandRequest::extension);
-   request->set_cmd(cmd);
-
-   PushServerRequest(msg, reply);
 }
 
 om::EntityPtr Client::GetEntity(dm::ObjectId id)
@@ -691,7 +706,7 @@ void Client::InstallCursor()
 {
    if (browser_) {
       HCURSOR cursor;
-      if (browser_->HasMouseFocus()) {
+      if (browser_->HasMouseFocus(mouse_x_, mouse_y_)) {
          cursor = uiCursor_;
       } else {
          cursor = NULL;
@@ -772,306 +787,81 @@ void Client::SetCursor(std::string name)
    }
 }
 
-static void HandleFileRequest(std::string const& path, std::shared_ptr<net::IResponse> response)
+rpc::ReactorDeferredPtr Client::GetModules(rpc::Function const& fn)
 {
-   static const struct {
-      char *extension;
-      char *mimeType;
-   } mimeTypes_[] = {
-      { "htm",  "text/html" },
-      { "html", "text/html" },
-      {  "css",  "text/css" },
-      { "less",  "text/css" },
-      { "js",   "application/x-javascript" },
-      { "json", "application/json" },
-      { "txt",  "text/plain" },
-      { "jpg",  "image/jpeg" },
-      { "png",  "image/png" },
-      { "gif",  "image/gif" },
-      { "woff", "application/font-woff" },
-      { "cur",  "image/vnd.microsoft.icon" },
-   };
-   std::ifstream infile;
-   auto const& rm = resources::ResourceManager2::GetInstance();
-
-   std::string data;
-   try {
-      if (boost::ends_with(path, ".json")) {
-         JSONNode const& node = rm.LookupJson(path);
-         data = node.write();
-      } else {
-         rm.OpenResource(path, infile);
-         data = io::read_contents(infile);
-      }
-   } catch (resources::Exception const& e) {
-      LOG(WARNING) << "error code 404: " << e.what();
-      response->SetResponse(404);
-      return;
-   }
-
-
-   // Determine the file extension.
-   std::string mimeType;
-   std::size_t last_dot_pos = path.find_last_of(".");
-   if (last_dot_pos != std::string::npos) {
-      std::string extension = path.substr(last_dot_pos + 1);
-      for (auto &entry : mimeTypes_) {
-         if (extension == entry.extension) {
-            mimeType = entry.mimeType;
-            break;
-         }
-      }
-   }
-   ASSERT(!mimeType.empty());
-   response->SetResponse(200, data, mimeType);
-}
-
-void Client::HandleClientRouteRequest(luabind::object ctor, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response)
-{
-   // convert the json query data to a lua table...
-   try {
-      using namespace luabind;
-      lua_State* L = scriptHost_->GetCallbackState();
-      object queryObj = lua::JsonToLua(L, query);
-      object coder = globals(L)["radiant"]["json"];
-
-      object obj = scriptHost_->CallFunction<object>(ctor);
-      object fn = obj["handle_request"];
-      auto i = query.find("fn");
-      if (i != query.end() && i->type() == JSON_STRING) {
-         std::string fname = i->as_string();
-         if (!fname.empty())  {
-            fn = obj[fname];
-         }
-      }
-      std::shared_ptr<LuaResponse> luaResponse = std::make_shared<LuaResponse>(GetScriptHost(), response);
-      object result = scriptHost_->CallFunction<object>(fn, obj, queryObj, postdata, luaResponse);
-      if (type(result) == LUA_TTABLE) {
-         luaResponse->Complete(result);
-      }
-   } catch (std::exception &e) {
-      JSONNode result;
-      result.push_back(JSONNode("error", e.what()));
-      response->SetResponse(500, result.write(), "application/json");
-   }
-}
-
-void Client::HandlePostRequest(std::string const& path, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response)
-{
-   auto replyCb = [=](tesseract::protocol::Update const& msg) {
-      proto::PostCommandReply const& reply = msg.GetExtension(proto::PostCommandReply::extension);
-      response->SetResponse(reply.status_code(), reply.content(), reply.mime_type());
-   };
-   proto::Request msg;
-   msg.set_type(proto::Request::PostCommandRequest);
-   
-   proto::PostCommandRequest* request = msg.MutableExtension(proto::PostCommandRequest::extension);
-   request->set_path(path);
-   request->set_data(postdata);
-   if (!query.empty()) {
-      request->set_query(query.write());
-   }
-   PushServerRequest(msg, replyCb);
-}
-
-void Client::GetEvents(JSONNode const& query, std::shared_ptr<net::IResponse> response)
-{
-   if (get_events_request_) {
-      get_events_request_->SetResponse(504);
-   }
-   get_events_request_ = response;
-   FlushEvents();
-}
-
-void Client::GetModules(JSONNode const& query, std::shared_ptr<net::IResponse> response)
-{
+   rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>(fn.route);
    JSONNode result;
-   auto& rm = resources::ResourceManager2::GetInstance();
+   auto& rm = res::ResourceManager2::GetInstance();
    for (std::string const& modname : rm.GetModuleNames()) {
       JSONNode manifest;
       try {
-         manifest = rm.LookupManifest(modname);
+         manifest = rm.LookupManifest(modname).GetNode();
       } catch (std::exception const&) {
          // Just use an empty manifest...f
       }
       manifest.set_name(modname);
       result.push_back(manifest);
    }
-   response->SetResponse(200, result.write(), "application/json");
+   d->Resolve(result);
+   return d;
 }
 
-void Client::TraceUri(JSONNode const& query, std::shared_ptr<net::IResponse> response)
+// This function is called on the chrome thread!
+void Client::BrowserRequestHandler(std::string const& path, json::ConstJsonObject const& query, std::string const& postdata, rpc::HttpDeferredPtr response)
 {
-   json::ConstJsonObject args(query);
-
-   if (args.get<bool>("create")) {
-      std::string uri = args.get<std::string>("uri");
-
-      auto i = serverRemoteObjects_.find(uri);
-      if (i != serverRemoteObjects_.end()) {
-         uri = i->second;
-      } else {
-         auto i = clientRemoteObjects_.find(uri);
-         if (i != clientRemoteObjects_.end()) {
-            uri = i->second;
+   try {
+      // file requests can be dispatched immediately.
+      if (!boost::starts_with(path, "/r/")) {
+         int code;
+         std::string content, mimetype;
+         if (http_reactor_->HttpGetFile(path, code, content, mimetype)) {
+            response->Resolve(rpc::HttpResponse(code, content, mimetype));
+         } else {
+            response->Reject(rpc::HttpError(code, content));
          }
-      }
-
-      if (!TraceObjectUri(uri, response)) {
-         TraceFileUri(uri, response);
-      }
-   } else {
-      dm::TraceId traceId = args.get<int>("trace_id");
-      uriTraces_.erase(traceId);
-   }
-}
-
-
-TraceObjectDeferredPtr Client::TraceObject(std::string const& uri, const char* reason)
-{
-   std::string path = uri;
-   TraceObjectDeferredPtr result;
-
-   auto i = serverRemoteObjects_.find(path);
-   if (i != serverRemoteObjects_.end()) {
-      path = i->second;
-   } else {
-      auto i = clientRemoteObjects_.find(path);
-      if (i != clientRemoteObjects_.end()) {
-         path = i->second;
-      }
-   }
-   om::ObjectFormatter of;
-   dm::ObjectPtr obj = of.GetObject(store_, path);
-   if (!obj) {
-      obj = of.GetObject(authoringStore_, path);
-   }
-   // xxx: this can be greatly improved... but is OK for now, right?
-   if (obj) {
-      result = std::make_shared<TraceObjectDeferred>(obj, reason);
-   } else {
-      if (boost::starts_with(uri, "/server/objects") || boost::starts_with(uri, "/client/objects")) {
-         result = std::make_shared<TraceObjectDeferred>(obj, reason);
-         deferredObjectTraces_[uri] = result;
-      }
-   }
-   return result;
-}
-
-typedef LuaDeferred1<TraceObjectDeferred> LuaTraceObjectDeferred;
-typedef std::shared_ptr<LuaTraceObjectDeferred> LuaTraceObjectDeferredPtr;
-typedef std::weak_ptr<LuaTraceObjectDeferred> LuaTraceObjectDeferredRef;
-
-LuaTraceObjectDeferredPtr Client_TraceObject(Client& client, std::string const& uri, const char* reason)
-{
-   TraceObjectDeferredPtr deferred = client.TraceObject(uri, reason);
-   if (!deferred) {
-      return nullptr;
-   }
-   auto encode = [](dm::ObjectRef o) -> luabind::object {
-      luabind::object result;
-      dm::ObjectPtr obj = o.lock();
-      ASSERT(obj->GetObjectType() == om::DataBindingObjectType);
-      if (obj  && obj->GetObjectType() == om::DataBindingObjectType) {
-         om::DataBindingPtr p = std::static_pointer_cast<om::DataBinding>(obj);
-         result = p->GetDataObject();
-      }
-      return result;
-   };
-   return std::make_shared<LuaTraceObjectDeferred>(client.GetScriptHost(), deferred, encode);
-}
-
-bool Client::TraceObjectUri(std::string const& uri, std::shared_ptr<net::IResponse> response)
-{
-   om::ObjectFormatter of;
-
-   dm::ObjectPtr obj = of.GetObject(store_, uri);
-   if (!obj) {
-      obj = of.GetObject(authoringStore_, uri);
-   }
-   if (!obj) {
-      return false;
-   }
-
-   int traceId = nextTraceId_++;
-   std::weak_ptr<dm::Object> o = obj;
-
-   auto createResponse = [traceId, uri, o]() -> JSONNode {
-      JSONNode node;
-      node.push_back(JSONNode("trace_id", traceId));
-      node.push_back(JSONNode("uri",      uri));
-      auto obj = o.lock();
-      if (obj) {
-         JSONNode data = om::ObjectFormatter().ObjectToJson(obj);
-         data.set_name("data");
-         node.push_back(data);
-      }
-      return node;
-   };
-
-   auto objectChanged = [this, createResponse]() {
-      QueueEvent("radiant.trace_fired", createResponse());
-   };
-
-   uriTraces_[traceId] = obj->TraceObjectChanges("tracing uri", objectChanged);
-   JSONNode res = createResponse();
-   response->SetResponse(200, res.write(), "application/json");
-   return true;
-}
-
-void Client::TraceFileUri(std::string const& uri, std::shared_ptr<net::IResponse> response)
-{
-   if (boost::ends_with(uri, ".json")) {
-      auto const& rm = resources::ResourceManager2::GetInstance();
-      JSONNode data = rm.LookupJson(uri);
-
-      JSONNode node;
-      int traceId = nextTraceId_++;
-      node.push_back(JSONNode("trace_id", traceId));
-      node.push_back(JSONNode("uri",      uri));
-      data.set_name("data");
-      node.push_back(data);
-      response->SetResponse(200, node.write(), "application/json");
-      return;
-   }
-   LOG(WARNING) << "attempting to trace non-json uri " << uri << " NOT IMPLEMENTED!!! Returning 404";
-   response->SetResponse(404, "", "");
-}
-
-void Client::FlushEvents()
-{
-   if (get_events_request_ && !queued_events_.empty()) {
-      JSONNode events(JSON_ARRAY);
-      for (const auto& e : queued_events_) {
-         events.push_back(e);
-      }
-      queued_events_.clear();
-      get_events_request_->SetResponse(200, events.write(), "application/json");
-      get_events_request_ = nullptr;
-   }
-}
-
-void Client::BrowserRequestHandler(std::string const& path, JSONNode const& query, std::string const& postdata, std::shared_ptr<net::IResponse> response)
-{
-   auto i = clientRoutes_.find(path);
-   if (i != clientRoutes_.end()) {
-      HandleClientRouteRequest(i->second, query, postdata, response);
-      return;
-   }
-
-   if (postdata.empty()) {
-      if (boost::starts_with(path, "/api/events")) {
-         GetEvents(query, response);         
-      } else if (boost::starts_with(path, "/api/trace")) {
-         TraceUri(query, response);
-      } else if (boost::starts_with(path, "/api/get_modules")) {
-         GetModules(query, response);
       } else {
-         HandleFileRequest(path, response);
+         std::lock_guard<std::mutex> guard(browserJobQueueLock_);
+         browserJobQueue_.emplace_back([=]() {
+            CallHttpReactor(path, query, postdata, response);
+         });
       }
-   } else {
-      HandlePostRequest(path, query, postdata, response);
+   } catch (std::exception &e) {
+      JSONNode fail;
+      fail.push_back(JSONNode("error", e.what()));
+      response->Reject(rpc::HttpError(500, fail.write()));
    }
+}
+
+void Client::CallHttpReactor(std::string path, json::ConstJsonObject query, std::string postdata, rpc::HttpDeferredPtr response)
+{
+   JSONNode node;
+   int status = 404;
+   rpc::ReactorDeferredPtr d;
+
+   static std::regex call_path("/r/call/?");
+   std::smatch match;
+   if (std::regex_match(path, match, call_path)) {
+      d = http_reactor_->Call(query, postdata);
+   }
+   if (!d) {
+      response->Reject(rpc::HttpError(500, BUILD_STRING("failed to dispatch " << query)));
+      return;
+   }
+   d->Progress([response](JSONNode n) {
+      LOG(WARNING) << "error: got progress from deferred meant for rpc::HttpDeferredPtr! (logical error)";
+      JSONNode result;
+      n.set_name("data");
+      result.push_back(JSONNode("error", "incomplete response"));
+      result.push_back(n);
+      response->Reject(rpc::HttpError(500, result.write()));
+   });
+   d->Done([response](JSONNode const& n) {
+      response->Resolve(rpc::HttpResponse(200, n.write(), "application/json"));
+   });
+   d->Fail([response](JSONNode const& n) {
+      response->Reject(rpc::HttpError(500, n.write()));
+   });
+   return;
 }
 
 om::EntityPtr Client::CreateEmptyAuthoringEntity()
@@ -1104,18 +894,6 @@ void Client::DestroyAuthoringEntity(dm::ObjectId id)
    }
 }
 
-MouseEventPromisePtr Client::TraceMouseEvents()
-{
-   MouseEventPromisePtr result = std::make_shared<MouseEventPromise>();
-   mouseEventPromises_.push_back(result);
-   return result;
-}
-
-void Client::AddBrowserJob(std::function<void()> fn)
-{
-   std::lock_guard<std::mutex> guard(browserJobQueueLock_);
-   browserJobQueue_.push_back(fn);
-}
 
 void Client::ProcessBrowserJobQueue()
 {
@@ -1124,189 +902,4 @@ void Client::ProcessBrowserJobQueue()
       fn();
    }
    browserJobQueue_.clear();
-}
-
-
-void client::RegisterLuaTypes(lua_State* L)
-{
-   LuaRenderer::RegisterType(L);
-   LuaRenderEntity::RegisterType(L);
-   Client::RegisterLuaTypes(L);
-}
-
-MouseEventPromisePtr MouseEventPromise_OnMouseEvent(MouseEventPromisePtr me, luabind::object cb)
-{
-   lua::ScriptHost* host = Client::GetInstance().GetScriptHost();
-
-   using namespace luabind;
-   me->TraceMouseEvent([=](const MouseEvent &e) -> bool {
-      object result = host->CallFunction<object>(cb, e);
-      return type(result) == LUA_TBOOLEAN && object_cast<bool>(result);
-   });
-   return me;
-}
-
-void MouseEventPromise_Destroy(MouseEventPromisePtr me)
-{
-   me->Uninstall();
-}
-
-static luabind::object
-Client_QueryScene(lua_State* L, Client const&, int x, int y)
-{
-   om::Selection s;
-   Renderer::GetInstance().QuerySceneRay(x, y, s);
-
-   using namespace luabind;
-   object result = newtable(L);
-   if (s.HasBlock()) {
-      result["location"] = object(L, s.GetBlock());
-      result["normal"]   = object(L, csg::ToInt(s.GetNormal()));
-   }
-   return result;
-}
-
-std::weak_ptr<RenderEntity> Client_CreateRenderEntity(Client& c, H3DNode parent, luabind::object arg)
-{
-   om::EntityPtr entity;
-   std::weak_ptr<RenderEntity> result;
-
-   if (luabind::type(arg) == LUA_TSTRING) {
-      // arg is a path to an object (e.g. /objects/3).  If this leads to a Entity, we're all good
-      std::string path = luabind::object_cast<std::string>(arg);
-      dm::Store& store = Client::GetInstance().GetStore();
-      dm::ObjectPtr obj =  om::ObjectFormatter().GetObject(store, path);
-      if (obj && obj->GetObjectType() == om::Entity::DmType) {
-         entity = std::static_pointer_cast<om::Entity>(obj);
-      }
-   } else {
-      try {
-         entity = luabind::object_cast<om::EntityRef>(arg).lock();
-      } catch (luabind::cast_failed&) {
-      }
-   }
-   if (entity) {
-      result = Renderer::GetInstance().CreateRenderObject(parent, entity);
-   }
-   return result;
-}
-
-
-static bool MouseEvent_GetUp(MouseEvent const& me, int button)
-{
-   button--;
-   if (button >= 0 && button < sizeof(me.up)) {
-      return me.up[button];
-   }
-   return false;
-}
-
-static bool MouseEvent_GetDown(MouseEvent const& me, int button)
-{
-   button--;
-   if (button >= 0 && button < sizeof(me.down)) {
-      return me.down[button];
-   }
-   return false;
-}
-
-std::shared_ptr<LuaDeferred1<DeferredResponse>> Client_Call(lua_State* L, Client& c, std::string const& uri, std::string fn, luabind::object postdataObject)
-{
-   std::shared_ptr<DeferredResponse> response = std::make_shared<DeferredResponse>();
-   try {
-      using namespace luabind;
-
-      JSONNode query;
-      query.push_back(JSONNode("fn", fn));
-
-      lua::ScriptHost* scriptHost = Client::GetInstance().GetScriptHost();
-      lua_State* L = scriptHost->GetCallbackState();
-      object coder = globals(L)["radiant"]["json"];
-      std::string postdata = scriptHost->CallFunction<std::string>(coder["encode"], postdataObject);
-
-      c.BrowserRequestHandler(uri, query, postdata, response);
-   } catch (std::exception const& e) {
-      JSONNode result;
-      result.push_back(JSONNode("error", e.what()));
-      response->SetResponse(500, result.write(), "application/json");
-   }
-   return std::make_shared<LuaDeferred1<DeferredResponse>>(c.GetScriptHost(), response);
-}
-
-bool Client_IsBlocked(lua_State* L, Client& c, csg::Point3 const& pt)
-{
-   return !c.GetOctTree().CanStand(pt);
-}
-
-std::shared_ptr<LuaDeferred2<XZRegionSelector::Deferred>> Client_SelectXZRegion(lua_State* L, Client& c)
-{
-   auto s = std::make_shared<XZRegionSelector>(c.GetTerrain());
-   auto deferred = s->Activate();
-   auto luaDeferred = std::make_shared<LuaDeferred2<XZRegionSelector::Deferred>>(c.GetScriptHost(), deferred);
-   return luaDeferred;
-}
-
-om::EntityRef Client_CreateEmptyAuthoringEntity(Client& client)
-{
-   return client.CreateEmptyAuthoringEntity();
-}
-
-om::EntityRef Client_CreateAuthoringEntity(Client& client, std::string const& mod_name, std::string const& entity_name)
-{
-   return client.CreateAuthoringEntity(mod_name, entity_name);
-}
-
-om::EntityRef Client_CreateAuthoringEntityByRef(Client& client, std::string const& ref)
-{
-   return client.CreateAuthoringEntityByRef(ref);
-}
-
-template <class T>
-luabind::scope RegisterLuaDeferredType(lua_State* L)
-{
-   return
-      lua::RegisterTypePtr<T>()
-         .def("done",     &T::LuaDone)
-         .def("progress", &T::LuaProgress)
-         .def("fail",     &T::LuaFail)
-         .def("always",   &T::LuaAlways);
-}
-
-void Client::RegisterLuaTypes(lua_State* L)
-{
-   using namespace luabind;
-   module(L) [
-      lua::RegisterType<Client>()
-         .def("create_empty_authoring_entity",  &Client_CreateEmptyAuthoringEntity)
-         .def("create_authoring_entity",        &Client_CreateAuthoringEntity)
-         .def("create_authoring_entity_by_ref", &Client_CreateAuthoringEntityByRef)
-         .def("destroy_authoring_entity", &Client::DestroyAuthoringEntity)
-         .def("create_render_entity",     &Client_CreateRenderEntity)
-         .def("trace_mouse",              &Client::TraceMouseEvents)
-         .def("trace_object",             &Client_TraceObject)
-         .def("query_scene",              &Client_QueryScene)
-         .def("is_blocked",               &Client_IsBlocked)
-         .def("select_xz_region",         &Client_SelectXZRegion)
-         .def("call",                     &Client_Call)
-      ,
-      lua::RegisterTypePtr<MouseEventPromise>()
-         .def("on_mouse_event",     &MouseEventPromise_OnMouseEvent)
-         .def("destroy",            &MouseEventPromise_Destroy)
-      ,
-      lua::RegisterType<MouseEvent>()
-         .def_readonly("x",       &MouseEvent::x)
-         .def_readonly("y",       &MouseEvent::y)
-         .def_readonly("wheel",   &MouseEvent::wheel)
-         .def("up",               &MouseEvent_GetUp)
-         .def("down",             &MouseEvent_GetDown)
-      ,
-      RegisterLuaDeferredType<LuaDeferred1<DeferredResponse>>(L)
-      ,
-      RegisterLuaDeferredType<LuaDeferred2<XZRegionSelector::Deferred>>(L)
-      ,
-      RegisterLuaDeferredType<LuaTraceObjectDeferred>(L)
-      ,
-      lua::RegisterTypePtr<LuaResponse>()
-         .def("complete",        &LuaResponse::Complete)
-   ];
 }

@@ -1,151 +1,225 @@
 #ifndef _RADIANT_CORE_DEFERRED_H
 #define _RADIANT_CORE_DEFERRED_H
 
-#include <libjson.h>
-#include "namespace.h"
+#include <vector>
+#include <atomic>
+#include <memory>
+#include <sstream>
+#include "ipromise.h"
+#include "radiant_logger.h"
+#include "radiant_macros.h"
 
 BEGIN_RADIANT_CORE_NAMESPACE
 
-template <class Derived, typename DerivedCompleteFn>
-class Deferred
+class DeferredBase {
+public:
+   DeferredBase() : id_(next_deferred_id_++) { };
+   DeferredBase(std::string const& dbg_name) : dbg_name_(dbg_name), id_(next_deferred_id_++) {
+      LOG(INFO) << LogPrefix() << "creating new deferred";
+   };
+   ~DeferredBase() {
+      LOG(INFO) << LogPrefix() << "deferred destroyed";
+   }
+
+   std::string LogPrefix() const {
+      std::ostringstream os;
+      os << "[deferred " << id_ << " ";
+      if (!dbg_name_.empty()) {
+         os << "'" << dbg_name_ << "'";
+      }
+      os << "] ";
+      return os.str();
+   }
+
+   std::string GetDebugStr() const { return dbg_name_; }
+
+protected:
+   typedef int DeferredId;
+   static std::atomic<DeferredId> next_deferred_id_;
+
+protected:
+   std::string             dbg_name_;
+   DeferredId              id_;
+};
+
+template <typename CompleteT, typename FailT>
+class Deferred :
+   public DeferredBase,
+   public IPromise<CompleteT, FailT>
 {
 public:
-   Deferred() : state_(Waiting) {}
+   Deferred(std::string const& dbg_name) : DeferredBase(dbg_name), state_(Initialized) { }
+
+   Deferred() : DeferredBase(), state_(Initialized) {
+      LOG(INFO) << LogPrefix() << "creating new deferred";
+   }
+
    ~Deferred() {
-      if (state_ == Waiting) {
-         JSONNode error;
-         error.push_back(JSONNode("error", "deferred destroyed without reporting success or failure"));
-         Reject(error);
+      if (IsPending()) {
+         LOG(INFO) << LogPrefix() << "rejecting deferred being destroying in wait state (this is probably an error!)";
+         Reject(error_);
       }
    }
 
-   typedef std::function<void()> VoidFn;
-   typedef std::function<void(JSONNode const&)> FailFn;
-   typedef std::function<void(typename DerivedCompleteFn)> CompleteDelegateFn;
-
-public:   // the promise...
-   void Done(typename DerivedCompleteFn cb) {
+public: // the promise...
+   void Done(CompleteFn cb) override {
       if (state_ == Resolved) {
-         doneDelegate_(cb);
-      } else if (state_ == Waiting) {
+         LOG(INFO) << LogPrefix() << "done called while resolved. firing cb.";
+         cb(result_);
+      } else if (IsPending()) {
+         LOG(INFO) << LogPrefix() << "done called while waiting. buffering cb.";
          done_.push_back(cb);
       }
    }
-   void Progress(typename DerivedCompleteFn cb) {
-      if (state_ == Waiting) {
+   void Progress(typename CompleteFn cb) override {
+      if (IsPending()) {         
+         LOG(INFO) << LogPrefix() << "progress called while waiting. buffering cb.";
          progress_.push_back(cb);
-      }
+         if (state_ == InProgress) {
+            LOG(INFO) << LogPrefix() << "notifying progress of last notify state";
+            cb(result_);
+         }
+      }      
    }
-   void Fail(FailFn cb) {
+   void Fail(FailFn cb) override {
       if (state_ == Rejected) {
+         LOG(INFO) << LogPrefix() << "fail called while rejected. firing cb.";
          cb(error_);
-      } else if (state_ == Waiting) {
+      } else if (IsPending()) {
+         LOG(INFO) << LogPrefix() << "fail called while waiting. buffering cb.";
          fail_.push_back(cb);
       }
    }
-   void Always(VoidFn cb) {
-      if (state_ == Waiting) {
+   void Always(VoidFn cb) override {
+      if (IsPending()) {
+         LOG(INFO) << LogPrefix() << "fail called while waiting. buffering cb.";
          always_.push_back(cb);
       } else {
+         LOG(INFO) << LogPrefix() << "fail called in non-wait state. firing cb.";
          cb();
       }
    }
 
 public:  // the deferred...
-   void ResolveImpl(CompleteDelegateFn delegate_fn) {
-      ASSERT(state_ == Waiting);
-      state_ = Resolved;
-      doneDelegate_ = delegate_fn;
-      for (const auto &fn : done_) {
-         doneDelegate_(fn);
-      }
-      Cleanup();
+   int GetId() const {
+      return id_;
    }
-   void NotifyImpl(CompleteDelegateFn delegate_fn) {
-      ASSERT(state_ == Waiting);
-      for (const auto &fn : progress_) {
-         delegate_fn(fn);
+   std::string GetStateName() const {
+      static const char* state_names[] = {
+         "initialized", "inprogress", "resolved", "rejected"
+      };
+      return state_names[state_];
+   }
+
+   bool IsPending() const {
+      return state_ == InProgress || state_ == Initialized;
+   }
+
+   void Resolve(CompleteT result) {
+      try {
+         if (IsPending()) {
+            LOG(INFO) << LogPrefix() << "resolve called in wait state. firing all done cbs.";
+            state_ = Resolved;
+            result_ = result;
+            for (const auto &cb : done_) {
+               cb(result_);
+            }
+            Cleanup();
+         } else {
+            LOG(ERROR) << LogPrefix() << "resolve called in non-wait state!";
+         }
+      } catch (std::exception &e) {
+         LOG(ERROR) << LogPrefix() << " caught exception in Resolve: " << e.what();
       }
    }
-   void Reject(JSONNode const& n) {
-      ASSERT(state_ == Waiting);
-      state_ = Rejected;
-      error_ = n;
-      for (const auto &fn : fail_) {
-         fn(n);
+
+   void Notify(CompleteT obj) {
+      try {
+         if (IsPending()) {
+            LOG(INFO) << LogPrefix() << "notify called in wait state. firing all progress cbs.";
+            for (const auto &cb : progress_) {
+               cb(obj);
+            }
+            result_ = obj;
+            state_ = InProgress;
+         } else {
+            LOG(ERROR) << LogPrefix() << "notify called in non-wait state!";
+         }
+      } catch (std::exception &e) {
+         LOG(ERROR) << LogPrefix() << " caught exception in Notify: " << e.what();
       }
-      Cleanup();
    }
-   void Cleanup() {
-      ASSERT(state_ != Waiting);
-      for (const auto& fn : always_) {
-         fn();
+   void Reject(FailT const& reason) {
+      try {
+         if (IsPending()) {
+            LOG(INFO) << LogPrefix() << "reject called in wait state. firing all fail cbs.";
+            state_ = Rejected;
+            error_ = reason;
+            for (const auto &fn : fail_) {
+               fn(reason);
+            }
+            Cleanup();
+         } else {
+            LOG(ERROR) << LogPrefix() << "reject called in non-wait state!";
+         }
+      } catch (std::exception &e) {
+         LOG(ERROR) << LogPrefix() << " caught exception in Reject: " << e.what();
       }
-      always_.clear();
-      done_.clear();
-      progress_.clear();
-      fail_.clear();
    }
 
 private:
+   void Cleanup() {
+      try {
+         if (state_ != InProgress) {
+            for (const auto& fn : always_) {
+               fn();
+            }
+            always_.clear();
+            done_.clear();
+            progress_.clear();
+            fail_.clear();
+         } else {
+            LOG(ERROR) << LogPrefix() << "cleanup called in non-wait state!";
+         }
+      } catch (std::exception &e) {
+         LOG(ERROR) << LogPrefix() << " caught exception in Reject: " << e.what();
+      }
+   }
+
+private:
+   NO_COPY_CONSTRUCTOR(Deferred)
+
    enum State {
-      Waiting = 0,
-      Resolved = 1,
-      Rejected = 2,
+      Initialized = 0,
+      InProgress = 1,
+      Resolved = 2,
+      Rejected = 3,
    };
 
 private:
    std::vector<VoidFn>     always_;
-   std::vector<typename DerivedCompleteFn> done_;
-   std::vector<typename DerivedCompleteFn> progress_;
-   CompleteDelegateFn      doneDelegate_;
+   std::vector<CompleteFn> done_;
+   std::vector<CompleteFn> progress_;
    std::vector<FailFn>     fail_;
-   JSONNode                error_;
+
+   CompleteT               result_;
+   FailT                   error_;
    State                   state_;
 };
 
-template <typename T0>
-class Deferred1 : public Deferred<Deferred1<T0>, std::function<void(T0 const&)>>
+template <typename CompleteT, typename FailT>
+std::ostream& operator<<(std::ostream& os, std::shared_ptr<Deferred<CompleteT, FailT>> p)
 {
-public:
-   typedef T0 Type0;
-   typedef std::function<void(T0 const&)> CompleteFn;
-
-   void Resolve(T0 const& r) {
-      result_ = r;
-      ResolveImpl([=](CompleteFn fn) { fn(result_); });
+   if (p) {
+      return (os << "[deferred null]");
    }
+   return (os << *p);
+}
 
-   void Notify(T0 const& r) {
-      NotifyImpl([=](CompleteFn fn) { fn(r); });
-   }
-
-protected:
-   T0                      result_;
-};
-
-template <typename T0, typename T1>
-class Deferred2 : public Deferred<Deferred2<T0, T1>, std::function<void(T0 const&, T1 const &)>>
-{
-public:
-   typedef T0 Type0;
-   typedef T1 Type1;
-   typedef std::function<void(T0 const&, T1 const &)> CompleteFn;
-
-   void Resolve(T0 const& r, T1 const& s) {
-      r_ = r;
-      s_ = s;
-      ResolveImpl([=](CompleteFn fn) { fn(r_, s_); });
-   }
-
-   void Notify(T0 const& r, T1 const& s) {
-      NotifyImpl([=](CompleteFn fn) { fn(r, s); });
-   }
-
-protected:
-   T0    r_;
-   T1    s_;
-};
+template <typename CompleteT, typename FailT>
+std::ostream& operator<<(std::ostream& os, Deferred<CompleteT, FailT> const& f) {
+   return (os << "[" << f.LogPrefix() << " state: " << f.GetStateName() << "]");
+}
 
 END_RADIANT_CORE_NAMESPACE
 

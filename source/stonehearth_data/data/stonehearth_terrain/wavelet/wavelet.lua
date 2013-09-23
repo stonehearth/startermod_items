@@ -1,6 +1,6 @@
 local Wavelet = {}
-local Array2DFns = radiant.mods.require('/stonehearth_terrain/filter/array_2D_fns.lua')
-local CDF_97 = radiant.mods.require('/stonehearth_terrain/wavelet/cdf_97.lua')
+local Array2DFns = require 'filter.array_2D_fns'
+local CDF_97 = require 'wavelet.cdf_97'
 
 local transform = CDF_97
 

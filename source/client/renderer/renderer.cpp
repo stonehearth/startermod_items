@@ -29,13 +29,17 @@ Renderer& Renderer::GetInstance()
 
 Renderer::Renderer() :
    initialized_(false),
-   nextInputCbId_(1),
    cameraMoveDirection_(0, 0, 0),
    viewMode_(Standard),
    scriptHost_(nullptr),
    nextTraceId_(1),
    camera_(nullptr),
-   currentFrameTime_(0)
+   currentFrameTime_(0),
+   uiWidth_(0),
+   uiHeight_(0),
+   uiTexture_(0),
+   uiMatRes_(0)
+
 {
    try {
       boost::property_tree::json_parser::read_json("renderer_config.json", config_);
@@ -47,8 +51,8 @@ Renderer::Renderer() :
    assert(renderer_.get() == nullptr);
    renderer_.reset(this);
 
-   uiWidth_ = width_ = 1920;
-   uiHeight_ = height_ = 1080;
+   width_ = 1920;
+   height_ = 1080;
 
    glfwInit();
 
@@ -87,21 +91,6 @@ Renderer::Renderer() :
 	fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
 	panelMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/panel.material.xml", 0 );
 
-   // UI Overlay
-   uiTexture_ = h3dCreateTexture("UI Texture", uiWidth_, uiHeight_, H3DFormats::List::TEX_BGRA8, H3DResFlags::NoTexMipmaps);
-   unsigned char *data = (unsigned char *)h3dMapResStream(uiTexture_, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
-   memset(data, 0, uiWidth_ * uiHeight_ * 4);
-   h3dUnmapResStream(uiTexture_);
-
-   std::ostringstream material;
-   material << "<Material>" << std::endl;
-	material << "   <Shader source=\"shaders/overlay.shader\"/>" << std::endl;
-	material << "   <Sampler name=\"albedoMap\" map=\"" << h3dGetResName(uiTexture_) << "\" />" << std::endl;
-   material << "</Material>" << std::endl;
-
-   uiMatRes_ = h3dAddResource(H3DResTypes::Material, "UI Material", 0);
-   bool result = h3dLoadResource(uiMatRes_, material.str().c_str(), material.str().length());
-   assert(result);
 
    H3DRes skyBoxRes = h3dAddResource( H3DResTypes::SceneGraph, "models/skybox/skybox.scene.xml", 0 );
    
@@ -139,7 +128,7 @@ Renderer::Renderer() :
    // Resize
    Resize(width_, height_);
 
-   memset(&mouse_, 0, sizeof mouse_);
+   memset(&input_.mouse, 0, sizeof input_.mouse);
    rotateCamera_ = false;
 
    // the message pump built into glfw is broken.  It calls DispatchMessage
@@ -290,7 +279,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
 
    FireTraces(renderFrameTraces_);
 
-   if (showUI) { // show UI
+   if (showUI && uiMatRes_) { // show UI
       const float ovUI[] = { 0,  0, 0, 1, // flipped up-side-down!
                              0,  1, 0, 0,
                              ww, 1, 1, 0,
@@ -419,49 +408,6 @@ csg::Matrix4 Renderer::GetNodeTransform(H3DNode node) const
    return transform;
  }
 
-Renderer::InputCallbackId Renderer::SetRawInputCallback(RawInputEventCb fn)
-{
-   InputCallbackId id = nextInputCbId_++;
-   rawInputCbs_.push_back(std::make_pair(id, fn));
-   return id;
-}
-
-Renderer::InputCallbackId Renderer::SetMouseInputCallback(MouseEventCb fn)
-{
-   InputCallbackId id = nextInputCbId_++;
-   mouseInputCbs_.push_back(std::make_pair(id, fn));
-   return id;
-}
-
-Renderer::InputCallbackId Renderer::SetKeyboardInputCallback(KeyboardInputEventCb fn)
-{
-   InputCallbackId id = nextInputCbId_++;
-   keyboardInputCbs_.push_back(std::make_pair(id, fn));
-   return id;
-}
-
-void Renderer::RemoveInputEventHandler(InputCallbackId id)
-{
-   for (auto i = rawInputCbs_.begin(); i != rawInputCbs_.end(); i++) {
-      if (i->first == id) {
-         rawInputCbs_.erase(i);
-         return;
-      }
-   }
-   for (auto i = mouseInputCbs_.begin(); i != mouseInputCbs_.end(); i++) {
-      if (i->first == id) {
-         mouseInputCbs_.erase(i);
-         return;
-      }
-   }
-   for (auto i = keyboardInputCbs_.begin(); i != keyboardInputCbs_.end(); i++) {
-      if (i->first == id) {
-         keyboardInputCbs_.erase(i);
-         return;
-      }
-   }
-}
-
 void Renderer::PlaceCamera(const csg::Point3f &location)
 {
    csg::Point3f delta = csg::Point3f(location) - cameraTarget_;
@@ -473,7 +419,7 @@ void Renderer::PlaceCamera(const csg::Point3f &location)
 
 void Renderer::UpdateUITexture(const csg::Region2& rgn, const char* buffer)
 {
-   if (!rgn.IsEmpty()) {
+   if (!rgn.IsEmpty() && uiTexture_) {
       //LOG(WARNING) << "Updating " << rgn.GetArea() << " pixels from the ui texture.";
 
       int pitch = uiWidth_ * 4;
@@ -511,6 +457,9 @@ void Renderer::Resize( int width, int height )
    h3dSetupCameraView( camera, 45.0f, (float)width / height, 4.0f, 2000.0f);
    for (const auto& entry : pipelines_) {
       h3dResizePipelineBuffers(entry.second, width, height);
+   }
+   if (screen_resize_cb_) {
+      screen_resize_cb_(width_, height_);
    }
 }
 
@@ -579,19 +528,6 @@ void Renderer::UpdateCamera()
    sf::Listener::setPosition(camera_->GetPosition().x, camera_->GetPosition().y, camera_->GetPosition().z);
 }
 
-MouseEvent Renderer::WindowToBrowser(const MouseEvent& mouse) 
-{
-   float xTransform = uiWidth_ / (float)width_;
-   float yTransform = uiHeight_ / (float)height_;
-   MouseEvent result = mouse;
-
-   result.dx = (int)(mouse.dx * xTransform);
-   result.dy = (int)(mouse.dy * yTransform);
-   result.x = (int)(mouse.x * xTransform);
-   result.y = (int)(mouse.y * yTransform);
-   return result;
-}
-
 float Renderer::DistFunc(float dist, int wheel, float minDist, float maxDist) const {
    float shortFactor = 0.90f;
    float medFactor = 0.81f;
@@ -624,8 +560,8 @@ float Renderer::DistFunc(float dist, int wheel, float minDist, float maxDist) co
 
 void Renderer::OnMouseWheel(int value)
 {
-   int dWheel = value - mouse_.wheel;
-   mouse_.wheel = value;
+   int dWheel = value - input_.mouse.wheel;
+   input_.mouse.wheel = value;
    
    // xxx: move this part out into the client --
    csg::Point3f dir = camera_->GetPosition() - cameraTarget_;
@@ -638,20 +574,20 @@ void Renderer::OnMouseWheel(int value)
 
 void Renderer::OnMouseMove(int x, int y)
 {
-   mouse_.dx = x - mouse_.x;
-   mouse_.dy = y - mouse_.y;
+   input_.mouse.dx = x - input_.mouse.x;
+   input_.mouse.dy = y - input_.mouse.y;
    
-   mouse_.x = x;
-   mouse_.y = y;
+   input_.mouse.x = x;
+   input_.mouse.y = y;
 
    // xxx - this is annoying, but that's what you get... maybe revisit the
    // way we deliver mouse events and up/down tracking...
-   memset(mouse_.up, 0, sizeof mouse_.up);
-   memset(mouse_.down, 0, sizeof mouse_.down);
+   memset(input_.mouse.up, 0, sizeof input_.mouse.up);
+   memset(input_.mouse.down, 0, sizeof input_.mouse.down);
 
    if (rotateCamera_) {
-      float degx = mouse_.dx / -3.0f;
-      float degy = -mouse_.dy / 2.0f;
+      float degx = input_.mouse.dx / -3.0f;
+      float degy = -input_.mouse.dy / 2.0f;
       camera_->OrbitPointBy(cameraTarget_, degy, degx, 10.0f, 85.0f);
       camera_->LookAt(cameraTarget_);
 
@@ -660,17 +596,17 @@ void Renderer::OnMouseMove(int x, int y)
       /*     
       int gutterSize = 10;
 
-      if (mouse_.x < gutterSize) {
+      if (input_.mouse.x < gutterSize) {
          cameraMoveDirection_.x = (float)-1;
-      } else if (mouse_.x > width_ - gutterSize) {
+      } else if (input_.mouse.x > width_ - gutterSize) {
          cameraMoveDirection_.x = (float)1;
       } else {
          cameraMoveDirection_.x = (float)0;
       }
 
-      if (mouse_.y < gutterSize) {
+      if (input_.mouse.y < gutterSize) {
          cameraMoveDirection_.z = (float)-1;
-      } else if (mouse_.y > height_ - gutterSize) {
+      } else if (input_.mouse.y > height_ - gutterSize) {
          cameraMoveDirection_.z = (float)1;
       } else {
          cameraMoveDirection_.z = 0;
@@ -689,82 +625,47 @@ void Renderer::OnMouseButton(int button, int press)
       }
    }
 
-   memset(mouse_.up, 0, sizeof mouse_.up);
-   memset(mouse_.down, 0, sizeof mouse_.down);
+   memset(input_.mouse.up, 0, sizeof input_.mouse.up);
+   memset(input_.mouse.down, 0, sizeof input_.mouse.down);
 
-   mouse_.up[button] = mouse_.buttons[button] && (press == GLFW_RELEASE);
-   mouse_.down[button] = !mouse_.buttons[button] && (press == GLFW_PRESS);
-   mouse_.buttons[button] = (press == GLFW_PRESS);
+   input_.mouse.up[button] = input_.mouse.buttons[button] && (press == GLFW_RELEASE);
+   input_.mouse.down[button] = !input_.mouse.buttons[button] && (press == GLFW_PRESS);
+   input_.mouse.buttons[button] = (press == GLFW_PRESS);
 
    CallMouseInputCallbacks();
 }
 
 void Renderer::OnRawInput(UINT msg, WPARAM wParam, LPARAM lParam)
 {
-   RawInputEvent e;
+   input_.type = Input::RAW_INPUT;
+   input_.raw_input.msg = msg;
+   input_.raw_input.wp = wParam;
+   input_.raw_input.lp = lParam;
 
-   e.msg = msg;
-   e.wp = wParam;
-   e.lp = lParam;
+   DispatchInputEvent();
+}
 
-   bool handled = false, uninstall = false;
-
-   for (auto i = rawInputCbs_.begin(); i != rawInputCbs_.end();) {
-      i->second(e, handled, uninstall);
-      if (uninstall) {
-         i = rawInputCbs_.erase(i);
-         uninstall = false;
-      } else {
-         i++;
-      }
-      if (handled) {
-         break;
-      }
+void Renderer::DispatchInputEvent()
+{
+   if (input_cb_) {
+      input_cb_(input_);
    }
 }
 
 
 void Renderer::CallMouseInputCallbacks()
 {
-   bool handled = false;
-
-   auto l = mouseInputCbs_;
-   for (auto &entry : l) {
-      bool uninstall = false;
-      entry.second(mouse_, WindowToBrowser(mouse_), handled, uninstall);
-      if (uninstall) {
-         mouseInputCbs_.erase(std::find(mouseInputCbs_.begin(), mouseInputCbs_.end(), entry));
-      }
-      if (handled) {
-         break;
-      }
-   }
-#if 0
-   bool handled = false, uninstall = false;
-
-   auto i = mouseInputCbs_.begin();
-   while (i != mouseInputCbs_.end()) {
-      i->second(mouse_, handled, uninstall);
-      if (uninstall) {
-         i = mouseInputCbs_.erase(i);
-         uninstall = false;
-      } else {
-         i++;
-      }
-      if (handled) {
-         break;
-      }
-   }
-#endif
+   input_.type = Input::MOUSE;
+   DispatchInputEvent();
 }
 
 void Renderer::OnKey(int key, int down)
 {
    bool handled = false, uninstall = false;
 
-   KeyboardEvent k;
-   k.down = down != 0;
-   k.key = key;
+   input_.type = Input::KEYBOARD;
+   input_.keyboard.down = down != 0;
+   input_.keyboard.key = key;
 
    auto isKeyDown = [](WPARAM arg) {
       return (GetKeyState(arg) & 0x8000) != 0;
@@ -780,19 +681,7 @@ void Renderer::OnKey(int key, int down)
          cameraMoveDirection_.x = (float)(down ? 1 : 0);
       }
    }
-
-   for (auto i = keyboardInputCbs_.begin(); i != keyboardInputCbs_.end();) {
-      i->second(k, handled, uninstall);
-      if (uninstall) {
-         i = keyboardInputCbs_.erase(i);
-         uninstall = false;
-      } else {
-         i++;
-      }
-      if (handled) {
-         break;
-      }
-   }
+   DispatchInputEvent();
 }
 
 void Renderer::OnWindowResized(int newWidth, int newHeight) {
@@ -905,17 +794,7 @@ void Renderer::LoadResources()
 
 csg::Point2 Renderer::GetMousePosition() const
 {
-   return csg::Point2(mouse_.x, mouse_.y);
-}
-
-int Renderer::GetUIWidth() const
-{
-   return uiWidth_;
-}
-
-int Renderer::GetUIHeight() const
-{
-   return uiHeight_;
+   return csg::Point2(input_.mouse.x, input_.mouse.y);
 }
 
 int Renderer::GetWidth() const
@@ -942,4 +821,28 @@ lua::ScriptHost* Renderer::GetScriptHost() const
 {
    ASSERT(scriptHost_);
    return scriptHost_;
+}
+
+void Renderer::SetUITextureSize(int width, int height)
+{
+   uiWidth_ = width;
+   uiHeight_ = height;
+
+   if (uiTexture_) {
+      throw std::logic_error("resizing the ui texture is not yet implemented");
+   }
+   uiTexture_ = h3dCreateTexture("UI Texture", uiWidth_, uiHeight_, H3DFormats::List::TEX_BGRA8, H3DResFlags::NoTexMipmaps);
+   unsigned char *data = (unsigned char *)h3dMapResStream(uiTexture_, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
+   memset(data, 0, uiWidth_ * uiHeight_ * 4);
+   h3dUnmapResStream(uiTexture_);
+
+   std::ostringstream material;
+   material << "<Material>" << std::endl;
+	material << "   <Shader source=\"shaders/overlay.shader\"/>" << std::endl;
+	material << "   <Sampler name=\"albedoMap\" map=\"" << h3dGetResName(uiTexture_) << "\" />" << std::endl;
+   material << "</Material>" << std::endl;
+
+   uiMatRes_ = h3dAddResource(H3DResTypes::Material, "UI Material", 0);
+   bool result = h3dLoadResource(uiMatRes_, material.str().c_str(), material.str().length());
+   assert(result);
 }

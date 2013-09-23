@@ -7,6 +7,11 @@ App.StonehearthPeoplePickerView = App.View.extend({
       }
    },
 
+   destroy: function() {
+      radiant.log.info('destroying the people picker...')
+      this._super();
+   },
+
    init: function() {
       this._super();
    },

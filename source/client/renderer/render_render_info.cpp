@@ -24,7 +24,7 @@ std::shared_ptr<QubicleFile> RenderRenderInfo::LoadQubicleFile(std::string const
       return i->second;
    }
    std::ifstream input;
-   resources::ResourceManager2::GetInstance().OpenResource(uri, input);
+   res::ResourceManager2::GetInstance().OpenResource(uri, input);
    ASSERT(input.good());
    std::shared_ptr<QubicleFile> q = std::make_shared<QubicleFile>();
    input >> *q;
@@ -77,7 +77,7 @@ void RenderRenderInfo::AccumulateModelVariant(ModelMap& m, om::ModelVariantPtr v
          std::shared_ptr<QubicleFile> qubicle;
          try {
             qubicle = LoadQubicleFile(model);
-         } catch (resources::Exception& e) {
+         } catch (res::Exception& e) {
             LOG(WARNING) << "could not load qubicle file: " << e.what();
             return;
          }
@@ -201,7 +201,7 @@ void RenderRenderInfo::RebuildBoneOffsets(om::RenderInfoPtr render_info)
    bones_offsets_.clear();
    std::string const& animation_table_name = render_info->GetAnimationTable();
    if (!animation_table_name.empty()) {
-      json::ConstJsonObject table = resources::ResourceManager2::GetInstance().LookupJson(animation_table_name);
+      json::ConstJsonObject table = res::ResourceManager2::GetInstance().LookupJson(animation_table_name);
       for (const auto& entry : table.get("skeleton", JSONNode())) {
          csg::Point3f pt;
          for (int j = 0; j < 3; j++) {

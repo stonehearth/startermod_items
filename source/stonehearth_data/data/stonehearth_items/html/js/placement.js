@@ -10,14 +10,10 @@ $(document).ready(function(){
       // kick off a request to the client to show the cursor for placing
       // the workshop. The UI is out of the 'create workshop' process after
       // this. All the work is done in the client and server
-      //
 
-      var placementModUri = '/modules/client/stonehearth_items/place_item';
-      $.get(placementModUri, {proxy_entity_id: e.event_data.entity_id,
-                              target_mod : e.event_data.target_mod,
-                              target_name : e.event_data.target_name
-                             })
+      radiant.call_obj('stonehearth_items', 'choose_place_item_location', e.event_data.full_sized_entity_uri)
          .done(function(o){
+            radiant.call_obj('stonehearth_items', 'place_item_in_world', e.event_data.self, o.location, o.rotation);
          })
          .always(function(o) {
             $(top).trigger('hide_tip.radiant');
@@ -26,8 +22,14 @@ $(document).ready(function(){
 
    //Fires when someone clicks the "place" button in the UI to bring up the picker
    $(top).on("placement_menu.radiant", function (_, e) {
-      var view = App.gameView.addView(App.StonehearthPlaceItemView, {
-            uri: '/server/objects/stonehearth_inventory/inventory_tracker'});
+      // xxx: i know this says stonehearth_census... that's where the tracker
+      // lives.  will be fixed in the incoming great mod squish -- tony
+      radiant.call_obj('stonehearth_census', 'get_placable_items_tracker')
+         .done(function(response) {
+            App.gameView.addView(App.StonehearthPlaceItemView, {
+                  uri: response.tracker
+               });
+         });
    });
 });
 
@@ -101,15 +103,12 @@ App.StonehearthPlaceItemView = App.View.extend({
          this.waitingForPlacement = true;
 
          var self = this;
-         var placementModUri = '/modules/client/stonehearth_items/place_item';
-         var proxy = item.entities[0]['stonehearth_items:placeable_item_proxy'];
 
-         $.get(placementModUri, {
-               proxy_entity_id: proxy.entity_id,
-               target_mod : proxy.full_sized_entity_mod,
-               target_name : proxy.full_sized_entity_name
-            })
+         radiant.call_obj('stonehearth_items', 'choose_place_item_location', item.full_sized_entity_uri)
             .done(function(o){
+               var item_type = 1;
+               radiant.call_obj('stonehearth_items', 'place_item_type_in_world', item.full_sized_entity_uri, o.location, o.rotation);
+
                self.waitingForPlacement = false;
 
                //If we're holding down shift after the item has been placed

@@ -15,11 +15,11 @@ namespace radiant {
             ~Application();
                
          public:
-            int run(lua_State* L, int argc, const char **argv);
+            int Run(int argc, const char **argv);
 
          private:
             bool LoadConfig(int argc, const char** argv);
-            int Start(lua_State* L);
+            int Start();
 //            configlib::configfile   _config;
       };
    };

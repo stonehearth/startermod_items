@@ -17,8 +17,6 @@ add_library(client
             application.cpp
             client.cpp
             main.cpp
-            mouse_event_promise.cpp
-            trace_object_deferred.cpp
             xz_region_selector.cpp
             pch.cpp
             )
@@ -58,4 +56,5 @@ target_link_libraries(client
                              protocols
                              resources
                              simulation
+                             rpc
                              )

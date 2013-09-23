@@ -15,24 +15,25 @@
          ]
       }
    }
-   And all json is turned into objects and indexed via self._names[faction_id]
+   And all json is turned into objects and indexed via singleton._names[faction_id]
 
    --TODO: better as a database? How to make this extensible?
 ]]
 
-local NameGenerator = class()
+local singleton = {}
+local name_generator = {}
 
-function NameGenerator:__init()
-   self._names = {}
+function name_generator._init()
+   singleton._names = {}
    --Read in all the factions
    --TODO: put this in a manifest? I mean, it's inside the same module...
 
-   local json = radiant.resources.load_json('/stonehearth_names/data/name_index.json')
+   local json = radiant.resources.load_json('stonehearth_names/data/name_index.json')
    if json and json.factions then
       for i, faction_file in ipairs(json.factions) do
          local faction_data = radiant.resources.load_json(faction_file)
          if faction_data then
-            self._names[faction_data.faction_id] = faction_data
+            singleton._names[faction_data.faction_id] = faction_data
          end
       end
    end
@@ -41,8 +42,8 @@ end
 --[[
    returns: A first and last name as one string
 ]]
-function NameGenerator:get_random_name(faction_id, gender)
-   local faction_data = self._names[faction_id]
+function name_generator.generate_random_name(faction_id, gender)
+   local faction_data = singleton._names[faction_id]
 
    if not faction_data then
       return 'Faction NotFound'
@@ -54,4 +55,6 @@ function NameGenerator:get_random_name(faction_id, gender)
    return random_first .. ' ' .. random_surname
 end
 
-return NameGenerator
+name_generator._init()
+
+return name_generator

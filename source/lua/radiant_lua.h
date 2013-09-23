@@ -8,7 +8,6 @@ class JSONNode;
 
 BEGIN_RADIANT_LUA_NAMESPACE
 
-luabind::object JsonToLua(lua_State* L, JSONNode const& json);
 
 END_RADIANT_LUA_NAMESPACE
 

@@ -4,7 +4,6 @@ local EffectManager = class()
 
 function EffectManager:__init(entity)
    self._effects = {}
-   self._skip_animations = get_config_option("game.noidle");
 
    self._entity = entity
    radiant.events.listen('radiant.events.gameloop', self)

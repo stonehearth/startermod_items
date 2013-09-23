@@ -11,9 +11,7 @@ App.StonehearthErrorBrowserView = App.View.extend({
       var self = this;
       console.log('inserted error browser');
 
-      //this.set('uri', '/o/named_objects/client/error_browser');
-      this.set('uri', '/o/stores/tmp/objects/1');
-      //this.set('uri', '/server/objects/stonehearth_census/worker_tracker');
+      this.set('uri', '/o/named_objects/client/error_browser');
 
       var self = this;
       $("#errorBrowser").on("click", "a", function(event) {

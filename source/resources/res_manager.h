@@ -1,5 +1,5 @@
-#ifndef _RADIANT_RESOURCES_RESOURCE_MANAGER2_H
-#define _RADIANT_RESOURCES_RESOURCE_MANAGER2_H
+#ifndef _RADIANT_RES_RESOURCE_MANAGER2_H
+#define _RADIANT_RES_RESOURCE_MANAGER2_H
 
 #include <thread>
 #include <mutex>
@@ -8,8 +8,9 @@
 #include "libjson.h"
 #include "animation.h"
 #include "exceptions.h"
+#include "manifest.h"
 
-BEGIN_RADIANT_RESOURCES_NAMESPACE
+BEGIN_RADIANT_RES_NAMESPACE
 
 class ResourceManager2
 {
@@ -19,7 +20,7 @@ public:
    static ResourceManager2& GetInstance();
 
    std::vector<std::string> const& GetModuleNames() const;
-   JSONNode LookupManifest(std::string const& modname) const;
+   Manifest LookupManifest(std::string const& modname) const;
    JSONNode const& LookupJson(std::string path) const;
    AnimationPtr LookupAnimation(std::string path) const;
 
@@ -54,6 +55,6 @@ private:
    mutable std::unordered_map<std::string, JSONNode>     jsons_;
 };
 
-END_RADIANT_RESOURCES_NAMESPACE
+END_RADIANT_RES_NAMESPACE
 
-#endif //  _RADIANT_RESOURCES_RESOURCE_MANAGER_H
+#endif //  _RADIANT_RES_RESOURCE_MANAGER_H

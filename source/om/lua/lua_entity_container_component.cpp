@@ -7,6 +7,21 @@ using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+std::ostream& operator<<(std::ostream& os, EntityContainer::Container const& f)
+{
+   return f.ToString(os);
+}
+
+std::ostream& operator<<(std::ostream& os, EntityContainer::Container::LuaIteratorType const& f)
+{
+   return os << "[MapIterator]";
+}
+
+std::ostream& operator<<(std::ostream& os, EntityContainer::Container::LuaPromise const& f)
+{
+   return os << "[MapPromise]";
+}
+
 scope LuaEntityContainerComponent::RegisterLuaTypes(lua_State* L)
 {
    return
