@@ -1,0 +1,11 @@
+{
+   "info" :{
+      "name" : "Stonehearth Names"
+   },
+
+   "radiant" : {
+      "game_objects" : {
+         "singleton" : "file(/stonehearth_names.lua)"
+      }
+   }
+}

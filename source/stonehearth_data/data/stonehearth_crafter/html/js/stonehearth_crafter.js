@@ -42,6 +42,14 @@ App.StonehearthCrafterView = App.View.extend({
       this._super();
    },
 
+   getWorkshop : function() {
+      return this.get('context.stonehearth_crafter:workshop').__self;
+   },
+
+   getCurrentRecipe : function() {
+      return this.get('context.current');
+   },
+
    actions: {
       hide: function() {
          var self = this;
@@ -60,37 +68,23 @@ App.StonehearthCrafterView = App.View.extend({
 
       //Call this function when the user is ready to submit an order
       craft: function() {
-         var url = this.get('context.stonehearth_crafter:workshop').__self + "?fn=add_order";
-         var data = {};
-         data.recipe_url = this.get('context.current').my_location;
+         var workshop = this.getWorkshop();
+         var recipe = this.getCurrentRecipe();
+
+         var condition = {};
          var type = $('input[name=conditionGroup]:checked').val();
          if (type == "make") {
-            data.condition_amount = $('#makeNumSelector').val();
+            condition.amount = $('#makeNumSelector').val();
          } else {
-            data.condition_inventory_below = $('#mantainNumSelector').val();
+            condition.inventory_below = $('#mantainNumSelector').val();
          }
-         $.ajax({
-               type: 'post',
-               url: url,
-               contentType: 'application/json',
-               data: JSON.stringify(data)
-            }).done(function(return_data){
-               //TODO: maybe stuff goes here?
-            });
+
+         radiant.call_obj(workshop, 'add_order', recipe, condition);
       },
 
       togglePause: function(){
-         var url = this.get('context.stonehearth_crafter:workshop').__self + "?fn=toggle_pause";
-         var data = {};
-         $.ajax({
-               type: 'post',
-               url: url,
-               contentType: 'application/json',
-               data: JSON.stringify(data)
-            }).done(function(return_data){
-               //TODO: change other things to reflect pause?
-            });
-
+         var workshop = this.getWorkshop();
+         radiant.call_obj(workshop, 'toggle_pause');
       },
 
       scrollOrderListUp: function() {
@@ -142,17 +136,13 @@ App.StonehearthCrafterView = App.View.extend({
    },
 
    preview: function() {
-      var url = this.get('context.stonehearth_crafter:workshop').__self + "?fn=resolve_order_options";
-      var data = {};
-      data.recipe_url = this.get('context.current').my_location;
-      $.ajax({
-            type: 'post',
-            url: url,
-            contentType: 'application/json',
-            data: JSON.stringify(data)
-         }).done(function(return_data){
+      var workshop = this.getWorkshop();
+      var recipe = this.getCurrentRecipe();
+
+      radiant.call_obj(workshop, 'resolve_order_options', recipe)
+         .done(function(return_data){
             $("#portrait").attr("src", return_data.portrait);
-            $("#usefulText").html(return_data.desc);
+            $("#usefulText").html(return_data.description);
             $("#flavorText").html(return_data.flavor);
          });
    },
@@ -283,18 +273,12 @@ App.StonehearthCrafterView = App.View.extend({
             //Called right after an object is dropped
             if(ui.item[0].parentNode.id == "garbageList") {
                ui.item.addClass("hiddenOrder");
-               var url = self.get('context.stonehearth_crafter:workshop').__self + "?fn=delete_order";
-               var data = {
-                  id: parseInt(ui.item.attr("data-orderid"))
-               };
-               $.ajax({
-                  type: 'post',
-                  url: url,
-                  contentType: 'application/json',
-                  data: JSON.stringify(data)
-               }).done(function(return_data){
-                  ui.item.remove();
-               });
+               var workshop = self.getWorkshop();
+               var id = parseInt(ui.item.attr("data-orderid"))
+               radiant.call_obj(workshop, 'delete_order', id)
+                  .done(function(return_data){
+                     ui.item.remove();
+                  });
              }
          },
          over: function (event, ui) {
@@ -315,23 +299,16 @@ App.StonehearthCrafterView = App.View.extend({
             if(ui.item[0].parentNode.id == "garbageList") {
                return;
             }
-            var url = self.get('context.stonehearth_crafter:workshop').__self + "?fn=move_order";
-            var data = {
-               newPos: (ui.item.index(".orderListItem") + 1),
-               id: parseInt(ui.item.attr("data-orderid"))
-            };
+            var workshop = self.getWorkshop();
+            var newPos = ui.item.index(".orderListItem") + 1;            
+            var id =  parseInt(ui.item.attr("data-orderid"));
+
             //Check if we're replacing?
-            if ($(this).attr('data-previndex') == data.newPos) {
+            if ($(this).attr('data-previndex') == newPos) {
                return;
             }
-            $.ajax({
-               type: 'post',
-               url: url,
-               contentType: 'application/json',
-               data: JSON.stringify(data)
-            }).done(function(return_data){
-            });
 
+            radiant.call_obj(workshop, 'move_order', id, newPos);
          }
       }).disableSelection();
 

@@ -3,14 +3,18 @@
 var radiant = {
    _deferred: $.Deferred(),
 
-   log: function (msg) {
-      $(top).trigger("radiant.dbg.log", msg);
-      console.log(msg);
+   log: {
+      info : function (msg) {
+         console.log(msg);
+      },
+      warning : function (msg) {
+         console.log(msg);
+      },
    },
-   ready: function (fn) {
-      radiant._deferred.done(fn);
-   },
-   _sendReady: function () {
-      radiant._deferred.resolve();
+
+   assert: function(condition, message) {
+      if (!condition) {
+         throw message || "assertion failed."
+      }
    }
 };

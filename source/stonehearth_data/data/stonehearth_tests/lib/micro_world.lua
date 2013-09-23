@@ -4,14 +4,13 @@ local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local Terrain = _radiant.om.Terrain
-local Names = radiant.mods.require('/stonehearth_names/stonehearth_names.lua')
 
 function MicroWorld:__init()
    self._nextTime = 1
    self._times = {}
    self._timers = {}
    self._running = false
-   self._names = Names()
+   self._names = radiant.mods.get_singleton('stonehearth_names')
 
    radiant.events.listen('radiant.events.gameloop', self)
 end
@@ -61,11 +60,11 @@ function MicroWorld:place_item_cluster(mod, name, x, z, w, h)
 end
 
 function MicroWorld:place_citizen(x, z, profession, profession_info)
-   local citizen = radiant.mods.load_api('/stonehearth_human_race/').create_entity()
+   local citizen = radiant.mods.get_singleton('stonehearth_human_race').create_entity()
    profession = profession and profession or 'worker'
-   local profession = radiant.mods.load_api('/stonehearth_' .. profession .. '_class/').promote(citizen, profession_info)
+   local profession = radiant.mods.get_singleton('/stonehearth_' .. profession .. '_class/').promote(citizen, profession_info)
    --TODO: how do we handle different kingdoms/factions?
-   radiant.entities.set_display_name(citizen, self._names:get_random_name('ascendancy','male'))
+   radiant.entities.set_display_name(citizen, self._names.generate_random_name('ascendancy','male'))
    radiant.terrain.place_entity(citizen, Point3(x, 1, z))
    return citizen
 end
@@ -77,7 +76,7 @@ function MicroWorld:place_stockpile_cmd(faction, x, z, w, h)
    local location = Point3(x, 1, z)
    local size = { w, h }
 
-   local inventory = radiant.mods.load_api('/stonehearth_inventory/').get_inventory(faction)
+   local inventory = radiant.mods.require('stonehearth_inventory.api').get_inventory(faction)
    inventory:create_stockpile(location, size)
 end
 
@@ -87,7 +86,7 @@ function MicroWorld:create_room(faction, x, z, w, h)
    local bounds = Cube3(Point3(x, 1, z),
                                  Point3(x + w, 2, z + h))
 
-   return radiant.mods.require('/stonehearth_building').create_room(faction, x, z, w, h)
+   return radiant.mods.get_singleton('stonehearth_building').create_room(faction, x, z, w, h)
 end
 
 function MicroWorld:create_door_cmd(wall, x, y, z)

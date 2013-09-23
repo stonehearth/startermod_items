@@ -38,7 +38,7 @@ function Effect:_get_end_time()
       end
    end
    if self._info.type == 'animation_effect' then
-      local animation = native:lookup_resource(self._info.animation)
+      local animation = _radiant.res.load_animation(self._info.animation)
       assert(animation)
       return animation and animation:get_duration() or 0
    end

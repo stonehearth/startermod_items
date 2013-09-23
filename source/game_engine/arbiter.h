@@ -33,10 +33,10 @@ namespace radiant {
 
             void GetConfigOptions(boost::program_options::options_description& options);
 
-            void Run(lua_State* L = nullptr);
+            void Run();
 
          protected:
-            void Start(lua_State* L = nullptr);
+            void Start();
             void main(); // public for the server.  xxx - there's a better way to factor this between the server and the in-proc listen server
             void mainloop();
             void idle();
@@ -73,7 +73,6 @@ namespace radiant {
             struct {
                bool                             noidle;
             }                                   config_;
-            lua_State*                          L_;
       };
    };
 };

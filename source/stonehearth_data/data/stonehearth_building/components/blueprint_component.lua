@@ -1,4 +1,4 @@
-local stonehearth_building = radiant.mods.require('stonehearth_building')
+local stonehearth_building = require 'stonehearth_building'
 
 local BlueprintComponent = class()
 

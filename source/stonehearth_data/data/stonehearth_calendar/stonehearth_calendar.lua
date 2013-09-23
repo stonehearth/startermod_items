@@ -78,7 +78,7 @@ radiant.events.register_event('radiant.events.calendar.sunset')
 radiant.events.register_event('radiant.events.calendar.midnight')
 
 function stonehearth_calendar.__init()
-   radiant.events.listen('radiant.events.gameloop', stonehearth_calendar._on_event_loop)
+   --radiant.events.listen('radiant.events.gameloop', stonehearth_calendar._on_event_loop)
 end
 
 function stonehearth_calendar.set_time(second, minute, hour)

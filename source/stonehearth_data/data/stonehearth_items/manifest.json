@@ -18,17 +18,21 @@
          "file(/html/css/placement_ui.less)"
       ]
    },
-   "client" : {
-      "request_handlers" : {
-         "place_item" : "file(client/request_handlers/place_item.lua)"
-      }
-   },
-   "server" : {
-      "request_handlers" : {
-         "place_item_server" : "file(server/request_handlers/place_command_server.lua)"
-      }
-   },
    "radiant": {
+      "functions" : {
+         "choose_place_item_location" : {
+            "endpoint" : "client",
+            "controller" : "file(lib/place_item.lua)"
+         },
+         "place_item_in_world" : {
+            "endpoint" : "server",
+            "controller" : "file(lib/place_item.lua)"
+         },
+         "place_item_type_in_world" : {
+            "endpoint" : "server",
+            "controller" : "file(lib/place_item.lua)"
+         }
+      },
       "entities" : {
          "item_properties" : "file(entities/.mixins/item_properties.json)",
 

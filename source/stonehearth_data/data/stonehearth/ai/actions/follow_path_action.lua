@@ -18,7 +18,7 @@ function FollowPathAction:run(ai, entity, path)
    local arrived_fn = function()
       ai:resume()
    end  
-   self._mover = native:create_follow_path(entity, speed, path, 0, arrived_fn)
+   self._mover = _radiant.sim.create_follow_path(entity, speed, path, 0, arrived_fn)
    ai:suspend()
    
    self._effect:stop()

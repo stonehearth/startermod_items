@@ -1,5 +1,5 @@
-local GaussianRandom = radiant.mods.require('/stonehearth_terrain/math/gaussian_random.lua')
-local MathFns = radiant.mods.require('/stonehearth_terrain/math/math_fns.lua')
+local GaussianRandom = require 'math.gaussian_random'
+local MathFns = require 'math.math_fns'
 
 local InverseGaussianRandom = class()
 

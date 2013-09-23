@@ -2,6 +2,7 @@
 #define _RADIANT_SIMULATION_SIMULATION_H
 
 #include "om/om.h"
+#include "radiant_luabind.h"
 #include "physics/octtree.h"
 #include "platform/utils.h"
 #include "platform/random.h"
@@ -12,8 +13,15 @@
 #include "libjson.h"
 #include "physics/namespace.h"
 #include "radiant_json.h"
+#include "lib/rpc/forward_defines.h"
+#include "lua/namespace.h"
+#include "lib/rpc/forward_defines.h"
 
 // Forward Declarations
+IN_RADIANT_LUA_NAMESPACE(
+   class ScriptHost;
+)
+
 IN_RADIANT_OM_NAMESPACE(
    class Entity;
 )
@@ -24,7 +32,6 @@ IN_RADIANT_PHYSICS_NAMESPACE(
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
 
-class ScriptHost;
 class Job;
 class Task;
 class Event;
@@ -38,8 +45,12 @@ class Path;
 
 class Simulation : public SimulationInterface {
 public:
-   Simulation(lua_State* L);
+   Simulation();
    ~Simulation();
+
+   om::EntityPtr CreateEntity();
+   om::EntityPtr Simulation::GetEntity(dm::ObjectId id);
+   void DestroyEntity(dm::ObjectId id);
 
    static Simulation& GetInstance();
    void CreateNew() override;
@@ -61,14 +72,14 @@ public:
    om::EntityPtr GetRootEntity();
    Physics::OctTree &GetOctTree();
    dm::Store& GetStore();
-   ScriptHost& GetScript() { return *scriptHost_; }
+   lua::ScriptHost& GetScript();
 
    WorkerScheduler* GetWorkerScheduler();
    BuildingScheduler* GetBuildingScehduler(dm::ObjectId id);
 
 private:
-   void PostCommand(tesseract::protocol::PostCommandRequest const& request, tesseract::protocol::PostCommandReply* reply);
-   void ScriptCommand(tesseract::protocol::ScriptCommandRequest const& request, tesseract::protocol::ScriptCommandReply* reply);
+   void PostCommand(tesseract::protocol::PostCommandRequest const& request);
+   void ScriptCommand(tesseract::protocol::ScriptCommandRequest const& request);
    void EncodeDebugShapes(protocol::SendQueuePtr queue);
    void PushServerRemoteObjects(protocol::SendQueuePtr queue);
    void ProcessJobList(platform::timer &timer);
@@ -88,9 +99,10 @@ private:
    void UpdateTargetTables(int now, int interval);
    void HandleRouteRequest(luabind::object ctor, JSONNode const& query, std::string const& postdata, tesseract::protocol::PostCommandReply* response);
    void LoadModuleInitScript(json::ConstJsonObject const& block);
-   void LoadModuleRequestHandlers(std::string const& modname, json::ConstJsonObject const& block);
    void LoadModuleGameObjects(std::string const& modname, json::ConstJsonObject const& block);
-
+   void ProcessCallModuleRequest(std::string const& mod_name, std::string const& function_name, tesseract::protocol::PostCommandRequest const& request, tesseract::protocol::PostCommandReply* reply);
+   void SendReply(tesseract::protocol::PostCommandReply const& reply);
+   void InitializeModules();
 private:
    static Simulation*                           singleton_;
 
@@ -110,7 +122,7 @@ private:
    std::vector<std::pair<dm::ObjectId, dm::ObjectType>>  allocated_;
    std::vector<dm::ObjectId>                             destroyed_;
    std::unique_ptr<Physics::OctTree>                     octtree_;
-   std::unique_ptr<ScriptHost>                           scriptHost_;
+   std::unique_ptr<lua::ScriptHost>                      scriptHost_;
 
    // Good stuff down here.
 
@@ -123,10 +135,19 @@ private:
    std::list<std::weak_ptr<Task>>               tasks_;
    std::vector<AuraListEntry>                   auras_;
    std::vector<om::TargetTablesRef>             targetTables_;   
-   lua_State* L_;
    std::unordered_map<std::string, luabind::object>   routes_;
-   std::unordered_map<std::string, luabind::object>   dataBindings_;
    std::vector<std::pair<std::string, std::string>>   serverRemoteObjects_;
+
+   luabind::object                              p1_;
+   luabind::object                              game_;
+   luabind::object                              game_api_;
+   std::map<dm::ObjectId, om::EntityPtr>        entityMap_;
+
+   rpc::SessionPtr             session_;
+   rpc::CoreReactorPtr         core_reactor_;
+   rpc::TraceObjectRouterPtr   trace_router_;
+   rpc::ProtobufReactorPtr     protobuf_reactor_;
+   std::vector<tesseract::protocol::Update>  buffered_updates_;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

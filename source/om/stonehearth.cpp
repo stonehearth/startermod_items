@@ -7,7 +7,7 @@
 #include "lua/radiant_lua.h"
 #include "resources/res_manager.h"
 #include "resources/exceptions.h"
-#include "simulation/script/script_host.h"
+#include "lua/script_host.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -57,7 +57,7 @@ GetLuaComponentUri(std::string name)
       modname = name.substr(0, offset);
       name = name.substr(offset + 1, std::string::npos);
 
-      JSONNode const& manifest = resources::ResourceManager2::GetInstance().LookupManifest(modname);
+      JSONNode manifest = res::ResourceManager2::GetInstance().LookupManifest(modname).GetNode();
       return manifest["components"][name].as_string();
    }
    // xxx: throw an exception...
@@ -117,10 +117,7 @@ Entity_AddLuaComponent(lua_State* L, om::EntityPtr entity, std::string const& na
       result = data_binding->GetModelObject();
    } else {
       std::string uri = GetLuaComponentUri(name);
-      // xxx: this should just be a generic scriphost!
-      simulation::ScriptHost* host = luabind::object_cast<simulation::ScriptHost*>(globals(L)["native"]);
-      ASSERT(host);
-      object ctor = host->LuaRequire(uri);
+      object ctor = lua::ScriptHost::RequireScript(L, uri);
       if (ctor) {
          data_binding = component->AddLuaComponent(name);
          data_binding->SetDataObject(newtable(L));
@@ -164,18 +161,18 @@ void Stonehearth::InitEntity(om::EntityPtr entity, std::string const& mod_name, 
    }
 
    try {
-      std::string uri = resources::ResourceManager2::GetInstance().GetEntityUri(mod_name, entity_name);
+      std::string uri = res::ResourceManager2::GetInstance().GetEntityUri(mod_name, entity_name);
       InitEntityByUri(entity, uri, L);
-   } catch (resources::Exception &e) {
+   } catch (res::Exception &e) {
       std::ostringstream error;
       error << "failed to initialize entity(" << mod_name << ", " << entity_name << ") :"  << e.what();
-      throw resources::Exception(error.str());
+      throw res::Exception(error.str());
    }
 }
 
 void Stonehearth::InitEntityByUri(om::EntityPtr entity, std::string const& uri, lua_State* L)
 {
-   JSONNode const& node = resources::ResourceManager2::GetInstance().LookupJson(uri);
+   JSONNode const& node = res::ResourceManager2::GetInstance().LookupJson(uri);
    auto i = node.find("components");
    if (i != node.end() && i->type() == JSON_NODE) {
       for (auto const& entry : *i) {
@@ -194,7 +191,7 @@ void Stonehearth::InitEntityByUri(om::EntityPtr entity, std::string const& uri, 
             if (luabind::type(component) != LUA_TNIL) {
                luabind::object extend = component["extend"];
                if (luabind::type(extend) == LUA_TFUNCTION) {
-                  luabind::call_function<void>(extend, component, lua::JsonToLua(L, entry));
+                  luabind::call_function<void>(extend, component, lua::ScriptHost::JsonToLua(L, entry));
                }
             }
          }

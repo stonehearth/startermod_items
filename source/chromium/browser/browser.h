@@ -32,19 +32,26 @@ public:
    typedef std::function<void(const CefCursorHandle cursor)> CursorChangeCb;
    
 public:  // IBrowser Interface
-   bool HasMouseFocus() override;
+   bool HasMouseFocus(int screen_x, int screen_y) override;
    void UpdateDisplay(PaintCb cb) override;
    void Work() override;
-   void OnRawInput(const RawInputEvent &evt, bool& handled, bool& uninstall) override;
-   void OnMouseInput(const MouseEvent &evt, bool& handled, bool& uninstall) override;
+   bool OnInput(Input const& evt) override;
    void SetCursorChangeCb(CursorChangeCb cb) override;
    void SetRequestHandler(HandleRequestCb cb) override;
+   void SetBrowserResizeCb(std::function<void(int, int)> cb);
+   void OnScreenResize(int w, int h) override;
+   void GetBrowserSize(int& w, int& h) override;
+
 public:
    typedef int CommandId;
 #if 0
    bool GetNextCommand(CommandId& id, JSONNode& node);
    void SetCommandResponse(CommandId& id, const JSONNode& response);
 #endif
+
+private:
+   void OnRawInput(const RawInput& evt);
+   void OnMouseInput(const MouseInput &evt);
 
 public:
    IMPLEMENT_REFCOUNTING(Browser);
@@ -149,6 +156,7 @@ private:
    void FinishCreateEntity(dm::ObjectId id, CommandId cmdId);
 #endif
    int GetCefKeyboardModifiers(WPARAM wparam, LPARAM lparam);
+   void WindowToBrowser(int &x, int& y);
 
 private:
    CefRefPtr<CefApp>                app_;
@@ -160,12 +168,13 @@ private:
    PaintCb                       onPaint_;
    CursorChangeCb                cursorChangeCb_;
 
-   int32                         mouseX_;
-   int32                         mouseY_;
-   int32                         width_;
-   int32                         height_;
-   uint32*                       framebuffer_;
+   int32                         screenWidth_;
+   int32                         screenHeight_;
+   int32                         uiWidth_;
+   int32                         uiHeight_;
+   uint32*                       browser_framebuffer_;
    HandleRequestCb               requestHandler_;
+   std::function<void(int, int)> resize_cb_;
 };
 
 END_RADIANT_CHROMIUM_NAMESPACE

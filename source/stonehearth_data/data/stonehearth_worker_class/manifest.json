@@ -6,6 +6,9 @@
       "entities" : {
          "class_info" : "file(entities/class_info)",
          "worker_outfit" : "file(entities/worker_outfit)"
+      },
+      "game_objects" : {
+         "singleton" : "file(stonehearth_worker_class.lua)"
       }
    }
 }

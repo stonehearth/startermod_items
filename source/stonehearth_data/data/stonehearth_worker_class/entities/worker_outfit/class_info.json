@@ -12,7 +12,7 @@
         "name" : "Worker",
         "description" : "Hi ho, hi ho, it's of to work we go...",
         "icon" : "",
-        "class_script" : "/stonehearth_worker_class/"
+        "class_script" : "stonehearth_worker_class"
       }
    }
 }

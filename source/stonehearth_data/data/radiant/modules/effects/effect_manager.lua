@@ -4,13 +4,12 @@ local EffectManager = class()
 
 function EffectManager:__init(entity)
    self._effects = {}
-   self._skip_animations = get_config_option("game.noidle");
 
    self._entity = entity
    radiant.events.listen('radiant.events.gameloop', self)
 
    self.animation_table_name = radiant.entities.get_animation_table_name(self._entity)
-   if self.animation_table_name and not self.animation_table_name == "" then
+   if self.animation_table_name and self.animation_table_name ~= "" then
       local obj = radiant.resources.load_json(self.animation_table_name)
       self._effects_root = obj.effects_root
    end

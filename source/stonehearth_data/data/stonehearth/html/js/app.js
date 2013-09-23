@@ -3,15 +3,12 @@ App = Ember.Application.createWithMixins({
     LOG_TRANSITIONS: true,
 
   	init: function() {
+      radiant.events.poll();
+
   		this.deferReadiness();
   		this._super();
       this._getOptions();
       this._loadModules();
-  	},
-
-  	ready: function() {
-      //Start the poll
-      radiant.events.poll();
   	},
 
     getModuleData: function() {
@@ -23,9 +20,7 @@ App = Ember.Application.createWithMixins({
 
       var deferreds = [];
 
-      $.ajax( {
-        url: '/api/get_modules'
-      }).done( function(data) {
+      radiant.call('radiant.get_modules').done( function(data) {
         console.log(data);
 
         self._moduleData = data;

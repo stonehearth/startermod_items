@@ -90,15 +90,15 @@ bool Application::LoadConfig(int argc, const char** argv)
    return true;
 }
 
-int Application::run(lua_State* L, int argc, const char** argv)
+int Application::Run(int argc, const char** argv)
 {
    if (!LoadConfig(argc, argv)) {
       return 0;
    }
-   return Start(L);
+   return Start();
 }
 
-int Application::Start(lua_State* L)
+int Application::Start()
 {
    const char *docroot = configvm["ui.docroot"].as<std::string>().c_str();
    const char *port = "1336";
@@ -112,7 +112,7 @@ int Application::Start(lua_State* L)
       }
    });
 
-   game_engine::arbiter::GetInstance().Run(L);
+   game_engine::arbiter::GetInstance().Run();
    client.join();
 
    return 0;

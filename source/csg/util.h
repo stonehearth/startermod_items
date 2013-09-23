@@ -47,6 +47,10 @@ void HeightmapToRegion2(HeightMap<double> const& h, Region2& r);
 EdgeListPtr Region2ToEdgeList(csg::Region2 const& rgn, int height, csg::Region3 const& clipper);
 csg::Region2 EdgeListToRegion2(EdgeListPtr segments, int width, csg::Region2 const* clipper);
 
+std::ostream& operator<<(std::ostream& os, EdgePoint const& f);
+std::ostream& operator<<(std::ostream& os, Edge const& f);
+std::ostream& operator<<(std::ostream& os, EdgeList const& f);
+
 END_RADIANT_CSG_NAMESPACE
 
 #endif // _RADIANT_CSG_UTIL_H

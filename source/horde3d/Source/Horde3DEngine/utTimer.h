@@ -16,7 +16,9 @@
 #include "utPlatform.h"
 
 #if defined( PLATFORM_WIN ) || defined( PLATFORM_WIN_CE )
-#   define WIN32_LEAN_AND_MEAN 1
+#  if !defined(WIN32_LEAN_AND_MEAN)
+#     define WIN32_LEAN_AND_MEAN 1
+#  endif
 #	ifndef NOMINMAX
 #		define NOMINMAX
 #	endif

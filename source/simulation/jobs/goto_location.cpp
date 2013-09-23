@@ -11,6 +11,11 @@ namespace po = boost::program_options;
 
 extern po::variables_map configvm;
 
+std::ostream& simulation::operator<<(std::ostream& os, GotoLocation const& o)
+{
+   return os << "[GotoLocation ...]";
+}
+
 GotoLocation::GotoLocation(om::EntityRef entity, float speed, const csg::Point3f& location, float close_to_distance, luabind::object arrived_cb) :
    Task("goto location"),
    entity_(entity),
@@ -107,13 +112,4 @@ void GotoLocation::Report(std::string msg)
       LOG(INFO) << msg << " (entity " << entity->GetObjectId() << " goto location " << (void*)this << " entity:" << entity->GetObjectId() << " " << target_location_ << " currently at " << location << 
          ".  close to:" << close_to_distance_ << "  current d:" << target_location_.DistanceTo(location) <<  ")";
    }
-}
-
-luabind::scope GotoLocation::RegisterLuaType(struct lua_State* L, const char* name)
-{
-   using namespace luabind;
-   return
-      class_<GotoLocation, std::shared_ptr<GotoLocation>>(name)
-         .def("stop",     &GotoLocation::Stop)
-      ;
 }
