@@ -1,14 +1,14 @@
-local TerrainType = require 'stonehearth_terrain.terrain_type'
-local Array2D = require 'stonehearth_terrain.array_2D'
-local HeightMap = require 'stonehearth_terrain.height_map'
-local GaussianRandom = require 'stonehearth_terrain.math.gaussian_random'
-local MathFns = require 'stonehearth_terrain.math.math_fns'
-local FilterFns = require 'stonehearth_terrain.filter.filter_fns'
-local Wavelet = require 'stonehearth_terrain.wavelet.wavelet'
-local WaveletFns = require 'stonehearth_terrain.wavelet.wavelet_fns'
-local EdgeDetailer = require 'stonehearth_terrain.edge_detailer'
-local TileInfo = require 'stonehearth_terrain.tile_info'
-local Timer = require 'stonehearth_debugtools.timer'
+local TerrainType = require 'terrain_type'
+local Array2D = require 'array_2D'
+local HeightMap = require 'height_map'
+local GaussianRandom = require 'math.gaussian_random'
+local MathFns = require 'math.math_fns'
+local FilterFns = require 'filter.filter_fns'
+local Wavelet = require 'wavelet.wavelet'
+local WaveletFns = require 'wavelet.wavelet_fns'
+local EdgeDetailer = require 'edge_detailer'
+local TileInfo = require 'tile_info'
+local Timer = radiant.mods.require('stonehearth_debugtools.timer')
 
 local TerrainGenerator = class()
 
