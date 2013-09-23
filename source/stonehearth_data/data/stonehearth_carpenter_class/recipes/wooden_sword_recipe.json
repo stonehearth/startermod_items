@@ -3,7 +3,6 @@
 
    "work_units"  : 3,
    "recipe_name" : "Wooden Practice Sword",
-   "my_location" : "/stonehearth_carpenter_class/recipes/wooden_sword_recipe.json",
    "description" : "Upgrades a settler into a swordsman.",
    "flavor"      : "Just pointy enough to get the job done.",
    "portrait"    : "/stonehearth_items/entities/wooden_sword/wooden_sword.png",
