@@ -214,7 +214,6 @@ void RenderAnimationEffect::Update(int now, int dt, bool& finished)
       }
    }
 
-   LOG(INFO) << "advancing animation " << animationName_ << " to offset " << offset << "(start_time: " << startTime_ << " now: " << now << " duration: " << duration_ << ")";
    animation_->MoveNodes(offset, [&](std::string bone, const csg::Transform &transform) {
       H3DNode node = entity_.GetSkeleton().GetSceneNode(bone);
       if (node) {
