@@ -92,23 +92,6 @@ Renderer::Renderer() :
    memset(data, 0, uiWidth_ * uiHeight_ * 4);
    h3dUnmapResStream(uiTexture_);
 
-   H3DRes veclookup = h3dCreateTexture("RandomVectorLookup", 4, 4, H3DFormats::TEX_RGBA32F, H3DResFlags::NoTexMipmaps);
-   float *data2 = (float *)h3dMapResStream(veclookup, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
-   for (int i = 0; i < 16; i++)
-   {
-      float x = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
-      float y = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
-      float z = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
-      
-      Horde3D::Vec3f v(x,y,z);
-      v.normalize();
-
-      data2[(i * 4) + 0] = v.x;
-      data2[(i * 4) + 1] = v.y;
-      data2[(i * 4) + 2] = v.z;
-   }
-   h3dUnmapResStream(veclookup);
-
    std::ostringstream material;
    material << "<Material>" << std::endl;
 	material << "   <Shader source=\"shaders/overlay.shader\"/>" << std::endl;
@@ -131,9 +114,27 @@ Renderer::Renderer() :
    cubemitterNode = h3dRadiantAddCubemitterNode(H3DRootNode, "first_cubemitter!", d, c);
    h3dSetNodeTransform(cubemitterNode, 0, 0, 0, 90, 0, 0, 1, 1, 1);
    //*/
-   
-   LoadResources();
 
+   H3DRes ssaoMat = h3dAddResource(H3DResTypes::Material, "materials/ssao.material.xml", 0);
+
+   H3DRes veclookup = h3dCreateTexture("RandomVectorLookup", 4, 4, H3DFormats::TEX_RGBA32F, H3DResFlags::NoTexMipmaps);
+   float *data2 = (float *)h3dMapResStream(veclookup, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
+   for (int i = 0; i < 16; i++)
+   {
+      float x = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
+      float y = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
+      //float z = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
+      float z = 0;
+      Horde3D::Vec3f v(x,y,z);
+      v.normalize();
+
+      data2[(i * 4) + 0] = v.x;
+      data2[(i * 4) + 1] = v.y;
+      data2[(i * 4) + 2] = v.z;
+   }
+   h3dUnmapResStream(veclookup);
+
+   LoadResources();
 	// Add camera
    
    camera_ = new Camera(h3dAddCameraNode(H3DRootNode, "Camera", currentPipeline_));
@@ -914,6 +915,7 @@ void Renderer::LoadResources()
       // at this time, there's a bug in horde3d (?) which causes render
       // pipline corruption if invalid resources are even attempted to
       // load.  assert fail;
+      h3dutDumpMessages();
       ASSERT(false);
    }
 }

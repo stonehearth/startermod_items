@@ -48,6 +48,6 @@ uniform sampler2D characterMap;
 varying vec2 texCoords;
 
 void main() {
-   vec4 color = texture(characterMap, texCoords);
+   vec4 color = texture2D(characterMap, texCoords);
    gl_FragColor = color;
 }

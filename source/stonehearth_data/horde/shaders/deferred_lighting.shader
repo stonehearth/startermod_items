@@ -57,10 +57,10 @@ void main( void )
 {
   vec2 fragCoord = vec2(gl_FragCoord.xy / frameBufSize);
 
-  vec3 pos = texture2D(positions, fragCoord) + viewerPos;
+  vec3 pos = texture2D(positions, fragCoord).xyz + viewerPos;
   float vsPos = (viewMat * vec4( pos, 1.0 )).z;
 
-  vec3 normal = texture2D(normals, fragCoord);
+  vec3 normal = texture2D(normals, fragCoord).xyz;
   vec3 intensity = calcSimpleDirectionalLight( pos, normal, -vsPos, 0.3 ) + lightAmbientColor;
-  gl_FragColor = vec4(intensity, 1);
+  gl_FragColor = vec4(intensity, 1.0);
 }

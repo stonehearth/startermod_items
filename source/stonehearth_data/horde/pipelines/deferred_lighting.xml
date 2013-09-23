@@ -33,26 +33,36 @@
     </Stage>
 
     <Stage id="SSAO">
-      <SwitchTarget target="SSAOBUF" />
-      <BindBuffer sampler="depthbuff" sourceRT="AttributeBuffer" bufIndex="32" />
-      <DrawQuad material="materials/ssao.material.xml" context="SSAO"/>
+      <SwitchTarget target="" />
+      <BindBuffer sampler="normals" sourceRT="AttributeBuffer" bufIndex="0" />
+      <BindBuffer sampler="depth" sourceRT="AttributeBuffer" bufIndex="32" />
+      <BindBuffer sampler="positions" sourceRT="AttributeBuffer" bufIndex="1" />
+
+      <DrawQuad material="materials/ssao.material.xml" context="SSAO2"/>
       <UnbindBuffers />
     </Stage>
 
-    <Stage id="SSAO Blur" >
+    <!--Stage id="SSAO Blur" >
       <SwitchTarget target="TEMPSSAOBLUR" />
-      <BindBuffer sampler="depthbuff" sourceRT="AttributeBuffer" bufIndex="32" />
-      <BindBuffer sampler="ssaobuff" sourceRT="SSAOBUF" bufIndex="0" />
+      <BindBuffer sampler="depth" sourceRT="AttributeBuffer" bufIndex="32" />
+      <BindBuffer sampler="ssao" sourceRT="SSAOBUF" bufIndex="0" />
       <DrawQuad material="materials/ssao.material.xml" context="BLUR_X" />
       <UnbindBuffers />
 
       <SwitchTarget target="SSAOBLUR" />
-      <BindBuffer sampler="depthbuff" sourceRT="AttributeBuffer" bufIndex="32" />
-      <BindBuffer sampler="ssaobuff" sourceRT="TEMPSSAOBLUR" bufIndex="0" />
+      <BindBuffer sampler="depth" sourceRT="AttributeBuffer" bufIndex="32" />
+      <BindBuffer sampler="ssao" sourceRT="TEMPSSAOBLUR" bufIndex="0" />
       <DrawQuad material="materials/ssao.material.xml" context="BLUR_Y" />
       <UnbindBuffers />
 
+    </Stage-->
+    <!--Stage id="SSAO Blur" >
+      <SwitchTarget target="SSAOBLUR" />
+      <BindBuffer sampler="ssao" sourceRT="SSAOBUF" bufIndex="0" />
+      <DrawQuad material="materials/ssao.material.xml" context="BLUR" />
+      <UnbindBuffers />
     </Stage>
+
     <Stage id="Material">
       <SwitchTarget target="OUTPUT" />
       <BindBuffer sampler="lightingBuffer" sourceRT="LightingBuffer" bufIndex="0"/>
@@ -68,7 +78,7 @@
        <BindBuffer sampler="buf0" sourceRT="OUTPUT" bufIndex="0" />
        <DrawQuad material="pipelines/outline.material.xml" context="DRAW_COLORBUF" />
        <UnbindBuffers />
-    </Stage>
+    </Stage-->
 
     <Stage id="Overlays">
       <DrawOverlays context="OVERLAY" />

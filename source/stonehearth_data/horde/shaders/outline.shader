@@ -153,7 +153,7 @@ vec4 GetNormalDepthSample(vec2 coord, vec2 offset)
    // 4.1.1 - Make sure to convert the depth to the linear distance
    // from the near plane rather than eye coordinates.
 
-   float depth = texture2D(depthBuf, coord + offset * 2).r;
+   float depth = texture2D(depthBuf, coord + offset * 2.0).r;
    depth = LinearizeDepth(depth);
 
    return vec4(normal, depth);   
@@ -172,7 +172,7 @@ void main( void )
       gl_FragColor = vec4(0.9, 0.9, 0.9, 1.0);
    } else {
       vec2 invScreenSize = vec2(1.0 / 1600.0, 1.0 / 1200.0);
-      vec2 offset = vec2(1, 1) / (frameBufSize * 2);
+      vec2 offset = vec2(1.0, 1.0) / (frameBufSize * 2.0);
 
       // 4.1.2 - Calcuate crease edges by comparing the angles between
       // normals of diagonal texels...
@@ -181,11 +181,11 @@ void main( void )
       vec3 C = getNormal(texCoords + vec2(-offset.x,  offset.y));
       vec3 F = getNormal(texCoords + vec2( offset.x, -offset.y));
       vec3 H = getNormal(texCoords + vec2(-offset.x, -offset.y));
-      float In = (dot(A, H) + dot(C, F)) / 2;
+      float In = (dot(A, H) + dot(C, F)) / 2.0;
 
       // 4.1.2 - Calcuate siloette edges by comparing the discontinuties
       float scale = 2.0;
-      float Iz = 8 * SampleDepth(texCoords, vec2(0, 0));
+      float Iz = 8.0 * SampleDepth(texCoords, vec2(0.0, 0.0));
    
       Iz -= SampleDepth(texCoords, vec2( offset.x, -offset.y));
       Iz -= SampleDepth(texCoords, vec2(      0.0, -offset.y));
@@ -198,14 +198,14 @@ void main( void )
       Iz -= SampleDepth(texCoords, vec2(      0.0,  offset.y));
       Iz -= SampleDepth(texCoords, vec2( offset.x,  offset.y));  
 
-      Iz = 1 - clamp(-Iz * 400, 0, 1);
+      Iz = 1.0 - clamp(-Iz * 400.0, 0.0, 1.0);
 
-      float c = In * pow(Iz, 2);
-      //Iz = SampleDepth(texCoords, vec2(0, 0)) * scale;
+      float c = In * pow(Iz, 2.0);
+      //Iz = SampleDepth(texCoords, vec2(0.0, 0.0)) * scale;
       //Iz = texture2D(depthBuf, texCoords).r;
-      //gl_FragColor = vec4(Iz, Iz, 1, 1);
+      //gl_FragColor = vec4(Iz, Iz, 1.0, 1.0);
 
-      gl_FragColor = vec4(c, c, c, 1);
+      gl_FragColor = vec4(c, c, c, 1.0);
    }
 }
 
@@ -218,7 +218,7 @@ varying vec2 texCoords;
 void main( void )
 {
 	texCoords = vertPos.xy; 
-	gl_Position = projMat * vec4( vertPos, 1 );
+	gl_Position = projMat * vec4( vertPos, 1.0 );
 }
 
 
@@ -285,7 +285,7 @@ void main( void )
 	// gl_FragDepth = texture2D( depthBuf, texCoords ).r;
    gl_FragColor.r = texture2D( depthBuf, texCoords ).r;
    gl_FragColor.g = texture2D( depthBuf, texCoords ).b;
-   gl_FragColor.b = 1;
+   gl_FragColor.ba = vec2(1, 1);
 }
 
 
@@ -295,8 +295,8 @@ varying vec2 texCoords;
 
 void main( void )
 {
-   vec3 rgb = texture2D(buf0, texCoords);
-   gl_FragColor = vec4(rgb, 1);
+   vec3 rgb = texture2D(buf0, texCoords).xyz;
+   gl_FragColor = vec4(rgb, 1.0);
 }
 
 [[FS_FXAA]]
@@ -357,7 +357,6 @@ void main( void )
 		outputCol.xyz=rgbB;
 	}
 
-  gl_FragColor = outputCol;
   //Gamma correct
   //gl_FragColor = pow(outputCol, 1.0/1.2);
 }
@@ -387,7 +386,7 @@ varying vec2 texCoords;
 
 void main( void )
 {
-   gl_FragColor.rgb = texture2D(buf0, texCoords);
+   gl_FragColor = vec4(texture2D(buf0, texCoords).xyz, 1.0);
 }
 
 [[FS_DRAW_NORMALS]]
@@ -400,5 +399,5 @@ varying vec2 texCoords;
 void main( void )
 {
    vec3 normal = getNormal(texCoords);
-   gl_FragColor.rgb = normal;
+   gl_FragColor = vec4(normal, 1);
 }

@@ -93,35 +93,32 @@ context CLOUDS
 }
 
 [[VS_GENERAL]]
-
+#version 150
 #include "shaders/utilityLib/vertCommon.glsl"
 
 uniform mat4 viewProjMat;
 uniform vec3 viewerPos;
-attribute vec3 vertPos;
-attribute vec3 normal;
-attribute vec3 color;
-varying vec4 pos, vsPos, cPos;
-varying vec3 tsbNormal;
-varying vec3 albedo;
+in vec3 vertPos;
+in vec3 normal;
+in vec3 color;
+out vec4 pos;
+out vec4 vsPos;
+out vec3 tsbNormal;
+out vec3 albedo;
 
 void main( void )
 {
   pos = calcWorldPos( vec4( vertPos, 1.0 ) );
   vsPos = calcViewPos( pos );
-  tsbNormal = normal;
+  tsbNormal = calcWorldVec(normal);
   albedo = color;
 
-  vec4 vl = viewProjMat * pos;
-  //vl.z = vl.z * vl.w / 2000;
-
-  // Calculate texture coordinates and clip space position
-  gl_Position = vl;//viewProjMat * pos;
+  gl_Position = viewProjMat * pos;;
 }
 
 
 [[FS_AMBIENT]]  
-
+#version 150
 #include "shaders/utilityLib/fragDeferredWrite.glsl" 
 
 uniform vec3 viewerPos;
@@ -129,9 +126,9 @@ uniform vec4 matDiffuseCol;
 uniform vec4 matSpecParams;
 uniform sampler2D albedoMap;
 
-varying vec4 pos;
-varying vec3 tsbNormal;
-varying vec3 albedo;
+in vec4 pos;
+in vec3 tsbNormal;
+in vec3 albedo;
 
 void main( void )
 {
@@ -147,10 +144,10 @@ void main( void )
 
 
 [[FS_DEFERRED_DEPTH_AND_LIGHT]] 
-
+#version 150
 uniform vec3 viewerPos;
-varying vec4 pos;
-varying vec3 tsbNormal;
+in vec4 pos;
+in vec3 tsbNormal;
 
 void main( void )
 {
@@ -166,10 +163,6 @@ uniform vec4 matDiffuseCol;
 uniform vec4 matSpecParams;
 uniform sampler2D albedoMap;
 
-varying vec4 pos;
-varying vec3 tsbNormal;
-varying vec3 albedo;
-
 void main( void )
 {
    gl_FragColor.rgb = vec3(0, 0, 0);
@@ -183,7 +176,7 @@ void main( void )
 
 uniform mat4 viewProjMat;
 uniform vec4 lightPos;
-attribute vec3 vertPos;
+in vec3 vertPos;
 varying vec3 lightVec;
 
 void main( void )
@@ -199,7 +192,7 @@ void main( void )
 
 uniform vec4 lightPos;
 uniform float shadowBias;
-varying vec3 lightVec;
+in vec3 lightVec;
 
 void main( void )
 {
@@ -217,7 +210,7 @@ void main( void )
 #include "shaders/utilityLib/vertSkinning.glsl"
 
 uniform mat4 viewProjMat;
-attribute vec3 vertPos;
+in vec3 vertPos;
 
 void main( void )
 {
@@ -230,27 +223,28 @@ void main( void )
 // =================================================================================================
 
 uniform float shadowBias;
-varying vec3 lightVec;
+//varying vec3 lightVec;
 
 void main( void )
 {
-  gl_FragDepth = gl_FragCoord.z + 2 * shadowBias;
+  gl_FragDepth = gl_FragCoord.z + 2.0 * shadowBias;
   // Clearly better bias but requires SM 3.0
   //gl_FragDepth = dist + abs( dFdx( dist ) ) + abs( dFdy( dist ) ) + shadowBias;
 }
 
 [[FS_LIGHTING]]
 // =================================================================================================
-
+#version 150
 #include "shaders/utilityLib/fragLighting.glsl" 
 
 uniform vec4 matDiffuseCol;
 uniform vec4 matSpecParams;
 uniform sampler2D albedoMap;
 
-varying vec4 pos, vsPos;
-varying vec3 albedo;
-varying vec3 tsbNormal;
+in vec4 pos
+in vec4 vsPos;
+in vec3 albedo;
+in vec3 tsbNormal;
 
 void main( void )
 {
@@ -264,7 +258,7 @@ void main( void )
 
 [[FS_DIRECTIONAL_LIGHTING]]
 // =================================================================================================
-
+#version 150
 #include "shaders/utilityLib/fragLighting.glsl" 
 
 uniform vec4 matDiffuseCol;
@@ -272,20 +266,22 @@ uniform vec4 matSpecParams;
 uniform sampler2D albedoMap;
 uniform vec3 lightAmbientColor;
 
-varying vec4 pos, vsPos;
-varying vec3 albedo;
-varying vec3 tsbNormal;
+in vec4 pos
+in vec4 vsPos;
+in vec3 albedo;
+in vec3 tsbNormal;
 
 void main( void )
 {
-  gl_FragColor.rgb =
-    calcPhongDirectionalLight( pos, normalize( tsbNormal ), albedo, vec3(0,0,0),
+  vec3 lightColor = 
+    calcPhongDirectionalLight( pos.xyz, normalize( tsbNormal ), albedo, vec3(0,0,0),
                         0.0, -vsPos.z, 0.3 ) + (lightAmbientColor * albedo);
+  gl_FragColor = vec4(lightColor, 1.0);
 }
 
 [[FS_CLOUDS]]
-
-varying vec4 pos;
+#version 150
+in vec4 pos;
 uniform sampler2D cloudMap;
 uniform float currentTime;
 
@@ -296,7 +292,7 @@ void main( void )
   vec4 cloudColor = texture2D(cloudMap, fragCoord.xy / 128.0 + cloudSpeed);
   cloudColor *= texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0));
 
-  gl_FragColor.rgb = cloudColor;
+  gl_FragColor = cloudColor;
 }
 
 
@@ -305,12 +301,12 @@ void main( void )
 uniform sampler2D lightingBuffer;
 uniform sampler2D ssaoBuffer;
 uniform vec2 frameBufSize;
-varying vec3 albedo;
+in vec3 albedo;
 
 void main(void)
 {
   vec2 fragCoord = vec2(gl_FragCoord.xy / frameBufSize);
-  vec3 lightColor = texture2D(lightingBuffer, fragCoord);
-  float ssaoIntensity = texture2D(ssaoBuffer, fragCoord);
-  gl_FragColor.rgb = lightColor * albedo * ssaoIntensity;
+  vec3 lightColor = texture2D(lightingBuffer, fragCoord).xyz;
+  float ssaoIntensity = texture2D(ssaoBuffer, fragCoord).x;
+  gl_FragColor = vec4(lightColor * albedo * ssaoIntensity, 1.0);
 }

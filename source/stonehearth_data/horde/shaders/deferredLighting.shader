@@ -119,11 +119,11 @@ void main( void )
 {
   if( getMatID( texCoords ) == 2.0 )  // Sky
   {
-    gl_FragColor.rgb = getAlbedo( texCoords );
+    gl_FragColor = getAlbedo( texCoords );
   }
   else
   {
-    gl_FragColor = vec3(0,0,0);
+    gl_FragColor = vec4(0,0,0,1);
   }
 }
 
