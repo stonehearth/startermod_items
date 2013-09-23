@@ -1,6 +1,6 @@
-local TerrainType = require 'stonehearth_terrain.terrain_type'
-local HeightMap = require 'stonehearth_terrain.height_map'
-local InverseGaussianRandom = require 'stonehearth_terrain.math.inverse_gaussian_random'
+local TerrainType = require 'terrain_type'
+local HeightMap = require 'height_map'
+local InverseGaussianRandom = require 'math.inverse_gaussian_random'
 local Point2 = _radiant.csg.Point2
 
 local EdgeDetailer = class()
