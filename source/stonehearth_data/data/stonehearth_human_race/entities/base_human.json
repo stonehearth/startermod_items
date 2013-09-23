@@ -1,6 +1,6 @@
 {
    "type" : "entity",
-   "extends" : "/stonehearth/entities/humanoid.json",
+   "extends" : "/stonehearth/entities/mob.json",
    "components" : {
       "radiant:ai" : {
          "actions" : [

@@ -5,21 +5,13 @@
       "detail_color": "#A3905A"
    },
    "foothills": {
-      "band_0_color": "#99CE7C",
-      "band_1_color": "#87C076",
-      "band_2_color": "#75B370",
-      "band_3_color": "#64A66A",
-      "band_4_color": "#529864"
+      "band_0_color": "#69A165",
+      "band_1_color": "#5A955F",
+      "band_2_color": "#5A955F"
    },
    "plains": {
-      "band_0_color": "#63a56a",
-      "band_1_color": "#529864",
-      "band_2_color": "#498658",
-      "band_3_color": "#427950",
-      "band_4_color": "#427950"
-   },
-   "plains": {
-      "color": "#529864"
+      "band_0_color": "#519663",
+      "band_1_color": "#4A885A"
    },
    "wood": {
       "dark_color": "#523D27"

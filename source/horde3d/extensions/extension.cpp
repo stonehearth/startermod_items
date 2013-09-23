@@ -207,8 +207,24 @@ DLL void h3dRadiantAdvanceCubemitterTime(float timeDelta) {
       H3DNode n = h3dGetNodeFindResult(--numNodes);
       SceneNode *sn = Modules::sceneMan().resolveNodeHandle( n );
       APIFUNC_VALIDATE_NODE_TYPE( sn, SNT_CubemitterNode, "h3dAdvanceCubemitterTime", APIFUNC_RET_VOID );
-      ((CubemitterNode *)sn)->advanceTime( timeDelta );
+      CubemitterNode * cn = (CubemitterNode *)sn;
+      if (cn->hasFinished())
+      {
+         h3dRemoveNode(n);
+      } else
+      {
+         cn->advanceTime( timeDelta );
+      }
    }
+}
+
+DLL void h3dRadiantStopCubemitterNode(H3DNode n) {
+   SceneNode *sn = Modules::sceneMan().resolveNodeHandle(n);
+   APIFUNC_VALIDATE_NODE_TYPE( sn, SNT_CubemitterNode, "h3dAdvanceCubemitterTime", APIFUNC_RET_VOID );
+   CubemitterNode *cn = (CubemitterNode *)sn;      
+   // Do a soft-shutdown of the particle system.  We'll reap the node during update, once all the
+   // cubes are gone.
+   cn->stop();
 }
 
 DLL bool h3dRadiantClearDebugShape(H3DNode node)

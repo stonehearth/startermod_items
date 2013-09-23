@@ -10,15 +10,13 @@ local CDF_97 = radiant.mods.require('/stonehearth_terrain/wavelet/cdf_97.lua')
 local Wavelet = radiant.mods.require('/stonehearth_terrain/wavelet/wavelet.lua')
 local BoundaryNormalizingFilter = radiant.mods.require('/stonehearth_terrain/filter/boundary_normalizing_filter.lua')
 local FilterFns = radiant.mods.require('/stonehearth_terrain/filter/filter_fns.lua')
-local GaussianRandom = radiant.mods.require('/stonehearth_terrain/math/gaussian_random.lua')
-local InverseGaussianRandom = radiant.mods.require('/stonehearth_terrain/math/inverse_gaussian_random.lua')
 local Landscaper = radiant.mods.require('/stonehearth_terrain/landscaper.lua')
 local HeightMapRenderer = radiant.mods.require('/stonehearth_terrain/height_map_renderer.lua')
 local Timer = radiant.mods.require('/stonehearth_debugtools/timer.lua')
 
 function TerrainTest:__init()
-   --self:_run_timing_tests()
-   --self:_run_unit_tests()
+   --run_unit_tests()
+   --run_timing_tests()
 
    self[MicroWorld]:__init()
 
@@ -27,11 +25,25 @@ function TerrainTest:__init()
 
    self._terrain_generator = TerrainGenerator()
 
+   --self:tesselator_test()
+   --self:tree_test()
    --self:create_world()
    self:create_multi_zone_world()
 
    timer:stop()
-   radiant.log.info('Terrain generation time: %.3fs', timer:seconds())
+   radiant.log.info('World generation time: %.3fs', timer:seconds())
+end
+
+function TerrainTest:tesselator_test()
+   HeightMapRenderer.tesselator_test()   
+end
+
+function TerrainTest:tree_test()
+   math.randomseed(2)
+   local height_map = HeightMap(256, 256)
+   height_map:clear(8)
+   HeightMapRenderer.render_height_map_to_terrain(height_map, self._terrain_generator.terrain_info)
+   Landscaper:place_trees(height_map, self._terrain_generator.terrain_info)
 end
 
 function TerrainTest:create_world()
@@ -41,7 +53,8 @@ function TerrainTest:create_world()
    height_map = self._terrain_generator:generate_zone(TerrainType.Foothills)
    HeightMapRenderer.render_height_map_to_terrain(height_map, self._terrain_generator.terrain_info)
 
-   Landscaper:place_trees(height_map)
+   Landscaper:place_trees(height_map, self._terrain_generator.terrain_info)
+   --self:_place_people(height_map)
 end
 
 function TerrainTest:create_multi_zone_world()
@@ -64,9 +77,17 @@ function TerrainTest:create_multi_zone_world()
       end
    end
 
+   local timer = Timer(Timer.CPU_TIME)
+   timer:start()
    HeightMapRenderer.render_height_map_to_terrain(world_map, self._terrain_generator.terrain_info)
+   timer:stop()
+   radiant.log.info('HeightMapRenderer time: %.3fs', timer:seconds())
 
-   Landscaper:place_trees(world_map)
+   timer:start()
+   Landscaper:place_trees(world_map, self._terrain_generator.terrain_info)
+   --self:_place_people(world_map)
+   timer:stop()
+   radiant.log.info('Landscaper time: %.3fs', timer:seconds())
 end
 
 function TerrainTest:_create_world_blueprint()
@@ -87,49 +108,43 @@ function TerrainTest:_create_world_blueprint()
 
    zones:get(1, 2).terrain_type = TerrainType.Foothills
    zones:get(2, 2).terrain_type = TerrainType.Plains
---[[
-   zones:get(1, 1).terrain_type = TerrainType.Mountains
-   zones:get(2, 1).terrain_type = TerrainType.Mountains
-   zones:get(3, 1).terrain_type = TerrainType.Foothills
 
-   zones:get(1, 2).terrain_type = TerrainType.Mountains
-   zones:get(2, 2).terrain_type = TerrainType.Foothills
-   zones:get(3, 2).terrain_type = TerrainType.Plains
+   -- zones:get(1, 1).terrain_type = TerrainType.Mountains
+   -- zones:get(2, 1).terrain_type = TerrainType.Mountains
+   -- zones:get(3, 1).terrain_type = TerrainType.Foothills
 
-   zones:get(1, 3).terrain_type = TerrainType.Foothills
-   zones:get(2, 3).terrain_type = TerrainType.Plains
-   zones:get(3, 3).terrain_type = TerrainType.Plains
-]]
+   -- zones:get(1, 2).terrain_type = TerrainType.Mountains
+   -- zones:get(2, 2).terrain_type = TerrainType.Foothills
+   -- zones:get(3, 2).terrain_type = TerrainType.Plains
+
+   -- zones:get(1, 3).terrain_type = TerrainType.Foothills
+   -- zones:get(2, 3).terrain_type = TerrainType.Plains
+   -- zones:get(3, 3).terrain_type = TerrainType.Plains
+
    return zones
 end
 
-function TerrainTest:create_old_world()
-   local t = TeraGen()
-   t.create()
-end
-
-function TerrainTest:decorate_landscape()
-   local zone_size = self._terrain_generator.zone_size
+function TerrainTest:_place_people(height_map)
+   local margin = 4
+   local width = height_map.width
+   local height = height_map.height
+   local num_people = width*height / 16
    local i
-   for i=1, 20 do
-      self:place_tree(math.random(1, zone_size), math.random(1, zone_size))
-      self:place_citizen(math.random(1, zone_size), math.random(1, zone_size))
+   num_people = 10
+   for i=1, num_people do
+      self:place_citizen(math.random(1+margin, width-margin),
+                         math.random(1+margin, height-margin))
    end
 end
 
-function TerrainTest:_run_unit_tests()
+function run_unit_tests()
    BoundaryNormalizingFilter._test()
    FilterFns._test()
    CDF_97._test()
    Wavelet._test()
 end
 
-function abs_lua(x)
-   if x >= 0 then return x end
-   return -x
-end
-
-function TerrainTest:_run_timing_tests()
+function run_timing_tests()
    local abs = math.abs
    local timer = Timer(Timer.CPU_TIME)
    local iterations = 50000000
@@ -137,8 +152,7 @@ function TerrainTest:_run_timing_tests()
    timer:start()
 
    for i = 1, iterations do
-      local x
-      x = abs(i)
+      -- do something
    end
 
    timer:stop()
@@ -147,14 +161,13 @@ function TerrainTest:_run_timing_tests()
    assert(false)
 end
 
-function TerrainTest._check_wavelet_impulse_function()
+function check_wavelet_impulse_function()
    local height_map = HeightMap(8, 8)
    height_map:clear(0)
    height_map:set(4, 4, 100)
    Wavelet.DWT_2D(height_map, 8, 8, 1, 1)
    local dummy = 1
 end
-
 
 return TerrainTest
 

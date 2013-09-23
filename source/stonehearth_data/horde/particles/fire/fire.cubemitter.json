@@ -5,13 +5,13 @@
         "lifetime": {
             "start": {
                 "kind": "RANDOM_BETWEEN",
-                "values": [5,5.3]
+                "values": [1.0, 1.3]
             }
         },
         "speed": {
             "start": {
                 "kind": "RANDOM_BETWEEN",
-                "values": [5, 7]
+                "values": [4, 7]
             },
             "over_lifetime": {
                 "kind": "CURVE",
@@ -24,14 +24,11 @@
         "color": {
             "start": {
                 "kind": "CONSTANT",
-                "values": [0.7, 0.0, 0.0, 1.0]
+                "values": [1.0, 0.8, 0.0, 1.0]
             },
-            "over_lifetime_r": {
-                "kind": "RANDOM_BETWEEN_CURVES",
-                "values": [
-                    [[0.0, 0.7], [0.4, 0.7], [0.7, 0.1], [1.0, 0.0]],
-                    [[0.0, 0.8], [0.4, 0.8], [0.7, 0.2], [1.0, 0.2]]
-                ]
+            "over_lifetime_g": {
+                "kind": "CURVE",
+                "values": [[0.0, 0.7], [0.4, 0.7], [0.7, 0.1], [1.0, 0.0]]
             },
             "over_lifetime_a": {
                 "kind": "CURVE",
@@ -40,17 +37,16 @@
                 ]
             }
         },
-
         "scale": {
             "start": {
                 "kind": "RANDOM_BETWEEN",
-                "values": [1, 1]
+                "values": [0.1, 0.3]
             },
             "over_lifetime": {
                 "kind": "RANDOM_BETWEEN_CURVES",
                 "values": [
-                    [[0.0, 0.6],[1.0, 2.5]],
-                    [[0.0, 0.8],[1.0, 5.5]]
+                    [[0.0, 1.0],[1.0, 0.2]],
+                    [[0.0, 1.8],[1.0, 0.5]]
                 ]
             }
         },
@@ -58,7 +54,7 @@
             "over_lifetime_x": {
                 "kind": "RANDOM_BETWEEN_CURVES",
                 "values": [
-                    [[0.0, 0.0], [1.0, 0.0]],
+                    [[0.0, -360.0], [1.0, 360.0]],
                     [[0.0, 360.0], [1.0, 360.0]]
                 ]
             }
@@ -67,28 +63,27 @@
             "over_lifetime_z": {
                 "kind": "RANDOM_BETWEEN_CURVES",
                 "values": [
-                    [[0.0, 0.0], [0.4, 0.0], [0.6, -7.0], [1.0, -7.0]],
-                    [[0.0, 0.0], [0.4, 0.0], [0.6, 7.0], [1.0, 7.0]]
+                    [[0.0, 0.0], [0.4, 0.0], [0.6, 2.0], [1.0, -2.0]],
+                    [[0.0, 0.0], [0.4, 0.0], [0.6, 7.0], [1.0, -7.0]]
                 ]
             },
             "over_lifetime_x": {
                 "kind": "RANDOM_BETWEEN_CURVES",
                 "values": [
-                    [[0.0, 0.0], [0.4, 0.0], [0.6, -7.0], [1.0, -7.0]],
-                    [[0.0, 0.0], [0.4, 0.0], [0.6, 7.0], [1.0, 7.0]]
+                    [[0.0, 0.0], [0.4, 0.0], [0.6, 2.0], [1.0, -2.0]],
+                    [[0.0, 0.0], [0.4, 0.0], [0.6, 7.0], [1.0, -7.0]]
                 ]
             }
-
         }
     },
     "emission": {
         "rate": {
             "kind": "CONSTANT",
-            "values": [20]
+            "values": [100]
         },
         "origin": {
             "surface": "RECTANGLE",
-            "values": [5, 5]
+            "values": [2, 2]
         },
         "angle": {
             "kind": "CONSTANT",

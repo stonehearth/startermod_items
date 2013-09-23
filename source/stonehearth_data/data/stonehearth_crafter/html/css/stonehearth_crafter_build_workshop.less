@@ -1,6 +1,6 @@
 #crafterBuildWorkshopScroll {
 
-   #promoteScroll {
+   #scroll {
       position: absolute;
       top: 100px;
       right: 40px;
@@ -30,7 +30,7 @@
 
          img {
             width: auto;
-            height: 240px;
+            height: 220px;
          }
       }
 
@@ -68,22 +68,79 @@
                border-bottom: 6px solid #6b9cca;
             }
 
+            .leftBookend {
+               content: url('/stonehearth_crafter/html/images/build_workshop/scroll_socket_left_bookend.png');
+            }
+
+            .rightBookend {
+               padding-left: 10px;
+               content: url('/stonehearth_crafter/html/images/build_workshop/scroll_socket_right_bookend.png');
+            }
+
             .ingredientSocket {
                .handCursor;
-               display: inline-block;
                position: relative;
+               display: inline-block;
                width: 62px;
                height: 62px;
+               margin-left: 8px;
+
+               &:hover {
+                  background: #639bca;
+                  /*
+                  -webkit-transform: scale(1.4, 1.4);
+                  -webkit-transform-origin: 50% 50%;
+                  */
+               }
+
+               .background {
+                  position: absolute;
+                  top: 0px;
+                  left: 0px;
+                  width: 62px;
+                  height: 62px;
+               }
+
+               .selectionRequired {
+                  position: relative;
+                  top: -4px;
+                  left: -4px;
+                  width: 78px;
+                  height: 78px;
+                  background: url('/stonehearth_crafter/html/images/recipe_sockets/initial_border.png') no-repeat;
+                  -webkit-animation:pulse 1.5s infinite;
+               }
+
+
+               .wood {
+                  background: url('/stonehearth_crafter/html/images/recipe_sockets/wood_inverted.png');
+                  background-repeat: no-repeat;
+                  position: absolute;
+                  top: 3px;
+                  left: 3px;
+                  width: 62px;
+                  height: 62px;
+               }
 
                .count {
-                  .outlined(#d1c096);
+                  .outlined(#2268ab);
+                  font-family: @baseFontFamily;
                   display: inline;
                   position: absolute;
-                  right: 4px;
-                  bottom: 2px;
+                  right: 2px;
+                  bottom: -2px;
                   font-size: 22px;
-                  color: #908467;
                }
+
+
+               @-webkit-keyframes pulse /* Safari and Chrome */
+               {
+               0%   {-webkit-transform: scale(1.0,1.0)}
+               12%  {-webkit-transform: scale(1.2,1.2)}
+               25%  {-webkit-transform: scale(1.0,1.0)}
+               100%  {-webkit-transform: scale(1.0,1.0)}
+               }
+
             }
          }
 
@@ -143,6 +200,7 @@
          height: 74px;
          display: none;
          background: url('/stonehearth_crafter/html/images/build_workshop/approved_stamp.png');
+         -webkit-transform: rotate(-4deg);
          text-align: center;
          vertical-align: middle;
          color: #2870b2;

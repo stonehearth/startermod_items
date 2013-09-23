@@ -4,7 +4,7 @@
 }
 
 .ui-autocomplete {
-   .wood;
+   .woodthin;
    padding: 10px;
    max-height: 600px;
    width: 300px;
@@ -113,7 +113,7 @@
 }
 
 #craftingWindow {
-   .wood;
+   .woodthick;
 
    .ui-accordion-header {
       background: url('/stonehearth_crafter/html/images/craft_window/ui_accordion_header_bg.png') !important;
@@ -245,29 +245,54 @@
 
             .leftBookend {
                content: url('/stonehearth_crafter/html/images/craft_window/scroll_socket_left_bookend.png');
-               padding-right: 4px;
+               padding-right: 6px;
             }
 
             .rightBookend {
+               padding-left: 8px;
                content: url('/stonehearth_crafter/html/images/craft_window/scroll_socket_right_bookend.png');
-               padding-left: 4px;
             }
 
             .ingredientSocket {
                .handCursor;
-               display: inline-block;
                position: relative;
+               position: -20px;
+               display: inline-block;
                width: 62px;
                height: 62px;
 
-               .count {
-                  .outlined(#d1c096);
-                  display: inline;
+               div {
                   position: absolute;
-                  right: 4px;
-                  bottom: 2px;
+                  top: 0px;
+                  left: 0px;
+                  width: 62px;
+                  height: 62px;
+               }
+
+               img {
+                  position: absolute;
+                  top: 4px;
+                  left: 4px;
+                  width: 62px;
+                  height: 62px;                  
+               }
+
+               .count {
+                  .outlined(#ebe9da);
+                  position: absolute;
+                  left: 43px;
+                  top: 38px;
                   font-size: 22px;
-                  color: #908467;
+                  color: #463c2a;
+               }
+
+               .selectionNeeded {
+                  position: relative;
+                  top: -4px;
+                  left: -4px;
+                  background: url('/stonehearth_crafter/html/images/recipe_sockets/initial_border.png') no-repeat;
+                  width: 78px;
+                  height: 78px;
                }
             }
          }

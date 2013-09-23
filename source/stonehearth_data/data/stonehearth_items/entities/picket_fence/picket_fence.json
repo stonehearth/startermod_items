@@ -1,6 +1,6 @@
 {
-   "extends": "entity(stonehearth_items, item_properties)", 
-   "type": "entity", 
+   "extends": "entity(stonehearth_items, item_properties)",
+   "type": "entity",
    "components": {
       "model_variants": [
          {
@@ -8,10 +8,15 @@
                "file(picket_fence.qb)"
             ]
          }
-      ], 
+      ],
       "unit_info": {
-         "name": "Picket Fence", 
-         "description": "If it's not white, is our life unfulfilled?"
+         "name": "Picket Fence",
+         "description": "If it's not white, is our life unfulfilled?",
+         "icon" : "file(picket_fence.png)"
+      },
+      "item" : {
+         "identifier": "picket_fence",
+         "category" : "construction"
       }
    }
 }

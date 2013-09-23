@@ -77,13 +77,14 @@ function HeightMap:process_map_block(x, y, block_width, block_height, func)
    end
 end
 
-function HeightMap:print()
+function HeightMap:print(format_string)
+   if format_string == nil then format_string = '%6.1f' end
    local i, j, str
 
    for j=1, self.height do
       str = ''
       for i=1, self.width do
-         str = str .. ' ' .. string.format('%6.1f' , self:get(i, j))
+         str = str .. ' ' .. string.format(format_string, self:get(i, j))
       end
       radiant.log.info(str)
    end

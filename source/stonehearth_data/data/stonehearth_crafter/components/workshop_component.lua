@@ -377,8 +377,9 @@ function Workshop:_verify_curr_recipe()
       -- verify that all the items in the current ingredients are on the
       -- bench, and nothing else!
       local ec = self._entity:get_component('entity_container'):get_children()
+      
       for _, ingredient in pairs(self._current_ingredients) do
-         if not ec:get(ingredient.item:get_id()) then
+         if not radiant.entities.has_child_by_id(self._entity, ingredient.item:get_id()) then
             return false
          end
       end

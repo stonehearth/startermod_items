@@ -1,0 +1,34 @@
+{
+   "type" : "entity",
+   "extends" : "/stonehearth/entities/mob.json",   
+   "components": {
+      "unit_info" : {
+        "name": "A rabbit",
+        "description": "Om nom nom",
+        "faction": "critter"
+      },
+      "radiant:ai" : {
+         "actions" : [
+            "file(/ai/actions/idle_look_around_action.lua)"
+         ]
+      },
+      "sensor_list" : {
+        "sensors" : {
+          "sight" : {
+            "type": "sensor",
+            "radius":   14
+          }
+        }
+      },      
+      "render_info" : {
+         "animation_table": "file(rig/rabbit.json)"
+      },
+      "model_variants": [
+         {
+            "models": [
+               "file(rabbit.qb)"
+            ]
+         }
+      ]
+   }
+}

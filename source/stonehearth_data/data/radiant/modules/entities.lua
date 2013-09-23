@@ -46,6 +46,9 @@ function entities.get_root_entity()
 end
 
 function entities.create_entity(arg1, arg2)
+   if not arg1 then
+      return native:create_empty_entity()
+   end
    if not arg2 then
       local entity_ref = arg1 -- something like 'entity(stonehearth, wooden_sword)'
       assert(entity_ref:sub(1, 7) == 'entity(')
@@ -96,6 +99,29 @@ function entities.remove_child(parent, child)
 
    component:remove_child(child)
    entities.move_to(child, Point3(0, 0, 0))
+end
+
+--TODO: we used to be able to query an ec for a child by ID
+--like this ec:get(ingredient.item:get_id())
+--What happened?
+function entities.has_child_by_id(parent, child_id)
+   radiant.check.is_entity(parent)
+
+   local component = parent:get_component('entity_container')
+   if not component then
+      return false
+   end
+
+   local children = component:get_children()
+
+   local found = false
+   for id, child in children:items() do
+      if child_id == id then
+        found = true
+      end
+   end
+
+   return found
 end
 
 function entities.move_to(entity, location)

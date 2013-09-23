@@ -11,23 +11,18 @@
       ],
       "destination": {
          "region": [
-            [
-               [
-                  -2,
-                  0,
-                  -1
-               ],
-               [
-                  2,
-                  2,
-                  1
-               ]
-            ]
+            [ [-1, 0, -1], [2, 1, 2] ]
          ]
       },
       "unit_info": {
          "name": "Comfy Bed",
-         "description": "I dreamed... of flying sheep."
+         "description": "I dreamed... of flying sheep.",
+         "icon" : "file(comfy_bed.png)"
+
+      },
+      "item" : {
+         "identifier": "comfy_bed",
+         "category" : "furniture"
       },
       "stonehearth_sleep_system:bed": {}
    }

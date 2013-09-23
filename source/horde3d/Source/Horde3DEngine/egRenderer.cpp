@@ -25,7 +25,9 @@
 #include "egCom.h"
 #include <cstring>
 #include <sstream>
+#if defined(OPTIMIZE_GSLS)
 #include <glsl/glsl_optimizer.h>
+#endif
 #include "utDebug.h"
 
 #include "radiant.h"

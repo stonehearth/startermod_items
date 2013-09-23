@@ -277,6 +277,7 @@ public:
 
 	void advanceTime( float timeDelta );
 	bool hasFinished();
+   void stop();
 
 protected:
 	CubemitterNode( const CubemitterNodeTpl &emitterTpl );
@@ -301,7 +302,7 @@ protected:
 	float                    _emissionRate, _spreadAngle;
    bool                     _wasVisible;
    CubeAttribute            *_attributesBuff;
-
+   bool                     _active;
 
 
 
@@ -314,7 +315,6 @@ protected:
 	
 	// Emitter params
 	uint32                   _particleCount;
-	int                      _respawnCount;
 	Vec3f                    _force;
 
 	// Particle data
