@@ -1,4 +1,4 @@
-radiant.mods.require('stonehearth_calendar')
+radiant.mods.require('stonehearth_calendar.stonehearth_calendar')
 
 local StonehearthSky = class()
 local Vec3 = _radiant.csg.Point3f
