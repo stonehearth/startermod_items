@@ -82,6 +82,8 @@ class Renderer
       void PlaceCamera(const csg::Point3f &location);
       void UpdateUITexture(const csg::Region2& rgn, const char* buffer);
 
+      Camera* GetCamera() { return camera_; }
+
       ViewMode GetViewMode() const { return viewMode_; }
       void SetViewMode(ViewMode mode);
       void SetCurrentPipeline(std::string pipeline);
