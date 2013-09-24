@@ -50,7 +50,7 @@ function NewWorld:place_objects()
    --put some default supplies into the stockpile (for now)
    self:place_item('stonehearth_items', 'fire_pit_proxy', camp_x+8, camp_z-2)
    self:place_item('stonehearth_trees', 'oak_log', camp_x+8+1, camp_z-2+1)
-   self:place_item('stonehearth_items', 'oak_log', camp_x+8, camp_z-2+2)
+   self:place_item('stonehearth_trees', 'oak_log', camp_x+8, camp_z-2+2)
 
 
 
