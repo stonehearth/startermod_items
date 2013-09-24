@@ -11,6 +11,7 @@
             "file(/ai/actions/idle_action.lua)",
             "file(/ai/actions/idle_breathe_action.lua)",
             "file(/ai/actions/pickup_item_action.lua)",
+            "file(/ai/actions/pickup_item_on_path.lua)",
             "file(/ai/actions/run_effect_action.lua)"
          ]
       }
