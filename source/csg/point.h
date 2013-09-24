@@ -2,6 +2,7 @@
 #define _RADIANT_CSG_POINT_H
 
 #include <ostream>
+#include "radiant_macros.h"
 #include "csg.h"
 #include "namespace.h"
 #include "dm/dm.h"

@@ -14,8 +14,6 @@ scope LuaTerrainComponent::RegisterLuaTypes(lua_State* L)
          .def(tostring(self))
          .def("create_new",            &Terrain::CreateNew)
          .def("add_region",            &Terrain::AddRegion)
-         .def("add_cube",              &Terrain::AddCube)
-         .def("remove_cube",           &Terrain::RemoveCube)
          .def("place_entity",          &Terrain::PlaceEntity)
          .enum_("TerrainTypes")
          [

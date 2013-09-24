@@ -15,9 +15,12 @@ local HeightMapRenderer = class()
 function HeightMapRenderer.render_height_map_to_terrain(height_map, terrain_info, offset_x, offset_y)
    if offset_x == nil then offset_x = 0 end
    if offset_y == nil then offset_y = 0 end
+   local offset = Point3(offset_x, 0, offset_y)
+   
+   local region3 = _radiant.sim.alloc_region()   
+   local r3 = region3:modify()
 
    local r2 = Region2()
-   local r3 = Region3()
    local height_map_cpp = HeightMapCPP(height_map.width, 1) -- Assumes square map!
    local terrain = radiant._root_entity:add_component('terrain')
 
@@ -26,12 +29,11 @@ function HeightMapRenderer.render_height_map_to_terrain(height_map, terrain_info
 
    for rect in r2:contents() do
       if rect.tag > 0 then
-         translate_rect2(rect, offset_x, offset_y)
          HeightMapRenderer._add_land_to_region(r3, rect, rect.tag, terrain_info);         
       end
    end
 
-   terrain:add_region(r3)
+   terrain:add_region(offset, region3)
 end
 
 function HeightMapRenderer._copy_heightmap_to_CPP(height_map_cpp, height_map)

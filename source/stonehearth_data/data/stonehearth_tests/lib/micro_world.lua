@@ -30,8 +30,14 @@ MicroWorld['radiant.events.gameloop'] = function(self, time)
 end
 
 function MicroWorld:create_world()
-   radiant.terrain.add_cube(Cube3(Point3(-16, -16, -16), Point3(16, 0, 16), Terrain.TOPSOIL))
-   radiant.terrain.add_cube(Cube3(Point3(-16,   0, -16), Point3(16, 1, 16), Terrain.GRASS))
+   local region3 = _radiant.sim.alloc_region()   
+   local r3 = region3:modify() 
+   
+   r3:add_cube(Cube3(Point3(-16, -16, -16), Point3(16, 0, 16), Terrain.TOPSOIL))
+   r3:add_cube(Cube3(Point3(-16,   0, -16), Point3(16, 1, 16), Terrain.GRASS))
+   
+   local terrain = radiant._root_entity:add_component('terrain')   
+   terrain:add_region(Point3(0, 0, 0), region3)
 end
 
 function MicroWorld:at(time, fn)

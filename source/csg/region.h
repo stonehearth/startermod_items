@@ -41,6 +41,7 @@ public:
    int GetCubeCount() const { return cubes_.size(); }
    const Cube& operator[](int i) const { return cubes_[i]; }
    void Translate(const Point& pt);
+   Region Translated(const Point& pt) const;
 
    // util
    Region ProjectOnto(int axis, S plane) const;
@@ -100,6 +101,11 @@ typedef Region<int, 1>   Region1;
 typedef Region<int, 2>   Region2;
 typedef Region<int, 3>   Region3;
 typedef Region<float, 3> Region3f;
+
+DECLARE_SHARED_POINTER_TYPES(Region1);
+DECLARE_SHARED_POINTER_TYPES(Region2);
+DECLARE_SHARED_POINTER_TYPES(Region3);
+DECLARE_SHARED_POINTER_TYPES(Region3f);
 
 bool Region3Intersects(const Region3& rgn, const csg::Ray3& ray, float& distance);
 

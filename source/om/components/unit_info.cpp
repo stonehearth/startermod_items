@@ -22,13 +22,3 @@ void UnitInfo::ExtendObject(json::ConstJsonObject const& obj)
    faction_ = obj.get<std::string>("faction", *faction_);
    icon_ = obj.get<std::string>("icon", *icon_);
 }
-
-dm::Guard UnitInfo::TraceObjectChanges(const char* reason, std::function<void()> fn) const
-{
-   dm::Guard guard;
-   guard += name_.TraceObjectChanges(reason, fn);
-   guard += description_.TraceObjectChanges(reason, fn);
-   guard += faction_.TraceObjectChanges(reason, fn);
-   guard += icon_.TraceObjectChanges(reason, fn);
-   return guard;
-}
