@@ -1,6 +1,9 @@
 #ifndef _RADIANT_CLIENT_RENDERER_RENDERER_H
 #define _RADIANT_CLIENT_RENDERER_RENDERER_H
 
+#define GLFW_EXPOSE_NATIVE_WIN32
+#define GLFW_EXPOSE_NATIVE_WGL
+
 #include "namespace.h"
 #include "Horde3D.h"
 #include "csg/transform.h"

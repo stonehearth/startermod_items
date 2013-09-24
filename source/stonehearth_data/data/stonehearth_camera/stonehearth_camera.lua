@@ -2,15 +2,15 @@ local Vec3 = _radiant.csg.Point3f
 local StonehearthCamera = class()
 
 function StonehearthCamera:__init()
-  self._input_capture = _radiant.client.capture_input()
+  --self._input_capture = _radiant.client.capture_input()
 
-  self._input_capture:on_input(function(e)
+  --[[self._input_capture:on_input(function(e)
       if e.type == _radiant.client.Input.MOUSE then
           self:_on_mouse_event(e.mouse, 1920, 1080, 20)
           return true
       end
       return false
-    end)
+    end)]]
 end
 
 function StonehearthCamera:_on_mouse_event(e, screen_x, screen_y, gutter_size)
@@ -38,7 +38,7 @@ function StonehearthCamera:_on_mouse_event(e, screen_x, screen_y, gutter_size)
 
     local delta = forward + left
 
-    _radiant.renderer.camera.translate(delta)
+    --_radiant.renderer.camera.translate(delta)
   end
 end
 
