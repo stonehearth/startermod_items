@@ -20,15 +20,17 @@ function TerrainTest:__init()
    self._landscaper = Landscaper(self._terrain_generator.terrain_info)
 
    local use_async = true
-   --self:tesselator_test()
-   --self:tree_test()
-   --self:create_world()
 
    local terrain_thread = function()
       local timer = Timer(Timer.CPU_TIME)
       timer:start()
       self._terrain_generator:set_async(use_async)
+
+      --self:tesselator_test()
+      --self:tree_test()
+      --self:create_world()
       self:create_multi_zone_world()
+
       self._terrain_generator:set_async(false)
       timer:stop()
       radiant.log.info('World generation time: %.3fs', timer:seconds())
@@ -46,7 +48,7 @@ function TerrainTest:tesselator_test()
 end
 
 function TerrainTest:tree_test()
-   math.randomseed(4)
+   math.randomseed(1)
    local height_map = HeightMap(256, 256)
    height_map:clear(2)
    HeightMapRenderer.render_height_map_to_terrain(height_map, self._terrain_generator.terrain_info)
@@ -59,8 +61,10 @@ function TerrainTest:create_world()
    height_map = self._terrain_generator:generate_zone(TerrainType.Foothills)
    HeightMapRenderer.render_height_map_to_terrain(height_map, self._terrain_generator.terrain_info)
 
-   --self._landscaper:place_trees(height_map)
-   --self:_place_people(height_map)
+   --self:at(100, function()
+      self._landscaper:place_trees(height_map)
+      --self:_place_people(height_map)
+   --end)
 end
 
 function TerrainTest:create_multi_zone_world()
@@ -70,31 +74,32 @@ function TerrainTest:create_multi_zone_world()
    local terrain_info = self._terrain_generator.terrain_info
    local zone_size = self._terrain_generator.zone_size
    local timer = Timer(Timer.CPU_TIME)
-   local i, j, offset_x, offset_y, zone_map, micro_map, terrain_type
+   local i, j, origin_x, origin_y, offset_x, offset_y, zone_map, micro_map, zone_info, terrain_type
+
+   origin_x = num_zones_x * zone_size / 2
+   origin_y = num_zones_y * zone_size / 2
 
    for j=1, num_zones_y do
       for i=1, num_zones_x do
-         terrain_type = zones:get(i, j).terrain_type
-         zone_map, micro_map = self._terrain_generator:generate_zone(terrain_type, zones, i, j)
-         zones:set(i, j, micro_map)
-         -- local zone_map = HeightMap(256, 256)
-         -- zone_map:clear(2) -- CHECKCHECK
+         zone_info = zones:get(i, j)
+         if not zone_info.generated then
+            terrain_type = zone_info.terrain_type
+            zone_map, micro_map = self._terrain_generator:generate_zone(terrain_type, zones, i, j)
+            zones:set(i, j, micro_map)
 
-         offset_x = (i-1)*zone_size
-         offset_y = (j-1)*zone_size
+            offset_x = (i-1)*zone_size - origin_x
+            offset_y = (j-1)*zone_size - origin_y
 
-         timer:start()
-         HeightMapRenderer.render_height_map_to_terrain(zone_map, terrain_info, offset_x, offset_y)
-         timer:stop()
-         radiant.log.info('HeightMapRenderer time: %.3fs', timer:seconds())
+            timer:start()
+            HeightMapRenderer.render_height_map_to_terrain(zone_map, terrain_info, offset_x, offset_y)
+            timer:stop()
+            radiant.log.info('HeightMapRenderer time: %.3fs', timer:seconds())
 
-         self:at(1000, function()
-            --timer:start()
+            timer:start()
             self._landscaper:place_trees(zone_map, offset_x, offset_y)
-            --self:_place_people(world_map)
-            --timer:stop()
-            --radiant.log.info('Landscaper time: %.3fs', timer:seconds())
-         end)
+            timer:stop()
+            radiant.log.info('Landscaper time: %.3fs', timer:seconds())
+         end
       end
    end
 end

@@ -40,7 +40,7 @@ public:
 
 private:
    void InitializeRecordFields() override;
-   BoxedRegion3Ptr GetRegion(csg::Point3 const& pt);
+   BoxedRegion3Ptr GetRegion(csg::Point3 const& pt, csg::Point3 const*& regionOffset);
 
 public:
    TileMap  tiles_;
