@@ -92,10 +92,10 @@ void Store::UnregisterObject(const Object& obj)
    dynamicObjects_.erase(id);
 
    if (!firingCallbacks_) {
-      //LOG(WARNING) << "adding " << id << " to destroyed.";
+      // LOG(INFO) << "adding " << id << " to destroyed.";
       destroyed_.push_back(id);
    } else {
-      //LOG(WARNING) << "adding " << id << " to deferred destroyed.";
+      // LOG(INFO) << "adding " << id << " to deferred destroyed.";
       deferredDestroyedObjects_.push_back(id);
    }      
 }
@@ -122,14 +122,14 @@ Guard Store::AddTraceFn(TraceObjectMap &traceMap, ObjectId oid, const char* reas
 
    ValidateObjectId(oid);
 
-   // LOG(WARNING) << "creating trace '" << reason << "'.";
+   // LOG(INFO) << "creating trace '" << reason << "'.";
    if (firingCallbacks_) {
       deferredTraces_.insert(std::make_pair(tid, TraceReservation(traceMap, oid, reason, fn)));
-      //LOG(WARNING) << "deferring add trace " << reason;
+      // LOG(INFO) << "deferring add trace " << reason;
    } else {
       traceMap[oid].push_back(tid);
       traceCallbacks_[tid] = Trace(reason, fn);
-      //LOG(WARNING) << "adding trace " << tid << " : " << traceCallbacks_[tid].reason;
+      // LOG(INFO) << "adding trace " << tid << " : " << traceCallbacks_[tid].reason;
    }
 
    return Guard(std::bind(&Store::RemoveTrace, this, std::ref(traceMap), oid, tid));
@@ -145,8 +145,8 @@ void Store::RemoveTrace(TraceObjectMap &traceMap, ObjectId oid, TraceId tid)
    auto i = traceCallbacks_.find(tid);
    ASSERT(i != traceCallbacks_.end());
    if (i != traceCallbacks_.end()) {
-      // LOG(WARNING) << "removing trace " << tid << " : " << i->second.reason;
-      // LOG(WARNING) << "removing trace '" << i->first << "'.";
+      // LOG(INFO) << "removing trace " << tid << " : " << i->second.reason;
+      // LOG(INFO) << "removing trace '" << i->first << "'.";
       traceCallbacks_.erase(i);
 
       // Remove the trace from the TraceObjectMap
@@ -216,10 +216,10 @@ void Store::OnAllocObject(std::shared_ptr<Object> obj)
    ObjectId id = obj->GetObjectId();
    dynamicObjects_[id] = DynamicObject(obj, obj->GetObjectType());
    if (!firingCallbacks_) {
-      // LOG(WARNING) << "adding " << id << " to alloced.";
+      // LOG(INFO) << "adding " << id << " to alloced.";
       alloced_.push_back(obj);
    } else {
-      // LOG(WARNING) << "adding " << id << " to deferred alloced.";
+      // LOG(INFO) << "adding " << id << " to deferred alloced.";
       deferredAllocedObjects_.push_back(obj);
    }
 }
@@ -298,7 +298,7 @@ void Store::FireTraces()
       for (ObjectRef o : alloced_) {
          auto obj = o.lock();
          if (obj) {
-            //LOG(WARNING) << "firing " << obj->GetObjectId() << " alloc cb.";
+            // LOG(INFO) << "firing " << obj->GetObjectId() << " alloc cb.";
             for (TraceId tid : allocTraces_[-1]) {
                if (!stdutil::contains(deadTraces_, tid)) {
                   ValidateTraceId(tid);
@@ -314,7 +314,7 @@ void Store::FireTraces()
       for (ObjectId id : destroyed_) {
          auto i = destroyTraces_.find(id);
          if (i != destroyTraces_.end()) {
-            //LOG(WARNING) << "firing " << id << " destroy cb.";
+            // LOG(INFO) << "firing " << id << " destroy cb.";
             for (TraceId tid : i->second) {
                if (!stdutil::contains(deadTraces_, tid)) {
                   ValidateTraceId(tid);
@@ -329,13 +329,13 @@ void Store::FireTraces()
 
       for (ObjectId id : modifiedObjects_) {
          if (objects_.find(id) != objects_.end()) {
-            //LOG(WARNING) << "firing " << id << " change cb.";
+            // LOG(INFO) << "firing " << id << " change cb.";
             auto i = changeTraces_.find(id);
             if (i != changeTraces_.end()) {
                for (TraceId tid : i->second) {
                   if (!stdutil::contains(deadTraces_, tid)) {
                      ValidateTraceId(tid);
-                     LOG(INFO) << "firing trace " << tid;
+                     // LOG(INFO) << "firing trace " << tid;
                      ObjectChangeCb cb = boost::any_cast<ObjectChangeCb>(traceCallbacks_[tid].cb);
                      if (cb) {
                         cb();
@@ -344,7 +344,7 @@ void Store::FireTraces()
                }
             }
          } else {
-            // LOG(WARNING) << "ignoring change cb on invalid object " << id;
+            // LOG(INFO) << "ignoring change cb on invalid object " << id;
          }
       }
 
@@ -360,7 +360,7 @@ void Store::FireTraces()
       const TraceReservation& r = entry.second;
       r.traceMap[r.oid].push_back(tid);
       traceCallbacks_[tid] = Trace(r.reason, r.cb);
-      // LOG(WARNING) << "adding deferred trace " << tid << " : " << traceCallbacks_[tid].reason;
+      // LOG(INFO) << "adding deferred trace " << tid << " : " << traceCallbacks_[tid].reason;
    }
    for (const auto &entry : deadTraces_) {
       const DeadTrace& d = entry.second;

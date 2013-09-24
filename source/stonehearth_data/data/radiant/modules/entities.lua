@@ -47,7 +47,7 @@ end
 
 function entities.create_entity(arg1, arg2)
    if not arg1 then
-      return native:create_empty_entity()
+      return _radiant.sim.create_empty_entity()
    end
    if not arg2 then
       local entity_ref = arg1 -- something like 'entity(stonehearth, wooden_sword)'

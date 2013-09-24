@@ -8,7 +8,7 @@
         "faction": "critter"
       },
       "stonehearth:leash" : {
-        "leash_radius" : 4
+        "leash_radius" : 6
       },
       "radiant:ai" : {
          "actions" : [
@@ -16,16 +16,8 @@
             "file(/ai/actions/wander_action.lua)"
          ]
       },
-      "sensor_list" : {
-        "sensors" : {
-          "sight" : {
-            "type": "sensor",
-            "radius":   14
-          }
-        }
-      },      
       "render_info" : {
-         "animation_table": "file(rig/rabbit.json)"
+         "animation_table": "file(rig/rabbit_rig.json)"
       },
       "model_variants": [
          {

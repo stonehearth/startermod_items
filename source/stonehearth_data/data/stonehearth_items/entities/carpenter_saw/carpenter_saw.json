@@ -1,6 +1,6 @@
 {
    "type": "entity",
-   "extends" : "entity(stonehearth_items, item_properties)",
+   "extends" : "entity(stonehearth_items, inventory_properties)",
    "components" : {
       "unit_info" : {
          "name" :  "The Saw",
@@ -28,6 +28,11 @@
          "commands" : [
             "/stonehearth_classes/commands/promote_citizen.json"
          ]
+      },
+      "effect_list" : {
+         "effects" : [
+            "/stonehearth_crafter/effects/talisman_particles.json"
+         ]  
       },
       "stonehearth_classes:talisman_promotion_info": {
          "class_script": "stonehearth_carpenter_class"
