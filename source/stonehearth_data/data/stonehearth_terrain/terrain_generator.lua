@@ -22,7 +22,7 @@ local TerrainGenerator = class()
 function TerrainGenerator:__init()
    local terrain_type, terrain_info
 
-   self.base_random_seed = 2
+   self.base_random_seed = 5
 
    self.zone_size = 256
    self.tile_size = 32
@@ -47,7 +47,7 @@ function TerrainGenerator:__init()
    foothills_info.step_size = base_step_size
    foothills_info.mean_height = 24
    foothills_info.std_dev = 32
-   foothills_info.min_height = plains_info.max_height - plains_info.step_size
+   foothills_info.min_height = plains_info.max_height
    foothills_info.max_height = 32
    terrain_info[TerrainType.Foothills] = foothills_info
    assert(foothills_info.max_height % foothills_info.step_size == 0)
@@ -119,15 +119,12 @@ function TerrainGenerator:generate_zone(terrain_type, zones, x, y)
    noise_map.terrain_type = terrain_type
 
    self:_fill_blend_map(blend_map, zones, x, y)
+
    self:_fill_noise_map(noise_map, blend_map)
 
    -- micro_map must be a new HeightMap as it is returned from the function
    micro_map = self:_filter_noise_map(noise_map)
 
-   --radiant.log.info('Blend map:'); _print_blend_map(blend_map)
-   --radiant.log.info('Noise map:'); noise_map:print()
-   --radiant.log.info('Filtered Noise map:'); micro_map:print()
-   
    self:_quantize_micro_map(micro_map)
 
    -- force shared tiles to same value from adjacent zones
@@ -135,13 +132,18 @@ function TerrainGenerator:generate_zone(terrain_type, zones, x, y)
 
    self:_postprocess_micro_map(micro_map)
 
+   -- radiant.log.info('Blend map:'); _print_blend_map(blend_map)
+   -- radiant.log.info('Noise map:'); noise_map:print()
+   -- radiant.log.info('Filtered Noise map:'); micro_map:print()
+   -- radiant.log.info('Quantized Micro map:'); micro_map:print()
+   -- radiant.log.info('Postprocessed Micro map:'); micro_map:print()
+
    -- zone_map must be a new HeightMap as it is returned from the function
    self:_create_oversize_map_from_micro_map(oversize_map, micro_map)
    self:_yield()
 
    -- transform to frequncy domain and shape frequencies with exponential decay
-   WaveletFns.shape_height_map(oversize_map, self.frequency_scaling_coeff, self.wavelet_levels)
-   self:_yield()
+   self:_shape_height_map(oversize_map, self.frequency_scaling_coeff, self.wavelet_levels)
 
    -- enable non-uniform quantizer within a terrain type
    -- generates additional edge details
@@ -152,9 +154,10 @@ function TerrainGenerator:generate_zone(terrain_type, zones, x, y)
 
    -- copy the offset zone map from the oversize map
    zone_map = self:_extract_zone_map(oversize_map)
+   self:_yield()
 
    timer:stop()
-   radiant.log.info('Zone generation time: %f', timer:seconds())
+   radiant.log.info('Zone generation time: %.3fs', timer:seconds())
 
    return zone_map, micro_map
 end
@@ -410,9 +413,9 @@ function TerrainGenerator:_fill_hole(height_map, x, y)
    local new_value = 2000000000
    local neighbor
 
-   -- edge tiles should not be treated as holes
-   if x == 1 or x == width then return end
-   if y == 1 or y == height then return end
+   -- uncomment if edge tiles should not be eligible
+   -- if x == 1 or x == width then return end
+   -- if y == 1 or y == height then return end
 
    if x > 1 then
       neighbor = height_map[offset-1]
@@ -453,6 +456,18 @@ function TerrainGenerator:_create_oversize_map_from_micro_map(oversize_map, micr
             self.tile_size, self.tile_size, value)
       end
    end
+end
+
+function TerrainGenerator:_shape_height_map(height_map, freq_scaling_coeff, levels)
+   local width = height_map.width
+   local height = height_map.height
+
+   Wavelet.DWT_2D(height_map, width, height, levels)
+   WaveletFns.scale_high_freq(height_map, width, height, freq_scaling_coeff, levels)
+   self:_yield()
+
+   Wavelet.IDWT_2D(height_map, width, height, levels)
+   self:_yield()
 end
 
 function TerrainGenerator:_extract_zone_map(oversize_map)
@@ -530,7 +545,7 @@ function _print_blend_map(blend_map)
          if tile == nil then
             str = str .. '   nil    '
          elseif tile.forced_value then
-            str = str .. string.format(' (%4.1f) ', tile.forced_value)
+            str = str .. string.format('  (%4.1f)  ', tile.forced_value)
          else
             str = str .. ' ' .. string.format('%4.1f/%4.1f' , tile.mean, tile.std_dev)
          end

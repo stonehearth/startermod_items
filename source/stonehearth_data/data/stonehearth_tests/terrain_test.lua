@@ -2,14 +2,10 @@
 local MicroWorld = require 'lib.micro_world'
 local TerrainTest = class(MicroWorld)
 
-local TerrainType = radiant.mods.require('stonehearth_terrain.terrain_type')
 local HeightMap = radiant.mods.require('stonehearth_terrain.height_map')
 local Array2D = radiant.mods.require('stonehearth_terrain.array_2D')
+local TerrainType = radiant.mods.require('stonehearth_terrain.terrain_type')
 local TerrainGenerator = radiant.mods.require('stonehearth_terrain.terrain_generator')
-local CDF_97 = radiant.mods.require('stonehearth_terrain.wavelet.cdf_97')
-local Wavelet = radiant.mods.require('stonehearth_terrain.wavelet.wavelet')
-local BoundaryNormalizingFilter = radiant.mods.require('stonehearth_terrain.filter.boundary_normalizing_filter')
-local FilterFns = radiant.mods.require('stonehearth_terrain.filter.filter_fns')
 local Landscaper = radiant.mods.require('stonehearth_terrain.landscaper')
 local HeightMapRenderer = radiant.mods.require('stonehearth_terrain.height_map_renderer')
 local Timer = radiant.mods.require('stonehearth_debugtools.timer')
@@ -21,10 +17,13 @@ function TerrainTest:__init()
    self[MicroWorld]:__init()
 
    self._terrain_generator = TerrainGenerator()
+   self._landscaper = Landscaper(self._terrain_generator.terrain_info)
 
-   local use_async = true   --self:tesselator_test()
+   local use_async = true
+   --self:tesselator_test()
    --self:tree_test()
    --self:create_world()
+
    local terrain_thread = function()
       local timer = Timer(Timer.CPU_TIME)
       timer:start()
@@ -34,6 +33,7 @@ function TerrainTest:__init()
       timer:stop()
       radiant.log.info('World generation time: %.3fs', timer:seconds())
    end
+
    if use_async then
       radiant.create_background_task('generating terrain', terrain_thread)     
    else
@@ -46,21 +46,20 @@ function TerrainTest:tesselator_test()
 end
 
 function TerrainTest:tree_test()
-   math.randomseed(2)
+   math.randomseed(4)
    local height_map = HeightMap(256, 256)
-   height_map:clear(8)
+   height_map:clear(2)
    HeightMapRenderer.render_height_map_to_terrain(height_map, self._terrain_generator.terrain_info)
-   Landscaper:place_trees(height_map, self._terrain_generator.terrain_info)
+   self._landscaper:place_trees(height_map)
 end
 
 function TerrainTest:create_world()
    local height_map
 
-   --height_map = terrain_generator:_erosion_test()
    height_map = self._terrain_generator:generate_zone(TerrainType.Foothills)
    HeightMapRenderer.render_height_map_to_terrain(height_map, self._terrain_generator.terrain_info)
 
-   Landscaper:place_trees(height_map, self._terrain_generator.terrain_info)
+   --self._landscaper:place_trees(height_map)
    --self:_place_people(height_map)
 end
 
@@ -70,17 +69,16 @@ function TerrainTest:create_multi_zone_world()
    local num_zones_y = zones.height
    local terrain_info = self._terrain_generator.terrain_info
    local zone_size = self._terrain_generator.zone_size
-   --local world_map = HeightMap(zone_size*num_zones_x, zone_size*num_zones_y)
    local timer = Timer(Timer.CPU_TIME)
    local i, j, offset_x, offset_y, zone_map, micro_map, terrain_type
-
-   --world_map:clear(1)
 
    for j=1, num_zones_y do
       for i=1, num_zones_x do
          terrain_type = zones:get(i, j).terrain_type
          zone_map, micro_map = self._terrain_generator:generate_zone(terrain_type, zones, i, j)
          zones:set(i, j, micro_map)
+         -- local zone_map = HeightMap(256, 256)
+         -- zone_map:clear(2) -- CHECKCHECK
 
          offset_x = (i-1)*zone_size
          offset_y = (j-1)*zone_size
@@ -90,24 +88,19 @@ function TerrainTest:create_multi_zone_world()
          timer:stop()
          radiant.log.info('HeightMapRenderer time: %.3fs', timer:seconds())
 
-         --zone_map:copy_block(world_map, zone_map, offset_x+1, offset_y+1, 1, 1, zone_size, zone_size)
+         self:at(1000, function()
+            --timer:start()
+            self._landscaper:place_trees(zone_map, offset_x, offset_y)
+            --self:_place_people(world_map)
+            --timer:stop()
+            --radiant.log.info('Landscaper time: %.3fs', timer:seconds())
+         end)
       end
    end
-
-   --timer:start()
-   --HeightMapRenderer.render_height_map_to_terrain(world_map, self._terrain_generator.terrain_info, 0, 0)
-   --timer:stop()
-   --radiant.log.info('HeightMapRenderer time: %.3fs', timer:seconds())
-
-   --timer:start()
-   --Landscaper:place_trees(world_map, self._terrain_generator.terrain_info)
-   --self:_place_people(world_map)
-   --timer:stop()
-   --radiant.log.info('Landscaper time: %.3fs', timer:seconds())
 end
 
 function TerrainTest:_create_world_blueprint()
-   local zones = Array2D(4, 4)
+   local zones = Array2D(3, 3)
    local zone_info
    local i, j
 
