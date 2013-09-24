@@ -1,0 +1,5 @@
+<Material class="Fire.Material">
+	<Shader source="shaders/fire.shader"/>
+	
+	<Sampler name="albedoMap" map="textures/particles/particle1.tga" />
+</Material>

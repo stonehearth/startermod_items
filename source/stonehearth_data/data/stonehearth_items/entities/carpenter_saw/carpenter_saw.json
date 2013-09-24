@@ -29,6 +29,11 @@
             "/stonehearth_classes/commands/promote_citizen.json"
          ]
       },
+      "effect_list" : {
+         "effects" : [
+            "/stonehearth_crafter/effects/talisman_particles.json"
+         ]  
+      },
       "stonehearth_classes:talisman_promotion_info": {
          "class_script": "stonehearth_carpenter_class"
       }

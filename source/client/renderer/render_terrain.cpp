@@ -157,7 +157,8 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
    };
 
    auto const& tile_map = terrain->GetTileMap();
-   tile_map.TraceMapChanges("terrain renderer", on_add_tile, on_remove_tile);
+   
+   tracer_ += tile_map.TraceMapChanges("terrain renderer", on_add_tile, on_remove_tile);
    for (const auto& entry : tile_map) {
       on_add_tile(entry.first, entry.second);
    }
