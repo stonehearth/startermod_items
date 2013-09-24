@@ -6,7 +6,7 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-static const int TILE_SIZE = 256;
+static const int ZONE_SIZE = 256;
 
 void Terrain::CreateNew()
 {
@@ -15,12 +15,12 @@ void Terrain::CreateNew()
 void Terrain::InitializeRecordFields()
 {
    Component::InitializeRecordFields();
-   AddRecordField("tiles", tiles_);
+   AddRecordField("zones", zones_);
 }
 
 void Terrain::AddRegion(csg::Point3 const& location, BoxedRegion3Ptr r)
 {
-   tiles_[location] = r;
+   zones_[location] = r;
 }
 
 void Terrain::PlaceEntity(EntityRef e, const csg::Point3& pt)
@@ -56,10 +56,10 @@ void Terrain::PlaceEntity(EntityRef e, const csg::Point3& pt)
 BoxedRegion3Ptr Terrain::GetRegion(csg::Point3 const& pt, csg::Point3 const*& regionOffset)
 {
    // O(n) search - consider optimizing
-   for (auto& entry : tiles_) {
+   for (auto& entry : zones_) {
       csg::Point3 const& zoneOffset = entry.first;
-      if (pt.x >= zoneOffset.x && pt.x < zoneOffset.x + TILE_SIZE &&
-          pt.z >= zoneOffset.z && pt.z < zoneOffset.z + TILE_SIZE) {
+      if (pt.x >= zoneOffset.x && pt.x < zoneOffset.x + ZONE_SIZE &&
+          pt.z >= zoneOffset.z && pt.z < zoneOffset.z + ZONE_SIZE) {
          regionOffset = &zoneOffset;
          return entry.second;
       }

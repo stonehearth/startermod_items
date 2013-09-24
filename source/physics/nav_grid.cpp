@@ -35,9 +35,9 @@ void NavGrid::TrackComponent(dm::ObjectType type, std::shared_ptr<dm::Object> co
    switch (component->GetObjectType()) {
    case om::TerrainObjectType: {
       auto terrain = std::static_pointer_cast<om::Terrain>(component);
-      auto on_add_tile = [this](csg::Point3 location, om::BoxedRegion3Ptr const& region) {
+      auto on_add_zone = [this](csg::Point3 location, om::BoxedRegion3Ptr const& region) {
          om::BoxedRegion3Ref r = region;
-         auto add_tile_region = [this, r, location]() {
+         auto add_zone_region = [this, r, location]() {
             // xxx: this isn't really right given the definition of add region!
             // when we start modifying terrain, revisit this.
             auto region = r.lock();
@@ -46,18 +46,18 @@ void NavGrid::TrackComponent(dm::ObjectType type, std::shared_ptr<dm::Object> co
                AddRegion(rgn.Translated(location));
             }
          };
-         region->TraceObjectChanges("rendering terrain tile", add_tile_region);
-         add_tile_region();
+         region->TraceObjectChanges("rendering terrain zone", add_zone_region);
+         add_zone_region();
       };
 
-      auto on_remove_tile = [this](csg::Point3 const& location) {
+      auto on_remove_zone = [this](csg::Point3 const& location) {
          NOT_YET_IMPLEMENTED();
       };
 
-      auto const& tile_map = terrain->GetTileMap();
-      tile_map.TraceMapChanges("terrain renderer", on_add_tile, on_remove_tile);
-      for (const auto& entry : tile_map) {
-         on_add_tile(entry.first, entry.second);
+      auto const& zone_map = terrain->GetZoneMap();
+      zone_map.TraceMapChanges("terrain renderer", on_add_zone, on_remove_zone);
+      for (const auto& entry : zone_map) {
+         on_add_zone(entry.first, entry.second);
       }
       break;
    }
