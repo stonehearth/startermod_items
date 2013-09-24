@@ -245,23 +245,13 @@ void Renderer::RenderOneFrame(int now, float alpha)
          cameraTarget_ += camPosDelta;
          UpdateCamera();
    }
-
-   bool debug = (GetAsyncKeyState(VK_SPACE) & 0x8000) != 0;
-   bool showStats = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
+   
+   bool debug = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS;
+   bool showStats = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
   
-   /*if (false && (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0) {
-      h3dSetNodeFlags(spotLight, 0, true);
-      h3dSetNodeFlags(directionalLight, H3DNodeFlags::NoDraw, true);
-   } else {
-      h3dSetNodeFlags(directionalLight, 0, true);
-      h3dSetNodeFlags(spotLight, H3DNodeFlags::NoDraw, true);
-   }*/
-
    bool showUI = true;
    const float ww = (float)h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportWidthI) /
 	                 (float)h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportHeightI);
-
-   // debug = true;
 
 	h3dSetOption(H3DOptions::DebugViewMode, debug);
 	h3dSetOption(H3DOptions::WireframeMode, debug);
@@ -513,10 +503,6 @@ void Renderer::RemoveRenderObject(int sid, dm::ObjectId id)
       entities_[sid].erase(i);
    }
 }
-
-/*
- *  gluLookAt.c
- */
 
 void Renderer::UpdateCamera()
 {
