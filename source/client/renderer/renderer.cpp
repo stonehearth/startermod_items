@@ -554,10 +554,10 @@ float Renderer::DistFunc(float dist, int wheel, float minDist, float maxDist) co
    return result;
 }
 
-void Renderer::OnMouseWheel(int value)
+void Renderer::OnMouseWheel(double value)
 {
-   int dWheel = value;// - input_.mouse.wheel;
-   input_.mouse.wheel = value;
+   int dWheel = (int)value;
+   input_.mouse.wheel = dWheel;
    
    // xxx: move this part out into the client --
    csg::Point3f dir = camera_->GetPosition() - cameraTarget_;
@@ -568,13 +568,13 @@ void Renderer::OnMouseWheel(int value)
    UpdateCamera(); // xxx - defer to render time?
 }
 
-void Renderer::OnMouseMove(int x, int y)
+void Renderer::OnMouseMove(double x, double y)
 {
-   input_.mouse.dx = x - input_.mouse.x;
-   input_.mouse.dy = y - input_.mouse.y;
+   input_.mouse.dx = (int)x - input_.mouse.x;
+   input_.mouse.dy = (int)y - input_.mouse.y;
    
-   input_.mouse.x = x;
-   input_.mouse.y = y;
+   input_.mouse.x = (int)x;
+   input_.mouse.y = (int)y;
 
    // xxx - this is annoying, but that's what you get... maybe revisit the
    // way we deliver mouse events and up/down tracking...
