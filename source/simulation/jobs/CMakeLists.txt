@@ -7,6 +7,7 @@ add_library(simulation_jobs STATIC
             path_finder.cpp
             follow_path.cpp
             goto_location.cpp
+            lua_job.cpp
             )
 
 if (MSVC)

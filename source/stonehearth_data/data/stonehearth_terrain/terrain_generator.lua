@@ -77,6 +77,10 @@ function TerrainGenerator:__init()
    self._edge_detailer = EdgeDetailer(terrain_info)
 end
 
+function TerrainGenerator:set_async(async)
+   self._is_async = async
+end
+
 function TerrainGenerator:_set_random_seed(x, y)
    local seed = self.base_random_seed
    if x ~= nil and y ~= nil then 
@@ -133,13 +137,16 @@ function TerrainGenerator:generate_zone(terrain_type, zones, x, y)
 
    -- zone_map must be a new HeightMap as it is returned from the function
    self:_create_oversize_map_from_micro_map(oversize_map, micro_map)
+   self:_yield()
 
    -- transform to frequncy domain and shape frequencies with exponential decay
    WaveletFns.shape_height_map(oversize_map, self.frequency_scaling_coeff, self.wavelet_levels)
+   self:_yield()
 
    -- enable non-uniform quantizer within a terrain type
    -- generates additional edge details
    self:_quantize_height_map(oversize_map, true)
+   self:_yield()
 
    self:_add_additional_details(oversize_map)
 
@@ -152,6 +159,12 @@ function TerrainGenerator:generate_zone(terrain_type, zones, x, y)
    return zone_map, micro_map
 end
 
+function TerrainGenerator:_yield()
+   if self._is_async then
+      -- doesn't really matter what we yield.  just giving up control
+      coroutine.yield('...')
+   end
+end
 function TerrainGenerator:_fill_blend_map(blend_map, zones, x, y)
    local i, j, adjacent_zone, tile
    local width = blend_map.width

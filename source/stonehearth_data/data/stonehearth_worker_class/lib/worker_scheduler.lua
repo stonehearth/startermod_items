@@ -85,7 +85,8 @@ end
 
 function WorkerScheduler:_on_add_entity(id, entity)
    if entity then
-      if entity:get_component('item') then
+      local item_component = entity:get_component('item')
+      if item_component and item_component:get_storeable() then
          self:_add_item(entity)
       end
       if entity:get_component('radiant:stockpile') then
@@ -171,8 +172,10 @@ function WorkerScheduler:_add_item(entity)
    if not self._items[id] then
       self._items[id] = entity
 
-      local material = entity:get_component('item'):get_material()
-      if material ~= "" then
+      local item_component = entity:get_component('item')
+      local material = item_component:get_material()
+      local storeable = item_component:get_storeable()
+      if material ~= "" and storeable then
          local pf = self:_alloc_pf('pickup', material)
          pf:add_destination(entity)
          pf:set_enabled(false) -- start off disabled.

@@ -1,5 +1,5 @@
 {
-   "extends": "entity(stonehearth_items, item_properties)",
+   "extends": "entity(stonehearth_items, inventory_properties)",
    "type": "entity",
    "components": {
       "model_variants": [
