@@ -1,8 +1,0 @@
-{
-   "extends": "entity(stonehearth_items, item_properties)",
-   "components": {
-      "item" : {
-         "storeable" : true
-      }
-   }
-}

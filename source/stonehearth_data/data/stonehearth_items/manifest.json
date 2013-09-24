@@ -35,7 +35,6 @@
       },
       "entities" : {
          "item_properties" : "file(entities/.mixins/item_properties.json)",
-         "inventory_properties" : "file(entities/.mixins/inventory_properties.json)",
          "placed_properties" : "file(entities/.mixins/placed_properties.json)",
 
          "arch_backed_chair" :       "file(entities/arch_backed_chair)",

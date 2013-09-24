@@ -35,9 +35,6 @@ public:
    std::string GetCategory() const {return *category_;}
    void SetCategory(std::string category) { category_ = category; }
 
-   bool GetStoreable() const {return *storeable_;}
-   void SetStoreable(bool storeable) { storeable_ = storeable; }
-
    dm::Guard TraceStacks(const char* reason, std::function<void()> fn) { return stacks_.TraceObjectChanges(reason, fn); };
 
 private:
@@ -52,7 +49,6 @@ public:
    dm::Boxed<std::string>     material_;
    dm::Boxed<std::string>     identifier_;
    dm::Boxed<std::string>     category_;
-   dm::Boxed<bool>            storeable_;
 
 };
 
