@@ -521,8 +521,10 @@ void Client::OnMouseInput(Input const& input)
 
    mouse_x_ = input.mouse.x;
    mouse_y_ = input.mouse.y;
+
+   browser_->OnInput(input);
+
    if (browser_->HasMouseFocus(input.mouse.x, input.mouse.y)) {
-      browser_->OnInput(input); // not quite right...
       return;
    }
 
