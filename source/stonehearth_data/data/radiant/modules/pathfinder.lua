@@ -31,6 +31,10 @@ function _remove_entity_from_terrain(id)
    end
 end
 
+function pathfinder.create_multi_path_finder(reason, src_entity, solved_cb)
+   return _radiant.sim.create_multi_path_finder(reason)
+end
+
 function pathfinder.find_path_to_entity(reason, src_entity, dst_entity, solved_cb)
    local pathfinder = _radiant.sim.create_path_finder(reason, src_entity, solved_cb, nil)
    pathfinder:add_destination(dst_entity)

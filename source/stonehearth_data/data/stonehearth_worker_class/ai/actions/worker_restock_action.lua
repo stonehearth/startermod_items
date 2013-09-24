@@ -1,10 +1,11 @@
 local WorkerRestockAction = class()
 
-WorkerRestockAction.name = 'stonehearth_worker.actions.restock_action'
-WorkerRestockAction.does = 'stonehearth_worker.actions.restock'
+WorkerRestockAction.name = 'stonehearth.restock'
+WorkerRestockAction.does = 'stonehearth.restock'
 WorkerRestockAction.priority = 5
 
-function WorkerRestockAction:run(ai, entity, path, stockpile, drop_location)
+function WorkerRestockAction:run(ai, entity, path, stockpile)
+   local drop_location = path:get_finish_point()
    ai:execute('stonehearth.activities.follow_path', path)
    ai:execute('stonehearth.activities.drop_carrying', drop_location)
    self._reserved = nil
