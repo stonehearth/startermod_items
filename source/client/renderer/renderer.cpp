@@ -2,7 +2,8 @@
 #include "renderer.h"
 #include "Horde3DUtils.h"
 #include "Horde3DRadiant.h"
-#include "glfw.h"
+#include "glfw3.h"
+#include "glfw3native.h"
 #include "render_entity.h"
 #include "om/selection.h"
 #include "om/entity.h"
@@ -56,18 +57,16 @@ Renderer::Renderer() :
 
    glfwInit();
 
-   if (!glfwOpenWindow(width_, height_, 8, 8, 8, 8, 24, 8, GLFW_WINDOW)) {
+   GLFWwindow *window;
+   // Fullscreen: add glfwGetPrimaryMonitor() instead of the first NULL.
+   if (!(window = glfwCreateWindow(width_, height_, "Stonehearth", NULL, NULL))) {
       glfwTerminate();
    }
 
-	// Disable vertical synchronization
+   glfwMakeContextCurrent(window);
+   
    bool vsync = true;
 	glfwSwapInterval(vsync ? 0 : 1);
-
-	// Set listeners
-	// glfwSetWindowCloseCallback(windowCloseListener);
-	// glfwSetKeyCallback(keyPressListener);
-	// glfwSetMousePosCallback(mouseMoveListener);
 
 	if (!h3dInit()) {	
 		h3dutDumpMessages();
@@ -98,14 +97,6 @@ Renderer::Renderer() :
    // how to actually get the resource loaded!
    h3dAddResource(H3DResTypes::Material, "materials/debug_shape.material.xml", 0); 
    
-   // Uncomment this for the Cubemitter!
-   /*
-   H3DRes c = h3dAddResource(H3DResTypes::Material, "materials/cubemitter.material.xml", 0);
-   H3DRes d = h3dAddResource(RT_CubemitterResource, "particles/fire/fire.cubemitter.json", 0);
-   cubemitterNode = h3dRadiantAddCubemitterNode(H3DRootNode, "first_cubemitter!", d, c);
-   h3dSetNodeTransform(cubemitterNode, 0, 0, 0, 90, 0, 0, 1, 1, 1);
-   */
-   
    LoadResources();
 
 	// Add camera
@@ -131,28 +122,32 @@ Renderer::Renderer() :
    memset(&input_.mouse, 0, sizeof input_.mouse);
    rotateCamera_ = false;
 
-   // the message pump built into glfw is broken.  It calls DispatchMessage
-   // without a corresponsing TranslateMessage.  This at least incorrectly
-   // skips side-effects of TranslateMessage (e.g. dispatching WM_CHAR events
-   // as a result of translating a WM_KEYDOWN msg).  Turn it off.  The cef3
-   // browser can handle it.
-   glfwDisable(GLFW_AUTO_POLL_EVENTS);
+   glfwSetWindowSizeCallback(window, [](GLFWwindow *window, int newWidth, int newHeight) { 
+      Renderer::GetInstance().OnWindowResized(newWidth, newHeight); 
+   });
 
-   glfwSetWindowSizeCallback([](int newWidth, int newHeight) { Renderer::GetInstance().OnWindowResized(newWidth, newHeight); });
-   glfwSetKeyCallback([](int key, int down) { Renderer::GetInstance().OnKey(key, down); });
-   glfwSetMouseWheelCallback([](int value) { Renderer::GetInstance().OnMouseWheel(value); });
-   glfwSetMousePosCallback([](int x, int y) { Renderer::GetInstance().OnMouseMove(x, y); });
-   glfwSetMouseButtonCallback([](int button, int press) { Renderer::GetInstance().OnMouseButton(button, press); });
-   glfwSetRawInputCallback([](UINT msg, WPARAM wParam, LPARAM lParam) { Renderer::GetInstance().OnRawInput(msg, wParam, lParam); });
-   glfwSetWindowCloseCallback([]() -> int {
+   glfwSetKeyCallback(window, [](GLFWwindow *window, int key, int scancode, int action, int mods) { 
+      Renderer::GetInstance().OnKey(key, (action == GLFW_PRESS) || (action == GLFW_REPEAT)); 
+   });   
+
+   glfwSetCursorPosCallback(window, [](GLFWwindow *window, double x, double y) { 
+      Renderer::GetInstance().OnMouseMove(x, y); 
+   });
+
+   glfwSetMouseButtonCallback(window, [](GLFWwindow *window, int button, int action, int mods) { 
+      Renderer::GetInstance().OnMouseButton(button, action == GLFW_PRESS); 
+   });
+
+   glfwSetScrollCallback(window, [](GLFWwindow *window, double xoffset, double yoffset) {
+      Renderer::GetInstance().OnMouseWheel(yoffset);
+   });
+   
+   glfwSetWindowCloseCallback(window, [](GLFWwindow* window) -> void {
       // die RIGHT NOW!!
       LOG(WARNING) << "Bailing...";
       TerminateProcess(GetCurrentProcess(), 1);
-      return true;
    });
    SetWindowPos(GetWindowHandle(), NULL, 0, 0 , 0, 0, SWP_NOSIZE);
-
-   //glfwSwapInterval(1); // Enable VSync
 
    fileWatcher_.addWatch(L"horde", [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
       Renderer::GetInstance().FlushMaterials();
@@ -196,7 +191,7 @@ void Renderer::FlushMaterials() {
 
 Renderer::~Renderer()
 {
-   glfwCloseWindow();
+   glfwDestroyWindow(glfwGetCurrentContext());
    glfwTerminate();
 }
 
@@ -228,7 +223,8 @@ void Renderer::DecodeDebugShapes(const ::radiant::protocol::shapelist& msg)
 
 HWND Renderer::GetWindowHandle() const
 {
-   return (HWND)glfwGetWindowHandle();
+   //return (HWND)glfwGetWindowHandle();
+   return glfwGetWin32Window(glfwGetCurrentContext());
 }
 
 void Renderer::RenderOneFrame(int now, float alpha)
@@ -324,7 +320,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
 
 	// Write all messages to log file
 	h3dutDumpMessages();
-	glfwSwapBuffers();
+   glfwSwapBuffers(glfwGetCurrentContext());
 }
 
 bool Renderer::IsRunning() const
@@ -558,10 +554,10 @@ float Renderer::DistFunc(float dist, int wheel, float minDist, float maxDist) co
    return result;
 }
 
-void Renderer::OnMouseWheel(int value)
+void Renderer::OnMouseWheel(double value)
 {
-   int dWheel = value - input_.mouse.wheel;
-   input_.mouse.wheel = value;
+   int dWheel = (int)value;
+   input_.mouse.wheel = dWheel;
    
    // xxx: move this part out into the client --
    csg::Point3f dir = camera_->GetPosition() - cameraTarget_;
@@ -572,13 +568,13 @@ void Renderer::OnMouseWheel(int value)
    UpdateCamera(); // xxx - defer to render time?
 }
 
-void Renderer::OnMouseMove(int x, int y)
+void Renderer::OnMouseMove(double x, double y)
 {
-   input_.mouse.dx = x - input_.mouse.x;
-   input_.mouse.dy = y - input_.mouse.y;
+   input_.mouse.dx = (int)x - input_.mouse.x;
+   input_.mouse.dy = (int)y - input_.mouse.y;
    
-   input_.mouse.x = x;
-   input_.mouse.y = y;
+   input_.mouse.x = (int)x;
+   input_.mouse.y = (int)y;
 
    // xxx - this is annoying, but that's what you get... maybe revisit the
    // way we deliver mouse events and up/down tracking...

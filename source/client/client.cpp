@@ -39,7 +39,7 @@
 #include "lua/om/open.h"
 #include "client/renderer/render_entity.h"
 
-#include "glfw.h"
+#include "glfw3.h"
 
 //  #include "GFx/AS3/AS3_Global.h"
 #include "client.h"
@@ -214,7 +214,7 @@ void Client::run()
    _commands[GLFW_KEY_F3] = std::bind(&Client::EvalCommand, this, "radiant.toggle_step_paths");
    _commands[GLFW_KEY_F4] = std::bind(&Client::EvalCommand, this, "radiant.step_paths");
 #endif
-   _commands[GLFW_KEY_ESC] = [=]() {
+   _commands[GLFW_KEY_ESCAPE] = [=]() {
       currentCursor_ = NULL;
    };
 
@@ -521,8 +521,10 @@ void Client::OnMouseInput(Input const& input)
 
    mouse_x_ = input.mouse.x;
    mouse_y_ = input.mouse.y;
+
+   browser_->OnInput(input);
+
    if (browser_->HasMouseFocus(input.mouse.x, input.mouse.y)) {
-      browser_->OnInput(input); // not quite right...
       return;
    }
 

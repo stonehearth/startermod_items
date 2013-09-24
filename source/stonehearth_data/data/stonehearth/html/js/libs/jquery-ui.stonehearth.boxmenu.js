@@ -25,6 +25,7 @@
 
          // event handlers
          $('body').click(function(e) {
+            console.log('click!');
             var container = self.element;
             var clickedElement = e.target;
 
