@@ -5,6 +5,7 @@
 #include "simulation/jobs/multi_path_finder.h"
 #include "simulation/jobs/follow_path.h"
 #include "simulation/jobs/goto_location.h"
+#include "simulation/jobs/lua_job.h"
 #include "om/entity.h"
 #include "om/stonehearth.h"
 #include "om/region.h"
@@ -159,6 +160,14 @@ std::shared_ptr<PathFinder> Sim_CreatePathFinder(lua_State *L, std::string name,
    return pf;
 }
 
+std::shared_ptr<LuaJob> Sim_CreateJob(lua_State *L, std::string const& name, object cb)
+{
+   std::shared_ptr<LuaJob> job = std::make_shared<LuaJob>(name, object(lua::ScriptHost::GetCallbackThread(L), cb));
+   Simulation::GetInstance().AddJob(job);
+   return job;
+}
+
+
 void lua::sim::open(lua_State* L)
 {
    module(L) [
@@ -178,6 +187,7 @@ void lua::sim::open(lua_State* L)
             def("create_follow_path",       &Sim_CreateFollowPath),
             def("create_goto_location",     &Sim_CreateGotoLocation),
             def("create_goto_entity",       &Sim_CreateGotoEntity),
+            def("create_job",               &Sim_CreateJob),
 
             lua::RegisterTypePtr<Path>()
                .def("get_points",         &Path::GetPoints)
@@ -216,6 +226,9 @@ void lua::sim::open(lua_State* L)
             ,
             lua::RegisterTypePtr<GotoLocation>()
                .def("stop",     &GotoLocation::Stop)
+            ,
+            lua::RegisterTypePtr<LuaJob>()
+
          ]
       ]
    ];

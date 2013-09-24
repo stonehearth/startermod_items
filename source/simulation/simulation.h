@@ -82,6 +82,7 @@ private:
    void ScriptCommand(tesseract::protocol::ScriptCommandRequest const& request);
    void EncodeDebugShapes(protocol::SendQueuePtr queue);
    void PushServerRemoteObjects(protocol::SendQueuePtr queue);
+   void ProcessTaskList(platform::timer &timer);
    void ProcessJobList(platform::timer &timer);
    void OnObjectAllocated(dm::ObjectPtr obj);
    void OnObjectDestroyed(dm::ObjectId id);

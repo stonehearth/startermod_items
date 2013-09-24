@@ -261,11 +261,11 @@ void Simulation::Step(platform::timer &timer, int interval)
    UpdateAuras(now_);
    UpdateTargetTables(now_, now_ - lastNow_);
 
+   ProcessTaskList(timer);
+   ProcessJobList(timer);
+
    // Send out change notifications
    store_.FireTraces();
-
-   // Run jobs with the time left over
-   ProcessJobList(timer);
 }
 
 void Simulation::Idle(platform::timer &timer)
@@ -422,7 +422,7 @@ void Simulation::PushServerRemoteObjects(protocol::SendQueuePtr queue)
 }
 
 
-void Simulation::ProcessJobList(platform::timer &timer)
+void Simulation::ProcessTaskList(platform::timer &timer)
 {
    PROFILE_BLOCK();
 
@@ -435,7 +435,10 @@ void Simulation::ProcessJobList(platform::timer &timer)
          i = tasks_.erase(i);
       }
    }
+}
 
+void Simulation::ProcessJobList(platform::timer &timer)
+{
    // Pahtfinders down here...
    if (_singleStepPathFinding) {
       LOG(INFO) << "skipping job processing (single step is on).";
