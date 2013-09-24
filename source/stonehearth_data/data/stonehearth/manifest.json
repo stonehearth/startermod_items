@@ -7,7 +7,8 @@
       "entities" : {
          "worker_axe" : "file(entities/worker_axe)",
          "worker_hammer" : "file(entities/worker_hammer)",
-         "rabbit" : "file(entities/critters/rabbit)"
+         "rabbit" : "file(entities/critters/rabbit)",
+         "wolf" : "file(entities/critters/wolf)"
       }
    },
    "components" :  {
