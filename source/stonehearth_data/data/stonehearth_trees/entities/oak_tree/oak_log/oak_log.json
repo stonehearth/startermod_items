@@ -1,20 +1,20 @@
 {
-   "extends": "entity(stonehearth_items, item_properties)", 
-   "type": "entity", 
+   "extends": "entity(stonehearth_items, inventory_properties)",
+   "type": "entity",
    "components": {
       "item": {
-         "material": "wood", 
+         "material": "wood",
          "stacks": 20
-      }, 
+      },
       "model_variants": [
          {
             "models": [
                "file(oak_log.qb)"
             ]
          }
-      ], 
+      ],
       "unit_info": {
-         "name": "Oak Log", 
+         "name": "Oak Log",
          "description": "That's right.  It's a log."
       }
    }

@@ -58,7 +58,7 @@ function PlaceableItemProxy:_create_derived_components()
    if json and json.components then
       if json.components.unit_info then
          local data = json.components.unit_info
-         local unit_info = self._entity:add_component('unit_info')         
+         local unit_info = self._entity:add_component('unit_info')
          unit_info:set_display_name(data.name and data.name or '')
          unit_info:set_description(data.description and data.description or '')
          unit_info:set_icon(data.icon and data.icon or '')
@@ -72,12 +72,17 @@ function PlaceableItemProxy:_create_derived_components()
          item:set_identifier(data.identifier and data.identifier or '')
       end
    end
-   local place_command = self._entity:get_component('radiant:commands')
+   --Issues: if this is in a parent class, it isn't loaded by this point, so add manually
+   --local place_command = self._entity:get_component('radiant:commands')
+   local place_command = self._entity:add_component('radiant:commands')
+   place_command:add_command(radiant.resources.load_json('/stonehearth_items/commands/place_command.json'))
+
+
 
    local command_data = place_command:modify_command('place_item')
    command_data.event_data.full_sized_entity_uri = full_sized_uri
    command_data.event_data.proxy = self._data_binding
-   command_data.event_data.item_name = display_name 
+   command_data.event_data.item_name = display_name
 end
 
 return PlaceableItemProxy
