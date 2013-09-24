@@ -26,7 +26,7 @@ function Workshop:__init(entity, data_binding)
    self._bench_outputs = {}              -- An array of finished products on the bench, to be added to the outbox. Nil if nothing.
    self._outbox_entity = nil
    self._outbox_component = nil          -- The outbox
-      self._promotion_talisman_entity = nil -- The talisman for the bench, available when there is no craftsman
+   self._promotion_talisman_entity = nil -- The talisman for the bench, available when there is no craftsman
    self._promotion_talisman_offset = {0, 3, 0}  -- Default offset for the talisman (on the bench)
    self._outbox_offset = {2, 0, 0}              -- Default offset for the outbox
    self._outbox_size = {3, 3}                   -- Default size for the outbox
@@ -90,7 +90,6 @@ end
 ]]
 function Workshop:resolve_order_options(session, response, recipe)
    return {portrait = recipe.portrait, description = recipe.description, flavor = recipe.flavor}
-
 end
 
 --[[

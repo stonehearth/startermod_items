@@ -20,18 +20,25 @@ function TerrainTest:__init()
 
    self[MicroWorld]:__init()
 
-   local timer = Timer(Timer.CPU_TIME)
-   timer:start()
-
    self._terrain_generator = TerrainGenerator()
 
-   --self:tesselator_test()
+   local use_async = true   --self:tesselator_test()
    --self:tree_test()
    --self:create_world()
-   self:create_multi_zone_world()
-
-   timer:stop()
-   radiant.log.info('World generation time: %.3fs', timer:seconds())
+   local terrain_thread = function()
+      local timer = Timer(Timer.CPU_TIME)
+      timer:start()
+      self._terrain_generator:set_async(use_async)
+      self:create_multi_zone_world()
+      self._terrain_generator:set_async(false)
+      timer:stop()
+      radiant.log.info('World generation time: %.3fs', timer:seconds())
+   end
+   if use_async then
+      radiant.create_background_task('generating terrain', terrain_thread)     
+   else
+      terrain_thread()
+   end
 end
 
 function TerrainTest:tesselator_test()
@@ -100,35 +107,37 @@ function TerrainTest:create_multi_zone_world()
 end
 
 function TerrainTest:_create_world_blueprint()
-   local zones = Array2D(2, 2)
+   local zones = Array2D(4, 4)
    local zone_info
    local i, j
 
    for j=1, zones.height do
       for i=1, zones.width do
-         zone_info = {}
+         zone_info = {
+            terrain_type = TerrainType.Plains
+         }
          zone_info.generated = false
          zones:set(i, j, zone_info)
       end
    end
 
-   zones:get(1, 1).terrain_type = TerrainType.Mountains
-   zones:get(2, 1).terrain_type = TerrainType.Foothills
-
-   zones:get(1, 2).terrain_type = TerrainType.Foothills
-   zones:get(2, 2).terrain_type = TerrainType.Plains
-
    -- zones:get(1, 1).terrain_type = TerrainType.Mountains
-   -- zones:get(2, 1).terrain_type = TerrainType.Mountains
-   -- zones:get(3, 1).terrain_type = TerrainType.Foothills
+   -- zones:get(2, 1).terrain_type = TerrainType.Foothills
 
-   -- zones:get(1, 2).terrain_type = TerrainType.Mountains
-   -- zones:get(2, 2).terrain_type = TerrainType.Foothills
-   -- zones:get(3, 2).terrain_type = TerrainType.Plains
+   -- zones:get(1, 2).terrain_type = TerrainType.Foothills
+   -- zones:get(2, 2).terrain_type = TerrainType.Plains
 
-   -- zones:get(1, 3).terrain_type = TerrainType.Foothills
-   -- zones:get(2, 3).terrain_type = TerrainType.Plains
-   -- zones:get(3, 3).terrain_type = TerrainType.Plains
+   zones:get(1, 1).terrain_type = TerrainType.Mountains
+   zones:get(2, 1).terrain_type = TerrainType.Mountains
+   zones:get(3, 1).terrain_type = TerrainType.Foothills
+
+   zones:get(1, 2).terrain_type = TerrainType.Mountains
+   zones:get(2, 2).terrain_type = TerrainType.Foothills
+   zones:get(3, 2).terrain_type = TerrainType.Plains
+
+   zones:get(1, 3).terrain_type = TerrainType.Foothills
+   zones:get(2, 3).terrain_type = TerrainType.Plains
+   zones:get(3, 3).terrain_type = TerrainType.Plains
 
    return zones
 end

@@ -32,4 +32,11 @@ function Leash:set_location(point)
    self._location = point
 end
 
+function Leash:get_leash_radius()
+   return self._leash_radius
+end
+
+function Leash:set_leash_radius(radius)
+   self._leash_radius = radius
+end
 return Leash

@@ -9,16 +9,25 @@ function RabbitTest:__init()
    local tree = self:place_tree(-12, -12)
    local tree = self:place_tree(-12, 12)
    
-   local rabbit = self:place_rabbit(0, 0)
+   self:place('entity(stonehearth, rabbit)', 6, 6)
+   self:place('entity(stonehearth, wolf)', 0, 0)
+
+   local worker = self:place_citizen(-3, -3)
+
    --local bench = self:place_item('stonehearth_carpenter_class', 'carpenter_workbench', -6, 6)
    
 end
 
-function RabbitTest:place_rabbit(x, z)
-   local rabbit_entity = radiant.entities.create_entity('entity(stonehearth, rabbit)')
+function RabbitTest:place(entityDesc, x, z)
+   local rabbit_entity = radiant.entities.create_entity(entityDesc)
    local location = Point3(x, 0, z)
 
    radiant.terrain.place_entity(rabbit_entity, location)
+
+   local leash = rabbit_entity:get_component('stonehearth:leash')
+   leash:set_location(location)
+
+   return rabbit_entity
 end
 
 return RabbitTest

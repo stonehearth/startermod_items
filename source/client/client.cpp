@@ -428,7 +428,7 @@ void Client::UpdateObject(const proto::UpdateObject& update)
    const auto& msg = update.object();
    dm::ObjectId id = msg.object_id();
 
-   //LOG(WARNING) << "Client updating object " << id << ".";
+   // LOG(WARNING) << "Client updating object " << id << ".";
 
    dm::Object* obj = store_.FetchStaticObject(id);
    ASSERT(obj);
@@ -521,8 +521,10 @@ void Client::OnMouseInput(Input const& input)
 
    mouse_x_ = input.mouse.x;
    mouse_y_ = input.mouse.y;
+
+   browser_->OnInput(input);
+
    if (browser_->HasMouseFocus(input.mouse.x, input.mouse.y)) {
-      browser_->OnInput(input); // not quite right...
       return;
    }
 

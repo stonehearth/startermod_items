@@ -35,10 +35,12 @@
       },
       "entities" : {
          "item_properties" : "file(entities/.mixins/item_properties.json)",
+         "inventory_properties" : "file(entities/.mixins/inventory_properties.json)",
+         "placed_properties" : "file(entities/.mixins/placed_properties.json)",
 
          "arch_backed_chair" :       "file(entities/arch_backed_chair)",
          "arch_backed_chair_proxy" : "file(entities/arch_backed_chair/arch_backed_chair_proxy.json)",
-         
+
          "carpenter_saw" : "file(entities/carpenter_saw)",
 
          "cloth_bolt" : "file(entities/cloth_bolt)",
@@ -48,7 +50,7 @@
 
          "dining_table" : "file(entities/dining_table)",
          "dining_table_proxy" : "file(entities/dining_table/dining_table_proxy.json)",
-         
+
          "fire_pit" : "file(entities/fire_pit)",
          "fire_pit_proxy" : "file(entities/fire_pit/fire_pit_proxy.json)",
 

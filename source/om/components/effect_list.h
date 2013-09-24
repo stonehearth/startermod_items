@@ -55,6 +55,7 @@ class EffectList : public Component
 {
 public:
    DEFINE_OM_OBJECT_TYPE(EffectList, effect_list);
+   void ExtendObject(json::ConstJsonObject const& obj);
 
    const dm::Set<EffectPtr>& GetEffects() const { return effects_; }
 

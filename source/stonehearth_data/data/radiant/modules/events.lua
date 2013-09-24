@@ -1,5 +1,7 @@
 local events = {}
-local singleton = {}
+local singleton = {
+   jobs = {}
+}
 
 function events.__init()
    singleton._registered_activities = {}    -- all possible activities, by name
@@ -373,6 +375,24 @@ function events._get_handler_name(handler)
    --check:verify(events.is_msg_handler(handler))
    local name = singleton._all_handlers[handler]
    return name and name or '-anonymous-'
+end
+
+radiant.create_background_task = function(name, fn)
+   local co = coroutine.create(fn)
+   local thread_main = function()
+      local success, _ = coroutine.resume(co)
+      if not success then
+         radiant.check.report_thread_error(co, 'co-routine failed: ' .. tostring(_))
+         return false
+      end
+      local status = coroutine.status(co)
+      if status == 'suspended' then
+         return true
+      end
+      return false
+   end
+   local job = _radiant.sim.create_job(name, thread_main)
+   table.insert(singleton.jobs, job)
 end
 
 events.__init()
