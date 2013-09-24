@@ -17,9 +17,45 @@ static object GetNodeParam(lua_State* L, H3DNode node, int param)
    return object();
 }
 
+static void Camera_Translate(csg::Point3f delta) {
+   Camera *c = Renderer::GetInstance().GetCamera();
+
+   csg::Point3f curPos = c->GetPosition();
+   c->SetPosition(curPos + delta);
+}
+
+static csg::Point3f Camera_GetForward() {
+   Camera *c = Renderer::GetInstance().GetCamera();
+
+   csg::Point3f forward, up, left;
+   c->GetBases(&forward, &up, &left);
+
+   return forward;
+}
+
+static csg::Point3f Camera_GetLeft() {
+   Camera *c = Renderer::GetInstance().GetCamera();
+
+   csg::Point3f forward, up, left;
+   c->GetBases(&forward, &up, &left);
+
+   return left;
+}
+
+
 void LuaRenderer::RegisterType(lua_State* L)
 {
    module(L) [
+      namespace_("_radiant") [
+         namespace_("renderer") [
+            namespace_("camera") [
+               def("translate",    &Camera_Translate),
+               def("get_forward",  &Camera_GetForward),
+               def("get_left",     &Camera_GetLeft)
+            ]
+         ]
+      ],
+
       class_<H3DResTypes>("H3DResTypes")
          .enum_("constants")
       [
@@ -51,6 +87,12 @@ void LuaRenderer::RegisterType(lua_State* L)
 		   value("ShadowContextStr",           H3DLight::ShadowContextStr),
          value("DirectionalI",               H3DLight::DirectionalI)
       ],
+      class_<H3DNodeFlags>("H3DNodeFlags")
+         .enum_("constants")
+      [
+         value("Inactive",                   H3DNodeFlags::Inactive),
+         value("NoCastShadow",               H3DNodeFlags::NoCastShadow)
+      ],
       def("h3dGetNodeParamStr",              &h3dGetNodeParamStr),
       def("h3dRemoveNode",                   &h3dRemoveNode),
       def("h3dAddLightNode",                 &h3dAddLightNode),
@@ -61,7 +103,8 @@ void LuaRenderer::RegisterType(lua_State* L)
       def("h3dSetMaterialUniform",           &h3dSetMaterialUniform),
       def("h3dSetNodeTransform",             &h3dSetNodeTransform),
       def("h3dSetNodeParamI",                &h3dSetNodeParamI),
-      def("h3dSetNodeParamF",                &h3dSetNodeParamF)
+      def("h3dSetNodeParamF",                &h3dSetNodeParamF),
+      def("h3dSetNodeFlags",                 &h3dSetNodeFlags)
    ];
    globals(L)["H3DRootNode"] = H3DRootNode;
 };
