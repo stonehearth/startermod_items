@@ -1,4 +1,4 @@
-radiant.mods.require('stonehearth_calendar.stonehearth_calendar')
+local timekeeper = require 'lib.calendar.timekeeper'
 
 local StonehearthSky = class()
 local Vec3 = _radiant.csg.Point3f
@@ -20,21 +20,27 @@ function StonehearthSky:__init()
 
    self:_init_sun()
    self:_init_moon()
-
-   self._promise = _radiant.trace_obj('stonehearth_calendar.clock')
-   if self._promise then
-      self._promise:progress(function (data)
-            self:_update(data.date.minute + (data.date.hour * 60))
-         end)
-   end
+   _radiant.call_obj('stonehearth', 'get_clock_object')
+      :done(
+         function (o)
+            self._clock_object = o.clock_object
+            self._clock_promise = self._clock_object:trace('drawing sky')
+            self._clock_promise:on_changed(
+               function ()
+                  local date = self._clock_object:get_data()
+                  self:_update(date.minute + (date.hour * 60))
+               end
+            )
+         end
+      )
 end
 
 function StonehearthSky:set_sky_constants()
    self.timing = {}
 
    --get some times from the calendar
-   local base_times = stonehearth_calendar.get_curr_times_of_day()
-   local time_constants = stonehearth_calendar.get_constants()
+   local base_times = timekeeper:get_curr_times_of_day()
+   local time_constants = timekeeper:get_constants()
 
    self.timing.midnight = base_times.midnight * time_constants.MINUTES_IN_HOUR
    self.timing.sunrise_start = base_times.sunrise *time_constants.MINUTES_IN_HOUR
@@ -284,5 +290,4 @@ function StonehearthSky:_light_angles(light, x, y, z)
    h3dSetNodeTransform(light.node, 0, 0, 0, x, y, z, 1, 1, 1)
 end
 
-StonehearthSky:__init()
-return StonehearthSky
+local sky = StonehearthSky()

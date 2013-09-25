@@ -2,17 +2,17 @@
    "components" : {
       "radiant:ai" : {
          "actions" : [
-            "file(/ai/actions/compel_to_action.lua)",
-            "file(/ai/actions/death_action.lua)",
-            "file(/ai/actions/drop_carrying_action.lua)",
-            "file(/ai/actions/follow_path_action.lua)",
-            "file(/ai/actions/goto_entity_action.lua)",
-            "file(/ai/actions/goto_location_action.lua)",
-            "file(/ai/actions/idle_action.lua)",
-            "file(/ai/actions/idle_breathe_action.lua)",
-            "file(/ai/actions/pickup_item_action.lua)",
-            "file(/ai/actions/pickup_item_on_path.lua)",
-            "file(/ai/actions/run_effect_action.lua)"
+            "stonehearth.actions.compel_to_action",
+            "stonehearth.actions.death_action",
+            "stonehearth.actions.drop_carrying_action",
+            "stonehearth.actions.follow_path_action",
+            "stonehearth.actions.goto_entity_action",
+            "stonehearth.actions.goto_location_action",
+            "stonehearth.actions.idle_action",
+            "stonehearth.actions.idle_breathe_action",
+            "stonehearth.actions.pickup_item_action",
+            "stonehearth.actions.pickup_item_on_path",
+            "stonehearth.actions.run_effect_action"
          ]
       }
    }
