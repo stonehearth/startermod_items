@@ -353,7 +353,7 @@ std::string ResourceManager2::ExpandMacro(std::string const& current, std::strin
       return ConvertToAbsolutePath(match[1], base_path);
    }
    if (full) {
-      static std::regex entity_macro("^([^\\.\\\\/]+)\\.([^\\.\\\\/]+)$");
+      static std::regex entity_macro("^([^\\.\\\\/]+)\\.([^\\\\/]+)$");
 
       if (std::regex_match(current, match, entity_macro)) {
          return GetEntityUri(match[1], match[2]);

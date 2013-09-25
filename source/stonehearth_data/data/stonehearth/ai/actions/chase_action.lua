@@ -20,7 +20,7 @@ ChaseAction['radiant.events.very_slow_poll'] = function(self)
       local contents = sensor:get_contents()
       local seen = contents:items() 
       -- for id in sensor:get_contents():items() do table.insert(items, id) end
-      radiant.log.info(seen)
+      -- radiant.log.info(seen)
    end
 end
 
