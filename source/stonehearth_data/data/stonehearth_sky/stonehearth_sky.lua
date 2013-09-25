@@ -19,7 +19,7 @@ function StonehearthSky:__init()
    self._celestials = {}
 
    self:_init_sun()
-   self._minutes = 0;
+   self:_init_moon()
 
    self._promise = _radiant.trace_obj('stonehearth_calendar.clock')
    if self._promise then
@@ -88,16 +88,22 @@ function StonehearthSky:_update(minutes)
 end
 
 function StonehearthSky:_update_light(minutes, light)
-   local color = self:_find_value2(minutes, light.colors)
-   local ambient_color = self:_find_value2(minutes, light.ambient_colors)
-   local angles = self:_find_value2(minutes, light.angles)
+   local color = self:_find_value(minutes, light.colors)
+   local ambient_color = self:_find_value(minutes, light.ambient_colors)
+   local angles = self:_find_value(minutes, light.angles)
 
    self:_light_color(light, color.x, color.y, color.z)
    self:_light_ambient_color(light, ambient_color.x, ambient_color.y, ambient_color.z)
    self:_light_angles(light, angles.x, angles.y, angles.z)
+
+   if color.x == 0 and color.y == 0 and color.z == 0 then
+      h3dSetNodeFlags(light.node, H3DNodeFlags.Inactive, false)
+   else
+      h3dSetNodeFlags(light.node, 0, false)      
+   end
 end
 
-function StonehearthSky:_find_value2(time, data)
+function StonehearthSky:_find_value(time, data)
    local t_start = data[1][1]
    local v_start = data[1][2]
 
@@ -146,7 +152,7 @@ function StonehearthSky:_init_sun()
    local angles = {
       sunrise = Vec3(0, 35, 0),
       midday = Vec3(-90, 0, 0),
-      sunset = Vec3(-180, 35, 0)
+      sunset = Vec3(-180, 35, 0),
    }
 
    local colors = {
@@ -160,7 +166,7 @@ function StonehearthSky:_init_sun()
       sunrise = Vec3(0.4, 0.3, 0.1),
       midday = Vec3(0.4, 0.4, 0.4),
       sunset = Vec3(0.3, 0.1, 0.0),
-      night = Vec3(0.3, 0.3, 0.6)
+      night = Vec3(0.0, 0.0, 0.0)
    }
 
    local sun_colors = {
@@ -191,7 +197,7 @@ function StonehearthSky:_init_sun()
       --{self.timing.sunrise_start + t, ambient_colors.sunrise},
       --{self.timing.sunrise_end, ambient_colors.sunrise},
       --{self.timing.sunrise_end + t, ambient_colors.midday},
-      {self.timing.sunrise_end + t, ambient_colors.midday},
+      {self.timing.sunrise_end, ambient_colors.midday},
 
       -- midday
       {self.timing.sunset_start, ambient_colors.midday},
@@ -200,7 +206,7 @@ function StonehearthSky:_init_sun()
       --{self.timing.sunset_start + t, ambient_colors.sunset},
       --{self.timing.sunset_end, ambient_colors.sunset},
       --{self.timing.sunset_end + t, ambient_colors.night},
-      {self.timing.sunset_end + t, ambient_colors.night},
+      {self.timing.sunset_end, ambient_colors.night},
    }
 
    local sun_angles = {
@@ -210,6 +216,56 @@ function StonehearthSky:_init_sun()
    }
 
    self:add_celestial("sun", sun_colors, sun_angles, sun_ambient_colors)
+end
+
+
+function StonehearthSky:_init_moon()
+   local t = self.timing.transition_length;
+
+   local angles = {
+      sunset = Vec3(-60, -25, 0),
+      midnight = Vec3(-90, -25, 0),
+      sunrise = Vec3(-120, -25, 0),
+   }
+
+   local colors = {
+      sunset_start = Vec3(0.0, 0.0, 0.0),
+      sunset_end = Vec3(0.1, 0.1, 0.1),
+      sunrise_start = Vec3(0.1, 0.1, 0.1),
+      sunrise_end = Vec3(0.0, 0.0, 0.0),
+   }
+
+   local ambient_colors = {
+      night = Vec3(0.3, 0.3, 0.6),
+      day = Vec3(0.0, 0.0, 0.0)
+   }
+
+   local moon_colors = {
+      {self.timing.midnight, colors.sunset_end},
+      {self.timing.sunrise_start, colors.sunrise_start},
+      {self.timing.sunrise_end, colors.sunrise_end},
+      {self.timing.sunset_start, colors.sunset_start},
+      {self.timing.sunset_end, colors.sunset_end},
+      {self.timing.day_length, colors.sunset_end}
+   }
+
+   local moon_ambient_colors = {
+      {self.timing.midnight, ambient_colors.night},
+      {self.timing.sunrise_start, ambient_colors.night},
+      {self.timing.sunrise_end, ambient_colors.day},
+      {self.timing.sunset_start, ambient_colors.day},
+      {self.timing.sunset_end, ambient_colors.night},
+      {self.timing.day_length, ambient_colors.night}
+   }
+
+   local moon_angles = {
+      {self.timing.midnight, angles.midnight},
+      {self.timing.sunrise_start, angles.sunrise},
+      {self.timing.sunset_end, angles.sunset},
+      {self.timing.day_length, angles.midnight}
+   }
+
+   self:add_celestial("moon", moon_colors, moon_angles, moon_ambient_colors)
 end
 
 function StonehearthSky:_light_color(light, r, g, b)

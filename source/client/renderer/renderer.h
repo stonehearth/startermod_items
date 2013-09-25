@@ -1,6 +1,9 @@
 #ifndef _RADIANT_CLIENT_RENDERER_RENDERER_H
 #define _RADIANT_CLIENT_RENDERER_RENDERER_H
 
+#define GLFW_EXPOSE_NATIVE_WIN32
+#define GLFW_EXPOSE_NATIVE_WGL
+
 #include "namespace.h"
 #include "Horde3D.h"
 #include "csg/transform.h"
@@ -82,6 +85,8 @@ class Renderer
       void PlaceCamera(const csg::Point3f &location);
       void UpdateUITexture(const csg::Region2& rgn, const char* buffer);
 
+      Camera* GetCamera() { return camera_; }
+
       ViewMode GetViewMode() const { return viewMode_; }
       void SetViewMode(ViewMode mode);
       void SetCurrentPipeline(std::string pipeline);
@@ -101,8 +106,8 @@ class Renderer
    private:
       void OnWindowResized(int newWidth, int newHeight);
       void OnKey(int key, int down);
-      void OnMouseWheel(int value);
-      void OnMouseMove(int x, int y);
+      void OnMouseWheel(double value);
+      void OnMouseMove(double x, double y);
       void OnMouseButton(int button, int press);
       void OnRawInput(UINT msg, WPARAM wParam, LPARAM lParam);
       void Resize(int width, int height);
