@@ -13,10 +13,6 @@
          "name": "Picket Fence Gate",
          "description": "Don't like your neighbors? Don't install.",
          "icon" : "file(picket_fence_gate.png)"
-      },
-      "item" : {
-         "identifier": "picket_fence_gate",
-         "category" : "construction"
       }
    }
 }

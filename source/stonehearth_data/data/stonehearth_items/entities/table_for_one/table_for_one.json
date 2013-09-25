@@ -13,10 +13,6 @@
          "name": "Table for One",
          "description": "Dining furniture for introverts.",
          "icon" : "file(table_for_one.png)"
-      },
-      "item" : {
-         "identifier": "table_for_one",
-         "category" : "furniture"
       }
    }
 }

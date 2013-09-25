@@ -1,8 +1,16 @@
 {
+<<<<<<< HEAD
    "extends": "stonehearth_items.item_properties",
    "components": {
       "item" : {
          "storeable" : false
+=======
+   "components" : {
+      "mob" : {
+         "interpolate_movement" : false
+      },
+      "render_info" : {
+>>>>>>> 975ea13c2f97eeb32589f8478f69351a651567d7
       }
    }
 }

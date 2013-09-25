@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
    "extends": "stonehearth_items.inventory_properties",
+=======
+   "extends": "entity(stonehearth_items, item_properties)",
+>>>>>>> 975ea13c2f97eeb32589f8478f69351a651567d7
    "type": "entity",
    "components": {
       "model_variants": [
@@ -12,6 +16,10 @@
       "stonehearth_items:placeable_item_proxy" : {
          "full_sized_entity_mod" : "stonehearth_items",
          "full_sized_entity_name" : "picket_fence"
+      },
+      "item" : {
+         "identifier": "picket_fence",
+         "category" : "construction"
       }
    }
 }

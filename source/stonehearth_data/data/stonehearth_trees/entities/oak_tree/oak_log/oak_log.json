@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
    "extends": "stonehearth_items.inventory_properties",
+=======
+   "extends": "entity(stonehearth_items, item_properties)",
+>>>>>>> 975ea13c2f97eeb32589f8478f69351a651567d7
    "type": "entity",
    "components": {
       "item": {
