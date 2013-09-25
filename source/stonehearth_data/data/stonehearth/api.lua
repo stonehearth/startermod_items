@@ -1,3 +1,5 @@
+-- make sure critical libaries get loaded immediately
+require 'lib.calendar.timekeeper'
 
 local api = {}
 
