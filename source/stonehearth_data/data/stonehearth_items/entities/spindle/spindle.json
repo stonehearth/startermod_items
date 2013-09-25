@@ -1,5 +1,5 @@
 {
-   "extends": "entity(stonehearth_items, item_properties)",
+   "extends": "stonehearth_items.item_properties",
    "type": "entity",
    "components": {
       "model_variants": [
@@ -15,7 +15,6 @@
          "icon" : "file(spindle.png)"
       },
       "item" : {
-         "identifier": "spindle",
          "category" : "tools_and_goods"
       }
    }

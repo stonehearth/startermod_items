@@ -46,21 +46,21 @@ function MicroWorld:at(time, fn)
 end
 
 function MicroWorld:place_tree(x, z)
-   return self:place_item('stonehearth_trees', 'medium_oak_tree', x, z)
+   return self:place_item('stonehearth_trees.medium_oak_tree', x, z)
 end
 
-function MicroWorld:place_item(mod, name, x, z)
-   local tree = radiant.entities.create_entity(mod, name)
+function MicroWorld:place_item(uri, x, z)
+   local tree = radiant.entities.create_entity(uri)
    radiant.terrain.place_entity(tree, Point3(x, 1, z))
    return tree
 end
 
-function MicroWorld:place_item_cluster(mod, name, x, z, w, h)
+function MicroWorld:place_item_cluster(uri, x, z, w, h)
    w = w and w or 3
    h = h and h or 3
    for i = x, x+w-1 do
       for j = z, z+h-1 do
-         self:place_item(mod, name, i, j)
+         self:place_item(uri, i, j)
       end
    end
 end

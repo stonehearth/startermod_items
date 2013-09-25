@@ -17,7 +17,7 @@
    ],
   "produces": [
       {
-         "item":"entity(stonehearth_items, arch_backed_chair_proxy)",
+         "item":"stonehearth_items.arch_backed_chair_proxy",
          "script":"/stonehearth_crafter/",
          "command":"produce_item"
       }

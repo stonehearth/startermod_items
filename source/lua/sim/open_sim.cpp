@@ -56,19 +56,12 @@ om::EntityRef Sim_CreateEntityByRef(lua_State* L, std::string const& entity_ref)
    return entity;
 }
 
-om::EntityRef Sim_CreateEntity(lua_State* L, std::string const& mod_name, std::string const& entity_name)
-{
-   om::EntityPtr entity = Simulation::GetInstance().CreateEntity();
-   om::Stonehearth::InitEntity(entity, mod_name, entity_name, L);
-   return entity;
-}
 
-
-void Sim_ExtendEntity(lua_State* L, om::EntityRef e, std::string const& mod_name, std::string const& entity_name)
+void Sim_ExtendEntity(lua_State* L, om::EntityRef e, std::string const& entity_ref)
 {
    om::EntityPtr entity = e.lock();
    if (entity) {
-      om::Stonehearth::InitEntity(entity, mod_name, entity_name, L);
+      om::Stonehearth::InitEntityByRef(entity, entity_ref, L);
    }
 }
 
@@ -175,7 +168,6 @@ void lua::sim::open(lua_State* L)
          namespace_("sim") [
             def("xxx_extend_entity",        &Sim_ExtendEntity),
             def("xxx_get_entity_uri",       &Sim_GetEntityUri),
-            def("create_entity",            &Sim_CreateEntity),
             def("create_empty_entity",      &Sim_CreateEmptyEntity),
             def("create_entity_by_ref",     &Sim_CreateEntityByRef),
             def("get_entity",               &Sim_GetEntity),
