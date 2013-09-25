@@ -1,5 +1,5 @@
 {
-   "extends": "entity(stonehearth_items, inventory_properties)",
+   "extends": "entity(stonehearth_items, item_properties)",
    "type": "entity",
    "components": {
       "model_variants": [
@@ -12,6 +12,10 @@
       "stonehearth_items:placeable_item_proxy" : {
          "full_sized_entity_mod" : "stonehearth_items",
          "full_sized_entity_name" : "arch_backed_chair"
+      },
+      "item" : {
+         "identifier": "cathedral_arch_chair",
+         "category" : "furniture"
       }
    }
 }

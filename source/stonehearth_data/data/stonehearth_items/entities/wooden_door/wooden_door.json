@@ -13,14 +13,6 @@
          "name": "Wooden Door",
          "description": "Privacy at last!",
          "icon" : "file(wooden_door.png)"
-      },
-      "item" : {
-         "identifier": "wooden_door",
-         "category" : "construction"
-      },
-      "item" : {
-         "identifier": "wooden_sword",
-         "category" : "weapons_and_armor"
       }
    }
 }

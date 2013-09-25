@@ -13,10 +13,6 @@
          "name": "Cathedral-Arch Chair",
          "description": "Borrows class from the impression of piety.",
          "icon" : "file(arch_backed_chair.png)"
-      },
-      "item" : {
-         "identifier": "cathedral_arch_chair",
-         "category" : "furniture"
       }
    }
 }
