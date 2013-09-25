@@ -66,7 +66,7 @@ function MicroWorld:place_item_cluster(uri, x, z, w, h)
 end
 
 function MicroWorld:place_citizen(x, z, profession, profession_info)
-   local citizen = radiant.mods.get_singleton('stonehearth_human_race').create_entity()
+   local citizen = radiant.mods.require('stonehearth.api').create_new_citizen()
    profession = profession and profession or 'worker'
    local profession = radiant.mods.get_singleton('/stonehearth_' .. profession .. '_class/').promote(citizen, profession_info)
    --TODO: how do we handle different kingdoms/factions?

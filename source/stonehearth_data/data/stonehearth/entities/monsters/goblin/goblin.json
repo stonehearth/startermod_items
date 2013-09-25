@@ -1,0 +1,42 @@
+{
+   "type": "entity", 
+   "components": {
+      "attributes": {
+         "ferocity": 100, 
+         "health": 100
+      }, 
+      "render_info" : {
+         "animation_table": "file(/rigs/critters/goblin)"
+      },
+      "model_variants": [
+         {
+            "models": [
+               "file(goblin_body.qb)", 
+               {
+                  "items": [
+                     "file(goblin_head_1.qb)", 
+                     "file(goblin_head_2.qb)", 
+                     "file(goblin_head_3.qb)"
+                  ], 
+                  "type": "one_of"
+               }
+            ]
+         }
+      ], 
+      "unit_info": {
+         "faction": "goblin"
+      }, 
+      "radiant:ai": {
+         "observers": [
+            "radiant.observers.compute_danger", 
+            "radiant.observers.compute_proximity_aggro"
+         ], 
+         "intentions": [
+            "radiant.intentions.life_and_death", 
+            "radiant.intentions.attack_on_aggro", 
+            "radiant.intentions.combat_recoil_on_hit", 
+            "radiant.intentions.idle"
+         ]
+      }
+   }
+}

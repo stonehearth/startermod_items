@@ -76,6 +76,7 @@ function CraftOrder:__tojson()
       status = self._status
    }
    if self._condition.amount then
+      self._condition.amount = tonumber(self._condition.amount)
       json.remaining = self._condition.amount
       if self._status.amount_made then
          json.remaining = self._condition.amount - self._status.amount_made
