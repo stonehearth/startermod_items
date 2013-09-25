@@ -129,8 +129,7 @@ JSONNode const& ResourceManager2::LookupJson(std::string path) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
 
-   // xxx: remove this when we get rid of entity(x, y)
-   path = ExpandMacro(path, ".", true);
+   path = ExpandMacro(path, ".", true); // so we can lookup things like 'stonehearth.wooden_axe'
    std::string key = ConvertToCanonicalPath(path, ".json");
 
    auto i = jsons_.find(key);
@@ -354,7 +353,7 @@ std::string ResourceManager2::ExpandMacro(std::string const& current, std::strin
       return ConvertToAbsolutePath(match[1], base_path);
    }
    if (full) {
-      static std::regex entity_macro("^entity\\((.*), (.*)\\)$");
+      static std::regex entity_macro("^([^\\.\\\\/]+)\\.([^\\.\\\\/]+)$");
 
       if (std::regex_match(current, match, entity_macro)) {
          return GetEntityUri(match[1], match[2]);

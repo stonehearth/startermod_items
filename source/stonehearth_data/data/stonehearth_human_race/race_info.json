@@ -1,8 +1,8 @@
 {
    "males" : [
-      "entity(stonehearth_human_race, male_1)"
+      "stonehearth_human_race.male_1"
    ],
    "females" : [
-      "entity(stonehearth_human_race, female_1)"
+      "stonehearth_human_race.female_1"
    ]
 }

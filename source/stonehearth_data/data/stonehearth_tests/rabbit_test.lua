@@ -9,12 +9,12 @@ function RabbitTest:__init()
    local tree = self:place_tree(-12, -12)
    local tree = self:place_tree(-12, 12)
    
-   self:place('entity(stonehearth, rabbit)', 6, 6)
-   self:place('entity(stonehearth, wolf)', 0, 0)
+   self:place('stonehearth.rabbit', 6, 6)
+   self:place('stonehearth.wolf', 0, 0)
 
    local worker = self:place_citizen(-3, -3)
 
-   --local bench = self:place_item('stonehearth_carpenter_class', 'carpenter_workbench', -6, 6)
+   --local bench = self:place_item('stonehearth_carpenter_class.carpenter_workbench', -6, 6)
    
 end
 

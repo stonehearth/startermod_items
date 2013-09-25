@@ -146,7 +146,7 @@ om::Stonehearth::AddComponent(lua_State* L, om::EntityRef e, std::string name)
 
 void Stonehearth::InitEntityByRef(om::EntityPtr entity, std::string const& entity_ref, lua_State* L)
 {
-   static std::regex entity_macro("^entity\\((.*), (.*)\\)$");
+   static std::regex entity_macro("^(.*)\\.(.*)$");
    std::smatch match;
 
    if (std::regex_match(entity_ref, match, entity_macro)) {
@@ -165,7 +165,7 @@ void Stonehearth::InitEntity(om::EntityPtr entity, std::string const& mod_name, 
       InitEntityByUri(entity, uri, L);
    } catch (res::Exception &e) {
       std::ostringstream error;
-      error << "failed to initialize entity(" << mod_name << ", " << entity_name << ") :"  << e.what();
+      error << "failed to initialize entity " << mod_name << "." << entity_name << " "  << e.what();
       throw res::Exception(error.str());
    }
 }
