@@ -67,7 +67,8 @@ end
 function ToDoList:chunk_complete(curr_order)
    -- Verify that the current order is still in the queue somewhere
    local i = self:find_index_of(curr_order:get_id())
-   if i and curr_order:check_complete() then
+   local is_complete = curr_order:check_complete()
+   if i and is_complete then
       table.remove(self._my_list, i)
    end
    --TODO: updates whole list when any object order is updated. Add data_blob to TODO item?

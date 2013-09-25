@@ -5,11 +5,18 @@
 
    "radiant": {
       "entities" : {
-         "mixins.mob" : "file(entities/mixins/mob)",
+         "mixins.mob" : "file(mixins/mob)",
+         "mixins.base_human" : "file(mixins/base_human)",
          "worker_axe" : "file(entities/tools/worker_axe)",
          "worker_hammer" : "file(entities/tools/worker_hammer)",
          "rabbit" : "file(entities/critters/rabbit)",
-         "wolf" : "file(entities/critters/wolf)"
+         "wolf" : "file(entities/critters/wolf)",
+         "male_1" : "file(entities/humans/male_1)",
+         "female_1" : "file(entities/humans/female_1)",
+         "sounds.axe_chopping_sound" : "file(sounds/effects/axe_chopping_sound.ogg)"
+      },
+      "game_objects" : {
+         "singleton" : "file(api.lua)"
       }
    },
    "components" :  {
