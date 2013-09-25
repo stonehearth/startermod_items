@@ -712,8 +712,14 @@ PlaySoundEffect::PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JS
    firstPlay_ = true;
    numSounds_++;
 
-   std::string trackName = res::ResourceManager2::GetInstance().GetResourceFileName(
-      node["track"].as_string(), "");
+   std::string trackName;
+   try {
+      trackName = res::ResourceManager2::GetInstance().GetResourceFileName(
+         node["track"].as_string(), "");
+   } catch (std::exception& e) {
+      LOG(WARNING) << "could not load sound effect: " << e.what();
+      return;
+   }
 
    if (soundBuffer_.loadFromFile(trackName)) {
       sound_.setBuffer(soundBuffer_);
