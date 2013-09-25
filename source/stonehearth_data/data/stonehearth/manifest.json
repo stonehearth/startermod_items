@@ -5,8 +5,9 @@
 
    "radiant": {
       "entities" : {
-         "worker_axe" : "file(entities/worker_axe)",
-         "worker_hammer" : "file(entities/worker_hammer)",
+         "mixins.mob" : "file(entities/mixins/mob)",
+         "worker_axe" : "file(entities/tools/worker_axe)",
+         "worker_hammer" : "file(entities/tools/worker_hammer)",
          "rabbit" : "file(entities/critters/rabbit)",
          "wolf" : "file(entities/critters/wolf)"
       }

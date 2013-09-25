@@ -1,6 +1,6 @@
 {
    "type" : "entity",
-   "extends" : "/stonehearth/entities/mob.json",   
+   "extends" : "stonehearth.mixins.mob",   
    "components": {
       "unit_info" : {
         "name": "A wolf",
