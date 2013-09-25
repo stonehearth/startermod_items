@@ -14,7 +14,6 @@
          "full_sized_entity_name" : "simple_wooden_chair"
       },
       "item" : {
-         "identifier": "simple_wooden_chair",
          "category" : "furniture"
       }
    }

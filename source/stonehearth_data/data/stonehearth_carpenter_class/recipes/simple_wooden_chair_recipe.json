@@ -17,11 +17,7 @@
   ],
   "produces": [
       {
-<<<<<<< HEAD
-         "item":"stonehearth_items.simple_wooden_chair",
-=======
-         "item":"entity(stonehearth_items, simple_wooden_chair_proxy)",
->>>>>>> 975ea13c2f97eeb32589f8478f69351a651567d7
+         "item":"stonehearth_items.simple_wooden_chair_proxy",
          "script":"/stonehearth_crafter/",
          "command":"produce_item"
       }
