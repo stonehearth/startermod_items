@@ -64,13 +64,7 @@ function PlaceableItemProxy:_create_derived_components()
          unit_info:set_icon(data.icon and data.icon or '')
          display_name  = unit_info:get_display_name();
       end
-      if json.components.item then
-         local data = json.components.unit_info
-         local item = self._entity:add_component('item')
-         item:set_material(data.material and data.material or '')
-         item:set_category(data.category and data.category or '')
-         item:set_identifier(data.identifier and data.identifier or '')
-      end
+      --TODO: what about transfering data about the material of the bed?
    end
    --Issues: if this is in a parent class, it isn't loaded by this point, so add manually
    --local place_command = self._entity:get_component('radiant:commands')

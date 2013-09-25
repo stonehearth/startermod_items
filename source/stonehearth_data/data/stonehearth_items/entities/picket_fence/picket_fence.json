@@ -13,10 +13,6 @@
          "name": "Picket Fence",
          "description": "If it's not white, is our life unfulfilled?",
          "icon" : "file(picket_fence.png)"
-      },
-      "item" : {
-         "identifier": "picket_fence",
-         "category" : "construction"
       }
    }
 }

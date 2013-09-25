@@ -14,7 +14,6 @@ void Item::InitializeRecordFields()
    AddRecordField("material", material_);
    AddRecordField("identifier", identifier_);
    AddRecordField("category", category_);
-   AddRecordField("storeable", storeable_);
 
    stacks_ = 1;
    maxStacks_ = 1;
@@ -29,5 +28,4 @@ void Item::ExtendObject(json::ConstJsonObject const& obj)
    material_ = obj.get<std::string>("material", *material_);
    identifier_ = obj.get<std::string>("identifier", *identifier_);
    category_ = obj.get<std::string>("category", *category_);
-   storeable_ = obj.get<bool>("storeable", *storeable_);
 }

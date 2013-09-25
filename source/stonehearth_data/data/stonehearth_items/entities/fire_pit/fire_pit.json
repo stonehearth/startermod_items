@@ -7,10 +7,6 @@
          "description": "Provides warmth and light",
          "icon" : "file(../default_object/default_object.png)"
       },
-      "item" : {
-         "identifier": "fire_pit",
-         "category" : "supplies"
-      },
       "model_variants": [
          {
             "models": [
