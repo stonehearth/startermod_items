@@ -1,5 +1,5 @@
 {
-   "extends": "entity(stonehearth_items, placed_properties)",
+   "extends": "stonehearth_items.placed_properties",
    "type": "entity",
    "components": {
       "model_variants": [
@@ -18,11 +18,6 @@
          "name": "Comfy Bed",
          "description": "I dreamed... of flying sheep.",
          "icon" : "file(comfy_bed.png)"
-
-      },
-      "item" : {
-         "identifier": "comfy_bed",
-         "category" : "furniture"
       },
       "stonehearth_sleep_system:bed": {}
    }

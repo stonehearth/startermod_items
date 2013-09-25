@@ -68,7 +68,6 @@ public:
    void Step(platform::timer &timer, int interval) override;
    void Idle(platform::timer &timer) override;
 
-   void RegisterServerRemoteObject(std::string const& uri, dm::ObjectPtr obj);
    om::EntityPtr GetRootEntity();
    Physics::OctTree &GetOctTree();
    dm::Store& GetStore();

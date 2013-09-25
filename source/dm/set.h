@@ -220,7 +220,11 @@ public:
          stdutil::UniqueRemove(items_, value);
       }
    }
-   
+
+   std::ostream& ToString(std::ostream& os) const {
+      return (os << "(Set size:" << items_.size() << ")");
+   }
+
 private:
    NO_COPY_CONSTRUCTOR(Set<T>);
 

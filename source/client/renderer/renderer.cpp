@@ -97,14 +97,6 @@ Renderer::Renderer() :
    // how to actually get the resource loaded!
    h3dAddResource(H3DResTypes::Material, "materials/debug_shape.material.xml", 0); 
    
-   // Uncomment this for the Cubemitter!
-   /*
-   H3DRes c = h3dAddResource(H3DResTypes::Material, "materials/cubemitter.material.xml", 0);
-   H3DRes d = h3dAddResource(RT_CubemitterResource, "particles/fire/fire.cubemitter.json", 0);
-   cubemitterNode = h3dRadiantAddCubemitterNode(H3DRootNode, "first_cubemitter!", d, c);
-   h3dSetNodeTransform(cubemitterNode, 0, 0, 0, 90, 0, 0, 1, 1, 1);
-   */
-   
    LoadResources();
 
 	// Add camera
@@ -567,10 +559,10 @@ float Renderer::DistFunc(float dist, int wheel, float minDist, float maxDist) co
    return result;
 }
 
-void Renderer::OnMouseWheel(int value)
+void Renderer::OnMouseWheel(double value)
 {
-   int dWheel = value;// - input_.mouse.wheel;
-   input_.mouse.wheel = value;
+   int dWheel = (int)value;
+   input_.mouse.wheel = dWheel;
    
    // xxx: move this part out into the client --
    csg::Point3f dir = camera_->GetPosition() - cameraTarget_;
@@ -581,13 +573,13 @@ void Renderer::OnMouseWheel(int value)
    UpdateCamera(); // xxx - defer to render time?
 }
 
-void Renderer::OnMouseMove(int x, int y)
+void Renderer::OnMouseMove(double x, double y)
 {
-   input_.mouse.dx = x - input_.mouse.x;
-   input_.mouse.dy = y - input_.mouse.y;
+   input_.mouse.dx = (int)x - input_.mouse.x;
+   input_.mouse.dy = (int)y - input_.mouse.y;
    
-   input_.mouse.x = x;
-   input_.mouse.y = y;
+   input_.mouse.x = (int)x;
+   input_.mouse.y = (int)y;
 
    // xxx - this is annoying, but that's what you get... maybe revisit the
    // way we deliver mouse events and up/down tracking...

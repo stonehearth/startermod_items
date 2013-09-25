@@ -10,7 +10,7 @@ set(GLFW_VERSION "${GLFW_VERSION_MAJOR}.${GLFW_VERSION_MINOR}")
 set(GLFW_VERSION_FULL "${GLFW_VERSION}.${GLFW_VERSION_PATCH}${GLFW_VERSION_EXTRA}")
 set(LIB_SUFFIX "" CACHE STRING "Takes an empty string or 64. Directory where lib will be installed: lib or lib64")
 
-option(BUILD_SHARED_LIBS "Build shared libraries" ON)
+option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(GLFW_INSTALL "Generate installation target" OFF)
 
 if (WIN32)
@@ -24,10 +24,6 @@ if (APPLE)
     option(GLFW_USE_MENUBAR "Populate the menu bar on first window creation" ON)
 else()
     option(GLFW_USE_EGL "Use EGL for context creation" OFF)
-endif()
-
-if (MSVC)
-    option(USE_MSVC_RUNTIME_LIBRARY_DLL "Use MSVC runtime library DLL" ON)
 endif()
 
 if (BUILD_SHARED_LIBS)
@@ -82,27 +78,6 @@ if (UNIX)
 
     if (BUILD_SHARED_LIBS)
         add_definitions(-fvisibility=hidden)
-    endif()
-endif()
-
-if (MSVC)
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-
-    if (NOT USE_MSVC_RUNTIME_LIBRARY_DLL)
-        foreach (flag CMAKE_C_FLAGS
-                        CMAKE_C_FLAGS_DEBUG
-                        CMAKE_C_FLAGS_RELEASE
-                        CMAKE_C_FLAGS_MINSIZEREL
-                        CMAKE_C_FLAGS_RELWITHDEBINFO)
-
-            if (${flag} MATCHES "/MD")
-                string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
-            endif()
-            if (${flag} MATCHES "/MDd")
-                string(REGEX REPLACE "/MDd" "/MTd" ${flag} "${${flag}}")
-            endif()
-
-        endforeach()
     endif()
 endif()
 
@@ -162,8 +137,8 @@ if (_GLFW_WIN32)
     # the inclusion of stddef.h (by glfw3.h), which is itself included before
     # win32_platform.h.  We define them here until a saner solution can be found
     # NOTE: MinGW-w64 and Visual C++ do /not/ need this hack.
-    add_definitions(-DUNICODE)
-    add_definitions(-DWINVER=0x0501)
+    # add_definitions(-DUNICODE)
+    # add_definitions(-DWINVER=0x0501)
 endif()
 
 #--------------------------------------------------------------------

@@ -29,14 +29,8 @@ public:
    std::string GetMaterial() const { return *material_; }
    void SetMaterial(std::string cls) { material_ = cls; }
 
-   std::string GetIdentifier() const {return *identifier_;}
-   void SetIdentifier(std::string identifier) { identifier_ = identifier; }
-
    std::string GetCategory() const {return *category_;}
    void SetCategory(std::string category) { category_ = category; }
-
-   bool GetStoreable() const {return *storeable_;}
-   void SetStoreable(bool storeable) { storeable_ = storeable; }
 
    dm::Guard TraceStacks(const char* reason, std::function<void()> fn) { return stacks_.TraceObjectChanges(reason, fn); };
 
@@ -50,10 +44,7 @@ public:
    dm::Boxed<int>             stacks_;
    dm::Boxed<int>             maxStacks_;
    dm::Boxed<std::string>     material_;
-   dm::Boxed<std::string>     identifier_;
    dm::Boxed<std::string>     category_;
-   dm::Boxed<bool>            storeable_;
-
 };
 
 END_RADIANT_OM_NAMESPACE

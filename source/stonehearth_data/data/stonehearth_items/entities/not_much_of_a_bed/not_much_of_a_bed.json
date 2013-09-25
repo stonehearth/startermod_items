@@ -1,15 +1,11 @@
 {
-   "extends": "entity(stonehearth_items, placed_properties)",
+   "extends": "stonehearth_items.placed_properties",
    "type": "entity",
    "components": {
       "unit_info": {
          "name": "Mean Bed",
          "description": "Mean as in poor, not cruel. Though it's that too.",
          "icon" : "file(not_much_of_a_bed.png)"
-      },
-      "item" : {
-         "identifier": "not_much_of_a_bed",
-         "category" : "furniture"
       },
       "model_variants": [
          {

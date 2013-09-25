@@ -19,10 +19,5 @@ scope LuaItemComponent::RegisterLuaTypes(lua_State* L)
          .def("set_material",          &om::Item::SetMaterial)
          .def("set_category",          &om::Item::SetCategory)
          .def("get_category",          &om::Item::GetCategory)
-         .def("set_identifier",        &om::Item::SetIdentifier)
-         .def("get_identifier",        &om::Item::GetIdentifier)
-         .def("set_storeable",         &om::Item::SetStoreable)
-         .def("get_storeable",         &om::Item::GetStoreable)
-
       ;
 }

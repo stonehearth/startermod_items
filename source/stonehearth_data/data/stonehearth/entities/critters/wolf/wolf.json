@@ -1,6 +1,6 @@
 {
    "type" : "entity",
-   "extends" : "/stonehearth/entities/mob.json",   
+   "extends" : "stonehearth.mixins.mob",   
    "components": {
       "unit_info" : {
         "name": "A wolf",
@@ -12,8 +12,8 @@
       },
       "radiant:ai" : {
          "actions" : [
-            "file(/ai/actions/wander_action.lua)",
-            "file(/ai/actions/chase_action.lua)"
+            "stonehearth.actions.wander_action",
+            "stonehearth.actions.chase_action"
          ]
       },
       "sensor_list" : {

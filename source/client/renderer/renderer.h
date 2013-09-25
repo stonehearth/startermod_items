@@ -106,8 +106,8 @@ class Renderer
    private:
       void OnWindowResized(int newWidth, int newHeight);
       void OnKey(int key, int down);
-      void OnMouseWheel(int value);
-      void OnMouseMove(int x, int y);
+      void OnMouseWheel(double value);
+      void OnMouseMove(double x, double y);
       void OnMouseButton(int button, int press);
       void OnRawInput(UINT msg, WPARAM wParam, LPARAM lParam);
       void Resize(int width, int height);

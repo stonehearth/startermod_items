@@ -1,5 +1,5 @@
 {
-   "extends": "entity(stonehearth_items, placed_properties)",
+   "extends": "stonehearth_items.placed_properties",
    "type": "entity",
    "components": {
       "model_variants": [
@@ -13,10 +13,6 @@
          "name": "Table for One",
          "description": "Dining furniture for introverts.",
          "icon" : "file(table_for_one.png)"
-      },
-      "item" : {
-         "identifier": "table_for_one",
-         "category" : "furniture"
       }
    }
 }

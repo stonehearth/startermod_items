@@ -21,8 +21,8 @@ function PlaceableItemProxy:__init(entity, data_binding)
 end
 
 function PlaceableItemProxy:extend(json)
-   if json and json.full_sized_entity_mod and json.full_sized_entity_name then
-      self._data.full_sized_entity_uri = string.format('entity(%s, %s)', json.full_sized_entity_mod, json.full_sized_entity_name);
+   if json and json.full_sized_entity then
+      self._data.full_sized_entity_uri = json.full_sized_entity;
       self._data_binding:mark_changed()
 
       self:_create_derived_components()
@@ -64,13 +64,7 @@ function PlaceableItemProxy:_create_derived_components()
          unit_info:set_icon(data.icon and data.icon or '')
          display_name  = unit_info:get_display_name();
       end
-      if json.components.item then
-         local data = json.components.unit_info
-         local item = self._entity:add_component('item')
-         item:set_material(data.material and data.material or '')
-         item:set_category(data.category and data.category or '')
-         item:set_identifier(data.identifier and data.identifier or '')
-      end
+      --TODO: what about transfering data about the material of the bed?
    end
    --Issues: if this is in a parent class, it isn't loaded by this point, so add manually
    --local place_command = self._entity:get_component('radiant:commands')

@@ -22,7 +22,7 @@
   ],
   "produces": [
       {
-         "item":"entity(stonehearth_items, comfy_bed_proxy)",
+         "item":"stonehearth_items.comfy_bed_proxy",
          "script":"/stonehearth_crafter/",
          "command":"produce_item"
       }

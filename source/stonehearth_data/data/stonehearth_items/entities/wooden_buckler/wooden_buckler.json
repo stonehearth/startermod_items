@@ -1,5 +1,5 @@
 {
-   "extends": "entity(stonehearth_items, inventory_properties)",
+   "extends": "stonehearth_items.item_properties",
    "type": "entity",
    "components": {
       "model_variants": [
@@ -16,7 +16,6 @@
 
       },
       "item" : {
-         "identifier": "wooden_buckler",
          "category" : "weapons_and_armor"
       }
    }
