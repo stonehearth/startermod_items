@@ -21,8 +21,8 @@ function PlaceableItemProxy:__init(entity, data_binding)
 end
 
 function PlaceableItemProxy:extend(json)
-   if json and json.full_sized_entity_mod and json.full_sized_entity_name then
-      self._data.full_sized_entity_uri = string.format('entity(%s, %s)', json.full_sized_entity_mod, json.full_sized_entity_name);
+   if json and json.full_sized_entity then
+      self._data.full_sized_entity_uri = json.full_sized_entity;
       self._data_binding:mark_changed()
 
       self:_create_derived_components()

@@ -1,5 +1,5 @@
 {
-   "extends": "entity(stonehearth_crafter, class_info)",
+   "extends": "stonehearth_crafter.class_info",
    "components": {
       "stonehearth_classes:job_info": {
          "class_script": "stonehearth_carpenter_class",
@@ -11,7 +11,7 @@
       "stonehearth_crafter:crafter": {
          "work_effect": "saw",
          "recipe_list": "/stonehearth_carpenter_class/recipes/recipes.json",
-         "intermediate_item": "entity(stonehearth_carpenter_class, carpenter_intermediate_item)"
+         "intermediate_item": "stonehearth_carpenter_class.carpenter_intermediate_item"
       }
    }
 }

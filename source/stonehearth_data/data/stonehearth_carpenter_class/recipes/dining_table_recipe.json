@@ -17,7 +17,7 @@
   ],
   "produces": [
       {
-         "item":"entity(stonehearth_items, dining_table_proxy)",
+         "item":"stonehearth_items.dining_table_proxy",
          "script":"/stonehearth_crafter/",
          "command":"produce_item"
       }

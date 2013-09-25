@@ -1,6 +1,6 @@
 {
    "type": "entity",
-   "extends" : "entity(stonehearth_items, item_properties)",
+   "extends" : "stonehearth_items.item_properties",
    "components" : {
       "unit_info" : {
          "name" :  "Worker Outfit",

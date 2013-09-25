@@ -17,7 +17,7 @@
   ],
   "produces": [
       {
-         "item":"entity(stonehearth_items, picket_fence_proxy)",
+         "item":"stonehearth_items.picket_fence_proxy",
          "script":"/stonehearth_crafter/",
          "command":"produce_item"
       }
