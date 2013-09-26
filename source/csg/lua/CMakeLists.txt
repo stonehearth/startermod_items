@@ -17,6 +17,7 @@ add_library(csg_lua STATIC
             lua_voronoi.cpp
             lua_edgelist.cpp
             lua_quaternion.cpp
+            lua_ray.cpp
             pch.cpp
             )
 
