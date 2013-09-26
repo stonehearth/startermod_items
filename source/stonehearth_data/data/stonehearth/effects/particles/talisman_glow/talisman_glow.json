@@ -1,0 +1,18 @@
+{
+   "type" : "effect",
+   "tracks": {
+      "cubemitter": {
+         "type": "cubemitter",
+         "cubemitter": "particles/talisman/talisman.cubemitter.json",
+         "transforms": {
+            "x":0,
+            "y":-1,
+            "z":0,
+            "rx":90,
+            "ry":0,
+            "rz":0
+         }
+     }
+
+   }
+}
