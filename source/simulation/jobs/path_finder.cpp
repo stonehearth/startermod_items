@@ -99,10 +99,8 @@ void PathFinder::AddDestination(om::EntityRef e)
             auto L = dst_filter_.interpreter();
             luabind::object e(L, std::weak_ptr<om::Entity>(entity));
             if (!luabind::call_function<bool>(dst_filter_, e)) {
-               LOG(WARNING) << "filter fn for entity " << entity->GetObjectId() << " returned false!";
                return;
             }
-            LOG(WARNING) << "filter fn for entity " << entity->GetObjectId() << " returned TRUE!!!!!";
          } catch (luabind::error& e) {
             LOG(WARNING) << "luabind::error " << e.what();
             return;

@@ -65,8 +65,7 @@ Renderer::Renderer() :
 
    glfwMakeContextCurrent(window);
    
-   bool vsync = true;
-	glfwSwapInterval(vsync ? 0 : 1);
+  	glfwSwapInterval(0);
 
 	if (!h3dInit()) {	
 		h3dutDumpMessages();
@@ -141,6 +140,11 @@ Renderer::Renderer() :
    glfwSetScrollCallback(window, [](GLFWwindow *window, double xoffset, double yoffset) {
       Renderer::GetInstance().OnMouseWheel(yoffset);
    });
+
+   // Platform-specific ifdef code goes here....
+   glfwSetRawInputCallbackWin32(window, [](GLFWwindow *window, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+      Renderer::GetInstance().OnRawInput(uMsg, wParam, lParam);
+   });
    
    glfwSetWindowCloseCallback(window, [](GLFWwindow* window) -> void {
       // die RIGHT NOW!!
@@ -152,7 +156,6 @@ Renderer::Renderer() :
    fileWatcher_.addWatch(L"horde", [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
       Renderer::GetInstance().FlushMaterials();
    }, true);
-
 
    initialized_ = true;
 }
@@ -450,7 +453,7 @@ void Renderer::Resize( int width, int height )
    h3dSetNodeParamI( camera, H3DCamera::ViewportHeightI, height );
 	
    // Set virtual camera parameters
-   h3dSetupCameraView( camera, 45.0f, (float)width / height, 4.0f, 2000.0f);
+   h3dSetupCameraView( camera, 45.0f, (float)width / height, 4.0f, 4000.0f);
    for (const auto& entry : pipelines_) {
       h3dResizePipelineBuffers(entry.second, width, height);
    }

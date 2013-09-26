@@ -29,7 +29,6 @@ end
    on the ground (not in a bed) from exhaustion.
 --]]
 SleepAction['radiant.events.calendar.hourly'] = function(self, calendar)
-   radiant.log.info('adjusting sleepiness')
 
    --[[
       Pathfinder callback. When it's time to go to sleep, the pathfinder
@@ -89,7 +88,7 @@ function SleepAction:_start_looking_for_bed(result_cb)
    else
       -- find a bed and lease it
       local filter_fn = function(item)
-         radiant.log.info("looing for a bed")    
+         -- radiant.log.info("looing for a bed")    
          -- xxx: only look for beds compatible with this entities faction
          local bed_component = item:get_component('stonehearth_sleep_system:bed')
          if bed_component ~= nil then

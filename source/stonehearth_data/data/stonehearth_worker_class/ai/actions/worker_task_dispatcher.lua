@@ -32,8 +32,12 @@ function WorkerTaskDispatcher:_wait_for_next_task()
 end
 
 function WorkerTaskDispatcher:run(ai, entity, ...)
-   ai:execute(unpack(self._task))
-   self._task = nil
+   if self._task then
+      ai:execute(unpack(self._task))
+      self._task = nil
+   else 
+      radiant.log.warning('trying to dispatch a nil task in WorkerTaskDispatcher for %s', tostring(entity))
+   end
 end
 
 function WorkerTaskDispatcher:stop()

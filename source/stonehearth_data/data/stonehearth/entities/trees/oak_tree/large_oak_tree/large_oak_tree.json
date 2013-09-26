@@ -1,5 +1,5 @@
 {
-   "extends": "file(../../tree.json)", 
+   "extends": "stonehearth.mixins.tree", 
    "type": "entity", 
    "components": {
       "model_variants": [
@@ -21,7 +21,7 @@
          "description": "100's of years old. Too bad..."
       }, 
       "radiant:resource_node": {
-         "resource": "stonehearth_trees.oak_log", 
+         "resource": "stonehearth.oak_log", 
          "durability": 20
       }
    }

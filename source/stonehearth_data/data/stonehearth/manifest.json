@@ -9,6 +9,7 @@
          "mixins.base_human" : "file(mixins/base_human)",
          "mixins.crafter_workbench" : "file(mixins/crafter_workbench)",
          "mixins.crafter_job" : "file(mixins/crafter_job)",
+         "mixins.tree" : "file(mixins/tree)",
 
          "worker_axe" : "file(entities/tools/worker_axe)",
          "worker_hammer" : "file(entities/tools/worker_hammer)",
@@ -20,7 +21,17 @@
 
          "effects.talisman_glow" : "file(effects/particles/talisman_glow)",
 
-         "actions.chase_action" : "file(lib/ai/actions/chase_action.lua)",
+         "oak_log" : "file(entities/trees/oak_tree/oak_log)",
+         "small_oak_tree" : "file(entities/trees/oak_tree/small_oak_tree)",
+         "medium_oak_tree" : "file(entities/trees/oak_tree/medium_oak_tree)",
+         "large_oak_tree" : "file(entities/trees/oak_tree/large_oak_tree)",
+         "juniper_log" : "file(entities/trees/juniper_tree/juniper_log)",
+         "small_juniper_tree" : "file(entities/trees/juniper_tree/small_juniper_tree)",
+         "medium_juniper_tree" : "file(entities/trees/juniper_tree/medium_juniper_tree)",
+         "large_juniper_tree" : "file(entities/trees/juniper_tree/large_juniper_tree)",
+
+         "actions.attack_action" : "file(lib/ai/actions/attack_action.lua)",
+         "actions.flee_action" : "file(lib/ai/actions/flee_action.lua)",
          "actions.goto_location_action" : "file(lib/ai/actions/goto_location_action.lua)",
          "actions.run_effect_action" : "file(lib/ai/actions/run_effect_action.lua)",
          "actions.compel_to_action" : "file(lib/ai/actions/compel_to_action.lua)",
@@ -41,6 +52,9 @@
          "actions.fill_outbox_action" : "file(lib/ai/actions/fill_outbox_action.lua)",
          "actions.gather_and_craft_action" : "file(lib/ai/actions/gather_and_craft_action.lua)",        
          "actions.grab_talisman_action" : "file(lib/ai/actions/grab_talisman_action.lua)",        
+         "actions.chop_tree_action" : "file(lib/ai/actions/chop_tree_action.lua)",
+
+         "observers.look_for_enemies" : "file(lib/ai/observers/look_for_enemies.lua)",
 
          "sounds.axe_chopping_sound" : "file(sounds/effects/axe_chopping_sound.ogg)"
       },
@@ -56,7 +70,11 @@
          "create_workbench" : {
             "controller" : "file(lib/crafter/crafter_call_handler.lua)",
             "endpoint" : "server"
-         }
+         },
+         "harvest_tree" : {
+            "controller": "file(lib/resource_node/resource_node_call_handler.lua)",
+            "endpoint" : "server"
+         }         
       }
    },
    "components" :  {

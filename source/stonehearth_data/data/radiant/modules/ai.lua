@@ -93,12 +93,10 @@ function ai.remove_action(entity, uri)
    bm:remove_action(uri)
 end
 
-function ai.add_observer(entity, name, ...)
-   assert(false)
-   local ctor = singleton._observer_registry[name]
-   assert(ctor)
-   local bm = singleton._get_bm(entity)
-   return bm:add_observer(ctor(entity, ...))
+function ai.add_observer(entity, uri, ...)
+   local ctor = radiant.mods.load_script(uri)
+   local bm = ai._get_bm(entity)
+   bm:add_observer(uri, ctor(entity, ...))
 end
 
 function ai.add_debug_hook(entity_id, hookfn)

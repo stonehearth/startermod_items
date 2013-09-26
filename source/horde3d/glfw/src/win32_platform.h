@@ -28,6 +28,8 @@
 #ifndef _win32_platform_h_
 #define _win32_platform_h_
 
+#define _GLFW_NO_DLOAD_WINMM
+#define _GLFW_NO_DLOAD_GDI32
 
 // We don't need all the fancy stuff
 #ifndef NOMINMAX
@@ -137,11 +139,14 @@ typedef HRESULT (WINAPI * DWMISCOMPOSITIONENABLED_T)(BOOL*);
 #define _GLFW_PLATFORM_LIBRARY_WINDOW_STATE _GLFWlibraryWin32 win32
 #define _GLFW_PLATFORM_MONITOR_STATE        _GLFWmonitorWin32 win32
 
+#define _GLFW_PLATFORM_RAW_INPUT            GLFWrawinputfunWin32 rawInputWin32
+
 
 //========================================================================
 // GLFW platform specific types
 //========================================================================
 
+typedef void (* GLFWrawinputfunWin32)(GLFWwindow*, UINT, WPARAM, LPARAM);
 
 //------------------------------------------------------------------------
 // Platform-specific window structure

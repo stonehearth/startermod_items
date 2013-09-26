@@ -89,6 +89,6 @@ App.StonehearthClassesPromoteView = App.View.extend({
       } else {
          date = "Ooops, clock's broken."
       }
-      return App.gameView.getDate().date;
+      return date;
    }
 });
