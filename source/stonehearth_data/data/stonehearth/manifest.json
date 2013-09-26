@@ -15,7 +15,8 @@
          "male_1" : "file(entities/humans/male_1)",
          "female_1" : "file(entities/humans/female_1)",
 
-         "actions.chase_action" : "file(lib/ai/actions/chase_action.lua)",
+         "actions.attack_action" : "file(lib/ai/actions/attack_action.lua)",
+         "actions.flee_action" : "file(lib/ai/actions/flee_action.lua)",
          "actions.goto_location_action" : "file(lib/ai/actions/goto_location_action.lua)",
          "actions.run_effect_action" : "file(lib/ai/actions/run_effect_action.lua)",
          "actions.compel_to_action" : "file(lib/ai/actions/compel_to_action.lua)",
@@ -32,6 +33,8 @@
          "actions.goto_entity_action" : "file(lib/ai/actions/goto_entity_action.lua)",
          "actions.pickup_item_on_path" : "file(lib/ai/actions/pickup_item_on_path.lua)",
          "actions.grab_talisman_action" : "file(lib/ai/actions/grab_talisman_action.lua)",
+
+         "observers.look_for_enemies" : "file(lib/ai/observers/look_for_enemies.lua)",
 
          "sounds.axe_chopping_sound" : "file(sounds/effects/axe_chopping_sound.ogg)"
       },

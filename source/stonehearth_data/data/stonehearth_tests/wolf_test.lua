@@ -6,10 +6,10 @@ function RabbitTest:__init()
    self[MicroWorld]:__init()
    self:create_world()
 
-   local tree = self:place_tree(-12, -12)
-   local tree = self:place_tree(-12, 12)
-   
-   self:place_item('stonehearth.rabbit', 6, 6)
+   self:place_tree(-12, -12)
+  
+   self:place_item('stonehearth.wolf', -12, 12)
+   self:place_citizen(0, 0)
 
    --local bench = self:place_item('stonehearth_carpenter_class.carpenter_workbench', -6, 6)
    
