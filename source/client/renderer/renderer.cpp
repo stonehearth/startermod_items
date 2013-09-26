@@ -141,6 +141,11 @@ Renderer::Renderer() :
    glfwSetScrollCallback(window, [](GLFWwindow *window, double xoffset, double yoffset) {
       Renderer::GetInstance().OnMouseWheel(yoffset);
    });
+
+   // Platform-specific ifdef code goes here....
+   glfwSetRawInputCallbackWin32(window, [](GLFWwindow *window, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+      Renderer::GetInstance().OnRawInput(uMsg, wParam, lParam);
+   });
    
    glfwSetWindowCloseCallback(window, [](GLFWwindow* window) -> void {
       // die RIGHT NOW!!

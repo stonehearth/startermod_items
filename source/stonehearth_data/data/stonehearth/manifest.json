@@ -3,40 +3,68 @@
       "name" : "Stonehearth"
    },
 
-   "radiant": {
+   "radiant": {     
       "entities" : {
          "mixins.mob" : "file(mixins/mob)",
          "mixins.base_human" : "file(mixins/base_human)",
+
          "worker_axe" : "file(entities/tools/worker_axe)",
          "worker_hammer" : "file(entities/tools/worker_hammer)",
          "rabbit" : "file(entities/critters/rabbit)",
          "wolf" : "file(entities/critters/wolf)",
          "male_1" : "file(entities/humans/male_1)",
          "female_1" : "file(entities/humans/female_1)",
+
+         "actions.chase_action" : "file(lib/ai/actions/chase_action.lua)",
+         "actions.goto_location_action" : "file(lib/ai/actions/goto_location_action.lua)",
+         "actions.run_effect_action" : "file(lib/ai/actions/run_effect_action.lua)",
+         "actions.compel_to_action" : "file(lib/ai/actions/compel_to_action.lua)",
+         "actions.idle_action" : "file(lib/ai/actions/idle_action.lua)",
+         "actions.sleep_action" : "file(lib/ai/actions/sleep_action.lua)",
+         "actions.death_action" : "file(lib/ai/actions/death_action.lua)",
+         "actions.idle_breathe_action" : "file(lib/ai/actions/idle_breathe_action.lua)",
+         "actions.sleep_in_bed_action" : "file(lib/ai/actions/sleep_in_bed_action.lua)",
+         "actions.drop_carrying_action" : "file(lib/ai/actions/drop_carrying_action.lua)",
+         "actions.idle_look_around_action" : "file(lib/ai/actions/idle_look_around_action.lua)",
+         "actions.wander_action" : "file(lib/ai/actions/wander_action.lua)",
+         "actions.follow_path_action" : "file(lib/ai/actions/follow_path_action.lua)",
+         "actions.pickup_item_action" : "file(lib/ai/actions/pickup_item_action.lua)",
+         "actions.goto_entity_action" : "file(lib/ai/actions/goto_entity_action.lua)",
+         "actions.pickup_item_on_path" : "file(lib/ai/actions/pickup_item_on_path.lua)",
+         "actions.grab_talisman_action" : "file(lib/ai/actions/grab_talisman_action.lua)",
+
          "sounds.axe_chopping_sound" : "file(sounds/effects/axe_chopping_sound.ogg)"
       },
-      "game_objects" : {
-         "singleton" : "file(api.lua)"
+      "functions" : {
+         "get_clock_object": {
+            "controller" : "file(lib/calendar/calendar_call_handler.lua)",
+            "endpoint" : "server"
+         }
       }
    },
    "components" :  {
-      "leash" : "file(components/leash.lua)"
+      "leash" : "file(lib/components/leash.lua)"
    },
    "loader" :  {
       "ui" : {
          "homepage" : "file(/html/index.html)"
       }
    },
-
+   "client" : {
+      "init_script" : "file(lib/calendar/render_sky.lua)"
+   },
    "ui" :  {
       "html" : [
-         "file(/html/stonehearth_modal_overlay.html)"
+         "file(/html/stonehearth_modal_overlay.html)",
+         "file(lib/calendar/clock_widget.html)"
       ],
       "js" : [
-         "file(/html/js/stonehearth_modal_overlay.js)"
+         "file(/html/js/stonehearth_modal_overlay.js)",
+         "file(lib/calendar/clock_widget.js)"
       ],
       "less" : [
-         "file(/html/css/stonehearth_modal_overlay.less)"
+         "file(/html/css/stonehearth_modal_overlay.less)",
+         "file(lib/calendar/clock_widget.less)"
       ]
    }
 }

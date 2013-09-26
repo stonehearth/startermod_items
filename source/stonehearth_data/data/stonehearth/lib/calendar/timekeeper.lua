@@ -67,7 +67,7 @@ local data = {
    _fired_midnight_today = false
 }
 
-stonehearth_calendar = {}
+TimeKeeper = class()
 
 radiant.events.register_event('radiant.events.calendar.minutely')
 radiant.events.register_event('radiant.events.calendar.hourly')
@@ -77,11 +77,13 @@ radiant.events.register_event('radiant.events.calendar.noon')
 radiant.events.register_event('radiant.events.calendar.sunset')
 radiant.events.register_event('radiant.events.calendar.midnight')
 
-function stonehearth_calendar.__init()
-   radiant.events.listen('radiant.events.gameloop', stonehearth_calendar._on_event_loop)
+function TimeKeeper:__init()
+   radiant.events.listen('radiant.events.gameloop', function (_, now)
+         self:_on_event_loop(now)
+      end)
 end
 
-function stonehearth_calendar.set_time(second, minute, hour)
+function TimeKeeper:set_time(second, minute, hour)
    data.date.hour = hour;
    data.date.minute = minute;
    data.date.second = second;
@@ -89,16 +91,16 @@ end
 
 -- For starters, returns base time of day.
 -- TODO: change based on the season/time of year
-function stonehearth_calendar.get_curr_times_of_day()
+function TimeKeeper:get_curr_times_of_day()
    return constants.baseTimeOfDay
 end
 
-function stonehearth_calendar.get_constants()
+function TimeKeeper:get_constants()
    return constants
 end
 
 -- recompute the game calendar based on the time
-function stonehearth_calendar._on_event_loop(_, now)
+function TimeKeeper:_on_event_loop(now)
    local t
 
    -- determine how many seconds have gone by since the last loop
@@ -133,13 +135,13 @@ function stonehearth_calendar._on_event_loop(_, now)
       radiant.events.broadcast_msg('radiant.events.calendar.hourly', data.date)
    end
 
-   stonehearth_calendar.fire_time_of_day_events()
+   TimeKeeper:fire_time_of_day_events()
 
    -- the time, formatted into a string
-   data.date.time = stonehearth_calendar.format_time()
+   data.date.time = TimeKeeper:format_time()
 
    -- the date, formatting into a string
-   data.date.date = stonehearth_calendar.format_date()
+   data.date.date = TimeKeeper:format_date()
 
    data._lastNow = now
 end
@@ -148,9 +150,9 @@ end
    If the hour is greater than the set time of day, then fire the
    relevant event.
 ]]
-function stonehearth_calendar.fire_time_of_day_events()
+function TimeKeeper:fire_time_of_day_events()
    local hour = data.date.hour
-   local curr_day_periods = stonehearth_calendar.get_curr_times_of_day()
+   local curr_day_periods = TimeKeeper:get_curr_times_of_day()
 
    if hour >= curr_day_periods.midnight and
       hour < curr_day_periods.sunrise and
@@ -191,7 +193,7 @@ function stonehearth_calendar.fire_time_of_day_events()
    end
 end
 
-function stonehearth_calendar.format_time()
+function TimeKeeper:format_time()
    local suffix = "am"
    local hour = data.date.hour
 
@@ -205,16 +207,16 @@ function stonehearth_calendar.format_time()
    return string.format("%d : %02d %s", hour, data.date.minute, suffix)
 end
 
-function stonehearth_calendar.format_date()
+function TimeKeeper:format_date()
    return string.format("day %d of %s, %d", data.date.day, constants.monthNames[data.date.month + 1],
       data.date.year)
 end
 
-function stonehearth_calendar.get_time_and_date()
+function TimeKeeper:get_time_and_date()
    return data.date
 end
 
-stonehearth_calendar.__init()
-return stonehearth_calendar
+return TimeKeeper()
+
 
 

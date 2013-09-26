@@ -107,6 +107,10 @@ extern "C" {
  *  @ingroup native
  */
 GLFWAPI HWND glfwGetWin32Window(GLFWwindow* window);
+
+typedef void (* GLFWrawinputfunWin32)(GLFWwindow*, UINT, WPARAM, LPARAM);
+
+GLFWAPI GLFWrawinputfunWin32 glfwSetRawInputCallbackWin32( GLFWwindow* handle, GLFWrawinputfunWin32 cbfun );
 #endif
 
 #if defined(GLFW_EXPOSE_NATIVE_WGL)

@@ -791,17 +791,6 @@ void Simulation::SendReply(proto::PostCommandReply const& reply)
    buffered_updates_.emplace_back(msg);
 }
 
-
-
-void Simulation::RegisterServerRemoteObject(std::string const& uri, dm::ObjectPtr obj)
-{
-   std::pair<std::string, std::string> entry;
-
-   entry.first = uri;
-   entry.second = om::ObjectFormatter().GetPathToObject(obj);
-   serverRemoteObjects_.push_back(entry);
-}
-
 lua::ScriptHost& Simulation::GetScript() {
    return *scriptHost_;
 }
