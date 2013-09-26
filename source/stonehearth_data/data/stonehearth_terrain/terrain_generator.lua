@@ -22,7 +22,7 @@ local TerrainGenerator = class()
 function TerrainGenerator:__init()
    local terrain_type, terrain_info
 
-   self.base_random_seed = 5
+   self.base_random_seed = 1
 
    self.zone_size = 256
    self.tile_size = 32
