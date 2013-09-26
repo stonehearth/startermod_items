@@ -1,8 +1,0 @@
-{
-   "type" : "action",
-
-   "tooltip": "Start Project",
-   "icon": "/images/actions/start_project.png",
-   "command"  : "radiant.commands.start_project",
-   "args": [ "self" ]
-}

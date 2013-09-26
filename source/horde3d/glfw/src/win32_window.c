@@ -370,6 +370,32 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
 {
     _GLFWwindow* window = (_GLFWwindow*) GetWindowLongPtr(hWnd, 0);
 
+    if( window && _glfw.focusedWindow == window && window->callbacks.rawInputWin32)
+    {
+        switch( uMsg )
+        {
+            case WM_MOUSEWHEEL:
+            case WM_LBUTTONDOWN:
+            case WM_RBUTTONDOWN:
+            case WM_MBUTTONDOWN:
+            case WM_XBUTTONDOWN:
+            case WM_LBUTTONUP:
+            case WM_RBUTTONUP:
+            case WM_MBUTTONUP:
+            case WM_XBUTTONUP:
+            case WM_MOUSEMOVE:
+            case WM_KEYDOWN:
+            case WM_KEYUP:
+            case WM_SYSKEYDOWN:
+            case WM_SYSKEYUP:
+            case WM_CHAR:
+            case WM_SYSCHAR:
+            case WM_IME_CHAR:
+                window->callbacks.rawInputWin32( (GLFWwindow*)window, uMsg, wParam, lParam);
+                break;
+        }
+    }
+
     switch (uMsg)
     {
         case WM_CREATE:
@@ -1136,3 +1162,11 @@ GLFWAPI HWND glfwGetWin32Window(GLFWwindow* handle)
     return window->win32.handle;
 }
 
+GLFWAPI GLFWrawinputfunWin32 glfwSetRawInputCallbackWin32(GLFWwindow* handle, 
+                                                  GLFWrawinputfunWin32 cbfun )
+{
+    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _GLFW_SWAP_POINTERS(window->callbacks.rawInputWin32, cbfun);
+    return cbfun;
+}

@@ -17,7 +17,7 @@
   ],
   "produces": [
       {
-         "item":"entity(stonehearth_items, wooden_door_proxy)",
+         "item":"stonehearth_items.wooden_door_proxy",
          "script":"/stonehearth_crafter/",
          "command":"produce_item"
       }

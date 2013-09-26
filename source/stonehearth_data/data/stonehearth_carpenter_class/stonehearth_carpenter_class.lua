@@ -8,7 +8,7 @@ local carpenter_class = {}
 
 function carpenter_class.promote(entity, promotion_data)
    -- xxx: bad!  gotta get rid of inject (tony)
-    radiant.entities.xxx_inject_into_entity(entity, 'stonehearth_carpenter_class', 'class_info')
+    radiant.entities.xxx_inject_into_entity(entity, 'stonehearth_carpenter_class.class_info')
 
     if promotion_data and promotion_data.workshop then
        --Hook the carpenter up to the workbench and vice versa
@@ -19,7 +19,7 @@ function carpenter_class.promote(entity, promotion_data)
     end
 
    -- xxx: this is strictly temporary.  the code will be factored into stonehearth_classes soon.
-   local outfit = radiant.entities.create_entity('stonehearth_carpenter_class', 'carpenter_outfit')
+   local outfit = radiant.entities.create_entity('stonehearth_carpenter_class.carpenter_outfit')
    local render_info = entity:add_component('render_info')
    render_info:attach_entity(outfit)
    -- end xxx:

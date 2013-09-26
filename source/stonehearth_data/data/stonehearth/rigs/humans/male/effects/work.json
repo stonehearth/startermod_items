@@ -1,0 +1,24 @@
+{
+   "type" : "effect",
+   "tracks": {
+      "animation": {
+            "type": "animation_effect",
+            "start_time": 0,
+            "animation": "file(../animations/work.json)",
+            "loop": false
+      },
+      "hide_carrying" : {
+         "type": "hide_bone",
+         "start_time": 0,
+         "end_time": 0,
+         "bone": "carry"
+      },
+      "grab_hammer" : {
+         "type": "attach_item_effect",
+         "start_time": 0,
+         "end_time": 0,
+         "item": "stonehearth.worker_hammer",
+         "bone": "mainHand"
+      }
+   }
+}

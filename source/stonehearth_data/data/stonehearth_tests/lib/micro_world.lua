@@ -46,27 +46,27 @@ function MicroWorld:at(time, fn)
 end
 
 function MicroWorld:place_tree(x, z)
-   return self:place_item('stonehearth_trees', 'medium_oak_tree', x, z)
+   return self:place_item('stonehearth_trees.medium_oak_tree', x, z)
 end
 
-function MicroWorld:place_item(mod, name, x, z)
-   local tree = radiant.entities.create_entity(mod, name)
+function MicroWorld:place_item(uri, x, z)
+   local tree = radiant.entities.create_entity(uri)
    radiant.terrain.place_entity(tree, Point3(x, 1, z))
    return tree
 end
 
-function MicroWorld:place_item_cluster(mod, name, x, z, w, h)
+function MicroWorld:place_item_cluster(uri, x, z, w, h)
    w = w and w or 3
    h = h and h or 3
    for i = x, x+w-1 do
       for j = z, z+h-1 do
-         self:place_item(mod, name, i, j)
+         self:place_item(uri, i, j)
       end
    end
 end
 
 function MicroWorld:place_citizen(x, z, profession, profession_info)
-   local citizen = radiant.mods.get_singleton('stonehearth_human_race').create_entity()
+   local citizen = radiant.mods.require('stonehearth.api').create_new_citizen()
    profession = profession and profession or 'worker'
    local profession = radiant.mods.get_singleton('/stonehearth_' .. profession .. '_class/').promote(citizen, profession_info)
    --TODO: how do we handle different kingdoms/factions?

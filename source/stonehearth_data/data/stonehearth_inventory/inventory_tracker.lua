@@ -11,7 +11,7 @@ local InventoryTracker = class()
 function InventoryTracker:__init()
    self._data_store = _radiant.sim.create_data_store()
    self._data = self._data_store:get_data()
-   
+
    if not self._data.entity_types then
       self._data.entity_types = {}
    end
@@ -47,7 +47,7 @@ function InventoryTracker:_on_entity_add(id, entity)
 
       self._data.num_entities = self._data.num_entities + 1
 
-      local entity_uri = placeable:get_full_sized_entity_uri()
+      local entity_uri = entity:get_uri()
       local category = item_info:get_category()
 
       --array of entities that are of the same type

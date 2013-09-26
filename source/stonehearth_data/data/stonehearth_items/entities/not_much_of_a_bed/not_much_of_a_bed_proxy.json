@@ -1,5 +1,5 @@
 {
-   "extends": "entity(stonehearth_items, inventory_properties)",
+   "extends": "stonehearth_items.item_properties",
    "type": "entity",
    "components": {
       "model_variants": [
@@ -10,8 +10,10 @@
          }
       ],
       "stonehearth_items:placeable_item_proxy" : {
-         "full_sized_entity_mod" : "stonehearth_items",
-         "full_sized_entity_name" : "not_much_of_a_bed"
+         "full_sized_entity" : "stonehearth_items.not_much_of_a_bed"
+      },
+      "item" : {
+         "category" : "furniture"
       }
    }
 }

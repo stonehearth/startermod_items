@@ -1,8 +1,9 @@
 {
-   "extends": "entity(stonehearth_items, item_properties)",
-   "components": {
-      "item" : {
-         "storeable" : false
+   "components" : {
+      "mob" : {
+         "interpolate_movement" : false
+      },
+      "render_info" : {
       }
    }
 }

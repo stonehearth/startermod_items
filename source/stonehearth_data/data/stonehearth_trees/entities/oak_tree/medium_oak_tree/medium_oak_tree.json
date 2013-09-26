@@ -21,7 +21,7 @@
          "description": "Sturdy, in the prime of life."
       }, 
       "radiant:resource_node": {
-         "resource": "entity(stonehearth_trees, oak_log)", 
+         "resource": "stonehearth_trees.oak_log", 
          "durability": 12
       }
    }

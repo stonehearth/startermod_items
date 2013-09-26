@@ -19,5 +19,7 @@ scope LuaSensorListComponent::RegisterLuaTypes(lua_State* L)
          .def("set_name",                 &Sensor::SetName)
          .def("get_name",                 &Sensor::GetName)
          .def("get_contents",             &Sensor::GetContents)
+      ,
+      dm::Set<EntityId>::RegisterLuaType(L, "Set<EntityId>")
       ;
 }

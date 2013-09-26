@@ -1,5 +1,5 @@
 {
-   "extends": "entity(stonehearth_items, placed_properties)",
+   "extends": "stonehearth_items.placed_properties",
    "type": "entity",
    "components": {
       "model_variants": [
@@ -14,10 +14,6 @@
          "description": "So much for privacy...",
          "icon" : "file(wooden_window_frame.png)"
 
-      },
-      "item" : {
-         "identifier": "wooden_window_frame",
-         "category" : "construction"
       }
    }
 }
