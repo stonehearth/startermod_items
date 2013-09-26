@@ -9,7 +9,7 @@ local Point3 = _radiant.csg.Point3
 
 local Landscaper = class()
 
-local tree_mod_name = 'stonehearth_trees'
+local tree_mod_name = 'stonehearth'
 
 local oak = 'oak_tree'
 local juniper = 'juniper_tree'
