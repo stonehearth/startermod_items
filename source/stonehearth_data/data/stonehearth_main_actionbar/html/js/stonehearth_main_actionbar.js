@@ -54,7 +54,7 @@ App.StonehearthMainActionbarView = App.View.extend({
                            icon: imagePath + 'carpenter.png',
                            hotkey: 'c',
                            click: function () {
-                              $(top).trigger('build_workshop.stonehearth_crafter', {
+                              $(top).trigger('build_workshop.stonehearth', {
                                  uri: '/stonehearth_carpenter_class/job_info.json'
                               });
                            }

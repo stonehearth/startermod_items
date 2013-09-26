@@ -1,7 +1,7 @@
 $(document).ready(function(){
    // When we get the show_workshop event, toggle the crafting window
    // for this entity.
-   $(top).on("show_workshop.stonehearth_crafter", function (_, e) {
+   $(top).on("show_workshop.stonehearth", function (_, e) {
       var view = App.gameView.addView(App.StonehearthCrafterView, { uri: e.entity });
    });
 });

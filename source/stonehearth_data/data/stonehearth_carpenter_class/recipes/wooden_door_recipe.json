@@ -11,15 +11,12 @@
    "ingredients": [
       {
          "material" : "wood",
-         "count" : 4,
-         "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
+         "count" : 4
       }
   ],
   "produces": [
       {
-         "item":"stonehearth_items.wooden_door_proxy",
-         "script":"/stonehearth_crafter/",
-         "command":"produce_item"
+         "item":"stonehearth_items.wooden_door_proxy"
       }
   ]
 }

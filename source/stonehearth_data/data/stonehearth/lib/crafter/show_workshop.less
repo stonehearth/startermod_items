@@ -30,7 +30,7 @@
       left: 40px;
       width: 606px;
       height: 130px;
-      background: url('/stonehearth_crafter/html/images/craft_window/crafter_shingle.png');
+      background: url('./images/craft_window/crafter_shingle.png');
       background-repeat: no-repeat;
       z-index: 3;
 
@@ -66,7 +66,7 @@
       }
 
       .closeButton {
-         background: url('/stonehearth_crafter/html/images/craft_window/close_button.png');
+         background: url('./images/craft_window/close_button.png');
          width: 25px;
          height: 27px;
          display: block;
@@ -101,12 +101,12 @@
       }
 
       .open {
-         background: url('/stonehearth_crafter/html/images/craft_window/sign_green.png');
+         background: url('./images/craft_window/sign_green.png');
          -webkit-transform: rotate(-4deg);
       }
 
       .closed {
-         background: url('/stonehearth_crafter/html/images/craft_window/sign_yellow.png');
+         background: url('./images/craft_window/sign_yellow.png');
          -webkit-transform: rotate(4deg);
       }
    }
@@ -116,7 +116,7 @@
    .woodthick;
 
    .ui-accordion-header {
-      background: url('/stonehearth_crafter/html/images/craft_window/ui_accordion_header_bg.png') !important;
+      background: url('./images/craft_window/ui_accordion_header_bg.png') !important;
    }
 
    position: relative;
@@ -165,7 +165,7 @@
             float: right;
             margin-top:14px;
             margin-right:10px;
-            background: url('/stonehearth_crafter/html/images/craft_window/search_on_black.png');
+            background: url('./images/craft_window/search_on_black.png');
             background-repeat: no-repeat;
             background-position: right center;
          }
@@ -185,7 +185,7 @@
 
    #details {
       .parchment;
-      background: url('/stonehearth_crafter/html/images/craft_window/recipe_scroll.png') no-repeat;
+      background: url('./images/craft_window/recipe_scroll.png') no-repeat;
       position: absolute;
       top: 0px;
       left: 360px;
@@ -244,13 +244,13 @@
             }
 
             .leftBookend {
-               content: url('/stonehearth_crafter/html/images/craft_window/scroll_socket_left_bookend.png');
+               content: url('./images/craft_window/scroll_socket_left_bookend.png');
                padding-right: 6px;
             }
 
             .rightBookend {
                padding-left: 8px;
-               content: url('/stonehearth_crafter/html/images/craft_window/scroll_socket_right_bookend.png');
+               content: url('./images/craft_window/scroll_socket_right_bookend.png');
             }
 
             .ingredientSocket {
@@ -292,8 +292,15 @@
                   left: -4px;
                   width: 78px;
                   height: 78px;
-                  background: url('/stonehearth_crafter/html/images/recipe_sockets/initial_border.png') no-repeat;
+                  background: url('./images/recipe_sockets/initial_border.png') no-repeat;
                   -webkit-animation:pulse 1.5s infinite;
+               }
+
+               .wood {
+                  background: url('./images/recipe_sockets/wood.png');
+               }
+               .cloth {
+                  background: url('./images/recipe_sockets/cloth.png');
                }
 
                @-webkit-keyframes pulse /* Safari and Chrome */
@@ -361,10 +368,10 @@
          height: 23px;
          float: left;
          text-align: center;
-         background: url('/stonehearth_crafter/html/images/craft_window/right_arrow.png') no-repeat;
+         background: url('./images/craft_window/right_arrow.png') no-repeat;
       }
       .dec {
-         background: url('/stonehearth_crafter/html/images/craft_window/left_arrow.png') no-repeat;
+         background: url('./images/craft_window/left_arrow.png') no-repeat;
       }
 
       .rightText {
@@ -388,7 +395,7 @@
          top: -4px;
 
          img {
-            content: url('/stonehearth_crafter/html/images/craft_window/anvil.png');   
+            content: url('./images/craft_window/anvil.png');   
          }
          
 
@@ -409,11 +416,11 @@
    left: 797px;
 
    .inProgressOrder {
-      background: url('/stonehearth_crafter/html/images/craft_window/queue_active_bg.png');
+      background: url('./images/craft_window/queue_active_bg.png');
    }
 
    .normalOrder {
-      background: url('/stonehearth_crafter/html/images/craft_window/queue_item_bg.png');
+      background: url('./images/craft_window/queue_item_bg.png');
    }
 
    .hiddenOrder {
@@ -478,7 +485,7 @@
       left: 60px;
 
       img {
-         content: url('/stonehearth_crafter/html/images/craft_window/queue_up_arrow.png');
+         content: url('./images/craft_window/queue_up_arrow.png');
       }
    }
 
@@ -488,7 +495,7 @@
       left: 60px;
 
       img {
-         content: url('/stonehearth_crafter/html/images/craft_window/queue_down_arrow.png');
+         content: url('./images/craft_window/queue_down_arrow.png');
       }
    }
 
@@ -502,7 +509,7 @@
 
    #orderListControls {
       position: relative;
-      background: url('/stonehearth_crafter/html/images/craft_window/queue_control_bg.png');
+      background: url('./images/craft_window/queue_control_bg.png');
       width: 150px;
       height: 250px;
       background-repeat: no-repeat;
@@ -515,7 +522,7 @@
          width: 140px;
          height: 60px;
          display: block;
-         background: url('/stonehearth_crafter/html/images/craft_window/trash_button.png');
+         background: url('./images/craft_window/trash_button.png');
          background-repeat:no-repeat;
          background-position:center center;
       }

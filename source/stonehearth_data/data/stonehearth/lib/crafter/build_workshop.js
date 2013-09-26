@@ -1,6 +1,6 @@
 $(document).ready(function(){
 
-   $(top).on("build_workshop.stonehearth_crafter", function (_, e) {
+   $(top).on("build_workshop.stonehearth", function (_, e) {
       var view = App.gameView.addView(App.StonehearthCrafterBuildWorkshopView, {
          uri: e.uri
       });
@@ -25,7 +25,7 @@ $(document).ready(function(){
 
       var workbench_entity = e.workbench_entity;
 
-      radiant.call_obj('stonehearth_crafter', 'choose_workbench_location', workbench_entity)
+      radiant.call_obj('stonehearth', 'choose_workbench_location', workbench_entity)
          .done(function(o){
             //xxx, place the outbox
          })

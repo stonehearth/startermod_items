@@ -9,7 +9,7 @@ local Point3 = _radiant.csg.Point3
 local FillOutboxAction = class()
 
 FillOutboxAction.name = 'stonehearth.actions.fill_outbox'
-FillOutboxAction.does = 'stonehearth_crafter.activities.fill_outbox'
+FillOutboxAction.does = 'stonehearth.activities.fill_outbox'
 FillOutboxAction.priority = 5
 
 function FillOutboxAction:__init(ai, entity)

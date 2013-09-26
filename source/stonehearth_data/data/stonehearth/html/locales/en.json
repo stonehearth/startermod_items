@@ -1,2 +1,16 @@
 {
+  "craft_number_left": "Craft",
+  "craft_number_right": "right now.",
+  "craft_up_to_left": "Maintain",
+  "craft_up_to_right": "in inventory.",
+  "crafting_status": "crafting...",
+  "workshop_paused_status": "paused...",
+  "workshop_remove_confirm": "Remove?",
+  "workshop_open" : "Open!",
+  "workshop_closed" : "Closed",
+
+  "build_workshop_scroll_title" : "Carpenter's Wk (xxx param)",
+  "build_workshop_pending" : "PENDING APPROVAL OF MATERIALS",
+  "build_workshop_approved" : "APPROVED!"
 }
+

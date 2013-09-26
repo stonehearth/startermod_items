@@ -11,15 +11,12 @@
    "ingredients": [
       {
          "material" : "wood",
-         "count" : 3,
-         "socket_background" : "/stonehearth_crafter/html/images/recipe_sockets/wood.png"
+         "count" : 3
       }
   ],
   "produces": [
       {
-         "item":"stonehearth_items.wooden_sword",
-         "script":"/stonehearth_crafter/",
-         "command":"produce_item"
+         "item":"stonehearth_items.wooden_sword"
       }
   ]
 }

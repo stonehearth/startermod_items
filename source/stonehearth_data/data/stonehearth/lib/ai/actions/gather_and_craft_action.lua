@@ -17,7 +17,7 @@ local Point3 = _radiant.csg.Point3
 local GatherAndCraftAction = class()
 
 GatherAndCraftAction.name = 'stonehearth.actions.gather_and_craft'
-GatherAndCraftAction.does = 'stonehearth_crafter.activities.gather_and_craft'
+GatherAndCraftAction.does = 'stonehearth.activities.gather_and_craft'
 GatherAndCraftAction.priority = 5
 
 function GatherAndCraftAction:__init(ai, entity)
@@ -58,7 +58,7 @@ function GatherAndCraftAction:run(ai, entity, recipe, ingredients)
       end
    end
    -- Once everything's gathered, then craft
-   ai:execute('stonehearth_crafter.activities.craft')
+   ai:execute('stonehearth.activities.craft')
 end
 
 return GatherAndCraftAction

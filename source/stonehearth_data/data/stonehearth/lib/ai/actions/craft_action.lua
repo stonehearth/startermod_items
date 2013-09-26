@@ -7,7 +7,7 @@
 local CraftAction = class()
 
 CraftAction.name = 'stonehearth.actions.craft'
-CraftAction.does = 'stonehearth_crafter.activities.craft'
+CraftAction.does = 'stonehearth.activities.craft'
 CraftAction.priority = 5
 
 --[[
@@ -27,7 +27,7 @@ function CraftAction:run(ai, entity)
          return
       end
    end
-   ai:execute('stonehearth_crafter.activities.fill_outbox')
+   ai:execute('stonehearth.activities.fill_outbox')
 end
 
 return CraftAction

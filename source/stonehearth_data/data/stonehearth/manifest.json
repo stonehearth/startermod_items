@@ -93,15 +93,21 @@
    "ui" :  {
       "html" : [
          "file(/html/stonehearth_modal_overlay.html)",
-         "file(lib/calendar/clock_widget.html)"
+         "file(lib/calendar/clock_widget.html)",
+         "file(lib/crafter/show_workshop.html)",
+         "file(lib/crafter/build_workshop.html)"
       ],
       "js" : [
          "file(/html/js/stonehearth_modal_overlay.js)",
-         "file(lib/calendar/clock_widget.js)"
+         "file(lib/calendar/clock_widget.js)",
+         "file(lib/crafter/show_workshop.js)",
+         "file(lib/crafter/build_workshop.js)"
       ],
       "less" : [
          "file(/html/css/stonehearth_modal_overlay.less)",
-         "file(lib/calendar/clock_widget.less)"
+         "file(lib/calendar/clock_widget.less)",
+         "file(lib/crafter/show_workshop.less)",
+         "file(lib/crafter/build_workshop.less)"
       ]
    }
 }
