@@ -235,6 +235,9 @@ struct _GLFWwindow
         GLFWscrollfun           scroll;
         GLFWkeyfun              key;
         GLFWcharfun             character;
+
+        // This is defined in the window API's platform.h
+        _GLFW_PLATFORM_RAW_INPUT;
     } callbacks;
 
     // This is defined in the window API's platform.h
