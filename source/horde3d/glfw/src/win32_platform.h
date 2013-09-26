@@ -28,6 +28,8 @@
 #ifndef _win32_platform_h_
 #define _win32_platform_h_
 
+#define _GLFW_NO_DLOAD_WINMM
+#define _GLFW_NO_DLOAD_GDI32
 
 // We don't need all the fancy stuff
 #ifndef NOMINMAX

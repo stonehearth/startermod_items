@@ -47,20 +47,20 @@ private:
    };
 
 private:
-   struct RenderTile {
+   struct RenderZone {
       csg::Point3             location;
       om::BoxedRegion3Ref     region;
       RenderNode              node;
       dm::Guard               guard;
       std::vector<RenderNode> meshes;
 
-      RenderTile() { }
+      RenderZone() { }
    };
-   DECLARE_SHARED_POINTER_TYPES(RenderTile)
+   DECLARE_SHARED_POINTER_TYPES(RenderZone)
 
 private:
    void Update();
-   void UpdateRenderRegion(RenderTilePtr render_tile);
+   void UpdateRenderRegion(RenderZonePtr render_zone);
    void TesselateTerrain(csg::Region3 const& terrain, csg::Region3& tess);
    void OnSelected(om::Selection& sel, const csg::Ray3& ray,
                    const csg::Point3f& intersection, const csg::Point3f& normal);
@@ -77,8 +77,8 @@ private:
    dm::Guard            tracer_;
    om::TerrainRef       terrain_;
    RenderNode           terrain_root_node_;
-   std::map<csg::Point3, std::shared_ptr<RenderTile>>   tiles_;
-   std::vector<RenderTileRef> dirty_tiles_;
+   std::map<csg::Point3, std::shared_ptr<RenderZone>>   zones_;
+   std::vector<RenderZoneRef> dirty_zones_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE
