@@ -10,7 +10,7 @@ function PlaceItem:choose_place_item_location(session, response, entity_uri)
    -- "authoring entities", because they exist only on the client side to help
    -- in the authoring of new content.
    -- TODO: show places the item cannot/should not be placed
- 
+
    self._cursor_entity = radiant.entities.create_entity(entity_uri)
 
    -- add a render object so the cursor entity gets rendered.
@@ -54,7 +54,7 @@ function PlaceItem:_on_mouse_event(e, response)
    -- if the mouse button just transitioned to up and we're actually pointing
    -- to a box on the terrain, send a message to the server to create the
    -- entity.  this is done by posting to the correct route.
-   
+
    --test for mouse right-click
    if e:up(2) and s.location then
       radiant.log.info('Pressed right click')
@@ -62,14 +62,14 @@ function PlaceItem:_on_mouse_event(e, response)
       self._curr_rotation = self._curr_rotation % 360
       self._cursor_entity:add_component('mob'):turn_to(self._curr_rotation + 180)
    end
-   
+
    if e:up(1) and s.location then
       -- destroy our capture object to release the mouse back to the client.  don't
       -- destroy the authoring object yet!  doing so now will result in a brief period
       -- of time where the server side object has not yet been created, yet the client
       -- authoring object has been destroyed.  that leads to flicker, which is ugly.
       self._capture = nil
-      
+
       response:resolve({
          location = pt,
          rotation = self._curr_rotation + 180
@@ -81,9 +81,18 @@ function PlaceItem:_on_mouse_event(e, response)
    return true
 end
 
--- server side object to handle creation of the workbench.  this is called
+--- Tell a worker to place the item in the world
+-- Server side object to handle creation of the workbench.  This is called
 -- by doing a POST to the route for this file specified in the manifest.
 function PlaceItem:place_item_in_world(session, response, proxy_entity, location, rotation)
+   -- TODO: BUGS with multiple workers running for the same object
+   local point3_location = Point3(location.x, location.y, location.z)
+   self:_init_pickup_worker_task(session, proxy_entity, point3_location, rotation)
+
+   --[[
+   -- TODO: Put down a ghost version of the item (half opacity) and swap to "building" mode
+   -- Reuse the code below, but attach the ghostly object to the proxy, so we can remove
+   -- it later.
 
    -- pull the location and entity uri out of the postdata, create that
    -- entity, and move it there.
@@ -99,9 +108,56 @@ function PlaceItem:place_item_in_world(session, response, proxy_entity, location
    -- Place the item in the world
    radiant.terrain.place_entity(full_sized_entity, location)
    radiant.entities.turn_to(full_sized_entity, rotation)
-   
+
    --item_entity:get_component('unit_info'):set_faction(session.faction)
    return { full_sized_entity = full_sized_entity }
+   ]]
+end
+
+function PlaceItem:_init_pickup_worker_task(session, proxy_entity, location, rotation)
+   local worker_mod = radiant.mods.require 'stonehearth_worker_class.stonehearth_worker_class'
+   local worker_scheduler = worker_mod.get_worker_scheduler(session.faction)
+
+   --Task for picking up the object the user designated
+   -- Any worker that's not carrying anything will do...
+   local not_carrying_fn = function (worker)
+      return radiant.entities.get_carrying(worker) == nil
+   end
+
+   local grab_icon_task = worker_scheduler:add_worker_task('grab_placeable_icon')
+                  :set_worker_filter_fn(not_carrying_fn)
+                  :add_work_object(proxy_entity)
+                  :set_action('stonehearth.pickup_item_on_path')
+                  :start()
+
+   --Task for bringing it over to the designated spot
+   --Target only people carrying this entity
+   local carrying_specific_item_fn = function(worker)
+      local entity = radiant.entities.get_carrying(worker)
+      if entity then
+         return entity:get_id() == proxy_entity:get_id()
+      end
+      return false
+   end
+
+   --Right now the pf only can path from an entity to another
+   --So, create an invisible entity and put it at the destination
+   local dest_entity = radiant.entities.create_entity()
+   radiant.terrain.place_entity(dest_entity, location)
+
+   local place_icon_task = worker_scheduler:add_worker_task('place_placeable_icon')
+                  :set_worker_filter_fn(carrying_specific_item_fn)
+                  :add_work_object(dest_entity)
+
+   place_icon_task:set_action_fn(
+      function(path)
+         return 'stonehearth.activities.place_item', path, rotation
+      end
+   )
+
+   place_icon_task:start()
+
+   --TODO: mark tasks as once-only so we can destroy them later
 end
 
 -- server side object to handle creation of the workbench.  this is called

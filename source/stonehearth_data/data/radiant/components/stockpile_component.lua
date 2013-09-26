@@ -28,10 +28,10 @@ function StockpileComponent:__init(entity, data_binding)
    self._data = {
       items = {},
       size  = { 0, 0 }
-   }   
+   }
    self._data_binding = data_binding
    self._data_binding:update(self._data)
-   
+
    self._destination:set_region(_radiant.sim.alloc_region())
    radiant.events.listen('radiant.events.gameloop', self)
    all_stockpiles[self._entity:get_id()] = self
@@ -40,13 +40,13 @@ end
 -- xxx: the 'fire one when i'm constructed' pattern again...
 StockpileComponent['radiant.events.gameloop'] = function(self)
    radiant.events.unlisten('radiant.events.gameloop', self)
-   
-   self:_create_worker_tasks()  
-  
+
+   self:_create_worker_tasks()
+
    local root = radiant.entities.get_root_entity()
    local ec = radiant.entities.get_root_entity():get_component('entity_container')
    local children = ec:get_children()
-   
+
    self._ec_trace = children:trace('tracking stockpile')
    self._ec_trace:on_added(function (id, entity)
          self:_add_item(entity)
@@ -54,13 +54,13 @@ StockpileComponent['radiant.events.gameloop'] = function(self)
    self._ec_trace:on_removed(function (id, entity)
          self:_remove_item(id)
       end)
-   
+
    local mob = self._entity:add_component('mob')
    self._mob_trace = mob:trace_transform('stockpile tracking self position')
                         :on_changed(function()
                               self:_rebuild_item_data()
                            end)
-      
+
    self:_rebuild_item_data()
 end
 
@@ -102,7 +102,7 @@ function StockpileComponent:get_size()
 end
 
 function StockpileComponent:set_size(size)
-   self._data.size = { size[1], size[2] }  
+   self._data.size = { size[1], size[2] }
    self:_rebuild_item_data()
 end
 
@@ -122,7 +122,7 @@ function StockpileComponent:reserve_adjacent(location)
          self:_remove_world_point_from_region(p)
          return p
       end
-   end   
+   end
 end
 ]]--
 
@@ -133,7 +133,7 @@ function StockpileComponent:reserve(location)
    if region:get():contains(pt) then
       region:modify():remove_point(pt)
       return true
-   end   
+   end
 end
 
 function StockpileComponent:_remove_world_point_from_region(location)
@@ -154,7 +154,7 @@ end
 function StockpileComponent:_add_item(entity)
    local location = Point3(radiant.entities.get_world_grid_location(entity))
    local world_bounds = self:_get_world_bounds()
-   
+
    if world_bounds:contains(location) then
       local item = entity:get_component('item')
       if item then
@@ -179,7 +179,7 @@ function StockpileComponent:_remove_item(id)
       local region = self._destination:get_region()
       local origin = radiant.entities.get_world_grid_location(entity)
       local offset = origin - radiant.entities.get_world_grid_location(self._entity)
-      region:modify():add_point(Point3(offset))      
+      region:modify():add_point(Point3(offset))
    end
 end
 
@@ -190,7 +190,7 @@ function StockpileComponent:_rebuild_item_data()
 
    self._data.items = {}
    self._data_binding:mark_changed()
-   
+
    local ec = radiant.entities.get_root_entity()
                   :get_component('entity_container')
                   :get_children()
@@ -252,15 +252,20 @@ function StockpileComponent:_create_worker_tasks()
    )
 
    -- Next is the restock task, which will actually do the dumping of items
-   -- into the stockpile.  
+   -- into the stockpile.
    self._restock_task = worker_scheduler:add_worker_task('restock_stockpile')
 
    -- We should only consider workers that are carrying and item that belongs
-   -- in the stockpile
+   -- in the stockpile AND workers who aren't already standing in a stockpile
+   -- (since they've probably just picked up something from that stockpile)
+   -- TODO: Ask Tony if this counts as a hack
    self._restock_task:set_worker_filter_fn(
       function (worker)
          local entity = radiant.entities.get_carrying(worker)
-         return self:can_stock_entity(entity)
+         local can_stock_this = self:can_stock_entity(entity)
+         --TODO: what if the worker is standing just outside the stockpile?
+         local in_stockpile_now = self:contains(worker)
+         return can_stock_this and not in_stockpile_now
       end
    )
 
@@ -279,7 +284,7 @@ function StockpileComponent:_create_worker_tasks()
    -- fire 'em up!
    self._pickup_task:start()
    self._restock_task:start()
-   
+
 end
 
 return StockpileComponent

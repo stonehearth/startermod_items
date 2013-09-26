@@ -12,23 +12,26 @@ function GotoLocationAction:run(ai, entity, dest)
    -- generally speaking, going directly to a location is a strange
    -- thing to do.  why did we not path find to an entity?  why is
    -- this location special?
-   
+
    -- Commentary: No it's not. It's useful when coding ambient behavior
    -- like wandering around, running away, etc. - tom, 9/23/2013
 
+   -- It's also useful for when the player designates a place to put an item,
+   -- and a worker has to take it there. My $0.02 --sdee 9/25/2013
+
    -- anyway, the pathfinder can only find paths between two entities,
    -- so go ahead and make a new one.  this is HORRIBLY INEFFICENT. =..(
-   
+
    local bounds = Cube3(Point3(0, 0, 0), Point3(1, 1, 1))
    self._dest_entity = radiant.entities.create_entity()
-   
+
    radiant.terrain.place_entity(self._dest_entity, dest)
 
    local path
    local solved = function(p)
       path = p
    end
-   
+
    local pf = _radiant.sim.create_path_finder('goto_location', entity, solved, nil)
    pf:add_destination(self._dest_entity)
    ai:wait_until(function()
