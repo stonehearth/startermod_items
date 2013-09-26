@@ -7,6 +7,7 @@
       "entities" : {
          "mixins.mob" : "file(mixins/mob)",
          "mixins.base_human" : "file(mixins/base_human)",
+         "mixins.tree" : "file(mixins/tree)",
 
          "worker_axe" : "file(entities/tools/worker_axe)",
          "worker_hammer" : "file(entities/tools/worker_hammer)",
@@ -14,6 +15,15 @@
          "wolf" : "file(entities/critters/wolf)",
          "male_1" : "file(entities/humans/male_1)",
          "female_1" : "file(entities/humans/female_1)",
+
+         "oak_log" : "file(entities/trees/oak_tree/oak_log)",
+         "small_oak_tree" : "file(entities/trees/oak_tree/small_oak_tree)",
+         "medium_oak_tree" : "file(entities/trees/oak_tree/medium_oak_tree)",
+         "large_oak_tree" : "file(entities/trees/oak_tree/large_oak_tree)",
+         "juniper_log" : "file(entities/trees/juniper_tree/juniper_log)",
+         "small_juniper_tree" : "file(entities/trees/juniper_tree/small_juniper_tree)",
+         "medium_juniper_tree" : "file(entities/trees/juniper_tree/medium_juniper_tree)",
+         "large_juniper_tree" : "file(entities/trees/juniper_tree/large_juniper_tree)",
 
          "actions.attack_action" : "file(lib/ai/actions/attack_action.lua)",
          "actions.flee_action" : "file(lib/ai/actions/flee_action.lua)",
@@ -33,6 +43,7 @@
          "actions.goto_entity_action" : "file(lib/ai/actions/goto_entity_action.lua)",
          "actions.pickup_item_on_path" : "file(lib/ai/actions/pickup_item_on_path.lua)",
          "actions.grab_talisman_action" : "file(lib/ai/actions/grab_talisman_action.lua)",
+         "actions.chop_tree_action" : "file(lib/ai/actions/chop_tree_action.lua)",
 
          "observers.look_for_enemies" : "file(lib/ai/observers/look_for_enemies.lua)",
 
@@ -42,7 +53,11 @@
          "get_clock_object": {
             "controller" : "file(lib/calendar/calendar_call_handler.lua)",
             "endpoint" : "server"
-         }
+         },
+         "harvest_tree" : {
+            "controller": "file(lib/resource_node/resource_node_call_handler.lua)",
+            "endpoint" : "server"
+         }         
       }
    },
    "components" :  {

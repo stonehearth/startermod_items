@@ -2,7 +2,7 @@
    "components" : {
       "radiant:ai" : {
          "actions" : [
-            "/stonehearth_trees/ai/actions/chop_tree_action.lua",
+            "stonehearth.actions.chop_tree_action", 
             "file(/ai/actions/worker_task_dispatcher.lua)",
             "file(/ai/actions/worker_pickup_action.lua)",
             "file(/ai/actions/worker_restock_action.lua)"

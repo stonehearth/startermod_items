@@ -32,7 +32,7 @@ Firepit['radiant.events.calendar.sunrise'] = function (self)
 end
 
 function Firepit:light_fire()
-   self._my_wood = radiant.entities.create_entity('stonehearth_trees.oak_log')
+   self._my_wood = radiant.entities.create_entity('stonehearth.oak_log')
    radiant.entities.add_child(self._entity, self._my_wood, Point3(0, 0, 0))
 
    self._curr_fire_effect =

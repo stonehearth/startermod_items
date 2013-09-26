@@ -1,11 +1,11 @@
 
-local Chop = class()
+local ResourceNodeCallHandler = class()
 
 --- Remote entry point for requesting that a tree get harvested
 -- @param tree The entity which you would like chopped down
 -- @return true on success, false on failure
 
-function Chop:chop(session, response, tree)
+function ResourceNodeCallHandler:harvest_tree(session, response, tree)
    local worker_mod = radiant.mods.require 'stonehearth_worker_class.stonehearth_worker_class'
    local worker_scheduler = worker_mod.get_worker_scheduler(session.faction)
 
@@ -22,4 +22,4 @@ function Chop:chop(session, response, tree)
    return true
 end
 
-return Chop
+return ResourceNodeCallHandler

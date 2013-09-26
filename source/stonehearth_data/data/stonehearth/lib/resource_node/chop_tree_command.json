@@ -3,11 +3,11 @@
 
    "name": "chop",
    "tooltip": "Chop Tree",
-   "icon": "file(/images/chop.png)",
+   "icon": "file(chop_tree_command.png)",
 
    "action": "call",
-   "mod": "stonehearth_trees",
-   "function": "chop",
+   "mod": "stonehearth",
+   "function": "harvest_tree",
    "args": [
       "{{self}}"
    ]

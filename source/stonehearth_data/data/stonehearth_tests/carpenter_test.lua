@@ -62,7 +62,7 @@ function CarpenterTest:__init()
    -- end TODO
 
    -- put some items in the world
-   self:place_item_cluster('stonehearth_trees.oak_log', -10, 0, 3, 3)
+   self:place_item_cluster('stonehearth.oak_log', -10, 0, 3, 3)
    self:place_item_cluster('stonehearth_items.cloth_bolt', -7, 0, 2, 2)
 
    --TODO: figure out iconic objects

@@ -1,5 +1,5 @@
 {
-   "extends": "file(../../tree.json)", 
+   "extends": "stonehearth.mixins.tree", 
    "type": "entity", 
    "components": {
       "model_variants": [
@@ -19,7 +19,7 @@
          "description": "Strong and tall."
       }, 
       "radiant:resource_node": {
-         "resource": "stonehearth_trees.juniper_log", 
+         "resource": "stonehearth.juniper_log", 
          "durability": 9
       }
    }
