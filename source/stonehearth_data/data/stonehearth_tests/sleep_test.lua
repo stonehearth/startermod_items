@@ -19,14 +19,14 @@ function SleepTest:__init()
    ---[[
    --500ms seconds in, set the time of day to right before sleepy time
    self:at(500, function()
-      stonehearth_calendar.set_time(0, 45, 20)
+      --stonehearth_calendar.set_time(0, 45, 20)
    end)
    --]]
 
    ---[[
    --5000ms seconds in, set the time back to day
    self:at(10000, function()
-      stonehearth_calendar.set_time(0, 50, 11)
+      --stonehearth_calendar.set_time(0, 50, 11)
    end)
    --]]
 
