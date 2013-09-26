@@ -32,18 +32,19 @@ public:
 
    typedef dm::Map<csg::Point3, BoxedRegion3Ptr, csg::Point3::Hash> ZoneMap;
 
-   void AddRegion(csg::Point3 const& location, BoxedRegion3Ptr r);
-   void PlaceEntity(EntityRef e, const csg::Point3& pt);
+   int GetZoneSize();
+   void SetZoneSize(int zone_size);
+   void AddZone(csg::Point3 const& zone_offset, BoxedRegion3Ptr region3);
+   void PlaceEntity(EntityRef e, const csg::Point3& location);
    void CreateNew();
 
    ZoneMap const& GetZoneMap() const { return zones_; }
 
 private:
-   void InitializeRecordFields() override;
-   BoxedRegion3Ptr GetRegion(csg::Point3 const& pt, csg::Point3 const*& regionOffset);
-
-public:
+   dm::Boxed<int> zone_size_;
    ZoneMap zones_;
+   void InitializeRecordFields() override;
+   BoxedRegion3Ptr GetZone(csg::Point3 const& location, csg::Point3& zone_offset);
 };
 
 END_RADIANT_OM_NAMESPACE
