@@ -9,11 +9,11 @@
             <div id="subtitle">TODO: insert crafter name here</div>
          </div>
 
-         {{#if stonehearth_crafter:workshop.order_list}}
+         {{#if stonehearth:workshop.order_list}}
             <a id="pauseLink" {{action togglePause target="view"}}>
                <div id="statusSign" {{bindAttr class="workshopIsPaused:closed:open"}}>
                   <div id="message">
-                     {{#if stonehearth_crafter:workshop.is_paused}}
+                     {{#if stonehearth:workshop.is_paused}}
                         {{i18n stonehearth_crafter:closed}}
                      {{else}}
                         {{i18n stonehearth_crafter:open}}
@@ -51,7 +51,7 @@
       <input id="searchInput" placeholder="Type to search"/>
    </div>
    <div id="recipeAccordion">
-      {{#each stonehearth_crafter:workshop.crafter.stonehearth_crafter:crafter.craftable_recipes}}
+      {{#each stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes}}
          <h3>{{category}}</h3>
          <div>
             {{#each recipes}}
@@ -140,7 +140,7 @@
    <div id="orderList">
 
       <div id="orders">
-      {{#each stonehearth_crafter:workshop.order_list}}
+      {{#each stonehearth:workshop.order_list}}
          {{#if status.is_crafting}}
             <div class="orderListItem inProgressOrder" {{bindAttr data-orderId = "id"}}>
                <label class="craftingLabel">{{../../craftingStatus}}</label>

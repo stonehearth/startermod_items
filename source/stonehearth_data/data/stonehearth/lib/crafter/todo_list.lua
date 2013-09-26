@@ -4,7 +4,6 @@
    A crafter will execute the craft orders in a todo list from top to bottom.
 ]]
 
-local CraftOrder = require 'lib.craft_order'
 local ToDoList = class()
 
 function ToDoList:__init(data_binding)

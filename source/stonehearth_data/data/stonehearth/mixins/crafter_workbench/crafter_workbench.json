@@ -3,10 +3,10 @@
    "components" : {
       "radiant:commands" : {
          "commands" : [
-            "file(/commands/show_craft_ui.json)"
+            "file(show_craft_ui_command.json)"
          ]
       },
-      "stonehearth_crafter:workshop" : {
+      "stonehearth:workshop" : {
       }
    }
 }

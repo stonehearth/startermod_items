@@ -32,7 +32,7 @@ end
                         (some may already be on the workbench)
 ]]
 function GatherAndCraftAction:run(ai, entity, recipe, ingredients)
-   local crafter_component = self._entity:get_component('stonehearth_crafter:crafter')
+   local crafter_component = self._entity:get_component('stonehearth:crafter')
    local workshop = crafter_component:get_workshop()
    local workshop_entity = workshop:get_entity()
    for _, ing_data in ipairs(ingredients) do

@@ -12,8 +12,8 @@
 
 -- All workshops have a ToDo list through which the user instructs the crafter
 local Point3 = _radiant.csg.Point3
-local ToDoList = require 'lib.todo_list'
-local CraftOrder = require 'lib.craft_order'
+local ToDoList = require 'lib.crafter.todo_list'
+local CraftOrder = require 'lib.crafter.craft_order'
 
 local Workshop = class()
 
@@ -206,7 +206,7 @@ end
    TODO: Make this a speciatly stockpile, not like other stockpiles!
 ]]
 function Workshop:init_outbox(custom_offset, custom_size)
-   self._outbox_entity = radiant.entities.create_entity('stonehearth_inventory.stockpile')
+   self._outbox_entity = radiant.entities.create_entity('stonehearth.workshop_outbox')
    local bench_loc = radiant.entities.get_location_aligned(self._entity)
 
    if custom_offset then
@@ -238,7 +238,7 @@ end
 function Workshop:_get_crafter_component()
    local crafter_entity = self:get_crafter()
    if crafter_entity then
-      return crafter_entity:get_component('stonehearth_crafter:crafter')
+      return crafter_entity:get_component('stonehearth:crafter')
    end
 end
 

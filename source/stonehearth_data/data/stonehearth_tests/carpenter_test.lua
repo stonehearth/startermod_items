@@ -36,7 +36,7 @@ function CarpenterTest:__init()
    --Create the carpenter, bench, and instantiate them to each other
 
    local bench = self:place_item('stonehearth_carpenter_class.carpenter_workbench', -12, 12)
-   local workshop_component = bench:get_component('stonehearth_crafter:workshop')
+   local workshop_component = bench:get_component('stonehearth:workshop')
 
    local carpenter = self:place_citizen(-12, 7,'carpenter', {workshop = workshop_component})
 

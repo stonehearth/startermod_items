@@ -15,7 +15,7 @@ function PromoteTest:__init()
    local worker = self:place_citizen(12, 12)
 
    local bench = self:place_item('stonehearth_carpenter_class.carpenter_workbench', -12, -12)
-   local workshop_component = bench:get_component('stonehearth_crafter:workshop')
+   local workshop_component = bench:get_component('stonehearth:workshop')
    local faction = worker:get_component('unit_info'):get_faction()
 
    --TODO: we need a way to add unitinfo to these all these guys

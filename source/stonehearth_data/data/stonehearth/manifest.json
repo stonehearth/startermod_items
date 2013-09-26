@@ -7,6 +7,8 @@
       "entities" : {
          "mixins.mob" : "file(mixins/mob)",
          "mixins.base_human" : "file(mixins/base_human)",
+         "mixins.crafter_workbench" : "file(mixins/crafter_workbench)",
+         "mixins.crafter_job" : "file(mixins/crafter_job)",
 
          "worker_axe" : "file(entities/tools/worker_axe)",
          "worker_hammer" : "file(entities/tools/worker_hammer)",
@@ -14,6 +16,9 @@
          "wolf" : "file(entities/critters/wolf)",
          "male_1" : "file(entities/humans/male_1)",
          "female_1" : "file(entities/humans/female_1)",
+         "workshop_outbox" : "file(entities/crafting/workshop_outbox)",
+
+         "effects.talisman_glow" : "file(effects/particles/talisman_glow)",
 
          "actions.chase_action" : "file(lib/ai/actions/chase_action.lua)",
          "actions.goto_location_action" : "file(lib/ai/actions/goto_location_action.lua)",
@@ -31,7 +36,11 @@
          "actions.pickup_item_action" : "file(lib/ai/actions/pickup_item_action.lua)",
          "actions.goto_entity_action" : "file(lib/ai/actions/goto_entity_action.lua)",
          "actions.pickup_item_on_path" : "file(lib/ai/actions/pickup_item_on_path.lua)",
-         "actions.grab_talisman_action" : "file(lib/ai/actions/grab_talisman_action.lua)",
+         "actions.check_craftable_action" : "file(lib/ai/actions/check_craftable_action.lua)",
+         "actions.craft_action" : "file(lib/ai/actions/craft_action.lua)",
+         "actions.fill_outbox_action" : "file(lib/ai/actions/fill_outbox_action.lua)",
+         "actions.gather_and_craft_action" : "file(lib/ai/actions/gather_and_craft_action.lua)",        
+         "actions.grab_talisman_action" : "file(lib/ai/actions/grab_talisman_action.lua)",        
 
          "sounds.axe_chopping_sound" : "file(sounds/effects/axe_chopping_sound.ogg)"
       },
@@ -39,11 +48,21 @@
          "get_clock_object": {
             "controller" : "file(lib/calendar/calendar_call_handler.lua)",
             "endpoint" : "server"
+         },
+         "choose_workbench_location" : {
+            "controller" : "file(lib/crafter/crafter_call_handler.lua)",
+            "endpoint" : "client"
+         },
+         "create_workbench" : {
+            "controller" : "file(lib/crafter/crafter_call_handler.lua)",
+            "endpoint" : "server"
          }
       }
    },
    "components" :  {
-      "leash" : "file(lib/components/leash.lua)"
+      "leash" : "file(lib/components/leash.lua)",
+      "workshop" : "file(lib/components/workshop_component.lua)",
+      "crafter"  : "file(lib/components/crafter_component.lua)"
    },
    "loader" :  {
       "ui" : {

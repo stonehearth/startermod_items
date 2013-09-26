@@ -1,5 +1,5 @@
 {
-   "extends": "stonehearth_crafter.class_info",
+   "extends": "stonehearth.mixins.crafter_job",
    "components": {
       "stonehearth_classes:job_info": {
          "class_script": "stonehearth_carpenter_class",
@@ -8,7 +8,7 @@
          "name": "Carpenter",
          "description": "Has a saw and knows how to use it. Badassedly."
       },
-      "stonehearth_crafter:crafter": {
+      "stonehearth:crafter": {
          "work_effect": "saw",
          "recipe_list": "/stonehearth_carpenter_class/recipes/recipes.json",
          "intermediate_item": "stonehearth_carpenter_class.carpenter_intermediate_item"

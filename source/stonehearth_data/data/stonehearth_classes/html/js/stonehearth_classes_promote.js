@@ -8,7 +8,7 @@ $(document).ready(function(){
    });
 });
 
-// Expects the uri to be an entity with a stonehearth_crafter:workshop
+// Expects the uri to be an entity with a stonehearth:workshop
 // component
 App.StonehearthClassesPromoteView = App.View.extend({
    templateName: 'stonehearthClassesPromote',

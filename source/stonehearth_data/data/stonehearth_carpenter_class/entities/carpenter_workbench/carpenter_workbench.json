@@ -1,5 +1,5 @@
 {
-   "extends": "stonehearth_crafter.workbench",
+   "extends": "stonehearth.mixins.crafter_workbench",
    "type": "entity",
    "components": {
       "unit_info": {
@@ -7,7 +7,7 @@
          "name": "Carpenter Workbench",
          "description": "Clean enough."
       },
-      "stonehearth_crafter:workshop": {
+      "stonehearth:workshop": {
          "promotion_talisman" : {
             "entity" : "stonehearth_items.carpenter_saw",
             "offset" : [0, 3, 0]

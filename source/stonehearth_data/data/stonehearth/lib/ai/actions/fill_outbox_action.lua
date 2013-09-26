@@ -24,7 +24,7 @@ end
    --model realigns itself upon being placed into the world
 ]]
 function FillOutboxAction:run(ai, entity)
-   local crafter_component = entity:get_component('stonehearth_crafter:crafter')
+   local crafter_component = entity:get_component('stonehearth:crafter')
    local workshop = crafter_component:get_workshop()
    local workshop_entity = workshop:get_entity()
    self._outbox_entity = workshop:get_outbox_entity()

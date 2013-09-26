@@ -6,16 +6,16 @@ $(document).ready(function(){
    });
 });
 
-// Expects the uri to be an entity with a stonehearth_crafter:workshop
+// Expects the uri to be an entity with a stonehearth:workshop
 // component
 App.StonehearthCrafterView = App.View.extend({
    templateName: 'stonehearthCrafter',
 
    components: {
       "unit_info": {},
-      "stonehearth_crafter:workshop": {
+      "stonehearth:workshop": {
          "crafter": {
-            "stonehearth_crafter:crafter": {
+            "stonehearth:crafter": {
                "craftable_recipes" : {
                   "recipes" : []
                }
@@ -30,7 +30,7 @@ App.StonehearthCrafterView = App.View.extend({
 
    modal: true,
 
-   //alias for stonehearth_crafter:workshop.crafter.stonehearth_crafter:crafter.craftable_recipes
+   //alias for stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes
    recipes: null,
 
    init: function() {
@@ -43,7 +43,7 @@ App.StonehearthCrafterView = App.View.extend({
    },
 
    getWorkshop : function() {
-      return this.get('context.stonehearth_crafter:workshop').__self;
+      return this.get('context.stonehearth:workshop').__self;
    },
 
    getCurrentRecipe : function() {
@@ -102,7 +102,7 @@ App.StonehearthCrafterView = App.View.extend({
    didInsertElement: function() {
       this._super();
 
-      if (this.get('context.stonehearth_crafter:workshop') == undefined) {
+      if (this.get('context.stonehearth:workshop') == undefined) {
          return;
       }
 
@@ -147,10 +147,10 @@ App.StonehearthCrafterView = App.View.extend({
          });
    },
 
-   workshopIsPaused: Ember.computed.alias("stonehearth_crafter:workshop.is_paused"),
+   workshopIsPaused: Ember.computed.alias("stonehearth:workshop.is_paused"),
 
    _workshopIsPausedAlias: function() {
-      var isPaused = this.get('context.stonehearth_crafter:workshop.is_paused');
+      var isPaused = this.get('context.stonehearth:workshop.is_paused');
       this.set('context.workshopIsPaused', isPaused)
 
       var r = isPaused ? 4 : -4;
@@ -182,7 +182,7 @@ App.StonehearthCrafterView = App.View.extend({
       });
 
 
-   }.observes('context.stonehearth_crafter:workshop.is_paused'),
+   }.observes('context.stonehearth:workshop.is_paused'),
 
    //Attach accordion functionality to the appropriate div
    _buildAccordion: function() {
@@ -247,7 +247,7 @@ App.StonehearthCrafterView = App.View.extend({
 
    _buildRecipeArray: function() {
       allRecipes = new Array();
-      var craftableRecipeArr = this.get('context.stonehearth_crafter:workshop.crafter.stonehearth_crafter:crafter.craftable_recipes')
+      var craftableRecipeArr = this.get('context.stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes')
       var numCategories = craftableRecipeArr.length;
       for (var i = 0; i < numCategories; i++) {
          var recipes = craftableRecipeArr[i].recipes;
@@ -346,10 +346,10 @@ App.StonehearthCrafterView = App.View.extend({
 
    _orderListObserver: function() {
       this._enableDisableTrash();
-   }.observes('context.stonehearth_crafter:workshop.order_list'),
+   }.observes('context.stonehearth:workshop.order_list'),
 
    _enableDisableTrash: function() {
-      var list = this.get('context.stonehearth_crafter:workshop.order_list');
+      var list = this.get('context.stonehearth:workshop.order_list');
       if (list && list.length > 0) {
          $('#garbageButton').css('opacity', '1');
       } else {

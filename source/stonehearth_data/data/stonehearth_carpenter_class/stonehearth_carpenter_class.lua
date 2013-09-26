@@ -12,7 +12,7 @@ function carpenter_class.promote(entity, promotion_data)
 
     if promotion_data and promotion_data.workshop then
        --Hook the carpenter up to the workbench and vice versa
-       local crafter_component = entity:get_component("stonehearth_crafter:crafter")
+       local crafter_component = entity:get_component("stonehearth:crafter")
        local workshop_component = promotion_data.workshop
        crafter_component:set_workshop(workshop_component)
        workshop_component:set_crafter(entity)
@@ -27,7 +27,7 @@ end
 
 function carpenter_class.demote(entity)
   --move saw back to the bench
-  --local crafter_component = entity:get_component("stonehearth_crafter:crafter")
+  --local crafter_component = entity:get_component("stonehearth:crafter")
   --local bench_component = crafter_component:get_workshop()
 
 
