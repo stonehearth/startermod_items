@@ -20,20 +20,24 @@ App = Ember.Application.createWithMixins({
 
       var deferreds = [];
 
-      radiant.call('radiant.get_modules').done( function(data) {
-        console.log(data);
+      radiant.call('radiant.get_modules')
+         .done( function(data) {
+             console.log(data);
 
-        self._moduleData = data;
+             self._moduleData = data;
 
-        deferreds = deferreds.concat(self._loadJavaScripts(data));
-        deferreds = deferreds.concat(self._loadCsss(data));
-        deferreds = deferreds.concat(self._loadTemplates(data));
-        deferreds = deferreds.concat(self._loadLocales(data));
+             deferreds = deferreds.concat(self._loadJavaScripts(data));
+             deferreds = deferreds.concat(self._loadCsss(data));
+             deferreds = deferreds.concat(self._loadTemplates(data));
+             deferreds = deferreds.concat(self._loadLocales(data));
 
-        // when all the tempalates are loading, contune loading the app
-        $.when.apply($, deferreds).then(function() {
-          self.advanceReadiness();
-        });
+             // when all the tempalates are loading, contune loading the app
+             $.when.apply($, deferreds).then(function() {
+                self.advanceReadiness();
+             })
+         .fail(function(e) {
+            radiant.report_error('call to radiant.get_modules failed', e);
+         });
       });
     },
 

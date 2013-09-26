@@ -12,9 +12,7 @@ Opposite of _init_entity. Given a uri, remove
 component influences from the entity.
 --]]
 -- xxx: this function must go, too -- tony
-function entities.xxx_unregister_from_entity(entity, mod_name, entity_name)
-   assert(entity_name)
-   local uri = _radiant.sim.xxx_get_entity_uri(mod_name, entity_name)
+function entities.xxx_unregister_from_entity(entity, uri)
    local obj = radiant.resources.load_json(uri)
 
    if obj then

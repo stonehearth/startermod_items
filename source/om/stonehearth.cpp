@@ -146,7 +146,7 @@ om::Stonehearth::AddComponent(lua_State* L, om::EntityRef e, std::string name)
 
 void Stonehearth::InitEntityByRef(om::EntityPtr entity, std::string const& entity_ref, lua_State* L)
 {
-   static std::regex entity_macro("^(.*)\\.(.*)$");
+   static std::regex entity_macro("^([^\\.\\\\/]+)\\.([^\\\\/]+)$");
    std::smatch match;
 
    if (std::regex_match(entity_ref, match, entity_macro)) {

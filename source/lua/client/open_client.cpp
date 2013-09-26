@@ -108,6 +108,10 @@ struct LuaCallback {
       cb_ = cb;
    }
 
+   void Destroy() {
+      cb_ = object();
+   }
+
    luabind::object      cb_;
 };
 DECLARE_SHARED_POINTER_TYPES(LuaCallback)
@@ -174,6 +178,7 @@ void lua::client::open(lua_State* L)
             def("select_xz_region",                &Client_SelectXZRegion),
             lua::RegisterTypePtr<LuaCallback>()
                .def("on_input",           &LuaCallback::Progress)
+               .def("destroy",            &LuaCallback::Destroy)
             ,
             lua::RegisterType<Input>()
                .enum_("constants") [

@@ -11,7 +11,7 @@ function RabbitTest:__init()
    self:place_item('stonehearth.wolf', -12, 12)
    self:place_citizen(0, 0)
 
-   --local bench = self:place_item('stonehearth_carpenter_class.carpenter_workbench', -6, 6)
+   --local bench = self:place_item('stonehearth.carpenter_workbench', -6, 6)
    
 end
 

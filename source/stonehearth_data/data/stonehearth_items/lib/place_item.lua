@@ -68,6 +68,7 @@ function PlaceItem:_on_mouse_event(e, response)
       -- destroy the authoring object yet!  doing so now will result in a brief period
       -- of time where the server side object has not yet been created, yet the client
       -- authoring object has been destroyed.  that leads to flicker, which is ugly.
+      self._capture:destroy()
       self._capture = nil
       
       response:resolve({

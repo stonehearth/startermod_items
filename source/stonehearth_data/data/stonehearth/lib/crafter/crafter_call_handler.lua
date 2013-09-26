@@ -54,6 +54,7 @@ function CreateWorkbench:_on_mouse_event(e, workbench_entity, response)
       -- destroy the authoring object yet!  doing so now will result in a brief period
       -- of time where the server side object has not yet been created, yet the client
       -- authoring object has been destroyed.  that leads to flicker, which is ugly.
+      self._capture:destroy()
       self._capture = nil
 
       -- pass "" for the function name so the deafult (handle_request) is

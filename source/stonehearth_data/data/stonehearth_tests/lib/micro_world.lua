@@ -10,7 +10,6 @@ function MicroWorld:__init()
    self._times = {}
    self._timers = {}
    self._running = false
-   self._names = radiant.mods.get_singleton('stonehearth_names')
 
    radiant.events.listen('radiant.events.gameloop', self)
 end
@@ -66,12 +65,17 @@ function MicroWorld:place_item_cluster(uri, x, z, w, h)
    end
 end
 
-function MicroWorld:place_citizen(x, z, profession, profession_info)
+function MicroWorld:place_citizen(x, z, job, job_info)
    local citizen = radiant.mods.require('stonehearth.api').create_new_citizen()
-   profession = profession and profession or 'worker'
-   local profession = radiant.mods.get_singleton('/stonehearth_' .. profession .. '_class/').promote(citizen, profession_info)
+   job = job and job or 'worker'
+
+   -- this is totally gross!!
+   local job_api = radiant.mods.require(string.format('stonehearth.jobs.%s.%s', job, job))
+   job_api.promote(citizen, job_info)
+
    --TODO: how do we handle different kingdoms/factions?
-   radiant.entities.set_display_name(citizen, self._names.generate_random_name('ascendancy','male'))
+   local name = radiant.mods.require('stonehearth.api').generate_random_name('ascendancy','male')
+   radiant.entities.set_display_name(citizen, name)
    radiant.terrain.place_entity(citizen, Point3(x, 1, z))
    return citizen
 end

@@ -82,7 +82,7 @@ App.StonehearthCrafterBuildWorkshopView = App.View.extend({
 
                   setTimeout(function() {
                         $(top).trigger('create_workshop.radiant', {
-                           workbench_entity: 'stonehearth_carpenter_class.carpenter_workbench'
+                           workbench_entity: 'stonehearth.carpenter_workbench'
                         });
                         self.destroy();
                      }, 1000);

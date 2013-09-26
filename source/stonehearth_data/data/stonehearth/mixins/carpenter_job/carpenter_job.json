@@ -2,16 +2,16 @@
    "extends": "stonehearth.mixins.crafter_job",
    "components": {
       "stonehearth_classes:job_info": {
-         "class_script": "stonehearth_carpenter_class",
-         "icon": "file(saw_icon.png)",
+         "class_script": "/stonehearth/jobs/carpenter/carpenter.lua",
+         "icon": "file(/images/saw_icon.png)",
          "id": "carpenter",
          "name": "Carpenter",
          "description": "Has a saw and knows how to use it. Badassedly."
       },
       "stonehearth:crafter": {
          "work_effect": "saw",
-         "recipe_list": "/stonehearth_carpenter_class/recipes/recipes.json",
-         "intermediate_item": "stonehearth_carpenter_class.carpenter_intermediate_item"
+         "recipe_list": "/stonehearth/jobs/carpenter/recipes",
+         "intermediate_item": "stonehearth.carpenter_intermediate_item"
       }
    }
 }

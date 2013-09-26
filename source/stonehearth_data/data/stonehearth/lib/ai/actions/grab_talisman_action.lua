@@ -63,12 +63,9 @@ GrabTalismanAction['radiant.animation.on_trigger'] = function(self, info, effect
          if e.event == "change_outfit" then
             --Time to remove the old class
 
-            -- xxx: this kinda works by "magic", since the class_script happens to also be
-            -- the name of the singleton.  this will break spectacularly when these mods
-            -- are pulled into stonehearth.
             local old_job_info = entity:get_component('stonehearth_classes:job_info')
             local old_class_script = old_job_info:get_class_script()
-            local old_class_script_api = radiant.mods.get_singleton(old_class_script)
+            local old_class_script_api = radiant.mods.load_script(old_class_script)
             if old_class_script_api.demote then
                old_class_script_api.demote(self._entity)
             end
@@ -76,7 +73,7 @@ GrabTalismanAction['radiant.animation.on_trigger'] = function(self, info, effect
             --Time to add the new class
             local talisman_profession_info = self._talisman_entity:get_component('stonehearth_classes:talisman_promotion_info')
             local class_script = talisman_profession_info:get_class_script()
-            radiant.mods.get_singleton(class_script).promote(self._entity, talisman_profession_info:get_promotion_data())
+            radiant.mods.load_script(class_script).promote(self._entity, talisman_profession_info:get_promotion_data())
          end
       end
    end

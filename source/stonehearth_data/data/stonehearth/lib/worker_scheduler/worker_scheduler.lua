@@ -1,4 +1,4 @@
-local WorkerTask = require 'lib.worker_task'
+local WorkerTask = require 'lib.worker_scheduler.worker_task'
 local WorkerScheduler = class()
 
 function WorkerScheduler:__init(faction)

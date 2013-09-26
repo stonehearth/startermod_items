@@ -28,7 +28,7 @@ function name_generator._init()
    --Read in all the factions
    --TODO: put this in a manifest? I mean, it's inside the same module...
 
-   local json = radiant.resources.load_json('stonehearth_names/data/name_index.json')
+   local json = radiant.resources.load_json('stonehearth/lib/factions/data/name_index.json')
    if json and json.factions then
       for i, faction_file in ipairs(json.factions) do
          local faction_data = radiant.resources.load_json(faction_file)

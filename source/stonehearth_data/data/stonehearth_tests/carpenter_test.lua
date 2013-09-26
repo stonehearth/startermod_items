@@ -34,7 +34,7 @@ function CarpenterTest:__init()
 
    --Create the carpenter, bench, and instantiate them to each other
 
-   local bench = self:place_item('stonehearth_carpenter_class.carpenter_workbench', -12, 12)
+   local bench = self:place_item('stonehearth.carpenter_workbench', -12, 12)
    local workshop_component = bench:get_component('stonehearth:workshop')
 
    local carpenter = self:place_citizen(-12, 7,'carpenter', {workshop = workshop_component})
@@ -76,7 +76,7 @@ function CarpenterTest:__init()
          local condition = {}
          condition.amount = 1
          local order = CraftOrder(radiant.resources.load_json(
-            '/stonehearth_carpenter_class/recipes/wooden_buckler_recipe.json'),
+            '/stonehearth/jobs/carpenter/recipes/wooden_buckler_recipe.json'),
             true,  condition, workshop_component)
          local todo = workshop_component:ui_get_todo_list()
          todo:add_order(order)
@@ -90,7 +90,7 @@ function CarpenterTest:__init()
          local condition = {}
          condition.amount = 1
          local order = CraftOrder(radiant.resources.load_json(
-            '/stonehearth_carpenter_class/recipes/wooden_sword_recipe.json'),
+            '/stonehearth/jobs/carpenter/recipes/wooden_sword_recipe.json'),
             true,  condition, workshop_component)
          local todo = workshop_component:ui_get_todo_list()
          todo:add_order(order)
@@ -104,7 +104,7 @@ function CarpenterTest:__init()
          local condition = {}
          condition.amount = 2
          local order = CraftOrder(radiant.resources.load_json(
-            '/stonehearth_carpenter_class/recipes/wooden_sword_recipe.json'),
+            '/stonehearth/jobs/carpenter/recipes/wooden_sword_recipe.json'),
             true,  condition, workshop_component)
          local todo = workshop_component:ui_get_todo_list()
          todo:add_order(order)
