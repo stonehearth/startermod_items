@@ -5,6 +5,7 @@
 #include "lua_heightmap.h"
 #include "lua_voronoi.h"
 #include "lua_edgelist.h"
+#include "lua_quaternion.h"
 
 using namespace ::luabind;
 using namespace ::radiant;
@@ -20,7 +21,8 @@ void csg::RegisterLuaTypes(lua_State* L)
             LuaRegion::RegisterLuaTypes(L),
             LuaHeightmap::RegisterLuaTypes(L),
             LuaVoronoi::RegisterLuaTypes(L),
-            LuaEdgeList::RegisterLuaTypes(L)
+            LuaEdgeList::RegisterLuaTypes(L),
+            LuaQuaternion::RegisterLuaTypes(L)
          ]
       ]
    ];
