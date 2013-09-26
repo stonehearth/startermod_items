@@ -17,11 +17,13 @@ function PlaceItemAction:run(ai, entity, path, rotation)
    assert(proxy_entity, "This worker is trying to drop something he isn't carrying!")
 
    local drop_location = path:get_finish_point()
+   local destination_entity = path:get_destination()
+
    ai:execute('stonehearth.activities.follow_path', path)
    ai:execute('stonehearth.activities.drop_carrying', drop_location)
    radiant.entities.turn_to(proxy_entity, rotation)
 
-   --TODO: replace this with hammer
+   --TODO: replace this with a particle effect
    ai:execute('stonehearth.activities.run_effect', 'work')
 
    -- assuming it's a proxy entity
@@ -32,8 +34,13 @@ function PlaceItemAction:run(ai, entity, path, rotation)
       local faction = entity:get_component('unit_info'):get_faction()
       full_sized_entity:get_component('unit_info'):set_faction(faction)
 
-      -- Remove the icon (TODO: what about stacked icons? Remove just one of the stack?)
+      -- Remove the icon
       radiant.terrain.remove_entity(proxy_entity)
+      radiant.entities.destroy_entity(proxy_entity)
+
+      -- Remove the fake destination entity (pf only works between entities)
+      radiant.terrain.remove_entity(destination_entity)
+       radiant.entities.destroy_entity(destination_entity)
 
       -- Place the item in the world
       radiant.terrain.place_entity(full_sized_entity, drop_location)
