@@ -110,6 +110,7 @@ class Renderer
       void OnMouseWheel(double value);
       void OnMouseMove(double x, double y);
       void OnMouseButton(int button, int press);
+      void OnMouseEnter(int entered);
       void OnRawInput(UINT msg, WPARAM wParam, LPARAM lParam);
       void Resize(int width, int height);
       void UpdateCamera();

@@ -128,10 +128,14 @@ Renderer::Renderer() :
 
    glfwSetKeyCallback(window, [](GLFWwindow *window, int key, int scancode, int action, int mods) { 
       Renderer::GetInstance().OnKey(key, (action == GLFW_PRESS) || (action == GLFW_REPEAT)); 
-   });   
+   });
 
-   glfwSetCursorPosCallback(window, [](GLFWwindow *window, double x, double y) { 
-      Renderer::GetInstance().OnMouseMove(x, y); 
+   glfwSetCursorEnterCallback(window, [](GLFWwindow *window, int entered) {
+      Renderer::GetInstance().OnMouseEnter(entered);
+   });
+
+   glfwSetCursorPosCallback(window, [](GLFWwindow *window, double x, double y) {      
+      Renderer::GetInstance().OnMouseMove(x, y);
    });
 
    glfwSetMouseButtonCallback(window, [](GLFWwindow *window, int button, int action, int mods) { 
@@ -557,6 +561,12 @@ void Renderer::OnMouseWheel(double value)
    camera_->SetPosition(cameraTarget_ + dir * DistFunc(dist, dWheel, 10.0f, 3000.0f));
 
    UpdateCamera(); // xxx - defer to render time?
+}
+
+void Renderer::OnMouseEnter(int entered)
+{
+   input_.mouse.in_client_area = entered == GL_TRUE;
+   CallMouseInputCallbacks();
 }
 
 void Renderer::OnMouseMove(double x, double y)

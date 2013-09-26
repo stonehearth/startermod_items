@@ -14,6 +14,7 @@ namespace radiant {
       int         drag_start_y;
       bool        dragging;
       bool        dragend;
+      bool        in_client_area;
       bool        up[16];
       bool        down[16];
       bool        buttons[16];
