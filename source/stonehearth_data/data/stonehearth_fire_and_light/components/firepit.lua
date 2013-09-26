@@ -1,6 +1,6 @@
 local Point3 = _radiant.csg.Point3
 
-radiant.mods.require('stonehearth_calendar.stonehearth_calendar')
+radiant.mods.require('stonehearth.api')
 
 local Firepit = class()
 

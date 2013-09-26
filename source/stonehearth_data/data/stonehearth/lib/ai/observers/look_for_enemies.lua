@@ -19,7 +19,7 @@ LookForEnemies['radiant.events.very_slow_poll'] = function(self)
          self._aggro_table:add_entry(target)
                           :set_value(1)
       end
-      radiant.log.info('---')
+      --radiant.log.info('---')
    end
 
 end
@@ -50,8 +50,8 @@ function LookForEnemies:get_hostile_entities()
       local id = items[index]
       local entity = radiant.entities.get_entity(id)
 
-      radiant.log.info('sensor found %s', tostring(id))
-      radiant.log.info('  %s', tostring(entity))
+      --radiant.log.info('sensor found %s', tostring(id))
+      --radiant.log.info('  %s', tostring(entity))
 
       if radiant.check.is_entity(entity) and self:is_hostile(entity) then
          table.insert(hostile_entities,entity)
