@@ -42,6 +42,13 @@ static csg::Point3f Camera_GetLeft() {
    return left;
 }
 
+static int Screen_GetWidth() {
+   return Renderer::GetInstance().GetWidth();
+}
+
+static int Screen_GetHeight() {
+   return Renderer::GetInstance().GetHeight();
+}
 
 void LuaRenderer::RegisterType(lua_State* L)
 {
@@ -52,6 +59,10 @@ void LuaRenderer::RegisterType(lua_State* L)
                def("translate",    &Camera_Translate),
                def("get_forward",  &Camera_GetForward),
                def("get_left",     &Camera_GetLeft)
+            ],
+            namespace_("screen") [
+               def("get_width",   &Screen_GetWidth),
+               def("get_height",  &Screen_GetHeight)
             ]
          ]
       ],
