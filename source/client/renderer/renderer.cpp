@@ -65,8 +65,7 @@ Renderer::Renderer() :
 
    glfwMakeContextCurrent(window);
    
-   bool vsync = true;
-	glfwSwapInterval(vsync ? 0 : 1);
+  	glfwSwapInterval(0);
 
 	if (!h3dInit()) {	
 		h3dutDumpMessages();
@@ -157,7 +156,6 @@ Renderer::Renderer() :
    fileWatcher_.addWatch(L"horde", [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
       Renderer::GetInstance().FlushMaterials();
    }, true);
-
 
    initialized_ = true;
 }
