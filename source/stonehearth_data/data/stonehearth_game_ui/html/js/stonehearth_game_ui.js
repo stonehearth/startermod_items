@@ -56,12 +56,18 @@ App.StonehearthGameUiView = Ember.ContainerView.extend({
 
    _traceCalendar: function() {
       var self = this;
-      radiant.call('stonehearth', 'get_clock_object')
+      radiant.call_obj('stonehearth', 'get_clock_object')
          .done(function(o) {
             this.trace = radiant.trace(o.clock_object)
                .progress(function(date) {
                   self._date = date;
                })
+               .fail(function(e) {
+                  console.error('could not trace clock_object', e)
+               });
+         })
+         .fail(function(e) {
+            console.error('could not get clock_object', e)
          });
    },
 });

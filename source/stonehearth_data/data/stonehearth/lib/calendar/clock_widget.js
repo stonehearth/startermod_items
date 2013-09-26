@@ -7,7 +7,7 @@ App.StonehearthCalendarView = App.View.extend({
       
       self.set('context', {});
 
-      radiant.call('stonehearth', 'get_clock_object')
+      radiant.call_obj('stonehearth', 'get_clock_object')
          .done(function(o) {
             this.trace = radiant.trace(o.clock_object)
                .progress(function(date) {

@@ -1,4 +1,4 @@
-local GrabTalismanAction = require 'ai.actions.grab_talisman_action'
+local GrabTalismanAction = radiant.mods.require('stonehearth.lib.ai.actions.grab_talisman_action')
 local PromoteCommand = class()
 
 -- server side object to handle creation of the workbench.  this is called
