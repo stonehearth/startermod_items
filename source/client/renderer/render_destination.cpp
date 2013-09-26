@@ -6,7 +6,7 @@
 using namespace ::radiant;
 using namespace ::radiant::client;
 
-RenderDestination::RenderDestination(const RenderEntity& entity, om::DestinationPtr stockpile) :
+RenderDestination::RenderDestination(const RenderEntity& entity, om::DestinationPtr destination) :
    entity_(entity)
 {
    node_ = h3dAddGroupNode(entity_.GetNode(), "destination region");
@@ -19,9 +19,9 @@ RenderDestination::RenderDestination(const RenderEntity& entity, om::Destination
       update(**region);
    };
 
-   create_debug_tracker("region", regionDebugShape_, stockpile->GetRegion(), csg::Color4(0, 128, 255, 128));
-   create_debug_tracker("reserved", reservedDebugShape_, stockpile->GetReserved(), csg::Color4(255, 128, 0, 128));
-   create_debug_tracker("adjacent", adjacentDebugShape_, stockpile->GetAdjacent(), csg::Color4(255, 255, 255, 128));
+   create_debug_tracker("region", regionDebugShape_, destination->GetRegion(), csg::Color4(0, 128, 255, 128));
+   create_debug_tracker("reserved", reservedDebugShape_, destination->GetReserved(), csg::Color4(255, 128, 0, 128));
+   create_debug_tracker("adjacent", adjacentDebugShape_, destination->GetAdjacent(), csg::Color4(255, 255, 255, 128));
 }
 
 RenderDestination::~RenderDestination()

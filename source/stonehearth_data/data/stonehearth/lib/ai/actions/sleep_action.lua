@@ -29,7 +29,6 @@ end
    on the ground (not in a bed) from exhaustion.
 --]]
 SleepAction['radiant.events.calendar.hourly'] = function(self, calendar)
-   radiant.log.info('adjusting sleepiness')
 
    --[[
       Pathfinder callback. When it's time to go to sleep, the pathfinder
