@@ -12,7 +12,7 @@ function PlacementTest:__init()
    self:create_world()
 
    local citizen = self:place_citizen(12, 12)
-   --local citizen2 = self:place_citizen(-12, -12)
+   local citizen2 = self:place_citizen(-12, -12)
    local faction = citizen:get_component('unit_info'):get_faction()
 
    self:place_item('stonehearth_items.comfy_bed_proxy', 0, 0)
