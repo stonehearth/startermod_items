@@ -97,6 +97,7 @@ class Renderer
 
       int GetCurrentFrameTime() const { return currentFrameTime_; }
       float GetCurrentFrameInterp() const { return currentFrameInterp_; }
+      float GetLastFrameRenderTime() const { return lastFrameTimeInSeconds_; }
 
       void FlushMaterials();
 
@@ -165,6 +166,7 @@ class Renderer
 
       int                           currentFrameTime_;
       float                         currentFrameInterp_;
+      float                         lastFrameTimeInSeconds_;
       ViewMode                      viewMode_;
       boost::property_tree::basic_ptree<std::string, std::string> config_;
       lua::ScriptHost*              scriptHost_;

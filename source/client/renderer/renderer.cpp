@@ -36,6 +36,7 @@ Renderer::Renderer() :
    nextTraceId_(1),
    camera_(nullptr),
    currentFrameTime_(0),
+   lastFrameTimeInSeconds_(0),
    uiWidth_(0),
    uiHeight_(0),
    uiTexture_(0),
@@ -234,6 +235,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
 {
    int deltaNow = now - currentFrameTime_;
 
+   lastFrameTimeInSeconds_ = deltaNow / 1000.0f;
    currentFrameTime_ =  now;
    currentFrameInterp_ = alpha;
 

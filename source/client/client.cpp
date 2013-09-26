@@ -318,7 +318,7 @@ void Client::mainloop()
    // or calls from the browser.
    authoringStore_.FireTraces();
 
-   CallTraceRenderFrameHandlers(0.0);
+   CallTraceRenderFrameHandlers( Renderer::GetInstance().GetLastFrameRenderTime() );
    Renderer::GetInstance().RenderOneFrame(now_, alpha);
    if (send_queue_) {
       protocol::SendQueue::Flush(send_queue_);
