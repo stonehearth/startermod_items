@@ -534,8 +534,6 @@ void Client::OnMouseInput(Input const& input)
       if (rootObject_ && input.mouse.up[0]) {
          LOG(WARNING) << "updating selection...";
          UpdateSelection(input.mouse);
-      } else if (input.mouse.up[2]) {
-         CenterMap(input.mouse);
       }
    }
 }
@@ -637,17 +635,6 @@ bool Client::CallTraceRenderFrameHandlers(float frameTime)
       }
    }
    return false;
-}
-
-
-void Client::CenterMap(const MouseInput &mouse)
-{
-   om::Selection s;
-
-   Renderer::GetInstance().QuerySceneRay(mouse.x, mouse.y, s);
-   if (s.HasBlock()) {
-      Renderer::GetInstance().PlaceCamera(csg::ToFloat(s.GetBlock()));
-   }
 }
 
 void Client::UpdateSelection(const MouseInput &mouse)

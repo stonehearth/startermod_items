@@ -17,14 +17,16 @@ static object GetNodeParam(lua_State* L, H3DNode node, int param)
    return object();
 }
 
-static void Camera_Translate(csg::Point3f delta) {
+static void Camera_Translate(const csg::Point3f& delta) 
+{
    Camera *c = Renderer::GetInstance().GetCamera();
 
    csg::Point3f curPos = c->GetPosition();
    c->SetPosition(curPos + delta);
 }
 
-static csg::Point3f Camera_GetForward() {
+static csg::Point3f Camera_GetForward() 
+{
    Camera *c = Renderer::GetInstance().GetCamera();
 
    csg::Point3f forward, up, left;
@@ -33,13 +35,29 @@ static csg::Point3f Camera_GetForward() {
    return forward;
 }
 
-static csg::Point3f Camera_GetLeft() {
+static csg::Point3f Camera_GetLeft() 
+{
    Camera *c = Renderer::GetInstance().GetCamera();
 
    csg::Point3f forward, up, left;
    c->GetBases(&forward, &up, &left);
 
    return left;
+}
+
+static csg::Point3f Camera_GetPosition()
+{
+   return Renderer::GetInstance().GetCamera()->GetPosition();
+}
+
+static void Camera_SetPosition(const csg::Point3f& newPosition)
+{
+   Renderer::GetInstance().GetCamera()->SetPosition(newPosition);
+}
+
+static void Camera_LookAt(const csg::Point3f& target)
+{
+   Renderer::GetInstance().GetCamera()->LookAt(target);
 }
 
 static RayCastResult Scene_CastRay(const csg::Point3f& origin, const csg::Point3f& direction) {
@@ -53,6 +71,7 @@ static RayCastResult Scene_CastScreenRay(double windowX, double windowY) {
    Renderer::GetInstance().CastScreenCameraRay((int)windowX, (int)windowY, &r);
    return r;
 }
+
 static int Screen_GetWidth() {
    return Renderer::GetInstance().GetWidth();
 }
@@ -76,7 +95,10 @@ void LuaRenderer::RegisterType(lua_State* L)
             namespace_("camera") [
                def("translate",    &Camera_Translate),
                def("get_forward",  &Camera_GetForward),
-               def("get_left",     &Camera_GetLeft)
+               def("get_left",     &Camera_GetLeft),
+               def("get_position", &Camera_GetPosition),
+               def("set_position", &Camera_SetPosition),
+               def("look_at",      &Camera_LookAt)
             ],
             namespace_("scene") [
                lua::RegisterType<RayCastResult>("RayCastResult")

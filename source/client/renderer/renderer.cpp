@@ -66,7 +66,7 @@ Renderer::Renderer() :
 
    glfwMakeContextCurrent(window);
    
-  	glfwSwapInterval(0);
+	glfwSwapInterval(1);
 
 	if (!h3dInit()) {	
 		h3dutDumpMessages();
@@ -106,15 +106,10 @@ Renderer::Renderer() :
    cameraTarget_ = csg::Point3f(0, 10, 0);
 
    camera_->SetPosition(csg::Point3f(24, 34, 24));
-   camera_->LookAt(cameraTarget_);
+   //camera_->LookAt(cameraTarget_);
    UpdateCamera();
 
    h3dSetNodeParamI(camera_->GetNode(), H3DCamera::PipeResI, currentPipeline_);
-
-   // Skybox
-	//H3DNode sky = h3dAddNodes( H3DRootNode, skyBoxRes );
-	//h3dSetNodeTransform( sky, 128, 0, 128, 0, 0, 0, 256, 256, 256 );
-	//h3dSetNodeFlags( sky, H3DNodeFlags::NoCastShadow, true );
 
    // Resize
    Resize(width_, height_);
@@ -161,6 +156,7 @@ Renderer::Renderer() :
    fileWatcher_.addWatch(L"horde", [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
       Renderer::GetInstance().FlushMaterials();
    }, true);
+
 
    initialized_ = true;
 }
@@ -231,7 +227,6 @@ void Renderer::DecodeDebugShapes(const ::radiant::protocol::shapelist& msg)
 
 HWND Renderer::GetWindowHandle() const
 {
-   //return (HWND)glfwGetWindowHandle();
    return glfwGetWin32Window(glfwGetCurrentContext());
 }
 
@@ -418,11 +413,6 @@ csg::Matrix4 Renderer::GetNodeTransform(H3DNode node) const
 
 void Renderer::PlaceCamera(const csg::Point3f &location)
 {
-   csg::Point3f delta = csg::Point3f(location) - cameraTarget_;
-   cameraTarget_ += delta;
-   camera_->SetPosition(camera_->GetPosition() + delta);
-
-   UpdateCamera();
 }
 
 void Renderer::UpdateUITexture(const csg::Region2& rgn, const char* buffer)
@@ -564,16 +554,9 @@ float Renderer::DistFunc(float dist, int wheel, float minDist, float maxDist) co
 
 void Renderer::OnMouseWheel(double value)
 {
-   int dWheel = (int)value;
-   input_.mouse.wheel = dWheel;
-   
-   // xxx: move this part out into the client --
-   csg::Point3f dir = camera_->GetPosition() - cameraTarget_;
-   float dist = dir.Length();
-   dir.Normalize();
-   camera_->SetPosition(cameraTarget_ + dir * DistFunc(dist, dWheel, 10.0f, 3000.0f));
-
-   UpdateCamera(); // xxx - defer to render time?
+   input_.mouse.wheel = (int)value;
+   CallMouseInputCallbacks();
+   input_.mouse.wheel = 0;
 }
 
 void Renderer::OnMouseEnter(int entered)
@@ -595,35 +578,14 @@ void Renderer::OnMouseMove(double x, double y)
    memset(input_.mouse.up, 0, sizeof input_.mouse.up);
    memset(input_.mouse.down, 0, sizeof input_.mouse.down);
 
-   if (rotateCamera_) {
+   /*if (rotateCamera_) {
       float degx = input_.mouse.dx / -3.0f;
       float degy = -input_.mouse.dy / 2.0f;
       camera_->OrbitPointBy(cameraTarget_, degy, degx, 10.0f, 85.0f);
       camera_->LookAt(cameraTarget_);
 
       UpdateCamera();
-   } else {
-      /*     
-      int gutterSize = 10;
-
-      if (input_.mouse.x < gutterSize) {
-         cameraMoveDirection_.x = (float)-1;
-      } else if (input_.mouse.x > width_ - gutterSize) {
-         cameraMoveDirection_.x = (float)1;
-      } else {
-         cameraMoveDirection_.x = (float)0;
-      }
-
-      if (input_.mouse.y < gutterSize) {
-         cameraMoveDirection_.z = (float)-1;
-      } else if (input_.mouse.y > height_ - gutterSize) {
-         cameraMoveDirection_.z = (float)1;
-      } else {
-         cameraMoveDirection_.z = 0;
-      }
-      */
-   }
-
+   }*/
    CallMouseInputCallbacks();
 }
 
