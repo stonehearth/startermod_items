@@ -216,33 +216,6 @@ function CraftOrder:_can_use_ingredient(item_entity, ingredient_data)
    return true
 end
 
---TODO: Is this ever used?
-function CraftOrder:_search_for_ingredients()
-   local workshop_entity = self._workshop:get_entity()
-   local inventory = radiant.mods.require('stonehearth_inventory.api')
-
-   self._ingredient_paths = {}
-   for offset, ingredient_data in ipairs(self._recipe.ingredients) do
-      assert(not ingredient_data.material:find(' '), "todo: add search for multiple tags")
-
-      local filter = function(item_entity)
-         return item_entity:get_component('item'):get_material() == ingredient_data.material
-      end
-      local solved = function(path)
-         local item = path:get_destination()
-         self._ingredient_paths[offset].path = path
-         self._ingredient_paths[offset].item = item
-      end
-      local pathfinder = inventory.create_item_pathfinder(workshop_entity, solved, filter)
-      self._ingredient_paths[offset] = {
-         item = nil,
-         path = nil,
-         pathfinder = pathfinder
-      }
-   end
-   --Note: I suppose we could make a function that added status based on conditions
-end
-
 --[[
    Used to determine if we should proceed with executing the order.
    If this order has a condition which are unsatisfied, (ie, less than x amount

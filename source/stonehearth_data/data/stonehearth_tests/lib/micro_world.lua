@@ -87,7 +87,7 @@ function MicroWorld:place_stockpile_cmd(faction, x, z, w, h)
    local location = Point3(x, 1, z)
    local size = { w, h }
 
-   local inventory = radiant.mods.require('stonehearth_inventory.api').get_inventory(faction)
+   local inventory = radiant.mods.require('stonehearth.api').get_inventory(faction)
    inventory:create_stockpile(location, size)
 end
 

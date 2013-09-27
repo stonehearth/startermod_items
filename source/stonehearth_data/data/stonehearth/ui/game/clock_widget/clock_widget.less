@@ -1,0 +1,82 @@
+#calendar {
+   position: absolute;
+   top: 0;
+   right: 0;
+   width: 165px;
+   height: 180px;
+
+
+   #clock {
+      position: absolute;
+      top: 30px;
+      left: 30px;
+      width: 98px;
+      height: 110px;
+      background: url('./images/base.png');
+      z-index: 5;
+
+      .sky {
+         position: absolute;
+         top: 19px;
+         left: 14px;
+         width: 70px;
+         height: 65px;
+         z-index: 10;
+      }
+
+      #skyDay {
+         background: url('./images/sky_day.png');
+      }
+
+      #skyNight {
+         background: url('./images/sky_night.png');
+      }
+   }
+
+   #sun {
+      position: absolute;
+      top: 0px;
+      left: 30px;
+      width: 26px;
+      height: 28px;
+      overflow: visible;
+
+      #sunRays {
+         position: absolute;
+         left: -6px;
+         top: -7px;
+         width: 38px;
+         height: 41px;
+         background: url('./images/sun_rays.png');
+      }
+
+      #sunBody {
+         position: absolute;
+         left: 0px;
+         top: 0px;
+         width: 26px;
+         height: 28px;
+         background: url('./images/sun.png');
+      }
+
+   }
+
+   #moon {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      width: 26px;
+      height: 28px;
+      background: url('./images/moon.png');
+   }
+
+   #time {
+      .outlined;
+      color: #fff;
+      font-size: 10px;
+      position: absolute;
+      top: 50px;
+      right: 55px;
+      z-index: 999;
+   }
+}

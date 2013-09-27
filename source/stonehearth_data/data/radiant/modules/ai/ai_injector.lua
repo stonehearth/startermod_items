@@ -1,6 +1,7 @@
 local AiInjector = class()
 
-function AiInjector:__init(entity, injecting_entity, ai)
+-- injecting_entity is optional
+function AiInjector:__init(entity, ai, injecting_entity)
    self._entity = entity
    self._injecting_entity = injecting_entity
    self._injected = {}

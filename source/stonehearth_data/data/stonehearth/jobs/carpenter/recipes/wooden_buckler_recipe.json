@@ -5,7 +5,7 @@
    "recipe_name" : "Wooden Buckler",
    "description" : "Helps you not get hit. Spike deters hugs from overzelous grizzlies.",
    "flavor"      : "Slightly better than using an oak branch to defend your ego",
-   "portrait"    : "/stonehearth_items/entities/wooden_buckler/wooden_buckler.png",
+   "portrait"    : "/stonehearth/entities/armor/wooden_buckler/wooden_buckler.png",
    "category"    : "armor",
 
    "ingredients": [

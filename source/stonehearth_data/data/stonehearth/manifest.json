@@ -17,6 +17,8 @@
 
          "default_object" : "file(entities/generic/default_object)",
 
+         "worker.job_description" : "file(jobs/worker/job_description)",
+         "carpenter.job_description" : "file(jobs/carpenter/job_description)",
          "carpenter_workbench" : "file(entities/jobs/carpenter/carpenter_workbench)",
          "carpenter_outfit" : "file(entities/jobs/carpenter/carpenter_outfit)",
          "carpenter_intermediate_item" : "file(entities/jobs/carpenter/carpenter_intermediate_item)",
@@ -32,7 +34,7 @@
          "female_1" : "file(entities/humans/female_1)",
          "workshop_outbox" : "file(entities/crafting/workshop_outbox)",
 
-         "effects.talisman_glow" : "file(effects/particles/talisman_glow)",
+         "effects.talisman_glow" : "file(data/effects/talisman_glow)",
 
          "oak_log" : "file(entities/trees/oak_tree/oak_log)",
          "small_oak_tree" : "file(entities/trees/oak_tree/small_oak_tree)",
@@ -125,7 +127,7 @@
          "carpenter_outfit" : "file(entities/carpenter_outfit)",
          "carpenter_intermediate_item" : "file(entities/carpenter_intermediate_item)",
 
-         "sounds.axe_chopping_sound" : "file(sounds/effects/axe_chopping_sound.ogg)"
+         "sounds.axe_chopping_sound" : "file(data/sounds/effects/axe_chopping_sound.ogg)"
       },
       "functions" : {
          "get_clock_object": {
@@ -167,25 +169,35 @@
          "place_item_type_in_world" : {
             "endpoint" : "server",
             "controller" : "file(lib/place_item/place_item_call_handler.lua)"
-         }
+         },
+         "choose_stockpile_location": {
+            "controller" : "file(lib/inventory/inventory_call_handler.lua)",
+            "endpoint" : "client"
+         },
+         "create_stockpile": {
+            "controller" : "file(lib/inventory/inventory_call_handler.lua)",
+            "endpoint" : "server"
+         }         
       }
    },
    "components" :  {
-      "leash" : "file(lib/components/leash.lua)",
-      "workshop" : "file(lib/components/workshop_component.lua)",
-      "crafter"  : "file(lib/components/crafter_component.lua)",
-      "talisman_promotion_info" : "file(lib/components/talisman_promotion_info.lua)",
-      "job_info": "file(lib/components/job_info.lua)",
-      "placeable_item_proxy" : "file(lib/components/placeable_item_proxy.lua)",
-      "placeable_item_pointer": "file(lib/components/placeable_item_pointer.lua)",
-      "firepit" : "file(lib/components/firepit.lua)",
-      "sensor_ai_injector"  : "file(lib/components/sensor_ai_injector_component.lua)",
-      "bed" : "file(lib/components/bed_component.lua)",
-      "bed_lease" : "file(lib/components/bed_lease_component.lua)"      
+      "leash" : "file(components/leash.lua)",
+      "workshop" : "file(components/workshop_component.lua)",
+      "crafter"  : "file(components/crafter_component.lua)",
+      "talisman_promotion_info" : "file(components/talisman_promotion_info.lua)",
+      "job_info": "file(components/job_info_component.lua)",
+      "placeable_item_proxy" : "file(components/placeable_item_proxy.lua)",
+      "placeable_item_pointer": "file(components/placeable_item_pointer.lua)",
+      "firepit" : "file(components/firepit.lua)",
+      "sensor_ai_injector"  : "file(components/sensor_ai_injector_component.lua)",
+      "bed" : "file(components/bed_component.lua)",
+      "bed_lease" : "file(components/bed_lease_component.lua)",
+      "equipment" : "file(components/equipment_component.lua)",
+      "equipment_piece" : "file(components/equipment_piece_component.lua)"
    },
    "loader" :  {
       "ui" : {
-         "homepage" : "file(/html/index.html)"
+         "homepage" : "file(/ui/root/index.html)"
       }
    },
    "client" : {
@@ -193,46 +205,47 @@
    },
    "ui" :  {
       "html" : [
-         "file(/html/stonehearth_modal_overlay.html)",
-         "file(lib/calendar/clock_widget.html)",
          "file(lib/crafter/show_workshop.html)",
          "file(lib/crafter/build_workshop.html)",
-         "file(lib/unit_frame/unit_frame.html)",
-         "file(lib/people_picker/people_picker.html)",
-         "file(src/ui/title/title.html)",
-         "file(src/ui/game/game.html)",
-         "file(src/ui/game/promote/promote.html)",
-         "file(src/ui/game/item_placement/item_placement.html)",
-         "file(src/ui/game/main_actionbar/main_actionbar.html)",
-         "file(src/ui/game/main_actionbar/tip_popup.html)"         
+         "file(ui/common/modal_overlay/modal_overlay.html)",
+         "file(ui/title/title.html)",
+         "file(ui/game/game.html)",
+         "file(ui/game/clock_widget/clock_widget.html)",
+         "file(ui/game/people_picker/people_picker.html)",
+         "file(ui/game/promote/promote.html)",
+         "file(ui/game/item_placement/item_placement.html)",
+         "file(ui/game/unit_frame/unit_frame.html)",
+         "file(ui/game/main_actionbar/main_actionbar.html)",
+         "file(ui/game/main_actionbar/tip_popup.html)"         
       ],
       "js" : [
-         "file(/html/js/stonehearth_modal_overlay.js)",
-         "file(lib/calendar/clock_widget.js)",
          "file(lib/crafter/show_workshop.js)",
          "file(lib/crafter/build_workshop.js)",
-         "file(lib/people_picker/people_picker.js)",
-         "file(lib/unit_frame/unit_frame.js)",
-         "file(src/ui/title/title.js)",
-         "file(src/ui/game/game.js)",
-         "file(src/ui/game/promote/promote.js)",
-         "file(src/ui/game/item_placement/item_placement.js)",
-         "file(src/ui/game/main_actionbar/main_actionbar.js)",
-         "file(src/ui/game/main_actionbar/tip_popup.js)"         
+         "file(ui/common/modal_overlay/modal_overlay.js)",
+         "file(ui/title/title.js)",
+         "file(ui/game/game.js)",
+         "file(ui/game/clock_widget/clock_widget.js)",
+         "file(ui/game/people_picker/people_picker.js)",
+         "file(ui/game/promote/promote.js)",
+         "file(ui/game/item_placement/item_placement.js)",
+         "file(ui/game/unit_frame/unit_frame.js)",
+         "file(ui/game/main_actionbar/main_actionbar.js)",
+         "file(ui/game/main_actionbar/tip_popup.js)",
+         "file(ui/game/create_stockpile/create_stockpile.js)"
       ],
       "less" : [
-         "file(/html/css/stonehearth_modal_overlay.less)",
-         "file(lib/calendar/clock_widget.less)",
          "file(lib/crafter/show_workshop.less)",
          "file(lib/crafter/build_workshop.less)",
-         "file(lib/people_picker/people_picker.less)",
-         "file(lib/unit_frame/unit_frame.less)",
-         "file(src/ui/title/title.less)",
-         "file(src/ui/game/game.less)",
-         "file(src/ui/game/promote/promote.less)",
-         "file(src/ui/game/item_placement/item_placement.less)",
-         "file(src/ui/game/main_actionbar/main_actionbar.less)",
-         "file(src/ui/game/main_actionbar/tip_popup.less)"         
+         "file(ui/common/modal_overlay/modal_overlay.less)",
+         "file(ui/title/title.less)",
+         "file(ui/game/game.less)",
+         "file(ui/game/clock_widget/clock_widget.less)",
+         "file(ui/game/people_picker/people_picker.less)",
+         "file(ui/game/promote/promote.less)",
+         "file(ui/game/unit_frame/unit_frame.less)",
+         "file(ui/game/item_placement/item_placement.less)",
+         "file(ui/game/main_actionbar/main_actionbar.less)",
+         "file(ui/game/main_actionbar/tip_popup.less)"         
       ]
    }
 }
