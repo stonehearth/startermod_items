@@ -5,7 +5,7 @@
    "recipe_name" : "Simple Wooden Chair",
    "description" : "Sit on this to maximize the value of the table.",
    "flavor"      : "Culmination of 50,000 years of research.",
-   "portrait"    : "/stonehearth_items/entities/simple_wooden_chair/simple_wooden_chair.png",
+   "portrait"    : "/stonehearth/entities/furniture/simple_wooden_chair/simple_wooden_chair.png",
    "category"    : "weapons",
 
    "ingredients": [

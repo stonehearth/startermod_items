@@ -1,6 +1,6 @@
 App.StonehearthTitleScreenView = App.View.extend({
    templateName: 'stonehearthTitleScreen',
-   i18nNamespace: 'stonehearth_title_screen',
+   i18nNamespace: 'stonehearth',
    components: {},
 
    newGame: function() {

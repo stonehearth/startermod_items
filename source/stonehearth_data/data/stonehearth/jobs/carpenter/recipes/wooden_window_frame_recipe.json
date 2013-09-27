@@ -5,7 +5,7 @@
    "recipe_name" : "Wooden Window Frame",
    "description" : "Lets light into the room.",
    "flavor"      : "So much for privacy...",
-   "portrait"    : "/stonehearth_items/entities/wooden_window_frame/wooden_window_frame.png",
+   "portrait"    : "/stonehearth/entities/construction/wooden_window_frame/wooden_window_frame.png",
    "category"    : "weapons",
 
    "ingredients": [

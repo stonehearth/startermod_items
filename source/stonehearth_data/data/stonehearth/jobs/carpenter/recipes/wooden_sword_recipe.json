@@ -5,7 +5,7 @@
    "recipe_name" : "Wooden Practice Sword",
    "description" : "Upgrades a settler into a swordsman.",
    "flavor"      : "Just pointy enough to get the job done.",
-   "portrait"    : "/stonehearth_items/entities/wooden_sword/wooden_sword.png",
+   "portrait"    : "/stonehearth/entities/weapons/wooden_sword/wooden_sword.png",
    "category"    : "weapons",
 
    "ingredients": [

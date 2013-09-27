@@ -1,7 +1,7 @@
 $(document).ready(function(){
 
    //Fires when someone clicks the place button on an iconic item in the world
-   $(top).on("place_item.stonehearth_items", function (_, e) {
+   $(top).on("place_item.stonehearth", function (_, e) {
       $(top).trigger('show_tip.radiant', {
          title : i18n.t('stonehearth:item_placement_title') + " " + e.event_data.item_name,
          description : i18n.t('stonehearth:place_description')
@@ -11,9 +11,9 @@ $(document).ready(function(){
       // the workshop. The UI is out of the 'create workshop' process after
       // this. All the work is done in the client and server
 
-      radiant.call_obj('stonehearth_items', 'choose_place_item_location', e.event_data.full_sized_entity_uri)
+      radiant.call_obj('stonehearth', 'choose_place_item_location', e.event_data.full_sized_entity_uri)
          .done(function(o){
-            radiant.call_obj('stonehearth_items', 'place_item_in_world', e.event_data.self, o.location, o.rotation);
+            radiant.call_obj('stonehearth', 'place_item_in_world', e.event_data.self, o.location, o.rotation);
          })
          .always(function(o) {
             $(top).trigger('hide_tip.radiant');
@@ -102,10 +102,10 @@ App.StonehearthPlaceItemView = App.View.extend({
 
          var self = this;
 
-         radiant.call_obj('stonehearth_items', 'choose_place_item_location', item.full_sized_entity_uri)
+         radiant.call_obj('stonehearth', 'choose_place_item_location', item.full_sized_entity_uri)
             .done(function(o){
                var item_type = 1;
-               radiant.call_obj('stonehearth_items', 'place_item_type_in_world', item.full_sized_entity_uri, o.location, o.rotation);
+               radiant.call_obj('stonehearth', 'place_item_type_in_world', item.full_sized_entity_uri, o.location, o.rotation);
 
                self.waitingForPlacement = false;
 
