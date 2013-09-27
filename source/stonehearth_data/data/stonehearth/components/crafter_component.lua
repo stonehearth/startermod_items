@@ -1,16 +1,12 @@
 --[[
    Crafter.lua implements all functionality associated with a
-   generic crafter. For example, a reference to the workshop,
-   inspiration levels, etc. Individual crafter types (like carpenter)
-   can inject their specific kind of crafter attributes through
-   the extend mechanism on their classinfo.json documents.
+   crafter citizen. 
 ]]
 
 local Crafter = class()
 
 function Crafter:__init(entity, data_binding)
    self._entity = entity   -- the entity this component is attached to
-   self._workshop = nil    -- the component for the crafter's workplace
    self._data = {
       craftable_recipes = {}
    }
@@ -27,15 +23,9 @@ function Crafter:extend(json)
 end
 
 function Crafter:set_info(info)
-   if info and info.work_effect then
-      self._work_effect = info.work_effect              --the effect to play when the crafter is working
-   end
+   self._info = info
 
-   if info and info.intermediate_item then
-      self._intermediate_item = info.intermediate_item  --the object to show while the crafter is working
-   end
-
-   if info and info.recipe_list  then
+   if info and info.recipe_list then
       self._recipe_list = radiant.resources.load_json(info.recipe_list)
       
       -- xxx: for now, just grab them all. =)
@@ -49,7 +39,7 @@ end
    ai: the ai required for the entity to perform anything
 ]]
 function Crafter:perform_work_effect(ai)
-   ai:execute('stonehearth.run_effect', self._work_effect)
+   ai:execute('stonehearth.run_effect', self._info.work_effect)
 end
 
 
@@ -66,7 +56,7 @@ end
    he or she is working
 ]]
 function Crafter:get_intermediate_item()
-   return self._intermediate_item
+   return self._info.intermediate_item
 end
 
 return Crafter

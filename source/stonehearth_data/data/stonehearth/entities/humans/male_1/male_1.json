@@ -3,7 +3,7 @@
    "extends": "stonehearth.mixins.base_human", 
    "components": {
       "render_info" : {
-         "animation_table" : "file(/rigs/humans/male)"
+         "animation_table" : "file(/data/rigs/humans/male)"
       },
       "model_variants": [
          {
