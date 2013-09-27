@@ -2,7 +2,6 @@
 #include "follow_path.h"
 #include "om/entity.h"
 #include "om/components/mob.h"
-#include "simulation/script/script_host.h"
 #include <boost/program_options.hpp>
 
 using namespace ::radiant;

@@ -7,7 +7,6 @@
 #include "om/components/mob.h"
 #include "om/components/destination.h"
 #include "om/region.h"
-#include "simulation/script/script_host.h"
 #include "csg/color.h"
 
 using namespace ::radiant;

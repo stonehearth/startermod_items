@@ -55,7 +55,7 @@ App.StonehearthMainActionbarView = App.View.extend({
                            hotkey: 'c',
                            click: function () {
                               $(top).trigger('build_workshop.stonehearth', {
-                                 uri: '/stonehearth/jobs/carpenter/job_info/job_info.json'
+                                 uri: '/stonehearth/jobs/carpenter/profession/profession.json'
                               });
                            }
                         }

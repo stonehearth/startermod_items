@@ -1,9 +1,0 @@
-{
-   "job_info" : {
-      "job_type": "worker", 
-      "name": "Worker",
-      "class_script": "/stonehearth/jobs/worker/worker.lua",
-      "icon": "", 
-      "description": "Hi ho, hi ho, it's of to work we go..."
-   }
-}
