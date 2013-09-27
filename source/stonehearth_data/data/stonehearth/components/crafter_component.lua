@@ -23,14 +23,20 @@ end
    injects them into the class.
 ]]
 function Crafter:extend(json)
-   if json and json.work_effect then
-      self._work_effect = json.work_effect              --the effect to play when the crafter is working
+   self:set_info(json)
+end
+
+function Crafter:set_info(info)
+   if info and info.work_effect then
+      self._work_effect = info.work_effect              --the effect to play when the crafter is working
    end
-   if json and json.intermediate_item then
-      self._intermediate_item = json.intermediate_item  --the object to show while the crafter is working
+
+   if info and info.intermediate_item then
+      self._intermediate_item = info.intermediate_item  --the object to show while the crafter is working
    end
-   if json and json.recipe_list  then
-      self._recipe_list = radiant.resources.load_json(json.recipe_list)
+
+   if info and info.recipe_list  then
+      self._recipe_list = radiant.resources.load_json(info.recipe_list)
       
       -- xxx: for now, just grab them all. =)
       self._data.craftable_recipes = self._recipe_list.craftable_recipes

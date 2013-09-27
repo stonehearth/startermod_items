@@ -17,6 +17,8 @@
 
          "default_object" : "file(entities/generic/default_object)",
 
+         "worker.job_description" : "file(jobs/worker/job_description)",
+         "carpenter.job_description" : "file(jobs/carpenter/job_description)",
          "carpenter_workbench" : "file(entities/jobs/carpenter/carpenter_workbench)",
          "carpenter_outfit" : "file(entities/jobs/carpenter/carpenter_outfit)",
          "carpenter_intermediate_item" : "file(entities/jobs/carpenter/carpenter_intermediate_item)",
@@ -183,13 +185,15 @@
       "workshop" : "file(components/workshop_component.lua)",
       "crafter"  : "file(components/crafter_component.lua)",
       "talisman_promotion_info" : "file(components/talisman_promotion_info.lua)",
-      "job_info": "file(components/job_info.lua)",
+      "job_info": "file(components/job_info_component.lua)",
       "placeable_item_proxy" : "file(components/placeable_item_proxy.lua)",
       "placeable_item_pointer": "file(components/placeable_item_pointer.lua)",
       "firepit" : "file(components/firepit.lua)",
       "sensor_ai_injector"  : "file(components/sensor_ai_injector_component.lua)",
       "bed" : "file(components/bed_component.lua)",
-      "bed_lease" : "file(components/bed_lease_component.lua)"      
+      "bed_lease" : "file(components/bed_lease_component.lua)",
+      "equipment" : "file(components/equipment_component.lua)",
+      "equipment_piece" : "file(components/equipment_piece_component.lua)"
    },
    "loader" :  {
       "ui" : {

@@ -3,8 +3,6 @@
    "extends" : "stonehearth.mixins.item_properties",
    "components" : {
       "unit_info" : {
-         "name" :  "Carpenter Outfit",
-         "description" : "Uniform for all carpenters"
       },
       "render_info" : {
       },
@@ -15,6 +13,17 @@
                "file(carpenter_outfit.qb)"
             ]
          }
-      ]
+      ],
+      "stonehearth:equipment_piece" : {
+         "render_type" : "merge_with_model",
+         "injected_ai" : {
+            "actions" : [
+               "stonehearth.actions.check_craftable_action",
+               "stonehearth.actions.craft_action",
+               "stonehearth.actions.fill_outbox_action",
+               "stonehearth.actions.gather_and_craft_action"
+            ]
+         }
+      }
    }
 }
