@@ -42,7 +42,6 @@
          "medium_juniper_tree" : "file(entities/trees/juniper_tree/medium_juniper_tree)",
          "large_juniper_tree" : "file(entities/trees/juniper_tree/large_juniper_tree)",
 
-<<<<<<< HEAD
          "arch_backed_chair" :       "file(entities/furniture/arch_backed_chair)",
          "arch_backed_chair_proxy" : "file(entities/furniture/arch_backed_chair/arch_backed_chair_proxy.json)",
 
@@ -87,10 +86,8 @@
 
          "wooden_window_frame" : "file(entities/construction/wooden_window_frame)",
          "wooden_window_frame_proxy" : "file(entities/construction/wooden_window_frame/wooden_window_frame_proxy.json)",
-=======
 
          "ball" : "file(entities/toys/ball)",
->>>>>>> 07d9c94e6d449bd67331c9e2c853dce11260e4c7
 
          "actions.attack_action" : "file(lib/ai/actions/attack_action.lua)",
          "actions.flee_action" : "file(lib/ai/actions/flee_action.lua)",
