@@ -225,7 +225,7 @@ H3DNode Pipeline::AddQubicleNode(H3DNode parent, const QubicleMatrix& m, const c
          }
       }
    }
-   delete mask;
+   delete[] mask;
 
    static int unique = 0;
    std::string name = "qubicle data ";
