@@ -1,0 +1,35 @@
+{
+   "type" : "entity",
+   "components": {
+      "unit_info" : {
+        "name": "Leather ball",
+        "description": "",
+        "faction": "civ"
+      },
+      "sensor_list" : {
+         "sensors" : {
+            "interaction_sensor" : {
+               "type": "sensor",
+               "radius": 3
+            }
+         }
+     },
+      "stonehearth:sensor_ai_injector" : {
+         "sensor" : "interaction_sensor",
+         "ai" : {
+            "actions" : [
+               "stonehearth.actions.play_with_ball_action"
+            ],
+            "observers" : [
+            ]
+         }
+      },     
+      "model_variants": [
+         {
+            "models": [
+               "file(ball.qb)"
+            ]
+         }
+      ]
+   }
+}

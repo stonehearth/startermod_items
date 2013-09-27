@@ -7,9 +7,9 @@ function RabbitTest:__init()
    self:create_world()
 
    self:place_tree(-12, -12)
-  
-   self:place_item('stonehearth.wolf', -12, 12)
-   self:place_citizen(0, 0)
+   self:place_item('stonehearth.wolf', -8, -11)  
+
+   self:place_citizen(12, 12)
 
    --local bench = self:place_item('stonehearth.carpenter_workbench', -6, 6)
    

@@ -48,13 +48,11 @@ function BehaviorManager:add_action(uri, action)
    self:set_action_priority(action, action.priority)
 end
 
-function BehaviorManager:remove_action(uri)
-   local action = self._actions[uri]
+function BehaviorManager:remove_action(action)
    if action then
       if action.destroy then
          action:destroy()
       end
-      self._actions[uri] = nil
       self._valid_actions[action] = nil
    end
 end
@@ -64,8 +62,7 @@ function BehaviorManager:add_observer(uri, observer)
    self._observers[uri] = observer
 end
 
-function BehaviorManager:remove_observer(uri)
-   local observer = self._observer[uri]
+function BehaviorManager:remove_observer(observer)
    if observer then
       if observer.destroy_observer then
          observer:destroy_observer()
@@ -158,10 +155,6 @@ function BehaviorManager:_get_best_action(activity)
    -- return the new maximum
    local best_a, best_p
    for a, p in pairs(priorities) do
-      if a.get_priority then
-         p = a:get_priority(unpack(activity))
-         priorities[a] = p
-      end
       --radiant.log.info('activity %s: %s has priority %d', activity_name, a.name, p)
       if not best_p or p > best_p then
          best_a, best_p = a, p

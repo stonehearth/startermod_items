@@ -17,7 +17,7 @@ FleeAction['radiant.events.slow_poll'] = function(self)
    self._target = radiant.combat.get_target_table_top(self._entity, 'aggro')
 
    if self._target then
-      local priority = -1 * radiant.combat.compare_attribute(self._entity, self._target, 'ferocity')
+      local priority = -10 * radiant.combat.compare_attribute(self._entity, self._target, 'ferocity')
       self._ai:set_action_priority(self, priority)
    else
       self._ai:set_action_priority(self, 0)
