@@ -97,7 +97,6 @@ class Renderer
 
       void SetScreenResizeCb(std::function<void(int, int)> cb) { screen_resize_cb_ = cb; }
 
-      void PlaceCamera(const csg::Point3f &location);
       void UpdateUITexture(const csg::Region2& rgn, const char* buffer);
 
       Camera* GetCamera() { return camera_; }
@@ -161,9 +160,6 @@ class Renderer
       Camera*            camera_;
       FW::FileWatcher   fileWatcher_;
 
-      csg::Point3f   cameraTarget_;
-      csg::Point3f   cameraMoveDirection_;
-
       dm::TraceId       nextTraceId_;
       dm::Guard           traces_;
       TraceMap          renderFrameTraces_;
@@ -176,7 +172,6 @@ class Renderer
       SelectableMap                 selectableCbs_;
       InputEventCb                  input_cb_;
 
-      bool                          rotateCamera_;
       Input                         input_;  // Mouse coordinates in the GL window-space.
       bool                          initialized_;
 

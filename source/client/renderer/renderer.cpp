@@ -30,7 +30,6 @@ Renderer& Renderer::GetInstance()
 
 Renderer::Renderer() :
    initialized_(false),
-   cameraMoveDirection_(0, 0, 0),
    viewMode_(Standard),
    scriptHost_(nullptr),
    nextTraceId_(1),
@@ -99,15 +98,8 @@ Renderer::Renderer() :
    
    LoadResources();
 
-	// Add camera
-   
+	// Add camera   
    camera_ = new Camera(h3dAddCameraNode(H3DRootNode, "Camera", currentPipeline_));
-
-   cameraTarget_ = csg::Point3f(0, 10, 0);
-
-   camera_->SetPosition(csg::Point3f(24, 34, 24));
-   //camera_->LookAt(cameraTarget_);
-   UpdateCamera();
 
    h3dSetNodeParamI(camera_->GetNode(), H3DCamera::PipeResI, currentPipeline_);
 
@@ -115,7 +107,6 @@ Renderer::Renderer() :
    Resize(width_, height_);
 
    memset(&input_.mouse, 0, sizeof input_.mouse);
-   rotateCamera_ = false;
 
    glfwSetWindowSizeCallback(window, [](GLFWwindow *window, int newWidth, int newHeight) { 
       Renderer::GetInstance().OnWindowResized(newWidth, newHeight); 
@@ -238,18 +229,6 @@ void Renderer::RenderOneFrame(int now, float alpha)
    currentFrameTime_ =  now;
    currentFrameInterp_ = alpha;
 
-   if (cameraMoveDirection_ != csg::Point3f::zero) {
-         csg::Point3f forward, up, left;
-         camera_->GetBases(&forward, &up, &left);
-         forward.y = 0;
-         csg::Point3f camPosDelta = (left * cameraMoveDirection_.x) + (forward * cameraMoveDirection_.z);
-         camPosDelta.Normalize();
-         camPosDelta = camPosDelta * (deltaNow / 45.0f);
-         camera_->SetPosition(camera_->GetPosition() + camPosDelta);
-         cameraTarget_ += camPosDelta;
-         UpdateCamera();
-   }
-   
    bool debug = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS;
    bool showStats = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
   
@@ -261,9 +240,6 @@ void Renderer::RenderOneFrame(int now, float alpha)
 	h3dSetOption(H3DOptions::WireframeMode, debug);
    // h3dSetOption(H3DOptions::DebugViewMode, _debugViewMode ? 1.0f : 0.0f);
 	// h3dSetOption(H3DOptions::WireframeMode, _wireframeMode ? 1.0f : 0.0f);
-	
-	// Set camera parameters
-	// h3dSetNodeTransform(camera_, _x, _y, _z, _rx ,_ry, 0, 1, 1, 1);
 	
    h3dSetCurrentRenderTime(now / 1000.0f);
 
@@ -411,10 +387,6 @@ csg::Matrix4 Renderer::GetNodeTransform(H3DNode node) const
    return transform;
  }
 
-void Renderer::PlaceCamera(const csg::Point3f &location)
-{
-}
-
 void Renderer::UpdateUITexture(const csg::Region2& rgn, const char* buffer)
 {
    if (!rgn.IsEmpty() && uiTexture_) {
@@ -522,36 +494,6 @@ void Renderer::UpdateCamera()
    sf::Listener::setPosition(camera_->GetPosition().x, camera_->GetPosition().y, camera_->GetPosition().z);
 }
 
-float Renderer::DistFunc(float dist, int wheel, float minDist, float maxDist) const {
-   float shortFactor = 0.90f;
-   float medFactor = 0.81f;
-   float farFactor = 0.75f;
-   float result = 0.0f;
-   float factor;
-
-   if (wheel == 0) {
-      return dist;
-   }
-
-   if (dist < 100.0f) {
-      factor = shortFactor;
-   } else if (dist < 500.0f) {
-      factor = medFactor;
-   } else {
-      factor = farFactor;
-   }
-
-   if (wheel > 0) {
-      result = dist * factor;
-   } else {
-      result = dist / factor;
-   }
-
-   result = std::min(std::max(result, minDist), maxDist);
-
-   return result;
-}
-
 void Renderer::OnMouseWheel(double value)
 {
    input_.mouse.wheel = (int)value;
@@ -578,25 +520,11 @@ void Renderer::OnMouseMove(double x, double y)
    memset(input_.mouse.up, 0, sizeof input_.mouse.up);
    memset(input_.mouse.down, 0, sizeof input_.mouse.down);
 
-   /*if (rotateCamera_) {
-      float degx = input_.mouse.dx / -3.0f;
-      float degy = -input_.mouse.dy / 2.0f;
-      camera_->OrbitPointBy(cameraTarget_, degy, degx, 10.0f, 85.0f);
-      camera_->LookAt(cameraTarget_);
-
-      UpdateCamera();
-   }*/
    CallMouseInputCallbacks();
 }
 
 void Renderer::OnMouseButton(int button, int press)
 {
-   if (initialized_) {
-      if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-         rotateCamera_ = (press == GLFW_PRESS);
-      }
-   }
-
    memset(input_.mouse.up, 0, sizeof input_.mouse.up);
    memset(input_.mouse.down, 0, sizeof input_.mouse.down);
 
@@ -642,17 +570,6 @@ void Renderer::OnKey(int key, int down)
    auto isKeyDown = [](WPARAM arg) {
       return (GetKeyState(arg) & 0x8000) != 0;
    };
-   if (!isKeyDown(VK_SHIFT)) {
-      if (key == 'W') {
-         cameraMoveDirection_.z = (float)(down ? -1 : 0);
-      } else if (key == 'A') {
-         cameraMoveDirection_.x = (float)(down ? -1 : 0);
-      } else if (key == 'S') {
-         cameraMoveDirection_.z = (float)(down ? 1 : 0);
-      } else if (key == 'D') {
-         cameraMoveDirection_.x = (float)(down ? 1 : 0);
-      }
-   }
    DispatchInputEvent();
 }
 
