@@ -8,7 +8,7 @@ local api = {}
 local worker_schedulers = {}
 
 function api.create_new_citizen()
-   local index = radiant.resources.load_json('/stonehearth/data/human_race_info.json')
+   local index = radiant.resources.load_json('/stonehearth/data/json/human_race_info.json')
    if index then
       local gender = index.males
       local kind = gender[math.random(#gender)]

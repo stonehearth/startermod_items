@@ -1,5 +1,5 @@
 local MicroWorld = radiant.mods.require('stonehearth_tests.lib.micro_world')
-local WorldGenerator = radiant.mods.require('stonehearth_terrain.world_generator')
+local WorldGenerator = require 'lib.terrain.world_generator'
 
 local NewWorld = class(MicroWorld)
 

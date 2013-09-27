@@ -1,9 +1,9 @@
-local HeightMap = radiant.mods.require('stonehearth_terrain.height_map')
-local Array2D = radiant.mods.require('stonehearth_terrain.array_2D')
-local TerrainType = radiant.mods.require('stonehearth_terrain.terrain_type')
-local TerrainGenerator = radiant.mods.require('stonehearth_terrain.terrain_generator')
-local Landscaper = radiant.mods.require('stonehearth_terrain.landscaper')
-local HeightMapRenderer = radiant.mods.require('stonehearth_terrain.height_map_renderer')
+local HeightMap = require 'lib.terrain.height_map'
+local Array2D = require 'lib.terrain.array_2D'
+local TerrainType = require 'lib.terrain.terrain_type'
+local TerrainGenerator = require 'lib.terrain.terrain_generator'
+local Landscaper = require 'lib.terrain.landscaper'
+local HeightMapRenderer = require 'lib.terrain.height_map_renderer'
 local Timer = radiant.mods.require('stonehearth_debugtools.timer')
 
 local WorldGenerator = class()
