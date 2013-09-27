@@ -1,5 +1,5 @@
-local HeightMap = require 'height_map'
-local TerrainType = require 'terrain_type'
+local HeightMap = require 'lib.terrain.height_map'
+local TerrainType = require 'lib.terrain.terrain_type'
 
 local Terrain = _radiant.om.Terrain
 local Cube3 = _radiant.csg.Cube3

@@ -1,10 +1,10 @@
-local TerrainType = require 'terrain_type'
-local HeightMap = require 'height_map'
-local MathFns = require 'math.math_fns'
-local GaussianRandom = require 'math.gaussian_random'
-local FilterFns = require 'filter.filter_fns'
-local Wavelet = require 'wavelet.wavelet'
-local WaveletFns = require 'wavelet.wavelet_fns'
+local TerrainType = require 'lib.terrain.terrain_type'
+local HeightMap = require 'lib.terrain.height_map'
+local MathFns = require 'lib.terrain.math.math_fns'
+local GaussianRandom = require 'lib.terrain.math.gaussian_random'
+local FilterFns = require 'lib.terrain.filter.filter_fns'
+local Wavelet = require 'lib.terrain.wavelet.wavelet'
+local WaveletFns = require 'lib.terrain.wavelet.wavelet_fns'
 local Point3 = _radiant.csg.Point3
 
 local Landscaper = class()

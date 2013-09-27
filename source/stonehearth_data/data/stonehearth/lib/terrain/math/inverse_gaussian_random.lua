@@ -1,5 +1,5 @@
-local GaussianRandom = require 'math.gaussian_random'
-local MathFns = require 'math.math_fns'
+local GaussianRandom = require 'lib.terrain.math.gaussian_random'
+local MathFns = require 'lib.terrain.math.math_fns'
 
 local InverseGaussianRandom = class()
 

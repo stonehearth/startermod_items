@@ -6,7 +6,7 @@
 -- two standard deviations contains 95.45% of the values
 -- three standard deviations contains 99.73% of the values
 
-local MathFns = require 'math.math_fns'
+local MathFns = require 'lib.terrain.math.math_fns'
 
 local GaussianRandom = class()
 

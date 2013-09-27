@@ -1,6 +1,6 @@
 local Wavelet = {}
-local Array2DFns = require 'filter.array_2D_fns'
-local CDF_97 = require 'wavelet.cdf_97'
+local Array2DFns = require 'lib.terrain.filter.array_2D_fns'
+local CDF_97 = require 'lib.terrain.wavelet.cdf_97'
 
 local transform = CDF_97
 
