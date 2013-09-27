@@ -327,7 +327,7 @@ bool Renderer::IsRunning() const
    return true;
 }
 
-csg::Ray3 Renderer::GetCameraToViewportRay(int windowX, int windowY)
+void Renderer::GetCameraToViewportRay(int windowX, int windowY, csg::Ray3* ray)
 {
    // compute normalized window coordinates in preparation for casting a ray
    // through the scene
@@ -336,42 +336,55 @@ csg::Ray3 Renderer::GetCameraToViewportRay(int windowX, int windowY)
 
    // calculate the ray starting at the eye position of the camera, casting
    // through the specified window coordinates into the scene
-   csg::Ray3 ray;   
-
    h3dutPickRay(camera_->GetNode(), nwx, nwy,
-                &ray.origin.x, &ray.origin.y, &ray.origin.z,
-                &ray.direction.x, &ray.direction.y, &ray.direction.z);
-
-   return ray;
+                &ray->origin.x, &ray->origin.y, &ray->origin.z,
+                &ray->direction.x, &ray->direction.y, &ray->direction.z);
 }
 
-void Renderer::QuerySceneRay(int windowX, int windowY, om::Selection &result)
+void Renderer::CastRay(const csg::Point3f& origin, const csg::Point3f& direction, RayCastResult* result)
 {
-   if (!rootRenderObject_) {
-      return;
-   }
-
-   float nwx = ((float)windowX) / width_;
-   float nwy = 1.0f - ((float)windowY) / height_;
-   float ox, oy, oz, dx, dy, dz;
-
-   h3dutPickRay(camera_->GetNode(), nwx, nwy, &ox, &oy, &oz, &dx, &dy, &dz);
-
-	if (h3dCastRay(rootRenderObject_->GetNode(), ox, oy, oz, dx, dy, dz, 1) == 0) {
+   result->is_valid = false;
+   if (h3dCastRay(rootRenderObject_->GetNode(),
+      origin.x, origin.y, origin.z,
+      direction.x, direction.y, direction.z, 1) == 0) {
 		return;
 	}
 
    // Pull out the intersection node and intersection point
 	H3DNode node = 0;
-   csg::Point3f pt, normal;
-	if (!h3dGetCastRayResult( 0, &node, 0, &pt.x, &normal.x )) {
+	if (!h3dGetCastRayResult( 0, &(result->node), 0, &(result->point.x), &(result->normal.x) )) {
       return;
    }
-   normal.Normalize();
-   assert(node);
+   result->origin = origin;
+   result->direction = direction;
+   result->normal.Normalize();
+   result->is_valid = true;
+}
 
-   result.AddLocation(csg::Point3f(pt.x, pt.y, pt.z),
-                      csg::Point3f(normal.x, normal.y, normal.z));
+void Renderer::CastScreenCameraRay(int windowX, int windowY, RayCastResult* result)
+{
+   result->is_valid = false;
+
+   if (!rootRenderObject_) {
+      return;
+   }
+
+   csg::Ray3 ray;
+   GetCameraToViewportRay(windowX, windowY, &ray);
+
+   CastRay(ray.origin, ray.direction, result);
+}
+
+void Renderer::QuerySceneRay(int windowX, int windowY, om::Selection &result)
+{
+   RayCastResult r;
+   CastScreenCameraRay(windowX, windowY, &r);
+   if (!r.is_valid) {
+      return;
+   }
+
+   result.AddLocation(csg::Point3f(r.point.x, r.point.y, r.point.z),
+                      csg::Point3f(r.normal.x, r.normal.y, r.normal.z));
 
    // Lookup the intersection object in the node registery and ask it to
    // fill in the selection structure.
@@ -386,7 +399,7 @@ void Renderer::QuerySceneRay(int windowX, int windowY, om::Selection &result)
          csg::Matrix4 transform = GetNodeTransform(node);
          transform.affine_inverse();
 
-         i->second(result, ray, transform.transform(pt), transform.rotate(normal));
+         i->second(result, ray, transform.transform(r.point), transform.rotate(r.normal));
       }
       node = h3dGetNodeParent(node);
    }

@@ -36,6 +36,19 @@ enum ViewMode {
    MaxViewModes
 };
 
+struct RayCastResult
+{
+   csg::Point3f point;
+   csg::Point3f normal;
+   
+   csg::Point3f origin;
+   csg::Point3f direction;
+
+   H3DNode      node;
+   bool         is_valid;
+};
+
+
 class Renderer
 {
    public:
@@ -74,7 +87,9 @@ class Renderer
       typedef std::function<void(om::Selection& sel, const csg::Ray3& ray, const csg::Point3f& intersection, const csg::Point3f& normal)> UpdateSelectionFn;
       dm::Guard TraceSelected(H3DNode node, UpdateSelectionFn fn);
 
-      csg::Ray3 GetCameraToViewportRay(int windowX, int windowY);
+      void GetCameraToViewportRay(int windowX, int windowY, csg::Ray3* ray);
+      void CastRay(const csg::Point3f& origin, const csg::Point3f& direction, RayCastResult* result);
+      void CastScreenCameraRay(int windowX, int windowY, RayCastResult* result);
       void QuerySceneRay(int windowX, int windowY, om::Selection &result);
 
       typedef std::function<void (const Input&)> InputEventCb;

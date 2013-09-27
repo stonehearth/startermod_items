@@ -42,6 +42,17 @@ static csg::Point3f Camera_GetLeft() {
    return left;
 }
 
+static RayCastResult Scene_CastRay(const csg::Point3f& origin, const csg::Point3f& direction) {
+   RayCastResult r;
+   Renderer::GetInstance().CastRay(origin, direction, &r);
+   return r;
+}
+
+static RayCastResult Scene_CastScreenRay(double windowX, double windowY) {
+   RayCastResult r;
+   Renderer::GetInstance().CastScreenCameraRay((int)windowX, (int)windowY, &r);
+   return r;
+}
 static int Screen_GetWidth() {
    return Renderer::GetInstance().GetWidth();
 }
@@ -49,6 +60,13 @@ static int Screen_GetWidth() {
 static int Screen_GetHeight() {
    return Renderer::GetInstance().GetHeight();
 }
+
+std::ostream& operator<<(std::ostream& os, const RayCastResult& in)
+{
+   os << in.is_valid << ", " << in.point;
+   return os;
+}
+
 
 void LuaRenderer::RegisterType(lua_State* L)
 {
@@ -59,6 +77,15 @@ void LuaRenderer::RegisterType(lua_State* L)
                def("translate",    &Camera_Translate),
                def("get_forward",  &Camera_GetForward),
                def("get_left",     &Camera_GetLeft)
+            ],
+            namespace_("scene") [
+               lua::RegisterType<RayCastResult>("RayCastResult")
+                  .def(tostring(const_self))
+                  .def(constructor<>())
+                  .def_readonly("is_valid",          &RayCastResult::is_valid)
+                  .def_readonly("point",             &RayCastResult::point),
+               def("cast_screen_ray",    &Scene_CastScreenRay),
+               def("cast_ray",    &Scene_CastRay)
             ],
             namespace_("screen") [
                def("get_width",   &Screen_GetWidth),
