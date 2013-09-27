@@ -1,4 +1,4 @@
-local Inventory = require 'lib.inventory'
+local Inventory = require 'lib.inventory.faction_inventory'
 
 local stonehearth_inventory = {}
 local singleton = {}

@@ -1,8 +1,8 @@
 local Point3 = _radiant.csg.Point3
-local CreateStockpile = class()
+local InventoryCallHandler = class()
 
 -- runs on the client!!
-function CreateStockpile:choose_stockpile_location(session, response)
+function InventoryCallHandler:choose_stockpile_location(session, response)
    -- create a new "cursor entity".  this is the entity that will move around the
    -- screen to preview where the workbench will go.  these entities are called
    -- "authoring entities", because they exist only on the client side to help
@@ -29,7 +29,7 @@ function CreateStockpile:choose_stockpile_location(session, response)
                box.max.x - box.min.x + 1,
                box.max.z - box.min.z + 1,
             }
-            _radiant.call_obj('stonehearth_inventory', 'create_stockpile', box.min, size)
+            _radiant.call_obj('stonehearth', 'create_stockpile', box.min, size)
                      :done(function(r)
                            response:resolve(r)
                         end)
@@ -43,10 +43,10 @@ function CreateStockpile:choose_stockpile_location(session, response)
 end
 
 -- runs on the server!
-function CreateStockpile:create_stockpile(session, response, location, size)
-   local inventory = require('api').get_inventory(session.faction)
+function InventoryCallHandler:create_stockpile(session, response, location, size)
+   local inventory = require('lib.inventory.inventory').get_inventory(session.faction)
    inventory:create_stockpile(location, size)
    return true
 end
 
-return CreateStockpile
+return InventoryCallHandler

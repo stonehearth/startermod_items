@@ -1,6 +1,7 @@
 -- make sure critical libaries get loaded immediately
 local timekeeper = require 'lib.calendar.timekeeper'
 local name_generator = require 'lib.factions.name_generator'
+local inventory = require 'lib.inventory.inventory'
 local WorkerScheduler = require 'lib.worker_scheduler.worker_scheduler'
 
 local api = {}
@@ -27,6 +28,10 @@ function api.get_worker_scheduler(faction)
       worker_schedulers[faction] = scheduler
    end
    return scheduler
+end
+
+function api.get_inventory(faction)
+   return inventory.get_inventory(faction)
 end
 
 return api
