@@ -15,7 +15,7 @@ public:
 
    float GetDuration();
 
-   typedef std::function<void(std::string, const csg::Transform &)> AnimationFn;
+   typedef std::function<void(std::string&, const csg::Transform &)> AnimationFn;
    void MoveNodes(int32 timeOffset, AnimationFn fn);
    bool HasBone(std::string bone);
 

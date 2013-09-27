@@ -224,7 +224,7 @@ void RenderAnimationEffect::Update(int now, int dt, bool& finished)
       }
    }
 
-   animation_->MoveNodes(offset, [&](std::string bone, const csg::Transform &transform) {
+   animation_->MoveNodes(offset, [&](std::string& bone, const csg::Transform &transform) {
       H3DNode node = entity_.GetSkeleton().GetSceneNode(bone);
       if (node) {
          MoveSceneNode(node, transform, entity_.GetSkeleton().GetScale());

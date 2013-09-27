@@ -128,8 +128,9 @@ function WorldGenerator:_build_zone_order_list(map)
          dx = i-center_x
          dy = j-center_y
 
-         angle = math.atan2(dy, dx) -- break ties in radial order
-         coord_info.dist_metric = dx*dx + dy*dy + angle/1000000
+         -- break ties in radial order
+         angle = self:_get_angle(dy, dx)
+         coord_info.dist_metric = dx*dx + dy*dy + angle/1000
 
          zone_order[#zone_order+1] = coord_info
       end
@@ -140,6 +141,17 @@ function WorldGenerator:_build_zone_order_list(map)
    end
    table.sort(zone_order, compare_zone)
    return zone_order
+end
+
+function WorldGenerator:_get_angle(dy, dx)
+   local pi = math.pi
+
+   -- normalize angle to a range of 0 - 2pi
+   local value = math.atan2(dy, dx) + pi
+
+   -- move minimum to 45 degrees (pi/4) so fill order looks better
+   if value < pi/4 then value = value + 2*pi end
+   return value
 end
 
 return WorldGenerator
