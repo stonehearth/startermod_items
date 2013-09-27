@@ -12,12 +12,16 @@
          "mixins.tree" : "file(mixins/tree)",
          "mixins.worker_job" : "file(mixins/worker_job)",
          "mixins.carpenter_job" : "file(mixins/carpenter_job)",
+         "mixins.item_properties" : "file(mixins/item_properties)",
+         "mixins.placed_properties" : "file(mixins/placed_properties)",
+
+         "default_object" : "file(entities/generic/default_object)",
 
          "carpenter_workbench" : "file(entities/jobs/carpenter/carpenter_workbench)",
          "carpenter_outfit" : "file(entities/jobs/carpenter/carpenter_outfit)",
          "carpenter_intermediate_item" : "file(entities/jobs/carpenter/carpenter_intermediate_item)",
 
-         "worker_outfit" : "file(entities/worker_outfit)",
+         "worker_outfit" : "file(entities/jobs/worker/worker_outfit)",
 
          "worker_axe" : "file(entities/tools/worker_axe)",
          "worker_hammer" : "file(entities/tools/worker_hammer)",
@@ -37,6 +41,51 @@
          "small_juniper_tree" : "file(entities/trees/juniper_tree/small_juniper_tree)",
          "medium_juniper_tree" : "file(entities/trees/juniper_tree/medium_juniper_tree)",
          "large_juniper_tree" : "file(entities/trees/juniper_tree/large_juniper_tree)",
+
+         "arch_backed_chair" :       "file(entities/furniture/arch_backed_chair)",
+         "arch_backed_chair_proxy" : "file(entities/furniture/arch_backed_chair/arch_backed_chair_proxy.json)",
+
+         "carpenter_saw" : "file(entities/tools/carpenter_saw)",
+
+         "cloth_bolt" : "file(entities/crafting_materials/cloth_bolt)",
+
+         "comfy_bed" :       "file(entities/furniture/comfy_bed)",
+         "comfy_bed_proxy" : "file(entities/furniture/comfy_bed/comfy_bed_proxy.json)",
+
+         "dining_table" : "file(entities/furniture/dining_table)",
+         "dining_table_proxy" : "file(entities/furniture/dining_table/dining_table_proxy.json)",
+
+         "fire_pit" : "file(entities/gizmos/fire_pit)",
+         "fire_pit_proxy" : "file(entities/gizmos/fire_pit/fire_pit_proxy.json)",
+
+         "not_much_of_a_bed" : "file(entities/furniture/not_much_of_a_bed)",
+         "not_much_of_a_bed_proxy" : "file(entities/furniture/not_much_of_a_bed/not_much_of_a_bed_proxy.json)",
+
+         "picket_fence" : "file(entities/construction/picket_fence)",
+         "picket_fence_proxy" : "file(entities/construction/picket_fence/picket_fence_proxy.json)",
+
+         "picket_fence_gate" : "file(entities/construction/picket_fence_gate)",
+         "picket_fence_gate_proxy" : "file(entities/construction/picket_fence_gate/picket_fence_gate_proxy.json)",
+
+         "simple_wooden_chair" : "file(entities/furniture/simple_wooden_chair)",
+         "simple_wooden_chair_proxy" : "file(entities/furniture/simple_wooden_chair/simple_wooden_chair_proxy.json)",
+
+         "spindle" : "file(entities/tools/spindle)",
+
+         "spool_of_thread" : "file(entities/crafting_materials/spool_of_thread)",
+
+         "table_for_one" : "file(entities/furniture/table_for_one)",
+         "table_for_one_proxy" : "file(entities/furniture/table_for_one/table_for_one_proxy.json)",
+
+         "wooden_buckler" : "file(entities/armor/wooden_buckler)",
+
+         "wooden_door" : "file(entities/construction/wooden_door)",
+         "wooden_door_proxy" : "file(entities/construction/wooden_door/wooden_door_proxy.json)",
+
+         "wooden_sword" : "file(entities/weapons/wooden_sword)",
+
+         "wooden_window_frame" : "file(entities/construction/wooden_window_frame)",
+         "wooden_window_frame_proxy" : "file(entities/construction/wooden_window_frame/wooden_window_frame_proxy.json)",
 
          "actions.attack_action" : "file(lib/ai/actions/attack_action.lua)",
          "actions.flee_action" : "file(lib/ai/actions/flee_action.lua)",
@@ -90,13 +139,42 @@
          "harvest_tree" : {
             "controller": "file(lib/resource_node/resource_node_call_handler.lua)",
             "endpoint" : "server"
-         }         
+         },
+         "get_worker_tracker" : {
+            "endpoint" : "server",
+            "controller" : "file(lib/object_tracker/object_tracker_call_handler.lua)"
+         },
+         "get_placable_items_tracker" : {
+            "endpoint" : "server",
+            "controller" : "file(lib/object_tracker/object_tracker_call_handler.lua)"
+         },
+         "grab_promotion_talisman" : {
+            "endpoint" : "server",
+            "controller" : "file(lib/jobs/jobs_call_handler.lua)"
+         },
+         "choose_place_item_location" : {
+            "endpoint" : "client",
+            "controller" : "file(lib/place_item/place_item_call_handler.lua)"
+         },
+         "place_item_in_world" : {
+            "endpoint" : "server",
+            "controller" : "file(lib/place_item/place_item_call_handler.lua)"
+         },
+         "place_item_type_in_world" : {
+            "endpoint" : "server",
+            "controller" : "file(lib/place_item/place_item_call_handler.lua)"
+         }
       }
    },
    "components" :  {
       "leash" : "file(lib/components/leash.lua)",
       "workshop" : "file(lib/components/workshop_component.lua)",
-      "crafter"  : "file(lib/components/crafter_component.lua)"
+      "crafter"  : "file(lib/components/crafter_component.lua)",
+      "talisman_promotion_info" : "file(lib/components/talisman_promotion_info.lua)",
+      "job_info": "file(lib/components/job_info.lua)",
+      "placeable_item_proxy" : "file(lib/components/placeable_item_proxy.lua)",
+      "placeable_item_pointer": "file(lib/components/placeable_item_pointer.lua)",
+      "firepit" : "file(lib/components/firepit.lua)"
    },
    "loader" :  {
       "ui" : {
@@ -111,20 +189,37 @@
          "file(/html/stonehearth_modal_overlay.html)",
          "file(lib/calendar/clock_widget.html)",
          "file(lib/crafter/show_workshop.html)",
-         "file(lib/crafter/build_workshop.html)"
+         "file(lib/crafter/build_workshop.html)",
+         "file(lib/unit_frame/unit_frame.html)",
+         "file(lib/people_picker/people_picker.html)",
+         "file(src/ui/title/title.html)",
+         "file(src/ui/game/game.html)",
+         "file(src/ui/game/promote/promote.html)",
+         "file(src/ui/game/item_placement/item_placement.html)"
       ],
       "js" : [
          "file(/html/js/stonehearth_modal_overlay.js)",
          "file(lib/calendar/clock_widget.js)",
          "file(lib/crafter/show_workshop.js)",
-         "file(lib/crafter/build_workshop.js)"
+         "file(lib/crafter/build_workshop.js)",
+         "file(lib/people_picker/people_picker.js)",
+         "file(lib/unit_frame/unit_frame.js)",
+         "file(src/ui/title/title.js)",
+         "file(src/ui/game/game.js)",
+         "file(src/ui/game/promote/promote.js)",
+         "file(src/ui/game/item_placement/item_placement.js)"         
       ],
       "less" : [
          "file(/html/css/stonehearth_modal_overlay.less)",
          "file(lib/calendar/clock_widget.less)",
          "file(lib/crafter/show_workshop.less)",
-         "file(lib/crafter/build_workshop.less)"
+         "file(lib/crafter/build_workshop.less)",
+         "file(lib/people_picker/people_picker.less)",
+         "file(lib/unit_frame/unit_frame.less)",
+         "file(src/ui/title/title.less)",
+         "file(src/ui/game/game.less)",
+         "file(src/ui/game/promote/promote.less)",
+         "file(src/ui/game/item_placement/item_placement.less)"         
       ]
    }
 }
-

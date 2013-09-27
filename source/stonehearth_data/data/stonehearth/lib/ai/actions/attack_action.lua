@@ -1,7 +1,7 @@
 local AttackAction = class()
 
 AttackAction.name = 'stonehearth.actions.attack'
-AttackAction.does = 'stonehearth.activities.top'
+AttackAction.does = 'stonehearth.top'
 AttackAction.priority = 0
 
 function AttackAction:__init(ai, entity)
@@ -24,7 +24,7 @@ end
 --- xxx
 function AttackAction:run(ai, entity)
    assert(self._target)
-   ai:execute('stonehearth.activities.goto_entity', self._target)
+   ai:execute('stonehearth.goto_entity', self._target)
    self._ai:set_action_priority(self, 0)
 end
 

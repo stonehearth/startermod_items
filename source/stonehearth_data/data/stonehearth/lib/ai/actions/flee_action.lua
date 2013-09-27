@@ -4,7 +4,7 @@ local Point3 = _radiant.csg.Point3
 local Vec3 = _radiant.csg.Point3f
 
 FleeAction.name = 'stonehearth.actions.flee'
-FleeAction.does = 'stonehearth.activities.top'
+FleeAction.does = 'stonehearth.top'
 FleeAction.priority = 0
 
 function FleeAction:__init(ai, entity)
@@ -44,7 +44,7 @@ function FleeAction:run(ai, entity)
                           my_location.y + (my_location.x - target_location.y),
                           my_location.z + (my_location.x - target_location.z))
 
-   ai:execute('stonehearth.activities.goto_location', flee_location)
+   ai:execute('stonehearth.goto_location', flee_location)
 end
 
 return FleeAction

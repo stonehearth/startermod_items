@@ -1,0 +1,18 @@
+{
+   "extends": "stonehearth.mixins.item_properties",
+   "type": "entity",
+   "components": {
+      "model_variants": [
+         {
+            "models": [
+               "file(wooden_sword.qb)"
+            ]
+         }
+      ],
+      "unit_info": {
+         "name": "Wooden Sword",
+         "description": "Notched from many smites.",
+         "icon" : "file(wooden_sword.png)"
+      }
+   }
+}

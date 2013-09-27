@@ -7,7 +7,7 @@ radiant.mods.require('stonehearth.api') -- make sure it's loaded...
 local SleepAction = class()
 
 SleepAction.name = 'stonehearth.actions.sleep'
-SleepAction.does = 'stonehearth.activities.top'
+SleepAction.does = 'stonehearth.top'
 SleepAction.priority = 0
 
 function SleepAction:__init(ai, entity)
@@ -140,7 +140,7 @@ end
    
    SleepAction handles the bookkeeping of the sleep behavior. It tells the pathfinder to
    stop searching for a bed, grabs a lease on the bed if necessary, then kicks off
-   stonehearth.activities.sleep_in_bed to handle the specifics of how to go to sleep
+   stonehearth.sleep_in_bed to handle the specifics of how to go to sleep
    (like which animations to play)
 --]]
 function SleepAction:run(ai, entity)
@@ -169,7 +169,7 @@ function SleepAction:run(ai, entity)
 
    -- go to sleep!
    self._sleeping = true;
-   ai:execute('stonehearth.activities.sleep_in_bed', self._bed, self._path_to_bed)
+   ai:execute('stonehearth.sleep_in_bed', self._bed, self._path_to_bed)
    
 end
 

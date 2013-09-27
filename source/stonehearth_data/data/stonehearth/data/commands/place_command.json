@@ -1,0 +1,13 @@
+{
+   "type" : "command",
+
+   "name": "place_item",
+   "tooltip": "Place a full sized version in the world",
+   "icon": "file(/data/images/place_item_icon.png)",
+
+   "action": "fire_event",
+   "event_name" : "place_item.stonehearth_items",
+   "event_data" : {
+      "self": "{{self}}"
+   }
+}

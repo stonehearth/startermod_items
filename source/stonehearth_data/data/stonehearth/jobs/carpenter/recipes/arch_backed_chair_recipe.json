@@ -16,7 +16,7 @@
    ],
   "produces": [
       {
-         "item":"stonehearth_items.arch_backed_chair_proxy"
+         "item":"stonehearth.arch_backed_chair_proxy"
       }
   ]
 }

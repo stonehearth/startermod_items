@@ -1,7 +1,7 @@
 local DeathAction = class()
 
 DeathAction.name = 'stonehearth.actions.die'
-DeathAction.does = 'stonehearth.activities.top'
+DeathAction.does = 'stonehearth.top'
 DeathAction.priority = 0
 
 radiant.events.register_event('stonehearth.events.on_damage')

@@ -1,4 +1,10 @@
 {
+   "title_screen_exit": "exit",
+   "title_screen_settings": "settings",
+   "title_screen_credits": "credits",
+   "title_screen_new_game": "New Game",
+   "title_screen_load_game": "Load Game",
+
   "craft_number_left": "Craft",
   "craft_number_right": "right now.",
   "craft_up_to_left": "Maintain",
@@ -11,6 +17,14 @@
 
   "build_workshop_scroll_title" : "Carpenter's Wk (xxx param)",
   "build_workshop_pending" : "PENDING APPROVAL OF MATERIALS",
-  "build_workshop_approved" : "APPROVED!"
+  "build_workshop_approved" : "APPROVED!",
+  "promote_scroll_title": "Proclamation",
+  "promote_scroll_sub_title": "of Promotion!",
+  "promote_scroll_text_1" : "In honor of steadfast efforts and resilience, we hereby advance",
+  "promote_scroll_choose": "choose a citizen...",
+  "promote_scroll_text_2": "to the role of __promotionClass__ this __date__",
+  "item_placement_title": "Place",
+  "item_placement_description": "Place a full-sized version of the selected item somewhere in the world. Right click to rotate.",
+  "item_placement_no_entities": "There is nothing to place!"
 }
 

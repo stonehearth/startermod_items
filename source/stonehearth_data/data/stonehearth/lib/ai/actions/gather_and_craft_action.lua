@@ -17,7 +17,7 @@ local Point3 = _radiant.csg.Point3
 local GatherAndCraftAction = class()
 
 GatherAndCraftAction.name = 'stonehearth.actions.gather_and_craft'
-GatherAndCraftAction.does = 'stonehearth.activities.gather_and_craft'
+GatherAndCraftAction.does = 'stonehearth.gather_and_craft'
 GatherAndCraftAction.priority = 5
 
 function GatherAndCraftAction:__init(ai, entity)
@@ -46,19 +46,19 @@ function GatherAndCraftAction:run(ai, entity, recipe, ingredients)
       local item = ing_data.item
       if not radiant.entities.has_child_by_id(workshop_entity, item:get_id()) then 
          -- grab it!
-         ai:execute('stonehearth.activities.pickup_item', ing_data.item)
+         ai:execute('stonehearth.pickup_item', ing_data.item)
 
          -- bring it back!
-         ai:execute('stonehearth.activities.goto_entity', workshop_entity)
+         ai:execute('stonehearth.goto_entity', workshop_entity)
 
          -- drop it!!
-         ai:execute('stonehearth.activities.run_effect', 'carry_putdown_on_table')
+         ai:execute('stonehearth.run_effect', 'carry_putdown_on_table')
          radiant.entities.add_child(workshop_entity, item, Point3(0, 1, 0))
          entity:get_component('carry_block'):set_carrying(nil)
       end
    end
    -- Once everything's gathered, then craft
-   ai:execute('stonehearth.activities.craft')
+   ai:execute('stonehearth.craft')
 end
 
 return GatherAndCraftAction

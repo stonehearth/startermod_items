@@ -140,7 +140,7 @@ function BehaviorManager:restart()
 
    self._co = radiant.ai._create_thread(self, function()
       while not self._dead do
-         self:execute('stonehearth.activities.top')
+         self:execute('stonehearth.top')
       end
    end)
 

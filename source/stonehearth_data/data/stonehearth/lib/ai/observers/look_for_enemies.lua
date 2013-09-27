@@ -1,7 +1,7 @@
 local LookForEnemies = class()
 
 LookForEnemies.name = 'stonehearth.actions.chase'
-LookForEnemies.does = 'stonehearth.activities.top'
+LookForEnemies.does = 'stonehearth.top'
 LookForEnemies.priority = 0
 
 function LookForEnemies:__init(entity)

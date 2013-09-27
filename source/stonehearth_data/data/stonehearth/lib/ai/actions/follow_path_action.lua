@@ -1,7 +1,7 @@
 local FollowPathAction = class()
 
 FollowPathAction.name = 'stonehearth.actions.follow_path'
-FollowPathAction.does = 'stonehearth.activities.follow_path'
+FollowPathAction.does = 'stonehearth.follow_path'
 FollowPathAction.priority = 1
 
 function FollowPathAction:run(ai, entity, path)

@@ -12,8 +12,8 @@ function SleepTest:__init()
 
    self:place_citizen(0, 0)
    self:place_citizen(-3, -3)
-   self:place_item('stonehearth_items.comfy_bed', -8, -8)
-   self:place_item('stonehearth_items.comfy_bed', -8, 8)
+   self:place_item('stonehearth.comfy_bed', -8, -8)
+   self:place_item('stonehearth.comfy_bed', -8, 8)
    local tree = self:place_tree(-12, -12)
 
    ---[[

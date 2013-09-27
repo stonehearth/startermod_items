@@ -9,7 +9,7 @@
 local CheckCraftableAction = class()
 
 CheckCraftableAction.name = 'stonehearth.actions.check_craftable'
-CheckCraftableAction.does = 'stonehearth.activities.top'
+CheckCraftableAction.does = 'stonehearth.top'
 CheckCraftableAction.priority = 0
 
 function CheckCraftableAction:__init(ai, entity)
@@ -60,15 +60,15 @@ CheckCraftableAction['radiant.events.gameloop'] = function(self)
    local new_priority = 0
 
    if workshop:is_currently_crafting() then
-      self._next_activity = {'stonehearth.activities.craft'}
+      self._next_activity = {'stonehearth.craft'}
       new_priority = 5
    elseif workshop:has_bench_outputs() then
-      self._next_activity = {'stonehearth.activities.fill_outbox'}
+      self._next_activity = {'stonehearth.fill_outbox'}
       new_priority = 5
    else
       local recipe, ingredient_data = workshop:establish_next_craftable_recipe()
       if recipe then
-         self._next_activity = {'stonehearth.activities.gather_and_craft', recipe, ingredient_data}
+         self._next_activity = {'stonehearth.gather_and_craft', recipe, ingredient_data}
          new_priority = 5
       end
    end

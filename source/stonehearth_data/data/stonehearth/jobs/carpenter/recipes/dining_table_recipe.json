@@ -16,7 +16,7 @@
   ],
   "produces": [
       {
-         "item":"stonehearth_items.dining_table_proxy"
+         "item":"stonehearth.dining_table_proxy"
       }
   ]
 }

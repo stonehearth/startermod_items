@@ -1,7 +1,7 @@
 {
    "extends": "stonehearth.mixins.crafter_job",
    "components": {
-      "stonehearth_classes:job_info": {
+      "stonehearth:job_info": {
          "class_script": "/stonehearth/jobs/carpenter/carpenter.lua",
          "icon": "file(/images/saw_icon.png)",
          "id": "carpenter",

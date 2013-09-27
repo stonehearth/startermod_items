@@ -16,7 +16,7 @@
   ],
   "produces": [
       {
-         "item":"stonehearth_items.wooden_door_proxy"
+         "item":"stonehearth.wooden_door_proxy"
       }
   ]
 }

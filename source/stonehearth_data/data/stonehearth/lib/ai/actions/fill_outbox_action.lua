@@ -9,7 +9,7 @@ local Point3 = _radiant.csg.Point3
 local FillOutboxAction = class()
 
 FillOutboxAction.name = 'stonehearth.actions.fill_outbox'
-FillOutboxAction.does = 'stonehearth.activities.fill_outbox'
+FillOutboxAction.does = 'stonehearth.fill_outbox'
 FillOutboxAction.priority = 5
 
 function FillOutboxAction:__init(ai, entity)
@@ -35,8 +35,8 @@ function FillOutboxAction:run(ai, entity)
       self._curr_carry = workshop:pop_bench_output()
 
       --TODO: pickup from table action which removes from a parent entity
-      --ai:execute('stonehearth.activities.run_effect', 'pickup_item_from_table')
-      ai:execute('stonehearth.activities.pickup_item', self._curr_carry, workshop_entity)
+      --ai:execute('stonehearth.run_effect', 'pickup_item_from_table')
+      ai:execute('stonehearth.pickup_item', self._curr_carry, workshop_entity)
 
       --Find path
       --Something like:
@@ -51,9 +51,9 @@ function FillOutboxAction:run(ai, entity)
       ai:wait_until(function()
          return path ~= nil
       end)
-      ai:execute('stonehearth.activities.follow_path', path)
+      ai:execute('stonehearth.follow_path', path)
       local drop_location = path:get_finish_point()
-      ai:execute('stonehearth.activities.drop_carrying', drop_location)
+      ai:execute('stonehearth.drop_carrying', drop_location)
       self._curr_carry = nil
 
       --If the user has paused progress, don't continue

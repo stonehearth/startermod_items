@@ -16,7 +16,7 @@
    ],
   "produces": [
       {
-         "item":"stonehearth_items.wooden_buckler"
+         "item":"stonehearth.wooden_buckler"
       }
   ]
 }

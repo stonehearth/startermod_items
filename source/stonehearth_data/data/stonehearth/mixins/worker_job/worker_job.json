@@ -1,6 +1,6 @@
 {
    "components": {
-      "stonehearth_classes:job_info": {
+      "stonehearth:job_info": {
          "id": "worker", 
          "name": "Worker",
          "class_script": "/stonehearth/jobs/worker/worker.lua",

@@ -1,7 +1,7 @@
 local IdleLookAroundAction = class()
 
 IdleLookAroundAction.name = 'stonehearth.actions.look_around'
-IdleLookAroundAction.does = 'stonehearth.activities.idle'
+IdleLookAroundAction.does = 'stonehearth.idle'
 IdleLookAroundAction.priority = 0
 
 function IdleLookAroundAction:__init(ai, entity)
@@ -20,7 +20,7 @@ IdleLookAroundAction['radiant.events.very_slow_poll'] = function(self)
 end
 
 function IdleLookAroundAction:run(ai, entity)
-   ai:execute('stonehearth.activities.run_effect', 'look_around')
+   ai:execute('stonehearth.run_effect', 'look_around')
    ai:set_action_priority(self, 0)
 end
 

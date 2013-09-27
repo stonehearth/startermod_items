@@ -16,7 +16,7 @@
   ],
   "produces": [
       {
-         "item":"stonehearth_items.picket_fence_proxy"
+         "item":"stonehearth.picket_fence_proxy"
       }
   ]
 }

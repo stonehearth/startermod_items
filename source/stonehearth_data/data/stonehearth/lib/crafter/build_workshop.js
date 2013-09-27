@@ -115,25 +115,6 @@ App.StonehearthCrafterBuildWorkshopView = App.View.extend({
       $('#approveButton')
          .show()
          .pulse();
-
-      /*
-      var self = this;
-      var picker = App.gameView.addView(App.StonehearthPeoplePickerView, {
-         uri: '/server/objects/stonehearth_census/worker_tracker',
-         title: 'Choose the worker to promote', //xxx localize
-         css: {
-            top: 350,
-            left: 105
-         },
-         callback: function(person) {
-            self.set('context.citizenToPromote', person);
-
-            $('#promoteButton')
-               .show()
-               .pulse()
-         }
-      });
-      */
    }
 
 });

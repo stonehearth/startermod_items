@@ -16,7 +16,7 @@
   ],
   "produces": [
       {
-         "item":"stonehearth_items.wooden_sword"
+         "item":"stonehearth.wooden_sword"
       }
   ]
 }

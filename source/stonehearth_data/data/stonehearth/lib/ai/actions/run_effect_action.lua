@@ -1,7 +1,7 @@
 local RunEffectAction = class()
 
 RunEffectAction.name = 'stonehearth.actions.run_effect'
-RunEffectAction.does = 'stonehearth.activities.run_effect'
+RunEffectAction.does = 'stonehearth.run_effect'
 RunEffectAction.priority = 1
 
 function RunEffectAction:run(ai, entity, effect_name, ...)
