@@ -17,6 +17,6 @@
       "render_info" : {
          "scale" : 0.22
       },
-      "stonehearth_sleep_system:bed": {}
+      "stonehearth:bed": {}
    }
 }

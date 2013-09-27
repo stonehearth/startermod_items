@@ -20,7 +20,7 @@
 	   },
       "carry_block": {
       },
-      "stonehearth_sleep_system:bed_lease" : {
+      "stonehearth:bed_lease" : {
       }
 	}
 }

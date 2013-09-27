@@ -1,9 +1,0 @@
-{
-   "info" :{
-      "name" : "Stonehearth Sleep System"
-   },
-   "components" : {
-      "bed" : "file(components/bed_component.lua)",
-      "bed_lease" : "file(components/bed_lease_component.lua)"
-   }
-}

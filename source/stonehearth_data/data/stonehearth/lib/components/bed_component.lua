@@ -18,7 +18,7 @@ end
 --]]
 function BedComponent:lease_bed_to(entity)
    self._owner = entity
-   local bed_lease_component = entity:get_component('stonehearth_sleep_system:bed_lease')
+   local bed_lease_component = entity:get_component('stonehearth:bed_lease')
    bed_lease_component:set_bed(self._entity)
 end
 

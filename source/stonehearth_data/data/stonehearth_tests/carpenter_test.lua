@@ -50,7 +50,7 @@ function CarpenterTest:__init()
    --TODO: make a private stockpile
 
    --[[
-   local outbox_entity = radiant.entities.create_entity('/stonehearth_inventory.stockpile')
+   local outbox_entity = radiant.entities.create_entity('stonehearth.stockpile')
    local outbox_location = Point3(-8, 1, -12)
    radiant.terrain.place_entity(outbox_entity, outbox_location)
    local outbox_component = outbox_entity:get_component('radiant:stockpile')

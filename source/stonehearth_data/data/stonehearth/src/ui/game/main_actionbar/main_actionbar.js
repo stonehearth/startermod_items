@@ -28,7 +28,7 @@ App.StonehearthMainActionbarView = App.View.extend({
       var element = $('#mainActionbar');
       stonehearthMainActionbarElement = element;
 
-      var imagePath = '/stonehearth_main_actionbar/html/images/'
+      var imagePath = '/stonehearth/src/ui/game/main_actionbar/images/'
       element.boxmenu( {
          menu: {
             build: {

@@ -91,7 +91,7 @@ function SleepAction:find_a_bed(result_cb)
    local faction = self._entity:get_component('unit_info'):get_faction()
 
    -- the bed lease is a required component for the sleeping behavior to work
-   local bed_lease = self._entity:get_component('stonehearth_sleep_system:bed_lease')
+   local bed_lease = self._entity:get_component('stonehearth:bed_lease')
    if not bed_lease then
       radiant.log.warning('missing bed lease component.  ignoring sleep behavior.')
       return
@@ -111,7 +111,7 @@ function SleepAction:find_a_bed(result_cb)
       local filter_fn = function(item)
          -- radiant.log.info("looing for a bed")    
          -- xxx: only look for beds compatible with this entities faction
-         local bed_component = item:get_component('stonehearth_sleep_system:bed')
+         local bed_component = item:get_component('stonehearth:bed')
          if bed_component ~= nil then
             local owner = bed_component:get_owner()
             return owner == nil
@@ -151,7 +151,7 @@ function SleepAction:run(ai, entity)
    self:stop_looking_for_bed()
 
    -- renew our lease on the bed.
-   local bed_component = self._bed:get_component('stonehearth_sleep_system:bed')
+   local bed_component = self._bed:get_component('stonehearth:bed')
    local bed_owner = bed_component:get_owner()
    if bed_owner and bed_owner:get_id() ~= entity:get_id() then
       -- There's another lease on the bed that doesn't belong to us,
@@ -165,7 +165,7 @@ function SleepAction:run(ai, entity)
    
    radiant.log.info('leasing %s to %s', tostring(self._bed), tostring(self._entity))
    bed_component:lease_bed_to(entity)
-   entity:get_component('stonehearth_sleep_system:bed_lease'):set_bed(self._bed)
+   entity:get_component('stonehearth:bed_lease'):set_bed(self._bed)
 
    -- go to sleep!
    self._sleeping = true;
