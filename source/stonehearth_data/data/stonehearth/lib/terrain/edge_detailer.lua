@@ -1,6 +1,6 @@
-local TerrainType = require 'terrain_type'
-local HeightMap = require 'height_map'
-local InverseGaussianRandom = require 'math.inverse_gaussian_random'
+local TerrainType = require 'lib.terrain.terrain_type'
+local HeightMap = require 'lib.terrain.height_map'
+local InverseGaussianRandom = require 'lib.terrain.math.inverse_gaussian_random'
 local Point2 = _radiant.csg.Point2
 
 local EdgeDetailer = class()

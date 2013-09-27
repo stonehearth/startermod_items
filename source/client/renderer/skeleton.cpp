@@ -29,7 +29,7 @@ void Skeleton::Clear()
    _bones.clear();
 }
 
-H3DNode Skeleton::AttachEntityToBone(H3DRes res, std::string bone, csg::Point3f const& offset)
+H3DNode Skeleton::AttachEntityToBone(H3DRes res, const std::string& bone, csg::Point3f const& offset)
 {
    ASSERT(_parent);
 
@@ -51,7 +51,7 @@ void Skeleton::SetSceneNode(H3DNode parent)
    _parent = parent;
 }
 
-H3DNode Skeleton::GetSceneNode(std::string bone)
+H3DNode Skeleton::GetSceneNode(const std::string& bone)
 {
    ASSERT(_parent);
 
@@ -62,7 +62,7 @@ H3DNode Skeleton::GetSceneNode(std::string bone)
    return node;
 }
 
-H3DNode Skeleton::CreateBone(std::string bone)
+H3DNode Skeleton::CreateBone(const std::string& bone)
 {
    ostringstream name;
    name << "Skeleton " << _parent << " " + bone + " bone";

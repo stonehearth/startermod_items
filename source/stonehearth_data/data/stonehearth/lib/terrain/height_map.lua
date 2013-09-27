@@ -1,4 +1,4 @@
-local MathFns = require 'math.math_fns'
+local MathFns = require 'lib.terrain.math.math_fns'
 
 local HeightMap = class()
 

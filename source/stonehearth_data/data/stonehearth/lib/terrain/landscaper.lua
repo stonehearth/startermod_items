@@ -1,10 +1,10 @@
-local TerrainType = require 'terrain_type'
-local HeightMap = require 'height_map'
-local MathFns = require 'math.math_fns'
-local GaussianRandom = require 'math.gaussian_random'
-local FilterFns = require 'filter.filter_fns'
-local Wavelet = require 'wavelet.wavelet'
-local WaveletFns = require 'wavelet.wavelet_fns'
+local TerrainType = require 'lib.terrain.terrain_type'
+local HeightMap = require 'lib.terrain.height_map'
+local MathFns = require 'lib.terrain.math.math_fns'
+local GaussianRandom = require 'lib.terrain.math.gaussian_random'
+local FilterFns = require 'lib.terrain.filter.filter_fns'
+local Wavelet = require 'lib.terrain.wavelet.wavelet'
+local WaveletFns = require 'lib.terrain.wavelet.wavelet_fns'
 local Point3 = _radiant.csg.Point3
 
 local Landscaper = class()
@@ -153,82 +153,6 @@ end
 
 function get_tree_name(tree_type, tree_size)
    return tree_mod_name .. '.' .. tree_size .. '_' .. tree_type
-end
-
------
-
-function Landscaper:place_trees_old(zone_map)
-   local num_forests = 15
-   local i
-   for i=1, num_forests do
-      self:place_forest(zone_map)
-   end
-end
-
-function Landscaper:place_forest(zone_map)
-   local max_trees = 20
-   local margin_size = 4
-   local width = zone_map.width
-   local height = zone_map.height
-   local min_x = 1 + margin_size
-   local min_z = 1 + margin_size
-   local max_x = width - margin_size
-   local max_z = height - margin_size
-   local i, x, z, tree_name
-   local tree_type
-   local num_trees
-
-   tree_type = self:random_tree_type()
-   num_trees = math.random(1, max_trees)
-
-   x = math.random(min_x, max_x)
-   z = math.random(min_z, max_z)
-
-   for i=1, num_trees do
-      tree_name = self:random_tree(tree_type)
-      x, z = self:_next_coord(x, z, min_x, min_z, max_x, max_z)
-      self:_place_tree(tree_name, x, z)
-   end
-end
-
-function Landscaper:_next_coord(x, z, min_x, min_z, max_x, max_z)
-   local dx, dz, next_x, next_z
-
-   dx, dz = self:_next_delta(7, 32)
-
-   next_x = x + dx
-   if not MathFns.in_bounds(next_x, min_x, max_x) then
-      -- no longer uniformly distributed, and biases away from boundary
-      next_x = x - dx
-      assert(MathFns.in_bounds(next_x, min_x, max_x))
-   end
-
-   next_z = z + dz
-   if not MathFns.in_bounds(next_z, min_z, max_z) then
-      -- no longer uniformly distributed, and biases away from boundary
-      next_z = z - dz
-      assert(MathFns.in_bounds(next_z, min_z, max_z))
-   end
-
-   return next_x, next_z
-end
-
-function Landscaper:_next_delta(min_dist, max_dist)
-   local min_dist_squared = min_dist*min_dist
-   local max_dist_squared = max_dist*max_dist
-   local dx, dz, dist_squared
-
-   while true do
-      dx = math.random(-max_dist, max_dist)
-      dz = math.random(-max_dist, max_dist)
-      dist_squared = dx*dx + dz*dz
-
-      if MathFns.in_bounds(dist_squared, min_dist_squared, max_dist_squared) then
-         break
-      end
-   end
-
-   return dx, dz
 end
 
 return Landscaper
