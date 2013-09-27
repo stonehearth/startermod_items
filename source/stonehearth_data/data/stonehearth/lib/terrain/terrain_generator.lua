@@ -489,6 +489,8 @@ function TerrainGenerator:_quantize_height_map(height_map, enable_nonuniform_qua
 
    height_map:process_map(
       function (value)
+         -- BUG: this makes quantizer different across zones,
+         --      so this can cause edge tiles not to line up across zones
          if value <= zone_min_height then return zone_min_height end
 
          -- step_size depends on altitude and zone type
