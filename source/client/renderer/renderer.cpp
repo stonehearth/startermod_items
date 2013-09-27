@@ -388,8 +388,8 @@ void Renderer::QuerySceneRay(int windowX, int windowY, om::Selection &result)
 
    // Lookup the intersection object in the node registery and ask it to
    // fill in the selection structure.
-   csg::Ray3 ray(csg::Point3f(ox, oy, oz), csg::Point3f(dx, dy, dz));
-
+   H3DNode node = r.node;
+   csg::Ray3 ray(r.point, r.direction);
    while (node) {
       const char *name = h3dGetNodeParamStr(node, H3DNodeParams::NameStr);
       auto i = selectableCbs_.find(node);

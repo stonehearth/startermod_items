@@ -655,7 +655,8 @@ void Client::UpdateSelection(const MouseInput &mouse)
    om::Selection s;
    Renderer::GetInstance().QuerySceneRay(mouse.x, mouse.y, s);
 
-   csg::Ray3 r = Renderer::GetInstance().GetCameraToViewportRay(mouse.x, mouse.y);
+   csg::Ray3 r;
+   Renderer::GetInstance().GetCameraToViewportRay(mouse.x, mouse.y, &r);
    om::EntityPtr stockpile = NULL;
 
    float minDistance = FLT_MAX;
