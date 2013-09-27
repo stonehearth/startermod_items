@@ -21,12 +21,9 @@ function carpenter_class.promote(entity, promotion_data)
    crafter_component:set_workshop(workshop_component)
    workshop_component:set_crafter(entity)
 
-
    --Slap a new outfit on the crafter
    local equipment = entity:add_component('stonehearth:equipment')
    equipment:equip_item('stonehearth.carpenter_outfit')
-
-
 end
 
 function carpenter_class.demote(entity)

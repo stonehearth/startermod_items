@@ -7,7 +7,7 @@
          ]
       },
       "render_info" : {
-         "animation_table": "file(/rigs/critters/mammoth)", 
+         "animation_table": "file(/data/rigs/critters/mammoth)", 
          "scale": 2
       },
       "model_variants": [
