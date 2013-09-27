@@ -23,7 +23,7 @@ function TrackerManager:get_worker_tracker(faction)
          local job_info = entity:get_component('stonehearth:job_info')
 
          return job_info and 
-                job_info:get_id() == 'worker' and
+                job_info:get_job_type() == 'worker' and
                 radiant.entities.get_faction(entity) == faction
       end
       return EntityTracker(filter_fn)

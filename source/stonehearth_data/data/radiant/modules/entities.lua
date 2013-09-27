@@ -64,10 +64,6 @@ function entities.destroy_entity(entity)
    _radiant.sim.destroy_entity(entity)
 end
 
-function entities.xxx_inject_into_entity(entity, ref)
-   return _radiant.sim.xxx_extend_entity(entity, ref)
-end
-
 function entities.add_child(parent, child, location)
    radiant.check.is_entity(parent)
    radiant.check.is_entity(child)

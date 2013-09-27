@@ -1,4 +1,16 @@
 {
+   "job_info" : {
+      "job_type": "carpenter",
+      "name": "Carpenter",      
+      "class_script": "/stonehearth/jobs/carpenter/carpenter.lua",
+      "icon": "file(/images/saw_icon.png)",
+      "description": "Has a saw and knows how to use it. Badassedly."
+   },
+   "crafter" : {
+      "work_effect": "saw",
+      "recipe_list": "/stonehearth/jobs/carpenter/recipes",
+      "intermediate_item": "stonehearth.carpenter_intermediate_item"
+   },
    "name": "Carpenter's Workshop",
    "description": "Has a saw and knows how to use it. Badassedly.",
    "long_description" : "xxx fix - The carpenter makes things from wood. Things you will need...quite a lot.\nSo honestly, you should really make this guy first. Otherwise you’re just asking for trouble.",

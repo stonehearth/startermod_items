@@ -71,7 +71,7 @@ function ai.inject_ai(entity, injecting_entity, ai)
 end
 
 function ai.revoke_injected_ai(ai_injector)
-   ai_injector.destroy()
+   ai_injector:destroy()
 end
 
 -- injecting entity may be null
