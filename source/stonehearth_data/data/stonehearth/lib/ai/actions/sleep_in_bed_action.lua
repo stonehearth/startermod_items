@@ -6,7 +6,7 @@
 local SleepInBedAction = class()
 
 SleepInBedAction.name = 'stonehearth.actions.sleep_in_bed'
-SleepInBedAction.does = 'stonehearth.activities.sleep_in_bed'
+SleepInBedAction.does = 'stonehearth.sleep_in_bed'
 SleepInBedAction.priority = 1
 
 
@@ -21,10 +21,10 @@ end
 function SleepInBedAction:run(ai, entity, bed, path) 
    -- renew our lease on the bed.
    -- walk over to the bed
-   ai:execute('stonehearth.activities.follow_path', path)
+   ai:execute('stonehearth.follow_path', path)
 
    -- get ready to go to sleep
-   ai:execute('stonehearth.activities.run_effect', 'yawn')
+   ai:execute('stonehearth.run_effect', 'yawn')
    
    -- move directly on top of the bed
    local bed_location = radiant.entities.get_world_grid_location(bed)
@@ -35,8 +35,8 @@ function SleepInBedAction:run(ai, entity, bed, path)
    radiant.entities.turn_to(entity, 180) -- xxx, when beds can be placed at aritrary rotations this will break
    
    -- goto sleep
-   ai:execute('stonehearth.activities.run_effect', 'goto_sleep')
-   ai:execute('stonehearth.activities.run_effect', 'sleep')
+   ai:execute('stonehearth.run_effect', 'goto_sleep')
+   ai:execute('stonehearth.run_effect', 'sleep')
 end
 
 return SleepInBedAction

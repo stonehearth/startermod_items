@@ -110,38 +110,42 @@ void RenderEffectList::UpdateEffects()
 
 RenderInnerEffectList::RenderInnerEffectList(RenderEntity& renderEntity, om::EffectPtr effect)
 {
-   std::string name = effect->GetName();
-   JSONNode const& data = res::ResourceManager2::GetInstance().LookupJson(name);
-   for (const JSONNode& node : data["tracks"]) {
-      std::string type = node["type"].as_string();
-      std::shared_ptr<RenderEffect> e;
-      if (type == "animation_effect") {
-         e = std::make_shared<RenderAnimationEffect>(renderEntity, effect, node); 
-      } else if (type == "attach_item_effect") {
-         e = std::make_shared<RenderAttachItemEffect>(renderEntity, effect, node); 
-      } else if (type == "floating_combat_text") {
-         e = std::make_shared<FloatingCombatTextEffect>(renderEntity, effect, node); 
-      } else if (type == "hide_bone") {
-         e = std::make_shared<HideBoneEffect>(renderEntity, effect, node); 
-      } else if (type == "music_effect") {
-         //Use this class if you just want simple, single-track background music
-         //e = std::make_shared<PlayMusicEffect>(renderEntity, effect, node); 
+   try {
+      std::string name = effect->GetName();
+      JSONNode const& data = res::ResourceManager2::GetInstance().LookupJson(name);
+      for (const JSONNode& node : data["tracks"]) {
+         std::string type = node["type"].as_string();
+         std::shared_ptr<RenderEffect> e;
+         if (type == "animation_effect") {
+            e = std::make_shared<RenderAnimationEffect>(renderEntity, effect, node); 
+         } else if (type == "attach_item_effect") {
+            e = std::make_shared<RenderAttachItemEffect>(renderEntity, effect, node); 
+         } else if (type == "floating_combat_text") {
+            e = std::make_shared<FloatingCombatTextEffect>(renderEntity, effect, node); 
+         } else if (type == "hide_bone") {
+            e = std::make_shared<HideBoneEffect>(renderEntity, effect, node); 
+         } else if (type == "music_effect") {
+            //Use this class if you just want simple, single-track background music
+            //e = std::make_shared<PlayMusicEffect>(renderEntity, effect, node); 
          
-         //Use this if you want the current bg music to fade out before new bg music starts to play
-         //TODO: remove this class when we have lua event interrupting
-         std::shared_ptr<SingMusicEffect> m = SingMusicEffect::GetMusicInstance(renderEntity);
-         m ->PlayMusic(effect, node); 
-         e = m;
-      } else if (type == "sound_effect") {
-         if (PlaySoundEffect::ShouldCreateSound()) {
-            e = std::make_shared<PlaySoundEffect>(renderEntity, effect, node); 
+            //Use this if you want the current bg music to fade out before new bg music starts to play
+            //TODO: remove this class when we have lua event interrupting
+            std::shared_ptr<SingMusicEffect> m = SingMusicEffect::GetMusicInstance(renderEntity);
+            m ->PlayMusic(effect, node); 
+            e = m;
+         } else if (type == "sound_effect") {
+            if (PlaySoundEffect::ShouldCreateSound()) {
+               e = std::make_shared<PlaySoundEffect>(renderEntity, effect, node); 
+            }
+         } else if (type == "cubemitter") {
+            e = std::make_shared<CubemitterEffect>(renderEntity, effect, node);
          }
-      } else if (type == "cubemitter") {
-         e = std::make_shared<CubemitterEffect>(renderEntity, effect, node);
+         if (e) {
+            effects_.push_back(e);
+         }
       }
-      if (e) {
-         effects_.push_back(e);
-      }
+   } catch (std::exception& e) {
+      LOG(WARNING) << "failed to create effect: " << e.what();
    }
 }
 
@@ -220,7 +224,7 @@ void RenderAnimationEffect::Update(int now, int dt, bool& finished)
       }
    }
 
-   animation_->MoveNodes(offset, [&](std::string bone, const csg::Transform &transform) {
+   animation_->MoveNodes(offset, [&](const std::string& bone, const csg::Transform &transform) {
       H3DNode node = entity_.GetSkeleton().GetSceneNode(bone);
       if (node) {
          MoveSceneNode(node, transform, entity_.GetSkeleton().GetScale());

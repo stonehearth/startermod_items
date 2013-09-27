@@ -400,7 +400,7 @@ CefRefPtr<CefResourceHandler> Browser::GetResourceHandler(CefRefPtr<CefBrowser> 
       return nullptr;
    }
 
-   std::string url = request->GetURL().ToString();
+   const CefString url = request->GetURL();
    
    CefURLParts url_parts;
    CefParseURL(url, url_parts);

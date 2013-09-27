@@ -18,8 +18,8 @@ function FirepitTest:__init()
 
    --self:place_stockpile_cmd(faction, -10, -10, 2, 2)
 
-   local firepit = self:place_item('stonehearth_items','fire_pit', 0, 0)
-   local comfy_bed = self:place_item('stonehearth_items.comfy_bed', 10, 11)
+   local firepit = self:place_item('stonehearth','fire_pit', 0, 0)
+   local comfy_bed = self:place_item('stonehearth.comfy_bed', 10, 11)
 end
 
 return FirepitTest

@@ -108,9 +108,12 @@ struct LuaCallback {
       cb_ = cb;
    }
 
+   void Destroy() {
+      cb_ = object();
+   }
+
    luabind::object      cb_;
 };
-
 struct CaptureInputPromise : public LuaCallback
 {
 };
@@ -203,10 +206,12 @@ void lua::client::open(lua_State* L)
             def("trace_render_frame",              &Client_TraceRenderFrame),
 
             lua::RegisterTypePtr<CaptureInputPromise>()
-               .def("on_input",           &CaptureInputPromise::Progress)
+               .def("on_input",          &CaptureInputPromise::Progress)
+               .def("destroy",           &CaptureInputPromise::Destroy)
             ,
             lua::RegisterTypePtr<TraceRenderFramePromise>()
-               .def("on_frame",           &TraceRenderFramePromise::Progress)
+               .def("on_frame",          &TraceRenderFramePromise::Progress)
+               .def("destroy",           &CaptureInputPromise::Destroy)
             ,
             lua::RegisterType<Input>()
                .enum_("constants") [
@@ -220,14 +225,14 @@ void lua::client::open(lua_State* L)
                .def_readonly("raw_input", &Input::raw_input)
             ,
             lua::RegisterType<MouseInput>()
-               .def_readonly("x",              &MouseInput::x)
-               .def_readonly("y",              &MouseInput::y)
-               .def_readonly("dx",             &MouseInput::dx)
-               .def_readonly("dy",             &MouseInput::dy)
-               .def_readonly("wheel",          &MouseInput::wheel)
+               .def_readonly("x",       &MouseInput::x)
+               .def_readonly("y",       &MouseInput::y)
+               .def_readonly("dx",      &MouseInput::dx)
+               .def_readonly("dy",      &MouseInput::dy)
+               .def_readonly("wheel",   &MouseInput::wheel)
                .def_readonly("in_client_area", &MouseInput::in_client_area)
-               .def("up",                      &MouseEvent_GetUp)
-               .def("down",                    &MouseEvent_GetDown)
+               .def("up",               &MouseEvent_GetUp)
+               .def("down",             &MouseEvent_GetDown)
             ,
             lua::RegisterType<KeyboardInput>()
             ,

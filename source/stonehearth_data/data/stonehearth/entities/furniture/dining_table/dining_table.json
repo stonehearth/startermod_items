@@ -1,0 +1,19 @@
+{
+   "extends": "stonehearth.mixins.placed_properties",
+   "type": "entity",
+   "components": {
+      "model_variants": [
+         {
+            "models": [
+               "file(dining_table.qb)"
+            ]
+         }
+      ],
+      "unit_info": {
+         "name": "Dining Table",
+         "description": "Sitting down to eat is a sign of civilization.",
+         "icon" : "file(dining_table.png)"
+
+      }
+   }
+}

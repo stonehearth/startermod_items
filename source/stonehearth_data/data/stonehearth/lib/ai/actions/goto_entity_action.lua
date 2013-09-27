@@ -1,7 +1,7 @@
 local GotoEntityAction = class()
 
 GotoEntityAction.name = 'stonehearth.actions.goto_entity'
-GotoEntityAction.does = 'stonehearth.activities.goto_entity'
+GotoEntityAction.does = 'stonehearth.goto_entity'
 GotoEntityAction.priority = 1
 --TODO we need a scale to  describe relative importance
 
@@ -21,7 +21,7 @@ function GotoEntityAction:run(ai, entity, target)
    ai:wait_until(function()
       return path ~= nil
    end)
-   ai:execute('stonehearth.activities.follow_path', path)
+   ai:execute('stonehearth.follow_path', path)
 end
 
 return GotoEntityAction

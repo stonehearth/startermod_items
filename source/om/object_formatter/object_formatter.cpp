@@ -45,9 +45,8 @@ JSONNode ObjectFormatter::ObjectToJson(dm::ObjectPtr obj) const
 
 dm::ObjectPtr ObjectFormatter::GetObject(dm::Store const& store, std::string const& path) const
 {
-   std::regex exp("/o/stores/([^/]*)/objects/(\\d+)");
+   static std::regex exp("/o/stores/([^/]*)/objects/(\\d+)");
    std::smatch match;
-
    if (std::regex_match(path, match, exp)) {
       std::string store_name = match[1].str();
       if (store.GetName() == store_name) {

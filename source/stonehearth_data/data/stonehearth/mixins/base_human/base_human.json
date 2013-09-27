@@ -18,17 +18,19 @@
 		  "ferocity": 1,
 		  "health": 50
 	   },
-	   "sensor_list" : {
-		  "sensors" : {
-			 "sight" : {
-				"type": "sensor",
-				"radius":   14
-			 }
-		  }
-	   },
+      "sensor_list": {
+         "sensors": {
+            "sight": {
+               "type": "sensor",
+               "radius": 6
+            }
+         }
+      },
       "carry_block": {
       },
-      "stonehearth_sleep_system:bed_lease" : {
+      "stonehearth:equipment" : {
+      },
+      "stonehearth:bed_lease" : {
       }
 	}
 }

@@ -41,6 +41,11 @@ run-%-test:
 run:
 	cd source/stonehearth_data && ../../build/source/client_app/$(MSBUILD_CONFIGURATION)/client_app.exe 
 
+# make a decoda project!
+.PHONY: decoda-project
+decoda-project:
+	scripts/make_decoda_project.py stonehearth.deproj source/stonehearth_data/data
+
 .PHONY: dependency-graph
 dependency-graph:
 	cmake -H. -Bbuild -G"Visual Studio 11" --graphviz=deps.dot

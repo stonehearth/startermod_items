@@ -10,23 +10,23 @@ function SleepTest:__init()
    self[MicroWorld]:__init()
    self:create_world()
 
-   self:place_citizen(0, 0)
-   self:place_citizen(-3, -3)
-   self:place_item('stonehearth_items.comfy_bed', -8, -8)
-   self:place_item('stonehearth_items.comfy_bed', -8, 8)
+   self:place_citizen(-8, 8)
+   self:place_citizen(8, 8)
+   self:place_item('stonehearth.comfy_bed', 0, 8)
+   self:place_item('stonehearth.comfy_bed', 0, 0)
    local tree = self:place_tree(-12, -12)
 
    ---[[
    --500ms seconds in, set the time of day to right before sleepy time
    self:at(500, function()
-      stonehearth_calendar.set_time(0, 45, 20)
+      --stonehearth_calendar.set_time(0, 45, 20)
    end)
    --]]
 
    ---[[
    --5000ms seconds in, set the time back to day
    self:at(10000, function()
-      stonehearth_calendar.set_time(0, 50, 11)
+      --stonehearth_calendar.set_time(0, 50, 11)
    end)
    --]]
 

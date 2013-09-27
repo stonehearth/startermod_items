@@ -1,0 +1,40 @@
+#tipPopup {
+   .blackBorder;
+   position: absolute;
+   right: 10px;
+   bottom: 10px;
+   width: 400px;
+   height: 75px;
+   background: rgba(0,0,0,0.7);
+   padding: 13px 10px 10px 75px;
+   color: #fff;
+
+   #icon {
+      position: absolute;
+      top: 8px;
+      left: 20px;
+   }
+
+   #title {
+      .outlined;
+      font-family: @controlFontFamily;
+      color: #ffda10;
+      font-size: 24px;
+   }
+
+   #description {
+      .textShadow;
+      position: absolute;
+      bottom: 10px;
+      font-style: italic;
+      font-size: 12px;
+
+   }
+}
+
+#tipPopup.blueprint {
+   background: #2870b2;
+   background-clip: padding-box;
+   border-width: 20px 20px 25px 20px;
+   border-image: url(./images/blueprint/bg.png) 20 20 25 20 repeat;
+}

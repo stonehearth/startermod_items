@@ -10,7 +10,6 @@ function MicroWorld:__init()
    self._times = {}
    self._timers = {}
    self._running = false
-   self._names = radiant.mods.get_singleton('stonehearth_names')
 
    radiant.events.listen('radiant.events.gameloop', self)
 end
@@ -33,11 +32,12 @@ function MicroWorld:create_world()
    local region3 = _radiant.sim.alloc_region()   
    local r3 = region3:modify() 
    
-   r3:add_cube(Cube3(Point3(-16, -16, -16), Point3(16, 0, 16), Terrain.TOPSOIL))
-   r3:add_cube(Cube3(Point3(-16,   0, -16), Point3(16, 1, 16), Terrain.GRASS))
+   r3:add_cube(Cube3(Point3(0, -16, 0), Point3(32, 0, 32), Terrain.TOPSOIL))
+   r3:add_cube(Cube3(Point3(0,   0, 0), Point3(32, 1, 32), Terrain.GRASS))
    
    local terrain = radiant._root_entity:add_component('terrain')   
-   terrain:add_region(Point3(0, 0, 0), region3)
+   terrain:set_zone_size(32)
+   terrain:add_zone(Point3(-16, 0, -16), region3)
 end
 
 function MicroWorld:at(time, fn)
@@ -46,7 +46,7 @@ function MicroWorld:at(time, fn)
 end
 
 function MicroWorld:place_tree(x, z)
-   return self:place_item('stonehearth_trees.medium_oak_tree', x, z)
+   return self:place_item('stonehearth.medium_oak_tree', x, z)
 end
 
 function MicroWorld:place_item(uri, x, z)
@@ -65,12 +65,17 @@ function MicroWorld:place_item_cluster(uri, x, z, w, h)
    end
 end
 
-function MicroWorld:place_citizen(x, z, profession, profession_info)
+function MicroWorld:place_citizen(x, z, job, job_info)
    local citizen = radiant.mods.require('stonehearth.api').create_new_citizen()
-   profession = profession and profession or 'worker'
-   local profession = radiant.mods.get_singleton('/stonehearth_' .. profession .. '_class/').promote(citizen, profession_info)
+   job = job and job or 'worker'
+
+   -- this is totally gross!!
+   local job_api = radiant.mods.require(string.format('stonehearth.jobs.%s.%s', job, job))
+   job_api.promote(citizen, job_info)
+
    --TODO: how do we handle different kingdoms/factions?
-   radiant.entities.set_display_name(citizen, self._names.generate_random_name('ascendancy','male'))
+   local name = radiant.mods.require('stonehearth.api').generate_random_name('ascendancy','male')
+   radiant.entities.set_display_name(citizen, name)
    radiant.terrain.place_entity(citizen, Point3(x, 1, z))
    return citizen
 end
@@ -82,7 +87,7 @@ function MicroWorld:place_stockpile_cmd(faction, x, z, w, h)
    local location = Point3(x, 1, z)
    local size = { w, h }
 
-   local inventory = radiant.mods.require('stonehearth_inventory.api').get_inventory(faction)
+   local inventory = radiant.mods.require('stonehearth.api').get_inventory(faction)
    inventory:create_stockpile(location, size)
 end
 

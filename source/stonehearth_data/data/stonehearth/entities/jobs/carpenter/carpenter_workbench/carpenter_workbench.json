@@ -1,0 +1,33 @@
+{
+   "extends": "stonehearth.mixins.crafter_workbench",
+   "type": "entity",
+   "components": {
+      "unit_info": {
+         "icon": "file(saw_icon.png)",
+         "name": "Carpenter Workbench",
+         "description": "Clean enough."
+      },
+      "stonehearth:workshop": {
+         "promotion_talisman" : {
+            "entity" : "stonehearth.carpenter_saw",
+            "offset" : [0, 3, 0]
+         },
+         "outbox_settings" : {
+            "offset" : [2, 0, 0],
+            "size" : [3, 3]
+         }
+      },
+      "destination": {
+         "region": [
+            [ [ 0, 0, 0 ], [ 1, 1, 1 ] ]
+         ]
+      },
+      "model_variants": [
+         {
+            "models": [
+               "file(carpenter_bench.qb)"
+            ]
+         }
+      ]
+   }
+}

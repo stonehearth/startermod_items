@@ -5,7 +5,7 @@ local GotoLocationAction = class()
 
 
 GotoLocationAction.name = 'stonehearth.actions.goto_location'
-GotoLocationAction.does = 'stonehearth.activities.goto_location'
+GotoLocationAction.does = 'stonehearth.goto_location'
 GotoLocationAction.priority = 1
 
 function GotoLocationAction:run(ai, entity, dest)
@@ -35,7 +35,7 @@ function GotoLocationAction:run(ai, entity, dest)
          return path ~= nil
       end)
    pf = nil
-   ai:execute('stonehearth.activities.follow_path', path)
+   ai:execute('stonehearth.follow_path', path)
 end
 
 function GotoLocationAction:stop()

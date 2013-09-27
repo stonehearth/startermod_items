@@ -1,7 +1,7 @@
 local WanderAction = class()
 
 WanderAction.name = 'stonehearth.actions.wander'
-WanderAction.does = 'stonehearth.activities.top'
+WanderAction.does = 'stonehearth.top'
 WanderAction.priority = 2
 
 function WanderAction:__init(ai, entity)
@@ -42,7 +42,7 @@ function WanderAction:run(ai, entity)
       location.z = leash_location.z + math.random(-1, 1)
    end
 
-   ai:execute('stonehearth.activities.goto_location', location)
+   ai:execute('stonehearth.goto_location', location)
    ai:set_action_priority(self, 0)
 end
 

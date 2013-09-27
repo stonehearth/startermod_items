@@ -1,0 +1,18 @@
+{
+   "extends": "stonehearth.mixins.placed_properties",
+   "type": "entity",
+   "components": {
+      "model_variants": [
+         {
+            "models": [
+               "file(picket_fence_gate.qb)"
+            ]
+         }
+      ],
+      "unit_info": {
+         "name": "Picket Fence Gate",
+         "description": "Don't like your neighbors? Don't install.",
+         "icon" : "file(picket_fence_gate.png)"
+      }
+   }
+}
