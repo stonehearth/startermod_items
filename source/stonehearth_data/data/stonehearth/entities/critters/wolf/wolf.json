@@ -23,7 +23,7 @@
          "sensors": {
             "sight": {
                "type": "sensor",
-               "radius": 24
+               "radius": 12
             }
          }
       },

@@ -1,6 +1,7 @@
 local ai = {}
 local singleton = {}
 local BehaviorManager = require 'modules.ai.behavior_manager'
+local AiInjector = require 'modules.ai.ai_injector'
 
 function ai.__init()
    ai.SUSPEND_THREAD = {}
@@ -65,10 +66,21 @@ function ai._on_event_loop(_, now)
    end
 end
 
-function ai.add_action(entity, uri, ...)
+function ai.inject_ai(entity, injecting_entity, ai) 
+   return AiInjector(entity, injecting_entity, ai)
+end
+
+function ai.revoke_injected_ai(ai_injector)
+   ai_injector.destroy()
+end
+
+-- injecting entity may be null
+function ai.add_action(entity, uri, injecting_entity)
    local ctor = radiant.mods.load_script(uri)
    local bm = ai._get_bm(entity)
-   bm:add_action(uri, ctor(bm, entity))
+   local action = ctor(bm, entity, injecting_entity) 
+   bm:add_action(uri, action)
+   return action
 end
 
 --[[
@@ -77,8 +89,11 @@ end
    this class's influences from that entity.
    In this case, given an object with a list of
    actions to remove, remove those actions from this entity.
+
+   tom, 9/26/2013. Hiding this thing, since the only call site
+   that uses it claims that it must go.
 ]]
-function ai.unregister(entity, obj)
+function ai.xxx_unregister(entity, obj)
    if obj.actions then
       for _, uri in ipairs(obj.actions) do
          ai.remove_action(entity, uri)
@@ -87,16 +102,20 @@ function ai.unregister(entity, obj)
    --TODO: handle observers and other elements that are added
 end
 
-function ai.remove_action(entity, uri)
+function ai.remove_action(entity, action)
    local bm = ai._get_bm(entity)
-   --TODO: THIS DOESN'T ACTUALLY HELP; THE ACTION IS STILL THERE?
-   bm:remove_action(uri)
+   bm:remove_action(action)
 end
 
 function ai.add_observer(entity, uri, ...)
    local ctor = radiant.mods.load_script(uri)
    local bm = ai._get_bm(entity)
    bm:add_observer(uri, ctor(entity, ...))
+end
+
+function ai.remove_observer(entity, observer)
+   local bm = ai._get_bm(entity)
+   bm:remove_observer(observer)
 end
 
 function ai.add_debug_hook(entity_id, hookfn)

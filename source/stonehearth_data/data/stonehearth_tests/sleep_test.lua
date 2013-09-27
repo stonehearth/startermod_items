@@ -10,10 +10,10 @@ function SleepTest:__init()
    self[MicroWorld]:__init()
    self:create_world()
 
-   self:place_citizen(0, 0)
-   self:place_citizen(-3, -3)
-   self:place_item('stonehearth.comfy_bed', -8, -8)
-   self:place_item('stonehearth.comfy_bed', -8, 8)
+   self:place_citizen(-8, 8)
+   self:place_citizen(8, 8)
+   self:place_item('stonehearth.comfy_bed', 0, 8)
+   self:place_item('stonehearth.comfy_bed', 0, 0)
    local tree = self:place_tree(-12, -12)
 
    ---[[
