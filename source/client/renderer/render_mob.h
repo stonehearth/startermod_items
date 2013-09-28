@@ -4,7 +4,6 @@
 #include <map>
 #include "namespace.h"
 #include "render_component.h"
-#include "types.h"
 #include "om/om.h"
 #include "dm/dm.h"
 #include "csg/transform.h"

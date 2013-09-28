@@ -12,10 +12,10 @@ using namespace ::radiant::client;
 RenderRenderRegion::RenderRenderRegion(const RenderEntity& entity, om::RenderRegionPtr render_region) :
    entity_(entity)
 {
-   node_ = h3dAddGroupNode(entity_.GetNode(), "region");
+   node_ = H3DNodeUnique(h3dAddGroupNode(entity_.GetNode(), "region"));
 
    // xxx: TraceSelected is a horribad name!
-   selectedGuard_ = Renderer::GetInstance().TraceSelected(node_, std::bind(&RenderRenderRegion::OnSelected, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4)); 
+   selectedGuard_ = Renderer::GetInstance().TraceSelected(node_.get(), std::bind(&RenderRenderRegion::OnSelected, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4)); 
 
    regionGuard_ = render_region->TraceRenderRegion("rendering render_region", [=](csg::Region3 const& r) {
       UpdateRenderRegion(r);
@@ -51,8 +51,7 @@ void RenderRenderRegion::UpdateRenderRegion(csg::Region3 const& region)
    csg::mesh_tools().optimize_region(region, meshmap);
    
    for (auto const& entry : meshmap) {
-      H3DNode node;
-      // xxx: why is this called TerrainNode?      
-      node = Pipeline::GetInstance().AddMeshNode(node_, entry.second);
+      H3DNodeUnique mesh = Pipeline::GetInstance().AddMeshNode(node_.get(), entry.second);
+      meshes_.emplace_back(mesh);
    }
 }

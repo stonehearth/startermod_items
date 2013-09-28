@@ -3,6 +3,7 @@
 
 #include "namespace.h"
 #include "csg/point.h"
+#include "h3d_resource_types.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -23,9 +24,9 @@ class Skeleton {
       H3DNode CreateBone(const std::string& bone);
 
    protected:
-      H3DNode                          _parent;
-      std::map<std::string, H3DNode>   _bones;
-      float                            _scale;
+      H3DNode                                _parent;
+      std::map<std::string, H3DNodeUnique>   _bones;
+      float                                  _scale;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

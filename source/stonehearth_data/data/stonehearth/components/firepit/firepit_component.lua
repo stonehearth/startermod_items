@@ -1,6 +1,6 @@
 local Point3 = _radiant.csg.Point3
 
-radiant.mods.load('stonehearth').calendar
+radiant.mods.load('stonehearth')
 
 local FirepitComponent = class()
 

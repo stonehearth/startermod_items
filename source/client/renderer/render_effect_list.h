@@ -6,7 +6,6 @@
 #include "om/om.h"
 #include "dm/dm.h"
 #include "dm/set.h"
-#include "types.h"
 #include "skeleton.h"
 #include "render_component.h"
 #include "resources/animation.h"
@@ -94,7 +93,7 @@ public:
 private:
    void parseTransforms(const JSONNode& node, float *x, float *y, float *z, float *rx, float *ry, float *rz);
    RenderEntity&                 entity_;
-   H3DNode                       cubemitterNode_;
+   H3DCubemitterNodeUnique       cubemitterNode_;
 };
 
 /* For playing simple background music*/

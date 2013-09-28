@@ -582,6 +582,8 @@ void Client::RemoveInputHandler(InputHandlerId id)
       if (i->first == id) {
          input_handlers_.erase(i);
          break;
+      } else {
+         i++;
       }
    }
 };

@@ -3,6 +3,7 @@
 
 #include "namespace.h"
 #include "csg/point.h"
+#include "csg/color.h"
 #include "qubicle_file_format.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE

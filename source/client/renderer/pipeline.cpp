@@ -24,11 +24,11 @@ Pipeline::Pipeline()
    //_actorMaterial = Ogre::MaterialManager::getSingleton().load("Tessaract/ActorMaterialTemplate", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
    //_tileMaterial = Ogre::MaterialManager::getSingleton().load("Tessaract/TileMaterialTemplate", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
    // ASSERT(!_actorMaterial.isNull());
-   orphaned_ = h3dAddGroupNode(H3DRootNode, "pipeline orphaned nodes");
-   h3dSetNodeFlags(orphaned_, H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, true);
+   orphaned_ = H3DNodeUnique(h3dAddGroupNode(H3DRootNode, "pipeline orphaned nodes"));
+   h3dSetNodeFlags(orphaned_.get(), H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, true);
 
    float offscreen = -100000.0f;
-   h3dSetNodeTransform(orphaned_, offscreen, offscreen, offscreen, 0, 0, 0, 1, 1, 1);
+   h3dSetNodeTransform(orphaned_.get(), offscreen, offscreen, offscreen, 0, 0, 0, 1, 1, 1);
 }
 
 Pipeline::~Pipeline()
@@ -37,20 +37,22 @@ Pipeline::~Pipeline()
 
 // From: http://mikolalysenko.github.com/MinecraftMeshes2/js/greedy.js
 
-H3DNode Pipeline::AddMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m)
+H3DNodeUnique Pipeline::AddMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m)
 {
    static int unique = 0;
    std::string name = "mesh data ";
 
    H3DRes res = h3dutCreateVoxelGeometryRes((name + stdutil::ToString(unique++)).c_str(), (VoxelGeometryVertex *)m.vertices.data(), m.vertices.size(), (uint *)m.indices.data(), m.indices.size());
    H3DRes matRes = h3dAddResource(H3DResTypes::Material, "terrain/default_material.xml", 0);
-   H3DNode modelNode = h3dAddVoxelModelNode(parent, (name + stdutil::ToString(unique++)).c_str(), res);
-   H3DNode meshNode = h3dAddVoxelMeshNode(modelNode, (name + stdutil::ToString(unique++)).c_str(), matRes, 0, m.indices.size(), 0, m.vertices.size() - 1);
+   H3DNodeUnique modelNode = h3dAddVoxelModelNode(parent, (name + stdutil::ToString(unique++)).c_str(), res);
+   H3DNode meshNode = h3dAddVoxelMeshNode(modelNode.get(), (name + stdutil::ToString(unique++)).c_str(), matRes, 0, m.indices.size(), 0, m.vertices.size() - 1);
+
+   // xxx: how do res, matRes, and meshNode get deleted? - tony
 
    return modelNode;
 }
 
-H3DNode Pipeline::AddQubicleNode(H3DNode parent, const QubicleMatrix& m, const csg::Point3f& origin)
+H3DNodeUnique Pipeline::AddQubicleNode(H3DNode parent, const QubicleMatrix& m, const csg::Point3f& origin)
 {
    std::vector<VoxelGeometryVertex> vertices;
    std::vector<uint32> indices;
@@ -231,8 +233,8 @@ H3DNode Pipeline::AddQubicleNode(H3DNode parent, const QubicleMatrix& m, const c
    std::string name = "qubicle data ";
    H3DRes res = h3dutCreateVoxelGeometryRes((name + stdutil::ToString(unique++)).c_str(), vertices.data(), vertices.size(), indices.data(), indices.size());
    H3DRes matRes = h3dAddResource(H3DResTypes::Material, "terrain/default_material.xml", 0);
-   H3DNode modelNode = h3dAddVoxelModelNode(parent, (name + stdutil::ToString(unique++)).c_str(), res);
-   H3DNode meshNode = h3dAddVoxelMeshNode(modelNode, (name + stdutil::ToString(unique++)).c_str(), matRes, 0, indices.size(), 0, vertices.size() - 1);
+   H3DNodeUnique modelNode = h3dAddVoxelModelNode(parent, (name + stdutil::ToString(unique++)).c_str(), res);
+   H3DNode meshNode = h3dAddVoxelMeshNode(modelNode.get(), (name + stdutil::ToString(unique++)).c_str(), matRes, 0, indices.size(), 0, vertices.size() - 1);
    return modelNode;
 }
 
@@ -254,7 +256,7 @@ Pipeline::NamedNodeMap Pipeline::LoadQubicleFile(std::string const& uri)
       // dismabiguate them.  Ignore everything after the _ so we don't make authors manually
       // rename every single part when this happens.
       std::string matrixName = entry.first;
-      result[matrixName] = AddQubicleNode(orphaned_, entry.second, csg::Point3f(0, 0, 0));
+      result[matrixName] = AddQubicleNode(orphaned_.get(), entry.second, csg::Point3f(0, 0, 0));
    }
 
    return result;

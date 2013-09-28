@@ -276,11 +276,12 @@ CubemitterEffect::CubemitterEffect(RenderEntity& e, om::EffectPtr effect, const 
    H3DRes matRes = h3dAddResource(H3DResTypes::Material, "materials/cubemitter.material.xml", 0);
    H3DRes cubeRes = h3dAddResource(RT_CubemitterResource, cubemitterFileName.c_str(), 0);
 
-   cubemitterNode_ = h3dRadiantAddCubemitterNode(e.GetNode(), "cu", cubeRes, matRes);
+   H3DNode c = h3dRadiantAddCubemitterNode(e.GetNode(), "cu", cubeRes, matRes);
+   cubemitterNode_ = H3DCubemitterNodeUnique(c);
    float x, y, z, rx, ry, rz;
 
    parseTransforms(node["transforms"], &x, &y, &z, &rx, &ry, &rz);
-   h3dSetNodeTransform(cubemitterNode_, x, y, z, rx, ry, rz, 1, 1, 1);
+   h3dSetNodeTransform(cubemitterNode_.get(), x, y, z, rx, ry, rz, 1, 1, 1);
 }
 
 void CubemitterEffect::parseTransforms(const JSONNode& node, float *x, float *y, float *z, float *rx, float *ry, float *rz)
@@ -297,9 +298,6 @@ void CubemitterEffect::parseTransforms(const JSONNode& node, float *x, float *y,
 
 CubemitterEffect::~CubemitterEffect()
 {
-   if (cubemitterNode_ != 0) {
-      h3dRadiantStopCubemitterNode(cubemitterNode_);
-   }
 }
 
 void CubemitterEffect::Update(int now, int dt, bool& finished)

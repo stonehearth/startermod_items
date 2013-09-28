@@ -4,7 +4,6 @@
 #include <map>
 #include "namespace.h"
 #include "render_component.h"
-#include "types.h"
 #include "om/om.h"
 #include "dm/dm.h"
 #include "csg/util.h"
@@ -26,7 +25,8 @@ private:
    const RenderEntity&  entity_;
    dm::Guard            regionGuard_;
    dm::Guard            selectedGuard_;
-   H3DNode              node_;
+   H3DNodeUnique        node_;
+   std::vector<H3DNodeUnique> meshes_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

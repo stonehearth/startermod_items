@@ -26,10 +26,10 @@ class RenderSensor : public RenderAspect {
       void UpdateSensor();
 
    protected:
-      om::SensorPtr       sensor_;
-      csg::Sphere    sphere_;
-      csg::Color4             color_;
-      H3DNode            debugShape_;
+      om::SensorPtr        sensor_;
+      csg::Sphere          sphere_;
+      csg::Color4          color_;
+      H3DNodeUnique        debugShape_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

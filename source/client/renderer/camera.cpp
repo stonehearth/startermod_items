@@ -9,9 +9,10 @@ using namespace ::radiant;
 using namespace ::radiant::client;
 
 
-Camera::Camera(H3DNode cameraNode) :
-   node_(cameraNode)
+Camera::Camera(H3DNode parent, const char* name,H3DRes pipeline) :
+   node_(h3dAddCameraNode(parent, name, pipeline))
 {
+   
 }
 
 // Orbit the specified point, first by 'yDeg' along the world-space y-axis, and then 'xDeg' along
@@ -59,14 +60,14 @@ void Camera::LookAt(const csg::Point3f &point)
 
 H3DNode Camera::GetNode() const
 {
-   return node_;
+   return node_.get();
 }
 
 csg::Matrix4 Camera::GetMatrix() const
 {
    csg::Matrix4 m;
    const float *f;
-   h3dGetNodeTransMats(node_, NULL, &f);
+   h3dGetNodeTransMats(node_.get(), NULL, &f);
    m.fill(f);
    return m;
 }
@@ -83,13 +84,13 @@ void Camera::SetPosition(const csg::Point3f &newPos)
    csg::Matrix4 m = GetMatrix();
 
    m.set_translation(newPos);
-   h3dSetNodeTransMat(node_, m.get_float_ptr());
+   h3dSetNodeTransMat(node_.get(), m.get_float_ptr());
 }
 
 void Camera::GetBases(csg::Point3f* const forward, csg::Point3f* const up, csg::Point3f* const left) const
 {
    const float *f;
-   h3dGetNodeTransMats(node_, NULL, &f);
+   h3dGetNodeTransMats(node_.get(), NULL, &f);
 
    left->x = f[0];
    left->y = f[1];
@@ -108,7 +109,7 @@ void Camera::SetBases(const csg::Point3f& forward, const csg::Point3f& up, const
 {
    csg::Matrix4 m = GetMatrix();
    m.set_rotation_bases(forward, up, left);
-   h3dSetNodeTransMat(node_, m.get_float_ptr());   
+   h3dSetNodeTransMat(node_.get(), m.get_float_ptr());   
 }
 
 Camera::~Camera()

@@ -11,7 +11,7 @@ RenderCarryBlock::RenderCarryBlock(RenderEntity& entity, om::CarryBlockPtr carry
    carryBlock_(carryBlock),
    carrying_(0)
 {
-   carryBoneId_ = entity_.GetSkeleton().GetSceneNode("carry");
+   carryBone_ = entity_.GetSkeleton().GetSceneNode("carry");
 
    tracer_ += carryBlock->TraceCarrying("render carry block", std::bind(&RenderCarryBlock::UpdateCarrying, this));
    UpdateCarrying();
@@ -25,7 +25,7 @@ void RenderCarryBlock::UpdateCarrying()
 {
    LOG(WARNING) << "updating carry block.";
    auto carryBlock = carryBlock_.lock();
-   if (carryBlock && carryBoneId_) {
+   if (carryBlock && carryBone_) {
       dm::ObjectId carryingId = 0;
       om::EntityPtr carrying = carryBlock->GetCarrying().lock();      
       if (carrying) {
@@ -35,7 +35,7 @@ void RenderCarryBlock::UpdateCarrying()
          // If the thing we used to be carrying is still attached to our carry bone, deparent it
          if (carrying_) {
             auto renderObject = Renderer::GetInstance().GetRenderObject(2, carrying_); // xxx hard coded client store id =..(
-            if (renderObject && renderObject->GetParent() == carryBoneId_) {
+            if (renderObject && renderObject->GetParent() == carryBone_) {
                LOG(WARNING) << "setting render object " << carrying_ << " parent to " << 0;
                renderObject->SetParent(0);
             } else {
@@ -50,8 +50,8 @@ void RenderCarryBlock::UpdateCarrying()
             auto renderObject = Renderer::GetInstance().GetRenderObject(2, carrying_); // xxx hard coded client store id =..(
             if (renderObject ) {
                // If this render object doesn't exist yet, we should go ahead and create it (??)
-               LOG(WARNING) << "setting render object " << carrying_ << " parent to " << carryBoneId_;
-               renderObject->SetParent(carryBoneId_);
+               LOG(WARNING) << "setting render object " << carrying_ << " parent to " << carryBone_;
+               renderObject->SetParent(carryBone_);
             }
          }
       }
