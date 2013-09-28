@@ -1,7 +1,7 @@
 {
    "type" : "entity",
    "components" : {
-	   "radiant:commands" : {
+	   "stonehearth:commands" : {
 	   	"commands" : [
             "file(chop_tree_command.json)"
 			]

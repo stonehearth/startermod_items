@@ -20,7 +20,6 @@ radiant.json = dkjson
 radiant.gamestate = require 'modules.gamestate'
 radiant.resources = require 'modules.resources'
 radiant.events = require 'modules.events'
-radiant.ai = require 'modules.ai'
 radiant.effects = require 'modules.effects'
 radiant.entities = require 'modules.entities'
 radiant.terrain = require 'modules.terrain'

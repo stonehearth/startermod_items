@@ -14,7 +14,7 @@
       "stonehearth:leash": {
          "leash_radius": 6
       },
-      "radiant:ai": {
+      "stonehearth:ai": {
          "actions": [
             
          ]

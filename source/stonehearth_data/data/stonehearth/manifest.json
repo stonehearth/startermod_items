@@ -182,6 +182,10 @@
       }
    },
    "components" :  {
+      "ai" : "file(components/ai/ai_component.lua)",
+      "commands" : "file(components/commands/commands_component.lua)",
+      "resource_node" : "file(components/resource_node/resource_node_component.lua)",
+      "stockpile" : "file(components/stockpile/stockpile_component.lua)",
       "leash" : "file(components/leash/leash_component.lua)",
       "workshop" : "file(components/workshop/workshop_component.lua)",
       "crafter"  : "file(components/crafter/crafter_component.lua)",
@@ -195,6 +199,9 @@
       "bed_lease" : "file(components/bed_lease/bed_lease_component.lua)",
       "equipment" : "file(components/equipment/equipment_component.lua)",
       "equipment_piece" : "file(components/equipment_piece/equipment_piece_component.lua)"
+   },
+   "component_renderers" : {
+      "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)"
    },
    "loader" :  {
       "ui" : {

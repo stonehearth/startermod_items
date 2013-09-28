@@ -18,7 +18,7 @@
          "name": "Small Juniper Tree", 
          "description": "Just a sapling."
       }, 
-      "radiant:resource_node": {
+      "stonehearth:resource_node": {
          "resource": "stonehearth.juniper_log", 
          "durability": 3
       }

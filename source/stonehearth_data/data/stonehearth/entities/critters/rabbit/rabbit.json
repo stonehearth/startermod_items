@@ -10,7 +10,7 @@
       "stonehearth:leash" : {
         "leash_radius" : 6
       },
-      "radiant:ai" : {
+      "stonehearth:ai" : {
          "actions" : [
             "stonehearth.actions.idle_look_around_action",
             "stonehearth.actions.wander_action"

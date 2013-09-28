@@ -2,7 +2,7 @@
    Need a more robust implementation later. For now,
    go to sleep at 9pm and wake up at 6am
 --]]
-radiant.mods.load('stonehearth').get_service('calendar') -- make sure it's loaded...
+radiant.mods.load('stonehearth') -- make sure it's loaded...
 
 local SleepAction = class()
 

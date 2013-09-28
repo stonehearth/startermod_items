@@ -23,7 +23,7 @@
             ]
          }
       ],
-      "radiant:commands" : {
+      "stonehearth:commands" : {
          "commands" : [
             "file(promote_to_carpenter.json)"
          ]

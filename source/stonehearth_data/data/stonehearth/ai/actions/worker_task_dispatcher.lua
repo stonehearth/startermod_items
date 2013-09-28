@@ -10,7 +10,7 @@ function WorkerTaskDispatcher:__init(ai, entity)
    self._entity = entity
    
    local faction = self._entity:get_component('unit_info'):get_faction()
-   local ws = radiant.mods.load('stonehearth').get_service('worker_scheduler')
+   local ws = radiant.mods.load('stonehearth').worker_scheduler
    self._scheduler = ws:get_worker_scheduler(faction)
 
    self:_wait_for_next_task()

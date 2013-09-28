@@ -164,7 +164,7 @@ function WorkshopComponent:set_crafter(crafter)
       self._data.crafter = crafter
       self._data_binding:mark_changed()
 
-      local commandComponent = self._entity:get_component('radiant:commands')
+      local commandComponent = self._entity:get_component('stonehearth:commands')
       if crafter then
          commandComponent:enable_command('show_craft_ui', true)
       else
@@ -215,7 +215,7 @@ function WorkshopComponent:init_outbox(custom_offset, custom_size)
    local offset = self._outbox_offset
    radiant.terrain.place_entity(self._outbox_entity,
       Point3(bench_loc.x + offset[1], bench_loc.y + offset[2], bench_loc.z + offset[3]))
-   local outbox_component = self._outbox_entity:get_component('radiant:stockpile')
+   local outbox_component = self._outbox_entity:get_component('stonehearth:stockpile')
 
    if custom_size then
       self._outbox_size = custom_size

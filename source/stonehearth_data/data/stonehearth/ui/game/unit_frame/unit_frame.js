@@ -2,7 +2,7 @@ App.StonehearthUnitFrameView = App.View.extend({
 	templateName: 'unitFrame',
 
    components: {
-      "radiant:commands": {
+      "stonehearth:commands": {
          commands: []
       },
       "unit_info": {}

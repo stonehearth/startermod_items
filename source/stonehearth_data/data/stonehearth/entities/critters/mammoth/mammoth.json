@@ -1,7 +1,7 @@
 {
    "type": "entity", 
    "components": {
-      "radiant:ai": {
+      "stonehearth:ai": {
          "intentions": [
             "radiant.intentions.mammoth_ai"
          ]

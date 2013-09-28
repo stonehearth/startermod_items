@@ -6,7 +6,7 @@ local ResourceCallHandler = class()
 -- @return true on success, false on failure
 
 function ResourceCallHandler:harvest_tree(session, response, tree)
-   local worker_scheduler = radiant.mods.load('stonehearth').get_service('worker_scheduler'):get_worker_scheduler(session.faction)
+   local worker_scheduler = radiant.mods.load('stonehearth').worker_scheduler:get_worker_scheduler(session.faction)
 
    -- Any worker that's not carrying anything will do...
    local not_carrying_fn = function (worker)

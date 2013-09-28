@@ -5,7 +5,7 @@
          "name" : "Stockpile",
          "description" : "Stores all sorts of things."
       },
-      "radiant:stockpile" : {
+      "stonehearth:stockpile" : {
       }
    }
 }

@@ -26,16 +26,18 @@ end
 
 function SensorAiInjectorComponent:on_added_to_sensor(entity_id)
    local entity = radiant.entities.get_entity(entity_id)
-   
+   local ai_service = radiant.mods.load('stonehearth').ai
+
    radiant.log.info('%s entered ai transmission sensor for %s', tostring(entity), tostring(self._entity))
-   self._injected_ai_token = radiant.ai.inject_ai(entity, self._ai, self._entity)
+   self._injected_ai_token = ai_service:inject_ai(entity, self._ai, self._entity)
 end
 
 function SensorAiInjectorComponent:on_removed_from_sensor(entity_id)
    local entity = radiant.entities.get_entity(entity_id)
-   radiant.log.info('%s left ai transmission sensor for %s', tostring(entity), tostring(self._entity))
-   
-   radiant.ai.revoke_injected_ai(self._injected_ai_token)
+   local ai_service = radiant.mods.load('stonehearth').ai
+
+   radiant.log.info('%s left ai transmission sensor for %s', tostring(entity), tostring(self._entity))  
+   ai_service:revoke_injected_ai(self._injected_ai_token)
 end
 
 return SensorAiInjectorComponent

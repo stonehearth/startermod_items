@@ -20,7 +20,7 @@
          "name": "Medium Oak Tree", 
          "description": "Sturdy, in the prime of life."
       }, 
-      "radiant:resource_node": {
+      "stonehearth:resource_node": {
          "resource": "stonehearth.oak_log", 
          "durability": 12
       }

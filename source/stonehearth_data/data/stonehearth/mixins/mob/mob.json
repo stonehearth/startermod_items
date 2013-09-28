@@ -1,6 +1,6 @@
 {
    "components" : {
-      "radiant:ai" : {
+      "stonehearth:ai" : {
          "actions" : [
             "stonehearth.actions.compel_to_action",
             "stonehearth.actions.death_action",

@@ -1,7 +1,7 @@
 <script type="text/x-handlebars" data-template-name="unitFrame">
    <div id="unitFrame">
       <div id="commandButtons">
-         {{#each radiant:commands.commands itemViewClass="App.StonehearthCommandButtonView"}}
+         {{#each stonehearth:commands.commands itemViewClass="App.StonehearthCommandButtonView"}}
             <a href="#" {{action doCommand this target="view"}}>
                <div {{bindAttr class=":commandButton enabled:buttonEnabled:buttonDisabled"}}
                 {{bindAttr title="tooltip"}}>

@@ -4,7 +4,7 @@ local NewWorld = class(MicroWorld) -- UGGGG. No no no (i'll fix it =)  tony
 function NewWorld:__init()
    self[MicroWorld]:__init()
 
-   local wgs = radiant.mods.load('stonehearth').get_service('world_generation')
+   local wgs = radiant.mods.load('stonehearth').world_generation
    local wg = wgs:create_world(true)
 
    -- this needs to somehow be dependency injected into the generation service.

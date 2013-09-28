@@ -26,7 +26,7 @@
       "unit_info": {
          "faction": "goblin"
       }, 
-      "radiant:ai": {
+      "stonehearth:ai": {
          "observers": [
             "radiant.observers.compute_danger", 
             "radiant.observers.compute_proximity_aggro"

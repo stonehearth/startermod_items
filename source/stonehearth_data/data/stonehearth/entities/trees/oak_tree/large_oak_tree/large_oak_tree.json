@@ -20,7 +20,7 @@
          "name": "Large Oak Tree", 
          "description": "100's of years old. Too bad..."
       }, 
-      "radiant:resource_node": {
+      "stonehearth:resource_node": {
          "resource": "stonehearth.oak_log", 
          "durability": 20
       }

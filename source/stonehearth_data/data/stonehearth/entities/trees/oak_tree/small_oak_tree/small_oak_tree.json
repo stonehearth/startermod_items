@@ -20,7 +20,7 @@
          "name": "Small Oak Tree", 
          "description": "He's just a sapling!"
       }, 
-      "radiant:resource_node": {
+      "stonehearth:resource_node": {
          "resource": "stonehearth.oak_log", 
          "durability": 4
       }

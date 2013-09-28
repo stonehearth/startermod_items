@@ -67,8 +67,8 @@ function PlaceableItemProxyComponent:_create_derived_components()
       --TODO: what about transfering data about the material of the bed?
    end
    --Issues: if this is in a parent class, it isn't loaded by this point, so add manually
-   --local place_command = self._entity:get_component('radiant:commands')
-   local place_command = self._entity:add_component('radiant:commands')
+   --local place_command = self._entity:get_component('stonehearth:commands')
+   local place_command = self._entity:add_component('stonehearth:commands')
    place_command:add_command(radiant.resources.load_json('/stonehearth/data/commands/place_command.json'))
 
 

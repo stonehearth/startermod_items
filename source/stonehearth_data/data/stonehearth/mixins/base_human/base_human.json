@@ -2,7 +2,7 @@
    "type" : "entity",
    "extends" : "stonehearth.mixins.mob",
    "components" : {
-      "radiant:ai" : {
+      "stonehearth:ai" : {
          "actions" : [
             "stonehearth.actions.sleep_action",
             "stonehearth.actions.sleep_in_bed_action",

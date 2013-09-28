@@ -19,7 +19,7 @@
          "name": "Large Juniper Tree", 
          "description": "An impressive specimen."
       }, 
-      "radiant:resource_node": {
+      "stonehearth:resource_node": {
          "resource": "stonehearth.juniper_log", 
          "durability": 15
       }
