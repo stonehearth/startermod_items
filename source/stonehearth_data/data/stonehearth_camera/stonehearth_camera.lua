@@ -16,10 +16,16 @@ function StonehearthCamera:__init()
   self:set_position(Vec3(50, 200, 150))
 
   self._next_position = self:get_position()
-  self._scroll_delta = Vec3(0, 0, 0)
-  self._zoom_delta = Vec3(0, 0, 0)
+  self._continuous_delta = Vec3(0, 0, 0)
+  self._impulse_delta = Vec3(0, 0, 0)
+  
   self._orbiting = false
   self._orbit_target = Vec3(0, 0, 0)
+  
+  self._dragging = false
+  self._drag_start = Vec3(0, 0, 0)
+  self._drag_x = 0
+  self._drag_y = 0
 
   self:_update_camera(0)
 
@@ -69,29 +75,25 @@ function StonehearthCamera:_orbit(target, x_deg, y_deg, min_x, max_x)
   -- We take the orbiter to have a higher 'priority' than scrolling, so
   -- don't scroll when we orbit.
   self._next_position = new_position + target
-  self._scroll_delta = Vec3(0, 0, 0)
+  self._continuous_delta = Vec3(0, 0, 0)
 
   _radiant.renderer.camera.set_position(new_position + target)
   _radiant.renderer.camera.look_at(target)
 end
 
 function StonehearthCamera:_on_mouse_event(e, screen_x, screen_y, gutter)
-  self:_calculate_scroll(e, screen_x, screen_y, gutter)
-  --self:_calculate_jump(e)
+  --self:_calculate_scroll(e, screen_x, screen_y, gutter)
+  self:_calculate_drag(e)
   self:_calculate_orbit(e)
   self:_calculate_zoom(e)
-  --self:_calculate_height(e)
-  -- Temporary!
-  --self:_update_camera()
 end
 
 function StonehearthCamera:_calculate_zoom(e)
   if e.wheel == 0 then
-    self._zoom_delta = Vec3(0, 0, 0)
     return
   end
 
-  local query = self:_find_target_from_next_position()
+  local query = _radiant.renderer.scene.cast_screen_ray(e.x, e.y)
   if not query.is_valid then
     return
   end
@@ -120,9 +122,7 @@ function StonehearthCamera:_calculate_zoom(e)
   dir:normalize()
   dir:scale(dist)
 
-  self._zoom_delta = dir
-
-  radiant.log.info('zooming: %d', e.wheel)
+  self._impulse_delta = dir
 end
 
 function StonehearthCamera:_find_target()
@@ -149,19 +149,17 @@ function StonehearthCamera:_find_target_from_next_position()
 end
 
 function StonehearthCamera:_calculate_orbit(e)
-  if e:down(2) then
-    local r = self:_find_target()--_radiant.renderer.scene.cast_screen_ray(e.x, e.y)
+  if e:down(3) then
+    local r = _radiant.renderer.scene.cast_screen_ray(e.x, e.y)--self:_find_target()
     if r.is_valid then
       self._orbiting = true
       self._orbit_target = r.point
-      --[[local r2 = self:_find_target()
-      if r2.is_valid then
-        self._scroll_delta = r.point - r2.point
-      end]]
     else
+      -- TODO: just pick a point some reasonable distance in front of the camera,
+      -- and orbit that.
       return
     end
-  elseif e:up(2) and self._orbiting then
+  elseif e:up(3) and self._orbiting then
     self._orbiting = false
   end
 
@@ -175,28 +173,47 @@ function StonehearthCamera:_calculate_orbit(e)
   self:_orbit(self._orbit_target, deg_y, deg_x, 30.0, 70.0)
 end
 
-function StonehearthCamera:_calculate_height(e)
-  local ray_dir = self:get_position() - self._target
-  ray_dir.normalize()
-
-  local r = _radiant.renderer.scene.cast_ray(self._position, ray_dir)
-  if r.is_valid then
-    self._next_position = r.point + Vec3(0, 30, 0)
-  end
-end
-
-function StonehearthCamera:_calculate_jump(e)
-  if e:up(3) then
+function StonehearthCamera:_calculate_drag(e)
+  if e:down(2) then
     local r = _radiant.renderer.scene.cast_screen_ray(e.x, e.y)
     if r.is_valid then
-      self._next_position = r.point + Vec3(0, 30, 0)
+      self._dragging = true
+      self._drag_start = r.point
+      self._drag_x = e.x
+      self._drag_y = e.y
     end
+  elseif e:up(2) and self._dragging then
+    self._dragging = false
   end
+
+  if not self._dragging then
+    return
+  end
+
+  self:_drag(e.x, e.y)
+end
+
+function StonehearthCamera:_drag(x, y)
+  local screen_ray = _radiant.renderer.scene.get_screen_ray(x, y)
+
+  local d = (self._drag_start.y - screen_ray.origin.y) / screen_ray.direction.y
+  screen_ray.direction:scale(d)
+
+  local drag_end = screen_ray.direction + screen_ray.origin
+
+  local delta = self._drag_start - drag_end
+  delta.y = 0
+
+  self._impulse_delta = delta
+
+  self._drag_x = x
+  self._drag_y = y
+  self._drag_start = drag_end
 end
 
 function StonehearthCamera:_calculate_scroll(e, screen_x, screen_y, gutter)
   if not e.in_client_area then
-    self._scroll_delta = Vec3(0, 0, 0)
+    self._continuous_delta = Vec3(0, 0, 0)
     return
   end
 
@@ -226,17 +243,17 @@ function StonehearthCamera:_calculate_scroll(e, screen_x, screen_y, gutter)
   forward:normalize()
   forward:scale(y_scale)
 
-  self._scroll_delta = forward + left
+  self._continuous_delta = forward + left
 end
 
 function StonehearthCamera:_update_camera(frame_time)
-  self._next_position = self._next_position + self._scroll_delta + self._zoom_delta
+  self._next_position = self._next_position + self._continuous_delta + self._impulse_delta
 
-  -- Clear the zoom_delta, because it is an impulse and cannot clear itself.
-  self._zoom_delta = Vec3(0, 0, 0)
+  -- Impulse delta is cleared on every camera update
+  self._impulse_delta = Vec3(0, 0, 0)
 
-  local interpolated_pos = _radiant.csg.lerp(self:get_position(), self._next_position, smoothness * frame_time)
-  _radiant.renderer.camera.set_position(interpolated_pos)
+  local lerp_pos = _radiant.csg.lerp(self:get_position(), self._next_position, smoothness * frame_time)
+  _radiant.renderer.camera.set_position(lerp_pos)
 end
 
 function StonehearthCamera:get_position()
