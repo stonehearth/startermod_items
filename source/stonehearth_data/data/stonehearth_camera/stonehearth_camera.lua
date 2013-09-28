@@ -25,8 +25,7 @@ function StonehearthCamera:__init()
   self._drag_key = false
   self._dragging = false
   self._drag_start = Vec3(0, 0, 0)
-  self._drag_x = 0
-  self._drag_y = 0
+  self._drag_origin = Vec3(0, 0, 0)
 
   self:_update_camera(0)
 
@@ -205,15 +204,16 @@ function StonehearthCamera:_calculate_orbit(e)
 end
 
 function StonehearthCamera:_calculate_drag(e)
-  if e:down(2) and self._drag_key then
+  if e:down(1) and self._drag_key then
     local r = _radiant.renderer.scene.cast_screen_ray(e.x, e.y)
     if r.is_valid then
+      local screen_ray = _radiant.renderer.scene.get_screen_ray(e.x, e.y)
       self._dragging = true
+      self._drag_delta = Vec3(0, 0, 0)
       self._drag_start = r.point
-      self._drag_x = e.x
-      self._drag_y = e.y
+      self._drag_origin = screen_ray.origin
     end
-  elseif (e:up(2) or not self._drag_key) and self._dragging then
+  elseif (e:up(1) or not self._drag_key) and self._dragging then
     self._dragging = false
   end
 
@@ -227,18 +227,19 @@ end
 function StonehearthCamera:_drag(x, y)
   local screen_ray = _radiant.renderer.scene.get_screen_ray(x, y)
 
-  local d = (self._drag_start.y - screen_ray.origin.y) / screen_ray.direction.y
+  if screen_ray.direction.y == 0 then
+    return
+  end
+
+  local d = (self._drag_start.y - self._drag_origin.y) / screen_ray.direction.y
   screen_ray.direction:scale(d)
 
-  local drag_end = screen_ray.direction + screen_ray.origin
+  local drag_end = screen_ray.direction + self._drag_origin
 
   local delta = self._drag_start - drag_end
-  delta.y = 0
 
   self._impulse_delta = delta
 
-  self._drag_x = x
-  self._drag_y = y
   self._drag_start = drag_end
 end
 
