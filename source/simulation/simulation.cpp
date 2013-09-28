@@ -11,7 +11,6 @@
 #include "jobs/path_finder.h"
 #include "jobs/follow_path.h"
 #include "jobs/goto_location.h"
-#include "script/script_host.h"
 #include "resources/res_manager.h"
 #include "lua/radiant_lua.h"
 #include "dm/store.h"

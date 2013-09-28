@@ -65,17 +65,16 @@ function MicroWorld:place_item_cluster(uri, x, z, w, h)
    end
 end
 
-function MicroWorld:place_citizen(x, z, job, job_info)
-   local citizen = radiant.mods.require('stonehearth.api').create_new_citizen()
-   job = job and job or 'worker'
+function MicroWorld:place_citizen(x, z, profession, data)
+   local pop_service = radiant.mods.load('stonehearth').get_service('population')
+   local pop = pop_service:get_faction('stonehearth.factions.ascendancy')
+   local citizen = pop:create_new_citizen()
+   profession = profession and profession or 'worker'
 
    -- this is totally gross!!
-   local job_api = radiant.mods.require(string.format('stonehearth.jobs.%s.%s', job, job))
-   job_api.promote(citizen, job_info)
+   local profession_api = radiant.mods.require(string.format('stonehearth.professions.%s.%s', profession, profession))
+   profession_api.promote(citizen, data)
 
-   --TODO: how do we handle different kingdoms/factions?
-   local name = radiant.mods.require('stonehearth.api').generate_random_name('ascendancy','male')
-   radiant.entities.set_display_name(citizen, name)
    radiant.terrain.place_entity(citizen, Point3(x, 1, z))
    return citizen
 end
@@ -87,7 +86,8 @@ function MicroWorld:place_stockpile_cmd(faction, x, z, w, h)
    local location = Point3(x, 1, z)
    local size = { w, h }
 
-   local inventory = radiant.mods.require('stonehearth.api').get_inventory(faction)
+   local inventory_service = radiant.mods.load('stonehearth').get_service('inventory')
+   local inventory = inventory_service:get_inventory(faction)
    inventory:create_stockpile(location, size)
 end
 

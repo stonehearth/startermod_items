@@ -7,11 +7,9 @@
 #include "om/components/collision_shape.h"
 #include "om/components/sphere_collision_shape.h"
 #include "om/components/sensor_list.h"
-#include "simulation/script/script_host.h"
 
 using namespace radiant;
 using namespace radiant::Physics;
-using namespace radiant::simulation;
 
 static const csg::Point3 _adjacent[] = {
    csg::Point3( 1,  0,  0),

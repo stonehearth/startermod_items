@@ -33,8 +33,8 @@
             "stonehearth.effects.talisman_glow"
          ]  
       },
-      "stonehearth:talisman_promotion_info": {
-         "class_script": "/stonehearth/jobs/carpenter/carpenter.lua"
+      "stonehearth:promotion_talisman": {
+         "class_script": "/stonehearth/professions/carpenter/carpenter.lua"
       }
    }
 }

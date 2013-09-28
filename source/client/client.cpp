@@ -150,10 +150,11 @@ void Client::run()
 
    namespace po = boost::program_options;
    extern po::variables_map configvm;
-   std::string loader = configvm["game.loader"].as<std::string>().c_str();
+   std::string loader = configvm["game.mod"].as<std::string>().c_str();
    json::ConstJsonObject manifest(res::ResourceManager2::GetInstance().LookupManifest(loader));
    std::string docroot = "http://radiant/" + manifest.getn("loader").getn("ui").get<std::string>("homepage");
 
+   // seriously???
    if (configvm["game.script"].as<std::string>() != "stonehearth/new_world.lua") {
       docroot += "?skip_title=true";
    }

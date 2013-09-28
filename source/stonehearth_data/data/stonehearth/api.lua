@@ -1,37 +1,13 @@
 -- make sure critical libaries get loaded immediately
-local timekeeper = require 'lib.calendar.timekeeper'
-local name_generator = require 'lib.factions.name_generator'
-local inventory = require 'lib.inventory.inventory'
-local WorkerScheduler = require 'lib.worker_scheduler.worker_scheduler'
-
 local api = {}
-local worker_schedulers = {}
 
-function api.create_new_citizen()
-   local index = radiant.resources.load_json('/stonehearth/data/json/human_race_info.json')
-   if index then
-      local gender = index.males
-      local kind = gender[math.random(#gender)]
-      return radiant.entities.create_entity(kind)
-   end
-end
-
-api.generate_random_name = function(...)
-   return name_generator.generate_random_name(...)
-end
-
-function api.get_worker_scheduler(faction)
-   radiant.check.is_string(faction)
-   local scheduler = worker_schedulers[faction]
-   if not scheduler then
-      scheduler = WorkerScheduler(faction)
-      worker_schedulers[faction] = scheduler
-   end
-   return scheduler
-end
-
-function api.get_inventory(faction)
-   return inventory.get_inventory(faction)
+function api.get_service(name)
+   -- xxx: put this in a pcall so we can return a friendly
+   -- error when an invalid name is passed in
+   
+   local service_name = string.format('services.%s.%s_service', name, name)
+   local service = require(service_name)
+   return service
 end
 
 return api

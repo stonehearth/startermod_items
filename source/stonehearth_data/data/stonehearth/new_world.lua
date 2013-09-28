@@ -1,13 +1,13 @@
 local MicroWorld = radiant.mods.require('stonehearth_tests.lib.micro_world')
-local WorldGenerator = require 'lib.terrain.world_generator'
-
-local NewWorld = class(MicroWorld)
+local NewWorld = class(MicroWorld) -- UGGGG. No no no (i'll fix it =)  tony
 
 function NewWorld:__init()
    self[MicroWorld]:__init()
-   local world_generator = WorldGenerator(true)
-   world_generator:create_world()
 
+   local wgs = radiant.mods.load('stonehearth').get_service('world_generation')
+   local wg = wgs:create_world(true)
+
+   -- this needs to somehow be dependency injected into the generation service.
    self:at(2000, function()
       self:place_camp()
    end)

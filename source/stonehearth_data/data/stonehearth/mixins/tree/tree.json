@@ -3,7 +3,7 @@
    "components" : {
 	   "radiant:commands" : {
 	   	"commands" : [
-            "file(/lib/resource_node/chop_tree_command.json)"
+            "file(chop_tree_command.json)"
 			]
 	   },
       "render_info" : {

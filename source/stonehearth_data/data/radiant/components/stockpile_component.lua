@@ -221,7 +221,7 @@ end
 function StockpileComponent:_create_worker_tasks()
 
    local faction = radiant.entities.get_faction(self._entity)
-   local worker_scheduler = radiant.mods.require('stonehearth.api').get_worker_scheduler(faction)
+   local worker_scheduler = radiant.mods.load('stonehearth').get_service('worker_scheduler'):get_worker_scheduler(faction)
 
    -- This is the pickup task.  When it finishes, we want to run the
    -- stonehearth.pickup_item_on_path item, passing in the path found

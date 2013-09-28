@@ -1,9 +1,9 @@
-local WorldGenerator = require 'lib.terrain.world_generator'
-local HeightMap = require 'lib.terrain.height_map'
-local TerrainType = require 'lib.terrain.terrain_type'
-local TerrainGenerator = require 'lib.terrain.terrain_generator'
-local Landscaper = require 'lib.terrain.landscaper'
-local HeightMapRenderer = require 'lib.terrain.height_map_renderer'
+local WorldGenerator = require 'services.world_generation.world_generator'
+local HeightMap = require 'services.world_generation.height_map'
+local TerrainType = require 'services.world_generation.terrain_type'
+local TerrainGenerator = require 'services.world_generation.terrain_generator'
+local Landscaper = require 'services.world_generation.landscaper'
+local HeightMapRenderer = require 'services.world_generation.height_map_renderer'
 local Timer = radiant.mods.require('stonehearth_debugtools.timer')
 
 local TerrainTest = class()
