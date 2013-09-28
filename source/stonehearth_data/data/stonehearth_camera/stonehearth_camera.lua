@@ -101,28 +101,48 @@ function StonehearthCamera:_calculate_zoom(e)
   local target = query.point
   local pos = self._next_position
 
-  local dist = pos:distance_to(target)
-
-  local _td = dist
+  local distance_to_target = pos:distance_to(target)
 
   local short_factor = 0.2
   local med_factor = 0.3
   local far_factor = 0.4
   local factor = far_factor
 
-  if dist < 100.0 then
+  if distance_to_target < 100.0 then
     factor = short_factor
-  elseif dist < 500.0 then
+  elseif distance_to_target < 500.0 then
     factor = med_factor
   end
 
-  dist = dist * factor * -e.wheel
+  local distance_to_cover = distance_to_target * factor * math.abs(e.wheel)
+
+  radiant.log.info("zooming %f %f", distance_to_target, distance_to_cover)
+  if e.wheel > 0 then
+    -- Moving towards the target.
+    if distance_to_target - distance_to_cover < 10.0 then
+      distance_to_cover = distance_to_target - 10.0
+    end
+  else
+    -- Moving away from the target.
+    if distance_to_cover + distance_to_target > 1000.0 then
+      distance_to_cover = 1000.0 - distance_to_target
+    end
+  end
+
+  local sign = 1
+  if e.wheel > 0 then
+    sign = -1
+  end
+
+  distance_to_cover = distance_to_cover * sign
+  radiant.log.info("zooming %f", distance_to_cover)
 
   local dir = pos - target
   dir:normalize()
-  dir:scale(dist)
+  dir:scale(distance_to_cover)
 
   self._impulse_delta = dir
+
 end
 
 function StonehearthCamera:_find_target()
