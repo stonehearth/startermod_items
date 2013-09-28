@@ -115,7 +115,7 @@ bool VoxelGeometryResource::raiseError( const std::string &msg )
 bool VoxelGeometryResource::loadData(VoxelVertexData *vertices, int vcount, uint32 *indicies, int icount)
 {
 	_vertCount = vcount;
-	_vertexData = new VoxelVertexData[_vertCount * sizeof VoxelVertexData];
+	_vertexData = new VoxelVertexData[_vertCount];
    ::memcpy(_vertexData, vertices, _vertCount * sizeof VoxelVertexData);
 
 	_indexCount = icount;
