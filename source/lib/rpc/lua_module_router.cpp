@@ -1,4 +1,5 @@
 #include "pch.h"
+#include <regex>
 #include "radiant_macros.h"
 #include "radiant_json.h"
 #include "lua_module_router.h"
@@ -15,6 +16,9 @@ using namespace radiant;
 using namespace radiant::rpc;
 using namespace luabind;
 
+// Parses 'a.b.c.d' -> 'a' , 'b.c.d'
+static const std::regex route_parser_regex__("^([^\\.\\\\/]+)\\.([^\\\\/]+)$");
+
 LuaModuleRouter::LuaModuleRouter(lua::ScriptHost* s, std::string const& endpoint) :
    LuaRouter(s),
    endpoint_(endpoint)
@@ -24,29 +28,36 @@ LuaModuleRouter::LuaModuleRouter(lua::ScriptHost* s, std::string const& endpoint
 ReactorDeferredPtr LuaModuleRouter::Call(Function const& fn)
 {
    try {
-      // Make sure the object looks like a module..
-      if (fn.object.find('/') != std::string::npos) {
+      if (!fn.object.empty()) {
          return nullptr;
       }
-      res::Manifest manifest = res::ResourceManager2::GetInstance().LookupManifest(fn.object);
-      res::Function f = manifest.get_function(fn.route);
+      std::smatch match;
+
+      if (!std::regex_match(fn.route, match, route_parser_regex__)) {
+         return nullptr;
+      }
+      std::string const& module = match[1];
+      std::string const& route = match[2];
+
+      res::Manifest manifest = res::ResourceManager2::GetInstance().LookupManifest(module);
+      res::Function f = manifest.get_function(route);
       if (!f || f.endpoint() != endpoint_) {
          return nullptr;
       }
-      return CallModuleFunction(fn, f.script());
+      LOG(INFO) << "lua router dispatching call '" << fn << "'...";
+
+      ReactorDeferredPtr d = std::make_shared<ReactorDeferred>(fn.desc());
+      CallModuleFunction(d, fn, f.script(), route);
+      return d;
    } catch (std::exception &e) {
       LOG(WARNING) << "error dispatching " << fn << " in lua module router: " << e.what();
    }
    return nullptr;
 }
 
-ReactorDeferredPtr LuaModuleRouter::CallModuleFunction(Function const& fn, std::string const& script)
+void LuaModuleRouter::CallModuleFunction(ReactorDeferredPtr d, Function const& fn, std::string const& script, std::string const& function_name)
 {
-   ReactorDeferredPtr d = std::make_shared<ReactorDeferred>(fn.desc());
-
    try {
-      LOG(INFO) << "lua router dispatching call '" << fn << "'...";
-
       lua::ScriptHost* sh = GetScriptHost();
       lua_State* L = sh->GetCallbackThread();
       object ctor(L, sh->RequireScript(script));
@@ -59,7 +70,7 @@ ReactorDeferredPtr LuaModuleRouter::CallModuleFunction(Function const& fn, std::
       } catch (std::exception& e) {
          throw core::Exception(BUILD_STRING("failed to create lua call handler while processing " << fn << ": " << e.what()));
       }
-      object method = obj[fn.route]; 
+      object method = obj[function_name];
       if (!method.is_valid() || type(method) != LUA_TFUNCTION) {
          throw core::Exception(BUILD_STRING("constructed lua handler does not implement " << fn));
       }
@@ -68,5 +79,4 @@ ReactorDeferredPtr LuaModuleRouter::CallModuleFunction(Function const& fn, std::
       LOG(WARNING) << "error attempting to call " << fn << " in lua module router: " << e.what();
       d->RejectWithMsg(e.what());
    }
-   return d;
 }

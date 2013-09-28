@@ -25,7 +25,7 @@ $(document).ready(function(){
 
       var workbench_entity = e.workbench_entity;
 
-      radiant.call_obj('stonehearth', 'choose_workbench_location', workbench_entity)
+      radiant.call('stonehearth.choose_workbench_location', workbench_entity)
          .done(function(o){
             //xxx, place the outbox
          })

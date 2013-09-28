@@ -60,7 +60,7 @@ function WorkshopCallHandler:_on_mouse_event(e, workbench_entity, response)
       -- pass "" for the function name so the deafult (handle_request) is
       -- called.  this will return a Deferred object which we can use to track
       -- the call's progress
-      _radiant.call_obj('stonehearth', 'create_workbench', workbench_entity, pt)
+      _radiant.call('stonehearth.create_workbench', workbench_entity, pt)
                :always(function ()
                      -- whether the request succeeds or fails, go ahead and destroy
                      -- the authoring entity.  do it after the request returns to avoid
