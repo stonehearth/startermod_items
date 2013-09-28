@@ -67,7 +67,7 @@ Record& Record::SetCharOffset(int n)
 Record& Record::SetCategory(Category c)
 {
    if (c >= 0 && c < ARRAYSIZE(categories__)) {
-      node_.push_back(JSONNode("category", categories[c]));
+      node_.push_back(JSONNode("category", categories__[c]));
    }
    return *this;
 }
