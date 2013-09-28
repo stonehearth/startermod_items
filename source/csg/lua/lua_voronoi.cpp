@@ -18,6 +18,7 @@ static void DistributeByHeightmap(VoronoiMap& m, HeightMap<double>& radii, doubl
 
 #define MAKE_KEY(x, y)     (((y) << 16) | (x))
 
+   // xxx: this is in no way thread safe! (see SH-8)
    static const std::pair<int, int> border[] = {
       std::pair<int, int>(-1, -1),
       std::pair<int, int>(-1,  0),

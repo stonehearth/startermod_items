@@ -18,6 +18,17 @@ using namespace ::radiant::client;
 
 DEFINE_SINGLETON(Pipeline);
 
+static const struct {
+   int i, u, v, mask;
+   csg::Point3f normal;
+} qubicle_node_edges__[] = {
+   { 2, 0, 1, FRONT_MASK,  csg::Point3f( 0,  0,  1) },
+   { 2, 0, 1, BACK_MASK,   csg::Point3f( 0,  0, -1) },
+   { 1, 0, 2, TOP_MASK,    csg::Point3f( 0,  1,  0) },
+   { 1, 0, 2, BOTTOM_MASK, csg::Point3f( 0, -1,  0) },
+   { 0, 2, 1, RIGHT_MASK,  csg::Point3f(-1,  0,  0) },
+   { 0, 2, 1, LEFT_MASK,   csg::Point3f( 1,  0,  0) },
+};
 
 Pipeline::Pipeline()
 {
@@ -59,26 +70,14 @@ H3DNodeUnique Pipeline::AddQubicleNode(H3DNode parent, const QubicleMatrix& m, c
 
    //std::unordered_map<Vertex, int> vertcache;
 
-   // Super greedy...
-   
-   static const struct {
-      int i, u, v, mask;
-      csg::Point3f normal;
-   } edges[] = {
-      { 2, 0, 1, FRONT_MASK,  csg::Point3f( 0,  0,  1) },
-      { 2, 0, 1, BACK_MASK,   csg::Point3f( 0,  0, -1) },
-      { 1, 0, 2, TOP_MASK,    csg::Point3f( 0,  1,  0) },
-      { 1, 0, 2, BOTTOM_MASK, csg::Point3f( 0, -1,  0) },
-      { 0, 2, 1, RIGHT_MASK,  csg::Point3f(-1,  0,  0) },
-      { 0, 2, 1, LEFT_MASK,   csg::Point3f( 1,  0,  0) },
-   };
-   
+   // Super greedy...   
+ 
    const csg::Point3& size = m.GetSize();
    const csg::Point3f matrixPosition((float)m.position_.x, (float)m.position_.y, (float)m.position_.z);
 
    uint32* mask = new uint32[size.x * size.y * size.z];
 
-   for (const auto &edge : edges) {
+   for (const auto &edge : qubicle_node_edges__) {
       csg::Point3 pt;
       for (int i = 0; i < size[edge.i]; i++) {
          int maskSize = 0, offset = 0;

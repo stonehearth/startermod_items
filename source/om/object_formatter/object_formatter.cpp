@@ -14,6 +14,8 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+static const std::regex path_regex__("/o/stores/([^/]*)/objects/(\\d+)");
+
 // xxx - It would be great if we could do this with a C++ 11 initializer, but VC doesn't
 // support those yet.
 static std::unordered_map<dm::ObjectType, std::function<JSONNode(const ObjectFormatter& f, dm::ObjectPtr)>> object_formatters_;
@@ -45,9 +47,8 @@ JSONNode ObjectFormatter::ObjectToJson(dm::ObjectPtr obj) const
 
 dm::ObjectPtr ObjectFormatter::GetObject(dm::Store const& store, std::string const& path) const
 {
-   static std::regex exp("/o/stores/([^/]*)/objects/(\\d+)");
    std::smatch match;
-   if (std::regex_match(path, match, exp)) {
+   if (std::regex_match(path, match, path_regex__)) {
       std::string store_name = match[1].str();
       if (store.GetName() == store_name) {
          std::string object_id = match[2].str();

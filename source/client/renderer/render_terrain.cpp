@@ -68,6 +68,8 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
       csg::Point3f topsoil_detail = parse_color(config.get<std::string>("topsoil.detail_color", "#ff00ff"));
       csg::Point3f plains_color = parse_color(config.get<std::string>("plains.color", "#ff00ff"));
       csg::Point3f dark_wood_color = parse_color(config.get<std::string>("wood.dark_color", "#ff00ff"));
+
+      // xxx: this is in no way thread safe! (see SH-8)
       static csg::Point3f detail_bands[] = {
          parse_color(config.get<std::string>("foothills.band_0_color", "#ff00ff")),
          parse_color(config.get<std::string>("foothills.band_1_color", "#ff00ff")),

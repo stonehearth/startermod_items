@@ -7,6 +7,12 @@ using namespace ::radiant::om;
 
 typedef ErrorBrowser::Record Record;
 
+static const char *categories__[] = {
+   "info",
+   "warning",
+   "severe",
+};
+
 std::ostream& om::operator<<(std::ostream &os, Record const& r)
 {
    os << "error_record {" << std::endl;
@@ -60,12 +66,7 @@ Record& Record::SetCharOffset(int n)
 
 Record& Record::SetCategory(Category c)
 {
-   static const char *categories[] = {
-      "info",
-      "warning",
-      "severe",
-   };
-   if (c >= 0 && c < ARRAYSIZE(categories)) {
+   if (c >= 0 && c < ARRAYSIZE(categories__)) {
       node_.push_back(JSONNode("category", categories[c]));
    }
    return *this;

@@ -52,6 +52,8 @@ namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 namespace proto = ::radiant::tesseract::protocol;
 
+static const std::regex call_path_regex__("/r/call/?");
+
 DEFINE_SINGLETON(Client);
 
 Client::Client() :
@@ -874,9 +876,8 @@ void Client::CallHttpReactor(std::string path, json::ConstJsonObject query, std:
    int status = 404;
    rpc::ReactorDeferredPtr d;
 
-   static std::regex call_path("/r/call/?");
    std::smatch match;
-   if (std::regex_match(path, match, call_path)) {
+   if (std::regex_match(path, match, call_path_regex__)) {
       d = http_reactor_->Call(query, postdata);
    }
    if (!d) {

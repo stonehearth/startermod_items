@@ -145,6 +145,7 @@ void HttpReactor::QueueEvent(std::string type, JSONNode payload)
 // must be thread safe.  called from the client browser thread
 bool HttpReactor::HttpGetFile(std::string const& uri, int &code, std::string& content, std::string& mimetype)
 {
+   // xxx: this is in no way thread safe! (see SH-8)
    static const struct {
       char *extension;
       char *mimeType;

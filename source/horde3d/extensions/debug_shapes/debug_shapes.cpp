@@ -327,6 +327,7 @@ void DebugShapesNode::add_aabb(const csg::Cube3f& aabb, const csg::Color4& color
 void DebugShapesNode::add_region(const csg::Region3& rgn, const csg::Color4& color)
 {
    for (const auto &c : rgn) {
+      // xxx: this is in no way thread safe! (see SH-8)
       static const float offset[] = { 0.5f, 0.0f, 0.5f };
       csg::Point3f min, max;
       for (int i = 0; i < 3; i++) {

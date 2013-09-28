@@ -37,9 +37,7 @@ void Region<S, C>::Clear()
 template <class S, int C>
 void Region<S, C>::Add(const Cube& cube)
 {
-   static Region unique;
-   unique.Clear();
-   unique.AddUnique(cube);
+   Region unique(cube);
 
    for (const Cube& c : *this) {
       unique.Subtract(c);
