@@ -26,6 +26,7 @@ function StonehearthCamera:__init()
   self._dragging = false
   self._drag_start = Vec3(0, 0, 0)
   self._drag_origin = Vec3(0, 0, 0)
+  self._drag_delta = Vec3(0, 0, 0)
 
   self:_update_camera(0)
 
@@ -200,7 +201,7 @@ function StonehearthCamera:_calculate_orbit(e)
   local deg_x = e.dx / -3.0
   local deg_y = e.dy / -2.0
 
-  self:_orbit(self._orbit_target, deg_y, deg_x, 30.0, 70.0)
+  self:_orbit(self._orbit_target, deg_y, deg_x, 2.0, 88.0)
 end
 
 function StonehearthCamera:_calculate_drag(e)
@@ -214,6 +215,8 @@ function StonehearthCamera:_calculate_drag(e)
       self._drag_origin = screen_ray.origin
     end
   elseif (e:up(1) or not self._drag_key) and self._dragging then
+    self._next_position = self._next_position + self._drag_delta
+    self._drag_delta = Vec3(0, 0, 0)
     self._dragging = false
   end
 
@@ -236,11 +239,7 @@ function StonehearthCamera:_drag(x, y)
 
   local drag_end = screen_ray.direction + self._drag_origin
 
-  local delta = self._drag_start - drag_end
-
-  self._impulse_delta = delta
-
-  self._drag_start = drag_end
+  self._drag_delta = self._drag_start - drag_end
 end
 
 function StonehearthCamera:_calculate_scroll(e, screen_x, screen_y, gutter)
@@ -284,7 +283,7 @@ function StonehearthCamera:_update_camera(frame_time)
   -- Impulse delta is cleared on every camera update
   self._impulse_delta = Vec3(0, 0, 0)
 
-  local lerp_pos = _radiant.csg.lerp(self:get_position(), self._next_position, smoothness * frame_time)
+  local lerp_pos = _radiant.csg.lerp(self:get_position(), self._next_position + self._drag_delta, smoothness * frame_time)
   self:set_position(lerp_pos)
 end
 
