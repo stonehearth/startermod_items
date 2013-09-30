@@ -30,7 +30,6 @@ local.mk
 *.sqlite
 *.bin
 *.gitignore
-*_Log.*
 *_log.txt
 
 # OS generated files #
