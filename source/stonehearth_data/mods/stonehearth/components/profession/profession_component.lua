@@ -24,8 +24,8 @@ function ProfessionComponent:get_profession_type()
    return self._info.profession_type
 end
 
-function ProfessionComponent:get_class_script()
-   return self._info.class_script
+function ProfessionComponent:get_script()
+   return self._info.script
 end
 
 return ProfessionComponent

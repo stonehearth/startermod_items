@@ -3,11 +3,11 @@
       <div id="scroll">
          <div id="content">
             <div id="title">
-               {{name}}
+               {{workshop.name}}
             </div>
 
             <div id='portrait'>
-               <img {{bindAttr src=portrait}} />
+               <img {{bindAttr src=workshop.portrait}} />
             </div>
 
             <div id="description">
@@ -17,7 +17,7 @@
                      <td valign=bottom><img class="leftBookend" /></td>
                      <td valign=bottom>
                         <nobr>
-                        {{#each ingredients}}
+                        {{#each workshop.ingredients}}
                            <div class="ingredientSocket">
                               <div class="background selectionRequired"></div>
                               <div {{bindAttr class=material}}></div>
@@ -32,7 +32,7 @@
                </table>
 
                <div id="attributes">
-                  <div id="usefulText">{{long_description}}</div>
+                  <div id="usefulText">{{workshop.long_description}}</div>
                   <div id="flavorText"></div>
                </div>
             </div>

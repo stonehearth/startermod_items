@@ -189,7 +189,7 @@ function WorkshopComponent:init_promotion_talisman()
    self._entity:add_component('entity_container'):add_child(self._promotion_talisman_entity)
    self._promotion_talisman_entity:add_component('mob'):set_location_grid_aligned(Point3(offset[1], offset[2], offset[3]))
 
-   self._promotion_talisman_entity:get_component('stonehearth:promotion_talisman'):set_promotion_data({workshop = self})
+   self._promotion_talisman_entity:get_component('stonehearth:promotion_talisman'):set_workshop(self)
 
    return self._promotion_talisman_entity
 end

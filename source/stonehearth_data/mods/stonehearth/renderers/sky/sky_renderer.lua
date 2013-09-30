@@ -1,5 +1,3 @@
-local calendar = require 'services.calendar.calendar_service'
-
 local SkyRenderer = class()
 local Vec3 = _radiant.csg.Point3f
 
@@ -39,16 +37,17 @@ function SkyRenderer:set_sky_constants()
    self.timing = {}
 
    --get some times from the calendar
-   local base_times = calendar:get_curr_times_of_day()
-   local time_constants = calendar:get_constants()
+   local time_constants = radiant.resources.load_json('/stonehearth/services/calendar/calendar_constants.json')
+   local base_times = time_constants.baseTimeOfDay
+   
 
-   self.timing.midnight = base_times.midnight * time_constants.MINUTES_IN_HOUR
-   self.timing.sunrise_start = base_times.sunrise *time_constants.MINUTES_IN_HOUR
-   self.timing.sunrise_end = (base_times.sunrise * time_constants.MINUTES_IN_HOUR) + constants.rise_set_length
-   self.timing.midday = base_times.midday * time_constants.MINUTES_IN_HOUR
-   self.timing.sunset_start = base_times.sunset * time_constants.MINUTES_IN_HOUR
-   self.timing.sunset_end = (base_times.sunset * time_constants.MINUTES_IN_HOUR) + constants.rise_set_length
-   self.timing.day_length = time_constants.HOURS_IN_DAY * time_constants.MINUTES_IN_HOUR
+   self.timing.midnight = base_times.midnight * time_constants.minutes_per_hour
+   self.timing.sunrise_start = base_times.sunrise *time_constants.minutes_per_hour
+   self.timing.sunrise_end = (base_times.sunrise * time_constants.minutes_per_hour) + constants.rise_set_length
+   self.timing.midday = base_times.midday * time_constants.minutes_per_hour
+   self.timing.sunset_start = base_times.sunset * time_constants.minutes_per_hour
+   self.timing.sunset_end = (base_times.sunset * time_constants.minutes_per_hour) + constants.rise_set_length
+   self.timing.day_length = time_constants.hours_per_day * time_constants.minutes_per_hour
    self.timing.transition_length = constants.transition_length
 end
 

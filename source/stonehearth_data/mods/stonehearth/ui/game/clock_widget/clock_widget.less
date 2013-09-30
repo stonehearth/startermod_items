@@ -6,77 +6,68 @@
    height: 180px;
 
 
+   .celestial {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      width: 107px;
+      height: 115px;
+   }
+
+   .ray {
+      display: none;
+   }
+
    #clock {
       position: absolute;
       top: 30px;
       left: 30px;
       width: 98px;
       height: 110px;
-      background: url('./images/base.png');
       z-index: 5;
 
-      .sky {
-         position: absolute;
-         top: 19px;
-         left: 14px;
-         width: 70px;
-         height: 65px;
-         z-index: 10;
+      #sun {
+         #ray16 { background: url('./images/sun_rays_16.png'); }
+         #ray15 { background: url('./images/sun_rays_15.png'); }
+         #ray14 { background: url('./images/sun_rays_14.png'); }
+         #ray13 { background: url('./images/sun_rays_13.png'); }
+         #ray12 { background: url('./images/sun_rays_12.png'); }
+         #ray11 { background: url('./images/sun_rays_11.png'); }
+         #ray10 { background: url('./images/sun_rays_10.png'); }
+         #ray9  { background: url('./images/sun_rays_9.png'); }
+         #ray8  { background: url('./images/sun_rays_8.png'); }
+         #ray7  { background: url('./images/sun_rays_7.png'); }
+         #ray6  { background: url('./images/sun_rays_6.png'); }
+         #ray5  { background: url('./images/sun_rays_5.png'); }
+         #ray4  { background: url('./images/sun_rays_4.png'); }
+         #ray3  { background: url('./images/sun_rays_3.png'); }
+         #ray2  { background: url('./images/sun_rays_2.png'); }
+         #ray1  { background: url('./images/sun_rays_1.png'); }
+
+         #body {
+            background: url('./images/sun.png');
+         }
       }
 
-      #skyDay {
-         background: url('./images/sky_day.png');
+
+      #moon {
+         #ray8  { background: url('./images/moon_rays_8.png'); }
+         #ray7  { background: url('./images/moon_rays_7.png'); }
+         #ray6  { background: url('./images/moon_rays_6.png'); }
+         #ray5  { background: url('./images/moon_rays_5.png'); }
+         #ray4  { background: url('./images/moon_rays_4.png'); }
+         #ray3  { background: url('./images/moon_rays_3.png'); }
+         #ray2  { background: url('./images/moon_rays_2.png'); }
+         #ray1  { background: url('./images/moon_rays_1.png'); }
+
+         #body {
+            background: url('./images/moon.png');
+         }
       }
-
-      #skyNight {
-         background: url('./images/sky_night.png');
-      }
-   }
-
-   #sun {
-      position: absolute;
-      top: 0px;
-      left: 30px;
-      width: 26px;
-      height: 28px;
-      overflow: visible;
-
-      #sunRays {
-         position: absolute;
-         left: -6px;
-         top: -7px;
-         width: 38px;
-         height: 41px;
-         background: url('./images/sun_rays.png');
-      }
-
-      #sunBody {
-         position: absolute;
-         left: 0px;
-         top: 0px;
-         width: 26px;
-         height: 28px;
-         background: url('./images/sun.png');
-      }
-
-   }
-
-   #moon {
-      position: absolute;
-      top: 0px;
-      left: 0px;
-      width: 26px;
-      height: 28px;
-      background: url('./images/moon.png');
    }
 
    #time {
-      .outlined;
-      color: #fff;
-      font-size: 10px;
-      position: absolute;
-      top: 50px;
-      right: 55px;
-      z-index: 999;
+      display: none;
+      color: red;
    }
 }

@@ -30,8 +30,7 @@ end
 function GrabTalismanAction:run(ai, entity, action_data)
    if action_data and action_data.talisman then
       self._talisman_entity = action_data.talisman
-      local promotion_info_component = self._talisman_entity:get_component('stonehearth:promotion_talisman')
-      local workbench_entity = promotion_info_component:get_promotion_data().workshop:get_entity();
+      local workbench_entity = self._talisman_entity:get_component('stonehearth:promotion_talisman'):get_workshop():get_entity();
 
       --TODO: if the dude is currently not a worker, he should drop his talisman
       --and/or tell his place of work to spawn a new one. (Disassociate worker from queue?)
@@ -61,19 +60,18 @@ GrabTalismanAction['radiant.animation.on_trigger'] = function(self, info, effect
    for name, e in pairs(info) do
       if name == "info" then
          if e.event == "change_outfit" then
-            --Time to remove the old class
 
-            local old_profession = entity:get_component('stonehearth:profession')
-            local old_class_script = old_profession:get_class_script()
-            local old_class_script_api = radiant.mods.load_script(old_class_script)
-            if old_class_script_api.demote then
-               old_class_script_api.demote(self._entity)
+            --Remove the current class for the person
+            local current_profession_script = entity:get_component('stonehearth:profession'):get_script()
+            local current_profession_script_api = radiant.mods.load_script(current_profession_script)
+            if current_profession_script_api.demote then
+               current_profession_script_api.demote(self._entity)
             end
 
-            --Time to add the new class
-            local talisman_profession_info = self._talisman_entity:get_component('stonehearth:promotion_talisman')
-            local class_script = talisman_profession_info:get_class_script()
-            radiant.mods.load_script(class_script).promote(self._entity, talisman_profession_info:get_promotion_data())
+            --Add the new class
+            local promotion_talisman_component = self._talisman_entity:get_component('stonehearth:promotion_talisman')
+            local script = promotion_talisman_component:get_script()
+            radiant.mods.load_script(script).promote(self._entity, promotion_talisman_component:get_workshop())
          end
       end
    end

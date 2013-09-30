@@ -1,13 +1,10 @@
 --[[
    The carpenter api implements all the functionality that other files will need.
-   Promotion_data contains whatever data we need to hook up this specific class.
-   In this case, that's a workshop component: {workshop = workshop_component}
 ]]
 
 local carpenter_class = {}
 
-function carpenter_class.promote(entity, promotion_data)
-   assert(promotion_data.workshop)
+function carpenter_class.promote(entity, workshop_component)
 
    --Add the necessary components
    local profession_description = radiant.resources.load_json('stonehearth.carpenter.profession_description')
@@ -17,7 +14,6 @@ function carpenter_class.promote(entity, promotion_data)
    local crafter_component = entity:add_component("stonehearth:crafter")
    crafter_component:set_info(profession_description.crafter)
 
-   local workshop_component = promotion_data.workshop
    crafter_component:set_workshop(workshop_component)
    workshop_component:set_crafter(entity)
 
