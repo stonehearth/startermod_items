@@ -98,7 +98,7 @@ function HeightMapRenderer:_add_land_to_region(dst, rect, height, terrain_info)
 
       dst:add_cube(Cube3(Point3(rect.min.x, height-1, rect.min.y),
                          Point3(rect.max.x, height,   rect.max.y),
-                   Terrain.GRASS))
+                   Terrain.FOOTHILLS))
    else
       dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
                          Point3(rect.max.x, height,   rect.max.y),
@@ -113,7 +113,7 @@ end
 
 -----
 
-function HeightMapRenderer:tesselator_test()
+function HeightMapRenderer.tesselator_test()
    local terrain = radiant._root_entity:add_component('terrain')
    local boxed_r3 = _radiant.sim.alloc_region()   
    local r3 = boxed_r3:modify()
@@ -123,8 +123,9 @@ function HeightMapRenderer:tesselator_test()
    --r3:add_cube(Cube3(Point3(16, height-1, 1), Point3(17, height, 15), Terrain.TOPSOIL))
 
    r3:add_cube(Cube3(Point3(0, height-1, 0), Point3(256, height, 256), Terrain.GRASS))
+   --r3:add_cube(Cube3(Point3(256, height-1, 0), Point3(257, height, 256), Terrain.TOPSOIL))
 
-   self._terrain:add_zone(Point3(0, 0, 0), boxed_r3)
+   terrain:add_zone(Point3(0, 0, 0), boxed_r3)
 end
 
 return HeightMapRenderer

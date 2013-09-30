@@ -22,7 +22,7 @@ local TerrainGenerator = class()
 function TerrainGenerator:__init()
    local terrain_type, terrain_info
 
-   self.base_random_seed = 1
+   self.base_random_seed = 5
 
    self.zone_size = 256
    self.tile_size = 32
@@ -38,7 +38,7 @@ function TerrainGenerator:__init()
    plains_info.step_size = 2
    plains_info.mean_height = 16
    plains_info.std_dev = 8
-   plains_info.min_height = 12
+   plains_info.min_height = 14
    plains_info.max_height = 16
    terrain_info[TerrainType.Plains] = plains_info
    assert(plains_info.max_height % plains_info.step_size == 0)

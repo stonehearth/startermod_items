@@ -5,13 +5,13 @@
       "detail_color": "#A3905A"
    },
    "foothills": {
-      "band_0_color": "#69A165",
-      "band_1_color": "#5A955F",
-      "band_2_color": "#5A955F"
+      "band_0_color": "#99ce7c",
+      "band_1_color": "#87c076",
+      "band_2_color": "#75b370"
    },
    "plains": {
-      "band_0_color": "#519663",
-      "band_1_color": "#4A885A"
+      "band_0_color": "#5fa771",
+      "band_1_color": "#529864"
    },
    "wood": {
       "dark_color": "#523D27"

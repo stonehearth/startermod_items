@@ -235,6 +235,8 @@ void lua::client::open(lua_State* L)
                .def("down",             &MouseEvent_GetDown)
             ,
             lua::RegisterType<KeyboardInput>()
+               .def_readonly("key",    &KeyboardInput::key)
+               .def_readonly("down",   &KeyboardInput::down)
             ,
             lua::RegisterType<RawInput>()
          ]

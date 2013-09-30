@@ -17,7 +17,7 @@ function NewWorld:place_camp()
    local camp_x = 0
    local camp_z = 0
 
-   local tree = self:place_tree(camp_x-12, camp_z-12)
+   --local tree = self:place_tree(camp_x-12, camp_z-12)
 
    local worker = self:place_citizen(camp_x-3, camp_z-3)
    self:place_citizen(camp_x+0, camp_z-3)

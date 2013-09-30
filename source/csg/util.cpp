@@ -5,6 +5,7 @@ using namespace ::radiant;
 using namespace ::radiant::csg;
 
 //#define LOG_EDGES
+#define CLIP_ZONE_BOUNDARIES
 
 std::ostream& csg::operator<<(std::ostream& os, EdgePoint const& f)
 {
@@ -186,6 +187,14 @@ EdgeListPtr csg::Region2ToEdgeList(Region2 const& rgn, int height, Region3 const
          }
       }
 
+#ifdef CLIP_ZONE_BOUNDARIES
+      // define additional clippers along the zone boundaries
+      int zone_size = 256;
+      Line1 zone_edge(Point1(0), Point1(zone_size));
+      clipper_front[zone_size] += zone_edge;
+      clipper_back[0] += zone_edge;
+#endif
+
       for (Rect2 const& r : rgn) {
          Point2 const& min = r.GetMin();
          Point2 const& max = r.GetMax();
@@ -198,6 +207,7 @@ EdgeListPtr csg::Region2ToEdgeList(Region2 const& rgn, int height, Region3 const
          front[min[plane]] += segment;
          back[max[plane]] += segment;
       }
+
       add_edges(front, back, clipper_back,  plane, -1);
       add_edges(back, front, clipper_front, plane,  1);
    }

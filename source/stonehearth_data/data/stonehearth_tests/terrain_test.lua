@@ -1,9 +1,8 @@
-local WorldGenerator = require 'services.world_generation.world_generator'
-local HeightMap = require 'services.world_generation.height_map'
-local TerrainType = require 'services.world_generation.terrain_type'
-local TerrainGenerator = require 'services.world_generation.terrain_generator'
-local Landscaper = require 'services.world_generation.landscaper'
-local HeightMapRenderer = require 'services.world_generation.height_map_renderer'
+local HeightMap = radiant.mods.require('stonehearth.services.world_generation.height_map')
+local TerrainType = radiant.mods.require('stonehearth.services.world_generation.terrain_type')
+local TerrainGenerator = radiant.mods.require('stonehearth.services.world_generation.terrain_generator')
+local Landscaper = radiant.mods.require('stonehearth.services.world_generation.landscaper')
+local HeightMapRenderer = radiant.mods.require('stonehearth.services.world_generation.height_map_renderer')
 local Timer = radiant.mods.require('stonehearth_debugtools.timer')
 
 local TerrainTest = class()
@@ -11,12 +10,13 @@ local TerrainTest = class()
 function TerrainTest:__init()
    --run_unit_tests()
    --run_timing_tests()
-   local world_generator = WorldGenerator(true)
-   world_generator:create_world()
+   --self:tesselator_test()
+   local wgs = radiant.mods.load('stonehearth').world_generation
+   local wg = wgs:create_world(true)
 end
 
 function TerrainTest:tesselator_test()
-   self._height_map_renderer:tesselator_test()   
+   HeightMapRenderer.tesselator_test()   
 end
 
 function TerrainTest:tree_test()
