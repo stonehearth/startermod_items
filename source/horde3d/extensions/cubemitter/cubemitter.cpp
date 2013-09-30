@@ -449,7 +449,7 @@ bool CubemitterNode::hasFinished()
    if (_active) {
       return false;
    }
-	for( uint32 i = 0; i < _particleCount; ++i )
+	for( uint32 i = 0; i < _maxCubes; ++i )
 	{	
       if( _cubes[i].currentLife > 0)
 		{
@@ -482,7 +482,7 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 		
 		CubemitterNode *emitter = (CubemitterNode *)entry.node;
 
-		/*if( emitter->_particleCount == 0 ) continue;
+      if( emitter->_maxCubes == 0 ) continue;
 		if( !emitter->_materialRes->isOfClass( theClass ) ) continue;
 		
 		// Occlusion culling
@@ -513,14 +513,14 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 					{
 						Modules::renderer().pushOccProxy( 0, emitter->getBBox().min,
 							emitter->getBBox().max, emitter->_occQueries[occSet] );
-                  _wasVisible = false;
+                  emitter->_wasVisible = false;
 						continue;
 					}
 					else
 						queryObj = emitter->_occQueries[occSet];
 				}
 			}
-		}*/
+		}
 		
 		// Set material
 		if( curMatRes != emitter->_materialRes )
@@ -534,8 +534,8 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 		// Set vertex layout
       gRDI->setVertexLayout( Extension::getCubemitterCubeVL() );
 		
-		//if( queryObj )
-		//	gRDI->beginQuery( queryObj );
+		if( queryObj )
+			gRDI->beginQuery( queryObj );
 		
 		// Shader uniforms
 		ShaderCombination *curShader = Modules::renderer().getCurShader();
@@ -551,16 +551,15 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
       
       emitter->_wasVisible = true;
 
-		/*if( queryObj )
-			gRDI->endQuery( queryObj );*/
+		if( queryObj )
+			gRDI->endQuery( queryObj );
 	}
 
 	timer->endQuery();
 
-
    // Draw occlusion proxies
-	//if( occSet >= 0 )
-	//	Modules::renderer().drawOccProxies( 0 );
+	if( occSet >= 0 )
+		Modules::renderer().drawOccProxies( 0 );
 	
 	gRDI->setVertexLayout( 0 );
 }
@@ -572,16 +571,6 @@ void CubemitterNode::onPostUpdate()
 	Timer *timer = Modules::stats().getTimer( EngineStats::ParticleSimTime );
 	if( Modules::config().gatherTimeStats ) timer->setEnabled( true );
 	
-	Vec3f bBMin( Math::MaxFloat, Math::MaxFloat, Math::MaxFloat );
-	Vec3f bBMax( -Math::MaxFloat, -Math::MaxFloat, -Math::MaxFloat );
-	
-	/*
-   if( _delay <= 0 )
-		_emissionAccum += _emissionRate * _timeDelta;
-	else
-		_delay -= _timeDelta;
-   */
-
    CubemitterData d = _cubemitterRes.getPtr()->emitterData;
 
    float timeAvailableToSpawn = _timeDelta - _nextSpawnTime;
@@ -603,6 +592,9 @@ void CubemitterNode::onPostUpdate()
 
 void CubemitterNode::updateAndSpawnCubes(int numToSpawn) 
 {
+	Vec3f bBMin( Math::MaxFloat, Math::MaxFloat, Math::MaxFloat );
+	Vec3f bBMax( -Math::MaxFloat, -Math::MaxFloat, -Math::MaxFloat );
+
    for (uint32 i = 0; i < _maxCubes; i++)
    {
       CubeData &d = _cubes[i];
@@ -614,8 +606,11 @@ void CubemitterNode::updateAndSpawnCubes(int numToSpawn)
          numToSpawn--;
       }
 
-      updateCube(d, ca);
+      updateCube(d, ca, bBMin, bBMax);
    }
+
+   _bBox.min = bBMin;
+	_bBox.max = bBMax;
 }
 
 void CubemitterNode::spawnCube(CubeData &d, CubeAttribute &ca)
@@ -726,7 +721,7 @@ void CubemitterNode::spawnCube(CubeData &d, CubeAttribute &ca)
    ca.color = d.currentColor;
 }
 
-void CubemitterNode::updateCube(CubeData &d, CubeAttribute &ca)
+void CubemitterNode::updateCube(CubeData& d, CubeAttribute& ca, Vec3f& bBMin, Vec3f& bBMax)
 {
    if (d.currentLife <= 0) {
       // Set the scale to zero, so nothing is rasterized (burning vertex ops should be fine).
@@ -754,48 +749,25 @@ void CubemitterNode::updateCube(CubeData &d, CubeAttribute &ca)
    float rotY = degToRad(d.rotation_y->nextValue(fr));
    float rotZ = degToRad(d.rotation_z->nextValue(fr));
 
-
    Matrix4f rot = Matrix4f::RotMat(rotX, rotY, rotZ);
    Matrix4f scale = Matrix4f::ScaleMat(d.currentScale, d.currentScale, d.currentScale);
-   rot = rot * scale;
 
    // This is our actual vbo data.
-   ca.matrix.x[0] = rot.x[0];
-   ca.matrix.x[1] = rot.x[1];
-   ca.matrix.x[2] = rot.x[2];
-   ca.matrix.x[4] = rot.x[4];
-   ca.matrix.x[5] = rot.x[5];
-   ca.matrix.x[6] = rot.x[6];
-   ca.matrix.x[8] = rot.x[8];
-   ca.matrix.x[9] = rot.x[9];
-   ca.matrix.x[10] = rot.x[10];
+   ca.matrix = rot * scale;
    ca.matrix.x[12] = d.position.x;
    ca.matrix.x[13] = d.position.y;
    ca.matrix.x[14] = d.position.z;
    ca.color = d.currentColor;
-}
 
-
-/*		// Update bounding box
-		Vec3f vertPos( _parPositions[i*3+0], _parPositions[i*3+1], _parPositions[i*3+2] );
-		if( vertPos.x < bBMin.x ) bBMin.x = vertPos.x;
-		if( vertPos.y < bBMin.y ) bBMin.y = vertPos.y;
-		if( vertPos.z < bBMin.z ) bBMin.z = vertPos.z;
-		if( vertPos.x > bBMax.x ) bBMax.x = vertPos.x;
-		if( vertPos.y > bBMax.y ) bBMax.y = vertPos.y;
-		if( vertPos.z > bBMax.z ) bBMax.z = vertPos.z;
-	}
+	if( d.position.x < bBMin.x ) bBMin.x = d.position.x;
+	if( d.position.y < bBMin.y ) bBMin.y = d.position.y;
+	if( d.position.z < bBMin.z ) bBMin.z = d.position.z;
+	if( d.position.x > bBMax.x ) bBMax.x = d.position.x;
+	if( d.position.y > bBMax.y ) bBMax.y = d.position.y;
+	if( d.position.z > bBMax.z ) bBMax.z = d.position.z;
 
 	// Avoid zero box dimensions for planes
 	if( bBMax.x - bBMin.x == 0 ) bBMax.x += Math::Epsilon;
 	if( bBMax.y - bBMin.y == 0 ) bBMax.y += Math::Epsilon;
-	if( bBMax.z - bBMin.z == 0 ) bBMax.z += Math::Epsilon;
-	
-	_bBox.min = bBMin;
-	_bBox.max = bBMax;
-
-	_timeDelta = 0;
-	_prevAbsTrans = _absTrans;
-
-	timer->setEnabled( false );*/
-//}
+	if( bBMax.z - bBMin.z == 0 ) bBMax.z += Math::Epsilon;	
+}
