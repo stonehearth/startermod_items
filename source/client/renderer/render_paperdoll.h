@@ -5,7 +5,6 @@
 #include "om/om.h"
 #include "dm/dm.h"
 #include "dm/set.h"
-#include "types.h"
 #include "skeleton.h"
 #include "render_entity.h"
 #include "render_component.h"

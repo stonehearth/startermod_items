@@ -22,6 +22,8 @@ namespace fs = ::boost::filesystem;
 using namespace ::radiant;
 using namespace ::radiant::res;
 
+static const std::regex file_macro_regex__("^file\\((.*)\\)$");
+static const std::regex entity_macro_regex__("^([^\\.\\\\/]+)\\.([^\\\\/]+)$");
 
 // === Helper Functions ======================================================
 
@@ -347,16 +349,13 @@ std::string ResourceManager2::GetEntityUri(std::string const& mod_name, std::str
 
 std::string ResourceManager2::ExpandMacro(std::string const& current, std::string const& base_path, bool full) const
 {
-   static std::regex file_macro("^file\\((.*)\\)$");
    std::smatch match;
 
-   if (std::regex_match(current, match, file_macro)) {
+   if (std::regex_match(current, match, file_macro_regex__)) {
       return ConvertToAbsolutePath(match[1], base_path);
    }
    if (full) {
-      static std::regex entity_macro("^([^\\.\\\\/]+)\\.([^\\\\/]+)$");
-
-      if (std::regex_match(current, match, entity_macro)) {
+      if (std::regex_match(current, match, entity_macro_regex__)) {
          return GetEntityUri(match[1], match[2]);
       }
    }

@@ -12,6 +12,8 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+static const std::regex entity_macro_regex__("^([^\\.\\\\/]+)\\.([^\\\\/]+)$");
+
 csg::Region3 Stonehearth::ComputeStandingRegion(const csg::Region3& r, int height)
 {
    csg::Region3 standing;
@@ -145,11 +147,10 @@ om::Stonehearth::AddComponent(lua_State* L, om::EntityRef e, std::string name)
 }
 
 void Stonehearth::InitEntityByRef(om::EntityPtr entity, std::string const& entity_ref, lua_State* L)
-{
-   static std::regex entity_macro("^([^\\.\\\\/]+)\\.([^\\\\/]+)$");
+{   
    std::smatch match;
 
-   if (std::regex_match(entity_ref, match, entity_macro)) {
+   if (std::regex_match(entity_ref, match, entity_macro_regex__)) {
       InitEntity(entity, match[1], match[2], L);
    }
 }

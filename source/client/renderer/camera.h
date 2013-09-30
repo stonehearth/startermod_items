@@ -6,13 +6,14 @@
 #include "csg/transform.h"
 #include "csg/ray.h"
 #include "csg/matrix.h"
+#include "h3d_resource_types.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
 class Camera
 {
    public:
-      Camera(H3DNode cameraNode);
+      Camera(H3DNode parent, const char* name,H3DRes pipeline);
       virtual ~Camera();
 
       void OrbitPointBy(const csg::Point3f &point, float xRot, float yRot, float maxX, float minX);
@@ -33,7 +34,7 @@ class Camera
    private:
       csg::Matrix4 GetMatrix() const;
 
-      const H3DNode  node_;
+      const H3DNodeUnique node_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

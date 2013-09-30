@@ -9,12 +9,13 @@ using namespace ::radiant::client;
 RenderDestination::RenderDestination(const RenderEntity& entity, om::DestinationPtr destination) :
    entity_(entity)
 {
-   node_ = h3dAddGroupNode(entity_.GetNode(), "destination region");
-   std::string nodeName = h3dGetNodeParamStr(node_, H3DNodeParams::NameStr);
+   node_ = H3DNodeUnique(h3dAddGroupNode(entity_.GetNode(), "destination region"));
+   std::string nodeName = h3dGetNodeParamStr(node_.get(), H3DNodeParams::NameStr);
 
-   auto create_debug_tracker = [=](std::string regionName, H3DNode& shape, om::BoxedRegion3Ptr region, csg::Color4 const& color) {
-      shape = h3dRadiantAddDebugShapes(node_, (nodeName + regionName, std::string(" destination debug shape")).c_str());
-      auto update = std::bind(&RenderDestination::UpdateShape, this, om::BoxedRegion3Ref(region), shape, color);
+   auto create_debug_tracker = [=](std::string regionName, H3DNodeUnique& shape, om::BoxedRegion3Ptr region, csg::Color4 const& color) {
+      H3DNode s = h3dRadiantAddDebugShapes(node_.get(), (nodeName + regionName, std::string(" destination debug shape")).c_str());
+      shape = H3DNodeUnique(s);
+      auto update = std::bind(&RenderDestination::UpdateShape, this, om::BoxedRegion3Ref(region), shape.get(), color);
       guards_ += region->TraceObjectChanges("rendering destination debug region", update);
       update(**region);
    };

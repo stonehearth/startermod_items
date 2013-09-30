@@ -21,11 +21,6 @@ Skeleton::~Skeleton()
 
 void Skeleton::Clear()
 {
-   for (auto &entry : _bones) {
-      if (entry.second) {
-         h3dRemoveNode(entry.second);
-      }
-   }
    _bones.clear();
 }
 
@@ -33,7 +28,7 @@ H3DNode Skeleton::AttachEntityToBone(H3DRes res, const std::string& bone, csg::P
 {
    ASSERT(_parent);
 
-   H3DNode b = _bones[bone];
+   H3DNode b = _bones[bone].get();
    if (!b) {
       b = CreateBone(bone);
    }
@@ -55,7 +50,7 @@ H3DNode Skeleton::GetSceneNode(const std::string& bone)
 {
    ASSERT(_parent);
 
-   H3DNode node = _bones[bone];
+   H3DNode node = _bones[bone].get();
    if (!node) {
       node = CreateBone(bone);
    }
@@ -64,14 +59,14 @@ H3DNode Skeleton::GetSceneNode(const std::string& bone)
 
 H3DNode Skeleton::CreateBone(const std::string& bone)
 {
-   ostringstream name;
+   std::ostringstream name;
    name << "Skeleton " << _parent << " " + bone + " bone";
    //H3DNode scaler = h3dAddGroupNode(_parent, name.str().c_str());
    //h3dSetNodeTransform(scaler, 0, 0, 0, 0, 0, 0, .1f, .1f, .1f);
 
    name << "...";
    H3DNode b = h3dAddGroupNode(_parent, name.str().c_str());
-   _bones[bone] = b;
+   _bones[bone] = H3DNodeUnique(b);
 
    return b;
 }

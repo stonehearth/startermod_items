@@ -15,8 +15,6 @@
 using namespace ::radiant;
 using namespace ::radiant::client;
 
-H3DNode cubemitterNode;
-
 static std::unique_ptr<Renderer> renderer_;
 Renderer& Renderer::GetInstance()
 {
@@ -99,7 +97,7 @@ Renderer::Renderer() :
    LoadResources();
 
 	// Add camera   
-   camera_ = new Camera(h3dAddCameraNode(H3DRootNode, "Camera", currentPipeline_));
+   camera_ = new Camera(H3DRootNode, "Camera", currentPipeline_);
 
    h3dSetNodeParamI(camera_->GetNode(), H3DCamera::PipeResI, currentPipeline_);
 

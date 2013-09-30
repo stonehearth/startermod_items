@@ -24,6 +24,7 @@
 #include "radiant_json.h"
 #include "lib/rpc/forward_defines.h"
 #include "core/input.h"
+#include "core/unique_resource.h"
 
 IN_RADIANT_LUA_NAMESPACE(
    class ScriptHost;
@@ -140,20 +141,13 @@ class Client : public core::Singleton<Client> {
       void CallHttpReactor(std::string parts, json::ConstJsonObject query, std::string postdata, rpc::HttpDeferredPtr response);
 
 private:
-      class CursorDeleter {
-      public:
-         CursorDeleter() { };
-               
-         // The pointer typedef declares the type to be returned from std::unique_ptr<>::get.
-         // This would default to HCURSOR* without this typedef.
-         typedef HCURSOR pointer;
+      /*
+       * The type of DestroyCursor is WINUSERAPI BOOL WINAPI (HCURSOR).  Strip off all
+       * that windows fu so we can pass it into the Deleter for a core::UniqueResource
+       */
+      static inline void CursorDeleter(HCURSOR hcursor) { DestroyCursor(hcursor); }
+      typedef std::unordered_map<std::string, core::UniqueResource<HCURSOR, Client::CursorDeleter>> CursorMap;
 
-         void operator()(pointer cursor) {
-            DestroyCursor(cursor);
-         }
-      };
-
-private:
       // connection to the server...
       boost::asio::io_service       _io_service;
       boost::asio::ip::tcp::socket  _tcp_socket;
@@ -196,7 +190,7 @@ private:
       HCURSOR                          currentCursor_;
       HCURSOR                          luaCursor_;
       HCURSOR                          uiCursor_;
-      std::unordered_map<std::string, std::unique_ptr<HCURSOR, Client::CursorDeleter>> cursors_;
+      CursorMap                        cursors_;
 
       // server requests...
       int                              last_server_request_id_;

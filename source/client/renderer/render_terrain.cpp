@@ -4,6 +4,7 @@
 #include "render_terrain.h"
 #include "om/components/terrain.h"
 #include "csg/meshtools.h"
+#include "Horde3D.h"
 #include <unordered_map>
 
 using namespace ::radiant;
@@ -18,8 +19,8 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
    entity_(entity),
    terrain_(terrain)
 {  
-   terrain_root_node_ = h3dAddGroupNode(entity_.GetNode(), "terrain root node");
-   tracer_ += Renderer::GetInstance().TraceSelected(terrain_root_node_, [this](om::Selection& sel, const csg::Ray3& ray, const csg::Point3f& intersection, const csg::Point3f& normal) {
+   terrain_root_node_ = H3DNodeUnique(h3dAddGroupNode(entity_.GetNode(), "terrain root node"));
+   tracer_ += Renderer::GetInstance().TraceSelected(terrain_root_node_.get(), [this](om::Selection& sel, const csg::Ray3& ray, const csg::Point3f& intersection, const csg::Point3f& normal) {
       OnSelected(sel, ray, intersection, normal);
    });
    tracer_ += Renderer::GetInstance().TraceFrameStart([=]() {
@@ -67,6 +68,8 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
       csg::Point3f topsoil_detail = parse_color(config.get<std::string>("topsoil.detail_color", "#ff00ff"));
       csg::Point3f plains_color = parse_color(config.get<std::string>("plains.color", "#ff00ff"));
       csg::Point3f dark_wood_color = parse_color(config.get<std::string>("wood.dark_color", "#ff00ff"));
+
+      // xxx: this is in no way thread safe! (see SH-8)
       static csg::Point3f detail_bands[] = {
          parse_color(config.get<std::string>("foothills.band_0_color", "#ff00ff")),
          parse_color(config.get<std::string>("foothills.band_1_color", "#ff00ff")),
@@ -192,8 +195,7 @@ void RenderTerrain::UpdateRenderRegion(RenderZonePtr render_zone)
 {
    om::BoxedRegion3Ptr region_ptr = render_zone->region.lock();
 
-   render_zone->node = 0;
-   render_zone->meshes.clear();
+   render_zone->Reset();
 
    if (region_ptr) {
       ASSERT(render_zone);
@@ -205,13 +207,13 @@ void RenderTerrain::UpdateRenderRegion(RenderZonePtr render_zone)
       csg::mesh_tools::meshmap meshmap;
       csg::mesh_tools(tess_map).optimize_region(tesselatedRegion, meshmap);
    
-      render_zone->node = h3dAddGroupNode(terrain_root_node_, "grid");
-      h3dSetNodeTransform(render_zone->node, render_zone->location.x - 0.5f, (float)render_zone->location.y, render_zone->location.z - 0.5f, 0, 0, 0, 1, 1, 1);
+      render_zone->node = H3DNodeUnique(h3dAddGroupNode(terrain_root_node_.get(), "grid"));
+      h3dSetNodeTransform(render_zone->node.get(), render_zone->location.x - 0.5f, (float)render_zone->location.y, render_zone->location.z - 0.5f, 0, 0, 0, 1, 1, 1);
 
       render_zone->meshes.clear();
       for (auto const& entry : meshmap) {
-         H3DNode node = Pipeline::GetInstance().AddMeshNode(render_zone->node, entry.second);
-         render_zone->meshes.push_back(node);
+         H3DNodeUnique node = Pipeline::GetInstance().AddMeshNode(render_zone->node.get(), entry.second);
+         render_zone->meshes.emplace_back(node);
       }
    }
 }

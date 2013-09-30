@@ -3,6 +3,7 @@
 #include "client/client.h"
 #include "om/object_formatter/object_formatter.h"
 #include "lua_renderer.h"
+#include "Horde3DRadiant.h"
 
 using namespace luabind;
 using namespace ::radiant;

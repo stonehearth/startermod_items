@@ -254,6 +254,7 @@ std::vector<std::pair<csg::Point3, int>> OctTree::ComputeNeighborMovementCost(co
 {
    std::vector<std::pair<csg::Point3, int>> result;
 
+   // xxx: this is in no way thread safe! (see SH-8)
    static const csg::Point3 directions[] = {
       // cardinals and diagonals
       csg::Point3( 1, 0, 0 ),
@@ -265,6 +266,7 @@ std::vector<std::pair<csg::Point3, int>> OctTree::ComputeNeighborMovementCost(co
       csg::Point3(-1, 0, 1 ),
       csg::Point3( 1, 0,-1 ),
    };
+   // xxx: this is in no way thread safe! (see SH-8)
    static const csg::Point3 climb[] = {
       // ladder climbing
       csg::Point3( 0, 1, 0 ),
