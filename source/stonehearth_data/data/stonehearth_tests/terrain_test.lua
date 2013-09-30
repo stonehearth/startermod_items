@@ -10,12 +10,13 @@ local TerrainTest = class()
 function TerrainTest:__init()
    --run_unit_tests()
    --run_timing_tests()
+   --self:tesselator_test()
    local wgs = radiant.mods.load('stonehearth').world_generation
    local wg = wgs:create_world(true)
 end
 
 function TerrainTest:tesselator_test()
-   self._height_map_renderer:tesselator_test()   
+   HeightMapRenderer.tesselator_test()   
 end
 
 function TerrainTest:tree_test()

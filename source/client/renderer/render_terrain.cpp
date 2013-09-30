@@ -27,8 +27,8 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
    });
 
    if (tess_map.empty()) {
-      foothillGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(8, FoothillsDetailBase));
-      //foothillGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(8, FoothillsDetailBase+1));
+      foothillGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(4, FoothillsDetailBase));
+      foothillGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(6, FoothillsDetailBase+1));
       foothillGrassRingInfo_.inner = (TerrainDetailTypes)(FoothillsDetailBase + 2);
 
       plainsGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(4,  GrassDetailBase));
@@ -218,13 +218,13 @@ void RenderTerrain::UpdateRenderRegion(RenderZonePtr render_zone)
 
 void RenderTerrain::TesselateTerrain(csg::Region3 const& terrain, csg::Region3& tess)
 {
-   csg::Region3 grass, plains, dirtroad;
+   csg::Region3 foothills, plains, dirtroad;
 
    LOG(WARNING) << "Tesselating Terrain...";
    for (csg::Cube3 const& cube : terrain) {
       switch (cube.GetTag()) {
-      case om::Terrain::Grass:
-         grass.AddUnique(cube);
+      case om::Terrain::Foothills:
+         foothills.AddUnique(cube);
          break;
       case om::Terrain::DirtPath:
          dirtroad.AddUnique(cube);
@@ -237,7 +237,7 @@ void RenderTerrain::TesselateTerrain(csg::Region3 const& terrain, csg::Region3& 
       }
    }
 
-   AddGrassToTesselation(grass,  terrain, tess, foothillGrassRingInfo_);
+   AddGrassToTesselation(foothills,  terrain, tess, foothillGrassRingInfo_);
    AddGrassToTesselation(plains, terrain, tess, plainsGrassRingInfo_);
    AddGrassToTesselation(dirtroad, csg::Region3(), tess, dirtRoadRingInfo_);
    LOG(WARNING) << "Done Tesselating Terrain!";

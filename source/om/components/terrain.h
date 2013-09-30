@@ -23,7 +23,7 @@ public:
       Magma         = 1,
       Bedrock       = 2,
       Topsoil       = 3,
-      Grass         = 4,
+      Foothills     = 4,
       Plains        = 5,
       TopsoilDetail = 6,
       DarkWood      = 7, 
