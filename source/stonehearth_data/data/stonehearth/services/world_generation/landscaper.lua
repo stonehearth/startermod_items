@@ -24,7 +24,6 @@ function Landscaper:__init(terrain_info)
    self.terrain_info = terrain_info
 end
 
--- not ready, just testing density function
 function Landscaper:place_trees(zone_map, world_offset_x, world_offset_y)
    if world_offset_x == nil then world_offset_x = 0 end
    if world_offset_y == nil then world_offset_y = 0 end
