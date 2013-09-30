@@ -1,55 +1,3 @@
-local constants = {
-   TICKS_PER_SECOND = 2,
-
-   SECONDS_IN_MINUTE = 10,
-   MINUTES_IN_HOUR = 60,
-   HOURS_IN_DAY = 24,
-   DAYS_IN_MONTH = 30,
-   MONTHS_IN_YEAR = 12,
-
-   STARTING_MONTH = 1,
-   STARTING_YEAR = 1000,
-
-   hourNames = {
-      'Aughtaur',
-      'Twivaur',
-      'Thrisaur',
-      'Quarthaur',
-      'Fifaur',
-      'Sesaur',
-      'Sevaur',
-      'Ochaur',
-      'Neinaur',
-      'Tethtaur',
-      'Elehaur',
-      'Dovaur'
-   },
-
-   monthNames = {
-      'Bittermun',
-      'Deepmun',
-      'Dewmun',
-      'Rainmun',
-      'Growmun',
-      'Goldmun',
-      'Feastmun',
-      'Warmun',
-      'Newmun',
-      'Azuremun',
-      'Hearthmun',
-      'Northmun'
-   },
-
-   --Times of day in hours
-   baseTimeOfDay = {
-      midnight = 0,
-      sunrise = 6,
-      midday = 12,
-      sunset = 18
-   }
-
-}
-
 local data = {
    date = {
       hour = 6,
@@ -78,6 +26,7 @@ radiant.events.register_event('radiant.events.calendar.sunset')
 radiant.events.register_event('radiant.events.calendar.midnight')
 
 function CalendarService:__init()
+   self._constants = radiant.resources.load_json('/stonehearth/services/calendar/calendar_constants.json')
    radiant.events.listen('radiant.events.gameloop', function (_, now)
          self:_on_event_loop(now)
       end)
@@ -91,12 +40,8 @@ end
 
 -- For starters, returns base time of day.
 -- TODO: change based on the season/time of year
-function CalendarService:get_curr_times_of_day()
-   return constants.baseTimeOfDay
-end
-
 function CalendarService:get_constants()
-   return constants
+   return self._constants
 end
 
 -- recompute the game calendar based on the time
@@ -105,43 +50,43 @@ function CalendarService:_on_event_loop(now)
 
    -- determine how many seconds have gone by since the last loop
    local dt = now - data._lastNow + data._remainderTime
-   data._remainderTime = dt % constants.TICKS_PER_SECOND;
-   local t = math.floor(dt / constants.TICKS_PER_SECOND)
+   data._remainderTime = dt % self._constants.ticks_per_second;
+   local t = math.floor(dt / self._constants.ticks_per_second)
 
    -- set the calendar data
    local sec = data.date.second + t;
-   data.date.second = sec % constants.SECONDS_IN_MINUTE
+   data.date.second = sec % self._constants.seconds_per_minute
 
-   local min = data.date.minute + math.floor(sec / constants.SECONDS_IN_MINUTE)
-   data.date.minute = min % constants.MINUTES_IN_HOUR
+   local min = data.date.minute + math.floor(sec / self._constants.seconds_per_minute)
+   data.date.minute = min % self._constants.minutes_per_hour
 
-   local hour = data.date.hour + math.floor(min / constants.MINUTES_IN_HOUR)
-   data.date.hour = hour % constants.HOURS_IN_DAY
+   local hour = data.date.hour + math.floor(min / self._constants.minutes_per_hour)
+   data.date.hour = hour % self._constants.hours_per_day
 
-   local day = data.date.day + math.floor(hour / constants.HOURS_IN_DAY)
-   data.date.day = day % constants.DAYS_IN_MONTH
+   local day = data.date.day + math.floor(hour / self._constants.hours_per_day)
+   data.date.day = day % self._constants.days_per_month
 
-   local month = data.date.month + math.floor(day / constants.DAYS_IN_MONTH)
-   data.date.month = month % constants.MONTHS_IN_YEAR
+   local month = data.date.month + math.floor(day / self._constants.days_per_month)
+   data.date.month = month % self._constants.months_per_year
 
-   local year = data.date.year + math.floor(month / constants.MONTHS_IN_YEAR)
+   local year = data.date.year + math.floor(month / self._constants.months_per_year)
    data.date.year = year
 
-   if sec >= constants.SECONDS_IN_MINUTE  then
+   if sec >= self._constants.seconds_per_minute  then
       radiant.events.broadcast_msg('radiant.events.calendar.minutely', data.date)
    end
 
-   if min >= constants.MINUTES_IN_HOUR then
+   if min >= self._constants.minutes_per_hour then
       radiant.events.broadcast_msg('radiant.events.calendar.hourly', data.date)
    end
 
-   CalendarService:fire_time_of_day_events()
+   self:fire_time_of_day_events()
 
    -- the time, formatted into a string
-   data.date.time = CalendarService:format_time()
+   data.date.time = self:format_time()
 
    -- the date, formatting into a string
-   data.date.date = CalendarService:format_date()
+   data.date.date = self:format_date()
 
    data._lastNow = now
 end
@@ -152,7 +97,7 @@ end
 ]]
 function CalendarService:fire_time_of_day_events()
    local hour = data.date.hour
-   local curr_day_periods = CalendarService:get_curr_times_of_day()
+   local curr_day_periods = self._constants.baseTimeOfDay
 
    if hour >= curr_day_periods.midnight and
       hour < curr_day_periods.sunrise and
@@ -208,7 +153,7 @@ function CalendarService:format_time()
 end
 
 function CalendarService:format_date()
-   return string.format("day %d of %s, %d", data.date.day, constants.monthNames[data.date.month + 1],
+   return string.format("day %d of %s, %d", data.date.day, self._constants.monthNames[data.date.month + 1],
       data.date.year)
 end
 

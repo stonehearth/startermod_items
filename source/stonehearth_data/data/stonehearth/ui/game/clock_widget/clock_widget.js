@@ -7,13 +7,18 @@ App.StonehearthCalendarView = App.View.extend({
       
       self.set('context', {});
 
-      radiant.call('stonehearth.get_clock_object')
-         .done(function(o) {
-            this.trace = radiant.trace(o.clock_object)
-               .progress(function(date) {
-                  self.set('context.date', date);
-               })
-         });
+      $.get('/stonehearth/services/calendar/calendar_constants.json')
+         .done(function(json) {
+            self._constants = json;
+
+            radiant.call('stonehearth.get_clock_object')
+               .done(function(o) {
+                  this.trace = radiant.trace(o.clock_object)
+                     .progress(function(date) {
+                        self.set('context.date', date);
+                     })
+               });
+         })
    },
 
    destroy: function() {
@@ -22,102 +27,95 @@ App.StonehearthCalendarView = App.View.extend({
    },
 
    didInsertElement: function() {
-      this._clock = $('#clock');
-      this._sun = $('#sun');
-      this._sunBody = $('#sunBody');
-      this._sunRays = $('#sunRays');
-      this._moon = $('#moon');
-      this._daySky = $('#skyDay');
+      this._sun = $('#clock > #sun');
+      this._sunBody = this._sun.find('#body');
+      this._sunRays = this._sun.find('.ray');
+
+      this._moon = $('#clock > #moon');
+      this._moonBody = this._moon.find('#body');
+      this._moonRays = this._moon.find('.ray');
    },
 
    _updateClock: function() {
-      if (this._clock == undefined) {
+      var self = this;
+
+      if (this._sun == undefined) {
          return;
       }
+
       var date = this.get('context.date');
 
       if (!date) {
          return;
       }
 
-      this.set('context.time', date.time);
-      var seconds = date.second + (date.minute * 60) + (date.hour * 3600);
+      var hoursRemaining;
 
-      var SECONDS_IN_DAY = 86400;
-      var SECONDS_IN_HOUR = 3600;
-      var CLOCK_WIDTH = this._clock.width();
-      var CLOCK_HEIGHT = this._clock.height();
-      var CLOCK_LEFT = this._clock.position().left;
-      var CLOCK_TOP = this._clock.position().top;
-      var SUN_WIDTH = this._sun.width();
-      var SUN_HEIGHT = this._sun.width();
+      if (date.hour >= this._constants.baseTimeOfDay.sunrise && date.hour < this._constants.baseTimeOfDay.sunset) {
+         hoursRemaining = this._constants.baseTimeOfDay.sunset - date.hour;
 
-      var PATH_X_MIN = CLOCK_LEFT - SUN_WIDTH + 3;
-      var PATH_X_MAX = CLOCK_LEFT + CLOCK_WIDTH - 3;
-      var PATH_Y_MIN = CLOCK_TOP - SUN_HEIGHT + 8;
-      var PATH_Y_MAX = CLOCK_TOP + CLOCK_HEIGHT - 8;
+         if (this._hoursRemaining != hoursRemaining) {
+            //transition to day
+            this._moonBody.hide();
+            this._moonRays.hide();
+            this._sunBody.show();
+            /*
+            if(this._moonBody.is(':visible')) {
+               this._moon.animate({ 'top': 0, 'left' : 120 }, 500, function() {
+                  self._moonRays.hide();
+                  self._moonBody.hide();
 
-      var PATH_WIDTH = PATH_X_MAX - PATH_X_MIN;
-      var PATH_HEIGHT = PATH_Y_MAX - PATH_Y_MIN;
+                  self._sun.css({'top' : -120, 'left' : -0});
+                  self._sunBody.show();
+                  self._sun.animate({'top' : 0,'left' : 0}, 500);
 
-      var PATH_SEGMENT_TIME = SECONDS_IN_DAY / 4;
+               });
+            }
+            */
 
-      var DAWN = SECONDS_IN_HOUR * 6;
-      var DAY_BEGINNING = SECONDS_IN_HOUR * 9;
-      var DAY_END = SECONDS_IN_HOUR * 18;
-      var DUSK = SECONDS_IN_HOUR * 21;
+            this._sun.find('#ray' + hoursRemaining).fadeIn();
+            this._hoursRemaining = hoursRemaining;
+         }
 
-      // fade the sky
-      var opacity = 0
-      var skySeconds = seconds % SECONDS_IN_DAY;
-
-      if (skySeconds > DAWN && skySeconds < DAY_BEGINNING ) {
-         // morning
-         opacity = (skySeconds - DAWN) / (DAY_BEGINNING - DAWN);
-         //this._sunBody.css('background', 'url(/stonehearth_calendar/html/images/clock/sun.png)');
-      } else if (skySeconds >= DAY_BEGINNING && skySeconds <= DAY_END) {
-         // day
-         opacity = 1;
-         //this._sunBody.css('background', 'url(/stonehearth_calendar/html/images/clock/sun.png)');
-      } else if (skySeconds >= DAY_END && skySeconds < DUSK ) {
-         // evening
-         opacity = 1 - ((skySeconds - DAY_END) / (DUSK - DAY_END));
-         //this._sunBody.css('background', 'url(/stonehearth_calendar/html/images/clock/sun_asleep.png)');            
       } else {
-         //night
-         opacity = 0;
-         //this._sunBody.css('background', 'url(/stonehearth_calendar/html/images/clock/sun_asleep.png)');            
+         if (date.hour < this._constants.baseTimeOfDay.sunrise) {
+            hoursRemaining = this._constants.baseTimeOfDay.sunrise - date.hour
+         } else {
+            hoursRemaining = this._constants.baseTimeOfDay.sunrise + (this._constants.hours_per_day - date.hour)
+         }
+
+         if (this._hoursRemaining != hoursRemaining) {
+            //transition to night
+            this._sunBody.hide();
+            this._sunRays.hide();
+            this._moonBody.show();
+            /*
+            if(this._sunBody.is(':visible')) {            
+               this._sun.animate({ 'top' : 0, 'left' : 120 }, 500, function() {
+                  self._sunRays.hide();
+                  self._sunBody.hide();
+
+                  self._moon.css({'top' : -120, 'left' : -0});
+                  self._moonBody.show();
+                  self._moon.animate({'top' : 0,'left' : 0}, 500);
+
+               });
+            }
+            */
+
+            //show the moon, over and over...doh
+            this._moonBody.show();
+            this._sunRays.hide();
+            this._sunBody.hide();
+
+            this._moon.find('#ray' + hoursRemaining).fadeIn();
+            this._hoursRemaining = hoursRemaining;
+         }
       }
 
-      this._daySky.css('opacity', opacity);
-      this._sunRays.css('opacity', opacity);
+      this.set('context.hoursRemaining', this._hoursRemaining)
 
-      // the sun and moon's path around the sky
-      var offsetSeconds = seconds + (SECONDS_IN_DAY * 5 / 8);
-      var daySeconds = offsetSeconds % SECONDS_IN_DAY;
-      var t = daySeconds % PATH_SEGMENT_TIME;
-
-      var dx = Math.floor(PATH_WIDTH * (t / PATH_SEGMENT_TIME));
-      var dy = Math.floor(PATH_HEIGHT * (t / PATH_SEGMENT_TIME));
-
-      if (daySeconds < PATH_SEGMENT_TIME) {
-         // sun on bottom, moon on top
-         this._sun.css({'top': PATH_Y_MAX, 'left': PATH_X_MIN + dx}).css('z-index', 10);
-         this._moon.css({'top': PATH_Y_MIN, 'left': PATH_X_MAX - dx}).css('z-index', 1);
-      } else if (daySeconds < PATH_SEGMENT_TIME * 2) {            
-         // sun on right, moon on left
-         this._sun.css({'top': PATH_Y_MAX - dy, 'left': PATH_X_MAX}).css('z-index', 10);
-         this._moon.css({'top': PATH_Y_MIN + dy, 'left': PATH_X_MIN});
-      } else if (daySeconds < PATH_SEGMENT_TIME * 3) {
-         // sun on top, moon on bottom
-         this._sun.css({'top': PATH_Y_MIN, 'left': PATH_X_MAX - dx}).css('z-index', 1);
-         this._moon.css({'top': PATH_Y_MAX, 'left': PATH_X_MIN + dx}).css('z-index', 10);
-      } else {
-         // sun on left, moon on right
-         this._sun.css({'top': PATH_Y_MIN + dy, 'left': PATH_X_MIN}).css('z-index', 10);
-         this._moon.css({'top': PATH_Y_MAX - dy, 'left': PATH_X_MAX});
-      }
-
+      console.log(hoursRemaining);
    }.observes('context.date')
 
 });

@@ -35,6 +35,7 @@
 #include "lib/rpc/trace_object_router.h"
 #include "lib/rpc/http_deferred.h" // xxx: does not belong in rpc!
 #include "lua/client/open.h"
+#include "lua/res/open.h"
 #include "lua/rpc/open.h"
 #include "lua/om/open.h"
 #include "client/renderer/render_entity.h"
@@ -202,6 +203,7 @@ void Client::run()
    lua::om::register_json_to_lua_objects(L, store_);
    lua::om::register_json_to_lua_objects(L, authoringStore_);
    lua::client::open(L);
+   lua::res::open(L);
    lua::rpc::open(L, core_reactor_);
 
 

@@ -13,6 +13,7 @@ radiant = {
 radiant.log = require 'modules.log'
 radiant.util = require 'lib.util'
 radiant.json = dkjson
+radiant.resources = require 'modules.resources'
 radiant.check = require 'lib.check'
 radiant.events = require 'modules.events'
 radiant.mods = require 'modules.mods'
