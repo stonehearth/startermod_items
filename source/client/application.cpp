@@ -103,6 +103,10 @@ int Application::Start()
    const char *docroot = configvm["ui.docroot"].as<std::string>().c_str();
    const char *port = "1336";
    
+   // Need to load all singletons before spawning threads.
+   res::ResourceManager2::GetInstance();
+   client::Client::GetInstance();
+
    std::thread client([&]() {
       try {
          Client::GetInstance().run();

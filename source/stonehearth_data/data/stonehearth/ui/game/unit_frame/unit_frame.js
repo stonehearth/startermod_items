@@ -66,9 +66,8 @@ App.StonehearthCommandButtonView = App.View.extend({
             };
             $(top).trigger(command.event_name, e);
          } else if (command.action == 'call') {
-            var object = command.mod ? command.mod : command.object
-            if (object) {
-               radiant.call_objv(object, command['function'], command.args)
+            if (command.object) {
+               radiant.call_objv(command.object, command['function'], command.args)
             } else {
                radiant.callv(command['function'], command.args)
             }

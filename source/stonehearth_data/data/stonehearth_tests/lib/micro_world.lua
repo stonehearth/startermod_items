@@ -33,7 +33,7 @@ function MicroWorld:create_world()
    local r3 = region3:modify() 
    
    r3:add_cube(Cube3(Point3(0, -16, 0), Point3(32, 0, 32), Terrain.TOPSOIL))
-   r3:add_cube(Cube3(Point3(0,   0, 0), Point3(32, 1, 32), Terrain.GRASS))
+   r3:add_cube(Cube3(Point3(0,   0, 0), Point3(32, 1, 32), Terrain.FOOTHILLS))
    
    local terrain = radiant._root_entity:add_component('terrain')   
    terrain:set_zone_size(32)

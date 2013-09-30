@@ -3,6 +3,7 @@ local InventoryCallHandler = class()
 
 -- runs on the client!!
 function InventoryCallHandler:choose_stockpile_location(session, response)
+
    -- create a new "cursor entity".  this is the entity that will move around the
    -- screen to preview where the workbench will go.  these entities are called
    -- "authoring entities", because they exist only on the client side to help
@@ -15,7 +16,11 @@ function InventoryCallHandler:choose_stockpile_location(session, response)
    local cursor_render_entity = _radiant.client.create_render_entity(1, cursor_entity)
    local node = h3dRadiantCreateStockpileNode(cursor_render_entity:get_node(), 'stockpile designation')
 
+   -- change the actual game cursor
+   local stockpile_cursor = _radiant.client.set_cursor('stonehearth.cursors.create_stockpile')
+
    local cleanup = function()
+      stockpile_cursor:destroy()
       _radiant.client.destroy_authoring_entity(cursor_entity:get_id())
    end
 
@@ -29,7 +34,7 @@ function InventoryCallHandler:choose_stockpile_location(session, response)
                box.max.x - box.min.x + 1,
                box.max.z - box.min.z + 1,
             }
-            _radiant.call_obj('stonehearth', 'create_stockpile', box.min, size)
+            _radiant.call('stonehearth.create_stockpile', box.min, size)
                      :done(function(r)
                            response:resolve(r)
                         end)

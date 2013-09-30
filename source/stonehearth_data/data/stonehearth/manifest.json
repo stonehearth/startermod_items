@@ -5,6 +5,19 @@
 
    "radiant": {     
       "entities" : {
+         "cursors.arrow" : "file(data/cursors/arrow.cur)",
+         "cursors.camera_move_down" : "file(data/cursors/camera_move_down.cur)",
+         "cursors.camera_move_left" : "file(data/cursors/camera_move_left.cur)",
+         "cursors.camera_move_right" : "file(data/cursors/camera_move_right.cur)",
+         "cursors.camera_move_up" : "file(data/cursors/camera_move_up.cur)",
+         "cursors.create_door" : "file(data/cursors/create_door.cur)",
+         "cursors.create_roof" : "file(data/cursors/create_roof.cur)",
+         "cursors.create_stockpile" : "file(data/cursors/create_stockpile.cur)",
+         "cursors.create_walls" : "file(data/cursors/create_walls.cur)",
+         "cursors.default" : "file(data/cursors/default.cur)",
+         "cursors.hover" : "file(data/cursors/hover.cur)",
+         "cursors.over_selection" : "file(data/cursors/over_selection.cur)",
+
          "mixins.mob" : "file(mixins/mob)",
          "mixins.base_human" : "file(mixins/base_human)",
          "mixins.crafter_workbench" : "file(mixins/crafter_workbench)",
