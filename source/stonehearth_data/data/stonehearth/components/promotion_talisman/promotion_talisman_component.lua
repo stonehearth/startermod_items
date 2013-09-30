@@ -6,29 +6,31 @@
 local PromotionTalismanComponent = class()
 
 function PromotionTalismanComponent:__init()
-   self._class_script = nil
-   self._promotion_data = nil
+   self._info = {}
 end
 
 function PromotionTalismanComponent:extend(json)
-   if json and json.class_script then
-      self._class_script = json.class_script
-   end
+   self:set_info(json)
 end
 
-function PromotionTalismanComponent:get_class_script()
-   return self._class_script
+function PromotionTalismanComponent:set_info(info)
+   self._info = info
 end
 
---[[Place to store profession-specific data
---]]
-
-function PromotionTalismanComponent:set_promotion_data(data)
-   self._promotion_data = data
+function PromotionTalismanComponent:get_script()
+   return self._info.script
 end
 
-function PromotionTalismanComponent:get_promotion_data()
-   return self._promotion_data
+function PromotionTalismanComponent:set_script(value)
+   self._info.script = value
+end
+
+function PromotionTalismanComponent:get_workshop()
+   return self._info.workshop
+end
+
+function PromotionTalismanComponent:set_workshop(value)
+   self._info.workshop = value
 end
 
 return PromotionTalismanComponent

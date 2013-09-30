@@ -7,6 +7,5 @@
 
    "action": "fire_event",
    "event_name" : "promote_citizen.stonehearth",
-   "event_data" : {
-   }
+   "event_data" : {}
 }

@@ -31,10 +31,12 @@
 
          "default_object" : "file(entities/generic/default_object)",
 
-         "worker.profession_description" : "file(professions/worker/profession_description)",
-         "carpenter.profession_description" : "file(professions/carpenter/profession_description)",
+         "worker.profession_description" : "file(entities/professions/worker/profession_description.json)",
+         
+         "carpenter.profession_description" : "file(entities/professions/carpenter/profession_description.json)",
          "carpenter_workbench" : "file(entities/professions/carpenter/carpenter_workbench)",
          "carpenter_outfit" : "file(entities/professions/carpenter/carpenter_outfit)",
+         "carpenter_saw" : "file(entities/professions/carpenter/carpenter_saw)",
          "carpenter_intermediate_item" : "file(entities/professions/carpenter/carpenter_intermediate_item)",
 
          "stockpile" : "file(entities/construction/stockpile)",
@@ -61,8 +63,6 @@
 
          "arch_backed_chair" :       "file(entities/furniture/arch_backed_chair)",
          "arch_backed_chair_proxy" : "file(entities/furniture/arch_backed_chair/arch_backed_chair_proxy.json)",
-
-         "carpenter_saw" : "file(entities/tools/carpenter_saw)",
 
          "cloth_bolt" : "file(entities/crafting_materials/cloth_bolt)",
 
