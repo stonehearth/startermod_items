@@ -44,7 +44,7 @@ run:
 # make a decoda project!
 .PHONY: decoda-project
 decoda-project:
-	scripts/make_decoda_project.py stonehearth.deproj source/stonehearth_data/data
+	scripts/make_decoda_project.py stonehearth.deproj source/stonehearth_data/mods
 
 .PHONY: dependency-graph
 dependency-graph:
