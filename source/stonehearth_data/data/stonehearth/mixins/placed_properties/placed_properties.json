@@ -1,0 +1,9 @@
+{
+   "components" : {
+      "mob" : {
+         "interpolate_movement" : false
+      },
+      "render_info" : {
+      }
+   }
+}

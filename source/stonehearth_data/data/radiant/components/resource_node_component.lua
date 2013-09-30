@@ -35,7 +35,7 @@ function ResourceNodeComponent:get_harvest_locations(collect_location)
    
    local r = 3
    for i = -r, r do
-      result:insert(Point3(origin.x + i, origin.y, origin.z + r))
+   result:insert(Point3(origin.x + i, origin.y, origin.z + r))
       result:insert(Point3(origin.x + i, origin.y, origin.z - r))
       result:insert(Point3(origin.x + r, origin.y, origin.z + i))
       result:insert(Point3(origin.x - r, origin.y, origin.z + i))

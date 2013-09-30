@@ -11,7 +11,7 @@
       </Stage>
 
       <Stage id="Light">
-         <DoForwardLightLoop class="~Translucent" noShadows="false"/>
+         <DoForwardLightLoop class="~Translucent" noShadows="true"/>
       </Stage>
 
       <Stage id="Clouds">
@@ -30,13 +30,6 @@
       <Stage id="Overlays">
 			<DrawOverlays context="OVERLAY" />
 		</Stage>
-
-      <!--Stage id="RenderShadowmap">
-         <SwitchTarget target=""/>
-         <BindBuffer sampler="buf0" sourceRT="shadowMap" bufIndex="32" />
-         <DrawQuad material="pipelines/outline.material.xml" context="DRAW_SHADOWMAP" />
-         <UnbindBuffers />
-      </Stage-->
 
       <Stage id="Final">
          <SwitchTarget target="" />

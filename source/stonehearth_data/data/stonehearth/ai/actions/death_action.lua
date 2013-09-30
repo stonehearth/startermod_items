@@ -1,7 +1,7 @@
 local DeathAction = class()
 
 DeathAction.name = 'stonehearth.actions.die'
-DeathAction.does = 'stonehearth.activities.top'
+DeathAction.does = 'stonehearth.top'
 DeathAction.priority = 0
 
 radiant.events.register_event('stonehearth.events.on_damage')
@@ -10,7 +10,7 @@ function DeathAction:__init(ai, entity)
    radiant.check.is_entity(entity)  
 
    self._ai = ai
-   self._aggro_table = radiant.entities.create_target_table(entity, 'stonehearth.tables.aggro')
+   --self._aggro_table = radiant.entities.create_target_table(entity, 'stonehearth.tables.aggro')
 
    radiant.events.listen_to_entity(entity, 'stonehearth.events.on_damage', self)
 end

@@ -1,0 +1,18 @@
+{
+   "extends": "stonehearth.mixins.placed_properties",
+   "type": "entity",
+   "components": {
+      "model_variants": [
+         {
+            "models": [
+               "file(picket_fence.qb)"
+            ]
+         }
+      ],
+      "unit_info": {
+         "name": "Picket Fence",
+         "description": "If it's not white, is our life unfulfilled?",
+         "icon" : "file(picket_fence.png)"
+      }
+   }
+}

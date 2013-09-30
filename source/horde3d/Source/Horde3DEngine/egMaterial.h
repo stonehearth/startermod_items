@@ -98,7 +98,7 @@ private:
 private:
 	PShaderResource             _shaderRes;
 	uint32                      _combMask;
-	std::string                 _class;
+	std::string                 _class, _notClass;
 	std::vector< MatSampler >   _samplers;
 	std::vector< MatUniform >   _uniforms;
 	std::vector< std::string >  _shaderFlags;

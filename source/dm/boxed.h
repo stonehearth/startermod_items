@@ -71,7 +71,9 @@ public:
    public:
       Promise(const Boxed& c, const char* reason) {
          guard_ = c.TraceValue(reason, [=](Boxed::ValueType const&) {
-            for (auto& cb : changedCbs_) {
+            // xxx: see bug SH-7.  this is a temporary work around
+            auto callbacks = changedCbs_;
+            for (auto& cb : callbacks) {
                luabind::call_function<void>(cb);
             }
          });

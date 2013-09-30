@@ -23,4 +23,3 @@ DataBindingPtr LuaComponents::AddLuaComponent(std::string name)
    lua_components_[name] = component;
    return component;
 }
-

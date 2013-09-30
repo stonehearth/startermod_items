@@ -1,27 +1,23 @@
 {
    "type" : "entity",
-   "extends" : "/stonehearth/entities/mob.json",   
+   "extends" : "stonehearth.mixins.mob",   
    "components": {
       "unit_info" : {
         "name": "A rabbit",
         "description": "Om nom nom",
         "faction": "critter"
       },
+      "stonehearth:leash" : {
+        "leash_radius" : 6
+      },
       "radiant:ai" : {
          "actions" : [
-            "file(/ai/actions/idle_look_around_action.lua)"
+            "stonehearth.actions.idle_look_around_action",
+            "stonehearth.actions.wander_action"
          ]
       },
-      "sensor_list" : {
-        "sensors" : {
-          "sight" : {
-            "type": "sensor",
-            "radius":   14
-          }
-        }
-      },      
       "render_info" : {
-         "animation_table": "file(rig/rabbit.json)"
+         "animation_table": "file(rig/rabbit_rig.json)"
       },
       "model_variants": [
          {

@@ -3,6 +3,7 @@
 
 #include <map>
 #include "namespace.h"
+#include "radiant_macros.h"
 #include "render_component.h"
 #include "types.h"
 #include "om/om.h"
@@ -46,7 +47,20 @@ private:
    };
 
 private:
-   void UpdateRenderRegion();
+   struct RenderZone {
+      csg::Point3             location;
+      om::BoxedRegion3Ref     region;
+      RenderNode              node;
+      dm::Guard               guard;
+      std::vector<RenderNode> meshes;
+
+      RenderZone() { }
+   };
+   DECLARE_SHARED_POINTER_TYPES(RenderZone)
+
+private:
+   void Update();
+   void UpdateRenderRegion(RenderZonePtr render_zone);
    void TesselateTerrain(csg::Region3 const& terrain, csg::Region3& tess);
    void OnSelected(om::Selection& sel, const csg::Ray3& ray,
                    const csg::Point3f& intersection, const csg::Point3f& normal);
@@ -62,7 +76,9 @@ private:
    const RenderEntity&  entity_;
    dm::Guard            tracer_;
    om::TerrainRef       terrain_;
-   H3DNode              node_;
+   RenderNode           terrain_root_node_;
+   std::map<csg::Point3, std::shared_ptr<RenderZone>>   zones_;
+   std::vector<RenderZoneRef> dirty_zones_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

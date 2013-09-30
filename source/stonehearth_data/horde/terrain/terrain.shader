@@ -241,7 +241,7 @@ uniform vec4 matDiffuseCol;
 uniform vec4 matSpecParams;
 uniform sampler2D albedoMap;
 
-in vec4 pos
+in vec4 pos;
 in vec4 vsPos;
 in vec3 albedo;
 in vec3 tsbNormal;
@@ -266,7 +266,7 @@ uniform vec4 matSpecParams;
 uniform sampler2D albedoMap;
 uniform vec3 lightAmbientColor;
 
-in vec4 pos
+in vec4 pos;
 in vec4 vsPos;
 in vec3 albedo;
 in vec3 tsbNormal;

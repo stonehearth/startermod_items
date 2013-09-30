@@ -1,0 +1,13 @@
+{
+   "type": "entity",
+   "components" : {
+      "radiant:commands" : {
+         "commands" : [
+            "file(show_craft_ui_command.json)"
+         ]
+      },
+      "stonehearth:workshop" : {
+      }
+   }
+}
+

@@ -113,9 +113,19 @@ int call_obj(lua_State* L)
    return call_impl(L, 3, luaL_checkstring(L, 1), luaL_checkstring(L, 2));
 }
 
-LuaDeferredPtr trace_obj(lua_State* L, std::string const& object)
+LuaDeferredPtr trace_obj(lua_State* L, object obj)
 {
-   Trace t(object);
+   std::string object_name;
+   if (type(obj) == LUA_TSTRING) {
+      object_name = object_cast<std::string>(obj);
+   } else if (type(obj) == LUA_TUSERDATA) {
+      try {
+         object_name = call_function<std::string>(obj["__tojson"], obj, obj);
+      } catch (std::exception& e) {
+         throw std::invalid_argument(BUILD_STRING("failed to convert object to uri in trace_obj: " << e.what()));
+      }
+   }
+   Trace t(object_name);
 
    ReactorDeferredPtr d = GetReactor(L)->InstallTrace(t);
    LuaDeferredPtr l = LuaDeferred::Wrap(L, BUILD_STRING("lua " << t), d);
@@ -134,7 +144,7 @@ void lua::rpc::open(lua_State* L, CoreReactorPtr reactor)
       namespace_("_radiant") [
          def("call",             &call),
          def("call_obj",         &call_obj),
-         def("trace_obj",        &trace_obj),
+         // def("trace_obj",        &trace_obj), <- pretty sure this is crap..
          namespace_("rpc") [
             lua::RegisterType<CoreReactor>(),
             lua::RegisterTypePtr<LuaDeferred>()

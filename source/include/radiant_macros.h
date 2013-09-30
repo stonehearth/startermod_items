@@ -14,12 +14,12 @@
 
 #define VERIFY(expr, Excp) do { if (!(expr)) { throw Excp; } } while(false)
 
+#define BUILD_STRING(x) static_cast<std::ostringstream&>(std::ostringstream() << x).str()
+
 #define DEBUG_ONLY(x)      do { x } while (false);
-#define RADIANT_NOT_IMPLEMENTED()   (LOG(WARNING) << __FUNCTION__  << " not implemented (" << __FILE__ << ":" << __LINE__)
-#define NOT_YET_IMPLEMENTED()       (LOG(WARNING) << __FUNCTION__  << " not implemented (" << __FILE__ << ":" << __LINE__)
+#define NOT_YET_IMPLEMENTED()       throw std::logic_error(BUILD_STRING("not yet implemented: " << __FILE__ << ":" << __LINE__))
 #define NOT_REACHED()      ASSERT(false)
 
-#define BUILD_STRING(x) static_cast<std::ostringstream&>(std::ostringstream() << x).str()
 
 #define DECLARE_SHARED_POINTER_TYPES(Cls) \
    typedef std::shared_ptr<Cls>  Cls ## Ptr; \

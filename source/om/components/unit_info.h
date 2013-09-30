@@ -29,9 +29,7 @@ public:
 
    std::string GetIcon() const {return *icon_;}
    void SetIcon(std::string icon) { icon_ = icon; }
-
-   dm::Guard TraceObjectChanges(const char* reason, std::function<void()> fn) const override;
-
+ 
 private:
    void InitializeRecordFields() override;
 

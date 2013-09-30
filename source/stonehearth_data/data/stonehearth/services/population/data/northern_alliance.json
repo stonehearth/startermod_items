@@ -1,0 +1,47 @@
+{
+   "faction_name" : "Northern Alliance",
+   "male_entities" : [
+      "stonehearth.male_1"
+   ],
+   "female_entities" : [
+      "stonehearth.female_1"
+   ],
+   "surnames" : [
+      "Finn",
+      "Odilep",
+      "Ketil",
+      "Haft",
+      "Sovi",
+      "Guthrum",
+      "Igurd",
+      "Moror",
+      "Erlinn",
+      "Vemund"
+   ],
+   "given_names" : {
+      "male" : [
+         "Kiran",
+         "Sel",
+         "Jos",
+         "Gurd",
+         "Karr",
+         "Skarf",
+         "Valin",
+         "Lovil",
+         "Sineus",
+         "Hakon"
+      ],
+      "female" : [
+         "Geira",
+         "Asta",
+         "Olva",
+         "Tovi",
+         "Indunna",
+         "Finna",
+         "Jodis",
+         "Mora",
+         "Brynn",
+         "Katla"
+      ]
+   }
+}

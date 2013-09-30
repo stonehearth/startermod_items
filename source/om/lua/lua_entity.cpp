@@ -6,7 +6,6 @@
 #include "om/data_binding.h"
 #include "om/stonehearth.h"
 #include "resources/res_manager.h"
-#include "simulation/script/script_host.h" // xxx: NOOOOOOOOOOOOO! Use a generic script host!!!!!!!!
 
 using namespace ::luabind;
 using namespace ::radiant;
@@ -17,7 +16,7 @@ std::string Entity_GetUri(std::weak_ptr<Entity> e)
    auto entity = e.lock();
    if (entity) {
       std::ostringstream os;
-      os << "entity(" << entity->GetModuleName() << ", " << entity->GetEntityName() << ")";
+      os << entity->GetModuleName() << "." << entity->GetEntityName();
       return os.str();
    }
    return "";

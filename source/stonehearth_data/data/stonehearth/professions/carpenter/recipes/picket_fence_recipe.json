@@ -1,0 +1,22 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Picket Fence",
+   "description" : "Keeps people off your property.",
+   "flavor"      : "If it's not white, is our life unfulfilled?",
+   "portrait"    : "/stonehearth/entities/construction/picket_fence/picket_fence.png",
+   "category"    : "weapons",
+
+   "ingredients": [
+      {
+         "material" : "wood",
+         "count" : 2
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth.picket_fence_proxy"
+      }
+  ]
+}

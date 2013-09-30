@@ -12,9 +12,7 @@ Opposite of _init_entity. Given a uri, remove
 component influences from the entity.
 --]]
 -- xxx: this function must go, too -- tony
-function entities.xxx_unregister_from_entity(entity, mod_name, entity_name)
-   assert(entity_name)
-   local uri = _radiant.sim.xxx_get_entity_uri(mod_name, entity_name)
+function entities.xxx_unregister_from_entity(entity, uri)
    local obj = radiant.resources.load_json(uri)
 
    if obj then
@@ -45,20 +43,12 @@ function entities.get_root_entity()
    return radiant._root_entity
 end
 
-function entities.create_entity(arg1, arg2)
-   if not arg1 then
-      return native:create_empty_entity()
+function entities.create_entity(ref)
+   if not ref then
+      return _radiant.sim.create_empty_entity()
    end
-   if not arg2 then
-      local entity_ref = arg1 -- something like 'entity(stonehearth, wooden_sword)'
-      assert(entity_ref:sub(1, 7) == 'entity(')
-      --radiant.log.info('creating entity %s', entity_ref)
-      return _radiant.sim.create_entity_by_ref(entity_ref)
-   end
-   local mod_name = arg1 -- 'stonehearth'
-   local entity_name = arg2 -- 'wooden_sword'
-   --radiant.log.info('creating entity %s, %s', mod_name, entity_name)
-   return _radiant.sim.create_entity(mod_name, entity_name)
+   radiant.log.info('creating entity %s', ref)
+   return _radiant.sim.create_entity_by_ref(ref)
 end
 
 function entities.destroy_entity(entity)
@@ -72,13 +62,6 @@ function entities.destroy_entity(entity)
       singleton._entity_dtors[id] = nil
    end
    _radiant.sim.destroy_entity(entity)
-end
-
-function entities.xxx_inject_into_entity(entity, mod_name, entity_name)
-   if not entity_name then
-      assert(false)
-   end
-   return _radiant.sim.xxx_extend_entity(entity, mod_name, entity_name)
 end
 
 function entities.add_child(parent, child, location)

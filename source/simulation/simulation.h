@@ -68,7 +68,6 @@ public:
    void Step(platform::timer &timer, int interval) override;
    void Idle(platform::timer &timer) override;
 
-   void RegisterServerRemoteObject(std::string const& uri, dm::ObjectPtr obj);
    om::EntityPtr GetRootEntity();
    Physics::OctTree &GetOctTree();
    dm::Store& GetStore();
@@ -82,6 +81,7 @@ private:
    void ScriptCommand(tesseract::protocol::ScriptCommandRequest const& request);
    void EncodeDebugShapes(protocol::SendQueuePtr queue);
    void PushServerRemoteObjects(protocol::SendQueuePtr queue);
+   void ProcessTaskList(platform::timer &timer);
    void ProcessJobList(platform::timer &timer);
    void OnObjectAllocated(dm::ObjectPtr obj);
    void OnObjectDestroyed(dm::ObjectId id);

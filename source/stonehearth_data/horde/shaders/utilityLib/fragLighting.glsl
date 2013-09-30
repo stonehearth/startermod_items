@@ -25,11 +25,11 @@ float PCF( const vec4 projShadow )
   
   float offset = 1.0 / shadowMapSize;
   
-  vec4 shadow = shadow2D( shadowMap, projShadow.xyz );
-  shadow += shadow2D( shadowMap, projShadow.xyz + vec3( -0.866 * offset,  0.5 * offset, 0.0 ) );
-  shadow += shadow2D( shadowMap, projShadow.xyz + vec3( -0.866 * offset, -0.5 * offset, 0.0 ) );
-  shadow += shadow2D( shadowMap, projShadow.xyz + vec3(  0.866 * offset, -0.5 * offset, 0.0 ) );
-  shadow += shadow2D( shadowMap, projShadow.xyz + vec3(  0.866 * offset,  0.5 * offset, 0.0 ) );
+  vec4 shadow = vec4(1, 1, 1, 1);//shadow2D( shadowMap, projShadow.xyz );
+  //shadow += shadow2D( shadowMap, projShadow.xyz + vec3( -0.866 * offset,  0.5 * offset, 0.0 ) );
+  //shadow += shadow2D( shadowMap, projShadow.xyz + vec3( -0.866 * offset, -0.5 * offset, 0.0 ) );
+  //shadow += shadow2D( shadowMap, projShadow.xyz + vec3(  0.866 * offset, -0.5 * offset, 0.0 ) );
+  //shadow += shadow2D( shadowMap, projShadow.xyz + vec3(  0.866 * offset,  0.5 * offset, 0.0 ) );
   
   return shadow.r / 5.0;
 }

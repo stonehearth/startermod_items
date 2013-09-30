@@ -37,7 +37,9 @@ void Region<S, C>::Clear()
 template <class S, int C>
 void Region<S, C>::Add(const Cube& cube)
 {
-   Region unique(cube);
+   static Region unique;
+   unique.Clear();
+   unique.AddUnique(cube);
 
    for (const Cube& c : *this) {
       unique.Subtract(c);
@@ -276,6 +278,14 @@ void Region<S, C>::Translate(const Point& pt)
    }
 }
 
+template <class S, int C>
+Region<S, C> Region<S, C>::Translated(const Point& pt) const
+{
+   Region result = (*this);
+   result.Translate(pt);
+   return std::move(result);
+}
+
 #if 0
 Region3 radiant::csg::GetBorderXZ(const Region3 &other)
 {
@@ -324,6 +334,7 @@ Region3 radiant::csg::GetBorderXZ(const Region3 &other)
    template Cls::Cube Cls::GetBounds() const; \
    template Cls Cls::ProjectOnto(int axis, Cls::ScalarType plane) const; \
    template void Cls::Translate(const Cls::Point& pt); \
+   template Cls Cls::Translated(const Cls::Point& pt) const; \
 
 MAKE_REGION(Region3)
 MAKE_REGION(Region3f)

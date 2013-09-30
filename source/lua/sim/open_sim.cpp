@@ -5,6 +5,7 @@
 #include "simulation/jobs/multi_path_finder.h"
 #include "simulation/jobs/follow_path.h"
 #include "simulation/jobs/goto_location.h"
+#include "simulation/jobs/lua_job.h"
 #include "om/entity.h"
 #include "om/stonehearth.h"
 #include "om/region.h"
@@ -55,19 +56,12 @@ om::EntityRef Sim_CreateEntityByRef(lua_State* L, std::string const& entity_ref)
    return entity;
 }
 
-om::EntityRef Sim_CreateEntity(lua_State* L, std::string const& mod_name, std::string const& entity_name)
-{
-   om::EntityPtr entity = Simulation::GetInstance().CreateEntity();
-   om::Stonehearth::InitEntity(entity, mod_name, entity_name, L);
-   return entity;
-}
 
-
-void Sim_ExtendEntity(lua_State* L, om::EntityRef e, std::string const& mod_name, std::string const& entity_name)
+void Sim_ExtendEntity(lua_State* L, om::EntityRef e, std::string const& entity_ref)
 {
    om::EntityPtr entity = e.lock();
    if (entity) {
-      om::Stonehearth::InitEntity(entity, mod_name, entity_name, L);
+      om::Stonehearth::InitEntityByRef(entity, entity_ref, L);
    }
 }
 
@@ -159,6 +153,14 @@ std::shared_ptr<PathFinder> Sim_CreatePathFinder(lua_State *L, std::string name,
    return pf;
 }
 
+std::shared_ptr<LuaJob> Sim_CreateJob(lua_State *L, std::string const& name, object cb)
+{
+   std::shared_ptr<LuaJob> job = std::make_shared<LuaJob>(name, object(lua::ScriptHost::GetCallbackThread(L), cb));
+   Simulation::GetInstance().AddJob(job);
+   return job;
+}
+
+
 void lua::sim::open(lua_State* L)
 {
    module(L) [
@@ -166,7 +168,6 @@ void lua::sim::open(lua_State* L)
          namespace_("sim") [
             def("xxx_extend_entity",        &Sim_ExtendEntity),
             def("xxx_get_entity_uri",       &Sim_GetEntityUri),
-            def("create_entity",            &Sim_CreateEntity),
             def("create_empty_entity",      &Sim_CreateEmptyEntity),
             def("create_entity_by_ref",     &Sim_CreateEntityByRef),
             def("get_entity",               &Sim_GetEntity),
@@ -178,6 +179,7 @@ void lua::sim::open(lua_State* L)
             def("create_follow_path",       &Sim_CreateFollowPath),
             def("create_goto_location",     &Sim_CreateGotoLocation),
             def("create_goto_entity",       &Sim_CreateGotoEntity),
+            def("create_job",               &Sim_CreateJob),
 
             lua::RegisterTypePtr<Path>()
                .def("get_points",         &Path::GetPoints)
@@ -216,6 +218,9 @@ void lua::sim::open(lua_State* L)
             ,
             lua::RegisterTypePtr<GotoLocation>()
                .def("stop",     &GotoLocation::Stop)
+            ,
+            lua::RegisterTypePtr<LuaJob>()
+
          ]
       ]
    ];

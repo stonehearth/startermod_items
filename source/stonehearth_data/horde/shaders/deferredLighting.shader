@@ -117,14 +117,15 @@ void main( void )
 varying vec2 texCoords;
 void main( void )
 {
-  if( getMatID( texCoords ) == 2.0 )  // Sky
+  gl_FragColor = vec4(0, 0, 0, 1);
+  /*if( getMatID( texCoords ) == 2.0 )  // Sky
   {
     gl_FragColor = getAlbedo( texCoords );
   }
   else
   {
     gl_FragColor = vec4(0,0,0,1);
-  }
+  }*/
 }
 
 

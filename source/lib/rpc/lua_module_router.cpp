@@ -50,10 +50,15 @@ ReactorDeferredPtr LuaModuleRouter::CallModuleFunction(Function const& fn, std::
       lua::ScriptHost* sh = GetScriptHost();
       lua_State* L = sh->GetCallbackThread();
       object ctor(L, sh->RequireScript(script));
-      if (!ctor.is_valid() || type(ctor) == LUA_TNIL) {
+      if (!ctor.is_valid()) {
          throw core::Exception(BUILD_STRING("failed to retrieve lua call handler while processing " << fn));
       }
-      object obj = call_function<object>(ctor);
+      object obj;
+      try {
+         obj = call_function<object>(ctor);
+      } catch (std::exception& e) {
+         throw core::Exception(BUILD_STRING("failed to create lua call handler while processing " << fn << ": " << e.what()));
+      }
       object method = obj[fn.route]; 
       if (!method.is_valid() || type(method) != LUA_TFUNCTION) {
          throw core::Exception(BUILD_STRING("constructed lua handler does not implement " << fn));

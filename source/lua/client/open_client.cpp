@@ -108,26 +108,57 @@ struct LuaCallback {
       cb_ = cb;
    }
 
+   void Destroy() {
+      cb_ = object();
+   }
+
    luabind::object      cb_;
 };
-DECLARE_SHARED_POINTER_TYPES(LuaCallback)
+struct CaptureInputPromise : public LuaCallback
+{
+};
+struct TraceRenderFramePromise : public LuaCallback
+{
+};
+DECLARE_SHARED_POINTER_TYPES(CaptureInputPromise)
+DECLARE_SHARED_POINTER_TYPES(TraceRenderFramePromise)
 
-LuaCallbackPtr Client_CaptureInput(lua_State* L)
+CaptureInputPromisePtr Client_CaptureInput(lua_State* L)
 {
    Client& c = Client::GetInstance();
 
-   LuaCallbackPtr callback = std::make_shared<LuaCallback>();
-   LuaCallbackRef cb = callback;
+   CaptureInputPromisePtr callback = std::make_shared<CaptureInputPromise>();
+   CaptureInputPromiseRef cb = callback;
 
    Client::InputHandlerId id = c.ReserveInputHandler();
    c.SetInputHandler(id, [cb, &c, id, L](Input const& i) {
-      LuaCallbackPtr callback = cb.lock();
+      CaptureInputPromisePtr callback = cb.lock();
       if (!callback) {
          c.RemoveInputHandler(id);
          return false;
       }
       return callback->Notify(luabind::object(L, i));
    });
+   return callback;
+}
+
+TraceRenderFramePromisePtr Client_TraceRenderFrame(lua_State* L)
+{
+   Client& c = Client::GetInstance();
+
+   TraceRenderFramePromisePtr callback = std::make_shared<TraceRenderFramePromise>();
+   TraceRenderFramePromiseRef cb = callback;
+
+   Client::TraceRenderFrameId id = c.ReserveTraceRenderFrameHandler();
+   c.SetTraceRenderFrameHandler(id, [cb, &c, id, L](float frameTime) {
+      TraceRenderFramePromisePtr callback = cb.lock();
+      if (!callback) {
+         c.RemoveTraceRenderFrameHandler(id);
+         return false;
+      }
+      return callback->Notify(luabind::object(L, frameTime));
+   });
+
    return callback;
 }
 
@@ -172,8 +203,15 @@ void lua::client::open(lua_State* L)
             def("capture_input",                   &Client_CaptureInput),
             def("query_scene",                     &Client_QueryScene),
             def("select_xz_region",                &Client_SelectXZRegion),
-            lua::RegisterTypePtr<LuaCallback>()
-               .def("on_input",           &LuaCallback::Progress)
+            def("trace_render_frame",              &Client_TraceRenderFrame),
+
+            lua::RegisterTypePtr<CaptureInputPromise>()
+               .def("on_input",          &CaptureInputPromise::Progress)
+               .def("destroy",           &CaptureInputPromise::Destroy)
+            ,
+            lua::RegisterTypePtr<TraceRenderFramePromise>()
+               .def("on_frame",          &TraceRenderFramePromise::Progress)
+               .def("destroy",           &CaptureInputPromise::Destroy)
             ,
             lua::RegisterType<Input>()
                .enum_("constants") [
@@ -189,7 +227,10 @@ void lua::client::open(lua_State* L)
             lua::RegisterType<MouseInput>()
                .def_readonly("x",       &MouseInput::x)
                .def_readonly("y",       &MouseInput::y)
+               .def_readonly("dx",      &MouseInput::dx)
+               .def_readonly("dy",      &MouseInput::dy)
                .def_readonly("wheel",   &MouseInput::wheel)
+               .def_readonly("in_client_area", &MouseInput::in_client_area)
                .def("up",               &MouseEvent_GetUp)
                .def("down",             &MouseEvent_GetDown)
             ,

@@ -111,3 +111,14 @@ bool Record::FieldIsUnique(std::string name, Object& obj)
    return true;
 }
 
+// xxx: this will end up remoting the unit info record a 2nd time whenever something
+// in the unit info changes.  arg!  what we really want to say is "hey record, install
+// this trace whenever *you* change or any of *your fields* change).
+dm::Guard Record::TraceObjectChanges(const char* reason, std::function<void()> fn) const
+{
+   dm::Guard guard;
+   for (auto const& field : fields_) {
+      guard += GetStore().FetchStaticObject(field.second)->TraceObjectChanges(reason, fn);
+   }
+   return guard;
+}

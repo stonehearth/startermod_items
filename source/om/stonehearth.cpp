@@ -57,8 +57,8 @@ GetLuaComponentUri(std::string name)
       modname = name.substr(0, offset);
       name = name.substr(offset + 1, std::string::npos);
 
-      JSONNode manifest = res::ResourceManager2::GetInstance().LookupManifest(modname).GetNode();
-      return manifest["components"][name].as_string();
+      json::ConstJsonObject manifest = res::ResourceManager2::GetInstance().LookupManifest(modname).GetNode();
+      return manifest.getn("components").get<std::string>(name);
    }
    // xxx: throw an exception...
    return "";
@@ -146,7 +146,7 @@ om::Stonehearth::AddComponent(lua_State* L, om::EntityRef e, std::string name)
 
 void Stonehearth::InitEntityByRef(om::EntityPtr entity, std::string const& entity_ref, lua_State* L)
 {
-   static std::regex entity_macro("^entity\\((.*), (.*)\\)$");
+   static std::regex entity_macro("^([^\\.\\\\/]+)\\.([^\\\\/]+)$");
    std::smatch match;
 
    if (std::regex_match(entity_ref, match, entity_macro)) {
@@ -165,7 +165,7 @@ void Stonehearth::InitEntity(om::EntityPtr entity, std::string const& mod_name, 
       InitEntityByUri(entity, uri, L);
    } catch (res::Exception &e) {
       std::ostringstream error;
-      error << "failed to initialize entity(" << mod_name << ", " << entity_name << ") :"  << e.what();
+      error << "failed to initialize entity " << mod_name << "." << entity_name << " "  << e.what();
       throw res::Exception(error.str());
    }
 }

@@ -60,6 +60,7 @@ scope LuaPoint::RegisterLuaTypes(lua_State* L)
          .def(constructor<int, int>())
          .def_readwrite("x", &csg::Point2::x)
          .def_readwrite("y", &csg::Point2::y),
+
       lua::RegisterType<Point3f>("Point3f")
          .def(tostring(const_self))
          .def(constructor<>())
@@ -74,6 +75,10 @@ scope LuaPoint::RegisterLuaTypes(lua_State* L)
          .def("distance_squared",   &csg::Point3f::LengthSquared)
          .def("distance_to",        &csg::Point3f::DistanceTo)
          .def("is_adjacent_to",     &Point3f_IsAdjacentTo)
-
+         .def("scale",              &csg::Point3f::Scale)
+         .def("normalize",          &csg::Point3f::Normalize)
+         .def("dot",                &csg::Point3f::Dot),
+      
+      def("lerp",             &csg::Interpolate)
       ;
 }

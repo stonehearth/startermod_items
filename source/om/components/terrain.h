@@ -19,31 +19,32 @@ public:
    DEFINE_OM_OBJECT_TYPE(Terrain, terrain);
 
    enum TerrainTypes {
-      Null        = 0,
-      Magma       = 1,
-      Bedrock     = 2,
-      Topsoil     = 3,
-      Grass       = 4, // On top of Topsoil...
-      Plains        = 5, // the dark green, flat floors
+      Null          = 0,
+      Magma         = 1,
+      Bedrock       = 2,
+      Topsoil       = 3,
+      Grass         = 4,
+      Plains        = 5,
       TopsoilDetail = 6,
       DarkWood      = 7, 
       DirtPath      = 8, 
    };
 
-   const csg::Region3& GetRegion() const { return *region_; }
-   void AddRegion(csg::Region3 const& region);
-   void PlaceEntity(EntityRef e, const csg::Point3& pt);
+   typedef dm::Map<csg::Point3, BoxedRegion3Ptr, csg::Point3::Hash> ZoneMap;
+
+   int GetZoneSize();
+   void SetZoneSize(int zone_size);
+   void AddZone(csg::Point3 const& zone_offset, BoxedRegion3Ptr region3);
+   void PlaceEntity(EntityRef e, const csg::Point3& location);
    void CreateNew();
-   void AddCube(csg::Cube3 const& cube);
-   void RemoveCube(csg::Cube3 const& region);
+
+   ZoneMap const& GetZoneMap() const { return zones_; }
 
 private:
+   dm::Boxed<int> zone_size_;
+   ZoneMap zones_;
    void InitializeRecordFields() override;
-
-public:
-   BoxedRegion3      region_;
-   //dm::Set<dm::Ref<Entity>>      mobs_;
-   //dm::Set<dm::Ref<Entity>>      items_;
+   BoxedRegion3Ptr GetZone(csg::Point3 const& location, csg::Point3& zone_offset);
 };
 
 END_RADIANT_OM_NAMESPACE

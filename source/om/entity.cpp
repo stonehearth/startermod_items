@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "entity.h"
+#include "components/lua_components.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -37,6 +38,9 @@ void Entity::InitializeRecordFields()
    AddRecordField("debug_text",     debug_text_);
    AddRecordField("mod_name",       mod_name_);
    AddRecordField("entity_name",    entity_name_);
+   if (!IsRemoteRecord()) {
+      AddComponent<LuaComponents>();
+   }
 }
 
 template <class T> std::shared_ptr<T> Entity::AddComponent()
@@ -61,6 +65,17 @@ dm::ObjectPtr Entity::GetComponent(dm::ObjectType t) const
    return i != components_.end() ? i->second : nullptr;
 }
 
+
+// xxx: this will end up remoting the unit info record a 2nd time whenever something
+// in the unit info changes.  arg!  what we really want to say is "hey record, install
+// this trace whenever *you* change or any of *your fields* change).
+dm::Guard Entity::TraceObjectChanges(const char* reason, std::function<void()> fn) const
+{
+   dm::Guard guard = Record::TraceObjectChanges(reason, fn);
+   guard += GetComponent<LuaComponents>()->TraceObjectChanges(reason, fn);
+   return guard;
+}
+
 template <class T> std::shared_ptr<T> Entity::GetComponent() const
 {
    return std::static_pointer_cast<T>(GetComponent(T::DmType));
@@ -71,4 +86,5 @@ template <class T> std::shared_ptr<T> Entity::GetComponent() const
    template std::shared_ptr<Clas> Entity::AddComponent<Clas>();
 OM_ALL_COMPONENTS
 #undef OM_OBJECT
+
 

@@ -39,7 +39,7 @@
 #include "lua/om/open.h"
 #include "client/renderer/render_entity.h"
 
-#include "glfw.h"
+#include "glfw3.h"
 
 //  #include "GFx/AS3/AS3_Global.h"
 #include "client.h"
@@ -69,6 +69,7 @@ Client::Client() :
    currentCursor_(NULL),
    last_server_request_id_(0),
    next_input_id_(1),
+   next_trace_frame_id_(1),
    mouse_x_(0),
    mouse_y_(0)
 {
@@ -135,7 +136,7 @@ void Client::run()
    Renderer& renderer = Renderer::GetInstance();
    //renderer.SetCurrentPipeline("pipelines/deferred_pipeline_static.xml");
    //renderer.SetCurrentPipeline("pipelines/forward.pipeline.xml");
-   renderer.SetCurrentPipeline("pipelines/deferred_lighting.xml");
+   //renderer.SetCurrentPipeline("pipelines/deferred_lighting.xml");
 
    Horde3D::Modules::log().SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
       error_browser_->AddRecord(r);
@@ -150,10 +151,11 @@ void Client::run()
 
    namespace po = boost::program_options;
    extern po::variables_map configvm;
-   std::string loader = configvm["game.loader"].as<std::string>().c_str();
+   std::string loader = configvm["game.mod"].as<std::string>().c_str();
    json::ConstJsonObject manifest(res::ResourceManager2::GetInstance().LookupManifest(loader));
    std::string docroot = "http://radiant/" + manifest.getn("loader").getn("ui").get<std::string>("homepage");
 
+   // seriously???
    if (configvm["game.script"].as<std::string>() != "stonehearth/new_world.lua") {
       docroot += "?skip_title=true";
    }
@@ -215,7 +217,7 @@ void Client::run()
    _commands[GLFW_KEY_F3] = std::bind(&Client::EvalCommand, this, "radiant.toggle_step_paths");
    _commands[GLFW_KEY_F4] = std::bind(&Client::EvalCommand, this, "radiant.step_paths");
 #endif
-   _commands[GLFW_KEY_ESC] = [=]() {
+   _commands[GLFW_KEY_ESCAPE] = [=]() {
       currentCursor_ = NULL;
    };
 
@@ -318,6 +320,7 @@ void Client::mainloop()
    // or calls from the browser.
    authoringStore_.FireTraces();
 
+   CallTraceRenderFrameHandlers( Renderer::GetInstance().GetLastFrameRenderTime() );
    Renderer::GetInstance().RenderOneFrame(now_, alpha);
    if (send_queue_) {
       protocol::SendQueue::Flush(send_queue_);
@@ -429,7 +432,7 @@ void Client::UpdateObject(const proto::UpdateObject& update)
    const auto& msg = update.object();
    dm::ObjectId id = msg.object_id();
 
-   //LOG(WARNING) << "Client updating object " << id << ".";
+   // LOG(WARNING) << "Client updating object " << id << ".";
 
    dm::Object* obj = store_.FetchStaticObject(id);
    ASSERT(obj);
@@ -522,8 +525,10 @@ void Client::OnMouseInput(Input const& input)
 
    mouse_x_ = input.mouse.x;
    mouse_y_ = input.mouse.y;
+
+   browser_->OnInput(input);
+
    if (browser_->HasMouseFocus(input.mouse.x, input.mouse.y)) {
-      browser_->OnInput(input); // not quite right...
       return;
    }
 
@@ -531,8 +536,6 @@ void Client::OnMouseInput(Input const& input)
       if (rootObject_ && input.mouse.up[0]) {
          LOG(WARNING) << "updating selection...";
          UpdateSelection(input.mouse);
-      } else if (input.mouse.up[2]) {
-         CenterMap(input.mouse);
       }
    }
 }
@@ -596,14 +599,44 @@ bool Client::CallInputHandlers(Input const& input)
    return false;
 }
 
-void Client::CenterMap(const MouseInput &mouse)
-{
-   om::Selection s;
 
-   Renderer::GetInstance().QuerySceneRay(mouse.x, mouse.y, s);
-   if (s.HasBlock()) {
-      Renderer::GetInstance().PlaceCamera(csg::ToFloat(s.GetBlock()));
+Client::TraceRenderFrameId Client::AddTraceRenderFrameHandler(TraceRenderFrameHandlerCb const& cb)
+{
+   TraceRenderFrameId id = ReserveTraceRenderFrameHandler();
+   SetTraceRenderFrameHandler(id, cb);
+   return id;
+}
+
+void Client::SetTraceRenderFrameHandler(TraceRenderFrameId id, TraceRenderFrameHandlerCb const& cb)
+{
+   trace_frame_handlers_.emplace_back(std::make_pair(id, cb));
+}
+
+Client::TraceRenderFrameId Client::ReserveTraceRenderFrameHandler() {
+   return next_trace_frame_id_++;
+}
+
+void Client::RemoveTraceRenderFrameHandler(TraceRenderFrameId id)
+{
+   auto i = trace_frame_handlers_.begin();
+   while (i != trace_frame_handlers_.end()) {
+      if (i->first == id) {
+         trace_frame_handlers_.erase(i);
+         break;
+      }
    }
+};
+
+bool Client::CallTraceRenderFrameHandlers(float frameTime)
+{
+   auto handlers = trace_frame_handlers_;
+   for (int i = (int)handlers.size() - 1; i >= 0; i--) {
+      const auto& cb = handlers[i].second;
+      if (cb && cb(frameTime)) {
+         return true;
+      }
+   }
+   return false;
 }
 
 void Client::UpdateSelection(const MouseInput &mouse)
@@ -611,7 +644,8 @@ void Client::UpdateSelection(const MouseInput &mouse)
    om::Selection s;
    Renderer::GetInstance().QuerySceneRay(mouse.x, mouse.y, s);
 
-   csg::Ray3 r = Renderer::GetInstance().GetCameraToViewportRay(mouse.x, mouse.y);
+   csg::Ray3 r;
+   Renderer::GetInstance().GetCameraToViewportRay(mouse.x, mouse.y, &r);
    om::EntityPtr stockpile = NULL;
 
    float minDistance = FLT_MAX;

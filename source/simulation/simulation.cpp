@@ -11,7 +11,6 @@
 #include "jobs/path_finder.h"
 #include "jobs/follow_path.h"
 #include "jobs/goto_location.h"
-#include "script/script_host.h"
 #include "resources/res_manager.h"
 #include "lua/radiant_lua.h"
 #include "dm/store.h"
@@ -261,11 +260,11 @@ void Simulation::Step(platform::timer &timer, int interval)
    UpdateAuras(now_);
    UpdateTargetTables(now_, now_ - lastNow_);
 
+   ProcessTaskList(timer);
+   ProcessJobList(timer);
+
    // Send out change notifications
    store_.FireTraces();
-
-   // Run jobs with the time left over
-   ProcessJobList(timer);
 }
 
 void Simulation::Idle(platform::timer &timer)
@@ -422,7 +421,7 @@ void Simulation::PushServerRemoteObjects(protocol::SendQueuePtr queue)
 }
 
 
-void Simulation::ProcessJobList(platform::timer &timer)
+void Simulation::ProcessTaskList(platform::timer &timer)
 {
    PROFILE_BLOCK();
 
@@ -435,7 +434,10 @@ void Simulation::ProcessJobList(platform::timer &timer)
          i = tasks_.erase(i);
       }
    }
+}
 
+void Simulation::ProcessJobList(platform::timer &timer)
+{
    // Pahtfinders down here...
    if (_singleStepPathFinding) {
       LOG(INFO) << "skipping job processing (single step is on).";
@@ -786,17 +788,6 @@ void Simulation::SendReply(proto::PostCommandReply const& reply)
    *r = reply; // is this kosher?
 
    buffered_updates_.emplace_back(msg);
-}
-
-
-
-void Simulation::RegisterServerRemoteObject(std::string const& uri, dm::ObjectPtr obj)
-{
-   std::pair<std::string, std::string> entry;
-
-   entry.first = uri;
-   entry.second = om::ObjectFormatter().GetPathToObject(obj);
-   serverRemoteObjects_.push_back(entry);
 }
 
 lua::ScriptHost& Simulation::GetScript() {

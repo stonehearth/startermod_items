@@ -23,24 +23,33 @@ void Sensor::UpdateIntersection(std::vector<EntityId> intersection)
    // xxx: move this whole routine into the dm::Set class?  It would
    // facilitiate optimization...
 
-   // removed...
-   std::vector<EntityId> missing;
-   for (EntityId id : contains_) {
-      if (!stdutil::contains(intersection, id)) {
-         missing.push_back(id);
-      }
-   }
-   for (EntityId id : missing) {
-      contains_.Remove(id);
-   }
+   EntityRef e = GetEntity();
+   EntityPtr entity = e.lock();
+   if (entity) {
+      int entity_id = entity->GetObjectId();
 
-   // added...
-   std::vector<EntityId> added;
-   for (EntityId id : contains_) {
-      stdutil::UniqueRemove(intersection, id);
-   }
-   for (EntityId id : intersection) {
-      contains_.Insert(id);
+      // removed...
+      std::vector<EntityId> missing;
+      for (EntityId id : contains_) {
+         if (!stdutil::contains(intersection, id)) {
+            missing.push_back(id);
+         }
+      }
+      for (EntityId id : missing) {
+         contains_.Remove(id);
+      }
+
+      // added...
+      std::vector<EntityId> added;
+      for (EntityId id : contains_) {
+         stdutil::UniqueRemove(intersection, id);
+      }
+      for (EntityId id : intersection) {
+         if (entity_id != id) {
+            LOG(WARNING) << "adding entity " << id << " to sensor for entity " << entity_id;
+            contains_.Insert(id);
+         }
+      }
    }
 }
 
