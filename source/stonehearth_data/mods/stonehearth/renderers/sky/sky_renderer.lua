@@ -26,7 +26,8 @@ function SkyRenderer:__init()
             self._clock_promise:on_changed(
                function ()
                   local date = self._clock_object:get_data()
-                  self:_update(date.minute + (date.hour * 60))
+                  --self:_update(date.minute + (date.hour * 60))
+                  self:_update(500)
                end
             )
          end

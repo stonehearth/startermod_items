@@ -6,7 +6,6 @@
 #include "resources/res_manager.h"
 #include "core/config.h"
 #include <thread>
-#include <fstream>
 
 using radiant::client::Application;
 
