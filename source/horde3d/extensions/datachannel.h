@@ -3,15 +3,14 @@
 
 #include "egPrimitives.h"
 #include "namespace.h"
-
-#include "libjson.h"
 #include "radiant_json.h"
+
+using namespace ::radiant;
+using namespace ::radiant::json;
 
 using namespace ::Horde3D;
 
-
 BEGIN_RADIANT_HORDE3D_NAMESPACE
-
 
 template<typename T> class ValueEmitter
 {
@@ -307,6 +306,12 @@ private:
 
    std::vector<std::pair<float, float> > _randomValues;
 };
+
+ValueEmitter<float>* parseChannel(ConstJsonObject &n, const char *childName, float def);
+
+ValueEmitter<Vec3f>* parseChannel(ConstJsonObject &n, const char *childName, const Vec3f &def);
+
+ValueEmitter<Vec4f>* parseChannel(ConstJsonObject &n, const char *childName, const Vec4f &def);
 
 END_RADIANT_HORDE3D_NAMESPACE
 

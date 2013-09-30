@@ -9,6 +9,7 @@ add_definitions(-DCMAKE )
 
 add_library(horde3d_extensions STATIC
             extension.cpp
+            datachannel.cpp
             )
             
 target_link_libraries(horde3d_extensions
