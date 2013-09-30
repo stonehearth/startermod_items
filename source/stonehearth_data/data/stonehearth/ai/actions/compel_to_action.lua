@@ -6,7 +6,7 @@
 local CompelToAction = class()
 
 CompelToAction.name = 'stonehearth.actions.compel_to_action'
-CompelToAction.does = 'stonehearth.activities.top'
+CompelToAction.does = 'stonehearth.top'
 CompelToAction.priority = 0
 
 radiant.events.register_event('stonehearth.events.compulsion_event')

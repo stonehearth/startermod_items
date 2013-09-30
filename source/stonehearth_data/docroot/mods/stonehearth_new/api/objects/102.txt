@@ -1,4 +1,0 @@
-{
-    "name": "Small Wooden Shield",
-    "description": "Like an appetizer plate for giants."
-}

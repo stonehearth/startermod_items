@@ -1,7 +1,7 @@
 local PickupItemAction = class()
 
 PickupItemAction.name = 'stonehearth.actions.pickup_item'
-PickupItemAction.does = 'stonehearth.activities.pickup_item'
+PickupItemAction.does = 'stonehearth.pickup_item'
 PickupItemAction.priority = 5
 --TODO we need a scale to  describe relative importance
 
@@ -35,7 +35,7 @@ function PickupItemAction:run(ai, entity, item, parent)
 
    local obj_location = radiant.entities.get_world_grid_location(destination_target)
    if not radiant.entities.is_adjacent_to(entity, obj_location) then
-      ai:execute('stonehearth.activities.goto_entity', destination_target)
+      ai:execute('stonehearth.goto_entity', destination_target)
    end
    radiant.log.info("picking up item at %s", tostring(obj_location))
 
@@ -43,9 +43,9 @@ function PickupItemAction:run(ai, entity, item, parent)
    radiant.entities.pickup_item(entity, item, parent)
    if parent then
       --TODO: replace with carry putdown on table
-      ai:execute('stonehearth.activities.run_effect', 'carry_pickup')
+      ai:execute('stonehearth.run_effect', 'carry_pickup')
    else
-      ai:execute('stonehearth.activities.run_effect', 'carry_pickup')
+      ai:execute('stonehearth.run_effect', 'carry_pickup')
    end
 end
 

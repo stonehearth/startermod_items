@@ -20,13 +20,13 @@ radiant.json = dkjson
 radiant.gamestate = require 'modules.gamestate'
 radiant.resources = require 'modules.resources'
 radiant.events = require 'modules.events'
-radiant.ai = require 'modules.ai'
 radiant.effects = require 'modules.effects'
 radiant.entities = require 'modules.entities'
 radiant.terrain = require 'modules.terrain'
 radiant.mods = require 'modules.mods'
 radiant.music = require 'modules.bgm_manager'
 radiant.pathfinder = require 'modules.pathfinder'
+radiant.combat = require 'lib.combat'
 
 radiant.gamestate._start()
 radiant.log.info('radiant api initialized.')

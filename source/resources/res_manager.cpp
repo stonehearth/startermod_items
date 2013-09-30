@@ -22,6 +22,8 @@ namespace fs = ::boost::filesystem;
 using namespace ::radiant;
 using namespace ::radiant::res;
 
+static const std::regex file_macro_regex__("^file\\((.*)\\)$");
+static const std::regex entity_macro_regex__("^([^\\.\\\\/]+)\\.([^\\\\/]+)$");
 
 // === Helper Functions ======================================================
 
@@ -128,8 +130,7 @@ Manifest ResourceManager2::LookupManifest(std::string const& modname) const
 JSONNode const& ResourceManager2::LookupJson(std::string path) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
-
-   path = ExpandMacro(path, ".", true); // so we can lookup things like 'stonehearth.wooden_axe'
+   
    std::string key = ConvertToCanonicalPath(path, ".json");
 
    auto i = jsons_.find(key);
@@ -182,8 +183,10 @@ void ResourceManager2::ExpandMacros(std::string const& base_path, JSONNode& node
    }
 }
 
-std::string ResourceManager2::ConvertToCanonicalPath(std::string const& path, const char* search_ext) const
+std::string ResourceManager2::ConvertToCanonicalPath(std::string path, const char* search_ext) const
 {
+   path = ExpandMacro(path, ".", true); // so we can lookup things like 'stonehearth.wooden_axe'
+
    std::vector<std::string> parts = SplitPath(path);
 
    if (parts.size() < 1) {
@@ -346,16 +349,13 @@ std::string ResourceManager2::GetEntityUri(std::string const& mod_name, std::str
 
 std::string ResourceManager2::ExpandMacro(std::string const& current, std::string const& base_path, bool full) const
 {
-   static std::regex file_macro("^file\\((.*)\\)$");
    std::smatch match;
 
-   if (std::regex_match(current, match, file_macro)) {
+   if (std::regex_match(current, match, file_macro_regex__)) {
       return ConvertToAbsolutePath(match[1], base_path);
    }
    if (full) {
-      static std::regex entity_macro("^([^\\.\\\\/]+)\\.([^\\\\/]+)$");
-
-      if (std::regex_match(current, match, entity_macro)) {
+      if (std::regex_match(current, match, entity_macro_regex__)) {
          return GetEntityUri(match[1], match[2]);
       }
    }

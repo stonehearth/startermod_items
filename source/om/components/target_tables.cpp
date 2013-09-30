@@ -94,8 +94,8 @@ bool pairCompare(const T & x, const T & y) {
 
 TargetTableTopPtr TargetTableGroup::GetTop()
 {
-   std::unordered_map<EntityId, int> values;
-   std::unordered_map<EntityId, int> expireTimes;
+   std::unordered_map<EntityId, int> values(10);
+   std::unordered_map<EntityId, int> expireTimes(10);
 
    for (TargetTablePtr table  : tables_) {
       for (const auto& j: table->GetEntries()) {

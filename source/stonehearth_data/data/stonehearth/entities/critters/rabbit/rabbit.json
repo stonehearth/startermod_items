@@ -10,10 +10,10 @@
       "stonehearth:leash" : {
         "leash_radius" : 6
       },
-      "radiant:ai" : {
+      "stonehearth:ai" : {
          "actions" : [
-            "file(/ai/actions/idle_look_around_action.lua)",
-            "file(/ai/actions/wander_action.lua)"
+            "stonehearth.actions.idle_look_around_action",
+            "stonehearth.actions.wander_action"
          ]
       },
       "render_info" : {

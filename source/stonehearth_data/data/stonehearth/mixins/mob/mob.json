@@ -1,0 +1,24 @@
+{
+   "components" : {
+      "stonehearth:ai" : {
+         "actions" : [
+            "stonehearth.actions.compel_to_action",
+            "stonehearth.actions.death_action",
+            "stonehearth.actions.drop_carrying_action",
+            "stonehearth.actions.follow_path_action",
+            "stonehearth.actions.goto_entity_action",
+            "stonehearth.actions.goto_location_action",
+            "stonehearth.actions.idle_action",
+            "stonehearth.actions.idle_breathe_action",
+            "stonehearth.actions.pickup_item_action",
+            "stonehearth.actions.pickup_item_on_path",
+            "stonehearth.actions.run_effect_action",
+            "stonehearth.actions.attack_action",
+            "stonehearth.actions.flee_action"
+         ],
+          "observers": [
+            "stonehearth.observers.look_for_enemies"
+         ]
+      }
+   }
+}

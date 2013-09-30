@@ -13,11 +13,11 @@ function CarryTest:__init()
    self:create_world()
    local dude = self:place_citizen(12, 12)
 
-   local saw = self:place_item('stonehearth_items.carpenter_saw', 11, 11)
-   local bolt = self:place_item('stonehearth_items.cloth_bolt', 11, 10)
-   local buckler = self:place_item('stonehearth_items.wooden_buckler', 11, 9)
-   local sword = self:place_item('stonehearth_items.wooden_sword', 11, 8)
-   local log =  self:place_item('stonehearth_trees.oak_log', 11, 7)
+   local saw = self:place_item('stonehearth.carpenter_saw', 11, 11)
+   local bolt = self:place_item('stonehearth.cloth_bolt', 11, 10)
+   local buckler = self:place_item('stonehearth.wooden_buckler', 11, 9)
+   local sword = self:place_item('stonehearth.wooden_sword', 11, 8)
+   local log =  self:place_item('stonehearth.oak_log', 11, 7)
 
    local movable_items = {saw, bolt, buckler, sword, log}
    self:at(1000, function()
@@ -25,9 +25,9 @@ function CarryTest:__init()
          local y = -11
          for i, obj in ipairs(movable_items) do
             local target = Point3(-11 , 1, y)
-            ai:execute('stonehearth.activities.pickup_item', obj)
-            ai:execute('stonehearth.activities.goto_location', Point3(target.x, target.y, target.z+1))
-            ai:execute('stonehearth.activities.drop_carrying', target)
+            ai:execute('stonehearth.pickup_item', obj)
+            ai:execute('stonehearth.goto_location', Point3(target.x, target.y, target.z+1))
+            ai:execute('stonehearth.drop_carrying', target)
             y = y + 1
          end
       end)

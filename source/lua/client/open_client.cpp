@@ -96,6 +96,22 @@ rpc::LuaDeferredPtr Client_SelectXZRegion(lua_State* L)
 }
 
 struct LuaCallback {
+   /*
+    * If someone on the lua side forgot to call ::destroy, go ahead and do it for them
+    * now.  This may be late if we didn't get a full gc in between ticks, but better
+    * later than never, right!
+    */
+   ~LuaCallback() {
+      if (dtor_) {
+         dtor_();
+      }
+   }
+
+   /*
+    * Called from the C++ side to notify the lua holder of the promise that something
+    * has changed.  Lua clients and register for this callback using the progress
+    * method on the promise.  Somethign like: promise::notify(function(...) ... end())
+    */
    bool Notify(luabind::object o) {
       if (cb_.is_valid() && luabind::type(cb_) == LUA_TFUNCTION) {
          luabind::object handled = luabind::call_function<luabind::object>(cb_, o);
@@ -103,32 +119,110 @@ struct LuaCallback {
       }
       return false;
    }
+   
+   /*
+    * Called from the lua side via progress::destroy to notify the C++ side that they
+    * can un-hook the source of Notify callbacks.
+    */
+   void Destroy() {
+      cb_ = object();      // stop firing callbacks...
+      if (dtor_) {
+         dtor_();
+         dtor_ = nullptr;
+      }
+   }
 
+   /*
+    * Called from the C++ side when the lua side invokes the promises' destroy
+    * function.
+    */
+   void OnDestroy(std::function<void()> dtor) {
+      dtor_ = dtor;
+   }
+
+   /*
+    * Called from the lua side to express interest in changes to the source object.
+    * Whenever 'something happens', the supplied callback will get called.
+    */
    void Progress(luabind::object cb) {
       cb_ = cb;
    }
 
-   luabind::object      cb_;
-};
-DECLARE_SHARED_POINTER_TYPES(LuaCallback)
 
-LuaCallbackPtr Client_CaptureInput(lua_State* L)
+   luabind::object         cb_;
+   std::function<void()>   dtor_;
+};
+
+struct CaptureInputPromise : public LuaCallback
+{
+};
+struct TraceRenderFramePromise : public LuaCallback
+{
+};
+struct SetCursorPromise : public LuaCallback
+{
+};
+DECLARE_SHARED_POINTER_TYPES(CaptureInputPromise)
+DECLARE_SHARED_POINTER_TYPES(TraceRenderFramePromise)
+DECLARE_SHARED_POINTER_TYPES(SetCursorPromise)
+
+CaptureInputPromisePtr Client_CaptureInput(lua_State* L)
 {
    Client& c = Client::GetInstance();
 
-   LuaCallbackPtr callback = std::make_shared<LuaCallback>();
-   LuaCallbackRef cb = callback;
+   CaptureInputPromisePtr callback = std::make_shared<CaptureInputPromise>();
+   CaptureInputPromiseRef cb = callback;
 
    Client::InputHandlerId id = c.ReserveInputHandler();
    c.SetInputHandler(id, [cb, &c, id, L](Input const& i) {
-      LuaCallbackPtr callback = cb.lock();
+      CaptureInputPromisePtr callback = cb.lock();
       if (!callback) {
          c.RemoveInputHandler(id);
          return false;
       }
       return callback->Notify(luabind::object(L, i));
    });
+
+   callback->OnDestroy([&c, id]() {
+      c.RemoveInputHandler(id);
+   });
+
    return callback;
+}
+
+TraceRenderFramePromisePtr Client_TraceRenderFrame(lua_State* L)
+{
+   Client& c = Client::GetInstance();
+
+   TraceRenderFramePromisePtr callback = std::make_shared<TraceRenderFramePromise>();
+   TraceRenderFramePromiseRef cb = callback;
+
+   Client::TraceRenderFrameId id = c.ReserveTraceRenderFrameHandler();
+   c.SetTraceRenderFrameHandler(id, [cb, L](float frameTime) {
+      TraceRenderFramePromisePtr callback = cb.lock();
+      if (callback) {
+         callback->Notify(luabind::object(L, frameTime));
+      }
+   });
+
+   callback->OnDestroy([&c, id]() {
+      c.RemoveTraceRenderFrameHandler(id);
+   });
+
+   return callback;
+}
+
+SetCursorPromisePtr Client_SetCursor(lua_State* L, std::string const& name)
+{
+   Client::CursorStackId id = Client::GetInstance().InstallCursor(name);
+   SetCursorPromisePtr promise = std::make_shared<SetCursorPromise>();
+   SetCursorPromiseRef p = promise;
+
+   promise->OnDestroy([id]() {
+      Client::GetInstance().RemoveCursor(id);
+   });
+
+   return promise;
 }
 
 static bool MouseEvent_GetUp(MouseInput const& me, int button)
@@ -172,8 +266,19 @@ void lua::client::open(lua_State* L)
             def("capture_input",                   &Client_CaptureInput),
             def("query_scene",                     &Client_QueryScene),
             def("select_xz_region",                &Client_SelectXZRegion),
-            lua::RegisterTypePtr<LuaCallback>()
-               .def("on_input",           &LuaCallback::Progress)
+            def("trace_render_frame",              &Client_TraceRenderFrame),
+            def("set_cursor",                      &Client_SetCursor),
+
+            lua::RegisterTypePtr<CaptureInputPromise>()
+               .def("on_input",          &CaptureInputPromise::Progress)
+               .def("destroy",           &CaptureInputPromise::Destroy)
+            ,
+            lua::RegisterTypePtr<TraceRenderFramePromise>()
+               .def("on_frame",          &TraceRenderFramePromise::Progress)
+               .def("destroy",           &CaptureInputPromise::Destroy)
+            ,
+            lua::RegisterTypePtr<SetCursorPromise>()
+               .def("destroy",           &CaptureInputPromise::Destroy)
             ,
             lua::RegisterType<Input>()
                .enum_("constants") [
@@ -192,10 +297,13 @@ void lua::client::open(lua_State* L)
                .def_readonly("dx",      &MouseInput::dx)
                .def_readonly("dy",      &MouseInput::dy)
                .def_readonly("wheel",   &MouseInput::wheel)
+               .def_readonly("in_client_area", &MouseInput::in_client_area)
                .def("up",               &MouseEvent_GetUp)
                .def("down",             &MouseEvent_GetDown)
             ,
             lua::RegisterType<KeyboardInput>()
+               .def_readonly("key",    &KeyboardInput::key)
+               .def_readonly("down",   &KeyboardInput::down)
             ,
             lua::RegisterType<RawInput>()
          ]

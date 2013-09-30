@@ -36,6 +36,19 @@ enum ViewMode {
    MaxViewModes
 };
 
+struct RayCastResult
+{
+   csg::Point3f point;
+   csg::Point3f normal;
+   
+   csg::Point3f origin;
+   csg::Point3f direction;
+
+   H3DNode      node;
+   bool         is_valid;
+};
+
+
 class Renderer
 {
    public:
@@ -74,7 +87,9 @@ class Renderer
       typedef std::function<void(om::Selection& sel, const csg::Ray3& ray, const csg::Point3f& intersection, const csg::Point3f& normal)> UpdateSelectionFn;
       dm::Guard TraceSelected(H3DNode node, UpdateSelectionFn fn);
 
-      csg::Ray3 GetCameraToViewportRay(int windowX, int windowY);
+      void GetCameraToViewportRay(int windowX, int windowY, csg::Ray3* ray);
+      void CastRay(const csg::Point3f& origin, const csg::Point3f& direction, RayCastResult* result);
+      void CastScreenCameraRay(int windowX, int windowY, RayCastResult* result);
       void QuerySceneRay(int windowX, int windowY, om::Selection &result);
 
       typedef std::function<void (const Input&)> InputEventCb;
@@ -82,7 +97,6 @@ class Renderer
 
       void SetScreenResizeCb(std::function<void(int, int)> cb) { screen_resize_cb_ = cb; }
 
-      void PlaceCamera(const csg::Point3f &location);
       void UpdateUITexture(const csg::Region2& rgn, const char* buffer);
 
       Camera* GetCamera() { return camera_; }
@@ -97,6 +111,7 @@ class Renderer
 
       int GetCurrentFrameTime() const { return currentFrameTime_; }
       float GetCurrentFrameInterp() const { return currentFrameInterp_; }
+      float GetLastFrameRenderTime() const { return lastFrameTimeInSeconds_; }
 
       void FlushMaterials();
 
@@ -109,6 +124,7 @@ class Renderer
       void OnMouseWheel(double value);
       void OnMouseMove(double x, double y);
       void OnMouseButton(int button, int press);
+      void OnMouseEnter(int entered);
       void OnRawInput(UINT msg, WPARAM wParam, LPARAM lParam);
       void Resize(int width, int height);
       void UpdateCamera();
@@ -144,9 +160,6 @@ class Renderer
       Camera*            camera_;
       FW::FileWatcher   fileWatcher_;
 
-      csg::Point3f   cameraTarget_;
-      csg::Point3f   cameraMoveDirection_;
-
       dm::TraceId       nextTraceId_;
       dm::Guard           traces_;
       TraceMap          renderFrameTraces_;
@@ -159,12 +172,12 @@ class Renderer
       SelectableMap                 selectableCbs_;
       InputEventCb                  input_cb_;
 
-      bool                          rotateCamera_;
       Input                         input_;  // Mouse coordinates in the GL window-space.
       bool                          initialized_;
 
       int                           currentFrameTime_;
       float                         currentFrameInterp_;
+      float                         lastFrameTimeInSeconds_;
       ViewMode                      viewMode_;
       boost::property_tree::basic_ptree<std::string, std::string> config_;
       lua::ScriptHost*              scriptHost_;

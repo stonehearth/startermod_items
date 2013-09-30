@@ -1,0 +1,26 @@
+{
+   "extends": "stonehearth.mixins.tree", 
+   "type": "entity", 
+   "components": {
+      "model_variants": [
+         {
+            "models": [
+               {
+                  "type": "one_of",
+                  "items": [
+                     "file(medium_juniper_tree.qb)"
+                  ]
+               }
+            ]
+         }
+      ], 
+      "unit_info": {
+         "name": "Juniper Tree", 
+         "description": "Strong and tall."
+      }, 
+      "stonehearth:resource_node": {
+         "resource": "stonehearth.juniper_log", 
+         "durability": 9
+      }
+   }
+}

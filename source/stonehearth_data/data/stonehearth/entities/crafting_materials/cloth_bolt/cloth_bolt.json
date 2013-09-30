@@ -1,0 +1,23 @@
+{
+   "extends": "stonehearth.mixins.item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "material": "cloth",
+         "stacks": 10,
+         "category" : "tools_and_goods"
+      },
+      "model_variants": [
+         {
+            "models": [
+               "file(cloth_bolt.qb)"
+            ]
+         }
+      ],
+      "unit_info": {
+         "name": "Bolt of Cloth",
+         "description": "Shimmery.",
+         "icon" : "file(cloth_bolt.png)"
+      }
+   }
+}

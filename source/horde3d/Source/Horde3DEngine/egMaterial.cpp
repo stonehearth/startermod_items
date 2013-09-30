@@ -98,7 +98,11 @@ bool MaterialResource::load( const char *data, int size )
 		return raiseError( "Not a material resource file" );
 
 	// Class
-    _class = rootNode.getAttribute( "class", "" );
+   _class = rootNode.getAttribute( "class", "" );
+   
+   // For the sake of efficiency (since we don't want to do substrings in the middle of
+   // rendering a model), compute the '~class' string just once, here.
+   _notClass = std::string("~") + _class;
 
 	// Link
 	if( strcmp( rootNode.getAttribute( "link", "" ), "" ) != 0 )
@@ -215,7 +219,7 @@ bool MaterialResource::setUniform( const std::string &name, float a, float b, fl
 bool MaterialResource::isOfClass( const std::string &theClass )
 {
 	static std::string theClass2;
-	
+
 	if( theClass != "" )
 	{
 		if( theClass[0]	!= '~' )
@@ -225,17 +229,15 @@ bool MaterialResource::isOfClass( const std::string &theClass )
 		}
 		else	// Not operator
 		{
-			theClass2 = theClass.substr( 1, theClass.length() - 1);
-			
-			if( _class.find( theClass2, 0 ) == 0 )
+			if( _notClass.find( theClass, 0 ) == 0 )
 			{
-				if( _class.length() == theClass2.length() )
+				if( _notClass.length() == theClass2.length() )
 				{
 					return false;
 				}
 				else
 				{
-					if( _class[theClass2.length()] == '.' ) return false;
+					if( _notClass[theClass.length()] == '.' ) return false;
 				}
 			}
 		}

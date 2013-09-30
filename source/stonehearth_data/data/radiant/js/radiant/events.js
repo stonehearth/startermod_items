@@ -17,6 +17,9 @@ console.log('loading events...');
                   $(top).trigger(o.type, o.data);
                });
             })
+            .error(function(e) {
+               radiant.report_error('error returned from radiant.get_events', e)
+            })
             .fail(function (jqxhr, statusTxt, errorThrown) {
                console.log("poll error: (status:" + statusTxt + " error:" + errorThrown + ")");
             })

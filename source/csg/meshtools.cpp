@@ -19,6 +19,7 @@ mesh_tools::mesh_tools(tesselator_map const& tessmap) :
 
 void mesh_tools::optimize_region(const csg::Region3& region, meshmap& m)
 {   
+   // xxx: this is in no way thread safe! (see SH-8)
    static const plane_data plane_data[] = { 
       { 0, 2, 1 },
       { 1, 0, 2 },

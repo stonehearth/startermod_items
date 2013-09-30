@@ -5,7 +5,7 @@ function StockpileTest:__init()
    self[MicroWorld]:__init()
    self:create_world()
 
-   self:place_item_cluster('stonehearth_trees.oak_log', 5, 5, 4, 4);
+   self:place_item_cluster('stonehearth.oak_log', 5, 5, 4, 4);
    --self:place_citizen(15, 15)
    local worker = self:place_citizen(13, 13)
    local faction = worker:get_component('unit_info'):get_faction()   

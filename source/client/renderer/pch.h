@@ -13,6 +13,7 @@
 #include "radiant_luabind.h"
 #include "Horde3D.h"
 #include "Horde3DUtils.h"
+#include "Horde3DRadiant.h"
 #include "render_entity.h"
 
 #include "om/all_objects.h"

@@ -4,6 +4,7 @@
 #include "render_terrain.h"
 #include "om/components/terrain.h"
 #include "csg/meshtools.h"
+#include "Horde3D.h"
 #include <unordered_map>
 
 using namespace ::radiant;
@@ -18,8 +19,8 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
    entity_(entity),
    terrain_(terrain)
 {  
-   terrain_root_node_ = h3dAddGroupNode(entity_.GetNode(), "terrain root node");
-   tracer_ += Renderer::GetInstance().TraceSelected(terrain_root_node_, [this](om::Selection& sel, const csg::Ray3& ray, const csg::Point3f& intersection, const csg::Point3f& normal) {
+   terrain_root_node_ = H3DNodeUnique(h3dAddGroupNode(entity_.GetNode(), "terrain root node"));
+   tracer_ += Renderer::GetInstance().TraceSelected(terrain_root_node_.get(), [this](om::Selection& sel, const csg::Ray3& ray, const csg::Point3f& intersection, const csg::Point3f& normal) {
       OnSelected(sel, ray, intersection, normal);
    });
    tracer_ += Renderer::GetInstance().TraceFrameStart([=]() {
@@ -27,8 +28,8 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
    });
 
    if (tess_map.empty()) {
-      foothillGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(8, FoothillsDetailBase));
-      //foothillGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(8, FoothillsDetailBase+1));
+      foothillGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(4, FoothillsDetailBase));
+      foothillGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(6, FoothillsDetailBase+1));
       foothillGrassRingInfo_.inner = (TerrainDetailTypes)(FoothillsDetailBase + 2);
 
       plainsGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(4,  GrassDetailBase));
@@ -67,6 +68,8 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
       csg::Point3f topsoil_detail = parse_color(config.get<std::string>("topsoil.detail_color", "#ff00ff"));
       csg::Point3f plains_color = parse_color(config.get<std::string>("plains.color", "#ff00ff"));
       csg::Point3f dark_wood_color = parse_color(config.get<std::string>("wood.dark_color", "#ff00ff"));
+
+      // xxx: this is in no way thread safe! (see SH-8)
       static csg::Point3f detail_bands[] = {
          parse_color(config.get<std::string>("foothills.band_0_color", "#ff00ff")),
          parse_color(config.get<std::string>("foothills.band_1_color", "#ff00ff")),
@@ -130,37 +133,37 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
    }
    ASSERT(terrain);
 
-   auto on_add_tile = [this](csg::Point3 location, om::BoxedRegion3Ptr const& region) {
-      RenderTilePtr render_tile;
+   auto on_add_zone = [this](csg::Point3 location, om::BoxedRegion3Ptr const& region) {
+      RenderZonePtr render_zone;
       if (region) {
-         auto i = tiles_.find(location);
-         if (i != tiles_.end()) {
-            render_tile = i->second;
+         auto i = zones_.find(location);
+         if (i != zones_.end()) {
+            render_zone = i->second;
          } else {
-            render_tile = std::make_shared<RenderTile>();
-            render_tile->location = location;
-            render_tile->region = region;
-            tiles_[location] = render_tile;
+            render_zone = std::make_shared<RenderZone>();
+            render_zone->location = location;
+            render_zone->region = region;
+            zones_[location] = render_zone;
          }
-         RenderTileRef rt = render_tile;
-         render_tile->guard = region->TraceObjectChanges("rendering terrain tile", [this, rt]() {
-            dirty_tiles_.push_back(rt);
+         RenderZoneRef rt = render_zone;
+         render_zone->guard = region->TraceObjectChanges("rendering terrain zone", [this, rt]() {
+            dirty_zones_.push_back(rt);
          });
-         dirty_tiles_.push_back(rt);
+         dirty_zones_.push_back(rt);
       } else {
-         tiles_.erase(location);
+         zones_.erase(location);
       }
    };
 
-   auto on_remove_tile = [this](csg::Point3 const& location) {
-      tiles_.erase(location);
+   auto on_remove_zone = [this](csg::Point3 const& location) {
+      zones_.erase(location);
    };
 
-   auto const& tile_map = terrain->GetTileMap();
+   auto const& zone_map = terrain->GetZoneMap();
    
-   tracer_ += tile_map.TraceMapChanges("terrain renderer", on_add_tile, on_remove_tile);
-   for (const auto& entry : tile_map) {
-      on_add_tile(entry.first, entry.second);
+   tracer_ += zone_map.TraceMapChanges("terrain renderer", on_add_zone, on_remove_zone);
+   for (const auto& entry : zone_map) {
+      on_add_zone(entry.first, entry.second);
    }
 }
 
@@ -188,15 +191,14 @@ void RenderTerrain::OnSelected(om::Selection& sel, const csg::Ray3& ray,
    sel.AddBlock(brick);
 }
 
-void RenderTerrain::UpdateRenderRegion(RenderTilePtr render_tile)
+void RenderTerrain::UpdateRenderRegion(RenderZonePtr render_zone)
 {
-   om::BoxedRegion3Ptr region_ptr = render_tile->region.lock();
+   om::BoxedRegion3Ptr region_ptr = render_zone->region.lock();
 
-   render_tile->node = 0;
-   render_tile->meshes.clear();
+   render_zone->Reset();
 
    if (region_ptr) {
-      ASSERT(render_tile);
+      ASSERT(render_zone);
       csg::Region3 const& region = region_ptr->Get();
       csg::Region3 tesselatedRegion;
 
@@ -205,26 +207,26 @@ void RenderTerrain::UpdateRenderRegion(RenderTilePtr render_tile)
       csg::mesh_tools::meshmap meshmap;
       csg::mesh_tools(tess_map).optimize_region(tesselatedRegion, meshmap);
    
-      render_tile->node = h3dAddGroupNode(terrain_root_node_, "grid");
-      h3dSetNodeTransform(render_tile->node, render_tile->location.x - 0.5f, (float)render_tile->location.y, render_tile->location.z - 0.5f, 0, 0, 0, 1, 1, 1);
+      render_zone->node = H3DNodeUnique(h3dAddGroupNode(terrain_root_node_.get(), "grid"));
+      h3dSetNodeTransform(render_zone->node.get(), render_zone->location.x - 0.5f, (float)render_zone->location.y, render_zone->location.z - 0.5f, 0, 0, 0, 1, 1, 1);
 
-      render_tile->meshes.clear();
+      render_zone->meshes.clear();
       for (auto const& entry : meshmap) {
-         H3DNode node = Pipeline::GetInstance().AddMeshNode(render_tile->node, entry.second);
-         render_tile->meshes.push_back(node);
+         H3DNodeUnique node = Pipeline::GetInstance().AddMeshNode(render_zone->node.get(), entry.second);
+         render_zone->meshes.emplace_back(node);
       }
    }
 }
 
 void RenderTerrain::TesselateTerrain(csg::Region3 const& terrain, csg::Region3& tess)
 {
-   csg::Region3 grass, plains, dirtroad;
+   csg::Region3 foothills, plains, dirtroad;
 
    LOG(WARNING) << "Tesselating Terrain...";
    for (csg::Cube3 const& cube : terrain) {
       switch (cube.GetTag()) {
-      case om::Terrain::Grass:
-         grass.AddUnique(cube);
+      case om::Terrain::Foothills:
+         foothills.AddUnique(cube);
          break;
       case om::Terrain::DirtPath:
          dirtroad.AddUnique(cube);
@@ -237,7 +239,7 @@ void RenderTerrain::TesselateTerrain(csg::Region3 const& terrain, csg::Region3& 
       }
    }
 
-   AddGrassToTesselation(grass,  terrain, tess, foothillGrassRingInfo_);
+   AddGrassToTesselation(foothills,  terrain, tess, foothillGrassRingInfo_);
    AddGrassToTesselation(plains, terrain, tess, plainsGrassRingInfo_);
    AddGrassToTesselation(dirtroad, csg::Region3(), tess, dirtRoadRingInfo_);
    LOG(WARNING) << "Done Tesselating Terrain!";
@@ -285,12 +287,12 @@ void RenderTerrain::AddGrassLayerToTesselation(csg::Region2 const& grass, int he
 
 void RenderTerrain::Update()
 {
-   for (RenderTileRef t : dirty_tiles_) {
-      RenderTilePtr tile = t.lock();
-      if (tile) {
-         UpdateRenderRegion(tile);
+   for (RenderZoneRef t : dirty_zones_) {
+      RenderZonePtr zone = t.lock();
+      if (zone) {
+         UpdateRenderRegion(zone);
       }
    }
-   dirty_tiles_.clear();
+   dirty_zones_.clear();
 }
 

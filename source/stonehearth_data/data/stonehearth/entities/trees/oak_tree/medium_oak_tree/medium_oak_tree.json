@@ -1,0 +1,28 @@
+{
+   "extends": "stonehearth.mixins.tree", 
+   "type": "entity", 
+   "components": {
+      "model_variants": [
+         {
+            "models": [
+               {
+                  "type": "one_of",
+                  "items": [
+                     "file(medium_oak_tree.qb)", 
+                     "file(medium_oak_tree_2.qb)", 
+                     "file(medium_oak_tree_3.qb)"
+                  ]
+               }
+            ]
+         }
+      ], 
+      "unit_info": {
+         "name": "Medium Oak Tree", 
+         "description": "Sturdy, in the prime of life."
+      }, 
+      "stonehearth:resource_node": {
+         "resource": "stonehearth.oak_log", 
+         "durability": 12
+      }
+   }
+}

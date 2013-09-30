@@ -1,0 +1,55 @@
+{
+   "faction_name" : "Ascendancy",
+   "male_entities" : [
+      "stonehearth.male_1"
+   ],
+   "female_entities" : [
+      "stonehearth.female_1"
+   ],
+   "surnames" : [
+      "Burlyhands",
+      "Farstrider",
+      "Gwarin",
+      "Boltoose",
+      "Freywind",
+      "Carvad",
+      "Edessa",
+      "Nonac",
+      "Keloch",
+      "Brightwell",
+      "Northpoint",
+      "Berall",
+      "Carlwine",
+      "Framer",
+      "Hunterton",
+      "Winset",
+      "Jondal"
+   ],
+   "given_names" : {
+      "male" : [
+         "Mer",
+         "Campton",
+         "Brom",
+         "Illowyn",
+         "Sean",
+         "Gareth",
+         "Nol",
+         "Pantor",
+         "Daff",
+         "Willad",
+         "Irving"
+      ],
+      "female" : [
+         "Dara",
+         "Alaina",
+         "Abi",
+         "Scarlett",
+         "Elena",
+         "Leah",
+         "Autumn",
+         "Senn",
+         "Raven",
+         "Vio"
+      ]
+   }
+}

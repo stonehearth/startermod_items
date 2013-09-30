@@ -77,5 +77,8 @@ scope LuaPoint::RegisterLuaTypes(lua_State* L)
          .def("is_adjacent_to",     &Point3f_IsAdjacentTo)
          .def("scale",              &csg::Point3f::Scale)
          .def("normalize",          &csg::Point3f::Normalize)
+         .def("dot",                &csg::Point3f::Dot),
+      
+      def("lerp",             &csg::Interpolate)
       ;
 }

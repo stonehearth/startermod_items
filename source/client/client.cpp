@@ -35,6 +35,7 @@
 #include "lib/rpc/trace_object_router.h"
 #include "lib/rpc/http_deferred.h" // xxx: does not belong in rpc!
 #include "lua/client/open.h"
+#include "lua/res/open.h"
 #include "lua/rpc/open.h"
 #include "lua/om/open.h"
 #include "client/renderer/render_entity.h"
@@ -52,6 +53,8 @@ namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 namespace proto = ::radiant::tesseract::protocol;
 
+static const std::regex call_path_regex__("/r/call/?");
+
 DEFINE_SINGLETON(Client);
 
 Client::Client() :
@@ -65,10 +68,10 @@ Client::Client() :
    authoringStore_(3, "tmp"),
    nextTraceId_(1),
    uiCursor_(NULL),
-   luaCursor_(NULL),
    currentCursor_(NULL),
    last_server_request_id_(0),
    next_input_id_(1),
+   next_trace_frame_id_(1),
    mouse_x_(0),
    mouse_y_(0)
 {
@@ -128,7 +131,8 @@ void Client::GetConfigOptions(po::options_description& options)
 extern bool realtime;
 void Client::run()
 {
-   LoadCursors();
+   hover_cursor_ = LoadCursor("stonehearth.cursors.hover");
+   default_cursor_ = LoadCursor("stonehearth.cursors.default");
 
    octtree_ = std::unique_ptr<Physics::OctTree>(new Physics::OctTree());
       
@@ -149,10 +153,11 @@ void Client::run()
 
    namespace po = boost::program_options;
    extern po::variables_map configvm;
-   std::string loader = configvm["game.loader"].as<std::string>().c_str();
+   std::string loader = configvm["game.mod"].as<std::string>().c_str();
    json::ConstJsonObject manifest(res::ResourceManager2::GetInstance().LookupManifest(loader));
    std::string docroot = "http://radiant/" + manifest.getn("loader").getn("ui").get<std::string>("homepage");
 
+   // seriously???
    if (configvm["game.script"].as<std::string>() != "stonehearth/new_world.lua") {
       docroot += "?skip_title=true";
    }
@@ -198,6 +203,7 @@ void Client::run()
    lua::om::register_json_to_lua_objects(L, store_);
    lua::om::register_json_to_lua_objects(L, authoringStore_);
    lua::client::open(L);
+   lua::res::open(L);
    lua::rpc::open(L, core_reactor_);
 
 
@@ -309,7 +315,7 @@ void Client::mainloop()
       browser_->UpdateDisplay(cb);
    }
 
-   InstallCursor();
+   InstallCurrentCursor();
    HilightMouseover();
 
    // Fire the authoring traces *after* pumping the chrome message loop, since
@@ -317,6 +323,7 @@ void Client::mainloop()
    // or calls from the browser.
    authoringStore_.FireTraces();
 
+   CallTraceRenderFrameHandlers( Renderer::GetInstance().GetLastFrameRenderTime() );
    Renderer::GetInstance().RenderOneFrame(now_, alpha);
    if (send_queue_) {
       protocol::SendQueue::Flush(send_queue_);
@@ -532,8 +539,6 @@ void Client::OnMouseInput(Input const& input)
       if (rootObject_ && input.mouse.up[0]) {
          LOG(WARNING) << "updating selection...";
          UpdateSelection(input.mouse);
-      } else if (input.mouse.up[2]) {
-         CenterMap(input.mouse);
       }
    }
 }
@@ -581,6 +586,8 @@ void Client::RemoveInputHandler(InputHandlerId id)
       if (i->first == id) {
          input_handlers_.erase(i);
          break;
+      } else {
+         i++;
       }
    }
 };
@@ -597,13 +604,38 @@ bool Client::CallInputHandlers(Input const& input)
    return false;
 }
 
-void Client::CenterMap(const MouseInput &mouse)
-{
-   om::Selection s;
 
-   Renderer::GetInstance().QuerySceneRay(mouse.x, mouse.y, s);
-   if (s.HasBlock()) {
-      Renderer::GetInstance().PlaceCamera(csg::ToFloat(s.GetBlock()));
+Client::TraceRenderFrameId Client::AddTraceRenderFrameHandler(TraceRenderFrameHandlerCb const& cb)
+{
+   TraceRenderFrameId id = ReserveTraceRenderFrameHandler();
+   SetTraceRenderFrameHandler(id, cb);
+   return id;
+}
+
+void Client::SetTraceRenderFrameHandler(TraceRenderFrameId id, TraceRenderFrameHandlerCb const& cb)
+{
+   trace_frame_handlers_.emplace_back(std::make_pair(id, cb));
+}
+
+Client::TraceRenderFrameId Client::ReserveTraceRenderFrameHandler() {
+   return next_trace_frame_id_++;
+}
+
+void Client::RemoveTraceRenderFrameHandler(TraceRenderFrameId id)
+{
+   auto i = trace_frame_handlers_.begin();
+   while (i != trace_frame_handlers_.end()) {
+      if (i->first == id) {
+         trace_frame_handlers_.erase(i);
+         break;
+      }
+   }
+};
+
+void Client::CallTraceRenderFrameHandlers(float frameTime)
+{
+   for (const auto& entry : trace_frame_handlers_) {
+      entry.second(frameTime);
    }
 }
 
@@ -612,7 +644,8 @@ void Client::UpdateSelection(const MouseInput &mouse)
    om::Selection s;
    Renderer::GetInstance().QuerySceneRay(mouse.x, mouse.y, s);
 
-   csg::Ray3 r = Renderer::GetInstance().GetCameraToViewportRay(mouse.x, mouse.y);
+   csg::Ray3 r;
+   Renderer::GetInstance().GetCameraToViewportRay(mouse.x, mouse.y, &r);
    om::EntityPtr stockpile = NULL;
 
    float minDistance = FLT_MAX;
@@ -704,23 +737,19 @@ om::EntityPtr Client::GetEntity(dm::ObjectId id)
    return (obj && obj->GetObjectType() == om::Entity::DmType) ? std::static_pointer_cast<om::Entity>(obj) : nullptr;
 }
 
-void Client::InstallCursor()
+void Client::InstallCurrentCursor()
 {
    if (browser_) {
       HCURSOR cursor;
       if (browser_->HasMouseFocus(mouse_x_, mouse_y_)) {
          cursor = uiCursor_;
       } else {
-         cursor = NULL;
-         /* which cursor do we want? to be written */
-         if (!cursor && luaCursor_) {
-            cursor = luaCursor_;
-         }
-         if (!cursor && !hilightedObjects_.empty()) {
-            cursor = cursors_["hover"].get();
-         }
-         if (!cursor) {
-            cursor = cursors_["default"].get();
+         if (!cursor_stack_.empty()) {
+            cursor = cursor_stack_.back().second.get();
+         } else if (!hilightedObjects_.empty()) {
+            cursor = hover_cursor_.get();
+         } else {
+            cursor = default_cursor_.get();
          }
       }
       if (cursor != currentCursor_) {
@@ -764,28 +793,38 @@ void Client::HilightMouseover()
    }
 }
 
-void Client::LoadCursors()
+Client::Cursor Client::LoadCursor(std::string const& path)
 {
-   fs::recursive_directory_iterator i("cursors"), end;
-   while (i != end) {
-      fs::path path(*i++);
-      if (fs::is_regular_file(path) && path.extension() == ".cur") {
-         HCURSOR cursor = (HCURSOR)LoadImage(GetModuleHandle(NULL), path.c_str(), IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
-         if (cursor) {
-            std::string name = fs::basename(path);
-            cursors_[name].reset(cursor);
-         }
+   Cursor cursor;
+
+   std::string filename = res::ResourceManager2::GetInstance().GetResourceFileName(path, ".cur");
+   auto i = cursors_.find(filename);
+   if (i != cursors_.end()) {
+      cursor = i->second;
+   } else {
+      HCURSOR hcursor = (HCURSOR)LoadImageA(GetModuleHandle(NULL), filename.c_str(), IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
+      if (hcursor) {
+         cursors_[filename] = cursor = Cursor(hcursor);
       }
    }
+   return cursor;
 }
 
-void Client::SetCursor(std::string name)
+Client::CursorStackId Client::InstallCursor(std::string name)
 {
-   auto i = cursors_.find(name);
-   if (i != cursors_.end()) {
-      currentCursor_ = i->second.get();
-   } else {
-      currentCursor_ = NULL;
+   CursorStackId id = next_cursor_stack_id_++;
+   cursor_stack_.emplace_back(std::make_pair(id, LoadCursor(name)));
+   return id;
+}
+
+
+void Client::RemoveCursor(CursorStackId id)
+{
+   for (auto i = cursor_stack_.begin(); i != cursor_stack_.end(); i++) {
+      if (i->first == id) {
+         cursor_stack_.erase(i);
+         return;
+      }
    }
 }
 
@@ -840,9 +879,8 @@ void Client::CallHttpReactor(std::string path, json::ConstJsonObject query, std:
    int status = 404;
    rpc::ReactorDeferredPtr d;
 
-   static std::regex call_path("/r/call/?");
    std::smatch match;
-   if (std::regex_match(path, match, call_path)) {
+   if (std::regex_match(path, match, call_path_regex__)) {
       d = http_reactor_->Call(query, postdata);
    }
    if (!d) {

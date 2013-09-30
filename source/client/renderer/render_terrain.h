@@ -3,9 +3,9 @@
 
 #include <map>
 #include "namespace.h"
-#include "radiant_macros.h"
+#include "forward_defines.h"
 #include "render_component.h"
-#include "types.h"
+#include "h3d_resource_types.h"
 #include "om/om.h"
 #include "dm/dm.h"
 #include "csg/util.h"
@@ -47,20 +47,24 @@ private:
    };
 
 private:
-   struct RenderTile {
-      csg::Point3             location;
-      om::BoxedRegion3Ref     region;
-      RenderNode              node;
-      dm::Guard               guard;
-      std::vector<RenderNode> meshes;
+   struct RenderZone {
+      csg::Point3                location;
+      om::BoxedRegion3Ref        region;
+      H3DNodeUnique              node;
+      dm::Guard                  guard;
+      std::vector<H3DNodeUnique> meshes;
 
-      RenderTile() { }
+      RenderZone() { }
+      void Reset() {
+         node.reset(0);
+         meshes.clear();
+      }
    };
-   DECLARE_SHARED_POINTER_TYPES(RenderTile)
+   DECLARE_SHARED_POINTER_TYPES(RenderZone)
 
 private:
    void Update();
-   void UpdateRenderRegion(RenderTilePtr render_tile);
+   void UpdateRenderRegion(RenderZonePtr render_zone);
    void TesselateTerrain(csg::Region3 const& terrain, csg::Region3& tess);
    void OnSelected(om::Selection& sel, const csg::Ray3& ray,
                    const csg::Point3f& intersection, const csg::Point3f& normal);
@@ -76,9 +80,9 @@ private:
    const RenderEntity&  entity_;
    dm::Guard            tracer_;
    om::TerrainRef       terrain_;
-   RenderNode           terrain_root_node_;
-   std::map<csg::Point3, std::shared_ptr<RenderTile>>   tiles_;
-   std::vector<RenderTileRef> dirty_tiles_;
+   H3DNodeUnique        terrain_root_node_;
+   std::map<csg::Point3, std::shared_ptr<RenderZone>>   zones_;
+   std::vector<RenderZoneRef> dirty_zones_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

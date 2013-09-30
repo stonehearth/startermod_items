@@ -26,7 +26,7 @@ public:
 
    void OpenResource(std::string const& path, std::ifstream& in) const;
    std::string GetResourceFileName(std::string const& path, const char* serach_ext) const;  // xxx: used only for lua... it's bad!
-   std::string ConvertToCanonicalPath(std::string const& path, const char* search_ext) const;
+   std::string ConvertToCanonicalPath(std::string path, const char* search_ext) const;
 
    std::string GetEntityUri(std::string const& mod_name, std::string const& entity_name) const;
 

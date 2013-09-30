@@ -288,8 +288,8 @@ protected:
 
 	void onPostUpdate();
    void updateAndSpawnCubes(int numToSpawn);
-   void spawnCube(CubeData &d, CubeAttribute &ca);
-   void updateCube(CubeData &d, CubeAttribute &ca);
+   void spawnCube(CubeData& d, CubeAttribute& ca);
+   void updateCube(CubeData& d, CubeAttribute& ca, Vec3f& bBMin, Vec3f& bBMax);
 
 protected:
 
@@ -304,19 +304,9 @@ protected:
    CubeAttribute            *_attributesBuff;
    bool                     _active;
 
-
-
-
-
 	// Emitter data
 	float                    _timeDelta;
-	float                    _emissionAccum;
-	Matrix4f                 _prevAbsTrans;
 	
-	// Emitter params
-	uint32                   _particleCount;
-	Vec3f                    _force;
-
 	// Particle data
 	CubeData                 *_cubes;
 

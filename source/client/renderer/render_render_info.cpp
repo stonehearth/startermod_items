@@ -178,8 +178,8 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
 
    auto& pipeline = Pipeline::GetInstance();
    H3DNode parent = entity_.GetSkeleton().GetSceneNode(bone);
-   H3DNode node = pipeline.AddQubicleNode(parent, *matrix, origin);
-   h3dSetNodeTransform(node, 0, 0, 0, 0, 0, 0, scale, scale, scale);
+   H3DNodeUnique node = pipeline.AddQubicleNode(parent, *matrix, origin);
+   h3dSetNodeTransform(node.get(), 0, 0, 0, 0, 0, 0, scale, scale, scale);
    nodes_[bone] = NodeMapEntry(matrix, node);
 }
 

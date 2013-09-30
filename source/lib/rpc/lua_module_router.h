@@ -3,6 +3,7 @@
 
 #include "namespace.h"
 #include "lua_router.h"
+#include "resources/forward_defines.h"
 
 BEGIN_RADIANT_RPC_NAMESPACE
 
@@ -14,7 +15,7 @@ public:     // IRouter
    ReactorDeferredPtr Call(Function const& fn) override;
 
 private:
-   ReactorDeferredPtr CallModuleFunction(Function const& fn, std::string const& script);
+   void CallModuleFunction(ReactorDeferredPtr d, Function const& fn, std::string const& script, std::string const& function_name);
 
 private:
    lua_State*        L_;

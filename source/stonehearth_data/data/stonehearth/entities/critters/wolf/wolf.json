@@ -1,34 +1,36 @@
 {
-   "type" : "entity",
-   "extends" : "stonehearth.mixins.mob",   
+   "type": "entity",
+   "extends": "stonehearth.mixins.mob",
    "components": {
-      "unit_info" : {
-        "name": "A wolf",
-        "description": "Om nom nom",
-        "faction": "critter"
+      "unit_info": {
+         "name": "A wolf",
+         "description": "Om nom nom",
+         "faction": "critter"
       },
-      "stonehearth:leash" : {
-        "leash_radius" : 6
+      "attributes": {
+         "ferocity": 10,
+         "health": 50
       },
-      "radiant:ai" : {
-         "actions" : [
-            "file(/ai/actions/wander_action.lua)",
-            "file(/ai/actions/chase_action.lua)"
+      "stonehearth:leash": {
+         "leash_radius": 6
+      },
+      "stonehearth:ai": {
+         "actions": [
+            
          ]
       },
-      "sensor_list" : {
-        "sensors" : {
-          "sight" : {
-            "type": "sensor",
-            "radius":   14
-          }
-        }
-      },      
-      "render_info" : {
-         "animation_table": "file(rig/wolf_rig.json)",
-         "scale" : 0.15
+      "sensor_list": {
+         "sensors": {
+            "sight": {
+               "type": "sensor",
+               "radius": 12
+            }
+         }
       },
-
+      "render_info": {
+         "animation_table": "file(rig/wolf_rig.json)",
+         "scale": 0.15
+      },
       "model_variants": [
          {
             "models": [

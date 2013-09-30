@@ -12,6 +12,10 @@ var radiant = {
       },
    },
 
+   report_error: function(msg, obj) {
+      console.error(msg, obj);
+   },
+
    assert: function(condition, message) {
       if (!condition) {
          throw message || "assertion failed."

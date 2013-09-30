@@ -1,0 +1,62 @@
+#unitFrame {
+   border-width: 10px 10px 20px 10px;
+   width: 800px;
+   height: 177px;
+   position: absolute;
+   bottom: 16px;
+   left: 10px;
+
+   #info {
+      .controlFont;
+      position: absolute;
+      left: 0px;
+      bottom: 0px;
+      height: 45px;
+      padding: 10px;
+      font-size: 32px;
+      line-height: 30px;
+
+         .description {
+         .smallFont;
+         color: @controlLightFontColor;
+      }
+   }
+
+   #commandButtons {
+      position: absolute;
+      bottom: 55px;
+      left: 8px;
+      width: 325px;
+      height: 70px;
+      //background: url('./images/command_button_well.png');
+
+      .commandButton {
+         position: relative;
+         display: inline-block;
+         width: 63px;
+         height: 65px;
+         background: url('./images/command_button_bg.png');
+         border: 0px;
+
+         .active {
+            background: red !important;
+         }
+
+         #hotkey {
+            .hotkey;
+            position: absolute;
+            bottom: 4px;
+            right: 6px;
+         }
+      }
+
+      .buttonEnabled {
+         opacity: 1;
+      }
+
+      .buttonDisabled {
+         opacity: 0.6;
+      }
+
+   }
+}

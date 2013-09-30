@@ -1,0 +1,12 @@
+{
+   "type": "entity",
+   "components" : {
+      "unit_info" : {
+         "name" : "Outbox",
+         "description" : "The crafter's storefront; an exercise in communism."
+      },
+      "stonehearth:stockpile" : {
+         "size" : [ 4, 4 ]
+      }
+   }
+}

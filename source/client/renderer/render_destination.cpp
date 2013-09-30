@@ -6,22 +6,23 @@
 using namespace ::radiant;
 using namespace ::radiant::client;
 
-RenderDestination::RenderDestination(const RenderEntity& entity, om::DestinationPtr stockpile) :
+RenderDestination::RenderDestination(const RenderEntity& entity, om::DestinationPtr destination) :
    entity_(entity)
 {
-   node_ = h3dAddGroupNode(entity_.GetNode(), "destination region");
-   std::string nodeName = h3dGetNodeParamStr(node_, H3DNodeParams::NameStr);
+   node_ = H3DNodeUnique(h3dAddGroupNode(entity_.GetNode(), "destination region"));
+   std::string nodeName = h3dGetNodeParamStr(node_.get(), H3DNodeParams::NameStr);
 
-   auto create_debug_tracker = [=](std::string regionName, H3DNode& shape, om::BoxedRegion3Ptr region, csg::Color4 const& color) {
-      shape = h3dRadiantAddDebugShapes(node_, (nodeName + regionName, std::string(" destination debug shape")).c_str());
-      auto update = std::bind(&RenderDestination::UpdateShape, this, om::BoxedRegion3Ref(region), shape, color);
+   auto create_debug_tracker = [=](std::string regionName, H3DNodeUnique& shape, om::BoxedRegion3Ptr region, csg::Color4 const& color) {
+      H3DNode s = h3dRadiantAddDebugShapes(node_.get(), (nodeName + regionName, std::string(" destination debug shape")).c_str());
+      shape = H3DNodeUnique(s);
+      auto update = std::bind(&RenderDestination::UpdateShape, this, om::BoxedRegion3Ref(region), shape.get(), color);
       guards_ += region->TraceObjectChanges("rendering destination debug region", update);
       update(**region);
    };
 
-   create_debug_tracker("region", regionDebugShape_, stockpile->GetRegion(), csg::Color4(0, 128, 255, 128));
-   create_debug_tracker("reserved", reservedDebugShape_, stockpile->GetReserved(), csg::Color4(255, 128, 0, 128));
-   create_debug_tracker("adjacent", adjacentDebugShape_, stockpile->GetAdjacent(), csg::Color4(255, 255, 255, 128));
+   create_debug_tracker("region", regionDebugShape_, destination->GetRegion(), csg::Color4(0, 128, 255, 128));
+   create_debug_tracker("reserved", reservedDebugShape_, destination->GetReserved(), csg::Color4(255, 128, 0, 128));
+   create_debug_tracker("adjacent", adjacentDebugShape_, destination->GetAdjacent(), csg::Color4(255, 255, 255, 128));
 }
 
 RenderDestination::~RenderDestination()

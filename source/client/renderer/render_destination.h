@@ -4,7 +4,7 @@
 #include <map>
 #include "om/om.h"
 #include "dm/dm.h"
-#include "types.h"
+#include "csg/color.h"
 #include "render_component.h"
 #include "horde3d/extensions/stockpile/stockpile_node.h"
 
@@ -22,10 +22,10 @@ class RenderDestination : public RenderComponent {
 
    private:
       const RenderEntity&        entity_;
-      H3DNode                    regionDebugShape_;
-      H3DNode                    reservedDebugShape_;
-      H3DNode                    adjacentDebugShape_;
-      H3DNode                    node_;
+      H3DNodeUnique              regionDebugShape_;
+      H3DNodeUnique              reservedDebugShape_;
+      H3DNodeUnique              adjacentDebugShape_;
+      H3DNodeUnique              node_;
       dm::Guard                  guards_;
 
 };

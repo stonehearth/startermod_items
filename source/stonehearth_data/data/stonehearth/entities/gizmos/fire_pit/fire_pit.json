@@ -1,0 +1,27 @@
+{
+   "extends": "stonehearth.mixins.placed_properties",
+   "type": "entity",
+   "components": {
+      "unit_info": {
+         "name": "Fire Pit",
+         "description": "Provides warmth and light",
+         "icon" : "file(/entities/generic/default_object/default_object.png)"
+      },
+      "model_variants": [
+         {
+            "models": [
+               "file(fire_pit.qb)"
+            ]
+         }
+      ],
+      "stonehearth:firepit" : {
+         "effective_radius" : 5
+      },
+      "destination": {
+         "region": [
+            [ [-3, 0, -3], [4, 1, 4] ]
+         ]
+      }
+
+   }
+}

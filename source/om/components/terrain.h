@@ -19,31 +19,32 @@ public:
    DEFINE_OM_OBJECT_TYPE(Terrain, terrain);
 
    enum TerrainTypes {
-      Null        = 0,
-      Magma       = 1,
-      Bedrock     = 2,
-      Topsoil     = 3,
-      Grass       = 4, // On top of Topsoil...
-      Plains        = 5, // the dark green, flat floors
+      Null          = 0,
+      Magma         = 1,
+      Bedrock       = 2,
+      Topsoil       = 3,
+      Foothills     = 4,
+      Plains        = 5,
       TopsoilDetail = 6,
       DarkWood      = 7, 
       DirtPath      = 8, 
    };
 
-   typedef dm::Map<csg::Point3, BoxedRegion3Ptr, csg::Point3::Hash> TileMap;
+   typedef dm::Map<csg::Point3, BoxedRegion3Ptr, csg::Point3::Hash> ZoneMap;
 
-   void AddRegion(csg::Point3 const& location, BoxedRegion3Ptr r);
-   void PlaceEntity(EntityRef e, const csg::Point3& pt);
+   int GetZoneSize();
+   void SetZoneSize(int zone_size);
+   void AddZone(csg::Point3 const& zone_offset, BoxedRegion3Ptr region3);
+   void PlaceEntity(EntityRef e, const csg::Point3& location);
    void CreateNew();
 
-   TileMap const& GetTileMap() const { return tiles_; }
+   ZoneMap const& GetZoneMap() const { return zones_; }
 
 private:
+   dm::Boxed<int> zone_size_;
+   ZoneMap zones_;
    void InitializeRecordFields() override;
-   BoxedRegion3Ptr GetRegion(csg::Point3 const& pt);
-
-public:
-   TileMap  tiles_;
+   BoxedRegion3Ptr GetZone(csg::Point3 const& location, csg::Point3& zone_offset);
 };
 
 END_RADIANT_OM_NAMESPACE

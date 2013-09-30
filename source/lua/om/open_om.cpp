@@ -10,7 +10,7 @@ using namespace ::radiant;
 using namespace ::radiant::om;
 using namespace luabind;
 
-luabind::object lua_to_json(dm::Store const& store, lua_State* L, JSONNode const& node)
+luabind::object json_to_lua(dm::Store const& store, lua_State* L, JSONNode const& node)
 {
    try {
       if (node.type() == JSON_STRING) {
@@ -44,6 +44,6 @@ void lua::om::register_json_to_lua_objects(lua_State* L, dm::Store& dm)
 {
    lua::ScriptHost* sh = ScriptHost::GetScriptHost(L);
    sh->AddJsonToLuaConverter([&dm](lua_State* L, JSONNode const& node) {
-      return lua_to_json(dm, L, node);
+      return json_to_lua(dm, L, node);
    });
 }

@@ -9,8 +9,8 @@ function FirePitTest:__init()
    local tree = self:place_tree(-12, -12)
    local tree = self:place_tree(0, -12)
    local worker = self:place_citizen(12, 12)
-   local faction = worker:get_component('unit_info'):get_faction()
-   local firepit = self:place_item('stonehearth_items.fire_pit', 0, 0)
+
+   self:place_item('stonehearth.fire_pit', 1, 1)
 end
 
 return FirePitTest

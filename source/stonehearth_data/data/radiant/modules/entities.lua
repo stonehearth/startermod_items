@@ -7,40 +7,6 @@ function entities.__init()
    singleton._entity_dtors = {}
 end
 
---[[
-Opposite of _init_entity. Given a uri, remove
-component influences from the entity.
---]]
--- xxx: this function must go, too -- tony
-function entities.xxx_unregister_from_entity(entity, mod_name, entity_name)
-   assert(entity_name)
-   local uri = _radiant.sim.xxx_get_entity_uri(mod_name, entity_name)
-   local obj = radiant.resources.load_json(uri)
-
-   if obj then
-      if obj.components then
-         for name, json in pairs(obj.components) do
-            assert(json)
-            if name == 'radiant:ai' then
-               radiant.ai.unregister(entity, json)
-            end
-            --[[
-            -- How to do this generically? Full remove component?
-            local component = entity:get_component(name)
-            --Until then, call unregister on whatever components have it.
-            -- add standard components, based on the kind of entity we want
-            if component and component.unregister or  radiant.mods.load_api(name) and  then
-               component:unregister(entity, json)
-            end
-            if component and component.extend then
-               --TODO: implement an un-extend?
-            end
-            --]]
-         end
-      end
-   end
-end
-
 function entities.get_root_entity()
    return radiant._root_entity
 end
@@ -64,10 +30,6 @@ function entities.destroy_entity(entity)
       singleton._entity_dtors[id] = nil
    end
    _radiant.sim.destroy_entity(entity)
-end
-
-function entities.xxx_inject_into_entity(entity, ref)
-   return _radiant.sim.xxx_extend_entity(entity, ref)
 end
 
 function entities.add_child(parent, child, location)

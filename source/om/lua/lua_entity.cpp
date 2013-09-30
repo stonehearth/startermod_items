@@ -6,7 +6,6 @@
 #include "om/data_binding.h"
 #include "om/stonehearth.h"
 #include "resources/res_manager.h"
-#include "simulation/script/script_host.h" // xxx: NOOOOOOOOOOOOO! Use a generic script host!!!!!!!!
 
 using namespace ::luabind;
 using namespace ::radiant;

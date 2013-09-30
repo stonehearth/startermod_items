@@ -13,14 +13,15 @@ scope LuaTerrainComponent::RegisterLuaTypes(lua_State* L)
       lua::RegisterDerivedObject<Terrain, Component>()
          .def(tostring(self))
          .def("create_new",            &Terrain::CreateNew)
-         .def("add_region",            &Terrain::AddRegion)
+         .def("set_zone_size",         &Terrain::SetZoneSize)
+         .def("add_zone",              &Terrain::AddZone)
          .def("place_entity",          &Terrain::PlaceEntity)
          .enum_("TerrainTypes")
          [
             value("BEDROCK",              Terrain::Bedrock),
             value("TOPSOIL",              Terrain::Topsoil),
             value("TOPSOIL_DETAIL",       Terrain::TopsoilDetail),
-            value("GRASS",                Terrain::Grass),
+            value("FOOTHILLS",                Terrain::Foothills),
             value("PLAINS",               Terrain::Plains),
             value("DARK_WOOD",            Terrain::DarkWood),
             value("DIRT_PATH",            Terrain::DirtPath)

@@ -7,7 +7,6 @@
 #include "csg/ray.h"
 #include "om/om.h"
 #include "dm/dm.h"
-#include "types.h"
 #include "render_component.h"
 #include "skeleton.h"
 
@@ -63,7 +62,7 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
 protected:
       typedef std::unordered_map<dm::ObjectType, std::shared_ptr<RenderComponent>> ComponentMap;
       typedef std::unordered_map<std::string, luabind::object> LuaComponentMap;
-      H3DNode           node_;
+      H3DNodeUnique     node_;
       om::EntityRef     entity_;
       dm::Guard         tracer_;
       Skeleton          skeleton_;

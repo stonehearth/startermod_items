@@ -6,7 +6,6 @@
 #include "Horde3D.h"
 #include "om/om.h"
 #include "dm/dm.h"
-#include "types.h"
 #include "render_component.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
@@ -26,7 +25,7 @@ private:
    dm::Guard            tracer_;
    om::CarryBlockRef    carryBlock_;
    dm::ObjectId         carrying_;
-   H3DNode              carryBoneId_;
+   H3DNode              carryBone_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

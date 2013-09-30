@@ -15,8 +15,6 @@
 using namespace ::radiant;
 using namespace ::radiant::client;
 
-H3DNode cubemitterNode;
-
 static std::unique_ptr<Renderer> renderer_;
 Renderer& Renderer::GetInstance()
 {
@@ -30,12 +28,12 @@ Renderer& Renderer::GetInstance()
 
 Renderer::Renderer() :
    initialized_(false),
-   cameraMoveDirection_(0, 0, 0),
    viewMode_(Standard),
    scriptHost_(nullptr),
    nextTraceId_(1),
    camera_(nullptr),
    currentFrameTime_(0),
+   lastFrameTimeInSeconds_(0),
    uiWidth_(0),
    uiHeight_(0),
    uiTexture_(0),
@@ -65,8 +63,7 @@ Renderer::Renderer() :
 
    glfwMakeContextCurrent(window);
    
-   bool vsync = true;
-	glfwSwapInterval(vsync ? 0 : 1);
+	glfwSwapInterval(1);
 
 	if (!h3dInit()) {	
 		h3dutDumpMessages();
@@ -99,28 +96,15 @@ Renderer::Renderer() :
    
    LoadResources();
 
-	// Add camera
-   
-   camera_ = new Camera(h3dAddCameraNode(H3DRootNode, "Camera", currentPipeline_));
-
-   cameraTarget_ = csg::Point3f(0, 10, 0);
-
-   camera_->SetPosition(csg::Point3f(24, 34, 24));
-   camera_->LookAt(cameraTarget_);
-   UpdateCamera();
+	// Add camera   
+   camera_ = new Camera(H3DRootNode, "Camera", currentPipeline_);
 
    h3dSetNodeParamI(camera_->GetNode(), H3DCamera::PipeResI, currentPipeline_);
-
-   // Skybox
-	//H3DNode sky = h3dAddNodes( H3DRootNode, skyBoxRes );
-	//h3dSetNodeTransform( sky, 128, 0, 128, 0, 0, 0, 256, 256, 256 );
-	//h3dSetNodeFlags( sky, H3DNodeFlags::NoCastShadow, true );
 
    // Resize
    Resize(width_, height_);
 
    memset(&input_.mouse, 0, sizeof input_.mouse);
-   rotateCamera_ = false;
 
    glfwSetWindowSizeCallback(window, [](GLFWwindow *window, int newWidth, int newHeight) { 
       Renderer::GetInstance().OnWindowResized(newWidth, newHeight); 
@@ -128,10 +112,14 @@ Renderer::Renderer() :
 
    glfwSetKeyCallback(window, [](GLFWwindow *window, int key, int scancode, int action, int mods) { 
       Renderer::GetInstance().OnKey(key, (action == GLFW_PRESS) || (action == GLFW_REPEAT)); 
-   });   
+   });
 
-   glfwSetCursorPosCallback(window, [](GLFWwindow *window, double x, double y) { 
-      Renderer::GetInstance().OnMouseMove(x, y); 
+   glfwSetCursorEnterCallback(window, [](GLFWwindow *window, int entered) {
+      Renderer::GetInstance().OnMouseEnter(entered);
+   });
+
+   glfwSetCursorPosCallback(window, [](GLFWwindow *window, double x, double y) {      
+      Renderer::GetInstance().OnMouseMove(x, y);
    });
 
    glfwSetMouseButtonCallback(window, [](GLFWwindow *window, int button, int action, int mods) { 
@@ -140,6 +128,11 @@ Renderer::Renderer() :
 
    glfwSetScrollCallback(window, [](GLFWwindow *window, double xoffset, double yoffset) {
       Renderer::GetInstance().OnMouseWheel(yoffset);
+   });
+
+   // Platform-specific ifdef code goes here....
+   glfwSetRawInputCallbackWin32(window, [](GLFWwindow *window, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+      Renderer::GetInstance().OnRawInput(uMsg, wParam, lParam);
    });
    
    glfwSetWindowCloseCallback(window, [](GLFWwindow* window) -> void {
@@ -223,7 +216,6 @@ void Renderer::DecodeDebugShapes(const ::radiant::protocol::shapelist& msg)
 
 HWND Renderer::GetWindowHandle() const
 {
-   //return (HWND)glfwGetWindowHandle();
    return glfwGetWin32Window(glfwGetCurrentContext());
 }
 
@@ -231,45 +223,21 @@ void Renderer::RenderOneFrame(int now, float alpha)
 {
    int deltaNow = now - currentFrameTime_;
 
+   lastFrameTimeInSeconds_ = deltaNow / 1000.0f;
    currentFrameTime_ =  now;
    currentFrameInterp_ = alpha;
 
-   if (cameraMoveDirection_ != csg::Point3f::zero) {
-         csg::Point3f forward, up, left;
-         camera_->GetBases(&forward, &up, &left);
-         forward.y = 0;
-         csg::Point3f camPosDelta = (left * cameraMoveDirection_.x) + (forward * cameraMoveDirection_.z);
-         camPosDelta.Normalize();
-         camPosDelta = camPosDelta * (deltaNow / 45.0f);
-         camera_->SetPosition(camera_->GetPosition() + camPosDelta);
-         cameraTarget_ += camPosDelta;
-         UpdateCamera();
-   }
-
-   bool debug = (GetAsyncKeyState(VK_SPACE) & 0x8000) != 0;
-   bool showStats = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
+   bool debug = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS;
+   bool showStats = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
   
-   /*if (false && (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0) {
-      h3dSetNodeFlags(spotLight, 0, true);
-      h3dSetNodeFlags(directionalLight, H3DNodeFlags::NoDraw, true);
-   } else {
-      h3dSetNodeFlags(directionalLight, 0, true);
-      h3dSetNodeFlags(spotLight, H3DNodeFlags::NoDraw, true);
-   }*/
-
    bool showUI = true;
    const float ww = (float)h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportWidthI) /
 	                 (float)h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportHeightI);
-
-   // debug = true;
 
 	h3dSetOption(H3DOptions::DebugViewMode, debug);
 	h3dSetOption(H3DOptions::WireframeMode, debug);
    // h3dSetOption(H3DOptions::DebugViewMode, _debugViewMode ? 1.0f : 0.0f);
 	// h3dSetOption(H3DOptions::WireframeMode, _wireframeMode ? 1.0f : 0.0f);
-	
-	// Set camera parameters
-	// h3dSetNodeTransform(camera_, _x, _y, _z, _rx ,_ry, 0, 1, 1, 1);
 	
    h3dSetCurrentRenderTime(now / 1000.0f);
 
@@ -328,7 +296,7 @@ bool Renderer::IsRunning() const
    return true;
 }
 
-csg::Ray3 Renderer::GetCameraToViewportRay(int windowX, int windowY)
+void Renderer::GetCameraToViewportRay(int windowX, int windowY, csg::Ray3* ray)
 {
    // compute normalized window coordinates in preparation for casting a ray
    // through the scene
@@ -337,47 +305,60 @@ csg::Ray3 Renderer::GetCameraToViewportRay(int windowX, int windowY)
 
    // calculate the ray starting at the eye position of the camera, casting
    // through the specified window coordinates into the scene
-   csg::Ray3 ray;   
-
    h3dutPickRay(camera_->GetNode(), nwx, nwy,
-                &ray.origin.x, &ray.origin.y, &ray.origin.z,
-                &ray.direction.x, &ray.direction.y, &ray.direction.z);
-
-   return ray;
+                &ray->origin.x, &ray->origin.y, &ray->origin.z,
+                &ray->direction.x, &ray->direction.y, &ray->direction.z);
 }
 
-void Renderer::QuerySceneRay(int windowX, int windowY, om::Selection &result)
+void Renderer::CastRay(const csg::Point3f& origin, const csg::Point3f& direction, RayCastResult* result)
 {
-   if (!rootRenderObject_) {
-      return;
-   }
-
-   float nwx = ((float)windowX) / width_;
-   float nwy = 1.0f - ((float)windowY) / height_;
-   float ox, oy, oz, dx, dy, dz;
-
-   h3dutPickRay(camera_->GetNode(), nwx, nwy, &ox, &oy, &oz, &dx, &dy, &dz);
-
-	if (h3dCastRay(rootRenderObject_->GetNode(), ox, oy, oz, dx, dy, dz, 1) == 0) {
+   result->is_valid = false;
+   if (h3dCastRay(rootRenderObject_->GetNode(),
+      origin.x, origin.y, origin.z,
+      direction.x, direction.y, direction.z, 1) == 0) {
 		return;
 	}
 
    // Pull out the intersection node and intersection point
 	H3DNode node = 0;
-   csg::Point3f pt, normal;
-	if (!h3dGetCastRayResult( 0, &node, 0, &pt.x, &normal.x )) {
+	if (!h3dGetCastRayResult( 0, &(result->node), 0, &(result->point.x), &(result->normal.x) )) {
       return;
    }
-   normal.Normalize();
-   assert(node);
+   result->origin = origin;
+   result->direction = direction;
+   result->normal.Normalize();
+   result->is_valid = true;
+}
 
-   result.AddLocation(csg::Point3f(pt.x, pt.y, pt.z),
-                      csg::Point3f(normal.x, normal.y, normal.z));
+void Renderer::CastScreenCameraRay(int windowX, int windowY, RayCastResult* result)
+{
+   result->is_valid = false;
+
+   if (!rootRenderObject_) {
+      return;
+   }
+
+   csg::Ray3 ray;
+   GetCameraToViewportRay(windowX, windowY, &ray);
+
+   CastRay(ray.origin, ray.direction, result);
+}
+
+void Renderer::QuerySceneRay(int windowX, int windowY, om::Selection &result)
+{
+   RayCastResult r;
+   CastScreenCameraRay(windowX, windowY, &r);
+   if (!r.is_valid) {
+      return;
+   }
+
+   result.AddLocation(csg::Point3f(r.point.x, r.point.y, r.point.z),
+                      csg::Point3f(r.normal.x, r.normal.y, r.normal.z));
 
    // Lookup the intersection object in the node registery and ask it to
    // fill in the selection structure.
-   csg::Ray3 ray(csg::Point3f(ox, oy, oz), csg::Point3f(dx, dy, dz));
-
+   H3DNode node = r.node;
+   csg::Ray3 ray(r.point, r.direction);
    while (node) {
       const char *name = h3dGetNodeParamStr(node, H3DNodeParams::NameStr);
       auto i = selectableCbs_.find(node);
@@ -387,7 +368,7 @@ void Renderer::QuerySceneRay(int windowX, int windowY, om::Selection &result)
          csg::Matrix4 transform = GetNodeTransform(node);
          transform.affine_inverse();
 
-         i->second(result, ray, transform.transform(pt), transform.rotate(normal));
+         i->second(result, ray, transform.transform(r.point), transform.rotate(r.normal));
       }
       node = h3dGetNodeParent(node);
    }
@@ -403,15 +384,6 @@ csg::Matrix4 Renderer::GetNodeTransform(H3DNode node) const
 
    return transform;
  }
-
-void Renderer::PlaceCamera(const csg::Point3f &location)
-{
-   csg::Point3f delta = csg::Point3f(location) - cameraTarget_;
-   cameraTarget_ += delta;
-   camera_->SetPosition(camera_->GetPosition() + delta);
-
-   UpdateCamera();
-}
 
 void Renderer::UpdateUITexture(const csg::Region2& rgn, const char* buffer)
 {
@@ -450,7 +422,7 @@ void Renderer::Resize( int width, int height )
    h3dSetNodeParamI( camera, H3DCamera::ViewportHeightI, height );
 	
    // Set virtual camera parameters
-   h3dSetupCameraView( camera, 45.0f, (float)width / height, 4.0f, 2000.0f);
+   h3dSetupCameraView( camera, 45.0f, (float)width / height, 4.0f, 4000.0f);
    for (const auto& entry : pipelines_) {
       h3dResizePipelineBuffers(entry.second, width, height);
    }
@@ -514,58 +486,23 @@ void Renderer::RemoveRenderObject(int sid, dm::ObjectId id)
    }
 }
 
-/*
- *  gluLookAt.c
- */
-
 void Renderer::UpdateCamera()
 {
    //Let the audio listener know where the camera is
    sf::Listener::setPosition(camera_->GetPosition().x, camera_->GetPosition().y, camera_->GetPosition().z);
 }
 
-float Renderer::DistFunc(float dist, int wheel, float minDist, float maxDist) const {
-   float shortFactor = 0.90f;
-   float medFactor = 0.81f;
-   float farFactor = 0.75f;
-   float result = 0.0f;
-   float factor;
-
-   if (wheel == 0) {
-      return dist;
-   }
-
-   if (dist < 100.0f) {
-      factor = shortFactor;
-   } else if (dist < 500.0f) {
-      factor = medFactor;
-   } else {
-      factor = farFactor;
-   }
-
-   if (wheel > 0) {
-      result = dist * factor;
-   } else {
-      result = dist / factor;
-   }
-
-   result = std::min(std::max(result, minDist), maxDist);
-
-   return result;
-}
-
 void Renderer::OnMouseWheel(double value)
 {
-   int dWheel = (int)value;
-   input_.mouse.wheel = dWheel;
-   
-   // xxx: move this part out into the client --
-   csg::Point3f dir = camera_->GetPosition() - cameraTarget_;
-   float dist = dir.Length();
-   dir.Normalize();
-   camera_->SetPosition(cameraTarget_ + dir * DistFunc(dist, dWheel, 10.0f, 3000.0f));
+   input_.mouse.wheel = (int)value;
+   CallMouseInputCallbacks();
+   input_.mouse.wheel = 0;
+}
 
-   UpdateCamera(); // xxx - defer to render time?
+void Renderer::OnMouseEnter(int entered)
+{
+   input_.mouse.in_client_area = entered == GL_TRUE;
+   CallMouseInputCallbacks();
 }
 
 void Renderer::OnMouseMove(double x, double y)
@@ -581,46 +518,11 @@ void Renderer::OnMouseMove(double x, double y)
    memset(input_.mouse.up, 0, sizeof input_.mouse.up);
    memset(input_.mouse.down, 0, sizeof input_.mouse.down);
 
-   if (rotateCamera_) {
-      float degx = input_.mouse.dx / -3.0f;
-      float degy = -input_.mouse.dy / 2.0f;
-      camera_->OrbitPointBy(cameraTarget_, degy, degx, 10.0f, 85.0f);
-      camera_->LookAt(cameraTarget_);
-
-      UpdateCamera();
-   } else {
-      /*     
-      int gutterSize = 10;
-
-      if (input_.mouse.x < gutterSize) {
-         cameraMoveDirection_.x = (float)-1;
-      } else if (input_.mouse.x > width_ - gutterSize) {
-         cameraMoveDirection_.x = (float)1;
-      } else {
-         cameraMoveDirection_.x = (float)0;
-      }
-
-      if (input_.mouse.y < gutterSize) {
-         cameraMoveDirection_.z = (float)-1;
-      } else if (input_.mouse.y > height_ - gutterSize) {
-         cameraMoveDirection_.z = (float)1;
-      } else {
-         cameraMoveDirection_.z = 0;
-      }
-      */
-   }
-
    CallMouseInputCallbacks();
 }
 
 void Renderer::OnMouseButton(int button, int press)
 {
-   if (initialized_) {
-      if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-         rotateCamera_ = (press == GLFW_PRESS);
-      }
-   }
-
    memset(input_.mouse.up, 0, sizeof input_.mouse.up);
    memset(input_.mouse.down, 0, sizeof input_.mouse.down);
 
@@ -666,17 +568,6 @@ void Renderer::OnKey(int key, int down)
    auto isKeyDown = [](WPARAM arg) {
       return (GetKeyState(arg) & 0x8000) != 0;
    };
-   if (!isKeyDown(VK_SHIFT)) {
-      if (key == 'W') {
-         cameraMoveDirection_.z = (float)(down ? -1 : 0);
-      } else if (key == 'A') {
-         cameraMoveDirection_.x = (float)(down ? -1 : 0);
-      } else if (key == 'S') {
-         cameraMoveDirection_.z = (float)(down ? 1 : 0);
-      } else if (key == 'D') {
-         cameraMoveDirection_.x = (float)(down ? 1 : 0);
-      }
-   }
    DispatchInputEvent();
 }
 

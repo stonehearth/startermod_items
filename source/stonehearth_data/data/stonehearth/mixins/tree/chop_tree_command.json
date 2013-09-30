@@ -1,0 +1,13 @@
+{
+   "type" : "command",
+
+   "name": "chop",
+   "tooltip": "Chop Tree",
+   "icon": "file(chop_tree_command.png)",
+
+   "action": "call",
+   "function": "stonehearth.harvest_tree",
+   "args": [
+      "{{self}}"
+   ]
+}

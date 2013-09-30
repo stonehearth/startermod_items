@@ -1,0 +1,47 @@
+{
+   "faction_name" : "Rayya's Children",
+   "male_entities" : [
+      "stonehearth.male_1"
+   ],
+   "female_entities" : [
+      "stonehearth.female_1"
+   ],
+   "surnames" : [
+      "Djanni",
+      "Megas",
+      "Rynn",
+      "Sardis",
+      "Umayya",
+      "Zab",
+      "Tolem",
+      "Tigri",
+      "Aibah",
+      "Sayyar"
+   ],
+   "given_names" : {
+      "male" : [
+         "Dumar",
+         "Ardashir",
+         "Talin",
+         "Basid",
+         "Senn",
+         "Mani",
+         "Sunur",
+         "Ahom",
+         "Raj",
+         "Luqar"
+      ],
+      "female" : [
+         "Uma",
+         "Khora",
+         "Abhi",
+         "Nagara",
+         "Roxana",
+         "Zand",
+         "Negan",
+         "Atusa",
+         "Tira",
+         "Chista"
+      ]
+   }
+}

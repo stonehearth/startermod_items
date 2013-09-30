@@ -1,4 +1,0 @@
-{
-    "name": "Small Wooden Table",
-    "description": "it's a table...come on. Glad we have Stephanie"
-}
