@@ -25,6 +25,7 @@
 #include "lib/rpc/forward_defines.h"
 #include "core/input.h"
 #include "core/unique_resource.h"
+#include "core/shared_resource.h"
 
 IN_RADIANT_LUA_NAMESPACE(
    class ScriptHost;
@@ -66,10 +67,12 @@ class Client : public core::Singleton<Client> {
       dm::Store& GetAuthoringStore() { return authoringStore_; }
       Physics::OctTree& GetOctTree() const { return *octtree_; }
 
-      void SetCursor(std::string name);
+      typedef int CursorStackId;
+      CursorStackId InstallCursor(std::string name);
+      void RemoveCursor(CursorStackId id);
 
       typedef int InputHandlerId;
-      typedef std::function<int(Input const&)> InputHandlerCb;
+      typedef std::function<bool(Input const&)> InputHandlerCb;
 
       InputHandlerId AddInputHandler(InputHandlerCb const& cb);
       InputHandlerId ReserveInputHandler();
@@ -77,13 +80,13 @@ class Client : public core::Singleton<Client> {
       void RemoveInputHandler(InputHandlerId id);
 
       typedef int TraceRenderFrameId;
-      typedef std::function<int(float)> TraceRenderFrameHandlerCb;
+      typedef std::function<void(float)> TraceRenderFrameHandlerCb;
 
       TraceRenderFrameId AddTraceRenderFrameHandler(TraceRenderFrameHandlerCb const& cb);
       TraceRenderFrameId ReserveTraceRenderFrameHandler();
       void SetTraceRenderFrameHandler(TraceRenderFrameId id, TraceRenderFrameHandlerCb const& cb);
       void RemoveTraceRenderFrameHandler(TraceRenderFrameId id);
-      bool CallTraceRenderFrameHandlers(float frameTime);
+      void CallTraceRenderFrameHandlers(float frameTime);
 
    private:
       NO_COPY_CONSTRUCTOR(Client);
@@ -120,9 +123,14 @@ class Client : public core::Singleton<Client> {
       void UpdateSelection(const MouseInput &mouse);
       void CenterMap(const MouseInput &mouse);
 
-      void InstallCursor();
+      void InstallCurrentCursor();
       void HilightMouseover();
-      void LoadCursors();
+
+      static inline void CursorDeleter(HCURSOR hcursor) { DestroyCursor(hcursor); }
+      typedef core::SharedResource<HCURSOR, Client::CursorDeleter> Cursor;
+
+      Cursor LoadCursor(std::string const& path);
+
       rpc::ReactorDeferredPtr GetModules(rpc::Function const&);
       void HandlePostRequest(std::string const& path, JSONNode const& query, std::string const& postdata, rpc::HttpDeferredPtr response);
       void TraceUri(JSONNode const& query, rpc::HttpDeferredPtr response);
@@ -145,8 +153,7 @@ private:
        * The type of DestroyCursor is WINUSERAPI BOOL WINAPI (HCURSOR).  Strip off all
        * that windows fu so we can pass it into the Deleter for a core::UniqueResource
        */
-      static inline void CursorDeleter(HCURSOR hcursor) { DestroyCursor(hcursor); }
-      typedef std::unordered_map<std::string, core::UniqueResource<HCURSOR, Client::CursorDeleter>> CursorMap;
+      typedef std::unordered_map<std::string, Cursor>    CursorMap;
 
       // connection to the server...
       boost::asio::io_service       _io_service;
@@ -188,9 +195,12 @@ private:
 
       // cursors...
       HCURSOR                          currentCursor_;
-      HCURSOR                          luaCursor_;
       HCURSOR                          uiCursor_;
       CursorMap                        cursors_;
+      Cursor                           hover_cursor_;
+      Cursor                           default_cursor_;
+      CursorStackId                                       next_cursor_stack_id_;
+      std::vector<std::pair<CursorStackId, Cursor>>       cursor_stack_;
 
       // server requests...
       int                              last_server_request_id_;

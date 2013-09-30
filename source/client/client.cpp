@@ -67,7 +67,6 @@ Client::Client() :
    authoringStore_(3, "tmp"),
    nextTraceId_(1),
    uiCursor_(NULL),
-   luaCursor_(NULL),
    currentCursor_(NULL),
    last_server_request_id_(0),
    next_input_id_(1),
@@ -131,7 +130,8 @@ void Client::GetConfigOptions(po::options_description& options)
 extern bool realtime;
 void Client::run()
 {
-   LoadCursors();
+   hover_cursor_ = LoadCursor("stonehearth.cursors.hover");
+   default_cursor_ = LoadCursor("stonehearth.cursors.default");
 
    octtree_ = std::unique_ptr<Physics::OctTree>(new Physics::OctTree());
       
@@ -313,7 +313,7 @@ void Client::mainloop()
       browser_->UpdateDisplay(cb);
    }
 
-   InstallCursor();
+   InstallCurrentCursor();
    HilightMouseover();
 
    // Fire the authoring traces *after* pumping the chrome message loop, since
@@ -630,16 +630,11 @@ void Client::RemoveTraceRenderFrameHandler(TraceRenderFrameId id)
    }
 };
 
-bool Client::CallTraceRenderFrameHandlers(float frameTime)
+void Client::CallTraceRenderFrameHandlers(float frameTime)
 {
-   auto handlers = trace_frame_handlers_;
-   for (int i = (int)handlers.size() - 1; i >= 0; i--) {
-      const auto& cb = handlers[i].second;
-      if (cb && cb(frameTime)) {
-         return true;
-      }
+   for (const auto& entry : trace_frame_handlers_) {
+      entry.second(frameTime);
    }
-   return false;
 }
 
 void Client::UpdateSelection(const MouseInput &mouse)
@@ -740,23 +735,19 @@ om::EntityPtr Client::GetEntity(dm::ObjectId id)
    return (obj && obj->GetObjectType() == om::Entity::DmType) ? std::static_pointer_cast<om::Entity>(obj) : nullptr;
 }
 
-void Client::InstallCursor()
+void Client::InstallCurrentCursor()
 {
    if (browser_) {
       HCURSOR cursor;
       if (browser_->HasMouseFocus(mouse_x_, mouse_y_)) {
          cursor = uiCursor_;
       } else {
-         cursor = NULL;
-         /* which cursor do we want? to be written */
-         if (!cursor && luaCursor_) {
-            cursor = luaCursor_;
-         }
-         if (!cursor && !hilightedObjects_.empty()) {
-            cursor = cursors_["hover"].get();
-         }
-         if (!cursor) {
-            cursor = cursors_["default"].get();
+         if (!cursor_stack_.empty()) {
+            cursor = cursor_stack_.back().second.get();
+         } else if (!hilightedObjects_.empty()) {
+            cursor = hover_cursor_.get();
+         } else {
+            cursor = default_cursor_.get();
          }
       }
       if (cursor != currentCursor_) {
@@ -800,28 +791,38 @@ void Client::HilightMouseover()
    }
 }
 
-void Client::LoadCursors()
+Client::Cursor Client::LoadCursor(std::string const& path)
 {
-   fs::recursive_directory_iterator i("cursors"), end;
-   while (i != end) {
-      fs::path path(*i++);
-      if (fs::is_regular_file(path) && path.extension() == ".cur") {
-         HCURSOR cursor = (HCURSOR)LoadImage(GetModuleHandle(NULL), path.c_str(), IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
-         if (cursor) {
-            std::string name = fs::basename(path);
-            cursors_[name].reset(cursor);
-         }
+   Cursor cursor;
+
+   std::string filename = res::ResourceManager2::GetInstance().GetResourceFileName(path, ".cur");
+   auto i = cursors_.find(filename);
+   if (i != cursors_.end()) {
+      cursor = i->second;
+   } else {
+      HCURSOR hcursor = (HCURSOR)LoadImageA(GetModuleHandle(NULL), filename.c_str(), IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
+      if (hcursor) {
+         cursors_[filename] = cursor = Cursor(hcursor);
       }
    }
+   return cursor;
 }
 
-void Client::SetCursor(std::string name)
+Client::CursorStackId Client::InstallCursor(std::string name)
 {
-   auto i = cursors_.find(name);
-   if (i != cursors_.end()) {
-      currentCursor_ = i->second.get();
-   } else {
-      currentCursor_ = NULL;
+   CursorStackId id = next_cursor_stack_id_++;
+   cursor_stack_.emplace_back(std::make_pair(id, LoadCursor(name)));
+   return id;
+}
+
+
+void Client::RemoveCursor(CursorStackId id)
+{
+   for (auto i = cursor_stack_.begin(); i != cursor_stack_.end(); i++) {
+      if (i->first == id) {
+         cursor_stack_.erase(i);
+         return;
+      }
    }
 }
 

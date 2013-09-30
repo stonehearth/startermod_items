@@ -27,17 +27,20 @@ BEGIN_RADIANT_CORE_NAMESPACE
 template <typename Resource, void (*ReclaimFn)(Resource)>
 class SharedResource : public std::shared_ptr<void> {
 public:
+   typedef std::shared_ptr<void> SuperClass;
    static void FreeFn(void *res) { ReclaimFn(reinterpret_cast<Resource>(res)); }
 
    SharedResource() : std::shared_ptr<void>() { }
    SharedResource(Resource res) : std::shared_ptr<void>(reinterpret_cast<void*>(res), FreeFn) { }
 
-   operator Resource () {
-      return reinterpret_cast<Resource>(get());
+   Resource get() {
+      return reinterpret_cast<Resource>(SuperClass::get());
    }
-   operator Resource const () const {
-      return reinterpret_cast<Resource>(get());
+
+   Resource const get() const {
+      return reinterpret_cast<Resource>(SuperClass::get());
    }
+
 };
 
 END_RADIANT_CORE_NAMESPACE

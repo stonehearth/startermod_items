@@ -1,5 +1,0 @@
-{
-   "radiant.rigs.worker-outfit": {
-      "models/worker_outfit.qb"
-   }
-}
