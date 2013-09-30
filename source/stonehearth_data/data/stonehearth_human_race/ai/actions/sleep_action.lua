@@ -22,8 +22,8 @@ end
 
 --[[
    The sleep action works by first looking for a bed when it's time to go
-   to sleep. If a bed is found, we run to the bed and lie down in it. 
-   
+   to sleep. If a bed is found, we run to the bed and lie down in it.
+
    If a bed is never found, we will never go to sleep. The idea is that
    some other action will pick up the slack and make the actor go to sleep
    on the ground (not in a bed) from exhaustion.
@@ -48,7 +48,7 @@ SleepAction['radiant.events.calendar.hourly'] = function(self, calendar)
       if not self._pathfinder and not self._sleeping then
          self:_start_looking_for_bed(solved_cb)
       end
-   else 
+   else
       -- it's not time to go to sleep. Stop looking for a bed
       if self._pathfinder then
          self:stop()
@@ -60,7 +60,7 @@ end
 --[[
    Finds a bed to sleep in, if one is available. Actors "own" individual beds through
    a lease system.
-   
+
    Sleeping in a bed pairs that bed to the actor through a lease. Other actors will
    only look for unleased beds to sleep in. Once an actor has leased a bed, he will
    always go back to that bed when it's time to sleep.
@@ -77,7 +77,7 @@ function SleepAction:_start_looking_for_bed(result_cb)
       radiant.log.warning('missing bed lease component.  ignoring sleep behavior.')
       return
    end
-   
+
    local bed = bed_lease:get_bed()
    if bed then
       -- we already have a bed assigned to us, so just save the path to the bed once we find it
@@ -89,7 +89,7 @@ function SleepAction:_start_looking_for_bed(result_cb)
    else
       -- find a bed and lease it
       local filter_fn = function(item)
-         radiant.log.info("looing for a bed")    
+         radiant.log.info("looing for a bed")
          -- xxx: only look for beds compatible with this entities faction
          local bed_component = item:get_component('stonehearth_sleep_system:bed')
          if bed_component ~= nil then
@@ -116,14 +116,14 @@ end
 
 --[[
    SleepAction only runs once a path to the bed has been found.
-   
+
    SleepAction handles the bookkeeping of the sleep behavior. It tells the pathfinder to
    stop searching for a bed, grabs a lease on the bed if necessary, then kicks off
    stonehearth.activities.sleep_in_bed to handle the specifics of how to go to sleep
    (like which animations to play)
 --]]
 function SleepAction:run(ai, entity)
-   assert(self._pathfinder)   
+   assert(self._pathfinder)
    assert(self._path_to_bed)
 
    -- tell the pathfinder to stop searching in the background
@@ -156,7 +156,7 @@ function SleepAction:stop()
       self._pathfinder:stop()
       self._pathfinder = nil
    end
-   
+
    self._sleeping = false
 end
 

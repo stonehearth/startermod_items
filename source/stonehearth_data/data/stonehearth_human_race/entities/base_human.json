@@ -6,7 +6,8 @@
          "actions" : [
             "file(/ai/actions/sleep_action.lua)",
             "file(/ai/actions/sleep_in_bed_action.lua)",
-            "/stonehearth_classes/ai/actions/grab_talisman_action.lua"
+            "/stonehearth_classes/ai/actions/grab_talisman_action.lua",
+            "/stonehearth_fire_and_light/ai/actions/admire_fire.lua"
          ]
       },
 	   "unit_info" : {

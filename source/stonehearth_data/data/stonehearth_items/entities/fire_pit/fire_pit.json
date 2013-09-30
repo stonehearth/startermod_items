@@ -15,10 +15,11 @@
          }
       ],
       "stonehearth_fire_and_light:firepit" : {
+         "effective_radius" : 5
       },
       "destination": {
          "region": [
-            [ [-5, 0, -5], [6, 1, 6] ]
+            [ [-3, 0, -3], [4, 1, 4] ]
          ]
       }
 
