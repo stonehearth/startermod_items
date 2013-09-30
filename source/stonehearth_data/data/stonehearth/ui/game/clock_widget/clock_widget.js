@@ -115,7 +115,7 @@ App.StonehearthCalendarView = App.View.extend({
 
       this.set('context.hoursRemaining', this._hoursRemaining)
 
-      console.log(hoursRemaining);
+      //console.log(hoursRemaining);
    }.observes('context.date')
 
 });
