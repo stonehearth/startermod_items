@@ -15,16 +15,19 @@ __get_current_module_name = function()
    local info = debug.getinfo(3, 'S')
 
    if not info.source then
-      radiant.log.warning('could not determine module file in radiant "require"')
+      _host:log('could not determine module file in radiant "require"')
       return nil
    end
    if info.source:sub(1, 1) ~= '@' then
-      radiant.log.warning('lua generated from loadstring() is not allowed to require.')
+      _host:log('lua generated from loadstring() is not allowed to require.')
       return nil
    end
-   local modname = info.source:match('@data[/\\]([^/\\]*)')
+   local modname = info.source:match('@mods[/\\]([^/\\]*)')
    if not modname then
-      radiant.log.warning('could not determine modname from source "%s"', info.source)
+      modname = info.source:match('@\.[/\\]mods[/\\]([^/\\]*)')
+   end
+   if not modname then
+      _host:log(string.format('could not determine modname from source "%s"', info.source))
       return nil
    end
    return modname
@@ -32,6 +35,12 @@ end
 
 local old_require = require   -- hide the lua implementation
 require = function(s)
+   -- check standard lua stuff..
+   local o = package.loaded[s]
+   if o then
+      return o
+   end
+
    local modname = __get_current_module_name()
    if modname then
       return _host:require(modname .. '.' ..s)

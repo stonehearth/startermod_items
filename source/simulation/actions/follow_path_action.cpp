@@ -9,8 +9,6 @@ using namespace ::radiant;
 using namespace ::radiant::simulation;
 namespace po = boost::program_options;
 
-extern po::variables_map configvm;
-
 FollowPathAction::FollowPathAction() :
    pursuing_(0)
 {
@@ -79,10 +77,7 @@ bool FollowPathAction::FollowPath()
    //GetSelf()->MoveToGridAligned(path_->GetDestination());
    //return true;
 
-   //bool realtime = !configvm["game.noidle"].as<bool>();
-   bool realtime = true;
-
-   float maxDistance = realtime ? 0.4f : 10.0f;
+   float maxDistance = 0.4f;
    const vector<csg::Point3> &points = path_->GetPoints();
    auto self = self_.lock();
 

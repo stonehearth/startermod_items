@@ -1,10 +1,6 @@
 #include "pch.h"
-
-#if 0
-#include "radiant_json.h"
-#endif
-
 #include "radiant_file.h"
+#include "core/config.h"
 #include "chromium/app/app.h"
 #include "lib/rpc/http_deferred.h"
 #include "browser.h"
@@ -46,8 +42,8 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
 
    CefSettings settings;   
 
-   CefString(&settings.log_file) = L"cef_debug_log.txt";
-   settings.log_severity = LOGSEVERITY_VERBOSE;
+   CefString(&settings.log_file) = (core::Config::GetInstance().GetTmpDirectory() / "cef_debug_log.txt").wstring().c_str();
+   settings.log_severity = LOGSEVERITY_DEFAULT;
    settings.single_process = false; // single process mode eats nearly the entire frame time
    settings.remote_debugging_port = debug_port;
 

@@ -1,21 +1,17 @@
+_host:require 'radiant.lib.env' -- there's no module path installed, so use the script version...
 decoda_name = "radiant client"
-
-
-local dkjson = require 'radiant.lualibs.dkjson'
--- load external libraries before we blow away require...
-
-require 'radiant.lib.env'
-
-local api = {}
 
 radiant = {
 }
+
 radiant.log = require 'modules.log'
 radiant.util = require 'lib.util'
-radiant.json = dkjson
+radiant.json = require 'lualibs.dkjson'
 radiant.check = require 'lib.check'
 radiant.events = require 'modules.events'
 radiant.mods = require 'modules.mods'
 radiant.entities = require 'modules.client_entities'
+
+local api = {}
 
 return api

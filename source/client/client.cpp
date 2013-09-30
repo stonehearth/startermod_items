@@ -2,6 +2,7 @@
 #include <regex>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include "core/config.h"
 #include "radiant_exceptions.h"
 #include "xz_region_selector.h"
 #include "om/entity.h"
@@ -122,7 +123,7 @@ Client::~Client()
    octtree_.release();
 }
 
-void Client::GetConfigOptions(po::options_description& options)
+void Client::GetConfigOptions()
 {
 }
 
@@ -151,13 +152,14 @@ void Client::run()
    });
 
    namespace po = boost::program_options;
-   extern po::variables_map configvm;
-   std::string loader = configvm["game.mod"].as<std::string>().c_str();
+   auto vm = core::Config::GetInstance().GetVarMap();
+   std::string loader = vm["game.mod"].as<std::string>();
    json::ConstJsonObject manifest(res::ResourceManager2::GetInstance().LookupManifest(loader));
    std::string docroot = "http://radiant/" + manifest.getn("loader").getn("ui").get<std::string>("homepage");
 
    // seriously???
-   if (configvm["game.script"].as<std::string>() != "stonehearth/new_world.lua") {
+   std::string game_script = vm["game.script"].as<std::string>();
+   if (game_script != "stonehearth/new_world.lua") {
       docroot += "?skip_title=true";
    }
 

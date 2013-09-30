@@ -1,12 +1,4 @@
-local api = {}
-
-_host:log('loading server radiant script')
-
-local dkjson = require 'radiant.lualibs.dkjson'
--- load external libraries before we blow away require...
-
-require 'radiant.lib.env'
-
+_host:require 'radiant.lib.env' -- there's no module path installed, so use the script version...
 decoda_name = "radiant server"
 
 radiant = {
@@ -16,7 +8,7 @@ radiant = {
 radiant.log = require 'modules.log'
 radiant.util = require 'lib.util'
 radiant.check = require 'lib.check'
-radiant.json = dkjson
+radiant.json = require 'lualibs.dkjson'
 radiant.gamestate = require 'modules.gamestate'
 radiant.resources = require 'modules.resources'
 radiant.events = require 'modules.events'
@@ -30,6 +22,8 @@ radiant.combat = require 'lib.combat'
 
 radiant.gamestate._start()
 radiant.log.info('radiant api initialized.')
+
+local api = {}
 
 function api.update(interval)
    radiant.gamestate._increment_clock(interval)

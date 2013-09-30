@@ -21,6 +21,8 @@
 */
 
 #include "FileWatcherWin32.h"
+#include "radiant.h"
+#include "radiant_stdutil.h"
 
 #if FILEWATCHER_PLATFORM == FILEWATCHER_PLATFORM_WIN32
 
@@ -89,7 +91,8 @@ namespace FW
                                 }
 #endif
 
-                                pWatch->mFileWatcher->handleAction(pWatch, szFile, pNotify->Action);
+                                std::wstring file = radiant::strutil::utf8_to_unicode(szFile);
+                                pWatch->mFileWatcher->handleAction(pWatch, file, pNotify->Action);
 
                         } while (pNotify->NextEntryOffset != 0);
                 }
@@ -131,13 +134,13 @@ namespace FW
         }
 
         /// Starts monitoring a directory.
-        WatchStruct* CreateWatch(LPCTSTR szDirectory, bool recursive, DWORD mNotifyFilter)
+        WatchStruct* CreateWatch(std::wstring const& directory, bool recursive, DWORD mNotifyFilter)
         {
                 WatchStruct* pWatch;
                 size_t ptrsize = sizeof(*pWatch);
                 pWatch = static_cast<WatchStruct*>(HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, ptrsize));
 
-                pWatch->mDirHandle = CreateFile(szDirectory, FILE_LIST_DIRECTORY,
+                pWatch->mDirHandle = CreateFileW(directory.data(), FILE_LIST_DIRECTORY,
                         FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL, 
                         OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED, NULL);
 
@@ -185,7 +188,7 @@ namespace FW
         {
                 WatchID watchid = ++mLastWatchID;
 
-                WatchStruct* watch = CreateWatch(directory.c_str(), recursive,
+                WatchStruct* watch = CreateWatch(directory, recursive,
                         FILE_NOTIFY_CHANGE_LAST_WRITE);
 
                 if(!watch) {

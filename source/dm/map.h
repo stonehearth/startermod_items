@@ -3,6 +3,7 @@
 #include "store.pb.h"
 #include <unordered_map>
 #include "namespace.h"
+#include "radiant.h"
 #include "radiant_stdutil.h"
 #include "radiant_luabind.h"
 #include "lua/register.h"

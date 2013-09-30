@@ -1,4 +1,7 @@
 #include "pch.h"
+#include "radiant.h"
+#include "radiant_stdutil.h"
+#include "core/config.h"
 #include "renderer.h"
 #include "Horde3DUtils.h"
 #include "Horde3DRadiant.h"
@@ -41,7 +44,8 @@ Renderer::Renderer() :
 
 {
    try {
-      boost::property_tree::json_parser::read_json("renderer_config.json", config_);
+
+      boost::property_tree::json_parser::read_json("config/renderer.json", config_);
    } catch(boost::property_tree::json_parser::json_parser_error &e) {
       LOG(WARNING) << "Error parsing: " << e.filename() << " on line: " << e.line() << std::endl;
       LOG(WARNING) << e.message() << std::endl;
@@ -142,7 +146,7 @@ Renderer::Renderer() :
    });
    SetWindowPos(GetWindowHandle(), NULL, 0, 0 , 0, 0, SWP_NOSIZE);
 
-   fileWatcher_.addWatch(L"horde", [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
+   fileWatcher_.addWatch(strutil::utf8_to_unicode("horde"), [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
       Renderer::GetInstance().FlushMaterials();
    }, true);
 

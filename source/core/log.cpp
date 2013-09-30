@@ -19,10 +19,10 @@ boost::log::sources::severity_logger< Severity > __radiant_log_source;
 
 BOOST_LOG_ATTRIBUTE_KEYWORD(severity, "Severity", ::radiant::logger::Severity)
 
-void radiant::logger::init()
+void radiant::logger::init(boost::filesystem::path const& logfile)
 {
    boost::log::add_file_log(
-      keywords::file_name = "stonehearth.log",
+      keywords::file_name = logfile.string(),
       keywords::auto_flush = true
    );
    boost::log::add_console_log(
@@ -30,6 +30,7 @@ void radiant::logger::init()
       keywords::filter = severity >= ::radiant::logger::WARNING
    );
    boost::log::add_common_attributes();
+
 
    platform_init();
 }

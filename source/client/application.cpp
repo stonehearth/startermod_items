@@ -1,18 +1,20 @@
 #include "pch.h"
+#include "radiant_logger.h"
 #include "radiant_json.h"
 #include "client.h" 
 #include "application.h"
 #include "resources/res_manager.h"
+#include "core/config.h"
 #include <thread>
 #include <fstream>
-#include <boost/filesystem.hpp>
-#include <boost/program_options.hpp>
 
-namespace fs = boost::filesystem;
-namespace po = boost::program_options;
 using radiant::client::Application;
 
-po::variables_map configvm;
+void protobuf_log_handler(google::protobuf::LogLevel level, const char* filename,
+                          int line, const std::string& message)
+{
+   LOG(INFO) << message;
+}
 
 Application::Application()
 {
@@ -22,102 +24,49 @@ Application::~Application()
 {
 }
 
-bool Application::LoadConfig(int argc, const char** argv)
+bool Application::LoadConfig(int argc, const char* argv[])
 {
-   std::string configFile;
+   core::Config& config = core::Config::GetInstance();
 
-   // These options are only allowed on the command line
-   po::options_description cmdLineOptions("Generic options");
-   cmdLineOptions.add_options()
-      ("help",    "produce help message")
-      ("config",  po::value<std::string>(&configFile)->default_value("stonehearth.ini"),
-                  "name of a file of a configuration.")
-      ;
+   Client::GetInstance().GetConfigOptions();
+   game_engine::arbiter::GetInstance().GetConfigOptions();
 
-   // These options are allowed on the command line or the config file.
-   po::options_description configOptions("Configuration");
-
-   configOptions.add_options()
-      ("ui.docroot", po::value<std::string>()->default_value("docroot"), "the document root for the ui")
-      ;
-   Client::GetInstance().GetConfigOptions(configOptions);
-   game_engine::arbiter::GetInstance().GetConfigOptions(configOptions);
-
-   po::options_description visible("Allowed options");
-   visible.add(cmdLineOptions).add(configOptions);
-
-   po::options_description config_file_options;
-   config_file_options.add(configOptions);
-
-   // fun fun...
-   po::positional_options_description p;
-   p.add("input-file", -1);
-
-   auto options = po::command_line_parser(argc, argv)
-      //.options(cmdLineOptions)
-      .options(visible)
-      .positional(p)
-      .allow_unregistered()
-      .run();
-
-   po::store(options, configvm);
-   po::notify(configvm);
-
-   if (configvm.count("help")) {
-      std::cout << visible << std::endl;
-      return false;
-   }
-
-   // Load the config file...
-   std::ifstream ifs(configFile.c_str());
-   if (ifs) {
-      po::store(po::parse_config_file(ifs, config_file_options), configvm);
-      po::notify(configvm);
-   }
-
-   // Override with the per-user config file...
-   char *appdata = getenv("APPDATA");
-   if (appdata) {
-      auto userConfigFile = fs::path(appdata) / "Stonehearth" / "Stonehearth.ini";
-      std::ifstream ifs(userConfigFile.c_str());
-      if (ifs) {
-         po::store(po::parse_config_file(ifs, config_file_options), configvm);
-         po::notify(configvm);
-      }
-   }
-   
-
-   return true;
+   return config.Load("stonehearth", argc, argv);
 }
 
 int Application::Run(int argc, const char** argv)
 {
-   if (!LoadConfig(argc, argv)) {
-      return 0;
-   }
-   return Start();
-}
+   try {
+      core::Config& config = core::Config::GetInstance();
 
-int Application::Start()
-{
-   const char *docroot = configvm["ui.docroot"].as<std::string>().c_str();
-   const char *port = "1336";
-   
-   // Need to load all singletons before spawning threads.
-   res::ResourceManager2::GetInstance();
-   client::Client::GetInstance();
-
-   std::thread client([&]() {
-      try {
-         Client::GetInstance().run();
-      } catch (std::exception &e) {
-         LOG(WARNING) << "unhandled exception: " << e.what();
-         ASSERT(false);
+      if (!LoadConfig(argc, argv)) {
+         return 0;
       }
-   });
+      radiant::logger::init(config.GetTmpDirectory() / (config.GetName() + ".log"));
 
-   game_engine::arbiter::GetInstance().Run();
-   client.join();
+      // factor this out into some protobuf helper like we did with log
+      google::protobuf::SetLogHandler(protobuf_log_handler);
 
+      // Need to load all singletons before spawning threads.
+      res::ResourceManager2::GetInstance();
+      client::Client::GetInstance();
+
+      std::thread client([&]() {
+         try {
+            Client::GetInstance().run();
+         } catch (std::exception &e) {
+            LOG(WARNING) << "unhandled exception: " << e.what();
+            ASSERT(false);
+         }
+      });
+
+      game_engine::arbiter::GetInstance().Run();
+      client.join();
+
+      radiant::logger::exit();
+   } catch (std::exception &e) {
+      LOG(WARNING) << "unhandled exception: " << e.what();
+      ASSERT(false);
+   }
    return 0;
 }
