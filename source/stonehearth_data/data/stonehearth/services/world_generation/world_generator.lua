@@ -165,5 +165,18 @@ function WorldGenerator:_get_angle(dy, dx)
    return value
 end
 
+-----
+
+function WorldGenerator:tesselator_test()
+   HeightMapRenderer.tesselator_test()   
+end
+
+function WorldGenerator:run_unit_tests()
+   BoundaryNormalizingFilter._test()
+   FilterFns._test()
+   CDF_97._test()
+   Wavelet._test()
+end
+
 return WorldGenerator
 
