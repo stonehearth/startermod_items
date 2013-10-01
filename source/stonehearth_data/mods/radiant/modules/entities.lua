@@ -118,6 +118,16 @@ function entities.get_world_grid_location(entity)
    return entity:add_component('mob'):get_world_grid_location()
 end
 
+function entities.get_entity_data(entity, key)
+   if entity then
+      local uri = entity:get_uri();
+      local json = radiant.resources.load_json(uri)
+      if json.entity_data then
+         return json.entity_data[key]
+      end
+   end
+end
+
 function entities.on_destroy(entity, dtor)
    radiant.check.is_entity(entity)
    local id = entity:get_id()
