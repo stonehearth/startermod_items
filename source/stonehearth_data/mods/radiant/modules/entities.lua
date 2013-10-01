@@ -24,7 +24,7 @@ function entities.create_entity(ref)
 end
 
 function is_tree(ref)
-   return string.match(ref, '_tree$') ~= nil
+   return string.sub(ref, -5) == '_tree'
 end
 
 function entities.destroy_entity(entity)
