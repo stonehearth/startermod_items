@@ -7,17 +7,13 @@
         "description": "Om nom nom",
         "faction": "critter"
       },
-      "stonehearth:leash" : {
-        "leash_radius" : 6
-      },
       "stonehearth:ai" : {
          "actions" : [
-            "stonehearth.actions.idle_look_around_action",
             "stonehearth.actions.wander_action"
          ]
       },
       "render_info" : {
-         "animation_table": "file(rig/rabbit_rig.json)"
+         "animation_table" : "file(/data/rigs/critters/rabbit)"
       },
       "model_variants": [
          {
@@ -26,5 +22,11 @@
             ]
          }
       ]
+   },
+   "entity_data" : {
+      "stonehearth:idle_boredom_effects" : ["idle_look_around"],
+      "stonehearth:wander_leash" : {
+        "radius" : 5
+      }
    }
 }

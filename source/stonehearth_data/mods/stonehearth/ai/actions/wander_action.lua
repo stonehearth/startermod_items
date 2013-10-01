@@ -6,7 +6,15 @@ WanderAction.priority = 2
 
 function WanderAction:__init(ai, entity)
    self._ai = ai
-   self:set_next_run();
+   self:set_next_run()
+   local leash = radiant.entities.get_entity_data(entity, 'stonehearth:wander_leash')
+
+   if leash and leash.radius then
+      self._wander_radius = leash.radius
+   else 
+      self._wander_radius = 0
+   end
+
    radiant.events.listen('radiant.events.very_slow_poll', self)
 end
 
@@ -21,12 +29,15 @@ end
 
 function WanderAction:run(ai, entity)
 
+   -- set the initial location, so we know how far to wander at max
+   if not self._initial_location then
+      self._initial_location = radiant.entities.get_location_aligned(entity)
+   end
+
    local location = radiant.entities.get_location_aligned(entity)
+   local radius = self._wander_radius
 
-   local leash = entity:get_component('stonehearth:leash')
-   local leash_location = leash:get_location()
-   local radius = leash:get_radius()
-
+   local leash_location = self._initial_location
    local xMax = leash_location.x + radius - location.x
    local xMin = leash_location.x - radius + location.x
 

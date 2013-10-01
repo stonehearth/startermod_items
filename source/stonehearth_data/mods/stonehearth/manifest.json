@@ -199,7 +199,6 @@
       "commands" : "file(components/commands/commands_component.lua)",
       "resource_node" : "file(components/resource_node/resource_node_component.lua)",
       "stockpile" : "file(components/stockpile/stockpile_component.lua)",
-      "leash" : "file(components/leash/leash_component.lua)",
       "workshop" : "file(components/workshop/workshop_component.lua)",
       "crafter"  : "file(components/crafter/crafter_component.lua)",
       "promotion_talisman" : "file(components/promotion_talisman/promotion_talisman_component.lua)",
