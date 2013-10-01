@@ -8,16 +8,12 @@ function IdleAction:__init(ai, entity)
    self._entity = entity
    self:reset_boredom()
    if radiant.entities.get_entity_data(entity, 'stonehearth:idle_boredom_effects') then
-      radiant.events.listen('radiant.events.calendar.minutely', self)
+      self._hasBoredEffect = true
    end
 end
 
-IdleAction['radiant.events.calendar.minutely'] = function(self)
-   self._boredomCountdown = self._boredomCountdown - 1
-end
-
 function IdleAction:reset_boredom()
-   self._boredomCountdown = math.random(50, 100)
+   self._boredomCountdown = math.random(1, 3)
 end
 
 function IdleAction:run(ai, entity)
@@ -28,6 +24,7 @@ function IdleAction:run(ai, entity)
          self:reset_boredom()
       else
          ai:execute('stonehearth.idle.breathe')
+         self._boredomCountdown = self._boredomCountdown - 1
       end
    end
 end
