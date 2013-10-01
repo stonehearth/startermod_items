@@ -3,6 +3,6 @@ include_directories(. ${Horde3D_INCLUDE_DIRS})
 
 add_definitions(-DCMAKE )
 
-add_library(horde3d_cubemitter STATIC
-            cubemitter.cpp
+add_library(horde3d_animatedlight STATIC
+            animatedlight.cpp
             )
