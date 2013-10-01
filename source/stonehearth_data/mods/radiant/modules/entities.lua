@@ -15,8 +15,16 @@ function entities.create_entity(ref)
    if not ref then
       return _radiant.sim.create_empty_entity()
    end
-   radiant.log.info('creating entity %s', ref)
+
+   -- don't spam trees to the log
+   if not is_tree(ref) then
+      radiant.log.info('creating entity %s', ref)
+   end
    return _radiant.sim.create_entity_by_ref(ref)
+end
+
+function is_tree(ref)
+   return string.match(ref, '_tree$') ~= nil
 end
 
 function entities.destroy_entity(entity)
