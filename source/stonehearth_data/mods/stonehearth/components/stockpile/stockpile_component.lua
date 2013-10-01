@@ -186,6 +186,7 @@ end
 function StockpileComponent:_rebuild_item_data()
    local region = self._destination:get_region()
    local cursor = region:modify()
+   cursor:clear()
    cursor:add_cube(self:_get_bounds())
 
    self._data.items = {}
