@@ -8,7 +8,7 @@ WorkerTaskDispatcher.priority = 0
 function WorkerTaskDispatcher:__init(ai, entity)
    self._ai = ai
    self._entity = entity
-   
+
    local faction = self._entity:get_component('unit_info'):get_faction()
    local ws = radiant.mods.load('stonehearth').worker_scheduler
    self._scheduler = ws:get_worker_scheduler(faction)
@@ -33,9 +33,12 @@ end
 
 function WorkerTaskDispatcher:run(ai, entity, ...)
    if self._task then
+      local name = entity:get_component('unit_info'):get_display_name()
+      --TODO: put this up over thier heads, like dialog!
+      radiant.log.info('Worker %s: Hey! About to %s!', name, self._task[1])
       ai:execute(unpack(self._task))
       self._task = nil
-   else 
+   else
       radiant.log.warning('trying to dispatch a nil task in WorkerTaskDispatcher for %s', tostring(entity))
    end
 end

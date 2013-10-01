@@ -133,6 +133,7 @@
          "actions.worker_task_dispatcher" : "file(ai/actions/worker_task_dispatcher.lua)",
          "actions.worker_pickup_action" : "file(ai/actions/worker_pickup_action.lua)",
          "actions.worker_restock_action" : "file(ai/actions/worker_restock_action.lua)",
+         "actions.worker_place_action" : "file(ai/actions/worker_place_action.lua)",
          "actions.play_with_ball_action" : "file(ai/actions/play_with_ball_action.lua)",
 
          "observers.look_for_enemies" : "file(ai/observers/look_for_enemies.lua)",

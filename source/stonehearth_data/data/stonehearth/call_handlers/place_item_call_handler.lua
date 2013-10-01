@@ -92,7 +92,9 @@ function PlaceItemCallHandler:place_item_in_world(session, response, proxy_entit
    self:_init_pickup_worker_task(session, proxy_entity, point3_location, rotation)
 
    --[[
-   -- TODO: Put down a ghost version of the item (half opacity) and swap to "building" mode
+   -- TODO: Use this code to immediately put down a ghost version of the item (half opacity)
+   -- and swap to "building" mode
+   -- TODO: remove it when the task is complete
    -- Reuse the code below, but attach the ghostly object to the proxy, so we can remove
    -- it later.
    -- pull the location and entity uri out of the postdata, create that
@@ -116,8 +118,9 @@ function PlaceItemCallHandler:place_item_in_world(session, response, proxy_entit
 end
 
 function PlaceItemCallHandler:_init_pickup_worker_task(session, proxy_entity, location, rotation)
-   local worker_mod = radiant.mods.require 'stonehearth_worker_class.stonehearth_worker_class'
-   local worker_scheduler = worker_mod.get_worker_scheduler(session.faction)
+   local ws = radiant.mods.load('stonehearth').worker_scheduler
+   local worker_scheduler = ws:get_worker_scheduler(session.faction)
+
 
    --Task for picking up the object the user designated
    -- Any worker that's not carrying anything will do...
@@ -125,40 +128,18 @@ function PlaceItemCallHandler:_init_pickup_worker_task(session, proxy_entity, lo
       return radiant.entities.get_carrying(worker) == nil
    end
 
-   local grab_icon_task = worker_scheduler:add_worker_task('grab_placeable_icon')
+   local pickup_item_task = worker_scheduler:add_worker_task('placing_item_task')
                   :set_worker_filter_fn(not_carrying_fn)
                   :add_work_object(proxy_entity)
-                  :set_action('stonehearth.pickup_item_on_path')
-                  :start()
+                  :set_priority(12)
 
-   --Task for bringing it over to the designated spot
-   --Target only people carrying this entity
-   local carrying_specific_item_fn = function(worker)
-      local entity = radiant.entities.get_carrying(worker)
-      if entity then
-         return entity:get_id() == proxy_entity:get_id()
-      end
-      return false
-   end
-
-   --Right now the pf only can path from an entity to another
-   --So, create an invisible entity and put it at the destination
-   local dest_entity = radiant.entities.create_entity()
-   radiant.terrain.place_entity(dest_entity, location)
-
-   local place_icon_task = worker_scheduler:add_worker_task('place_placeable_icon')
-                  :set_worker_filter_fn(carrying_specific_item_fn)
-                  :add_work_object(dest_entity)
-
-   place_icon_task:set_action_fn(
-      function(path)
-         return 'stonehearth.activities.place_item', path, rotation
+   pickup_item_task:set_action_fn(
+      function (path)
+         return 'stonehearth.place_item', path, location, rotation, pickup_item_task
       end
    )
 
-   place_icon_task:start()
-
-   --TODO: mark tasks as once-only so we can destroy them later
+   pickup_item_task:start()
 end
 
 -- server side object to handle creation of the workbench.  this is called

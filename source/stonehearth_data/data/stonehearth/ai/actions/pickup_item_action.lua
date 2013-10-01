@@ -38,15 +38,26 @@ function PickupItemAction:run(ai, entity, item, parent)
       ai:execute('stonehearth.goto_entity', destination_target)
    end
    radiant.log.info("picking up item at %s", tostring(obj_location))
-
+   
+   --There's always a chance the item may no longer be there. Fail gracefully
+   --TODO: Put up a confused animation
+   if not item then
+      local name = entity:get_component('unit_info'):get_display_name()
+      local item_name = item:get_component('unit_info'):get_display_name()
+      radiant.log.info('Worker %s: Huh? Where is %s?', name, item_name)
+      return
+   end
+   
    radiant.entities.turn_to_face(entity, item)
    radiant.entities.pickup_item(entity, item, parent)
+
    if parent then
       --TODO: replace with carry putdown on table
       ai:execute('stonehearth.run_effect', 'carry_pickup')
    else
       ai:execute('stonehearth.run_effect', 'carry_pickup')
    end
+   
 end
 
 return PickupItemAction
