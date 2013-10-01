@@ -85,42 +85,42 @@ function WorldGenerator:_create_world_blueprint()
    for j=1, zones.height do
       for i=1, zones.width do
          zone_info = {
-            terrain_type = TerrainType.Mountains
+            terrain_type = TerrainType.Plains
          }
          zone_info.generated = false
          zones:set(i, j, zone_info)
       end
    end
 
-   -- zones:get(1, 1).terrain_type = TerrainType.Mountains
-   -- zones:get(2, 1).terrain_type = TerrainType.Mountains
-   -- zones:get(3, 1).terrain_type = TerrainType.Mountains
-   -- zones:get(4, 1).terrain_type = TerrainType.Foothills
-   -- zones:get(5, 1).terrain_type = TerrainType.Plains
+   zones:get(1, 1).terrain_type = TerrainType.Mountains
+   zones:get(2, 1).terrain_type = TerrainType.Mountains
+   zones:get(3, 1).terrain_type = TerrainType.Mountains
+   zones:get(4, 1).terrain_type = TerrainType.Foothills
+   zones:get(5, 1).terrain_type = TerrainType.Plains
 
-   -- zones:get(1, 2).terrain_type = TerrainType.Mountains
-   -- zones:get(2, 2).terrain_type = TerrainType.Mountains
-   -- zones:get(3, 2).terrain_type = TerrainType.Foothills
-   -- zones:get(4, 1).terrain_type = TerrainType.Plains
-   -- zones:get(5, 1).terrain_type = TerrainType.Plains
+   zones:get(1, 2).terrain_type = TerrainType.Mountains
+   zones:get(2, 2).terrain_type = TerrainType.Mountains
+   zones:get(3, 2).terrain_type = TerrainType.Foothills
+   zones:get(4, 1).terrain_type = TerrainType.Plains
+   zones:get(5, 1).terrain_type = TerrainType.Plains
 
-   -- zones:get(1, 3).terrain_type = TerrainType.Mountains
-   -- zones:get(2, 3).terrain_type = TerrainType.Foothills
-   -- zones:get(3, 3).terrain_type = TerrainType.Plains
-   -- zones:get(4, 3).terrain_type = TerrainType.Plains
-   -- zones:get(5, 3).terrain_type = TerrainType.Foothills
+   zones:get(1, 3).terrain_type = TerrainType.Mountains
+   zones:get(2, 3).terrain_type = TerrainType.Foothills
+   zones:get(3, 3).terrain_type = TerrainType.Plains
+   zones:get(4, 3).terrain_type = TerrainType.Plains
+   zones:get(5, 3).terrain_type = TerrainType.Foothills
 
-   -- zones:get(1, 4).terrain_type = TerrainType.Mountains
-   -- zones:get(2, 4).terrain_type = TerrainType.Foothills
-   -- zones:get(3, 4).terrain_type = TerrainType.Plains
-   -- zones:get(4, 4).terrain_type = TerrainType.Foothills
-   -- zones:get(5, 4).terrain_type = TerrainType.Mountains
+   zones:get(1, 4).terrain_type = TerrainType.Foothills
+   zones:get(2, 4).terrain_type = TerrainType.Plains
+   zones:get(3, 4).terrain_type = TerrainType.Plains
+   zones:get(4, 4).terrain_type = TerrainType.Foothills
+   zones:get(5, 4).terrain_type = TerrainType.Mountains
 
-   -- zones:get(1, 5).terrain_type = TerrainType.Foothills
-   -- zones:get(2, 5).terrain_type = TerrainType.Plains
-   -- zones:get(3, 5).terrain_type = TerrainType.Foothills
-   -- zones:get(4, 5).terrain_type = TerrainType.Mountains
-   -- zones:get(5, 5).terrain_type = TerrainType.Mountains
+   zones:get(1, 5).terrain_type = TerrainType.Plains
+   zones:get(2, 5).terrain_type = TerrainType.Plains
+   zones:get(3, 5).terrain_type = TerrainType.Plains
+   zones:get(4, 5).terrain_type = TerrainType.Foothills
+   zones:get(5, 5).terrain_type = TerrainType.Mountains
 
    return zones
 end
