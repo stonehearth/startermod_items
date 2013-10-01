@@ -1,0 +1,11 @@
+{
+   "type" : "command",
+
+   "name": "promote_citizen",
+   "tooltip": "Promote Carpenter",
+   "icon": "file(/data/images/promote_action_button_icon.png)",
+
+   "action": "fire_event",
+   "event_name" : "promote_citizen.stonehearth",
+   "event_data" : {}
+}

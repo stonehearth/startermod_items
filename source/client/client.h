@@ -46,7 +46,7 @@ class Client : public core::Singleton<Client> {
       static void RegisterLuaTypes(lua_State* L);
             
    public:
-      void GetConfigOptions(boost::program_options::options_description& options);
+      void GetConfigOptions();
 
       void run();
       lua::ScriptHost* GetScriptHost() const { return scriptHost_.get(); }

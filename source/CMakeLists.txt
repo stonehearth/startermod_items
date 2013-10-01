@@ -25,7 +25,7 @@ include_directories(${CMAKE_BINARY_DIR}/source/protocols) # xxx: BADDD
 SET(Horde3D_ROOT_DIR "${Stonehearth_SOURCE_DIR}/source/horde3d/")
 SET(Horde3D_INCLUDE_DIRS "${Horde3D_ROOT_DIR}/Source/Shared" "${Horde3D_ROOT_DIR}/Source/Horde3dEngine" "${Horde3D_ROOT_DIR}/Bindings/C++" "${Horde3D_ROOT_DIR}/glfw/include/GLFW" "${Horde3D_ROOT_DIR}/extensions/")
 
-add_definitions(-DUNICODE -D_UNICODE -D_CRT_SECURE_NO_WARNINGS -wd4996)
+add_definitions(-D_CRT_SECURE_NO_WARNINGS -wd4996)
 
 add_subdirectory(core)
 add_subdirectory(chromium)

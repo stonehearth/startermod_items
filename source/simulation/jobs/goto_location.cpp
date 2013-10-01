@@ -8,8 +8,6 @@ using namespace ::radiant;
 using namespace ::radiant::simulation;
 namespace po = boost::program_options;
 
-extern po::variables_map configvm;
-
 std::ostream& simulation::operator<<(std::ostream& os, GotoLocation const& o)
 {
    return os << "[GotoLocation ...]";
@@ -74,7 +72,7 @@ bool GotoLocation::Work(const platform::timer &timer)
    auto mob = entity->GetComponent<om::Mob>();
    auto location = mob->GetLocation();
 
-   float speedMultiplier = configvm["game.travel_speed_multiplier"].as<float>();
+   float speedMultiplier = 0.4f; // xxx: pass this into the action
    float maxDistance = speed_ * speedMultiplier;
 
    csg::Point3f current = mob->GetLocation();

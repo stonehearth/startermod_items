@@ -19,8 +19,7 @@ namespace radiant {
 
          private:
             bool LoadConfig(int argc, const char** argv);
-            int Start();
-//            configlib::configfile   _config;
+
       };
    };
 };

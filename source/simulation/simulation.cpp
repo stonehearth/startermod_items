@@ -2,6 +2,7 @@
 #include <sstream>
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
+#include "core/config.h"
 #include "resources/manifest.h"
 #include "radiant_exceptions.h"
 #include "platform/utils.h"
@@ -163,8 +164,6 @@ void Simulation::CreateNew()
 
       guards_ += store_.TraceDynamicObjectAlloc(std::bind(&Simulation::OnObjectAllocated, this, std::placeholders::_1));
 
-      extern po::variables_map configvm;
-      std::string game = configvm["game.script"].as<std::string>();
 
       using namespace luabind;
 
@@ -181,7 +180,9 @@ void Simulation::CreateNew()
 
       InitializeModules();
 
-      object game_ctor = scriptHost_->RequireScript(game);
+      auto vm = core::Config::GetInstance().GetVarMap();
+      std::string game_script = vm["game.script"].as<std::string>();
+      object game_ctor = scriptHost_->RequireScript(game_script);
       game_ = luabind::call_function<luabind::object>(game_ctor);
       
       /* xxx: this is all SUPER SUPER dangerous.  if any of these things cause lua
@@ -195,10 +196,7 @@ void Simulation::CreateNew()
       }
       now_ = 0;
    } catch (std::exception const& e) {
-      LOG(WARNING) << "fatal error initializing game: " << e.what();
-      while (1) {
-         Sleep(1);
-      }
+      throw std::logic_error(BUILD_STRING("fatal error initializing game: " << e.what()));
    }
 }
 

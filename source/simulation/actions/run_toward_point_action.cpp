@@ -8,9 +8,6 @@ using namespace ::radiant;
 using namespace ::radiant::simulation;
 namespace po = boost::program_options;
 
-extern po::variables_map configvm;
-
-
 static float angle(const csg::Point3f &v)
 {
    return (float)(atan2(v.z, -v.x) - atan2(-1, 0));
@@ -37,10 +34,7 @@ void RunTowardPoint::Update()
    auto mob = self_.lock()->GetComponent<om::Mob>();
    auto location = mob->GetLocation();
 
-   //bool realtime = !configvm["game.noidle"].as<bool>();
-   bool realtime = true;
-
-   float maxDistance = realtime ? 0.4f : 10.0f;
+   float maxDistance = 0.4f;
 
    csg::Point3f current = mob->GetLocation();
    csg::Point3f direction = csg::Point3f(dst_ - current);

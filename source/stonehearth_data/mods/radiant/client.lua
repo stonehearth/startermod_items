@@ -1,0 +1,18 @@
+_host:require 'radiant.lib.env' -- there's no module path installed, so use the script version...
+decoda_name = "radiant client"
+
+radiant = {
+}
+
+radiant.log = require 'modules.log'
+radiant.util = require 'lib.util'
+radiant.json = require 'lualibs.dkjson'
+radiant.resources = require 'modules.resources'
+radiant.check = require 'lib.check'
+radiant.events = require 'modules.events'
+radiant.mods = require 'modules.mods'
+radiant.entities = require 'modules.client_entities'
+
+local api = {}
+
+return api

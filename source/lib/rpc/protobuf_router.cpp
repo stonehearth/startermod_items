@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "radiant.h"
 #include "radiant_stdutil.h"
 #include "trace.h"
 #include "untrace.h"
