@@ -13,7 +13,6 @@ FillOutboxAction.does = 'stonehearth.fill_outbox'
 FillOutboxAction.priority = 5
 
 function FillOutboxAction:__init(ai, entity)
-   self._curr_carry = nil
 end
 
 --[[
@@ -27,55 +26,22 @@ function FillOutboxAction:run(ai, entity)
    local crafter_component = entity:get_component('stonehearth:crafter')
    local workshop = crafter_component:get_workshop()
    local workshop_entity = workshop:get_entity()
-   self._outbox_entity = workshop:get_outbox_entity()
+   local outbox_entity = workshop:get_outbox_entity()
 
-   assert(workshop:has_bench_outputs(), 'Trying to fill outbox, but the bench has no products!')
+   while not workshop:is_paused() and workshop:has_bench_outputs() do
+      -- take the item off the workbench
+      local item = workshop:pop_bench_output()
+      ai:execute('stonehearth.pickup_item_on_table', item, workshop_entity)
 
-    repeat
-      self._curr_carry = workshop:pop_bench_output()
-
-      --TODO: pickup from table action which removes from a parent entity
-      --ai:execute('stonehearth.run_effect', 'pickup_item_from_table')
-      ai:execute('stonehearth.pickup_item', self._curr_carry, workshop_entity)
-
-      --Find path
-      --Something like:
-      local path = nil
-      local solved = function(solution)
-         path = solution
-      end
-
-      local pathfinder = _radiant.sim.create_path_finder('goto entity action', entity, solved, nil)
-      pathfinder:add_destination(self._outbox_entity)
-
-      ai:wait_until(function()
-         return path ~= nil
-      end)
+      -- drop it in the outbox...
+      local pathfinder = _radiant.sim.create_path_finder('goto entity action')
+                              :set_source(entity)
+                              :add_destination(outbox_entity)
+      local path = ai:wait_for_path_finder(pathfinder)
+      local drop_location = path:get_destination_point_of_interest()
+      
       ai:execute('stonehearth.follow_path', path)
-      local drop_location = path:get_finish_point()
       ai:execute('stonehearth.drop_carrying', drop_location)
-      self._curr_carry = nil
-
-      --If the user has paused progress, don't continue
-      if workshop:is_paused() then
-         return
-      end
-
-   until not workshop:has_bench_outputs()
-
-
-end
-
---[[
-   If interrupted, while moving between the workbench and outbox,
-   pitch the item into the outbox before stopping.
-   TODO: is this the right way to programatically add something to the outbox?
-   TODO: can the outbox expose an "add to me" function?
-]]
-function FillOutboxAction:stop()
-   if self._curr_carry and self._outbox_entity then
-      radiant.entities.add_child(self._outbox_entity, self._curr_carry, Point3(0, 1, 0))
-      self._curr_carry = nil
    end
 end
 

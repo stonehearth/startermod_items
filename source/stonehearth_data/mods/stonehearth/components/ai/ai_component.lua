@@ -322,6 +322,19 @@ function AIComponent:wait_until(obj)
    coroutine.yield(obj)
 end
 
+function AIComponent:wait_for_path_finder(pf)
+   local path
+   pf:set_solved_cb(
+      function(solution)
+         path = solution
+      end
+   )
+   self:wait_until(function()
+      return path ~= nil
+   end)
+   return path
+end
+
 function AIComponent:suspend()
    coroutine.yield(self._ai_system.SUSPEND_THREAD)
 end

@@ -15,6 +15,9 @@ class PointBase
 public:
    PointBase() { }
 
+   typedef S Scalar;
+   static const int Dimension;
+
    S& operator[](int offset) { return static_cast<Derived*>(this)->Coord(offset); }
    S operator[](int offset) const { return static_cast<const Derived*>(this)->Coord(offset);  }
 
@@ -189,6 +192,10 @@ public:
       }
       return false;
    }
+
+   bool operator>(const Derived& other) const {
+      return other < (*this);
+   }
 };
 
 template <typename S, int C>
@@ -197,7 +204,7 @@ class Point
 };
 
 template <typename S>
-class Point<S, 1> : public PointBase<S, 2, Point<S, 1>>
+class Point<S, 1> : public PointBase<S, 1, Point<S, 1>>
 {
 public:
    Point() { }
@@ -335,12 +342,13 @@ typedef Point<int, 1>      Point1;
 typedef Point<int, 2>      Point2;
 typedef Point<int, 3>      Point3;
 typedef Point<int, 4>      Point4;
+typedef Point<float, 1>    Point1f;
 typedef Point<float, 2>    Point2f;
 typedef Point<float, 3>    Point3f;
 typedef Point<float, 4>    Point4f;
 
 static inline Point3f ToFloat(Point3 const& pt) { return Point3f((float)pt.x, (float)pt.y, (float)pt.z); };
-static inline Point3 ToInt(Point3f const& pt) { return Point3((int)(pt.x + 0.5f), (int)(pt.y + 0.5f), (int)(pt.z + 0.5f)); };
+Point3 ToInt(Point3f const& pt);
 Point3f Interpolate(Point3f const& a, Point3f const& b, float alpha);
 
 END_RADIANT_CSG_NAMESPACE

@@ -82,7 +82,7 @@ end
 
 function StockpileComponent:_get_world_bounds()
    local size = self:get_size()
-   local origin = Point3(radiant.entities.get_world_grid_location(self._entity))
+   local origin = radiant.entities.get_world_grid_location(self._entity)
    local bounds = Cube3(origin, Point3(origin.x + size[1], origin.y + 1, origin.z + size[2]))
    return bounds
 end
@@ -92,7 +92,7 @@ function StockpileComponent:is_full()
 end
 
 function StockpileComponent:contains(item_entity)
-   local location = Point3(radiant.entities.get_world_grid_location(item_entity))
+   local location = radiant.entities.get_world_grid_location(item_entity)
    local world_bounds = self:_get_world_bounds()
    return world_bounds:contains(location)
 end
@@ -137,7 +137,7 @@ function StockpileComponent:reserve(location)
 end
 
 function StockpileComponent:_remove_world_point_from_region(location)
-   local origin = Point3(radiant.entities.get_world_grid_location(self._entity))
+   local origin = radiant.entities.get_world_grid_location(self._entity)
    local offset = location - origin
    local region = self._destination:get_region()
    local cursor = region:modify()
@@ -152,7 +152,7 @@ function StockpileComponent:_remove_world_point_from_region(location)
 end
 
 function StockpileComponent:_add_item(entity)
-   local location = Point3(radiant.entities.get_world_grid_location(entity))
+   local location = radiant.entities.get_world_grid_location(entity)
    local world_bounds = self:_get_world_bounds()
    
    if world_bounds:contains(location) then

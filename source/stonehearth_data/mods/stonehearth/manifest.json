@@ -121,6 +121,8 @@
          "actions.wander_action" : "file(ai/actions/wander_action.lua)",
          "actions.follow_path_action" : "file(ai/actions/follow_path_action.lua)",
          "actions.pickup_item_action" : "file(ai/actions/pickup_item_action.lua)",
+         "actions.pickup_item_on_ground_action" : "file(ai/actions/pickup_item_on_ground_action.lua)",
+         "actions.pickup_item_on_table_action" : "file(ai/actions/pickup_item_on_table_action.lua)",
          "actions.goto_entity_action" : "file(ai/actions/goto_entity_action.lua)",
          "actions.pickup_item_on_path" : "file(ai/actions/pickup_item_on_path.lua)",
          "actions.check_craftable_action" : "file(ai/actions/check_craftable_action.lua)",

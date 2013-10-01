@@ -105,7 +105,10 @@ function SleepAction:find_a_bed(result_cb)
          result_cb(bed, path)
       end
       radiant.log.info('%s creating pathfinder to my bed', tostring(self._entity));
-      self._pathfinder = radiant.pathfinder.find_path_to_entity(desc, self._entity, bed, solved_cb)
+      self._pathfinder = radiant.pathfinder.create_path_finder(desc)
+                           :set_source(self._entity)
+                           :add_destination(bed)
+                           :set_solved_cb(solved_cb)
    else
       -- find a bed and lease it
       local filter_fn = function(item)
@@ -129,7 +132,11 @@ function SleepAction:find_a_bed(result_cb)
       -- go find the path to the bed
       radiant.log.info('%s creating pathfinder to find a bed', tostring(self._entity));
       local desc = string.format('finding bed for %s', tostring(self._entity))
-      self._pathfinder = radiant.pathfinder.find_path_to_closest_entity(desc, self._entity, solved_cb, filter_fn)
+      self._pathfinder = radiant.pathfinder.create_path_finder(desc)
+                           :set_source(self._entity)
+                           :set_solved_cb(solved_cb)
+                           :set_filter_fn(filter_fn)
+                           :find_closest_dst()
    end
 
    assert(self._pathfinder)

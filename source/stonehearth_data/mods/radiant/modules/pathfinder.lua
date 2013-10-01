@@ -1,7 +1,10 @@
+local PathFinderWrapper = require 'modules.pathfinder.pathfinder_wrapper'
+
 local pathfinder = {}
 local singleton = {
    pathfinders = {}
 }
+
 
 function pathfinder.__init()
    singleton.promise = radiant.terrain.trace_world_entities('radiant pathfinder module',
@@ -31,25 +34,21 @@ function _remove_entity_from_terrain(id)
    end
 end
 
-function pathfinder.create_multi_path_finder(reason, src_entity, solved_cb)
+function pathfinder.create_multi_path_finder(reason)
    return _radiant.sim.create_multi_path_finder(reason)
 end
 
-function pathfinder.find_path_to_entity(reason, src_entity, dst_entity, solved_cb)
-   local pathfinder = _radiant.sim.create_path_finder(reason, src_entity, solved_cb, nil)
-   pathfinder:add_destination(dst_entity)
-   return pathfinder
+function pathfinder.create_path_finder(reason)
+   return PathFinderWrapper(_radiant.sim.create_path_finder(reason))
 end
 
-function pathfinder.find_path_to_closest_entity(reason, src_entity, solved_cb, filter_fn)
-   local pathfinder = _radiant.sim.create_path_finder(reason, src_entity, solved_cb, filter_fn)
+function pathfinder._track_world_items(pathfinder)
    singleton.pathfinders[pathfinder:get_id()] = pathfinder:to_weak_ref()
 
    -- xxx: iterate through every item in a range provided by the client
    for id, entity in radiant.terrain.get_world_entities() do
       pathfinder:add_destination(entity)
    end
-   return pathfinder   
 end
 
 pathfinder.__init()

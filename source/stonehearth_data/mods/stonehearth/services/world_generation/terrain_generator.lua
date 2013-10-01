@@ -22,7 +22,7 @@ local TerrainGenerator = class()
 function TerrainGenerator:__init()
    local terrain_type, terrain_info
 
-   self.base_random_seed = 5
+   self.base_random_seed = 3
 
    self.zone_size = 256
    self.tile_size = 32
@@ -37,7 +37,7 @@ function TerrainGenerator:__init()
    local plains_info = {}
    plains_info.step_size = 2
    plains_info.mean_height = 16
-   plains_info.std_dev = 10
+   plains_info.std_dev = 8
    plains_info.min_height = 14
    plains_info.max_height = 16
    terrain_info[TerrainType.Plains] = plains_info
@@ -47,8 +47,7 @@ function TerrainGenerator:__init()
    foothills_info.step_size = base_step_size
    foothills_info.mean_height = 24
    foothills_info.std_dev = 32
-   --foothills_info.min_height = plains_info.max_height
-   foothills_info.min_height = plains_info.min_height
+   foothills_info.min_height = plains_info.max_height
    foothills_info.max_height = 32
    terrain_info[TerrainType.Foothills] = foothills_info
    assert(foothills_info.max_height % foothills_info.step_size == 0)
@@ -57,8 +56,7 @@ function TerrainGenerator:__init()
    mountains_info.step_size = base_step_size*4
    mountains_info.mean_height = 96
    mountains_info.std_dev = 160
-   --mountains_info.min_height = plains_info.max_height + foothills_info.step_size
-   mountains_info.min_height = plains_info.min_height
+   mountains_info.min_height = plains_info.max_height + foothills_info.step_size
    terrain_info[TerrainType.Mountains] = mountains_info
 
    -- make sure that next step size is a multiple of the prior max height
@@ -84,10 +82,12 @@ function TerrainGenerator:set_async(async)
 end
 
 function TerrainGenerator:_set_random_seed(x, y)
+   local prime = 51
    local seed = self.base_random_seed
    if x ~= nil and y ~= nil then 
-      seed = seed + y*10000 + x*100
+      seed = ((prime+y)*prime+x)*prime + seed
    end
+   assert(seed < 4294967295)
    math.randomseed(seed)
 end
 
@@ -134,12 +134,13 @@ function TerrainGenerator:generate_zone(terrain_type, zones, x, y)
    self:_consolidate_mountain_blocks(micro_map, zones, x, y)
 
    -- quantize the steps so we have plateaus for each terrain type
-   self:_quantize_micro_map(micro_map)
+   self:_quantize_height_map(micro_map, true)
 
-   -- remove holes from the map since they are ugly
+   -- currently just removes holes from the map since they are ugly
+   -- doesn't remove mountain holes yet which are 2x2 tiles
    self:_postprocess_micro_map(micro_map)
 
-   -- force shared tiles to same value from adjacent zones
+   -- do this twice - CHECKCHECK
    self:_copy_forced_edge_values(micro_map, zones, x, y)
 
    -- radiant.log.info('Blend map:'); _print_blend_map(blend_map)
@@ -155,9 +156,7 @@ function TerrainGenerator:generate_zone(terrain_type, zones, x, y)
    -- transform to frequncy domain and shape frequencies with exponential decay
    self:_shape_height_map(oversize_map, self.frequency_scaling_coeff, self.wavelet_levels)
 
-   -- enable non-uniform quantizer within a terrain type
-   -- generates additional edge details
-   self:_quantize_height_map(oversize_map, true)
+   self:_quantize_height_map(oversize_map, false)
    self:_yield()
 
    self:_add_additional_details(oversize_map)
@@ -345,11 +344,6 @@ function TerrainGenerator:_filter_noise_map(noise_map)
    return filtered_map
 end
 
-function TerrainGenerator:_quantize_micro_map(micro_map)
-   -- non-uniform quantizer is not for the micro_map
-   self:_quantize_height_map(micro_map, false)
-end
-
 -- edge values may not change values! they are shared with the adjacent zone
 function TerrainGenerator:_postprocess_micro_map(micro_map)
    self:_fill_holes(micro_map)
@@ -370,9 +364,11 @@ function TerrainGenerator:_consolidate_mountain_blocks(micro_map, zones, x, y)
       start_y = 2
    end
 
-   -- size of micro_map may be odd, so may skip a row
-   for j=start_y, micro_map.height-1, 2 do
-      for i=start_x, micro_map.width-1, 2 do
+   -- oppposite edge should not be defined, but if it is,
+   --    it's ok since it will be overwritten by the forced edge values
+
+   for j=start_y, micro_map.height, 2 do
+      for i=start_x, micro_map.width, 2 do
          value = self:_average_quad(micro_map, i, j)
          if value > max_foothills_height then
             self:_set_quad(micro_map, i, j, value)
@@ -384,23 +380,48 @@ end
 function TerrainGenerator:_average_quad(micro_map, x, y)
    local offset = micro_map:get_offset(x, y)
    local width = micro_map.width
+   local height = micro_map.height
+   local sum, num_blocks
 
-   local top_left = micro_map[offset]
-   local top_right = micro_map[offset+1]
-   local bottom_left = micro_map[offset+width]
-   local bottom_right = micro_map[offset+width+1]
+   sum = micro_map[offset]
+   num_blocks = 1
 
-   return (top_left + top_right + bottom_left + bottom_right) * 0.25
+   if x < width then
+      sum = sum + micro_map[offset+1]
+      num_blocks = num_blocks + 1
+   end
+
+   if y < height then
+      sum = sum + micro_map[offset+width]
+      num_blocks = num_blocks + 1
+   end
+
+   if x < width and y < height then
+      sum = sum + micro_map[offset+width+1]
+      num_blocks = num_blocks + 1
+   end
+
+   return sum / num_blocks
 end
 
 function TerrainGenerator:_set_quad(micro_map, x, y, value)
    local offset = micro_map:get_offset(x, y)
    local width = micro_map.width
+   local height = micro_map.height
 
    micro_map[offset] = value
-   micro_map[offset+1] = value
-   micro_map[offset+width] = value
-   micro_map[offset+width+1] = value
+
+   if x < width then 
+      micro_map[offset+1] = value
+   end
+
+   if y < height then
+      micro_map[offset+width] = value
+   end
+
+   if x < width and y < height then
+      micro_map[offset+width+1] = value
+   end
 end
 
 function TerrainGenerator:_fill_holes(micro_map)
@@ -538,27 +559,37 @@ function TerrainGenerator:_extract_zone_map(oversize_map)
    return zone_map
 end
 
-function TerrainGenerator:_quantize_height_map(height_map, enable_nonuniform_quantizer)
+function TerrainGenerator:_quantize_height_map(height_map, is_micro_map)
+   local terrain_info = self.terrain_info
    local terrain_type = height_map.terrain_type
-   local i, j, offset, value, quantized_value
+   local enable_nonuniform_quantizer = not is_micro_map
+   local global_min_height = terrain_info[TerrainType.Plains].min_height
+   local recommended_min_height = terrain_info[terrain_type].min_height
+   local i, j, offset, value, min_height, quantized_value
 
    for j=1, height_map.height do
       for i=1, height_map.width do
          offset = height_map:get_offset(i, j)
          value = height_map[offset]
-         quantized_value = self:_quantize_value(value, terrain_type, enable_nonuniform_quantizer)
+
+         if is_micro_map and not height_map:is_boundary(i, j) then
+            -- must relax height requirements on edges to match forced tiles
+            -- don't have to do this for edges adjacent to zones that are not generated yet
+            min_height = recommended_min_height
+         else
+            min_height = global_min_height
+         end
+
+         quantized_value = self:_quantize_value(value, min_height, enable_nonuniform_quantizer)
          height_map[offset] = quantized_value
       end
    end
 end
 
-function TerrainGenerator:_quantize_value(value, terrain_type, enable_nonuniform_quantizer)
+function TerrainGenerator:_quantize_value(value, min_height, enable_nonuniform_quantizer)
    local terrain_info = self.terrain_info
-   local zone_min_height = terrain_info[terrain_type].min_height
 
-   -- BUG: this makes quantizer different across zones,
-   --      so this can cause edge tiles not to line up across zones
-   if value <= zone_min_height then return zone_min_height end
+   if value <= min_height then return min_height end
 
    -- step_size depends on altitude and zone type
    local step_size = self:_get_step_size(value)

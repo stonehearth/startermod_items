@@ -11,8 +11,10 @@
             "stonehearth.actions.idle_action",
             "stonehearth.actions.idle_bored_action",
             "stonehearth.actions.idle_breathe_action",
-            "stonehearth.actions.pickup_item_action",
+            "stonehearth.actions.pickup_item_on_ground_action",
+            "stonehearth.actions.pickup_item_on_table_action",
             "stonehearth.actions.pickup_item_on_path",
+            "stonehearth.actions.pickup_item_action",
             "stonehearth.actions.run_effect_action"
          ],
           "observers": [

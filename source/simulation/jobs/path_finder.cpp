@@ -23,26 +23,30 @@ using namespace ::radiant::simulation;
 #  define VERIFY_HEAPINESS()
 #endif
 
-PathFinder::PathFinder(lua_State* L, std::string name, om::EntityRef e, luabind::object solved_cb, luabind::object dst_filter) :
+PathFinder::PathFinder(lua_State* L, std::string name) :
    Job(name),
    rebuildHeap_(false),
-   entity_(e),
-   source_(*this, e),
-   solved_cb_(L, solved_cb),
-   dst_filter_(L, dst_filter),
    search_exhausted_(false),
    reversed_search_(false),
    restart_search_(true),
    enabled_(true)
 {
-   auto entity = e.lock();
-   if (entity) {
-      mob_ = entity->GetComponent<om::Mob>();
-   }
 }
 
 PathFinder::~PathFinder()
 {
+}
+
+void PathFinder::SetSource(om::EntityRef e)
+{
+   entity_ = e;
+   mob_.reset();
+
+   auto entity = e.lock();
+   if (entity) {
+      mob_ = entity->GetComponent<om::Mob>();
+   }
+   RestartSearch();
 }
 
 void PathFinder::SetSolvedCb(luabind::object solved_cb)
@@ -59,6 +63,10 @@ void PathFinder::SetFilterFn(luabind::object dst_filter)
 bool PathFinder::IsIdle() const
 {
    if (!enabled_) {
+      return true;
+   }
+
+   if (!entity_.lock()) {
       return true;
    }
 
@@ -151,7 +159,8 @@ void PathFinder::Restart()
    g_.clear();
    h_.clear();
 
-   source_.AddAdjacentToOpenSet(open_);
+   source_.reset(new PathFinderEndpoint(*this, entity_));
+   source_->AddAdjacentToOpenSet(open_);
    for (csg::Point3 const& pt : open_) {
    	int h = EstimateCostToDestination(pt);
 	   f_[pt] = h;
@@ -440,7 +449,7 @@ void PathFinder::SolveSearch(const csg::Point3& last, PathFinderEndpoint* dst)
    VERIFY_HEAPINESS();
 
    ReconstructPath(points, last);
-   PathFinderEndpoint *src = &source_;
+   PathFinderEndpoint *src = source_.get();
    if (reversed_search_) {
       std::swap(src, dst);
    }
