@@ -37,6 +37,7 @@ struct CubemitterNodeParams
 	};
 };
 
+namespace cubemitter {
 
 class OriginData
 {
@@ -169,13 +170,14 @@ public:
    RotationData rotation;
    VelocityData velocity;
 };
+}
 
 class CubemitterData 
 {
 public:
    float duration;
-   EmissionData emission;
-   ParticleData particle;
+   cubemitter::EmissionData emission;
+   cubemitter::ParticleData particle;
 
    CubemitterData()
    {
@@ -241,15 +243,6 @@ public:
 
 private:
 	bool raiseError( const std::string &msg, int line = -1 );
-   EmissionData parseEmission(ConstJsonObject& n);
-   ParticleData parseParticle(ConstJsonObject& n);
-   ColorData parseColor(ConstJsonObject& n);
-   ScaleData parseScale(ConstJsonObject& n);
-   LifetimeData parseLifetime(ConstJsonObject& n);
-   SpeedData parseSpeed(ConstJsonObject& n);
-   OriginData parseOrigin(ConstJsonObject &n);
-   RotationData parseRotation(ConstJsonObject& n);
-   VelocityData parseVelocity(ConstJsonObject& n);
 
 private:
 	friend class EmitterNode;
@@ -318,5 +311,4 @@ protected:
 };
 
 END_RADIANT_HORDE3D_NAMESPACE
-
 #endif
