@@ -83,7 +83,6 @@ Renderer::Renderer() :
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
    h3dSetOption(H3DOptions::SampleCount, 4);
 
-
    SetCurrentPipeline("pipelines/forward.pipeline.xml");
 
    // Overlays
@@ -180,6 +179,11 @@ void Renderer::FlushMaterials() {
 
    r = 0;
    while ((r = h3dGetNextResource(RT_CubemitterResource, r)) != 0) {
+      h3dUnloadResource(r);
+   }
+
+   r = 0;
+   while ((r = h3dGetNextResource(RT_AnimatedLightResource, r)) != 0) {
       h3dUnloadResource(r);
    }
 
@@ -286,6 +290,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    // Advance emitter time; this must come AFTER rendering, because we only know which emitters
    // to update after doing a render pass.
    h3dRadiantAdvanceCubemitterTime(deltaNow / 1000.0f);
+   h3dRadiantAdvanceAnimatedLightTime(deltaNow / 1000.0f);
 
    // Remove all overlays
 	h3dClearOverlays();
@@ -679,6 +684,7 @@ void Renderer::LoadResources()
       // at this time, there's a bug in horde3d (?) which causes render
       // pipline corruption if invalid resources are even attempted to
       // load.  assert fail;
+      h3dutDumpMessages();
       ASSERT(false);
    }
 }

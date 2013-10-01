@@ -96,6 +96,20 @@ private:
    H3DCubemitterNodeUnique       cubemitterNode_;
 };
 
+/* For creating lights from a given JSON file. */
+struct LightEffect : public RenderEffect {
+public:
+   LightEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
+   ~LightEffect();
+
+   void Update(int now, int dt, bool& done) override;
+
+private:
+   void parseTransforms(const JSONNode& node, float* x, float* y, float* z);
+   RenderEntity&      entity_;
+   H3DNodeUnique      lightNode_;
+};
+
 /* For playing simple background music*/
 struct PlayMusicEffect : public RenderEffect {
 public:
