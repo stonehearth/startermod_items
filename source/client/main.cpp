@@ -8,11 +8,6 @@
 
 using namespace ::radiant;
 
-void protobuf_log_handler(google::protobuf::LogLevel level, const char* filename,
-                          int line, const std::string& message)
-{
-   LOG(INFO) << message;
-}
 
 int lua_main(int argc, const char** argv)
 {
@@ -24,16 +19,7 @@ int lua_main(int argc, const char** argv)
             return -1;
          }
       }
-
-      radiant::logger::init();
-      // factor this out into some protobuf helper like we did with log
-      google::protobuf::SetLogHandler(protobuf_log_handler);
-   
-      radiant::client::Application app;
-      int retval = app.Run(argc, argv);
-
-      radiant::logger::exit();
-      return retval;
+      return radiant::client::Application().Run(argc, argv);
    } catch (std::exception const& e) {
       LOG(WARNING) << "!!!!!!!!!!!! UNCAUGHT EXCEPTION !!!!!!!!!!!!!";
       LOG(WARNING) << e.what();

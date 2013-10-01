@@ -8,8 +8,6 @@ using namespace ::radiant;
 using namespace ::radiant::simulation;
 namespace po = boost::program_options;
 
-extern po::variables_map configvm;
-
 std::ostream& simulation::operator<<(std::ostream& os, FollowPath const& o)
 {
    return os << "[FollowPath ...]";
@@ -47,7 +45,7 @@ bool FollowPath::Work(const platform::timer &timer)
       return false;
    }
 
-   float speedMultiplier = configvm["game.travel_speed_multiplier"].as<float>();
+   float speedMultiplier = 0.4f; // xxx: pass this into the action
    float maxDistance = speed_ * speedMultiplier;
    auto mob = entity->GetComponent<om::Mob>();
    const std::vector<csg::Point3> &points = path_->GetPoints();

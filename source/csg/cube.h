@@ -91,6 +91,11 @@ public:
          max_[i] += static_cast<S>(pt[i]);
       }
    }
+   template <class U> Cube Translated(const U& pt) {
+      Cube result(*this);
+      result.Translate(pt);
+      return result;
+   }
 
    Cube Scaled(float factor) { return Cube(min_.Scaled(factor), max_.Scaled(factor)); }
    Cube ProjectOnto(int axis, S plane) const;

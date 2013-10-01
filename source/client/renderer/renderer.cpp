@@ -1,4 +1,7 @@
 #include "pch.h"
+#include "radiant.h"
+#include "radiant_stdutil.h"
+#include "core/config.h"
 #include "renderer.h"
 #include "Horde3DUtils.h"
 #include "Horde3DRadiant.h"
@@ -41,7 +44,8 @@ Renderer::Renderer() :
 
 {
    try {
-      boost::property_tree::json_parser::read_json("renderer_config.json", config_);
+
+      boost::property_tree::json_parser::read_json("config/renderer.json", config_);
    } catch(boost::property_tree::json_parser::json_parser_error &e) {
       LOG(WARNING) << "Error parsing: " << e.filename() << " on line: " << e.line() << std::endl;
       LOG(WARNING) << e.message() << std::endl;
@@ -78,7 +82,6 @@ Renderer::Renderer() :
 	h3dSetOption(H3DOptions::FastAnimation, 1);
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
    h3dSetOption(H3DOptions::SampleCount, 4);
-
 
    SetCurrentPipeline("pipelines/forward.pipeline.xml");
 
@@ -142,7 +145,7 @@ Renderer::Renderer() :
    });
    SetWindowPos(GetWindowHandle(), NULL, 0, 0 , 0, 0, SWP_NOSIZE);
 
-   fileWatcher_.addWatch(L"horde", [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
+   fileWatcher_.addWatch(strutil::utf8_to_unicode("horde"), [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
       Renderer::GetInstance().FlushMaterials();
    }, true);
 
@@ -176,6 +179,11 @@ void Renderer::FlushMaterials() {
 
    r = 0;
    while ((r = h3dGetNextResource(RT_CubemitterResource, r)) != 0) {
+      h3dUnloadResource(r);
+   }
+
+   r = 0;
+   while ((r = h3dGetNextResource(RT_AnimatedLightResource, r)) != 0) {
       h3dUnloadResource(r);
    }
 
@@ -282,6 +290,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    // Advance emitter time; this must come AFTER rendering, because we only know which emitters
    // to update after doing a render pass.
    h3dRadiantAdvanceCubemitterTime(deltaNow / 1000.0f);
+   h3dRadiantAdvanceAnimatedLightTime(deltaNow / 1000.0f);
 
    // Remove all overlays
 	h3dClearOverlays();
@@ -312,6 +321,10 @@ void Renderer::GetCameraToViewportRay(int windowX, int windowY, csg::Ray3* ray)
 
 void Renderer::CastRay(const csg::Point3f& origin, const csg::Point3f& direction, RayCastResult* result)
 {
+   if (!rootRenderObject_) {
+      return;
+   }
+
    result->is_valid = false;
    if (h3dCastRay(rootRenderObject_->GetNode(),
       origin.x, origin.y, origin.z,
@@ -675,6 +688,7 @@ void Renderer::LoadResources()
       // at this time, there's a bug in horde3d (?) which causes render
       // pipline corruption if invalid resources are even attempted to
       // load.  assert fail;
+      h3dutDumpMessages();
       ASSERT(false);
    }
 }

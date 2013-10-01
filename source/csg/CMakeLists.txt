@@ -26,14 +26,17 @@ add_library(csg STATIC
 
 add_subdirectory(lua)
 
-add_library(unittests_csg STATIC
-            unittests.cpp)
-
 target_link_libraries(csg
                       csg_lua
                      )
 
+add_executable(unittests_csg
+               unittests.cpp)
+
 target_link_libraries(unittests_csg
+                      winmm.lib
+                      ${Boost_LIBRARIES}
+                      ${GTest_LIBRARIES}
                       csg
                      )
 if (MSVC)

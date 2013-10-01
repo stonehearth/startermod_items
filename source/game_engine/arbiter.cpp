@@ -1,4 +1,5 @@
 #include "radiant.h"
+#include "core/config.h"
 #include "arbiter.h"
 #include "metrics.h"
 #include "simulation.h"
@@ -37,16 +38,19 @@ arbiter::arbiter() :
 {
 }
 
-void arbiter::GetConfigOptions(po::options_description& options)
+void arbiter::GetConfigOptions()
 {
-   po::options_description o("Server options");
-   o.add_options()
+   po::options_description config_file("Server options");
+   po::options_description cmd_line("Server options");
+
+   cmd_line.add_options()
       ("game.noidle",   po::bool_switch(&config_.noidle), "suspend the idle loop, running the game as fast as possible.")
       ("game.script",   po::value<std::string>()->default_value("stonehearth/new_world.lua"), "the game script to load")  //xxx: put this in a constant
       ("game.mod",     po::value<std::string>()->default_value("stonehearth"), "the game script to load")
-      ("game.travel_speed_multiplier", po::value<float>()->default_value(0.4f), "multiplier for unit travelling speed")
       ;
-   options.add(o);
+   core::Config::GetInstance().GetCommandLineOptions().add(cmd_line);
+   core::Config::GetInstance().GetConfigFileOptions().add(cmd_line);
+   core::Config::GetInstance().GetConfigFileOptions().add(config_file);
 }
 
 arbiter::~arbiter()

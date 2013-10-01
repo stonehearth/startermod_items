@@ -3,6 +3,7 @@
 #include "store.pb.h"
 #include <vector>
 #include "namespace.h"
+#include "radiant.h"
 #include "radiant_luabind.h"
 #include "radiant_stdutil.h"
 

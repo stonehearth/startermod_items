@@ -1,0 +1,9 @@
+{
+   "profession" : {
+      "profession_type": "worker", 
+      "name": "Worker",
+      "class_script": "file(../worker.lua)",
+      "icon": "", 
+      "description": "Hi ho, hi ho, it's of to work we go..."
+   }
+}

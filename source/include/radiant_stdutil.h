@@ -40,6 +40,14 @@ namespace radiant {
       static inline std::string join(std::vector<std::string> const& parts, std::string const& with) {
          return std::move(boost::algorithm::join(parts, with));
       }
+
+      static inline std::wstring utf8_to_unicode(std::string const& s) {
+         int len = MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, nullptr, 0);
+         std::wstring unicode;
+         unicode.resize(len);
+         MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, (LPWSTR)unicode.data(), unicode.capacity());
+         return unicode;
+      }
    }
 
    namespace stdutil {

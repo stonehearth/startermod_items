@@ -1,0 +1,41 @@
+{
+   "type" : "entity",
+   "extends" : "stonehearth.mixins.mob",
+   "components" : {
+      "stonehearth:ai" : {
+         "actions" : [
+            "stonehearth.actions.sleep_action",
+            "stonehearth.actions.sleep_in_bed_action",
+            "stonehearth.actions.grab_talisman_action",
+            "stonehearth.actions.admire_fire_action"
+         ]
+      },
+	   "unit_info" : {
+		  "name": "Civilian",
+		  "description": "Citizen of your town",
+		  "faction": "civ"
+	   },
+	   "attributes" : {
+		  "ferocity": 1,
+		  "health": 50
+	   },
+      "sensor_list": {
+         "sensors": {
+            "sight": {
+               "type": "sensor",
+               "radius": 6
+            }
+         }
+      },
+      "carry_block": {
+      },
+      "stonehearth:equipment" : {
+      },
+      "stonehearth:bed_lease" : {
+      }
+   },
+   "entity_data" : {
+      "stonehearth:idle_boredom_effects" : ["idle_sway", "idle_look_around"]
+   }
+}
+

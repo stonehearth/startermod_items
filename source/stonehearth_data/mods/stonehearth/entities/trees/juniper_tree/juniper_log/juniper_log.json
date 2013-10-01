@@ -1,0 +1,21 @@
+{
+   "extends": "stonehearth.mixins.item_properties",
+   "type": "entity", 
+   "components": {
+      "item": {
+         "material": "wood", 
+         "stacks": 20
+      }, 
+      "model_variants": [
+         {
+            "models": [
+               "file(juniper_log.qb)"
+            ]
+         }
+      ], 
+      "unit_info": {
+         "name": "Juniper Log", 
+         "description": "Looks a lot like an oak log..."
+      }
+   }
+}

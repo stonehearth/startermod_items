@@ -39,12 +39,12 @@ public:
    void CreateNew();
 
    ZoneMap const& GetZoneMap() const { return zones_; }
+   BoxedRegion3Ptr GetZone(csg::Point3 const& location, csg::Point3& zone_offset);
 
 private:
    dm::Boxed<int> zone_size_;
    ZoneMap zones_;
    void InitializeRecordFields() override;
-   BoxedRegion3Ptr GetZone(csg::Point3 const& location, csg::Point3& zone_offset);
 };
 
 END_RADIANT_OM_NAMESPACE
