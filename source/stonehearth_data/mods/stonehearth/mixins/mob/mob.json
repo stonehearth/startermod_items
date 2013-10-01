@@ -18,7 +18,7 @@
             "stonehearth.actions.flee_action"
          ],
           "observers": [
-            "stonehearth.observers.look_for_enemies"
+            
          ]
       }
    }

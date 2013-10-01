@@ -66,13 +66,14 @@ function LookForEnemies:is_hostile(entity)
    local unit_info_b = entity:get_component('unit_info')
 
    if unit_info_b then 
+      local faction_b = unit_info_b:get_faction()
+
       -- MEGA HACK ALERT. This should be in some kind of faction allegiance lookup
       if faction_a and faction_b and faction_a == 'civ' and faction_b == 'critter' then
          return false
       end
       -- END OF MEGA HACK
-
-      local faction_b = unit_info_b:get_faction()
+      
       return faction_a and faction_b and faction_b ~= '' and faction_a ~= faction_b
    else
       return false
