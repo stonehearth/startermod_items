@@ -1,7 +1,6 @@
 local FleeAction = class()
 
 local Point3 = _radiant.csg.Point3
-local Vec3 = _radiant.csg.Point3f
 
 FleeAction.name = 'stonehearth.actions.flee'
 FleeAction.does = 'stonehearth.top'
@@ -29,20 +28,9 @@ function FleeAction:run(ai, entity)
    assert(self._target)
    radiant.log.info('%s is running from %s !!!!!', tostring(self._entity), tostring(self._target))
 
-   local my_location = Point3(radiant.entities.get_world_grid_location(self._entity))
-   local target_location = Point3(radiant.entities.get_world_grid_location(self._target))
-
-   --[[
-   local flee_direction = Vec3(my_location.x - target_location.x,
-                               my_location.y - target_location.y,
-                               my_location.z - target_location.z)
-      
-   flee_direction:normalize()
-   ]]
-
-   local flee_location = Point3(my_location.x + (my_location.x - target_location.x),
-                          my_location.y + (my_location.x - target_location.y),
-                          my_location.z + (my_location.x - target_location.z))
+   local my_location = radiant.entities.get_world_grid_location(self._entity)
+   local target_location = radiant.entities.get_world_grid_location(self._target)
+   local flee_location = my_location + (my_location - target_location)
 
    ai:execute('stonehearth.goto_location', flee_location)
 end

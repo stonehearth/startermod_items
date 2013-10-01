@@ -34,11 +34,12 @@ public:
 
 class PathFinder : public Job {
    public:
-      PathFinder(lua_State* L, std::string name, om::EntityRef e, luabind::object solved, luabind::object dst_filter);
+      PathFinder(lua_State* L, std::string name);
       virtual ~PathFinder();
 
       void AddDestination(om::EntityRef dst);
       void RemoveDestination(dm::ObjectId id);
+      void SetSource(om::EntityRef e);
       void SetSolvedCb(luabind::object solved);
       void SetFilterFn(luabind::object dst_filter);
 
@@ -96,7 +97,7 @@ class PathFinder : public Job {
       std::unordered_map<csg::Point3, int, csg::Point3::Hash>  h_;
       std::unordered_map<csg::Point3, csg::Point3, csg::Point3::Hash>  cameFrom_;
 
-      PathFinderEndpoint                                 source_;
+      std::unique_ptr<PathFinderEndpoint>          source_;
       mutable std::unordered_map<dm::ObjectId, std::unique_ptr<PathFinderEndpoint>>  destinations_;
 };
 

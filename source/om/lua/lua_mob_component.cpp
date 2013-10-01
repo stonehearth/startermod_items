@@ -12,6 +12,15 @@ auto Mob_TraceTransform(Mob const& mob, const char* reason) -> decltype(mob.GetB
    return mob.GetBoxedTransform().CreatePromise(reason);
 }
 
+om::EntityRef Mob_GetParent(Mob const& mob)
+{
+   auto parent = mob.GetParent();
+   if (parent) {
+      return parent->GetEntityRef();
+   }
+   return om::EntityRef();
+}
+
 std::ostream& operator<<(std::ostream& os, dm::Boxed<csg::Transform> const& f)
 {
    return os << "[BoxedTransform]";
@@ -37,6 +46,7 @@ scope LuaMobComponent::RegisterLuaTypes(lua_State* L)
          .def("turn_to_face_point",          &Mob::TurnToFacePoint)
          .def("set_interpolate_movement",    &Mob::SetInterpolateMovement)
          .def("trace_transform",             &Mob_TraceTransform)
+         .def("get_parent",                  &Mob_GetParent)
       ,
       dm::Boxed<csg::Transform>::RegisterLuaType(L)
       ;

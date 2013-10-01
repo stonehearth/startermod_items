@@ -37,7 +37,7 @@ function CarpenterTest:__init()
    local bench = self:place_item('stonehearth.carpenter_workbench', -12, 12)
    local workshop_component = bench:get_component('stonehearth:workshop')
 
-   local carpenter = self:place_citizen(-12, 7,'carpenter', {workshop = workshop_component})
+   local carpenter = self:place_citizen(-12, 7,'carpenter', workshop_component)
 
    local faction = carpenter:get_component('unit_info'):get_faction()
    bench:add_component('unit_info'):set_faction(faction)

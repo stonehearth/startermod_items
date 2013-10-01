@@ -316,6 +316,10 @@ void Renderer::GetCameraToViewportRay(int windowX, int windowY, csg::Ray3* ray)
 
 void Renderer::CastRay(const csg::Point3f& origin, const csg::Point3f& direction, RayCastResult* result)
 {
+   if (!rootRenderObject_) {
+      return;
+   }
+
    result->is_valid = false;
    if (h3dCastRay(rootRenderObject_->GetNode(),
       origin.x, origin.y, origin.z,

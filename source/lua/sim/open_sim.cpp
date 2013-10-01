@@ -142,14 +142,10 @@ std::shared_ptr<MultiPathFinder> Sim_CreateMultiPathFinder(lua_State *L, std::st
    return pf;
 }
 
-std::shared_ptr<PathFinder> Sim_CreatePathFinder(lua_State *L, std::string name, om::EntityRef e, object solved_cb, object filter_cb)
+std::shared_ptr<PathFinder> Sim_CreatePathFinder(lua_State *L, std::string name)
 {
-   std::shared_ptr<PathFinder> pf;
-   auto entity = e.lock();
-   if (entity) {
-      pf = std::make_shared<PathFinder>(lua::ScriptHost::GetCallbackThread(L), name, entity, solved_cb, filter_cb);
-      Simulation::GetInstance().AddJob(pf);
-   }
+   std::shared_ptr<PathFinder> pf = std::make_shared<PathFinder>(lua::ScriptHost::GetCallbackThread(L), name);
+   Simulation::GetInstance().AddJob(pf);
    return pf;
 }
 
@@ -160,6 +156,46 @@ std::shared_ptr<LuaJob> Sim_CreateJob(lua_State *L, std::string const& name, obj
    return job;
 }
 
+std::shared_ptr<PathFinder> PathFinder_AddDestination(lua_State* L, std::shared_ptr<PathFinder> pf, om::EntityRef dst)
+{
+   pf->AddDestination(dst);
+   return pf;
+}
+
+std::shared_ptr<PathFinder> PathFinder_SetSource(lua_State* L, std::shared_ptr<PathFinder> pf, om::EntityRef src)
+{
+   pf->SetSource(src);
+   return pf;
+}
+
+std::shared_ptr<PathFinder> PathFinder_RemoveDestination(lua_State* L, std::shared_ptr<PathFinder> pf, dm::ObjectId dst)
+{
+   pf->RemoveDestination(dst);
+   return pf;
+}
+
+std::shared_ptr<PathFinder> PathFinder_SetSolvedCb(lua_State* L, std::shared_ptr<PathFinder> pf, luabind::object cb)
+{
+   pf->SetSolvedCb(object(lua::ScriptHost::GetCallbackThread(L), cb));
+   return pf;
+}
+
+std::shared_ptr<PathFinder> PathFinder_SetFilterFn(lua_State* L, std::shared_ptr<PathFinder> pf, luabind::object cb)
+{
+   pf->SetFilterFn(object(lua::ScriptHost::GetCallbackThread(L), cb));
+   return pf;
+}
+
+std::shared_ptr<MultiPathFinder> MultiPathFinder_AddEntity(lua_State* L, std::shared_ptr<MultiPathFinder> pf, om::EntityRef e, luabind::object solved_cb, luabind::object dst_filter)
+{
+   if (pf) {
+      L = lua::ScriptHost::GetCallbackThread(L);
+      object solved(L, solved_cb);
+      object filter(L, dst_filter);
+      pf->AddEntity(e, solved, filter);
+   }
+   return pf;
+}
 
 void lua::sim::open(lua_State* L)
 {
@@ -187,9 +223,11 @@ void lua::sim::open(lua_State* L)
                .def("get_destination",    &Path::GetDestination)
                .def("get_start_point",    &Path::GetStartPoint)
                .def("get_finish_point",   &Path::GetFinishPoint)
+               .def("get_source_point_of_interest",        &Path::GetSourcePointOfInterest)
+               .def("get_destination_point_of_interest",   &Path::GetDestinationPointOfInterest)
             ,
             lua::RegisterTypePtr<MultiPathFinder>()
-               .def("add_entity",         &MultiPathFinder::AddEntity)
+               .def("add_entity",         &MultiPathFinder_AddEntity)
                .def("remove_entity",      &MultiPathFinder::RemoveEntity)
                .def("add_destination",    &MultiPathFinder::AddDestination)
                .def("remove_destination", &MultiPathFinder::RemoveDestination)
@@ -199,12 +237,12 @@ void lua::sim::open(lua_State* L)
             ,
             lua::RegisterTypePtr<PathFinder>()
                .def("get_id",             &PathFinder::GetId)
-               .def("add_destination",    &PathFinder::AddDestination)
-               .def("remove_destination", &PathFinder::RemoveDestination)
-               .def("set_solved_cb",      &PathFinder::SetSolvedCb)
-               .def("set_filter_fn",      &PathFinder::SetFilterFn)
+               .def("set_source",         &PathFinder_SetSource)
+               .def("add_destination",    &PathFinder_AddDestination)
+               .def("remove_destination", &PathFinder_RemoveDestination)
+               .def("set_solved_cb",      &PathFinder_SetSolvedCb)
+               .def("set_filter_fn",      &PathFinder_SetFilterFn)
                .def("get_solution",       &PathFinder::GetSolution)
-               .def("set_reverse_search", &PathFinder::SetReverseSearch)
                .def("is_idle",            &PathFinder::IsIdle)
                .def("to_weak_ref",        &ToWeakPathFinder)
                .def("stop",               &PathFinder::Stop)
