@@ -13,9 +13,7 @@
             "stonehearth.actions.idle_breathe_action",
             "stonehearth.actions.pickup_item_action",
             "stonehearth.actions.pickup_item_on_path",
-            "stonehearth.actions.run_effect_action",
-            "stonehearth.actions.attack_action",
-            "stonehearth.actions.flee_action"
+            "stonehearth.actions.run_effect_action"
          ],
           "observers": [
             
