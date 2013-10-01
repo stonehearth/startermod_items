@@ -8,6 +8,7 @@ function AiService:__init()
    -- SUSPEND_THREAD is unique when compared with ==.  The name is for
    -- cosmetic purposes and aids in debugging.
    self.SUSPEND_THREAD = { name = "SUSPEND_THREAD" }
+   self.KILL_THREAD = { name = "KILL_THREAD" }
 
    self._action_registry = {}
    self._observer_registry = {}
@@ -60,13 +61,14 @@ function AiService:_on_event_loop(now)
       end
 
       local status = coroutine.status(co)
-      if status == 'suspended' and wait_obj then
+      if status == 'suspended' and wait_obj and wait_obj ~= self.KILL_THREAD then
          self._scheduled[co] = nil
          self._waiting_until[co] = wait_obj
       else
          table.insert(dead, co)
       end
    end
+   
    for _, co in ipairs(dead) do
       local ai_component = self._co_to_ai_component[co]
       if ai_component then

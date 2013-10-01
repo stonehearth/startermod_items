@@ -238,7 +238,13 @@ function AIComponent:abort(reason)
    -- xxx: assert that we're running inthe context of the coroutine
    if reason == nil then reason = 'no reason given' end
    radiant.log.info('Aborting current action because: ' .. reason)
-   self:restart()
+   
+   self:_clear_action_stack()
+   
+   -- all actions have had their stop method called on them.  yield
+   -- KILL_THREAD to get the ai service to call restart() next time,
+   -- which will start us over at stonehearth.top.
+   coroutine.yield(self._ai_system.KILL_THREAD)
 end
 
 function AIComponent:execute(...)
