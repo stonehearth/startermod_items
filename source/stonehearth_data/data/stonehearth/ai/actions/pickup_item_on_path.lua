@@ -13,7 +13,7 @@ function PickupItemOnPath:run(ai, entity, path)
       local name = entity:get_component('unit_info'):get_display_name()
       local item_name = item:get_component('unit_info'):get_display_name()
       radiant.log.info('Worker %s: Huh? Where is %s?', name, item_name)
-      return
+      ai:abort()
    end
 
    ai:execute('stonehearth.pickup_item', item)

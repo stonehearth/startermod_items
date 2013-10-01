@@ -131,7 +131,6 @@ function PlaceItemCallHandler:_init_pickup_worker_task(session, proxy_entity, lo
    local pickup_item_task = worker_scheduler:add_worker_task('placing_item_task')
                   :set_worker_filter_fn(not_carrying_fn)
                   :add_work_object(proxy_entity)
-                  :set_priority(12)
 
    pickup_item_task:set_action_fn(
       function (path)

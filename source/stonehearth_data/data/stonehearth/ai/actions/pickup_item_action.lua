@@ -45,7 +45,7 @@ function PickupItemAction:run(ai, entity, item, parent)
       local name = entity:get_component('unit_info'):get_display_name()
       local item_name = item:get_component('unit_info'):get_display_name()
       radiant.log.info('Worker %s: Huh? Where is %s?', name, item_name)
-      return
+      ai:abort()
    end
    
    radiant.entities.turn_to_face(entity, item)

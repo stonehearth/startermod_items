@@ -19,14 +19,16 @@ WorkerScheduler['radiant.events.gameloop'] = function(self)
    --self:_dispatch_jobs()
 end
 
-function WorkerScheduler:dispatch_solution(action, path, priority)
+function WorkerScheduler:dispatch_solution(action, path)
    local id = path:get_source():get_id()
    local e = self._workers[id]
 
    assert(e, string.format('unknown worker id %d in _dispatch_solution', id))
 
    self:remove_worker(e.worker)
-   e.dispatch_fn(priority, action)
+
+   --TODO: figure out how to prioritize different worker actions
+   e.dispatch_fn(10, action)
 end
 
 function WorkerScheduler:abort_worker_task(task)

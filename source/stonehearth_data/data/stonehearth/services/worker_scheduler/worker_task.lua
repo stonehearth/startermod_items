@@ -5,8 +5,6 @@ function WorkerTask:__init(name, scheduler)
    self.id = next_task_id
    next_task_id = next_task_id + 1
 
-   self._priority = 10    --Default priority for all worker actions
-
    self._name = string.format('worker_task (%d): %s', self.id, name)
    self._scheduler = scheduler
    self._pathfinder = radiant.pathfinder.create_multi_path_finder(name)
@@ -69,15 +67,6 @@ function WorkerTask:add_work_object(dst)
    return self
 end
 
-function WorkerTask:set_priority(priority)
-   self._priority = priority
-   return self
-end
-
-function WorkerTask:get_priority()
-   return self._priority
-end
-
 function WorkerTask:start()
    if not self.running then
       self.running = true
@@ -133,7 +122,7 @@ function WorkerTask:_consider_worker(worker)
 end
 
 function WorkerTask:_dispatch_solution(action, path)
-   self._scheduler:dispatch_solution(action, path, self._priority)
+   self._scheduler:dispatch_solution(action, path)
 end
 
 return WorkerTask
