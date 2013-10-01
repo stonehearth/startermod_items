@@ -87,9 +87,9 @@ function Landscaper:_fill_noise_map(height_map)
 
    for j=1, height_map.height do
       for i=1, height_map.width do
-         if on_edge(height_map, i, j) then
+         if height_map:is_boundary(i, j) then
             -- discourage forests from running into zone boundaries
-            value = -10
+            value = -20
          else
             value = GaussianRandom.generate(mean, std_dev)
          end
@@ -110,12 +110,6 @@ function Landscaper:_get_tree_type(elevation)
       --return nil
    end
    return self:random_tree_type()
-end
-
-function on_edge(height_map, x, y)
-   if x == 1 or y == 1 then return true end
-   if x == height_map.width or y == height_map.height then return true end
-   return false
 end
 
 function Landscaper:random_tree(tree_type, tree_size)

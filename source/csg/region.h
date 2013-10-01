@@ -18,6 +18,7 @@ public:
 public:
    Region();
    Region(const Cube& cube);
+   Region(const Region&& r);
    Region(protocol::region3i const& msg) { LoadValue(msg); }
 
    static const Region empty;
@@ -28,7 +29,7 @@ public:
 
 public:
    S GetArea() const;
-   bool IsEmpty() const { return GetArea() == 0; }
+   bool IsEmpty() const;
    bool Intersects(const Cube& cube) const;
    bool Contains(const Point& pt) const;
    
@@ -51,12 +52,13 @@ public:
    void Add(const Cube& cube);
    void Add(const Point& cube);
    void AddUnique(const Cube& cube);
-   void AddUnique(const Region& cube);
-   
+   void AddUnique(const Region& cube);  
+   void Subtract(const Cube& other);
+   void Subtract(const Region& other);
+
    // optimizing...
    Region<S, C> operator-(const Cube& other) const;
    Region<S, C> operator-(const Region& other) const;
-   const Region<S, C>& operator=(const Region& other);
    const Region<S, C>& operator+=(const Region& cube);
    const Region<S, C>& operator-=(const Region& cube);
    const Region<S, C>& operator&=(const Cube& cube);
@@ -81,10 +83,6 @@ public:
    }
 
    void Optimize();
-
-private:
-   void Subtract(const Cube& other);
-   void Subtract(const Region& other);
 
 private:
    CubeVector     cubes_;

@@ -16,8 +16,16 @@ function entities.create_entity(ref)
    if not ref then
       return _radiant.sim.create_empty_entity()
    end
-   radiant.log.info('creating entity %s', ref)
+
+   -- don't spam trees to the log
+   if not is_tree(ref) then
+      radiant.log.info('creating entity %s', ref)
+   end
    return _radiant.sim.create_entity_by_ref(ref)
+end
+
+function is_tree(ref)
+   return string.sub(ref, -5) == '_tree'
 end
 
 function entities.destroy_entity(entity)
@@ -117,6 +125,16 @@ end
 function entities.get_world_grid_location(entity)
    radiant.check.is_entity(entity)
    return entity:add_component('mob'):get_world_grid_location()
+end
+
+function entities.get_entity_data(entity, key)
+   if entity then
+      local uri = entity:get_uri();
+      local json = radiant.resources.load_json(uri)
+      if json.entity_data then
+         return json.entity_data[key]
+      end
+   end
 end
 
 function entities.on_destroy(entity, dtor)

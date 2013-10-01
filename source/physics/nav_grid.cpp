@@ -35,30 +35,7 @@ void NavGrid::TrackComponent(dm::ObjectType type, std::shared_ptr<dm::Object> co
    switch (component->GetObjectType()) {
    case om::TerrainObjectType: {
       auto terrain = std::static_pointer_cast<om::Terrain>(component);
-      auto on_add_zone = [this](csg::Point3 location, om::BoxedRegion3Ptr const& region) {
-         om::BoxedRegion3Ref r = region;
-         auto add_zone_region = [this, r, location]() {
-            // xxx: this isn't really right given the definition of add region!
-            // when we start modifying terrain, revisit this.
-            auto region = r.lock();
-            if (region) {
-               csg::Region3 const& rgn = region->Get();
-               AddRegion(rgn.Translated(location));
-            }
-         };
-         region->TraceObjectChanges("rendering terrain zone", add_zone_region);
-         add_zone_region();
-      };
-
-      auto on_remove_zone = [this](csg::Point3 const& location) {
-         NOT_YET_IMPLEMENTED();
-      };
-
-      auto const& zone_map = terrain->GetZoneMap();
-      zone_map.TraceMapChanges("terrain renderer", on_add_zone, on_remove_zone);
-      for (const auto& entry : zone_map) {
-         on_add_zone(entry.first, entry.second);
-      }
+      terrain_[terrain->GetObjectId()] = terrain;
       break;
    }
    case om::RegionCollisionShapeObjectType: {
@@ -68,15 +45,9 @@ void NavGrid::TrackComponent(dm::ObjectType type, std::shared_ptr<dm::Object> co
    case om::VerticalPathingRegionObjectType: {
       AddVerticalPathingRegion(std::static_pointer_cast<om::VerticalPathingRegion>(component));
       break;
-   }                   
+   }
    }
 }
-
-void NavGrid::AddRegion(csg::Region3 const& r)
-{
-   solidRegion_ += r;
-}
-
 
 void NavGrid::AddRegionCollisionShape(om::RegionCollisionShapePtr region)
 {
@@ -93,8 +64,28 @@ bool NavGrid::IsEmpty(csg::Point3 const& pt) const
 {
    csg::Cube3 bounds(pt, pt + csg::Point3(1, 4, 1));
 
-   if (solidRegion_.Intersects(bounds)) {
-      return false;
+   {
+      auto i = terrain_.begin();
+      while (i != terrain_.end()) {
+         auto terrain = i->second.lock();
+         if (terrain) {
+            // xxx: ideally we would iterate through all the zones from the min
+            // to the max of the region, but that's very difficult given the
+            // terrain interface (e.g. what happens if min is in a zone and max
+            // isnt?)  so just check the min..
+            csg::Point3 origin;
+            om::BoxedRegion3Ptr zone = terrain->GetZone(bounds.GetMin(), origin);
+            if (zone) {
+               csg::Region3 const& region = **zone;
+               if (region.Intersects(bounds.Translated(-origin))) {
+                  return false;
+               }
+            }
+            i++;
+         } else {
+            i = terrain_.erase(i);
+         }
+      }
    }
 
    {

@@ -16,6 +16,10 @@ function WorkerTaskDispatcher:__init(ai, entity)
    self:_wait_for_next_task()
 end
 
+function WorkerTaskDispatcher:destroy()
+   self._scheduler:remove_worker(self._entity)
+end
+
 function WorkerTaskDispatcher:_wait_for_next_task()
    if self._task then
       self._scheduler:abort_worker_task(self._task)

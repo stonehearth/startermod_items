@@ -139,6 +139,8 @@ RenderInnerEffectList::RenderInnerEffectList(RenderEntity& renderEntity, om::Eff
             }
          } else if (type == "cubemitter") {
             e = std::make_shared<CubemitterEffect>(renderEntity, effect, node);
+         } else if (type == "light") {
+            e = std::make_shared<LightEffect>(renderEntity, effect, node);
          }
          if (e) {
             effects_.push_back(e);
@@ -264,7 +266,7 @@ void HideBoneEffect::Update(int now, int dt, bool& finished)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// HideBoneEffect
+// CubemitterEffect
 ///////////////////////////////////////////////////////////////////////////////
 
 CubemitterEffect::CubemitterEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
@@ -301,6 +303,47 @@ CubemitterEffect::~CubemitterEffect()
 }
 
 void CubemitterEffect::Update(int now, int dt, bool& finished)
+{
+   finished = false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// LightEffect
+///////////////////////////////////////////////////////////////////////////////
+
+LightEffect::LightEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
+   entity_(e),
+   lightNode_(0)
+{
+   auto animatedLightFileName = node["light"].as_string();
+   // TODO: for just a moment, hardcode some light values.
+   H3DRes matRes = h3dAddResource(H3DResTypes::Material, "materials/light.material.xml", 0);
+   H3DRes lightRes = h3dAddResource(RT_AnimatedLightResource, animatedLightFileName.c_str(), 0);
+   H3DNode l = h3dRadiantAddAnimatedLightNode(e.GetNode(), "ln", lightRes, matRes);
+
+   float x, y, z;
+
+   parseTransforms(node["transforms"], &x, &y, &z);
+   h3dSetNodeTransform(l, x, y, z, 0, 0, 0, 1, 1, 1);
+
+   lightNode_ = H3DNodeUnique(l);
+}
+
+void LightEffect::parseTransforms(const JSONNode& node, float* x, float* y, float* z)
+{
+   radiant::json::ConstJsonObject o(node);
+
+   *x = o.get("x", 0.0f);
+   *y = o.get("y", 0.0f);
+   *z = o.get("z", 0.0f);
+}
+
+
+LightEffect::~LightEffect()
+{
+}
+
+void LightEffect::Update(int now, int dt, bool& finished)
 {
    finished = false;
 }

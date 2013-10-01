@@ -110,16 +110,16 @@ function WorldGenerator:_create_world_blueprint()
    zones:get(4, 3).terrain_type = TerrainType.Plains
    zones:get(5, 3).terrain_type = TerrainType.Foothills
 
-   zones:get(1, 4).terrain_type = TerrainType.Mountains
-   zones:get(2, 4).terrain_type = TerrainType.Foothills
+   zones:get(1, 4).terrain_type = TerrainType.Foothills
+   zones:get(2, 4).terrain_type = TerrainType.Plains
    zones:get(3, 4).terrain_type = TerrainType.Plains
    zones:get(4, 4).terrain_type = TerrainType.Foothills
    zones:get(5, 4).terrain_type = TerrainType.Mountains
 
-   zones:get(1, 5).terrain_type = TerrainType.Foothills
+   zones:get(1, 5).terrain_type = TerrainType.Plains
    zones:get(2, 5).terrain_type = TerrainType.Plains
-   zones:get(3, 5).terrain_type = TerrainType.Foothills
-   zones:get(4, 5).terrain_type = TerrainType.Mountains
+   zones:get(3, 5).terrain_type = TerrainType.Plains
+   zones:get(4, 5).terrain_type = TerrainType.Foothills
    zones:get(5, 5).terrain_type = TerrainType.Mountains
 
    return zones

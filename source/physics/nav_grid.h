@@ -13,7 +13,6 @@ class NavGrid {
    public:
       NavGrid();
 
-      void AddRegion(csg::Region3 const& r);
       void TrackComponent(dm::ObjectType type, std::shared_ptr<dm::Object> component);
       bool CanStand(csg::Point3 const& pt) const;
       bool IsEmpty(csg::Point3 const& pt) const;
@@ -28,7 +27,7 @@ class NavGrid {
 
    private:
       bool                    dirty_;
-      csg::Region3            solidRegion_;
+      mutable std::map<dm::ObjectId, om::TerrainRef> terrain_;
       mutable std::map<dm::ObjectId, om::VerticalPathingRegionRef> vprs_;
       mutable std::map<dm::ObjectId, om::RegionCollisionShapeRef>  regionCollisionShapes_;
 };

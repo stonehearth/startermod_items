@@ -25,7 +25,7 @@ function WanderAction:run(ai, entity)
 
    local leash = entity:get_component('stonehearth:leash')
    local leash_location = leash:get_location()
-   local radius = leash:get_leash_radius()
+   local radius = leash:get_radius()
 
    local xMax = leash_location.x + radius - location.x
    local xMin = leash_location.x - radius + location.x

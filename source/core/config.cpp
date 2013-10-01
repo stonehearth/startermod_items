@@ -1,6 +1,7 @@
 #include <shlobj.h>
 #include "radiant.h"
 #include "config.h"
+#include <iostream>
 
 using namespace ::radiant;
 using namespace ::radiant::core;

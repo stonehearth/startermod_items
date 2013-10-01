@@ -32,6 +32,9 @@
       },
       "stonehearth:bed_lease" : {
       }
-	}
+   },
+   "entity_data" : {
+      "stonehearth:idle_boredom_effects" : ["idle_sway", "idle_look_around"]
+   }
 }
 

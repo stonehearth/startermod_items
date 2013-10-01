@@ -19,6 +19,13 @@ end
 function LookForEnemies:init_sight_sensor()
    assert(not self._sensor)
 
+   local list = self._entity:get_component('sensor_list')
+   if list then
+      radiant.events.unlisten('radiant.events.gameloop', self)
+   else 
+      return
+   end
+
    self._sensor = self._entity:get_component('sensor_list'):get_sensor('sight')
    self.promise = self._sensor:get_contents():trace()
 
@@ -60,6 +67,13 @@ function LookForEnemies:is_hostile(entity)
 
    if unit_info_b then 
       local faction_b = unit_info_b:get_faction()
+
+      -- MEGA HACK ALERT. This should be in some kind of faction allegiance lookup
+      if faction_a and faction_b and faction_a == 'civ' and faction_b == 'critter' then
+         return false
+      end
+      -- END OF MEGA HACK
+      
       return faction_a and faction_b and faction_b ~= '' and faction_a ~= faction_b
    else
       return false

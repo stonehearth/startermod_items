@@ -19,6 +19,12 @@ function HeightMap:get_offset(x, y)
    return (y-1)*self.width + x
 end
 
+function HeightMap:is_boundary(x, y)
+   if x == 1 or y == 1 then return true end
+   if x == self.width or y == self.height then return true end
+   return false
+end
+
 function HeightMap:clone()
    local dst = new HeightMap(self.width, self.height)
    local size = self.width * self.height
