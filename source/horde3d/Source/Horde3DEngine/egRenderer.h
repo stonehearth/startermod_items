@@ -169,7 +169,9 @@ public:
    uint32 getShadowRendBuf() const { return _shadowRB; }
 
 protected:
-	void setupViewMatrices( const Matrix4f &viewMat, const Matrix4f &projMat );
+   bool isShaderContextSwitch(const std::string &curContext, const MaterialResource *materialRes);
+
+   void setupViewMatrices( const Matrix4f &viewMat, const Matrix4f &projMat );
 	
 	void createPrimitives();
 	

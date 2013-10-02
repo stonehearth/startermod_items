@@ -590,6 +590,23 @@ void Renderer::commitGeneralUniforms()
 }
 
 
+bool Renderer::isShaderContextSwitch(const std::string &newContext, const MaterialResource *materialRes)
+{
+   ShaderResource *sr = materialRes->_shaderRes;
+   if (sr == 0x0) {
+      return false;
+   }
+
+   ShaderContext *sc = sr->findContext(newContext);
+   if (sc == 0x0) {
+      return false;
+   }
+
+ 	ShaderCombination *scc = sr->getCombination(*sc, materialRes->_combMask);
+	return scc != _curShader;
+}
+
+
 bool Renderer::setMaterialRec( MaterialResource *materialRes, const std::string &shaderContext,
                                ShaderResource *shaderRes )
 {
@@ -1608,7 +1625,8 @@ void Renderer::drawLightShapes( const std::string &shaderContext, bool noShadows
 		setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
 
       if (!_curLight->_directional) {
-		   if( curMatRes != _curLight->_materialRes ) {
+         if( curMatRes != _curLight->_materialRes || 
+               isShaderContextSwitch(shaderContext.empty() ? _curLight->_lightingContext : shaderContext, _curLight->_materialRes)) {
 			   if( !setMaterial( _curLight->_materialRes,
 				                 shaderContext.empty() ? _curLight->_lightingContext : shaderContext ) )
 			   {
