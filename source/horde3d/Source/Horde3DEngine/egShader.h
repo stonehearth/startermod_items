@@ -130,7 +130,7 @@ struct ShaderCombination
 	int                 uni_currentTime;
 	int                 uni_frameBufSize;
 	int                 uni_viewMat, uni_viewMatInv, uni_projMat, uni_viewProjMat, uni_viewProjMatInv, uni_viewerPos;
-   int                 uni_camProjMat, uni_camViewProjMat;
+   int                 uni_camProjMat, uni_camViewProjMat, uni_camViewProjMatInv, uni_camViewMat, uni_camViewMatInv;
 	int                 uni_worldMat, uni_worldNormalMat, uni_nodeId;
 	int                 uni_skinMatRows;
 	int                 uni_lightPos, uni_lightDir, uni_lightColor, uni_lightAmbientColor;

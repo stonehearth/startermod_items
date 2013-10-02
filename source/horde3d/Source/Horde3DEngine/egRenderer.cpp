@@ -426,7 +426,10 @@ bool Renderer::createShaderComb( const char* filename, const char *vertexShader,
 	sc.uni_viewProjMatInv = gRDI->getShaderConstLoc( shdObj, "viewProjMatInv" );
 	sc.uni_viewerPos = gRDI->getShaderConstLoc( shdObj, "viewerPos" );
    sc.uni_camViewProjMat = gRDI->getShaderConstLoc( shdObj, "camViewProjMat" );
+   sc.uni_camViewProjMatInv = gRDI->getShaderConstLoc( shdObj, "camViewProjMatInv" );
    sc.uni_camProjMat = gRDI->getShaderConstLoc( shdObj, "camProjMat" );
+   sc.uni_camViewMat = gRDI->getShaderConstLoc( shdObj, "camViewMat" );
+   sc.uni_camViewMatInv = gRDI->getShaderConstLoc( shdObj, "camViewMatInv" );
 	
 	// Per-instance uniforms
 	sc.uni_worldMat = gRDI->getShaderConstLoc( shdObj, "worldMat" );
@@ -511,9 +514,6 @@ void Renderer::commitGeneralUniforms()
       if( _curShader->uni_camProjMat >= 0 )
       {
          Matrix4f m = getCurCamera()->getProjMat();
-         Vec4f v(0, 0, 200, 1);
-         Vec4f r = m * v;
-         Vec4f h = Vec4f(r.x / r.w, r.y / r.w, r.z / r.w, r.w / r.w);
 			gRDI->setShaderConst( _curShader->uni_camProjMat, CONST_FLOAT44, m.x );
       }
 
@@ -521,6 +521,26 @@ void Renderer::commitGeneralUniforms()
       {
          Matrix4f m = getCurCamera()->getProjMat() * getCurCamera()->getViewMat();
 			gRDI->setShaderConst( _curShader->uni_camViewProjMat, CONST_FLOAT44, m.x );
+      }
+
+      if( _curShader->uni_camViewProjMatInv >= 0)
+      {
+         Matrix4f m = getCurCamera()->getProjMat() * getCurCamera()->getViewMat();
+         m.inverted();
+			gRDI->setShaderConst( _curShader->uni_camViewProjMatInv, CONST_FLOAT44, m.x );
+      }
+
+      if( _curShader->uni_camViewMat >= 0)
+      {
+         Matrix4f m = getCurCamera()->getViewMat();
+			gRDI->setShaderConst( _curShader->uni_camViewMat, CONST_FLOAT44, m.x );
+      }
+
+      if( _curShader->uni_camViewMatInv >= 0)
+      {
+         Matrix4f m = getCurCamera()->getViewMat();
+         m.inverted();
+			gRDI->setShaderConst( _curShader->uni_camViewMatInv, CONST_FLOAT44, m.x );
       }
 		
 		// Light params
