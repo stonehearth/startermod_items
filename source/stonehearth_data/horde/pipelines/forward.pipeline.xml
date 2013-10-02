@@ -11,7 +11,7 @@
       </Stage>
 
       <Stage id="Light">
-         <DoForwardLightLoop class="~Translucent" noShadows="true"/>
+         <DoForwardLightLoop class="~Translucent" noShadows="false"/>
       </Stage>
 
       <Stage id="Clouds">
