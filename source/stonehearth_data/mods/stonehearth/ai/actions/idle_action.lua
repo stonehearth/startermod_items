@@ -1,10 +1,10 @@
-local IdleAction = class()
+local Idle = class()
 
-IdleAction.name = 'stonehearth.actions.idle'
-IdleAction.does = 'stonehearth.top'
-IdleAction.priority = 1
+Idle.name = 'stonehearth.actions.idle'
+Idle.does = 'stonehearth.idle'
+Idle.priority = 1
 
-function IdleAction:__init(ai, entity)
+function Idle:__init(ai, entity)
    self._entity = entity
    self:reset_boredom()
    if radiant.entities.get_entity_data(entity, 'stonehearth:idle_boredom_effects') then
@@ -12,11 +12,11 @@ function IdleAction:__init(ai, entity)
    end
 end
 
-function IdleAction:reset_boredom()
+function Idle:reset_boredom()
    self._boredomCountdown = math.random(1, 3)
 end
 
-function IdleAction:run(ai, entity)
+function Idle:run(ai, entity)
    self:reset_boredom()
    while true do
       if self._boredomCountdown <= 0 then 
@@ -29,8 +29,8 @@ function IdleAction:run(ai, entity)
    end
 end
 
-function IdleAction:stop()
+function Idle:stop()
    self:reset_boredom()
 end
 
-return IdleAction
+return Idle

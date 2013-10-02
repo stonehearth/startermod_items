@@ -11,6 +11,7 @@ function PromoteTest:__init()
 
    --Create the carpenter, bench, and instantiate them to each other
 
+   self:place_item('stonehearth.rabbit', 10, -10)
    self:place_citizen(0,0)
    local worker = self:place_citizen(12, 12)
 

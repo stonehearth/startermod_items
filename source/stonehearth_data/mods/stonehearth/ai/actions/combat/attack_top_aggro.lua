@@ -1,16 +1,19 @@
-local AttackAction = class()
+local AttackTopAggro = class()
 
-AttackAction.name = 'stonehearth.actions.attack'
-AttackAction.does = 'stonehearth.top'
-AttackAction.priority = 0
+local Point3 = _radiant.csg.Point3
+local Vec3 = _radiant.csg.Point3f
 
-function AttackAction:__init(ai, entity)
+AttackTopAggro.name = 'AttackTopAggro!'
+AttackTopAggro.does = 'stonehearth.top'
+AttackTopAggro.priority = 0
+
+function AttackTopAggro:__init(ai, entity)
    self._entity = entity
    self._ai = ai
    radiant.events.listen('radiant.events.slow_poll', self)
 end
 
-AttackAction['radiant.events.slow_poll'] = function(self)
+AttackTopAggro['radiant.events.slow_poll'] = function(self)
    self._target = radiant.combat.get_target_table_top(self._entity, 'aggro')
 
    if self._target then
@@ -21,11 +24,9 @@ AttackAction['radiant.events.slow_poll'] = function(self)
    end
 end
 
---- xxx
-function AttackAction:run(ai, entity)
+function AttackTopAggro:run(ai, entity)
    assert(self._target)
-   ai:execute('stonehearth.goto_entity', self._target)
-   self._ai:set_action_priority(self, 0)
+   ai:execute('stonehearth.attack', self._target)
 end
 
-return AttackAction
+return AttackTopAggro

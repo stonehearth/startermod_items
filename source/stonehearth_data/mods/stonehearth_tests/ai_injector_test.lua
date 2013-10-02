@@ -15,7 +15,6 @@ function AiInjector:__init()
          --radiant.entities.goto_location(worker, Point3(12, 0, 2))
       end
    )
-
 end
 
 return AiInjector
