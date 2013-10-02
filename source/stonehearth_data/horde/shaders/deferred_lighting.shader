@@ -32,12 +32,10 @@ context DIRECTIONAL_LIGHTING
 
 uniform mat4 projMat;
 attribute vec3 vertPos;
-varying vec4 vpos;
         
 void main( void )
 {
-  vpos = projMat * vec4( vertPos, 1 );
-  gl_Position = vpos;
+  gl_Position = projMat * vec4( vertPos, 1 );;
 }
 
 [[FS_LIGHTING_DIRECTIONAL]]
@@ -46,12 +44,13 @@ void main( void )
 
 // uniform vec3 viewerPos; -- already declared.  harumph.
 uniform mat4 viewMat;
-varying vec4 vpos;
 uniform sampler2D depth;
 uniform sampler2D positions;
 uniform sampler2D normals;
 uniform vec3 lightAmbientColor;
 uniform vec2 frameBufSize;
+
+out vec4 outLightColor;
 
 void main( void )
 {
@@ -62,5 +61,5 @@ void main( void )
 
   vec3 normal = texture2D(normals, fragCoord).xyz;
   vec3 intensity = calcSimpleDirectionalLight( pos, normal, -vsPos, 0.3 ) + lightAmbientColor;
-  gl_FragColor = vec4(intensity, 1.0);
+  outLightColor = vec4(intensity, 1.0);
 }

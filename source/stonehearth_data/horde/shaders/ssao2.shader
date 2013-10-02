@@ -74,7 +74,7 @@ context BLUR_X
 [[VS_FSQUAD]]
 
 uniform mat4 projMat;
-attribute vec3 vertPos;
+in vec3 vertPos;
 varying vec2 texCoords;
 				
 void main( void )
@@ -267,7 +267,7 @@ void main()
 #version 150
 uniform mat4 projMat;
 
-attribute vec3 vertPos;
+in vec3 vertPos;
 
 out vec2 texCoords;
 noperspective out vec3 viewRay;
@@ -354,6 +354,6 @@ void main()
   }
 
   float visibility = 1.0 - (occlusion / 8.0);
-  visibility = pow(visibility, 1.3);
+  //visibility = pow(visibility, 1.7);
   fragColor = vec4(visibility,visibility,visibility, 1);
 }

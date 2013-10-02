@@ -29,13 +29,6 @@ context AMBIENT
   ZWriteEnable = true;
 }
 
-context ATTRIBPASS
-{
-  VertexShader = compile GLSL VS_GENERAL;
-  PixelShader = compile GLSL FS_AMBIENT;
-   CullMode = Back;
-}
-
 context DEPTH_AND_LIGHT_ATTRIBUTES
 {
   VertexShader = compile GLSL VS_GENERAL;
@@ -118,55 +111,29 @@ void main( void )
 }
 
 
-[[FS_AMBIENT]]  
-#version 150
-#include "shaders/utilityLib/fragDeferredWrite.glsl" 
-
-uniform vec3 viewerPos;
-uniform vec4 matDiffuseCol;
-uniform vec4 matSpecParams;
-uniform sampler2D albedoMap;
-
-in vec4 pos;
-in vec3 tsbNormal;
-in vec3 albedo;
-
-void main( void )
-{
-  vec3 newPos = pos.xyz;
-  vec3 normal = tsbNormal;
-
-  setMatID( 1.0 );
-  setPos( newPos - viewerPos );
-  setNormal( normalize( normal ) );
-  setAlbedo( albedo.rgb );
-  setSpecParams( matSpecParams.rgb, matSpecParams.a );
-}
-
-
 [[FS_DEFERRED_DEPTH_AND_LIGHT]] 
 #version 150
 uniform vec3 viewerPos;
 in vec4 pos;
 in vec3 tsbNormal;
+out vec4 fragNormal;
+out vec4 fragViewPos;
 
 void main( void )
 {
-  gl_FragData[0].rgb = normalize(tsbNormal).xyz;
-  gl_FragData[1].rgb = pos.xyz - viewerPos;
+  fragNormal.xyz = normalize(tsbNormal).xyz;
+  fragViewPos.xyz = pos.xyz - viewerPos;
 }
 
 
 [[FS_FORWARD_AMBIENT]]  
+#version 150
 
-uniform vec3 viewerPos;
-uniform vec4 matDiffuseCol;
-uniform vec4 matSpecParams;
-uniform sampler2D albedoMap;
+out vec4 fragColor;
 
 void main( void )
 {
-   gl_FragColor.rgb = vec3(0, 0, 0);
+  fragColor = vec4(0, 0, 0, 1);
 }
 
 [[VS_SHADOWMAP]]
@@ -235,7 +202,6 @@ void main( void )
 
 [[FS_OMNI_LIGHTING]]
 // =================================================================================================
-#version 150
 #include "shaders/utilityLib/fragLighting.glsl" 
 
 uniform vec4 matDiffuseCol;
@@ -246,19 +212,19 @@ in vec4 pos;
 in vec4 vsPos;
 in vec3 albedo;
 in vec3 tsbNormal;
+out vec4 outLightColor;
 
 void main( void )
 {
   vec3 normal = tsbNormal;
   vec3 newPos = pos.xyz;
 
-  gl_FragColor.rgb = 
+  outLightColor.rgb = 
          calcPhongOmniLight( newPos, normalize( normal ), albedo );
 }
 
 [[FS_DIRECTIONAL_LIGHTING]]
 // =================================================================================================
-#version 150
 #include "shaders/utilityLib/fragLighting.glsl" 
 
 uniform vec4 matDiffuseCol;
@@ -270,13 +236,14 @@ in vec4 pos;
 in vec4 vsPos;
 in vec3 albedo;
 in vec3 tsbNormal;
+out vec4 outLightColor;
 
 void main( void )
 {
   vec3 lightColor = 
     calcPhongDirectionalLight( pos.xyz, normalize( tsbNormal ), albedo, vec3(0,0,0),
                         0.0, -vsPos.z, 0.3 ) + (lightAmbientColor * albedo);
-  gl_FragColor = vec4(lightColor, 1.0);
+  outLightColor = vec4(lightColor, 1.0);
 }
 
 [[FS_CLOUDS]]
@@ -284,29 +251,29 @@ void main( void )
 in vec4 pos;
 uniform sampler2D cloudMap;
 uniform float currentTime;
+out vec4 cloudColor;
 
 void main( void )
 {
   vec2 fragCoord = pos.xz * 0.3;
   float cloudSpeed = currentTime / 80.0;
-  vec4 cloudColor = texture2D(cloudMap, fragCoord.xy / 128.0 + cloudSpeed);
+  cloudColor = texture2D(cloudMap, fragCoord.xy / 128.0 + cloudSpeed);
   cloudColor *= texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0));
-
-  gl_FragColor = cloudColor;
 }
 
 
 [[FS_DEFERRED_MATERIAL]]
-
+#version 150
 uniform sampler2D lightingBuffer;
 uniform sampler2D ssaoBuffer;
 uniform vec2 frameBufSize;
 in vec3 albedo;
+out vec4 fragColor;
 
 void main(void)
 {
   vec2 fragCoord = vec2(gl_FragCoord.xy / frameBufSize);
   vec3 lightColor = texture2D(lightingBuffer, fragCoord).xyz;
   float ssaoIntensity = texture2D(ssaoBuffer, fragCoord).x;
-  gl_FragColor = vec4(lightColor * albedo * ssaoIntensity, 1.0);
+  fragColor = vec4(lightColor * albedo * ssaoIntensity, 1.0);
 }
