@@ -4,6 +4,7 @@
 #include <boost/log/core.hpp>
 #include <boost/log/sources/severity_logger.hpp>
 #include <boost/log/sources/record_ostream.hpp>
+#include <boost/filesystem.hpp>
 
 namespace radiant {
    namespace logger {
@@ -12,7 +13,7 @@ namespace radiant {
          WARNING = 1,
          ERROR = 2
       };
-      void init();
+      void init(boost::filesystem::path const& logfile);
       void exit();
    };
 };

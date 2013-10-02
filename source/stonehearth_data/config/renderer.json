@@ -1,0 +1,23 @@
+{
+   "topsoil": {
+      "dark_color": "#807147",
+      "light_color": "#918154",
+      "detail_color": "#A3905A"
+   },
+   "foothills": {
+      "band_0_color": "#99ce7c",
+      "band_1_color": "#87c076",
+      "band_2_color": "#75b370"
+   },
+   "plains": {
+      "band_0_color": "#5fa771",
+      "band_1_color": "#529864"
+   },
+   "wood": {
+      "dark_color": "#523D27"
+   },
+   "dirtpath": {
+      "center": "#897C60",
+      "edges": "#978969"
+   }
+}

@@ -18,6 +18,12 @@ Region<S, C>::Region(const Cube& cube)
 }
 
 template <class S, int C>
+Region<S, C>::Region(const Region&& r)
+{
+   cubes_ = std::move(r.cubes_);
+}
+
+template <class S, int C>
 S Region<S, C>::GetArea() const
 {
    S area = 0;
@@ -29,6 +35,19 @@ S Region<S, C>::GetArea() const
 
 
 template <class S, int C>
+bool Region<S, C>::IsEmpty() const
+{
+   for (const auto& c : cubes_) {
+      // xxx: would it be faster to ensure there are no 0 area cubes in
+      // the array?  almost certainly so.
+      if (c.GetArea() > 0) {
+         return false;
+      }
+   }
+   return true;
+}
+
+template <class S, int C>
 void Region<S, C>::Clear()
 {
    cubes_.clear();
@@ -37,12 +56,12 @@ void Region<S, C>::Clear()
 template <class S, int C>
 void Region<S, C>::Add(const Cube& cube)
 {
-   static Region unique;
-   unique.Clear();
-   unique.AddUnique(cube);
+   Region unique(cube);
 
    for (const Cube& c : *this) {
-      unique.Subtract(c);
+      if (c.Intersects(cube)) {
+         unique.Subtract(c);
+      }
    }
    cubes_.insert(cubes_.end(), unique.begin(), unique.end());
 }
@@ -78,14 +97,19 @@ void Region<S, C>::Subtract(const Cube& cube)
    unsigned int size = cubes_.size();
 
    while (i < size) {
-      Region replacement = cubes_[i] - cube;
-      if (replacement.IsEmpty()) {
-         cubes_[i] = cubes_[size - 1];
-         size--;
-      } else {
-         cubes_[i] = replacement[0];
-         added.insert(added.end(), replacement.begin() + 1, replacement.end());
+      Cube const& src = cubes_[i];
+      if (!src.Intersects(cube)) {
          i++;
+      } else {
+         Region replacement = src - cube;
+         if (replacement.IsEmpty()) {
+            cubes_[i] = cubes_[size - 1];
+            size--;
+         } else {
+            cubes_[i] = replacement[0];
+            added.insert(added.end(), replacement.begin() + 1, replacement.end());
+            i++;
+         }
       }
    }
    cubes_.resize(size);
@@ -156,14 +180,6 @@ const Region<S, C>& Region<S, C>::operator&=(const Region& other)
    }
 
    *this = result;
-   return *this;
-}
-
-template <class S, int C>
-const Region<S, C>& Region<S, C>::operator=(const Region& r)
-{
-   cubes_.clear();
-   (*this) += r;
    return *this;
 }
 
@@ -324,7 +340,6 @@ Region3 radiant::csg::GetBorderXZ(const Region3 &other)
    template const Cls& Cls::operator&=(const Cls&); \
    template const Cls& Cls::operator+=(const Cls::Cube&); \
    template const Cls& Cls::operator-=(const Cls::Cube&); \
-   template const Cls& Cls::operator=(const Cls&); \
    template const Cls& Cls::operator+=(const Cls&); \
    template const Cls& Cls::operator-=(const Cls&); \
    template bool Cls::Intersects(const Cls::Cube&) const; \

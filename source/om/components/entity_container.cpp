@@ -22,7 +22,7 @@ void EntityContainer::AddChild(om::EntityRef c)
          auto container = parent->GetEntity().GetComponent<EntityContainer>();
          container->RemoveChild(c);
       }
-      mob->SetParent(GetEntity().GetComponent<Mob>());
+      mob->SetParent(GetEntity().AddComponent<Mob>());
 
       dm::ObjectId id = child->GetObjectId();
       children_[id] = child;

@@ -11,6 +11,7 @@
 #endif
 
 #include "extension.h"
+#include "datachannel.h"
 #include "radiant.h"
 #include "cubemitter.h"
 
@@ -18,6 +19,128 @@ using namespace ::radiant;
 using namespace ::radiant::json;
 using namespace ::radiant::horde3d;
 
+cubemitter::OriginData::SurfaceKind parseSurfaceKind(ConstJsonObject &n)
+{
+   if (n.as<std::string>() == "POINT") {
+      return cubemitter::OriginData::POINT;
+   }
+   return cubemitter::OriginData::RECTANGLE;
+}
+
+cubemitter::OriginData parseOrigin(ConstJsonObject &n) {
+   cubemitter::OriginData result;
+   if (n.has("surface"))
+   {
+      result.surfaceKind = parseSurfaceKind(n.getn("surface"));
+   }
+   if (result.surfaceKind == cubemitter::OriginData::SurfaceKind::RECTANGLE) {
+      if (n.has("values"))
+      {
+         result.length = n.getn("values").get<float>(0);
+         result.width = n.getn("values").get<float>(1);
+      }
+   }
+   return result;
+}
+
+cubemitter::EmissionData parseEmission(ConstJsonObject& n) 
+{
+   cubemitter::EmissionData result;
+   result.rate = parseChannel(n, "rate", 1.0f);
+   result.angle = parseChannel(n, "angle", 25.0f);
+   if (n.has("origin"))
+   {
+      result.origin = parseOrigin(n.getn("origin"));
+   }
+   return result;
+}
+
+cubemitter::LifetimeData parseLifetime(ConstJsonObject& n)
+{
+   cubemitter::LifetimeData result;
+   result.start = parseChannel(n, "start", 5.0f);
+   return result;
+}
+
+cubemitter::SpeedData parseSpeed(ConstJsonObject& n)
+{
+   cubemitter::SpeedData result;
+   result.start = parseChannel(n, "start", 5.0f);
+   result.over_lifetime = parseChannel(n, "over_lifetime", 1.0f);
+   return result;
+}
+
+cubemitter::RotationData parseRotation(ConstJsonObject& n)
+{
+   cubemitter::RotationData result;
+   result.over_lifetime_x = parseChannel(n, "over_lifetime_x", 0.0f);
+   result.over_lifetime_y = parseChannel(n, "over_lifetime_y", 0.0f);
+   result.over_lifetime_z = parseChannel(n, "over_lifetime_z", 0.0f);
+   return result;
+}
+
+cubemitter::VelocityData parseVelocity(ConstJsonObject& n)
+{
+   cubemitter::VelocityData result;
+   result.over_lifetime_x = parseChannel(n, "over_lifetime_x", 0.0f);
+   result.over_lifetime_y = parseChannel(n, "over_lifetime_y", 0.0f);
+   result.over_lifetime_z = parseChannel(n, "over_lifetime_z", 0.0f);
+   return result;
+}
+
+cubemitter::ColorData parseColor(ConstJsonObject& n)
+{
+   cubemitter::ColorData result;
+   result.start = parseChannel(n, "start", Vec4f(1, 0, 0, 1));
+   result.over_lifetime_r = parseChannel(n, "over_lifetime_r", result.start->nextValue(0).x);
+   result.over_lifetime_g = parseChannel(n, "over_lifetime_g", result.start->nextValue(0).y);
+   result.over_lifetime_b = parseChannel(n, "over_lifetime_b", result.start->nextValue(0).z);
+   result.over_lifetime_a = parseChannel(n, "over_lifetime_a", result.start->nextValue(0).w);
+   return result;
+}
+
+cubemitter::ScaleData parseScale(ConstJsonObject& n)
+{
+   cubemitter::ScaleData result;
+   result.start = parseChannel(n, "start", 1.0f);
+   result.over_lifetime = parseChannel(n, "over_lifetime", 1.0f);
+   return result;
+}
+
+cubemitter::ParticleData parseParticle(ConstJsonObject& n) 
+{
+   cubemitter::ParticleData result;
+   if (n.has("speed"))
+   {
+      result.speed = parseSpeed(n.getn("speed"));
+   }
+
+   if (n.has("lifetime"))
+   {
+      result.lifetime = parseLifetime(n.getn("lifetime"));
+   }
+
+   if (n.has("color"))
+   {
+      result.color = parseColor(n.getn("color"));
+   }
+
+   if (n.has("scale"))
+   {
+      result.scale = parseScale(n.getn("scale"));
+   }
+
+   if (n.has("rotation"))
+   {
+      result.rotation = parseRotation(n.getn("rotation"));
+   }
+
+   if (n.has("velocity"))
+   {
+      result.velocity = parseVelocity(n.getn("velocity"));
+   }
+   return result;
+}
 
 
 // *************************************************************************************************
@@ -75,234 +198,6 @@ bool CubemitterResource::load( const char *data, int size )
       emitterData.emission = parseEmission(root.getn("emission"));
    }
 	return true;
-}
-
-Vec4f parseVec4f(ConstJsonObject &vals, const Vec4f& def)
-{
-   return Vec4f(vals.get(0, def.x), vals.get(1, def.y), vals.get(2, def.z), vals.get(3, def.w));
-}
-
-Vec3f parseVec3f(ConstJsonObject &vals, const Vec3f& def)
-{
-   return Vec3f(vals.get(0, def.x), vals.get(1, def.y), vals.get(2, def.z));
-}
-
-std::vector<std::pair<float, float> > parseCurveValues(ConstJsonObject &n) {
-   std::vector<std::pair<float, float> > result;
-
-   for (const auto &child : n)
-   {
-      result.push_back(std::pair<float, float>((float)child.at(0).as_float(), (float)child.at(1).as_float()));
-   }
-
-   return result;
-}
-
-ValueEmitter<float>* parseChannel(ConstJsonObject &n, const char *childName, float def)
-{
-   if (!n.has(childName))
-   {
-      return new ConstantValueEmitter<float>(def);
-   }
-
-   auto childNode = n.getn(childName);
-
-   if (!childNode.has("values") || !childNode.has("kind"))
-   {
-      return new ConstantValueEmitter<float>(def);
-   }
-   auto vals = childNode.getn("values");
-   std::string kind = childNode.get<std::string>("kind");
-
-   if (kind == "CONSTANT")
-   {
-      return new ConstantValueEmitter<float>(vals.get(0, def));
-   } else if (kind == "RANDOM_BETWEEN")
-   {
-      return new RandomBetweenValueEmitter(vals.get(0, def), vals.get(1, def));
-   } else if (kind == "CURVE")
-   {
-      return new LinearCurveValueEmitter(parseCurveValues(vals));
-   } //else kind == "RANDOM_BETWEEN_CURVES"
-
-   return new RandomBetweenLinearCurvesValueEmitter(
-      parseCurveValues(vals.getn(0)), parseCurveValues(vals.getn(1)));
-}
-
-ValueEmitter<Vec3f>* parseChannel(ConstJsonObject &n, const char *childName, const Vec3f &def)
-{
-   if (!n.has(childName))
-   {
-      return new ConstantValueEmitter<Vec3f>(def);
-   }
-
-   auto childNode = n.getn(childName);
-
-   if (!childNode.has("values") || !childNode.has("kind"))
-   {
-      return new ConstantValueEmitter<Vec3f>(def);
-   }
-   auto vals = childNode.getn("values");
-   std::string kind = childNode.get<std::string>("kind");
-
-   if (kind == "CONSTANT")
-   {
-      Vec3f val(parseVec3f(vals, def));
-      return new ConstantValueEmitter<Vec3f>(val);
-   } //else kind == "RANDOM_BETWEEN"
-
-   ConstJsonObject vec1node = vals.getn(0);
-   ConstJsonObject vec2node = vals.getn(1);
-
-   return new RandomBetweenVec3fEmitter(parseVec3f(vec1node, def), parseVec3f(vec2node, def));
-}
-
-ValueEmitter<Vec4f>* parseChannel(ConstJsonObject &n, const char *childName, const Vec4f &def)
-{
-   if (!n.has(childName))
-   {
-      return new ConstantValueEmitter<Vec4f>(def);
-   }
-
-   auto childNode = n.getn(childName);
-
-   if (!childNode.has("values") || !childNode.has("kind"))
-   {
-      return new ConstantValueEmitter<Vec4f>(def);
-   }
-   auto vals = childNode.getn("values");
-   std::string kind = childNode.get<std::string>("kind");
-
-   if (kind == "CONSTANT")
-   {
-      return new ConstantValueEmitter<Vec4f>(parseVec4f(vals, def));
-   } //else kind == "RANDOM_BETWEEN"
-
-   return new RandomBetweenVec4fEmitter(parseVec4f(vals.getn(0), def), 
-      parseVec4f(vals.getn(1), def));
-}
-
-OriginData::SurfaceKind parseSurfaceKind(ConstJsonObject &n)
-{
-   if (n.as<std::string>() == "POINT") {
-      return OriginData::POINT;
-   }
-   return OriginData::RECTANGLE;
-}
-
-EmissionData CubemitterResource::parseEmission(ConstJsonObject& n) 
-{
-   EmissionData result;
-   result.rate = parseChannel(n, "rate", 1.0f);
-   result.angle = parseChannel(n, "angle", 25.0f);
-   if (n.has("origin"))
-   {
-      result.origin = parseOrigin(n.getn("origin"));
-   }
-   return result;
-}
-
-OriginData CubemitterResource::parseOrigin(ConstJsonObject &n) {
-   OriginData result;
-   if (n.has("surface"))
-   {
-      result.surfaceKind = parseSurfaceKind(n.getn("surface"));
-   }
-   if (result.surfaceKind == OriginData::SurfaceKind::RECTANGLE) {
-      if (n.has("values"))
-      {
-         result.length = n.getn("values").get<float>(0);
-         result.width = n.getn("values").get<float>(1);
-      }
-   }
-   return result;
-}
-
-ParticleData CubemitterResource::parseParticle(ConstJsonObject& n) 
-{
-   ParticleData result;
-   if (n.has("speed"))
-   {
-      result.speed = parseSpeed(n.getn("speed"));
-   }
-
-   if (n.has("lifetime"))
-   {
-      result.lifetime = parseLifetime(n.getn("lifetime"));
-   }
-
-   if (n.has("color"))
-   {
-      result.color = parseColor(n.getn("color"));
-   }
-
-   if (n.has("scale"))
-   {
-      result.scale = parseScale(n.getn("scale"));
-   }
-
-   if (n.has("rotation"))
-   {
-      result.rotation = parseRotation(n.getn("rotation"));
-   }
-
-   if (n.has("velocity"))
-   {
-      result.velocity = parseVelocity(n.getn("velocity"));
-   }
-   return result;
-}
-
-LifetimeData CubemitterResource::parseLifetime(ConstJsonObject& n)
-{
-   LifetimeData result;
-   result.start = parseChannel(n, "start", 5.0f);
-   return result;
-}
-
-SpeedData CubemitterResource::parseSpeed(ConstJsonObject& n)
-{
-   SpeedData result;
-   result.start = parseChannel(n, "start", 5.0f);
-   result.over_lifetime = parseChannel(n, "over_lifetime", 1.0f);
-   return result;
-}
-
-RotationData CubemitterResource::parseRotation(ConstJsonObject& n)
-{
-   RotationData result;
-   result.over_lifetime_x = parseChannel(n, "over_lifetime_x", 0.0f);
-   result.over_lifetime_y = parseChannel(n, "over_lifetime_y", 0.0f);
-   result.over_lifetime_z = parseChannel(n, "over_lifetime_z", 0.0f);
-   return result;
-}
-
-VelocityData CubemitterResource::parseVelocity(ConstJsonObject& n)
-{
-   VelocityData result;
-   result.over_lifetime_x = parseChannel(n, "over_lifetime_x", 0.0f);
-   result.over_lifetime_y = parseChannel(n, "over_lifetime_y", 0.0f);
-   result.over_lifetime_z = parseChannel(n, "over_lifetime_z", 0.0f);
-   return result;
-}
-
-ColorData CubemitterResource::parseColor(ConstJsonObject& n)
-{
-   ColorData result;
-   result.start = parseChannel(n, "start", Vec4f(1, 0, 0, 1));
-   result.over_lifetime_r = parseChannel(n, "over_lifetime_r", result.start->nextValue(0).x);
-   result.over_lifetime_g = parseChannel(n, "over_lifetime_g", result.start->nextValue(0).y);
-   result.over_lifetime_b = parseChannel(n, "over_lifetime_b", result.start->nextValue(0).z);
-   result.over_lifetime_a = parseChannel(n, "over_lifetime_a", result.start->nextValue(0).w);
-   return result;
-}
-
-ScaleData CubemitterResource::parseScale(ConstJsonObject& n)
-{
-   ScaleData result;
-   result.start = parseChannel(n, "start", 1.0f);
-   result.over_lifetime = parseChannel(n, "over_lifetime", 1.0f);
-   return result;
 }
 
 int CubemitterResource::getElemCount( int elem )
@@ -449,7 +344,7 @@ bool CubemitterNode::hasFinished()
    if (_active) {
       return false;
    }
-	for( uint32 i = 0; i < _particleCount; ++i )
+	for( uint32 i = 0; i < _maxCubes; ++i )
 	{	
       if( _cubes[i].currentLife > 0)
 		{
@@ -482,7 +377,7 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 		
 		CubemitterNode *emitter = (CubemitterNode *)entry.node;
 
-		/*if( emitter->_particleCount == 0 ) continue;
+      if( emitter->_maxCubes == 0 ) continue;
 		if( !emitter->_materialRes->isOfClass( theClass ) ) continue;
 		
 		// Occlusion culling
@@ -513,14 +408,14 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 					{
 						Modules::renderer().pushOccProxy( 0, emitter->getBBox().min,
 							emitter->getBBox().max, emitter->_occQueries[occSet] );
-                  _wasVisible = false;
+                  emitter->_wasVisible = false;
 						continue;
 					}
 					else
 						queryObj = emitter->_occQueries[occSet];
 				}
 			}
-		}*/
+		}
 		
 		// Set material
 		if( curMatRes != emitter->_materialRes )
@@ -534,8 +429,8 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 		// Set vertex layout
       gRDI->setVertexLayout( Extension::getCubemitterCubeVL() );
 		
-		//if( queryObj )
-		//	gRDI->beginQuery( queryObj );
+		if( queryObj )
+			gRDI->beginQuery( queryObj );
 		
 		// Shader uniforms
 		ShaderCombination *curShader = Modules::renderer().getCurShader();
@@ -551,16 +446,15 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
       
       emitter->_wasVisible = true;
 
-		/*if( queryObj )
-			gRDI->endQuery( queryObj );*/
+		if( queryObj )
+			gRDI->endQuery( queryObj );
 	}
 
 	timer->endQuery();
 
-
    // Draw occlusion proxies
-	//if( occSet >= 0 )
-	//	Modules::renderer().drawOccProxies( 0 );
+	if( occSet >= 0 )
+		Modules::renderer().drawOccProxies( 0 );
 	
 	gRDI->setVertexLayout( 0 );
 }
@@ -572,16 +466,6 @@ void CubemitterNode::onPostUpdate()
 	Timer *timer = Modules::stats().getTimer( EngineStats::ParticleSimTime );
 	if( Modules::config().gatherTimeStats ) timer->setEnabled( true );
 	
-	Vec3f bBMin( Math::MaxFloat, Math::MaxFloat, Math::MaxFloat );
-	Vec3f bBMax( -Math::MaxFloat, -Math::MaxFloat, -Math::MaxFloat );
-	
-	/*
-   if( _delay <= 0 )
-		_emissionAccum += _emissionRate * _timeDelta;
-	else
-		_delay -= _timeDelta;
-   */
-
    CubemitterData d = _cubemitterRes.getPtr()->emitterData;
 
    float timeAvailableToSpawn = _timeDelta - _nextSpawnTime;
@@ -603,6 +487,9 @@ void CubemitterNode::onPostUpdate()
 
 void CubemitterNode::updateAndSpawnCubes(int numToSpawn) 
 {
+	Vec3f bBMin( Math::MaxFloat, Math::MaxFloat, Math::MaxFloat );
+	Vec3f bBMax( -Math::MaxFloat, -Math::MaxFloat, -Math::MaxFloat );
+
    for (uint32 i = 0; i < _maxCubes; i++)
    {
       CubeData &d = _cubes[i];
@@ -614,8 +501,11 @@ void CubemitterNode::updateAndSpawnCubes(int numToSpawn)
          numToSpawn--;
       }
 
-      updateCube(d, ca);
+      updateCube(d, ca, bBMin, bBMax);
    }
+
+   _bBox.min = bBMin;
+	_bBox.max = bBMax;
 }
 
 void CubemitterNode::spawnCube(CubeData &d, CubeAttribute &ca)
@@ -628,7 +518,7 @@ void CubemitterNode::spawnCube(CubeData &d, CubeAttribute &ca)
    Matrix4f m = _absTrans;
    d.position = m.getTrans();
 
-   if (data.emission.origin.surfaceKind == OriginData::SurfaceKind::RECTANGLE)
+   if (data.emission.origin.surfaceKind == cubemitter::OriginData::SurfaceKind::RECTANGLE)
    {
       float randWidth = randomF(-data.emission.origin.width / 2.0f, data.emission.origin.width / 2.0f);
       float randLength = randomF(-data.emission.origin.length / 2.0f, data.emission.origin.length / 2.0f);
@@ -726,7 +616,7 @@ void CubemitterNode::spawnCube(CubeData &d, CubeAttribute &ca)
    ca.color = d.currentColor;
 }
 
-void CubemitterNode::updateCube(CubeData &d, CubeAttribute &ca)
+void CubemitterNode::updateCube(CubeData& d, CubeAttribute& ca, Vec3f& bBMin, Vec3f& bBMax)
 {
    if (d.currentLife <= 0) {
       // Set the scale to zero, so nothing is rasterized (burning vertex ops should be fine).
@@ -754,48 +644,25 @@ void CubemitterNode::updateCube(CubeData &d, CubeAttribute &ca)
    float rotY = degToRad(d.rotation_y->nextValue(fr));
    float rotZ = degToRad(d.rotation_z->nextValue(fr));
 
-
    Matrix4f rot = Matrix4f::RotMat(rotX, rotY, rotZ);
    Matrix4f scale = Matrix4f::ScaleMat(d.currentScale, d.currentScale, d.currentScale);
-   rot = rot * scale;
 
    // This is our actual vbo data.
-   ca.matrix.x[0] = rot.x[0];
-   ca.matrix.x[1] = rot.x[1];
-   ca.matrix.x[2] = rot.x[2];
-   ca.matrix.x[4] = rot.x[4];
-   ca.matrix.x[5] = rot.x[5];
-   ca.matrix.x[6] = rot.x[6];
-   ca.matrix.x[8] = rot.x[8];
-   ca.matrix.x[9] = rot.x[9];
-   ca.matrix.x[10] = rot.x[10];
+   ca.matrix = rot * scale;
    ca.matrix.x[12] = d.position.x;
    ca.matrix.x[13] = d.position.y;
    ca.matrix.x[14] = d.position.z;
    ca.color = d.currentColor;
-}
 
-
-/*		// Update bounding box
-		Vec3f vertPos( _parPositions[i*3+0], _parPositions[i*3+1], _parPositions[i*3+2] );
-		if( vertPos.x < bBMin.x ) bBMin.x = vertPos.x;
-		if( vertPos.y < bBMin.y ) bBMin.y = vertPos.y;
-		if( vertPos.z < bBMin.z ) bBMin.z = vertPos.z;
-		if( vertPos.x > bBMax.x ) bBMax.x = vertPos.x;
-		if( vertPos.y > bBMax.y ) bBMax.y = vertPos.y;
-		if( vertPos.z > bBMax.z ) bBMax.z = vertPos.z;
-	}
+	if( d.position.x < bBMin.x ) bBMin.x = d.position.x;
+	if( d.position.y < bBMin.y ) bBMin.y = d.position.y;
+	if( d.position.z < bBMin.z ) bBMin.z = d.position.z;
+	if( d.position.x > bBMax.x ) bBMax.x = d.position.x;
+	if( d.position.y > bBMax.y ) bBMax.y = d.position.y;
+	if( d.position.z > bBMax.z ) bBMax.z = d.position.z;
 
 	// Avoid zero box dimensions for planes
 	if( bBMax.x - bBMin.x == 0 ) bBMax.x += Math::Epsilon;
 	if( bBMax.y - bBMin.y == 0 ) bBMax.y += Math::Epsilon;
-	if( bBMax.z - bBMin.z == 0 ) bBMax.z += Math::Epsilon;
-	
-	_bBox.min = bBMin;
-	_bBox.max = bBMax;
-
-	_timeDelta = 0;
-	_prevAbsTrans = _absTrans;
-
-	timer->setEnabled( false );*/
-//}
+	if( bBMax.z - bBMin.z == 0 ) bBMax.z += Math::Epsilon;	
+}

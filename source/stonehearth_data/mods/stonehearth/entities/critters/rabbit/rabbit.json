@@ -1,0 +1,32 @@
+{
+   "type" : "entity",
+   "extends" : "stonehearth.mixins.mob",   
+   "components": {
+      "unit_info" : {
+        "name": "A rabbit",
+        "description": "Om nom nom",
+        "faction": "critter"
+      },
+      "stonehearth:ai" : {
+         "actions" : [
+            "stonehearth.actions.wander_action"
+         ]
+      },
+      "render_info" : {
+         "animation_table" : "file(/data/rigs/critters/rabbit)"
+      },
+      "model_variants": [
+         {
+            "models": [
+               "file(rabbit.qb)"
+            ]
+         }
+      ]
+   },
+   "entity_data" : {
+      "stonehearth:idle_boredom_effects" : ["idle_look_around"],
+      "stonehearth:wander_leash" : {
+        "radius" : 5
+      }
+   }
+}

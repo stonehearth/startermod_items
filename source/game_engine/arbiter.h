@@ -31,7 +31,7 @@ namespace radiant {
             arbiter();
             ~arbiter();
 
-            void GetConfigOptions(boost::program_options::options_description& options);
+            void GetConfigOptions();
 
             void Run();
 

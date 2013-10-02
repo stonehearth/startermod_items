@@ -1,6 +1,0 @@
-{
-        "name": "Carpenter's Workshop",
-        "description": "Mer Burleyhands",
-        "profession": "Carpenter",
-        "level": 1
-}

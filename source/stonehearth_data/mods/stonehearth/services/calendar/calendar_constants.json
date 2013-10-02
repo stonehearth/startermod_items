@@ -1,0 +1,49 @@
+{
+   "ticks_per_second" : 2,
+   "seconds_per_minute" : 10,
+   "minutes_per_hour" : 60,
+   "hours_per_day" : 24,
+   "days_per_month" : 30,
+   "months_per_year" : 12,
+
+   "starting_month" : 1,
+   "starting_year" : 1000,
+
+   "hourNames" : [
+      "Aughtaur",
+      "Twivaur",
+      "Thrisaur",
+      "Quarthaur",
+      "Fifaur",
+      "Sesaur",
+      "Sevaur",
+      "Ochaur",
+      "Neinaur",
+      "Tethtaur",
+      "Elehaur",
+      "Dovaur"
+   ],
+
+   "monthNames" : [
+      "Bittermun",
+      "Deepmun",
+      "Dewmun",
+      "Rainmun",
+      "Growmun",
+      "Goldmun",
+      "Feastmun",
+      "Warmun",
+      "Newmun",
+      "Azuremun",
+      "Hearthmun",
+      "Northmun"
+   ],
+
+   "baseTimeOfDay" : {
+      "midnight" : 0,
+      "sunrise" : 6,
+      "midday" : 14,
+      "sunset" : 22
+   }
+
+}

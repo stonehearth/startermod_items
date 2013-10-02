@@ -82,6 +82,30 @@ vec3 calcPhongSpotLight( const vec3 pos, const vec3 normal, const vec3 albedo, c
   return (albedo + specular) * lightColor * atten * shadowTerm;
 }
 
+
+vec3 calcPhongOmniLight( const vec3 pos, const vec3 normal, const vec3 albedo )
+{
+	vec3 light = lightPos.xyz - pos;
+	float lightLen = length( light );
+	light /= lightLen;
+	
+	// Distance attenuation
+	float lightDepth = lightLen / lightPos.w;
+	float atten = max( 1.0 - lightDepth * lightDepth, 0.0 );
+	
+	// Lambert diffuse
+	float NdotL = max( dot( normal, light ), 0.0 );
+	atten *= NdotL;
+		
+	// Blinn-Phong specular with energy conservation
+	vec3 view = normalize( viewerPos - pos );
+	vec3 halfVec = normalize( light + view );
+	
+	// Final color
+   //return projShadow;
+	return albedo * lightColor * atten;
+}
+
 vec3 calcPhongDirectionalLight( const vec3 pos, const vec3 normal, const vec3 albedo, const vec3 specColor,
                           const float gloss, const float viewDist, const float ambientIntensity )
 {     

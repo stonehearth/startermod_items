@@ -62,14 +62,14 @@ context DIRECTIONAL_SHADOWMAP
    CullMode = Back;
 }
 
-context LIGHTING
+context OMNI_LIGHTING
 {
   VertexShader = compile GLSL VS_GENERAL;
-  PixelShader = compile GLSL FS_LIGHTING;
+  PixelShader = compile GLSL FS_OMNI_LIGHTING;
   
   ZWriteEnable = false;
   BlendMode = Add;
-   CullMode = Back;
+  CullMode = Back;
 }
 
 context DIRECTIONAL_LIGHTING
@@ -81,6 +81,7 @@ context DIRECTIONAL_LIGHTING
   BlendMode = Add;
     CullMode = Back;
 }
+
 
 context CLOUDS
 {
@@ -232,7 +233,7 @@ void main( void )
   //gl_FragDepth = dist + abs( dFdx( dist ) ) + abs( dFdy( dist ) ) + shadowBias;
 }
 
-[[FS_LIGHTING]]
+[[FS_OMNI_LIGHTING]]
 // =================================================================================================
 #version 150
 #include "shaders/utilityLib/fragLighting.glsl" 
@@ -252,8 +253,7 @@ void main( void )
   vec3 newPos = pos.xyz;
 
   gl_FragColor.rgb = 
-         calcPhongSpotLight( newPos, normalize( normal ), albedo, matSpecParams.rgb,
-                        matSpecParams.a, -vsPos.z, 0.3 );
+         calcPhongOmniLight( newPos, normalize( normal ), albedo );
 }
 
 [[FS_DIRECTIONAL_LIGHTING]]

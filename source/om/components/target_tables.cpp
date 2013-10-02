@@ -94,33 +94,29 @@ bool pairCompare(const T & x, const T & y) {
 
 TargetTableTopPtr TargetTableGroup::GetTop()
 {
-
-   static std::unordered_map<EntityId, int> values_(10);
-   static std::unordered_map<EntityId, int> expireTimes_(10);
-
-   values_.clear();
-   expireTimes_.clear();
+   std::unordered_map<EntityId, int> values(10);
+   std::unordered_map<EntityId, int> expireTimes(10);
 
    for (TargetTablePtr table  : tables_) {
       for (const auto& j: table->GetEntries()) {
          dm::ObjectId id = j.first;
          TargetTableEntryPtr entry = j.second;
-         values_[id] += entry->GetValue();
-         expireTimes_[id] = std::max(expireTimes_[id], entry->GetExpireTime());
+         values[id] += entry->GetValue();
+         expireTimes[id] = std::max(expireTimes[id], entry->GetExpireTime());
       }
    }
-   if (values_.empty()) {
+   if (values.empty()) {
       // LOG(WARNING) << "no values at all...";
       return nullptr;
    }
 
    EntityPtr target; 
    int value;
-   while (!target && !values_.empty()) {
-      auto i = std::max_element(values_.begin(), values_.end(), pairCompare<std::unordered_map<EntityId, int>::value_type>);
+   while (!target && !values.empty()) {
+      auto i = std::max_element(values.begin(), values.end(), pairCompare<std::unordered_map<EntityId, int>::value_type>);
       target = GetStore().FetchObject<Entity>(i->first);
       value = i->second;
-      values_.erase(i);
+      values.erase(i);
    }
 
    if (!target) {
@@ -132,7 +128,7 @@ TargetTableTopPtr TargetTableGroup::GetTop()
    // xxx: RAII
    top->target = target;
    top->value = value;
-   top->expires = expireTimes_[target->GetObjectId()];
+   top->expires = expireTimes[target->GetObjectId()];
 
    // LOG(WARNING) << "returning new target table top ptr ..." << top;
 

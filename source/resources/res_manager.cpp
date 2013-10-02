@@ -11,6 +11,7 @@
 #include "radiant_json.h"
 #include "res_manager.h"
 #include "animation.h"
+#include "core/config.h"
 
 // Crytop stuff (xxx - change the include path so these generic headers aren't in it)
 #include "sha.h"
@@ -22,6 +23,8 @@ namespace fs = ::boost::filesystem;
 using namespace ::radiant;
 using namespace ::radiant::res;
 
+static const std::regex file_macro_regex__("^file\\((.*)\\)$");
+static const std::regex entity_macro_regex__("^([^\\.\\\\/]+)\\.([^\\\\/]+)$");
 
 // === Helper Functions ======================================================
 
@@ -53,7 +56,11 @@ AnimationPtr ResourceManager2::LoadAnimation(std::string const& canonical_path) 
 
    std::string jsonfile = io::read_contents(json_in);
    std::string jsonhash = Checksum(jsonfile);
-   fs::path binfile = fs::path(resource_dir_) / (jsonhash + std::string(".bin"));
+   fs::path animation_cache = core::Config::GetInstance().GetCacheDirectory() / "animations";
+   if (!fs::is_directory(animation_cache)) {
+      fs::create_directories(animation_cache);
+   }
+   fs::path binfile = animation_cache / (jsonhash + std::string(".bin"));
 
    std::string buffer;
    std::ifstream in(binfile.string(), std::ios::out | std::ios::binary);
@@ -97,10 +104,12 @@ ResourceManager2& ResourceManager2::GetInstance()
    return *singleton_;
 }
 
-ResourceManager2::ResourceManager2() :
-   resource_dir_("data")
+ResourceManager2::ResourceManager2()
 {
    ASSERT(!singleton_);
+
+   resource_dir_ = "mods";
+
    fs::directory_iterator end;
    for (fs::directory_iterator i(resource_dir_); i != end; i++) {
       fs::path path = i->path();
@@ -347,16 +356,13 @@ std::string ResourceManager2::GetEntityUri(std::string const& mod_name, std::str
 
 std::string ResourceManager2::ExpandMacro(std::string const& current, std::string const& base_path, bool full) const
 {
-   static std::regex file_macro("^file\\((.*)\\)$");
    std::smatch match;
 
-   if (std::regex_match(current, match, file_macro)) {
+   if (std::regex_match(current, match, file_macro_regex__)) {
       return ConvertToAbsolutePath(match[1], base_path);
    }
    if (full) {
-      static std::regex entity_macro("^([^\\.\\\\/]+)\\.([^\\\\/]+)$");
-
-      if (std::regex_match(current, match, entity_macro)) {
+      if (std::regex_match(current, match, entity_macro_regex__)) {
          return GetEntityUri(match[1], match[2]);
       }
    }

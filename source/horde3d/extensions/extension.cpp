@@ -4,6 +4,7 @@
 #include "egRenderer.h"
 #include "extension.h"
 #include "radiant.h"
+#include "animatedlight/animatedlight.h"
 #include "cubemitter/cubemitter.h"
 #include "debug_shapes/debug_shapes.h"
 #include "stockpile/decal_node.h"
@@ -52,9 +53,15 @@ bool Extension::init()
 		                              CubemitterNode::parsingFunc,
                                     CubemitterNode::factoryFunc,
                                     CubemitterNode::renderFunc);
+   Modules::sceneMan().registerType(SNT_AnimatedLightNode, "AnimatedLight",
+                                    AnimatedLightNode::parsingFunc,
+                                    AnimatedLightNode::factoryFunc,
+                                    0x0);
 
    Modules::resMan().registerType(RT_CubemitterResource, "Cubemitter", 0x0, 0x0, 
-      CubemitterResource::factoryFunc);
+                                    CubemitterResource::factoryFunc);
+   Modules::resMan().registerType(RT_AnimatedLightResource, "AnimatedLight", 0x0, 0x0,
+                                    AnimatedLightResource::factoryFunc);
 
 	VertexLayoutAttrib attribs[2] = {
 		"vertPos",     0, 3, 0,
@@ -289,4 +296,42 @@ DLL bool h3dRadiantAddDebugLine(H3DNode node, const ::radiant::csg::Point3f& p0,
 
    static_cast<DebugShapesNode*>(sn)->add_line(p0, p1, color);
    return true;
+}
+
+DLL H3DNode h3dRadiantAddAnimatedLightNode(H3DNode parent, const char* nam, H3DRes animatedLightRes, H3DRes mat)
+{
+   std::string name(nam);
+	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
+	APIFUNC_VALIDATE_NODE(parentNode, "h3dRadiantAddAnimatedLight", 0);
+
+   AnimatedLightResource *lightRes = (AnimatedLightResource *)Modules::resMan().resolveResHandle(animatedLightRes);
+   MaterialResource *matRes = (MaterialResource *)Modules::resMan().resolveResHandle(mat);
+   
+   APIFUNC_VALIDATE_RES_TYPE(matRes, ResourceTypes::Material, "h3dRadiantAddAnimatedLight", 0);
+   APIFUNC_VALIDATE_RES_TYPE(lightRes, RT_AnimatedLightResource, "h3dRadiantAddAnimatedLight", 0);
+
+   AnimatedLightNodeTpl tpl(name, lightRes, matRes);
+
+	SceneNode *sn = Modules::sceneMan().findType(SNT_AnimatedLightNode)->factoryFunc(tpl);
+   H3DNode ln = Modules::sceneMan().addNode(sn, *parentNode);
+   AnimatedLightNode *an = (AnimatedLightNode *)Modules::sceneMan().resolveNodeHandle( ln );
+   an->init();
+	return ln;
+}
+
+DLL void h3dRadiantAdvanceAnimatedLightTime(float timeDelta) {
+   int numNodes = h3dFindNodes(H3DRootNode, "", SNT_AnimatedLightNode);
+   while (numNodes > 0) {
+      H3DNode n = h3dGetNodeFindResult(--numNodes);
+      SceneNode *sn = Modules::sceneMan().resolveNodeHandle( n );
+      APIFUNC_VALIDATE_NODE_TYPE( sn, SNT_AnimatedLightNode, "h3dRadiantAdvanceAnimatedLightTime", APIFUNC_RET_VOID );
+      AnimatedLightNode * an = (AnimatedLightNode *)sn;
+      if (an->hasFinished())
+      {
+         h3dRemoveNode(n);
+      } else
+      {
+         an->advanceTime( timeDelta );
+      }
+   }
 }

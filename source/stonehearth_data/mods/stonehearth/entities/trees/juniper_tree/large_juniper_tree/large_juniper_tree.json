@@ -1,0 +1,27 @@
+{
+   "extends": "stonehearth.mixins.tree", 
+   "type": "entity", 
+   "components": {
+      "model_variants": [
+         {
+            "models": [
+               {
+                  "type": "one_of",
+                  "items": [
+                     "file(large_juniper_tree.qb)"
+                  ]
+               }
+            ], 
+            "scale": 1
+         }
+      ], 
+      "unit_info": {
+         "name": "Large Juniper Tree", 
+         "description": "An impressive specimen."
+      }, 
+      "stonehearth:resource_node": {
+         "resource": "stonehearth.juniper_log", 
+         "durability": 15
+      }
+   }
+}

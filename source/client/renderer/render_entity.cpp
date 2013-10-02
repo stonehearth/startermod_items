@@ -47,16 +47,16 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
 
    // LOG(WARNING) << "creating new entity " << name.str() << ".";
 
-   node_ = h3dAddGroupNode(parent, name.str().c_str());
-   h3dSetNodeFlags(node_, h3dGetNodeFlags(parent), true);
+   node_ = H3DNodeUnique(h3dAddGroupNode(parent, name.str().c_str()));
+   h3dSetNodeFlags(node_.get(), h3dGetNodeFlags(parent), true);
 
-   skeleton_.SetSceneNode(node_);
+   skeleton_.SetSceneNode(node_.get());
 
    auto added = std::bind(&RenderEntity::AddComponent, this, std::placeholders::_1, std::placeholders::_2);
    auto removed = std::bind(&RenderEntity::RemoveComponent, this, std::placeholders::_1);
 
    tracer_ += entity->GetComponents().TraceMapChanges("render entity components", added, removed);
-   tracer_ += Renderer::GetInstance().TraceSelected(node_, std::bind(&RenderEntity::OnSelected, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+   tracer_ += Renderer::GetInstance().TraceSelected(node_.get(), std::bind(&RenderEntity::OnSelected, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
 }
 
 void RenderEntity::FinishConstruction()
@@ -67,35 +67,33 @@ void RenderEntity::FinishConstruction()
 
 RenderEntity::~RenderEntity()
 {
-   if (node_) {
-      h3dRemoveNode(node_);
-   }
    totalObjectCount_--;
 }
 
 void RenderEntity::SetParent(H3DNode parent)
 {
+   H3DNode node = node_.get();
    if (parent) {
-      h3dSetNodeParent(node_, parent);
-      h3dSetNodeFlags(node_, h3dGetNodeFlags(parent), true);
+      h3dSetNodeParent(node, parent);
+      h3dSetNodeFlags(node, h3dGetNodeFlags(parent), true);
    } else {
-      h3dSetNodeFlags(node_, H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, true);
+      h3dSetNodeFlags(node, H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, true);
    }
 }
 
 H3DNode RenderEntity::GetParent() const
 {
-   return h3dGetNodeParent(node_);
+   return h3dGetNodeParent(node_.get());
 }
 
 H3DNode RenderEntity::GetNode() const
 {
-   return node_;
+   return node_.get();
 }
 
 std::string RenderEntity::GetName() const
 {
-   return std::string(h3dGetNodeParamStr(node_, H3DNodeParams::NameStr));
+   return std::string(h3dGetNodeParamStr(node_.get(), H3DNodeParams::NameStr));
 }
 
 int RenderEntity::GetTotalObjectCount()
@@ -231,27 +229,27 @@ void RenderEntity::OnSelected(om::Selection& sel, const csg::Ray3& ray,
 void RenderEntity::Show(bool show)
 {
    int mask = H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery;
-   int flags = h3dGetNodeFlags(node_);
+   int flags = h3dGetNodeFlags(node_.get());
 
    if (show) {
       flags &= ~mask;
    } else {
       flags |= mask;
    }
-   h3dSetNodeFlags(node_, flags, true);
+   h3dSetNodeFlags(node_.get(), flags, true);
 }
 
 void RenderEntity::SetSelected(bool selected)
 {
    int mask = H3DNodeFlags::Selected;
-   int flags = h3dGetNodeFlags(node_);
+   int flags = h3dGetNodeFlags(node_.get());
 
    if (selected) {
       flags |= mask;
    } else {
       flags &= ~mask;
    }
-   h3dSetNodeFlags(node_, flags, true);
+   h3dSetNodeFlags(node_.get(), flags, true);
 }
 
 dm::ObjectId RenderEntity::GetObjectId() const

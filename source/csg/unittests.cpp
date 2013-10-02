@@ -1,11 +1,12 @@
 #include "radiant.h"
-//#include "radiant_test.h"
 #include <gtest/gtest.h>
 #include "region.h"
+#include "platform/utils.h"
 
-//RADIANT_DEFINE_TEST(csg)
-
+using namespace ::radiant;
 using namespace ::radiant::csg;
+
+static const int PERF_TEST_DURATION_SECONDS = 2;
 
 TEST(RegionTest, SubtractCube) {
    for (int x = 0; x < 3; x++) {
@@ -27,4 +28,67 @@ TEST(RegionTest, SubtractCube) {
          }
       }
    }
+}
+
+TEST(RegionPerfTest, RegionAddCubePerfTest) {
+   srand(0);
+   Region3 r;
+
+   int count = 0;
+   platform::timer t(PERF_TEST_DURATION_SECONDS * 1000);
+   while (!t.expired()) {
+      Point3 min, max;
+      for (int i = 0; i < 3; i++) {
+         min[i] = rand() % 1000;
+         max[i] = rand() % 1000;
+      }
+      r += Cube3::Construct(min, max);
+      count++;
+   }
+   std::cout << (count / (float)PERF_TEST_DURATION_SECONDS) << " cubes per second." << std::endl;
+   RecordProperty("CubesPerSecond", count / PERF_TEST_DURATION_SECONDS);
+}
+
+TEST(RegionPerfTest, RegionAddUniqueCubePerfTest) {
+   srand(0);
+   Region3 r;
+
+   int offset = 0, count = 0;
+   platform::timer t(PERF_TEST_DURATION_SECONDS * 1000);
+   while (!t.expired()) {
+      Point3 min, max;
+      for (int i = 0; i < 3; i++) {
+         min[i] = offset;
+         max[i] = offset + 1;
+      }
+      r.AddUnique(Cube3(min, max));
+      count++;
+      offset++;
+   }
+   std::cout << (count / (float)PERF_TEST_DURATION_SECONDS) << " cubes per second." << std::endl;
+   RecordProperty("CubesPerSecond", count / PERF_TEST_DURATION_SECONDS);
+}
+
+TEST(RegionPerfTest, RegionSubCubePerfTest) {
+   srand(0);
+   Region3 r(csg::Cube3(csg::Point3(0, 0, 0), csg::Point3(1000, 1000, 1000)));
+
+   int count = 0;
+   platform::timer t(PERF_TEST_DURATION_SECONDS * 1000);
+   while (!t.expired()) {
+      Point3 min, max;
+      for (int i = 0; i < 3; i++) {
+         min[i] = rand() % 1000;
+         max[i] = min[i] + rand() % 100;
+      }
+      r -= Cube3(min, max);
+      count++;
+   }
+   std::cout << (count / (float)PERF_TEST_DURATION_SECONDS) << " cubes per second." << std::endl;
+   RecordProperty("CubesPerSecond", count / PERF_TEST_DURATION_SECONDS);
+}
+
+int main(int argc, char **argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

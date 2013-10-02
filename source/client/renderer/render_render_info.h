@@ -5,7 +5,7 @@
 #include "om/om.h"
 #include "dm/dm.h"
 #include "dm/set.h"
-#include "types.h"
+#include "h3d_resource_types.h"
 #include "render_component.h"
 #include "om/components/render_info.h"
 
@@ -44,10 +44,10 @@ private:
 
    struct NodeMapEntry {
       NodeMapEntry() : matrix(nullptr), node(0) { }
-      NodeMapEntry(QubicleMatrix const* m, H3DNode n) : matrix(m), node(n) { }
+      NodeMapEntry(QubicleMatrix const* m, H3DNodeUnique n) : matrix(m), node(n) { }
 
       QubicleMatrix const* matrix;
-      RenderNode           node;
+      H3DNodeUnique        node;
    };
 
    typedef std::unordered_map<std::string, NodeMapEntry> NodeMap;

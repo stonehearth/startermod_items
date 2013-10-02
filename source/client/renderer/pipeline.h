@@ -17,14 +17,14 @@ class Pipeline : public core::Singleton<Pipeline> {
       Pipeline();
       ~Pipeline();
 
-      typedef std::unordered_map<std::string, H3DNode> NamedNodeMap;
+      typedef std::unordered_map<std::string, H3DNodeUnique> NamedNodeMap;
 
       NamedNodeMap LoadQubicleFile(std::string const& uri);
-      H3DNode AddQubicleNode(H3DNode parent, const QubicleMatrix& m, const csg::Point3f& origin);
-      H3DNode AddMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m);
+      H3DNodeUnique AddQubicleNode(H3DNode parent, const QubicleMatrix& m, const csg::Point3f& origin);
+      H3DNodeUnique AddMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m);
 
    private:
-      H3DNode     orphaned_;
+      H3DNodeUnique     orphaned_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

@@ -36,6 +36,9 @@
 #include <fstream>
 #include <iomanip>
 
+#include "radiant.h"
+#include "core/config.h"
+
 using namespace Horde3D;
 using namespace std;
 
@@ -286,7 +289,9 @@ DLLEXP bool h3dutDumpMessages()
 		// Reset log file
 		outf.setf( ios::fixed );
 		outf.precision( 3 );
-		outf.open( "Horde3D_Log.html", ios::out );
+
+      boost::filesystem::path filename = radiant::core::Config::GetInstance().GetTmpDirectory() / "horde3d_log.html";
+		outf.open(filename.string(), ios::out );
 		if( !outf ) return false;
 
 		outf << "<html>\n";

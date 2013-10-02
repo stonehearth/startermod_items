@@ -23,7 +23,7 @@ public:
       Magma         = 1,
       Bedrock       = 2,
       Topsoil       = 3,
-      Grass         = 4,
+      Foothills     = 4,
       Plains        = 5,
       TopsoilDetail = 6,
       DarkWood      = 7, 
@@ -39,12 +39,12 @@ public:
    void CreateNew();
 
    ZoneMap const& GetZoneMap() const { return zones_; }
+   BoxedRegion3Ptr GetZone(csg::Point3 const& location, csg::Point3& zone_offset);
 
 private:
    dm::Boxed<int> zone_size_;
    ZoneMap zones_;
    void InitializeRecordFields() override;
-   BoxedRegion3Ptr GetZone(csg::Point3 const& location, csg::Point3& zone_offset);
 };
 
 END_RADIANT_OM_NAMESPACE

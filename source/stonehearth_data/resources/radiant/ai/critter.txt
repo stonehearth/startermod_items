@@ -1,8 +1,0 @@
-{
-   "radiant.ai.critter" : {
-      "type" : "ai",
-      "msg_handlers": [
-         "radiant.msg_handlers.idle"
-      ]
-   }
-}

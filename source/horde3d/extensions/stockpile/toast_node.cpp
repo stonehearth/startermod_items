@@ -57,26 +57,11 @@ bool ToastNode::InitExtension()
 	};
 	ToastNode::vertexLayout = gRDI->registerVertexLayout(2, attribs);
 
-#if 0
    H3DRes mat = h3dAddResource(H3DResTypes::Material, "fonts/toast_text.material.xml", 0);
 	Resource *matRes =  Modules::resMan().resolveResHandle(mat);
 	if (matRes == 0x0 || matRes->getType() != ResourceTypes::Material ) {
       return 0;
    }
-   fontMaterial_ = (MaterialResource *)matRes;
-   h3dutLoadResourcesFromDisk("horde");
-
-   // create the font sheet...
-   if (!ReadFntFile("horde\\fonts\\toast_text.fnt")) {
-      return false;
-   }
-#else
-   H3DRes mat = h3dAddResource(H3DResTypes::Material, "fonts/toast_text.material.xml", 0);
-	Resource *matRes =  Modules::resMan().resolveResHandle(mat);
-	if (matRes == 0x0 || matRes->getType() != ResourceTypes::Material ) {
-      return 0;
-   }
-   h3dutLoadResourcesFromDisk("horde");
 
    H3DRes texture = h3dGetResParamI(mat, MaterialResData::SamplerElem, 0, MaterialResData::SampTexResI);
    if (texture) {
@@ -90,7 +75,6 @@ bool ToastNode::InitExtension()
    if (!ReadFntFile2("horde\\fonts\\fontdinerdotcom_huggable_regular_20.xml")) {
       return false;
    }
-#endif
 
    return true;
 }

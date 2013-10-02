@@ -55,7 +55,10 @@ void MultiPathFinder::AddEntity(om::EntityRef e, luabind::object solved_cb, luab
          std::ostringstream name;
 
          name << GetName() << "(entity " << id << ")";
-         auto pathfinder = std::make_shared<PathFinder>(L_, name.str(), e, solved_cb, dst_filter);
+         auto pathfinder = std::make_shared<PathFinder>(L_, name.str());
+         pathfinder->SetSource(e);
+         pathfinder->SetSolvedCb(solved_cb);
+         pathfinder->SetFilterFn(dst_filter);
          for (auto& entry: destinations_) {
             pathfinder->AddDestination(entry.second);
          }

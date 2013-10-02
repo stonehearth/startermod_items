@@ -1,0 +1,21 @@
+{
+   "type": "entity", 
+   "components": {
+      "stonehearth:ai": {
+         "intentions": [
+            "radiant.intentions.mammoth_ai"
+         ]
+      },
+      "render_info" : {
+         "animation_table": "file(/data/rigs/critters/mammoth)", 
+         "scale": 2
+      },
+      "model_variants": [
+         {
+            "models": [
+               "file(mammoth.qb)"
+            ]
+         }
+      ]
+   }
+}
