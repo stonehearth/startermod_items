@@ -195,6 +195,11 @@ void Renderer::FlushMaterials() {
    }
 
    r = 0;
+   while ((r = h3dGetNextResource(H3DResTypes::Code, r)) != 0) {
+      h3dUnloadResource(r);
+   }
+
+   r = 0;
    while ((r = h3dGetNextResource(RT_CubemitterResource, r)) != 0) {
       h3dUnloadResource(r);
    }
