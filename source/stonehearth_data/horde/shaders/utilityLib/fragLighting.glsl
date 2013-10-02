@@ -167,5 +167,5 @@ vec3 calcSimpleDirectionalLight( const vec3 pos, const vec3 normal, const float 
 
   // Final color
    // return projShadow;
-  return atten * lightColor * shadowTerm;
+  return atten * lightColor;
 }

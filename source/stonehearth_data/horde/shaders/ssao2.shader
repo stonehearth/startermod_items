@@ -193,7 +193,7 @@ out vec4 fragColor;
 void main() {
   vec2 texelSize = 1.0 / frameBufSize;
   float result = 0.0;
-  vec2 hlim = vec2(float(-4) * 0.5 + 0.5);
+  vec2 hlim = vec2(float(-4) * 0.5);
   for (int i = 0; i < 4; ++i) {
     for (int j = 0; j < 4; ++j) {
       vec2 offset = (hlim + vec2(float(i), float(j))) * texelSize;
@@ -303,17 +303,18 @@ uniform sampler2D normals;
 uniform sampler2D depth;
 
 vec3 samplerKernel[8] = vec3[](
-  vec3(-0.0310600102, -0.0933341458, 0.0180003643),
-  vec3(0.0244238228, 0.0642591938, 0.0910191536),
-  vec3(0.00645755092, -0.0643227920, 0.142249554),
-  vec3(0.0746362135, 0.150111482, 0.152402580),
-  vec3(0.0299102589, -0.271836638, 0.175599590),
-  vec3(-0.259417892, 0.355048746, 0.102720208),
-  vec3(0.254237741, 0.312418193, 0.453097254),
-  vec3(0.719119310, 0.160460636, 0.282381773)
+  vec3(-0.0310600102, -0.0933341458, -0.0180003643),
+  vec3(0.0244238228, 0.0642591938, -0.0910191536),
+  vec3(0.00645755092, -0.0643227920, -0.142249554),
+  vec3(0.0746362135, 0.150111482, -0.152402580),
+  vec3(0.0299102589, -0.271836638, -0.175599590),
+  vec3(-0.259417892, 0.355048746, -0.102720208),
+  vec3(0.254237741, 0.312418193, -0.453097254),
+  vec3(0.719119310, 0.160460636, -0.282381773)
 );
 uniform vec2 frameBufSize;
 uniform mat4 camProjMat;
+uniform mat4 camViewMat;
 
 in vec2 texCoords;
 noperspective in vec3 viewRay;
@@ -322,11 +323,11 @@ out vec4 fragColor;
 void main()
 {
   vec2 noiseScale = frameBufSize / 4.0;
-  float radius = 1;
+  float radius = 0.3;
 
   vec3 origin = viewRay * linDepth(texture2D(depth, texCoords).x, 4, 2000);
   vec3 rvec = texture2D(randomVectorLookup, texCoords * noiseScale).xyz;
-  vec3 normal = calcWorldVec(texture2D(normals, texCoords).xyz).xyz;
+  vec3 normal = (camViewMat * vec4(texture2D(normals, texCoords).xyz, 0)).xyz;
 
   vec3 tangent = normalize(rvec - (normal * dot(rvec, normal)));
   vec3 bitangent = cross(normal, tangent);
@@ -348,10 +349,11 @@ void main()
     float sampleDepth = linDepth(realDepth, 4, 2000);
 
     // range check & accumulate:
-    float rangeCheck = abs(origin.z - sampleDepth) < radius * 10 ? 1.0 : 0.0;
-    occlusion += (sampleDepth <= sample.z ? 0.5 : 0.0) * rangeCheck;
+    float rangeCheck = abs(origin.z - sampleDepth) < radius ? 1.0 : 0.0;
+    occlusion += (sampleDepth <= sample.z ? 1.0 : 0.0) * rangeCheck;
   }
 
-  occlusion = 1.0 - (occlusion / 8.0);
-  fragColor = vec4(occlusion,occlusion,occlusion, 1);
+  float visibility = 1.0 - (occlusion / 8.0);
+  visibility = pow(visibility, 1.3);
+  fragColor = vec4(visibility,visibility,visibility, 1);
 }
