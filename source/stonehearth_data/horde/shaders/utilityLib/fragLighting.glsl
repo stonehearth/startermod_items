@@ -86,7 +86,7 @@ vec3 calcPhongSpotLight( const vec3 pos, const vec3 normal, const vec3 albedo, c
 }
 
 
-vec3 calcPhongOmniLight( const vec3 pos, const vec3 normal, const vec3 albedo )
+vec3 calcPhongOmniLight(const vec3 pos, const vec3 normal)
 {
 	vec3 light = lightPos.xyz - pos;
 	float lightLen = length( light );
@@ -104,7 +104,7 @@ vec3 calcPhongOmniLight( const vec3 pos, const vec3 normal, const vec3 albedo )
 	vec3 view = normalize( viewerPos - pos );
 	vec3 halfVec = normalize( light + view );
 	
-	return albedo * lightColor * atten;
+	return lightColor * atten;
 }
 
 vec3 calcPhongDirectionalLight( const vec3 pos, const vec3 normal, const vec3 albedo, const vec3 specColor,
@@ -126,9 +126,7 @@ vec3 calcPhongDirectionalLight( const vec3 pos, const vec3 normal, const vec3 al
 }
 
 
-vec3 calcSimpleDirectionalLight( const vec3 pos, const vec3 normal, const float viewDist, 
-                                 const float ambientIntensity )
-{     
+vec3 calcSimpleDirectionalLight(const vec3 pos, const vec3 normal, const float viewDist) {
   // Lambert diffuse
   float atten = max( dot( normal, -lightDir.xyz ), 0.0 );
 

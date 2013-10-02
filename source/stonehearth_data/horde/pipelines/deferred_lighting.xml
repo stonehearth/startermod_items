@@ -56,6 +56,7 @@
       <UnbindBuffers />
 
     </Stage-->
+
     <Stage id="SSAO Blur" >
       <SwitchTarget target="SSAOBLUR" />
       <BindBuffer sampler="ssao" sourceRT="SSAOBUF" bufIndex="0" />
@@ -71,6 +72,22 @@
       <DrawGeometry context="MATERIAL" class="~Translucent" />
       
       <UnbindBuffers />
+    </Stage>
+
+    <Stage id="Translucent">
+      <SwitchTarget target="OUTPUT" />
+      <DrawGeometry context="TRANSLUCENT"/>
+      <DrawGeometry context="DEBUG_SHAPES" />
+    </Stage>
+
+    <Stage id="Clouds">
+      <SwitchTarget target="OUTPUT" />
+      <DrawGeometry context="CLOUDS" class="~Translucent" />
+    </Stage>
+    
+    <Stage id="Selected">
+      <SwitchTarget target="OUTPUT" />
+      <DrawSelected context="SELECTED" />
     </Stage>
 
     <Stage id="Final">
@@ -89,14 +106,6 @@
 
 
 
-    <!--Stage id="Translucent">
-      <SwitchTarget target="MBUFF" />
-      <DrawGeometry context="TRANSLUCENT"/>
-      <DrawGeometry context="DEBUG_SHAPES" />
-    </Stage-->
-    <!--Stage id="Selected">
-      <DrawSelected context="SELECTED" />
-    </Stage-->
     
 
 

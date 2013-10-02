@@ -218,9 +218,7 @@ void main( void )
 {
   vec3 normal = tsbNormal;
   vec3 newPos = pos.xyz;
-
-  outLightColor.rgb = 
-         calcPhongOmniLight( newPos, normalize( normal ), albedo );
+  outLightColor.rgb = calcPhongOmniLight(newPos, normalize(normal)) * albedo;
 }
 
 [[FS_DIRECTIONAL_LIGHTING]]

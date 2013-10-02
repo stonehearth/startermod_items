@@ -67,7 +67,7 @@ Renderer::Renderer() :
 
    glfwMakeContextCurrent(window);
    
-	glfwSwapInterval(1);
+	glfwSwapInterval(0);
 
 	if (!h3dInit()) {	
 		h3dutDumpMessages();
