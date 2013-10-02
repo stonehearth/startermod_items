@@ -96,8 +96,8 @@ end
 function StonehearthCamera:_on_mouse_event(e, screen_x, screen_y, gutter)
   --self:_calculate_scroll(e, screen_x, screen_y, gutter)
   self:_calculate_drag(e)
-  --self:_calculate_orbit(e)
-  self:_calculate_jump(e)
+  self:_calculate_orbit(e)
+  --self:_calculate_jump(e)
   self:_calculate_zoom(e)
 end
 
