@@ -89,6 +89,13 @@ function entities.get_faction(entity)
    return unit_info and unit_info:get_faction() or nil
 end
 
+function entities.distance_between(entity_a, entity_b)
+   local loc_a = radiant.entities.get_world_grid_location(entity_a)
+   local loc_b = radiant.entities.get_world_grid_location(entity_b)
+   
+   return loc_a:distance_to(loc_b)
+end
+
 function entities.move_to(entity, location)
    radiant.check.is_entity(entity)
 
