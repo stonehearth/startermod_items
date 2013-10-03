@@ -16,8 +16,8 @@ function RunAwayFromEntity:run(ai, entity, target)
    local flee_vector = Vec3(target_location.x - my_location.x, my_location.y, target_location.z - my_location.z)
    flee_vector:normalize()
 
-   flee_vector.x = self:round(flee_vector.x) * -2
-   flee_vector.z = self:round(flee_vector.z) * -2
+   flee_vector.x = self:round(flee_vector.x) * -3
+   flee_vector.z = self:round(flee_vector.z) * -3
 
    local flee_location = Point3(my_location.x + flee_vector.x, my_location.y, my_location.z + flee_vector.z)
 

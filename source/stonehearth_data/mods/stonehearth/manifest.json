@@ -107,6 +107,7 @@
          "ball" : "file(entities/toys/ball)",
 
          "actions.attack_action" : "file(ai/actions/combat/attack_action.lua)",
+         "actions.attack_top_aggro_action" : "file(ai/actions/combat/attack_top_aggro_action.lua)",
          "actions.melee_attack_action" : "file(ai/actions/combat/melee_attack_action.lua)",
          "actions.chase_target_action" : "file(ai/actions/combat/chase_target_action.lua)",
          "actions.flee_action" : "file(ai/actions/combat/flee_action.lua)",
