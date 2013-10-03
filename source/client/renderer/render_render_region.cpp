@@ -17,7 +17,7 @@ RenderRenderRegion::RenderRenderRegion(const RenderEntity& entity, om::RenderReg
    // xxx: TraceSelected is a horribad name!
    selectedGuard_ = Renderer::GetInstance().TraceSelected(node_.get(), std::bind(&RenderRenderRegion::OnSelected, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4)); 
 
-   regionGuard_ = render_region->TraceRenderRegion("rendering render_region", [=](csg::Region3 const& r) {
+   region_guard_ = om::TraceBoxedRegion3PtrField(render_region->GetRegion(), "rendering render_region", [=](csg::Region3 const& r) {
       UpdateRenderRegion(r);
    });
 }

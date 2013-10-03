@@ -1,8 +1,9 @@
+#if 0
 #include "pch.h"
 #include "qubicle_file.h"
 
 using namespace ::radiant;
-using namespace ::radiant::client;
+using namespace ::radiant::voxel;
 
 QubicleMatrix::QubicleMatrix() :
    matrix_(nullptr)
@@ -70,9 +71,8 @@ std::istream& QubicleFile::Read(std::istream& in)
    return in;
 }
 
-std::istream& ::radiant::client::operator>>(std::istream& in, QubicleFile& q)
+std::istream& ::radiant::voxel::operator>>(std::istream& in, QubicleFile& q)
 {
    return q.Read(in);
 }
-
-
+#endif

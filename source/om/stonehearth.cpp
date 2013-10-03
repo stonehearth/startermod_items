@@ -100,6 +100,7 @@ Entity_AddNativeComponent(lua_State* L, om::EntityPtr entity, std::string const&
 #define OM_OBJECT(Clas, lower)  \
    if (name == #lower) { \
       auto component = entity->AddComponent<om::Clas>(); \
+      component->ExtendObject(json::ConstJsonObject(JSONNode())); \
       return luabind::object(L, std::weak_ptr<om::Clas>(component)); \
    }
    OM_ALL_COMPONENTS

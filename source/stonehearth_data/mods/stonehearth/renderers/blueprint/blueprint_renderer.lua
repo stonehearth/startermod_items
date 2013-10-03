@@ -1,22 +1,51 @@
-local ColumnBlueprintRenderer = class()
+local BlueprintRenderer = class()
 
-function ColumnBlueprintRenderer:__init(render_entity, json)
-   self._region_node = h3dRadiantCreateRegionNode(render_entity:get_node(), 'column blueprint node')   
-   local rc = render_entity:get_entity():get_component('region_collision_shape')
-   if rc then
-      self._promise = rc:trace_region('updating column render shape')
-                        :on_changed(function (r)
-                              self:_update_region(r)
-                           end)           
-      self:_update_region(rc:get_region():get()) -- xxx: NO NO!  the trace should fire once automagically
+function BlueprintRenderer:__init(render_entity)
+   self._node = render_entity:get_node()
+   self._create_fabricator()
+
+   if self._fabricator then
+      local rc = render_entity:get_entity():get_component('region_collision_shape')
+      self._rgn = rc:get_region()
+      self._rgn_promise = rc:trace_region('rendering blueprint')
+                              :on_changed(function ()
+                                 self._update_shape()
+                              end)           
+
+      self._update_shape()
    end
 end
 
-function ColumnBlueprintRenderer:_update_region(r)
-   h3dRadiantUpdateRegionNode(self._region_node, r)
+function BlueprintRenderer:_create_fabricator()
+   if self._fabricator then
+      self._fabricator:destroy()
+      self._fabricator = nil
+   end
+
+   local data = radiant.entities.get_entity_data('stonehearth:construction')
+   if data then
+      self._fabricator = _radiant.sim.create_fabricator(data)
+   end
 end
 
-function ColumnBlueprintRenderer:__destroy()
+function BlueprintRenderer:_update_shape()
+   local cursor = self._rgn:get()
+   if self._construction then
+      self._construction:destroy()
+      self._construction = nil
+   end
+   self._construction = self._fabricator:construct_render_object(self._node, cursor)
 end
 
-return ColumnBlueprintRenderer
+function BlueprintRenderer:destroy()
+   if self._fabricator then
+      self._fabricator:destroy()
+      self._fabricator = nil
+   end
+   if self._construction then
+      self._construction:destroy()
+      self._construction = nil
+   end
+end
+
+return BlueprintRenderer

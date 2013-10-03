@@ -8,9 +8,9 @@ using namespace ::radiant;
 using namespace ::radiant::csg;
 
 template <typename T>
-static std::shared_ptr<T> CopyRegion(std::shared_ptr<T> other)
+void CopyRegion(T& region, T const& other)
 {
-   return std::make_shared<T>(*other);
+   region = other;
 }
 
 template <typename T>
@@ -22,38 +22,6 @@ std::shared_ptr<T> RegionClip(const T& region, typename T::Cube const& cube)
 }
 
 template <typename T>
-static void AddCube(T& region, typename T::Cube const& cube)
-{
-   region.Add(cube);
-}
-
-
-template <typename T>
-static void AddPoint(T& region, typename T::Point const& point)
-{
-   region.Add(point);
-}
-
-template <typename T>
-static void RemoveCube(T& region, typename T::Cube const& cube)
-{
-   region -= cube;
-}
-
-
-template <typename T>
-static void RemovePoint(T& region, typename T::Point const& point)
-{
-   region -= T::Cube(point);
-}
-
-template <typename T>
-static void AddUniqueCube(T& region, typename T::Cube const& cube)
-{
-   region.AddUnique(cube);
-}
-
-template <typename T>
 static luabind::scope Register(struct lua_State* L, const char* name)
 {
    return
@@ -61,18 +29,23 @@ static luabind::scope Register(struct lua_State* L, const char* name)
          .def(tostring(const_self))
          .def(constructor<>())
          .def(constructor<typename T::Cube const&>())
-         .def("copy",               &CopyRegion<T>)
+         .def(const_self - other<T const&>())
+         .def(const_self - other<T::Cube const&>())
+         .def("copy_region",        &CopyRegion<T>)
          .def("empty",              &T::IsEmpty)
          .def("get_area",           &T::GetArea)
          .def("clear",              &T::Clear)
          .def("get_bounds",         &T::GetBounds)
          .def("optimize",           &T::Optimize)
          .def("intersects",         &T::Intersects)
-         .def("add_cube",           &AddCube<T>)
-         .def("add_point",          &AddPoint<T>)
-         .def("add_unique",         &AddUniqueCube<T>)
-         .def("remove_cube",        &RemoveCube<T>)
-         .def("remove_point",       &RemovePoint<T>)
+         .def("add_region",         (void (T::*)(T const&))&T::Add)
+         .def("add_cube",           (void (T::*)(typename T::Cube const&))&T::Add)
+         .def("add_point",          (void (T::*)(typename T::Point const&))&T::Add)
+         .def("add_unique_cube",    (void (T::*)(typename T::Cube const&))&T::AddUnique)
+         .def("add_unique_region",  (void (T::*)(typename T const&))&T::AddUnique)
+         .def("subtract_region",    (void (T::*)(T const&))&T::Subtract)
+         .def("subtract_cube",      (void (T::*)(typename T::Cube const&))&T::Subtract)
+         .def("subtract_point",     (void (T::*)(typename T::Point const&))&T::Subtract)
          .def("contents",           &T::GetContents, return_stl_iterator)
          .def("clip",               &RegionClip<T>)
          .def("get_num_rects",      &T::GetRectCount)

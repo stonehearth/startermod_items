@@ -514,8 +514,9 @@ PathFinderEndpoint::PathFinderEndpoint(PathFinder &pf, om::EntityRef e) :
       }
       auto dst = entity->GetComponent<om::Destination>();
       if (dst) {
-         guards_ += dst->GetAdjacent()->TraceObjectChanges(
-            "pathfinder destination trace", restart_fn);
+         region_guard_ = om::TraceBoxedRegion3PtrFieldVoid(dst->GetAdjacent(),
+                              "pathfinder destination trace",
+                              restart_fn);
       }
    }
 }
@@ -529,10 +530,13 @@ void PathFinderEndpoint::AddAdjacentToOpenSet(std::vector<csg::Point3>& open)
          csg::Point3 origin;
          origin = mob->GetWorldGridLocation();
 
+         om::BoxedRegion3Ptr adjacent;
          auto destination = entity->GetComponent<om::Destination>();
          if (destination) {
             // xxx - should open_ be a region?  wow, that would be complicated!
-            om::BoxedRegion3Ptr adjacent = destination->GetAdjacent();
+            adjacent = *destination->GetAdjacent();
+         }
+         if (adjacent) {
             csg::Region3 const& region = adjacent->Get();
             for (csg::Cube3 const& cube : region) {
                for (csg::Point3 const& pt : cube) {
@@ -567,9 +571,14 @@ int PathFinderEndpoint::EstimateMovementCost(const csg::Point3& from) const
    }
 
    csg::Point3 end;
+
+   om::BoxedRegion3Ptr adjacent;
    om::DestinationPtr dst = entity->GetComponent<om::Destination>();
    if (dst) {
-      csg::Region3 const& rgn = **dst->GetAdjacent();
+      adjacent = *dst->GetAdjacent();
+   }
+   if (adjacent) {
+      csg::Region3 const& rgn = *adjacent;
       if (rgn.IsEmpty()) {
          return INT_MAX;
       }

@@ -437,7 +437,7 @@ void Client::UpdateObject(const proto::UpdateObject& update)
    const auto& msg = update.object();
    dm::ObjectId id = msg.object_id();
 
-   // LOG(WARNING) << "Client updating object " << id << ".";
+   LOG(INFO) << "Client updating object " << id << ".";
 
    dm::Object* obj = store_.FetchStaticObject(id);
    ASSERT(obj);

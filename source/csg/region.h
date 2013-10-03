@@ -49,18 +49,20 @@ public:
 
    // non-optimizing...
    void Clear();
-   void Add(const Cube& cube);
+   void Add(const Region& cube);
+   void Add(Cube const& cube);
    void Add(const Point& cube);
    void AddUnique(const Cube& cube);
    void AddUnique(const Region& cube);  
+   void Subtract(const Point& other);
    void Subtract(const Cube& other);
    void Subtract(const Region& other);
 
    // optimizing...
    Region<S, C> operator-(const Cube& other) const;
    Region<S, C> operator-(const Region& other) const;
-   const Region<S, C>& operator+=(const Region& cube);
-   const Region<S, C>& operator-=(const Region& cube);
+   const Region<S, C>& operator+=(const Region& region);
+   const Region<S, C>& operator-=(const Region& region);
    const Region<S, C>& operator&=(const Cube& cube);
    const Region<S, C>& operator&=(const Region& other);
    const Region<S, C>& operator+=(const Cube& cube);

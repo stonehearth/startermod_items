@@ -20,7 +20,6 @@ add_library(client_renderer STATIC
             render_destination.cpp
             render_paperdoll.cpp
             render_carry_block.cpp
-            qubicle_file.cpp
             render_render_region.cpp
             render_render_info.cpp
             lua_renderer.cpp
@@ -35,6 +34,7 @@ endif(MSVC)
 
 target_link_libraries(client_renderer
                       Horde3D
+                      voxel
                       ${Libclaw_LIBRARIES}
                       ${Sfml_LIBRARIES}
                      )

@@ -27,6 +27,7 @@ public:
    const Guard& operator+=(Guard&& other);
    const Guard& operator+=(std::function<void()> untrack);
 
+   bool Empty() const { return nodes_.empty(); }
    void Clear();
 
 private:

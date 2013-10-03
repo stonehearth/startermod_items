@@ -102,3 +102,9 @@ JSONNode DataBinding::GetJsonData() const
    }
    return cached_json_;
 }
+
+void DataBinding::GetDbgInfo(dm::DbgInfo &info) const
+{
+   if (WriteDbgInfoHeader(info)) {
+   }
+}

@@ -54,6 +54,14 @@ void Region<S, C>::Clear()
 }
 
 template <class S, int C>
+void Region<S, C>::Add(const Region& other)
+{
+   for (const Cube& c : other) {
+      Add(c);
+   }
+}
+
+template <class S, int C>
 void Region<S, C>::Add(const Cube& cube)
 {
    Region unique(cube);
@@ -86,6 +94,13 @@ void Region<S, C>::AddUnique(const Region& region)
       ASSERT(!Intersects(cube));
       cubes_.push_back(cube);
    }
+}
+
+
+template <class S, int C>
+void Region<S, C>::Subtract(const Point& pt)
+{
+   Subtract(Cube(pt));
 }
 
 template <class S, int C>
@@ -328,12 +343,14 @@ Region3 radiant::csg::GetBorderXZ(const Region3 &other)
    template Cls::Region(const Cls::Cube&); \
    template Cls::ScalarType Cls::GetArea() const; \
    template void Cls::Clear(); \
+   template void Cls::Add(const Cls&); \
    template void Cls::Add(const Cls::Cube&); \
    template void Cls::Add(const Cls::Point&); \
    template void Cls::AddUnique(const Cls::Cube&); \
    template void Cls::AddUnique(const Cls&); \
-   template void Cls::Subtract(const Cls::Cube&); \
    template void Cls::Subtract(const Cls&); \
+   template void Cls::Subtract(const Cls::Cube&); \
+   template void Cls::Subtract(const Cls::Point&); \
    template Cls Cls::operator-(const Cls&) const; \
    template Cls Cls::operator-(const Cls::Cube&) const; \
    template const Cls& Cls::operator&=(const Cls::Cube&); \

@@ -2,6 +2,7 @@
 #define _RADIANT_DM_SAVE_IMPL_H
 
 #include "namespace.h"
+#include "dbg_info.h"
 #include <memory>
 
 BEGIN_RADIANT_DM_NAMESPACE
@@ -20,6 +21,9 @@ struct SaveImpl
    static void LoadValue(const Store& store, const Protocol::Value& msg, T& obj) {
       obj.LoadValue(store, msg);
    }
+   static void GetDbgInfo(T const& obj, DbgInfo &info) {
+      obj.GetDbgInfo(info);
+   }
 };
 
 #define IMPLEMENT_DM_EXTENSION(T, E) \
@@ -30,6 +34,9 @@ struct ::radiant::dm::SaveImpl<T> { \
    } \
    static void LoadValue(const Store& store, const Protocol::Value& msg, T& obj) { \
       obj.LoadValue(msg.GetExtension(E)); \
+   } \
+   static void GetDbgInfo(T const& obj, DbgInfo &info) { \
+      info.os << obj; \
    } \
 };
 
@@ -43,13 +50,15 @@ struct SaveImpl<T> \
    static void LoadValue(const Store& store, const Protocol::Value& msg, T& value) { \
       value = msg.GetExtension(E); \
    } \
+   static void GetDbgInfo(T const& obj, DbgInfo &info) { \
+      info.os << obj; \
+   } \
 };
 
 IMPLEMENT_DM_BASIC_TYPE(int,  Protocol::integer);
 IMPLEMENT_DM_BASIC_TYPE(bool, Protocol::boolean);
 IMPLEMENT_DM_BASIC_TYPE(float, Protocol::floatingpoint);
 IMPLEMENT_DM_BASIC_TYPE(std::string, Protocol::string);
-
 
 END_RADIANT_DM_NAMESPACE
 

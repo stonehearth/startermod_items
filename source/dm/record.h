@@ -9,9 +9,11 @@ BEGIN_RADIANT_DM_NAMESPACE
 class Record : public Object
 {
 public:
-   DEFINE_DM_OBJECT_TYPE(Record);
+   DEFINE_DM_OBJECT_TYPE(Record, record);
 
    Record();
+
+   void GetDbgInfo(DbgInfo &info) const override;
 
    void Initialize(Store& s, ObjectId id) override;
    void InitializeSlave(Store& s, ObjectId id) override;
@@ -33,6 +35,7 @@ public:
 
 private:
    NO_COPY_CONSTRUCTOR(Record);
+   friend ObjectDumper;
 
 private:
    std::vector<std::pair<std::string, ObjectId>>   fields_;

@@ -18,7 +18,8 @@ class RenderDestination : public RenderComponent {
       ~RenderDestination();
 
    private:
-      void UpdateShape(om::BoxedRegion3Ref r, H3DNode shape, csg::Color4 const& color);
+      void UpdateShape(csg::Region3 const& region, H3DNode shape, csg::Color4 const& color);
+      void CreateDebugTracker(om::BoxedRegionGuardPtr& guard, std::string const& regionName, H3DNodeUnique& shape, dm::Boxed<om::BoxedRegion3Ptr> const& region, csg::Color4 const& color);
 
    private:
       const RenderEntity&        entity_;
@@ -27,6 +28,9 @@ class RenderDestination : public RenderComponent {
       H3DNodeUnique              adjacentDebugShape_;
       H3DNodeUnique              node_;
       dm::Guard                  guards_;
+      om::BoxedRegionGuardPtr    region_guard_;
+      om::BoxedRegionGuardPtr    reserved_guard_;
+      om::BoxedRegionGuardPtr    adjacent_guard_;
 
 };
 

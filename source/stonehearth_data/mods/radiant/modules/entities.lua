@@ -89,6 +89,17 @@ function entities.get_faction(entity)
    return unit_info and unit_info:get_faction() or nil
 end
 
+function entities.set_faction(entity, faction)
+   assert(entity, 'no entity passed to set_faction')
+   assert(faction, 'no faction passed to set_faction')
+   return entity:add_component('unit_info'):set_faction(faction)
+end
+
+function entities.get_world_grid_location(entity)
+   local mob = entity:get_component('mob')
+   return mob and mob:get_world_grid_location() or Point3(0, 0, 0)
+end
+
 function entities.move_to(entity, location)
    radiant.check.is_entity(entity)
 

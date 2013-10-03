@@ -11,8 +11,25 @@ class Array : public Object
 {
 public:
    //static decltype(Protocol::Array::contents) extension;
-   DEFINE_DM_OBJECT_TYPE(Array);
+   DEFINE_DM_OBJECT_TYPE(Array, array);
    Array() : Object() { }
+
+   void GetDbgInfo(DbgInfo &info) const override {
+      if (WriteDbgInfoHeader(info)) {
+         info.os << " [" << std::endl;
+         {
+            Indenter indent(info.os);
+            for (int i = 0; i < C; i++) {
+               SaveImpl<T>::GetDbgInfo(items_[i], info);
+               if (i < (C - 1)) {
+                  info.os << ",";
+               }
+               info.os << std::endl;
+            }
+         }
+         info.os << "]";
+      }
+   }
 
    int Size() const { return C; }
 

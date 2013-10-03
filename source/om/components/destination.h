@@ -17,11 +17,15 @@ public:
 
    void ExtendObject(json::ConstJsonObject const& obj) override;
 
-   BoxedRegion3Ptr GetRegion() const { return region_; }
-   void SetRegion(BoxedRegion3Ptr r) { region_ = r; }
+   dm::Boxed<BoxedRegion3Ptr> const& GetRegion() const { return region_; }
+   dm::Boxed<BoxedRegion3Ptr> const& GetReserved() const { return reserved_; }
+   dm::Boxed<BoxedRegion3Ptr> const& GetAdjacent() { return adjacent_; }
 
-   BoxedRegion3Ptr GetReserved() const;
-   BoxedRegion3Ptr GetAdjacent();
+   void SetRegion(BoxedRegion3Ptr r);
+   void SetReserved(BoxedRegion3Ptr r);
+   void SetAdjacent(BoxedRegion3Ptr r);
+
+   void SetAutoUpdateAdjacent(bool value);
 
 private:
    void InitializeRecordFields() override;
@@ -29,10 +33,13 @@ private:
    void ComputeAdjacentRegion(csg::Region3 const& r);
 
 public:
+   dm::Boxed<bool>                  auto_update_adjacent_;
    dm::Boxed<BoxedRegion3Ptr>       region_;
    dm::Boxed<BoxedRegion3Ptr>       reserved_;
    dm::Boxed<BoxedRegion3Ptr>       adjacent_;
-   dm::Guard                        guards_;
+   BoxedRegionGuardPtr              region_guard_;
+   BoxedRegionGuardPtr              reserved_guard_;
+   dm::Guard                        update_adjacent_guard_;
    int                              lastUpdated_;
    int                              lastChanged_;
 };

@@ -35,3 +35,9 @@ void JsonStore::LoadValue(const dm::Store& store, const Protocol::Value& msg)
    dm::SaveImpl<std::string>::LoadValue(store, msg, json);
    json_ = libjson::parse(json);
 }
+
+void JsonStore::GetDbgInfo(dm::DbgInfo &info) const
+{
+   if (WriteDbgInfoHeader(info)) {
+   }
+}

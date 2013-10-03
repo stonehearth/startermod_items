@@ -18,6 +18,8 @@ class DataBinding : public dm::Object
 public:
    DataBinding();
    DEFINE_OM_OBJECT_TYPE_NO_CONS(DataBinding, data_binding);
+   void GetDbgInfo(dm::DbgInfo &info) const override;
+
 
    luabind::object GetDataObject() const;
    luabind::object GetModelObject() const;

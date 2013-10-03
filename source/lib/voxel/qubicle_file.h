@@ -1,12 +1,12 @@
-#ifndef _RADIANT_CLIENT_QUBICLE_FILE_H
-#define _RADIANT_CLIENT_QUBICLE_FILE_H
+#ifndef _RADIANT_VOXEL_QUBICLE_FILE_H
+#define _RADIANT_VOXEL_QUBICLE_FILE_H
 
 #include "namespace.h"
 #include "csg/point.h"
 #include "csg/color.h"
 #include "qubicle_file_format.h"
 
-BEGIN_RADIANT_CLIENT_NAMESPACE
+BEGIN_RADIANT_VOXEL_NAMESPACE
 
 class QubicleMatrix {
 public:
@@ -43,7 +43,7 @@ protected:
 std::istream& operator>>(std::istream& in, QubicleMatrix& q);
 std::istream& operator>>(std::istream& in, QubicleFile& q);
 
-END_RADIANT_CLIENT_NAMESPACE
+END_RADIANT_VOXEL_NAMESPACE
 
 
-#endif //  _RADIANT_CLIENT_QUBICLE_FILE_H
+#endif //  _RADIANT_VOXEL_QUBICLE_FILE_H

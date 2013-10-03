@@ -6,8 +6,7 @@
 #define DEFINE_OM_OBJECT_TYPE_NO_CONS(Class, lower)   \
    enum { DmType = Class ## ObjectType }; \
    dm::ObjectType GetObjectType() const override { return Class::DmType; } \
-   static const char *GetObjectClassName() { return #Class; } \
-   static const char *GetObjectClassNameLower() { return #lower; } \
+   const char *GetObjectClassNameLower() const override { return #lower; } \
 
 
 #define DEFINE_OM_OBJECT_TYPE(Class, lower)   \

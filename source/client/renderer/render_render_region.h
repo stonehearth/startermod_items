@@ -22,10 +22,10 @@ private:
                    const csg::Point3f& intersection, const csg::Point3f& normal);
 
 private:
-   const RenderEntity&  entity_;
-   dm::Guard            regionGuard_;
-   dm::Guard            selectedGuard_;
-   H3DNodeUnique        node_;
+   const RenderEntity&        entity_;
+   om::BoxedRegionGuardPtr    region_guard_;
+   dm::Guard                  selectedGuard_;
+   H3DNodeUnique              node_;
    std::vector<H3DNodeUnique> meshes_;
 };
 

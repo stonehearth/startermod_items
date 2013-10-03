@@ -7,6 +7,7 @@
 #include "radiant.pb.h"
 #include "path.h"
 #include "csg/point.h"
+#include "om/region.h"
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
 
@@ -27,9 +28,10 @@ private:
    int EstimateMovementCost(csg::Point3 const& start, csg::Point3 const& end) const;
 
 public:
-   PathFinder&       pf_;
-   om::EntityRef     entity_;
-   dm::Guard         guards_;
+   PathFinder&             pf_;
+   dm::Guard               guards_;
+   om::EntityRef           entity_;
+   om::BoxedRegionGuardPtr region_guard_;
 };
 
 class PathFinder : public Job {

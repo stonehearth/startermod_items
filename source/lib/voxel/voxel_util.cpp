@@ -1,82 +1,49 @@
+#if 0
 #include "pch.h"
-#include "pipeline.h"
-#include "metrics.h"
-#include "Horde3DUtils.h"
-#include "renderer.h"
-#include "lib/voxel/qubicle_file.h"
-#include "resources/res_manager.h"
-#include <fstream>
-#include <unordered_map>
+#include <bitset>
+#include "csg/region.h"
+#include "voxel_util.h"
+#include "qubicle_file.h"
 
 using namespace ::radiant;
-
-namespace metrics = ::radiant::metrics;
-using ::radiant::csg::Point3;
-
-using namespace ::radiant;
-using namespace ::radiant::client;
-
-DEFINE_SINGLETON(Pipeline);
+using namespace ::radiant::voxel;
 
 static const struct {
    int i, u, v, mask;
    csg::Point3f normal;
 } qubicle_node_edges__[] = {
-   { 2, 0, 1, voxel::FRONT_MASK,  csg::Point3f( 0,  0,  1) },
-   { 2, 0, 1, voxel::BACK_MASK,   csg::Point3f( 0,  0, -1) },
-   { 1, 0, 2, voxel::TOP_MASK,    csg::Point3f( 0,  1,  0) },
-   { 1, 0, 2, voxel::BOTTOM_MASK, csg::Point3f( 0, -1,  0) },
-   { 0, 2, 1, voxel::RIGHT_MASK,  csg::Point3f(-1,  0,  0) },
-   { 0, 2, 1, voxel::LEFT_MASK,   csg::Point3f( 1,  0,  0) },
+   { 2, 0, 1, FRONT_MASK,  csg::Point3f( 0,  0,  1) },
+   { 2, 0, 1, BACK_MASK,   csg::Point3f( 0,  0, -1) },
+   { 1, 0, 2, TOP_MASK,    csg::Point3f( 0,  1,  0) },
+   { 1, 0, 2, BOTTOM_MASK, csg::Point3f( 0, -1,  0) },
+   { 0, 2, 1, RIGHT_MASK,  csg::Point3f(-1,  0,  0) },
+   { 0, 2, 1, LEFT_MASK,   csg::Point3f( 1,  0,  0) },
 };
 
-Pipeline::Pipeline()
+csg::Region3 voxel::MatrixToRegion3(QubicleMatrix const& matrix)
 {
-   //_actorMaterial = Ogre::MaterialManager::getSingleton().load("Tessaract/ActorMaterialTemplate", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
-   //_tileMaterial = Ogre::MaterialManager::getSingleton().load("Tessaract/TileMaterialTemplate", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
-   // ASSERT(!_actorMaterial.isNull());
-   orphaned_ = H3DNodeUnique(h3dAddGroupNode(H3DRootNode, "pipeline orphaned nodes"));
-   h3dSetNodeFlags(orphaned_.get(), H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, true);
-
-   float offscreen = -100000.0f;
-   h3dSetNodeTransform(orphaned_.get(), offscreen, offscreen, offscreen, 0, 0, 0, 1, 1, 1);
-}
-
-Pipeline::~Pipeline()
-{
-}
-
-// From: http://mikolalysenko.github.com/MinecraftMeshes2/js/greedy.js
-
-H3DNodeUnique Pipeline::AddMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m)
-{
-   static int unique = 0;
-   std::string name = "mesh data ";
-
-   H3DRes res = h3dutCreateVoxelGeometryRes((name + stdutil::ToString(unique++)).c_str(), (VoxelGeometryVertex *)m.vertices.data(), m.vertices.size(), (uint *)m.indices.data(), m.indices.size());
-   H3DRes matRes = h3dAddResource(H3DResTypes::Material, "terrain/default_material.xml", 0);
-   H3DNodeUnique modelNode = h3dAddVoxelModelNode(parent, (name + stdutil::ToString(unique++)).c_str(), res);
-   H3DNode meshNode = h3dAddVoxelMeshNode(modelNode.get(), (name + stdutil::ToString(unique++)).c_str(), matRes, 0, m.indices.size(), 0, m.vertices.size() - 1);
-
-   // xxx: how do res, matRes, and meshNode get deleted? - tony
-
-   return modelNode;
-}
-
-H3DNodeUnique Pipeline::AddQubicleNode(H3DNode parent, const voxel::QubicleMatrix& m, const csg::Point3f& origin)
-{
-   std::vector<VoxelGeometryVertex> vertices;
-   std::vector<uint32> indices;
-
-   //std::unordered_map<Vertex, int> vertcache;
-
    // Super greedy...   
- 
    const csg::Point3& size = m.GetSize();
    const csg::Point3f matrixPosition((float)m.position_.x, (float)m.position_.y, (float)m.position_.z);
 
-   uint32* mask = new uint32[size.x * size.y * size.z];
+   csg::Region3 result;
 
+   std::bitset<size.x * size.y * size.z> mask;
+   mask.reset();
+
+   // There it is, that's a straw, you see? You watching?. And my straw
+   // reaches acroooooooss the room, and starts to drink your milkshake...
+   // I... drink... your... milkshake!
+   csg::Point3 i;
+   for (int z = 0; z < size.z; z++) {
+      for (int y = 0; y < size.y; y++) {
+         int x = 0;
+         while (x < size.x) {
+            if (mask.test(
+         }
+      }
+   }
+   
    for (const auto &edge : qubicle_node_edges__) {
       csg::Point3 pt;
       for (int i = 0; i < size[edge.i]; i++) {
@@ -89,7 +56,7 @@ H3DNodeUnique Pipeline::AddQubicleNode(H3DNode parent, const voxel::QubicleMatri
                pt[edge.u] = u;
                pt[edge.v] = v;
 
-               uint32 c = m.At(pt.x, pt.y, pt.z);
+               uint32 c = m.At(pt.x, pt.y, pt.z); 
                uint32 alpha = (c >> 24);
                if ((alpha & edge.mask) != 0) {
                   // make alpha fully opaque so we can use integer comparision.  setting
@@ -144,8 +111,6 @@ H3DNodeUnique Pipeline::AddQubicleNode(H3DNode parent, const voxel::QubicleMatri
                   min.z += 0.5;
                   min.y += 0.5;
 
-               
-#define COPY_VEC(a, b) ((a)[0] = (b)[0]), ((a)[1] = (b)[1]), ((a)[2] = (b)[2])
 
                   VoxelGeometryVertex vertex;
                   COPY_VEC(vertex.normal, edge.normal);
@@ -165,11 +130,6 @@ H3DNodeUnique Pipeline::AddQubicleNode(H3DNode parent, const voxel::QubicleMatri
                   // Now convert to y-up, left-handed
                   csg::Point3f yUpLHOrigin(yUpOrigin.x, yUpOrigin.y, -yUpOrigin.z);
 
-#if 0
-                  // The order of the voxels in the matric have the front at
-                  // the positive z-side of the model.  Flip it so the actor is
-                  // looking down the negative z axis
-#endif
                   COPY_VEC(vertex.pos, (min + matrixPosition) - yUpLHOrigin);
                   vertices.push_back(vertex);
                   //vertices.back().pos.z *= -1;
@@ -189,7 +149,7 @@ H3DNodeUnique Pipeline::AddQubicleNode(H3DNode parent, const voxel::QubicleMatri
                   // xxx - the whole conversion bit above can be greatly optimized,
                   // but I don't want to touch it now that it's workin'!
 
-                  if (edge.mask == voxel::RIGHT_MASK || edge.mask == voxel::FRONT_MASK || edge.mask == voxel::BOTTOM_MASK) {
+                  if (edge.mask == RIGHT_MASK || edge.mask == FRONT_MASK || edge.mask == BOTTOM_MASK) {
                      indices.push_back(voffset + 2);
                      indices.push_back(voffset + 1);
                      indices.push_back(voffset);
@@ -226,37 +186,5 @@ H3DNodeUnique Pipeline::AddQubicleNode(H3DNode parent, const voxel::QubicleMatri
          }
       }
    }
-   delete[] mask;
-
-   static int unique = 0;
-   std::string name = "qubicle data ";
-   H3DRes res = h3dutCreateVoxelGeometryRes((name + stdutil::ToString(unique++)).c_str(), vertices.data(), vertices.size(), indices.data(), indices.size());
-   H3DRes matRes = h3dAddResource(H3DResTypes::Material, "terrain/default_material.xml", 0);
-   H3DNodeUnique modelNode = h3dAddVoxelModelNode(parent, (name + stdutil::ToString(unique++)).c_str(), res);
-   H3DNode meshNode = h3dAddVoxelMeshNode(modelNode.get(), (name + stdutil::ToString(unique++)).c_str(), matRes, 0, indices.size(), 0, vertices.size() - 1);
-   return modelNode;
 }
-
-
-Pipeline::NamedNodeMap Pipeline::LoadQubicleFile(std::string const& uri)
-{   
-   NamedNodeMap result;
-
-   // xxx: no.  Make a qubicle resource type so they only get loaded once, ever.
-   voxel::QubicleFile f;
-   std::ifstream input;
-
-   res::ResourceManager2::GetInstance().OpenResource(uri, input);
-   input >> f;
-
-   for (const auto& entry : f) {
-      // Qubicle requires that every matrix in the file have a unique name.  While authoring,
-      // if you copy/pasta a matrix, it will rename it from matrixName to matrixName_2 to
-      // dismabiguate them.  Ignore everything after the _ so we don't make authors manually
-      // rename every single part when this happens.
-      std::string matrixName = entry.first;
-      result[matrixName] = AddQubicleNode(orphaned_.get(), entry.second, csg::Point3f(0, 0, 0));
-   }
-
-   return result;
-}
+#endif

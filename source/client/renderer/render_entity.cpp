@@ -142,7 +142,7 @@ void RenderEntity::AddComponent(dm::ObjectType key, std::shared_ptr<dm::Object> 
          }
          case om::DestinationObjectType: {
             om::DestinationPtr stockpile = std::static_pointer_cast<om::Destination>(value);
-            //components_[key] = std::make_shared<RenderDestination>(*this, stockpile);
+            components_[key] = std::make_shared<RenderDestination>(*this, stockpile);
             break;
          }
          case om::LuaComponentsObjectType: {

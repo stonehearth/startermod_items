@@ -9,7 +9,7 @@ using namespace ::radiant::om;
 
 std::shared_ptr<BoxedRegion3Promise> RenderRegion_TraceRenderRegion(om::RenderRegion const& region, const char* reason)
 {
-   return std::make_shared<BoxedRegion3Promise>(region.GetRenderRegionField(), reason);
+   return std::make_shared<BoxedRegion3Promise>(region.GetRegion(), reason);
 }
 
 scope LuaRenderRegionComponent::RegisterLuaTypes(lua_State* L)

@@ -7,6 +7,7 @@
 #include "radiant_stdutil.h"
 #include "radiant_luabind.h"
 #include "lua/register.h"
+#include "dbg_indenter.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -15,12 +16,32 @@ template <class K, class V, class Hash=std::unordered_map<K, V>::hasher>
 class Map : public Object
 {
 public:
-   DEFINE_DM_OBJECT_TYPE(Map);
+   DEFINE_DM_OBJECT_TYPE(Map, map);
 
    typedef K KeyType;
    typedef V ValueType;
 
    Map() : Object() { }
+
+   void GetDbgInfo(DbgInfo &info) const override {
+      if (WriteDbgInfoHeader(info)) {
+         info.os << " {" << std::endl;
+         {
+            Indenter indent(info.os);
+            auto i = items_.begin(), end = items_.end();
+            while (i != end) {
+               SaveImpl<K>::GetDbgInfo(i->first, info);
+               info.os << " : ";
+               SaveImpl<V>::GetDbgInfo(i->second, info);
+               if (++i != end) {
+                  info.os << ",";
+               }
+               info.os << std::endl;
+            }
+         }
+         info.os << "}";
+      }
+   }
 
    typedef std::unordered_map<K, V, Hash> ContainerType;
 

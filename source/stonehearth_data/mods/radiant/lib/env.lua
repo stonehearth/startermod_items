@@ -1,9 +1,9 @@
 -- replace the global assert
-assert = function(condition)   
+local old_assert = assert
+assert = function(condition, msg)
    if not condition then
-      _host:assert_failed('assertion failed')
+      old_assert(condition, msg)
    end
-   return condition
 end
 
 -- this function is only valid in very specific circumstances!  specfically, the

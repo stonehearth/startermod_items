@@ -4,33 +4,55 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-dm::Guard om::TraceBoxedRegion3PtrField(dm::Boxed<BoxedRegion3Ptr> const& boxedRegionPtrField,
-                                        const char* reason,
-                                        std::function<void(csg::Region3 const& r)> updateCb)
+// xxx: hmm.  guards are looking more like promises!!! (shared_ptr<Promise> in fact).
+BoxedRegionGuardPtr om::TraceBoxedRegion3PtrField(dm::Boxed<BoxedRegion3Ptr> const& boxedRegionPtrField,
+                                                  const char* reason,
+                                                  std::function<void(csg::Region3 const& r)> updateCb)
 {   
-   auto fieldValueChangedCb = [=](BoxedRegion3Ref v) {
+   auto fieldValueChangedCb = [=, &boxedRegionPtrField](BoxedRegion3Ref v) {
       BoxedRegion3Ptr value = v.lock();
       if (value) {
+         LOG(INFO) << "boxed-boxed-region-ptr's inner box modified (!)";
+         LOG(INFO) << dm::DbgInfo::GetInfoString(*value);
          updateCb(value->Get());
       }
    };
 
-   dm::Guard g; // xxx: this needs to be a new guard for every function invocation.  Is that the case??
-   auto fieldChangedCb = [=, &g, &boxedRegionPtrField]() {
-      BoxedRegion3Ptr fieldValue = boxedRegionPtrField.Get();
-      if (fieldValue == nullptr) {
-         updateCb(csg::Region3());
-      } else {
-         LOG(WARNING) << "----------> Creating new guard " << g.GetId();
-         g = fieldValue->TraceObjectChanges(reason, std::bind(fieldValueChangedCb, BoxedRegion3Ref(fieldValue)));
+   BoxedRegionGuardPtr result = std::make_shared<BoxedRegionGuard>(boxedRegionPtrField.GetStoreId(), boxedRegionPtrField.GetObjectId());
+   BoxedRegionGuardRef r = result;
+   auto fieldChangedCb = [=, &boxedRegionPtrField]() {
+      BoxedRegionGuardPtr g = r.lock();
+      if (g) {
+         LOG(INFO) << "boxed-boxed-region-ptr's outer box modified (!)";
+         LOG(INFO) << dm::DbgInfo::GetInfoString(boxedRegionPtrField);
+
+         BoxedRegion3Ptr fieldValue = boxedRegionPtrField.Get();
+         if (fieldValue == nullptr) {
+            updateCb(csg::Region3());
+         } else {
+            g->region = fieldValue->TraceObjectChanges(reason, std::bind(fieldValueChangedCb, BoxedRegion3Ref(fieldValue)));
+            fieldValueChangedCb(fieldValue); // xxx: all these manual callbacks need to go!  ug!!
+         }
       }
    };
 
-   return boxedRegionPtrField.TraceObjectChanges(reason, fieldChangedCb);
+   result->boxed = boxedRegionPtrField.TraceObjectChanges(reason, fieldChangedCb);
+   fieldChangedCb(); // xxx: all these manual callbacks need to go!  ug!!
+   return result;
 }
 
-BoxedRegion3Promise::BoxedRegion3Promise(dm::Boxed<BoxedRegion3Ptr> const& boxedRegionPtrField, const char* reason) {
-   guard_ = TraceBoxedRegion3PtrField(boxedRegionPtrField, reason, [=](csg::Region3 const& r) {
+BoxedRegionGuardPtr om::TraceBoxedRegion3PtrFieldVoid(dm::Boxed<BoxedRegion3Ptr> const& boxedRegionPtrField,
+                                                      const char* reason,
+                                                      std::function<void()> updateCb)
+{
+   return TraceBoxedRegion3PtrField(boxedRegionPtrField, reason, [=](csg::Region3 const& r) {
+      updateCb();
+   });
+}
+
+BoxedRegion3Promise::BoxedRegion3Promise(dm::Boxed<BoxedRegion3Ptr> const& boxedRegionPtrField, const char* reason)
+{
+   region_guard_ = TraceBoxedRegion3PtrField(boxedRegionPtrField, reason, [=](csg::Region3 const& r) {
       for (auto& cb : changedCbs_) {
          luabind::call_function<void>(cb, r);
       }

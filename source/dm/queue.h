@@ -3,6 +3,7 @@
 #include "store.pb.h"
 #include <vector>
 #include "namespace.h"
+#include "dbg_indenter.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -14,8 +15,28 @@ public:
    typedef std::vector<T> ContainerType;
 
    //static decltype(Protocol::Queue::contents) extension;
-   DEFINE_DM_OBJECT_TYPE(Queue);
+   DEFINE_DM_OBJECT_TYPE(Queue, queue);
    Queue() : Object() { }
+
+   // xxx: these can all be factored out into a SaveImpl class, right?  then
+   // we can move the change tracking out, too???
+   void GetDbgInfo(DbgInfo &info) const override {
+      if (WriteDbgInfoHeader(info)) {
+         info.os << " [" << std::endl;
+         {
+            Indenter indent(info.os);
+            auto i = items_.begin(), end = items_.end();
+            while (i != end) {
+               SaveImpl<T>::GetDbgInfo(*i, info);
+               if (++i != end) {
+                  info.os << ",";
+               }
+               info.os << std::endl;
+            }
+         }
+         info.os << "]";
+      }
+   }
 
    bool IsEmpty() {
       return items_.empty();
