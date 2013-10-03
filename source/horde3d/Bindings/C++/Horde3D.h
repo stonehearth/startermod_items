@@ -1340,6 +1340,8 @@ DLL void h3dSetShaderPreambles( const char *vertPreamble, const char *fragPreamb
 */
 DLL bool h3dSetMaterialUniform( H3DRes materialRes, const char *name, float a, float b, float c, float d );
 
+DLL bool h3dSetMaterialArrayUniform( H3DRes materialRes, const char *name, float* data, int dataCount );
+
 /* Function: h3dResizePipelineBuffers
 		Changes the size of the render targets of a pipeline.
 	

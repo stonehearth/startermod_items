@@ -359,7 +359,7 @@ protected:
 		}
 		else
 		{
-			seekChar( " \t\n\r{}()<>=,;" );  // Advance until whitespace or special char found
+			seekChar( " \t\n\r{}()[]<>=,;" );  // Advance until whitespace or special char found
 			if( _p == p0 && *_p != '\0' ) ++_p;  // Handle special char
 			p1 = _p;
 		}
@@ -471,6 +471,8 @@ bool ShaderResource::parseFXSection( char *data )
 		if( tok.checkToken( "float" ) )
 		{
 			ShaderUniform uniform;
+         // No support for single float arrays, yet.
+         uniform.arraySize = 1;
 			uniform.size = 1;
 			uniform.id = tok.getToken( identifier );
 			if( uniform.id == "" ) return raiseError( "FX: Invalid identifier", tok.getLine() );
@@ -490,6 +492,18 @@ bool ShaderResource::parseFXSection( char *data )
 		{
 			ShaderUniform uniform;
 			uniform.size = 4;
+         uniform.arraySize = 1;
+
+         if (tok.checkToken("[")) 
+         {
+            tok.getToken("[");
+            uniform.arraySize = (int)atoi(tok.getToken(intnum));
+            if (!tok.checkToken("]"))
+            {
+               return raiseError("FX: expected ']'", tok.getLine());
+            }
+         }
+
 			uniform.id = tok.getToken( identifier );
 			if( uniform.id == "" ) return raiseError( "FX: Invalid identifier", tok.getLine() );
 			uniform.defValues[0] = uniform.defValues[1] = uniform.defValues[2] = uniform.defValues[3] = 0.0f;

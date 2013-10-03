@@ -405,6 +405,15 @@ DLLEXP bool h3dSetMaterialUniform( ResHandle materialRes, const char *name, floa
 }
 
 
+DLLEXP bool h3dSetMaterialArrayUniform( ResHandle materialRes, const char *name, float *data, int dataCount)
+{
+	Resource *resObj = Modules::resMan().resolveResHandle( materialRes );
+	APIFUNC_VALIDATE_RES_TYPE( resObj, ResourceTypes::Material, "h3dSetMaterialUniform", false );
+
+	return ((MaterialResource *)resObj)->setArrayUniform( safeStr( name, 0 ), data, dataCount);
+}
+
+
 DLLEXP void h3dResizePipelineBuffers( ResHandle pipeRes, int width, int height )
 {
 	Resource *resObj = Modules::resMan().resolveResHandle( pipeRes );

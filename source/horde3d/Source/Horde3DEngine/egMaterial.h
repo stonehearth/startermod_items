@@ -54,7 +54,8 @@ struct MatSampler
 struct MatUniform
 {
 	std::string  name;
-	float        values[4];	
+	float        values[4];
+   std::vector<float> arrayValues;
 
 
 	MatUniform()
@@ -82,6 +83,7 @@ public:
 	void release();
 	bool load( const char *data, int size );
 	bool setUniform( const std::string &name, float a, float b, float c, float d );
+   bool setArrayUniform( const std::string &name, float* data, int dataCount);
 	bool isOfClass( const std::string &theClass );
 
 	int getElemCount( int elem );

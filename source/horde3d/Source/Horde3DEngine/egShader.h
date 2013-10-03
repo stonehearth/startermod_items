@@ -198,6 +198,9 @@ struct ShaderUniform
 	std::string    id;
 	float          defValues[4];
 	unsigned char  size;
+
+   unsigned char       arraySize;
+   std::vector<float>  arrayValues;
 };
 
 

@@ -804,7 +804,11 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, const std::string 
 			
 			if( matUniform.name == shaderRes->_uniforms[i].id )
 			{
-				unifData = matUniform.values;
+            if (shaderRes->_uniforms[i].arraySize > 1) {
+               unifData = matUniform.arrayValues.data();
+            } else {
+   				unifData = matUniform.values;
+            }
 				break;
 			}
 		}
@@ -818,10 +822,10 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, const std::string 
 			switch( shaderRes->_uniforms[i].size )
 			{
 			case 1:
-				gRDI->setShaderConst( _curShader->customUniforms[i], CONST_FLOAT, unifData );
+				gRDI->setShaderConst( _curShader->customUniforms[i], CONST_FLOAT, unifData, shaderRes->_uniforms[i].arraySize );
 				break;
 			case 4:
-				gRDI->setShaderConst( _curShader->customUniforms[i], CONST_FLOAT4, unifData );
+            gRDI->setShaderConst( _curShader->customUniforms[i], CONST_FLOAT4, unifData, shaderRes->_uniforms[i].arraySize );
 				break;
 			}
 		}
