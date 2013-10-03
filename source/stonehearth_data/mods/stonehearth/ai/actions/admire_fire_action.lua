@@ -78,6 +78,12 @@ function AdmireFire:run(ai, entity)
 
    -- Go to the fire!
    ai:execute('stonehearth.follow_path', self._path_to_fire)
+
+   --Am I carrying anything? If so, drop it
+   local drop_location = self._path_to_fire:get_destination_point_of_interest()
+   ai:execute('stonehearth.drop_carrying', drop_location)
+
+
    radiant.entities.turn_to_face(self._entity, self._fire)
    local fire = self._path_to_fire:get_destination()
    self._last_fire = fire

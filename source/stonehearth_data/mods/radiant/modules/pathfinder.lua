@@ -47,7 +47,10 @@ function pathfinder._track_world_items(pathfinder)
 
    -- xxx: iterate through every item in a range provided by the client
    for id, entity in radiant.terrain.get_world_entities() do
-      pathfinder:add_destination(entity)
+      --TODO: why is this sometimes nil?
+      if entity then
+         pathfinder:add_destination(entity)
+      end
    end
 end
 
