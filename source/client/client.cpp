@@ -138,9 +138,8 @@ void Client::run()
    octtree_ = std::unique_ptr<Physics::OctTree>(new Physics::OctTree());
       
    Renderer& renderer = Renderer::GetInstance();
-   //renderer.SetCurrentPipeline("pipelines/deferred_pipeline_static.xml");
    //renderer.SetCurrentPipeline("pipelines/forward.pipeline.xml");
-   //renderer.SetCurrentPipeline("pipelines/deferred_lighting.xml");
+   renderer.SetCurrentPipeline("pipelines/deferred_lighting.xml");
 
    Horde3D::Modules::log().SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
       error_browser_->AddRecord(r);

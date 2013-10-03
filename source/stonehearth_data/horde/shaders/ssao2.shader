@@ -1,7 +1,7 @@
 [[FX]]
 
 // The material-wide sampler kernel for SSAO hemisphere sampling.
-//float4[8] samplerKernel;
+float4[16] samplerKernel;
 
 // Samplers
 
@@ -301,17 +301,7 @@ float linDepth(float d, float zNear, float zFar)
 uniform sampler2D randomVectorLookup;
 uniform sampler2D normals;
 uniform sampler2D depth;
-
-vec3 samplerKernel[8] = vec3[](
-  vec3(-0.0310600102, -0.0933341458, -0.0180003643),
-  vec3(0.0244238228, 0.0642591938, -0.0910191536),
-  vec3(0.00645755092, -0.0643227920, -0.142249554),
-  vec3(0.0746362135, 0.150111482, -0.152402580),
-  vec3(0.0299102589, -0.271836638, -0.175599590),
-  vec3(-0.259417892, 0.355048746, -0.102720208),
-  vec3(0.254237741, 0.312418193, -0.453097254),
-  vec3(0.719119310, 0.160460636, -0.282381773)
-);
+uniform vec4 samplerKernel[16];
 uniform vec2 frameBufSize;
 uniform mat4 camProjMat;
 uniform mat4 camViewMat;
@@ -334,9 +324,9 @@ void main()
   mat3 tbn = mat3(tangent, bitangent, normal);
 
   float occlusion = 0.0;
-  for (int i = 0; i < 8; i++) {
+  for (int i = 0; i < 16; i+=2) {
     // get sample position:
-    vec3 sample = tbn * samplerKernel[i];
+    vec3 sample = tbn * samplerKernel[i].xyz;
     sample = (sample * radius) + origin;
 
     // project sample position:
@@ -347,10 +337,12 @@ void main()
     // get sample location:
     float realDepth = texture2D(depth, offset.xy).x;
     float sampleDepth = linDepth(realDepth, 4, 2000);
+    vec3 sampleNormal = (camViewMat * vec4(texture2D(normals, offset.xy).xyz, 0)).xyz;
 
     // range check & accumulate:
+    float normalCheck = dot(sampleNormal, normal) > 0.99 ? 0.0 : 1.0;
     float rangeCheck = abs(origin.z - sampleDepth) < radius ? 1.0 : 0.0;
-    occlusion += (sampleDepth <= sample.z ? 1.0 : 0.0) * rangeCheck;
+    occlusion += (sampleDepth <= sample.z ? 1.0 : 0.0) * rangeCheck * normalCheck;
   }
 
   float visibility = 1.0 - (occlusion / 8.0);
