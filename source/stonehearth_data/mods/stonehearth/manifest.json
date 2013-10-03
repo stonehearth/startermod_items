@@ -3,7 +3,7 @@
       "name" : "Stonehearth"
    },
 
-   "radiant": {     
+   "radiant": {
       "entities" : {
          "cursors.arrow" : "file(data/cursors/arrow.cur)",
          "cursors.camera_move_down" : "file(data/cursors/camera_move_down.cur)",
@@ -32,7 +32,7 @@
          "default_object" : "file(entities/generic/default_object)",
 
          "worker.profession_description" : "file(entities/professions/worker/profession_description.json)",
-         
+
          "carpenter.profession_description" : "file(entities/professions/carpenter/profession_description.json)",
          "carpenter_workbench" : "file(entities/professions/carpenter/carpenter_workbench)",
          "carpenter_outfit" : "file(entities/professions/carpenter/carpenter_outfit)",
@@ -107,6 +107,7 @@
          "ball" : "file(entities/toys/ball)",
 
          "actions.attack_action" : "file(ai/actions/combat/attack_action.lua)",
+         "actions.attack_top_aggro_action" : "file(ai/actions/combat/attack_top_aggro_action.lua)",
          "actions.melee_attack_action" : "file(ai/actions/combat/melee_attack_action.lua)",
          "actions.chase_target_action" : "file(ai/actions/combat/chase_target_action.lua)",
          "actions.flee_action" : "file(ai/actions/combat/flee_action.lua)",
@@ -133,12 +134,14 @@
          "actions.check_craftable_action" : "file(ai/actions/check_craftable_action.lua)",
          "actions.craft_action" : "file(ai/actions/craft_action.lua)",
          "actions.fill_outbox_action" : "file(ai/actions/fill_outbox_action.lua)",
-         "actions.gather_and_craft_action" : "file(ai/actions/gather_and_craft_action.lua)",        
-         "actions.grab_talisman_action" : "file(ai/actions/grab_talisman_action.lua)",        
+         "actions.gather_and_craft_action" : "file(ai/actions/gather_and_craft_action.lua)",
+         "actions.grab_talisman_action" : "file(ai/actions/grab_talisman_action.lua)",
+         "actions.admire_fire_action" : "file(ai/actions/admire_fire_action.lua)",
          "actions.chop_tree_action" : "file(ai/actions/chop_tree_action.lua)",
-         "actions.worker_task_dispatcher" : "file(ai/actions/worker_task_dispatcher.lua)",        
-         "actions.worker_pickup_action" : "file(ai/actions/worker_pickup_action.lua)",        
+         "actions.worker_task_dispatcher" : "file(ai/actions/worker_task_dispatcher.lua)",
+         "actions.worker_pickup_action" : "file(ai/actions/worker_pickup_action.lua)",
          "actions.worker_restock_action" : "file(ai/actions/worker_restock_action.lua)",
+         "actions.worker_place_action" : "file(ai/actions/worker_place_action.lua)",
          "actions.play_with_ball_action" : "file(ai/actions/play_with_ball_action.lua)",
 
          "observers.look_for_enemies" : "file(ai/observers/look_for_enemies.lua)",
@@ -198,7 +201,7 @@
          "create_stockpile": {
             "controller" : "file(call_handlers/inventory_call_handler.lua)",
             "endpoint" : "server"
-         }         
+         }
       }
    },
    "components" :  {
@@ -243,7 +246,7 @@
          "file(ui/game/item_placement/item_placement.html)",
          "file(ui/game/unit_frame/unit_frame.html)",
          "file(ui/game/main_actionbar/main_actionbar.html)",
-         "file(ui/game/main_actionbar/tip_popup.html)"         
+         "file(ui/game/main_actionbar/tip_popup.html)"
       ],
       "js" : [
          "file(ui/common/modal_overlay/modal_overlay.js)",
@@ -272,7 +275,7 @@
          "file(ui/game/unit_frame/unit_frame.less)",
          "file(ui/game/item_placement/item_placement.less)",
          "file(ui/game/main_actionbar/main_actionbar.less)",
-         "file(ui/game/main_actionbar/tip_popup.less)"         
+         "file(ui/game/main_actionbar/tip_popup.less)"
       ]
    }
 }

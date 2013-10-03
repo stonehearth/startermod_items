@@ -26,7 +26,9 @@ end
 
 function Flee:run(ai, entity)
    assert(self._target)
-   ai:execute('stonehearth.run_away_from_entity', self._target)
+   while true do
+      ai:execute('stonehearth.run_away_from_entity', self._target)
+   end
 end
 
 return Flee

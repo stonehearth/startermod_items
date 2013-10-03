@@ -6,7 +6,8 @@
          "actions" : [
             "stonehearth.actions.sleep_action",
             "stonehearth.actions.sleep_in_bed_action",
-            "stonehearth.actions.grab_talisman_action"
+            "stonehearth.actions.grab_talisman_action",
+            "stonehearth.actions.admire_fire_action"
          ]
       },
 	   "unit_info" : {

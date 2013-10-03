@@ -24,8 +24,8 @@ end
 
 --[[
    The sleep action works by first looking for a bed when it's time to go
-   to sleep. If a bed is found, we run to the bed and lie down in it. 
-   
+   to sleep. If a bed is found, we run to the bed and lie down in it.
+
    If a bed is never found, we will never go to sleep. The idea is that
    some other action will pick up the slack and make the actor go to sleep
    on the ground (not in a bed) from exhaustion.
@@ -36,7 +36,7 @@ SleepAction['radiant.events.calendar.hourly'] = function(self, calendar)
       if not self._looking_for_a_bed and not self._sleeping then
          self:start_looking_for_bed()
       end
-   else 
+   else
       self:stop_looking_for_bed()
       self._sleeping = false
       self._ai:set_action_priority(self, 0)
@@ -46,7 +46,7 @@ end
 function SleepAction:start_looking_for_bed()
    assert(not self._pathfinder)
    assert(not self._looking_for_a_bed)
-   
+
    self._ai:set_action_priority(self, 0)
    self._looking_for_a_bed = true;
 
@@ -63,7 +63,7 @@ function SleepAction:start_looking_for_bed()
    end
 
    if not self._pathfinder then
-      self:find_a_bed(found_bed_cb) 
+      self:find_a_bed(found_bed_cb)
    end
 end
 
@@ -79,7 +79,7 @@ end
 --[[
    Finds a bed to sleep in, if one is available. Actors "own" individual beds through
    a lease system.
-   
+
    Sleeping in a bed pairs that bed to the actor through a lease. Other actors will
    only look for unleased beds to sleep in. Once an actor has leased a bed, he will
    always go back to that bed when it's time to sleep.
@@ -96,7 +96,7 @@ function SleepAction:find_a_bed(result_cb)
       radiant.log.warning('missing bed lease component.  ignoring sleep behavior.')
       return
    end
-   
+
    local bed = bed_lease:get_bed()
    if bed then
       -- we already have a bed assigned to us, so just save the path to the bed once we find it
@@ -112,7 +112,7 @@ function SleepAction:find_a_bed(result_cb)
    else
       -- find a bed and lease it
       local filter_fn = function(item)
-         -- radiant.log.info("looing for a bed")    
+         -- radiant.log.info("looing for a bed")
          -- xxx: only look for beds compatible with this entities faction
          local bed_component = item:get_component('stonehearth:bed')
          if bed_component ~= nil then
@@ -134,8 +134,8 @@ function SleepAction:find_a_bed(result_cb)
       local desc = string.format('finding bed for %s', tostring(self._entity))
       self._pathfinder = radiant.pathfinder.create_path_finder(desc)
                            :set_source(self._entity)
-                           :set_solved_cb(solved_cb)
                            :set_filter_fn(filter_fn)
+                           :set_solved_cb(solved_cb)
                            :find_closest_dst()
    end
 
@@ -144,14 +144,14 @@ end
 
 --[[
    SleepAction only runs once a path to the bed has been found.
-   
+
    SleepAction handles the bookkeeping of the sleep behavior. It tells the pathfinder to
    stop searching for a bed, grabs a lease on the bed if necessary, then kicks off
    stonehearth.sleep_in_bed to handle the specifics of how to go to sleep
    (like which animations to play)
 --]]
 function SleepAction:run(ai, entity)
-   assert(self._pathfinder)   
+   assert(self._pathfinder)
    assert(self._path_to_bed)
 
    -- we found a bed, so stop looking for one
@@ -169,7 +169,7 @@ function SleepAction:run(ai, entity)
       self:start_looking_for_bed()
       return
    end
-   
+
    radiant.log.info('leasing %s to %s', tostring(self._bed), tostring(self._entity))
    bed_component:lease_bed_to(entity)
    entity:get_component('stonehearth:bed_lease'):set_bed(self._bed)
@@ -177,7 +177,7 @@ function SleepAction:run(ai, entity)
    -- go to sleep!
    self._sleeping = true;
    ai:execute('stonehearth.sleep_in_bed', self._bed, self._path_to_bed)
-   
+
 end
 
 --[[

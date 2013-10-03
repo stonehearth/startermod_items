@@ -4,15 +4,20 @@ local next_task_id = 1
 function WorkerTask:__init(name, scheduler)
    self.id = next_task_id
    next_task_id = next_task_id + 1
-   
-   self.name = string.format('worker_task (%d): %s', self.id, name)
+
+   self._name = string.format('worker_task (%d): %s', self.id, name)
    self._scheduler = scheduler
    self._pathfinder = radiant.pathfinder.create_multi_path_finder(name)
+
 end
 
 function WorkerTask:destroy()
    self.running = false
-   self._scheduler._remove_worker_task(self)   
+   self._scheduler:remove_worker_task(self)
+end
+
+function WorkerTask:get_name()
+   return self._name
 end
 
 function WorkerTask:set_action_fn(fn)
@@ -47,13 +52,18 @@ function WorkerTask:set_work_object_filter_fn(filter_fn)
       local on_removed = function(id)
          self._pathfinder:remove_destination(id)
       end
-      self._promise = radiant.terrain.trace_world_entities(self.name, on_added, on_removed)
+      self._promise = radiant.terrain.trace_world_entities(self._name, on_added, on_removed)
    end
    return self
 end
 
 function WorkerTask:add_work_object(dst)
-   self._pathfinder:add_destination(dst)
+   -- Does dst still exist? If not, destroy this
+   if dst then
+      self._pathfinder:add_destination(dst)
+   else
+      self.destroy()
+   end
    return self
 end
 
@@ -73,18 +83,35 @@ function WorkerTask:stop()
    return self
 end
 
-function WorkerTask:_remove_worker(id)
-   self._pathfinder:remove_entity(id)
+function WorkerTask:get_running()
+   return self.running
 end
 
+function WorkerTask:_remove_worker(worker)
+   self._pathfinder:remove_entity(worker)
+end
+
+--- Consider Worker for task
+-- Test if the worker meets the filter function criteria. If so, activate pathfinder
 function WorkerTask:_consider_worker(worker)
-   assert(self.running, string.format('%s cannot consider worker while not running', self.name))
-   assert(self._get_action_fn, string.format('no action function set for WorkerTask %s', self.name))
-   assert(self._worker_filter_fn, string.format('no worker filter function set for WorkerTask %s', self.name))
+   assert(self.running, string.format('%s cannot consider worker while not running', self._name))
+   assert(self._get_action_fn, string.format('no action function set for WorkerTask %s', self._name))
+   assert(self._worker_filter_fn, string.format('no worker filter function set for WorkerTask %s', self._name))
 
    local solved_cb = function(path)
       local action = { self._get_action_fn(path) }
+
+      -- The pathfinder has returned, but before we dispatch we should test a few things.
+      -- First, is the target entity still around? If not, kill this task.
+      local item = path:get_destination()
+
+      if not item then
+         self.destroy()
+         return
+      end
+
       self:_dispatch_solution(action, path)
+
    end
 
    if self._worker_filter_fn(worker) then
@@ -95,7 +122,7 @@ function WorkerTask:_consider_worker(worker)
 end
 
 function WorkerTask:_dispatch_solution(action, path)
-   self._scheduler:_dispatch_solution(action, path)
+   self._scheduler:dispatch_solution(action, path)
 end
 
 return WorkerTask

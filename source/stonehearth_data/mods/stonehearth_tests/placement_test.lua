@@ -12,6 +12,7 @@ function PlacementTest:__init()
    self:create_world()
 
    local citizen = self:place_citizen(12, 12)
+   local citizen2 = self:place_citizen(-12, -12)
    local faction = citizen:get_component('unit_info'):get_faction()
 
    self:place_item('stonehearth.comfy_bed_proxy', 0, 0)
@@ -33,6 +34,8 @@ function PlacementTest:__init()
    self:place_item('stonehearth.picket_fence_proxy', 6, 3)
    self:place_item('stonehearth.fire_pit_proxy', 7, 3)
    self:place_item('stonehearth.fire_pit', 9, 3)
+
+   local tree = self:place_tree(0, -12)
 
    self:at(5000, function()
       self:place_item('stonehearth.comfy_bed_proxy', 1, 5)
@@ -58,7 +61,7 @@ function PlacementTest:__init()
       self:place_item('stonehearth.comfy_bed_proxy', 6, 5)
    end)
 
-   self:place_stockpile_cmd(faction, 10, 10, 5, 5)
+   --self:place_stockpile_cmd(faction, 10, 10, 5, 5)
 
 end
 

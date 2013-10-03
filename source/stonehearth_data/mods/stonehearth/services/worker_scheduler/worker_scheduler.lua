@@ -19,13 +19,15 @@ WorkerScheduler['radiant.events.gameloop'] = function(self)
    --self:_dispatch_jobs()
 end
 
-function WorkerScheduler:_dispatch_solution(action, path)
+function WorkerScheduler:dispatch_solution(action, path)
    local id = path:get_source():get_id()
    local e = self._workers[id]
 
    assert(e, string.format('unknown worker id %d in _dispatch_solution', id))
 
    self:remove_worker(e.worker)
+
+   --TODO: figure out how to prioritize different worker actions
    e.dispatch_fn(10, action)
 end
 
@@ -37,6 +39,15 @@ function WorkerScheduler:add_worker_task(name)
    local task = WorkerTask(name, self)
    table.insert(self._worker_tasks, task)
    return task
+end
+
+function WorkerScheduler:remove_worker_task(target_task)
+   for i, task in ipairs(self._worker_tasks) do
+      if target_task == task then
+         table.remove(self._worker_tasks, i)
+         break
+      end
+   end
 end
 
 function WorkerScheduler:add_worker(worker, dispatch_fn)
@@ -75,7 +86,7 @@ end
 function WorkerScheduler:_stop_worker_task(task)
    assert(not task.running, "logical error: call to _stop_worker_task for running task")
    for id, e in pairs(self._workers) do
-      task:_remove_worker(e.worker)
+      task:_remove_worker(id)
    end
 end
 
