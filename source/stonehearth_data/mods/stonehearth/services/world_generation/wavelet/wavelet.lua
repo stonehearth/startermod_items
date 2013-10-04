@@ -1,5 +1,5 @@
 local Wavelet = {}
-local Array2DFns = require 'services.world_generation.filter.array_2D_fns'
+local Array2D = require 'services.world_generation.array_2D'
 local CDF_97 = require 'services.world_generation.wavelet.cdf_97'
 
 local transform = CDF_97
@@ -15,16 +15,16 @@ function Wavelet.DWT_2D(src, src_width, src_height, max_level, current_level)
 
    -- horizontal transform
    for i=1, level_height do
-      Array2DFns.get_row_vector(vec, src, i, src_width, level_width)
+      Array2D:get_row_vector(vec, src, i, src_width, level_width)
       transform.DWT_1D(vec, level_width)
-      Array2DFns.set_row_vector(src, vec, i, src_width, level_width)
+      Array2D:set_row_vector(src, vec, i, src_width, level_width)
    end
 
    -- vertical transform
    for j=1, level_width do
-      Array2DFns.get_column_vector(vec, src, j, src_width, level_height)
+      Array2D:get_column_vector(vec, src, j, src_width, level_height)
       transform.DWT_1D(vec, level_height)
-      Array2DFns.set_column_vector(src, vec, j, src_width, level_height)
+      Array2D:set_column_vector(src, vec, j, src_width, level_height)
    end
 
    Wavelet.DWT_2D(src, src_width, src_height, max_level, current_level+1)
@@ -41,16 +41,16 @@ function Wavelet.IDWT_2D(src, src_width, src_height, current_level, min_level)
 
    -- vertical transform
    for j=1, level_width do
-      Array2DFns.get_column_vector(vec, src, j, src_width, level_height)
+      Array2D:get_column_vector(vec, src, j, src_width, level_height)
       transform.IDWT_1D(vec, level_height)
-      Array2DFns.set_column_vector(src, vec, j, src_width, level_height)
+      Array2D:set_column_vector(src, vec, j, src_width, level_height)
    end
 
    -- horizontal transform
    for i=1, level_height do
-      Array2DFns.get_row_vector(vec, src, i, src_width, level_width)
+      Array2D:get_row_vector(vec, src, i, src_width, level_width)
       transform.IDWT_1D(vec, level_width)
-      Array2DFns.set_row_vector(src, vec, i, src_width, level_width)
+      Array2D:set_row_vector(src, vec, i, src_width, level_width)
    end
 
    Wavelet.IDWT_2D(src, src_width, src_height, current_level-1, min_level)

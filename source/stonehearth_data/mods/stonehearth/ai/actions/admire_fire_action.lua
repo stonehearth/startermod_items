@@ -16,15 +16,12 @@ AdmireFire.priority = 0
 function AdmireFire:__init(ai, entity)
    self._entity = entity
    self._ai = ai
-   self._last_fire = nil
 
-   radiant.events.listen('radiant.events.calendar.hourly', self)
+   radiant.events.listen('radiant.events.calendar.sunrise', self)
+   radiant.events.listen('radiant.events.calendar.sunset', self)
 end
 
---- When it's dark look around for a lit place.
--- Regularly after dark, check around for a nearby fire and go there
--- TODO: improve so we also look for lit places
-AdmireFire['radiant.events.calendar.hourly'] = function(self, calendar)
+AdmireFire['radiant.events.calendar.sunset'] = function(self, calendar)
 
    --If we find a fire, we should mosey over
    local result_cb = function(fire, path)
@@ -36,44 +33,17 @@ AdmireFire['radiant.events.calendar.hourly'] = function(self, calendar)
       self._ai:set_action_priority(self, 10)
    end
 
-   -- If its dark and
-   -- if we're already looking for a fire, or are
-   -- by the last fire we were standing at, then do nothing
-   -- TODO: Optimization Make it any fire, not just the last fire
-   -- The effect w/o the optimization, though, should still be
-   -- that they go to the closest fire
-   local time_constants = radiant.resources.load_json('/stonehearth/services/calendar/calendar_constants.json')
-
-   local sunset = time_constants.baseTimeOfDay.sunset
-   local sunrise = time_constants.baseTimeOfDay.sunrise
-   local beside_last_fire = false
-   if self._last_fire then
-      local firepit_component = self._last_fire:get_component('stonehearth:firepit')
-      beside_last_fire = firepit_component:in_radius(self._entity)
-   end
-
-   if calendar.hour > sunset or calendar.hour < sunrise then
-      if not self._pathfinder and not beside_last_fire then
-         self:_start_looking_for_fire(result_cb)
-      else
-         if beside_last_fire then
-            -- if it's night and I'm already beside the fire,
-            -- call the other fire-related actions
-            -- TODO: implement chatting, marshmallows, etc
-            --self:_ai:execute('stonehearth.activities.fireside')
-         end
-      end
-   else
-      -- its daytime and we don't need to look for a fire
-      if self._pathfinder then
-         self:stop()
-      end
-      self._ai:set_action_priority(self, 0)
+   if not self._pathfinder then
+      self:_start_looking_for_fire(result_cb)
    end
 end
 
-function AdmireFire:_start_looking_for_fire(result_cb)
-   assert(not self._pathfinder)
+AdmireFire['radiant.events.calendar.sunrise'] = function(self, calendar)
+   self:stop()
+end
+
+function AdmireFire:_start_looking_for_fire(fire_found_cb)
+   assert (not self._pathfinder)
 
    --Find the nearest fire
    local filter_fn = function(item)
@@ -86,7 +56,7 @@ function AdmireFire:_start_looking_for_fire(result_cb)
    local pf_solved_cb = function(path)
       local firepit = path:get_destination()
       -- TODO: reserve a place at the destination, so people don't stand overlapping
-      result_cb(firepit, path)
+      fire_found_cb(firepit, path)
    end
 
    -- go find the path to the fire
@@ -104,17 +74,19 @@ function AdmireFire:run(ai, entity)
 
    --Tell the pf to stop searching
    self._pathfinder:stop()
+   self._pathfinder = nil
 
    -- Go to the fire!
    ai:execute('stonehearth.follow_path', self._path_to_fire)
+
+   --Am I carrying anything? If so, drop it
+   local drop_location = self._path_to_fire:get_destination_point_of_interest()
+   ai:execute('stonehearth.drop_carrying', drop_location)
+
+
    radiant.entities.turn_to_face(self._entity, self._fire)
    local fire = self._path_to_fire:get_destination()
    self._last_fire = fire
-
-   self._pathfinder = nil
-
-   -- TODO: implement fireside idle behavior: chatting, marshmallows, etc
-   --self:_ai:execute('stonehearth.activities.fireside')
 end
 
 function AdmireFire:stop()
