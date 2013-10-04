@@ -417,6 +417,9 @@ bool Renderer::createShaderComb( const char* filename, const char *vertexShader,
 	// Misc general uniforms
 	sc.uni_currentTime = gRDI->getShaderConstLoc( shdObj, "currentTime" );
 	sc.uni_frameBufSize = gRDI->getShaderConstLoc( shdObj, "frameBufSize" );
+   sc.uni_halfTanFoV = gRDI->getShaderConstLoc( shdObj, "halfTanFoV" );
+   sc.uni_nearPlane = gRDI->getShaderConstLoc( shdObj, "nearPlane" );
+   sc.uni_farPlane = gRDI->getShaderConstLoc( shdObj, "farPlane" );
 	
 	// View/projection uniforms
 	sc.uni_viewMat = gRDI->getShaderConstLoc( shdObj, "viewMat" );
@@ -430,6 +433,7 @@ bool Renderer::createShaderComb( const char* filename, const char *vertexShader,
    sc.uni_camProjMat = gRDI->getShaderConstLoc( shdObj, "camProjMat" );
    sc.uni_camViewMat = gRDI->getShaderConstLoc( shdObj, "camViewMat" );
    sc.uni_camViewMatInv = gRDI->getShaderConstLoc( shdObj, "camViewMatInv" );
+   sc.uni_camViewerPos = gRDI->getShaderConstLoc( shdObj, "camViewerPos" );
 	
 	// Per-instance uniforms
 	sc.uni_worldMat = gRDI->getShaderConstLoc( shdObj, "worldMat" );
@@ -489,7 +493,28 @@ void Renderer::commitGeneralUniforms()
 			float dimensions[2] = { (float)gRDI->_fbWidth, (float)gRDI->_fbHeight };
 			gRDI->setShaderConst( _curShader->uni_frameBufSize, CONST_FLOAT2, dimensions );
 		}
-		if( _curShader->uni_currentTime >= 0 )
+
+      if ( _curShader->uni_halfTanFoV >= 0 )
+      {
+         float topV = _curCamera->getParamF(CameraNodeParams::TopPlaneF, 0);
+         float nearV = _curCamera->getParamF(CameraNodeParams::NearPlaneF, 0);
+         float f = topV / nearV;
+         gRDI->setShaderConst( _curShader->uni_halfTanFoV, CONST_FLOAT, &f);
+      }
+
+      if ( _curShader->uni_nearPlane >= 0 )
+      {
+         float nearV = _curCamera->getParamF(CameraNodeParams::NearPlaneF, 0);
+         gRDI->setShaderConst( _curShader->uni_nearPlane, CONST_FLOAT, &nearV);
+      }
+
+      if ( _curShader->uni_farPlane >= 0 )
+      {
+         float farV = _curCamera->getParamF(CameraNodeParams::FarPlaneF, 0);
+         gRDI->setShaderConst( _curShader->uni_farPlane, CONST_FLOAT, &farV);
+      }
+
+      if( _curShader->uni_currentTime >= 0 )
 			gRDI->setShaderConst( _curShader->uni_currentTime, CONST_FLOAT, &_currentTime );
 		
 		// Viewer params
@@ -543,6 +568,12 @@ void Renderer::commitGeneralUniforms()
 			gRDI->setShaderConst( _curShader->uni_camViewMatInv, CONST_FLOAT44, m.x );
       }
 		
+		if( _curShader->uni_camViewerPos >= 0 ) 
+      {
+         Matrix4f m = getCurCamera()->getViewMat();
+         m.inverted();
+			gRDI->setShaderConst( _curShader->uni_camViewerPos, CONST_FLOAT3, &m.x[12] );
+      }
 		// Light params
 		if( _curLight != 0x0 )
 		{

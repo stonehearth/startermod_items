@@ -20,7 +20,7 @@ sampler2D positions = sampler_state
 
 context DIRECTIONAL_LIGHTING
 {
-  VertexShader = compile GLSL VS_LIGHTING_VERTEX_SHADER;
+  VertexShader = compile GLSL VS_DIRECTIONAL_LIGHTING_VERTEX_SHADER;
   PixelShader = compile GLSL FS_LIGHTING_DIRECTIONAL;
   
   ZWriteEnable = false;
@@ -37,7 +37,7 @@ context OMNI_LIGHTING
 }
 
 
-[[VS_LIGHTING_VERTEX_SHADER]]
+[[VS_DIRECTIONAL_LIGHTING_VERTEX_SHADER]]
 
 uniform mat4 projMat;
 attribute vec3 vertPos;

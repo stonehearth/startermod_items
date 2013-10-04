@@ -266,6 +266,8 @@ void main()
 [[VS_SSAO2]]
 #version 150
 uniform mat4 projMat;
+uniform vec2 frameBufSize;
+uniform float halfTanFoV;
 
 in vec3 vertPos;
 
@@ -276,12 +278,11 @@ void main()
 {
   texCoords = vertPos.xy; 
 
-  float halfTan = 0.4142135675;
-  float aspect = 0.943056941;
+  float aspect = frameBufSize.x / frameBufSize.y;
 
   viewRay = vec3(
-    (1 - 2 * vertPos.x) * halfTan * aspect,
-    (1 - 2 * vertPos.y) * halfTan,
+    (1 - 2 * vertPos.x) * halfTanFoV * aspect,
+    (1 - 2 * vertPos.y) * halfTanFoV,
     1);
   gl_Position = projMat * vec4( vertPos, 1.0 );
 }
@@ -291,10 +292,14 @@ void main()
 
 #include "shaders/utilityLib/vertCommon.glsl"
 
-float linDepth(float d, float zNear, float zFar)
+uniform float nearPlane;
+uniform float farPlane;
+
+float linDepth(float d)
 {
+
   float z_n = 2.0 * d - 1.0;
-  float z_e = 2.0 * zNear * zFar / (zFar + zNear - z_n * (zFar - zNear));
+  float z_e = 2.0 * nearPlane * farPlane / (farPlane + nearPlane - z_n * (farPlane - nearPlane));
   return z_e;
 }  
 
@@ -315,7 +320,7 @@ void main()
   vec2 noiseScale = frameBufSize / 4.0;
   float radius = 0.3;
 
-  vec3 origin = viewRay * linDepth(texture2D(depth, texCoords).x, 4, 2000);
+  vec3 origin = viewRay * linDepth(texture2D(depth, texCoords).x);
   vec3 rvec = texture2D(randomVectorLookup, texCoords * noiseScale).xyz;
   vec3 normal = (camViewMat * vec4(texture2D(normals, texCoords).xyz, 0)).xyz;
 
@@ -335,11 +340,11 @@ void main()
     offset.xy = (offset.xy * 0.5) + 0.5;
 
     // get sample location:
-    float realDepth = texture2D(depth, offset.xy).x;
-    float sampleDepth = linDepth(realDepth, 4, 2000);
+    float sampleDepth = linDepth(texture2D(depth, offset.xy).x);
     vec3 sampleNormal = (camViewMat * vec4(texture2D(normals, offset.xy).xyz, 0)).xyz;
 
     // range check & accumulate:
+    // TODO: this normal-check shouldn't be necessary.  Figure out why....
     float normalCheck = dot(sampleNormal, normal) > 0.99 ? 0.0 : 1.0;
     float rangeCheck = abs(origin.z - sampleDepth) < radius ? 1.0 : 0.0;
     occlusion += (sampleDepth <= sample.z ? 1.0 : 0.0) * rangeCheck * normalCheck;
