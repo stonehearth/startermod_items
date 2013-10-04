@@ -16,6 +16,8 @@ function PlaceableItemProxyComponent:__init(entity, data_binding)
    self._data = data_binding:get_data()
    self._data.entity_id = entity:get_id()
 
+   self._about_to_destroy = false
+
    self._data_binding = data_binding
    self._data_binding:mark_changed()
 end
@@ -27,6 +29,14 @@ function PlaceableItemProxyComponent:extend(json)
 
       self:_create_derived_components()
    end
+end
+
+function PlaceableItemProxyComponent:set_destroy()
+   self._about_to_destroy = true
+end
+
+function PlaceableItemProxyComponent:get_destroy_status()
+   return self._about_to_destroy
 end
 
 function PlaceableItemProxyComponent:get_full_sized_entity()

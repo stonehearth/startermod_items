@@ -11,6 +11,10 @@ PickupItemOnGround.priority = 5
    item: the thing to pick up
 ]]
 function PickupItemOnGround:run(ai, entity, item)
+   if not item then
+      ai:abort()
+   end
+
    radiant.check.is_entity(item)
    local carry_block = entity:get_component('carry_block')
 
@@ -30,6 +34,9 @@ function PickupItemOnGround:run(ai, entity, item)
    end
 
    radiant.log.info("picking up item at %s", tostring(obj_location))
+   if not item then
+      ai:abort()
+   end
    radiant.entities.turn_to_face(entity, item)
    radiant.entities.pickup_item(entity, item)
    ai:execute('stonehearth.run_effect', 'carry_pickup')

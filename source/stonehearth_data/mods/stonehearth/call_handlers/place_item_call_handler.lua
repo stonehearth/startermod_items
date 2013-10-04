@@ -91,33 +91,22 @@ function PlaceItemCallHandler:place_item_in_world(session, response, proxy_entit
    local point3_location = Point3(location.x, location.y, location.z)
    self:_init_pickup_worker_task(session, proxy_entity, point3_location, rotation)
 
-   --[[
-   -- TODO: Use this code to immediately put down a ghost version of the item (half opacity)
-   -- and swap to "building" mode
+   -- TODO: Make the sample item ghostly and switch to "building" mode
    -- TODO: remove it when the task is complete
-   -- Reuse the code below, but attach the ghostly object to the proxy, so we can remove
-   -- it later.
-   -- pull the location and entity uri out of the postdata, create that
-   -- entity, and move it there.
-   local location = Point3(location.x, location.y, location.z)
-   --local item_entity = radiant.entities.create_entity(postdata.item_uri)
-   radiant.log.info('in server, placing item in the world!!! %s', tostring(proxy_entity))
+   --local full_sized_entity_uri = proxy_entity:get_component('stonehearth:placeable_item_proxy'):get_full_sized_entity_uri()
+   --local item_entity = radiant.entities.create_entity(full_sized_entity_uri)
 
-   local full_sized_entity = proxy_entity:get_component('stonehearth:placeable_item_proxy'):get_full_sized_entity()
-
-   -- Remove the icon (TODO: what about stacked icons? Remove just one of the stack?)
-   radiant.terrain.remove_entity(proxy_entity)
-
-   -- Place the item in the world
-   radiant.terrain.place_entity(full_sized_entity, location)
-   radiant.entities.turn_to(full_sized_entity, rotation)
+   --radiant.terrain.place_entity(item_entity, point3_location)
+   --radiant.entities.turn_to(item_entity, rotation)
+   --item_entity:add_component('stonehearth:effect_container_component'):start_effect()
 
    --item_entity:get_component('unit_info'):set_faction(session.faction)
-   return { full_sized_entity = full_sized_entity }
-   ]]
+   --return { full_sized_entity = full_sized_entity }
+
 end
 
 function PlaceItemCallHandler:_init_pickup_worker_task(session, proxy_entity, location, rotation)
+
    local ws = radiant.mods.load('stonehearth').worker_scheduler
    local worker_scheduler = ws:get_worker_scheduler(session.faction)
 
@@ -141,10 +130,45 @@ function PlaceItemCallHandler:_init_pickup_worker_task(session, proxy_entity, lo
    pickup_item_task:start()
 end
 
+--- Place any object that matches the entity_uri
 -- server side object to handle creation of the workbench.  this is called
 -- by doing a POST to the route for this file specified in the manifest.
-function PlaceItemCallHandler:place_item_type_in_world(session, response, full_sized_entity_uri, location, rotation)
-   -- xxx: we really want a worker to just find one, but this is ok for now.__call
+function PlaceItemCallHandler:place_item_type_in_world(session, response, entity_uri, location, rotation)
+
+   -- TODO: put down a ghost item (revisit after we have construction mode)
+   -- Mark the placeable item
+
+   local point3_location = Point3(location.x, location.y, location.z)
+
+   -- Tell a worker to get this item
+   local ws = radiant.mods.load('stonehearth').worker_scheduler
+   local worker_scheduler = ws:get_worker_scheduler(session.faction)
+
+   -- Any worker that's not carrying anything will do...
+   local not_carrying_fn = function (worker)
+      return radiant.entities.get_carrying(worker) == nil
+   end
+
+   --Closest object that has a uri that matches entity_uri will do...
+   local object_filter_fn = function(entity)
+      if entity:get_uri() == entity_uri then
+         return true
+      end
+      return false
+   end
+
+   local pickup_item_task = worker_scheduler:add_worker_task('placing_item_task')
+                  :set_worker_filter_fn(not_carrying_fn)
+                  :set_work_object_filter_fn(object_filter_fn)
+
+   pickup_item_task:set_action_fn(
+      function (path)
+         return 'stonehearth.place_item', path, point3_location, rotation, pickup_item_task
+      end
+   )
+
+   pickup_item_task:start()
+
    return true
 end
 

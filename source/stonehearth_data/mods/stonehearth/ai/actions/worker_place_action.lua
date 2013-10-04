@@ -54,6 +54,10 @@ function WorkerPlaceItemAction:run(ai, entity, path, drop_location, rotation, ta
    -- If we're here, pickup succeeded, so we're now carrying the item.
    -- Wait until the PF we started earlier returns
    local proxy_entity = radiant.entities.get_carrying(entity)
+   if not proxy_entity then
+      ai:abort()
+   end
+   proxy_entity:get_component('stonehearth:placeable_item_proxy'):set_destroy()
    ai:wait_until(function()
       return self._path_to_destination ~= nil
    end)

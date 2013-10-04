@@ -54,7 +54,7 @@ App.StonehearthPlaceItemView = App.View.extend({
       var self = this;
       //Track shift while this view is active
       $(document).on('keyup keydown', function(e){
-         self.shifted = e.shiftKey
+         self.shifted = e.shiftKey;
          if (e.keyCode == 27) {
             //If escape, close window
             self.destroy();
@@ -85,7 +85,7 @@ App.StonehearthPlaceItemView = App.View.extend({
    actions: {
       //Fires whenever the user clicks on an object in the UI
       onSelectItemButton: function(item) {
-         this._actions.selectItem.call(this, item);
+         this._actions.selectItem.call(this, item, 0);
          //If the user is pressing shift while they click, keep the window open
          if (this.shifted) {
             this.keepWindowAround = true;
@@ -97,7 +97,8 @@ App.StonehearthPlaceItemView = App.View.extend({
       //When the user selects an item, call the place API
       //If the player is pressing shift when done, set up to
       //automatically place the next thing if there are more of that type to place
-      selectItem: function(item) {
+      //Chain is the # of times this has been called on the same item, in a row
+      selectItem: function(item, chain) {
          this.waitingForPlacement = true;
 
          var self = this;
@@ -105,15 +106,20 @@ App.StonehearthPlaceItemView = App.View.extend({
          radiant.call('stonehearth.choose_place_item_location', item.full_sized_entity_uri)
             .done(function(o){
                var item_type = 1;
-               radiant.call('stonehearth.place_item_type_in_world', item.full_sized_entity_uri, o.location, o.rotation);
+               radiant.call('stonehearth.place_item_type_in_world', item.entity_uri, o.location, o.rotation);
 
                self.waitingForPlacement = false;
 
                //If we're holding down shift after the item has been placed
                //and there are more items of this type, immediately select the next in line.
-               if(self.shifted && item.entities.length-1 > 0) {
+               //Experiment: allow placement of N items, where N is the number of items at the time
+               //May allow placement of more than existing #s of items, if there are 2 players. Players
+               //will just have to create more items to fulfill the orders
+               var numItemsRemaining = item.entities.length-1
+               if(self.shifted && numItemsRemaining > 0 && numItemsRemaining > chain ) {
                   //On next update, call this function again with item
-                  self.autoSelectNext = item;
+                  self._actions.selectItem.call(self, item, chain + 1);
+                  //self.autoSelectNext = item;
                } else {
                   //If we hadn't selected to keep the window around, now destroy it
                   if(!self.keepWindowAround) {
@@ -125,6 +131,7 @@ App.StonehearthPlaceItemView = App.View.extend({
       }
    },
 
+   /*
    putDownMore: function() {
       //fires whenever an entity is added/removed
       if (this.autoSelectNext != null) {
@@ -132,15 +139,16 @@ App.StonehearthPlaceItemView = App.View.extend({
          //Unfortunately, this requires iterating through all the items
          //because we need the latest, newest, updated version,
          //not the copy from the last time.
-         var item_identifier = this.autoSelectNext.entity_identifier;
+         var item_identifier = this.autoSelectNext.entity_uri;
          for (var j=0; j<this.get('context.entity_types.length'); j++) {
             var entity_type = this.get('context.entity_types')[j];
-            if(entity_type.entity_identifier == item_identifier) {
+            if(entity_type.entity_uri == item_identifier) {
                this._actions.selectItem.call(this, entity_type);
             }
          }
          this.autoSelectNext = null;
       }
    }.observes('context.entity_types.entities'),
+   */
 
 });
