@@ -1,4 +1,4 @@
-local HeightMap = require 'services.world_generation.height_map'
+local Array2D = require 'services.world_generation.array_2D'
 local TerrainType = require 'services.world_generation.terrain_type'
 
 local Terrain = _radiant.om.Terrain
@@ -27,16 +27,17 @@ function HeightMapRenderer:render_height_map_to_terrain(height_map, terrain_info
 
    local boxed_r3 = _radiant.sim.alloc_region()   
    local r3 = boxed_r3:modify()
-
    local r2 = Region2()
    local height_map_cpp = HeightMapCPP(height_map.width, 1) -- Assumes square map!
+   local height
 
    self:_copy_heightmap_to_CPP(height_map_cpp, height_map)
    _radiant.csg.convert_heightmap_to_region2(height_map_cpp, r2)
 
    for rect in r2:contents() do
-      if rect.tag > 0 then
-         self:_add_land_to_region(r3, rect, rect.tag, terrain_info);         
+      height = rect.tag
+      if height > 0 then
+         self:_add_land_to_region(r3, rect, height, terrain_info);         
       end
    end
 
@@ -106,12 +107,32 @@ function HeightMapRenderer:_add_land_to_region(dst, rect, height, terrain_info)
    end
 end
 
-function translate_rect2(rect, x, y)
-   rect.min = Point2(rect.min.x + x, rect.min.y + y)
-   rect.max = Point2(rect.max.x + x, rect.max.y + y)
-end
-
 -----
+
+function HeightMapRenderer:visualize_height_map(height_map)
+   local boxed_r3 = _radiant.sim.alloc_region()   
+   local r3 = boxed_r3:modify()
+   local r2 = Region2()
+   local height_map_cpp = HeightMapCPP(height_map.width, 1) -- Assumes square map!
+   local height
+
+   self:_copy_heightmap_to_CPP(height_map_cpp, height_map)
+   _radiant.csg.convert_heightmap_to_region2(height_map_cpp, r2)
+
+   for rect in r2:contents() do
+      height = rect.tag
+      if height >= 1 then
+         r3:add_cube(Cube3(Point3(rect.min.x, -1,       rect.min.y),
+                           Point3(rect.max.x, height-1, rect.max.y),
+                     Terrain.BEDROCK))
+      end
+      r3:add_cube(Cube3(Point3(rect.min.x, height-1, rect.min.y),
+                        Point3(rect.max.x, height,   rect.max.y),
+                  Terrain.BEDROCK))
+   end
+
+   self._terrain:add_zone(Point3(0,0,0), boxed_r3)
+end
 
 function HeightMapRenderer.tesselator_test()
    local terrain = radiant._root_entity:add_component('terrain')

@@ -1,5 +1,5 @@
 local TerrainType = require 'services.world_generation.terrain_type'
-local HeightMap = require 'services.world_generation.height_map'
+local Array2D = require 'services.world_generation.array_2D'
 local MathFns = require 'services.world_generation.math.math_fns'
 local GaussianRandom = require 'services.world_generation.math.gaussian_random'
 local FilterFns = require 'services.world_generation.filter.filter_fns'
@@ -34,19 +34,14 @@ function Landscaper:place_trees(zone_map, world_offset_x, world_offset_y)
    local perturbation_dist = grid_spacing/2 - 4
    local tree_map_width = zone_map.width / grid_spacing
    local tree_map_height = zone_map.height / grid_spacing
-   local tree_map = HeightMap(tree_map_width, tree_map_height)
-   local noise_map = HeightMap(tree_map_width, tree_map_height)
+   local tree_map = Array2D(tree_map_width, tree_map_height)
+   local noise_map = Array2D(tree_map_width, tree_map_height)
 
    --self:_fill_noise_map(tree_map)
-   --tree_map:print()
    --WaveletFns.shape_height_map(tree_map, freq_scaling_coeff, wavelet_levels)
 
    self:_fill_noise_map(noise_map)
-   --noise_map:print()
-   FilterFns.filter_2D_025(tree_map, noise_map, tree_map_width, tree_map_height)
-
-   --radiant.log.info('')
-   --tree_map:print()
+   FilterFns.filter_2D_050(tree_map, noise_map, tree_map_width, tree_map_height, 6)
 
    local terrain_info = self.terrain_info
    local grid_offset_x = grid_spacing/2
@@ -68,8 +63,8 @@ function Landscaper:place_trees(zone_map, world_offset_x, world_offset_y)
             tree_type = self:_get_tree_type(elevation)
 
             if tree_type ~= nil then 
-               if value <= 10 then     tree_name = get_tree_name(tree_type, small)
-               elseif value <= 25 then tree_name = get_tree_name(tree_type, medium)
+               if value <= 8 then      tree_name = get_tree_name(tree_type, small)
+               elseif value <= 30 then tree_name = get_tree_name(tree_type, medium)
                else                    tree_name = get_tree_name(tree_type, large)
                end
 
@@ -81,15 +76,15 @@ function Landscaper:place_trees(zone_map, world_offset_x, world_offset_y)
 end
 
 function Landscaper:_fill_noise_map(height_map)
-   local mean = 10
+   local mean = 0
    local std_dev = 100
    local i, j, value
 
    for j=1, height_map.height do
       for i=1, height_map.width do
          if height_map:is_boundary(i, j) then
-            -- discourage forests from running into zone boundaries
-            value = -20
+            -- discourage forests from abruptly chaning at zone boundaries
+            value = -10
          else
             value = GaussianRandom.generate(mean, std_dev)
          end
@@ -103,12 +98,7 @@ function Landscaper:_get_tree_type(elevation)
 
    if elevation > terrain_info.tree_line then return nil end
    if elevation <= terrain_info[TerrainType.Plains].max_height then return oak end
-   if elevation > terrain_info[TerrainType.Foothills].max_height then
-      -- mountains have reduced forest density
-      return juniper
-      --if math.random() < 0.5 then return juniper end
-      --return nil
-   end
+   if elevation > terrain_info[TerrainType.Foothills].max_height then return juniper end
    return self:random_tree_type()
 end
 

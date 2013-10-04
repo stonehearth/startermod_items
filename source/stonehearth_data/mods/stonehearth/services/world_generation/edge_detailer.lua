@@ -1,5 +1,5 @@
 local TerrainType = require 'services.world_generation.terrain_type'
-local HeightMap = require 'services.world_generation.height_map'
+local Array2D = require 'services.world_generation.array_2D'
 local InverseGaussianRandom = require 'services.world_generation.math.inverse_gaussian_random'
 local Point2 = _radiant.csg.Point2
 
@@ -14,7 +14,7 @@ end
 function EdgeDetailer:add_detail_blocks(height_map)
    local i, j, edge
    local edge_threshold = 4
-   local edge_map = HeightMap(height_map.width, height_map.height)
+   local edge_map = Array2D(height_map.width, height_map.height)
    local detail_seeds = {}
    local num_seeds = 0
 
