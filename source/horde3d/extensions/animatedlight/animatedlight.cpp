@@ -145,7 +145,7 @@ AnimatedLightNode::AnimatedLightNode( const AnimatedLightNodeTpl &animatedLightT
 
 void AnimatedLightNode::init()
 {
-   _lightNode = h3dAddLightNode(this->getHandle(), "ln", _materialRes, "OMNI_LIGHTING", "");
+   _lightNode = h3dAddLightNode(this->getHandle(), "ln", _materialRes->getHandle(), "OMNI_LIGHTING", nullptr);
    h3dSetNodeParamF(_lightNode, H3DLight::FovF, 0, 360);
    h3dSetNodeParamI(_lightNode, H3DLight::ShadowMapCountI, 0);
    h3dSetNodeParamI(_lightNode, H3DLight::DirectionalI, 0);
