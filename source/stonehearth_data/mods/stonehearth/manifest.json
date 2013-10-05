@@ -46,6 +46,7 @@
          "worker_hammer" : "file(entities/tools/worker_hammer)",
          "rabbit" : "file(entities/critters/rabbit)",
          "wolf" : "file(entities/critters/wolf)",
+         "wolf.teeth_weapon" : "file(entities/critters/wolf/wolf_teeth.json)",
          "male_1" : "file(entities/humans/male_1)",
          "female_1" : "file(entities/humans/female_1)",
          "workshop_outbox" : "file(entities/crafting/workshop_outbox)",
@@ -108,7 +109,7 @@
 
          "actions.attack_action" : "file(ai/actions/combat/attack_action.lua)",
          "actions.attack_top_aggro_action" : "file(ai/actions/combat/attack_top_aggro_action.lua)",
-         "actions.melee_attack_action" : "file(ai/actions/combat/melee_attack_action.lua)",
+         "actions.attack.melee_action" : "file(ai/actions/combat/melee_attack_action.lua)",
          "actions.chase_target_action" : "file(ai/actions/combat/chase_target_action.lua)",
          "actions.flee_action" : "file(ai/actions/combat/flee_action.lua)",
          "actions.run_away_from_entity" : "file(ai/actions/run_away_from_entity_action.lua)",
@@ -220,6 +221,7 @@
       "sensor_ai_injector"  : "file(components/sensor_ai_injector/sensor_ai_injector_component.lua)",
       "bed" : "file(components/bed/bed_component.lua)",
       "bed_lease" : "file(components/bed_lease/bed_lease_component.lua)",
+      "posture"  : "file(components/posture/posture_component.lua)",
       "equipment" : "file(components/equipment/equipment_component.lua)",
       "equipment_piece" : "file(components/equipment_piece/equipment_piece_component.lua)"
    },

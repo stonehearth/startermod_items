@@ -97,7 +97,24 @@ function StonehearthCamera:_on_mouse_event(e, screen_x, screen_y, gutter)
   --self:_calculate_scroll(e, screen_x, screen_y, gutter)
   self:_calculate_drag(e)
   self:_calculate_orbit(e)
+  --self:_calculate_jump(e)
   self:_calculate_zoom(e)
+end
+
+function StonehearthCamera:_calculate_jump(e)
+  if e:up(3) then
+    local r = _radiant.renderer.scene.cast_screen_ray(e.x, e.y)--self:_find_target()
+    local r2 = self:_find_target()
+    if r.is_valid and r2.is_valid then
+      local delta = r.point - r2.point
+      delta.y = 0
+      self._impulse_delta = delta
+    else
+      -- TODO: just pick a point some reasonable distance in front of the camera,
+      -- and orbit that.
+      return
+    end
+  end
 end
 
 function StonehearthCamera:_calculate_zoom(e)

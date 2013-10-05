@@ -4,7 +4,7 @@
       "animation": {
          "type": "animation_effect",
          "start_time": 0,
-         "animation": "file(../../animations/combat/shield_idle.json)",
+         "animation": "file(../../animations/male/combat/shield_idle.json)",
          "loop": true
       }
    }

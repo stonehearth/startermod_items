@@ -50,9 +50,9 @@ function MicroWorld:place_tree(x, z)
 end
 
 function MicroWorld:place_item(uri, x, z)
-   local tree = radiant.entities.create_entity(uri)
-   radiant.terrain.place_entity(tree, Point3(x, 1, z))
-   return tree
+   local entity = radiant.entities.create_entity(uri)
+   radiant.terrain.place_entity(entity, Point3(x, 1, z))
+   return entity
 end
 
 function MicroWorld:place_item_cluster(uri, x, z, w, h)

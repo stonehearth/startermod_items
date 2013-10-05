@@ -5,7 +5,7 @@
          "render_type" : "none",
          "injected_ai" : {
             "actions" : [
-               "stonehearth.actions.attack.melee"
+               "stonehearth.actions.attack.melee_action"
             ]
          }
       }

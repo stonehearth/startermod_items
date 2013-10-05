@@ -6,7 +6,7 @@
     <RenderTarget id="BLURBUF2" depthBuf="false" numColBufs="1" format="RGBA8" scale="0.5"/>
     <RenderTarget id="FINALIMAGE" depthBuf="false" numColBufs="1" format="RGBA16F" scale="1.0"/>
     <RenderTarget id="OUTLINE" depthBuf="false" numColBufs="1" format="RGBA8" scale="1.0"/>
-    <RenderTarget id="SSAOBUF" depthBuf="false" numColBufs="1" format="RGBA8" scale="0.5" />
+    <RenderTarget id="SSAOBUF" depthBuf="false" numColBufs="1" format="RGBA8" scale="1.0" />
     <RenderTarget id="SSAOBLUR" depthBuf="false" numColBufs="1" format="RGBA8" scale="1.0" />
     <RenderTarget id="TEMPSSAOBLUR" depthBuf="false" numColBufs="1" format="RGBA8" scale="1.0" />
   </Setup>
@@ -41,31 +41,37 @@
 
       <UnbindBuffers />
     </Stage>
-    <Stage id="Translucent">
+    <!--Stage id="Translucent">
       <SwitchTarget target="MBUFF" />
       <DrawGeometry context="TRANSLUCENT"/>
       <DrawGeometry context="DEBUG_SHAPES" />
-    </Stage>
-    <Stage id="Selected">
+    </Stage-->
+    <!--Stage id="Selected">
       <DrawSelected context="SELECTED" />
-    </Stage>
+    </Stage-->
+    
     <Stage id="SSAO">
       <SwitchTarget target="SSAOBUF" />
-      <BindBuffer sampler="gbuf0" sourceRT="GBUFFER" bufIndex="0" />
-      <BindBuffer sampler="gbuf1" sourceRT="GBUFFER" bufIndex="1" />
-      <DrawQuad material="pipelines/ssao.material.xml" context="SSAO"/>
+      <BindBuffer sampler="depthbuff" sourceRT="GBUFFER" bufIndex="32" />
+      <DrawQuad material="materials/ssao.material.xml" context="SSAO"/>
       <UnbindBuffers />
     </Stage>
-    <Stage id="blurSSAO" >
+
+    <Stage id="SSAO Blur" >
       <SwitchTarget target="TEMPSSAOBLUR" />
-      <BindBuffer sampler="buf0" sourceRT="SSAOBUF" bufIndex="0" />
-      <DrawQuad material="pipelines/ssao.material.xml" context="VERTICALBLUR" />
+      <BindBuffer sampler="depthbuff" sourceRT="GBUFFER" bufIndex="32" />
+      <BindBuffer sampler="ssaobuff" sourceRT="SSAOBUF" bufIndex="0" />
+      <DrawQuad material="materials/ssao.material.xml" context="BLUR_X" />
       <UnbindBuffers />
+
       <SwitchTarget target="SSAOBLUR" />
-      <BindBuffer sampler="buf0" sourceRT="TEMPSSAOBLUR" bufIndex="0" />
-      <DrawQuad material="pipelines/ssao.material.xml" context="HORIZONTALBLUR" />
+      <BindBuffer sampler="depthbuff" sourceRT="GBUFFER" bufIndex="32" />
+      <BindBuffer sampler="ssaobuff" sourceRT="TEMPSSAOBLUR" bufIndex="0" />
+      <DrawQuad material="materials/ssao.material.xml" context="BLUR_Y" />
       <UnbindBuffers />
+
     </Stage>
+
     <Stage id="Combination">
       <SwitchTarget target="FINALIMAGE" />
       <ClearTarget colBuf0="true" />
