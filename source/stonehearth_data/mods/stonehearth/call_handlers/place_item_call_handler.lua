@@ -1,5 +1,7 @@
 local Point3 = _radiant.csg.Point3
+
 local PlaceItemCallHandler = class()
+
 
 -- Client side object to place an item in the world. The item exists as an icon first
 -- This method is invoked by POSTing to the route for this file in the manifest.
@@ -86,90 +88,59 @@ end
 --- Tell a worker to place the item in the world
 -- Server side object to handle creation of the workbench.  This is called
 -- by doing a POST to the route for this file specified in the manifest.
-function PlaceItemCallHandler:place_item_in_world(session, response, proxy_entity, location, rotation)
-   -- TODO: BUGS with multiple workers running for the same object
-   local point3_location = Point3(location.x, location.y, location.z)
-   self:_init_pickup_worker_task(session, proxy_entity, point3_location, rotation)
-
-   -- TODO: Make the sample item ghostly and switch to "building" mode
-   -- TODO: remove it when the task is complete
-   --local full_sized_entity_uri = proxy_entity:get_component('stonehearth:placeable_item_proxy'):get_full_sized_entity_uri()
-   --local item_entity = radiant.entities.create_entity(full_sized_entity_uri)
-
-   --radiant.terrain.place_entity(item_entity, point3_location)
-   --radiant.entities.turn_to(item_entity, rotation)
-   --item_entity:add_component('stonehearth:effect_container_component'):start_effect()
-
-   --item_entity:get_component('unit_info'):set_faction(session.faction)
-   --return { full_sized_entity = full_sized_entity }
-
-end
-
-function PlaceItemCallHandler:_init_pickup_worker_task(session, proxy_entity, location, rotation)
-
-   local ws = radiant.mods.load('stonehearth').worker_scheduler
-   local worker_scheduler = ws:get_worker_scheduler(session.faction)
-
-
-   --Task for picking up the object the user designated
-   -- Any worker that's not carrying anything will do...
-   local not_carrying_fn = function (worker)
-      return radiant.entities.get_carrying(worker) == nil
-   end
-
-   local pickup_item_task = worker_scheduler:add_worker_task('placing_item_task')
-                  :set_worker_filter_fn(not_carrying_fn)
-                  :add_work_object(proxy_entity)
-
-   pickup_item_task:set_action_fn(
-      function (path)
-         return 'stonehearth.place_item', path, location, rotation, pickup_item_task
-      end
-   )
-
-   pickup_item_task:start()
+function PlaceItemCallHandler:place_item_in_world(session, response, proxy_entity, full_sized_uri, location, rotation)
+   local task = self:_init_pickup_worker_task(session, full_sized_uri, location, rotation)
+   task:add_work_object(proxy_entity)
+   task:start()
+   return true
 end
 
 --- Place any object that matches the entity_uri
 -- server side object to handle creation of the workbench.  this is called
 -- by doing a POST to the route for this file specified in the manifest.
-function PlaceItemCallHandler:place_item_type_in_world(session, response, entity_uri, location, rotation)
-
-   -- TODO: put down a ghost item (revisit after we have construction mode)
-   -- Mark the placeable item
-
-   local point3_location = Point3(location.x, location.y, location.z)
-
-   -- Tell a worker to get this item
-   local ws = radiant.mods.load('stonehearth').worker_scheduler
-   local worker_scheduler = ws:get_worker_scheduler(session.faction)
-
-   -- Any worker that's not carrying anything will do...
-   local not_carrying_fn = function (worker)
-      return radiant.entities.get_carrying(worker) == nil
-   end
-
-   --Closest object that has a uri that matches entity_uri will do...
+function PlaceItemCallHandler:place_item_type_in_world(session, response, entity_uri, full_item_uri, location, rotation)
+   local task = self:_init_pickup_worker_task(session, full_item_uri, location, rotation)
    local object_filter_fn = function(entity)
       if entity:get_uri() == entity_uri then
          return true
       end
       return false
    end
+   task:set_work_object_filter_fn(object_filter_fn)
+   task:start()
+   return true
+end
+
+--- Init all the things common to the pickup_worker_task
+-- does everything except set the target and start the task
+function PlaceItemCallHandler:_init_pickup_worker_task(session, full_sized_uri, coor_location, rotation)
+   --Place the ghost entity first
+   local location = Point3(coor_location.x, coor_location.y, coor_location.z)
+   local ghost_entity = radiant.entities.create_entity()
+   local ghost_entity_component = ghost_entity:add_component('stonehearth:ghost_item')
+   ghost_entity_component:set_object_data(full_sized_uri, location, rotation)
+   radiant.terrain.place_entity(ghost_entity, location)
+
+   --Summon the worker scheduler
+   local ws = radiant.mods.load('stonehearth').worker_scheduler
+   local worker_scheduler = ws:get_worker_scheduler(session.faction)
+
+   -- Make a task for picking up the object the user designated
+   -- Any worker that's not carrying anything will do...
+   local not_carrying_fn = function (worker)
+      return radiant.entities.get_carrying(worker) == nil
+   end
 
    local pickup_item_task = worker_scheduler:add_worker_task('placing_item_task')
                   :set_worker_filter_fn(not_carrying_fn)
-                  :set_work_object_filter_fn(object_filter_fn)
 
    pickup_item_task:set_action_fn(
       function (path)
-         return 'stonehearth.place_item', path, point3_location, rotation, pickup_item_task
+         return 'stonehearth.place_item', path, ghost_entity, rotation, pickup_item_task
       end
    )
-
-   pickup_item_task:start()
-
-   return true
+   return pickup_item_task
 end
+
 
 return PlaceItemCallHandler

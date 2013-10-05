@@ -13,7 +13,7 @@ $(document).ready(function(){
 
       radiant.call('stonehearth.choose_place_item_location', e.event_data.full_sized_entity_uri)
          .done(function(o){
-            radiant.call('stonehearth.place_item_in_world', e.event_data.self, o.location, o.rotation);
+            radiant.call('stonehearth.place_item_in_world', e.event_data.self, e.event_data.full_sized_entity_uri, o.location, o.rotation);
          })
          .always(function(o) {
             $(top).trigger('hide_tip.radiant');
@@ -106,7 +106,7 @@ App.StonehearthPlaceItemView = App.View.extend({
          radiant.call('stonehearth.choose_place_item_location', item.full_sized_entity_uri)
             .done(function(o){
                var item_type = 1;
-               radiant.call('stonehearth.place_item_type_in_world', item.entity_uri, o.location, o.rotation);
+               radiant.call('stonehearth.place_item_type_in_world', item.entity_uri, item.full_sized_entity_uri, o.location, o.rotation);
 
                self.waitingForPlacement = false;
 
