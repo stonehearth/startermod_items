@@ -4,7 +4,7 @@
       "animation": {
             "type": "animation_effect",
             "start_time": 0,
-            "animation": "file(../animations/carry_walk.json)",
+            "animation": "file(../animations/male/carry_walk.json)",
             "loop": true
       }
    }

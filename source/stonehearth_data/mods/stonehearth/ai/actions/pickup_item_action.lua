@@ -42,7 +42,9 @@ function PickupItem:run(ai, entity, item)
       ai:execute('stonehearth.pickup_item_on_table', item, parent)
    else
       ai:abort('unknown item location in pickup item action')
+      entity.add_component('stonehearth:posture').unset_posture('carrying')
    end
+
 end
 
 return PickupItem

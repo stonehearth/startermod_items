@@ -20,7 +20,6 @@
             "stonehearth.actions.attack_top_aggro_action",
             "stonehearth.actions.attack_action",
             "stonehearth.actions.chase_target_action",
-            "stonehearth.actions.melee_attack_action",
             "stonehearth.actions.flee_action",
             "stonehearth.actions.run_away_from_entity",
             "stonehearth.actions.run_towards_entity"

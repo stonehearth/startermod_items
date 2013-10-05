@@ -13,19 +13,13 @@ function entities.get_root_entity()
 end
 
 function entities.create_entity(ref)
+   local entity
    if not ref then
-      return _radiant.sim.create_empty_entity()
+      entity = _radiant.sim.create_empty_entity()
+   else
+      entity = _radiant.sim.create_entity_by_ref(ref)
    end
-
-   -- don't spam trees to the log
-   if not is_tree(ref) then
-      radiant.log.info('creating entity %s', ref)
-   end
-   return _radiant.sim.create_entity_by_ref(ref)
-end
-
-function is_tree(ref)
-   return string.sub(ref, -5) == '_tree'
+   return entity
 end
 
 function entities.destroy_entity(entity)
@@ -183,7 +177,7 @@ end
    returns: entity that is being carried, nil otherwise
 ]]
 function entities.get_carrying(entity)
-   local carry_block = entity:get_component('carry_block')
+   local carry_block = entity:add_component('carry_block')
    if not carry_block then
       return nil
    end
@@ -241,6 +235,15 @@ function entities.set_display_name(entity, name)
    component:set_display_name(name)
 end
 
+function entities.get_attribute(entity, attribute_name)
+   entity:add_component('attributes'):get_attribute(attribute_name)
+end
+
+
+function entities.set_attribute(entity, attribute_name, value)
+   entity:add_component('attributes'):set_attribute(attribute_name, value)
+end
+
 --[[
    Tell the entity (a mob, probably) to pick up the item
    entity: probably a mob
@@ -261,9 +264,13 @@ function entities.pickup_item(entity, item)
          if parent then
             entities.remove_child(parent, item)
          end
+         entity:add_component('stonehearth:posture'):set_posture('carrying')
+         entity:add_component('stonehearth:attributes'):set_attribute('speed', 0.5) --xxx, change to a buff
          carry_block:set_carrying(item)
          entities.move_to(item, Point3(0, 0, 0))
       else
+         entity:add_component('stonehearth:posture'):unset_posture('carrying')
+         entity:add_component('stonehearth:attributes'):set_attribute('speed', 1.0)
          carry_block:set_carrying(nil)
       end
    end
@@ -284,6 +291,8 @@ function entities.drop_carrying(entity, location)
    if carry_block then
       local item = carry_block:get_carrying()
       if item then
+         entity:add_component('stonehearth:posture'):unset_posture('carrying')
+         entity:add_component('stonehearth:attributes'):set_attribute('speed', 1.0)
          carry_block:set_carrying(nil)
          radiant.terrain.place_entity(item, location)
       end

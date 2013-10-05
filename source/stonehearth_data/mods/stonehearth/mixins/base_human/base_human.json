@@ -17,7 +17,8 @@
 	   },
 	   "attributes" : {
 		  "ferocity": 1,
-		  "health": 50
+		  "health": 50,
+        "speed" : 1
 	   },
       "sensor_list": {
          "sensors": {

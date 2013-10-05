@@ -5,15 +5,8 @@ FollowPathAction.does = 'stonehearth.follow_path'
 FollowPathAction.priority = 1
 
 function FollowPathAction:run(ai, entity, path)
-   -- todo: get speed based on entity and posture
-   local speed = 1
-
-   -- todo: get effect name based on posture
-   local effect_name = 'run'
-   if radiant.entities.is_carrying(entity) then
-      effect_name = 'carry_walk'
-   end
-   self._effect = radiant.effects.run_effect(entity, effect_name)
+   local speed = 1.0  
+   self._effect = radiant.effects.run_effect(entity, 'run')
 
    local arrived_fn = function()
       ai:resume()
