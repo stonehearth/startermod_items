@@ -32,8 +32,8 @@ function PlacementTest:__init()
    self:place_item('stonehearth.picket_fence_proxy', 4, 3)
    self:place_item('stonehearth.picket_fence_proxy', 5, 3)
    self:place_item('stonehearth.picket_fence_proxy', 6, 3)
-   self:place_item('stonehearth.fire_pit_proxy', 7, 3)
-   self:place_item('stonehearth.fire_pit', 9, 3)
+   self:place_item('stonehearth.fire_pit_proxy', 7, 3, faction)
+   self:place_item('stonehearth.fire_pit', 9, 3, faction)
 
    local tree = self:place_tree(0, -12)
 

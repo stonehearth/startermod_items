@@ -33,7 +33,7 @@ function NewWorld:place_camp()
    self:place_stockpile_cmd(faction, camp_x+8, camp_z-2, 4, 4)
 
    --put some default supplies into the stockpile (for now)
-   self:place_item('stonehearth.fire_pit_proxy', camp_x+8, camp_z-2)
+   self:place_item('stonehearth.fire_pit_proxy', camp_x+8, camp_z-2, faction)
    self:place_item('stonehearth.oak_log', camp_x+8+1, camp_z-2+1)
    self:place_item('stonehearth.oak_log', camp_x+8, camp_z-2+2)
 end

@@ -16,7 +16,7 @@ function PlaceableItemProxyComponent:__init(entity, data_binding)
    self._data = data_binding:get_data()
    self._data.entity_id = entity:get_id()
 
-   self._about_to_destroy = false
+   self._under_construction = false
 
    self._data_binding = data_binding
    self._data_binding:mark_changed()
@@ -31,12 +31,15 @@ function PlaceableItemProxyComponent:extend(json)
    end
 end
 
-function PlaceableItemProxyComponent:set_destroy()
-   self._about_to_destroy = true
+--- Sets whether or not the proxy is being turned into a full sized item
+-- Useful for people like the inventory system who want to act on proxies,
+-- but not ones that are about to go away!
+function PlaceableItemProxyComponent:set_under_construction(value)
+   self._under_construction = value
 end
 
-function PlaceableItemProxyComponent:get_destroy_status()
-   return self._about_to_destroy
+function PlaceableItemProxyComponent:is_under_construction()
+   return self._under_construction
 end
 
 function PlaceableItemProxyComponent:get_full_sized_entity()
@@ -52,11 +55,14 @@ function PlaceableItemProxyComponent:get_full_sized_entity_uri()
 end
 
 --[[
-   Create the entity and extract our own unit info from its unit info.
+   Create the entity and give it our faction
 ]]
 function PlaceableItemProxyComponent:_create_full_sized_entity()
    self._full_sized_entity = radiant.entities.create_entity(self._data.full_sized_entity_uri)
    self._full_sized_entity:add_component('stonehearth:placeable_item_pointer'):set_proxy(self._entity)
+
+   local proxy_faction = radiant.entities.get_faction(self._entity)
+   self._full_sized_entity:add_component('unit_info'):set_faction(proxy_faction)
 end
 
 --Copy the unit info from the big entity's json file into the proxy

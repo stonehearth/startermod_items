@@ -29,13 +29,13 @@ MicroWorld['radiant.events.gameloop'] = function(self, time)
 end
 
 function MicroWorld:create_world()
-   local region3 = _radiant.sim.alloc_region()   
-   local r3 = region3:modify() 
-   
+   local region3 = _radiant.sim.alloc_region()
+   local r3 = region3:modify()
+
    r3:add_cube(Cube3(Point3(0, -16, 0), Point3(32, 0, 32), Terrain.TOPSOIL))
    r3:add_cube(Cube3(Point3(0,   0, 0), Point3(32, 1, 32), Terrain.FOOTHILLS))
-   
-   local terrain = radiant._root_entity:add_component('terrain')   
+
+   local terrain = radiant._root_entity:add_component('terrain')
    terrain:set_zone_size(32)
    terrain:add_zone(Point3(-16, 0, -16), region3)
 end
@@ -49,9 +49,12 @@ function MicroWorld:place_tree(x, z)
    return self:place_item('stonehearth.medium_oak_tree', x, z)
 end
 
-function MicroWorld:place_item(uri, x, z)
+function MicroWorld:place_item(uri, x, z, faction)
    local entity = radiant.entities.create_entity(uri)
    radiant.terrain.place_entity(entity, Point3(x, 1, z))
+   if faction then
+      entity:add_component('unit_info'):set_faction(faction)
+   end
    return entity
 end
 

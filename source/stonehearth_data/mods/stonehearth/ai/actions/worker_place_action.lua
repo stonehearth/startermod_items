@@ -3,7 +3,7 @@ local WorkerPlaceItemAction = class()
 
 WorkerPlaceItemAction.name = 'stonehearth.place_item'
 WorkerPlaceItemAction.does = 'stonehearth.place_item'
-WorkerPlaceItemAction.priority = 10
+WorkerPlaceItemAction.priority = 5
 --TODO we need a scale to  describe relative importance.
 --Right now all tasks dispatched by worker scheduler have the same priority, 10
 --They override the given priority
@@ -13,7 +13,7 @@ function WorkerPlaceItemAction:__init(ai, entity)
    self._entity = entity
    self._path_to_destination = nil
    self._temp_entity = nil
-   self._temp_dest_entity = nil
+   self._ghost_entity = nil
 end
 
 --- Pick up and place the item designated by the player
@@ -24,12 +24,12 @@ end
 function WorkerPlaceItemAction:run(ai, entity, path, ghost_entity, rotation, task)
    -- Put in some logging
    local name = entity:get_component('unit_info'):get_display_name()
-   local target_item = path:get_destination()
-   local object_name = target_item:get_component('unit_info'):get_display_name()
+   local proxy_entity = path:get_destination()
+   local object_name = proxy_entity:get_component('unit_info'):get_display_name()
 
    -- If the task is already stopped, someone else got this action first. Exit.
    if not task:get_running() then
-      radiant.log.info('Worker %s: Never mind! You got the %s.', name, object_name)
+      radiant.log.info('%s (Worker %s): Never mind! You got the %s.', tostring(entity), name, object_name)
       ai:abort()
       --return
    end
@@ -43,21 +43,17 @@ function WorkerPlaceItemAction:run(ai, entity, path, ghost_entity, rotation, tas
    self._task = task
 
    -- Log successful grab
-   radiant.log.info('Worker %s: Hands off, guys! I have totally got this %s', name, object_name)
+   radiant.log.info('%s (Worker %s): Hands off, guys! I have totally got this %s', tostring(entity), name, object_name)
 
    -- We already have a path to the object, so set up a pathfinder
    -- between the object and its final destination, to use later.
-   self._temp_dest_entity = ghost_entity
-   self:_get_intermediary_path(target_item)
+   self._ghost_entity = ghost_entity
+   self:_find_path_to_ghost_item(proxy_entity)
    ai:execute('stonehearth.pickup_item_on_path', path)
 
    -- If we're here, pickup succeeded, so we're now carrying the item.
    -- Wait until the PF we started earlier returns
-   local proxy_entity = radiant.entities.get_carrying(entity)
-   if not proxy_entity then
-      ai:abort()
-   end
-   proxy_entity:get_component('stonehearth:placeable_item_proxy'):set_destroy()
+   assert(proxy_entity:get_id() == radiant.entities.get_carrying(entity):get_id())
    ai:wait_until(function()
       return self._path_to_destination ~= nil
    end)
@@ -66,18 +62,21 @@ function WorkerPlaceItemAction:run(ai, entity, path, ghost_entity, rotation, tas
    radiant.entities.turn_to(proxy_entity, rotation)
 
    -- if we placed a proxy entity then replace the proxy we dropped with a real thing
-   local proxy_component = proxy_entity:get_component('stonehearth:placeable_item_proxy')
-   if proxy_component then
+   self._proxy_component = proxy_entity:get_component('stonehearth:placeable_item_proxy')
+   if self._proxy_component then
+      self._proxy_component:set_under_construction(true)
+
       --TODO: replace this with a particle effect
       ai:execute('stonehearth.run_effect', 'work')
 
       --Get the full sized entity
-      local full_sized_entity = proxy_component:get_full_sized_entity()
+      local full_sized_entity = self._proxy_component:get_full_sized_entity()
       local faction = entity:get_component('unit_info'):get_faction()
       full_sized_entity:get_component('unit_info'):set_faction(faction)
 
       -- Remove the icon
       radiant.entities.destroy_entity(proxy_entity)
+      radiant.entities.destroy_entity(self._ghost_entity)
 
       -- Place the item in the world
       radiant.terrain.place_entity(full_sized_entity, self._path_to_destination:get_destination_point_of_interest())
@@ -95,7 +94,7 @@ end
 -- as the starting destiantion and the final destination
 -- @param target_item the item that the worker is planning to pick up
 -- @return temporary destination entity that will serve as the starting poitn of the path
-function WorkerPlaceItemAction:_get_intermediary_path(target_item)
+function WorkerPlaceItemAction:_find_path_to_ghost_item(target_item)
    local target_item_loc = target_item:get_component('mob'):get_world_grid_location()
    self._temp_entity = radiant.entities.create_entity()
    radiant.terrain.place_entity(self._temp_entity, target_item_loc)
@@ -108,7 +107,7 @@ function WorkerPlaceItemAction:_get_intermediary_path(target_item)
    local desc = string.format('finding a path from %s to player-designated location', tostring(target_item))
    self._pathfinder = radiant.pathfinder.create_path_finder(desc)
                         :set_source(self._temp_entity)
-                        :add_destination(self._temp_dest_entity)
+                        :add_destination(self._ghost_entity)
                         :set_solved_cb(solved_cb)
 end
 
@@ -123,15 +122,6 @@ function WorkerPlaceItemAction:_destroy_temp_entities()
       -- Remove the intermediate entity
       radiant.entities.destroy_entity(self._temp_entity)
    end
-
-   if self._temp_dest_entity then
-      -- Remove the fake destination entity (pf only works between entities)
-      -- TODO: test this also nukes the ghost entity/renderer (doesn't work yet)
-      radiant.entities.destroy_entity(self._temp_dest_entity)
-   end
-
-   self._temp_intermediate = nil
-   self._temp_destination = nil
 end
 
 --- When we're done with the action, stop the pathfinders and handle the task status
@@ -142,6 +132,9 @@ function WorkerPlaceItemAction:stop()
    if self._task then
       self._task:start()
       self._task = nil
+   end
+   if self._proxy_component then
+      self._proxy_component:set_under_construction(false)
    end
    self:_destroy_temp_entities()
 end
