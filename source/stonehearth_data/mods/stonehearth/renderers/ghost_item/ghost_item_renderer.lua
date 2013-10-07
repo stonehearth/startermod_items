@@ -24,14 +24,11 @@ function GhostItemRenderer:_update()
       ghost_entity_unit_info:set_description(data.unit_info_description)
       ghost_entity_unit_info:set_icon(data.unit_info_icon)
 
-      --self._particle_effect = radiant.effects.run_effect(self._ghost_entity, '/stonehearth/data/effects/firepit_effect')
-
       self._ghost_item_rendered = _radiant.client.create_render_entity(1, self._ghost_entity)
 
       local ghost_mob = self._ghost_entity:add_component('mob')
       ghost_mob:set_location_grid_aligned(Point3(data.location.x, data.location.y, data.location.z))
       ghost_mob:turn_to(data.rotation)
-      --radiant.terrain.place_entity(self._ghost_entity, data.location)
    end
 end
 

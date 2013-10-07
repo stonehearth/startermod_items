@@ -131,24 +131,4 @@ App.StonehearthPlaceItemView = App.View.extend({
       }
    },
 
-   /*
-   putDownMore: function() {
-      //fires whenever an entity is added/removed
-      if (this.autoSelectNext != null) {
-         //select the item that matches the autoSelectNext identifier
-         //Unfortunately, this requires iterating through all the items
-         //because we need the latest, newest, updated version,
-         //not the copy from the last time.
-         var item_identifier = this.autoSelectNext.entity_uri;
-         for (var j=0; j<this.get('context.entity_types.length'); j++) {
-            var entity_type = this.get('context.entity_types')[j];
-            if(entity_type.entity_uri == item_identifier) {
-               this._actions.selectItem.call(this, entity_type);
-            }
-         }
-         this.autoSelectNext = null;
-      }
-   }.observes('context.entity_types.entities'),
-   */
-
 });
