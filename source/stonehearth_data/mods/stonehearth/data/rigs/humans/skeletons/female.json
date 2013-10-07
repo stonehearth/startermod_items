@@ -1,0 +1,43 @@
+{
+	"skeleton": {
+		"root": [15.5,15.5,0],
+		"bodyPosition": [15.5,15.5,7.5],
+		"pelvis": [15.5,15.5,7.5],
+		"torso": [15.5,15.5,10],
+		"head": [15.5,14.4743,16.9696],
+		"leftShoulder": [19,15.5,14],
+		"leftArm": [22,15,10],
+		"leftHand": [22,15,9],
+		"leftThumb1": [21,12,8],
+		"leftThumb2": [21,11,6],
+		"leftFinger11": [24,13,7],
+		"leftFinger12": [24,13,5],
+		"leftFinger21": [24,15,7],
+		"leftFinger22": [24,15,5],
+		"leftFinger31": [24,17,7],
+		"leftFinger32": [24,17,5],
+		"offHand": [22,15,6],
+		"rightShoulder": [12,15.5,14],
+		"rightArm": [9,15,10],
+		"rightHand": [9,15,9],
+		"rightThumb1": [10,12,8],
+		"rightThumb2": [10,11,6],
+		"rightFinger11": [7,13,7],
+		"rightFinger12": [7,13,5],
+		"rightFinger21": [7,15,7],
+		"rightFinger22": [7,15,5],
+		"rightFinger31": [7,17,7],
+		"rightFinger32": [7,17,5],
+		"mainHand": [9,15,6],
+		"leftFoot": [18.5,14,5],
+		"rightFoot": [12.5,14,5]
+	},
+	"animation_root" : "file(../animations/female)",
+   "effects_root" : "file(../effects)",
+   "postures" : "file(../postures.json)",
+   "collision_shape" : {
+      "type" : "cylinder_collision_shape",
+      "radius" : 5,
+      "height" : 35
+   }
+}

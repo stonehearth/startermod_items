@@ -1,6 +1,7 @@
 {
    "type": "entity",
    "extends": "stonehearth.mixins.mob",
+   "init_script" : "file(wolf_init_script.lua)",      
    "components": {
       "unit_info": {
          "name": "A wolf",
@@ -35,5 +36,12 @@
             ]
          }
       ]
-   }
+   },
+   "entity_data" : {
+      "stonehearth:postures" : {
+         "default" : {
+            "run_speed" : 1.5
+         }
+      }
+   }   
 }

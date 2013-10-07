@@ -7,34 +7,34 @@ local Timer = radiant.mods.require('stonehearth_debugtools.timer')
 
 local WorldGenerator = class()
 
-function WorldGenerator:__init()
-   self._terrain_generator = TerrainGenerator()
+function WorldGenerator:__init(async)
+   self._async = async
+
+   self._terrain_generator = TerrainGenerator(self._async)
    self._height_map_renderer = HeightMapRenderer(self._terrain_generator.zone_size)
    self._landscaper = Landscaper(self._terrain_generator.terrain_info)
 end
 
-function WorldGenerator:create_world(use_async)
-   self._use_async = use_async
-   
+function WorldGenerator:create_world()
    local terrain_thread = function()
-      self._terrain_generator:set_async(self._use_async)
       local cpu_timer = Timer(Timer.CPU_TIME)
       local wall_clock_timer = Timer(Timer.WALL_CLOCK)
       cpu_timer:start()
       wall_clock_timer:start()
 
-      local zones = self:_create_world_blueprint()
+      local zones
+      zones = self:_create_world_blueprint()
+      --zones = self:_create_test_blueprint()
       self:_generate_world(zones)
 
-      self._terrain_generator:set_async(false)
       cpu_timer:stop()
       wall_clock_timer:stop()
       radiant.log.info('World generation cpu time (excludes terrain ring tesselator): %.3fs', cpu_timer:seconds())
       radiant.log.info('World generation wall clock time: %.0fs', wall_clock_timer:seconds())
    end
 
-   if self._use_async then
-      radiant.create_background_task('generating terrain', terrain_thread)     
+   if self._async then
+      radiant.create_background_task('Terrain Generator', terrain_thread)     
    else
       terrain_thread()
    end
@@ -79,23 +79,20 @@ function WorldGenerator:_generate_world(zones)
    end
 end
 
+function WorldGenerator:_create_test_blueprint()
+   local zones = self:_get_empty_blueprint(5, 5, TerrainType.Plains)
+
+   -- zones:get(1, 1).terrain_type = TerrainType.Plains
+   -- zones:get(2, 1).terrain_type = TerrainType.Plains
+   -- zones:get(1, 2).terrain_type = TerrainType.Mountains
+   -- zones:get(2, 2).terrain_type = TerrainType.Plains
+
+   return zones
+end
+
 -- do this programmatically later
 function WorldGenerator:_create_world_blueprint()
-   local zones = Array2D(5, 5)
-   local zone_info
-   local i, j
-
-   for j=1, zones.height do
-      for i=1, zones.width do
-         zone_info = {}
-         zone_info.terrain_type = TerrainType.Plains
-         zone_info.generated = false
-         zones:set(i, j, zone_info)
-      end
-   end
-
-   -- zones:get(1, 1).terrain_type = TerrainType.Mountains
-   -- zones:get(2, 1).terrain_type = TerrainType.Plains
+   local zones = self:_get_empty_blueprint(5, 5)
 
    zones:get(1, 1).terrain_type = TerrainType.Mountains
    zones:get(2, 1).terrain_type = TerrainType.Mountains
@@ -126,6 +123,24 @@ function WorldGenerator:_create_world_blueprint()
    zones:get(3, 5).terrain_type = TerrainType.Plains
    zones:get(4, 5).terrain_type = TerrainType.Foothills
    zones:get(5, 5).terrain_type = TerrainType.Mountains
+
+   return zones
+end
+
+function WorldGenerator:_get_empty_blueprint(width, height, terrain_type)
+   if terrain_type == nil then terrain_type = TerrainType.Plains end
+
+   local zones = Array2D(width, height)
+   local i, j, zone_info
+
+   for j=1, zones.height do
+      for i=1, zones.width do
+         zone_info = {}
+         zone_info.terrain_type = terrain_type
+         zone_info.generated = false
+         zones:set(i, j, zone_info)
+      end
+   end
 
    return zones
 end

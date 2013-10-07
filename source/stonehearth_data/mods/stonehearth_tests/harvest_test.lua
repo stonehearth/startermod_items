@@ -5,9 +5,9 @@ function HarvestTest:__init()
    self[MicroWorld]:__init()
    self:create_world()
 
-   local tree = self:place_tree(-12, -12)
-   local worker = self:place_citizen(12, 12)
-   local worker2 = self:place_citizen(-8, -8)
+   self:place_tree(-9, -9)
+   --self:place_citizen(12, 12)
+   local worker = self:place_citizen(-5, -5)
 
    local faction = worker:get_component('unit_info'):get_faction()
 
