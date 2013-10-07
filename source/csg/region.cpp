@@ -164,6 +164,14 @@ const Region<S, C>& Region<S, C>::operator+=(const Cube& cube)
 }
 
 template <class S, int C>
+Region<S, C> Region<S, C>::operator&(const Region& r) const
+{
+   Region result = *this;
+   result &= r;
+   return result;
+}
+
+template <class S, int C>
 const Region<S, C>& Region<S, C>::operator&=(const Cube& cube)
 {
    unsigned int i = 0;
@@ -279,7 +287,9 @@ void Region<S, C>::Optimize()
 template <class S, int C>
 Cube<S, C> Region<S, C>::GetBounds() const
 {
-   ASSERT(!IsEmpty());
+   if (IsEmpty()) {
+      return Cube::zero;
+   }
 
    Cube bounds = cubes_[0];
    int i, c = cubes_.size();
@@ -353,6 +363,7 @@ Region3 radiant::csg::GetBorderXZ(const Region3 &other)
    template void Cls::Subtract(const Cls::Point&); \
    template Cls Cls::operator-(const Cls&) const; \
    template Cls Cls::operator-(const Cls::Cube&) const; \
+   template Cls Cls::operator&(const Cls&) const; \
    template const Cls& Cls::operator&=(const Cls::Cube&); \
    template const Cls& Cls::operator&=(const Cls&); \
    template const Cls& Cls::operator+=(const Cls::Cube&); \

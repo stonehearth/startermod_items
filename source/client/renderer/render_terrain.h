@@ -49,7 +49,7 @@ private:
 private:
    struct RenderZone {
       csg::Point3                location;
-      om::BoxedRegion3Ref        region;
+      om::Region3BoxedRef        region;
       H3DNodeUnique              node;
       dm::Guard                  guard;
       std::vector<H3DNodeUnique> meshes;

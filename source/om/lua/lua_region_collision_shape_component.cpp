@@ -7,17 +7,33 @@ using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-std::shared_ptr<BoxedRegion3Promise> RegionCollisionShape_TraceRegion(om::RegionCollisionShape const& c, const char* reason)
+
+// xxx: put this stuff a template somewhere (see lua_destination.cpp)
+DeepRegionGuardLuaPtr RegionCollisionShape_TraceRegion(lua_State* L, RegionCollisionShape const& r, const char* reason)
 {
-   return std::make_shared<BoxedRegion3Promise>(c.GetRegionField(), reason);
+   return std::make_shared<DeepRegionGuardLua>(L, r.GetRegion(), reason);
+}
+
+Region3BoxedPtr RegionCollisionShape_GetRegion(RegionCollisionShape const& r)
+{
+   return *r.GetRegion();
+}
+
+RegionCollisionShapeRef RegionCollisionShape_SetRegion(RegionCollisionShapeRef r, Region3BoxedPtr region)
+{
+   RegionCollisionShapePtr rcs = r.lock();
+   if (rcs) {
+      rcs->SetRegion(region);
+   }
+   return r;
 }
 
 scope LuaRegionCollisionShapeComponent::RegisterLuaTypes(lua_State* L)
 {
    return
       lua::RegisterDerivedObject<RegionCollisionShape, Component>()
-         .def("set_region",      &om::RegionCollisionShape::SetRegionPtr)
-         .def("get_region",      &om::RegionCollisionShape::GetRegionPtr)
-         .def("trace_region",    &RegionCollisionShape_TraceRegion)
+         .def("get_region",               &RegionCollisionShape_GetRegion)
+         .def("set_region",               &RegionCollisionShape_SetRegion)
+         .def("trace_region",             &RegionCollisionShape_TraceRegion)
       ;
 }

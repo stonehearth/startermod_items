@@ -32,6 +32,7 @@
          "default_object" : "file(entities/generic/default_object)",
 
          "wooden_wall" : "file(entities/build/wooden_wall)",
+         "scaffolding" : "file(entities/build/scaffolding)",
 
          "worker.profession_description" : "file(entities/professions/worker/profession_description.json)",
 
@@ -220,7 +221,8 @@
       "city_plan" : "file(components/city_plan/city_plan_component.lua)",
       "blueprint" : "file(components/blueprint/blueprint_component.lua)",
       "construction" : "file(components/blueprint/construction_component.lua)",
-      "fabricator" : "file(components/fabricator/fabricator_component.lua)"
+      "fabricator" : "file(components/fabricator/fabricator_component.lua)",
+      "scaffolding" : "file(components/scaffolding/scaffolding_component.lua)"
    },
    "component_renderers" : {
       "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",

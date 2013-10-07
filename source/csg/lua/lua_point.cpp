@@ -2,6 +2,7 @@
 #include "lua/register.h"
 #include "lua_point.h"
 #include "csg/point.h"
+#include "csg/color.h"
 
 using namespace ::luabind;
 using namespace ::radiant;
@@ -95,6 +96,12 @@ scope LuaPoint::RegisterLuaTypes(lua_State* L)
       Register2<Point2 >(L, "Point2"),
       Register2<Point2f>(L, "Point2f"),
       Register3<Point3 >(L, "Point3"),
-      Register3<Point3f>(L, "Point3f"),      
+      Register3<Point3f>(L, "Point3f"),
+      lua::RegisterType<Color4>("Color4")
+         .def(constructor<int, int, int, int>())
+         .def_readwrite("r", &Color4::r)
+         .def_readwrite("g", &Color4::g)
+         .def_readwrite("b", &Color4::b)
+         .def_readwrite("a", &Color4::a),
       def("lerp",             &csg::Interpolate);
 }

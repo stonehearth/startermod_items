@@ -61,6 +61,7 @@ public:
    // optimizing...
    Region<S, C> operator-(const Cube& other) const;
    Region<S, C> operator-(const Region& other) const;
+   Region<S, C> operator&(const Region& region) const;
    const Region<S, C>& operator+=(const Region& region);
    const Region<S, C>& operator-=(const Region& region);
    const Region<S, C>& operator&=(const Cube& cube);

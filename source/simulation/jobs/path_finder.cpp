@@ -2,6 +2,8 @@
 #include "metrics.h"
 #include "path.h"
 #include "path_finder.h"
+#include "path_finder_src.h"
+#include "path_finder_dst.h"
 #include "simulation/simulation.h"
 #include "om/entity.h"
 #include "om/components/mob.h"
@@ -26,10 +28,9 @@ using namespace ::radiant::simulation;
 PathFinder::PathFinder(lua_State* L, std::string name) :
    Job(name),
    rebuildHeap_(false),
-   search_exhausted_(false),
-   reversed_search_(false),
    restart_search_(true),
-   enabled_(true)
+   enabled_(true),
+   debug_color_(255, 192, 0, 128)
 {
 }
 
@@ -41,6 +42,8 @@ void PathFinder::SetSource(om::EntityRef e)
 {
    entity_ = e;
    mob_.reset();
+
+   source_.reset(new PathFinderSrc(*this, entity_));
 
    auto entity = e.lock();
    if (entity) {
@@ -66,19 +69,35 @@ bool PathFinder::IsIdle() const
       return true;
    }
 
-   if (!entity_.lock()) {
+   if (!source_ || source_->IsIdle()) {
       return true;
    }
 
-   if (destinations_.empty()) {
+   if (entity_.expired()) {
       return true;
    }
+
    if (restart_search_) {
       return false;
    }
-   if (search_exhausted_) {
+
+   if (IsSearchExhausted()) {
       return true;
    }
+
+   // xxx: this is redundant with the multi path finder...
+   bool all_idle = true;
+   for (const auto& entry : destinations_) {
+      if (!entry.second->IsIdle()) {
+         all_idle = false;
+         break;
+      }
+   }
+   if (all_idle) {
+      return true;
+   }
+
+
    if (solution_) {
       return true;
    }
@@ -120,7 +139,7 @@ void PathFinder::AddDestination(om::EntityRef e)
          }
       }
 
-      destinations_[entity->GetObjectId()] = std::unique_ptr<PathFinderEndpoint>(new PathFinderEndpoint(*this, e));
+      destinations_[entity->GetObjectId()] = std::unique_ptr<PathFinderDst>(new PathFinderDst(*this, e));
       restart_search_ = true;
       solution_ = nullptr;
    }
@@ -151,7 +170,6 @@ void PathFinder::Restart()
    solution_ = nullptr;
    rebuildHeap_ = true;
    restart_search_ = false;
-   search_exhausted_ = false;
    cameFrom_.clear();
    closed_.clear();
    open_.clear();
@@ -159,20 +177,11 @@ void PathFinder::Restart()
    g_.clear();
    h_.clear();
 
-   source_.reset(new PathFinderEndpoint(*this, entity_));
-   source_->AddAdjacentToOpenSet(open_);
+   source_->InitializeOpenSet(open_);
    for (csg::Point3 const& pt : open_) {
    	int h = EstimateCostToDestination(pt);
 	   f_[pt] = h;
 	   h_[pt] = h;
-   }
-}
-
-void PathFinder::SetReverseSearch(bool reversed)
-{
-   if (reversed != reversed_search_) {
-      reversed_search_ = reversed;
-      RestartSearch();
    }
 }
 
@@ -221,6 +230,9 @@ void PathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
          csg::Color4(0, 0, 128, 192).SaveValue(coord->mutable_color());
       }
    }
+   for (const auto& dst : destinations_) {
+      dst.second->EncodeDebugShapes(msg, debug_color_);
+   }
 }
 
 void PathFinder::Work(const platform::timer &timer)
@@ -232,7 +244,6 @@ void PathFinder::Work(const platform::timer &timer)
    }
 
    if (open_.empty()) {
-      search_exhausted_ = true;
       return;
    }
 
@@ -244,7 +255,7 @@ void PathFinder::Work(const platform::timer &timer)
    csg::Point3 current = GetFirstOpen();
    closed_[current] = true;
 
-   PathFinderEndpoint* closest;
+   PathFinderDst* closest;
    if (EstimateCostToDestination(current, &closest) == 0) {
       // xxx: be careful!  this may end up being re-entrant (for example, removing
       // destinations).
@@ -258,9 +269,6 @@ void PathFinder::Work(const platform::timer &timer)
    const auto& o = Simulation::GetInstance().GetOctTree();
    
    // xxx: not correct for reversed search yet...
-   if (reversed_search_) {
-      LOG(WARNING) << "neighbor cost in revese search is reversed!";
-   }
    auto neighbors = o.ComputeNeighborMovementCost(current);
 
    VERIFY_HEAPINESS();
@@ -330,9 +338,6 @@ int PathFinder::EstimateCostToSolution()
    if (IsIdle()) {
       return INT_MAX;
    }
-   if (open_.empty()) {
-      return INT_MAX;
-   }
    return f_[open_.front()];
 }
 
@@ -345,7 +350,7 @@ int PathFinder::EstimateCostToDestination(const csg::Point3 &from) const
    return EstimateCostToDestination(from, nullptr);
 }
 
-int PathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFinderEndpoint** closest) const
+int PathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFinderDst** closest) const
 {
    int hMin = INT_MAX;
 
@@ -405,9 +410,10 @@ void PathFinder::ReconstructPath(std::vector<csg::Point3> &solution, const csg::
       solution.push_back(i->second);
       i = cameFrom_.find(i->second);
    }
-   if (!reversed_search_) {
-      std::reverse(solution.begin(), solution.end());
-   }
+   // the point on the very from contains the exact location of the starting entity.  we
+   // don't want that point in the path, so pull it off before reversing the vectory
+   solution.pop_back();
+   std::reverse(solution.begin(), solution.end());
 }
 
 void PathFinder::RecommendBestPath(std::vector<csg::Point3> &points) const
@@ -442,21 +448,35 @@ void PathFinder::RebuildHeap()
    rebuildHeap_ = false;
 }
 
-void PathFinder::SolveSearch(const csg::Point3& last, PathFinderEndpoint* dst)
+csg::Point3 PathFinder::GetSourceLocation()
+{
+   csg::Point3 pt(0, 0, 0);
+   auto entity = entity_.lock();
+   if (entity) {
+      auto mob = entity->GetComponent<om::Mob>();
+      if (mob) {
+         pt = mob->GetWorldGridLocation();
+      }
+   }
+   return pt;
+}
+
+void PathFinder::SolveSearch(const csg::Point3& last, PathFinderDst* dst)
 {
    std::vector<csg::Point3> points;
 
    VERIFY_HEAPINESS();
 
    ReconstructPath(points, last);
-   PathFinderEndpoint *src = source_.get();
-   if (reversed_search_) {
-      std::swap(src, dst);
-   }
 
-   csg::Point3 start_point = src->GetPointInRegionAdjacentTo(points.front());
-   csg::Point3 end_point = dst->GetPointInRegionAdjacentTo(points.back());
-   solution_ = std::make_shared<Path>(points, src->GetEntity(), dst->GetEntity(), start_point, end_point);
+   csg::Point3 end_point;
+   if (!points.empty()) {
+      end_point = points.back();
+   } else {
+      end_point = GetSourceLocation();
+   }
+   csg::Point3 dst_point_of_interest = dst->GetPointfInterest(end_point);
+   solution_ = std::make_shared<Path>(points, entity_.lock(), dst->GetEntity(), dst_point_of_interest);
    if (solved_cb_.is_valid()) {
       auto L = solved_cb_.interpreter();
       luabind::object path(L, solution_);
@@ -488,160 +508,12 @@ std::ostream& PathFinder::Format(std::ostream& o) const
    return o;        
 }
 
-
-PathFinderEndpoint::PathFinderEndpoint(PathFinder &pf, om::EntityRef e) :
-   pf_(pf),
-   entity_(e)
+bool PathFinder::IsSearchExhausted() const
 {
-   auto entity = e.lock();
-   if (entity) {
-      auto restart_fn = [=]() {
-         pf_.RestartSearch();
-      };
-
-      auto mob = entity->GetComponent<om::Mob>();
-      if (mob) {
-         guards_ += mob->GetBoxedTransform().TraceValue(
-            "pathfinder entity mob trace (xform)",
-            [=](csg::Transform const&) {
-               restart_fn();
-            });
-         guards_ += mob->GetBoxedMoving().TraceValue(
-            "pathfinder entity mob trace (moving)",
-            [=](bool const& moving) {
-               restart_fn();
-            });
-      }
-      auto dst = entity->GetComponent<om::Destination>();
-      if (dst) {
-         region_guard_ = om::TraceBoxedRegion3PtrFieldVoid(dst->GetAdjacent(),
-                              "pathfinder destination trace",
-                              restart_fn);
-      }
-   }
+   return open_.empty();
 }
 
-void PathFinderEndpoint::AddAdjacentToOpenSet(std::vector<csg::Point3>& open)
+void PathFinder::SetDebugColor(csg::Color4 const& color)
 {
-   auto entity = entity_.lock();
-   if (entity) {
-      auto mob = entity->GetComponent<om::Mob>();
-      if (mob) {
-         csg::Point3 origin;
-         origin = mob->GetWorldGridLocation();
-
-         om::BoxedRegion3Ptr adjacent;
-         auto destination = entity->GetComponent<om::Destination>();
-         if (destination) {
-            // xxx - should open_ be a region?  wow, that would be complicated!
-            adjacent = *destination->GetAdjacent();
-         }
-         if (adjacent) {
-            csg::Region3 const& region = adjacent->Get();
-            for (csg::Cube3 const& cube : region) {
-               for (csg::Point3 const& pt : cube) {
-                  open.push_back(origin + pt);
-               }
-            }
-         } else {
-            open.push_back(origin + csg::Point3(-1, 0,  0));
-            open.push_back(origin + csg::Point3( 1, 0,  0));
-            open.push_back(origin + csg::Point3( 0, 0, -1));
-            open.push_back(origin + csg::Point3( 0, 0,  1));
-         }
-      }
-   }
+   debug_color_ = color;
 }
-
-int PathFinderEndpoint::EstimateMovementCost(const csg::Point3& from) const
-{
-   PROFILE_BLOCK();
-
-   auto entity = GetEntity();
-
-   if (!entity) {
-      return INT_MAX;
-   }
-
-   // Translate the point to the local coordinate system
-   csg::Point3 start = from;
-   auto mob = entity->GetComponent<om::Mob>();
-   if (mob) {
-      start -= mob->GetWorldGridLocation();
-   }
-
-   csg::Point3 end;
-
-   om::BoxedRegion3Ptr adjacent;
-   om::DestinationPtr dst = entity->GetComponent<om::Destination>();
-   if (dst) {
-      adjacent = *dst->GetAdjacent();
-   }
-   if (adjacent) {
-      csg::Region3 const& rgn = *adjacent;
-      if (rgn.IsEmpty()) {
-         return INT_MAX;
-      }
-      end = rgn.GetClosestPoint(start);
-   } else {
-      csg::Region3 adjacent;
-      adjacent += csg::Point3(-1, 0,  0);
-      adjacent += csg::Point3( 1, 0,  0);
-      adjacent += csg::Point3( 0, 0, -1);
-      adjacent += csg::Point3( 0, 0, -1);
-      end = adjacent.GetClosestPoint(start);
-   }
-   return EstimateMovementCost(start, end);
-}
-
-int PathFinderEndpoint::EstimateMovementCost(csg::Point3 const& start, csg::Point3 const& end) const
-{
-   PROFILE_BLOCK();
-
-   static int COST_SCALE = 10;
-   int cost = 0;
-
-   // it's fairly expensive to climb.
-   cost += COST_SCALE * std::max(end.y - start.y, 0) * 2;
-
-   // falling is super cheap.
-   cost += std::max(start.y - end.y, 0);
-
-   // diagonals need to be more expensive than cardinal directions
-   int xCost = abs(end.x - start.x);
-   int zCost = abs(end.z - start.z);
-   int diagCost = std::min(xCost, zCost);
-   int horzCost = std::max(xCost, zCost) - diagCost;
-
-   cost += (int)((horzCost + diagCost * 1.414) * COST_SCALE);
-
-   return cost;
-}
-
-csg::Point3 PathFinderEndpoint::GetPointInRegionAdjacentTo(csg::Point3 const& adjacent_pt) const
-{
-   PROFILE_BLOCK();
-
-   auto entity = GetEntity();
-   ASSERT(entity);
-
-   // Translate the point to the local coordinate system
-   csg::Point3 origin(0, 0, 0);
-   auto mob = entity->GetComponent<om::Mob>();
-   if (mob) {
-      origin = mob->GetWorldGridLocation();
-   }
-
-   csg::Point3 end(0, 0, 0);
-   om::DestinationPtr dst = entity->GetComponent<om::Destination>();
-   if (dst) {
-      csg::Region3 const& rgn = **dst->GetRegion();
-      end = rgn.GetClosestPoint(adjacent_pt - origin);
-   }
-
-   end += origin;
-   csg::Point3 d = end - adjacent_pt;
-   ASSERT(d.LengthSquared() == 1);
-   return end;
-}
-

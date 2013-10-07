@@ -18,8 +18,8 @@ class RenderRegion : public Component
 public:
    DEFINE_OM_OBJECT_TYPE(RenderRegion, terrain);
    
-   dm::Boxed<BoxedRegion3Ptr> const& GetRegion() const { return region_; }
-   void SetRegion(BoxedRegion3Ptr r);
+   Region3BoxedPtrBoxed const& GetRegion() const { return region_; }
+   void SetRegion(Region3BoxedPtr r);
 
    dm::Guard TraceRenderRegion(const char* reason, std::function<void(csg::Region3 const&)> cb) const;
 
@@ -27,7 +27,7 @@ private:
    void InitializeRecordFields() override;
 
 public:
-   dm::Boxed<BoxedRegion3Ptr>    region_;
+   Region3BoxedPtrBoxed    region_;
 };
 
 END_RADIANT_OM_NAMESPACE

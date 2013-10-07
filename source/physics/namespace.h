@@ -1,14 +1,21 @@
 #ifndef _RADIANT_PHYSICS_NAMESPACE_H
 #define _RADIANT_PHYSICS_NAMESPACE_H
 
-#define BEGIN_RADIANT_PHYSICS_NAMESPACE  namespace radiant { namespace Physics {
+#define BEGIN_RADIANT_PHYSICS_NAMESPACE  namespace radiant { namespace phys {
 #define END_RADIANT_PHYSICS_NAMESPACE    } }
 
-#define RADIANT_PHYSICS_NAMESPACE    ::radiant::Physics
+#define RADIANT_PHYSICS_NAMESPACE    ::radiant::phys
 
 #define IN_RADIANT_PHYSICS_NAMESPACE(x) \
    BEGIN_RADIANT_PHYSICS_NAMESPACE \
    x  \
    END_RADIANT_PHYSICS_NAMESPACE
+
+BEGIN_RADIANT_PHYSICS_NAMESPACE
+
+typedef int TerrainChangeCbId;
+typedef std::function<void()> TerrainChangeCb;
+
+END_RADIANT_PHYSICS_NAMESPACE
 
 #endif //  _RADIANT_PHYSICS_NAMESPACE_H

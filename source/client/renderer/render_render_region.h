@@ -23,7 +23,7 @@ private:
 
 private:
    const RenderEntity&        entity_;
-   om::BoxedRegionGuardPtr    region_guard_;
+   om::DeepRegionGuardPtr    region_guard_;
    dm::Guard                  selectedGuard_;
    H3DNodeUnique              node_;
    std::vector<H3DNodeUnique> meshes_;

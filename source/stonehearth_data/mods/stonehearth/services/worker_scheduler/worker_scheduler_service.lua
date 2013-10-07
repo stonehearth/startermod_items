@@ -7,6 +7,7 @@ end
 
 function WorkerSchedulerService:get_worker_scheduler(faction)
    radiant.check.is_string(faction)
+   assert(faction and #faction > 0, 'invalid faction passed to get_worker_scheduler')
    local scheduler = self._worker_schedulers[faction]
    if not scheduler then
       scheduler = WorkerScheduler(faction)

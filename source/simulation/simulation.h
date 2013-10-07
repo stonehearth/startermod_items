@@ -37,7 +37,6 @@ class Task;
 class Event;
 class WorkerScheduler;
 class BuildingScheduler;
-class MultiPathFinder;
 class PathFinder;
 class FollowPath;
 class GotoLocation;
@@ -69,7 +68,7 @@ public:
    void Idle(platform::timer &timer) override;
 
    om::EntityPtr GetRootEntity();
-   Physics::OctTree &GetOctTree();
+   phys::OctTree &GetOctTree();
    dm::Store& GetStore();
    lua::ScriptHost& GetScript();
 
@@ -78,7 +77,6 @@ public:
 
 private:
    void PostCommand(tesseract::protocol::PostCommandRequest const& request);
-   void ScriptCommand(tesseract::protocol::ScriptCommandRequest const& request);
    void EncodeDebugShapes(protocol::SendQueuePtr queue);
    void PushServerRemoteObjects(protocol::SendQueuePtr queue);
    void ProcessTaskList(platform::timer &timer);
@@ -86,10 +84,7 @@ private:
    void OnObjectAllocated(dm::ObjectPtr obj);
    void OnObjectDestroyed(dm::ObjectId id);
 
-   typedef std::unordered_map<std::string, std::function<std::string (std::string const& cmd)>> NativeCommandHandlers; 
-   std::string ToggleDebugShapes(std::string const& cmd);
-   std::string ToggleStepPathFinding(std::string const& cmd);
-   std::string StepPathFinding(std::string const& cmd);
+   void StepPathFinding();
 
    void TraceEntity(om::EntityPtr e);
    void ComponentAdded(om::EntityRef e, dm::ObjectType type, std::shared_ptr<dm::Object> component);
@@ -116,12 +111,11 @@ private:
    };   
 
 private:
-   NativeCommandHandlers                                 commands_;
    dm::Store                                             store_;
    dm::Guard                                             guards_;
    std::vector<std::pair<dm::ObjectId, dm::ObjectType>>  allocated_;
    std::vector<dm::ObjectId>                             destroyed_;
-   std::unique_ptr<Physics::OctTree>                     octtree_;
+   std::unique_ptr<phys::OctTree>                     octtree_;
    std::unique_ptr<lua::ScriptHost>                      scriptHost_;
 
    // Good stuff down here.

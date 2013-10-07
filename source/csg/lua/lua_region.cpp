@@ -2,6 +2,7 @@
 #include "lua/register.h"
 #include "lua_region.h"
 #include "csg/region.h"
+#include "csg/util.h"
 
 using namespace ::luabind;
 using namespace ::radiant;
@@ -14,6 +15,12 @@ void CopyRegion(T& region, T const& other)
 }
 
 template <typename T>
+std::shared_ptr<T> Duplicate(T const& region)
+{
+   return std::make_shared<T>(region);
+}
+
+template <typename T>
 std::shared_ptr<T> RegionClip(const T& region, typename T::Cube const& cube)
 {
    std::shared_ptr<T> result = std::make_shared<T>(region);
@@ -22,7 +29,13 @@ std::shared_ptr<T> RegionClip(const T& region, typename T::Cube const& cube)
 }
 
 template <typename T>
-static luabind::scope Register(struct lua_State* L, const char* name)
+T Region_Intersection(T const& lhs, T const& rhs)
+{
+   return lhs & rhs;
+}
+
+template <typename T>
+static luabind::class_<T> Register(struct lua_State* L, const char* name)
 {
    return
       lua::RegisterType<T>(name)
@@ -32,6 +45,7 @@ static luabind::scope Register(struct lua_State* L, const char* name)
          .def(const_self - other<T const&>())
          .def(const_self - other<T::Cube const&>())
          .def("copy_region",        &CopyRegion<T>)
+         .def("duplicate",          &Duplicate<T>)
          .def("empty",              &T::IsEmpty)
          .def("get_area",           &T::GetArea)
          .def("clear",              &T::Clear)
@@ -46,6 +60,7 @@ static luabind::scope Register(struct lua_State* L, const char* name)
          .def("subtract_region",    (void (T::*)(T const&))&T::Subtract)
          .def("subtract_cube",      (void (T::*)(typename T::Cube const&))&T::Subtract)
          .def("subtract_point",     (void (T::*)(typename T::Point const&))&T::Subtract)
+         .def("intersect_region",   (void (T::*)(T const&))&T::Subtract)
          .def("contents",           &T::GetContents, return_stl_iterator)
          .def("clip",               &RegionClip<T>)
          .def("get_num_rects",      &T::GetRectCount)
@@ -59,7 +74,9 @@ static luabind::scope Register(struct lua_State* L, const char* name)
 scope LuaRegion::RegisterLuaTypes(lua_State* L)
 {
    return
-      Register<Region3>(L,  "Region3"),
+      def("region3_intersection", Region_Intersection<Region3>),
+      Register<Region3>(L,  "Region3")
+         .def("get_adjacent",       &GetAdjacent),
       Register<Region3f>(L, "Region3f"),
       Register<Region2>(L,  "Region2"),
       Register<Region1>(L,  "Region1");

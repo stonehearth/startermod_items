@@ -362,6 +362,16 @@ void Store::FireTraces()
          }
       }
 
+      for (TraceId tid : finishedFiringTraces_[-1]) {
+         if (!stdutil::contains(deadTraces_, tid)) {
+            ValidateTraceId(tid);
+            TracesFinishedCb cb = boost::any_cast<TracesFinishedCb>(traceCallbacks_[tid].cb);
+            if (cb) {
+               cb();
+            }
+         }
+      }
+
       modifiedObjects_ = std::move(deferredModifiedObjects_);
       alloced_ = std::move(deferredAllocedObjects_);
       destroyed_ = std::move(deferredDestroyedObjects_);
@@ -390,4 +400,9 @@ void Store::FireTraces()
 bool Store::IsDynamicObject(ObjectId id)
 {
    return dynamicObjects_.find(id) != dynamicObjects_.end();
+}
+
+
+void Store::FireFinishedTraces()
+{
 }

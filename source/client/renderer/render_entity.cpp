@@ -13,6 +13,7 @@
 #include "render_render_region.h"
 #include "render_carry_block.h"
 #include "render_paperdoll.h"
+#include "render_vertical_pathing_region.h"
 #include "resources/res_manager.h"
 #include "resources/animation.h"
 #include "om/entity.h"
@@ -43,7 +44,7 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
    dm::ObjectId id = entity->GetObjectId();
 
    std::ostringstream name;
-   name << "RenderEntity " << entity->GetModuleName() << " " << entity->GetEntityName() << " (" << entity->GetStoreId() << ", " << id << ")";
+   name << "RenderEntity " << entity->GetDebugText() << " (" << entity->GetStoreId() << ", " << id << ")";
 
    // LOG(WARNING) << "creating new entity " << name.str() << ".";
 
@@ -167,6 +168,11 @@ void RenderEntity::AddComponent(dm::ObjectType key, std::shared_ptr<dm::Object> 
          case om::PaperdollObjectType: {
             om::PaperdollPtr renderRegion = std::static_pointer_cast<om::Paperdoll>(value);
             components_[key] = std::make_shared<RenderPaperdoll>(*this, renderRegion);
+            break;
+         }
+         case om::VerticalPathingRegionObjectType: {
+            om::VerticalPathingRegionPtr obj = std::static_pointer_cast<om::VerticalPathingRegion>(value);
+            components_[key] = std::make_shared<RenderVerticalPathingRegion>(*this, obj);
             break;
          }
       }

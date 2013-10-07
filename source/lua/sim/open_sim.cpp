@@ -2,10 +2,10 @@
 #include "open.h"
 #include "lua/script_host.h"
 #include "simulation/simulation.h"
-#include "simulation/jobs/multi_path_finder.h"
 #include "simulation/jobs/follow_path.h"
 #include "simulation/jobs/goto_location.h"
 #include "simulation/jobs/lua_job.h"
+#include "simulation/jobs/path_finder.h"
 #include "om/entity.h"
 #include "om/stonehearth.h"
 #include "om/region.h"
@@ -49,22 +49,12 @@ om::EntityRef Sim_CreateEmptyEntity()
    return Simulation::GetInstance().CreateEntity();
 }
 
-om::EntityRef Sim_CreateEntityByRef(lua_State* L, std::string const& entity_ref)
+om::EntityRef Sim_CreateEntity(lua_State* L, std::string const& uri)
 {
    om::EntityPtr entity = Simulation::GetInstance().CreateEntity();
-   om::Stonehearth::InitEntityByRef(entity, entity_ref, L);
+   om::Stonehearth::InitEntity(entity, uri, L);
    return entity;
 }
-
-
-void Sim_ExtendEntity(lua_State* L, om::EntityRef e, std::string const& entity_ref)
-{
-   om::EntityPtr entity = e.lock();
-   if (entity) {
-      om::Stonehearth::InitEntityByRef(entity, entity_ref, L);
-   }
-}
-
 
 std::string Sim_GetEntityUri(lua_State* L, std::string const& mod_name, std::string const& entity_name)
 {
@@ -135,13 +125,6 @@ std::shared_ptr<GotoLocation> Sim_CreateGotoEntity(lua_State *L, om::EntityRef e
    return fp;
 }
 
-std::shared_ptr<MultiPathFinder> Sim_CreateMultiPathFinder(lua_State *L, std::string name)
-{
-   auto pf = std::make_shared<MultiPathFinder>(lua::ScriptHost::GetCallbackThread(L), name);
-   Simulation::GetInstance().AddJob(pf);
-   return pf;
-}
-
 std::shared_ptr<PathFinder> Sim_CreatePathFinder(lua_State *L, std::string name)
 {
    std::shared_ptr<PathFinder> pf = std::make_shared<PathFinder>(lua::ScriptHost::GetCallbackThread(L), name);
@@ -186,31 +169,17 @@ std::shared_ptr<PathFinder> PathFinder_SetFilterFn(lua_State* L, std::shared_ptr
    return pf;
 }
 
-std::shared_ptr<MultiPathFinder> MultiPathFinder_AddEntity(lua_State* L, std::shared_ptr<MultiPathFinder> pf, om::EntityRef e, luabind::object solved_cb, luabind::object dst_filter)
-{
-   if (pf) {
-      L = lua::ScriptHost::GetCallbackThread(L);
-      object solved(L, solved_cb);
-      object filter(L, dst_filter);
-      pf->AddEntity(e, solved, filter);
-   }
-   return pf;
-}
-
 void lua::sim::open(lua_State* L)
 {
    module(L) [
       namespace_("_radiant") [
          namespace_("sim") [
-            def("xxx_extend_entity",        &Sim_ExtendEntity),
-            def("xxx_get_entity_uri",       &Sim_GetEntityUri),
             def("create_empty_entity",      &Sim_CreateEmptyEntity),
-            def("create_entity_by_ref",     &Sim_CreateEntityByRef),
+            def("create_entity",            &Sim_CreateEntity),
             def("get_entity",               &Sim_GetEntity),
             def("destroy_entity",           &Sim_DestroyEntity),
-            def("alloc_region",             &Sim_AllocObject<om::BoxedRegion3>),
+            def("alloc_region",             &Sim_AllocObject<om::Region3Boxed>),
             def("create_data_store",        &Sim_AllocDataStore),
-            def("create_multi_path_finder", &Sim_CreateMultiPathFinder),
             def("create_path_finder",       &Sim_CreatePathFinder),
             def("create_follow_path",       &Sim_CreateFollowPath),
             def("create_goto_location",     &Sim_CreateGotoLocation),
@@ -223,17 +192,7 @@ void lua::sim::open(lua_State* L)
                .def("get_destination",    &Path::GetDestination)
                .def("get_start_point",    &Path::GetStartPoint)
                .def("get_finish_point",   &Path::GetFinishPoint)
-               .def("get_source_point_of_interest",        &Path::GetSourcePointOfInterest)
                .def("get_destination_point_of_interest",   &Path::GetDestinationPointOfInterest)
-            ,
-            lua::RegisterTypePtr<MultiPathFinder>()
-               .def("add_entity",         &MultiPathFinder_AddEntity)
-               .def("remove_entity",      &MultiPathFinder::RemoveEntity)
-               .def("add_destination",    &MultiPathFinder::AddDestination)
-               .def("remove_destination", &MultiPathFinder::RemoveDestination)
-               .def("set_reverse_search", &MultiPathFinder::SetReverseSearch)
-               .def("set_enabled",        &MultiPathFinder::SetEnabled)
-               .def("is_idle",            &MultiPathFinder::IsIdle)
             ,
             lua::RegisterTypePtr<PathFinder>()
                .def("get_id",             &PathFinder::GetId)
@@ -243,6 +202,7 @@ void lua::sim::open(lua_State* L)
                .def("set_solved_cb",      &PathFinder_SetSolvedCb)
                .def("set_filter_fn",      &PathFinder_SetFilterFn)
                .def("get_solution",       &PathFinder::GetSolution)
+               .def("set_debug_color",    &PathFinder::SetDebugColor)
                .def("is_idle",            &PathFinder::IsIdle)
                .def("to_weak_ref",        &ToWeakPathFinder)
                .def("stop",               &PathFinder::Stop)

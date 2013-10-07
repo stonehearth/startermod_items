@@ -21,7 +21,7 @@ function entities.create_entity(ref)
    if not is_tree(ref) then
       radiant.log.info('creating entity %s', ref)
    end
-   return _radiant.sim.create_entity_by_ref(ref)
+   return _radiant.sim.create_entity(ref)
 end
 
 function is_tree(ref)
@@ -84,14 +84,29 @@ function entities.has_child_by_id(parent, child_id)
    return found
 end
 
+function entities.get_name(entity)
+   local unit_info = entity:get_component('unit_info')
+   return unit_info and unit_info:get_display_name() or nil
+end
+
 function entities.get_faction(entity)
    local unit_info = entity:get_component('unit_info')
    return unit_info and unit_info:get_faction() or nil
 end
 
+function entities.is_entity(entity)
+   if type(entity.get_type_name) == 'function' then
+      return entity:get_type_name() == 'class radiant::om::Entity'      
+   end
+   return false
+end
+
 function entities.set_faction(entity, faction)
    assert(entity, 'no entity passed to set_faction')
    assert(faction, 'no faction passed to set_faction')
+   if entities.is_entity(faction) then
+      faction = faction:add_component('unit_info'):get_faction()
+   end
    return entity:add_component('unit_info'):set_faction(faction)
 end
 
@@ -140,12 +155,15 @@ end
 
 function entities.get_entity_data(entity, key)
    if entity then
-      local uri = entity:get_uri();
-      local json = radiant.resources.load_json(uri)
-      if json.entity_data then
-         return json.entity_data[key]
+      local uri = entity:get_uri()
+      if uri then
+         local json = radiant.resources.load_json(uri)
+         if json.entity_data then
+            return json.entity_data[key]
+         end
       end
    end
+   return {}
 end
 
 function entities.on_destroy(entity, dtor)

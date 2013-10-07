@@ -14,7 +14,7 @@ function client_entities.create_entity(ref)
       return _radiant.client.create_empty_authoring_entity()
    end
    radiant.log.info('creating entity %s', ref)
-   return _radiant.client.create_authoring_entity_by_ref(ref)
+   return _radiant.client.create_authoring_entity(ref)
 end
 
 function client_entities.destroy_entity(entity)

@@ -21,6 +21,9 @@ void Mob::InitializeRecordFields()
    transform_.Modify().SetZero();
    aabb_.Modify().SetZero();
    flags_ = (INTERPOLATE_MOVEMENT | SELECTABLE);
+   if (!IsRemoteRecord()) {
+      moving_ = false;
+   }
 }
 
 void Mob::MoveTo(const csg::Point3f& location)

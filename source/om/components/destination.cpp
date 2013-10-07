@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "destination.h"
 #include "csg/csg_json.h"
+#include "csg/util.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -31,7 +32,7 @@ void Destination::InitializeRecordFields()
 void Destination::ExtendObject(json::ConstJsonObject const& obj)
 {
    if (obj.has("region")) {
-      region_ = GetStore().AllocObject<BoxedRegion3>();
+      region_ = GetStore().AllocObject<Region3Boxed>();
       csg::Region3& region = (*region_)->Modify();
       region = obj.get("region", csg::Region3());
    }
@@ -40,7 +41,7 @@ void Destination::ExtendObject(json::ConstJsonObject const& obj)
    LOG(INFO) << dm::DbgInfo::GetInfoString(region_);
 }
 
-void Destination::SetAutoUpdateAdjacent(bool value)
+Destination& Destination::SetAutoUpdateAdjacent(bool value)
 {
    value = !!value; // cohearse to 1 or 0
    if (auto_update_adjacent_ != value) {
@@ -62,17 +63,18 @@ void Destination::SetAutoUpdateAdjacent(bool value)
                update_adjacent_guard_ = GetStore().TraceFinishedFiringTraces("auto-updating destination region", flush_dirty);
             }
          };
-         region_guard_ = TraceBoxedRegion3PtrFieldVoid(region_, "updating destination derived values (region changed)", mark_dirty);
-         reserved_guard_ = TraceBoxedRegion3PtrFieldVoid(reserved_, "updating destination derived values (reserved changed)", mark_dirty);
-         flush_dirty();
+         region_guard_ = DeepTraceRegionVoid(region_, "updating destination derived values (region changed)", mark_dirty);
+         reserved_guard_ = DeepTraceRegionVoid(reserved_, "updating destination derived values (reserved changed)", mark_dirty);
+         mark_dirty();
       }
    }
+   return *this;
 }
 
 void Destination::UpdateDerivedValues()
 {
    if (auto_update_adjacent_ && !*adjacent_) {
-      adjacent_ = GetStore().AllocObject<BoxedRegion3>();
+      adjacent_ = GetStore().AllocObject<Region3Boxed>();
    }
 
    if (*region_ && *adjacent_) {
@@ -91,44 +93,28 @@ void Destination::UpdateDerivedValues()
 
 void Destination::ComputeAdjacentRegion(csg::Region3 const& r)
 {
-   csg::Region3& adjacent = (*adjacent_)->Modify();
+   (*adjacent_)->Modify() = csg::GetAdjacent(r);
 
-   dm::ObjectId component_id = GetObjectId();
-
-   adjacent.Clear();
-   for (const csg::Cube3& c : r) {
-      csg::Point3 p0 = c.GetMin();
-      csg::Point3 p1 = c.GetMax();
-      csg::Point3 delta = p1 - p0;
-      int x = delta.x, y = delta.y, z = delta.z;
-
-      adjacent.Add(csg::Cube3(p0 - csg::Point3(0, 0, 1), p0 + csg::Point3(x, y, 0)));  // top
-      adjacent.Add(csg::Cube3(p0 - csg::Point3(1, 0, 0), p0 + csg::Point3(0, y, z)));  // left
-      adjacent.Add(csg::Cube3(p0 + csg::Point3(0, 0, z), p0 + csg::Point3(x, y, z + 1)));  // bottom
-      adjacent.Add(csg::Cube3(p0 + csg::Point3(x, 0, 0), p0 + csg::Point3(x + 1, y, z)));  // right
-   }
-   adjacent.Optimize();
-   LOG(WARNING) << "(xyz) destination component " << component_id << " adjacent is now " << adjacent << " " << adjacent_.GetStoreId() << ":" << adjacent_.GetObjectId();
+   LOG(WARNING) << "(xyz) destination component " << GetObjectId() << " adjacent is now ... " << adjacent_.GetStoreId() << ":" << adjacent_.GetObjectId();
    LOG(WARNING) << "(xyz) adjacent is pointing to " << (*adjacent_)->GetObjectId();
 }
 
-void Destination::SetRegion(BoxedRegion3Ptr r)
+void Destination::SetRegion(Region3BoxedPtr r)
 {
    region_ = r;
 }
 
-void Destination::SetReserved(BoxedRegion3Ptr r)
+void Destination::SetReserved(Region3BoxedPtr r)
 {
    reserved_ = r;
 }
 
-void Destination::SetAdjacent(BoxedRegion3Ptr r)
+void Destination::SetAdjacent(Region3BoxedPtr r)
 {
    adjacent_ = r;
    LOG(WARNING) << "(xyz) destination component " << GetObjectId() << " adjacent set to " << r << " " << adjacent_.GetStoreId() << ":" << adjacent_.GetObjectId() << " -> " << (r ? r->GetObjectId() : 0);
    LOG(INFO) << dm::DbgInfo::GetInfoString(adjacent_);
 
-   if (auto_update_adjacent_) {
-      UpdateDerivedValues();
-   }
+   // Manually setting the adjacent region turns off auto adjacency stuff by default
+   SetAutoUpdateAdjacent(false);
 }

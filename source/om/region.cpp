@@ -4,13 +4,25 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+// xxx: why isn't all this bundled up in a "trace recursive" package?  Sounds like a good idea!!
+dm::GenerationId om::DeepObj_GetLastModified(Region3BoxedPtrBoxed const& boxedRegionPtrField)
+{
+   dm::GenerationId modified = boxedRegionPtrField.GetLastModified();
+   Region3BoxedPtr value = *boxedRegionPtrField;
+   if (value) {
+      modified = std::max<dm::GenerationId>(modified, value->GetLastModified());
+   }
+   return modified;
+}
+
+
 // xxx: hmm.  guards are looking more like promises!!! (shared_ptr<Promise> in fact).
-BoxedRegionGuardPtr om::TraceBoxedRegion3PtrField(dm::Boxed<BoxedRegion3Ptr> const& boxedRegionPtrField,
+DeepRegionGuardPtr om::DeepTraceRegion(Region3BoxedPtrBoxed const& boxedRegionPtrField,
                                                   const char* reason,
                                                   std::function<void(csg::Region3 const& r)> updateCb)
 {   
-   auto fieldValueChangedCb = [=, &boxedRegionPtrField](BoxedRegion3Ref v) {
-      BoxedRegion3Ptr value = v.lock();
+   auto fieldValueChangedCb = [=, &boxedRegionPtrField](Region3BoxedRef v) {
+      Region3BoxedPtr value = v.lock();
       if (value) {
          LOG(INFO) << "boxed-boxed-region-ptr's inner box modified (!)";
          LOG(INFO) << dm::DbgInfo::GetInfoString(*value);
@@ -18,19 +30,19 @@ BoxedRegionGuardPtr om::TraceBoxedRegion3PtrField(dm::Boxed<BoxedRegion3Ptr> con
       }
    };
 
-   BoxedRegionGuardPtr result = std::make_shared<BoxedRegionGuard>(boxedRegionPtrField.GetStoreId(), boxedRegionPtrField.GetObjectId());
-   BoxedRegionGuardRef r = result;
+   DeepRegionGuardPtr result = std::make_shared<DeepRegionGuard>(boxedRegionPtrField.GetStoreId(), boxedRegionPtrField.GetObjectId());
+   DeepRegionGuardRef r = result;
    auto fieldChangedCb = [=, &boxedRegionPtrField]() {
-      BoxedRegionGuardPtr g = r.lock();
+      DeepRegionGuardPtr g = r.lock();
       if (g) {
          LOG(INFO) << "boxed-boxed-region-ptr's outer box modified (!)";
          LOG(INFO) << dm::DbgInfo::GetInfoString(boxedRegionPtrField);
 
-         BoxedRegion3Ptr fieldValue = boxedRegionPtrField.Get();
+         Region3BoxedPtr fieldValue = boxedRegionPtrField.Get();
          if (fieldValue == nullptr) {
             updateCb(csg::Region3());
          } else {
-            g->region = fieldValue->TraceObjectChanges(reason, std::bind(fieldValueChangedCb, BoxedRegion3Ref(fieldValue)));
+            g->region = fieldValue->TraceObjectChanges(reason, std::bind(fieldValueChangedCb, Region3BoxedRef(fieldValue)));
             fieldValueChangedCb(fieldValue); // xxx: all these manual callbacks need to go!  ug!!
          }
       }
@@ -41,25 +53,25 @@ BoxedRegionGuardPtr om::TraceBoxedRegion3PtrField(dm::Boxed<BoxedRegion3Ptr> con
    return result;
 }
 
-BoxedRegionGuardPtr om::TraceBoxedRegion3PtrFieldVoid(dm::Boxed<BoxedRegion3Ptr> const& boxedRegionPtrField,
+DeepRegionGuardPtr om::DeepTraceRegionVoid(Region3BoxedPtrBoxed const& boxedRegionPtrField,
                                                       const char* reason,
                                                       std::function<void()> updateCb)
 {
-   return TraceBoxedRegion3PtrField(boxedRegionPtrField, reason, [=](csg::Region3 const& r) {
+   return DeepTraceRegion(boxedRegionPtrField, reason, [=](csg::Region3 const& r) {
       updateCb();
    });
 }
 
-BoxedRegion3Promise::BoxedRegion3Promise(dm::Boxed<BoxedRegion3Ptr> const& boxedRegionPtrField, const char* reason)
+Region3BoxedPromise::Region3BoxedPromise(Region3BoxedPtrBoxed const& boxedRegionPtrField, const char* reason)
 {
-   region_guard_ = TraceBoxedRegion3PtrField(boxedRegionPtrField, reason, [=](csg::Region3 const& r) {
+   region_guard_ = DeepTraceRegion(boxedRegionPtrField, reason, [=](csg::Region3 const& r) {
       for (auto& cb : changedCbs_) {
          luabind::call_function<void>(cb, r);
       }
    });
 }
 
-BoxedRegion3Promise* BoxedRegion3Promise::PushChangedCb(luabind::object cb) {
+Region3BoxedPromise* Region3BoxedPromise::PushChangedCb(luabind::object cb) {
    changedCbs_.push_back(cb);
    return this;
 }

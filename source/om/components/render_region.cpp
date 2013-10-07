@@ -12,7 +12,7 @@ void RenderRegion::InitializeRecordFields()
    AddRecordField("region", region_);
 }
 
-void RenderRegion::SetRegion(BoxedRegion3Ptr r)
+void RenderRegion::SetRegion(Region3BoxedPtr r)
 {
    region_ = r;
 }

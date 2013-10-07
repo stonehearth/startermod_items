@@ -26,6 +26,7 @@ function GotoLocationAction:run(ai, entity, dest)
    -- so go ahead and make a new one.
    
    self._dest_entity = radiant.entities.create_entity()
+   self._dest_entity:set_debug_text('goto location proxy entity')
    radiant.terrain.place_entity(self._dest_entity, dest)
 
    local pf = radiant.path_finder.create_path_finder('goto_location')

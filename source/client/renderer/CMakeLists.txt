@@ -22,6 +22,8 @@ add_library(client_renderer STATIC
             render_carry_block.cpp
             render_render_region.cpp
             render_render_info.cpp
+            render_util.cpp
+            render_vertical_pathing_region.cpp
             lua_renderer.cpp
             lua_render_entity.cpp
             camera.cpp

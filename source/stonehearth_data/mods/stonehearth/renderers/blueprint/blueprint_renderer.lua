@@ -22,7 +22,7 @@ function BlueprintRenderer:_create_fabricator()
       self._fabricator = nil
    end
 
-   local data = radiant.entities.get_entity_data('stonehearth:construction')
+   local data = radiant.entities.get_entity_data('stonehearth:fabricator')
    if data then
       self._fabricator = _radiant.sim.create_fabricator(data)
    end

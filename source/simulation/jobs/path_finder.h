@@ -7,32 +7,16 @@
 #include "radiant.pb.h"
 #include "path.h"
 #include "csg/point.h"
+#include "csg/color.h"
 #include "om/region.h"
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
 
 class Path;
 class PathFinder;
+class PathFinderSrc;
+class PathFinderDst;
 class Simulation;
-
-class PathFinderEndpoint {
-public:
-   PathFinderEndpoint(PathFinder& pf, om::EntityRef entity);
-   void AddAdjacentToOpenSet(std::vector<csg::Point3>& open);
-   csg::Point3 GetPointInRegionAdjacentTo(csg::Point3 const& adjacent) const;
-
-   int EstimateMovementCost(const csg::Point3& start) const;
-   om::EntityPtr GetEntity() const { return entity_.lock(); }
-
-private:
-   int EstimateMovementCost(csg::Point3 const& start, csg::Point3 const& end) const;
-
-public:
-   PathFinder&             pf_;
-   dm::Guard               guards_;
-   om::EntityRef           entity_;
-   om::BoxedRegionGuardPtr region_guard_;
-};
 
 class PathFinder : public Job {
    public:
@@ -50,10 +34,9 @@ class PathFinder : public Job {
       void Restart();
       void Start();
       void Stop();
-      void SetReverseSearch(bool reversed);
       int EstimateCostToSolution();
       std::ostream& Format(std::ostream& o) const;
-
+      void SetDebugColor(csg::Color4 const& color);
 
    public: // Job Interface
       bool IsIdle() const override;
@@ -63,21 +46,24 @@ class PathFinder : public Job {
       void EncodeDebugShapes(protocol::shapelist *msg) const override;
 
    private:
-      friend PathFinderEndpoint;
+      friend PathFinderSrc;
+      friend PathFinderDst;
       void RestartSearch();
+      bool IsSearchExhausted() const;
 
    private:
       bool CompareEntries(const csg::Point3 &a, const csg::Point3 &b);
       void RecommendBestPath(std::vector<csg::Point3> &points) const;
       int EstimateCostToDestination(const csg::Point3 &pt) const;
-      int EstimateCostToDestination(const csg::Point3 &pt, PathFinderEndpoint** closest) const;
+      int EstimateCostToDestination(const csg::Point3 &pt, PathFinderDst** closest) const;
 
       csg::Point3 GetFirstOpen();
       void ReconstructPath(std::vector<csg::Point3> &solution, const csg::Point3 &dst) const;
       void AddEdge(const csg::Point3 &current, const csg::Point3 &next, int cost);
       void RebuildHeap();
 
-      void SolveSearch(const csg::Point3& last, PathFinderEndpoint* dst);
+      void SolveSearch(const csg::Point3& last, PathFinderDst* dst);
+      csg::Point3 GetSourceLocation();
 
    public:
       om::EntityRef                                entity_;
@@ -87,10 +73,10 @@ class PathFinder : public Job {
       int                                          costToDestination_;
       bool                                         rebuildHeap_;
       bool                                         restart_search_;
-      bool                                         search_exhausted_;
-      bool                                         reversed_search_;
       bool                                         enabled_;
       mutable PathPtr                              solution_;
+      csg::Color4                                  debug_color_;
+   
       std::vector<csg::Point3>                      open_;
 
       std::unordered_map<csg::Point3, bool, csg::Point3::Hash> closed_;
@@ -98,9 +84,9 @@ class PathFinder : public Job {
       std::unordered_map<csg::Point3, int, csg::Point3::Hash>  g_;
       std::unordered_map<csg::Point3, int, csg::Point3::Hash>  h_;
       std::unordered_map<csg::Point3, csg::Point3, csg::Point3::Hash>  cameFrom_;
-
-      std::unique_ptr<PathFinderEndpoint>          source_;
-      mutable std::unordered_map<dm::ObjectId, std::unique_ptr<PathFinderEndpoint>>  destinations_;
+   
+      std::unique_ptr<PathFinderSrc>               source_;
+      mutable std::unordered_map<dm::ObjectId, std::unique_ptr<PathFinderDst>>  destinations_;
 };
 
 typedef std::weak_ptr<PathFinder> PathFinderRef;

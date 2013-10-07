@@ -8,50 +8,68 @@
 
 BEGIN_RADIANT_OM_NAMESPACE
 
-// xxx - rename BoxedRegion3 to somethign more relevant!
-typedef dm::Boxed<csg::Region3, BoxedRegion3ObjectType> BoxedRegion3;
+// A region in a box!  region in boxes are useful for registering
+// callbacks on regions when they change
+typedef dm::Boxed<csg::Region3, Region3BoxedObjectType> Region3Boxed;
 
-DECLARE_SHARED_POINTER_TYPES(BoxedRegion3);
+// A pointer to a region in a box...  useful for sharing regions
+// between multiple parties (e.g. your collision shape and your
+// area of interest in a destination)
+DECLARE_SHARED_POINTER_TYPES(Region3Boxed);
 
-struct BoxedRegionGuard {
-   dm::Guard   region;
-   dm::Guard   boxed;
+// A poitner to a region in a box, in a box!  useful to checking
+// when pointers that are shared with other people change.
+typedef dm::Boxed<Region3BoxedPtr> Region3BoxedPtrBoxed;
+
+// Now you want to know if any thing all they way donw the chain changes.
+// This can happen either because:
+//   1) A user allocates a new region ptr and hands it to you (the
+//      Region3BoxedPtrBoxed changes).
+//   2) A region you're already pointing to changes (the region in the
+//      Region3Boxed changes).
+//
+// That's what the DeepRegionGuard is for!
+
+struct DeepRegionGuard {
+   dm::Guard   region;        // trace the region in the Region3Boxed
+   dm::Guard   boxed;         // trace the pointer in the Region3BoxedPtrBoxed
    dm::ObjectId store_id;
    dm::ObjectId object_id;
 
-   BoxedRegionGuard(dm::ObjectId s, dm::ObjectId o) : 
+   DeepRegionGuard(dm::ObjectId s, dm::ObjectId o) : 
       store_id(s),
       object_id(o)
    {
    }
 
-   ~BoxedRegionGuard() {
+   ~DeepRegionGuard() {
       LOG(WARNING) << "(xyz) killing boxed region guard for " << store_id << ":" << object_id;
    }
 };
 
-DECLARE_SHARED_POINTER_TYPES(BoxedRegionGuard)
+DECLARE_SHARED_POINTER_TYPES(DeepRegionGuard)
+
+dm::GenerationId DeepObj_GetLastModified(Region3BoxedPtrBoxed const& boxedRegionPtrField);
+
+DeepRegionGuardPtr DeepTraceRegion(Region3BoxedPtrBoxed const& boxedRegionPtrField,
+                                   const char* reason,
+                                   std::function<void(csg::Region3 const& r)> updateCb);
+
+DeepRegionGuardPtr DeepTraceRegionVoid(Region3BoxedPtrBoxed const& boxedRegionPtrField,
+                                       const char* reason,
+                                       std::function<void()> updateCb);
 
 
-BoxedRegionGuardPtr TraceBoxedRegion3PtrField(dm::Boxed<BoxedRegion3Ptr> const& boxedRegionPtrField,
-                                              const char* reason,
-                                              std::function<void(csg::Region3 const& r)> updateCb);
-
-BoxedRegionGuardPtr TraceBoxedRegion3PtrFieldVoid(dm::Boxed<BoxedRegion3Ptr> const& boxedRegionPtrField,
-                                                  const char* reason,
-                                                  std::function<void()> updateCb);
-
-
-class BoxedRegion3Promise
+class Region3BoxedPromise
 {
 public:
-   BoxedRegion3Promise(dm::Boxed<BoxedRegion3Ptr> const& boxedRegionPtrField, const char* reason);
+   Region3BoxedPromise(Region3BoxedPtrBoxed const& boxedRegionPtrField, const char* reason);
 
 public:
-   BoxedRegion3Promise* PushChangedCb(luabind::object cb);
+   Region3BoxedPromise* PushChangedCb(luabind::object cb);
 
 private:
-   BoxedRegionGuardPtr           region_guard_;
+   DeepRegionGuardPtr           region_guard_;
    std::vector<luabind::object>  changedCbs_;
 };
 

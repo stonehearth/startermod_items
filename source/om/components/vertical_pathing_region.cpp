@@ -8,6 +8,7 @@ void VerticalPathingRegion::InitializeRecordFields()
 {
    Component::InitializeRecordFields();
    AddRecordField("region", region_);
+   AddRecordField("normal", normal_);
 }
 
 csg::Cube3f VerticalPathingRegion::GetAABB() const

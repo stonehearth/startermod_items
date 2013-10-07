@@ -9,11 +9,10 @@ BEGIN_RADIANT_SIMULATION_NAMESPACE
 
 class Path {
    public:
-      Path(const std::vector<csg::Point3>& points, om::EntityRef source, om::EntityRef destination, csg::Point3 const& start, csg::Point3 const& finish) :
+      Path(const std::vector<csg::Point3>& points, om::EntityRef source, om::EntityRef destination, csg::Point3 const& finish) :
          points_(points),
          source_(source),
          destination_(destination),
-         start_pt_(start),
          finish_pt_(finish)
       {
       }
@@ -26,16 +25,14 @@ class Path {
       om::EntityRef GetSource() const { return source_; }
       csg::Point3 GetStartPoint() const { return points_.empty() ? csg::Point3(0, 0, 0) : points_.front(); }
       csg::Point3 GetFinishPoint() const { return points_.empty() ? csg::Point3(0, 0, 0) : points_.back(); }
-      csg::Point3 GetSourcePointOfInterest() const { return start_pt_; }
       csg::Point3 GetDestinationPointOfInterest() const { return finish_pt_; }
       std::ostream& Format(std::ostream& os) const;
 
    protected:
       std::vector<csg::Point3>  points_;
-      csg::Point3               start_pt_;
       csg::Point3               finish_pt_;
-      om::EntityRef                 source_;
-      om::EntityRef                 destination_;
+      om::EntityRef             source_;
+      om::EntityRef             destination_;
 };
 
 typedef std::weak_ptr<Path> PathRef;

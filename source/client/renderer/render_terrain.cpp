@@ -133,7 +133,7 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
    }
    ASSERT(terrain);
 
-   auto on_add_zone = [this](csg::Point3 location, om::BoxedRegion3Ptr const& region) {
+   auto on_add_zone = [this](csg::Point3 location, om::Region3BoxedPtr const& region) {
       RenderZonePtr render_zone;
       if (region) {
          auto i = zones_.find(location);
@@ -193,7 +193,7 @@ void RenderTerrain::OnSelected(om::Selection& sel, const csg::Ray3& ray,
 
 void RenderTerrain::UpdateRenderRegion(RenderZonePtr render_zone)
 {
-   om::BoxedRegion3Ptr region_ptr = render_zone->region.lock();
+   om::Region3BoxedPtr region_ptr = render_zone->region.lock();
 
    render_zone->Reset();
 

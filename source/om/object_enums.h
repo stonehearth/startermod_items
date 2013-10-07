@@ -15,7 +15,7 @@ enum OmObjectTypes {
    
    OM_ALL_OBJECTS
    OM_ALL_COMPONENTS
-   BoxedRegion3ObjectType,
+   Region3BoxedObjectType,
    OmObjectTypeLast
 };
 

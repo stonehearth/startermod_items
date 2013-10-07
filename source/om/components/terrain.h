@@ -30,16 +30,16 @@ public:
       DirtPath      = 8, 
    };
 
-   typedef dm::Map<csg::Point3, BoxedRegion3Ptr, csg::Point3::Hash> ZoneMap;
+   typedef dm::Map<csg::Point3, Region3BoxedPtr, csg::Point3::Hash> ZoneMap;
 
    int GetZoneSize();
    void SetZoneSize(int zone_size);
-   void AddZone(csg::Point3 const& zone_offset, BoxedRegion3Ptr region3);
+   void AddZone(csg::Point3 const& zone_offset, Region3BoxedPtr region3);
    void PlaceEntity(EntityRef e, const csg::Point3& location);
    void CreateNew();
 
    ZoneMap const& GetZoneMap() const { return zones_; }
-   BoxedRegion3Ptr GetZone(csg::Point3 const& location, csg::Point3& zone_offset);
+   Region3BoxedPtr GetZone(csg::Point3 const& location, csg::Point3& zone_offset);
 
 private:
    dm::Boxed<int> zone_size_;

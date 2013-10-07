@@ -8,7 +8,6 @@
 #include "platform/utils.h"
 #include "simulation.h"
 #include "metrics.h"
-#include "jobs/multi_path_finder.h"
 #include "jobs/path_finder.h"
 #include "jobs/follow_path.h"
 #include "jobs/goto_location.h"
@@ -27,7 +26,6 @@
 #include "om/data_binding.h"
 //#include "native_commands/create_room_cmd.h"
 #include "jobs/job.h"
-#include "lib/rpc/core_reactor.h"
 #include "lua/script_host.h"
 #include "lua/res/open.h"
 #include "lua/rpc/open.h"
@@ -61,19 +59,13 @@ Simulation& Simulation::GetInstance()
 }
 
 Simulation::Simulation() :
-   _showDebugNodes(true),
+   _showDebugNodes(false),
    _singleStepPathFinding(false),
    store_(1, "game")
 {
    singleton_ = this;
-   octtree_ = std::unique_ptr<Physics::OctTree>(new Physics::OctTree());
+   octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree());
    scriptHost_.reset(new lua::ScriptHost());
-
-   commands_["radiant.toggle_debug_nodes"] = std::bind(&Simulation::ToggleDebugShapes, this, std::placeholders::_1);
-   commands_["radiant.toggle_step_paths"] = std::bind(&Simulation::ToggleStepPathFinding, this, std::placeholders::_1);
-   commands_["radiant.step_paths"] = std::bind(&Simulation::StepPathFinding, this, std::placeholders::_1);
-   //commands_["create_room"] = [](const proto::DoAction& msg) { return CreateRoomCmd()(msg); };
-
 
    // sessions (xxx: stub it out for single player)
    session_ = std::make_shared<rpc::Session>();
@@ -90,6 +82,35 @@ Simulation::Simulation() :
    core_reactor_->AddRouter(std::make_shared<rpc::LuaObjectRouter>(scriptHost_.get(), store_));
    trace_router_ = std::make_shared<rpc::TraceObjectRouter>(store_);
    core_reactor_->AddRouter(trace_router_);
+
+   core_reactor_->AddRoute("radiant.toggle_debug_nodes", [this](rpc::Function const& f) {
+      std::ostringstream msg;
+      _showDebugNodes = !_showDebugNodes;
+      msg << "debug nodes turned " << (_showDebugNodes ? "ON" : "OFF");
+      LOG(WARNING) << msg;
+
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant.toggle_debug_nodes");
+      result->ResolveWithMsg(msg.str());
+      return result;
+   });
+   core_reactor_->AddRoute("radiant.toggle_step_paths", [this](rpc::Function const& f) {
+      std::ostringstream msg;
+      _singleStepPathFinding = !_singleStepPathFinding;
+      msg << "single step path finding turned " << (_singleStepPathFinding ? "ON" : "OFF");
+      LOG(WARNING) << msg;
+
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant.toggle_step_paths");
+      result->ResolveWithMsg(msg.str());
+      return result;
+   });
+   core_reactor_->AddRoute("radiant.step_paths", [this](rpc::Function const& f) {
+      StepPathFinding();
+
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant.step_paths");
+      result->ResolveWithMsg("stepped...");
+      return result;
+   });
+
 }
 
 void Simulation::InitializeModules()
@@ -200,21 +221,7 @@ void Simulation::CreateNew()
    }
 }
 
-std::string Simulation::ToggleDebugShapes(std::string const& cmd)
-{
-   _showDebugNodes = !_showDebugNodes;
-   LOG(WARNING) << "debug nodes turned " << (_showDebugNodes ? "ON" : "OFF");
-   return "";
-}
-
-std::string Simulation::ToggleStepPathFinding(std::string const& cmd)
-{
-   _singleStepPathFinding = !_singleStepPathFinding;
-   LOG(WARNING) << "single step path finding turned " << (_singleStepPathFinding ? "ON" : "OFF");
-   return "";
-}
-
-std::string Simulation::StepPathFinding(std::string const& cmd)
+void Simulation::StepPathFinding()
 {
    platform::timer t(1000);
    radiant::stdutil::ForEachPrune<Job>(jobs_, [&](std::shared_ptr<Job> &p) {
@@ -226,7 +233,6 @@ std::string Simulation::StepPathFinding(std::string const& cmd)
          LOG(WARNING) << progress.str();
       }
    });
-   return "";
 }
 
 void Simulation::Save(std::string id)
@@ -263,6 +269,7 @@ void Simulation::Step(platform::timer &timer, int interval)
 
    // Send out change notifications
    store_.FireTraces();
+   store_.FireFinishedTraces();
 }
 
 void Simulation::Idle(platform::timer &timer)
@@ -336,7 +343,7 @@ void Simulation::EncodeUpdates(protocol::SendQueuePtr queue, ClientState& cs)
    cs.last_update = store_.GetNextGenerationId();
 }
 
-Physics::OctTree &Simulation::GetOctTree()
+phys::OctTree &Simulation::GetOctTree()
 {
    return *octtree_;
 }
@@ -374,17 +381,6 @@ void Simulation::AddTask(std::shared_ptr<Task> task)
 void Simulation::AddJob(std::shared_ptr<Job> job)
 {
    jobs_.push_back(job);
-}
-
-void Simulation::ScriptCommand(tesseract::protocol::ScriptCommandRequest const& request)
-{
-   std::string result;
-   std::string const& cmd = request.cmd();
-
-   auto i = commands_.find(cmd);
-   if (i != commands_.end()) {
-      result = i->second(cmd);
-   }
 }
 
 void Simulation::EncodeDebugShapes(protocol::SendQueuePtr queue)
@@ -426,6 +422,9 @@ void Simulation::ProcessTaskList(platform::timer &timer)
    auto i = tasks_.begin();
    while (i != tasks_.end()) {
       std::shared_ptr<Task> task = i->lock();
+
+      store_.FireTraces(); // xxx: not quite the right place...
+
       if (task && task->Work(timer)) {
          i++;
       } else {
@@ -450,6 +449,9 @@ void Simulation::ProcessJobList(platform::timer &timer)
       std::weak_ptr<Job> front = radiant::stdutil::pop_front(jobs_);
       std::shared_ptr<Job> job = front.lock();
       if (job) {
+
+         store_.FireTraces();
+
          if (!job->IsFinished()) {
             if (!job->IsIdle()) {
                idleCountdown = jobs_.size() + 2;
@@ -770,7 +772,6 @@ bool Simulation::ProcessMessage(const proto::Request& msg, protocol::SendQueuePt
       break;
 
    switch (msg.type()) {
-      DISPATCH_MSG(ScriptCommand)
       DISPATCH_MSG(PostCommand)
    default:
       ASSERT(false);

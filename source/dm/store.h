@@ -81,6 +81,7 @@ public:
    Object* FetchStaticObject(ObjectId id);
 
    void FireTraces();
+   void FireFinishedTraces();
    void Reset();
    GenerationId GetNextGenerationId();
    GenerationId GetCurrentGenerationId();
