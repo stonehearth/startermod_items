@@ -265,7 +265,7 @@ function entities.pickup_item(entity, item)
             entities.remove_child(parent, item)
          end
          entity:add_component('stonehearth:posture'):set_posture('carrying')
-         entity:add_component('stonehearth:attributes'):set_attribute('speed', 0.5) --xxx, change to a buff
+         entity:add_component('attributes'):set_attribute('speed', 0.5) --xxx, change to a buff
          carry_block:set_carrying(item)
          entities.move_to(item, Point3(0, 0, 0))
       else
@@ -292,7 +292,7 @@ function entities.drop_carrying(entity, location)
       local item = carry_block:get_carrying()
       if item then
          entity:add_component('stonehearth:posture'):unset_posture('carrying')
-         entity:add_component('stonehearth:attributes'):set_attribute('speed', 1.0)
+         entity:add_component('attributes'):set_attribute('speed', 1.0)
          carry_block:set_carrying(nil)
          radiant.terrain.place_entity(item, location)
       end

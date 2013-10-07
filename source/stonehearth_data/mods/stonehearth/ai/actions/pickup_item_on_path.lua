@@ -12,7 +12,7 @@ function PickupItemOnPath:run(ai, entity, path)
    --TODO: Put up a confused animation
    if not item then
       local name = entity:get_component('unit_info'):get_display_name()
-      radiant.log.info('Worker %s: Huh? Where is the thing I was looking for?', name)
+      radiant.log.info('%s (Worker %s): Huh? Where is the thing I was looking for?', tostring(entity), name)
       ai:abort()
    end
 
