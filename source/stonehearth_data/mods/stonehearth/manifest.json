@@ -222,7 +222,6 @@
       "firepit" : "file(components/firepit/firepit_component.lua)",
       "lease_component" : "file(components/lease/lease_component.lua)",
       "sensor_ai_injector"  : "file(components/sensor_ai_injector/sensor_ai_injector_component.lua)",
-      "bed" : "file(components/bed/bed_component.lua)",
       "bed_lease" : "file(components/bed_lease/bed_lease_component.lua)",
       "posture"  : "file(components/posture/posture_component.lua)",
       "equipment" : "file(components/equipment/equipment_component.lua)",

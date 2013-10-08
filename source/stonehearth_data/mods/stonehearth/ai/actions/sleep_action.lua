@@ -114,9 +114,10 @@ function SleepAction:find_a_bed(result_cb)
       local filter_fn = function(item)
          -- radiant.log.info("looing for a bed")
          -- xxx: only look for beds compatible with this entities faction
-         local bed_component = item:get_component('stonehearth:bed')
-         if bed_component ~= nil then
-            local owner = bed_component:get_owner()
+         local is_bed = radiant.entities.get_entity_data(item, 'stonehearth:bed')
+         local lease = item:get_component('stonehearth:lease_component')
+         if is_bed ~= nil and lease ~= nil then
+            local owner = lease:get_owner()
             return owner == nil
          else
             return false
@@ -158,8 +159,8 @@ function SleepAction:run(ai, entity)
    self:stop_looking_for_bed()
 
    -- renew our lease on the bed.
-   local bed_component = self._bed:get_component('stonehearth:bed')
-   local bed_owner = bed_component:get_owner()
+   local lease_component = self._bed:get_component('stonehearth:lease_component')
+   local bed_owner = lease_component:get_owner()
    if bed_owner and bed_owner:get_id() ~= entity:get_id() then
       -- There's another lease on the bed that doesn't belong to us,
       -- we need to bail.  this can happen if two people both try to sleep in
@@ -171,7 +172,7 @@ function SleepAction:run(ai, entity)
    end
 
    radiant.log.info('leasing %s to %s', tostring(self._bed), tostring(self._entity))
-   bed_component:lease_bed_to(entity)
+   lease_component:lease_to(entity)
    entity:get_component('stonehearth:bed_lease'):set_bed(self._bed)
 
    -- go to sleep!
