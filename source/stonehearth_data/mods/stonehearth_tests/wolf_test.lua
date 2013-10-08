@@ -11,6 +11,7 @@ function WolfTest:__init()
    self:place_item('stonehearth:wolf', -9, -9)
 
    local civ = self:place_citizen(12, 12)
+   self:place_tree(12, 16)
    --radiant.effects.run_effect(civ, '/stonehearth/data/effects/hit_sparks/blood_effect.json')
 
    --local bench = self:place_item('stonehearth:carpenter_workbench', -6, 6)
