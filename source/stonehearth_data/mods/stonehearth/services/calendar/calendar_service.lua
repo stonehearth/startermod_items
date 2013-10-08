@@ -1,6 +1,6 @@
 local data = {
    date = {
-      hour = 6,
+      hour = 20,
       minute = 0,
       second = 0,
       day = 0,

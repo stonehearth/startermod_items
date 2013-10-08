@@ -75,6 +75,7 @@
 
          "fire_pit" : "file(entities/gizmos/fire_pit)",
          "fire_pit_proxy" : "file(entities/gizmos/fire_pit/fire_pit_proxy.json)",
+         "fire_pit_seat" : "file(entities/gizmos/fire_pit/fire_pit_seat.json)",
 
          "not_much_of_a_bed" : "file(entities/furniture/not_much_of_a_bed)",
          "not_much_of_a_bed_proxy" : "file(entities/furniture/not_much_of_a_bed/not_much_of_a_bed_proxy.json)",
@@ -208,6 +209,7 @@
    "components" :  {
       "ai" : "file(components/ai/ai_component.lua)",
       "commands" : "file(components/commands/commands_component.lua)",
+      "center_of_attn_spot" : "file(components/center_of_attention/coa_spot_component.lua)",
       "resource_node" : "file(components/resource_node/resource_node_component.lua)",
       "stockpile" : "file(components/stockpile/stockpile_component.lua)",
       "workshop" : "file(components/workshop/workshop_component.lua)",
@@ -218,6 +220,7 @@
       "ghost_item" : "file(components/placeable_item_proxy/ghost_item_component.lua)",
       "placeable_item_pointer": "file(components/placeable_item_pointer/placeable_item_pointer_component.lua)",
       "firepit" : "file(components/firepit/firepit_component.lua)",
+      "lease_component" : "file(components/lease/lease_component.lua)",
       "sensor_ai_injector"  : "file(components/sensor_ai_injector/sensor_ai_injector_component.lua)",
       "bed" : "file(components/bed/bed_component.lua)",
       "bed_lease" : "file(components/bed_lease/bed_lease_component.lua)",

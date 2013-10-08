@@ -13,7 +13,7 @@ function PlacementTest:__init()
 
    local citizen = self:place_citizen(12, 12)
    local citizen2 = self:place_citizen(-12, -12)
-   local faction = citizen:get_component('unit_info'):get_faction()
+   local faction = radiant.entities.get_faction(citizen)
 
    self:place_item('stonehearth.comfy_bed_proxy', 0, 0)
    self:place_item('stonehearth.arch_backed_chair_proxy', 0, 0)

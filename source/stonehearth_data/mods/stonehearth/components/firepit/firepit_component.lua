@@ -13,6 +13,9 @@ function FirepitComponent:__init(entity, data_binding)
    self._my_wood = nil
    self._light_task = nil
 
+   self._seats = {}
+   self:_add_seats()
+
    radiant.events.listen('radiant.events.calendar.sunrise', self)
    radiant.events.listen('radiant.events.calendar.sunset', self)
 end
@@ -23,6 +26,29 @@ function FirepitComponent:extend(json)
    if json and json.effective_radius then
       self._effective_raidus = json.effective_radius
    end
+end
+
+---Adds 8 seats around the firepit
+--TODO: actually have a place for people to sit down/lie down
+--TODO: add a random element to the placement of the seats.
+function FirepitComponent:_add_seats()
+  local firepit_loc = Point3(radiant.entities.get_world_grid_location(self._entity))
+  self:_add_one_seat(1, Point3(firepit_loc.x + 5, firepit_loc.y, firepit_loc.z + 1))
+  self:_add_one_seat(2, Point3(firepit_loc.x + -2, firepit_loc.y, firepit_loc.z))
+  self:_add_one_seat(3, Point3(firepit_loc.x + 1, firepit_loc.y, firepit_loc.z + 5))
+  self:_add_one_seat(4, Point3(firepit_loc.x + 1, firepit_loc.y, firepit_loc.z - 4))
+  self:_add_one_seat(5, Point3(firepit_loc.x + 4, firepit_loc.y, firepit_loc.z + 4))
+  self:_add_one_seat(6, Point3(firepit_loc.x + 4, firepit_loc.y, firepit_loc.z - 3))
+  self:_add_one_seat(7, Point3(firepit_loc.x -3, firepit_loc.y, firepit_loc.z + 3))
+  self:_add_one_seat(8, Point3(firepit_loc.x - 2, firepit_loc.y, firepit_loc.z - 3))
+end
+
+function FirepitComponent:_add_one_seat(seat_number, location)
+  local seat = radiant.entities.create_entity('stonehearth.fire_pit_seat')
+  local seat_comp = seat:get_component('stonehearth:center_of_attn_spot')
+  seat_comp:add_to_center_of_attn(self._entity, seat_number)
+  self._seats[seat_number] = seat
+  radiant.terrain.place_entity(seat, location)
 end
 
 --[[ At sunset, tell a worker to fill the fire with wood, and light it.
@@ -57,7 +83,7 @@ function FirepitComponent:init_worker_task()
      local faction = self._entity:get_component('unit_info'):get_faction()
      local worker_scheduler = ws:get_worker_scheduler(session.faction)
 
-  end
+end
   self._light_task:start()
 
 end
@@ -92,6 +118,8 @@ function FirepitComponent:extinguish()
       self._curr_fire_effect:stop()
    end
 end
+
+--TODO: do we still need these? In any case, fix spelling
 
 --- In radius of light
 -- TODO: determine what radius means, right now it is passed in by the json file
