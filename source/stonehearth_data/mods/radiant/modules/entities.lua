@@ -273,12 +273,12 @@ function entities.pickup_item(entity, item)
             entities.remove_child(parent, item)
          end
          radiant.entities.set_posture(entity, 'carrying')
-         radiant.entities.set_attribute(entity, 'speed', 0.5) --xxx, change to a debuff
+         radiant.entities.set_attribute(entity, 'speed', 50) --xxx, change to a debuff
          carry_block:set_carrying(item)
          entities.move_to(item, Point3(0, 0, 0))
       else
          radiant.entities.unset_posture(entity, 'carrying')
-         radiant.entities.set_attribute(entity, 'speed', 1.0) --xxx, change to a debuff
+         radiant.entities.set_attribute(entity, 'speed', 100) --xxx, change to a debuff
          carry_block:set_carrying(nil)
       end
    end
@@ -300,7 +300,7 @@ function entities.drop_carrying(entity, location)
       local item = carry_block:get_carrying()
       if item then
          radiant.entities.unset_posture(entity, 'carrying')
-         radiant.entities.set_attribute(entity, 'speed', 1.0) --xxx, change to a debuff
+         radiant.entities.set_attribute(entity, 'speed', 100) --xxx, change to a debuff
          carry_block:set_carrying(nil)
          radiant.terrain.place_entity(item, location)
       end

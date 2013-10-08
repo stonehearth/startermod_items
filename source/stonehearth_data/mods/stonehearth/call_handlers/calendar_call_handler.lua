@@ -12,7 +12,7 @@ function CalendarCallHandler:get_clock_object(session, request)
          clock_object:update(calendar:get_time_and_date())
       end
 
-      radiant.events.listen('radiant:events:calendar.minutely', update_clock)
+      radiant.events.listen('radiant:events:calendar:minutely', update_clock)
       update_clock()
    end
    return { clock_object = clock_object }

@@ -19,7 +19,7 @@ function SleepAction:__init(ai, entity)
    self._looking_for_a_bed = false
    self._sleeping = false
 
-   radiant.events.listen('radiant:events:calendar.hourly', self)
+   radiant.events.listen('radiant:events:calendar:hourly', self)
 end
 
 --[[
@@ -30,7 +30,7 @@ end
    some other action will pick up the slack and make the actor go to sleep
    on the ground (not in a bed) from exhaustion.
 --]]
-SleepAction['radiant:events:calendar.hourly'] = function(self, calendar)
+SleepAction['radiant:events:calendar:hourly'] = function(self, calendar)
    -- if it's after 8pm or before 6am and we're not already asleep got find a bed.
    if (calendar.hour > 20 or calendar.hour < 6) then
       if not self._looking_for_a_bed and not self._sleeping then

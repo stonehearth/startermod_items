@@ -51,7 +51,7 @@ function WorkerPlaceItemAction:run(ai, entity, path, ghost_entity, rotation, tas
    -- between the object and its final destination, to use later.
    self._ghost_entity = ghost_entity
    self:_find_path_to_ghost_item(proxy_entity)
-   ai:execute('stonehearth.pickup_item_on_path', path)
+   ai:execute('stonehearth:pickup_item_on_path', path)
 
    -- If we're here, pickup succeeded, so we're now carrying the item.
    -- Wait until the PF we started earlier returns
@@ -59,8 +59,8 @@ function WorkerPlaceItemAction:run(ai, entity, path, ghost_entity, rotation, tas
    ai:wait_until(function()
       return self._path_to_destination ~= nil
    end)
-   ai:execute('stonehearth.follow_path', self._path_to_destination)
-   ai:execute('stonehearth.drop_carrying', self._path_to_destination:get_destination_point_of_interest())
+   ai:execute('stonehearth:follow_path', self._path_to_destination)
+   ai:execute('stonehearth:drop_carrying', self._path_to_destination:get_destination_point_of_interest())
    radiant.entities.turn_to(proxy_entity, rotation)
 
    -- if we placed a proxy entity then replace the proxy we dropped with a real thing
