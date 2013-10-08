@@ -101,7 +101,7 @@ function Landscaper:_get_tree_type(elevation)
    local terrain_info = self.terrain_info
 
    if elevation > terrain_info.tree_line then return nil end
-   if elevation <= terrain_info[TerrainType.Plains].max_height then return oak end
+   if elevation <= terrain_info[TerrainType.Grassland].max_height then return oak end
    if elevation > terrain_info[TerrainType.Foothills].max_height then return juniper end
    return self:random_tree_type()
 end

@@ -23,7 +23,7 @@ scope LuaTerrainComponent::RegisterLuaTypes(lua_State* L)
             value("TOPSOIL",              Terrain::Topsoil),
             value("TOPSOIL_DETAIL",       Terrain::TopsoilDetail),
             value("FOOTHILLS",            Terrain::Foothills),
-            value("PLAINS",               Terrain::Plains),
+            value("GRASSLAND",            Terrain::Grassland),
             value("DARK_WOOD",            Terrain::DarkWood),
             value("DIRT_PATH",            Terrain::DirtPath)
          ]

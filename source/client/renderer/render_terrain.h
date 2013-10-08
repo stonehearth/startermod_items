@@ -69,11 +69,11 @@ private:
    void OnSelected(om::Selection& sel, const csg::Ray3& ray,
                    const csg::Point3f& intersection, const csg::Point3f& normal);
 
-   void AddGrassToTesselation(csg::Region3 const& grass, csg::Region3 const& terrain, csg::Region3& tess, LayerDetailRingInfo const &rings);
-   void AddGrassLayerToTesselation(csg::Region2 const& grass, int height, csg::Region3 const& clipper, csg::Region3& tess, LayerDetailRingInfo const &rings);
+   void AddTerrainTypeToTesselation(csg::Region3 const& grass, csg::Region3 const& terrain, csg::Region3& tess, LayerDetailRingInfo const &rings);
+   void TesselateLayer(csg::Region2 const& layer, int height, csg::Region3 const& clipper, csg::Region3& tess, LayerDetailRingInfo const &rings);
 
    static LayerDetailRingInfo foothillGrassRingInfo_;
-   static LayerDetailRingInfo plainsGrassRingInfo_;
+   static LayerDetailRingInfo grasslandGrassRingInfo_;
    static LayerDetailRingInfo dirtRoadRingInfo_;
 
 private:

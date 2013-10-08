@@ -14,7 +14,7 @@ local TerrainGenerator = class()
 -- Definitions
 -- Block = atomic unit of terrain
 -- Tile = square unit of flat land, also the chunk size of what is sent to the renderer
--- Zone = composed of an array of tiles fitting a theme (foothills, plains, mountains)
+-- Zone = composed of an array of tiles fitting a theme (grassland, foothills, mountains)
 -- Biome = a collection of zones fitting a larger theme (tundra, desert)?
 -- World = the entire playspace of a game
 
@@ -39,22 +39,22 @@ function TerrainGenerator:__init(async, seed)
    self.terrain_info = {}
    terrain_info = self.terrain_info
 
-   local plains_info = {}
-   plains_info.step_size = 2
-   plains_info.mean_height = 16
-   plains_info.std_dev = 3
-   plains_info.min_height = 14
-   plains_info.max_height = 16
-   terrain_info[TerrainType.Plains] = plains_info
-   assert(plains_info.max_height % plains_info.step_size == 0)
+   local grassland_info = {}
+   grassland_info.step_size = 2
+   grassland_info.mean_height = 16
+   grassland_info.std_dev = 3
+   grassland_info.min_height = 14
+   grassland_info.max_height = 16
+   terrain_info[TerrainType.Grassland] = grassland_info
+   assert(grassland_info.max_height % grassland_info.step_size == 0)
    -- don't place means on quantization ("rounding") boundaries
-   assert(plains_info.mean_height % plains_info.step_size ~= plains_info.step_size/2)
+   assert(grassland_info.mean_height % grassland_info.step_size ~= grassland_info.step_size/2)
 
    local foothills_info = {}
    foothills_info.step_size = base_step_size
    foothills_info.mean_height = 27
    foothills_info.std_dev = 8
-   foothills_info.min_height = plains_info.max_height
+   foothills_info.min_height = grassland_info.max_height
    foothills_info.max_height = 32
    terrain_info[TerrainType.Foothills] = foothills_info
    assert(foothills_info.max_height % foothills_info.step_size == 0)
@@ -64,17 +64,17 @@ function TerrainGenerator:__init(async, seed)
    mountains_info.step_size = base_step_size*4
    mountains_info.mean_height = 96
    mountains_info.std_dev = 64
-   mountains_info.min_height = plains_info.max_height + foothills_info.step_size
+   mountains_info.min_height = grassland_info.max_height + foothills_info.step_size
    terrain_info[TerrainType.Mountains] = mountains_info
    assert(mountains_info.mean_height % mountains_info.step_size ~= mountains_info.step_size/2)
 
    -- make sure that next step size is a multiple of the prior max height
-   assert(plains_info.max_height % foothills_info.step_size == 0)
+   assert(grassland_info.max_height % foothills_info.step_size == 0)
    assert(foothills_info.max_height % mountains_info.step_size == 0)
 
    terrain_info.tree_line = foothills_info.max_height + mountains_info.step_size*2
    terrain_info.max_deciduous_height = foothills_info.max_height
-   terrain_info.min_evergreen_height = plains_info.max_height + 1
+   terrain_info.min_evergreen_height = grassland_info.max_height + 1
 
    local oversize_zone_size = self.zone_size + self.tile_size
    self.oversize_map_buffer = Array2D(oversize_zone_size, oversize_zone_size)
@@ -339,11 +339,11 @@ function TerrainGenerator:_calc_std_dev(height)
    local prev_mean_height, prev_std_dev
    local i, ti, value
 
-   i = TerrainType.Plains
+   i = TerrainType.Grassland
    prev_mean_height = 0
    prev_std_dev = terrain_info[i].std_dev
 
-   for i=TerrainType.Plains, TerrainType.Mountains do
+   for i=TerrainType.Grassland, TerrainType.Mountains do
       ti = terrain_info[i]
 
       if height <= ti.mean_height then
@@ -634,7 +634,7 @@ function TerrainGenerator:_quantize_height_map(height_map, is_micro_map)
    local terrain_info = self.terrain_info
    local terrain_type = height_map.terrain_type
    local enable_nonuniform_quantizer = not is_micro_map
-   local global_min_height = terrain_info[TerrainType.Plains].min_height
+   local global_min_height = terrain_info[TerrainType.Grassland].min_height
    local recommended_min_height = terrain_info[terrain_type].min_height
    local i, j, offset, value, min_height, quantized_value
 
@@ -667,8 +667,8 @@ function TerrainGenerator:_quantize_value(value, min_height, enable_nonuniform_q
    local quantized_value = MathFns.quantize(value, step_size)
    if not enable_nonuniform_quantizer then return quantized_value end
 
-   -- disable fancy mode for Plains
-   if quantized_value <= terrain_info[TerrainType.Plains].max_height then
+   -- disable fancy mode for Grassland
+   if quantized_value <= terrain_info[TerrainType.Grassland].max_height then
       return quantized_value
    end
 
@@ -690,18 +690,18 @@ function TerrainGenerator:_get_step_size(value)
       return terrain_info[TerrainType.Mountains].step_size
    end
 
-   if value > terrain_info[TerrainType.Plains].max_height then
+   if value > terrain_info[TerrainType.Grassland].max_height then
       return terrain_info[TerrainType.Foothills].step_size
    end
 
-   return terrain_info[TerrainType.Plains].step_size
+   return terrain_info[TerrainType.Grassland].step_size
 end
 
 function TerrainGenerator:_add_additional_details(zone_map)
    self._edge_detailer:add_detail_blocks(zone_map)
 
-   -- handle plains separately - don't screw up edge detailer code
-   self._edge_detailer:add_plains_details(zone_map)
+   -- handle grassland separately - don't screw up edge detailer code
+   self._edge_detailer:add_grassland_details(zone_map)
 end
 
 function _print_blend_map(blend_map)

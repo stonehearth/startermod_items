@@ -62,7 +62,7 @@ end
 function HeightMapRenderer:_add_land_to_region(dst, rect, height, terrain_info)
    local foothills_step_size = terrain_info[TerrainType.Foothills].step_size
    local foothills_max_height = terrain_info[TerrainType.Foothills].max_height
-   local plains_max_height = terrain_info[TerrainType.Plains].max_height
+   local grassland_max_height = terrain_info[TerrainType.Grassland].max_height
 
    dst:add_cube(Cube3(Point3(rect.min.x, -2, rect.min.y),
                       Point3(rect.max.x,  0, rect.max.y),
@@ -80,8 +80,8 @@ function HeightMapRenderer:_add_land_to_region(dst, rect, height, terrain_info)
       return
    end
 
-   -- Plains
-   if height <= plains_max_height then
+   -- Grassland
+   if height <= grassland_max_height then
 
       dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
                          Point3(rect.max.x, height-1, rect.max.y),
@@ -89,7 +89,7 @@ function HeightMapRenderer:_add_land_to_region(dst, rect, height, terrain_info)
 
       dst:add_cube(Cube3(Point3(rect.min.x, height-1, rect.min.y),
                          Point3(rect.max.x, height,   rect.max.y),
-                   Terrain.PLAINS))
+                   Terrain.GRASSLAND))
       return
    end
 
@@ -143,10 +143,10 @@ function HeightMapRenderer.tesselator_test()
    local r3 = boxed_r3:modify()
    local height = 10
 
-   --r3:add_cube(Cube3(Point3(0, height-1, 0), Point3(16, height, 16), Terrain.GRASS))
+   --r3:add_cube(Cube3(Point3(0, height-1, 0), Point3(16, height, 16), Terrain.GRASSLAND))
    --r3:add_cube(Cube3(Point3(16, height-1, 1), Point3(17, height, 15), Terrain.TOPSOIL))
 
-   r3:add_cube(Cube3(Point3(0, height-1, 0), Point3(256, height, 256), Terrain.GRASS))
+   r3:add_cube(Cube3(Point3(0, height-1, 0), Point3(256, height, 256), Terrain.GRASSLAND))
    --r3:add_cube(Cube3(Point3(256, height-1, 0), Point3(257, height, 256), Terrain.TOPSOIL))
 
    terrain:add_zone(Point3(0, 0, 0), boxed_r3)

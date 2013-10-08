@@ -24,7 +24,7 @@ public:
       Bedrock       = 2,
       Topsoil       = 3,
       Foothills     = 4,
-      Plains        = 5,
+      Grassland     = 5,
       TopsoilDetail = 6,
       DarkWood      = 7, 
       DirtPath      = 8, 
