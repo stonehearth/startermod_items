@@ -14,6 +14,7 @@ scope LuaTerrainComponent::RegisterLuaTypes(lua_State* L)
          .def(tostring(self))
          .def("create_new",            &Terrain::CreateNew)
          .def("set_zone_size",         &Terrain::SetZoneSize)
+         .def("set_zone_offset",       &Terrain::SetZoneOffset)
          .def("add_zone",              &Terrain::AddZone)
          .def("place_entity",          &Terrain::PlaceEntity)
          .enum_("TerrainTypes")
@@ -21,8 +22,8 @@ scope LuaTerrainComponent::RegisterLuaTypes(lua_State* L)
             value("BEDROCK",              Terrain::Bedrock),
             value("TOPSOIL",              Terrain::Topsoil),
             value("TOPSOIL_DETAIL",       Terrain::TopsoilDetail),
-            value("FOOTHILLS",                Terrain::Foothills),
-            value("PLAINS",               Terrain::Plains),
+            value("FOOTHILLS",            Terrain::Foothills),
+            value("GRASSLAND",            Terrain::Grassland),
             value("DARK_WOOD",            Terrain::DarkWood),
             value("DIRT_PATH",            Terrain::DirtPath)
          ]

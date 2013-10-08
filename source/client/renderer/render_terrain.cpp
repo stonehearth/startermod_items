@@ -12,7 +12,7 @@ using namespace ::radiant::client;
 
 static csg::mesh_tools::tesselator_map tess_map;
 RenderTerrain::LayerDetailRingInfo RenderTerrain::foothillGrassRingInfo_;
-RenderTerrain::LayerDetailRingInfo RenderTerrain::plainsGrassRingInfo_;
+RenderTerrain::LayerDetailRingInfo RenderTerrain::grasslandGrassRingInfo_;
 RenderTerrain::LayerDetailRingInfo RenderTerrain::dirtRoadRingInfo_;
 
 RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain) :
@@ -32,8 +32,8 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
       foothillGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(6, FoothillsDetailBase+1));
       foothillGrassRingInfo_.inner = (TerrainDetailTypes)(FoothillsDetailBase + 2);
 
-      plainsGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(4,  GrassDetailBase));
-      plainsGrassRingInfo_.inner = (TerrainDetailTypes)(GrassDetailBase + 1);
+      grasslandGrassRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(4,  GrassDetailBase));
+      grasslandGrassRingInfo_.inner = (TerrainDetailTypes)(GrassDetailBase + 1);
 
       dirtRoadRingInfo_.rings.emplace_back(LayerDetailRingInfo::Ring(1, DirtRoadBase));
       dirtRoadRingInfo_.inner = (TerrainDetailTypes)(DirtRoadBase + 1);
@@ -66,7 +66,7 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
       csg::Point3f topsoil_light = parse_color(config.get<std::string>("topsoil.light_color", "#ffff00"));
       csg::Point3f topsoil_dark = parse_color(config.get<std::string>("topsoil.dark_color", "#ff00ff"));
       csg::Point3f topsoil_detail = parse_color(config.get<std::string>("topsoil.detail_color", "#ff00ff"));
-      csg::Point3f plains_color = parse_color(config.get<std::string>("plains.color", "#ff00ff"));
+      csg::Point3f grassland_color = parse_color(config.get<std::string>("grassland.color", "#ff00ff"));
       csg::Point3f dark_wood_color = parse_color(config.get<std::string>("wood.dark_color", "#ff00ff"));
 
       // xxx: this is in no way thread safe! (see SH-8)
@@ -74,8 +74,8 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
          parse_color(config.get<std::string>("foothills.band_0_color", "#ff00ff")),
          parse_color(config.get<std::string>("foothills.band_1_color", "#ff00ff")),
          parse_color(config.get<std::string>("foothills.band_2_color", "#ff00ff")),
-         parse_color(config.get<std::string>("plains.band_0_color", "#ff00ff")),
-         parse_color(config.get<std::string>("plains.band_1_color", "#ff00ff")),
+         parse_color(config.get<std::string>("grassland.band_0_color", "#ff00ff")),
+         parse_color(config.get<std::string>("grassland.band_1_color", "#ff00ff")),
          parse_color(config.get<std::string>("dirtpath.edges", "#ff00ff")),
          parse_color(config.get<std::string>("dirtpath.center", "#ff00ff")),
       };
@@ -120,8 +120,8 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
          m.add_face(points, normal, topsoil_detail);
       };
 
-      tess_map[om::Terrain::Plains] = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {
-         m.add_face(points, normal, plains_color);
+      tess_map[om::Terrain::Grassland] = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {
+         m.add_face(points, normal, grassland_color);
       };
 
       auto render_detail = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {
@@ -220,7 +220,7 @@ void RenderTerrain::UpdateRenderRegion(RenderZonePtr render_zone)
 
 void RenderTerrain::TesselateTerrain(csg::Region3 const& terrain, csg::Region3& tess)
 {
-   csg::Region3 foothills, plains, dirtroad;
+   csg::Region3 foothills, grassland, dirtroad;
 
    LOG(WARNING) << "Tesselating Terrain...";
    for (csg::Cube3 const& cube : terrain) {
@@ -231,42 +231,39 @@ void RenderTerrain::TesselateTerrain(csg::Region3 const& terrain, csg::Region3& 
       case om::Terrain::DirtPath:
          dirtroad.AddUnique(cube);
          break;
-      case om::Terrain::Plains:
-         plains.AddUnique(cube);
+      case om::Terrain::Grassland:
+         grassland.AddUnique(cube);
          break;
       default:
          tess.AddUnique(cube);
       }
    }
 
-   AddGrassToTesselation(foothills,  terrain, tess, foothillGrassRingInfo_);
-   AddGrassToTesselation(plains, terrain, tess, plainsGrassRingInfo_);
-   AddGrassToTesselation(dirtroad, csg::Region3(), tess, dirtRoadRingInfo_);
+   AddTerrainTypeToTesselation(foothills, terrain, tess, foothillGrassRingInfo_);
+   AddTerrainTypeToTesselation(grassland, terrain, tess, grasslandGrassRingInfo_);
+   AddTerrainTypeToTesselation(dirtroad, csg::Region3(), tess, dirtRoadRingInfo_);
    LOG(WARNING) << "Done Tesselating Terrain!";
 }
 
-void RenderTerrain::AddGrassToTesselation(csg::Region3 const& grass, csg::Region3 const& terrain, csg::Region3& tess, LayerDetailRingInfo const& ringInfo)
+void RenderTerrain::AddTerrainTypeToTesselation(csg::Region3 const& region, csg::Region3 const& terrain, csg::Region3& tess, LayerDetailRingInfo const& ringInfo)
 {
-   std::unordered_map<int, csg::Region2> grass_layers;
+   std::unordered_map<int, csg::Region2> layers;
 
-   for (csg::Cube3 const& cube : grass) {
+   for (csg::Cube3 const& cube : region) {
       ASSERT(cube.GetMin().y == cube.GetMax().y - 1); // 1 block thin, pizza box
-      grass_layers[cube.GetMin().y].AddUnique(csg::Rect2(csg::Point2(cube.GetMin().x, cube.GetMin().z),
+      layers[cube.GetMin().y].AddUnique(csg::Rect2(csg::Point2(cube.GetMin().x, cube.GetMin().z),
                                                          csg::Point2(cube.GetMax().x, cube.GetMax().z)));
    }
-   for (auto const& layer : grass_layers) {
-      AddGrassLayerToTesselation(layer.second, layer.first, terrain, tess, ringInfo);
+   for (auto const& layer : layers) {
+      TesselateLayer(layer.second, layer.first, terrain, tess, ringInfo);
    }
 }
 
-void RenderTerrain::AddGrassLayerToTesselation(csg::Region2 const& grass, int height, csg::Region3 const& clipper, csg::Region3& tess, LayerDetailRingInfo const& ringInfo)
+void RenderTerrain::TesselateLayer(csg::Region2 const& layer, int height, csg::Region3 const& clipper, csg::Region3& tess, LayerDetailRingInfo const& ringInfo)
 {
-   // Compute the perimeter of the grass region
+   csg::Region2 inner = layer;
+   csg::EdgeListPtr segments = csg::Region2ToEdgeList(layer, height, clipper);
 
-   // Add the edge to the tesselation
-   csg::Region2 inner = grass;
-
-   csg::EdgeListPtr segments = csg::Region2ToEdgeList(grass, height, clipper);
    for (auto const& layer : ringInfo.rings) {
       LOG(WARNING) << " Building terrain ring " << height << " " << layer.width;
       csg::Region2 edge = csg::EdgeListToRegion2(segments, layer.width, &inner);      
