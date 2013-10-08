@@ -174,7 +174,9 @@ void Stonehearth::InitEntity(om::EntityPtr entity, std::string const& mod_name, 
 
 void Stonehearth::InitEntityByUri(om::EntityPtr entity, std::string const& uri, lua_State* L)
 {
-   L = lua::ScriptHost::GetCallbackThread(L);
+   if (L) {
+      L = lua::ScriptHost::GetCallbackThread(L);
+   }
 
    JSONNode const& node = res::ResourceManager2::GetInstance().LookupJson(uri);
    auto i = node.find("components");
@@ -202,18 +204,20 @@ void Stonehearth::InitEntityByUri(om::EntityPtr entity, std::string const& uri, 
       }
    }
    // xxx: refaactor me!!!111!
-   json::ConstJsonObject n(node);
-   std::string init_script = n.get<std::string>("init_script");
-   if (!init_script.empty()) {
-      try {        
-         object fn = lua::ScriptHost::RequireScript(L, init_script);
-         if (!fn.is_valid() || type(fn) != LUA_TFUNCTION) {
-            LOG(WARNING) << "failed to load init script " << init_script << "... skipping.";
-         } else {
-            call_function<void>(fn, om::EntityRef(entity));
+   if (L) {
+      json::ConstJsonObject n(node);
+      std::string init_script = n.get<std::string>("init_script");
+      if (!init_script.empty()) {
+         try {        
+            object fn = lua::ScriptHost::RequireScript(L, init_script);
+            if (!fn.is_valid() || type(fn) != LUA_TFUNCTION) {
+               LOG(WARNING) << "failed to load init script " << init_script << "... skipping.";
+            } else {
+               call_function<void>(fn, om::EntityRef(entity));
+            }
+         } catch (std::exception &e) {
+            LOG(WARNING) << "failed to run init script for " << uri << ": " << e.what();
          }
-      } catch (std::exception &e) {
-         LOG(WARNING) << "failed to run init script for " << uri << ": " << e.what();
       }
    }
 }

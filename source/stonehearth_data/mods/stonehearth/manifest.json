@@ -215,6 +215,7 @@
       "promotion_talisman" : "file(components/promotion_talisman/promotion_talisman_component.lua)",
       "profession": "file(components/profession/profession_component.lua)",
       "placeable_item_proxy" : "file(components/placeable_item_proxy/placeable_item_proxy_component.lua)",
+      "ghost_item" : "file(components/placeable_item_proxy/ghost_item_component.lua)",
       "placeable_item_pointer": "file(components/placeable_item_pointer/placeable_item_pointer_component.lua)",
       "firepit" : "file(components/firepit/firepit_component.lua)",
       "sensor_ai_injector"  : "file(components/sensor_ai_injector/sensor_ai_injector_component.lua)",
@@ -225,7 +226,8 @@
       "equipment_piece" : "file(components/equipment_piece/equipment_piece_component.lua)"
    },
    "component_renderers" : {
-      "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)"
+      "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",
+      "ghost_item" : "file(renderers/ghost_item/ghost_item_renderer.lua)"
    },
    "loader" :  {
       "ui" : {

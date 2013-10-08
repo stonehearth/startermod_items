@@ -28,8 +28,6 @@ function Landscaper:place_trees(zone_map, world_offset_x, world_offset_y)
    if world_offset_x == nil then world_offset_x = 0 end
    if world_offset_y == nil then world_offset_y = 0 end
 
-   local wavelet_levels = 2
-   local freq_scaling_coeff = 0.2
    local grid_spacing = 32
    local perturbation_dist = grid_spacing/2 - 4
    local tree_map_width = zone_map.width / grid_spacing
@@ -37,6 +35,8 @@ function Landscaper:place_trees(zone_map, world_offset_x, world_offset_y)
    local tree_map = Array2D(tree_map_width, tree_map_height)
    local noise_map = Array2D(tree_map_width, tree_map_height)
 
+   --local wavelet_levels = 2
+   --local freq_scaling_coeff = 0.2
    --self:_fill_noise_map(tree_map)
    --WaveletFns.shape_height_map(tree_map, freq_scaling_coeff, wavelet_levels)
 
@@ -64,11 +64,15 @@ function Landscaper:place_trees(zone_map, world_offset_x, world_offset_y)
 
             if tree_type ~= nil then 
                if value <= 8 then      tree_name = get_tree_name(tree_type, small)
-               elseif value <= 30 then tree_name = get_tree_name(tree_type, medium)
+               elseif value <= 35 then tree_name = get_tree_name(tree_type, medium)
                else                    tree_name = get_tree_name(tree_type, large)
                end
 
-               self:_place_tree(tree_name, world_offset_x + x, world_offset_y + y)
+               local entity
+               entity = self:_place_tree(tree_name, world_offset_x + x, world_offset_y + y)
+               
+               -- set a random facing for the tree
+               entity:add_component('mob'):turn_to(90*math.random(0, 3))
             end
          end
       end
@@ -132,6 +136,7 @@ function Landscaper:_place_item(uri, x, z)
    local entity = radiant.entities.create_entity(uri)
    -- switch from lua height_map coordinates to cpp coordinates
    radiant.terrain.place_entity(entity, Point3(x-1, 1, z-1))
+   return entity
 end
 
 function get_tree_name(tree_type, tree_size)

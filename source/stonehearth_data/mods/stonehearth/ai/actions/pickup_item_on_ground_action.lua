@@ -11,6 +11,10 @@ PickupItemOnGround.priority = 5
    item: the thing to pick up
 ]]
 function PickupItemOnGround:run(ai, entity, item)
+   if not item then
+      ai:abort()
+   end
+
    radiant.check.is_entity(item)
    local carry_block = entity:get_component('carry_block')
 

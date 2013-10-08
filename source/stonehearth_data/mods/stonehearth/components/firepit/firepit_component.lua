@@ -11,6 +11,7 @@ function FirepitComponent:__init(entity, data_binding)
 
    self._is_lit = false
    self._my_wood = nil
+   self._light_task = nil
 
    radiant.events.listen('radiant:events:calendar:sunrise', self)
    radiant.events.listen('radiant:events:calendar:sunset', self)
@@ -47,6 +48,20 @@ function FirepitComponent:light_fire()
    self._curr_fire_effect =
       radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/firepit_effect')
 end
+
+--[[
+function FirepitComponent:init_worker_task()
+  if not self._light_task then
+     --create the task to gather wood for and feed the fire
+     local ws = radiant.mods.load('stonehearth').worker_scheduler
+     local faction = self._entity:get_component('unit_info'):get_faction()
+     local worker_scheduler = ws:get_worker_scheduler(session.faction)
+
+  end
+  self._light_task:start()
+
+end
+]]
 
 --[[
 TODO: make this work with the fire pit

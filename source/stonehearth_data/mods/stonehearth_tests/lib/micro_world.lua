@@ -54,9 +54,12 @@ function MicroWorld:place_tree(x, z)
    return self:place_item('stonehearth:medium_oak_tree', x, z)
 end
 
-function MicroWorld:place_item(uri, x, z)
+function MicroWorld:place_item(uri, x, z, faction)
    local entity = radiant.entities.create_entity(uri)
    radiant.terrain.place_entity(entity, Point3(x, 1, z))
+   if faction then
+      entity:add_component('unit_info'):set_faction(faction)
+   end
    return entity
 end
 
