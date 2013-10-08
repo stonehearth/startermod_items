@@ -28,6 +28,9 @@
             }
          }
       },
+      "stonehearth:materials" : {
+         "materials" : [ "meat" ]
+      },
       "carry_block": {
       },
       "stonehearth:equipment" : {
