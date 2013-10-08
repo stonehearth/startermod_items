@@ -9,8 +9,6 @@ local Point3 = _radiant.csg.Point3
 
 local Landscaper = class()
 
-local tree_mod_name = 'stonehearth'
-
 local oak = 'oak_tree'
 local juniper = 'juniper_tree'
 local tree_types = { oak, juniper }
@@ -140,7 +138,7 @@ function Landscaper:_place_item(uri, x, z)
 end
 
 function get_tree_name(tree_type, tree_size)
-   return tree_mod_name .. '.' .. tree_size .. '_' .. tree_type
+   return 'stonehearth:' .. tree_size .. '_' .. tree_type
 end
 
 return Landscaper
