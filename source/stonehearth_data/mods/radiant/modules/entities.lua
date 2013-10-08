@@ -293,6 +293,11 @@ end
 ]]
 function entities.drop_carrying(entity, location)
    radiant.check.is_entity(entity)
+
+   if not location then
+      location = radiant.entities.get_location_aligned(entity)
+   end
+   
    radiant.check.is_a(location, Point3)
 
    local carry_block = entity:get_component('carry_block')
@@ -339,6 +344,35 @@ function entities.is_adjacent_to_xz(entity, location)
    point_a = Point2(a.x, a.z)
    point_b = Point2(b.x, b.z)
    return point_a:is_adjacent_to(point_b)
+end
+
+function entities.get_target_table_top(entity, table_name)
+   local target_tables = entity:get_component('target_tables')
+   local top_entry = target_tables:get_top(table_name)
+
+   if top_entry then
+      return top_entry.target
+   end
+
+   return nil
+end
+
+function entities.kill_entity(entity)
+   --radiant.entities.destroy_entity(entity)
+end
+
+function entities.compare_attribute(entity_a, entity_b, attribute)
+   local attributes_a = entity_a:get_component('attributes')
+   local attributes_b = entity_b:get_component('attributes')
+
+   if attributes_a and attributes_b then
+      local ferocity_a = attributes_a:get_attribute(attribute)
+      local ferocity_b = attributes_b:get_attribute(attribute)
+
+      return ferocity_a - ferocity_b
+   end
+
+   return 0
 end
 
 entities.__init()

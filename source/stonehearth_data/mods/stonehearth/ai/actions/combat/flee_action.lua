@@ -14,10 +14,10 @@ function Flee:__init(ai, entity)
 end
 
 Flee['radiant:events:slow_poll'] = function(self)
-   self._target = radiant.combat.get_target_table_top(self._entity, 'aggro')
+   self._target = radiant.entities.get_target_table_top(self._entity, 'aggro')
 
    if self._target then
-      local priority = -10 * radiant.combat.compare_attribute(self._entity, self._target, 'ferocity')
+      local priority = -10 * radiant.entities.compare_attribute(self._entity, self._target, 'ferocity')
       self._ai:set_action_priority(self, priority)
    else
       self._ai:set_action_priority(self, 0)
@@ -26,6 +26,7 @@ end
 
 function Flee:run(ai, entity)
    assert(self._target)
+   radiant.entities.drop_carrying(entity)
    radiant.entities.set_posture(entity, 'panic')
 
    while true do

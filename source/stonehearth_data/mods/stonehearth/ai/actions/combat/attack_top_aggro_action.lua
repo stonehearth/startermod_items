@@ -14,10 +14,10 @@ function AttackTopAggro:__init(ai, entity)
 end
 
 AttackTopAggro['radiant:events:slow_poll'] = function(self)
-   self._target = radiant.combat.get_target_table_top(self._entity, 'aggro')
+   self._target = radiant.entities.get_target_table_top(self._entity, 'aggro')
 
    if self._target then
-      local priority = radiant.combat.compare_attribute(self._entity, self._target, 'ferocity')
+      local priority = radiant.entities.compare_attribute(self._entity, self._target, 'ferocity')
       self._ai:set_action_priority(self, priority)
    else
       self._ai:set_action_priority(self, 0)

@@ -6,6 +6,11 @@
             "start_time": 0,
             "animation": "bite.json",
             "loop": false
-      }
+      },
+      "attack_trigger" : {
+            "type": "trigger_effect",
+            "start_frame": 18,
+            "end_time": 20
+      }      
    }
 }

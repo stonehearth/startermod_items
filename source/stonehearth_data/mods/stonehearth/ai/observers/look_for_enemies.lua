@@ -58,7 +58,14 @@ end
 -- a different faction, it's hostile.
 -- @param entity The entity to determine whether
 function LookForEnemies:is_hostile(entity)
+   -- xxx, this should be pulled out and parameterized for each entity
    if not entity then
+      return false
+   end
+
+   -- only attack mobs
+   local ok = entity:add_component('stonehearth:materials'):has_material('meat')
+   if not ok then
       return false
    end
 
