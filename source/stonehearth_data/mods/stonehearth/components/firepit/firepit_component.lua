@@ -13,8 +13,7 @@ function FirepitComponent:__init(entity, data_binding)
    self._my_wood = nil
    self._light_task = nil
 
-   self._seats = {}
-   self:_add_seats()
+   self._seats = nil
 
    radiant.events.listen('radiant.events.calendar.sunrise', self)
    radiant.events.listen('radiant.events.calendar.sunset', self)
@@ -32,9 +31,10 @@ end
 --TODO: actually have a place for people to sit down/lie down
 --TODO: add a random element to the placement of the seats.
 function FirepitComponent:_add_seats()
+  self._seats = {}
   local firepit_loc = Point3(radiant.entities.get_world_grid_location(self._entity))
   self:_add_one_seat(1, Point3(firepit_loc.x + 5, firepit_loc.y, firepit_loc.z + 1))
-  self:_add_one_seat(2, Point3(firepit_loc.x + -2, firepit_loc.y, firepit_loc.z))
+  self:_add_one_seat(2, Point3(firepit_loc.x + -4, firepit_loc.y, firepit_loc.z))
   self:_add_one_seat(3, Point3(firepit_loc.x + 1, firepit_loc.y, firepit_loc.z + 5))
   self:_add_one_seat(4, Point3(firepit_loc.x + 1, firepit_loc.y, firepit_loc.z - 4))
   self:_add_one_seat(5, Point3(firepit_loc.x + 4, firepit_loc.y, firepit_loc.z + 4))
@@ -60,6 +60,9 @@ end
      really decides to have different kinds of behavior. It's pretty static.
 ]]
 FirepitComponent['radiant.events.calendar.sunset'] = function (self)
+   if not self._seats then
+      self:_add_seats()
+   end
    self:light_fire()
 end
 
