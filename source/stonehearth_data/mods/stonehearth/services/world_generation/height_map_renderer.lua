@@ -15,6 +15,9 @@ function HeightMapRenderer:__init(zone_size)
    self.zone_size = zone_size
    self._terrain = radiant._root_entity:add_component('terrain')
    self._terrain:set_zone_size(zone_size)
+
+   -- eww, gross - will go away with new terrain chunking code
+   self._terrain:set_zone_offset(Point3(-self.zone_size/2, 0, -self.zone_size/2));
 end
 
 -- delegate to C++ to "tesselate" heightmap into rectangles
