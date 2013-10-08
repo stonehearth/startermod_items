@@ -34,7 +34,6 @@ public:
 
    int GetZoneSize();
    void SetZoneSize(int zone_size);
-   void SetZoneOffset(csg::Point3 offset);
    void AddZone(csg::Point3 const& zone_offset, BoxedRegion3Ptr region3);
    void PlaceEntity(EntityRef e, const csg::Point3& location);
    void CreateNew();
@@ -44,7 +43,6 @@ public:
 
 private:
    dm::Boxed<int> zone_size_;
-   dm::Boxed<csg::Point3> zone_offset_;
    ZoneMap zones_;
    void InitializeRecordFields() override;
 };
