@@ -5,17 +5,22 @@ local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local Terrain = _radiant.om.Terrain
 
-function MicroWorld:__init()
+function MicroWorld:__init(size)
    self._nextTime = 1
    self._times = {}
    self._timers = {}
    self._running = false
+   
+   if not size then
+      size = 32
+   end
+   self._size = size
 
-   radiant.events.listen('radiant.events.gameloop', self)
+   radiant.events.listen('radiant:events:gameloop', self)
 end
 
 -- xxx: this timer system really should be in radiant.events.  nuke it!
-MicroWorld['radiant.events.gameloop'] = function(self, time)
+MicroWorld['radiant:events:gameloop'] = function(self, time)
    if not self._running then
       self._running = true;
       table.sort(self._times);
@@ -32,11 +37,11 @@ function MicroWorld:create_world()
    local region3 = _radiant.sim.alloc_region()   
    local r3 = region3:modify() 
    
-   r3:add_cube(Cube3(Point3(0, -16, 0), Point3(32, 0, 32), Terrain.TOPSOIL))
-   r3:add_cube(Cube3(Point3(0,   0, 0), Point3(32, 1, 32), Terrain.FOOTHILLS))
+   r3:add_cube(Cube3(Point3(0, -16, 0), Point3(self._size, 0, self._size), Terrain.TOPSOIL))
+   r3:add_cube(Cube3(Point3(0,   0, 0), Point3(self._size, 1, self._size), Terrain.FOOTHILLS))
    
    local terrain = radiant._root_entity:add_component('terrain')   
-   terrain:set_zone_size(32)
+   terrain:set_zone_size(self._size)
    terrain:add_zone(Point3(-16, 0, -16), region3)
 end
 
@@ -46,7 +51,7 @@ function MicroWorld:at(time, fn)
 end
 
 function MicroWorld:place_tree(x, z)
-   return self:place_item('stonehearth.medium_oak_tree', x, z)
+   return self:place_item('stonehearth:medium_oak_tree', x, z)
 end
 
 function MicroWorld:place_item(uri, x, z)
@@ -67,7 +72,7 @@ end
 
 function MicroWorld:place_citizen(x, z, profession, data)
    local pop_service = radiant.mods.load('stonehearth').population
-   local pop = pop_service:get_faction('stonehearth.factions.ascendancy')
+   local pop = pop_service:get_faction('stonehearth:factions:ascendancy')
    local citizen = pop:create_new_citizen()
    profession = profession and profession or 'worker'
 
@@ -102,13 +107,13 @@ end
 
 function MicroWorld:create_door_cmd(wall, x, y, z)
    radiant.check.is_a(wall, Wall)
-   local json, obj = radiant.commands.call('radiant.commands.create_portal', wall, '//stonehearth/buildings/wooden_door', Point3(x, y, z))
+   local json, obj = radiant.commands.call('radiant:commands:create_portal', wall, '//stonehearth/buildings/wooden_door', Point3(x, y, z))
    return om:get_entity(obj.entity_id)
 end
 
 function MicroWorld:start_project_cmd(blueprint)
    radiant.check.is_entity(blueprint);
-   local json, obj = radiant.commands.call('radiant.commands.start_project', blueprint)
+   local json, obj = radiant.commands.call('radiant:commands:start_project', blueprint)
    return om:get_entity(obj.entity_id)
 end
 

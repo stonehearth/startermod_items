@@ -17,7 +17,7 @@ function InventoryCallHandler:choose_stockpile_location(session, response)
    local node = h3dRadiantCreateStockpileNode(cursor_render_entity:get_node(), 'stockpile designation')
 
    -- change the actual game cursor
-   local stockpile_cursor = _radiant.client.set_cursor('stonehearth.cursors.create_stockpile')
+   local stockpile_cursor = _radiant.client.set_cursor('stonehearth:cursors:create_stockpile')
 
    local cleanup = function()
       stockpile_cursor:destroy()
@@ -34,7 +34,7 @@ function InventoryCallHandler:choose_stockpile_location(session, response)
                box.max.x - box.min.x + 1,
                box.max.z - box.min.z + 1,
             }
-            _radiant.call('stonehearth.create_stockpile', box.min, size)
+            _radiant.call('stonehearth:create_stockpile', box.min, size)
                      :done(function(r)
                            response:resolve(r)
                         end)

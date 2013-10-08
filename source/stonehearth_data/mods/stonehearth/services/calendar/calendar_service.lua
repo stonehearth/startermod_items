@@ -17,17 +17,17 @@ local data = {
 
 CalendarService = class()
 
-radiant.events.register_event('radiant.events.calendar.minutely')
-radiant.events.register_event('radiant.events.calendar.hourly')
+radiant.events.register_event('radiant:events:calendar.minutely')
+radiant.events.register_event('radiant:events:calendar.hourly')
 
-radiant.events.register_event('radiant.events.calendar.sunrise')
-radiant.events.register_event('radiant.events.calendar.noon')
-radiant.events.register_event('radiant.events.calendar.sunset')
-radiant.events.register_event('radiant.events.calendar.midnight')
+radiant.events.register_event('radiant:events:calendar.sunrise')
+radiant.events.register_event('radiant:events:calendar.noon')
+radiant.events.register_event('radiant:events:calendar.sunset')
+radiant.events.register_event('radiant:events:calendar.midnight')
 
 function CalendarService:__init()
    self._constants = radiant.resources.load_json('/stonehearth/services/calendar/calendar_constants.json')
-   radiant.events.listen('radiant.events.gameloop', function (_, now)
+   radiant.events.listen('radiant:events:gameloop', function (_, now)
          self:_on_event_loop(now)
       end)
 end
@@ -73,11 +73,11 @@ function CalendarService:_on_event_loop(now)
    data.date.year = year
 
    if sec >= self._constants.seconds_per_minute  then
-      radiant.events.broadcast_msg('radiant.events.calendar.minutely', data.date)
+      radiant.events.broadcast_msg('radiant:events:calendar.minutely', data.date)
    end
 
    if min >= self._constants.minutes_per_hour then
-      radiant.events.broadcast_msg('radiant.events.calendar.hourly', data.date)
+      radiant.events.broadcast_msg('radiant:events:calendar.hourly', data.date)
    end
 
    self:fire_time_of_day_events()
@@ -103,7 +103,7 @@ function CalendarService:fire_time_of_day_events()
       hour < curr_day_periods.sunrise and
       not data._fired_midnight_today then
 
-      radiant.events.broadcast_msg('radiant.events.calendar.midnight')
+      radiant.events.broadcast_msg('radiant:events:calendar.midnight')
       data._fired_midnight_today = true
 
       data._fired_sunrise_today = false
@@ -115,7 +115,7 @@ function CalendarService:fire_time_of_day_events()
    if hour >= curr_day_periods.sunrise and
       not data._fired_sunrise_today then
 
-      radiant.events.broadcast_msg('radiant.events.calendar.sunrise')
+      radiant.events.broadcast_msg('radiant:events:calendar.sunrise')
       data._fired_sunrise_today = true
       data._fired_midnight_today = false
       return
@@ -124,7 +124,7 @@ function CalendarService:fire_time_of_day_events()
    if hour >= curr_day_periods.midday and
       not data._fired_noon_today then
 
-      radiant.events.broadcast_msg('radiant.events.calendar.noon')
+      radiant.events.broadcast_msg('radiant:events:calendar.noon')
       data._fired_noon_today = true
       return
    end
@@ -132,7 +132,7 @@ function CalendarService:fire_time_of_day_events()
    if hour >= curr_day_periods.sunset and
       not data._fired_sunset_today then
 
-      radiant.events.broadcast_msg('radiant.events.calendar.sunset')
+      radiant.events.broadcast_msg('radiant:events:calendar.sunset')
       data._fired_sunset_today = true
       return
    end

@@ -12,8 +12,8 @@ function FirepitComponent:__init(entity, data_binding)
    self._is_lit = false
    self._my_wood = nil
 
-   radiant.events.listen('radiant.events.calendar.sunrise', self)
-   radiant.events.listen('radiant.events.calendar.sunset', self)
+   radiant.events.listen('radiant:events:calendar:sunrise', self)
+   radiant.events.listen('radiant:events:calendar:sunset', self)
 end
 
 
@@ -32,16 +32,16 @@ end
      Note: this could have been modeled as an action, but the fire never
      really decides to have different kinds of behavior. It's pretty static.
 ]]
-FirepitComponent['radiant.events.calendar.sunset'] = function (self)
+FirepitComponent['radiant:events:calendar:sunset'] = function (self)
    self:light_fire()
 end
 
-FirepitComponent['radiant.events.calendar.sunrise'] = function (self)
+FirepitComponent['radiant:events:calendar:sunrise'] = function (self)
    self:extinguish()
 end
 
 function FirepitComponent:light_fire()
-   self._my_wood = radiant.entities.create_entity('stonehearth.oak_log')
+   self._my_wood = radiant.entities.create_entity('stonehearth:oak_log')
    radiant.entities.add_child(self._entity, self._my_wood, Point3(0, 0, 0))
 
    self._curr_fire_effect =
@@ -63,7 +63,7 @@ function Firepit:init_worker_scheduler()
    worker_scheduler:add_worker_task('chop_tree')
                   :set_worker_filter_fn(not_carrying_fn)
                   :add_work_object(tree)
-                  :set_action('stonehearth.chop_tree')
+                  :set_action('stonehearth:chop_tree')
                   :start()
    return true
 end

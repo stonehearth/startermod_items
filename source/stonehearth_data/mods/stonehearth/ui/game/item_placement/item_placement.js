@@ -11,9 +11,9 @@ $(document).ready(function(){
       // the workshop. The UI is out of the 'create workshop' process after
       // this. All the work is done in the client and server
 
-      radiant.call('stonehearth.choose_place_item_location', e.event_data.full_sized_entity_uri)
+      radiant.call('stonehearth:choose_place_item_location', e.event_data.full_sized_entity_uri)
          .done(function(o){
-            radiant.call('stonehearth.place_item_in_world', e.event_data.self, o.location, o.rotation);
+            radiant.call('stonehearth:place_item_in_world', e.event_data.self, o.location, o.rotation);
          })
          .always(function(o) {
             $(top).trigger('hide_tip.radiant');
@@ -22,7 +22,7 @@ $(document).ready(function(){
 
    //Fires when someone clicks the "place" button in the UI to bring up the picker
    $(top).on("placement_menu.radiant", function (_, e) {
-      radiant.call('stonehearth.get_placable_items_tracker')
+      radiant.call('stonehearth:get_placable_items_tracker')
          .done(function(response) {
             App.gameView.addView(App.StonehearthPlaceItemView, {
                   uri: response.tracker
@@ -102,10 +102,10 @@ App.StonehearthPlaceItemView = App.View.extend({
 
          var self = this;
 
-         radiant.call('stonehearth.choose_place_item_location', item.full_sized_entity_uri)
+         radiant.call('stonehearth:choose_place_item_location', item.full_sized_entity_uri)
             .done(function(o){
                var item_type = 1;
-               radiant.call('stonehearth.place_item_type_in_world', item.full_sized_entity_uri, o.location, o.rotation);
+               radiant.call('stonehearth:place_item_type_in_world', item.full_sized_entity_uri, o.location, o.rotation);
 
                self.waitingForPlacement = false;
 

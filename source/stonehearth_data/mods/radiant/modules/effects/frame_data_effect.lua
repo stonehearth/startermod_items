@@ -17,7 +17,7 @@ function FrameDataEffect:update(now)
       self._segment_index = 1
       segment = self._segments[1]
       if self._handler then
-         md:send_msg(self._handler, 'radiant.effect.frame_data.on_segment', 'start', segment)
+         md:send_msg(self._handler, 'radiant:effect:frame_data:on_segment', 'start', segment)
       end
    else
       segment = self._segments[self._segment_index]
@@ -25,13 +25,13 @@ function FrameDataEffect:update(now)
   
    while segment and self._start_time + frame_count_to_time(segment.duration) <= now do
       if self._handler then
-         md:send_msg(self._handler, 'radiant.effect.frame_data.on_segment', 'end', segment)
+         md:send_msg(self._handler, 'radiant:effect:frame_data:on_segment', 'end', segment)
       end
       
       self._segment_index = self._segment_index + 1
       segment = self._segments[self._segment_index]
       if segment and self._handler then
-         md:send_msg(self._handler, 'radiant.effect.frame_data.on_segment', 'start', segment)
+         md:send_msg(self._handler, 'radiant:effect:frame_data:on_segment', 'start', segment)
       end
    end
    return segment ~= nil

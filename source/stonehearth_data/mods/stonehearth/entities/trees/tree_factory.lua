@@ -1,14 +1,14 @@
 local ResourceFactory = class()
 
-radiant.events.register_event("radiant.resource_node.spawn_resource", Harvest)
-radiant.events.register_event_handler("radiant.msg_handlers.resource_factory", ResourceFactory)
+radiant.events.register_event('radiant:resource_node:spawn_resource', Harvest)
+radiant.events.register_event_handler('radiant:msg_handlers:resource_factory', ResourceFactory)
 
-ResourceFactory['radiant.md.create'] = function(self, entity)
+ResourceFactory['radiant:md:create'] = function(self, entity)
    self.entity = entity
-   md:listen_to_entity(entity, 'radiant.resource_node.spawn_resource', self)
+   md:listen_to_entity(entity, 'radiant:resource_node:spawn_resource', self)
 end
 
-ResourceFactory['radiant.resource_node.spawn_resource'] = function(self, location)
+ResourceFactory['radiant:resource_node:spawn_resource'] = function(self, location)
    check:is_a(location, Point3)
    
    log:info("%s spawing resource near %s.", om:get_display_name(self.entity), tostring(location))

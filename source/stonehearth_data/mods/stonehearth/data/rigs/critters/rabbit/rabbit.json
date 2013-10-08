@@ -14,5 +14,6 @@
 		"rightEar": [0.980955,2.00382,6.01021],
 		"leftEar": [5.98096,2.00382,6.01021]
 	},
-   "effects_root" : "file(effects)"
+   "effects_root" : "file(effects)",
+   "animation_root" : "file(animations)"
 }

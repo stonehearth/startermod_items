@@ -1,8 +1,8 @@
 local Point3 = _radiant.csg.Point3
 local DropCarryingAction = class()
 
-DropCarryingAction.name = 'stonehearth.actions.drop_carrying'
-DropCarryingAction.does = 'stonehearth.drop_carrying'
+DropCarryingAction.name = 'drop carrying'
+DropCarryingAction.does = 'stonehearth:drop_carrying'
 DropCarryingAction.priority = 5
 --TODO we need a scale to  describe relative importance
 
@@ -16,7 +16,7 @@ function DropCarryingAction:run(ai, entity, location)
 
    if radiant.entities.is_carrying(entity) then
       radiant.entities.turn_to_face(entity, location)
-      ai:execute('stonehearth.run_effect', 'carry_putdown')
+      ai:execute('stonehearth:run_effect', 'carry_putdown')
       radiant.entities.drop_carrying(entity, location)
    end
 

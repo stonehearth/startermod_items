@@ -4,11 +4,11 @@ local Region3 = _radiant.csg.Region3
 local GotoLocation = class()
 
 
-GotoLocation.name = 'stonehearth.actions.goto_location'
-GotoLocation.does = 'stonehearth.goto_location'
+GotoLocation.name = 'goto location'
+GotoLocation.does = 'stonehearth:goto_location'
 GotoLocation.priority = 1
 
-function GotoLocation:run(ai, entity, dest)
+function GotoLocation:run(ai, entity, dest, effect_name)
    -- generally speaking, going directly to a location is a strange
    -- thing to do.  why did we not path find to an entity?  why is
    -- this location special?
@@ -34,7 +34,7 @@ function GotoLocation:run(ai, entity, dest)
 
    local path = ai:wait_for_path_finder(pf)
 
-   ai:execute('stonehearth.follow_path', path)
+   ai:execute('stonehearth:follow_path', path, effect_name)
 end
 
 function GotoLocation:stop()

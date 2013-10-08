@@ -11,7 +11,7 @@ function FirePitTest:__init()
    local worker = self:place_citizen(12, 12)
    local worker2 = self:place_citizen(-11, -11)
 
-   self:place_item('stonehearth.fire_pit', 1, 1)
+   self:place_item('stonehearth:fire_pit', 1, 1)
 end
 
 return FirePitTest

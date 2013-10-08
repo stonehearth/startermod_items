@@ -1,6 +1,6 @@
 {
    "type": "entity",
-   "extends": "stonehearth.mixins.item_properties",
+   "extends": "stonehearth:mixins:item_properties",
    "components" : {
       "unit_info" : {
          "name" :  "The Saw",
@@ -30,7 +30,7 @@
       },
       "effect_list" : {
          "effects" : [
-            "stonehearth.effects.talisman_glow"
+            "stonehearth:effects:talisman_glow"
          ]  
       },
       "stonehearth:promotion_talisman": {

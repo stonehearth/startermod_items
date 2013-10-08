@@ -1,7 +1,7 @@
 local WanderAction = class()
 
-WanderAction.name = 'stonehearth.actions.wander'
-WanderAction.does = 'stonehearth.top'
+WanderAction.name = 'wander'
+WanderAction.does = 'stonehearth:top'
 WanderAction.priority = 2
 
 function WanderAction:__init(ai, entity)
@@ -15,10 +15,10 @@ function WanderAction:__init(ai, entity)
       self._wander_radius = 0
    end
 
-   radiant.events.listen('radiant.events.very_slow_poll', self)
+   radiant.events.listen('radiant:events:very_slow_poll', self)
 end
 
-WanderAction['radiant.events.very_slow_poll'] = function(self)
+WanderAction['radiant:events:very_slow_poll'] = function(self)
    if self._runInterval == 0 then
       self._ai:set_action_priority(self, 2)
       self:set_next_run();
@@ -53,7 +53,7 @@ function WanderAction:run(ai, entity)
       location.z = leash_location.z + math.random(-1, 1)
    end
 
-   ai:execute('stonehearth.goto_location', location)
+   ai:execute('stonehearth:goto_location', location)
    ai:set_action_priority(self, 0)
 end
 

@@ -13,6 +13,10 @@ function Damage:add_damage_source(damage_source)
    return self;   
 end
 
+function Damage:get_damage_amount()
+   return 10 --xxx hardcoded
+end
+
 function Damage:resolve()
    self._combat_service:apply_damage(self._source_entity, self._target_entity, self)
    return self;   

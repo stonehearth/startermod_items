@@ -11,30 +11,30 @@ function CarpenterTest:__init()
    self[MicroWorld]:__init()
    self:create_world()
 
-   self:place_item('stonehearth.arch_backed_chair_proxy', 0, 0)
-   self:place_item('stonehearth.comfy_bed_proxy', 1, 0)
-   self:place_item('stonehearth.dining_table_proxy', 2, 0)
-   self:place_item('stonehearth.picket_fence_proxy', 0, 1)
-   self:place_item('stonehearth.picket_fence_gate_proxy', 1, 1)
-   self:place_item('stonehearth.simple_wooden_chair_proxy', 2, 1)
-   self:place_item('stonehearth.table_for_one_proxy', 3, 1)
-   self:place_item('stonehearth.wooden_door_proxy', 4, 1)
-   self:place_item('stonehearth.wooden_window_frame_proxy', 0, 2)
-   self:place_item('stonehearth.picket_fence_proxy', 0, 3)
-   self:place_item('stonehearth.picket_fence_proxy', 1, 3)
-   self:place_item('stonehearth.picket_fence_proxy', 2, 3)
-   self:place_item('stonehearth.picket_fence_proxy', 3, 3)
-   self:place_item('stonehearth.picket_fence_proxy', 4, 3)
-   self:place_item('stonehearth.picket_fence_proxy', 5, 3)
-   self:place_item('stonehearth.picket_fence_proxy', 6, 3)
-   self:place_item('stonehearth.fire_pit_proxy', 7, 3)
-   self:place_item('stonehearth.fire_pit', 9, 3)
+   self:place_item('stonehearth:arch_backed_chair_proxy', 0, 0)
+   self:place_item('stonehearth:comfy_bed_proxy', 1, 0)
+   self:place_item('stonehearth:dining_table_proxy', 2, 0)
+   self:place_item('stonehearth:picket_fence_proxy', 0, 1)
+   self:place_item('stonehearth:picket_fence_gate_proxy', 1, 1)
+   self:place_item('stonehearth:simple_wooden_chair_proxy', 2, 1)
+   self:place_item('stonehearth:table_for_one_proxy', 3, 1)
+   self:place_item('stonehearth:wooden_door_proxy', 4, 1)
+   self:place_item('stonehearth:wooden_window_frame_proxy', 0, 2)
+   self:place_item('stonehearth:picket_fence_proxy', 0, 3)
+   self:place_item('stonehearth:picket_fence_proxy', 1, 3)
+   self:place_item('stonehearth:picket_fence_proxy', 2, 3)
+   self:place_item('stonehearth:picket_fence_proxy', 3, 3)
+   self:place_item('stonehearth:picket_fence_proxy', 4, 3)
+   self:place_item('stonehearth:picket_fence_proxy', 5, 3)
+   self:place_item('stonehearth:picket_fence_proxy', 6, 3)
+   self:place_item('stonehearth:fire_pit_proxy', 7, 3)
+   self:place_item('stonehearth:fire_pit', 9, 3)
 
-   --self:place_item('stonehearth.not_much_of_a_bed_proxy', 4, 4)
+   --self:place_item('stonehearth:not_much_of_a_bed_proxy', 4, 4)
 
    --Create the carpenter, bench, and instantiate them to each other
 
-   local bench = self:place_item('stonehearth.carpenter_workbench', -12, 12)
+   local bench = self:place_item('stonehearth:carpenter_workbench', -12, 12)
    local workshop_component = bench:get_component('stonehearth:workshop')
 
    local carpenter = self:place_citizen(-12, 7,'carpenter', workshop_component)
@@ -50,7 +50,7 @@ function CarpenterTest:__init()
    --TODO: make a private stockpile
 
    --[[
-   local outbox_entity = radiant.entities.create_entity('stonehearth.stockpile')
+   local outbox_entity = radiant.entities.create_entity('stonehearth:stockpile')
    local outbox_location = Point3(-8, 1, -12)
    radiant.terrain.place_entity(outbox_entity, outbox_location)
    local outbox_component = outbox_entity:get_component('stonehearth:stockpile')
@@ -61,11 +61,11 @@ function CarpenterTest:__init()
    -- end TODO
 
    -- put some items in the world
-   self:place_item_cluster('stonehearth.oak_log', -10, 0, 3, 3)
-   self:place_item_cluster('stonehearth.cloth_bolt', -7, 0, 2, 2)
+   self:place_item_cluster('stonehearth:oak_log', -10, 0, 3, 3)
+   self:place_item_cluster('stonehearth:cloth_bolt', -7, 0, 2, 2)
 
    --TODO: figure out iconic objects
-   --self:place_item_cluster('stonehearth.comfy_bed', 0, 0, 2, 2)
+   --self:place_item_cluster('stonehearth:comfy_bed', 0, 0, 2, 2)
 
  -- Tests!
 

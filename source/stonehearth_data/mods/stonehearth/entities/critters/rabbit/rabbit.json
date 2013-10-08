@@ -1,6 +1,6 @@
 {
    "type" : "entity",
-   "extends" : "stonehearth.mixins.mob",   
+   "extends" : "stonehearth:mixins:mob",   
    "components": {
       "unit_info" : {
         "name": "A rabbit",
@@ -9,7 +9,7 @@
       },
       "stonehearth:ai" : {
          "actions" : [
-            "stonehearth.actions.wander_action"
+            "stonehearth:actions:wander_action"
          ]
       },
       "render_info" : {

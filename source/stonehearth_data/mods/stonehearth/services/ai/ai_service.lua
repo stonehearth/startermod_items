@@ -18,7 +18,7 @@ function AiService:__init()
    self._co_to_ai_component = {}
    self._waiting_until = {}
 
-   radiant.events.listen('radiant.events.gameloop',
+   radiant.events.listen('radiant:events:gameloop',
       function (_, now)
          self:_on_event_loop(now)
       end

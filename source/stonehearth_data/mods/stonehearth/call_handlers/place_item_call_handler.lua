@@ -134,7 +134,7 @@ function PlaceItemCallHandler:_init_pickup_worker_task(session, proxy_entity, lo
 
    pickup_item_task:set_action_fn(
       function (path)
-         return 'stonehearth.place_item', path, location, rotation, pickup_item_task
+         return 'stonehearth:place_item', path, location, rotation, pickup_item_task
       end
    )
 

@@ -1,5 +1,5 @@
 {
-   "extends": "stonehearth.mixins.item_properties",
+   "extends": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
       "model_variants": [

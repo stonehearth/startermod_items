@@ -7,21 +7,21 @@
 
 local AdmireFire = class()
 
-AdmireFire.name = 'stonehearth.actions.admire_fire'
+AdmireFire.name = 'admire fire'
 
 --TODO: make a namespace for "not doing stuff"
-AdmireFire.does = 'stonehearth.idle'
+AdmireFire.does = 'stonehearth:idle'
 AdmireFire.priority = 0
 
 function AdmireFire:__init(ai, entity)
    self._entity = entity
    self._ai = ai
 
-   radiant.events.listen('radiant.events.calendar.sunrise', self)
-   radiant.events.listen('radiant.events.calendar.sunset', self)
+   radiant.events.listen('radiant:events:calendar.sunrise', self)
+   radiant.events.listen('radiant:events:calendar.sunset', self)
 end
 
-AdmireFire['radiant.events.calendar.sunset'] = function(self, calendar)
+AdmireFire['radiant:events:calendar.sunset'] = function(self, calendar)
 
    --If we find a fire, we should mosey over
    local result_cb = function(fire, path)
@@ -38,7 +38,7 @@ AdmireFire['radiant.events.calendar.sunset'] = function(self, calendar)
    end
 end
 
-AdmireFire['radiant.events.calendar.sunrise'] = function(self, calendar)
+AdmireFire['radiant:events:calendar.sunrise'] = function(self, calendar)
    self:stop()
 end
 
@@ -77,11 +77,11 @@ function AdmireFire:run(ai, entity)
    self._pathfinder = nil
 
    -- Go to the fire!
-   ai:execute('stonehearth.follow_path', self._path_to_fire)
+   ai:execute('stonehearth:follow_path', self._path_to_fire)
 
    --Am I carrying anything? If so, drop it
    local drop_location = self._path_to_fire:get_destination_point_of_interest()
-   ai:execute('stonehearth.drop_carrying', drop_location)
+   ai:execute('stonehearth:drop_carrying', drop_location)
 
 
    radiant.entities.turn_to_face(self._entity, self._fire)

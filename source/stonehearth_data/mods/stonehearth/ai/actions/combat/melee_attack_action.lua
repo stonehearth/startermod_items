@@ -1,7 +1,7 @@
 local MeleeAttack = class()
 
 MeleeAttack.name = 'melee attack!'
-MeleeAttack.does = 'stonehearth.attack.melee'
+MeleeAttack.does = 'stonehearth:attack:melee'
 MeleeAttack.priority = 0
 
 function MeleeAttack:__init(ai, entity, weapon)
@@ -12,7 +12,7 @@ function MeleeAttack:run(ai, entity, target)
    assert(target)
    local effect = radiant.entities.get_entity_data(self._weapon, "stonehearth:melee_weapon").effect
    if effect then
-      ai:execute('stonehearth.run_effect', effect)
+      ai:execute('stonehearth:run_effect', effect)
    else 
       ai:abort('no effect supplied for weapon %s', tostring(self._weapon))
    end

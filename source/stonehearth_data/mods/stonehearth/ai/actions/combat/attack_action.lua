@@ -1,7 +1,7 @@
 local Attack = class()
 
 Attack.name = 'Attack!'
-Attack.does = 'stonehearth.attack'
+Attack.does = 'stonehearth:attack'
 Attack.priority = 0
 
 function Attack:__init(ai, entity)
@@ -13,9 +13,9 @@ function Attack:run(ai, entity, target)
 
    while true do
       if radiant.entities.distance_between(entity, target) < 6 then
-         ai:execute('stonehearth.attack.melee', target)
+         ai:execute('stonehearth:attack:melee', target)
       else 
-         ai:execute('stonehearth.attack.chase_target', target)
+         ai:execute('stonehearth:attack:chase_target', target)
       end
    end
 end

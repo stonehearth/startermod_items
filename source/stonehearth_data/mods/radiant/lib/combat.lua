@@ -11,6 +11,10 @@ function combat.get_target_table_top(entity, table_name)
    return nil
 end
 
+function combat.kill_entity(entity)
+   --radiant.entities.destroy_entity(entity)
+end
+
 function combat.compare_attribute(entity_a, entity_b, attribute)
    local attributes_a = entity_a:get_component('attributes')
    local attributes_b = entity_b:get_component('attributes')

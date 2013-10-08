@@ -18,15 +18,15 @@ function events.__init()
    singleton._msg_queue = {}                -- list of messages yet to be sent.  
    singleton._game_state_hooks = {}
 
-   events.register_event('radiant.md.create')
-   events.register_event('radiant.md.destroy')
-   events.register_event('radiant.events.gameloop')
-   events.register_event('radiant.commands.activate')
+   events.register_event('radiant:md:create')
+   events.register_event('radiant:md:destroy')
+   events.register_event('radiant:events:gameloop')
+   events.register_event('radiant:commands:activate')
 
-   events.register_event('radiant.events.slow_poll')
-   events.register_event('radiant.events.very_slow_poll')
+   events.register_event('radiant:events:slow_poll')
+   events.register_event('radiant:events:very_slow_poll')
 
-   events.register_event('radiant.events.aura_expired')
+   events.register_event('radiant:events:aura_expired')
 
 end
 
@@ -36,13 +36,13 @@ function events._update()
    -- xxx: get rid of ALL polls.  register timers instead, or one time
    -- loop calls.
 
-   events.broadcast_msg('radiant.events.gameloop', now)
+   events.broadcast_msg('radiant:events:gameloop', now)
    -- pump the polls
    if now % 200 == 0 then
-      events.broadcast_msg('radiant.events.slow_poll', now)
+      events.broadcast_msg('radiant:events:slow_poll', now)
    end
    if now % 1000 == 0 then
-      events.broadcast_msg('radiant.events.very_slow_poll', now)
+      events.broadcast_msg('radiant:events:very_slow_poll', now)
    end
    events._flush_msg_queue();
 end
@@ -161,7 +161,7 @@ function events.create_msg_handler(name, ...)
    local handler = ctor();
    handler = handler and handler or ctor
    singleton._all_handlers[handler] = name
-   events.call_handler(handler, 'radiant.md.create', ...)
+   events.call_handler(handler, 'radiant:md:create', ...)
 
    return handler
 end
@@ -199,7 +199,7 @@ function events.destroy_msg_handler(handler)
    assert(env:is_running())
    assert(events.is_msg_handler(handler))
 
-   events.call_handler(handler, 'radiant.md.destroy')
+   events.call_handler(handler, 'radiant:md:destroy')
    -- xxx: for now leave the handler registered.  otherwise we can't
    -- stop behaviors after they've been destroyed.  the fix is to
    -- make behaviors actual objects (registered by name with the

@@ -19,7 +19,7 @@ HttpReactor::HttpReactor(CoreReactor &core) :
    core_(core),
    queued_events_(JSON_ARRAY)
 {
-   core_.AddRoute("radiant.get_events", [=](rpc::Function const& f) {
+   core_.AddRoute("radiant:get_events", [=](rpc::Function const& f) {
       return GetEvents(f);
    });
 }

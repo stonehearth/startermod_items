@@ -1,7 +1,7 @@
 local PickupItem = class()
 
 PickupItem.name = 'pickup an item'
-PickupItem.does = 'stonehearth.pickup_item'
+PickupItem.does = 'stonehearth:pickup_item'
 PickupItem.priority = 5
 --TODO we need a scale to  describe relative importance
 
@@ -37,9 +37,9 @@ function PickupItem:run(ai, entity, item)
    end
    
    if item_location == 'ground' then
-      ai:execute('stonehearth.pickup_item_on_ground', item)
+      ai:execute('stonehearth:pickup_item_on_ground', item)
    elseif item_location == 'on_table' then
-      ai:execute('stonehearth.pickup_item_on_table', item, parent)
+      ai:execute('stonehearth:pickup_item_on_table', item, parent)
    else
       ai:abort('unknown item location in pickup item action')
       entity.add_component('stonehearth:posture').unset_posture('carrying')

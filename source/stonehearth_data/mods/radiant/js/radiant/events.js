@@ -10,15 +10,15 @@ console.log('loading events...');
          return;
 
          var self = this;
-         radiant.call('radiant.get_events')
+         radiant.call('radiant:get_events')
             .done(function (data) {
                $.each(data, function (_, o) {
-                  $(top).trigger('radiant.events.*', o);
+                  $(top).trigger('radiant:events:*', o);
                   $(top).trigger(o.type, o.data);
                });
             })
             .error(function(e) {
-               radiant.report_error('error returned from radiant.get_events', e)
+               radiant.report_error('error returned from radiant:get_events', e)
             })
             .fail(function (jqxhr, statusTxt, errorThrown) {
                console.log("poll error: (status:" + statusTxt + " error:" + errorThrown + ")");

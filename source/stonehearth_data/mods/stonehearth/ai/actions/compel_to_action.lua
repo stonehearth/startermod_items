@@ -5,18 +5,18 @@
 
 local CompelToAction = class()
 
-CompelToAction.name = 'stonehearth.actions.compel_to_action'
-CompelToAction.does = 'stonehearth.top'
+CompelToAction.name = 'stonehearth:actions:compel_to_action'
+CompelToAction.does = 'stonehearth:top'
 CompelToAction.priority = 0
 
-radiant.events.register_event('stonehearth.events.compulsion_event')
+radiant.events.register_event('stonehearth:events:compulsion_event')
 
 function CompelToAction:__init(ai, entity)
    self._entity = entity
    self._ai = ai
    self._target_action = {}
    self._action_data = nil
-   radiant.events.listen('stonehearth.events.compulsion_event', self)
+   radiant.events.listen('stonehearth:events:compulsion_event', self)
 end
 
 --[[
@@ -25,7 +25,7 @@ end
    TODO: ability to pass in a set of people to check against
    Pass in any event_data needed
 ]]
-CompelToAction['stonehearth.events.compulsion_event'] = function(self, target_action, target_person_entity, action_data)
+CompelToAction['stonehearth:events:compulsion_event'] = function(self, target_action, target_person_entity, action_data)
    local entity_id = self._entity:get_id()
    local target_person_entity_id = target_person_entity:get_id()
    if entity_id and target_person_entity_id and entity_id ~= target_person_entity_id then

@@ -1,7 +1,7 @@
 local PickupItemOnTable = class()
 
 PickupItemOnTable.name = 'pickup and item on the ground'
-PickupItemOnTable.does = 'stonehearth.pickup_item_on_table'
+PickupItemOnTable.does = 'stonehearth:pickup_item_on_table'
 PickupItemOnTable.priority = 5
 --TODO we need a scale to  describe relative importance
 
@@ -32,7 +32,7 @@ function PickupItemOnTable:run(ai, entity, item, table)
    if not radiant.entities.is_adjacent_to(entity, obj_location) then
       -- ug!  not next to the item.  find a path to it... this is the
       -- slow way, but better than nothing...
-      ai:execute('stonehearth.goto_entity', table)
+      ai:execute('stonehearth:goto_entity', table)
    end
    
    radiant.log.info("picking up item on table.")
@@ -40,7 +40,7 @@ function PickupItemOnTable:run(ai, entity, item, table)
    radiant.entities.pickup_item(entity, item)
    
    -- TODO: run the 'pickup item off table' effect
-   ai:execute('stonehearth.run_effect', 'carry_pickup')
+   ai:execute('stonehearth:run_effect', 'carry_pickup')
 end
 
 return PickupItemOnTable

@@ -1,8 +1,8 @@
 local Point3 = _radiant.csg.Point3
 local WorkerPlaceItemAction = class()
 
-WorkerPlaceItemAction.name = 'stonehearth.place_item'
-WorkerPlaceItemAction.does = 'stonehearth.place_item'
+WorkerPlaceItemAction.name = 'place item'
+WorkerPlaceItemAction.does = 'stonehearth:place_item'
 WorkerPlaceItemAction.priority = 10
 --TODO we need a scale to  describe relative importance.
 --Right now all tasks dispatched by worker scheduler have the same priority, 10
@@ -49,7 +49,7 @@ function WorkerPlaceItemAction:run(ai, entity, path, drop_location, rotation, ta
    -- We already have a path to the object, so set up a pathfinder
    -- between the object and its final destination, to use later.
    self:_get_intermediary_path(target_item, drop_location)
-   ai:execute('stonehearth.pickup_item_on_path', path)
+   ai:execute('stonehearth:pickup_item_on_path', path)
 
    -- If we're here, pickup succeeded, so we're now carrying the item.
    -- Wait until the PF we started earlier returns
@@ -57,15 +57,15 @@ function WorkerPlaceItemAction:run(ai, entity, path, drop_location, rotation, ta
    ai:wait_until(function()
       return self._path_to_destination ~= nil
    end)
-   ai:execute('stonehearth.follow_path', self._path_to_destination)
-   ai:execute('stonehearth.drop_carrying', drop_location)
+   ai:execute('stonehearth:follow_path', self._path_to_destination)
+   ai:execute('stonehearth:drop_carrying', drop_location)
    radiant.entities.turn_to(proxy_entity, rotation)
 
    -- if we placed a proxy entity then replace the proxy we dropped with a real thing
    local proxy_component = proxy_entity:get_component('stonehearth:placeable_item_proxy')
    if proxy_component then
       --TODO: replace this with a particle effect
-      ai:execute('stonehearth.run_effect', 'work')
+      ai:execute('stonehearth:run_effect', 'work')
 
       --Get the full sized entity
       local full_sized_entity = proxy_component:get_full_sized_entity()

@@ -25,7 +25,7 @@ $(document).ready(function(){
 
       var workbench_entity = e.workbench_entity;
 
-      radiant.call('stonehearth.choose_workbench_location', workbench_entity)
+      radiant.call('stonehearth:choose_workbench_location', workbench_entity)
          .done(function(o){
             //xxx, place the outbox
          })
@@ -82,7 +82,7 @@ App.StonehearthCrafterBuildWorkshopView = App.View.extend({
 
                   setTimeout(function() {
                         $(top).trigger('create_workshop.radiant', {
-                           workbench_entity: 'stonehearth.carpenter_workbench'
+                           workbench_entity: 'stonehearth:carpenter_workbench'
                         });
                         self.destroy();
                      }, 1000);

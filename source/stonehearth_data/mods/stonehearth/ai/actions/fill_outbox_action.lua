@@ -8,8 +8,8 @@
 local Point3 = _radiant.csg.Point3
 local FillOutboxAction = class()
 
-FillOutboxAction.name = 'stonehearth.actions.fill_outbox'
-FillOutboxAction.does = 'stonehearth.fill_outbox'
+FillOutboxAction.name = 'stonehearth:actions:fill_outbox'
+FillOutboxAction.does = 'stonehearth:fill_outbox'
 FillOutboxAction.priority = 5
 
 function FillOutboxAction:__init(ai, entity)
@@ -31,7 +31,7 @@ function FillOutboxAction:run(ai, entity)
    while not workshop:is_paused() and workshop:has_bench_outputs() do
       -- take the item off the workbench
       local item = workshop:pop_bench_output()
-      ai:execute('stonehearth.pickup_item_on_table', item, workshop_entity)
+      ai:execute('stonehearth:pickup_item_on_table', item, workshop_entity)
 
       -- drop it in the outbox...
       local pathfinder = radiant.pathfinder.create_path_finder('goto entity action')
@@ -40,8 +40,8 @@ function FillOutboxAction:run(ai, entity)
       local path = ai:wait_for_path_finder(pathfinder)
       local drop_location = path:get_destination_point_of_interest()
 
-      ai:execute('stonehearth.follow_path', path)
-      ai:execute('stonehearth.drop_carrying', drop_location)
+      ai:execute('stonehearth:follow_path', path)
+      ai:execute('stonehearth:drop_carrying', drop_location)
    end
 end
 

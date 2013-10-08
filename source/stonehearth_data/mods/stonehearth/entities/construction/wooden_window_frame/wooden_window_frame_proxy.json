@@ -1,5 +1,5 @@
 {
-   "extends": "stonehearth.mixins.item_properties",
+   "extends": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
       "model_variants": [
@@ -10,9 +10,10 @@
          }
       ],
       "stonehearth:placeable_item_proxy" : {
-         "full_sized_entity" : "stonehearth.wooden_window_frame"
+         "full_sized_entity" : "stonehearth:wooden_window_frame"
       },
       "item" : {
+         "category" : "construction"
          "category" : "construction"
       }
    }

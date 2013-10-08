@@ -20,7 +20,7 @@ App = Ember.Application.createWithMixins({
 
       var deferreds = [];
 
-      radiant.call('radiant.get_modules')
+      radiant.call('radiant:get_modules')
          .done( function(data) {
              console.log(data);
 

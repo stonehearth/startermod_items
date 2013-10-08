@@ -18,7 +18,7 @@
          "sensor" : "interaction_sensor",
          "ai" : {
             "actions" : [
-               "stonehearth.actions.play_with_ball_action"
+               "stonehearth:actions:play_with_ball_action"
             ],
             "observers" : [
             ]

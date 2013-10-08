@@ -19,12 +19,9 @@
          "leftFrontPaw": [14,13.9742,1.94885],
          "head": [10.5,9.8012,9.57078],
          "rightEar": [7.5,8.5,9.99211],
-         "leftEarh": [13.5,8.5,9.99211]
+         "leftEarh": [13.5,8.5,9.99211],
+         "jaw": [10.5,9.94578,9.02721]
     },
    "effects_root" : "file(effects)",
-   "collision_shape" : {
-      "type" : "cylinder_collision_shape",
-      "radius" : 5,
-      "height" : 35
-   }
+   "animation_root" : "file(animations)"
 }
