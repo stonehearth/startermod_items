@@ -70,16 +70,6 @@ filter_kernel_050[6] = BoundaryNormalizingFilter({
 
 local filter_kernel_025 = {}
 
--- 4th order, cutoff 0.25
--- insufficient order to be a good filter
-filter_kernel_025[4] = BoundaryNormalizingFilter({
-   0.0246354025711508,
-   0.2344488306462068,
-   0.4818315335652847,
-   0.2344488306462068,
-   0.0246354025711508
-})
-
 -- 6th order, cutoff 0.25
 filter_kernel_025[6] = BoundaryNormalizingFilter({
    0.00858724197082233,
@@ -102,6 +92,22 @@ filter_kernel_025[8] = BoundaryNormalizingFilter({
    0.10208253276182100,
    0.01931159467572660,
    0.00009279680549883
+})
+
+
+-- 10th order, cutoff 0.25
+filter_kernel_025[10] = BoundaryNormalizingFilter({
+  -3.81677788641566e-003,
+   1.76448116941646e-004,
+   3.24259249652166e-002,
+   1.16864651139762e-001,
+   2.20320308451122e-001,
+   2.68058890426748e-001,
+   2.20320308451122e-001,
+   1.16864651139762e-001,
+   3.24259249652166e-002,
+   1.76448116941646e-004,
+  -3.81677788641566e-003
 })
 
 function FilterFns.filter_2D_050(dst, src, src_width, src_height, filter_order)

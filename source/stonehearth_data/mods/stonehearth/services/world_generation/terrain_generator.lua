@@ -53,7 +53,7 @@ function TerrainGenerator:__init(async, seed)
    local foothills_info = {}
    foothills_info.step_size = base_step_size
    foothills_info.mean_height = 27
-   foothills_info.std_dev = 16
+   foothills_info.std_dev = 8
    foothills_info.min_height = plains_info.max_height
    foothills_info.max_height = 32
    terrain_info[TerrainType.Foothills] = foothills_info
@@ -63,7 +63,7 @@ function TerrainGenerator:__init(async, seed)
    local mountains_info = {}
    mountains_info.step_size = base_step_size*4
    mountains_info.mean_height = 96
-   mountains_info.std_dev = 80
+   mountains_info.std_dev = 64
    mountains_info.min_height = plains_info.max_height + foothills_info.step_size
    terrain_info[TerrainType.Mountains] = mountains_info
    assert(mountains_info.mean_height % mountains_info.step_size ~= mountains_info.step_size/2)
@@ -141,6 +141,9 @@ function TerrainGenerator:generate_zone(terrain_type, zones, x, y)
    micro_map = self:_filter_noise_map(noise_map)
    --radiant.log.info('Filtered Noise map:'); micro_map:print()
 
+   --self:_add_DC_component(micro_map, blend_map)
+   --radiant.log.info('Filtered map with DC:'); micro_map:print()
+
    -- make mountain block size 64x64 when possible
    self:_consolidate_mountain_blocks(micro_map, zones, x, y) -- CHECKCHECK
    --radiant.log.info('Consolidated Micro map:'); micro_map:print()
@@ -198,6 +201,10 @@ function TerrainGenerator:_fill_blend_map(blend_map, zones, x, y)
    local terrain_mean = self.terrain_info[terrain_type].mean_height
    local terrain_std_dev = self.terrain_info[terrain_type].std_dev
 
+   if self:_is_high_mountains(zones, x, y) then
+      terrain_mean = terrain_mean + self.terrain_info[TerrainType.Mountains].step_size*2
+   end
+
    for j=1, height do
       for i=1, width do
          tile = blend_map:get(i, j)
@@ -228,15 +235,36 @@ function TerrainGenerator:_fill_blend_map(blend_map, zones, x, y)
    end
 
    -- avoid extreme values along edges by halving std_dev
-   -- for j=1, height do
-   --    for i=1, width do
-   --       if blend_map:is_boundary(i, j) then
-   --          _halve_tile_std_dev(blend_map:get(i, j))
-   --       end
-   --    end
-   -- end
+   for j=1, height do
+      for i=1, width do
+         if blend_map:is_boundary(i, j) then
+            _halve_tile_std_dev(blend_map:get(i, j))
+         end
+      end
+   end
 
    return blend_map
+end
+
+function TerrainGenerator:_is_high_mountains(zones, x, y)
+   local zone
+
+   zone = zones:get(x, y)
+   if zone.terrain_type ~= TerrainType.Mountains then return false end
+
+   zone = zones:get(x-1, y)
+   if zone ~= nil and zone.terrain_type ~= TerrainType.Mountains then return false end
+
+   zone = zones:get(x+1, y)
+   if zone ~= nil and zone.terrain_type ~= TerrainType.Mountains then return false end
+
+   zone = zones:get(x, y-1)
+   if zone ~= nil and zone.terrain_type ~= TerrainType.Mountains then return false end
+
+   zone = zones:get(x, y+1)
+   if zone ~= nil and zone.terrain_type ~= TerrainType.Mountains then return false end
+
+   return true
 end
 
 function _halve_tile_std_dev(tile)
@@ -358,14 +386,14 @@ function TerrainGenerator:_filter_noise_map(noise_map)
    FilterFns.filter_2D_025(filtered_map, noise_map, width, height, 8)
    filtered_map.generated = true
 
-   return filtered_map
+   --return filtered_map
 
-   -- local micro_map = Array2D(width, height) -- CHECKCHECK
-   -- micro_map.terrain_type = terrain_type
-   -- FilterFns.filter_max_slope(micro_map, filtered_map, width, height)
-   -- micro_map.generated = true
+   local micro_map = Array2D(width, height) -- CHECKCHECK
+   micro_map.terrain_type = terrain_type
+   FilterFns.filter_max_slope(micro_map, filtered_map, width, height)
+   micro_map.generated = true
 
-   -- return micro_map
+   return micro_map
 end
 
 function TerrainGenerator:_add_DC_component(micro_map, blend_map)
