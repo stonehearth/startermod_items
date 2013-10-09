@@ -13,7 +13,7 @@ function StonehearthCamera:__init()
   self:set_position(Vec3(0, 1, 0))
   self:look_at(Vec3(0, 0, -1))
 
-  self:set_position(Vec3(15, 25, 30))
+  self:set_position(Vec3(50, 200, 150))
 
   self._next_position = self:get_position()
   self._continuous_delta = Vec3(0, 0, 0)
@@ -316,7 +316,6 @@ function StonehearthCamera:get_position()
 end
 
 function StonehearthCamera:set_position(new_pos)
-  radiant.log.info('c ' .. tostring(new_pos))
   return _radiant.renderer.camera.set_position(new_pos)
 end
 
