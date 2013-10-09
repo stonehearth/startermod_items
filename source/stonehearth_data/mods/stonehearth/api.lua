@@ -10,6 +10,7 @@ api = {
    ai = get_service('ai'),
    calendar = get_service('calendar'),
    combat = get_service('combat'),
+   event = get_service('event'),
    inventory = get_service('inventory'),
    population = get_service('population'),
    object_tracker = get_service('object_tracker'),
