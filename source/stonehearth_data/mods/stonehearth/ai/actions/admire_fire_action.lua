@@ -69,7 +69,9 @@ function AdmireFire:_start_looking_for_fire()
 
       else
          --If the seat does have an owner, keep looking
-         -- self._pathfinder:restart() --TODO: get this working. Till then, get a whole new PF. 
+         --TODO: get restart working. When I tried to pass it through from C++ and call
+         --it from here, stuff just crashes
+         -- self._pathfinder:restart()
          self._pathfinder:stop()
          self._pathfinder = nil
          self:_start_looking_for_fire()

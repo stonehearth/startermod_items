@@ -140,10 +140,12 @@
          "actions.grab_talisman_action" : "file(ai/actions/grab_talisman_action.lua)",
          "actions.admire_fire_action" : "file(ai/actions/admire_fire_action.lua)",
          "actions.chop_tree_action" : "file(ai/actions/chop_tree_action.lua)",
+         "actions.bring_item_on_path_to_dest" : "file(ai/actions/bring_item_on_path_to_dest.lua)",
          "actions.worker_task_dispatcher" : "file(ai/actions/worker_task_dispatcher.lua)",
          "actions.worker_pickup_action" : "file(ai/actions/worker_pickup_action.lua)",
          "actions.worker_restock_action" : "file(ai/actions/worker_restock_action.lua)",
          "actions.worker_place_action" : "file(ai/actions/worker_place_action.lua)",
+         "actions.worker_light_fire_action" : "file(ai/actions/worker_light_fire_action.lua)",
          "actions.play_with_ball_action" : "file(ai/actions/play_with_ball_action.lua)",
 
          "observers.look_for_enemies" : "file(ai/observers/look_for_enemies.lua)",

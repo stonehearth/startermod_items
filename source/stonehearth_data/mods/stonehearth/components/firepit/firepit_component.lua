@@ -19,7 +19,6 @@ function FirepitComponent:__init(entity, data_binding)
    radiant.events.listen('radiant.events.calendar.sunset', self)
 end
 
-
 function FirepitComponent:extend(json)
    -- not really...
    if json and json.effective_radius then
@@ -31,88 +30,108 @@ end
 --TODO: actually have a place for people to sit down/lie down
 --TODO: add a random element to the placement of the seats.
 function FirepitComponent:_add_seats()
-  self._seats = {}
-  local firepit_loc = Point3(radiant.entities.get_world_grid_location(self._entity))
-  self:_add_one_seat(1, Point3(firepit_loc.x + 5, firepit_loc.y, firepit_loc.z + 1))
-  self:_add_one_seat(2, Point3(firepit_loc.x + -4, firepit_loc.y, firepit_loc.z))
-  self:_add_one_seat(3, Point3(firepit_loc.x + 1, firepit_loc.y, firepit_loc.z + 5))
-  self:_add_one_seat(4, Point3(firepit_loc.x + 1, firepit_loc.y, firepit_loc.z - 4))
-  self:_add_one_seat(5, Point3(firepit_loc.x + 4, firepit_loc.y, firepit_loc.z + 4))
-  self:_add_one_seat(6, Point3(firepit_loc.x + 4, firepit_loc.y, firepit_loc.z - 3))
-  self:_add_one_seat(7, Point3(firepit_loc.x -3, firepit_loc.y, firepit_loc.z + 3))
-  self:_add_one_seat(8, Point3(firepit_loc.x - 2, firepit_loc.y, firepit_loc.z - 3))
+   self._seats = {}
+   local firepit_loc = Point3(radiant.entities.get_world_grid_location(self._entity))
+   self:_add_one_seat(1, Point3(firepit_loc.x + 5, firepit_loc.y, firepit_loc.z + 1))
+   self:_add_one_seat(2, Point3(firepit_loc.x + -4, firepit_loc.y, firepit_loc.z))
+   self:_add_one_seat(3, Point3(firepit_loc.x + 1, firepit_loc.y, firepit_loc.z + 5))
+   self:_add_one_seat(4, Point3(firepit_loc.x + 1, firepit_loc.y, firepit_loc.z - 4))
+   self:_add_one_seat(5, Point3(firepit_loc.x + 4, firepit_loc.y, firepit_loc.z + 4))
+   self:_add_one_seat(6, Point3(firepit_loc.x + 4, firepit_loc.y, firepit_loc.z - 3))
+   self:_add_one_seat(7, Point3(firepit_loc.x -3, firepit_loc.y, firepit_loc.z + 3))
+   self:_add_one_seat(8, Point3(firepit_loc.x - 2, firepit_loc.y, firepit_loc.z - 3))
 end
 
 function FirepitComponent:_add_one_seat(seat_number, location)
-  local seat = radiant.entities.create_entity('stonehearth.fire_pit_seat')
-  local seat_comp = seat:get_component('stonehearth:center_of_attn_spot')
-  seat_comp:add_to_center_of_attn(self._entity, seat_number)
-  self._seats[seat_number] = seat
-  radiant.terrain.place_entity(seat, location)
+   local seat = radiant.entities.create_entity('stonehearth.fire_pit_seat')
+   local seat_comp = seat:get_component('stonehearth:center_of_attn_spot')
+   seat_comp:add_to_center_of_attn(self._entity, seat_number)
+   self._seats[seat_number] = seat
+   radiant.terrain.place_entity(seat, location)
 end
 
---[[ At sunset, tell a worker to fill the fire with wood, and light it.
-     At dawn, tell a worker to extingish the fire
-     TODO: right now, we automatically populate with wood.
-     TODO: what about cooking, for which the FirepitComponent would need to stay lit during the day?
-     I suppose a cook could check if it's lit, and when it's not, fill it again.
-     Note: this could have been modeled as an action, but the fire never
-     really decides to have different kinds of behavior. It's pretty static.
-]]
+--- At sunset, start firepit activities
+-- Tell a worker to fill the fire with wood, and light it
+-- If there aren't seats around the fire yet, create them
+-- If there's already wood in the fire from the previous day, it goes out now.
 FirepitComponent['radiant.events.calendar.sunset'] = function (self)
+   self:extinguish()
    if not self._seats then
       self:_add_seats()
    end
-   self:light_fire()
+   self:_init_gather_wood_task()
+   --self:light_fire()
 end
 
+--- At sunrise, the fire eats the log inside of it
 FirepitComponent['radiant.events.calendar.sunrise'] = function (self)
+   if self._light_task then
+      self._light_task:stop()
+   end
    self:extinguish()
 end
 
+--[[
 function FirepitComponent:light_fire()
    self._my_wood = radiant.entities.create_entity('stonehearth.oak_log')
    radiant.entities.add_child(self._entity, self._my_wood, Point3(0, 0, 0))
+   self._curr_fire_effect =
+      radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/firepit_effect')
+end
+]]
+
+function FirepitComponent:_init_gather_wood_task()
+   if not self._light_task then
+      local ws = radiant.mods.load('stonehearth').worker_scheduler
+      local faction = radiant.entities.get_faction(self._entity)
+      assert(faction, "missing a faction on this firepit!")
+      self._worker_scheduler = ws:get_worker_scheduler(faction)
+
+      --function filter workers: anyone not carrying anything
+      --TODO: figure out how to include people who are already carrying wood
+      local not_carrying_fn = function (worker)
+         return radiant.entities.get_carrying(worker) == nil
+      end
+
+      --Object filter
+      local object_filter_fn = function(item_entity)
+         local item = item_entity:get_component('item')
+         if not item then
+            return false
+         end
+         --TODO: if we add "wood" as a property to proxy items made of wood, we could be in trouble...
+         return item:get_material() == "wood"
+      end
+
+      --Create the pickup task
+      self._light_task = self._worker_scheduler:add_worker_task('lighting_fire_task')
+                  :set_worker_filter_fn(not_carrying_fn)
+                  :set_work_object_filter_fn(object_filter_fn)
+
+      self._light_task:set_action_fn(
+         function (path)
+            return 'stonehearth.light_fire', path, self._entity, self._light_task
+         end
+      )
+   end
+   self._light_task:start()
+end
+
+--- Adds wood to the fire
+-- Create a new entity and destroy the old one so there's no danger that the worker
+-- scheduler will try to tell the worker to make off with the (burning) log
+-- @param log_entity to add to the fire
+function FirepitComponent:add_wood(log_entity)
+   self._my_wood = log_entity
+   self._my_wood = radiant.entities.create_entity('stonehearth.oak_log')
+   radiant.entities.add_child(self._entity, self._my_wood, Point3(0, 0, 0))
+   radiant.entities.destroy_entity(log_entity)
 
    self._curr_fire_effect =
       radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/firepit_effect')
 end
 
---[[
-function FirepitComponent:init_worker_task()
-  if not self._light_task then
-     --create the task to gather wood for and feed the fire
-     local ws = radiant.mods.load('stonehearth').worker_scheduler
-     local faction = self._entity:get_component('unit_info'):get_faction()
-     local worker_scheduler = ws:get_worker_scheduler(session.faction)
-
-end
-  self._light_task:start()
-
-end
-]]
-
---[[
-TODO: make this work with the fire pit
-function Firepit:init_worker_scheduler()
-   local worker_mod = radiant.mods.require 'stonehearth_worker_class.stonehearth_worker_class'
-   local faction = self._entity.get_component('unit_info').get_faction()
-   local worker_scheduler = worker_mod.get_worker_scheduler(faction)
-
-   -- Any worker that's not carrying anything will do...
-   local not_carrying_fn = function (worker)
-      return radiant.entities.get_carrying(worker) == nil
-   end
-
-   worker_scheduler:add_worker_task('chop_tree')
-                  :set_worker_filter_fn(not_carrying_fn)
-                  :add_work_object(tree)
-                  :set_action('stonehearth.chop_tree')
-                  :start()
-   return true
-end
-]]
-
+--- if there is wood, destroy it and extinguish the particles
 function FirepitComponent:extinguish()
    if self._my_wood then
       radiant.entities.remove_child(self._entity, self._my_wood)
@@ -129,9 +148,9 @@ end
 -- @param target_entity The thing we're trying to figure out is in the radius of the firepit
 -- @return true if we're in the radius of the light of the fire, false otherwise
 function FirepitComponent:in_radius(target_entity)
-  local target_location = Point3(radiant.entities.get_world_grid_location(target_entity))
-  local world_bounds = self:_get_world_bounds()
-  return world_bounds:contains(target_location)
+   local target_location = Point3(radiant.entities.get_world_grid_location(target_entity))
+   local world_bounds = self:_get_world_bounds()
+   return world_bounds:contains(target_location)
 end
 
 function FirepitComponent:_get_world_bounds()

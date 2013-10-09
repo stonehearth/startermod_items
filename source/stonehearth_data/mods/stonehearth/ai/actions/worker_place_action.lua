@@ -11,14 +11,20 @@ WorkerPlaceItemAction.priority = 5
 function WorkerPlaceItemAction:__init(ai, entity)
    self._ai = ai
    self._entity = entity
+
+   self._task = nil
+
+   --Factor out?
    self._path_to_destination = nil
    self._temp_entity = nil
    self._ghost_entity = nil
+   self._pathfinder = nil
 end
 
---- Pick up and place the item designated by the player
+--- Pick up and place the item designated by the caller
 -- TODO: if the action is stopped, (ie, goblins attack!) should I drop the thing I'm carrying?
 -- @param path The path to the object
+-- @ghost_entity The ghost object representing the destination
 -- @param rotation The degree at which the object should appear when it's placed
 -- @param task The task, if this is fired by a worker scheduler
 function WorkerPlaceItemAction:run(ai, entity, path, ghost_entity, rotation, task)
@@ -45,6 +51,7 @@ function WorkerPlaceItemAction:run(ai, entity, path, ghost_entity, rotation, tas
    -- Log successful grab
    radiant.log.info('%s (Worker %s): Hands off, guys! I have totally got this %s', tostring(entity), name, object_name)
 
+   --See if we can factor this out
    -- We already have a path to the object, so set up a pathfinder
    -- between the object and its final destination, to use later.
    self._ghost_entity = ghost_entity
@@ -76,24 +83,27 @@ function WorkerPlaceItemAction:run(ai, entity, path, ghost_entity, rotation, tas
 
       -- Remove the icon
       radiant.entities.destroy_entity(proxy_entity)
-      radiant.entities.destroy_entity(self._ghost_entity)
 
       -- Place the item in the world
       radiant.terrain.place_entity(full_sized_entity, self._path_to_destination:get_destination_point_of_interest())
       radiant.entities.turn_to(full_sized_entity, rotation)
    end
 
+   --destroy the ghost entity
+   radiant.entities.destroy_entity(self._ghost_entity)
+
    --If we got here, we succeeded at the action.  We can get rid of this task now.
    self._task:destroy()
    self._task = nil
 end
+
+--Factor out these 2 functions
 
 --- Make a pathfinder between the target item and the final destination
 -- Since the pf can only path between 2 entities, and since the target_item may be
 -- picked up by the worker before the pf returns, create a temporary entity to serve
 -- as the starting destiantion and the final destination
 -- @param target_item the item that the worker is planning to pick up
--- @return temporary destination entity that will serve as the starting poitn of the path
 function WorkerPlaceItemAction:_find_path_to_ghost_item(target_item)
    local target_item_loc = target_item:get_component('mob'):get_world_grid_location()
    self._temp_entity = radiant.entities.create_entity()
@@ -136,6 +146,8 @@ function WorkerPlaceItemAction:stop()
    if self._proxy_component then
       self._proxy_component:set_under_construction(false)
    end
+
+   --factor out
    self:_destroy_temp_entities()
 end
 
