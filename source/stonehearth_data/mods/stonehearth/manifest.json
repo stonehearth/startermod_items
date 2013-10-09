@@ -62,6 +62,8 @@
          "medium_juniper_tree" : "file(entities/trees/juniper_tree/medium_juniper_tree)",
          "large_juniper_tree" : "file(entities/trees/juniper_tree/large_juniper_tree)",
 
+         "pink_flower" : "file(entities/ground_clutter/pink_flower)",
+
          "arch_backed_chair" :       "file(entities/furniture/arch_backed_chair)",
          "arch_backed_chair_proxy" : "file(entities/furniture/arch_backed_chair/arch_backed_chair_proxy.json)",
 
