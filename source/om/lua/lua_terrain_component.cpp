@@ -16,15 +16,17 @@ scope LuaTerrainComponent::RegisterLuaTypes(lua_State* L)
          .def("set_zone_size",         &Terrain::SetZoneSize)
          .def("add_zone",              &Terrain::AddZone)
          .def("place_entity",          &Terrain::PlaceEntity)
-         .enum_("TerrainTypes")
+         .enum_("BlockTypes")
          [
-            value("BEDROCK",              Terrain::Bedrock),
-            value("TOPSOIL",              Terrain::Topsoil),
-            value("TOPSOIL_DETAIL",       Terrain::TopsoilDetail),
-            value("FOOTHILLS",            Terrain::Foothills),
-            value("GRASSLAND",            Terrain::Grassland),
-            value("DARK_WOOD",            Terrain::DarkWood),
-            value("DIRT_PATH",            Terrain::DirtPath)
+            value("ROCK_LAYER_1",      Terrain::RockLayer1),
+            value("ROCK_LAYER_2",      Terrain::RockLayer2),
+            value("ROCK_LAYER_3",      Terrain::RockLayer3),
+            value("SOIL",              Terrain::Soil),
+            value("DARK_GRASS",        Terrain::DarkGrass),
+            value("DARK_GRASS_DARK",   Terrain::DarkGrassDark),
+            value("LIGHT_GRASS",       Terrain::LightGrass),
+            value("DARK_WOOD",         Terrain::DarkWood),
+            value("DIRT_ROAD",         Terrain::DirtRoad)
          ]
       ;
 }
