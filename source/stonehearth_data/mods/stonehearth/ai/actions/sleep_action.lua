@@ -31,8 +31,8 @@ end
    on the ground (not in a bed) from exhaustion.
 --]]
 SleepAction['radiant.events.calendar.hourly'] = function(self, calendar)
-   -- if it's after 8pm or before 6am and we're not already asleep got find a bed.
-   if (calendar.hour > 20 or calendar.hour < 6) then
+   -- if it's after midnight or before 6am and we're not already asleep got find a bed.
+   if (calendar.hour < 6) then
       if not self._looking_for_a_bed and not self._sleeping then
          self:start_looking_for_bed()
       end
