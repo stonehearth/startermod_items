@@ -160,7 +160,7 @@ void Client::run()
 
    // seriously???
    std::string game_script = vm["game.script"].as<std::string>();
-   if (game_script != "stonehearth/new_world.lua") {
+   if (game_script != "stonehearth/start_game.lua") {
       docroot += "?skip_title=true";
    }
 

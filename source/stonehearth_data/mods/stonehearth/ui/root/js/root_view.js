@@ -1,7 +1,4 @@
-App.StonehearthView = Ember.ContainerView.extend({
-
-   _gameView: null,
-   _titleScreenView: null,
+App.RootView = Ember.ContainerView.extend({
 
    init: function() {
       this._super();
@@ -9,23 +6,25 @@ App.StonehearthView = Ember.ContainerView.extend({
 
       // create the views
       this._gameView = this.createChildView(App["StonehearthGameUiView"]);
-      this._titleScreenView = this.createChildView(App["StonehearthTitleScreenView"]);
+      this._shellView = this.createChildView(App["StonehearthShellView"]);
 
       // push em
       this.pushObject(this._gameView)
-      this.pushObject(this._titleScreenView)
+      this.pushObject(this._shellView)
 
       // accessors for easy access throughout the app
       App.gameView = this._gameView;
-      App.titleScreenView = this._titleScreenView;
+      App.shellView = this._shellView;
 
       App.gotoGame = function() {
          self.gotoGame();
       }
 
-      App.gotoTitleScreen = function() {
-         self.gotoTitleScreen();
+      App.gotoShell = function() {
+         self.gotoShell();
       }
+
+      App.gotoShell();
    },
 
    didInsertElement: function() {
@@ -35,10 +34,12 @@ App.StonehearthView = Ember.ContainerView.extend({
    },
 
    gotoGame: function() {
-      $('#' + this._titleScreenView.elementId).hide();
+      $('#' + this._shellView.elementId).hide();
+      $('#' + this._gameView.elementId).show();
    },
 
-   gotoTitleScreen: function() {
-      $('#' + this._titleScreenView.elementId).show();
+   gotoShell: function() {
+      $('#' + this._gameView.elementId).hide();
+      $('#' + this._shellView.elementId).show();
    }
 });

@@ -1,29 +1,20 @@
 
-App.StonehearthGameUiView = Ember.ContainerView.extend({
+App.StonehearthGameUiView = App.ContainerView.extend({
    init: function() {
       this._super();
-      var self = this;
-
-      // xxx: fetch this from the game...
-      var json = {
-         views : [
+      this.views = {
+         initial: [
             "StonehearthUnitFrameView",
             "StonehearthObjectBrowserView",
             "StonehearthCalendarView",
-            "StonehearthMainActionbarView",
             "StonehearthEventLogView"
-         ]
+            ],
+         full: [
+            "StonehearthMainActionbarView"
+            ]
       };
-
-      var views = json.views || [];
-      $.each(views, function(i, name) {
-         console.log(name);
-         var ctor = App[name]
-         if (ctor) {
-            self.addView(ctor);
-         }
-      });
-
+      
+      this._addViews(this.views.initial);
       this._traceCalendar();
    },
 
@@ -32,26 +23,24 @@ App.StonehearthGameUiView = Ember.ContainerView.extend({
       this._calendarTrace.destroy();
    },
 
-   addView: function(type, options) {
-      console.log("adding view " + type);
-
-      var childView = this.createChildView(type, {
-         classNames: ['stonehearth-view']
-      });
-      childView.setProperties(options);
-
-      if (childView.get('modal')) {
-         var modalOverlay = App.gameView.addView('StonehearthModalOverlay', { modalView: childView });
-         childView.modalOverlay = modalOverlay;
-         this.pushObject(modalOverlay);
-      }
-
-      this.pushObject(childView);
-      return childView;
-   },
-
    getDate: function() {
       return this._date;
+   },
+
+   showFullUi: function() {
+      this._addViews(this.views.full);
+   },
+
+   _addViews: function(views) {
+      var views = views || [];
+      var self = this;
+      $.each(views, function(i, name) {
+         console.log(name);
+         var ctor = App[name]
+         if (ctor) {
+            self.addView(ctor);
+         }
+      });
    },
 
    _traceCalendar: function() {

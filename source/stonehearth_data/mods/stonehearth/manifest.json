@@ -51,7 +51,7 @@
          "female_1" : "file(entities/humans/female_1)",
          "workshop_outbox" : "file(entities/crafting/workshop_outbox)",
 
-         "effects.talisman_glow" : "file(data/effects/talisman_glow)",
+         "effects:talisman_glow" : "file(data/effects/talisman_glow)",
 
          "oak_log" : "file(entities/trees/oak_tree/oak_log)",
          "small_oak_tree" : "file(entities/trees/oak_tree/small_oak_tree)",
@@ -74,6 +74,8 @@
 
          "dining_table" : "file(entities/furniture/dining_table)",
          "dining_table_proxy" : "file(entities/furniture/dining_table/dining_table_proxy.json)",
+
+         "camp_standard" : "file(entities/gizmos/camp_standard)",
 
          "fire_pit" : "file(entities/gizmos/fire_pit)",
          "fire_pit_proxy" : "file(entities/gizmos/fire_pit/fire_pit_proxy.json)",
@@ -157,6 +159,18 @@
          "sounds:axe_chopping_sound" : "file(data/sounds/effects/axe_chopping_sound.ogg)"
       },
       "functions" : {
+         "new_game": {
+            "controller" : "file(call_handlers/new_game_call_handler.lua)",
+            "endpoint" : "server"
+         },
+         "choose_camp_location": {
+            "controller" : "file(call_handlers/new_game_call_handler.lua)",
+            "endpoint" : "client"
+         },
+         "create_camp": {
+            "controller" : "file(call_handlers/new_game_call_handler.lua)",
+            "endpoint" : "server"
+         },
          "get_events": {
             "controller" : "file(call_handlers/event_call_handler.lua)",
             "endpoint" : "server"
@@ -247,8 +261,11 @@
    "ui" :  {
       "html" : [
          "file(ui/common/modal_overlay/modal_overlay.html)",
-         "file(ui/title/title.html)",
+         "file(ui/shell/shell.html)",
+         "file(ui/shell/title/title.html)",
+         "file(ui/shell/new_game/new_game.html)",
          "file(ui/game/game.html)",
+         "file(ui/game/create_camp/create_camp.html)",
          "file(ui/game/build_workshop/build_workshop.html)",
          "file(ui/game/show_workshop/show_workshop.html)",
          "file(ui/game/clock_widget/clock_widget.html)",
@@ -262,8 +279,11 @@
       ],
       "js" : [
          "file(ui/common/modal_overlay/modal_overlay.js)",
-         "file(ui/title/title.js)",
+         "file(ui/shell/shell.js)",
+         "file(ui/shell/title/title.js)",
+         "file(ui/shell/new_game/new_game.js)",
          "file(ui/game/game.js)",
+         "file(ui/game/create_camp/create_camp.js)",
          "file(ui/game/build_workshop/build_workshop.js)",
          "file(ui/game/show_workshop/show_workshop.js)",
          "file(ui/game/clock_widget/clock_widget.js)",
@@ -278,8 +298,11 @@
       ],
       "less" : [
          "file(ui/common/modal_overlay/modal_overlay.less)",
-         "file(ui/title/title.less)",
+         "file(ui/shell/shell.less)",
+         "file(ui/shell/title/title.less)",
+         "file(ui/shell/new_game/new_game.less)",
          "file(ui/game/game.less)",
+         "file(ui/game/create_camp/create_camp.less)",
          "file(ui/game/build_workshop/build_workshop.less)",
          "file(ui/game/show_workshop/show_workshop.less)",
          "file(ui/game/clock_widget/clock_widget.less)",

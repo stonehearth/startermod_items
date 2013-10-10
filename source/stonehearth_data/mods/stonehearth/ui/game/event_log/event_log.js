@@ -19,7 +19,6 @@ App.StonehearthEventLogView = App.View.extend({
                   self.set('context.events', data);
                })
          });
-
    },
 
    reverse: function(){
