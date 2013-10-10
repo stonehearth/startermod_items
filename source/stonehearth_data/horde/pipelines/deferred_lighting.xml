@@ -3,9 +3,10 @@
     <RenderTarget id="AttributeBuffer" depthBuf="true" numColBufs="2" format="RGBA32F" scale="1.0"/>
     <RenderTarget id="LightingBuffer" depthBuf="false" numColBufs="1" format="RGBA32F" scale="1.0"/>
     <RenderTarget id="OUTPUT" depthBuf="true" numColBufs="1" format="RGBA8" maxSamples="4" scale="1.0" />
-    <RenderTarget id="SSAOBUF" depthBuf="false" numColBufs="1" format="RGBA8" scale="1.0" />
-    <RenderTarget id="SSAOBLUR" depthBuf="false" numColBufs="1" format="RGBA8" scale="1.0" />
+    <RenderTarget id="SSAOBUF" depthBuf="false" numColBufs="1" format="RGBA8" maxSamples="4" scale="1.0" />
+    <RenderTarget id="SSAOBLUR" depthBuf="false" numColBufs="1" format="RGBA8" maxSamples="4" scale="1.0" />
     <RenderTarget id="TEMPSSAOBLUR" depthBuf="false" numColBufs="1" format="RGBA8" scale="1.0" />
+    <RenderTarget id="SelectedTemp" depthBuf="false" numColBufs="1" format="RGBA8" scale="1.0"/>
   </Setup>
   <CommandQueue>
 
@@ -27,7 +28,7 @@
       <BindBuffer sampler="positions" sourceRT="AttributeBuffer" bufIndex="1" />
       <BindBuffer sampler="depth" sourceRT="AttributeBuffer" bufIndex="32" />
 
-      <DoDeferredLightLoop class="~Translucent" noShadows="false"/>
+      <DoDeferredLightLoop class="~Translucent" noShadows="true"/>
 
       <UnbindBuffers />
     </Stage>
@@ -85,8 +86,15 @@
     </Stage>
     
     <Stage id="Selected">
-      <SwitchTarget target="OUTPUT" />
-      <DrawSelected context="SELECTED" />
+       <SwitchTarget target="SelectedTemp" />
+       <ClearTarget colBuf0="true"/>
+       <DrawSelected context="SELECTED_SCREENSPACE" />
+
+       <SwitchTarget target="OUTPUT" />
+       <BindBuffer sampler="outlineSampler" sourceRT="SelectedTemp" bufIndex="0"/>
+       <DrawQuad material="terrain/default_material.xml" context="SELECTED_SCREENSPACE_OUTLINER" />
+
+       <UnbindBuffers />
     </Stage>
 
     <Stage id="Final">
