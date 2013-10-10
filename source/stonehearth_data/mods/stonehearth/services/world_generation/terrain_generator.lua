@@ -3,8 +3,8 @@ local Array2D = require 'services.world_generation.array_2D'
 local GaussianRandom = require 'services.world_generation.math.gaussian_random'
 local MathFns = require 'services.world_generation.math.math_fns'
 local FilterFns = require 'services.world_generation.filter.filter_fns'
-local Wavelet = require 'services.world_generation.wavelet.wavelet'
-local WaveletFns = require 'services.world_generation.wavelet.wavelet_fns'
+local Wavelet = require 'services.world_generation.filter.wavelet'
+local WaveletFns = require 'services.world_generation.filter.wavelet_fns'
 local EdgeDetailer = require 'services.world_generation.edge_detailer'
 local TileInfo = require 'services.world_generation.tile_info'
 local Timer = radiant.mods.require('stonehearth_debugtools.timer')
@@ -116,7 +116,8 @@ function TerrainGenerator:generate_zone(terrain_type, zones, x, y)
    local blend_map = self.blend_map_buffer
    local noise_map = self.noise_map_buffer
    local micro_map, zone_map
-   local timer = Timer(Timer.CPU_TIME)
+   local zone_timer = Timer(Timer.CPU_TIME)
+   local micro_map_timer = Timer(Timer.CPU_TIME)
 
    if zones ~= nil then
       radiant.log.info('Generating zone %d, %d', x, y)
@@ -124,7 +125,8 @@ function TerrainGenerator:generate_zone(terrain_type, zones, x, y)
 
    -- make each zone deterministic on x, y so we can modify a zone without affecting othes
    self:_set_random_seed(x, y)
-   timer:start()
+   zone_timer:start()
+   micro_map_timer:start()
 
    blend_map.terrain_type = terrain_type
    noise_map.terrain_type = terrain_type
@@ -165,6 +167,7 @@ function TerrainGenerator:generate_zone(terrain_type, zones, x, y)
    -- copy again in case postprocess changed them
    self:_copy_forced_edge_values(micro_map, zones, x, y)
    --radiant.log.info('Final Micro map:'); micro_map:print()
+   micro_map_timer:stop()
 
    -- zone_map must be a new HeightMap as it is returned from the function
    self:_create_oversize_map_from_micro_map(oversize_map, micro_map)
@@ -172,18 +175,20 @@ function TerrainGenerator:generate_zone(terrain_type, zones, x, y)
 
    -- transform to frequncy domain and shape frequencies with exponential decay
    self:_shape_height_map(oversize_map, self.frequency_scaling_coeff, self.wavelet_levels)
+   self:_yield()
 
    self:_quantize_height_map(oversize_map, false)
    self:_yield()
 
    self:_add_additional_details(oversize_map)
+   self:_yield()
 
    -- copy the offset zone map from the oversize map
    zone_map = self:_extract_zone_map(oversize_map)
-   self:_yield()
 
-   timer:stop()
-   radiant.log.info('Zone generation time: %.3fs', timer:seconds())
+   zone_timer:stop()
+   --radiant.log.info('Micromap generation time: %.3fs', micro_map_timer:seconds())
+   radiant.log.info('Zone generation time: %.3fs', zone_timer:seconds())
 
    return zone_map, micro_map
 end
@@ -194,6 +199,7 @@ function TerrainGenerator:_yield()
       coroutine.yield()
    end
 end
+
 function TerrainGenerator:_fill_blend_map(blend_map, zones, x, y)
    local i, j, adjacent_zone, tile
    local width = blend_map.width
@@ -611,12 +617,10 @@ function TerrainGenerator:_shape_height_map(height_map, freq_scaling_coeff, leve
    local width = height_map.width
    local height = height_map.height
 
-   Wavelet.DWT_2D(height_map, width, height, levels)
+   Wavelet.DWT_2D(height_map, width, height, levels, self.async)
    WaveletFns.scale_high_freq(height_map, width, height, freq_scaling_coeff, levels)
    self:_yield()
-
-   Wavelet.IDWT_2D(height_map, width, height, levels)
-   self:_yield()
+   Wavelet.IDWT_2D(height_map, width, height, levels, self.async)
 end
 
 function TerrainGenerator:_extract_zone_map(oversize_map)

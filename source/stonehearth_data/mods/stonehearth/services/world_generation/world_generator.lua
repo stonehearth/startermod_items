@@ -65,6 +65,7 @@ function WorldGenerator:_generate_world(zones)
 
       zone_map, micro_map = self._terrain_generator:generate_zone(zone_info.terrain_type, zones, i, j)
       zones:set(i, j, micro_map)
+      self:_yield()
 
       offset_x = (i-1)*zone_size - origin_x
       offset_y = (j-1)*zone_size - origin_y
@@ -73,11 +74,19 @@ function WorldGenerator:_generate_world(zones)
       self._height_map_renderer:render_height_map_to_terrain(zone_map, offset_x, offset_y)
       timer:stop()
       radiant.log.info('HeightMapRenderer time: %.3fs', timer:seconds())
+      self:_yield()
 
       timer:start()
       self._landscaper:place_trees(zone_map, offset_x, offset_y)
       timer:stop()
       radiant.log.info('Landscaper time: %.3fs', timer:seconds())
+      self:_yield()
+   end
+end
+
+function WorldGenerator:_yield()
+   if self._async then
+      coroutine.yield()
    end
 end
 

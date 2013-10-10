@@ -19,8 +19,8 @@ function HeightMapRenderer:__init(zone_size, terrain_info)
 
    -- rock layers
    local rock_layers = { {}, {}, {} }
-   local foothills_info = terrain_info[TerrainType.Foothills]
-   local mountains_info = terrain_info[TerrainType.Mountains]
+   local foothills_info = self.terrain_info[TerrainType.Foothills]
+   local mountains_info = self.terrain_info[TerrainType.Mountains]
    rock_layers[1].terrain_tag = Terrain.ROCK_LAYER_1
    rock_layers[1].max_height = foothills_info.max_height + mountains_info.step_size
    rock_layers[2].terrain_tag = Terrain.ROCK_LAYER_2
@@ -70,60 +70,57 @@ function HeightMapRenderer:_copy_heightmap_to_CPP(height_map_cpp, height_map)
 end
 
 function HeightMapRenderer:_add_land_to_region(dst, rect, height)
-   local foothills_step_size = self.terrain_info[TerrainType.Foothills].step_size
    local foothills_max_height = self.terrain_info[TerrainType.Foothills].max_height
    local grassland_max_height = self.terrain_info[TerrainType.Grassland].max_height
 
+   -- Bedrock
    dst:add_cube(Cube3(Point3(rect.min.x, -2, rect.min.y),
                       Point3(rect.max.x,  0, rect.max.y),
-                Terrain.ROCK_LAYER_1))
+                      Terrain.ROCK_LAYER_1))
 
    -- Mountains
    if height > foothills_max_height then
-      local rock_layers = self.rock_layers
-      local i, block_min, block_max
-      local stop = false
-
-      block_min = 0
-
-      for i=1, #rock_layers do
-         if height <= rock_layers[i].max_height then
-            block_max = height
-            stop = true
-         else
-            block_max = rock_layers[i].max_height
-         end
-
-         dst:add_cube(Cube3(Point3(rect.min.x, block_min, rect.min.y),
-                            Point3(rect.max.x, block_max, rect.max.y),
-                            rock_layers[i].terrain_tag))
-
-         if stop then break end
-         block_min = block_max
-      end
+      self:_add_mountains_to_region(dst, rect, height)
       return
    end
 
    -- Grassland
    if height <= grassland_max_height then
-      dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
-                         Point3(rect.max.x, height-1, rect.max.y),
-                         Terrain.SOIL))
-
-      local grass_type
-      if height < grassland_max_height then
-         grass_type = Terrain.DARK_GRASS_DARK
-      else 
-         grass_type = Terrain.DARK_GRASS
-      end
-
-      dst:add_cube(Cube3(Point3(rect.min.x, height-1, rect.min.y),
-                         Point3(rect.max.x, height,   rect.max.y),
-                         grass_type))
+      self:_add_grassland_to_region(dst, rect, height)
       return
    end
 
    -- Foothills
+   self:_add_foothills_to_region(dst, rect, height)
+end
+
+function HeightMapRenderer:_add_mountains_to_region(dst, rect, height)
+   local rock_layers = self.rock_layers
+   local i, block_min, block_max
+   local stop = false
+
+   block_min = 0
+
+   for i=1, #rock_layers do
+      if height <= rock_layers[i].max_height then
+         block_max = height
+         stop = true
+      else
+         block_max = rock_layers[i].max_height
+      end
+
+      dst:add_cube(Cube3(Point3(rect.min.x, block_min, rect.min.y),
+                         Point3(rect.max.x, block_max, rect.max.y),
+                         rock_layers[i].terrain_tag))
+
+      if stop then return end
+      block_min = block_max
+   end
+end
+
+function HeightMapRenderer:_add_foothills_to_region(dst, rect, height)
+   local foothills_step_size = self.terrain_info[TerrainType.Foothills].step_size
+
    if height % foothills_step_size == 0 then
 
       dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
@@ -138,6 +135,25 @@ function HeightMapRenderer:_add_land_to_region(dst, rect, height)
                          Point3(rect.max.x, height,   rect.max.y),
                          Terrain.SOIL))
    end
+end
+
+function HeightMapRenderer:_add_grassland_to_region(dst, rect, height)
+   local grassland_max_height = self.terrain_info[TerrainType.Grassland].max_height
+   local grass_type
+
+   dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
+                      Point3(rect.max.x, height-1, rect.max.y),
+                      Terrain.SOIL))
+
+   if height < grassland_max_height then
+      grass_type = Terrain.DARK_GRASS_DARK
+   else 
+      grass_type = Terrain.DARK_GRASS
+   end
+
+   dst:add_cube(Cube3(Point3(rect.min.x, height-1, rect.min.y),
+                      Point3(rect.max.x, height,   rect.max.y),
+                      grass_type))
 end
 
 -----

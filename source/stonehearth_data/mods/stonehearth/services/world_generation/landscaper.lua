@@ -3,8 +3,8 @@ local Array2D = require 'services.world_generation.array_2D'
 local MathFns = require 'services.world_generation.math.math_fns'
 local GaussianRandom = require 'services.world_generation.math.gaussian_random'
 local FilterFns = require 'services.world_generation.filter.filter_fns'
-local Wavelet = require 'services.world_generation.wavelet.wavelet'
-local WaveletFns = require 'services.world_generation.wavelet.wavelet_fns'
+local Wavelet = require 'services.world_generation.filter.wavelet'
+local WaveletFns = require 'services.world_generation.filter.wavelet_fns'
 local Point3 = _radiant.csg.Point3
 
 local Landscaper = class()
