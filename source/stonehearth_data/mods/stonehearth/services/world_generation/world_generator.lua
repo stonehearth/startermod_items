@@ -11,7 +11,8 @@ function WorldGenerator:__init(async)
    self._async = async
 
    self._terrain_generator = TerrainGenerator(self._async)
-   self._height_map_renderer = HeightMapRenderer(self._terrain_generator.zone_size)
+   self._height_map_renderer = HeightMapRenderer(self._terrain_generator.zone_size,
+                                                 self._terrain_generator.terrain_info)
    self._landscaper = Landscaper(self._terrain_generator.terrain_info)
 end
 
@@ -25,6 +26,7 @@ function WorldGenerator:create_world()
       local zones
       zones = self:_create_world_blueprint()
       --zones = self:_create_test_blueprint()
+      --self._height_map_renderer.tesselator_test()
       self:_generate_world(zones)
 
       cpu_timer:stop()
@@ -68,7 +70,7 @@ function WorldGenerator:_generate_world(zones)
       offset_y = (j-1)*zone_size - origin_y
 
       timer:start()
-      self._height_map_renderer:render_height_map_to_terrain(zone_map, terrain_info, offset_x, offset_y)
+      self._height_map_renderer:render_height_map_to_terrain(zone_map, offset_x, offset_y)
       timer:stop()
       radiant.log.info('HeightMapRenderer time: %.3fs', timer:seconds())
 

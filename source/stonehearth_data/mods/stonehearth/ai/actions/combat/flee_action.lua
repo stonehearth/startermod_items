@@ -1,3 +1,5 @@
+local event_service = require 'services.event.event_service'
+
 local Flee = class()
 
 local Point3 = _radiant.csg.Point3
@@ -28,6 +30,9 @@ function Flee:run(ai, entity)
    assert(self._target)
    radiant.entities.drop_carrying(entity)
    radiant.entities.set_posture(entity, 'panic')
+
+   local entity_name = radiant.entities.get_display_name(entity)
+   event_service:add_entry(entity_name .. ' is in trouble!')
 
    while true do
       ai:execute('stonehearth:run_away_from_entity', self._target)

@@ -125,8 +125,8 @@ function FilterFns.filter_2D_025(dst, src, src_width, src_height, filter_order)
    FilterFns.filter_2D_generic(dst, src, src_width, src_height, filter_kernel)
 end
 
-local filter_kernel_slew_rate = SlewRateFilter()
-function FilterFns.filter_max_slope(dst, src, src_width, src_height)
+function FilterFns.filter_max_slope(dst, src, src_width, src_height, slope)
+   local filter_kernel_slew_rate = SlewRateFilter(slope)
    FilterFns.filter_2D_generic(dst, src, src_width, src_height, filter_kernel_slew_rate)
 end
 

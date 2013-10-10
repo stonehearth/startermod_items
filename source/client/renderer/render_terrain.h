@@ -23,11 +23,11 @@ private:
    enum TerrainDetailTypes {
       RenderDetailBase = 1000,
 
-      FoothillsDetailBase = RenderDetailBase,
-      FoothillsDetailMax  = FoothillsDetailBase + 2,
+      LightGrassDetailBase = RenderDetailBase,
+      LightGrassDetailMax  = LightGrassDetailBase + 2,
 
-      GrassDetailBase,
-      GrassDetailMax  = GrassDetailBase + 1,
+      DarkGrassDetailBase,
+      DarkGrassDetailMax = DarkGrassDetailBase + 2,
 
       DirtRoadBase,
       DirtRoadMax = DirtRoadBase + 1,
@@ -72,9 +72,9 @@ private:
    void AddTerrainTypeToTesselation(csg::Region3 const& grass, csg::Region3 const& terrain, csg::Region3& tess, LayerDetailRingInfo const &rings);
    void TesselateLayer(csg::Region2 const& layer, int height, csg::Region3 const& clipper, csg::Region3& tess, LayerDetailRingInfo const &rings);
 
-   static LayerDetailRingInfo foothillGrassRingInfo_;
-   static LayerDetailRingInfo grasslandGrassRingInfo_;
-   static LayerDetailRingInfo dirtRoadRingInfo_;
+   static LayerDetailRingInfo light_grass_ring_info_;
+   static LayerDetailRingInfo dark_grass_ring_info_;
+   static LayerDetailRingInfo dirt_road_ring_info_;
 
 private:
    const RenderEntity&  entity_;

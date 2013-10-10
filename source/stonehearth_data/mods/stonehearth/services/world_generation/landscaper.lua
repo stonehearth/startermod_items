@@ -62,12 +62,12 @@ function Landscaper:place_trees(zone_map, world_offset_x, world_offset_y)
 
             if tree_type ~= nil then 
                if value <= 8 then      tree_name = get_tree_name(tree_type, small)
-               elseif value <= 35 then tree_name = get_tree_name(tree_type, medium)
+               elseif value <= 40 then tree_name = get_tree_name(tree_type, medium)
                else                    tree_name = get_tree_name(tree_type, large)
                end
 
                local entity
-               entity = self:_place_tree(tree_name, world_offset_x + x, world_offset_y + y)
+               entity = self:_place_item(tree_name, world_offset_x + x, world_offset_y + y)
                
                -- set a random facing for the tree
                entity:add_component('mob'):turn_to(90*math.random(0, 3))
@@ -124,10 +124,6 @@ function Landscaper:random_tree_size()
    local std_dev = #tree_sizes*0.33 -- edge values about half as likely as center value
    local roll = GaussianRandom.generate_int(1, #tree_sizes, std_dev)
    return tree_sizes[roll]
-end
-
-function Landscaper:_place_tree(tree_name, x, z)
-   return self:_place_item(tree_name, x, z)
 end
 
 function Landscaper:_place_item(uri, x, z)

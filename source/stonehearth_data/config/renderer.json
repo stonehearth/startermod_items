@@ -1,22 +1,29 @@
 {
-   "topsoil": {
+   "soil": {
       "dark_color": "#807147",
       "light_color": "#918154",
       "detail_color": "#A3905A"
    },
-   "foothills": {
-      "band_0_color": "#99ce7c",
-      "band_1_color": "#87c076",
-      "band_2_color": "#75b370"
+   "light_grass": {
+      "ring_0_color": "#99ce7c",
+      "ring_1_color": "#87c076",
+      "ring_2_color": "#75b370"
    },
-   "grassland": {
-      "band_0_color": "#5fa771",
-      "band_1_color": "#529864"
+   "dark_grass": {
+      "ring_0_color": "#5fa771",
+      "ring_1_color": "#589f6a",
+      "ring_2_color": "#529864",
+      "dark_color": "#458957"
+   },
+   "rock": {
+      "layer_1_color": "#615e55",
+      "layer_2_color": "#76726b",
+      "layer_3_color": "#82807b"
    },
    "wood": {
       "dark_color": "#523D27"
    },
-   "dirtpath": {
+   "dirt_road": {
       "center": "#897C60",
       "edges": "#978969"
    }

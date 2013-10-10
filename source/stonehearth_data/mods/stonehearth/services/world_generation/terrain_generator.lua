@@ -19,7 +19,7 @@ local TerrainGenerator = class()
 -- World = the entire playspace of a game
 
 function TerrainGenerator:__init(async, seed)
-   local default_seed = 3
+   local default_seed = 4
 
    if async == nil then async = false end
    if seed == nil then seed = default_seed end
@@ -42,7 +42,7 @@ function TerrainGenerator:__init(async, seed)
    local grassland_info = {}
    grassland_info.step_size = 2
    grassland_info.mean_height = 16
-   grassland_info.std_dev = 3
+   grassland_info.std_dev = 4
    grassland_info.min_height = 14
    grassland_info.max_height = 16
    terrain_info[TerrainType.Grassland] = grassland_info
@@ -64,7 +64,7 @@ function TerrainGenerator:__init(async, seed)
    mountains_info.step_size = base_step_size*4
    mountains_info.mean_height = 96
    mountains_info.std_dev = 64
-   mountains_info.min_height = grassland_info.max_height + foothills_info.step_size
+   mountains_info.min_height = foothills_info.max_height
    terrain_info[TerrainType.Mountains] = mountains_info
    assert(mountains_info.mean_height % mountains_info.step_size ~= mountains_info.step_size/2)
 
@@ -72,6 +72,7 @@ function TerrainGenerator:__init(async, seed)
    assert(grassland_info.max_height % foothills_info.step_size == 0)
    assert(foothills_info.max_height % mountains_info.step_size == 0)
 
+   -- tree lines
    terrain_info.tree_line = foothills_info.max_height + mountains_info.step_size*2
    terrain_info.max_deciduous_height = foothills_info.max_height
    terrain_info.min_evergreen_height = grassland_info.max_height + 1
@@ -386,14 +387,14 @@ function TerrainGenerator:_filter_noise_map(noise_map)
    FilterFns.filter_2D_025(filtered_map, noise_map, width, height, 8)
    filtered_map.generated = true
 
-   --return filtered_map
+   return filtered_map
 
-   local micro_map = Array2D(width, height) -- CHECKCHECK
-   micro_map.terrain_type = terrain_type
-   FilterFns.filter_max_slope(micro_map, filtered_map, width, height)
-   micro_map.generated = true
+   -- local micro_map = Array2D(width, height) -- CHECKCHECK
+   -- micro_map.terrain_type = terrain_type
+   -- FilterFns.filter_max_slope(micro_map, filtered_map, width, height, 8)
+   -- micro_map.generated = true
 
-   return micro_map
+   -- return micro_map
 end
 
 function TerrainGenerator:_add_DC_component(micro_map, blend_map)

@@ -157,6 +157,10 @@
          "sounds:axe_chopping_sound" : "file(data/sounds/effects/axe_chopping_sound.ogg)"
       },
       "functions" : {
+         "get_events": {
+            "controller" : "file(call_handlers/event_call_handler.lua)",
+            "endpoint" : "server"
+         },
          "get_clock_object": {
             "controller" : "file(call_handlers/calendar_call_handler.lua)",
             "endpoint" : "server"
@@ -253,7 +257,8 @@
          "file(ui/game/item_placement/item_placement.html)",
          "file(ui/game/unit_frame/unit_frame.html)",
          "file(ui/game/main_actionbar/main_actionbar.html)",
-         "file(ui/game/main_actionbar/tip_popup.html)"
+         "file(ui/game/main_actionbar/tip_popup.html)",
+         "file(ui/game/event_log/event_log.html)"
       ],
       "js" : [
          "file(ui/common/modal_overlay/modal_overlay.js)",
@@ -268,7 +273,8 @@
          "file(ui/game/unit_frame/unit_frame.js)",
          "file(ui/game/main_actionbar/main_actionbar.js)",
          "file(ui/game/main_actionbar/tip_popup.js)",
-         "file(ui/game/create_stockpile/create_stockpile.js)"
+         "file(ui/game/create_stockpile/create_stockpile.js)",
+         "file(ui/game/event_log/event_log.js)"
       ],
       "less" : [
          "file(ui/common/modal_overlay/modal_overlay.less)",
@@ -282,7 +288,8 @@
          "file(ui/game/unit_frame/unit_frame.less)",
          "file(ui/game/item_placement/item_placement.less)",
          "file(ui/game/main_actionbar/main_actionbar.less)",
-         "file(ui/game/main_actionbar/tip_popup.less)"
+         "file(ui/game/main_actionbar/tip_popup.less)",
+         "file(ui/game/event_log/event_log.less)"
       ]
    }
 }

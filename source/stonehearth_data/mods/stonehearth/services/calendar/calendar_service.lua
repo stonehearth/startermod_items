@@ -26,6 +26,7 @@ radiant.events.register_event('radiant:events:calendar:sunset')
 radiant.events.register_event('radiant:events:calendar:midnight')
 
 function CalendarService:__init()
+   self._event_service = require 'services.event.event_service'
    self._constants = radiant.resources.load_json('/stonehearth/services/calendar/calendar_constants.json')
    radiant.events.listen('radiant:events:gameloop', function (_, now)
          self:_on_event_loop(now)
@@ -116,6 +117,8 @@ function CalendarService:fire_time_of_day_events()
       not data._fired_sunrise_today then
 
       radiant.events.broadcast_msg('radiant:events:calendar:sunrise')
+      --xxx localise
+      self._event_service:add_entry('The sun has risen on ' .. self:format_date() .. '.')
       data._fired_sunrise_today = true
       data._fired_midnight_today = false
       return
@@ -133,6 +136,8 @@ function CalendarService:fire_time_of_day_events()
       not data._fired_sunset_today then
 
       radiant.events.broadcast_msg('radiant:events:calendar:sunset')
+      --xxx localize
+      self._event_service:add_entry('The sun has set.')
       data._fired_sunset_today = true
       return
    end
