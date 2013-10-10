@@ -7,7 +7,7 @@ local carpenter_class = {}
 function carpenter_class.promote(entity, workshop_component)
 
    --Add the necessary components
-   local profession_description = radiant.resources.load_json('stonehearth.carpenter.profession_description')
+   local profession_description = radiant.resources.load_json('stonehearth:carpenter:profession_description')
    local profession_component = entity:add_component('stonehearth:profession')
    profession_component:set_info(profession_description.profession)
 
@@ -19,12 +19,12 @@ function carpenter_class.promote(entity, workshop_component)
 
    --Slap a new outfit on the crafter
    local equipment = entity:add_component('stonehearth:equipment')
-   equipment:equip_item('stonehearth.carpenter_outfit')
+   equipment:equip_item('stonehearth:carpenter_outfit')
 end
 
 function carpenter_class.demote(entity)
    local equipment = entity:add_component('stonehearth:equipment')
-   local outfit = equipment:unequip_item('stonehearth.worker_outfit')
+   local outfit = equipment:unequip_item('stonehearth:worker_outfit')
    
    if outfit then
       radiant.entities.destroy_entity(outfit)

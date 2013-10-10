@@ -4,8 +4,8 @@
 local Point3 = _radiant.csg.Point3
 local WorkerLightFireAction = class()
 
-WorkerLightFireAction.name = 'stonehearth.light_fire'
-WorkerLightFireAction.does = 'stonehearth.light_fire'
+WorkerLightFireAction.name = 'light fire'
+WorkerLightFireAction.does = 'stonehearth:light_fire'
 WorkerLightFireAction.priority = 5
 
 function WorkerLightFireAction:__init(ai, entity)
@@ -42,10 +42,10 @@ function WorkerLightFireAction:run(ai, entity, path, firepit, task)
    -- We have to create a ghost entity as the destination because the firepit's target is large
    local ghost_entity = radiant.entities.create_entity()
    radiant.terrain.place_entity(ghost_entity, Point3(radiant.entities.get_world_grid_location(firepit)))
-   ai:execute('stonehearth.bring_item_on_path_to_dest', path, ghost_entity, 0, false)
+   ai:execute('stonehearth:bring_item_on_path_to_dest', path, ghost_entity, 0, false)
 
    -- perform the lighting animation TODO: replace with another gesture
-   ai:execute('stonehearth.run_effect', 'work')
+   ai:execute('stonehearth:run_effect', 'work')
 
    -- Put the log IN the firepit and light it
    local firepit_component = firepit:get_component('stonehearth:firepit')

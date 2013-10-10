@@ -5,8 +5,8 @@
 ]]
 local BringItemOnPathToDest = class()
 
-BringItemOnPathToDest.name = 'stonehearth.bring_item_on_path_to_dest'
-BringItemOnPathToDest.does = 'stonehearth.bring_item_on_path_to_dest'
+BringItemOnPathToDest.name = 'bring item on path to dest'
+BringItemOnPathToDest.does = 'stonehearth:bring_item_on_path_to_dest'
 BringItemOnPathToDest.priority = 5
 
 function BringItemOnPathToDest:__init(ai, entity)
@@ -30,7 +30,7 @@ function BringItemOnPathToDest:run(ai, entity, path, ghost_entity, rotation, on_
    -- between the object and its final destination, to use later.
    self._ghost_entity = ghost_entity
    self:_find_path_to_ghost_item(proxy_entity)
-   ai:execute('stonehearth.pickup_item_on_path', path)
+   ai:execute('stonehearth:pickup_item_on_path', path)
 
    -- If we're here, pickup succeeded, so we're now carrying the item.
    -- Wait until the PF we started earlier returns
@@ -38,11 +38,11 @@ function BringItemOnPathToDest:run(ai, entity, path, ghost_entity, rotation, on_
    ai:wait_until(function()
       return self._path_to_destination ~= nil
    end)
-   ai:execute('stonehearth.follow_path', self._path_to_destination)
+   ai:execute('stonehearth:follow_path', self._path_to_destination)
    if on_terrain then
-      ai:execute('stonehearth.drop_carrying', self._path_to_destination:get_destination_point_of_interest())
+      ai:execute('stonehearth:drop_carrying', self._path_to_destination:get_destination_point_of_interest())
    else
-      ai:execute('stonehearth.drop_carrying_on_entity', self._ghost_entity)
+      ai:execute('stonehearth:drop_carrying_on_entity', self._ghost_entity)
    end
    radiant.entities.turn_to(proxy_entity, rotation)
 end

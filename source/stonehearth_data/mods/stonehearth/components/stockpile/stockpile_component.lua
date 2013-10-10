@@ -33,13 +33,13 @@ function StockpileComponent:__init(entity, data_binding)
    self._data_binding:update(self._data)
 
    self._destination:set_region(_radiant.sim.alloc_region())
-   radiant.events.listen('radiant.events.gameloop', self)
+   radiant.events.listen('radiant:events:gameloop', self)
    all_stockpiles[self._entity:get_id()] = self
 end
 
 -- xxx: the 'fire one when i'm constructed' pattern again...
-StockpileComponent['radiant.events.gameloop'] = function(self)
-   radiant.events.unlisten('radiant.events.gameloop', self)
+StockpileComponent['radiant:events:gameloop'] = function(self)
+   radiant.events.unlisten('radiant:events:gameloop', self)
 
    self:_create_worker_tasks()
 
@@ -225,10 +225,10 @@ function StockpileComponent:_create_worker_tasks()
    local worker_scheduler = radiant.mods.load('stonehearth').worker_scheduler:get_worker_scheduler(faction)
 
    -- This is the pickup task.  When it finishes, we want to run the
-   -- stonehearth.pickup_item_on_path item, passing in the path found
+   -- stonehearth:pickup_item_on_path item, passing in the path found
    -- by the worker task.
    self._pickup_task = worker_scheduler:add_worker_task('pickup_to_restock')
-                          :set_action('stonehearth.pickup_item_on_path')
+                          :set_action('stonehearth:pickup_item_on_path')
 
    -- Only consider workers that aren't currently carrying anything.
    self._pickup_task:set_worker_filter_fn(
@@ -277,7 +277,7 @@ function StockpileComponent:_create_worker_tasks()
    -- whatever kind of activity we want
    self._restock_task:set_action_fn(
       function (path)
-         return 'stonehearth.restock', path, self
+         return 'stonehearth:restock', path, self
       end
    )
 

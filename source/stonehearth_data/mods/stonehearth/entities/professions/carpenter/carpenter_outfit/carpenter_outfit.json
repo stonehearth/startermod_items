@@ -1,6 +1,6 @@
 {
    "type": "entity",
-   "extends" : "stonehearth.mixins.item_properties",
+   "extends" : "stonehearth:mixins:item_properties",
    "components" : {
       "unit_info" : {
       },
@@ -18,10 +18,10 @@
          "render_type" : "merge_with_model",
          "injected_ai" : {
             "actions" : [
-               "stonehearth.actions.check_craftable_action",
-               "stonehearth.actions.craft_action",
-               "stonehearth.actions.fill_outbox_action",
-               "stonehearth.actions.gather_and_craft_action"
+               "stonehearth:actions:check_craftable_action",
+               "stonehearth:actions:craft_action",
+               "stonehearth:actions:fill_outbox_action",
+               "stonehearth:actions:gather_and_craft_action"
             ]
          }
       }

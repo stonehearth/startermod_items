@@ -632,7 +632,7 @@ csg::Point3 PathFinderEndpoint::GetPointInRegionAdjacentTo(csg::Point3 const& ad
 
    end += origin;
    csg::Point3 d = end - adjacent_pt;
-   ASSERT(d.LengthSquared() == 1);
+   //ASSERT(d.LengthSquared() == 1);
    return end;
 }
 

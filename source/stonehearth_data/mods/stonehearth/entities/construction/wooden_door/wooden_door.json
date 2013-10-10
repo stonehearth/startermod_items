@@ -1,5 +1,5 @@
 {
-   "extends": "stonehearth.mixins.placed_properties",
+      "extends": "stonehearth:mixins:placed_properties",
    "type": "entity",
    "components": {
       "model_variants": [

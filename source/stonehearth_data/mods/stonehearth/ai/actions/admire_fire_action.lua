@@ -8,10 +8,10 @@
 
 local AdmireFire = class()
 
-AdmireFire.name = 'stonehearth.actions.admire_fire'
+AdmireFire.name = 'admire fire'
 
 --TODO: make a namespace for "not doing stuff"
-AdmireFire.does = 'stonehearth.idle'
+AdmireFire.does = 'stonehearth:idle'
 AdmireFire.priority = 0
 
 function AdmireFire:__init(ai, entity)
@@ -20,19 +20,18 @@ function AdmireFire:__init(ai, entity)
    self._firepit_seat = nil
    self._path_to_fire = nil
 
-   radiant.events.listen('radiant.events.calendar.sunrise', self)
-   radiant.events.listen('radiant.events.calendar.sunset', self)
+   radiant.events.listen('radiant:events:calendar:sunrise', self)
+   radiant.events.listen('radiant:events:calendar:sunset', self)
 end
 
---- At sunset, start looking for a seat near a fire
-AdmireFire['radiant.events.calendar.sunset'] = function(self, calendar)
+AdmireFire['radiant:events:calendar:sunset'] = function(self, calendar)
    if not self._pathfinder then
       self:_start_looking_for_fire()
    end
 end
 
 --- At dawn, stop looking and release all seats.
-AdmireFire['radiant.events.calendar.sunrise'] = function(self, calendar)
+AdmireFire['radiant:events:calendar:sunrise'] = function(self, calendar)
    self:_release_seat_reservation()
    self:stop()
 end
@@ -48,7 +47,7 @@ function AdmireFire:_start_looking_for_fire()
       if lease_component and (not lease_component:get_owner() or lease_component:get_owner():get_id() == self._entity:get_id()) then
          leased = false
       end
-      return item_uri == 'stonehearth.fire_pit_seat' and not leased
+      return item_uri == 'stonehearth:fire_pit_seat' and not leased
    end
 
    --Once we've found a seat, grab its reservation
@@ -91,11 +90,11 @@ function AdmireFire:run(ai, entity)
    assert(self._path_to_fire)
 
    -- Go to the fire!
-   ai:execute('stonehearth.follow_path', self._path_to_fire)
+   ai:execute('stonehearth:follow_path', self._path_to_fire)
 
    --Am I carrying anything? If so, drop it
    local drop_location = self._path_to_fire:get_destination_point_of_interest()
-   ai:execute('stonehearth.drop_carrying', drop_location)
+   ai:execute('stonehearth:drop_carrying', drop_location)
 
    --Get the fire associated with the firepit
    local spot_component = self._firepit_seat:get_component('stonehearth:center_of_attn_spot')

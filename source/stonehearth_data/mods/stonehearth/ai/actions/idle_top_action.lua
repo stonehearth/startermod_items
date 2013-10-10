@@ -1,12 +1,12 @@
 local IdleTop = class()
 
-IdleTop.name = 'stonehearth.actions.idle'
-IdleTop.does = 'stonehearth.top'
+IdleTop.name = 'top action for idle'
+IdleTop.does = 'stonehearth:top'
 IdleTop.priority = 1
 
 function IdleTop:run(ai, entity)
    while true do
-      ai:execute('stonehearth.idle')
+      ai:execute('stonehearth:idle')
    end
 end
 

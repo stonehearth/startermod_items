@@ -4,7 +4,7 @@ local Point3 = _radiant.csg.Point3
 local Vec3 = _radiant.csg.Point3f
 
 RunAwayFromEntity.name = 'run away from an entity'
-RunAwayFromEntity.does = 'stonehearth.run_away_from_entity'
+RunAwayFromEntity.does = 'stonehearth:run_away_from_entity'
 RunAwayFromEntity.priority = 1
 
 function RunAwayFromEntity:run(ai, entity, target)
@@ -16,12 +16,12 @@ function RunAwayFromEntity:run(ai, entity, target)
    local flee_vector = Vec3(target_location.x - my_location.x, my_location.y, target_location.z - my_location.z)
    flee_vector:normalize()
 
-   flee_vector.x = self:round(flee_vector.x) * -3
-   flee_vector.z = self:round(flee_vector.z) * -3
+   flee_vector.x = self:round(flee_vector.x) * -4
+   flee_vector.z = self:round(flee_vector.z) * -4
 
    local flee_location = Point3(my_location.x + flee_vector.x, my_location.y, my_location.z + flee_vector.z)
 
-   ai:execute('stonehearth.goto_location', flee_location)
+   ai:execute('stonehearth:goto_location', flee_location)
 end
 
 function RunAwayFromEntity:round(num, idp)

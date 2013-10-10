@@ -16,7 +16,7 @@ function ResourceCallHandler:harvest_tree(session, response, tree)
    worker_scheduler:add_worker_task('chop_tree')
                   :set_worker_filter_fn(not_carrying_fn)
                   :add_work_object(tree)
-                  :set_action('stonehearth.chop_tree')
+                  :set_action('stonehearth:chop_tree')
                   :start()
    return true
 end

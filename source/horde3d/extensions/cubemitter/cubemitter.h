@@ -176,6 +176,7 @@ class CubemitterData
 {
 public:
    float duration;
+   bool loops;
    cubemitter::EmissionData emission;
    cubemitter::ParticleData particle;
 

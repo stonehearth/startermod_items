@@ -1,7 +1,7 @@
 local Idle = class()
 
-Idle.name = 'stonehearth.actions.idle'
-Idle.does = 'stonehearth.idle'
+Idle.name = 'idle'
+Idle.does = 'stonehearth:idle'
 Idle.priority = 1
 
 function Idle:__init(ai, entity)
@@ -20,10 +20,10 @@ function Idle:run(ai, entity)
    self:reset_boredom()
    while true do
       if self._boredomCountdown <= 0 then 
-         ai:execute('stonehearth.idle.bored')
+         ai:execute('stonehearth:idle:bored')
          self:reset_boredom()
       else
-         ai:execute('stonehearth.idle.breathe')
+         ai:execute('stonehearth:idle:breathe')
          self._boredomCountdown = self._boredomCountdown - 1
       end
    end

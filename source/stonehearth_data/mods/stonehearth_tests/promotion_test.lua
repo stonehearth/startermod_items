@@ -11,11 +11,11 @@ function PromoteTest:__init()
 
    --Create the carpenter, bench, and instantiate them to each other
 
-   self:place_item('stonehearth.rabbit', 10, -10)
+   self:place_item('stonehearth:rabbit', 10, -10)
    self:place_citizen(0,0)
    local worker = self:place_citizen(12, 12)
 
-   local bench = self:place_item('stonehearth.carpenter_workbench', -12, -12)
+   local bench = self:place_item('stonehearth:carpenter_workbench', -12, -12)
    local workshop_component = bench:get_component('stonehearth:workshop')
    local faction = worker:get_component('unit_info'):get_faction()
 

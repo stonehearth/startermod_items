@@ -45,8 +45,8 @@ void arbiter::GetConfigOptions()
 
    cmd_line.add_options()
       ("game.noidle",   po::bool_switch(&config_.noidle), "suspend the idle loop, running the game as fast as possible.")
-      ("game.script",   po::value<std::string>()->default_value("stonehearth/new_world.lua"), "the game script to load")  //xxx: put this in a constant
-      ("game.mod",     po::value<std::string>()->default_value("stonehearth"), "the game script to load")
+      ("game.script",   po::value<std::string>()->default_value("stonehearth/start_game.lua"), "the game script to load")  //xxx: put this in a constant
+      ("game.mod",     po::value<std::string>()->default_value("stonehearth"), "the mod to load")
       ;
    core::Config::GetInstance().GetCommandLineOptions().add(cmd_line);
    core::Config::GetInstance().GetConfigFileOptions().add(cmd_line);

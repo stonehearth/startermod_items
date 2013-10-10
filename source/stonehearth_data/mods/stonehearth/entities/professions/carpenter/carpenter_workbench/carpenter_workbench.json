@@ -1,5 +1,5 @@
 {
-   "extends": "stonehearth.mixins.crafter_workbench",
+   "extends": "stonehearth:mixins:crafter_workbench",
    "type": "entity",
    "components": {
       "unit_info": {
@@ -9,7 +9,7 @@
       },
       "stonehearth:workshop": {
          "promotion_talisman" : {
-            "entity" : "stonehearth.carpenter_saw",
+            "entity" : "stonehearth:carpenter_saw",
             "offset" : [0, 3, 0]
          },
          "outbox_settings" : {

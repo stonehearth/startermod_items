@@ -18,16 +18,18 @@ class Terrain : public Component
 public:
    DEFINE_OM_OBJECT_TYPE(Terrain, terrain);
 
-   enum TerrainTypes {
+   enum BlockTypes {
       Null          = 0,
-      Magma         = 1,
-      Bedrock       = 2,
-      Topsoil       = 3,
-      Foothills     = 4,
-      Plains        = 5,
-      TopsoilDetail = 6,
-      DarkWood      = 7, 
-      DirtPath      = 8, 
+      RockLayer1    = 1,
+      RockLayer2    = 2,
+      RockLayer3    = 3,
+      Soil          = 4,
+      DarkGrass     = 5,
+      DarkGrassDark = 6,
+      LightGrass    = 7,
+      DarkWood      = 8, 
+      DirtRoad      = 9, 
+      Magma         = 10
    };
 
    typedef dm::Map<csg::Point3, BoxedRegion3Ptr, csg::Point3::Hash> ZoneMap;

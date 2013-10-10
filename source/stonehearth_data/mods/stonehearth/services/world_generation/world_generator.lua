@@ -11,7 +11,8 @@ function WorldGenerator:__init(async)
    self._async = async
 
    self._terrain_generator = TerrainGenerator(self._async)
-   self._height_map_renderer = HeightMapRenderer(self._terrain_generator.zone_size)
+   self._height_map_renderer = HeightMapRenderer(self._terrain_generator.zone_size,
+                                                 self._terrain_generator.terrain_info)
    self._landscaper = Landscaper(self._terrain_generator.terrain_info)
 end
 
@@ -25,6 +26,7 @@ function WorldGenerator:create_world()
       local zones
       zones = self:_create_world_blueprint()
       --zones = self:_create_test_blueprint()
+      --self._height_map_renderer.tesselator_test()
       self:_generate_world(zones)
 
       cpu_timer:stop()
@@ -68,7 +70,7 @@ function WorldGenerator:_generate_world(zones)
       offset_y = (j-1)*zone_size - origin_y
 
       timer:start()
-      self._height_map_renderer:render_height_map_to_terrain(zone_map, terrain_info, offset_x, offset_y)
+      self._height_map_renderer:render_height_map_to_terrain(zone_map, offset_x, offset_y)
       timer:stop()
       radiant.log.info('HeightMapRenderer time: %.3fs', timer:seconds())
 
@@ -80,12 +82,12 @@ function WorldGenerator:_generate_world(zones)
 end
 
 function WorldGenerator:_create_test_blueprint()
-   local zones = self:_get_empty_blueprint(5, 5, TerrainType.Plains)
+   local zones = self:_get_empty_blueprint(5, 5, TerrainType.Grassland)
 
-   -- zones:get(1, 1).terrain_type = TerrainType.Plains
-   -- zones:get(2, 1).terrain_type = TerrainType.Plains
-   -- zones:get(1, 2).terrain_type = TerrainType.Mountains
-   -- zones:get(2, 2).terrain_type = TerrainType.Plains
+   --zones:get(1, 1).terrain_type = TerrainType.Mountains
+   --zones:get(2, 1).terrain_type = TerrainType.Grassland
+   --zones:get(1, 2).terrain_type = TerrainType.Grassland
+   --zones:get(2, 2).terrain_type = TerrainType.Grassland
 
    return zones
 end
@@ -98,29 +100,29 @@ function WorldGenerator:_create_world_blueprint()
    zones:get(2, 1).terrain_type = TerrainType.Mountains
    zones:get(3, 1).terrain_type = TerrainType.Mountains
    zones:get(4, 1).terrain_type = TerrainType.Foothills
-   zones:get(5, 1).terrain_type = TerrainType.Plains
+   zones:get(5, 1).terrain_type = TerrainType.Grassland
 
    zones:get(1, 2).terrain_type = TerrainType.Mountains
    zones:get(2, 2).terrain_type = TerrainType.Mountains
    zones:get(3, 2).terrain_type = TerrainType.Foothills
-   zones:get(4, 1).terrain_type = TerrainType.Plains
-   zones:get(5, 1).terrain_type = TerrainType.Plains
+   zones:get(4, 1).terrain_type = TerrainType.Grassland
+   zones:get(5, 1).terrain_type = TerrainType.Grassland
 
    zones:get(1, 3).terrain_type = TerrainType.Mountains
    zones:get(2, 3).terrain_type = TerrainType.Foothills
-   zones:get(3, 3).terrain_type = TerrainType.Plains
-   zones:get(4, 3).terrain_type = TerrainType.Plains
+   zones:get(3, 3).terrain_type = TerrainType.Grassland
+   zones:get(4, 3).terrain_type = TerrainType.Grassland
    zones:get(5, 3).terrain_type = TerrainType.Foothills
 
    zones:get(1, 4).terrain_type = TerrainType.Foothills
-   zones:get(2, 4).terrain_type = TerrainType.Plains
-   zones:get(3, 4).terrain_type = TerrainType.Plains
+   zones:get(2, 4).terrain_type = TerrainType.Grassland
+   zones:get(3, 4).terrain_type = TerrainType.Grassland
    zones:get(4, 4).terrain_type = TerrainType.Foothills
    zones:get(5, 4).terrain_type = TerrainType.Mountains
 
-   zones:get(1, 5).terrain_type = TerrainType.Plains
-   zones:get(2, 5).terrain_type = TerrainType.Plains
-   zones:get(3, 5).terrain_type = TerrainType.Plains
+   zones:get(1, 5).terrain_type = TerrainType.Grassland
+   zones:get(2, 5).terrain_type = TerrainType.Grassland
+   zones:get(3, 5).terrain_type = TerrainType.Grassland
    zones:get(4, 5).terrain_type = TerrainType.Foothills
    zones:get(5, 5).terrain_type = TerrainType.Mountains
 
@@ -128,7 +130,7 @@ function WorldGenerator:_create_world_blueprint()
 end
 
 function WorldGenerator:_get_empty_blueprint(width, height, terrain_type)
-   if terrain_type == nil then terrain_type = TerrainType.Plains end
+   if terrain_type == nil then terrain_type = TerrainType.Grassland end
 
    local zones = Array2D(width, height)
    local i, j, zone_info

@@ -3,6 +3,7 @@ local PopulationFaction = class()
 function PopulationFaction:__init(faction)
    self._faction = faction
    self._data = radiant.resources.load_json(faction)
+   self._faction_name = 'civ' -- xxx: for now....
 end
 
 function PopulationFaction:create_new_citizen()   
@@ -13,8 +14,19 @@ function PopulationFaction:create_new_citizen()
    local name = self:generate_random_name(gender)
    radiant.entities.set_display_name(citizen, name)
    
-   citizen:add_component('unit_info'):set_faction('civ') -- xxx: for now...
+   citizen:add_component('unit_info'):set_faction(self._faction_name) -- xxx: for now...
    return citizen
+end
+
+function PopulationFaction:create_entity(uri)
+   local entity = radiant.entities.create_entity(uri)
+   entity:add_component('unit_info'):set_faction(self._faction_name)
+   return entity
+end
+
+function PopulationFaction:promote_citizen(citizen, profession)
+   local profession_api = radiant.mods.require(string.format('stonehearth.professions.%s.%s', profession, profession))
+   profession_api.promote(citizen)
 end
 
 function PopulationFaction:generate_random_name(gender)

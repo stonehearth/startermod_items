@@ -4,14 +4,14 @@
       "animation": {
          "type": "animation_effect",
          "start_time": 0,
-         "animation": "file(../animations/male/saw.json)",
+         "animation": "saw.json",
          "loop": false
       },
       "grab_saw" : {
          "type": "attach_item_effect",
          "start_time": 0,
          "end_time": 0,
-         "item": "stonehearth.carpenter_saw",
+         "item": "stonehearth:carpenter_saw",
          "bone": "mainHand"
       }
 

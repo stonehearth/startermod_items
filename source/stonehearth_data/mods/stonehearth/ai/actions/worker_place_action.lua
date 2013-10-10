@@ -1,9 +1,11 @@
 local Point3 = _radiant.csg.Point3
 local WorkerPlaceItemAction = class()
 
-WorkerPlaceItemAction.name = 'stonehearth.place_item'
-WorkerPlaceItemAction.does = 'stonehearth.place_item'
+
+WorkerPlaceItemAction.name = 'place item'
+WorkerPlaceItemAction.does = 'stonehearth:place_item'
 WorkerPlaceItemAction.priority = 5
+
 --TODO we need a scale to  describe relative importance.
 --Right now all tasks dispatched by worker scheduler have the same priority, 10
 --They override the given priority
@@ -47,12 +49,11 @@ function WorkerPlaceItemAction:run(ai, entity, path, ghost_entity, rotation, tas
    -- Was it a proxy item? If so, put it on the ghost, if not put it on the terrain.
    -- If it's on the ghost, it won't register on the terrain and provoke worker behavior
    self._proxy_component = proxy_entity:get_component('stonehearth:placeable_item_proxy')
-   ai:execute('stonehearth.bring_item_on_path_to_dest', path, ghost_entity, rotation, self._proxy_component == nil)
+   ai:execute('stonehearth:bring_item_on_path_to_dest', path, ghost_entity, rotation, self._proxy_component == nil)
 
    if self._proxy_component then
-
       --TODO: replace this with a particle effect
-      ai:execute('stonehearth.run_effect', 'work')
+      ai:execute('stonehearth:run_effect', 'work')
 
       --Get the full sized entity
       local full_sized_entity = self._proxy_component:get_full_sized_entity()

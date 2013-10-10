@@ -1,7 +1,7 @@
 local WorkerTaskDispatcher = class()
 
 WorkerTaskDispatcher.name = 'worker task dispatcher'
-WorkerTaskDispatcher.does = 'stonehearth.top'
+WorkerTaskDispatcher.does = 'stonehearth:top'
 WorkerTaskDispatcher.priority = 0
 
 

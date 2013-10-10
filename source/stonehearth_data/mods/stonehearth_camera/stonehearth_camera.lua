@@ -27,6 +27,9 @@ function StonehearthCamera:__init()
   self._drag_start = Vec3(0, 0, 0)
   self._drag_origin = Vec3(0, 0, 0)
 
+  self._min_zoom = 10
+  self._max_zoom = 100
+
   self:_update_camera(0)
 
   self._input_capture = _radiant.client.capture_input()
@@ -165,6 +168,11 @@ function StonehearthCamera:_calculate_zoom(e)
 
   local distance_to_target = pos:distance_to(target)
 
+  if (e.wheel > 0 and distance_to_target <= self._min_zoom) or
+     (e.wheel < 0 and distance_to_target >= self._max_zoom) then
+    return
+  end
+
   local short_factor = 0.2
   local med_factor = 0.3
   local far_factor = 0.4
@@ -180,13 +188,13 @@ function StonehearthCamera:_calculate_zoom(e)
 
   if e.wheel > 0 then
     -- Moving towards the target.
-    if distance_to_target - distance_to_cover < 10.0 then
-      distance_to_cover = distance_to_target - 10.0
+    if distance_to_target - distance_to_cover < self._min_zoom then
+      distance_to_cover = distance_to_target - self._min_zoom
     end
   else
     -- Moving away from the target.
-    if distance_to_cover + distance_to_target > 1000.0 then
-      distance_to_cover = 1000.0 - distance_to_target
+    if distance_to_cover + distance_to_target > self._max_zoom then
+      distance_to_cover = self._max_zoom - distance_to_target
     end
   end
 

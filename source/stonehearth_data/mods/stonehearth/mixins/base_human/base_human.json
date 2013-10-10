@@ -1,13 +1,13 @@
 {
    "type" : "entity",
-   "extends" : "stonehearth.mixins.mob",
+   "extends" : "stonehearth:mixins:mob",
    "components" : {
       "stonehearth:ai" : {
          "actions" : [
-            "stonehearth.actions.sleep_action",
-            "stonehearth.actions.sleep_in_bed_action",
-            "stonehearth.actions.grab_talisman_action",
-            "stonehearth.actions.admire_fire_action"
+            "stonehearth:actions:sleep_action",
+            "stonehearth:actions:sleep_in_bed_action",
+            "stonehearth:actions:grab_talisman_action",
+            "stonehearth:actions:admire_fire_action"
          ]
       },
 	   "unit_info" : {
@@ -17,16 +17,19 @@
 	   },
 	   "attributes" : {
 		  "ferocity": 1,
-		  "health": 50,
-        "speed" : 1
+		  "health": 5,
+        "speed" : 100
 	   },
       "sensor_list": {
          "sensors": {
             "sight": {
                "type": "sensor",
-               "radius": 6
+               "radius": 10
             }
          }
+      },
+      "stonehearth:materials" : {
+         "materials" : [ "meat" ]
       },
       "carry_block": {
       },

@@ -15,8 +15,8 @@ function FirepitComponent:__init(entity, data_binding)
 
    self._seats = nil
 
-   radiant.events.listen('radiant.events.calendar.sunrise', self)
-   radiant.events.listen('radiant.events.calendar.sunset', self)
+   radiant.events.listen('radiant:events:calendar:sunrise', self)
+   radiant.events.listen('radiant:events:calendar:sunset', self)
 end
 
 function FirepitComponent:extend(json)
@@ -43,7 +43,7 @@ function FirepitComponent:_add_seats()
 end
 
 function FirepitComponent:_add_one_seat(seat_number, location)
-   local seat = radiant.entities.create_entity('stonehearth.fire_pit_seat')
+   local seat = radiant.entities.create_entity('stonehearth:fire_pit_seat')
    local seat_comp = seat:get_component('stonehearth:center_of_attn_spot')
    seat_comp:add_to_center_of_attn(self._entity, seat_number)
    self._seats[seat_number] = seat
@@ -54,31 +54,23 @@ end
 -- Tell a worker to fill the fire with wood, and light it
 -- If there aren't seats around the fire yet, create them
 -- If there's already wood in the fire from the previous day, it goes out now.
-FirepitComponent['radiant.events.calendar.sunset'] = function (self)
+-- TODO: Maybe start this earlier? People should put wood on the fire before the wolves come out.
+-- TODO: alternatively, find a way to make this REALLY IMPORTANT relative to other worker tasks
+FirepitComponent['radiant:events:calendar:sunset'] = function (self)
    self:extinguish()
    if not self._seats then
       self:_add_seats()
    end
    self:_init_gather_wood_task()
-   --self:light_fire()
 end
 
 --- At sunrise, the fire eats the log inside of it
-FirepitComponent['radiant.events.calendar.sunrise'] = function (self)
+FirepitComponent['radiant:events:calendar:sunrise'] = function (self)
    if self._light_task then
       self._light_task:stop()
    end
    self:extinguish()
 end
-
---[[
-function FirepitComponent:light_fire()
-   self._my_wood = radiant.entities.create_entity('stonehearth.oak_log')
-   radiant.entities.add_child(self._entity, self._my_wood, Point3(0, 0, 0))
-   self._curr_fire_effect =
-      radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/firepit_effect')
-end
-]]
 
 function FirepitComponent:_init_gather_wood_task()
    if not self._light_task then
@@ -110,7 +102,7 @@ function FirepitComponent:_init_gather_wood_task()
 
       self._light_task:set_action_fn(
          function (path)
-            return 'stonehearth.light_fire', path, self._entity, self._light_task
+            return 'stonehearth:light_fire', path, self._entity, self._light_task
          end
       )
    end
@@ -122,9 +114,8 @@ end
 -- that, we'd have to reparent the log to the fireplace.
 -- @param log_entity to add to the fire
 function FirepitComponent:add_wood()
-   self._my_wood = radiant.entities.create_entity('stonehearth.oak_log')
+   self._my_wood = radiant.entities.create_entity('stonehearth:oak_log')
    radiant.entities.add_child(self._entity, self._my_wood, Point3(0, 0, 0))
-
    self._curr_fire_effect =
       radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/firepit_effect')
 end

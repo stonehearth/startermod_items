@@ -18,7 +18,7 @@ function SkyRenderer:__init()
 
    self:_init_sun()
    self:_init_moon()
-   _radiant.call('stonehearth.get_clock_object')
+   _radiant.call('stonehearth:get_clock_object')
       :done(
          function (o)
             self._clock_object = o.clock_object

@@ -39,7 +39,7 @@ end
    ai: the ai required for the entity to perform anything
 ]]
 function CrafterComponent:perform_work_effect(ai)
-   ai:execute('stonehearth.run_effect', self._info.work_effect)
+   ai:execute('stonehearth:run_effect', self._info.work_effect)
 end
 
 

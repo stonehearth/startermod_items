@@ -4,7 +4,7 @@
       "animation": {
          "type": "animation_effect",
          "start_time": 0,
-         "animation": "file(../animations/male/sleep.json)",
+         "animation": "sleep.json",
          "loop": true
       }
    }

@@ -1,31 +1,31 @@
 local DeathAction = class()
 
-DeathAction.name = 'stonehearth.actions.die'
-DeathAction.does = 'stonehearth.top'
+DeathAction.name = 'die'
+DeathAction.does = 'stonehearth:top'
 DeathAction.priority = 0
 
-radiant.events.register_event('stonehearth.events.on_damage')
+radiant.events.register_event('stonehearth:events:on_damage')
 
 function DeathAction:__init(ai, entity)
    radiant.check.is_entity(entity)  
 
    self._ai = ai
-   --self._aggro_table = radiant.entities.create_target_table(entity, 'stonehearth.tables.aggro')
+   --self._aggro_table = radiant.entities.create_target_table(entity, 'stonehearth:tables.aggro')
 
-   radiant.events.listen_to_entity(entity, 'stonehearth.events.on_damage', self)
+   radiant.events.listen_to_entity(entity, 'stonehearth:events:on_damage', self)
 end
 
 function DeathAction:run(ai, entity)
-   ai:execute('radiant.actions.perform', 'combat/1h_downed')
+   ai:execute('radiant:actions:perform', 'combat/1h_downed')
    om:destroy_entity(entity)
 end
 
 function DeathAction:destroy(entity)
    om:destroy_target_table(entity, self._aggro_table)
-   radiant.events.unlisten_to_entity(entity, 'stonehearth.events.on_damage', self)
+   radiant.events.unlisten_to_entity(entity, 'stonehearth:events:on_damage', self)
 end
 
-DeathAction['stonehearth.events.on_damage'] = function(self, entity, source, amount, type)
+DeathAction['stonehearth:events:on_damage'] = function(self, entity, source, amount, type)
    radiant.check.is_entity(entity)
    radiant.check.is_number(amount)
    radiant.check.is_string(type)

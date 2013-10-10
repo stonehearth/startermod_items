@@ -460,8 +460,8 @@ void Renderer::UpdateUITexture(const csg::Region2& rgn, const char* buffer)
                //for (int i = 0; i < amount; i += 4) {  dst[i+3] = 0xff; }
             }
          }
-         h3dUnmapResStream(uiTexture_);
       }
+      h3dUnmapResStream(uiTexture_);
    }
 }
 
@@ -774,7 +774,10 @@ void Renderer::SetUITextureSize(int width, int height)
    uiHeight_ = height;
 
    if (uiTexture_) {
-      throw std::logic_error("resizing the ui texture is not yet implemented");
+      h3dRemoveResource(uiTexture_);
+      h3dRemoveResource(uiMatRes_);
+
+      h3dReleaseUnusedResources();
    }
    uiTexture_ = h3dCreateTexture("UI Texture", uiWidth_, uiHeight_, H3DFormats::List::TEX_BGRA8, H3DResFlags::NoTexMipmaps);
    unsigned char *data = (unsigned char *)h3dMapResStream(uiTexture_, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);

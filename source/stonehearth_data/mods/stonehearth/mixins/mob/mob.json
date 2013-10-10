@@ -2,32 +2,32 @@
    "components" : {
       "stonehearth:ai" : {
          "actions" : [
-            "stonehearth.actions.bring_item_on_path_to_dest",
-            "stonehearth.actions.compel_to_action",
-            "stonehearth.actions.death_action",
-            "stonehearth.actions.drop_carrying_action",
-            "stonehearth.actions.drop_carrying_on_entity",
-            "stonehearth.actions.follow_path_action",
-            "stonehearth.actions.goto_entity_action",
-            "stonehearth.actions.goto_location_action",
-            "stonehearth.actions.idle_top_action",
-            "stonehearth.actions.idle_action",
-            "stonehearth.actions.idle_bored_action",
-            "stonehearth.actions.idle_breathe_action",
-            "stonehearth.actions.pickup_item_on_ground_action",
-            "stonehearth.actions.pickup_item_on_table_action",
-            "stonehearth.actions.pickup_item_on_path",
-            "stonehearth.actions.pickup_item_action",
-            "stonehearth.actions.run_effect_action",
-            "stonehearth.actions.attack_top_aggro_action",
-            "stonehearth.actions.attack_action",
-            "stonehearth.actions.chase_target_action",
-            "stonehearth.actions.flee_action",
-            "stonehearth.actions.run_away_from_entity",
-            "stonehearth.actions.run_towards_entity"
+            "stonehearth:actions:compel_to_action",
+            "stonehearth:actions:bring_item_on_path_to_dest",
+            "stonehearth:actions:death_action",
+            "stonehearth:actions:drop_carrying_action",
+            "stonehearth:actions:drop_carrying_on_entity",
+            "stonehearth:actions:follow_path_action",
+            "stonehearth:actions:goto_entity_action",
+            "stonehearth:actions:goto_location_action",
+            "stonehearth:actions:idle_top_action",
+            "stonehearth:actions:idle_action",
+            "stonehearth:actions:idle_bored_action",
+            "stonehearth:actions:idle_breathe_action",
+            "stonehearth:actions:pickup_item_on_ground_action",
+            "stonehearth:actions:pickup_item_on_table_action",
+            "stonehearth:actions:pickup_item_on_path",
+            "stonehearth:actions:pickup_item_action",
+            "stonehearth:actions:run_effect_action",
+            "stonehearth:actions:attack_top_aggro_action",
+            "stonehearth:actions:attack_action",
+            "stonehearth:actions:chase_target_action",
+            "stonehearth:actions:flee_action",
+            "stonehearth:actions:run_away_from_entity",
+            "stonehearth:actions:run_towards_entity"
          ],
           "observers": [
-            "stonehearth.observers.look_for_enemies"
+            "stonehearth:observers:look_for_enemies"
          ]
       }
    }

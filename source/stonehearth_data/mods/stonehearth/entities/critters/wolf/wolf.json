@@ -1,6 +1,6 @@
 {
    "type": "entity",
-   "extends": "stonehearth.mixins.mob",
+   "extends": "stonehearth:mixins:mob",
    "init_script" : "file(wolf_init_script.lua)",      
    "components": {
       "unit_info": {
@@ -10,7 +10,8 @@
       },
       "attributes": {
          "ferocity": 10,
-         "health": 50
+         "health": 50,
+         "speed" : 150
       },
       "stonehearth:ai": {
          "actions": [
@@ -35,13 +36,9 @@
                "file(wolf.qb)"
             ]
          }
-      ]
-   },
-   "entity_data" : {
-      "stonehearth:postures" : {
-         "default" : {
-            "run_speed" : 1.5
-         }
+      ],
+      "stonehearth:materials" : {
+         "materials" : [ "meat" ]
       }
-   }   
+   }
 }

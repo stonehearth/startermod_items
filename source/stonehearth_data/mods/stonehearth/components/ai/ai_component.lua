@@ -130,7 +130,7 @@ function AIComponent:restart()
 
    self._co = self._ai_system:_create_thread(self, function()
       while not self._dead do
-         self:execute('stonehearth.top')
+         self:execute('stonehearth:top')
       end
    end)
 end
@@ -243,7 +243,7 @@ function AIComponent:abort(reason)
    
    -- all actions have had their stop method called on them.  yield
    -- KILL_THREAD to get the ai service to call restart() next time,
-   -- which will start us over at stonehearth.top.+
+   -- which will start us over at stonehearth:top.+
    coroutine.yield(self._ai_system.KILL_THREAD)
 end
 

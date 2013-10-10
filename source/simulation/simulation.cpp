@@ -69,9 +69,9 @@ Simulation::Simulation() :
    octtree_ = std::unique_ptr<Physics::OctTree>(new Physics::OctTree());
    scriptHost_.reset(new lua::ScriptHost());
 
-   commands_["radiant.toggle_debug_nodes"] = std::bind(&Simulation::ToggleDebugShapes, this, std::placeholders::_1);
-   commands_["radiant.toggle_step_paths"] = std::bind(&Simulation::ToggleStepPathFinding, this, std::placeholders::_1);
-   commands_["radiant.step_paths"] = std::bind(&Simulation::StepPathFinding, this, std::placeholders::_1);
+   commands_["radiant:toggle_debug_nodes"] = std::bind(&Simulation::ToggleDebugShapes, this, std::placeholders::_1);
+   commands_["radiant:toggle_step_paths"] = std::bind(&Simulation::ToggleStepPathFinding, this, std::placeholders::_1);
+   commands_["radiant:step_paths"] = std::bind(&Simulation::StepPathFinding, this, std::placeholders::_1);
    //commands_["create_room"] = [](const proto::DoAction& msg) { return CreateRoomCmd()(msg); };
 
 
@@ -553,7 +553,7 @@ void Simulation::UpdateAuras(int now)
             luabind::object handler = aura->GetMsgHandler();
             luabind::object md = luabind::globals(L)["md"];
             luabind::object aobj(L, aura);
-            luabind::call_function<void>(md["send_msg"], md, handler, "radiant.events.aura_expired", aobj);
+            luabind::call_function<void>(md["send_msg"], md, handler, "radiant:events:aura_expired", aobj);
             aura = nullptr;
          }         
       } 

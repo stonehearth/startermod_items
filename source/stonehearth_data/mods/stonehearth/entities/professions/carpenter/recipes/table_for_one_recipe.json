@@ -16,7 +16,7 @@
   ],
   "produces": [
       {
-         "item":"stonehearth.table_for_one"
+         "item":"stonehearth:table_for_one"
       }
   ]
 }

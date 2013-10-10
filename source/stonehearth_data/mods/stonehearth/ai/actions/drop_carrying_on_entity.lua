@@ -1,8 +1,8 @@
 local Point3 = _radiant.csg.Point3
 local DropCarryingOnEntityAction = class()
 
-DropCarryingOnEntityAction.name = 'stonehearth.drop_carrying_on_entity'
-DropCarryingOnEntityAction.does = 'stonehearth.drop_carrying_on_entity'
+DropCarryingOnEntityAction.name = 'drop carrying on entity'
+DropCarryingOnEntityAction.does = 'stonehearth:drop_carrying_on_entity'
 DropCarryingOnEntityAction.priority = 5
 
 --- Put the carried object down on another object
@@ -14,7 +14,7 @@ function DropCarryingOnEntityAction:run(ai, entity, target_entity, target_locati
 
    if radiant.entities.is_carrying(entity) then
       radiant.entities.turn_to_face(entity, location)
-      ai:execute('stonehearth.run_effect', 'carry_putdown')
+      ai:execute('stonehearth:run_effect', 'carry_putdown')
       radiant.entities.drop_carrying_on_object(entity, target_entity, target_location)
    end
 

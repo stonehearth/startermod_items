@@ -8,7 +8,7 @@ function AiInjector:__init()
 
    local worker = self:place_citizen(-12, 12)
    self:place_tree(12, -12)
-   self:place_item('stonehearth.ball', 0, 0)
+   self:place_item('stonehearth:ball', 0, 0)
 
    self:at(1000, 
       function()

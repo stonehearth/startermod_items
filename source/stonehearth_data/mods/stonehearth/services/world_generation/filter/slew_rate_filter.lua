@@ -1,12 +1,13 @@
 local SlewRateFilter = class()
 
-function SlewRateFilter:__init()
+function SlewRateFilter:__init(slew_rate)
+   self.slew_rate = slew_rate
 end
 
 function SlewRateFilter:filter(dst, src, src_len, sampling_interval)
    if sampling_interval ~= nil then assert(sampling_interval == 1) end
 
-   local slew_rate = 8
+   local slew_rate = self.slew_rate
    local i, curr, prev
 
    prev = src[1]

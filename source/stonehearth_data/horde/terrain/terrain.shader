@@ -20,6 +20,12 @@ sampler2D ssaoBuffer = sampler_state
   Filter = Bilinear;
 };
 
+sampler2D outlineSampler = sampler_state
+{
+  Address = Clamp;
+  Filter = Trilinear;
+};
+
 // Contexts
 context AMBIENT
 {
@@ -39,6 +45,20 @@ context MATERIAL
 {
   VertexShader = compile GLSL VS_GENERAL;
   PixelShader = compile GLSL FS_DEFERRED_MATERIAL;  
+}
+
+context SELECTED_SCREENSPACE
+{
+  VertexShader = compile GLSL VS_GENERAL;
+  PixelShader = compile GLSL FS_SELECTED_SCREENSPACE;
+}
+
+context SELECTED_SCREENSPACE_OUTLINER
+{
+  VertexShader = compile GLSL VS_SELECTED_SCREENSPACE_OUTLINER;
+  PixelShader = compile GLSL FS_SELECTED_SCREENSPACE_OUTLINER;
+  BlendMode = Add;
+  ZWriteEnable = false;
 }
 
 context SHADOWMAP
@@ -274,4 +294,45 @@ void main(void)
   vec3 lightColor = texture2D(lightingBuffer, fragCoord).xyz;
   float ssaoIntensity = texture2D(ssaoBuffer, fragCoord).x;
   fragColor = vec4(lightColor * albedo * ssaoIntensity, 1.0);
+}
+
+
+[[FS_SELECTED_SCREENSPACE]]
+#version 150
+out vec4 fragColor;
+
+void main(void)
+{
+  fragColor = vec4(1, 1, 0, 1);
+}
+
+
+[[VS_SELECTED_SCREENSPACE_OUTLINER]]
+#version 150
+
+#include "shaders/utilityLib/fullscreen_quad.glsl" 
+
+uniform mat4 projMat;
+in vec3 vertPos;
+out vec2 texCoords;
+        
+void main( void )
+{
+  transform_fullscreen(vertPos, projMat, gl_Position, texCoords);
+}
+
+
+[[FS_SELECTED_SCREENSPACE_OUTLINER]]
+#version 150
+
+#include "shaders/utilityLib/outline.glsl"
+
+uniform sampler2D outlineSampler;
+
+in vec2 texCoords;
+out vec4 fragColor;
+
+void main(void)
+{
+  fragColor = compute_outline_color(outlineSampler, texCoords);
 }

@@ -1,0 +1,24 @@
+{
+   "extends": "stonehearth:mixins:placed_properties",
+   "type": "entity",
+   "components": {
+      "unit_info": {
+         "name": "Camp Standard",
+         "description": "",
+         "icon" : "file(/entities/generic/default_object/default_object.png)"
+      },
+      "model_variants": [
+         {
+            "models": [
+               "file(camp_standard.qb)"
+            ]
+         }
+      ],
+      "destination": {
+         "region": [
+            [ [-3, 0, -3], [4, 1, 4] ]
+         ]
+      }
+
+   }
+}

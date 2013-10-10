@@ -1,0 +1,68 @@
+{
+    "name": "blood",
+    "duration": 0.2,
+    "loops": false,
+    "particle": {
+        "lifetime": {
+            "start": {
+                "kind": "CONSTANT",
+                "values": [0.3]
+            }
+        },
+        "speed": {
+            "start": {
+                "kind": "RANDOM_BETWEEN",
+                "values": [10,14]
+            }
+        },
+
+        "color": {
+            "start": {
+                "kind": "CONSTANT",
+                "values": [1.0, 0.7, 0.0, 1.0]
+            },
+            "over_lifetime_a": {
+                "kind": "CURVE",
+                "values": [
+                    [0.0, 1.0], [0.7, 1.0], [1.0, 0.0]
+                ]
+            }
+
+        },
+        "scale": {
+            "start": {
+                "kind": "RANDOM_BETWEEN",
+                "values": [0.3, 0.3]
+            },
+            "over_lifetime": {
+                "kind": "RANDOM_BETWEEN_CURVES",
+                "values": [
+                    [[0.0, 1.0],[1.0, 0.0]],
+                    [[0.0, 1.0],[1.0, 0.0]]
+                ]
+            }
+        },
+        "rotation": {
+            "over_lifetime_x": {
+                "kind": "RANDOM_BETWEEN_CURVES",
+                "values": [
+                    [[0.0, -360.0], [1.0, 360.0]],
+                    [[0.0, 360.0], [1.0, 360.0]]
+                ]
+            }
+        }
+    },
+    "emission": {
+        "rate": {
+            "kind": "CONSTANT",
+            "values": [100]
+        },
+        "origin": {
+            "surface": "POINT"
+        },
+        "angle": {
+            "kind": "CONSTANT",
+            "values": [360]
+        }
+    }
+}

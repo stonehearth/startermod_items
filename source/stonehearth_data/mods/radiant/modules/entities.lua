@@ -131,7 +131,7 @@ end
 function entities.get_entity_data(entity, key)
    if entity then
       local uri = entity:get_uri();
-      if uri and uri ~= '.' then
+      if uri and uri ~= ':' then
          local json = radiant.resources.load_json(uri)
          if json.entity_data then
             return json.entity_data[key]
@@ -238,12 +238,20 @@ function entities.set_display_name(entity, name)
 end
 
 function entities.get_attribute(entity, attribute_name)
-   entity:add_component('attributes'):get_attribute(attribute_name)
+   return entity:add_component('attributes'):get_attribute(attribute_name)
 end
 
 
 function entities.set_attribute(entity, attribute_name, value)
    entity:add_component('attributes'):set_attribute(attribute_name, value)
+end
+
+function entities.set_posture(entity, posture)
+   entity:add_component('stonehearth:posture'):set_posture(posture)
+end
+
+function entities.unset_posture(entity, posture)
+   entity:add_component('stonehearth:posture'):unset_posture(posture)
 end
 
 --[[
@@ -266,13 +274,13 @@ function entities.pickup_item(entity, item)
          if parent then
             entities.remove_child(parent, item)
          end
-         entity:add_component('stonehearth:posture'):set_posture('carrying')
-         entity:add_component('attributes'):set_attribute('speed', 0.5) --xxx, change to a buff
+         radiant.entities.set_posture(entity, 'carrying')
+         radiant.entities.set_attribute(entity, 'speed', 50) --xxx, change to a debuff
          carry_block:set_carrying(item)
          entities.move_to(item, Point3(0, 0, 0))
       else
-         entity:add_component('stonehearth:posture'):unset_posture('carrying')
-         entity:add_component('stonehearth:attributes'):set_attribute('speed', 1.0)
+         radiant.entities.unset_posture(entity, 'carrying')
+         radiant.entities.set_attribute(entity, 'speed', 100) --xxx, change to a debuff
          carry_block:set_carrying(nil)
       end
    end
@@ -287,6 +295,11 @@ end
 ]]
 function entities.drop_carrying(entity, location)
    radiant.check.is_entity(entity)
+
+   if not location then
+      location = radiant.entities.get_location_aligned(entity)
+   end
+   
    radiant.check.is_a(location, Point3)
 
    local item = entities._drop_helper(entity)
@@ -318,8 +331,8 @@ function entities._drop_helper(entity)
    if carry_block then
       local item = carry_block:get_carrying()
       if item then
-         entity:add_component('stonehearth:posture'):unset_posture('carrying')
-         entity:add_component('attributes'):set_attribute('speed', 1.0)
+         radiant.entities.unset_posture(entity, 'carrying')
+         radiant.entities.set_attribute(entity, 'speed', 100) --xxx, change to a debuff
          carry_block:set_carrying(nil)
          return item
       end
@@ -358,6 +371,35 @@ function entities.is_adjacent_to_xz(entity, location)
    point_a = Point2(a.x, a.z)
    point_b = Point2(b.x, b.z)
    return point_a:is_adjacent_to(point_b)
+end
+
+function entities.get_target_table_top(entity, table_name)
+   local target_tables = entity:get_component('target_tables')
+   local top_entry = target_tables:get_top(table_name)
+
+   if top_entry then
+      return top_entry.target
+   end
+
+   return nil
+end
+
+function entities.kill_entity(entity)
+   --radiant.entities.destroy_entity(entity)
+end
+
+function entities.compare_attribute(entity_a, entity_b, attribute)
+   local attributes_a = entity_a:get_component('attributes')
+   local attributes_b = entity_b:get_component('attributes')
+
+   if attributes_a and attributes_b then
+      local ferocity_a = attributes_a:get_attribute(attribute)
+      local ferocity_b = attributes_b:get_attribute(attribute)
+
+      return ferocity_a - ferocity_b
+   end
+
+   return 0
 end
 
 entities.__init()

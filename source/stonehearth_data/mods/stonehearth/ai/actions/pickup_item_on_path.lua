@@ -1,12 +1,12 @@
 local PickupItemOnPath = class()
 
-PickupItemOnPath.does = 'stonehearth.pickup_item_on_path'
+PickupItemOnPath.does = 'stonehearth:pickup_item_on_path'
 PickupItemOnPath.priority = 5
 
 function PickupItemOnPath:run(ai, entity, path)
    local item = path:get_destination()
    --TODO: if the destination item changes, we should just abort from inside the pf
-   ai:execute('stonehearth.follow_path', path)
+   ai:execute('stonehearth:follow_path', path)
 
    --There's always a chance the item may no longer be there. Fail gracefully
    --TODO: Put up a confused animation
@@ -16,7 +16,7 @@ function PickupItemOnPath:run(ai, entity, path)
       ai:abort()
    end
 
-   ai:execute('stonehearth.pickup_item_on_ground', item)
+   ai:execute('stonehearth:pickup_item_on_ground', item)
 end
 
 return PickupItemOnPath

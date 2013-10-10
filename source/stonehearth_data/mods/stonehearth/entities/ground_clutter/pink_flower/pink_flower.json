@@ -1,0 +1,15 @@
+{
+   "type" : "entity",
+   "components" : {
+      "render_info" : {
+         "scale" : 0.2
+      },
+      "model_variants": [
+         {
+		      "models": [
+			      "file(pink_flower.qb)"
+		      ]
+   	   }
+      ]
+	}
+}

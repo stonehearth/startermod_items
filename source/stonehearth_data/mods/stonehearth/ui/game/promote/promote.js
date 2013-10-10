@@ -45,7 +45,7 @@ App.StonehearthClassesPromoteView = App.View.extend({
          console.log('instantiate the picker!');
 
          var self = this;
-         radiant.call('stonehearth.get_worker_tracker')
+         radiant.call('stonehearth:get_worker_tracker')
             .done(function(response) {
                App.gameView.addView(App.StonehearthPeoplePickerView, {
                            uri: response.tracker,
@@ -68,7 +68,7 @@ App.StonehearthClassesPromoteView = App.View.extend({
       promoteCitizen: function() {
          var self = this;
          var person = this.get('context.citizenToPromote').__self;
-         radiant.call('stonehearth.grab_promotion_talisman', person, this.talisman)
+         radiant.call('stonehearth:grab_promotion_talisman', person, this.talisman)
             .done(function(data) {
                radiant.log.info("promote_citizen.stonehearth finished!", data)
             })

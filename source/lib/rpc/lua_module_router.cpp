@@ -17,7 +17,7 @@ using namespace radiant::rpc;
 using namespace luabind;
 
 // Parses 'a.b.c.d' -> 'a' , 'b.c.d'
-static const std::regex route_parser_regex__("^([^\\.\\\\/]+)\\.([^\\\\/]+)$");
+static const std::regex route_parser_regex__("^([^:\\\\/]+):([^\\\\/]+)$");
 
 LuaModuleRouter::LuaModuleRouter(lua::ScriptHost* s, std::string const& endpoint) :
    LuaRouter(s),

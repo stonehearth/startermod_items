@@ -48,7 +48,7 @@
          radiant.assert(offset >= 0, 'trace not found in remove_trace');
          this._traces.splice(offset, 1); // remove it
          if (_.isEmpty(this._traces)) {
-            radiant.call('radiant.remove_trace', this._callId);
+            radiant.call('radiant:remove_trace', this._callId);
             delete tracerMap[this.uri];
          }
       }
@@ -117,7 +117,7 @@
 
       _start_poll : function() {
          var self = this;
-         var deferred = self._docall('/r/call?fn=radiant.get_events&long_poll=1', []).deferred
+         var deferred = self._docall('/r/call?fn=radiant:get_events&long_poll=1', []).deferred
          deferred
             .done(function (data) {
                $.each(data, function (_, o) {
@@ -168,7 +168,7 @@
    radiant.call = function () {
       var args = Array.prototype.slice.call(arguments);
       if (args.length < 1) {
-         throw "radiant.call requires at least 1 argument.";
+         throw "radiant:call requires at least 1 argument.";
       }
       var fn = args[0];
       args = args.slice(1);
@@ -178,7 +178,7 @@
    radiant.call_obj = function() {
       var args = Array.prototype.slice.call(arguments);
       if (args.length < 2) {
-         throw "radiant.call_obj requires at least 2 arguments.";
+         throw "radiant:call_obj requires at least 2 arguments.";
       }
       var obj = args[0];
       var fn = args[1];
@@ -189,7 +189,7 @@
    radiant.trace = function(uri) {
       var tracer = tracerMap[uri];
       if (tracer == undefined) {
-         var o = object._docall('/r/call/?fn=radiant.install_trace', [uri, 'ui requested trace']);
+         var o = object._docall('/r/call/?fn=radiant:install_trace', [uri, 'ui requested trace']);
          tracer = new Tracer(o, uri);
       }
       return new Trace(tracer);

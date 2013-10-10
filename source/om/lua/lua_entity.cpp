@@ -16,7 +16,7 @@ std::string Entity_GetUri(std::weak_ptr<Entity> e)
    auto entity = e.lock();
    if (entity) {
       std::ostringstream os;
-      os << entity->GetModuleName() << "." << entity->GetEntityName();
+      os << entity->GetModuleName() << ":" << entity->GetEntityName();
       return os.str();
    }
    return "";

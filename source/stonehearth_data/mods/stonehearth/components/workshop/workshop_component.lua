@@ -206,7 +206,7 @@ end
    TODO: Make this a speciatly stockpile, not like other stockpiles!
 ]]
 function WorkshopComponent:init_outbox(custom_offset, custom_size)
-   self._outbox_entity = radiant.entities.create_entity('stonehearth.workshop_outbox')
+   self._outbox_entity = radiant.entities.create_entity('stonehearth:workshop_outbox')
    local bench_loc = radiant.entities.get_location_aligned(self._entity)
 
    if custom_offset then

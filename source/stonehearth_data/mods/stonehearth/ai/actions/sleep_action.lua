@@ -6,8 +6,8 @@ radiant.mods.load('stonehearth') -- make sure it's loaded...
 
 local SleepAction = class()
 
-SleepAction.name = 'stonehearth.actions.sleep'
-SleepAction.does = 'stonehearth.top'
+SleepAction.name = 'goto sleep'
+SleepAction.does = 'stonehearth:top'
 SleepAction.priority = 0
 
 function SleepAction:__init(ai, entity)
@@ -19,19 +19,16 @@ function SleepAction:__init(ai, entity)
    self._looking_for_a_bed = false
    self._sleeping = false
 
-   radiant.events.listen('radiant.events.calendar.hourly', self)
+   radiant.events.listen('radiant:events:calendar:hourly', self)
 end
 
---[[
-   The sleep action works by first looking for a bed when it's time to go
-   to sleep. If a bed is found, we run to the bed and lie down in it.
-
-   If a bed is never found, we will never go to sleep. The idea is that
-   some other action will pick up the slack and make the actor go to sleep
-   on the ground (not in a bed) from exhaustion.
---]]
-SleepAction['radiant.events.calendar.hourly'] = function(self, calendar)
-   -- if it's after midnight or before 6am and we're not already asleep got find a bed.
+--- Hourly after midnight, tell dudes to go to sleep.
+-- The sleep action works by first looking for a bed when it's time to go
+-- to sleep. If a bed is found, we run to the bed and lie down in it.
+-- TODO: If a bed is never found, we will never go to sleep. The idea is that
+-- some other action will pick up the slack and make the actor go to sleep
+-- on the ground (not in a bed) from exhaustion.
+SleepAction['radiant:events:calendar:hourly'] = function(self, calendar)
    if (calendar.hour < 6) then
       if not self._looking_for_a_bed and not self._sleeping then
          self:start_looking_for_bed()
@@ -148,7 +145,7 @@ end
 
    SleepAction handles the bookkeeping of the sleep behavior. It tells the pathfinder to
    stop searching for a bed, grabs a lease on the bed if necessary, then kicks off
-   stonehearth.sleep_in_bed to handle the specifics of how to go to sleep
+   stonehearth:sleep_in_bed to handle the specifics of how to go to sleep
    (like which animations to play)
 --]]
 function SleepAction:run(ai, entity)
@@ -177,7 +174,7 @@ function SleepAction:run(ai, entity)
 
    -- go to sleep!
    self._sleeping = true;
-   ai:execute('stonehearth.sleep_in_bed', self._bed, self._path_to_bed)
+   ai:execute('stonehearth:sleep_in_bed', self._bed, self._path_to_bed)
 
 end
 

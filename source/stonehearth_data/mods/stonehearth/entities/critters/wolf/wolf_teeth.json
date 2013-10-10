@@ -5,14 +5,14 @@
          "render_type" : "none",
          "injected_ai" : {
             "actions" : [
-               "stonehearth.actions.attack.melee_action"
+               "stonehearth:actions:attack:melee_action"
             ]
          }
       }
    },
    "entity_data" : {
       "stonehearth:melee_weapon": {
-         "damage" : "1d6",
+         "damage" : "10",
          "effect" : "bite"
       }
    }

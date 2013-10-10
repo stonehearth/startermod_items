@@ -13,7 +13,7 @@ using namespace ::radiant;
 using namespace ::radiant::om;
 using namespace ::luabind;
 
-static const std::regex entity_macro_regex__("^([^\\.\\\\/]+)\\.([^\\\\/]+)$");
+static const std::regex entity_macro_regex__("^([^:\\\\/]+):([^\\\\/]+)$");
 
 csg::Region3 Stonehearth::ComputeStandingRegion(const csg::Region3& r, int height)
 {

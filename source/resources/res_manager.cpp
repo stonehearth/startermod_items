@@ -24,7 +24,7 @@ using namespace ::radiant;
 using namespace ::radiant::res;
 
 static const std::regex file_macro_regex__("^file\\((.*)\\)$");
-static const std::regex entity_macro_regex__("^([^\\.\\\\/]+)\\.([^\\\\/]+)$");
+static const std::regex entity_macro_regex__("^([^:\\\\/]+):([^\\\\/]+)$");
 
 // === Helper Functions ======================================================
 
