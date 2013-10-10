@@ -50,7 +50,6 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
 
    CefInitialize(main_args, settings, app_.get());
    CefRegisterSchemeHandlerFactory("http", "radiant", this);
-
    CefWindowInfo windowInfo;
    windowInfo.SetAsOffScreen(parentWindow);
    windowInfo.SetTransparentPainting(true);
@@ -180,10 +179,12 @@ void Browser::OnPaint(CefRefPtr<CefBrowser> browser,
 
    const uint32* src = (const uint32*)buffer;
    for (auto& r : dirtyRects) {
-      int offset = r.x + (r.y * uiWidth_);
+      int destOffset = r.x + (r.y * uiWidth_);
+      int srcOffset = r.x + (r.y * width);
       for (int dy = 0; dy < r.height; dy++) {
-         memcpy(browser_framebuffer_ + offset, src + offset, r.width * 4);
-         offset += uiWidth_;
+         memcpy(browser_framebuffer_ + destOffset, src + srcOffset, r.width * 4);
+         destOffset += uiWidth_;
+         srcOffset += width;
       }
       dirtyRegion_ += csg::Rect2(csg::Point2(r.x, r.y), csg::Point2(r.x + r.width, r.y + r.height));
    }
@@ -557,8 +558,19 @@ void Browser::OnScreenResize(int w, int h)
 {
    screenWidth_ = w;
    screenHeight_ =  h;
-   // now would be a good time to resize the browser window if the aspect
-   // ratio has changed!
+
+   uiWidth_ = screenWidth_;
+   uiHeight_ = screenHeight_;
+
+   if (browser_framebuffer_) {
+      delete browser_framebuffer_;
+      browser_framebuffer_ = nullptr;
+   }
+   browser_framebuffer_ = new uint32[uiWidth_ * uiHeight_];
+
+   resize_cb_(w, h);
+
+   browser_->GetHost()->NotifyScreenInfoChanged();
 }
 
 void Browser::GetBrowserSize(int& w, int& h)
