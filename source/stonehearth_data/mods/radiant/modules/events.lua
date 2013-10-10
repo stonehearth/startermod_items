@@ -83,9 +83,9 @@ function events._get_msg_filters(filter)
    local filters = {}
    table.insert(filters, filter)
    repeat
-      filter = filter:gsub('(.*)%.(.*)', '%1') -- the lua regexp escape char is %.  nice...
+      filter = filter:gsub('(.*):(.*)', '%1') -- the lua regexp escape char is %.  nice...
       table.insert(filters, filter)
-   until not filter:find('%.')
+   until not filter:find(':')
    return filters
 end
 
