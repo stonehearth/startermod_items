@@ -86,7 +86,7 @@ end
 function entities.distance_between(entity_a, entity_b)
    local loc_a = radiant.entities.get_world_grid_location(entity_a)
    local loc_b = radiant.entities.get_world_grid_location(entity_b)
-   
+
    return loc_a:distance_to(loc_b)
 end
 
@@ -289,6 +289,31 @@ function entities.drop_carrying(entity, location)
    radiant.check.is_entity(entity)
    radiant.check.is_a(location, Point3)
 
+   local item = entities._drop_helper(entity)
+   if item then
+      radiant.terrain.place_entity(item, location)
+   end
+end
+
+--- Put an object down on another object
+-- @param entity The entity carrying the object
+-- @param target The object that will get the new thing added to it
+-- @param location (Optional) The location on the target to put the object. 0,0,0 by default
+function entities.drop_carrying_on_object(entity, target, location)
+   local target_loc = location
+   if not target_loc then
+      target_loc = Point3(0,0,0)
+   end
+   local item = entities._drop_helper(entity)
+   if item then
+      entities.add_child(target, item, Point3(0, 0, 0))
+   end
+end
+
+--- Helper for the drop functions.
+-- Determines the carried item from the entity
+-- @param entity The entity that is carrying the droppable item
+function entities._drop_helper(entity)
    local carry_block = entity:get_component('carry_block')
    if carry_block then
       local item = carry_block:get_carrying()
@@ -296,7 +321,7 @@ function entities.drop_carrying(entity, location)
          entity:add_component('stonehearth:posture'):unset_posture('carrying')
          entity:add_component('attributes'):set_attribute('speed', 1.0)
          carry_block:set_carrying(nil)
-         radiant.terrain.place_entity(item, location)
+         return item
       end
    end
 end

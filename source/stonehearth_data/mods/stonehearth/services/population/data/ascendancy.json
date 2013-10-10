@@ -23,7 +23,8 @@
       "Framer",
       "Hunterton",
       "Winset",
-      "Jondal"
+      "Jondal",
+      "Baub"
    ],
    "given_names" : {
       "male" : [
@@ -37,7 +38,8 @@
          "Pantor",
          "Daff",
          "Willad",
-         "Irving"
+         "Irving",
+         "Chopper"
       ],
       "female" : [
          "Dara",
@@ -49,7 +51,9 @@
          "Autumn",
          "Senn",
          "Raven",
-         "Vio"
+         "Vio",
+         "Jess",
+         "Marianne"
       ]
    }
 }

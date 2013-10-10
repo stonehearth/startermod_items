@@ -126,6 +126,7 @@
          "actions.death_action" : "file(ai/actions/death_action.lua)",
          "actions.sleep_in_bed_action" : "file(ai/actions/sleep_in_bed_action.lua)",
          "actions.drop_carrying_action" : "file(ai/actions/drop_carrying_action.lua)",
+         "actions.drop_carrying_on_entity" : "file(ai/actions/drop_carrying_on_entity.lua)",
          "actions.wander_action" : "file(ai/actions/wander_action.lua)",
          "actions.follow_path_action" : "file(ai/actions/follow_path_action.lua)",
          "actions.pickup_item_action" : "file(ai/actions/pickup_item_action.lua)",

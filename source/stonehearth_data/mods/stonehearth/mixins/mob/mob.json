@@ -6,6 +6,7 @@
             "stonehearth.actions.compel_to_action",
             "stonehearth.actions.death_action",
             "stonehearth.actions.drop_carrying_action",
+            "stonehearth.actions.drop_carrying_on_entity",
             "stonehearth.actions.follow_path_action",
             "stonehearth.actions.goto_entity_action",
             "stonehearth.actions.goto_location_action",
