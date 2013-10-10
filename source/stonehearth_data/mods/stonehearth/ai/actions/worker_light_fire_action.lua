@@ -42,7 +42,7 @@ function WorkerLightFireAction:run(ai, entity, path, firepit, task)
    -- We have to create a ghost entity as the destination because the firepit's target is large
    local ghost_entity = radiant.entities.create_entity()
    radiant.terrain.place_entity(ghost_entity, Point3(radiant.entities.get_world_grid_location(firepit)))
-   ai:execute('stonehearth.bring_item_on_path_to_dest', path, ghost_entity, 0)
+   ai:execute('stonehearth.bring_item_on_path_to_dest', path, ghost_entity, 0, false)
 
    -- perform the lighting animation TODO: replace with another gesture
    ai:execute('stonehearth.run_effect', 'work')

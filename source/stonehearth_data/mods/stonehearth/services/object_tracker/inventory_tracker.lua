@@ -43,7 +43,7 @@ function InventoryTracker:_on_entity_add(id, entity)
    local item_info = entity:get_component('item')
    local unit_info = entity:get_component('unit_info')
 
-   if placeable and not placeable:is_under_construction() and item_info then
+   if placeable and item_info then
 
       self._data.num_entities = self._data.num_entities + 1
 

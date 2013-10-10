@@ -23,8 +23,8 @@ end
 -- @param path The path to the object
 -- @ghost_entity The object representing the destination
 -- @param rotation The degree at which the object should appear when it's placed
--- @param task The task, if this is fired by a worker scheduler
-function BringItemOnPathToDest:run(ai, entity, path, ghost_entity, rotation)
+-- @on_terrain True if we want to put the object on the terrain, false if we want to put the object in the ghost entity
+function BringItemOnPathToDest:run(ai, entity, path, ghost_entity, rotation, on_terrain)
    local proxy_entity = path:get_destination()
    -- We already have a path to the object, so set up a pathfinder
    -- between the object and its final destination, to use later.
@@ -39,7 +39,11 @@ function BringItemOnPathToDest:run(ai, entity, path, ghost_entity, rotation)
       return self._path_to_destination ~= nil
    end)
    ai:execute('stonehearth.follow_path', self._path_to_destination)
-   ai:execute('stonehearth.drop_carrying_on_entity', self._ghost_entity)
+   if on_terrain then
+      ai:execute('stonehearth.drop_carrying', self._path_to_destination:get_destination_point_of_interest())
+   else
+      ai:execute('stonehearth.drop_carrying_on_entity', self._ghost_entity)
+   end
    radiant.entities.turn_to(proxy_entity, rotation)
 end
 
