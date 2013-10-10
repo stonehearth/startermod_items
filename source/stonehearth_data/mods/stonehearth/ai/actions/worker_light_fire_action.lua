@@ -44,19 +44,19 @@ function WorkerLightFireAction:run(ai, entity, path, firepit, task)
    radiant.terrain.place_entity(ghost_entity, Point3(radiant.entities.get_world_grid_location(firepit)))
    ai:execute('stonehearth.bring_item_on_path_to_dest', path, ghost_entity, 0)
 
-   --destroy the ghost entity
-   radiant.entities.destroy_entity(ghost_entity)
-
-
    -- perform the lighting animation TODO: replace with another gesture
    ai:execute('stonehearth.run_effect', 'work')
 
    -- Put the log IN the firepit and light it
    local firepit_component = firepit:get_component('stonehearth:firepit')
-   firepit_component:add_wood(log)
+   firepit_component:add_wood()
 
-   --If we got here, we succeeded at the action. Note that we succeeded by setting the task to nil.
-   --self._task:destroy()
+   --destroy the ghost entity and the log inside of it
+   radiant.entities.destroy_entity(log)
+   radiant.entities.destroy_entity(ghost_entity)
+
+   -- If we got here, we succeeded at the action.
+   -- Note that we succeeded by setting the task to nil.
    self._task = nil
 end
 

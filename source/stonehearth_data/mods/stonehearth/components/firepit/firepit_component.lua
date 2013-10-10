@@ -118,14 +118,12 @@ function FirepitComponent:_init_gather_wood_task()
 end
 
 --- Adds wood to the fire
--- Create a new entity and destroy the old one so there's no danger that the worker
--- scheduler will try to tell the worker to make off with the (burning) log
+-- Create a new entity instead of re-using the old one because if we wanted to do
+-- that, we'd have to reparent the log to the fireplace.
 -- @param log_entity to add to the fire
-function FirepitComponent:add_wood(log_entity)
-   self._my_wood = log_entity
+function FirepitComponent:add_wood()
    self._my_wood = radiant.entities.create_entity('stonehearth.oak_log')
    radiant.entities.add_child(self._entity, self._my_wood, Point3(0, 0, 0))
-   radiant.entities.destroy_entity(log_entity)
 
    self._curr_fire_effect =
       radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/firepit_effect')
