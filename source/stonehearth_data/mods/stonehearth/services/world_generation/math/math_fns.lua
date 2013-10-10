@@ -38,7 +38,7 @@ function MathFns.point_hash(x, y)
    -- from Effective Java (2nd edition)
    local prime = 51
    local value = (prime + MathFns.int_hash(y)) * prime + MathFns.int_hash(x)
-   value = value + prime -- don't hash 0, 0 to 0
+   value = value + prime -- don't hash (0,0) to 0
    local hash = value % max_unsigned_int
    return hash
 end

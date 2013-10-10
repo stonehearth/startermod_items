@@ -22,8 +22,8 @@ local GaussianRandom = require 'services.world_generation.math.gaussian_random'
 local MathFns = require 'services.world_generation.math.math_fns'
 local FilterFns = require 'services.world_generation.filter.filter_fns'
 local BoundaryNormalizingFilter = require 'services.world_generation.filter.boundary_normalizing_filter'
-local Wavelet = require 'services.world_generation.wavelet.wavelet'
-local WaveletFns = require 'services.world_generation.wavelet.wavelet_fns'
+local Wavelet = require 'services.world_generation.filter.wavelet'
+local WaveletFns = require 'services.world_generation.filter.wavelet_fns'
 
 local filter_kernel_8_025 = BoundaryNormalizingFilter({
 9.27968054988339e-005,

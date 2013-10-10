@@ -1,14 +1,14 @@
 local WaveletFns = {}
-local Wavelet =  require 'services.world_generation.wavelet.wavelet'
+local Wavelet =  require 'services.world_generation.filter.wavelet'
 
-function WaveletFns.shape_height_map(height_map, freq_scaling_coeff, levels)
-   local width = height_map.width
-   local height = height_map.height
+-- function WaveletFns.shape_height_map(height_map, freq_scaling_coeff, levels)
+--    local width = height_map.width
+--    local height = height_map.height
 
-   Wavelet.DWT_2D(height_map, width, height, levels)
-   WaveletFns.scale_high_freq(height_map, width, height, freq_scaling_coeff, levels)
-   Wavelet.IDWT_2D(height_map, width, height, levels)
-end
+--    Wavelet.DWT_2D(height_map, width, height, levels)
+--    WaveletFns.scale_high_freq(height_map, width, height, freq_scaling_coeff, levels)
+--    Wavelet.IDWT_2D(height_map, width, height, levels)
+-- end
 
 -- assumes current_level = 1 if not specified
 function WaveletFns.scale_high_freq(src, src_width, src_height, power, max_level, current_level)

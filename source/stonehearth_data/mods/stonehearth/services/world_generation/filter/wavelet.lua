@@ -1,12 +1,15 @@
 local Wavelet = {}
 local Array2D = require 'services.world_generation.array_2D'
-local CDF_97 = require 'services.world_generation.wavelet.cdf_97'
+local CDF_97 = require 'services.world_generation.filter.cdf_97'
 
 local transform = CDF_97
 
+function Wavelet.DWT_2D(src, src_width, src_height, max_level, yield)
+   Wavelet._DWT_2D(src, src_width, src_height, max_level, 1, yield)
+end
+
 -- assumes current_level = 1 if not specified
-function Wavelet.DWT_2D(src, src_width, src_height, max_level, current_level)
-   if current_level == nil then current_level = 1 end
+function Wavelet._DWT_2D(src, src_width, src_height, max_level, current_level, yield)
    if current_level > max_level then return end
    local i, j
    local vec = {}
@@ -18,6 +21,7 @@ function Wavelet.DWT_2D(src, src_width, src_height, max_level, current_level)
       Array2D:get_row_vector(vec, src, i, src_width, level_width)
       transform.DWT_1D(vec, level_width)
       Array2D:set_row_vector(src, vec, i, src_width, level_width)
+      if yield then coroutine.yield() end
    end
 
    -- vertical transform
@@ -25,15 +29,14 @@ function Wavelet.DWT_2D(src, src_width, src_height, max_level, current_level)
       Array2D:get_column_vector(vec, src, j, src_width, level_height)
       transform.DWT_1D(vec, level_height)
       Array2D:set_column_vector(src, vec, j, src_width, level_height)
+      if yield then coroutine.yield() end
    end
 
-   Wavelet.DWT_2D(src, src_width, src_height, max_level, current_level+1)
+   Wavelet._DWT_2D(src, src_width, src_height, max_level, current_level+1, false)
 end
 
--- assumes full inverse if min_level not specified
-function Wavelet.IDWT_2D(src, src_width, src_height, current_level, min_level)
-   if min_level == nil then min_level = 1 end
-   if current_level < min_level then return end
+function Wavelet.IDWT_2D(src, src_width, src_height, current_level, yield)
+   if current_level < 1 then return end
    local i, j
    local vec = {}
    local level_width, level_height =
@@ -44,6 +47,7 @@ function Wavelet.IDWT_2D(src, src_width, src_height, current_level, min_level)
       Array2D:get_column_vector(vec, src, j, src_width, level_height)
       transform.IDWT_1D(vec, level_height)
       Array2D:set_column_vector(src, vec, j, src_width, level_height)
+      if yield then coroutine.yield() end
    end
 
    -- horizontal transform
@@ -51,9 +55,10 @@ function Wavelet.IDWT_2D(src, src_width, src_height, current_level, min_level)
       Array2D:get_row_vector(vec, src, i, src_width, level_width)
       transform.IDWT_1D(vec, level_width)
       Array2D:set_row_vector(src, vec, i, src_width, level_width)
+      if yield then coroutine.yield() end
    end
 
-   Wavelet.IDWT_2D(src, src_width, src_height, current_level-1, min_level)
+   Wavelet.IDWT_2D(src, src_width, src_height, current_level-1, false)
 end
 
 function Wavelet.get_dimensions_for_level(width, height, level)
