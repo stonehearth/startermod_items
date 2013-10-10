@@ -7,9 +7,7 @@ App.StonehearthGameUiView = App.ContainerView.extend({
             "StonehearthUnitFrameView",
             "StonehearthObjectBrowserView",
             "StonehearthCalendarView",
-            "StonehearthEventLogView"
-            ],
-         full: [
+            "StonehearthEventLogView",
             "StonehearthMainActionbarView"
             ]
       };
@@ -25,10 +23,6 @@ App.StonehearthGameUiView = App.ContainerView.extend({
 
    getDate: function() {
       return this._date;
-   },
-
-   showFullUi: function() {
-      this._addViews(this.views.full);
    },
 
    _addViews: function(views) {
