@@ -1,6 +1,6 @@
 local WorkerRestockAction = class()
 
-WorkerRestockAction.name = 'stonehearth:restock'
+WorkerRestockAction.name = 'restock'
 WorkerRestockAction.does = 'stonehearth:restock'
 WorkerRestockAction.priority = 5
 

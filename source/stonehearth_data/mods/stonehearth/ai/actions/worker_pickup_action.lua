@@ -1,6 +1,6 @@
 local WorkerPickupAction = class()
 
-WorkerPickupAction.name = 'stonehearth_worker:actions:pickup_action'
+WorkerPickupAction.name = 'pickup action'
 WorkerPickupAction.does = 'stonehearth_worker:actions:pickup'
 WorkerPickupAction.priority = 5
 

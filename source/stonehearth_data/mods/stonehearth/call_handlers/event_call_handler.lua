@@ -9,7 +9,7 @@ function EventCallHandler:get_events(session, request)
       radiant.log.info('calling get_events')
       data_object = _radiant.sim.create_data_store()
       data_object:update(event_service:get_entries())
-      
+
       local update_data_object = function()
 		   data_object:mark_changed()
       end
