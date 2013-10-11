@@ -10,7 +10,6 @@ message Request {
    extensions 100 to max;
    enum Type {
       PostCommandRequest = 2;
-      ScriptCommandRequest = 3;
    }
    required Type     type = 1;
 };
@@ -31,13 +30,6 @@ message PostCommandRequest {
    optional string   args = 5;
 }
 
-message ScriptCommandRequest {
-   extend Request {
-      optional ScriptCommandRequest extension = 103;
-   }
-   required string   cmd = 1;
-}
-
 message Update {
    extensions 100 to max;
    enum Type {
@@ -50,7 +42,6 @@ message Update {
       UpdateDebugShapes = 7;
       EndUpdate = 9;
       PostCommandReply = 11;
-      ScriptCommandReply = 12;
       DefineRemoteObject = 13;
    }
    required Type     type = 1;
@@ -131,13 +122,6 @@ message PostCommandReply {
    required int32       call_id = 1;
    optional Type        type = 2;
    optional string      content = 3;
-}
-
-message ScriptCommandReply {
-   extend Update {
-      optional ScriptCommandReply extension = 121;
-   }
-   optional string      result = 1;
 }
 
 message DefineRemoteObject {

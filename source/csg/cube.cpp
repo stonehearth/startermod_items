@@ -9,6 +9,12 @@ using namespace ::radiant::csg;
 
 Cube3 Cube3::zero(Point3(0, 0, 0), Point3(0, 0, 0));
 Cube3 Cube3::one(Point3(0, 0, 0), Point3(1, 1, 1));
+Rect2 Rect2::zero(Point2(0, 0), Point2(0, 0));
+Rect2 Rect2::one(Point2(0, 0), Point2(1, 1));
+Line1 Line1::zero(Point1(0), Point1(0));
+Line1 Line1::one(Point1(0), Point1(1));
+Cube3f Cube3f::zero(Point3f(0, 0, 0), Point3f(0, 0, 0));
+Cube3f Cube3f::one(Point3f(0, 0, 0), Point3f(1, 1, 1));
 
 template <class C>
 static bool Cube3IntersectsImpl(const C& cube, const csg::Ray3& ray, float& d)

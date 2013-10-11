@@ -21,6 +21,9 @@ void Mob::InitializeRecordFields()
    transform_.Modify().SetZero();
    aabb_.Modify().SetZero();
    flags_ = (INTERPOLATE_MOVEMENT | SELECTABLE);
+   if (!IsRemoteRecord()) {
+      moving_ = false;
+   }
 }
 
 void Mob::MoveTo(const csg::Point3f& location)
@@ -85,7 +88,7 @@ csg::Cube3f Mob::GetAABB() const
    return aabb_;
 }
 
-const csg::Point3f Mob::GetLocation() const
+csg::Point3f Mob::GetLocation() const
 {
    return (*transform_).position;
 }
@@ -117,12 +120,12 @@ csg::Point3 Mob::GetWorldGridLocation() const
    return csg::ToInt(GetWorldLocation());
 }
 
-const csg::Quaternion& Mob::GetRotation() const
+csg::Quaternion Mob::GetRotation() const
 {
    return (*transform_).orientation;
 }
 
-const csg::Transform& Mob::GetTransform() const
+csg::Transform Mob::GetTransform() const
 {
    return *transform_;
 }
@@ -164,3 +167,16 @@ void Mob::ExtendObject(json::ConstJsonObject const& obj)
       SetInterpolateMovement(i->as_bool());
    }
 }
+
+Mob& Mob::SetMoving(bool m)
+{
+   moving_ = m;
+   return *this;
+}
+
+Mob& Mob::SetTransform(csg::Transform const& t)
+{
+   transform_ = t;
+   return *this;
+}
+

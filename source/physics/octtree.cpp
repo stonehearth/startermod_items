@@ -9,7 +9,7 @@
 #include "om/components/sensor_list.h"
 
 using namespace radiant;
-using namespace radiant::Physics;
+using namespace radiant::phys;
 
 static const csg::Point3 _adjacent[] = {
    csg::Point3( 1,  0,  0),
@@ -85,8 +85,8 @@ void OctTree::OnComponentAdded(om::EntityRef e, dm::ObjectType type, std::shared
       case om::SensorListObjectType: {
          const auto& sensors = std::static_pointer_cast<om::SensorList>(component)->GetSensors();
          guards_ += sensors.TraceMapChanges("oct tree sensors",
-                                                            std::bind(&OctTree::TraceSensor, this, std::placeholders::_2),
-                                                            nullptr);
+                                            std::bind(&OctTree::TraceSensor, this, std::placeholders::_2),
+                                            nullptr);
          for (const auto& entry : sensors) {
             TraceSensor(entry.second);
          }
@@ -466,3 +466,14 @@ void OctTree::UpdateEntityContainer(om::EntityContainerPtr container)
       TraceEntity(entry.second.lock());
    }
 }
+
+TerrainChangeCbId OctTree::AddCollisionRegionChangeCb(csg::Region3 const* r, TerrainChangeCb cb)
+{
+   return navgrid_.AddCollisionRegionChangeCb(r, cb);
+}
+
+void OctTree::RemoveCollisionRegionChangeCb(TerrainChangeCbId id)
+{
+   navgrid_.RemoveCollisionRegionChangeCb(id);
+}
+

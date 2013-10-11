@@ -8,12 +8,11 @@
 #include "h3d_resource_types.h"
 #include "render_component.h"
 #include "om/components/render_info.h"
+#include "lib/voxel/forward_defines.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
 class Renderer;
-class QubicleFile;
-class QubicleMatrix;
 
 class RenderRenderInfo : public RenderComponent
 {
@@ -37,21 +36,21 @@ private:
             layers[i] = nullptr;
          }
       }
-      QubicleMatrix const* layers[om::ModelVariant::NUM_LAYERS];
+      voxel::QubicleMatrix const* layers[om::ModelVariant::NUM_LAYERS];
    };
    typedef std::unordered_map<std::string, ModelMapEntry> ModelMap;
-   typedef std::unordered_map<std::string, QubicleMatrix const*> FlatModelMap;
+   typedef std::unordered_map<std::string, voxel::QubicleMatrix const*> FlatModelMap;
 
    struct NodeMapEntry {
       NodeMapEntry() : matrix(nullptr), node(0) { }
-      NodeMapEntry(QubicleMatrix const* m, H3DNodeUnique n) : matrix(m), node(n) { }
+      NodeMapEntry(voxel::QubicleMatrix const* m, H3DNodeUnique n) : matrix(m), node(n) { }
 
-      QubicleMatrix const* matrix;
+      voxel::QubicleMatrix const* matrix;
       H3DNodeUnique        node;
    };
 
    typedef std::unordered_map<std::string, NodeMapEntry> NodeMap;
-   typedef std::unordered_map<std::string, std::shared_ptr<QubicleFile>> QubicleFileMap;
+   typedef std::unordered_map<std::string, std::shared_ptr<voxel::QubicleFile>> QubicleFileMap;
    typedef std::unordered_map<std::string, csg::Point3f> BoneOffsetMap;
 
 private:
@@ -61,14 +60,14 @@ private:
    void FlattenModelMap(ModelMap& m, FlatModelMap& flattened);
    void RemoveObsoleteNodes(FlatModelMap const& m);
    std::string GetBoneName(std::string const& matrix_name);
-   void AddModelNode(om::RenderInfoPtr render_info, std::string const& bone, QubicleMatrix const* matrix);
+   void AddModelNode(om::RenderInfoPtr render_info, std::string const& bone, voxel::QubicleMatrix const* matrix);
    void AddMissingNodes(om::RenderInfoPtr render_info, FlatModelMap const& m);
    void RebuildBoneOffsets(om::RenderInfoPtr render_info);
    void Update();
    std::string GetModelVariant(om::RenderInfoPtr render_info) const;
 
 private:
-   static std::shared_ptr<QubicleFile> LoadQubicleFile(std::string const& uri);
+   static std::shared_ptr<voxel::QubicleFile> LoadQubicleFile(std::string const& uri);
    static QubicleFileMap   qubicle_map__;
 
 private:

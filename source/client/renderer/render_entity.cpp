@@ -13,6 +13,7 @@
 #include "render_render_region.h"
 #include "render_carry_block.h"
 #include "render_paperdoll.h"
+#include "render_vertical_pathing_region.h"
 #include "resources/res_manager.h"
 #include "resources/animation.h"
 #include "om/entity.h"
@@ -43,7 +44,7 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
    dm::ObjectId id = entity->GetObjectId();
 
    std::ostringstream name;
-   name << "RenderEntity " << entity->GetModuleName() << " " << entity->GetEntityName() << " (" << entity->GetStoreId() << ", " << id << ")";
+   name << "RenderEntity " << entity->GetDebugText() << " (" << entity->GetStoreId() << ", " << id << ")";
 
    // LOG(WARNING) << "creating new entity " << name.str() << ".";
 
@@ -62,6 +63,7 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
 void RenderEntity::FinishConstruction()
 {
    UpdateComponents();
+   UpdateInvariantRenderers();
    initialized_ = true;
 }
 
@@ -112,6 +114,47 @@ void RenderEntity::UpdateComponents()
    }
 }
 
+void RenderEntity::UpdateInvariantRenderers()
+{
+   auto entity = entity_.lock();
+
+   if (entity) {
+      std::string uri = entity->GetUri();
+      if (!uri.empty()) {
+         auto const& res = res::ResourceManager2::GetInstance();
+         json::ConstJsonObject json = res.LookupJson(uri);
+         if (json.has("entity_data")) {
+            for (auto const& entry : json.getn("entity_data")) {
+               std::string name = entry.name();
+               size_t offset = name.find(':');
+               if (offset != std::string::npos) {
+                  std::string modname = name.substr(0, offset);
+                  std::string invariant_name = name.substr(offset + 1, std::string::npos);
+
+                  json::ConstJsonObject manifest = res.LookupManifest(modname);
+                  json::ConstJsonObject invariants = manifest.getn("invariant_renderers");
+                  std::string path = invariants.get<std::string>(invariant_name);
+                  if (!path.empty()) {
+                     lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
+                     luabind::object ctor = script->RequireScript(path);
+
+                     std::weak_ptr<RenderEntity> re = shared_from_this();
+                     luabind::object render_invariant;
+                     try {
+                        render_invariant = script->CallFunction<luabind::object>(ctor, re, script->JsonToLua(entry));
+                     } catch (std::exception const& e) {
+                        LOG(WARNING) << e.what();
+                        continue;
+                     }
+                     lua_invariants_[name] = render_invariant;
+                  }
+               }
+            }
+         }
+      }
+   }
+}
+
 void RenderEntity::AddComponent(dm::ObjectType key, std::shared_ptr<dm::Object> value)
 {
    ASSERT(value);
@@ -142,7 +185,7 @@ void RenderEntity::AddComponent(dm::ObjectType key, std::shared_ptr<dm::Object> 
          }
          case om::DestinationObjectType: {
             om::DestinationPtr stockpile = std::static_pointer_cast<om::Destination>(value);
-            //components_[key] = std::make_shared<RenderDestination>(*this, stockpile);
+            components_[key] = std::make_shared<RenderDestination>(*this, stockpile);
             break;
          }
          case om::LuaComponentsObjectType: {
@@ -167,6 +210,11 @@ void RenderEntity::AddComponent(dm::ObjectType key, std::shared_ptr<dm::Object> 
          case om::PaperdollObjectType: {
             om::PaperdollPtr renderRegion = std::static_pointer_cast<om::Paperdoll>(value);
             components_[key] = std::make_shared<RenderPaperdoll>(*this, renderRegion);
+            break;
+         }
+         case om::VerticalPathingRegionObjectType: {
+            om::VerticalPathingRegionPtr obj = std::static_pointer_cast<om::VerticalPathingRegion>(value);
+            components_[key] = std::make_shared<RenderVerticalPathingRegion>(*this, obj);
             break;
          }
       }

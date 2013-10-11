@@ -1,0 +1,14 @@
+#ifndef _RADIANT_VOXEL_FORWARD_DEFINES_H
+#define _RADIANT_VOXEL_FORWARD_DEFINES_H
+
+#include "namespace.h"
+
+BEGIN_RADIANT_VOXEL_NAMESPACE
+
+class QubicleMatrix;
+class QubicleFile;
+
+END_RADIANT_VOXEL_NAMESPACE
+
+
+#endif //  _RADIANT_VOXEL_FORWARD_DEFINES_H

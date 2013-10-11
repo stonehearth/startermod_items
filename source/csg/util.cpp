@@ -27,6 +27,79 @@ std::ostream& csg::operator<<(std::ostream& os, EdgeList const& f)
    return os << "[EdgeList of " << f.points.size() << " points]";
 }
 
+int csg::RoundTowardNegativeInfinity(int i, int tile_size)
+{
+   int tile_offset;
+   if (i > 0) {
+      tile_offset = i / tile_size;
+   } else {
+      tile_offset = (i - (tile_size - 1)) / tile_size;
+   }
+   return tile_offset * tile_size;
+}
+
+int csg::GetTileOffset(int position, int tile_size)
+{
+   return RoundTowardNegativeInfinity(position, tile_size) / tile_size;
+}
+
+Region3 csg::Reface(Region3 const& rgn, Point3 const& forward)
+{
+   Region3 result;   
+   int cos_theta, sin_theta, tx = 0, tz = 0;
+
+   if (forward == csg::Point3(0, 0, -1)) { // 0...
+      return rgn;
+   } else if (forward == csg::Point3(1, 0, 0)) { // 90...
+      cos_theta = 0;
+      sin_theta = 1;
+      tx = 1;
+   } else if (forward == csg::Point3(0, 0, 1)) { // 180...
+      cos_theta = -1; 
+      sin_theta = 0;
+      tx = 1;
+      tz = 1;
+   } else if (forward == csg::Point3(-1, 0, 0)) { // 270...
+      cos_theta = 0; 
+      sin_theta = -1;
+      tz = 1;
+   } else {
+      throw std::invalid_argument(BUILD_STRING("vector is not a valid normal refacing region: " << forward));
+   }
+
+   for (const auto& cube : rgn) {
+      csg::Point3 const& min = cube.GetMin();
+      csg::Point3 const& max = cube.GetMax();
+      result.AddUnique(Cube3::Construct(Point3(min.x * cos_theta - min.z * sin_theta + tx,
+                                               min.y,
+                                               min.x * sin_theta + min.z * cos_theta + tz),
+                                        Point3(max.x * cos_theta - max.z * sin_theta + tx,
+                                               max.y,
+                                               max.x * sin_theta + max.z * cos_theta + tz),
+                                        cube.GetTag()));
+   }
+   return result;
+}
+
+
+Region3 csg::GetAdjacent(Region3 const& r)
+{
+   Region3 adjacent;
+
+   for (const csg::Cube3& c : r) {
+      csg::Point3 p0 = c.GetMin();
+      csg::Point3 p1 = c.GetMax();
+      csg::Point3 delta = p1 - p0;
+      int x = delta.x, y = delta.y, z = delta.z;
+
+      adjacent.Add(csg::Cube3(p0 - csg::Point3(0, 0, 1), p0 + csg::Point3(x, y, 0)));  // top
+      adjacent.Add(csg::Cube3(p0 - csg::Point3(1, 0, 0), p0 + csg::Point3(0, y, z)));  // left
+      adjacent.Add(csg::Cube3(p0 + csg::Point3(0, 0, z), p0 + csg::Point3(x, y, z + 1)));  // bottom
+      adjacent.Add(csg::Cube3(p0 + csg::Point3(x, 0, 0), p0 + csg::Point3(x + 1, y, z)));  // right
+   }
+   adjacent.Optimize();
+   return adjacent;
+}
 
 void csg::HeightmapToRegion2(HeightMap<double> const& h, Region2& r)
 {

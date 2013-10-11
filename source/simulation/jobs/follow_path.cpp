@@ -110,9 +110,14 @@ void FollowPath::Report(std::string msg)
 {
    auto entity = entity_.lock();
    if (entity) {
-      auto start = path_->GetPoints().front();
-      auto end = path_->GetPoints().back();
-      auto location = entity->GetComponent<om::Mob>()->GetWorldLocation();
-      LOG(INFO) << msg << " (follow path " << (void*)this << " entity:" << entity->GetObjectId() << " " << start << " -> " << end << " currently at " << location << ")";
+      auto const& points = path_->GetPoints();
+      if (!points.empty()) {
+         auto start = points.front();
+         auto end = points.back();
+         auto location = entity->GetComponent<om::Mob>()->GetWorldLocation();
+         LOG(INFO) << msg << " (follow path " << (void*)this << " entity:" << entity->GetObjectId() << " " << start << " -> " << end << " currently at " << location << ")";
+      } else {
+         LOG(INFO) << msg << " (follow path " << (void*)this << " entity:" << entity->GetObjectId() << " path has no points)";
+      }
    }
 }

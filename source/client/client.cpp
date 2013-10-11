@@ -39,6 +39,7 @@
 #include "lua/res/open.h"
 #include "lua/rpc/open.h"
 #include "lua/om/open.h"
+#include "lua/voxel/open.h"
 #include "client/renderer/render_entity.h"
 
 #include "glfw3.h"
@@ -135,7 +136,7 @@ void Client::run()
    hover_cursor_ = LoadCursor("stonehearth:cursors:hover");
    default_cursor_ = LoadCursor("stonehearth:cursors:default");
 
-   octtree_ = std::unique_ptr<Physics::OctTree>(new Physics::OctTree());
+   octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree());
       
    Renderer& renderer = Renderer::GetInstance();
    //renderer.SetCurrentPipeline("pipelines/deferred_lighting.xml");
@@ -206,6 +207,7 @@ void Client::run()
    lua::om::register_json_to_lua_objects(L, authoringStore_);
    lua::client::open(L);
    lua::res::open(L);
+   lua::voxel::open(L);
    lua::rpc::open(L, core_reactor_);
 
 
@@ -216,12 +218,9 @@ void Client::run()
    // this locks down the environment!  all types must be registered by now!!
    scriptHost_->Require("radiant.client");
 
-#if 0
-   // xxx: use Call on the reactor for this stuff...
-   _commands[GLFW_KEY_F9] = std::bind(&Client::EvalCommand, this, "radiant:toggle_debug_nodes");
-   _commands[GLFW_KEY_F3] = std::bind(&Client::EvalCommand, this, "radiant:toggle_step_paths");
-   _commands[GLFW_KEY_F4] = std::bind(&Client::EvalCommand, this, "radiant:step_paths");
-#endif
+   _commands[GLFW_KEY_F9] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_debug_nodes")); };
+   _commands[GLFW_KEY_F3] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_step_paths")); };
+   _commands[GLFW_KEY_F4] = [=]() { core_reactor_->Call(rpc::Function("radiant:step_paths")); };
    _commands[GLFW_KEY_ESCAPE] = [=]() {
       currentCursor_ = NULL;
    };
@@ -324,6 +323,7 @@ void Client::mainloop()
    // we may create or modify authoring objects as a result of input events
    // or calls from the browser.
    authoringStore_.FireTraces();
+   authoringStore_.FireFinishedTraces();
 
    CallTraceRenderFrameHandlers( Renderer::GetInstance().GetLastFrameRenderTime() );
    Renderer::GetInstance().RenderOneFrame(now_, alpha);
@@ -411,6 +411,7 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
    // data isn't guaranteed to be in a consistent state between
    // boundaries.
    store_.FireTraces();
+   store_.FireFinishedTraces();
 }
 
 void Client::SetServerTick(const proto::SetServerTick& msg)
@@ -436,8 +437,6 @@ void Client::UpdateObject(const proto::UpdateObject& update)
 {
    const auto& msg = update.object();
    dm::ObjectId id = msg.object_id();
-
-   // LOG(WARNING) << "Client updating object " << id << ".";
 
    dm::Object* obj = store_.FetchStaticObject(id);
    ASSERT(obj);
@@ -913,18 +912,10 @@ om::EntityPtr Client::CreateEmptyAuthoringEntity()
    return entity;
 }
 
-
-om::EntityPtr Client::CreateAuthoringEntity(std::string const& mod_name, std::string const& entity_name)
+om::EntityPtr Client::CreateAuthoringEntity(std::string const& uri)
 {
    om::EntityPtr entity = CreateEmptyAuthoringEntity();
-   om::Stonehearth::InitEntity(entity, mod_name, entity_name, nullptr);
-   return entity;
-}
-
-om::EntityPtr Client::CreateAuthoringEntityByRef(std::string const& ref)
-{
-   om::EntityPtr entity = CreateEmptyAuthoringEntity();
-   om::Stonehearth::InitEntityByRef(entity, ref, nullptr);
+   om::Stonehearth::InitEntity(entity, uri, nullptr);
    return entity;
 }
 

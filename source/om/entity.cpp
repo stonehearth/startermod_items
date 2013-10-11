@@ -16,15 +16,15 @@ std::ostream& ::radiant::om::operator<<(std::ostream& os, EntityPtr o)
 
 std::ostream& ::radiant::om::operator<<(std::ostream& os, Entity const& o)
 {
-   std::string mod_name = o.GetModuleName();
-   std::string entity_name = o.GetEntityName();
+   std::string debug_text = o.GetDebugText();
+   std::string uri = o.GetUri();
 
    os << "[Entity " << o.GetObjectId();
-   if (!entity_name.empty()) {
-      os << " " << entity_name;
+   if (!uri.empty()) {
+      os << " " << uri;
    }
-   if (!mod_name.empty()) {
-      os << " from: " << mod_name;
+   if (!debug_text.empty()) {
+      os << " " << debug_text;
    }
    os << "]";
 
@@ -34,10 +34,9 @@ std::ostream& ::radiant::om::operator<<(std::ostream& os, Entity const& o)
 void Entity::InitializeRecordFields()
 {
    // LOG(WARNING) << "creating entity " << GetObjectId();
-   AddRecordField("components",     components_);
-   AddRecordField("debug_text",     debug_text_);
-   AddRecordField("mod_name",       mod_name_);
-   AddRecordField("entity_name",    entity_name_);
+   AddRecordField("components",  components_);
+   AddRecordField("debug_text",  debug_text_);
+   AddRecordField("uri",         uri_);
    if (!IsRemoteRecord()) {
       AddComponent<LuaComponents>();
    }

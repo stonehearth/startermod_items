@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "record.h"
 #include "store.h"
+#include "dbg_indenter.h"
 
 using namespace ::radiant;
 using namespace ::radiant::dm;
@@ -121,4 +122,25 @@ dm::Guard Record::TraceObjectChanges(const char* reason, std::function<void()> f
       guard += GetStore().FetchStaticObject(field.second)->TraceObjectChanges(reason, fn);
    }
    return guard;
+}
+
+
+void Record::GetDbgInfo(DbgInfo &info) const
+{
+   if (WriteDbgInfoHeader(info)) {
+      info.os << " {" << std::endl;
+      {
+         Indenter indent(info.os);
+         auto i = fields_.begin(), end = fields_.end();
+         while (i != end) {
+            info.os << '"' << i->first << '"' << " : ";
+            GetStore().FetchStaticObject(i->second)->GetDbgInfo(info);
+            if (++i != end) {
+               info.os << ",";
+            }
+            info.os << std::endl;
+         }
+      }
+      info.os << "}";
+   }
 }

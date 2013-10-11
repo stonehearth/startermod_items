@@ -32,9 +32,8 @@ csg::Region3 Stonehearth::ComputeStandingRegion(const csg::Region3& r, int heigh
    return standing;
 }
 
-
 static object
-Entity_GetNativeComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
+GetNativeComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
 {
 #define OM_OBJECT(Clas, lower)  \
    if (name == #lower) { \
@@ -46,6 +45,27 @@ Entity_GetNativeComponent(lua_State* L, om::EntityPtr entity, std::string const&
    }
    OM_ALL_COMPONENTS
 #undef OM_OBJECT
+   return object();
+}
+
+static object
+GetNativeComponentData(lua_State* L, om::EntityPtr entity, std::string const& name)
+{
+   dm::ObjectPtr obj = nullptr;
+#define OM_OBJECT(Clas, lower)  \
+   if (name == #lower) { \
+      auto component = entity->GetComponent<om::Clas>(); \
+      if (!component) { \
+         return object(); \
+      } \
+      obj = component; \
+   }
+   OM_ALL_COMPONENTS
+#undef OM_OBJECT
+   if (obj) {
+      JSONNode node = om::ObjectFormatter().ObjectToJson(obj);
+      return lua::ScriptHost::JsonToLua(L, node);
+   }
    return object();
 }
 
@@ -68,7 +88,7 @@ GetLuaComponentUri(std::string name)
 }
 
 static object
-Entity_GetLuaComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
+GetLuaComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
 {
    om::LuaComponentsPtr component = entity->GetComponent<om::LuaComponents>();
    if (component) {
@@ -80,15 +100,41 @@ Entity_GetLuaComponent(lua_State* L, om::EntityPtr entity, std::string const& na
    return object();
 }
 
+static object
+GetLuaComponentData(lua_State* L, om::EntityPtr entity, std::string const& name)
+{
+   om::LuaComponentsPtr component = entity->GetComponent<om::LuaComponents>();
+   if (component) {
+      om::DataBindingPtr db = component->GetLuaComponent(name);
+      if (db) {
+         return lua::ScriptHost::JsonToLua(L, db->GetJsonData());
+      }
+   }
+   return object();
+}
+
 object
 om::Stonehearth::GetComponent(lua_State* L, om::EntityRef e, std::string name)
 {
    object component;
    auto entity = e.lock();
    if (entity) {
-      component = Entity_GetNativeComponent(L, entity, name);
+      component = GetNativeComponent(L, entity, name);
       if (!component.is_valid()) {
-         component = Entity_GetLuaComponent(L, entity, name);
+         component = GetLuaComponent(L, entity, name);
+      }
+   }
+   return component;
+}
+object
+om::Stonehearth::GetComponentData(lua_State* L, om::EntityRef e, std::string name)
+{
+   object component;
+   auto entity = e.lock();
+   if (entity) {
+      component = GetNativeComponentData(L, entity, name);
+      if (!component.is_valid()) {
+         component = GetLuaComponentData(L, entity, name);
       }
    }
    return component;
@@ -96,11 +142,15 @@ om::Stonehearth::GetComponent(lua_State* L, om::EntityRef e, std::string name)
 
 
 static object
-Entity_AddNativeComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
+AddNativeComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
 {
 #define OM_OBJECT(Clas, lower)  \
    if (name == #lower) { \
-      auto component = entity->AddComponent<om::Clas>(); \
+      auto component = entity->GetComponent<om::Clas>(); \
+      if (!component) { \
+         component = entity->AddComponent<om::Clas>(); \
+         component->ExtendObject(json::ConstJsonObject(JSONNode())); \
+      } \
       return object(L, std::weak_ptr<om::Clas>(component)); \
    }
    OM_ALL_COMPONENTS
@@ -109,7 +159,7 @@ Entity_AddNativeComponent(lua_State* L, om::EntityPtr entity, std::string const&
 }
 
 static object
-Entity_AddLuaComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
+AddLuaComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
 {
    using namespace luabind;
 
@@ -137,46 +187,23 @@ om::Stonehearth::AddComponent(lua_State* L, om::EntityRef e, std::string name)
    object component;
    auto entity = e.lock();
    if (entity) {
-      component = Entity_AddNativeComponent(L, entity, name);
-
+      component = AddNativeComponent(L, entity, name);
       if (!component.is_valid()) {
-         component = Entity_AddLuaComponent(L, entity, name);
+         component = AddLuaComponent(L, entity, name);
          ASSERT(component.is_valid());
       }
    }
    return component;
 }
 
-void Stonehearth::InitEntityByRef(om::EntityPtr entity, std::string const& entity_ref, lua_State* L)
-{   
-   std::smatch match;
-
-   if (std::regex_match(entity_ref, match, entity_macro_regex__)) {
-      InitEntity(entity, match[1], match[2], L);
-   }
-}
-
-void Stonehearth::InitEntity(om::EntityPtr entity, std::string const& mod_name, std::string const& entity_name, lua_State* L)
-{
-   if (entity->GetModuleName().empty()) {
-      entity->SetName(mod_name, entity_name);
-   }
-
-   try {
-      std::string uri = res::ResourceManager2::GetInstance().GetEntityUri(mod_name, entity_name);
-      InitEntityByUri(entity, uri, L);
-   } catch (res::Exception &e) {
-      std::ostringstream error;
-      error << "failed to initialize entity " << mod_name << "." << entity_name << " "  << e.what();
-      throw res::Exception(error.str());
-   }
-}
-
-void Stonehearth::InitEntityByUri(om::EntityPtr entity, std::string const& uri, lua_State* L)
+void Stonehearth::InitEntity(om::EntityPtr entity, std::string const& uri, lua_State* L)
 {
    if (L) {
       L = lua::ScriptHost::GetCallbackThread(L);
    }
+
+   entity->SetUri(uri);
+   entity->SetDebugText(uri);
 
    JSONNode const& node = res::ResourceManager2::GetInstance().LookupJson(uri);
    auto i = node.find("components");

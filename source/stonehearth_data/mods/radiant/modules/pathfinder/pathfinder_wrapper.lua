@@ -9,6 +9,11 @@ function PathFinderWrapper:set_source(s)
    return self
 end
 
+function PathFinderWrapper:set_debug_color(c)
+   self._pf:set_debug_color(c)
+   return self
+end
+
 function PathFinderWrapper:add_destination(d)
    self._pf:add_destination(d)
    return self

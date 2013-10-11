@@ -6,6 +6,7 @@
 #include "all_objects_types.h"
 #include "dm_save_impl.h"
 #include "radiant_luabind.h"
+#include "dbg_info.h"
 #include <unordered_map>
 
 BEGIN_RADIANT_DM_NAMESPACE
@@ -22,6 +23,9 @@ class Object
 public:
    Object();
    Object(Object&& other);
+
+   virtual const char *GetObjectClassNameLower() const = 0;
+   virtual void GetDbgInfo(DbgInfo &info) const = 0;
 
    virtual void Initialize(Store& s, ObjectId id);
    virtual void InitializeSlave(Store& s, ObjectId id);
@@ -88,6 +92,7 @@ public:
 
 protected:
    friend Store;
+   bool WriteDbgInfoHeader(DbgInfo &info) const;
 
 public:
    void MarkChanged();
@@ -132,6 +137,15 @@ struct SaveImpl<std::shared_ptr<T>>
       ObjectId id = msg.GetExtension(Protocol::Ref::ref_object_id);
       value = store.FetchObject<T>(id);
    }
+   static void GetDbgInfo(std::shared_ptr<T> obj, DbgInfo &info) {
+      if (obj) {
+         info.os << "[shared_ptr ";
+         SaveImpl<T>::GetDbgInfo(*obj, info);
+         info.os << "]";
+      } else {
+         info.os << "[shared_ptr nullptr]";
+      }
+   }
 };
 
 // TODO: only for T's which are DYNAMIC!! Objects!
@@ -144,6 +158,16 @@ struct SaveImpl<std::weak_ptr<T>>
    static void LoadValue(const Store& store, const Protocol::Value& msg, std::weak_ptr<T>& value) {
       ObjectId id = msg.GetExtension(Protocol::Ref::ref_object_id);
       value = store.FetchObject<T>(id);
+   }
+   static void GetDbgInfo(std::weak_ptr<T> o, DbgInfo &info) {
+      auto obj = o.lock();
+      if (obj) {
+         info.os << "[weak_ptr ";
+         SaveImpl<T>::GetDbgInfo(*obj, info);
+         info.os << "]";
+      } else {
+         info.os << "[weak_ptr nullptr]";
+      }
    }
 };
 

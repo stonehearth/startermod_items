@@ -80,7 +80,14 @@ template <> JSONNode ToJson(const ObjectFormatter& f, LuaComponents const& obj)
 template <> JSONNode ToJson(const ObjectFormatter& f, Entity const& obj)
 {
    JSONNode node;
-
+   std::string debug_text = obj.GetDebugText();
+   std::string uri = obj.GetUri();
+   if (!uri.empty()) {
+      node.push_back(JSONNode("uri", uri));
+   }
+   if (!debug_text.empty()) {
+      node.push_back(JSONNode("debug_text", debug_text));
+   }
    auto const& components = obj.GetComponents();
    for (auto const& entry : components) {
       dm::ObjectPtr c = entry.second;
@@ -115,6 +122,19 @@ template <> JSONNode ToJson(const ObjectFormatter& f, UnitInfo const& obj)
    node.push_back(JSONNode("description", obj.GetDescription()));
    node.push_back(JSONNode("faction", obj.GetFaction()));
    node.push_back(JSONNode("icon", obj.GetIcon()));
+   return node;
+}
+
+template <> JSONNode ToJson(const ObjectFormatter& f, Mob const& obj)
+{
+   JSONNode transform = obj.GetTransform().ToJson();
+   transform.set_name("transform");
+
+   JSONNode node;
+   node.push_back(JSONNode("entity", f.GetPathToObject(obj.GetEntityPtr())));
+   node.push_back(JSONNode("parent", f.GetPathToObject(obj.GetParent())));
+   node.push_back(JSONNode("moving", obj.GetMoving()));
+   node.push_back(transform);
    return node;
 }
 
@@ -160,7 +180,6 @@ template <> JSONNode ToJson(const ObjectFormatter& f, ErrorBrowser const& obj)
       OM_OBJECT(TargetTableGroup,   target_table_group)
       OM_OBJECT(TargetTableEntry,   target_table_entry)
       OM_OBJECT(Clock,                 clock)
-      OM_OBJECT(Mob,                   mob)
       OM_OBJECT(ModelVariant,          model_variant)
       OM_OBJECT(ModelVariants,         model_variants)
       OM_OBJECT(SphereCollisionShape,  sphere_collision_shape)

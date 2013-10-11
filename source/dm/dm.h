@@ -10,6 +10,8 @@
 BEGIN_RADIANT_DM_NAMESPACE
 
 class Object;
+class ObjectDumper;
+
 typedef std::weak_ptr<Object> ObjectRef;
 typedef std::shared_ptr<Object> ObjectPtr;
 

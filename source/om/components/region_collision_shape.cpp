@@ -15,3 +15,9 @@ csg::Cube3f RegionCollisionShape::GetAABB() const
    ASSERT(false);
    return csg::Cube3f();
 }
+
+RegionCollisionShape& RegionCollisionShape::SetRegion(Region3BoxedPtr r)
+{
+   region_ = r;
+   return *this;
+}

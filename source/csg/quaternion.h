@@ -31,6 +31,16 @@ class Quaternion
       float magnitude() const;
       float norm() const;
 
+      JSONNode ToJson() const
+      {
+         JSONNode result;
+         result.push_back(JSONNode("x", x));
+         result.push_back(JSONNode("y", y));
+         result.push_back(JSONNode("z", z));
+         result.push_back(JSONNode("w", w));
+         return result;
+      }
+
       void SaveValue(protocol::quaternion *msg) const {
          msg->set_x(x);
          msg->set_y(y);

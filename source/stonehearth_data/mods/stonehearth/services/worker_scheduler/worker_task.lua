@@ -1,23 +1,33 @@
+local Color4 = _radiant.csg.Color4
 local WorkerTask = class()
+
 
 local next_task_id = 1
 function WorkerTask:__init(name, scheduler)
    self.id = next_task_id
    next_task_id = next_task_id + 1
-
-   self._name = string.format('worker_task (%d): %s', self.id, name)
+   
+   self._name = string.format('(id:%d) %s', self.id, name)
    self._scheduler = scheduler
-   self._pathfinder = radiant.pathfinder.create_multi_path_finder(name)
-
+   self._pathfinders = {}
+   self._destinations = {}
+   self._debug_color = Color4(0, 255, 0, 128)
 end
 
 function WorkerTask:destroy()
-   self.running = false
+   self._running = false
    self._scheduler:remove_worker_task(self)
 end
 
 function WorkerTask:get_name()
    return self._name
+end
+
+function WorkerTask:set_debug_color(color)
+   self._debug_color = color
+   for worker_id, pf in pairs(self._pathfinders) do
+      pf:set_debug_color(color)
+   end
 end
 
 function WorkerTask:set_action_fn(fn)
@@ -46,11 +56,11 @@ function WorkerTask:set_work_object_filter_fn(filter_fn)
    if filter_fn then
       local on_added = function(id, entity)
          if filter_fn(entity) then
-            self._pathfinder:add_destination(entity)
+            self:add_work_object(entity)
          end
       end
       local on_removed = function(id)
-         self._pathfinder:remove_destination(id)
+         self:remove_work_object(id)
       end
       self._promise = radiant.terrain.trace_world_entities(self._name, on_added, on_removed)
    end
@@ -58,66 +68,77 @@ function WorkerTask:set_work_object_filter_fn(filter_fn)
 end
 
 function WorkerTask:add_work_object(dst)
-   -- Does dst still exist? If not, destroy this
-   if dst then
-      self._pathfinder:add_destination(dst)
-   else
-      self.destroy()
+   self._destinations[dst:get_id()] = dst
+   for worker_id, pf in pairs(self._pathfinders) do
+      pf:add_destination(dst)
+   end
+   return self
+end
+
+function WorkerTask:remove_work_object(id)
+   self._destinations[id] = nil
+   for worker_id, pf in pairs(self._pathfinders) do
+      pf:remove_destination(id)
    end
    return self
 end
 
 function WorkerTask:start()
-   if not self.running then
-      self.running = true
+   if not self._running then
+      self._running = true
       self._scheduler:_start_worker_task(self)
    end
    return self
 end
 
 function WorkerTask:stop()
-   if self.running then
-      self.running = false
+   if self._running then
+      self._running = false
       self._scheduler:_stop_worker_task(self)
    end
    return self
 end
 
-function WorkerTask:get_running()
-   return self.running
+function WorkerTask:_remove_worker(id)
+   local pf = self._pathfinders[id]
+   if pf then
+      pf:stop()
+      self._pathfinders[id] = nil
+   end
 end
 
-function WorkerTask:_remove_worker(worker)
-   self._pathfinder:remove_entity(worker)
+function WorkerTask:is_running()
+   return self._running
 end
 
 --- Consider Worker for task
 -- Test if the worker meets the filter function criteria. If so, activate pathfinder
 function WorkerTask:_consider_worker(worker)
-   assert(self.running, string.format('%s cannot consider worker while not running', self._name))
+   assert(self._running, string.format('%s cannot consider worker while not running', self._name))
    assert(self._get_action_fn, string.format('no action function set for WorkerTask %s', self._name))
    assert(self._worker_filter_fn, string.format('no worker filter function set for WorkerTask %s', self._name))
 
-   local solved_cb = function(path)
-      local action = { self._get_action_fn(path) }
-
-      -- The pathfinder has returned, but before we dispatch we should test a few things.
-      -- First, is the target entity still around? If not, kill this task.
-      local item = path:get_destination()
-
-      if not item then
-         self.destroy()
-         return
+   local id = worker:get_id()
+   if not self._pathfinders[id] then
+      local solved_cb = function(path)
+         local action = { self._get_action_fn(path) }
+         self:_dispatch_solution(action, path)
       end
 
-      self:_dispatch_solution(action, path)
-
-   end
-
-   if self._worker_filter_fn(worker) then
-      self._pathfinder:add_entity(worker, solved_cb, nil)
-   else
-      self._pathfinder:remove_entity(worker:get_id())
+      if self._worker_filter_fn(worker) then
+         local name = string.format('%s for worker %d', self._name, id)
+         local pf = radiant.pathfinder.create_path_finder(name)
+                                       :set_source(worker)
+                                       :set_solved_cb(solved_cb)
+                                       :set_debug_color(self._debug_color)
+         for id, dst in pairs(self._destinations) do
+            pf:add_destination(dst)
+         end
+         self._pathfinders[id] = pf
+         pf = pf
+      else
+         self:_remove_worker(id)
+      end
    end
 end
 

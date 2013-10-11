@@ -14,6 +14,11 @@ public:
    {
    }
 
+   Function(std::string const& r) :
+      route(r)
+   {
+   }
+
    Function(std::string const& r, JSONNode const& a) :
       route(r),
       args(a)

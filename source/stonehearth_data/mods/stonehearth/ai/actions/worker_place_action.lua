@@ -30,7 +30,7 @@ function WorkerPlaceItemAction:run(ai, entity, path, ghost_entity, rotation, tas
    local object_name = proxy_entity:get_component('unit_info'):get_display_name()
 
    -- If the task is already stopped, someone else got this action first. Exit.
-   if not task:get_running() then
+   if not task:is_running() then
       radiant.log.info('%s (Worker %s): Never mind! You got the %s.', tostring(entity), name, object_name)
       ai:abort()
    end

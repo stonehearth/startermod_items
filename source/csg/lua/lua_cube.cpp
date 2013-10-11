@@ -30,6 +30,7 @@ static luabind::scope Register(struct lua_State* L, const char* name)
 scope LuaCube::RegisterLuaTypes(lua_State* L)
 {
    return
+      def("ConstructCube3", &Cube3::Construct),
       Register<Cube3>(L,  "Cube3"),
       Register<Cube3f>(L, "Cube3f"),
       Register<Rect2>(L,  "Rect2"),

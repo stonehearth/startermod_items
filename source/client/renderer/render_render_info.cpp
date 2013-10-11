@@ -9,7 +9,7 @@
 #include "om/components/render_info.h"
 #include "Horde3DUtils.h"
 #include "resources/res_manager.h"
-#include "qubicle_file.h"
+#include "lib/voxel/qubicle_file.h"
 #include "pipeline.h"
 
 using namespace ::radiant;
@@ -17,7 +17,7 @@ using namespace ::radiant::client;
 
 RenderRenderInfo::QubicleFileMap RenderRenderInfo::qubicle_map__;
 
-std::shared_ptr<QubicleFile> RenderRenderInfo::LoadQubicleFile(std::string const& uri)
+std::shared_ptr<voxel::QubicleFile> RenderRenderInfo::LoadQubicleFile(std::string const& uri)
 {
    auto i = qubicle_map__.find(uri);
    if (i != qubicle_map__.end()) {
@@ -26,7 +26,7 @@ std::shared_ptr<QubicleFile> RenderRenderInfo::LoadQubicleFile(std::string const
    std::ifstream input;
    res::ResourceManager2::GetInstance().OpenResource(uri, input);
    ASSERT(input.good());
-   std::shared_ptr<QubicleFile> q = std::make_shared<QubicleFile>();
+   std::shared_ptr<voxel::QubicleFile> q = std::make_shared<voxel::QubicleFile>();
    input >> *q;
 
    qubicle_map__[uri] = q;
@@ -74,7 +74,7 @@ void RenderRenderInfo::AccumulateModelVariant(ModelMap& m, om::ModelVariantPtr v
       variant_guards_ += v->GetModels().TraceObjectChanges("model variant changed in render_info", set_model_dirty_bit);
 
       for (std::string const& model : v->GetModels()) {
-         std::shared_ptr<QubicleFile> qubicle;
+         std::shared_ptr<voxel::QubicleFile> qubicle;
          try {
             qubicle = LoadQubicleFile(model);
          } catch (res::Exception& e) {
@@ -83,7 +83,7 @@ void RenderRenderInfo::AccumulateModelVariant(ModelMap& m, om::ModelVariantPtr v
          }
          for (const auto& entry : *qubicle) {
             std::string bone = GetBoneName(entry.first);
-            QubicleMatrix const* matrix = &entry.second;
+            voxel::QubicleMatrix const* matrix = &entry.second;
 
             m[bone].layers[layer] = matrix;
          }
@@ -126,7 +126,7 @@ void RenderRenderInfo::RebuildModels(om::RenderInfoPtr render_info)
 void RenderRenderInfo::FlattenModelMap(ModelMap& m, FlatModelMap& flattened)
 {
    for (const auto& entry : m) {
-      QubicleMatrix const* matrix = nullptr;
+      voxel::QubicleMatrix const* matrix = nullptr;
       for (int i = om::ModelVariant::NUM_LAYERS - 1; i >= 0; i--) {
          matrix = entry.second.layers[i];
          if (matrix != nullptr) {
@@ -165,7 +165,7 @@ std::string RenderRenderInfo::GetBoneName(std::string const& matrix_name)
    return bone;
 }
 
-void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string const& bone, QubicleMatrix const* matrix)
+void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string const& bone, voxel::QubicleMatrix const* matrix)
 {
    ASSERT(nodes_.find(bone) == nodes_.end());
 

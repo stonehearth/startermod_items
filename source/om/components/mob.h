@@ -31,13 +31,14 @@ public:
    csg::Cube3f GetAABB() const;
    void SetAABB(const csg::Cube3f& box) { aabb_.Modify() = box; }
 
-   const csg::Point3f GetLocation() const;
-   const csg::Quaternion& GetRotation() const;
-   const csg::Transform& GetTransform() const;
-
-   MobPtr GetParent() const { return (*parent_).lock(); }
-   void SetMoving(bool m) { moving_ = m; }
+   csg::Point3f GetLocation() const;
+   csg::Quaternion GetRotation() const;
+   csg::Transform GetTransform() const;
    bool GetMoving() const { return moving_; }
+   MobPtr GetParent() const { return (*parent_).lock(); }
+
+   Mob& SetMoving(bool m);
+   Mob& SetTransform(csg::Transform const& t);
 
    csg::Point3 GetGridLocation() const;
 
