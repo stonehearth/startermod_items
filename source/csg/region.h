@@ -6,6 +6,7 @@
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
+
 template <class S, int C>
 class Region
 {
@@ -57,6 +58,7 @@ public:
    void Subtract(const Point& other);
    void Subtract(const Cube& other);
    void Subtract(const Region& other);
+   void ClipTo(const Region& other);
 
    // optimizing...
    Region<S, C> operator-(const Cube& other) const;
@@ -109,6 +111,7 @@ DECLARE_SHARED_POINTER_TYPES(Region3);
 DECLARE_SHARED_POINTER_TYPES(Region3f);
 
 bool Region3Intersects(const Region3& rgn, const csg::Ray3& ray, float& distance);
+Region3 Reface(Region3 const& rgn, Point3 const& forward);
 
 END_RADIANT_CSG_NAMESPACE
 

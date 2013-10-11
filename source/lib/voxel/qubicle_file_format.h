@@ -1,6 +1,9 @@
 #ifndef _RADIANT_VOXEL_QUBICLE_FILE_FORMAT_H
 #define _RADIANT_VOXEL_QUBICLE_FILE_FORMAT_H
 
+#include "radiant.h"
+#include "namespace.h"
+
 BEGIN_RADIANT_VOXEL_NAMESPACE
 
 // As documented at: http://www.minddesk.com/od_dataexchange_qb.php

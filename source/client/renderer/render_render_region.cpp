@@ -47,11 +47,8 @@ void RenderRenderRegion::OnSelected(om::Selection& sel, const csg::Ray3& ray,
 
 void RenderRenderRegion::UpdateRenderRegion(csg::Region3 const& region)
 {
-   csg::mesh_tools::meshmap meshmap;
-   csg::mesh_tools().optimize_region(region, meshmap);
+   csg::mesh_tools::mesh mesh = csg::mesh_tools().ConvertRegionToMesh(region);
    
-   for (auto const& entry : meshmap) {
-      H3DNodeUnique mesh = Pipeline::GetInstance().AddMeshNode(node_.get(), entry.second);
-      meshes_.emplace_back(mesh);
-   }
+   H3DNodeUnique mesh_node = Pipeline::GetInstance().AddMeshNode(node_.get(), mesh);
+   meshes_.emplace_back(mesh_node);
 }

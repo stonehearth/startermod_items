@@ -4,6 +4,7 @@
 #include "om/selection.h"
 #include "lib/rpc/lua_deferred.h"
 #include "lib/rpc/reactor_deferred.h"
+#include "lib/voxel/qubicle_brush.h"
 #include "lua/script_host.h"
 #include "client/client.h"
 #include "client/xz_region_selector.h"
@@ -11,10 +12,19 @@
 #include "client/renderer/render_entity.h" // xxx: move to renderer::open when we move the renderer!
 #include "client/renderer/lua_render_entity.h" // xxx: move to renderer::open when we move the renderer!
 #include "client/renderer/lua_renderer.h" // xxx: move to renderer::open when we move the renderer!
+#include "client/renderer/pipeline.h" // xxx: move to renderer::open when we move the renderer!
 
 using namespace ::radiant;
 using namespace ::radiant::client;
 using namespace luabind;
+
+H3DNodeUnique Client_CreateVoxelRenderNode(lua_State* L, 
+                                           H3DNode parent,
+                                           csg::Region3 const& model)
+{
+   csg::mesh_tools::mesh mesh = csg::mesh_tools().ConvertRegionToMesh(model);
+   return Pipeline::GetInstance().AddMeshNode(parent, mesh);
+}
 
 om::EntityRef Client_CreateEmptyAuthoringEntity()
 {
@@ -262,6 +272,7 @@ void lua::client::open(lua_State* L)
             def("select_xz_region",                &Client_SelectXZRegion),
             def("trace_render_frame",              &Client_TraceRenderFrame),
             def("set_cursor",                      &Client_SetCursor),
+            def("create_voxel_render_node",        &Client_CreateVoxelRenderNode),
 
             lua::RegisterTypePtr<CaptureInputPromise>()
                .def("on_input",          &CaptureInputPromise::Progress)

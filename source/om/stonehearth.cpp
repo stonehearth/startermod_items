@@ -46,6 +46,27 @@ GetNativeComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
    return luabind::object();
 }
 
+static luabind::object
+GetNativeComponentData(lua_State* L, om::EntityPtr entity, std::string const& name)
+{
+   dm::ObjectPtr obj = nullptr;
+#define OM_OBJECT(Clas, lower)  \
+   if (name == #lower) { \
+      auto component = entity->GetComponent<om::Clas>(); \
+      if (!component) { \
+         return luabind::object(); \
+      } \
+      obj = component; \
+   }
+   OM_ALL_COMPONENTS
+#undef OM_OBJECT
+   if (obj) {
+      JSONNode node = om::ObjectFormatter().ObjectToJson(obj);
+      return lua::ScriptHost::JsonToLua(L, node);
+   }
+   return luabind::object();
+}
+
 
 static std::string
 GetLuaComponentUri(std::string name)
@@ -77,6 +98,19 @@ GetLuaComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
    return luabind::object();
 }
 
+static luabind::object
+GetLuaComponentData(lua_State* L, om::EntityPtr entity, std::string const& name)
+{
+   om::LuaComponentsPtr component = entity->GetComponent<om::LuaComponents>();
+   if (component) {
+      om::DataBindingPtr db = component->GetLuaComponent(name);
+      if (db) {
+         return lua::ScriptHost::JsonToLua(L, db->GetJsonData());
+      }
+   }
+   return luabind::object();
+}
+
 luabind::object
 om::Stonehearth::GetComponent(lua_State* L, om::EntityRef e, std::string name)
 {
@@ -86,6 +120,19 @@ om::Stonehearth::GetComponent(lua_State* L, om::EntityRef e, std::string name)
       component = GetNativeComponent(L, entity, name);
       if (!component.is_valid()) {
          component = GetLuaComponent(L, entity, name);
+      }
+   }
+   return component;
+}
+luabind::object
+om::Stonehearth::GetComponentData(lua_State* L, om::EntityRef e, std::string name)
+{
+   luabind::object component;
+   auto entity = e.lock();
+   if (entity) {
+      component = GetNativeComponentData(L, entity, name);
+      if (!component.is_valid()) {
+         component = GetLuaComponentData(L, entity, name);
       }
    }
    return component;

@@ -15,7 +15,8 @@ public:
 
    std::istream& Read(const QbHeader& header, std::istream& in);  
    const csg::Point3& GetSize() const { return size_; }
-   
+   const csg::Point3& GetPosition() const { return position_; }
+
    uint32 At(int x, int  y, int z) const;
    csg::Color3 GetColor(uint32 value) const;
 

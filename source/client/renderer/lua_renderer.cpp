@@ -3,11 +3,17 @@
 #include "client/client.h"
 #include "om/object_formatter/object_formatter.h"
 #include "lua_renderer.h"
+#include "h3d_resource_types.h"
 #include "Horde3DRadiant.h"
 
 using namespace luabind;
 using namespace ::radiant;
 using namespace ::radiant::client;
+
+void H3DNodeUnique_Destroy(H3DNodeUnique &node)
+{
+   node.reset(0);
+}
 
 static object GetNodeParam(lua_State* L, H3DNode node, int param)
 {
@@ -163,6 +169,8 @@ void LuaRenderer::RegisterType(lua_State* L)
          value("Inactive",                   H3DNodeFlags::Inactive),
          value("NoCastShadow",               H3DNodeFlags::NoCastShadow)
       ],
+      class_<H3DNodeUnique>("H3DNodeUnique")
+         .def("destroy",                     H3DNodeUnique_Destroy),
       def("h3dGetNodeParamStr",              &h3dGetNodeParamStr),
       def("h3dRemoveNode",                   &h3dRemoveNode),
       def("h3dAddLightNode",                 &h3dAddLightNode),

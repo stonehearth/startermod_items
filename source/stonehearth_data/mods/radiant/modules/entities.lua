@@ -13,7 +13,7 @@ function entities.get_root_entity()
 end
 
 function entities.create_entity(ref)
-   if not ref then
+   if not ref or #ref == 0 then
       return _radiant.sim.create_empty_entity()
    end
 
@@ -156,14 +156,13 @@ end
 function entities.get_entity_data(entity, key)
    if entity then
       local uri = entity:get_uri()
-      if uri then
+      if uri and #uri > 0 then
          local json = radiant.resources.load_json(uri)
          if json.entity_data then
             return json.entity_data[key]
          end
       end
    end
-   return {}
 end
 
 function entities.on_destroy(entity, dtor)

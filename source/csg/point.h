@@ -2,6 +2,7 @@
 #define _RADIANT_CSG_POINT_H
 
 #include <ostream>
+#include <libjson.h>
 #include "radiant_macros.h"
 #include "csg.h"
 #include "namespace.h"
@@ -21,18 +22,27 @@ public:
    S& operator[](int offset) { return static_cast<Derived*>(this)->Coord(offset); }
    S operator[](int offset) const { return static_cast<const Derived*>(this)->Coord(offset);  }
 
+   JSONNode ToJson() const
+   {
+      char label[2] = { 'x', '\0' };
+      JSONNode result;
+      for (int i = 0; i < C; i++) {
+         result.push_back(JSONNode(label, (*this)[i]));
+         label[0]++;
+      }
+      return result;
+   }
+
    // manipulators
    void Scale(float s) {
       for (int i = 0; i < C; i++) {
-         (*this)[i] *= s;
+         (*this)[i] = static_cast<S>((*this)[i] * s);
       }
    }
 
    Derived Scaled(float s) const {
-      Derived result;
-      for (int i = 0; i < C; i++) {
-         result[i] = static_cast<S>((*this)[i] * s);
-      }
+      Derived result(*static_cast<Derived const*>(this));
+      result.Scale(s);
       return result;
    }
 
@@ -123,6 +133,16 @@ public:
       }
       return result;
    }
+
+   // dot product
+   Derived operator*(Derived const& rhs) const {
+      Derived result;
+      for (int i = 0; i < C; i++) {
+         result[i] = (*this)[i] * rhs[i];
+      }
+      return result;
+   }
+
    const Derived& operator+=(const Derived& other) {
       for (int i = 0; i < C; i++) {
          (*this)[i] += other[i];

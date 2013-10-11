@@ -21,6 +21,7 @@ public:
    static void InitEntity(om::EntityPtr entity, std::string const& uri, lua_State* L);
    static luabind::object om::Stonehearth::AddComponent(lua_State* L, om::EntityRef e, std::string name);
    static luabind::object om::Stonehearth::GetComponent(lua_State* L, om::EntityRef e, std::string name);
+   static luabind::object om::Stonehearth::GetComponentData(lua_State* L, om::EntityRef e, std::string name);
 
 private:
    static void InitEntityByUri(om::EntityPtr entity, std::string const& uri, lua_State* L);

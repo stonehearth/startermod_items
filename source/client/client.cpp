@@ -39,6 +39,7 @@
 #include "lua/res/open.h"
 #include "lua/rpc/open.h"
 #include "lua/om/open.h"
+#include "lua/voxel/open.h"
 #include "client/renderer/render_entity.h"
 
 #include "glfw3.h"
@@ -206,6 +207,7 @@ void Client::run()
    lua::om::register_json_to_lua_objects(L, authoringStore_);
    lua::client::open(L);
    lua::res::open(L);
+   lua::voxel::open(L);
    lua::rpc::open(L, core_reactor_);
 
 
@@ -435,8 +437,6 @@ void Client::UpdateObject(const proto::UpdateObject& update)
 {
    const auto& msg = update.object();
    dm::ObjectId id = msg.object_id();
-
-   LOG(INFO) << "Client updating object " << id << ".";
 
    dm::Object* obj = store_.FetchStaticObject(id);
    ASSERT(obj);

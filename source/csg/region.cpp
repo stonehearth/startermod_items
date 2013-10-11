@@ -223,6 +223,11 @@ void Region<S, C>::Subtract(const Region& r)
 }
 
 template <class S, int C>
+void Region<S, C>::ClipTo(const Region& r)
+{
+}
+
+template <class S, int C>
 const Region<S, C>& Region<S, C>::operator+=(const Region& r)
 {
    for (const auto &rc : r) {

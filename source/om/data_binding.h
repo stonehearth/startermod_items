@@ -33,10 +33,10 @@ protected:
    void LoadValue(const dm::Store& store, const Protocol::Value& msg) override;
 
 private:
-   luabind::object      data_;
-   luabind::object      model_;
-   mutable JSONNode     cached_json_;
-   mutable bool         cached_json_valid_;
+   luabind::object            data_;
+   luabind::object            model_;
+   mutable JSONNode           cached_json_;
+   mutable dm::GenerationId   last_encode_;
 };
 
 // Create a new type for luabuild.

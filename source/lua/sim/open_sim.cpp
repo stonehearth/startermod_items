@@ -11,6 +11,7 @@
 #include "om/region.h"
 #include "om/json_store.h"
 #include "om/data_binding.h"
+#include "lib/voxel/qubicle_brush.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;

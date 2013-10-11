@@ -1,6 +1,7 @@
 add_library(voxel
             pch.cpp
             qubicle_file.cpp
+            qubicle_brush.cpp
             fabricator.cpp
             voxel_util.cpp
             )

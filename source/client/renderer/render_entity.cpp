@@ -63,6 +63,7 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
 void RenderEntity::FinishConstruction()
 {
    UpdateComponents();
+   UpdateInvariantRenderers();
    initialized_ = true;
 }
 
@@ -109,6 +110,47 @@ void RenderEntity::UpdateComponents()
       components_.clear();
       for (const auto& entry : entity->GetComponents()) {
          AddComponent(entry.first, entry.second);
+      }
+   }
+}
+
+void RenderEntity::UpdateInvariantRenderers()
+{
+   auto entity = entity_.lock();
+
+   if (entity) {
+      std::string uri = entity->GetUri();
+      if (!uri.empty()) {
+         auto const& res = res::ResourceManager2::GetInstance();
+         json::ConstJsonObject json = res.LookupJson(uri);
+         if (json.has("entity_data")) {
+            for (auto const& entry : json.getn("entity_data")) {
+               std::string name = entry.name();
+               size_t offset = name.find(':');
+               if (offset != std::string::npos) {
+                  std::string modname = name.substr(0, offset);
+                  std::string invariant_name = name.substr(offset + 1, std::string::npos);
+
+                  json::ConstJsonObject manifest = res.LookupManifest(modname);
+                  json::ConstJsonObject invariants = manifest.getn("invariant_renderers");
+                  std::string path = invariants.get<std::string>(invariant_name);
+                  if (!path.empty()) {
+                     lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
+                     luabind::object ctor = script->RequireScript(path);
+
+                     std::weak_ptr<RenderEntity> re = shared_from_this();
+                     luabind::object render_invariant;
+                     try {
+                        render_invariant = script->CallFunction<luabind::object>(ctor, re, script->JsonToLua(entry));
+                     } catch (std::exception const& e) {
+                        LOG(WARNING) << e.what();
+                        continue;
+                     }
+                     lua_invariants_[name] = render_invariant;
+                  }
+               }
+            }
+         }
       }
    }
 }

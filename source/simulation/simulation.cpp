@@ -31,6 +31,7 @@
 #include "lua/rpc/open.h"
 #include "lua/sim/open.h"
 #include "lua/om/open.h"
+#include "lua/voxel/open.h"
 #include "om/lua/lua_om.h"
 #include "csg/lua/lua_csg.h"
 #include "lib/rpc/session.h"
@@ -193,6 +194,7 @@ void Simulation::CreateNew()
       csg::RegisterLuaTypes(L);
       lua::sim::open(L);
       lua::res::open(L);
+      lua::voxel::open(L);
       lua::rpc::open(L, core_reactor_);
       lua::om::register_json_to_lua_objects(L, store_);
       om::RegisterObjectTypes(store_);

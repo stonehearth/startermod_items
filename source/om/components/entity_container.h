@@ -24,8 +24,8 @@ public:
 
    const Container& GetChildren() const { return children_; }
 
-   void AddChild(om::EntityRef child);
-   void RemoveChild(om::EntityRef child);
+   EntityContainer& AddChild(om::EntityRef child);
+   EntityContainer& RemoveChild(om::EntityRef child);
 
 private:
    void InitializeRecordFields() override;

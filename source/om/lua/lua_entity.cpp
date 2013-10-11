@@ -29,6 +29,7 @@ scope LuaEntity::RegisterLuaTypes(lua_State* L)
          .def("get_debug_text",     &Entity::GetDebugText)
          .def("set_debug_text",     &Entity::SetDebugText)
          .def("get_component" ,     &om::Stonehearth::GetComponent)
+         .def("get_component_data", &om::Stonehearth::GetComponentData)
          .def("add_component" ,     &om::Stonehearth::AddComponent)
       ;
 }

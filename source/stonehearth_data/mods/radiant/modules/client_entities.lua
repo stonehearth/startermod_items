@@ -23,5 +23,16 @@ function client_entities.destroy_entity(entity)
    end
 end
 
+function client_entities.get_entity_data(entity, key)
+   if entity then
+      local uri = entity:get_uri()
+      if uri and #uri > 0 then
+         local json = radiant.resources.load_json(uri)
+         if json.entity_data then
+            return json.entity_data[key]
+         end
+      end
+   end
+end
 client_entities.__init()
 return client_entities

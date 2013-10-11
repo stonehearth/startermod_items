@@ -11,11 +11,6 @@ function Fabricator:__init(name, entity, blueprint)
    self.name = name
    self._entity = entity
    self._blueprint = blueprint
-
-   local entity_data = radiant.entities.get_entity_data(blueprint, 'stonehearth:fabricator')
-   if entity_data then
-      self._project_adjacent_to_base = entity_data.project_adjacent_to_base
-   end
    
    local faction = radiant.entities.get_faction(blueprint)
    local wss = radiant.mods.load('stonehearth').worker_scheduler
@@ -36,14 +31,38 @@ function Fabricator:__init(name, entity, blueprint)
    
                      
    -- create a new project.  projects start off completely unbuilt.
-   local rgn = _radiant.sim.alloc_region()
-   self._project  = radiant.entities.create_entity(blueprint:get_uri())      
+   -- projects are stored in as children to the fabricator, so there's
+   -- no need to update their transform.
+   local rgn = _radiant.sim.alloc_region()  
+   self._project = radiant.entities.create_entity(blueprint:get_uri())
    self._project:add_component('destination')
                      :set_region(rgn)
    self._project:add_component('region_collision_shape')
                      :set_region(rgn)
    radiant.entities.set_faction(self._project, blueprint)
+   self._entity:add_component('entity_container')
+                     :add_child(self._project)
 
+   -- get fabrication specific info, if available.  copy it into the project, too
+   -- so everything gets rendered correctly.
+   self._info = { }
+   local fabinfo = radiant.entities.get_entity_data(blueprint, 'stonehearth:fabricator_info') 
+   if fabinfo.info_component then
+      local info = blueprint:get_component_data(fabinfo.info_component)
+      if info then
+         self._project:add_component(fabinfo.info_component):extend(info) -- actually 'load' or something.
+         
+         self._info.needs_scaffolding = info.needs_scaffolding
+         self._info.project_adjacent_to_base = info.project_adjacent_to_base
+         if info.normal then
+            self._info.normal = Point3(info.normal.x, info.normal.y, info.normal.z)
+         end
+         if info.tangent then
+            self._info.tangent = Point3(info.tangent.x, info.tangent.y, info.tangent.z)
+         end
+      end
+   end
+   
    -- hold onto the blueprint ladder component, if it exists.  we'll replicate
    -- the ladder into the project as it gets built up.
    self._blueprint_ladder = blueprint:get_component('vertical_pathing_region')
@@ -55,6 +74,10 @@ function Fabricator:__init(name, entity, blueprint)
    self:_trace_blueprint_and_project()
    self:_start_pickup_task()
    self:_start_fabricate_task()
+end
+
+function Fabricator:get_fabrication_info()
+   return self._info
 end
 
 function Fabricator:get_entity()
@@ -173,9 +196,22 @@ function Fabricator:_update_adjacent()
    local bottom_row = rgn - clipper
    local adjacent = bottom_row:get_adjacent()
    
-   if self._project_adjacent_to_base then
-      adjacent:translate(Point3(0, -bottom, 0)) -- xxx: test this nonsense!
+   -- some projects want the worker to stand at the base of the project and
+   -- push columns up.  for example, scaffolding always gets built from the
+   -- base.  if this is one of those, translate the adjacent region all the
+   -- way to the bottom.
+   if self._info.project_adjacent_to_base then
+      adjacent:translate(Point3(0, -bottom, 0))
    end
+   
+   -- remove parts of the adjacent region which overlap the fabrication region.
+   -- otherwise we get weird behavior where one worker can build a block right
+   -- on top of where another is standing to build another block, or workers
+   -- can build blocks to hoist themselves up to otherwise unreachable spaces,
+   -- getting stuck in the process
+   adjacent:subtract_region(rgn)
+   
+   -- finally, copy into the adjacent region for our destination
    dst:get_adjacent():modify():copy_region(adjacent)
 end
 

@@ -52,12 +52,10 @@ private:
       om::Region3BoxedRef        region;
       H3DNodeUnique              node;
       dm::Guard                  guard;
-      std::vector<H3DNodeUnique> meshes;
 
       RenderZone() { }
       void Reset() {
          node.reset(0);
-         meshes.clear();
       }
    };
    DECLARE_SHARED_POINTER_TYPES(RenderZone)

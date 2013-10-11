@@ -46,6 +46,7 @@ void DebugShapesNode::renderFunc(const std::string &shaderContext, const std::st
                                  const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet)
 {
    bool first = true;
+   float old_line_width = 1.0f;
 
    // Loop through debug shape queue
    for (const auto &entry : Modules::sceneMan().getRenderableQueue()) {
@@ -67,14 +68,17 @@ void DebugShapesNode::renderFunc(const std::string &shaderContext, const std::st
             continue;
          }
          first = false;
+         glGetFloatv(GL_LINE_WIDTH, &old_line_width);
       }
       glEnable(GL_POLYGON_OFFSET_FILL);
       glPolygonOffset(-1, -1);
+      glLineWidth(3.0f);
       debugShapes->render();
    }
    if (!first) {
       glDisable(GL_POLYGON_OFFSET_FILL);
       glPolygonOffset(0, 0);
+      glLineWidth(old_line_width);
    }
 }
 
@@ -119,18 +123,18 @@ void DebugShapesNode::createBuffers()
    vertexBufferSize_ = 0;
 
    // Accumulate evertying into a single buffer
-   int start = 0, last = -1;
+   int start = 0, last = 0;
 
    std::vector<Vertex> verts;
    if (!lines_.empty()) {
-      start = last + 1;
-      last = start + lines_.size() - 1;
+      start = last;
+      last = start + lines_.size();
       std::copy(lines_.begin(), lines_.end(), std::back_inserter(verts));
       primitives_.push_back(Primitives(PRIM_LINES, start, last));
    }
    if (!triangles_.empty()) {
-      start = last + 1;
-      last = start + triangles_.size() - 1;
+      start = last;
+      last = start + triangles_.size();
       std::copy(triangles_.begin(), triangles_.end(), std::back_inserter(verts));
       primitives_.push_back(Primitives(PRIM_TRILIST, start, last));
    }

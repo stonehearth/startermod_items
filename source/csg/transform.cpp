@@ -16,5 +16,5 @@ csg::Transform csg::Interpolate(const csg::Transform &t0, const csg::Transform &
 }
 
 std::ostream& csg::operator<<(std::ostream& out, const Transform& source) {
-   return out << "(pos: " << source.position << " ori: " << source.orientation << ")";
+   return out << "(position: " << source.position << " orientation: " << source.orientation << ")";
 }

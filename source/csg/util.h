@@ -47,6 +47,8 @@ bool Region3Intersects(const Region3& rgn, const csg::Ray3& ray, float& distance
 void HeightmapToRegion2(HeightMap<double> const& h, Region2& r);
 EdgeListPtr Region2ToEdgeList(csg::Region2 const& rgn, int height, csg::Region3 const& clipper);
 csg::Region2 EdgeListToRegion2(EdgeListPtr segments, int width, csg::Region2 const* clipper);
+int RoundTowardNegativeInfinity(int i, int tile_size);
+int GetTileOffset(int position, int tile_size);
 
 std::ostream& operator<<(std::ostream& os, EdgePoint const& f);
 std::ostream& operator<<(std::ostream& os, Edge const& f);

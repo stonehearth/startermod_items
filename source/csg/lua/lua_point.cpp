@@ -3,6 +3,7 @@
 #include "lua_point.h"
 #include "csg/point.h"
 #include "csg/color.h"
+#include "csg/transform.h"
 
 using namespace ::luabind;
 using namespace ::radiant;
@@ -11,17 +12,7 @@ using namespace ::radiant::csg;
 template <typename T>
 std::string PointToJson(T const& pt, luabind::object state)
 {
-   char label = 'x';
-   std::stringstream os;
-   os << "{ ";
-   for (int i = 0; i < T::Dimension; i++) {
-      os << "\"" << static_cast<char>(label + i) << "\" :" << pt[i];
-      if (i < (T::Dimension - 1)) {
-         os << ", ";
-      }
-   }
-   os << "}";
-   return os.str();
+   return pt.ToJson().write();
 }
 
 template <typename T>
@@ -35,7 +26,7 @@ bool Point_IsAdjacentTo(T const& a, T const& b)
          sum += (a[i] - b[i]);
       }
    }
-   return csg::IsZero(sum - 1);
+   return csg::IsZero(static_cast<float>(sum - 1));
 }
 
 template <typename T>
@@ -46,7 +37,7 @@ static luabind::class_<T> RegisterCommon(struct lua_State* L, const char* name)
          .def(tostring(const_self))
          .def(constructor<>())
          .def(constructor<T const&>())
-         .def("__tojson",    &PointToJson<T>)
+         .def("__tojson",  &PointToJson<T>)
          .def(const_self + other<T const&>())
          .def(const_self - other<T const&>())
          .def(const_self == other<T const&>())
@@ -96,12 +87,15 @@ scope LuaPoint::RegisterLuaTypes(lua_State* L)
       Register2<Point2 >(L, "Point2"),
       Register2<Point2f>(L, "Point2f"),
       Register3<Point3 >(L, "Point3"),
-      Register3<Point3f>(L, "Point3f"),
+      Register3<Point3f>(L, "Point3f")
+         .def("lerp",   (Point3f (*)(Point3f const& a, Point3f const& b, float alpha))&csg::Interpolate),
+      lua::RegisterType<Transform>("Transform")
+         .def("lerp",   (Transform (*)(Transform const& a, Transform const& b, float alpha))&csg::Interpolate),
       lua::RegisterType<Color4>("Color4")
          .def(constructor<int, int, int, int>())
          .def_readwrite("r", &Color4::r)
          .def_readwrite("g", &Color4::g)
          .def_readwrite("b", &Color4::b)
-         .def_readwrite("a", &Color4::a),
-      def("lerp",             &csg::Interpolate);
+         .def_readwrite("a", &Color4::a)
+      ;
 }
