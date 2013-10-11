@@ -1,12 +1,9 @@
 local CombatService = class()
 local Damage = require 'services.combat.damage'
 
-radiant.events.register_event('radiant:events:combat.damage')
-
 function CombatService:__init()
-   radiant.events.listen('radiant:animation:on_trigger', self)
+   
 end
-
 
 function CombatService:resolve(damage)
    -- run an effect if it's a hit
@@ -26,7 +23,6 @@ function CombatService:add_damage(source_entity, target_entity)
 end
 
 function CombatService:apply_damage(source_entity, target_entity, damage)
-   radiant.events.broadcast_msg('radiant:events:combat.damage', source_entity, target_entity, damage)
 
    -- xxx, hack. slow down the damage taker. Move this to a debuff system
    radiant.entities.set_attribute(target_entity, 'speed', 30)
@@ -40,11 +36,6 @@ function CombatService:apply_damage(source_entity, target_entity, damage)
    else 
       radiant.entities.set_attribute(target_entity, health)
    end
-end
-
-CombatService['radiant:animation:on_trigger'] = function(self, info, effect, entity)
-   -- play hit sparks
-   local spark_effect = radiant.effects.run_effect(target_entity, '/stonehearth/data/effects/hit_sparks/blood_effect.json')
 end
 
 return CombatService()
