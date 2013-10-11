@@ -53,13 +53,11 @@ Destination& Destination::SetAutoUpdateAdjacent(bool value)
       if (value) {
          dm::ObjectId component_id = GetObjectId();
          auto flush_dirty = [=]() {
-            LOG(WARNING) << "(xyz) flushing destination component dirty bit " << component_id << ".";
             UpdateDerivedValues();
             update_adjacent_guard_.Clear();
          };
          auto mark_dirty = [=]() {
             if (update_adjacent_guard_.Empty()) {
-               LOG(WARNING) << "(xyz) marking destination component (region|reserved) " << component_id << " as dirty";
                update_adjacent_guard_ = GetStore().TraceFinishedFiringTraces("auto-updating destination region", flush_dirty);
             }
          };
@@ -88,15 +86,11 @@ void Destination::UpdateDerivedValues()
       }
       ComputeAdjacentRegion(region);
    }
-   LOG(WARNING) << "(abc) updated derived values for " << GetEntity();
 }
 
 void Destination::ComputeAdjacentRegion(csg::Region3 const& r)
 {
    (*adjacent_)->Modify() = csg::GetAdjacent(r);
-
-   LOG(WARNING) << "(xyz) destination component " << GetObjectId() << " adjacent is now ... " << adjacent_.GetStoreId() << ":" << adjacent_.GetObjectId();
-   LOG(WARNING) << "(xyz) adjacent is pointing to " << (*adjacent_)->GetObjectId();
 }
 
 void Destination::SetRegion(Region3BoxedPtr r)
@@ -112,7 +106,6 @@ void Destination::SetReserved(Region3BoxedPtr r)
 void Destination::SetAdjacent(Region3BoxedPtr r)
 {
    adjacent_ = r;
-   LOG(WARNING) << "(xyz) destination component " << GetObjectId() << " adjacent set to " << r << " " << adjacent_.GetStoreId() << ":" << adjacent_.GetObjectId() << " -> " << (r ? r->GetObjectId() : 0);
    LOG(INFO) << dm::DbgInfo::GetInfoString(adjacent_);
 
    // Manually setting the adjacent region turns off auto adjacency stuff by default

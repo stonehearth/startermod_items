@@ -102,7 +102,7 @@ function AIComponent:check_action_stack()
    for i, entry in ipairs(self._action_stack) do
       local action, priority = self:_get_best_action(entry.activity)
       if action ~= entry.action then
-         radiant.log.warning('switching from %s to %s (priority:%d)', entry.action.name, action.name, priority)
+         -- radiant.log.info('switching from %s to %s (priority:%d)', entry.action.name, action.name, priority)
          unwind_to_action = i
          break
       end

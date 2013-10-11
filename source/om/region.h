@@ -43,7 +43,6 @@ struct DeepRegionGuard {
    }
 
    ~DeepRegionGuard() {
-      LOG(WARNING) << "(xyz) killing boxed region guard for " << store_id << ":" << object_id;
    }
 };
 
