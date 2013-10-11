@@ -1,0 +1,25 @@
+{
+   "type": "entity", 
+   "components": {
+      "unit_info": {
+         "icon": "...", 
+         "name": "Scaffolding", 
+         "description": "Used in construction to reach high places"
+      },
+      "destination" : {
+         "region" : [
+         ]
+      },
+      "stonehearth:scaffolding" : {
+      }
+   },
+   "entity_data" : {
+      "stonehearth:voxel_brush_info" : {
+         "info_component": "stonehearth:scaffolding",
+         "brush": "file(scaffolding.qb)"
+      },
+      "stonehearth:fabricator_info" : {
+         "info_component": "stonehearth:scaffolding"
+      }
+   }
+}
