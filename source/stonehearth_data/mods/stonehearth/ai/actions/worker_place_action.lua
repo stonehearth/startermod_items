@@ -49,7 +49,9 @@ function WorkerPlaceItemAction:run(ai, entity, path, ghost_entity, rotation, tas
    -- Was it a proxy item? If so, put it on the ghost, if not put it on the terrain.
    -- If it's on the ghost, it won't register on the terrain and provoke worker behavior
    self._proxy_component = proxy_entity:get_component('stonehearth:placeable_item_proxy')
-   ai:execute('stonehearth:bring_item_on_path_to_dest', path, ghost_entity, rotation, self._proxy_component == nil)
+   ai:execute('stonehearth:carry_item_on_path_to', path, ghost_entity)
+   ai:execute('stonehearth:drop_carrying_in_entity', ghost_entity)
+   radiant.entities.turn_to(proxy_entity, rotation)
 
    if self._proxy_component then
       --TODO: replace this with a particle effect

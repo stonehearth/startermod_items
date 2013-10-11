@@ -131,6 +131,8 @@ end
 function entities.get_entity_data(entity, key)
    if entity then
       local uri = entity:get_uri();
+      --xxx: what is this : business? (Tony asked me to put this comment here)
+      --I hear this issue is solved on his machine
       if uri and uri ~= ':' then
          local json = radiant.resources.load_json(uri)
          if json.entity_data then
@@ -299,7 +301,7 @@ function entities.drop_carrying(entity, location)
    if not location then
       location = radiant.entities.get_location_aligned(entity)
    end
-   
+
    radiant.check.is_a(location, Point3)
 
    local item = entities._drop_helper(entity)
@@ -312,7 +314,7 @@ end
 -- @param entity The entity carrying the object
 -- @param target The object that will get the new thing added to it
 -- @param location (Optional) The location on the target to put the object. 0,0,0 by default
-function entities.drop_carrying_on_object(entity, target, location)
+function entities.drop_carrying_in_object(entity, target, location)
    local target_loc = location
    if not target_loc then
       target_loc = Point3(0,0,0)

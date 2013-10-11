@@ -44,8 +44,8 @@ end
 
 function FirepitComponent:_add_one_seat(seat_number, location)
    local seat = radiant.entities.create_entity('stonehearth:fire_pit_seat')
-   local seat_comp = seat:get_component('stonehearth:center_of_attn_spot')
-   seat_comp:add_to_center_of_attn(self._entity, seat_number)
+   local seat_comp = seat:get_component('stonehearth:center_of_attention_spot')
+   seat_comp:add_to_center_of_attention(self._entity, seat_number)
    self._seats[seat_number] = seat
    radiant.terrain.place_entity(seat, location)
 end
@@ -113,9 +113,8 @@ end
 -- Create a new entity instead of re-using the old one because if we wanted to do
 -- that, we'd have to reparent the log to the fireplace.
 -- @param log_entity to add to the fire
-function FirepitComponent:add_wood()
-   self._my_wood = radiant.entities.create_entity('stonehearth:oak_log')
-   radiant.entities.add_child(self._entity, self._my_wood, Point3(0, 0, 0))
+function FirepitComponent:add_wood(log)
+   self._my_wood = log
    self._curr_fire_effect =
       radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/firepit_effect')
 end

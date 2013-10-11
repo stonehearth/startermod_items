@@ -39,21 +39,17 @@ function WorkerLightFireAction:run(ai, entity, path, firepit, task)
    radiant.log.info('%s (Worker %s): My turn to light the fiiayyyh!!!', tostring(entity), name)
 
    -- Pick up the log and bring it over
-   -- We have to create a ghost entity as the destination because the firepit's target is large
-   local ghost_entity = radiant.entities.create_entity()
-   radiant.terrain.place_entity(ghost_entity, Point3(radiant.entities.get_world_grid_location(firepit)))
-   ai:execute('stonehearth:bring_item_on_path_to_dest', path, ghost_entity, 0, false)
+   ai:execute('stonehearth:carry_item_on_path_to', path, firepit)
+
+   -- Drop the log into the fire
+   ai:execute('stonehearth:drop_carrying_in_entity', firepit)
 
    -- perform the lighting animation TODO: replace with another gesture
    ai:execute('stonehearth:run_effect', 'work')
 
    -- Put the log IN the firepit and light it
    local firepit_component = firepit:get_component('stonehearth:firepit')
-   firepit_component:add_wood()
-
-   --destroy the ghost entity and the log inside of it
-   radiant.entities.destroy_entity(log)
-   radiant.entities.destroy_entity(ghost_entity)
+   firepit_component:add_wood(log)
 
    -- If we got here, we succeeded at the action.
    -- Note that we succeeded by setting the task to nil.

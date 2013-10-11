@@ -9,7 +9,8 @@
             ]
          }
       ],
-      "stonehearth:center_of_attn_spot" : {
-      }
+      "stonehearth:center_of_attention_spot" : {
+      },
+      "stonehearth:lease_component" : {}
    }
 }
