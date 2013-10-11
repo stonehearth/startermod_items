@@ -17,7 +17,7 @@ function DropCarryingAction:run(ai, entity, location)
    if radiant.entities.is_carrying(entity) then
       radiant.entities.turn_to_face(entity, location)
       ai:execute('stonehearth:run_effect', 'carry_putdown')
-      radiant.entities.drop_carrying(entity, location)
+      radiant.entities.drop_carrying_on_ground(entity, location)
    end
 end
 

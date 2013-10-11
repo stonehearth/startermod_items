@@ -15,10 +15,10 @@ end
 
 --- Grab the log, bring it to the fire, and light it.
 -- Make sure only one person is doing this at a time.
-function WorkerLightFireAction:run(ai, entity, path, firepit, task)
+function WorkerLightFireAction:run(ai, entity, path_to_log, firepit, task)
    --Put in some logging
    local name = entity:get_component('unit_info'):get_display_name()
-   local log = path:get_destination()
+   local log = path_to_log:get_destination()
 
    -- If the task is already stopped, someone else got this action first. Exit.
    if not task:get_running() then
@@ -39,7 +39,7 @@ function WorkerLightFireAction:run(ai, entity, path, firepit, task)
    radiant.log.info('%s (Worker %s): My turn to light the fiiayyyh!!!', tostring(entity), name)
 
    -- Pick up the log and bring it over
-   ai:execute('stonehearth:carry_item_on_path_to', path, firepit)
+   ai:execute('stonehearth:carry_item_on_path_to', path_to_log, firepit)
 
    -- Drop the log into the fire
    ai:execute('stonehearth:drop_carrying_in_entity', firepit)

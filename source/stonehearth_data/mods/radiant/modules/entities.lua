@@ -295,7 +295,7 @@ end
    entity: probably a mob
    location: the place where we want to put the item
 ]]
-function entities.drop_carrying(entity, location)
+function entities.drop_carrying_on_ground(entity, location)
    radiant.check.is_entity(entity)
 
    if not location then
@@ -314,14 +314,14 @@ end
 -- @param entity The entity carrying the object
 -- @param target The object that will get the new thing added to it
 -- @param location (Optional) The location on the target to put the object. 0,0,0 by default
-function entities.drop_carrying_in_object(entity, target, location)
+function entities.put_carrying_in_entity(entity, target, location)
    local target_loc = location
    if not target_loc then
       target_loc = Point3(0,0,0)
    end
    local item = entities._drop_helper(entity)
    if item then
-      entities.add_child(target, item, Point3(0, 0, 0))
+      entities.add_child(target, item, target_loc)
    end
 end
 
