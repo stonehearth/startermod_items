@@ -1,7 +1,19 @@
 <script type="text/x-handlebars" data-template-name="createCamp">
    <div id="createCamp">
-      <a href="#" {{action chooseCampLocation target="view"}}>
-         <div class="button" id="chooseCampLocationButton">{{i18n stonehearth:new_game_choose_camp_location}}</div>
+      <div id="scroll">
+         
+      </div>
+
+      <a href="#" {{action placeBanner target="view"}}>
+         <div id="banner">
+            <div>{{i18n stonehearth:new_game_place_banner}}</div>
+         </div>
+      </a>
+
+      <a href="#" {{action placeStockpile target="view"}}>
+         <div id="crate">
+            <div>{{i18n stonehearth:new_game_place_stockpile}}</div>
+         </div>
       </a>
    </div>
 </script>

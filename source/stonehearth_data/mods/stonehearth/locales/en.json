@@ -6,7 +6,8 @@
    "title_screen_load_game": "Load Game",
 
    "new_game_embark_button": "Embark!",
-   "new_game_choose_camp_location" : "Choose Camp Location",
+   "new_game_place_banner" : "Click to place your banner",
+   "new_game_place_stockpile" : "Click to place your stockpile",
 
    "craft_number_left": "Craft",
    "craft_number_right": "right now.",

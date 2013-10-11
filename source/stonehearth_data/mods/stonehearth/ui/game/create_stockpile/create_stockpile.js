@@ -9,6 +9,9 @@ $(document).ready(function(){
          .always(function() {
             $(top).trigger('hide_tip.radiant');
             console.log('stockpile created!');
+            if (e && e.callback) {
+               e.callback()
+            }
          });
    });
 });
