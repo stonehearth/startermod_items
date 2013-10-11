@@ -54,6 +54,14 @@ void Region<S, C>::Clear()
 }
 
 template <class S, int C>
+void Region<S, C>::Add(const Region& other)
+{
+   for (const Cube& c : other) {
+      Add(c);
+   }
+}
+
+template <class S, int C>
 void Region<S, C>::Add(const Cube& cube)
 {
    Region unique(cube);
@@ -86,6 +94,13 @@ void Region<S, C>::AddUnique(const Region& region)
       ASSERT(!Intersects(cube));
       cubes_.push_back(cube);
    }
+}
+
+
+template <class S, int C>
+void Region<S, C>::Subtract(const Point& pt)
+{
+   Subtract(Cube(pt));
 }
 
 template <class S, int C>
@@ -149,6 +164,14 @@ const Region<S, C>& Region<S, C>::operator+=(const Cube& cube)
 }
 
 template <class S, int C>
+Region<S, C> Region<S, C>::operator&(const Region& r) const
+{
+   Region result = *this;
+   result &= r;
+   return result;
+}
+
+template <class S, int C>
 const Region<S, C>& Region<S, C>::operator&=(const Cube& cube)
 {
    unsigned int i = 0;
@@ -197,6 +220,11 @@ void Region<S, C>::Subtract(const Region& r)
    for (const auto &rc : r) {
       Subtract(rc);
    }
+}
+
+template <class S, int C>
+void Region<S, C>::ClipTo(const Region& r)
+{
 }
 
 template <class S, int C>
@@ -264,7 +292,9 @@ void Region<S, C>::Optimize()
 template <class S, int C>
 Cube<S, C> Region<S, C>::GetBounds() const
 {
-   ASSERT(!IsEmpty());
+   if (IsEmpty()) {
+      return Cube::zero;
+   }
 
    Cube bounds = cubes_[0];
    int i, c = cubes_.size();
@@ -328,14 +358,17 @@ Region3 radiant::csg::GetBorderXZ(const Region3 &other)
    template Cls::Region(const Cls::Cube&); \
    template Cls::ScalarType Cls::GetArea() const; \
    template void Cls::Clear(); \
+   template void Cls::Add(const Cls&); \
    template void Cls::Add(const Cls::Cube&); \
    template void Cls::Add(const Cls::Point&); \
    template void Cls::AddUnique(const Cls::Cube&); \
    template void Cls::AddUnique(const Cls&); \
-   template void Cls::Subtract(const Cls::Cube&); \
    template void Cls::Subtract(const Cls&); \
+   template void Cls::Subtract(const Cls::Cube&); \
+   template void Cls::Subtract(const Cls::Point&); \
    template Cls Cls::operator-(const Cls&) const; \
    template Cls Cls::operator-(const Cls::Cube&) const; \
+   template Cls Cls::operator&(const Cls&) const; \
    template const Cls& Cls::operator&=(const Cls::Cube&); \
    template const Cls& Cls::operator&=(const Cls&); \
    template const Cls& Cls::operator+=(const Cls::Cube&); \

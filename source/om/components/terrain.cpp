@@ -27,7 +27,7 @@ void Terrain::SetZoneSize(int zone_size)
    zone_size_ = zone_size;
 }
 
-void Terrain::AddZone(csg::Point3 const& zone_offset, BoxedRegion3Ptr region3)
+void Terrain::AddZone(csg::Point3 const& zone_offset, Region3BoxedPtr region3)
 {
    // zones are stored using the location of their 0, 0 coordinate in the world
    zones_[zone_offset] = region3;
@@ -39,7 +39,7 @@ void Terrain::PlaceEntity(EntityRef e, const csg::Point3& location)
    if (entity) {
       int max_y = INT_MIN;
       csg::Point3 zone_offset;
-      BoxedRegion3Ptr region_ptr = GetZone(location, zone_offset);
+      Region3BoxedPtr region_ptr = GetZone(location, zone_offset);
       csg::Point3 const& regionLocalPt = location - zone_offset;
 
       if (!region_ptr) {
@@ -63,7 +63,7 @@ void Terrain::PlaceEntity(EntityRef e, const csg::Point3& location)
    }
 }
 
-BoxedRegion3Ptr Terrain::GetZone(csg::Point3 const& location, csg::Point3& zone_offset)
+Region3BoxedPtr Terrain::GetZone(csg::Point3 const& location, csg::Point3& zone_offset)
 {
    // O(n) search - consider optimizing
    for (auto& entry : zones_) {

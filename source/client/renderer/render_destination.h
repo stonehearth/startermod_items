@@ -18,15 +18,12 @@ class RenderDestination : public RenderComponent {
       ~RenderDestination();
 
    private:
-      void UpdateShape(om::BoxedRegion3Ref r, H3DNode shape, csg::Color4 const& color);
-
-   private:
-      const RenderEntity&        entity_;
       H3DNodeUnique              regionDebugShape_;
       H3DNodeUnique              reservedDebugShape_;
       H3DNodeUnique              adjacentDebugShape_;
-      H3DNodeUnique              node_;
-      dm::Guard                  guards_;
+      om::DeepRegionGuardPtr     region_guard_;
+      om::DeepRegionGuardPtr     reserved_guard_;
+      om::DeepRegionGuardPtr     adjacent_guard_;
 
 };
 

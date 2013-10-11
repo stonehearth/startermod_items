@@ -16,6 +16,7 @@ public:
 
    typedef std::function<void()> ObjectChangeCb;
    typedef std::function<void()> ObjectDestroyCb;
+   typedef std::function<void()> TracesFinishedCb;
    typedef std::function<void(ObjectPtr)> ObjectAllocCb;
 
    typedef std::function<ObjectPtr()> ObjectAllocFn;
@@ -80,10 +81,12 @@ public:
    Object* FetchStaticObject(ObjectId id);
 
    void FireTraces();
+   void FireFinishedTraces();
    void Reset();
    GenerationId GetNextGenerationId();
    GenerationId GetCurrentGenerationId();
    ObjectId GetNextObjectId();
+   Guard TraceFinishedFiringTraces(const char* reason, TracesFinishedCb fn);
 
 protected: // Internal interface for Objects only
    friend Object;
@@ -171,6 +174,7 @@ private:
    TraceObjectMap          allocTraces_;
    TraceObjectMap          changeTraces_;
    TraceObjectMap          destroyTraces_;
+   TraceObjectMap          finishedFiringTraces_;
 
    std::vector<ObjectId>   modifiedObjects_;
    std::vector<ObjectRef>  alloced_;

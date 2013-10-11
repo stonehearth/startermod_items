@@ -8,7 +8,6 @@
 #include "pipeline.h"
 #include "Horde3DUtils.h"
 #include "resources/res_manager.h"
-#include "qubicle_file.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;

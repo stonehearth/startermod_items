@@ -18,6 +18,7 @@ class Boxed : public Object
 public:
    enum { DmType = OT };
    ObjectType GetObjectType() const override { return OT; }
+   const char *GetObjectClassNameLower() const override { return "boxed"; }
 
    typedef T   ValueType;
 
@@ -35,6 +36,13 @@ public:
       value_(v) 
    {
       Initialize(store)
+   }
+
+   void GetDbgInfo(DbgInfo &info) const override {
+      if (WriteDbgInfoHeader(info)) {
+         info.os << " -> ";
+         SaveImpl<T>::GetDbgInfo(value_, info);
+      }
    }
 
    // Make a boxed value behave just like a value for read-only operations.

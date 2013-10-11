@@ -1,0 +1,11 @@
+#ifndef _RADIANT_VOXEL_VOXEL_UTIL_H
+#define _RADIANT_VOXEL_VOXEL_UTIL_H
+
+#include "namespace.h"
+#include "csg/region.h"
+
+BEGIN_RADIANT_VOXEL_NAMESPACE
+
+END_RADIANT_VOXEL_NAMESPACE
+
+#endif //  _RADIANT_VOXEL_VOXEL_UTIL_H

@@ -21,17 +21,14 @@ public:
    CollisionType GetType() const override { return CollisionShape::REGION; }
    csg::Cube3f GetAABB() const override;
 
-   BoxedRegion3Ptr GetRegionPtr() const { return *region_; }
-   void SetRegionPtr(BoxedRegion3Ptr region) { region_ = region; }
-
-public: // used only only for lua promises
-   dm::Boxed<BoxedRegion3Ptr> const& GetRegionField() const { return region_; }
+   Region3BoxedPtrBoxed const& GetRegion() const { return region_; }
+   RegionCollisionShape& SetRegion(Region3BoxedPtr r);
 
 private:
    void InitializeRecordFields() override;
 
 private:
-   dm::Boxed<BoxedRegion3Ptr>   region_;
+   Region3BoxedPtrBoxed   region_;
 };
 
 END_RADIANT_OM_NAMESPACE

@@ -2,9 +2,10 @@ add_library(simulation_jobs STATIC
 			pch.cpp
             debug_colors.cpp
             job.cpp
-            multi_path_finder.cpp
             path.cpp
             path_finder.cpp
+            path_finder_src.cpp
+            path_finder_dst.cpp
             follow_path.cpp
             goto_location.cpp
             lua_job.cpp

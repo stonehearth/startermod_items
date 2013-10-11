@@ -131,7 +131,7 @@ function StockpileComponent:reserve(location)
    local pt = Point3(location) - origin
    local region = self._destination:get_region()
    if region:get():contains(pt) then
-      region:modify():remove_point(pt)
+      region:modify():subtract_point(pt)
       return true
    end
 end
@@ -141,7 +141,7 @@ function StockpileComponent:_remove_world_point_from_region(location)
    local offset = location - origin
    local region = self._destination:get_region()
    local cursor = region:modify()
-   cursor:remove_point(offset)
+   cursor:subtract_point(offset)
    if self._pickup_task then
       if cursor:empty() then
          self._pickup_task:stop()

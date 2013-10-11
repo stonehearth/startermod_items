@@ -28,11 +28,17 @@ class OctTree {
 
       bool IsPassable(const csg::Point3& at) const;
       bool CanStand(const csg::Point3& at) const { return navgrid_.CanStand(at); }
-      
+      void ClipRegion(csg::Region3& r) const { return navgrid_.ClipRegion(r); }
+
       bool IsStuck(om::EntityPtr object);
       void Unstick(om::EntityPtr object);
       void Unstick(std::vector<csg::Point3> &points);
       csg::Point3 Unstick(const csg::Point3 &pt);
+
+      dm::Guard TraceZonesContaining(om::EntityPtr entity);
+
+      TerrainChangeCbId AddCollisionRegionChangeCb(csg::Region3 const* r, TerrainChangeCb cb);
+      void RemoveCollisionRegionChangeCb(TerrainChangeCbId id);
 
       // Path finding helpers
       std::vector<std::pair<csg::Point3, int>> ComputeNeighborMovementCost(const csg::Point3& from) const;
@@ -57,11 +63,10 @@ class OctTree {
       void UpdateEntityContainer(om::EntityContainerPtr container);
     
    protected:
-
-      std::map<dm::ObjectId, om::EntityRef>     entities_;
-      std::map<dm::ObjectId, om::SensorRef>     sensors_;
-      dm::Guard                                 guards_;
-      NavGrid                                   navgrid_;
+      std::map<dm::ObjectId, om::EntityRef>           entities_;
+      std::map<dm::ObjectId, om::SensorRef>           sensors_;
+      dm::Guard                                       guards_;
+      NavGrid                                         navgrid_;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE

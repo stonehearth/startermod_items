@@ -34,10 +34,6 @@ function _remove_entity_from_terrain(id)
    end
 end
 
-function pathfinder.create_multi_path_finder(reason)
-   return _radiant.sim.create_multi_path_finder(reason)
-end
-
 function pathfinder.create_path_finder(reason)
    return PathFinderWrapper(_radiant.sim.create_path_finder(reason))
 end

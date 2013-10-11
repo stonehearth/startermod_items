@@ -3,7 +3,7 @@
 #include "metrics.h"
 #include "Horde3DUtils.h"
 #include "renderer.h"
-#include "qubicle_file.h"
+#include "lib/voxel/qubicle_file.h"
 #include "resources/res_manager.h"
 #include <fstream>
 #include <unordered_map>
@@ -22,12 +22,12 @@ static const struct {
    int i, u, v, mask;
    csg::Point3f normal;
 } qubicle_node_edges__[] = {
-   { 2, 0, 1, FRONT_MASK,  csg::Point3f( 0,  0,  1) },
-   { 2, 0, 1, BACK_MASK,   csg::Point3f( 0,  0, -1) },
-   { 1, 0, 2, TOP_MASK,    csg::Point3f( 0,  1,  0) },
-   { 1, 0, 2, BOTTOM_MASK, csg::Point3f( 0, -1,  0) },
-   { 0, 2, 1, RIGHT_MASK,  csg::Point3f(-1,  0,  0) },
-   { 0, 2, 1, LEFT_MASK,   csg::Point3f( 1,  0,  0) },
+   { 2, 0, 1, voxel::FRONT_MASK,  csg::Point3f( 0,  0,  1) },
+   { 2, 0, 1, voxel::BACK_MASK,   csg::Point3f( 0,  0, -1) },
+   { 1, 0, 2, voxel::TOP_MASK,    csg::Point3f( 0,  1,  0) },
+   { 1, 0, 2, voxel::BOTTOM_MASK, csg::Point3f( 0, -1,  0) },
+   { 0, 2, 1, voxel::RIGHT_MASK,  csg::Point3f(-1,  0,  0) },
+   { 0, 2, 1, voxel::LEFT_MASK,   csg::Point3f( 1,  0,  0) },
 };
 
 Pipeline::Pipeline()
@@ -63,7 +63,7 @@ H3DNodeUnique Pipeline::AddMeshNode(H3DNode parent, const csg::mesh_tools::mesh&
    return modelNode;
 }
 
-H3DNodeUnique Pipeline::AddQubicleNode(H3DNode parent, const QubicleMatrix& m, const csg::Point3f& origin)
+H3DNodeUnique Pipeline::AddQubicleNode(H3DNode parent, const voxel::QubicleMatrix& m, const csg::Point3f& origin)
 {
    std::vector<VoxelGeometryVertex> vertices;
    std::vector<uint32> indices;
@@ -189,7 +189,7 @@ H3DNodeUnique Pipeline::AddQubicleNode(H3DNode parent, const QubicleMatrix& m, c
                   // xxx - the whole conversion bit above can be greatly optimized,
                   // but I don't want to touch it now that it's workin'!
 
-                  if (edge.mask == RIGHT_MASK || edge.mask == FRONT_MASK || edge.mask == BOTTOM_MASK) {
+                  if (edge.mask == voxel::RIGHT_MASK || edge.mask == voxel::FRONT_MASK || edge.mask == voxel::BOTTOM_MASK) {
                      indices.push_back(voffset + 2);
                      indices.push_back(voffset + 1);
                      indices.push_back(voffset);
@@ -243,7 +243,7 @@ Pipeline::NamedNodeMap Pipeline::LoadQubicleFile(std::string const& uri)
    NamedNodeMap result;
 
    // xxx: no.  Make a qubicle resource type so they only get loaded once, ever.
-   QubicleFile f;
+   voxel::QubicleFile f;
    std::ifstream input;
 
    res::ResourceManager2::GetInstance().OpenResource(uri, input);

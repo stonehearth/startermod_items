@@ -17,6 +17,7 @@ class JsonStore : public dm::Object
 {
 public:
    DEFINE_OM_OBJECT_TYPE(JsonStore, json_store);
+   void GetDbgInfo(dm::DbgInfo &info) const override;
 
    JSONNode& Modify();
    JSONNode const& Get() const;

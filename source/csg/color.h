@@ -16,6 +16,7 @@ public:
       LoadValue(c);
    }
 
+
    unsigned char operator[](int i) const {
       return (&r)[i];
    }

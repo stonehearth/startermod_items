@@ -6,6 +6,7 @@
 #include "radiant.h"
 #include "radiant_luabind.h"
 #include "radiant_stdutil.h"
+#include "dbg_indenter.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -17,8 +18,27 @@ public:
    typedef std::vector<T> ContainerType;
 
    //static decltype(Protocol::Set::contents) extension;
-   DEFINE_DM_OBJECT_TYPE(Set);
+   DEFINE_DM_OBJECT_TYPE(Set, set);
    Set() : Object() { }
+
+
+   void GetDbgInfo(DbgInfo &info) const override {
+      if (WriteDbgInfoHeader(info)) {
+         info.os << " [" << std::endl;
+         {
+            Indenter indent(info.os);
+            auto i = items_.begin(), end = items_.end();
+            while (i != end) {
+               SaveImpl<T>::GetDbgInfo(*i, info);
+               if (++i != end) {
+                  info.os << ",";
+               }
+               info.os << std::endl;
+            }
+         }
+         info.os << "]";
+      }
+   }
 
    const std::vector<T>& GetContents() const { return items_; }
 

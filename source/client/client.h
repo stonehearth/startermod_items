@@ -59,13 +59,12 @@ class Client : public core::Singleton<Client> {
       void SelectEntity(dm::ObjectId id);
 
       om::EntityPtr CreateEmptyAuthoringEntity();
-      om::EntityPtr CreateAuthoringEntity(std::string const& mod_name, std::string const& entity_name);
-      om::EntityPtr CreateAuthoringEntityByRef(std::string const& ref);
+      om::EntityPtr CreateAuthoringEntity(std::string const& uri);
       void DestroyAuthoringEntity(dm::ObjectId id);
 
       dm::Store& GetStore() { return store_; }
       dm::Store& GetAuthoringStore() { return authoringStore_; }
-      Physics::OctTree& GetOctTree() const { return *octtree_; }
+      phys::OctTree& GetOctTree() const { return *octtree_; }
 
       typedef int CursorStackId;
       CursorStackId InstallCursor(std::string name);
@@ -182,7 +181,7 @@ private:
       std::unordered_map<dm::ObjectId, om::EntityPtr> authoredEntities_;
 
       // local collision tests...
-      std::unique_ptr<Physics::OctTree>     octtree_;
+      std::unique_ptr<phys::OctTree>     octtree_;
 
       // the ui browser object...
       std::unique_ptr<chromium::IBrowser>   browser_;      

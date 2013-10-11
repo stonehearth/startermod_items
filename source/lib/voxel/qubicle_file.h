@@ -1,12 +1,12 @@
-#ifndef _RADIANT_CLIENT_QUBICLE_FILE_H
-#define _RADIANT_CLIENT_QUBICLE_FILE_H
+#ifndef _RADIANT_VOXEL_QUBICLE_FILE_H
+#define _RADIANT_VOXEL_QUBICLE_FILE_H
 
 #include "namespace.h"
 #include "csg/point.h"
 #include "csg/color.h"
 #include "qubicle_file_format.h"
 
-BEGIN_RADIANT_CLIENT_NAMESPACE
+BEGIN_RADIANT_VOXEL_NAMESPACE
 
 class QubicleMatrix {
 public:
@@ -15,7 +15,8 @@ public:
 
    std::istream& Read(const QbHeader& header, std::istream& in);  
    const csg::Point3& GetSize() const { return size_; }
-   
+   const csg::Point3& GetPosition() const { return position_; }
+
    uint32 At(int x, int  y, int z) const;
    csg::Color3 GetColor(uint32 value) const;
 
@@ -43,7 +44,7 @@ protected:
 std::istream& operator>>(std::istream& in, QubicleMatrix& q);
 std::istream& operator>>(std::istream& in, QubicleFile& q);
 
-END_RADIANT_CLIENT_NAMESPACE
+END_RADIANT_VOXEL_NAMESPACE
 
 
-#endif //  _RADIANT_CLIENT_QUBICLE_FILE_H
+#endif //  _RADIANT_VOXEL_QUBICLE_FILE_H

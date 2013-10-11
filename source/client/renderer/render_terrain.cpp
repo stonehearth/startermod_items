@@ -151,7 +151,7 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
    }
    ASSERT(terrain);
 
-   auto on_add_zone = [this](csg::Point3 location, om::BoxedRegion3Ptr const& region) {
+   auto on_add_zone = [this](csg::Point3 location, om::Region3BoxedPtr const& region) {
       RenderZonePtr render_zone;
       if (region) {
          auto i = zones_.find(location);
@@ -211,7 +211,7 @@ void RenderTerrain::OnSelected(om::Selection& sel, const csg::Ray3& ray,
 
 void RenderTerrain::UpdateRenderRegion(RenderZonePtr render_zone)
 {
-   om::BoxedRegion3Ptr region_ptr = render_zone->region.lock();
+   om::Region3BoxedPtr region_ptr = render_zone->region.lock();
 
    render_zone->Reset();
 
@@ -222,17 +222,12 @@ void RenderTerrain::UpdateRenderRegion(RenderZonePtr render_zone)
 
       TesselateTerrain(region, tesselatedRegion);
 
-      csg::mesh_tools::meshmap meshmap;
-      csg::mesh_tools(tess_map).optimize_region(tesselatedRegion, meshmap);
+      csg::mesh_tools::mesh mesh;
+      mesh = csg::mesh_tools().SetTesselator(tess_map)
+                              .ConvertRegionToMesh(tesselatedRegion);
    
-      render_zone->node = H3DNodeUnique(h3dAddGroupNode(terrain_root_node_.get(), "grid"));
-      h3dSetNodeTransform(render_zone->node.get(), render_zone->location.x - 0.5f, (float)render_zone->location.y, render_zone->location.z - 0.5f, 0, 0, 0, 1, 1, 1);
-
-      render_zone->meshes.clear();
-      for (auto const& entry : meshmap) {
-         H3DNodeUnique node = Pipeline::GetInstance().AddMeshNode(render_zone->node.get(), entry.second);
-         render_zone->meshes.emplace_back(node);
-      }
+      render_zone->node = Pipeline::GetInstance().AddMeshNode(terrain_root_node_.get(), mesh);
+      h3dSetNodeTransform(render_zone->node.get(), (float)render_zone->location.x, (float)render_zone->location.y, (float)render_zone->location.z, 0, 0, 0, 1, 1, 1);
    }
 }
 

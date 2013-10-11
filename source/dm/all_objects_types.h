@@ -20,9 +20,10 @@ enum {
 
 #undef DM_OBJECT
 
-#define DEFINE_DM_OBJECT_TYPE(Class)   \
+#define DEFINE_DM_OBJECT_TYPE(Class, lower)   \
    enum { DmType = Class ## ObjectType }; \
-   ObjectType GetObjectType() const override { return Class::DmType; }
+   ObjectType GetObjectType() const override { return Class::DmType; } \
+   const char *GetObjectClassNameLower() const override { return #lower; }
 
 END_RADIANT_DM_NAMESPACE
 

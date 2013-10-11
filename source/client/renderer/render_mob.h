@@ -29,6 +29,7 @@ private:
    csg::Transform    _initial;
    csg::Transform    _final;
    csg::Transform    _current;
+   H3DNodeUnique     _axes;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

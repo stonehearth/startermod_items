@@ -38,12 +38,8 @@ public:
    std::string GetDebugText() const { return *debug_text_; }
    void SetDebugText(std::string str) { debug_text_ = str; }
 
-   void SetName(std::string const &mod_name, std::string const& entity_name) {
-      mod_name_ = mod_name;
-      entity_name_ = entity_name;
-   }
-   std::string GetModuleName() const { return *mod_name_; }
-   std::string GetEntityName() const { return *entity_name_; }
+   std::string GetUri() const { return *uri_; }
+   void SetUri(std::string str) { uri_ = str; }
 
 private:
    void InitializeRecordFields() override;
@@ -54,8 +50,7 @@ private:
 
 private:
    dm::Boxed<std::string>  debug_text_;
-   dm::Boxed<std::string>  mod_name_;
-   dm::Boxed<std::string>  entity_name_;
+   dm::Boxed<std::string>  uri_;
    ComponentMap            components_;
 };
 std::ostream& operator<<(std::ostream& os, const Entity& o);

@@ -12,7 +12,7 @@ void EntityContainer::InitializeRecordFields()
    AddRecordField("children", children_);
 }
 
-void EntityContainer::AddChild(om::EntityRef c)
+EntityContainer& EntityContainer::AddChild(om::EntityRef c)
 {
    auto child = c.lock();
    if (child) {
@@ -30,9 +30,10 @@ void EntityContainer::AddChild(om::EntityRef c)
          children_.Remove(id);
       });
    }
+   return *this;
 }
 
-void EntityContainer::RemoveChild(om::EntityRef c)
+EntityContainer& EntityContainer::RemoveChild(om::EntityRef c)
 {
    auto child = c.lock();
    if (child) {
@@ -44,4 +45,5 @@ void EntityContainer::RemoveChild(om::EntityRef c)
          mob->SetParent(nullptr);
       }
    }
+   return *this;
 }

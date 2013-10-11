@@ -307,7 +307,7 @@ function StonehearthCamera:_update_camera(frame_time)
   -- Impulse delta is cleared on every camera update
   self._impulse_delta = Vec3(0, 0, 0)
 
-  local lerp_pos = _radiant.csg.lerp(self:get_position(), self._next_position, smoothness * frame_time)
+  local lerp_pos = self:get_position():lerp(self._next_position, smoothness * frame_time)
   self:set_position(lerp_pos)
 end
 

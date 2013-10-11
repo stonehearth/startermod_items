@@ -389,7 +389,7 @@ RenderAttachItemEffect::RenderAttachItemEffect(RenderEntity& e, om::EffectPtr ef
    } else {
       item = authored_entity_ = Client::GetInstance().GetAuthoringStore().AllocObject<om::Entity>();
       try {
-         om::Stonehearth::InitEntityByRef(item, kind, Client::GetInstance().GetScriptHost()->GetInterpreter());
+         om::Stonehearth::InitEntity(item, kind, Client::GetInstance().GetScriptHost()->GetInterpreter());
       } catch (res::Exception &e) {
          // xxx: put this in the error browser!!
          LOG(WARNING) << "!!!!!!! ERROR IN RenderAttachItemEffect: " << e.what();

@@ -45,6 +45,8 @@ scope LuaMobComponent::RegisterLuaTypes(lua_State* L)
          .def("turn_to",                     &Mob::TurnToAngle)
          .def("turn_to_face_point",          &Mob::TurnToFacePoint)
          .def("set_interpolate_movement",    &Mob::SetInterpolateMovement)
+         .def("get_transform",               &Mob::GetTransform)
+         .def("set_transform",               &Mob::SetTransform)
          .def("trace_transform",             &Mob_TraceTransform)
          .def("get_parent",                  &Mob_GetParent)
       ,

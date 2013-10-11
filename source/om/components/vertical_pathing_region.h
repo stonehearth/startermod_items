@@ -21,14 +21,18 @@ public:
    CollisionType GetType() const override { return CollisionShape::REGION; }
    csg::Cube3f GetAABB() const override;
 
-   BoxedRegion3Ptr GetRegionPtr() const { return *region_; }
-   void SetRegionPtr(BoxedRegion3Ptr region) { region_ = region; }
+   void SetRegion(Region3BoxedPtr region) { region_ = region; }
+   Region3BoxedPtrBoxed const& GetRegion() const { return region_; }
+
+   void SetNormal(csg::Point3 const& normal) { normal_ = normal; }
+   csg::Point3 GetNormal() const { return *normal_; }
 
 private:
    void InitializeRecordFields() override;
 
 private:
-   dm::Boxed<BoxedRegion3Ptr>   region_;
+   Region3BoxedPtrBoxed    region_;
+   dm::Boxed<csg::Point3>  normal_;
 };
 
 END_RADIANT_OM_NAMESPACE

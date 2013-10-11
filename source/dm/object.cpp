@@ -110,3 +110,14 @@ bool Object::IsValid() const
    return id_.id != 0 && id_.store > 0 && id_.store < 4;
 }
 
+bool Object::WriteDbgInfoHeader(DbgInfo &info) const
+{
+   info.os << "[" << GetObjectClassNameLower() << " id:" << GetStoreId() << ":" << GetObjectId();
+   if (info.IsVisisted(*this)) {
+      info.os <<  " visisted ...]";
+      return false;
+   }
+   info.MarkVisited(*this);
+   info.os << " modified:" << GetLastModified() << "]";
+   return true;
+}

@@ -1,8 +1,10 @@
-#ifndef _RADIANT_CLIENT_QUBICLE_FILE_FORMAT_H
-#define _RADIANT_CLIENT_QUBICLE_FILE_FORMAT_H
+#ifndef _RADIANT_VOXEL_QUBICLE_FILE_FORMAT_H
+#define _RADIANT_VOXEL_QUBICLE_FILE_FORMAT_H
 
+#include "radiant.h"
+#include "namespace.h"
 
-BEGIN_RADIANT_CLIENT_NAMESPACE
+BEGIN_RADIANT_VOXEL_NAMESPACE
 
 // As documented at: http://www.minddesk.com/od_dataexchange_qb.php
 
@@ -51,7 +53,6 @@ struct QbHeader
    uint32      numMatricies;
 };
 
-END_RADIANT_CLIENT_NAMESPACE
+END_RADIANT_VOXEL_NAMESPACE
 
-
-#endif //  _RADIANT_CLIENT_QUBICLE_FILE_FORMAT_H
+#endif //  _RADIANT_VOXEL_QUBICLE_FILE_FORMAT_H
