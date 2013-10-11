@@ -21,7 +21,7 @@ function WorkerLightFireAction:run(ai, entity, path_to_log, firepit, task)
    local log = path_to_log:get_destination()
 
    -- If the task is already stopped, someone else got this action first. Exit.
-   if not task:get_running() then
+   if not task:is_running() then
       radiant.log.info('%s (Worker %s): Ok, someone else is taking care of the fire.', tostring(entity), name)
       ai:abort()
       --return

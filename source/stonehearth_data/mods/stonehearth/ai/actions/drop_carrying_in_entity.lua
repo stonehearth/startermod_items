@@ -14,7 +14,12 @@ function DropCarryingInEntityAction:run(ai, entity, target_entity, target_locati
 
    if radiant.entities.is_carrying(entity) then
       radiant.entities.turn_to_face(entity, location)
-      ai:execute('stonehearth:run_effect', 'carry_putdown')
+      if not target_location or target_location.y == 0 then
+         ai:execute('stonehearth:run_effect', 'carry_putdown')
+      else
+         --if it's not 0, it must be higher
+         ai:execute('stonehearth:run_effect', 'carry_putdown_on_table')
+      end
       radiant.entities.put_carrying_in_entity(entity, target_entity, target_location)
    end
 end
