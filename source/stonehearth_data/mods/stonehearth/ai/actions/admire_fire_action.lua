@@ -19,12 +19,14 @@ function AdmireFire:__init(ai, entity)
    self._ai = ai
    self._firepit_seat = nil
    self._path_to_fire = nil
-
+   self._should_look_for_fire = false
+   
    radiant.events.listen('radiant:events:calendar:sunrise', self)
    radiant.events.listen('radiant:events:calendar:sunset', self)
 end
 
 AdmireFire['radiant:events:calendar:sunset'] = function(self, calendar)
+   self._should_look_for_fire = true
    if not self._pathfinder then
       self:_start_looking_for_fire()
    end
@@ -32,8 +34,13 @@ end
 
 --- At dawn, stop looking and release all seats.
 AdmireFire['radiant:events:calendar:sunrise'] = function(self, calendar)
+   self._should_look_for_fire = false
    self:_release_seat_reservation()
-   self:stop()
+   self._ai:set_action_priority(self, 0)
+   if self._pathfinder then
+      self._pathfinder:stop()
+      self._pathfinder = nil
+   end
 end
 
 function AdmireFire:_start_looking_for_fire()
@@ -99,6 +106,16 @@ function AdmireFire:run(ai, entity)
    --Get the fire associated with the firepit
    local spot_component = self._firepit_seat:get_component('stonehearth:center_of_attn_spot')
    radiant.entities.turn_to_face(self._entity, spot_component:get_center_of_attn())
+
+   while true do
+      --TODO: add the fire-specific stuff
+      ai:execute('stonehearth:idle')
+      local effects = {
+         'warm_hands_by_fire',
+         'toast_marshmellow'
+      }
+      --ai:execute('stonehearth:run_effect', effects[math.random(#effects)])
+   end
 end
 
 function AdmireFire:_release_seat_reservation()
@@ -115,7 +132,9 @@ function AdmireFire:stop()
       self._pathfinder:stop()
       self._pathfinder = nil
    end
-
+   if self._should_look_for_fire then
+      self:_start_looking_for_fire()
+   end
    --If stop is called and the entity successfully is beside his seat, then stop
    if self._firepit_seat and
       not radiant.entities.is_adjacent_to(self._entity, radiant.entities.get_world_grid_location(self._firepit_seat)) then

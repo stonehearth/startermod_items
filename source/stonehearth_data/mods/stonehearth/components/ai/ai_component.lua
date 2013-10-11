@@ -100,7 +100,7 @@ function AIComponent:check_action_stack()
    -- walk the entire action stack looking for better things to do...
    local unwind_to_action = nil
    for i, entry in ipairs(self._action_stack) do
-      local action, priority = self:_get_best_action(entry.activity)
+      local action, priority = self:_get_best_action(entry.activity, i-1)
       if action ~= entry.action then
          radiant.log.warning('switching from %s to %s (priority:%d)', entry.action.name, action.name, priority)
          unwind_to_action = i
@@ -135,7 +135,7 @@ function AIComponent:restart()
    end)
 end
 
-function AIComponent:_get_best_action(activity)
+function AIComponent:_get_best_action(activity, filter_depth)
    local activity_name = select(1, unpack(activity))
    local priorities = self._priority_table[activity_name]
 
@@ -146,7 +146,18 @@ function AIComponent:_get_best_action(activity)
    for a, p in pairs(priorities) do
       --radiant.log.info('activity %s: %s has priority %d', activity_name, a.name, p)
       if not best_p or p > best_p then
-         best_a, best_p = a, p
+         -- get_best_action is called both to check the health of the current action
+         -- stack as well as to choose new actions to put on the stack.  In the first
+         -- case, we're simply checking to make sure that the action chosen at every
+         -- level is the same as what is recorded in the stack, so finding the action
+         -- in the stack is exactly what we want!  In the second case, we never, ever
+         -- want to recur (infinite ai loop, anyone?), so we'll choose the next best
+         -- action for ai:execute().  this is useful for inserting special actions into
+         -- the graph and deferring to the other implementations as part of your
+         -- implementation.
+         if not self:_is_in_action_stack(a, filter_depth) then
+            best_a, best_p = a, p
+         end
       end
    end
    return best_a, best_p
@@ -247,9 +258,21 @@ function AIComponent:abort(reason)
    coroutine.yield(self._ai_system.KILL_THREAD)
 end
 
+function AIComponent:_is_in_action_stack(action, filter_depth)
+   assert(filter_depth <= #self._action_stack, "we're looking to deep in _is_in_action_stack")
+   if filter_depth > 0 then
+      for i=1,filter_depth do
+         local entry = self._action_stack[i]
+         if entry.action == action then
+            return true
+         end
+      end
+   end
+end
+
 function AIComponent:execute(...)
    local activity = {...}
-   local action = self:_get_best_action(activity)
+   local action = self:_get_best_action(activity, #self._action_stack)
 
    local action_main = function()
       -- decoda_name = string.format("entity %d : %s action", self._entity:get_id(), tostring(action.name))
@@ -261,7 +284,8 @@ function AIComponent:execute(...)
 
    local entry = {
       activity = activity,
-      action = action
+      action = action,
+      name = action.name and action.name or '- unnamed action -'
    }
    table.insert(self._action_stack, entry)
    local len = #self._action_stack
