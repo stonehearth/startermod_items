@@ -1,5 +1,7 @@
 local Point3 = _radiant.csg.Point3
+
 local PlaceItemCallHandler = class()
+
 
 -- Client side object to place an item in the world. The item exists as an icon first
 -- This method is invoked by POSTing to the route for this file in the manifest.
@@ -10,7 +12,7 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, enti
    -- "authoring entities", because they exist only on the client side to help
    -- in the authoring of new content.
    -- TODO: show places the item cannot/should not be placed
- 
+
    self._cursor_entity = radiant.entities.create_entity(entity_uri)
 
    -- add a render object so the cursor entity gets rendered.
@@ -37,6 +39,7 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, enti
 end
 
 -- called each time the mouse moves on the client.
+-- TODO: FIX THIS TO THE NEW TASK MODEL BEFORE PUSHING!!!!
 function PlaceItemCallHandler:_on_mouse_event(e, response)
    -- query the scene to figure out what's under the mouse cursor
    local s = _radiant.client.query_scene(e.x, e.y)
@@ -54,7 +57,7 @@ function PlaceItemCallHandler:_on_mouse_event(e, response)
    -- if the mouse button just transitioned to up and we're actually pointing
    -- to a box on the terrain, send a message to the server to create the
    -- entity.  this is done by posting to the correct route.
-   
+
    --test for mouse right-click
    if e:up(2) and s.location then
       radiant.log.info('Pressed right click')
@@ -62,7 +65,7 @@ function PlaceItemCallHandler:_on_mouse_event(e, response)
       self._curr_rotation = self._curr_rotation % 360
       self._cursor_entity:add_component('mob'):turn_to(self._curr_rotation + 180)
    end
-   
+
    if e:up(1) and s.location then
       -- destroy our capture object to release the mouse back to the client.  don't
       -- destroy the authoring object yet!  doing so now will result in a brief period
@@ -70,7 +73,7 @@ function PlaceItemCallHandler:_on_mouse_event(e, response)
       -- authoring object has been destroyed.  that leads to flicker, which is ugly.
       self._capture:destroy()
       self._capture = nil
-      
+
       response:resolve({
          location = pt,
          rotation = self._curr_rotation + 180
@@ -82,34 +85,62 @@ function PlaceItemCallHandler:_on_mouse_event(e, response)
    return true
 end
 
--- server side object to handle creation of the workbench.  this is called
+--- Tell a worker to place the item in the world
+-- Server side object to handle creation of the workbench.  This is called
 -- by doing a POST to the route for this file specified in the manifest.
-function PlaceItemCallHandler:place_item_in_world(session, response, proxy_entity, location, rotation)
-
-   -- pull the location and entity uri out of the postdata, create that
-   -- entity, and move it there.
-   local location = Point3(location.x, location.y, location.z)
-   --local item_entity = radiant.entities.create_entity(postdata.item_uri)
-   radiant.log.info('in server, placing item in the world!!! %s', tostring(proxy_entity))
-
-   local full_sized_entity = proxy_entity:get_component('stonehearth:placeable_item_proxy'):get_full_sized_entity()
-
-   -- Remove the icon (TODO: what about stacked icons? Remove just one of the stack?)
-   radiant.terrain.remove_entity(proxy_entity)
-
-   -- Place the item in the world
-   radiant.terrain.place_entity(full_sized_entity, location)
-   radiant.entities.turn_to(full_sized_entity, rotation)
-   
-   --item_entity:get_component('unit_info'):set_faction(session.faction)
-   return { full_sized_entity = full_sized_entity }
-end
-
--- server side object to handle creation of the workbench.  this is called
--- by doing a POST to the route for this file specified in the manifest.
-function PlaceItemCallHandler:place_item_type_in_world(session, response, full_sized_entity_uri, location, rotation)
-   -- xxx: we really want a worker to just find one, but this is ok for now.__call
+function PlaceItemCallHandler:place_item_in_world(session, response, proxy_entity, full_sized_uri, location, rotation)
+   local task = self:_init_pickup_worker_task(session, full_sized_uri, location, rotation)
+   task:add_work_object(proxy_entity)
+   task:start()
    return true
 end
+
+--- Place any object that matches the entity_uri
+-- server side object to handle creation of the workbench.  this is called
+-- by doing a POST to the route for this file specified in the manifest.
+function PlaceItemCallHandler:place_item_type_in_world(session, response, entity_uri, full_item_uri, location, rotation)
+   local task = self:_init_pickup_worker_task(session, full_item_uri, location, rotation)
+   local object_filter_fn = function(entity)
+      if entity:get_uri() == entity_uri then
+         return true
+      end
+      return false
+   end
+   task:set_work_object_filter_fn(object_filter_fn)
+   task:start()
+   return true
+end
+
+--- Init all the things common to the pickup_worker_task
+-- does everything except set the target and start the task
+function PlaceItemCallHandler:_init_pickup_worker_task(session, full_sized_uri, coor_location, rotation)
+   --Place the ghost entity first
+   local location = Point3(coor_location.x, coor_location.y, coor_location.z)
+   local ghost_entity = radiant.entities.create_entity()
+   local ghost_entity_component = ghost_entity:add_component('stonehearth:ghost_item')
+   ghost_entity_component:set_object_data(full_sized_uri, location, rotation)
+   radiant.terrain.place_entity(ghost_entity, location)
+
+   --Summon the worker scheduler
+   local ws = radiant.mods.load('stonehearth').worker_scheduler
+   local worker_scheduler = ws:get_worker_scheduler(session.faction)
+
+   -- Make a task for picking up the object the user designated
+   -- Any worker that's not carrying anything will do...
+   local not_carrying_fn = function (worker)
+      return radiant.entities.get_carrying(worker) == nil
+   end
+
+   local pickup_item_task = worker_scheduler:add_worker_task('placing_item_task')
+                  :set_worker_filter_fn(not_carrying_fn)
+
+   pickup_item_task:set_action_fn(
+      function (path)
+         return 'stonehearth:place_item', path, ghost_entity, rotation, pickup_item_task
+      end
+   )
+   return pickup_item_task
+end
+
 
 return PlaceItemCallHandler

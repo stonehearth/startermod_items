@@ -1,5 +1,5 @@
 {
-   "extends": "stonehearth.mixins.tree", 
+   "extends": "stonehearth:mixins:tree", 
    "type": "entity", 
    "components": {
       "model_variants": [
@@ -21,7 +21,7 @@
          "description": "He's just a sapling!"
       }, 
       "stonehearth:resource_node": {
-         "resource": "stonehearth.oak_log", 
+         "resource": "stonehearth:oak_log", 
          "durability": 4
       }
    }

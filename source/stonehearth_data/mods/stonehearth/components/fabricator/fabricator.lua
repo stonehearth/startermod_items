@@ -142,7 +142,7 @@ function Fabricator:_start_pickup_task()
 
    local name = 'pickup to fabricate ' .. self.name
    self._pickup_task = self._worker_scheduler:add_worker_task(name)
-                           :set_action('stonehearth.pickup_item_on_path')
+                           :set_action('stonehearth:pickup_item_on_path')
                            :set_worker_filter_fn(worker_filter_fn)
                            :set_work_object_filter_fn(work_obj_filter_fn)
                            :start()
@@ -158,7 +158,7 @@ function Fabricator:_start_fabricate_task()
    self._fabricate_task = self._worker_scheduler:add_worker_task(name)
                            :set_worker_filter_fn(worker_filter_fn)
                            :add_work_object(self._entity)
-                           :set_action('stonehearth.fabricate')
+                           :set_action('stonehearth:fabricate')
                            :start()
 end
 

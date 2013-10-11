@@ -5,8 +5,8 @@
 
 local GrabTalismanAction = class()
 
-GrabTalismanAction.name = 'stonehearth.actions.check_craftable'
-GrabTalismanAction.does = 'stonehearth.grab_talisman'
+GrabTalismanAction.name = 'grab talisman'
+GrabTalismanAction.does = 'stonehearth:grab_talisman'
 GrabTalismanAction.priority = 0
 
 --[[
@@ -19,7 +19,7 @@ function GrabTalismanAction:__init(ai, entity)
    radiant.check.is_entity(entity)
    self._entity = entity
    self._ai = ai
-   radiant.events.listen('radiant.animation.on_trigger', self)
+   radiant.events.listen('radiant:animation:on_trigger', self)
 end
 
 --[[
@@ -35,9 +35,9 @@ function GrabTalismanAction:run(ai, entity, action_data)
       --TODO: if the dude is currently not a worker, he should drop his talisman
       --and/or tell his place of work to spawn a new one. (Disassociate worker from queue?)
 
-      ai:execute('stonehearth.goto_entity', workbench_entity)
+      ai:execute('stonehearth:goto_entity', workbench_entity)
       radiant.entities.remove_child(workbench_entity, self._talisman_entity)
-      ai:execute('stonehearth.run_effect', 'promote', nil, {talisman = self._talisman_entity})
+      ai:execute('stonehearth:run_effect', 'promote', nil, {talisman = self._talisman_entity})
 
       --Remove the entity from the world
       radiant.entities.destroy_entity(self._talisman_entity)
@@ -50,7 +50,7 @@ end
    the entity in question is really our entity in case 2 prmotions happen
    at the exact same moment.
 ]]
-GrabTalismanAction['radiant.animation.on_trigger'] = function(self, info, effect, entity)
+GrabTalismanAction['radiant:animation:on_trigger'] = function(self, info, effect, entity)
    local entity_id = self._entity:get_id()
    if (entity_id ~= entity:get_id()) or not self._talisman_entity then
       return

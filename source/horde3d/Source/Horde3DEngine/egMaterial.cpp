@@ -216,6 +216,26 @@ bool MaterialResource::setUniform( const std::string &name, float a, float b, fl
 }
 
 
+bool MaterialResource::setArrayUniform( const std::string &name, float* data, int dataCount)
+{
+	for( uint32 i = 0; i < _uniforms.size(); ++i )
+	{
+		if( _uniforms[i].name == name )
+		{
+         _uniforms[i].arrayValues.clear();
+
+         for (int j = 0; j < 4 * dataCount; j++)
+         {
+            _uniforms[i].arrayValues.push_back(data[j]);
+         }
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
 bool MaterialResource::isOfClass( const std::string &theClass )
 {
 	static std::string theClass2;

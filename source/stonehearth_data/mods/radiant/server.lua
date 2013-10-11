@@ -18,7 +18,6 @@ radiant.terrain = require 'modules.terrain'
 radiant.mods = require 'modules.mods'
 radiant.music = require 'modules.bgm_manager'
 radiant.pathfinder = require 'modules.pathfinder'
-radiant.combat = require 'lib.combat'
 
 radiant.gamestate._start()
 radiant.log.info('radiant api initialized.')

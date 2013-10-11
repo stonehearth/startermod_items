@@ -6,7 +6,7 @@ local ProfessionCallHandler = class()
 
 function ProfessionCallHandler:grab_promotion_talisman(session, response, person, talisman)
    radiant.events.broadcast_msg(
-      'stonehearth.events.compulsion_event',
+      'stonehearth:events:compulsion_event',
       GrabTalismanAction,
       person,
       {talisman = talisman})

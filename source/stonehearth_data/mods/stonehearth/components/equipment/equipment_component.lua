@@ -60,7 +60,7 @@ end
 
 function EquipmentComponent:_remove_item_rendering(item, item_info)
    if item_info.render_type == 'merge_with_model' then
-      item:add_component('render_info'):remove_entity('stonehearth.worker_outfit')
+      item:add_component('render_info'):remove_entity(item:get_uri())
    end
 end
 

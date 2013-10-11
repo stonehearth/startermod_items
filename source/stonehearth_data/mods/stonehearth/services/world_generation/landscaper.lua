@@ -1,15 +1,13 @@
 local TerrainType = require 'services.world_generation.terrain_type'
-local HeightMap = require 'services.world_generation.height_map'
+local Array2D = require 'services.world_generation.array_2D'
 local MathFns = require 'services.world_generation.math.math_fns'
 local GaussianRandom = require 'services.world_generation.math.gaussian_random'
 local FilterFns = require 'services.world_generation.filter.filter_fns'
-local Wavelet = require 'services.world_generation.wavelet.wavelet'
-local WaveletFns = require 'services.world_generation.wavelet.wavelet_fns'
+local Wavelet = require 'services.world_generation.filter.wavelet'
+local WaveletFns = require 'services.world_generation.filter.wavelet_fns'
 local Point3 = _radiant.csg.Point3
 
 local Landscaper = class()
-
-local tree_mod_name = 'stonehearth'
 
 local oak = 'oak_tree'
 local juniper = 'juniper_tree'
@@ -28,25 +26,20 @@ function Landscaper:place_trees(zone_map, world_offset_x, world_offset_y)
    if world_offset_x == nil then world_offset_x = 0 end
    if world_offset_y == nil then world_offset_y = 0 end
 
-   local wavelet_levels = 2
-   local freq_scaling_coeff = 0.2
    local grid_spacing = 32
    local perturbation_dist = grid_spacing/2 - 4
    local tree_map_width = zone_map.width / grid_spacing
    local tree_map_height = zone_map.height / grid_spacing
-   local tree_map = HeightMap(tree_map_width, tree_map_height)
-   local noise_map = HeightMap(tree_map_width, tree_map_height)
+   local tree_map = Array2D(tree_map_width, tree_map_height)
+   local noise_map = Array2D(tree_map_width, tree_map_height)
 
+   --local wavelet_levels = 2
+   --local freq_scaling_coeff = 0.2
    --self:_fill_noise_map(tree_map)
-   --tree_map:print()
    --WaveletFns.shape_height_map(tree_map, freq_scaling_coeff, wavelet_levels)
 
    self:_fill_noise_map(noise_map)
-   --noise_map:print()
-   FilterFns.filter_2D_025(tree_map, noise_map, tree_map_width, tree_map_height)
-
-   --radiant.log.info('')
-   --tree_map:print()
+   FilterFns.filter_2D_050(tree_map, noise_map, tree_map_width, tree_map_height, 6)
 
    local terrain_info = self.terrain_info
    local grid_offset_x = grid_spacing/2
@@ -68,12 +61,16 @@ function Landscaper:place_trees(zone_map, world_offset_x, world_offset_y)
             tree_type = self:_get_tree_type(elevation)
 
             if tree_type ~= nil then 
-               if value <= 10 then     tree_name = get_tree_name(tree_type, small)
-               elseif value <= 25 then tree_name = get_tree_name(tree_type, medium)
+               if value <= 8 then      tree_name = get_tree_name(tree_type, small)
+               elseif value <= 40 then tree_name = get_tree_name(tree_type, medium)
                else                    tree_name = get_tree_name(tree_type, large)
                end
 
-               self:_place_tree(tree_name, world_offset_x + x, world_offset_y + y)
+               local entity
+               entity = self:_place_item(tree_name, world_offset_x + x, world_offset_y + y)
+               
+               -- set a random facing for the tree
+               entity:add_component('mob'):turn_to(90*math.random(0, 3))
             end
          end
       end
@@ -81,15 +78,15 @@ function Landscaper:place_trees(zone_map, world_offset_x, world_offset_y)
 end
 
 function Landscaper:_fill_noise_map(height_map)
-   local mean = 10
+   local mean = 0
    local std_dev = 100
    local i, j, value
 
    for j=1, height_map.height do
       for i=1, height_map.width do
          if height_map:is_boundary(i, j) then
-            -- discourage forests from running into zone boundaries
-            value = -20
+            -- discourage forests from abruptly chaning at zone boundaries
+            value = -10
          else
             value = GaussianRandom.generate(mean, std_dev)
          end
@@ -102,13 +99,8 @@ function Landscaper:_get_tree_type(elevation)
    local terrain_info = self.terrain_info
 
    if elevation > terrain_info.tree_line then return nil end
-   if elevation <= terrain_info[TerrainType.Plains].max_height then return oak end
-   if elevation > terrain_info[TerrainType.Foothills].max_height then
-      -- mountains have reduced forest density
-      return juniper
-      --if math.random() < 0.5 then return juniper end
-      --return nil
-   end
+   if elevation <= terrain_info[TerrainType.Grassland].max_height then return oak end
+   if elevation > terrain_info[TerrainType.Foothills].max_height then return juniper end
    return self:random_tree_type()
 end
 
@@ -134,18 +126,15 @@ function Landscaper:random_tree_size()
    return tree_sizes[roll]
 end
 
-function Landscaper:_place_tree(tree_name, x, z)
-   return self:_place_item(tree_name, x, z)
-end
-
 function Landscaper:_place_item(uri, x, z)
    local entity = radiant.entities.create_entity(uri)
    -- switch from lua height_map coordinates to cpp coordinates
    radiant.terrain.place_entity(entity, Point3(x-1, 1, z-1))
+   return entity
 end
 
 function get_tree_name(tree_type, tree_size)
-   return tree_mod_name .. '.' .. tree_size .. '_' .. tree_type
+   return 'stonehearth:' .. tree_size .. '_' .. tree_type
 end
 
 return Landscaper

@@ -17,6 +17,8 @@
 
 using namespace ::radiant;
 using namespace ::radiant::client;
+std::vector<float> ssaoSamplerData;
+H3DRes ssaoMat;
 
 static std::unique_ptr<Renderer> renderer_;
 Renderer& Renderer::GetInstance()
@@ -67,7 +69,7 @@ Renderer::Renderer() :
 
    glfwMakeContextCurrent(window);
    
-	glfwSwapInterval(1);
+	glfwSwapInterval(0);
 
 	if (!h3dInit()) {	
 		h3dutDumpMessages();
@@ -97,13 +99,49 @@ Renderer::Renderer() :
    // how to actually get the resource loaded!
    h3dAddResource(H3DResTypes::Material, "materials/debug_shape.material.xml", 0); 
    
+   ssaoMat = h3dAddResource(H3DResTypes::Material, "materials/ssao.material.xml", 0);
+
+   H3DRes veclookup = h3dCreateTexture("RandomVectorLookup", 4, 4, H3DFormats::TEX_RGBA32F, H3DResFlags::NoTexMipmaps);
+   float *data2 = (float *)h3dMapResStream(veclookup, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
+   for (int i = 0; i < 16; i++)
+   {
+      float x = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
+      float y = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
+      //float z = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
+      float z = 0;
+      Horde3D::Vec3f v(x,y,z);
+      v.normalize();
+
+      data2[(i * 4) + 0] = v.x;
+      data2[(i * 4) + 1] = v.y;
+      data2[(i * 4) + 2] = v.z;
+   }
+   h3dUnmapResStream(veclookup);
    LoadResources();
+
+   // Sampler kernel generation--a work in progress.
+   const int KernelSize = 16;
+	for (int i = 0; i < KernelSize; ++i) {
+      float x = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
+      float y = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
+      float z = ((rand() / (float)RAND_MAX) * -1.0f);
+      Horde3D::Vec3f v(x,y,z);
+      v.normalize();
+
+		float scale = (float)i / (float)KernelSize;
+      float f = scale;// * scale;
+		v *= ((1.0f - f) * 0.3f) + (f);
+
+      ssaoSamplerData.push_back(v.x);
+      ssaoSamplerData.push_back(v.y);
+      ssaoSamplerData.push_back(v.z);
+      ssaoSamplerData.push_back(0.0);
+	}
 
 	// Add camera   
    camera_ = new Camera(H3DRootNode, "Camera", currentPipeline_);
 
    h3dSetNodeParamI(camera_->GetNode(), H3DCamera::PipeResI, currentPipeline_);
-
    // Resize
    Resize(width_, height_);
 
@@ -174,6 +212,11 @@ void Renderer::FlushMaterials() {
 
    r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::ParticleEffect, r)) != 0) {
+      h3dUnloadResource(r);
+   }
+
+   r = 0;
+   while ((r = h3dGetNextResource(H3DResTypes::Code, r)) != 0) {
       h3dUnloadResource(r);
    }
 
@@ -280,6 +323,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    fileWatcher_.update();
    LoadResources();
 
+   h3dSetMaterialArrayUniform( ssaoMat, "samplerKernel", ssaoSamplerData.data(), ssaoSamplerData.size());
 	// Render scene
    h3dRender(camera_->GetNode());
 
@@ -416,8 +460,8 @@ void Renderer::UpdateUITexture(const csg::Region2& rgn, const char* buffer)
                //for (int i = 0; i < amount; i += 4) {  dst[i+3] = 0xff; }
             }
          }
-         h3dUnmapResStream(uiTexture_);
       }
+      h3dUnmapResStream(uiTexture_);
    }
 }
 
@@ -730,7 +774,10 @@ void Renderer::SetUITextureSize(int width, int height)
    uiHeight_ = height;
 
    if (uiTexture_) {
-      throw std::logic_error("resizing the ui texture is not yet implemented");
+      h3dRemoveResource(uiTexture_);
+      h3dRemoveResource(uiMatRes_);
+
+      h3dReleaseUnusedResources();
    }
    uiTexture_ = h3dCreateTexture("UI Texture", uiWidth_, uiHeight_, H3DFormats::List::TEX_BGRA8, H3DResFlags::NoTexMipmaps);
    unsigned char *data = (unsigned char *)h3dMapResStream(uiTexture_, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);

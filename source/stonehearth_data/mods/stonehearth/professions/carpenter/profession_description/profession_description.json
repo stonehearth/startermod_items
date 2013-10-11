@@ -9,7 +9,7 @@
    "crafter" : {
       "work_effect": "saw",
       "recipe_list": "/stonehearth/professions/carpenter/recipes",
-      "intermediate_item": "stonehearth.carpenter_intermediate_item"
+      "intermediate_item": "stonehearth:carpenter_intermediate_item"
    },
    "name": "Carpenter's Workshop",
    "description": "Has a saw and knows how to use it. Badassedly.",

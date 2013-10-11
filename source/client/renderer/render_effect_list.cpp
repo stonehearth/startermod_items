@@ -24,6 +24,7 @@
 #include "resources/res_manager.h"
 #include "resources/animation.h"
 #include "radiant_json.h"
+#include "lua/script_host.h"
 #include <SFML/Audio.hpp>
 
 using namespace ::radiant;
@@ -186,6 +187,13 @@ RenderAnimationEffect::RenderAnimationEffect(RenderEntity& e, om::EffectPtr effe
 {
    int now = effect->GetStartTime();
    animationName_ = node["animation"].as_string();
+   
+   // fuck
+   std::string animationTable = e.GetEntity()->GetComponent<om::RenderInfo>()->GetAnimationTable();
+   json::ConstJsonObject json = res::ResourceManager2::GetInstance().LookupJson(animationTable);
+   std::string animationRoot = json.get<std::string>("animation_root", "");
+
+   animationName_ = animationRoot + "/" + animationName_;
    animation_ = res::ResourceManager2::GetInstance().LookupAnimation(animationName_);
 
    if (animation_) {
@@ -317,7 +325,7 @@ LightEffect::LightEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& 
 {
    auto animatedLightFileName = node["light"].as_string();
    // TODO: for just a moment, hardcode some light values.
-   H3DRes matRes = h3dAddResource(H3DResTypes::Material, "materials/light.material.xml", 0);
+   H3DRes matRes = h3dAddResource(H3DResTypes::Material, "materials/deferred_light.material.xml", 0);
    H3DRes lightRes = h3dAddResource(RT_AnimatedLightResource, animatedLightFileName.c_str(), 0);
    H3DNode l = h3dRadiantAddAnimatedLightNode(e.GetNode(), "ln", lightRes, matRes);
 
@@ -381,7 +389,7 @@ RenderAttachItemEffect::RenderAttachItemEffect(RenderEntity& e, om::EffectPtr ef
    } else {
       item = authored_entity_ = Client::GetInstance().GetAuthoringStore().AllocObject<om::Entity>();
       try {
-         om::Stonehearth::InitEntity(item, kind, nullptr);
+         om::Stonehearth::InitEntity(item, kind, Client::GetInstance().GetScriptHost()->GetInterpreter());
       } catch (res::Exception &e) {
          // xxx: put this in the error browser!!
          LOG(WARNING) << "!!!!!!! ERROR IN RenderAttachItemEffect: " << e.what();

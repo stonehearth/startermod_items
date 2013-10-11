@@ -107,15 +107,15 @@ Client::Client() :
    core_reactor_->AddRouter(protobuf_router_);
 
    // core functionality exposed by the client...
-   core_reactor_->AddRoute("radiant.get_modules", [this](rpc::Function const& f) {
+   core_reactor_->AddRoute("radiant:get_modules", [this](rpc::Function const& f) {
       return GetModules(f);
    });
-   core_reactor_->AddRoute("radiant.install_trace", [this](rpc::Function const& f) {
+   core_reactor_->AddRoute("radiant:install_trace", [this](rpc::Function const& f) {
       json::ConstJsonObject args(f.args);
       std::string uri = args.get<std::string>(0);
       return http_reactor_->InstallTrace(rpc::Trace(f.caller, f.call_id, uri));
    });
-   core_reactor_->AddRoute("radiant.remove_trace", [this](rpc::Function const& f) {
+   core_reactor_->AddRoute("radiant:remove_trace", [this](rpc::Function const& f) {
       return core_reactor_->RemoveTrace(rpc::UnTrace(f.caller, f.call_id));
    });
 }
@@ -133,13 +133,13 @@ void Client::GetConfigOptions()
 extern bool realtime;
 void Client::run()
 {
-   hover_cursor_ = LoadCursor("stonehearth.cursors.hover");
-   default_cursor_ = LoadCursor("stonehearth.cursors.default");
+   hover_cursor_ = LoadCursor("stonehearth:cursors:hover");
+   default_cursor_ = LoadCursor("stonehearth:cursors:default");
 
    octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree());
       
    Renderer& renderer = Renderer::GetInstance();
-   //renderer.SetCurrentPipeline("pipelines/deferred_pipeline_static.xml");
+   //renderer.SetCurrentPipeline("pipelines/deferred_lighting.xml");
    //renderer.SetCurrentPipeline("pipelines/forward.pipeline.xml");
 
    Horde3D::Modules::log().SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
@@ -161,7 +161,7 @@ void Client::run()
 
    // seriously???
    std::string game_script = vm["game.script"].as<std::string>();
-   if (game_script != "stonehearth/new_world.lua") {
+   if (game_script != "stonehearth/start_game.lua") {
       docroot += "?skip_title=true";
    }
 
@@ -218,9 +218,9 @@ void Client::run()
    // this locks down the environment!  all types must be registered by now!!
    scriptHost_->Require("radiant.client");
 
-   _commands[GLFW_KEY_F9] = [=]() { core_reactor_->Call(rpc::Function("radiant.toggle_debug_nodes")); };
-   _commands[GLFW_KEY_F3] = [=]() { core_reactor_->Call(rpc::Function("radiant.toggle_step_paths")); };
-   _commands[GLFW_KEY_F4] = [=]() { core_reactor_->Call(rpc::Function("radiant.step_paths")); };
+   _commands[GLFW_KEY_F9] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_debug_nodes")); };
+   _commands[GLFW_KEY_F3] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_step_paths")); };
+   _commands[GLFW_KEY_F4] = [=]() { core_reactor_->Call(rpc::Function("radiant:step_paths")); };
    _commands[GLFW_KEY_ESCAPE] = [=]() {
       currentCursor_ = NULL;
    };

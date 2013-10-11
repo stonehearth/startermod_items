@@ -11,6 +11,9 @@
 
 using namespace ::radiant;
 using namespace ::radiant::om;
+using namespace ::luabind;
+
+static const std::regex entity_macro_regex__("^([^:\\\\/]+):([^\\\\/]+)$");
 
 csg::Region3 Stonehearth::ComputeStandingRegion(const csg::Region3& r, int height)
 {
@@ -29,24 +32,23 @@ csg::Region3 Stonehearth::ComputeStandingRegion(const csg::Region3& r, int heigh
    return standing;
 }
 
-
-static luabind::object
+static object
 GetNativeComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
 {
 #define OM_OBJECT(Clas, lower)  \
    if (name == #lower) { \
       auto component = entity->GetComponent<om::Clas>(); \
       if (!component) { \
-         return luabind::object(); \
+         return object(); \
       } \
-      return luabind::object(L, std::weak_ptr<om::Clas>(component)); \
+      return object(L, std::weak_ptr<om::Clas>(component)); \
    }
    OM_ALL_COMPONENTS
 #undef OM_OBJECT
-   return luabind::object();
+   return object();
 }
 
-static luabind::object
+static object
 GetNativeComponentData(lua_State* L, om::EntityPtr entity, std::string const& name)
 {
    dm::ObjectPtr obj = nullptr;
@@ -54,7 +56,7 @@ GetNativeComponentData(lua_State* L, om::EntityPtr entity, std::string const& na
    if (name == #lower) { \
       auto component = entity->GetComponent<om::Clas>(); \
       if (!component) { \
-         return luabind::object(); \
+         return object(); \
       } \
       obj = component; \
    }
@@ -64,7 +66,7 @@ GetNativeComponentData(lua_State* L, om::EntityPtr entity, std::string const& na
       JSONNode node = om::ObjectFormatter().ObjectToJson(obj);
       return lua::ScriptHost::JsonToLua(L, node);
    }
-   return luabind::object();
+   return object();
 }
 
 
@@ -85,7 +87,7 @@ GetLuaComponentUri(std::string name)
    return "";
 }
 
-static luabind::object
+static object
 GetLuaComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
 {
    om::LuaComponentsPtr component = entity->GetComponent<om::LuaComponents>();
@@ -95,10 +97,10 @@ GetLuaComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
          return db->GetModelObject();
       }
    }
-   return luabind::object();
+   return object();
 }
 
-static luabind::object
+static object
 GetLuaComponentData(lua_State* L, om::EntityPtr entity, std::string const& name)
 {
    om::LuaComponentsPtr component = entity->GetComponent<om::LuaComponents>();
@@ -108,13 +110,13 @@ GetLuaComponentData(lua_State* L, om::EntityPtr entity, std::string const& name)
          return lua::ScriptHost::JsonToLua(L, db->GetJsonData());
       }
    }
-   return luabind::object();
+   return object();
 }
 
-luabind::object
+object
 om::Stonehearth::GetComponent(lua_State* L, om::EntityRef e, std::string name)
 {
-   luabind::object component;
+   object component;
    auto entity = e.lock();
    if (entity) {
       component = GetNativeComponent(L, entity, name);
@@ -124,10 +126,10 @@ om::Stonehearth::GetComponent(lua_State* L, om::EntityRef e, std::string name)
    }
    return component;
 }
-luabind::object
+object
 om::Stonehearth::GetComponentData(lua_State* L, om::EntityRef e, std::string name)
 {
-   luabind::object component;
+   object component;
    auto entity = e.lock();
    if (entity) {
       component = GetNativeComponentData(L, entity, name);
@@ -139,7 +141,7 @@ om::Stonehearth::GetComponentData(lua_State* L, om::EntityRef e, std::string nam
 }
 
 
-static luabind::object
+static object
 AddNativeComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
 {
 #define OM_OBJECT(Clas, lower)  \
@@ -149,14 +151,14 @@ AddNativeComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
          component = entity->AddComponent<om::Clas>(); \
          component->ExtendObject(json::ConstJsonObject(JSONNode())); \
       } \
-      return luabind::object(L, std::weak_ptr<om::Clas>(component)); \
+      return object(L, std::weak_ptr<om::Clas>(component)); \
    }
    OM_ALL_COMPONENTS
 #undef OM_OBJECT
-   return luabind::object();
+   return object();
 }
 
-static luabind::object
+static object
 AddLuaComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
 {
    using namespace luabind;
@@ -179,10 +181,10 @@ AddLuaComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
    return result;
 }
 
-luabind::object
+object
 om::Stonehearth::AddComponent(lua_State* L, om::EntityRef e, std::string name)
 {
-   luabind::object component;
+   object component;
    auto entity = e.lock();
    if (entity) {
       component = AddNativeComponent(L, entity, name);
@@ -196,6 +198,10 @@ om::Stonehearth::AddComponent(lua_State* L, om::EntityRef e, std::string name)
 
 void Stonehearth::InitEntity(om::EntityPtr entity, std::string const& uri, lua_State* L)
 {
+   if (L) {
+      L = lua::ScriptHost::GetCallbackThread(L);
+   }
+
    entity->SetUri(uri);
    entity->SetDebugText(uri);
 
@@ -214,13 +220,30 @@ void Stonehearth::InitEntity(om::EntityPtr entity, std::string const& uri, lua_S
    #undef OM_OBJECT
          // Lua components...
          if (L) {
-            luabind::object component = Stonehearth::AddComponent(L, entity, entry.name());
-            if (luabind::type(component) != LUA_TNIL) {
-               luabind::object extend = component["extend"];
-               if (luabind::type(extend) == LUA_TFUNCTION) {
-                  luabind::call_function<void>(extend, component, lua::ScriptHost::JsonToLua(L, entry));
+            object component = Stonehearth::AddComponent(L, entity, entry.name());
+            if (type(component) != LUA_TNIL) {
+               object extend = component["extend"];
+               if (type(extend) == LUA_TFUNCTION) {
+                  call_function<void>(extend, component, lua::ScriptHost::JsonToLua(L, entry));
                }
             }
+         }
+      }
+   }
+   // xxx: refaactor me!!!111!
+   if (L) {
+      json::ConstJsonObject n(node);
+      std::string init_script = n.get<std::string>("init_script");
+      if (!init_script.empty()) {
+         try {        
+            object fn = lua::ScriptHost::RequireScript(L, init_script);
+            if (!fn.is_valid() || type(fn) != LUA_TFUNCTION) {
+               LOG(WARNING) << "failed to load init script " << init_script << "... skipping.";
+            } else {
+               call_function<void>(fn, om::EntityRef(entity));
+            }
+         } catch (std::exception &e) {
+            LOG(WARNING) << "failed to run init script for " << uri << ": " << e.what();
          }
       }
    }

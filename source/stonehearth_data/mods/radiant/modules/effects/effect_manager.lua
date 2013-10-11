@@ -6,17 +6,23 @@ function EffectManager:__init(entity)
    self._effects = {}
 
    self._entity = entity
-   radiant.events.listen('radiant.events.gameloop', self)
+   radiant.events.listen('radiant:events:gameloop', self)
 
    self.animation_table_name = radiant.entities.get_animation_table_name(self._entity)
    if self.animation_table_name and self.animation_table_name ~= "" then
       local obj = radiant.resources.load_json(self.animation_table_name)
       self._effects_root = obj.effects_root
+      self._animation_root = obj.animation_root
+      
+      if obj.postures then
+        self._posture_component = self._entity:add_component('stonehearth:posture')
+        self._postures = radiant.resources.load_json(obj.postures)
+      end
    end
 end
 
 function EffectManager:destroy(entity)
-   radiant.events.unlisten('radiant.events.gameloop', self)
+   radiant.events.unlisten('radiant:events:gameloop', self)
 end
 
 function EffectManager:on_event_loop(now)
@@ -32,7 +38,24 @@ function EffectManager:on_event_loop(now)
 end
 
 function EffectManager:start_effect(action, trigger_handler, args)
-   return self:start_action_at_time(action, radiant.gamestate.now(), trigger_handler, args)
+   local resolved_action = self:get_resolved_action(action)
+   return self:start_action_at_time(resolved_action, radiant.gamestate.now(), trigger_handler, args)
+end
+
+function EffectManager:get_resolved_action(action)  
+  if self._postures then 
+    local posture = self._posture_component:get_posture()
+    -- if a posture is set and that posture is in the override table
+    if self._postures[posture] then
+      -- if the set posture overrides this action
+      if self._postures[posture][action] then
+        -- return the override action
+        return self._postures[posture][action]
+      end
+    end
+  end
+
+  return action
 end
 
 function EffectManager:start_action_at_time(action, when, trigger_handler, args)
@@ -86,7 +109,7 @@ function EffectManager:_add_effect(name, when, trigger_handler, args)
                                args)
    self._effects[effect] = true
    return effect
-   --md:send_msg(self._entity, 'radiant.animation.on_start', name)
+   --md:send_msg(self._entity, 'radiant:animation:on_start', name)
 end
 
 function EffectManager:_remove_effect(e)

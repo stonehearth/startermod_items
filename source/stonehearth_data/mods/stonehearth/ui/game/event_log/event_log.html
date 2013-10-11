@@ -1,0 +1,11 @@
+<script type="text/x-handlebars" data-template-name="eventLog">
+   <div id="eventLog">
+      <table class="events">
+         {{#each events target=view}}
+            <tr class="event"><td>
+               {{this}}
+            </tr></td>
+         {{/each}}
+      </table>      
+   </div>
+</script>

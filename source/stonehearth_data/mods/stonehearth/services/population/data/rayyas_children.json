@@ -1,10 +1,10 @@
 {
    "faction_name" : "Rayya's Children",
    "male_entities" : [
-      "stonehearth.male_1"
+      "stonehearth:male_1"
    ],
    "female_entities" : [
-      "stonehearth.female_1"
+      "stonehearth:female_1"
    ],
    "surnames" : [
       "Djanni",

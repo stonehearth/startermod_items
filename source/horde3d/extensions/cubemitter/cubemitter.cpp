@@ -189,6 +189,8 @@ bool CubemitterResource::load( const char *data, int size )
 
    emitterData.duration = root.get("duration", 10.0f);
 
+   emitterData.loops = root.get("loops", true);
+
    if (root.has("particle"))
    {
       emitterData.particle = parseParticle(root.getn("particle"));
@@ -232,6 +234,7 @@ CubemitterNode::CubemitterNode( const CubemitterNodeTpl &emitterTpl ) :
    _timeDelta = 0.0f;
    _nextSpawnTime = 0.0f;
    _curEmitterTime = 0.0f;
+   _active = true;
 
    _attributeBuf = gRDI->createVertexBuffer(sizeof(CubeAttribute) * _maxCubes, 0x0);
 
@@ -321,8 +324,13 @@ float randomF( float min, float max )
 void CubemitterNode::advanceTime( float timeDelta )
 {
    _curEmitterTime += timeDelta;
-   if (_curEmitterTime > _emitterDuration) {
-      _curEmitterTime -= _emitterDuration;
+   if (_curEmitterTime > _cubemitterRes->emitterData.duration) {
+      if (_cubemitterRes->emitterData.loops) {
+         _curEmitterTime -= _cubemitterRes->emitterData.duration;
+      } else {
+         // Does a "soft" shutdown; let current cubes die, but don't emit new ones.
+         stop();
+      }
    }
 
    if (_wasVisible)

@@ -1,4 +1,3 @@
-local HeightMap = require 'services.world_generation.height_map'
 local Array2D = require 'services.world_generation.array_2D'
 local TerrainType = require 'services.world_generation.terrain_type'
 local TerrainGenerator = require 'services.world_generation.terrain_generator'
@@ -8,30 +7,36 @@ local Timer = radiant.mods.require('stonehearth_debugtools.timer')
 
 local WorldGenerator = class()
 
-function WorldGenerator:__init()
-   self._terrain_generator = TerrainGenerator()
-   self._height_map_renderer = HeightMapRenderer(self._terrain_generator.zone_size)
+function WorldGenerator:__init(async)
+   self._async = async
+
+   self._terrain_generator = TerrainGenerator(self._async)
+   self._height_map_renderer = HeightMapRenderer(self._terrain_generator.zone_size,
+                                                 self._terrain_generator.terrain_info)
    self._landscaper = Landscaper(self._terrain_generator.terrain_info)
 end
 
-function WorldGenerator:create_world(use_async)
-   self._use_async = use_async
-   
+function WorldGenerator:create_world()
    local terrain_thread = function()
-      self._terrain_generator:set_async(self._use_async)
-      local timer = Timer(Timer.CPU_TIME)
-      timer:start()
+      local cpu_timer = Timer(Timer.CPU_TIME)
+      local wall_clock_timer = Timer(Timer.WALL_CLOCK)
+      cpu_timer:start()
+      wall_clock_timer:start()
 
-      local zones = self:_create_world_blueprint()
+      local zones
+      zones = self:_create_world_blueprint()
+      --zones = self:_create_test_blueprint()
+      --self._height_map_renderer.tesselator_test()
       self:_generate_world(zones)
 
-      self._terrain_generator:set_async(false)
-      timer:stop()
-      radiant.log.info('World generation time (excludes terrain ring tesselator): %.3fs', timer:seconds())
+      cpu_timer:stop()
+      wall_clock_timer:stop()
+      radiant.log.info('World generation cpu time (excludes terrain ring tesselator): %.3fs', cpu_timer:seconds())
+      radiant.log.info('World generation wall clock time: %.0fs', wall_clock_timer:seconds())
    end
 
-   if self._use_async then
-      radiant.create_background_task('generating terrain', terrain_thread)     
+   if self._async then
+      radiant.create_background_task('Terrain Generator', terrain_thread)     
    else
       terrain_thread()
    end
@@ -60,67 +65,93 @@ function WorldGenerator:_generate_world(zones)
 
       zone_map, micro_map = self._terrain_generator:generate_zone(zone_info.terrain_type, zones, i, j)
       zones:set(i, j, micro_map)
+      self:_yield()
 
       offset_x = (i-1)*zone_size - origin_x
       offset_y = (j-1)*zone_size - origin_y
 
       timer:start()
-      self._height_map_renderer:render_height_map_to_terrain(zone_map, terrain_info, offset_x, offset_y)
+      self._height_map_renderer:render_height_map_to_terrain(zone_map, offset_x, offset_y)
       timer:stop()
       radiant.log.info('HeightMapRenderer time: %.3fs', timer:seconds())
+      self:_yield()
 
       timer:start()
       self._landscaper:place_trees(zone_map, offset_x, offset_y)
       timer:stop()
       radiant.log.info('Landscaper time: %.3fs', timer:seconds())
+      self:_yield()
    end
+end
+
+function WorldGenerator:_yield()
+   if self._async then
+      coroutine.yield()
+   end
+end
+
+function WorldGenerator:_create_test_blueprint()
+   local zones = self:_get_empty_blueprint(5, 5, TerrainType.Grassland)
+
+   --zones:get(1, 1).terrain_type = TerrainType.Mountains
+   --zones:get(2, 1).terrain_type = TerrainType.Grassland
+   --zones:get(1, 2).terrain_type = TerrainType.Grassland
+   --zones:get(2, 2).terrain_type = TerrainType.Grassland
+
+   return zones
 end
 
 -- do this programmatically later
 function WorldGenerator:_create_world_blueprint()
-   local zones = Array2D(5, 5)
-   local zone_info
-   local i, j
-
-   for j=1, zones.height do
-      for i=1, zones.width do
-         zone_info = {
-            terrain_type = TerrainType.Plains
-         }
-         zone_info.generated = false
-         zones:set(i, j, zone_info)
-      end
-   end
+   local zones = self:_get_empty_blueprint(5, 5)
 
    zones:get(1, 1).terrain_type = TerrainType.Mountains
    zones:get(2, 1).terrain_type = TerrainType.Mountains
    zones:get(3, 1).terrain_type = TerrainType.Mountains
    zones:get(4, 1).terrain_type = TerrainType.Foothills
-   zones:get(5, 1).terrain_type = TerrainType.Plains
+   zones:get(5, 1).terrain_type = TerrainType.Grassland
 
    zones:get(1, 2).terrain_type = TerrainType.Mountains
    zones:get(2, 2).terrain_type = TerrainType.Mountains
    zones:get(3, 2).terrain_type = TerrainType.Foothills
-   zones:get(4, 1).terrain_type = TerrainType.Plains
-   zones:get(5, 1).terrain_type = TerrainType.Plains
+   zones:get(4, 1).terrain_type = TerrainType.Grassland
+   zones:get(5, 1).terrain_type = TerrainType.Grassland
 
    zones:get(1, 3).terrain_type = TerrainType.Mountains
    zones:get(2, 3).terrain_type = TerrainType.Foothills
-   zones:get(3, 3).terrain_type = TerrainType.Plains
-   zones:get(4, 3).terrain_type = TerrainType.Plains
+   zones:get(3, 3).terrain_type = TerrainType.Grassland
+   zones:get(4, 3).terrain_type = TerrainType.Grassland
    zones:get(5, 3).terrain_type = TerrainType.Foothills
 
    zones:get(1, 4).terrain_type = TerrainType.Foothills
-   zones:get(2, 4).terrain_type = TerrainType.Plains
-   zones:get(3, 4).terrain_type = TerrainType.Plains
+   zones:get(2, 4).terrain_type = TerrainType.Grassland
+   zones:get(3, 4).terrain_type = TerrainType.Grassland
    zones:get(4, 4).terrain_type = TerrainType.Foothills
    zones:get(5, 4).terrain_type = TerrainType.Mountains
 
-   zones:get(1, 5).terrain_type = TerrainType.Plains
-   zones:get(2, 5).terrain_type = TerrainType.Plains
-   zones:get(3, 5).terrain_type = TerrainType.Plains
+   zones:get(1, 5).terrain_type = TerrainType.Grassland
+   zones:get(2, 5).terrain_type = TerrainType.Grassland
+   zones:get(3, 5).terrain_type = TerrainType.Grassland
    zones:get(4, 5).terrain_type = TerrainType.Foothills
    zones:get(5, 5).terrain_type = TerrainType.Mountains
+
+   return zones
+end
+
+function WorldGenerator:_get_empty_blueprint(width, height, terrain_type)
+   if terrain_type == nil then terrain_type = TerrainType.Grassland end
+
+   local zones = Array2D(width, height)
+   local i, j, zone_info
+
+   for j=1, zones.height do
+      for i=1, zones.width do
+         zone_info = {}
+         zone_info.terrain_type = terrain_type
+         zone_info.generated = false
+         zones:set(i, j, zone_info)
+      end
+   end
 
    return zones
 end
@@ -163,19 +194,6 @@ function WorldGenerator:_get_angle(dy, dx)
    -- move minimum to 45 degrees (pi/4) so fill order looks better
    if value < pi/4 then value = value + 2*pi end
    return value
-end
-
------
-
-function WorldGenerator:tesselator_test()
-   HeightMapRenderer.tesselator_test()   
-end
-
-function WorldGenerator:run_unit_tests()
-   BoundaryNormalizingFilter._test()
-   FilterFns._test()
-   CDF_97._test()
-   Wavelet._test()
 end
 
 return WorldGenerator

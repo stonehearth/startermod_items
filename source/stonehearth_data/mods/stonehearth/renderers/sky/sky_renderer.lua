@@ -18,7 +18,7 @@ function SkyRenderer:__init()
 
    self:_init_sun()
    self:_init_moon()
-   _radiant.call('stonehearth.get_clock_object')
+   _radiant.call('stonehearth:get_clock_object')
       :done(
          function (o)
             self._clock_object = o.clock_object
@@ -54,7 +54,7 @@ end
 
 function SkyRenderer:add_celestial(name, colors, angles, ambient_colors)
    -- TODO: how do we support multiple (deferred) renderers here?
-   local light_mat = h3dAddResource(H3DResTypes.Material, "materials/light.material.xml", 0)
+   local light_mat = h3dAddResource(H3DResTypes.Material, "materials/deferred_light.material.xml", 0)
    local new_celestial = {
       name = name,
       node = h3dAddLightNode(H3DRootNode, name, light_mat, "DIRECTIONAL_LIGHTING", "DIRECTIONAL_SHADOWMAP"),

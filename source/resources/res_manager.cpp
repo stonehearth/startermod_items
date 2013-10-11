@@ -24,7 +24,7 @@ using namespace ::radiant;
 using namespace ::radiant::res;
 
 static const std::regex file_macro_regex__("^file\\((.*)\\)$");
-static const std::regex entity_macro_regex__("^([^\\.\\\\/]+)\\.([^\\\\/]+)$");
+static const std::regex entity_macro_regex__("^([^:\\\\/]+):([^\\\\/]+)$");
 
 // === Helper Functions ======================================================
 
@@ -192,7 +192,7 @@ void ResourceManager2::ExpandMacros(std::string const& base_path, JSONNode& node
 
 std::string ResourceManager2::ConvertToCanonicalPath(std::string path, const char* search_ext) const
 {
-   path = ExpandMacro(path, ".", true); // so we can lookup things like 'stonehearth.wooden_axe'
+   path = ExpandMacro(path, ".", true); // so we can lookup things like 'stonehearth:wooden_axe'
 
    std::vector<std::string> parts = SplitPath(path);
 

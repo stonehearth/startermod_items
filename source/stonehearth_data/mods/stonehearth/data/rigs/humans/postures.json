@@ -1,0 +1,9 @@
+{
+   "carrying" : {
+      "idle_breathe" : "carry_idle",
+      "run" : "carry_walk"
+   },
+   "panic" : {
+      "run" : "run_panic"
+   }
+}

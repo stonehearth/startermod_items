@@ -1,14 +1,14 @@
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
-local GotoLocationAction = class()
+local GotoLocation = class()
 
 
-GotoLocationAction.name = 'stonehearth.actions.goto_location'
-GotoLocationAction.does = 'stonehearth.goto_location'
-GotoLocationAction.priority = 1
+GotoLocation.name = 'goto location'
+GotoLocation.does = 'stonehearth:goto_location'
+GotoLocation.priority = 1
 
-function GotoLocationAction:run(ai, entity, dest)
+function GotoLocation:run(ai, entity, dest, effect_name)
    -- generally speaking, going directly to a location is a strange
    -- thing to do.  why did we not path find to an entity?  why is
    -- this location special?
@@ -29,20 +29,20 @@ function GotoLocationAction:run(ai, entity, dest)
    self._dest_entity:set_debug_text('goto location proxy entity')
    radiant.terrain.place_entity(self._dest_entity, dest)
 
-   local pf = radiant.path_finder.create_path_finder('goto_location')
+   local pf = radiant.pathfinder.create_path_finder('goto_location')
                   :set_source(entity)
                   :add_destination(self._dest_entity)
 
-   local path = ai:wait_for_path_finder(pathfinder)
+   local path = ai:wait_for_path_finder(pf)
 
-   ai:execute('stonehearth.follow_path', path)
+   ai:execute('stonehearth:follow_path', path, effect_name)
 end
 
-function GotoLocationAction:stop()
+function GotoLocation:stop()
    if self._dest_entity then
       radiant.entities.destroy_entity(self._dest_entity)
       self._dest_entity = nil
    end
 end
 
-return GotoLocationAction
+return GotoLocation

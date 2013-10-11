@@ -16,16 +16,7 @@ function entities.create_entity(ref)
    if not ref or #ref == 0 then
       return _radiant.sim.create_empty_entity()
    end
-
-   -- don't spam trees to the log
-   if not is_tree(ref) then
-      radiant.log.info('creating entity %s', ref)
-   end
    return _radiant.sim.create_entity(ref)
-end
-
-function is_tree(ref)
-   return string.sub(ref, -5) == '_tree'
 end
 
 function entities.destroy_entity(entity)
@@ -113,6 +104,13 @@ end
 function entities.get_world_grid_location(entity)
    local mob = entity:get_component('mob')
    return mob and mob:get_world_grid_location() or Point3(0, 0, 0)
+end
+
+function entities.distance_between(entity_a, entity_b)
+   local loc_a = radiant.entities.get_world_grid_location(entity_a)
+   local loc_b = radiant.entities.get_world_grid_location(entity_b)
+   
+   return loc_a:distance_to(loc_b)
 end
 
 function entities.move_to(entity, location)
@@ -204,7 +202,7 @@ end
    returns: entity that is being carried, nil otherwise
 ]]
 function entities.get_carrying(entity)
-   local carry_block = entity:get_component('carry_block')
+   local carry_block = entity:add_component('carry_block')
    if not carry_block then
       return nil
    end
@@ -262,6 +260,23 @@ function entities.set_display_name(entity, name)
    component:set_display_name(name)
 end
 
+function entities.get_attribute(entity, attribute_name)
+   return entity:add_component('attributes'):get_attribute(attribute_name)
+end
+
+
+function entities.set_attribute(entity, attribute_name, value)
+   entity:add_component('attributes'):set_attribute(attribute_name, value)
+end
+
+function entities.set_posture(entity, posture)
+   entity:add_component('stonehearth:posture'):set_posture(posture)
+end
+
+function entities.unset_posture(entity, posture)
+   entity:add_component('stonehearth:posture'):unset_posture(posture)
+end
+
 --[[
    Tell the entity (a mob, probably) to pick up the item
    entity: probably a mob
@@ -282,9 +297,13 @@ function entities.pickup_item(entity, item)
          if parent then
             entities.remove_child(parent, item)
          end
+         radiant.entities.set_posture(entity, 'carrying')
+         radiant.entities.set_attribute(entity, 'speed', 50) --xxx, change to a debuff
          carry_block:set_carrying(item)
          entities.move_to(item, Point3(0, 0, 0))
       else
+         radiant.entities.unset_posture(entity, 'carrying')
+         radiant.entities.set_attribute(entity, 'speed', 100) --xxx, change to a debuff
          carry_block:set_carrying(nil)
       end
    end
@@ -299,12 +318,19 @@ end
 ]]
 function entities.drop_carrying(entity, location)
    radiant.check.is_entity(entity)
+
+   if not location then
+      location = radiant.entities.get_location_aligned(entity)
+   end
+   
    radiant.check.is_a(location, Point3)
 
    local carry_block = entity:get_component('carry_block')
    if carry_block then
       local item = carry_block:get_carrying()
       if item then
+         radiant.entities.unset_posture(entity, 'carrying')
+         radiant.entities.set_attribute(entity, 'speed', 100) --xxx, change to a debuff
          carry_block:set_carrying(nil)
          radiant.terrain.place_entity(item, location)
       end
@@ -343,6 +369,35 @@ function entities.is_adjacent_to_xz(entity, location)
    point_a = Point2(a.x, a.z)
    point_b = Point2(b.x, b.z)
    return point_a:is_adjacent_to(point_b)
+end
+
+function entities.get_target_table_top(entity, table_name)
+   local target_tables = entity:get_component('target_tables')
+   local top_entry = target_tables:get_top(table_name)
+
+   if top_entry then
+      return top_entry.target
+   end
+
+   return nil
+end
+
+function entities.kill_entity(entity)
+   --radiant.entities.destroy_entity(entity)
+end
+
+function entities.compare_attribute(entity_a, entity_b, attribute)
+   local attributes_a = entity_a:get_component('attributes')
+   local attributes_b = entity_b:get_component('attributes')
+
+   if attributes_a and attributes_b then
+      local ferocity_a = attributes_a:get_attribute(attribute)
+      local ferocity_b = attributes_b:get_attribute(attribute)
+
+      return ferocity_a - ferocity_b
+   end
+
+   return 0
 end
 
 entities.__init()

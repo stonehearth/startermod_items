@@ -6,26 +6,28 @@ function WorkerScheduler:__init(faction)
    self._faction = faction
    self._workers = {}
    self._worker_tasks = {}
-   radiant.events.listen('radiant.events.gameloop', self)
+   radiant.events.listen('radiant:events:gameloop', self)
 end
 
 function WorkerScheduler:destroy()
-   radiant.events.unlisten('radiant.events.gameloop', self)
+   radiant.events.unlisten('radiant:events:gameloop', self)
 end
 
-WorkerScheduler['radiant.events.gameloop'] = function(self)
+WorkerScheduler['radiant:events:gameloop'] = function(self)
    --self:_check_build_orders()
    --self:_enable_pathfinders()
    --self:_dispatch_jobs()
 end
 
-function WorkerScheduler:_dispatch_solution(action, path)
+function WorkerScheduler:dispatch_solution(action, path)
    local id = path:get_source():get_id()
    local e = self._workers[id]
 
    assert(e, string.format('unknown worker id %d in _dispatch_solution', id))
 
    self:remove_worker(e.worker)
+
+   --TODO: figure out how to prioritize different worker actions
    e.dispatch_fn(10, action)
 end
 
@@ -37,6 +39,15 @@ function WorkerScheduler:add_worker_task(name)
    local task = WorkerTask(name, self)
    table.insert(self._worker_tasks, task)
    return task
+end
+
+function WorkerScheduler:remove_worker_task(target_task)
+   for i, task in ipairs(self._worker_tasks) do
+      if target_task == task then
+         table.remove(self._worker_tasks, i)
+         break
+      end
+   end
 end
 
 function WorkerScheduler:add_worker(worker, dispatch_fn)
@@ -66,22 +77,22 @@ function WorkerScheduler:remove_worker(worker)
 end
 
 function WorkerScheduler:_start_worker_task(task)
-   assert(task.running, "logical error: call to _start_worker_task for non-running task")
+   assert(task:is_running(), "logical error: call to _start_worker_task for non-running task")
    for id, e in pairs(self._workers) do
       task:_consider_worker(e.worker)
    end
 end
 
 function WorkerScheduler:_stop_worker_task(task)
-   assert(not task.running, "logical error: call to _stop_worker_task for running task")
+   assert(not task:is_running(), "logical error: call to _stop_worker_task for running task")
    for id, e in pairs(self._workers) do
-      task:_remove_worker(e.worker)
+      task:_remove_worker(id)
    end
 end
 
 function WorkerScheduler:_introduce_worker_to_tasks(worker)
    for _, task in ipairs(self._worker_tasks) do
-      if task.running then
+      if task:is_running() then
          task:_consider_worker(worker)
       end
    end
@@ -89,7 +100,7 @@ end
 
 function WorkerScheduler:_remove_worker_from_tasks(id)
    for _, task in ipairs(self._worker_tasks) do
-      if task.running then
+      if task:is_running() then
          task:_remove_worker(id)
       end
    end

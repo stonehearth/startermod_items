@@ -43,7 +43,7 @@ function InventoryTracker:_on_entity_add(id, entity)
    local item_info = entity:get_component('item')
    local unit_info = entity:get_component('unit_info')
 
-   if placeable and item_info then
+   if placeable and not placeable:is_under_construction() and item_info then
 
       self._data.num_entities = self._data.num_entities + 1
 
@@ -67,7 +67,8 @@ function InventoryTracker:_on_entity_add(id, entity)
             entity_name = unit_info:get_display_name(),
             entity_icon = unit_info:get_icon(),
             entity_category = item_info:get_category(),
-            full_sized_entity_uri = entity_uri,
+            entity_uri = entity_uri,
+            full_sized_entity_uri = placeable:get_full_sized_entity_uri(),
             entities = entities_of_this_type
          }
          table.insert(self._data.entity_types, new_entity_data)
@@ -85,6 +86,12 @@ function InventoryTracker:_on_entity_remove(id)
       self._data_store:mark_changed()
 
       local target_entity = radiant.entities.get_entity(id)
+
+      if not target_entity then
+         --The target is already destroyed, just return.
+         return
+      end
+
       local uri = target_entity:get_uri()
       local entities_of_this_type = self._tracked_identifiers[uri]
 

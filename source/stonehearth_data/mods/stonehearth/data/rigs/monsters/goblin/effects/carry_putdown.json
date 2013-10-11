@@ -4,7 +4,7 @@
       "animation": {
          "type": "animation_effect",
          "start_time": 0,
-         "animation": "file(../animations/carry_putdown.json)",
+         "animation": "file(../animations/male/carry_putdown.json)",
          "loop": false
       }
    }

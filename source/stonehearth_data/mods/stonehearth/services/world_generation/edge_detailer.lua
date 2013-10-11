@@ -1,5 +1,5 @@
 local TerrainType = require 'services.world_generation.terrain_type'
-local HeightMap = require 'services.world_generation.height_map'
+local Array2D = require 'services.world_generation.array_2D'
 local InverseGaussianRandom = require 'services.world_generation.math.inverse_gaussian_random'
 local Point2 = _radiant.csg.Point2
 
@@ -14,7 +14,7 @@ end
 function EdgeDetailer:add_detail_blocks(height_map)
    local i, j, edge
    local edge_threshold = 4
-   local edge_map = HeightMap(height_map.width, height_map.height)
+   local edge_map = Array2D(height_map.width, height_map.height)
    local detail_seeds = {}
    local num_seeds = 0
 
@@ -163,15 +163,15 @@ end
 
 -----
 
--- makes lots of assumptions about how plains are quantized
--- ok since this will change anyway if plains are quantized differently
-function EdgeDetailer:add_plains_details(height_map)
+-- makes lots of assumptions about how grasslands are quantized
+-- ok since this will change anyway if grasslands are quantized differently
+function EdgeDetailer:add_grassland_details(height_map)
    local edge_threshold = 2
    local i, j
 
    for j=1, height_map.width do
       for i=1, height_map.height do
-         if self:_is_plains_edge(height_map, i, j, edge_threshold) then
+         if self:_is_grassland_edge(height_map, i, j, edge_threshold) then
             local offset = height_map:get_offset(i, j)
             height_map[offset] = height_map[offset] + 1
          end
@@ -179,14 +179,14 @@ function EdgeDetailer:add_plains_details(height_map)
    end
 end
 
-function EdgeDetailer:_is_plains_edge(height_map, x, y, threshold)
+function EdgeDetailer:_is_grassland_edge(height_map, x, y, threshold)
    local offset = height_map:get_offset(x, y)
    local value = height_map[offset]
    local width = height_map.width
    local height = height_map.height
    local neighbor
 
-   if value >= self.terrain_info[TerrainType.Plains].max_height then
+   if value >= self.terrain_info[TerrainType.Grassland].max_height then
       return false
    end
 

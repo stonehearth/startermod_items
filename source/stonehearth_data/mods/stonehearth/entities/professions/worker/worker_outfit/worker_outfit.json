@@ -1,6 +1,6 @@
 {
    "type": "entity",
-   "extends" : "stonehearth.mixins.item_properties",
+   "extends" : "stonehearth:mixins:item_properties",
    "components" : {
       "unit_info" : {
          "name" :  "Worker Outfit",
@@ -27,11 +27,12 @@
          "render_type" : "merge_with_model",
          "injected_ai" : {
             "actions" : [
-               "stonehearth.actions.fabricate",
-               "stonehearth.actions.chop_tree_action",
-               "stonehearth.actions.worker_task_dispatcher", 
-               "stonehearth.actions.worker_pickup_action", 
-               "stonehearth.actions.worker_restock_action"
+               "stonehearth:actions:fabricate",
+               "stonehearth:actions:chop_tree_action",
+               "stonehearth:actions:worker_task_dispatcher",
+               "stonehearth:actions:worker_pickup_action",
+               "stonehearth:actions:worker_restock_action",
+               "stonehearth:actions:worker_place_action"
             ]
          }
       }

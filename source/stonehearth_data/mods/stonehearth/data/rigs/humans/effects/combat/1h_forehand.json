@@ -1,0 +1,31 @@
+{
+   "type" : "effect",
+   "tracks": {
+      "animation" : {
+         "type": "animation_effect",
+         "start_time": 0,
+         "animation": "file(../../animations/male/combat/1h_forehand.json)"
+      }
+      ,
+      "frame_data" : {
+         "type": "attack_frame_data",
+         "segments" : [
+            {
+               "phase": "startup",
+               "name": "beginning swing",
+               "duration": 17
+            },
+            {
+               "phase": "execute",
+               "name": "thwack em!",
+               "duration": 1
+            },
+            {
+               "phase": "recovery",
+               "name": "return to ready",
+               "duration": 1
+            }
+         ]
+      }
+   }
+}

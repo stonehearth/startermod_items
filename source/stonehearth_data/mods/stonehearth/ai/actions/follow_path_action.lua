@@ -1,26 +1,45 @@
 local FollowPathAction = class()
 
-FollowPathAction.name = 'stonehearth.actions.follow_path'
-FollowPathAction.does = 'stonehearth.follow_path'
+FollowPathAction.name = 'follow path'
+FollowPathAction.does = 'stonehearth:follow_path'
 FollowPathAction.priority = 1
 
-function FollowPathAction:run(ai, entity, path)
-   -- todo: get speed based on entity and posture
-   local speed = 1
-
-   -- todo: get effect name based on posture
-   local effect_name = 'run'
-   if radiant.entities.is_carrying(entity) then
-      effect_name = 'carry_walk'
+function FollowPathAction:run(ai, entity, path, effect_name)
+   local speed = radiant.entities.get_attribute(entity, 'speed')
+   
+   if speed == nil then
+      speed = 100
    end
-   self._effect = radiant.effects.run_effect(entity, effect_name)
+   speed = speed / 100
+
+   if not effect_name then
+      effect_name = 'run'
+   end
+
+   if not self._effect then
+      self._effect = radiant.effects.run_effect(entity, effect_name)
+   end
+
+   local dest_entity = path:get_destination()
+   local destination_loc = dest_entity:get_component('mob'):get_world_grid_location()
 
    local arrived_fn = function()
       ai:resume()
-   end  
+   end
    self._mover = _radiant.sim.create_follow_path(entity, speed, path, 0, arrived_fn)
    ai:suspend()
    
+   --if the item is no longer there or if it's moved, abort this
+   if not dest_entity then
+      ai:abort("Pathfinder's destination has disappeared! Help!")
+   end
+
+   --TODO: Haven't confirmed yet but sometimes I swear dest_entity is still null
+   local curr_dest_location = dest_entity:get_component('mob'):get_world_grid_location()
+   if curr_dest_location ~= destination_loc then
+      ai:abort("Pathfinder's destination has moved! Help!")
+   end
+
    self._effect:stop()
    self._effect = nil
 end

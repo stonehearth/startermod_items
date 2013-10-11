@@ -1,18 +1,18 @@
 local LookForEnemies = class()
 
-LookForEnemies.name = 'stonehearth.actions.chase'
-LookForEnemies.does = 'stonehearth.top'
+LookForEnemies.name = 'stonehearth:actions:chase'
+LookForEnemies.does = 'stonehearth:top'
 LookForEnemies.priority = 0
 
 function LookForEnemies:__init(entity)
    self._entity = entity
    self._aggro_table = radiant.entities.create_target_table(entity, 'aggro')
-   radiant.events.listen('radiant.events.gameloop', self)
+   radiant.events.listen('radiant:events:gameloop', self)
 end
 
 -- xxx: the 'fire one when i'm constructed' pattern again...
-LookForEnemies['radiant.events.gameloop'] = function(self)
-   radiant.events.unlisten('radiant.events.gameloop', self)
+LookForEnemies['radiant:events:gameloop'] = function(self)
+   radiant.events.unlisten('radiant:events:gameloop', self)
    self:init_sight_sensor()
 end
 
@@ -21,7 +21,7 @@ function LookForEnemies:init_sight_sensor()
 
    local list = self._entity:get_component('sensor_list')
    if list then
-      radiant.events.unlisten('radiant.events.gameloop', self)
+      radiant.events.unlisten('radiant:events:gameloop', self)
    else 
       return
    end
@@ -58,7 +58,14 @@ end
 -- a different faction, it's hostile.
 -- @param entity The entity to determine whether
 function LookForEnemies:is_hostile(entity)
+   -- xxx, this should be pulled out and parameterized for each entity
    if not entity then
+      return false
+   end
+
+   -- only attack mobs
+   local ok = entity:add_component('stonehearth:materials'):has_material('meat')
+   if not ok then
       return false
    end
 

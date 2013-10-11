@@ -8,7 +8,7 @@ function BuildTest:__init()
    self[MicroWorld]:__init()
    self:create_world()
 
-   self:place_item_cluster('stonehearth.oak_log', 11, 11, 1, 1);
+   self:place_item_cluster('stonehearth:oak_log', 11, 11, 1, 1);
    --local tree = self:place_tree(-12, -12)
    local worker = self:place_citizen(13, 13)
    
@@ -30,7 +30,7 @@ function BuildTest:__init()
    local walls = {}
 
    for i = 1,4 do 
-      columns[i] = radiant.entities.create_entity('stonehearth.wooden_column')
+      columns[i] = radiant.entities.create_entity('stonehearth:wooden_column')
       columns[i]:add_component('mob'):set_location_grid_aligned(loc[i])
       radiant.entities.set_faction(columns[i], worker)
       --room:add_component('entity_container'):add_child(columns[i])
@@ -39,7 +39,7 @@ function BuildTest:__init()
    local last_col = 1
    for i = 1,4 do
       local next_col = last_col == 4 and 1 or (last_col + 1)
-      walls[i] = radiant.entities.create_entity('stonehearth.wooden_wall')
+      walls[i] = radiant.entities.create_entity('stonehearth:wooden_wall')
       walls[i]:add_component('stonehearth:wall'):connect_to(columns[last_col], columns[next_col])
       radiant.entities.set_faction(walls[i], worker)
       room:add_component('entity_container'):add_child(walls[i])

@@ -1,0 +1,19 @@
+{
+   "type": "entity",
+   "components" : {
+      "stonehearth:equipment_piece" : {
+         "render_type" : "none",
+         "injected_ai" : {
+            "actions" : [
+               "stonehearth:actions:attack:melee_action"
+            ]
+         }
+      }
+   },
+   "entity_data" : {
+      "stonehearth:melee_weapon": {
+         "damage" : "10",
+         "effect" : "bite"
+      }
+   }
+}

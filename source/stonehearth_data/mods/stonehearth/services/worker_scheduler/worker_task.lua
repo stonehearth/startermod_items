@@ -7,7 +7,7 @@ function WorkerTask:__init(name, scheduler)
    self.id = next_task_id
    next_task_id = next_task_id + 1
    
-   self.name = name
+   self._name = string.format('(id:%d) %s', self.id, name)
    self._scheduler = scheduler
    self._pathfinders = {}
    self._destinations = {}
@@ -15,8 +15,12 @@ function WorkerTask:__init(name, scheduler)
 end
 
 function WorkerTask:destroy()
-   self.running = false
-   self._scheduler._remove_worker_task(self)   
+   self._running = false
+   self._scheduler:remove_worker_task(self)
+end
+
+function WorkerTask:get_name()
+   return self._name
 end
 
 function WorkerTask:set_debug_color(color)
@@ -58,7 +62,7 @@ function WorkerTask:set_work_object_filter_fn(filter_fn)
       local on_removed = function(id)
          self:remove_work_object(id)
       end
-      self._promise = radiant.terrain.trace_world_entities(self.name, on_added, on_removed)
+      self._promise = radiant.terrain.trace_world_entities(self._name, on_added, on_removed)
    end
    return self
 end
@@ -80,16 +84,16 @@ function WorkerTask:remove_work_object(id)
 end
 
 function WorkerTask:start()
-   if not self.running then
-      self.running = true
+   if not self._running then
+      self._running = true
       self._scheduler:_start_worker_task(self)
    end
    return self
 end
 
 function WorkerTask:stop()
-   if self.running then
-      self.running = false
+   if self._running then
+      self._running = false
       self._scheduler:_stop_worker_task(self)
    end
    return self
@@ -103,10 +107,16 @@ function WorkerTask:_remove_worker(id)
    end
 end
 
+function WorkerTask:is_running()
+   return self._running
+end
+
+--- Consider Worker for task
+-- Test if the worker meets the filter function criteria. If so, activate pathfinder
 function WorkerTask:_consider_worker(worker)
-   assert(self.running, string.format('%s cannot consider worker while not running', self.name))
-   assert(self._get_action_fn, string.format('no action function set for WorkerTask %s', self.name))
-   assert(self._worker_filter_fn, string.format('no worker filter function set for WorkerTask %s', self.name))
+   assert(self._running, string.format('%s cannot consider worker while not running', self._name))
+   assert(self._get_action_fn, string.format('no action function set for WorkerTask %s', self._name))
+   assert(self._worker_filter_fn, string.format('no worker filter function set for WorkerTask %s', self._name))
 
    local id = worker:get_id()
    if not self._pathfinders[id] then
@@ -116,7 +126,7 @@ function WorkerTask:_consider_worker(worker)
       end
 
       if self._worker_filter_fn(worker) then
-         local name = string.format('%s for worker %d', self.name, id)
+         local name = string.format('%s for worker %d', self._name, id)
          local pf = radiant.pathfinder.create_path_finder(name)
                                        :set_source(worker)
                                        :set_solved_cb(solved_cb)
@@ -133,7 +143,7 @@ function WorkerTask:_consider_worker(worker)
 end
 
 function WorkerTask:_dispatch_solution(action, path)
-   self._scheduler:_dispatch_solution(action, path)
+   self._scheduler:dispatch_solution(action, path)
 end
 
 return WorkerTask

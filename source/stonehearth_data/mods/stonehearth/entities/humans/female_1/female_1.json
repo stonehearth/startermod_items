@@ -1,9 +1,9 @@
 {
-   "extends": "stonehearth.mixins.base_human", 
+   "extends": "stonehearth:mixins:base_human", 
    "type": "entity", 
    "components": {
       "render_info" : {
-         "animation_table": "file(/data/rigs/humans/female)",
+         "animation_table" : "file(/data/rigs/humans/skeletons/female.json)",
          "model_variant": "female"
       },
       "model_variants": [

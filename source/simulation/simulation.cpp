@@ -84,30 +84,30 @@ Simulation::Simulation() :
    trace_router_ = std::make_shared<rpc::TraceObjectRouter>(store_);
    core_reactor_->AddRouter(trace_router_);
 
-   core_reactor_->AddRoute("radiant.toggle_debug_nodes", [this](rpc::Function const& f) {
+   core_reactor_->AddRoute("radiant:toggle_debug_nodes", [this](rpc::Function const& f) {
       std::ostringstream msg;
       _showDebugNodes = !_showDebugNodes;
       msg << "debug nodes turned " << (_showDebugNodes ? "ON" : "OFF");
       LOG(WARNING) << msg;
 
-      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant.toggle_debug_nodes");
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:toggle_debug_nodes");
       result->ResolveWithMsg(msg.str());
       return result;
    });
-   core_reactor_->AddRoute("radiant.toggle_step_paths", [this](rpc::Function const& f) {
+   core_reactor_->AddRoute("radiant:toggle_step_paths", [this](rpc::Function const& f) {
       std::ostringstream msg;
       _singleStepPathFinding = !_singleStepPathFinding;
       msg << "single step path finding turned " << (_singleStepPathFinding ? "ON" : "OFF");
       LOG(WARNING) << msg;
 
-      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant.toggle_step_paths");
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:toggle_step_paths");
       result->ResolveWithMsg(msg.str());
       return result;
    });
-   core_reactor_->AddRoute("radiant.step_paths", [this](rpc::Function const& f) {
+   core_reactor_->AddRoute("radiant:step_paths", [this](rpc::Function const& f) {
       StepPathFinding();
 
-      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant.step_paths");
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:step_paths");
       result->ResolveWithMsg("stepped...");
       return result;
    });
@@ -557,7 +557,7 @@ void Simulation::UpdateAuras(int now)
             luabind::object handler = aura->GetMsgHandler();
             luabind::object md = luabind::globals(L)["md"];
             luabind::object aobj(L, aura);
-            luabind::call_function<void>(md["send_msg"], md, handler, "radiant.events.aura_expired", aobj);
+            luabind::call_function<void>(md["send_msg"], md, handler, "radiant:events:aura_expired", aobj);
             aura = nullptr;
          }         
       } 
