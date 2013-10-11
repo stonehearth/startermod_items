@@ -16,12 +16,6 @@
       ],
       "stonehearth:firepit" : {
          "effective_radius" : 6
-      },
-      "destination": {
-         "region": [
-            [ [-3, 0, -3], [4, 1, 4] ]
-         ]
       }
-
    }
 }

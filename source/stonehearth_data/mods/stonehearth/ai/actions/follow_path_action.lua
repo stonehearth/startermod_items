@@ -34,9 +34,8 @@ function FollowPathAction:run(ai, entity, path, effect_name)
       ai:abort("Pathfinder's destination has disappeared! Help!")
    end
 
-   --TODO: Haven't confirmed yet but sometimes I swear dest_entity is still null
-   local curr_dest_location = dest_entity:get_component('mob'):get_world_grid_location()
-   if curr_dest_location ~= destination_loc then
+   local mob_component = dest_entity:get_component('mob')
+   if not mob_component or mob_component:get_world_grid_location() ~= destination_loc then
       ai:abort("Pathfinder's destination has moved! Help!")
    end
 

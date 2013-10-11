@@ -28,7 +28,7 @@ end
 
 function Flee:run(ai, entity)
    assert(self._target)
-   radiant.entities.drop_carrying(entity)
+   radiant.entities.drop_carrying_on_ground(entity)
    radiant.entities.set_posture(entity, 'panic')
 
    local entity_name = radiant.entities.get_display_name(entity)

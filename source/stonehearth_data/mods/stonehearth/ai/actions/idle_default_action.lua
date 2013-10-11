@@ -1,6 +1,6 @@
 local Idle = class()
 
-Idle.name = 'idle'
+Idle.name = 'default idle behavior'
 Idle.does = 'stonehearth:idle'
 Idle.priority = 1
 
@@ -10,7 +10,6 @@ function Idle:__init(ai, entity)
    if radiant.entities.get_entity_data(entity, 'stonehearth:idle_boredom_effects') then
       self._hasBoredEffect = true
    end
-   self:reset_boredom()
 end
 
 function Idle:reset_boredom()
@@ -18,12 +17,15 @@ function Idle:reset_boredom()
 end
 
 function Idle:run(ai, entity)
-   if self._boredomCountdown <= 0 then
-      ai:execute('stonehearth:idle:bored')
-      self:reset_boredom()
-   else
-      ai:execute('stonehearth:idle:breathe')
-      self._boredomCountdown = self._boredomCountdown - 1
+   self:reset_boredom()
+   while true do
+      if self._boredomCountdown <= 0 then
+         ai:execute('stonehearth:idle:bored')
+         self:reset_boredom()
+      else
+         ai:execute('stonehearth:idle:breathe')
+         self._boredomCountdown = self._boredomCountdown - 1
+      end
    end
 end
 

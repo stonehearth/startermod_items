@@ -87,7 +87,7 @@ end
 
 function entities.is_entity(entity)
    if type(entity.get_type_name) == 'function' then
-      return entity:get_type_name() == 'class radiant::om::Entity'      
+      return entity:get_type_name() == 'class radiant::om::Entity'
    end
    return false
 end
@@ -109,7 +109,7 @@ end
 function entities.distance_between(entity_a, entity_b)
    local loc_a = radiant.entities.get_world_grid_location(entity_a)
    local loc_b = radiant.entities.get_world_grid_location(entity_b)
-   
+
    return loc_a:distance_to(loc_b)
 end
 
@@ -153,8 +153,10 @@ end
 
 function entities.get_entity_data(entity, key)
    if entity then
+      --xxx: what is this : business? (Tony asked me to put this comment here)
+      --I hear this issue is solved on his machine
       local uri = entity:get_uri()
-      if uri and #uri > 0 then
+      if uri and #uri > 0 and uri ~= ':'then
          local json = radiant.resources.load_json(uri)
          if json.entity_data then
             return json.entity_data[key]
@@ -316,15 +318,40 @@ end
    entity: probably a mob
    location: the place where we want to put the item
 ]]
-function entities.drop_carrying(entity, location)
+function entities.drop_carrying_on_ground(entity, location)
    radiant.check.is_entity(entity)
 
    if not location then
       location = radiant.entities.get_location_aligned(entity)
    end
-   
+
    radiant.check.is_a(location, Point3)
 
+   local item = entities._drop_helper(entity)
+   if item then
+      radiant.terrain.place_entity(item, location)
+   end
+end
+
+--- Put an object down on another object
+-- @param entity The entity carrying the object
+-- @param target The object that will get the new thing added to it
+-- @param location (Optional) The location on the target to put the object. 0,0,0 by default
+function entities.put_carrying_in_entity(entity, target, location)
+   local target_loc = location
+   if not target_loc then
+      target_loc = Point3(0,0,0)
+   end
+   local item = entities._drop_helper(entity)
+   if item then
+      entities.add_child(target, item, target_loc)
+   end
+end
+
+--- Helper for the drop functions.
+-- Determines the carried item from the entity
+-- @param entity The entity that is carrying the droppable item
+function entities._drop_helper(entity)
    local carry_block = entity:get_component('carry_block')
    if carry_block then
       local item = carry_block:get_carrying()
@@ -332,7 +359,7 @@ function entities.drop_carrying(entity, location)
          radiant.entities.unset_posture(entity, 'carrying')
          radiant.entities.set_attribute(entity, 'speed', 100) --xxx, change to a debuff
          carry_block:set_carrying(nil)
-         radiant.terrain.place_entity(item, location)
+         return item
       end
    end
 end
