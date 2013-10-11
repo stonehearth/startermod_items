@@ -1,7 +1,39 @@
 <script type="text/x-handlebars" data-template-name="createCamp">
    <div id="createCamp">
-      <div id="scroll">
-         
+      <div id="scroll3" class="scroll">
+         <div id="content">
+            <center>
+               <div class="subtitle">{{i18n stonehearth:new_game_setup_finished}}</div>
+            </center>
+            <div class="help">
+               {{i18n stonehearth:new_game_setup_finished_help}}
+               <p>
+               <a href="#" {{action finish target="view"}}>Got it</a>
+            </div>
+         </div>
+      </div>
+
+      <div id="scroll2" class="scroll">
+         <div id="content">
+            <center>
+               <div class="subtitle">{{i18n stonehearth:new_game_setup_base_camp}}</div>
+            </center>
+            <div class="help">
+               {{i18n stonehearth:new_game_setup_base_camp_help}}
+            </div>
+         </div>
+      </div>
+
+      <div id="scroll1" class="scroll">
+         <div id="content">
+            <center>
+               <div class="title">Todovale</div>
+               <div class="subtitle">{{i18n stonehearth:new_game_founding_charter}}</div>
+            </center>
+            <div class="help">
+               {{i18n stonehearth:new_game_founding_charter_help}}
+            </div>
+         </div>
       </div>
 
       <a href="#" {{action placeBanner target="view"}}>

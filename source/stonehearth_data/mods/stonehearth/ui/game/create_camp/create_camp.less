@@ -5,13 +5,76 @@
    width: 846px;
    height: 293px;
 
-   #scroll {
+   .scroll {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 846px;
+      bottom: -20px;
+      left: 195px;
+      width: 472px;
       height: 293px;
-      background: url(./images/scroll_bg.png);
+      background: url(./images/scroll_bg.png) no-repeat;
+      font-family: @parchmentFontFamily;
+
+      #content {
+         padding-top: 20px;
+         padding-left: 40px;
+         padding-right: 40px;
+
+         .title {
+            .outlined(#464a3d);
+            color: #92a174;
+            font-size: 66px;
+         }
+
+         .subtitle {
+            position: relative;
+            top: -20px;
+            color: #606d45;
+            font-size: 45px;
+         }
+
+         .help {
+            position: relative;
+            font-size: 28px;
+         }
+      }
+   }
+
+   #scroll1 {
+      
+   }
+
+   #scroll2 {
+      position: absolute;
+      bottom: -50px;
+      left: 205px;
+      background: url(./images/scroll2_bg.png) no-repeat;
+   
+      #content {
+         padding-top: 60px;
+
+         .help {
+            position: relative;
+            top: -20px;
+            color: #000;
+         }
+      }
+   }
+
+   #scroll3 {
+      position: absolute;
+      bottom: -60px;
+      left: 215px;
+      background: url(./images/scroll2_bg.png) no-repeat;
+
+      #content {
+         padding-top: 60px;
+
+         .help {
+            position: relative;
+            top: -20px;
+            color: #000;
+         }
+      }
    }
 
    #banner {

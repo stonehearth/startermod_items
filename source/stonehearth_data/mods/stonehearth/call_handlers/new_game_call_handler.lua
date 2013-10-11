@@ -82,17 +82,21 @@ function NewGameCallHandler:create_camp(session, response, pt)
    local camp_x = pt.x
    local camp_z = pt.z
 
-   local worker = self:place_citizen(camp_x-3, camp_z-3)
-   self:place_citizen(camp_x+0, camp_z-3)
-   self:place_citizen(camp_x+3, camp_z-3)
+   local faction = radiant.mods.load('stonehearth').population:get_faction('stonehearth:factions:ascendancy')
+
+   local worker1 = self:place_citizen(camp_x-3, camp_z-3)
+   local worker2 = self:place_citizen(camp_x+0, camp_z-3)
+   local worker3 = self:place_citizen(camp_x+3, camp_z-3)
    self:place_citizen(camp_x-3, camp_z+3)
    self:place_citizen(camp_x+0, camp_z+3)
    self:place_citizen(camp_x+3, camp_z+3)
    self:place_citizen(camp_x-3, camp_z+0)
    self:place_citizen(camp_x+3, camp_z+0)
 
-   local faction = worker:get_component('unit_info'):get_faction()
-
+   
+   radiant.entities.pickup_item(worker1, faction:create_entity('stonehearth:oak_log'))
+   radiant.entities.pickup_item(worker2, faction:create_entity('stonehearth:oak_log'))
+   radiant.entities.pickup_item(worker3, faction:create_entity('stonehearth:fire_pit_proxy'))
    --[[
    self:place_stockpile(faction, camp_x+8, camp_z-2, 4, 4)
 

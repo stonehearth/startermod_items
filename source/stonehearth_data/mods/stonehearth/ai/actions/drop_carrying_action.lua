@@ -19,8 +19,6 @@ function DropCarryingAction:run(ai, entity, location)
       ai:execute('stonehearth:run_effect', 'carry_putdown')
       radiant.entities.drop_carrying(entity, location)
    end
-
-   entity:add_component('stonehearth:posture'):unset_posture('carrying')
 end
 
 return DropCarryingAction

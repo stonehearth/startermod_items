@@ -22,8 +22,10 @@ App.StonehearthCreateCampView = App.View.extend({
          var self = this;
          this._hideBanner();
          radiant.call('stonehearth:choose_camp_location')
-            .done(function(o) {
-               self._showStockpileHint();
+         .done(function(o) {
+               setTimeout( function() {
+                  self._gotoStockpileStep();
+               }, 1000);
             });
       },
 
@@ -31,16 +33,39 @@ App.StonehearthCreateCampView = App.View.extend({
          var self = this;
          $(top).trigger('create_stockpile.radiant', {
             callback : function() {
-               self._hideCrate();
-               self._finish();
+               setTimeout( function() {
+                  self._gotoFinishStep();
+               }, 1000);
             }
          });
+      },
+
+      finish: function () {
+         this._finish();
       }
+   },
+
+   _gotoStockpileStep: function() {
+      var self = this
+      this._hideScroll('#scroll1', function() {
+         setTimeout( function() {
+            self._showStockpileHint()
+         }, 200);
+      });
+   },
+
+   _gotoFinishStep: function() {
+      var self = this
+      this._hideScroll('#scroll2', function() {
+         setTimeout( function() {
+            self._hideCrate()
+         }, 200);
+      });
    },
 
    _bounceBanner: function() {
       var self = this
-      if (!this._bannerPlaced) {        
+      if (!this._bannerPlaced) {
          $('#banner').effect( 'bounce', {
             'distance' : 15,
             'times' : 1,
@@ -55,7 +80,7 @@ App.StonehearthCreateCampView = App.View.extend({
 
    _bounceCrate: function() {
       var self = this
-      if (!this._cratePlaced) {        
+      if (!this._cratePlaced) {
          $('#crate').effect( 'bounce', {
             'distance' : 15,
             'times' : 1,
@@ -71,6 +96,10 @@ App.StonehearthCreateCampView = App.View.extend({
    _hideBanner: function() {
       this._bannerPlaced = true
       $('#banner').animate({ 'bottom' : -300 }, 100);
+   },
+
+   _hideScroll: function(id, callback) {
+     $(id).animate({ 'bottom' : -300 }, 200, function() { callback(); }); 
    },
 
    _hideCrate: function() {
