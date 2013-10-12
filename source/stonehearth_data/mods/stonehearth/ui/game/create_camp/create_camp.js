@@ -117,6 +117,7 @@ App.StonehearthCreateCampView = App.View.extend({
    _finish: function() {
       var self = this;
       $('#createCamp').animate({ 'bottom' : -300 }, 150, function() {
+         App.gameView._addViews(App.gameView.views.complete);
          self.destroy();
       })
    }
