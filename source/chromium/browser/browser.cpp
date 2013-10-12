@@ -33,7 +33,8 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
 { 
    uiWidth_ = 1920;
    uiHeight_ = 1080;
-   browser_framebuffer_ = new uint32[uiWidth_ * uiHeight_];
+   browser_framebuffer_.resize(uiWidth_ * uiHeight_);
+   std::fill(browser_framebuffer_.begin(), browser_framebuffer_.end(), 0);
 
    CefMainArgs main_args(GetModuleHandle(NULL));
    if (!CefExecuteProcess(main_args, app_)) {
@@ -71,7 +72,6 @@ void Browser::Work()
 Browser::~Browser()
 {
    CefShutdown();
-   delete [] browser_framebuffer_;
 }
 
 bool Browser::OnBeforePopup(CefRefPtr<CefBrowser> parentBrowser,
@@ -175,16 +175,27 @@ void Browser::OnPaint(CefRefPtr<CefBrowser> browser,
    std::lock_guard<std::mutex> guard(ui_lock_);
 
    // xxx: we can optimze this by accuulating a dirty region and sending a message to
-   // the ui thread to do the copy once every frame
+   // the ui thread to do the copy once every frame -- unknown
+   //
+   // we actually can't, as the backing store in 'buffer' may get freed after this call
+   // for all we know! -- tony
 
+   if (width != uiWidth_ || height != uiHeight_) {
+      // for some reason, the dimensions of the buffer passed in do not match the
+      // size of our backing store.  just ignore this paint.  this can sometimes happen
+      // when the window is resized when we get paints from the old (and out of date)
+      // size.
+      LOG(INFO) << "ignoring paint request from browser (" 
+                << csg::Point2(width, height) << " != "
+                << csg::Point2(uiWidth_, uiHeight_) << ")";
+      return;
+   }
    const uint32* src = (const uint32*)buffer;
    for (auto& r : dirtyRects) {
-      int destOffset = r.x + (r.y * uiWidth_);
-      int srcOffset = r.x + (r.y * width);
+      int offset = r.x + (r.y * width);
       for (int dy = 0; dy < r.height; dy++) {
-         memcpy(browser_framebuffer_ + destOffset, src + srcOffset, r.width * 4);
-         destOffset += uiWidth_;
-         srcOffset += width;
+         memcpy(browser_framebuffer_.data() + offset, src + offset, r.width * 4);
+         offset += width;
       }
       dirtyRegion_ += csg::Rect2(csg::Point2(r.x, r.y), csg::Point2(r.x + r.width, r.y + r.height));
    }
@@ -194,7 +205,7 @@ void Browser::UpdateDisplay(PaintCb cb)
 {
    std::lock_guard<std::mutex> guard(ui_lock_);
 
-   cb(dirtyRegion_, (const char*)browser_framebuffer_);
+   cb(dirtyRegion_, (const char*)browser_framebuffer_.data());
    dirtyRegion_.Clear();
 }
 
@@ -562,11 +573,8 @@ void Browser::OnScreenResize(int w, int h)
    uiWidth_ = screenWidth_;
    uiHeight_ = screenHeight_;
 
-   if (browser_framebuffer_) {
-      delete browser_framebuffer_;
-      browser_framebuffer_ = nullptr;
-   }
-   browser_framebuffer_ = new uint32[uiWidth_ * uiHeight_];
+   browser_framebuffer_.resize(uiWidth_ * uiHeight_);
+   std::fill(browser_framebuffer_.begin(), browser_framebuffer_.end(), 0);
 
    resize_cb_(w, h);
 
