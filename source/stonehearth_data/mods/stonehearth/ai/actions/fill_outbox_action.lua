@@ -8,7 +8,7 @@
 local Point3 = _radiant.csg.Point3
 local FillOutboxAction = class()
 
-FillOutboxAction.name = 'stonehearth:actions:fill_outbox'
+FillOutboxAction.name = 'fill outbox'
 FillOutboxAction.does = 'stonehearth:fill_outbox'
 FillOutboxAction.priority = 5
 

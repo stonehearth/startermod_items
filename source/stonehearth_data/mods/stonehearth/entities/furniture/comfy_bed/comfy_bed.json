@@ -19,6 +19,9 @@
          "description": "I dreamed... of flying sheep.",
          "icon" : "file(comfy_bed.png)"
       },
-      "stonehearth:bed": {}
+      "stonehearth:lease_component" : {}
+   },
+   "entity_data" : {
+      "stonehearth:bed" : {}
    }
 }

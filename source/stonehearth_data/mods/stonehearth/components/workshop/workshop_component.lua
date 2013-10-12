@@ -212,6 +212,7 @@ function WorkshopComponent:init_outbox(custom_offset, custom_size)
    if custom_offset then
       self._outbox_offset = custom_offset
    end
+   -- TODO: PLACE OUTBOX SEPARATELY
    local offset = self._outbox_offset
    radiant.terrain.place_entity(self._outbox_entity,
       Point3(bench_loc.x + offset[1], bench_loc.y + offset[2], bench_loc.z + offset[3]))
@@ -373,7 +374,7 @@ function WorkshopComponent:_verify_curr_recipe()
       -- verify that all the items in the current ingredients are on the
       -- bench, and nothing else!
       local ec = self._entity:get_component('entity_container'):get_children()
-      
+
       for _, ingredient in pairs(self._current_ingredients) do
          if not radiant.entities.has_child_by_id(self._entity, ingredient.item:get_id()) then
             return false

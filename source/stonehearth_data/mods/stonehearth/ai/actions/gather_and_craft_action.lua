@@ -44,7 +44,7 @@ function GatherAndCraftAction:run(ai, entity, recipe, ingredients)
       end
 
       local item = ing_data.item
-      if not radiant.entities.has_child_by_id(workshop_entity, item:get_id()) then 
+      if not radiant.entities.has_child_by_id(workshop_entity, item:get_id()) then
          -- grab it!
          ai:execute('stonehearth:pickup_item', ing_data.item)
 
@@ -52,9 +52,7 @@ function GatherAndCraftAction:run(ai, entity, recipe, ingredients)
          ai:execute('stonehearth:goto_entity', workshop_entity)
 
          -- drop it!!
-         ai:execute('stonehearth:run_effect', 'carry_putdown_on_table')
-         radiant.entities.add_child(workshop_entity, item, Point3(0, 1, 0))
-         entity:get_component('carry_block'):set_carrying(nil)
+         ai:execute('stonehearth:drop_carrying_in_entity', workshop_entity, Point3(0, 1, 0))
       end
    end
    -- Once everything's gathered, then craft

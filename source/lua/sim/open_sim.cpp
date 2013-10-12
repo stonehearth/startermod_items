@@ -208,6 +208,7 @@ void lua::sim::open(lua_State* L)
                .def("to_weak_ref",        &ToWeakPathFinder)
                .def("stop",               &PathFinder::Stop)
                .def("start",              &PathFinder::Start)
+               .def("restart",            &PathFinder::Restart)
             ,
             RegisterType<WeakObjectReference<PathFinder>>()
                .def("lock",               &WeakObjectReference<PathFinder>::Lock)

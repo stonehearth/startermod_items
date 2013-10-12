@@ -187,7 +187,7 @@ Renderer::Renderer() :
       Renderer::GetInstance().FlushMaterials();
    }, true);
 
-   perf_hud_.reset(new PerfHud(*this));
+   //perf_hud_.reset(new PerfHud(*this));
 
    initialized_ = true;
 }

@@ -22,17 +22,14 @@ function SleepAction:__init(ai, entity)
    radiant.events.listen('radiant:events:calendar:hourly', self)
 end
 
---[[
-   The sleep action works by first looking for a bed when it's time to go
-   to sleep. If a bed is found, we run to the bed and lie down in it.
-
-   If a bed is never found, we will never go to sleep. The idea is that
-   some other action will pick up the slack and make the actor go to sleep
-   on the ground (not in a bed) from exhaustion.
---]]
+--- Hourly after midnight, tell dudes to go to sleep.
+-- The sleep action works by first looking for a bed when it's time to go
+-- to sleep. If a bed is found, we run to the bed and lie down in it.
+-- TODO: If a bed is never found, we will never go to sleep. The idea is that
+-- some other action will pick up the slack and make the actor go to sleep
+-- on the ground (not in a bed) from exhaustion.
 SleepAction['radiant:events:calendar:hourly'] = function(self, calendar)
-   -- if it's after 8pm or before 6am and we're not already asleep got find a bed.
-   if (calendar.hour > 20 or calendar.hour < 6) then
+   if (calendar.hour < 6) then
       if not self._looking_for_a_bed and not self._sleeping then
          self:start_looking_for_bed()
       end
@@ -114,10 +111,10 @@ function SleepAction:find_a_bed(result_cb)
       local filter_fn = function(item)
          -- radiant.log.info("looing for a bed")
          -- xxx: only look for beds compatible with this entities faction
-         local bed_component = item:get_component('stonehearth:bed')
-         if bed_component ~= nil then
-            local owner = bed_component:get_owner()
-            return owner == nil
+         local is_bed = radiant.entities.get_entity_data(item, 'stonehearth:bed')
+         local lease = item:get_component('stonehearth:lease_component')
+         if is_bed ~= nil and lease ~= nil then
+            return lease:can_acquire_lease(self._entity)
          else
             return false
          end
@@ -158,26 +155,19 @@ function SleepAction:run(ai, entity)
    self:stop_looking_for_bed()
 
    -- renew our lease on the bed.
-   local bed_component = self._bed:get_component('stonehearth:bed')
-   local bed_owner = bed_component:get_owner()
-   if bed_owner and bed_owner:get_id() ~= entity:get_id() then
-      -- There's another lease on the bed that doesn't belong to us,
-      -- we need to bail.  this can happen if two people both try to sleep in
-      -- a bed simultaneously
-      --
-      -- So just start looking for another bed
+   local lease_component = self._bed:get_component('stonehearth:lease_component')
+   if lease_component:try_to_acquire_lease(entity) then
+      --We successfully acquired the lease
+      radiant.log.info('leasing %s to %s', tostring(self._bed), tostring(self._entity))
+      entity:get_component('stonehearth:bed_lease'):set_bed(self._bed)
+      -- go to sleep!
+      self._sleeping = true;
+      ai:execute('stonehearth:sleep_in_bed', self._bed, self._path_to_bed)
+   else
+      --We couldn't acquire the lease, so start looking for another bed
+      --TODO: just restart the PF, once restart works
       self:start_looking_for_bed()
-      return
    end
-
-   radiant.log.info('leasing %s to %s', tostring(self._bed), tostring(self._entity))
-   bed_component:lease_bed_to(entity)
-   entity:get_component('stonehearth:bed_lease'):set_bed(self._bed)
-
-   -- go to sleep!
-   self._sleeping = true;
-   ai:execute('stonehearth:sleep_in_bed', self._bed, self._path_to_bed)
-
 end
 
 --[[

@@ -5,8 +5,14 @@
    "title_screen_new_game": "New Game",
    "title_screen_load_game": "Load Game",
 
-   "new_game_embark_button": "Embark!",
-   "new_game_choose_camp_location" : "Choose Camp Location",
+   "new_game_founding_charter" : "Founder's Manual",
+   "new_game_founding_charter_help" : "Luck to you, explorers. First, find a suitable spot for your new home. When you're ready, click the banner then place it where you would like to settle",
+   "new_game_setup_base_camp" : "Setup your base camp",
+   "new_game_setup_base_camp_help" : "You'll need somewhere to store your supplies. Make a small stockpile by clicking on the crate. Don't go overboard, you can make more later.",
+   "new_game_setup_finished" : "You're on your own now",
+   "new_game_setup_finished_help" : "The rest is up to you. Start by gathering wood and stone resources, then building a workshop.",
+   "new_game_place_banner" : "Click to place your banner",
+   "new_game_place_stockpile" : "Click to place your stockpile",
 
    "craft_number_left": "Craft",
    "craft_number_right": "right now.",

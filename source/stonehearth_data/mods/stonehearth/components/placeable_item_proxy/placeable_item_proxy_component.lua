@@ -31,17 +31,6 @@ function PlaceableItemProxyComponent:extend(json)
    end
 end
 
---- Sets whether or not the proxy is being turned into a full sized item
--- Useful for people like the inventory system who want to act on proxies,
--- but not ones that are about to go away!
-function PlaceableItemProxyComponent:set_under_construction(value)
-   self._under_construction = value
-end
-
-function PlaceableItemProxyComponent:is_under_construction()
-   return self._under_construction
-end
-
 function PlaceableItemProxyComponent:get_full_sized_entity()
    if not self._full_sized_entity then
       self:_create_full_sized_entity();

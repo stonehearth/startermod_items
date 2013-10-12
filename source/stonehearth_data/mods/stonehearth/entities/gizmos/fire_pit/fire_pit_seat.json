@@ -1,0 +1,16 @@
+{
+   "extends": "stonehearth:mixins:placed_properties",
+   "type": "entity",
+   "components": {
+      "model_variants": [
+         {
+            "models": [
+               "file(/entities/generic/default_object/default_object.qb)"
+            ]
+         }
+      ],
+      "stonehearth:center_of_attention_spot" : {
+      },
+      "stonehearth:lease_component" : {}
+   }
+}

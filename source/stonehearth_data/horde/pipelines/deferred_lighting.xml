@@ -68,9 +68,9 @@
       <SwitchTarget target="OUTPUT" />
       <BindBuffer sampler="lightingBuffer" sourceRT="LightingBuffer" bufIndex="0"/>
       <BindBuffer sampler="ssaoBuffer" sourceRT="SSAOBLUR" bufIndex="0"/>
-      
+
       <DrawGeometry context="MATERIAL" class="~Translucent" />
-      
+
       <UnbindBuffers />
     </Stage>
 
@@ -84,7 +84,7 @@
       <SwitchTarget target="OUTPUT" />
       <DrawGeometry context="CLOUDS" class="~Translucent" />
     </Stage>
-    
+
     <Stage id="Selected">
        <SwitchTarget target="SelectedTemp" />
        <ClearTarget colBuf0="true"/>
@@ -113,7 +113,7 @@
 
 
 
-    
+
 
 
   </CommandQueue>
