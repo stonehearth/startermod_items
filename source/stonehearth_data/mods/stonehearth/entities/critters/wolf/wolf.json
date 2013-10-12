@@ -15,14 +15,15 @@
       },
       "stonehearth:ai": {
          "actions": [
-            
+            "stonehearth:actions:attack_closest_enemy_action",
+            "stonehearth:actions:follow_leash"
          ]
       },
       "sensor_list": {
          "sensors": {
             "sight": {
                "type": "sensor",
-               "radius": 20
+               "radius": 10
             }
          }
       },

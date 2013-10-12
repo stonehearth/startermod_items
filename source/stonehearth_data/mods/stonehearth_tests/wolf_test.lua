@@ -8,9 +8,9 @@ function WolfTest:__init()
 
    self:place_tree(-11, -11)
    --self:place_item('stonehearth:rabbit', -12, 12)
-   self:place_item('stonehearth:wolf', -9, -9)
+   --self:place_item('stonehearth:wolf', -9, -9)
 
-   local civ = self:place_citizen(12, 12)
+   local civ = self:place_citizen(14, 14)
    --self:place_tree(12, 16)
    --radiant.effects.run_effect(civ, '/stonehearth/data/effects/hit_sparks/blood_effect.json')
 

@@ -15,7 +15,8 @@ function Attack:run(ai, entity, target)
       if radiant.entities.distance_between(entity, target) < 3 then
          ai:execute('stonehearth:attack:melee', target)
       else 
-         ai:execute('stonehearth:attack:chase_target', target)
+         ai:execute('stonehearth:goto_entity', target)
+         --ai:execute('stonehearth:attack:chase_target', target)
       end
    end
 end

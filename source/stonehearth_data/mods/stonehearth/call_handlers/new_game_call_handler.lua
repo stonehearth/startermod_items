@@ -73,16 +73,17 @@ end
 
 
 function NewGameCallHandler:create_camp(session, response, pt)
+   local faction = radiant.mods.load('stonehearth').population:get_faction('stonehearth:factions:ascendancy')
+
    -- place the stanfard in the middle of the camp
    local location = Point3(pt.x, pt.y, pt.z)
    local standard_entity = radiant.entities.create_entity('stonehearth:camp_standard')
    radiant.terrain.place_entity(standard_entity, location)
+   faction:set_home_location(location)
    
    -- build the camp
    local camp_x = pt.x
    local camp_z = pt.z
-
-   local faction = radiant.mods.load('stonehearth').population:get_faction('stonehearth:factions:ascendancy')
 
    local worker1 = self:place_citizen(camp_x-3, camp_z-3)
    local worker2 = self:place_citizen(camp_x+0, camp_z-3)

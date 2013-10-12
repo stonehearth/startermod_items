@@ -29,6 +29,14 @@ function PopulationFaction:promote_citizen(citizen, profession)
    profession_api.promote(citizen)
 end
 
+function PopulationFaction:get_home_location()
+   return self._town_location
+end
+
+function PopulationFaction:set_home_location(location)
+   self._town_location = location
+end
+
 function PopulationFaction:generate_random_name(gender)
    local first_names
    if gender == 'female' then
