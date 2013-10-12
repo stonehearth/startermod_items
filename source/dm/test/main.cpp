@@ -125,7 +125,7 @@ template <class T> void TestObjectTrace(typename T::ValueType v1, typename T::Va
    ASSERT(c == 0);
 
    {
-      Guard trace = obj.TraceObjectChanges(fn);
+      core::Guard trace = obj.TraceObjectChanges(fn);
       
       source.FireTraces();
       ASSERT(c == 0);
@@ -172,9 +172,9 @@ template <class T> void TestObjectLifetime(Store &source, Store &sink)
    // Ensure the trace function works.
    c = 0;
    {
-      Guard trace;
+      core::Guard trace;
       {
-         // std::cout << "enter Guard scope..." << std::endl;
+         // std::cout << "enter core::Guard scope..." << std::endl;
          T t(source);
          ASSERT(source.GetObjectCount() == 1 && source.GetTraceCount() == 0);
 
@@ -183,7 +183,7 @@ template <class T> void TestObjectLifetime(Store &source, Store &sink)
          ASSERT(source.GetObjectCount() == 1 && source.GetTraceCount() == 1);
          ASSERT(c == 0);
 
-         // std::cout << "leaving Guard scope..." << std::endl;
+         // std::cout << "leaving core::Guard scope..." << std::endl;
       }
       ASSERT(source.GetObjectCount() == 0 && source.GetTraceCount() == 0);
       ASSERT(c == 1);
@@ -191,7 +191,7 @@ template <class T> void TestObjectLifetime(Store &source, Store &sink)
    ASSERT(c == 1);
    ASSERT(source.GetObjectCount() == 0 && source.GetTraceCount() == 0);
 
-   // Ensure the trace funciton does not get called when Guard is destroyed
+   // Ensure the trace funciton does not get called when core::Guard is destroyed
    c = 0;
    {
       T(source).TraceObjectLifetime(dtor);
@@ -199,10 +199,10 @@ template <class T> void TestObjectLifetime(Store &source, Store &sink)
    ASSERT(c == 0);
    ASSERT(source.GetObjectCount() == 0 && source.GetTraceCount() == 0);
 
-   // Ensure the Guard can be moved
+   // Ensure the core::Guard can be moved
    c = 0;
    {
-      Guard t1, t2;
+      core::Guard t1, t2;
       {
          T t(source);
          t1 = t.TraceObjectLifetime(dtor);
@@ -215,7 +215,7 @@ template <class T> void TestObjectLifetime(Store &source, Store &sink)
    // Ensure multiple traces work
    c = 0;
    {
-      Guard t1, t2, t3;
+      core::Guard t1, t2, t3;
       {
          T t(source);
          t1 = t.TraceObjectLifetime(dtor);
@@ -230,7 +230,7 @@ template <class T> void TestObjectLifetime(Store &source, Store &sink)
    // std::cout << "---------------" << std::endl;
    c = 0;
    {
-      Guard t1;
+      core::Guard t1;
       {
          T t(source);
          auto t2 = t.TraceObjectLifetime(dtor);

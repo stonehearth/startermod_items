@@ -62,6 +62,14 @@ void NavGrid::AddRegionCollisionShape(om::RegionCollisionShapePtr region)
    regionCollisionShapes_[id] = co;
 }
 
+bool NavGrid::IsValidStandingRegion(csg::Region3 const& r) const
+{
+   for (csg::Cube3 const& cube : r) {
+      return IsEmpty(cube) && CanStandOn(cube.Translated(csg::Point3(0, -1, 0)));
+   }
+   return false;
+}
+
 bool NavGrid::CanStand(csg::Point3 const& pt) const
 {
    return IsEmpty(pt) && CanStandOn(pt - csg::Point3(0, 1, 0));
@@ -82,11 +90,14 @@ void NavGrid::ClipRegion(csg::Region3& r) const
    r = r2;
 }
 
-
 bool NavGrid::IsEmpty(csg::Point3 const& pt) const
 {
    csg::Cube3 bounds(pt, pt + csg::Point3(1, 4, 1));
+   return IsEmpty(bounds);
+}
 
+bool NavGrid::IsEmpty(csg::Cube3 const& bounds) const
+{
    {
       auto i = terrain_.begin();
       while (i != terrain_.end()) {
@@ -160,6 +171,25 @@ bool NavGrid::PointOnLadder(csg::Point3 const& pt) const
       }
    }
    return false;
+}
+
+// xxx: this is horribly, horribly expensive!  we should do this
+// with region clipping or somethign...
+bool NavGrid::CanStandOn(csg::Cube3 const& cube) const
+{
+   csg::Point3 const& min = cube.GetMin();
+   csg::Point3 const& max = cube.GetMin();
+   csg::Point3 i;
+
+   i.y = min.y - 1;
+   for (i.x = min.x; i.x < max.x; i.x++) {
+      for(i.z = min.z; i.z < max.z; i.z++) {
+         if (!CanStandOn(i)) {
+            return false;
+         }
+      }
+   }
+   return true;
 }
 
 bool NavGrid::CanStandOn(csg::Point3 const& pt) const

@@ -31,8 +31,8 @@ typedef dm::Boxed<Region3BoxedPtr> Region3BoxedPtrBoxed;
 // That's what the DeepRegionGuard is for!
 
 struct DeepRegionGuard {
-   dm::Guard   region;        // trace the region in the Region3Boxed
-   dm::Guard   boxed;         // trace the pointer in the Region3BoxedPtrBoxed
+   core::Guard   region;        // trace the region in the Region3Boxed
+   core::Guard   boxed;         // trace the pointer in the Region3BoxedPtrBoxed
    dm::ObjectId store_id;
    dm::ObjectId object_id;
 

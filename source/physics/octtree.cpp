@@ -167,42 +167,6 @@ om::EntityPtr OctTree::FindFirstActor(om::EntityPtr root, std::function <bool(om
    return NULL;
 }
 
-#if 0
-bool OctTree::CanStand(const csg::Point3& at) const
-{
-   PROFILE_BLOCK();
-
-   if (!IsPassable(at)) {
-      return false;
-   }
-
-   if (!IsPassable(at + csg::Point3(0, -1, 0))) {
-      return true;
-   }
-
-   for (const auto& v : verticals_) {
-      auto vpr = v.lock();
-      if (vpr) {
-         auto region = vpr->GetRegionPtr();
-         if (region) {
-            const csg::Region3& rgn = **region;
-            const csg::Point3 from = csg::Point3(WorldToLocal(csg::Point3f(at), vpr->GetEntity()));
-            if (rgn.Contains(from)) {
-               return true;
-            }
-         }
-      }
-   }
-   return false;
-}
-
-bool OctTree::IsPassable(const csg::Point3& at) const
-{
-   return true;
-}
-
-#endif
-
 bool OctTree::IsStuck(om::EntityPtr entity)
 {
    auto mob = entity->GetComponent<om::Mob>();

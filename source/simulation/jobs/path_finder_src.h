@@ -26,7 +26,7 @@ public:
    PathFinder&                pf_;
    om::EntityRef              entity_;
    bool                       moving_;
-   dm::Guard                  guards_;
+   core::Guard                  guards_;
    phys::TerrainChangeCbId    collision_cb_id_;
 };
 

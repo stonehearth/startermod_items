@@ -29,6 +29,7 @@ scope LuaDataBinding::RegisterLuaTypes(lua_State* L)
          .def("get_data",       &DataBindingP::GetDataObject)
          .def("mark_changed",   &DataBindingP::MarkChanged)
          .def("trace",          &DataBinding_Trace<DataBindingP>)
+         .def("set_controller", &DataBindingP::SetModelObject)
       ,
       dm::Object::LuaPromise<DataBinding>::RegisterLuaType(L)         
       ;

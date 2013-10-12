@@ -67,6 +67,7 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("get_rect",           &T::GetRect)
          .def("get_closest_point",  &T::GetClosestPoint)
          .def("translate",          &T::Translate)
+         .def("translated",         &T::Translated)
          .def("contains",           &T::Contains)
       ;
 }

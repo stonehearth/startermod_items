@@ -26,10 +26,14 @@ ReactorDeferredPtr LuaObjectRouter::Call(Function const& fn)
 
    try {
       dm::ObjectPtr o = om::ObjectFormatter().GetObject(store_, fn.object);
-      if (!o || o->GetObjectType() != om::DataBindingObjectType) {
+      if (!o) {
          return nullptr;
       }
-      om::DataBindingPtr db = std::static_pointer_cast<om::DataBinding>(o);
+      dm::ObjectType t = o->GetObjectType();
+      if (t != om::DataBindingObjectType && t != om::DataBindingPObjectType) {
+         return nullptr;
+      }
+      om::DataBindingPtr db = std::dynamic_pointer_cast<om::DataBinding>(o);
 
       object obj = db->GetModelObject();
       if (!obj.is_valid()) {

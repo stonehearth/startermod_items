@@ -1,6 +1,9 @@
 {
    "type": "entity", 
    "components": {
+      "mob" : {
+         "interpolate_movement" : false
+      },
       "unit_info": {
          "icon": "...", 
          "name": "Wooden Column", 

@@ -11,7 +11,7 @@ local _write = function(prefix, format, ...)
 end
 
 function Log.info(format, ...)
-   _write('', format, ...)
+   --_write('', format, ...)
 end
 
 function Log.debug(format, ...)
@@ -21,6 +21,5 @@ end
 function Log.warning(format, ...)
    _write('!!', format, ...)
 end
-
 
 return Log

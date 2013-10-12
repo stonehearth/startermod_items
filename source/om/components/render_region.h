@@ -21,7 +21,7 @@ public:
    Region3BoxedPtrBoxed const& GetRegion() const { return region_; }
    void SetRegion(Region3BoxedPtr r);
 
-   dm::Guard TraceRenderRegion(const char* reason, std::function<void(csg::Region3 const&)> cb) const;
+   core::Guard TraceRenderRegion(const char* reason, std::function<void(csg::Region3 const&)> cb) const;
 
 private:
    void InitializeRecordFields() override;

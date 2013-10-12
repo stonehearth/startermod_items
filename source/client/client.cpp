@@ -41,7 +41,7 @@
 #include "lua/om/open.h"
 #include "lua/voxel/open.h"
 #include "client/renderer/render_entity.h"
-
+#include "lib/perfmon/perfmon.h"
 #include "glfw3.h"
 
 //  #include "GFx/AS3/AS3_Global.h"
@@ -92,8 +92,9 @@ Client::Client() :
 
    // Routers...
    core_reactor_->AddRouter(std::make_shared<rpc::LuaModuleRouter>(scriptHost_.get(), "client"));
-   core_reactor_->AddRouter(std::make_shared<rpc::LuaObjectRouter>(scriptHost_.get(), authoringStore_));
+   core_reactor_->AddRouter(std::make_shared<rpc::LuaObjectRouter>(scriptHost_.get(), GetAuthoringStore()));
    core_reactor_->AddRouter(std::make_shared<rpc::TraceObjectRouter>(GetStore()));
+   core_reactor_->AddRouter(std::make_shared<rpc::TraceObjectRouter>(GetAuthoringStore()));
 
    // protobuf router should be last!
    protobuf_router_ = std::make_shared<rpc::ProtobufRouter>([this](proto::PostCommandRequest const& request) {
@@ -192,10 +193,9 @@ void Client::run()
    browser_->SetBrowserResizeCb(resize_ui_texture);
    resize_ui_texture(ui_width, ui_height);
 
-   auto resize_browser = [&](int w, int h) {
-      browser_->OnScreenResize(w, h);
-   };
-   renderer.SetScreenResizeCb(resize_browser);
+   guards_ += renderer.OnScreenResize([this](csg::Point2 const& r) {
+      browser_->OnScreenResize(r.x, r.y);
+   });
 
    lua_State* L = scriptHost_->GetInterpreter();
    renderer.SetScriptHost(GetScriptHost());
@@ -236,12 +236,6 @@ void Client::run()
    while (renderer.IsRunning()) {
       static int last_stat_dump = 0;
       mainloop();
-      int now = platform::get_current_time_in_ms();
-      if (now - last_stat_dump > 10000) {
-         PROFILE_DUMP_STATS();
-         // PROFILE_RESET();
-         last_stat_dump = now;
-      }
    }
 }
 
@@ -296,10 +290,10 @@ void Client::setup_connections()
 
 void Client::mainloop()
 {
-   PROFILE_BLOCK();
-   
+   perfmon::FrameGuard frame_guard;
+
    process_messages();
-   ProcessBrowserJobQueue();
+   ProcessBrowserJobQueue();   
 
    int currentTime = platform::get_current_time_in_ms();
    float alpha = (currentTime - _client_interval_start) / (float)_server_interval_duration;
@@ -309,6 +303,7 @@ void Client::mainloop()
 
    http_reactor_->FlushEvents();
    if (browser_) {
+      perfmon::TimelineCounterGuard tcg("poll browser") ;
       auto cb = [](const csg::Region2 &rgn, const char* buffer) {
          Renderer::GetInstance().UpdateUITexture(rgn, buffer);
       };
@@ -322,17 +317,26 @@ void Client::mainloop()
    // Fire the authoring traces *after* pumping the chrome message loop, since
    // we may create or modify authoring objects as a result of input events
    // or calls from the browser.
-   authoringStore_.FireTraces();
-   authoringStore_.FireFinishedTraces();
-
-   CallTraceRenderFrameHandlers( Renderer::GetInstance().GetLastFrameRenderTime() );
-   Renderer::GetInstance().RenderOneFrame(now_, alpha);
+   {
+      perfmon::TimelineCounterGuard tcg("fire traces") ;
+      authoringStore_.FireTraces();
+      authoringStore_.FireFinishedTraces();
+   }
+   {
+      perfmon::TimelineCounterGuard tcg("render") ;
+      CallTraceRenderFrameHandlers( Renderer::GetInstance().GetLastFrameRenderTime() );
+      Renderer::GetInstance().RenderOneFrame(now_, alpha);
+   }
    if (send_queue_) {
+      perfmon::TimelineCounterGuard tcg("send msgs") ;
       protocol::SendQueue::Flush(send_queue_);
    }
    // xxx: GC while waiting for vsync, or GC in another thread while rendering (ooh!)
-   platform::timer t(10);
-   scriptHost_->GC(t);
+   {
+      perfmon::TimelineCounterGuard tcg("lua gc") ;
+      platform::timer t(10);
+      scriptHost_->GC(t);
+   }
 }
 
 om::TerrainPtr Client::GetTerrain()
@@ -481,7 +485,7 @@ void Client::UpdateDebugShapes(const proto::UpdateDebugShapes& msg)
 
 void Client::process_messages()
 {
-   PROFILE_BLOCK();
+   perfmon::TimelineCounterGuard tcg("process msgs") ;
 
    _io_service.poll();
    _io_service.reset();
@@ -497,8 +501,6 @@ void Client::ProcessReadQueue()
 
 void Client::update_interpolation(int time)
 {
-   PROFILE_BLOCK();
-
    if (_server_last_update_time) {
       _server_interval_duration = time - _server_last_update_time;
    }
@@ -930,6 +932,8 @@ void Client::DestroyAuthoringEntity(dm::ObjectId id)
 
 void Client::ProcessBrowserJobQueue()
 {
+   perfmon::TimelineCounterGuard tcg("process job queue") ;
+
    std::lock_guard<std::mutex> guard(browserJobQueueLock_);
    for (const auto &fn : browserJobQueue_) {
       fn();

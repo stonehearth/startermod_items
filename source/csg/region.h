@@ -102,11 +102,13 @@ std::ostream& operator<<(std::ostream& os, const Region<S, C>& o)
 
 typedef Region<int, 1>   Region1;
 typedef Region<int, 2>   Region2;
+typedef Region<float, 2> Region2f;
 typedef Region<int, 3>   Region3;
 typedef Region<float, 3> Region3f;
 
 DECLARE_SHARED_POINTER_TYPES(Region1);
 DECLARE_SHARED_POINTER_TYPES(Region2);
+DECLARE_SHARED_POINTER_TYPES(Region2f);
 DECLARE_SHARED_POINTER_TYPES(Region3);
 DECLARE_SHARED_POINTER_TYPES(Region3f);
 

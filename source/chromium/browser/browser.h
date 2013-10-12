@@ -172,7 +172,7 @@ private:
    int32                         screenHeight_;
    int32                         uiWidth_;
    int32                         uiHeight_;
-   uint32*                       browser_framebuffer_;
+   std::vector<uint32>           browser_framebuffer_;
    HandleRequestCb               requestHandler_;
    std::function<void(int, int)> resize_cb_;
 };

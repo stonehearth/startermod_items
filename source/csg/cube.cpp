@@ -13,14 +13,16 @@ Rect2 Rect2::zero(Point2(0, 0), Point2(0, 0));
 Rect2 Rect2::one(Point2(0, 0), Point2(1, 1));
 Line1 Line1::zero(Point1(0), Point1(0));
 Line1 Line1::one(Point1(0), Point1(1));
+Rect2f Rect2f::zero(Point2f(0, 0), Point2f(0, 0));
+Rect2f Rect2f::one(Point2f(0, 0), Point2f(1, 1));
 Cube3f Cube3f::zero(Point3f(0, 0, 0), Point3f(0, 0, 0));
 Cube3f Cube3f::one(Point3f(0, 0, 0), Point3f(1, 1, 1));
 
 template <class C>
 static bool Cube3IntersectsImpl(const C& cube, const csg::Ray3& ray, float& d)
 {
-   const auto& min = cube.GetMin();
-   const auto& max = cube.GetMax();
+   const auto& min_value = cube.GetMin();
+   const auto& max_value = cube.GetMax();
    float max_s = -FLT_MAX;
    float min_t = FLT_MAX;
 
@@ -29,20 +31,20 @@ static bool Cube3IntersectsImpl(const C& cube, const csg::Ray3& ray, float& d)
       // ray is parallel to plane
       if (csg::IsZero(ray.direction[i])) {
          // ray passes by box
-         if (ray.origin[i] < min[i] || ray.origin[i] > max[i]) {
+         if (ray.origin[i] < min_value[i] || ray.origin[i] > max_value[i]) {
             return false;
          }
       } else {
          // compute intersection parameters and sort
-         float s = (min[i] - ray.origin[i]) / ray.direction[i];
-         float t = (max[i] - ray.origin[i]) / ray.direction[i];
+         float s = (min_value[i] - ray.origin[i]) / ray.direction[i];
+         float t = (max_value[i] - ray.origin[i]) / ray.direction[i];
          if (s > t) {
             float temp = s;
             s = t;
             t = temp;
          }
 
-         // adjust min and max values
+         // adjust min_value and max_value values
          if (s > max_s) {
             max_s = s;
          }
@@ -80,23 +82,23 @@ Cube<S, C>::Cube() :
 }
 
 template <typename S, int C>
-Cube<S, C>::Cube(const Point& min, int tag) :
+Cube<S, C>::Cube(const Point& min_value, int tag) :
    tag_(tag),
-   min_(min)
+   min(min_value)
 {
    for (int i = 0; i < C; i++) {
-      max_[i] = min_[i] + 1;
+      max[i] = min[i] + 1;
    }
 }
 
 template <typename S, int C>
-Cube<S, C>::Cube(const Point& min, const Point& max, int tag) :
+Cube<S, C>::Cube(const Point& min_value, const Point& max_value, int tag) :
    tag_(tag),
-   min_(min),
-   max_(max)
+   min(min_value),
+   max(max_value)
 {
    for (int i = 0; i < C; i++) {
-      ASSERT(min_[i] <= max_[i]);
+      ASSERT(min[i] <= max[i]);
    }
 }
 
@@ -105,7 +107,7 @@ S Cube<S, C>::GetArea() const
 {
    S area = 1;
    for (int i = 0; i < C; i++) {
-      area *= (max_[i] - min_[i]);
+      area *= (max[i] - min[i]);
    }
    return area;
 }
@@ -114,7 +116,7 @@ template <typename S, int C>
 bool Cube<S, C>::Intersects(const Cube& other) const
 {
    for (int i = 0; i < C; i++) {
-      if (min_[i] >= other.max_[i] || other.min_[i] >= max_[i]) {
+      if (min[i] >= other.max[i] || other.min[i] >= max[i]) {
          return false;
       }
    }
@@ -133,17 +135,17 @@ Region<S, C> Cube<S, C>::operator-(const Cube& rhs) const
 
    // Trim plane by plane
    for (int i = 0; i < C; i++) {
-      ASSERT(lhs.min_[i] < rhs.max_[i] && rhs.min_[i] < lhs.max_[i]);
-      if (lhs.min_[i] < rhs.min_[i]) {
+      ASSERT(lhs.min[i] < rhs.max[i] && rhs.min[i] < lhs.max[i]);
+      if (lhs.min[i] < rhs.min[i]) {
          Cube keep(lhs);
-         keep.max_[i] = rhs.min_[i];
-         next.min_[i] = rhs.min_[i];
+         keep.max[i] = rhs.min[i];
+         next.min[i] = rhs.min[i];
          result.AddUnique(keep);
       }
-      if (rhs.max_[i] < lhs.max_[i]) {
+      if (rhs.max[i] < lhs.max[i]) {
          Cube keep(lhs);
-         keep.min_[i] = rhs.max_[i];
-         next.max_[i] = rhs.max_[i];
+         keep.min[i] = rhs.max[i];
+         next.max[i] = rhs.max[i];
          result.AddUnique(keep);
       }
       lhs = next;
@@ -164,10 +166,10 @@ Cube<S, C> Cube<S, C>::operator&(const Cube& other) const
 
    result.tag_ = tag_;
    for (int i = 0; i < C; i++) {
-      result.min_[i] = std::max(min_[i], other.min_[i]);
-      result.max_[i] = std::min(max_[i], other.max_[i]);
-      if (result.max_[i] < result.min_[i]) {
-         result.max_[i] = result.min_[i];
+      result.min[i] = std::max(min[i], other.min[i]);
+      result.max[i] = std::min(max[i], other.max[i]);
+      if (result.max[i] < result.min[i]) {
+         result.max[i] = result.min[i];
       }
    }
    return result;
@@ -190,7 +192,7 @@ Region<S, C> Cube<S, C>::operator&(const Region& region) const
 template <typename S, int C>
 Cube<S, C> Cube<S, C>::operator+(const Point& offset) const
 {
-   return Cube(min_ + offset, max_ + offset, tag_);
+   return Cube(min + offset, max + offset, tag_);
 }
 
 template <typename S, int C>
@@ -198,7 +200,7 @@ Point<S, C> Cube<S, C>::GetClosestPoint2(const Point& other, S* d) const
 {
    Point result;
    for (int i = 0; i < C; i++) {
-      result[i] = std::max(std::min(other[i], max_[i] - 1), min_[i]);
+      result[i] = std::max(std::min(other[i], max[i] - 1), min[i]);
    }
    if (d) {
       *d = 0;
@@ -213,7 +215,7 @@ template <typename S, int C>
 bool Cube<S, C>::Contains(const Point& pt) const
 {
    for (int i = 0; i < C; i++) {
-      if (pt[i] < min_[i] || pt[i] >= max_[i]) {
+      if (pt[i] < min[i] || pt[i] >= max[i]) {
          return false;
       }
    }
@@ -224,27 +226,27 @@ template <class S, int C>
 void Cube<S, C>::Grow(const Point& pt)
 {
    for (int i = 0; i < C; i++) {
-      min_[i] = std::min(min_[i], pt[i]);
-      max_[i] = std::max(max_[i], pt[i]);
+      min[i] = std::min(min[i], pt[i]);
+      max[i] = std::max(max[i], pt[i]);
    }
 }
 
 template <class S, int C>
 Cube<S, C> Cube<S, C>::ProjectOnto(int axis, S plane) const
 {
-   return Cube(min_.ProjectOnto(axis, plane), max_.ProjectOnto(axis, plane + 1), tag_);
+   return Cube(min.ProjectOnto(axis, plane), max.ProjectOnto(axis, plane + 1), tag_);
 }
 
 #if 0
 template <class S, int C>
-Cube<S, C> Cube<S, C>::Construct(Point min, Point max, int tag)
+Cube<S, C> Cube<S, C>::Construct(Point min_value, Point max_value, int tag)
 {
    for (int i = 0; i < C; i++) {
-      if (min[i] > max[i]) {
-         std::swap(min[i], max[i]);
+      if (min_value[i] > max_value[i]) {
+         std::swap(min_value[i], max_value[i]);
       }
    }
-   return Cube(min, max, tag);
+   return Cube(min_value, max_value, tag);
 }
 #endif
 
@@ -267,4 +269,5 @@ Cube<S, C> Cube<S, C>::Construct(Point min, Point max, int tag)
 MAKE_CUBE(Cube3)
 MAKE_CUBE(Cube3f)
 MAKE_CUBE(Rect2)
+MAKE_CUBE(Rect2f)
 MAKE_CUBE(Line1)

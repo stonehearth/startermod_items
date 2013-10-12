@@ -1,16 +1,19 @@
-#pragma once
-#include <list>
-#include <memory>
+#ifndef _RADIANT_CORE_GUARD_H
+#define _RADIANT_CORE_GUARD_H
+
+#include <vector>
+#include <atomic>
 
 #include "radiant_macros.h"
 #include "namespace.h"
 
-BEGIN_RADIANT_DM_NAMESPACE
+// TODO:
+//   Allow these to tier. I.e. I want to add a guard which has 4 guards in
+//   it to this guard, and when that gets destroyed, remove those 4 entries..
+//   Use this guard everywhere we need guards...
 
-// xxx: this isn't a trace.  this is an object which calls another random
-// function when it's destroyed.  traces fire callbacks when data changes.
-// you would use one of these to automatically destroy a trace when some
-// client object which has registered the callback is destroyed!
+BEGIN_RADIANT_CORE_NAMESPACE
+
 class Guard
 {
 public:
@@ -27,17 +30,19 @@ public:
    const Guard& operator+=(Guard&& other);
    const Guard& operator+=(std::function<void()> untrack);
 
-   bool Empty() const { return nodes_.empty(); }
+   bool Empty() const;
    void Clear();
 
 private:
    NO_COPY_CONSTRUCTOR(Guard);
    void UntrackNodes();
-   static int nextGuardId__;
+   static std::atomic<int> nextGuardId__;
 
 private:
    int                                     id_;
    std::vector<std::function<void()>>      nodes_;
 };
 
-END_RADIANT_DM_NAMESPACE
+END_RADIANT_CORE_NAMESPACE
+
+#endif // _RADIANT_CORE_GUARD_H

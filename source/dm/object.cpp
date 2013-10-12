@@ -71,12 +71,12 @@ void Object::MarkChanged()
    GetStore().OnObjectChanged(*this);
 }
 
-Guard Object::TraceObjectLifetime(const char* reason, std::function<void()> fn) const
+core::Guard Object::TraceObjectLifetime(const char* reason, std::function<void()> fn) const
 {
    return GetStore().TraceObjectLifetime(*this, reason, fn);
 }
 
-Guard Object::TraceObjectChanges(const char* reason, std::function<void()> fn) const
+core::Guard Object::TraceObjectChanges(const char* reason, std::function<void()> fn) const
 {
    return GetStore().TraceObjectChanges(*this, reason, fn);
 }

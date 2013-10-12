@@ -63,7 +63,7 @@ public:
       return items_.erase(i);
    }
 
-   dm::Guard TraceMapChanges(const char* reason,
+   core::Guard TraceMapChanges(const char* reason,
                              std::function<void(const K& k, const V& v)> added,
                              std::function<void(const K& k)> removed) const
    {
@@ -197,7 +197,7 @@ public:
       }
 
    private:
-      dm::Guard                     guard_;
+      core::Guard                     guard_;
       std::vector<luabind::object>  changedCbs_;
       std::vector<luabind::object>  removedCbs_;
    };

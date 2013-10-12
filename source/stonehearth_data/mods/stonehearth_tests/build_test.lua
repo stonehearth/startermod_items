@@ -9,8 +9,11 @@ function BuildTest:__init()
    self:create_world()
 
    self:place_item_cluster('stonehearth:oak_log', 11, 11, 1, 1);
-   --local tree = self:place_tree(-12, -12)
    local worker = self:place_citizen(13, 13)
+   
+   if true then
+      return
+   end
    
    local root = radiant.entities.get_root_entity()
    local city_plan = root:add_component('stonehearth:city_plan')

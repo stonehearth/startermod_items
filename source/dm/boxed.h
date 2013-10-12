@@ -67,7 +67,7 @@ public:
       return value_;
    }
 
-   dm::Guard TraceValue(const char* reason, std::function<void(const T&)> fn) const {
+   core::Guard TraceValue(const char* reason, std::function<void(const T&)> fn) const {
       auto cb = [=]() {
          fn(value_);
       };
@@ -111,7 +111,7 @@ public:
       }
 
    private:
-      dm::Guard                     guard_;
+      core::Guard                     guard_;
       std::vector<luabind::object>  changedCbs_;
    };
 
