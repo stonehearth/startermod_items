@@ -92,8 +92,9 @@ Client::Client() :
 
    // Routers...
    core_reactor_->AddRouter(std::make_shared<rpc::LuaModuleRouter>(scriptHost_.get(), "client"));
-   core_reactor_->AddRouter(std::make_shared<rpc::LuaObjectRouter>(scriptHost_.get(), authoringStore_));
+   core_reactor_->AddRouter(std::make_shared<rpc::LuaObjectRouter>(scriptHost_.get(), GetAuthoringStore()));
    core_reactor_->AddRouter(std::make_shared<rpc::TraceObjectRouter>(GetStore()));
+   core_reactor_->AddRouter(std::make_shared<rpc::TraceObjectRouter>(GetAuthoringStore()));
 
    // protobuf router should be last!
    protobuf_router_ = std::make_shared<rpc::ProtobufRouter>([this](proto::PostCommandRequest const& request) {

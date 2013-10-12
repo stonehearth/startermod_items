@@ -91,7 +91,7 @@ public:
          max_[i] += static_cast<S>(pt[i]);
       }
    }
-   template <class U> Cube Translated(const U& pt) {
+   template <class U> Cube Translated(const U& pt) const {
       Cube result(*this);
       result.Translate(pt);
       return result;

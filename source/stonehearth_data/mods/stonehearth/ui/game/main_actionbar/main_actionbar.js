@@ -1,7 +1,6 @@
 var stonehearthMainActionbarElement = null;
 
 $(document).ready(function(){
-
    $(top).on('show_main_actionbar.radiant', function (_, data) {
       stonehearthMainActionbarElement.show();
    });
@@ -52,7 +51,7 @@ App.StonehearthMainActionbarView = App.View.extend({
                         carpenter: {
                            name: 'Carpenter',
                            icon: imagePath + 'carpenter.png',
-                           hotkey: 'c',
+                           hotkey: 'w',
                            click: function () {
                               $(top).trigger('build_workshop.stonehearth', {
                                  uri: '/stonehearth/entities/professions/carpenter/profession_description.json'
@@ -64,7 +63,17 @@ App.StonehearthMainActionbarView = App.View.extend({
                   building: {
                      name: 'Building',
                      icon: imagePath + 'building.png',
-                     hotkey: 'b'
+                     hotkey: 'v',
+                     items: {
+                        wall_tool: {
+                           name: 'Build Wall!',
+                           icon: imagePath + 'stockpile.png',
+                           hotkey: 'c',
+                           click: function () {
+                              $(top).trigger('create_wall.radiant');
+                           }
+                        }
+                     }
                   },
                   placement: {
                      name: 'Place Item',

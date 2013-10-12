@@ -19,8 +19,11 @@ class NavGrid {
       void TrackComponent(dm::ObjectType type, std::shared_ptr<dm::Object> component);
       bool CanStand(csg::Point3 const& pt) const;
       bool IsEmpty(csg::Point3 const& pt) const;
+      bool IsEmpty(csg::Cube3 const& pt) const;
       void ClipRegion(csg::Region3& r) const;
 
+      bool CanStandOn(csg::Cube3 const& cube) const;
+      bool IsValidStandingRegion(csg::Region3 const& r) const;
       TerrainChangeCbId AddCollisionRegionChangeCb(csg::Region3 const* r, TerrainChangeCb cb);
       void RemoveCollisionRegionChangeCb(TerrainChangeCbId id);
 

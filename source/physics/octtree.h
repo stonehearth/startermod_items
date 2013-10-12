@@ -18,6 +18,9 @@ class OctTree {
       void SetRootEntity(om::EntityPtr);
       void Cleanup();
 
+      NavGrid& GetNavGrid() { return navgrid_; } // sigh
+      NavGrid const& GetNavGrid() const { return navgrid_; } // sigh
+
       void Update(int now);
 
       typedef std::function<bool (om::EntityPtr )>   QueryCallback;

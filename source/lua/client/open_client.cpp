@@ -2,6 +2,7 @@
 #include "open.h"
 #include "om/entity.h"
 #include "om/selection.h"
+#include "om/data_binding.h"
 #include "lib/rpc/lua_deferred.h"
 #include "lib/rpc/reactor_deferred.h"
 #include "lib/voxel/qubicle_brush.h"
@@ -171,6 +172,25 @@ DECLARE_SHARED_POINTER_TYPES(CaptureInputPromise)
 DECLARE_SHARED_POINTER_TYPES(TraceRenderFramePromise)
 DECLARE_SHARED_POINTER_TYPES(SetCursorPromise)
 
+template <typename T>
+std::shared_ptr<T> Client_AllocObject()
+{
+   return Client::GetInstance().GetAuthoringStore().AllocObject<T>();
+}
+
+om::DataBindingPPtr Client_CreateDataStore(lua_State* L)
+{
+   // make sure we return the strong pointer version
+   om::DataBindingPPtr db = Client_AllocObject<om::DataBindingP>();
+   db->SetDataObject(newtable(L));
+   return db;
+}
+
+bool Client_IsValidStandingRegion(lua_State* L, csg::Region3 const& r)
+{
+   return Client::GetInstance().GetOctTree().GetNavGrid().IsValidStandingRegion(r);
+}
+
 CaptureInputPromisePtr Client_CaptureInput(lua_State* L)
 {
    Client& c = Client::GetInstance();
@@ -273,7 +293,9 @@ void lua::client::open(lua_State* L)
             def("trace_render_frame",              &Client_TraceRenderFrame),
             def("set_cursor",                      &Client_SetCursor),
             def("create_voxel_render_node",        &Client_CreateVoxelRenderNode),
-
+            def("alloc_region",                    &Client_AllocObject<om::Region3Boxed>),
+            def("create_data_store",               &Client_CreateDataStore),
+            def("is_valid_standing_region",        &Client_IsValidStandingRegion),
             lua::RegisterTypePtr<CaptureInputPromise>()
                .def("on_input",          &CaptureInputPromise::Progress)
                .def("destroy",           &CaptureInputPromise::Destroy)
