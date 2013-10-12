@@ -19,8 +19,8 @@ public:
    void InitializeSlave(Store& s, ObjectId id) override;
    virtual void InitializeRecordFields() { };
 
-   dm::Guard TraceObjectChanges(const char* reason, std::function<void()> fn) const override;
-   dm::Guard TraceRecordField(std::string name, const char* reason, std::function<void()> fn);  
+   core::Guard TraceObjectChanges(const char* reason, std::function<void()> fn) const override;
+   core::Guard TraceRecordField(std::string name, const char* reason, std::function<void()> fn);  
 
    bool IsRemoteRecord() const { return slave_; }
 

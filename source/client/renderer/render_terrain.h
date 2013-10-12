@@ -51,7 +51,7 @@ private:
       csg::Point3                location;
       om::Region3BoxedRef        region;
       H3DNodeUnique              node;
-      dm::Guard                  guard;
+      core::Guard                  guard;
 
       RenderZone() { }
       void Reset() {
@@ -76,7 +76,7 @@ private:
 
 private:
    const RenderEntity&  entity_;
-   dm::Guard            tracer_;
+   core::Guard            tracer_;
    om::TerrainRef       terrain_;
    H3DNodeUnique        terrain_root_node_;
    std::map<csg::Point3, std::shared_ptr<RenderZone>>   zones_;

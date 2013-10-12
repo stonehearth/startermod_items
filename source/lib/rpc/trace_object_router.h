@@ -33,7 +33,7 @@ private:
 private:
    dm::Store&                                          store_;
    std::unordered_map<std::string, ObjectTraceEntry>   traces_;
-   std::unordered_map<std::string, dm::Guard>          guards_;
+   std::unordered_map<std::string, core::Guard>          guards_;
    std::unordered_map<std::string, dm::ObjectRef>      namedObjects_;
 };
 

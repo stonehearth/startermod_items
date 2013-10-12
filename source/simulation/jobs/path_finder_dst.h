@@ -32,7 +32,7 @@ private:
 
 public:
    PathFinder&                pf_;
-   dm::Guard                  guards_;
+   core::Guard                  guards_;
    om::EntityRef              entity_;
    bool                       moving_;
    om::DeepRegionGuardPtr     region_guard_;

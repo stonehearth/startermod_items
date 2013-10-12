@@ -22,7 +22,7 @@ public:
       NUM_SLOTS,
    };
 
-   dm::Guard TraceSlots(const char* reason, std::function<void(int i, const om::EntityRef& v)> fn) const { return slots_.TraceChanges(reason, fn); }
+   core::Guard TraceSlots(const char* reason, std::function<void(int i, const om::EntityRef& v)> fn) const { return slots_.TraceChanges(reason, fn); }
    om::EntityRef GetItemInSlot(Slot slot) const { return slots_[slot]; }
    bool HasItemInSlot(Slot slot) const { return slots_[slot].lock(); }
    void SetSlot(int slot, om::EntityRef e) { slots_[slot] = e; }

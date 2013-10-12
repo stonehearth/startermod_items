@@ -4,6 +4,7 @@ add_library(core STATIC
             log_win32.cpp
             radiant_json.cpp
             deferred.cpp
+            guard.cpp
             )
 
 target_link_libraries(core

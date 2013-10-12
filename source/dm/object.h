@@ -1,6 +1,6 @@
 #pragma once
 #include "types.h"
-#include "guard.h"
+#include "core/guard.h"
 #include "store.pb.h"
 #include "namespace.h"
 #include "all_objects_types.h"
@@ -41,8 +41,8 @@ public:
 
    bool IsValid() const;
 
-   virtual Guard TraceObjectLifetime(const char* reason, std::function<void()> fn) const;
-   virtual Guard TraceObjectChanges(const char* reason, std::function<void()> fn) const;
+   virtual core::Guard TraceObjectLifetime(const char* reason, std::function<void()> fn) const;
+   virtual core::Guard TraceObjectChanges(const char* reason, std::function<void()> fn) const;
 
    template <class T>
    class LuaPromise
@@ -82,7 +82,7 @@ public:
       }
 
    private:
-      dm::Guard                     guard_;
+      core::Guard                     guard_;
       std::vector<luabind::object>  cbs_;
    };
 

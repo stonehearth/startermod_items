@@ -65,7 +65,7 @@ protected:
       typedef std::unordered_map<std::string, luabind::object> LuaComponentMap;
       H3DNodeUnique     node_;
       om::EntityRef     entity_;
-      dm::Guard         tracer_;
+      core::Guard         tracer_;
       Skeleton          skeleton_;
       ComponentMap      components_;
       LuaComponentMap   lua_components_;

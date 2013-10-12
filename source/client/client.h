@@ -24,6 +24,7 @@
 #include "radiant_json.h"
 #include "lib/rpc/forward_defines.h"
 #include "core/input.h"
+#include "core/guard.h"
 #include "core/unique_resource.h"
 #include "core/shared_resource.h"
 
@@ -167,7 +168,7 @@ private:
 
       // the local object trace system...
       dm::TraceId             nextTraceId_;
-      std::map<dm::TraceId, dm::Guard>         uriTraces_;
+      std::map<dm::TraceId, core::Guard>         uriTraces_;
    
       // remote object storage and tracking...
       dm::Store                        store_;
@@ -224,6 +225,7 @@ private:
       rpc::ProtobufRouterPtr      protobuf_router_;
       int                         mouse_x_;
       int                         mouse_y_;
+      core::Guard                 guards_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

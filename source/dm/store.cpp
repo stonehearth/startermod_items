@@ -100,27 +100,27 @@ void Store::UnregisterObject(const Object& obj)
    }      
 }
 
-Guard Store::TraceDynamicObjectAlloc(ObjectAllocCb fn)
+core::Guard Store::TraceDynamicObjectAlloc(ObjectAllocCb fn)
 {
    return AddTrace(allocTraces_, -1, "dynamic alloc trace", fn);
 }
 
-Guard Store::TraceObjectChanges(const Object& obj, const char* reason, ObjectChangeCb fn)
+core::Guard Store::TraceObjectChanges(const Object& obj, const char* reason, ObjectChangeCb fn)
 {
    return AddTrace(changeTraces_, obj.GetObjectId(), reason, fn);
 }
 
-Guard Store::TraceObjectLifetime(const Object& obj, const char* reason, ObjectDestroyCb fn)
+core::Guard Store::TraceObjectLifetime(const Object& obj, const char* reason, ObjectDestroyCb fn)
 {
    return AddTrace(destroyTraces_, obj.GetObjectId(), reason, fn);
 }
 
-Guard Store::TraceFinishedFiringTraces(const char* reason, TracesFinishedCb fn)
+core::Guard Store::TraceFinishedFiringTraces(const char* reason, TracesFinishedCb fn)
 {
    return AddTrace(finishedFiringTraces_, -1, reason, fn);
 }
 
-Guard Store::AddTraceFn(TraceObjectMap &traceMap, ObjectId oid, const char* reason, boost::any fn)
+core::Guard Store::AddTraceFn(TraceObjectMap &traceMap, ObjectId oid, const char* reason, boost::any fn)
 {
    TraceId tid = nextTraceId_++;
 
@@ -136,7 +136,7 @@ Guard Store::AddTraceFn(TraceObjectMap &traceMap, ObjectId oid, const char* reas
       // LOG(INFO) << "adding trace " << tid << " : " << traceCallbacks_[tid].reason;
    }
 
-   return Guard(std::bind(&Store::RemoveTrace, this, std::ref(traceMap), oid, tid));
+   return core::Guard(std::bind(&Store::RemoveTrace, this, std::ref(traceMap), oid, tid));
 }
 
 void Store::RemoveTrace(TraceObjectMap &traceMap, ObjectId oid, TraceId tid)

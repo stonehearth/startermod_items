@@ -25,7 +25,7 @@ private:
 private:
    const RenderEntity&  entity_;
    om::MobRef           mob_;
-   dm::Guard              tracer_;
+   core::Guard              tracer_;
    csg::Transform    _initial;
    csg::Transform    _final;
    csg::Transform    _current;

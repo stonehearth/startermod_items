@@ -6,7 +6,6 @@ include_directories(${PROTOBUF_INCLUDE_DIRS})
 add_library(dm STATIC
             dbg_info.cpp
             dbg_indenter.cpp
-            guard.cpp
             tracer.cpp
             object.cpp
             record.cpp

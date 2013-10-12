@@ -13,7 +13,7 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <SFML/Audio.hpp>
 #include "camera.h"
-
+#include "perfhud/perfhud.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -187,6 +187,7 @@ Renderer::Renderer() :
       Renderer::GetInstance().FlushMaterials();
    }, true);
 
+   perf_hud_.reset(new PerfHud(*this));
 
    initialized_ = true;
 }
@@ -483,9 +484,7 @@ void Renderer::Resize( int width, int height )
    for (const auto& entry : pipelines_) {
       h3dResizePipelineBuffers(entry.second, width, height);
    }
-   if (screen_resize_cb_) {
-      screen_resize_cb_(width_, height_);
-   }
+   screen_resize_slot_.Signal(csg::Point2(width_, height_));
 }
 
 std::shared_ptr<RenderEntity> Renderer::CreateRenderObject(H3DNode parent, om::EntityPtr entity)
@@ -632,11 +631,11 @@ void Renderer::OnWindowResized(int newWidth, int newHeight) {
    Resize(newWidth, newHeight);
 }
 
-dm::Guard Renderer::TraceSelected(H3DNode node, UpdateSelectionFn fn)
+core::Guard Renderer::TraceSelected(H3DNode node, UpdateSelectionFn fn)
 {
    ASSERT(!stdutil::contains(selectableCbs_, node));
    selectableCbs_[node] = fn;
-   return dm::Guard([=]() { selectableCbs_.erase(node); });
+   return core::Guard([=]() { selectableCbs_.erase(node); });
 }
 
 void Renderer::SetCurrentPipeline(std::string name)
@@ -697,21 +696,21 @@ void Renderer::SetViewMode(ViewMode mode)
    viewMode_ = mode;
 }
 
-dm::Guard Renderer::TraceFrameStart(std::function<void()> fn)
+core::Guard Renderer::TraceFrameStart(std::function<void()> fn)
 {
    return AddTrace(renderFrameTraces_, fn);
 }
 
-dm::Guard Renderer::TraceInterpolationStart(std::function<void()> fn)
+core::Guard Renderer::TraceInterpolationStart(std::function<void()> fn)
 {
    return AddTrace(interpolationStartTraces_, fn);
 }
 
-dm::Guard Renderer::AddTrace(TraceMap& m, std::function<void()> fn)
+core::Guard Renderer::AddTrace(TraceMap& m, std::function<void()> fn)
 {
    dm::TraceId tid = nextTraceId_++;
    m[tid] = fn;
-   return dm::Guard(std::bind(&Renderer::RemoveTrace, this, std::ref(m), tid));
+   return core::Guard(std::bind(&Renderer::RemoveTrace, this, std::ref(m), tid));
 }
 
 void Renderer::RemoveTrace(TraceMap& m, dm::TraceId tid)
@@ -793,4 +792,9 @@ void Renderer::SetUITextureSize(int width, int height)
    uiMatRes_ = h3dAddResource(H3DResTypes::Material, "UI Material", 0);
    bool result = h3dLoadResource(uiMatRes_, material.str().c_str(), material.str().length());
    assert(result);
+}
+
+core::Guard Renderer::OnScreenResize(std::function<void(csg::Point2)> fn)
+{
+   return screen_resize_slot_.Register(fn);
 }

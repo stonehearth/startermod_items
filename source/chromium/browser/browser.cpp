@@ -88,6 +88,7 @@ void Browser::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
    if (browser_ == nullptr) {
       browser_ = browser;
+      browser_->GetHost()->NotifyScreenInfoChanged();
       //browser_->SetSize(PET_VIEW, uiWidth_, uiHeight_);
    }
 }
@@ -578,7 +579,9 @@ void Browser::OnScreenResize(int w, int h)
 
    resize_cb_(w, h);
 
-   browser_->GetHost()->NotifyScreenInfoChanged();
+   if (browser_) {
+      browser_->GetHost()->NotifyScreenInfoChanged();
+   }
 }
 
 void Browser::GetBrowserSize(int& w, int& h)

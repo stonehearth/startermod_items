@@ -38,7 +38,7 @@ class NavGrid {
    private:
       struct TerrainCollisionObject {
          std::weak_ptr<om::Terrain> obj;
-         dm::Guard                  guard;
+         core::Guard                  guard;
          TerrainCollisionObject() { }
          TerrainCollisionObject(std::shared_ptr<om::Terrain> o) : obj(o) { }
       private:
@@ -47,7 +47,7 @@ class NavGrid {
 
       struct VerticalPathingRegionCollisionObject {
          std::weak_ptr<om::VerticalPathingRegion> obj;
-         dm::Guard                                guard;
+         core::Guard                                guard;
          VerticalPathingRegionCollisionObject() { }
          VerticalPathingRegionCollisionObject(std::shared_ptr<om::VerticalPathingRegion> o) : obj(o) { }
       private:

@@ -27,6 +27,10 @@ add_library(client_renderer STATIC
             lua_renderer.cpp
             lua_render_entity.cpp
             camera.cpp
+            perfhud/perfhud.cpp
+            perfhud/timeline.cpp
+            perfhud/timeline_column.cpp
+            perfhud/render_context.cpp
             )
 
 if (MSVC)

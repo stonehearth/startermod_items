@@ -25,7 +25,7 @@ void Record::InitializeSlave(Store& s, ObjectId id)
    Object::InitializeSlave(s, id);
 }
 
-dm::Guard Record::TraceRecordField(std::string name, const char* reason, std::function<void()> fn)
+core::Guard Record::TraceRecordField(std::string name, const char* reason, std::function<void()> fn)
 {
    for (const auto &field : fields_) {
       if (field.first == name) {
@@ -37,7 +37,7 @@ dm::Guard Record::TraceRecordField(std::string name, const char* reason, std::fu
       }
    }
    ASSERT(false);
-   return dm::Guard();
+   return core::Guard();
 }
 
 
@@ -115,9 +115,9 @@ bool Record::FieldIsUnique(std::string name, Object& obj)
 // xxx: this will end up remoting the unit info record a 2nd time whenever something
 // in the unit info changes.  arg!  what we really want to say is "hey record, install
 // this trace whenever *you* change or any of *your fields* change).
-dm::Guard Record::TraceObjectChanges(const char* reason, std::function<void()> fn) const
+core::Guard Record::TraceObjectChanges(const char* reason, std::function<void()> fn) const
 {
-   dm::Guard guard;
+   core::Guard guard;
    for (auto const& field : fields_) {
       guard += GetStore().FetchStaticObject(field.second)->TraceObjectChanges(reason, fn);
    }

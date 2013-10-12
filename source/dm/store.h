@@ -1,6 +1,6 @@
 #pragma once
 #include "object.h"
-#include "guard.h"
+#include "core/guard.h"
 #include "namespace.h"
 #include "store.pb.h"
 #include "radiant_luabind.h"
@@ -35,7 +35,7 @@ public:
    std::vector<ObjectId> GetModifiedSince(GenerationId when);
    bool IsDynamicObject(ObjectId id);
    
-   dm::Guard TraceDynamicObjectAlloc(ObjectAllocCb fn);
+   core::Guard TraceDynamicObjectAlloc(ObjectAllocCb fn);
 
    void RegisterAllocator(ObjectType t, ObjectAllocFn allocator);
 
@@ -86,7 +86,7 @@ public:
    GenerationId GetNextGenerationId();
    GenerationId GetCurrentGenerationId();
    ObjectId GetNextObjectId();
-   Guard TraceFinishedFiringTraces(const char* reason, TracesFinishedCb fn);
+   core::Guard TraceFinishedFiringTraces(const char* reason, TracesFinishedCb fn);
 
 protected: // Internal interface for Objects only
    friend Object;
@@ -94,8 +94,8 @@ protected: // Internal interface for Objects only
    void RegisterObject(Object& obj);
    void UnregisterObject(const Object& obj);
    void OnObjectChanged(const Object& obj);
-   Guard TraceObjectLifetime(const Object& obj, const char* reason, ObjectDestroyCb fn);
-   Guard TraceObjectChanges(const Object& obj, const char* reason, ObjectChangeCb fn);
+   core::Guard TraceObjectLifetime(const Object& obj, const char* reason, ObjectDestroyCb fn);
+   core::Guard TraceObjectChanges(const Object& obj, const char* reason, ObjectChangeCb fn);
    void OnAllocObject(std::shared_ptr<Object> obj);
 
 private:
@@ -104,7 +104,7 @@ private:
    // The TraceMap is a mapping from trace id's to callback functions.  It exists
    // only because c++ function objects do not implement operator==, therefore
    // we need a unique token so that we can compare them (to handle auto unregisration
-   // when the Guard object is destroyed).  Use a boost::any so we can store any
+   // when the core::Guard object is destroyed).  Use a boost::any so we can store any
    // types of cb function here.
    struct Trace {
       Trace() { }
@@ -139,11 +139,11 @@ private:
       TraceId tid;
    };
 
-   template <typename T> Guard AddTrace(TraceObjectMap &traceMap, ObjectId id, const char* reason, T fn) {
+   template <typename T> core::Guard AddTrace(TraceObjectMap &traceMap, ObjectId id, const char* reason, T fn) {
       return AddTraceFn(traceMap, id, reason, boost::any(fn));
    }
 
-   Guard AddTraceFn(TraceObjectMap &traceMap, ObjectId oid, const char* reason, boost::any fn);
+   core::Guard AddTraceFn(TraceObjectMap &traceMap, ObjectId oid, const char* reason, boost::any fn);
    void RemoveTrace(TraceObjectMap &traceMap, ObjectId oid, TraceId tid);
    void ValidateTraceId(TraceId tid) const;
    void ValidateObjectId(ObjectId oid) const;
