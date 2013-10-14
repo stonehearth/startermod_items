@@ -1,6 +1,7 @@
 #ifndef _RADIANT_PERFMON_TIMELINE_H
 #define _RADIANT_PERFMON_TIMELINE_H
 
+#include <unordered_map>
 #include "namespace.h"
 #include "timer.h"
 #include "core/slot.h"

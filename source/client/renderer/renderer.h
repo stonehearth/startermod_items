@@ -67,6 +67,7 @@ class Renderer
       void RenderOneFrame(int now, float alpha);
       void Cleanup();
       void LoadResources();
+      void ShowPerfHud(bool value);
 
       int GetWidth() const;
       int GetHeight() const;
@@ -152,7 +153,6 @@ class Renderer
       H3DResourceMap    pipelines_;
    	H3DRes            currentPipeline_;
 
-      H3DRes            logoMatRes_;
       H3DRes            fontMatRes_;
       H3DRes            panelMatRes_;
       H3DRes            uiMatRes_;

@@ -75,7 +75,8 @@ Client::Client() :
    next_input_id_(1),
    next_trace_frame_id_(1),
    mouse_x_(0),
-   mouse_y_(0)
+   mouse_y_(0),
+   perf_hud_shown_(false)
 {
    om::RegisterObjectTypes(store_);
    om::RegisterObjectTypes(authoringStore_);
@@ -218,6 +219,10 @@ void Client::run()
    // this locks down the environment!  all types must be registered by now!!
    scriptHost_->Require("radiant.client");
 
+   _commands[GLFW_KEY_F10] = [&renderer, this]() {
+      perf_hud_shown_ = !perf_hud_shown_;
+      renderer.ShowPerfHud(perf_hud_shown_);
+   };
    _commands[GLFW_KEY_F9] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_debug_nodes")); };
    _commands[GLFW_KEY_F3] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_step_paths")); };
    _commands[GLFW_KEY_F4] = [=]() { core_reactor_->Call(rpc::Function("radiant:step_paths")); };
@@ -303,11 +308,12 @@ void Client::mainloop()
 
    http_reactor_->FlushEvents();
    if (browser_) {
-      perfmon::TimelineCounterGuard tcg("poll browser") ;
+      perfmon::SwitchToCounter("browser poll");
+      browser_->Work();
       auto cb = [](const csg::Region2 &rgn, const char* buffer) {
          Renderer::GetInstance().UpdateUITexture(rgn, buffer);
       };
-      browser_->Work();
+      perfmon::SwitchToCounter("browser poll");
       browser_->UpdateDisplay(cb);
    }
 
@@ -317,26 +323,23 @@ void Client::mainloop()
    // Fire the authoring traces *after* pumping the chrome message loop, since
    // we may create or modify authoring objects as a result of input events
    // or calls from the browser.
-   {
-      perfmon::TimelineCounterGuard tcg("fire traces") ;
-      authoringStore_.FireTraces();
-      authoringStore_.FireFinishedTraces();
-   }
-   {
-      perfmon::TimelineCounterGuard tcg("render") ;
-      CallTraceRenderFrameHandlers( Renderer::GetInstance().GetLastFrameRenderTime() );
-      Renderer::GetInstance().RenderOneFrame(now_, alpha);
-   }
+   perfmon::SwitchToCounter("fire traces");
+   authoringStore_.FireTraces();
+   authoringStore_.FireFinishedTraces();
+
+   perfmon::SwitchToCounter("render");
+   CallTraceRenderFrameHandlers( Renderer::GetInstance().GetLastFrameRenderTime() );
+   Renderer::GetInstance().RenderOneFrame(now_, alpha);
+
    if (send_queue_) {
-      perfmon::TimelineCounterGuard tcg("send msgs") ;
+      perfmon::SwitchToCounter("send msgs");
       protocol::SendQueue::Flush(send_queue_);
    }
+
    // xxx: GC while waiting for vsync, or GC in another thread while rendering (ooh!)
-   {
-      perfmon::TimelineCounterGuard tcg("lua gc") ;
-      platform::timer t(10);
-      scriptHost_->GC(t);
-   }
+   perfmon::SwitchToCounter("lua gc");
+   platform::timer t(10);
+   scriptHost_->GC(t);
 }
 
 om::TerrainPtr Client::GetTerrain()

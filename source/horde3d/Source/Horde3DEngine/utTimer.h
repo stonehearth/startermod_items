@@ -81,14 +81,14 @@ protected:
 	#if defined( PLATFORM_WIN ) || defined( PLATFORM_WIN_CE )
 		LARGE_INTEGER curTick;
 
-      // QueryPerformanceCounter may not behave correctly if the user has a buggy
-      // BIOS and we call don't call it on the same core everytime.  The penalty
-      // for ensuring that we're on the same core everytime, though, is just too
-      // high (it would require a forced context switch inside getTime).  If we
-      // are really concerned, the proper fix is to set the render thread's
-      // affinity at horde init time and verify we're on that core at the time
-      // getTime() is called (in cause the client also set the affinity mask to
-      // something else).
+		// QueryPerformanceCounter may not behave correctly if the user has a buggy
+		// BIOS and we call don't call it on the same core everytime.  The penalty
+		// for ensuring that we're on the same core everytime, though, is just too
+		// high (it would require a forced context switch inside getTime).  If we
+		// are really concerned, the proper fix is to set the render thread's
+		// affinity at horde init time and verify we're on that core at the time
+		// getTime() is called (in cause the client also set the affinity mask to
+		// something else).
 		QueryPerformanceCounter( &curTick );
 
 		return (double)curTick.QuadPart / (double)_timerFreq.QuadPart * 1000.0;

@@ -1,20 +1,22 @@
 #include "pch.h"
 #include "radiant.h"
-#include "timeline_column.h"
+#include "counter_data.h"
 #include "render_context.h"
+#include "timeline.h"
+#include "timeline_column.h"
 #include "lib/perfmon/perfmon.h"
 #include "lib/perfmon/frame.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
 
-TimelineColumn::TimelineColumn(perfmon::Frame* frame)
+TimelineColumn::TimelineColumn(Timeline& t, perfmon::Frame* frame)
 {
    duration_ = 0;
    for (perfmon::Counter const* counter : frame->GetCounters()) {
       uint time = perfmon::CounterToMilliseconds(counter->GetValue());
       duration_ += time;
-      entries_.push_back(std::make_pair(counter->GetName(), time));
+      entries_.push_back(ColumnEntry(t.GetCounterData(counter->GetName()), time));
    }
 }
 
@@ -30,9 +32,9 @@ TimelineColumn& TimelineColumn::Render(RenderContext & rc, csg::Rect2f const& re
    float offset = max.y, height = max.y - min.y;
    for (const auto& entry : entries_) {
       max.y = offset;
-      offset -= height * entry.second / rc.GetTimelineHeightMs();
+      offset -= height * entry.duration / rc.GetTimelineHeightMs();
       min.y = offset;
-      rc.DrawBox(csg::Rect2f(min, max), rc.GetCounterColor(entry.first));
+      rc.DrawBox(csg::Rect2f(min, max), entry.counter_data->color);
    }
    return *this;
 }

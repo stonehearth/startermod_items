@@ -109,12 +109,26 @@ public:
    static Color3 FromInteger(unsigned int i) {
       return Color3(i & 0xff, (i >> 8) & 0xff, (i >> 16) & 0xff);
    }
+   static Color3 FromString(std::string const& str) {
+      const char* c = str.c_str();
+      int len = str.length();
+      if (*c == '#') {
+         c++;
+         if (len == 7) {
+            int val = strtol(c, nullptr, 16);
+            return Color3((val >> 16) & 0xff, (val >> 8) & 0xff, val & 0xff);
+         }
+      }
+      return Color3(0, 0, 0);
+   }
 
    static Color3 red;
    static Color3 orange;
    static Color3 yellow;
    static Color3 green;
    static Color3 blue;
+   static Color3 black;
+   static Color3 white;
 };
 std::ostream& operator<<(std::ostream& out, const Color3& source);
 

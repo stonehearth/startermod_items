@@ -37,16 +37,20 @@ FrameGuard::~FrameGuard()
 
 TimelineCounterGuard::TimelineCounterGuard(const char* name)
 {
-   Timeline& timeline = GetTimeline();
-
-   last_counter_ = timeline.GetCurrentCounter();
-   Counter* counter = timeline.GetCounter(name);
-   timeline.SetCounter(counter);
+   last_counter_ = GetTimeline().GetCurrentCounter();
+   SwitchToCounter(name);
 }
 
 TimelineCounterGuard::~TimelineCounterGuard()
 {
    GetTimeline().SetCounter(last_counter_);
+}
+
+void perfmon::SwitchToCounter(char const* name)
+{
+   Timeline& timeline = GetTimeline();
+   Counter* counter = timeline.GetCounter(name);
+   timeline.SetCounter(counter);
 }
 
 core::Guard perfmon::OnFrameEnd(std::function<void(Frame*)> fn)

@@ -14,10 +14,16 @@ PerfHud::PerfHud(Renderer& r)
    });
    guard_ += r.OnScreenResize([this](csg::Point2 const& pt) {
       screen_size_ = pt;
+      float aspect = (float)pt.x / pt.y;
+      float pad_y = 10.0f / pt.y;
+      float pad_x = pad_y * aspect;
+
+      SetBounds(csg::Rect2f(csg::Point2f(pad_x, pad_y),
+                            csg::Point2f(aspect - pad_x, 1.0f - pad_y)));
+      rc_.SetScreenSize(pt);
    });
    rc_.SetTimelineHeightMs(100);
-   timeline_.SetMaxColumns(60);
-   SetBounds(csg::Rect2f(csg::Point2f(0.2f, 0.2f), csg::Point2f(0.8f, 0.8f)));
+   timeline_.SetMaxColumns(300);
 }
 
 PerfHud::~PerfHud()

@@ -27,6 +27,7 @@ private:
    Counter*          last_counter_;
 };
 
+void SwitchToCounter(char const* name);
 core::Guard OnFrameEnd(std::function<void(Frame*)>);
 uint CounterToMilliseconds(CounterValueType value);
 
