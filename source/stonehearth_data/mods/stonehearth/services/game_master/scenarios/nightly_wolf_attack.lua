@@ -4,7 +4,7 @@ local Point3 = _radiant.csg.Point3
 
 function NightlyWolfAttack:__init()
    
-   radiant.events.listen('radiant:events:calendar:sunset', self)
+   --radiant.events.listen('radiant:events:calendar:sunset', self)
 end
 
 function NightlyWolfAttack:load_faction()
