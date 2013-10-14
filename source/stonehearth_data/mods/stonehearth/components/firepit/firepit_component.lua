@@ -132,7 +132,9 @@ function FirepitComponent:extinguish()
       self._my_wood = nil
    end
 
-   self._curr_fire_effect:stop()
+   if self._curr_fire_effect then
+      self._curr_fire_effect:stop()
+   end
    self._is_lit = false
 end
 

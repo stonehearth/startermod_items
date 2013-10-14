@@ -52,7 +52,7 @@ function Effect:_get_end_time()
    if self._info.type == 'attach_item_effect' then
       --Assume that if we don't have any other data, attaching is instantaneous
       if self._info.start_frame then
-      return self:_frame_count_to_time(self._info.start_frame)
+         return self:_frame_count_to_time(self._info.start_frame)
       else
          return 0
       end
