@@ -10,7 +10,7 @@
       "model_variants": [
          {
             "models": [
-               "file(fire_pit.qb)"
+               "file(firepit.qb)"
             ]
          }
       ],

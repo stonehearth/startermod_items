@@ -53,7 +53,7 @@ function FirepitComponent:_add_seats()
 end
 
 function FirepitComponent:_add_one_seat(seat_number, location)
-   local seat = radiant.entities.create_entity('stonehearth:fire_pit_seat')
+   local seat = radiant.entities.create_entity('stonehearth:firepit_seat')
    local seat_comp = seat:get_component('stonehearth:center_of_attention_spot')
    seat_comp:add_to_center_of_attention(self._entity, seat_number)
    self._seats[seat_number] = seat

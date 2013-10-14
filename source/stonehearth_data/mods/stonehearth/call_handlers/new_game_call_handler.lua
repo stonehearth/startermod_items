@@ -29,7 +29,7 @@ end
 -- called each time the mouse moves on the client.
 function NewGameCallHandler:_on_mouse_event(e, response)
    assert(self._capture, "got mouse event after releasing capture")
-   
+
    -- query the scene to figure out what's under the mouse cursor
    local s = _radiant.client.query_scene(e.x, e.y)
 
@@ -80,7 +80,7 @@ function NewGameCallHandler:create_camp(session, response, pt)
    local standard_entity = radiant.entities.create_entity('stonehearth:camp_standard')
    radiant.terrain.place_entity(standard_entity, location)
    faction:set_home_location(location)
-   
+
    -- build the camp
    local camp_x = pt.x
    local camp_z = pt.z
@@ -94,18 +94,10 @@ function NewGameCallHandler:create_camp(session, response, pt)
    self:place_citizen(camp_x-3, camp_z+0)
    self:place_citizen(camp_x+3, camp_z+0)
 
-   
+
    radiant.entities.pickup_item(worker1, faction:create_entity('stonehearth:oak_log'))
    radiant.entities.pickup_item(worker2, faction:create_entity('stonehearth:oak_log'))
-   radiant.entities.pickup_item(worker3, faction:create_entity('stonehearth:fire_pit_proxy'))
-   --[[
-   self:place_stockpile(faction, camp_x+8, camp_z-2, 4, 4)
-
-   --put some default supplies into the stockpile (for now)
-   self:place_item('stonehearth:fire_pit_proxy', camp_x+8, camp_z-2, faction)
-   self:place_item('stonehearth:oak_log', camp_x+8+1, camp_z-2+1)
-   self:place_item('stonehearth:oak_log', camp_x+8, camp_z-2+2)
-   ]]
+   radiant.entities.pickup_item(worker3, faction:create_entity('stonehearth:firepit_proxy'))
 
    return {}
 end

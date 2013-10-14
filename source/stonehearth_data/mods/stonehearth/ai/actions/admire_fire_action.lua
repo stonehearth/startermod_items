@@ -168,9 +168,9 @@ function AdmireFire:_do_random_actions(ai)
       if random_action < 30 then
          ai:execute('stonehearth:idle')
       elseif random_action > 80 and not self._is_sitting then
+         self._is_sitting = true
          radiant.entities.set_posture(self._entity, 'sitting')
          ai:execute('stonehearth:run_effect', 'sit_on_ground')
-         self._is_sitting = true
       elseif not self._is_sitting then
          --TODO: include these again if we have a standing animation
          local standing_fire_effects = {
