@@ -5,6 +5,7 @@
 #include "lib/rpc/http_deferred.h"
 #include "browser.h"
 #include "response.h"
+#include "lib/perfmon/perfmon.h"
 #include <fstream>
 
 using namespace radiant;
@@ -173,6 +174,7 @@ void Browser::OnPaint(CefRefPtr<CefBrowser> browser,
                        int width,
                        int height)
 {
+   perfmon::TimelineCounterGuard tcg("copy browser fb") ;
    std::lock_guard<std::mutex> guard(ui_lock_);
 
    // xxx: we can optimze this by accuulating a dirty region and sending a message to
@@ -187,8 +189,8 @@ void Browser::OnPaint(CefRefPtr<CefBrowser> browser,
       // when the window is resized when we get paints from the old (and out of date)
       // size.
       LOG(INFO) << "ignoring paint request from browser (" 
-                << csg::Point2(width, height) << " != "
-                << csg::Point2(uiWidth_, uiHeight_) << ")";
+                  << csg::Point2(width, height) << " != "
+                  << csg::Point2(uiWidth_, uiHeight_) << ")";
       return;
    }
    const uint32* src = (const uint32*)buffer;
@@ -204,6 +206,7 @@ void Browser::OnPaint(CefRefPtr<CefBrowser> browser,
 
 void Browser::UpdateDisplay(PaintCb cb)
 {
+   perfmon::TimelineCounterGuard tcg("copy ui texture") ;
    std::lock_guard<std::mutex> guard(ui_lock_);
 
    cb(dirtyRegion_, (const char*)browser_framebuffer_.data());

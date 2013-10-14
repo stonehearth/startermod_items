@@ -226,6 +226,7 @@ private:
       int                         mouse_x_;
       int                         mouse_y_;
       core::Guard                 guards_;
+      bool                        perf_hud_shown_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

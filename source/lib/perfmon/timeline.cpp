@@ -56,10 +56,10 @@ Counter* Timeline::SetCounter(Counter* counter)
    VERIFY(counter, "nullptr passed to SetCurrentFrameCounter");
 
    CounterValueType elapsed = timer_.Restart();
+   current_counter_->Increment(elapsed);
 
    Counter* last_counter = current_counter_;
    current_counter_ = counter;
-   current_counter_->Increment(elapsed);
 
    return last_counter;
 }

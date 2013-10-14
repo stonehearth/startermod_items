@@ -36,18 +36,7 @@ public:
 
 	Timer() : _elapsedTime( 0 ), _enabled( false )
 	{
-	#if defined( PLATFORM_WIN ) 
-		// Find first available CPU
-		DWORD_PTR procMask, sysMask;
-		GetProcessAffinityMask( GetCurrentProcess(), &procMask, &sysMask );
-		_affMask = 1;
-		while( (_affMask & procMask) == 0 ) _affMask <<= 1;
-		
-		// Get timer frequency
-		DWORD_PTR threadAffMask = SetThreadAffinityMask( GetCurrentThread(), _affMask );
-		QueryPerformanceFrequency( &_timerFreq );
-		SetThreadAffinityMask( GetCurrentThread(), threadAffMask );
-	#elif defined( PLATFORM_WIN_CE )
+	#if defined( PLATFORM_WIN ) || defined( PLATFORM_WIN_CE)
 		QueryPerformanceFrequency( &_timerFreq );
 	#endif
 	}
@@ -90,15 +79,17 @@ protected:
 	double getTime()
 	{
 	#if defined( PLATFORM_WIN ) || defined( PLATFORM_WIN_CE )
-		// Make sure that time is read from the same CPU
-		DWORD_PTR threadAffMask = SetThreadAffinityMask( GetCurrentThread(), _affMask );
-		
-		// Read high performance counter
 		LARGE_INTEGER curTick;
-		QueryPerformanceCounter( &curTick );
 
-		// Restore affinity mask
-		SetThreadAffinityMask( GetCurrentThread(), threadAffMask );
+		// QueryPerformanceCounter may not behave correctly if the user has a buggy
+		// BIOS and we call don't call it on the same core everytime.  The penalty
+		// for ensuring that we're on the same core everytime, though, is just too
+		// high (it would require a forced context switch inside getTime).  If we
+		// are really concerned, the proper fix is to set the render thread's
+		// affinity at horde init time and verify we're on that core at the time
+		// getTime() is called (in cause the client also set the affinity mask to
+		// something else).
+		QueryPerformanceCounter( &curTick );
 
 		return (double)curTick.QuadPart / (double)_timerFreq.QuadPart * 1000.0;
 	#else
@@ -115,7 +106,6 @@ protected:
 
 #if defined( PLATFORM_WIN ) || defined( PLATFORM_WIN_CE )
 	LARGE_INTEGER  _timerFreq;
-	DWORD_PTR      _affMask;
 #endif
 
 	bool           _enabled;
