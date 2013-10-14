@@ -9,11 +9,12 @@ function EdgeDetailer:__init(terrain_info)
    self.terrain_info = terrain_info
    self.detail_seed_probability = 0.10
    self.detail_grow_probability = 0.85
+   self.edge_threshold = 4
 end
 
 function EdgeDetailer:add_detail_blocks(height_map)
    local i, j, edge
-   local edge_threshold = 4
+   local edge_threshold = self.edge_threshold
    local edge_map = Array2D(height_map.width, height_map.height)
    local detail_seeds = {}
    local num_seeds = 0
@@ -45,7 +46,7 @@ function EdgeDetailer:_grow_seed(height_map, edge_map, x, y)
 
    local i, j, continue, value, detail_height
 
-   -- if edge is not false, edge is the dela to the highest neighbor
+   -- if edge is not false, edge is the delta to the highest neighbor
    detail_height = self:_generate_detail_height(edge)
 
    value = height_map:get(x, y)
@@ -161,8 +162,6 @@ function EdgeDetailer:_is_edge(height_map, x, y, threshold)
    end
 end
 
------
-
 -- makes lots of assumptions about how grasslands are quantized
 -- ok since this will change anyway if grasslands are quantized differently
 function EdgeDetailer:add_grassland_details(height_map)
@@ -208,6 +207,119 @@ function EdgeDetailer:_is_grassland_edge(height_map, x, y, threshold)
    end
 
    return false
+end
+
+function EdgeDetailer:remove_mountain_chunks(height_map, micro_map)
+   local chunk_probability = 0.5
+   local foothills_max_height = self.terrain_info[TerrainType.Foothills].max_height
+   local height, removed
+
+   -- TODO: resolve chunks on edge tiles
+   for j=1, micro_map.height do
+      for i=1, micro_map.width do
+         height = micro_map:get(i, j)
+
+         if height > foothills_max_height and math.random() <= chunk_probability then
+            local dir, removed, angle, dx, dy
+            
+            -- randomly pick direction so chunks are not biased
+            angle = 90*math.random(0, 3)
+            dx, dy = _angle_to_xy(angle)
+
+            -- check all 4 directions unless chunk is removed
+            for dir=1, 4 do
+               removed = self:_remove_chunk(height_map, micro_map, i, j, dx, dy)
+               if removed then break end
+               dx, dy = _rotate_90(dx, dy)
+            end
+         end
+      end
+   end
+end
+
+function _angle_to_xy(angle)
+   if angle ==   0 then return  1,  0 end
+   if angle ==  90 then return  0,  1 end
+   if angle == 180 then return -1,  0 end
+   if angle == 270 then return  0, -1 end
+   return nil, nil
+end
+
+function _rotate_90(x, y)
+   return -y, x
+end
+
+function EdgeDetailer:_remove_chunk(height_map, micro_map, x, y, dx, dy)
+   local mountains_step_size = self.terrain_info[TerrainType.Mountains].step_size
+   local height, adj_height
+   local tile_size, tile_x, tile_y, chunk_x, chunk_y
+   local chunk_length, chunk_offset, chunk_depth
+
+   height = micro_map:get(x, y)
+
+   local adj_x = x + dx
+   local adj_y = y + dy
+
+   if micro_map:in_bounds(adj_x, adj_y) then
+      adj_height = micro_map:get(adj_x, adj_y)
+      if height - adj_height < mountains_step_size then
+         return false
+      end
+   end
+
+   tile_size = height_map.width / micro_map.width
+   tile_x = (x-1)*tile_size+1
+   tile_y = (y-1)*tile_size+1
+
+   chunk_length, chunk_offset = self:_generate_chunk_length_and_offset(tile_size)
+   chunk_depth = mountains_step_size * 0.5
+
+   if dy == -1 then
+      -- left, (dx, dy) == (-1, 0)
+      chunk_x = tile_x + chunk_offset
+      chunk_y = tile_y
+   elseif dy == 1 then
+      -- right, (dx, dy) == (1, 0)
+      chunk_x = tile_x + chunk_offset
+      chunk_y = tile_y + tile_size - chunk_depth
+   elseif dx == -1 then
+      -- top, (dx, dy) == (0, -1)
+      chunk_x = tile_x
+      chunk_y = tile_y + chunk_offset
+   else
+      -- bottom, (dx, dy) == (0, 1)
+      chunk_x = tile_x + tile_size - chunk_depth
+      chunk_y = tile_y + chunk_offset
+   end
+
+   local new_height = height - chunk_depth
+   local chunk_width, chunk_height -- as viewed from overhead
+
+   if dx == 0 then
+      chunk_width  = chunk_length
+      chunk_height = chunk_depth
+   else
+      chunk_width  = chunk_depth
+      chunk_height = chunk_length
+   end
+
+   height_map:process_block(chunk_x, chunk_y, chunk_width, chunk_height,
+      function (value)
+         if value > new_height then return new_height end
+         return value
+      end
+   )
+
+   return true
+end
+
+function EdgeDetailer:_generate_chunk_length_and_offset(tile_size)
+   local quarter_tile_size = tile_size * 0.25
+   local chunk_length = quarter_tile_size * math.random(1, 4)
+   local chunk_offset = (tile_size - chunk_length) * math.random(0, 1)
+   -- local num_offsets = (tile_size - chunk_length) / quarter_tile_size + 1
+   -- local chunk_offset = quarter_tile_size * math.random(0, num_offsets-1)
+   return chunk_length, chunk_offset
 end
 
 return EdgeDetailer

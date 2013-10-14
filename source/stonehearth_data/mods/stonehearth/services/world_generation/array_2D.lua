@@ -23,8 +23,16 @@ function Array2D:is_boundary(x, y)
    return false
 end
 
+function Array2D:in_bounds(x, y)
+   if x < 1 or y < 1 or
+      x > self.width or y > self.width then
+      return false
+   end
+   return true
+end
+
 function Array2D:clone()
-   local dst = new Array2D(self.width, self.height)
+   local dst = Array2D(self.width, self.height)
    local size = self.width * self.height
    local i
 
@@ -42,7 +50,7 @@ end
 
 function Array2D:set_block(x, y, block_width, block_height, value)
    local function fn() return value end
-   self:process_map_block(x, y, block_width, block_height, fn)
+   self:process_block(x, y, block_width, block_height, fn)
 end
 
 function Array2D:process_map(func)
@@ -54,7 +62,7 @@ function Array2D:process_map(func)
    end
 end
 
-function Array2D:process_map_block(x, y, block_width, block_height, func)
+function Array2D:process_block(x, y, block_width, block_height, func)
    local i, j, index
    local offset = self:get_offset(x, y)-1
 
