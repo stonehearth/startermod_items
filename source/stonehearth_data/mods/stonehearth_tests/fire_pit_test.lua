@@ -14,6 +14,7 @@ function FirePitTest:__init()
    self:place_item_cluster('stonehearth:oak_log', -10, 0, 3, 3)
    local faction = radiant.entities.get_faction(worker)
    self:place_item('stonehearth:fire_pit', 1, 1, faction)
+   self:place_item('stonehearth:fire_pit', -1, -5, faction)
 end
 
 return FirePitTest

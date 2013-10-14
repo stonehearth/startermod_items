@@ -42,7 +42,9 @@
    "baseTimeOfDay" : {
       "midnight" : 0,
       "sunrise" : 6,
+      "midmorning" : 10,
       "midday" : 14,
+      "midafternoon" : 18,
       "sunset" : 22
    }
 

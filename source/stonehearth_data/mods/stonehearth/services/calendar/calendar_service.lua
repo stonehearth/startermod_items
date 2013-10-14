@@ -1,6 +1,6 @@
 local data = {
    date = {
-      hour = 21,
+      hour = 14,
       minute = 0,
       second = 0,
       day = 0,
@@ -10,7 +10,9 @@ local data = {
    _lastNow = 0,
    _remainderTime = 0,
    _fired_sunrise_today = false,
+   _fired_midmorning_today = false,
    _fired_noon_today = false,
+   _fired_midafternoon_today = false,
    _fired_sunset_today = false,
    _fired_midnight_today = false
 }
@@ -21,7 +23,9 @@ radiant.events.register_event('radiant:events:calendar:minutely')
 radiant.events.register_event('radiant:events:calendar:hourly')
 
 radiant.events.register_event('radiant:events:calendar:sunrise')
+radiant.events.register_event('radiant:events:calendar:midmorning')
 radiant.events.register_event('radiant:events:calendar:noon')
+radiant.events.register_event('radiant:events:calendar:midafternoon')
 radiant.events.register_event('radiant:events:calendar:sunset')
 radiant.events.register_event('radiant:events:calendar:midnight')
 
@@ -92,13 +96,17 @@ function CalendarService:_on_event_loop(now)
    data._lastNow = now
 end
 
+function CalendarService:get_time_constants()
+   return self._constants.baseTimeOfDay
+end
+
 --[[
    If the hour is greater than the set time of day, then fire the
    relevant event.
 ]]
 function CalendarService:fire_time_of_day_events()
    local hour = data.date.hour
-   local curr_day_periods = self._constants.baseTimeOfDay
+   local curr_day_periods = self:get_time_constants()
 
    if hour >= curr_day_periods.midnight and
       hour < curr_day_periods.sunrise and
@@ -108,7 +116,9 @@ function CalendarService:fire_time_of_day_events()
       data._fired_midnight_today = true
 
       data._fired_sunrise_today = false
+      data._fired_midmorning_today = false
       data._fired_noon_today = false
+      data._fired_midafternoon_today = false
       data._fired_sunset_today = false
       return
    end
@@ -124,6 +134,14 @@ function CalendarService:fire_time_of_day_events()
       return
    end
 
+   if hour >= curr_day_periods.midmorning and
+      not data._fired_midmorning_today then
+
+      radiant.events.broadcast_msg('radiant:events:calendar:midmorning')
+      data._fired_midmorning_today = true
+      return
+   end
+
    if hour >= curr_day_periods.midday and
       not data._fired_noon_today then
 
@@ -131,6 +149,15 @@ function CalendarService:fire_time_of_day_events()
       data._fired_noon_today = true
       return
    end
+
+   if hour >= curr_day_periods.midafternoon and
+      not data._fired_midafternoon_today then
+
+      radiant.events.broadcast_msg('radiant:events:calendar:midafternoon')
+      data._fired_midafternoon_today = true
+      return
+   end
+
 
    if hour >= curr_day_periods.sunset and
       not data._fired_sunset_today then
