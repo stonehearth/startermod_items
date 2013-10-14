@@ -109,14 +109,19 @@ function FirepitComponent:_init_gather_wood_task()
    self._light_task:start()
 end
 
+function FirepitComponent:is_lit()
+   return self._is_lit
+end
+
 --- Adds wood to the fire
 -- Create a new entity instead of re-using the old one because if we wanted to do
 -- that, we'd have to reparent the log to the fireplace.
 -- @param log_entity to add to the fire
-function FirepitComponent:add_wood(log)
+function FirepitComponent:light(log)
    self._my_wood = log
    self._curr_fire_effect =
       radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/firepit_effect')
+   self._is_lit = true
 end
 
 --- if there is wood, destroy it and extinguish the particles
@@ -125,8 +130,10 @@ function FirepitComponent:extinguish()
       radiant.entities.remove_child(self._entity, self._my_wood)
       radiant.entities.destroy_entity(self._my_wood)
       self._my_wood = nil
-      self._curr_fire_effect:stop()
    end
+
+   self._curr_fire_effect:stop()
+   self._is_lit = false
 end
 
 --TODO: do we still need these? In any case, fix spelling
