@@ -20,6 +20,7 @@ function AdmireFire:__init(ai, entity)
    self._firepit_seat = nil
    self._path_to_fire = nil
    self._should_look_for_fire = false
+   self._is_sitting = false
 
    radiant.events.listen('radiant:events:calendar:sunrise', self)
    radiant.events.listen('radiant:events:calendar:sunset', self)
@@ -102,14 +103,29 @@ function AdmireFire:run(ai, entity)
    local spot_component = self._firepit_seat:get_component('stonehearth:center_of_attention_spot')
    radiant.entities.turn_to_face(self._entity, spot_component:get_center_of_attention())
 
+   self:_do_random_actions(ai)
+
+end
+
+--- Randomly pick an action to do in front of the fire
+-- TODO: Add more sitting idle postures
+-- TODO: Add a standing animation, so the loop can continue
+function AdmireFire:_do_random_actions(ai)
    while true do
-      --TODO: add the fire-specific stuff
-      ai:execute('stonehearth:idle')
-      local effects = {
-         'warm_hands_by_fire',
-         'toast_marshmellow'
-      }
-      --ai:execute('stonehearth:run_effect', effects[math.random(#effects)])
+      local random_action = math.random(100)
+      if random_action < 30 then
+         ai:execute('stonehearth:idle')
+      elseif random_action > 90 and not self._is_sitting then
+         radiant.entities.set_posture(self._entity, 'sitting')
+         ai:execute('stonehearth:run_effect', 'sit_on_ground')
+         self._is_sitting = true
+      elseif not self._is_sitting then
+         --TODO: include these again if we have a standing animation
+         local standing_fire_effects = {
+            'idle_warm_hands'
+         }
+         ai:execute('stonehearth:run_effect', standing_fire_effects[math.random(#standing_fire_effects)])
+      end
    end
 end
 
@@ -138,6 +154,11 @@ function AdmireFire:stop()
       self._firepit_seat:get_component('stonehearth:lease_component'):release_lease(self._entity)
    end
 
+   --If we are sitting, unset
+   if self._is_sitting then
+      radiant.entities.unset_posture(self._entity, 'sitting')
+      self._is_sitting = false
+   end
 end
 
 return AdmireFire
