@@ -1,7 +1,8 @@
 #pragma once
 #include <atomic>
 #include <unordered_map>
-#include "guard.h"
+#include "types.h"
+#include "core/guard.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -29,11 +30,11 @@ public:
 
    typedef std::function<void()> TraceCallbackFn;
 
-   Guard AddTrace(const K& category, TraceCallbackFn fn) {
+   core::Guard AddTrace(const K& category, TraceCallbackFn fn) {
       TraceId tid = nextTraceId_++;
       traces_[category][tid] = fn;
 
-      return Guard([=]() {
+      return core::Guard([=]() {
          ASSERT(!firing_);
          ASSERT(stdutil::contains(traces_[category], tid));
          traces_[category].erase(tid);

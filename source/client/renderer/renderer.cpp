@@ -13,7 +13,8 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <SFML/Audio.hpp>
 #include "camera.h"
-
+#include "lib/perfmon/perfmon.h"
+#include "perfhud/perfhud.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -88,7 +89,6 @@ Renderer::Renderer() :
    SetCurrentPipeline("pipelines/forward.pipeline.xml");
 
    // Overlays
-	logoMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/logo.material.xml", 0 );
 	fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
 	panelMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/panel.material.xml", 0 );
 
@@ -187,8 +187,15 @@ Renderer::Renderer() :
       Renderer::GetInstance().FlushMaterials();
    }, true);
 
-
    initialized_ = true;
+}
+
+void Renderer::ShowPerfHud(bool value) {
+   if (value && !perf_hud_) {
+      perf_hud_.reset(new PerfHud(*this));
+   } else if (!value && perf_hud_) {
+      delete perf_hud_.release();
+   }
 }
 
 void Renderer::FlushMaterials() {
@@ -272,6 +279,8 @@ HWND Renderer::GetWindowHandle() const
 
 void Renderer::RenderOneFrame(int now, float alpha)
 {
+   perfmon::TimelineCounterGuard tcg("render one");
+
    int deltaNow = now - currentFrameTime_;
 
    lastFrameTimeInSeconds_ = deltaNow / 1000.0f;
@@ -283,23 +292,21 @@ void Renderer::RenderOneFrame(int now, float alpha)
   
    bool showUI = true;
    const float ww = (float)h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportWidthI) /
-	                 (float)h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportHeightI);
+                    (float)h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportHeightI);
 
-	h3dSetOption(H3DOptions::DebugViewMode, debug);
-	h3dSetOption(H3DOptions::WireframeMode, debug);
+   h3dSetOption(H3DOptions::DebugViewMode, debug);
+   h3dSetOption(H3DOptions::WireframeMode, debug);
    // h3dSetOption(H3DOptions::DebugViewMode, _debugViewMode ? 1.0f : 0.0f);
-	// h3dSetOption(H3DOptions::WireframeMode, _wireframeMode ? 1.0f : 0.0f);
+   // h3dSetOption(H3DOptions::WireframeMode, _wireframeMode ? 1.0f : 0.0f);
 	
    h3dSetCurrentRenderTime(now / 1000.0f);
-
-   FireTraces(renderFrameTraces_);
 
    if (showUI && uiMatRes_) { // show UI
       const float ovUI[] = { 0,  0, 0, 1, // flipped up-side-down!
                              0,  1, 0, 0,
                              ww, 1, 1, 0,
                              ww, 0, 1, 1, };
-	   h3dShowOverlays(ovUI, 4, 1, 1, 1, 1, uiMatRes_, 0);
+      h3dShowOverlays(ovUI, 4, 1, 1, 1, 1, uiMatRes_, 0);
    }
    if (false) { // show color mat
       const float v[] = { ww * .9f, .9f,    0, 1, // flipped up-side-down!
@@ -308,39 +315,43 @@ void Renderer::RenderOneFrame(int now, float alpha)
                           ww,       .9f,    1, 1, };
    }
 
-   // Show logo
-   if (false) {
-      const float ovLogo[] = { ww-0.4f, 0.8f, 0, 1,  ww-0.4f, 1, 0, 0,  ww, 1, 1, 0,  ww, 0.8f, 1, 1 };
-      h3dShowOverlays(ovLogo, 4, 1.f, 1.f, 1.f, 1.f, logoMatRes_, 0);
-   }
+   perfmon::SwitchToCounter("render fire traces") ;
+   FireTraces(renderFrameTraces_);
+
 
    if (showStats) { 
       // show stats
       h3dutShowFrameStats( fontMatRes_, panelMatRes_, H3DUTMaxStatMode );
    }
-	
 
+   perfmon::SwitchToCounter("render load res");
    fileWatcher_.update();
    LoadResources();
 
    h3dSetMaterialArrayUniform( ssaoMat, "samplerKernel", ssaoSamplerData.data(), ssaoSamplerData.size());
-	// Render scene
+
+   // Render scene
+   perfmon::SwitchToCounter("render camera");
    h3dRender(camera_->GetNode());
 
-	// Finish rendering of frame
-	h3dFinalizeFrame();
+   // Finish rendering of frame
+   perfmon::SwitchToCounter("render finalize");
+   h3dFinalizeFrame();
    //glFinish();
 
    // Advance emitter time; this must come AFTER rendering, because we only know which emitters
    // to update after doing a render pass.
+   perfmon::SwitchToCounter("render ce");
    h3dRadiantAdvanceCubemitterTime(deltaNow / 1000.0f);
    h3dRadiantAdvanceAnimatedLightTime(deltaNow / 1000.0f);
 
    // Remove all overlays
-	h3dClearOverlays();
+   h3dClearOverlays();
 
-	// Write all messages to log file
-	h3dutDumpMessages();
+   // Write all messages to log file
+   h3dutDumpMessages();
+
+   perfmon::SwitchToCounter("render swap");
    glfwSwapBuffers(glfwGetCurrentContext());
 }
 
@@ -449,7 +460,11 @@ void Renderer::UpdateUITexture(const csg::Region2& rgn, const char* buffer)
 
       int pitch = uiWidth_ * 4;
 
-      char *data = (char *)h3dMapResStream(uiTexture_, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, true, true);
+      char *data;
+      {
+         perfmon::TimelineCounterGuard tcg("map ui texture") ;
+         data = (char *)h3dMapResStream(uiTexture_, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, true, true);
+      }
       if (data) {
          for (csg::Rect2 const& r : rgn) {
             int amount = (r.GetMax().x - r.GetMin().x) * 4;
@@ -461,7 +476,10 @@ void Renderer::UpdateUITexture(const csg::Region2& rgn, const char* buffer)
             }
          }
       }
-      h3dUnmapResStream(uiTexture_);
+      {
+         perfmon::TimelineCounterGuard tcg("unmap ui texture") ;
+         h3dUnmapResStream(uiTexture_);
+      }
    }
 }
 
@@ -483,9 +501,7 @@ void Renderer::Resize( int width, int height )
    for (const auto& entry : pipelines_) {
       h3dResizePipelineBuffers(entry.second, width, height);
    }
-   if (screen_resize_cb_) {
-      screen_resize_cb_(width_, height_);
-   }
+   screen_resize_slot_.Signal(csg::Point2(width_, height_));
 }
 
 std::shared_ptr<RenderEntity> Renderer::CreateRenderObject(H3DNode parent, om::EntityPtr entity)
@@ -632,11 +648,11 @@ void Renderer::OnWindowResized(int newWidth, int newHeight) {
    Resize(newWidth, newHeight);
 }
 
-dm::Guard Renderer::TraceSelected(H3DNode node, UpdateSelectionFn fn)
+core::Guard Renderer::TraceSelected(H3DNode node, UpdateSelectionFn fn)
 {
    ASSERT(!stdutil::contains(selectableCbs_, node));
    selectableCbs_[node] = fn;
-   return dm::Guard([=]() { selectableCbs_.erase(node); });
+   return core::Guard([=]() { selectableCbs_.erase(node); });
 }
 
 void Renderer::SetCurrentPipeline(std::string name)
@@ -697,21 +713,21 @@ void Renderer::SetViewMode(ViewMode mode)
    viewMode_ = mode;
 }
 
-dm::Guard Renderer::TraceFrameStart(std::function<void()> fn)
+core::Guard Renderer::TraceFrameStart(std::function<void()> fn)
 {
    return AddTrace(renderFrameTraces_, fn);
 }
 
-dm::Guard Renderer::TraceInterpolationStart(std::function<void()> fn)
+core::Guard Renderer::TraceInterpolationStart(std::function<void()> fn)
 {
    return AddTrace(interpolationStartTraces_, fn);
 }
 
-dm::Guard Renderer::AddTrace(TraceMap& m, std::function<void()> fn)
+core::Guard Renderer::AddTrace(TraceMap& m, std::function<void()> fn)
 {
    dm::TraceId tid = nextTraceId_++;
    m[tid] = fn;
-   return dm::Guard(std::bind(&Renderer::RemoveTrace, this, std::ref(m), tid));
+   return core::Guard(std::bind(&Renderer::RemoveTrace, this, std::ref(m), tid));
 }
 
 void Renderer::RemoveTrace(TraceMap& m, dm::TraceId tid)
@@ -793,4 +809,9 @@ void Renderer::SetUITextureSize(int width, int height)
    uiMatRes_ = h3dAddResource(H3DResTypes::Material, "UI Material", 0);
    bool result = h3dLoadResource(uiMatRes_, material.str().c_str(), material.str().length());
    assert(result);
+}
+
+core::Guard Renderer::OnScreenResize(std::function<void(csg::Point2)> fn)
+{
+   return screen_resize_slot_.Register(fn);
 }

@@ -6,7 +6,7 @@
 #include "lua_om.h"
 #include "lua_destination_component.h"
 #include "om/components/destination.h"
-#include "dm/guard.h"
+#include "core/guard.h"
 
 using namespace ::luabind;
 using namespace ::radiant;

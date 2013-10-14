@@ -427,5 +427,20 @@ function entities.compare_attribute(entity_a, entity_b, attribute)
    return 0
 end
 
+function entities.is_hostile(entity_a, entity_b)
+   -- only attack mobs
+   local ok = entity_b:add_component('stonehearth:materials'):has_material('meat')
+   if not ok then
+      return false
+   end
+
+   local faction_a = entity_a:add_component('unit_info'):get_faction()
+   local faction_b = entity_b:add_component('unit_info'):get_faction()
+
+   return faction_a and faction_b and 
+          faction_a ~= '' and faction_b ~= '' and
+          faction_a ~= faction_b
+end
+
 entities.__init()
 return entities

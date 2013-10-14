@@ -17,8 +17,10 @@ DataBindingPtr LuaComponents::GetLuaComponent(std::string name) const
 
 DataBindingPtr LuaComponents::AddLuaComponent(std::string name)
 {
-   ASSERT(lua_components_.find(name) == lua_components_.end());
-
+   auto i = lua_components_.find(name);
+   if (i != lua_components_.end()) {
+      return i->second;
+   }
    auto component = GetStore().AllocObject<DataBinding>();
    lua_components_[name] = component;
    return component;

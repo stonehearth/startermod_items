@@ -29,7 +29,7 @@ private:
 private:
    RenderEntity&        entity_;
    om::PaperdollRef     paperdoll_;
-   dm::Guard            tracer_;
+   core::Guard            tracer_;
    RenderEntityPtr      slots_[om::Paperdoll::NUM_SLOTS];
 };
 

@@ -114,7 +114,7 @@ GetLuaComponentData(lua_State* L, om::EntityPtr entity, std::string const& name)
 }
 
 object
-om::Stonehearth::GetComponent(lua_State* L, om::EntityRef e, std::string name)
+Stonehearth::GetComponent(lua_State* L, om::EntityRef e, std::string name)
 {
    object component;
    auto entity = e.lock();
@@ -126,8 +126,9 @@ om::Stonehearth::GetComponent(lua_State* L, om::EntityRef e, std::string name)
    }
    return component;
 }
+
 object
-om::Stonehearth::GetComponentData(lua_State* L, om::EntityRef e, std::string name)
+Stonehearth::GetComponentData(lua_State* L, om::EntityRef e, std::string name)
 {
    object component;
    auto entity = e.lock();
@@ -139,7 +140,6 @@ om::Stonehearth::GetComponentData(lua_State* L, om::EntityRef e, std::string nam
    }
    return component;
 }
-
 
 static object
 AddNativeComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
@@ -158,11 +158,23 @@ AddNativeComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
    return object();
 }
 
+static bool
+SetNativeComponentData(lua_State* L, om::EntityPtr entity, std::string const& name, object data)
+{
+#define OM_OBJECT(Clas, lower)  \
+   if (name == #lower) { \
+      auto component = entity->AddComponent<om::Clas>(); \
+      component->ExtendObject(lua::ScriptHost::LuaToJson(L, data)); \
+      return true; \
+   }
+   OM_ALL_COMPONENTS
+#undef OM_OBJECT
+   return false;
+}
+
 static object
 AddLuaComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
 {
-   using namespace luabind;
-
    object result;
    om::LuaComponentsPtr component = entity->AddComponent<om::LuaComponents>();
    om::DataBindingPtr data_binding = component->GetLuaComponent(name);
@@ -181,8 +193,17 @@ AddLuaComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
    return result;
 }
 
+static void
+SetLuaComponentData(lua_State* L, om::EntityPtr entity, std::string const& name, object data)
+{
+   object result;
+   om::LuaComponentsPtr component = entity->AddComponent<om::LuaComponents>();
+   om::DataBindingPtr data_binding = component->AddLuaComponent(name);
+   data_binding->SetDataObject(data);
+}
+
 object
-om::Stonehearth::AddComponent(lua_State* L, om::EntityRef e, std::string name)
+Stonehearth::AddComponent(lua_State* L, om::EntityRef e, std::string name)
 {
    object component;
    auto entity = e.lock();
@@ -194,6 +215,18 @@ om::Stonehearth::AddComponent(lua_State* L, om::EntityRef e, std::string name)
       }
    }
    return component;
+}
+
+void
+Stonehearth::SetComponentData(lua_State* L, om::EntityRef e, std::string name, object data)
+{
+   object component;
+   auto entity = e.lock();
+   if (entity) {
+      if (!SetNativeComponentData(L, entity, name, data)) {
+         SetLuaComponentData(L, entity, name, data);
+      }
+   }
 }
 
 void Stonehearth::InitEntity(om::EntityPtr entity, std::string const& uri, lua_State* L)

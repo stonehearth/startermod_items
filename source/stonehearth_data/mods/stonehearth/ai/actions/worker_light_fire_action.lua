@@ -49,7 +49,7 @@ function WorkerLightFireAction:run(ai, entity, path_to_log, firepit, task)
 
    -- Put the log IN the firepit and light it
    local firepit_component = firepit:get_component('stonehearth:firepit')
-   firepit_component:add_wood(log)
+   firepit_component:light(log)
 
    -- If we got here, we succeeded at the action.
    -- Note that we succeeded by setting the task to nil.

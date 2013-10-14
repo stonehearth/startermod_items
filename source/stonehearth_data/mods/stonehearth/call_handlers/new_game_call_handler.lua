@@ -73,32 +73,39 @@ end
 
 
 function NewGameCallHandler:create_camp(session, response, pt)
+   local faction = radiant.mods.load('stonehearth').population:get_faction('stonehearth:factions:ascendancy')
+
    -- place the stanfard in the middle of the camp
    local location = Point3(pt.x, pt.y, pt.z)
    local standard_entity = radiant.entities.create_entity('stonehearth:camp_standard')
    radiant.terrain.place_entity(standard_entity, location)
+   faction:set_home_location(location)
    
    -- build the camp
    local camp_x = pt.x
    local camp_z = pt.z
 
-   local worker = self:place_citizen(camp_x-3, camp_z-3)
-   self:place_citizen(camp_x+0, camp_z-3)
-   self:place_citizen(camp_x+3, camp_z-3)
+   local worker1 = self:place_citizen(camp_x-3, camp_z-3)
+   local worker2 = self:place_citizen(camp_x+0, camp_z-3)
+   local worker3 = self:place_citizen(camp_x+3, camp_z-3)
    self:place_citizen(camp_x-3, camp_z+3)
    self:place_citizen(camp_x+0, camp_z+3)
    self:place_citizen(camp_x+3, camp_z+3)
    self:place_citizen(camp_x-3, camp_z+0)
    self:place_citizen(camp_x+3, camp_z+0)
 
-   local faction = worker:get_component('unit_info'):get_faction()
-
+   
+   radiant.entities.pickup_item(worker1, faction:create_entity('stonehearth:oak_log'))
+   radiant.entities.pickup_item(worker2, faction:create_entity('stonehearth:oak_log'))
+   radiant.entities.pickup_item(worker3, faction:create_entity('stonehearth:fire_pit_proxy'))
+   --[[
    self:place_stockpile(faction, camp_x+8, camp_z-2, 4, 4)
 
    --put some default supplies into the stockpile (for now)
    self:place_item('stonehearth:fire_pit_proxy', camp_x+8, camp_z-2, faction)
    self:place_item('stonehearth:oak_log', camp_x+8+1, camp_z-2+1)
    self:place_item('stonehearth:oak_log', camp_x+8, camp_z-2+2)
+   ]]
 
    return {}
 end

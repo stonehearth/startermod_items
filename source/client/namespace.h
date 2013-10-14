@@ -4,11 +4,13 @@
 #define BEGIN_RADIANT_CLIENT_NAMESPACE  namespace radiant { namespace client {
 #define END_RADIANT_CLIENT_NAMESPACE    } }
 
-#define RADIANT_CLIENT_NAMESPACE    ::radiant::client
+BEGIN_RADIANT_CLIENT_NAMESPACE
 
-#define IN_RADIANT_CLIENT_NAMESPACE(x) \
-   BEGIN_RADIANT_CLIENT_NAMESPACE \
-   x  \
-   END_RADIANT_CLIENT_NAMESPACE
+// Forward Defines
+class Renderer;
+class PerfHud;
+class RenderContext;
+
+END_RADIANT_CLIENT_NAMESPACE
 
 #endif //  _RADIANT_CLIENT_NAMESPACE_H

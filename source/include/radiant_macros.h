@@ -12,14 +12,11 @@
 #define ASSERT(x)          do { if (!(x)) { DebugBreak(); } } while(false)
 #define NYI_ERROR_CHECK(x) ASSERT(x)
 
-#define VERIFY(expr, Excp) do { if (!(expr)) { throw Excp; } } while(false)
-
 #define BUILD_STRING(x) static_cast<std::ostringstream&>(std::ostringstream() << x).str()
 
 #define DEBUG_ONLY(x)      do { x } while (false);
 #define NOT_YET_IMPLEMENTED()       throw std::logic_error(BUILD_STRING("not yet implemented: " << __FILE__ << ":" << __LINE__))
 #define NOT_REACHED()      ASSERT(false)
-
 
 #define DECLARE_SHARED_POINTER_TYPES(Cls) \
    typedef std::shared_ptr<Cls>  Cls ## Ptr; \
@@ -28,5 +25,12 @@
 #define NO_COPY_CONSTRUCTOR(Cls) \
    Cls(const Cls& other); \
    const Cls& operator=(const Cls& rhs);
+
+#define VERIFY(cond, err) \
+   do { \
+      if (!(cond)) { \
+         throw std::logic_error(err); \
+      } \
+   } while (false)
 
 #endif // _RADIANT_MACROS_H

@@ -102,7 +102,7 @@ function HeightMapRenderer:_add_mountains_to_region(dst, rect, height)
    block_min = 0
 
    for i=1, #rock_layers do
-      if height <= rock_layers[i].max_height then
+      if (i == #rock_layers) or (height <= rock_layers[i].max_height) then
          block_max = height
          stop = true
       else

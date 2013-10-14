@@ -17,6 +17,7 @@
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
+typedef core::UniqueResource<H3DRes,  h3dUnloadResource> H3DResUnique;
 typedef core::UniqueResource<H3DNode, h3dRemoveNode> H3DNodeUnique;
 typedef core::UniqueResource<H3DNode, h3dRadiantStopCubemitterNode> H3DCubemitterNodeUnique;
 

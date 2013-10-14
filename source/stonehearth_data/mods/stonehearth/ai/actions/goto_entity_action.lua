@@ -2,7 +2,7 @@ local GotoEntityAction = class()
 
 GotoEntityAction.name = 'goto entity'
 GotoEntityAction.does = 'stonehearth:goto_entity'
-GotoEntityAction.priority = 1
+GotoEntityAction.priority = 2
 --TODO we need a scale to  describe relative importance
 
 function GotoEntityAction:run(ai, entity, target)

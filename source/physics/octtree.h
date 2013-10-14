@@ -18,6 +18,9 @@ class OctTree {
       void SetRootEntity(om::EntityPtr);
       void Cleanup();
 
+      NavGrid& GetNavGrid() { return navgrid_; } // sigh
+      NavGrid const& GetNavGrid() const { return navgrid_; } // sigh
+
       void Update(int now);
 
       typedef std::function<bool (om::EntityPtr )>   QueryCallback;
@@ -35,7 +38,7 @@ class OctTree {
       void Unstick(std::vector<csg::Point3> &points);
       csg::Point3 Unstick(const csg::Point3 &pt);
 
-      dm::Guard TraceZonesContaining(om::EntityPtr entity);
+      core::Guard TraceZonesContaining(om::EntityPtr entity);
 
       TerrainChangeCbId AddCollisionRegionChangeCb(csg::Region3 const* r, TerrainChangeCb cb);
       void RemoveCollisionRegionChangeCb(TerrainChangeCbId id);
@@ -65,7 +68,7 @@ class OctTree {
    protected:
       std::map<dm::ObjectId, om::EntityRef>           entities_;
       std::map<dm::ObjectId, om::SensorRef>           sensors_;
-      dm::Guard                                       guards_;
+      core::Guard                                       guards_;
       NavGrid                                         navgrid_;
 };
 

@@ -20,7 +20,7 @@ public:
 
    om::EntityRef GetCarrying() const { return *carrying_; }
    void SetCarrying(om::EntityRef obj) { carrying_ = obj; }
-   dm::Guard TraceCarrying(const char* reason, std::function<void()> fn) { return carrying_.TraceObjectChanges(reason, fn); }
+   core::Guard TraceCarrying(const char* reason, std::function<void()> fn) { return carrying_.TraceObjectChanges(reason, fn); }
 
 private:
    void InitializeRecordFields() override {

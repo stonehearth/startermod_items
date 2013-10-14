@@ -1,11 +1,11 @@
-#include "pch.h"
+#include "radiant.h"
 #include "guard.h"
 #include <utility>
 
 using namespace ::radiant;
-using namespace ::radiant::dm;
+using namespace ::radiant::core;
 
-int Guard::nextGuardId__ = 1;
+std::atomic<int> Guard::nextGuardId__(1);
 
 Guard::Guard() :
    id_(nextGuardId__++)
@@ -71,4 +71,10 @@ void Guard::UntrackNodes()
    }
    nodes_.clear();
 }
+
+bool Guard::Empty() const
+{
+   return nodes_.empty();
+}
+
 

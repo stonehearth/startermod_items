@@ -33,7 +33,7 @@ public:
 
    int Size() const { return C; }
 
-   dm::Guard TraceChanges(const char* reason,
+   core::Guard TraceChanges(const char* reason,
                           std::function<void(int i, const T& v)> changed) const
    {
       auto cb = [=]() {

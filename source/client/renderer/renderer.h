@@ -20,6 +20,7 @@
 #include "camera.h"
 #include "platform/FileWatcher.h"
 #include "core/input.h"
+#include "core/buffered_slot.h"
 
 IN_RADIANT_LUA_NAMESPACE(
    class ScriptHost;
@@ -66,6 +67,7 @@ class Renderer
       void RenderOneFrame(int now, float alpha);
       void Cleanup();
       void LoadResources();
+      void ShowPerfHud(bool value);
 
       int GetWidth() const;
       int GetHeight() const;
@@ -85,7 +87,7 @@ class Renderer
       void RemoveRenderObject(int storeId, dm::ObjectId id);
 
       typedef std::function<void(om::Selection& sel, const csg::Ray3& ray, const csg::Point3f& intersection, const csg::Point3f& normal)> UpdateSelectionFn;
-      dm::Guard TraceSelected(H3DNode node, UpdateSelectionFn fn);
+      core::Guard TraceSelected(H3DNode node, UpdateSelectionFn fn);
 
       void GetCameraToViewportRay(int windowX, int windowY, csg::Ray3* ray);
       void CastRay(const csg::Point3f& origin, const csg::Point3f& direction, RayCastResult* result);
@@ -95,7 +97,7 @@ class Renderer
       typedef std::function<void (const Input&)> InputEventCb;
       void SetInputHandler(InputEventCb fn) { input_cb_ = fn; }
 
-      void SetScreenResizeCb(std::function<void(int, int)> cb) { screen_resize_cb_ = cb; }
+      core::Guard OnScreenResize(std::function<void(csg::Point2)> fn);
 
       void UpdateUITexture(const csg::Region2& rgn, const char* buffer);
 
@@ -106,8 +108,8 @@ class Renderer
       void SetCurrentPipeline(std::string pipeline);
       bool ShouldHideRenderGrid(const csg::Point3& normal);
 
-      dm::Guard TraceFrameStart(std::function<void()> fn);
-      dm::Guard TraceInterpolationStart(std::function<void()> fn);
+      core::Guard TraceFrameStart(std::function<void()> fn);
+      core::Guard TraceInterpolationStart(std::function<void()> fn);
 
       int GetCurrentFrameTime() const { return currentFrameTime_; }
       float GetCurrentFrameInterp() const { return currentFrameInterp_; }
@@ -134,7 +136,7 @@ class Renderer
 
       typedef std::unordered_map<dm::TraceId, std::function<void()>> TraceMap;
 
-      dm::Guard AddTrace(TraceMap& m, std::function<void()> fn);
+      core::Guard AddTrace(TraceMap& m, std::function<void()> fn);
       void RemoveTrace(TraceMap& m, dm::TraceId tid);
       void FireTraces(const TraceMap& m);
       void DispatchInputEvent();
@@ -151,7 +153,6 @@ class Renderer
       H3DResourceMap    pipelines_;
    	H3DRes            currentPipeline_;
 
-      H3DRes            logoMatRes_;
       H3DRes            fontMatRes_;
       H3DRes            panelMatRes_;
       H3DRes            uiMatRes_;
@@ -161,7 +162,7 @@ class Renderer
       FW::FileWatcher   fileWatcher_;
 
       dm::TraceId       nextTraceId_;
-      dm::Guard           traces_;
+      core::Guard           traces_;
       TraceMap          renderFrameTraces_;
       TraceMap          interpolationStartTraces_;
 
@@ -181,7 +182,9 @@ class Renderer
       ViewMode                      viewMode_;
       boost::property_tree::basic_ptree<std::string, std::string> config_;
       lua::ScriptHost*              scriptHost_;
-      std::function<void(int, int)> screen_resize_cb_;
+
+      core::BufferedSlot<csg::Point2>  screen_resize_slot_;
+      std::unique_ptr<PerfHud>         perf_hud_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

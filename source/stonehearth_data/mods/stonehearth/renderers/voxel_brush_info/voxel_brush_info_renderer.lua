@@ -20,20 +20,22 @@ function VoxelBrushInfoRenderer:_update_shape()
       self._model_node:destroy()
       self._model_node = nil
    end
-
-   local brush = _radiant.voxel.create_brush(self._info.brush)
-   
-   if self._info.info_component then
-      local render_data = self._entity:get_component_data(self._info.info_component)
-      if render_data.normal then
-         local normal = Point3(render_data.normal.x, render_data.normal.y, render_data.normal.z)
-         brush:set_normal(normal)
+   local region = self._collsion_shape:get_region()
+   if region and region:get() then
+      local brush = _radiant.voxel.create_brush(self._info.brush)
+      
+      if self._info.info_component then
+         local render_data = self._entity:get_component_data(self._info.info_component)
+         if render_data and render_data.normal then
+            local normal = Point3(render_data.normal.x, render_data.normal.y, render_data.normal.z)
+            brush:set_normal(normal)
+         end
       end
-   end
 
-   local stencil = self._collsion_shape:get_region():get()
-   local model = brush:paint_through_stencil(stencil)
-   self._model_node = _radiant.client.create_voxel_render_node(self._node, model)
+      local stencil = region:get()
+      local model = brush:paint_through_stencil(stencil)
+      self._model_node = _radiant.client.create_voxel_render_node(self._node, model)
+   end
 end
 
 return VoxelBrushInfoRenderer

@@ -40,7 +40,7 @@ public:
    Region3BoxedPtrBoxed       adjacent_;
    DeepRegionGuardPtr              region_guard_;
    DeepRegionGuardPtr              reserved_guard_;
-   dm::Guard                        update_adjacent_guard_;
+   core::Guard                        update_adjacent_guard_;
    int                              lastUpdated_;
    int                              lastChanged_;
 };

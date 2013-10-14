@@ -1,15 +1,123 @@
 #createCamp {
    position: absolute;
-   bottom: 10px;
-   left: 660px;
-   width: 600px;
-   height: 100px;
-   background: rgba(0,0,0,0.6);
+   bottom: 0px;
+   left: 537px;
+   width: 846px;
+   height: 293px;
 
-   #chooseCampLocationButton {
+   .scroll {
       position: absolute;
-      bottom: 0;
-      left: 10;
-      right: 10;
+      bottom: -20px;
+      left: 195px;
+      width: 472px;
+      height: 293px;
+      background: url(./images/scroll_bg.png) no-repeat;
+      font-family: @parchmentFontFamily;
+
+      #content {
+         padding-top: 20px;
+         padding-left: 40px;
+         padding-right: 40px;
+
+         .title {
+            .outlined(#464a3d);
+            color: #92a174;
+            font-size: 66px;
+         }
+
+         .subtitle {
+            position: relative;
+            top: -20px;
+            color: #606d45;
+            font-size: 45px;
+         }
+
+         .help {
+            position: relative;
+            font-size: 28px;
+         }
+      }
+   }
+
+   #scroll1 {
+      
+   }
+
+   #scroll2 {
+      position: absolute;
+      bottom: -50px;
+      left: 205px;
+      background: url(./images/scroll2_bg.png) no-repeat;
+   
+      #content {
+         padding-top: 60px;
+
+         .help {
+            position: relative;
+            top: -20px;
+            color: #000;
+         }
+      }
+   }
+
+   #scroll3 {
+      position: absolute;
+      bottom: -60px;
+      left: 215px;
+      background: url(./images/scroll2_bg.png) no-repeat;
+
+      #content {
+         padding-top: 60px;
+
+         .help {
+            position: relative;
+            top: -20px;
+            color: #000;
+         }
+      }
+   }
+
+   #banner {
+      position: absolute;
+      bottom: -22px;
+      left: 0px;
+      width: 204px;
+      height: 300px;
+      background: url(./images/banner.png);;
+      text-align: center;
+      vertical-align: middle;
+      display: table;
+
+      div {
+         .controlFont;
+         position: absolute;
+         top: 130px;
+         padding-left: 20px;
+         padding-right: 20px;
+         color: #89c3ff;
+         font-size: 22px;
+      }
+   }
+
+   #crate {
+      .controlFont;
+      position: absolute;
+      bottom: -20px;
+      right: 0px;
+      width: 189px;
+      height: 178px;
+      text-align: center;
+      background: url(./images/crate.png);
+   
+      div {
+         .controlFont;
+         position: absolute;
+         top: 90px;
+         padding-left: 20px;
+         padding-right: 20px;
+         color: #ba9c65;
+         font-size: 22px;
+         display: none;
+      }
    }
 }

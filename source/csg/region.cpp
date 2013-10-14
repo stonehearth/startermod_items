@@ -387,5 +387,6 @@ Region3 radiant::csg::GetBorderXZ(const Region3 &other)
 MAKE_REGION(Region3)
 MAKE_REGION(Region3f)
 MAKE_REGION(Region2)
+MAKE_REGION(Region2f)
 MAKE_REGION(Region1)
 

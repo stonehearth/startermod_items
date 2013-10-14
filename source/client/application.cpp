@@ -4,6 +4,7 @@
 #include "client.h" 
 #include "application.h"
 #include "resources/res_manager.h"
+#include "lib/perfmon/perfmon.h"
 #include "core/config.h"
 #include <thread>
 
@@ -35,7 +36,9 @@ bool Application::LoadConfig(int argc, const char* argv[])
 
 int Application::Run(int argc, const char** argv)
 {
+   perfmon::PerfmonThreadGuard pg;
    try {
+      
       core::Config& config = core::Config::GetInstance();
 
       if (!LoadConfig(argc, argv)) {
@@ -51,6 +54,7 @@ int Application::Run(int argc, const char** argv)
       client::Client::GetInstance();
 
       std::thread client([&]() {
+         perfmon::PerfmonThreadGuard pg;
          try {
             Client::GetInstance().run();
          } catch (std::exception &e) {

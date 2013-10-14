@@ -9,7 +9,7 @@
 
 #include "interfaces.h"
 #include "dm/store.h"
-#include "dm/guard.h"
+#include "core/guard.h"
 #include "libjson.h"
 #include "physics/namespace.h"
 #include "radiant_json.h"
@@ -112,7 +112,7 @@ private:
 
 private:
    dm::Store                                             store_;
-   dm::Guard                                             guards_;
+   core::Guard                                             guards_;
    std::vector<std::pair<dm::ObjectId, dm::ObjectType>>  allocated_;
    std::vector<dm::ObjectId>                             destroyed_;
    std::unique_ptr<phys::OctTree>                     octtree_;

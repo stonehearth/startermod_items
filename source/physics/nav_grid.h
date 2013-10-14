@@ -19,8 +19,11 @@ class NavGrid {
       void TrackComponent(dm::ObjectType type, std::shared_ptr<dm::Object> component);
       bool CanStand(csg::Point3 const& pt) const;
       bool IsEmpty(csg::Point3 const& pt) const;
+      bool IsEmpty(csg::Cube3 const& pt) const;
       void ClipRegion(csg::Region3& r) const;
 
+      bool CanStandOn(csg::Cube3 const& cube) const;
+      bool IsValidStandingRegion(csg::Region3 const& r) const;
       TerrainChangeCbId AddCollisionRegionChangeCb(csg::Region3 const* r, TerrainChangeCb cb);
       void RemoveCollisionRegionChangeCb(TerrainChangeCbId id);
 
@@ -35,7 +38,7 @@ class NavGrid {
    private:
       struct TerrainCollisionObject {
          std::weak_ptr<om::Terrain> obj;
-         dm::Guard                  guard;
+         core::Guard                  guard;
          TerrainCollisionObject() { }
          TerrainCollisionObject(std::shared_ptr<om::Terrain> o) : obj(o) { }
       private:
@@ -44,7 +47,7 @@ class NavGrid {
 
       struct VerticalPathingRegionCollisionObject {
          std::weak_ptr<om::VerticalPathingRegion> obj;
-         dm::Guard                                guard;
+         core::Guard                                guard;
          VerticalPathingRegionCollisionObject() { }
          VerticalPathingRegionCollisionObject(std::shared_ptr<om::VerticalPathingRegion> o) : obj(o) { }
       private:

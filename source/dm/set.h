@@ -86,7 +86,7 @@ public:
       return stdutil::contains(items_, item);
    }
 
-   dm::Guard TraceSetChanges(const char* reason,
+   core::Guard TraceSetChanges(const char* reason,
                              std::function<void(const T& v)> added,
                              std::function<void(const T& v)> removed) const
    {
@@ -146,7 +146,7 @@ public:
       }
 
    private:
-      dm::Guard                     guard_;
+      core::Guard                     guard_;
       std::vector<luabind::object>  changedCbs_;
       std::vector<luabind::object>  removedCbs_;
    };
