@@ -91,9 +91,14 @@ public:
    void Update(int now, int dt, bool& done) override;
 
 private:
-   void parseTransforms(const JSONNode& node, float *x, float *y, float *z, float *rx, float *ry, float *rz);
    RenderEntity&                 entity_;
+   int                           startTime_;
+   int                           endTime_;
    H3DCubemitterNodeUnique       cubemitterNode_;
+   std::string                   filename_;
+   csg::Point3f                  pos_;
+   csg::Point3f                  rot_;
+   H3DNode                       parent_;
 };
 
 /* For creating lights from a given JSON file. */

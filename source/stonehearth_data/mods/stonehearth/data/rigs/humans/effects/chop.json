@@ -20,7 +20,7 @@
          "type": "sound_effect",
          "duration": 1000,
          "start_delay": 200,
-         "track" : "stonehearth:sounds.axe_chopping_sound"
+         "track" : "stonehearth:sounds:axe_chopping_sound"
       }
    }
 }

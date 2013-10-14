@@ -4,6 +4,7 @@
       "cubemitter": {
          "type": "cubemitter",
          "cubemitter": "particles/fire/fire.cubemitter.json",
+         "loop": true,
          "transforms": {
             "x":0,
             "y":0,

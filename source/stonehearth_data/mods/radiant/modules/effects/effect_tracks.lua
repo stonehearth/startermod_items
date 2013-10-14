@@ -38,8 +38,6 @@ function EffectTracks:__init(mgr, entity, effect_path, effect_name, start_time, 
          table.insert(self._effects, FrameDataEffect(start_time, trigger_handler, e, self._effect))
       elseif e.type == "music_effect" or e.type == "sound_effect" then
          table.insert(self._effects, MusicEffect(start_time, trigger_handler, e, self._effect, args))
-      elseif e.type == "cubemitter" then
-         table.insert(self._effects, CubemitterEffect(e))
       elseif e.type == "light" then
          table.insert(self._effects, LightEffect(e))
       else
