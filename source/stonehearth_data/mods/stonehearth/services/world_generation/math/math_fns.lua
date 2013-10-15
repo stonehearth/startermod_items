@@ -47,7 +47,7 @@ function MathFns.int_hash(x)
    local unsigned
 
    if x >= 0 then unsigned = x
-   else           unsigned = max_unsigned_int+1 + x -- recall is negative
+   else           unsigned = max_unsigned_int+1 + x -- recall x is negative
    end
 
    -- simple hash function from Knuth

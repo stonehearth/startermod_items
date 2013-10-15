@@ -22,39 +22,49 @@ function HeightMapRenderer:__init(zone_size, terrain_info)
    local foothills_info = self.terrain_info[TerrainType.Foothills]
    local mountains_info = self.terrain_info[TerrainType.Mountains]
    rock_layers[1].terrain_tag = Terrain.ROCK_LAYER_1
-   rock_layers[1].max_height = foothills_info.max_height + mountains_info.step_size
+   rock_layers[1].max_height  = foothills_info.max_height + mountains_info.step_size
    rock_layers[2].terrain_tag = Terrain.ROCK_LAYER_2
-   rock_layers[2].max_height = rock_layers[1].max_height + mountains_info.step_size
+   rock_layers[2].max_height  = rock_layers[1].max_height + mountains_info.step_size
    rock_layers[3].terrain_tag = Terrain.ROCK_LAYER_3
-   rock_layers[3].max_height = rock_layers[2].max_height + mountains_info.step_size
+   rock_layers[3].max_height  = rock_layers[2].max_height + mountains_info.step_size
    self.rock_layers = rock_layers
 end
 
--- delegate to C++ to "tesselate" heightmap into rectangles
-function HeightMapRenderer:render_height_map_to_terrain(height_map, offset_x, offset_y)
+function HeightMapRenderer:create_new_region()
+   return _radiant.sim.alloc_region() -- returns a C++ Region3Boxed
+end
+
+function HeightMapRenderer:add_region_to_terrain(region3_boxed, offset)
+   if offset == nil then offset = Point3(0, 0, 0) end
+   self._terrain:add_zone(offset, region3_boxed)
+end
+
+function HeightMapRenderer:render_height_map_to_region(region3_boxed, height_map)
    assert(height_map.width == self.zone_size)
    assert(height_map.height == self.zone_size)
-   if offset_x == nil then offset_x = 0 end
-   if offset_y == nil then offset_y = 0 end
-   local offset = Point3(offset_x, 0, offset_y)
 
-   local boxed_r3 = _radiant.sim.alloc_region()   
-   local r3 = boxed_r3:modify()
-   local r2 = Region2()
-   local height_map_cpp = HeightMapCPP(height_map.width, 1) -- Assumes square map!
+   local region3 = region3_boxed:modify()
+   local region2 = Region2()
    local height
 
-   self:_copy_heightmap_to_CPP(height_map_cpp, height_map)
-   _radiant.csg.convert_heightmap_to_region2(height_map_cpp, r2)
+   self:_convert_height_map_to_region2(region2, height_map)
 
-   for rect in r2:contents() do
+   self:_add_bedrock_to_region(region3, height_map, 4)
+
+   for rect in region2:contents() do
       height = rect.tag
       if height > 0 then
-         self:_add_land_to_region(r3, rect, height);
+         self:_add_land_to_region(region3, rect, height);
       end
    end
+end
 
-   self._terrain:add_zone(offset, boxed_r3)
+function HeightMapRenderer:_convert_height_map_to_region2(region2, height_map)
+   assert(height_map.width == height_map.height)
+   local height_map_cpp = HeightMapCPP(height_map.width, 1) -- Assumes square map!
+
+   self:_copy_heightmap_to_CPP(height_map_cpp, height_map)
+   _radiant.csg.convert_heightmap_to_region2(height_map_cpp, region2)
 end
 
 function HeightMapRenderer:_copy_heightmap_to_CPP(height_map_cpp, height_map)
@@ -69,32 +79,34 @@ function HeightMapRenderer:_copy_heightmap_to_CPP(height_map_cpp, height_map)
    end
 end
 
-function HeightMapRenderer:_add_land_to_region(dst, rect, height)
-   local foothills_max_height = self.terrain_info[TerrainType.Foothills].max_height
-   local grassland_max_height = self.terrain_info[TerrainType.Grassland].max_height
-
-   -- Bedrock
-   dst:add_cube(Cube3(Point3(rect.min.x, -2, rect.min.y),
-                      Point3(rect.max.x,  0, rect.max.y),
-                      Terrain.ROCK_LAYER_1))
-
-   -- Mountains
-   if height > foothills_max_height then
-      self:_add_mountains_to_region(dst, rect, height)
-      return
-   end
-
-   -- Grassland
-   if height <= grassland_max_height then
-      self:_add_grassland_to_region(dst, rect, height)
-      return
-   end
-
-   -- Foothills
-   self:_add_foothills_to_region(dst, rect, height)
+function HeightMapRenderer:_add_bedrock_to_region(region3, height_map, thickness)
+   region3:add_cube(Cube3(Point3(0, -thickness, 0),
+                          Point3(height_map.width, 0, height_map.height),
+                          Terrain.ROCK_LAYER_1))
 end
 
-function HeightMapRenderer:_add_mountains_to_region(dst, rect, height)
+function HeightMapRenderer:_add_land_to_region(region3, rect, height)
+   local terrain_type = self.terrain_info:get_terrain_type(height)
+
+   -- as we grow TerrainTypes, put this in a table and dynamically call the function
+
+   if terrain_type == TerrainType.Grassland then
+      self:_add_grassland_to_region(region3, rect, height)
+      return
+   end
+
+   if terrain_type == TerrainType.Foothills then
+      self:_add_foothills_to_region(region3, rect, height)
+      return
+   end
+
+   if terrain_type == TerrainType.Mountains then
+      self:_add_mountains_to_region(region3, rect, height)
+      return
+   end
+end
+
+function HeightMapRenderer:_add_mountains_to_region(region3, rect, height)
    local rock_layers = self.rock_layers
    local i, block_min, block_max
    local stop = false
@@ -109,41 +121,41 @@ function HeightMapRenderer:_add_mountains_to_region(dst, rect, height)
          block_max = rock_layers[i].max_height
       end
 
-      dst:add_cube(Cube3(Point3(rect.min.x, block_min, rect.min.y),
-                         Point3(rect.max.x, block_max, rect.max.y),
-                         rock_layers[i].terrain_tag))
+      region3:add_cube(Cube3(Point3(rect.min.x, block_min, rect.min.y),
+                             Point3(rect.max.x, block_max, rect.max.y),
+                             rock_layers[i].terrain_tag))
 
       if stop then return end
       block_min = block_max
    end
 end
 
-function HeightMapRenderer:_add_foothills_to_region(dst, rect, height)
+function HeightMapRenderer:_add_foothills_to_region(region3, rect, height)
    local foothills_step_size = self.terrain_info[TerrainType.Foothills].step_size
 
    if height % foothills_step_size == 0 then
 
-      dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
-                         Point3(rect.max.x, height-1, rect.max.y),
-                         Terrain.SOIL))
+      region3:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
+                             Point3(rect.max.x, height-1, rect.max.y),
+                             Terrain.SOIL))
 
-      dst:add_cube(Cube3(Point3(rect.min.x, height-1, rect.min.y),
-                         Point3(rect.max.x, height,   rect.max.y),
-                         Terrain.LIGHT_GRASS))
+      region3:add_cube(Cube3(Point3(rect.min.x, height-1, rect.min.y),
+                             Point3(rect.max.x, height,   rect.max.y),
+                             Terrain.LIGHT_GRASS))
    else
-      dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
-                         Point3(rect.max.x, height,   rect.max.y),
-                         Terrain.SOIL))
+      region3:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
+                             Point3(rect.max.x, height,   rect.max.y),
+                             Terrain.SOIL))
    end
 end
 
-function HeightMapRenderer:_add_grassland_to_region(dst, rect, height)
+function HeightMapRenderer:_add_grassland_to_region(region3, rect, height)
    local grassland_max_height = self.terrain_info[TerrainType.Grassland].max_height
    local grass_type
 
-   dst:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
-                      Point3(rect.max.x, height-1, rect.max.y),
-                      Terrain.SOIL))
+   region3:add_cube(Cube3(Point3(rect.min.x, 0,        rect.min.y),
+                          Point3(rect.max.x, height-1, rect.max.y),
+                          Terrain.SOIL))
 
    if height < grassland_max_height then
       grass_type = Terrain.DARK_GRASS_DARK
@@ -151,51 +163,49 @@ function HeightMapRenderer:_add_grassland_to_region(dst, rect, height)
       grass_type = Terrain.DARK_GRASS
    end
 
-   dst:add_cube(Cube3(Point3(rect.min.x, height-1, rect.min.y),
-                      Point3(rect.max.x, height,   rect.max.y),
-                      grass_type))
+   region3:add_cube(Cube3(Point3(rect.min.x, height-1, rect.min.y),
+                          Point3(rect.max.x, height,   rect.max.y),
+                          grass_type))
 end
 
 -----
 
 function HeightMapRenderer:visualize_height_map(height_map)
-   local boxed_r3 = _radiant.sim.alloc_region()   
-   local r3 = boxed_r3:modify()
-   local r2 = Region2()
-   local height_map_cpp = HeightMapCPP(height_map.width, 1) -- Assumes square map!
+   local region3_boxed = create_new_region()
+   local region3 = region3_boxed:modify()
+   local region2 = Region2()
    local height
 
-   self:_copy_heightmap_to_CPP(height_map_cpp, height_map)
-   _radiant.csg.convert_heightmap_to_region2(height_map_cpp, r2)
+   self:_convert_height_map_to_region2(region2, height_map)
 
-   for rect in r2:contents() do
+   for rect in region2:contents() do
       height = rect.tag
       if height >= 1 then
-         r3:add_cube(Cube3(Point3(rect.min.x, -1,       rect.min.y),
-                           Point3(rect.max.x, height-1, rect.max.y),
-                           Terrain.ROCK_LAYER_1))
+         region3:add_cube(Cube3(Point3(rect.min.x, -1,       rect.min.y),
+                                Point3(rect.max.x, height-1, rect.max.y),
+                                Terrain.ROCK_LAYER_1))
       end
-      r3:add_cube(Cube3(Point3(rect.min.x, height-1, rect.min.y),
-                        Point3(rect.max.x, height,   rect.max.y),
-                        Terrain.ROCK_LAYER_1))
+      region3:add_cube(Cube3(Point3(rect.min.x, height-1, rect.min.y),
+                             Point3(rect.max.x, height,   rect.max.y),
+                             Terrain.ROCK_LAYER_1))
    end
 
-   self._terrain:add_zone(Point3(0,0,0), boxed_r3)
+   self.add_region_to_terrain(region3_boxed)
 end
 
 function HeightMapRenderer.tesselator_test()
    local terrain = radiant._root_entity:add_component('terrain')
-   local boxed_r3 = _radiant.sim.alloc_region()   
-   local r3 = boxed_r3:modify()
+   local region3_boxed = _radiant.sim.alloc_region()
+   local region3 = region3_boxed:modify()
    local height = 10
 
-   --r3:add_cube(Cube3(Point3(0, height-1, 0), Point3(16, height, 16), Terrain.DARK_GRASS))
-   --r3:add_cube(Cube3(Point3(16, height-1, 1), Point3(17, height, 15), Terrain.SOIL))
+   --region3:add_cube(Cube3(Point3(0, height-1, 0), Point3(16, height, 16), Terrain.DARK_GRASS))
+   --region3:add_cube(Cube3(Point3(16, height-1, 1), Point3(17, height, 15), Terrain.SOIL))
 
-   r3:add_cube(Cube3(Point3(0, height-1, 0), Point3(256, height, 256), Terrain.DARK_GRASS))
-   --r3:add_cube(Cube3(Point3(256, height-1, 0), Point3(257, height, 256), Terrain.SOIL))
+   region3:add_cube(Cube3(Point3(0, height-1, 0), Point3(256, height, 256), Terrain.DARK_GRASS))
+   --region3:add_cube(Cube3(Point3(256, height-1, 0), Point3(257, height, 256), Terrain.SOIL))
 
-   terrain:add_zone(Point3(0, 0, 0), boxed_r3)
+   terrain:add_zone(Point3(0, 0, 0), region3_boxed)
 end
 
 return HeightMapRenderer

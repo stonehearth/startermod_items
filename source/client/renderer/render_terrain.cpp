@@ -72,6 +72,7 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
       csg::Point3f rock_layer_1_color = parse_color(config.get<std::string>("rock.layer_1_color", "#ff00ff"));
       csg::Point3f rock_layer_2_color = parse_color(config.get<std::string>("rock.layer_2_color", "#ff00ff"));
       csg::Point3f rock_layer_3_color = parse_color(config.get<std::string>("rock.layer_3_color", "#ff00ff"));
+      csg::Point3f boulder_color = parse_color(config.get<std::string>("rock.boulder_color", "#ff00ff"));
       csg::Point3f dark_wood_color = parse_color(config.get<std::string>("wood.dark_color", "#ff00ff"));
 
       // xxx: this is in no way thread safe! (see SH-8)
@@ -140,6 +141,10 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
 
       tess_map[om::Terrain::RockLayer3] = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {
          m.add_face(points, normal, rock_layer_3_color);
+      };
+
+      tess_map[om::Terrain::Boulder] = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {
+         m.add_face(points, normal, boulder_color);
       };
 
       auto render_detail = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {

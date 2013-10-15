@@ -1,5 +1,7 @@
 local TerrainType = require 'services.world_generation.terrain_type'
+local TerrainInfo = require 'services.world_generation.terrain_info'
 local Array2D = require 'services.world_generation.array_2D'
+local MathFns = require 'services.world_generation.math.math_fns'
 local InverseGaussianRandom = require 'services.world_generation.math.inverse_gaussian_random'
 local Point2 = _radiant.csg.Point2
 
@@ -44,13 +46,14 @@ function EdgeDetailer:_grow_seed(height_map, edge_map, x, y)
    local edge = edge_map:get(x, y)
    if edge == false then return end
 
-   local i, j, continue, value, detail_height
+   local i, j, continue, base_height, detail_height
+
+   base_height = height_map:get(x, y)
 
    -- if edge is not false, edge is the delta to the highest neighbor
-   detail_height = self:_generate_detail_height(edge)
+   detail_height = self:_generate_detail_height(edge, base_height)
 
-   value = height_map:get(x, y)
-   height_map:set(x, y, value+detail_height)
+   height_map:set(x, y, base_height+detail_height)
    edge_map:set(x, y, false)
 
    i = x
@@ -95,12 +98,20 @@ function EdgeDetailer:_grow_seed(height_map, edge_map, x, y)
 end
 
 -- inverse bell curve from 1 to quantization size
-function EdgeDetailer:_generate_detail_height(max_delta)
-   -- place the midpoint 2 standard deviations away
-   -- edge values about 4x more likely than center value
-   -- expanded form: ((max_delta+0.5) - (1-0.5)) / 2 / 2
-   local std_dev = max_delta*0.25
-   return InverseGaussianRandom.generate_int(1, max_delta, std_dev)
+function EdgeDetailer:_generate_detail_height(max_delta, base_height)
+   if base_height >= self.terrain_info[TerrainType.Foothills].max_height then
+      -- if math.random() <= 0.50 then
+         return max_delta -- CHECKCHECK
+      -- else
+         --return MathFns.round(max_delta*0.5)
+      -- end
+   else
+      -- place the midpoint 2 standard deviations away
+      -- edge values about 4x more likely than center value
+      -- expanded form: ((max_delta+0.5) - (1-0.5)) / 2 / 2
+      local std_dev = max_delta*0.25
+      return InverseGaussianRandom.generate_int(1, max_delta, std_dev)
+   end
 end
 
 function EdgeDetailer:_generate_detail_height_uniform(max_delta)
@@ -317,8 +328,6 @@ function EdgeDetailer:_generate_chunk_length_and_offset(tile_size)
    local quarter_tile_size = tile_size * 0.25
    local chunk_length = quarter_tile_size * math.random(1, 4)
    local chunk_offset = (tile_size - chunk_length) * math.random(0, 1)
-   -- local num_offsets = (tile_size - chunk_length) / quarter_tile_size + 1
-   -- local chunk_offset = quarter_tile_size * math.random(0, num_offsets-1)
    return chunk_length, chunk_offset
 end
 

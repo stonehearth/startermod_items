@@ -1,4 +1,5 @@
 local TerrainType = require 'services.world_generation.terrain_type'
+local TerrainInfo = require 'services.world_generation.terrain_info'
 local Array2D = require 'services.world_generation.array_2D'
 local GaussianRandom = require 'services.world_generation.math.gaussian_random'
 local MathFns = require 'services.world_generation.math.math_fns'
@@ -19,12 +20,10 @@ local TerrainGenerator = class()
 -- World = the entire playspace of a game
 
 function TerrainGenerator:__init(async, seed)
-   local default_seed = 2
+   local default_seed = 3
 
    if async == nil then async = false end
    if seed == nil then seed = default_seed end
-
-   local terrain_type, terrain_info
 
    self.async = async
    self.random_seed = seed
@@ -35,47 +34,7 @@ function TerrainGenerator:__init(async, seed)
    self.wavelet_levels = 4
    self.frequency_scaling_coeff = 0.7
 
-   local base_step_size = 8
-   self.terrain_info = {}
-   terrain_info = self.terrain_info
-
-   local grassland_info = {}
-   grassland_info.step_size = 2
-   grassland_info.mean_height = 16
-   grassland_info.std_dev = 4
-   grassland_info.min_height = 14
-   grassland_info.max_height = 16
-   terrain_info[TerrainType.Grassland] = grassland_info
-   assert(grassland_info.max_height % grassland_info.step_size == 0)
-   -- don't place means on quantization ("rounding") boundaries
-   assert(grassland_info.mean_height % grassland_info.step_size ~= grassland_info.step_size/2)
-
-   local foothills_info = {}
-   foothills_info.step_size = base_step_size
-   foothills_info.mean_height = 27
-   foothills_info.std_dev = 8
-   foothills_info.min_height = grassland_info.max_height
-   foothills_info.max_height = 32
-   terrain_info[TerrainType.Foothills] = foothills_info
-   assert(foothills_info.max_height % foothills_info.step_size == 0)
-   assert(foothills_info.mean_height % foothills_info.step_size ~= foothills_info.step_size/2)
-
-   local mountains_info = {}
-   mountains_info.step_size = base_step_size*2
-   mountains_info.mean_height = 80
-   mountains_info.std_dev = 64
-   mountains_info.min_height = foothills_info.max_height
-   terrain_info[TerrainType.Mountains] = mountains_info
-   assert(mountains_info.mean_height % mountains_info.step_size ~= mountains_info.step_size/2)
-
-   -- make sure that next step size is a multiple of the prior max height
-   assert(grassland_info.max_height % foothills_info.step_size == 0)
-   assert(foothills_info.max_height % mountains_info.step_size == 0)
-
-   -- tree lines
-   terrain_info.tree_line = foothills_info.max_height + mountains_info.step_size*2
-   terrain_info.max_deciduous_height = foothills_info.max_height
-   terrain_info.min_evergreen_height = grassland_info.max_height + 1
+   self.terrain_info = TerrainInfo()
 
    local oversize_zone_size = self.zone_size + self.tile_size
    self.oversize_map_buffer = Array2D(oversize_zone_size, oversize_zone_size)
@@ -84,7 +43,7 @@ function TerrainGenerator:__init(async, seed)
    self.blend_map_buffer = self:_create_blend_map(micro_size, micro_size)
    self.noise_map_buffer = Array2D(micro_size, micro_size)
 
-   self._edge_detailer = EdgeDetailer(terrain_info)
+   self._edge_detailer = EdgeDetailer(self.terrain_info)
 end
 
 function TerrainGenerator:_set_random_seed(x, y)
@@ -182,7 +141,7 @@ function TerrainGenerator:_create_zone_map(micro_map)
    self:_create_oversize_map_from_micro_map(oversize_map, micro_map)
    self:_yield()
 
-   self:_shape_height_map(oversize_map, self.frequency_scaling_coeff, self.wavelet_levels)
+   self:_shape_height_map(oversize_map, self.frequency_scaling_coeff, self.wavelet_levels) -- CHECKCHECK
    self:_yield()
 
    self:_quantize_height_map(oversize_map, false)
@@ -699,17 +658,8 @@ function TerrainGenerator:_quantize_value(value, min_height, enable_fancy_quanti
 end
 
 function TerrainGenerator:_get_step_size(value)
-   local terrain_info = self.terrain_info
-
-   if value > terrain_info[TerrainType.Foothills].max_height then
-      return terrain_info[TerrainType.Mountains].step_size
-   end
-
-   if value > terrain_info[TerrainType.Grassland].max_height then
-      return terrain_info[TerrainType.Foothills].step_size
-   end
-
-   return terrain_info[TerrainType.Grassland].step_size
+   local terrain_type = self.terrain_info:get_terrain_type(value)
+   return self.terrain_info[terrain_type].step_size
 end
 
 function TerrainGenerator:_add_additional_details(height_map, micro_map)

@@ -21,6 +21,7 @@ scope LuaTerrainComponent::RegisterLuaTypes(lua_State* L)
             value("ROCK_LAYER_1",      Terrain::RockLayer1),
             value("ROCK_LAYER_2",      Terrain::RockLayer2),
             value("ROCK_LAYER_3",      Terrain::RockLayer3),
+            value("BOULDER",           Terrain::Boulder),
             value("SOIL",              Terrain::Soil),
             value("DARK_GRASS",        Terrain::DarkGrass),
             value("DARK_GRASS_DARK",   Terrain::DarkGrassDark),
