@@ -1,6 +1,6 @@
 local data = {
    date = {
-      hour = 21,
+      hour = 22,
       minute = 0,
       second = 0,
       day = 0,
@@ -15,6 +15,8 @@ local data = {
    _fired_midnight_today = false
 }
 
+local constants = radiant.resources.load_json('/stonehearth/services/calendar/calendar_constants.json')
+
 CalendarService = class()
 
 radiant.events.register_event('radiant:events:calendar:minutely')
@@ -27,7 +29,7 @@ radiant.events.register_event('radiant:events:calendar:midnight')
 
 function CalendarService:__init()
    self._event_service = require 'services.event.event_service'
-   self._constants = radiant.resources.load_json('/stonehearth/services/calendar/calendar_constants.json')
+   self._constants = constants
    radiant.events.listen('radiant:events:gameloop', function (_, now)
          self:_on_event_loop(now)
       end)
@@ -42,7 +44,7 @@ end
 -- For starters, returns base time of day.
 -- TODO: change based on the season/time of year
 function CalendarService:get_constants()
-   return self._constants
+   return constants
 end
 
 -- recompute the game calendar based on the time
@@ -98,7 +100,7 @@ end
 ]]
 function CalendarService:fire_time_of_day_events()
    local hour = data.date.hour
-   local curr_day_periods = self._constants.baseTimeOfDay
+   local curr_day_periods = self:get_constants().baseTimeOfDay
 
    if hour >= curr_day_periods.midnight and
       hour < curr_day_periods.sunrise and

@@ -5,5 +5,8 @@
    },
    "panic" : {
       "run" : "run_panic"
+   },
+   "sitting" : {
+      "idle_breathe" : "sitting_idle"
    }
 }

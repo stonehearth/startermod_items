@@ -5,15 +5,20 @@ radiant.mods.load('stonehearth')
 
 local FirepitComponent = class()
 
-function FirepitComponent:__init(entity, data_binding)
+function FirepitComponent:__init(entity, data_store)
    radiant.check.is_entity(entity)
    self._entity = entity
 
-   self._is_lit = false
    self._my_wood = nil
    self._light_task = nil
+   self._curr_fire_effect = nil
 
    self._seats = nil
+
+   self._data = data_store:get_data()
+   self._data.is_lit = false
+   self._data_store = data_store
+   self._data_store:mark_changed()
 
    radiant.events.listen('radiant:events:calendar:sunrise', self)
    radiant.events.listen('radiant:events:calendar:sunset', self)
@@ -26,8 +31,11 @@ function FirepitComponent:extend(json)
    end
 end
 
+function FirepitComponent:get_data_store()
+   return self._data_store
+end
+
 ---Adds 8 seats around the firepit
---TODO: actually have a place for people to sit down/lie down
 --TODO: add a random element to the placement of the seats.
 function FirepitComponent:_add_seats()
    self._seats = {}
@@ -43,19 +51,18 @@ function FirepitComponent:_add_seats()
 end
 
 function FirepitComponent:_add_one_seat(seat_number, location)
-   local seat = radiant.entities.create_entity('stonehearth:fire_pit_seat')
+   local seat = radiant.entities.create_entity('stonehearth:firepit_seat')
    local seat_comp = seat:get_component('stonehearth:center_of_attention_spot')
    seat_comp:add_to_center_of_attention(self._entity, seat_number)
    self._seats[seat_number] = seat
    radiant.terrain.place_entity(seat, location)
 end
 
---- At sunset, start firepit activities
+--- At midafternoon, start firepit activities
 -- Tell a worker to fill the fire with wood, and light it
 -- If there aren't seats around the fire yet, create them
 -- If there's already wood in the fire from the previous day, it goes out now.
--- TODO: Maybe start this earlier? People should put wood on the fire before the wolves come out.
--- TODO: alternatively, find a way to make this REALLY IMPORTANT relative to other worker tasks
+-- TODO: Find a way to make this REALLY IMPORTANT relative to other worker tasks
 FirepitComponent['radiant:events:calendar:sunset'] = function (self)
    self:extinguish()
    if not self._seats then
@@ -110,7 +117,7 @@ function FirepitComponent:_init_gather_wood_task()
 end
 
 function FirepitComponent:is_lit()
-   return self._is_lit
+   return self._data.is_lit
 end
 
 --- Adds wood to the fire
@@ -121,7 +128,8 @@ function FirepitComponent:light(log)
    self._my_wood = log
    self._curr_fire_effect =
       radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/firepit_effect')
-   self._is_lit = true
+   self._data.is_lit = true
+   self._data_store:mark_changed()
 end
 
 --- if there is wood, destroy it and extinguish the particles

@@ -37,8 +37,8 @@ function CarpenterTest:__init()
    self:place_item('stonehearth:picket_fence_proxy', 4, 3)
    self:place_item('stonehearth:picket_fence_proxy', 5, 3)
    self:place_item('stonehearth:picket_fence_proxy', 6, 3)
-   self:place_item('stonehearth:fire_pit_proxy', 7, 3, faction)
-   self:place_item('stonehearth:fire_pit', 9, 3, faction)
+   self:place_item('stonehearth:firepit_proxy', 7, 3, faction)
+   self:place_item('stonehearth:firepit', 9, 3, faction)
 
    -- put some items in the world
    self:place_item_cluster('stonehearth:oak_log', -10, 0, 3, 3)

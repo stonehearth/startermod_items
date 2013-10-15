@@ -279,6 +279,9 @@ function entities.unset_posture(entity, posture)
    entity:add_component('stonehearth:posture'):unset_posture(posture)
 end
 
+function entities.get_posture(entity)
+   return entity:add_component('stonehearth:posture'):get_posture()
+end
 --[[
    Tell the entity (a mob, probably) to pick up the item
    entity: probably a mob
@@ -364,6 +367,14 @@ function entities._drop_helper(entity)
    end
 end
 
+function entities.sit_down(entity)
+   radiant.entities.set_posture(entity, 'sitting')
+end
+
+function entities.stand_up(entity)
+   radiant.entities.unset_posture(entity, 'sitting')
+end
+
 --[[
    Checks if an entity is next to a location, updated
    to use get_world_grid location.
@@ -437,7 +448,7 @@ function entities.is_hostile(entity_a, entity_b)
    local faction_a = entity_a:add_component('unit_info'):get_faction()
    local faction_b = entity_b:add_component('unit_info'):get_faction()
 
-   return faction_a and faction_b and 
+   return faction_a and faction_b and
           faction_a ~= '' and faction_b ~= '' and
           faction_a ~= faction_b
 end
