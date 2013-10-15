@@ -18,12 +18,13 @@ function AdmireFire:__init(ai, entity)
    self._firepit_seat = nil
    self._path_to_fire = nil
    self._should_look_for_fire = false
-   self._is_sitting = false
+
+   self._standing_fire_effects = radiant.entities.get_entity_data(entity, "stonehearth:idle_fire_effects")
 
    radiant.events.listen('radiant:events:calendar:sunrise', self)
 
    --People look for lit firepits after dark.
-   self._known_firepits = {}
+   self._known_firepit_callbacks = {}
    local added_cb = function(id, entity)
       self:_on_entity_add(id, entity)
    end
@@ -32,7 +33,7 @@ function AdmireFire:__init(ai, entity)
    end
    self._promise = radiant.terrain.trace_world_entities('firepit tracker', added_cb, removed_cb)
 
-   self._time_constants = radiant.resources.load_json('/stonehearth/services/calendar/calendar_constants.json')
+   self._time_constants = Calendar.get_constants()
 end
 
 --- Trace all fire sources. Whenever one is added, trace its properties.
@@ -44,8 +45,8 @@ function AdmireFire:_on_entity_add(id, entity)
    if firepit_component and
       radiant.entities.get_faction(entity) == radiant.entities.get_faction(self._entity) then
 
-      self._known_firepits[id] = entity
       local promise = firepit_component:get_data_store():trace('follow firepit data')
+      self._known_firepit_callbacks[id] = promise
       promise:on_changed(function()
          if firepit_component:is_lit() then
             self:_should_light_fire()
@@ -55,7 +56,7 @@ function AdmireFire:_on_entity_add(id, entity)
 end
 
 function AdmireFire:_on_entity_remove(id)
-   self._known_firepits[id] = nil
+   self._known_firepit_callbacks[id] = nil
 end
 
 ---Whenever there is a lit fire, if idle, go to it and hang out
@@ -81,24 +82,24 @@ end
 -- @returns True if all conditions are met, false otherwise
 function AdmireFire:_is_seat_by_lit_firepit(item)
    local lease_component = item:get_component('stonehearth:lease_component')
-   local leased = true
    if lease_component and lease_component:can_acquire_lease(self._entity) then
-      leased = false
-   end
 
-   local lit_fire = false
-   local center_of_attention_spot_component = item:get_component('stonehearth:center_of_attention_spot')
-   if center_of_attention_spot_component then
-      local center_of_attention = center_of_attention_spot_component:get_center_of_attention()
-      if center_of_attention then
-         local firepit_component = center_of_attention:get_component('stonehearth:firepit')
-         if firepit_component then
-            lit_fire = firepit_component:is_lit()
+      local lit_fire = false
+      local center_of_attention_spot_component = item:get_component('stonehearth:center_of_attention_spot')
+      if center_of_attention_spot_component then
+         local center_of_attention = center_of_attention_spot_component:get_center_of_attention()
+         if center_of_attention then
+            local firepit_component = center_of_attention:get_component('stonehearth:firepit')
+            if firepit_component and firepit_component:is_lit() then
+               return true
+            end
          end
       end
    end
-
-   return not leased and lit_fire
+   --To get here, there is either no lease,
+   --or the lease is taken or it's not a fire
+   --or it is but the fire isn't lit
+   return false
 end
 
 --- Create a pathfinder to a lit fire
@@ -167,16 +168,12 @@ function AdmireFire:_do_random_actions(ai)
       local random_action = math.random(100)
       if random_action < 30 then
          ai:execute('stonehearth:idle')
-      elseif random_action > 80 and not self._is_sitting then
-         self._is_sitting = true
-         radiant.entities.set_posture(self._entity, 'sitting')
+      elseif random_action > 80 and radiant.entities.get_posture(self._entity) ~= 'sitting' then
+         radiant.entities.sit_down(self._entity)
          ai:execute('stonehearth:run_effect', 'sit_on_ground')
-      elseif not self._is_sitting then
+      elseif radiant.entities.get_posture(self._entity) ~= 'sitting' then
          --TODO: include these again if we have a standing animation
-         local standing_fire_effects = {
-            'idle_warm_hands'
-         }
-         ai:execute('stonehearth:run_effect', standing_fire_effects[math.random(#standing_fire_effects)])
+         ai:execute('stonehearth:run_effect', self._standing_fire_effects[math.random(#self._standing_fire_effects)])
       end
    end
 end
@@ -191,6 +188,8 @@ end
 
 function AdmireFire:stop()
    self:_clear_variables()
+
+   radiant.entities.stand_up(self._entity)
 
    if self._should_look_for_fire then
       self:_start_looking_for_fire()
@@ -210,12 +209,6 @@ function AdmireFire:_clear_variables()
    --If stop is called and the entity successfully is beside his seat, then stop
    if self._firepit_seat then
       self._firepit_seat:get_component('stonehearth:lease_component'):release_lease(self._entity)
-   end
-
-   --If we are sitting, unset the sitting posture
-   if self._is_sitting then
-      radiant.entities.unset_posture(self._entity, 'sitting')
-      self._is_sitting = false
    end
 end
 

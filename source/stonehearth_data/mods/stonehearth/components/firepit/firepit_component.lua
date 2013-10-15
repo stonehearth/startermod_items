@@ -5,8 +5,6 @@ radiant.mods.load('stonehearth')
 
 local FirepitComponent = class()
 
-radiant.events.register_event('radiant:events:firepit:lit_fire')
-
 function FirepitComponent:__init(entity, data_store)
    radiant.check.is_entity(entity)
    self._entity = entity
@@ -23,7 +21,7 @@ function FirepitComponent:__init(entity, data_store)
    self._data_store:mark_changed()
 
    radiant.events.listen('radiant:events:calendar:sunrise', self)
-   radiant.events.listen('radiant:events:calendar:midafternoon', self)
+   radiant.events.listen('radiant:events:calendar:sunset', self)
 end
 
 function FirepitComponent:extend(json)
@@ -65,7 +63,7 @@ end
 -- If there aren't seats around the fire yet, create them
 -- If there's already wood in the fire from the previous day, it goes out now.
 -- TODO: Find a way to make this REALLY IMPORTANT relative to other worker tasks
-FirepitComponent['radiant:events:calendar:midafternoon'] = function (self)
+FirepitComponent['radiant:events:calendar:sunset'] = function (self)
    self:extinguish()
    if not self._seats then
       self:_add_seats()
@@ -132,9 +130,6 @@ function FirepitComponent:light(log)
       radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/firepit_effect')
    self._data.is_lit = true
    self._data_store:mark_changed()
-
-   --If there is a lit fire, free people should gravitate towards it.
-   --radiant.events.broadcast_msg('radiant:events:firepit:lit_fire')
 end
 
 --- if there is wood, destroy it and extinguish the particles
