@@ -100,7 +100,7 @@ end
 ]]
 function CalendarService:fire_time_of_day_events()
    local hour = data.date.hour
-   local curr_day_periods = self:get_constants().baseTimeOfDay
+   local curr_day_periods = self._constants.event_times
 
    if hour >= curr_day_periods.midnight and
       hour < curr_day_periods.sunrise and
@@ -160,7 +160,7 @@ function CalendarService:format_time()
 end
 
 function CalendarService:format_date()
-   return string.format("day %d of %s, %d", data.date.day, self._constants.monthNames[data.date.month + 1],
+   return string.format("day %d of %s, %d", data.date.day, self._constants.month_names[data.date.month + 1],
       data.date.year)
 end
 

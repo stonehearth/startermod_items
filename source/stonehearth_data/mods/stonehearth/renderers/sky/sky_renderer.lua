@@ -38,7 +38,7 @@ function SkyRenderer:set_sky_constants()
 
    --get some times from the calendar
    local time_constants = radiant.resources.load_json('/stonehearth/services/calendar/calendar_constants.json')
-   local base_times = time_constants.baseTimeOfDay
+   local base_times = time_constants.event_times
    
 
    self.timing.midnight = base_times.midnight * time_constants.minutes_per_hour
