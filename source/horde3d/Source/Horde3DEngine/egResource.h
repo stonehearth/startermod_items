@@ -41,6 +41,7 @@ struct ResourceTypes
 		ParticleEffect,
 		Pipeline,
       VoxelGeometry,
+      PixelBuffer
 	};
 };
 
@@ -67,10 +68,11 @@ public:
 	virtual ~Resource();
 	virtual Resource *clone();  // TODO: Implement this for all resource types
 	
-	virtual void initDefault();
-	virtual void release();
-	virtual bool load( const char *data, int size );
-	void unload();
+   virtual void initDefault();
+   virtual void release();
+   virtual bool load( const char *data, int size );
+   virtual bool loadFrom( Resource *res );
+   void unload();
 	
 	int findElem( int elem, int param, const char *value );
 	virtual int getElemCount( int elem );

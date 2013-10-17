@@ -185,6 +185,7 @@ class Renderer
 
       core::BufferedSlot<csg::Point2>  screen_resize_slot_;
       std::unique_ptr<PerfHud>         perf_hud_;
+      H3DRes                        uiPbo_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

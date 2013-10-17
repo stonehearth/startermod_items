@@ -14,6 +14,7 @@
 #include "egModules.h"
 #include "egCom.h"
 #include "egRenderer.h"
+#include "egPixelBuffer.h"
 #include "utImage.h"
 #include <cstring>
 
@@ -455,6 +456,22 @@ bool TextureResource::load( const char *data, int size )
 		return loadDDS( data, size );
 	else
 		return loadSTBI( data, size );
+}
+
+
+bool TextureResource::loadFrom( Resource* res )
+{
+   if (res->getType() == ResourceTypes::PixelBuffer) {
+      PixelBufferResource *pbr = (PixelBufferResource*)res;
+      
+      int texSize = gRDI->calcTextureSize(_texFormat, _width, _height, _depth);
+      ASSERT(texSize == pbr->getSize());
+      
+      gRDI->copyTextureDataFromPbo( this->getTexObject(), pbr->getBufferObject());
+      return true;
+   }
+
+   return false;
 }
 
 

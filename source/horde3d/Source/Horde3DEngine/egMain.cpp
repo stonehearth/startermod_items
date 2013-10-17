@@ -20,6 +20,7 @@
 #include "egCamera.h"
 #include "egParticle.h"
 #include "egTexture.h"
+#include "egPixelBuffer.h"
 #include <cstdlib>
 #include <cstring>
 #include <string>
@@ -389,6 +390,32 @@ DLLEXP ResHandle h3dCreateTexture( const char *name, int width, int height, int 
 	return res;
 }
 
+
+DLLEXP bool h3dCopyBufferToBuffer(ResHandle srcBuffer, ResHandle destBuffer)
+{
+   Resource *srcObj = Modules::resMan().resolveResHandle( srcBuffer );
+   Resource *destObj = Modules::resMan().resolveResHandle( destBuffer );
+	   
+   APIFUNC_VALIDATE_RES( srcObj, "h3dCopyBufferToBuffer", 0x0 );
+   APIFUNC_VALIDATE_RES( destObj, "h3dCopyBufferToBuffer", 0x0 );
+
+   return destObj->loadFrom(srcObj);
+}
+
+
+DLLEXP ResHandle h3dCreatePixelBuffer( const char *name, int size )
+{
+   PixelBufferResource *pixRes = new PixelBufferResource( safeStr( name, 0 ), size);
+
+   ResHandle res = Modules::resMan().addNonExistingResource( *pixRes, true );
+   if( res == 0 )
+   {	
+      Modules::log().writeDebugInfo( "Failed to add resource in h3dCreatePixelBuffer; maybe the name is already in use?", res );
+      delete pixRes;
+   }
+
+   return res;
+}
 
 DLLEXP void h3dSetShaderPreambles( const char *vertPreamble, const char *fragPreamble )
 {

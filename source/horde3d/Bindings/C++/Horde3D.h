@@ -1306,6 +1306,10 @@ DLL void h3dReleaseUnusedResources();
 */
 DLL H3DRes h3dCreateTexture( const char *name, int width, int height, int fmt, int flags );
 
+DLL H3DRes h3dCreatePixelBuffer( const char *name, int size );
+
+DLL bool h3dCopyBufferToBuffer(H3DRes srcBuffer, H3DRes destBuffer);
+
 /* Function: h3dSetShaderPreambles
 		Sets preambles of all Shader resources.
 	

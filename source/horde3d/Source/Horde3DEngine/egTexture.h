@@ -59,6 +59,7 @@ public:
 	void initDefault();
 	void release();
 	bool load( const char *data, int size );
+   bool loadFrom( Resource* res );
 
 	int getElemCount( int elem );
 	int getElemParamI( int elem, int elemIdx, int param );

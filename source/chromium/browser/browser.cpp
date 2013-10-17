@@ -174,7 +174,7 @@ void Browser::OnPaint(CefRefPtr<CefBrowser> browser,
                        int width,
                        int height)
 {
-   perfmon::TimelineCounterGuard tcg("copy browser fb") ;
+   perfmon::TimelineCounterGuard tcg("copy browser fb to client buffer") ;
    std::lock_guard<std::mutex> guard(ui_lock_);
 
    // xxx: we can optimze this by accuulating a dirty region and sending a message to
@@ -206,7 +206,6 @@ void Browser::OnPaint(CefRefPtr<CefBrowser> browser,
 
 void Browser::UpdateDisplay(PaintCb cb)
 {
-   perfmon::TimelineCounterGuard tcg("copy ui texture") ;
    std::lock_guard<std::mutex> guard(ui_lock_);
 
    cb(dirtyRegion_, (const char*)browser_framebuffer_.data());
@@ -572,7 +571,7 @@ void Browser::SetBrowserResizeCb(std::function<void(int, int)> cb)
 void Browser::OnScreenResize(int w, int h)
 {
    screenWidth_ = w;
-   screenHeight_ =  h;
+   screenHeight_ = h;
 
    uiWidth_ = screenWidth_;
    uiHeight_ = screenHeight_;
@@ -580,7 +579,9 @@ void Browser::OnScreenResize(int w, int h)
    browser_framebuffer_.resize(uiWidth_ * uiHeight_);
    std::fill(browser_framebuffer_.begin(), browser_framebuffer_.end(), 0);
 
-   resize_cb_(w, h);
+   if (resize_cb_) {
+      resize_cb_(w, h);
+   }
 
    if (browser_) {
       browser_->GetHost()->NotifyScreenInfoChanged();

@@ -186,13 +186,9 @@ void Client::run()
       BrowserRequestHandler(uri, query, postdata, response);
    });
 
-   auto resize_ui_texture = [&](int w, int h) {
-      renderer.SetUITextureSize(w, h);
-   };
    int ui_width, ui_height;
    browser_->GetBrowserSize(ui_width, ui_height);
-   browser_->SetBrowserResizeCb(resize_ui_texture);
-   resize_ui_texture(ui_width, ui_height);
+   renderer.SetUITextureSize(ui_width, ui_height);
 
    guards_ += renderer.OnScreenResize([this](csg::Point2 const& r) {
       browser_->OnScreenResize(r.x, r.y);
