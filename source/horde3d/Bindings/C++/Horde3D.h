@@ -1308,7 +1308,7 @@ DLL H3DRes h3dCreateTexture( const char *name, int width, int height, int fmt, i
 
 DLL H3DRes h3dCreatePixelBuffer( const char *name, int size );
 
-DLL bool h3dCopyBufferToBuffer(H3DRes srcBuffer, H3DRes destBuffer);
+DLL bool h3dCopyBufferToBuffer(H3DRes srcBuffer, H3DRes destBuffer, int xOffset, int yOffset, int width, int height );
 
 /* Function: h3dSetShaderPreambles
 		Sets preambles of all Shader resources.

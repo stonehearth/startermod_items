@@ -371,7 +371,7 @@ public:
 	bool getTextureData( uint32 texObj, int slice, int mipLevel, void *buffer );
 	uint32 getTextureMem() { return _textureMem; }
 
-   void copyTextureDataFromPbo( uint32 texObj, uint32 pboObj );
+   void copyTextureDataFromPbo( uint32 texObj, uint32 pboObj, int xOffset, int yOffset, int width, int height );
 
 	// Shaders
 	uint32 createShader( const char* filename, const char *vertexShaderSrc, const char *fragmentShaderSrc );

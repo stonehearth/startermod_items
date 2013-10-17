@@ -174,7 +174,7 @@ void Browser::OnPaint(CefRefPtr<CefBrowser> browser,
                        int width,
                        int height)
 {
-   perfmon::TimelineCounterGuard tcg("copy browser fb to client buffer") ;
+   perfmon::SwitchToCounter("copy chromium fb to system buffer") ;
    std::lock_guard<std::mutex> guard(ui_lock_);
 
    // xxx: we can optimze this by accuulating a dirty region and sending a message to

@@ -391,7 +391,7 @@ DLLEXP ResHandle h3dCreateTexture( const char *name, int width, int height, int 
 }
 
 
-DLLEXP bool h3dCopyBufferToBuffer(ResHandle srcBuffer, ResHandle destBuffer)
+DLLEXP bool h3dCopyBufferToBuffer(ResHandle srcBuffer, ResHandle destBuffer, int xOffset, int yOffset, int width, int height)
 {
    Resource *srcObj = Modules::resMan().resolveResHandle( srcBuffer );
    Resource *destObj = Modules::resMan().resolveResHandle( destBuffer );
@@ -399,7 +399,7 @@ DLLEXP bool h3dCopyBufferToBuffer(ResHandle srcBuffer, ResHandle destBuffer)
    APIFUNC_VALIDATE_RES( srcObj, "h3dCopyBufferToBuffer", 0x0 );
    APIFUNC_VALIDATE_RES( destObj, "h3dCopyBufferToBuffer", 0x0 );
 
-   return destObj->loadFrom(srcObj);
+   return destObj->loadFrom(srcObj, xOffset, yOffset, width, height);
 }
 
 

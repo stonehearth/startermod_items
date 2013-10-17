@@ -503,7 +503,7 @@ uint32 RenderDevice::createTexture( TextureTypes::List type, int width, int heig
 }
 
 
-void RenderDevice::copyTextureDataFromPbo( uint32 texObj, uint32 pboObj )
+void RenderDevice::copyTextureDataFromPbo( uint32 texObj, uint32 pboObj, int xOffset, int yOffset, int width, int height )
 {
    const RDITexture &tex = _textures.getRef( texObj );
    int inputFormat = GL_BGRA, inputType = GL_UNSIGNED_BYTE;
@@ -527,10 +527,13 @@ void RenderDevice::copyTextureDataFromPbo( uint32 texObj, uint32 pboObj )
          break;
    };
 
+   ASSERT(width <= tex.width);
+   ASSERT(height <= tex.height);
+
    glBindTexture(GL_TEXTURE_2D, texObj);
    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboObj);
    
-   glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tex.width, tex.height, inputFormat, inputType, 0);
+   glTexSubImage2D(GL_TEXTURE_2D, 0, xOffset, yOffset, width, height, inputFormat, inputType, 0);
    
    glBindTexture(GL_TEXTURE_2D, 0);
    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);

@@ -71,7 +71,7 @@ public:
    virtual void initDefault();
    virtual void release();
    virtual bool load( const char *data, int size );
-   virtual bool loadFrom( Resource *res );
+   virtual bool loadFrom( Resource *res, int xOffset, int yOffset, int width, int height );
    void unload();
 	
 	int findElem( int elem, int param, const char *value );

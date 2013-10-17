@@ -457,36 +457,40 @@ csg::Matrix4 Renderer::GetNodeTransform(H3DNode node) const
 void Renderer::UpdateUITexture(const csg::Region2& rgn, const char* buffer)
 {
    if (!rgn.IsEmpty() && uiPbo_) {
-      if (rgn.GetBounds().GetMax().x > uiWidth_ ||
-         rgn.GetBounds().GetMax().y > uiHeight_) 
-      {
-         return;
-      }
-      char *data;
-      {
-         perfmon::TimelineCounterGuard tcg("map ui pbo");
-         data = (char *)h3dMapResStream(uiPbo_, 0, 0, 0, false, true);
-      }
+      auto bounds = rgn.GetBounds();
+      ASSERT(bounds.GetMax().x <= uiWidth_);
+      ASSERT(bounds.GetMax().y <= uiHeight_);
+
+      perfmon::SwitchToCounter("map ui pbo");
+
+      char *data = (char *)h3dMapResStream(uiPbo_, 0, 0, 0, false, true);
+
       if (data) {
-         perfmon::TimelineCounterGuard tcg("copy client mem to ui pbo");
-         int pitch = uiWidth_ * 4;
-         for (csg::Rect2 const& r : rgn) {
-            int amount = (r.GetMax().x - r.GetMin().x) * 4;
-            for (int y = r.GetMin().y; y < r.GetMax().y; y++) {
-               char* dst = data + (y * pitch) + (r.GetMin().x * 4);
-               const char* src = buffer + (y * pitch) + (r.GetMin().x * 4);
-               memcpy(dst, src, amount);
-            }
+         perfmon::SwitchToCounter("copy client mem to ui pbo");
+
+         // We can't loop through the individual rects and copy only them, because the PBO won't have
+         // all the pixels in between (and we do NOT want to flush the renderer just to get them), so
+         // this is a good compromise.
+
+         int srcPitch = uiWidth_ * 4;
+         int destPitch = bounds.GetWidth() * 4;
+         int xStart = bounds.GetMin().x * 4;
+         int yStart = bounds.GetMin().y;
+         int amount = bounds.GetWidth() * 4;
+
+         for (int y = yStart; y < bounds.GetMax().y; y++) {
+            char* dst = data + ((y - yStart) * destPitch);
+            const char* src = buffer + (y * srcPitch) + xStart;
+            memcpy(dst, src, amount);
          }
       }
-      {
-         perfmon::TimelineCounterGuard tcg("unmap ui pbo");
-         h3dUnmapResStream(uiPbo_);
-      }
-      {
-         perfmon::TimelineCounterGuard tcg("copy ui pbo to ui texture") ;
-         h3dCopyBufferToBuffer(uiPbo_, uiTexture_);
-      }
+      perfmon::SwitchToCounter("unmap ui pbo");
+      h3dUnmapResStream(uiPbo_);
+
+      perfmon::SwitchToCounter("copy ui pbo to ui texture") ;
+
+      h3dCopyBufferToBuffer(uiPbo_, uiTexture_, bounds.GetMin().x, bounds.GetMin().y, 
+         bounds.GetWidth(), bounds.GetHeight());
    }
 }
 

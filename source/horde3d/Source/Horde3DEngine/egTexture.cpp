@@ -459,15 +459,15 @@ bool TextureResource::load( const char *data, int size )
 }
 
 
-bool TextureResource::loadFrom( Resource* res )
+bool TextureResource::loadFrom( Resource* res, int xOffset, int yOffset, int width, int height )
 {
    if (res->getType() == ResourceTypes::PixelBuffer) {
       PixelBufferResource *pbr = (PixelBufferResource*)res;
       
       int texSize = gRDI->calcTextureSize(_texFormat, _width, _height, _depth);
-      ASSERT(texSize == pbr->getSize());
+      ASSERT(texSize >= pbr->getSize());
       
-      gRDI->copyTextureDataFromPbo( this->getTexObject(), pbr->getBufferObject());
+      gRDI->copyTextureDataFromPbo( this->getTexObject(), pbr->getBufferObject(), xOffset, yOffset, width, height);
       return true;
    }
 
