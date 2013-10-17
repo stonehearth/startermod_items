@@ -2,7 +2,7 @@ local Attack = class()
 
 Attack.name = 'Attack!'
 Attack.does = 'stonehearth:attack'
-Attack.priority = 0
+Attack.priority = 1
 
 function Attack:__init(ai, entity)
    self._entity = entity

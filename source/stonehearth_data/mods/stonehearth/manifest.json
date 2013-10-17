@@ -118,13 +118,14 @@
 
          "actions:attack_action" : "file(ai/actions/combat/attack_action.lua)",
          "actions:attack_top_aggro_action" : "file(ai/actions/combat/attack_top_aggro_action.lua)",
-         "actions:attack_closest_enemy_action" : "file(ai/actions/combat/attack_closest_enemy_action.lua)",
+         "actions:attack_closest_enemy" : "file(ai/actions/combat/attack_closest_enemy_action.lua)",
          "actions:attack:melee_action" : "file(ai/actions/combat/melee_attack_action.lua)",
          "actions:chase_target_action" : "file(ai/actions/combat/chase_target_action.lua)",
          "actions:flee_action" : "file(ai/actions/combat/flee_action.lua)",
          "actions:run_away_from_entity" : "file(ai/actions/run_away_from_entity_action.lua)",
          "actions:run_towards_entity" : "file(ai/actions/run_towards_entity_action.lua)",
          "actions:goto_location_action" : "file(ai/actions/goto_location_action.lua)",
+         "actions:fear_fire" : "file(ai/actions/fear_fire_action.lua)",
          "actions:run_effect_action" : "file(ai/actions/run_effect_action.lua)",
          "actions:compel_to_action" : "file(ai/actions/compel_to_action.lua)",
          "actions:idle_top_action" : "file(ai/actions/idle_top_action.lua)",
@@ -162,7 +163,6 @@
 
          "class_info" : "file(entities/class_info)",
          "carpenter_workbench" : "file(entities/carpenter_workbench)",
-         "carpenter_outfit" : "file(entities/carpenter_outfit)",
          "carpenter_intermediate_item" : "file(entities/carpenter_intermediate_item)",
 
          "sounds:axe_chopping_sound" : "file(data/sounds/effects/axe_chopping_sound.ogg)"

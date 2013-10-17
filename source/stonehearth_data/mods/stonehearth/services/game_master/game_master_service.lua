@@ -2,8 +2,11 @@ local GameMasterService = class()
 local WolfScenario = require 'services.game_master.scenarios.nightly_wolf_attack'
 
 function GameMasterService:__init()
-   -- this is total bs...sketching in code I guess? 
    self._scenarions = {}
+end
+
+function GameMasterService:start()
+   -- xxx, hardcoded. Make data driven
    local scenario = WolfScenario()
    table.insert(self._scenarions, scenario)
 end
