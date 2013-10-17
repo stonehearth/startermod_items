@@ -2243,7 +2243,7 @@ void Renderer::drawParticles( const std::string &shaderContext, const std::strin
 
 void Renderer::render( CameraNode *camNode )
 {
-   radiant::perfmon::SwitchToCounter("render camera");
+   radiant::perfmon::SwitchToCounter("render scene");
 	_curCamera = camNode;
 	if( _curCamera == 0x0 ) return;
 
