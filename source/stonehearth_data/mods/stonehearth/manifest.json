@@ -220,6 +220,10 @@
             "endpoint" : "server",
             "controller" : "file(call_handlers/place_item_call_handler.lua)"
          },
+         "move_item_in_world" : {
+            "endpoint" : "server",
+            "controller" : "file(call_handlers/place_item_call_handler.lua)"
+         },
          "place_item_type_in_world" : {
             "endpoint" : "server",
             "controller" : "file(call_handlers/place_item_call_handler.lua)"
@@ -249,9 +253,9 @@
       "crafter"  : "file(components/crafter/crafter_component.lua)",
       "promotion_talisman" : "file(components/promotion_talisman/promotion_talisman_component.lua)",
       "profession": "file(components/profession/profession_component.lua)",
-      "placeable_item_proxy" : "file(components/placeable_item_proxy/placeable_item_proxy_component.lua)",
-      "ghost_item" : "file(components/placeable_item_proxy/ghost_item_component.lua)",
-      "placeable_item_pointer": "file(components/placeable_item_pointer/placeable_item_pointer_component.lua)",
+      "placeable_item_proxy" : "file(components/place_item/placeable_item_proxy_component.lua)",
+      "ghost_item" : "file(components/place_item/ghost_item_component.lua)",
+      "placed_item" : "file(components/place_item/placed_item_component.lua)",
       "firepit" : "file(components/firepit/firepit_component.lua)",
       "lease_component" : "file(components/lease/lease_component.lua)",
       "sensor_ai_injector"  : "file(components/sensor_ai_injector/sensor_ai_injector_component.lua)",

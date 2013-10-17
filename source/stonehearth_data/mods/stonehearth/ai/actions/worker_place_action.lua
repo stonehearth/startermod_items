@@ -46,28 +46,38 @@ function WorkerPlaceItemAction:run(ai, entity, path, ghost_entity, rotation, tas
    -- Log successful grab
    radiant.log.info('%s (Worker %s): Hands off, guys! I have totally got this %s', tostring(entity), name, object_name)
 
-   -- Was it a proxy item? If so, put it on the ghost, if not put it on the terrain.
-   -- If it's on the ghost, it won't register on the terrain and provoke worker behavior
-   self._proxy_component = proxy_entity:get_component('stonehearth:placeable_item_proxy')
    ai:execute('stonehearth:carry_item_on_path_to', path, ghost_entity)
-   ai:execute('stonehearth:drop_carrying_in_entity', ghost_entity)
-   radiant.entities.turn_to(proxy_entity, rotation)
 
-   if self._proxy_component then
+   --What are we carrying? (It may have changed.) Is it a proxy or a real item?
+   local carrying = radiant.entities.get_carrying(entity)
+   if not carrying then
+      --if we're not carrying something here, something is terribly wrong
+      ai:abort()
+   end
+
+   local proxy_component = carrying:get_component('stonehearth:placeable_item_proxy')
+
+   --if it's a proxy, drop it on the ghost entity and make it big
+   if proxy_component then
+      ai:execute('stonehearth:drop_carrying_in_entity', ghost_entity)
+
       --TODO: replace this with a particle effect
       ai:execute('stonehearth:run_effect', 'work')
 
       --Get the full sized entity
-      local full_sized_entity = self._proxy_component:get_full_sized_entity()
+      local full_sized_entity = proxy_component:get_full_sized_entity()
       local faction = entity:get_component('unit_info'):get_faction()
       full_sized_entity:get_component('unit_info'):set_faction(faction)
 
       -- Remove the icon
-      radiant.entities.destroy_entity(proxy_entity)
+      radiant.entities.destroy_entity(carrying)
 
       -- Place the item in the world
       radiant.terrain.place_entity(full_sized_entity, radiant.entities.get_world_grid_location(ghost_entity))
       radiant.entities.turn_to(full_sized_entity, rotation)
+   else
+      --If it wasn't a proxy, it was a real item. Drop it on the ground
+       ai:execute('stonehearth:drop_carrying', radiant.entities.get_world_grid_location(ghost_entity))
    end
 
    --destroy the ghost entity

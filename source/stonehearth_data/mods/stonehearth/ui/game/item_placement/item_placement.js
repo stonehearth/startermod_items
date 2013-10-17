@@ -1,23 +1,36 @@
-$(document).ready(function(){
+//REVIEW COMMENTS: Is there a better place to put this function?
+//I just wanted to factor it out of the calls.
+function call_server_to_place_item(e) {
+   // kick off a request to the client to show the cursor for placing
+   // the workshop. The UI is out of the 'create workshop' process after
+   // this. All the work is done in the client and server
 
+   radiant.call('stonehearth:choose_place_item_location', e.event_data.full_sized_entity_uri)
+      .done(function(o){
+         radiant.call('stonehearth:place_item_in_world', e.event_data.self, e.event_data.full_sized_entity_uri, o.location, o.rotation);
+      })
+      .always(function(o) {
+         $(top).trigger('hide_tip.radiant');
+      });
+};
+
+$(document).ready(function(){
    //Fires when someone clicks the place button on an iconic item in the world
    $(top).on("place_item.stonehearth", function (_, e) {
       $(top).trigger('show_tip.radiant', {
          title : i18n.t('stonehearth:item_placement_title') + " " + e.event_data.item_name,
          description : i18n.t('stonehearth:place_description')
       });
+      call_server_to_place_item(e)
+   });
 
-      // kick off a request to the client to show the cursor for placing
-      // the workshop. The UI is out of the 'create workshop' process after
-      // this. All the work is done in the client and server
-
-      radiant.call('stonehearth:choose_place_item_location', e.event_data.full_sized_entity_uri)
-         .done(function(o){
-            radiant.call('stonehearth:place_item_in_world', e.event_data.self, e.event_data.full_sized_entity_uri, o.location, o.rotation);
-         })
-         .always(function(o) {
-            $(top).trigger('hide_tip.radiant');
-         });
+   //Fires when someone clicks the move button on a full-sized item in the world
+   $(top).on("move_item.stonehearth", function (_, e) {
+      $(top).trigger('show_tip.radiant', {
+         title : i18n.t('stonehearth:item_movement_title') + " " + e.event_data.item_name,
+         description : i18n.t('stonehearth:move_description')
+      });
+      call_server_to_place_item(e)
    });
 
    //Fires when someone clicks the "place" button in the UI to bring up the picker

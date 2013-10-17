@@ -34,6 +34,8 @@
    "promote_scroll_text_2": "to the role of __promotionClass__ this __date__",
    "item_placement_title": "Place",
    "item_placement_description": "Place a full-sized version of the selected item somewhere in the world. Right click to rotate.",
-   "item_placement_no_entities": "There is nothing to place!"
+   "item_placement_no_entities": "There is nothing to place!",
+   "item_movement_title": "Move",
+   "item_movement_description": "Move this item elsewhere. Right click to rotate."
 }
 

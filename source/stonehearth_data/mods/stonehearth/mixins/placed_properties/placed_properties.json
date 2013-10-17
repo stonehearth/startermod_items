@@ -3,7 +3,7 @@
       "mob" : {
          "interpolate_movement" : false
       },
-      "render_info" : {
-      }
+      "render_info" : {},
+      "stonehearth:placed_item" : {}
    }
 }

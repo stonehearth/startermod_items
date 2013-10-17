@@ -13,6 +13,7 @@ SleepInBedAction.priority = 1
 function SleepInBedAction:__init(ai, entity)
    self._entity = entity         --the game character
    self._ai = ai
+   self._bed = nil
 end
 
 --[[
@@ -21,8 +22,12 @@ end
 function SleepInBedAction:run(ai, entity, bed, path)
    -- renew our lease on the bed.
 
+   -- Mark the bed as being used
+   self._bed = bed
+   bed:get_component('stonehearth:placed_item'):set_usage(true)
+
    --Am I carrying anything? If so, drop it
-   local drop_location = path:get_source_point_of_interest()
+   local drop_location = radiant.entities.get_world_grid_location(entity)
    ai:execute('stonehearth:drop_carrying', drop_location)
 
    -- walk over to the bed
@@ -42,6 +47,10 @@ function SleepInBedAction:run(ai, entity, bed, path)
    -- goto sleep
    ai:execute('stonehearth:run_effect', 'goto_sleep')
    ai:execute('stonehearth:run_effect', 'sleep')
+end
+
+function SleepInBedAction:stop()
+   self._bed:get_component('stonehearth:placed_item'):set_usage(false)
 end
 
 return SleepInBedAction

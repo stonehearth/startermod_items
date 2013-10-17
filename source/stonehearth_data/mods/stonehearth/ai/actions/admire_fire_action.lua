@@ -32,7 +32,6 @@ function AdmireFire:__init(ai, entity)
       self:_on_entity_remove(id)
    end
    self._promise = radiant.terrain.trace_world_entities('firepit tracker', added_cb, removed_cb)
-
    self._time_constants = Calendar.get_constants()
 end
 
@@ -49,18 +48,19 @@ function AdmireFire:_on_entity_add(id, entity)
       self._known_firepit_callbacks[id] = promise
       promise:on_changed(function()
          if firepit_component:is_lit() then
-            self:_should_light_fire()
+            self:_should_find_fire()
          end
       end)
    end
 end
+
 
 function AdmireFire:_on_entity_remove(id)
    self._known_firepit_callbacks[id] = nil
 end
 
 ---Whenever there is a lit fire, if idle, go to it and hang out
-function AdmireFire:_should_light_fire()
+function AdmireFire:_should_find_fire()
    local curr_time = Calendar.get_time_and_date()
    if curr_time.hour >= self._time_constants.baseTimeOfDay.sunset or
       curr_time.hour < self._time_constants.baseTimeOfDay.sunrise then
@@ -95,6 +95,7 @@ function AdmireFire:_is_seat_by_lit_firepit(item)
             end
          end
       end
+
    end
    --To get here, there is either no lease,
    --or the lease is taken or it's not a fire
