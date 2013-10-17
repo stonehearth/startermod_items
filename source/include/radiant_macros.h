@@ -5,11 +5,20 @@
 #define ARRAY_SIZE(a)      ((sizeof (a)) / sizeof((a)[0]))
 
 #if defined(ASSERT)
-// xxx: find them and kill them!
-#undef ASSERT
+#  error ASSERT defined before inclusion of radiant_macros.h.  Aborting
 #endif
 
-#define ASSERT(x)          do { if (!(x)) { DebugBreak(); } } while(false)
+#define ASSERT(x) \
+   do { /* xxx: relegate all this logic to some Assert class */ \
+      if (!(x)) { \
+         if (IsDebuggerPresent()) { \
+            DebugBreak(); \
+         } else { \
+            ::MessageBox(NULL, #x, "Stonehearth Assertion Failed", MB_OK | MB_ICONEXCLAMATION | MB_TASKMODAL); \
+         } \
+      } \
+   } while(false)
+
 #define NYI_ERROR_CHECK(x) ASSERT(x)
 
 #define BUILD_STRING(x) static_cast<std::ostringstream&>(std::ostringstream() << x).str()

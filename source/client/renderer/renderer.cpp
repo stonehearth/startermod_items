@@ -43,7 +43,8 @@ Renderer::Renderer() :
    uiWidth_(0),
    uiHeight_(0),
    uiTexture_(0),
-   uiMatRes_(0)
+   uiMatRes_(0),
+   uiPbo_(0)
 
 {
    try {
@@ -331,7 +332,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    h3dSetMaterialArrayUniform( ssaoMat, "samplerKernel", ssaoSamplerData.data(), ssaoSamplerData.size());
 
    // Render scene
-   perfmon::SwitchToCounter("render camera");
+   perfmon::SwitchToCounter("render h3d");
    h3dRender(camera_->GetNode());
 
    // Finish rendering of frame
@@ -455,31 +456,41 @@ csg::Matrix4 Renderer::GetNodeTransform(H3DNode node) const
 
 void Renderer::UpdateUITexture(const csg::Region2& rgn, const char* buffer)
 {
-   if (!rgn.IsEmpty() && uiTexture_) {
-      //LOG(WARNING) << "Updating " << rgn.GetArea() << " pixels from the ui texture.";
+   if (!rgn.IsEmpty() && uiPbo_) {
+      auto bounds = rgn.GetBounds();
+      ASSERT(bounds.GetMax().x <= uiWidth_);
+      ASSERT(bounds.GetMax().y <= uiHeight_);
 
-      int pitch = uiWidth_ * 4;
+      perfmon::SwitchToCounter("map ui pbo");
 
-      char *data;
-      {
-         perfmon::TimelineCounterGuard tcg("map ui texture") ;
-         data = (char *)h3dMapResStream(uiTexture_, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, true, true);
-      }
+      char *data = (char *)h3dMapResStream(uiPbo_, 0, 0, 0, false, true);
+
       if (data) {
-         for (csg::Rect2 const& r : rgn) {
-            int amount = (r.GetMax().x - r.GetMin().x) * 4;
-            for (int y = r.GetMin().y; y < r.GetMax().y; y++) {
-               char* dst = data + (y * pitch) + (r.GetMin().x * 4);         
-               const char* src = buffer + (y * pitch) + (r.GetMin().x * 4);
-               memcpy(dst, src, amount);
-               //for (int i = 0; i < amount; i += 4) {  dst[i+3] = 0xff; }
-            }
+         perfmon::SwitchToCounter("copy client mem to ui pbo");
+
+         // We can't loop through the individual rects and copy only them, because the PBO won't have
+         // all the pixels in between (and we do NOT want to flush the renderer just to get them), so
+         // this is a good compromise.
+
+         int srcPitch = uiWidth_ * 4;
+         int destPitch = bounds.GetWidth() * 4;
+         int xStart = bounds.GetMin().x * 4;
+         int yStart = bounds.GetMin().y;
+         int amount = bounds.GetWidth() * 4;
+
+         for (int y = yStart; y < bounds.GetMax().y; y++) {
+            char* dst = data + ((y - yStart) * destPitch);
+            const char* src = buffer + (y * srcPitch) + xStart;
+            memcpy(dst, src, amount);
          }
       }
-      {
-         perfmon::TimelineCounterGuard tcg("unmap ui texture") ;
-         h3dUnmapResStream(uiTexture_);
-      }
+      perfmon::SwitchToCounter("unmap ui pbo");
+      h3dUnmapResStream(uiPbo_);
+
+      perfmon::SwitchToCounter("copy ui pbo to ui texture") ;
+
+      h3dCopyBufferToBuffer(uiPbo_, uiTexture_, bounds.GetMin().x, bounds.GetMin().y, 
+         bounds.GetWidth(), bounds.GetHeight());
    }
 }
 
@@ -488,6 +499,8 @@ void Renderer::Resize( int width, int height )
    width_ = width;
    height_ = height;
 
+   SetUITextureSize(width, height);
+   
    H3DNode camera = camera_->GetNode();
 
    // Resize viewport
@@ -501,6 +514,7 @@ void Renderer::Resize( int width, int height )
    for (const auto& entry : pipelines_) {
       h3dResizePipelineBuffers(entry.second, width, height);
    }
+
    screen_resize_slot_.Signal(csg::Point2(width_, height_));
 }
 
@@ -789,12 +803,18 @@ void Renderer::SetUITextureSize(int width, int height)
    uiWidth_ = width;
    uiHeight_ = height;
 
+   if (uiPbo_) {
+      h3dRemoveResource(uiPbo_);
+      h3dReleaseUnusedResources();
+   }
    if (uiTexture_) {
       h3dRemoveResource(uiTexture_);
       h3dRemoveResource(uiMatRes_);
-
-      h3dReleaseUnusedResources();
    }
+   h3dReleaseUnusedResources();
+
+   uiPbo_ = h3dCreatePixelBuffer("screenui", width * height * 4);
+
    uiTexture_ = h3dCreateTexture("UI Texture", uiWidth_, uiHeight_, H3DFormats::List::TEX_BGRA8, H3DResFlags::NoTexMipmaps);
    unsigned char *data = (unsigned char *)h3dMapResStream(uiTexture_, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
    memset(data, 0, uiWidth_ * uiHeight_ * 4);

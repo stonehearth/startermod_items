@@ -278,8 +278,6 @@ uint32 RenderDevice::createVertexBuffer( uint32 size, const void *data )
 	buf.type = GL_ARRAY_BUFFER;
 	buf.size = size;
 	glGenBuffers( 1, &buf.glObj );
-   GLenum error = glGetError();
-   ASSERT(error == GL_NO_ERROR);
    ASSERT(buf.glObj != -1);
    ASSERT(buf.glObj != 0);
 
@@ -287,7 +285,10 @@ uint32 RenderDevice::createVertexBuffer( uint32 size, const void *data )
 	glBufferData( buf.type, size, data, GL_DYNAMIC_DRAW );
 	glBindBuffer( buf.type, 0 );
 	
-	_bufferMem += size;
+   GLenum error = glGetError();
+   ASSERT(error == GL_NO_ERROR);
+
+   _bufferMem += size;
 	return _buffers.add( buf );
 }
 
@@ -299,8 +300,6 @@ uint32 RenderDevice::createIndexBuffer( uint32 size, const void *data )
 	buf.type = GL_ELEMENT_ARRAY_BUFFER;
 	buf.size = size;
 	glGenBuffers( 1, &buf.glObj );
-   GLenum error = glGetError();
-   ASSERT(error == GL_NO_ERROR);
    ASSERT(buf.glObj != -1);
    ASSERT(buf.glObj != 0);
 
@@ -308,8 +307,33 @@ uint32 RenderDevice::createIndexBuffer( uint32 size, const void *data )
 	glBufferData( buf.type, size, data, GL_DYNAMIC_DRAW );
 	glBindBuffer( buf.type, 0 );
 	
-	_bufferMem += size;
+   GLenum error = glGetError();
+   ASSERT(error == GL_NO_ERROR);
+
+   _bufferMem += size;
 	return _buffers.add( buf );
+}
+
+
+uint32 RenderDevice::createPixelBuffer( uint32 size, const void *data )
+{
+   RDIBuffer buf = { 0xff };
+   buf.type = GL_PIXEL_UNPACK_BUFFER;
+   buf.size = size;
+   glGenBuffers(1, &buf.glObj);
+
+   ASSERT(buf.glObj != -1);
+   ASSERT(buf.glObj != 0);
+
+   glBindBuffer(buf.type, buf.glObj);
+   glBufferData(buf.type, size, data, GL_STREAM_DRAW);
+   glBindBuffer(buf.type, 0);
+
+   GLenum error = glGetError();
+   ASSERT(error == GL_NO_ERROR);
+
+   _bufferMem += size;
+   return _buffers.add(buf);
 }
 
 
@@ -317,8 +341,11 @@ void RenderDevice::destroyBuffer( uint32 bufObj )
 {
 	if( bufObj == 0 ) return;
 	
-	RDIBuffer &buf = _buffers.getRef( bufObj );
+	RDIBuffer& buf = _buffers.getRef( bufObj );
 	glDeleteBuffers( 1, &buf.glObj );
+
+   GLenum error = glGetError();
+   ASSERT(error == GL_NO_ERROR);
 
 	_bufferMem -= buf.size;
 	_buffers.remove( bufObj );
@@ -340,6 +367,32 @@ void RenderDevice::updateBufferData( uint32 bufObj, uint32 offset, uint32 size, 
 	}
 
 	glBufferSubData( buf.type, offset, size, data );
+}
+
+
+void* RenderDevice::mapBuffer(uint32 bufObj)
+{
+   const RDIBuffer &buf = _buffers.getRef( bufObj );
+   glBindBuffer(buf.type, buf.glObj);
+   void* result = glMapBuffer(buf.type, GL_WRITE_ONLY);
+   glBindBuffer(buf.type, 0);
+
+   GLenum error = glGetError();
+   ASSERT(error == GL_NO_ERROR);
+
+   return result;
+}
+
+
+void RenderDevice::unmapBuffer(uint32 bufObj)
+{
+   const RDIBuffer &buf = _buffers.getRef( bufObj );
+   glBindBuffer(buf.type, buf.glObj);
+   glUnmapBuffer(buf.type);
+   glBindBuffer(buf.type, 0);
+
+   GLenum error = glGetError();
+   ASSERT(error == GL_NO_ERROR);
 }
 
 
@@ -437,7 +490,10 @@ uint32 RenderDevice::createTexture( TextureTypes::List type, int width, int heig
 	if( _texSlots[15].texObj )
 		glBindTexture( _textures.getRef( _texSlots[15].texObj ).type, _textures.getRef( _texSlots[15].texObj ).glObj );
 
-	// Calculate memory requirements
+   GLenum error = glGetError();
+   ASSERT(error == GL_NO_ERROR);
+
+   // Calculate memory requirements
 	tex.memSize = calcTextureSize( format, width, height, depth );
 	if( hasMips || genMips ) tex.memSize += ftoi_r( tex.memSize * 1.0f / 3.0f );
 	if( type == TextureTypes::TexCube ) tex.memSize *= 6;
@@ -447,12 +503,52 @@ uint32 RenderDevice::createTexture( TextureTypes::List type, int width, int heig
 }
 
 
+void RenderDevice::copyTextureDataFromPbo( uint32 texObj, uint32 pboObj, int xOffset, int yOffset, int width, int height )
+{
+   const RDITexture &tex = _textures.getRef( texObj );
+   int inputFormat = GL_BGRA, inputType = GL_UNSIGNED_BYTE;
+
+   switch( tex.format )
+   {
+      case TextureFormats::RGBA16F:
+         inputFormat = GL_RGBA;
+         inputType = GL_FLOAT;
+         break;
+      case TextureFormats::RGBA32F:
+         inputFormat = GL_RGBA;
+         inputType = GL_FLOAT;
+         break;
+      case TextureFormats::DEPTH:
+         inputFormat = GL_DEPTH_COMPONENT;
+         inputType = GL_FLOAT;
+         break;
+      case TextureFormats::A8:
+        inputFormat = GL_LUMINANCE;
+         break;
+   };
+
+   ASSERT(width <= tex.width);
+   ASSERT(height <= tex.height);
+
+   glBindTexture(GL_TEXTURE_2D, texObj);
+   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboObj);
+   
+   glTexSubImage2D(GL_TEXTURE_2D, 0, xOffset, yOffset, width, height, inputFormat, inputType, 0);
+   
+   glBindTexture(GL_TEXTURE_2D, 0);
+   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+   
+   GLenum error = glGetError();
+   ASSERT(error == GL_NO_ERROR);
+}
+
+
 void RenderDevice::uploadTextureData( uint32 texObj, int slice, int mipLevel, const void *pixels )
 {
 	const RDITexture &tex = _textures.getRef( texObj );
 	TextureFormats::List format = tex.format;
 
-	glActiveTexture( GL_TEXTURE15 );
+   glActiveTexture( GL_TEXTURE15 );
 	glBindTexture( tex.type, tex.glObj );
 	
 	int inputFormat = GL_BGRA, inputType = GL_UNSIGNED_BYTE;
@@ -512,9 +608,13 @@ void RenderDevice::uploadTextureData( uint32 texObj, int slice, int mipLevel, co
 		glDisable( tex.type );
 	}
 
+
 	glBindTexture( tex.type, 0 );
 	if( _texSlots[15].texObj )
 		glBindTexture( _textures.getRef( _texSlots[15].texObj ).type, _textures.getRef( _texSlots[15].texObj ).glObj );
+
+   GLenum error = glGetError();
+   ASSERT(error == GL_NO_ERROR);
 }
 
 

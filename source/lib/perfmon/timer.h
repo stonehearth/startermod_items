@@ -12,6 +12,7 @@ public:
    ~Timer();
 
    void Start();
+   CounterValueType GetElapsed();
    CounterValueType Stop();
    CounterValueType Restart();
 
