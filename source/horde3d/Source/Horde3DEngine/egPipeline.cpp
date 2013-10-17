@@ -17,6 +17,7 @@
 #include "egCom.h"
 #include "egRenderer.h"
 #include "utXML.h"
+#include <boost/algorithm/string.hpp>  
 #include <fstream>
 
 #include "utDebug.h"
@@ -112,6 +113,11 @@ bool PipelineResource::raiseError( const std::string &msg, int line )
 const std::string PipelineResource::parseStage( XMLNode const &node, PipelineStagePtr &stage )
 {
 	stage->id = node.getAttribute( "id", "" );
+
+        std::string lower = stage->id;
+        boost::algorithm::to_lower(lower);
+        stage->debug_name = "h3d stage " + lower;
+
 	
 	if( _stricmp( node.getAttribute( "enabled", "true" ), "false" ) == 0 ||
 		_stricmp( node.getAttribute( "enabled", "1" ), "0" ) == 0 )

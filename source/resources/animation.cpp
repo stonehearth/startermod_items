@@ -1,6 +1,7 @@
 #include "radiant.h"
 #include "animation.h"
 #include "exceptions.h"
+#include "lib/perfmon/perfmon.h"
 
 static const float FRAME_DURATION_MS = (1000.0f / 30.0f);
 
@@ -91,6 +92,7 @@ float Animation::GetDuration()
 
 void Animation::MoveNodes(int32 timeOffset, AnimationFn fn)
 {
+   perfmon::TimelineCounterGuard tcg("ani move nodes");
    float duration = GetDuration();
    int32 loops = (int)(timeOffset / duration);
    int32 position = (int32)(timeOffset - (loops * duration));

@@ -11,28 +11,20 @@ __declspec(thread) Store* store__ = nullptr;
 
 static Timeline& GetTimeline()
 {
+   if (!store__) {
+      store__ = new Store();
+   }
    return *store__->GetTimeline();
-}
-
-PerfmonThreadGuard::PerfmonThreadGuard()
-{
-   store__ = new Store();
-}
-
-PerfmonThreadGuard::~PerfmonThreadGuard()
-{
-   delete store__;
-   store__ = nullptr;
 }
 
 FrameGuard::FrameGuard()
 {
-   GetTimeline().BeginFrame();
+   BeginFrame();
 }
 
 FrameGuard::~FrameGuard()
 {
-   GetTimeline().EndFrame();
+   EndFrame();
 }
 
 TimelineCounterGuard::TimelineCounterGuard(const char* name)
@@ -53,6 +45,16 @@ void perfmon::SwitchToCounter(char const* name)
    timeline.SetCounter(counter);
 }
 
+void perfmon::BeginFrame()
+{
+   GetTimeline().BeginFrame();
+}
+
+void perfmon::EndFrame()
+{
+   GetTimeline().EndFrame();
+}
+
 core::Guard perfmon::OnFrameEnd(std::function<void(Frame*)> fn)
 {
    return GetTimeline().OnFrameEnd(fn);
@@ -63,4 +65,11 @@ uint perfmon::CounterToMilliseconds(CounterValueType value)
    LARGE_INTEGER li;
    QueryPerformanceFrequency(&li);  // counts per second...
    return static_cast<uint>(ceil(1000 * value / li.QuadPart));
+}
+
+CounterValueType perfmon::MillisecondsToCounter(uint value)
+{
+   LARGE_INTEGER li;
+   QueryPerformanceFrequency(&li);  // counts per second...
+   return value * li.QuadPart / 1000;
 }

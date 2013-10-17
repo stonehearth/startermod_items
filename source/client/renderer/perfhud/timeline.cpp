@@ -57,7 +57,7 @@ Timeline& Timeline::SetMaxColumns(uint max)
 void Timeline::AddFrame(perfmon::Frame* frame)
 {
    for (perfmon::Counter const* counter : frame->GetCounters()) {
-      uint time = perfmon::CounterToMilliseconds(counter->GetValue());
+      perfmon::CounterValueType time = counter->GetValue();
       total_time_ += time;
       counter_times_[counter->GetName()] += time;
    }

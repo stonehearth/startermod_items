@@ -14,7 +14,7 @@ TimelineColumn::TimelineColumn(Timeline& t, perfmon::Frame* frame)
 {
    duration_ = 0;
    for (perfmon::Counter const* counter : frame->GetCounters()) {
-      uint time = perfmon::CounterToMilliseconds(counter->GetValue());
+      perfmon::CounterValueType time = counter->GetValue();
       duration_ += time;
       entries_.push_back(ColumnEntry(t.GetCounterData(counter->GetName()), time));
    }
@@ -32,7 +32,7 @@ TimelineColumn& TimelineColumn::Render(RenderContext & rc, csg::Rect2f const& re
    float offset = max.y, height = max.y - min.y;
    for (const auto& entry : entries_) {
       max.y = offset;
-      offset -= height * entry.duration / rc.GetTimelineHeightMs();
+      offset -= height * entry.duration / rc.GetTimelineHeight();
       min.y = offset;
       rc.DrawBox(csg::Rect2f(min, max), entry.counter_data->color);
    }

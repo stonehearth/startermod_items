@@ -42,3 +42,7 @@
 	path = modules/cryptopp
 	url = https://github.com/radent/cryptopp
 	branch = master
+[submodule "modules/tbb"]
+	path = modules/tbb
+	url = https://github.com/radent/tbb.git
+	branch = master
