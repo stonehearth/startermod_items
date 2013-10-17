@@ -129,8 +129,8 @@ end
 function FirepitComponent:_should_light_fire()
    --Only light fires after dark
    local curr_time = Calendar.get_time_and_date()
-   if curr_time.hour >= self._time_constants.baseTimeOfDay.sunset or
-      curr_time.hour < self._time_constants.baseTimeOfDay.sunrise then
+   if curr_time.hour >= self._time_constants.event_times.sunset or
+      curr_time.hour < self._time_constants.event_times.sunrise then
 
       --Only do this if we haven't yet started the process for tonight
       if self._am_lighting_fire then
