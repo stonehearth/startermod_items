@@ -62,8 +62,8 @@ end
 ---Whenever there is a lit fire, if idle, go to it and hang out
 function AdmireFire:_should_light_fire()
    local curr_time = Calendar.get_time_and_date()
-   if curr_time.hour >= self._time_constants.baseTimeOfDay.sunset or
-      curr_time.hour < self._time_constants.baseTimeOfDay.sunrise then
+   if curr_time.hour >= self._time_constants.event_times.sunset or
+      curr_time.hour < self._time_constants.event_times.sunrise then
       self._should_look_for_fire = true
       if not self._pathfinder then
          self:_start_looking_for_fire()
