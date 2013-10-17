@@ -29,19 +29,21 @@ function Landscaper:place_trees(zone_map, world_offset_x, world_offset_y)
    if world_offset_x == nil then world_offset_x = 0 end
    if world_offset_y == nil then world_offset_y = 0 end
 
-   local small_tree_threshold = 8
-   local medium_tree_threshold = 40
-   local grid_spacing = 32
-   local perturbation_dist = grid_spacing/2 - 4
-   local tree_map_width = zone_map.width / grid_spacing
-   local tree_map_height = zone_map.height / grid_spacing
+   local small_tree_threshold = 10
+   local medium_tree_threshold = 35
+   local grid_spacing = 18
+   local max_trunk_radius = 3
+   local perturbation_dist = _calc_perturbation_dist(grid_spacing, max_trunk_radius)
+   local tree_map_width, tree_map_height, grid_offset_x, grid_offset_y =
+            _calc_perturbation_map_size_and_offset(zone_map, grid_spacing)
    local tree_map = Array2D(tree_map_width, tree_map_height)
    local noise_map = Array2D(tree_map_width, tree_map_height)
 
    self:_fill_noise_map(noise_map)
-   FilterFns.filter_2D_050(tree_map, noise_map, tree_map_width, tree_map_height, 6)
+   FilterFns.filter_2D_025(tree_map, noise_map, tree_map_width, tree_map_height, 8)
 
    local terrain_info = self.terrain_info
+   local default_tree_type = self:random_tree_type() -- default tree type for this zone
    local tree_type, tree_name, value, elevation
    local i, j, x, y
 
@@ -50,36 +52,53 @@ function Landscaper:place_trees(zone_map, world_offset_x, world_offset_y)
          value = tree_map:get(i, j)
 
          if value > 0 then
-            x, y = self:_perturbation_to_zone_coordinates(i, j, grid_spacing, perturbation_dist)
+            x, y = _perturbation_to_zone_coordinates(i, j, grid_spacing,
+                      grid_offset_x, grid_offset_y, perturbation_dist)
 
-            elevation = zone_map:get(x, y)
-            tree_type = self:_get_tree_type(elevation)
+            if self:_is_flat(zone_map, x, y, 2) then
+               elevation = zone_map:get(x, y)
+               tree_type = self:_get_tree_type(elevation, default_tree_type)
 
-            if tree_type ~= nil then 
-               if value <= small_tree_threshold      then tree_name = get_tree_name(tree_type, small)
-               elseif value <= medium_tree_threshold then tree_name = get_tree_name(tree_type, medium)
-               else                                       tree_name = get_tree_name(tree_type, large)
+               if tree_type ~= nil then 
+                  if value <= small_tree_threshold      then tree_name = get_tree_name(tree_type, small)
+                  elseif value <= medium_tree_threshold then tree_name = get_tree_name(tree_type, medium)
+                  else                                       tree_name = get_tree_name(tree_type, large)
+                  end
+
+                  local entity
+                  entity = self:_place_item(tree_name, world_offset_x + x, world_offset_y + y)
+                  
+                  -- set a random facing for the tree
+                  entity:add_component('mob'):turn_to(90*math.random(0, 3))
                end
-
-               local entity
-               entity = self:_place_item(tree_name, world_offset_x + x, world_offset_y + y)
-               
-               -- set a random facing for the tree
-               entity:add_component('mob'):turn_to(90*math.random(0, 3))
             end
          end
       end
    end
 end
 
+function _calc_perturbation_dist(grid_spacing, exclusion_radius)
+   return math.floor(grid_spacing/2 - exclusion_radius)
+end
+
+function _calc_perturbation_map_size_and_offset(zone_map, grid_spacing)
+   local perturbation_map_width = math.floor(zone_map.width / grid_spacing)
+   local perturbation_map_height = math.floor(zone_map.height / grid_spacing)
+   local remainder_x = zone_map.width % perturbation_map_width
+   local remainder_y = zone_map.height % perturbation_map_height
+   local grid_offset_x = math.floor(grid_spacing/2 + remainder_x)
+   local grid_offset_y = math.floor(grid_spacing/2 + remainder_y)
+
+   return perturbation_map_width, perturbation_map_height, grid_offset_x, grid_offset_y
+end
+
 -- takes coordinates i, j from the perturbation grid and returns perturbed zone coordinates
-function Landscaper:_perturbation_to_zone_coordinates(i, j, grid_spacing, perturbation_dist)
-   local grid_offset = grid_spacing * 0.5
+function _perturbation_to_zone_coordinates(i, j, grid_spacing, grid_offset_x, grid_offset_y, perturbation_dist)
    local perturbation_x = math.random(-perturbation_dist, perturbation_dist)
    local perturbation_y = math.random(-perturbation_dist, perturbation_dist)
 
-   local x = (i-1)*grid_spacing + grid_offset + perturbation_x
-   local y = (j-1)*grid_spacing + grid_offset + perturbation_y
+   local x = (i-1)*grid_spacing + grid_offset_x + perturbation_x
+   local y = (j-1)*grid_spacing + grid_offset_y + perturbation_y
 
    return x, y
 end
@@ -93,7 +112,7 @@ function Landscaper:_fill_noise_map(height_map)
       for i=1, height_map.width do
          if height_map:is_boundary(i, j) then
             -- discourage forests from being discontinuous at zone boundaries
-            value = -10
+            value = mean-20
          else
             value = GaussianRandom.generate(mean, std_dev)
          end
@@ -102,7 +121,27 @@ function Landscaper:_fill_noise_map(height_map)
    end
 end
 
-function Landscaper:_get_tree_type(elevation)
+-- checks if the rectangular region centered around x,y is flat
+function Landscaper:_is_flat(zone_map, x, y, distance)
+   local start_x, start_y = zone_map:bound(x-distance, y-distance)
+   local end_x, end_y = zone_map:bound(x+distance, y+distance)
+   local block_width = end_x - start_x + 1
+   local block_height = end_y - start_y + 1
+   local height = zone_map:get(x, y)
+   local is_flat = true
+
+   zone_map:visit_block(start_x, start_y, block_width, block_height,
+      function (value)
+         if value == height then return true end
+         is_flat = false
+         return false
+      end
+   )
+
+   return is_flat
+end
+
+function Landscaper:_get_tree_type(elevation, default_tree_type)
    local terrain_info = self.terrain_info
 
    if elevation > terrain_info.tree_line then return nil end
@@ -112,8 +151,7 @@ function Landscaper:_get_tree_type(elevation)
    if terrain_type == TerrainType.Grassland then return oak end
    if terrain_type == TerrainType.Mountains then return juniper end
 
-   -- Foothills allows all tree types
-   return self:random_tree_type()
+   return default_tree_type
 end
 
 function Landscaper:random_tree(tree_type, tree_width)
@@ -156,15 +194,19 @@ function Landscaper:place_boulders(region3_boxed, zone_map)
    local boulder_region
 
    local grid_spacing = 32
-   local perturbation_dist = grid_spacing/2 - 8
+   local perturbation_dist = grid_spacing/2 - 4
    local boulder_map_width = zone_map.width / grid_spacing
    local boulder_map_height = zone_map.height / grid_spacing
+   local boulder_map_width, boulder_map_height, grid_offset_x, grid_offset_y =
+            _calc_perturbation_map_size_and_offset(zone_map, grid_spacing)
+
    local elevation, i, j, x, y
 
    -- no boulders on edge of map since they can get cut off
    for j=2, boulder_map_height-1 do
       for i=2, boulder_map_width-1 do
-         x, y = self:_perturbation_to_zone_coordinates(i, j, grid_spacing, perturbation_dist)
+         x, y = _perturbation_to_zone_coordinates(i, j, grid_spacing,
+                   grid_offset_x, grid_offset_y, perturbation_dist)
 
          elevation = zone_map:get(x, y)
 

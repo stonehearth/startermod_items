@@ -31,6 +31,18 @@ function Array2D:in_bounds(x, y)
    return true
 end
 
+function Array2D:bound(x, y)
+   if x < 1 then x = 1
+   elseif x > self.width then x = self.width
+   end
+
+   if y < 1 then y = 1
+   elseif y > self.height then y = self.height
+   end
+
+   return x, y
+end
+
 function Array2D:clone()
    local dst = Array2D(self.width, self.height)
    local size = self.width * self.height
@@ -53,23 +65,37 @@ function Array2D:set_block(x, y, block_width, block_height, value)
    self:process_block(x, y, block_width, block_height, fn)
 end
 
-function Array2D:process_map(func)
+function Array2D:process_map(fn)
    local i
    local size = self.width * self.height
 
    for i=1, size do
-      self[i] = func(self[i])
+      self[i] = fn(self[i])
    end
 end
 
-function Array2D:process_block(x, y, block_width, block_height, func)
+function Array2D:process_block(x, y, block_width, block_height, fn)
    local i, j, index
    local offset = self:get_offset(x, y)-1
 
    for j=1, block_height do
       for i=1, block_width do
          index = offset+i
-         self[index] = func(self[index])
+         self[index] = fn(self[index])
+      end
+      offset = offset + self.width
+   end
+end
+
+function Array2D:visit_block(x, y, block_width, block_height, fn)
+   local i, j, index, continue
+   local offset = self:get_offset(x, y)-1
+
+   for j=1, block_height do
+      for i=1, block_width do
+         index = offset+i
+         continue = fn(self[index])
+         if not continue then break end
       end
       offset = offset + self.width
    end
