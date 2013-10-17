@@ -88,8 +88,7 @@ namespace radiant {
          }
 
          template <typename T> T get(unsigned int index, T const& def = T()) const {
-            ASSERT(node_.type() == JSON_ARRAY);
-            if (index >= 0 && index < (int)node_.size()) {
+            if (node_.type() == JSON_ARRAY && index >= 0 && index < (int)node_.size()) {
                return ConstJsonObject(node_.at(index)).as<T>(def);
             }
             return def;

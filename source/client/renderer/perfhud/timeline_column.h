@@ -17,14 +17,14 @@ public:
 
 private:
    struct ColumnEntry {
-      CounterData*         counter_data;
-      int                  duration;
+      CounterData*               counter_data;
+      perfmon::CounterValueType  duration;
       ColumnEntry() { }
-      ColumnEntry(CounterData* data, uint t) : counter_data(data), duration(t) { }
+      ColumnEntry(CounterData* data, perfmon::CounterValueType t) : counter_data(data), duration(t) { }
    };
 
 private:
-   int                           duration_;
+   perfmon::CounterValueType     duration_;
    std::vector<ColumnEntry>      entries_;
 };
 

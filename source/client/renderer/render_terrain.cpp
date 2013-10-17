@@ -4,6 +4,7 @@
 #include "render_terrain.h"
 #include "om/components/terrain.h"
 #include "csg/meshtools.h"
+#include "lib/perfmon/perfmon.h"
 #include "Horde3D.h"
 #include <unordered_map>
 
@@ -302,6 +303,7 @@ void RenderTerrain::TesselateLayer(csg::Region2 const& layer, int height, csg::R
 
 void RenderTerrain::Update()
 {
+   perfmon::TimelineCounterGuard tcg("tesselate terrain");
    for (RenderZoneRef t : dirty_zones_) {
       RenderZonePtr zone = t.lock();
       if (zone) {
