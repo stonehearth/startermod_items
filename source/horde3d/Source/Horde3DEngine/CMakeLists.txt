@@ -15,6 +15,7 @@ set(HORDE3D_SOURCES
 	egModules.cpp
 	egParticle.cpp
 	egPipeline.cpp
+        egPixelBuffer.cpp
 	egPrimitives.cpp
 	egRendererBase.cpp
 	egRenderer.cpp
