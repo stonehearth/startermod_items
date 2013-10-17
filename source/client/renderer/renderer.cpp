@@ -332,7 +332,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    h3dSetMaterialArrayUniform( ssaoMat, "samplerKernel", ssaoSamplerData.data(), ssaoSamplerData.size());
 
    // Render scene
-   perfmon::SwitchToCounter("render camera");
+   perfmon::SwitchToCounter("render h3d");
    h3dRender(camera_->GetNode());
 
    // Finish rendering of frame

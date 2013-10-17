@@ -9,6 +9,7 @@ RenderContext::RenderContext()
 {
    material_.reset(h3dAddResource(H3DResTypes::Material, "overlays/panel.material.xml", 0));
    font_material_.reset(h3dAddResource(H3DResTypes::Material, "overlays/font.material.xml", 0));
+   timeline_height_t_ = perfmon::MillisecondsToCounter(100);
 }
 
 
@@ -16,14 +17,14 @@ RenderContext::~RenderContext()
 {
 }
 
-uint RenderContext::GetTimelineHeightMs() const
+perfmon::CounterValueType RenderContext::GetTimelineHeight() const
 { 
-   return timeline_height_ms_;
+   return timeline_height_t_;
 }
 
-RenderContext& RenderContext::SetTimelineHeightMs(uint value)
+RenderContext& RenderContext::SetTimelineHeight(perfmon::CounterValueType value)
 {
-   timeline_height_ms_ = value;
+   timeline_height_t_ = value;
    return *this;
 }
 

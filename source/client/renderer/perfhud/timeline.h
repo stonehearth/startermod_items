@@ -37,9 +37,9 @@ private:
    core::Guard                                     perfmon_guard_;
    std::vector<CounterData*>                       counter_data_sorted_;
    std::unordered_map<std::string, CounterData*>   counter_data_;
-   std::unordered_map<std::string, uint>           counter_times_;
+   std::unordered_map<std::string, perfmon::CounterValueType> counter_times_;
 
-   uint                                            total_time_;
+   perfmon::CounterValueType                       total_time_;
    std::vector<csg::Color3>                        colors_;
    csg::Color3                                     default_color_;
 };

@@ -22,7 +22,7 @@ PerfHud::PerfHud(Renderer& r)
                             csg::Point2f(aspect - pad_x, 1.0f - pad_y)));
       rc_.SetScreenSize(pt);
    });
-   rc_.SetTimelineHeightMs(100);
+   rc_.SetTimelineHeight(perfmon::MillisecondsToCounter(100));
    timeline_.SetMaxColumns(300);
 }
 
