@@ -13,9 +13,9 @@
 #ifndef _utPlatform_H_
 #define _utPlatform_H_
 
-#if defined( _DEBUG )
-	#include <assert.h>
-#endif
+// xxx - This is a big of a smash-grab job.  Ideally, every .cpp file would include
+// radiant.h at the top instead of putting it here.
+#include "radiant.h"
 
 // Detect platform
 #if defined( WINCE )
@@ -79,16 +79,6 @@ typedef unsigned long long uint64;
 #endif
 #if defined( _MSC_VER ) && (_MSC_VER < 1400)
 #   define vsnprintf _vsnprintf
-#endif
-
-
-// Runtime assertion
-#if !defined(ASSERT)
-#if defined( _DEBUG )
-#	define ASSERT( exp ) assert( exp );
-#else
-#	define ASSERT( exp )
-#endif
 #endif
 
 // Support for MSVC static code analysis

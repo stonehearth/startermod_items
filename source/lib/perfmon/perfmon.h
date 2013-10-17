@@ -6,12 +6,6 @@
 
 BEGIN_RADIANT_PERFMON_NAMESPACE
 
-class PerfmonThreadGuard {
-public:
-   PerfmonThreadGuard();
-   ~PerfmonThreadGuard();
-};
-
 class FrameGuard {
 public:
    FrameGuard();
@@ -27,9 +21,12 @@ private:
    Counter*          last_counter_;
 };
 
+void BeginFrame();
+void EndFrame();
 void SwitchToCounter(char const* name);
 core::Guard OnFrameEnd(std::function<void(Frame*)>);
 uint CounterToMilliseconds(CounterValueType value);
+CounterValueType MillisecondsToCounter(uint value);
 
 END_RADIANT_PERFMON_NAMESPACE
 

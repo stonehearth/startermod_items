@@ -3,6 +3,7 @@
 
 #include "namespace.h"
 #include "client/renderer/h3d_resource_types.h"
+#include "lib/perfmon/perfmon.h"
 #include "csg/color.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
@@ -13,9 +14,9 @@ public:
    RenderContext();
    ~RenderContext();
 
-   uint GetTimelineHeightMs() const;
+   perfmon::CounterValueType GetTimelineHeight() const;
 
-   RenderContext& SetTimelineHeightMs(uint value);
+   RenderContext& SetTimelineHeight(perfmon::CounterValueType value);
    void SetScreenSize(csg::Point2 const& size);
    void DrawBox(csg::Rect2f const& r, csg::Color3 const& col);
    void DrawString(std::string const& s, csg::Point2f const& pt, csg::Color3 const& col, csg::Color3 const& border = csg::Color3::black);
@@ -26,7 +27,7 @@ private:
    H3DResUnique                                    font_material_;
    float                                           text_size_;
    csg::Point2f                                    one_pixel_;
-   uint                                            timeline_height_ms_;
+   perfmon::CounterValueType                       timeline_height_t_;
 };
 
 
