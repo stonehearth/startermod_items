@@ -38,7 +38,8 @@ end
 --- Trace all fire sources. Whenever one is added, trace its properties.
 -- When a fire is lit and it's nighttime, tell people to look for fires.
 -- TODO: how to release a trace?
--- TODO: test once we have move-item in place
+-- TODO: Bug: I suspect people will not know how to look for fires that appeared
+-- before they were added to the world.
 function AdmireFire:_on_entity_add(id, entity)
    local firepit_component = entity:get_component('stonehearth:firepit')
    if firepit_component and
