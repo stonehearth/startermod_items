@@ -63,30 +63,14 @@ function entities.has_child_by_id(parent, child_id)
       return false
    end
 
-   local children = entities.get_children(parent) --component:get_children()
-   if not children then
-      return false
-   end
-
+   local children = component:get_children()
    local found = false
    for id, child in children:items() do
       if child_id == id then
         found = true
       end
    end
-
    return found
-end
-
-function entities.get_children(parent)
-   radiant.check.is_entity(parent)
-
-   local component = parent:get_component('entity_container')
-   if not component then
-      return nil
-   end
-
-   return component:get_children()
 end
 
 function entities.get_name(entity)

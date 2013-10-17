@@ -24,7 +24,10 @@ function SleepInBedAction:run(ai, entity, bed, path)
 
    -- Mark the bed as being used
    self._bed = bed
-   bed:get_component('stonehearth:placed_item'):set_usage(true)
+   local placed_item = bed:get_component('stonehearth:placed_item')
+   if placed_item then
+      placed_item:set_usage(true)
+   end
 
    --Am I carrying anything? If so, drop it
    local drop_location = radiant.entities.get_world_grid_location(entity)

@@ -61,6 +61,7 @@ end
 -- This is not a final solution! We need to look deeper into this problem.
 -- What about other computers, processors, etc, for example?
 -- NOTE: Doesn't seem to be the data binding, etc. as commenting that out produces the same error
+-- filed as bug: http://bugs.radiant-entertainment.com:8080/browse/SH-22
 FirepitComponent['radiant:events:calendar:hourly'] = function(self, calendar)
    if calendar.hour > self._placement_time + 1 then
       self:_should_light_fire()
@@ -127,6 +128,11 @@ end
 --- Reused between this and when we check to see if we should
 -- light the fire after place.
 function FirepitComponent:_should_light_fire()
+   --Make sure we're not calling after the entity has been gc'd.
+   if not self then
+      return
+   end
+
    --Only light fires after dark
    local curr_time = Calendar.get_time_and_date()
    if curr_time.hour >= self._time_constants.event_times.sunset or
@@ -160,10 +166,6 @@ end
 ---Adds 8 seats around the firepit
 --TODO: add a random element to the placement of the seats.
 function FirepitComponent:_add_seats()
-   --Is this being called for an entity that doesn't exist?
-   if not self then
-      return
-   end
    self._seats = {}
    local firepit_loc = Point3(radiant.entities.get_world_grid_location(self._entity))
    self:_add_one_seat(1, Point3(firepit_loc.x + 5, firepit_loc.y, firepit_loc.z + 1))
