@@ -7,6 +7,8 @@
       "run" : "run_panic"
    },
    "sitting" : {
-      "idle_breathe" : "sitting_idle"
+      "idle_breathe" : "sitting_idle",
+      "idle_sway" : "sitting_idle",
+      "idle_look_around" : "sitting_idle"
    }
 }

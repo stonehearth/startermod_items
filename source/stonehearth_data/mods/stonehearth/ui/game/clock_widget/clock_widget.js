@@ -51,8 +51,8 @@ App.StonehearthCalendarView = App.View.extend({
 
       var hoursRemaining;
 
-      if (date.hour >= this._constants.baseTimeOfDay.sunrise && date.hour < this._constants.baseTimeOfDay.sunset) {
-         hoursRemaining = this._constants.baseTimeOfDay.sunset - date.hour;
+      if (date.hour >= this._constants.event_times.sunrise && date.hour < this._constants.event_times.sunset) {
+         hoursRemaining = this._constants.event_times.sunset - date.hour;
 
          if (this._hoursRemaining != hoursRemaining) {
             //transition to day
@@ -78,10 +78,10 @@ App.StonehearthCalendarView = App.View.extend({
          }
 
       } else {
-         if (date.hour < this._constants.baseTimeOfDay.sunrise) {
-            hoursRemaining = this._constants.baseTimeOfDay.sunrise - date.hour
+         if (date.hour < this._constants.event_times.sunrise) {
+            hoursRemaining = this._constants.event_times.sunrise - date.hour
          } else {
-            hoursRemaining = this._constants.baseTimeOfDay.sunrise + (this._constants.hours_per_day - date.hour)
+            hoursRemaining = this._constants.event_times.sunrise + (this._constants.hours_per_day - date.hour)
          }
 
          if (this._hoursRemaining != hoursRemaining) {

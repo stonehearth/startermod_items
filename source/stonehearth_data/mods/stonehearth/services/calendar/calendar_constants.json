@@ -9,7 +9,7 @@
    "starting_month" : 1,
    "starting_year" : 1000,
 
-   "hourNames" : [
+   "hour_names" : [
       "Aughtaur",
       "Twivaur",
       "Thrisaur",
@@ -24,7 +24,7 @@
       "Dovaur"
    ],
 
-   "monthNames" : [
+   "month_names" : [
       "Bittermun",
       "Deepmun",
       "Dewmun",
@@ -39,7 +39,7 @@
       "Northmun"
    ],
 
-   "baseTimeOfDay" : {
+   "event_times" : {
       "midnight" : 0,
       "sunrise" : 6,
       "midday" : 14,
