@@ -85,6 +85,12 @@ bool Resource::load( const char *data, int size )
 }
 
 
+bool Resource::loadFrom( Resource* res, int xOffset, int yOffset, int width, int height )
+{
+   return false;
+}
+
+
 void Resource::unload()
 {
 	release();
