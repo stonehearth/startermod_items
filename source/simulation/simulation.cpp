@@ -190,6 +190,10 @@ void Simulation::CreateNew()
       using namespace luabind;
 
       lua_State* L = scriptHost_->GetInterpreter();
+      lua_State* callback_thread = scriptHost_->GetCallbackThread();
+   
+      store_.SetInterpreter(callback_thread); // xxx move to dm open or something
+
       om::RegisterLuaTypes(L);
       csg::RegisterLuaTypes(L);
       lua::sim::open(L);

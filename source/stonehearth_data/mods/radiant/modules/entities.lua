@@ -451,5 +451,10 @@ function entities.is_hostile(entity_a, entity_b)
           faction_a ~= faction_b
 end
 
+function entities.on_entity_moved(entity, fn, reason)
+   reason = reason and reason or 'on_entity_moved promise'
+   return entity:add_component('mob'):trace(reason):on_changed(fn)
+end
+
 entities.__init()
 return entities

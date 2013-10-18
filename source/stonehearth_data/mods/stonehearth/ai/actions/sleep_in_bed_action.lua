@@ -29,6 +29,12 @@ function SleepInBedAction:run(ai, entity, bed, path)
       placed_item:set_usage(true)
    end
 
+   -- If the bed moves between now and before the sleeper wakes up, just
+   -- go ahead and abort.
+   self._bed_moved_promise = radiant.entities.on_entity_moved(bed, function()
+      ai:abort()
+   end);
+   
    --Am I carrying anything? If so, drop it
    local drop_location = radiant.entities.get_world_grid_location(entity)
    ai:execute('stonehearth:drop_carrying', drop_location)
@@ -53,6 +59,10 @@ function SleepInBedAction:run(ai, entity, bed, path)
 end
 
 function SleepInBedAction:stop()
+   if self._bed_moved_promise then
+      self._bed_moved_promise:destroy()
+      self._bed_moved_promise = nil
+   end
    self._bed:get_component('stonehearth:placed_item'):set_usage(false)
 end
 

@@ -174,6 +174,7 @@ end
    If the action is stopped, stop the pathfinder
 --]]
 function SleepAction:stop()
+   self._ai:set_action_priority(self, 0)
    self:stop_looking_for_bed();
 end
 

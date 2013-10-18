@@ -31,6 +31,12 @@ std::ostream& operator<<(std::ostream& os, dm::Boxed<csg::Transform>::Promise co
    return os << "[BoxedTransformPromise]";
 }
 
+
+dm::Object::LuaPromise<Mob>* Mob_Trace(Mob const& mob, const char* reason)
+{
+   return new dm::Object::LuaPromise<Mob>(reason, mob);
+}
+
 scope LuaMobComponent::RegisterLuaTypes(lua_State* L)
 {
    return
@@ -49,7 +55,10 @@ scope LuaMobComponent::RegisterLuaTypes(lua_State* L)
          .def("set_transform",               &Mob::SetTransform)
          .def("trace_transform",             &Mob_TraceTransform)
          .def("get_parent",                  &Mob_GetParent)
+         .def("trace",                       &Mob_Trace) // xxx: shouldn't this be generalized in the compnoent?  YES!  YES IT SHOULD!!
       ,
       dm::Boxed<csg::Transform>::RegisterLuaType(L)
+      ,
+      dm::Object::LuaPromise<Mob>::RegisterLuaType(L)         
       ;
 }
