@@ -235,13 +235,13 @@ function SkyRenderer:_init_moon()
 
    local colors = {
       sunset_start = Vec3(0.0, 0.0, 0.0),
-      sunset_end = Vec3(0.1, 0.1, 0.1),
-      sunrise_start = Vec3(0.1, 0.1, 0.1),
+      sunset_end = Vec3(0.1, 0.1, 0.2),
+      sunrise_start = Vec3(0.1, 0.1, 0.2),
       sunrise_end = Vec3(0.0, 0.0, 0.0),
    }
 
    local ambient_colors = {
-      night = Vec3(0.3, 0.3, 0.6),
+      night = Vec3(0.1, 0.1, 0.3),
       day = Vec3(0.0, 0.0, 0.0)
    }
 

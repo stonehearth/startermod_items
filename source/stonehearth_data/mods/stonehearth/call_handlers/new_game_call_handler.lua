@@ -1,4 +1,5 @@
 local NewGameCallHandler = class()
+local game_master = require 'services.game_master.game_master_service'
 
 local Point3 = _radiant.csg.Point3
 
@@ -89,15 +90,17 @@ function NewGameCallHandler:create_camp(session, response, pt)
    local worker2 = self:place_citizen(camp_x+0, camp_z-3)
    local worker3 = self:place_citizen(camp_x+3, camp_z-3)
    self:place_citizen(camp_x-3, camp_z+3)
-   self:place_citizen(camp_x+0, camp_z+3)
-   self:place_citizen(camp_x+3, camp_z+3)
-   self:place_citizen(camp_x-3, camp_z+0)
-   self:place_citizen(camp_x+3, camp_z+0)
-
+   --self:place_citizen(camp_x+0, camp_z+3)
+   --self:place_citizen(camp_x+3, camp_z+3)
+   --self:place_citizen(camp_x-3, camp_z+0)
+   --self:place_citizen(camp_x+3, camp_z+0)
 
    radiant.entities.pickup_item(worker1, faction:create_entity('stonehearth:oak_log'))
    radiant.entities.pickup_item(worker2, faction:create_entity('stonehearth:oak_log'))
    radiant.entities.pickup_item(worker3, faction:create_entity('stonehearth:firepit_proxy'))
+
+   -- start the game master service
+   game_master.start()
 
    return {}
 end

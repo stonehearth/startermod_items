@@ -1,6 +1,9 @@
 
 BUILD_TYPE   ?= debug
 
+ifeq ($(BUILD_TYPE), release)
+	MSBUILD_CONFIGURATION=release
+endif
 ifeq ($(BUILD_TYPE), opt)
 	MSBUILD_CONFIGURATION=relwithdebinfo
 endif
@@ -9,7 +12,7 @@ ifeq ($(BUILD_TYPE), debug)
 endif
 
 ifeq (_$(MSBUILD_CONFIGURATION)_, __)
-   $(error Unknown BUILD_TYPE=$(BUILD_TYPE).  Must be debug or opt.)
+   $(error Unknown BUILD_TYPE=$(BUILD_TYPE). Must be debug, opt, or release.)
 endif
 
 # default commands and such
