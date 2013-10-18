@@ -238,7 +238,9 @@ void Renderer::FlushMaterials() {
       h3dUnloadResource(r);
    }
 
-   Resize(width_, height_);
+   for (const auto& entry : pipelines_) {
+      h3dResizePipelineBuffers(entry.second, uiWidth_, uiHeight_);
+   }
 }
 
 Renderer::~Renderer()
@@ -805,11 +807,10 @@ void Renderer::SetUITextureSize(int width, int height)
 
    if (uiPbo_) {
       h3dRemoveResource(uiPbo_);
-      h3dReleaseUnusedResources();
    }
    if (uiTexture_) {
       h3dRemoveResource(uiTexture_);
-      h3dRemoveResource(uiMatRes_);
+      h3dUnloadResource(uiMatRes_);
    }
    h3dReleaseUnusedResources();
 
