@@ -1,10 +1,12 @@
 -include local.mk
 include make/settings.mk
 
-STONEHEARTH_ROOT = ${CURDIR}
-MAKE_ROOT        = $(STONEHEARTH_ROOT)/make
-MAKE_ROOT_DOS    = $(shell pwd -W)/make
-BUILD_ROOT       = $(STONEHEARTH_ROOT)/build
+STONEHEARTH_ROOT   = ${CURDIR}
+MAKE_ROOT          = $(STONEHEARTH_ROOT)/make
+MAKE_ROOT_DOS      = $(shell pwd -W)/make
+BUILD_ROOT         = $(STONEHEARTH_ROOT)/build
+SCRIPTS_ROOT       = $(STONEHEARTH_ROOT)/scripts
+DEPLOYMENT_ROOT    = $(BUILD_ROOT)/deployment
 
 .PHONY: default
 default: submodules configure stonehearth
@@ -49,3 +51,7 @@ decoda-project:
 .PHONY: dependency-graph
 dependency-graph:
 	cmake -H. -Bbuild -G"Visual Studio 11" --graphviz=deps.dot
+
+.PHONY: deployment
+deployment: stonehearth
+	sh $(SCRIPTS_ROOT)/copy-deployment-files.sh $(DEPLOYMENT_ROOT) $(BUILD_ROOT)/source/client_app/$(MSBUILD_CONFIGURATION) $(STONEHEARTH_ROOT)/source/stonehearth_data
