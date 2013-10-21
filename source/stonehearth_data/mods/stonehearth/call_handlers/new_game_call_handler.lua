@@ -100,7 +100,7 @@ function NewGameCallHandler:create_camp(session, response, pt)
    radiant.entities.pickup_item(worker3, faction:create_entity('stonehearth:firepit_proxy'))
 
    -- start the game master service
-   game_master.start()
+   --game_master.start()
 
    return {}
 end
