@@ -18,13 +18,15 @@ class RenderDestination : public RenderComponent {
       ~RenderDestination();
 
    private:
-      H3DNodeUnique              regionDebugShape_;
-      H3DNodeUnique              reservedDebugShape_;
-      H3DNodeUnique              adjacentDebugShape_;
-      om::DeepRegionGuardPtr     region_guard_;
-      om::DeepRegionGuardPtr     reserved_guard_;
-      om::DeepRegionGuardPtr     adjacent_guard_;
+      void RenderDestinationRegion();
+      void RemoveDestinationRegion();
 
+   private:
+      const RenderEntity*     entity_;
+      om::DestinationPtr      destination_;
+      H3DNodeUnique           regionDebugShape_;
+      om::DeepRegionGuardPtr  region_guard_;
+      core::Guard             tracer_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

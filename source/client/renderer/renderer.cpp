@@ -45,7 +45,6 @@ Renderer::Renderer() :
    uiTexture_(0),
    uiMatRes_(0),
    uiPbo_(0)
-
 {
    try {
 
@@ -187,6 +186,8 @@ Renderer::Renderer() :
    fileWatcher_.addWatch(strutil::utf8_to_unicode("horde"), [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
       Renderer::GetInstance().FlushMaterials();
    }, true);
+
+   SetShowDebugShapes(false);
 
    initialized_ = true;
 }
@@ -836,4 +837,20 @@ void Renderer::SetUITextureSize(int width, int height)
 core::Guard Renderer::OnScreenResize(std::function<void(csg::Point2)> fn)
 {
    return screen_resize_slot_.Register(fn);
+}
+
+bool Renderer::GetShowDebugShapes()
+{
+   return show_debug_shapes_;
+}
+
+void Renderer::SetShowDebugShapes(bool show_debug_shapes)
+{
+   show_debug_shapes_ = show_debug_shapes;
+   show_debug_shapes_changed_slot_.Signal(show_debug_shapes);
+}
+
+core::Guard Renderer::OnShowDebugShapesChanged(std::function<void(bool)> fn)
+{
+   return show_debug_shapes_changed_slot_.Register(fn);
 }
