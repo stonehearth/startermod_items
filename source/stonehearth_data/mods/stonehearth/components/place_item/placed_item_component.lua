@@ -10,7 +10,6 @@ function PlacedItem:__init(entity, data_store)
    self._entity = entity
 
    self._proxy_uri = nil  --Hopefully this is set by the time the user tries to move the item again
-   self._in_use = false
 
    self:_init_commands()
 end
@@ -45,20 +44,5 @@ end
 function PlacedItem:get_proxy()
    return self._proxy_uri
 end
-
---- Set whether or not the item is currently in use
-function PlacedItem:set_usage(in_use_now)
-   self._in_use = in_use_now
-
-   --Enable the command when not in use. Disable when in use
-   local commands_component = self._entity:get_component('stonehearth:commands')
-   commands_component:enable_command('move_item', not in_use_now)
-end
-
---- Get whether or not the item is currently in use.
-function PlacedItem:in_use()
-   return self._in_use
-end
-
 
 return PlacedItem

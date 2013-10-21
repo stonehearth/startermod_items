@@ -40,7 +40,9 @@ function effects.run_effect(entity, effect_name, ...)
       effect_mgr = EffectManager(entity)
       singleton._all_effects[id] = effect_mgr
       radiant.entities.on_destroy(entity, function()
-         singleton._all_effects[id]:destroy(entity)
+         if singleton._all_effects[id] then
+            singleton._all_effects[id]:destroy(entity)
+         end
          singleton._all_effects[id] = nil
       end)
    end

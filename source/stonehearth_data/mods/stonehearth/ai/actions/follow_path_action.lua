@@ -21,6 +21,9 @@ function FollowPathAction:run(ai, entity, path, effect_name)
    end
 
    local dest_entity = path:get_destination()
+   if not dest_entity or not dest_entity:get_component('mob') then
+      ai:abort()
+   end 
    local destination_loc = dest_entity:get_component('mob'):get_world_grid_location()
 
    local arrived_fn = function()

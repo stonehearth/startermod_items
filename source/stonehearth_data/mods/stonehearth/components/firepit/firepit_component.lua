@@ -49,7 +49,7 @@ function FirepitComponent:__init(entity, data_store)
 end
 
 function FirepitComponent:extend(json)
-   -- TODO: figure out how to communicate "where wolves won't go"
+   -- TODO: replace this with firepit made of fire, wolves won't go near fire
    if json and json.effective_radius then
       self._effective_raidus = json.effective_radius
    end
@@ -78,6 +78,8 @@ function FirepitComponent:_on_destroy()
    radiant.events.unlisten('radiant:events:calendar:sunrise', self)
    radiant.events.unlisten('radiant:events:calendar:sunset', self)
 
+   self:extinguish()
+
    if self._seats then
       for i, v in ipairs(self._seats) do
          radiant.entities.destroy_entity(v)
@@ -98,6 +100,8 @@ end
 function FirepitComponent:_on_remove()
    radiant.events.unlisten('radiant:events:calendar:sunrise', self)
    radiant.events.unlisten('radiant:events:calendar:sunset', self)
+
+   self:extinguish()
 
    if self._seats then
       for i, v in ipairs(self._seats) do
@@ -160,7 +164,6 @@ FirepitComponent['radiant:events:calendar:sunrise'] = function (self)
    end
    self:extinguish()
    self._am_lighting_fire = false
-   self._entity:get_component('stonehearth:placed_item'):set_usage(false)
 end
 
 ---Adds 8 seats around the firepit
@@ -223,7 +226,6 @@ function FirepitComponent:_init_gather_wood_task()
          function (path)
             -- TODO: destroying the worker task is not necessarily destroying the pf.
             if self then
-               self._entity:get_component('stonehearth:placed_item'):set_usage(true)
                return 'stonehearth:light_fire', path, self._entity, self._light_task
             else
                return

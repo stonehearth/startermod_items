@@ -70,7 +70,8 @@ function SleepAction:stop_looking_for_bed()
       self._pathfinder:stop()
       self._pathfinder = nil
    end
-   self._looking_for_a_bed = false;
+   self._looking_for_a_bed = false
+   self._sleeping = false
 end
 
 --[[
@@ -175,7 +176,8 @@ end
 --]]
 function SleepAction:stop()
    self._ai:set_action_priority(self, 0)
-   self:stop_looking_for_bed();
+   self:stop_looking_for_bed()
+   self._sleeping = false;
 end
 
 return SleepAction

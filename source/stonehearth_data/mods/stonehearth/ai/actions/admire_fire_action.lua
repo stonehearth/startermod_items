@@ -147,6 +147,26 @@ end
 function AdmireFire:run(ai, entity)
    assert(self._path_to_fire)
 
+   --Get the fire associated with the firepit
+   local spot_component = self._firepit_seat:get_component('stonehearth:center_of_attention_spot')
+   if not spot_component then
+      ai:abort()
+   end 
+   self._firepit = spot_component:get_center_of_attention()
+
+   -- If the firepit moves or is destroyed between now and before the
+   -- sleeper wakes up, just go ahead and abort.
+   -- TODO: right now, moving destroys, instead of actually moving the instance, fix
+   -- appear/disappear bug
+   self._firepit_moved_promise = radiant.entities.on_entity_moved(self._firepit, function()
+      ai:abort()
+   end);
+   radiant.entities.on_destroy(self._firepit, function()
+      --Can't call ai:abort, may not be on the correct thread.
+      self._firepit = nil
+   end);
+   
+
    -- Go to the fire!
    ai:execute('stonehearth:follow_path', self._path_to_fire)
 
@@ -154,8 +174,6 @@ function AdmireFire:run(ai, entity)
    local drop_location = self._path_to_fire:get_destination_point_of_interest()
    ai:execute('stonehearth:drop_carrying', drop_location)
 
-   --Get the fire associated with the firepit
-   local spot_component = self._firepit_seat:get_component('stonehearth:center_of_attention_spot')
    radiant.entities.turn_to_face(self._entity, spot_component:get_center_of_attention())
 
    self:_do_random_actions(ai)
@@ -167,6 +185,9 @@ end
 -- TODO: Add a standing animation, so the loop can continue
 function AdmireFire:_do_random_actions(ai)
    while true do
+      if not self._firepit then
+         ai:abort()
+      end
       local random_action = math.random(100)
       if random_action < 30 then
          ai:execute('stonehearth:idle')
@@ -201,6 +222,11 @@ end
 function AdmireFire:_clear_variables()
    self._ai:set_action_priority(self, 0)
 
+   if self._firepit_moved_promise then
+      self._firepit_moved_promise:destroy()
+      self._firepit_moved_promise = nil
+   end
+
    if self._pathfinder then
       self._pathfinder:stop()
       self._pathfinder = nil
@@ -209,7 +235,7 @@ function AdmireFire:_clear_variables()
    --We now run this action for as long as we're standing beside the seat.
    --So when stopping, unconditionally release the lease.
    --If stop is called and the entity successfully is beside his seat, then stop
-   if self._firepit_seat then
+   if self._firepit_seat and self._firepit_seat:get_component('stonehearth:lease_component') then
       self._firepit_seat:get_component('stonehearth:lease_component'):release_lease(self._entity)
    end
 end

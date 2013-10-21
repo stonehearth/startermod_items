@@ -50,11 +50,6 @@ function AiService:_on_event_loop(now)
    local dead = {}
    for co, _ in pairs(self._scheduled) do
       -- run it
-      local status = coroutine.status(co)
-      if status ~= 'suspended' then
-         status = status
-      end
-      
       self._running_thread = co
       local success, wait_obj = coroutine.resume(co)
       self._running_thread = nil

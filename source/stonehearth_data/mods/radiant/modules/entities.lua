@@ -141,7 +141,9 @@ end
 
 function entities.get_location_aligned(entity)
    radiant.check.is_entity(entity)
-   return entity:add_component('mob'):get_grid_location()
+   if entity then
+      return entity:add_component('mob'):get_grid_location()
+   end
 end
 
 function entities.get_world_grid_location(entity)

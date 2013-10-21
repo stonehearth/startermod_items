@@ -23,9 +23,6 @@ function PickupItemOnPath:run(ai, entity, path)
    --If it's not in use, repalce it with its proxy and continue
    local placed_item_component = item:get_component('stonehearth:placed_item')
    if placed_item_component then
-      if placed_item_component:in_use() then
-         ai:abort()
-      end
       local item_location = item:get_component('mob'):get_world_grid_location()
 
       local little_item = radiant.entities.create_entity(placed_item_component:get_proxy())

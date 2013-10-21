@@ -27,6 +27,11 @@ function WorkerPlaceItemAction:run(ai, entity, path, ghost_entity, rotation, tas
    -- Put in some logging
    local name = entity:get_component('unit_info'):get_display_name()
    local proxy_entity = path:get_destination()
+   
+   if not proxy_entity then
+      ai:abort()
+   end
+   
    local object_name = proxy_entity:get_component('unit_info'):get_display_name()
 
    -- If the task is already stopped, someone else got this action first. Exit.
