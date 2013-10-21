@@ -49,6 +49,6 @@ void RenderRenderRegion::UpdateRenderRegion(csg::Region3 const& region)
 {
    csg::mesh_tools::mesh mesh = csg::mesh_tools().ConvertRegionToMesh(region);
    
-   H3DNodeUnique mesh_node = Pipeline::GetInstance().AddMeshNode(node_.get(), mesh);
-   meshes_.emplace_back(mesh_node);
+   H3DNodeUnique model_node = Pipeline::GetInstance().AddMeshNode(node_.get(), mesh);
+   meshes_.emplace_back(model_node);
 }

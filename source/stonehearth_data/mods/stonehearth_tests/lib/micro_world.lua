@@ -99,25 +99,4 @@ function MicroWorld:place_stockpile_cmd(faction, x, z, w, h)
    inventory:create_stockpile(location, size)
 end
 
-function MicroWorld:create_room(faction, x, z, w, h)
-   w = w and w or 3
-   h = h and h or 3
-   local bounds = Cube3(Point3(x, 1, z),
-                                 Point3(x + w, 2, z + h))
-
-   return radiant.mods.get_singleton('stonehearth_building').create_room(faction, x, z, w, h)
-end
-
-function MicroWorld:create_door_cmd(wall, x, y, z)
-   radiant.check.is_a(wall, Wall)
-   local json, obj = radiant.commands.call('radiant:commands:create_portal', wall, '//stonehearth/buildings/wooden_door', Point3(x, y, z))
-   return om:get_entity(obj.entity_id)
-end
-
-function MicroWorld:start_project_cmd(blueprint)
-   radiant.check.is_entity(blueprint);
-   local json, obj = radiant.commands.call('radiant:commands:start_project', blueprint)
-   return om:get_entity(obj.entity_id)
-end
-
 return MicroWorld

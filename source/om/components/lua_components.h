@@ -21,7 +21,7 @@ class LuaComponents : public Component
 {
 public:
    DEFINE_OM_OBJECT_TYPE(LuaComponents, lua_components);
-   void ExtendObject(json::ConstJsonObject const& obj) override;
+   void ExtendObject(json::Node const& obj) override;
 
    DataBindingPtr GetLuaComponent(std::string name) const;
    DataBindingPtr AddLuaComponent(std::string name);

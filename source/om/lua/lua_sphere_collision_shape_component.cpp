@@ -10,6 +10,6 @@ using namespace ::radiant::om;
 scope LuaSphereCollisionShapeComponent::RegisterLuaTypes(lua_State* L)
 {
    return
-      lua::RegisterDerivedObject<SphereCollisionShape, Component>()
+      lua::RegisterWeakGameObjectDerived<SphereCollisionShape, Component>()
       ;
 }

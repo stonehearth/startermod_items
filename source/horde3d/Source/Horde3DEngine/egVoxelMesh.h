@@ -33,7 +33,7 @@ struct VoxelMeshNodeParams
 {
 	enum List
 	{
-		MatResI = 3000,
+		MatResI = 300,
 		BatchStartI,
 		BatchCountI,
 		VertRStartI,

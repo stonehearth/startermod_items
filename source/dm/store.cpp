@@ -70,14 +70,14 @@ void Store::Reset()
    ASSERT(objects_.size() == 0);
 }
 
-void Store::RegisterObject(Object& obj)
+void Store::RegisterWeakGameObject(Object& obj)
 {
    ASSERT(obj.IsValid());
    ASSERT(objects_.find(obj.GetObjectId()) == objects_.end());
 
    objects_[obj.GetObjectId()] = &obj;
 
-   // std::cout << "Store " << storeId_ << " RegisterObject(oid:" << obj.GetObjectId() << ") " << typeid(obj).name() << std::endl;
+   // std::cout << "Store " << storeId_ << " RegisterWeakGameObject(oid:" << obj.GetObjectId() << ") " << typeid(obj).name() << std::endl;
 }
 
 

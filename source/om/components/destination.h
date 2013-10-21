@@ -15,7 +15,7 @@ class Destination : public Component
 public:
    DEFINE_OM_OBJECT_TYPE(Destination, destination);
 
-   void ExtendObject(json::ConstJsonObject const& obj) override;
+   void ExtendObject(json::Node const& obj) override;
 
    Region3BoxedPtrBoxed const& GetRegion() const { return region_; }
    Region3BoxedPtrBoxed const& GetReserved() const { return reserved_; }
@@ -35,12 +35,12 @@ private:
 
 public:
    dm::Boxed<bool>                  auto_update_adjacent_;
-   Region3BoxedPtrBoxed       region_;
-   Region3BoxedPtrBoxed       reserved_;
-   Region3BoxedPtrBoxed       adjacent_;
-   DeepRegionGuardPtr              region_guard_;
-   DeepRegionGuardPtr              reserved_guard_;
-   core::Guard                        update_adjacent_guard_;
+   Region3BoxedPtrBoxed             region_;
+   Region3BoxedPtrBoxed             reserved_;
+   Region3BoxedPtrBoxed             adjacent_;
+   DeepRegionGuardPtr               region_guard_;
+   DeepRegionGuardPtr               reserved_guard_;
+   core::Guard                      update_adjacent_guard_;
    int                              lastUpdated_;
    int                              lastChanged_;
 };

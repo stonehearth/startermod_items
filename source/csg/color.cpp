@@ -41,7 +41,7 @@ Color3 Histogram::Sample(float f)
 
 std::ostream& ::radiant::csg::operator<<(std::ostream& out, const Color4 &c)
 {
-   out << "RGBA(" << (int)c.r << ", " << (int)c.g << ", " << (int)c.b << ", " << (int)c.a << ")";
+   out << "rgba(" << (int)c.r << ", " << (int)c.g << ", " << (int)c.b << ", " << (int)c.a << ")";
    return out;
 }
 

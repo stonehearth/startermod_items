@@ -235,6 +235,10 @@
          "get_build_editor": {
             "controller" : "file(call_handlers/build_call_handler.lua)",
             "endpoint" : "client"
+         },
+         "build_structures": {
+            "controller" : "file(call_handlers/build_call_handler.lua)",
+            "endpoint" : "server"
          }
       }
    },

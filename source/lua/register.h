@@ -2,106 +2,109 @@
 #define _RADIANT_LUA_REGISTER_H
 
 #include "namespace.h"
+#include "lib/json/node.h"
 #include "om/object_formatter/object_formatter.h" // xxx: for GetPathToObject...
 
 BEGIN_RADIANT_LUA_NAMESPACE
 
-#define IMPLEMENT_TRIVIAL_TOSTRING(Cls)                           \
-std::ostream& operator<<(std::ostream& os, Cls const& f)          \
-{                                                                 \
-   return os << "[" << ::radiant::lua::GetTypeName<Cls>() << "]"; \
-}
-
-template <class Derived>
-const char* GetTypeName()
-{
-   const char* name = typeid(Derived).name();
-   const char* last = strrchr(name, ':');
-   return last ? last + 1 : name;
+#define IMPLEMENT_TRIVIAL_TOSTRING(Cls)                                 \
+std::ostream& operator<<(std::ostream& os, Cls const& f)                \
+{                                                                       \
+   return os << "[" << ::radiant::GetShortTypeName<Cls>() << "]";  \
 }
 
 template <class T>
-const char* Type_GetTypeName(T const&)
+const char* GetTypeName(T const&)
 {
    return typeid(T).name();
 }
 
+template <class T>
+std::string TypeToJson(T const& obj, luabind::object state)
+{
+   return json::encode(obj).write();
+}
 
 template <class T>
-std::string TypePtr_ToJson(std::shared_ptr<T> obj, luabind::object state)
+std::string TypePointerToJson(std::shared_ptr<T> obj, luabind::object state)
 {
-   std::ostringstream output;
-   if (obj) {
-      output << '"' << om::ObjectFormatter().GetPathToObject(obj) << '"';
-   } else {
-      output << "null";
+   if (!obj) {
+      return "null";
    }
+   return json::encode(obj).write();
+}
+
+template <class T>
+std::string StrongGameObjectToJson(std::shared_ptr<T> obj, luabind::object state)
+{
+   if (!obj) {
+      return "null";
+   }
+   std::ostringstream output;
+   output << '"' << om::ObjectFormatter().GetPathToObject(obj) << '"';
    return output.str();
 }
 
 template <class T>
-std::string TypeRef_ToJson(std::weak_ptr<T> o, luabind::object state)
+std::string WeakGameObjectToJson(std::weak_ptr<T> o, luabind::object state)
 {
-   std::shared_ptr<T> obj = o.lock();
-   if (obj) {
-      return TypePtr_ToJson(obj, state);
-   }
-   std::ostringstream output;
-   output << "null";
-   return output.str();
+   return StrongGameObjectToJson(o.lock(), state);
 }
 
+// Used for putting value based C++ types into Lua (e.g. csg::Point3, csg::Cube3, etc.)
 template <typename T>
 luabind::class_<T> RegisterType(const char* name = nullptr)
 {
-   name = name ? name : GetTypeName<T>();
-   auto type = luabind::class_<T>(name);
-   type
+   name = name ? name : GetShortTypeName<T>();
+   return luabind::class_<T>(name)
       .def(tostring(luabind::self))
-      .def("get_type_name",  &Type_GetTypeName<T>);
-   return type;
+      .def("__tojson",       &TypeToJson<T>)
+      .def("get_type_name",  &GetTypeName<T>);
 }
 
 template <typename T>
 luabind::class_<T, std::shared_ptr<T>> RegisterTypePtr(const char* name = nullptr)
 {
-   name = name ? name : GetTypeName<T>();
+   name = name ? name : GetShortTypeName<T>();
    return luabind::class_<T, std::shared_ptr<T>>(name)
       .def(tostring(luabind::self))
-      .def("get_type_name",  &Type_GetTypeName<T>);
+      .def("__tojson",       &TypePointerToJson<T>)
+      .def("get_type_name",  &GetTypeName<T>);
 }
 
 template <typename T>
-luabind::class_<T, std::weak_ptr<T>> RegisterObject(const char* name = nullptr)
+luabind::class_<T, std::shared_ptr<T>> RegisterStrongGameObject(const char* name = nullptr)
 {
-   name = name ? name : GetTypeName<T>();
+   name = name ? name : GetShortTypeName<T>();
+   return luabind::class_<T, std::shared_ptr<T>>(name)
+      .def(tostring(luabind::self))
+      .def("__tojson",       &StrongGameObjectToJson<T>)
+      .def("get_id",         &T::GetObjectId)
+      .def("get_type_name",  &GetTypeName<T>);
+}
+
+template <typename T>
+luabind::class_<T, std::weak_ptr<T>> RegisterWeakGameObject(const char* name = nullptr)
+{
+   name = name ? name : GetShortTypeName<T>();
    return luabind::class_<T, std::weak_ptr<T>>(name)
       .def(tostring(luabind::self))
-      .def("__tojson",       &TypeRef_ToJson<T>)
+      .def("__tojson",       &WeakGameObjectToJson<T>)
       .def("get_id",         &T::GetObjectId)
-      .def("get_type_name",  &Type_GetTypeName<T>);
+      .def("get_type_name",  &GetTypeName<T>);
 }
 
-template <typename T>
-luabind::class_<T, std::shared_ptr<T>> RegisterObjectPtr(const char* name = nullptr)
-{
-   name = name ? name : GetTypeName<T>();
-   return luabind::class_<T, std::shared_ptr<T>>(name)
-      .def(tostring(luabind::self))
-      .def("__tojson",       &TypePtr_ToJson<T>)
-      .def("get_id",         &T::GetObjectId)
-      .def("get_type_name",  &Type_GetTypeName<T>);
-}
 
+// xxx: see if we can overload this with RegisterWeakGameObject
 template<class Derived, class Base>
-luabind::class_<Derived, Base, std::weak_ptr<Derived>> RegisterDerivedObject(const char* name = nullptr)
+luabind::class_<Derived, Base, std::weak_ptr<Derived>> RegisterWeakGameObjectDerived(const char* name = nullptr)
 {
-   name = name ? name : GetTypeName<Derived>();
+   name = name ? name : GetShortTypeName<Derived>();
    return luabind::class_<Derived, Base, std::weak_ptr<Derived>>(name)
       .def(tostring(luabind::self))
-      .def("__tojson",       &TypePtr_ToJson<Derived>)
+      .def("__tojson",       &WeakGameObjectToJson<Derived>)
       .def("get_id",         &Derived::GetObjectId)
-      .def("get_type_name",  &Type_GetTypeName<Derived>);
+      .def("get_type_name",  &GetTypeName<Derived>);
 }
 
 END_RADIANT_LUA_NAMESPACE

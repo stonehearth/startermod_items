@@ -3,8 +3,7 @@
 
 #include <unordered_map>
 #include "namespace.h"
-#include "csg/region.h"
-#include "csg/ray.h"
+#include "csg/namespace.h"
 #include "om/om.h"
 #include "dm/dm.h"
 #include "nav_grid.h"

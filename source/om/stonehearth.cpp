@@ -2,7 +2,7 @@
 #include <regex>
 #include "stonehearth.h"
 #include "entity.h"
-#include "radiant_json.h"
+#include "lib/json/node.h"
 #include "radiant_luabind.h"
 #include "lua/radiant_lua.h"
 #include "resources/res_manager.h"
@@ -80,7 +80,7 @@ GetLuaComponentUri(std::string name)
       modname = name.substr(0, offset);
       name = name.substr(offset + 1, std::string::npos);
 
-      json::ConstJsonObject manifest = res::ResourceManager2::GetInstance().LookupManifest(modname).GetNode();
+      json::Node manifest = res::ResourceManager2::GetInstance().LookupManifest(modname).GetNode();
       return manifest.getn("components").get<std::string>(name);
    }
    // xxx: throw an exception...
@@ -149,7 +149,7 @@ AddNativeComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
       auto component = entity->GetComponent<om::Clas>(); \
       if (!component) { \
          component = entity->AddComponent<om::Clas>(); \
-         component->ExtendObject(json::ConstJsonObject(JSONNode())); \
+         component->ExtendObject(json::Node(JSONNode())); \
       } \
       return object(L, std::weak_ptr<om::Clas>(component)); \
    }
@@ -246,7 +246,7 @@ void Stonehearth::InitEntity(om::EntityPtr entity, std::string const& uri, lua_S
    #define OM_OBJECT(Cls, lower) \
          if (entry.name() == #lower) { \
             auto component = entity->AddComponent<om::Cls>(); \
-            component->ExtendObject(json::ConstJsonObject(entry)); \
+            component->ExtendObject(json::Node(entry)); \
             continue; \
          }
          OM_ALL_COMPONENTS
@@ -265,8 +265,8 @@ void Stonehearth::InitEntity(om::EntityPtr entity, std::string const& uri, lua_S
    }
    // xxx: refaactor me!!!111!
    if (L) {
-      json::ConstJsonObject n(node);
-      std::string init_script = n.get<std::string>("init_script");
+      json::Node n(node);
+      std::string init_script = n.get<std::string>("init_script", "");
       if (!init_script.empty()) {
          try {        
             object fn = lua::ScriptHost::RequireScript(L, init_script);

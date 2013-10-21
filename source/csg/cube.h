@@ -6,9 +6,6 @@
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
-class Ray;
-template <typename S, int C> class Region;
-
 template <typename S, int C>
 class Cube
 {
@@ -149,17 +146,6 @@ std::ostream& operator<<(std::ostream& os, const Cube<S, C>& in)
 {
    return in.Format(os);
 }
-
-typedef Cube<int, 1> Line1;
-typedef Cube<int, 2> Rect2;
-typedef Cube<int, 3> Cube3;
-typedef Cube<float, 2> Rect2f;
-typedef Cube<float, 3> Cube3f;
-
-class Ray3;
-
-bool Cube3Intersects(const Cube3& rgn, const Ray3& ray, float& distance);
-bool Cube3Intersects(const Cube3f& rgn, const Ray3& ray, float& distance);
 
 END_RADIANT_CSG_NAMESPACE
 

@@ -3,6 +3,7 @@
 #include "cube.h"
 #include "ray.h"
 #include "region.h"
+#include "csg/util.h" // xxx: should be csg/namespace.h
 
 using namespace ::radiant;
 using namespace ::radiant::csg;
@@ -13,6 +14,7 @@ Rect2 Rect2::zero(Point2(0, 0), Point2(0, 0));
 Rect2 Rect2::one(Point2(0, 0), Point2(1, 1));
 Line1 Line1::zero(Point1(0), Point1(0));
 Line1 Line1::one(Point1(0), Point1(1));
+
 Rect2f Rect2f::zero(Point2f(0, 0), Point2f(0, 0));
 Rect2f Rect2f::one(Point2f(0, 0), Point2f(1, 1));
 Cube3f Cube3f::zero(Point3f(0, 0, 0), Point3f(0, 0, 0));

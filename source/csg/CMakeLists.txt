@@ -17,8 +17,6 @@ add_library(csg STATIC
             ray.cpp
             sphere.cpp
             transform.cpp
-            voronoi.cpp
-            voronoi_map.cpp
             heightmap.cpp
             util.cpp
             pch.cpp

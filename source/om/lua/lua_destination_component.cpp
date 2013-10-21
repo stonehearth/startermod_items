@@ -53,7 +53,7 @@ DestinationRef Destination_SetAdjacent(DestinationRef d, Region3BoxedPtr r)
 scope LuaDestinationComponent::RegisterLuaTypes(lua_State* L)
 {
    return
-      lua::RegisterDerivedObject<Destination, Component>()
+      lua::RegisterWeakGameObjectDerived<Destination, Component>()
          .def("get_region",               &Destination_GetRegion)
          .def("set_region",               &Destination_SetRegion)
          .def("trace_region",             &Destination_TraceRegion)

@@ -10,7 +10,7 @@ using namespace ::radiant::om;
 scope LuaPaperdollComponent::RegisterLuaTypes(lua_State* L)
 {
    return
-      lua::RegisterDerivedObject<Paperdoll, Component>()
+      lua::RegisterWeakGameObjectDerived<Paperdoll, Component>()
          .def("equip",                    &Paperdoll::SetSlot)
          .def("unequip",                  &Paperdoll::ClearSlot)
          .def("get_item_in_slot",         &Paperdoll::GetItemInSlot)

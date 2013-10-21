@@ -21,7 +21,7 @@
 #include "core/singleton.h"
 #include "chromium/chromium.h"
 #include "lua/namespace.h"
-#include "radiant_json.h"
+#include "lib/json/node.h"
 #include "lib/rpc/forward_defines.h"
 #include "core/input.h"
 #include "core/guard.h"
@@ -51,7 +51,7 @@ class Client : public core::Singleton<Client> {
 
       void run();
       lua::ScriptHost* GetScriptHost() const { return scriptHost_.get(); }
-      void BrowserRequestHandler(std::string const& uri, json::ConstJsonObject const& query, std::string const& postdata, rpc::HttpDeferredPtr response);
+      void BrowserRequestHandler(std::string const& uri, json::Node const& query, std::string const& postdata, rpc::HttpDeferredPtr response);
             
       om::EntityPtr GetEntity(dm::ObjectId id);
       om::TerrainPtr GetTerrain();
@@ -136,17 +136,17 @@ class Client : public core::Singleton<Client> {
       void TraceUri(JSONNode const& query, rpc::HttpDeferredPtr response);
       bool TraceObjectUri(std::string const& uri, rpc::HttpDeferredPtr response);
       void TraceFileUri(std::string const& uri, rpc::HttpDeferredPtr response);
-      void LoadModuleInitScript(json::ConstJsonObject const& block);
-      void LoadModuleRoutes(std::string const& modulename, json::ConstJsonObject const& block);
+      void LoadModuleInitScript(json::Node const& block);
+      void LoadModuleRoutes(std::string const& modulename, json::Node const& block);
 
       typedef std::function<void(tesseract::protocol::Update const& msg)> ServerReplyCb;
       void PushServerRequest(tesseract::protocol::Request& msg, ServerReplyCb replyCb);
       void AddBrowserJob(std::function<void()> fn);
-      void HandleCallRequest(json::ConstJsonObject const& node, rpc::HttpDeferredPtr response);
+      void HandleCallRequest(json::Node const& node, rpc::HttpDeferredPtr response);
       void ProcessBrowserJobQueue();
-      void HandleServerCallRequest(std::string const& obj, std::string const& function_name, json::ConstJsonObject const& node, rpc::HttpDeferredPtr response);
-      void BrowserCallRequestHandler(json::ConstJsonObject const& query, std::string const& postdata, rpc::HttpDeferredPtr response);
-      void CallHttpReactor(std::string parts, json::ConstJsonObject query, std::string postdata, rpc::HttpDeferredPtr response);
+      void HandleServerCallRequest(std::string const& obj, std::string const& function_name, json::Node const& node, rpc::HttpDeferredPtr response);
+      void BrowserCallRequestHandler(json::Node const& query, std::string const& postdata, rpc::HttpDeferredPtr response);
+      void CallHttpReactor(std::string parts, json::Node query, std::string postdata, rpc::HttpDeferredPtr response);
 
 private:
       /*

@@ -57,6 +57,7 @@ private:
    void AccumulateModelVariant(ModelMap& m, om::ModelVariantPtr v);
    void AccumulateModelVariants(ModelMap& m, om::ModelVariantsPtr model_variants, std::string const& current_variant);
    void RebuildModels(om::RenderInfoPtr render_info);
+   void CheckMaterial(om::RenderInfoPtr render_info);
    void FlattenModelMap(ModelMap& m, FlatModelMap& flattened);
    void RemoveObsoleteNodes(FlatModelMap const& m);
    std::string GetBoneName(std::string const& matrix_name);
@@ -80,6 +81,8 @@ private:
    NodeMap                 nodes_;
    BoneOffsetMap           bones_offsets_;
    std::string             model_variant_override_;
+   H3DResUnique            material_;
+   std::string             material_path_;
    bool                    use_model_variant_override_;
 };
 

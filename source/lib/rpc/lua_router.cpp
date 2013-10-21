@@ -10,7 +10,7 @@
 #include "lua/script_host.h"
 #include "resources/manifest.h"
 #include "resources/res_manager.h"
-#include "radiant_json.h"
+#include "lib/json/node.h"
 #include "lua/radiant_lua.h"
 
 using namespace ::radiant;

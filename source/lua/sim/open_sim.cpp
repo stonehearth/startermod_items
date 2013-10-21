@@ -12,6 +12,7 @@
 #include "om/json_store.h"
 #include "om/data_binding.h"
 #include "lib/voxel/qubicle_brush.h"
+#include "lib/json/core_json.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -169,6 +170,14 @@ std::shared_ptr<PathFinder> PathFinder_SetFilterFn(lua_State* L, std::shared_ptr
    pf->SetFilterFn(object(lua::ScriptHost::GetCallbackThread(L), cb));
    return pf;
 }
+
+DEFINE_INVALID_JSON_CONVERSION(Path);
+DEFINE_INVALID_JSON_CONVERSION(PathFinder);
+DEFINE_INVALID_JSON_CONVERSION(FollowPath);
+DEFINE_INVALID_JSON_CONVERSION(GotoLocation);
+DEFINE_INVALID_JSON_CONVERSION(WeakObjectReference<PathFinder>);
+DEFINE_INVALID_JSON_CONVERSION(LuaJob);
+
 
 void lua::sim::open(lua_State* L)
 {

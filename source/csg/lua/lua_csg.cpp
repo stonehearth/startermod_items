@@ -3,7 +3,6 @@
 #include "lua_point.h"
 #include "lua_region.h"
 #include "lua_heightmap.h"
-#include "lua_voronoi.h"
 #include "lua_edgelist.h"
 #include "lua_quaternion.h"
 #include "lua_ray.h"
@@ -21,7 +20,6 @@ void csg::RegisterLuaTypes(lua_State* L)
             LuaPoint::RegisterLuaTypes(L),
             LuaRegion::RegisterLuaTypes(L),
             LuaHeightmap::RegisterLuaTypes(L),
-            LuaVoronoi::RegisterLuaTypes(L),
             LuaEdgeList::RegisterLuaTypes(L),
             LuaQuaternion::RegisterLuaTypes(L),
             LuaRay::RegisterLuaTypes(L)

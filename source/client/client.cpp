@@ -113,8 +113,8 @@ Client::Client() :
       return GetModules(f);
    });
    core_reactor_->AddRoute("radiant:install_trace", [this](rpc::Function const& f) {
-      json::ConstJsonObject args(f.args);
-      std::string uri = args.get<std::string>(0);
+      json::Node args(f.args);
+      std::string uri = args.get<std::string>(0, "");
       return http_reactor_->InstallTrace(rpc::Trace(f.caller, f.call_id, uri));
    });
    core_reactor_->AddRoute("radiant:remove_trace", [this](rpc::Function const& f) {
@@ -158,8 +158,8 @@ void Client::run()
    namespace po = boost::program_options;
    auto vm = core::Config::GetInstance().GetVarMap();
    std::string loader = vm["game.mod"].as<std::string>();
-   json::ConstJsonObject manifest(res::ResourceManager2::GetInstance().LookupManifest(loader));
-   std::string docroot = "http://radiant/" + manifest.getn("loader").getn("ui").get<std::string>("homepage");
+   json::Node manifest(res::ResourceManager2::GetInstance().LookupManifest(loader));
+   std::string docroot = "http://radiant/" + manifest.get<std::string>("loader.ui.homepage");
 
    // seriously???
    std::string game_script = vm["game.script"].as<std::string>();
@@ -210,8 +210,6 @@ void Client::run()
 
    //luabind::globals(L)["_client"] = luabind::object(L, this);
 
-   json::ConstJsonObject::RegisterLuaType(L);
-
    // this locks down the environment!  all types must be registered by now!!
    scriptHost_->Require("radiant.client");
 
@@ -245,8 +243,8 @@ void Client::InitializeModules()
    auto& rm = res::ResourceManager2::GetInstance();
    for (std::string const& modname : rm.GetModuleNames()) {
       try {
-         json::ConstJsonObject manifest = rm.LookupManifest(modname);
-         json::ConstJsonObject const& block = manifest.getn("client");
+         json::Node manifest = rm.LookupManifest(modname);
+         json::Node const& block = manifest.getn("client");
          if (!block.empty()) {
             LOG(WARNING) << "loading init script for " << modname << "...";
             LoadModuleInitScript(block);
@@ -257,9 +255,9 @@ void Client::InitializeModules()
    }
 }
 
-void Client::LoadModuleInitScript(json::ConstJsonObject const& block)
+void Client::LoadModuleInitScript(json::Node const& block)
 {
-   std::string filename = block.get<std::string>("init_script");
+   std::string filename = block.get<std::string>("init_script", "");
    if (!filename.empty()) {
       scriptHost_->RequireScript(filename);
    }
@@ -850,7 +848,7 @@ rpc::ReactorDeferredPtr Client::GetModules(rpc::Function const& fn)
 }
 
 // This function is called on the chrome thread!
-void Client::BrowserRequestHandler(std::string const& path, json::ConstJsonObject const& query, std::string const& postdata, rpc::HttpDeferredPtr response)
+void Client::BrowserRequestHandler(std::string const& path, json::Node const& query, std::string const& postdata, rpc::HttpDeferredPtr response)
 {
    try {
       // file requests can be dispatched immediately.
@@ -875,7 +873,7 @@ void Client::BrowserRequestHandler(std::string const& path, json::ConstJsonObjec
    }
 }
 
-void Client::CallHttpReactor(std::string path, json::ConstJsonObject query, std::string postdata, rpc::HttpDeferredPtr response)
+void Client::CallHttpReactor(std::string path, json::Node query, std::string postdata, rpc::HttpDeferredPtr response)
 {
    JSONNode node;
    int status = 404;

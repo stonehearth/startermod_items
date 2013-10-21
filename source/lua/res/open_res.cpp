@@ -3,6 +3,7 @@
 #include "resources/res_manager.h"
 #include "resources/animation.h"
 #include "lua/script_host.h"
+#include "lib/json/core_json.h"
 
 using namespace ::radiant;
 using namespace ::radiant::res;
@@ -24,6 +25,8 @@ object load_manifest(lua_State* L, std::string const& mod_name)
    res::Manifest m = res::ResourceManager2::GetInstance().LookupManifest(mod_name);
    return lua::ScriptHost::JsonToLua(L, m.GetNode());
 }
+
+DEFINE_INVALID_JSON_CONVERSION(Animation);
 
 void lua::res::open(lua_State* L)
 {

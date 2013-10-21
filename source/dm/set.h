@@ -124,14 +124,14 @@ public:
          guard_.Clear();
       }
 
-      LuaPromise* PushAddedCb(luabind::object cb) {
+      LuaPromise& PushAddedCb(luabind::object cb) {
          changedCbs_.push_back(cb);
-         return this;
+         return *this;
       }
 
-      LuaPromise* PushRemovedCb(luabind::object cb) {
+      LuaPromise& PushRemovedCb(luabind::object cb) {
          removedCbs_.push_back(cb);
-         return this;
+         return *this;
       }
 
       void OnChange(const T& value) {
@@ -144,6 +144,9 @@ public:
             luabind::call_function<void>(cb, value);
          }
       }
+
+   private:
+      NO_COPY_CONSTRUCTOR(LuaPromise)
 
    private:
       core::Guard                     guard_;
@@ -173,6 +176,9 @@ public:
             lua_pushnil(L);
          }
       }
+
+   private:
+      NO_COPY_CONSTRUCTOR(LuaIterator)
 
    private:
       const T& container_;

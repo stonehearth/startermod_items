@@ -91,7 +91,7 @@ public:
 protected: // Internal interface for Objects only
    friend Object;
    static Store& GetStore(int id);
-   void RegisterObject(Object& obj);
+   void RegisterWeakGameObject(Object& obj);
    void UnregisterObject(const Object& obj);
    void OnObjectChanged(const Object& obj);
    core::Guard TraceObjectLifetime(const Object& obj, const char* reason, ObjectDestroyCb fn);

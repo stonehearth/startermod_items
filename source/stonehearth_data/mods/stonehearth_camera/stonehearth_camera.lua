@@ -22,7 +22,6 @@ function StonehearthCamera:__init()
   self._orbiting = false
   self._orbit_target = Vec3(0, 0, 0)
   
-  self._drag_key = false
   self._dragging = false
   self._drag_start = Vec3(0, 0, 0)
   self._drag_origin = Vec3(0, 0, 0)
@@ -47,8 +46,6 @@ function StonehearthCamera:__init()
           _radiant.renderer.screen.get_width(), 
           _radiant.renderer.screen.get_height(), 
           gutter_size)
-      elseif e.type == _radiant.client.Input.KEYBOARD then
-        self:_on_keyboard_event(e.keyboard)        
       end
       -- Don't consume the event, since the UI might want to do something, too.
       return false
@@ -117,16 +114,6 @@ function StonehearthCamera:_orbit(target, x_deg, y_deg, min_x, max_x)
 
   _radiant.renderer.camera.set_position(new_position + target)
   _radiant.renderer.camera.look_at(target)
-end
-
-function StonehearthCamera:_on_keyboard_event(e)
-  if e.key == 340 then
-    if e.down then
-      self._drag_key = true
-    else
-      self._drag_key = false
-    end
-  end
 end
 
 function StonehearthCamera:_on_mouse_event(e, screen_x, screen_y, gutter)
@@ -224,7 +211,9 @@ function StonehearthCamera:_find_target()
 end
 
 function StonehearthCamera:_calculate_drag(e)
-  if e:down(1) and self._drag_key then
+  local drag_key_down = _radiant.client.is_key_down(_radiant.client.KeyboardInput.LEFT_SHIFT) or
+                        _radiant.client.is_key_down(_radiant.client.KeyboardInput.RIGHT_SHIFT)
+  if e:down(1) and drag_key_down then
     local r = _radiant.renderer.scene.cast_screen_ray(e.x, e.y)
     local screen_ray = _radiant.renderer.scene.get_screen_ray(e.x, e.y)
     self._dragging = true
@@ -237,7 +226,7 @@ function StonehearthCamera:_calculate_drag(e)
       screen_ray.direction:scale(d)
       self._drag_start = screen_ray.origin + screen_ray.direction
     end
-  elseif (e:up(1) or not self._drag_key) and self._dragging then
+  elseif (e:up(1) or not drag_key_down) and self._dragging then
     self._dragging = false
   end
 

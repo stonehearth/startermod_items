@@ -2,6 +2,7 @@
 #include "lua/register.h"
 #include "lua_cube.h"
 #include "csg/cube.h"
+#include "lib/json/namespace.h"
 
 using namespace ::luabind;
 using namespace ::radiant;

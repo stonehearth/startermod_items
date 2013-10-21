@@ -4,6 +4,7 @@
 #include "om/object_formatter/object_formatter.h"
 #include "lua_renderer.h"
 #include "h3d_resource_types.h"
+#include "lib/json/core_json.h"
 #include "Horde3DRadiant.h"
 
 using namespace luabind;
@@ -101,6 +102,8 @@ std::ostream& operator<<(std::ostream& os, const RayCastResult& in)
    os << in.is_valid << ", " << in.point;
    return os;
 }
+
+DEFINE_INVALID_JSON_CONVERSION(RayCastResult);
 
 void LuaRenderer::RegisterType(lua_State* L)
 {

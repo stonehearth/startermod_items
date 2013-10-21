@@ -13,6 +13,10 @@ public:
    ObjectFormatter();
    JSONNode ObjectToJson(dm::ObjectPtr obj) const;
    dm::ObjectPtr GetObject(dm::Store const& store, std::string const& path) const;
+   template <typename T> std::shared_ptr<T> GetObject(dm::Store const& store, std::string const& path) const {
+      dm::ObjectPtr obj = GetObject(store, path);
+      return std::dynamic_pointer_cast<T>(obj);
+   }
    std::string GetPathToObject(dm::ObjectPtr obj) const;
 };
 

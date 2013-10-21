@@ -271,7 +271,7 @@ void RenderTerrain::AddTerrainTypeToTesselation(csg::Region3 const& region, csg:
    for (csg::Cube3 const& cube : region) {
       ASSERT(cube.GetMin().y == cube.GetMax().y - 1); // 1 block thin, pizza box
       layers[cube.GetMin().y].AddUnique(csg::Rect2(csg::Point2(cube.GetMin().x, cube.GetMin().z),
-                                                         csg::Point2(cube.GetMax().x, cube.GetMax().z)));
+                                                   csg::Point2(cube.GetMax().x, cube.GetMax().z)));
    }
    for (auto const& layer : layers) {
       TesselateLayer(layer.second, layer.first, terrain, tess, ringInfo);

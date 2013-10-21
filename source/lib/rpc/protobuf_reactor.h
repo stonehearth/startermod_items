@@ -3,7 +3,7 @@
 
 #include <unordered_map>
 #include "namespace.h"
-#include "radiant_json.h"
+#include "lib/json/node.h"
 #include "tesseract.pb.h"
 #include "lib/rpc/forward_defines.h"
 

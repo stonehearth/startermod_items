@@ -5,7 +5,7 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-void LuaComponents::ExtendObject(json::ConstJsonObject const& obj) 
+void LuaComponents::ExtendObject(json::Node const& obj) 
 {
 }
 

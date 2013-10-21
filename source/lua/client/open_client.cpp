@@ -3,6 +3,7 @@
 #include "om/entity.h"
 #include "om/selection.h"
 #include "om/data_binding.h"
+#include "lib/json/core_json.h"
 #include "lib/rpc/lua_deferred.h"
 #include "lib/rpc/reactor_deferred.h"
 #include "lib/voxel/qubicle_brush.h"
@@ -14,6 +15,7 @@
 #include "client/renderer/lua_render_entity.h" // xxx: move to renderer::open when we move the renderer!
 #include "client/renderer/lua_renderer.h" // xxx: move to renderer::open when we move the renderer!
 #include "client/renderer/pipeline.h" // xxx: move to renderer::open when we move the renderer!
+#include "glfw3.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -21,10 +23,39 @@ using namespace luabind;
 
 H3DNodeUnique Client_CreateVoxelRenderNode(lua_State* L, 
                                            H3DNode parent,
-                                           csg::Region3 const& model)
+                                           csg::Region3 const& model,
+                                           std::string const& mode,
+                                           std::string const& material_path)
 {
-   csg::mesh_tools::mesh mesh = csg::mesh_tools().ConvertRegionToMesh(model);
-   return Pipeline::GetInstance().AddMeshNode(parent, mesh);
+   H3DNodeUnique model_node;
+
+   H3DRes material = 0;
+   if (!material_path.empty()) {
+      material = h3dAddResource(H3DResTypes::Material, material_path.c_str(), 0);
+   }
+   if (mode == "blueprint") {
+      std::vector<csg::Point3f> points = csg::mesh_tools().ConvertRegionToOutline(model);
+      H3DNode s = h3dRadiantAddDebugShapes(parent, "foo");
+      
+      uint i, c = points.size();
+      for (i = 0; i < c; i += 2) {
+         h3dRadiantAddDebugLine(s, points[i], points[i+1], csg::Color4(0, 128, 220, 192));
+      }
+      h3dRadiantCommitDebugShape(s);
+      if (material) {
+         h3dSetNodeParamI(s, H3DMesh::MatResI, material);
+      }
+      model_node = H3DNodeUnique(s);
+   } else {
+      csg::mesh_tools::mesh mesh = csg::mesh_tools().ConvertRegionToMesh(model);
+
+      H3DNode mesh_node;
+      model_node = Pipeline::GetInstance().AddMeshNode(parent, mesh, &mesh_node);
+      if (material) {
+         h3dSetNodeParamI(mesh_node, H3DMesh::MatResI, material);
+      }
+   }
+   return model_node;
 }
 
 om::EntityRef Client_CreateEmptyAuthoringEntity()
@@ -275,6 +306,15 @@ IMPLEMENT_TRIVIAL_TOSTRING(MouseInput)
 IMPLEMENT_TRIVIAL_TOSTRING(KeyboardInput)
 IMPLEMENT_TRIVIAL_TOSTRING(RawInput)
 
+static bool Client_IsKeyDown(int key)
+{
+   return glfwGetKey(glfwGetCurrentContext(), key) == GLFW_PRESS;
+}
+
+DEFINE_INVALID_JSON_CONVERSION(CaptureInputPromise);
+DEFINE_INVALID_JSON_CONVERSION(TraceRenderFramePromise);
+DEFINE_INVALID_JSON_CONVERSION(SetCursorPromise);
+
 void lua::client::open(lua_State* L)
 {
    LuaRenderer::RegisterType(L);
@@ -296,6 +336,7 @@ void lua::client::open(lua_State* L)
             def("alloc_region",                    &Client_AllocObject<om::Region3Boxed>),
             def("create_data_store",               &Client_CreateDataStore),
             def("is_valid_standing_region",        &Client_IsValidStandingRegion),
+            def("is_key_down",                     &Client_IsKeyDown),
             lua::RegisterTypePtr<CaptureInputPromise>()
                .def("on_input",          &CaptureInputPromise::Progress)
                .def("destroy",           &CaptureInputPromise::Destroy)
@@ -307,6 +348,7 @@ void lua::client::open(lua_State* L)
             lua::RegisterTypePtr<SetCursorPromise>()
                .def("destroy",           &CaptureInputPromise::Destroy)
             ,
+            // xxx: Input, MouseInput, KeyboardInput, etc. should be in open_core.cpp, right?
             lua::RegisterType<Input>()
                .enum_("constants") [
                   value("MOUSE", Input::MOUSE),
@@ -329,6 +371,14 @@ void lua::client::open(lua_State* L)
                .def("down",             &MouseEvent_GetDown)
             ,
             lua::RegisterType<KeyboardInput>()
+               .enum_("constants") [
+                  value("LEFT_SHIFT",        GLFW_KEY_LEFT_SHIFT),
+                  value("RIGHT_SHIFT",       GLFW_KEY_RIGHT_SHIFT),
+                  value("LEFT_CTRL",         GLFW_KEY_LEFT_CONTROL),
+                  value("RIGHT_CTRL",        GLFW_KEY_RIGHT_CONTROL),
+                  value("LEFT_ALT",          GLFW_KEY_LEFT_ALT),
+                  value("RIGHT_ALT",         GLFW_KEY_RIGHT_ALT)
+               ]
                .def_readonly("key",    &KeyboardInput::key)
                .def_readonly("down",   &KeyboardInput::down)
             ,

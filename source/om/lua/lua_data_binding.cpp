@@ -17,14 +17,14 @@ scope LuaDataBinding::RegisterLuaTypes(lua_State* L)
 {
    return
       // shared pointers to DataBinding's are used where lua expliclity creates data bindings
-      lua::RegisterObject<DataBinding>()
+      lua::RegisterWeakGameObject<DataBinding>()
          .def("update",         &DataBinding::SetDataObject)
          .def("get_data",       &DataBinding::GetDataObject)
          .def("mark_changed",   &DataBinding::MarkChanged)
          .def("trace",          &DataBinding_Trace<DataBinding>)
       ,
       // references to DataBinding's are used where lua should not be able to keep objects alive, e.g. component data
-      lua::RegisterObjectPtr<DataBindingP>()
+      lua::RegisterStrongGameObject<DataBindingP>()
          .def("update",         &DataBindingP::SetDataObject)
          .def("get_data",       &DataBindingP::GetDataObject)
          .def("mark_changed",   &DataBindingP::MarkChanged)
