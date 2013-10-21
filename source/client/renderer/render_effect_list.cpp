@@ -29,7 +29,6 @@
 
 using namespace ::radiant;
 using namespace ::radiant::client;
-using radiant::client::RenderInnerEffectList;
 
 int GetStartTime(const JSONNode& node) 
 {
@@ -282,7 +281,7 @@ CubemitterEffect::CubemitterEffect(RenderEntity& e, om::EffectPtr effect, const 
    cubemitterNode_(0),
    parent_(e.GetNode())
 {
-   radiant::json::Node o(node);
+   json::Node o(node);
 
    int now = effect->GetStartTime();
    startTime_ = o.get("start_time", 0) + now;
@@ -292,7 +291,7 @@ CubemitterEffect::CubemitterEffect(RenderEntity& e, om::EffectPtr effect, const 
    }
    filename_ = node["cubemitter"].as_string();
 
-   radiant::json::ConstJsonObject transforms = o.getn("transforms");
+   json::Node transforms = o.getn("transforms");
    pos_.x = transforms.get("x", 0.0f);
    pos_.y = transforms.get("y", 0.0f);
    pos_.z = transforms.get("z", 0.0f);
@@ -350,7 +349,7 @@ LightEffect::LightEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& 
 
 void LightEffect::parseTransforms(const JSONNode& node, float* x, float* y, float* z)
 {
-   radiant::json::Node o(node);
+   json::Node o(node);
 
    *x = o.get("x", 0.0f);
    *y = o.get("y", 0.0f);

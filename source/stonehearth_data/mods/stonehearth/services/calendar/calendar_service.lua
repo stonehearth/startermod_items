@@ -31,7 +31,7 @@ function CalendarService:__init()
    self._event_service = require 'services.event.event_service'
    self._constants = constants
    radiant.events.listen('radiant:events:gameloop', function (_, now)
-         --self:_on_event_loop(now)
+         self:_on_event_loop(now)
       end)
 end
 

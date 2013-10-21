@@ -75,7 +75,7 @@ void DebugShapesNode::renderFunc(const std::string &shaderContext, const std::st
       }
       glEnable(GL_POLYGON_OFFSET_FILL);
       glPolygonOffset(-1, -1);
-      glLineWidth(8.0f);
+      glLineWidth(2.0f);
       debugShapes->render();
    }
    if (!first) {
