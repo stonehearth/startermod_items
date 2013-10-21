@@ -3,10 +3,17 @@
 #include "lua_region.h"
 #include "om/region.h"
 #include "dm/boxed.h"
+#include "lib/json/core_json.h"
+#include "lib/json/dm_json.h"
 
 using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::om;
+
+BEGIN_RADIANT_JSON_NAMESPACE
+DEFINE_INVALID_JSON_CONVERSION(Region3BoxedPromise)
+END_RADIANT_JSON_NAMESPACE
+
 
 std::ostream& operator<<(std::ostream& os, Region3BoxedPromise const& f)
 {

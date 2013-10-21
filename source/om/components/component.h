@@ -6,7 +6,7 @@
 #include "dm/boxed.h"
 #include "dm/record.h"
 #include "om/entity.h"
-#include "radiant_json.h"
+#include "lib/json/node.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
    
@@ -15,7 +15,7 @@ class Component : public dm::Record
 public:
    Component() { }
 
-   virtual void ExtendObject(json::ConstJsonObject const& obj) { };
+   virtual void ExtendObject(json::Node const& obj) { };
    virtual void Describe(std::ostringstream& os) const { };
 
    EntityPtr GetEntityPtr() const { return (*entity_).lock(); }

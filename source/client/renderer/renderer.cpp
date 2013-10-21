@@ -786,29 +786,31 @@ lua::ScriptHost* Renderer::GetScriptHost() const
 
 void Renderer::SetUITextureSize(int width, int height)
 {
-   uiWidth_ = width;
-   uiHeight_ = height;
+   if (width != uiWidth_ || height != uiHeight_) {
+      uiWidth_ = width;
+      uiHeight_ = height;
 
-   if (uiTexture_) {
-      h3dRemoveResource(uiTexture_);
-      h3dRemoveResource(uiMatRes_);
+      if (uiTexture_) {
+         h3dRemoveResource(uiTexture_);
+         h3dRemoveResource(uiMatRes_);
 
-      h3dReleaseUnusedResources();
+         h3dReleaseUnusedResources();
+      }
+      uiTexture_ = h3dCreateTexture("UI Texture", uiWidth_, uiHeight_, H3DFormats::List::TEX_BGRA8, H3DResFlags::NoTexMipmaps);
+      unsigned char *data = (unsigned char *)h3dMapResStream(uiTexture_, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
+      memset(data, 0, uiWidth_ * uiHeight_ * 4);
+      h3dUnmapResStream(uiTexture_);
+
+      std::ostringstream material;
+      material << "<Material>" << std::endl;
+	   material << "   <Shader source=\"shaders/overlay.shader\"/>" << std::endl;
+	   material << "   <Sampler name=\"albedoMap\" map=\"" << h3dGetResName(uiTexture_) << "\" />" << std::endl;
+      material << "</Material>" << std::endl;
+
+      uiMatRes_ = h3dAddResource(H3DResTypes::Material, "UI Material", 0);
+      bool result = h3dLoadResource(uiMatRes_, material.str().c_str(), material.str().length());
+      ASSERT(result);
    }
-   uiTexture_ = h3dCreateTexture("UI Texture", uiWidth_, uiHeight_, H3DFormats::List::TEX_BGRA8, H3DResFlags::NoTexMipmaps);
-   unsigned char *data = (unsigned char *)h3dMapResStream(uiTexture_, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
-   memset(data, 0, uiWidth_ * uiHeight_ * 4);
-   h3dUnmapResStream(uiTexture_);
-
-   std::ostringstream material;
-   material << "<Material>" << std::endl;
-	material << "   <Shader source=\"shaders/overlay.shader\"/>" << std::endl;
-	material << "   <Sampler name=\"albedoMap\" map=\"" << h3dGetResName(uiTexture_) << "\" />" << std::endl;
-   material << "</Material>" << std::endl;
-
-   uiMatRes_ = h3dAddResource(H3DResTypes::Material, "UI Material", 0);
-   bool result = h3dLoadResource(uiMatRes_, material.str().c_str(), material.str().length());
-   assert(result);
 }
 
 core::Guard Renderer::OnScreenResize(std::function<void(csg::Point2)> fn)

@@ -23,7 +23,7 @@
 #include "om/components/mob.h"
 #include "resources/res_manager.h"
 #include "resources/animation.h"
-#include "radiant_json.h"
+#include "lib/json/node.h"
 #include "lua/script_host.h"
 #include <SFML/Audio.hpp>
 
@@ -188,9 +188,9 @@ RenderAnimationEffect::RenderAnimationEffect(RenderEntity& e, om::EffectPtr effe
    int now = effect->GetStartTime();
    animationName_ = node["animation"].as_string();
    
-   // fuck
-   std::string animationTable = e.GetEntity()->GetComponent<om::RenderInfo>()->GetAnimationTable();
-   json::ConstJsonObject json = res::ResourceManager2::GetInstance().LookupJson(animationTable);
+   // compute the location of the animation
+   std::string animationTable = *e.GetEntity()->GetComponent<om::RenderInfo>()->GetAnimationTable();
+   json::Node json = res::ResourceManager2::GetInstance().LookupJson(animationTable);
    std::string animationRoot = json.get<std::string>("animation_root", "");
 
    animationName_ = animationRoot + "/" + animationName_;
@@ -296,7 +296,7 @@ CubemitterEffect::CubemitterEffect(RenderEntity& e, om::EffectPtr effect, const 
 
 void CubemitterEffect::parseTransforms(const JSONNode& node, float *x, float *y, float *z, float *rx, float *ry, float *rz)
 {
-   radiant::json::ConstJsonObject o(node);
+   radiant::json::Node o(node);
 
    *x = o.get("x", 0.0f);
    *y = o.get("y", 0.0f);
@@ -339,7 +339,7 @@ LightEffect::LightEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& 
 
 void LightEffect::parseTransforms(const JSONNode& node, float* x, float* y, float* z)
 {
-   radiant::json::ConstJsonObject o(node);
+   radiant::json::Node o(node);
 
    *x = o.get("x", 0.0f);
    *y = o.get("y", 0.0f);
@@ -497,10 +497,10 @@ FloatingCombatTextEffect::FloatingCombatTextEffect(RenderEntity& e, om::EffectPt
    if (entity) {
       om::RenderInfoPtr render_info = entity->GetComponent<om::RenderInfo>();
       if (render_info) {
-         std::string animationTableName = render_info->GetAnimationTable();
+         std::string animationTableName = *render_info->GetAnimationTable();
 
-         json::ConstJsonObject json = res::ResourceManager2::GetInstance().LookupJson(animationTableName);
-         json::ConstJsonObject cs = json.get<JSONNode>("collision_shape");
+         json::Node json = res::ResourceManager2::GetInstance().LookupJson(animationTableName);
+         json::Node cs = json.get<JSONNode>("collision_shape", JSONNode());
          height_ = cs.get<float>("height", 4.0f);
          height_ *= 0.1f; // xxx - take this out of the same place where we store the face that the model is 10x too big
       }

@@ -12,7 +12,8 @@ class QubicleBrush
 public:
    enum PaintMode {
       Color,
-      Opaque
+      Opaque,
+      Outline
    };
 
    QubicleBrush(std::istream& in);

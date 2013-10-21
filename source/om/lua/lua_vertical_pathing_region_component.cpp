@@ -39,7 +39,7 @@ VerticalPathingRegionRef VerticalPathingRegion_SetNormal(VerticalPathingRegionRe
 scope LuaVerticalPathingRegionComponent::RegisterLuaTypes(lua_State* L)
 {
    return
-      lua::RegisterDerivedObject<VerticalPathingRegion, Component>()
+      lua::RegisterWeakGameObjectDerived<VerticalPathingRegion, Component>()
          .def("get_region",               &VerticalPathingRegion_GetRegion)
          .def("set_region",               &VerticalPathingRegion_SetRegion)
          .def("trace_region",             &VerticalPathingRegion_TraceRegion)

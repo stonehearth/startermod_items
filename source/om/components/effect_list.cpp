@@ -16,9 +16,9 @@ void Effect::AddParam(std::string name, luabind::object o)
    params_[name].FromLuaObject(o);
 }
 
-void EffectList::ExtendObject(json::ConstJsonObject const& obj)
+void EffectList::ExtendObject(json::Node const& obj)
 {
-   for (json::ConstJsonObject const& entry : obj.getn("effects")) {
+   for (json::Node const& entry : obj.getn("effects")) {
       std::string path = entry.as<std::string>();
       AddEffect(path, 0);
    }

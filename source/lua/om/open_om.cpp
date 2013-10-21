@@ -18,7 +18,8 @@ luabind::object json_to_lua(dm::Store const& store, lua_State* L, JSONNode const
          if (obj) {
 
 #define OM_OBJECT(Cls, lower) \
-            case Cls ## ObjectType: return object(L, std::weak_ptr<Cls>(std::static_pointer_cast<Cls>(obj)));
+            case Cls ## ObjectType: \
+               return object(L, std::weak_ptr<Cls>(std::static_pointer_cast<Cls>(obj)));
 
             switch(obj->GetObjectType()) {
                OM_ALL_COMPONENTS

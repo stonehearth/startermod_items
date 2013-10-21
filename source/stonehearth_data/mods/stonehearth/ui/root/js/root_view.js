@@ -29,6 +29,7 @@ App.RootView = Ember.ContainerView.extend({
 
    didInsertElement: function() {
       if (App.options['skip_title']) {
+         App.gameView._addViews(App.gameView.views.complete);
          App.gotoGame();
       }
    },

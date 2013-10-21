@@ -33,6 +33,7 @@
 
       <Stage id="Translucent">
          <DrawGeometry context="TRANSLUCENT" order="BACK_TO_FRONT" />
+         <DrawGeometry context="BLUEPRINTS" order="FRONT_TO_BACK"/>
          <DrawGeometry context="DEBUG_SHAPES" />
       </Stage>
 

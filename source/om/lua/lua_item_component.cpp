@@ -10,7 +10,7 @@ using namespace ::radiant::om;
 scope LuaItemComponent::RegisterLuaTypes(lua_State* L)
 {
    return
-      lua::RegisterDerivedObject<Item, Component>()
+      lua::RegisterWeakGameObjectDerived<Item, Component>()
          .def("set_stacks",            &om::Item::SetStacks)
          .def("get_stacks",            &om::Item::GetStacks)
          .def("set_max_stacks",        &om::Item::SetMaxStacks)

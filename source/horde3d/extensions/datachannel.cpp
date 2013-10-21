@@ -1,25 +1,25 @@
-
+#include "radiant.h"
 #include "datachannel.h"
 
 #include "libjson.h"
 #include "namespace.h"
-#include "radiant_json.h"
+#include "lib/json/node.h"
 
 using namespace ::radiant;
 using namespace ::radiant::json;
 using namespace ::radiant::horde3d;
 
-Vec4f parseVec4f(ConstJsonObject &vals, const Vec4f& def)
+Vec4f parseVec4f(Node &vals, const Vec4f& def)
 {
    return Vec4f(vals.get(0, def.x), vals.get(1, def.y), vals.get(2, def.z), vals.get(3, def.w));
 }
 
-Vec3f parseVec3f(ConstJsonObject &vals, const Vec3f& def)
+Vec3f parseVec3f(Node &vals, const Vec3f& def)
 {
    return Vec3f(vals.get(0, def.x), vals.get(1, def.y), vals.get(2, def.z));
 }
 
-std::vector<std::pair<float, float> > parseCurveValues(ConstJsonObject &n) {
+std::vector<std::pair<float, float> > parseCurveValues(Node &n) {
    std::vector<std::pair<float, float> > result;
 
    for (const auto &child : n)
@@ -30,7 +30,7 @@ std::vector<std::pair<float, float> > parseCurveValues(ConstJsonObject &n) {
    return result;
 }
 
-ValueEmitter<float>* ::radiant::horde3d::parseChannel(ConstJsonObject &n, const char *childName, float def)
+ValueEmitter<float>* ::radiant::horde3d::parseChannel(Node &n, const char *childName, float def)
 {
    if (!n.has(childName))
    {
@@ -44,7 +44,7 @@ ValueEmitter<float>* ::radiant::horde3d::parseChannel(ConstJsonObject &n, const 
       return new ConstantValueEmitter<float>(def);
    }
    auto vals = childNode.getn("values");
-   std::string kind = childNode.get<std::string>("kind");
+   std::string kind = childNode.get<std::string>("kind", "");
 
    if (kind == "CONSTANT")
    {
@@ -61,7 +61,7 @@ ValueEmitter<float>* ::radiant::horde3d::parseChannel(ConstJsonObject &n, const 
       parseCurveValues(vals.getn(0)), parseCurveValues(vals.getn(1)));
 }
 
-ValueEmitter<Vec3f>* ::radiant::horde3d::parseChannel(ConstJsonObject &n, const char *childName, const Vec3f &def)
+ValueEmitter<Vec3f>* ::radiant::horde3d::parseChannel(Node &n, const char *childName, const Vec3f &def)
 {
    if (!n.has(childName))
    {
@@ -75,7 +75,7 @@ ValueEmitter<Vec3f>* ::radiant::horde3d::parseChannel(ConstJsonObject &n, const 
       return new ConstantValueEmitter<Vec3f>(def);
    }
    auto vals = childNode.getn("values");
-   std::string kind = childNode.get<std::string>("kind");
+   std::string kind = childNode.get<std::string>("kind", "");
 
    if (kind == "CONSTANT")
    {
@@ -83,13 +83,13 @@ ValueEmitter<Vec3f>* ::radiant::horde3d::parseChannel(ConstJsonObject &n, const 
       return new ConstantValueEmitter<Vec3f>(val);
    } //else kind == "RANDOM_BETWEEN"
 
-   ConstJsonObject vec1node = vals.getn(0);
-   ConstJsonObject vec2node = vals.getn(1);
+   Node vec1node = vals.getn(0);
+   Node vec2node = vals.getn(1);
 
    return new RandomBetweenVec3fEmitter(parseVec3f(vec1node, def), parseVec3f(vec2node, def));
 }
 
-ValueEmitter<Vec4f>* ::radiant::horde3d::parseChannel(ConstJsonObject &n, const char *childName, const Vec4f &def)
+ValueEmitter<Vec4f>* ::radiant::horde3d::parseChannel(Node &n, const char *childName, const Vec4f &def)
 {
    if (!n.has(childName))
    {
@@ -103,7 +103,7 @@ ValueEmitter<Vec4f>* ::radiant::horde3d::parseChannel(ConstJsonObject &n, const 
       return new ConstantValueEmitter<Vec4f>(def);
    }
    auto vals = childNode.getn("values");
-   std::string kind = childNode.get<std::string>("kind");
+   std::string kind = childNode.get<std::string>("kind", "");
 
    if (kind == "CONSTANT")
    {

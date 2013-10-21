@@ -38,14 +38,14 @@ void Object::Initialize(Store& store, ObjectId id)
    id_.store = store.GetStoreId();
 
    MarkChanged();
-   store.RegisterObject(*this);   
+   store.RegisterWeakGameObject(*this);   
 }
 
 void Object::InitializeSlave(Store& store, ObjectId id)
 {
    id_.id = id;
    id_.store = store.GetStoreId();
-   store.RegisterObject(*this);   
+   store.RegisterWeakGameObject(*this);   
    // A LoadValue's coming... don't worry
 }
 

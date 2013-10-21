@@ -26,7 +26,7 @@ public:
    };
 
 public:
-   void ExtendObject(json::ConstJsonObject const& obj);
+   void ExtendObject(json::Node const& obj);
 
    dm::Set<std::string> const& GetModels() const { return models_; }
    void RemoveModel(std::string rig) { models_.Remove(rig); }
@@ -57,7 +57,7 @@ class ModelVariants : public Component
 {
 public:
    DEFINE_OM_OBJECT_TYPE(ModelVariants, model_variants);
-   void ExtendObject(json::ConstJsonObject const& obj) override;
+   void ExtendObject(json::Node const& obj) override;
 
 public:
    ModelVariantPtr GetModelVariant(std::string const& v) const;

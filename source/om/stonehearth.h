@@ -4,7 +4,7 @@
 #include "om.h"
 #include "dm/dm.h"
 #include "csg/region.h"
-#include "radiant_json.h"
+#include "lib/json/node.h"
 
 // This file clearly does not belong in the om.
 

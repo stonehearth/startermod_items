@@ -2,6 +2,8 @@
 #define _RADIANT_CSG_COLOR_H
 
 #include <ostream>
+#include <iomanip>
+#include <sstream>
 #include "namespace.h"
 #include "dm/dm.h"
 
@@ -60,8 +62,27 @@ public:
                (((unsigned int)b) << 16) |
                (((unsigned int)a) << 24);
    }
+   std::string ToString() const {
+      std::stringstream out;
+      out << std::hex << std::setfill('0') << std::setw(2) << '#' << r << g << b << a;
+      return out.str();
+   }
    static Color4 FromInteger(unsigned int i) {
       return Color4(i & 0xff, (i >> 8) & 0xff, (i >> 16) & 0xff, (i >> 24) & 0xff);
+   }
+   static Color4 FromString(std::string const& str) {
+      const char* c = str.c_str();
+      int len = str.length();
+      if (*c == '#') {
+         int val = strtol(c + 1, nullptr, 16);
+         switch (len - 1) {
+         case 6: // #ffcc00
+            return Color4((val >> 16) & 0xff, (val >> 8) & 0xff, val & 0xff, 255);
+         case 8: // #ffcc0080
+            return Color4((val >> 24) & 0xff, (val >> 16) & 0xff, (val >> 8) & 0xff, val & 0xff);
+         }
+      }
+      return Color4(0, 0, 0, 255);
    }
 };
 
@@ -106,20 +127,17 @@ public:
                (((unsigned int)g) << 8) |
                (((unsigned int)b) << 16);
    }
+   std::string ToString() const {
+      std::stringstream out;
+      out << std::hex << std::setfill('0') << std::setw(2) << '#' << r << g << b;
+      return out.str();
+   }
    static Color3 FromInteger(unsigned int i) {
       return Color3(i & 0xff, (i >> 8) & 0xff, (i >> 16) & 0xff);
    }
    static Color3 FromString(std::string const& str) {
-      const char* c = str.c_str();
-      int len = str.length();
-      if (*c == '#') {
-         c++;
-         if (len == 7) {
-            int val = strtol(c, nullptr, 16);
-            return Color3((val >> 16) & 0xff, (val >> 8) & 0xff, val & 0xff);
-         }
-      }
-      return Color3(0, 0, 0);
+      Color4 c = Color4::FromString(str);
+      return Color3(c.r, c.g, c.b);
    }
 
    static Color3 red;

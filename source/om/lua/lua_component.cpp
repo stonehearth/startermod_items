@@ -10,7 +10,7 @@ using namespace ::radiant::om;
 scope LuaComponent_::RegisterLuaTypes(lua_State* L)
 {
    return
-      lua::RegisterObject<Component>()
+      lua::RegisterWeakGameObject<Component>()
          .def("get_entity",     &Component::GetEntityRef)
          .def("extend",         &Component::ExtendObject)
       ;

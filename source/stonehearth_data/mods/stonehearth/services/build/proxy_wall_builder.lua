@@ -105,22 +105,64 @@ function ProxyWallBuilder:_add_new_segment()
    end
 end
 
+function ProxyWallBuilder:_shift_down()
+  return _radiant.client.is_key_down(_radiant.client.KeyboardInput.LEFT_SHIFT) or
+         _radiant.client.is_key_down(_radiant.client.KeyboardInput.RIGHT_SHIFT)
+end
+
 function ProxyWallBuilder:_on_mouse_event(e)
    local query = _radiant.client.query_scene(e.x, e.y)
    if query.location then
       local location = self:_fit_point_to_constraints(query.location + query.normal)
       self:_get_last_column():move_to(location)      
       if e:up(1) then
-         self:_add_new_segment()
-         self:_add_column():move_to(location)
+         self:_add_new_segment()      
+         if self:_shift_down() or #self._columns < 2 then
+            self:_add_column():move_to(location)
+         else
+            self:publish()
+            self._input_capture:destroy()
+            self._input_capture = nil
+         end
          return true
       end
    end
    return false
 end
 
+function ProxyWallBuilder:_package_entity(fabrication)
+   local entity = fabrication:get_entity()
+   local component_name = fabrication:get_component_name()
+   local data = entity:get_component_data(component_name)
+   
+-- remove the paint_mode.  we just set it here so the blueprint
+   -- would be rendered differently
+   data.paint_mode = nil
+   
+   local md = entity:get_component_data('mob')
+   local result = {
+      entity = entity:get_uri(),
+      components = {
+         mob = md,
+         [component_name] = data
+      }
+   };
+   return result
+end
+
+function ProxyWallBuilder:publish()
+   local structures = {}
+   for _, column in ipairs(self._columns) do
+      table.insert(structures, self:_package_entity(column))
+   end
+   for _, wall in ipairs(self._walls) do
+      --table.insert(structures, self:_package_entity(wall))
+   end
+   _radiant.call('stonehearth:build_structures', structures);
+end
+
 function ProxyWallBuilder:_on_keyboard_event(e)
-return false
+   return false
 end
 
 function ProxyWallBuilder:place_new_wall_xxx(session, response)

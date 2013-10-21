@@ -4,7 +4,7 @@
 #include "egMaterial.h"
 #include "egCamera.h"
 #include "libjson.h"
-#include "radiant_json.h"
+#include "lib/json/node.h"
 
 #if defined(ASSERT)
 #  undef ASSERT
@@ -19,7 +19,7 @@ using namespace ::radiant;
 using namespace ::radiant::json;
 using namespace ::radiant::horde3d;
 
-cubemitter::OriginData::SurfaceKind parseSurfaceKind(ConstJsonObject &n)
+cubemitter::OriginData::SurfaceKind parseSurfaceKind(Node &n)
 {
    if (n.as<std::string>() == "POINT") {
       return cubemitter::OriginData::POINT;
@@ -27,7 +27,7 @@ cubemitter::OriginData::SurfaceKind parseSurfaceKind(ConstJsonObject &n)
    return cubemitter::OriginData::RECTANGLE;
 }
 
-cubemitter::OriginData parseOrigin(ConstJsonObject &n) {
+cubemitter::OriginData parseOrigin(Node &n) {
    cubemitter::OriginData result;
    if (n.has("surface"))
    {
@@ -36,14 +36,14 @@ cubemitter::OriginData parseOrigin(ConstJsonObject &n) {
    if (result.surfaceKind == cubemitter::OriginData::SurfaceKind::RECTANGLE) {
       if (n.has("values"))
       {
-         result.length = n.getn("values").get<float>(0);
-         result.width = n.getn("values").get<float>(1);
+         result.length = n.getn("values").get<float>(0, 0.0f);
+         result.width = n.getn("values").get<float>(1, 0.0f);
       }
    }
    return result;
 }
 
-cubemitter::EmissionData parseEmission(ConstJsonObject& n) 
+cubemitter::EmissionData parseEmission(Node& n) 
 {
    cubemitter::EmissionData result;
    result.rate = parseChannel(n, "rate", 1.0f);
@@ -55,14 +55,14 @@ cubemitter::EmissionData parseEmission(ConstJsonObject& n)
    return result;
 }
 
-cubemitter::LifetimeData parseLifetime(ConstJsonObject& n)
+cubemitter::LifetimeData parseLifetime(Node& n)
 {
    cubemitter::LifetimeData result;
    result.start = parseChannel(n, "start", 5.0f);
    return result;
 }
 
-cubemitter::SpeedData parseSpeed(ConstJsonObject& n)
+cubemitter::SpeedData parseSpeed(Node& n)
 {
    cubemitter::SpeedData result;
    result.start = parseChannel(n, "start", 5.0f);
@@ -70,7 +70,7 @@ cubemitter::SpeedData parseSpeed(ConstJsonObject& n)
    return result;
 }
 
-cubemitter::RotationData parseRotation(ConstJsonObject& n)
+cubemitter::RotationData parseRotation(Node& n)
 {
    cubemitter::RotationData result;
    result.over_lifetime_x = parseChannel(n, "over_lifetime_x", 0.0f);
@@ -79,7 +79,7 @@ cubemitter::RotationData parseRotation(ConstJsonObject& n)
    return result;
 }
 
-cubemitter::VelocityData parseVelocity(ConstJsonObject& n)
+cubemitter::VelocityData parseVelocity(Node& n)
 {
    cubemitter::VelocityData result;
    result.over_lifetime_x = parseChannel(n, "over_lifetime_x", 0.0f);
@@ -88,7 +88,7 @@ cubemitter::VelocityData parseVelocity(ConstJsonObject& n)
    return result;
 }
 
-cubemitter::ColorData parseColor(ConstJsonObject& n)
+cubemitter::ColorData parseColor(Node& n)
 {
    cubemitter::ColorData result;
    result.start = parseChannel(n, "start", Vec4f(1, 0, 0, 1));
@@ -99,7 +99,7 @@ cubemitter::ColorData parseColor(ConstJsonObject& n)
    return result;
 }
 
-cubemitter::ScaleData parseScale(ConstJsonObject& n)
+cubemitter::ScaleData parseScale(Node& n)
 {
    cubemitter::ScaleData result;
    result.start = parseChannel(n, "start", 1.0f);
@@ -107,7 +107,7 @@ cubemitter::ScaleData parseScale(ConstJsonObject& n)
    return result;
 }
 
-cubemitter::ParticleData parseParticle(ConstJsonObject& n) 
+cubemitter::ParticleData parseParticle(Node& n) 
 {
    cubemitter::ParticleData result;
    if (n.has("speed"))
@@ -185,7 +185,7 @@ bool CubemitterResource::load( const char *data, int size )
 	if( !Resource::load( data, size ) ) return false;
 
    std::string jsonData(data, size);
-   ConstJsonObject root(libjson::parse(jsonData));
+   Node root(libjson::parse(jsonData));
 
    emitterData.duration = root.get("duration", 10.0f);
 

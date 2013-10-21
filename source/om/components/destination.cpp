@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "destination.h"
-#include "csg/csg_json.h"
 #include "csg/util.h"
 
 using namespace ::radiant;
@@ -14,6 +13,8 @@ void Destination::InitializeRecordFields()
    AddRecordField("adjacent", adjacent_);
    AddRecordField("auto_update_adjacent", auto_update_adjacent_);
 
+   lastUpdated_ = 0;
+   lastChanged_ = 0;
    if (!IsRemoteRecord()) {
       auto_update_adjacent_ = false;
    }
@@ -29,7 +30,7 @@ void Destination::InitializeRecordFields()
  *     }
  */
 
-void Destination::ExtendObject(json::ConstJsonObject const& obj)
+void Destination::ExtendObject(json::Node const& obj)
 {
    if (obj.has("region")) {
       region_ = GetStore().AllocObject<Region3Boxed>();

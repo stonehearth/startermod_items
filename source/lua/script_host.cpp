@@ -3,12 +3,15 @@
 #include "core/config.h"
 #include "script_host.h"
 #include "client/renderer/render_entity.h"
+#include "lib/json/namespace.h"
 
 extern "C" int luaopen_lpeg (lua_State *L);
 
 using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::lua;
+
+DEFINE_INVALID_JSON_CONVERSION(ScriptHost);
 
 static int PCallCallbackFn(lua_State* L)
 {
@@ -122,7 +125,7 @@ luabind::object ScriptHost::JsonToLua(JSONNode const& json)
 
 luabind::object ScriptHost::GetJson(std::string const& uri)
 {
-   json::ConstJsonObject json = res::ResourceManager2::GetInstance().LookupJson(uri);
+   json::Node json = res::ResourceManager2::GetInstance().LookupJson(uri);
    return JsonToLua(json.GetNode());
 }
 
@@ -132,6 +135,7 @@ res::AnimationPtr ScriptHost_LoadAnimation(std::string uri)
 }
 
 IMPLEMENT_TRIVIAL_TOSTRING(ScriptHost);
+
 
 ScriptHost::ScriptHost()
 {

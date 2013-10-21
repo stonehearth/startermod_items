@@ -2,7 +2,7 @@
 #define _RADIANT_LIB_RPC_LUA_ROUTER_H
 
 #include "namespace.h"
-#include "radiant_json.h"
+#include "radiant_luabind.h"
 #include "irouter.h"
 #include "lib/rpc/forward_defines.h"
 #include "lua/forward_defines.h"
@@ -15,7 +15,8 @@ public:
 
 protected:
    void CallLuaMethod(ReactorDeferredPtr d, luabind::object obj, luabind::object method, Function const& fn);
-   lua::ScriptHost* GetScriptHost() { return scriptHost_; } 
+   lua::ScriptHost* GetScriptHost() { return scriptHost_; }
+
 private:
    lua_State*        L_;
    lua::ScriptHost*  scriptHost_;

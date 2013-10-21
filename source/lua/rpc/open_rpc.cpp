@@ -9,6 +9,7 @@
 #include "lib/rpc/core_reactor.h"
 #include "lua/script_host.h"
 #include "lua/register.h"
+#include "lib/json/core_json.h"
 
 using namespace ::radiant;
 using namespace ::radiant::rpc;
@@ -137,14 +138,14 @@ LuaDeferredPtr trace_obj(lua_State* L, object obj)
 }
 
 IMPLEMENT_TRIVIAL_TOSTRING(CoreReactor);
+DEFINE_INVALID_JSON_CONVERSION(CoreReactor);
+DEFINE_INVALID_JSON_CONVERSION(LuaDeferred);
+DEFINE_INVALID_JSON_CONVERSION(Session);
 
 void lua::rpc::open(lua_State* L, CoreReactorPtr reactor)
 {
    module(L) [
       namespace_("_radiant") [
-         def("call",             &call),
-         def("call_obj",         &call_obj),
-         // def("trace_obj",        &trace_obj), <- pretty sure this is crap..
          namespace_("rpc") [
             lua::RegisterType<CoreReactor>(),
             lua::RegisterTypePtr<LuaDeferred>()
@@ -162,6 +163,8 @@ void lua::rpc::open(lua_State* L, CoreReactorPtr reactor)
    ];
    globals(L)["_reactor"] = object(L, reactor.get());
 
+   // use lua_register, as call and call_obj are varargs function
+   // and luabind tries to do exact signature matching.
    auto register_var_args_fn = [=](lua_CFunction f) -> object {
       lua_register(L, "_radiant_tmp_fn", f);
       return globals(L)["_radiant_tmp_fn"];

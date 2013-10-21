@@ -1,3 +1,4 @@
+#include "Horde3D.h"
 #include "egModules.h"
 #include "egCom.h"
 #include "egRenderer.h"
@@ -15,13 +16,14 @@ using namespace ::radiant;
 using namespace ::radiant::horde3d;
 
 radiant::uint32 DebugShapesNode::vertexLayout;
-MaterialResource* DebugShapesNode::material;
+MaterialResource* DebugShapesNode::default_material;
 
 DebugShapesNode::DebugShapesNode(const DebugShapesTpl &terrainTpl) :
    SceneNode(terrainTpl),
    vertexBuffer_(0),
    vertexBufferSize_(0)
 {
+   SetMaterial(default_material);
    _renderable = true;
 }
 
@@ -61,10 +63,11 @@ void DebugShapesNode::renderFunc(const std::string &shaderContext, const std::st
       //Modules::renderer().setShaderComb(&debugViewShader);
       //Modules::renderer().commitGeneralUniforms();
       if (first) {
-         if (!DebugShapesNode::material->isOfClass(theClass)) {
+         MaterialResource* material = debugShapes->GetMaterial();
+         if (!material->isOfClass(theClass)) {
             continue;
          }
-		   if (!Modules::renderer().setMaterial(DebugShapesNode::material, shaderContext)) {
+		   if (!Modules::renderer().setMaterial(material, shaderContext)) {
             continue;
          }
          first = false;
@@ -72,7 +75,7 @@ void DebugShapesNode::renderFunc(const std::string &shaderContext, const std::st
       }
       glEnable(GL_POLYGON_OFFSET_FILL);
       glPolygonOffset(-1, -1);
-      glLineWidth(3.0f);
+      glLineWidth(8.0f);
       debugShapes->render();
    }
    if (!first) {
@@ -80,6 +83,22 @@ void DebugShapesNode::renderFunc(const std::string &shaderContext, const std::st
       glPolygonOffset(0, 0);
       glLineWidth(old_line_width);
    }
+}
+
+void DebugShapesNode::setParamI( int param, int value )
+{
+   if (param == H3DMesh::MatResI) {
+		Resource* res = Modules::resMan().resolveResHandle( value );
+		if (res && res->getType() == ResourceTypes::Material ) {
+         SetMaterial((MaterialResource *)res);
+		}
+   }
+}
+
+void DebugShapesNode::SetMaterial(MaterialResource *material)
+{
+   material_ = material;
+   _sortKey = (float)material->getHandle();
 }
 
 void DebugShapesNode::render()

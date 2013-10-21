@@ -10,7 +10,7 @@ using namespace ::radiant::om;
 scope LuaAuraListComponent::RegisterLuaTypes(lua_State* L)
 {
    return
-      lua::RegisterDerivedObject<AuraList, Component>()
+      lua::RegisterWeakGameObjectDerived<AuraList, Component>()
          .def("create_aura",              &om::AuraList::CreateAura)
          .def("get_aura",                 &om::AuraList::GetAura)
       ;
