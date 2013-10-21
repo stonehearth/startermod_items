@@ -1,6 +1,7 @@
 #ifndef _RADIANT_JSON_NODE_H
 #define _RADIANT_JSON_NODE_H
 
+#include <sstream>
 #include <libjson.h>
 #include "namespace.h"
 
