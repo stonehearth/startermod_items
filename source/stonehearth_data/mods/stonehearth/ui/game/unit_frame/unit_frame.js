@@ -16,15 +16,19 @@ App.StonehearthUnitFrameView = App.View.extend({
          self._selected_entity = data.selected_entity;
          if (self._selected_entity) {
             self.set('uri', self._selected_entity);
+            self.show();
          } else {
-            self.set('uri', null);
+            //self.set('uri', null);
+            self.hide();
          }
       });
    },
 
    //When we hover over a command button, show its tooltip
    didInsertElement: function() {
-      $('#commandButtons').on('mouseover', '.commandButton', function(event){
+      $('#commandButtons')
+         .off('mouseover', '.commandButton')
+         .on('mouseover', '.commandButton', function(event){
          var target = event.target, $cmdBtn;
          if (target.tagName.toLowerCase() == 'img') {
             $cmdBtn = $(target).parent('.commandButton');
@@ -38,13 +42,17 @@ App.StonehearthUnitFrameView = App.View.extend({
       });
    },
 
-   _setVisibility: function() {
-      if (this.get('context')) {
-         $('#unitframe').show();
-      } else {
-         $('#unitframe').hide();
-      }
-   }.observes('context')
+   show: function() {
+      $('#unitFrame').css({
+         opacity: 1.0
+      })      
+   },
+
+   hide: function() {
+      $('#unitFrame').css({
+         opacity: 0.0
+      })      
+   }
 
 });
 
