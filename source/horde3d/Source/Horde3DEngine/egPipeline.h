@@ -124,6 +124,7 @@ struct PipelineCommand
 struct PipelineStage
 {
 	std::string                     id;
+        std::string                     debug_name;
 	PMaterialResource               matLink;
 	std::vector< PipelineCommand >  commands;
 	bool                            enabled;

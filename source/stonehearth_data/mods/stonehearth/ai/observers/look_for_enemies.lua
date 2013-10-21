@@ -49,8 +49,13 @@ function LookForEnemies:on_added_to_sensor(entity_id)
    end
 end
 
-function LookForEnemies:on_removed_to_sensor()
-   -- xxx, remove from the aggro table? do nothing?
+function LookForEnemies:on_removed_to_sensor(entity_id)
+   local entity = radiant.entities.get_entity(entity_id)
+   if entity then
+      self._aggro_table:add_entry(entity)
+                       :set_value(0)
+   end
+
 end
 
 --- Check if an entity is hostile to the entity that owns this observer

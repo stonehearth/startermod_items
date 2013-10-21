@@ -24,7 +24,7 @@
          "sensors": {
             "sight": {
                "type": "sensor",
-               "radius": 10
+               "radius": 16
             }
          }
       },
@@ -39,7 +39,8 @@
       }
    },
    "entity_data" : {
-      "stonehearth:idle_boredom_effects" : ["idle_sway", "idle_look_around"]
+      "stonehearth:idle_boredom_effects" : ["idle_sway", "idle_look_around"],
+      "stonehearth:idle_fire_effects" : ["idle_warm_hands"]
    }
 }
 

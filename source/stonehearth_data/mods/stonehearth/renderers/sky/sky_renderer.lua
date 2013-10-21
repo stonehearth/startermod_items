@@ -38,7 +38,7 @@ function SkyRenderer:set_sky_constants()
 
    --get some times from the calendar
    local time_constants = radiant.resources.load_json('/stonehearth/services/calendar/calendar_constants.json')
-   local base_times = time_constants.baseTimeOfDay
+   local base_times = time_constants.event_times
    
 
    self.timing.midnight = base_times.midnight * time_constants.minutes_per_hour
@@ -235,13 +235,13 @@ function SkyRenderer:_init_moon()
 
    local colors = {
       sunset_start = Vec3(0.0, 0.0, 0.0),
-      sunset_end = Vec3(0.1, 0.1, 0.1),
-      sunrise_start = Vec3(0.1, 0.1, 0.1),
+      sunset_end = Vec3(0.1, 0.1, 0.2),
+      sunrise_start = Vec3(0.1, 0.1, 0.2),
       sunrise_end = Vec3(0.0, 0.0, 0.0),
    }
 
    local ambient_colors = {
-      night = Vec3(0.3, 0.3, 0.6),
+      night = Vec3(0.1, 0.1, 0.3),
       day = Vec3(0.0, 0.0, 0.0)
    }
 

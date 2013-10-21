@@ -352,9 +352,14 @@ public:
 	// Buffers
 	uint32 createVertexBuffer( uint32 size, const void *data );
 	uint32 createIndexBuffer( uint32 size, const void *data );
+   uint32 createPixelBuffer( uint32 size, const void *data );
 	void destroyBuffer( uint32 bufObj );
 	void updateBufferData( uint32 bufObj, uint32 offset, uint32 size, void *data );
 	uint32 getBufferMem() { return _bufferMem; }
+
+   void* mapBuffer(uint32 bufObj);
+   void unmapBuffer(uint32 bufObj);
+
 
 	// Textures
 	uint32 calcTextureSize( TextureFormats::List format, int width, int height, int depth );
@@ -365,6 +370,8 @@ public:
 	void updateTextureData( uint32 texObj, int slice, int mipLevel, const void *pixels );
 	bool getTextureData( uint32 texObj, int slice, int mipLevel, void *buffer );
 	uint32 getTextureMem() { return _textureMem; }
+
+   void copyTextureDataFromPbo( uint32 texObj, uint32 pboObj, int xOffset, int yOffset, int width, int height );
 
 	// Shaders
 	uint32 createShader( const char* filename, const char *vertexShaderSrc, const char *fragmentShaderSrc );

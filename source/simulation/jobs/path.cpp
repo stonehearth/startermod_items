@@ -6,7 +6,14 @@ using namespace ::radiant::simulation;
 
 std::ostream& Path::Format(std::ostream& os) const
 {
-   return (os << "[Path " << ((void*)this) << " " << " " << points_.front() << " -> " << points_.back() << "]");
+   os << "[Path " << ((void*)this);
+   if (!points_.empty()) {
+      os << " " << points_.front() << " -> " << points_.back();
+   } else {
+      os << "no points on path";
+   }
+   os << "]";
+   return os;
 }
 
 std::ostream& simulation::operator<<(std::ostream& os, const Path& in)

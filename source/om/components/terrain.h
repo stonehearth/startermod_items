@@ -23,13 +23,14 @@ public:
       RockLayer1    = 1,
       RockLayer2    = 2,
       RockLayer3    = 3,
-      Soil          = 4,
-      DarkGrass     = 5,
-      DarkGrassDark = 6,
-      LightGrass    = 7,
-      DarkWood      = 8, 
-      DirtRoad      = 9, 
-      Magma         = 10
+      Boulder       = 4,
+      Soil          = 5,
+      DarkGrass     = 6,
+      DarkGrassDark = 7,
+      LightGrass    = 8,
+      DarkWood      = 9, 
+      DirtRoad      = 10, 
+      Magma         = 11
    };
 
    typedef dm::Map<csg::Point3, Region3BoxedPtr, csg::Point3::Hash> ZoneMap;

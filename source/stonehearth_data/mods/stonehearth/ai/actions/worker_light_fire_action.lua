@@ -44,12 +44,12 @@ function WorkerLightFireAction:run(ai, entity, path_to_log, firepit, task)
    -- Drop the log into the fire
    ai:execute('stonehearth:drop_carrying_in_entity', firepit)
 
-   -- perform the lighting animation TODO: replace with another gesture
-   ai:execute('stonehearth:run_effect', 'work')
+   -- Light the fire
+   ai:execute('stonehearth:run_effect', 'light_fire')
 
    -- Put the log IN the firepit and light it
    local firepit_component = firepit:get_component('stonehearth:firepit')
-   firepit_component:add_wood(log)
+   firepit_component:light(log)
 
    -- If we got here, we succeeded at the action.
    -- Note that we succeeded by setting the task to nil.

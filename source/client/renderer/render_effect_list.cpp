@@ -279,31 +279,26 @@ void HideBoneEffect::Update(int now, int dt, bool& finished)
 
 CubemitterEffect::CubemitterEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
    entity_(e),
-   cubemitterNode_(0)
-{
-   auto cubemitterFileName = node["cubemitter"].as_string();
-
-   H3DRes matRes = h3dAddResource(H3DResTypes::Material, "materials/cubemitter.material.xml", 0);
-   H3DRes cubeRes = h3dAddResource(RT_CubemitterResource, cubemitterFileName.c_str(), 0);
-
-   H3DNode c = h3dRadiantAddCubemitterNode(e.GetNode(), "cu", cubeRes, matRes);
-   cubemitterNode_ = H3DCubemitterNodeUnique(c);
-   float x, y, z, rx, ry, rz;
-
-   parseTransforms(node["transforms"], &x, &y, &z, &rx, &ry, &rz);
-   h3dSetNodeTransform(cubemitterNode_.get(), x, y, z, rx, ry, rz, 1, 1, 1);
-}
-
-void CubemitterEffect::parseTransforms(const JSONNode& node, float *x, float *y, float *z, float *rx, float *ry, float *rz)
+   cubemitterNode_(0),
+   parent_(e.GetNode())
 {
    radiant::json::Node o(node);
 
-   *x = o.get("x", 0.0f);
-   *y = o.get("y", 0.0f);
-   *z = o.get("z", 0.0f);
-   *rx = o.get("rx", 0.0f);
-   *ry = o.get("ry", 0.0f);
-   *rz = o.get("rz", 0.0f);
+   int now = effect->GetStartTime();
+   startTime_ = o.get("start_time", 0) + now;
+   endTime_ = o.get("end_time", 0);
+   if (endTime_) {
+      endTime_ += now;
+   }
+   filename_ = node["cubemitter"].as_string();
+
+   radiant::json::ConstJsonObject transforms = o.getn("transforms");
+   pos_.x = transforms.get("x", 0.0f);
+   pos_.y = transforms.get("y", 0.0f);
+   pos_.z = transforms.get("z", 0.0f);
+   rot_.x = transforms.get("rx", 0.0f);
+   rot_.y = transforms.get("ry", 0.0f);
+   rot_.z = transforms.get("rz", 0.0f);
 }
 
 CubemitterEffect::~CubemitterEffect()
@@ -312,7 +307,23 @@ CubemitterEffect::~CubemitterEffect()
 
 void CubemitterEffect::Update(int now, int dt, bool& finished)
 {
-   finished = false;
+   if (now > startTime_) {
+      if (!cubemitterNode_.get()) {
+         H3DRes matRes = h3dAddResource(H3DResTypes::Material, "materials/cubemitter.material.xml", 0);
+         H3DRes cubeRes = h3dAddResource(RT_CubemitterResource, filename_.c_str(), 0);
+
+         H3DNode c = h3dRadiantAddCubemitterNode(parent_, "cu", cubeRes, matRes);
+         cubemitterNode_ = H3DCubemitterNodeUnique(c);
+
+         h3dSetNodeTransform(cubemitterNode_.get(), pos_.x, pos_.y, pos_.z, rot_.x, rot_.y, rot_.z, 1, 1, 1);
+         finished = false;
+         return;
+      }
+   }
+   finished = (endTime_ > 0) && (now > endTime_);
+   if (finished) {
+      cubemitterNode_.reset(0);
+   }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

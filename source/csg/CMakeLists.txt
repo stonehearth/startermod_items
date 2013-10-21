@@ -36,6 +36,8 @@ target_link_libraries(unittests_csg
                       ${Boost_LIBRARIES}
                       ${GTest_LIBRARIES}
                       csg
+                      perfmon
+                      core
                      )
 if (MSVC)
    set_target_properties(csg PROPERTIES COMPILE_FLAGS "/Yupch.h")

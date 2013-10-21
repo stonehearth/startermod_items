@@ -27,8 +27,4 @@ function Idle:run(ai, entity)
    end
 end
 
-function Idle:stop()
-   self:reset_boredom()
-end
-
 return Idle

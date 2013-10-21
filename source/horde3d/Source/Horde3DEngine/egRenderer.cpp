@@ -11,8 +11,7 @@
 // *************************************************************************************************
 
 #include "radiant.h"
-#undef WIN32_LEAN_AND_MEAN
-#undef ASSERT
+#include "lib/perfmon/perfmon.h"
 
 #include "egRenderer.h"
 #include "utOpenGL.h"
@@ -29,8 +28,6 @@
 #include <glsl/glsl_optimizer.h>
 #endif
 #include "utDebug.h"
-
-#include "radiant.h"
 
 namespace Horde3D {
 
@@ -2246,6 +2243,7 @@ void Renderer::drawParticles( const std::string &shaderContext, const std::strin
 
 void Renderer::render( CameraNode *camNode )
 {
+   radiant::perfmon::SwitchToCounter("render scene");
 	_curCamera = camNode;
 	if( _curCamera == 0x0 ) return;
 
@@ -2279,6 +2277,8 @@ void Renderer::render( CameraNode *camNode )
 		PipelineStagePtr &stage = _curCamera->_pipelineRes->_stages[i];
 		if( !stage->enabled ) continue;
 		_curStageMatLink = stage->matLink;
+
+                radiant::perfmon::SwitchToCounter (stage->debug_name.c_str());
 		
 		for( uint32 j = 0; j < stage->commands.size(); ++j )
 		{

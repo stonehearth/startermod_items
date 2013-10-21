@@ -64,14 +64,8 @@ void Region<S, C>::Add(const Region& other)
 template <class S, int C>
 void Region<S, C>::Add(const Cube& cube)
 {
-   Region unique(cube);
-
-   for (const Cube& c : *this) {
-      if (c.Intersects(cube)) {
-         unique.Subtract(c);
-      }
-   }
-   cubes_.insert(cubes_.end(), unique.begin(), unique.end());
+   Subtract(cube);
+   AddUnique(cube);
 }
 
 template <class S, int C>

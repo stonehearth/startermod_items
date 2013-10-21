@@ -1,33 +1,30 @@
-local WanderAction = class()
+local FollowLeash = class()
 
-WanderAction.name = 'wander'
-WanderAction.does = 'stonehearth:top'
-WanderAction.priority = 2
+FollowLeash.name = 'wander'
+FollowLeash.does = 'stonehearth:top'
+FollowLeash.priority = 0
 
-function WanderAction:__init(ai, entity)
+function FollowLeash:__init(ai, entity)
    self._ai = ai
-   self:set_next_run()
-   local leash = radiant.entities.get_entity_data(entity, 'stonehearth:wander_leash')
-
-   if leash and leash.radius then
-      self._wander_radius = leash.radius
-   else 
-      self._wander_radius = 0
-   end
-
-   radiant.events.listen('radiant:events:very_slow_poll', self)
+   
+   --self:set_next_run()
+   local leash = entity:add_component('stonehearth:leash')
+   local promise = leash:get_data_store():trace('follow leash ai')
+   promise:on_changed(function() 
+      ai:set_action_priority(self, 2)
+   end)
 end
 
-WanderAction['radiant:events:very_slow_poll'] = function(self)
-   if self._runInterval == 0 then
-      self._ai:set_action_priority(self, 2)
-      self:set_next_run();
-   end
+function FollowLeash:run(ai, entity)
+   local leash_component = entity:add_component('stonehearth:leash')
+   local location = leash_component:get_location()
 
-   self._runInterval = self._runInterval - 1
+   if location then
+      ai:execute('stonehearth:goto_location', location)
+   end
 end
 
-function WanderAction:run(ai, entity)
+function FollowLeash:run_old_wander_behavior(ai, entity)
 
    -- set the initial location, so we know how far to wander at max
    if not self._initial_location then
@@ -57,8 +54,8 @@ function WanderAction:run(ai, entity)
    ai:set_action_priority(self, 0)
 end
 
-function WanderAction:set_next_run(ai, entity)
+function FollowLeash:set_next_run(ai, entity)
    self._runInterval = math.random(4, 8)
 end
 
-return WanderAction
+return FollowLeash

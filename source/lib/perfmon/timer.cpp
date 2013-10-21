@@ -39,6 +39,14 @@ CounterValueType Timer::Restart()
    return elapsed;
 }
 
+CounterValueType Timer::GetElapsed()
+{
+   if (!start_time_) {
+      throw std::logic_error("call to Timer::Restart while timer's not running");
+   }
+   return GetCurrentTime() - start_time_;
+}
+
 CounterValueType Timer::GetCurrentTime()
 {
    LARGE_INTEGER value;

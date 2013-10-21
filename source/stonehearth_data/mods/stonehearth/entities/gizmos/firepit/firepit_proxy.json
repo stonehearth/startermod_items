@@ -5,12 +5,12 @@
       "model_variants": [
          {
             "models": [
-               "file(fire_pit_proxy.qb)"
+               "file(firepit_proxy.qb)"
             ]
          }
       ],
       "stonehearth:placeable_item_proxy" : {
-         "full_sized_entity" : "stonehearth:fire_pit"
+         "full_sized_entity" : "stonehearth:firepit"
       },
       "item" : {
          "category" : "supplies"

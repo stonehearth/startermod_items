@@ -1,4 +1,5 @@
 local NewGameCallHandler = class()
+local game_master = require 'services.game_master.game_master_service'
 
 local Point3 = _radiant.csg.Point3
 
@@ -29,7 +30,7 @@ end
 -- called each time the mouse moves on the client.
 function NewGameCallHandler:_on_mouse_event(e, response)
    assert(self._capture, "got mouse event after releasing capture")
-   
+
    -- query the scene to figure out what's under the mouse cursor
    local s = _radiant.client.query_scene(e.x, e.y)
 
@@ -73,38 +74,33 @@ end
 
 
 function NewGameCallHandler:create_camp(session, response, pt)
+   local faction = radiant.mods.load('stonehearth').population:get_faction('stonehearth:factions:ascendancy')
+
    -- place the stanfard in the middle of the camp
    local location = Point3(pt.x, pt.y, pt.z)
    local standard_entity = radiant.entities.create_entity('stonehearth:camp_standard')
    radiant.terrain.place_entity(standard_entity, location)
-   
+   faction:set_home_location(location)
+
    -- build the camp
    local camp_x = pt.x
    local camp_z = pt.z
-
-   local faction = radiant.mods.load('stonehearth').population:get_faction('stonehearth:factions:ascendancy')
 
    local worker1 = self:place_citizen(camp_x-3, camp_z-3)
    local worker2 = self:place_citizen(camp_x+0, camp_z-3)
    local worker3 = self:place_citizen(camp_x+3, camp_z-3)
    self:place_citizen(camp_x-3, camp_z+3)
-   self:place_citizen(camp_x+0, camp_z+3)
-   self:place_citizen(camp_x+3, camp_z+3)
-   self:place_citizen(camp_x-3, camp_z+0)
-   self:place_citizen(camp_x+3, camp_z+0)
+   --self:place_citizen(camp_x+0, camp_z+3)
+   --self:place_citizen(camp_x+3, camp_z+3)
+   --self:place_citizen(camp_x-3, camp_z+0)
+   --self:place_citizen(camp_x+3, camp_z+0)
 
-   
    radiant.entities.pickup_item(worker1, faction:create_entity('stonehearth:oak_log'))
    radiant.entities.pickup_item(worker2, faction:create_entity('stonehearth:oak_log'))
-   radiant.entities.pickup_item(worker3, faction:create_entity('stonehearth:fire_pit_proxy'))
-   --[[
-   self:place_stockpile(faction, camp_x+8, camp_z-2, 4, 4)
+   radiant.entities.pickup_item(worker3, faction:create_entity('stonehearth:firepit_proxy'))
 
-   --put some default supplies into the stockpile (for now)
-   self:place_item('stonehearth:fire_pit_proxy', camp_x+8, camp_z-2, faction)
-   self:place_item('stonehearth:oak_log', camp_x+8+1, camp_z-2+1)
-   self:place_item('stonehearth:oak_log', camp_x+8, camp_z-2+2)
-   ]]
+   -- start the game master service
+   game_master.start()
 
    return {}
 end

@@ -125,6 +125,8 @@ ResourceManager2::~ResourceManager2()
 
 Manifest ResourceManager2::LookupManifest(std::string const& modname) const
 {
+   std::lock_guard<std::recursive_mutex> lock(mutex_);
+
    JSONNode result;
    try {
       result = LookupJson(modname + "/manifest.json");
@@ -162,6 +164,8 @@ AnimationPtr ResourceManager2::LookupAnimation(std::string path) const
 
 void ResourceManager2::OpenResource(std::string const& canonical_path, std::ifstream& in) const
 {
+   std::lock_guard<std::recursive_mutex> lock(mutex_);
+
    std::string filepath = GetFilepath(canonical_path);
 
    in = std::ifstream(filepath, std::ios::in | std::ios::binary);
@@ -174,6 +178,8 @@ void ResourceManager2::OpenResource(std::string const& canonical_path, std::ifst
 
 std::string ResourceManager2::GetResourceFileName(std::string const& path, const char* search_ext) const
 {
+   std::lock_guard<std::recursive_mutex> lock(mutex_);
+
    return GetFilepath(ConvertToCanonicalPath(path, search_ext));
 }
 
@@ -192,6 +198,8 @@ void ResourceManager2::ExpandMacros(std::string const& base_path, JSONNode& node
 
 std::string ResourceManager2::ConvertToCanonicalPath(std::string path, const char* search_ext) const
 {
+   std::lock_guard<std::recursive_mutex> lock(mutex_);
+
    path = ExpandMacro(path, ".", true); // so we can lookup things like 'stonehearth:wooden_axe'
 
    std::vector<std::string> parts = SplitPath(path);
@@ -314,6 +322,7 @@ void ResourceManager2::ExtendNode(JSONNode& node, const JSONNode& parent) const
 
 std::vector<std::string> const& ResourceManager2::GetModuleNames() const
 {
+   std::lock_guard<std::recursive_mutex> lock(mutex_);
    return moduleNames_;
 }
 
@@ -344,9 +353,12 @@ std::string ResourceManager2::ConvertToAbsolutePath(std::string const& path, std
 
 std::string ResourceManager2::GetEntityUri(std::string const& mod_name, std::string const& entity_name) const
 {
+   std::lock_guard<std::recursive_mutex> lock(mutex_);
+
    json::Node manifest = res::ResourceManager2::GetInstance().LookupManifest(mod_name);
-   json::Node entities = manifest.getn("radiant").getn("entities");
+   json::Node entities = manifest.getn("radiant.entities");
    std::string uri = entities.get<std::string>(entity_name, "");
+
    if (uri.empty()) {
       std::ostringstream error;
       error << "'" << mod_name << "' has no entity named '" << entity_name << "' in the manifest.";
