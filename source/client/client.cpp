@@ -73,7 +73,6 @@ Client::Client() :
    currentCursor_(NULL),
    last_server_request_id_(0),
    next_input_id_(1),
-   next_trace_frame_id_(1),
    mouse_x_(0),
    mouse_y_(0),
    perf_hud_shown_(false)
@@ -322,7 +321,6 @@ void Client::mainloop()
    authoringStore_.FireFinishedTraces();
 
    perfmon::SwitchToCounter("render");
-   CallTraceRenderFrameHandlers( Renderer::GetInstance().GetLastFrameRenderTime() );
    Renderer::GetInstance().RenderOneFrame(now_, alpha);
 
    if (send_queue_) {
@@ -602,41 +600,6 @@ bool Client::CallInputHandlers(Input const& input)
       }
    }
    return false;
-}
-
-
-Client::TraceRenderFrameId Client::AddTraceRenderFrameHandler(TraceRenderFrameHandlerCb const& cb)
-{
-   TraceRenderFrameId id = ReserveTraceRenderFrameHandler();
-   SetTraceRenderFrameHandler(id, cb);
-   return id;
-}
-
-void Client::SetTraceRenderFrameHandler(TraceRenderFrameId id, TraceRenderFrameHandlerCb const& cb)
-{
-   trace_frame_handlers_.emplace_back(std::make_pair(id, cb));
-}
-
-Client::TraceRenderFrameId Client::ReserveTraceRenderFrameHandler() {
-   return next_trace_frame_id_++;
-}
-
-void Client::RemoveTraceRenderFrameHandler(TraceRenderFrameId id)
-{
-   auto i = trace_frame_handlers_.begin();
-   while (i != trace_frame_handlers_.end()) {
-      if (i->first == id) {
-         trace_frame_handlers_.erase(i);
-         break;
-      }
-   }
-};
-
-void Client::CallTraceRenderFrameHandlers(float frameTime)
-{
-   for (const auto& entry : trace_frame_handlers_) {
-      entry.second(frameTime);
-   }
 }
 
 void Client::UpdateSelection(const MouseInput &mouse)

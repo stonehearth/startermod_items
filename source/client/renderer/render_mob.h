@@ -19,13 +19,11 @@ public:
 private:
    void Move();
    void Update();
-   void Interpolate();
-   void StartInterpolate();
 
 private:
    const RenderEntity&  entity_;
    om::MobRef           mob_;
-   core::Guard              tracer_;
+   core::Guard          guards_;
    csg::Transform    _initial;
    csg::Transform    _final;
    csg::Transform    _current;

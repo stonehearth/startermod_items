@@ -15,6 +15,8 @@
 #include "client/renderer/lua_render_entity.h" // xxx: move to renderer::open when we move the renderer!
 #include "client/renderer/lua_renderer.h" // xxx: move to renderer::open when we move the renderer!
 #include "client/renderer/pipeline.h" // xxx: move to renderer::open when we move the renderer!
+#include "core/guard.h"
+#include "core/slot.h"
 #include "glfw3.h"
 
 using namespace ::radiant;
@@ -132,72 +134,95 @@ rpc::LuaDeferredPtr Client_SelectXZRegion(lua_State* L)
    return result;
 }
 
-struct LuaCallback {
-   /*
-    * If someone on the lua side forgot to call ::destroy, go ahead and do it for them
-    * now.  This may be late if we didn't get a full gc in between ticks, but better
-    * later than never, right!
-    */
-   ~LuaCallback() {
-      if (dtor_) {
-         dtor_();
-      }
+struct CaptureInputPromise
+{
+public:
+   CaptureInputPromise() {
+      Client& c = Client::GetInstance();
+
+      L_ = c.GetScriptHost()->GetCallbackThread();
+      id_ = c.ReserveInputHandler();
+
+      c.SetInputHandler(id_, [=](Input const& input) -> bool {
+         if (cb_.is_valid()) {
+            return luabind::call_function<bool>(cb_, input);
+         }
+         return false;
+      });
    }
 
-   /*
-    * Called from the C++ side to notify the lua holder of the promise that something
-    * has changed.  Lua clients and register for this callback using the progress
-    * method on the promise.  Somethign like: promise::notify(function(...) ... end())
-    */
-   bool Notify(luabind::object o) {
-      if (cb_.is_valid() && luabind::type(cb_) == LUA_TFUNCTION) {
-         luabind::object handled = luabind::call_function<luabind::object>(cb_, o);
-         return handled.is_valid() && type(handled) == LUA_TBOOLEAN && luabind::object_cast<bool>(handled);
-      }
-      return false;
+   ~CaptureInputPromise() { 
+      Destroy();
    }
-   
-   /*
-    * Called from the lua side via progress::destroy to notify the C++ side that they
-    * can un-hook the source of Notify callbacks.
-    */
+
+   void OnInput(luabind::object cb) {
+      cb_ = luabind::object(L_, cb);
+   }
    void Destroy() {
-      cb_ = object();      // stop firing callbacks...
-      if (dtor_) {
-         dtor_();
-         dtor_ = nullptr;
-      }
+      Client::GetInstance().RemoveInputHandler(id_);
+      id_ = 0;
    }
 
-   /*
-    * Called from the C++ side when the lua side invokes the promises' destroy
-    * function.
-    */
-   void OnDestroy(std::function<void()> dtor) {
-      dtor_ = dtor;
+private:
+   lua_State*                 L_;
+   Client::InputHandlerId     id_;
+   luabind::object            cb_;
+   core::Guard                guards_;
+};
+
+struct TraceRenderFramePromise
+{
+public:
+   TraceRenderFramePromise() {
+      L_ = Client::GetInstance().GetScriptHost()->GetCallbackThread();
+      guards_ += Renderer::GetInstance().OnRenderFrameStart([this](FrameStartInfo const& info) {
+         frame_start_slot_.Signal(info);
+      });
+      guards_ += Renderer::GetInstance().OnServerTick([this](int now) {
+         server_tick_slot_.Signal(now);
+      });
    }
 
-   /*
-    * Called from the lua side to express interest in changes to the source object.
-    * Whenever 'something happens', the supplied callback will get called.
-    */
-   void Progress(luabind::object cb) {
-      cb_ = cb;
+   void OnFrameStart(luabind::object cb) {
+      luabind::object callback(L_, cb);
+      guards_ += frame_start_slot_.Register([=](FrameStartInfo const &info) {
+         luabind::call_function<void>(callback, info.now, info.interpolate);
+      });
    }
 
+   void OnServerTick(luabind::object cb) {
+      luabind::object callback(L_, cb);
+      guards_ += frame_start_slot_.Register([=](int now) {
+         luabind::call_function<void>(callback, now);
+      });
+   }
 
-   luabind::object         cb_;
-   std::function<void()>   dtor_;
+   void Destroy() {
+      guards_.Clear();
+   }
+
+private:
+   lua_State*                    L_;
+   core::Slot<FrameStartInfo>    frame_start_slot_;
+   core::Slot<int>               server_tick_slot_;
+   core::Guard                   guards_;
 };
 
-struct CaptureInputPromise : public LuaCallback
+struct SetCursorPromise
 {
-};
-struct TraceRenderFramePromise : public LuaCallback
-{
-};
-struct SetCursorPromise : public LuaCallback
-{
+public:
+   SetCursorPromise(Client::CursorStackId id) : id_(id) { }
+
+   ~SetCursorPromise() {
+      Destroy();
+   }
+
+   void Destroy() {
+      Client::GetInstance().RemoveCursor(id_);
+   }
+
+private:
+   Client::CursorStackId      id_;
 };
 DECLARE_SHARED_POINTER_TYPES(CaptureInputPromise)
 DECLARE_SHARED_POINTER_TYPES(TraceRenderFramePromise)
@@ -224,61 +249,18 @@ bool Client_IsValidStandingRegion(lua_State* L, csg::Region3 const& r)
 
 CaptureInputPromisePtr Client_CaptureInput(lua_State* L)
 {
-   Client& c = Client::GetInstance();
-
-   CaptureInputPromisePtr callback = std::make_shared<CaptureInputPromise>();
-   CaptureInputPromiseRef cb = callback;
-
-   Client::InputHandlerId id = c.ReserveInputHandler();
-   c.SetInputHandler(id, [cb, &c, id, L](Input const& i) {
-      CaptureInputPromisePtr callback = cb.lock();
-      if (!callback) {
-         c.RemoveInputHandler(id);
-         return false;
-      }
-      return callback->Notify(luabind::object(L, i));
-   });
-
-   callback->OnDestroy([&c, id]() {
-      c.RemoveInputHandler(id);
-   });
-
-   return callback;
+   return std::make_shared<CaptureInputPromise>();
 }
 
 TraceRenderFramePromisePtr Client_TraceRenderFrame(lua_State* L)
 {
-   Client& c = Client::GetInstance();
-
-   TraceRenderFramePromisePtr callback = std::make_shared<TraceRenderFramePromise>();
-   TraceRenderFramePromiseRef cb = callback;
-
-   Client::TraceRenderFrameId id = c.ReserveTraceRenderFrameHandler();
-   c.SetTraceRenderFrameHandler(id, [cb, L](float frameTime) {
-      TraceRenderFramePromisePtr callback = cb.lock();
-      if (callback) {
-         callback->Notify(luabind::object(L, frameTime));
-      }
-   });
-
-   callback->OnDestroy([&c, id]() {
-      c.RemoveTraceRenderFrameHandler(id);
-   });
-
-   return callback;
+   return std::make_shared<TraceRenderFramePromise>();
 }
 
 SetCursorPromisePtr Client_SetCursor(lua_State* L, std::string const& name)
 {
    Client::CursorStackId id = Client::GetInstance().InstallCursor(name);
-   SetCursorPromisePtr promise = std::make_shared<SetCursorPromise>();
-   SetCursorPromiseRef p = promise;
-
-   promise->OnDestroy([id]() {
-      Client::GetInstance().RemoveCursor(id);
-   });
-
-   return promise;
+   return std::make_shared<SetCursorPromise>(id);
 }
 
 static bool MouseEvent_GetUp(MouseInput const& me, int button)
@@ -300,7 +282,9 @@ static bool MouseEvent_GetDown(MouseInput const& me, int button)
 }
 
 IMPLEMENT_TRIVIAL_TOSTRING(Client)
-IMPLEMENT_TRIVIAL_TOSTRING(LuaCallback)
+IMPLEMENT_TRIVIAL_TOSTRING(CaptureInputPromise)
+IMPLEMENT_TRIVIAL_TOSTRING(TraceRenderFramePromise)
+IMPLEMENT_TRIVIAL_TOSTRING(SetCursorPromise)
 IMPLEMENT_TRIVIAL_TOSTRING(Input)
 IMPLEMENT_TRIVIAL_TOSTRING(MouseInput)
 IMPLEMENT_TRIVIAL_TOSTRING(KeyboardInput)
@@ -338,15 +322,16 @@ void lua::client::open(lua_State* L)
             def("is_valid_standing_region",        &Client_IsValidStandingRegion),
             def("is_key_down",                     &Client_IsKeyDown),
             lua::RegisterTypePtr<CaptureInputPromise>()
-               .def("on_input",          &CaptureInputPromise::Progress)
+               .def("on_input",          &CaptureInputPromise::OnInput)
                .def("destroy",           &CaptureInputPromise::Destroy)
             ,
             lua::RegisterTypePtr<TraceRenderFramePromise>()
-               .def("on_frame",          &TraceRenderFramePromise::Progress)
-               .def("destroy",           &CaptureInputPromise::Destroy)
+               .def("on_servet_tick",    &TraceRenderFramePromise::OnServerTick)
+               .def("on_frame_start",    &TraceRenderFramePromise::OnFrameStart)
+               .def("destroy",           &TraceRenderFramePromise::Destroy)
             ,
             lua::RegisterTypePtr<SetCursorPromise>()
-               .def("destroy",           &CaptureInputPromise::Destroy)
+               .def("destroy",           &SetCursorPromise::Destroy)
             ,
             // xxx: Input, MouseInput, KeyboardInput, etc. should be in open_core.cpp, right?
             lua::RegisterType<Input>()

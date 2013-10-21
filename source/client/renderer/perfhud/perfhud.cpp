@@ -9,7 +9,7 @@ using namespace ::radiant::client;
 
 PerfHud::PerfHud(Renderer& r)
 {
-   guard_ += r.TraceFrameStart([this]() {
+   guard_ += r.OnRenderFrameStart([this](FrameStartInfo const&) {
       Render();
    });
    guard_ += r.OnScreenResize([this](csg::Point2 const& pt) {

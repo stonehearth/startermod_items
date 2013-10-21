@@ -49,6 +49,12 @@ struct RayCastResult
    bool         is_valid;
 };
 
+struct FrameStartInfo {
+   int         now;
+   float       interpolate;
+
+   FrameStartInfo(int n, float i) : now(n), interpolate(i) { }
+};
 
 class Renderer
 {
@@ -60,7 +66,6 @@ class Renderer
       static Renderer& GetInstance();
 
       void Initialize(om::EntityPtr rootObject);
-      void SetServerTick(int tick);
       void SetScriptHost(lua::ScriptHost* host);
       lua::ScriptHost* GetScriptHost() const;
       void DecodeDebugShapes(const ::radiant::protocol::shapelist& msg);
@@ -68,6 +73,7 @@ class Renderer
       void Cleanup();
       void LoadResources();
       void ShowPerfHud(bool value);
+      void SetServerTick(int tick);
 
       int GetWidth() const;
       int GetHeight() const;
@@ -98,6 +104,8 @@ class Renderer
       void SetInputHandler(InputEventCb fn) { input_cb_ = fn; }
 
       core::Guard OnScreenResize(std::function<void(csg::Point2)> fn);
+      core::Guard OnServerTick(std::function<void(int)> fn);
+      core::Guard OnRenderFrameStart(std::function<void(FrameStartInfo const&)> fn);
 
       void UpdateUITexture(const csg::Region2& rgn, const char* buffer);
 
@@ -107,13 +115,6 @@ class Renderer
       void SetViewMode(ViewMode mode);
       void SetCurrentPipeline(std::string pipeline);
       bool ShouldHideRenderGrid(const csg::Point3& normal);
-
-      core::Guard TraceFrameStart(std::function<void()> fn);
-      core::Guard TraceInterpolationStart(std::function<void()> fn);
-
-      int GetCurrentFrameTime() const { return currentFrameTime_; }
-      float GetCurrentFrameInterp() const { return currentFrameInterp_; }
-      float GetLastFrameRenderTime() const { return lastFrameTimeInSeconds_; }
 
       void FlushMaterials();
 
@@ -134,11 +135,6 @@ class Renderer
       MouseInput WindowToBrowser(const MouseInput& mouse);
       void CallMouseInputCallbacks();
 
-      typedef std::unordered_map<dm::TraceId, std::function<void()>> TraceMap;
-
-      core::Guard AddTrace(TraceMap& m, std::function<void()> fn);
-      void RemoveTrace(TraceMap& m, dm::TraceId tid);
-      void FireTraces(const TraceMap& m);
       void DispatchInputEvent();
 
    protected:
@@ -161,10 +157,7 @@ class Renderer
       Camera*            camera_;
       FW::FileWatcher   fileWatcher_;
 
-      dm::TraceId       nextTraceId_;
       core::Guard           traces_;
-      TraceMap          renderFrameTraces_;
-      TraceMap          interpolationStartTraces_;
 
       std::shared_ptr<RenderEntity>      rootRenderObject_;
       H3DNode                       debugShapes_;
@@ -176,16 +169,16 @@ class Renderer
       Input                         input_;  // Mouse coordinates in the GL window-space.
       bool                          initialized_;
 
-      int                           currentFrameTime_;
-      float                         currentFrameInterp_;
-      float                         lastFrameTimeInSeconds_;
       ViewMode                      viewMode_;
       boost::property_tree::basic_ptree<std::string, std::string> config_;
       lua::ScriptHost*              scriptHost_;
 
-      core::BufferedSlot<csg::Point2>  screen_resize_slot_;
-      std::unique_ptr<PerfHud>         perf_hud_;
-      H3DRes                        uiPbo_;
+      core::BufferedSlot<csg::Point2>     screen_resize_slot_;
+      core::Slot<int>                     server_tick_slot_;
+      core::Slot<FrameStartInfo const&>   render_frame_start_slot_;
+      std::unique_ptr<PerfHud>            perf_hud_;
+      H3DRes                              uiPbo_;
+      int                                 last_render_time_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE
