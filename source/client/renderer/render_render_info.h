@@ -64,7 +64,9 @@ private:
    void AddModelNode(om::RenderInfoPtr render_info, std::string const& bone, voxel::QubicleMatrix const* matrix);
    void AddMissingNodes(om::RenderInfoPtr render_info, FlatModelMap const& m);
    void RebuildBoneOffsets(om::RenderInfoPtr render_info);
+   void UpdateNextFrame();
    void Update();
+   void SetDirtyBits(int flags);
    std::string GetModelVariant(om::RenderInfoPtr render_info) const;
 
 private:
@@ -75,9 +77,9 @@ private:
    RenderEntity&           entity_;
    int                     dirty_;
    om::RenderInfoRef       render_info_;
-   core::Guard               renderer_frame_trace_;
-   core::Guard               variant_guards_;
-   core::Guard               render_info_guards_;
+   core::Guard             renderer_frame_trace_;
+   core::Guard             variant_guards_;
+   core::Guard             render_info_guards_;
    NodeMap                 nodes_;
    BoneOffsetMap           bones_offsets_;
    std::string             model_variant_override_;

@@ -26,11 +26,15 @@ function SkyRenderer:__init()
             self._clock_promise:on_changed(
                function ()
                   local date = self._clock_object:get_data()
-                  self:_update(date.minute + (date.hour * 60))
+                  self:_update_time(date.second + (60 * (date.minute + (60 * date.hour))))
                end
             )
          end
       )
+   self._render_promise = _radiant.client.trace_render_frame()
+                              :on_frame_start(function(now, interpolate)
+                                    self:_interpolate_time(now, interpolate)
+                                 end)
 end
 
 function SkyRenderer:set_sky_constants()
@@ -40,14 +44,14 @@ function SkyRenderer:set_sky_constants()
    local time_constants = radiant.resources.load_json('/stonehearth/services/calendar/calendar_constants.json')
    local base_times = time_constants.event_times
    
-
-   self.timing.midnight = base_times.midnight * time_constants.minutes_per_hour
-   self.timing.sunrise_start = base_times.sunrise *time_constants.minutes_per_hour
-   self.timing.sunrise_end = (base_times.sunrise * time_constants.minutes_per_hour) + constants.rise_set_length
-   self.timing.midday = base_times.midday * time_constants.minutes_per_hour
-   self.timing.sunset_start = base_times.sunset * time_constants.minutes_per_hour
-   self.timing.sunset_end = (base_times.sunset * time_constants.minutes_per_hour) + constants.rise_set_length
-   self.timing.day_length = time_constants.hours_per_day * time_constants.minutes_per_hour
+   local seconds_per_hour = time_constants.seconds_per_minute * time_constants.minutes_per_hour
+   self.timing.midnight = base_times.midnight * seconds_per_hour
+   self.timing.sunrise_start = base_times.sunrise *seconds_per_hour
+   self.timing.sunrise_end = (base_times.sunrise * seconds_per_hour) + constants.rise_set_length
+   self.timing.midday = base_times.midday * seconds_per_hour
+   self.timing.sunset_start = base_times.sunset * seconds_per_hour
+   self.timing.sunset_end = (base_times.sunset * seconds_per_hour) + constants.rise_set_length
+   self.timing.day_length = time_constants.hours_per_day * seconds_per_hour
    self.timing.transition_length = constants.transition_length
 end
 
@@ -86,17 +90,52 @@ function SkyRenderer:get_celestial(name)
    return nil
 end
 
-function SkyRenderer:_update(minutes)
-   for _, o in pairs(self._celestials) do
-      self:_update_light(minutes, o)
+function SkyRenderer:_update_time(seconds)
+   -- compute the interval between calls to _update so we can interpolate
+   -- between frames
+   if self._calendar_seconds then
+      self._calendar_seconds_between_updates = seconds - self._calendar_seconds
+      self._render_ms_between_updates = self._last_render_time_ms - self._render_time_at_last_update
    end
+   self._calendar_seconds = seconds
+   self._render_time_at_last_update = self._last_render_time_ms
+   self:_update(self._calendar_seconds)
 end
 
-function SkyRenderer:_update_light(minutes, light)
-   local color = self:_find_value(minutes, light.colors)
-   local ambient_color = self:_find_value(minutes, light.ambient_colors)
-   local angles = self:_find_value(minutes, light.angles)
+function SkyRenderer:_interpolate_time(now)
+   if self._calendar_seconds_between_updates then
+      -- assume the calendar moves foward at a rate equal to the amount it moved forward between
+      -- the last two updates.  so to calculate where we are now, we just take the last update
+      -- time and some fraction of the time elapsed between the last two updates.  that gap should
+      -- be proportional to the percentage of time that's elapsed between the last and the next
+      -- updates.  we'll use the render clock time as a gross approximation of the update timer,
+      -- since we expect the calendar to move time forward at a constant rate      
+      local interpolation_time = now - self._render_time_at_last_update
+      if interpolation_time > self._render_ms_between_updates then
+         -- cap the distance we're willing to look ahead, just in case there's some jitter in the
+         -- update or render frequency
+         interpolation_time = self._render_ms_between_updates
+      end
+      local interpolation_seconds = self._calendar_seconds_between_updates * (interpolation_time / self._render_ms_between_updates)
+      self:_update(self._calendar_seconds + math.floor(interpolation_seconds))
+   end
+   self._last_render_time_ms = now
+end
 
+function SkyRenderer:_update(seconds)
+   for _, o in pairs(self._celestials) do
+      self:_update_light(seconds, o)
+   end
+end
+local last = 0
+
+function SkyRenderer:_update_light(seconds, light)
+   local color = self:_find_value(seconds, light.colors)
+   local ambient_color = self:_find_value(seconds, light.ambient_colors)
+   local angles = self:_find_value(seconds, light.angles)
+
+   last = seconds
+   
    self:_light_color(light, color.x, color.y, color.z)
    self:_light_ambient_color(light, ambient_color.x, ambient_color.y, ambient_color.z)
    self:_light_angles(light, angles.x, angles.y, angles.z)
@@ -138,7 +177,9 @@ function SkyRenderer:_interpolate(time, t_start, t_end, v_start, v_end)
       t_end = t_end + self.timing.day_length
       time = time + self.timing.day_length
    end
-
+   if t_start == t_end then
+      return v_start
+   end
    local frac = (time - t_start) / (t_end - t_start)
    return self:_vec_interpolate(v_start, v_end, frac)
 end

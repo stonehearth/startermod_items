@@ -82,12 +82,6 @@ class Client : public core::Singleton<Client> {
       typedef int TraceRenderFrameId;
       typedef std::function<void(float)> TraceRenderFrameHandlerCb;
 
-      TraceRenderFrameId AddTraceRenderFrameHandler(TraceRenderFrameHandlerCb const& cb);
-      TraceRenderFrameId ReserveTraceRenderFrameHandler();
-      void SetTraceRenderFrameHandler(TraceRenderFrameId id, TraceRenderFrameHandlerCb const& cb);
-      void RemoveTraceRenderFrameHandler(TraceRenderFrameId id);
-      void CallTraceRenderFrameHandlers(float frameTime);
-
    private:
       NO_COPY_CONSTRUCTOR(Client);
 
@@ -214,9 +208,6 @@ private:
 
       InputHandlerId                                           next_input_id_;
       std::vector<std::pair<InputHandlerId, InputHandlerCb>>   input_handlers_;
-
-      TraceRenderFrameId                                                      next_trace_frame_id_;
-      std::vector<std::pair<TraceRenderFrameId, TraceRenderFrameHandlerCb>>   trace_frame_handlers_;
 
       // reactor...
       rpc::CoreReactorPtr         core_reactor_;
