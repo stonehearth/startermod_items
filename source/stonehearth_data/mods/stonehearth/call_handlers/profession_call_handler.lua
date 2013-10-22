@@ -6,9 +6,7 @@ local ProfessionCallHandler = class()
 
 function ProfessionCallHandler:grab_promotion_talisman(session, response, person, talisman)
 
-   radiant.events.trigger(radiant.events, 'compulsion_event', {
-      action = GrabTalismanAction, 
-      entity = person, 
+   radiant.events.trigger(person, 'stonehearth:grab_talisman', {
       talisman = talisman
    })
 

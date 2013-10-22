@@ -19,11 +19,9 @@ function TriggerEffect:update(e)
       if self._handler then
          self._handler(self._info, self._effect, self._entity)
       else
-         --radiant.events.broadcast_msg('on_trigger', self._info, self._effect, self._entity)
-         radiant.events.trigger(radiant.events, 'on_trigger', {
+         radiant.events.trigger(self._entity, 'stonehearth:on_trigger', {
             info = self._info, 
-            effect = self._effect, 
-            entity = self._entity
+            effect = self._effect
          })
       end
       self._trigger_time = nil

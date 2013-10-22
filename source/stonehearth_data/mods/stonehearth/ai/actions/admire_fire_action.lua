@@ -21,7 +21,7 @@ function AdmireFire:__init(ai, entity)
 
    self._standing_fire_effects = radiant.entities.get_entity_data(entity, "stonehearth:idle_fire_effects")
 
-   radiant.events.listen(calendar, 'sunrise', self, self.on_sunrise)
+   radiant.events.listen(calendar, 'stonehearth:sunrise', self, self.on_sunrise)
 
    --People look for lit firepits after dark.
    self._known_firepit_callbacks = {}

@@ -6,7 +6,7 @@ function EffectManager:__init(entity)
    self._effects = {}
 
    self._entity = entity
-   radiant.events.listen(radiant.events, 'gameloop', self, self.on_event_loop)
+   radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self.on_event_loop)
 
    self.animation_table_name = radiant.entities.get_animation_table(self._entity)
    if self.animation_table_name and self.animation_table_name ~= "" then
@@ -22,7 +22,7 @@ function EffectManager:__init(entity)
 end
 
 function EffectManager:destroy(entity)
-   radiant.events.unlisten(radiant.events, 'gameloop', self, self.on_event_loop)
+   radiant.events.unlisten(radiant.events, 'stonehearth:gameloop', self, self.on_event_loop)
 end
 
 function EffectManager:on_event_loop(e)

@@ -11,11 +11,11 @@ function AttackClosestEnemy:__init(ai, entity)
    self._entity = entity
    self._ai = ai
    self._enemies = {}
-   radiant.events.listen(radiant.events, 'gameloop', self, self.on_gameloop)
+   radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
 end
 
 function AttackClosestEnemy:on_gameloop(e)
-   radiant.events.unlisten(radiant.events, 'gameloop', self, self.on_gameloop)
+   radiant.events.unlisten(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
    self:init_sight_sensor()
 end
 

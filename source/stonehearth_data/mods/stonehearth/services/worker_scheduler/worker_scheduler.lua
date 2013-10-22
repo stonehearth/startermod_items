@@ -6,11 +6,11 @@ function WorkerScheduler:__init(faction)
    self._faction = faction
    self._workers = {}
    self._worker_tasks = {}
-   radiant.events.listen(radiant.events, 'gameloop', self, self.on_gameloop)
+   radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
 end
 
 function WorkerScheduler:destroy()
-   radiant.events.unlisten(radiant.events, 'gameloop', self, self.on_gameloop)
+   radiant.events.unlisten(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
 end
 
 function WorkerScheduler:on_gameloop()

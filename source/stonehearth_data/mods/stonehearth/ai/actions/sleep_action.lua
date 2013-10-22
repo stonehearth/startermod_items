@@ -20,7 +20,7 @@ function SleepAction:__init(ai, entity)
    self._looking_for_a_bed = false
    self._sleeping = false
 
-   radiant.events.listen(calendar, 'hourly', self, self.on_hourly)
+   radiant.events.listen(calendar, 'stonehearth:hourly', self, self.on_hourly)
 end
 
 --- Hourly after midnight, tell dudes to go to sleep.
