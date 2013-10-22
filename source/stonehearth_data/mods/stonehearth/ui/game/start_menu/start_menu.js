@@ -18,9 +18,14 @@ App.StonehearthStartMenuView = App.View.extend({
             });
          }
       },
-      buildBuilding: {
+      buildWallLoop: {
          click: function () {
             $(top).trigger('create_wall.radiant');
+         }         
+      },
+      buildRoom: {
+         click: function () {
+            $(top).trigger('create_room.radiant');
          }         
       },
       placeItem: {

@@ -230,9 +230,8 @@ Stonehearth::SetComponentData(lua_State* L, om::EntityRef e, std::string name, o
 
 void Stonehearth::InitEntity(om::EntityPtr entity, std::string const& uri, lua_State* L)
 {
-   if (L) {
-      L = lua::ScriptHost::GetCallbackThread(L);
-   }
+   ASSERT(L);
+   L = lua::ScriptHost::GetCallbackThread(L);
 
    entity->SetUri(uri);
    entity->SetDebugText(uri);
@@ -250,15 +249,19 @@ void Stonehearth::InitEntity(om::EntityPtr entity, std::string const& uri, lua_S
          }
          OM_ALL_COMPONENTS
    #undef OM_OBJECT
+
          // Lua components...
-         if (L) {
+         object component_data = lua::ScriptHost::JsonToLua(L, entry);
+         if (object_cast<bool>(globals(L)["radiant"]["is_server"])) {
             object component = Stonehearth::AddComponent(L, entity, entry.name());
             if (type(component) != LUA_TNIL) {
                object extend = component["extend"];
                if (type(extend) == LUA_TFUNCTION) {
-                  call_function<void>(extend, component, lua::ScriptHost::JsonToLua(L, entry));
+                  call_function<void>(extend, component, component_data);
                }
             }
+         } else {
+            SetLuaComponentData(L, entity, entry.name(), component_data);
          }
       }
    }

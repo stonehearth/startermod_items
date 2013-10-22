@@ -13,7 +13,7 @@ end
 function CityPlanComponent:extend(json)
 end
 
-function CityPlanComponent:add_blueprint(location, blueprint)
+function CityPlanComponent:add_blueprint(blueprint, location)
    -- create a new fabricator...   to... you know... fabricate
    local project = self:_create_project_recursive(blueprint)
    radiant.terrain.place_entity(project, location)
@@ -22,14 +22,13 @@ end
 function CityPlanComponent:_create_fabricator(blueprint)
    local name = radiant.entities.get_name(blueprint)  
    local transform = blueprint:add_component('mob'):get_transform()
-   local fabricator = radiant.entities.create_entity()
+   local fabricator = radiant.entities.create_entity('stonehearth:under_construction_proxy')
    
    fabricator:add_component('mob'):set_transform(transform)  
    fabricator:set_debug_text('fabricator for ' .. blueprint:get_debug_text())
    fabricator:add_component('stonehearth:fabricator')
                   :start_project(name, blueprint)
-                  :set_debug_color(Color4(255, 0, 0, 128))
-                  
+                  :set_debug_color(Color4(255, 0, 0, 128))                 
    
    return fabricator
 end

@@ -19,7 +19,7 @@ end
 
 function client_entities.destroy_entity(entity)
    if entity then
-      _radiant.client.destroy_authoring_entity(entity)
+      _radiant.client.destroy_authoring_entity(entity:get_id())
    end
 end
 

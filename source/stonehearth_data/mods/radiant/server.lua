@@ -2,6 +2,7 @@ _host:require 'radiant.lib.env' -- there's no module path installed, so use the 
 decoda_name = "radiant server"
 
 radiant = {
+   is_server = true,
    _root_entity = _radiant.sim.create_empty_entity()
 }
 

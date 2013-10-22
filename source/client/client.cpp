@@ -916,7 +916,7 @@ om::EntityPtr Client::CreateEmptyAuthoringEntity()
 om::EntityPtr Client::CreateAuthoringEntity(std::string const& uri)
 {
    om::EntityPtr entity = CreateEmptyAuthoringEntity();
-   om::Stonehearth::InitEntity(entity, uri, nullptr);
+   om::Stonehearth::InitEntity(entity, uri, scriptHost_->GetInterpreter());
    return entity;
 }
 

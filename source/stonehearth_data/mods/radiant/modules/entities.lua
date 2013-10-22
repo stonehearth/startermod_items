@@ -39,7 +39,9 @@ function entities.add_child(parent, child, location)
    local component = parent:add_component('entity_container')
 
    component:add_child(child)
-   entities.move_to(child, location)
+   if location then
+      entities.move_to(child, location)
+   end
 end
 
 function entities.remove_child(parent, child)
