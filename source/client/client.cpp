@@ -213,6 +213,9 @@ void Client::run()
    // this locks down the environment!  all types must be registered by now!!
    scriptHost_->Require("radiant.client");
 
+   _commands[GLFW_KEY_F12] = [&renderer]() {
+      renderer.SetShowDebugShapes(!renderer.GetShowDebugShapes());
+   };
    _commands[GLFW_KEY_F10] = [&renderer, this]() {
       perf_hud_shown_ = !perf_hud_shown_;
       renderer.ShowPerfHud(perf_hud_shown_);

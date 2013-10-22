@@ -9,9 +9,25 @@ using namespace ::radiant::client;
 
 RenderDestination::RenderDestination(const RenderEntity& entity, om::DestinationPtr destination)
 {
-   H3DNode node = entity.GetNode();
-   region_guard_   = CreateRegionDebugShape(node, regionDebugShape_,   destination->GetRegion(), csg::Color4(128, 128, 128, 128));
-   //adjacent_guard_ = CreateRegionDebugShape(node, adjacentDebugShape_, destination->GetAdjacent(), csg::Color4(0, 0, 0, 128));
+   entity_ = &entity;
+   destination_ = destination;
+
+   tracer_ += Renderer::GetInstance().OnShowDebugShapesChanged([this](bool enabled) {
+      if (enabled) RenderDestinationRegion();
+      else         RemoveDestinationRegion();
+   });
+}
+
+void RenderDestination::RenderDestinationRegion()
+{
+   H3DNode node = entity_->GetNode();
+   region_guard_ = CreateRegionDebugShape(node, regionDebugShape_, destination_->GetRegion(), csg::Color4(128, 128, 128, 128));
+}
+
+void RenderDestination::RemoveDestinationRegion()
+{
+   region_guard_ = nullptr;
+   regionDebugShape_.reset(0);
 }
 
 RenderDestination::~RenderDestination()

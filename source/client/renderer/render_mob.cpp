@@ -12,6 +12,11 @@ RenderMob::RenderMob(const RenderEntity& entity, om::MobPtr mob) :
    mob_(mob)
 {
    ASSERT(mob);
+
+   tracer_ += Renderer::GetInstance().OnShowDebugShapesChanged([this](bool enabled) {
+      if (enabled) RenderAxes();
+      else         RemoveAxes();
+   });
    
    tracer_ += mob->TraceRecordField("transform", "move render entity", std::bind(&RenderMob::Update, this));
    if (mob->InterpolateMovement()) {
@@ -20,6 +25,11 @@ RenderMob::RenderMob(const RenderEntity& entity, om::MobPtr mob) :
    }
    _current = _initial = _final = mob->GetTransform();
 
+   Move();
+}
+
+void RenderMob::RenderAxes()
+{
    float d = 1.5;
    H3DNode s = h3dRadiantAddDebugShapes(entity_.GetNode(), "mob debug axes");
    h3dRadiantAddDebugLine(s, csg::Point3f::zero, csg::Point3f(d, 0, 0), csg::Color4(255, 0, 0, 255));
@@ -27,7 +37,11 @@ RenderMob::RenderMob(const RenderEntity& entity, om::MobPtr mob) :
    h3dRadiantAddDebugLine(s, csg::Point3f::zero, csg::Point3f(0, 0, d), csg::Color4(0, 0, 255, 255));
    h3dRadiantCommitDebugShape(s);
    _axes.reset(s);
-   Move();
+ }
+
+void RenderMob::RemoveAxes()
+{
+   _axes.reset(0);
 }
 
 void RenderMob::Move()

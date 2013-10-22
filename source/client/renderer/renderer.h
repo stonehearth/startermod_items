@@ -98,6 +98,10 @@ class Renderer
       void SetInputHandler(InputEventCb fn) { input_cb_ = fn; }
 
       core::Guard OnScreenResize(std::function<void(csg::Point2)> fn);
+      core::Guard OnShowDebugShapesChanged(std::function<void(bool)> fn);
+
+      bool GetShowDebugShapes();
+      void SetShowDebugShapes(bool show_debug_shapes);
 
       void UpdateUITexture(const csg::Region2& rgn, const char* buffer);
 
@@ -168,6 +172,7 @@ class Renderer
 
       std::shared_ptr<RenderEntity>      rootRenderObject_;
       H3DNode                       debugShapes_;
+      bool                          show_debug_shapes_;
 
       RenderEntityMap               entities_[5]; // by store id
       SelectableMap                 selectableCbs_;
@@ -184,6 +189,7 @@ class Renderer
       lua::ScriptHost*              scriptHost_;
 
       core::BufferedSlot<csg::Point2>  screen_resize_slot_;
+      core::BufferedSlot<bool>         show_debug_shapes_changed_slot_;
       std::unique_ptr<PerfHud>         perf_hud_;
       H3DRes                        uiPbo_;
 };
