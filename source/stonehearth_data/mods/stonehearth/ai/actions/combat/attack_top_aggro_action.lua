@@ -10,7 +10,7 @@ AttackTopAggro.priority = 0
 function AttackTopAggro:__init(ai, entity)
    self._entity = entity
    self._ai = ai
-   radiant.events.listen(radiant.events, 'slow_poll', self, self.on_poll)
+   radiant.events.listen(radiant.events, 'stonehearth:slow_poll', self, self.on_poll)
 end
 
 function AttackTopAggro:on_poll()

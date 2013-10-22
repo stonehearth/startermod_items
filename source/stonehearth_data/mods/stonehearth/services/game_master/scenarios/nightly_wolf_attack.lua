@@ -5,7 +5,7 @@ local Point3 = _radiant.csg.Point3
 
 function NightlyWolfAttack:__init()
    self._wolves = {}
-   radiant.events.listen(calendar, 'hourly', self, self.on_hourly)
+   radiant.events.listen(calendar, 'stonehearth:hourly', self, self.on_hourly)
 end
 
 function NightlyWolfAttack:load_faction()

@@ -16,7 +16,7 @@ function MicroWorld:__init(size)
    end
    self._size = size
 
-   radiant.events.listen(radiant.events, 'gameloop', self, self.on_gameloop)
+   radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
 end
 
 -- xxx: this timer system really should be in radiant.events.  nuke it!

@@ -10,7 +10,7 @@ function EventCallHandler:get_events(session, request)
       data_object = _radiant.sim.create_data_store()
       data_object:update(event_service:get_entries())
 
-      radiant.events.listen(event_service, 'new_event', self, self.update_data_object)
+      radiant.events.listen(event_service, 'stonehearth:new_event', self, self.update_data_object)
       self:update_data_object()
    end
    return { events = data_object }
@@ -18,7 +18,6 @@ end
 
 function EventCallHandler:update_data_object( e )
    data_object:mark_changed()
-   -- body
 end
 
 return EventCallHandler

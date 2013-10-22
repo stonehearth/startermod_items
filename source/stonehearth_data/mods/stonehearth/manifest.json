@@ -127,7 +127,6 @@
          "actions:goto_location_action" : "file(ai/actions/goto_location_action.lua)",
          "actions:fear_fire" : "file(ai/actions/fear_fire_action.lua)",
          "actions:run_effect_action" : "file(ai/actions/run_effect_action.lua)",
-         "actions:compel_to_action" : "file(ai/actions/compel_to_action.lua)",
          "actions:idle_top_action" : "file(ai/actions/idle_top_action.lua)",
          "actions:idle_action" : "file(ai/actions/idle_action.lua)",
          "actions:idle_breathe_action" : "file(ai/actions/idle_breathe_action.lua)",
@@ -205,6 +204,10 @@
             "controller" : "file(call_handlers/object_tracker_call_handler.lua)"
          },
          "get_placable_items_tracker" : {
+            "endpoint" : "server",
+            "controller" : "file(call_handlers/object_tracker_call_handler.lua)"
+         },
+         "get_resource_tracker" : {
             "endpoint" : "server",
             "controller" : "file(call_handlers/object_tracker_call_handler.lua)"
          },
@@ -302,7 +305,7 @@
          "file(ui/game/promote/promote.html)",
          "file(ui/game/item_placement/item_placement.html)",
          "file(ui/game/unit_frame/unit_frame.html)",
-         "file(ui/game/main_actionbar/main_actionbar.html)",
+         "file(ui/game/resource_scoreboard/resource_scoreboard.html)",
          "file(ui/game/start_menu/start_menu.html)",
          "file(ui/game/main_actionbar/tip_popup.html)",
          "file(ui/game/event_log/event_log.html)",
@@ -322,7 +325,7 @@
          "file(ui/game/promote/promote.js)",
          "file(ui/game/item_placement/item_placement.js)",
          "file(ui/game/unit_frame/unit_frame.js)",
-         "file(ui/game/main_actionbar/main_actionbar.js)",
+         "file(ui/game/resource_scoreboard/resource_scoreboard.js)",
          "file(ui/game/start_menu/start_menu.js)",
          "file(ui/game/main_actionbar/tip_popup.js)",
          "file(ui/game/create_stockpile/create_stockpile.js)",
@@ -343,7 +346,7 @@
          "file(ui/game/promote/promote.less)",
          "file(ui/game/unit_frame/unit_frame.less)",
          "file(ui/game/item_placement/item_placement.less)",
-         "file(ui/game/main_actionbar/main_actionbar.less)",
+         "file(ui/game/resource_scoreboard/resource_scoreboard.less)",
          "file(ui/game/start_menu/start_menu.less)",
          "file(ui/game/main_actionbar/tip_popup.less)",
          "file(ui/game/event_log/event_log.less)",

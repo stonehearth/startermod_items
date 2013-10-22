@@ -22,8 +22,8 @@ function FirepitComponent:__init(entity, data_store)
    self._data_store = data_store
    self._data_store:mark_changed()
 
-   radiant.events.listen(calendar, 'sunrise', self, self.on_sunrise)
-   radiant.events.listen(calendar, 'sunset', self, self.on_sunset)
+   radiant.events.listen(calendar, 'stonehearth:sunrise', self, self.on_sunrise)
+   radiant.events.listen(calendar, 'stonehearth:sunset', self, self.on_sunset)
 end
 
 function FirepitComponent:extend(json)

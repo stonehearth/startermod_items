@@ -70,13 +70,13 @@ end
 function events._update()
    local now = { now = radiant.gamestate.now() }
    
-   events.trigger(radiant.events, 'gameloop', now)
+   events.trigger(radiant.events, 'stonehearth:gameloop', now)
    -- pump the polls
    if now.now % 200 == 0 then
-      events.trigger(radiant.events, 'slow_poll', now)
+      events.trigger(radiant.events, 'stonehearth:slow_poll', now)
    end
    if now.now % 1000 == 0 then
-      events.trigger(radiant.events, 'very_slow_poll', now)
+      events.trigger(radiant.events, 'stonehearth:very_slow_poll', now)
    end
 end
 

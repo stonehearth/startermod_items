@@ -9,7 +9,7 @@ function EventService:add_entry(text)
    local time = calendar:format_time()
    local entry = '[' .. time .. '] ' .. text
    table.insert(self._entries, entry)
-   radiant.events.trigger(self, 'new_event', { entry = text })
+   radiant.events.trigger(self, 'stonehearth:new_event', { entry = text })
 end
 
 function EventService:get_entries()

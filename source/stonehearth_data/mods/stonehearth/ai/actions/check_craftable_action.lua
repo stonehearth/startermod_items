@@ -20,7 +20,7 @@ function CheckCraftableAction:__init(ai, entity)
    self._is_crafting = false     --whether we're currently actively crafting something
    self._next_activity = {}      --the thing we shoud be doing next (gathering/crafting)
 
-   radiant.events.listen(radiant.events, 'gameloop', self, self.on_gameloop)
+   radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
 end
 
 --[[
@@ -81,7 +81,7 @@ end
    and relevant arguments
 ]]
 function CheckCraftableAction:run(ai, entity)
-   radiant.events.unlisten(radiant.events, 'gameloop', self, self.on_gameloop)
+   radiant.events.unlisten(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
    self._is_crafting = true
    ai:execute(unpack(self._next_activity))
 end
@@ -95,7 +95,7 @@ end
 function CheckCraftableAction:stop()
    self._is_crafting = false
    self._ai:set_action_priority(self, 0)
-   radiant.events.listen(radiant.events, 'gameloop', self, self.on_gameloop)
+   radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
 end
 
 return CheckCraftableAction

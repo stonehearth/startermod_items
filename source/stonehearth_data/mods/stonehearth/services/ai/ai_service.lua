@@ -18,7 +18,7 @@ function AiService:__init()
    self._co_to_ai_component = {}
    self._waiting_until = {}
 
-   radiant.events.listen(radiant.events, 'gameloop', self, self._on_event_loop)
+   radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self._on_event_loop)
 end
 
 function AiService:_on_event_loop(e)
