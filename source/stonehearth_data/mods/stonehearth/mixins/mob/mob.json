@@ -2,7 +2,6 @@
    "components" : {
       "stonehearth:ai" : {
          "actions" : [
-            "stonehearth:actions:compel_to_action",
             "stonehearth:actions:carry_item_on_path_to",
             "stonehearth:actions:death_action",
             "stonehearth:actions:drop_carrying_action",
