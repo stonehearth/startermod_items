@@ -20,14 +20,14 @@ function MicroWorld:__init(size)
 end
 
 -- xxx: this timer system really should be in radiant.events.  nuke it!
-function MicroWorld:on_gameloop()
+function MicroWorld:on_gameloop(e)
    if not self._running then
       self._running = true;
       table.sort(self._times);
    end
    local nextTimer = self._times[self._nextTime];
-   while nextTimer ~= nil and nextTimer <= time do
-      self._timers[nextTimer](time);
+   while nextTimer ~= nil and nextTimer <= e.now do
+      self._timers[nextTimer](e.now);
       self._nextTime = self._nextTime + 1
       nextTimer = self._times[self._nextTime]
    end
