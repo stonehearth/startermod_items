@@ -67,12 +67,12 @@ function EffectTracks:stop()
    end
 end
 
-function EffectTracks:update(now)
+function EffectTracks:update(e)
    -- xxx: this is shitty to the max...
    if self._running then
       local all_finished = true
       for i, effect in ipairs(self._effects) do
-         if effect:update(now) then
+         if effect:update(e) then
             all_finished = false
          end
       end

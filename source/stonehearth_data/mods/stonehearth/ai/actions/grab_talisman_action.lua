@@ -19,7 +19,8 @@ function GrabTalismanAction:__init(ai, entity)
    radiant.check.is_entity(entity)
    self._entity = entity
    self._ai = ai
-   radiant.events.listen('radiant:animation:on_trigger', self)
+   -- xxx inkblot, find out how to wire this up correctly
+   radiant.events.listen(radiant.events, 'on_trigger', self, self.on_trigger)
 end
 
 --[[
@@ -27,9 +28,9 @@ end
    go to the item, play the animation, and promote self to
    the target profession.
 ]]
-function GrabTalismanAction:run(ai, entity, action_data)
-   if action_data and action_data.talisman then
-      self._talisman_entity = action_data.talisman
+function GrabTalismanAction:run(ai, entity, talisman)
+   if talisman then
+      self._talisman_entity = talisman
       local workbench_entity = self._talisman_entity:get_component('stonehearth:promotion_talisman'):get_workshop():get_entity();
 
       --TODO: if the dude is currently not a worker, he should drop his talisman
@@ -50,7 +51,11 @@ end
    the entity in question is really our entity in case 2 prmotions happen
    at the exact same moment.
 ]]
-GrabTalismanAction['radiant:animation:on_trigger'] = function(self, info, effect, entity)
+function GrabTalismanAction:on_trigger(e)
+   local info = e.info
+   local effect = e.effect
+   local entity = e.entity
+
    local entity_id = self._entity:get_id()
    if (entity_id ~= entity:get_id()) or not self._talisman_entity then
       return

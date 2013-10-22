@@ -10,8 +10,6 @@ function PromoteTest:__init()
    self:create_world()
 
    --Create the carpenter, bench, and instantiate them to each other
-
-   self:place_item('stonehearth:rabbit', 10, -10)
    self:place_citizen(0,0)
    local worker = self:place_citizen(12, 12)
 
@@ -28,10 +26,6 @@ function PromoteTest:__init()
 
    local tree = self:place_tree(-12, 0)
    local tree2 = self:place_tree(-12, 12)
-
-   self:at(10000, function()
-      --self:place_citizen(12, 10)
-   end)
 end
 
 return PromoteTest

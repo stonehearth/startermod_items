@@ -4,7 +4,7 @@
    but it always happens, people naturally gravitate towards moving, lit things.
    TODO: rename to "find fireside seat or something"
 ]]
-local Calendar = require 'services.calendar.calendar_service'
+local calendar = require 'services.calendar.calendar_service'
 
 local AdmireFire = class()
 
@@ -21,7 +21,7 @@ function AdmireFire:__init(ai, entity)
 
    self._standing_fire_effects = radiant.entities.get_entity_data(entity, "stonehearth:idle_fire_effects")
 
-   radiant.events.listen('radiant:events:calendar:sunrise', self)
+   radiant.events.listen(calendar, 'sunrise', self, self.on_sunrise)
 
    --People look for lit firepits after dark.
    self._known_firepit_callbacks = {}
@@ -33,7 +33,7 @@ function AdmireFire:__init(ai, entity)
    end
    self._promise = radiant.terrain.trace_world_entities('firepit tracker', added_cb, removed_cb)
 
-   self._time_constants = Calendar.get_constants()
+   self._time_constants = calendar.get_constants()
 end
 
 --- Trace all fire sources. Whenever one is added, trace its properties.
@@ -61,7 +61,7 @@ end
 
 ---Whenever there is a lit fire, if idle, go to it and hang out
 function AdmireFire:_should_light_fire()
-   local curr_time = Calendar.get_time_and_date()
+   local curr_time = calendar.get_time_and_date()
    if curr_time.hour >= self._time_constants.event_times.sunset or
       curr_time.hour < self._time_constants.event_times.sunrise then
       self._should_look_for_fire = true
@@ -72,7 +72,7 @@ function AdmireFire:_should_light_fire()
 end
 
 --- At dawn, stop looking, release all seats, unset postures
-AdmireFire['radiant:events:calendar:sunrise'] = function(self, calendar)
+function AdmireFire:on_sunrise(e)
    self._should_look_for_fire = false
    self:_clear_variables()
 end

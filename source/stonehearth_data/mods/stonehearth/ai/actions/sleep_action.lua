@@ -3,6 +3,7 @@
    go to sleep at 9pm and wake up at 6am
 --]]
 radiant.mods.load('stonehearth') -- make sure it's loaded...
+local calendar = require 'services.calendar.calendar_service'
 
 local SleepAction = class()
 
@@ -19,7 +20,7 @@ function SleepAction:__init(ai, entity)
    self._looking_for_a_bed = false
    self._sleeping = false
 
-   radiant.events.listen('radiant:events:calendar:hourly', self)
+   radiant.events.listen(calendar, 'hourly', self, self.on_hourly)
 end
 
 --- Hourly after midnight, tell dudes to go to sleep.
@@ -28,8 +29,8 @@ end
 -- TODO: If a bed is never found, we will never go to sleep. The idea is that
 -- some other action will pick up the slack and make the actor go to sleep
 -- on the ground (not in a bed) from exhaustion.
-SleepAction['radiant:events:calendar:hourly'] = function(self, calendar)
-   if (calendar.hour < 6) then
+function SleepAction:on_hourly(e)
+   if (e.now.hour < 6) then
       if not self._looking_for_a_bed and not self._sleeping then
          self:start_looking_for_bed()
       end

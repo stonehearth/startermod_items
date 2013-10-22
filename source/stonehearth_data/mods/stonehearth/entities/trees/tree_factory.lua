@@ -1,6 +1,5 @@
 local ResourceFactory = class()
 
-radiant.events.register_event('radiant:resource_node:spawn_resource', Harvest)
 radiant.events.register_event_handler('radiant:msg_handlers:resource_factory', ResourceFactory)
 
 ResourceFactory['radiant:md:create'] = function(self, entity)

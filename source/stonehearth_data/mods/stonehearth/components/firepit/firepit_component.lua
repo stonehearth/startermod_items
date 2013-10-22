@@ -1,3 +1,5 @@
+local calendar = require 'services.calendar.calendar_service'
+
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 
@@ -20,8 +22,8 @@ function FirepitComponent:__init(entity, data_store)
    self._data_store = data_store
    self._data_store:mark_changed()
 
-   radiant.events.listen('radiant:events:calendar:sunrise', self)
-   radiant.events.listen('radiant:events:calendar:sunset', self)
+   radiant.events.listen(calendar, 'sunrise', self, self.on_sunrise)
+   radiant.events.listen(calendar, 'sunset', self, self.on_sunset)
 end
 
 function FirepitComponent:extend(json)
@@ -63,7 +65,7 @@ end
 -- If there aren't seats around the fire yet, create them
 -- If there's already wood in the fire from the previous day, it goes out now.
 -- TODO: Find a way to make this REALLY IMPORTANT relative to other worker tasks
-FirepitComponent['radiant:events:calendar:sunset'] = function (self)
+function FirepitComponent:on_sunset(e)
    self:extinguish()
    if not self._seats then
       self:_add_seats()
@@ -72,7 +74,7 @@ FirepitComponent['radiant:events:calendar:sunset'] = function (self)
 end
 
 --- At sunrise, the fire eats the log inside of it
-FirepitComponent['radiant:events:calendar:sunrise'] = function (self)
+function FirepitComponent:on_sunrise(e)
    if self._light_task then
       self._light_task:stop()
    end
