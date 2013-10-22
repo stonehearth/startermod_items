@@ -176,6 +176,16 @@
 
 			} );
 			
+			$(document).keyup(function(e) {
+				if (e.keyCode == 27) { // esc
+					var back = self.$back.filter(':visible');
+					if (back.length > 0) {
+						back.click();	
+					} else {
+						self.closeMenu();
+					}
+				}
+			});
 		},
 		closeMenu : function() {
 			if( this.open ) {
