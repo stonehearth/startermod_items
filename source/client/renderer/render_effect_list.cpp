@@ -69,9 +69,10 @@ RenderEffectList::RenderEffectList(RenderEntity& entity, om::EffectListPtr effec
    auto &effects = effectList->GetEffects();
 
    tracer_ += effects.TraceSetChanges("render rig rigs", added, removed);
-   tracer_ += Renderer::GetInstance().TraceFrameStart(std::bind(&RenderEffectList::UpdateEffects, this));
+   tracer_ += Renderer::GetInstance().OnRenderFrameStart([this](FrameStartInfo const& info) {
+      UpdateEffects(info);
+   });
 
-   lastUpdateTime_ = Renderer::GetInstance().GetCurrentFrameTime();
    for (const om::EffectPtr effect : effects) {
       AddEffect(effect);
    }
@@ -92,20 +93,18 @@ void RenderEffectList::RemoveEffect(const om::EffectPtr effect)
    effects_.erase(effect->GetObjectId());
 }
 
-void RenderEffectList::UpdateEffects()
+void RenderEffectList::UpdateEffects(FrameStartInfo const& info)
 {
-   int now = Renderer::GetInstance().GetCurrentFrameTime();
    auto i = effects_.begin();
    while (i != effects_.end()) {
       bool finished = false;
-      i->second.Update(now, now - lastUpdateTime_, finished);
+      i->second.Update(info, finished);
       if (finished) {
          i = effects_.erase(i);
       } else {
          i++;
       }
    }
-   lastUpdateTime_ = now;
 }
 
 RenderInnerEffectList::RenderInnerEffectList(RenderEntity& renderEntity, om::EffectPtr effect)
@@ -151,13 +150,13 @@ RenderInnerEffectList::RenderInnerEffectList(RenderEntity& renderEntity, om::Eff
    }
 }
 
-void RenderInnerEffectList::Update(int now, int dt, bool& finished)
+void RenderInnerEffectList::Update(FrameStartInfo const& info, bool& finished)
 {
    int i = 0, c = effects_.size();
    while (i < c) {
       auto effect = effects_[i];
       bool done = false;
-      effect->Update(now, dt, done);
+      effect->Update(info, done);
       if (done) {
          effects_[i] = effects_[--c];
          effects_.resize(c);
@@ -209,20 +208,19 @@ RenderAnimationEffect::RenderAnimationEffect(RenderEntity& e, om::EffectPtr effe
          }
       }
    }
-   int renderTime = Renderer::GetInstance().GetCurrentFrameTime();
-   LOG(INFO) << "starting animation effect" << animationName_ << "(start_time: " << startTime_ << " current render time: " << renderTime << ")";
+   LOG(INFO) << "starting animation effect" << animationName_ << "(start_time: " << startTime_ << ")";
 }
 
 
-void RenderAnimationEffect::Update(int now, int dt, bool& finished)
+void RenderAnimationEffect::Update(FrameStartInfo const& info, bool& finished)
 {
    if (!animation_) {
       finished = true;
       return;
    }
-   int offset = now - startTime_;
+   int offset = info.now - startTime_;
    if (duration_) {    
-      if (now > startTime_ + duration_) {
+      if (info.now > startTime_ + duration_) {
          finished = true;
       }
 
@@ -264,7 +262,7 @@ HideBoneEffect::~HideBoneEffect()
    }
 }
 
-void HideBoneEffect::Update(int now, int dt, bool& finished)
+void HideBoneEffect::Update(FrameStartInfo const& info, bool& finished)
 {
    if (boneNode_) {      
       h3dSetNodeFlags(boneNode_, boneNodeFlags_ | H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, true);
@@ -304,9 +302,9 @@ CubemitterEffect::~CubemitterEffect()
 {
 }
 
-void CubemitterEffect::Update(int now, int dt, bool& finished)
+void CubemitterEffect::Update(FrameStartInfo const& info, bool& finished)
 {
-   if (now > startTime_) {
+   if (info.now > startTime_) {
       if (!cubemitterNode_.get()) {
          H3DRes matRes = h3dAddResource(H3DResTypes::Material, "materials/cubemitter.material.xml", 0);
          H3DRes cubeRes = h3dAddResource(RT_CubemitterResource, filename_.c_str(), 0);
@@ -319,7 +317,7 @@ void CubemitterEffect::Update(int now, int dt, bool& finished)
          return;
       }
    }
-   finished = (endTime_ > 0) && (now > endTime_);
+   finished = (endTime_ > 0) && (info.now > endTime_);
    if (finished) {
       cubemitterNode_.reset(0);
    }
@@ -361,7 +359,7 @@ LightEffect::~LightEffect()
 {
 }
 
-void LightEffect::Update(int now, int dt, bool& finished)
+void LightEffect::Update(FrameStartInfo const& info, bool& finished)
 {
    finished = false;
 }
@@ -433,14 +431,14 @@ RenderAttachItemEffect::~RenderAttachItemEffect()
    }
 }
 
-void RenderAttachItemEffect::Update(int now, int dt, bool& finished)
+void RenderAttachItemEffect::Update(FrameStartInfo const& info, bool& finished)
 {
    if (finished_) {
       finished = true;
       return;
    }
 
-   if (now >= startTime_) {
+   if (info.now >= startTime_) {
       finished = true;
       H3DNode parent = entity_.GetSkeleton().GetSceneNode(bone_);
       render_item_->SetParent(parent);
@@ -490,7 +488,8 @@ get_easing_function(std::string easing)
 
 FloatingCombatTextEffect::FloatingCombatTextEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
    entity_(e),
-   height_(0)
+   height_(0),
+   lastUpdated_(0)
 {
    startTime_  = effect->GetStartTime();
    std::string text = node["text"].as_string();
@@ -538,8 +537,11 @@ FloatingCombatTextEffect::~FloatingCombatTextEffect()
    }
 }
 
-void FloatingCombatTextEffect::Update(int now, int dt, bool& finished)
+void FloatingCombatTextEffect::Update(FrameStartInfo const& info, bool& finished)
 {
+   double dt = lastUpdated_ ? (info.now - lastUpdated_) : 0.0;
+   lastUpdated_ = info.now;
+
    if (tweener_->is_finished()) {
       if (toastNode_) {
          h3dRemoveNode(toastNode_->GetNode());
@@ -548,7 +550,7 @@ void FloatingCombatTextEffect::Update(int now, int dt, bool& finished)
       finished = true;
       return;
    }
-   tweener_->update((double)dt);
+   tweener_->update(dt);
    h3dSetNodeTransform(toastNode_->GetNode(), 0, static_cast<float>(height_), 0, 0, 0, 0, 1, 1, 1);
 }
 
@@ -603,12 +605,12 @@ PlayMusicEffect::~PlayMusicEffect()
  * then finished is true if we're past the start time and music duration.
  * TODO: implement delay for background music?
 **/
-void PlayMusicEffect::Update(int now, int dt, bool& finished)
+void PlayMusicEffect::Update(FrameStartInfo const& info, bool& finished)
 {
    if (music_.getLoop()) {
       finished = false;
    } else {
-      finished = now > startTime_ + music_.getDuration().asMilliseconds(); 
+      finished = info.now > startTime_ + music_.getDuration().asMilliseconds(); 
    }
 }
 
@@ -680,7 +682,8 @@ void SingMusicEffect::PlayMusic(om::EffectPtr effect, const JSONNode& node)
  * Unfortunately, can't make this private because the shared ptr expects it
 **/
 SingMusicEffect::SingMusicEffect(RenderEntity& e) : 
-   entity_(e)
+   entity_(e),
+   lastUpdated_(0)
 {
    nextTrack_ = "";
    volume_ = SING_MUSIC_EFFECT_DEF_VOL;
@@ -695,12 +698,15 @@ SingMusicEffect::~SingMusicEffect()
  * On update, keep playing the current BG music, unless there is a new music track
  * If so, fade out the old one and eventually introduce the new one. 
 **/
-void SingMusicEffect::Update(int now, int dt, bool& finished)
+void SingMusicEffect::Update(FrameStartInfo const& info, bool& finished)
 {
+   double dt = lastUpdated_ ? (info.now - lastUpdated_) : 0.0;
+   lastUpdated_ = info.now;
+
    if (music_.getLoop()) {
       finished = false;
    } else {
-      finished = now > startTime_ + music_.getDuration().asMilliseconds(); 
+      finished = info.now > startTime_ + music_.getDuration().asMilliseconds(); 
    }
 
    //If there is another track to play after this one
@@ -727,7 +733,7 @@ void SingMusicEffect::Update(int now, int dt, bool& finished)
             nextTrack_ = "";
          } else {
             //If the tweener is not finished, soften the volume
-            tweener_->update((double)dt);
+            tweener_->update(dt);
             music_.setVolume((float)volume_);
          }
       }
@@ -876,7 +882,7 @@ PlaySoundEffect::~PlaySoundEffect()
  * If the sound is finished, set finished to true
  * TODO: on update, check if camera is between min and max distances. If so, create/destroy sound as necessary
 **/
-void PlaySoundEffect::Update(int now, int dt, bool& finished)
+void PlaySoundEffect::Update(FrameStartInfo const& info, bool& finished)
 {
    om::MobPtr mobP = entity_.GetEntity()->GetComponent<om::Mob>();
    if (mobP) {
@@ -884,14 +890,14 @@ void PlaySoundEffect::Update(int now, int dt, bool& finished)
       sound_.setPosition(loc.x, loc.y, loc.z);
    }
 
-   if (delay_ > 0 && firstPlay_ && (now > startTime_+ delay_) ) {
+   if (delay_ > 0 && firstPlay_ && (info.now > startTime_+ delay_) ) {
       sound_.play();
       firstPlay_ = false;
       finished = false;
    } else if (sound_.getLoop()) {
       finished = false;
    } else {
-      finished = now > startTime_ + delay_ + soundBuffer_.getDuration().asMilliseconds(); 
+      finished = info.now > startTime_ + delay_ + soundBuffer_.getDuration().asMilliseconds(); 
    }
 
 }

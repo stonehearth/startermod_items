@@ -6,7 +6,7 @@
 local GrabTalismanAction = class()
 
 GrabTalismanAction.name = 'grab talisman'
-GrabTalismanAction.does = 'stonehearth:grab_talisman'
+GrabTalismanAction.does = 'stonehearth:top'
 GrabTalismanAction.priority = 0
 
 --[[
@@ -26,7 +26,7 @@ end
 
 function GrabTalismanAction:grab_talisman(e)
    self._talisman_entity = e.talisman
-   self._ai:set_action_priority(self, 10)
+   self._ai:set_action_priority(self, 100)
 end
 --[[
    When the action comes up on the priority lottery,
@@ -34,7 +34,7 @@ end
    the target profession.
 ]]
 function GrabTalismanAction:run(ai, entity)
-   debug.assert(self._talisman_entity)
+   assert(self._talisman_entity)
 
    local workbench_entity = self._talisman_entity:get_component('stonehearth:promotion_talisman'):get_workshop():get_entity();
 

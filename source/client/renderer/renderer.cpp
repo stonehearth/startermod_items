@@ -36,15 +36,13 @@ Renderer::Renderer() :
    initialized_(false),
    viewMode_(Standard),
    scriptHost_(nullptr),
-   nextTraceId_(1),
    camera_(nullptr),
-   currentFrameTime_(0),
-   lastFrameTimeInSeconds_(0),
    uiWidth_(0),
    uiHeight_(0),
    uiTexture_(0),
    uiMatRes_(0),
-   uiPbo_(0)
+   uiPbo_(0),
+   last_render_time_(0)
 {
    try {
 
@@ -266,7 +264,7 @@ void Renderer::Cleanup()
 
 void Renderer::SetServerTick(int tick)
 {
-   FireTraces(interpolationStartTraces_);
+   server_tick_slot_.Signal(tick);
 }
 
 void Renderer::DecodeDebugShapes(const ::radiant::protocol::shapelist& msg)
@@ -282,12 +280,6 @@ HWND Renderer::GetWindowHandle() const
 void Renderer::RenderOneFrame(int now, float alpha)
 {
    perfmon::TimelineCounterGuard tcg("render one");
-
-   int deltaNow = now - currentFrameTime_;
-
-   lastFrameTimeInSeconds_ = deltaNow / 1000.0f;
-   currentFrameTime_ =  now;
-   currentFrameInterp_ = alpha;
 
    bool debug = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS;
    bool showStats = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
@@ -317,9 +309,8 @@ void Renderer::RenderOneFrame(int now, float alpha)
                           ww,       .9f,    1, 1, };
    }
 
-   perfmon::SwitchToCounter("render fire traces") ;
-   FireTraces(renderFrameTraces_);
-
+   perfmon::SwitchToCounter("render fire traces") ;  
+   render_frame_start_slot_.Signal(FrameStartInfo(now, alpha));
 
    if (showStats) { 
       // show stats
@@ -344,8 +335,9 @@ void Renderer::RenderOneFrame(int now, float alpha)
    // Advance emitter time; this must come AFTER rendering, because we only know which emitters
    // to update after doing a render pass.
    perfmon::SwitchToCounter("render ce");
-   h3dRadiantAdvanceCubemitterTime(deltaNow / 1000.0f);
-   h3dRadiantAdvanceAnimatedLightTime(deltaNow / 1000.0f);
+   float delta = (last_render_time_ - now) / 1000.0f;
+   h3dRadiantAdvanceCubemitterTime(delta);
+   h3dRadiantAdvanceAnimatedLightTime(delta);
 
    // Remove all overlays
    h3dClearOverlays();
@@ -355,6 +347,8 @@ void Renderer::RenderOneFrame(int now, float alpha)
 
    perfmon::SwitchToCounter("render swap");
    glfwSwapBuffers(glfwGetCurrentContext());
+
+   last_render_time_ = now;
 }
 
 bool Renderer::IsRunning() const
@@ -728,35 +722,6 @@ void Renderer::SetViewMode(ViewMode mode)
    viewMode_ = mode;
 }
 
-core::Guard Renderer::TraceFrameStart(std::function<void()> fn)
-{
-   return AddTrace(renderFrameTraces_, fn);
-}
-
-core::Guard Renderer::TraceInterpolationStart(std::function<void()> fn)
-{
-   return AddTrace(interpolationStartTraces_, fn);
-}
-
-core::Guard Renderer::AddTrace(TraceMap& m, std::function<void()> fn)
-{
-   dm::TraceId tid = nextTraceId_++;
-   m[tid] = fn;
-   return core::Guard(std::bind(&Renderer::RemoveTrace, this, std::ref(m), tid));
-}
-
-void Renderer::RemoveTrace(TraceMap& m, dm::TraceId tid)
-{
-   m.erase(tid);
-}
-
-void Renderer::FireTraces(const TraceMap& m)
-{
-   for (const auto& entry : m) {
-      entry.second();
-   }
-}
-
 void Renderer::LoadResources()
 {
    if (!h3dutLoadResourcesFromDisk("horde")) {
@@ -837,6 +802,16 @@ void Renderer::SetUITextureSize(int width, int height)
 core::Guard Renderer::OnScreenResize(std::function<void(csg::Point2)> fn)
 {
    return screen_resize_slot_.Register(fn);
+}
+
+core::Guard Renderer::OnServerTick(std::function<void(int)> fn)
+{
+   return server_tick_slot_.Register(fn);
+}
+
+core::Guard Renderer::OnRenderFrameStart(std::function<void(FrameStartInfo const&)> fn)
+{
+   return render_frame_start_slot_.Register(fn);
 }
 
 bool Renderer::GetShowDebugShapes()

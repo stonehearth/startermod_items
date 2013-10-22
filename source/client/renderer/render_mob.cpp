@@ -13,15 +13,23 @@ RenderMob::RenderMob(const RenderEntity& entity, om::MobPtr mob) :
 {
    ASSERT(mob);
 
-   tracer_ += Renderer::GetInstance().OnShowDebugShapesChanged([this](bool enabled) {
-      if (enabled) RenderAxes();
-      else         RemoveAxes();
+   guards_ += Renderer::GetInstance().OnShowDebugShapesChanged([this](bool enabled) {
+      if (enabled) {
+         RenderAxes();
+      } else {
+         RemoveAxes();
+      }
    });
    
-   tracer_ += mob->TraceRecordField("transform", "move render entity", std::bind(&RenderMob::Update, this));
+   guards_ += mob->TraceRecordField("transform", "move render entity", std::bind(&RenderMob::Update, this));
    if (mob->InterpolateMovement()) {
-      tracer_ += Renderer::GetInstance().TraceFrameStart(std::bind(&RenderMob::Interpolate, this));
-      tracer_ += Renderer::GetInstance().TraceInterpolationStart(std::bind(&RenderMob::StartInterpolate, this));
+      guards_ += Renderer::GetInstance().OnServerTick([this](int now) {
+         _initial = _current;
+      });
+      guards_ += Renderer::GetInstance().OnRenderFrameStart([this](FrameStartInfo const& info) {
+         _current = csg::Interpolate(_initial, _final, info.interpolate);
+         Move();
+      });
    }
    _current = _initial = _final = mob->GetTransform();
 
@@ -76,16 +84,4 @@ void RenderMob::Update()
          Move();
       }
    }
-}
-
-void RenderMob::Interpolate()
-{
-   float alpha = Renderer::GetInstance().GetCurrentFrameInterp();
-   _current = csg::Interpolate(_initial, _final, alpha);
-   Move();
-}
-
-void RenderMob::StartInterpolate()
-{
-   _initial = _current;
 }

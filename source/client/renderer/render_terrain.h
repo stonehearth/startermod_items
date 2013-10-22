@@ -69,6 +69,7 @@ private:
 
    void AddTerrainTypeToTesselation(csg::Region3 const& grass, csg::Region3 const& terrain, csg::Region3& tess, LayerDetailRingInfo const &rings);
    void TesselateLayer(csg::Region2 const& layer, int height, csg::Region3 const& clipper, csg::Region3& tess, LayerDetailRingInfo const &rings);
+   void AddDirtyZone(RenderZoneRef zone);
 
    static LayerDetailRingInfo light_grass_ring_info_;
    static LayerDetailRingInfo dark_grass_ring_info_;
@@ -81,6 +82,7 @@ private:
    H3DNodeUnique        terrain_root_node_;
    std::map<csg::Point3, std::shared_ptr<RenderZone>>   zones_;
    std::vector<RenderZoneRef> dirty_zones_;
+   core::Guard          renderer_frame_trace_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

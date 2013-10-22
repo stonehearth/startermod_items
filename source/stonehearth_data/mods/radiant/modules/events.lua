@@ -4,16 +4,24 @@ function events.__init()
    events._senders = {}
 end
 
+function events._convert_object_to_key(object)
+   if type(object) == 'userdata' then
+      assert(object.get_id, 'could not convert userdata object to key.  no get_id method implemented')
+      return 'userdata_id_' .. tostring(object:get_id())
+   end
+   return object
+end
+
 function events.listen(object, event, self, fn)
    assert(object and event and self and fn)
 
-   if not events._senders[object] then
+   local key = events._convert_object_to_key(object)
+   if not events._senders[key] then
       -- add the sender
-      events._senders[object] = {}
+      events._senders[key] = {}
    end
 
-   local sender = events._senders[object]
-
+   local sender = events._senders[key]
    if not sender[event] then
       sender[event] = {}
    end
@@ -26,11 +34,13 @@ function events.listen(object, event, self, fn)
 end
 
 function events.unlisten(object, event, self, fn)
+   local key = events._convert_object_to_key(object)
+
    assert(object and event and self and fn)   
-   assert(events._senders[object])
-   assert(events._senders[object][event])
+   assert(events._senders[key])
+   assert(events._senders[key][event])
    
-   local listeners = events._senders[object][event]
+   local listeners = events._senders[key][event]
 
    for i, listener in ipairs(listeners) do
       if listener.fn == fn then
@@ -42,7 +52,9 @@ function events.unlisten(object, event, self, fn)
 end
 
 function events.trigger(object, event, ...)
-   local sender = events._senders[object]
+   local key = events._convert_object_to_key(object)
+   local sender = events._senders[key]
+
    if sender then
       local listeners = sender[event]
       if listeners then
