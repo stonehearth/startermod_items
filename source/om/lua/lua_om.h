@@ -1,7 +1,7 @@
 #ifndef _RADIANT_OM_LUA_OM_H
 #define _RADIANT_OM_LUA_OM_H
 
-#include "radiant_luabind.h"
+#include "lib/lua/bind.h"
 #include "om/region.h"
 #include <ostream>
 

@@ -6,13 +6,20 @@ local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
 
-
 -- this is the component which manages the fabricator entity.
 function WallComponent:__init(entity, data_binding)
    self[BuildComponent]:__init(entity, data_binding)
+   
    self._entity = entity  
+   
+   local data = data_binding:get_data()
+   data.project_adjacent_to_base = false
+   data.needs_scaffolding = true
+   data_binding:mark_changed()
 end
 
+
+--[[
 function WallComponent:connect_to(column_a, column_b)
    local pos_a = column_a:add_component('mob'):get_grid_location()
    local pos_b = column_b:add_component('mob'):get_grid_location()
@@ -82,5 +89,5 @@ function WallComponent:_connect_to_points(pos_a, pos_b, t, n)
    self:set_normal(normal)
    self:set_tangent(tangent)
 end
-
+]]
 return WallComponent

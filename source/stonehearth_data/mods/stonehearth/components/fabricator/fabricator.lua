@@ -22,7 +22,7 @@ function Fabricator:__init(name, entity, blueprint)
    -- and just looks cooler
    local dst = self._entity:add_component('destination')
    dst:set_region(_radiant.sim.alloc_region())
-       :set_adjacent(_radiant.sim.alloc_region())
+      :set_adjacent(_radiant.sim.alloc_region())
        
    self._adjacent_guard = dst:trace_region('updating fabricator adjacent')
    self._adjacent_guard:on_changed(function ()
@@ -33,7 +33,7 @@ function Fabricator:__init(name, entity, blueprint)
    -- create a new project.  projects start off completely unbuilt.
    -- projects are stored in as children to the fabricator, so there's
    -- no need to update their transform.
-   local rgn = _radiant.sim.alloc_region()  
+   local rgn = _radiant.sim.alloc_region()
    self._project = radiant.entities.create_entity(blueprint:get_uri())
    self._project:add_component('destination')
                      :set_region(rgn)
@@ -223,8 +223,8 @@ function Fabricator:_trace_blueprint_and_project()
    -- part that needs to be fabricated!).  make sure this is always so,
    -- regardless of how those regions change
    local update_fabricator_region = function()
-      local br = self._blueprint:add_component('destination'):get_region():get()
-      local pr = self._project:add_component('destination'):get_region():get()
+      local br = self._blueprint:get_component('destination'):get_region():get()
+      local pr = self._project:get_component('destination'):get_region():get()
 
       -- rgn(f) = rgn(b) - rgn(p) ... (see comment above)
       local dst = self._entity:add_component('destination')

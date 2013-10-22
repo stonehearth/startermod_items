@@ -1,8 +1,8 @@
 #pragma once
 #include "object.h"
 #include "store.pb.h"
-#include "radiant_luabind.h"
-#include "lua/register.h"
+#include "lib/lua/bind.h"
+#include "lib/lua/register.h"
 #include "namespace.h"
 
 BEGIN_RADIANT_DM_NAMESPACE

@@ -13,8 +13,11 @@ RenderDestination::RenderDestination(const RenderEntity& entity, om::Destination
    destination_ = destination;
 
    tracer_ += Renderer::GetInstance().OnShowDebugShapesChanged([this](bool enabled) {
-      if (enabled) RenderDestinationRegion();
-      else         RemoveDestinationRegion();
+      if (enabled) {
+         RenderDestinationRegion();
+      } else {
+         RemoveDestinationRegion();
+      }
    });
 }
 

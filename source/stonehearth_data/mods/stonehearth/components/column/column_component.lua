@@ -10,8 +10,10 @@ local ColumnComponent = class(BuildComponent)
 function ColumnComponent:__init(entity, data_binding)
    self[BuildComponent]:__init(entity, data_binding)
 
-   local cursor = self:get_region():modify()
-   cursor:copy_region(Region3(Cube3(Point3(0, 0, 0), Point3(1, STOREY_HEIGHT, 1))))
+   local data = data_binding:get_data()
+   data.project_adjacent_to_base = true
+   data.needs_scaffolding = false
+   data_binding:mark_changed()
 end
 
 return ColumnComponent

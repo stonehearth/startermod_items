@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "lua/register.h"
+#include "lib/lua/register.h"
 #include "om/data_binding.h"
 #include "lua_data_binding.h"
 

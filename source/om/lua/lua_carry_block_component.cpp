@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "lua/register.h"
+#include "lib/lua/register.h"
 #include "lua_carry_block_component.h"
 #include "om/components/carry_block.h"
 

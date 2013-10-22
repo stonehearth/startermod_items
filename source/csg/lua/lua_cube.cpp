@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "lua/register.h"
+#include "lib/lua/register.h"
 #include "lua_cube.h"
 #include "csg/cube.h"
 #include "lib/json/namespace.h"

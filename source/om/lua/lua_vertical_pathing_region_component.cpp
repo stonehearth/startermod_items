@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "lua/register.h"
+#include "lib/lua/register.h"
 #include "lua_vertical_pathing_region_component.h"
 #include "om/components/vertical_pathing_region.h"
 

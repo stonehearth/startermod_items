@@ -26,7 +26,7 @@
 #include "om/components/paperdoll.h"
 #include "om/components/carry_block.h"
 #include "om/selection.h"
-#include "lua/script_host.h"
+#include "lib/lua/script_host.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;

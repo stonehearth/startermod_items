@@ -34,7 +34,7 @@ function StonehearthCamera:__init()
   self._input_capture = _radiant.client.capture_input()
   self._frame_trace = _radiant.client.trace_render_frame()
 
-  self._frame_trace:on_frame(function(frame_time)
+  self._frame_trace:on_frame_start(function(frame_time)
       self:_update_camera(frame_time)
       return true
     end)

@@ -33,6 +33,18 @@ std::shared_ptr<voxel::QubicleFile> RenderRenderInfo::LoadQubicleFile(std::strin
    return q;
 }
 
+void RenderRenderInfo::SetDirtyBits(int flags)
+{
+   dirty_ |= flags;
+
+   if (renderer_frame_trace_.Empty()) {
+      renderer_frame_trace_ = Renderer::GetInstance().OnRenderFrameStart([=](FrameStartInfo const&) {
+         Update();
+      });
+      ASSERT(!renderer_frame_trace_.Empty());
+   }
+}
+
 RenderRenderInfo::RenderRenderInfo(RenderEntity& entity, om::RenderInfoPtr render_info) :
    entity_(entity),
    render_info_(render_info),
@@ -40,17 +52,13 @@ RenderRenderInfo::RenderRenderInfo(RenderEntity& entity, om::RenderInfoPtr rende
    material_(0),
    use_model_variant_override_(false)
 {
-   // xxx: ideally we would only have the trace installed when our dirty bit is set.
-   renderer_frame_trace_ = Renderer::GetInstance().TraceFrameStart([=]() {
-      Update();
-   });
-
    auto set_scale_dirty_bit = [=]() {
-      dirty_ |= SCALE_DIRTY;
+      SetDirtyBits(SCALE_DIRTY);
    };
    auto set_model_dirty_bit = [=]() {
-      dirty_ |= MODEL_DIRTY;
+      SetDirtyBits(MODEL_DIRTY);
    };
+
    render_info_guards_ += render_info->GetScale().TraceObjectChanges("scale changed in render_info", set_scale_dirty_bit);
 
    // if the model variant changes...
@@ -61,6 +69,7 @@ RenderRenderInfo::RenderRenderInfo(RenderEntity& entity, om::RenderInfoPtr rende
 
    // if the material changes...
    render_info_guards_ += render_info->GetMaterial().TraceObjectChanges("material changed in render_info", set_model_dirty_bit);
+   SetDirtyBits(-1);
 }
 
 RenderRenderInfo::~RenderRenderInfo()
@@ -73,7 +82,7 @@ void RenderRenderInfo::AccumulateModelVariant(ModelMap& m, om::ModelVariantPtr v
       om::ModelVariant::Layer layer = v->GetLayer();
 
       auto set_model_dirty_bit = [=]() {
-         dirty_ |= MODEL_DIRTY;
+         SetDirtyBits(MODEL_DIRTY);
       };
       variant_guards_ += v->GetModels().TraceObjectChanges("model variant changed in render_info", set_model_dirty_bit);
 
@@ -238,7 +247,7 @@ void RenderRenderInfo::Update()
          //LOG(WARNING) << "updating render_info for " << entity_.GetEntity();
          if (dirty_ & ANIMATION_TABLE_DIRTY) {
             RebuildBoneOffsets(render_info);
-            dirty_ |= MODEL_DIRTY;
+            SetDirtyBits(MODEL_DIRTY);
          }
          if (dirty_ & MODEL_DIRTY) {
             CheckMaterial(render_info);
@@ -250,12 +259,13 @@ void RenderRenderInfo::Update()
       }
       dirty_ = 0;
    }
+   renderer_frame_trace_.Clear();
 }
 
 void RenderRenderInfo::SetModelVariantOverride(bool enabled, std::string const& variant)
 {
    if (use_model_variant_override_ != enabled || (enabled && variant != model_variant_override_)) {
-      dirty_ |= MODEL_DIRTY;
+      SetDirtyBits(MODEL_DIRTY);
       model_variant_override_ = variant;
       use_model_variant_override_ = enabled;
    }

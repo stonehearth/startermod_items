@@ -10,7 +10,7 @@
 //
 // *************************************************************************************************
 
-#include "radiant_luabind.h"
+#include "lib/lua/bind.h"
 #include "egPipeline.h"
 #include "egMaterial.h"
 #include "egModules.h"

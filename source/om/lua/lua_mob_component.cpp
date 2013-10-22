@@ -1,6 +1,6 @@
 #include "pch.h"
-#include "lua/register.h"
-#include "lua/script_host.h"
+#include "lib/lua/register.h"
+#include "lib/lua/script_host.h"
 #include "lua_mob_component.h"
 #include "om/components/mob.h"
 #include "lib/json/core_json.h"

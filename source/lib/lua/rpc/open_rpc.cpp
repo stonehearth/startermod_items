@@ -7,8 +7,8 @@
 #include "lib/rpc/trace.h"
 #include "lib/rpc/untrace.h"
 #include "lib/rpc/core_reactor.h"
-#include "lua/script_host.h"
-#include "lua/register.h"
+#include "lib/lua/script_host.h"
+#include "lib/lua/register.h"
 #include "lib/json/core_json.h"
 
 using namespace ::radiant;

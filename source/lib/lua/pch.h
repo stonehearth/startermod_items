@@ -2,8 +2,7 @@
 #define _RADIANT_LUA_PCH_H
 
 #include "radiant.h"
-#include "radiant_luabind.h"
-#include "radiant_lua.h"
+#include "bind.h"
 #include "register.h"
 #include "resources/res_manager.h"
 #include <libjson.h>

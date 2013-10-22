@@ -12,4 +12,7 @@ $(document).ready(function(){
    $(top).on("create_wall.radiant", function (_, e) {
       radiant.call_obj(build_editor, 'place_new_wall', 'stonehearth:wooden_wall');
    });
+   $(top).on("create_room.radiant", function (_, e) {
+      radiant.call_obj(build_editor, 'create_room', 'stonehearth:wooden_wall');
+   });
 });

@@ -15,8 +15,7 @@ function VoxelBrushInfoRenderer:__init(render_entity, json)
    end
 end
 
-function VoxelBrushInfoRenderer:_update_shape()
-   
+function VoxelBrushInfoRenderer:_update_shape()   
    if self._model_node then
       self._model_node:destroy()
       self._model_node = nil

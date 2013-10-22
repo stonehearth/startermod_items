@@ -1,8 +1,8 @@
-#include "lua/pch.h"
+#include "lib/lua/pch.h"
 #include "open.h"
 #include "resources/res_manager.h"
 #include "resources/animation.h"
-#include "lua/script_host.h"
+#include "lib/lua/script_host.h"
 #include "lib/json/core_json.h"
 
 using namespace ::radiant;

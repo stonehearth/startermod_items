@@ -30,9 +30,15 @@ function FabricatorComponent:start_project(name, blueprint)
    if info.needs_scaffolding then
       self:_add_scaffolding_to_project(project, info.tangent, info.normal)
    end
+
+   -- remember the blueprint and project to assist with rendering
+   self._data_binding:update({
+      project = project,
+      blueprint = blueprint
+   })
+
    return self
 end
-
 
 function FabricatorComponent:_add_scaffolding_to_project(project, tangent, normal)
    -- create a scaffolding blueprint and point it to the project
@@ -56,6 +62,10 @@ function FabricatorComponent:_add_scaffolding_to_project(project, tangent, norma
                               :start_project(name, scaffolding)
                               :set_debug_color(Color4(255, 192, 0, 128))
                               
+   -- render fabricators in blueprint mode
+   fabricator:add_component('render_info')
+               :set_material('materials/blueprint_gridlines.xml')
+               
    -- add the fabricator and the project to our entity container so they get rendered
    self._entity:add_component('entity_container')
                   :add_child(fabricator)

@@ -7,8 +7,8 @@ local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
 
 -- this is the component which manages the fabricator entity.
-function ProxyWall:__init(arg1)
-   self[ProxyFabrication]:__init(arg1, 'stonehearth:wall')   
+function ProxyWall:__init(container, arg1)
+   self[ProxyFabrication]:__init(self, container, arg1, 'stonehearth:wall')   
 end
 
 function ProxyWall:connect_to(column_a, column_b)

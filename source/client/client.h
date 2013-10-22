@@ -20,17 +20,13 @@
 #include "libjson.h"
 #include "core/singleton.h"
 #include "chromium/chromium.h"
-#include "lua/namespace.h"
+#include "lib/lua/lua.h"
 #include "lib/json/node.h"
 #include "lib/rpc/forward_defines.h"
 #include "core/input.h"
 #include "core/guard.h"
 #include "core/unique_resource.h"
 #include "core/shared_resource.h"
-
-IN_RADIANT_LUA_NAMESPACE(
-   class ScriptHost;
-)
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -81,12 +77,6 @@ class Client : public core::Singleton<Client> {
 
       typedef int TraceRenderFrameId;
       typedef std::function<void(float)> TraceRenderFrameHandlerCb;
-
-      TraceRenderFrameId AddTraceRenderFrameHandler(TraceRenderFrameHandlerCb const& cb);
-      TraceRenderFrameId ReserveTraceRenderFrameHandler();
-      void SetTraceRenderFrameHandler(TraceRenderFrameId id, TraceRenderFrameHandlerCb const& cb);
-      void RemoveTraceRenderFrameHandler(TraceRenderFrameId id);
-      void CallTraceRenderFrameHandlers(float frameTime);
 
    private:
       NO_COPY_CONSTRUCTOR(Client);
@@ -214,9 +204,6 @@ private:
 
       InputHandlerId                                           next_input_id_;
       std::vector<std::pair<InputHandlerId, InputHandlerCb>>   input_handlers_;
-
-      TraceRenderFrameId                                                      next_trace_frame_id_;
-      std::vector<std::pair<TraceRenderFrameId, TraceRenderFrameHandlerCb>>   trace_frame_handlers_;
 
       // reactor...
       rpc::CoreReactorPtr         core_reactor_;
