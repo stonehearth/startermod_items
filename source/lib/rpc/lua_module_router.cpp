@@ -7,8 +7,7 @@
 #include "reactor_deferred.h"
 #include "session.h"
 #include "function.h"
-#include "lua/script_host.h"
-#include "lua/radiant_lua.h"
+#include "lib/lua/script_host.h"
 #include "resources/manifest.h"
 #include "resources/res_manager.h"
 

@@ -24,7 +24,7 @@
 #include "lua_paperdoll_component.h"
 #include "lua_carry_block_component.h"
 #include "lua_data_binding.h"
-#include "lua/script_host.h"
+#include "lib/lua/script_host.h"
 
 #include "lib/json/core_json.h"
 #include "lib/json/dm_json.h"

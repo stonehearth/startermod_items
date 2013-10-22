@@ -2,7 +2,7 @@
 #include "radiant_exceptions.h"
 #include "lua_deferred.h"
 #include "reactor_deferred.h"
-#include "lua/script_host.h"
+#include "lib/lua/script_host.h"
 #include "function.h"
 
 using namespace ::radiant;

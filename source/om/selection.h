@@ -6,7 +6,7 @@
 #include "csg/cube.h"
 #include "protocols/store.pb.h"
 #include "protocols/tesseract.pb.h"
-#include "radiant_luabind.h"
+#include "lib/lua/bind.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
 

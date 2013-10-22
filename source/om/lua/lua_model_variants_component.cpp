@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "lua/register.h"
+#include "lib/lua/register.h"
 #include "lua_model_variants_component.h"
 #include "om/components/model_variants.h"
 

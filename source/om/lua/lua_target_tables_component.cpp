@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "lua/register.h"
+#include "lib/lua/register.h"
 #include "lua_target_tables_component.h"
 #include "om/components/target_tables.h"
 

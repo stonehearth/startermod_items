@@ -1,7 +1,7 @@
 #ifndef _RADIANT_LUA_RPC_OPEN_H
 #define _RADIANT_LUA_RPC_OPEN_H
 
-#include "../namespace.h"
+#include "lib/lua/lua.h"
 #include "lib/rpc/forward_defines.h"
 
 BEGIN_RADIANT_LUA_NAMESPACE

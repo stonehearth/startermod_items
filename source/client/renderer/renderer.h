@@ -16,15 +16,11 @@
 #include "radiant_file.h"
 #include <unordered_map>
 #include <boost/property_tree/ptree.hpp>
-#include "lua/namespace.h"
+#include "lib/lua/lua.h"
 #include "camera.h"
 #include "platform/FileWatcher.h"
 #include "core/input.h"
 #include "core/buffered_slot.h"
-
-IN_RADIANT_LUA_NAMESPACE(
-   class ScriptHost;
-)
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 

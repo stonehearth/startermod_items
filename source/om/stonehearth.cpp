@@ -3,11 +3,10 @@
 #include "stonehearth.h"
 #include "entity.h"
 #include "lib/json/node.h"
-#include "radiant_luabind.h"
-#include "lua/radiant_lua.h"
+#include "lib/lua/bind.h"
 #include "resources/res_manager.h"
 #include "resources/exceptions.h"
-#include "lua/script_host.h"
+#include "lib/lua/script_host.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;

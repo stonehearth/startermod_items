@@ -1,7 +1,7 @@
 #ifndef _RADIANT_SIMULATION_FOLLOW_PATH_JOB_H
 #define _RADIANT_SIMULATION_FOLLOW_PATH_JOB_H
 
-#include "radiant_luabind.h"
+#include "lib/lua/bind.h"
 #include "job.h"
 #include "path.h"
 

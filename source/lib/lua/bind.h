@@ -1,7 +1,8 @@
-#ifndef _RADIANT_LUA_H
-#define _RADIANT_LUA_H
+#ifndef _RADIANT_LIB_LUA_BIND_H
+#define _RADIANT_LIB_LUA_BIND_H
 
 #include <memory>
+#include "lib/lua/lua.h"
 
 namespace luabind { namespace detail { namespace has_get_pointer_ {
 

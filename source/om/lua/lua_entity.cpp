@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "lua/register.h"
+#include "lib/lua/register.h"
 #include "lua_entity.h"
 #include "om/all_components.h"
 #include "om/entity.h"

@@ -7,7 +7,7 @@
 #include "lib/rpc/lua_deferred.h"
 #include "lib/rpc/reactor_deferred.h"
 #include "lib/voxel/qubicle_brush.h"
-#include "lua/script_host.h"
+#include "lib/lua/script_host.h"
 #include "client/client.h"
 #include "client/xz_region_selector.h"
 #include "client/renderer/renderer.h" // xxx: move to renderer::open when we move the renderer!

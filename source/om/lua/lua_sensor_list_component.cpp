@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "lua/register.h"
+#include "lib/lua/register.h"
 #include "lua_sensor_list_component.h"
 #include "om/components/sensor_list.h"
 

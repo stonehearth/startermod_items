@@ -2,10 +2,10 @@
 #define _RADIANT_LIB_RPC_LUA_ROUTER_H
 
 #include "namespace.h"
-#include "radiant_luabind.h"
+#include "lib/lua/bind.h"
 #include "irouter.h"
 #include "lib/rpc/forward_defines.h"
-#include "lua/forward_defines.h"
+#include "lib/lua/lua.h"
 
 BEGIN_RADIANT_RPC_NAMESPACE
 

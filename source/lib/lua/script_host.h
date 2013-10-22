@@ -2,7 +2,7 @@
 #define _RADIANT_LUA_SCRIPT_HOST_H
 
 #include "platform/utils.h"
-#include "namespace.h"
+#include "lib/lua/bind.h"
 
 class JSONNode;
 

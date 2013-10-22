@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "lua/register.h"
+#include "lib/lua/register.h"
 #include "lua_region_collision_shape_component.h"
 #include "om/components/region_collision_shape.h"
 
