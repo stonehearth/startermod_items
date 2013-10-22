@@ -10,13 +10,15 @@ function EventCallHandler:get_events(session, request)
       data_object = _radiant.sim.create_data_store()
       data_object:update(event_service:get_entries())
 
-      local update_data_object = function()
-		   data_object:mark_changed()
-      end
-      radiant.events.listen('radiant:events:event:new_event', update_data_object)
-      update_data_object()
+      radiant.events.listen(event_service, 'new_event', self, self.update_data_object)
+      self:update_data_object()
    end
    return { events = data_object }
+end
+
+function EventCallHandler:update_data_object( e )
+   data_object:mark_changed()
+   -- body
 end
 
 return EventCallHandler

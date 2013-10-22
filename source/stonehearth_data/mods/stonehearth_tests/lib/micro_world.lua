@@ -16,11 +16,11 @@ function MicroWorld:__init(size)
    end
    self._size = size
 
-   radiant.events.listen('radiant:events:gameloop', self)
+   radiant.events.listen(radiant.events, 'gameloop', self, self.on_gameloop)
 end
 
 -- xxx: this timer system really should be in radiant.events.  nuke it!
-MicroWorld['radiant:events:gameloop'] = function(self, time)
+function MicroWorld:on_gameloop()
    if not self._running then
       self._running = true;
       table.sort(self._times);

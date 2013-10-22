@@ -6,7 +6,7 @@ function EffectManager:__init(entity)
    self._effects = {}
 
    self._entity = entity
-   radiant.events.listen('radiant:events:gameloop', self)
+   radiant.events.listen(radiant.events, 'gameloop', self, self.on_event_loop)
 
    self.animation_table_name = radiant.entities.get_animation_table(self._entity)
    if self.animation_table_name and self.animation_table_name ~= "" then
@@ -22,16 +22,16 @@ function EffectManager:__init(entity)
 end
 
 function EffectManager:destroy(entity)
-   radiant.events.unlisten('radiant:events:gameloop', self)
+   radiant.events.unlisten(radiant.events, 'gameloop', self, self.on_event_loop)
 end
 
-function EffectManager:on_event_loop(now)
+function EffectManager:on_event_loop(e)
    -- radiant.log.info('-----')
-   for e, _ in pairs(self._effects) do
+   for effect, _ in pairs(self._effects) do
       -- radiant.log.info('checking effect %d', now)
-      e:update(now)
-      if e:finished() then
-         self._effects[e] = nil
+      effect:update(e)
+      if effect:finished() then
+         self._effects[effect] = nil
       end
    end
    -- radiant.log.info('-----')

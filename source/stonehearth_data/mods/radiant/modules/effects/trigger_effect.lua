@@ -13,12 +13,18 @@ function TriggerEffect:__init(start_time, handler, info, effect, entity)
    self._handler = handler
 end
 
-function TriggerEffect:update(now)
-   if self._trigger_time and self._trigger_time <= now then
+function TriggerEffect:update(e)
+   
+   if self._trigger_time and self._trigger_time <= e.now then
       if self._handler then
          self._handler(self._info, self._effect, self._entity)
       else
-         radiant.events.broadcast_msg('radiant:animation:on_trigger', self._info, self._effect, self._entity)
+         --radiant.events.broadcast_msg('on_trigger', self._info, self._effect, self._entity)
+         radiant.events.trigger(radiant.events, 'on_trigger', {
+            info = self._info, 
+            effect = self._effect, 
+            entity = self._entity
+         })
       end
       self._trigger_time = nil
    end

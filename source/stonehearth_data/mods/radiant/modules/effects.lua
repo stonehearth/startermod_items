@@ -23,9 +23,10 @@ function effects._init_entity(entity, resource)
 end
 ]]
 
-function effects._on_event_loop(msg, now)
+function effects._on_event_loop(_, e)
+   local now = e.now
    for id, mgr in pairs(singleton._all_effects) do
-      mgr:on_event_loop(now)
+      mgr:on_event_loop(e)
    end
 end
 
@@ -47,9 +48,7 @@ function effects.run_effect(entity, effect_name, ...)
    return effect_mgr:start_effect(effect_name, ...)
 end
 
-radiant.events.register_event('radiant:animation:on_trigger')
-radiant.events.register_event('radiant:effect:frame_data:on_segment')
-radiant.events.listen('radiant:events:gameloop', effects._on_event_loop)
+radiant.events.listen(radiant.events, 'gameloop', effects, effects._on_event_loop)
 
 effects.__init()
 return effects

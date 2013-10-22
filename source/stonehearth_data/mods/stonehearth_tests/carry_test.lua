@@ -21,7 +21,9 @@ function CarryTest:__init()
 
    local movable_items = {saw, bolt, buckler, sword, log}
    self:at(1000, function()
-      radiant.events.broadcast_msg('stonehearth:events:compulsion_event', function(ai, entity)
+      -- xxx, this is borked with the new event system.
+      --[[
+      radiant.events.broadcast_msg('compulsion_event', function(ai, entity)
          local y = -11
          for i, obj in ipairs(movable_items) do
             local target = Point3(-11 , 1, y)
@@ -31,6 +33,7 @@ function CarryTest:__init()
             y = y + 1
          end
       end)
+      ]]
    end)
 
 end

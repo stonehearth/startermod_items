@@ -13,11 +13,11 @@ function Flee:__init(ai, entity)
    self._entity = entity
    self._ai = ai
    self._enemies = {}
-   radiant.events.listen('radiant:events:gameloop', self)
+   radiant.events.listen(radiant.events, 'gameloop', self, self.on_gameloop)
 end
 
-Flee['radiant:events:gameloop'] = function(self)
-   radiant.events.unlisten('radiant:events:gameloop', self)
+function Flee:on_gameloop()
+   radiant.events.unlisten(radiant.events, 'gameloop', self, self.on_gameloop)
    self:init_sight_sensor()
 end
 

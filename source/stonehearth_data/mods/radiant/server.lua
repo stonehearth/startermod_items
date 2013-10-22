@@ -27,21 +27,7 @@ local api = {}
 function api.update(interval)
    radiant.gamestate._increment_clock(interval)
    radiant.events._update()
-   --[[
-   if now > self._lastProfileReport + 5000 then
-      ProFi:stop();
-      ProFi:writeReport();
-      ProFi:reset();
-      ProFi:start();
-      self._lastProfileReport = now
-   end
-   copas.step(0)
-   ]]
    return radiant.gamestate.now()
-end
-
-function api.call_game_hook(stage)
-   radiant.events._call_game_hook(stage)
 end
 
 return api
