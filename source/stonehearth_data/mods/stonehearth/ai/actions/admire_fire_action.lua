@@ -43,7 +43,8 @@ end
 function AdmireFire:_on_entity_add(id, entity)
    local firepit_component = entity:get_component('stonehearth:firepit')
    if firepit_component and
-      radiant.entities.get_faction(entity) == radiant.entities.get_faction(self._entity) then
+      radiant.entities.get_faction(entity) == radiant.entities.get_faction(self._entity) and 
+      not self._known_firepit_callbacks[id] then
 
       local promise = firepit_component:get_data_store():trace('follow firepit data')
       self._known_firepit_callbacks[id] = promise
@@ -57,7 +58,9 @@ end
 
 
 function AdmireFire:_on_entity_remove(id)
-   self._known_firepit_callbacks[id] = nil
+   if self._known_firepit_callbacks[id] then
+      self._known_firepit_callbacks[id] = nil
+   end
 end
 
 ---Whenever there is a lit fire, if idle, go to it and hang out
@@ -156,8 +159,6 @@ function AdmireFire:run(ai, entity)
 
    -- If the firepit moves or is destroyed between now and before the
    -- sleeper wakes up, just go ahead and abort.
-   -- TODO: right now, moving destroys, instead of actually moving the instance, fix
-   -- appear/disappear bug
    self._firepit_moved_promise = radiant.entities.on_entity_moved(self._firepit, function()
       ai:abort()
    end);

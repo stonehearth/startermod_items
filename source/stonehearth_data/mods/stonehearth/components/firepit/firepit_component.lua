@@ -24,27 +24,19 @@ function FirepitComponent:__init(entity, data_store)
 
    self._time_constants = Calendar.get_constants()
 
-   --When the firepit is added to the world,
-   --wait an hour and check if we should light it
-   radiant.terrain.on_place(self._entity, function()
-      radiant.events.listen('radiant:events:calendar:hourly', self)
-      self._placement_time = Calendar.get_time_and_date().hour
-      if self._placement_time == 23 then
-         self._placement_time = 0
-      end
-   end)
-
-   --When a firepit is removed from the world, reset its tasks and variables
-   radiant.terrain.on_remove(self._entity, function()
-      return self:_on_remove()
-   end)
+   --Listen on terrain for when this entity is added/removed
+   local added_cb = function(id, entity)
+      self:_on_entity_add(id, entity)
+   end
+   local removed_cb = function(id)
+      self:_on_entity_remove(id)
+   end
+   self._promise = radiant.terrain.trace_world_entities('firepit self-tracker',
+      added_cb, removed_cb)
 
    --When the firepit is destroyed, destroy its seat entities too
-   --TODO: right now we're destroying the firepit on move. We should just save
-   --the original and relocate, in which case we'll need to do cleanup
-   --on remove from terrain
    radiant.entities.on_destroy(self._entity, function()
-      return self:_on_destroy()
+      return self:_stop_functionality()
    end)
 end
 
@@ -52,6 +44,23 @@ function FirepitComponent:extend(json)
    -- TODO: replace this with firepit made of fire, wolves won't go near fire
    if json and json.effective_radius then
       self._effective_raidus = json.effective_radius
+   end
+end
+
+--- If WE are added to the universe, register for events, etc/
+function FirepitComponent:_on_entity_add(id, entity)
+   if self._entity and self._entity:get_id() == id then
+      radiant.events.listen('radiant:events:calendar:hourly', self)
+      self._placement_time = Calendar.get_time_and_date().hour
+      if self._placement_time == 23 then
+         self._placement_time = -1
+      end
+   end
+end
+
+function FirepitComponent:_on_entity_remove(id)
+   if self._entity and self._entity:get_id() == id then
+      self:_stop_functionality()
    end
 end
 
@@ -63,7 +72,7 @@ end
 -- NOTE: Doesn't seem to be the data binding, etc. as commenting that out produces the same error
 -- filed as bug: http://bugs.radiant-entertainment.com:8080/browse/SH-22
 FirepitComponent['radiant:events:calendar:hourly'] = function(self, calendar)
-   if calendar.hour > self._placement_time + 1 then
+   if calendar.hour >= self._placement_time + 1 then
       self:_should_light_fire()
 
       radiant.events.listen('radiant:events:calendar:sunset', self)
@@ -73,12 +82,14 @@ FirepitComponent['radiant:events:calendar:hourly'] = function(self, calendar)
    end
 end
 
---- On destroy, nuke the events, seats, and task/pathfinders
-function FirepitComponent:_on_destroy()
+--- Stop listening for events, destroy seats, terminate effects and tasks
+-- Call when firepit is moving or being destroyed.
+function FirepitComponent:_stop_functionality()
    radiant.events.unlisten('radiant:events:calendar:sunrise', self)
    radiant.events.unlisten('radiant:events:calendar:sunset', self)
 
    self:extinguish()
+   self._am_lighting_fire = false
 
    if self._seats then
       for i, v in ipairs(self._seats) do
@@ -90,27 +101,6 @@ function FirepitComponent:_on_destroy()
    if self._light_task then
       self._light_task:stop()
       self._light_task:destroy()
-   end
-end
-
---- Disable a bunch of things on remove
--- Note: this works but is unused at present (as adding back a removed item)
--- adds it back invisibly. Should I keep this code or wait till we've fixed it?
--- TODO: is this everything? You shouldn't be able to move a lit firepit.
-function FirepitComponent:_on_remove()
-   radiant.events.unlisten('radiant:events:calendar:sunrise', self)
-   radiant.events.unlisten('radiant:events:calendar:sunset', self)
-
-   self:extinguish()
-
-   if self._seats then
-      for i, v in ipairs(self._seats) do
-         radiant.entities.destroy_entity(v)
-      end
-   end
-
-   if self._light_task then
-      self._light_task:stop()
    end
 end
 
@@ -150,9 +140,6 @@ function FirepitComponent:_should_light_fire()
       self._am_lighting_fire = true
 
       self:extinguish()
-      if not self._seats then
-         self:_add_seats()
-      end
       self:_init_gather_wood_task()
    end
 end
@@ -244,11 +231,15 @@ end
 --- Adds wood to the fire
 -- Create a new entity instead of re-using the old one because if we wanted to do
 -- that, we'd have to reparent the log to the fireplace.
+-- Add the seats now, since we don't want the admire fire pf to start till the fire is lit.
 -- @param log_entity to add to the fire
 function FirepitComponent:light(log)
    self._my_wood = log
    self._curr_fire_effect =
       radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/firepit_effect')
+   if not self._seats then
+      self:_add_seats()
+   end
    self._data.is_lit = true
    self._data_store:mark_changed()
 end

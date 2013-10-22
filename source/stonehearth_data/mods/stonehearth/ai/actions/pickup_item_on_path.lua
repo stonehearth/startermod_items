@@ -27,14 +27,9 @@ function PickupItemOnPath:run(ai, entity, path)
 
       local little_item = radiant.entities.create_entity(placed_item_component:get_proxy())
       ai:execute('stonehearth:run_effect', 'work')
-      radiant.entities.destroy_entity(item)
-
-      --TODO: instead of destroy, add to the proxy and revive later
-      --TODO: debug why this doesn't work; adding/removing the same entity from terrain
-      --adds back an invisible version of the entity (see placement test)
-      --local proxy_component = little_item:add_component('stonehearth:placeable_item_proxy')
-      --proxy_component:set_full_sized_entity(item)
-      --radiant.terrain.remove_entity(item)
+      local proxy_component = little_item:add_component('stonehearth:placeable_item_proxy')
+      proxy_component:set_full_sized_entity(item)
+      radiant.terrain.remove_entity(item)
 
       radiant.terrain.place_entity(little_item, item_location)
       item = little_item

@@ -529,9 +529,7 @@ std::shared_ptr<RenderEntity> Renderer::CreateRenderObject(H3DNode parent, om::E
 
    if (i != entities.end()) {
       auto entity = i->second;
-      if (entity->GetParent() != parent) {
-         entity->SetParent(parent);
-      }
+      entity->SetParent(parent);
       result = entity;
    } else {
       // LOG(WARNING) << "CREATING RENDER OBJECT " << sid << ", " << id;
