@@ -293,7 +293,7 @@ void Client::mainloop()
    perfmon::FrameGuard frame_guard;
 
    process_messages();
-   ProcessBrowserJobQueue();   
+   ProcessBrowserJobQueue();
 
    int currentTime = platform::get_current_time_in_ms();
    float alpha = (currentTime - _client_interval_start) / (float)_server_interval_duration;
@@ -301,6 +301,7 @@ void Client::mainloop()
    alpha = std::min(1.0f, std::max(alpha, 0.0f));
    now_ = (int)(_server_last_update_time + (_server_interval_duration * alpha));
 
+   perfmon::SwitchToCounter("flush http events");
    http_reactor_->FlushEvents();
    if (browser_) {
       perfmon::SwitchToCounter("browser poll");
@@ -308,7 +309,7 @@ void Client::mainloop()
       auto cb = [](const csg::Region2 &rgn, const char* buffer) {
          Renderer::GetInstance().UpdateUITexture(rgn, buffer);
       };
-      perfmon::SwitchToCounter("browser poll");
+      perfmon::SwitchToCounter("update browser display");
       browser_->UpdateDisplay(cb);
    }
 
