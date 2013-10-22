@@ -18,6 +18,7 @@ clean:
 submodules:
 	git submodule init
 	git submodule update --remote
+	git submodule update
 	$(MAKE_ROOT)/build-submodules.py
 
 %-module:

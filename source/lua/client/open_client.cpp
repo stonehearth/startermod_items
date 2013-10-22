@@ -134,7 +134,15 @@ rpc::LuaDeferredPtr Client_SelectXZRegion(lua_State* L)
    return result;
 }
 
-struct CaptureInputPromise
+class CaptureInputPromise;
+class TraceRenderFramePromise;
+class SetCursorPromise;
+
+DECLARE_SHARED_POINTER_TYPES(CaptureInputPromise)
+DECLARE_SHARED_POINTER_TYPES(TraceRenderFramePromise)
+DECLARE_SHARED_POINTER_TYPES(SetCursorPromise)
+
+class CaptureInputPromise
 {
 public:
    CaptureInputPromise() {
@@ -167,10 +175,10 @@ private:
    lua_State*                 L_;
    Client::InputHandlerId     id_;
    luabind::object            cb_;
-   core::Guard                guards_;
+   core::Guard                input_guards_;
 };
 
-struct TraceRenderFramePromise
+class TraceRenderFramePromise : public std::enable_shared_from_this<TraceRenderFramePromise>
 {
 public:
    TraceRenderFramePromise() {
@@ -183,22 +191,28 @@ public:
       });
    }
 
-   void OnFrameStart(luabind::object cb) {
+   ~TraceRenderFramePromise() {
+   }
+
+   TraceRenderFramePromisePtr OnFrameStart(luabind::object cb) {
       luabind::object callback(L_, cb);
       guards_ += frame_start_slot_.Register([=](FrameStartInfo const &info) {
          luabind::call_function<void>(callback, info.now, info.interpolate);
       });
+      return shared_from_this();
    }
 
-   void OnServerTick(luabind::object cb) {
+   TraceRenderFramePromisePtr OnServerTick(luabind::object cb) {
       luabind::object callback(L_, cb);
-      guards_ += frame_start_slot_.Register([=](int now) {
+      guards_ += server_tick_slot_.Register([=](int now) {
          luabind::call_function<void>(callback, now);
       });
+      return shared_from_this();
    }
 
-   void Destroy() {
+   TraceRenderFramePromisePtr Destroy() {
       guards_.Clear();
+      return shared_from_this();
    }
 
 private:
@@ -208,7 +222,7 @@ private:
    core::Guard                   guards_;
 };
 
-struct SetCursorPromise
+class SetCursorPromise
 {
 public:
    SetCursorPromise(Client::CursorStackId id) : id_(id) { }
@@ -224,9 +238,6 @@ public:
 private:
    Client::CursorStackId      id_;
 };
-DECLARE_SHARED_POINTER_TYPES(CaptureInputPromise)
-DECLARE_SHARED_POINTER_TYPES(TraceRenderFramePromise)
-DECLARE_SHARED_POINTER_TYPES(SetCursorPromise)
 
 template <typename T>
 std::shared_ptr<T> Client_AllocObject()
