@@ -337,7 +337,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    // Advance emitter time; this must come AFTER rendering, because we only know which emitters
    // to update after doing a render pass.
    perfmon::SwitchToCounter("render ce");
-   float delta = (last_render_time_ - now) / 1000.0f;
+   float delta = (now - last_render_time_) / 1000.0f;
    h3dRadiantAdvanceCubemitterTime(delta);
    h3dRadiantAdvanceAnimatedLightTime(delta);
 
