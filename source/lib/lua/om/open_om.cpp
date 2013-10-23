@@ -1,10 +1,10 @@
 #include <libjson.h>
-#include "lua/pch.h"
+#include "lib/lua/pch.h"
 #include "open.h"
 #include "om/all_objects.h"
 #include "om/all_components.h"
 #include "om/object_formatter/object_formatter.h"
-#include "lua/script_host.h"
+#include "lib/lua/script_host.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;

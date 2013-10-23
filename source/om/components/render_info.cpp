@@ -23,6 +23,7 @@ void RenderInfo::InitializeRecordFields()
 void RenderInfo::ExtendObject(json::Node const& obj)
 {
    scale_ = obj.get<float>("scale", *scale_);
+   material_ = obj.get<std::string>("material", *material_);
    model_variant_ = obj.get<std::string>("model_variant", *model_variant_);
    animation_table_ = obj.get<std::string>("animation_table", *animation_table_);
 }

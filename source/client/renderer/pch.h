@@ -10,7 +10,7 @@
 #include <boost/property_tree/ptree.hpp>
 
 #include "radiant_stdutil.h"
-#include "radiant_luabind.h"
+#include "lib/lua/bind.h"
 #include "Horde3D.h"
 #include "Horde3DUtils.h"
 #include "Horde3DRadiant.h"

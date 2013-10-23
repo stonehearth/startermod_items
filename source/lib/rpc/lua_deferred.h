@@ -4,7 +4,7 @@
 #include "namespace.h"
 #include "core/deferred.h"
 #include "lib/rpc/forward_defines.h"
-#include "radiant_luabind.h"
+#include "lib/lua/bind.h"
 
 struct lua_State;
 

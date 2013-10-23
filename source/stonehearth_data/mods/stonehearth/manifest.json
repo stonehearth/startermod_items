@@ -31,6 +31,7 @@
 
          "default_object" : "file(entities/generic/default_object)",
 
+         "under_construction_proxy" : "file(entities/build/under_construction_proxy)",
          "wooden_wall" : "file(entities/build/wooden_wall)",
          "wooden_column" : "file(entities/build/wooden_column)",
          "scaffolding" : "file(entities/build/scaffolding)",
@@ -281,7 +282,8 @@
    "component_renderers" : {
       "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",
       "city_plan" : "file(renderers/city_plan/city_plan_renderer.lua)",
-      "ghost_item" : "file(renderers/ghost_item/ghost_item_renderer.lua)"
+      "ghost_item" : "file(renderers/ghost_item/ghost_item_renderer.lua)",
+      "fabricator" : "file(renderers/fabricator/fabricator_renderer.lua)"
    },
    "invariant_renderers" : {
       "voxel_brush_info" : "file(renderers/voxel_brush_info/voxel_brush_info_renderer.lua)"

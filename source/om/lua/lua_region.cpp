@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "lua/register.h"
+#include "lib/lua/register.h"
 #include "lua_region.h"
 #include "om/region.h"
 #include "dm/boxed.h"

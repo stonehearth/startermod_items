@@ -3,7 +3,7 @@
 
 #include "radiant.h"
 #include "radiant_stdutil.h"
-#include "radiant_luabind.h"
+#include "lib/lua/bind.h"
 #include "dm/record.h"
 #include "dm/boxed.h"
 #include "dm/map.h"

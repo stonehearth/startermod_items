@@ -7,11 +7,10 @@
 #include "reactor_deferred.h"
 #include "session.h"
 #include "function.h"
-#include "lua/script_host.h"
+#include "lib/json/node.h"
+#include "lib/lua/script_host.h"
 #include "resources/manifest.h"
 #include "resources/res_manager.h"
-#include "lib/json/node.h"
-#include "lua/radiant_lua.h"
 
 using namespace ::radiant;
 using namespace ::radiant::rpc;

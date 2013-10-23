@@ -2,7 +2,7 @@
 #define _RADIANT_SIMULATION_SIMULATION_H
 
 #include "om/om.h"
-#include "radiant_luabind.h"
+#include "lib/lua/bind.h"
 #include "physics/octtree.h"
 #include "platform/utils.h"
 #include "platform/random.h"
@@ -14,13 +14,7 @@
 #include "physics/namespace.h"
 #include "lib/json/node.h"
 #include "lib/rpc/forward_defines.h"
-#include "lua/namespace.h"
-#include "lib/rpc/forward_defines.h"
-
-// Forward Declarations
-IN_RADIANT_LUA_NAMESPACE(
-   class ScriptHost;
-)
+#include "lib/lua/lua.h"
 
 IN_RADIANT_OM_NAMESPACE(
    class Entity;

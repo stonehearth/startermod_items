@@ -5,7 +5,7 @@
 #include "namespace.h"
 #include "all_objects_types.h"
 #include "dm_save_impl.h"
-#include "radiant_luabind.h"
+#include "lib/lua/bind.h"
 #include "dbg_info.h"
 #include <unordered_map>
 

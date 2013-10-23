@@ -1,7 +1,7 @@
 #ifndef _RADIANT_LUA_REGISTER_H
 #define _RADIANT_LUA_REGISTER_H
 
-#include "namespace.h"
+#include "lib/lua/lua.h"
 #include "lib/json/node.h"
 #include "om/object_formatter/object_formatter.h" // xxx: for GetPathToObject...
 

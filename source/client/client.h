@@ -20,17 +20,13 @@
 #include "libjson.h"
 #include "core/singleton.h"
 #include "chromium/chromium.h"
-#include "lua/namespace.h"
+#include "lib/lua/lua.h"
 #include "lib/json/node.h"
 #include "lib/rpc/forward_defines.h"
 #include "core/input.h"
 #include "core/guard.h"
 #include "core/unique_resource.h"
 #include "core/shared_resource.h"
-
-IN_RADIANT_LUA_NAMESPACE(
-   class ScriptHost;
-)
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 

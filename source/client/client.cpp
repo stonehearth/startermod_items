@@ -17,9 +17,8 @@
 #include "platform/utils.h"
 #include "resources/manifest.h"
 #include "resources/res_manager.h"
-#include "lua/radiant_lua.h"
-#include "lua/register.h"
-#include "lua/script_host.h"
+#include "lib/lua/register.h"
+#include "lib/lua/script_host.h"
 #include "om/stonehearth.h"
 #include "om/object_formatter/object_formatter.h"
 #include "horde3d/Source/Horde3DEngine/egModules.h"
@@ -35,11 +34,11 @@
 #include "lib/rpc/lua_object_router.h"
 #include "lib/rpc/trace_object_router.h"
 #include "lib/rpc/http_deferred.h" // xxx: does not belong in rpc!
-#include "lua/client/open.h"
-#include "lua/res/open.h"
-#include "lua/rpc/open.h"
-#include "lua/om/open.h"
-#include "lua/voxel/open.h"
+#include "lib/lua/client/open.h"
+#include "lib/lua/res/open.h"
+#include "lib/lua/rpc/open.h"
+#include "lib/lua/om/open.h"
+#include "lib/lua/voxel/open.h"
 #include "client/renderer/render_entity.h"
 #include "lib/perfmon/perfmon.h"
 #include "glfw3.h"
@@ -295,7 +294,7 @@ void Client::mainloop()
    perfmon::FrameGuard frame_guard;
 
    process_messages();
-   ProcessBrowserJobQueue();   
+   ProcessBrowserJobQueue();
 
    int currentTime = platform::get_current_time_in_ms();
    float alpha = (currentTime - _client_interval_start) / (float)_server_interval_duration;
@@ -303,6 +302,7 @@ void Client::mainloop()
    alpha = std::min(1.0f, std::max(alpha, 0.0f));
    now_ = (int)(_server_last_update_time + (_server_interval_duration * alpha));
 
+   perfmon::SwitchToCounter("flush http events");
    http_reactor_->FlushEvents();
    if (browser_) {
       perfmon::SwitchToCounter("browser poll");
@@ -310,7 +310,7 @@ void Client::mainloop()
       auto cb = [](const csg::Region2 &rgn, const char* buffer) {
          Renderer::GetInstance().UpdateUITexture(rgn, buffer);
       };
-      perfmon::SwitchToCounter("browser poll");
+      perfmon::SwitchToCounter("update browser display");
       browser_->UpdateDisplay(cb);
    }
 
@@ -881,7 +881,7 @@ om::EntityPtr Client::CreateEmptyAuthoringEntity()
 om::EntityPtr Client::CreateAuthoringEntity(std::string const& uri)
 {
    om::EntityPtr entity = CreateEmptyAuthoringEntity();
-   om::Stonehearth::InitEntity(entity, uri, nullptr);
+   om::Stonehearth::InitEntity(entity, uri, scriptHost_->GetInterpreter());
    return entity;
 }
 

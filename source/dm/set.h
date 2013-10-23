@@ -4,7 +4,7 @@
 #include <vector>
 #include "namespace.h"
 #include "radiant.h"
-#include "radiant_luabind.h"
+#include "lib/lua/bind.h"
 #include "radiant_stdutil.h"
 #include "dbg_indenter.h"
 

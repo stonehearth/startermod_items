@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "lua/register.h"
+#include "lib/lua/register.h"
 #include "lua_aura_list_component.h"
 #include "om/components/aura_list.h"
 

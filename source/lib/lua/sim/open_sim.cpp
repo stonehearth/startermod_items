@@ -1,6 +1,6 @@
 #include "../pch.h"
 #include "open.h"
-#include "lua/script_host.h"
+#include "lib/lua/script_host.h"
 #include "simulation/simulation.h"
 #include "simulation/jobs/follow_path.h"
 #include "simulation/jobs/goto_location.h"

@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "lua/register.h"
+#include "lib/lua/register.h"
 #include "lua_entity_container_component.h"
 #include "om/components/entity_container.h"
 #include "lib/json/dm_json.h"

@@ -5,8 +5,8 @@
 #include "namespace.h"
 #include "radiant.h"
 #include "radiant_stdutil.h"
-#include "radiant_luabind.h"
-#include "lua/register.h"
+#include "lib/lua/bind.h"
+#include "lib/lua/register.h"
 #include "dbg_indenter.h"
 
 BEGIN_RADIANT_DM_NAMESPACE

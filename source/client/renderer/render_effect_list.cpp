@@ -24,7 +24,7 @@
 #include "resources/res_manager.h"
 #include "resources/animation.h"
 #include "lib/json/node.h"
-#include "lua/script_host.h"
+#include "lib/lua/script_host.h"
 #include <SFML/Audio.hpp>
 
 using namespace ::radiant;

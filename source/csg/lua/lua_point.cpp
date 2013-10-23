@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "lua/register.h"
+#include "lib/lua/register.h"
 #include "lua_point.h"
 #include "csg/point.h"
 #include "csg/color.h"
