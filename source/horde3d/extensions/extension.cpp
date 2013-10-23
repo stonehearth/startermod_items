@@ -190,14 +190,24 @@ DLL H3DNode h3dRadiantAddDebugShapes(H3DNode parent, const char* nam)
 	return Modules::sceneMan().addNode(sn, *parentNode);
 }
 
-DLL H3DNode h3dRadiantAddCubemitterNode(H3DNode parent, const char* nam, H3DRes cubemitter, H3DRes mat)
+DLL H3DNode h3dRadiantAddCubemitterNode(H3DNode parent, const char* nam, H3DRes cubemitter)
 {
    std::string name(nam);
 	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
 	APIFUNC_VALIDATE_NODE(parentNode, "h3dRadiantAddCubemitterNode", 0);
-	
+
+   H3DRes matResHandle;
+   // TODO(klochek): This is pretty stupid.  What we want is for specific card capabilities to be exposed
+   // to the shader combiner/compiler as shader flags, which can then enable specific paths in the low-level
+   // vertex/fragment programs.  That way, one material (one shader file, really) can have multiple implementation
+   // paths in it, and the right one gets chosen upon material load/creation.
+   if (gRDI->getCaps().hasInstancing) {
+      matResHandle = h3dAddResource(H3DResTypes::Material, "materials/cubemitter.material.xml", 0);
+   } else {
+      matResHandle = h3dAddResource(H3DResTypes::Material, "materials/cubemitterBatch.material.xml", 0);
+   }
    CubemitterResource *cubeRes = (CubemitterResource *)Modules::resMan().resolveResHandle(cubemitter);
-   MaterialResource *matRes = (MaterialResource *)Modules::resMan().resolveResHandle(mat);
+   MaterialResource *matRes = (MaterialResource *)Modules::resMan().resolveResHandle(matResHandle);
    
    APIFUNC_VALIDATE_RES_TYPE(matRes, ResourceTypes::Material, "h3dRadiantAddCubemitterNode", 0);
    APIFUNC_VALIDATE_RES_TYPE(cubeRes, RT_CubemitterResource, "h3dRadiantAddCubemitterNode", 0);
