@@ -1,4 +1,7 @@
 local events = {}
+local singleton = {
+   jobs = {}
+}
 
 function events.__init()
    events._senders = {}
@@ -96,6 +99,25 @@ end
 function events.register_event_handler()
    radiant.log.warning('this is defunct. Delete the caller')
 end
+
+radiant.create_background_task = function(name, fn)
+   local co = coroutine.create(fn)
+   local thread_main = function()
+      local success, _ = coroutine.resume(co)
+      if not success then
+         radiant.check.report_thread_error(co, 'co-routine failed: ' .. tostring(_))
+         return false
+      end
+      local status = coroutine.status(co)
+      if status == 'suspended' then
+         return true
+      end
+      return false
+   end
+   local job = _radiant.sim.create_job(name, thread_main)
+   table.insert(singleton.jobs, job)
+end
+
 
 events.__init()
 return events
