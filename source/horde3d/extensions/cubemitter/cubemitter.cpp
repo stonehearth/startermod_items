@@ -517,6 +517,9 @@ void CubemitterNode::renderBatch(ShaderCombination *curShader, int batchNum, int
       gRDI->setShaderConst(curShader->uni_cubeBatchColorArray, CONST_FLOAT4, colorArray, count);
    }
    gRDI->drawIndexed(PRIM_TRILIST, 0, count * 36, 0, count * 8);
+
+   Modules::stats().incStat( EngineStats::BatchCount, 1 );
+   Modules::stats().incStat( EngineStats::TriCount, count * 12.0f );
 }
 
 void CubemitterNode::onPostUpdate()

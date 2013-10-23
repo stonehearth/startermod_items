@@ -133,15 +133,15 @@ void Extension::createCubeBatchData()
 	_vlBatchCube = gRDI->registerVertexLayout( numCubeAttributes, attribsCube);
 
    // Create cube geometry array
-	CubeBatchVert cvs[8];
-   cvs[0] = CubeBatchVert( 0, 0,  1, 0 );
-	cvs[1] = CubeBatchVert(  1, 0,  1, 0 );
-	cvs[2] = CubeBatchVert(  1,  1,  1, 0 );
-	cvs[3] = CubeBatchVert( 0,  1,  1, 0 );
-	cvs[4] = CubeBatchVert( 0, 0, 0, 0 );
-	cvs[5] = CubeBatchVert(  1, 0, 0, 0 );
-	cvs[6] = CubeBatchVert(  1,  1, 0, 0 );
-	cvs[7] = CubeBatchVert( 0,  1, 0, 0 );
+   CubeBatchVert cvs[8];
+   cvs[0] = CubeBatchVert(-0.5, -0.5, 0.5, 0);
+   cvs[1] = CubeBatchVert( 0.5, -0.5, 0.5, 0);
+   cvs[2] = CubeBatchVert( 0.5,  0.5, 0.5, 0);
+   cvs[3] = CubeBatchVert(-0.5,  0.5, 0.5, 0);
+   cvs[4] = CubeBatchVert(-0.5, -0.5, -0.5, 0);
+   cvs[5] = CubeBatchVert( 0.5, -0.5, -0.5, 0);
+   cvs[6] = CubeBatchVert( 0.5,  0.5, -0.5, 0);
+   cvs[7] = CubeBatchVert(-0.5,  0.5, -0.5, 0);
 
    CubeBatchVert *cubeVerts = new CubeBatchVert[CubesPerBatch * 8];
    for (uint32 i = 0; i < CubesPerBatch; i++)
