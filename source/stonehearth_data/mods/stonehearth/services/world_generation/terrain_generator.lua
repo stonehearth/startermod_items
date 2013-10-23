@@ -175,7 +175,6 @@ function TerrainGenerator:_fill_blend_map(blend_map, zones, x, y)
    if terrain_type == TerrainType.Mountains and
       self:_surrounded_by_terrain(TerrainType.Mountains, zones, x, y) then
       terrain_mean = terrain_mean + self.terrain_info[TerrainType.Mountains].step_size
-      radiant.log.info('High mountains on %d, %d', x, y)
    end
 
    if terrain_type == TerrainType.Grassland and
