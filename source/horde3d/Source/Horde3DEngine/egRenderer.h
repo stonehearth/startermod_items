@@ -61,6 +61,10 @@ struct OverlayBatch
 
 struct OverlayVert
 {
+   OverlayVert() {}
+   OverlayVert(float x, float y, float u, float v) :
+      x(x), y(y), u(u), v(v) {};
+
 	float  x, y;  // Position
 	float  u, v;  // Texture coordinates
 };

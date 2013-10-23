@@ -3,8 +3,8 @@
     <RenderTarget id="AttributeBuffer" depthBuf="true" numColBufs="2" format="RGBA32F" scale="1.0"/>
     <RenderTarget id="LightingBuffer" depthBuf="false" numColBufs="1" format="RGBA32F" scale="1.0"/>
     <RenderTarget id="OUTPUT" depthBuf="true" numColBufs="1" format="RGBA8" maxSamples="4" scale="1.0" />
-    <RenderTarget id="SSAOBUF" depthBuf="false" numColBufs="1" format="RGBA8" maxSamples="4" scale="1.0" />
-    <RenderTarget id="SSAOBLUR" depthBuf="false" numColBufs="1" format="RGBA8" maxSamples="4" scale="1.0" />
+    <RenderTarget id="SSAOBUF" depthBuf="false" numColBufs="1" format="RGBA8" maxSamples="0" scale="1.0" />
+    <RenderTarget id="SSAOBLUR" depthBuf="false" numColBufs="1" format="RGBA8" maxSamples="0" scale="1.0" />
     <RenderTarget id="TEMPSSAOBLUR" depthBuf="false" numColBufs="1" format="RGBA8" scale="1.0" />
     <RenderTarget id="SelectedTemp" depthBuf="false" numColBufs="1" format="RGBA8" scale="1.0"/>
   </Setup>
@@ -28,7 +28,7 @@
       <BindBuffer sampler="positions" sourceRT="AttributeBuffer" bufIndex="1" />
       <BindBuffer sampler="depth" sourceRT="AttributeBuffer" bufIndex="32" />
 
-      <DoDeferredLightLoop class="~Translucent" noShadows="true"/>
+      <DoDeferredLightLoop class="~Translucent" noShadows="false"/>
 
       <UnbindBuffers />
     </Stage>
@@ -74,16 +74,17 @@
       <UnbindBuffers />
     </Stage>
 
-    <Stage id="Translucent">
-      <SwitchTarget target="OUTPUT" />
-      <DrawGeometry context="TRANSLUCENT"/>
-      <DrawGeometry context="DEBUG_SHAPES" />
-    </Stage>
-
     <Stage id="Clouds">
       <SwitchTarget target="OUTPUT" />
       <DrawGeometry context="CLOUDS" class="~Translucent" />
     </Stage>
+
+    <Stage id="Translucent">
+      <SwitchTarget target="OUTPUT" />
+      <DrawGeometry context="TRANSLUCENT" order="BACK_TO_FRONT"/>
+      <DrawGeometry context="DEBUG_SHAPES" />
+    </Stage>
+
 
     <Stage id="Selected">
        <SwitchTarget target="SelectedTemp" />

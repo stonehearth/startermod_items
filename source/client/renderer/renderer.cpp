@@ -253,6 +253,12 @@ void Renderer::Initialize(om::EntityPtr rootObject)
 {
    rootRenderObject_ = CreateRenderObject(H3DRootNode, rootObject);
    debugShapes_ = h3dRadiantAddDebugShapes(H3DRootNode, "renderer debug shapes");
+
+   H3DNode n = h3dAddGroupNode(rootRenderObject_->GetNode(), "test1");
+   h3dSetNodeTransform(n, 0, 30, 0, 0, 0, 0, 1, 1, 1);
+
+   ::radiant::horde3d::ScreenSpaceNode*ssn = h3dRadiantAddScreenSpaceNode(n, "ss1");
+   ssn->addRect(0, 960, 0, 100);
 }
 
 void Renderer::Cleanup()
