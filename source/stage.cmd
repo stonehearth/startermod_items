@@ -18,6 +18,7 @@ xcopy /d /y %CHROMIUM_ROOT%\Release\libcef.* %DST%
 xcopy /d /y %CHROMIUM_ROOT%\Release\icudt.* %DST%
 
 :: sfml 
-set SFML_ROOT=%RADIANT_ROOT%\stonehearth\modules\sfml\package\bin
+set SFML_ROOT=%RADIANT_ROOT%\stonehearth\modules\sfml\build\lib\%CFG%
 xcopy /d /y /s %SFML_ROOT%\* %DST%
-
+xcopy /d /y /s %RADIANT_ROOT%\stonehearth\modules\sfml\package\SFML-2.1\extlibs\bin\x86\openal32.dll %DST%
+xcopy /d /y /s %RADIANT_ROOT%\stonehearth\modules\sfml\package\SFML-2.1\extlibs\bin\x86\libsndfile-1.dll %DST%
