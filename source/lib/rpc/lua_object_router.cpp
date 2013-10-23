@@ -1,7 +1,7 @@
 #include "pch.h"
 #include <regex>
 #include <luabind/detail/pcall.hpp>
-#include "radiant_json.h"
+#include "lib/json/node.h"
 #include "radiant_macros.h"
 #include "lua_object_router.h"
 #include "reactor_deferred.h"

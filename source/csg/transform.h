@@ -4,7 +4,7 @@
 #include <ostream>
 #include "namespace.h"
 #include "point.h"
-#include "Quaternion.h"
+#include "quaternion.h"
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
@@ -16,18 +16,6 @@ struct Transform {
    Transform(const Transform &t) : position(t.position), orientation(t.orientation) { }
    Transform(const Point3f &p, const Quaternion &q) : position(p), orientation(q) { }
 
-   JSONNode ToJson() const
-   {
-      JSONNode pos = position.ToJson();
-      JSONNode ori = orientation.ToJson();
-      pos.set_name("position");
-      ori.set_name("orientation");
-
-      JSONNode result;
-      result.push_back(pos);
-      result.push_back(ori);
-      return result;
-   }
    void SetZero() { position.SetZero(); orientation.SetIdentity(); }
 
    void SaveValue(protocol::transform *msg) const {

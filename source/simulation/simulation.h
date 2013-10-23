@@ -12,7 +12,7 @@
 #include "core/guard.h"
 #include "libjson.h"
 #include "physics/namespace.h"
-#include "radiant_json.h"
+#include "lib/json/node.h"
 #include "lib/rpc/forward_defines.h"
 #include "lua/namespace.h"
 #include "lib/rpc/forward_defines.h"
@@ -92,10 +92,6 @@ private:
    void TraceAura(om::AuraListRef auraList, om::AuraPtr aura);
    void TraceTargetTables(om::TargetTablesPtr tables);
    void UpdateTargetTables(int now, int interval);
-   void HandleRouteRequest(luabind::object ctor, JSONNode const& query, std::string const& postdata, tesseract::protocol::PostCommandReply* response);
-   void LoadModuleInitScript(json::ConstJsonObject const& block);
-   void LoadModuleGameObjects(std::string const& modname, json::ConstJsonObject const& block);
-   void ProcessCallModuleRequest(std::string const& mod_name, std::string const& function_name, tesseract::protocol::PostCommandRequest const& request, tesseract::protocol::PostCommandReply* reply);
    void SendReply(tesseract::protocol::PostCommandReply const& reply);
    void InitializeModules();
 private:

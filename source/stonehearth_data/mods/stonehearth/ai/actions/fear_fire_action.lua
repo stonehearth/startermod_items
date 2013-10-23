@@ -13,11 +13,11 @@ function FearFire:__init(ai, entity)
    self._entity = entity
    self._ai = ai
    self._fires = {}
-   radiant.events.listen('radiant:events:gameloop', self)
+   radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
 end
 
-FearFire['radiant:events:gameloop'] = function(self)
-   radiant.events.unlisten('radiant:events:gameloop', self)
+function FearFire:on_gameloop(_)
+   radiant.events.unlisten(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
    self:init_sight_sensor()
 end
 

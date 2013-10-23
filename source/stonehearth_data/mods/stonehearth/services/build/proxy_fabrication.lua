@@ -13,10 +13,16 @@ function ProxyFabrication:__init(arg1, component_name)
    self._component_name = component_name
 
    self._rgn = _radiant.client.alloc_region()  
-   self._entity :add_component('destination')
+   self._entity:add_component('destination')
                         :set_region(self._rgn)
-   self._entity :add_component('region_collision_shape')
-                        :set_region(self._rgn)   
+   self._entity:add_component('region_collision_shape')
+                        :set_region(self._rgn)
+                        
+   -- proxies get rendered in blueprint
+   self._entity:add_component('render_info')
+                  :set_material('materials/blueprint_gridlines.xml')
+                  
+   self:_update_datastore()
 end
 
 function ProxyFabrication:move_to(location)
@@ -25,6 +31,10 @@ end
 
 function ProxyFabrication:get_location()
    return self._entity:add_component('mob'):get_world_grid_location()
+end
+
+function ProxyFabrication:get_component_name()
+   return self._component_name
 end
 
 function ProxyFabrication:get_entity()
@@ -67,6 +77,7 @@ function ProxyFabrication:_update_datastore()
    local data = {
       normal = self._normal,
       tangent = self._tangent,
+      paint_mode = "blueprint",
       project_adjacent_to_base = false,
       needs_scaffolding = true
    }

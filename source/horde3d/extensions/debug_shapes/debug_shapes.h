@@ -28,13 +28,13 @@ public:
 	~DebugShapesNode();
 
    static uint32 vertexLayout;
-   static MaterialResource* material;
+   static MaterialResource* default_material;
 
 	static SceneNodeTpl *parsingFunc(std::map< std::string, std::string > &attribs);
 	static SceneNode *factoryFunc(const SceneNodeTpl &nodeTpl);
 	static void renderFunc(const std::string &shaderContext, const std::string &theClass, bool debugView,
 		                    const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet);
-
+   void setParamI( int param, int value );
 
 public:
    void decode(const protocol::shapelist &shapes);
@@ -46,6 +46,8 @@ public:
    void add_line(const csg::Point3f &p0, const csg::Point3f &p1, const csg::Color4 &c);
    void add_triangle(const csg::Point3f points[3], const csg::Color4 &c);
    void add_quad(const csg::Point3f points[4], const csg::Color4 &c);
+   void SetMaterial(MaterialResource *material);
+   MaterialResource* GetMaterial() { return material_; }
 
 private:
    struct Primitives {
@@ -87,6 +89,7 @@ private:
    std::vector<Primitives> primitives_;
    std::vector<Vertex>     triangles_;
    std::vector<Vertex>     lines_;
+   MaterialResource*       material_;
    Horde3D::BoundingBox    _bLocalBox;  // AABB in object space  
 };
 

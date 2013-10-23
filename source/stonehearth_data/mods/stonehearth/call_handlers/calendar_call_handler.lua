@@ -8,14 +8,14 @@ function CalendarCallHandler:get_clock_object(session, request)
    if not clock_object then
       clock_object = _radiant.sim.create_data_store()
       
-      local update_clock = function()
-         clock_object:update(calendar:get_time_and_date())
-      end
-
-      radiant.events.listen('radiant:events:calendar:minutely', update_clock)
-      update_clock()
+      radiant.events.listen(calendar, 'stonehearth:minutely', self, self.update_clock)
+      self:update_clock()
    end
    return { clock_object = clock_object }
+end
+
+function CalendarCallHandler:update_clock()
+   clock_object:update(calendar:get_time_and_date())
 end
 
 return CalendarCallHandler

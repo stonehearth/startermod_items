@@ -18,7 +18,8 @@ function AnimationEffect:__init(animation_path, start_time, info)
    end
 end
 
-function AnimationEffect:update(now)
+function AnimationEffect:update(e)
+   local now = e.now
    return self._end_time == 0 or self._end_time >= now
 end
 

@@ -77,6 +77,7 @@
     <Stage id="Translucent">
       <SwitchTarget target="OUTPUT" />
       <DrawGeometry context="TRANSLUCENT"/>
+      <DrawGeometry context="BLUEPRINTS" />
       <DrawGeometry context="DEBUG_SHAPES" />
     </Stage>
 

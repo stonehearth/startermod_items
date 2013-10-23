@@ -24,12 +24,12 @@ HttpReactor::HttpReactor(CoreReactor &core) :
    });
 }
 
-ReactorDeferredPtr HttpReactor::Call(json::ConstJsonObject const& query, std::string const& postdata)
+ReactorDeferredPtr HttpReactor::Call(json::Node const& query, std::string const& postdata)
 {
    try {
       rpc::Function fn;
-      fn.route = query.get<std::string>("fn");
-      fn.object = query.get<std::string>("obj");
+      fn.route = query.get<std::string>("fn", "");
+      fn.object = query.get<std::string>("obj", "");
 
       LOG(INFO) << "http reactor dispatching " << fn;
 

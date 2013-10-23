@@ -122,7 +122,7 @@ void RenderEntity::UpdateInvariantRenderers()
       std::string uri = entity->GetUri();
       if (!uri.empty()) {
          auto const& res = res::ResourceManager2::GetInstance();
-         json::ConstJsonObject json = res.LookupJson(uri);
+         json::Node json = res.LookupJson(uri);
          if (json.has("entity_data")) {
             for (auto const& entry : json.getn("entity_data")) {
                std::string name = entry.name();
@@ -131,9 +131,9 @@ void RenderEntity::UpdateInvariantRenderers()
                   std::string modname = name.substr(0, offset);
                   std::string invariant_name = name.substr(offset + 1, std::string::npos);
 
-                  json::ConstJsonObject manifest = res.LookupManifest(modname);
-                  json::ConstJsonObject invariants = manifest.getn("invariant_renderers");
-                  std::string path = invariants.get<std::string>(invariant_name);
+                  json::Node manifest = res.LookupManifest(modname);
+                  json::Node invariants = manifest.getn("invariant_renderers");
+                  std::string path = invariants.get<std::string>(invariant_name, "");
                   if (!path.empty()) {
                      lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
                      luabind::object ctor = script->RequireScript(path);
@@ -184,8 +184,8 @@ void RenderEntity::AddComponent(dm::ObjectType key, std::shared_ptr<dm::Object> 
             break;
          }
          case om::DestinationObjectType: {
-            om::DestinationPtr stockpile = std::static_pointer_cast<om::Destination>(value);
-            components_[key] = std::make_shared<RenderDestination>(*this, stockpile);
+            om::DestinationPtr destination = std::static_pointer_cast<om::Destination>(value);
+            components_[key] = std::make_shared<RenderDestination>(*this, destination);
             break;
          }
          case om::LuaComponentsObjectType: {
@@ -232,9 +232,9 @@ void RenderEntity::AddLuaComponents(om::LuaComponentsPtr lua_components)
          std::string component_name = name.substr(offset + 1, std::string::npos);
 
          auto const& res = res::ResourceManager2::GetInstance();
-         json::ConstJsonObject const& manifest = res.LookupManifest(modname);
-         json::ConstJsonObject cr = manifest.getn("component_renderers");
-         std::string path = cr.get<std::string>(component_name);
+         json::Node const& manifest = res.LookupManifest(modname);
+         json::Node cr = manifest.getn("component_renderers");
+         std::string path = cr.get<std::string>(component_name, "");
 
          if (!path.empty()) {
             lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
@@ -304,11 +304,6 @@ dm::ObjectId RenderEntity::GetObjectId() const
 {
    auto entity = entity_.lock();
    return entity ? entity->GetObjectId() : 0;
-}
-
-bool RenderEntity::ShowDebugRegions() const
-{
-   return true;
 }
 
 void RenderEntity::SetModelVariantOverride(bool enabled, std::string const& variant)

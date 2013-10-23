@@ -49,6 +49,13 @@ EdgeListPtr Region2ToEdgeList(csg::Region2 const& rgn, int height, csg::Region3 
 csg::Region2 EdgeListToRegion2(EdgeListPtr segments, int width, csg::Region2 const* clipper);
 int RoundTowardNegativeInfinity(int i, int tile_size);
 int GetTileOffset(int position, int tile_size);
+bool Region3Intersects(const Region3& rgn, const csg::Ray3& ray, float& distance);
+Region3 Reface(Region3 const& rgn, Point3 const& forward);
+static inline Point3f ToFloat(Point3 const& pt) { return Point3f((float)pt.x, (float)pt.y, (float)pt.z); };
+Point3 ToInt(Point3f const& pt);
+Point3f Interpolate(Point3f const& a, Point3f const& b, float alpha);
+bool Cube3Intersects(const Cube3& rgn, const Ray3& ray, float& distance);
+bool Cube3Intersects(const Cube3f& rgn, const Ray3& ray, float& distance);
 
 std::ostream& operator<<(std::ostream& os, EdgePoint const& f);
 std::ostream& operator<<(std::ostream& os, Edge const& f);

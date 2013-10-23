@@ -31,7 +31,7 @@ RegionCollisionShapeRef RegionCollisionShape_SetRegion(RegionCollisionShapeRef r
 scope LuaRegionCollisionShapeComponent::RegisterLuaTypes(lua_State* L)
 {
    return
-      lua::RegisterDerivedObject<RegionCollisionShape, Component>()
+      lua::RegisterWeakGameObjectDerived<RegionCollisionShape, Component>()
          .def("get_region",               &RegionCollisionShape_GetRegion)
          .def("set_region",               &RegionCollisionShape_SetRegion)
          .def("trace_region",             &RegionCollisionShape_TraceRegion)

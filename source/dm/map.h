@@ -121,10 +121,9 @@ public:
    }
 
 
-   template <class T>
    class LuaIterator {
    public:
-      LuaIterator(const T& container) : container_(container) {
+      LuaIterator(const ContainerType& container) : container_(container) {
          i_ = container_.begin();
       }
 
@@ -144,15 +143,18 @@ public:
       }
 
    private:
-      const T& container_;
-      typename T::const_iterator i_;
+      NO_COPY_CONSTRUCTOR(LuaIterator)
+
+   private:
+      const ContainerType&                   container_;
+      typename ContainerType::const_iterator i_;
    };
 
    static void LuaIteratorStart(lua_State *L, const Map& s)
    {
       using namespace luabind;
-      lua_pushcfunction(L, &LuaIterator<ContainerType>::NextIteration); // f
-      object(L, new LuaIterator<ContainerType>(s.items_)).push(L); // s
+      lua_pushcfunction(L, &LuaIterator::NextIteration); // f
+      object(L, new LuaIterator(s.items_)).push(L); // s
       object(L, 1).push(L); // var (ignored)
    }
 
@@ -197,6 +199,9 @@ public:
       }
 
    private:
+      NO_COPY_CONSTRUCTOR(LuaPromise)
+
+   private:
       core::Guard                     guard_;
       std::vector<luabind::object>  changedCbs_;
       std::vector<luabind::object>  removedCbs_;
@@ -226,7 +231,7 @@ public:
             .def("items",        &Map::LuaIteratorStart)
             .def("trace",        &Map::LuaTrace)
          ,
-         lua::RegisterType<LuaIterator<ContainerType>>()
+         lua::RegisterType<LuaIterator>()
          ,
          lua::RegisterType<LuaPromise>()
             .def("on_added",     &LuaPromise::PushAddedCb)
@@ -234,7 +239,6 @@ public:
             .def("destroy",      &LuaPromise::Destroy) // xxx: make this __gc!!
          ;
    }
-   typedef LuaIterator<ContainerType>  LuaIteratorType;
 
 public:
    void SaveValue(const Store& store, Protocol::Value* valmsg) const override {

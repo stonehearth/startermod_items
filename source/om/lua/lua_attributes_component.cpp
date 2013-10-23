@@ -10,7 +10,7 @@ using namespace ::radiant::om;
 scope LuaAttributesComponent::RegisterLuaTypes(lua_State* L)
 {
    return
-      lua::RegisterDerivedObject<Attributes, Component>()
+      lua::RegisterWeakGameObjectDerived<Attributes, Component>()
          .def("get_attribute",            &om::Attributes::GetAttribute)
          .def("has_attribute",            &om::Attributes::HasAttribute)
          .def("set_attribute",            &om::Attributes::SetAttribute)

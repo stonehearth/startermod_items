@@ -6,7 +6,6 @@
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
-
 template <class S, int C>
 class Region
 {
@@ -99,21 +98,6 @@ std::ostream& operator<<(std::ostream& os, const Region<S, C>& o)
    os << "(" << o.GetCubeCount() << " cubes of area " << o.GetArea() << ")";
    return os;
 }
-
-typedef Region<int, 1>   Region1;
-typedef Region<int, 2>   Region2;
-typedef Region<float, 2> Region2f;
-typedef Region<int, 3>   Region3;
-typedef Region<float, 3> Region3f;
-
-DECLARE_SHARED_POINTER_TYPES(Region1);
-DECLARE_SHARED_POINTER_TYPES(Region2);
-DECLARE_SHARED_POINTER_TYPES(Region2f);
-DECLARE_SHARED_POINTER_TYPES(Region3);
-DECLARE_SHARED_POINTER_TYPES(Region3f);
-
-bool Region3Intersects(const Region3& rgn, const csg::Ray3& ray, float& distance);
-Region3 Reface(Region3 const& rgn, Point3 const& forward);
 
 END_RADIANT_CSG_NAMESPACE
 

@@ -33,13 +33,13 @@ function StockpileComponent:__init(entity, data_binding)
    self._data_binding:update(self._data)
 
    self._destination:set_region(_radiant.sim.alloc_region())
-   radiant.events.listen('radiant:events:gameloop', self)
+   radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
    all_stockpiles[self._entity:get_id()] = self
 end
 
 -- xxx: the 'fire one when i'm constructed' pattern again...
-StockpileComponent['radiant:events:gameloop'] = function(self)
-   radiant.events.unlisten('radiant:events:gameloop', self)
+function StockpileComponent:on_gameloop()
+   radiant.events.unlisten(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
 
    self:_create_worker_tasks()
 

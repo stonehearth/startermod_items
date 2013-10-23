@@ -10,8 +10,8 @@ using namespace ::radiant::om;
 scope LuaModelVariantsComponent::RegisterLuaTypes(lua_State* L)
 {
    return
-      lua::RegisterDerivedObject<ModelVariants, Component>()
+      lua::RegisterWeakGameObjectDerived<ModelVariants, Component>()
       ,
-      lua::RegisterObject<ModelVariant>()
+      lua::RegisterWeakGameObject<ModelVariant>()
       ;
 }

@@ -234,11 +234,11 @@ function entities.get_entity(id)
 end
 
 
-function entities.get_animation_table_name(entity)
+function entities.get_animation_table(entity)
    local name
    local render_info = entity:get_component('render_info')
    if render_info then
-      name = render_info:get_animation_table_name()
+      name = render_info:get_animation_table()
    end
    return name
 end

@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "mob.h"
+#include "csg/util.h" // xxx: should be in csg/csg.h
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -159,12 +160,15 @@ void Mob::SetParent(MobPtr parent)
    parent_ = parent;
 }
 
-void Mob::ExtendObject(json::ConstJsonObject const& obj)
+void Mob::ExtendObject(json::Node const& obj)
 {
-   JSONNode const& node = obj.GetNode();
-   auto i = node.find("interpolate_movement");
-   if (i != node.end()) {
-      SetInterpolateMovement(i->as_bool());
+   LOG(WARNING) << "Expanding mob " << obj.write_formatted();
+
+   SetInterpolateMovement(obj.get<bool>("interpolate_movement", false));
+   transform_ = obj.get<csg::Transform>("transform", csg::Transform(csg::Point3f(0, 0, 0), csg::Quaternion(1, 0, 0, 0)));
+   
+   if (obj.has("parent")) {
+      parent_ = ObjectFormatter().GetObject<Mob>(GetStore(), obj.get<std::string>("parent", ""));
    }
 }
 

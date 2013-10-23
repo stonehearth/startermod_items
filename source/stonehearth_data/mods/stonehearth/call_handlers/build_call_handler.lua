@@ -10,4 +10,14 @@ function BuildCallHandler:get_build_editor(session, request)
    return { build_editor = build_editor:get_model() }
 end
 
+function BuildCallHandler:build_structures(session, request, proxies)
+   for _, proxy in ipairs(proxies) do
+      local entity = radiant.entities.create_entity(proxy.entity)
+      for name, data in pairs(proxy.components) do
+         local component = entity:add_component(name)
+         component:extend(data)
+      end
+   end
+end
+
 return BuildCallHandler

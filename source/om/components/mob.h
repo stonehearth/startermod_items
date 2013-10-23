@@ -18,7 +18,7 @@ class Mob : public Component
 {
 public:
    DEFINE_OM_OBJECT_TYPE(Mob, mob);
-   virtual void ExtendObject(json::ConstJsonObject const& obj);
+   void ExtendObject(json::Node const& obj) override;
    virtual void Describe(std::ostringstream& os) const;
 
    void MoveTo(const csg::Point3f& location);

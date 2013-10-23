@@ -74,7 +74,7 @@ bool Extension::init()
 	if (matRes == 0x0 || matRes->getType() != ResourceTypes::Material ) {
       return 0;
    }
-   DebugShapesNode::material = (MaterialResource *)matRes;
+   DebugShapesNode::default_material = (MaterialResource *)matRes;
 
 
    const int numCubeAttributes = 3;

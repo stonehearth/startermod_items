@@ -2,7 +2,7 @@
 #define _RADIANT_LIB_RPC_REACTOR_FUNCTION_H
 
 #include "request.h"
-#include "radiant_json.h"
+#include "lib/json/node.h"
 
 BEGIN_RADIANT_RPC_NAMESPACE
 

@@ -15,7 +15,7 @@ std::shared_ptr<Region3BoxedPromise> RenderRegion_TraceRenderRegion(om::RenderRe
 scope LuaRenderRegionComponent::RegisterLuaTypes(lua_State* L)
 {
    return
-      lua::RegisterDerivedObject<RenderRegion, Component>()
+      lua::RegisterWeakGameObjectDerived<RenderRegion, Component>()
          .def("get_region",    &om::RenderRegion::GetRegion)
          .def("set_region",    &om::RenderRegion::SetRegion)
          .def("trace_region",  &RenderRegion_TraceRenderRegion)

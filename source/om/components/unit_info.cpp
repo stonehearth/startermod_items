@@ -13,7 +13,7 @@ void UnitInfo::InitializeRecordFields()
    AddRecordField("icon", icon_);
 }
 
-void UnitInfo::ExtendObject(json::ConstJsonObject const& obj)
+void UnitInfo::ExtendObject(json::Node const& obj)
 {
    JSONNode const& node = obj.GetNode();
 

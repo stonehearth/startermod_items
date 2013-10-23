@@ -14,7 +14,6 @@ add_library(csg_lua STATIC
             lua_point.cpp
             lua_region.cpp
             lua_heightmap.cpp
-            lua_voronoi.cpp
             lua_edgelist.cpp
             lua_quaternion.cpp
             lua_ray.cpp

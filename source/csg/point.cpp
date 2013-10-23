@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "point.h"
+#include "csg/util.h" // xxx: should be csg/namespace.h
 
 using namespace ::radiant;
 using namespace ::radiant::csg;
@@ -16,6 +17,9 @@ Point3f Point3f::one(1, 1, 1);
 Point3f Point3f::unitX(1, 0, 0);
 Point3f Point3f::unitY(0, 1, 0);
 Point3f Point3f::unitZ(0, 0, 1);
+
+Point2f Point2f::zero(0, 0);
+Point2f Point2f::one(1, 1);
 
 Point3 Point3::zero(0, 0, 0);
 Point3 Point3::one(1, 1, 1);

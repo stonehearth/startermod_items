@@ -29,7 +29,7 @@ bool CarryBlockIsCarrying(om::CarryBlock& c)
 scope LuaCarryBlockComponent::RegisterLuaTypes(lua_State* L)
 {
    return
-      lua::RegisterDerivedObject<CarryBlock, Component>()
+      lua::RegisterWeakGameObjectDerived<CarryBlock, Component>()
          .def("get_carrying",          &om::CarryBlock::GetCarrying)
          .def("is_carrying",           &CarryBlockIsCarrying)
          .def("set_carrying",          &CarryBlockSetCarrying)

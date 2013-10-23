@@ -23,7 +23,7 @@ public:
       VERIFY(!firing_, "attempt to register for slot while firing callbacks");
       int id = next_id_++;
    
-      callbacks_.emplace_back(std::make_pair(id, fn));
+      callbacks_[id] = fn;
       return core::Guard([this, id]() {
          Remove(id);
       });
@@ -34,20 +34,19 @@ public:
       for (auto const& entry : callbacks_) {
          entry.second(arg);
       }
+      for (int id : removed_callbacks_) {
+         callbacks_.erase(id);
+      }
+      removed_callbacks_.clear();
       firing_ = false;
    }
 
 private:
    void Remove(int id) {
-      VERIFY(!firing_, "attempt to deregister for slot while firing callbacks");
-
-      int c = callbacks_.size();
-      for (int i = 0; i < c; i++) {
-         if (callbacks_[i].first == id) {
-            callbacks_[i] = callbacks_[c-1];
-            callbacks_.resize(c-1);
-            return;
-         }
+      if (firing_) {
+         removed_callbacks_.push_back(id);
+      } else {
+         callbacks_.erase(id);
       }
    }
 
@@ -57,7 +56,8 @@ private:
 private:
    bool                             firing_;
    int                              next_id_;
-   std::vector<std::pair<int, Fn>>  callbacks_;
+   std::unordered_map<int,Fn>       callbacks_;
+   std::vector<int>                 removed_callbacks_;
 };
 
 END_RADIANT_CORE_NAMESPACE

@@ -18,7 +18,6 @@
 #include <queue>
 #include <cstdarg>
 #include <functional>
-#include "lib/namespace.h"
 #include "utTimer.h"
 #include "om/error_browser/error_browser.h"
 

@@ -8,7 +8,7 @@
 #include <boost/tokenizer.hpp>
 #include "radiant.h"
 #include "radiant_file.h"
-#include "radiant_json.h"
+#include "lib/json/node.h"
 #include "res_manager.h"
 #include "animation.h"
 #include "core/config.h"
@@ -76,7 +76,7 @@ AnimationPtr ResourceManager2::LoadAnimation(std::string const& canonical_path) 
    }
    if (buffer.empty()) {
       JSONNode node = libjson::parse(jsonfile);
-      std::string type = json::ConstJsonObject(node).get<std::string>("type");
+      std::string type = json::Node(node).get<std::string>("type", "");
       if (type.empty()) {
          throw InvalidResourceException(canonical_path, "'type' field missing");
       }
@@ -266,10 +266,11 @@ JSONNode ResourceManager2::LoadJson(std::string const& canonical_path) const
 }
 
 
-void ResourceManager2::ParseNodeExtension(std::string const& path, JSONNode& node) const
+void ResourceManager2::ParseNodeExtension(std::string const& path, JSONNode& n) const
 {
-   std::string extends = json::ConstJsonObject(node).get<std::string>("extends");
-   if (!extends.empty()) {
+   json::Node node(n);
+   if (node.has("extends")) {
+      std::string extends = node.get<std::string>("extends");
       JSONNode parent;
       std::string uri = ExpandMacro(extends, extends, true);
 
@@ -281,7 +282,7 @@ void ResourceManager2::ParseNodeExtension(std::string const& path, JSONNode& nod
 
       //LOG(WARNING) << "node pre-extend: " << node.write_formatted();
       //LOG(WARNING) << "extending with: " << parent.write_formatted();
-      ExtendNode(node, parent);
+      ExtendNode(n, parent);
       //LOG(WARNING) << "node post-extend: " << node.write_formatted();
    }
 }
@@ -354,9 +355,10 @@ std::string ResourceManager2::GetEntityUri(std::string const& mod_name, std::str
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
 
-   json::ConstJsonObject manifest = res::ResourceManager2::GetInstance().LookupManifest(mod_name);
-   json::ConstJsonObject entities = manifest.getn("radiant").getn("entities");
-   std::string uri = entities.get<std::string>(entity_name);
+   json::Node manifest = res::ResourceManager2::GetInstance().LookupManifest(mod_name);
+   json::Node entities = manifest.getn("radiant.entities");
+   std::string uri = entities.get<std::string>(entity_name, "");
+
    if (uri.empty()) {
       std::ostringstream error;
       error << "'" << mod_name << "' has no entity named '" << entity_name << "' in the manifest.";

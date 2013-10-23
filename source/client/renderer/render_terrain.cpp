@@ -24,9 +24,6 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
    tracer_ += Renderer::GetInstance().TraceSelected(terrain_root_node_.get(), [this](om::Selection& sel, const csg::Ray3& ray, const csg::Point3f& intersection, const csg::Point3f& normal) {
       OnSelected(sel, ray, intersection, normal);
    });
-   tracer_ += Renderer::GetInstance().TraceFrameStart([=]() {
-      Update();
-   });
 
    if (tess_map.empty()) {
       light_grass_ring_info_.rings.emplace_back(LayerDetailRingInfo::Ring(4, LightGrassDetailBase));
@@ -171,9 +168,9 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
          }
          RenderZoneRef rt = render_zone;
          render_zone->guard = region->TraceObjectChanges("rendering terrain zone", [this, rt]() {
-            dirty_zones_.push_back(rt);
+            AddDirtyZone(rt);
          });
-         dirty_zones_.push_back(rt);
+         AddDirtyZone(rt);
       } else {
          zones_.erase(location);
       }
@@ -195,6 +192,17 @@ RenderTerrain::~RenderTerrain()
 {
 }
 
+void RenderTerrain::AddDirtyZone(RenderZoneRef zone)
+{
+   dirty_zones_.push_back(zone);
+   
+   if (renderer_frame_trace_.Empty()) {
+      renderer_frame_trace_ = Renderer::GetInstance().OnRenderFrameStart([=](FrameStartInfo const&) {
+         Update();
+      });
+      ASSERT(!renderer_frame_trace_.Empty());
+   }
+}
 void RenderTerrain::OnSelected(om::Selection& sel, const csg::Ray3& ray,
                                const csg::Point3f& intersection, const csg::Point3f& normal)
 {
@@ -271,7 +279,7 @@ void RenderTerrain::AddTerrainTypeToTesselation(csg::Region3 const& region, csg:
    for (csg::Cube3 const& cube : region) {
       ASSERT(cube.GetMin().y == cube.GetMax().y - 1); // 1 block thin, pizza box
       layers[cube.GetMin().y].AddUnique(csg::Rect2(csg::Point2(cube.GetMin().x, cube.GetMin().z),
-                                                         csg::Point2(cube.GetMax().x, cube.GetMax().z)));
+                                                   csg::Point2(cube.GetMax().x, cube.GetMax().z)));
    }
    for (auto const& layer : layers) {
       TesselateLayer(layer.second, layer.first, terrain, tess, ringInfo);
@@ -311,5 +319,6 @@ void RenderTerrain::Update()
       }
    }
    dirty_zones_.clear();
+   renderer_frame_trace_.Clear();
 }
 

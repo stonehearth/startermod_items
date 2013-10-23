@@ -1,8 +1,8 @@
 radiant.mods.load('stonehearth')
+local calendar = require 'services.calendar.calendar_service'
 
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
-local Calendar = require 'services.calendar.calendar_service'
 
 local FirepitComponent = class()
 
@@ -22,7 +22,7 @@ function FirepitComponent:__init(entity, data_store)
    self._data_store = data_store
    self._data_store:mark_changed()
 
-   self._time_constants = Calendar.get_constants()
+   self._time_constants = calendar.get_constants()
 
    --Listen on terrain for when this entity is added/removed
    local added_cb = function(id, entity)
@@ -50,8 +50,8 @@ end
 --- If WE are added to the universe, register for events, etc/
 function FirepitComponent:_on_entity_add(id, entity)
    if self._entity and self._entity:get_id() == id then
-      radiant.events.listen('radiant:events:calendar:hourly', self)
-      self._placement_time = Calendar.get_time_and_date().hour
+      radiant.events.listen(calendar, 'stonehearth:hourly', self, self.on_hourly)
+      self._placement_time = calendar.get_time_and_date().hour
       if self._placement_time == 23 then
          self._placement_time = -1
       end
@@ -71,22 +71,22 @@ end
 -- What about other computers, processors, etc, for example?
 -- NOTE: Doesn't seem to be the data binding, etc. as commenting that out produces the same error
 -- filed as bug: http://bugs.radiant-entertainment.com:8080/browse/SH-22
-FirepitComponent['radiant:events:calendar:hourly'] = function(self, calendar)
-   if calendar.hour >= self._placement_time + 1 then
+function FirepitComponent:on_hourly(e)
+   if e.now.hour >= self._placement_time + 1 then
       self:_should_light_fire()
 
-      radiant.events.listen('radiant:events:calendar:sunset', self)
-      radiant.events.listen('radiant:events:calendar:sunrise', self)
+      radiant.events.listen(calendar, 'stonehearth:sunrise', self, self.on_sunrise)
+      radiant.events.listen(calendar, 'stonehearth:sunset', self, self.on_sunset)
 
-      radiant.events.unlisten('radiant:events:calendar:hourly', self)
+      radiant.events.unlisten(radiant.events, 'stonehearth:hourly', self, self.on_hourly)
    end
 end
 
 --- Stop listening for events, destroy seats, terminate effects and tasks
 -- Call when firepit is moving or being destroyed.
 function FirepitComponent:_stop_functionality()
-   radiant.events.unlisten('radiant:events:calendar:sunrise', self)
-   radiant.events.unlisten('radiant:events:calendar:sunset', self)
+   radiant.events.unlisten(radiant.events, 'stonehearth:sunrise', self, self.on_sunrise)
+   radiant.events.unlisten(radiant.events, 'stonehearth:sunset', self, self.on_sunset)
 
    self:extinguish()
    self._am_lighting_fire = false
@@ -115,7 +115,7 @@ end
 -- If there aren't seats around the fire yet, create them
 -- If there's already wood in the fire from the previous day, it goes out now.
 -- TODO: Find a way to make this REALLY IMPORTANT relative to other worker tasks
-FirepitComponent['radiant:events:calendar:sunset'] = function (self)
+function FirepitComponent:on_sunset(e)
    self:_should_light_fire()
 end
 
@@ -128,7 +128,7 @@ function FirepitComponent:_should_light_fire()
    end
 
    --Only light fires after dark
-   local curr_time = Calendar.get_time_and_date()
+   local curr_time = calendar.get_time_and_date()
    if curr_time.hour >= self._time_constants.event_times.sunset or
       curr_time.hour < self._time_constants.event_times.sunrise then
 
@@ -145,7 +145,7 @@ function FirepitComponent:_should_light_fire()
 end
 
 --- At sunrise, the fire eats the log inside of it
-FirepitComponent['radiant:events:calendar:sunrise'] = function (self)
+function FirepitComponent:on_sunrise(e)
    if self._light_task then
       self._light_task:stop()
    end

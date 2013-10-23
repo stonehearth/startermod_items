@@ -1,7 +1,11 @@
 #include "pch.h"
 #include "lua/register.h"
+#include "lua/script_host.h"
 #include "lua_mob_component.h"
 #include "om/components/mob.h"
+#include "lib/json/core_json.h"
+#include "lib/json/csg_json.h"
+#include "lib/json/dm_json.h"
 
 using namespace ::luabind;
 using namespace ::radiant;
@@ -10,6 +14,11 @@ using namespace ::radiant::om;
 auto Mob_TraceTransform(Mob const& mob, const char* reason) -> decltype(mob.GetBoxedTransform().CreatePromise(reason))
 {
    return mob.GetBoxedTransform().CreatePromise(reason);
+}
+
+void Mob_ExtendObject(lua_State* L, Mob& mob, luabind::object o)
+{
+   mob.ExtendObject(lua::ScriptHost::LuaToJson(L, o));
 }
 
 om::EntityRef Mob_GetParent(Mob const& mob)
@@ -40,9 +49,9 @@ dm::Object::LuaPromise<Mob>* Mob_Trace(Mob const& mob, const char* reason)
 scope LuaMobComponent::RegisterLuaTypes(lua_State* L)
 {
    return
-      lua::RegisterDerivedObject<Mob, Component>()
+      lua::RegisterWeakGameObjectDerived<Mob, Component>()
          .def("get_location",                &Mob::GetLocation)
-         .def("extend",                      &Mob::ExtendObject)
+         .def("extend",                      &Mob_ExtendObject)
          .def("get_grid_location",           &Mob::GetGridLocation)
          .def("get_world_grid_location",     &Mob::GetWorldGridLocation)
          .def("get_world_location",          &Mob::GetWorldLocation)

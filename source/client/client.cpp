@@ -73,7 +73,6 @@ Client::Client() :
    currentCursor_(NULL),
    last_server_request_id_(0),
    next_input_id_(1),
-   next_trace_frame_id_(1),
    mouse_x_(0),
    mouse_y_(0),
    perf_hud_shown_(false)
@@ -113,8 +112,8 @@ Client::Client() :
       return GetModules(f);
    });
    core_reactor_->AddRoute("radiant:install_trace", [this](rpc::Function const& f) {
-      json::ConstJsonObject args(f.args);
-      std::string uri = args.get<std::string>(0);
+      json::Node args(f.args);
+      std::string uri = args.get<std::string>(0, "");
       return http_reactor_->InstallTrace(rpc::Trace(f.caller, f.call_id, uri));
    });
    core_reactor_->AddRoute("radiant:remove_trace", [this](rpc::Function const& f) {
@@ -158,8 +157,8 @@ void Client::run()
    namespace po = boost::program_options;
    auto vm = core::Config::GetInstance().GetVarMap();
    std::string loader = vm["game.mod"].as<std::string>();
-   json::ConstJsonObject manifest(res::ResourceManager2::GetInstance().LookupManifest(loader));
-   std::string docroot = "http://radiant/" + manifest.getn("loader").getn("ui").get<std::string>("homepage");
+   json::Node manifest(res::ResourceManager2::GetInstance().LookupManifest(loader));
+   std::string docroot = "http://radiant/" + manifest.get<std::string>("loader.ui.homepage");
 
    // seriously???
    std::string game_script = vm["game.script"].as<std::string>();
@@ -211,11 +210,12 @@ void Client::run()
 
    //luabind::globals(L)["_client"] = luabind::object(L, this);
 
-   json::ConstJsonObject::RegisterLuaType(L);
-
    // this locks down the environment!  all types must be registered by now!!
    scriptHost_->Require("radiant.client");
 
+   _commands[GLFW_KEY_F12] = [&renderer]() {
+      renderer.SetShowDebugShapes(!renderer.GetShowDebugShapes());
+   };
    _commands[GLFW_KEY_F10] = [&renderer, this]() {
       perf_hud_shown_ = !perf_hud_shown_;
       renderer.ShowPerfHud(perf_hud_shown_);
@@ -246,8 +246,8 @@ void Client::InitializeModules()
    auto& rm = res::ResourceManager2::GetInstance();
    for (std::string const& modname : rm.GetModuleNames()) {
       try {
-         json::ConstJsonObject manifest = rm.LookupManifest(modname);
-         json::ConstJsonObject const& block = manifest.getn("client");
+         json::Node manifest = rm.LookupManifest(modname);
+         json::Node const& block = manifest.getn("client");
          if (!block.empty()) {
             LOG(WARNING) << "loading init script for " << modname << "...";
             LoadModuleInitScript(block);
@@ -258,9 +258,9 @@ void Client::InitializeModules()
    }
 }
 
-void Client::LoadModuleInitScript(json::ConstJsonObject const& block)
+void Client::LoadModuleInitScript(json::Node const& block)
 {
-   std::string filename = block.get<std::string>("init_script");
+   std::string filename = block.get<std::string>("init_script", "");
    if (!filename.empty()) {
       scriptHost_->RequireScript(filename);
    }
@@ -325,7 +325,6 @@ void Client::mainloop()
    authoringStore_.FireFinishedTraces();
 
    perfmon::SwitchToCounter("render");
-   CallTraceRenderFrameHandlers( Renderer::GetInstance().GetLastFrameRenderTime() );
    Renderer::GetInstance().RenderOneFrame(now_, alpha);
 
    if (send_queue_) {
@@ -607,41 +606,6 @@ bool Client::CallInputHandlers(Input const& input)
    return false;
 }
 
-
-Client::TraceRenderFrameId Client::AddTraceRenderFrameHandler(TraceRenderFrameHandlerCb const& cb)
-{
-   TraceRenderFrameId id = ReserveTraceRenderFrameHandler();
-   SetTraceRenderFrameHandler(id, cb);
-   return id;
-}
-
-void Client::SetTraceRenderFrameHandler(TraceRenderFrameId id, TraceRenderFrameHandlerCb const& cb)
-{
-   trace_frame_handlers_.emplace_back(std::make_pair(id, cb));
-}
-
-Client::TraceRenderFrameId Client::ReserveTraceRenderFrameHandler() {
-   return next_trace_frame_id_++;
-}
-
-void Client::RemoveTraceRenderFrameHandler(TraceRenderFrameId id)
-{
-   auto i = trace_frame_handlers_.begin();
-   while (i != trace_frame_handlers_.end()) {
-      if (i->first == id) {
-         trace_frame_handlers_.erase(i);
-         break;
-      }
-   }
-};
-
-void Client::CallTraceRenderFrameHandlers(float frameTime)
-{
-   for (const auto& entry : trace_frame_handlers_) {
-      entry.second(frameTime);
-   }
-}
-
 void Client::UpdateSelection(const MouseInput &mouse)
 {
    om::Selection s;
@@ -851,7 +815,7 @@ rpc::ReactorDeferredPtr Client::GetModules(rpc::Function const& fn)
 }
 
 // This function is called on the chrome thread!
-void Client::BrowserRequestHandler(std::string const& path, json::ConstJsonObject const& query, std::string const& postdata, rpc::HttpDeferredPtr response)
+void Client::BrowserRequestHandler(std::string const& path, json::Node const& query, std::string const& postdata, rpc::HttpDeferredPtr response)
 {
    try {
       // file requests can be dispatched immediately.
@@ -876,7 +840,7 @@ void Client::BrowserRequestHandler(std::string const& path, json::ConstJsonObjec
    }
 }
 
-void Client::CallHttpReactor(std::string path, json::ConstJsonObject query, std::string postdata, rpc::HttpDeferredPtr response)
+void Client::CallHttpReactor(std::string path, json::Node query, std::string postdata, rpc::HttpDeferredPtr response)
 {
    JSONNode node;
    int status = 404;

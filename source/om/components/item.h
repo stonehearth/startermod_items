@@ -14,7 +14,7 @@ class Item : public Component
 {
 public:
    DEFINE_OM_OBJECT_TYPE(Item, item);
-   void ExtendObject(json::ConstJsonObject const& obj);
+   void ExtendObject(json::Node const& obj);
 
 public:
    //std::string GetKind() const { return *kind_; }

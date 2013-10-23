@@ -3,6 +3,7 @@
 #include "om/entity.h"
 #include "om/selection.h"
 #include "om/data_binding.h"
+#include "lib/json/core_json.h"
 #include "lib/rpc/lua_deferred.h"
 #include "lib/rpc/reactor_deferred.h"
 #include "lib/voxel/qubicle_brush.h"
@@ -14,6 +15,9 @@
 #include "client/renderer/lua_render_entity.h" // xxx: move to renderer::open when we move the renderer!
 #include "client/renderer/lua_renderer.h" // xxx: move to renderer::open when we move the renderer!
 #include "client/renderer/pipeline.h" // xxx: move to renderer::open when we move the renderer!
+#include "core/guard.h"
+#include "core/slot.h"
+#include "glfw3.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -21,10 +25,39 @@ using namespace luabind;
 
 H3DNodeUnique Client_CreateVoxelRenderNode(lua_State* L, 
                                            H3DNode parent,
-                                           csg::Region3 const& model)
+                                           csg::Region3 const& model,
+                                           std::string const& mode,
+                                           std::string const& material_path)
 {
-   csg::mesh_tools::mesh mesh = csg::mesh_tools().ConvertRegionToMesh(model);
-   return Pipeline::GetInstance().AddMeshNode(parent, mesh);
+   H3DNodeUnique model_node;
+
+   H3DRes material = 0;
+   if (!material_path.empty()) {
+      material = h3dAddResource(H3DResTypes::Material, material_path.c_str(), 0);
+   }
+   if (mode == "blueprint") {
+      std::vector<csg::Point3f> points = csg::mesh_tools().ConvertRegionToOutline(model);
+      H3DNode s = h3dRadiantAddDebugShapes(parent, "foo");
+      
+      uint i, c = points.size();
+      for (i = 0; i < c; i += 2) {
+         h3dRadiantAddDebugLine(s, points[i], points[i+1], csg::Color4(0, 128, 220, 192));
+      }
+      h3dRadiantCommitDebugShape(s);
+      if (material) {
+         h3dSetNodeParamI(s, H3DMesh::MatResI, material);
+      }
+      model_node = H3DNodeUnique(s);
+   } else {
+      csg::mesh_tools::mesh mesh = csg::mesh_tools().ConvertRegionToMesh(model);
+
+      H3DNode mesh_node;
+      model_node = Pipeline::GetInstance().AddMeshNode(parent, mesh, &mesh_node);
+      if (material) {
+         h3dSetNodeParamI(mesh_node, H3DMesh::MatResI, material);
+      }
+   }
+   return model_node;
 }
 
 om::EntityRef Client_CreateEmptyAuthoringEntity()
@@ -101,76 +134,110 @@ rpc::LuaDeferredPtr Client_SelectXZRegion(lua_State* L)
    return result;
 }
 
-struct LuaCallback {
-   /*
-    * If someone on the lua side forgot to call ::destroy, go ahead and do it for them
-    * now.  This may be late if we didn't get a full gc in between ticks, but better
-    * later than never, right!
-    */
-   ~LuaCallback() {
-      if (dtor_) {
-         dtor_();
-      }
-   }
+class CaptureInputPromise;
+class TraceRenderFramePromise;
+class SetCursorPromise;
 
-   /*
-    * Called from the C++ side to notify the lua holder of the promise that something
-    * has changed.  Lua clients and register for this callback using the progress
-    * method on the promise.  Somethign like: promise::notify(function(...) ... end())
-    */
-   bool Notify(luabind::object o) {
-      if (cb_.is_valid() && luabind::type(cb_) == LUA_TFUNCTION) {
-         luabind::object handled = luabind::call_function<luabind::object>(cb_, o);
-         return handled.is_valid() && type(handled) == LUA_TBOOLEAN && luabind::object_cast<bool>(handled);
-      }
-      return false;
-   }
-   
-   /*
-    * Called from the lua side via progress::destroy to notify the C++ side that they
-    * can un-hook the source of Notify callbacks.
-    */
-   void Destroy() {
-      cb_ = object();      // stop firing callbacks...
-      if (dtor_) {
-         dtor_();
-         dtor_ = nullptr;
-      }
-   }
-
-   /*
-    * Called from the C++ side when the lua side invokes the promises' destroy
-    * function.
-    */
-   void OnDestroy(std::function<void()> dtor) {
-      dtor_ = dtor;
-   }
-
-   /*
-    * Called from the lua side to express interest in changes to the source object.
-    * Whenever 'something happens', the supplied callback will get called.
-    */
-   void Progress(luabind::object cb) {
-      cb_ = cb;
-   }
-
-
-   luabind::object         cb_;
-   std::function<void()>   dtor_;
-};
-
-struct CaptureInputPromise : public LuaCallback
-{
-};
-struct TraceRenderFramePromise : public LuaCallback
-{
-};
-struct SetCursorPromise : public LuaCallback
-{
-};
 DECLARE_SHARED_POINTER_TYPES(CaptureInputPromise)
 DECLARE_SHARED_POINTER_TYPES(TraceRenderFramePromise)
 DECLARE_SHARED_POINTER_TYPES(SetCursorPromise)
+
+class CaptureInputPromise
+{
+public:
+   CaptureInputPromise() {
+      Client& c = Client::GetInstance();
+
+      L_ = c.GetScriptHost()->GetCallbackThread();
+      id_ = c.ReserveInputHandler();
+
+      c.SetInputHandler(id_, [=](Input const& input) -> bool {
+         if (cb_.is_valid()) {
+            return luabind::call_function<bool>(cb_, input);
+         }
+         return false;
+      });
+   }
+
+   ~CaptureInputPromise() { 
+      Destroy();
+   }
+
+   void OnInput(luabind::object cb) {
+      cb_ = luabind::object(L_, cb);
+   }
+   void Destroy() {
+      Client::GetInstance().RemoveInputHandler(id_);
+      id_ = 0;
+   }
+
+private:
+   lua_State*                 L_;
+   Client::InputHandlerId     id_;
+   luabind::object            cb_;
+   core::Guard                input_guards_;
+};
+
+class TraceRenderFramePromise : public std::enable_shared_from_this<TraceRenderFramePromise>
+{
+public:
+   TraceRenderFramePromise() {
+      L_ = Client::GetInstance().GetScriptHost()->GetCallbackThread();
+      guards_ += Renderer::GetInstance().OnRenderFrameStart([this](FrameStartInfo const& info) {
+         frame_start_slot_.Signal(info);
+      });
+      guards_ += Renderer::GetInstance().OnServerTick([this](int now) {
+         server_tick_slot_.Signal(now);
+      });
+   }
+
+   ~TraceRenderFramePromise() {
+   }
+
+   TraceRenderFramePromisePtr OnFrameStart(luabind::object cb) {
+      luabind::object callback(L_, cb);
+      guards_ += frame_start_slot_.Register([=](FrameStartInfo const &info) {
+         luabind::call_function<void>(callback, info.now, info.interpolate);
+      });
+      return shared_from_this();
+   }
+
+   TraceRenderFramePromisePtr OnServerTick(luabind::object cb) {
+      luabind::object callback(L_, cb);
+      guards_ += server_tick_slot_.Register([=](int now) {
+         luabind::call_function<void>(callback, now);
+      });
+      return shared_from_this();
+   }
+
+   TraceRenderFramePromisePtr Destroy() {
+      guards_.Clear();
+      return shared_from_this();
+   }
+
+private:
+   lua_State*                    L_;
+   core::Slot<FrameStartInfo>    frame_start_slot_;
+   core::Slot<int>               server_tick_slot_;
+   core::Guard                   guards_;
+};
+
+class SetCursorPromise
+{
+public:
+   SetCursorPromise(Client::CursorStackId id) : id_(id) { }
+
+   ~SetCursorPromise() {
+      Destroy();
+   }
+
+   void Destroy() {
+      Client::GetInstance().RemoveCursor(id_);
+   }
+
+private:
+   Client::CursorStackId      id_;
+};
 
 template <typename T>
 std::shared_ptr<T> Client_AllocObject()
@@ -193,61 +260,18 @@ bool Client_IsValidStandingRegion(lua_State* L, csg::Region3 const& r)
 
 CaptureInputPromisePtr Client_CaptureInput(lua_State* L)
 {
-   Client& c = Client::GetInstance();
-
-   CaptureInputPromisePtr callback = std::make_shared<CaptureInputPromise>();
-   CaptureInputPromiseRef cb = callback;
-
-   Client::InputHandlerId id = c.ReserveInputHandler();
-   c.SetInputHandler(id, [cb, &c, id, L](Input const& i) {
-      CaptureInputPromisePtr callback = cb.lock();
-      if (!callback) {
-         c.RemoveInputHandler(id);
-         return false;
-      }
-      return callback->Notify(luabind::object(L, i));
-   });
-
-   callback->OnDestroy([&c, id]() {
-      c.RemoveInputHandler(id);
-   });
-
-   return callback;
+   return std::make_shared<CaptureInputPromise>();
 }
 
 TraceRenderFramePromisePtr Client_TraceRenderFrame(lua_State* L)
 {
-   Client& c = Client::GetInstance();
-
-   TraceRenderFramePromisePtr callback = std::make_shared<TraceRenderFramePromise>();
-   TraceRenderFramePromiseRef cb = callback;
-
-   Client::TraceRenderFrameId id = c.ReserveTraceRenderFrameHandler();
-   c.SetTraceRenderFrameHandler(id, [cb, L](float frameTime) {
-      TraceRenderFramePromisePtr callback = cb.lock();
-      if (callback) {
-         callback->Notify(luabind::object(L, frameTime));
-      }
-   });
-
-   callback->OnDestroy([&c, id]() {
-      c.RemoveTraceRenderFrameHandler(id);
-   });
-
-   return callback;
+   return std::make_shared<TraceRenderFramePromise>();
 }
 
 SetCursorPromisePtr Client_SetCursor(lua_State* L, std::string const& name)
 {
    Client::CursorStackId id = Client::GetInstance().InstallCursor(name);
-   SetCursorPromisePtr promise = std::make_shared<SetCursorPromise>();
-   SetCursorPromiseRef p = promise;
-
-   promise->OnDestroy([id]() {
-      Client::GetInstance().RemoveCursor(id);
-   });
-
-   return promise;
+   return std::make_shared<SetCursorPromise>(id);
 }
 
 static bool MouseEvent_GetUp(MouseInput const& me, int button)
@@ -269,11 +293,22 @@ static bool MouseEvent_GetDown(MouseInput const& me, int button)
 }
 
 IMPLEMENT_TRIVIAL_TOSTRING(Client)
-IMPLEMENT_TRIVIAL_TOSTRING(LuaCallback)
+IMPLEMENT_TRIVIAL_TOSTRING(CaptureInputPromise)
+IMPLEMENT_TRIVIAL_TOSTRING(TraceRenderFramePromise)
+IMPLEMENT_TRIVIAL_TOSTRING(SetCursorPromise)
 IMPLEMENT_TRIVIAL_TOSTRING(Input)
 IMPLEMENT_TRIVIAL_TOSTRING(MouseInput)
 IMPLEMENT_TRIVIAL_TOSTRING(KeyboardInput)
 IMPLEMENT_TRIVIAL_TOSTRING(RawInput)
+
+static bool Client_IsKeyDown(int key)
+{
+   return glfwGetKey(glfwGetCurrentContext(), key) == GLFW_PRESS;
+}
+
+DEFINE_INVALID_JSON_CONVERSION(CaptureInputPromise);
+DEFINE_INVALID_JSON_CONVERSION(TraceRenderFramePromise);
+DEFINE_INVALID_JSON_CONVERSION(SetCursorPromise);
 
 void lua::client::open(lua_State* L)
 {
@@ -296,17 +331,20 @@ void lua::client::open(lua_State* L)
             def("alloc_region",                    &Client_AllocObject<om::Region3Boxed>),
             def("create_data_store",               &Client_CreateDataStore),
             def("is_valid_standing_region",        &Client_IsValidStandingRegion),
+            def("is_key_down",                     &Client_IsKeyDown),
             lua::RegisterTypePtr<CaptureInputPromise>()
-               .def("on_input",          &CaptureInputPromise::Progress)
+               .def("on_input",          &CaptureInputPromise::OnInput)
                .def("destroy",           &CaptureInputPromise::Destroy)
             ,
             lua::RegisterTypePtr<TraceRenderFramePromise>()
-               .def("on_frame",          &TraceRenderFramePromise::Progress)
-               .def("destroy",           &CaptureInputPromise::Destroy)
+               .def("on_servet_tick",    &TraceRenderFramePromise::OnServerTick)
+               .def("on_frame_start",    &TraceRenderFramePromise::OnFrameStart)
+               .def("destroy",           &TraceRenderFramePromise::Destroy)
             ,
             lua::RegisterTypePtr<SetCursorPromise>()
-               .def("destroy",           &CaptureInputPromise::Destroy)
+               .def("destroy",           &SetCursorPromise::Destroy)
             ,
+            // xxx: Input, MouseInput, KeyboardInput, etc. should be in open_core.cpp, right?
             lua::RegisterType<Input>()
                .enum_("constants") [
                   value("MOUSE", Input::MOUSE),
@@ -329,6 +367,14 @@ void lua::client::open(lua_State* L)
                .def("down",             &MouseEvent_GetDown)
             ,
             lua::RegisterType<KeyboardInput>()
+               .enum_("constants") [
+                  value("LEFT_SHIFT",        GLFW_KEY_LEFT_SHIFT),
+                  value("RIGHT_SHIFT",       GLFW_KEY_RIGHT_SHIFT),
+                  value("LEFT_CTRL",         GLFW_KEY_LEFT_CONTROL),
+                  value("RIGHT_CTRL",        GLFW_KEY_RIGHT_CONTROL),
+                  value("LEFT_ALT",          GLFW_KEY_LEFT_ALT),
+                  value("RIGHT_ALT",         GLFW_KEY_RIGHT_ALT)
+               ]
                .def_readonly("key",    &KeyboardInput::key)
                .def_readonly("down",   &KeyboardInput::down)
             ,

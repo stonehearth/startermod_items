@@ -4,7 +4,7 @@
 #include "egMaterial.h"
 #include "egCamera.h"
 #include "libjson.h"
-#include "radiant_json.h"
+#include "lib/json/node.h"
 #include "Horde3D.h"
 
 #if defined(ASSERT)
@@ -21,7 +21,7 @@ using namespace ::radiant::json;
 using namespace ::radiant::horde3d;
 
 
-animatedlight::ColorData parseColor(ConstJsonObject& n)
+animatedlight::ColorData parseColor(Node& n)
 {
    animatedlight::ColorData result;
    result.start = parseChannel(n, "start", Vec3f(1, 0, 0));
@@ -31,7 +31,7 @@ animatedlight::ColorData parseColor(ConstJsonObject& n)
    return result;
 }
 
-animatedlight::IntensityData parseIntensity(ConstJsonObject& n)
+animatedlight::IntensityData parseIntensity(Node& n)
 {
    animatedlight::IntensityData result;
    result.start = parseChannel(n, "start", 1.0f);
@@ -39,7 +39,7 @@ animatedlight::IntensityData parseIntensity(ConstJsonObject& n)
    return result;
 }
 
-animatedlight::RadiusData parseRadius(ConstJsonObject& n)
+animatedlight::RadiusData parseRadius(Node& n)
 {
    animatedlight::RadiusData result;
    result.start = parseChannel(n, "start", 20.0f);
@@ -89,7 +89,7 @@ bool AnimatedLightResource::load( const char *data, int size )
 	if( !Resource::load( data, size ) ) return false;
 
    std::string jsonData(data, size);
-   ConstJsonObject root(libjson::parse(jsonData));
+   Node root(libjson::parse(jsonData));
 
    if (root.has("intensity"))
    {
