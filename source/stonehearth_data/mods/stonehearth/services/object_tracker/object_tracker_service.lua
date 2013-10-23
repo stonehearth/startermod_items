@@ -1,6 +1,7 @@
 
 local EntityTracker = require 'services.object_tracker.entity_tracker'
 local InventoryTracker = require 'services.object_tracker.inventory_tracker'
+local ResourceTracker = require 'services.object_tracker.resource_tracker'
 local ObjectTrackerService = class()
 
 function ObjectTrackerService:__init()
@@ -32,11 +33,19 @@ function ObjectTrackerService:get_worker_tracker(faction)
 end
 
 function ObjectTrackerService:get_placable_items_tracker(faction)
-   local tracker_name = 'get_worker_tracker:' .. faction
+   local tracker_name = 'get_placable_items_tracker:' .. faction
 
    return self:_find_tracker(tracker_name, function()
       return InventoryTracker()
    end)
 end
+
+function ObjectTrackerService:get_resource_tracker(faction)
+   local tracker_name = 'get_resource_tracker:' .. faction
+
+   return self:_find_tracker(tracker_name, function()
+      return ResourceTracker(faction)
+   end)
+end 
 
 return ObjectTrackerService()

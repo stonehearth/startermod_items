@@ -1,3 +1,5 @@
+local inventory_service = require 'services.inventory.inventory_service'
+
 local StockpileComponent = class()
 
 local Cube3 = _radiant.csg.Cube3
@@ -61,6 +63,12 @@ function StockpileComponent:on_gameloop()
                               self:_rebuild_item_data()
                            end)
 
+   local unit_info = self._entity:add_component('unit_info')
+   self._unit_info_trace = unit_info:trace('stockpile tracking faction')
+      :on_changed(function()
+            self:_on_faction_changed()
+         end)
+      
    self:_rebuild_item_data()
 end
 
@@ -161,6 +169,12 @@ function StockpileComponent:_add_item(entity)
          -- hold onto the item...
          self._data.items[entity:get_id()] = entity
 
+         -- add the item to the inventory 
+         radiant.events.trigger(self._entity, "stonehearth:item_added", { 
+            storage = self._entity,
+            item = entity 
+         })
+
          -- update our destination component to *remove* the space
          -- where the item is, since we can't drop anything there
          self:_remove_world_point_from_region(location)
@@ -199,6 +213,26 @@ function StockpileComponent:_rebuild_item_data()
    for id, child in ec:items() do
       self:_add_item(child)
    end
+end
+
+function StockpileComponent:_on_faction_changed()
+   local faction = self._entity:add_component('unit_info'):get_faction()
+
+   if not self._faction or self._faction ~= faction then
+      if self._faction then
+         -- unregister from the current inventory service
+         local inventory = inventory_service:get_inventory(self._faction)
+         inventory:remove_storage(self._entity)
+      end
+
+      -- register with the inventory service for this faction
+      if faction then
+         local inventory = inventory_service:get_inventory(faction)
+         inventory:add_storage(self._entity)
+      end
+   end
+
+   self._faction = faction
 end
 
 

@@ -18,5 +18,10 @@ function ObjectTrackerCallHandler:get_placable_items_tracker(session, response)
    return format_response(tracker)
 end
 
+function ObjectTrackerCallHandler:get_resource_tracker(session, response)
+   local tracker = object_tracker:get_resource_tracker(session.faction)
+   return format_response(tracker)
+end
+
 
 return ObjectTrackerCallHandler

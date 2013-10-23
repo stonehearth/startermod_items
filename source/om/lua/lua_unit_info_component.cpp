@@ -7,6 +7,12 @@ using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+
+dm::Object::LuaPromise<om::UnitInfo>* UnitInfo_Trace(om::UnitInfo const& db, const char* reason)
+{
+   return new dm::Object::LuaPromise<om::UnitInfo>(reason, db);
+}
+
 scope LuaUnitInfoComponent::RegisterLuaTypes(lua_State* L)
 {
    return
@@ -19,5 +25,8 @@ scope LuaUnitInfoComponent::RegisterLuaTypes(lua_State* L)
          .def("get_faction",           &om::UnitInfo::GetFaction)
          .def("set_icon",           &om::UnitInfo::SetIcon)
          .def("get_icon",           &om::UnitInfo::GetIcon)
+         .def("trace",              &UnitInfo_Trace)
+      ,
+      dm::Object::LuaPromise<om::UnitInfo>::RegisterLuaType(L)
       ;
 }
