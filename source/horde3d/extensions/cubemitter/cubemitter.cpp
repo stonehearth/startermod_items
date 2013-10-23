@@ -374,10 +374,6 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 	GPUTimer *timer = Modules::stats().getGPUTimer( EngineStats::ParticleGPUTime );
 	if( Modules::config().gatherTimeStats ) timer->beginQuery( Modules::renderer().getFrameID() );
 
-	// Bind cube geometry
-   gRDI->setVertexBuffer( 0, Extension::getCubemitterCubeVBO(), 0, sizeof( CubeVert ) );
-   gRDI->setIndexBuffer( Extension::getCubemitterCubeIBO(), IDXFMT_16 );
-
 	// Loop through and find all Cubemitters.
 	for( const auto &entry : Modules::sceneMan().getRenderableQueue() )
 	{
@@ -434,23 +430,14 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 			curMatRes = emitter->_materialRes;
 		}
 
-		// Set vertex layout
-      gRDI->setVertexLayout( Extension::getCubemitterCubeVL() );
-		
-		if( queryObj )
-			gRDI->beginQuery( queryObj );
-		
-		// Shader uniforms
-		ShaderCombination *curShader = Modules::renderer().getCurShader();
-		if( curShader->uni_nodeId >= 0 )
-		{
-			float id = (float)emitter->getHandle();
-			gRDI->setShaderConst( curShader->uni_nodeId, CONST_FLOAT, &id );
-		}
+	   if( queryObj )
+		   gRDI->beginQuery( queryObj );
 
-      gRDI->updateBufferData(emitter->_attributeBuf, 0, sizeof(CubeAttribute) * emitter->_maxCubes, emitter->_attributesBuff);
-      gRDI->setVertexBuffer(1, emitter->_attributeBuf, 0, sizeof(CubeAttribute));
-      gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, 36, 0, emitter->_maxCubes);
+      if (gRDI->getCaps().hasInstancing) {
+         emitter->renderWithInstancing();
+      } else {
+         emitter->renderWithBatches();
+      }
       
       emitter->_wasVisible = true;
 
@@ -465,6 +452,71 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 		Modules::renderer().drawOccProxies( 0 );
 	
 	gRDI->setVertexLayout( 0 );
+}
+
+void CubemitterNode::renderWithInstancing()
+{
+   // Set vertex layout
+   gRDI->setVertexLayout( Extension::getCubemitterCubeVL() );
+
+	// Bind cube geometry
+   gRDI->setVertexBuffer( 0, Extension::getCubemitterCubeVBO(), 0, sizeof( CubeVert ) );
+   gRDI->setIndexBuffer( Extension::getCubemitterCubeIBO(), IDXFMT_16 );
+
+   // Shader uniforms
+	ShaderCombination *curShader = Modules::renderer().getCurShader();
+
+   gRDI->updateBufferData(_attributeBuf, 0, sizeof(CubeAttribute) * _maxCubes, _attributesBuff);
+   gRDI->setVertexBuffer(1, _attributeBuf, 0, sizeof(CubeAttribute));
+   gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, 36, 0, _maxCubes);
+}
+
+void CubemitterNode::renderWithBatches()
+{
+   // Set vertex layout
+   gRDI->setVertexLayout(Extension::getCubemitterBatchCubeVL());
+
+   gRDI->setVertexBuffer(0, Extension::getCubemitterBatchCubeVBO(), 0, sizeof(CubeBatchVert));
+   gRDI->setIndexBuffer(Extension::getCubemitterBatchCubeIBO(), IDXFMT_16);
+
+   // Shader uniforms
+	ShaderCombination *curShader = Modules::renderer().getCurShader();
+
+   uint32 batchNum = 0;
+   for (batchNum; batchNum < _maxCubes / CubesPerBatch; batchNum++)
+   {
+      renderBatch(curShader, batchNum, CubesPerBatch);
+   }
+   uint32 count = _maxCubes % CubesPerBatch;
+	if(count > 0)
+   {
+      renderBatch(curShader, batchNum, count);
+   }
+}
+
+void CubemitterNode::renderBatch(ShaderCombination *curShader, int batchNum, int count)
+{
+   float matArray[16 * CubesPerBatch];
+   float colorArray[4 * CubesPerBatch];
+
+   for (int i = 0; i < count; i++)
+   {
+      memcpy(matArray + (i * 16), _attributesBuff[(CubesPerBatch * batchNum) + i].matrix.x, 16 * sizeof(float));
+      colorArray[i * 4 + 0] = _attributesBuff[(CubesPerBatch * batchNum) + i].color.x;
+      colorArray[i * 4 + 1] = _attributesBuff[(CubesPerBatch * batchNum) + i].color.y;
+      colorArray[i * 4 + 2] = _attributesBuff[(CubesPerBatch * batchNum) + i].color.z;
+      colorArray[i * 4 + 3] = _attributesBuff[(CubesPerBatch * batchNum) + i].color.w;
+   }
+
+	if (curShader->uni_cubeBatchTransformArray >= 0)
+   {
+      gRDI->setShaderConst(curShader->uni_cubeBatchTransformArray, CONST_FLOAT44, matArray, count);
+   }
+	if (curShader->uni_cubeBatchColorArray >= 0)
+   {
+      gRDI->setShaderConst(curShader->uni_cubeBatchColorArray, CONST_FLOAT4, colorArray, count);
+   }
+   gRDI->drawIndexed(PRIM_TRILIST, 0, count * 36, 0, count * 8);
 }
 
 void CubemitterNode::onPostUpdate()

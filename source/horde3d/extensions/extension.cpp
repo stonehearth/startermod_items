@@ -20,6 +20,10 @@ radiant::uint32 Extension::_cubeVBO;
 radiant::uint32 Extension::_cubeIdxBuf;
 radiant::uint32 Extension::_vlCube;
 
+radiant::uint32 Extension::_cubeBatchVBO;
+radiant::uint32 Extension::_cubeBatchIdxBuf;
+radiant::uint32 Extension::_vlBatchCube;
+
 Extension::Extension()
 {
 }
@@ -76,7 +80,15 @@ bool Extension::init()
    }
    DebugShapesNode::default_material = (MaterialResource *)matRes;
 
+   createCubeInstanceData();
+   createCubeBatchData();
+   return true;
+}
 
+void Extension::createCubeInstanceData()
+{
+   // Global constants for cubemitter vertex layout/vertices/index buffer.  These are ONLY
+   // used with instanced geometry.
    const int numCubeAttributes = 3;
    VertexLayoutAttrib attribsCube[numCubeAttributes] = {
       {"vertPos", 0, 3, 0},
@@ -107,9 +119,61 @@ bool Extension::init()
 		4, 0, 3, 3, 7, 4,   3, 2, 6, 6, 7, 3,   4, 5, 1, 1, 0, 4
 	};
    _cubeIdxBuf = gRDI->createIndexBuffer(36 * sizeof(uint16), (void *)cubeInds);
+}
 
+void Extension::createCubeBatchData()
+{
+   // Global constants for cubemitter vertex layout/vertices/index buffer.  These are ONLY
+   // used with batch geometry.
+   const int numCubeAttributes = 2;
+   VertexLayoutAttrib attribsCube[numCubeAttributes] = {
+      {"vertPos", 0, 3, 0},
+      {"parIdx", 0, 1, 12}
+	};
+	_vlBatchCube = gRDI->registerVertexLayout( numCubeAttributes, attribsCube);
 
-   return true;
+   // Create cube geometry array
+	CubeBatchVert cvs[8];
+   cvs[0] = CubeBatchVert( 0, 0,  1, 0 );
+	cvs[1] = CubeBatchVert(  1, 0,  1, 0 );
+	cvs[2] = CubeBatchVert(  1,  1,  1, 0 );
+	cvs[3] = CubeBatchVert( 0,  1,  1, 0 );
+	cvs[4] = CubeBatchVert( 0, 0, 0, 0 );
+	cvs[5] = CubeBatchVert(  1, 0, 0, 0 );
+	cvs[6] = CubeBatchVert(  1,  1, 0, 0 );
+	cvs[7] = CubeBatchVert( 0,  1, 0, 0 );
+
+   CubeBatchVert *cubeVerts = new CubeBatchVert[CubesPerBatch * 8];
+   for (uint32 i = 0; i < CubesPerBatch; i++)
+   {
+      cubeVerts[i * 8 + 0] = cvs[0]; cubeVerts[i * 8 + 0].index = (float)i;
+      cubeVerts[i * 8 + 1] = cvs[1]; cubeVerts[i * 8 + 1].index = (float)i;
+      cubeVerts[i * 8 + 2] = cvs[2]; cubeVerts[i * 8 + 2].index = (float)i;
+      cubeVerts[i * 8 + 3] = cvs[3]; cubeVerts[i * 8 + 3].index = (float)i;
+      cubeVerts[i * 8 + 4] = cvs[4]; cubeVerts[i * 8 + 4].index = (float)i;
+      cubeVerts[i * 8 + 5] = cvs[5]; cubeVerts[i * 8 + 5].index = (float)i;
+      cubeVerts[i * 8 + 6] = cvs[6]; cubeVerts[i * 8 + 6].index = (float)i;
+      cubeVerts[i * 8 + 7] = cvs[7]; cubeVerts[i * 8 + 7].index = (float)i;
+   }
+	_cubeBatchVBO = gRDI->createVertexBuffer( CubesPerBatch * 8 * sizeof( CubeBatchVert ), (float *)cubeVerts );
+   delete[] cubeVerts;
+
+   // Create cube geometry indices.
+	uint16 cubeInds[36] = {
+		0, 1, 2, 2, 3, 0,   1, 5, 6, 6, 2, 1,   5, 4, 7, 7, 6, 5,
+		4, 0, 3, 3, 7, 4,   3, 2, 6, 6, 7, 3,   4, 5, 1, 1, 0, 4
+	};
+   uint16 *cubeIdx = new uint16[36 * CubesPerBatch];
+
+   for (uint32 i = 0; i < CubesPerBatch; i++)
+   {
+      for (int j = 0; j < 36; j++)
+      {
+         cubeIdx[i * 36 + j] = cubeInds[j] + (i * 8);
+      }
+   }
+   _cubeBatchIdxBuf = gRDI->createIndexBuffer(CubesPerBatch * 36 * sizeof(uint16), (void *)cubeIdx);
+   delete[] cubeIdx;
 }
 
 void Extension::release()

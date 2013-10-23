@@ -82,13 +82,24 @@ struct ParticleVert
 struct CubeVert
 {
    float x, y, z;       // Object-space location.
-	// float  u, v;         // Texture coordinates
-	//float  index;        // Index in property array
 
 	CubeVert() {}
 
 	CubeVert( float x, float y, float z ):
 		x( x ), y( y ), z( z )
+	{
+	}
+};
+
+struct CubeBatchVert
+{
+   float x, y, z;       // Object-space location.
+	float  index;        // Index in property array
+
+	CubeBatchVert() {}
+
+	CubeBatchVert( float x, float y, float z, float index ):
+		x( x ), y( y ), z( z ), index(index)
 	{
 	}
 };
