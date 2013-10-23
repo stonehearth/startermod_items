@@ -12,6 +12,13 @@
             "models": [
                "file(carpenter_outfit.qb)"
             ]
+         },
+         {
+            "variants": "female",
+            "layer": "clothing",
+            "models": [
+               "file(carpenter_outfit_female.qb)"
+            ]
          }
       ],
       "stonehearth:equipment_piece" : {

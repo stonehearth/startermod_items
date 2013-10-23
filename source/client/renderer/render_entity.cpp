@@ -184,8 +184,8 @@ void RenderEntity::AddComponent(dm::ObjectType key, std::shared_ptr<dm::Object> 
             break;
          }
          case om::DestinationObjectType: {
-            om::DestinationPtr stockpile = std::static_pointer_cast<om::Destination>(value);
-            components_[key] = std::make_shared<RenderDestination>(*this, stockpile);
+            om::DestinationPtr destination = std::static_pointer_cast<om::Destination>(value);
+            components_[key] = std::make_shared<RenderDestination>(*this, destination);
             break;
          }
          case om::LuaComponentsObjectType: {
@@ -304,11 +304,6 @@ dm::ObjectId RenderEntity::GetObjectId() const
 {
    auto entity = entity_.lock();
    return entity ? entity->GetObjectId() : 0;
-}
-
-bool RenderEntity::ShowDebugRegions() const
-{
-   return true;
 }
 
 void RenderEntity::SetModelVariantOverride(bool enabled, std::string const& variant)

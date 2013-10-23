@@ -11,32 +11,40 @@
       position: absolute;
       left: 0px;
       bottom: 0px;
-      height: 45px;
-      padding: 10px;
+      width: 324px;
+      height: 98px;
+      background: url('./images/bg.png');
       font-size: 32px;
-      line-height: 30px;
+      line-height: 26px;
+      text-align: center;
+
+         .name {
+            padding-top: 24px;
+            font-size: 28px;
+         }
 
          .description {
-         .smallFont;
+         font-size: 18px;
          color: @controlLightFontColor;
       }
    }
 
    #commandButtons {
       position: absolute;
-      bottom: 55px;
-      left: 8px;
-      width: 325px;
-      height: 70px;
-      //background: url('./images/command_button_well.png');
+      bottom: 0px;
+      left: 330px;
 
       .commandButton {
          position: relative;
          display: inline-block;
-         width: 63px;
-         height: 65px;
+         width: 93px;
+         height: 98px;
          background: url('./images/command_button_bg.png');
          border: 0px;
+
+         img {
+            width: 90px;
+         }
 
          .active {
             background: red !important;
@@ -45,8 +53,8 @@
          #hotkey {
             .hotkey;
             position: absolute;
-            bottom: 4px;
-            right: 6px;
+            bottom: 15px;
+            right: 12px;
          }
       }
 

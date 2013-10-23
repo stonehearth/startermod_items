@@ -185,6 +185,8 @@ Renderer::Renderer() :
       Renderer::GetInstance().FlushMaterials();
    }, true);
 
+   SetShowDebugShapes(false);
+
    initialized_ = true;
 }
 
@@ -816,4 +818,20 @@ core::Guard Renderer::OnServerTick(std::function<void(int)> fn)
 core::Guard Renderer::OnRenderFrameStart(std::function<void(FrameStartInfo const&)> fn)
 {
    return render_frame_start_slot_.Register(fn);
+}
+
+bool Renderer::GetShowDebugShapes()
+{
+   return show_debug_shapes_;
+}
+
+void Renderer::SetShowDebugShapes(bool show_debug_shapes)
+{
+   show_debug_shapes_ = show_debug_shapes;
+   show_debug_shapes_changed_slot_.Signal(show_debug_shapes);
+}
+
+core::Guard Renderer::OnShowDebugShapesChanged(std::function<void(bool)> fn)
+{
+   return show_debug_shapes_changed_slot_.Register(fn);
 }
