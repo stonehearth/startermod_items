@@ -452,6 +452,9 @@ bool Renderer::createShaderComb( const char* filename, const char *vertexShader,
 	sc.uni_parPosArray = gRDI->getShaderConstLoc( shdObj, "parPosArray" );
 	sc.uni_parSizeAndRotArray = gRDI->getShaderConstLoc( shdObj, "parSizeAndRotArray" );
 	sc.uni_parColorArray = gRDI->getShaderConstLoc( shdObj, "parColorArray" );
+
+   sc.uni_cubeBatchTransformArray = gRDI->getShaderConstLoc( shdObj, "cubeBatchTransformArray" );
+   sc.uni_cubeBatchColorArray = gRDI->getShaderConstLoc( shdObj, "cubeBatchColorArray" );
 	
 	// Overlay-specific uniforms
 	sc.uni_olayColor = gRDI->getShaderConstLoc( shdObj, "olayColor" );
