@@ -35,7 +35,6 @@ function SkyRenderer:__init()
                               :on_frame_start(function(now, interpolate)
                                     self:_interpolate_time(now, interpolate)
                                  end)
-   local a = 1
 end
 
 function SkyRenderer:set_sky_constants()
@@ -98,7 +97,6 @@ function SkyRenderer:_update_time(seconds)
       self._calendar_seconds_between_updates = seconds - self._calendar_seconds
       self._render_ms_between_updates = self._last_render_time_ms - self._render_time_at_last_update
    end
-   --radiant.log.warning('UPDATING TIME TO %d', seconds)
    self._calendar_seconds = seconds
    self._render_time_at_last_update = self._last_render_time_ms
    self:_update(self._calendar_seconds)
@@ -119,8 +117,6 @@ function SkyRenderer:_interpolate_time(now)
          interpolation_time = self._render_ms_between_updates
       end
       local interpolation_seconds = self._calendar_seconds_between_updates * (interpolation_time / self._render_ms_between_updates)
-      radiant.log.warning('interpolating... %d -> %.2f', now, interpolation_seconds)
-      --interpolation_seconds = 0
       self:_update(self._calendar_seconds + math.floor(interpolation_seconds))
    end
    self._last_render_time_ms = now
@@ -138,7 +134,6 @@ function SkyRenderer:_update_light(seconds, light)
    local ambient_color = self:_find_value(seconds, light.ambient_colors)
    local angles = self:_find_value(seconds, light.angles)
 
-   --radiant.log.warning('moving light %d %d -> %.2f, %.2f, %.2f', seconds - last, seconds, angles.x, angles.y, angles.z)
    last = seconds
    
    self:_light_color(light, color.x, color.y, color.z)

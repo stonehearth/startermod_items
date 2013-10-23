@@ -334,12 +334,6 @@ void Renderer::RenderOneFrame(int now, float alpha)
 
    // Advance emitter time; this must come AFTER rendering, because we only know which emitters
    // to update after doing a render pass.
-   //
-   // xxx - Since the light / cubemitter interfaces take delta-time, they don't actually make progress
-   // until they're in the scene.  This is fine for things with short durations that loop, but effects
-   // which have bounded time or progressive effects (e.g. sparks followed by a grey smoke cloud followed
-   // by an explosion of particles) may need to jump to the middle if the camera suddenly focuses on them
-   // from off-screen. -- tony
    perfmon::SwitchToCounter("render ce");
    float delta = (last_render_time_ - now) / 1000.0f;
    h3dRadiantAdvanceCubemitterTime(delta);

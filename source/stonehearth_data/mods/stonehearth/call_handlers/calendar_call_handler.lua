@@ -8,13 +8,8 @@ function CalendarCallHandler:get_clock_object(session, request)
    if not clock_object then
       clock_object = _radiant.sim.create_data_store()
       
-      local count = 0
       local update_clock = function()
-         if count == 0 then
-            clock_object:update(calendar:get_time_and_date())
-            count = 10
-         end
-         count = count - 1
+         clock_object:update(calendar:get_time_and_date())
       end
 
       radiant.events.listen('radiant:events:calendar:minutely', update_clock)
