@@ -503,7 +503,7 @@ uint32 RenderDevice::createTexture( TextureTypes::List type, int width, int heig
 }
 
 
-void RenderDevice::copyTextureDataFromPbo( uint32 texObj, uint32 pboObj, int xOffset, int yOffset, int width, int height )
+void RenderDevice::copyTextureDataFromPbo( uint32 texObj, uint32 pboGlObj, int xOffset, int yOffset, int width, int height )
 {
    const RDITexture &tex = _textures.getRef( texObj );
    int inputFormat = GL_BGRA, inputType = GL_UNSIGNED_BYTE;
@@ -530,8 +530,8 @@ void RenderDevice::copyTextureDataFromPbo( uint32 texObj, uint32 pboObj, int xOf
    ASSERT(width <= tex.width);
    ASSERT(height <= tex.height);
 
-   glBindTexture(GL_TEXTURE_2D, texObj);
-   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboObj);
+   glBindTexture(GL_TEXTURE_2D, tex.glObj);
+   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboGlObj);
    
    glTexSubImage2D(GL_TEXTURE_2D, 0, xOffset, yOffset, width, height, inputFormat, inputType, 0);
    
@@ -1308,8 +1308,8 @@ void RenderDevice::applySamplerState( RDITexture &tex )
 	uint32 state = tex.samplerState;
 	uint32 target = tex.type;
 	
-	const uint32 magFilters[] = { GL_LINEAR, GL_LINEAR, GL_NEAREST };
-	const uint32 minFiltersMips[] = { GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR_MIPMAP_LINEAR, GL_NEAREST_MIPMAP_NEAREST };
+	const uint32 magFilters[] = { GL_LINEAR, GL_LINEAR, GL_NEAREST, 0, GL_NEAREST  };
+	const uint32 minFiltersMips[] = { GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR_MIPMAP_LINEAR, GL_NEAREST_MIPMAP_NEAREST, 0, GL_LINEAR_MIPMAP_LINEAR };
 	const uint32 maxAniso[] = { 1, 2, 4, 0, 8, 0, 0, 0, 16 };
 	const uint32 wrapModes[] = { GL_CLAMP_TO_EDGE, GL_REPEAT, GL_CLAMP_TO_BORDER };
 
@@ -1333,6 +1333,7 @@ void RenderDevice::applySamplerState( RDITexture &tex )
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL );
 	}
+
 }
 
 

@@ -592,6 +592,7 @@ bool ShaderResource::parseFXSection( char *data )
 						if( tok.checkToken( "Trilinear" ) ) sampler.sampState |= SS_FILTER_TRILINEAR;
 						else if( tok.checkToken( "Bilinear" ) ) sampler.sampState |= SS_FILTER_BILINEAR;
 						else if( tok.checkToken( "None" ) ) sampler.sampState |= SS_FILTER_POINT;
+                  else if( tok.checkToken( "Pixely" ) ) sampler.sampState |= SS_FILTER_PIXELY;
 						else return raiseError( "FX: invalid enum value", tok.getLine() );
 					}
 					else if( tok.checkToken( "MaxAnisotropy" ) )
