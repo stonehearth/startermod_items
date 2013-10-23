@@ -33,7 +33,6 @@ function CarryItemOnPathTo:run(ai, entity, path_to_item, destination_entity)
 
    -- If we're here, pickup succeeded, so we're now carrying the item.
    -- Wait until the PF we started earlier returns
-   assert(proxy_entity:get_id() == radiant.entities.get_carrying(entity):get_id())
    ai:wait_until(function()
       return self._path_to_destination ~= nil
    end)

@@ -250,16 +250,16 @@ function AIComponent:abort(reason)
    if reason == nil then reason = 'no reason given' end
    radiant.log.info('Aborting current action because: ' .. reason)
    
-   self:_clear_action_stack()
-   
+   self:_clear_action_stack()   
    -- all actions have had their stop method called on them.  yield
    -- KILL_THREAD to get the ai service to call restart() next time,
-   -- which will start us over at stonehearth:top.+
-   coroutine.yield(self._ai_system.KILL_THREAD)
+   -- which will start us over at stonehearth:top.   
+   
+   self._ai_system:_complete_thread_termination(self._co)   
 end
 
 function AIComponent:_is_in_action_stack(action, filter_depth)
-   assert(filter_depth <= #self._action_stack, "we're looking to deep in _is_in_action_stack")
+   assert(filter_depth <= #self._action_stack, "we're looking too deep in _is_in_action_stack")
    if filter_depth > 0 then
       for i=1,filter_depth do
          local entry = self._action_stack[i]

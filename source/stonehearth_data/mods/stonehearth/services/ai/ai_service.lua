@@ -47,11 +47,10 @@ function AiService:_on_event_loop(e)
    local dead = {}
    for co, _ in pairs(self._scheduled) do
       -- run it
-      local status = coroutine.status(co)
-      if status ~= 'suspended' then
-         status = status
-      end
+      self._running_thread = co
       local success, wait_obj = coroutine.resume(co)
+      self._running_thread = nil
+      
       if not success then
          radiant.check.report_thread_error(co, 'co-routine failed: ' .. tostring(wait_obj))
          self._scheduled[co] = nil
@@ -65,7 +64,7 @@ function AiService:_on_event_loop(e)
          table.insert(dead, co)
       end
    end
-   
+  
    for _, co in ipairs(dead) do
       local ai_component = self._co_to_ai_component[co]
       if ai_component then
@@ -161,11 +160,24 @@ function AiService:_resume_thread(co)
    end
 end
 
+-- removes the thread from the scheduler and the waiting thread
+-- list.  If the thread is still running (terminate self?  is that
+-- moral?), you still need to _complete_thread_termination later,
+-- which will make sure the thread doesn't get rescheduled.
 function AiService:_terminate_thread(co)
    if co then
       self._waiting_until[co] = nil
       self._scheduled[co] = nil
       self._co_to_ai_component[co] = nil
+   end
+end
+
+function AiService:_complete_thread_termination(co)
+   if self._running_thread ~= co then
+      radiant.log.info('killing non running thread... nothing to do.')
+   else 
+      radiant.log.info('killing running thread... yielding KILL_THREAD.')
+      coroutine.yield(self.KILL_THREAD)
    end
 end
 

@@ -54,6 +54,7 @@ public:
                luabind::call_function<void>(cb);
             }
          };
+         callback_thread_ = c.GetStore().GetInterpreter();
          guard_ = c.TraceObjectChanges(reason, changed);
       }
 
@@ -68,7 +69,7 @@ public:
             class_<LuaPromise<T>>(tname.c_str())
                .def(tostring(const_self))               
                .def("on_changed",    &LuaPromise::PushChangedCb)
-               .def("destroy",      &LuaPromise::Destroy)
+               .def("destroy",       &LuaPromise::Destroy)
             ;
       }
 
@@ -77,13 +78,15 @@ public:
       }
 
       LuaPromise* PushChangedCb(luabind::object cb) {
-         cbs_.push_back(cb);
+         luabind::object fn(callback_thread_, cb);
+         cbs_.push_back(fn);
          return this;
       }
 
    private:
+      lua_State*                      callback_thread_;
       core::Guard                     guard_;
-      std::vector<luabind::object>  cbs_;
+      std::vector<luabind::object>    cbs_;
    };
 
    void SaveObject(Protocol::Object* msg) const;

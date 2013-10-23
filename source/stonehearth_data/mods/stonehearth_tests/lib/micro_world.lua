@@ -10,7 +10,7 @@ function MicroWorld:__init(size)
    self._times = {}
    self._timers = {}
    self._running = false
-   
+
    if not size then
       size = 32
    end
@@ -34,13 +34,13 @@ function MicroWorld:on_gameloop(e)
 end
 
 function MicroWorld:create_world()
-   local region3 = _radiant.sim.alloc_region()   
-   local r3 = region3:modify() 
-   
+   local region3 = _radiant.sim.alloc_region()
+   local r3 = region3:modify()
+
    r3:add_cube(Cube3(Point3(0, -16, 0), Point3(self._size, 0, self._size), Terrain.SOIL))
    r3:add_cube(Cube3(Point3(0,   0, 0), Point3(self._size, 1, self._size), Terrain.LIGHT_GRASS))
-   
-   local terrain = radiant._root_entity:add_component('terrain')   
+
+   local terrain = radiant._root_entity:add_component('terrain')
    terrain:set_zone_size(self._size)
    terrain:add_zone(Point3(-16, 0, -16), region3)
 end
@@ -56,10 +56,10 @@ end
 
 function MicroWorld:place_item(uri, x, z, faction)
    local entity = radiant.entities.create_entity(uri)
-   radiant.terrain.place_entity(entity, Point3(x, 1, z))
    if faction then
       entity:add_component('unit_info'):set_faction(faction)
    end
+   radiant.terrain.place_entity(entity, Point3(x, 1, z))
    return entity
 end
 

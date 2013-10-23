@@ -38,6 +38,12 @@ function PlaceableItemProxyComponent:get_full_sized_entity()
    return self._full_sized_entity
 end
 
+--- If something started as a big entity and then we have to carry it
+-- save it's full-sized entity here, to preserve its values
+function PlaceableItemProxyComponent:set_full_sized_entity(full_sized_entity)
+   self._full_sized_entity = full_sized_entity
+end
+
 --Get the uri of the full sized entity to the place command
 function PlaceableItemProxyComponent:get_full_sized_entity_uri()
    return self._data.full_sized_entity_uri
@@ -48,7 +54,7 @@ end
 ]]
 function PlaceableItemProxyComponent:_create_full_sized_entity()
    self._full_sized_entity = radiant.entities.create_entity(self._data.full_sized_entity_uri)
-   self._full_sized_entity:add_component('stonehearth:placeable_item_pointer'):set_proxy(self._entity)
+   self._full_sized_entity:add_component('stonehearth:placed_item'):set_proxy(self._entity)
 
    local proxy_faction = radiant.entities.get_faction(self._entity)
    self._full_sized_entity:add_component('unit_info'):set_faction(proxy_faction)
@@ -75,8 +81,6 @@ function PlaceableItemProxyComponent:_create_derived_components()
    --local place_command = self._entity:get_component('stonehearth:commands')
    local place_command = self._entity:add_component('stonehearth:commands')
    place_command:add_command(radiant.resources.load_json('/stonehearth/data/commands/place_command.json'))
-
-
 
    local command_data = place_command:modify_command('place_item')
    command_data.event_data.full_sized_entity_uri = full_sized_uri

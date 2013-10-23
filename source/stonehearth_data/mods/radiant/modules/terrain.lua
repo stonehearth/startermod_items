@@ -1,6 +1,7 @@
 local Point3 = _radiant.csg.Point3
 
 local Terrain = {}
+local singleton = {}
 
 local _terrain = radiant._root_entity:add_component('terrain')
 

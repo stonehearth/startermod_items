@@ -14,7 +14,7 @@ function PlacementTest:__init()
    local citizen = self:place_citizen(12, 12)
    local citizen2 = self:place_citizen(-12, -12)
    local faction = radiant.entities.get_faction(citizen)
-
+---[[
    self:place_item('stonehearth:comfy_bed_proxy', 0, 0)
    self:place_item('stonehearth:arch_backed_chair_proxy', 0, 0)
    self:place_item('stonehearth:comfy_bed_proxy', 1, 0)
@@ -32,10 +32,16 @@ function PlacementTest:__init()
    self:place_item('stonehearth:picket_fence_proxy', 4, 3)
    self:place_item('stonehearth:picket_fence_proxy', 5, 3)
    self:place_item('stonehearth:picket_fence_proxy', 6, 3)
+
    self:place_item('stonehearth:firepit_proxy', 7, 3, faction)
    self:place_item('stonehearth:firepit', 9, 3, faction)
 
    local tree = self:place_tree(0, -12)
+--]]
+   --TODO: note that this table disappears after it is removed
+   --and placed again. Why?
+   local table = radiant.entities.create_entity('stonehearth:dining_table')
+   radiant.terrain.place_entity(table, Point3(10, 1, 10))
 
    self:at(5000, function()
       self:place_item('stonehearth:comfy_bed_proxy', 1, 5)
@@ -43,10 +49,12 @@ function PlacementTest:__init()
 
    self:at(10000, function()
       self:place_item('stonehearth:comfy_bed_proxy', 2, 5)
+      radiant.terrain.remove_entity(table)
    end)
 
    self:at(15000, function()
       self:place_item('stonehearth:comfy_bed_proxy', 3, 5)
+      radiant.terrain.place_entity(table, Point3(11, 1, 11))
    end)
 
    self:at(20000, function()
@@ -54,15 +62,14 @@ function PlacementTest:__init()
    end)
 
    self:at(25000, function()
-      self:place_item('stonehearth:comfy_bed_proxy', 5, 5)
+      --self:place_item('stonehearth:comfy_bed_proxy', 5, 5)
    end)
 
    self:at(30000, function()
-      self:place_item('stonehearth:comfy_bed_proxy', 6, 5)
+      --self:place_item('stonehearth:comfy_bed_proxy', 6, 5)
    end)
 
    --self:place_stockpile_cmd(faction, 10, 10, 5, 5)
-
 end
 
 return PlacementTest

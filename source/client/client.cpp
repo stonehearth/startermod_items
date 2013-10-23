@@ -193,11 +193,12 @@ void Client::run()
    });
 
    lua_State* L = scriptHost_->GetInterpreter();
+   lua_State* callback_thread = scriptHost_->GetCallbackThread();
    renderer.SetScriptHost(GetScriptHost());
    om::RegisterLuaTypes(L);
    csg::RegisterLuaTypes(L);
-   store_.SetInterpreter(L); // xxx move to dm open or something
-   authoringStore_.SetInterpreter(L); // xxx move to dm open or something
+   store_.SetInterpreter(callback_thread); // xxx move to dm open or something
+   authoringStore_.SetInterpreter(callback_thread); // xxx move to dm open or something
    lua::om::register_json_to_lua_objects(L, store_);
    lua::om::register_json_to_lua_objects(L, authoringStore_);
    lua::client::open(L);

@@ -1,7 +1,10 @@
 {
-   "extends": "stonehearth:mixins:placed_properties",
    "type": "entity",
    "components": {
+      "mob" : {
+         "interpolate_movement" : false
+      },
+      "render_info" : {},
       "stonehearth:center_of_attention_spot" : {
       },
       "stonehearth:lease_component" : {}

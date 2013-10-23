@@ -66,14 +66,12 @@ function entities.has_child_by_id(parent, child_id)
    end
 
    local children = component:get_children()
-
    local found = false
    for id, child in children:items() do
       if child_id == id then
         found = true
       end
    end
-
    return found
 end
 
@@ -145,7 +143,9 @@ end
 
 function entities.get_location_aligned(entity)
    radiant.check.is_entity(entity)
-   return entity:add_component('mob'):get_grid_location()
+   if entity then
+      return entity:add_component('mob'):get_grid_location()
+   end
 end
 
 function entities.get_world_grid_location(entity)
@@ -453,6 +453,11 @@ function entities.is_hostile(entity_a, entity_b)
    return faction_a and faction_b and
           faction_a ~= '' and faction_b ~= '' and
           faction_a ~= faction_b
+end
+
+function entities.on_entity_moved(entity, fn, reason)
+   reason = reason and reason or 'on_entity_moved promise'
+   return entity:add_component('mob'):trace(reason):on_changed(fn)
 end
 
 entities.__init()

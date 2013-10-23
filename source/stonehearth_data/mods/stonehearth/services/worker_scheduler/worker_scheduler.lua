@@ -23,12 +23,18 @@ function WorkerScheduler:dispatch_solution(action, path)
    local id = path:get_source():get_id()
    local e = self._workers[id]
 
-   assert(e, string.format('unknown worker id %d in _dispatch_solution', id))
+   --TODO: figure out why the pf is dispatching twice to the same worker
+   --Seems to happen intermittently when lighting a moved fire
+   --assert(e, string.format('unknown worker id %d in _dispatch_solution', id))
+   radiant.log.warning('unknown worker id %d in _dispatch_solution', id)
+   
+   if e then
+      self:remove_worker(e.worker)
 
-   self:remove_worker(e.worker)
-
-   --TODO: figure out how to prioritize different worker actions
-   e.dispatch_fn(10, action)
+      --TODO: figure out how to prioritize different worker actions
+      e.dispatch_fn(10, action)
+   end
+   
 end
 
 function WorkerScheduler:abort_worker_task(task)

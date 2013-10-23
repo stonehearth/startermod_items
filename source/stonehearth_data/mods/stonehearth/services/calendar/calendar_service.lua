@@ -9,8 +9,10 @@ local data = {
    }, --the calendar data to export
    _lastNow = 0,
    _remainderTime = 0,
-   _fired_sunrise_today = false,
-   _fired_noon_today = false,
+
+   --When you change the start time change these to match
+   _fired_sunrise_today = true,
+   _fired_noon_today = true,
    _fired_sunset_today = false,
    _fired_midnight_today = false
 }

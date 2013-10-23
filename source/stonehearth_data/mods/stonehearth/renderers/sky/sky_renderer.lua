@@ -116,8 +116,13 @@ function SkyRenderer:_interpolate_time(now)
          -- update or render frequency
          interpolation_time = self._render_ms_between_updates
       end
-      local interpolation_seconds = self._calendar_seconds_between_updates * (interpolation_time / self._render_ms_between_updates)
-      self:_update(self._calendar_seconds + math.floor(interpolation_seconds))
+      -- if we get two consecutive updates without getting a call to interpolate (e.g. if rendering
+      -- a frame takes f o r e v 3 r ...) self._render_ms_between_updates will be 0 (sinnce we didn't
+      -- tick the render clock).  if so, just don't bother. 
+      if self._render_ms_between_updates ~= 0 then
+         local interpolation_seconds = self._calendar_seconds_between_updates * (interpolation_time / self._render_ms_between_updates)
+         self:_update(self._calendar_seconds + math.floor(interpolation_seconds))
+      end
    end
    self._last_render_time_ms = now
 end

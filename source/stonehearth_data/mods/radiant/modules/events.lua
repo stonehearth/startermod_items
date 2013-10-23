@@ -39,11 +39,17 @@ end
 function events.unlisten(object, event, self, fn)
    local key = events._convert_object_to_key(object)
 
-   assert(object and event and self and fn)   
-   assert(events._senders[key])
-   assert(events._senders[key][event])
-   
-   local listeners = events._senders[key][event]
+   assert(object and event and self and fn)
+   local senders = events._senders[key]
+   if not senders then
+      radiant.log.warning('unlisten %s on unknown sender: %s', event, tostring(object))
+      return
+   end
+   local listeners = senders[event]
+   if not listeners then
+      radiant.log.warning('unlisten unknown event: %s on sender %s', event, tostring(object))
+      return
+   end
 
    for i, listener in ipairs(listeners) do
       if listener.fn == fn then

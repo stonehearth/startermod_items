@@ -16,6 +16,9 @@
       ],
       "stonehearth:firepit" : {
          "effective_radius" : 6
+      },
+      "stonehearth:placed_item" : {
+         "proxy_entity" : "stonehearth:firepit_proxy"
       }
    }
 }

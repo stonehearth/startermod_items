@@ -88,9 +88,9 @@ end
 --- Tell a worker to place the item in the world
 -- Server side object to handle creation of the workbench.  This is called
 -- by doing a POST to the route for this file specified in the manifest.
-function PlaceItemCallHandler:place_item_in_world(session, response, proxy_entity, full_sized_uri, location, rotation)
+function PlaceItemCallHandler:place_item_in_world(session, response, target_entity, full_sized_uri, location, rotation)
    local task = self:_init_pickup_worker_task(session, full_sized_uri, location, rotation)
-   task:add_work_object(proxy_entity)
+   task:add_work_object(target_entity)
    task:start()
    return true
 end
