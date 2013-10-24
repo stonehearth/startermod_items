@@ -87,6 +87,7 @@ struct H3DOptions
 		DumpFailedShaders   - Enables or disables storing of shader code that failed to compile in a text file; this can be
 		                      useful in combination with the line numbers given back by the shader compiler. (Values: 0, 1; Default: 0)
 		GatherTimeStats     - Enables or disables gathering of time stats that are useful for profiling (Values: 0, 1; Default: 1)
+      EnableShadows       - Enables or disables shadows, engine-wide (Values: 0, 1; Default: 1)
 	*/
 	enum List
 	{
@@ -103,7 +104,8 @@ struct H3DOptions
 		WireframeMode,
 		DebugViewMode,
 		DumpFailedShaders,
-		GatherTimeStats
+		GatherTimeStats,
+      EnableShadows
 	};
 };
 

@@ -2356,12 +2356,13 @@ void Renderer::render( CameraNode *camNode )
 
 			case PipelineCommands::DoForwardLightLoop:
 				drawLightGeometry( pc.params[0].getString(), pc.params[1].getString(),
-				                   pc.params[2].getBool(), (RenderingOrder::List)pc.params[3].getInt(),
+               pc.params[2].getBool() || !Modules::config().enableShadows, (RenderingOrder::List)pc.params[3].getInt(),
                                _curCamera->_occSet, pc.params[4].getBool() );
 				break;
 
 			case PipelineCommands::DoDeferredLightLoop:
-				drawLightShapes( pc.params[0].getString(), pc.params[1].getBool(), _curCamera->_occSet );
+				drawLightShapes( pc.params[0].getString(), pc.params[1].getBool() || !Modules::config().enableShadows, 
+               _curCamera->_occSet );
 				break;
 
 			case PipelineCommands::SetUniform:

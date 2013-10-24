@@ -28,9 +28,17 @@
       <BindBuffer sampler="positions" sourceRT="AttributeBuffer" bufIndex="1" />
       <BindBuffer sampler="depth" sourceRT="AttributeBuffer" bufIndex="32" />
 
-      <DoDeferredLightLoop class="~Translucent" noShadows="true"/>
+      <DoDeferredLightLoop class="~Translucent" noShadows="false"/>
 
       <UnbindBuffers />
+    </Stage>
+
+    <!-- This stage should only be enabled when SSAO is disabled. -->
+    <Stage id="SSAO Default" enabled="false">
+      <SwitchTarget target="SSAOBUF"/>
+      <ClearTarget colBuf0="true" col_R="1.0" col_G="1.0" col_B="1.0" col_A="1.0"/>
+      <SwitchTarget target="SSAOBLUR"/>
+      <ClearTarget colBuf0="true" col_R="1.0" col_G="1.0" col_B="1.0" col_A="1.0"/>
     </Stage>
 
     <Stage id="SSAO">
@@ -61,6 +69,15 @@
       <SwitchTarget target="SSAOBLUR" />
       <BindBuffer sampler="ssao" sourceRT="SSAOBUF" bufIndex="0" />
       <DrawQuad material="materials/ssao.material.xml" context="BLUR" />
+      <UnbindBuffers />
+    </Stage>
+
+    <!-- This stage should only be enabled when SSAO blurring is disabled, but SSAO
+         is enabled -->
+    <Stage id="SSAO Copy" enabled="false">
+      <SwitchTarget target="SSAOBLUR" />
+      <BindBuffer sampler="buf0" sourceRT="SSAOBUF" bufIndex="0" />
+      <DrawQuad material="pipelines/outline.material.xml" context="DRAW_COLORBUF" />
       <UnbindBuffers />
     </Stage>
 
