@@ -28,24 +28,10 @@ function ProxyBuilder:set_brush(type, uri)
 end
 
 function ProxyBuilder:_clear()
-   if self._columns then
-      for i, column in ipairs(self._columns) do
-         column:destroy()
-      end
-      self._columns = nil
-   end
-   
-   if self._walls then
-      for i, wall in ipairs(self._walls) do
-         wall:destroy()
-      end
-      self._walls = nil
-   end
-   
-   if self._input_capture then
-      self._input_capture:destroy()
-      self._input_capture = nil
-   end
+   self._root_proxy:destroy()
+   self._root_proxy = ProxyContainer(nil)
+   self._columns = nil
+   self._walls = nil
 end
 
 function ProxyBuilder:_start()
@@ -149,6 +135,10 @@ function ProxyBuilder:publish()
    local package  = self:_package_proxy(self._root_proxy)
    _radiant.call('stonehearth:build_structures', package);
    self:_clear()
+   if self._input_capture then
+      self._input_capture:destroy()
+      self._input_capture = nil
+   end
 end
 
 function ProxyBuilder:rotate()

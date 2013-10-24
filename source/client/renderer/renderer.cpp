@@ -659,7 +659,6 @@ void Renderer::OnWindowResized(int newWidth, int newHeight) {
 
 core::Guard Renderer::TraceSelected(H3DNode node, UpdateSelectionFn fn)
 {
-   ASSERT(!stdutil::contains(selectableCbs_, node));
    selectableCbs_[node] = fn;
    return core::Guard([=]() { selectableCbs_.erase(node); });
 }

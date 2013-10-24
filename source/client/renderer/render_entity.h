@@ -62,6 +62,7 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
 protected:
       typedef std::unordered_map<dm::ObjectType, std::shared_ptr<RenderComponent>> ComponentMap;
       typedef std::unordered_map<std::string, luabind::object> LuaComponentMap;
+      std::string       node_name_;
       H3DNodeUnique     node_;
       om::EntityRef     entity_;
       core::Guard       tracer_;

@@ -55,6 +55,7 @@ function ProxyRoomBuilder:_on_mouse_event(e)
       self:move_to(location)
       if e:up(1) then
          self:publish()
+         return false
       elseif e:up(2) then
          self:rotate()
       end

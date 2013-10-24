@@ -42,6 +42,7 @@ public:
    const csg::Point3& GetBlock() const;
 
    bool HasLocation() const;
+   csg::Point3f GetLocation() const;
    void AddLocation(const csg::Point3f& location, const csg::Point3f& normal);
    const csg::Point3f& GetNormal();
    

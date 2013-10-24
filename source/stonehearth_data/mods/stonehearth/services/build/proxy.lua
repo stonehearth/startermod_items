@@ -25,8 +25,13 @@ function Proxy:__init(derived, parent_proxy, arg1, component_name)
 end
 
 function Proxy:destroy()
+   for _, child in pairs(self._children) do
+      child:destroy()
+   end
+
    radiant.entities.destroy_entity(self._entity)
-   self._render_entity = nil
+   self._render_entity = nil   
+   
    return self._derived
 end
 
