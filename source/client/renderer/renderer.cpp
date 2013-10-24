@@ -11,6 +11,7 @@
 #include "om/selection.h"
 #include "om/entity.h"
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/program_options.hpp>
 #include <SFML/Audio.hpp>
 #include "camera.h"
 #include "lib/perfmon/perfmon.h"
@@ -18,10 +19,14 @@
 
 using namespace ::radiant;
 using namespace ::radiant::client;
+namespace po = boost::program_options;
+
 std::vector<float> ssaoSamplerData;
 H3DRes ssaoMat;
 
 static std::unique_ptr<Renderer> renderer_;
+RendererConfig Renderer::config_;
+
 Renderer& Renderer::GetInstance()
 {
    if (!renderer_) {
@@ -195,6 +200,64 @@ void Renderer::ShowPerfHud(bool value) {
       perf_hud_.reset(new PerfHud(*this));
    } else if (!value && perf_hud_) {
       delete perf_hud_.release();
+   }
+}
+
+void Renderer::GetConfigOptions()
+{
+   po::options_description config_file("Renderer options");
+   po::options_description cmd_line("Renderer options");
+
+   cmd_line.add_options()
+      (
+         "renderer.use_forward_renderer",
+         po::bool_switch(&config_.use_forward_renderer)->default_value(true), "Uses the forward-renderer, instead of the deferred renderer."
+      )
+      (
+         "renderer.use_ssao_blur",
+         po::bool_switch(&config_.use_ssao_blur)->default_value(true), "Enables SSAO blur."
+      )
+      (
+         "renderer.enable_shadows",
+         po::bool_switch(&config_.use_shadows)->default_value(true), "Enables shadows."
+      )
+      (
+         "renderer.enable_ssao",
+         po::bool_switch(&config_.use_ssao)->default_value(true), "Enables Screen-Space Ambient Occlusion (SSAO)."
+      );
+   core::Config::GetInstance().GetCommandLineOptions().add(cmd_line);
+   core::Config::GetInstance().GetConfigFileOptions().add(cmd_line);
+}
+
+void Renderer::ApplyConfig()
+{
+   if (config_.use_forward_renderer) {
+      SetCurrentPipeline("pipelines/forward.pipeline.xml");
+   } else {
+      SetCurrentPipeline("pipelines/deferred_lighting.xml");
+   }
+
+   SetStageEnable("SSAO", config_.use_ssao);
+   SetStageEnable("Simple, once-pass SSAO Blur", config_.use_ssao_blur);
+   // Turn on copying if we're using SSAO, but not using blur.
+   SetStageEnable("SSAO Copy", config_.use_ssao && !config_.use_ssao_blur);
+   SetStageEnable("SSAO Default", !config_.use_ssao);
+
+   h3dSetOption(H3DOptions::EnableShadows, config_.use_shadows ? 1.0f : 0.0f);
+}
+
+void Renderer::SetStageEnable(const char* stageName, bool enabled)
+{
+   int stageCount = h3dGetResElemCount(currentPipeline_, H3DPipeRes::StageElem);
+
+   for (int i = 0; i < stageCount; i++)
+   {
+      const char* curStageName = h3dGetResParamStr(currentPipeline_, H3DPipeRes::StageElem, i, H3DPipeRes::StageNameStr);
+      if (_strcmpi(stageName, curStageName) == 0)
+      {
+         h3dSetResParamI(currentPipeline_, H3DPipeRes::StageElem, i, H3DPipeRes::StageActivationI, enabled ? 1 : 0);
+         break;
+      }
    }
 }
 

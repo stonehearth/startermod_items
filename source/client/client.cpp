@@ -127,6 +127,7 @@ Client::~Client()
 
 void Client::GetConfigOptions()
 {
+   Renderer::GetConfigOptions();
 }
 
 
@@ -139,8 +140,6 @@ void Client::run()
    octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree());
       
    Renderer& renderer = Renderer::GetInstance();
-   //renderer.SetCurrentPipeline("pipelines/deferred_lighting.xml");
-   //renderer.SetCurrentPipeline("pipelines/forward.pipeline.xml");
 
    Horde3D::Modules::log().SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
       error_browser_->AddRecord(r);
@@ -154,16 +153,18 @@ void Client::run()
    });
 
    namespace po = boost::program_options;
-   auto vm = core::Config::GetInstance().GetVarMap();
-   std::string loader = vm["game.mod"].as<std::string>();
+   auto varMap = core::Config::GetInstance().GetVarMap();
+   std::string loader = varMap["game.mod"].as<std::string>();
    json::Node manifest(res::ResourceManager2::GetInstance().LookupManifest(loader));
    std::string docroot = "http://radiant/" + manifest.get<std::string>("loader.ui.homepage");
 
    // seriously???
-   std::string game_script = vm["game.script"].as<std::string>();
+   std::string game_script = varMap["game.script"].as<std::string>();
    if (game_script != "stonehearth/start_game.lua") {
       docroot += "?skip_title=true";
    }
+
+   renderer.ApplyConfig();
 
    int screen_width = renderer.GetWidth();
    int screen_height = renderer.GetHeight();
