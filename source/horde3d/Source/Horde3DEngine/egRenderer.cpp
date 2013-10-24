@@ -1471,7 +1471,7 @@ void Renderer::drawGeometry( const std::string &shaderContext, const std::string
 
 
 void Renderer::drawLightGeometry( const std::string &shaderContext, const std::string &theClass,
-                                  bool noShadows, RenderingOrder::List order, int occSet )
+                                  bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly )
 {
 	Modules::sceneMan().updateQueues("drawing light geometry", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
 	                                 SceneNodeFlags::NoDraw, 0, true, false );
@@ -1558,7 +1558,7 @@ void Renderer::drawLightGeometry( const std::string &shaderContext, const std::s
       std::ostringstream reason;
       reason << "drawing light geometry for light " << _curLight->getName();
 		Modules::sceneMan().updateQueues( reason.str().c_str(), _curCamera->getFrustum(), &_curLight->getFrustum(),
-		                                  order, SceneNodeFlags::NoDraw, 0, false, true );
+		                                  order, SceneNodeFlags::NoDraw, selectedOnly ? SceneNodeFlags::Selected : 0, false, true );
 		setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
 		drawRenderables( shaderContext.empty() ? _curLight->_lightingContext : shaderContext,
 		                 theClass, false, &_curCamera->getFrustum(),
@@ -2357,7 +2357,7 @@ void Renderer::render( CameraNode *camNode )
 			case PipelineCommands::DoForwardLightLoop:
 				drawLightGeometry( pc.params[0].getString(), pc.params[1].getString(),
 				                   pc.params[2].getBool(), (RenderingOrder::List)pc.params[3].getInt(),
-					_curCamera->_occSet );
+                               _curCamera->_occSet, pc.params[4].getBool() );
 				break;
 
 			case PipelineCommands::DoDeferredLightLoop:

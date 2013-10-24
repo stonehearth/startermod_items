@@ -200,7 +200,7 @@ protected:
 	void drawGeometry( const std::string &shaderContext, const std::string &theClass,
 	                   RenderingOrder::List order, int filterRequired, int occSet );
 	void drawLightGeometry( const std::string &shaderContext, const std::string &theClass,
-	                        bool noShadows, RenderingOrder::List order, int occSet );
+	                        bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly );
 	void drawLightShapes( const std::string &shaderContext, bool noShadows, int occSet );
 	
 	void drawRenderables( const std::string &shaderContext, const std::string &theClass, bool debugView,
