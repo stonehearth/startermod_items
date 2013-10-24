@@ -46,7 +46,7 @@ Renderer::Renderer() :
 {
    try {
 
-      boost::property_tree::json_parser::read_json("mods/stonehearth/renderers/terrain/config.json", config_);
+      boost::property_tree::json_parser::read_json("mods/stonehearth/renderers/terrain/config.json", terrainConfig_);
    } catch(boost::property_tree::json_parser::json_parser_error &e) {
       LOG(WARNING) << "Error parsing: " << e.filename() << " on line: " << e.line() << std::endl;
       LOG(WARNING) << e.message() << std::endl;
@@ -748,9 +748,9 @@ int Renderer::GetHeight() const
    return height_;
 }
 
-boost::property_tree::ptree const& Renderer::GetConfig() const
+boost::property_tree::ptree const& Renderer::GetTerrainConfig() const
 {  
-   return config_;
+   return terrainConfig_;
 }
 
 void Renderer::SetScriptHost(lua::ScriptHost* scriptHost)
