@@ -1,7 +1,7 @@
-local Constants = require 'services.build.constants'
 local ProxyColumn = require 'services.build.proxy_column'
 local ProxyWall = require 'services.build.proxy_wall'
-local ProxyBuilder = require 'services.build.proxy_builder'
+local ProxyPortal = require 'services.build.proxy_portal'
+local ProxyContainer = require 'services.build.proxy_container'
 local ProxyBuilder = class()
 
 local Point3 = _radiant.csg.Point3
@@ -13,19 +13,18 @@ function ProxyBuilder:__init(derived, on_mouse, on_keyboard)
    self._derived = derived
    self._on_mouse = on_mouse
    self._on_keyboard = on_keyboard
+   self._brushes = {
+      wall = 'stonehearth:wooden_wall',
+      column = 'stonehearth:wooden_column',
+      door = 'stonehearth:wooden_door',
+   }
    
-   self._container_entity = radiant.entities.create_entity()
-   self._container_render_entity = _radiant.client.create_render_entity(1, self._container_entity)
+   self._rotation = 0
+   self._root_proxy = ProxyContainer(nil)
 end
 
-function ProxyBuilder:set_wall_uri(wall_uri)
-   self._wall_uri = wall_uri
-   return self._derived
-end
-
-function ProxyBuilder:set_column_uri(column_uri)
-   self._column_uri = column_uri
-   return self._derived
+function ProxyBuilder:set_brush(type, uri)
+   self._brushes[type] = uri
 end
 
 function ProxyBuilder:_clear()
@@ -67,7 +66,11 @@ function ProxyBuilder:_start()
 end
 
 function ProxyBuilder:move_to(location)
-   self._container_entity:add_component('mob'):set_location_grid_aligned(location)
+   self._root_proxy:move_to(location)
+end
+
+function ProxyBuilder:turn_to(angle)
+   self._root_proxy:turn_to(angle)
 end
 
 function ProxyBuilder:get_column(i)
@@ -82,15 +85,19 @@ function ProxyBuilder:get_column_count()
 end
 
 function ProxyBuilder:add_column()
-   local column = ProxyColumn(self._container_entity, self._column_uri)
+   local column = ProxyColumn(self._root_proxy, self._brushes.column)
    table.insert(self._columns, column)
    return column
 end
 
 function ProxyBuilder:add_wall()
-   local wall = ProxyWall(self._container_entity, self._wall_uri)
+   local wall = ProxyWall(self._root_proxy, self._brushes.wall)
    table.insert(self._walls, wall)
    return wall
+end
+
+function ProxyBuilder:add_door()
+   return ProxyPortal(self._root_proxy, self._brushes.door)
 end
 
 function ProxyBuilder:shift_down()
@@ -98,37 +105,59 @@ function ProxyBuilder:shift_down()
          _radiant.client.is_key_down(_radiant.client.KeyboardInput.RIGHT_SHIFT)
 end
 
-function ProxyBuilder:_package_entity(fabrication)
-   local entity = fabrication:get_entity()
-   local component_name = fabrication:get_component_name()
-   local data = entity:get_component_data(component_name)
+function ProxyBuilder:_package_proxy(proxy)
+   local package = {}
+   self:_package_proxy_entity(package, proxy)
+   self:_package_proxy_children(package, proxy)
+   return package
+end
+
+function ProxyBuilder:_package_proxy_entity(package, proxy)
+   local entity =  proxy:get_entity()  
    
-   -- remove the paint_mode.  we just set it here so the blueprint
-   -- would be rendered differently
-   data.paint_mode = nil
+   package.entity = entity:get_uri()
+   package.components = {
+      mob = entity:get_component_data('mob'),
+      destination = entity:get_component_data('destination'),
+   }
    
-   local md = entity:get_component_data('mob')
-   local result = {
-      entity = entity:get_uri(),
-      components = {
-         mob = entity:get_component_data('mob'),
-         destination = entity:get_component_data('destination'),
-         [component_name] = data
-      }
-   };
-   return result
+   local component_name =  proxy:get_component_name()
+   if component_name then
+      local data = entity:get_component_data(component_name)
+      
+      -- remove the paint_mode.  we just set it here so the blueprint
+      -- would be rendered differently
+      data.paint_mode = nil
+      
+      package.components[component_name] = data
+   end
+end
+   
+function ProxyBuilder:_package_proxy_children(package, proxy)   
+   assert(not package.children)
+   local children = proxy:get_children()
+   if next(children) then
+      package.children = {}
+      for _, proxy in pairs(children) do
+         local p = self:_package_proxy(proxy)
+         table.insert(package.children, p)
+      end
+   end
 end
 
 function ProxyBuilder:publish()
-   local structures = {}
-   for _, wall in ipairs(self._walls) do
-      table.insert(structures, self:_package_entity(wall))
-   end
-   for _, column in ipairs(self._columns) do
-      table.insert(structures, self:_package_entity(column))
-   end
-   _radiant.call('stonehearth:build_structures', structures);
+   local package  = self:_package_proxy(self._root_proxy)
+   _radiant.call('stonehearth:build_structures', package);
    self:_clear()
+end
+
+function ProxyBuilder:rotate()
+   self._rotation = self._rotation + 90
+   if self._rotation >= 360 then
+      self._rotation = 0
+   end
+   self:turn_to(self._rotation)
+   return self
 end
 
 return ProxyBuilder

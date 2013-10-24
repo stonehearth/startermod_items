@@ -85,6 +85,7 @@ private:
    std::string             model_variant_override_;
    H3DResUnique            material_;
    std::string             material_path_;
+   std::string             model_mode_;
    bool                    use_model_variant_override_;
 };
 

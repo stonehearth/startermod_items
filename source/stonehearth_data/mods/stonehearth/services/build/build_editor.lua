@@ -13,22 +13,14 @@ function BuildEditor:get_model()
    return self._model
 end
 
-function BuildEditor:place_new_wall(session, response, wall_uri)
-   ProxyWallBuilder()
-      :set_wall_uri(wall_uri)
-      :set_column_uri('stonehearth:wooden_column')
-      :go()
-   
-   return { success=true }
+function BuildEditor:place_new_wall(session, response)
+   ProxyWallBuilder():go()
+   return true
 end
 
-function BuildEditor:create_room(session, response, wall_uri)
-   ProxyRoomBuilder()
-      :set_wall_uri(wall_uri)
-      :set_column_uri('stonehearth:wooden_column')
-      :go()
-   
-   return { success=true }
+function BuildEditor:create_room(session, response)
+   ProxyRoomBuilder():go()  
+   return true
 end
 
 return BuildEditor
