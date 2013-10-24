@@ -46,7 +46,7 @@ Renderer::Renderer() :
 {
    try {
 
-      boost::property_tree::json_parser::read_json("config/renderer.json", config_);
+      boost::property_tree::json_parser::read_json("mods/stonehearth/renderers/terrain/config.json", config_);
    } catch(boost::property_tree::json_parser::json_parser_error &e) {
       LOG(WARNING) << "Error parsing: " << e.filename() << " on line: " << e.line() << std::endl;
       LOG(WARNING) << e.message() << std::endl;
