@@ -57,7 +57,7 @@ context SELECTED_SCREENSPACE_OUTLINER
 {
   VertexShader = compile GLSL VS_SELECTED_SCREENSPACE_OUTLINER;
   PixelShader = compile GLSL FS_SELECTED_SCREENSPACE_OUTLINER;
-  BlendMode = Add;
+  BlendMode = Blend;
   ZWriteEnable = false;
 }
 

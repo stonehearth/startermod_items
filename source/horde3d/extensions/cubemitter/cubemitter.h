@@ -277,8 +277,9 @@ protected:
 	CubemitterNode( const CubemitterNodeTpl &emitterTpl );
 	void setMaxParticleCount( uint32 maxParticleCount );
 
-   void renderInstancedFunc(const std::string &shaderContext, const std::string &theClass, bool debugView,
-                   const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet);
+   void renderWithInstancing();
+   void renderWithBatches();
+   void renderBatch(ShaderCombination *curShader, int batchNum, int count);
 
 	void onPostUpdate();
    void updateAndSpawnCubes(int numToSpawn);

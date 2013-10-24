@@ -295,11 +295,12 @@ const std::string PipelineResource::parseStage( XMLNode const &node, PipelineSta
 
 			stage->commands.push_back( PipelineCommand( PipelineCommands::DoForwardLightLoop ) );
 			vector< PipeCmdParam > &params = stage->commands.back().params;
-			params.resize( 4 );
+			params.resize( 5 );
 			params[0].setString( node1.getAttribute( "context", "" ) );
 			params[1].setString( node1.getAttribute( "class", "" ) );
 			params[2].setBool( _stricmp( node1.getAttribute( "noShadows", "false" ), "true" ) == 0 );
 			params[3].setInt( order );
+         params[4].setBool( _stricmp( node1.getAttribute( "selectedOnly", "false"), "true" ) == 0 );
 		}
 		else if( strcmp( node1.getName(), "DoDeferredLightLoop" ) == 0 )
 		{

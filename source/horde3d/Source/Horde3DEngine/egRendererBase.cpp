@@ -214,6 +214,7 @@ bool RenderDevice::init()
 	_caps.texFloat = glExt::ARB_texture_float ? 1 : 0;
 	_caps.texNPOT = glExt::ARB_texture_non_power_of_two ? 1 : 0;
 	_caps.rtMultisampling = glExt::EXT_framebuffer_multisample ? 1 : 0;
+   _caps.hasInstancing = (glExt::majorVersion * 10 + glExt::minorVersion) >= 33;
 
 	// Find supported depth format (some old ATI cards only support 16 bit depth for FBOs)
 	_depthFormat = GL_DEPTH_COMPONENT24;
@@ -1265,21 +1266,29 @@ bool RenderDevice::applyVertexLayout()
 			
 			glBindBuffer( GL_ARRAY_BUFFER, _buffers.getRef( _vertBufSlots[attrib.vbSlot].vbObj ).glObj );
 
-         int numPositions = attrib.size / 4;
-         if (numPositions == 0) {
-            numPositions = 1;
-         }
-         // If we have more than one position to fill, assume we're filling an entire vec4.
-         // (The current vertex layout only gives size, so we can't tell a 4x3 from a 3x4).
-         int realSize = numPositions > 1 ? 4 : attrib.size;
-         for ( int curPos = 0; curPos < numPositions; curPos++) {
-			   glVertexAttribPointer( attribIndex + curPos, realSize, GL_FLOAT, GL_FALSE,
-			                          vbSlot.stride, 
-                                   (char *)0 + vbSlot.offset + attrib.offset + (curPos * 4 * sizeof(float)));
+         if (_caps.hasInstancing) {
+            int numPositions = attrib.size / 4;
+            if (numPositions == 0) {
+               numPositions = 1;
+            }
+            // If we have more than one position to fill, assume we're filling an entire vec4.
+            // (The current vertex layout only gives size, so we can't tell a 4x3 from a 3x4).
+            int realSize = numPositions > 1 ? 4 : attrib.size;
+            for ( int curPos = 0; curPos < numPositions; curPos++) {
+			      glVertexAttribPointer( attribIndex + curPos, realSize, GL_FLOAT, GL_FALSE,
+			                             vbSlot.stride, 
+                                      (char *)0 + vbSlot.offset + attrib.offset + (curPos * 4 * sizeof(float)));
 
-            glVertexAttribDivisor(attribIndex + curPos, vl.divisors[i].divisor);
+               glVertexAttribDivisor(attribIndex + curPos, vl.divisors[i].divisor);
 
-            newVertexAttribMask |= 1 << (attribIndex + curPos);
+               newVertexAttribMask |= 1 << (attribIndex + curPos);
+            }
+         } else {
+            glVertexAttribPointer( attribIndex, attrib.size, GL_FLOAT, GL_FALSE,
+			                           vbSlot.stride, 
+                                    (char *)0 + vbSlot.offset + attrib.offset);
+
+            newVertexAttribMask |= 1 << attribIndex;
          }
 		}
 	}
