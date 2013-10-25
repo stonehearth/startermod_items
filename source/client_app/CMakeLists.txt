@@ -11,15 +11,19 @@ include_directories(${Libjson_INCLUDE_DIRS})
 include_directories(${Lua_INCLUDE_DIRS})
 include_directories(${Luabind_INCLUDE_DIRS})
 
-add_executable(Stonehearth
+add_executable(client_app
                WIN32
                main_win32.cpp
                )
 
-# FILE(COPY ${ChromiumEmbedded_BINARY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-                   #                   COMMAND echo copy ${ChromiumEmbedded_BINARIES}/<$CONFIGURATION>/* <$TARGET_DIR:Stonehearth> -------------------------- $<CONFIGURATION>)
+set_target_properties(client_app
+                      PROPERTIES OUTPUT_NAME
+                      Stonehearth)
 
-target_link_libraries(Stonehearth
+# FILE(COPY ${ChromiumEmbedded_BINARY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+                   #                   COMMAND echo copy ${ChromiumEmbedded_BINARIES}/<$CONFIGURATION>/* <$TARGET_DIR:client_app> -------------------------- $<CONFIGURATION>)
+
+target_link_libraries(client_app
                              ${PROTOBUF_LIBRARIES}
                              ${Boost_LIBRARIES}
                              ${Cryptopp_LIBRARIES}
@@ -44,6 +48,6 @@ target_link_libraries(Stonehearth
                              )
 
 FILE(TO_NATIVE_PATH ${Stonehearth_SOURCE_DIR}/source STAGE_SCRIPT)
-add_custom_command(TARGET Stonehearth
+add_custom_command(TARGET client_app
                    POST_BUILD
-                   COMMAND ${STAGE_SCRIPT}\\stage.cmd $<CONFIGURATION> $<TARGET_FILE_DIR:Stonehearth>)
+                   COMMAND ${STAGE_SCRIPT}\\stage.cmd $<CONFIGURATION> $<TARGET_FILE_DIR:client_app>)
