@@ -64,6 +64,8 @@ scope LuaMobComponent::RegisterLuaTypes(lua_State* L)
          .def("set_transform",               &Mob::SetTransform)
          .def("trace_transform",             &Mob_TraceTransform)
          .def("get_parent",                  &Mob_GetParent)
+         .def("get_aabb",                    &Mob::GetAABB)
+         .def("set_aabb",                    &Mob::SetAABB)
          .def("trace",                       &Mob_Trace) // xxx: shouldn't this be generalized in the compnoent?  YES!  YES IT SHOULD!!
       ,
       dm::Boxed<csg::Transform>::RegisterLuaType(L)

@@ -15,6 +15,8 @@
 #include "decal_node.h"
 #include "stockpile_node.h"
 #include "Horde3DRadiant.h"
+#include "csg/ray.h"
+#include "csg/cube.h"
 
 using namespace ::radiant;
 using namespace ::radiant::horde3d;
@@ -60,6 +62,13 @@ void StockpileNode::renderFunc(const std::string &shaderContext, const std::stri
 
 void StockpileNode::UpdateShape(const csg::Cube3& bounds)
 {
+   _bLocalBox.min.x = bounds.min.x - 0.5;
+   _bLocalBox.max.x = bounds.max.x - 0.5;
+   _bLocalBox.min.z = bounds.min.z - 0.5;
+   _bLocalBox.max.z = bounds.max.z - 0.5;
+   _bLocalBox.min.y = bounds.min.y;
+   _bLocalBox.max.y = bounds.min.y  + 0.01f;
+
    if (!center_.first) {
       const DecalNode::Vertex cornerQuad[] = {
          DecalNode::Vertex(-0.5, 0, -0.5, 0, 0),
@@ -160,3 +169,35 @@ void StockpileNode::UpdateShape(const csg::Cube3& bounds)
    // addDecal(edges_[0],   p0.x + 1, p0.y, p0.z,         u-1, 1,   0, 0,  u-1, 1);  No...
 #endif
 }
+
+bool StockpileNode::checkIntersection( const Vec3f &rayOrig, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm ) const
+{
+   float d;
+   csg::Point3f origin(rayOrig.x, rayOrig.y, rayOrig.z);
+   csg::Point3f dir(rayDir.x, rayDir.y, rayDir.z);
+   dir.Normalize();
+
+   csg::Ray3 ray(origin, dir);
+
+   csg::Cube3f cube(csg::Point3f(_bBox.min.x, _bBox.min.y, _bBox.min.z),
+                    csg::Point3f(_bBox.max.x, _bBox.max.y, _bBox.max.z));
+
+   if (!csg::Cube3Intersects(cube, ray, d)) {
+      return false;
+   }
+   csg::Point3f intersection = origin + (dir * d);
+   intsPos.x = intersection.x;
+   intsPos.y = intersection.y;
+   intsPos.z = intersection.z;
+   intsNorm.x = 1; // lies!
+   intsNorm.y = 0; // lies!
+   intsNorm.z = 0; // lies!
+   return true;
+}
+
+void StockpileNode::onFinishedUpdate()
+{
+   _bBox = _bLocalBox;
+   _bBox.transform(_absTrans);
+}
+

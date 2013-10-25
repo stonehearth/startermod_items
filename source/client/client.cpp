@@ -609,51 +609,33 @@ bool Client::CallInputHandlers(Input const& input)
 
 void Client::UpdateSelection(const MouseInput &mouse)
 {
+   perfmon::TimelineCounterGuard tcg("update selection") ;
+
    om::Selection s;
    Renderer::GetInstance().QuerySceneRay(mouse.x, mouse.y, s);
 
-   csg::Ray3 r;
-   Renderer::GetInstance().GetCameraToViewportRay(mouse.x, mouse.y, &r);
-   om::EntityPtr stockpile = NULL;
-
-   float minDistance = FLT_MAX;
-   auto cb = [&minDistance, &stockpile] (om::EntityPtr obj, float d) {
+   if (s.HasEntities()) {
 #if 0
-      auto s = obj->GetComponent<om::StockpileDesignation>();
-      if (s && d < minDistance) {
-         minDistance = d;
-         stockpile = obj;
-      }
-#endif
-   };
-   octtree_->TraceRay(r, cb);
-   if (stockpile) {
-      LOG(WARNING) << "selecting stockpile";
-      SelectEntity(stockpile);
-   } else {
-      if (s.HasEntities()) {
-#if 0
-         for (dm::ObjectId id : s.GetEntities()) {
-            auto entity = GetEntity(id);
-            if (entity && entity->GetComponent<om::Room>()) {
-               LOG(WARNING) << "selecting room " << entity->GetObjectId();
-               SelectEntity(entity);
-               return;
-            }
-         }
-#endif
-         auto entity = GetEntity(s.GetEntities().front());
-         if (entity->GetComponent<om::Terrain>()) {
-            LOG(WARNING) << "clearing selection (clicked on terrain)";
-            SelectEntity(nullptr);
-         } else {
-            LOG(WARNING) << "selecting " << entity->GetObjectId();
+      for (dm::ObjectId id : s.GetEntities()) {
+         auto entity = GetEntity(id);
+         if (entity && entity->GetComponent<om::Room>()) {
+            LOG(WARNING) << "selecting room " << entity->GetObjectId();
             SelectEntity(entity);
+            return;
          }
-      } else {
-         LOG(WARNING) << "no entities!";
-         SelectEntity(nullptr);
       }
+#endif
+      auto entity = GetEntity(s.GetEntities().front());
+      if (entity->GetComponent<om::Terrain>()) {
+         LOG(WARNING) << "clearing selection (clicked on terrain)";
+         SelectEntity(nullptr);
+      } else {
+         LOG(WARNING) << "selecting " << entity->GetObjectId();
+         SelectEntity(entity);
+      }
+   } else {
+      LOG(WARNING) << "no entities!";
+      SelectEntity(nullptr);
    }
 }
 
@@ -733,6 +715,8 @@ void Client::InstallCurrentCursor()
 
 void Client::HilightMouseover()
 {
+   perfmon::TimelineCounterGuard tcg("hilight mouseover") ;
+
    om::Selection selection;
    auto &renderer = Renderer::GetInstance();
    csg::Point2 pt = renderer.GetMousePosition();
@@ -749,14 +733,16 @@ void Client::HilightMouseover()
       }
    }
    hilightedObjects_.clear();
+
+   // hilight something
    if (selection.HasEntities()) {
-      auto entity = GetEntity(selection.GetEntities().front());
-      if (entity && entity != rootObject_) {
-         auto renderObject = renderer.GetRenderObject(entity);
+      om::EntityPtr hilightEntity = GetEntity(selection.GetEntities().front());
+      if (hilightEntity && hilightEntity != rootObject_) {
+         RenderEntityPtr renderObject = renderer.GetRenderObject(hilightEntity);
          if (renderObject) {
             renderObject->SetSelected(true);
          }
-         hilightedObjects_.push_back(entity);
+         hilightedObjects_.push_back(hilightEntity);
       }
    }
 }
