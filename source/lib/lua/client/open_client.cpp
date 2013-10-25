@@ -35,27 +35,16 @@ H3DNodeUnique Client_CreateVoxelRenderNode(lua_State* L,
    if (!material_path.empty()) {
       material = h3dAddResource(H3DResTypes::Material, material_path.c_str(), 0);
    }
+   csg::mesh_tools::mesh mesh;
    if (mode == "blueprint") {
-      std::vector<csg::Point3f> points = csg::mesh_tools().ConvertRegionToOutline(model);
-      H3DNode s = h3dRadiantAddDebugShapes(parent, "foo");
-      
-      uint i, c = points.size();
-      for (i = 0; i < c; i += 2) {
-         h3dRadiantAddDebugLine(s, points[i], points[i+1], csg::Color4(0, 128, 220, 192));
-      }
-      h3dRadiantCommitDebugShape(s);
-      if (material) {
-         h3dSetNodeParamI(s, H3DMesh::MatResI, material);
-      }
-      model_node = H3DNodeUnique(s);
+      mesh = csg::mesh_tools().ConvertRegionToOutline(model, 0.15f, csg::Color3(255, 0, 0));
    } else {
-      csg::mesh_tools::mesh mesh = csg::mesh_tools().ConvertRegionToMesh(model);
-
-      H3DNode mesh_node;
-      model_node = Pipeline::GetInstance().AddMeshNode(parent, mesh, &mesh_node);
-      if (material) {
-         h3dSetNodeParamI(mesh_node, H3DMesh::MatResI, material);
-      }
+      mesh = csg::mesh_tools().ConvertRegionToMesh(model);
+   }
+   H3DNode mesh_node;
+   model_node = Pipeline::GetInstance().AddMeshNode(parent, mesh, &mesh_node);
+   if (material) {
+      h3dSetNodeParamI(mesh_node, H3DMesh::MatResI, material);
    }
    return model_node;
 }
