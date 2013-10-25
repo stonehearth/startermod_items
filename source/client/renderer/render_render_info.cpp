@@ -207,6 +207,7 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
 
    H3DNodeUnique node;
    if (model_mode_ == "opaque") {
+      return;
       csg::Region3 model = voxel::QubicleBrush(matrix)
                                  .SetPaintMode(voxel::QubicleBrush::Opaque)
                                  .SetPreserveMatrixOrigin(true)
@@ -230,9 +231,8 @@ void RenderRenderInfo::AddMissingNodes(om::RenderInfoPtr render_info, FlatModelM
       auto j = nodes_.find(i->first);
       if (j == nodes_.end() || i->second != j->second.matrix) {
          AddModelNode(render_info, i->first, i->second);
-      } else {
-         i++;
       }
+      i++;
    }
 }
 
