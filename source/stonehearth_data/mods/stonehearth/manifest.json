@@ -196,6 +196,14 @@
             "controller" : "file(call_handlers/workshop_call_handler.lua)",
             "endpoint" : "server"
          },
+         "choose_outbox_location" : {
+            "controller" : "file(call_handlers/workshop_call_handler.lua)",
+            "endpoint" : "client"
+         },
+         "create_outbox" : {
+            "controller" : "file(call_handlers/workshop_call_handler.lua)",
+            "endpoint" : "server"
+         },
          "harvest_tree" : {
             "controller": "file(call_handlers/resource_call_handler.lua)",
             "endpoint" : "server"
@@ -247,7 +255,11 @@
          "build_structures": {
             "controller" : "file(call_handlers/build_call_handler.lua)",
             "endpoint" : "server"
-         }
+         },
+         "camera_look_at_entity": {
+            "controller" : "file(call_handlers/camera_call_handler.lua)",
+            "endpoint" : "client"
+         }         
       }
    },
    "components" :  {
@@ -294,7 +306,7 @@
       }
    },
    "client" : {
-      "init_script" : "file(renderers/sky/sky_renderer.lua)"
+      "init_script" : "file(client_init.lua)"
    },
    "ui" :  {
       "html" : [

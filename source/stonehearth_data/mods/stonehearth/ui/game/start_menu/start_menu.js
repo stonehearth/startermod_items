@@ -52,6 +52,15 @@ App.StonehearthStartMenuView = App.View.extend({
             self.onMenuClick(menuId)
          }
       });
+
+      $('#startMenuTrigger').hover(
+         function() {
+            $(this).removeClass('startMenuHoverOut')
+            $(this).addClass('startMenuHoverIn')
+         }, function() {
+            $(this).removeClass('startMenuHoverIn')
+            $(this).addClass('startMenuHoverOut')
+      });      
    },
 
    onMenuClick: function(menuId) {

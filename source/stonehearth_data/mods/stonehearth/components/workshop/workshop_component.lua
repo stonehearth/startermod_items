@@ -28,8 +28,6 @@ function WorkshopComponent:__init(entity, data_binding)
    self._outbox_component = nil          -- The outbox
    self._promotion_talisman_entity = nil -- The talisman for the bench, available when there is no craftsman
    self._promotion_talisman_offset = {0, 3, 0}  -- Default offset for the talisman (on the bench)
-   self._outbox_offset = {2, 0, 0}              -- Default offset for the outbox
-   self._outbox_size = {3, 3}                   -- Default size for the outbox
 
    self._data = data_binding:get_data()
    self._data.crafter = nil
@@ -47,12 +45,6 @@ function WorkshopComponent:extend(json)
       end
       if json.promotion_talisman.offset then
          self._promotion_talisman_offset = json.promotion_talisman.offset
-      end
-      if json.outbox_settings.offset then
-         self._outbox_offset = json.outbox_settings.offset
-      end
-      if json.outbox_settings.size then
-         self._outbox_size = json.outbox_settings.size
       end
    end
 end
@@ -174,7 +166,7 @@ function WorkshopComponent:set_crafter(crafter)
 end
 
 function WorkshopComponent:init_from_scratch()
-   return self:init_promotion_talisman(), self:init_outbox()
+   return self:init_promotion_talisman()
 end
 
 --[[
@@ -205,24 +197,14 @@ end
    returns: outbox_entity
    TODO: Make this a speciatly stockpile, not like other stockpiles!
 ]]
-function WorkshopComponent:init_outbox(custom_offset, custom_size)
+function WorkshopComponent:create_outbox(location, size)
    self._outbox_entity = radiant.entities.create_entity('stonehearth:workshop_outbox')
    local bench_loc = radiant.entities.get_location_aligned(self._entity)
 
-   if custom_offset then
-      self._outbox_offset = custom_offset
-   end
-   -- TODO: PLACE OUTBOX SEPARATELY
-   local offset = self._outbox_offset
-   radiant.terrain.place_entity(self._outbox_entity,
-      Point3(bench_loc.x + offset[1], bench_loc.y + offset[2], bench_loc.z + offset[3]))
+   radiant.terrain.place_entity(self._outbox_entity, location)
    local outbox_component = self._outbox_entity:get_component('stonehearth:stockpile')
 
-   if custom_size then
-      self._outbox_size = custom_size
-   end
-   outbox_component:set_size(self._outbox_size)
-
+   outbox_component:set_size(size)
    self._outbox_component = outbox_component
    return self._outbox_entity
 end
