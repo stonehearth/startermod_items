@@ -527,30 +527,16 @@ void Renderer::UpdateUITexture(const csg::Region2& rgn, const char* buffer)
 
       if (data) {
          perfmon::SwitchToCounter("copy client mem to ui pbo");
-
-         // We can't loop through the individual rects and copy only them, because the PBO won't have
-         // all the pixels in between (and we do NOT want to flush the renderer just to get them), so
-         // this is a good compromise.
-
-         int srcPitch = uiWidth_ * 4;
-         int destPitch = bounds.GetWidth() * 4;
-         int xStart = bounds.GetMin().x * 4;
-         int yStart = bounds.GetMin().y;
-         int amount = bounds.GetWidth() * 4;
-
-         for (int y = yStart; y < bounds.GetMax().y; y++) {
-            char* dst = data + ((y - yStart) * destPitch);
-            const char* src = buffer + (y * srcPitch) + xStart;
-            memcpy(dst, src, amount);
-         }
+         // If you think this is slow (bliting everything instead of just the dirty rects), please
+         // talk to Klochek; the explanation is too large to fit in the margins of this code....
+         memcpy(data, buffer, uiWidth_ * uiHeight_ * 4);
       }
       perfmon::SwitchToCounter("unmap ui pbo");
       h3dUnmapResStream(uiPbo_);
 
       perfmon::SwitchToCounter("copy ui pbo to ui texture") ;
 
-      h3dCopyBufferToBuffer(uiPbo_, uiTexture_, bounds.GetMin().x, bounds.GetMin().y, 
-         bounds.GetWidth(), bounds.GetHeight());
+      h3dCopyBufferToBuffer(uiPbo_, uiTexture_, 0, 0, uiWidth_, uiHeight_);
    }
 }
 
@@ -833,21 +819,24 @@ void Renderer::SetUITextureSize(int width, int height)
       uiWidth_ = width;
       uiHeight_ = height;
 
-   if (uiPbo_) {
-      h3dRemoveResource(uiPbo_);
-   }
-   if (uiTexture_) {
-      h3dRemoveResource(uiTexture_);
-      h3dUnloadResource(uiMatRes_);
-   }
-   h3dReleaseUnusedResources();
+      if (uiPbo_) {
+         h3dRemoveResource(uiPbo_);
+         uiPbo_ = 0x0;
+      }
+      if (uiTexture_) {
+         h3dRemoveResource(uiTexture_);
+         h3dUnloadResource(uiMatRes_);
+         uiTexture_ = 0x0;
+         uiMatRes_ = 0x0;
+      }
+      h3dReleaseUnusedResources();
 
-   uiPbo_ = h3dCreatePixelBuffer("screenui", width * height * 4);
+      uiPbo_ = h3dCreatePixelBuffer("screenui", width * height * 4);
 
-   uiTexture_ = h3dCreateTexture("UI Texture", uiWidth_, uiHeight_, H3DFormats::List::TEX_BGRA8, H3DResFlags::NoTexMipmaps);
-   unsigned char *data = (unsigned char *)h3dMapResStream(uiTexture_, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
-   memset(data, 0, uiWidth_ * uiHeight_ * 4);
-   h3dUnmapResStream(uiTexture_);
+      uiTexture_ = h3dCreateTexture("UI Texture", uiWidth_, uiHeight_, H3DFormats::List::TEX_BGRA8, H3DResFlags::NoTexMipmaps);
+      unsigned char *data = (unsigned char *)h3dMapResStream(uiTexture_, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
+      memset(data, 0, uiWidth_ * uiHeight_ * 4);
+      h3dUnmapResStream(uiTexture_);
 
       std::ostringstream material;
       material << "<Material>" << std::endl;

@@ -1154,6 +1154,13 @@ extern PFNGLGETQUERYOBJECTI64VPROC glGetQueryObjecti64v;
 extern PFNGLGETQUERYOBJECTUI64VPROC glGetQueryObjectui64v;
 
 #endif
+
+#ifndef GL_AMD_pinned_memory
+#define GL_AMD_pinned_memory 1
+
+#define GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD 0x9160
+
+#endif
 }  // namespace h3dGL
 
 using namespace h3dGL;

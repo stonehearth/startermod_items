@@ -109,6 +109,9 @@ struct DeviceCaps
 	bool  texNPOT;
 	bool  rtMultisampling;
    bool  hasInstancing;
+
+   const char* vendor;
+   const char* renderer;
 };
 
 
@@ -354,12 +357,12 @@ public:
 	// Buffers
 	uint32 createVertexBuffer( uint32 size, const void *data );
 	uint32 createIndexBuffer( uint32 size, const void *data );
-   uint32 createPixelBuffer( uint32 size, const void *data );
+   uint32 createPixelBuffer( uint32 type, uint32 size, const void *data );
 	void destroyBuffer( uint32 bufObj );
 	void updateBufferData( uint32 bufObj, uint32 offset, uint32 size, void *data );
 	uint32 getBufferMem() { return _bufferMem; }
 
-   void* mapBuffer(uint32 bufObj);
+   void* mapBuffer(uint32 bufObj, bool discard=true);
    void unmapBuffer(uint32 bufObj);
 
 
