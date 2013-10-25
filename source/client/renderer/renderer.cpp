@@ -60,14 +60,14 @@ Renderer::Renderer() :
    assert(renderer_.get() == nullptr);
    renderer_.reset(this);
 
-   width_ = 1920;
-   height_ = 1080;
+   windowWidth_ = 1920;
+   windowHeight_ = 1080;
 
    glfwInit();
 
    GLFWwindow *window;
    // Fullscreen: add glfwGetPrimaryMonitor() instead of the first NULL.
-   if (!(window = glfwCreateWindow(width_, height_, "Stonehearth", NULL, NULL))) {
+   if (!(window = glfwCreateWindow(windowWidth_, windowHeight_, "Stonehearth", NULL, NULL))) {
       glfwTerminate();
    }
 
@@ -88,6 +88,7 @@ Renderer::Renderer() :
 	h3dSetOption(H3DOptions::FastAnimation, 1);
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
    h3dSetOption(H3DOptions::SampleCount, 4);
+   ResizeWindow(windowWidth_, windowHeight_);
 
    SetCurrentPipeline("pipelines/forward.pipeline.xml");
 
@@ -143,10 +144,10 @@ Renderer::Renderer() :
 
 	// Add camera   
    camera_ = new Camera(H3DRootNode, "Camera", currentPipeline_);
-
    h3dSetNodeParamI(camera_->GetNode(), H3DCamera::PipeResI, currentPipeline_);
-   // Resize
-   Resize(width_, height_);
+
+   ResizeViewport(windowWidth_, windowHeight_);
+   ResizePipelines(windowWidth_, windowHeight_);
 
    memset(&input_.mouse, 0, sizeof input_.mouse);
 
@@ -425,8 +426,8 @@ void Renderer::GetCameraToViewportRay(int windowX, int windowY, csg::Ray3* ray)
 {
    // compute normalized window coordinates in preparation for casting a ray
    // through the scene
-   float nwx = ((float)windowX) / width_;
-   float nwy = 1.0f - ((float)windowY) / height_;
+   float nwx = ((float)windowX) / windowWidth_;
+   float nwy = 1.0f - ((float)windowY) / windowHeight_;
 
    // calculate the ray starting at the eye position of the camera, casting
    // through the specified window coordinates into the scene
@@ -540,28 +541,33 @@ void Renderer::UpdateUITexture(const csg::Region2& rgn, const char* buffer)
    }
 }
 
-void Renderer::Resize( int width, int height )
+void Renderer::ResizeWindow(int width, int height)
 {
-   width_ = width;
-   height_ = height;
+   windowWidth_ = width;
+   windowHeight_ = height;
 
-   SetUITextureSize(width, height);
-   
+   SetUITextureSize(windowWidth_, windowHeight_);
+}
+
+void Renderer::ResizePipelines(int width, int height)
+{
+   for (const auto& entry : pipelines_) {
+      h3dResizePipelineBuffers(entry.second, windowWidth_, windowHeight_);
+   }
+}
+
+void Renderer::ResizeViewport( int width, int height )
+{
    H3DNode camera = camera_->GetNode();
 
    // Resize viewport
    h3dSetNodeParamI( camera, H3DCamera::ViewportXI, 0 );
    h3dSetNodeParamI( camera, H3DCamera::ViewportYI, 0 );
-   h3dSetNodeParamI( camera, H3DCamera::ViewportWidthI, width );
-   h3dSetNodeParamI( camera, H3DCamera::ViewportHeightI, height );
+   h3dSetNodeParamI( camera, H3DCamera::ViewportWidthI, windowWidth_ );
+   h3dSetNodeParamI( camera, H3DCamera::ViewportHeightI, windowHeight_ );
 	
    // Set virtual camera parameters
-   h3dSetupCameraView( camera, 45.0f, (float)width / height, 4.0f, 4000.0f);
-   for (const auto& entry : pipelines_) {
-      h3dResizePipelineBuffers(entry.second, width, height);
-   }
-
-   screen_resize_slot_.Signal(csg::Point2(width_, height_));
+   h3dSetupCameraView( camera, 45.0f, (float)windowWidth_ / windowHeight_, 4.0f, 4000.0f);
 }
 
 std::shared_ptr<RenderEntity> Renderer::CreateRenderObject(H3DNode parent, om::EntityPtr entity)
@@ -703,7 +709,10 @@ void Renderer::OnKey(int key, int down)
 }
 
 void Renderer::OnWindowResized(int newWidth, int newHeight) {
-   Resize(newWidth, newHeight);
+   ResizeWindow(newWidth, newHeight);
+   ResizeViewport(newWidth, newHeight);
+   ResizePipelines(newWidth, newHeight);
+   screen_resize_slot_.Signal(csg::Point2(windowWidth_, windowHeight_));
 }
 
 core::Guard Renderer::TraceSelected(H3DNode node, UpdateSelectionFn fn)
@@ -723,11 +732,6 @@ void Renderer::SetCurrentPipeline(std::string name)
       pipelines_[name] = p;
 
    	LoadResources();
-
-      // xxx - This keeps all pipeline buffers around all the time.  Should we
-      // nuke all non-active pipelines so we can use their buffer memory for
-      // something else (e.g. bigger shadows, better support for older hardware)
-      h3dResizePipelineBuffers(p, width_, height_);
    } else {
       p = i->second;
    }
@@ -789,12 +793,12 @@ csg::Point2 Renderer::GetMousePosition() const
 
 int Renderer::GetWidth() const
 {
-   return width_;
+   return windowWidth_;
 }
 
 int Renderer::GetHeight() const
 {
-   return height_;
+   return windowHeight_;
 }
 
 boost::property_tree::ptree const& Renderer::GetTerrainConfig() const

@@ -140,11 +140,14 @@ class Renderer
       void OnMouseButton(int button, int press);
       void OnMouseEnter(int entered);
       void OnRawInput(UINT msg, WPARAM wParam, LPARAM lParam);
-      void Resize(int width, int height);
       void UpdateCamera();
       float DistFunc(float dist, int wheel, float minDist, float maxDist) const;
       MouseInput WindowToBrowser(const MouseInput& mouse);
       void CallMouseInputCallbacks();
+
+      void ResizeWindow(int width, int height);
+      void ResizeViewport(int width, int height);
+      void ResizePipelines(int width, int height);
 
       void DispatchInputEvent();
 
@@ -152,8 +155,8 @@ class Renderer
       typedef std::unordered_map<H3DNode, UpdateSelectionFn> SelectableMap;
       typedef std::unordered_map<dm::ObjectId, std::shared_ptr<RenderEntity>> RenderEntityMap;
       typedef std::unordered_map<std::string, H3DRes>    H3DResourceMap;
-      int               width_;
-      int               height_;
+      int               windowWidth_;
+      int               windowHeight_;
       int               uiWidth_;
       int               uiHeight_;
 
