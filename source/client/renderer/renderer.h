@@ -57,6 +57,8 @@ struct RendererConfig {
    bool use_ssao;
    bool use_ssao_blur;
    bool use_shadows;
+   int  num_msaa_samples;
+   int  shadow_resolution;
 };
 
 class Renderer

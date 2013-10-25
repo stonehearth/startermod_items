@@ -84,10 +84,11 @@ Renderer::Renderer() :
 	h3dSetOption(H3DOptions::LoadTextures, 1);
 	h3dSetOption(H3DOptions::TexCompression, 0);
 	h3dSetOption(H3DOptions::MaxAnisotropy, 4);
-	h3dSetOption(H3DOptions::ShadowMapSize, 2048);
+   h3dSetOption(H3DOptions::ShadowMapSize, config_.shadow_resolution);
 	h3dSetOption(H3DOptions::FastAnimation, 1);
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
-   h3dSetOption(H3DOptions::SampleCount, 4);
+   h3dSetOption(H3DOptions::SampleCount, config_.num_msaa_samples);
+
    ResizeWindow(windowWidth_, windowHeight_);
 
    SetCurrentPipeline("pipelines/forward.pipeline.xml");
@@ -225,6 +226,14 @@ void Renderer::GetConfigOptions()
       (
          "renderer.enable_ssao",
          po::bool_switch(&config_.use_ssao)->default_value(true), "Enables Screen-Space Ambient Occlusion (SSAO)."
+      )
+      (
+         "renderer.msaa_samples",
+         po::value<int>(&config_.num_msaa_samples)->default_value(0), "Sets the number of Multi-Sample Anti Aliasing samples to use."
+      )
+      (
+         "renderer.shadow_resolution",
+         po::value<int>(&config_.shadow_resolution)->default_value(2048), "Sets the square resolution of the shadow maps."
       );
    core::Config::GetInstance().GetCommandLineOptions().add(cmd_line);
    core::Config::GetInstance().GetConfigFileOptions().add(cmd_line);
@@ -245,6 +254,8 @@ void Renderer::ApplyConfig()
    SetStageEnable("SSAO Default", !config_.use_ssao);
 
    h3dSetOption(H3DOptions::EnableShadows, config_.use_shadows ? 1.0f : 0.0f);
+   h3dSetOption(H3DOptions::ShadowMapSize, config_.shadow_resolution);
+   h3dSetOption(H3DOptions::SampleCount, config_.num_msaa_samples);
 }
 
 void Renderer::SetStageEnable(const char* stageName, bool enabled)
