@@ -61,7 +61,7 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
       };
 
       using boost::property_tree::ptree;
-      ptree const& config = Renderer::GetInstance().GetConfig();
+      ptree const& config = Renderer::GetInstance().GetTerrainConfig();
       csg::Point3f soil_light = parse_color(config.get<std::string>("soil.light_color", "#ffff00"));
       csg::Point3f soil_dark = parse_color(config.get<std::string>("soil.dark_color", "#ff00ff"));
       csg::Point3f soil_detail = parse_color(config.get<std::string>("soil.detail_color", "#ff00ff"));

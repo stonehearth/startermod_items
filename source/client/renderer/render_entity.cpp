@@ -39,16 +39,11 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
 {
    ASSERT(parent);
 
+   node_name_ = BUILD_STRING("[" << entity->GetDebugText() << " store:" << entity->GetStoreId() 
+                                 << " id:" << entity->GetObjectId() << "]");
 
    totalObjectCount_++;
-   dm::ObjectId id = entity->GetObjectId();
-
-   std::ostringstream name;
-   name << "RenderEntity " << entity->GetDebugText() << " (" << entity->GetStoreId() << ", " << id << ")";
-
-   // LOG(WARNING) << "creating new entity " << name.str() << ".";
-
-   node_ = H3DNodeUnique(h3dAddGroupNode(parent, name.str().c_str()));
+   node_ = H3DNodeUnique(h3dAddGroupNode(parent, node_name_.c_str()));
    h3dSetNodeFlags(node_.get(), h3dGetNodeFlags(parent), true);
 
    skeleton_.SetSceneNode(node_.get());

@@ -5,6 +5,8 @@ function StockpileRenderer:__init(render_entity, data_store)
    self._size = { 0, 0 }   
    self._data_store = data_store
    self._node = h3dRadiantCreateStockpileNode(parent_node, 'stockpile designation')
+   h3dSetNodeParamStr(self._node, H3DNodeParams.NameStr, 'stockpile designation node')
+   local name = h3dGetNodeParamStr(self._node, H3DNodeParams.NameStr)
    self._promise = data_store:trace('rendering stockpile designation')
    self._promise:on_changed(function()
          self:_update()

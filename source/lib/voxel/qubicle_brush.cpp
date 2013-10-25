@@ -21,10 +21,18 @@ static const struct {
 
 QubicleBrush::QubicleBrush(std::istream& in) :
    normal_(0, 0, -1),
-   paint_mode_(Color)
+   paint_mode_(Color),
+   preserve_matrix_origin_(false)
 {
    in >> qubicle_file_;
    qubicle_matrix_ = &qubicle_file_.begin()->second;
+}
+
+QubicleBrush::QubicleBrush(QubicleMatrix const* m) :
+   normal_(0, 0, -1),
+   qubicle_matrix_(m),
+   preserve_matrix_origin_(false)
+{
 }
 
 QubicleBrush& QubicleBrush::SetNormal(csg::Point3 const& normal)
@@ -36,6 +44,12 @@ QubicleBrush& QubicleBrush::SetNormal(csg::Point3 const& normal)
 QubicleBrush& QubicleBrush::SetPaintMode(PaintMode mode)
 {
    paint_mode_ = mode;
+   return *this;
+}
+
+QubicleBrush& QubicleBrush::SetPreserveMatrixOrigin(bool value)
+{
+   preserve_matrix_origin_ = value;
    return *this;
 }
 
@@ -101,7 +115,7 @@ csg::Region3 QubicleBrush::IterateThroughStencil(csg::Region3 const& brush,
 csg::Region3 QubicleBrush::MatrixToRegion3(QubicleMatrix const& matrix)
 {
    const csg::Point3& size = matrix.GetSize();
-   const csg::Point3f pos = csg::ToFloat(matrix.GetPosition());
+   const csg::Point3 pos = matrix.GetPosition();
 
    csg::Region3 result;
 
@@ -171,7 +185,14 @@ finished_xz:
 
 finished_xyz:
             // Add a cube of the current color and mark all this stuff as processed
-            result.AddUnique(csg::Cube3(csg::Point3(x, y, z), csg::Point3(x_max, y_max, z_max), color));
+            csg::Point3 cmin = csg::Point3(x, y, z);
+            csg::Point3 cmax = csg::Point3(x_max, y_max, z_max);
+            if (preserve_matrix_origin_) {
+               cmin += pos;
+               cmax += pos;
+            }
+            result.AddUnique(csg::Cube3(cmin, cmax, color));
+
             for (v = y; v < y_max; v++) {
                for (w = z; w < z_max; w++) {
                   for (u = x; u < x_max; u++) {

@@ -10,6 +10,7 @@
 #include "Horde3DUtils.h"
 #include "resources/res_manager.h"
 #include "lib/voxel/qubicle_file.h"
+#include "lib/voxel/qubicle_brush.h"
 #include "pipeline.h"
 
 using namespace ::radiant;
@@ -69,6 +70,7 @@ RenderRenderInfo::RenderRenderInfo(RenderEntity& entity, om::RenderInfoPtr rende
 
    // if the material changes...
    render_info_guards_ += render_info->GetMaterial().TraceObjectChanges("material changed in render_info", set_model_dirty_bit);
+   render_info_guards_ += render_info->GetModelMode().TraceObjectChanges("model_mode changed in render_info", set_model_dirty_bit);
    SetDirtyBits(-1);
 }
 
@@ -202,7 +204,18 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
    auto& pipeline = Pipeline::GetInstance();
    H3DNode mesh;
    H3DNode parent = entity_.GetSkeleton().GetSceneNode(bone);
-   H3DNodeUnique node = pipeline.AddQubicleNode(parent, *matrix, origin, &mesh);
+
+   H3DNodeUnique node;
+   if (model_mode_ == "opaque") {
+      csg::Region3 model = voxel::QubicleBrush(matrix)
+                                 .SetPaintMode(voxel::QubicleBrush::Opaque)
+                                 .SetPreserveMatrixOrigin(true)
+                                 .Paint();
+      csg::mesh_tools::mesh geometry = csg::mesh_tools().ConvertRegionToMesh(model);
+      node = pipeline.AddMeshNode(parent, geometry, &mesh);
+   } else {
+      node = pipeline.AddQubicleNode(parent, *matrix, origin, &mesh);
+   }
    if (material_.get()) {
       h3dSetNodeParamI(mesh, H3DMesh::MatResI, material_.get());
    }
@@ -250,6 +263,7 @@ void RenderRenderInfo::Update()
             SetDirtyBits(MODEL_DIRTY);
          }
          if (dirty_ & MODEL_DIRTY) {
+            model_mode_ = *render_info->GetModelMode();
             CheckMaterial(render_info);
             RebuildModels(render_info);
          }

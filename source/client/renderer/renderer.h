@@ -52,6 +52,13 @@ struct FrameStartInfo {
    FrameStartInfo(int n, float i) : now(n), interpolate(i) { }
 };
 
+struct RendererConfig {
+   bool use_forward_renderer;
+   bool use_ssao;
+   bool use_ssao_blur;
+   bool use_shadows;
+};
+
 class Renderer
 {
    public:
@@ -60,6 +67,8 @@ class Renderer
 
    public:
       static Renderer& GetInstance();
+      static void GetConfigOptions();
+      static RendererConfig config_;
 
       void Initialize(om::EntityPtr rootObject);
       void SetScriptHost(lua::ScriptHost* host);
@@ -70,6 +79,7 @@ class Renderer
       void LoadResources();
       void ShowPerfHud(bool value);
       void SetServerTick(int tick);
+      void ApplyConfig();
 
       int GetWidth() const;
       int GetHeight() const;
@@ -81,7 +91,7 @@ class Renderer
       bool IsRunning() const;
       HWND GetWindowHandle() const;
 
-      boost::property_tree::ptree const& GetConfig() const;
+      boost::property_tree::ptree const& GetTerrainConfig() const;
 
       std::shared_ptr<RenderEntity> CreateRenderObject(H3DNode parent, om::EntityPtr obj);
       std::shared_ptr<RenderEntity> GetRenderObject(om::EntityPtr obj);
@@ -122,6 +132,7 @@ class Renderer
       NO_COPY_CONSTRUCTOR(Renderer);
 
    private:
+      void SetStageEnable(const char* stageName, bool enabled);
       void OnWindowResized(int newWidth, int newHeight);
       void OnKey(int key, int down);
       void OnMouseWheel(double value);
@@ -171,7 +182,7 @@ class Renderer
       bool                          initialized_;
 
       ViewMode                      viewMode_;
-      boost::property_tree::basic_ptree<std::string, std::string> config_;
+      boost::property_tree::basic_ptree<std::string, std::string> terrainConfig_;
       lua::ScriptHost*              scriptHost_;
 
       core::BufferedSlot<csg::Point2>     screen_resize_slot_;
