@@ -207,7 +207,6 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
 
    H3DNodeUnique node;
    if (model_mode_ == "opaque") {
-      return;
       csg::Region3 model = voxel::QubicleBrush(matrix)
                                  .SetPaintMode(voxel::QubicleBrush::Opaque)
                                  .SetPreserveMatrixOrigin(true)
