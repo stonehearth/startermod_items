@@ -26,39 +26,40 @@ function ProxyRoomBuilder:go()
    self._left = self:add_wall()
    self._right = self:add_wall()
 
-   self:_layout()
+   self._door = self:add_door()
+   self._bot:add_child(self._door)
+   
+   self:layout()
    
    return self
 end
 
-function ProxyRoomBuilder:_layout()
-   self._left:connect_to(self._bot_left, self._top_left)
-   self._top:connect_to(self._top_left, self._top_right)
-   self._right:connect_to(self._top_right, self._bot_right)
-   self._bot:connect_to(self._bot_right, self._bot_left)
+function ProxyRoomBuilder:layout()
+   -- make sure we draw walls in counter-clockwise order so the
+   -- normals face outward
+   self._bot:connect_to(self._bot_left, self._bot_right)
+   self._right:connect_to(self._bot_right, self._top_right)
+   self._top:connect_to(self._top_right, self._top_left)
+   self._left:connect_to(self._top_left, self._bot_left)
+   
+   local length = self._bot:get_length()
+   local position = self._bot:reface_point(Point3(length / 2, 0, 0))
+   self._door:move_to(position)
+   self._bot:layout()
 end
-
 
 function ProxyRoomBuilder:_on_mouse_event(e)
    local query = _radiant.client.query_scene(e.x, e.y)
-   radiant.log.warning('query scene %d, %d', e.x, e.y)
    if query.location then
-      radiant.log.warning('moving to %s', tostring(query.location))
-      -- local location = self:_fit_point_to_constraints(query.location + query.normal)
-      self:move_to(query.location)
-      return true
-      --[[
-      self:get_column(-1):move_to(location)      
+      local location = query.location + query.normal
+      self:move_to(location)
       if e:up(1) then
-         self:_add_new_segment()      
-         if self:shift_down() or self:get_column_count() < 2 then
-            self:add_column():move_to(location)
-         else
-            self:publish()
-         end
-         return true
+         self:publish()
+         return false
+      elseif e:up(2) then
+         self:rotate()
       end
-      ]]
+      return true
    end
    return false
 end

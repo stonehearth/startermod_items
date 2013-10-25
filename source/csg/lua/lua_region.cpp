@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "lib/lua/register.h"
+#include "lib/lua/script_host.h"
 #include "lua_region.h"
 #include "csg/region.h"
 #include "csg/util.h"
@@ -12,6 +13,14 @@ template <typename T>
 void CopyRegion(T& region, T const& other)
 {
    region = other;
+}
+
+template <typename T>
+void LoadRegion(lua_State* L, T& region, object obj)
+{
+   // converts the lua object to a json object, then the json
+   // object to a region.  Slow?  Yes, but effective in 1 line of code.
+   region = json::Node(lua::ScriptHost::LuaToJson(L, obj)).as<T>();
 }
 
 template <typename T>
@@ -44,6 +53,7 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def(constructor<typename T::Cube const&>())
          .def(const_self - other<T const&>())
          .def(const_self - other<T::Cube const&>())
+         .def("load",               &LoadRegion<T>)
          .def("copy_region",        &CopyRegion<T>)
          .def("duplicate",          &Duplicate<T>)
          .def("empty",              &T::IsEmpty)
