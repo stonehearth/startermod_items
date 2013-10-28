@@ -15,6 +15,16 @@
    "new_game_place_stockpile" : "Click to place your stockpile",
    "new_game_setup_finished_button" : "Ok, got it",
 
+   "show_stockpile_all" : "All",
+   "show_stockpile_none" : "None",
+   "show_stockpile_storage_for" : "Storage for:",
+   "show_stockpile_resources" : "Resources",
+   "show_stockpile_construction" : "Construction",
+   "show_stockpile_goods" : "Tools & Goods",
+   "show_stockpile_gear" : "Weapons & Armor",
+   "show_stockpile_food_and_drink" : "Food & Drink",
+   "show_stockpile_wealth" : "Wealth",
+
    "craft_number_left": "Craft",
    "craft_number_right": "right now.",
    "craft_up_to_left": "Maintain",

@@ -18,7 +18,7 @@ local all_stockpiles = {}
 
 function get_stockpile_containing_entity(entity)
    for id, stockpile in pairs(all_stockpiles) do
-      if stockpile and stockpile:contains(entity) then
+      if stockpile and stockpile:contains(entity) and stockpile:can_stock_entity(entity) then
          return stockpile
       end
    end
@@ -26,10 +26,38 @@ end
 
 function StockpileComponent:__init(entity, data_binding)
    self._entity = entity
+   self._filter = {
+      wood = true,
+      stone = true,
+      ore = true,
+      animal_part = true,
+      portal = true,
+      furniture = true,
+      defense = true,
+      light = true,
+      decoration = true,
+      refined_cloth = true,
+      refined_animal_part = true,
+      refined_ore = true,
+      melee_weapon = true,
+      ranged_weapon = true,
+      light_armor = true,
+      heavy_armor = true,
+      exotic_gear = true,
+      fruit = true,
+      vegetable = true,
+      baked = true,
+      meat = true,
+      drink = true,
+      gold = true,
+      gem = true
+   }
+
    self._destination = entity:add_component('destination')
    self._data = {
       items = {},
-      size  = { 0, 0 }
+      size  = { 0, 0 },
+      filter = self._filter
    }
    self._data_binding = data_binding
    self._data_binding:update(self._data)
@@ -37,6 +65,23 @@ function StockpileComponent:__init(entity, data_binding)
    self._destination:set_region(_radiant.sim.alloc_region())
    radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
    all_stockpiles[self._entity:get_id()] = self
+end
+
+function StockpileComponent:set_filter(values)
+   for name, _ in pairs(self._filter) do
+      self._filter[name] = false
+   end
+
+   for i, name in ipairs(values) do
+      self._filter[name] = true
+   end
+   
+   self._data_binding:update(self._data)
+
+   --restart the worker tasks
+   self._pickup_task:destroy()
+   self._restock_task:destroy()
+   self:_create_worker_tasks()
 end
 
 -- xxx: the 'fire one when i'm constructed' pattern again...
@@ -241,8 +286,21 @@ end
 -- @return true if the entity can be stocked here, false otherwise.
 
 function StockpileComponent:can_stock_entity(entity)
-   -- xxx: obviously should be more specific than this...
-   return entity and entity:get_component('item') ~= nil
+   if not entity or entity:get_component('item') == nil then
+      return false
+   end
+
+   local material_component = entity:add_component('stonehearth:materials')
+
+   local in_filter = false
+   for name, value in pairs(self._filter) do
+      if value and material_component:has_material(name) then
+         in_filter = true
+         break
+      end
+   end
+
+   return in_filter   
 end
 
 

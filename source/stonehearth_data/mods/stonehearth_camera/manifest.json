@@ -1,8 +1,0 @@
-{
-   "info" :{
-      "name" : "Stonehearth Camera"
-   },
-   "client" : {
-      "init_script" : "file(stonehearth_camera.lua)"
-   }
-}

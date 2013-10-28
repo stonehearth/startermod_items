@@ -180,6 +180,14 @@
             "controller" : "file(call_handlers/new_game_call_handler.lua)",
             "endpoint" : "server"
          },
+         "set_display_name": {
+            "controller" : "file(call_handlers/entities_call_handler.lua)",
+            "endpoint" : "server"
+         },
+         "destroy_entity": {
+            "controller" : "file(call_handlers/entities_call_handler.lua)",
+            "endpoint" : "server"
+         },
          "get_events": {
             "controller" : "file(call_handlers/event_call_handler.lua)",
             "endpoint" : "server"
@@ -256,6 +264,10 @@
             "controller" : "file(call_handlers/build_call_handler.lua)",
             "endpoint" : "server"
          },
+         "set_stockpile_filter": {
+            "controller" : "file(call_handlers/stockpile_call_handler.lua)",
+            "endpoint" : "server"
+         },
          "camera_look_at_entity": {
             "controller" : "file(call_handlers/camera_call_handler.lua)",
             "endpoint" : "client"
@@ -328,6 +340,7 @@
          "file(ui/game/start_menu/start_menu.html)",
          "file(ui/game/main_actionbar/tip_popup.html)",
          "file(ui/game/event_log/event_log.html)",
+         "file(ui/game/show_stockpile/show_stockpile.html)",
          "file(ui/game/build/build.html)"
       ],
       "js" : [
@@ -349,6 +362,7 @@
          "file(ui/game/main_actionbar/tip_popup.js)",
          "file(ui/game/create_stockpile/create_stockpile.js)",
          "file(ui/game/event_log/event_log.js)",
+         "file(ui/game/show_stockpile/show_stockpile.js)",
          "file(ui/game/build/build.js)"
       ],
       "less" : [
@@ -369,6 +383,7 @@
          "file(ui/game/start_menu/start_menu.less)",
          "file(ui/game/main_actionbar/tip_popup.less)",
          "file(ui/game/event_log/event_log.less)",
+         "file(ui/game/show_stockpile/show_stockpile.less)",
          "file(ui/game/build/build.less)"
       ]
    }
