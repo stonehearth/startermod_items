@@ -24,6 +24,7 @@ local large = 'large'
 local tree_widths = { small, medium, large }
 
 local pink_flower_name = mod_name .. ':' .. 'pink_flower'
+local rabbit_name = mod_name .. ':' .. 'rabbit'
 
 local Landscaper = class()
 
@@ -77,24 +78,27 @@ function Landscaper:_place_trees(zone_map, place_item)
 
    for j=1, density_map.height do
       for i=1, density_map.width do
-         occupied = self.flora_map:get(i, j) ~= nil
          value = density_map:get(i, j)
 
-         if not occupied and value > 0 then
-            x, y = self.flora_perturbation_grid:get_perturbed_coordinates(i, j, max_trunk_radius)
+         if value > 0 then
+            occupied = self.flora_map:get(i, j) ~= nil
 
-            if self:_is_flat(zone_map, x, y, ground_radius) then
-               elevation = zone_map:get(x, y)
-               tree_type = self:_get_tree_type(elevation, default_tree_type)
+            if not occupied then
+               x, y = self.flora_perturbation_grid:get_perturbed_coordinates(i, j, max_trunk_radius)
 
-               if tree_type ~= nil then 
-                  if value <= small_tree_threshold      then tree_name = get_tree_name(tree_type, small)
-                  elseif value <= medium_tree_threshold then tree_name = get_tree_name(tree_type, medium)
-                  else                                       tree_name = get_tree_name(tree_type, large)
+               if self:_is_flat(zone_map, x, y, ground_radius) then
+                  elevation = zone_map:get(x, y)
+                  tree_type = self:_get_tree_type(elevation, default_tree_type)
+
+                  if tree_type ~= nil then 
+                     if value <= small_tree_threshold      then tree_name = get_tree_name(tree_type, small)
+                     elseif value <= medium_tree_threshold then tree_name = get_tree_name(tree_type, medium)
+                     else                                       tree_name = get_tree_name(tree_type, large)
+                     end
+
+                     place_item(tree_name, x, y)
+                     self.flora_map:set(i, j, tree_name)
                   end
-
-                  place_item(tree_name, x, y)
-                  self.flora_map:set(i, j, tree_name)
                end
             end
          end
@@ -105,33 +109,56 @@ end
 -- TODO: refactor
 function Landscaper:_place_flowers(zone_map, place_item)
    local grid_spacing = self.flora_perturbation_grid.grid_spacing
-   local exclusion_radius = 0
+   local exclusion_radius = 1
+   local ground_radius = 1
    local noise_map = self.noise_map_buffer
    local density_map = self.density_map_buffer
-   local i, j, x, y, w, h, occupied, value, factor, nested_grid_spacing
+   local density_bias = 10
+   local i, j, x, y, occupied, value, elevation, terrain_type
 
-   self:_fill_noise_map(noise_map, self.flora_map, -20, -60, -60)
+   self:_fill_noise_map(noise_map, self.flora_map, 10, -50, -50)
    FilterFns.filter_2D_025(density_map, noise_map, noise_map.width, noise_map.height, 8)
 
    for j=1, density_map.height do
       for i=1, density_map.width do
-         occupied = self.flora_map:get(i, j) ~= nil
          value = density_map:get(i, j)
 
-         if not occupied and value > 0 then
-            x, y, w, h = self.flora_perturbation_grid:get_cell_bounds(i, j)
+         if value > 0  then
+            occupied = self.flora_map:get(i, j) ~= nil
 
-            if     value > 25 then factor = 0.25
-            elseif value > 16 then factor = 0.33
-            elseif value > 9  then factor = 0.5
-            else                   factor = 1
+            if not occupied then
+               if math.random(100) <= value+density_bias then
+                  x, y = self.flora_perturbation_grid:get_perturbed_coordinates(i, j, exclusion_radius)
+
+                  if self:_is_flat(zone_map, x, y, ground_radius) then
+                     elevation = zone_map:get(x, y)
+                     terrain_type = self.terrain_info:get_terrain_type(elevation)
+
+                     if terrain_type == TerrainType.Grassland then
+                        place_item(pink_flower_name, x, y)
+                        self.flora_map:set(i, j, pink_flower_name)
+                     end
+                  end
+               end
             end
-
-            nested_grid_spacing = math.floor(grid_spacing * factor)
-
-            self:_place_dense_items(zone_map, x, y, w, h, nested_grid_spacing, exclusion_radius, pink_flower_name, place_item)
-            self.flora_map:set(i, j, pink_flower_name)
          end
+         -- For dense flowers
+         -- occupied = self.flora_map:get(i, j) ~= nil
+         -- value = density_map:get(i, j)
+
+         -- if not occupied and value > 0 then
+         --    x, y, w, h = self.flora_perturbation_grid:get_cell_bounds(i, j)
+
+         --    if     value > 36 then factor = 0.33
+         --    elseif value > 25 then factor = 0.5
+         --    else                   factor = 1
+         --    end
+
+         --    nested_grid_spacing = math.floor(grid_spacing * factor)
+
+         --    self:_place_dense_items(zone_map, x, y, w, h, nested_grid_spacing, exclusion_radius, pink_flower_name, place_item)
+         --    self.flora_map:set(i, j, pink_flower_name)
+         -- end
       end
    end
 end

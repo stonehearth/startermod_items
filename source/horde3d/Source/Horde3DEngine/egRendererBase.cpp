@@ -215,6 +215,8 @@ bool RenderDevice::init()
 	_caps.texNPOT = glExt::ARB_texture_non_power_of_two ? 1 : 0;
 	_caps.rtMultisampling = glExt::EXT_framebuffer_multisample ? 1 : 0;
    _caps.hasInstancing = (glExt::majorVersion * 10 + glExt::minorVersion) >= 33;
+   _caps.renderer = renderer;
+   _caps.vendor = vendor;
 
 	// Find supported depth format (some old ATI cards only support 16 bit depth for FBOs)
 	_depthFormat = GL_DEPTH_COMPONENT24;
@@ -316,10 +318,10 @@ uint32 RenderDevice::createIndexBuffer( uint32 size, const void *data )
 }
 
 
-uint32 RenderDevice::createPixelBuffer( uint32 size, const void *data )
+uint32 RenderDevice::createPixelBuffer( uint32 type, uint32 size, const void *data )
 {
    RDIBuffer buf = { 0xff };
-   buf.type = GL_PIXEL_UNPACK_BUFFER;
+   buf.type = type;
    buf.size = size;
    glGenBuffers(1, &buf.glObj);
 
@@ -371,10 +373,15 @@ void RenderDevice::updateBufferData( uint32 bufObj, uint32 offset, uint32 size, 
 }
 
 
-void* RenderDevice::mapBuffer(uint32 bufObj)
+void* RenderDevice::mapBuffer(uint32 bufObj, bool discard)
 {
    const RDIBuffer &buf = _buffers.getRef( bufObj );
    glBindBuffer(buf.type, buf.glObj);
+
+   if (discard)
+   {
+      glBufferData(buf.type, buf.size, NULL, GL_STREAM_DRAW);
+   }
    void* result = glMapBuffer(buf.type, GL_WRITE_ONLY);
    glBindBuffer(buf.type, 0);
 
@@ -503,10 +510,10 @@ uint32 RenderDevice::createTexture( TextureTypes::List type, int width, int heig
 	return _textures.add( tex );
 }
 
-
-void RenderDevice::copyTextureDataFromPbo( uint32 texObj, uint32 pboGlObj, int xOffset, int yOffset, int width, int height )
+void RenderDevice::copyTextureDataFromPbo( uint32 texObj, uint32 pboObj, int xOffset, int yOffset, int width, int height )
 {
    const RDITexture &tex = _textures.getRef( texObj );
+   const RDIBuffer &buf = _buffers.getRef(pboObj);
    int inputFormat = GL_BGRA, inputType = GL_UNSIGNED_BYTE;
 
    switch( tex.format )
@@ -532,9 +539,9 @@ void RenderDevice::copyTextureDataFromPbo( uint32 texObj, uint32 pboGlObj, int x
    ASSERT(height <= tex.height);
 
    glBindTexture(GL_TEXTURE_2D, tex.glObj);
-   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboGlObj);
-   
-   glTexSubImage2D(GL_TEXTURE_2D, 0, xOffset, yOffset, width, height, inputFormat, inputType, 0);
+   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, buf.glObj);
+
+   glTexSubImage2D(GL_TEXTURE_2D, 0, xOffset, yOffset, width, height, inputFormat, inputType, 0);   
    
    glBindTexture(GL_TEXTURE_2D, 0);
    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);

@@ -918,6 +918,24 @@ extern PFNGLGETSTRINGIPROC glGetStringi;
 
 #endif // GL_VERSION_3_0
 
+#ifndef GL_VERSION_3_2
+#define GL_VERSION_3_2
+
+#define GL_SYNC_FLUSH_COMMANDS_BIT        0x00000001
+#define GL_SYNC_GPU_COMMANDS_COMPLETE     0x9117
+
+typedef struct __GLsync *GLsync;
+
+typedef GLsync (GLAPIENTRYP PFNGLFENCESYNCPROC) (GLenum condition, GLbitfield flags);
+typedef void (GLAPIENTRYP PFNGLDELETESYNCPROC) (GLsync sync);
+typedef GLenum (GLAPIENTRYP PFNGLCLIENTWAITSYNCPROC) (GLsync sync, GLbitfield flags, GLuint64 timeout);
+
+extern PFNGLFENCESYNCPROC glFenceSync;
+extern PFNGLCLIENTWAITSYNCPROC glClientWaitSync;
+extern PFNGLDELETESYNCPROC glDeleteSync;
+
+#endif // GL_VERSION_3_2
+
 #ifndef GL_VERSION_3_3
 #define GL_VERSION_3_3
 
@@ -1152,6 +1170,13 @@ typedef void (GLAPIENTRYP PFNGLGETQUERYOBJECTUI64VPROC) (GLuint id, GLenum pname
 extern PFNGLQUERYCOUNTERPROC glQueryCounter; 
 extern PFNGLGETQUERYOBJECTI64VPROC glGetQueryObjecti64v;
 extern PFNGLGETQUERYOBJECTUI64VPROC glGetQueryObjectui64v;
+
+#endif
+
+#ifndef GL_AMD_pinned_memory
+#define GL_AMD_pinned_memory 1
+
+#define GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD 0x9160
 
 #endif
 }  // namespace h3dGL

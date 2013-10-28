@@ -1,0 +1,10 @@
+;aic
+
+;SetVersion 0.0.1
+;SetVersion -fromfile ..\build\deployment\Stonehearth.exe
+;Save
+
+Build
+
+; Use Rebuild to force a clean build
+; Rebuild

@@ -154,6 +154,11 @@ PFNGLUNIFORMMATRIX4X3FVPROC glUniformMatrix4x3fv = 0x0;
 // GL 3.0
 PFNGLGETSTRINGIPROC glGetStringi = 0x0;
 
+// GL 3.2
+PFNGLFENCESYNCPROC glFenceSync = 0x0;
+PFNGLCLIENTWAITSYNCPROC glClientWaitSync = 0x0;
+PFNGLDELETESYNCPROC glDeleteSync = 0x0;
+
 // GL 3.3
 PFNGLVERTEXATTRIBDIVISORPROC   glVertexAttribDivisor = 0x0;
 PFNGLDRAWARRAYSINSTANCEDPROC   glDrawArraysInstanced = 0x0;
@@ -399,6 +404,12 @@ bool initOpenGLExtensions()
 	if( glExt::majorVersion >= 3 )
 	{
 		r &= (glGetStringi = (PFNGLGETSTRINGIPROC) platGetProcAddress( "glGetStringi" )) != 0x0;
+
+      if ( glExt::majorVersion > 3 || glExt::minorVersion >= 2 ) {
+         r &= (glFenceSync = (PFNGLFENCESYNCPROC) platGetProcAddress( "glFenceSync" )) != 0x0;
+         r &= (glClientWaitSync = (PFNGLCLIENTWAITSYNCPROC) platGetProcAddress( "glClientWaitSync" )) != 0x0;
+         r &= (glDeleteSync = (PFNGLDELETESYNCPROC) platGetProcAddress( "glDeleteSync" )) != 0x0;
+      }
 
       if ( glExt::majorVersion > 3 || glExt::minorVersion >= 3 ) {
          r &= (glVertexAttribDivisor = (PFNGLVERTEXATTRIBDIVISORPROC) platGetProcAddress( "glVertexAttribDivisor" )) != 0x0;

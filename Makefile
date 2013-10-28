@@ -38,10 +38,10 @@ ide: configure
 	start build/Stonehearth.sln
 
 run-%-test:
-	cd source/stonehearth_data && ../../build/source/client_app/$(MSBUILD_CONFIGURATION)/client_app.exe --game.script=stonehearth_tests/$*_test.lua&
+	cd source/stonehearth_data && ../../build/source/client_app/$(MSBUILD_CONFIGURATION)/Stonehearth.exe --game.script=stonehearth_tests/$*_test.lua&
 
 run:
-	cd source/stonehearth_data && ../../build/source/client_app/$(MSBUILD_CONFIGURATION)/client_app.exe 
+	cd source/stonehearth_data && ../../build/source/client_app/$(MSBUILD_CONFIGURATION)/Stonehearth.exe 
 
 # make a decoda project!
 .PHONY: decoda-project
