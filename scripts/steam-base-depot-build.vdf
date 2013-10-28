@@ -9,10 +9,4 @@
     "DepotPath" "."
     "recursive" "1"
   }
-
-  "FileExclusion" "debug.log"
-  "FileExclusion" "mods/stonehearth_tests/*"
-  "FileExclusion" "mods/stonehearth/_graveyard/*"
-  "FileExclusion" "mods/radiant/js/external/ace/*"
-  //"FileExclusion" "mods/stonehearth_debugtools/*"
 }

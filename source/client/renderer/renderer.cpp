@@ -60,40 +60,40 @@ Renderer::Renderer() :
    assert(renderer_.get() == nullptr);
    renderer_.reset(this);
 
-   width_ = 1920;
-   height_ = 1080;
+   windowWidth_ = 1920;
+   windowHeight_ = 1080;
 
    glfwInit();
 
    GLFWwindow *window;
    // Fullscreen: add glfwGetPrimaryMonitor() instead of the first NULL.
-   if (!(window = glfwCreateWindow(width_, height_, "Stonehearth", NULL, NULL))) {
+   if (!(window = glfwCreateWindow(windowWidth_, windowHeight_, "Stonehearth", NULL, NULL))) {
       glfwTerminate();
    }
 
    glfwMakeContextCurrent(window);
    
-	glfwSwapInterval(0);
+   glfwSwapInterval(0);
 
-	if (!h3dInit()) {	
-		h3dutDumpMessages();
+   if (!h3dInit()) {   
+      h3dutDumpMessages();
       return;
    }
 
-	// Set options
-	h3dSetOption(H3DOptions::LoadTextures, 1);
-	h3dSetOption(H3DOptions::TexCompression, 0);
-	h3dSetOption(H3DOptions::MaxAnisotropy, 4);
-	h3dSetOption(H3DOptions::ShadowMapSize, 2048);
-	h3dSetOption(H3DOptions::FastAnimation, 1);
+   // Set options
+   h3dSetOption(H3DOptions::LoadTextures, 1);
+   h3dSetOption(H3DOptions::TexCompression, 0);
+   h3dSetOption(H3DOptions::MaxAnisotropy, 4);
+   h3dSetOption(H3DOptions::ShadowMapSize, config_.shadow_resolution);
+   h3dSetOption(H3DOptions::FastAnimation, 1);
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
-   h3dSetOption(H3DOptions::SampleCount, 4);
+   h3dSetOption(H3DOptions::SampleCount, config_.num_msaa_samples);
 
    SetCurrentPipeline("pipelines/forward.pipeline.xml");
 
    // Overlays
-	fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
-	panelMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/panel.material.xml", 0 );
+   fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
+   panelMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/panel.material.xml", 0 );
 
 
    H3DRes skyBoxRes = h3dAddResource( H3DResTypes::SceneGraph, "models/skybox/skybox.scene.xml", 0 );
@@ -124,29 +124,26 @@ Renderer::Renderer() :
 
    // Sampler kernel generation--a work in progress.
    const int KernelSize = 16;
-	for (int i = 0; i < KernelSize; ++i) {
+   for (int i = 0; i < KernelSize; ++i) {
       float x = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
       float y = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
       float z = ((rand() / (float)RAND_MAX) * -1.0f);
       Horde3D::Vec3f v(x,y,z);
       v.normalize();
 
-		float scale = (float)i / (float)KernelSize;
+      float scale = (float)i / (float)KernelSize;
       float f = scale;// * scale;
-		v *= ((1.0f - f) * 0.3f) + (f);
+      v *= ((1.0f - f) * 0.3f) + (f);
 
       ssaoSamplerData.push_back(v.x);
       ssaoSamplerData.push_back(v.y);
       ssaoSamplerData.push_back(v.z);
       ssaoSamplerData.push_back(0.0);
-	}
+   }
 
-	// Add camera   
+   // Add camera   
    camera_ = new Camera(H3DRootNode, "Camera", currentPipeline_);
-
    h3dSetNodeParamI(camera_->GetNode(), H3DCamera::PipeResI, currentPipeline_);
-   // Resize
-   Resize(width_, height_);
 
    memset(&input_.mouse, 0, sizeof input_.mouse);
 
@@ -190,6 +187,7 @@ Renderer::Renderer() :
       Renderer::GetInstance().FlushMaterials();
    }, true);
 
+   OnWindowResized(windowWidth_, windowHeight_);
    SetShowDebugShapes(false);
 
    initialized_ = true;
@@ -224,6 +222,14 @@ void Renderer::GetConfigOptions()
       (
          "renderer.enable_ssao",
          po::bool_switch(&config_.use_ssao)->default_value(true), "Enables Screen-Space Ambient Occlusion (SSAO)."
+      )
+      (
+         "renderer.msaa_samples",
+         po::value<int>(&config_.num_msaa_samples)->default_value(0), "Sets the number of Multi-Sample Anti Aliasing samples to use."
+      )
+      (
+         "renderer.shadow_resolution",
+         po::value<int>(&config_.shadow_resolution)->default_value(2048), "Sets the square resolution of the shadow maps."
       );
    core::Config::GetInstance().GetCommandLineOptions().add(cmd_line);
    core::Config::GetInstance().GetConfigFileOptions().add(cmd_line);
@@ -244,6 +250,8 @@ void Renderer::ApplyConfig()
    SetStageEnable("SSAO Default", !config_.use_ssao);
 
    h3dSetOption(H3DOptions::EnableShadows, config_.use_shadows ? 1.0f : 0.0f);
+   h3dSetOption(H3DOptions::ShadowMapSize, config_.shadow_resolution);
+   h3dSetOption(H3DOptions::SampleCount, config_.num_msaa_samples);
 }
 
 void Renderer::SetStageEnable(const char* stageName, bool enabled)
@@ -300,9 +308,7 @@ void Renderer::FlushMaterials() {
       h3dUnloadResource(r);
    }
 
-   for (const auto& entry : pipelines_) {
-      h3dResizePipelineBuffers(entry.second, uiWidth_, uiHeight_);
-   }
+   ResizePipelines();
 }
 
 Renderer::~Renderer()
@@ -357,7 +363,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    h3dSetOption(H3DOptions::WireframeMode, debug);
    // h3dSetOption(H3DOptions::DebugViewMode, _debugViewMode ? 1.0f : 0.0f);
    // h3dSetOption(H3DOptions::WireframeMode, _wireframeMode ? 1.0f : 0.0f);
-	
+   
    h3dSetCurrentRenderTime(now / 1000.0f);
 
    if (showUI && uiMatRes_) { // show UI
@@ -425,8 +431,8 @@ void Renderer::GetCameraToViewportRay(int windowX, int windowY, csg::Ray3* ray)
 {
    // compute normalized window coordinates in preparation for casting a ray
    // through the scene
-   float nwx = ((float)windowX) / width_;
-   float nwy = 1.0f - ((float)windowY) / height_;
+   float nwx = ((float)windowX) / windowWidth_;
+   float nwy = 1.0f - ((float)windowY) / windowHeight_;
 
    // calculate the ray starting at the eye position of the camera, casting
    // through the specified window coordinates into the scene
@@ -445,12 +451,12 @@ void Renderer::CastRay(const csg::Point3f& origin, const csg::Point3f& direction
    if (h3dCastRay(rootRenderObject_->GetNode(),
       origin.x, origin.y, origin.z,
       direction.x, direction.y, direction.z, 1) == 0) {
-		return;
-	}
+      return;
+   }
 
    // Pull out the intersection node and intersection point
-	H3DNode node = 0;
-	if (!h3dGetCastRayResult( 0, &(result->node), 0, &(result->point.x), &(result->normal.x) )) {
+   H3DNode node = 0;
+   if (!h3dGetCastRayResult( 0, &(result->node), 0, &(result->point.x), &(result->normal.x) )) {
       return;
    }
    result->origin = origin;
@@ -527,55 +533,46 @@ void Renderer::UpdateUITexture(const csg::Region2& rgn, const char* buffer)
 
       if (data) {
          perfmon::SwitchToCounter("copy client mem to ui pbo");
-
-         // We can't loop through the individual rects and copy only them, because the PBO won't have
-         // all the pixels in between (and we do NOT want to flush the renderer just to get them), so
-         // this is a good compromise.
-
-         int srcPitch = uiWidth_ * 4;
-         int destPitch = bounds.GetWidth() * 4;
-         int xStart = bounds.GetMin().x * 4;
-         int yStart = bounds.GetMin().y;
-         int amount = bounds.GetWidth() * 4;
-
-         for (int y = yStart; y < bounds.GetMax().y; y++) {
-            char* dst = data + ((y - yStart) * destPitch);
-            const char* src = buffer + (y * srcPitch) + xStart;
-            memcpy(dst, src, amount);
-         }
+         // If you think this is slow (bliting everything instead of just the dirty rects), please
+         // talk to Klochek; the explanation is too large to fit in the margins of this code....
+         memcpy(data, buffer, uiWidth_ * uiHeight_ * 4);
       }
       perfmon::SwitchToCounter("unmap ui pbo");
       h3dUnmapResStream(uiPbo_);
 
       perfmon::SwitchToCounter("copy ui pbo to ui texture") ;
 
-      h3dCopyBufferToBuffer(uiPbo_, uiTexture_, bounds.GetMin().x, bounds.GetMin().y, 
-         bounds.GetWidth(), bounds.GetHeight());
+      h3dCopyBufferToBuffer(uiPbo_, uiTexture_, 0, 0, uiWidth_, uiHeight_);
    }
 }
 
-void Renderer::Resize( int width, int height )
+void Renderer::ResizeWindow(int width, int height)
 {
-   width_ = width;
-   height_ = height;
+   windowWidth_ = width;
+   windowHeight_ = height;
 
-   SetUITextureSize(width, height);
-   
+   SetUITextureSize(windowWidth_, windowHeight_);
+}
+
+void Renderer::ResizePipelines()
+{
+   for (const auto& entry : pipelines_) {
+      h3dResizePipelineBuffers(entry.second, windowWidth_, windowHeight_);
+   }
+}
+
+void Renderer::ResizeViewport()
+{
    H3DNode camera = camera_->GetNode();
 
    // Resize viewport
    h3dSetNodeParamI( camera, H3DCamera::ViewportXI, 0 );
    h3dSetNodeParamI( camera, H3DCamera::ViewportYI, 0 );
-   h3dSetNodeParamI( camera, H3DCamera::ViewportWidthI, width );
-   h3dSetNodeParamI( camera, H3DCamera::ViewportHeightI, height );
-	
+   h3dSetNodeParamI( camera, H3DCamera::ViewportWidthI, windowWidth_ );
+   h3dSetNodeParamI( camera, H3DCamera::ViewportHeightI, windowHeight_ );
+   
    // Set virtual camera parameters
-   h3dSetupCameraView( camera, 45.0f, (float)width / height, 4.0f, 4000.0f);
-   for (const auto& entry : pipelines_) {
-      h3dResizePipelineBuffers(entry.second, width, height);
-   }
-
-   screen_resize_slot_.Signal(csg::Point2(width_, height_));
+   h3dSetupCameraView( camera, 45.0f, (float)windowWidth_ / windowHeight_, 4.0f, 4000.0f);
 }
 
 std::shared_ptr<RenderEntity> Renderer::CreateRenderObject(H3DNode parent, om::EntityPtr entity)
@@ -717,7 +714,10 @@ void Renderer::OnKey(int key, int down)
 }
 
 void Renderer::OnWindowResized(int newWidth, int newHeight) {
-   Resize(newWidth, newHeight);
+   ResizeWindow(newWidth, newHeight);
+   ResizeViewport();
+   ResizePipelines();
+   screen_resize_slot_.Signal(csg::Point2(windowWidth_, windowHeight_));
 }
 
 core::Guard Renderer::TraceSelected(H3DNode node, UpdateSelectionFn fn)
@@ -732,15 +732,10 @@ void Renderer::SetCurrentPipeline(std::string name)
 
    auto i = pipelines_.find(name);
    if (i == pipelines_.end()) {
-	   p = h3dAddResource(H3DResTypes::Pipeline, name.c_str(), 0);
+      p = h3dAddResource(H3DResTypes::Pipeline, name.c_str(), 0);
       pipelines_[name] = p;
 
-   	LoadResources();
-
-      // xxx - This keeps all pipeline buffers around all the time.  Should we
-      // nuke all non-active pipelines so we can use their buffer memory for
-      // something else (e.g. bigger shadows, better support for older hardware)
-      h3dResizePipelineBuffers(p, width_, height_);
+      LoadResources();
    } else {
       p = i->second;
    }
@@ -802,12 +797,12 @@ csg::Point2 Renderer::GetMousePosition() const
 
 int Renderer::GetWidth() const
 {
-   return width_;
+   return windowWidth_;
 }
 
 int Renderer::GetHeight() const
 {
-   return height_;
+   return windowHeight_;
 }
 
 boost::property_tree::ptree const& Renderer::GetTerrainConfig() const
@@ -832,26 +827,29 @@ void Renderer::SetUITextureSize(int width, int height)
       uiWidth_ = width;
       uiHeight_ = height;
 
-   if (uiPbo_) {
-      h3dRemoveResource(uiPbo_);
-   }
-   if (uiTexture_) {
-      h3dRemoveResource(uiTexture_);
-      h3dUnloadResource(uiMatRes_);
-   }
-   h3dReleaseUnusedResources();
+      if (uiPbo_) {
+         h3dRemoveResource(uiPbo_);
+         uiPbo_ = 0x0;
+      }
+      if (uiTexture_) {
+         h3dRemoveResource(uiTexture_);
+         h3dUnloadResource(uiMatRes_);
+         uiTexture_ = 0x0;
+         uiMatRes_ = 0x0;
+      }
+      h3dReleaseUnusedResources();
 
-   uiPbo_ = h3dCreatePixelBuffer("screenui", width * height * 4);
+      uiPbo_ = h3dCreatePixelBuffer("screenui", width * height * 4);
 
-   uiTexture_ = h3dCreateTexture("UI Texture", uiWidth_, uiHeight_, H3DFormats::List::TEX_BGRA8, H3DResFlags::NoTexMipmaps);
-   unsigned char *data = (unsigned char *)h3dMapResStream(uiTexture_, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
-   memset(data, 0, uiWidth_ * uiHeight_ * 4);
-   h3dUnmapResStream(uiTexture_);
+      uiTexture_ = h3dCreateTexture("UI Texture", uiWidth_, uiHeight_, H3DFormats::List::TEX_BGRA8, H3DResFlags::NoTexMipmaps);
+      unsigned char *data = (unsigned char *)h3dMapResStream(uiTexture_, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
+      memset(data, 0, uiWidth_ * uiHeight_ * 4);
+      h3dUnmapResStream(uiTexture_);
 
       std::ostringstream material;
       material << "<Material>" << std::endl;
-	   material << "   <Shader source=\"shaders/overlay.shader\"/>" << std::endl;
-	   material << "   <Sampler name=\"albedoMap\" map=\"" << h3dGetResName(uiTexture_) << "\" />" << std::endl;
+      material << "   <Shader source=\"shaders/overlay.shader\"/>" << std::endl;
+      material << "   <Sampler name=\"albedoMap\" map=\"" << h3dGetResName(uiTexture_) << "\" />" << std::endl;
       material << "</Material>" << std::endl;
 
       uiMatRes_ = h3dAddResource(H3DResTypes::Material, "UI Material", 0);

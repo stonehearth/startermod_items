@@ -23,7 +23,6 @@ mesh_tools& mesh_tools::SetTesselator(tesselator_map const& t)
    return *this;
 }
 
-
 void mesh_tools::ForEachRegionSegment(SegmentMap const& front, SegmentMap const& back, SegmentInfo pi, int normal_dir, int flags, ForEachRegionSegmentCb cb)
 {
    pi.normal_dir = normal_dir;
