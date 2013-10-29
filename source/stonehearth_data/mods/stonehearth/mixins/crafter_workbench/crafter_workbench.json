@@ -3,7 +3,7 @@
    "components" : {
       "stonehearth:commands" : {
          "commands" : [
-            "file(show_craft_ui_command.json)"
+            "file(/data/commands/show_workshop)"
          ]
       },
       "stonehearth:workshop" : {

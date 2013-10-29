@@ -3,7 +3,7 @@
 
    "name": "place_item",
    "tooltip": "Place a full sized version in the world",
-   "icon": "file(/data/images/place_item_icon.png)",
+   "icon": "file(place_item.png)",
 
    "action": "fire_event",
    "event_name" : "place_item.stonehearth",

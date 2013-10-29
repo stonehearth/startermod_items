@@ -3,7 +3,7 @@
 
    "name": "chop",
    "tooltip": "Chop Tree",
-   "icon": "file(chop_tree_command.png)",
+   "icon": "file(chop_tree.png)",
 
    "action": "call",
    "function": "stonehearth:harvest_tree",

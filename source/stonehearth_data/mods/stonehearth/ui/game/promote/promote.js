@@ -1,6 +1,6 @@
 $(document).ready(function(){
 
-   $(top).on("promote_citizen.stonehearth", function (_, e) {
+   $(top).on("promote_to_profession.stonehearth", function (_, e) {
       var view = App.gameView.addView(App.StonehearthClassesPromoteView, { 
          talisman: e.entity,
          promotionClass : 'XXX_TODO_INSERT_CLASS_NAME'
@@ -113,10 +113,10 @@ App.StonehearthClassesPromoteView = App.View.extend({
       $('#promoteScroll').animate({ 'bottom' : -400 }, 200, function() { 
          radiant.call('stonehearth:grab_promotion_talisman', person, self.talisman)
             .done(function(data) {
-               radiant.log.info("promote_citizen.stonehearth finished!", data)
+               radiant.log.info("promote finished!", data)
             })
             .fail(function(data) {
-               radiant.log.warning("promote_citizen.stonehearth failed:", data)
+               radiant.log.warning("promote failed:", data)
             });
 
          self.destroy();

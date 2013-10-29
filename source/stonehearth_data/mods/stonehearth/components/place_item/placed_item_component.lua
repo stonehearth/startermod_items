@@ -20,7 +20,7 @@ end
 -- or the proxy component if we get this item through placeable_item_proxy
 function PlacedItem:_init_commands()
    local command_component = self._entity:add_component('stonehearth:commands')
-   command_component:add_command(radiant.resources.load_json('/stonehearth/data/commands/move_command.json'))
+   command_component:add_command(radiant.resources.load_json('/stonehearth/data/commands/move_item'))
 
    local command_data = command_component:modify_command('move_item')
    command_data.event_data.full_sized_entity_uri = self._entity:get_uri()

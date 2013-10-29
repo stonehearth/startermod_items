@@ -1,0 +1,12 @@
+{
+   "type" : "command",
+
+   "name": "promote_to_profession",
+   "tooltip": "Promote!",
+   "icon": "file(promote_to_profession.png)",
+
+   "action": "fire_event",
+   "event_name" : "promote_to_profession.stonehearth",
+   "event_data" : {
+   }
+}

@@ -1,7 +1,7 @@
 {
    "type" : "command",
 
-   "name": "show_craft_ui",
+   "name": "show_workshop",
    "enabled_tooltip": "Craft!",
    "disabled_tooltip": "Before you can craft you need to promote a crafter to this workshop",
    "default_enabled": false,

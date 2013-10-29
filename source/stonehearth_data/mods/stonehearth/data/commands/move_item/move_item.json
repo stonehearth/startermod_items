@@ -5,7 +5,7 @@
    "enabled_tooltip": "Move this thing elsewhere!",
    "disabled_tooltip": "This item is in use. Move it later",
    "default_enabled": true,
-   "icon": "file(/data/images/place_item_icon.png)",
+   "icon": "file(move_item.png)",
 
    "action": "fire_event",
    "event_name" : "move_item.stonehearth",
