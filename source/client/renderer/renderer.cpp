@@ -714,6 +714,11 @@ void Renderer::OnKey(int key, int down)
 }
 
 void Renderer::OnWindowResized(int newWidth, int newHeight) {
+   if (newWidth == 0 || newHeight == 0)
+   {
+      return;
+   }
+
    ResizeWindow(newWidth, newHeight);
    ResizeViewport();
    ResizePipelines();
