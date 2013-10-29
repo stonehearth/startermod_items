@@ -21,10 +21,14 @@ public:
    boost::filesystem::path GetCacheDirectory() const;
    boost::filesystem::path GetTmpDirectory() const;
 
+   std::string GetUserID();
+   std::string GetSessionID();
+
    boost::program_options::variables_map const& GetVarMap() const { return configvm_; }
    
 private:
    void LoadConfigFile(boost::filesystem::path const& configfile);
+   std::string MakeUUIDString();
 
 private:
    std::string                                  name_;
@@ -35,6 +39,9 @@ private:
 
    boost::filesystem::path                      cache_directory_;
    boost::filesystem::path                      run_directory_;
+   
+   std::string                                  sessionid_;
+   std::string                                  userid_;
 };
 
 END_RADIANT_CORE_NAMESPACE

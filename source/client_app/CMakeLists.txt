@@ -41,6 +41,7 @@ target_link_libraries(client_app
                              simulation
                              perfmon
                              lib_json
+                             analytics
                              )
 
 FILE(TO_NATIVE_PATH ${Stonehearth_SOURCE_DIR}/source STAGE_SCRIPT)

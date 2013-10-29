@@ -49,3 +49,4 @@
 [submodule "modules/libcurl"]
 	path = modules/libcurl
 	url = https://github.com/radent/libcurl.git
+	branch = master

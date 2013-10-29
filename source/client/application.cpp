@@ -5,6 +5,7 @@
 #include "application.h"
 #include "resources/res_manager.h"
 #include "lib/perfmon/perfmon.h"
+#include "lib/analytics/analytics.h"
 #include "core/config.h"
 #include <thread>
 
@@ -15,6 +16,10 @@ void protobuf_log_handler(google::protobuf::LogLevel level, const char* filename
 {
    LOG(INFO) << message;
 }
+
+//TODO: Analytics uses the build_number for a/b testing.
+//Default value for now; do we want to put this elsewhere?
+const std::string BUILD_NUMBER = "preview_0.1a";
 
 Application::Application()
 {
@@ -51,6 +56,11 @@ int Application::Run(int argc, const char** argv)
       res::ResourceManager2::GetInstance();
       client::Client::GetInstance();
 
+      //Start the analytics session before spawning threads too
+      std::string userid = config.GetUserID();
+      std::string sessionid = config.GetSessionID();
+      analytics::StartSession(userid, sessionid, BUILD_NUMBER);
+
       std::thread client([&]() {
          try {
             Client::GetInstance().run();
@@ -67,6 +77,9 @@ int Application::Run(int argc, const char** argv)
    } catch (std::exception &e) {
       LOG(WARNING) << "unhandled exception: " << e.what();
       ASSERT(false);
+      //TODO: put a stop session when we implement graceful in-game quit, too.
+      //TODO: Eventually pass data as to why the session stopped. Crash reporter integration?
+      analytics::StopSession();
    }
    return 0;
 }

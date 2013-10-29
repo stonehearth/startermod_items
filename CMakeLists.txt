@@ -70,6 +70,7 @@ INCLUDE(${RADIANT_MODULE_ROOT}/chromium-embedded/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/cryptopp/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/googletest/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/libclaw/cmake/config.txt)
+INCLUDE(${RADIANT_MODULE_ROOT}/libcurl/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/libjson/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/lua/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/luabind/cmake/config.txt)
@@ -84,5 +85,8 @@ set(Boost_USE_MULTITHREADED   ON)
 FIND_PACKAGE(Boost 1.48.0 COMPONENTS filesystem thread system regex date_time program_options log log_setup chrono REQUIRED)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 
+add_definitions( -DCURL_STATICLIB )
+
 add_subdirectory(source)
+
 
