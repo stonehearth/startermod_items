@@ -82,7 +82,7 @@ function PlaceableItemProxyComponent:_create_derived_components()
    end
    --Issues: if this is in a parent class, it isn't loaded by this point, so add manually
    local commands = self._entity:add_component('stonehearth:commands')
-   commands:add_command(radiant.resources.load_json('/stonehearth/data/commands/place_item'))
+   commands:add_command('/stonehearth/data/commands/place_item')
 
    local command_data = commands:modify_command('place_item')
    command_data.event_data.full_sized_entity_uri = full_sized_uri

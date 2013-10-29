@@ -158,10 +158,18 @@ function WorkshopComponent:set_crafter(crafter)
 
       local commandComponent = self._entity:get_component('stonehearth:commands')
       if crafter then
-         commandComponent:enable_command('show_craft_ui', true)
+         commandComponent:enable_command('show_workshop', true)
       else
-         commandComponent:enable_command('show_craft_ui', false);
+         commandComponent:enable_command('show_workshop', false);
       end
+
+      local show_workshop_command = crafter:add_component('stonehearth:commands')
+                                           :add_command('/stonehearth/data/commands/show_workshop_from_crafter')
+
+      show_workshop_command.event_data = {
+         workshop = self._entity
+      }
+
    end
 end
 

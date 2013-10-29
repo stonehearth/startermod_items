@@ -27,6 +27,8 @@ App.StonehearthUnitFrameView = App.View.extend({
 
    //When we hover over a command button, show its tooltip
    didInsertElement: function() {
+      $('#commandButtons').find('div').tooltip();
+      /*
       $('#commandButtons')
          .off('mouseover', '.commandButton')
          .on('mouseover', '.commandButton', function(event){
@@ -41,6 +43,7 @@ App.StonehearthUnitFrameView = App.View.extend({
          });
          $cmdBtn.tooltip('show');
       });
+      */
    },
 
    show: function() {
