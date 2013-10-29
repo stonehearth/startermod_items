@@ -21,6 +21,11 @@ class Pipeline : public core::Singleton<Pipeline> {
       NamedNodeMap LoadQubicleFile(std::string const& uri);
       H3DNodeUnique AddQubicleNode(H3DNode parent, const voxel::QubicleMatrix& m, const csg::Point3f& origin, H3DNode *mesh = nullptr);
       H3DNodeUnique AddMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m, H3DNode *mesh = nullptr);
+      H3DNodeUnique CreateBlueprintNode(H3DNode parent, csg::Region3 const& model, float thickness, std::string const& material_path);
+      H3DNodeUnique CreateVoxelNode(H3DNode parent, csg::Region3 const& model, std::string const& material_path);
+
+   private:
+      H3DNode CreateModel(H3DNode parent, csg::mesh_tools::mesh const& mesh, std::string const& material_path);
 
    private:
       H3DNodeUnique     orphaned_;

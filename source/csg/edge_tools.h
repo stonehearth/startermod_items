@@ -2,6 +2,7 @@
 #define _RADIANT_CSG_EDGE_TOOLS_H
 
 #include <vector>
+#include "util.h"
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
@@ -20,14 +21,16 @@ public:
    EdgePoint(Point<S, C> const& l, Point<S, C> const& a) : location(l), accumulated_normals(a) { }
 
    EdgePoint& AccumulateNormal(Point<S, C> const& n) {
+      accumulated_normals += n;
+      return *this;
+   }
+
+   EdgePoint& FixAccumulatedNormal() {
       for (int i = 0; i < C; i++) {
-         if (n[i]) {
-            if (accumulated_normals[i]) {
-               ASSERT(n[i] == accumulated_normals[i]);
-            } else {
-               accumulated_normals[i] = n[i];
-            }
-            break;
+         if (accumulated_normals[i] < 0) {
+            accumulated_normals[i] = -1;
+         } else if (accumulated_normals[i] > 0) {
+            accumulated_normals[i] = 1;
          }
       }
       return *this;
@@ -55,6 +58,11 @@ class EdgeMap
 {
 public:
    EdgeMap& AddEdge(Point<S, C> const& min, Point<S, C> const& max, Point<S, C> const& normal) {
+      DEBUG_ONLY(
+         for (Edge<S, C> const& e : edges) {
+            ASSERT(e.min->location != min || e.max->location != max || e.normal != normal);
+         }
+      )
       edges.emplace_back(Edge<S, C>(AddPoint(min, normal),
                                     AddPoint(max, normal),
                                     normal));
@@ -77,6 +85,12 @@ public:
          }
       }
       return false;
+   }
+
+   void FixNormals() {
+      for (EdgePoint<S, C>* point : points) {
+         point->FixAccumulatedNormal();
+      }
    }
 
 private:

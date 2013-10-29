@@ -44,6 +44,20 @@ typedef Cube<float, 3> Cube3f;
 class Color3;
 class Color4;
 
+template <typename S, int C> class RegionTools;
+
+typedef RegionTools<int, 2> RegionTools2;
+typedef RegionTools<int, 3> RegionTools3;
+typedef RegionTools<float, 2> RegionTools2f;
+typedef RegionTools<float, 3> RegionTools3f;
+
+template <typename S, int C> struct PlaneInfo;
+
+typedef PlaneInfo<int, 2>      PlaneInfo2;
+typedef PlaneInfo<int, 3>      PlaneInfo3;
+typedef PlaneInfo<float, 2>    PlaneInfo2f;
+typedef PlaneInfo<float, 3>    PlaneInfo3f;
+
 END_RADIANT_CSG_NAMESPACE
 
 #endif //  _RADIANT_CSG_NAMESPACE_H

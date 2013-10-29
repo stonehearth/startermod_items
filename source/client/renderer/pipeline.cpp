@@ -5,6 +5,7 @@
 #include "renderer.h"
 #include "lib/voxel/qubicle_file.h"
 #include "resources/res_manager.h"
+#include "csg/region_tools.h"
 #include <fstream>
 #include <unordered_map>
 
@@ -244,6 +245,60 @@ H3DNodeUnique Pipeline::AddQubicleNode(H3DNode parent, const voxel::QubicleMatri
    return H3DNodeUnique(model_node);
 }
 
+
+H3DNode Pipeline::CreateModel(H3DNode parent,
+                              csg::mesh_tools::mesh const& mesh,
+                              std::string const& material_path)
+{
+   H3DNode mesh_node;
+
+   H3DNodeUnique model_node = Pipeline::GetInstance().AddMeshNode(parent, mesh, &mesh_node);
+   H3DRes material = h3dAddResource(H3DResTypes::Material, material_path.c_str(), 0);
+   h3dSetNodeParamI(mesh_node, H3DMesh::MatResI, material);
+
+   H3DNode node = model_node.get();
+   model_node.release();
+
+   return node;
+}
+
+H3DNodeUnique Pipeline::CreateBlueprintNode(H3DNode parent,
+                                            csg::Region3 const& model,
+                                            float thickness,
+                                            std::string const& material_path)
+{
+   static int unique = 1;
+
+   H3DNode group = h3dAddGroupNode(parent, BUILD_STRING("blueprint node " << unique++).c_str());
+
+   csg::mesh_tools::mesh panels_mesh, outline_mesh;
+   panels_mesh.SetColor(csg::Color3::FromString("#00DFFC"));
+   outline_mesh.SetColor(csg::Color3::FromString("#005FFB"));
+   csg::RegionTools3().ForEachPlane(model, [&](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
+      csg::Region2f outline = ToFloat(plane);
+      csg::Region2f panels = csg::RegionTools2().Inset(plane, thickness);
+      outline -= panels;
+      outline_mesh.AddRegion(outline, csg::ToFloat(pi));
+      panels_mesh.AddRegion(panels, csg::ToFloat(pi));
+   });
+   CreateModel(group, panels_mesh, material_path);
+   CreateModel(group, outline_mesh, material_path);
+
+   return group;
+}
+
+H3DNodeUnique Pipeline::CreateVoxelNode(H3DNode parent,
+                                        csg::Region3 const& model,
+                                        std::string const& material_path)
+{
+   static int unique = 1;
+
+   csg::mesh_tools::mesh mesh;
+   csg::RegionTools3().ForEachPlane(model, [&](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
+      mesh.AddRegion(plane, pi); // xxx: make an integer version!
+   });
+   return CreateModel(parent, mesh, material_path);
+}
 
 Pipeline::NamedNodeMap Pipeline::LoadQubicleFile(std::string const& uri)
 {   

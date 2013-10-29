@@ -118,7 +118,8 @@ template <typename S, int C>
 bool Cube<S, C>::Intersects(const Cube& other) const
 {
    for (int i = 0; i < C; i++) {
-      if (min[i] >= other.max[i] || other.min[i] >= max[i]) {
+      if (csg::IsGreaterEqual(min[i], other.max[i]) ||
+          csg::IsGreaterEqual(other.min[i], max[i])) {
          return false;
       }
    }
@@ -217,7 +218,7 @@ template <typename S, int C>
 bool Cube<S, C>::Contains(const Point& pt) const
 {
    for (int i = 0; i < C; i++) {
-      if (pt[i] < min[i] || pt[i] >= max[i]) {
+      if (!IsBetween(min[i], pt[i], max[i])) {
          return false;
       }
    }
@@ -238,6 +239,27 @@ Cube<S, C> Cube<S, C>::ProjectOnto(int axis, S plane) const
 {
    return Cube(min.ProjectOnto(axis, plane), max.ProjectOnto(axis, plane + 1), tag_);
 }
+
+template <int C>
+Cube<float, C> csg::ToFloat(Cube<int, C> const& cube) {
+   return Cube<float, C>(ToFloat(cube.min), ToFloat(cube.max), cube.GetTag());
+}
+
+template <int C>
+Cube<float, C> const& csg::ToFloat(Cube<float, C> const& pt) {
+   return pt;
+}
+
+template <int C>
+Cube<int, C> csg::ToInt(Cube<float, C> const& cube) {
+   return Cube<int, C>(csg::ToInt(cube.min), csg::ToInt(cube.max), cube.GetTag());
+}
+
+template <int C>
+Cube<int, C> const& csg::ToInt(Cube<int, C> const& cube) {
+   return cube;
+}
+
 
 #define MAKE_CUBE(Cls) \
    template Cls::Cube(); \
@@ -260,3 +282,12 @@ MAKE_CUBE(Cube3f)
 MAKE_CUBE(Rect2)
 MAKE_CUBE(Rect2f)
 MAKE_CUBE(Line1)
+
+#define DEFINE_CUBE_CONVERSIONS(C) \
+   template Cube<float, C> csg::ToFloat(Cube<int, C> const&); \
+   template Cube<float, C> const& csg::ToFloat(Cube<float, C> const&); \
+   template Cube<int, C> const& csg::ToInt(Cube<int, C> const&); \
+   template Cube<int, C> csg::ToInt(Cube<float, C> const&);
+
+DEFINE_CUBE_CONVERSIONS(2)
+DEFINE_CUBE_CONVERSIONS(3)

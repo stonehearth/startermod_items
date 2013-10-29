@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "region.h"
+#include "util.h"
 
 using namespace ::radiant;
 using namespace ::radiant::csg;
@@ -89,7 +90,6 @@ void Region<S, C>::AddUnique(const Region& region)
       cubes_.push_back(cube);
    }
 }
-
 
 template <class S, int C>
 void Region<S, C>::Subtract(const Point& pt)
@@ -346,6 +346,34 @@ Region3 radiant::csg::GetBorderXZ(const Region3 &other)
 }
 #endif
 
+template <int C>
+Region<float, C> csg::ToFloat(Region<int, C> const& region) {
+   Region<float, C> result;
+   for (Cube<int, C> const& cube : region) {
+      result.AddUnique(ToFloat(cube));
+   }
+   return result;
+}
+
+template <int C>
+Region<float, C> const& csg::ToFloat(Region<float, C> const& region) {
+   return region;
+}
+
+template <int C>
+Region<int, C> csg::ToInt(Region<float, C> const& region) {
+   Region<int, C> result;
+   for (Cube<float, C> const& cube : region) {
+      result.Add(ToInt(cube)); // so expensive!
+   }
+   return result;
+}
+
+template <int C>
+Region<int, C> const& csg::ToInt(Region<int, C> const& region) {
+   return region;
+}
+
 #define MAKE_REGION(Cls) \
    const Cls Cls::empty; \
    template Cls::Region(); \
@@ -384,3 +412,11 @@ MAKE_REGION(Region2)
 MAKE_REGION(Region2f)
 MAKE_REGION(Region1)
 
+#define DEFINE_REGION_CONVERSIONS(C) \
+   template Region<float, C> csg::ToFloat(Region<int, C> const&); \
+   template Region<float, C> const& csg::ToFloat(Region<float, C> const&); \
+   template Region<int, C> const& csg::ToInt(Region<int, C> const&); \
+   template Region<int, C> csg::ToInt(Region<float, C> const&); \
+
+DEFINE_REGION_CONVERSIONS(2)
+DEFINE_REGION_CONVERSIONS(3)

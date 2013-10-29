@@ -1,51 +1,60 @@
 #ifndef _RADIANT_CSG_REGION_TOOLS_TRAITS_H
 #define _RADIANT_CSG_REGION_TOOLS_TRAITS_H
 
+#include "edge_tools.h"
+
 BEGIN_RADIANT_CSG_NAMESPACE
 
-// xxx: move to util
-template <int C>
-Point<float, C> ToFloat(Point<int, C> const& pt) {
-   Point<float, C> result;
-   for (int i = 0; i < C; i++) {
-      result[i] = static_cast<float>(pt[i] + k_epsilon);
-   }
-   return result;
-}
+template <typename S, int C>
+struct PlaneInfoBase
+{
+   S      normal_dir;
+   S      reduced_value;
+   int    reduced_coord;
 
-template <int C>
-Point<float, C> ToFloat(Point<float, C> const& pt) {
-   return pt;
-}
+   Point<S, C> GetNormal() const {
+      Point<S, C> normal(Point<S, C>::zero);
+      normal[reduced_coord] = normal_dir;
+      return normal;
+   }
+};
 
 template <typename S, int C> struct PlaneInfo;
 
 template <typename S>
-struct PlaneInfo<S, 2> {
-   int    normal_dir;
-   S      reduced_value;
-   int    reduced_coord;
+struct PlaneInfo<S, 2> : public PlaneInfoBase<S, 2>
+{
    int    x;
 };
 
 template <typename S>
-struct PlaneInfo<S, 3>
- {
-   int    normal_dir;
-   S      reduced_value;
-   int    reduced_coord;
+struct PlaneInfo<S, 3> : public PlaneInfoBase<S, 3>
+{
    int    x;
    int    y;
 };
 
 template <typename S, int C> PlaneInfo<float, C> ToFloat(PlaneInfo<S, C> const& p);
 
+template <typename S, int C> void ToFloat(PlaneInfoBase<float, C> &lhs, PlaneInfoBase<S, C> const& rhs)
+{
+   lhs.normal_dir = static_cast<float>(rhs.normal_dir);
+   lhs.reduced_value = static_cast<float>(rhs.reduced_value);
+   lhs.reduced_coord = rhs.reduced_coord;
+}
+
+template <typename S> PlaneInfo<float, 2> ToFloat(PlaneInfo<S, 2> const& p)
+{
+   PlaneInfo<float, 2> result;
+   ToFloat(result, p);
+   result.x = p.x;
+   return result;
+}
+
 template <typename S> PlaneInfo<float, 3> ToFloat(PlaneInfo<S, 3> const& p)
 {
    PlaneInfo<float, 3> result;
-   result.normal_dir = p.normal_dir;
-   result.reduced_value = static_cast<float>(p.reduced_value);
-   result.reduced_coord = p.reduced_coord;
+   ToFloat(result, p);
    result.x = p.x;
    result.y = p.y;
    return result;
@@ -126,6 +135,11 @@ struct RegionToolsTraits<S, 1> : public RegionToolsTraitsBase<S, 1, RegionToolsT
 {
    // If we ever actually reduce this far, we'll throw an implementation in here.
 };
+
+typedef RegionToolsTraits<int, 2>      RegionToolsTraits2;
+typedef RegionToolsTraits<int, 3>      RegionToolsTraits3;
+typedef RegionToolsTraits<float, 2>    RegionToolsTraits2f;
+typedef RegionToolsTraits<float, 3>    RegionToolsTraits3f;
 
 END_RADIANT_CSG_NAMESPACE
 

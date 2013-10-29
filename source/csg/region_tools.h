@@ -69,15 +69,13 @@ public:
          EdgeInfo<S, C> edge_info;
          edge_info.normal = Point<S, C>::zero;
          edge_info.normal[pi.reduced_coord] = pi.normal_dir;
-         for (Cube<S, C-1> const& cube : r1) {
-            RegionTools<S, C-1> tools;
-            tools.ForEachEdge(r1, [&](EdgeInfo<S, C-1> const& ei) {
-               // xxx: needs to be some "reduce" function in edge_info, right?
-               edge_info.min = RegionToolsTraits<S, C>::ExpandPoint(ei.min, pi);
-               edge_info.max = RegionToolsTraits<S, C>::ExpandPoint(ei.max, pi);
-               cb(edge_info);
-            });
-         }
+
+         RegionTools<S, C-1> tools;
+         tools.ForEachEdge(r1, [&](EdgeInfo<S, C-1> const& ei) {
+            edge_info.min = RegionToolsTraits<S, C>::ExpandPoint(ei.min, pi);
+            edge_info.max = RegionToolsTraits<S, C>::ExpandPoint(ei.max, pi);
+            cb(edge_info);
+         });
       });
    }
 
@@ -87,27 +85,28 @@ public:
       ForEachEdge(region, [&](EdgeInfo<S, C> const& info) {
          edgemap.AddEdge(info.min, info.max, info.normal);
       });
+      edgemap.FixNormals();
 
       // Iterate though every rect in the region and move the points over
       // by the accumulated normals
       Region<float, C> result;
       for (Cube<S, C> const& cube : region) {
-         Cube<float, C> next;
-         bool first = true;
-         RegionToolsTraits<S, C>::ForEachCorner(cube, [&](Point<S, C> pt) {
+         Cube<float, C> next = ToFloat(cube);
+         RegionToolsTraits<S, C>::ForEachCorner(cube, [&](Point<S, C> const& pt) {
             Point<float, C> corner = ToFloat(pt);
 
             EdgePoint<S, C>* edge_pt;
             if (edgemap.FindEdgePoint(pt, &edge_pt)) {
-               corner -= ToFloat(edge_pt->accumulated_normals) * d;  
+               Point<float, C> new_corner = corner - ToFloat(edge_pt->accumulated_normals) * d;
+               for (int i = 0; i < C; i++) {
+                  if (pt[i] == cube.min[i] && new_corner[i] > next.min[i]) {
+                     next.min[i] = new_corner[i];
+                  }
+                  if (pt[i] == cube.max[i] && new_corner[i] < next.max[i]) {
+                     next.max[i] = new_corner[i];
+                  }   
+               }
             }
-
-            if (first) {
-               next = Cube<float, C>(corner, corner, cube.GetTag());
-               first = false;
-            } else {
-               next.Grow(corner);
-            }  
          });
          result.AddUnique(next);
       }
@@ -141,8 +140,6 @@ private:
    int         flags_;
 };
 
-typedef RegionTools<int, 2> RegionTools2;
-typedef RegionTools<int, 3> RegionTools3;
 
 END_RADIANT_CSG_NAMESPACE
 
