@@ -2,6 +2,6 @@
    "type": "entity",
    "unit_info" : {
       "name" : "Stockpile",
-      "description" : "Stores all sorts of things."
+      "description" : "For storing things"
    }
 }

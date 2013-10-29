@@ -2,14 +2,21 @@
 #include "radiant.h"
 #include "config.h"
 #include <iostream>
+#include <rpc.h>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/ini_parser.hpp>
 
 using namespace ::radiant;
 using namespace ::radiant::core;
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
+namespace pt = boost::property_tree;
 
 DEFINE_SINGLETON(Config)
+
+//Analytics uses the build_number for a/b testing.
+const std::string BUILD_NUMBER = "preview_0.1a";
 
 Config::Config() :
    cmd_line_options_("command line options"),
@@ -69,9 +76,17 @@ bool Config::Load(std::string const& name, int argc, const char *argv[])
       throw std::invalid_argument(BUILD_STRING("run directory " << run_directory_ << " does not contain " << name << " data."));
    }
 
+   //Make sure we have a session and userid
+   userid_ = ReadUserID();
+   sessionid_ = MakeUUIDString();
+
    // Load the config file...
    LoadConfigFile(run_directory_ / config_filename_);
-   LoadConfigFile(cache_directory_ / config_filename_);
+   
+   //Help! Commented out for now because currently the config file
+   //doesn't contain any data except userid and reading through
+   //configvm_ conflicts with the stuff that got written in as the ini file.
+   //LoadConfigFile(cache_directory_ / config_filename_);
 
    return true;
 }
@@ -110,5 +125,82 @@ boost::filesystem::path Config::GetCacheDirectory() const
 boost::filesystem::path Config::GetTmpDirectory() const
 {
    return cache_directory_;
+}
+
+std::string Config::GetUserID()
+{
+   return userid_;
+}
+
+//ReadUserID
+//Return userid or makes one (and enclosing file, if necessary) and then returns it.
+//Note that write_ini will create a new file if necessary. It will also intelligently 
+//not overwrite any values already in the file.
+//Tested with file empty, file present, file present but no userid data, and file present
+//with junk data but no userid data.
+//Reference: http://stackoverflow.com/questions/15647299/how-to-read-and-write-ini-files-using-boost-library
+//Reference: http://www.boost.org/doc/libs/1_53_0/doc/html/boost_propertytree/accessing.html
+//Reference: http://www.boost.org/doc/libs/1_44_0/doc/html/boost_propertytree/tutorial.html
+std::string Config::ReadUserID() 
+{
+   //userid has not yet been set in this instance of the program. Try to load it from the ini file.
+   std::string new_id;
+   fs::path save_path = cache_directory_ / config_filename_;
+   std::string save_path_str = save_path.string();
+   pt::ptree properties;
+
+   if (fs::is_regular(save_path)) {
+      //Ok, the file exists. Load it into a property tree
+      pt::read_ini(save_path_str, properties);
+      std::string new_id = properties.get("userid", "");
+
+      if (!new_id.empty()) {
+         //we got the id, can just return it now
+         return new_id;
+      }
+   }
+
+   //If we're here, either the file doesn't exist, or the file exists
+   //but the key isn't there. Since write_ini creates a new file if necessary
+   //we can just make the new string and write it. 
+   new_id = MakeUUIDString();
+   properties.put("userid", new_id);
+   pt::write_ini(save_path_str, properties);   
+   return new_id;
+
+}
+
+std::string Config::GetSessionID()
+{
+   return sessionid_;
+}
+
+std::string Config::GetBuildNumber()
+{
+   return BUILD_NUMBER;
+}
+
+//Make a new UUID and return it as a string.
+//the UUID to string function seems to internally
+//allocate memory, so we have to remember to free it
+std::string Config::MakeUUIDString() 
+{
+   std::string resultString;
+   char* sTemp;
+   UUID uuid;
+   HRESULT hr;
+   hr = UuidCreate(&uuid);
+   if (hr == RPC_S_OK) {
+      hr = UuidToString(&uuid, (unsigned char**) &sTemp);
+      if (hr == RPC_S_OK && sTemp != NULL) {
+         std::string tempStr(sTemp, strlen(sTemp));         
+         resultString = tempStr;
+         RpcStringFree((unsigned char**) &sTemp);
+      } else {
+         LOG(WARNING) << "uuid creation error: " << hr;
+      }
+   }
+
+   return resultString;
 }
 

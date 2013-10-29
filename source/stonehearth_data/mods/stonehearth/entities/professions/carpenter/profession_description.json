@@ -8,13 +8,12 @@
    },
    "crafter" : {
       "work_effect": "saw",
-      "recipe_list": "/stonehearth/entities/professions/carpenter/recipes",
-      "intermediate_item": "stonehearth:carpenter_intermediate_item"
+      "recipe_list": "/stonehearth/entities/professions/carpenter/recipes"
    },
    "workshop" : {
       "name": "Carpenter's Workshop",
-      "description": "Has a saw and knows how to use it. Badassedly.",
-      "long_description" : "xxx fix - The carpenter makes things from wood. Things you will need...quite a lot.\nSo honestly, you should really make this guy first. Otherwise you’re just asking for trouble.",
+      "description": "insert description here",
+      "long_description" : "xxx fix - The carpenter makes things from wood. Things you will need...quite a lot.<p>So honestly, you should really make this guy first. Otherwise you’re just asking for trouble.",
       "portrait" : "file(./images/workshop_portrait_level_1.png)",      
       "ingredients": [
          { "material" : "wood", "count" : 2 }

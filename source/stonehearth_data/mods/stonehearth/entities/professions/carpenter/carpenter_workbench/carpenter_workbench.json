@@ -9,7 +9,7 @@
       },
       "stonehearth:workshop": {
          "promotion_talisman" : {
-            "entity" : "stonehearth:carpenter_saw",
+            "entity" : "stonehearth:carpenter:saw",
             "offset" : [0, 3, 0]
          },
          "outbox_settings" : {

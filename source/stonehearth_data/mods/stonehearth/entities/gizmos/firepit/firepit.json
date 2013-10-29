@@ -7,6 +7,11 @@
          "description": "Provides warmth and light",
          "icon" : "file(/entities/generic/default_object/default_object.png)"
       },
+      "stonehearth:materials" : {
+         "materials" : [ 
+            "light"
+         ]
+      },
       "model_variants": [
          {
             "models": [

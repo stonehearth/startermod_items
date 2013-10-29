@@ -51,12 +51,4 @@ function CrafterComponent:get_workshop()
    return self._workshop
 end
 
---[[
-   Returns the object that the CrafterComponent displays while
-   he or she is working
-]]
-function CrafterComponent:get_intermediate_item()
-   return self._info.intermediate_item
-end
-
 return CrafterComponent

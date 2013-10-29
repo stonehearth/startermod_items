@@ -1,9 +1,12 @@
 $(document).ready(function(){
-   // When we get the show_workshop event, toggle the crafting window
-   // for this entity.
    $(top).on("show_workshop.stonehearth", function (_, e) {
       var view = App.gameView.addView(App.StonehearthCrafterView, { uri: e.entity });
    });
+
+   $(top).on("show_workshop_from_crafter.stonehearth", function (_, e) {
+      var view = App.gameView.addView(App.StonehearthCrafterView, { uri: e.event_data.workshop });
+   });
+
 });
 
 // Expects the uri to be an entity with a stonehearth:workshop

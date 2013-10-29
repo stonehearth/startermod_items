@@ -7,4 +7,5 @@ add_library(core STATIC
             )
 
 target_link_libraries(core
+                      rpcrt4
                       )
