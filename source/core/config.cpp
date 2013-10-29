@@ -186,23 +186,16 @@ std::string Config::GetBuildNumber()
 std::string Config::MakeUUIDString() 
 {
    std::string resultString;
-   //TODO: converting to a mere char* creates trouble with the RPC functions, later
-   //char* sTemp;
-   unsigned char* sTemp;
+   char* sTemp;
    UUID uuid;
    HRESULT hr;
    hr = UuidCreate(&uuid);
    if (hr == RPC_S_OK) {
-      //hr = UuidToString(&uuid, (unsigned char*) &sTemp);
-      hr = UuidToString(&uuid, &sTemp);
+      hr = UuidToString(&uuid, (unsigned char**) &sTemp);
       if (hr == RPC_S_OK && sTemp != NULL) {
-         //N00b alert! I'm coercing the unsigned char* into a char*; is this OK?
-         std::string tempStr(reinterpret_cast<const char *>(sTemp), strlen(reinterpret_cast<const char *>(sTemp)));
-         //std::string tempStr(sTemp, strlen(sTemp));
-         
+         std::string tempStr(sTemp, strlen(sTemp));         
          resultString = tempStr;
-         //RpcStringFree((unsigned char*) &sTemp);
-         RpcStringFree(&sTemp);
+         RpcStringFree((unsigned char**) &sTemp);
       } else {
          LOG(WARNING) << "uuid creation error: " << hr;
       }
