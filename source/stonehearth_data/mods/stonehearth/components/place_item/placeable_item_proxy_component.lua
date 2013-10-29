@@ -65,27 +65,29 @@ function PlaceableItemProxyComponent:_create_derived_components()
    local full_sized_uri = self:get_full_sized_entity_uri()
    local display_name = ''
 
+   local clone_components = {
+      'unit_info',
+      'stonehearth:materials'
+   }
+
    local json = radiant.resources.load_json(full_sized_uri)
+
    if json and json.components then
-      if json.components.unit_info then
-         local data = json.components.unit_info
-         local unit_info = self._entity:add_component('unit_info')
-         unit_info:set_display_name(data.name and data.name or '')
-         unit_info:set_description(data.description and data.description or '')
-         unit_info:set_icon(data.icon and data.icon or '')
-         display_name  = unit_info:get_display_name();
+      for i, component in ipairs(clone_components) do
+         if json.components[component] then
+            local the_component = self._entity:add_component(component)
+            the_component:extend(json.components[component])
+         end
       end
-      --TODO: what about transfering data about the material of the bed?
    end
    --Issues: if this is in a parent class, it isn't loaded by this point, so add manually
-   --local place_command = self._entity:get_component('stonehearth:commands')
-   local place_command = self._entity:add_component('stonehearth:commands')
-   place_command:add_command(radiant.resources.load_json('/stonehearth/data/commands/place_command.json'))
+   local commands = self._entity:add_component('stonehearth:commands')
+   commands:add_command(radiant.resources.load_json('/stonehearth/data/commands/place_item'))
 
-   local command_data = place_command:modify_command('place_item')
+   local command_data = commands:modify_command('place_item')
    command_data.event_data.full_sized_entity_uri = full_sized_uri
    command_data.event_data.proxy = self._data_binding
-   command_data.event_data.item_name = display_name
+   command_data.event_data.item_name = self._entity:add_component('unit_info'):get_display_name()
 end
 
 return PlaceableItemProxyComponent

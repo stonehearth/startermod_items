@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "lib/lua/register.h"
+#include "lib/lua/script_host.h"
 #include "lua_unit_info_component.h"
 #include "om/components/unit_info.h"
 
@@ -7,6 +8,11 @@ using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+
+void UnitInfo_ExtendObject(lua_State* L, UnitInfo& unitInfo, luabind::object o)
+{
+   unitInfo.ExtendObject(lua::ScriptHost::LuaToJson(L, o));
+}
 
 dm::Object::LuaPromise<om::UnitInfo>* UnitInfo_Trace(om::UnitInfo const& db, const char* reason)
 {
@@ -17,6 +23,7 @@ scope LuaUnitInfoComponent::RegisterLuaTypes(lua_State* L)
 {
    return
       lua::RegisterWeakGameObjectDerived<UnitInfo, Component>()
+         .def("extend",                &UnitInfo_ExtendObject)
          .def("set_display_name",      &om::UnitInfo::SetDisplayName)
          .def("get_display_name",      &om::UnitInfo::GetDisplayName)
          .def("set_description",       &om::UnitInfo::SetDescription)

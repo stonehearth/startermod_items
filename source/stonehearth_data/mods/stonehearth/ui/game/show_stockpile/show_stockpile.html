@@ -1,0 +1,54 @@
+<script type="text/x-handlebars" data-template-name="stonehearthShowStockpile">
+   <div id="stockpileWindow">
+      <div id="content">
+         <input id="name" onClick="this.select();" type="text" {{bindAttr value=unit_info.name}} />
+         <div class="normal">
+            {{i18n stonehearth:show_stockpile_storage_for}}
+
+            <table id="allNoneGrid">
+               <tr>
+                  <td class="toggleButton" id="all">{{i18n stonehearth:show_stockpile_all}}
+                  <td class="toggleButton" id="none">{{i18n stonehearth:show_stockpile_none}}
+            </table>
+
+            <table id="taxonomyGrid">
+               <tr>
+                  <td id="resources" class="toggleButton group">{{i18n stonehearth:show_stockpile_resources}}
+                  <td class="toggleButton category" id="wood"><img />
+                  <td class="toggleButton category" id="stone"><img />
+                  <td class="toggleButton category" id="ore"><img />
+                  <td class="toggleButton category" id="animal_part"><img />
+               <tr>
+                  <td id="construction" class="toggleButton group">{{i18n stonehearth:show_stockpile_construction}}
+                  <td class="toggleButton category" id="portal"><img />
+                  <td class="toggleButton category" id="furniture"><img />
+                  <td class="toggleButton category" id="defense"><img />
+                  <td class="toggleButton category" id="light"><img />
+                  <td class="toggleButton category" id="decoration"><img />
+               <tr>
+                  <td id="goods" class="toggleButton group">{{i18n stonehearth:show_stockpile_goods}}
+                  <td class="toggleButton category" id="refined_cloth"><img />
+                  <td class="toggleButton category" id="refined_animal_part"><img />
+                  <td class="toggleButton category" id="refined_ore"><img />
+               <tr>
+                  <td id="gear" class="toggleButton group">{{i18n stonehearth:show_stockpile_gear}}
+                  <td class="toggleButton category" id="melee_weapon"><img />
+                  <td class="toggleButton category" id="ranged_weapon"><img />
+                  <td class="toggleButton category" id="light_armor"><img />
+                  <td class="toggleButton category" id="heavy_armor"><img />
+                  <td class="toggleButton category" id="exotic_gear"><img />
+               <tr>
+                  <td id="food_and_drink" class="toggleButton group">{{i18n stonehearth:show_stockpile_food_and_drink}}
+                  <td class="toggleButton category" id="fruit"><img />
+                  <td class="toggleButton category" id="baked"><img />
+                  <td class="toggleButton category" id="meat"><img />
+                  <td class="toggleButton category" id="drink"><img />
+               <tr>
+                  <td id="wealth" class="toggleButton group">{{i18n stonehearth:show_stockpile_wealth}}
+                  <td class="toggleButton category" id="gold"><img />
+                  <td class="toggleButton category" id="gem"><img />
+            </table>
+         </div>
+      </div>
+   </div>
+</script>

@@ -2,6 +2,7 @@ local Inventory = class()
 
 function Inventory:__init(faction)
    self._faction = faction
+   self._nextStockpileNo = 1;
    self._storage = {}
 end
 
@@ -9,7 +10,11 @@ function Inventory:create_stockpile(location, size)
    local entity = radiant.entities.create_entity('stonehearth:stockpile')   
    radiant.terrain.place_entity(entity, location)
    entity:get_component('stonehearth:stockpile'):set_size(size)
+   --xxx localize
+   entity:get_component('unit_info'):set_display_name('Stockpile No.' .. self._nextStockpileNo)
    entity:get_component('unit_info'):set_faction(self._faction)
+
+   self._nextStockpileNo = self._nextStockpileNo + 1
 end
 
 function Inventory:add_storage(storage_entity)
