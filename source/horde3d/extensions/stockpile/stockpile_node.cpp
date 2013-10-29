@@ -62,11 +62,11 @@ void StockpileNode::renderFunc(const std::string &shaderContext, const std::stri
 
 void StockpileNode::UpdateShape(const csg::Cube3& bounds)
 {
-   _bLocalBox.min.x = bounds.min.x - 0.5;
-   _bLocalBox.max.x = bounds.max.x - 0.5;
-   _bLocalBox.min.z = bounds.min.z - 0.5;
-   _bLocalBox.max.z = bounds.max.z - 0.5;
-   _bLocalBox.min.y = bounds.min.y;
+   _bLocalBox.min.x = bounds.min.x - 0.5f;
+   _bLocalBox.max.x = bounds.max.x - 0.5f;
+   _bLocalBox.min.z = bounds.min.z - 0.5f;
+   _bLocalBox.max.z = bounds.max.z - 0.5f;
+   _bLocalBox.min.y = (float)bounds.min.y;
    _bLocalBox.max.y = bounds.min.y  + 0.01f;
 
    if (!center_.first) {

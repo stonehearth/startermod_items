@@ -84,10 +84,10 @@ Renderer::Renderer() :
    h3dSetOption(H3DOptions::LoadTextures, 1);
    h3dSetOption(H3DOptions::TexCompression, 0);
    h3dSetOption(H3DOptions::MaxAnisotropy, 4);
-   h3dSetOption(H3DOptions::ShadowMapSize, config_.shadow_resolution);
+   h3dSetOption(H3DOptions::ShadowMapSize, (float)config_.shadow_resolution);
    h3dSetOption(H3DOptions::FastAnimation, 1);
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
-   h3dSetOption(H3DOptions::SampleCount, config_.num_msaa_samples);
+   h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples);
 
    SetCurrentPipeline("pipelines/forward.pipeline.xml");
 
@@ -250,8 +250,8 @@ void Renderer::ApplyConfig()
    SetStageEnable("SSAO Default", !config_.use_ssao);
 
    h3dSetOption(H3DOptions::EnableShadows, config_.use_shadows ? 1.0f : 0.0f);
-   h3dSetOption(H3DOptions::ShadowMapSize, config_.shadow_resolution);
-   h3dSetOption(H3DOptions::SampleCount, config_.num_msaa_samples);
+   h3dSetOption(H3DOptions::ShadowMapSize, (float)config_.shadow_resolution);
+   h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples);
 }
 
 void Renderer::SetStageEnable(const char* stageName, bool enabled)
