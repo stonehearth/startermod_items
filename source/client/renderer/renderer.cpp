@@ -385,6 +385,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
 
    if (showStats) { 
       // show stats
+      h3dCollectDebugFrame();
       h3dutShowFrameStats( fontMatRes_, panelMatRes_, H3DUTMaxStatMode );
    }
 

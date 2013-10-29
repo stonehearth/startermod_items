@@ -273,6 +273,8 @@ void Renderer::createPrimitives()
 	_vbCube = gRDI->createVertexBuffer( 8 * 3 * sizeof( float ), cubeVerts );
 	_ibCube = gRDI->createIndexBuffer( 36 * sizeof( uint16 ), cubeInds );
 
+   _vbFrust = gRDI->createVertexBuffer(8 * 3 * sizeof( float ), nullptr);
+
 	// Unit (geodesic) sphere (created by recursively subdividing a base octahedron)
 	Vec3f spVerts[126] = {  // x, y, z
 		Vec3f( 0.f, 1.f, 0.f ),   Vec3f( 0.f, -1.f, 0.f ),
@@ -322,6 +324,33 @@ void Renderer::createPrimitives()
 		0.f, 0.f, 1.f,   2.f, 0.f, 1.f,   0.f, 2.f, 1.f
 	};
 	_vbFSPoly = gRDI->createVertexBuffer( 3 * 3 * sizeof( float ), fsVerts );
+}
+
+void Renderer::drawFrustum(const Frustum& frust)
+{
+   float *vs = (float *)gRDI->mapBuffer(_vbFrust);
+   float cubeVerts[8 * 3] = {  // x, y, z
+      0.f, 0.f, 1.f,   1.f, 0.f, 1.f,   1.f, 1.f, 1.f,   0.f, 1.f, 1.f,
+      0.f, 0.f, 0.f,   1.f, 0.f, 0.f,   1.f, 1.f, 0.f,   0.f, 1.f, 0.f
+   };
+
+   for (int i = 0; i < 8; i++)
+   {
+      vs[i * 3 + 0] = frust.getCorner(i).x;
+      vs[i * 3 + 1] = frust.getCorner(i).y;
+      vs[i * 3 + 2] = frust.getCorner(i).z;
+   }
+
+   gRDI->unmapBuffer(_vbFrust);
+
+   Matrix4f mat = Matrix4f();
+   mat.toIdentity();
+   gRDI->setShaderConst( _curShader->uni_worldMat, CONST_FLOAT44, &mat.x[0] );
+   gRDI->setVertexBuffer( 0, _vbFrust, 0, 12 );
+   gRDI->setIndexBuffer( _ibCube, IDXFMT_16 );
+   gRDI->setVertexLayout( _vlPosOnly );
+
+   gRDI->drawIndexed( PRIM_TRILIST, 0, 36, 0, 8 );
 }
 
 
@@ -1125,6 +1154,8 @@ void Renderer::updateShadowMap()
 			                         _curCamera->_frustBottom, _curCamera->_frustTop,
 			                         -_splitPlanes[i], -_splitPlanes[i + 1] );
 		}
+
+      gRDI->_frameDebugInfo.addSplitFrustum_(frustum);
 		
 		// Get light projection matrix
 		Matrix4f lightProjMat;
@@ -1163,6 +1194,8 @@ void Renderer::updateShadowMap()
 		Modules::sceneMan().updateQueues("rendering shadowmap", frustum, 0x0, RenderingOrder::None,
 			SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
 		
+      gRDI->_frameDebugInfo.addShadowCascadeFrustum_(frustum);
+
 		// Create texture atlas if several splits are enabled
 		if( numMaps > 1 )
 		{
@@ -2255,6 +2288,8 @@ void Renderer::render( CameraNode *camNode )
 	_curCamera = camNode;
 	if( _curCamera == 0x0 ) return;
 
+   gRDI->_frameDebugInfo.setViewerFrustum_(camNode->getFrustum());
+
 	// Build sampler anisotropy mask from anisotropy value
 	int maxAniso = Modules::config().maxAnisotropy;
 	if( maxAniso <= 1 ) _maxAnisoMask = SS_ANISO1;
@@ -2396,8 +2431,14 @@ void Renderer::finalizeFrame()
 	Modules::stats().getStat( EngineStats::FrameTime, true );  // Reset
 	Modules::stats().incStat( EngineStats::FrameTime, timer->getElapsedTimeMS() );
 	timer->reset();
+   gRDI->_frameDebugInfo.endFrame();
 }
 
+
+void Renderer::collectOneDebugFrame()
+{
+   gRDI->_frameDebugInfo.sampleFrame();
+}
 
 void Renderer::renderDebugView()
 {
@@ -2430,8 +2471,36 @@ void Renderer::renderDebugView()
 		
 		drawAABB( sn->_bBox.min, sn->_bBox.max );
 	}
-	glEnable( GL_CULL_FACE );
 
+   int frustNum = 0;
+   float frustCol[16] = {
+      1,0,0,1,
+      0,1,0,1,
+      0,0,1,1,
+      1,1,0,1
+   };
+   for (const auto& frust : gRDI->_frameDebugInfo.getShadowCascadeFrustums())
+   {
+	   gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &frustCol[frustNum * 4] );
+      drawFrustum(frust);
+      frustNum = (frustNum + 1) % 4;
+   }
+   frustNum = 0;
+   for (const auto& frust : gRDI->_frameDebugInfo.getSplitFrustums())
+   {
+	   gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &frustCol[frustNum * 4] );
+      drawFrustum(frust);
+      frustNum = (frustNum + 1) % 4;
+   }
+
+   for (const auto& lightAABB : gRDI->_frameDebugInfo.getDirectionalLightAABBs())
+   {
+	   color[0] = 0.0f; color[1] = 1.0f; color[2] = 0.0f; color[3] = 1;
+	   gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, color );
+      drawAABB(lightAABB.min, lightAABB.max);
+   }
+
+   glEnable( GL_CULL_FACE );
 	/*// Draw skeleton
 	setShaderConst( _defColorShader.uni_worldMat, CONST_FLOAT44, &Matrix4f().x[0] );
 	color[0] = 1; color[1] = 0; color[2] = 0; color[3] = 1;
