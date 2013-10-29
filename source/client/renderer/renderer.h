@@ -148,8 +148,8 @@ class Renderer
       void CallMouseInputCallbacks();
 
       void ResizeWindow(int width, int height);
-      void ResizeViewport(int width, int height);
-      void ResizePipelines(int width, int height);
+      void ResizeViewport();
+      void ResizePipelines();
 
       void DispatchInputEvent();
 

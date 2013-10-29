@@ -89,8 +89,6 @@ Renderer::Renderer() :
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
    h3dSetOption(H3DOptions::SampleCount, config_.num_msaa_samples);
 
-   ResizeWindow(windowWidth_, windowHeight_);
-
    SetCurrentPipeline("pipelines/forward.pipeline.xml");
 
    // Overlays
@@ -147,9 +145,6 @@ Renderer::Renderer() :
    camera_ = new Camera(H3DRootNode, "Camera", currentPipeline_);
    h3dSetNodeParamI(camera_->GetNode(), H3DCamera::PipeResI, currentPipeline_);
 
-   ResizeViewport(windowWidth_, windowHeight_);
-   ResizePipelines(windowWidth_, windowHeight_);
-
    memset(&input_.mouse, 0, sizeof input_.mouse);
 
    glfwSetWindowSizeCallback(window, [](GLFWwindow *window, int newWidth, int newHeight) { 
@@ -192,6 +187,7 @@ Renderer::Renderer() :
       Renderer::GetInstance().FlushMaterials();
    }, true);
 
+   OnWindowResized(windowWidth_, windowHeight_);
    SetShowDebugShapes(false);
 
    initialized_ = true;
@@ -312,9 +308,7 @@ void Renderer::FlushMaterials() {
       h3dUnloadResource(r);
    }
 
-   for (const auto& entry : pipelines_) {
-      h3dResizePipelineBuffers(entry.second, uiWidth_, uiHeight_);
-   }
+   ResizePipelines();
 }
 
 Renderer::~Renderer()
@@ -560,14 +554,14 @@ void Renderer::ResizeWindow(int width, int height)
    SetUITextureSize(windowWidth_, windowHeight_);
 }
 
-void Renderer::ResizePipelines(int width, int height)
+void Renderer::ResizePipelines()
 {
    for (const auto& entry : pipelines_) {
       h3dResizePipelineBuffers(entry.second, windowWidth_, windowHeight_);
    }
 }
 
-void Renderer::ResizeViewport( int width, int height )
+void Renderer::ResizeViewport()
 {
    H3DNode camera = camera_->GetNode();
 
@@ -721,8 +715,8 @@ void Renderer::OnKey(int key, int down)
 
 void Renderer::OnWindowResized(int newWidth, int newHeight) {
    ResizeWindow(newWidth, newHeight);
-   ResizeViewport(newWidth, newHeight);
-   ResizePipelines(newWidth, newHeight);
+   ResizeViewport();
+   ResizePipelines();
    screen_resize_slot_.Signal(csg::Point2(windowWidth_, windowHeight_));
 }
 
