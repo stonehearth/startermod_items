@@ -1,9 +1,11 @@
 .toggleGrid {
 
+   table {
+      border-collapse:collapse;
+   }
+
    td.toggleButton {
       .handCursor;
-      background-position: center center !important;
-      background-repeat: no-repeat !important;
       text-align: center;
 
       img {
@@ -11,11 +13,19 @@
       }
 
       &:hover {
-        background: rgba(255, 255, 255, 0.4);
+        background-color: rgba(255, 255, 255, 0.4);
       }
    }
 
    td.on {
-      background: #8fc7dc !important;
+      background: url(images/togglegrid/active_bg_7.png) left top no-repeat,
+         url(images/togglegrid/active_bg_9.png) right top no-repeat, 
+         url(images/togglegrid/active_bg_3.png) right bottom no-repeat, 
+         url(images/togglegrid/active_bg_1.png) left bottom no-repeat, 
+         url(images/togglegrid/active_bg_8.png) center top repeat-x,
+         url(images/togglegrid/active_bg_6.png) right center repeat-y, 
+         url(images/togglegrid/active_bg_2.png) center bottom repeat-x, 
+         url(images/togglegrid/active_bg_4.png) left center repeat-y, 
+         url(images/togglegrid/active_bg_5.png) center center repeat;
    }
 }
