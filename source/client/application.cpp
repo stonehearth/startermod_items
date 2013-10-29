@@ -17,10 +17,6 @@ void protobuf_log_handler(google::protobuf::LogLevel level, const char* filename
    LOG(INFO) << message;
 }
 
-//TODO: Analytics uses the build_number for a/b testing.
-//Default value for now; do we want to put this elsewhere?
-const std::string BUILD_NUMBER = "preview_0.1a";
-
 Application::Application()
 {
 }
@@ -59,7 +55,8 @@ int Application::Run(int argc, const char** argv)
       //Start the analytics session before spawning threads too
       std::string userid = config.GetUserID();
       std::string sessionid = config.GetSessionID();
-      analytics::StartSession(userid, sessionid, BUILD_NUMBER);
+      std::string build_number = config.GetBuildNumber();
+      analytics::StartSession(userid, sessionid, build_number);
 
       std::thread client([&]() {
          try {

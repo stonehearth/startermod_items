@@ -23,12 +23,14 @@ public:
 
    std::string GetUserID();
    std::string GetSessionID();
+   std::string GetBuildNumber();
 
    boost::program_options::variables_map const& GetVarMap() const { return configvm_; }
    
 private:
    void LoadConfigFile(boost::filesystem::path const& configfile);
    std::string MakeUUIDString();
+   std::string ReadUserID();
 
 private:
    std::string                                  name_;

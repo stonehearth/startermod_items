@@ -242,8 +242,7 @@ void Client::run()
       int now = timeGetTime();
       //Send game running events 
       if (now - last_event_time > 30 * 1000) {
-         analytics::SendDesignEvent("game:is_running")
-            .SetValue((float)now);
+         analytics::SendDesignEvent("game:is_running");
          last_event_time = now;
       }
    }

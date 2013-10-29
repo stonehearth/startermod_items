@@ -7,14 +7,12 @@
 using namespace ::radiant;
 using namespace ::radiant::analytics;
 
+const std::string CATEGORY = "design";
+
 //All events are required to have a name by default
-SendDesignEvent::SendDesignEvent(std::string const& name) :
-   set_value_(false),
-   set_position_(false),
-   area_(""),
-   category_("design")
+SendDesignEvent::SendDesignEvent(std::string const& name)
 {
-   event_id_ = name;
+   event_data_node_.set("event_id", name);
 }
 
 //Usage is SendDesignEvent(event_name)
@@ -23,44 +21,26 @@ SendDesignEvent::SendDesignEvent(std::string const& name) :
 //So send the event in the destructor
 SendDesignEvent::~SendDesignEvent()
 {
-   //Make a json node out of the stuff
-   json::Node node;
-   node.set("event_id", event_id_);
-   
-   if (area_ != "") {
-      node.set("area", area_);
-   }
-
-   if (set_position_) {
-      node.set("x", position_.x);      
-      node.set("y", position_.y);      
-      node.set("z", position_.z);      
-   }
-
-   if (set_value_) {
-      node.set("value", value_num_);
-   }
-
    analytics::AnalyticsLogger &logger = analytics::AnalyticsLogger::GetInstance();
-   logger.SubmitLogEvent(node, category_);
+   logger.SubmitLogEvent(event_data_node_, CATEGORY);
 }
 
 SendDesignEvent& SendDesignEvent::SetValue(float value)
 {
-   value_num_ = value;
-   set_value_ = true;
+   event_data_node_.set("value", value);
    return *this;
 }
 
 SendDesignEvent& SendDesignEvent::SetPosition(csg::Point3f const& pt)
 {
-   position_ = pt;
-   set_position_ = true;
+   event_data_node_.set("x", pt.x);      
+   event_data_node_.set("y", pt.y);      
+   event_data_node_.set("z", pt.z);      
    return *this;
 }
 
 SendDesignEvent& SendDesignEvent::SetArea(std::string const& area)
 {
-   area_ = area;
+   event_data_node_.set("area", area);
    return *this;
 }

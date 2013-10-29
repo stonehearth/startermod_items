@@ -12,10 +12,10 @@ void analytics::StartSession(std::string const& userid, std::string const& sessi
    analytics::AnalyticsLogger &a = analytics::AnalyticsLogger::GetInstance();
    a.SetBasicValues(userid, sessionid, build_number);
 
-   analytics::SendDesignEvent("SessionHasStarted");
+   analytics::SendDesignEvent("game:started");
 }
 
 void analytics::StopSession()
 {
-    analytics::SendDesignEvent("SessionHasStopped");
+    analytics::SendDesignEvent("game:stopped");
 }

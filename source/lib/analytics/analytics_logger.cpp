@@ -24,6 +24,7 @@ using namespace ::radiant::analytics;
 
 const std::string WEBSITE_URL = "http://api.gameanalytics.com/";
 
+//Keys for the stonehearth-dev game project. Leave in while debugging
 const std::string GAME_KEY = "2b6cc12b9457de0ae969e0d9f8b04291";
 const std::string SECRET_KEY = "70904f041d9e579c3d34f40cdb5bc0c16ad0c09a";
 
@@ -35,10 +36,7 @@ const std::string API_VERSION = "1";
 
 DEFINE_SINGLETON(AnalyticsLogger);
 
-AnalyticsLogger::AnalyticsLogger() :
-   userid_("default_user"),
-   sessionid_("default_session"),
-   build_version_("default_build_number")
+AnalyticsLogger::AnalyticsLogger() 
 {   
    // Initialize libcurl.
    //(note, not threadsafe, so always call in application.cpp.)
@@ -62,6 +60,13 @@ void AnalyticsLogger::SetBasicValues(std::string userid, std::string sessionid, 
 //Construct the full event data and send it to the analytics server
 void AnalyticsLogger::SubmitLogEvent(json::Node event_node, std::string event_category)
 {
+   ASSERT(!userid_.empty());
+   ASSERT(!sessionid_.empty());
+   ASSERT(!build_version_.empty());
+
+   //Create the async-multi-handle
+   CURLM* multi_handle = NULL;
+
    //Create a new CURL object
    CURL* curl = curl_easy_init();
    if (curl) {
@@ -110,7 +115,20 @@ void AnalyticsLogger::SubmitLogEvent(json::Node event_node, std::string event_ca
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
 
       //Send the post request
-      CURLcode res = curl_easy_perform(curl);
+      //CURLcode res = curl_easy_perform(curl);
+
+      //Send the post async
+      multi_handle = curl_multi_init();
+      CURLMcode res = curl_multi_add_handle(multi_handle, curl);
+
+      //Each call to multi_perform updates the # of handles still running, and returns
+      //whether we should call the function again. Stop when there are no handles and no
+      //more need to call the function
+      //TODO: how to yield to other threads?
+      int handles_still_running = 0;
+      do {
+         while (curl_multi_perform(multi_handle, &handles_still_running) == CURLM_CALL_MULTI_PERFORM);
+      } while (handles_still_running);
 
       if (res == CURLE_OK) {
          LOG(INFO) << "Post worked! Status is: " << response;

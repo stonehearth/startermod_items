@@ -3,6 +3,8 @@
 
 #include "analytics.h"
 #include "csg/point.h"
+#include "lib/json/node.h"
+
 
 // usage...
 //
@@ -32,18 +34,7 @@ public:
    SendDesignEvent& SetArea(std::string const& area);
 
 private:
-   std::string    category_;
-   std::string    event_id_;
-   std::string    area_;
-
-   float          value_num_;
-   csg::Point3f   position_;
-
-   //We assume that "" means nothing has been set for strings
-   //So we want bools to determine if the others have been set by the user
-   //Review Q: If this doesn't work stylistically we could make position a pointer instead
-   bool           set_value_;
-   bool           set_position_;
+   json::Node     event_data_node_;
 };
 
 END_RADIANT_ANALYTICS_NAMESPACE
