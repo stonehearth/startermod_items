@@ -13,7 +13,7 @@ function CarryTest:__init()
    self:create_world()
    local dude = self:place_citizen(12, 12)
 
-   local saw = self:place_item('stonehearth:carpenter_saw', 11, 11)
+   local saw = self:place_item('stonehearth:carpenter:saw', 11, 11)
    local bolt = self:place_item('stonehearth:cloth_bolt', 11, 10)
    local buckler = self:place_item('stonehearth:wooden_buckler', 11, 9)
    local sword = self:place_item('stonehearth:wooden_sword', 11, 8)

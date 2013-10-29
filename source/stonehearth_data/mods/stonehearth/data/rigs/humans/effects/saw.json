@@ -11,7 +11,7 @@
          "type": "attach_item_effect",
          "start_time": 0,
          "end_time": 0,
-         "item": "stonehearth:carpenter_saw",
+         "item": "stonehearth:carpenter:saw",
          "bone": "mainHand"
       }
 

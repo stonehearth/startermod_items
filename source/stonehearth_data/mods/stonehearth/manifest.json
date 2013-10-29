@@ -37,12 +37,10 @@
          "scaffolding" : "file(entities/build/scaffolding)",
 
          "worker:profession_description" : "file(entities/professions/worker/profession_description.json)",
-
          "carpenter:profession_description" : "file(entities/professions/carpenter/profession_description.json)",
-         "carpenter_workbench" : "file(entities/professions/carpenter/carpenter_workbench)",
-         "carpenter_outfit" : "file(entities/professions/carpenter/carpenter_outfit)",
-         "carpenter_saw" : "file(entities/professions/carpenter/carpenter_saw)",
-         "carpenter_intermediate_item" : "file(entities/professions/carpenter/carpenter_intermediate_item)",
+         "carpenter:workbench" : "file(entities/professions/carpenter/carpenter_workbench)",
+         "carpenter:outfit" : "file(entities/professions/carpenter/carpenter_outfit)",
+         "carpenter:saw" : "file(entities/professions/carpenter/carpenter_saw)",
 
          "stockpile" : "file(entities/construction/stockpile)",
 
@@ -162,8 +160,6 @@
          "observers:look_for_enemies" : "file(ai/observers/look_for_enemies.lua)",
 
          "class_info" : "file(entities/class_info)",
-         "carpenter_workbench" : "file(entities/carpenter_workbench)",
-         "carpenter_intermediate_item" : "file(entities/carpenter_intermediate_item)",
 
          "sounds:axe_chopping_sound" : "file(data/sounds/effects/axe_chopping_sound.ogg)"
       },
