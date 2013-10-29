@@ -192,6 +192,7 @@ protected:
 	
 	void setupShadowMap( bool noShadows );
 	Matrix4f calcCropMatrix( const Frustum &frustSlice, const Vec3f lightPos, const Matrix4f &lightViewProjMat );
+	Matrix4f calcDirectionalLightShadowProj( const Frustum &frustSlice, const Matrix4f &lightViewMat, const Matrix4f& camViewMat, const Matrix4f& camProjMat, Vec3f& lightMin, Vec3f& lightMax);
 	void updateShadowMap();
 
 	void drawOverlays( const std::string &shaderContext );

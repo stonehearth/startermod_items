@@ -1063,6 +1063,25 @@ Matrix4f Renderer::calcCropMatrix( const Frustum &frustSlice, const Vec3f lightP
 }
 
 
+Matrix4f Renderer::calcDirectionalLightShadowProj( const Frustum &frustSlice, const Matrix4f& lightViewMat, const Matrix4f& camViewMat, const Matrix4f& camProjMat, Vec3f& lightMin, Vec3f& lightMax  )
+{
+   // Pull out the mins/maxes of the frustum's corners.  Those bounds become the new projection matrix
+   // for our directional light's frustum.
+   Vec3f min, max;
+   min = max = lightViewMat * frustSlice.getCorner(0);
+   for (int i = 1; i < 8; i++)
+   {
+      Vec3f pt = lightViewMat * frustSlice.getCorner(i);
+      for (int j = 0; j < 3; j++)
+      {
+         min[j] = std::min(min[j], pt[j]);
+         max[j] = std::max(max[j], pt[j]);
+      }
+   }
+
+   return Matrix4f::OrthoMat(lightMin.x, max.x, lightMin.y, max.y, -lightMax.z, -min.z);
+}
+
 void Renderer::updateShadowMap()
 {
 	if( _curLight == 0x0 ) return;
@@ -1166,6 +1185,9 @@ void Renderer::updateShadowMap()
 		   float xmax = ymax * 1.0f;  // ymax * aspect
          lightProjMat = Matrix4f::PerspectiveMat(-xmax, xmax, -ymax, ymax, _curCamera->_frustNear, _curLight->_radius );
          lightAbsPos = _curLight->_absPos;
+
+         Matrix4f lightViewProjMat = lightProjMat * lightViewMat;
+		   lightProjMat = calcCropMatrix( frustum, lightAbsPos, lightViewProjMat ) * lightProjMat;
       } else {
          lightAbsPos = Vec3f((aabb.min.x + aabb.max.x) / 2.0f, (aabb.min.y + aabb.max.y) / 2.0f, (aabb.min.z + aabb.max.z) / 2.0f);
          lightViewMat = Matrix4f(_curLight->getViewMat());
@@ -1183,13 +1205,18 @@ void Renderer::updateShadowMap()
             }
 	      }
 
-         lightProjMat = Matrix4f::OrthoMat(min.x, max.x, min.y, max.y, -max.z, -min.z);
+         // Quantize the light's AABB so that our shadows don't swim when we make small
+         // camera movements.
+         min.quantize(-10);
+         max.quantize(10);
+
+         lightProjMat = calcDirectionalLightShadowProj(frustum, lightViewMat, _curCamera->getViewMat(), _curCamera->getProjMat(), min, max);
+
+         gRDI->_frameDebugInfo.addDirectionalLightAABB_(aabb);
       }
 	
 		// Generate render queue with shadow casters for current slice
 	   // Build optimized light projection matrix
-		Matrix4f lightViewProjMat = lightProjMat * lightViewMat;
-		lightProjMat = calcCropMatrix( frustum, lightAbsPos, lightViewProjMat ) * lightProjMat;
 		frustum.buildViewFrustum( lightViewMat, lightProjMat );
 		Modules::sceneMan().updateQueues("rendering shadowmap", frustum, 0x0, RenderingOrder::None,
 			SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
@@ -2419,7 +2446,6 @@ void Renderer::render( CameraNode *camNode )
 	
 	finishRendering();
 }
-
 
 void Renderer::finalizeFrame()
 {
