@@ -1,3 +1,4 @@
 <Material>
 	<Shader source="shaders/cubemitter.shader"/>
+  <ShaderFlag name="_F01_INSTANCE_SUPPORT"/>
 </Material>

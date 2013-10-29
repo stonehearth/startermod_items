@@ -16,6 +16,10 @@ add_executable(client_app
                main_win32.cpp
                )
 
+set_target_properties(client_app
+                      PROPERTIES OUTPUT_NAME
+                      Stonehearth)
+
 # FILE(COPY ${ChromiumEmbedded_BINARY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
                    #                   COMMAND echo copy ${ChromiumEmbedded_BINARIES}/<$CONFIGURATION>/* <$TARGET_DIR:client_app> -------------------------- $<CONFIGURATION>)
 

@@ -17,8 +17,10 @@ public:
    };
 
    QubicleBrush(std::istream& in);
+   QubicleBrush(QubicleMatrix const*);
 
    QubicleBrush& SetNormal(csg::Point3 const& normal);
+   QubicleBrush& SetPreserveMatrixOrigin(bool value);
    QubicleBrush& SetPaintMode(PaintMode mode);
 
    csg::Region3 Paint();
@@ -30,6 +32,7 @@ private:
    csg::Region3 IterateThroughStencil(csg::Region3 const& brush, csg::Region3 const& stencil);
 
 private:
+   bool                  preserve_matrix_origin_;
    PaintMode             paint_mode_;
    csg::Point3           normal_;
    QubicleMatrix const*  qubicle_matrix_;

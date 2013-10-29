@@ -108,6 +108,10 @@ struct DeviceCaps
 	bool  texFloat;
 	bool  texNPOT;
 	bool  rtMultisampling;
+   bool  hasInstancing;
+
+   const char* vendor;
+   const char* renderer;
 };
 
 
@@ -271,37 +275,38 @@ enum RDISamplerState
 	SS_FILTER_BILINEAR   = 0x0,
 	SS_FILTER_TRILINEAR  = 0x0001,
 	SS_FILTER_POINT      = 0x0002,
+   SS_FILTER_PIXELY     = 0x0004,
 	SS_ANISO1            = 0x0,
-	SS_ANISO2            = 0x0004,
-	SS_ANISO4            = 0x0008,
-	SS_ANISO8            = 0x0010,
-	SS_ANISO16           = 0x0020,
+	SS_ANISO2            = 0x0008,
+	SS_ANISO4            = 0x0010,
+	SS_ANISO8            = 0x0020,
+	SS_ANISO16           = 0x0040,
 	SS_ADDRU_CLAMP       = 0x0,
-	SS_ADDRU_WRAP        = 0x0040,
-	SS_ADDRU_CLAMPCOL    = 0x0080,
+	SS_ADDRU_WRAP        = 0x0080,
+	SS_ADDRU_CLAMPCOL    = 0x0100,
 	SS_ADDRV_CLAMP       = 0x0,
-	SS_ADDRV_WRAP        = 0x0100,
-	SS_ADDRV_CLAMPCOL    = 0x0200,
+	SS_ADDRV_WRAP        = 0x0200,
+	SS_ADDRV_CLAMPCOL    = 0x0400,
 	SS_ADDRW_CLAMP       = 0x0,
-	SS_ADDRW_WRAP        = 0x0400,
-	SS_ADDRW_CLAMPCOL    = 0x0800,
+	SS_ADDRW_WRAP        = 0x0800,
+	SS_ADDRW_CLAMPCOL    = 0x1000,
 	SS_ADDR_CLAMP        = SS_ADDRU_CLAMP | SS_ADDRV_CLAMP | SS_ADDRW_CLAMP,
 	SS_ADDR_WRAP         = SS_ADDRU_WRAP | SS_ADDRV_WRAP | SS_ADDRW_WRAP,
 	SS_ADDR_CLAMPCOL     = SS_ADDRU_CLAMPCOL | SS_ADDRV_CLAMPCOL | SS_ADDRW_CLAMPCOL,
-	SS_COMP_LEQUAL       = 0x1000
+	SS_COMP_LEQUAL       = 0x2000
 };
 
 const uint32 SS_FILTER_START = 0;
-const uint32 SS_FILTER_MASK = SS_FILTER_BILINEAR | SS_FILTER_TRILINEAR | SS_FILTER_POINT;
-const uint32 SS_ANISO_START = 2;
+const uint32 SS_FILTER_MASK = SS_FILTER_BILINEAR | SS_FILTER_TRILINEAR | SS_FILTER_POINT | SS_FILTER_PIXELY;
+const uint32 SS_ANISO_START = 3;
 const uint32 SS_ANISO_MASK = SS_ANISO1 | SS_ANISO2 | SS_ANISO4 | SS_ANISO8 | SS_ANISO16;
-const uint32 SS_ADDRU_START = 6;
+const uint32 SS_ADDRU_START = 7;
 const uint32 SS_ADDRU_MASK = SS_ADDRU_CLAMP | SS_ADDRU_WRAP | SS_ADDRU_CLAMPCOL;
-const uint32 SS_ADDRV_START = 8;
+const uint32 SS_ADDRV_START = 9;
 const uint32 SS_ADDRV_MASK = SS_ADDRV_CLAMP | SS_ADDRV_WRAP | SS_ADDRV_CLAMPCOL;
-const uint32 SS_ADDRW_START = 10;
+const uint32 SS_ADDRW_START = 11;
 const uint32 SS_ADDRW_MASK = SS_ADDRW_CLAMP | SS_ADDRW_WRAP | SS_ADDRW_CLAMPCOL;
-const uint32 SS_ADDR_START = 6;
+const uint32 SS_ADDR_START = 7;
 const uint32 SS_ADDR_MASK = SS_ADDR_CLAMP | SS_ADDR_WRAP | SS_ADDR_CLAMPCOL;
 
 
@@ -352,12 +357,12 @@ public:
 	// Buffers
 	uint32 createVertexBuffer( uint32 size, const void *data );
 	uint32 createIndexBuffer( uint32 size, const void *data );
-   uint32 createPixelBuffer( uint32 size, const void *data );
+   uint32 createPixelBuffer( uint32 type, uint32 size, const void *data );
 	void destroyBuffer( uint32 bufObj );
 	void updateBufferData( uint32 bufObj, uint32 offset, uint32 size, void *data );
 	uint32 getBufferMem() { return _bufferMem; }
 
-   void* mapBuffer(uint32 bufObj);
+   void* mapBuffer(uint32 bufObj, bool discard=true);
    void unmapBuffer(uint32 bufObj);
 
 
@@ -426,7 +431,6 @@ public:
 	void draw( RDIPrimType primType, uint32 firstVert, uint32 numVerts );
 	void drawIndexed( RDIPrimType primType, uint32 firstIndex, uint32 numIndices,
 	                  uint32 firstVert, uint32 numVerts );
-   //void drawInstanced( RDIPrimType primType, uint32 firstIndex, uint32 numVerts, uint32 numPrims);
    void drawInstanced( RDIPrimType primType, uint32 count, uint32 firstIndex, GLsizei primcount);
 
 // -----------------------------------------------------------------------------

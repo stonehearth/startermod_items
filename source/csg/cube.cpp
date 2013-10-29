@@ -239,19 +239,6 @@ Cube<S, C> Cube<S, C>::ProjectOnto(int axis, S plane) const
    return Cube(min.ProjectOnto(axis, plane), max.ProjectOnto(axis, plane + 1), tag_);
 }
 
-#if 0
-template <class S, int C>
-Cube<S, C> Cube<S, C>::Construct(Point min_value, Point max_value, int tag)
-{
-   for (int i = 0; i < C; i++) {
-      if (min_value[i] > max_value[i]) {
-         std::swap(min_value[i], max_value[i]);
-      }
-   }
-   return Cube(min_value, max_value, tag);
-}
-#endif
-
 #define MAKE_CUBE(Cls) \
    template Cls::Cube(); \
    template Cls::Cube(const Cls::Point&, int); \

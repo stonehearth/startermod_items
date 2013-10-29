@@ -20,6 +20,8 @@
 
 #include "utDebug.h"
 
+#include "radiant.h"
+#include "core/config.h"
 
 namespace Horde3D {
 
@@ -592,6 +594,7 @@ bool ShaderResource::parseFXSection( char *data )
 						if( tok.checkToken( "Trilinear" ) ) sampler.sampState |= SS_FILTER_TRILINEAR;
 						else if( tok.checkToken( "Bilinear" ) ) sampler.sampState |= SS_FILTER_BILINEAR;
 						else if( tok.checkToken( "None" ) ) sampler.sampState |= SS_FILTER_POINT;
+                  else if( tok.checkToken( "Pixely" ) ) sampler.sampState |= SS_FILTER_PIXELY;
 						else return raiseError( "FX: invalid enum value", tok.getLine() );
 					}
 					else if( tok.checkToken( "MaxAnisotropy" ) )
@@ -876,7 +879,9 @@ void ShaderResource::compileCombination( ShaderContext &context, ShaderCombinati
 
 		if( Modules::config().dumpFailedShaders )
 		{
-			std::ofstream out0( "shdDumpVS.txt", ios::binary ), out1( "shdDumpFS.txt", ios::binary );
+         boost::filesystem::path path = radiant::core::Config::GetInstance().GetTmpDirectory();
+			std::ofstream out0( (path / "vertex_shader.log").string(), ios::binary );
+         std::ofstream out1( (path / "fragment_shader.log").string(), ios::binary );
 			if( out0.good() ) out0 << _tmpCode0;
 			if( out1.good() ) out1 << _tmpCode1;
 			out0.close();

@@ -1,0 +1,12 @@
+{
+   "type" : "command",
+
+   "name": "show_stockpile",
+   "enabled_tooltip": "Edit",
+   "disabled_tooltip": "Editing disabled",
+   "icon": "file(show_stockpile.png)",
+
+   "action": "fire_event",
+   "event_name" : "show_stockpile.stonehearth",
+   "event_data" : {}
+}

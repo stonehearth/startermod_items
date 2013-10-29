@@ -82,13 +82,24 @@ struct ParticleVert
 struct CubeVert
 {
    float x, y, z;       // Object-space location.
-	// float  u, v;         // Texture coordinates
-	//float  index;        // Index in property array
 
 	CubeVert() {}
 
 	CubeVert( float x, float y, float z ):
 		x( x ), y( y ), z( z )
+	{
+	}
+};
+
+struct CubeBatchVert
+{
+   float x, y, z;       // Object-space location.
+	float  index;        // Index in property array
+
+	CubeBatchVert() {}
+
+	CubeBatchVert( float x, float y, float z, float index ):
+		x( x ), y( y ), z( z ), index(index)
 	{
 	}
 };
@@ -189,7 +200,7 @@ protected:
 	void drawGeometry( const std::string &shaderContext, const std::string &theClass,
 	                   RenderingOrder::List order, int filterRequired, int occSet );
 	void drawLightGeometry( const std::string &shaderContext, const std::string &theClass,
-	                        bool noShadows, RenderingOrder::List order, int occSet );
+	                        bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly );
 	void drawLightShapes( const std::string &shaderContext, bool noShadows, int occSet );
 	
 	void drawRenderables( const std::string &shaderContext, const std::string &theClass, bool debugView,

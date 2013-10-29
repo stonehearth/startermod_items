@@ -13,7 +13,8 @@ App.StonehearthUnitFrameView = App.View.extend({
 
       var self = this;
       $(top).on("selection_changed.radiant", function (_, data) {
-         self._selected_entity = data.selected_entity;
+         var selected = data.selected_entity;
+         self._selected_entity = selected;
          if (self._selected_entity) {
             self.set('uri', self._selected_entity);
             self.show();
@@ -26,6 +27,8 @@ App.StonehearthUnitFrameView = App.View.extend({
 
    //When we hover over a command button, show its tooltip
    didInsertElement: function() {
+      $('#commandButtons').find('div').tooltip();
+      /*
       $('#commandButtons')
          .off('mouseover', '.commandButton')
          .on('mouseover', '.commandButton', function(event){
@@ -40,6 +43,7 @@ App.StonehearthUnitFrameView = App.View.extend({
          });
          $cmdBtn.tooltip('show');
       });
+      */
    },
 
    show: function() {

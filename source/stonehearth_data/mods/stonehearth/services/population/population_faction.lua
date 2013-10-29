@@ -7,7 +7,16 @@ function PopulationFaction:__init(faction)
 end
 
 function PopulationFaction:create_new_citizen()   
-   local gender = 'male'
+   local gender
+
+   -- xxx, replace this with a coin flip using math.random
+   if not self._always_one_girl_hack then
+      gender = 'female'
+      self._always_one_girl_hack = true
+   else 
+      gender = 'male'
+   end
+
    local entities = self._data[gender .. '_entities']
    local kind = entities[math.random(#entities)]
    local citizen = radiant.entities.create_entity(kind)

@@ -3,9 +3,15 @@
    "components" : {
       "unit_info" : {
          "name" : "Stockpile",
-         "description" : "Stores all sorts of things."
+         "description" : "For storing things"
       },
       "stonehearth:stockpile" : {
+      },
+      "stonehearth:commands" : {
+         "commands" : [
+            "file(/data/commands/show_stockpile)",
+            "file(/data/commands/destroy_entity)"
+         ]
       }
    }
 }

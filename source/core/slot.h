@@ -20,10 +20,13 @@ public:
    Slot() : firing_(false) { }
 
    core::Guard Register(Fn fn) {
-      VERIFY(!firing_, "attempt to register for slot while firing callbacks");
       int id = next_id_++;
    
-      callbacks_[id] = fn;
+      if (firing_) {
+         added_callbacks_[id] = fn;
+      } else {
+         callbacks_[id] = fn;
+      }
       return core::Guard([this, id]() {
          Remove(id);
       });
@@ -37,6 +40,8 @@ public:
       for (int id : removed_callbacks_) {
          callbacks_.erase(id);
       }
+      callbacks_.insert(added_callbacks_.begin(), added_callbacks_.end());
+      added_callbacks_.clear();
       removed_callbacks_.clear();
       firing_ = false;
    }
@@ -44,7 +49,12 @@ public:
 private:
    void Remove(int id) {
       if (firing_) {
-         removed_callbacks_.push_back(id);
+         auto i = added_callbacks_.find(id);
+         if (i == added_callbacks_.end()) {
+            removed_callbacks_.push_back(id);
+         } else {
+            added_callbacks_.erase(i);
+         }
       } else {
          callbacks_.erase(id);
       }
@@ -58,6 +68,7 @@ private:
    int                              next_id_;
    std::unordered_map<int,Fn>       callbacks_;
    std::vector<int>                 removed_callbacks_;
+   std::unordered_map<int,Fn>       added_callbacks_;
 };
 
 END_RADIANT_CORE_NAMESPACE

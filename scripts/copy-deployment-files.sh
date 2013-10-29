@@ -6,12 +6,12 @@ if [ $# -ne 3 ]
 fi
 echo
 
-# make deployment directory
-echo Creating deployment directory
+echo Creating deployment directory $1
+echo
 mkdir -p $1
 
-# copy executable files
-echo Copying executable files
+echo Copying executable files from $2
+echo
 cd $2
 find . -type f \
    ! -name '*.pdb' \
@@ -26,8 +26,8 @@ find . -type f \
    ! -name 'devtools_resources.pak' \
    -print0 | xargs -0 cp -u --parents --target-directory $1
 
-# copy data files
-echo Copying data files
+echo Copying data files from $3
+echo
 cd $3
 find . -type f  \
    ! -name '*.qmo' \
@@ -35,3 +35,13 @@ find . -type f  \
    ! -name 'debug.log' \
    ! -name 'backup.cmd' \
    -print0 | xargs -0 cp -u --parents --target-directory $1
+
+echo Removing unused files from $1
+echo
+cd $1
+set -x
+rm -f debug.log
+rm -rf mods/stonehearth_tests
+rm -rf mods/stonehearth/_graveyard
+rm -rf mods/radiant/js/external/ace
+#rm -rf mods/stonehearth_debugtools

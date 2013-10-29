@@ -4,10 +4,6 @@
    assigns to him. A profession's workplace.txt file (for example,
    carpenter_workbench.json references this blob of code as a component.
 
-   Conceptually, all WorkshopComponents have an intermediate item--the item the crafter
-   is working on right now. If the crafter is not working on an item,
-   the current item is nil. If the crafter is working on an item, then
-   the current item has a recipe and a status for its progress.
 ]]
 
 -- All WorkshopComponents have a ToDo list through which the user instructs the crafter
@@ -21,15 +17,13 @@ function WorkshopComponent:__init(entity, data_binding)
    self._todo_list = CraftOrderList(data_binding)  -- The list of things we need to work on
    self._entity = entity                 -- The entity associated with this component
    self._curr_order = nil                -- The order currently being worked on. Nil until we get an order from the todo list
-   self._intermediate_item = nil         -- The item currently being worked on. Nil until we actually start crafting
+   self._curernt_item_progress = nil
                                          -- TODO: revise all three of these to use entity-container
    self._bench_outputs = {}              -- An array of finished products on the bench, to be added to the outbox. Nil if nothing.
    self._outbox_entity = nil
    self._outbox_component = nil          -- The outbox
    self._promotion_talisman_entity = nil -- The talisman for the bench, available when there is no craftsman
    self._promotion_talisman_offset = {0, 3, 0}  -- Default offset for the talisman (on the bench)
-   self._outbox_offset = {2, 0, 0}              -- Default offset for the outbox
-   self._outbox_size = {3, 3}                   -- Default size for the outbox
 
    self._data = data_binding:get_data()
    self._data.crafter = nil
@@ -47,12 +41,6 @@ function WorkshopComponent:extend(json)
       end
       if json.promotion_talisman.offset then
          self._promotion_talisman_offset = json.promotion_talisman.offset
-      end
-      if json.outbox_settings.offset then
-         self._outbox_offset = json.outbox_settings.offset
-      end
-      if json.outbox_settings.size then
-         self._outbox_size = json.outbox_settings.size
       end
    end
 end
@@ -121,10 +109,7 @@ end
 function WorkshopComponent:delete_order(session, response, id)
    self._todo_list:remove_order(id)
    if self._curr_order and id == self._curr_order:get_id() then
-      if self._intermediate_item then
-         radiant.entities.destroy_entity(self._intermediate_item.entity)
-         self._intermediate_item = nil
-      end
+      self._current_item_status = nil
       self._curr_order = nil
    end
    return true
@@ -166,15 +151,23 @@ function WorkshopComponent:set_crafter(crafter)
 
       local commandComponent = self._entity:get_component('stonehearth:commands')
       if crafter then
-         commandComponent:enable_command('show_craft_ui', true)
+         commandComponent:enable_command('show_workshop', true)
       else
-         commandComponent:enable_command('show_craft_ui', false);
+         commandComponent:enable_command('show_workshop', false);
       end
+
+      local show_workshop_command = crafter:add_component('stonehearth:commands')
+                                           :add_command('/stonehearth/data/commands/show_workshop_from_crafter')
+
+      show_workshop_command.event_data = {
+         workshop = self._entity
+      }
+
    end
 end
 
 function WorkshopComponent:init_from_scratch()
-   return self:init_promotion_talisman(), self:init_outbox()
+   return self:init_promotion_talisman()
 end
 
 --[[
@@ -205,24 +198,14 @@ end
    returns: outbox_entity
    TODO: Make this a speciatly stockpile, not like other stockpiles!
 ]]
-function WorkshopComponent:init_outbox(custom_offset, custom_size)
+function WorkshopComponent:create_outbox(location, size)
    self._outbox_entity = radiant.entities.create_entity('stonehearth:workshop_outbox')
    local bench_loc = radiant.entities.get_location_aligned(self._entity)
 
-   if custom_offset then
-      self._outbox_offset = custom_offset
-   end
-   -- TODO: PLACE OUTBOX SEPARATELY
-   local offset = self._outbox_offset
-   radiant.terrain.place_entity(self._outbox_entity,
-      Point3(bench_loc.x + offset[1], bench_loc.y + offset[2], bench_loc.z + offset[3]))
+   radiant.terrain.place_entity(self._outbox_entity, location)
    local outbox_component = self._outbox_entity:get_component('stonehearth:stockpile')
 
-   if custom_size then
-      self._outbox_size = custom_size
-   end
-   outbox_component:set_size(self._outbox_size)
-
+   outbox_component:set_size(size)
    self._outbox_component = outbox_component
    return self._outbox_entity
 end
@@ -295,21 +278,16 @@ function WorkshopComponent:get_items_on_bench()
 end
 
 --[[
-   The intermediate item only exists once all the items are on
-   the workbench and we are currently crafting. We can use it
-   to figure out if we are in the process of building someting.
    Returns: True if we've collected all the materials and are
             in the process of making something. False otherwise.
 ]]
 function WorkshopComponent:is_currently_crafting()
-   return self._intermediate_item ~= nil
+   return self._current_item_status ~= nil
 end
 
 --[[
    This function does one unit's worth of progress on the current
-   recipe. If we haven't started working on the recipe yet,
-   it creates the intermediate item. If we're done, then it
-   destroys it and creates the outputs.
+   recipe. 
    ai: the ai associated with an action
    returns: true if there is more work to be done, and false if
             there is no work to be done
@@ -318,51 +296,22 @@ function WorkshopComponent:work_on_curr_recipe(ai)
    if self._curr_order == nil then
       return true
    end
-   if not self._intermediate_item then
-      self:_create_intemediate_item()
+   if not self._current_status then
+      self._current_status = {
+         progress = 0
+      }
    end
    local work_units = self:_get_current_recipe().work_units
-   if self._intermediate_item.progress < work_units then
+   if self._current_status.progress < work_units then
       self:_get_crafter_component():perform_work_effect(ai)
-      if self._intermediate_item then
-         self._intermediate_item.progress = self._intermediate_item.progress + 1
+      if self._current_status then
+         self._current_status.progress = self._current_status.progress + 1
       end
       return true
    else
       self:_crafting_complete()
       return false
    end
-end
-
---[[
-   Create the item that represents the crafter's progress
-   on the current item in the WorkshopComponent. An intermediate item
-   tracks its progress and its entity.
-   To create the intermediate item, we must first remove all
-   the ingredients from the bench. We assume all the ingredients
-   are present. If crafting is interrupted,
-   Returns: the intermediate item
-]]
-function WorkshopComponent:_create_intemediate_item()
-   --verify that the ingredients for the curr recipe are on the bench
-   assert(self:_verify_curr_recipe(), "Can't find all ingredients in recipe")
-
-   -- now we can destroy all the items on the bench and create an
-   -- intermediate item.
-   local items = self:get_items_on_bench()
-   for i, item in ipairs(items) do
-      radiant.entities.destroy_entity(item)
-   end
-
-   --Create intermediate item (with progress) and place its entity in the world
-   local intermediate_item = radiant.entities.create_entity(self:_get_crafter_component():get_intermediate_item())
-   --TODO: how to get intermediat item onto the top of the world?
-   radiant.entities.add_child(self._entity, intermediate_item, Point3(0, 1, 0))
-   self._intermediate_item = {
-      progress = 0,
-      entity = intermediate_item
-   }
-   return self._intermediate_item
 end
 
 --[[
@@ -389,9 +338,7 @@ end
    and place the WorkshopComponent outputs into the world.
 ]]
 function WorkshopComponent:_crafting_complete()
-   radiant.entities.destroy_entity(self._intermediate_item.entity)
-   self._intermediate_item = nil
-
+   self._current_item_status = nil  
    self:_produce_outputs()
 
    self._todo_list:chunk_complete(self._curr_order)
@@ -401,12 +348,20 @@ end
 
 --[[
    Produces all the things in the recipe, puts them in the world.
-   TODO: handle unwanted outputs, like toxic waste
+TODO: handle unwanted outputs, like toxic waste
 ]]
 function WorkshopComponent:_produce_outputs()
    local recipe = self:_get_current_recipe()
    local outputs = recipe.produces
    self._bench_outputs = {}
+
+   -- destroy all the ingredients on the bench
+   local items = self:get_items_on_bench()
+   for i, item in ipairs(items) do
+      radiant.entities.destroy_entity(item)
+   end
+
+   -- create all the recipe products
    for i, product in ipairs(outputs) do
       local result = radiant.entities.create_entity(product.item)
 

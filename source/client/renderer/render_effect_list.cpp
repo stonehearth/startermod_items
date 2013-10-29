@@ -306,10 +306,8 @@ void CubemitterEffect::Update(FrameStartInfo const& info, bool& finished)
 {
    if (info.now > startTime_) {
       if (!cubemitterNode_.get()) {
-         H3DRes matRes = h3dAddResource(H3DResTypes::Material, "materials/cubemitter.material.xml", 0);
          H3DRes cubeRes = h3dAddResource(RT_CubemitterResource, filename_.c_str(), 0);
-
-         H3DNode c = h3dRadiantAddCubemitterNode(parent_, "cu", cubeRes, matRes);
+         H3DNode c = h3dRadiantAddCubemitterNode(parent_, "cu", cubeRes);
          cubemitterNode_ = H3DCubemitterNodeUnique(c);
 
          h3dSetNodeTransform(cubemitterNode_.get(), pos_.x, pos_.y, pos_.z, rot_.x, rot_.y, rot_.z, 1, 1, 1);

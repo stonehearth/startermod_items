@@ -34,5 +34,18 @@ function client_entities.get_entity_data(entity, key)
       end
    end
 end
+
+function client_entities.get_world_grid_location(entity)
+   radiant.check.is_entity(entity)
+   return entity:add_component('mob'):get_world_grid_location()
+end
+
+function client_entities.get_location_aligned(entity)
+   radiant.check.is_entity(entity)
+   if entity then
+      return entity:add_component('mob'):get_grid_location()
+   end
+end
+
 client_entities.__init()
 return client_entities

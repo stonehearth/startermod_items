@@ -4,7 +4,6 @@ local InventoryService = class()
 
 function InventoryService:__init()
    self._inventories = {}
-   self._stockpiles = {}
 end
 
 function InventoryService:get_inventory(faction)
@@ -15,14 +14,6 @@ function InventoryService:get_inventory(faction)
       self._inventories[faction] = inventory
    end
    return inventory
-end
-
-function InventoryService:register_stockpile(stockpile)
-   self._stockpiles[stockpile:get_id()] = stockpile
-end
-
-function InventoryService:unregister_stockpile(id)
-   self._stockpiles[id] = nil
 end
 
 function InventoryService:enumerate_items(faction, cb)

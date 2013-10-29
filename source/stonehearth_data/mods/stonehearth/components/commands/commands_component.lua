@@ -14,17 +14,19 @@ function CommandsComponent:extend(json)
    -- not really...
    if json.commands then
       for _, uri in pairs(json.commands) do
-         self:add_command(radiant.resources.load_json(uri))
+         self:add_command(uri)
       end
    end
 end
 
-function CommandsComponent:add_command(json)
+function CommandsComponent:add_command(uri)
+   local json = radiant.resources.load_json(uri)
    local t = self:_replace_variables(json)
    self:_set_defaults(t)
 
    table.insert(self._data.commands, t)
    self._data_binding:mark_changed()
+   return t
 end
 
 function CommandsComponent:modify_command(name)

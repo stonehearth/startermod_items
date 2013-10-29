@@ -14,7 +14,8 @@
          if (IsDebuggerPresent()) { \
             DebugBreak(); \
          } else { \
-            ::MessageBox(NULL, #x, "Stonehearth Assertion Failed", MB_OK | MB_ICONEXCLAMATION | MB_TASKMODAL); \
+            ::MessageBox(NULL, #x, "Stonehearth Assertion Failed", MB_OK | MB_ICONEXCLAMATION); \
+            DebugBreak(); \
          } \
       } \
    } while(false)

@@ -3,7 +3,7 @@
    "components" : {
 	   "stonehearth:commands" : {
 	   	"commands" : [
-            "file(chop_tree_command.json)"
+            "file(/data/commands/chop_tree)"
 			]
 	   },
       "render_info" : {

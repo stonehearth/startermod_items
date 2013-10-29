@@ -23,7 +23,11 @@ public:
       std::vector<int32>   indices;
       Cube3f               bounds;
 
-      void add_face(Point3f const points[], Point3f const& normal, Point3f const& color);
+      // This is the one, true add face.  move over to it... (and when you're done, make color a Color4)
+      void AddFace(Point3f const points[], Point3f const& normal, Color3 const& color) {
+         add_face(points, normal, Point3f(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f), false);
+      }
+      void add_face(Point3f const points[], Point3f const& normal, Point3f const& color, bool rewind_based_on_normal = true);
    private:
       friend mesh_tools;
       Point3f         offset_;
@@ -38,7 +42,7 @@ public:
    mesh_tools& SetOffset(Point3f const& offset);
    mesh_tools& SetTesselator(tesselator_map const& t);
    mesh ConvertRegionToMesh(Region3 const& region);
-   std::vector<Point3f> ConvertRegionToOutline(const Region3& r3);
+   mesh ConvertRegionToOutline(const Region3& r3, float thickness, csg::Color3 const& color);
 
    enum {
       INCLUDE_HIDDEN_FACES    = (1 << 1)
@@ -61,8 +65,16 @@ public:
    };
    typedef std::function<void(Region2 const& region, PlaneInfo const& info)> ForEachRegionPlaneCb;
 
+   struct EdgeInfo {
+      csg::Point3    min;
+      csg::Point3    max;
+      csg::Point3    normal;
+   };
+   typedef std::function<void(EdgeInfo const& info)> ForEachRegionEdgeCb;
+
    void ForEachRegionPlane(Region3 const& region, int flags, ForEachRegionPlaneCb cb);
    void ForEachRegionSegment(Region2 const& region, int flags, ForEachRegionSegmentCb cb);
+   void ForEachRegionEdge(Region3 const& region, int flags, ForEachRegionEdgeCb cb);
 private:
    typedef std::unordered_map<int, Region1> SegmentMap;
    typedef std::unordered_map<int, Region2> PlaneMap;
@@ -72,7 +84,7 @@ private:
    void ForEachRegionPlane(PlaneMap const& front, PlaneMap const& back, PlaneInfo pi, int normal_dir, int flags, ForEachRegionPlaneCb cb);
 
 private:
-   void add_region(Region2 const& region, PlaneInfo const& p, mesh& m);
+   void AddRegionToMesh(Region2 const& region, PlaneInfo const& p, mesh& m);
    void add_face(Point3f const points[], Point3f normal, mesh& m);
 
 private:

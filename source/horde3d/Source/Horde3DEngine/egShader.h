@@ -137,6 +137,7 @@ struct ShaderCombination
 	int                 uni_lightPos, uni_lightDir, uni_lightColor, uni_lightAmbientColor;
 	int                 uni_shadowSplitDists, uni_shadowMats, uni_shadowMapSize, uni_shadowBias;
 	int                 uni_parPosArray, uni_parSizeAndRotArray, uni_parColorArray;
+   int                 uni_cubeBatchTransformArray, uni_cubeBatchColorArray;
 	int                 uni_olayColor;
 
 	std::vector< int >  customSamplers;

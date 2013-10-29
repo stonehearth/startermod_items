@@ -1,4 +1,5 @@
 local MicroWorld = require 'lib.micro_world'
+local Point3 = _radiant.csg.Point3
 
 local PromoteTest = class(MicroWorld)
 --[[
@@ -13,15 +14,16 @@ function PromoteTest:__init()
    self:place_citizen(0,0)
    local worker = self:place_citizen(12, 12)
 
-   local bench = self:place_item('stonehearth:carpenter_workbench', -12, -12)
+   local bench = self:place_item('stonehearth:carpenter:workbench', -12, -12)
    local workshop_component = bench:get_component('stonehearth:workshop')
    local faction = worker:get_component('unit_info'):get_faction()
 
    --TODO: we need a way to add unitinfo to these all these guys
    bench:add_component('unit_info'):set_faction(faction)
 
-   local saw, outbox = workshop_component:init_from_scratch()
+   local saw = workshop_component:init_from_scratch()
    saw:add_component('unit_info'):set_faction(faction)
+   local outbox = workshop_component:create_outbox(Point3(-9,0,-9), {3, 3})
    outbox:add_component('unit_info'):set_faction(faction)
 
    local tree = self:place_tree(-12, 0)

@@ -1,56 +1,47 @@
 <script type="text/x-handlebars" data-template-name="stonehearthCrafterBuildWorkshop">
    <div id="crafterBuildWorkshopScroll">
-      <div id="scroll">
-         <div id="content">
-            <div id="title">
+
+      <div class="scroll" id="page2">
+         <div class="content">
+            <div class="title">
+               {{i18n stonehearth:build_workshop_create_stockpile}}
+            </div>
+
+            <div class='portrait'>
+               <img class='crate' />
+            </div>
+
+            <div class="description">
+               {{i18n stonehearth:build_workshop_create_stockpile_description}}
+            </div>
+            
+         </div>
+      </div>
+
+      <div class="scroll" id="page1">
+         <div class="content">
+            <div class="title">
                {{workshop.name}}
             </div>
 
-            <div id='portrait'>
+            <div class="subtitle">
+               {{i18n stonehearth:build_workshop_requirements}}
+               {{#each workshop.ingredients}}
+                  <div {{bindAttr class=material}}></div>
+                  <span class="count">{{count}}</span>
+               {{/each}}
+            </div>
+
+            <div class='portrait'>
                <img {{bindAttr src=workshop.portrait}} />
             </div>
 
-            <div id="description">
-               <table id="ingredients" cellspacing=0 cellpadding=0>
-                  <tr>
-                     <td class="border"></td>
-                     <td valign=bottom><img class="leftBookend" /></td>
-                     <td valign=bottom>
-                        <nobr>
-                        {{#each workshop.ingredients}}
-                           <div class="ingredientSocket">
-                              <div class="background selectionRequired"></div>
-                              <div {{bindAttr class=material}}></div>
-                              <span class="count">{{count}}</span>
-                           </div>
-                        {{/each}}
-                        </nobr>
-                     </td>
-                     <td valign=bottom><img class="rightBookend" /></td>
-                     <td class="border"></td>
-                  </tr>
-               </table>
-
-               <div id="attributes">
-                  <div id="usefulText">{{workshop.long_description}}</div>
-                  <div id="flavorText"></div>
-               </div>
+            <div class="description">
+               {{{workshop.long_description}}}
             </div>
-
-            
-            <table id='pendingEmblem'>
-               <tr><td>{{i18n stonehearth:build_workshop_pending}}</td></tr>
-            </table>
-            
-            <table id='approvedStamp'>
-               <tr><td>{{i18n stonehearth:build_workshop_approved}}</td></tr>
-            </table>
-
-            <a href='#' {{action approve target=view}}>
-               <img id='approveButton' />
-            </a>
-
          </div>
       </div>
+
    </div>
+
 </script>

@@ -2,7 +2,7 @@
 <Pipeline>
    <Setup>
       <RenderTarget id="OUTPUT" depthBuf="true" numColBufs="1" format="RGBA8" scale="1.0" maxSamples="4"/>
-      <RenderTarget id="SelectedTemp" depthBuf="false" numColBufs="1" format="RGBA8" scale="1.0"/>
+      <RenderTarget id="SelectedTemp" numColBufs="1" format="RGBA8" scale="1.0"/>
    </Setup>
    <CommandQueue>
       <Stage id="Depth" link="pipelines/globalSettings.material.xml">
@@ -11,21 +11,24 @@
          <DrawGeometry context="AMBIENT" class="~Translucent" />
       </Stage>
 
+      <Stage id="Light">
+         <DoForwardLightLoop class="~Translucent" noShadows="false"/>
+      </Stage>
+
       <Stage id="Selected">
          <SwitchTarget target="SelectedTemp" />
-         <ClearTarget colBuf0="true"/>
+         <ClearTarget colBuf0="true" />
          <DrawSelected context="SELECTED_SCREENSPACE" />
 
          <SwitchTarget target="OUTPUT" />
          <BindBuffer sampler="outlineSampler" sourceRT="SelectedTemp" bufIndex="0"/>
          <DrawQuad material="terrain/default_material.xml" context="SELECTED_SCREENSPACE_OUTLINER" />
 
+         <DrawSelected context="AMBIENT"/>
+         <DoForwardLightLoop selectedOnly="true" noShadows="false"/>
          <UnbindBuffers />
       </Stage>
 
-      <Stage id="Light">
-         <DoForwardLightLoop class="~Translucent" noShadows="false"/>
-      </Stage>
 
       <Stage id="Clouds">
          <DrawGeometry context="CLOUDS" class="~Translucent" />
@@ -33,7 +36,8 @@
 
       <Stage id="Translucent">
          <DrawGeometry context="TRANSLUCENT" order="BACK_TO_FRONT" />
-         <DrawGeometry context="BLUEPRINTS" order="FRONT_TO_BACK"/>
+         <DrawGeometry context="BLUEPRINTS_DEPTH_PASS"/>
+         <DrawGeometry context="BLUEPRINTS_COLOR_PASS"/>
          <DrawGeometry context="DEBUG_SHAPES" />
       </Stage>
 
