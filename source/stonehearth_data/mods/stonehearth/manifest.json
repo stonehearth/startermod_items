@@ -57,6 +57,7 @@
          "wolf" : "file(entities/critters/wolf)",
          "wolf:teeth_weapon" : "file(entities/critters/wolf/wolf_teeth.json)",
          "male_1" : "file(entities/humans/male_1)",
+         "male_2" : "file(entities/humans/male_2)",
          "female_1" : "file(entities/humans/female_1)",
          "workshop_outbox" : "file(entities/crafting/workshop_outbox)",
 

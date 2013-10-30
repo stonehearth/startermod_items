@@ -1,7 +1,8 @@
 {
    "faction_name" : "Rayya's Children",
    "male_entities" : [
-      "stonehearth:male_1"
+      "stonehearth:male_1",
+      "stonehearth:male_2"
    ],
    "female_entities" : [
       "stonehearth:female_1"
