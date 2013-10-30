@@ -14,7 +14,11 @@ function PopulationFaction:create_new_citizen()
       gender = 'female'
       self._always_one_girl_hack = true
    else 
-      gender = 'male'
+      if math.random(2) == 1 then
+         gender = 'male'
+      else 
+         gender = 'female'
+      end
    end
 
    local entities = self._data[gender .. '_entities']

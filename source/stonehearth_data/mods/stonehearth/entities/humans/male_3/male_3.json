@@ -1,10 +1,9 @@
 {
-   "extends": "stonehearth:mixins:base_human", 
    "type": "entity", 
+   "extends": "stonehearth:mixins:base_human", 
    "components": {
       "render_info" : {
-         "animation_table" : "file(/data/rigs/humans/skeletons/female.json)",
-         "model_variant": "female"
+         "animation_table" : "file(/data/rigs/humans/skeletons/male.json)"
       },
       "model_variants": [
          {
@@ -12,10 +11,10 @@
                {
                   "type": "one_of",
                   "items": [
-                     "file(head_1.qb)",
-                     "file(head_2.qb)",
-                     "file(head_3.qb)"
-                  ]
+                     "file(head_1.qb)", 
+                     "file(head_2.qb)"
+                  ], 
+                  "type": "one_of"
                }, 
                "file(body.qb)"
             ]
