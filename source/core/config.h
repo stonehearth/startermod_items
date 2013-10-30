@@ -24,13 +24,14 @@ public:
    std::string GetUserID();
    std::string GetSessionID();
    std::string GetBuildNumber();
+   bool GetCollectionStatus();
 
    boost::program_options::variables_map const& GetVarMap() const { return configvm_; }
    
 private:
    void LoadConfigFile(boost::filesystem::path const& configfile);
    std::string MakeUUIDString();
-   std::string ReadUserID();
+   std::string ReadConfigOption(std::string option_name, std::string default_option);
 
 private:
    std::string                                  name_;
@@ -44,6 +45,7 @@ private:
    
    std::string                                  sessionid_;
    std::string                                  userid_;
+   std::string                                  collect_analytics_;
 };
 
 END_RADIANT_CORE_NAMESPACE
