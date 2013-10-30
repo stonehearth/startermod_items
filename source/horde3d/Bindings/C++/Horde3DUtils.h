@@ -345,3 +345,4 @@ DLL void h3dutShowText( const char *text, float x, float y, float size,
 */
 DLL void h3dutShowFrameStats( H3DRes fontMaterialRes, H3DRes panelMaterialRes, int mode );
 
+DLL void h3dCollectDebugFrame();

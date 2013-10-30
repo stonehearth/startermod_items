@@ -135,6 +135,8 @@ void Client::GetConfigOptions()
 extern bool realtime;
 void Client::run()
 {
+   perfmon::BeginFrame();
+
    hover_cursor_ = LoadCursor("stonehearth:cursors:hover");
    default_cursor_ = LoadCursor("stonehearth:cursors:default");
 
@@ -238,6 +240,9 @@ void Client::run()
 
    int last_event_time = 0;
    while (renderer.IsRunning()) {
+      perfmon::BeginFrame();
+      perfmon::TimelineCounterGuard tcg("client run loop") ;
+
       static int last_stat_dump = 0;
       mainloop();
       int now = timeGetTime();
@@ -300,8 +305,6 @@ void Client::setup_connections()
 
 void Client::mainloop()
 {
-   perfmon::FrameGuard frame_guard;
-
    process_messages();
    ProcessBrowserJobQueue();
 

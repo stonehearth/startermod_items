@@ -8,7 +8,8 @@ using namespace radiant::perfmon;
 
 Timeline::Timeline() :
    current_frame_(nullptr),
-   current_counter_(nullptr)
+   current_counter_(nullptr),
+   on_frame_end_slot_("frame end")
 {
    timer_.Start();
 }
@@ -16,26 +17,33 @@ Timeline::Timeline() :
 void
 Timeline::BeginFrame()
 {
-   VERIFY(!current_frame_, "call to BeginFrame while in-frame");
+   // Switch counters to accumulate the last bit...
+   if (current_counter_) {
+      CounterValueType elapsed = timer_.Restart();
+      current_counter_->Increment(elapsed);
+      current_counter_ = nullptr;
+   }
 
+   // Add the frame to the list
+   Frame* last_frame = nullptr;
+   if (current_frame_) {
+      last_frame = current_frame_;
+      frames_.push_front(current_frame_);
+   }
+
+   // switch frames and restart the counter...
    current_frame_ = new Frame();
    current_counter_ = current_frame_->GetCounter("unaccounted time");
 
-   // don't restart the timer.  we intentionally bill the slop time of the previous
-   // frame to the current frame.  by "slop time", I mean the time between the last
-   // call to EndFrame and this call to BeginFrame
+   if (last_frame) {
+      // Let everyone know about it.  must be called *after* we've created the
+      // new frame so those counters get counted, too
+      on_frame_end_slot_.Signal(last_frame);
+   }
 }
 
 void Timeline::EndFrame()
 {
-   VERIFY(current_frame_, "call to EndFrame while out-of-frame");
-
-   Frame* last_frame = current_frame_;
-   frames_.push_front(current_frame_);
-   current_frame_ = nullptr;
-   current_counter_ = nullptr;
-
-   on_frame_end_slot_.Signal(last_frame);
 }
 
 Counter* Timeline::GetCurrentCounter()

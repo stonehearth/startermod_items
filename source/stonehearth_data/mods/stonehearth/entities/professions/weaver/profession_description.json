@@ -1,0 +1,20 @@
+{
+   "profession" : {
+      "profession_type": "weaver",
+      "name": "Weaver",      
+      "script": "file(/professions/weaver/weaver.lua)",
+      "description": "weaves stuff"
+   },
+   "crafter" : {
+      "work_effect": "weave",
+      "recipe_list": "/stonehearth/entities/professions/weaver/recipes"
+   },
+   "workshop" : {
+      "name": "Weaver's Workshop",
+      "long_description" : "xxx insert weaver description here!",
+      "portrait" : "file(./images/workshop_portrait_level_1.png)",      
+      "ingredients": [
+         { "material" : "wood", "count" : 99 }
+      ]
+   }
+}

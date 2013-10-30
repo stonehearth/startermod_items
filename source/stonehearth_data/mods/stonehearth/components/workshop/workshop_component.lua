@@ -42,7 +42,14 @@ function WorkshopComponent:extend(json)
       if json.promotion_talisman.offset then
          self._promotion_talisman_offset = json.promotion_talisman.offset
       end
+
+      if json.skin_class then 
+         self._data.skin_class = json.skin_class
+      else 
+         --xxx populate a default skin
+      end
    end
+   self._data_binding:mark_changed()
 end
 
 --[[UI Interaction Functions
@@ -282,7 +289,7 @@ end
             in the process of making something. False otherwise.
 ]]
 function WorkshopComponent:is_currently_crafting()
-   return self._current_item_status ~= nil
+   return self._current_status ~= nil
 end
 
 --[[
@@ -338,7 +345,7 @@ end
    and place the WorkshopComponent outputs into the world.
 ]]
 function WorkshopComponent:_crafting_complete()
-   self._current_item_status = nil  
+   self._current_status = nil  
    self:_produce_outputs()
 
    self._todo_list:chunk_complete(self._curr_order)

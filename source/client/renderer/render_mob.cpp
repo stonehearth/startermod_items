@@ -2,6 +2,7 @@
 #include "render_mob.h"
 #include "render_entity.h"
 #include "om/components/mob.h"
+#include "lib/perfmon/perfmon.h"
 #include "renderer.h"
 
 using namespace ::radiant;
@@ -27,6 +28,7 @@ RenderMob::RenderMob(const RenderEntity& entity, om::MobPtr mob) :
          _initial = _current;
       });
       guards_ += Renderer::GetInstance().OnRenderFrameStart([this](FrameStartInfo const& info) {
+         perfmon::TimelineCounterGuard tcg("move mob");
          _current = csg::Interpolate(_initial, _final, info.interpolate);
          Move();
       });

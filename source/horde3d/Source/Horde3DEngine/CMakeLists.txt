@@ -7,6 +7,7 @@ set(HORDE3D_SOURCES
 	egCamera.cpp
 	egCom.cpp
 	egExtensions.cpp
+        egFrameDebugInfo.cpp
 	egGeometry.cpp
 	egLight.cpp
 	egMain.cpp
@@ -35,6 +36,7 @@ set(HORDE3D_SOURCES
 	egCamera.h
 	egCom.h
 	egExtensions.h
+        egFrameDebugInfo.h
 	egGeometry.h
 	egLight.h
 	egMaterial.h

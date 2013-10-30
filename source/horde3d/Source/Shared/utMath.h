@@ -285,6 +285,13 @@ public:
 	{
 		return Vec3f( x + (v.x - x) * f, y + (v.y - y) * f, z + (v.z - z) * f ); 
 	}
+
+   void quantize(int factor)
+   {
+      x = (float)(((int)x / factor) * factor) + factor;
+      y = (float)(((int)y / factor) * factor) + factor;
+      z = (float)(((int)z / factor) * factor) + factor;
+   }
 };
 
 

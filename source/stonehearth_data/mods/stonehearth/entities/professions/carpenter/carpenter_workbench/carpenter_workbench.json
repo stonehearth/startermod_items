@@ -3,11 +3,11 @@
    "type": "entity",
    "components": {
       "unit_info": {
-         "icon": "file(saw_icon.png)",
          "name": "Carpenter Workbench",
          "description": "Clean enough."
       },
       "stonehearth:workshop": {
+         "skin_class" : "carpenter",
          "promotion_talisman" : {
             "entity" : "stonehearth:carpenter:saw",
             "offset" : [0, 3, 0]

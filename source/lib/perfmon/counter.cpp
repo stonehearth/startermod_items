@@ -14,7 +14,7 @@ Counter::~Counter()
 {
 }
 
-std::string Counter::GetName() const
+const char* Counter::GetName() const
 {
    return name_;
 }

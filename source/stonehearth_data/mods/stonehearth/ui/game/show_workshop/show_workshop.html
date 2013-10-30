@@ -1,28 +1,25 @@
 <script type="text/x-handlebars" data-template-name="stonehearthCrafter">
-   <div id="craftWindow">
+   <div id="craftWindow" {{bindAttr class=skinClass}}>
 
-      <div id="craftingShingle" class="controlFont;">
-         <a class="closeButton" {{action hide target="view"}}></a>
-         <div id="shingleText">
-            <div id="title">{{unit_info.name}}</div>
-            <div id="subtitle">TODO: insert crafter name here</div>
-         </div>
-
-         {{#if stonehearth:workshop.order_list}}
-            <a id="pauseLink" {{action togglePause target="view"}}>
-               <div id="statusSign" {{bindAttr class="workshopIsPaused:closed:open"}}>
-                  <div id="message">
-                     {{#if stonehearth:workshop.is_paused}}
-                        {{i18n stonehearth:workshop_closed}}
-                     {{else}}
-                        {{i18n stonehearth:workshop_open}}
-                     {{/if}}
-                  </div>
-               </div>
-            </a>
-         {{/if}}
-
+      <div id="shingle">
+         <a id="closeButton" {{action hide target="view"}}></a>
+         <div id="title">{{unit_info.name}}</div>
+         <div id="subtitle">TODO: insert crafter name here: {{skinClass}}</div>
       </div>
+
+      {{#if stonehearth:workshop.order_list}}
+         <a id="pauseLink" {{action togglePause target="view"}}>
+            <div id="statusSign">
+               <div id="message">
+                  {{#if stonehearth:workshop.is_paused}}
+                     {{i18n stonehearth:workshop_closed}}
+                  {{else}}
+                     {{i18n stonehearth:workshop_open}}
+                  {{/if}}
+               </div>
+            </div>
+         </a>
+      {{/if}}
 
       <div id="craftingWindow">
          <div id="recipeList">
@@ -33,10 +30,7 @@
             {{render 'details' current}}
          </div>
 
-         <div id="order">
-            {{partial 'orderOptions'}}
-         </div>
-
+         {{partial 'orderOptions'}}
          {{partial 'orderList'}}
       </div>
    </div>
@@ -46,7 +40,7 @@
 <!--Template for the accordion-->
 <script type="text/x-handlebars" data-template-name="_recipeList">
    <div id="searchBox">
-      <a id="searchButton" {{action findAndSelectRecipe target="view"}}></a>
+      
       <input id="searchInput" placeholder="Type to search"/>
    </div>
    <div id="recipeAccordion">
@@ -73,32 +67,15 @@
          <img id="portrait">
       </div>
 
+      <div id="ingredients">
+         {{#each model.ingredients}}
+            {{material}} {{count}} <br>
+         {{/each}}
+      </div>
 
       <div id="description">
-         <table id="ingredients" cellspacing=0 cellpadding=0>
-            <tr>
-               <td class="border"></td>
-               <td valign=bottom><img class="leftBookend" /></td>
-               <td valign=bottom>
-                  <nobr>
-                  {{#each model.ingredients}}
-                     <div class="ingredientSocket">
-                        <div class="selectionNeeded"></div>
-                        <img {{bindAttr class=material}} />
-                        <div class="count">{{count}}</div>
-                     </div>
-                  {{/each}}
-                  </nobr>
-               </td>
-               <td valign=bottom><img class="rightBookend" /></td>
-               <td class="border"></td>
-            </tr>
-         </table>
-
-         <div id="attributes">
-            <div id="usefulText"></div>
-            <div id="flavorText"></div>
-         </div>
+         <div id="usefulText"></div>
+         <div id="flavorText"></div>
       </div>
    </div>
 </script>

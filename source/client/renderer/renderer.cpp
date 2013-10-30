@@ -8,6 +8,7 @@
 #include "glfw3.h"
 #include "glfw3native.h"
 #include "render_entity.h"
+#include "lib/perfmon/perfmon.h"
 #include "om/selection.h"
 #include "om/entity.h"
 #include <boost/property_tree/json_parser.hpp>
@@ -47,7 +48,11 @@ Renderer::Renderer() :
    uiTexture_(0),
    uiMatRes_(0),
    uiPbo_(0),
-   last_render_time_(0)
+   last_render_time_(0),
+   server_tick_slot_("server tick"),
+   render_frame_start_slot_("render frame start"),
+   screen_resize_slot_("screen resize"),
+   show_debug_shapes_changed_slot_("show debug shapes")
 {
    try {
 
@@ -84,10 +89,10 @@ Renderer::Renderer() :
    h3dSetOption(H3DOptions::LoadTextures, 1);
    h3dSetOption(H3DOptions::TexCompression, 0);
    h3dSetOption(H3DOptions::MaxAnisotropy, 4);
-   h3dSetOption(H3DOptions::ShadowMapSize, config_.shadow_resolution);
+   h3dSetOption(H3DOptions::ShadowMapSize, (float)config_.shadow_resolution);
    h3dSetOption(H3DOptions::FastAnimation, 1);
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
-   h3dSetOption(H3DOptions::SampleCount, config_.num_msaa_samples);
+   h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples);
 
    SetCurrentPipeline("pipelines/forward.pipeline.xml");
 
@@ -250,8 +255,8 @@ void Renderer::ApplyConfig()
    SetStageEnable("SSAO Default", !config_.use_ssao);
 
    h3dSetOption(H3DOptions::EnableShadows, config_.use_shadows ? 1.0f : 0.0f);
-   h3dSetOption(H3DOptions::ShadowMapSize, config_.shadow_resolution);
-   h3dSetOption(H3DOptions::SampleCount, config_.num_msaa_samples);
+   h3dSetOption(H3DOptions::ShadowMapSize, (float)config_.shadow_resolution);
+   h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples);
 }
 
 void Renderer::SetStageEnable(const char* stageName, bool enabled)
@@ -335,6 +340,7 @@ void Renderer::Cleanup()
 
 void Renderer::SetServerTick(int tick)
 {
+   perfmon::TimelineCounterGuard tcg("signal server tick");
    server_tick_slot_.Signal(tick);
 }
 
@@ -384,7 +390,9 @@ void Renderer::RenderOneFrame(int now, float alpha)
    render_frame_start_slot_.Signal(FrameStartInfo(now, alpha));
 
    if (showStats) { 
+      perfmon::SwitchToCounter("show stats") ;  
       // show stats
+      h3dCollectDebugFrame();
       h3dutShowFrameStats( fontMatRes_, panelMatRes_, H3DUTMaxStatMode );
    }
 
@@ -714,6 +722,11 @@ void Renderer::OnKey(int key, int down)
 }
 
 void Renderer::OnWindowResized(int newWidth, int newHeight) {
+   if (newWidth == 0 || newHeight == 0)
+   {
+      return;
+   }
+
    ResizeWindow(newWidth, newHeight);
    ResizeViewport();
    ResizePipelines();
