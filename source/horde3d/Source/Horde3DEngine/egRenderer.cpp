@@ -1063,7 +1063,7 @@ Matrix4f Renderer::calcCropMatrix( const Frustum &frustSlice, const Vec3f lightP
 }
 
 
-Matrix4f Renderer::calcDirectionalLightShadowProj( const Frustum &frustSlice, const Matrix4f& lightViewMat, const Matrix4f& camViewMat, const Matrix4f& camProjMat, Vec3f& lightMin, Vec3f& lightMax  )
+Matrix4f Renderer::calcDirectionalLightShadowProj( const Frustum &frustSlice, const Matrix4f& lightViewMat, const Matrix4f& camViewMat, const Matrix4f& camProjMat, Vec3f& lightMax )
 {
    // Pull out the mins/maxes of the frustum's corners.  Those bounds become the new projection matrix
    // for our directional light's frustum.
@@ -1079,7 +1079,7 @@ Matrix4f Renderer::calcDirectionalLightShadowProj( const Frustum &frustSlice, co
       }
    }
 
-   return Matrix4f::OrthoMat(lightMin.x, max.x, lightMin.y, max.y, -lightMax.z, -min.z);
+   return Matrix4f::OrthoMat(min.x, max.x, min.y, max.y, -lightMax.z, -min.z);
 }
 
 void Renderer::updateShadowMap()
