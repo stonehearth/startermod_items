@@ -91,10 +91,6 @@ App.StonehearthShowStockpileView = App.View.extend({
       self._refeshGrids();
    },
 
-   tooltipText : function(category) {
-      return("tt for " + category);
-   }.property(),
-
    _toggleAllNone : function(element) {
       if (element.attr('id') == 'all') {
          // do the on thing

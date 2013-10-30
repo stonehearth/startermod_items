@@ -3,13 +3,13 @@
    "type": "entity",
    "components": {
       "unit_info": {
-         "name": "Carpenter Workbench",
+         "name": "Weaver Workbench",
          "description": "Clean enough."
       },
       "stonehearth:workshop": {
-         "skin_class" : "carpenter",
+         "skin_class" : "weaver",
          "promotion_talisman" : {
-            "entity" : "stonehearth:carpenter:saw",
+            "entity" : "stonehearth:weaver:spindle",
             "offset" : [0, 3, 0]
          },
          "outbox_settings" : {
@@ -28,7 +28,7 @@
       "model_variants": [
          {
             "models": [
-               "file(carpenter_bench.qb)"
+               "file(weaver_bench.qb)"
             ]
          }
       ]

@@ -3,7 +3,6 @@
       "profession_type": "carpenter",
       "name": "Carpenter",      
       "script": "file(/professions/carpenter/carpenter.lua)",
-      "icon": "file(./images/saw_icon.png)",
       "description": "Carpenter"
    },
    "crafter" : {
@@ -14,7 +13,8 @@
       "name": "Carpenter's Workshop",
       "description": "insert description here",
       "long_description" : "xxx fix - The carpenter makes things from wood. Things you will need...quite a lot.<p>So honestly, you should really make this guy first. Otherwise you’re just asking for trouble.",
-      "portrait" : "file(./images/workshop_portrait_level_1.png)",      
+      "portrait" : "file(./images/workshop_portrait_level_1.png)",
+      "skin" : "file(./skin/workshop.png)",
       "ingredients": [
          { "material" : "wood", "count" : 2 }
       ]

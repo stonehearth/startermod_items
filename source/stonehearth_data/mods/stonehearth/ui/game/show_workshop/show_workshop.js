@@ -36,9 +36,10 @@ App.StonehearthCrafterView = App.View.extend({
    //alias for stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes
    recipes: null,
 
-   init: function() {
-      this._super();
-   },
+   //alias because the colon messes up bindAttr
+   skinClass: function() {
+      this.set('context.skinClass', this.get('context.stonehearth:workshop.skin_class'));
+   }.observes('context.shonehearth:workshop.skin_class'),
 
    destroy: function() {
       radiant.keyboard.setFocus(null);
