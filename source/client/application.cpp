@@ -5,6 +5,7 @@
 #include "application.h"
 #include "resources/res_manager.h"
 #include "lib/perfmon/perfmon.h"
+#include "lib/analytics/analytics.h"
 #include "core/config.h"
 #include <thread>
 
@@ -51,6 +52,12 @@ int Application::Run(int argc, const char** argv)
       res::ResourceManager2::GetInstance();
       client::Client::GetInstance();
 
+      //Start the analytics session before spawning threads too
+      std::string userid = config.GetUserID();
+      std::string sessionid = config.GetSessionID();
+      std::string build_number = config.GetBuildNumber();
+      analytics::StartSession(userid, sessionid, build_number);
+
       std::thread client([&]() {
          try {
             Client::GetInstance().run();
@@ -67,6 +74,9 @@ int Application::Run(int argc, const char** argv)
    } catch (std::exception &e) {
       LOG(WARNING) << "unhandled exception: " << e.what();
       ASSERT(false);
+      //TODO: put a stop session when we implement graceful in-game quit, too.
+      //TODO: Eventually pass data as to why the session stopped. Crash reporter integration?
+      analytics::StopSession();
    }
    return 0;
 }

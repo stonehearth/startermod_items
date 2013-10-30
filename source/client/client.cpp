@@ -39,6 +39,7 @@
 #include "lib/lua/rpc/open.h"
 #include "lib/lua/om/open.h"
 #include "lib/lua/voxel/open.h"
+#include "lib/analytics/send_design_event.h"
 #include "client/renderer/render_entity.h"
 #include "lib/perfmon/perfmon.h"
 #include "glfw3.h"
@@ -235,9 +236,16 @@ void Client::run()
    _client_interval_start = platform::get_current_time_in_ms();
    _server_last_update_time = 0;
 
+   int last_event_time = 0;
    while (renderer.IsRunning()) {
       static int last_stat_dump = 0;
       mainloop();
+      int now = timeGetTime();
+      //Send game running events 
+      if (now - last_event_time > 30 * 1000) {
+         analytics::SendDesignEvent("game:is_running");
+         last_event_time = now;
+      }
    }
 }
 

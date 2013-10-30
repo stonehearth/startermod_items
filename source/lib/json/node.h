@@ -119,6 +119,10 @@ public:
       return JSONNode(name, value);
    }
 
+   template <> JSONNode create_node(std::string const& name, char* const& value) const {
+      return JSONNode(name, std::string(value));
+   }
+
    template <> JSONNode create_node(std::string const& name, JSONNode const& value) const {
       JSONNode result = value;
       result.set_name(name);

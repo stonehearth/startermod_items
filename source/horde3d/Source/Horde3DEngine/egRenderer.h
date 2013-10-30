@@ -137,9 +137,11 @@ public:
 	bool init();
 	void initStates();
 
+   void collectOneDebugFrame();
 	void drawAABB( const Vec3f &bbMin, const Vec3f &bbMax );
 	void drawSphere( const Vec3f &pos, float radius );
-	void drawCone( float height, float fov, const Matrix4f &transMat );	
+	void drawCone( float height, float fov, const Matrix4f &transMat );
+   void drawFrustum(const Frustum& frust);
 
 	bool createShaderComb( const char* filename, const char *vertexShader, const char *fragmentShader, ShaderCombination &sc );
 	void releaseShaderComb( ShaderCombination &sc );
@@ -190,6 +192,7 @@ protected:
 	
 	void setupShadowMap( bool noShadows );
 	Matrix4f calcCropMatrix( const Frustum &frustSlice, const Vec3f lightPos, const Matrix4f &lightViewProjMat );
+	Matrix4f calcDirectionalLightShadowProj( const Frustum &frustSlice, const Matrix4f &lightViewMat, const Matrix4f& camViewMat, const Matrix4f& camProjMat, Vec3f& lightMax);
 	void updateShadowMap();
 
 	void drawOverlays( const std::string &shaderContext );
@@ -245,6 +248,7 @@ protected:
 	uint32                             _vlPosOnly, _vlOverlay, _vlModel, _vlParticle, _vlVoxelModel;
 	uint32                             _vbCube, _ibCube, _vbSphere, _ibSphere;
 	uint32                             _vbCone, _ibCone, _vbFSPoly;
+   uint32                             _vbFrust;
 public:
    // needed to draw debug shapes in extensions!
    glslopt_ctx*                       _glsl_opt_ctx;

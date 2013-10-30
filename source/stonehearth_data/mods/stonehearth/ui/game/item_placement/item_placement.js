@@ -21,7 +21,7 @@ $(document).ready(function(){
          title : i18n.t('stonehearth:item_placement_title') + " " + e.event_data.item_name,
          description : i18n.t('stonehearth:place_description')
       });
-      call_server_to_place_item(e)
+      call_server_to_place_item(e);
    });
 
    //Fires when someone clicks the move button on a full-sized item in the world
@@ -30,7 +30,7 @@ $(document).ready(function(){
          title : i18n.t('stonehearth:item_movement_title') + " " + e.event_data.item_name,
          description : i18n.t('stonehearth:move_description')
       });
-      call_server_to_place_item(e)
+      call_server_to_place_item(e);
    });
 
    //Fires when someone clicks the "place" button in the UI to bring up the picker
