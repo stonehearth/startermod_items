@@ -1210,7 +1210,7 @@ void Renderer::updateShadowMap()
          min.quantize(-10);
          max.quantize(10);
 
-         lightProjMat = calcDirectionalLightShadowProj(frustum, lightViewMat, _curCamera->getViewMat(), _curCamera->getProjMat(), min, max);
+         lightProjMat = calcDirectionalLightShadowProj(frustum, lightViewMat, _curCamera->getViewMat(), _curCamera->getProjMat(), max);
 
          gRDI->_frameDebugInfo.addDirectionalLightAABB_(aabb);
       }
