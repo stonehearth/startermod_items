@@ -25,6 +25,7 @@
 #include "resources/animation.h"
 #include "lib/json/node.h"
 #include "lib/lua/script_host.h"
+#include "lib/perfmon/perfmon.h"
 #include <SFML/Audio.hpp>
 
 using namespace ::radiant;
@@ -70,6 +71,7 @@ RenderEffectList::RenderEffectList(RenderEntity& entity, om::EffectListPtr effec
 
    tracer_ += effects.TraceSetChanges("render rig rigs", added, removed);
    tracer_ += Renderer::GetInstance().OnRenderFrameStart([this](FrameStartInfo const& info) {
+      perfmon::TimelineCounterGuard tcg("update effects");
       UpdateEffects(info);
    });
 

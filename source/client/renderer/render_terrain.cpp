@@ -198,6 +198,7 @@ void RenderTerrain::AddDirtyZone(RenderZoneRef zone)
    
    if (renderer_frame_trace_.Empty()) {
       renderer_frame_trace_ = Renderer::GetInstance().OnRenderFrameStart([=](FrameStartInfo const&) {
+         perfmon::TimelineCounterGuard tcg("update terrain");
          Update();
       });
       ASSERT(!renderer_frame_trace_.Empty());

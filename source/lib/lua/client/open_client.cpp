@@ -8,6 +8,7 @@
 #include "lib/rpc/reactor_deferred.h"
 #include "lib/voxel/qubicle_brush.h"
 #include "lib/lua/script_host.h"
+#include "lib/perfmon/perfmon.h"
 #include "client/client.h"
 #include "client/xz_region_selector.h"
 #include "client/renderer/renderer.h" // xxx: move to renderer::open when we move the renderer!
@@ -231,7 +232,10 @@ private:
 class TraceRenderFramePromise : public std::enable_shared_from_this<TraceRenderFramePromise>
 {
 public:
-   TraceRenderFramePromise() {
+   TraceRenderFramePromise() :
+      frame_start_slot_("lua frame start"),
+      server_tick_slot_("lua server tick")
+   {
       L_ = Client::GetInstance().GetScriptHost()->GetCallbackThread();
       guards_ += Renderer::GetInstance().OnRenderFrameStart([this](FrameStartInfo const& info) {
          frame_start_slot_.Signal(info);
@@ -244,17 +248,19 @@ public:
    ~TraceRenderFramePromise() {
    }
 
-   TraceRenderFramePromisePtr OnFrameStart(luabind::object cb) {
+   TraceRenderFramePromisePtr OnFrameStart(std::string const& reason, luabind::object cb) {
       luabind::object callback(L_, cb);
       guards_ += frame_start_slot_.Register([=](FrameStartInfo const &info) {
+         perfmon::TimelineCounterGuard tcg(reason.c_str());
          luabind::call_function<void>(callback, info.now, info.interpolate);
       });
       return shared_from_this();
    }
 
-   TraceRenderFramePromisePtr OnServerTick(luabind::object cb) {
+   TraceRenderFramePromisePtr OnServerTick(std::string const& reason, luabind::object cb) {
       luabind::object callback(L_, cb);
       guards_ += server_tick_slot_.Register([=](int now) {
+         perfmon::TimelineCounterGuard tcg(reason.c_str());
          luabind::call_function<void>(callback, now);
       });
       return shared_from_this();
@@ -388,7 +394,7 @@ void lua::client::open(lua_State* L)
                .def("destroy",           &CaptureInputPromise::Destroy)
             ,
             lua::RegisterTypePtr<TraceRenderFramePromise>()
-               .def("on_servet_tick",    &TraceRenderFramePromise::OnServerTick)
+               .def("on_server_tick",    &TraceRenderFramePromise::OnServerTick)
                .def("on_frame_start",    &TraceRenderFramePromise::OnFrameStart)
                .def("destroy",           &TraceRenderFramePromise::Destroy)
             ,
