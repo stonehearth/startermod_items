@@ -36,6 +36,10 @@ bool Config::Load(std::string const& name, int argc, const char *argv[])
                            "name of a file of a configuration.")
       ;
 
+   config_file_options_.add_options()
+      ("userid", po::value<std::string>())
+      ;
+
    auto options = po::command_line_parser(argc, argv)
       //.options(cmdLineOptions)
       .options(cmd_line_options_)
@@ -86,7 +90,7 @@ bool Config::Load(std::string const& name, int argc, const char *argv[])
    //Help! Commented out for now because currently the config file
    //doesn't contain any data except userid and reading through
    //configvm_ conflicts with the stuff that got written in as the ini file.
-   //LoadConfigFile(cache_directory_ / config_filename_);
+   LoadConfigFile(cache_directory_ / config_filename_);
 
    return true;
 }
