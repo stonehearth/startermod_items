@@ -273,6 +273,8 @@ void Renderer::createPrimitives()
 	_vbCube = gRDI->createVertexBuffer( 8 * 3 * sizeof( float ), cubeVerts );
 	_ibCube = gRDI->createIndexBuffer( 36 * sizeof( uint16 ), cubeInds );
 
+   _vbFrust = gRDI->createVertexBuffer(8 * 3 * sizeof( float ), nullptr);
+
 	// Unit (geodesic) sphere (created by recursively subdividing a base octahedron)
 	Vec3f spVerts[126] = {  // x, y, z
 		Vec3f( 0.f, 1.f, 0.f ),   Vec3f( 0.f, -1.f, 0.f ),
@@ -322,6 +324,33 @@ void Renderer::createPrimitives()
 		0.f, 0.f, 1.f,   2.f, 0.f, 1.f,   0.f, 2.f, 1.f
 	};
 	_vbFSPoly = gRDI->createVertexBuffer( 3 * 3 * sizeof( float ), fsVerts );
+}
+
+void Renderer::drawFrustum(const Frustum& frust)
+{
+   float *vs = (float *)gRDI->mapBuffer(_vbFrust);
+   float cubeVerts[8 * 3] = {  // x, y, z
+      0.f, 0.f, 1.f,   1.f, 0.f, 1.f,   1.f, 1.f, 1.f,   0.f, 1.f, 1.f,
+      0.f, 0.f, 0.f,   1.f, 0.f, 0.f,   1.f, 1.f, 0.f,   0.f, 1.f, 0.f
+   };
+
+   for (int i = 0; i < 8; i++)
+   {
+      vs[i * 3 + 0] = frust.getCorner(i).x;
+      vs[i * 3 + 1] = frust.getCorner(i).y;
+      vs[i * 3 + 2] = frust.getCorner(i).z;
+   }
+
+   gRDI->unmapBuffer(_vbFrust);
+
+   Matrix4f mat = Matrix4f();
+   mat.toIdentity();
+   gRDI->setShaderConst( _curShader->uni_worldMat, CONST_FLOAT44, &mat.x[0] );
+   gRDI->setVertexBuffer( 0, _vbFrust, 0, 12 );
+   gRDI->setIndexBuffer( _ibCube, IDXFMT_16 );
+   gRDI->setVertexLayout( _vlPosOnly );
+
+   gRDI->drawIndexed( PRIM_TRILIST, 0, 36, 0, 8 );
 }
 
 
@@ -1034,6 +1063,25 @@ Matrix4f Renderer::calcCropMatrix( const Frustum &frustSlice, const Vec3f lightP
 }
 
 
+Matrix4f Renderer::calcDirectionalLightShadowProj( const Frustum &frustSlice, const Matrix4f& lightViewMat, const Matrix4f& camViewMat, const Matrix4f& camProjMat, Vec3f& lightMax )
+{
+   // Pull out the mins/maxes of the frustum's corners.  Those bounds become the new projection matrix
+   // for our directional light's frustum.
+   Vec3f min, max;
+   min = max = lightViewMat * frustSlice.getCorner(0);
+   for (int i = 1; i < 8; i++)
+   {
+      Vec3f pt = lightViewMat * frustSlice.getCorner(i);
+      for (int j = 0; j < 3; j++)
+      {
+         min[j] = std::min(min[j], pt[j]);
+         max[j] = std::max(max[j], pt[j]);
+      }
+   }
+
+   return Matrix4f::OrthoMat(min.x, max.x, min.y, max.y, -lightMax.z, -min.z);
+}
+
 void Renderer::updateShadowMap()
 {
 	if( _curLight == 0x0 ) return;
@@ -1125,6 +1173,8 @@ void Renderer::updateShadowMap()
 			                         _curCamera->_frustBottom, _curCamera->_frustTop,
 			                         -_splitPlanes[i], -_splitPlanes[i + 1] );
 		}
+
+      gRDI->_frameDebugInfo.addSplitFrustum_(frustum);
 		
 		// Get light projection matrix
 		Matrix4f lightProjMat;
@@ -1135,6 +1185,9 @@ void Renderer::updateShadowMap()
 		   float xmax = ymax * 1.0f;  // ymax * aspect
          lightProjMat = Matrix4f::PerspectiveMat(-xmax, xmax, -ymax, ymax, _curCamera->_frustNear, _curLight->_radius );
          lightAbsPos = _curLight->_absPos;
+
+         Matrix4f lightViewProjMat = lightProjMat * lightViewMat;
+		   lightProjMat = calcCropMatrix( frustum, lightAbsPos, lightViewProjMat ) * lightProjMat;
       } else {
          lightAbsPos = Vec3f((aabb.min.x + aabb.max.x) / 2.0f, (aabb.min.y + aabb.max.y) / 2.0f, (aabb.min.z + aabb.max.z) / 2.0f);
          lightViewMat = Matrix4f(_curLight->getViewMat());
@@ -1152,17 +1205,24 @@ void Renderer::updateShadowMap()
             }
 	      }
 
-         lightProjMat = Matrix4f::OrthoMat(min.x, max.x, min.y, max.y, -max.z, -min.z);
+         // Quantize the light's AABB so that our shadows don't swim when we make small
+         // camera movements.
+         min.quantize(-10);
+         max.quantize(10);
+
+         lightProjMat = calcDirectionalLightShadowProj(frustum, lightViewMat, _curCamera->getViewMat(), _curCamera->getProjMat(), max);
+
+         gRDI->_frameDebugInfo.addDirectionalLightAABB_(aabb);
       }
 	
 		// Generate render queue with shadow casters for current slice
 	   // Build optimized light projection matrix
-		Matrix4f lightViewProjMat = lightProjMat * lightViewMat;
-		lightProjMat = calcCropMatrix( frustum, lightAbsPos, lightViewProjMat ) * lightProjMat;
 		frustum.buildViewFrustum( lightViewMat, lightProjMat );
 		Modules::sceneMan().updateQueues("rendering shadowmap", frustum, 0x0, RenderingOrder::None,
 			SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
 		
+      gRDI->_frameDebugInfo.addShadowCascadeFrustum_(frustum);
+
 		// Create texture atlas if several splits are enabled
 		if( numMaps > 1 )
 		{
@@ -2264,6 +2324,8 @@ void Renderer::render( CameraNode *camNode )
 	_curCamera = camNode;
 	if( _curCamera == 0x0 ) return;
 
+   gRDI->_frameDebugInfo.setViewerFrustum_(camNode->getFrustum());
+
 	// Build sampler anisotropy mask from anisotropy value
 	int maxAniso = Modules::config().maxAnisotropy;
 	if( maxAniso <= 1 ) _maxAnisoMask = SS_ANISO1;
@@ -2394,7 +2456,6 @@ void Renderer::render( CameraNode *camNode )
 	finishRendering();
 }
 
-
 void Renderer::finalizeFrame()
 {
 	++_frameID;
@@ -2405,8 +2466,14 @@ void Renderer::finalizeFrame()
 	Modules::stats().getStat( EngineStats::FrameTime, true );  // Reset
 	Modules::stats().incStat( EngineStats::FrameTime, timer->getElapsedTimeMS() );
 	timer->reset();
+   gRDI->_frameDebugInfo.endFrame();
 }
 
+
+void Renderer::collectOneDebugFrame()
+{
+   gRDI->_frameDebugInfo.sampleFrame();
+}
 
 void Renderer::renderDebugView()
 {
@@ -2439,8 +2506,36 @@ void Renderer::renderDebugView()
 		
 		drawAABB( sn->_bBox.min, sn->_bBox.max );
 	}
-	glEnable( GL_CULL_FACE );
 
+   int frustNum = 0;
+   float frustCol[16] = {
+      1,0,0,1,
+      0,1,0,1,
+      0,0,1,1,
+      1,1,0,1
+   };
+   for (const auto& frust : gRDI->_frameDebugInfo.getShadowCascadeFrustums())
+   {
+	   gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &frustCol[frustNum * 4] );
+      drawFrustum(frust);
+      frustNum = (frustNum + 1) % 4;
+   }
+   frustNum = 0;
+   for (const auto& frust : gRDI->_frameDebugInfo.getSplitFrustums())
+   {
+	   gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &frustCol[frustNum * 4] );
+      drawFrustum(frust);
+      frustNum = (frustNum + 1) % 4;
+   }
+
+   for (const auto& lightAABB : gRDI->_frameDebugInfo.getDirectionalLightAABBs())
+   {
+	   color[0] = 0.0f; color[1] = 1.0f; color[2] = 0.0f; color[3] = 1;
+	   gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, color );
+      drawAABB(lightAABB.min, lightAABB.max);
+   }
+
+   glEnable( GL_CULL_FACE );
 	/*// Draw skeleton
 	setShaderConst( _defColorShader.uni_worldMat, CONST_FLOAT44, &Matrix4f().x[0] );
 	color[0] = 1; color[1] = 0; color[2] = 0; color[3] = 1;

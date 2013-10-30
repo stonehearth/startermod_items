@@ -570,6 +570,10 @@ void Browser::SetBrowserResizeCb(std::function<void(int, int)> cb)
 
 void Browser::OnScreenResize(int w, int h)
 {
+   if (screenWidth_ == w && screenHeight_ == h)
+   {
+      return;
+   }
    screenWidth_ = w;
    screenHeight_ = h;
 

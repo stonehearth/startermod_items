@@ -2,7 +2,9 @@
 #define _RADIANT_CORE_SLOT_H
 
 #include <vector>
+#include <boost/container/flat_map.hpp>
 #include "guard.h"
+#include "lib/perfmon/perfmon.h"
 
 // Named after the classic signal/slot pattern...
 // The client must assure that the owner of the slot out-lives all
@@ -17,7 +19,7 @@ class Slot
 public:
    typedef std::function<void(A0 const&)> Fn;
 
-   Slot() : firing_(false) { }
+   Slot(std::string const& name) : name_(std::string("signal ") + name), firing_(false) { }
 
    core::Guard Register(Fn fn) {
       int id = next_id_++;
@@ -33,10 +35,13 @@ public:
    }
 
    void Signal(A0 const& arg) {
+      perfmon::TimelineCounterGuard tcg(name_.c_str());
+
       firing_ = true;
       for (auto const& entry : callbacks_) {
          entry.second(arg);
       }
+
       for (int id : removed_callbacks_) {
          callbacks_.erase(id);
       }
@@ -64,11 +69,12 @@ private:
    NO_COPY_CONSTRUCTOR(Slot);
 
 private:
-   bool                             firing_;
-   int                              next_id_;
-   std::unordered_map<int,Fn>       callbacks_;
-   std::vector<int>                 removed_callbacks_;
-   std::unordered_map<int,Fn>       added_callbacks_;
+   std::string                         name_;
+   bool                                firing_;
+   int                                 next_id_;
+   boost::container::flat_map<int,Fn>  callbacks_;
+   boost::container::flat_map<int,Fn>  added_callbacks_;
+   std::vector<int>                    removed_callbacks_;
 };
 
 END_RADIANT_CORE_NAMESPACE

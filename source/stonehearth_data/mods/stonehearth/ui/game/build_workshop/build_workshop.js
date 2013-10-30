@@ -34,7 +34,7 @@ App.StonehearthCrafterBuildWorkshopView = App.View.extend({
             .fadeIn();
 
          //xxx, get this from the profession description on the server
-         this.createWorkbench('stonehearth:carpenter_workbench');
+         this.createWorkbench('stonehearth:carpenter:workbench');
 
          this.intialized = true;
       }

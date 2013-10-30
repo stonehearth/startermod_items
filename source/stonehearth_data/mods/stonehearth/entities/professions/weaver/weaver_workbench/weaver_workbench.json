@@ -1,0 +1,36 @@
+{
+   "extends": "stonehearth:mixins:crafter_workbench",
+   "type": "entity",
+   "components": {
+      "unit_info": {
+         "name": "Weaver Workbench",
+         "description": "Clean enough."
+      },
+      "stonehearth:workshop": {
+         "skin_class" : "weaver",
+         "promotion_talisman" : {
+            "entity" : "stonehearth:weaver:spindle",
+            "offset" : [0, 3, 0]
+         },
+         "outbox_settings" : {
+            "offset" : [2, 0, 0],
+            "size" : [3, 3]
+         }
+      },
+      "destination": {
+         "region": [
+            {
+               "min" : { "x" : -3, "y" : 0, "z" : -3 },
+               "max" : { "x" :  4, "y" : 1, "z" :  4 }
+            }
+         ]
+      },
+      "model_variants": [
+         {
+            "models": [
+               "file(weaver_bench.qb)"
+            ]
+         }
+      ]
+   }
+}

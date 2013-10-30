@@ -86,6 +86,8 @@ App.StonehearthShowStockpileView = App.View.extend({
         }
       });
 
+      this.items.find('img').tooltip();
+
       self._refeshGrids();
    },
 

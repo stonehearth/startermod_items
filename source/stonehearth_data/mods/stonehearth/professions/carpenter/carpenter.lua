@@ -1,7 +1,3 @@
---[[
-   The carpenter api implements all the functionality that other files will need.
-]]
-
 local carpenter_class = {}
 
 function carpenter_class.promote(entity, workshop_component)
@@ -19,7 +15,7 @@ function carpenter_class.promote(entity, workshop_component)
 
    --Slap a new outfit on the crafter
    local equipment = entity:add_component('stonehearth:equipment')
-   equipment:equip_item('stonehearth:carpenter_outfit')
+   equipment:equip_item('stonehearth:carpenter:outfit')
 end
 
 function carpenter_class.demote(entity)

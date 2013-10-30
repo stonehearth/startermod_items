@@ -3,9 +3,8 @@
       <div id="commandButtons">
          {{#each stonehearth:commands.commands itemViewClass="App.StonehearthCommandButtonView"}}
             <a href="#" {{action doCommand this target="view"}}>
-               <div {{bindAttr class=":commandButton enabled:buttonEnabled:buttonDisabled"}}
-                {{bindAttr title="tooltip"}}>
-                  <img {{bindAttr src="icon"}} >
+               <div {{bindAttr class=":commandButton enabled:buttonEnabled:buttonDisabled" title="tooltip"}}>
+                  <img {{bindAttr src="icon"}}>
                   <div id="hotkey" {{bindAttr hotkey=view.oneBasedIndex}}>{{view.oneBasedIndex}}</div>
                </div>
             </a>

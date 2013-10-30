@@ -16,6 +16,7 @@
 #include "radiant_file.h"
 #include <unordered_map>
 #include <boost/property_tree/ptree.hpp>
+#include "lib/perfmon/perfmon.h"
 #include "lib/lua/lua.h"
 #include "camera.h"
 #include "platform/FileWatcher.h"

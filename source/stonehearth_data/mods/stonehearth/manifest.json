@@ -39,10 +39,14 @@
          "worker:profession_description" : "file(entities/professions/worker/profession_description.json)",
 
          "carpenter:profession_description" : "file(entities/professions/carpenter/profession_description.json)",
-         "carpenter_workbench" : "file(entities/professions/carpenter/carpenter_workbench)",
-         "carpenter_outfit" : "file(entities/professions/carpenter/carpenter_outfit)",
-         "carpenter_saw" : "file(entities/professions/carpenter/carpenter_saw)",
-         "carpenter_intermediate_item" : "file(entities/professions/carpenter/carpenter_intermediate_item)",
+         "carpenter:workbench" : "file(entities/professions/carpenter/carpenter_workbench)",
+         "carpenter:outfit" : "file(entities/professions/carpenter/carpenter_outfit)",
+         "carpenter:saw" : "file(entities/professions/carpenter/carpenter_saw)",
+
+         "weaver:profession_description" : "file(entities/professions/weaver/profession_description.json)",
+         "weaver:workbench" : "file(entities/professions/weaver/weaver_workbench)",
+         "weaver:outfit" : "file(entities/professions/weaver/weaver_outfit)",
+         "weaver:spindle" : "file(entities/professions/weaver/weaver_spindle)",
 
          "stockpile" : "file(entities/construction/stockpile)",
 
@@ -53,7 +57,11 @@
          "wolf" : "file(entities/critters/wolf)",
          "wolf:teeth_weapon" : "file(entities/critters/wolf/wolf_teeth.json)",
          "male_1" : "file(entities/humans/male_1)",
+         "male_2" : "file(entities/humans/male_2)",
+         "male_3" : "file(entities/humans/male_3)",
          "female_1" : "file(entities/humans/female_1)",
+         "female_2" : "file(entities/humans/female_2)",
+         "female_3" : "file(entities/humans/female_3)",
          "workshop_outbox" : "file(entities/crafting/workshop_outbox)",
 
          "effects:talisman_glow" : "file(data/effects/talisman_glow)",
@@ -162,8 +170,6 @@
          "observers:look_for_enemies" : "file(ai/observers/look_for_enemies.lua)",
 
          "class_info" : "file(entities/class_info)",
-         "carpenter_workbench" : "file(entities/carpenter_workbench)",
-         "carpenter_intermediate_item" : "file(entities/carpenter_intermediate_item)",
 
          "sounds:axe_chopping_sound" : "file(data/sounds/effects/axe_chopping_sound.ogg)"
       },
@@ -336,7 +342,7 @@
          "file(ui/game/clock_widget/clock_widget.html)",
          "file(ui/game/people_picker/people_picker.html)",
          "file(ui/game/promote/promote.html)",
-         "file(ui/game/item_placement/item_placement.html)",
+         "file(ui/game/place_item/place_item.html)",
          "file(ui/game/unit_frame/unit_frame.html)",
          "file(ui/game/resource_scoreboard/resource_scoreboard.html)",
          "file(ui/game/start_menu/start_menu.html)",
@@ -357,7 +363,7 @@
          "file(ui/game/clock_widget/clock_widget.js)",
          "file(ui/game/people_picker/people_picker.js)",
          "file(ui/game/promote/promote.js)",
-         "file(ui/game/item_placement/item_placement.js)",
+         "file(ui/game/place_item/place_item.js)",
          "file(ui/game/unit_frame/unit_frame.js)",
          "file(ui/game/resource_scoreboard/resource_scoreboard.js)",
          "file(ui/game/start_menu/start_menu.js)",
@@ -368,6 +374,8 @@
          "file(ui/game/build/build.js)"
       ],
       "less" : [
+         "file(entities/professions/carpenter/skin/workshop.less)",
+         "file(entities/professions/weaver/skin/workshop.less)",
          "file(ui/common/modal_overlay/modal_overlay.less)",
          "file(ui/shell/shell.less)",
          "file(ui/shell/title/title.less)",
@@ -380,7 +388,7 @@
          "file(ui/game/people_picker/people_picker.less)",
          "file(ui/game/promote/promote.less)",
          "file(ui/game/unit_frame/unit_frame.less)",
-         "file(ui/game/item_placement/item_placement.less)",
+         "file(ui/game/place_item/place_item.less)",
          "file(ui/game/resource_scoreboard/resource_scoreboard.less)",
          "file(ui/game/start_menu/start_menu.less)",
          "file(ui/game/main_actionbar/tip_popup.less)",

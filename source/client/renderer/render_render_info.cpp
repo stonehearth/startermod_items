@@ -9,6 +9,7 @@
 #include "om/components/render_info.h"
 #include "Horde3DUtils.h"
 #include "resources/res_manager.h"
+#include "lib/perfmon/perfmon.h"
 #include "lib/voxel/qubicle_file.h"
 #include "lib/voxel/qubicle_brush.h"
 #include "pipeline.h"
@@ -40,6 +41,7 @@ void RenderRenderInfo::SetDirtyBits(int flags)
 
    if (renderer_frame_trace_.Empty()) {
       renderer_frame_trace_ = Renderer::GetInstance().OnRenderFrameStart([=](FrameStartInfo const&) {
+         perfmon::TimelineCounterGuard tcg("update render_info");
          Update();
       });
       ASSERT(!renderer_frame_trace_.Empty());

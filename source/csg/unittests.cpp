@@ -113,8 +113,9 @@ void RunPerfmonTest(ExpectedTime *times, std::function<void()> execute)
     
    core::Guard g = perfmon::OnFrameEnd(verify_times);
    {
-      perfmon::FrameGuard fg;
+      perfmon::BeginFrame();
       execute();
+      perfmon::BeginFrame();
    }
 }
 

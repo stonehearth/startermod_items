@@ -14,6 +14,7 @@
 #define _egRendererBase_H_
 
 #include "egPrerequisites.h"
+#include "egFrameDebugInfo.h"
 #include "utMath.h"
 #include "utOpenGL.h"
 #include "om/error_browser/error_browser.h"
@@ -499,6 +500,8 @@ protected:
 	uint32            _indexFormat;
 	uint32            _activeVertexAttribsMask;
 	uint32            _pendingMask;
+
+   FrameDebugInfo    _frameDebugInfo;
 };
 
 }
