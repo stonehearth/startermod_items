@@ -18,7 +18,6 @@
 
 static size_t write_to_string(void *ptr, size_t size, size_t count, void *stream);
 
-
 using namespace ::radiant;
 using namespace ::radiant::analytics;
 
@@ -34,49 +33,118 @@ const std::string SECRET_KEY = "70904f041d9e579c3d34f40cdb5bc0c16ad0c09a";
 
 const std::string API_VERSION = "1";
 
+//Logger begins here
 DEFINE_SINGLETON(AnalyticsLogger);
 
-AnalyticsLogger::AnalyticsLogger() 
+AnalyticsLogger::AnalyticsLogger() :
+   stopping_thread_(false)
 {   
    // Initialize libcurl.
    //(note, not threadsafe, so always call in application.cpp.)
    //See: http://curl.haxx.se/libcurl/c/curl_global_init.html
    curl_global_init(CURL_GLOBAL_ALL);
+
+   //Start the sending thread
+   //Reference: http://stackoverflow.com/questions/10673585/start-thread-with-member-function
+   event_sender_thread_ = new std::thread(&AnalyticsLogger::SendEventsToServer, this);
 }
 
+//TODO: test this when there is a way to gracefully exit the game. 
 AnalyticsLogger::~AnalyticsLogger()
 {
+   stopping_thread_ = true;
+   cv_.notify_one();
+   event_sender_thread_ -> join();
+   delete event_sender_thread_;
 }
 
 //Called by StartAnalytics session, so we should never get a call to submit log event
 //with this set already.
-void AnalyticsLogger::SetBasicValues(std::string userid, std::string sessionid, std::string build_version)
+void AnalyticsLogger::SetBasicValues(std::string userid, std::string sessionid, std::string build_version, bool collect_analytics)
 {
    userid_ = userid;
    sessionid_ = sessionid;
    build_version_ = build_version;
+   collect_analytics_ = collect_analytics;
 }
 
 //Construct the full event data and send it to the analytics server
 void AnalyticsLogger::SubmitLogEvent(json::Node event_node, std::string event_category)
 {
+   //If the user has asked us not to collect data, don't. 
+   if (!collect_analytics_) {
+      return;
+   }
+
    ASSERT(!userid_.empty());
    ASSERT(!sessionid_.empty());
    ASSERT(!build_version_.empty());
 
-   //Create the async-multi-handle
-   CURLM* multi_handle = NULL;
+   //Append common data to the node
+   event_node.set("user_id", userid_);
+   event_node.set("session_id", sessionid_);
+   event_node.set("build", build_version_);
 
+   {
+      //Grab the lock
+      std::lock_guard<std::mutex> lock(m_);
+
+      //put the node and the category into the queue
+      waiting_events_.push(EventData(event_node, event_category));
+
+      //The lock goes away when lock goes out of scope
+      //Note: yes, it is possible for multiple events to be queued up if
+      //they fire while the post is stuck
+   }
+
+   //notify the conditional 
+   cv_.notify_one();
+}
+
+void AnalyticsLogger::SendEventsToServer()
+{
+   //Local, to hold the events popped off the structure shared b/w threads
+   std::queue<EventData> send_events;
+
+   while(true) {
+      //Grab the lock. If there is nothing in the queue and we're not supposed to
+      //stop the thread yet, wait. If there is
+      //stuff in the queue, or if we're supposed to stop the thread, then continue.
+      //Wait to be informed by the main thread that we should be awake
+      {
+         std::unique_lock<std::mutex> lock(m_);
+
+         if (waiting_events_.empty() && !stopping_thread_) {
+            cv_.wait(lock);
+         } 
+
+         ASSERT(send_events.empty());
+         send_events = std::move(waiting_events_);
+         ASSERT(waiting_events_.empty());
+      }
+
+      //Take all the events in send_events and post them. 
+      //Possible perf. optimization: create all posts and then do curl_multi_perform once at the end
+      while (!send_events.empty()) {
+         EventData target_event = send_events.front();
+         send_events.pop();
+         PostEvent(target_event.GetJsonNode(), target_event.GetCategory());
+      }
+
+      //If we're supposed to stop, take this opportunity to do so. 
+      if (stopping_thread_) {
+         break;
+      }
+   }
+}
+
+void AnalyticsLogger::PostEvent(json::Node event_node, std::string event_category)
+{
    //Create a new CURL object
    CURL* curl = curl_easy_init();
    if (curl) {
       std::string url = WEBSITE_URL + API_VERSION + "/" + GAME_KEY + "/" + event_category;
 
-      //Append common data to the node
-      event_node.set("user_id", userid_);
-      event_node.set("session_id", sessionid_);
-      event_node.set("build", build_version_);
-      
       std::string event_string = event_node.write();
 
       //the header is the data + secret key
@@ -108,6 +176,7 @@ void AnalyticsLogger::SubmitLogEvent(json::Node event_node, std::string event_ca
       curl_easy_setopt(curl, CURLOPT_POSTFIELDS, event_string.c_str());
       curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
       curl_easy_setopt(curl, CURLOPT_POST, 1);
+      curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 20000);
 
       //If we get a response from the server, put it in response
       std::string response;
@@ -115,20 +184,7 @@ void AnalyticsLogger::SubmitLogEvent(json::Node event_node, std::string event_ca
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
 
       //Send the post request
-      //CURLcode res = curl_easy_perform(curl);
-
-      //Send the post async
-      multi_handle = curl_multi_init();
-      CURLMcode res = curl_multi_add_handle(multi_handle, curl);
-
-      //Each call to multi_perform updates the # of handles still running, and returns
-      //whether we should call the function again. Stop when there are no handles and no
-      //more need to call the function
-      //TODO: how to yield to other threads?
-      int handles_still_running = 0;
-      do {
-         while (curl_multi_perform(multi_handle, &handles_still_running) == CURLM_CALL_MULTI_PERFORM);
-      } while (handles_still_running);
+      CURLcode res = curl_easy_perform(curl);
 
       if (res == CURLE_OK) {
          LOG(INFO) << "Post worked! Status is: " << response;

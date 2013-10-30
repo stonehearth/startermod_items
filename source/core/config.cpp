@@ -20,7 +20,8 @@ const std::string BUILD_NUMBER = "preview_0.1a";
 
 Config::Config() :
    cmd_line_options_("command line options"),
-   config_file_options_("configuration file options")
+   config_file_options_("configuration file options"), 
+   collect_analytics_("yes")
 {
 }
 
@@ -34,6 +35,11 @@ bool Config::Load(std::string const& name, int argc, const char *argv[])
                            "the directory containing the runtime game files")
       ("config",           po::value<std::string>(&config_filename_)->default_value(name + ".ini"),
                            "name of a file of a configuration.")
+      ;
+
+   config_file_options_.add_options()
+      ("userid", po::value<std::string>())
+      ("collect_analytics", po::value<std::string>())
       ;
 
    auto options = po::command_line_parser(argc, argv)
@@ -77,16 +83,13 @@ bool Config::Load(std::string const& name, int argc, const char *argv[])
    }
 
    //Make sure we have a session and userid
-   userid_ = ReadUserID();
+   userid_ = ReadConfigOption("userid", MakeUUIDString());
    sessionid_ = MakeUUIDString();
+   collect_analytics_ = ReadConfigOption("collect_analytics", "yes");
 
-   // Load the config file...
+   // Load the config files...
    LoadConfigFile(run_directory_ / config_filename_);
-   
-   //Help! Commented out for now because currently the config file
-   //doesn't contain any data except userid and reading through
-   //configvm_ conflicts with the stuff that got written in as the ini file.
-   //LoadConfigFile(cache_directory_ / config_filename_);
+   LoadConfigFile(cache_directory_ / config_filename_);
 
    return true;
 }
@@ -132,8 +135,14 @@ std::string Config::GetUserID()
    return userid_;
 }
 
-//ReadUserID
-//Return userid or makes one (and enclosing file, if necessary) and then returns it.
+//True if collect_analytics_ is "yes", false otherwise
+bool Config::GetCollectionStatus()
+{
+   return (collect_analytics_ == "yes");
+}
+
+//ReadConfigOption
+//Return specified option or makes one based on the default value passed in and then returns it.
 //Note that write_ini will create a new file if necessary. It will also intelligently 
 //not overwrite any values already in the file.
 //Tested with file empty, file present, file present but no userid data, and file present
@@ -141,10 +150,9 @@ std::string Config::GetUserID()
 //Reference: http://stackoverflow.com/questions/15647299/how-to-read-and-write-ini-files-using-boost-library
 //Reference: http://www.boost.org/doc/libs/1_53_0/doc/html/boost_propertytree/accessing.html
 //Reference: http://www.boost.org/doc/libs/1_44_0/doc/html/boost_propertytree/tutorial.html
-std::string Config::ReadUserID() 
+std::string Config::ReadConfigOption(std::string option_name, std::string default_option)
 {
-   //userid has not yet been set in this instance of the program. Try to load it from the ini file.
-   std::string new_id;
+   //this option has not yet been set in this instance of the program. Try to load it from the ini file.
    fs::path save_path = cache_directory_ / config_filename_;
    std::string save_path_str = save_path.string();
    pt::ptree properties;
@@ -152,22 +160,20 @@ std::string Config::ReadUserID()
    if (fs::is_regular(save_path)) {
       //Ok, the file exists. Load it into a property tree
       pt::read_ini(save_path_str, properties);
-      std::string new_id = properties.get("userid", "");
+      std::string new_value = properties.get(option_name, "");
 
-      if (!new_id.empty()) {
+      if (!new_value.empty()) {
          //we got the id, can just return it now
-         return new_id;
+         return new_value;
       }
    }
 
    //If we're here, either the file doesn't exist, or the file exists
    //but the key isn't there. Since write_ini creates a new file if necessary
-   //we can just make the new string and write it. 
-   new_id = MakeUUIDString();
-   properties.put("userid", new_id);
+   //we can just make the new string and write it with the default provided.
+   properties.put(option_name, default_option);
    pt::write_ini(save_path_str, properties);   
-   return new_id;
-
+   return default_option;
 }
 
 std::string Config::GetSessionID()

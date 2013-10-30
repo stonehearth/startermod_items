@@ -8,7 +8,7 @@ BEGIN_RADIANT_ANALYTICS_NAMESPACE
 
 class SendDesignEvent;
 
-void StartSession(std::string const& userid, std::string const& sessionid, std::string const& build_number);
+void StartSession(std::string const& userid, std::string const& sessionid, std::string const& build_number, bool collect_analytics);
 void StopSession();
 
 END_RADIANT_ANALYTICS_NAMESPACE
