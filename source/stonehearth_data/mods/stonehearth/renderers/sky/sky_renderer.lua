@@ -32,7 +32,7 @@ function SkyRenderer:__init()
          end
       )
    self._render_promise = _radiant.client.trace_render_frame()
-                              :on_frame_start(function(now, interpolate)
+                              :on_frame_start('render sky', function(now, interpolate)
                                     self:_interpolate_time(now, interpolate)
                                  end)
 end

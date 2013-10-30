@@ -13,12 +13,14 @@ class Timeline {
       Timeline();
 
       void BeginFrame();
-      void EndFrame();
 
       core::Guard OnFrameEnd(std::function<void(Frame*)> const& fn);
       Counter* GetCurrentCounter();
       Counter* GetCounter(const char* name);
       Counter* SetCounter(Counter* counter);
+
+   private:
+      void EndFrame();
 
    private:
       std::deque<Frame*>   frames_;
