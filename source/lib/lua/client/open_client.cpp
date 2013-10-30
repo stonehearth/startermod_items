@@ -41,6 +41,15 @@ H3DNodeUnique Client_CreateVoxelNode(lua_State* L,
    return Pipeline::GetInstance().CreateVoxelNode(parent, model, material_path);
 }
 
+H3DNode Client_CreateDesignationNode(lua_State* L, 
+                                     H3DNode parent,
+                                     csg::Region3 const& model,
+                                     csg::Color3 const& outline,
+                                     csg::Color3 const& stripes)
+{
+   return Pipeline::GetInstance().CreateDesignationNode(parent, model, outline, stripes).release();
+}
+
 om::EntityRef Client_CreateEmptyAuthoringEntity()
 {
    return Client::GetInstance().CreateEmptyAuthoringEntity();
@@ -310,6 +319,7 @@ void lua::client::open(lua_State* L)
             def("set_cursor",                      &Client_SetCursor),
             def("create_blueprint_node",           &Client_CreateBlueprintNode),
             def("create_voxel_node",               &Client_CreateVoxelNode),
+            def("create_designation_node",         &Client_CreateDesignationNode),
             def("alloc_region",                    &Client_AllocObject<om::Region3Boxed>),
             def("create_data_store",               &Client_CreateDataStore),
             def("is_valid_standing_region",        &Client_IsValidStandingRegion),

@@ -127,6 +127,12 @@ bool Cube<S, C>::Intersects(const Cube& other) const
 }
 
 template <typename S, int C>
+Cube<S, C> Cube<S, C>::operator-() const
+{
+   return this->Scaled(-1);
+}
+
+template <typename S, int C>
 Region<S, C> Cube<S, C>::operator-(const Cube& rhs) const
 {
    if (!Intersects(rhs)) {
@@ -270,6 +276,7 @@ Cube<int, C> const& csg::ToInt(Cube<int, C> const& cube) {
    template Cls Cls::operator&(const Cls& offset) const; \
    template Cls::Region Cls::operator&(const Cls::Region& offset) const; \
    template Cls Cls::operator+(const Cls::Point& offset) const; \
+   template Cls Cls::operator-() const; \
    template Cls::Region Cls::operator-(const Cls& other) const; \
    template Cls::Region Cls::operator-(const Cls::Region& other) const; \
    template bool Cls::Contains(const Cls::Point& other) const; \

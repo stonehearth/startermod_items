@@ -265,7 +265,6 @@ TEST(RegionTools3, Inset) {
    });
 }
 
-#endif
 
 TEST(RegionTools3, InsetConcave) {
    Region3 r3;
@@ -287,6 +286,7 @@ TEST(RegionTools3, InsetConcave) {
    });
 }
 
+#endif
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

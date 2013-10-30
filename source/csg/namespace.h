@@ -58,6 +58,21 @@ typedef PlaneInfo<int, 3>      PlaneInfo3;
 typedef PlaneInfo<float, 2>    PlaneInfo2f;
 typedef PlaneInfo<float, 3>    PlaneInfo3f;
 
+template <typename S, int C> class EdgeMap;
+
+typedef EdgeMap<int, 2> EdgeMap2;
+typedef EdgeMap<int, 3> EdgeMap3;
+typedef EdgeMap<float, 2> EdgeMap2f;
+typedef EdgeMap<float, 3> EdgeMap3f;
+
+template <typename S, int C> struct EdgeInfo;
+
+typedef EdgeInfo<int, 2> EdgeInfo2;
+typedef EdgeInfo<int, 3> EdgeInfo3;
+typedef EdgeInfo<float, 2> EdgeInfo2f;
+typedef EdgeInfo<float, 3> EdgeInfo3f;
+
+
 END_RADIANT_CSG_NAMESPACE
 
 #endif //  _RADIANT_CSG_NAMESPACE_H

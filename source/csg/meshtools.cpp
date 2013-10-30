@@ -271,8 +271,13 @@ void mesh_tools::AddRegionToMesh(Region2 const& region, PlaneInfoX const& pi, me
 
 void mesh_tools::mesh::AddFace(Point3f const points[], Point3f const& normal, Color3 const& color)
 {
-   csg::Point3f c(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f);
-
+   csg::Point3f c;
+   if (override_color_) {
+      c = Point3f(color_.r / 255.0f, color_.g / 255.0f, color_.b / 255.0f);
+   } else {
+      c = Point3f(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f);
+   }
+   
    if (vertices.empty()) {
       bounds.SetMin(points[0] + offset_);
       bounds.SetMax(points[0] + offset_);
@@ -331,44 +336,69 @@ void mesh_tools::mesh::add_face(Point3f const points[], Point3f const& normal, P
 template <typename S>
 void mesh_tools::mesh::AddRegion(Region<S, 2> const& region, PlaneInfo<S, 3> const& p)
 {
+   for (Cube<S, 2> const& rect : region) {
+      AddRect(rect, p);
+   }
+}
+
+template <class S>
+void mesh_tools::mesh::AddRect(Cube<S, 2> const& rect, PlaneInfo<S, 3> const& p)
+{
    PlaneInfo<float, 3> pi = ToFloat(p);
    Point3f normal = pi.GetNormal();
 
-   for (Cube<S, 2> const& rect : region) {
-      Point2f p0 = ToFloat(rect.min);
-      Point2f p2 = ToFloat(rect.max);
-
-      // In a rect min < max for all coords in the point.  To get the winding
-      // correct, we need to re-order points depending on the directino of the
-      // normal
-      bool reverse_winding = (pi.reduced_coord == 2) ? (pi.normal_dir < 0) : (pi.normal_dir > 0);
-      if (reverse_winding) {
-         std::swap(p0, p2);
-      }
-      Point2f p1(rect.max.x, rect.min.y);
-      Point2f p3(rect.min.x, rect.max.y);
-
-      Point3f points[4] = {
-         RegionToolsTraits3f::ExpandPoint(p0, pi),
-         RegionToolsTraits3f::ExpandPoint(p1, pi),
-         RegionToolsTraits3f::ExpandPoint(p2, pi),
-         RegionToolsTraits3f::ExpandPoint(p3, pi),
-      };
-      AddFace(points, normal, override_color_ ? color_ : Color3::FromInteger(rect.GetTag()));
+   if (flip_) {
+      normal *= -1;
    }
+
+   Point2f p0 = ToFloat(rect.min);
+   Point2f p2 = ToFloat(rect.max);
+
+   // In a rect min < max for all coords in the point.  To get the winding
+   // correct, we need to re-order points depending on the directino of the
+   // normal
+   bool reverse_winding = (pi.reduced_coord == 2) ? (pi.normal_dir < 0) : (pi.normal_dir > 0);
+   if (flip_) {
+      reverse_winding = !reverse_winding;
+   }
+
+   if (reverse_winding) {
+      std::swap(p0, p2);
+   }
+   Point2f p1 = ToFloat(Point<S, 2>(rect.max.x, rect.min.y));
+   Point2f p3 = ToFloat(Point<S, 2>(rect.min.x, rect.max.y));
+
+   Point3f points[4] = {
+      RegionToolsTraits3f::ExpandPoint(p0, pi),
+      RegionToolsTraits3f::ExpandPoint(p1, pi),
+      RegionToolsTraits3f::ExpandPoint(p2, pi),
+      RegionToolsTraits3f::ExpandPoint(p3, pi),
+   };
+   AddFace(points, normal, override_color_ ? color_ : Color3::FromInteger(rect.GetTag()));
 }
 
 mesh_tools::mesh::mesh() : 
    override_color_(false),
-   offset_(-0.5f, 0.0f, -0.5f)
+   offset_(-0.5f, 0.0f, -0.5f),
+   flip_(false)
 {
 }
 
-void mesh_tools::mesh::SetColor(csg::Color3 const& color)
+mesh_tools::mesh& mesh_tools::mesh::SetColor(csg::Color3 const& color)
 {
    color_ = color;
    override_color_ = true;
+   return *this;
+}
+
+
+mesh_tools::mesh& mesh_tools::mesh::FlipFaces()
+{
+   flip_ = !flip_;
+   return *this;
 }
 
 template void mesh_tools::mesh::AddRegion(Region<float, 2> const& region, PlaneInfo<float, 3> const& p);
 template void mesh_tools::mesh::AddRegion(Region<int, 2> const& region, PlaneInfo<int, 3> const& p);
+template void mesh_tools::mesh::AddRect(Cube<float, 2> const& region, PlaneInfo<float, 3> const& p);
+template void mesh_tools::mesh::AddRect(Cube<int, 2> const& region, PlaneInfo<int, 3> const& p);

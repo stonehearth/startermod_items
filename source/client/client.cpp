@@ -742,6 +742,7 @@ void Client::HilightMouseover()
          if (renderObject) {
             renderObject->SetSelected(true);
          }
+         LOG(WARNING) << "Hilighting Entity: " << hilightEntity->GetDebugText();
          hilightedObjects_.push_back(hilightEntity);
       }
    }

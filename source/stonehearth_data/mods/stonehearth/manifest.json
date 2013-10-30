@@ -302,13 +302,15 @@
       "scaffolding_fabricator" : "file(components/scaffolding_fabricator/scaffolding_fabricator_component.lua)",
       "wall" : "file(components/wall/wall_component.lua)",
       "column" : "file(components/column/column_component.lua)",
-      "portal" : "file(components/portal/portal_component.lua)"
+      "portal" : "file(components/portal/portal_component.lua)",
+      "no_construction_zone" : "file(components/no_construction_zone/no_construction_zone_component.lua)"
    },
    "component_renderers" : {
       "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",
       "city_plan" : "file(renderers/city_plan/city_plan_renderer.lua)",
       "ghost_item" : "file(renderers/ghost_item/ghost_item_renderer.lua)",
-      "fabricator" : "file(renderers/fabricator/fabricator_renderer.lua)"
+      "fabricator" : "file(renderers/fabricator/fabricator_renderer.lua)",
+      "no_construction_zone" : "file(renderers/no_construction_zone/no_construction_zone_renderer.lua)"
    },
    "invariant_renderers" : {
       "voxel_brush_info" : "file(renderers/voxel_brush_info/voxel_brush_info_renderer.lua)"

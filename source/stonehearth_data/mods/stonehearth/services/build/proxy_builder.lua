@@ -21,6 +21,7 @@ function ProxyBuilder:__init(derived, on_mouse, on_keyboard)
    
    self._rotation = 0
    self._root_proxy = ProxyContainer(nil)
+   self._root_proxy:get_entity():add_component('stonehearth:no_construction_zone')
 end
 
 function ProxyBuilder:set_brush(type, uri)

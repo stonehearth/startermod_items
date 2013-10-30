@@ -326,6 +326,16 @@ Region<S, C> Region<S, C>::Translated(const Point& pt) const
    return std::move(result);
 }
 
+template <class S, int C>
+Region<S, C> Region<S, C>::Inflated(Point const& pt) const
+{
+   Region result;
+   for (auto &c : cubes_) {
+      result.Add(c.Inflated(pt));
+   }
+   return std::move(result);
+}
+
 #if 0
 Region3 radiant::csg::GetBorderXZ(const Region3 &other)
 {
@@ -405,6 +415,7 @@ Region<int, C> const& csg::ToInt(Region<int, C> const& region) {
    template Cls Cls::ProjectOnto(int axis, Cls::ScalarType plane) const; \
    template void Cls::Translate(const Cls::Point& pt); \
    template Cls Cls::Translated(const Cls::Point& pt) const; \
+   template Cls Cls::Inflated(const Cls::Point& pt) const; \
 
 MAKE_REGION(Region3)
 MAKE_REGION(Region3f)

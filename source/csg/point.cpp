@@ -35,7 +35,7 @@ template <int C>
 Point<float, C> csg::ToFloat(Point<int, C> const& pt) {
    Point<float, C> result;
    for (int i = 0; i < C; i++) {
-      result[i] = static_cast<float>(pt[i] + k_epsilon);
+      result[i] = static_cast<float>(pt[i]);
    }
    return result;
 }
@@ -51,7 +51,7 @@ Point<int, C> csg::ToInt(Point<float, C> const& pt)
    Point<int, C> result;
    for (int i = 0; i < C; i++) {
       float s = pt[i];
-      result[i] = static_cast<int>(s + (s > 0 ? k_epsilon : -k_epsilon));
+      result[i] = floor0(s + (s > 0 ? k_epsilon : -k_epsilon));
    }
    return result;
 }

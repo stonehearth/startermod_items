@@ -20,30 +20,34 @@ struct RegionToolsInitializer
    }
 
    void Initialize2() {
-      struct { int coord, x; } planes[] = {
-         { 0, 1 },
-         { 1, 0 }
+      // Do not reorder these!  See the definition of enum Planes in region_tools.h for
+      // why.
+      struct { int reduced_coord, x; } planes[] = {
+         { 1, 0 },         // TOP_PLANE, BOTTOM_PLANE
+         { 0, 1 }          // LEFT_PLANE, RIGHT_PLANE
       };
       for (const auto& item : planes) {
          RegionToolsTraits<int, 2>::PlaneInfo plane;
          plane.x = item.x;
-         plane.reduced_coord = item.coord;
+         plane.reduced_coord = item.reduced_coord;
          RegionToolsTraits2::planes.push_back(plane);
          RegionToolsTraits2f::planes.push_back(ToFloat(plane));
       }
    }
 
    void Initialize3() {
-      struct { int coord, x, y; } planes[] = {
-         { 0, 2, 1 },
-         { 1, 0, 2 },
-         { 2, 0, 1 },
+      // Do not reorder these!  See the definition of enum Planes in region_tools.h for
+      // why.
+      struct { int reduced_coord, x, y; } planes[] = {
+         { 1, 0, 2 },   // TOP_PLANE, BOTTOM_PLANE
+         { 0, 2, 1 },   // LEFT_PLANE, RIGHT_PLANE
+         { 2, 0, 1 },   // FRONT_PLANE, BACK_PLANE
       };
       for (const auto& item : planes) {
          RegionToolsTraits<int, 3>::PlaneInfo plane;
          plane.x = item.x;
          plane.y = item.y;
-         plane.reduced_coord = item.coord;
+         plane.reduced_coord = item.reduced_coord;
          RegionToolsTraits3::planes.push_back(plane);
          RegionToolsTraits3f::planes.push_back(ToFloat(plane));
       }

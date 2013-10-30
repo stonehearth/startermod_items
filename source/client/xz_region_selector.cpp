@@ -57,16 +57,11 @@ bool XZRegionSelector::onInputEvent(Input const& evt)
       }
 
       if (_startedP0) {
-         csg::Point3 p0, p1;
-         for (int i = 0; i < 3; i++) {
-            p0[i] = std::min(_p0[i], _p1[i]);
-            p1[i] = std::max(_p0[i], _p1[i]);
-         }
          if (_finished) {
-            deferred_->Resolve(csg::Cube3::Construct(p0, p1));
+            deferred_->Resolve(csg::Cube3::Construct(_p0, _p1));
             Deactivate();
          } else {
-            deferred_->Notify(csg::Cube3::Construct(p0, p1));
+            deferred_->Notify(csg::Cube3::Construct(_p0, _p1));
          }
       }
       return true;
@@ -152,7 +147,7 @@ finished:
    validz -= dz;
 
    _p1.x = validx;
-   _p1.y = _p0.y;
+   _p1.y = _p0.y + 1;
    _p1.z = validz;
 
    //LOG(WARNING) << "P1..." << _p1;

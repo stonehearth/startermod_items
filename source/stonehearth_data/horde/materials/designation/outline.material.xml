@@ -1,0 +1,4 @@
+<Material>
+   <Shader source="materials/designation/designation.shader" />
+   <Uniform name="alpha" d="1.0" />
+</Material>

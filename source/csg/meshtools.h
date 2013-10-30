@@ -25,10 +25,12 @@ public:
 
       mesh();
 
-      void SetColor(csg::Color3 const& color);
+      mesh& SetColor(csg::Color3 const& color);
+      mesh& FlipFaces();
       // This is the one, true add face.  move over to it... (and when you're done, make color a Color4)
       void AddFace(Point3f const points[], Point3f const& normal, Color3 const& color);
       template <class S> void AddRegion(Region<S, 2> const& region, PlaneInfo<S, 3> const& pi);
+      template <class S> void AddRect(Cube<S, 2> const& region, PlaneInfo<S, 3> const& pi);
 
       // xxx: nuke this one!
       void add_face(Point3f const points[], Point3f const& normal, Point3f const& color);
@@ -36,6 +38,7 @@ public:
       friend mesh_tools;
       csg::Color3     color_;
       bool            override_color_;
+      bool            flip_;
       Point3f         offset_;
    };
 

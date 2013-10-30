@@ -2063,6 +2063,14 @@ void Renderer::drawVoxelMeshes(const std::string &shaderContext, const std::stri
 		if( queryObj )
 			gRDI->beginQuery( queryObj );
 		
+      float offset_x, offset_y;
+      if (modelNode->getPolygonOffset(offset_x, offset_y)) {
+         glEnable(GL_POLYGON_OFFSET_FILL);
+         glPolygonOffset(offset_x, offset_y);
+      } else {
+         glDisable(GL_POLYGON_OFFSET_FILL);
+      }
+
 		// Render
 		gRDI->drawIndexed( PRIM_TRILIST, meshNode->getBatchStart(), meshNode->getBatchCount(),
 		                   meshNode->getVertRStart(), meshNode->getVertREnd() - meshNode->getVertRStart() + 1 );
@@ -2078,6 +2086,7 @@ void Renderer::drawVoxelMeshes(const std::string &shaderContext, const std::stri
 		Modules::renderer().drawOccProxies( 0 );
 
 	gRDI->setVertexLayout( 0 );
+   glDisable(GL_POLYGON_OFFSET_FILL);
 }
 
 

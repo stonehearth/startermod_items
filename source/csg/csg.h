@@ -17,6 +17,14 @@ float Sin(float value);
 float Cos(float value);
 float InvSqrt(float value);
 
+// Bias: towards zero
+template <typename T>
+T floor0( const T& value )
+{
+   T result = std::floor(std::fabs( value ));
+   return (value < 0.0) ? -result : result;
+}
+
 END_RADIANT_CSG_NAMESPACE
 
 #endif // _RADIANT_CSG_CSG_H
