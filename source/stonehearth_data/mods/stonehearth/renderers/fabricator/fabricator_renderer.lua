@@ -66,10 +66,13 @@ function FabricatorRenderer:_update()
 
       local stencil = region:get()
       local model = brush:paint_through_stencil(stencil)
+      self._model_node = _radiant.client.create_blueprint_node(self._node, model, material)
+      --[[
       if meshing_mode == 'blueprint' then
          self._model_outline_node = _radiant.client.create_voxel_render_node(self._node, model, 'blueprint', material)
       end
       self._model_node = _radiant.client.create_voxel_render_node(self._node, model, '', material)
+      ]]
    end
 end
 

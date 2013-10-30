@@ -7,17 +7,17 @@ using namespace ::radiant::csg;
 //#define LOG_EDGES
 #define CLIP_ZONE_BOUNDARIES
 
-std::ostream& csg::operator<<(std::ostream& os, EdgePoint const& f)
+std::ostream& csg::operator<<(std::ostream& os, EdgePointX const& f)
 {
-   return os << "[EdgePoint (" << f.x << ", " << f.y << ")  facing: " << f.normals << "]";
+   return os << "[EdgePointX (" << f.x << ", " << f.y << ")  facing: " << f.normals << "]";
 }
 
-std::ostream& csg::operator<<(std::ostream& os, Edge const& f)
+std::ostream& csg::operator<<(std::ostream& os, EdgeX const& f)
 {
    if (!f.start || !f.end) {
-      return os << "[Edge with invalid start or end points]";
+      return os << "[EdgeX with invalid start or end points]";
    }
-   return os << "[Edge (" << f.start->x << ", " << f.start->y << ") to "
+   return os << "[EdgeX (" << f.start->x << ", " << f.start->y << ") to "
                           << f.end->x << ", " << f.end->y << ")  facing: "
                           << f.normal << "]";
 }
@@ -347,7 +347,7 @@ csg::Region2 csg::EdgeListToRegion2(EdgeListPtr edges, int width, csg::Region2 c
    return result;
 }
 
-Edge::Edge(EdgePointPtr s, EdgePointPtr e, csg::Point2 const& norm) :
+EdgeX::EdgeX(EdgePointPtr s, EdgePointPtr e, csg::Point2 const& norm) :
    start(s),
    end(e),
    normal(norm)
@@ -365,7 +365,7 @@ void EdgeList::AddEdge(csg::Point2 const& start, csg::Point2 const& end, csg::Po
       std::swap(s, e);
    }
    ASSERT(s->x <= e->x && s->y <= e->y);
-   EdgePtr segment = std::make_shared<Edge>(s, e, normal);
+   EdgePtr segment = std::make_shared<EdgeX>(s, e, normal);
 
    //segment->start->edges.push_back(segment);
    //segment->end->edges.push_back(segment);
@@ -389,7 +389,7 @@ EdgePointPtr EdgeList::GetPoint(csg::Point2 const& pt, csg::Point2 const& normal
          return p;
       }
    }
-   EdgePointPtr p = std::make_shared<EdgePoint>(pt.x, pt.y, normal);
+   EdgePointPtr p = std::make_shared<EdgePointX>(pt.x, pt.y, normal);
    points.push_back(p);
    return p;
 }

@@ -36,7 +36,9 @@ struct VoxelModelNodeParams
 		LodDist1F,
 		LodDist2F,
 		LodDist3F,
-		LodDist4F
+		LodDist4F,
+      PolygonOffsetEnabledI,
+      PolygonOffsetF,
 	};
 };
 
@@ -98,6 +100,17 @@ public:
 		  _skinMatRows[index * 3 + 2] = mat.getRow( 2 ); }
 	void markNodeListDirty() { _nodeListDirty = true; }
 
+   bool getPolygonOffset(float &x, float &y) {
+      if (_polygon_offset_used) {
+         x = _polygon_offset[0];
+         y = _polygon_offset[1];
+      }
+      return _polygon_offset_used;
+   }
+   bool useCoarseCollisionBox() {
+      return _polygon_offset_used;
+   }
+
 protected:
 	VoxelModelNode( const VoxelModelNodeTpl &modelTpl );
 
@@ -120,6 +133,8 @@ protected:
 	bool                          _softwareSkinning, _skinningDirty;
 	bool                          _nodeListDirty;  // An animatable node has been attached to model
 	bool                          _morpherUsed, _morpherDirty;
+   float                         _polygon_offset[2];
+   bool                          _polygon_offset_used;
 
 	friend class SceneManager;
 	friend class SceneNode;

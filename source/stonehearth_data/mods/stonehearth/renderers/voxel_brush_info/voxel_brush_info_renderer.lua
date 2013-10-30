@@ -53,14 +53,11 @@ function VoxelBrushInfoRenderer:_update_shape()
       local stencil = region:get()
       local model = brush:paint_through_stencil(stencil)
 
-      self._model_node = _radiant.client.create_blueprint_node(self._node, model, material)
-      --[[
       if meshing_mode == 'blueprint' then
-         self._model_outline_node = _radiant.client.create_voxel_render_node(self._node, model, 'blueprint', material)
-         --h3dSetNodePolygonOffset(self._model_outline_node, 1.0, 1.0)
+         self._model_node = _radiant.client.create_blueprint_node(self._node, model, material)
+      else
+         self._model_node = _radiant.client.create_voxel_node(self._node, model, material)
       end
-      self._model_node = _radiant.client.create_voxel_render_node(self._node, model, '', material)
-      ]]
    end
 end
 

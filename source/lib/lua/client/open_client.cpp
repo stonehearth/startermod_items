@@ -18,97 +18,37 @@
 #include "client/renderer/pipeline.h" // xxx: move to renderer::open when we move the renderer!
 #include "core/guard.h"
 #include "core/slot.h"
+#include "csg/region_tools.h"
 #include "glfw3.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
 using namespace luabind;
 
-static H3DNode CreateBlueprintOutline(H3DNode parent,
-                                      float line_width,
-                                      csg::Region3 const& model,
-                                      std::string const& material_path)
-{
-   H3DNode mesh_node;
-   csg::mesh_tools::mesh mesh = csg::mesh_tools().ConvertRegionToOutline(model, line_width, csg::Color3(255, 0, 0));
-
-   H3DNodeUnique model_node = Pipeline::GetInstance().AddMeshNode(parent, mesh, &mesh_node);
-   H3DRes material = h3dAddResource(H3DResTypes::Material, material_path.c_str(), 0);
-   h3dSetNodeParamI(mesh_node, H3DMesh::MatResI, material);
-
-   H3DNode node = model_node.get();
-   model_node.release();
-
-   return node;
-}
-
-static H3DNode CreateBlueprintPanels(H3DNode parent,
-                                     float line_width,
-                                     csg::Region3 const& model,
-                                     std::string const& material_path)
-{
-   H3DNode mesh_node;
-   csg::mesh_tools::mesh mesh = csg::mesh_tools().ConvertRegionToMesh(model);
-
-#if 0
-   csg::mesh_tools m;
-   m.ForEachRegionPlane(model, 0, [&](csg::Region2 const& r2, csg::mesh_tools::PlaneInfo const& pi) {
-      csg::Region2f inset = m.InsetRegion(r2, line_width);
-      AddRegionToMesh(r2, pi, m);
-   });
-#endif
-
-   H3DNodeUnique model_node = Pipeline::GetInstance().AddMeshNode(parent, mesh, &mesh_node);
-   H3DRes material = h3dAddResource(H3DResTypes::Material, material_path.c_str(), 0);
-   h3dSetNodeParamI(mesh_node, H3DMesh::MatResI, material);
-
-   H3DNode node = model_node.get();
-   model_node.release();
-
-   return node;
-}
-
 H3DNodeUnique Client_CreateBlueprintNode(lua_State* L, 
                                          H3DNode parent,
                                          csg::Region3 const& model,
                                          std::string const& material_path)
 {
-   static const float line_width = 0.10f;
-   static int unique = 1;
-
-   H3DNode group = h3dAddGroupNode(parent, BUILD_STRING("blueprint node " << unique++).c_str());
-
-   CreateBlueprintOutline(group, line_width, model, material_path);
-   CreateBlueprintPanels(group, line_width, model, material_path);
-
-   return group;
+   return Pipeline::GetInstance().CreateBlueprintNode(parent, model, 0.05f, material_path);
 }
 
 
-H3DNodeUnique Client_CreateVoxelRenderNode(lua_State* L, 
-                                           H3DNode parent,
-                                           csg::Region3 const& model,
-                                           std::string const& mode,
-                                           std::string const& material_path)
+H3DNodeUnique Client_CreateVoxelNode(lua_State* L, 
+                                     H3DNode parent,
+                                     csg::Region3 const& model,
+                                     std::string const& material_path)
 {
-   H3DNodeUnique model_node;
+   return Pipeline::GetInstance().CreateVoxelNode(parent, model, material_path);
+}
 
-   H3DRes material = 0;
-   if (!material_path.empty()) {
-      material = h3dAddResource(H3DResTypes::Material, material_path.c_str(), 0);
-   }
-   csg::mesh_tools::mesh mesh;
-   if (mode == "blueprint") {
-      mesh = csg::mesh_tools().ConvertRegionToOutline(model, 0.15f, csg::Color3(255, 0, 0));
-   } else {
-      mesh = csg::mesh_tools().ConvertRegionToMesh(model);
-   }
-   H3DNode mesh_node;
-   model_node = Pipeline::GetInstance().AddMeshNode(parent, mesh, &mesh_node);
-   if (material) {
-      h3dSetNodeParamI(mesh_node, H3DMesh::MatResI, material);
-   }
-   return model_node;
+H3DNode Client_CreateDesignationNode(lua_State* L, 
+                                     H3DNode parent,
+                                     csg::Region3 const& model,
+                                     csg::Color3 const& outline,
+                                     csg::Color3 const& stripes)
+{
+   return Pipeline::GetInstance().CreateDesignationNode(parent, model, outline, stripes).release();
 }
 
 om::EntityRef Client_CreateEmptyAuthoringEntity()
@@ -383,8 +323,9 @@ void lua::client::open(lua_State* L)
             def("select_xz_region",                &Client_SelectXZRegion),
             def("trace_render_frame",              &Client_TraceRenderFrame),
             def("set_cursor",                      &Client_SetCursor),
-            def("create_voxel_render_node",        &Client_CreateVoxelRenderNode),
             def("create_blueprint_node",           &Client_CreateBlueprintNode),
+            def("create_voxel_node",               &Client_CreateVoxelNode),
+            def("create_designation_node",         &Client_CreateDesignationNode),
             def("alloc_region",                    &Client_AllocObject<om::Region3Boxed>),
             def("create_data_store",               &Client_CreateDataStore),
             def("is_valid_standing_region",        &Client_IsValidStandingRegion),
