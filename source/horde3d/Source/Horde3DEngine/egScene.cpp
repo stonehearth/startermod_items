@@ -398,13 +398,9 @@ void SpatialGraph::updateQueues( const char* reason, const Frustum &frustum1, co
             continue;
          }
 
-         if (frustum1.cullBox( node->_bBox ))
-         {
-            if (frustum2 == 0x0 || frustum2->cullBox( node ->_bBox ))
-            {
-               // LOG(WARNING) << "ignoring node (culled) " << node->getName() << " " << node->getHandle();
-               continue;
-            }
+         if (frustum1.cullBox( node->_bBox ) && (frustum2 == 0x0 || frustum2->cullBox( node ->_bBox ))) {
+            // LOG(WARNING) << "ignoring node (culled) " << node->getName() << " " << node->getHandle();
+            continue;
          }
 
          if( node->_type == SceneNodeTypes::Mesh )  // TODO: Generalize and optimize this
