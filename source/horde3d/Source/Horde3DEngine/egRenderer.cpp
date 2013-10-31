@@ -1063,10 +1063,11 @@ Matrix4f Renderer::calcCropMatrix( const Frustum &frustSlice, const Vec3f lightP
 }
 
 
-Matrix4f Renderer::calcDirectionalLightShadowProj( const Frustum &frustSlice, const Matrix4f& lightViewMat, const Matrix4f& camViewMat, const Matrix4f& camProjMat, Vec3f& lightMax )
+Matrix4f Renderer::calcDirectionalLightShadowProj( const BoundingBox& worldBounds, const Frustum& frustSlice, const Matrix4f& lightViewMat, const Matrix4f& camViewMat, const Matrix4f& camProjMat, Vec3f& lightMax, int numShadowMaps )
 {
+   float shadowMapSize = (float)Modules::config().shadowMapSize / 2.0;
    // Pull out the mins/maxes of the frustum's corners.  Those bounds become the new projection matrix
-   // for our directional light's frustum.
+   // for our directional light's frustum.  We only want to save the 'x' and 'y' values.
    Vec3f min, max;
    min = max = lightViewMat * frustSlice.getCorner(0);
    for (int i = 1; i < 8; i++)
@@ -1079,8 +1080,142 @@ Matrix4f Renderer::calcDirectionalLightShadowProj( const Frustum &frustSlice, co
       }
    }
 
-   return Matrix4f::OrthoMat(min.x, max.x, min.y, max.y, -lightMax.z, -min.z);
+   // We get the min and max z-values from the scene itself.
+   computeLightFrustumNearFar(worldBounds, lightViewMat, min, max, &min.z, &max.z);
+
+   // TODO, very shortly: move to texel-quantization to reduce/eliminate swimming!  This is old code, and
+   // really only works for shadow frustra sized to the viewer's frustum.
+  /* Vec3f boarderOffset = max - min;
+   boarderOffset.z = 0;
+   boarderOffset *= 0.5f;
+   boarderOffset /= shadowMapSize;
+   max += boarderOffset;
+   min -= boarderOffset;
+   Vec3f worldUnitsPerTexel = max - min;
+   worldUnitsPerTexel /= shadowMapSize;
+
+   min.x /= worldUnitsPerTexel.x;
+   min.x = std::floorf(min.x);
+   min.x *= worldUnitsPerTexel.x;
+   min.y /= worldUnitsPerTexel.y;
+   min.y = std::floorf(min.y);
+   min.y *= worldUnitsPerTexel.y;
+
+   max.x /= worldUnitsPerTexel.x;
+   max.x = std::floorf(max.x);
+   max.x *= worldUnitsPerTexel.x;
+   max.y /= worldUnitsPerTexel.y;
+   max.y = std::floorf(max.y);
+   max.y *= worldUnitsPerTexel.y;*/
+
+   return Matrix4f::OrthoMat(min.x, max.x, min.y, max.y, -max.z, -min.z);
 }
+
+
+float isInFrustum(float val, float boundsVal, int side)
+{
+   if (side == 1)
+   {
+      return val >= boundsVal;
+   }
+
+   return val <= boundsVal;
+}
+
+
+float clipLineToAxis(float lineStart, float axisValue, float lDir)
+{
+   float v = (axisValue - lineStart);
+
+   if (fabs(lDir) < 0.00001)
+   {
+      return -1.0;
+   }
+   return v / lDir;
+}
+
+
+int clipPolyToAxis(Vec3f clippedVerts[], int numClippedVerts, float boundsVal, int valIdx, int sign)
+{
+   Vec3f tempClippedVerts[8];
+   int newNumClippedVerts = 0;
+   for (int vertNum = 0; vertNum < numClippedVerts; vertNum++)
+   {
+      Vec3f lStart = clippedVerts[vertNum];
+      Vec3f lEnd = clippedVerts[(vertNum + 1) % 4];
+      Vec3f dir = (lEnd - lStart);
+
+      if (isInFrustum(lStart[valIdx], boundsVal, sign))
+      {
+         tempClippedVerts[newNumClippedVerts++] = lStart;
+      }
+   
+      float t = clipLineToAxis(lStart[valIdx], boundsVal, dir[valIdx]);
+      if (t > 0 && t < 1)
+      {
+         tempClippedVerts[newNumClippedVerts++] = lStart + (dir * t);
+      }
+   }
+   for (int vertNum = 0; vertNum < newNumClippedVerts; vertNum++)
+   {
+      clippedVerts[vertNum] = tempClippedVerts[vertNum];
+   }
+
+   return newNumClippedVerts;
+}
+
+
+void Renderer::computeLightFrustumNearFar(const BoundingBox& worldBounds, const Matrix4f& lightViewMat, const Vec3f& lightMin, const Vec3f& lightMax, float* nearV, float* farV)
+{
+   // In brief: we construct 6 quads, one for each of the sides of the bounding box of the entire world/scene, and then
+   // clip each one successively against the side of the light's frustum (ignoring front/back clipping).
+   // Find the min/max 'z' values between all the resulting polygons: those values are our min/max values for the
+   // light frustum.  Note: do it all in light-space, which makes the clipping very simple.
+
+   Vec3f startingVerts[8];
+   Vec3f clippedVerts[8];
+   const int quadIndices[] = {
+      0,1,2,3,
+      1,2,6,5,
+      5,6,7,4,
+      4,7,3,0,
+      6,2,3,7,
+      5,4,0,1
+   };
+
+   for (int i = 0; i < 8; i++)
+   {
+      startingVerts[i]  = lightViewMat * worldBounds.getCorner(i);
+   }
+
+   // Construct six quads from the transformed bounds, and clip them against the light's frustum
+   // (just top/bottom, left/right).
+   *nearV = 1000000.0f;
+   *farV = -1000000.0f;
+   for (int quadNum = 0; quadNum < 6; quadNum++)
+   {
+      // Load up the quad.
+      int numClippedVerts = 4;
+      for (int i = 0; i < 4; i++)
+      {
+         clippedVerts[i] = startingVerts[quadIndices[quadNum * 4 + i]];
+      }
+
+      // Clip the quad successively against each frustum bound.
+      numClippedVerts = clipPolyToAxis(clippedVerts, numClippedVerts, lightMin.x, 0, 1);
+      numClippedVerts = clipPolyToAxis(clippedVerts, numClippedVerts, lightMax.y, 1, -1);
+      numClippedVerts = clipPolyToAxis(clippedVerts, numClippedVerts, lightMax.x, 0, -1);
+      numClippedVerts = clipPolyToAxis(clippedVerts, numClippedVerts, lightMin.y, 1, 1);
+
+      // Take the resulting quad and extract min/maxes from it.
+      for (int vertNum = 0; vertNum < numClippedVerts; vertNum++)
+      {
+         *nearV = std::min(*nearV, clippedVerts[vertNum].z);
+         *farV = std::max(*farV, clippedVerts[vertNum].z);
+      }
+   }
+}
+
 
 void Renderer::updateShadowMap()
 {
@@ -1107,9 +1242,18 @@ void Renderer::updateShadowMap()
    std::ostringstream reason;
    reason << "update shadowmap for light " << _curLight->getName();
 
-   // If we're a directional light, then we necessarily cover the entire AABB of the geometry that's
-   // visible to the camera, so don't bother including that frustum in the culling.
-   const Frustum *lightFrus = _curLight->_directional ? 0x0 : &_curLight->getFrustum();
+   // If we're a directional light, then we necessarily cover the entire AABB of the scene, 
+   // so get the bounding box of everything.  I wonder how expensive this is?
+   const Frustum *lightFrus;
+   if (_curLight->_directional)
+   {
+      Frustum bigFrust;
+      bigFrust.buildBoxFrustum(Matrix4f(), -10000, 10000, -10000, 10000, 10000, -10000);
+      lightFrus = &bigFrust;
+   } else {
+      lightFrus = &_curLight->getFrustum();
+   }
+
 	Modules::sceneMan().updateQueues(reason.str().c_str(), _curCamera->getFrustum(), lightFrus,
 		RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
 	for( size_t j = 0, s = Modules::sceneMan().getRenderableQueue().size(); j < s; ++j )
@@ -1133,7 +1277,7 @@ void Renderer::updateShadowMap()
 	
 	// Calculate split distances using PSSM scheme
 	const float nearDist = maxf( minDist, _curCamera->_frustNear );
-	const float farDist = maxf( maxDist, minDist + 0.01f );
+   const float farDist = maxf( maxDist, minDist + 0.01f );
 	const uint32 numMaps = _curLight->_shadowMapCount;
 	const float lambda = _curLight->_shadowSplitLambda;
 	
@@ -1197,22 +1341,18 @@ void Renderer::updateShadowMap()
 
          Vec3f min, max;
          min = max = lightViewMat * aabb.getCorner(0);
-	      for( uint32 i = 1; i < 8; ++i ) {
-            Vec3f pt = lightViewMat * aabb.getCorner(i);
+	      for( uint32 k = 1; k < 8; ++k ) {
+            Vec3f pt = lightViewMat * aabb.getCorner(k);
             for (int j = 0; j < 3; j++) {
                min[j] = std::min(min[j], pt[j]);
                max[j] = std::max(max[j], pt[j]);
             }
 	      }
 
-         // Quantize the light's AABB so that our shadows don't swim when we make small
-         // camera movements.
-         min.quantize(-10);
-         max.quantize(10);
-
-         lightProjMat = calcDirectionalLightShadowProj(frustum, lightViewMat, _curCamera->getViewMat(), _curCamera->getProjMat(), max);
+         lightProjMat = calcDirectionalLightShadowProj(aabb, frustum, lightViewMat, _curCamera->getViewMat(), _curCamera->getProjMat(), max, numMaps);
 
          gRDI->_frameDebugInfo.addDirectionalLightAABB_(aabb);
+
       }
 	
 		// Generate render queue with shadow casters for current slice

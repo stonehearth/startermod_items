@@ -580,7 +580,7 @@ void Renderer::ResizeViewport()
    h3dSetNodeParamI( camera, H3DCamera::ViewportHeightI, windowHeight_ );
    
    // Set virtual camera parameters
-   h3dSetupCameraView( camera, 45.0f, (float)windowWidth_ / windowHeight_, 4.0f, 4000.0f);
+   h3dSetupCameraView( camera, 45.0f, (float)windowWidth_ / windowHeight_, 2.0f, 1000.0f);
 }
 
 std::shared_ptr<RenderEntity> Renderer::CreateRenderObject(H3DNode parent, om::EntityPtr entity)
