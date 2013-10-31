@@ -2,6 +2,7 @@
 #define _RADIANT_CSG_EDGE_TOOLS_H
 
 #include <vector>
+#include "util.h"
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
@@ -13,30 +14,7 @@ struct EdgeInfo
    Point<S, C>    normal;
 };
 
-template <typename S, int C>
-class EdgePoint
-{
-public:
-   EdgePoint(Point<S, C> const& l, Point<S, C> const& a) : location(l), accumulated_normals(a) { }
-
-   EdgePoint& AccumulateNormal(Point<S, C> const& n) {
-      for (int i = 0; i < C; i++) {
-         if (n[i]) {
-            if (accumulated_normals[i]) {
-               ASSERT(n[i] == accumulated_normals[i]);
-            } else {
-               accumulated_normals[i] = n[i];
-            }
-            break;
-         }
-      }
-      return *this;
-   }
-
-public:
-   Point<S, C>    location;
-   Point<S, C>    accumulated_normals;
-};
+template <typename S, int C> class EdgePoint;
 
 template <typename S, int C>
 class Edge
@@ -51,10 +29,75 @@ public:
 };
 
 template <typename S, int C>
+class EdgePoint
+{
+public:
+   EdgePoint(Point<S, C> const& l, Point<S, C> const& a) : location(l), accumulated_normals(a) { }
+
+   void AccumulateNormal(Point<S, C> const& n) {
+      accumulated_normals += n;
+   }
+
+   void FixAccumulatedNormal() {
+      for (int i = 0; i < C; i++) {
+         if (accumulated_normals[i] < 0) {
+            accumulated_normals[i] = -1;
+         } else if (accumulated_normals[i] > 0) {
+            accumulated_normals[i] = 1;
+         }
+      }
+   }
+
+   void CheckForTJunction(Edge<S, C> const& edge) {
+      Point<S, C> const& min = edge.min->location;
+      Point<S, C> const& max = edge.max->location;
+
+      for (int i = 0; i < C; i++) {
+         if (edge.normal[i]) {
+            // In the normal direction, the tangent coordinates must match
+            ASSERT(min[i] == max[i]);
+            if (location[i] != min[i]) {
+               return;
+            }
+         } else {
+            // In tangent directions, we need to be between the min
+            // and the max (not on them.  between them!)
+            if (location[i] <= min[i] || location[i] >= max[i]) {
+               return;
+            }
+         }
+      }
+
+      // Whoops!  T-Junction.  Add the normal of the intersecting edge to 
+      // our accumated normal.
+      AccumulateNormal(edge.normal);
+   }
+
+public:
+   Point<S, C>    location;
+   Point<S, C>    accumulated_normals;
+};
+
+template <typename S, int C>
 class EdgeMap
 {
 public:
+   EdgeMap()
+   {
+   }
+
+   EdgeMap(EdgeMap &&other) :
+      edges(std::move(other.edges)),
+      points(std::move(other.points))
+   {
+   }
+
    EdgeMap& AddEdge(Point<S, C> const& min, Point<S, C> const& max, Point<S, C> const& normal) {
+      DEBUG_ONLY(
+         for (Edge<S, C> const& e : edges) {
+            ASSERT(e.min->location != min || e.max->location != max || e.normal != normal);
+         }
+      )
       edges.emplace_back(Edge<S, C>(AddPoint(min, normal),
                                     AddPoint(max, normal),
                                     normal));
@@ -79,7 +122,27 @@ public:
       return false;
    }
 
+   void FixNormals() {
+      // T-intersections are a killer.  The top point at the vertical edge of a T-section
+      // doesn't have any normal contribution from the top of the T.  It should point diagonally
+      // away from the junction, but actually points parallel to the top.  Not good!  Find
+      // these junctions and accumulate them into the point.  We do this at the end so we
+      // don't have to worry about ordering of when edges are added.
+
+      for (EdgePoint<S, C>* point : points) {
+         for (Edge<S, C> const& edge: edges) {
+            point->CheckForTJunction(edge);
+         }
+      }
+
+      // Now normalize the accumualted normals.
+      for (EdgePoint<S, C>* point : points) {
+         point->FixAccumulatedNormal();
+      }
+   }
+
 private:
+
    EdgePoint<S, C>* AddPoint(Point<S, C> const& p, Point<S, C> const& normal) {
       for (auto& point : points) {
          if (point->location == p) {
@@ -95,11 +158,6 @@ private:
    std::vector<Edge<S, C>>          edges;
    std::vector<EdgePoint<S, C>*>    points;
 };
-
-typedef EdgeMap<int, 2> EdgeMap2;
-typedef EdgeMap<int, 3> EdgeMap3;
-typedef EdgeInfo<int, 2> EdgeInfo2;
-typedef EdgeInfo<int, 3> EdgeInfo3;
 
 END_RADIANT_CSG_NAMESPACE
 

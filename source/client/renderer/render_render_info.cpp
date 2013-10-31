@@ -208,18 +208,17 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
    H3DNode parent = entity_.GetSkeleton().GetSceneNode(bone);
 
    H3DNodeUnique node;
-   if (model_mode_ == "opaque") {
+   if (model_mode_ == "blueprint") {
       csg::Region3 model = voxel::QubicleBrush(matrix)
                                  .SetPaintMode(voxel::QubicleBrush::Opaque)
                                  .SetPreserveMatrixOrigin(true)
                                  .Paint();
-      csg::mesh_tools::mesh geometry = csg::mesh_tools().ConvertRegionToMesh(model);
-      node = pipeline.AddMeshNode(parent, geometry, &mesh);
+      node = pipeline.CreateBlueprintNode(parent, model, 0.5f, material_path_);
    } else {
       node = pipeline.AddQubicleNode(parent, *matrix, origin, &mesh);
-   }
-   if (material_.get()) {
-      h3dSetNodeParamI(mesh, H3DMesh::MatResI, material_.get());
+      if (material_.get()) {
+         h3dSetNodeParamI(mesh, H3DMesh::MatResI, material_.get());
+      }
    }
    h3dSetNodeTransform(node.get(), 0, 0, 0, 0, 0, 0, scale, scale, scale);
    nodes_[bone] = NodeMapEntry(matrix, node);
@@ -232,9 +231,8 @@ void RenderRenderInfo::AddMissingNodes(om::RenderInfoPtr render_info, FlatModelM
       auto j = nodes_.find(i->first);
       if (j == nodes_.end() || i->second != j->second.matrix) {
          AddModelNode(render_info, i->first, i->second);
-      } else {
-         i++;
       }
+      i++;
    }
 }
 

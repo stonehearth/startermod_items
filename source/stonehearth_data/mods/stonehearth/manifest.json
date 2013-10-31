@@ -58,7 +58,10 @@
          "wolf:teeth_weapon" : "file(entities/critters/wolf/wolf_teeth.json)",
          "male_1" : "file(entities/humans/male_1)",
          "male_2" : "file(entities/humans/male_2)",
+         "male_3" : "file(entities/humans/male_3)",
          "female_1" : "file(entities/humans/female_1)",
+         "female_2" : "file(entities/humans/female_2)",
+         "female_3" : "file(entities/humans/female_3)",
          "workshop_outbox" : "file(entities/crafting/workshop_outbox)",
 
          "effects:talisman_glow" : "file(data/effects/talisman_glow)",
@@ -305,13 +308,15 @@
       "scaffolding_fabricator" : "file(components/scaffolding_fabricator/scaffolding_fabricator_component.lua)",
       "wall" : "file(components/wall/wall_component.lua)",
       "column" : "file(components/column/column_component.lua)",
-      "portal" : "file(components/portal/portal_component.lua)"
+      "portal" : "file(components/portal/portal_component.lua)",
+      "no_construction_zone" : "file(components/no_construction_zone/no_construction_zone_component.lua)"
    },
    "component_renderers" : {
       "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",
       "city_plan" : "file(renderers/city_plan/city_plan_renderer.lua)",
       "ghost_item" : "file(renderers/ghost_item/ghost_item_renderer.lua)",
-      "fabricator" : "file(renderers/fabricator/fabricator_renderer.lua)"
+      "fabricator" : "file(renderers/fabricator/fabricator_renderer.lua)",
+      "no_construction_zone" : "file(renderers/no_construction_zone/no_construction_zone_renderer.lua)"
    },
    "invariant_renderers" : {
       "voxel_brush_info" : "file(renderers/voxel_brush_info/voxel_brush_info_renderer.lua)"
@@ -337,7 +342,7 @@
          "file(ui/game/clock_widget/clock_widget.html)",
          "file(ui/game/people_picker/people_picker.html)",
          "file(ui/game/promote/promote.html)",
-         "file(ui/game/item_placement/item_placement.html)",
+         "file(ui/game/place_item/place_item.html)",
          "file(ui/game/unit_frame/unit_frame.html)",
          "file(ui/game/resource_scoreboard/resource_scoreboard.html)",
          "file(ui/game/start_menu/start_menu.html)",
@@ -358,7 +363,7 @@
          "file(ui/game/clock_widget/clock_widget.js)",
          "file(ui/game/people_picker/people_picker.js)",
          "file(ui/game/promote/promote.js)",
-         "file(ui/game/item_placement/item_placement.js)",
+         "file(ui/game/place_item/place_item.js)",
          "file(ui/game/unit_frame/unit_frame.js)",
          "file(ui/game/resource_scoreboard/resource_scoreboard.js)",
          "file(ui/game/start_menu/start_menu.js)",
@@ -383,7 +388,7 @@
          "file(ui/game/people_picker/people_picker.less)",
          "file(ui/game/promote/promote.less)",
          "file(ui/game/unit_frame/unit_frame.less)",
-         "file(ui/game/item_placement/item_placement.less)",
+         "file(ui/game/place_item/place_item.less)",
          "file(ui/game/resource_scoreboard/resource_scoreboard.less)",
          "file(ui/game/start_menu/start_menu.less)",
          "file(ui/game/main_actionbar/tip_popup.less)",

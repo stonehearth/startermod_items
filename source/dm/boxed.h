@@ -127,7 +127,7 @@ public:
          tname = GetShortTypeName<Boxed>();
       }
       return
-         lua::RegisterWeakGameObject<Boxed>(tname.c_str())
+         lua::RegisterType<Boxed>(tname.c_str())
             .def("get",               &Boxed::Get)
             .def("modify",            &Boxed::Modify)
             .def("trace",             &Boxed::CreatePromise)

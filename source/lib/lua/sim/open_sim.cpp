@@ -195,7 +195,7 @@ void lua::sim::open(lua_State* L)
             def("create_goto_location",     &Sim_CreateGotoLocation),
             def("create_goto_entity",       &Sim_CreateGotoEntity),
             def("create_job",               &Sim_CreateJob),
-
+            
             lua::RegisterTypePtr<Path>()
                .def("get_points",         &Path::GetPoints)
                .def("get_source",         &Path::GetSource)

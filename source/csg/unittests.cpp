@@ -191,6 +191,7 @@ TEST(Perfmon, TimelineNestedInner) {
 
 #endif
 
+#if 0
 TEST(RegionTools2D, ForEachPlane) {
    Region2 r2;
    r2.AddUnique(Rect2(Point2(1, 2), Point2(3, 4)));
@@ -264,6 +265,29 @@ TEST(RegionTools3, Inset) {
       }
    });
 }
+
+
+TEST(RegionTools3, InsetConcave) {
+   Region3 r3;
+   r3.Add(Cube3(Point3(-10, -2, -3), Point3(10, 2, 3)));
+   r3.Add(Cube3(Point3(-1, -20, -3), Point3(1, 20, 3)));
+   r3.Add(Cube3(Point3(-1, -2, -30), Point3(1, 2, 30)));
+
+   RegionTools3 tools;
+   Region3f inset = tools.Inset(r3, 1);
+   for (const auto &c : inset) {
+      LOG(WARNING) << c;
+   }
+   LOG(WARNING) << "---";
+   tools.ForEachPlane(r3, [=](Region2 const& r2, RegionTools3::PlaneInfo const& pi) {
+      Region2f inset = RegionTools2().Inset(r2, 1);
+      for (const auto &c : inset) {
+         LOG(WARNING) << RegionToolsTraits<float, 3>::ExpandCube(c, ToFloat(pi));
+      }
+   });
+}
+
+#endif
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

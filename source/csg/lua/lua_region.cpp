@@ -78,6 +78,7 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("get_closest_point",  &T::GetClosestPoint)
          .def("translate",          &T::Translate)
          .def("translated",         &T::Translated)
+         .def("inflated",           &T::Inflated)
          .def("contains",           &T::Contains)
       ;
 }

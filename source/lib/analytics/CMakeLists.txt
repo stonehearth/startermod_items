@@ -10,6 +10,7 @@ add_library(analytics
             analytics.cpp
             analytics_logger.cpp
             send_design_event.cpp
+            event_data.cpp
             )
 
 target_link_libraries(analytics 
