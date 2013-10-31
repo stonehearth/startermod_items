@@ -1,6 +1,6 @@
 #include "../pch.h"
 #include "open.h"
-#include "lib/analytics/send_design_event.h"
+#include "lib/analytics/design_event.h"
 #include "lib/json/node.h"
 
 #include "resources/res_manager.h"

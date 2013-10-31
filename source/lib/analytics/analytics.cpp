@@ -1,7 +1,7 @@
 #include "radiant.h"
 #include "analytics.h"
 #include "analytics_logger.h"
-#include "send_design_event.h"
+#include "design_event.h"
 
 using namespace ::radiant;
 using namespace ::radiant::analytics;

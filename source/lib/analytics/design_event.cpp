@@ -1,5 +1,5 @@
 #include "radiant.h"
-#include "send_design_event.h"
+#include "design_event.h"
 #include "analytics_logger.h"
 #include "lib/json/node.h"
 

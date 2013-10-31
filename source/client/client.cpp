@@ -40,7 +40,7 @@
 #include "lib/lua/om/open.h"
 #include "lib/lua/voxel/open.h"
 #include "lib/lua/analytics/open.h"
-#include "lib/analytics/send_design_event.h"
+#include "lib/analytics/design_event.h"
 #include "client/renderer/render_entity.h"
 #include "lib/perfmon/perfmon.h"
 #include "glfw3.h"
