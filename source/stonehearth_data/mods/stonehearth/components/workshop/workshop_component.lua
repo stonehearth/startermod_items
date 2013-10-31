@@ -375,6 +375,10 @@ function WorkshopComponent:_produce_outputs()
       self._entity:add_component('entity_container'):add_child(result)
       result:add_component('mob'):set_location_grid_aligned(Point3(0, 1, 0))
       table.insert(self._bench_outputs, result)
+
+      --TODO: add in the name of the crafter class doing this work
+      local result_name = result:get_component('unit_info'):get_display_name()
+      _radiant.analytics.DesignEvent('game:craft:crafter:' .. result_name)
    end
 end
 

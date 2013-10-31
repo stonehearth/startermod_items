@@ -6,6 +6,10 @@
    init: function() {
       this._super();
       this._traces = {};
+
+      //TODO: how to uniquely identify a view? Templatename is not always set
+      radiant.call('stonehearth:send_design_event', 
+                   'ui:view_init:' + this.templateName);
    },
 
    destroy: function() {
@@ -13,6 +17,11 @@
       if (this.modalOverlay) {
          this.modalOverlay.destroy();
       }
+
+      //TODO: how to uniquely identify a view?
+      radiant.call('stonehearth:send_design_event', 
+                   'ui:view_destroyed:' + this.templateName);
+      
       this._super();
    },
 

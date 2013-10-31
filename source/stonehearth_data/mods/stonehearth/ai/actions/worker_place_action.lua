@@ -91,6 +91,9 @@ function WorkerPlaceItemAction:run(ai, entity, path, ghost_entity, rotation, tas
    --If we got here, we succeeded at the action.  We can get rid of this task now.
    self._task:destroy()
    self._task = nil
+
+   --Log success
+   _radiant.analytics.DesignEvent("game:move_item:worker:" .. object_name)
 end
 
 --- When we're done with the action, stop the pathfinders and handle the task status

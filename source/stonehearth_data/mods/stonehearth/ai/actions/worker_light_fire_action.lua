@@ -54,6 +54,8 @@ function WorkerLightFireAction:run(ai, entity, path_to_log, firepit, task)
    -- If we got here, we succeeded at the action.
    -- Note that we succeeded by setting the task to nil.
    self._task = nil
+
+   _radiant.analytics.DesignEvent('game:light_fire:worker:firepit')
 end
 
 --- Destroy the task if we were successful. Start it again if not

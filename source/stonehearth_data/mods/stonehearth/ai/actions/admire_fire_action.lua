@@ -168,7 +168,6 @@ function AdmireFire:run(ai, entity)
       self._firepit = nil
    end);
    
-
    -- Go to the fire!
    ai:execute('stonehearth:follow_path', self._path_to_fire)
 
@@ -177,6 +176,9 @@ function AdmireFire:run(ai, entity)
    ai:execute('stonehearth:drop_carrying', drop_location)
 
    radiant.entities.turn_to_face(self._entity, spot_component:get_center_of_attention())
+
+   --TODO: add class type to unit info
+   _radiant.analytics.DesignEvent('game:idle:person:admire_firepit')
 
    self:_do_random_actions(ai)
 
