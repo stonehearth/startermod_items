@@ -22,6 +22,9 @@ $(document).ready(function(){
          description : i18n.t('stonehearth:place_description')
       });
       call_server_to_place_item(e);
+
+      radiant.call('stonehearth:send_design_event', 
+                   'ui:place_iconic_in_world:' + e.event_data.item_name);
    });
 
    //Fires when someone clicks the move button on a full-sized item in the world
@@ -31,6 +34,9 @@ $(document).ready(function(){
          description : i18n.t('stonehearth:move_description')
       });
       call_server_to_place_item(e);
+
+      radiant.call('stonehearth:send_design_event', 
+                   'ui:move_item:' + e.event_data.item_name);
    });
 
    //Fires when someone clicks the "place" button in the UI to bring up the picker
@@ -41,6 +47,9 @@ $(document).ready(function(){
                   uri: response.tracker
                });
          });
+
+      radiant.call('stonehearth:send_design_event', 
+                   'ui:open_item_placement_ui');
    });
 });
 

@@ -254,6 +254,10 @@
             "endpoint" : "server",
             "controller" : "file(call_handlers/place_item_call_handler.lua)"
          },
+         "send_design_event": {
+            "controller" : "file(call_handlers/analytics_call_handler.lua)",
+            "endpoint" : "server"
+         },
          "choose_stockpile_location": {
             "controller" : "file(call_handlers/inventory_call_handler.lua)",
             "endpoint" : "client"
