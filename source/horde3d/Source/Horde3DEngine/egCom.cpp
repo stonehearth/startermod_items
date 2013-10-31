@@ -122,7 +122,7 @@ bool EngineConfig::setOption( EngineOptions::List param, float value )
 
       if ( size <= 0 ) return false;
 
-      size = (int)pow(2, floorf(log(size) / log(2.0)));
+      size = (int)pow(2, floor(log(size) / log(2.0)));
 
       if(size > gRDI->getCaps().maxTextureSize) return false;
 

@@ -1137,7 +1137,7 @@ float clipLineToAxis(float lineStart, float axisValue, float lDir)
 
 int clipPolyToAxis(Vec3f clippedVerts[], int numClippedVerts, float boundsVal, int valIdx, int sign)
 {
-   Vec3f tempClippedVerts[8];
+   Vec3f tempClippedVerts[16];
    int newNumClippedVerts = 0;
    for (int vertNum = 0; vertNum < numClippedVerts; vertNum++)
    {
@@ -1173,7 +1173,7 @@ void Renderer::computeLightFrustumNearFar(const BoundingBox& worldBounds, const 
    // light frustum.  Note: do it all in light-space, which makes the clipping very simple.
 
    Vec3f startingVerts[8];
-   Vec3f clippedVerts[8];
+   Vec3f clippedVerts[16];
    const int quadIndices[] = {
       0,1,2,3,
       1,2,6,5,
