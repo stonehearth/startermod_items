@@ -217,6 +217,7 @@ bool RenderDevice::init()
    _caps.hasInstancing = (glExt::majorVersion * 10 + glExt::minorVersion) >= 33;
    _caps.renderer = renderer;
    _caps.vendor = vendor;
+   glGetIntegerv(GL_MAX_TEXTURE_SIZE, &_caps.maxTextureSize);
 
 	// Find supported depth format (some old ATI cards only support 16 bit depth for FBOs)
 	_depthFormat = GL_DEPTH_COMPONENT24;

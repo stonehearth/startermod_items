@@ -110,6 +110,7 @@ struct DeviceCaps
 	bool  texNPOT;
 	bool  rtMultisampling;
    bool  hasInstancing;
+   int   maxTextureSize;
 
    const char* vendor;
    const char* renderer;
