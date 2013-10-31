@@ -1,5 +1,5 @@
-#ifndef _RADIANT_LIB_ANALYTICS_SEND_DESIGN_EVENT_H
-#define _RADIANT_LIB_ANALYTICS_SEND_DESIGN_EVENT_H
+#ifndef _RADIANT_LIB_ANALYTICS_DESIGN_EVENT_H
+#define _RADIANT_LIB_ANALYTICS_DESIGN_EVENT_H
 
 #include "analytics.h"
 #include "csg/point.h"
@@ -8,30 +8,40 @@
 
 // usage...
 //
-//    SendDesignEvent("my:event:name")
+//    DesignEvent("my:event:name").SendEvent();
 //
 // or...
 //
-//    SendDesignEvent("my:event:name").SetValue(5.0f)
+//    DesignEvent("my:event:name").SetValue(5.0f).SendEvent();
 //
 // or...
 //
-//    SendDesignEvent("my:event:name")
+//    DesignEvent("my:event:name")
 //       .SetValue(1.0f)
 //       .SetArea(csg::Point3f(1, 1, 1))
+//       .SendEvent();
 //
+// or...
+//
+// DesignEvent de = DesignEvent("my:event"name");
+// if (foo != "") {
+//    de.SetArea(foo);
+// }
+// de.SendEvent();
 
 BEGIN_RADIANT_ANALYTICS_NAMESPACE
 
-class SendDesignEvent
+class DesignEvent
 {
 public:
-   SendDesignEvent(std::string const& name);
-   ~SendDesignEvent();
+   DesignEvent(std::string const& name);
+   ~DesignEvent();
 
-   SendDesignEvent& SetValue(float value);
-   SendDesignEvent& SetPosition(csg::Point3f const& pt);
-   SendDesignEvent& SetArea(std::string const& area);
+   DesignEvent& SetValue(float value);
+   DesignEvent& SetPosition(csg::Point3f const& pt);
+   DesignEvent& SetArea(std::string const& area);
+
+   void DesignEvent::SendEvent();
 
 private:
    json::Node     event_data_node_;

@@ -16,6 +16,7 @@ function HarvestTest:__init()
       end)
 
    self:at(100, function()
+         _radiant.analytics.DesignEvent("test:harvest_test:100sec"):set_value(12):send_event()
          --tree:get_component('stonehearth:commands'):do_command('chop', faction)
       end)
 end

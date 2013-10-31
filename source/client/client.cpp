@@ -39,6 +39,7 @@
 #include "lib/lua/rpc/open.h"
 #include "lib/lua/om/open.h"
 #include "lib/lua/voxel/open.h"
+#include "lib/lua/analytics/open.h"
 #include "lib/analytics/send_design_event.h"
 #include "client/renderer/render_entity.h"
 #include "lib/perfmon/perfmon.h"
@@ -209,6 +210,7 @@ void Client::run()
    lua::res::open(L);
    lua::voxel::open(L);
    lua::rpc::open(L, core_reactor_);
+   lua::analytics::open(L);
 
 
    //luabind::globals(L)["_client"] = luabind::object(L, this);
@@ -248,7 +250,7 @@ void Client::run()
       int now = timeGetTime();
       //Send game running events 
       if (now - last_event_time > 30 * 1000) {
-         analytics::SendDesignEvent("game:is_running");
+         analytics::DesignEvent("game:is_running").SendEvent();
          last_event_time = now;
       }
    }
