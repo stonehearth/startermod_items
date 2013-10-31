@@ -1,26 +1,18 @@
-[submodule "modules/chromium-embedded"]
-	path = modules/chromium-embedded
-	url = https://github.com/radent/chromium-embedded
-	branch = master
 [submodule "modules/boost_bin"]
 	path = modules/boost_bin
 	url = https://github.com/radent/boost_bin
 	branch = master
-[submodule "modules/protobuf"]
-	path = modules/protobuf
-	url = https://github.com/radent/protobuf
+[submodule "modules/breakpad"]
+	path = modules/breakpad
+	url = https://github.com/radent/breakpad
 	branch = master
-[submodule "modules/lua"]
-	path = modules/lua
-	url = https://github.com/radent/lua
+[submodule "modules/chromium-embedded"]
+	path = modules/chromium-embedded
+	url = https://github.com/radent/chromium-embedded
 	branch = master
-[submodule "modules/libjson"]
-	path = modules/libjson
-	url = https://github.com/radent/libjson
-	branch = master
-[submodule "modules/sfml"]
-	path = modules/sfml
-	url = https://github.com/radent/sfml
+[submodule "modules/cryptopp"]
+	path = modules/cryptopp
+	url = https://github.com/radent/cryptopp
 	branch = master
 [submodule "modules/googletest"]
 	path = modules/googletest
@@ -30,23 +22,35 @@
 	path = modules/libclaw
 	url = https://github.com/radent/libclaw
 	branch = master
-[submodule "modules/snappy"]
-	path = modules/snappy
-	url = https://github.com/radent/snappy
+[submodule "modules/libcurl"]
+	path = modules/libcurl
+	url = https://github.com/radent/libcurl
+	branch = master
+[submodule "modules/libjson"]
+	path = modules/libjson
+	url = https://github.com/radent/libjson
+	branch = master
+[submodule "modules/lua"]
+	path = modules/lua
+	url = https://github.com/radent/lua
 	branch = master
 [submodule "modules/luabind"]
 	path = modules/luabind
 	url = https://github.com/radent/luabind
 	branch = master
-[submodule "modules/cryptopp"]
-	path = modules/cryptopp
-	url = https://github.com/radent/cryptopp
+[submodule "modules/protobuf"]
+	path = modules/protobuf
+	url = https://github.com/radent/protobuf
+	branch = master
+[submodule "modules/sfml"]
+	path = modules/sfml
+	url = https://github.com/radent/sfml
+	branch = master
+[submodule "modules/snappy"]
+	path = modules/snappy
+	url = https://github.com/radent/snappy
 	branch = master
 [submodule "modules/tbb"]
 	path = modules/tbb
-	url = https://github.com/radent/tbb.git
-	branch = master
-[submodule "modules/libcurl"]
-	path = modules/libcurl
-	url = https://github.com/radent/libcurl.git
+	url = https://github.com/radent/tbb
 	branch = master

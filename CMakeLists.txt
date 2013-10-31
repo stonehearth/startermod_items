@@ -66,6 +66,7 @@ MESSAGE("Stonehearth Root is: ${STONEHEARTH_ROOT}")
 
 SET(RADIANT_MODULE_ROOT "${STONEHEARTH_ROOT}/modules")
 INCLUDE(${RADIANT_MODULE_ROOT}/boost_bin/cmake/config.txt)
+INCLUDE(${RADIANT_MODULE_ROOT}/breakpad/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/chromium-embedded/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/cryptopp/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/googletest/cmake/config.txt)

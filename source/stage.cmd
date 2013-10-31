@@ -22,3 +22,7 @@ set SFML_ROOT=%RADIANT_ROOT%\stonehearth\modules\sfml\build\lib\%CFG%
 xcopy /d /y /s %SFML_ROOT%\* %DST%
 xcopy /d /y /s %RADIANT_ROOT%\stonehearth\modules\sfml\package\SFML-2.1\extlibs\bin\x86\openal32.dll %DST%
 xcopy /d /y /s %RADIANT_ROOT%\stonehearth\modules\sfml\package\SFML-2.1\extlibs\bin\x86\libsndfile-1.dll %DST%
+
+:: crash_reporter
+set CRASH_REPORTER_ROOT=%RADIANT_ROOT%\stonehearth\build\source\lib\crash_reporter
+xcopy /d /y %CRASH_REPORTER_ROOT%\%CFG%\crash_reporter.exe %DST%
