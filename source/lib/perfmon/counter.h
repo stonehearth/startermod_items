@@ -11,12 +11,12 @@ public:
    Counter(char const* name);
    ~Counter();
 
-   std::string GetName() const;
+   const char* GetName() const;
    CounterValueType GetValue() const;
    void Increment(CounterValueType amount);
 
 private:
-   std::string       name_;
+   const char*       name_;
    CounterValueType  value_;
 };
 

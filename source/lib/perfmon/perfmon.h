@@ -6,12 +6,6 @@
 
 BEGIN_RADIANT_PERFMON_NAMESPACE
 
-class FrameGuard {
-public:
-   FrameGuard();
-   ~FrameGuard();
-};
-
 class TimelineCounterGuard {
 public:
    TimelineCounterGuard(char const* name);
@@ -22,7 +16,6 @@ private:
 };
 
 void BeginFrame();
-void EndFrame();
 void SwitchToCounter(char const* name);
 core::Guard OnFrameEnd(std::function<void(Frame*)>);
 uint CounterToMilliseconds(CounterValueType value);
