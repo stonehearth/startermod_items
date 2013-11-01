@@ -26,6 +26,11 @@ sampler2D outlineSampler = sampler_state
   Filter = Trilinear;
 };
 
+sampler2D outlineDepth = sampler_state
+{
+  Address = Clamp;
+};
+
 // Contexts
 context AMBIENT
 {
@@ -51,6 +56,7 @@ context SELECTED_SCREENSPACE
 {
   VertexShader = compile GLSL VS_GENERAL;
   PixelShader = compile GLSL FS_SELECTED_SCREENSPACE;
+  ZWriteEnable = true;
 }
 
 context SELECTED_SCREENSPACE_OUTLINER
@@ -65,14 +71,14 @@ context SHADOWMAP
 {
   VertexShader = compile GLSL VS_SHADOWMAP;
   PixelShader = compile GLSL FS_SHADOWMAP;
-   CullMode = Back;
+  CullMode = Back;
 }
 
 context DIRECTIONAL_SHADOWMAP
 {
   VertexShader = compile GLSL VS_DIRECTIONAL_SHADOWMAP;
   PixelShader = compile GLSL FS_DIRECTIONAL_SHADOWMAP;
-   CullMode = Back;
+  CullMode = Back;
 }
 
 context OMNI_LIGHTING
@@ -92,7 +98,7 @@ context DIRECTIONAL_LIGHTING
   
   ZWriteEnable = false;
   BlendMode = Add;
-    CullMode = Back;
+  CullMode = Back;
 }
 
 
@@ -322,6 +328,7 @@ void main( void )
 #include "shaders/utilityLib/outline.glsl"
 
 uniform sampler2D outlineSampler;
+uniform sampler2D outlineDepth;
 
 in vec2 texCoords;
 out vec4 fragColor;
@@ -329,4 +336,5 @@ out vec4 fragColor;
 void main(void)
 {
   fragColor = compute_outline_color(outlineSampler, texCoords);
+  gl_FragDepth = compute_outline_depth(outlineDepth, texCoords);
 }

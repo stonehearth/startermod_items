@@ -8,7 +8,7 @@
          "description": "Om nom nom",
          "faction": "wolf"
       },
-      "attributes": {
+      "stonehearth:attributes": {
          "ferocity": 10,
          "health": 50,
          "speed" : 150

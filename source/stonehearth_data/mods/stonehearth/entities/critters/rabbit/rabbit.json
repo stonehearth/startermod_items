@@ -12,7 +12,7 @@
             "stonehearth:actions:follow_leash"
          ]
       },
-      "attributes": {
+      "stonehearth:attributes": {
          "health": 1,
          "speed" : 50
       },      
