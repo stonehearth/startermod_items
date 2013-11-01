@@ -5,10 +5,12 @@ FollowDestination.does = 'stonehearth:follow_destination'
 FollowDestination.priority = 1
 
 function FollowDestination:run(ai, entity, path, effect_name)
-   local speed = entity:add_component('attributes'):get_attribute('speed')
+   local speed = entity:add_component('stonehearth:attributes'):get_attribute('speed')
    
    if speed == nil then
       speed = 1.0
+   else 
+      speed = speed / 100
    end
 
    if not effect_name then

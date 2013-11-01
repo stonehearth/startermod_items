@@ -1,0 +1,8 @@
+{
+   "type" : "debuff",
+   "modifiers" : {
+      "speed" : {
+         "multiply" : 0.5
+      }
+   }
+} 

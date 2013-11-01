@@ -5,6 +5,7 @@ App.StonehearthUnitFrameView = App.View.extend({
       "stonehearth:commands": {
          commands: []
       },
+      "stonehearth:buffs" : {},
       "unit_info": {}
    },
 
@@ -25,9 +26,25 @@ App.StonehearthUnitFrameView = App.View.extend({
       });
    },
 
+   buffs: function() {
+        var vals = [];
+        var attributeMap = this.get('context.stonehearth:buffs');
+        
+        if (attributeMap) {
+           $.each(attributeMap, function(k ,v) {
+              if(k != "__self" && attributeMap.hasOwnProperty(k)) {
+                 vals.push(v);
+              }
+           });
+        }
+
+        this.set('context.buffs', vals);
+    }.observes('context.stonehearth:buffs'),
+
    //When we hover over a command button, show its tooltip
    didInsertElement: function() {
       $('#commandButtons').find('div').tooltip();
+      $('#buffs').find('div').tooltip();
       /*
       $('#commandButtons')
          .off('mouseover', '.commandButton')
