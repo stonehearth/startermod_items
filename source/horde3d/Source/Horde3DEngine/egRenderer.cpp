@@ -1116,7 +1116,7 @@ Matrix4f Renderer::calcDirectionalLightShadowProj(const BoundingBox& worldBounds
    computeLightFrustumNearFar(worldBounds, lightViewMat, min, max, &min.z, &max.z);
 
    // If desired, quantize the shadow frustum, in order to prevent swimming shadow textures.
-   quantizeShadowFrustum(frustSlice, shadowMapSize, &min, &max);
+   // quantizeShadowFrustum(frustSlice, shadowMapSize, &min, &max);
 
    return Matrix4f::OrthoMat(min.x, max.x, min.y, max.y, -max.z, -min.z);
 }
@@ -1286,12 +1286,10 @@ void Renderer::updateShadowMap()
 	minDist = _curCamera->_frustNear;
 	
    // Calculate split distances using PSSM scheme
-   // Uncomment for adaptive frustum (which renders shadow frustum quantization impossible, but results
-   // in a much better usage of shadow map texels).
-   // const float nearDist = maxf( minDist, _curCamera->_frustNear );
-   // const float farDist = maxf( maxDist, minDist + 0.01f );
-   const float nearDist = _curCamera->_frustNear;
-   const float farDist = _curCamera->_frustFar;
+   const float nearDist = maxf( minDist, _curCamera->_frustNear );
+   const float farDist = maxf( maxDist, minDist + 0.01f );
+   // const float nearDist = _curCamera->_frustNear;
+   // const float farDist = _curCamera->_frustFar;
    const uint32 numMaps = _curLight->_shadowMapCount;
    const float lambda = _curLight->_shadowSplitLambda;
 	
@@ -1309,7 +1307,7 @@ void Renderer::updateShadowMap()
 	
 	// Prepare shadow map rendering
 	glEnable( GL_DEPTH_TEST );
-   gRDI->setShadowOffsets(1.0f, 3.0f);
+   gRDI->setShadowOffsets(2.0f, 4.0f);
 	//glCullFace( GL_FRONT );	// Front face culling reduces artefacts but produces more "peter-panning"
 	// Split viewing frustum into slices and render shadow maps
 	Frustum frustum;
