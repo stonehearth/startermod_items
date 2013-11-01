@@ -1309,8 +1309,8 @@ void Renderer::updateShadowMap()
 	
 	// Prepare shadow map rendering
 	glEnable( GL_DEPTH_TEST );
+   gRDI->setShadowOffsets(1.0f, 3.0f);
 	//glCullFace( GL_FRONT );	// Front face culling reduces artefacts but produces more "peter-panning"
-	
 	// Split viewing frustum into slices and render shadow maps
 	Frustum frustum;
 	for( uint32 i = 0; i < numMaps; ++i )
@@ -1421,7 +1421,8 @@ void Renderer::updateShadowMap()
 
 	glCullFace( GL_BACK );
 	glDisable( GL_SCISSOR_TEST );
-		
+
+   gRDI->setShadowOffsets(0.0f, 0.0f);
 	gRDI->setViewport( prevVPX, prevVPY, prevVPWidth, prevVPHeight );
 	gRDI->setRenderBuffer( prevRendBuf );
 	glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
@@ -2277,8 +2278,11 @@ void Renderer::drawVoxelMeshes(const std::string &shaderContext, const std::stri
 		if( queryObj )
 			gRDI->beginQuery( queryObj );
 		
+      // Shadow offsets will always win against the custom model offsets (which we don't care about
+      // during a shadow pass.)
       float offset_x, offset_y;
-      if (modelNode->getPolygonOffset(offset_x, offset_y)) {
+      if (gRDI->getShadowOffsets(&offset_x, &offset_y) || modelNode->getPolygonOffset(offset_x, offset_y))
+      {
          glEnable(GL_POLYGON_OFFSET_FILL);
          glPolygonOffset(offset_x, offset_y);
       } else {

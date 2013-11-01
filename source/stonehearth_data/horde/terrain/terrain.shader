@@ -185,10 +185,10 @@ in vec3 lightVec;
 void main( void )
 {
   float dist = length( lightVec ) / lightPos.w;
-  gl_FragDepth = dist + shadowBias;
+  gl_FragDepth = dist;// + shadowBias;
   
   // Clearly better bias but requires SM 3.0
-  //gl_FragDepth = dist + abs( dFdx( dist ) ) + abs( dFdy( dist ) ) + shadowBias;
+  // gl_FragDepth = dist + abs( dFdx( dist ) ) + abs( dFdy( dist ) ) + shadowBias;
 }
 
 [[VS_DIRECTIONAL_SHADOWMAP]]
@@ -210,14 +210,8 @@ void main( void )
 [[FS_DIRECTIONAL_SHADOWMAP]]
 // =================================================================================================
 
-uniform float shadowBias;
-//varying vec3 lightVec;
-
 void main( void )
 {
-  gl_FragDepth = gl_FragCoord.z + 2.0 * shadowBias;
-  // Clearly better bias but requires SM 3.0
-  //gl_FragDepth = dist + abs( dFdx( dist ) ) + abs( dFdy( dist ) ) + shadowBias;
 }
 
 [[FS_OMNI_LIGHTING]]

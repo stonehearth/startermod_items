@@ -140,6 +140,8 @@ RenderDevice::RenderDevice()
 	_curIndexBuf = _newIndexBuf = 0;
 	_indexFormat = (uint32)IDXFMT_16;
 	_pendingMask = 0;
+   _shadowFactor = 0.0f;
+   _shadowUnits = 0.0f;
 }
 
 
@@ -1614,6 +1616,18 @@ void RenderDevice::ReportShaderError(uint32 shader_id, ShaderType type, const ch
       }
       delete [] info;
    }
+}
+
+const bool RenderDevice::getShadowOffsets(float* factor, float* units) {
+   if (factor)
+   {
+      *factor = _shadowFactor; 
+   }
+   if (units)
+   {
+      *units = _shadowUnits;
+   }
+   return _shadowFactor != 0.0f || _shadowUnits != 0.0f;
 }
 
 
