@@ -56,7 +56,7 @@ function SkyRenderer:set_sky_constants()
 end
 
 
-function SkyRenderer:add_celestial(name, colors, angles, ambient_colors)
+function SkyRenderer:add_celestial(name, colors, angles, ambient_colors, depth_offsets)
    -- TODO: how do we support multiple (deferred) renderers here?
    local light_mat = h3dAddResource(H3DResTypes.Material, "materials/deferred_light.material.xml", 0)
    local new_celestial = {
@@ -65,7 +65,8 @@ function SkyRenderer:add_celestial(name, colors, angles, ambient_colors)
       colors = colors,
       ambient_colors = ambient_colors,
       angles = angles,
-      light_mat = light_mat
+      light_mat = light_mat,
+      depth_offsets = depth_offsets
    }
 
    h3dSetNodeTransform(new_celestial.node,  0, 0, 0, 0, 0, 0, 1, 1, 1)
@@ -138,6 +139,7 @@ function SkyRenderer:_update_light(seconds, light)
    local color = self:_find_value(seconds, light.colors)
    local ambient_color = self:_find_value(seconds, light.ambient_colors)
    local angles = self:_find_value(seconds, light.angles)
+   local depth_offset = self:_find_value(seconds, light.depth_offsets)
 
    last = seconds
    
@@ -150,6 +152,7 @@ function SkyRenderer:_update_light(seconds, light)
    else
       h3dSetNodeFlags(light.node, 0, false)      
    end
+   h3dSetNodeParamF(light.node, H3DLight.ShadowMapBiasF, 0, depth_offset.x)
 end
 
 function SkyRenderer:_find_value(time, data)
@@ -220,6 +223,14 @@ function SkyRenderer:_init_sun()
       night = Vec3(0.0, 0.0, 0.0)
    }
 
+   local depth_offset_values = {
+      sunrise_start = Vec3(0.001,0,0),
+      sunrise_end = Vec3(0.001,0,0),
+      midday = Vec3(0.001,0,0),
+      sunset_start = Vec3(0.001,0,0),
+      sunset_end = Vec3(0.001,0,0)
+   }
+
    local sun_colors = {
       -- night
       {self.timing.sunrise_start, colors.night},
@@ -266,7 +277,15 @@ function SkyRenderer:_init_sun()
       {self.timing.sunset_start, angles.sunset}
    }
 
-   self:add_celestial("sun", sun_colors, sun_angles, sun_ambient_colors)
+   local depth_offsets = {
+      {self.timing.sunrise_start, depth_offset_values.sunrise_start},
+      {self.timing.sunrise_end, depth_offset_values.sunrise_end},
+      {self.timing.midday, depth_offset_values.midday},
+      {self.timing.sunset_start, depth_offset_values.sunset_start},
+      {self.timing.sunset_end, depth_offset_values.sunset_end}
+   }
+
+   self:add_celestial("sun", sun_colors, sun_angles, sun_ambient_colors, depth_offsets)
 end
 
 
@@ -316,7 +335,12 @@ function SkyRenderer:_init_moon()
       {self.timing.day_length, angles.midnight}
    }
 
-   self:add_celestial("moon", moon_colors, moon_angles, moon_ambient_colors)
+   local depth_offsets = {
+      {self.timing.midnight, Vec3(0.001, 0, 0)},
+      {self.timing.day_length, Vec3(0.001, 0, 0)}
+   }
+
+   self:add_celestial("moon", moon_colors, moon_angles, moon_ambient_colors, depth_offsets)
 end
 
 function SkyRenderer:_light_color(light, r, g, b)

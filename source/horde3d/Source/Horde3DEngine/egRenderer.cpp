@@ -1063,10 +1063,43 @@ Matrix4f Renderer::calcCropMatrix( const Frustum &frustSlice, const Vec3f lightP
 }
 
 
-Matrix4f Renderer::calcDirectionalLightShadowProj( const Frustum &frustSlice, const Matrix4f& lightViewMat, const Matrix4f& camViewMat, const Matrix4f& camProjMat, Vec3f& lightMax )
+void Renderer::quantizeShadowFrustum(const Frustum& frustSlice, int shadowMapSize, Vec3f* min, Vec3f* max)
 {
+   // Adapted from Microsoft's Direct SDK Cascaded Shadows example.
+
+   // The basic idea here is to get a bound on the size of the frustum (which, in order for quantization
+   // to work, should be a constant).  Use this bound (plus a little border) to quantize the x-y min/max
+   // values of the frustum, thus resulting in a constant-sized frustum for the light (until the light
+   // moves, of course).
+
+   // The bound is the length of the diagonal of the frustum slice--a strict over-estimate.  The bound
+   // needs to be big enough to accommodate the maximum size of the frustum slice, which is the
+   // diagonal.
+   float sliceBound = (frustSlice.getCorner(0) - frustSlice.getCorner(6)).length();
+
+   // Compute a small border offset, based on the differences between the slice and the current bounds,
+   // and increase the shadow frustum, so that it's big enough to envelope the entire frustum slice.
+   Vec3f boarderOffset = (Vec3f(sliceBound , sliceBound , sliceBound ) - (*max - *min)) * 0.5f;
+   boarderOffset.z = 0;
+   *max += boarderOffset;
+   *min -= boarderOffset;
+
+   // The world units per texel are used to snap the shadow the orthographic projection
+   // to texel sized increments.  This keeps the edges of the shadows from shimmering.
+   float worldUnitsPerTexel = sliceBound  / shadowMapSize;
+   Vec3f quantizer(worldUnitsPerTexel, worldUnitsPerTexel, 0);
+   min->quantize(quantizer);
+   max->quantize(quantizer);
+}
+
+
+Matrix4f Renderer::calcDirectionalLightShadowProj(const BoundingBox& worldBounds, const Frustum& frustSlice, 
+                                                  const Matrix4f& lightViewMat, int numShadowMaps)
+{
+   int numShadowTiles = numShadowMaps > 1 ? 2 : 1;
+   int shadowMapSize = Modules::config().shadowMapSize / numShadowTiles;
    // Pull out the mins/maxes of the frustum's corners.  Those bounds become the new projection matrix
-   // for our directional light's frustum.
+   // for our directional light's frustum.  We only want to save the 'x' and 'y' values.
    Vec3f min, max;
    min = max = lightViewMat * frustSlice.getCorner(0);
    for (int i = 1; i < 8; i++)
@@ -1079,8 +1112,120 @@ Matrix4f Renderer::calcDirectionalLightShadowProj( const Frustum &frustSlice, co
       }
    }
 
-   return Matrix4f::OrthoMat(min.x, max.x, min.y, max.y, -lightMax.z, -min.z);
+   // We get the min and max z-values from the scene itself.
+   computeLightFrustumNearFar(worldBounds, lightViewMat, min, max, &min.z, &max.z);
+
+   // If desired, quantize the shadow frustum, in order to prevent swimming shadow textures.
+   quantizeShadowFrustum(frustSlice, shadowMapSize, &min, &max);
+
+   return Matrix4f::OrthoMat(min.x, max.x, min.y, max.y, -max.z, -min.z);
 }
+
+
+float isInFrustum(float val, float boundsVal, int side)
+{
+   if (side == 1)
+   {
+      return val >= boundsVal;
+   }
+
+   return val <= boundsVal;
+}
+
+
+float clipLineToAxis(float lineStart, float axisValue, float lDir)
+{
+   float v = (axisValue - lineStart);
+
+   if (fabs(lDir) < 0.00001)
+   {
+      return -1.0;
+   }
+   return v / lDir;
+}
+
+
+int clipPolyToAxis(Vec3f clippedVerts[], int numClippedVerts, float boundsVal, int valIdx, int sign)
+{
+   Vec3f tempClippedVerts[16];
+   int newNumClippedVerts = 0;
+   for (int vertNum = 0; vertNum < numClippedVerts; vertNum++)
+   {
+      Vec3f lStart = clippedVerts[vertNum];
+      Vec3f lEnd = clippedVerts[(vertNum + 1) % 4];
+      Vec3f dir = (lEnd - lStart);
+
+      if (isInFrustum(lStart[valIdx], boundsVal, sign))
+      {
+         tempClippedVerts[newNumClippedVerts++] = lStart;
+      }
+   
+      float t = clipLineToAxis(lStart[valIdx], boundsVal, dir[valIdx]);
+      if (t > 0 && t < 1)
+      {
+         tempClippedVerts[newNumClippedVerts++] = lStart + (dir * t);
+      }
+   }
+   for (int vertNum = 0; vertNum < newNumClippedVerts; vertNum++)
+   {
+      clippedVerts[vertNum] = tempClippedVerts[vertNum];
+   }
+
+   return newNumClippedVerts;
+}
+
+
+void Renderer::computeLightFrustumNearFar(const BoundingBox& worldBounds, const Matrix4f& lightViewMat, const Vec3f& lightMin, const Vec3f& lightMax, float* nearV, float* farV)
+{
+   // In brief: we construct 6 quads, one for each of the sides of the bounding box of the entire world/scene, and then
+   // clip each one successively against the side of the light's frustum (ignoring front/back clipping).
+   // Find the min/max 'z' values between all the resulting polygons: those values are our min/max values for the
+   // light frustum.  Note: do it all in light-space, which makes the clipping very simple.
+
+   Vec3f startingVerts[8];
+   Vec3f clippedVerts[16];
+   const int quadIndices[] = {
+      0,1,2,3,
+      1,2,6,5,
+      5,6,7,4,
+      4,7,3,0,
+      6,2,3,7,
+      5,4,0,1
+   };
+
+   for (int i = 0; i < 8; i++)
+   {
+      startingVerts[i]  = lightViewMat * worldBounds.getCorner(i);
+   }
+
+   // Construct six quads from the transformed bounds, and clip them against the light's frustum
+   // (just top/bottom, left/right).
+   *nearV = 1000000.0f;
+   *farV = -1000000.0f;
+   for (int quadNum = 0; quadNum < 6; quadNum++)
+   {
+      // Load up the quad.
+      int numClippedVerts = 4;
+      for (int i = 0; i < 4; i++)
+      {
+         clippedVerts[i] = startingVerts[quadIndices[quadNum * 4 + i]];
+      }
+
+      // Clip the quad successively against each frustum bound.
+      numClippedVerts = clipPolyToAxis(clippedVerts, numClippedVerts, lightMin.x, 0, 1);
+      numClippedVerts = clipPolyToAxis(clippedVerts, numClippedVerts, lightMax.y, 1, -1);
+      numClippedVerts = clipPolyToAxis(clippedVerts, numClippedVerts, lightMax.x, 0, -1);
+      numClippedVerts = clipPolyToAxis(clippedVerts, numClippedVerts, lightMin.y, 1, 1);
+
+      // Take the resulting quad and extract min/maxes from it.
+      for (int vertNum = 0; vertNum < numClippedVerts; vertNum++)
+      {
+         *nearV = std::min(*nearV, clippedVerts[vertNum].z);
+         *farV = std::max(*farV, clippedVerts[vertNum].z);
+      }
+   }
+}
+
 
 void Renderer::updateShadowMap()
 {
@@ -1107,9 +1252,18 @@ void Renderer::updateShadowMap()
    std::ostringstream reason;
    reason << "update shadowmap for light " << _curLight->getName();
 
-   // If we're a directional light, then we necessarily cover the entire AABB of the geometry that's
-   // visible to the camera, so don't bother including that frustum in the culling.
-   const Frustum *lightFrus = _curLight->_directional ? 0x0 : &_curLight->getFrustum();
+   // If we're a directional light, then we necessarily cover the entire AABB of the scene, 
+   // so get the bounding box of everything.  I wonder how expensive this is?
+   const Frustum *lightFrus;
+   if (_curLight->_directional)
+   {
+      Frustum bigFrust;
+      bigFrust.buildBoxFrustum(Matrix4f(), -10000, 10000, -10000, 10000, 10000, -10000);
+      lightFrus = &bigFrust;
+   } else {
+      lightFrus = &_curLight->getFrustum();
+   }
+
 	Modules::sceneMan().updateQueues(reason.str().c_str(), _curCamera->getFrustum(), lightFrus,
 		RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
 	for( size_t j = 0, s = Modules::sceneMan().getRenderableQueue().size(); j < s; ++j )
@@ -1131,11 +1285,15 @@ void Renderer::updateShadowMap()
 	// shouldn't be too noticeable and brings better performance since the nearer split volumes are empty
 	minDist = _curCamera->_frustNear;
 	
-	// Calculate split distances using PSSM scheme
-	const float nearDist = maxf( minDist, _curCamera->_frustNear );
-	const float farDist = maxf( maxDist, minDist + 0.01f );
-	const uint32 numMaps = _curLight->_shadowMapCount;
-	const float lambda = _curLight->_shadowSplitLambda;
+   // Calculate split distances using PSSM scheme
+   // Uncomment for adaptive frustum (which renders shadow frustum quantization impossible, but results
+   // in a much better usage of shadow map texels).
+   // const float nearDist = maxf( minDist, _curCamera->_frustNear );
+   // const float farDist = maxf( maxDist, minDist + 0.01f );
+   const float nearDist = _curCamera->_frustNear;
+   const float farDist = _curCamera->_frustFar;
+   const uint32 numMaps = _curLight->_shadowMapCount;
+   const float lambda = _curLight->_shadowSplitLambda;
 	
 	_splitPlanes[0] = nearDist;
 	_splitPlanes[numMaps] = farDist;
@@ -1151,8 +1309,8 @@ void Renderer::updateShadowMap()
 	
 	// Prepare shadow map rendering
 	glEnable( GL_DEPTH_TEST );
+   gRDI->setShadowOffsets(1.0f, 3.0f);
 	//glCullFace( GL_FRONT );	// Front face culling reduces artefacts but produces more "peter-panning"
-	
 	// Split viewing frustum into slices and render shadow maps
 	Frustum frustum;
 	for( uint32 i = 0; i < numMaps; ++i )
@@ -1197,22 +1355,18 @@ void Renderer::updateShadowMap()
 
          Vec3f min, max;
          min = max = lightViewMat * aabb.getCorner(0);
-	      for( uint32 i = 1; i < 8; ++i ) {
-            Vec3f pt = lightViewMat * aabb.getCorner(i);
+	      for( uint32 k = 1; k < 8; ++k ) {
+            Vec3f pt = lightViewMat * aabb.getCorner(k);
             for (int j = 0; j < 3; j++) {
                min[j] = std::min(min[j], pt[j]);
                max[j] = std::max(max[j], pt[j]);
             }
 	      }
 
-         // Quantize the light's AABB so that our shadows don't swim when we make small
-         // camera movements.
-         min.quantize(-10);
-         max.quantize(10);
-
-         lightProjMat = calcDirectionalLightShadowProj(frustum, lightViewMat, _curCamera->getViewMat(), _curCamera->getProjMat(), max);
+         lightProjMat = calcDirectionalLightShadowProj(aabb, frustum, lightViewMat, numMaps);
 
          gRDI->_frameDebugInfo.addDirectionalLightAABB_(aabb);
+
       }
 	
 		// Generate render queue with shadow casters for current slice
@@ -1267,7 +1421,8 @@ void Renderer::updateShadowMap()
 
 	glCullFace( GL_BACK );
 	glDisable( GL_SCISSOR_TEST );
-		
+
+   gRDI->setShadowOffsets(0.0f, 0.0f);
 	gRDI->setViewport( prevVPX, prevVPY, prevVPWidth, prevVPHeight );
 	gRDI->setRenderBuffer( prevRendBuf );
 	glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
@@ -2123,8 +2278,11 @@ void Renderer::drawVoxelMeshes(const std::string &shaderContext, const std::stri
 		if( queryObj )
 			gRDI->beginQuery( queryObj );
 		
+      // Shadow offsets will always win against the custom model offsets (which we don't care about
+      // during a shadow pass.)
       float offset_x, offset_y;
-      if (modelNode->getPolygonOffset(offset_x, offset_y)) {
+      if (gRDI->getShadowOffsets(&offset_x, &offset_y) || modelNode->getPolygonOffset(offset_x, offset_y))
+      {
          glEnable(GL_POLYGON_OFFSET_FILL);
          glPolygonOffset(offset_x, offset_y);
       } else {
