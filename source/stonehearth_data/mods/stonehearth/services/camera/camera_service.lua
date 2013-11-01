@@ -4,7 +4,7 @@ local Ray = _radiant.csg.Ray3
 
 local gutter_size = 60
 local scroll_speed = 1
-local smoothness = 13.0
+local smoothness = 0.3
 local min_height = 10
 
 local CameraService = class()
@@ -34,7 +34,7 @@ function CameraService:__init()
   self._input_capture = _radiant.client.capture_input()
   self._frame_trace = _radiant.client.trace_render_frame()
 
-  self._frame_trace:on_frame_start('update camera', function(frame_time)
+  self._frame_trace:on_frame_start('update camera', function(now, frame_time)
       self:_update_camera(frame_time)
       return true
     end)
