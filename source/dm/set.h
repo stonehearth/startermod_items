@@ -136,12 +136,20 @@ public:
 
       void OnChange(const T& value) {
          for (auto& cb : changedCbs_) {
-            luabind::call_function<void>(cb, value);
+            try {
+               luabind::call_function<void>(cb, value);
+            } catch (std::exception const& e) {
+               LOG(WARNING) << "lua error firing trace: " << e.what();
+            }
          }
       }
       void OnRemove(const T& value)  {
          for (auto& cb : removedCbs_) {
-            luabind::call_function<void>(cb, value);
+            try {
+               luabind::call_function<void>(cb, value);
+            } catch (std::exception const& e) {
+               LOG(WARNING) << "lua error firing trace: " << e.what();
+            }
          }
       }
 

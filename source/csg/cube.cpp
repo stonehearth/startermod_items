@@ -240,12 +240,6 @@ void Cube<S, C>::Grow(const Point& pt)
    }
 }
 
-template <class S, int C>
-Cube<S, C> Cube<S, C>::ProjectOnto(int axis, S plane) const
-{
-   return Cube(min.ProjectOnto(axis, plane), max.ProjectOnto(axis, plane + 1), tag_);
-}
-
 template <int C>
 Cube<float, C> csg::ToFloat(Cube<int, C> const& cube) {
    return Cube<float, C>(ToFloat(cube.min), ToFloat(cube.max), cube.GetTag());
@@ -282,7 +276,6 @@ Cube<int, C> const& csg::ToInt(Cube<int, C> const& cube) {
    template bool Cls::Contains(const Cls::Point& other) const; \
    template Cls::Point Cls::GetClosestPoint2(const Cls::Point& other, Cls::ScalarType*) const; \
    template void Cls::Grow(const Cls::Point& other); \
-   template Cls Cls::ProjectOnto(int axis, Cls::ScalarType plane) const; \
 
 MAKE_CUBE(Cube3)
 MAKE_CUBE(Cube3f)

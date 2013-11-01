@@ -82,7 +82,11 @@ public:
             // xxx: see bug SH-7.  this is a temporary work around
             auto callbacks = changedCbs_;
             for (auto& cb : callbacks) {
-               luabind::call_function<void>(cb);
+               try {
+                  luabind::call_function<void>(cb);
+               } catch (std::exception const& e) {
+                  LOG(WARNING) << "lua error firing trace: " << e.what();
+               }
             }
          });
       }

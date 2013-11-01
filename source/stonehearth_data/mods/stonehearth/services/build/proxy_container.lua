@@ -1,10 +1,11 @@
 local Proxy = require 'services.build.proxy'
 local ProxyContainer = class(Proxy)
+local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 
 function ProxyContainer:__init(parent_proxy)
    self[Proxy]:__init(self, parent_proxy, nil, nil)
-   self._rgn = _radiant.client.alloc_region()
+   self._rgn2 = _radiant.client.alloc_region2()
 
    self._all_children = {}
    self:_trace_all_children(self:get_entity())
@@ -19,7 +20,7 @@ function ProxyContainer:_trace_all_children(entity)
    local ec = entity:get_component('entity_container')
    if ec then
       for id, child in ec:get_children():items() do
-         self:_trace_all_children(entity)
+         self:_trace_all_children(child)
       end
    end   
 end
@@ -79,28 +80,52 @@ function ProxyContainer:_add_child(id, entity)
 end
 
 function ProxyContainer:_remove_child(id)
-   self:_remove_all_children(entity)
+   self:_remove_all_children(id)
    self:_rebuild_zone()
 end
 
-function ProxyContainer:_rebuild_zone()
-   local grow_size = Point3(2, 0, 2)
-   local origin = self:get_entity():get_component('mob'):get_world_grid_location()
+function ProxyContainer:_add_nobuild_zone(entity, origin, cursor)
+   local fabinfo = entity:get_component_data('stonehearth:construction_data')
+   if fabinfo then
+      local offset = entity:get_component('mob'):get_world_grid_location() - origin
+      local region = entity:get_component('destination'):get_region():get()
 
-   local cursor = self._rgn:modify()
-   cursor:clear()
-   
-   for id, info in pairs(self._all_children) do
-      if info.entity then
-         local fi = radiant.entities.get_entity_data(info.entity, 'stonehearth:fabricator_info')
-         if fi then
-            local offset = info.entity:get_component('mob'):get_world_grid_location()
-            local br = info.entity:get_component('destination'):get_region():get()
-            cursor:add_region(br:translated(offset - origin):inflated(grow_size));
+      offset = Point2(offset.x, offset.z)
+      region = region:project_onto_xz_plane()
+      
+      cursor:add_region(region:translated(offset))
+      if fabinfo.normal then
+         local normal = Point2(fabinfo.normal.x, fabinfo.normal.z)         
+         cursor:add_region(region:translated(offset + normal))
+         if fabinfo.needs_scaffolding then
+            cursor:add_region(region:translated(offset + normal:scaled(2)))
          end
       end
+      if fabinfo.connected_to then
+         local grow_size = Point2(1, 1)
+         local zone_offset = Point2(0, 0)
+         for _, obj in ipairs(fabinfo.connected_to) do
+            local oci = obj:get_component_data('stonehearth:construction_data')
+            if oci and oci.normal then
+               if zone_offset.x == 0 then zone_offset.x = oci.normal.x end
+               if zone_offset.y == 0 then zone_offset.y = oci.normal.z end
+            end
+         end
+         cursor:add_region(region:translated(offset + zone_offset):inflated(grow_size))
+      end
    end
-   self:get_entity():set_component_data('stonehearth:no_construction_zone', { region = self._rgn })
+end
+
+function ProxyContainer:_rebuild_zone()
+   local origin = self:get_entity():get_component('mob'):get_world_grid_location()
+   local cursor = self._rgn2:modify()
+   cursor:clear()   
+   for id, info in pairs(self._all_children) do
+      if info.entity then
+         self:_add_nobuild_zone(info.entity, origin, cursor)
+      end
+   end
+   self:get_entity():set_component_data('stonehearth:no_construction_zone', { region2 = self._rgn2 })
 end
 
 return ProxyContainer

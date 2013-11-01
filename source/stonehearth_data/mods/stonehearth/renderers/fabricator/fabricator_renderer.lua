@@ -1,9 +1,9 @@
+local voxel_brush_util = require 'services.build.voxel_brush_util'
 local Point3 = _radiant.csg.Point3
-
 local FabricatorRenderer = class()
 
 function FabricatorRenderer:__init(render_entity, data_store)
-   self._node = render_entity:get_node()
+   self._parent_node = render_entity:get_node()
    self._entity = render_entity:get_entity()
 
    self._data = data_store:get_data()
@@ -25,55 +25,16 @@ function FabricatorRenderer:__init(render_entity, data_store)
 end
 
 function FabricatorRenderer:_update()
-   if self._model_node then
-      self._model_node:destroy()
-      self._model_node = nil
-   end
-   if self._model_outline_node then
-      self._model_outline_node:destroy()
-      self._model_outline_node = nil
+   if self._node then
+      self._node:destroy()
+      self._node = nil
    end
 
-
-   local entity = self._data.blueprint
-   self._info = radiant.entities.get_entity_data(entity, 'stonehearth:voxel_brush_info')
-
-   -- start common function
+   local blueprint = self._data.blueprint
+   local construction_data = blueprint:get_component_data('stonehearth:construction_data')
    local region = self._destination:get_region()
-   if region and region:get() then
-      local brush = _radiant.voxel.create_brush(self._info.brush)
-      local meshing_mode = ''
-          
-      if self._info.info_component then
-         local render_data = entity:get_component_data(self._info.info_component)
-         if render_data then
-            if render_data.normal then
-               local normal = Point3(render_data.normal.x, render_data.normal.y, render_data.normal.z)
-               brush:set_normal(normal)
-            end
-            if render_data.paint_mode == 'blueprint' then
-               meshing_mode = 'blueprint'
-               brush:set_paint_mode(_radiant.voxel.QubicleBrush.Opaque)
-            end            
-         end
-      end
-      
-      local material = ''
-      local render_info = self._entity:get_component('render_info') -- YES.  self._entity!!
-      if render_info then
-         material = render_info:get_material()
-      end
 
-      local stencil = region:get()
-      local model = brush:paint_through_stencil(stencil)
-      self._model_node = _radiant.client.create_blueprint_node(self._node, model, material)
-      --[[
-      if meshing_mode == 'blueprint' then
-         self._model_outline_node = _radiant.client.create_voxel_render_node(self._node, model, 'blueprint', material)
-      end
-      self._model_node = _radiant.client.create_voxel_render_node(self._node, model, '', material)
-      ]]
-   end
+   self._node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, construction_data, 'blueprint')
 end
 
 function FabricatorRenderer:destroy()

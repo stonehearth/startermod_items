@@ -19,6 +19,14 @@ static const struct {
    { 0, 2, 1, LEFT_MASK,   csg::Point3f( 1,  0,  0) },
 };
 
+QubicleBrush::QubicleBrush() :
+   normal_(0, 0, -1),
+   qubicle_matrix_(nullptr),
+   paint_mode_(Color),
+   preserve_matrix_origin_(false)
+{
+}
+
 QubicleBrush::QubicleBrush(std::istream& in) :
    normal_(0, 0, -1),
    paint_mode_(Color),
@@ -31,6 +39,7 @@ QubicleBrush::QubicleBrush(std::istream& in) :
 QubicleBrush::QubicleBrush(QubicleMatrix const* m) :
    normal_(0, 0, -1),
    qubicle_matrix_(m),
+   paint_mode_(Color),
    preserve_matrix_origin_(false)
 {
 }
@@ -53,7 +62,7 @@ QubicleBrush& QubicleBrush::SetPreserveMatrixOrigin(bool value)
    return *this;
 }
 
-csg::Region3 QubicleBrush::Paint()
+csg::Region3 QubicleBrush::PaintOnce()
 {
    return PreparePaintBrush();
 }
@@ -66,6 +75,9 @@ csg::Region3 QubicleBrush::PaintThroughStencil(csg::Region3 const& stencil)
 
 csg::Region3 QubicleBrush::PreparePaintBrush()
 {
+   if (!qubicle_matrix_) {
+      throw std::logic_error("could not find qubicle matrix for voxel brush");
+   }
    csg::Region3 brush = MatrixToRegion3(*qubicle_matrix_);
 
    // rotate if necessary...
@@ -98,14 +110,15 @@ csg::Region3 QubicleBrush::IterateThroughStencil(csg::Region3 const& brush,
       min[i] = csg::GetTileOffset(dist_to_min_edge, brush_size[i]);
 
       // and how far over?
-      int dist_to_max_edge = std::max(stencil_max[i] - brush_max[i], 0);
+      int start_pos = min[i] * brush_size[i];
+      int dist_to_max_edge = std::max(stencil_max[i] - start_pos, 0);
       max[i] = csg::GetTileOffset(dist_to_max_edge, brush_size[i]) + 1;
    }
 
    // Now iterate and draw the brush
    for (csg::Point3 i : csg::Cube3(min, max)) {
       csg::Point3 offset = i * brush_size;
-      csg::Region3 stamped = brush.Translated(i) & stencil;
+      csg::Region3 stamped = brush.Translated(offset) & stencil;
       model.AddUnique(stamped);
    }
    return model;

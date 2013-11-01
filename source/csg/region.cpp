@@ -217,11 +217,6 @@ void Region<S, C>::Subtract(const Region& r)
 }
 
 template <class S, int C>
-void Region<S, C>::ClipTo(const Region& r)
-{
-}
-
-template <class S, int C>
 const Region<S, C>& Region<S, C>::operator+=(const Region& r)
 {
    for (const auto &rc : r) {
@@ -297,17 +292,6 @@ Cube<S, C> Region<S, C>::GetBounds() const
       bounds.Grow(cubes_[i].GetMax());
    }
    return bounds;
-}
-
-template <class S, int C>
-Region<S, C> Region<S, C>::ProjectOnto(int axis, S plane) const
-{
-   Region result;
-
-   for (const auto &c : cubes_) {
-      result.Add(c.ProjectOnto(axis, plane));
-   }
-   return result;
 }
 
 template <class S, int C>
@@ -412,7 +396,6 @@ Region<int, C> const& csg::ToInt(Region<int, C> const& region) {
    template Cls::Point Cls::GetClosestPoint2(const Cls::Point&, Cls::ScalarType*) const; \
    template void Cls::Optimize(); \
    template Cls::Cube Cls::GetBounds() const; \
-   template Cls Cls::ProjectOnto(int axis, Cls::ScalarType plane) const; \
    template void Cls::Translate(const Cls::Point& pt); \
    template Cls Cls::Translated(const Cls::Point& pt) const; \
    template Cls Cls::Inflated(const Cls::Point& pt) const; \

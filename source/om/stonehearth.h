@@ -21,6 +21,7 @@ public:
    static void InitEntity(om::EntityPtr entity, std::string const& uri, lua_State* L);
    static luabind::object AddComponent(lua_State* L, om::EntityRef e, std::string name);
    static luabind::object GetComponent(lua_State* L, om::EntityRef e, std::string name);
+   static luabind::object AddComponentData(lua_State* L, om::EntityRef e, std::string name);
    static luabind::object GetComponentData(lua_State* L, om::EntityRef e, std::string name);
    static void SetComponentData(lua_State* L, om::EntityRef e, std::string name, luabind::object data);
 
