@@ -286,11 +286,22 @@ public:
 		return Vec3f( x + (v.x - x) * f, y + (v.y - y) * f, z + (v.z - z) * f ); 
 	}
 
-   void quantize(int factor)
+   void quantize(const Vec3f& value)
    {
-      x = (float)(((int)x / factor) * factor) + factor;
-      y = (float)(((int)y / factor) * factor) + factor;
-      z = (float)(((int)z / factor) * factor) + factor;
+      x = quantizeValue_(x, value.x);
+      y = quantizeValue_(y, value.y);
+      z = quantizeValue_(z, value.z);
+   }
+
+private:
+   float quantizeValue_(float v, float q)
+   {
+      if (q != 0.0f)
+      {
+         v /= q;
+         v = std::floorf(v) * q;
+      }
+      return v;
    }
 };
 
