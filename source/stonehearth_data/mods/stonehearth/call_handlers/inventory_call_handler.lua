@@ -65,8 +65,8 @@ end
 -- runs on the server!
 function InventoryCallHandler:create_stockpile(session, response, location, size)
    local inventory = radiant.mods.load('stonehearth').inventory:get_inventory(session.faction)
-   inventory:create_stockpile(location, size)
-   return true
+   local stockpile = inventory:create_stockpile(location, size)
+   return { stockpile = stockpile }
 end
 
 return InventoryCallHandler

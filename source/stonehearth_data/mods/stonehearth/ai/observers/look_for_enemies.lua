@@ -1,6 +1,5 @@
 local LookForEnemies = class()
 
-LookForEnemies.name = 'stonehearth:actions:chase'
 LookForEnemies.does = 'stonehearth:top'
 LookForEnemies.priority = 0
 

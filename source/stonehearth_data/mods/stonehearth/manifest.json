@@ -125,6 +125,10 @@
 
          "ball" : "file(entities/toys/ball)",
 
+         "buffs:groggy" : "file(data/buffs/groggy/groggy_buff.json)",
+         "buffs:carrying" : "file(data/buffs/carrying/carrying_buff.json)",
+         "buffs:sleeping" : "file(data/buffs/sleeping/sleeping_buff.json)",
+
          "actions:attack_action" : "file(ai/actions/combat/attack_action.lua)",
          "actions:attack_top_aggro_action" : "file(ai/actions/combat/attack_top_aggro_action.lua)",
          "actions:attack_closest_enemy" : "file(ai/actions/combat/attack_closest_enemy_action.lua)",
@@ -141,8 +145,9 @@
          "actions:idle_breathe_action" : "file(ai/actions/idle_breathe_action.lua)",
          "actions:idle_bored_action" : "file(ai/actions/idle_bored_action.lua)",
          "actions:sleep_action" : "file(ai/actions/sleep_action.lua)",
-         "actions:death_action" : "file(ai/actions/death_action.lua)",
          "actions:sleep_in_bed_action" : "file(ai/actions/sleep_in_bed_action.lua)",
+         "actions:sleep_on_ground_action" : "file(ai/actions/sleep_on_ground_action.lua)",
+         "actions:death_action" : "file(ai/actions/death_action.lua)",
          "actions:drop_carrying_action" : "file(ai/actions/drop_carrying_action.lua)",
          "actions:drop_carrying_in_entity" : "file(ai/actions/drop_carrying_in_entity.lua)",
          "actions:follow_leash" : "file(ai/actions/follow_leash_action.lua)",
@@ -168,6 +173,7 @@
          "actions:play_with_ball_action" : "file(ai/actions/play_with_ball_action.lua)",
          "actions:fabricate" : "file(ai/actions/fabricate_action.lua)",
          "observers:look_for_enemies" : "file(ai/observers/look_for_enemies.lua)",
+         "observers:sleep" : "file(ai/observers/sleep_observer.lua)",
 
          "class_info" : "file(entities/class_info)",
 
@@ -192,10 +198,6 @@
          },
          "destroy_entity": {
             "controller" : "file(call_handlers/entities_call_handler.lua)",
-            "endpoint" : "server"
-         },
-         "get_events": {
-            "controller" : "file(call_handlers/event_call_handler.lua)",
             "endpoint" : "server"
          },
          "get_clock_object": {
@@ -234,6 +236,10 @@
             "endpoint" : "server",
             "controller" : "file(call_handlers/object_tracker_call_handler.lua)"
          },
+         "get_event_tracker": {
+            "controller" : "file(call_handlers/event_call_handler.lua)",
+            "endpoint" : "server"
+         },         
          "grab_promotion_talisman" : {
             "endpoint" : "server",
             "controller" : "file(call_handlers/profession_call_handler.lua)"
@@ -302,6 +308,8 @@
       "leash"  : "file(components/leash/leash_component.lua)",
       "equipment" : "file(components/equipment/equipment_component.lua)",
       "equipment_piece" : "file(components/equipment_piece/equipment_piece_component.lua)",
+      "attributes" : "file(components/attributes/attributes_component.lua)",
+      "buffs" : "file(components/buffs/buffs_component.lua)",
       "city_plan" : "file(components/city_plan/city_plan_component.lua)",
       "fabricator" : "file(components/fabricator/fabricator_component.lua)",
       "scaffolding" : "file(components/scaffolding/scaffolding_component.lua)",

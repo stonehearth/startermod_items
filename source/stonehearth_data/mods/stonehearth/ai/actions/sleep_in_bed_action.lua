@@ -27,11 +27,10 @@ function SleepInBedAction:run(ai, entity, bed, path)
 
    -- If the bed moves or is destroyed between now and before the sleeper wakes up, just
    -- go ahead and abort.
-   -- TODO: right now, moving destroys, instead of actually moving the instance, fix
-   -- appear/disappear bug
    self._bed_moved_promise = radiant.entities.on_entity_moved(bed, function()
       ai:abort()
    end);
+
    radiant.entities.on_destroy(bed, function()
       self._bed = nil
       local bed_lease = self._entity:get_component('stonehearth:bed_lease')
@@ -59,6 +58,7 @@ function SleepInBedAction:run(ai, entity, bed, path)
 
    -- goto sleep
    ai:execute('stonehearth:run_effect', 'goto_sleep')
+   radiant.entities.add_buff(self._entity, 'stonehearth:buffs:sleeping');
    ai:execute('stonehearth:run_effect', 'sleep')
 end
 
@@ -67,8 +67,7 @@ function SleepInBedAction:stop()
       self._bed_moved_promise:destroy()
       self._bed_moved_promise = nil
    end
-   --Sleeping seems to make us 1 higher than we should be
-   
+   radiant.entities.remove_buff(self._entity, 'stonehearth:buffs:sleeping');
 end
 
 return SleepInBedAction
