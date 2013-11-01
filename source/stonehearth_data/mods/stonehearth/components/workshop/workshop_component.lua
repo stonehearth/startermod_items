@@ -10,6 +10,7 @@
 local Point3 = _radiant.csg.Point3
 local CraftOrder = require 'components.workshop.craft_order'
 local CraftOrderList = require 'components.workshop.craft_order_list'
+local Analytics = require 'services.analytics.analytics_service'
 
 local WorkshopComponent = class()
 
@@ -376,9 +377,7 @@ function WorkshopComponent:_produce_outputs()
       result:add_component('mob'):set_location_grid_aligned(Point3(0, 1, 0))
       table.insert(self._bench_outputs, result)
 
-      --TODO: add in the name of the crafter class doing this work
-      local result_name = result:get_component('unit_info'):get_display_name()
-      _radiant.analytics.DesignEvent('game:craft:crafter:' .. result_name)
+      Analytics:send_design_event('game:craft', self._entity, result)
    end
 end
 

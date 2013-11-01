@@ -1,3 +1,5 @@
+local Analytics = require 'services.analytics.analytics_service'
+
 local ChaseTarget = class()
 
 ChaseTarget.name = 'chase target'
@@ -17,8 +19,8 @@ function ChaseTarget:run(ai, entity, target, effect_name)
    assert(target)
    ai:execute('stonehearth:run_towards_entity', target, effect_name)
 
-   _radiant.analytics.DesignEvent('game:chase:' .. entity_name .. ':' .. target_name)
-
+   --TODO: move to a death event, if such occurs.
+   --Analytics:send_design_event('game:craft', entity, target)
 end
 
 return ChaseTarget

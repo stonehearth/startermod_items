@@ -60,9 +60,6 @@ function SleepInBedAction:run(ai, entity, bed, path)
    -- goto sleep
    ai:execute('stonehearth:run_effect', 'goto_sleep')
    ai:execute('stonehearth:run_effect', 'sleep')
-
-   --TODO: add profession/description to unit info
-   _radiant.analytics.DesignEvent('game:sleep:person:bed')
 end
 
 function SleepInBedAction:stop()

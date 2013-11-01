@@ -177,9 +177,6 @@ function AdmireFire:run(ai, entity)
 
    radiant.entities.turn_to_face(self._entity, spot_component:get_center_of_attention())
 
-   --TODO: add class type to unit info
-   _radiant.analytics.DesignEvent('game:idle:person:admire_firepit')
-
    self:_do_random_actions(ai)
 
 end
