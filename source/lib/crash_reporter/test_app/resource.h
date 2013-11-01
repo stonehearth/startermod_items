@@ -49,8 +49,8 @@
 #define IDI_SMALL                       108
 #define IDC_CRASHGENERATIONAPP          109
 #define IDR_MAINFRAME                   128
-#define ID_SERVER_START                 32771
-#define ID_SERVER_STOP                  32772
+#define ID_SERVER_START_IN_PROCESS      32771
+#define ID_SERVER_STOP_IN_PROCESS       32772
 #define ID_CLIENT_INVALIDPARAM          32773
 #define ID_CLIENT_ASSERTFAILURE         32774
 #define ID_CLIENT_DEREFZERO             32775

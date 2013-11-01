@@ -381,10 +381,10 @@ LRESULT CALLBACK WndProc(HWND wnd,
         case IDM_EXIT:
           DestroyWindow(wnd);
           break;
-        case ID_SERVER_START:
+        case ID_SERVER_START_IN_PROCESS:
           CrashServerStart();
           break;
-        case ID_SERVER_STOP:
+        case ID_SERVER_STOP_IN_PROCESS:
           CrashServerStop();
           break;
         case ID_CLIENT_DEREFZERO:
@@ -468,8 +468,6 @@ INT_PTR CALLBACK About(HWND dlg,
 
 using namespace google_breakpad;
 
-static PROCESS_INFORMATION crash_reporter_process_info = {};
-
 static std::wstring GeneratePipeName() {
    GUID guid;
    UuidCreate(&guid);
@@ -478,14 +476,16 @@ static std::wstring GeneratePipeName() {
    return pipe_name;
 }
 
+// Starts an out of process crash generation server
 void StartCrashReporter(std::wstring const& pipe_name, std::wstring const& dump_path) {
-   bool result;
+   int result;
    STARTUPINFO si = {};
+   PROCESS_INFORMATION pi = {};
 
    std::wstring const& exe_name = L"crash_reporter.exe";
    std::wstring command_line = exe_name + L" " + pipe_name + L" " + dump_path;
 
-   result = CreateProcess(NULL, &command_line[0], NULL, NULL, FALSE, 0, NULL, NULL, &si, &crash_reporter_process_info);
+   result = CreateProcess(NULL, &command_line[0], NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
    if (!result) {
       MessageBoxW(NULL, L"crash_reporter failed to start", L"Dumper", MB_OK);
    }
@@ -504,7 +504,7 @@ int APIENTRY _tWinMain(HINSTANCE instance,
 
   CustomClientInfo custom_info = {kCustomInfoEntries, kCustomInfoCount};
 
-  //CrashServerStart(); // CHECKCHECK
+  //CrashServerStart(); // use out of process server below instead
   std::wstring const& pipe_name = GeneratePipeName();
   std::wstring const& dump_path = L"D:\\dumps\\server";
   StartCrashReporter(pipe_name, dump_path);

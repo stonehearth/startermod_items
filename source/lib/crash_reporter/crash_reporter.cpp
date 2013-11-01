@@ -11,7 +11,7 @@
 
 using namespace google_breakpad;
 
-int const main_thread_id = GetCurrentThreadId();
+static int const main_thread_id = GetCurrentThreadId();
 static std::unique_ptr<CrashGenerationServer> crash_server;
 
 static void RequestApplicationExit() {
@@ -39,8 +39,7 @@ static void _cdecl OnClientExited(void* context, const ClientInfo* client_info)
    RequestApplicationExit();
 }
 
-// CHECKCHECK - change path to file_name
-bool CrashServerStart(std::wstring const& pipe_name, std::wstring const& dump_path)
+static bool CrashServerStart(std::wstring const& pipe_name, std::wstring const& dump_path)
 {
    crash_server.reset(new CrashGenerationServer(pipe_name,
                                                 nullptr,
@@ -58,7 +57,7 @@ bool CrashServerStart(std::wstring const& pipe_name, std::wstring const& dump_pa
    return crash_server->Start();
 }
 
-void GetParameters(std::wstring& pipe_name, std::wstring& dump_path)
+static void GetParameters(std::wstring& pipe_name, std::wstring& dump_path)
 {
    LPWSTR *args;
    int num_args;
@@ -75,7 +74,7 @@ void GetParameters(std::wstring& pipe_name, std::wstring& dump_path)
    }
 }
 
-bool InitializeServer()
+static bool InitializeServer()
 {
    std::wstring pipe_name, dump_path;
 

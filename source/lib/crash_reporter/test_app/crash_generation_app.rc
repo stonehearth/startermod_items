@@ -44,11 +44,12 @@ BEGIN
     BEGIN
         MENUITEM "E&xit",                       IDM_EXIT
     END
-    POPUP "&Server"
-    BEGIN
-        MENUITEM "&Start",                      ID_SERVER_START
-        MENUITEM "S&top",                       ID_SERVER_STOP
-    END
+    // Disable - using out-of-process server
+    //POPUP "&Server"
+    //BEGIN
+    //    MENUITEM "Start in-process server",     ID_SERVER_START_IN_PROCESS
+    //    MENUITEM "Stop in-process server",      ID_SERVER_STOP_IN_PROCESS
+    //END
     POPUP "&Client"
     BEGIN
         MENUITEM "&Deref Zero",                 ID_CLIENT_DEREFZERO

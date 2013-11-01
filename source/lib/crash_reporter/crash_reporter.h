@@ -3,6 +3,4 @@
 
 #include "resource.h"
 
-extern int const main_thread_id;
-
 #endif // _RADIANT_LIB_CRASH_REPORTER_CRASH_REPORTER_H
