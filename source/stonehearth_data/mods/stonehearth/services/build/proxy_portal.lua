@@ -5,12 +5,13 @@ local Point3 = _radiant.csg.Point3
 local Region2 = _radiant.csg.Region2
 
 function ProxyPortal:__init(parent_proxy, arg1)
-   local component_name = 'stonehearth:portal'
-   self[Proxy]:__init(self, parent_proxy, arg1, component_name)
+   self[Proxy]:__init(self, parent_proxy, arg1)
 
-   local data = self:get_entity():get_component_data(component_name)
-   self._cutter_rgn = Region2()
-   self._cutter_rgn:load(data.cutter)
+   local data = self:get_entity():get_component_data('stonehearth:portal')
+   if data and data.cutter then
+      self._cutter_rgn = Region2()
+      self._cutter_rgn:load(data.cutter)
+   end
 end
 
 function ProxyPortal:get_cutter()

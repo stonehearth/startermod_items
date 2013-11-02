@@ -1,12 +1,14 @@
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Color3 = _radiant.csg.Color3
+local Rect2 = _radiant.csg.Rect2
+local Point2 = _radiant.csg.Point2
 local InventoryCallHandler = class()
 
 -- runs on the client!!
 function InventoryCallHandler:choose_stockpile_location(session, response)
 
-   self._region = _radiant.client.alloc_region()
+   self._region = _radiant.client.alloc_region2()
    
    -- create a new "cursor entity".  this is the entity that will move around the
    -- screen to preview where the workbench will go.  these entities are called
@@ -36,8 +38,8 @@ function InventoryCallHandler:choose_stockpile_location(session, response)
       :progress(function (box)
             local cursor = self._region:modify()
             cursor:clear()
-            cursor:add_cube(Cube3(Point3(0, 0, 0), 
-                                  Point3(box.max.x - box.min.x + 1, 1, box.max.z - box.min.z + 1)))
+            cursor:add_cube(Rect2(Point2(0, 0), 
+                                  Point2(box.max.x - box.min.x + 1, box.max.z - box.min.z + 1)))
             mob:set_location_grid_aligned(box.min)
             if node then
                h3dRemoveNode(node)

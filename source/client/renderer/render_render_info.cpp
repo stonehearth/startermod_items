@@ -212,7 +212,7 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
       csg::Region3 model = voxel::QubicleBrush(matrix)
                                  .SetPaintMode(voxel::QubicleBrush::Opaque)
                                  .SetPreserveMatrixOrigin(true)
-                                 .Paint();
+                                 .PaintOnce();
       node = pipeline.CreateBlueprintNode(parent, model, 0.5f, material_path_);
    } else {
       node = pipeline.AddQubicleNode(parent, *matrix, origin, &mesh);

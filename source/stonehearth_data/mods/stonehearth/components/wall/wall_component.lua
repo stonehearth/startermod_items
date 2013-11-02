@@ -74,7 +74,7 @@ function WallComponent:_connect_to_points(pos_a, pos_b, t, n)
    local brush = _radiant.voxel.create_brush(fabinfo.brush)
    local model = brush:set_normal(normal)
                       :set_paint_mode(_radiant.voxel.QubicleBrush.Opaque)
-                      :paint()
+                      :paint_once()
    local bounds = model:get_bounds()
    end_pt[n] = bounds.max[n]
    start_pt[n] = bounds.min[n]

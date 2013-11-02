@@ -15,6 +15,9 @@ end
 
 
 function ScaffoldingFabricator:support_project(project, tangent, normal)
+   assert(tangent)
+   assert(normal)
+   
    self._project = project
    self._normal = normal
    self._entity_dst = self._entity:add_component('destination')

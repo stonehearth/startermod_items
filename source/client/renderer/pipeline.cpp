@@ -301,10 +301,9 @@ H3DNodeUnique Pipeline::CreateVoxelNode(H3DNode parent,
    return CreateModel(parent, mesh, material_path);
 }
 
-void Pipeline::AddDesignationStripes(csg::mesh_tools::mesh& m, csg::Region2 const& panels, csg::PlaneInfo3 const& pi)
+void Pipeline::AddDesignationStripes(csg::mesh_tools::mesh& m, csg::Region2 const& panels)
 {   
-   float y = static_cast<float>(pi.reduced_value);
-   //float y = 0; // xxx: why doesn't the reduced_coord give us back 0?  we're supposed to be looking at the bottom face
+   float y = 0;
    for (csg::Rect2 const& c: panels) {      
       csg::Rect2f cube = ToFloat(c);
       csg::Point2f size = cube.GetSize();
@@ -341,9 +340,15 @@ void Pipeline::AddDesignationStripes(csg::mesh_tools::mesh& m, csg::Region2 cons
    }
 }
 
-void Pipeline::AddDesignationBorder(csg::mesh_tools::mesh& m, csg::EdgeMap2& edgemap, csg::PlaneInfo3 const& pi)
+void Pipeline::AddDesignationBorder(csg::mesh_tools::mesh& m, csg::EdgeMap2& edgemap)
 {
    float thickness = 0.25f;
+   csg::PlaneInfo3f pi;
+   pi.reduced_coord = 1;
+   pi.reduced_value = 0;
+   pi.x = 0;
+   pi.y = 2;
+   pi.normal_dir = 1;
 
    for (auto const& edge : edgemap) {
       // Compute the iteration direction
@@ -385,29 +390,22 @@ void Pipeline::AddDesignationBorder(csg::mesh_tools::mesh& m, csg::EdgeMap2& edg
 
 H3DNodeUnique
 Pipeline::CreateDesignationNode(H3DNode parent,
-                                csg::Region3 const& model,
+                                csg::Region2 const& plane,
                                 csg::Color3 const& outline_color,
                                 csg::Color3 const& stripes_color)
 {
-   csg::RegionTools3 tools;
-   tools.IgnorePlanes(~csg::RegionTools3::BOTTOM_PLANE);
+   csg::RegionTools2 tools;
 
    csg::mesh_tools::mesh outline_mesh;
    csg::mesh_tools::mesh stripes_mesh;
 
    // flip the normal, since this is the bottom face
-   outline_mesh.FlipFaces().SetColor(outline_color);
-   stripes_mesh.FlipFaces().SetColor(stripes_color);
+   outline_mesh.SetColor(outline_color);
+   stripes_mesh.SetColor(stripes_color);
 
-   tools.ForEachPlane(model, [&](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
-      csg::EdgeMap2 edgemap = csg::RegionTools2().GetEdgeMap(plane);
-      AddDesignationBorder(outline_mesh, edgemap, pi);
-      AddDesignationStripes(stripes_mesh, plane, pi);
-      //csg::Region2f outline = csg::RegionTools2().GetInnerBorder(plane, 0.2f);
-      //csg::Region2f panels = ToFloat(plane) - outline;
-      //AddDesignationStripes(mesh, panels, pi);
-      //mesh.AddRegion(outline, csg::ToFloat(pi));
-   });
+   csg::EdgeMap2 edgemap = csg::RegionTools2().GetEdgeMap(plane);
+   AddDesignationBorder(outline_mesh, edgemap);
+   AddDesignationStripes(stripes_mesh, plane);
 
    H3DNode group = h3dAddGroupNode(parent, "designation group node");
    H3DNode stripes = CreateModel(group, stripes_mesh, "materials/designation/stripes.material.xml");
@@ -417,8 +415,8 @@ Pipeline::CreateDesignationNode(H3DNode parent,
 
    H3DNode outline = CreateModel(group, outline_mesh, "materials/designation/outline.material.xml");
    h3dSetNodeParamI(outline, H3DModel::PolygonOffsetEnabledI, 1);
-   h3dSetNodeParamF(outline, H3DModel::PolygonOffsetF, 0, -.05f);
-   h3dSetNodeParamF(outline, H3DModel::PolygonOffsetF, 1, -.05f);
+   h3dSetNodeParamF(outline, H3DModel::PolygonOffsetF, 0, -.01f);
+   h3dSetNodeParamF(outline, H3DModel::PolygonOffsetF, 1, -.01f);
 
    return group;
 }
