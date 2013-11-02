@@ -58,8 +58,6 @@ function Fabricator:__init(name, entity, blueprint)
    end
    
    self:_trace_blueprint_and_project()
-   self:_start_pickup_task()
-   self:_start_fabricate_task()
 end
 
 function Fabricator:get_entity()
@@ -113,6 +111,15 @@ function Fabricator:set_debug_color(color)
     return self
 end
 
+function Fabricator:_start_worker_tasks()
+   if not self._pickup_task then
+      self:_start_pickup_task()
+   end
+   if not self._fabricate_task then
+      self:_start_fabricate_task()
+   end
+end
+
 function Fabricator:_start_pickup_task()  
    local worker_filter_fn = function(worker)
       return not radiant.entities.get_carrying(worker)
@@ -145,6 +152,7 @@ function Fabricator:_start_fabricate_task()
 end
 
 function Fabricator:_stop_worker_tasks()
+   radiant.log.warning('fabricator %s stopping all worker tasks', self.name)
    if self._pickup_task then
       self._pickup_task:stop()
       self._pickup_task = nil
@@ -213,6 +221,12 @@ function Fabricator:_trace_blueprint_and_project()
       local cursor = dst:get_region():modify()
       cursor:copy_region(br)
       cursor:subtract_region(pr)
+      
+      if cursor:empty() then
+         self:_stop_worker_tasks()      
+      else
+         self:_start_worker_tasks()      
+      end
       radiant.log.info('updating fabricator %s region -> %s', self.name, cursor)
    end
      
