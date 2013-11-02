@@ -1,6 +1,8 @@
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local Color3 = _radiant.csg.Color3
+local Rect2 = _radiant.csg.Rect2
+local Point2 = _radiant.csg.Point2
 
 local StockpileRenderer = class()
 
@@ -8,7 +10,7 @@ function StockpileRenderer:__init(render_entity, data_store)
    self._parent_node = render_entity:get_node()
    self._size = { 0, 0 }   
    self._data_store = data_store
-   self._region = _radiant.client.alloc_region()
+   self._region = _radiant.client.alloc_region2()
 
    self._promise = data_store:trace('rendering stockpile designation')
    self._promise:on_changed(function()
@@ -30,7 +32,7 @@ function StockpileRenderer:_update()
          self._size = { size[1], size[2] }
          local cursor = self._region:modify()
          cursor:clear()
-         cursor:add_cube(Cube3(Point3(0, 0, 0), Point3(size[1], 1, size[2])))
+         cursor:add_cube(Rect2(Point2(0, 0), Point2(size[1], size[2])))
          
          self:_clear()
          self._node = _radiant.client.create_designation_node(self._parent_node, cursor, Color3(0, 153, 255), Color3(0, 153, 255));

@@ -24,8 +24,8 @@ end
 function NoConstructionZoneRenderer:_update()
    self:_clear()
    local data = self._data_store:get_data()
-   if data.region then
-      local cursor = data.region:get()
+   if data.region2 then
+      local cursor = data.region2:get()
       self._designation_node = _radiant.client.create_designation_node(self._parent_node, cursor, Color3(32, 32, 32), Color3(128, 128, 128));
    end
 end

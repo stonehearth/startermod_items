@@ -82,6 +82,7 @@ function StockpileComponent:set_filter(values)
    self._pickup_task:destroy()
    self._restock_task:destroy()
    self:_create_worker_tasks()
+   return self
 end
 
 -- xxx: the 'fire one when i'm constructed' pattern again...
@@ -125,6 +126,10 @@ end
 
 function StockpileComponent:get_items()
    return self._data.items;
+end
+
+function StockpileComponent:set_private(value)
+   self._private = value
 end
 
 function StockpileComponent:_get_bounds()
@@ -312,6 +317,9 @@ end
 -- them inside us.
 
 function StockpileComponent:_create_worker_tasks()
+   if self._private then
+      return
+   end
 
    local faction = radiant.entities.get_faction(self._entity)
    local worker_scheduler = radiant.mods.load('stonehearth').worker_scheduler:get_worker_scheduler(faction)

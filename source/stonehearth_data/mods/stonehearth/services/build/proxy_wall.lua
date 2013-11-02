@@ -9,7 +9,10 @@ local Region3 = _radiant.csg.Region3
 
 -- this is the component which manages the fabricator entity.
 function ProxyWall:__init(parent_proxy, arg1)
-   self[ProxyFabrication]:__init(self, parent_proxy, arg1, 'stonehearth:wall')
+   self[ProxyFabrication]:__init(self, parent_proxy, arg1)
+   local data = self:add_construction_data()
+   data.needs_scaffolding = true
+   self:update_datastore()   
 end
 
 function ProxyWall:_get_tangent_and_normal_coords()
@@ -82,6 +85,8 @@ function ProxyWall:connect_to(column_a, column_b)
    local pos_a = column_a:get_location()
    local pos_b = column_b:get_location()
    self:connect_to_points(pos_a, pos_b)
+   column_a:connect_to_wall(self)
+   column_b:connect_to_wall(self)
    return self
 end
 
@@ -133,7 +138,7 @@ function ProxyWall:connect_to_points(pos_a, pos_b)
 
    -- grow the bounds by the depth of our cursor...
    local brush = self:get_voxel_brush()
-   local model = brush:paint()
+   local model = brush:paint_once()
    local bounds = model:get_bounds()
    end_pt[n] = bounds.max[n]
    start_pt[n] = bounds.min[n]

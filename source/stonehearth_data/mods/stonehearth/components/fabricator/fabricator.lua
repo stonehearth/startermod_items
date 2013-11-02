@@ -45,24 +45,10 @@ function Fabricator:__init(name, entity, blueprint)
 
    -- get fabrication specific info, if available.  copy it into the project, too
    -- so everything gets rendered correctly.
-   self._info = { }
-   local fabinfo = radiant.entities.get_entity_data(blueprint, 'stonehearth:fabricator_info') 
-   if fabinfo.info_component then
-      local info = blueprint:get_component_data(fabinfo.info_component)
-      if info then
-         self._project:add_component(fabinfo.info_component):extend(info) -- actually 'load' or something.
-         
-         self._info.needs_scaffolding = info.needs_scaffolding
-         self._info.project_adjacent_to_base = info.project_adjacent_to_base
-         if info.normal then
-            self._info.normal = Point3(info.normal.x, info.normal.y, info.normal.z)
-         end
-         if info.tangent then
-            self._info.tangent = Point3(info.tangent.x, info.tangent.y, info.tangent.z)
-         end
-      end
-   end
-   
+   self._ci = blueprint:get_component_data('stonehearth:construction_data')
+   assert(self._ci)
+   self._project:add_component('stonehearth:construction_data'):extend(self._ci) -- actually 'load' or something.
+      
    -- hold onto the blueprint ladder component, if it exists.  we'll replicate
    -- the ladder into the project as it gets built up.
    self._blueprint_ladder = blueprint:get_component('vertical_pathing_region')
@@ -74,10 +60,6 @@ function Fabricator:__init(name, entity, blueprint)
    self:_trace_blueprint_and_project()
    self:_start_pickup_task()
    self:_start_fabricate_task()
-end
-
-function Fabricator:get_fabrication_info()
-   return self._info
 end
 
 function Fabricator:get_entity()
@@ -200,7 +182,7 @@ function Fabricator:_update_adjacent()
    -- push columns up.  for example, scaffolding always gets built from the
    -- base.  if this is one of those, translate the adjacent region all the
    -- way to the bottom.
-   if self._info.project_adjacent_to_base then
+   if self._ci.project_adjacent_to_base then
       adjacent:translate(Point3(0, -bottom, 0))
    end
    

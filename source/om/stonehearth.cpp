@@ -140,6 +140,17 @@ Stonehearth::GetComponentData(lua_State* L, om::EntityRef e, std::string name)
    return component;
 }
 
+object
+Stonehearth::AddComponentData(lua_State* L, om::EntityRef e, std::string name)
+{
+   object o = GetComponentData(L, e, name);
+   if (!o.is_valid() || type(o) == LUA_TNIL) {
+      o = newtable(L);
+      SetComponentData(L, e, name, o);
+   }
+   return o;
+}
+
 static object
 AddNativeComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
 {

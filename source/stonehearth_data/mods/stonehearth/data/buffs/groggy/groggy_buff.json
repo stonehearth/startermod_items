@@ -1,0 +1,19 @@
+{
+   "type" : "debuff",
+   
+   "name" : "Groggy",
+   "icon" : "file(groggy_buff.png)",
+   "duration" : "2h",
+
+   "modifiers" : {
+      "speed" : {
+         "multiply" : 0.5
+      }
+   },
+
+   "controller" : "file(groggy_buff.lua)",
+   "effect" : "stonehearth:effects:whatever",
+   "tags" : [
+      "sleepy"
+   ]
+} 

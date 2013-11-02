@@ -191,7 +191,6 @@ private:
    int         iter_planes_;
 };
 
-
 END_RADIANT_CSG_NAMESPACE
 
 #endif // _RADIANT_CSG_REGION_TOOLS_H

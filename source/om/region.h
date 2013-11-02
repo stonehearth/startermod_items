@@ -10,15 +10,18 @@ BEGIN_RADIANT_OM_NAMESPACE
 
 // A region in a box!  region in boxes are useful for registering
 // callbacks on regions when they change
+typedef dm::Boxed<csg::Region2, Region2BoxedObjectType> Region2Boxed;
 typedef dm::Boxed<csg::Region3, Region3BoxedObjectType> Region3Boxed;
 
 // A pointer to a region in a box...  useful for sharing regions
 // between multiple parties (e.g. your collision shape and your
 // area of interest in a destination)
+DECLARE_SHARED_POINTER_TYPES(Region2Boxed);
 DECLARE_SHARED_POINTER_TYPES(Region3Boxed);
 
 // A poitner to a region in a box, in a box!  useful to checking
 // when pointers that are shared with other people change.
+typedef dm::Boxed<Region2BoxedPtr> Region2BoxedPtrBoxed;
 typedef dm::Boxed<Region3BoxedPtr> Region3BoxedPtrBoxed;
 
 // Now you want to know if any thing all they way donw the chain changes.

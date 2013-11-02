@@ -23,11 +23,11 @@ class Pipeline : public core::Singleton<Pipeline> {
       H3DNodeUnique AddMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m, H3DNode *mesh = nullptr);
       H3DNodeUnique CreateBlueprintNode(H3DNode parent, csg::Region3 const& model, float thickness, std::string const& material_path);
       H3DNodeUnique CreateVoxelNode(H3DNode parent, csg::Region3 const& model, std::string const& material_path);
-      H3DNodeUnique CreateDesignationNode(H3DNode parent, csg::Region3 const& model, csg::Color3 const& outline_color, csg::Color3 const& stripes_color);
+      H3DNodeUnique CreateDesignationNode(H3DNode parent, csg::Region2 const& model, csg::Color3 const& outline_color, csg::Color3 const& stripes_color);
 
    private:
-      void AddDesignationBorder(csg::mesh_tools::mesh& m, csg::EdgeMap2& edgemap, csg::PlaneInfo3 const& pi);
-      void AddDesignationStripes(csg::mesh_tools::mesh& m, csg::Region2 const& panels, csg::PlaneInfo3 const& pi);
+      void AddDesignationBorder(csg::mesh_tools::mesh& m, csg::EdgeMap2& edgemap);
+      void AddDesignationStripes(csg::mesh_tools::mesh& m, csg::Region2 const& panels);
       H3DNode CreateModel(H3DNode parent, csg::mesh_tools::mesh const& mesh, std::string const& material_path);
 
    private:
