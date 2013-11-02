@@ -21,21 +21,9 @@ function BuildComponent:set_normal(normal)
    self._data_binding:mark_changed()
 end
 
-function BuildComponent:get_tangent()
-   return self._data.tangent
-end
-
-function BuildComponent:set_tangent(tangent)
-   self._data.tangent = tangent
-   self._data_binding:mark_changed()
-end
-
 function BuildComponent:extend(json)
    if json.normal then
       self._data.normal = Point3(json.normal.x, json.normal.y, json.normal.z)
-   end
-   if json.tangent then
-      self._data.tangent = Point3(json.tangent.x, json.tangent.y, json.tangent.z)
    end
    self._data_binding:mark_changed()
 end

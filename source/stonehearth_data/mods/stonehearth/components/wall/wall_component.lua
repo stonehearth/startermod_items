@@ -13,9 +13,9 @@ function WallComponent:__init(entity, data_binding)
    self._entity = entity  
    
    local data = data_binding:get_data()
-   data.project_adjacent_to_base = false
-   data.needs_scaffolding = true
-   data_binding:mark_changed()
+   --data.project_adjacent_to_base = false
+   --data.needs_scaffolding = true
+   --data_binding:mark_changed()
 end
 
 

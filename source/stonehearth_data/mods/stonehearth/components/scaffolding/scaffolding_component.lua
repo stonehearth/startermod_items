@@ -16,9 +16,6 @@ function Scaffolding:extend(json)
    if json.normal then
       self._normal = Point3(json.normal.x, json.normal.y, json.normal.z)
    end
-   if json.tangent then
-      self._tangent = Point3(json.tangent.x, json.tangent.y, json.tangent.z)
-   end
    self:_update_datastore()
 end
 
@@ -28,16 +25,9 @@ function Scaffolding:set_normal(normal)
    return self
 end
 
-function Scaffolding:set_tangent(tangent)
-   self._tangent = tangent
-   self:_update_datastore()
-   return self
-end
-
 function Scaffolding:_update_datastore()
    self._data_binding:update({
       normal = self._normal,
-      tangent = self._tangent,
       project_adjacent_to_base = true,
       needs_scaffolding = false
    })

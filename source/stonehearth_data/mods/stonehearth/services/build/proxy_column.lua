@@ -13,7 +13,6 @@ function ProxyColumn:__init(parent_proxy, arg1)
    cursor:copy_region(Region3(Cube3(Point3(0, 0, 0), Point3(1, constants.STOREY_HEIGHT, 1))))
    
    local data = self:add_construction_data()
-   data.project_adjacent_to_base = true
    data.connected_to = {}
    self:update_datastore()
 end

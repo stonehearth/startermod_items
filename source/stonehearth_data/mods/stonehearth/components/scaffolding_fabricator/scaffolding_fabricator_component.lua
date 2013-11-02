@@ -14,8 +14,7 @@ function ScaffoldingFabricator:__init(entity, data_binding)
 end
 
 
-function ScaffoldingFabricator:support_project(project, tangent, normal)
-   assert(tangent)
+function ScaffoldingFabricator:support_project(project, normal)
    assert(normal)
    
    self._project = project

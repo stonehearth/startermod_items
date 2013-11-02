@@ -10,6 +10,7 @@
          "description": "Better than straw, not quite as sturdy as brick"
       },
       "stonehearth:construction_data" : {
+         "project_adjacent_to_base": true,
          "brush": "file(wooden_column.qb)"
       }
    }

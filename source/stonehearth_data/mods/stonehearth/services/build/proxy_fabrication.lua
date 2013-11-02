@@ -26,20 +26,9 @@ function ProxyFabrication:get_normal()
    return self._normal
 end
 
-function ProxyFabrication:get_tangent()
-   return self._tangent
-end
-
 function ProxyFabrication:set_normal(normal)
    self._normal = normal
    self:add_construction_data().normal = normal
-   self:update_datastore()
-   return self._derived
-end
-
-function ProxyFabrication:set_tangent(tangent)
-   self._tangent = tangent
-   self:add_construction_data().tangent = tangent
    self:update_datastore()
    return self._derived
 end
@@ -54,9 +43,6 @@ end
 function ProxyFabrication:extend(json)
    if json.normal then
       self._normal = Point3(json.normal.x, json.normal.y, json.normal.z)
-   end
-   if json.tangent then
-      self._tangent = Point3(json.tangent.x, json.tangent.y, json.tangent.z)
    end
    self:update_datastore()
    return self._derived

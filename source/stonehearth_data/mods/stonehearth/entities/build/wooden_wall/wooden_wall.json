@@ -7,7 +7,8 @@
          "description": "Better than straw, not quite as sturdy as brick"
       },
       "stonehearth:construction_data" : {
-         "brush": "file(wooden_wall.qb)"
+         "brush": "file(wooden_wall.qb)",
+         "needs_scaffolding" : true
       }
    }
 }

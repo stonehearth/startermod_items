@@ -10,9 +10,6 @@ local Region3 = _radiant.csg.Region3
 -- this is the component which manages the fabricator entity.
 function ProxyWall:__init(parent_proxy, arg1)
    self[ProxyFabrication]:__init(self, parent_proxy, arg1)
-   local data = self:add_construction_data()
-   data.needs_scaffolding = true
-   self:update_datastore()   
 end
 
 function ProxyWall:_get_tangent_and_normal_coords()
@@ -121,8 +118,6 @@ function ProxyWall:connect_to_points(pos_a, pos_b)
    self._rotation = rotations[tangent[t]][normal[n]]   
    
    self:set_normal(normal)
-   self:set_tangent(tangent)
-
    self:get_entity():add_component('mob'):set_location_grid_aligned(pos_a + tangent)
    
    local start_pt = Point3(0, 0, 0)
