@@ -1,5 +1,5 @@
 local WorkerDispatcher = class()
-local DISPATCHER_WAIT_TIME = require('constants').worker.DISPATCHER_WAIT_TIME
+local DISPATCHER_WAIT_TIME = require('constants').worker_scheduler.DISPATCHER_WAIT_TIME
 
 --- Create a new worker dispatcher
 -- @param worker The worker who will receive new tasks

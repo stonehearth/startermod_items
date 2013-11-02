@@ -24,7 +24,7 @@ local constants = {
    },
 
    -- Constants for the worker scheduler tasks
-   worker_task = {
+   worker_scheduler = {
       -- The number of ticks to wait before picking the best solution to dispatch
       DISPATCHER_WAIT_TIME = 3,
    }
