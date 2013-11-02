@@ -1,8 +1,10 @@
-local Fabricator = class()
+local priorities = require('constants').priorities.worker_task
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 local Cube3 = _radiant.csg.Cube3
+
+local Fabricator = class()
 
 local COORD_MAX = 1000000 -- 1 million enough?
 
@@ -134,6 +136,7 @@ function Fabricator:_start_pickup_task()
                            :set_action('stonehearth:pickup_item_on_path')
                            :set_worker_filter_fn(worker_filter_fn)
                            :set_work_object_filter_fn(work_obj_filter_fn)
+                           :set_priority(priorities.CONSTRUCT_BUILDING)
                            :start()
 end
 
@@ -148,6 +151,7 @@ function Fabricator:_start_fabricate_task()
                            :set_worker_filter_fn(worker_filter_fn)
                            :add_work_object(self._entity)
                            :set_action('stonehearth:fabricate')
+                           :set_priority(priorities.CONSTRUCT_BUILDING)
                            :start()
 end
 

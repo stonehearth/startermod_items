@@ -1,7 +1,7 @@
+local constants = require('constants').construction
 local ProxyFabrication = require 'services.build.proxy_fabrication'
 local ProxyPortal = require 'services.build.proxy_portal'
 local ProxyWall = class(ProxyFabrication)
-local Constants = require 'services.build.constants'
 
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
@@ -121,7 +121,7 @@ function ProxyWall:connect_to_points(pos_a, pos_b)
    self:get_entity():add_component('mob'):set_location_grid_aligned(pos_a + tangent)
    
    local start_pt = Point3(0, 0, 0)
-   local end_pt = Point3(1, Constants.STOREY_HEIGHT, 1) -- that "1" should be the depth of the wall.
+   local end_pt = Point3(1, constants.STOREY_HEIGHT, 1) -- that "1" should be the depth of the wall.
    if tangent[t] < 0 then
       start_pt[t] = -(span - 2)
    else

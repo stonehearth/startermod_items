@@ -1,3 +1,4 @@
+local priorities = require('constants').priorities.worker_task
 local Point3 = _radiant.csg.Point3
 
 local PlaceItemCallHandler = class()
@@ -133,6 +134,7 @@ function PlaceItemCallHandler:_init_pickup_worker_task(session, full_sized_uri, 
 
    local pickup_item_task = worker_scheduler:add_worker_task('placing_item_task')
                   :set_worker_filter_fn(not_carrying_fn)
+                  :set_priority(priorities.PLACE_ITEM)
 
    pickup_item_task:set_action_fn(
       function (path)

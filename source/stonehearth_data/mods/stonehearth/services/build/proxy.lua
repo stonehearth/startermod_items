@@ -1,4 +1,3 @@
-local Constants = require 'services.build.constants'
 local voxel_brush_util = require 'services.build.voxel_brush_util'
 
 local Proxy = class()

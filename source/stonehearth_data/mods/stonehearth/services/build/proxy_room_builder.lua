@@ -1,4 +1,4 @@
-local constants = require 'services.build.constants'
+local constants = require('constants').construction
 local ProxyColumn = require 'services.build.proxy_column'
 local ProxyWall = require 'services.build.proxy_wall'
 local ProxyBuilder = require 'services.build.proxy_builder'
