@@ -70,14 +70,16 @@ void Store::Reset()
    ASSERT(objects_.size() == 0);
 }
 
-void Store::RegisterWeakGameObject(Object& obj)
+void Store::RegisterObject(Object& obj)
 {
    ASSERT(obj.IsValid());
-   ASSERT(objects_.find(obj.GetObjectId()) == objects_.end());
+   if (objects_.find(obj.GetObjectId()) != objects_.end()) {
+      throw std::logic_error(BUILD_STRING("data mode object " << obj.GetObjectId() << "being registered twice."));
+   }
 
    objects_[obj.GetObjectId()] = &obj;
 
-   // std::cout << "Store " << storeId_ << " RegisterWeakGameObject(oid:" << obj.GetObjectId() << ") " << typeid(obj).name() << std::endl;
+   // std::cout << "Store " << storeId_ << " RegisterObject(oid:" << obj.GetObjectId() << ") " << typeid(obj).name() << std::endl;
 }
 
 
