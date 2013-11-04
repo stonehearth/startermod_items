@@ -1,5 +1,6 @@
 <script type="text/x-handlebars" data-template-name="stonehearthItemPicker">
    <div id="itemPicker">
+      <a id="closeButton" {{action close target="view"}}><img></a>
       <div class="pickerGrid">
          {{partial 'picker_template'}}
       </div>
@@ -11,7 +12,7 @@
       {{#if this.entities.length}}
       <a href="#" {{action onSelectItemButton this target="view" allowedKeys="ctrl"}}>
          <div class="pickable_item" {{bindAttr title=this.entity_name}}>
-            <span class="num_pickable">{{this.entities.length}}</span>
+            <div class="num_pickable">{{this.entities.length}}</div>
             <img class="pickable_image" {{bindAttr src= this.entity_icon}}>
          </div>
       </a>

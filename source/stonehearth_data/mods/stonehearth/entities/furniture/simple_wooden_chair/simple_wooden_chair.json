@@ -13,6 +13,9 @@
          "name": "Simple Wooden Chair",
          "description": "Culmination of 50,000 years of research.",
          "icon" : "file(simple_wooden_chair.png)"
-      }
+      },
+      "stonehearth:material" : {
+         "tags" : "wood furniture"
+      }      
    }
 }
