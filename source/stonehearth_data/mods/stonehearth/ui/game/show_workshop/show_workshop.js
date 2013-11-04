@@ -151,8 +151,6 @@ App.StonehearthCrafterView = App.View.extend({
          });
    },
 
-   workshopIsPaused: Ember.computed.alias("stonehearth:workshop.is_paused"),
-
    _workshopIsPausedAlias: function() {
       var isPaused = this.get('context.stonehearth:workshop.is_paused');
       this.set('context.workshopIsPaused', isPaused)
@@ -184,7 +182,6 @@ App.StonehearthCrafterView = App.View.extend({
                $(this).css('-webkit-transform', 'rotate(' + now + 'deg) scale(' + scaleX +', 1)');
             }
       });
-
 
    }.observes('context.stonehearth:workshop.is_paused'),
 
