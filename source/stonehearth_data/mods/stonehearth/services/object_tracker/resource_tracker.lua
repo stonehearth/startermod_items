@@ -20,10 +20,10 @@ end
 function ResourceTracker:on_item_added(e)
    assert(e.item)
 
-   local materials = e.item:get_component('stonehearth:materials')
+   local material = e.item:get_component('stonehearth:material')
    local unit_info = e.item:get_component('unit_info')
 
-   if materials and materials:has_material('resource') and unit_info then
+   if material and material:is('resource') and unit_info then
       local name = unit_info:get_display_name()
       local uri = e.item:get_uri()
       if self._data.resource_types[uri] then 

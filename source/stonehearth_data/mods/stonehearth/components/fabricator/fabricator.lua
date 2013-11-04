@@ -1,8 +1,10 @@
-local Fabricator = class()
+local priorities = require('constants').priorities.worker_task
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 local Cube3 = _radiant.csg.Cube3
+
+local Fabricator = class()
 
 local COORD_MAX = 1000000 -- 1 million enough?
 
@@ -58,8 +60,6 @@ function Fabricator:__init(name, entity, blueprint)
    end
    
    self:_trace_blueprint_and_project()
-   self:_start_pickup_task()
-   self:_start_fabricate_task()
 end
 
 function Fabricator:get_entity()
@@ -113,6 +113,15 @@ function Fabricator:set_debug_color(color)
     return self
 end
 
+function Fabricator:_start_worker_tasks()
+   if not self._pickup_task then
+      self:_start_pickup_task()
+   end
+   if not self._fabricate_task then
+      self:_start_fabricate_task()
+   end
+end
+
 function Fabricator:_start_pickup_task()  
    local worker_filter_fn = function(worker)
       return not radiant.entities.get_carrying(worker)
@@ -127,6 +136,7 @@ function Fabricator:_start_pickup_task()
                            :set_action('stonehearth:pickup_item_on_path')
                            :set_worker_filter_fn(worker_filter_fn)
                            :set_work_object_filter_fn(work_obj_filter_fn)
+                           :set_priority(priorities.CONSTRUCT_BUILDING)
                            :start()
 end
 
@@ -141,10 +151,12 @@ function Fabricator:_start_fabricate_task()
                            :set_worker_filter_fn(worker_filter_fn)
                            :add_work_object(self._entity)
                            :set_action('stonehearth:fabricate')
+                           :set_priority(priorities.CONSTRUCT_BUILDING)
                            :start()
 end
 
 function Fabricator:_stop_worker_tasks()
+   radiant.log.warning('fabricator %s stopping all worker tasks', self.name)
    if self._pickup_task then
       self._pickup_task:stop()
       self._pickup_task = nil
@@ -213,6 +225,12 @@ function Fabricator:_trace_blueprint_and_project()
       local cursor = dst:get_region():modify()
       cursor:copy_region(br)
       cursor:subtract_region(pr)
+      
+      if cursor:empty() then
+         self:_stop_worker_tasks()      
+      else
+         self:_start_worker_tasks()      
+      end
       radiant.log.info('updating fabricator %s region -> %s', self.name, cursor)
    end
      

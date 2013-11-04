@@ -1,6 +1,6 @@
 local Color4 = _radiant.csg.Color4
 local WorkerTask = class()
-
+local priorities = require('constants').priorities.worker_task
 
 local next_task_id = 1
 function WorkerTask:__init(name, scheduler)
@@ -11,6 +11,7 @@ function WorkerTask:__init(name, scheduler)
    self._scheduler = scheduler
    self._pathfinders = {}
    self._destinations = {}
+   self._priority = priorities.DEFAULT
    self._debug_color = Color4(0, 255, 0, 128)
 end
 
@@ -28,6 +29,11 @@ function WorkerTask:set_debug_color(color)
    for worker_id, pf in pairs(self._pathfinders) do
       pf:set_debug_color(color)
    end
+end
+
+function WorkerTask:set_priority(priority)
+   self._priority = priority
+   return self
 end
 
 function WorkerTask:set_action_fn(fn)
@@ -121,8 +127,7 @@ function WorkerTask:_consider_worker(worker)
    local id = worker:get_id()
    if not self._pathfinders[id] then
       local solved_cb = function(path)
-         local action = { self._get_action_fn(path) }
-         self:_dispatch_solution(action, path)
+         self:_dispatch_solution(path)
       end
 
       if self._worker_filter_fn(worker) then
@@ -142,8 +147,10 @@ function WorkerTask:_consider_worker(worker)
    end
 end
 
-function WorkerTask:_dispatch_solution(action, path)
-   self._scheduler:dispatch_solution(action, path)
+function WorkerTask:_dispatch_solution(path)
+   local action = { self._get_action_fn(path) }
+   local worker_id = path:get_source():get_id();
+   self._scheduler:dispatch_solution(self._priority, worker_id, action)
 end
 
 return WorkerTask

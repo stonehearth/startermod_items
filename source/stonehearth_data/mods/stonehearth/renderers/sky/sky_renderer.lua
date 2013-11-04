@@ -26,7 +26,7 @@ function SkyRenderer:__init()
             self._clock_promise:on_changed(
                function ()
                   local date = self._clock_object:get_data()
-                  self:_update_time(date.second + (60 * (date.minute + (60 * date.hour))))
+                  self:_update_time(date.second + (self._time_constants.seconds_per_minute * (date.minute + (self._time_constants.minutes_per_hour * date.hour))))
                end
             )
          end
@@ -53,6 +53,8 @@ function SkyRenderer:set_sky_constants()
    self.timing.sunset_end = (base_times.sunset * seconds_per_hour) + constants.rise_set_length
    self.timing.day_length = time_constants.hours_per_day * seconds_per_hour
    self.timing.transition_length = constants.transition_length
+   
+   self._time_constants = time_constants
 end
 
 
@@ -212,14 +214,14 @@ function SkyRenderer:_init_sun()
    local colors = {
       sunrise = Vec3(0.5, 0.4, 0.2),
       midday = Vec3(0.6, 0.6, 0.6),
-      sunset = Vec3(0.6, 0.2, 0.0),
+      sunset = Vec3(1.0, 0, 0),
       night = Vec3(0.0, 0.0, 0.0)
    }
 
    local ambient_colors = {
       sunrise = Vec3(0.4, 0.3, 0.1),
       midday = Vec3(0.4, 0.4, 0.4),
-      sunset = Vec3(0.3, 0.1, 0.0),
+      sunset = Vec3(1.0, 1.0, 1.0),
       night = Vec3(0.0, 0.0, 0.0)
    }
 
@@ -300,13 +302,13 @@ function SkyRenderer:_init_moon()
 
    local colors = {
       sunset_start = Vec3(0.0, 0.0, 0.0),
-      sunset_end = Vec3(0.1, 0.1, 0.2),
-      sunrise_start = Vec3(0.1, 0.1, 0.2),
+      sunset_end = Vec3(0.31, 0.25, 0.55),
+      sunrise_start = Vec3(0.31, 0.25, 0.55),
       sunrise_end = Vec3(0.0, 0.0, 0.0),
    }
 
    local ambient_colors = {
-      night = Vec3(0.1, 0.1, 0.3),
+      night = Vec3(0.0, 0.20, 0.52),
       day = Vec3(0.0, 0.0, 0.0)
    }
 

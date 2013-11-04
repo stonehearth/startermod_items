@@ -1,6 +1,6 @@
 local ProxyFabrication = require 'services.build.proxy_fabrication'
 local ProxyRoof = class(ProxyFabrication)
-local constants = require 'services.build.constants'
+local constants = require('constants').construction
 
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3

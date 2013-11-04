@@ -7,10 +7,8 @@
          "description": "Provides warmth and light",
          "icon" : "file(firepit.png)"
       },
-      "stonehearth:materials" : {
-         "materials" : [ 
-            "light"
-         ]
+      "stonehearth:material" : {
+         "tags" : "light"
       },
       "model_variants": [
          {

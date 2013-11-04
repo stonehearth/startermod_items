@@ -24,10 +24,4 @@ function ConstructionDataComponent:set_normal(normal)
    return self
 end
 
-function ConstructionDataComponent:set_tangent(tangent)
-   self._data.tangent = tangent
-   self._data_binding:mark_changed()
-   return self
-end
-
 return ConstructionDataComponent

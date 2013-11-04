@@ -1,4 +1,5 @@
-local inventory_service = require 'services.inventory.inventory_service'
+local priorities = require('constants').priorities.worker_task
+local inventory_service = radiant.mods.load('stonehearth').inventory
 
 local StockpileComponent = class()
 
@@ -291,21 +292,21 @@ end
 -- @return true if the entity can be stocked here, false otherwise.
 
 function StockpileComponent:can_stock_entity(entity)
-   if not entity or entity:get_component('item') == nil then
+   if not entity or not entity:get_component('item') then
+      return false
+   end
+   
+   local material = entity:get_component('stonehearth:material')
+   if not material then
       return false
    end
 
-   local material_component = entity:add_component('stonehearth:materials')
-
    local in_filter = false
    for name, value in pairs(self._filter) do
-      if value and material_component:has_material(name) then
-         in_filter = true
-         break
+      if value and material:is(name) then
+         return true
       end
    end
-
-   return in_filter   
 end
 
 
@@ -329,6 +330,7 @@ function StockpileComponent:_create_worker_tasks()
    -- by the worker task.
    self._pickup_task = worker_scheduler:add_worker_task('pickup_to_restock')
                           :set_action('stonehearth:pickup_item_on_path')
+                          :set_priority(priorities.RESTOCK_STOCKPILE)
 
    -- Only consider workers that aren't currently carrying anything.
    self._pickup_task:set_worker_filter_fn(
@@ -354,6 +356,7 @@ function StockpileComponent:_create_worker_tasks()
    -- Next is the restock task, which will actually do the dumping of items
    -- into the stockpile.
    self._restock_task = worker_scheduler:add_worker_task('restock_stockpile')
+                                        :set_priority(priorities.RESTOCK_STOCKPILE)
 
    -- We should only consider workers that are carrying and item that belongs
    -- in the stockpile AND workers who aren't already standing in a stockpile

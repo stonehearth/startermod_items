@@ -2,7 +2,6 @@
    "type": "entity", 
    "components": {
       "item": {
-         "material": "tool", 
          "stacks": 1
       }, 
       "model_variants": [

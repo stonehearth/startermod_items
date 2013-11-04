@@ -1,4 +1,4 @@
-local Constants = require 'services.build.constants'
+local constants = require('constants').construction
 local ProxyColumn = require 'services.build.proxy_column'
 local ProxyWall = require 'services.build.proxy_wall'
 local ProxyBuilder = require 'services.build.proxy_builder'
@@ -44,10 +44,10 @@ function ProxyWallBuilder:_fit_point_to_constraints(absolute_pt)
    end
    if pt_a[t] > pt_b[t] then
       dt = 1
-      d  = math.max(pt_b[t] - pt_a[t], -Constants.MAX_WALL_SPAN)
+      d  = math.max(pt_b[t] - pt_a[t], -constants.MAX_WALL_SPAN)
    else
       dt = -1
-      d  = math.min(pt_b[t] - pt_a[t], Constants.MAX_WALL_SPAN)
+      d  = math.min(pt_b[t] - pt_a[t], constants.MAX_WALL_SPAN)
    end
    pt_b[t] = pt_a[t] + d
    pt_b[n] = pt_a[n]

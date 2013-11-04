@@ -1,3 +1,4 @@
+local priorities = require('constants').priorities.worker_task
 
 local ResourceCallHandler = class()
 
@@ -14,10 +15,11 @@ function ResourceCallHandler:harvest_tree(session, response, tree)
    end
 
    worker_scheduler:add_worker_task('chop_tree')
-                  :set_worker_filter_fn(not_carrying_fn)
-                  :add_work_object(tree)
-                  :set_action('stonehearth:chop_tree')
-                  :start()
+                   :set_worker_filter_fn(not_carrying_fn)
+                   :add_work_object(tree)
+                   :set_action('stonehearth:chop_tree')
+                   :set_priority(priorities.CHOP_TREE)
+                   :start()
    return true
 end
 

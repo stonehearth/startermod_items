@@ -453,8 +453,9 @@ function entities.compare_attribute(entity_a, entity_b, attribute)
 end
 
 function entities.is_hostile(entity_a, entity_b)
-   -- only attack mobs
-   local ok = entity_b:add_component('stonehearth:materials'):has_material('meat')
+   -- xxx: this check shouldn't be in the generic "is_hostile" function.  what
+   -- happens when we add things that aren't made of meat? (e.g. robots?)
+   local ok = entity_b:add_component('stonehearth:material'):is('meat')
    if not ok then
       return false
    end

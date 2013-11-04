@@ -8,6 +8,7 @@ end
 
 if radiant.is_server then
    api = {
+      analytics = get_service('analytics'),
       ai = get_service('ai'),
       calendar = get_service('calendar'),
       combat = get_service('combat'),

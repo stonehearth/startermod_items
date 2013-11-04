@@ -1,6 +1,6 @@
 local ProxyFabrication = require 'services.build.proxy_fabrication'
 local ProxyColumn = class(ProxyFabrication)
-local constants = require 'services.build.constants'
+local constants = require('constants').construction
 
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
@@ -13,7 +13,6 @@ function ProxyColumn:__init(parent_proxy, arg1)
    cursor:copy_region(Region3(Cube3(Point3(0, 0, 0), Point3(1, constants.STOREY_HEIGHT, 1))))
    
    local data = self:add_construction_data()
-   data.project_adjacent_to_base = true
    data.connected_to = {}
    self:update_datastore()
 end
