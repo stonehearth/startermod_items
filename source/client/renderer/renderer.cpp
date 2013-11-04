@@ -115,7 +115,6 @@ Renderer::Renderer() :
    {
       float x = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
       float y = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
-      //float z = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
       float z = 0;
       Horde3D::Vec3f v(x,y,z);
       v.normalize();
@@ -132,7 +131,7 @@ Renderer::Renderer() :
    for (int i = 0; i < KernelSize; ++i) {
       float x = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
       float y = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
-      float z = ((rand() / (float)RAND_MAX) * -1.0f);
+      float z = ((rand() / (float)RAND_MAX) * 0.5f) - 1.0f;
       Horde3D::Vec3f v(x,y,z);
       v.normalize();
 
