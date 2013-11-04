@@ -57,7 +57,7 @@ end
 --- Remove : and replace with _
 --  TODO: remove stonehearth/mod names also?
 function AnalyticsService:_format(input)
-   return string.gsub(input, ':', '_')
+   return string.gsub(input, '%W', '_')
 end
 
 return AnalyticsService()

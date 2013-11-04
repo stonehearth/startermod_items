@@ -1,5 +1,5 @@
 local Point3 = _radiant.csg.Point3
-local Analytics = require 'services.analytics.analytics_service'
+local analytics = require 'services.analytics.analytics_service'
 
 local WorkerPlaceItemAction = class()
 
@@ -83,11 +83,11 @@ function WorkerPlaceItemAction:run(ai, entity, path, ghost_entity, rotation, tas
       radiant.terrain.place_entity(full_sized_entity, radiant.entities.get_world_grid_location(ghost_entity))
       radiant.entities.turn_to(full_sized_entity, rotation)
 
-      Analytics:send_design_event('game:place_item', entity, full_sized_entity)
+      analytics:send_design_event('game:place_item', entity, full_sized_entity)
    else
       --If it wasn't a proxy, it was a real item. Drop it on the ground
        ai:execute('stonehearth:drop_carrying', radiant.entities.get_world_grid_location(ghost_entity))
-       Analytics:send_design_event('game:place_item', entity, carrying)
+       analytics:send_design_event('game:place_item', entity, carrying)
    end
 
    --destroy the ghost entity
