@@ -67,7 +67,7 @@ function PlaceableItemProxyComponent:_create_derived_components()
 
    local clone_components = {
       'unit_info',
-      'stonehearth:materials'
+      'stonehearth:material'
    }
 
    local json = radiant.resources.load_json(full_sized_uri)

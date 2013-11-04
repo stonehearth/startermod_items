@@ -26,9 +26,6 @@ public:
    void SetMaxStacks(int count) { maxStacks_ = count; }
    int GetMaxStacks() { return *maxStacks_; }
 
-   std::string GetMaterial() const { return *material_; }
-   void SetMaterial(std::string cls) { material_ = cls; }
-
    std::string GetCategory() const {return *category_;}
    void SetCategory(std::string category) { category_ = category; }
 
@@ -43,7 +40,6 @@ public:
    dm::Boxed<std::string>     kind_;
    dm::Boxed<int>             stacks_;
    dm::Boxed<int>             maxStacks_;
-   dm::Boxed<std::string>     material_;
    dm::Boxed<std::string>     category_;
 };
 

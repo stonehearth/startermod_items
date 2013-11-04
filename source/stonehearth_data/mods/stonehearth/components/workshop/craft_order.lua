@@ -195,14 +195,8 @@ end
 
 function CraftOrder:_can_use_ingredient(item_entity, ingredient_data)
    -- make sure it's an item...
-   local item = item_entity:get_component('item')
-   if not item then
-      return false
-   end
-
-   local item_material = item:get_material()
-
-   if item_material ~= ingredient_data.material then
+   local material = item_entity:get_component('stonehearth:material')
+   if not material or not material:is(ingredient_data.material) then
       return false
    end
 

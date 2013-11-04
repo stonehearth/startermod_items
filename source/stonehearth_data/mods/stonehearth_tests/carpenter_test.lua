@@ -12,7 +12,7 @@ function CarpenterTest:__init()
    self:create_world()
 
    --Create the carpenter, bench, and instantiate them to each other
-   local bench = self:place_item('stonehearth:carpenter_workbench', -12, 12)
+   local bench = self:place_item('stonehearth:carpenter:workbench', -12, 12)
    local workshop_component = bench:get_component('stonehearth:workshop')
    local carpenter = self:place_citizen(-12, 7,'carpenter', workshop_component)
    local faction = radiant.entities.get_faction(carpenter)

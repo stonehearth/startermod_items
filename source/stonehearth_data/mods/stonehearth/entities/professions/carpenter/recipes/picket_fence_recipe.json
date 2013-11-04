@@ -10,7 +10,7 @@
 
    "ingredients": [
       {
-         "material" : "wood",
+         "material" : "wood resource",
          "count" : 2
       }
   ],

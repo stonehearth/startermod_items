@@ -3,9 +3,7 @@
    "type": "entity",
    "components": {
       "item": {
-         "material": "cloth",
-         "stacks": 10,
-         "category" : "tools_and_goods"
+         "stacks": 10
       },
       "model_variants": [
          {
@@ -18,6 +16,9 @@
          "name": "Bolt of Cloth",
          "description": "Shimmery.",
          "icon" : "file(cloth_bolt.png)"
+      },
+      "stonehearth:material" : {
+         "flags" :  "cloth resource"
       }
    }
 }

@@ -14,7 +14,7 @@
       "long_description" : "xxx insert weaver description here!",
       "portrait" : "file(./images/workshop_portrait_level_1.png)",      
       "ingredients": [
-         { "material" : "wood", "count" : 99 }
+         { "material" : "wood resource", "count" : 99 }
       ]
    }
 }
