@@ -19,7 +19,9 @@
 #include "utMath.h"
 #include <math.h>
 #ifdef PLATFORM_WIN
-#	define WIN32_LEAN_AND_MEAN 1
+#  ifndef WIN32_LEAN_AND_MEAN
+#	   define WIN32_LEAN_AND_MEAN 1
+#  endif
 #	ifndef NOMINMAX
 #		define NOMINMAX
 #	endif
