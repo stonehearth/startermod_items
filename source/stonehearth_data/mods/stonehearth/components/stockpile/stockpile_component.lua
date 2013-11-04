@@ -292,21 +292,21 @@ end
 -- @return true if the entity can be stocked here, false otherwise.
 
 function StockpileComponent:can_stock_entity(entity)
-   if not entity or entity:get_component('item') == nil then
+   if not entity or not entity:get_component('item') then
+      return false
+   end
+   
+   local material = entity:get_component('stonehearth:material')
+   if not material then
       return false
    end
 
-   local material_component = entity:add_component('stonehearth:materials')
-
    local in_filter = false
    for name, value in pairs(self._filter) do
-      if value and material_component:has_material(name) then
-         in_filter = true
-         break
+      if value and material:is(name) then
+         return true
       end
    end
-
-   return in_filter   
 end
 
 

@@ -9,7 +9,7 @@ include_directories(${Cryptopp_INCLUDE_DIRS})
 add_library(analytics
             analytics.cpp
             analytics_logger.cpp
-            send_design_event.cpp
+            design_event.cpp
             event_data.cpp
             )
 

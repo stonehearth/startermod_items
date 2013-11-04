@@ -196,12 +196,11 @@ function FirepitComponent:_init_gather_wood_task()
          if not item_entity then
             return false
          end
-         local item = item_entity:get_component('item')
-         if not item then
+         local material = item_entity:get_component('stonehearth:material')
+         if not material then
             return false
          end
-         --TODO: if we add "wood" as a property to proxy items made of wood, we could be in trouble...
-         return item:get_material() == "wood"
+         return material:is('wood resource')
       end
 
       --Create the pickup task

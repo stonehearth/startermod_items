@@ -35,8 +35,8 @@
             }
          }
       },
-      "stonehearth:materials" : {
-         "materials" : [ "meat" ]
+      "stonehearth:material" : {
+         "tags" : "meat"
       },
       "carry_block": {
       },
