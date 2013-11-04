@@ -11,6 +11,7 @@ include_directories(${Horde3D_INCLUDE_DIRS})
 
 add_library(lua
             script_host.cpp
+            analytics/open_analytics.cpp
             res/open_res.cpp
             sim/open_sim.cpp
             client/open_client.cpp

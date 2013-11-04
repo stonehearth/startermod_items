@@ -168,7 +168,6 @@ function AdmireFire:run(ai, entity)
       self._firepit = nil
    end);
    
-
    -- Go to the fire!
    ai:execute('stonehearth:follow_path', self._path_to_fire)
 

@@ -31,6 +31,7 @@ $(document).ready(function(){
          description : i18n.t('stonehearth:move_description')
       });
       call_server_to_place_item(e);
+
    });
 
    //Fires when someone clicks the "place" button in the UI to bring up the picker
