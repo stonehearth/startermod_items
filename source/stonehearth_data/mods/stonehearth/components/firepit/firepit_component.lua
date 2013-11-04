@@ -1,5 +1,5 @@
-radiant.mods.load('stonehearth')
-local calendar = require 'services.calendar.calendar_service'
+local priorities = require('constants').priorities.worker_task
+local calendar = radiant.mods.load('stonehearth').calendar
 
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
@@ -208,6 +208,7 @@ function FirepitComponent:_init_gather_wood_task()
       self._light_task = self._worker_scheduler:add_worker_task('lighting_fire_task')
                   :set_worker_filter_fn(not_carrying_fn)
                   :set_work_object_filter_fn(object_filter_fn)
+                  :set_priority(priorities.LIGHT_FIRE)
 
       self._light_task:set_action_fn(
          function (path)

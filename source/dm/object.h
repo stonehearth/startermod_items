@@ -51,7 +51,11 @@ public:
       LuaPromise(const char* reason, T const& c) {
          auto changed = [=]() {
             for (auto& cb : cbs_) {
-               luabind::call_function<void>(cb);
+               try {
+                  luabind::call_function<void>(cb);
+               } catch (std::exception const& e) {
+                  LOG(WARNING) << "lua error firing trace: " << e.what();
+               }
             }
          };
          callback_thread_ = c.GetStore().GetInterpreter();

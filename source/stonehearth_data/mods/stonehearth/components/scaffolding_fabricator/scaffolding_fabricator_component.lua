@@ -14,7 +14,9 @@ function ScaffoldingFabricator:__init(entity, data_binding)
 end
 
 
-function ScaffoldingFabricator:support_project(project, tangent, normal)
+function ScaffoldingFabricator:support_project(project, normal)
+   assert(normal)
+   
    self._project = project
    self._normal = normal
    self._entity_dst = self._entity:add_component('destination')

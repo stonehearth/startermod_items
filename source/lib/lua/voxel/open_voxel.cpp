@@ -2,6 +2,7 @@
 #include "open.h"
 #include "resources/res_manager.h"
 #include "lib/voxel/qubicle_brush.h"
+#include "lib/voxel/nine_grid_brush.h"
 #include "lib/json/core_json.h"
 
 using namespace ::radiant;
@@ -9,6 +10,7 @@ using namespace ::radiant::voxel;
 using namespace luabind;
 
 IMPLEMENT_TRIVIAL_TOSTRING(QubicleBrush)
+IMPLEMENT_TRIVIAL_TOSTRING(NineGridBrush)
 
 QubicleBrushPtr Voxel_CreateBrush(std::string const& filename)
 {
@@ -18,7 +20,16 @@ QubicleBrushPtr Voxel_CreateBrush(std::string const& filename)
    return std::make_shared<QubicleBrush>(in);
 }
 
+NineGridBrushPtr Voxel_CreateNineGridBrush(std::string const& filename)
+{
+   std::ifstream in;   
+   res::ResourceManager2::GetInstance().OpenResource(filename, in);
+
+   return std::make_shared<NineGridBrush>(in);
+}
+
 DEFINE_INVALID_JSON_CONVERSION(QubicleBrush);
+DEFINE_INVALID_JSON_CONVERSION(NineGridBrush);
 
 void lua::voxel::open(lua_State* L)
 {
@@ -26,16 +37,28 @@ void lua::voxel::open(lua_State* L)
       namespace_("_radiant") [
          namespace_("voxel") [
             def("create_brush",    &Voxel_CreateBrush),
+            def("create_nine_grid_brush",    &Voxel_CreateNineGridBrush),
             lua::RegisterTypePtr<QubicleBrush>()
                .enum_("constants") [
                   value("Color",    QubicleBrush::Color),
-                  value("Opaque",   QubicleBrush::Opaque),
-                  value("Outline",  QubicleBrush::Outline)
+                  value("Opaque",   QubicleBrush::Opaque)
                ]
                .def("set_normal",             &QubicleBrush::SetNormal)
                .def("set_paint_mode",         &QubicleBrush::SetPaintMode)
-               .def("paint",                  &QubicleBrush::Paint)
+               .def("paint_once",             &QubicleBrush::PaintOnce)
                .def("paint_through_stencil",  &QubicleBrush::PaintThroughStencil)
+            ,
+            lua::RegisterTypePtr<NineGridBrush>()
+               .enum_("constants") [
+                  value("Color",    NineGridBrush::Color),
+                  value("Opaque",   NineGridBrush::Opaque)
+               ]
+               .def("set_normal",             &NineGridBrush::SetNormal)
+               .def("set_paint_mode",         &NineGridBrush::SetPaintMode)
+               .def("set_tile_mode",          &NineGridBrush::SetTileMode)
+               .def("set_grid_shape",         &NineGridBrush::SetGridShape)
+               .def("paint_once",             &NineGridBrush::PaintOnce)
+               .def("paint_through_stencil",  &NineGridBrush::PaintThroughStencil)
          ]
       ]
    ];

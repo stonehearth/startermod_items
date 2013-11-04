@@ -75,4 +75,9 @@ std::istream& ::radiant::voxel::operator>>(std::istream& in, QubicleFile& q)
    return q.Read(in);
 }
 
+QubicleMatrix* QubicleFile::GetMatrix(std::string const& name)
+{
+   auto i = matrices_.find(name);
+   return i != matrices_.end() ? &i->second : nullptr;
+}
 

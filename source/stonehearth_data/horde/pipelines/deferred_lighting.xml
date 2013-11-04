@@ -6,7 +6,7 @@
     <RenderTarget id="SSAOBUF" depthBuf="false" numColBufs="1" format="RGBA8" maxSamples="4" scale="1.0" />
     <RenderTarget id="SSAOBLUR" depthBuf="false" numColBufs="1" format="RGBA8" maxSamples="4" scale="1.0" />
     <RenderTarget id="TEMPSSAOBLUR" depthBuf="false" numColBufs="1" format="RGBA8" scale="1.0" />
-    <RenderTarget id="SelectedTemp" depthBuf="false" numColBufs="1" format="RGBA8" scale="1.0"/>
+    <RenderTarget id="SelectedTemp" depthBuf="true" numColBufs="1" format="RGBA8" scale="1.0"/>
   </Setup>
   <CommandQueue>
 
@@ -105,13 +105,13 @@
 
     <Stage id="Selected">
        <SwitchTarget target="SelectedTemp" />
-       <ClearTarget colBuf0="true"/>
+       <ClearTarget colBuf0="true" depthBuf="true"/>
        <DrawSelected context="SELECTED_SCREENSPACE" />
 
        <SwitchTarget target="OUTPUT" />
        <BindBuffer sampler="outlineSampler" sourceRT="SelectedTemp" bufIndex="0"/>
+       <BindBuffer sampler="outlineDepth" sourceRT="SelectedTemp" bufIndex="32"/>
        <DrawQuad material="terrain/default_material.xml" context="SELECTED_SCREENSPACE_OUTLINER" />
-
        <UnbindBuffers />
     </Stage>
 

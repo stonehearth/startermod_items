@@ -52,12 +52,13 @@ function events.unlisten(object, event, self, fn)
    end
 
    for i, listener in ipairs(listeners) do
-      if listener.fn == fn then
+      if listener.fn == fn and listener.self == self then
          radiant.log.info('unlistening to event ' .. event)
          table.remove(listeners, i)
-         break
+         return
       end
    end
+   radiant.log.warning('unlisten could not find registered listener for event: %s', event)
 end
 
 function events.trigger(object, event, ...)

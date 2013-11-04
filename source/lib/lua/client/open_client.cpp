@@ -44,7 +44,7 @@ H3DNodeUnique Client_CreateVoxelNode(lua_State* L,
 
 H3DNode Client_CreateDesignationNode(lua_State* L, 
                                      H3DNode parent,
-                                     csg::Region3 const& model,
+                                     csg::Region2 const& model,
                                      csg::Color3 const& outline,
                                      csg::Color3 const& stripes)
 {
@@ -327,6 +327,7 @@ void lua::client::open(lua_State* L)
             def("create_voxel_node",               &Client_CreateVoxelNode),
             def("create_designation_node",         &Client_CreateDesignationNode),
             def("alloc_region",                    &Client_AllocObject<om::Region3Boxed>),
+            def("alloc_region2",                   &Client_AllocObject<om::Region2Boxed>),
             def("create_data_store",               &Client_CreateDataStore),
             def("is_valid_standing_region",        &Client_IsValidStandingRegion),
             def("is_key_down",                     &Client_IsKeyDown),

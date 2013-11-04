@@ -68,13 +68,6 @@ public:
       return result;
    }
 
-   Derived ProjectOnto(int axis, S plane) const
-   {
-      Derived result = *static_cast<const Derived*>(this);
-      result[axis] = plane;
-      return result;
-   }
-
    struct Hash { 
       size_t operator()(const Derived& o) const {
          size_t result = 0;
