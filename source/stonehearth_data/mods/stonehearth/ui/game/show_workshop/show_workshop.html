@@ -8,10 +8,10 @@
       </div>
 
       {{#if stonehearth:workshop.order_list}}
-         <a id="pauseLink" {{action togglePause target="view"}}>
-            <div id="statusSign">
+         <a  {{action togglePause target="view"}}>
+            <div id="statusSign" {{bindAttr class=workshopIsPaused:closed:open}}>
                <div id="message">
-                  {{#if stonehearth:workshop.is_paused}}
+                  {{#if workshopIsPaused}}
                      {{i18n stonehearth:workshop_closed}}
                   {{else}}
                      {{i18n stonehearth:workshop_open}}

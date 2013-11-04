@@ -1,6 +1,8 @@
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Color3 = _radiant.csg.Color3
+local Rect2 = _radiant.csg.Rect2
+local Point2 = _radiant.csg.Point2
 local WorkshopCallHandler = class()
 
 -- client side object to add a new bench to the world.  this method is invoked
@@ -123,7 +125,7 @@ end
 
 function WorkshopCallHandler:choose_outbox_location(session, response, workbench_entity)
 
-   self._region = _radiant.client.alloc_region()
+   self._region = _radiant.client.alloc_region2()
    
    -- create a new "cursor entity".  this is the entity that will move around the
    -- screen to preview where the workbench will go.  these entities are called
@@ -153,8 +155,8 @@ function WorkshopCallHandler:choose_outbox_location(session, response, workbench
       :progress(function (box)
             local cursor = self._region:modify()
             cursor:clear()
-            cursor:add_cube(Cube3(Point3(0, 0, 0), 
-                                  Point3(box.max.x - box.min.x + 1, 1, box.max.z - box.min.z + 1)))
+            cursor:add_cube(Rect2(Point2(0, 0), 
+                                  Point2(box.max.x - box.min.x + 1, box.max.z - box.min.z + 1)))
             mob:set_location_grid_aligned(box.min)
             if node then
                h3dRemoveNode(node)
@@ -166,9 +168,6 @@ function WorkshopCallHandler:choose_outbox_location(session, response, workbench
                box.max.x - box.min.x + 1,
                box.max.z - box.min.z + 1,
             }
-
-            -- TODO, this should pass the workbench entity, not it's id! 
-            -- see bug SH-28, http://bugs.radiant-entertainment.com:8080/browse/SH-28            
             _radiant.call('stonehearth:create_outbox', box.min, size, workbench_entity:get_id())
                      :done(function(r)
                            response:resolve(r)
