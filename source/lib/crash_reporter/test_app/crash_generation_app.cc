@@ -277,6 +277,7 @@ static void _cdecl ShowClientExited(void* context,
   QueueUserWorkItem(AppendTextWorker, line, WT_EXECUTEDEFAULT);
 }
 
+// Not currently used - this is for the in-process crash server
 void CrashServerStart() {
   // Do not create another instance of the server.
   if (crash_server) {

@@ -18,23 +18,24 @@ static void RequestApplicationExit() {
    PostThreadMessage(main_thread_id, WM_QUIT, 0, 0);
 }
 
-static void _cdecl OnClientConnected(void* context, const ClientInfo* client_info)
+static void OnClientConnected(void* context, const ClientInfo* client_info)
 {
 }
 
-static void _cdecl OnClientCrashed(void* context, const ClientInfo* client_info, const wstring* dump_path)
+static void OnClientCrashed(void* context, const ClientInfo* client_info, const wstring* dumpfile_name)
 {
-   std::ifstream dump_file(dump_path->c_str(), std::ifstream::in|std::ifstream::binary);
+   //std::ifstream dump_file(dumpfile_name->c_str(), std::ifstream::in|std::ifstream::binary);
    //dump_file.seekg (0, std::ifstream::end);
    //int const length = dump_file.tellg();
-   dump_file.close();
+   //dump_file.close();
+   //assert(length > 0);
 
    // collect all crash report data, compress, and post to server
 
    RequestApplicationExit();
 }
 
-static void _cdecl OnClientExited(void* context, const ClientInfo* client_info)
+static void OnClientExited(void* context, const ClientInfo* client_info)
 {
    RequestApplicationExit();
 }
