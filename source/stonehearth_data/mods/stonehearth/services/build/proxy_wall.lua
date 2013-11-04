@@ -1,7 +1,7 @@
+local constants = require('constants').construction
 local ProxyFabrication = require 'services.build.proxy_fabrication'
 local ProxyPortal = require 'services.build.proxy_portal'
 local ProxyWall = class(ProxyFabrication)
-local Constants = require 'services.build.constants'
 
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
@@ -9,7 +9,7 @@ local Region3 = _radiant.csg.Region3
 
 -- this is the component which manages the fabricator entity.
 function ProxyWall:__init(parent_proxy, arg1)
-   self[ProxyFabrication]:__init(self, parent_proxy, arg1, 'stonehearth:wall')
+   self[ProxyFabrication]:__init(self, parent_proxy, arg1)
 end
 
 function ProxyWall:_get_tangent_and_normal_coords()
@@ -82,6 +82,8 @@ function ProxyWall:connect_to(column_a, column_b)
    local pos_a = column_a:get_location()
    local pos_b = column_b:get_location()
    self:connect_to_points(pos_a, pos_b)
+   column_a:connect_to_wall(self)
+   column_b:connect_to_wall(self)
    return self
 end
 
@@ -116,12 +118,10 @@ function ProxyWall:connect_to_points(pos_a, pos_b)
    self._rotation = rotations[tangent[t]][normal[n]]   
    
    self:set_normal(normal)
-   self:set_tangent(tangent)
-
    self:get_entity():add_component('mob'):set_location_grid_aligned(pos_a + tangent)
    
    local start_pt = Point3(0, 0, 0)
-   local end_pt = Point3(1, Constants.STOREY_HEIGHT, 1) -- that "1" should be the depth of the wall.
+   local end_pt = Point3(1, constants.STOREY_HEIGHT, 1) -- that "1" should be the depth of the wall.
    if tangent[t] < 0 then
       start_pt[t] = -(span - 2)
    else
@@ -133,7 +133,7 @@ function ProxyWall:connect_to_points(pos_a, pos_b)
 
    -- grow the bounds by the depth of our cursor...
    local brush = self:get_voxel_brush()
-   local model = brush:paint()
+   local model = brush:paint_once()
    local bounds = model:get_bounds()
    end_pt[n] = bounds.max[n]
    start_pt[n] = bounds.min[n]

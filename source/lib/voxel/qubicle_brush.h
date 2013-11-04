@@ -13,9 +13,9 @@ public:
    enum PaintMode {
       Color,
       Opaque,
-      Outline
    };
 
+   QubicleBrush();
    QubicleBrush(std::istream& in);
    QubicleBrush(QubicleMatrix const*);
 
@@ -23,7 +23,7 @@ public:
    QubicleBrush& SetPreserveMatrixOrigin(bool value);
    QubicleBrush& SetPaintMode(PaintMode mode);
 
-   csg::Region3 Paint();
+   csg::Region3 PaintOnce();
    csg::Region3 PaintThroughStencil(csg::Region3 const& stencil);
 
 private:

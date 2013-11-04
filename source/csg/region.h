@@ -43,11 +43,9 @@ public:
    const Cube& operator[](int i) const { return cubes_[i]; }
    void Translate(const Point& pt);
    Region Translated(const Point& pt) const;
+   Region Inflated(Point const& pt) const;
 
-   // util
-   Region ProjectOnto(int axis, S plane) const;
-
-   // non-optimizing...
+   // non-optimizing... (xxx: make regions fluent!)
    void Clear();
    void Add(const Region& cube);
    void Add(Cube const& cube);
@@ -57,7 +55,6 @@ public:
    void Subtract(const Point& other);
    void Subtract(const Cube& other);
    void Subtract(const Region& other);
-   void ClipTo(const Region& other);
 
    // optimizing...
    Region<S, C> operator-(const Cube& other) const;

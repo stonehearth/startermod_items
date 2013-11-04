@@ -82,7 +82,11 @@ public:
             // xxx: see bug SH-7.  this is a temporary work around
             auto callbacks = changedCbs_;
             for (auto& cb : callbacks) {
-               luabind::call_function<void>(cb);
+               try {
+                  luabind::call_function<void>(cb);
+               } catch (std::exception const& e) {
+                  LOG(WARNING) << "lua error firing trace: " << e.what();
+               }
             }
          });
       }
@@ -127,7 +131,7 @@ public:
          tname = GetShortTypeName<Boxed>();
       }
       return
-         lua::RegisterWeakGameObject<Boxed>(tname.c_str())
+         lua::RegisterType<Boxed>(tname.c_str())
             .def("get",               &Boxed::Get)
             .def("modify",            &Boxed::Modify)
             .def("trace",             &Boxed::CreatePromise)

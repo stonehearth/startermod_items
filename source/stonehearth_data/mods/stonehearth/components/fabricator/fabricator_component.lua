@@ -26,9 +26,10 @@ function FabricatorComponent:start_project(name, blueprint)
    -- so the pathfinder can find it's way to regions which need to be constructed
    local project = self._fabricator:get_project()
 
-   local info = self._fabricator:get_fabrication_info()
-   if info.needs_scaffolding then
-      self:_add_scaffolding_to_project(project, info.tangent, info.normal)
+   local ci = blueprint:get_component_data('stonehearth:construction_data')
+   if ci.needs_scaffolding then
+      ci.normal = Point3(ci.normal.x, ci.normal.y, ci.normal.z)
+      self:_add_scaffolding_to_project(project, ci.normal)
    end
 
    -- remember the blueprint and project to assist with rendering
@@ -40,17 +41,16 @@ function FabricatorComponent:start_project(name, blueprint)
    return self
 end
 
-function FabricatorComponent:_add_scaffolding_to_project(project, tangent, normal)
+function FabricatorComponent:_add_scaffolding_to_project(project, normal)
    -- create a scaffolding blueprint and point it to the project
    local uri = 'stonehearth:scaffolding'
    local transform = project:add_component('mob'):get_transform()
    
    -- no need to set the transform on the scaffolding, since it's just a blueprint
    local scaffolding = radiant.entities.create_entity(uri)
-   scaffolding:add_component('stonehearth:scaffolding')
+   scaffolding:add_component('stonehearth:construction_data')
                   :set_normal(normal)
-                  :set_tangent(tangent)
-   scaffolding:add_component('stonehearth:scaffolding_fabricator'):support_project(project, tangent, normal)
+   scaffolding:add_component('stonehearth:scaffolding_fabricator'):support_project(project, normal)
    radiant.entities.set_faction(scaffolding, project)
 
    -- create a fabricator entity to build the scaffolding

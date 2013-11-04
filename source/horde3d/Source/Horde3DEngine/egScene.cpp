@@ -392,49 +392,49 @@ void SpatialGraph::updateQueues( const char* reason, const Frustum &frustum1, co
          continue;
       }
 
-		if (renderQueue) {
+      if (renderQueue) {
          if (!node->_renderable) {
             // LOG(WARNING) << "ignoring node (unrenderable) " << node->getName() << " " << node->getHandle();
             continue;
          }
 
-			if (!frustum1.cullBox( node->_bBox ) &&
-				(frustum2 == 0x0 || !frustum2->cullBox( node->_bBox )) ) {
-				if( node->_type == SceneNodeTypes::Mesh )  // TODO: Generalize and optimize this
-				{
-					uint32 curLod = ((MeshNode *)node)->getParentModel()->calcLodLevel( camPos );
-					if( ((MeshNode *)node)->getLodLevel() != curLod ) {
-                  // LOG(WARNING) << "ignoring node (wrong LOD level) " << node->getName() << " " << node->getHandle();
-                  continue;
-               }
-				}
-				
-				float sortKey = 0;
-
-				switch( order )
-				{
-				case RenderingOrder::StateChanges:
-					sortKey = node->_sortKey;
-					break;
-				case RenderingOrder::FrontToBack:
-					sortKey = nearestDistToAABB( frustum1.getOrigin(), node->_bBox.min, node->_bBox.max );
-					break;
-				case RenderingOrder::BackToFront:
-					sortKey = -nearestDistToAABB( frustum1.getOrigin(), node->_bBox.min, node->_bBox.max );
-					break;
-				}
-				
-            // LOG(WARNING) << "adding node " << node->getName() << " " << node->getHandle();
-				_renderableQueue.push_back( RendQueueItem( node->_type, sortKey, node ) );
-			} else {
+         if (frustum1.cullBox( node->_bBox ) && (frustum2 == 0x0 || frustum2->cullBox( node ->_bBox ))) {
             // LOG(WARNING) << "ignoring node (culled) " << node->getName() << " " << node->getHandle();
+            continue;
          }
-		}
+
+         if( node->_type == SceneNodeTypes::Mesh )  // TODO: Generalize and optimize this
+         {
+            uint32 curLod = ((MeshNode *)node)->getParentModel()->calcLodLevel( camPos );
+            if( ((MeshNode *)node)->getLodLevel() != curLod ) {
+               // LOG(WARNING) << "ignoring node (wrong LOD level) " << node->getName() << " " << node->getHandle();
+               continue;
+            }
+         }
+				
+         float sortKey = 0;
+
+         switch( order )
+         {
+         case RenderingOrder::StateChanges:
+            sortKey = node->_sortKey;
+            break;
+         case RenderingOrder::FrontToBack:
+            sortKey = nearestDistToAABB( frustum1.getOrigin(), node->_bBox.min, node->_bBox.max );
+            break;
+         case RenderingOrder::BackToFront:
+            sortKey = -nearestDistToAABB( frustum1.getOrigin(), node->_bBox.min, node->_bBox.max );
+            break;
+         }
+				
+         // LOG(WARNING) << "adding node " << node->getName() << " " << node->getHandle();
+         _renderableQueue.push_back( RendQueueItem( node->_type, sortKey, node ) );
+      }
       if (lightQueue && node->_type == SceneNodeTypes::Light) {		 
          // LOG(WARNING) << "adding light " << node->getName() << " " << node->getHandle();
-			_lightQueue.push_back( node );
-		}
-	}
+         _lightQueue.push_back( node );
+      }
+   }
 
 	// Sort
 	if( order != RenderingOrder::None )

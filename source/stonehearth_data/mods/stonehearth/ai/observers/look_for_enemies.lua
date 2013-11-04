@@ -1,6 +1,5 @@
 local LookForEnemies = class()
 
-LookForEnemies.name = 'stonehearth:actions:chase'
 LookForEnemies.does = 'stonehearth:top'
 LookForEnemies.priority = 0
 
@@ -69,8 +68,8 @@ function LookForEnemies:is_hostile(entity)
    end
 
    -- only attack mobs
-   local ok = entity:add_component('stonehearth:materials'):has_material('meat')
-   if not ok then
+   local material = entity:get_component('stonehearth:material')
+   if not material or not material:is('meat') then
       return false
    end
 

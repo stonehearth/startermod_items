@@ -1,9 +1,9 @@
-local Constants = require 'services.build.constants'
+local voxel_brush_util = require 'services.build.voxel_brush_util'
 
 local Proxy = class()
 local Point3 = _radiant.csg.Point3
 
-function Proxy:__init(derived, parent_proxy, arg1, component_name)
+function Proxy:__init(derived, parent_proxy, arg1)
    self._derived = derived
    self._children = {}
    if type(arg1) == 'string' or not arg1 then
@@ -12,16 +12,19 @@ function Proxy:__init(derived, parent_proxy, arg1, component_name)
    else
       self._entity = arg1
    end
-   self._component_name = component_name
 
    if parent_proxy then
       parent_proxy:add_child(derived)
    end
-   
+
+   self._construction_data = self._entity:get_component_data('stonehearth:construction_data')
+   if self._construction_data then
+      self._construction_data.paint_mode = "blueprint"
+   end
    -- proxies get rendered in blueprint
    self._entity:add_component('render_info')
                      :set_material('materials/blueprint_gridlines.xml')
-                     :set_model_mode('opaque')
+                     :set_model_mode('blueprint')
 end
 
 function Proxy:destroy()
@@ -40,6 +43,15 @@ function Proxy:move_to(location)
    return self._derived
 end
 
+function Proxy:move_to_absolute(location)
+   local mob = self._entity:add_component('mob')
+   local parent = mob:get_parent()
+   if parent then
+      location = location - parent:add_component('mob'):get_world_grid_location()
+   end
+   self:move_to(location)   
+end
+
 function Proxy:turn_to(rotation)
    self._entity:add_component('mob'):turn_to(rotation)
    return self._derived
@@ -48,9 +60,8 @@ end
 function Proxy:get_location()
    return self._entity:add_component('mob'):get_grid_location()
 end
-
-function Proxy:get_component_name()
-   return self._component_name
+function Proxy:get_location_absolute()
+   return self._entity:add_component('mob'):get_world_grid_location()
 end
 
 function Proxy:get_entity()
@@ -89,6 +100,26 @@ end
 
 function Proxy:get_children()
    return self._children
+end
+
+function Proxy:update_datastore()
+   if self._construction_data then
+      self:get_entity():set_component_data('stonehearth:construction_data', self._construction_data)
+   end
+end
+
+function Proxy:get_construction_data()
+   return self._construction_data
+end
+
+function Proxy:add_construction_data()
+   if not self._construction_data then
+      self._construction_data = {
+         paint_mode = 'blueprint'
+      }
+      self:update_datastore()
+   end
+   return self._construction_data
 end
 
 return Proxy

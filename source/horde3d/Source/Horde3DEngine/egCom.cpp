@@ -119,7 +119,12 @@ bool EngineConfig::setOption( EngineOptions::List param, float value )
 		size = ftoi_r( value );
 
 		if( size == shadowMapSize ) return true;
-		if( size != 128 && size != 256 && size != 512 && size != 1024 && size != 2048 ) return false;
+
+      if ( size <= 0 ) return false;
+
+      size = (int)pow(2, floor(log(size) / log(2.0)));
+
+      if(size > gRDI->getCaps().maxTextureSize) return false;
 
 		// Update shadow map
 		Modules::renderer().releaseShadowRB();

@@ -1,40 +1,26 @@
+local priorities = require('constants').priorities.worker_task
 local WorkerTask = require 'services.worker_scheduler.worker_task'
+local WorkerDispatcher = require 'services.worker_scheduler.worker_dispatcher'
 local WorkerScheduler = class()
 
 function WorkerScheduler:__init(faction)
    --radiant.log.info('constructing worker scheduler...')
    self._faction = faction
-   self._workers = {}
-   self._worker_tasks = {}
-   radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
+   self._tasks = {}
+   self._dispatchers = {}
+   self._strict = true
 end
 
-function WorkerScheduler:destroy()
-   radiant.events.unlisten(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
-end
-
-function WorkerScheduler:on_gameloop()
-   --self:_check_build_orders()
-   --self:_enable_pathfinders()
-   --self:_dispatch_jobs()
-end
-
-function WorkerScheduler:dispatch_solution(action, path)
-   local id = path:get_source():get_id()
-   local e = self._workers[id]
-
-   --TODO: figure out why the pf is dispatching twice to the same worker
-   --Seems to happen intermittently when lighting a moved fire
-   --assert(e, string.format('unknown worker id %d in _dispatch_solution', id))
-   radiant.log.warning('unknown worker id %d in _dispatch_solution', id)
+function WorkerScheduler:dispatch_solution(priority, id, action)
+   local dispatcher = self._dispatchers[id]
    
-   if e then
-      self:remove_worker(e.worker)
-
-      --TODO: figure out how to prioritize different worker actions
-      e.dispatch_fn(10, action)
+   if self._strict then
+      assert(dispatcher, string.format('unknown worker id %d in _dispatch_solution', id))
+   elseif not dispatcher then
+      radiant.log.warning('unknown worker id %d in _dispatch_solution', id)
+      return
    end
-   
+   dispatcher:add_solution(priority, action)
 end
 
 function WorkerScheduler:abort_worker_task(task)
@@ -43,14 +29,14 @@ end
 
 function WorkerScheduler:add_worker_task(name)
    local task = WorkerTask(name, self)
-   table.insert(self._worker_tasks, task)
+   table.insert(self._tasks, task)
    return task
 end
 
-function WorkerScheduler:remove_worker_task(target_task)
-   for i, task in ipairs(self._worker_tasks) do
-      if target_task == task then
-         table.remove(self._worker_tasks, i)
+function WorkerScheduler:remove_worker_task(task)
+   for i, t in ipairs(self._tasks) do
+      if t == task then
+         table.remove(self._tasks, i)
          break
       end
    end
@@ -59,18 +45,18 @@ end
 function WorkerScheduler:add_worker(worker, dispatch_fn)
    assert(worker)
    local id = worker:get_id()
-
-   radiant.log.info('adding worker %d.', id)
-   -- xxx: figure out why we sometimes get multiple adds
-   if not self._workers[id] then
-      assert(self._workers[id] == nil)
-
-      self._workers[id] = {
-         worker = worker,
-         dispatch_fn = dispatch_fn
-      }
-      self:_introduce_worker_to_tasks(worker)
+   local dispatcher = self._dispatchers[id]
+   
+   if self._strict then
+      assert(not dispatcher, 'adding duplicate worker %d to worker scheduler', id)
+   elseif dispatcher then
+      radiant.log.warning('adding duplicate worker %d to worker scheduler', id)
+      return
    end
+   
+   radiant.log.info('adding worker %d.', id)
+   self._dispatchers[id] = WorkerDispatcher(worker, dispatch_fn)
+   self:_introduce_worker_to_tasks(worker)
 end
 
 function WorkerScheduler:remove_worker(worker)
@@ -78,26 +64,30 @@ function WorkerScheduler:remove_worker(worker)
 
    local id = worker:get_id()
    radiant.log.info('removing worker %d.', id)
-   self._workers[id] = nil
+   local dispatcher = self._dispatchers[id]
+   if dispatcher then
+      dispatcher:destroy()
+      self._dispatchers[id] = nil
+   end
    self:_remove_worker_from_tasks(id)
 end
 
 function WorkerScheduler:_start_worker_task(task)
    assert(task:is_running(), "logical error: call to _start_worker_task for non-running task")
-   for id, e in pairs(self._workers) do
-      task:_consider_worker(e.worker)
+   for id, d in pairs(self._dispatchers) do
+      task:_consider_worker(d:get_worker())
    end
 end
 
 function WorkerScheduler:_stop_worker_task(task)
    assert(not task:is_running(), "logical error: call to _stop_worker_task for running task")
-   for id, e in pairs(self._workers) do
+   for id, d in pairs(self._dispatchers) do
       task:_remove_worker(id)
    end
 end
 
 function WorkerScheduler:_introduce_worker_to_tasks(worker)
-   for _, task in ipairs(self._worker_tasks) do
+   for _, task in ipairs(self._tasks) do
       if task:is_running() then
          task:_consider_worker(worker)
       end
@@ -105,7 +95,7 @@ function WorkerScheduler:_introduce_worker_to_tasks(worker)
 end
 
 function WorkerScheduler:_remove_worker_from_tasks(id)
-   for _, task in ipairs(self._worker_tasks) do
+   for _, task in ipairs(self._tasks) do
       if task:is_running() then
          task:_remove_worker(id)
       end

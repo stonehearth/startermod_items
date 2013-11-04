@@ -189,13 +189,14 @@ void lua::sim::open(lua_State* L)
             def("get_entity",               &Sim_GetEntity),
             def("destroy_entity",           &Sim_DestroyEntity),
             def("alloc_region",             &Sim_AllocObject<om::Region3Boxed>),
+            def("alloc_region2",            &Sim_AllocObject<om::Region2Boxed>),
             def("create_data_store",        &Sim_AllocDataStore),
             def("create_path_finder",       &Sim_CreatePathFinder),
             def("create_follow_path",       &Sim_CreateFollowPath),
             def("create_goto_location",     &Sim_CreateGotoLocation),
             def("create_goto_entity",       &Sim_CreateGotoEntity),
             def("create_job",               &Sim_CreateJob),
-
+            
             lua::RegisterTypePtr<Path>()
                .def("get_points",         &Path::GetPoints)
                .def("get_source",         &Path::GetSource)

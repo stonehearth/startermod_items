@@ -140,6 +140,17 @@ Stonehearth::GetComponentData(lua_State* L, om::EntityRef e, std::string name)
    return component;
 }
 
+object
+Stonehearth::AddComponentData(lua_State* L, om::EntityRef e, std::string name)
+{
+   object o = GetComponentData(L, e, name);
+   if (!o.is_valid() || type(o) == LUA_TNIL) {
+      o = newtable(L);
+      SetComponentData(L, e, name, o);
+   }
+   return o;
+}
+
 static object
 AddNativeComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
 {
@@ -232,6 +243,7 @@ void Stonehearth::InitEntity(om::EntityPtr entity, std::string const& uri, lua_S
 {
    ASSERT(L);
    L = lua::ScriptHost::GetCallbackThread(L);
+   bool is_server = object_cast<bool>(globals(L)["radiant"]["is_server"]);
 
    entity->SetUri(uri);
    entity->SetDebugText(uri);
@@ -252,7 +264,7 @@ void Stonehearth::InitEntity(om::EntityPtr entity, std::string const& uri, lua_S
 
          // Lua components...
          object component_data = lua::ScriptHost::JsonToLua(L, entry);
-         if (object_cast<bool>(globals(L)["radiant"]["is_server"])) {
+         if (is_server) {
             object component = Stonehearth::AddComponent(L, entity, entry.name());
             if (type(component) != LUA_TNIL) {
                object extend = component["extend"];
@@ -265,6 +277,22 @@ void Stonehearth::InitEntity(om::EntityPtr entity, std::string const& uri, lua_S
          }
       }
    }
+   // go through again and call the post create function...
+   if (is_server) {
+      auto lua_components = entity->GetComponent<LuaComponents>();
+      if (lua_components) {
+         for (auto const& entry : lua_components->GetComponentMap()) {
+            object component = entry.second->GetModelObject();
+            ASSERT(component.is_valid() && type(component) != LUA_TNIL);
+
+            object on_created = component["on_created"];
+            if (type(on_created) == LUA_TFUNCTION) {
+               call_function<void>(on_created, component);
+            }
+         }
+      }
+   }
+
    // xxx: refaactor me!!!111!
    if (L) {
       json::Node n(node);

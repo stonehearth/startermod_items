@@ -82,19 +82,22 @@ public:
       max.SetZero();
    }
 
-   template <class U> void Translate(const U& pt) {
-      for (int i = 0; i < C; i++) {
-         min[i] += static_cast<S>(pt[i]);
-         max[i] += static_cast<S>(pt[i]);
-      }
+   void Translate(const Point& pt) {
+      min += pt;
+      max += pt;
    }
-   template <class U> Cube Translated(const U& pt) const {
+
+   Cube Translated(const Point& pt) const {
       Cube result(*this);
       result.Translate(pt);
       return result;
    }
 
-   Cube Scaled(float factor) { return Cube(min.Scaled(factor), max.Scaled(factor)); }
+   Cube Inflated(Point amount) const {
+      return Cube(min - amount, max + amount, GetTag());
+   }
+
+   Cube Scaled(float factor) const { return Cube(min.Scaled(factor), max.Scaled(factor)); }
    Cube ProjectOnto(int axis, S plane) const;
 
    bool Intersects(const Cube& other) const;
@@ -107,6 +110,7 @@ public:
    Cube operator&(const Cube& other) const;
    Region operator&(const Region& other) const;
    Cube operator+(const Point& other) const;
+   Cube operator-() const;
    Region operator-(const Cube& other) const;
    Region operator-(const Region& other) const;
 

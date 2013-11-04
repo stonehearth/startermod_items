@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "region.h"
+#include "util.h"
 
 using namespace ::radiant;
 using namespace ::radiant::csg;
@@ -89,7 +90,6 @@ void Region<S, C>::AddUnique(const Region& region)
       cubes_.push_back(cube);
    }
 }
-
 
 template <class S, int C>
 void Region<S, C>::Subtract(const Point& pt)
@@ -217,11 +217,6 @@ void Region<S, C>::Subtract(const Region& r)
 }
 
 template <class S, int C>
-void Region<S, C>::ClipTo(const Region& r)
-{
-}
-
-template <class S, int C>
 const Region<S, C>& Region<S, C>::operator+=(const Region& r)
 {
    for (const auto &rc : r) {
@@ -300,17 +295,6 @@ Cube<S, C> Region<S, C>::GetBounds() const
 }
 
 template <class S, int C>
-Region<S, C> Region<S, C>::ProjectOnto(int axis, S plane) const
-{
-   Region result;
-
-   for (const auto &c : cubes_) {
-      result.Add(c.ProjectOnto(axis, plane));
-   }
-   return result;
-}
-
-template <class S, int C>
 void Region<S, C>::Translate(const Point& pt)
 {
    for (auto &c : cubes_) {
@@ -323,6 +307,16 @@ Region<S, C> Region<S, C>::Translated(const Point& pt) const
 {
    Region result = (*this);
    result.Translate(pt);
+   return std::move(result);
+}
+
+template <class S, int C>
+Region<S, C> Region<S, C>::Inflated(Point const& pt) const
+{
+   Region result;
+   for (auto &c : cubes_) {
+      result.Add(c.Inflated(pt));
+   }
    return std::move(result);
 }
 
@@ -345,6 +339,34 @@ Region3 radiant::csg::GetBorderXZ(const Region3 &other)
    return result;
 }
 #endif
+
+template <int C>
+Region<float, C> csg::ToFloat(Region<int, C> const& region) {
+   Region<float, C> result;
+   for (Cube<int, C> const& cube : region) {
+      result.AddUnique(ToFloat(cube));
+   }
+   return result;
+}
+
+template <int C>
+Region<float, C> const& csg::ToFloat(Region<float, C> const& region) {
+   return region;
+}
+
+template <int C>
+Region<int, C> csg::ToInt(Region<float, C> const& region) {
+   Region<int, C> result;
+   for (Cube<float, C> const& cube : region) {
+      result.Add(ToInt(cube)); // so expensive!
+   }
+   return result;
+}
+
+template <int C>
+Region<int, C> const& csg::ToInt(Region<int, C> const& region) {
+   return region;
+}
 
 #define MAKE_REGION(Cls) \
    const Cls Cls::empty; \
@@ -374,9 +396,9 @@ Region3 radiant::csg::GetBorderXZ(const Region3 &other)
    template Cls::Point Cls::GetClosestPoint2(const Cls::Point&, Cls::ScalarType*) const; \
    template void Cls::Optimize(); \
    template Cls::Cube Cls::GetBounds() const; \
-   template Cls Cls::ProjectOnto(int axis, Cls::ScalarType plane) const; \
    template void Cls::Translate(const Cls::Point& pt); \
    template Cls Cls::Translated(const Cls::Point& pt) const; \
+   template Cls Cls::Inflated(const Cls::Point& pt) const; \
 
 MAKE_REGION(Region3)
 MAKE_REGION(Region3f)
@@ -384,3 +406,11 @@ MAKE_REGION(Region2)
 MAKE_REGION(Region2f)
 MAKE_REGION(Region1)
 
+#define DEFINE_REGION_CONVERSIONS(C) \
+   template Region<float, C> csg::ToFloat(Region<int, C> const&); \
+   template Region<float, C> const& csg::ToFloat(Region<float, C> const&); \
+   template Region<int, C> const& csg::ToInt(Region<int, C> const&); \
+   template Region<int, C> csg::ToInt(Region<float, C> const&); \
+
+DEFINE_REGION_CONVERSIONS(2)
+DEFINE_REGION_CONVERSIONS(3)

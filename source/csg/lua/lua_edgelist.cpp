@@ -20,16 +20,16 @@ static std::shared_ptr<Region2> EdgeListToRegion2Unclipped(EdgeListPtr edges, in
 scope LuaEdgeList::RegisterLuaTypes(lua_State* L)
 {
    return
-      lua::RegisterTypePtr<EdgePoint>()
-         .def_readonly("x",      &EdgePoint::x)
-         .def_readonly("y",      &EdgePoint::y)
+      lua::RegisterTypePtr<EdgePointX>("EdgePoint")
+         .def_readonly("x",      &EdgePointX::x)
+         .def_readonly("y",      &EdgePointX::y)
       ,
-      lua::RegisterTypePtr<Edge>()
-         .def_readonly("start",     &Edge::start)
-         .def_readonly("end",       &Edge::end)
-         .def_readonly("normal",    &Edge::normal)
+      lua::RegisterTypePtr<EdgeX>("Edge")
+         .def_readonly("start",     &EdgeX::start)
+         .def_readonly("end",       &EdgeX::end)
+         .def_readonly("normal",    &EdgeX::normal)
       ,
-      lua::RegisterTypePtr<EdgeList>()
+      lua::RegisterTypePtr<EdgeList>("EdgeList")
          .def_readonly("edges",     &EdgeList::edges,    return_stl_iterator)
          .def_readonly("points",    &EdgeList::points,   return_stl_iterator)
          .def("inset",              &EdgeList::Inset)

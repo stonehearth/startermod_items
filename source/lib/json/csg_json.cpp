@@ -161,6 +161,6 @@ DECLARE_TYPE(color, csg::Color3);
 DECLARE_TYPE(color, csg::Color4);
 
 DEFINE_INVALID_JSON_CONVERSION(std::shared_ptr<csg::HeightMap<double>>)
-DEFINE_INVALID_JSON_CONVERSION(std::shared_ptr<csg::EdgePoint>)
-DEFINE_INVALID_JSON_CONVERSION(std::shared_ptr<csg::Edge>)
+DEFINE_INVALID_JSON_CONVERSION(std::shared_ptr<csg::EdgePointX>)
+DEFINE_INVALID_JSON_CONVERSION(std::shared_ptr<csg::EdgeX>)
 DEFINE_INVALID_JSON_CONVERSION(std::shared_ptr<csg::EdgeList>)

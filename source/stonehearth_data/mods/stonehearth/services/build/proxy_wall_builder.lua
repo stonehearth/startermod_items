@@ -1,4 +1,4 @@
-local Constants = require 'services.build.constants'
+local constants = require('constants').construction
 local ProxyColumn = require 'services.build.proxy_column'
 local ProxyWall = require 'services.build.proxy_wall'
 local ProxyBuilder = require 'services.build.proxy_builder'
@@ -24,15 +24,15 @@ function ProxyWallBuilder:_get_last_segment()
    return self:get_column(-2), self:get_column(-1)
 end
 
-function ProxyWallBuilder:_fit_point_to_constraints(pt)
+function ProxyWallBuilder:_fit_point_to_constraints(absolute_pt)
    local column_a, column_b = self:_get_last_segment()
    if not column_a then
-      return pt
+      return absolute_pt
    end
    -- constrain the 2nd column to be no more than the max wall
    -- distance away from the first
-   local pt_a = column_a:get_location()
-   local pt_b = pt
+   local pt_a = column_a:get_location_absolute()
+   local pt_b = absolute_pt
 
    local t, n, dt, d
    if math.abs(pt_a.x - pt_b.x) >  math.abs(pt_a.z - pt_b.z) then
@@ -44,10 +44,10 @@ function ProxyWallBuilder:_fit_point_to_constraints(pt)
    end
    if pt_a[t] > pt_b[t] then
       dt = 1
-      d  = math.max(pt_b[t] - pt_a[t], -Constants.MAX_WALL_SPAN)
+      d  = math.max(pt_b[t] - pt_a[t], -constants.MAX_WALL_SPAN)
    else
       dt = -1
-      d  = math.min(pt_b[t] - pt_a[t], Constants.MAX_WALL_SPAN)
+      d  = math.min(pt_b[t] - pt_a[t], constants.MAX_WALL_SPAN)
    end
    pt_b[t] = pt_a[t] + d
    pt_b[n] = pt_a[n]
@@ -72,12 +72,18 @@ end
 function ProxyWallBuilder:_on_mouse_event(e)
    local query = _radiant.client.query_scene(e.x, e.y)
    if query.location then
-      local location = self:_fit_point_to_constraints(query.location + query.normal)
-      self:get_column(-1):move_to(location)      
+      local world_location = self:_fit_point_to_constraints(query.location + query.normal)
+      if self:get_column_count() == 1 then
+         -- if this is the very first column, move the room around.
+         self:move_to(world_location)
+      else 
+         -- otherwise, move the column
+         self:get_column(-1):move_to_absolute(world_location)
+      end
       if e:up(1) then
          self:_add_new_segment()      
          if self:shift_down() or self:get_column_count() < 2 then
-            self:add_column():move_to(location)
+            self:add_column():move_to_absolute(world_location)
          else
             self:publish()
          end

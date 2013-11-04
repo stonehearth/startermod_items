@@ -33,8 +33,7 @@ function CityPlanComponent:_init_fabricator(fabricator, blueprint)
    fabricator:add_component('mob'):set_transform(transform)
    fabricator:set_debug_text('fabricator for ' .. blueprint:get_debug_text())
    
-   local fabricator_info = radiant.entities.get_entity_data(blueprint, 'stonehearth:fabricator_info')
-   if fabricator_info then
+   if blueprint:get_component('stonehearth:construction_data') then
       local name = radiant.entities.get_name(blueprint)
       fabricator:add_component('stonehearth:fabricator')
                      :start_project(name, blueprint)

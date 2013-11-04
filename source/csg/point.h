@@ -34,6 +34,18 @@ public:
       return result;
    }
 
+   void Translate(const Derived& pt) {
+      for (int i = 0; i < C; i++) {
+         (*this)[i] += pt[i];
+      }
+   }
+
+   Derived Translated(const Derived& pt) const {
+      Derived result(*this);
+      result.Translate(pt);
+      return result;
+   }
+
    // output
    std::ostream& Print(std::ostream& os) const {
       os << "(";
@@ -53,13 +65,6 @@ public:
       for (int i = 0; i < C; i++) {
          result[i] = (a[i] + b[i]) / 2;
       }
-      return result;
-   }
-
-   Derived ProjectOnto(int axis, S plane) const
-   {
-      Derived result = *static_cast<const Derived*>(this);
-      result[axis] = plane;
       return result;
    }
 
@@ -131,6 +136,13 @@ public:
       return result;
    }
 
+   const Derived& operator*=(S scale) {
+      for (int i = 0; i < C; i++) {
+         (*this)[i] *= scale;
+      }
+      return static_cast<const Derived&>(*this);
+   }
+
    const Derived& operator+=(const Derived& other) {
       for (int i = 0; i < C; i++) {
          (*this)[i] += other[i];
@@ -151,12 +163,6 @@ public:
          result[i] = (*this)[i] + other[i];
       }
       return result;
-   }
-
-   template <class U> void Translate(const U& pt) {
-      for (int i = 0; i < C; i++) {
-         (*this)[i] += static_cast<S>(pt[i]);
-      }
    }
 
    Derived operator-(const Derived& other) const {

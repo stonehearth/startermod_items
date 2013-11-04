@@ -1,6 +1,7 @@
 local ProxyColumn = require 'services.build.proxy_column'
 local ProxyWall = require 'services.build.proxy_wall'
 local ProxyPortal = require 'services.build.proxy_portal'
+local ProxyRoof = require 'services.build.proxy_roof'
 local ProxyContainer = require 'services.build.proxy_container'
 local ProxyBuilder = class()
 
@@ -17,10 +18,12 @@ function ProxyBuilder:__init(derived, on_mouse, on_keyboard)
       wall = 'stonehearth:wooden_wall',
       column = 'stonehearth:wooden_column',
       door = 'stonehearth:wooden_door',
+      roof = 'stonehearth:wooden_peaked_roof',
    }
    
    self._rotation = 0
    self._root_proxy = ProxyContainer(nil)
+   self._root_proxy:get_entity():add_component('stonehearth:no_construction_zone')
 end
 
 function ProxyBuilder:set_brush(type, uri)
@@ -86,6 +89,10 @@ function ProxyBuilder:add_door()
    return ProxyPortal(self._root_proxy, self._brushes.door)
 end
 
+function ProxyBuilder:add_roof()
+   return ProxyRoof(self._root_proxy, self._brushes.roof)
+end
+
 function ProxyBuilder:shift_down()
   return _radiant.client.is_key_down(_radiant.client.KeyboardInput.LEFT_SHIFT) or
          _radiant.client.is_key_down(_radiant.client.KeyboardInput.RIGHT_SHIFT)
@@ -107,15 +114,12 @@ function ProxyBuilder:_package_proxy_entity(package, proxy)
       destination = entity:get_component_data('destination'),
    }
    
-   local component_name =  proxy:get_component_name()
-   if component_name then
-      local data = entity:get_component_data(component_name)
-      
+   local data = entity:get_component_data('stonehearth:construction_data')
+   if data then
       -- remove the paint_mode.  we just set it here so the blueprint
       -- would be rendered differently
-      data.paint_mode = nil
-      
-      package.components[component_name] = data
+      data.paint_mode = nil     
+      package.components['stonehearth:construction_data'] = data
    end
 end
    

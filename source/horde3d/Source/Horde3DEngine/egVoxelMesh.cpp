@@ -15,6 +15,9 @@
 #include "egMaterial.h"
 #include "egModules.h"
 #include "egRenderer.h"
+#include "csg/ray.h"
+#include "csg/cube.h"
+#include "csg/util.h"
 
 #include "utDebug.h"
 
@@ -164,7 +167,34 @@ bool VoxelMeshNode::checkIntersection( const Vec3f &rayOrig, const Vec3f &rayDir
 	if( _lodLevel != 0 ) return false;
 
 	if( !rayAABBIntersection( rayOrig, rayDir, _bBox.min, _bBox.max ) ) return false;
-	
+
+   if (_parentModel->useCoarseCollisionBox()) {
+      float d;
+      radiant::csg::Point3f origin(rayOrig.x, rayOrig.y, rayOrig.z);
+      radiant::csg::Point3f dir(rayDir.x, rayDir.y, rayDir.z);
+      dir.Normalize();
+
+      radiant::csg::Ray3 ray(origin, dir);
+
+      radiant::csg::Cube3f cube(radiant::csg::Point3f(_bBox.min.x, _bBox.min.y, _bBox.min.z),
+                                radiant::csg::Point3f(_bBox.max.x, _bBox.max.y, _bBox.max.z));
+
+      if (!radiant::csg::Cube3Intersects(cube, ray, d)) {
+         return false;
+      }
+      // super gross fudge factor: make the distance shorter to make sure we get picked
+      // instaed of what we're coplanar with
+      d -= 0.05f;
+      radiant::csg::Point3f intersection = origin + (dir * d);
+      intsPos.x = intersection.x;
+      intsPos.y = intersection.y;
+      intsPos.z = intersection.z;
+      intsNorm.x = 0; // lies!
+      intsNorm.y = 1; // lies!
+      intsNorm.z = 0; // lies!
+      return true;
+   }
+
 	VoxelGeometryResource *geoRes = _parentModel->getVoxelGeometryResource();
 	if( geoRes == 0x0 || geoRes->getIndexData() == 0x0 || geoRes->getVertexData() == 0x0 ) return false;
 	

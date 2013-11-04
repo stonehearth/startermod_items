@@ -507,7 +507,9 @@ struct H3DModel
 		LodDist1F,
 		LodDist2F,
 		LodDist3F,
-		LodDist4F
+		LodDist4F,
+      PolygonOffsetEnabledI,
+      PolygonOffsetF,
 	};
 };
 

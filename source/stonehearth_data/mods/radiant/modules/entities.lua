@@ -265,12 +265,24 @@ function entities.set_display_name(entity, name)
 end
 
 function entities.get_attribute(entity, attribute_name)
-   return entity:add_component('attributes'):get_attribute(attribute_name)
+   return entity:add_component('stonehearth:attributes'):get_attribute(attribute_name)
 end
 
 
 function entities.set_attribute(entity, attribute_name, value)
    entity:add_component('attributes'):set_attribute(attribute_name, value)
+end
+
+function entities.add_buff(entity, buff_name)
+   entity:add_component('stonehearth:buffs'):add_buff(buff_name)
+end
+
+function entities.remove_buff(entity, buff_name)
+   entity:add_component('stonehearth:buffs'):remove_buff(buff_name)
+end
+
+function entities.has_buff(entity, buff_name)
+   return entity:add_component('stonehearth:buffs'):has_buff(buff_name)
 end
 
 function entities.set_posture(entity, posture)
@@ -305,12 +317,12 @@ function entities.pickup_item(entity, item)
             entities.remove_child(parent, item)
          end
          radiant.entities.set_posture(entity, 'carrying')
-         radiant.entities.set_attribute(entity, 'speed', 50) --xxx, change to a debuff
+         radiant.entities.add_buff(entity, 'stonehearth:buffs:carrying')
          carry_block:set_carrying(item)
          entities.move_to(item, Point3(0, 0, 0))
       else
          radiant.entities.unset_posture(entity, 'carrying')
-         radiant.entities.set_attribute(entity, 'speed', 100) --xxx, change to a debuff
+         radiant.entities.remove_buff(entity, 'stonehearth:buffs:carrying')
          carry_block:set_carrying(nil)
       end
    end
@@ -362,7 +374,7 @@ function entities._drop_helper(entity)
       local item = carry_block:get_carrying()
       if item then
          radiant.entities.unset_posture(entity, 'carrying')
-         radiant.entities.set_attribute(entity, 'speed', 100) --xxx, change to a debuff
+         radiant.entities.remove_buff(entity, 'stonehearth:buffs:carrying')
          carry_block:set_carrying(nil)
          return item
       end
@@ -441,8 +453,9 @@ function entities.compare_attribute(entity_a, entity_b, attribute)
 end
 
 function entities.is_hostile(entity_a, entity_b)
-   -- only attack mobs
-   local ok = entity_b:add_component('stonehearth:materials'):has_material('meat')
+   -- xxx: this check shouldn't be in the generic "is_hostile" function.  what
+   -- happens when we add things that aren't made of meat? (e.g. robots?)
+   local ok = entity_b:add_component('stonehearth:material'):is('meat')
    if not ok then
       return false
    end

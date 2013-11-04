@@ -43,6 +43,19 @@ T Region_Intersection(T const& lhs, T const& rhs)
    return lhs & rhs;
 }
 
+Region2 ProjectOntoXZPlane(Region3 const& region)
+{
+   Region2 r2;
+   for (Cube3 cube : region) {
+      Rect2 rect(Point2(cube.min.x, cube.min.z), Point2(cube.max.x, cube.max.z), cube.GetTag());
+      if (rect.GetArea() > 0) {
+         r2.Add(rect);
+      }
+   }
+   return r2;
+}
+
+
 template <typename T>
 static luabind::class_<T> Register(struct lua_State* L, const char* name)
 {
@@ -78,6 +91,7 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("get_closest_point",  &T::GetClosestPoint)
          .def("translate",          &T::Translate)
          .def("translated",         &T::Translated)
+         .def("inflated",           &T::Inflated)
          .def("contains",           &T::Contains)
       ;
 }
@@ -87,7 +101,8 @@ scope LuaRegion::RegisterLuaTypes(lua_State* L)
    return
       def("region3_intersection", Region_Intersection<Region3>),
       Register<Region3>(L,  "Region3")
-         .def("get_adjacent",       &GetAdjacent),
+         .def("get_adjacent",             &GetAdjacent)
+         .def("project_onto_xz_plane",    &ProjectOntoXZPlane),
       Register<Region3f>(L, "Region3f"),
       Register<Region2>(L,  "Region2"),
       Register<Region1>(L,  "Region1");

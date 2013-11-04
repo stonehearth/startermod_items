@@ -60,41 +60,40 @@
          display: block;
          background: url('./images/close_button.png');
       }
+   }
 
-      #statusSign {
+   #statusSign {
+      position: absolute;
+      top: 0px;
+      right: 0px;
+      width: 175px;
+      height: 128px;
+      color: #fff;
+
+      #message {
          position: absolute;
-         top: -10px;
-         left: 760px;
-         width: 175px;
-         height: 128px;
-         color: #fff;
-
-         #message {
-            position: absolute;
-            top: 80px;
-            left: 0px;
-            right: 0px;
-            display: table-cell;
-            text-align: center;
-            font-family: 'Lemiesz';
-            font-size:30px;
-         }
-
-         &:hover {
-            color: #ffc000;
-         }
-
+         top: 80px;
+         left: 0px;
+         right: 0px;
+         display: table-cell;
+         text-align: center;
+         font-family: 'Lemiesz';
+         font-size:30px;
       }
 
-      .open {
-         background: url('./images/sign_green.png');
-         -webkit-transform: rotate(-4deg);
+      &:hover {
+         color: #ffc000;
       }
+   }
 
-      .closed {
-         background: url('./images/sign_yellow.png');
-         -webkit-transform: rotate(4deg);
-      }
+   #statusSign.open {
+      background: url('./images/sign_green.png');
+      -webkit-transform: rotate(-4deg);      
+   }
+
+   #statusSign.closed {
+      background: url('./images/sign_yellow.png');
+      -webkit-transform: rotate(-4deg);      
    }
 }
 

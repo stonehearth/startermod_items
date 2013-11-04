@@ -66,7 +66,7 @@ void StockpileNode::UpdateShape(const csg::Cube3& bounds)
    _bLocalBox.max.x = bounds.max.x - 0.5f;
    _bLocalBox.min.z = bounds.min.z - 0.5f;
    _bLocalBox.max.z = bounds.max.z - 0.5f;
-   _bLocalBox.min.y = (float)bounds.min.y;
+   _bLocalBox.min.y = static_cast<float>(bounds.min.y);
    _bLocalBox.max.y = bounds.min.y  + 0.01f;
 
    if (!center_.first) {
