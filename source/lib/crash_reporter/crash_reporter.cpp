@@ -24,13 +24,14 @@ static void OnClientConnected(void* context, const ClientInfo* client_info)
 
 static void OnClientCrashed(void* context, const ClientInfo* client_info, const wstring* dumpfile_name)
 {
+   // Collect all crash report data, compress, and post to server
+
+   // The code below just reads the dumpfile and reports its length.
    //std::ifstream dump_file(dumpfile_name->c_str(), std::ifstream::in|std::ifstream::binary);
    //dump_file.seekg (0, std::ifstream::end);
    //int const length = dump_file.tellg();
    //dump_file.close();
    //assert(length > 0);
-
-   // collect all crash report data, compress, and post to server
 
    RequestApplicationExit();
 }
@@ -42,18 +43,20 @@ static void OnClientExited(void* context, const ClientInfo* client_info)
 
 static bool CrashServerStart(std::wstring const& pipe_name, std::wstring const& dump_path)
 {
-   crash_server.reset(new CrashGenerationServer(pipe_name,
-                                                nullptr,
-                                                OnClientConnected,
-                                                nullptr,
-                                                OnClientCrashed,
-                                                nullptr,
-                                                OnClientExited,
-                                                nullptr,
-                                                nullptr,
-                                                nullptr,
-                                                true,
-                                                &dump_path));
+   crash_server.reset(new CrashGenerationServer(pipe_name,         // name of the pipe
+                                                nullptr,           // default pipe security
+                                                OnClientConnected, // callback on client connection
+                                                nullptr,           // context for the client connection callback
+                                                OnClientCrashed,   // callback on client crash
+                                                nullptr,           // contect for the client crashed callback
+                                                OnClientExited,    // callback on client exit
+                                                nullptr,           // context for the client exited callback
+                                                nullptr,           // callback for upload request
+                                                nullptr,           // context for the upload request callback
+                                                true,              // generate a dump on crash
+                                                &dump_path));      // path to place dump files
+                                                                   // fully qualified filename will be passed to the client crashed callback
+                                                                   // multiple files may be generated in the case of a full memory dump request (currently off)
 
    return crash_server->Start();
 }

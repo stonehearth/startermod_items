@@ -69,14 +69,14 @@ void Application::InitializeExceptionHandlingEnvironment()
    pipe_name_wstring.assign(pipe_name_.begin(), pipe_name_.end());
 
    // This API is inconsistent, but trying to avoid too many changes to Breakpad's sample code in case it versions
-   exception_handler_.reset(new ExceptionHandler(empty_wstring,
-                            nullptr,
-                            nullptr,
-                            nullptr,
-                            ExceptionHandler::HANDLER_ALL,
-                            MiniDumpNormal,
-                            &pipe_name_wstring[0],
-                            nullptr));
+   exception_handler_.reset(new ExceptionHandler(empty_wstring,                 // local dump path (ignored since we are out of process)
+                                                 nullptr,                       // filter callback 
+                                                 nullptr,                       // minidump callback
+                                                 nullptr,                       // context for the callbacks
+                                                 ExceptionHandler::HANDLER_ALL, // exceptions to trap
+                                                 MiniDumpNormal,                // type of minidump
+                                                 &pipe_name_wstring[0],         // name of pipe for out of process dump
+                                                 nullptr));                     // CustomClientInfo
 
    // Do not show dialog for invalid parameter failures
    // Let the crash reporter handle it
