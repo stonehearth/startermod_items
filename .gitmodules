@@ -50,3 +50,6 @@
 	path = modules/tbb
 	url = https://github.com/radent/tbb
 	branch = master
+[submodule "modules/breakpad"]
+	path = modules/breakpad
+	url = http://github.com/radent/breakpad.git
