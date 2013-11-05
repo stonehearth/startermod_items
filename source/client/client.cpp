@@ -39,7 +39,8 @@
 #include "lib/lua/rpc/open.h"
 #include "lib/lua/om/open.h"
 #include "lib/lua/voxel/open.h"
-#include "lib/analytics/send_design_event.h"
+#include "lib/lua/analytics/open.h"
+#include "lib/analytics/design_event.h"
 #include "client/renderer/render_entity.h"
 #include "lib/perfmon/perfmon.h"
 #include "glfw3.h"
@@ -118,6 +119,35 @@ Client::Client() :
    });
    core_reactor_->AddRoute("radiant:remove_trace", [this](rpc::Function const& f) {
       return core_reactor_->RemoveTrace(rpc::UnTrace(f.caller, f.call_id));
+   });
+
+   core_reactor_->AddRoute("radiant:send_design_event", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:design_event");
+      try {
+         json::Node node(f.args);
+         std::string event_name = node.getn(0).as<std::string>();
+         analytics::DesignEvent design_event(event_name);
+
+         if (node.size() > 1) {
+            json::Node params = node.getn(1);
+            if (params.has("value")) {
+               design_event.SetValue(params.get<float>("value"));
+            }
+            if (params.has("position")) {
+               //csg::Point3f pos = params.get<csg::Point3f>("position");
+               design_event.SetPosition(params.get<csg::Point3f>("position"));
+            }
+            if (params.has("area")) {
+               design_event.SetArea(params.get<std::string>("area"));
+            }
+         }
+         design_event.SendEvent();
+         result->ResolveWithMsg("success");
+      } catch (std::exception const& e) {
+         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
+      }
+      //return GetModules(f);
+      return result;
    });
 }
 
@@ -209,6 +239,7 @@ void Client::run()
    lua::res::open(L);
    lua::voxel::open(L);
    lua::rpc::open(L, core_reactor_);
+   lua::analytics::open(L);
 
 
    //luabind::globals(L)["_client"] = luabind::object(L, this);
@@ -246,11 +277,6 @@ void Client::run()
       static int last_stat_dump = 0;
       mainloop();
       int now = timeGetTime();
-      //Send game running events 
-      if (now - last_event_time > 30 * 1000) {
-         analytics::SendDesignEvent("game:is_running");
-         last_event_time = now;
-      }
    }
 }
 

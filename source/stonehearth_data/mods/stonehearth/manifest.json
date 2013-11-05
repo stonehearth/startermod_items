@@ -291,7 +291,7 @@
       "ai" : "file(components/ai/ai_component.lua)",
       "commands" : "file(components/commands/commands_component.lua)",
       "center_of_attention_spot" : "file(components/center_of_attention/coa_spot_component.lua)",
-      "materials" : "file(components/materials/materials_component.lua)",
+      "material" : "file(components/material/material_component.lua)",
       "resource_node" : "file(components/resource_node/resource_node_component.lua)",
       "stockpile" : "file(components/stockpile/stockpile_component.lua)",
       "workshop" : "file(components/workshop/workshop_component.lua)",

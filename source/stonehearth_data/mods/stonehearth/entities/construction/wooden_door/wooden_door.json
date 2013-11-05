@@ -6,6 +6,9 @@
          "description": "Privacy at last!",
          "icon" : "file(wooden_door.png)"
       },
+      "stonehearth:material" : {
+         "tags" : "wood portal"
+      }            ,
       "model_variants": [
          {
             "models": [

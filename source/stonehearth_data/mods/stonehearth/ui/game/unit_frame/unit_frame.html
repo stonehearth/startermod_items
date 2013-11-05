@@ -3,7 +3,7 @@
       <div id="buffs">
          {{#each buffs}}
             {{#if this.name}}
-               <div {{bindAttr title=this.name}}>
+               <div class="item" {{bindAttr title=this.name}}>
                   <img {{bindAttr class=this.type src=this.icon}} />
                </div>
             {{/if}}

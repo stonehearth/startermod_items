@@ -13,6 +13,9 @@
          "name": "Picket Fence Gate",
          "description": "Don't like your neighbors? Don't install.",
          "icon" : "file(picket_fence_gate.png)"
-      }
+      },
+      "stonehearth:material" : {
+         "tags" : "wood defenses"
+      }            
    }
 }

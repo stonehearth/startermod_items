@@ -6,11 +6,8 @@
          "material": "wood",
          "stacks": 20
       },
-      "stonehearth:materials" : {
-         "materials" : [ 
-            "wood",
-            "resource"
-         ]
+      "stonehearth:material" : {
+         "tags" : "wood resource"
       },
       "model_variants": [
          {

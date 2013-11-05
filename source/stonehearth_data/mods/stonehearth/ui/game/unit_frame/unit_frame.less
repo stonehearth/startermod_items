@@ -8,26 +8,26 @@
 
    #buffs {
       position: absolute;
-      top: 0px;
+      top: 24px;
       left: 6px;
 
-      div {
+      .item {
          float: left;
-         img {
-            width: 48px;
-            height: 48px;
-         }
+         width: 46px;
 
+         height: 51px;
+         img {
+            width: 46px;
+            height: 51px;
+         }
       }
 
       .buff {
-         border-width: 11px 9px 14px 9px;
-         border-image: url(./images/buff_frame.png) 11 9 14 9 repeat;
+         background: url('./images/buff_bg.png');
       }
 
       .debuff {
-         border-width: 11px 9px 14px 9px;
-         border-image: url(./images/debuff_frame.png) 11 9 14 9 repeat;
+         background: url('./images/debuff_bg.png');
       }
 
    }

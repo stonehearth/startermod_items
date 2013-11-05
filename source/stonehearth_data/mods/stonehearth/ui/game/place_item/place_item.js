@@ -31,6 +31,7 @@ $(document).ready(function(){
          description : i18n.t('stonehearth:move_description')
       });
       call_server_to_place_item(e);
+
    });
 
    //Fires when someone clicks the "place" button in the UI to bring up the picker
@@ -60,7 +61,6 @@ App.StonehearthPlaceItemView = App.View.extend({
    shifted: false,
    waitingForPlacement: false,
    autoSelectNext: null,
-   keepWindowAround: false,
 
    init: function() {
       this._super();
@@ -79,12 +79,14 @@ App.StonehearthPlaceItemView = App.View.extend({
       $(document).mouseup(function (e){
          var container = $('#itemPicker');
 
+         /*
          if (!self.waitingForPlacement
               && !container.is(e.target) // if the target of the click isn't the container...
               && container.has(e.target).length === 0) // ... nor a descendant of the container
          {
             self.destroy();
          }
+         */
       });
    },
 
@@ -100,12 +102,10 @@ App.StonehearthPlaceItemView = App.View.extend({
       //Fires whenever the user clicks on an object in the UI
       onSelectItemButton: function(item) {
          this._actions.selectItem.call(this, item, 0);
-         //If the user is pressing shift while they click, keep the window open
-         if (this.shifted) {
-            this.keepWindowAround = true;
-         } else {
-            $('#itemPicker').hide();
-         }
+      },
+
+      close: function() {
+         this.destroy();
       },
 
       //When the user selects an item, call the place API
@@ -134,13 +134,7 @@ App.StonehearthPlaceItemView = App.View.extend({
                   //On next update, call this function again with item
                   self._actions.selectItem.call(self, item, chain + 1);
                   //self.autoSelectNext = item;
-               } else {
-                  //If we hadn't selected to keep the window around, now destroy it
-                  if(!self.keepWindowAround) {
-                     self.destroy();
-                  }
                }
-               self.keepWindowAround = false;
             });
       }
    },
