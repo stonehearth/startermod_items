@@ -54,3 +54,7 @@
 	path = modules/breakpad
 	url = http://github.com/radent/breakpad.git
 	branch = master
+[submodule "modules/build-environment"]
+	path = modules/build-environment
+	url = https://github.com/radent/build-environment.git
+	branch = master

@@ -103,7 +103,7 @@ App.StonehearthCreateCampView = App.View.extend({
 
    _hideCrate: function() {
       this._cratePlaced = true
-      $('#crate').animate({ 'bottom' : -200 }, 100);
+      $('#crate').animate({ 'bottom' : -240 }, 150);
       $("#crateCoverLink").hide();
    },
 
