@@ -37,16 +37,9 @@ const std::string API_VERSION = "1";
 DEFINE_SINGLETON(AnalyticsLogger);
 
 AnalyticsLogger::AnalyticsLogger() :
-   stopping_thread_(false)
+   stopping_thread_(false),
+   event_sender_thread_(AnalyticsThreadMain)
 {   
-   // Initialize libcurl.
-   //(note, not threadsafe, so always call in application.cpp.)
-   //See: http://curl.haxx.se/libcurl/c/curl_global_init.html
-   curl_global_init(CURL_GLOBAL_ALL);
-
-   //Start the sending thread
-   //Reference: http://stackoverflow.com/questions/10673585/start-thread-with-member-function
-   event_sender_thread_ = new std::thread(&AnalyticsLogger::SendEventsToServer, this);
 }
 
 //TODO: test this when there is a way to gracefully exit the game. 
@@ -54,8 +47,8 @@ AnalyticsLogger::~AnalyticsLogger()
 {
    stopping_thread_ = true;
    cv_.notify_one();
-   event_sender_thread_ -> join();
-   delete event_sender_thread_;
+   event_sender_thread_.Join();
+   // do any other cleanup after thread terminates (none currently)
 }
 
 //Called by StartAnalytics session, so we should never get a call to submit log event
@@ -204,4 +197,9 @@ size_t write_to_string(void *ptr, size_t size, size_t count, void *stream)
 {
   ((std::string*)stream)->append((char*)ptr, 0, size*count);
   return size*count;
+}
+
+void AnalyticsLogger::AnalyticsThreadMain()
+{
+   AnalyticsLogger::GetInstance().SendEventsToServer();
 }

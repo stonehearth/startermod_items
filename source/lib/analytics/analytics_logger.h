@@ -4,6 +4,7 @@
 #include "analytics.h"
 #include "event_data.h"
 #include "core/singleton.h"
+#include "core/thread.h"
 #include "lib/json/node.h"
 
 #include <thread>
@@ -27,6 +28,8 @@ private:
    void SendEventsToServer();
    void PostEvent(json::Node event_node, std::string event_category);
 
+   static void AnalyticsThreadMain();
+
    std::string userid_;
    std::string sessionid_;
    std::string build_version_;
@@ -36,7 +39,7 @@ private:
 
    std::mutex m_;
    std::condition_variable cv_;
-   std::thread* event_sender_thread_;
+   radiant::core::Thread event_sender_thread_;
 
    bool stopping_thread_;
 

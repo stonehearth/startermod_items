@@ -4,6 +4,8 @@ add_library(core STATIC
             log_win32.cpp
             deferred.cpp
             guard.cpp
+            thread.cpp
+            process.cpp
             )
 
 target_link_libraries(core
