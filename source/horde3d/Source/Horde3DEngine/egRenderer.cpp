@@ -1152,7 +1152,7 @@ int clipPolyToAxis(Vec3f clippedVerts[], int numClippedVerts, float boundsVal, i
    for (int vertNum = 0; vertNum < numClippedVerts; vertNum++)
    {
       Vec3f lStart = clippedVerts[vertNum];
-      Vec3f lEnd = clippedVerts[(vertNum + 1) % 4];
+      Vec3f lEnd = clippedVerts[(vertNum + 1) % numClippedVerts];
       Vec3f dir = (lEnd - lStart);
 
       if (isInFrustum(lStart[valIdx], boundsVal, sign))
