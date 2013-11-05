@@ -55,6 +55,7 @@ BEGIN
         MENUITEM "&Deref Zero",                 ID_CLIENT_DEREFZERO
         MENUITEM "&Invalid Param",              ID_CLIENT_INVALIDPARAM
         MENUITEM "&Pure Call",                  ID_CLIENT_PURECALL
+        MENUITEM "Generic Thrown &Exception",   ID_CLIENT_GENERICTHROWNEXCEPTION
         MENUITEM "&Request Dump",               ID_CLIENT_REQUESTEXPLICITDUMP
     END
 END

@@ -323,6 +323,10 @@ void PureCallCrash() {
   Derived derived;
 }
 
+void GenericThrownException() {
+   throw new std::exception();
+}
+
 void RequestDump() {
   if (!handler->WriteMinidump()) {
     MessageBoxW(NULL, L"Dump request failed", L"Dumper", MB_OK);
@@ -396,6 +400,9 @@ LRESULT CALLBACK WndProc(HWND wnd,
           break;
         case ID_CLIENT_PURECALL:
           PureCallCrash();
+          break;
+        case ID_CLIENT_GENERICTHROWNEXCEPTION:
+          GenericThrownException();
           break;
         case ID_CLIENT_REQUESTEXPLICITDUMP:
           RequestDump();

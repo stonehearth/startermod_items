@@ -56,6 +56,7 @@
 #define ID_CLIENT_DEREFZERO             32775
 #define ID_CLIENT_PURECALL              32777
 #define ID_CLIENT_REQUESTEXPLICITDUMP   32778
+#define ID_CLIENT_GENERICTHROWNEXCEPTION 32779
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
