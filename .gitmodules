@@ -2,10 +2,6 @@
 	path = modules/boost_bin
 	url = https://github.com/radent/boost_bin
 	branch = master
-[submodule "modules/breakpad"]
-	path = modules/breakpad
-	url = https://github.com/radent/breakpad
-	branch = master
 [submodule "modules/chromium-embedded"]
 	path = modules/chromium-embedded
 	url = https://github.com/radent/chromium-embedded
