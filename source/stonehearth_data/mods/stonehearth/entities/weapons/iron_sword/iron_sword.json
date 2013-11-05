@@ -23,6 +23,9 @@
       "unit_info": {
          "name": "Iron Sword", 
          "description": "Used to thwack foes"
-      }
+      },
+      "stonehearth:material" : {
+         "tags" : "metal melee_weapon"
+      }      
    }
 }

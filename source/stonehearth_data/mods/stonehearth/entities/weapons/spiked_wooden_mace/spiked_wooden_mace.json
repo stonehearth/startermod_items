@@ -23,6 +23,9 @@
       "unit_info": {
          "name": "Spiked Wooden Mace", 
          "description": "Nasty, pointy spikes"
-      }
+      },
+      "stonehearth:material" : {
+         "tags" : "wood melee_weapon"
+      }      
    }
 }
