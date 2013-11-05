@@ -142,6 +142,7 @@ public:
 	void drawSphere( const Vec3f &pos, float radius );
 	void drawCone( float height, float fov, const Matrix4f &transMat );
    void drawFrustum(const Frustum& frust);
+   void drawPoly(const std::vector<Vec3f>& poly);
 
 	bool createShaderComb( const char* filename, const char *vertexShader, const char *fragmentShader, ShaderCombination &sc );
 	void releaseShaderComb( ShaderCombination &sc );
@@ -250,7 +251,7 @@ protected:
 	uint32                             _vlPosOnly, _vlOverlay, _vlModel, _vlParticle, _vlVoxelModel;
 	uint32                             _vbCube, _ibCube, _vbSphere, _ibSphere;
 	uint32                             _vbCone, _ibCone, _vbFSPoly;
-   uint32                             _vbFrust;
+   uint32                             _vbFrust, _vbPoly, _ibPoly;
 public:
    // needed to draw debug shapes in extensions!
    glslopt_ctx*                       _glsl_opt_ctx;

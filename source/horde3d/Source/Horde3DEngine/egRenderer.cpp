@@ -275,6 +275,15 @@ void Renderer::createPrimitives()
 
    _vbFrust = gRDI->createVertexBuffer(8 * 3 * sizeof( float ), nullptr);
 
+   uint16 polyInds[96];
+   for (int i = 0; i < 31; i++) {
+      polyInds[i * 3] = 0;
+      polyInds[i * 3 + 1] = i + 1;
+      polyInds[i * 3 + 2] = i + 2;
+   }
+   _vbPoly = gRDI->createVertexBuffer(32 * 3 * sizeof( float ), nullptr);
+   _ibPoly = gRDI->createIndexBuffer(96 * sizeof(uint16), polyInds);
+
 	// Unit (geodesic) sphere (created by recursively subdividing a base octahedron)
 	Vec3f spVerts[126] = {  // x, y, z
 		Vec3f( 0.f, 1.f, 0.f ),   Vec3f( 0.f, -1.f, 0.f ),
@@ -329,10 +338,6 @@ void Renderer::createPrimitives()
 void Renderer::drawFrustum(const Frustum& frust)
 {
    float *vs = (float *)gRDI->mapBuffer(_vbFrust);
-   float cubeVerts[8 * 3] = {  // x, y, z
-      0.f, 0.f, 1.f,   1.f, 0.f, 1.f,   1.f, 1.f, 1.f,   0.f, 1.f, 1.f,
-      0.f, 0.f, 0.f,   1.f, 0.f, 0.f,   1.f, 1.f, 0.f,   0.f, 1.f, 0.f
-   };
 
    for (int i = 0; i < 8; i++)
    {
@@ -353,6 +358,27 @@ void Renderer::drawFrustum(const Frustum& frust)
    gRDI->drawIndexed( PRIM_TRILIST, 0, 36, 0, 8 );
 }
 
+
+void Renderer::drawPoly(const std::vector<Vec3f>& poly)
+{
+   float *vs = (float *)gRDI->mapBuffer(_vbPoly);
+
+   int i = 0;
+   for (const auto& vec : poly)
+   {
+      vs[i++] = vec.x; vs[i++] = vec.y; vs[i++] = vec.z;
+   }
+
+   gRDI->unmapBuffer(_vbPoly);
+
+   Matrix4f mat = Matrix4f();
+   mat.toIdentity();
+   gRDI->setShaderConst( _curShader->uni_worldMat, CONST_FLOAT44, &mat.x[0] );
+   gRDI->setVertexBuffer( 0, _vbPoly, 0, 12 );
+   gRDI->setIndexBuffer( _ibPoly, IDXFMT_16 );
+   gRDI->setVertexLayout( _vlPosOnly );
+   gRDI->drawIndexed( PRIM_TRILIST, 0, 3 + ((poly.size() - 3) * 3), 0, poly.size() );
+}
 
 void Renderer::drawAABB( const Vec3f &bbMin, const Vec3f &bbMax )
 {
@@ -1271,6 +1297,8 @@ void Renderer::updateShadowMap()
       SceneNode* n = Modules::sceneMan().getRenderableQueue()[j].node;
 		aabb.makeUnion( n->getBBox() ); 
 	}
+   gRDI->_frameDebugInfo.addDirectionalLightAABB_(aabb);
+
 
 	// Find depth range of lit geometry
 	float minDist = Math::MaxFloat, maxDist = 0.0f;
@@ -1362,9 +1390,6 @@ void Renderer::updateShadowMap()
 	      }
 
          lightProjMat = calcDirectionalLightShadowProj(aabb, frustum, lightViewMat, numMaps);
-
-         gRDI->_frameDebugInfo.addDirectionalLightAABB_(aabb);
-
       }
 	
 		// Generate render queue with shadow casters for current slice
