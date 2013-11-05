@@ -149,6 +149,38 @@ Client::Client() :
       //return GetModules(f);
       return result;
    });
+
+   //Allow user to opt in/out of analytics from JS
+   core_reactor_->AddRoute("radiant:set_collection_status", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:design_event");
+      try {
+         json::Node node(f.args);
+         bool collect_stats = node.getn(0).as<bool>();
+         core::Config::GetInstance().SetCollectionStatus(collect_stats);
+         result->ResolveWithMsg("success");
+      } catch (std::exception const& e) {
+         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
+      }
+      //return GetModules(f);
+      return result;
+   });
+
+   //Pass analytics status to JS
+   //TODO: re-write as general settings getter/setters
+   core_reactor_->AddRoute("radiant:get_collection_status", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:design_event");
+      try {
+         json::Node node;
+         core::Config& config = core::Config::GetInstance();
+         node.set("has_expressed_preference", config.IsCollectionStatusSet());
+         node.set("collection_status", config.GetCollectionStatus());
+         result->Resolve(node);
+      } catch (std::exception const& e) {
+         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
+      }
+      return result;
+   });
+
 }
 
 Client::~Client()
