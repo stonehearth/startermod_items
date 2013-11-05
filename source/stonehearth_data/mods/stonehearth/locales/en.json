@@ -11,8 +11,8 @@
    "new_game_setup_base_camp_help" : "You'll need somewhere to store your supplies. Make a small stockpile by clicking on the crate. Don't go overboard, you can make more later.",
    "new_game_setup_finished" : "You're on your own now",
    "new_game_setup_finished_help" : "The rest is up to you. Start by gathering wood and stone resources, then building a workshop.",
-   "new_game_place_banner" : "Click to place your banner",
-   "new_game_place_stockpile" : "Click to place your stockpile",
+   "new_game_place_banner" : "Click me to place your banner",
+   "new_game_place_stockpile" : "Click me to place your stockpile",
    "new_game_setup_finished_button" : "Ok, got it",
 
    "show_stockpile_all" : "All",
