@@ -23,6 +23,8 @@ function ResourceTracker:on_item_added(e)
    local material = e.item:get_component('stonehearth:material')
    local unit_info = e.item:get_component('unit_info')
 
+   --TODO: Sort by faction!!!
+   
    if material and material:is('resource') and unit_info then
       local name = unit_info:get_display_name()
       local uri = e.item:get_uri()

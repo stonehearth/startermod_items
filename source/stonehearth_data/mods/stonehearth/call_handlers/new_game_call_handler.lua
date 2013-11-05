@@ -107,7 +107,8 @@ end
 
 function NewGameCallHandler:place_citizen(x, z)
    local pop_service = radiant.mods.load('stonehearth').population
-   local faction = pop_service:get_faction('stonehearth:factions:ascendancy')
+   --TODO: faction denotes which player is playing. Have user pick?
+   local faction = pop_service:get_faction('civ','stonehearth:factions:ascendancy')
    local citizen = faction:create_new_citizen()
 
    faction:promote_citizen(citizen, 'worker')

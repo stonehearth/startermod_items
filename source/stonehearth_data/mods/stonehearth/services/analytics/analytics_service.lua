@@ -1,10 +1,12 @@
 local Vec3 = _radiant.csg.Point3f
 
 local AnalyticsService = class()
+local population_service = require 'services.population.population_service'
+local object_tracker = require 'services.object_tracker.object_tracker_service'
 
 function AnalyticsService:__init()
    radiant.events.listen(radiant.events, 'stonehearth:minute_poll', self, self.on_minute_poll)
-   --radiant.events.listen(radiant.events, 'stonehearth:ten_minute_poll', self, self.on_ten_minute_poll)
+   radiant.events.listen(radiant.events, 'stonehearth:ten_minute_poll', self, self.on_ten_minute_poll)
 end
 
 function AnalyticsService:on_minute_poll()
@@ -12,7 +14,32 @@ function AnalyticsService:on_minute_poll()
 end
 
 function AnalyticsService:on_ten_minute_poll()
-   --TODO: send player stats (# townsfolk, etc)
+   local send_string = ""
+
+   -- Send some data for each faction
+   local factions = population_service:get_all_factions()
+   for faction_id, faction in pairs(factions) do
+
+      --Send data about # workers
+      -- xxx Fix to show breakdown by class when we can listen on worker class changes; 
+      -- Right now, the worker scheduler thinks everyone is a worker since everyone is added a worker
+      local citizen_tracker = object_tracker:get_worker_tracker(faction_id)
+      local c_data = citizen_tracker:get_data_store():get_data()
+      if c_data.entities then
+         send_string = send_string .. "_Num_citizens_" .. #c_data.entities
+      end
+
+      --Send data about resources
+      local resource_tracker = object_tracker:get_resource_tracker(faction_id)
+      local r_data = resource_tracker:get_data_store():get_data()
+
+      send_string = send_string .. "_Resources_"
+      for uri, data in pairs(r_data.resource_types) do
+         send_string = send_string .. data.name .. "_" .. data.count
+      end   
+   end
+
+   _radiant.analytics.DesignEvent('game:user_stats'):set_area(send_string):send_event()
 end
 
 --- Call the native design event function after doing some common manipulations
