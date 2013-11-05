@@ -1273,7 +1273,7 @@ void Renderer::updateShadowMap()
 	
 
 	// Find AABB of lit geometry
-	BoundingBox aabb;
+	BoundingBox litAabb, visibleAabb;
 
    std::ostringstream reason;
    reason << "update shadowmap for light " << _curLight->getName();
@@ -1295,16 +1295,24 @@ void Renderer::updateShadowMap()
 	for( size_t j = 0, s = Modules::sceneMan().getRenderableQueue().size(); j < s; ++j )
 	{
       SceneNode* n = Modules::sceneMan().getRenderableQueue()[j].node;
-		aabb.makeUnion( n->getBBox() ); 
+		litAabb.makeUnion( n->getBBox() ); 
 	}
-   gRDI->_frameDebugInfo.addDirectionalLightAABB_(aabb);
+   gRDI->_frameDebugInfo.addDirectionalLightAABB_(litAabb);
+
+   Modules::sceneMan().updateQueues(reason.str().c_str(), _curCamera->getFrustum(), 0x0,
+   	RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
+	for( size_t j = 0, s = Modules::sceneMan().getRenderableQueue().size(); j < s; ++j )
+	{
+      SceneNode* n = Modules::sceneMan().getRenderableQueue()[j].node;
+		visibleAabb.makeUnion( n->getBBox() ); 
+	}
 
 
 	// Find depth range of lit geometry
 	float minDist = Math::MaxFloat, maxDist = 0.0f;
 	for( uint32 i = 0; i < 8; ++i )
 	{
-		float dist = -(_curCamera->getViewMat() * aabb.getCorner( i )).z;
+		float dist = -(_curCamera->getViewMat() * visibleAabb.getCorner( i )).z;
 		if( dist < minDist ) minDist = dist;
 		if( dist > maxDist ) maxDist = dist;
 	}
@@ -1373,23 +1381,23 @@ void Renderer::updateShadowMap()
          Matrix4f lightViewProjMat = lightProjMat * lightViewMat;
 		   lightProjMat = calcCropMatrix( frustum, lightAbsPos, lightViewProjMat ) * lightProjMat;
       } else {
-         lightAbsPos = Vec3f((aabb.min.x + aabb.max.x) / 2.0f, (aabb.min.y + aabb.max.y) / 2.0f, (aabb.min.z + aabb.max.z) / 2.0f);
+         lightAbsPos = Vec3f((litAabb.min.x + litAabb.max.x) / 2.0f, (litAabb.min.y + litAabb.max.y) / 2.0f, (litAabb.min.z + litAabb.max.z) / 2.0f);
          lightViewMat = Matrix4f(_curLight->getViewMat());
          lightViewMat.x[12] = lightAbsPos.x;
          lightViewMat.x[13] = lightAbsPos.y;
          lightViewMat.x[14] = lightAbsPos.z;
 
          Vec3f min, max;
-         min = max = lightViewMat * aabb.getCorner(0);
+         min = max = lightViewMat * litAabb.getCorner(0);
 	      for( uint32 k = 1; k < 8; ++k ) {
-            Vec3f pt = lightViewMat * aabb.getCorner(k);
+            Vec3f pt = lightViewMat * litAabb.getCorner(k);
             for (int j = 0; j < 3; j++) {
                min[j] = std::min(min[j], pt[j]);
                max[j] = std::max(max[j], pt[j]);
             }
 	      }
 
-         lightProjMat = calcDirectionalLightShadowProj(aabb, frustum, lightViewMat, numMaps);
+         lightProjMat = calcDirectionalLightShadowProj(litAabb, frustum, lightViewMat, numMaps);
       }
 	
 		// Generate render queue with shadow casters for current slice
