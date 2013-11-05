@@ -53,3 +53,4 @@
 [submodule "modules/breakpad"]
 	path = modules/breakpad
 	url = http://github.com/radent/breakpad.git
+	branch = master
