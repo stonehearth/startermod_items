@@ -50,3 +50,7 @@
 	path = modules/libcurl
 	url = https://github.com/radent/libcurl.git
 	branch = master
+[submodule "modules/build-environment"]
+	path = modules/build-environment
+	url = https://github.com/radent/build-environment.git
+	branch = master
