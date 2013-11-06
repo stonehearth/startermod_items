@@ -74,7 +74,7 @@ end
 
 
 function NewGameCallHandler:create_camp(session, response, pt)
-   local faction = radiant.mods.load('stonehearth').population:get_faction('stonehearth:factions:ascendancy')
+   local faction = radiant.mods.load('stonehearth').population:get_faction('civ', 'stonehearth:factions:ascendancy')
 
    -- place the stanfard in the middle of the camp
    local location = Point3(pt.x, pt.y, pt.z)
