@@ -1,6 +1,8 @@
 #ifndef _BUILD_NUMBER_H
 #define _BUILD_NUMBER_H
 
+#include "build_defaults.h"
+
 /*
  * This is not the file you're probably looking for.  It exists only to get
  * the build to compile in developer builds.  The actual file used by official

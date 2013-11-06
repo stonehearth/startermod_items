@@ -254,8 +254,9 @@ void Client::run()
    std::string docroot = "http://radiant/" + manifest.get<std::string>("loader.ui.homepage");
 
    // seriously???
+   std::string name = core::Config::GetInstance().GetName();
    std::string game_script = varMap["game.script"].as<std::string>();
-   if (game_script != "stonehearth/start_game.lua") {
+   if (game_script != name + "/start_game.lua") {
       docroot += "?skip_title=true";
    }
 

@@ -32,7 +32,7 @@ bool Application::LoadConfig(int argc, const char* argv[])
    Client::GetInstance().GetConfigOptions();
    game_engine::arbiter::GetInstance().GetConfigOptions();
 
-   return config.Load("stonehearth", argc, argv);
+   return config.Load(argc, argv);
 }
 
 int Application::Run(int argc, const char** argv)
