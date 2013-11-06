@@ -21,6 +21,7 @@ function FollowLeash:run(ai, entity)
 
    if location then
       ai:execute('stonehearth:goto_location', location)
+      ai:set_action_priority(self, 0)
    end
 end
 
