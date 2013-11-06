@@ -1,9 +1,10 @@
 local PopulationFaction = class()
 
-function PopulationFaction:__init(faction)
+--Separate the faction name (player chosen) from the kingdom name (ascendency, etc.)
+function PopulationFaction:__init(faction, kingdom)
    self._faction = faction
-   self._data = radiant.resources.load_json(faction)
-   self._faction_name = 'civ' -- xxx: for now....
+   self._data = radiant.resources.load_json(kingdom)
+   self._faction_name = faction --TODO: differentiate b/w user id and name?
 end
 
 function PopulationFaction:create_new_citizen()   

@@ -83,9 +83,13 @@ bool Config::Load(std::string const& name, int argc, const char *argv[])
    }
 
    //Make sure we have a session and userid
-   userid_ = ReadConfigOption("userid", MakeUUIDString());
+   userid_ = ReadConfigOption("userid");
+   if (userid_.empty()) {
+      userid_ = MakeUUIDString();
+      WriteConfigOption("userid", userid_);
+   }
    sessionid_ = MakeUUIDString();
-   collect_analytics_ = ReadConfigOption("collect_analytics", "yes");
+   collect_analytics_ = ReadConfigOption("collect_analytics");
 
    // Load the config files...
    LoadConfigFile(run_directory_ / config_filename_);
@@ -135,22 +139,51 @@ std::string Config::GetUserID()
    return userid_;
 }
 
-//True if collect_analytics_ is "yes", false otherwise
+//True if we should collect analytics
+//(if collect_analytics_ is "yes") false otherwise
 bool Config::GetCollectionStatus()
 {
    return (collect_analytics_ == "yes");
 }
 
-//ReadConfigOption
-//Return specified option or makes one based on the default value passed in and then returns it.
+void Config::SetCollectionStatus(bool should_collect) 
+{
+   if (should_collect) {
+      collect_analytics_ = "yes";
+   } else {
+      collect_analytics_ = "no";
+   }
+   WriteConfigOption("collect_analytics", collect_analytics_);
+}
+
+//True if the user has set the collecton status, false otherwise
+bool Config::IsCollectionStatusSet()
+{
+   return (!collect_analytics_.empty());
+}
+
+//WriteConfigOption
 //Note that write_ini will create a new file if necessary. It will also intelligently 
 //not overwrite any values already in the file.
 //Tested with file empty, file present, file present but no userid data, and file present
 //with junk data but no userid data.
+void Config::WriteConfigOption(std::string option_name, std::string option_value)
+{
+    //this option has not yet been set in this instance of the program. Try to load it from the ini file.
+   fs::path save_path = cache_directory_ / config_filename_;
+   std::string save_path_str = save_path.string();
+   pt::ptree properties;
+
+   properties.put(option_name, option_value);
+   pt::write_ini(save_path_str, properties);
+}
+
+//ReadConfigOption
+//Return specified option or "" if the file is not there
 //Reference: http://stackoverflow.com/questions/15647299/how-to-read-and-write-ini-files-using-boost-library
 //Reference: http://www.boost.org/doc/libs/1_53_0/doc/html/boost_propertytree/accessing.html
 //Reference: http://www.boost.org/doc/libs/1_44_0/doc/html/boost_propertytree/tutorial.html
-std::string Config::ReadConfigOption(std::string option_name, std::string default_option)
+std::string Config::ReadConfigOption(std::string option_name)
 {
    //this option has not yet been set in this instance of the program. Try to load it from the ini file.
    fs::path save_path = cache_directory_ / config_filename_;
@@ -169,11 +202,8 @@ std::string Config::ReadConfigOption(std::string option_name, std::string defaul
    }
 
    //If we're here, either the file doesn't exist, or the file exists
-   //but the key isn't there. Since write_ini creates a new file if necessary
-   //we can just make the new string and write it with the default provided.
-   properties.put(option_name, default_option);
-   pt::write_ini(save_path_str, properties);   
-   return default_option;
+   //but the key isn't there.
+   return "";
 }
 
 std::string Config::GetSessionID()
