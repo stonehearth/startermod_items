@@ -5,10 +5,6 @@
 #include "libjson.h"
 #include <boost/algorithm/string.hpp>  
 
-#include "curl/curl.h"
-#include "curl/easy.h"
-#include "curl/curlbuild.h"
-
 // Crytop stuff (xxx - change the include path so these generic headers aren't in it)
 #define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
 #include "sha.h"
@@ -16,12 +12,19 @@
 #include "files.h"
 #include "md5.h"
 
-static size_t write_to_string(void *ptr, size_t size, size_t count, void *stream);
+#include "Poco/Net/HTTPClientSession.h"
+#include "Poco/Net/HTTPRequest.h"
+#include "Poco/Net/HTTPResponse.h"
+
+using Poco::Net::HTTPClientSession;
+using Poco::Net::HTTPRequest;
+using Poco::Net::HTTPResponse;
+using Poco::Net::HTTPMessage;
 
 using namespace ::radiant;
 using namespace ::radiant::analytics;
 
-const std::string WEBSITE_URL = "http://api.gameanalytics.com/";
+const std::string ANALYTICS_DOMAIN = "api.gameanalytics.com";
 
 //Keys for the stonehearth-dev game project. Leave in while debugging
 const std::string GAME_KEY = "2b6cc12b9457de0ae969e0d9f8b04291";
@@ -133,70 +136,51 @@ void AnalyticsLogger::SendEventsToServer()
 
 void AnalyticsLogger::PostEvent(json::Node event_node, std::string event_category)
 {
-   //Create a new CURL object
-   CURL* curl = curl_easy_init();
-   if (curl) {
-      std::string url = WEBSITE_URL + API_VERSION + "/" + GAME_KEY + "/" + event_category;
+   std::string event_string = "{\"event_id\": \"game:is_running\", \"user_id\": \"a9c82cd2-4e98-42a0-b022-6051f7cdb55f\", \"build\": \"preview_0.314a\", \"session_id\": \"399db052-6850-4d0c-ba38-d4d442efc473\"}";
+   //std::string event_string = event_node.write(); // CHECKCHECK
 
-      std::string event_string = event_node.write();
+   // the header is the data + secret key
+   std::string header = event_string + SECRET_KEY;
 
-      //the header is the data + secret key
-      std::string header = event_string + SECRET_KEY;
+   // Hash the header with md5
+   // Borrowing sample code from http://www.cryptopp.com/wiki/Hash_Functions
+   CryptoPP::Weak::MD5 hash;
+   byte digest[CryptoPP::Weak::MD5::DIGESTSIZE];
+   hash.CalculateDigest(digest, (byte*)header.c_str(), header.length());
 
-      //Hash the header with md5
-      //Borrowing sample code from http://www.cryptopp.com/wiki/Hash_Functions
-      CryptoPP::Weak::MD5 hash;
-      byte digest[CryptoPP::Weak::MD5::DIGESTSIZE];
-      hash.CalculateDigest(digest, (byte*)header.c_str(), header.length());
+   CryptoPP::HexEncoder encoder;
+   std::string digest_string;
+   encoder.Attach(new CryptoPP::StringSink(digest_string));
+   encoder.Put(digest, sizeof(digest));
+   encoder.MessageEnd();
 
-      CryptoPP::HexEncoder encoder;
-      std::string output;
-      encoder.Attach(new CryptoPP::StringSink(output));
-      encoder.Put(digest, sizeof(digest));
-      encoder.MessageEnd();
+   // Super important to make sure the final hex is all lower case
+   boost::algorithm::to_lower(digest_string);
 
-      //Super important to make sure the final hex is all lower case
-      boost::algorithm::to_lower(output);
-      std::string authorization_str = "Authorization: " + output;
+   std::string path = "/" + API_VERSION + "/" + GAME_KEY + "/" + event_category;
 
-      //Create  struct of headers, so we can in the future, attach multiple headers
-      struct curl_slist *chunk = NULL;
-      chunk = curl_slist_append(chunk, authorization_str.c_str());
-      curl_slist_append(chunk, "Content-Type: text/plain");
+   HTTPClientSession session(ANALYTICS_DOMAIN);
 
-      //OK, init curl to have all the post data
-      curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-      curl_easy_setopt(curl, CURLOPT_POSTFIELDS, event_string.c_str());
-      curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-      curl_easy_setopt(curl, CURLOPT_POST, 1);
-      curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 20000);
+   HTTPRequest request(HTTPRequest::HTTP_POST, path, HTTPMessage::HTTP_1_1);
+   request.setContentType("text/plain");
+   request.add("Authorization", digest_string);
+   request.setContentLength(event_string.length());
 
-      //If we get a response from the server, put it in response
-      std::string response;
-      curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_to_string);
-      curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+   // Send request, returns open stream
+   std::ostream& request_stream = session.sendRequest(request);
+   request_stream << event_string;
 
-      //Send the post request
-      CURLcode res = curl_easy_perform(curl);
+   // Get response
+   HTTPResponse response;
+   std::istream& response_stream = session.receiveResponse(response);
 
-      if (res == CURLE_OK) {
-         LOG(INFO) << "Post worked! Status is: " << response;
-      } else {
-         //TODO: log the error
-         LOG(WARNING) << "Post didn't work. Status is: " << res;
-      }
-      
-      //Cleanup, need one for every curl init
-      curl_easy_cleanup(curl);
-      curl_slist_free_all(chunk);
-   }
-}
-
-//Helper function to write response data
-size_t write_to_string(void *ptr, size_t size, size_t count, void *stream)
-{
-  ((std::string*)stream)->append((char*)ptr, 0, size*count);
-  return size*count;
+   // Check result
+   int status = response.getStatus();
+   if (status != HTTPResponse::HTTP_OK)	{
+      // unexpected result code
+      LOG(WARNING) << "AnalyticsLogger.PostEvent: Unexpected result code from HTTP POST: " << status;
+      LOG(WARNING) << "HTTP POST response was: " << response_stream;
+	}
 }
 
 void AnalyticsLogger::AnalyticsThreadMain()

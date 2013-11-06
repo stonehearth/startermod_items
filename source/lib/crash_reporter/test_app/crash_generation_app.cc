@@ -527,8 +527,7 @@ int APIENTRY _tWinMain(HINSTANCE instance,
                                  NULL,
                                  ExceptionHandler::HANDLER_ALL,
                                  MiniDumpNormal,
-//                                 kPipeName,
-                                 &pipe_name[0],
+                                 pipe_name.data(),
                                  &custom_info);
 
   // Initialize global strings.

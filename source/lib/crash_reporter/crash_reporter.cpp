@@ -4,6 +4,16 @@
 #include <memory>
 #include <fstream>
 
+#include "Poco/Net/HTTPClientSession.h"
+#include "Poco/Net/HTTPRequest.h"
+#include "Poco/Net/HTTPResponse.h"
+#include "Poco/StreamCopier.h"
+
+using Poco::Net::HTTPClientSession;
+using Poco::Net::HTTPRequest;
+using Poco::Net::HTTPResponse;
+using Poco::Net::HTTPMessage;
+
 #include "client/windows/crash_generation/client_info.h"
 #include "client/windows/crash_generation/crash_generation_server.h"
 
@@ -24,14 +34,38 @@ static void OnClientConnected(void* context, const ClientInfo* client_info)
 
 static void OnClientCrashed(void* context, const ClientInfo* client_info, const wstring* dumpfile_name)
 {
-   // Collect all crash report data, compress, and post to server
+   // Get the length of the dumpfile
+   std::ifstream dump_file(dumpfile_name->c_str(), std::ifstream::in|std::ifstream::binary);
+   dump_file.seekg(0, std::ifstream::end);
+   long long const file_length = dump_file.tellg();
+   dump_file.seekg(0, std::ifstream::beg);
 
-   // The code below just reads the dumpfile and reports its length.
-   //std::ifstream dump_file(dumpfile_name->c_str(), std::ifstream::in|std::ifstream::binary);
-   //dump_file.seekg (0, std::ifstream::end);
-   //int const length = dump_file.tellg();
-   //dump_file.close();
-   //assert(length > 0);
+   std::string const domain = "posttestserver.com";
+   std::string const path = "/post.php";
+
+   HTTPClientSession session(domain);
+   HTTPRequest request(HTTPRequest::HTTP_POST, path, HTTPMessage::HTTP_1_1);
+
+   request.setContentType("application/octet-stream");
+   request.setContentLength(file_length);
+
+   // Send request, returns open stream
+   std::ostream& request_stream = session.sendRequest(request);
+   Poco::StreamCopier::copyStream(dump_file, request_stream);
+   dump_file.close();
+
+   // Get response
+   HTTPResponse response;
+   std::istream& response_stream = session.receiveResponse(response);
+
+   // Check result
+   int status = response.getStatus();
+   if (status != HTTPResponse::HTTP_OK) {
+      // unexpected result code
+      //std::string response_string(100000, '\0');
+      //response_stream.read(&response_string[0], 100000);
+      //MessageBox(NULL, response_string.data(), "crash_reporter", MB_OK); // CHECKCHECK
+	}
 
    RequestApplicationExit();
 }

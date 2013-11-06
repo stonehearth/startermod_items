@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "radiant_logger.h"
 #include "lib/json/node.h"
-#include "curl/curl.h"
 #include "client.h" 
 #include "application.h"
 #include "resources/res_manager.h"
@@ -75,7 +74,7 @@ void Application::InitializeExceptionHandlingEnvironment()
                                                  nullptr,                       // context for the callbacks
                                                  ExceptionHandler::HANDLER_ALL, // exceptions to trap
                                                  MiniDumpNormal,                // type of minidump
-                                                 &pipe_name_wstring[0],         // name of pipe for out of process dump
+                                                 pipe_name_wstring.data(),      // name of pipe for out of process dump
                                                  nullptr));                     // CustomClientInfo
 
    // Do not show dialog for invalid parameter failures
@@ -132,11 +131,6 @@ int Application::Run(int argc, const char** argv)
       // Need to load all singletons before spawning threads.
       res::ResourceManager2::GetInstance();
       client::Client::GetInstance();
-
-      // Initialize libcurl
-      // (note, not threadsafe, so always call in application.cpp.)
-      // See: http://curl.haxx.se/libcurl/c/curl_global_init.html
-      curl_global_init(CURL_GLOBAL_ALL);
 
       //Start the analytics session before spawning threads too
       std::string userid = config.GetUserID();
