@@ -4,7 +4,7 @@ local PopulationFaction = class()
 function PopulationFaction:__init(faction, kingdom)
    self._faction = faction
    self._data = radiant.resources.load_json(kingdom)
-   self._faction_name = faction --TODO: differentiat b/w user id and name?
+   self._faction_name = faction --TODO: differentiate b/w user id and name?
 end
 
 function PopulationFaction:create_new_citizen()   

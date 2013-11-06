@@ -5,6 +5,7 @@ function PopulationService:__init()
    self._factions = {}
 end
 
+--TODO: civ is assumed to be the user faction in many places. Stamp this out!
 function PopulationService:get_faction(faction, kingdom)
    radiant.check.is_string(faction)
    local scheduler = self._factions[faction]
