@@ -275,6 +275,15 @@ void Renderer::createPrimitives()
 
    _vbFrust = gRDI->createVertexBuffer(8 * 3 * sizeof( float ), nullptr);
 
+   uint16 polyInds[96];
+   for (int i = 0; i < 31; i++) {
+      polyInds[i * 3] = 0;
+      polyInds[i * 3 + 1] = i + 1;
+      polyInds[i * 3 + 2] = i + 2;
+   }
+   _vbPoly = gRDI->createVertexBuffer(32 * 3 * sizeof( float ), nullptr);
+   _ibPoly = gRDI->createIndexBuffer(96 * sizeof(uint16), polyInds);
+
 	// Unit (geodesic) sphere (created by recursively subdividing a base octahedron)
 	Vec3f spVerts[126] = {  // x, y, z
 		Vec3f( 0.f, 1.f, 0.f ),   Vec3f( 0.f, -1.f, 0.f ),
@@ -329,10 +338,6 @@ void Renderer::createPrimitives()
 void Renderer::drawFrustum(const Frustum& frust)
 {
    float *vs = (float *)gRDI->mapBuffer(_vbFrust);
-   float cubeVerts[8 * 3] = {  // x, y, z
-      0.f, 0.f, 1.f,   1.f, 0.f, 1.f,   1.f, 1.f, 1.f,   0.f, 1.f, 1.f,
-      0.f, 0.f, 0.f,   1.f, 0.f, 0.f,   1.f, 1.f, 0.f,   0.f, 1.f, 0.f
-   };
 
    for (int i = 0; i < 8; i++)
    {
@@ -353,6 +358,27 @@ void Renderer::drawFrustum(const Frustum& frust)
    gRDI->drawIndexed( PRIM_TRILIST, 0, 36, 0, 8 );
 }
 
+
+void Renderer::drawPoly(const std::vector<Vec3f>& poly)
+{
+   float *vs = (float *)gRDI->mapBuffer(_vbPoly);
+
+   int i = 0;
+   for (const auto& vec : poly)
+   {
+      vs[i++] = vec.x; vs[i++] = vec.y; vs[i++] = vec.z;
+   }
+
+   gRDI->unmapBuffer(_vbPoly);
+
+   Matrix4f mat = Matrix4f();
+   mat.toIdentity();
+   gRDI->setShaderConst( _curShader->uni_worldMat, CONST_FLOAT44, &mat.x[0] );
+   gRDI->setVertexBuffer( 0, _vbPoly, 0, 12 );
+   gRDI->setIndexBuffer( _ibPoly, IDXFMT_16 );
+   gRDI->setVertexLayout( _vlPosOnly );
+   gRDI->drawIndexed( PRIM_TRILIST, 0, 3 + ((poly.size() - 3) * 3), 0, poly.size() );
+}
 
 void Renderer::drawAABB( const Vec3f &bbMin, const Vec3f &bbMax )
 {
@@ -1152,7 +1178,7 @@ int clipPolyToAxis(Vec3f clippedVerts[], int numClippedVerts, float boundsVal, i
    for (int vertNum = 0; vertNum < numClippedVerts; vertNum++)
    {
       Vec3f lStart = clippedVerts[vertNum];
-      Vec3f lEnd = clippedVerts[(vertNum + 1) % 4];
+      Vec3f lEnd = clippedVerts[(vertNum + 1) % numClippedVerts];
       Vec3f dir = (lEnd - lStart);
 
       if (isInFrustum(lStart[valIdx], boundsVal, sign))
@@ -1247,7 +1273,7 @@ void Renderer::updateShadowMap()
 	
 
 	// Find AABB of lit geometry
-	BoundingBox aabb;
+	BoundingBox litAabb, visibleAabb;
 
    std::ostringstream reason;
    reason << "update shadowmap for light " << _curLight->getName();
@@ -1269,14 +1295,24 @@ void Renderer::updateShadowMap()
 	for( size_t j = 0, s = Modules::sceneMan().getRenderableQueue().size(); j < s; ++j )
 	{
       SceneNode* n = Modules::sceneMan().getRenderableQueue()[j].node;
-		aabb.makeUnion( n->getBBox() ); 
+		litAabb.makeUnion( n->getBBox() ); 
 	}
+   gRDI->_frameDebugInfo.addDirectionalLightAABB_(litAabb);
+
+   Modules::sceneMan().updateQueues(reason.str().c_str(), _curCamera->getFrustum(), 0x0,
+   	RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
+	for( size_t j = 0, s = Modules::sceneMan().getRenderableQueue().size(); j < s; ++j )
+	{
+      SceneNode* n = Modules::sceneMan().getRenderableQueue()[j].node;
+		visibleAabb.makeUnion( n->getBBox() ); 
+	}
+
 
 	// Find depth range of lit geometry
 	float minDist = Math::MaxFloat, maxDist = 0.0f;
 	for( uint32 i = 0; i < 8; ++i )
 	{
-		float dist = -(_curCamera->getViewMat() * aabb.getCorner( i )).z;
+		float dist = -(_curCamera->getViewMat() * visibleAabb.getCorner( i )).z;
 		if( dist < minDist ) minDist = dist;
 		if( dist > maxDist ) maxDist = dist;
 	}
@@ -1345,26 +1381,23 @@ void Renderer::updateShadowMap()
          Matrix4f lightViewProjMat = lightProjMat * lightViewMat;
 		   lightProjMat = calcCropMatrix( frustum, lightAbsPos, lightViewProjMat ) * lightProjMat;
       } else {
-         lightAbsPos = Vec3f((aabb.min.x + aabb.max.x) / 2.0f, (aabb.min.y + aabb.max.y) / 2.0f, (aabb.min.z + aabb.max.z) / 2.0f);
+         lightAbsPos = Vec3f((litAabb.min.x + litAabb.max.x) / 2.0f, (litAabb.min.y + litAabb.max.y) / 2.0f, (litAabb.min.z + litAabb.max.z) / 2.0f);
          lightViewMat = Matrix4f(_curLight->getViewMat());
          lightViewMat.x[12] = lightAbsPos.x;
          lightViewMat.x[13] = lightAbsPos.y;
          lightViewMat.x[14] = lightAbsPos.z;
 
          Vec3f min, max;
-         min = max = lightViewMat * aabb.getCorner(0);
+         min = max = lightViewMat * litAabb.getCorner(0);
 	      for( uint32 k = 1; k < 8; ++k ) {
-            Vec3f pt = lightViewMat * aabb.getCorner(k);
+            Vec3f pt = lightViewMat * litAabb.getCorner(k);
             for (int j = 0; j < 3; j++) {
                min[j] = std::min(min[j], pt[j]);
                max[j] = std::max(max[j], pt[j]);
             }
 	      }
 
-         lightProjMat = calcDirectionalLightShadowProj(aabb, frustum, lightViewMat, numMaps);
-
-         gRDI->_frameDebugInfo.addDirectionalLightAABB_(aabb);
-
+         lightProjMat = calcDirectionalLightShadowProj(litAabb, frustum, lightViewMat, numMaps);
       }
 	
 		// Generate render queue with shadow casters for current slice

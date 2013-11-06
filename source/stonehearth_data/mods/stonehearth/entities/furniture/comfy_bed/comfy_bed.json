@@ -22,6 +22,9 @@
          "description": "I dreamed... of flying sheep.",
          "icon" : "file(comfy_bed.png)"
       },
+      "stonehearth:material" : {
+         "tags" : "wood furniture"
+      },      
       "stonehearth:lease_component" : {},
       "stonehearth:placed_item" : {
          "proxy_entity" : "stonehearth:comfy_bed_proxy"

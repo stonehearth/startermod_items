@@ -96,12 +96,7 @@ void main( void )
 
 [[FS_SSAO]]
 
-float linDepth(float d)
-{
-  float z_n = 2.0 * d - 1.0;
-  float z_e = 2.0 * 1.0 * 1000.0 / (1000.0 + 1.0 - z_n * (1000.0 - 1.0));
-  return z_e;
-}
+#include "shaders/utilityLib/vertCommon.glsl"
 
 uniform sampler2D randomVectorLookup;
 uniform sampler2D depth;
@@ -133,7 +128,7 @@ float ComputeSSAO (
   rotMat._m21 = rotation.y;
   rotMat._m22 = rotation.z;
 
-  float fSceneDepthP = linDepth(texture2D(sSceneDepthSampler, screenTC).r) * farClipDist;
+  float fSceneDepthP = toLinearDepth(texture2D(sSceneDepthSampler, screenTC).r) * farClipDist;
 
   const int nSamplesNum = 27;
   //float offsetScale = 0.003;
@@ -155,7 +150,7 @@ float ComputeSSAO (
 
         vec3 samplePos = vec3(screenTC, fSceneDepthP);
         samplePos += vec3(rotatedOffset.xy, rotatedOffset.z);
-        float fSceneDepthSampled = linDepth(texture2D(sSceneDepthSampler, samplePos.xy)) * farClipDist;
+        float fSceneDepthSampled = toLinearDepth(texture2D(sSceneDepthSampler, samplePos.xy)) * farClipDist;
         
         if (fSceneDepthP - fSceneDepthSampled < 500.5) {
           if (fSceneDepthSampled > samplePos.z) {
@@ -288,20 +283,9 @@ void main()
 }
 
 [[FS_SSAO2]]
-#version 150
+#version 130
 
 #include "shaders/utilityLib/vertCommon.glsl"
-
-uniform float nearPlane;
-uniform float farPlane;
-
-float linDepth(float d)
-{
-
-  float z_n = 2.0 * d - 1.0;
-  float z_e = 2.0 * nearPlane * farPlane / (farPlane + nearPlane - z_n * (farPlane - nearPlane));
-  return z_e;
-}  
 
 uniform sampler2D randomVectorLookup;
 uniform sampler2D normals;
@@ -318,9 +302,9 @@ out vec4 fragColor;
 void main()
 {
   vec2 noiseScale = frameBufSize / 4.0;
-  float radius = 0.3;
+  float radius = 0.35;
 
-  vec3 origin = viewRay * linDepth(texture2D(depth, texCoords).x);
+  vec3 origin = viewRay * toLinearDepth(texture2D(depth, texCoords).x);
   vec3 rvec = texture2D(randomVectorLookup, texCoords * noiseScale).xyz;
   vec3 normal = (camViewMat * vec4(texture2D(normals, texCoords).xyz, 0)).xyz;
 
@@ -340,17 +324,13 @@ void main()
     offset.xy = (offset.xy * 0.5) + 0.5;
 
     // get sample location:
-    float sampleDepth = linDepth(texture2D(depth, offset.xy).x);
-    vec3 sampleNormal = (camViewMat * vec4(texture2D(normals, offset.xy).xyz, 0)).xyz;
+    float sampleDepth = toLinearDepth(texture2D(depth, offset.xy).x);
 
     // range check & accumulate:
-    // TODO: this normal-check shouldn't be necessary.  Figure out why....
-    float normalCheck = dot(sampleNormal, normal) > 0.99 ? 0.0 : 1.0;
-    float rangeCheck = abs(origin.z - sampleDepth) < radius ? 1.0 : 0.0;
-    occlusion += (sampleDepth <= sample.z ? 1.0 : 0.0) * rangeCheck * normalCheck;
+    float rangeCheck = abs(origin.z - sampleDepth) < 1 * radius ? 1.0 : 0.0;
+    occlusion += (sampleDepth < sample.z ? 1.0 : 0.0) * rangeCheck;
   }
 
   float visibility = 1.0 - (occlusion / 8.0);
-  //visibility = pow(visibility, 1.7);
   fragColor = vec4(visibility,visibility,visibility, 1);
 }
