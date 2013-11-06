@@ -136,8 +136,7 @@ int Application::Run(int argc, const char** argv)
       std::string userid = config.GetUserID();
       std::string sessionid = config.GetSessionID();
       std::string build_number = config.GetBuildNumber();
-      bool collect_analytics = config.GetCollectionStatus();
-      analytics::StartSession(userid, sessionid, build_number, collect_analytics);
+      analytics::StartSession(userid, sessionid, build_number);
 
       radiant::core::Thread client_thread(ClientThreadMain);
 

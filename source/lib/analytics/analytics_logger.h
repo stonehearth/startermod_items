@@ -21,7 +21,7 @@ public:
    AnalyticsLogger();
    ~AnalyticsLogger();
 
-   void SetBasicValues(std::string userid, std::string sessionid, std::string build_version, bool collect_analytics);
+   void SetBasicValues(std::string userid, std::string sessionid, std::string build_version);
    void SubmitLogEvent(json::Node event_node, std::string event_category);
 
 private:
@@ -33,7 +33,6 @@ private:
    std::string userid_;
    std::string sessionid_;
    std::string build_version_;
-   bool collect_analytics_;
 
    std::queue<EventData> waiting_events_;
 

@@ -25,13 +25,16 @@ public:
    std::string GetSessionID();
    std::string GetBuildNumber();
    bool GetCollectionStatus();
+   void SetCollectionStatus(bool should_collect);
+   bool IsCollectionStatusSet();
 
    boost::program_options::variables_map const& GetVarMap() const { return configvm_; }
    
 private:
    void LoadConfigFile(boost::filesystem::path const& configfile);
    std::string MakeUUIDString();
-   std::string ReadConfigOption(std::string option_name, std::string default_option);
+   std::string ReadConfigOption(std::string option_name);
+   void WriteConfigOption(std::string option_name, std::string option_value);
 
 private:
    std::string                                  name_;

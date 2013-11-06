@@ -113,35 +113,40 @@ context CLOUDS
 }
 
 [[VS_GENERAL]]
-#version 150
+#version 130
 #include "shaders/utilityLib/vertCommon.glsl"
 
 uniform mat4 viewProjMat;
-uniform vec3 viewerPos;
+
 in vec3 vertPos;
 in vec3 normal;
 in vec3 color;
+
 out vec4 pos;
 out vec4 vsPos;
 out vec3 tsbNormal;
 out vec3 albedo;
 
+
 void main( void )
 {
-  pos = calcWorldPos( vec4( vertPos, 1.0 ) );
-  vsPos = calcViewPos( pos );
+  pos = calcWorldPos(vec4(vertPos, 1.0));
+  vsPos = calcViewPos(pos);
   tsbNormal = calcWorldVec(normal);
   albedo = color;
 
-  gl_Position = viewProjMat * pos;;
+  gl_Position = viewProjMat * pos;
 }
 
 
 [[FS_DEFERRED_DEPTH_AND_LIGHT]] 
-#version 150
+#version 130
+
 uniform vec3 viewerPos;
+
 in vec4 pos;
 in vec3 tsbNormal;
+
 out vec4 fragNormal;
 out vec4 fragViewPos;
 
@@ -153,7 +158,7 @@ void main( void )
 
 
 [[FS_FORWARD_AMBIENT]]  
-#version 150
+#version 130
 
 out vec4 fragColor;
 
@@ -222,8 +227,11 @@ void main( void )
 
 [[FS_OMNI_LIGHTING]]
 // =================================================================================================
+#version 130
+
 #include "shaders/utilityLib/fragLighting.glsl" 
 
+uniform vec3 viewerPos;
 uniform vec4 matDiffuseCol;
 uniform vec4 matSpecParams;
 uniform sampler2D albedoMap;
@@ -232,40 +240,45 @@ in vec4 pos;
 in vec4 vsPos;
 in vec3 albedo;
 in vec3 tsbNormal;
+
 out vec4 outLightColor;
 
 void main( void )
 {
   vec3 normal = tsbNormal;
   vec3 newPos = pos.xyz;
-  outLightColor.rgb = calcPhongOmniLight(newPos, normalize(normal)) * albedo;
+  outLightColor.rgb = calcPhongOmniLight(viewerPos, newPos, normalize(normal)) * albedo;
 }
 
 [[FS_DIRECTIONAL_LIGHTING]]
 // =================================================================================================
-#include "shaders/utilityLib/fragLighting.glsl" 
+#version 130
 
-uniform vec4 matDiffuseCol;
-uniform vec4 matSpecParams;
-uniform sampler2D albedoMap;
+#include "shaders/utilityLib/fragLighting.glsl" 
+#include "shaders/shadows.shader"
+
+uniform vec3 viewerPos;
 uniform vec3 lightAmbientColor;
 
 in vec4 pos;
 in vec4 vsPos;
 in vec3 albedo;
 in vec3 tsbNormal;
+
 out vec4 outLightColor;
 
 void main( void )
 {
-  vec3 lightColor = 
-    calcPhongDirectionalLight( pos.xyz, normalize( tsbNormal ), albedo, vec3(0,0,0),
-                        0.0, -vsPos.z, 0.3 ) + (lightAmbientColor * albedo);
+  float shadowTerm = getShadowValue(pos.xyz);
+  vec3 lightColor = calcSimpleDirectionalLight(viewerPos, pos.xyz, normalize(tsbNormal), -vsPos.z);
+
+  lightColor = (shadowTerm * (lightColor * albedo)) + (lightAmbientColor * albedo);
+
   outLightColor = vec4(lightColor, 1.0);
 }
 
 [[FS_CLOUDS]]
-#version 150
+#version 130
 in vec4 pos;
 uniform sampler2D cloudMap;
 uniform float currentTime;
@@ -281,7 +294,7 @@ void main( void )
 
 
 [[FS_DEFERRED_MATERIAL]]
-#version 150
+#version 130
 uniform sampler2D lightingBuffer;
 uniform sampler2D ssaoBuffer;
 uniform vec2 frameBufSize;
@@ -298,7 +311,7 @@ void main(void)
 
 
 [[FS_SELECTED_SCREENSPACE]]
-#version 150
+#version 130
 out vec4 fragColor;
 
 void main(void)
@@ -308,7 +321,7 @@ void main(void)
 
 
 [[VS_SELECTED_SCREENSPACE_OUTLINER]]
-#version 150
+#version 130
 
 #include "shaders/utilityLib/fullscreen_quad.glsl" 
 
@@ -323,7 +336,7 @@ void main( void )
 
 
 [[FS_SELECTED_SCREENSPACE_OUTLINER]]
-#version 150
+#version 130
 
 #include "shaders/utilityLib/outline.glsl"
 

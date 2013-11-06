@@ -1324,22 +1324,28 @@ void Renderer::updateShadowMap()
    // Calculate split distances using PSSM scheme
    const float nearDist = maxf( minDist, _curCamera->_frustNear );
    const float farDist = maxf( maxDist, minDist + 0.01f );
+   const float firstSplit = 35.0f;
    // const float nearDist = _curCamera->_frustNear;
    // const float farDist = _curCamera->_frustFar;
    const uint32 numMaps = _curLight->_shadowMapCount;
    const float lambda = _curLight->_shadowSplitLambda;
 	
 	_splitPlanes[0] = nearDist;
-	_splitPlanes[numMaps] = farDist;
+   _splitPlanes[numMaps] = farDist;
 	
 	for( uint32 i = 1; i < numMaps; ++i )
 	{
 		float f = (float)i / numMaps;
-		float logDist = nearDist * powf( farDist / nearDist, f );
-		float uniformDist = nearDist + (farDist - nearDist) * f;
+		float logDist = firstSplit * powf( farDist / firstSplit, f );
+		float uniformDist = firstSplit + (farDist - firstSplit) * f;
 		
 		_splitPlanes[i] = (1 - lambda) * uniformDist + lambda * logDist;  // Lerp
 	}
+
+   // Experiment: set a max-size for the nearest frustum piece, so that we can count on
+   // better resolution near the camera (which is still not strictly true in degenerate
+   // cases).
+   _splitPlanes[1] = std::min(_splitPlanes[1], firstSplit);
 	
 	// Prepare shadow map rendering
 	glEnable( GL_DEPTH_TEST );
