@@ -209,4 +209,29 @@ void Frustum::calcAABB( Vec3f &mins, Vec3f &maxs ) const
 	}
 }
 
+void Frustum::clipAABB(const BoundingBox& box, std::vector<Polygon>* results) const
+{
+   std::vector<Polygon> initialQuads;
+   initialQuads.push_back(Polygon(box.getCorner(4), box.getCorner(7), box.getCorner(6), box.getCorner(5)));
+   initialQuads.push_back(Polygon(box.getCorner(5), box.getCorner(6), box.getCorner(2), box.getCorner(1)));
+   initialQuads.push_back(Polygon(box.getCorner(1), box.getCorner(2), box.getCorner(3), box.getCorner(0)));
+   initialQuads.push_back(Polygon(box.getCorner(0), box.getCorner(3), box.getCorner(7), box.getCorner(4)));
+   initialQuads.push_back(Polygon(box.getCorner(7), box.getCorner(3), box.getCorner(2), box.getCorner(6)));
+   initialQuads.push_back(Polygon(box.getCorner(0), box.getCorner(4), box.getCorner(5), box.getCorner(1)));
+   
+   for (const auto& side : initialQuads)
+   {
+      Polygon temp = clipPolyToPlane(_planes[0], side);
+      for (int i = 1; i < 6; i++)
+      {
+         temp = clipPolyToPlane(_planes[i], temp);
+      }
+
+      if (temp.points().size() > 0)
+      {
+         results->push_back(temp);
+      }
+   }
+}
+
 }  // namespace
