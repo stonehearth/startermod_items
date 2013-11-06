@@ -4,6 +4,7 @@
 #include "analytics_logger.h"
 #include "libjson.h"
 #include <boost/algorithm/string.hpp>  
+#include "core/config.h"
 
 #include "curl/curl.h"
 #include "curl/easy.h"
@@ -60,19 +61,18 @@ AnalyticsLogger::~AnalyticsLogger()
 
 //Called by StartAnalytics session, so we should never get a call to submit log event
 //with this set already.
-void AnalyticsLogger::SetBasicValues(std::string userid, std::string sessionid, std::string build_version, bool collect_analytics)
+void AnalyticsLogger::SetBasicValues(std::string userid, std::string sessionid, std::string build_version)
 {
    userid_ = userid;
    sessionid_ = sessionid;
    build_version_ = build_version;
-   collect_analytics_ = collect_analytics;
 }
 
 //Construct the full event data and send it to the analytics server
 void AnalyticsLogger::SubmitLogEvent(json::Node event_node, std::string event_category)
 {
    //If the user has asked us not to collect data, don't. 
-   if (!collect_analytics_) {
+   if (!core::Config::GetInstance().GetCollectionStatus()) {
       return;
    }
 
