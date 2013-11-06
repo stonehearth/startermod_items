@@ -6,11 +6,11 @@
 using namespace ::radiant;
 using namespace ::radiant::analytics;
 
-void analytics::StartSession(std::string const& userid, std::string const& sessionid, std::string const& build_number, bool collect_analytics)
+void analytics::StartSession(std::string const& userid, std::string const& sessionid, std::string const& build_number)
 {
    //Initialize the logger for the first time
    analytics::AnalyticsLogger &a = analytics::AnalyticsLogger::GetInstance();
-   a.SetBasicValues(userid, sessionid, build_number, collect_analytics);
+   a.SetBasicValues(userid, sessionid, build_number);
 
    analytics::DesignEvent("game:started").SendEvent();
 }
