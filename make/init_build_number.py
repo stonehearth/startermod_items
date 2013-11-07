@@ -11,7 +11,7 @@ DEFINES = {
    'bamboo_product_version_patch': ('PRODUCT_PATCH_VERSION', 'number'),
    'bamboo_buildNumber' : ('PRODUCT_BUILD_NUMBER', 'number'),
    'bamboo_buildTimeStamp' : ('PRODUCT_BUILD_TIME', 'number'),
-   'bamboo_repository_branch_name': ('PRODUCT_BRANCH', 'string'),
+   'bamboo_planRepository_branchName': ('PRODUCT_BRANCH', 'string'),
    'bamboo_repository_revision_number' : ('PRODUCT_REVISION', 'string'),
 }
 
