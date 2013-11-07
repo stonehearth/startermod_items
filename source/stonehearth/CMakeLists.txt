@@ -53,6 +53,5 @@ add_custom_command(TARGET stonehearth
                            ./scripts/stage/stage_stonehearth.sh 
                            -t $<CONFIGURATION> 
                            -o build/source/stonehearth/$<CONFIGURATION>
-                           -b 
-                           -d
+                           -b
                   )
