@@ -13,6 +13,9 @@
 
 using radiant::client::Application;
 
+static std::string const NAMED_PIPE_PREFIX = "\\\\.\\pipe\\";
+static std::string const CRASH_REPORTER_NAME = "crash_reporter";
+
 void protobuf_log_handler(google::protobuf::LogLevel level, const char* filename,
                           int line, const std::string& message)
 {
@@ -38,28 +41,25 @@ bool Application::LoadConfig(int argc, const char* argv[])
 }
 
 std::string Application::GeneratePipeName() {
-   std::string uuid_string = Poco::UUIDGenerator::defaultGenerator().create().toString();
-   std::string const pipe_name = "\\\\.\\pipe\\crash_reporter\\" + uuid_string;
+   std::string const uuid_string = Poco::UUIDGenerator::defaultGenerator().create().toString();
+   std::string const pipe_name = NAMED_PIPE_PREFIX + CRASH_REPORTER_NAME + "\\" + uuid_string;
    return pipe_name;
 }
 
 void Application::StartCrashReporter()
 {
-   std::string const file_name = "crash_reporter.exe";
-   std::string command_line = file_name + " " + crash_dump_pipe_name_ + " " + crash_dump_path_ + " " + crash_dump_uri_;
+   std::string const file_name = CRASH_REPORTER_NAME + ".exe";
+   std::string const command_line = file_name + " " + crash_dump_pipe_name_ + " " + crash_dump_path_ + " " + crash_dump_uri_;
 
    radiant::core::Process crash_reporter_process(command_line);
 }
 
 void Application::InitializeExceptionHandlingEnvironment()
 {
-   std::wstring empty_wstring;
-   std::wstring pipe_name_wstring;
-
-   pipe_name_wstring.assign(crash_dump_pipe_name_.begin(), crash_dump_pipe_name_.end());
+   std::wstring pipe_name_wstring(crash_dump_pipe_name_.begin(), crash_dump_pipe_name_.end());
 
    // This API is inconsistent, but trying to avoid too many changes to Breakpad's sample code in case it versions
-   exception_handler_.reset(new ExceptionHandler(empty_wstring,                 // local dump path (ignored since we are out of process)
+   exception_handler_.reset(new ExceptionHandler(std::wstring(),                // local dump path (ignored since we are out of process)
                                                  nullptr,                       // filter callback 
                                                  nullptr,                       // minidump callback
                                                  nullptr,                       // context for the callbacks
@@ -77,7 +77,7 @@ void Application::InitializeCrashReporting()
 {
    crash_dump_path_ = core::Config::GetInstance().GetTmpDirectory().string();
    crash_dump_pipe_name_ = GeneratePipeName();
-   crash_dump_uri_ = "http://posttestserver.com/post.php";
+   crash_dump_uri_ = "http://posttestserver.com/post.php"; // 3rd party test server 
 
    try {
       StartCrashReporter();

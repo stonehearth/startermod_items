@@ -58,3 +58,7 @@
 	path = modules/build-environment
 	url = https://github.com/radent/build-environment.git
 	branch = master
+[submodule "modules/poco"]
+	path = modules/poco
+	url = https://github.com/radent/poco.git
+	branch = master

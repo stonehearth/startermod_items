@@ -87,8 +87,6 @@ void CrashReporter::SendCrashReport(std::string const& dump_filename)
    request.setContentType("application/octet-stream");
    request.setContentLength(zip_file_length);
 
-   //return; // For debugging - don't spam the test server
-
    // Send request, returns open stream
    std::ostream& request_stream = session.sendRequest(request);
    Poco::StreamCopier::copyStream(zip_file, request_stream);
@@ -101,16 +99,17 @@ void CrashReporter::SendCrashReport(std::string const& dump_filename)
    // Check result
    int status = response.getStatus();
    if (status != HTTPResponse::HTTP_OK) {
-      // unexpected result code
+      // unexpected result code, not much we can do
 	}
+
    // For debugging
-   std::string response_string(10000, '\0');
-   response_stream.read(&response_string[0], 10000);
+   std::string response_string(1000, '\0');
+   response_stream.read(&response_string[0], 1000);
    MessageBox(nullptr, response_string.c_str(), "crash_reporter", MB_OK);
 
    // Clean up
    // Commented out during debugging
-   //boostfs::remove(zip_filename); // CHECKCHECK
+   //boostfs::remove(zip_filename);
    //boostfs::remove(dump_filename);
 }
 
