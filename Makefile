@@ -48,10 +48,10 @@ ide: configure
 	start build/Stonehearth.sln
 
 run-%-test:
-	cd source/stonehearth_data && ../../build/source/client_app/$(MSBUILD_CONFIGURATION)/Stonehearth.exe --game.script=stonehearth_tests/$*_test.lua&
+	cd source/stonehearth_data && ../../build/source/stonehearth/$(MSBUILD_CONFIGURATION)/Stonehearth.exe --game.script=stonehearth_tests/$*_test.lua&
 
 run:
-	cd source/stonehearth_data && ../../build/source/client_app/$(MSBUILD_CONFIGURATION)/Stonehearth.exe 
+	cd source/stonehearth_data && ../../build/source/stonehearth/$(MSBUILD_CONFIGURATION)/Stonehearth.exe 
 
 # make a decoda project!
 .PHONY: decoda-project
@@ -64,4 +64,4 @@ dependency-graph:
 
 .PHONY: deployment
 deployment: stonehearth
-	sh $(SCRIPTS_ROOT)/copy-deployment-files.sh $(DEPLOYMENT_ROOT) $(BUILD_ROOT)/source/client_app/$(MSBUILD_CONFIGURATION) $(STONEHEARTH_ROOT)/source/stonehearth_data
+	sh $(SCRIPTS_ROOT)/copy-deployment-files.sh $(DEPLOYMENT_ROOT) $(BUILD_ROOT)/source/stonehearth/$(MSBUILD_CONFIGURATION) $(STONEHEARTH_ROOT)/source/stonehearth_data
