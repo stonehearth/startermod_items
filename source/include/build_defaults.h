@@ -2,7 +2,7 @@
 #define _BUILD_DEFAULTS_H
 
 #ifndef _BUILD_NUMBER_H
-# error "Do not include this file!  Include build_number.h
+# error "Do not include this file!  Include build_number.h"
 #endif
 
 /*
@@ -24,6 +24,8 @@
 #define PRODUCT_BUILD_NUMBER        45678
 #define PRODUCT_REVISION            "#revision#"
 #define PRODUCT_BRANCH              "#branch#"
+#define PRODUCT_VERSION_STR         "1.2.3"
+#define PRODUCT_FILE_VERSION_STR    "1.2.3.45679"
 
 
 /* These route to the Stonehearth Dev bucket in Game Analytics.  Do not change
