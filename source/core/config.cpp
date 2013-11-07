@@ -174,6 +174,11 @@ void Config::WriteConfigOption(std::string option_name, std::string option_value
    std::string save_path_str = save_path.string();
    pt::ptree properties;
 
+   if (fs::is_regular(save_path)) {
+      //Ok, the file exists. Load it into a property tree
+      pt::read_ini(save_path_str, properties);
+   }
+
    properties.put(option_name, option_value);
    pt::write_ini(save_path_str, properties);
 }

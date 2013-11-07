@@ -45,6 +45,9 @@
 #include "lib/perfmon/perfmon.h"
 #include "glfw3.h"
 
+#include <SFML/Audio.hpp>
+
+
 //  #include "GFx/AS3/AS3_Global.h"
 #include "client.h"
 #include "renderer/renderer.h"
@@ -59,6 +62,9 @@ namespace proto = ::radiant::tesseract::protocol;
 static const std::regex call_path_regex__("/r/call/?");
 
 DEFINE_SINGLETON(Client);
+
+sf::SoundBuffer soundBuffer_;
+sf::Sound       sound_;
 
 Client::Client() :
    _tcp_socket(_io_service),
@@ -120,7 +126,6 @@ Client::Client() :
    core_reactor_->AddRoute("radiant:remove_trace", [this](rpc::Function const& f) {
       return core_reactor_->RemoveTrace(rpc::UnTrace(f.caller, f.call_id));
    });
-
    core_reactor_->AddRoute("radiant:send_design_event", [this](rpc::Function const& f) {
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:design_event");
       try {
@@ -181,6 +186,31 @@ Client::Client() :
       return result;
    });
 
+   core_reactor_->AddRoute("radiant:play_sound", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:play_sound");
+      try {
+         json::Node node(f.args);
+         std::string sound_url = node.getn(0).as<std::string>();
+
+         std::string trackName;
+         trackName = res::ResourceManager2::GetInstance().GetResourceFileName(sound_url, "");
+         //trackName = res::ResourceManager2::GetInstance().GetResourceFileName(node[0].as_string(), "");
+
+         if (soundBuffer_.loadFromFile(trackName)) {
+            // TODO, add a sound manager instead of this temp solution!
+            // see http://bugs.radiant-entertainment.com:8080/browse/SH-29
+            sound_.setBuffer(soundBuffer_);
+	         sound_.play();
+         } else { 
+            LOG(INFO) << "Can't find Sound Effect! " << trackName;
+         }
+
+         result->ResolveWithMsg("success");
+      } catch (std::exception const& e) {
+         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
+      }
+      return result;
+   });
 }
 
 Client::~Client()
