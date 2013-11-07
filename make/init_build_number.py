@@ -45,14 +45,14 @@ if __name__ == "__main__":
       else:
          contents += "#define %-30s %s\n" % (name, str(value))
 
-   pvs = "%s.%s.%s" % (os.environ['bamboo_product_version_major'],
-                       os.environ['bamboo_product_version_minor'],
-                       os.environ['bamboo_product_version_patch'])
+   pvs = "%s.%s.%s" % (os.environ['BAMBOO_PRODUCT_VERSION_MAJOR'],
+                       os.environ['BAMBOO_PRODUCT_VERSION_MINOR'],
+                       os.environ['BAMBOO_PRODUCT_VERSION_PATCH'])
 
-   pfvs = "%s.%s.%s.%s" % (os.environ['bamboo_product_version_major'],
-                           os.environ['bamboo_product_version_minor'],
-                           os.environ['bamboo_product_version_patch'],
-                           os.environ['bamboo_buildNumber'])
+   pfvs = "%s.%s.%s.%s" % (os.environ['BAMBOO_PRODUCT_VERSION_MAJOR'],
+                           os.environ['BAMBOO_PRODUCT_VERSION_MINOR'],
+                           os.environ['BAMBOO_PRODUCT_VERSION_PATCH'],
+                           os.environ['BAMBOO_BUILD_NUMBER'])
 
    contents += "#undef PRODUCT_VERSION_STR\n"
    contents += "#undef PRODUCT_FILE_VERSION_STR\n"
