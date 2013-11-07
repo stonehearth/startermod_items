@@ -22,7 +22,6 @@ official-build: init-build submodules configure stonehearth deployment
 .PHONY: init-build
 init-build:
 	-mkdir -p build
-	-rm build/build_overrides.h
 	$(MAKE_ROOT)/init_build_number.py > build/build_overrides.h
 
 .PHONY: submodules
