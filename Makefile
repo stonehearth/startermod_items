@@ -14,7 +14,7 @@ SCRIPTS_ROOT       = $(STONEHEARTH_ROOT)/scripts
 # this by using a more recent version of MSYS and pulling git into that
 # but that's a lot of work.  This, incidentally, would also get us a
 # version of gmake from 2006 instead of 2000 (!!)
-STAGE_ROOT         = stonehearth/build/stage
+STAGE_ROOT         = build/stage
 
 .PHONY: default
 default: submodules configure stonehearth
