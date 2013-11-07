@@ -44,4 +44,4 @@ rm -f debug.log
 rm -rf mods/stonehearth_tests
 rm -rf mods/stonehearth/_graveyard
 rm -rf mods/radiant/js/external/ace
-#rm -rf mods/stonehearth_debugtools
+rm -rf mods/stonehearth_debugtools
