@@ -3,7 +3,7 @@ local TerrainType = require 'services.world_generation.terrain_type'
 local TerrainGenerator = require 'services.world_generation.terrain_generator'
 local Landscaper = require 'services.world_generation.landscaper'
 local HeightMapRenderer = require 'services.world_generation.height_map_renderer'
-local Timer = radiant.mods.require('stonehearth_debugtools.timer')
+local Timer = require 'services.world_generation.timer'
 local Point3 = _radiant.csg.Point3
 
 local WorldGenerator = class()

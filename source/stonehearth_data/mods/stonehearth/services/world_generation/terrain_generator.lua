@@ -8,7 +8,7 @@ local Wavelet = require 'services.world_generation.filter.wavelet'
 local WaveletFns = require 'services.world_generation.filter.wavelet_fns'
 local EdgeDetailer = require 'services.world_generation.edge_detailer'
 local TileInfo = require 'services.world_generation.tile_info'
-local Timer = radiant.mods.require('stonehearth_debugtools.timer')
+local Timer = require 'services.world_generation.timer'
 
 local TerrainGenerator = class()
 

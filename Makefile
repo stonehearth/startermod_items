@@ -6,7 +6,7 @@ MAKE_ROOT          = $(STONEHEARTH_ROOT)/make
 MAKE_ROOT_DOS      = $(shell pwd -W)/make
 BUILD_ROOT         = $(STONEHEARTH_ROOT)/build
 SCRIPTS_ROOT       = $(STONEHEARTH_ROOT)/scripts
-DEPLOYMENT_ROOT    = $(BUILD_ROOT)/deployment
+STAGE_ROOT         = $(BUILD_ROOT)/stage
 
 .PHONY: default
 default: submodules configure stonehearth
@@ -16,7 +16,7 @@ clean:
 	rm -rf build
 
 .PHONY: official-build
-official-build: init-build submodules configure stonehearth deployment
+official-build: init-build submodules configure stonehearth stage
 
 
 .PHONY: init-build
@@ -62,6 +62,7 @@ decoda-project:
 dependency-graph:
 	cmake -H. -Bbuild -G"Visual Studio 11" --graphviz=deps.dot
 
-.PHONY: deployment
-deployment: stonehearth
-	sh $(SCRIPTS_ROOT)/copy-deployment-files.sh $(DEPLOYMENT_ROOT) $(BUILD_ROOT)/source/stonehearth/$(MSBUILD_CONFIGURATION) $(STONEHEARTH_ROOT)/source/stonehearth_data
+.PHONY: stage
+stage:
+	sh $(SCRIPTS_ROOT)/stage/stage_stonehearth.sh -c $(STAGE_ROOT) -t $(MSBUILD_CONFIGURATION) -a
+
