@@ -30,10 +30,9 @@ if __name__ == "__main__":
    contents += "\n"
 
    
-   print >>sys.stderr, 'current bamboo environment:'
-   for k, v in os.environ.iteritems():
-      if k.startswith('bamboo'):
-         print >>sys.stderr, '  ', k, '=', v
+   print >>sys.stderr, 'current environment:'
+   for k in sorted(os.environ):
+      print >>sys.stderr, '  ', k, '=', os.environ[k]
 
    for k, (name, t) in DEFINES.iteritems():
       value = os.environ.get(k, None)
