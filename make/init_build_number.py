@@ -40,6 +40,20 @@ if __name__ == "__main__":
       else:
          contents += "#define %-30s %s\n" % (k, str(value))
 
+   pvs = "%s.%s.%s" % (os.environ['PRODUCT_MAJOR_VERSION'],
+                       os.environ['PRODUCT_MINOR_VERSION'],
+                       os.environ['PRODUCT_PATCH_VERSION'])
+
+   pfvs = "%s.%s.%s.%s" % (os.environ['PRODUCT_MAJOR_VERSION'],
+                           os.environ['PRODUCT_MINOR_VERSION'],
+                           os.environ['PRODUCT_PATCH_VERSION'],
+                           os.environ['PRODUCT_BUILD_NUMBER'])
+
+   contents += "#undef PRODUCT_VERSION_STR\n"
+   contents += "#undef PRODUCT_FILE_VERSION_STR\n"
+   contents += "#define %-30s \"%s\"\n" % ("PRODUCT_VERSION_STR", pvs)
+   contents += "#define %-30s \"%s\"\n" % ("PRODUCT_FILE_VERSION_STR", pfvs)
+
    for k, t  in OVERRIDES.iteritems():
       value = os.environ.get(k, None)
       if value:
@@ -47,7 +61,7 @@ if __name__ == "__main__":
          contents += "#define %-30s \"%s\"\n" % (k, str(value))
 
    contents += "\n"
-   contents += "#endif _BUILD_OVERRIDES_H\n"
+   contents += "#endif // _BUILD_OVERRIDES_H\n"
 
    print contents
 

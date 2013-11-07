@@ -4,8 +4,8 @@
 #include "om.h"
 #include "dm/dm.h"
 #include "csg/cube.h"
-#include "protocols/store.pb.h"
-#include "protocols/tesseract.pb.h"
+#include "store.pb.h"
+#include "tesseract.pb.h"
 #include "lib/lua/bind.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
