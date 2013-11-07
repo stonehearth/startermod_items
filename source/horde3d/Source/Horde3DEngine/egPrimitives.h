@@ -27,6 +27,26 @@ struct BoundingBox
 {	
 	Vec3f  min, max;
 
+   BoundingBox()
+   {
+      min = Vec3f(FLT_MAX, FLT_MAX, FLT_MAX);
+      max = Vec3f(FLT_MIN, FLT_MIN, FLT_MIN);
+   }
+
+   void addPoint(Vec3f& p)
+   {
+      for (int i = 0; i < 3; i++)
+      {
+         if (min[i] > p[i])
+         {
+            min[i] = p[i];
+         }
+         if (max[i] < p[i])
+         {
+            max[i] = p[i];
+         }
+      }
+   }
 	
 	void clear()
 	{
@@ -134,6 +154,8 @@ public:
 	bool cullFrustum( const Frustum &frust ) const;
 
 	void calcAABB( Vec3f &mins, Vec3f &maxs ) const;
+
+   void clipAABB(const BoundingBox& b, std::vector<Polygon>* results) const;
 
 private:
 	Plane  _planes[6];  // Planes of frustum
