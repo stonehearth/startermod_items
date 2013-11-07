@@ -1,64 +1,64 @@
 [submodule "modules/boost_bin"]
 	path = modules/boost_bin
-	url = https://github.com/radent/boost_bin
-	branch = master
-[submodule "modules/chromium-embedded"]
-	path = modules/chromium-embedded
-	url = https://github.com/radent/chromium-embedded
-	branch = master
-[submodule "modules/cryptopp"]
-	path = modules/cryptopp
-	url = https://github.com/radent/cryptopp
-	branch = master
-[submodule "modules/googletest"]
-	path = modules/googletest
-	url = https://github.com/radent/googletest
-	branch = master
-[submodule "modules/libclaw"]
-	path = modules/libclaw
-	url = https://github.com/radent/libclaw
-	branch = master
-[submodule "modules/libcurl"]
-	path = modules/libcurl
-	url = https://github.com/radent/libcurl
-	branch = master
-[submodule "modules/libjson"]
-	path = modules/libjson
-	url = https://github.com/radent/libjson
-	branch = master
-[submodule "modules/lua"]
-	path = modules/lua
-	url = https://github.com/radent/lua
-	branch = master
-[submodule "modules/luabind"]
-	path = modules/luabind
-	url = https://github.com/radent/luabind
-	branch = master
-[submodule "modules/protobuf"]
-	path = modules/protobuf
-	url = https://github.com/radent/protobuf
-	branch = master
-[submodule "modules/sfml"]
-	path = modules/sfml
-	url = https://github.com/radent/sfml
-	branch = master
-[submodule "modules/snappy"]
-	path = modules/snappy
-	url = https://github.com/radent/snappy
-	branch = master
-[submodule "modules/tbb"]
-	path = modules/tbb
-	url = https://github.com/radent/tbb
+	url = https://github.com/radent/boost_bin.git
 	branch = master
 [submodule "modules/breakpad"]
 	path = modules/breakpad
 	url = http://github.com/radent/breakpad.git
 	branch = master
+[submodule "modules/chromium-embedded"]
+	path = modules/chromium-embedded
+	url = https://github.com/radent/chromium-embedded.git
+	branch = master
 [submodule "modules/build-environment"]
 	path = modules/build-environment
 	url = https://github.com/radent/build-environment.git
 	branch = master
+[submodule "modules/cryptopp"]
+	path = modules/cryptopp
+	url = https://github.com/radent/cryptopp.git
+	branch = master
+[submodule "modules/googletest"]
+	path = modules/googletest
+	url = https://github.com/radent/googletest.git
+	branch = master
+[submodule "modules/libclaw"]
+	path = modules/libclaw
+	url = https://github.com/radent/libclaw.git
+	branch = master
+[submodule "modules/libcurl"]
+	path = modules/libcurl
+	url = https://github.com/radent/libcurl.git
+	branch = master
+[submodule "modules/libjson"]
+	path = modules/libjson
+	url = https://github.com/radent/libjson.git
+	branch = master
+[submodule "modules/lua"]
+	path = modules/lua
+	url = https://github.com/radent/lua.git
+	branch = master
+[submodule "modules/luabind"]
+	path = modules/luabind
+	url = https://github.com/radent/luabind.git
+	branch = master
 [submodule "modules/poco"]
 	path = modules/poco
 	url = https://github.com/radent/poco.git
+	branch = master
+[submodule "modules/protobuf"]
+	path = modules/protobuf
+	url = https://github.com/radent/protobuf.git
+	branch = master
+[submodule "modules/sfml"]
+	path = modules/sfml
+	url = https://github.com/radent/sfml.git
+	branch = master
+[submodule "modules/snappy"]
+	path = modules/snappy
+	url = https://github.com/radent/snappy.git
+	branch = master
+[submodule "modules/tbb"]
+	path = modules/tbb
+	url = https://github.com/radent/tbb.git
 	branch = master

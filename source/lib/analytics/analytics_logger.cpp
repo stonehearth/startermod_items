@@ -1,5 +1,6 @@
 #include "radiant.h"
 #include "radiant_logger.h"
+#include "build_number.h"
 #include "lib/json/node.h"
 #include "analytics_logger.h"
 #include "libjson.h"
@@ -25,16 +26,7 @@ using Poco::Net::HTTPMessage;
 using namespace ::radiant;
 using namespace ::radiant::analytics;
 
-const std::string ANALYTICS_DOMAIN = "api.gameanalytics.com";
-
-//Keys for the stonehearth-dev game project. Leave in while debugging
-const std::string GAME_KEY = "2b6cc12b9457de0ae969e0d9f8b04291";
-const std::string SECRET_KEY = "70904f041d9e579c3d34f40cdb5bc0c16ad0c09a";
-
-//These are the actual keys. Comment in for release (or with a compiler option)
-//const std::string GAME_KEY = "5777a99f437a7ea5ade1548b7b3d8cde";
-//const std::string SECRET_KEY = "bf16a98c575fb0b166c84ae6924c4b15d01b3901";
-
+const std::string GAME_ANALYTICS_DOMAIN = "api.gameanalytics.com";
 const std::string API_VERSION = "1";
 
 //Logger begins here
@@ -139,7 +131,7 @@ void AnalyticsLogger::PostEvent(json::Node event_node, std::string event_categor
    std::string event_string = event_node.write();
 
    // the header is the data + secret key
-   std::string header = event_string + SECRET_KEY;
+   std::string header = event_string + GAME_ANALYTICS_SECRET_KEY;
 
    // Hash the header with md5
    // Borrowing sample code from http://www.cryptopp.com/wiki/Hash_Functions
@@ -156,9 +148,9 @@ void AnalyticsLogger::PostEvent(json::Node event_node, std::string event_categor
    // Super important to make sure the final hex is all lower case
    boost::algorithm::to_lower(digest_string);
 
-   std::string path = "/" + API_VERSION + "/" + GAME_KEY + "/" + event_category;
+   std::string path = "/" + API_VERSION + "/" + GAME_ANALYTICS_GAME_KEY + "/" + event_category;
 
-   HTTPClientSession session(ANALYTICS_DOMAIN);
+   HTTPClientSession session(GAME_ANALYTICS_DOMAIN);
 
    HTTPRequest request(HTTPRequest::HTTP_POST, path, HTTPMessage::HTTP_1_1);
    request.setContentType("text/plain");

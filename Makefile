@@ -11,8 +11,18 @@ DEPLOYMENT_ROOT    = $(BUILD_ROOT)/deployment
 .PHONY: default
 default: submodules configure stonehearth
 
+.PHONY: clean
 clean:
 	rm -rf build
+
+.PHONY: official-build
+official-build: init-build submodules configure stonehearth deployment
+
+
+.PHONY: init-build
+init-build:
+	-mkdir -p build
+	$(MAKE_ROOT)/init_build_number.py > build/build_overrides.h
 
 .PHONY: submodules
 submodules:

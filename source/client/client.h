@@ -27,6 +27,9 @@
 #include "core/guard.h"
 #include "core/unique_resource.h"
 #include "core/shared_resource.h"
+//#include <SFML/Audio.hpp>
+
+namespace sf{class Sound;}
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -201,6 +204,10 @@ private:
 
       // client side lua...
       std::unique_ptr<lua::ScriptHost>  scriptHost_;
+
+      // for playing sounds
+      //sf::SoundBuffer soundBuffer_;
+      //sf::Sound       sound_;
 
       InputHandlerId                                           next_input_id_;
       std::vector<std::pair<InputHandlerId, InputHandlerCb>>   input_handlers_;
