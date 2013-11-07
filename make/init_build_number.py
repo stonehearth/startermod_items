@@ -11,7 +11,7 @@ DEFINES = {
    'bamboo_product_version_patch': ('PRODUCT_PATCH_VERSION', 'number'),
    'bamboo_buildNumber' : ('PRODUCT_BUILD_NUMBER', 'number'),
    'bamboo_buildTimeStamp' : ('PRODUCT_BUILD_TIME', 'number'),
-   'bamboo_planRepository_branchName': ('PRODUCT_BRANCH', 'string'),
+   'bamboo_planRepository_branchame': ('PRODUCT_BRANCH', 'string'),
    'bamboo_repository_revision_number' : ('PRODUCT_REVISION', 'string'),
 }
 
@@ -30,6 +30,11 @@ if __name__ == "__main__":
    contents += "\n"
 
    
+   print >>sys.stderr, 'current bamboo environment:'
+   for k, v in os.environ.iteritems():
+      if k.startswith('bamboo'):
+         print >>sys.stderr, '  ', k, '=', v
+
    for k, (name, t) in DEFINES.iteritems():
       value = os.environ.get(k, None)
       if not value:
