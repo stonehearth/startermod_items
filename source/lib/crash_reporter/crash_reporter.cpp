@@ -13,14 +13,9 @@
 #include "Poco/StreamCopier.h"
 #include "Poco/Zip/Compress.h"
 
-#include "client/windows/crash_generation/client_info.h"
+#include "client/windows/crash_generation/client_info.h" // google_breakpad
 
 #include "crash_reporter.h"
-
-namespace boostfs = boost::filesystem;
-using namespace Poco::Net;
-using namespace Poco::Zip;
-using namespace google_breakpad;
 
 // Singleton - should we use radiant::core::Singleton<T>?
 static std::unique_ptr<CrashReporter> crash_reporter_;
@@ -42,7 +37,7 @@ CrashReporter::CrashReporter(std::string const& pipe_name, std::string const& du
    uri_(uri)
 {
    bool success = StartCrashGenerationServer();
-   if (!success) throw new std::exception("CrashGenerationServer failed to start");
+   if (!success) throw std::exception("CrashGenerationServer failed to start");
 }
 
 bool CrashReporter::StartCrashGenerationServer()
@@ -50,26 +45,27 @@ bool CrashReporter::StartCrashGenerationServer()
    std::wstring const pipe_name_w = StringToWstring(pipe_name_);
    std::wstring const dump_path_w = StringToWstring(dump_path_);
 
-   crash_server_.reset(new CrashGenerationServer(pipe_name_w,       // name of the pipe
-                                                 nullptr,           // default pipe security
-                                                 OnClientConnected, // callback on client connection
-                                                 this,              // context for the client connection callback
-                                                 OnClientCrashed,   // callback on client crash
-                                                 this,              // context for the client crashed callback
-                                                 OnClientExited,    // callback on client exit
-                                                 this,              // context for the client exited callback
-                                                 nullptr,           // callback for upload request
-                                                 nullptr,           // context for the upload request callback
-                                                 true,              // generate a dump on crash
-                                                 &dump_path_w));    // path to place dump files
-                                                                    // fully qualified filename will be passed to the client crashed callback
-                                                                    // multiple files may be generated in the case of a full memory dump request (currently off)
+   crash_server_.reset(new google_breakpad::CrashGenerationServer(
+                                            pipe_name_w,       // name of the pipe
+                                            nullptr,           // default pipe security
+                                            OnClientConnected, // callback on client connection
+                                            this,              // context for the client connection callback
+                                            OnClientCrashed,   // callback on client crash
+                                            this,              // context for the client crashed callback
+                                            OnClientExited,    // callback on client exit
+                                            this,              // context for the client exited callback
+                                            nullptr,           // callback for upload request
+                                            nullptr,           // context for the upload request callback
+                                            true,              // generate a dump on crash
+                                            &dump_path_w));    // path to place dump files
+                                                               // fully qualified filename will be passed to the client crashed callback
+                                                               // multiple files may be generated in the case of a full memory dump request (currently off)
    return crash_server_->Start();
 }
 
 void CrashReporter::SendCrashReport(std::string const& dump_filename)
 {
-   std::string const zip_filename = boostfs::path(dump_filename).replace_extension(".zip").string();
+   std::string const zip_filename = boost::filesystem::path(dump_filename).replace_extension(".zip").string();
 
    CreateZip(zip_filename, dump_filename);
 
@@ -81,8 +77,8 @@ void CrashReporter::SendCrashReport(std::string const& dump_filename)
 
    Poco::URI uri(uri_);
    std::string path(uri.getPathAndQuery());
-   HTTPClientSession session(uri.getHost(), uri.getPort());
-   HTTPRequest request(HTTPRequest::HTTP_POST, path, HTTPMessage::HTTP_1_1);
+   Poco::Net::HTTPClientSession session(uri.getHost(), uri.getPort());
+   Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, path, Poco::Net::HTTPMessage::HTTP_1_1);
 
    request.setContentType("application/octet-stream");
    request.setContentLength(zip_file_length);
@@ -93,12 +89,12 @@ void CrashReporter::SendCrashReport(std::string const& dump_filename)
    zip_file.close();
 
    // Get response
-   HTTPResponse response;
+   Poco::Net::HTTPResponse response;
    std::istream& response_stream = session.receiveResponse(response);
 
    // Check result
    int status = response.getStatus();
-   if (status != HTTPResponse::HTTP_OK) {
+   if (status != Poco::Net::HTTPResponse::HTTP_OK) {
       // unexpected result code, not much we can do
 	}
 
@@ -109,28 +105,28 @@ void CrashReporter::SendCrashReport(std::string const& dump_filename)
 
    // Clean up
    // Commented out during debugging
-   //boostfs::remove(zip_filename);
-   //boostfs::remove(dump_filename);
+   //boost::filesystem::remove(zip_filename);
+   //boost::filesystem::remove(dump_filename);
 }
 
 // Extend this to package a list of files for submission
 void CrashReporter::CreateZip(std::string const& zip_filename, std::string const& dump_filename)
 {
    std::ofstream zip_file(zip_filename, std::ios::binary);
-   Compress encoder(zip_file, true);
+   Poco::Zip::Compress encoder(zip_file, true);
 
-   std::string const unq_dump_filename(boostfs::path(dump_filename).filename().string());
+   std::string const unq_dump_filename(boost::filesystem::path(dump_filename).filename().string());
    encoder.addFile(Poco::Path(dump_filename), Poco::Path(unq_dump_filename));
    // Add additional files here
    encoder.close();
 }
 
 // Static callbacks for Breakpad
-void CrashReporter::OnClientConnected(void* context, ClientInfo const* client_info)
+void CrashReporter::OnClientConnected(void* context, google_breakpad::ClientInfo const* client_info)
 {
 }
 
-void CrashReporter::OnClientCrashed(void* context, ClientInfo const* client_info, std::wstring const* dump_filename_w)
+void CrashReporter::OnClientCrashed(void* context, google_breakpad::ClientInfo const* client_info, std::wstring const* dump_filename_w)
 {
    CrashReporter* crash_reporter = (CrashReporter*) context;
    crash_reporter->SendCrashReport(WstringToString(*dump_filename_w));
@@ -138,7 +134,7 @@ void CrashReporter::OnClientCrashed(void* context, ClientInfo const* client_info
    RequestApplicationExit();
 }
 
-void CrashReporter::OnClientExited(void* context, ClientInfo const* client_info)
+void CrashReporter::OnClientExited(void* context, google_breakpad::ClientInfo const* client_info)
 {
    RequestApplicationExit();
 }
@@ -175,7 +171,7 @@ static void InitializeServer()
 
    GetParameters(pipe_name, dump_path, uri);
    if (pipe_name.empty() || dump_path.empty() || uri.empty()) {
-      throw new std::invalid_argument("Invalid parameters to CrashReporter");
+      throw std::invalid_argument("Invalid parameters to CrashReporter");
    }
 
    crash_reporter_.reset(new CrashReporter(pipe_name, dump_path, uri));

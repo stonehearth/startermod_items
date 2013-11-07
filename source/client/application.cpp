@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "radiant_logger.h"
+#include "radiant_macros.h"
 #include "lib/json/node.h"
 #include "client.h" 
 #include "application.h"
@@ -7,9 +8,11 @@
 #include "lib/perfmon/perfmon.h"
 #include "lib/analytics/analytics.h"
 #include "core/config.h"
-#include "core/thread.h"
-#include "core/process.h"
 #include "poco/UUIDGenerator.h"
+#include "boost/thread.hpp"
+
+// Uncomment if assertions should be handled by Breakpad in DEBUG builds
+#define ENABLE_BREAKPAD_IN_DEBUG_BUILDS
 
 using radiant::client::Application;
 
@@ -42,49 +45,46 @@ bool Application::LoadConfig(int argc, const char* argv[])
 
 std::string Application::GeneratePipeName() {
    std::string const uuid_string = Poco::UUIDGenerator::defaultGenerator().create().toString();
-   std::string const pipe_name = NAMED_PIPE_PREFIX + CRASH_REPORTER_NAME + "\\" + uuid_string;
+   std::string const pipe_name = BUILD_STRING(NAMED_PIPE_PREFIX << CRASH_REPORTER_NAME << "\\" << uuid_string);
    return pipe_name;
 }
 
-void Application::StartCrashReporter()
+void Application::StartCrashReporter(std::string const& crash_dump_path, std::string const& crash_dump_pipe_name, std::string const& crash_dump_uri)
 {
-   std::string const file_name = CRASH_REPORTER_NAME + ".exe";
-   std::string const command_line = file_name + " " + crash_dump_pipe_name_ + " " + crash_dump_path_ + " " + crash_dump_uri_;
+   std::string const filename = CRASH_REPORTER_NAME + ".exe";
+   std::string const command_line = BUILD_STRING(filename << " " << crash_dump_pipe_name << " " << crash_dump_path << " " << crash_dump_uri);
 
-   radiant::core::Process crash_reporter_process(command_line);
+   crash_reporter_process_.reset(new radiant::core::Process(command_line));
 }
 
-void Application::InitializeExceptionHandlingEnvironment()
+void Application::InitializeExceptionHandlingEnvironment(std::string const& crash_dump_pipe_name)
 {
-   std::wstring pipe_name_wstring(crash_dump_pipe_name_.begin(), crash_dump_pipe_name_.end());
+#ifdef ENABLE_BREAKPAD_IN_DEBUG_BUILDS
+   //_CrtSetReportMode(_CRT_ASSERT, 0);
+#endif
+
+   std::wstring pipe_name_wstring(crash_dump_pipe_name.begin(), crash_dump_pipe_name.end());
 
    // This API is inconsistent, but trying to avoid too many changes to Breakpad's sample code in case it versions
-   exception_handler_.reset(new ExceptionHandler(std::wstring(),                // local dump path (ignored since we are out of process)
-                                                 nullptr,                       // filter callback 
-                                                 nullptr,                       // minidump callback
-                                                 nullptr,                       // context for the callbacks
-                                                 ExceptionHandler::HANDLER_ALL, // exceptions to trap
-                                                 MiniDumpNormal,                // type of minidump
-                                                 pipe_name_wstring.data(),      // name of pipe for out of process dump
-                                                 nullptr));                     // CustomClientInfo
-
-   // Do not show dialog for invalid parameter failures
-   // Let the crash reporter handle it
-   _CrtSetReportMode(_CRT_ASSERT, 0);
+   exception_handler_.reset(new google_breakpad::ExceptionHandler(
+                                                 std::wstring(),                   // local dump path (ignored since we are out of process)
+                                                 nullptr,                          // filter callback 
+                                                 nullptr,                          // minidump callback
+                                                 nullptr,                          // context for the callbacks
+                                                 google_breakpad::ExceptionHandler::HANDLER_ALL, // exceptions to trap
+                                                 MiniDumpNormal,                   // type of minidump
+                                                 pipe_name_wstring.data(),         // name of pipe for out of process dump
+                                                 nullptr));                        // CustomClientInfo
 }
 
 void Application::InitializeCrashReporting()
 {
-   crash_dump_path_ = core::Config::GetInstance().GetTmpDirectory().string();
-   crash_dump_pipe_name_ = GeneratePipeName();
-   crash_dump_uri_ = "http://posttestserver.com/post.php"; // 3rd party test server 
+   std::string const crash_dump_path = core::Config::GetInstance().GetTmpDirectory().string();
+   std::string const crash_dump_pipe_name = GeneratePipeName();
+   std::string const crash_dump_uri = "http://posttestserver.com/post.php"; // 3rd party test server 
 
-   try {
-      StartCrashReporter();
-      InitializeExceptionHandlingEnvironment();
-   } catch (...) {
-      // no crash reporting, but application can continue to run
-   }
+   StartCrashReporter(crash_dump_path, crash_dump_pipe_name, crash_dump_uri);
+   InitializeExceptionHandlingEnvironment(crash_dump_pipe_name);
 }
 
 void Application::ClientThreadMain()
@@ -112,10 +112,24 @@ int Application::Run(int argc, const char** argv)
          return 0;
       }
 
-      // do this after config has been successfully loaded so we have a temp directory for the dump_path
-      InitializeCrashReporting();
+      std::string error_reason;
+      try {
+         // Start crash reporter after config has been successfully loaded so we have a temp directory for the dump_path
+         // Start before the logger in case the logger fails
+         InitializeCrashReporting();
+      } catch (std::exception const& e) {
+         // No crash reporting, but application can continue to run
+         error_reason = std::string(e.what());
+      } catch (...) {
+         error_reason = "Unknown reason";
+      }
 
       radiant::logger::init(config.GetTmpDirectory() / (config.GetName() + ".log"));
+
+      // Have to wait for the logger to initialize before logging error
+      if (!error_reason.empty()) {
+         LOG(WARNING) << "Crash reporter failed to start: " + error_reason;
+      }
 
       // factor this out into some protobuf helper like we did with log
       google::protobuf::SetLogHandler(protobuf_log_handler);
@@ -130,10 +144,15 @@ int Application::Run(int argc, const char** argv)
       std::string build_number = config.GetBuildNumber();
       analytics::StartSession(userid, sessionid, build_number);
 
-      radiant::core::Thread client_thread(ClientThreadMain);
+      // IMPORTANT:
+      // Breakpad (the crash reporter) doesn't work with std::thread or poco::thread (poco::thread with dynamic linking might work).
+      // They do not have the proper top level exception handling behavior which is configured
+      // using SetUnhandledExceptionFilter on Windows.
+      // Windows CreateThread and boost::thread appear to work
+      boost::thread client_thread(ClientThreadMain);
 
       game_engine::arbiter::GetInstance().Run();
-      client_thread.Join();
+      client_thread.join();
 
       radiant::logger::exit();
 #ifdef _DEBUG

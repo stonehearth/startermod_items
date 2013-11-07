@@ -324,7 +324,7 @@ void PureCallCrash() {
 }
 
 void GenericThrownException() {
-   throw new std::exception();
+   throw std::exception("Generic exception");
 }
 
 void RequestDump() {
@@ -499,6 +499,23 @@ void StartCrashReporter(std::wstring const& pipe_name, std::wstring const& dump_
    }
 }
 
+static void InitializeExceptionHandlingEnvironment(std::wstring const& pipe_name)
+{
+  CustomClientInfo custom_info = {kCustomInfoEntries, kCustomInfoCount};
+
+  // Uncomment to allow debug assertions to be handled by breakpad instead of Visual Studio
+  //_CrtSetReportMode(_CRT_ASSERT, 0);
+
+  handler = new ExceptionHandler(L"D:/dumps",
+                                 NULL,
+                                 google_breakpad::ShowDumpResults,
+                                 NULL,
+                                 ExceptionHandler::HANDLER_ALL,
+                                 MiniDumpNormal,
+                                 pipe_name.data(),
+                                 &custom_info);
+}
+
 int APIENTRY _tWinMain(HINSTANCE instance,
                        HINSTANCE previous_instance,
                        LPTSTR command_line,
@@ -510,26 +527,12 @@ int APIENTRY _tWinMain(HINSTANCE instance,
   cs_edit = new CRITICAL_SECTION();
   InitializeCriticalSection(cs_edit);
 
-  CustomClientInfo custom_info = {kCustomInfoEntries, kCustomInfoCount};
-
   //CrashServerStart(); // use out of process server below instead
   std::wstring const pipe_name = GeneratePipeName();
   std::wstring const dump_path = L"D:/dumps/server";
   std::wstring const uri = L"http://posttestserver.com/post.php";
   StartCrashReporter(pipe_name, dump_path, uri);
-
-  // This is needed for CRT to not show dialog for invalid param
-  // failures and instead let the code handle it.
-  _CrtSetReportMode(_CRT_ASSERT, 0);
-
-  handler = new ExceptionHandler(L"D:/dumps",
-                                 NULL,
-                                 google_breakpad::ShowDumpResults,
-                                 NULL,
-                                 ExceptionHandler::HANDLER_ALL,
-                                 MiniDumpNormal,
-                                 pipe_name.data(),
-                                 &custom_info);
+  InitializeExceptionHandlingEnvironment(pipe_name);
 
   // Initialize global strings.
   LoadString(instance, IDS_APP_TITLE, title, kMaxLoadString);

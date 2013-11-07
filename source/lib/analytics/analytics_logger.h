@@ -4,8 +4,8 @@
 #include "analytics.h"
 #include "event_data.h"
 #include "core/singleton.h"
-#include "core/thread.h"
 #include "lib/json/node.h"
+#include "boost/thread.hpp"
 
 #include <thread>
 #include <mutex>
@@ -28,7 +28,7 @@ private:
    void SendEventsToServer();
    void PostEvent(json::Node event_node, std::string event_category);
 
-   static void AnalyticsThreadMain();
+   static void AnalyticsThreadMain(AnalyticsLogger* logger);
 
    std::string userid_;
    std::string sessionid_;
@@ -38,10 +38,9 @@ private:
 
    std::mutex m_;
    std::condition_variable cv_;
-   radiant::core::Thread event_sender_thread_;
+   boost::thread event_sender_thread_;
 
    bool stopping_thread_;
-
 };
 
 END_RADIANT_ANALYTICS_NAMESPACE

@@ -4,7 +4,7 @@
 #include "lib/json/node.h"
 #include "analytics_logger.h"
 #include "libjson.h"
-#include <boost/algorithm/string.hpp>  
+#include <boost/algorithm/string.hpp>
 #include "core/config.h"
 
 // Crytop stuff (xxx - change the include path so these generic headers aren't in it)
@@ -34,7 +34,13 @@ DEFINE_SINGLETON(AnalyticsLogger);
 
 AnalyticsLogger::AnalyticsLogger() :
    stopping_thread_(false),
-   event_sender_thread_(AnalyticsThreadMain)
+
+   // IMPORTANT:
+   // Breakpad (the crash reporter) doesn't work with std::thread or poco::thread (poco::thread with dynamic linking might work).
+   // They do not have the proper top level exception handling behavior which is configured
+   // using SetUnhandledExceptionFilter on Windows.
+   // Windows CreateThread and boost::thread appear to work
+   event_sender_thread_(std::bind(AnalyticsThreadMain, this))
 {   
 }
 
@@ -43,7 +49,7 @@ AnalyticsLogger::~AnalyticsLogger()
 {
    stopping_thread_ = true;
    cv_.notify_one();
-   event_sender_thread_.Join();
+   event_sender_thread_.join();
    // do any other cleanup after thread terminates (none currently)
 }
 
@@ -174,7 +180,7 @@ void AnalyticsLogger::PostEvent(json::Node event_node, std::string event_categor
 	}
 }
 
-void AnalyticsLogger::AnalyticsThreadMain()
+void AnalyticsLogger::AnalyticsThreadMain(AnalyticsLogger* logger)
 {
-   AnalyticsLogger::GetInstance().SendEventsToServer();
+   logger->SendEventsToServer();
 }

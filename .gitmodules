@@ -10,10 +10,6 @@
 	path = modules/chromium-embedded
 	url = https://github.com/radent/chromium-embedded.git
 	branch = master
-[submodule "modules/build-environment"]
-	path = modules/build-environment
-	url = https://github.com/radent/build-environment.git
-	branch = master
 [submodule "modules/cryptopp"]
 	path = modules/cryptopp
 	url = https://github.com/radent/cryptopp.git
