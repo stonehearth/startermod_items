@@ -1253,7 +1253,7 @@ void Renderer::computeLightFrustumNearFar(const BoundingBox& worldBounds, const 
 }
 
 
-void Renderer::updateShadowMap()
+void Renderer::updateShadowMap(const Frustum* lightFrus, float maxDist)
 {
 	if( _curLight == 0x0 ) return;
 	
@@ -1271,60 +1271,24 @@ void Renderer::updateShadowMap()
 	// Cascaded Shadow Maps
 	// ********************************************************************************************
 	
-
 	// Find AABB of lit geometry
-	BoundingBox litAabb, visibleAabb;
+	BoundingBox litAabb;
 
    std::ostringstream reason;
    reason << "update shadowmap for light " << _curLight->getName();
 
-   // If we're a directional light, then we necessarily cover the entire AABB of the scene, 
-   // so get the bounding box of everything.  I wonder how expensive this is?
-   const Frustum *lightFrus;
-   if (_curLight->_directional)
-   {
-      Frustum bigFrust;
-      bigFrust.buildBoxFrustum(Matrix4f(), -10000, 10000, -10000, 10000, 10000, -10000);
-      lightFrus = &bigFrust;
-   } else {
-      lightFrus = &_curLight->getFrustum();
-   }
-
-	Modules::sceneMan().updateQueues(reason.str().c_str(), _curCamera->getFrustum(), lightFrus,
+	Modules::sceneMan().updateQueues(reason.str().c_str(), *lightFrus, 0x0,
 		RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
 	for( size_t j = 0, s = Modules::sceneMan().getRenderableQueue().size(); j < s; ++j )
 	{
       SceneNode* n = Modules::sceneMan().getRenderableQueue()[j].node;
-		litAabb.makeUnion( n->getBBox() ); 
-	}
-   gRDI->_frameDebugInfo.addDirectionalLightAABB_(litAabb);
-
-   Modules::sceneMan().updateQueues(reason.str().c_str(), _curCamera->getFrustum(), 0x0,
-   	RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
-	for( size_t j = 0, s = Modules::sceneMan().getRenderableQueue().size(); j < s; ++j )
-	{
-      SceneNode* n = Modules::sceneMan().getRenderableQueue()[j].node;
-		visibleAabb.makeUnion( n->getBBox() ); 
+      litAabb.makeUnion(n->getBBox());
 	}
 
-
-	// Find depth range of lit geometry
-	float minDist = Math::MaxFloat, maxDist = 0.0f;
-	for( uint32 i = 0; i < 8; ++i )
-	{
-		float dist = -(_curCamera->getViewMat() * visibleAabb.getCorner( i )).z;
-		if( dist < minDist ) minDist = dist;
-		if( dist > maxDist ) maxDist = dist;
-	}
-
-	// Don't adjust near plane; this means less precision if scene is far away from viewer but that
-	// shouldn't be too noticeable and brings better performance since the nearer split volumes are empty
-	minDist = _curCamera->_frustNear;
-	
    // Calculate split distances using PSSM scheme
-   const float nearDist = maxf( minDist, _curCamera->_frustNear );
-   const float farDist = maxf( maxDist, minDist + 0.01f );
-   const float firstSplit = 35.0f;
+   const float nearDist = _curCamera->_frustNear;
+   const float farDist = maxf( maxDist, _curCamera->_frustNear + 0.01f );
+   const float firstSplit = 30.0f;
    // const float nearDist = _curCamera->_frustNear;
    // const float farDist = _curCamera->_frustFar;
    const uint32 numMaps = _curLight->_shadowMapCount;
@@ -1336,8 +1300,8 @@ void Renderer::updateShadowMap()
 	for( uint32 i = 1; i < numMaps; ++i )
 	{
 		float f = (float)i / numMaps;
-		float logDist = firstSplit * powf( farDist / firstSplit, f );
-		float uniformDist = firstSplit + (farDist - firstSplit) * f;
+		float logDist = nearDist * powf( farDist / nearDist, f );
+		float uniformDist = nearDist + (farDist - nearDist) * f;
 		
 		_splitPlanes[i] = (1 - lambda) * uniformDist + lambda * logDist;  // Lerp
 	}
@@ -1392,16 +1356,6 @@ void Renderer::updateShadowMap()
          lightViewMat.x[12] = lightAbsPos.x;
          lightViewMat.x[13] = lightAbsPos.y;
          lightViewMat.x[14] = lightAbsPos.z;
-
-         Vec3f min, max;
-         min = max = lightViewMat * litAabb.getCorner(0);
-	      for( uint32 k = 1; k < 8; ++k ) {
-            Vec3f pt = lightViewMat * litAabb.getCorner(k);
-            for (int j = 0; j < 3; j++) {
-               min[j] = std::min(min[j], pt[j]);
-               max[j] = std::max(max[j], pt[j]);
-            }
-	      }
 
          lightProjMat = calcDirectionalLightShadowProj(litAabb, frustum, lightViewMat, numMaps);
       }
@@ -1727,6 +1681,66 @@ void Renderer::drawGeometry( const std::string &shaderContext, const std::string
 }
 
 
+float Renderer::computeTightCameraFarDistance()
+{
+   float result = 0.0f;
+
+   // First, get all the visible objects in the full camera's frustum.
+   BoundingBox visibleAabb;
+   Modules::sceneMan().updateQueues("computing tight camera", _curCamera->getFrustum(), 0x0,
+      RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
+   for( size_t j = 0, s = Modules::sceneMan().getRenderableQueue().size(); j < s; ++j )
+   {
+      SceneNode* n = Modules::sceneMan().getRenderableQueue()[j].node;
+	   visibleAabb.makeUnion(n->getBBox()); 
+   }
+
+   // Tightly clip the resulting AABB of visible geometry against the frustum.
+   std::vector<Polygon> clippedAabb;
+   _curCamera->getFrustum().clipAABB(visibleAabb, &clippedAabb);
+
+   // Extract the maximum distance of the clipped fragments.
+   for (const auto& poly : clippedAabb)
+   {
+      for (const auto& point : poly.points())
+      {
+         float dist = -(_curCamera->getViewMat() * point).z;
+         if(dist > result)
+         {
+            result = dist;
+         }
+      }
+   }
+   return result;
+}
+
+
+Frustum Renderer::computeDirectionalLightFrustum(float farPlaneDist)
+{
+   Frustum result;
+   // Construct a tighter camera frustum, given the supplied far plane value.
+   Frustum tightCamFrust;
+   tightCamFrust.buildViewFrustum(_curCamera->_absTrans, _curCamera->_frustLeft, _curCamera->_frustRight, 
+      _curCamera->_frustBottom, _curCamera->_frustTop, _curCamera->_frustNear, farPlaneDist);
+
+   // Transform the camera frustum into light space, building a new AABB as we do so.
+   BoundingBox bb;
+   for (int i = 0; i < 8; i++)
+   {
+      bb.addPoint(_curLight->getViewMat() * tightCamFrust.getCorner(i));
+   }
+
+   // Ten-thousand units ought to be enough for anyone.  (This value is how far our light is from
+   // it's center-point; ideally, we'll always over-estimate here, and then dynamically adjust during
+   // shadow-map construction to a tight bound over the light-visible geometry.)
+   bb.max.z = 10000;  
+
+   result.buildBoxFrustum(_curLight->getViewMat().inverted(), bb.min.x, bb.max.x, bb.min.y, bb.max.y, bb.max.z, bb.min.z);
+
+   return result;
+}
+
+
 void Renderer::drawLightGeometry( const std::string &shaderContext, const std::string &theClass,
                                   bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly )
 {
@@ -1739,9 +1753,23 @@ void Renderer::drawLightGeometry( const std::string &shaderContext, const std::s
 	for( size_t i = 0, s = Modules::sceneMan().getLightQueue().size(); i < s; ++i )
 	{
 		_curLight = (LightNode *)Modules::sceneMan().getLightQueue()[i];
+      const Frustum* lightFrus;
+      Frustum dirLightFrus;
+
+      // Save the far plane distance in case we have a directional light we want to cast shadows with.
+      float maxDist = 0.0f;
+
+      if (_curLight->_directional)
+      {
+         maxDist = computeTightCameraFarDistance();
+         dirLightFrus = computeDirectionalLightFrustum(maxDist);
+         lightFrus = &dirLightFrus;
+      } else {
+         lightFrus = &(_curLight->getFrustum());
+      }
 
 		// Check if light is not visible
-		if( _curCamera->getFrustum().cullFrustum( _curLight->getFrustum() ) ) continue;
+		if( _curCamera->getFrustum().cullFrustum( *lightFrus ) ) continue;
 
 		// Check if light is occluded
 		if( occSet >= 0 )
@@ -1763,7 +1791,7 @@ void Renderer::drawLightGeometry( const std::string &shaderContext, const std::s
 					_curLight->_lastVisited[occSet] = Modules::renderer().getFrameID();
 				
 					Vec3f bbMin, bbMax;
-					_curLight->getFrustum().calcAABB( bbMin, bbMax );
+					lightFrus->calcAABB( bbMin, bbMax );
 					
 					// Check that viewer is outside light bounds
 					if( nearestDistToAABB( _curCamera->getFrustum().getOrigin(), bbMin, bbMax ) > 0 )
@@ -1787,7 +1815,7 @@ void Renderer::drawLightGeometry( const std::string &shaderContext, const std::s
 			GPUTimer *timerShadows = Modules::stats().getGPUTimer( EngineStats::ShadowsGPUTime );
 			if( Modules::config().gatherTimeStats ) timerShadows->beginQuery( _frameID );
 
-			updateShadowMap();
+			updateShadowMap(lightFrus, maxDist);
 			setupShadowMap( false );
 
 			timerShadows->endQuery();
@@ -1814,12 +1842,12 @@ void Renderer::drawLightGeometry( const std::string &shaderContext, const std::s
 		// Render
       std::ostringstream reason;
       reason << "drawing light geometry for light " << _curLight->getName();
-		Modules::sceneMan().updateQueues( reason.str().c_str(), _curCamera->getFrustum(), &_curLight->getFrustum(),
+		Modules::sceneMan().updateQueues( reason.str().c_str(), _curCamera->getFrustum(), lightFrus,
 		                                  order, SceneNodeFlags::NoDraw, selectedOnly ? SceneNodeFlags::Selected : 0, false, true );
 		setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
 		drawRenderables( shaderContext.empty() ? _curLight->_lightingContext : shaderContext,
 		                 theClass, false, &_curCamera->getFrustum(),
-		                 &_curLight->getFrustum(), order, occSet );
+		                 lightFrus, order, occSet );
 		Modules().stats().incStat( EngineStats::LightPassCount, 1 );
 
 		// Reset
@@ -1857,6 +1885,21 @@ void Renderer::drawLightShapes( const std::string &shaderContext, bool noShadows
       if( !_curLight->_directional && _curCamera->getFrustum().cullFrustum( _curLight->getFrustum() ) ) {
          continue;
       }
+
+      const Frustum* lightFrus;
+      Frustum dirLightFrus;
+
+      // Save the far plane distance in case we have a directional light we want to cast shadows with.
+      float maxDist = 0.0f;
+
+      if (_curLight->_directional)
+      {
+         maxDist = computeTightCameraFarDistance();
+         dirLightFrus = computeDirectionalLightFrustum(maxDist);
+         lightFrus = &dirLightFrus;
+      } else {
+         lightFrus = &(_curLight->getFrustum());
+      }
 		
 		// Check if light is occluded
 		if( occSet >= 0 )
@@ -1878,7 +1921,7 @@ void Renderer::drawLightShapes( const std::string &shaderContext, bool noShadows
 					_curLight->_lastVisited[occSet] = Modules::renderer().getFrameID();
 				
 					Vec3f bbMin, bbMax;
-					_curLight->getFrustum().calcAABB( bbMin, bbMax );
+					lightFrus->calcAABB( bbMin, bbMax );
 					
 					// Check that viewer is outside light bounds
 					if( nearestDistToAABB( _curCamera->getFrustum().getOrigin(), bbMin, bbMax ) > 0 )
@@ -1902,7 +1945,7 @@ void Renderer::drawLightShapes( const std::string &shaderContext, bool noShadows
 			GPUTimer *timerShadows = Modules::stats().getGPUTimer( EngineStats::ShadowsGPUTime );
 			if( Modules::config().gatherTimeStats ) timerShadows->beginQuery( _frameID );
 			
-			updateShadowMap();
+         updateShadowMap(lightFrus, maxDist);
 			setupShadowMap( false );
 			curMatRes = 0x0;
 			
@@ -2552,7 +2595,7 @@ void Renderer::render( CameraNode *camNode )
 		if( !stage->enabled ) continue;
 		_curStageMatLink = stage->matLink;
 
-                radiant::perfmon::SwitchToCounter (stage->debug_name.c_str());
+      radiant::perfmon::SwitchToCounter (stage->debug_name.c_str());
 		
 		for( uint32 j = 0; j < stage->commands.size(); ++j )
 		{
@@ -2685,7 +2728,7 @@ void Renderer::renderDebugView()
 
 	// Draw renderable nodes as wireframe
 	setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
-	drawRenderables( "", "", true, &_curCamera->getFrustum(), 0x0, RenderingOrder::None, -1 );
+	//drawRenderables( "", "", true, &_curCamera->getFrustum(), 0x0, RenderingOrder::None, -1 );
 
 	// Draw bounding boxes
 	glDisable( GL_CULL_FACE );
