@@ -30,10 +30,6 @@ if __name__ == "__main__":
    contents += "\n"
 
    
-   print >>sys.stderr, "current environment:"
-   for k, v in os.environ:
-      print >>sys.stderr, '%s : %s' % (k, v)
-
    for k, (name, t) in DEFINES.iteritems():
       value = os.environ.get(k, None)
       if not value:
