@@ -22,7 +22,7 @@ using namespace Poco::Net;
 using namespace Poco::Zip;
 using namespace google_breakpad;
 
-static int const main_thread_id_ = GetCurrentThreadId();
+// Singleton - should we use radiant::core::Singleton<T>?
 static std::unique_ptr<CrashReporter> crash_reporter_;
 
 // This is silly...
@@ -113,6 +113,7 @@ void CrashReporter::SendCrashReport(std::string const& dump_filename)
    //boostfs::remove(dump_filename);
 }
 
+// Extend this to package a list of files for submission
 void CrashReporter::CreateZip(std::string const& zip_filename, std::string const& dump_filename)
 {
    std::ofstream zip_file(zip_filename, std::ios::binary);
@@ -120,18 +121,16 @@ void CrashReporter::CreateZip(std::string const& zip_filename, std::string const
 
    std::string const unq_dump_filename(boostfs::path(dump_filename).filename().string());
    encoder.addFile(Poco::Path(dump_filename), Poco::Path(unq_dump_filename));
+   // Add additional files here
    encoder.close();
 }
 
-static void RequestApplicationExit() {
-   PostThreadMessage(main_thread_id_, WM_QUIT, 0, 0);
-}
-
-static void OnClientConnected(void* context, ClientInfo const* client_info)
+// Static callbacks for Breakpad
+void CrashReporter::OnClientConnected(void* context, ClientInfo const* client_info)
 {
 }
 
-static void OnClientCrashed(void* context, ClientInfo const* client_info, std::wstring const* dump_filename_w)
+void CrashReporter::OnClientCrashed(void* context, ClientInfo const* client_info, std::wstring const* dump_filename_w)
 {
    CrashReporter* crash_reporter = (CrashReporter*) context;
    crash_reporter->SendCrashReport(WstringToString(*dump_filename_w));
@@ -139,9 +138,15 @@ static void OnClientCrashed(void* context, ClientInfo const* client_info, std::w
    RequestApplicationExit();
 }
 
-static void OnClientExited(void* context, ClientInfo const* client_info)
+void CrashReporter::OnClientExited(void* context, ClientInfo const* client_info)
 {
    RequestApplicationExit();
+}
+
+static int const main_thread_id_ = GetCurrentThreadId();
+
+void CrashReporter::RequestApplicationExit() {
+   PostThreadMessage(main_thread_id_, WM_QUIT, 0, 0);
 }
 
 static void GetParameters(std::string& pipe_name, std::string& dump_path, std::string& uri)
@@ -177,6 +182,7 @@ static void InitializeServer()
 }
 
 //--------------------------------------------------------------------------------
+// Standard Windows template...
 
 #define MAX_LOADSTRING 100
 
@@ -208,6 +214,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
    MSG msg;
    HACCEL hAccelTable;
 
+   // Don't show a main window
    /*
    // Initialize global strings
    LoadString(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
