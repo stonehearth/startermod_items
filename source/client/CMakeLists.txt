@@ -3,6 +3,8 @@ FIND_PACKAGE(Cryptopp   REQUIRED)
 FIND_PACKAGE(Libjson REQUIRED)
 FIND_PACKAGE(Lua REQUIRED)
 FIND_PACKAGE(Luabind REQUIRED)
+FIND_PACKAGE(Breakpad REQUIRED)
+FIND_PACKAGE(Poco REQUIRED)
 FIND_PACKAGE(Sfml REQUIRED)
 
 include_directories(${Boost_INCLUDE_DIR})
@@ -11,6 +13,8 @@ include_directories(${Horde3D_INCLUDE_DIRS})
 include_directories(${Libjson_INCLUDE_DIRS})
 include_directories(${Lua_INCLUDE_DIRS})
 include_directories(${Luabind_INCLUDE_DIRS})
+include_directories(${Breakpad_INCLUDE_DIRS})
+include_directories(${Poco_INCLUDE_DIRS})
 include_directories(${Sfml_INCLUDE_DIRS})
 
 add_subdirectory(renderer)
@@ -34,6 +38,8 @@ target_link_libraries(client
                              ${Python_LIBRARIES}
                              ${Cryptopp_LIBRARIES}
                              ${Libjson_LIBRARIES}
+                             ${Breakpad_LIBRARIES}
+                             ${Poco_LIBRARIES}
 							 ${Sfml_LIBRARIES}
 #                             ${Bullet_LIBRARIES}
                              comctl32

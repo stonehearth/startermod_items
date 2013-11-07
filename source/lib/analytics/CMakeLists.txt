@@ -1,10 +1,10 @@
-FIND_PACKAGE(Libcurl REQUIRED)
 FIND_PACKAGE(Cryptopp REQUIRED)
 FIND_PACKAGE(Libjson REQUIRED)
+FIND_PACKAGE(Poco REQUIRED)
 
-include_directories(${Libcurl_INCLUDE_DIRS})
-include_directories(${Libjson_INCLUDE_DIRS})
 include_directories(${Cryptopp_INCLUDE_DIRS})
+include_directories(${Libjson_INCLUDE_DIRS})
+include_directories(${Poco_INCLUDE_DIRS})
 
 add_library(analytics
             analytics.cpp
@@ -14,8 +14,8 @@ add_library(analytics
             )
 
 target_link_libraries(analytics 
-                      ${Libcurl_LIBRARIES}
                       ${Cryptopp_LIBRARIES}
                       ${Libjson_LIBRARIES}
+                      ${Poco_LIBRARIES}
                       core
                       )
