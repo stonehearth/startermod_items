@@ -4,21 +4,21 @@ import os
 import sys
 
 DEFINES = {
-   'bamboo_product_identifier' : ('PRODUCT_IDENTIFIER', 'string'),
-   'bamboo_product_name' : ('PRODUCT_NAME', 'string'),
-   'bamboo_product_version_major': ('PRODUCT_MAJOR_VERSION', 'number'),
-   'bamboo_product_version_minor': ('PRODUCT_MINOR_VERSION', 'number'),
-   'bamboo_product_version_patch': ('PRODUCT_PATCH_VERSION', 'number'),
-   'bamboo_buildNumber' : ('PRODUCT_BUILD_NUMBER', 'number'),
-   'bamboo_buildTimeStamp' : ('PRODUCT_BUILD_TIME', 'number'),
-   'bamboo_planRepository_branchame': ('PRODUCT_BRANCH', 'string'),
-   'bamboo_repository_revision_number' : ('PRODUCT_REVISION', 'string'),
+   'BAMBOO_PRODUCT_IDENTIFIER' : ('PRODUCT_IDENTIFIER', 'string'),
+   'BAMBOO_PRODUCT_NAME' : ('PRODUCT_NAME', 'string'),
+   'BAMBOO_PRODUCT_VERSION_MAJOR': ('PRODUCT_MAJOR_VERSION', 'number'),
+   'BAMBOO_PRODUCT_VERSION_MINOR': ('PRODUCT_MINOR_VERSION', 'number'),
+   'BAMBOO_PRODUCT_VERSION_PATCH': ('PRODUCT_PATCH_VERSION', 'number'),
+   'BAMBOO_BUILD_NUMBER' : ('PRODUCT_BUILD_NUMBER', 'number'),
+   'BAMBOO_BUILD_TIME' : ('PRODUCT_BUILD_TIME', 'number'),
+   'BAMBOO_BRANCH_NAME': ('PRODUCT_BRANCH', 'string'),
+   'BAMBOO_BRANCH_REVISION' : ('PRODUCT_REVISION', 'string'),
 }
 
 OVERRIDES = {
-   'bamboo_product_analytics_game_key' : ('GAME_ANALYTICS_GAME_KEY', 'string'),
-   'bamboo_product_analytics_secret_key' : ('GAME_ANALYTICS_SECRET_KEY', 'string'),
-   'bamboo_product_analytics_data_api_key' : ('GAME_ANALYTICS_DATA_API_KEY', 'string'),
+   'BAMBOO_PRODUCT_ANALYTICS_GAME_KEY' : ('GAME_ANALYTICS_GAME_KEY', 'string'),
+   'BAMBOO_PRODUCT_ANALYTICS_SECRET_KEY' : ('GAME_ANALYTICS_SECRET_KEY', 'string'),
+   'BAMBOO_PRODUCT_ANALYTICS_DATA_API_KEY' : ('GAME_ANALYTICS_DATA_API_KEY', 'string'),
 }
 
 if __name__ == "__main__":
