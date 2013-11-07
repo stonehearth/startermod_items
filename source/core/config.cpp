@@ -1,5 +1,6 @@
 #include <shlobj.h>
 #include "radiant.h"
+#include "build_number.h"
 #include "config.h"
 #include <iostream>
 #include <rpc.h>
@@ -25,9 +26,9 @@ Config::Config() :
 {
 }
 
-bool Config::Load(std::string const& name, int argc, const char *argv[])
+bool Config::Load(int argc, const char *argv[])
 {
-   name_ = name;
+   std::string name = GetName();
 
    cmd_line_options_.add_options()
       ("help",             "produce help message")
@@ -121,7 +122,7 @@ boost::program_options::options_description& Config::GetCommandLineOptions()
 
 std::string Config::GetName() const
 {
-   return name_;
+   return std::string(PRODUCT_IDENTIFIER);
 }
 
 boost::filesystem::path Config::GetCacheDirectory() const
