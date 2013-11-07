@@ -9,10 +9,10 @@ DEFINES = {
    'bamboo_product_version_major': ('PRODUCT_MAJOR_VERSION', 'number'),
    'bamboo_product_version_minor': ('PRODUCT_MINOR_VERSION', 'number'),
    'bamboo_product_version_patch': ('PRODUCT_PATCH_VERSION', 'number'),
-   'bamboo.buildNumber' : ('PRODUCT_BUILD_NUMBER', 'number'),
-   'bamboo.buildTimeStamp' : ('PRODUCT_BUILD_TIME', 'number'),
-   'bamboo.repository.branch.name': ('PRODUCT_BRANCH', 'string'),
-   'bamboo.repository.revision.number' : ('PRODUCT_REVISION', 'string'),
+   'bamboo_buildNumber' : ('PRODUCT_BUILD_NUMBER', 'number'),
+   'bamboo_buildTimeStamp' : ('PRODUCT_BUILD_TIME', 'number'),
+   'bamboo_repository_branch_name': ('PRODUCT_BRANCH', 'string'),
+   'bamboo_repository_revision_number' : ('PRODUCT_REVISION', 'string'),
 }
 
 OVERRIDES = {
@@ -52,7 +52,7 @@ if __name__ == "__main__":
    pfvs = "%s.%s.%s.%s" % (os.environ['bamboo_product_version_major'],
                            os.environ['bamboo_product_version_minor'],
                            os.environ['bamboo_product_version_patch'],
-                           os.environ['bamboo.buildNumber'])
+                           os.environ['bamboo_buildNumber'])
 
    contents += "#undef PRODUCT_VERSION_STR\n"
    contents += "#undef PRODUCT_FILE_VERSION_STR\n"
