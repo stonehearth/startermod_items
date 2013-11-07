@@ -26,10 +26,6 @@
 	path = modules/libclaw
 	url = https://github.com/radent/libclaw.git
 	branch = master
-[submodule "modules/libcurl"]
-	path = modules/libcurl
-	url = https://github.com/radent/libcurl.git
-	branch = master
 [submodule "modules/libjson"]
 	path = modules/libjson
 	url = https://github.com/radent/libjson.git
