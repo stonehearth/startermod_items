@@ -21,11 +21,11 @@ namespace radiant {
 
          private:
             std::unique_ptr<ExceptionHandler> exception_handler_;
-            std::string pipe_name_;
-            std::string dump_path_;
+            std::string crash_dump_pipe_name_;
+            std::string crash_dump_path_;
+            std::string crash_dump_uri_;
 
             bool LoadConfig(int argc, const char** argv);
-            std::string GuidToString(GUID const& guid);
             std::string GeneratePipeName();
             void StartCrashReporter();
             void InitializeExceptionHandlingEnvironment();

@@ -2,5 +2,28 @@
 #define _RADIANT_LIB_CRASH_REPORTER_CRASH_REPORTER_H
 
 #include "resource.h"
+#include "client/windows/crash_generation/crash_generation_server.h"
+
+using namespace google_breakpad;
+
+class CrashReporter
+{
+public:
+   CrashReporter(std::string const& pipe_name, std::string const& dump_path, std::string const& uri);
+   void SendCrashReport(std::string const& dump_filename);
+
+private:
+   bool StartCrashGenerationServer();
+   void CreateZip(std::string const& zip_filename, std::string const& dump_filename);
+
+   std::string const pipe_name_;
+   std::string const dump_path_;
+   std::string const uri_;
+   std::unique_ptr<CrashGenerationServer> crash_server_;
+};
+
+static void OnClientConnected(void* context, ClientInfo const* client_info);
+static void OnClientCrashed(void* context, ClientInfo const* client_info, std::wstring const* dump_filename_w);
+static void OnClientExited(void* context, ClientInfo const* client_info);
 
 #endif // _RADIANT_LIB_CRASH_REPORTER_CRASH_REPORTER_H

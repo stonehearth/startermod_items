@@ -9,6 +9,7 @@
 #include "core/config.h"
 #include "core/thread.h"
 #include "core/process.h"
+#include "poco/UUIDGenerator.h"
 
 using radiant::client::Application;
 
@@ -36,26 +37,16 @@ bool Application::LoadConfig(int argc, const char* argv[])
    return config.Load("stonehearth", argc, argv);
 }
 
-std::string Application::GuidToString(GUID const& guid)
-{
-   std::array<char, 40> output;
-	_snprintf(output.data(), output.size(), "%08X-%04hX-%04hX-%02X%02X-%02X%02X%02X%02X%02X%02X",
-      guid.Data1, guid.Data2, guid.Data3, guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3], guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
-	return std::string(output.data());
-}
-
 std::string Application::GeneratePipeName() {
-   GUID guid;
-   UuidCreate(&guid);
-   std::string guid_string = GuidToString(guid);
-   std::string const& pipe_name = "\\\\.\\pipe\\crash_reporter\\" + guid_string;
+   std::string uuid_string = Poco::UUIDGenerator::defaultGenerator().create().toString();
+   std::string const pipe_name = "\\\\.\\pipe\\crash_reporter\\" + uuid_string;
    return pipe_name;
 }
 
 void Application::StartCrashReporter()
 {
-   std::string const& file_name = "crash_reporter.exe";
-   std::string command_line = file_name + " " + pipe_name_ + " " + dump_path_;
+   std::string const file_name = "crash_reporter.exe";
+   std::string command_line = file_name + " " + crash_dump_pipe_name_ + " " + crash_dump_path_ + " " + crash_dump_uri_;
 
    radiant::core::Process crash_reporter_process(command_line);
 }
@@ -65,7 +56,7 @@ void Application::InitializeExceptionHandlingEnvironment()
    std::wstring empty_wstring;
    std::wstring pipe_name_wstring;
 
-   pipe_name_wstring.assign(pipe_name_.begin(), pipe_name_.end());
+   pipe_name_wstring.assign(crash_dump_pipe_name_.begin(), crash_dump_pipe_name_.end());
 
    // This API is inconsistent, but trying to avoid too many changes to Breakpad's sample code in case it versions
    exception_handler_.reset(new ExceptionHandler(empty_wstring,                 // local dump path (ignored since we are out of process)
@@ -84,8 +75,9 @@ void Application::InitializeExceptionHandlingEnvironment()
 
 void Application::InitializeCrashReporting()
 {
-   dump_path_ = core::Config::GetInstance().GetTmpDirectory().string();
-   pipe_name_ = GeneratePipeName();
+   crash_dump_path_ = core::Config::GetInstance().GetTmpDirectory().string();
+   crash_dump_pipe_name_ = GeneratePipeName();
+   crash_dump_uri_ = "http://posttestserver.com/post.php";
 
    try {
       StartCrashReporter();

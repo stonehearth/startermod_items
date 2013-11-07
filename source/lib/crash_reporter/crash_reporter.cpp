@@ -4,55 +4,95 @@
 #include <memory>
 #include <fstream>
 
+#include <boost/filesystem.hpp>
+
 #include "Poco/Net/HTTPClientSession.h"
 #include "Poco/Net/HTTPRequest.h"
 #include "Poco/Net/HTTPResponse.h"
+#include "Poco/URI.h"
 #include "Poco/StreamCopier.h"
-
-using Poco::Net::HTTPClientSession;
-using Poco::Net::HTTPRequest;
-using Poco::Net::HTTPResponse;
-using Poco::Net::HTTPMessage;
+#include "Poco/Zip/Compress.h"
 
 #include "client/windows/crash_generation/client_info.h"
-#include "client/windows/crash_generation/crash_generation_server.h"
 
 #include "crash_reporter.h"
 
+namespace boostfs = boost::filesystem;
+using namespace Poco::Net;
+using namespace Poco::Zip;
 using namespace google_breakpad;
 
-static int const main_thread_id = GetCurrentThreadId();
-static std::unique_ptr<CrashGenerationServer> crash_server;
+static int const main_thread_id_ = GetCurrentThreadId();
+static std::unique_ptr<CrashReporter> crash_reporter_;
 
-static void RequestApplicationExit() {
-   PostThreadMessage(main_thread_id, WM_QUIT, 0, 0);
+// This is silly...
+static std::wstring StringToWstring(std::string const& input_string)
+{
+   return std::wstring(input_string.begin(), input_string.end());
 }
 
-static void OnClientConnected(void* context, const ClientInfo* client_info)
+static std::string WstringToString(std::wstring const& input_string)
 {
+   return std::string(input_string.begin(), input_string.end());
 }
 
-static void OnClientCrashed(void* context, const ClientInfo* client_info, const wstring* dumpfile_name)
+CrashReporter::CrashReporter(std::string const& pipe_name, std::string const& dump_path, std::string const& uri) :
+   pipe_name_(pipe_name),
+   dump_path_(dump_path),
+   uri_(uri)
 {
-   // Get the length of the dumpfile
-   std::ifstream dump_file(dumpfile_name->c_str(), std::ifstream::in|std::ifstream::binary);
-   dump_file.seekg(0, std::ifstream::end);
-   long long const file_length = dump_file.tellg();
-   dump_file.seekg(0, std::ifstream::beg);
+   bool success = StartCrashGenerationServer();
+   if (!success) throw new std::exception("CrashGenerationServer failed to start");
+}
 
-   std::string const domain = "posttestserver.com";
-   std::string const path = "/post.php";
+bool CrashReporter::StartCrashGenerationServer()
+{
+   std::wstring const pipe_name_w = StringToWstring(pipe_name_);
+   std::wstring const dump_path_w = StringToWstring(dump_path_);
 
-   HTTPClientSession session(domain);
+   crash_server_.reset(new CrashGenerationServer(pipe_name_w,       // name of the pipe
+                                                 nullptr,           // default pipe security
+                                                 OnClientConnected, // callback on client connection
+                                                 this,              // context for the client connection callback
+                                                 OnClientCrashed,   // callback on client crash
+                                                 this,              // context for the client crashed callback
+                                                 OnClientExited,    // callback on client exit
+                                                 this,              // context for the client exited callback
+                                                 nullptr,           // callback for upload request
+                                                 nullptr,           // context for the upload request callback
+                                                 true,              // generate a dump on crash
+                                                 &dump_path_w));    // path to place dump files
+                                                                    // fully qualified filename will be passed to the client crashed callback
+                                                                    // multiple files may be generated in the case of a full memory dump request (currently off)
+   return crash_server_->Start();
+}
+
+void CrashReporter::SendCrashReport(std::string const& dump_filename)
+{
+   std::string const zip_filename = boostfs::path(dump_filename).replace_extension(".zip").string();
+
+   CreateZip(zip_filename, dump_filename);
+
+   // Get the length of the zip file
+   std::ifstream zip_file(zip_filename.c_str(), std::ios::in|std::ios::binary);
+   zip_file.seekg(0, std::ios::end);
+   long long const zip_file_length = zip_file.tellg();
+   zip_file.seekg(0, std::ios::beg);
+
+   Poco::URI uri(uri_);
+   std::string path(uri.getPathAndQuery());
+   HTTPClientSession session(uri.getHost(), uri.getPort());
    HTTPRequest request(HTTPRequest::HTTP_POST, path, HTTPMessage::HTTP_1_1);
 
    request.setContentType("application/octet-stream");
-   request.setContentLength(file_length);
+   request.setContentLength(zip_file_length);
+
+   //return; // For debugging - don't spam the test server
 
    // Send request, returns open stream
    std::ostream& request_stream = session.sendRequest(request);
-   Poco::StreamCopier::copyStream(dump_file, request_stream);
-   dump_file.close();
+   Poco::StreamCopier::copyStream(zip_file, request_stream);
+   zip_file.close();
 
    // Get response
    HTTPResponse response;
@@ -62,48 +102,59 @@ static void OnClientCrashed(void* context, const ClientInfo* client_info, const 
    int status = response.getStatus();
    if (status != HTTPResponse::HTTP_OK) {
       // unexpected result code
-      //std::string response_string(100000, '\0');
-      //response_stream.read(&response_string[0], 100000);
-      //MessageBox(NULL, response_string.data(), "crash_reporter", MB_OK); // CHECKCHECK
 	}
+   // For debugging
+   std::string response_string(10000, '\0');
+   response_stream.read(&response_string[0], 10000);
+   MessageBox(nullptr, response_string.c_str(), "crash_reporter", MB_OK);
+
+   // Clean up
+   // Commented out during debugging
+   //boostfs::remove(zip_filename); // CHECKCHECK
+   //boostfs::remove(dump_filename);
+}
+
+void CrashReporter::CreateZip(std::string const& zip_filename, std::string const& dump_filename)
+{
+   std::ofstream zip_file(zip_filename, std::ios::binary);
+   Compress encoder(zip_file, true);
+
+   std::string const unq_dump_filename(boostfs::path(dump_filename).filename().string());
+   encoder.addFile(Poco::Path(dump_filename), Poco::Path(unq_dump_filename));
+   encoder.close();
+}
+
+static void RequestApplicationExit() {
+   PostThreadMessage(main_thread_id_, WM_QUIT, 0, 0);
+}
+
+static void OnClientConnected(void* context, ClientInfo const* client_info)
+{
+}
+
+static void OnClientCrashed(void* context, ClientInfo const* client_info, std::wstring const* dump_filename_w)
+{
+   CrashReporter* crash_reporter = (CrashReporter*) context;
+   crash_reporter->SendCrashReport(WstringToString(*dump_filename_w));
 
    RequestApplicationExit();
 }
 
-static void OnClientExited(void* context, const ClientInfo* client_info)
+static void OnClientExited(void* context, ClientInfo const* client_info)
 {
    RequestApplicationExit();
 }
 
-static bool CrashServerStart(std::wstring const& pipe_name, std::wstring const& dump_path)
-{
-   crash_server.reset(new CrashGenerationServer(pipe_name,         // name of the pipe
-                                                nullptr,           // default pipe security
-                                                OnClientConnected, // callback on client connection
-                                                nullptr,           // context for the client connection callback
-                                                OnClientCrashed,   // callback on client crash
-                                                nullptr,           // contect for the client crashed callback
-                                                OnClientExited,    // callback on client exit
-                                                nullptr,           // context for the client exited callback
-                                                nullptr,           // callback for upload request
-                                                nullptr,           // context for the upload request callback
-                                                true,              // generate a dump on crash
-                                                &dump_path));      // path to place dump files
-                                                                   // fully qualified filename will be passed to the client crashed callback
-                                                                   // multiple files may be generated in the case of a full memory dump request (currently off)
-
-   return crash_server->Start();
-}
-
-static void GetParameters(std::wstring& pipe_name, std::wstring& dump_path)
+static void GetParameters(std::string& pipe_name, std::string& dump_path, std::string& uri)
 {
    LPWSTR *args;
    int num_args;
 
    args = CommandLineToArgvW(GetCommandLineW(), &num_args);
-   if (num_args >= 3) {
-      pipe_name = args[1];
-      dump_path = args[2];
+   if (num_args >= 4) {
+      pipe_name = WstringToString(args[1]);
+      dump_path = WstringToString(args[2]);
+      uri = WstringToString(args[3]);
    }
 
    if (args) {
@@ -112,17 +163,18 @@ static void GetParameters(std::wstring& pipe_name, std::wstring& dump_path)
    }
 }
 
-static bool InitializeServer()
+static void InitializeServer()
 {
-   std::wstring pipe_name, dump_path;
+   std::string pipe_name, dump_path, uri;
 
-   assert(main_thread_id == GetCurrentThreadId());
+   assert(main_thread_id_ == GetCurrentThreadId());
 
-   GetParameters(pipe_name, dump_path);
-   if (pipe_name.empty() || dump_path.empty()) return false;
+   GetParameters(pipe_name, dump_path, uri);
+   if (pipe_name.empty() || dump_path.empty() || uri.empty()) {
+      throw new std::invalid_argument("Invalid parameters to CrashReporter");
+   }
 
-   if (!CrashServerStart(pipe_name, dump_path)) return false;
-   return true;
+   crash_reporter_.reset(new CrashReporter(pipe_name, dump_path, uri));
 }
 
 //--------------------------------------------------------------------------------
@@ -148,8 +200,9 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
    UNREFERENCED_PARAMETER(hPrevInstance);
    UNREFERENCED_PARAMETER(lpCmdLine);
 
-   // TODO: Place code here.
-   if (!InitializeServer()) {
+   try {
+      InitializeServer();
+   } catch (...) {
       return -1;
    }
 

@@ -485,13 +485,13 @@ static std::wstring GeneratePipeName() {
 }
 
 // Starts an out of process crash generation server
-void StartCrashReporter(std::wstring const& pipe_name, std::wstring const& dump_path) {
+void StartCrashReporter(std::wstring const& pipe_name, std::wstring const& dump_path, std::wstring const& uri) {
    int result;
    STARTUPINFO si = {};
    PROCESS_INFORMATION pi = {};
 
-   std::wstring const& exe_name = L"crash_reporter.exe";
-   std::wstring command_line = exe_name + L" " + pipe_name + L" " + dump_path;
+   std::wstring const exe_name = L"crash_reporter.exe";
+   std::wstring command_line = exe_name + L" " + pipe_name + L" " + dump_path + L" " + uri;
 
    result = CreateProcess(NULL, &command_line[0], NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
    if (!result) {
@@ -513,15 +513,16 @@ int APIENTRY _tWinMain(HINSTANCE instance,
   CustomClientInfo custom_info = {kCustomInfoEntries, kCustomInfoCount};
 
   //CrashServerStart(); // use out of process server below instead
-  std::wstring const& pipe_name = GeneratePipeName();
-  std::wstring const& dump_path = L"D:\\dumps\\server";
-  StartCrashReporter(pipe_name, dump_path);
+  std::wstring const pipe_name = GeneratePipeName();
+  std::wstring const dump_path = L"D:/dumps/server";
+  std::wstring const uri = L"http://posttestserver.com/post.php";
+  StartCrashReporter(pipe_name, dump_path, uri);
 
   // This is needed for CRT to not show dialog for invalid param
   // failures and instead let the code handle it.
   _CrtSetReportMode(_CRT_ASSERT, 0);
 
-  handler = new ExceptionHandler(L"D:\\dumps",
+  handler = new ExceptionHandler(L"D:/dumps",
                                  NULL,
                                  google_breakpad::ShowDumpResults,
                                  NULL,

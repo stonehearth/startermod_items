@@ -136,8 +136,7 @@ void AnalyticsLogger::SendEventsToServer()
 
 void AnalyticsLogger::PostEvent(json::Node event_node, std::string event_category)
 {
-   std::string event_string = "{\"event_id\": \"game:is_running\", \"user_id\": \"a9c82cd2-4e98-42a0-b022-6051f7cdb55f\", \"build\": \"preview_0.314a\", \"session_id\": \"399db052-6850-4d0c-ba38-d4d442efc473\"}";
-   //std::string event_string = event_node.write(); // CHECKCHECK
+   std::string event_string = event_node.write();
 
    // the header is the data + secret key
    std::string header = event_string + SECRET_KEY;

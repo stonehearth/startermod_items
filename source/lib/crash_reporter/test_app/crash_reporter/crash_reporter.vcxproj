@@ -52,13 +52,13 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\..\..\..\modules\breakpad\package\src;..\..\..\..\..\modules\poco\package\net\include;..\..\..\..\..\modules\poco\package\foundation\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\..\modules\breakpad\package\src;..\..\..\..\..\modules\poco\package\Foundation\include;..\..\..\..\..\modules\poco\package\Net\include;..\..\..\..\..\modules\poco\package\Zip\include;..\..\..\..\..\modules\boost_bin\install\include\boost-1_54;..\..\..\..</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>..\..\..\..\..\modules\poco\package\lib\PocoFoundationmtd.lib;..\..\..\..\..\modules\poco\package\lib\PocoNetmtd.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\..\..\..\..\modules\boost_bin\install\lib\libboost_system-vc110-mt-sgd-1_54.lib;..\..\..\..\..\modules\boost_bin\install\lib\libboost_filesystem-vc110-mt-sgd-1_54.lib;..\..\..\..\..\modules\poco\package\lib\PocoZipmtd.lib;..\..\..\..\..\modules\poco\package\lib\PocoNetmtd.lib;..\..\..\..\..\modules\poco\package\lib\PocoFoundationmtd.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -70,7 +70,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\..\..\..\modules\breakpad\package\src;..\..\..\..\..\modules\poco\package\net\include;..\..\..\..\..\modules\poco\package\foundation\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\..\modules\breakpad\package\src;..\..\..\..\..\modules\poco\package\Foundation\include;..\..\..\..\..\modules\poco\package\Net\include;..\..\..\..\..\modules\poco\package\Zip\include;..\..\..\..\..\modules\boost_bin\install\include\boost-1_54;..\..\..\..</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -78,7 +78,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>..\..\..\..\..\modules\poco\package\lib\PocoFoundationmt.lib;..\..\..\..\..\modules\poco\package\lib\PocoNetmt.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\..\..\..\..\modules\boost_bin\install\lib\libboost_system-vc110-mt-s-1_54.lib;..\..\..\..\..\modules\boost_bin\install\lib\libboost_filesystem-vc110-mt-s-1_54.lib;..\..\..\..\..\modules\poco\package\lib\PocoZipmt.lib;..\..\..\..\..\modules\poco\package\lib\PocoNetmt.lib;..\..\..\..\..\modules\poco\package\lib\PocoFoundationmt.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -96,7 +96,7 @@
     <ClCompile Include="..\..\crash_reporter.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\modules\breakpad\breakpad.vcxproj">
+    <ProjectReference Include="..\..\..\..\..\modules\breakpad\package\breakpad.vcxproj">
       <Project>{7cc86ad6-8edd-4a62-903b-0c2f0c13aa9e}</Project>
     </ProjectReference>
   </ItemGroup>

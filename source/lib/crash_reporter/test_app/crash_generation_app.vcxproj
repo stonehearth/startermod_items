@@ -101,7 +101,7 @@
     <Image Include="small.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\modules\breakpad\breakpad.vcxproj">
+    <ProjectReference Include="..\..\..\..\modules\breakpad\package\breakpad.vcxproj">
       <Project>{7cc86ad6-8edd-4a62-903b-0c2f0c13aa9e}</Project>
     </ProjectReference>
     <ProjectReference Include="crash_reporter\crash_reporter.vcxproj">
