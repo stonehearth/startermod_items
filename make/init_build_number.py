@@ -4,20 +4,21 @@ import os
 import sys
 
 DEFINES = {
-   'PRODUCT_IDENTIFIER' : 'string',
-   'PRODUCT_NAME' : 'string',
-   'PRODUCT_MAJOR_VERSION' : 'number',
-   'PRODUCT_MINOR_VERSION' : 'number',
-   'PRODUCT_PATCH_VERSION' : 'number',
-   'PRODUCT_BUILD_NUMBER' : 'number',
-   'PRODUCT_BRANCH' : 'string',
-   'PRODUCT_REVISION' : 'string',
+   'bamboo_product_identifier' : ('PRODUCT_IDENTIFIER', 'string'),
+   'bamboo_product_name' : ('PRODUCT_NAME', 'string'),
+   'bamboo_product_version_major': ('PRODUCT_MAJOR_VERSION', 'number'),
+   'bamboo_product_version_minor': ('PRODUCT_MINOR_VERSION', 'number'),
+   'bamboo_product_version_patch': ('PRODUCT_PATCH_VERSION', 'number'),
+   'bamboo.buildNumber' : ('PRODUCT_BUILD_NUMBER', 'number'),
+   'bamboo.buildTimeStamp' : ('PRODUCT_BUILD_TIME', 'number'),
+   'bamboo.repository.branch.name': ('PRODUCT_BRANCH', 'string'),
+   'bamboo.repository.revision.number' : ('PRODUCT_REVISION', 'string'),
 }
 
 OVERRIDES = {
-   'GAME_ANALYTICS_GAME_KEY' : 'string',
-   'GAME_ANALYTICS_SECRET_KEY' : 'string',
-   'GAME_ANALYTICS_DATA_API_KEY' : 'string',
+   'bamboo_product_analytics_game_key' : ('GAME_ANALYTICS_GAME_KEY', 'string'),
+   'bamboo_product_analytics_secret_key' : ('GAME_ANALYTICS_SECRET_KEY', 'string'),
+   'bamboo_product_analytics_data_api_key' : ('GAME_ANALYTICS_DATA_API_KEY', 'string'),
 }
 
 if __name__ == "__main__":
@@ -29,32 +30,32 @@ if __name__ == "__main__":
    contents += "\n"
 
    
-   for k, t in DEFINES.iteritems():
+   for k, (name, t) in DEFINES.iteritems():
       value = os.environ.get(k, None)
       if not value:
          print >>sys.stderr, '%s missing from environment.  aborting' % k
          sys.exit(1)
-      contents += "#undef %-30s\n" % k
+      contents += "#undef %-30s\n" % name
       if t == 'string':
-         contents += "#define %-30s \"%s\"\n" % (k, str(value))
+         contents += "#define %-30s \"%s\"\n" % (name, str(value))
       else:
-         contents += "#define %-30s %s\n" % (k, str(value))
+         contents += "#define %-30s %s\n" % (name, str(value))
 
-   pvs = "%s.%s.%s" % (os.environ['PRODUCT_MAJOR_VERSION'],
-                       os.environ['PRODUCT_MINOR_VERSION'],
-                       os.environ['PRODUCT_PATCH_VERSION'])
+   pvs = "%s.%s.%s" % (os.environ['bamboo_product_version_major'],
+                       os.environ['bamboo_product_version_minor'],
+                       os.environ['bamboo_product_version_patch'])
 
-   pfvs = "%s.%s.%s.%s" % (os.environ['PRODUCT_MAJOR_VERSION'],
-                           os.environ['PRODUCT_MINOR_VERSION'],
-                           os.environ['PRODUCT_PATCH_VERSION'],
-                           os.environ['PRODUCT_BUILD_NUMBER'])
+   pfvs = "%s.%s.%s.%s" % (os.environ['bamboo_product_version_major'],
+                           os.environ['bamboo_product_version_minor'],
+                           os.environ['bamboo_product_version_patch'],
+                           os.environ['bamboo.buildNumber'])
 
    contents += "#undef PRODUCT_VERSION_STR\n"
    contents += "#undef PRODUCT_FILE_VERSION_STR\n"
    contents += "#define %-30s \"%s\"\n" % ("PRODUCT_VERSION_STR", pvs)
    contents += "#define %-30s \"%s\"\n" % ("PRODUCT_FILE_VERSION_STR", pfvs)
 
-   for k, t  in OVERRIDES.iteritems():
+   for k, (name, t)  in OVERRIDES.iteritems():
       value = os.environ.get(k, None)
       if value:
          contents += "#undef %-30s\n" % k
