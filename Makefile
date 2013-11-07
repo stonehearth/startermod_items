@@ -26,7 +26,6 @@ clean:
 .PHONY: official-build
 official-build: init-build submodules configure stonehearth stage
 
-
 .PHONY: init-build
 init-build:
 	-mkdir -p build
@@ -72,5 +71,6 @@ dependency-graph:
 
 .PHONY: stage
 stage:
+	-rm -rf $(STAGE_ROOT)
 	sh $(SCRIPTS_ROOT)/stage/stage_stonehearth.sh -o $(STAGE_ROOT) -t $(MSBUILD_CONFIGURATION) -c -a
 
