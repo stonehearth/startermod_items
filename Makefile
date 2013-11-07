@@ -6,7 +6,15 @@ MAKE_ROOT          = $(STONEHEARTH_ROOT)/make
 MAKE_ROOT_DOS      = $(shell pwd -W)/make
 BUILD_ROOT         = $(STONEHEARTH_ROOT)/build
 SCRIPTS_ROOT       = $(STONEHEARTH_ROOT)/scripts
-STAGE_ROOT         = $(BUILD_ROOT)/stage
+
+# xxx: it would be *great* if we could specify an absolute or relative
+# path for things like STAGE_ROOT and things would "jsut work".  Doing
+# so requires 'readlink' in our scripts to convert things to absolute.
+# The MSYS that ships with Git does not have readlink (!).  We can fix
+# this by using a more recent version of MSYS and pulling git into that
+# but that's a lot of work.  This, incidentally, would also get us a
+# version of gmake from 2006 instead of 2000 (!!)
+STAGE_ROOT         = build/stage
 
 .PHONY: default
 default: submodules configure stonehearth
@@ -17,7 +25,6 @@ clean:
 
 .PHONY: official-build
 official-build: init-build submodules configure stonehearth stage
-
 
 .PHONY: init-build
 init-build:
@@ -64,5 +71,6 @@ dependency-graph:
 
 .PHONY: stage
 stage:
-	sh $(SCRIPTS_ROOT)/stage/stage_stonehearth.sh -c $(STAGE_ROOT) -t $(MSBUILD_CONFIGURATION) -a
+	-rm -rf $(STAGE_ROOT)
+	sh $(SCRIPTS_ROOT)/stage/stage_stonehearth.sh -o $(STAGE_ROOT) -t $(MSBUILD_CONFIGURATION) -c -a
 

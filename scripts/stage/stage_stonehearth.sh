@@ -17,7 +17,6 @@ Optional:
    --d      stage stonehearth run data
    --s      stage the stonehearth binary itself
 EOF
-exit
 }
 
 STONEHEARTH_ROOT=`pwd`
@@ -55,12 +54,13 @@ while getopts "o:t:cabds" OPTION; do
          ;;
       ?)
          usage
-         exit
+         exit 0
    esac
 done
 
 if [ -z $OUTPUT_DIR ] || [ -z $BUILD_TYPE ]; then
    usage
+   exit 1
 fi
 
 if [ ! -z $CLEAN_OUTPUT ]; then

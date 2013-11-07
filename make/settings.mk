@@ -5,10 +5,10 @@ ifeq ($(BUILD_TYPE), release)
 	MSBUILD_CONFIGURATION=release
 endif
 ifeq ($(BUILD_TYPE), opt)
-	MSBUILD_CONFIGURATION=relwithdebinfo
+	MSBUILD_CONFIGURATION=RelWithDebInfo
 endif
 ifeq ($(BUILD_TYPE), debug)
-	MSBUILD_CONFIGURATION=debug
+	MSBUILD_CONFIGURATION=Debug
 endif
 
 ifeq (_$(MSBUILD_CONFIGURATION)_, __)
