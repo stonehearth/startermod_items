@@ -406,6 +406,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    h3dRender(camera_->GetNode());
 
    // Finish rendering of frame
+   UpdateCamera();
    perfmon::SwitchToCounter("render finalize");
    h3dFinalizeFrame();
    //glFinish();
