@@ -1757,11 +1757,15 @@ void Renderer::drawLightGeometry( const std::string &shaderContext, const std::s
       Frustum dirLightFrus;
 
       // Save the far plane distance in case we have a directional light we want to cast shadows with.
-      float maxDist = 0.0f;
+      float maxDist = _curCamera->_frustFar;
+
+      if (!noShadows && _curLight->_shadowMapCount > 0)
+      {
+         maxDist = computeTightCameraFarDistance();
+      }
 
       if (_curLight->_directional)
       {
-         maxDist = computeTightCameraFarDistance();
          dirLightFrus = computeDirectionalLightFrustum(maxDist);
          lightFrus = &dirLightFrus;
       } else {
@@ -1890,11 +1894,15 @@ void Renderer::drawLightShapes( const std::string &shaderContext, bool noShadows
       Frustum dirLightFrus;
 
       // Save the far plane distance in case we have a directional light we want to cast shadows with.
-      float maxDist = 0.0f;
+      float maxDist = _curCamera->_frustFar;
+
+      if (!noShadows && _curLight->_shadowMapCount > 0)
+      {
+         maxDist = computeTightCameraFarDistance();
+      }
 
       if (_curLight->_directional)
       {
-         maxDist = computeTightCameraFarDistance();
          dirLightFrus = computeDirectionalLightFrustum(maxDist);
          lightFrus = &dirLightFrus;
       } else {
