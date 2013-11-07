@@ -55,7 +55,7 @@ Function(PostBuildCopy SRCFILE DIRTO)
     Set ( ALL_SOURCES ${ALL_SOURCES} ${DIRFROM}/${FILENAME} PARENT_SCOPE)
 EndFunction()
 
-#SET(RADIANT_ROOT              "$ENV{RADIANT_ROOT}")
+SET(RADIANT_ROOT              "$ENV{RADIANT_ROOT}")
 #MESSAGE("Radiant root is ${RADIANT_ROOT}")
 #string(REGEX REPLACE "\\\\" "/" RADIANT_ROOT ${RADIANT_ROOT} )
 #

@@ -179,7 +179,7 @@ private:
    int             maxDistance_; //distance under which sound will be heard at maximum volume. 1 is default
 
    void  AssignFromJSON_(const JSONNode& node);
-   float CalculateAttenuation_(int maxDistance, int minDistance);
+   float CalculateAttenuation(int maxDistance, int minDistance);
 
 };
 
