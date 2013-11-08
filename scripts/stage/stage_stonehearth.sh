@@ -112,7 +112,7 @@ if [ ! -z $STAGE_BIN ]; then
    cp -u $SFML_EXTLIB_ROOT/libsndfile-1.dll $OUTPUT_DIR
 
    echo Copying crash reporter
-   CRASH_REPORTER_ROOT=$RADIANT_ROOT/stonehearth/build/source/lib/crash_reporter
+   CRASH_REPORTER_ROOT=$STONEHEARTH_ROOT/build/source/lib/crash_reporter
    cp -u $CRASH_REPORTER_ROOT/$BUILD_TYPE/crash_reporter.exe $OUTPUT_DIR
 fi
 

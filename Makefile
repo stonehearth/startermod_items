@@ -24,7 +24,7 @@ clean:
 	rm -rf build
 
 .PHONY: official-build
-official-build: init-build submodules configure stonehearth stage
+official-build: init-build submodules configure stonehearth symbols stage
 
 .PHONY: init-build
 init-build:
@@ -49,6 +49,12 @@ stonehearth:
 	@echo Build type is ${BUILD_TYPE}.
 	$(MSBUILD) $(BUILD_ROOT)/Stonehearth.sln -p:configuration=$(MSBUILD_CONFIGURATION) -t:protocols
 	$(MSBUILD) $(BUILD_ROOT)/Stonehearth.sln -p:configuration=$(MSBUILD_CONFIGURATION)
+
+.PHONY: symbols
+symbols:
+	modules/breakpad/package/src/tools/windows/dump_syms/Release/dump_syms.exe \
+	  $(BUILD_ROOT)/source/stonehearth/$(MSBUILD_CONFIGURATION)/stonehearth.exe > \
+	  $(BUILD_ROOT)/source/stonehearth/$(MSBUILD_CONFIGURATION)/stonehearth.symbols
 
 .PHONY: ide
 ide: configure
