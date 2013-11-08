@@ -6,7 +6,15 @@ MAKE_ROOT          = $(STONEHEARTH_ROOT)/make
 MAKE_ROOT_DOS      = $(shell pwd -W)/make
 BUILD_ROOT         = $(STONEHEARTH_ROOT)/build
 SCRIPTS_ROOT       = $(STONEHEARTH_ROOT)/scripts
-DEPLOYMENT_ROOT    = $(BUILD_ROOT)/deployment
+
+# xxx: it would be *great* if we could specify an absolute or relative
+# path for things like STAGE_ROOT and things would "jsut work".  Doing
+# so requires 'readlink' in our scripts to convert things to absolute.
+# The MSYS that ships with Git does not have readlink (!).  We can fix
+# this by using a more recent version of MSYS and pulling git into that
+# but that's a lot of work.  This, incidentally, would also get us a
+# version of gmake from 2006 instead of 2000 (!!)
+STAGE_ROOT         = build/stage
 
 .PHONY: default
 default: submodules configure stonehearth
@@ -16,8 +24,7 @@ clean:
 	rm -rf build
 
 .PHONY: official-build
-official-build: init-build submodules configure stonehearth deployment
-
+official-build: init-build submodules configure stonehearth symbols stage
 
 .PHONY: init-build
 init-build:
@@ -43,15 +50,21 @@ stonehearth:
 	$(MSBUILD) $(BUILD_ROOT)/Stonehearth.sln -p:configuration=$(MSBUILD_CONFIGURATION) -t:protocols
 	$(MSBUILD) $(BUILD_ROOT)/Stonehearth.sln -p:configuration=$(MSBUILD_CONFIGURATION)
 
+.PHONY: symbols
+symbols:
+	modules/breakpad/package/src/tools/windows/dump_syms/Release/dump_syms.exe \
+	  $(BUILD_ROOT)/source/stonehearth/$(MSBUILD_CONFIGURATION)/stonehearth.exe > \
+	  $(BUILD_ROOT)/source/stonehearth/$(MSBUILD_CONFIGURATION)/stonehearth.symbols
+
 .PHONY: ide
 ide: configure
 	start build/Stonehearth.sln
 
 run-%-test:
-	cd source/stonehearth_data && ../../build/source/client_app/$(MSBUILD_CONFIGURATION)/Stonehearth.exe --game.script=stonehearth_tests/$*_test.lua&
+	cd source/stonehearth_data && ../../build/source/stonehearth/$(MSBUILD_CONFIGURATION)/Stonehearth.exe --game.script=stonehearth_tests/$*_test.lua&
 
 run:
-	cd source/stonehearth_data && ../../build/source/client_app/$(MSBUILD_CONFIGURATION)/Stonehearth.exe 
+	cd source/stonehearth_data && ../../build/source/stonehearth/$(MSBUILD_CONFIGURATION)/Stonehearth.exe 
 
 # make a decoda project!
 .PHONY: decoda-project
@@ -62,6 +75,8 @@ decoda-project:
 dependency-graph:
 	cmake -H. -Bbuild -G"Visual Studio 11" --graphviz=deps.dot
 
-.PHONY: deployment
-deployment: stonehearth
-	sh $(SCRIPTS_ROOT)/copy-deployment-files.sh $(DEPLOYMENT_ROOT) $(BUILD_ROOT)/source/client_app/$(MSBUILD_CONFIGURATION) $(STONEHEARTH_ROOT)/source/stonehearth_data
+.PHONY: stage
+stage:
+	-rm -rf $(STAGE_ROOT)
+	sh $(SCRIPTS_ROOT)/stage/stage_stonehearth.sh -o $(STAGE_ROOT) -t $(MSBUILD_CONFIGURATION) -c -a
+

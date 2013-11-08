@@ -840,7 +840,18 @@ void PlaySoundEffect::AssignFromJSON_(const JSONNode& node) {
       loop = (int)i->as_bool();
    } 
 
-   attenuation = CalculateAttenuation_(maxDistance, minDistance);
+   i = node.find("volume");
+   if (i != node.end()) {
+      double value = std::min(std::max(i->as_float(), 0.0), 100.0);
+      sound_.setVolume(static_cast<float>(value));
+   }
+
+   i = node.find("pitch");
+   if (i != node.end()) {
+      sound_.setPitch(static_cast<float>(i->as_float()));
+   }
+
+   attenuation = CalculateAttenuation(maxDistance, minDistance);
 
    //Set member variables
    delay_ = delay;
@@ -862,7 +873,7 @@ void PlaySoundEffect::AssignFromJSON_(const JSONNode& node) {
  * Note: remember, doing an operation of int and float converts everything to a float
  * Returns a float. 1 means the sound sticks around for a long time. Higher numbers means it softens faster.
 */
-float PlaySoundEffect::CalculateAttenuation_(int maxDistance, int minDistance) {
+float PlaySoundEffect::CalculateAttenuation(int maxDistance, int minDistance) {
    float interm1 = maxDistance / PLAY_SOUND_EFFECT_MIN_VOLUME;
    float interm2 = interm1 - minDistance;
    float interm3 = (float)(maxDistance - minDistance);

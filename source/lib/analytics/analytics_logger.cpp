@@ -4,12 +4,8 @@
 #include "lib/json/node.h"
 #include "analytics_logger.h"
 #include "libjson.h"
-#include <boost/algorithm/string.hpp>  
+#include <boost/algorithm/string.hpp>
 #include "core/config.h"
-
-#include "curl/curl.h"
-#include "curl/easy.h"
-#include "curl/curlbuild.h"
 
 // Crytop stuff (xxx - change the include path so these generic headers aren't in it)
 #define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
@@ -18,28 +14,34 @@
 #include "files.h"
 #include "md5.h"
 
-static size_t write_to_string(void *ptr, size_t size, size_t count, void *stream);
+#include "Poco/Net/HTTPClientSession.h"
+#include "Poco/Net/HTTPRequest.h"
+#include "Poco/Net/HTTPResponse.h"
+
+using Poco::Net::HTTPClientSession;
+using Poco::Net::HTTPRequest;
+using Poco::Net::HTTPResponse;
+using Poco::Net::HTTPMessage;
 
 using namespace ::radiant;
 using namespace ::radiant::analytics;
 
-const std::string WEBSITE_URL = "http://api.gameanalytics.com/";
+const std::string GAME_ANALYTICS_DOMAIN = "api.gameanalytics.com";
 const std::string API_VERSION = "1";
 
 //Logger begins here
 DEFINE_SINGLETON(AnalyticsLogger);
 
 AnalyticsLogger::AnalyticsLogger() :
-   stopping_thread_(false)
-{   
-   // Initialize libcurl.
-   //(note, not threadsafe, so always call in application.cpp.)
-   //See: http://curl.haxx.se/libcurl/c/curl_global_init.html
-   curl_global_init(CURL_GLOBAL_ALL);
+   stopping_thread_(false),
 
-   //Start the sending thread
-   //Reference: http://stackoverflow.com/questions/10673585/start-thread-with-member-function
-   event_sender_thread_ = new std::thread(&AnalyticsLogger::SendEventsToServer, this);
+   // IMPORTANT:
+   // Breakpad (the crash reporter) doesn't work with std::thread or poco::thread (poco::thread with dynamic linking might work).
+   // They do not have the proper top level exception handling behavior which is configured
+   // using SetUnhandledExceptionFilter on Windows.
+   // Windows CreateThread and boost::thread appear to work
+   event_sender_thread_(std::bind(AnalyticsThreadMain, this))
+{   
 }
 
 //TODO: test this when there is a way to gracefully exit the game. 
@@ -47,8 +49,8 @@ AnalyticsLogger::~AnalyticsLogger()
 {
    stopping_thread_ = true;
    cv_.notify_one();
-   event_sender_thread_ -> join();
-   delete event_sender_thread_;
+   event_sender_thread_.join();
+   // do any other cleanup after thread terminates (none currently)
 }
 
 //Called by StartAnalytics session, so we should never get a call to submit log event
@@ -132,68 +134,53 @@ void AnalyticsLogger::SendEventsToServer()
 
 void AnalyticsLogger::PostEvent(json::Node event_node, std::string event_category)
 {
-   //Create a new CURL object
-   CURL* curl = curl_easy_init();
-   if (curl) {
-      std::string url = WEBSITE_URL + API_VERSION + "/" + GAME_ANALYTICS_GAME_KEY + "/" + event_category;
+   std::string event_string = event_node.write();
 
-      std::string event_string = event_node.write();
+   // the header is the data + secret key
+   std::string header = event_string + GAME_ANALYTICS_SECRET_KEY;
 
-      //the header is the data + secret key
-      std::string header = event_string + GAME_ANALYTICS_SECRET_KEY;
+   // Hash the header with md5
+   // Borrowing sample code from http://www.cryptopp.com/wiki/Hash_Functions
+   CryptoPP::Weak::MD5 hash;
+   byte digest[CryptoPP::Weak::MD5::DIGESTSIZE];
+   hash.CalculateDigest(digest, (byte*)header.c_str(), header.length());
 
-      //Hash the header with md5
-      //Borrowing sample code from http://www.cryptopp.com/wiki/Hash_Functions
-      CryptoPP::Weak::MD5 hash;
-      byte digest[CryptoPP::Weak::MD5::DIGESTSIZE];
-      hash.CalculateDigest(digest, (byte*)header.c_str(), header.length());
+   CryptoPP::HexEncoder encoder;
+   std::string digest_string;
+   encoder.Attach(new CryptoPP::StringSink(digest_string));
+   encoder.Put(digest, sizeof(digest));
+   encoder.MessageEnd();
 
-      CryptoPP::HexEncoder encoder;
-      std::string output;
-      encoder.Attach(new CryptoPP::StringSink(output));
-      encoder.Put(digest, sizeof(digest));
-      encoder.MessageEnd();
+   // Super important to make sure the final hex is all lower case
+   boost::algorithm::to_lower(digest_string);
 
-      //Super important to make sure the final hex is all lower case
-      boost::algorithm::to_lower(output);
-      std::string authorization_str = "Authorization: " + output;
+   std::string path = "/" + API_VERSION + "/" + GAME_ANALYTICS_GAME_KEY + "/" + event_category;
 
-      //Create  struct of headers, so we can in the future, attach multiple headers
-      struct curl_slist *chunk = NULL;
-      chunk = curl_slist_append(chunk, authorization_str.c_str());
-      curl_slist_append(chunk, "Content-Type: text/plain");
+   HTTPClientSession session(GAME_ANALYTICS_DOMAIN);
 
-      //OK, init curl to have all the post data
-      curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-      curl_easy_setopt(curl, CURLOPT_POSTFIELDS, event_string.c_str());
-      curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-      curl_easy_setopt(curl, CURLOPT_POST, 1);
-      curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 20000);
+   HTTPRequest request(HTTPRequest::HTTP_POST, path, HTTPMessage::HTTP_1_1);
+   request.setContentType("text/plain");
+   request.add("Authorization", digest_string);
+   request.setContentLength(event_string.length());
 
-      //If we get a response from the server, put it in response
-      std::string response;
-      curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_to_string);
-      curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+   // Send request, returns open stream
+   std::ostream& request_stream = session.sendRequest(request);
+   request_stream << event_string;
 
-      //Send the post request
-      CURLcode res = curl_easy_perform(curl);
+   // Get response
+   HTTPResponse response;
+   std::istream& response_stream = session.receiveResponse(response);
 
-      if (res == CURLE_OK) {
-         LOG(INFO) << "Post worked! Status is: " << response;
-      } else {
-         //TODO: log the error
-         LOG(WARNING) << "Post didn't work. Status is: " << res;
-      }
-      
-      //Cleanup, need one for every curl init
-      curl_easy_cleanup(curl);
-      curl_slist_free_all(chunk);
-   }
+   // Check result
+   int status = response.getStatus();
+   if (status != HTTPResponse::HTTP_OK)	{
+      // unexpected result code
+      LOG(WARNING) << "AnalyticsLogger.PostEvent: Unexpected result code from HTTP POST: " << status;
+      LOG(WARNING) << "HTTP POST response was: " << response_stream;
+	}
 }
 
-//Helper function to write response data
-size_t write_to_string(void *ptr, size_t size, size_t count, void *stream)
+void AnalyticsLogger::AnalyticsThreadMain(AnalyticsLogger* logger)
 {
-  ((std::string*)stream)->append((char*)ptr, 0, size*count);
-  return size*count;
+   logger->SendEventsToServer();
 }

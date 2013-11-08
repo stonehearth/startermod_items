@@ -46,7 +46,12 @@ target_link_libraries(stonehearth
                              analytics
                              )
 
-FILE(TO_NATIVE_PATH ${Stonehearth_SOURCE_DIR}/source STAGE_SCRIPT)
 add_custom_command(TARGET stonehearth
                    POST_BUILD
-                   COMMAND ${STAGE_SCRIPT}\\stage.cmd $<CONFIGURATION> $<TARGET_FILE_DIR:stonehearth>)
+                   COMMAND cd ${STONEHEARTH_ROOT} &&
+                           ${RADIANT_ROOT}/build-environment/scripts/x86/run.cmd                            
+                           ./scripts/stage/stage_stonehearth.sh 
+                           -t $<CONFIGURATION> 
+                           -o build/source/stonehearth/$<CONFIGURATION>
+                           -b
+                  )
