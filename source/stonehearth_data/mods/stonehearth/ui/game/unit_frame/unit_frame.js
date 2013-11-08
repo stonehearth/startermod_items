@@ -14,14 +14,16 @@ App.StonehearthUnitFrameView = App.View.extend({
 
       var self = this;
       $(top).on("selection_changed.radiant", function (_, data) {
-         var selected = data.selected_entity;
-         self._selected_entity = selected;
-         if (self._selected_entity) {
-            self.set('uri', self._selected_entity);
-            self.show();
-         } else {
-            //self.set('uri', null);
-            self.hide();
+         if ($('.captureSelection').length == 0) {
+           var selected = data.selected_entity;
+           self._selected_entity = selected;
+           if (self._selected_entity) {
+              self.set('uri', self._selected_entity);
+              self.show();
+           } else {
+              //self.set('uri', null);
+              self.hide();
+           }
          }
       });
    },
