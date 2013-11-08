@@ -1,5 +1,11 @@
 
-BUILD_TYPE   ?= debug
+ifeq ($(BUILD_TYPE),)
+  ifneq ($(BAMBOO_PRODUCT_BUILD_TYPE),)
+     BUILD_TYPE=$(BAMBOO_PRODUCT_BUILD_TYPE)
+  else
+     BUILD_TYPE   ?= debug
+  endif
+endif
 
 ifeq ($(BUILD_TYPE), release)
 	MSBUILD_CONFIGURATION=Release
