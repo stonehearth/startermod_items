@@ -12,7 +12,7 @@ $(document).ready(function(){
 // component
 App.StonehearthClassesPromoteView = App.View.extend({
    templateName: 'stonehearthClassesPromote',
-   modal: false,
+   modal: true,
 
    init: function() {
       this._super();
@@ -32,6 +32,7 @@ App.StonehearthClassesPromoteView = App.View.extend({
                });
          });
 
+/*
       $(top).on("selection_changed.radiant", function (_, data) {
          
          for (var i = 0; i < self._workers.length; i++) {
@@ -43,6 +44,7 @@ App.StonehearthClassesPromoteView = App.View.extend({
             }
          }
       });
+*/
    },
 
    destroy: function() {
@@ -102,6 +104,7 @@ App.StonehearthClassesPromoteView = App.View.extend({
                   //promote the citizen after a short delay
                   setTimeout(function() {
                      self._promoteCitizen();
+                     self.destroy();
                   }, 1000);
                });
             });
