@@ -58,6 +58,13 @@ while getopts "o:t:cabds" OPTION; do
    esac
 done
 
+if [ $BUILD_TYPE == RelWithDebInfo ]; then
+   MODULE_BUILD_TYPE=Release
+else
+   MODULE_BUILD_TYPE=$BUILD_TYPE
+fi
+echo $BUILD_TYPE $MODULE_BUILD_TYPE
+
 if [ -z $OUTPUT_DIR ] || [ -z $BUILD_TYPE ]; then
    usage
    exit 1
@@ -82,7 +89,7 @@ fi
 if [ ! -z $STAGE_BIN ]; then
    echo Copying lua binaries
    LUA_ROOT=$STONEHEARTH_ROOT/modules/lua/package/lua
-   cp -u $LUA_ROOT/solutions/$BUILD_TYPE/lua-5.1.5.dll $OUTPUT_DIR
+   cp -u $LUA_ROOT/solutions/$MODULE_BUILD_TYPE/lua-5.1.5.dll $OUTPUT_DIR
 
    echo Copying chromium embedded
    CHROMIUM_ROOT=$STONEHEARTH_ROOT/modules/chromium-embedded/package/cef_binary_3.1547.1412_windows32
@@ -92,7 +99,7 @@ if [ ! -z $STAGE_BIN ]; then
 
    echo Copying sfml 
    SFML_ROOT=$STONEHEARTH_ROOT/modules/sfml
-   SFML_BUILD_ROOT=$SFML_ROOT/build/lib/$BUILD_TYPE
+   SFML_BUILD_ROOT=$SFML_ROOT/build/lib/$MODULE_BUILD_TYPE
    SFML_EXTLIB_ROOT=$SFML_ROOT/package/SFML-2.1/extlibs/bin/x86
    if [ $BUILD_TYPE == Debug ]; then
       SUFFIX=-d
@@ -103,6 +110,10 @@ if [ ! -z $STAGE_BIN ]; then
    cp -u $SFML_BUILD_ROOT/sfml-system${SUFFIX}-2.dll $OUTPUT_DIR
    cp -u $SFML_EXTLIB_ROOT/openal32.dll $OUTPUT_DIR
    cp -u $SFML_EXTLIB_ROOT/libsndfile-1.dll $OUTPUT_DIR
+
+   echo Copying crash reporter
+   CRASH_REPORTER_ROOT=$RADIANT_ROOT/stonehearth/build/source/lib/crash_reporter
+   cp -u $CRASH_REPORTER_ROOT/$BUILD_TYPE/crash_reporter.exe $OUTPUT_DIR
 fi
 
 function stage_data_dir
