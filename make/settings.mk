@@ -1,7 +1,7 @@
 
 ifeq ($(BUILD_TYPE),)
-  ifneq ($(BAMBOO_PRODUCT_BUILD_TYPE),)
-     BUILD_TYPE=$(BAMBOO_PRODUCT_BUILD_TYPE)
+  ifneq ($(BAMBOO_PRODUCT_BUILDTYPE),)
+     BUILD_TYPE=$(BAMBOO_PRODUCT_BUILDTYPE)
   else
      BUILD_TYPE   ?= debug
   endif
