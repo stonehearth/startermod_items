@@ -42,6 +42,10 @@ App.StonehearthStartMenuView = App.View.extend({
 
    didInsertElement: function() {
       var self = this;
+      $('#startMenuTrigger').click(function() {
+         //radiant.call('radiant:play_sound', 'stonehearth:sounds:axe_chopping_sound' );
+      });
+
       $( '#startMenu' ).dlmenu({
          animationClasses : { 
             classin : 'dl-animate-in-sh', 

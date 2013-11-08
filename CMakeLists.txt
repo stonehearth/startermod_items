@@ -82,6 +82,14 @@ set(Boost_USE_STATIC_LIBS     ON)
 set(Boost_USE_STATIC_RUNTIME  ON)
 set(Boost_USE_MULTITHREADED   ON)
 
+# this must be first, to pickup build_overrides.h before the one in source/include
+FIND_PATH(BUILD_OVERRIDES build_overrides.h PATHS "${CMAKE_CURRENT_BINARY_DIR}")
+if (BUILD_OVERRIDES)
+   MESSAGE("using build_overrides")
+   INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+   ADD_DEFINITIONS(-DUSE_BUILD_OVERRIDES)
+endif()
+
 FIND_PACKAGE(Boost 1.48.0 COMPONENTS filesystem thread system regex date_time program_options log log_setup chrono REQUIRED)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 
