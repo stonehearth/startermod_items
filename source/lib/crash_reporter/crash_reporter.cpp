@@ -134,6 +134,9 @@ void CrashReporter::CreateZip(std::string const& zip_filename, std::string const
    encoder.close();
 }
 
+// Must exit gracefully and allow the CrashGenerationServer a chance to clean up.
+// The CrashGenerationServer still needs to signal back to the main process that the dump is complete.
+// The main process is holding the process open so we can read its state before exiting.
 void CrashReporter::ExitProcess()
 {
    exit_process_function_();
