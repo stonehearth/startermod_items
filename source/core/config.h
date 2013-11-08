@@ -28,6 +28,8 @@ public:
    void SetCollectionStatus(bool should_collect);
    bool IsCollectionStatusSet();
 
+   bool GetCrashKeyEnabled();
+
    boost::program_options::variables_map const& GetVarMap() const { return configvm_; }
    
 private:
@@ -48,6 +50,7 @@ private:
    std::string                                  sessionid_;
    std::string                                  userid_;
    std::string                                  collect_analytics_;
+   bool                                         crash_key_enabled_;
 };
 
 END_RADIANT_CORE_NAMESPACE
