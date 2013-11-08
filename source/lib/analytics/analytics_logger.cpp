@@ -180,6 +180,7 @@ void AnalyticsLogger::PostEvent(json::Node event_node, std::string event_categor
 	}
 }
 
+// Don't go through Singleton because we would have a race condition with the constructor calling this function
 void AnalyticsLogger::AnalyticsThreadMain(AnalyticsLogger* logger)
 {
    logger->SendEventsToServer();

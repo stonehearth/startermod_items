@@ -1,4 +1,6 @@
 #include "pch.h"
+#include "crash_reporter.h"
+
 #include <shellapi.h>
 #include <tchar.h>
 #include <memory>
@@ -13,12 +15,11 @@
 #include "Poco/StreamCopier.h"
 #include "Poco/Zip/Compress.h"
 
-#include "client/windows/crash_generation/client_info.h" // google_breakpad
+// google_breakpad headers
+#include "client/windows/crash_generation/client_info.h" 
+#include "client/windows/crash_generation/crash_generation_server.h"
 
-#include "crash_reporter.h"
-
-// Singleton - should we use radiant::core::Singleton<T>?
-static std::unique_ptr<CrashReporter> crash_reporter_;
+static std::string const CRASH_DUMP_FILENAME = "crash.dmp";
 
 // This is silly...
 static std::wstring StringToWstring(std::string const& input_string)
@@ -31,13 +32,20 @@ static std::string WstringToString(std::wstring const& input_string)
    return std::string(input_string.begin(), input_string.end());
 }
 
-CrashReporter::CrashReporter(std::string const& pipe_name, std::string const& dump_path, std::string const& uri) :
-   pipe_name_(pipe_name),
-   dump_path_(dump_path),
-   uri_(uri)
+DEFINE_SINGLETON(CrashReporter);
+
+void CrashReporter::Run(std::string const& pipe_name, std::string const& dump_path, std::string const& uri,
+                        std::function<void()> const& exit_process_function)
 {
+   pipe_name_ = pipe_name;
+   dump_path_ = dump_path;
+   uri_ = uri;
+   exit_process_function_ = exit_process_function;
+
    bool success = StartCrashGenerationServer();
-   if (!success) throw std::exception("CrashGenerationServer failed to start");
+   if (!success) {
+      throw std::exception("CrashGenerationServer failed to start");
+   }
 }
 
 bool CrashReporter::StartCrashGenerationServer()
@@ -65,16 +73,26 @@ bool CrashReporter::StartCrashGenerationServer()
 
 void CrashReporter::SendCrashReport(std::string const& dump_filename)
 {
-   std::string const zip_filename = boost::filesystem::path(dump_filename).replace_extension(".zip").string();
+   // Rename dump file
+   boost::filesystem::path old_dump_path(dump_filename);
+   boost::filesystem::path new_dump_path = (old_dump_path.parent_path() / CRASH_DUMP_FILENAME).string();
+   boost::filesystem::remove(new_dump_path);
+   boost::filesystem::rename(old_dump_path, new_dump_path);
 
-   CreateZip(zip_filename, dump_filename);
+   // Get zip filename
+   boost::filesystem::path zip_path(new_dump_path);
+   zip_path.replace_extension(".zip");
+
+   // Create zip package
+   CreateZip(zip_path.string(), new_dump_path.string());
 
    // Get the length of the zip file
-   std::ifstream zip_file(zip_filename.c_str(), std::ios::in|std::ios::binary);
+   std::ifstream zip_file(zip_path.string().c_str(), std::ios::in|std::ios::binary);
    zip_file.seekg(0, std::ios::end);
    long long const zip_file_length = zip_file.tellg();
    zip_file.seekg(0, std::ios::beg);
 
+   // Set up HTTP POST
    Poco::URI uri(uri_);
    std::string path(uri.getPathAndQuery());
    Poco::Net::HTTPClientSession session(uri.getHost(), uri.getPort());
@@ -99,14 +117,9 @@ void CrashReporter::SendCrashReport(std::string const& dump_filename)
 	}
 
    // For debugging
-   std::string response_string(1000, '\0');
-   response_stream.read(&response_string[0], 1000);
-   MessageBox(nullptr, response_string.c_str(), "crash_reporter", MB_OK);
-
-   // Clean up
-   // Commented out during debugging
-   //boost::filesystem::remove(zip_filename);
-   //boost::filesystem::remove(dump_filename);
+   //std::string response_string(1000, '\0');
+   //response_stream.read(&response_string[0], 1000);
+   //MessageBox(nullptr, response_string.c_str(), "crash_reporter", MB_OK);
 }
 
 // Extend this to package a list of files for submission
@@ -116,9 +129,17 @@ void CrashReporter::CreateZip(std::string const& zip_filename, std::string const
    Poco::Zip::Compress encoder(zip_file, true);
 
    std::string const unq_dump_filename(boost::filesystem::path(dump_filename).filename().string());
-   encoder.addFile(Poco::Path(dump_filename), Poco::Path(unq_dump_filename));
+   encoder.addFile(dump_filename, unq_dump_filename);
    // Add additional files here
    encoder.close();
+}
+
+// Must exit gracefully and allow the CrashGenerationServer a chance to clean up.
+// The CrashGenerationServer still needs to signal back to the main process that the dump is complete.
+// The main process is holding the process open so we can read its state before exiting.
+void CrashReporter::ExitProcess()
+{
+   exit_process_function_();
 }
 
 // Static callbacks for Breakpad
@@ -131,18 +152,13 @@ void CrashReporter::OnClientCrashed(void* context, google_breakpad::ClientInfo c
    CrashReporter* crash_reporter = (CrashReporter*) context;
    crash_reporter->SendCrashReport(WstringToString(*dump_filename_w));
 
-   RequestApplicationExit();
+   crash_reporter->ExitProcess();
 }
 
 void CrashReporter::OnClientExited(void* context, google_breakpad::ClientInfo const* client_info)
 {
-   RequestApplicationExit();
-}
-
-static int const main_thread_id_ = GetCurrentThreadId();
-
-void CrashReporter::RequestApplicationExit() {
-   PostThreadMessage(main_thread_id_, WM_QUIT, 0, 0);
+   CrashReporter* crash_reporter = (CrashReporter*) context;
+   crash_reporter->ExitProcess();
 }
 
 static void GetParameters(std::string& pipe_name, std::string& dump_path, std::string& uri)
@@ -167,14 +183,16 @@ static void InitializeServer()
 {
    std::string pipe_name, dump_path, uri;
 
-   assert(main_thread_id_ == GetCurrentThreadId());
-
    GetParameters(pipe_name, dump_path, uri);
    if (pipe_name.empty() || dump_path.empty() || uri.empty()) {
       throw std::invalid_argument("Invalid parameters to CrashReporter");
    }
 
-   crash_reporter_.reset(new CrashReporter(pipe_name, dump_path, uri));
+   int const main_thread_id = GetCurrentThreadId();
+
+   CrashReporter::GetInstance().Run(pipe_name, dump_path, uri, [=]() {
+      PostThreadMessage(main_thread_id, WM_QUIT, 0, 0);
+   });
 }
 
 //--------------------------------------------------------------------------------
