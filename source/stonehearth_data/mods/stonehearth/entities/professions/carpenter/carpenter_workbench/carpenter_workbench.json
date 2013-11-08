@@ -11,17 +11,13 @@
          "promotion_talisman" : {
             "entity" : "stonehearth:carpenter:saw",
             "offset" : [0, 3, 0]
-         },
-         "outbox_settings" : {
-            "offset" : [2, 0, 0],
-            "size" : [3, 3]
          }
       },
       "destination": {
          "region": [
             {
-               "min" : { "x" : -3, "y" : 0, "z" : -3 },
-               "max" : { "x" :  4, "y" : 1, "z" :  4 }
+               "min" : { "x" : 0, "y" : 0, "z" : 0 },
+               "max" : { "x" :  2, "y" : 1, "z" :  2 }
             }
          ]
       },
