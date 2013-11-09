@@ -324,6 +324,13 @@ void Client::run()
       currentCursor_ = NULL;
    };
 
+   if (core::Config::GetInstance().GetCrashKeyEnabled()) {
+      _commands[GLFW_KEY_PAUSE] = []() {
+         // throw an exception that is not caught by Client::OnInput
+         throw std::string("User hit crash key");
+      };
+   }
+
    // _commands[VK_NUMPAD0] = std::shared_ptr<command>(new command_build_blueprint(*_proxy_manager, *_renderer, 500));
 
    setup_connections();

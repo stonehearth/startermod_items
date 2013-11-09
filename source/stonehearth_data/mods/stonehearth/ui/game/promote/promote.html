@@ -2,7 +2,7 @@
 
    <div id="crafterPromoteScroll">
       <div id="promoteScroll">
-         <div id="content">
+         <div id="content" class="captureSelection">
             <div id="title">
                Certificate of xxx
             </div>
@@ -21,9 +21,12 @@
 
             {{i18n stonehearth:promote_scroll_text_2 promotionClass=promotionClass date=dateString}} 
 
-            <div id='approveStamp'>
-               {{i18n stonehearth:promote_scroll_approve}}
-            </div>
+            <a href='#' {{action approve target=view}}>
+               <div id='approveStamp'>
+                  {{i18n stonehearth:promote_scroll_approve}}
+               </div>
+            </a>
+            
             <div id='approvedStamp'>
                {{i18n stonehearth:promote_scroll_approved}}
             </div>

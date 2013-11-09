@@ -11,10 +11,6 @@
          "promotion_talisman" : {
             "entity" : "stonehearth:weaver:spindle",
             "offset" : [0, 3, 0]
-         },
-         "outbox_settings" : {
-            "offset" : [2, 0, 0],
-            "size" : [3, 3]
          }
       },
       "destination": {

@@ -22,7 +22,8 @@ const std::string BUILD_NUMBER = "preview_0.1a";
 Config::Config() :
    cmd_line_options_("command line options"),
    config_file_options_("configuration file options"), 
-   collect_analytics_("yes")
+   collect_analytics_("yes"),
+   crash_key_enabled_(false)
 {
 }
 
@@ -41,6 +42,7 @@ bool Config::Load(int argc, const char *argv[])
    config_file_options_.add_options()
       ("userid", po::value<std::string>())
       ("collect_analytics", po::value<std::string>())
+      ("crash_key_enabled", po::value<bool>()->default_value(crash_key_enabled_))
       ;
 
    auto options = po::command_line_parser(argc, argv)
@@ -95,6 +97,10 @@ bool Config::Load(int argc, const char *argv[])
    // Load the config files...
    LoadConfigFile(run_directory_ / config_filename_);
    LoadConfigFile(cache_directory_ / config_filename_);
+
+   if (configvm_.count("crash_key_enabled")) {
+      crash_key_enabled_ = configvm_["crash_key_enabled"].as<bool>();
+   }
 
    return true;
 }
@@ -161,6 +167,11 @@ void Config::SetCollectionStatus(bool should_collect)
 bool Config::IsCollectionStatusSet()
 {
    return (!collect_analytics_.empty());
+}
+
+bool Config::GetCrashKeyEnabled()
+{
+   return crash_key_enabled_;
 }
 
 //WriteConfigOption
