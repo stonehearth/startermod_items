@@ -49,6 +49,7 @@ target_link_libraries(client
                              chromium_browser
                              client_renderer
                              core
+                             crash_reporter_client
                              csg
                              dm
                              game_engine

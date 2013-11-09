@@ -113,7 +113,7 @@ if [ ! -z $STAGE_BIN ]; then
 
    echo Copying crash reporter
    CRASH_REPORTER_ROOT=$STONEHEARTH_ROOT/build/source/lib/crash_reporter
-   cp -u $CRASH_REPORTER_ROOT/$BUILD_TYPE/crash_reporter.exe $OUTPUT_DIR
+   cp -u $CRASH_REPORTER_ROOT/server/$BUILD_TYPE/crash_reporter.exe $OUTPUT_DIR
 fi
 
 function stage_data_dir

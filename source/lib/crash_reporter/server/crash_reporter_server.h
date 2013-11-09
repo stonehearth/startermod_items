@@ -1,22 +1,22 @@
-#ifndef _RADIANT_LIB_CRASH_REPORTER_CRASH_REPORTER_H
-#define _RADIANT_LIB_CRASH_REPORTER_CRASH_REPORTER_H
+#ifndef _RADIANT_CRASH_REPORTER_SERVER_CRASH_REPORTER_SERVER_H
+#define _RADIANT_CRASH_REPORTER_SERVER_CRASH_REPORTER_SERVER_H
 
-#include "resource.h"
 #include "radiant.h"
+#include "namespace.h"
 #include "core/singleton.h"
 #include <functional>
 
-// The google headers are ugly so forward declare the types instead
 namespace google_breakpad {
    class ClientInfo;
    class CrashGenerationServer;
 }
 
-using namespace radiant;
+BEGIN_RADIANT_CRASH_REPORTER_SERVER_NAMESPACE
 
-class CrashReporter : public core::Singleton<CrashReporter>
+class CrashReporterServer : public radiant::core::Singleton<CrashReporterServer>
 {
 public:
+   // Starts a crash reporter server to dump and upload the process state when the application crashes
    void Run(std::string const& pipe_name, std::string const& dump_path, std::string const& uri,
             std::function<void()> const& exit_process_function);
 
@@ -34,8 +34,12 @@ private:
    std::string pipe_name_;
    std::string dump_path_;
    std::string uri_;
-   std::unique_ptr<google_breakpad::CrashGenerationServer> crash_server_;
+
+   // need a shared_ptr to use a forward declaration for CrashGenerationServer
+   std::shared_ptr<google_breakpad::CrashGenerationServer> crash_server_;
    std::function<void()> exit_process_function_;
 };
 
-#endif // _RADIANT_LIB_CRASH_REPORTER_CRASH_REPORTER_H
+END_RADIANT_CRASH_REPORTER_SERVER_NAMESPACE
+
+#endif // _RADIANT_CRASH_REPORTER_SERVER_CRASH_REPORTER_SERVER_H

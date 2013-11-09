@@ -60,18 +60,8 @@ arbiter::~arbiter()
 
 void arbiter::Run()
 {
-#ifdef _DEBUG
-   try {
-#endif // _DEBUG
-      Start();
-      main();
-#ifdef _DEBUG
-   } catch (std::exception &e) {
-      LOG(WARNING) << "Unhandled exception in game loop: " << e.what();
-      LOG(WARNING) << "DYING! =..(";
-      ASSERT(false);
-   }
-#endif // _DEBUG
+   Start();
+   main();
 }
 
 void arbiter::Start()
