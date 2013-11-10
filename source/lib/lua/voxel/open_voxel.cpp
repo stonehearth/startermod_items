@@ -14,18 +14,16 @@ IMPLEMENT_TRIVIAL_TOSTRING(NineGridBrush)
 
 QubicleBrushPtr Voxel_CreateBrush(std::string const& filename)
 {
-   std::ifstream in;   
-   res::ResourceManager2::GetInstance().OpenResource(filename, in);
+   std::shared_ptr<std::istream> is = res::ResourceManager2::GetInstance().OpenResource(filename);
 
-   return std::make_shared<QubicleBrush>(in);
+   return std::make_shared<QubicleBrush>(*is);
 }
 
 NineGridBrushPtr Voxel_CreateNineGridBrush(std::string const& filename)
 {
-   std::ifstream in;   
-   res::ResourceManager2::GetInstance().OpenResource(filename, in);
+   std::shared_ptr<std::istream> is = res::ResourceManager2::GetInstance().OpenResource(filename);
 
-   return std::make_shared<NineGridBrush>(in);
+   return std::make_shared<NineGridBrush>(*is);
 }
 
 DEFINE_INVALID_JSON_CONVERSION(QubicleBrush);

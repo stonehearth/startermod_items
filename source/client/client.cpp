@@ -3,6 +3,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include "core/config.h"
+#include "radiant_file.h"
 #include "radiant_exceptions.h"
 #include "xz_region_selector.h"
 #include "om/entity.h"
@@ -41,6 +42,7 @@
 #include "lib/lua/voxel/open.h"
 #include "lib/lua/analytics/open.h"
 #include "lib/analytics/design_event.h"
+#include "lib/audio/input_stream.h"
 #include "client/renderer/render_entity.h"
 #include "lib/perfmon/perfmon.h"
 #include "glfw3.h"
@@ -192,17 +194,13 @@ Client::Client() :
          json::Node node(f.args);
          std::string sound_url = node.getn(0).as<std::string>();
 
-         std::string trackName;
-         trackName = res::ResourceManager2::GetInstance().GetResourceFileName(sound_url, "");
-         //trackName = res::ResourceManager2::GetInstance().GetResourceFileName(node[0].as_string(), "");
-
-         if (soundBuffer_.loadFromFile(trackName)) {
+         if (soundBuffer_.loadFromStream(audio::InputStream(sound_url))) {
             // TODO, add a sound manager instead of this temp solution!
             // see http://bugs.radiant-entertainment.com:8080/browse/SH-29
             sound_.setBuffer(soundBuffer_);
 	         sound_.play();
          } else { 
-            LOG(INFO) << "Can't find Sound Effect! " << trackName;
+            LOG(INFO) << "Can't find Sound Effect! " << sound_url;
          }
 
          result->ResolveWithMsg("success");
@@ -858,15 +856,22 @@ Client::Cursor Client::LoadCursor(std::string const& path)
 {
    Cursor cursor;
 
-   std::string filename = res::ResourceManager2::GetInstance().GetResourceFileName(path, ".cur");
+   std::string filename = res::ResourceManager2::GetInstance().ConvertToCanonicalPath(path, ".cur");
    auto i = cursors_.find(filename);
    if (i != cursors_.end()) {
       cursor = i->second;
    } else {
-      HCURSOR hcursor = (HCURSOR)LoadImageA(GetModuleHandle(NULL), filename.c_str(), IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
+      std::shared_ptr<std::istream> is = res::ResourceManager2::GetInstance().OpenResource(filename);
+      std::string buffer = io::read_contents(*is);
+
+      std::string tempname = boost::filesystem::unique_path().string();
+      std::ofstream(tempname, std::ios::out | std::ios::binary).write(buffer.c_str(), buffer.size());
+
+      HCURSOR hcursor = (HCURSOR)LoadImageA(GetModuleHandle(NULL), tempname.c_str(), IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
       if (hcursor) {
          cursors_[filename] = cursor = Cursor(hcursor);
       }
+      boost::filesystem::remove(tempname);
    }
    return cursor;
 }

@@ -22,9 +22,9 @@ __get_current_module_name = function()
       _host:log('lua generated from loadstring() is not allowed to require.')
       return nil
    end
-   local modname = info.source:match('@mods[/\\]([^/\\]*)')
+   local modname = info.source:match('@([^/\\]*)')
    if not modname then
-      modname = info.source:match('@\.[/\\]mods[/\\]([^/\\]*)')
+      modname = info.source:match('@\.[/\\]([^/\\]*)')
    end
    if not modname then
       _host:log(string.format('could not determine modname from source "%s"', info.source))

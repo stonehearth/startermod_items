@@ -44,6 +44,7 @@ target_link_libraries(stonehearth
                              perfmon
                              lib_json
                              analytics
+                             audio
                              )
 
 add_custom_command(TARGET stonehearth
