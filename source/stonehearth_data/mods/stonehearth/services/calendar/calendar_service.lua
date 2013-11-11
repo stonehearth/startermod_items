@@ -96,7 +96,7 @@ function CalendarService:_on_event_loop(e)
    -- the date, formatting into a string
    data.date.date = self:format_date()
 
-   self:update_timers(dt)
+   self:update_timers(t)
 
    data._lastNow = now
 end
