@@ -3,22 +3,23 @@
    "type": "entity",
    "components": {
       "item": {
-         "stacks": 10
       },
       "model_variants": [
          {
             "models": [
-               "file(cloth_bolt.qb)"
+               "file(berry_basket.qb)"
             ]
          }
       ],
       "unit_info": {
-         "name": "Bolt of Cloth",
-         "description": "Shimmery.",
-         "icon" : "file(cloth_bolt.png)"
+         "name": "Basket of Berries",
+         "description": "Creme of the caveman diet."
       },
       "stonehearth:material" : {
-         "tags" :  "cloth resource"
+         "tags" :  "dye resource fruit food"
+      },
+      "stonehearth:attributes": {
+         "max_servings" : 5
       }
    }
 }

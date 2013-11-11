@@ -76,7 +76,11 @@
          "medium_juniper_tree" : "file(entities/trees/juniper_tree/medium_juniper_tree)",
          "large_juniper_tree" : "file(entities/trees/juniper_tree/large_juniper_tree)",
 
+         "berry_bush" : "file(entities/plants/berry_bush)",
+
          "pink_flower" : "file(entities/ground_clutter/pink_flower)",
+
+         "berry_basket" : "file(entities/plants/berry_basket)",
 
          "arch_backed_chair" :       "file(entities/furniture/arch_backed_chair)",
          "arch_backed_chair_proxy" : "file(entities/furniture/arch_backed_chair/arch_backed_chair_proxy.json)",
@@ -165,6 +169,7 @@
          "actions:gather_and_craft_action" : "file(ai/actions/gather_and_craft_action.lua)",
          "actions:grab_talisman_action" : "file(ai/actions/grab_talisman_action.lua)",
          "actions:admire_fire_action" : "file(ai/actions/admire_fire_action.lua)",
+         "actions:find_food_action" : "file(ai/actions/find_food_action.lua)",
          "actions:chop_tree_action" : "file(ai/actions/chop_tree_action.lua)",
          "actions:carry_item_on_path_to" : "file(ai/actions/carry_item_on_path_to.lua)",
          "actions:worker_task_dispatcher" : "file(ai/actions/worker_task_dispatcher.lua)",
@@ -172,10 +177,13 @@
          "actions:worker_restock_action" : "file(ai/actions/worker_restock_action.lua)",
          "actions:worker_place_action" : "file(ai/actions/worker_place_action.lua)",
          "actions:worker_light_fire_action" : "file(ai/actions/worker_light_fire_action.lua)",
+         "actions:worker_harvest_plants" : "file(ai/actions/worker_harvest_plants_action.lua)",
          "actions:play_with_ball_action" : "file(ai/actions/play_with_ball_action.lua)",
          "actions:fabricate" : "file(ai/actions/fabricate_action.lua)",
+
          "observers:look_for_enemies" : "file(ai/observers/look_for_enemies.lua)",
          "observers:sleep" : "file(ai/observers/sleep_observer.lua)",
+         "observers:hunger" : "file(ai/observers/hunger_observer.lua)",
 
          "class_info" : "file(entities/class_info)",
 
@@ -223,6 +231,10 @@
             "endpoint" : "server"
          },
          "harvest_tree" : {
+            "controller": "file(call_handlers/resource_call_handler.lua)",
+            "endpoint" : "server"
+         },
+         "harvest_plants" : {
             "controller": "file(call_handlers/resource_call_handler.lua)",
             "endpoint" : "server"
          },
@@ -317,7 +329,8 @@
       "scaffolding_fabricator" : "file(components/scaffolding_fabricator/scaffolding_fabricator_component.lua)",
       "portal" : "file(components/portal/portal_component.lua)",
       "no_construction_zone" : "file(components/no_construction_zone/no_construction_zone_component.lua)",
-      "construction_data" : "file(components/construction_data/construction_data_component.lua)"
+      "construction_data" : "file(components/construction_data/construction_data_component.lua)",
+      "harvestable" : "file(components/harvestable/harvestable.lua)"
    },
    "component_renderers" : {
       "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",

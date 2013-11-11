@@ -23,4 +23,28 @@ function ResourceCallHandler:harvest_tree(session, response, tree)
    return true
 end
 
+function ResourceCallHandler:harvest_plants(session, response, plant)
+   local worker_scheduler = radiant.mods.load('stonehearth').worker_scheduler:get_worker_scheduler(session.faction)
+
+   -- Any worker that's not carrying anything will do...
+   local not_carrying_fn = function (worker)
+      return radiant.entities.get_carrying(worker) == nil
+   end
+
+   local harvest_task = worker_scheduler:add_worker_task('harvest_berries')
+                   :set_worker_filter_fn(not_carrying_fn)
+                   :add_work_object(plant)
+                   :set_priority(priorities.GATHER_FOOD)
+
+   harvest_task:set_action_fn(
+      function (path)
+         return 'stonehearth:harvest_plants', path, harvest_task
+      end
+   )
+
+  harvest_task:start()
+
+   return true
+end
+
 return ResourceCallHandler
