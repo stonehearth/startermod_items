@@ -1,5 +1,6 @@
 Buff = require 'components.buffs.buff'
 AttributeModifier = require 'components.attributes.attribute_modifier'
+local calendar = require 'services.calendar.calendar_service'
 
 local BuffsComponent = class()
 
@@ -10,6 +11,7 @@ function BuffsComponent:__init(entity, data_binding)
    self._buffs = {}
    self._attribute_modifiers = {}
    self._data_binding:update(self._buffs)
+   self._calendar_constants = calendar:get_constants()
 end
 
 function BuffsComponent:add_buff(uri)
@@ -22,8 +24,10 @@ function BuffsComponent:add_buff(uri)
 
    local buff = Buff(self._entity, uri)
    self._buffs[uri] = buff
-   
-   self:apply_modifiers(uri, buff)
+
+
+   self:_apply_duration(uri, buff)
+   self:_apply_modifiers(uri, buff)
    self._data_binding:mark_changed()
    
    return buff
@@ -33,7 +37,18 @@ function BuffsComponent:has_buff(uri)
    return self._buffs[uri] ~= nil
 end
 
-function BuffsComponent:apply_modifiers(uri, buff)
+function BuffsComponent:remove_buff(uri)
+   self._buffs[uri] = nil
+
+   if self._attribute_modifiers[uri] then
+      self._attribute_modifiers[uri]:destroy()
+      self._attribute_modifiers[uri] = nil
+   end
+
+   self._data_binding:mark_changed()
+end
+
+function BuffsComponent:_apply_modifiers(uri, buff)
    if not buff.modifiers then
       return
    end
@@ -60,15 +75,24 @@ function BuffsComponent:apply_modifiers(uri, buff)
    
 end
 
-function BuffsComponent:remove_buff(uri)
-   self._buffs[uri] = nil
+function BuffsComponent:_apply_duration(uri, buff)
+   if buff.duration then 
+      -- convert time string into seconds and set a callback to remove the buff
+      local buff_duration = string.sub(buff.duration, 1, -2)
+      local time_unit = string.sub(buff.duration, -1, -1)
 
-   if self._attribute_modifiers[uri] then
-      self._attribute_modifiers[uri]:destroy()
-      self._attribute_modifiers[uri] = nil
+      if time_unit == 'h' then
+         buff_duration = buff_duration * (self._calendar_constants.minutes_per_hour * self._calendar_constants.seconds_per_minute)
+      elseif time_unit == 'm' then
+         buff_duration = buff_duration * self._calendar_constants.seconds_per_minute
+      end
+
+      local buff_expired_function = function(buff_uri)
+         self:remove_buff(buff_uri)
+      end
+
+      calendar:set_timer(0, 0, buff_duration, buff_expired_function, uri)
    end
-
-   self._data_binding:mark_changed()
 end
 
 return BuffsComponent
