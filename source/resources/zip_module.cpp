@@ -25,8 +25,6 @@ bool ZipModule::CheckFilePath(std::vector<std::string> const& parts) const
    return zip_.findHeader(boost::algorithm::join(parts, "/")) != zip_.headerEnd();
 }
 
-#include "radiant_file.h"
-
 std::shared_ptr<std::istream> ZipModule::OpenResource(std::string const& canonical_path) const
 {
    auto i = zip_.findHeader(canonical_path);

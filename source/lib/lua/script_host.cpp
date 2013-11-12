@@ -299,10 +299,6 @@ luabind::object ScriptHost::Require(std::string const& s)
    std::string path, name;
    std::ostringstream script;
 
-   if (boost::ends_with(s, ".lua") || s.find('/') != std::string::npos || s.find('\\') != std::string::npos) {
-      throw std::logic_error(BUILD_STRING("invalid path in require: " << s));
-   }
-
    std::vector<std::string> parts;
    boost::split(parts, s, boost::is_any_of("."));
    parts.erase(std::remove(parts.begin(), parts.end(), ""), parts.end());
@@ -314,7 +310,21 @@ luabind::object ScriptHost::Require(std::string const& s)
 
 luabind::object ScriptHost::RequireScript(std::string const& path)
 {
-   std::string canonical_path = res::ResourceManager2::GetInstance().ConvertToCanonicalPath(path, nullptr);
+   std::string canonical_path;
+   res::ResourceManager2 const& rm = res::ResourceManager2::GetInstance();
+   try {
+      // Try foo.lua first...
+      canonical_path = rm.ConvertToCanonicalPath(path, nullptr);
+   } catch (std::exception const& e) {
+      // No?  Try foo.luac...
+      try {
+         canonical_path = rm.ConvertToCanonicalPath(path + "c", nullptr);
+      } catch (std::exception const&) {
+         // Neither worked.  Complain about the .lua one 
+         throw e;
+      }
+   }
+
    luabind::object obj;
 
    auto i = required_.find(canonical_path);
