@@ -355,7 +355,7 @@ HWND Renderer::GetWindowHandle() const
 
 void Renderer::RenderOneFrame(int now, float alpha)
 {
-   perfmon::TimelineCounterGuard tcg("render one");
+   perfmon::TimelineCounterGuard cg("render");
 
    bool debug = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS;
    bool showStats = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
@@ -385,38 +385,38 @@ void Renderer::RenderOneFrame(int now, float alpha)
                           ww,       .9f,    1, 1, };
    }
 
-   perfmon::SwitchToCounter("render fire traces") ;  
+   perfmon::TimelineCounterGuard rft("render fire traces") ;  
    render_frame_start_slot_.Signal(FrameStartInfo(now, alpha));
+   rft.Dispose();
 
    if (showStats) { 
-      perfmon::SwitchToCounter("show stats") ;  
+      perfmon::TimelineCounterGuard ss("show stats") ;  
       // show stats
       h3dCollectDebugFrame();
       h3dutShowFrameStats( fontMatRes_, panelMatRes_, H3DUTMaxStatMode );
    }
 
-   perfmon::SwitchToCounter("render load res");
+   perfmon::TimelineCounterGuard lr("render load res");
    fileWatcher_.update();
    LoadResources();
+   lr.Dispose();
 
    h3dSetMaterialArrayUniform( ssaoMat, "samplerKernel", ssaoSamplerData.data(), ssaoSamplerData.size());
 
    // Render scene
-   perfmon::SwitchToCounter("render h3d");
    h3dRender(camera_->GetNode());
 
    // Finish rendering of frame
    UpdateCamera();
-   perfmon::SwitchToCounter("render finalize");
    h3dFinalizeFrame();
-   //glFinish();
 
    // Advance emitter time; this must come AFTER rendering, because we only know which emitters
    // to update after doing a render pass.
-   perfmon::SwitchToCounter("render ce");
+   perfmon::TimelineCounterGuard uc("update cubemitter");
    float delta = (now - last_render_time_) / 1000.0f;
    h3dRadiantAdvanceCubemitterTime(delta);
    h3dRadiantAdvanceAnimatedLightTime(delta);
+   uc.Dispose();
 
    // Remove all overlays
    h3dClearOverlays();
@@ -424,8 +424,9 @@ void Renderer::RenderOneFrame(int now, float alpha)
    // Write all messages to log file
    h3dutDumpMessages();
 
-   perfmon::SwitchToCounter("render swap");
+   perfmon::TimelineCounterGuard sw("render swap");
    glfwSwapBuffers(glfwGetCurrentContext());
+   sw.Dispose();
 
    last_render_time_ = now;
 }

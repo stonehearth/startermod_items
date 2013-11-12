@@ -20,6 +20,7 @@
 
 #include "utDebug.h"
 #include "om/error_browser/error_browser.h"
+#include "lib/perfmon/perfmon.h"
 
 namespace Horde3D {
 
@@ -1252,6 +1253,7 @@ void RenderDevice::checkGLError()
 
 bool RenderDevice::applyVertexLayout()
 {
+   radiant::perfmon::TimelineCounterGuard avl("applyVertexLayout");
 	if( _newVertLayout == 0 || _curShaderId == 0 ) return false;
 
 	RDIVertexLayout &vl = _vertexLayouts[_newVertLayout - 1];
@@ -1358,6 +1360,7 @@ void RenderDevice::applySamplerState( RDITexture &tex )
 
 bool RenderDevice::commitStates( uint32 filter )
 {
+   radiant::perfmon::TimelineCounterGuard cs("commitStates");
 	if( _pendingMask & filter )
 	{
 		uint32 mask = _pendingMask & filter;
@@ -1511,6 +1514,8 @@ void RenderDevice::drawIndexed( RDIPrimType primType, uint32 firstIndex, uint32 
 	{
 		firstIndex *= (_indexFormat == IDXFMT_16) ? sizeof( short ) : sizeof( int );
 		
+      radiant::perfmon::TimelineCounterGuard di("drawIndexed");
+
 		glDrawRangeElements( (uint32)primType, firstVert, firstVert + numVerts,
 		                     numIndices, _indexFormat, (char *)0 + firstIndex );
 	}

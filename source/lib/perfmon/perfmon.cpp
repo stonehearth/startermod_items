@@ -19,13 +19,23 @@ static Timeline& GetTimeline()
 
 TimelineCounterGuard::TimelineCounterGuard(const char* name)
 {
+   disposed_ = false;
    last_counter_ = GetTimeline().GetCurrentCounter();
    SwitchToCounter(name);
 }
 
+void TimelineCounterGuard::Dispose()
+{
+   if (!disposed_)
+   {
+      GetTimeline().SetCounter(last_counter_);
+      disposed_ = true;
+   }
+}
+
 TimelineCounterGuard::~TimelineCounterGuard()
 {
-   GetTimeline().SetCounter(last_counter_);
+   Dispose();
 }
 
 void perfmon::SwitchToCounter(char const* name)

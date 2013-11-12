@@ -696,6 +696,7 @@ bool Renderer::isShaderContextSwitch(const std::string &newContext, const Materi
 bool Renderer::setMaterialRec( MaterialResource *materialRes, const std::string &shaderContext,
                                ShaderResource *shaderRes )
 {
+   radiant::perfmon::TimelineCounterGuard smr("setMaterialRec");
 	if( materialRes == 0x0 ) return false;
 	
 	bool firstRec = (shaderRes == 0x0);
@@ -2236,6 +2237,7 @@ void Renderer::drawVoxelMeshes(const std::string &shaderContext, const std::stri
                                const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
                                int occSet)
 {
+   radiant::perfmon::TimelineCounterGuard dvm("drawVoxelMeshes");
 	if( frust1 == 0x0 ) return;
 	
 	VoxelGeometryResource *curVoxelGeoRes = 0x0;
