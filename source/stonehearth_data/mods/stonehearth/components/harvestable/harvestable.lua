@@ -11,7 +11,7 @@ function Harvestable:__init(entity, data_store)
    self._entity = entity
 
    self._renewal_time = nil         --num in-game hours till renewal
-   self.takeaway_entity_type = nil  --entity to create on harvest
+   self._takeaway_entity_type = nil  --entity to create on harvest
 
    self._data = data_store:get_data()
    self._data.hours_till_next_growth = nil
@@ -26,12 +26,16 @@ function Harvestable:extend(json)
          self._renewal_time = json.renewal_time
       end
       if json.takeaway_entity then
-         self.takeaway_entity_type = json.takeaway_entity
+         self._takeaway_entity_type = json.takeaway_entity
       end
       if json.harvest_command then
          self._harvest_command_name = json.harvest_command
       end
    end
+end
+
+function Harvestable:get_takeaway_type()
+   return self._takeaway_entity_type
 end
 
 --- Let plant know it's giving up resources
@@ -44,8 +48,8 @@ function Harvestable:harvest()
 
    --TODO: change model to be the version w/o the collectable
 
-   local basket = radiant.entities.create_entity(self.takeaway_entity_type)
-   radiant.terrain.place_entity(basket, self._entity:get_component('mob'):get_world_grid_location())
+   --local basket = radiant.entities.create_entity(self._takeaway_entity_type)
+   --radiant.terrain.place_entity(basket, self._entity:get_component('mob'):get_world_grid_location())
 
    self._data.hours_till_next_growth = self._renewal_time
 end
