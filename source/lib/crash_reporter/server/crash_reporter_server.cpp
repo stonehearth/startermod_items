@@ -115,9 +115,9 @@ void CrashReporterServer::SendCrashReport(std::string const& dump_filename)
 	}
 
    // For debugging
-   std::string response_string(1000, '\0');
-   response_stream.read(&response_string[0], 1000);
-   MessageBox(nullptr, response_string.c_str(), "crash_reporter", MB_OK);
+   //std::string response_string(1000, '\0');
+   //response_stream.read(&response_string[0], 1000);
+   //MessageBox(nullptr, response_string.c_str(), "crash_reporter", MB_OK);
 }
 
 // Extend this to package a list of files for submission
