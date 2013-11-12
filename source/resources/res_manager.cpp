@@ -238,7 +238,10 @@ std::string ResourceManager2::ConvertToCanonicalPath(std::string path, const cha
       throw InvalidFilePath(path);
    }
 
-   if (!i->second->CheckFilePath(parts) && search_ext) {
+   if (!i->second->CheckFilePath(parts)) {
+      if (!search_ext) {
+         throw InvalidFilePath(path);
+      }
       // try the 2nd form...
       parts.push_back(parts.back() + search_ext);
       if (!i->second->CheckFilePath(parts)) {

@@ -11,7 +11,6 @@ typedef struct LoadF {
    std::string buf;
 } LoadF;
 
-
 static const char *getF (lua_State *L, void *ud, size_t *size) {
    LoadF *lf = (LoadF *)ud;
    (void)L;
@@ -21,17 +20,20 @@ static const char *getF (lua_State *L, void *ud, size_t *size) {
       return "\n";
    }
    if (!lf->is) {
-      return NULL;
+      return nullptr;
    }
-   std::streampos pos = lf->is->tellg();
-   lf->is->seekg(0, std::ios::end);
-   size_t count = (unsigned int)lf->is->tellg();
-   lf->buf.resize(count);
-   lf->is->seekg(pos, std::ios::beg);
-   lf->is->read(&lf->buf[0], count);
-   lf->is = nullptr;
 
-   *size = lf->buf.size();
+   int const file_buffer_size = 4000;
+
+   lf->buf.resize(file_buffer_size);
+   lf->is->read(&lf->buf[0], file_buffer_size);
+
+   int const bytes_read = (int) lf->is->gcount();
+   if (bytes_read < file_buffer_size) {
+      lf->is = nullptr;
+   }
+
+   *size = (int) bytes_read;
    return lf->buf.data();
 }
 
@@ -43,28 +45,33 @@ int luaL_loadfile_from_resource(lua_State *L, const char *filename) {
    lf.extraline = 0;
    lua_pushfstring(L, "@%s", filename);
    lf.is = res::ResourceManager2::GetInstance().OpenResource(filename);
+
+   // read the first byte 
    lf.is->read(&c, 1);
-   if (c == '#') {  /* Unix exec. file? */
+
+   // if run as a unix script, skip first line
+   if (c == '#') {
       lf.extraline = 1;
       while (lf.is->good()) {
          lf.is->read(&c, 1);
          if (c == '\n') {
+            // read the first byte of the "real" section (so we can put it back later...)
             lf.is->read(&c, 1);
             break;
          }
       }
    }
-   if (c == LUA_SIGNATURE[0] && filename) {  /* binary file? */
-      /* skip eventual `#!...' */
-      while (lf.is->good()) {
-         lf.is->read(&c, 1);
-         if (c == LUA_SIGNATURE[0]) {
-            break;
-         }
-      }
+
+   // look for binary file header
+   if (c == LUA_SIGNATURE[0]) {
       lf.extraline = 0;
+      // code deleted...
+      // using same logic as text file
    }
+
+   // put back the first byte of the part we need to read
    lf.is->putback(c);
+
    status = lua_load(L, getF, &lf, lua_tostring(L, -1));
    lua_remove(L, fnameindex);
    return status;
