@@ -13,6 +13,7 @@ Frame::~Frame()
    for (Counter* c : counters_) {
       delete c;
    }
+   counters_.clear();
 }
 
 Counter* Frame::GetCounter(char const* counter_name)
