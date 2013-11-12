@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "radiant.h"
 #include "crash_reporter_server.h"
 
 #include "resource.h"

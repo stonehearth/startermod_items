@@ -8,7 +8,6 @@ add_executable(crash_reporter_server
                WIN32
                main_win32.cpp
                crash_reporter_server.cpp
-               pch.cpp
                )
 
 set_target_properties(crash_reporter_server

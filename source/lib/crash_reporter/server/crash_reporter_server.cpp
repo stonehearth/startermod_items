@@ -1,5 +1,9 @@
+#include "radiant.h"
+#include "radiant_macros.h"
 #include "crash_reporter_server.h"
+#include "build_number.h"
 #include <fstream>
+#include <sstream>
 
 #include <boost/filesystem.hpp>
 
@@ -71,57 +75,62 @@ bool CrashReporterServer::StartCrashGenerationServer()
 
 void CrashReporterServer::SendCrashReport(std::string const& dump_filename)
 {
-   try {
-      // Rename dump file
-      boost::filesystem::path old_dump_path(dump_filename);
-      boost::filesystem::path new_dump_path = (old_dump_path.parent_path() / CRASH_DUMP_FILENAME).string();
-      boost::filesystem::remove(new_dump_path);
-      boost::filesystem::rename(old_dump_path, new_dump_path);
+   // Rename dump file
+   boost::filesystem::path old_dump_path(dump_filename);
+   boost::filesystem::path new_dump_path = (old_dump_path.parent_path() / CRASH_DUMP_FILENAME).string();
+   boost::filesystem::remove(new_dump_path);
+   boost::filesystem::rename(old_dump_path, new_dump_path);
 
-      // Get zip filename
-      boost::filesystem::path zip_path(new_dump_path);
-      zip_path.replace_extension(".zip");
+   // Get zip filename
+   boost::filesystem::path zip_path(new_dump_path);
+   zip_path.replace_extension(".zip");
 
-      // Create zip package
-      CreateZip(zip_path.string(), new_dump_path.string());
+   // Create zip package
+   CreateZip(zip_path.string(), new_dump_path.string());
 
-      // Get the length of the zip file
-      std::ifstream zip_file(zip_path.string().c_str(), std::ios::in|std::ios::binary);
-      zip_file.seekg(0, std::ios::end);
-      long long const zip_file_length = zip_file.tellg();
-      zip_file.seekg(0, std::ios::beg);
+   // Get the length of the zip file
+   std::ifstream zip_file(zip_path.string().c_str(), std::ios::in|std::ios::binary);
+   zip_file.seekg(0, std::ios::end);
+   long long const zip_file_length = zip_file.tellg();
+   zip_file.seekg(0, std::ios::beg);
 
-      // Set up HTTP POST
-      Poco::URI uri(uri_);
-      std::string path(uri.getPathAndQuery());
-      Poco::Net::HTTPClientSession session(uri.getHost(), uri.getPort());
-      Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, path, Poco::Net::HTTPMessage::HTTP_1_1);
+   // Set up HTTP POST
+   Poco::URI uri(uri_);
 
-      request.setContentType("application/octet-stream");
-      request.setContentLength(zip_file_length);
+   std::ostringstream query;
+   query <<  "branch="   << PRODUCT_BRANCH;
+   query << "&product="  << PRODUCT_NAME;
+   query << "&build="    << PRODUCT_BUILD_NUMBER;
+   query << "&revision=" << PRODUCT_REVISION;
+   uri.setQuery(query.str());
 
-      // Send request, returns open stream
-      std::ostream& request_stream = session.sendRequest(request);
-      Poco::StreamCopier::copyStream(zip_file, request_stream);
-      zip_file.close();
+   std::string path(uri.getPathAndQuery());
+   Poco::Net::HTTPClientSession session(uri.getHost(), uri.getPort());
+   Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, path, Poco::Net::HTTPMessage::HTTP_1_1);
+   
 
-      // Get response
-      Poco::Net::HTTPResponse response;
-      std::istream& response_stream = session.receiveResponse(response);
+   request.setContentType("application/octet-stream");
+   request.setContentLength(zip_file_length);
 
-      // Check result
-      int status = response.getStatus();
-      if (status != Poco::Net::HTTPResponse::HTTP_OK) {
-         // unexpected result code, not much we can do
-	   }
+   // Send request, returns open stream
+   std::ostream& request_stream = session.sendRequest(request);
+   Poco::StreamCopier::copyStream(zip_file, request_stream);
+   zip_file.close();
 
-      // For debugging
-      //std::string response_string(1000, '\0');
-      //response_stream.read(&response_string[0], 1000);
-      //MessageBox(nullptr, response_string.c_str(), "crash_reporter", MB_OK);
-   } catch (std::exception const& e) {
-      LOG(WARNING) << e.what();
-   }
+   // Get response
+   Poco::Net::HTTPResponse response;
+   std::istream& response_stream = session.receiveResponse(response);
+
+   // Check result
+   int status = response.getStatus();
+   if (status != Poco::Net::HTTPResponse::HTTP_OK) {
+      // unexpected result code, not much we can do
+	}
+
+   // For debugging
+   //std::string response_string(1000, '\0');
+   //response_stream.read(&response_string[0], 1000);
+   //MessageBox(nullptr, response_string.c_str(), "crash_reporter", MB_OK);
 }
 
 // Extend this to package a list of files for submission
