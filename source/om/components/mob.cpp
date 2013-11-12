@@ -5,6 +5,8 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+const float PI = 3.14159265359;
+
 void Mob::Describe(std::ostringstream& os) const
 {
    os << "pos:" << GetLocation();
@@ -124,6 +126,19 @@ csg::Point3 Mob::GetWorldGridLocation() const
 csg::Quaternion Mob::GetRotation() const
 {
    return (*transform_).orientation;
+}
+
+//Given the orientation of the character, get the location 1 unit in front of him. 
+csg::Point3 Mob::GetLocationInFront() const
+{
+   csg::Quaternion q = (*transform_).orientation;
+   float angle;
+   q.get_axis_angle(csg::Point3f::unitY, angle);
+   float angle_as_radian = angle * PI / 180;
+   int x = (*transform_).position.x + floor(cosf(angle) + 0.5);
+   int z = (*transform_).position.z + floor(sinf(angle)  + 0.5);
+   //The y position should be calculated by placing the object on the actual terrain. 
+   return csg::Point3(x, 1, z);
 }
 
 csg::Transform Mob::GetTransform() const

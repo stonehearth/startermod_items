@@ -6,6 +6,11 @@ function FoodTest:__init()
    self:create_world()
 
    local bush = self:place_item('stonehearth:berry_bush', 4, 4)
+   local bush = self:place_item('stonehearth:berry_bush', -1, -1)
+   local bush = self:place_item('stonehearth:berry_bush', -4, 4)
+   local bush = self:place_item('stonehearth:berry_bush', 4, -4)
+
+
    local tree = self:place_tree(-12, -12)
 
    --self:place_citizen(12, 12)

@@ -33,6 +33,7 @@ public:
 
    csg::Point3f GetLocation() const;
    csg::Quaternion GetRotation() const;
+   csg::Point3 GetLocationInFront() const;
    csg::Transform GetTransform() const;
    bool GetMoving() const { return moving_; }
    MobPtr GetParent() const { return (*parent_).lock(); }

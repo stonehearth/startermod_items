@@ -1,5 +1,5 @@
 local event_service = require 'services.event.event_service'
-local Vec3 = _radiant.csg.Point3f
+local Point3 = _radiant.csg.Point3
 
 local HarvestPlantsAction = class()
 
@@ -49,11 +49,9 @@ function HarvestPlantsAction:run(ai, entity, path, task)
    if harvestable_component then
       harvestable_component:harvest()
 
-      local basket = radiant.entities.create_entity(harvestable_component:get_takeaway_type)
-      local front_point = self._entity:get_component('mob'):get
-      radiant.terrain.place_entity(basket, self._entity:get_component('mob'):get_world_grid_location())
-
-
+      local basket = radiant.entities.create_entity(harvestable_component:get_takeaway_type())
+      local front_point = self._entity:get_component('mob'):get_location_in_front()
+      radiant.terrain.place_entity(basket, Point3(front_point.x, front_point.y, front_point.z))
    end   
    --ai:execute('stonehearth:pickup_item_on_ground', basket)
    --radiant.entities.pickup_item(entity, basket)

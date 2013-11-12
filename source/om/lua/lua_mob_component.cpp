@@ -67,6 +67,7 @@ scope LuaMobComponent::RegisterLuaTypes(lua_State* L)
          .def("get_aabb",                    &Mob::GetAABB)
          .def("set_aabb",                    &Mob::SetAABB)
          .def("trace",                       &Mob_Trace) // xxx: shouldn't this be generalized in the compnoent?  YES!  YES IT SHOULD!!
+         .def("get_location_in_front",       &Mob::GetLocationInFront) 
       ,
       dm::Boxed<csg::Transform>::RegisterLuaType(L)
       ,

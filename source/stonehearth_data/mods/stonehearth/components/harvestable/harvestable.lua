@@ -37,7 +37,6 @@ end
 function Harvestable:get_takeaway_type()
    return self._takeaway_entity_type
 end
-
 --- Let plant know it's giving up resources
 -- Disable the icon
 -- Produce the harvestable thing
