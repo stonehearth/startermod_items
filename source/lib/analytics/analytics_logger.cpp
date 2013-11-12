@@ -16,6 +16,7 @@
 #include "files.h"
 #include "md5.h"
 
+#include "Poco/URI.h"
 #include "Poco/Net/HTTPClientSession.h"
 #include "Poco/Net/HTTPRequest.h"
 #include "Poco/Net/HTTPResponse.h"
@@ -95,7 +96,7 @@ void AnalyticsLogger::SubmitLogEvent(json::Node event_node, std::string event_ca
 }
 
 //Construct the full event data and send it to the analytics server
-void AnalyticsLogger::SubmitPost(json::Node event_node, std::string domain, std::string path, std::string authorization_string)
+void AnalyticsLogger::SubmitPost(json::Node post_node, std::string uri, std::string authorization_string)
 {
    //If the user has asked us not to collect data, don't. 
    if (!core::Config::GetInstance().GetCollectionStatus()) {
@@ -107,16 +108,16 @@ void AnalyticsLogger::SubmitPost(json::Node event_node, std::string domain, std:
    ASSERT(!build_version_.empty());
 
    //Append common data to the node
-   event_node.set("user_id", userid_);
-   event_node.set("session_id", sessionid_);
-   event_node.set("build", build_version_);
+   post_node.set("user_id", userid_);
+   post_node.set("session_id", sessionid_);
+   post_node.set("build", build_version_);
 
    {
       //Grab the lock
       std::lock_guard<std::mutex> lock(m_);
 
       //put the node and the category into the queue
-      waiting_posts_.push(PostData(event_node, domain, path, authorization_string));
+      waiting_posts_.push(PostData(post_node, uri, authorization_string));
 
       //The lock goes away when lock goes out of scope
       //Note: yes, it is possible for multiple events to be queued up if
@@ -166,34 +167,38 @@ void AnalyticsLogger::SendPostsToServer()
 
 void AnalyticsLogger::PostJson(PostData post_data)
 {
-   json::Node node = post_data.GetJsonNode();
-   std::string domain = post_data.GetDomain();
-   std::string path = post_data.GetPath();
-   std::string authorization_string = post_data.GetAuthorizationString();
+   try {
+      Poco::URI uri(post_data.GetUri());
+      std::string domain(uri.getHost());
+      std::string path(uri.getPathAndQuery());
+      json::Node node = post_data.GetJsonNode();
+      std::string authorization_string = post_data.GetAuthorizationString();
+      std::string node_string = node.write();
 
-   std::string node_string = node.write();
+      HTTPClientSession session(domain);
+      HTTPRequest request(HTTPRequest::HTTP_POST, path, HTTPMessage::HTTP_1_1);
+      request.setContentType("text/plain");
+      request.add("Authorization", authorization_string);
+      request.setContentLength(node_string.length());
 
-   HTTPClientSession session(domain);
-   HTTPRequest request(HTTPRequest::HTTP_POST, path, HTTPMessage::HTTP_1_1);
-   request.setContentType("text/plain");
-   request.add("Authorization", authorization_string);
-   request.setContentLength(node_string.length());
+      // Send request, returns open stream
+      std::ostream& request_stream = session.sendRequest(request);
+      request_stream << node_string;
 
-   // Send request, returns open stream
-   std::ostream& request_stream = session.sendRequest(request);
-   request_stream << node_string;
+      // Get response
+      HTTPResponse response;
+      std::istream& response_stream = session.receiveResponse(response);
 
-   // Get response
-   HTTPResponse response;
-   std::istream& response_stream = session.receiveResponse(response);
-
-   // Check result
-   int status = response.getStatus();
-   if (status != HTTPResponse::HTTP_OK)	{
-      // unexpected result code
-      LOG(WARNING) << "AnalyticsLogger.PostEvent: Unexpected result code from HTTP POST: " << status;
-      LOG(WARNING) << "HTTP POST response was: " << response_stream;
-	}
+      // Check result
+      int status = response.getStatus();
+      if (status != HTTPResponse::HTTP_OK)	{
+         // unexpected result code
+         LOG(WARNING) << "AnalyticsLogger.PostEvent: Unexpected result code from HTTP POST: " << status;
+         LOG(WARNING) << "HTTP POST response was: " << response_stream;
+	   }
+   } catch (std::exception const& e) {
+      LOG(WARNING) << e.what();
+   }
 }
 
 // Don't go through Singleton because we would have a race condition with the constructor calling this function

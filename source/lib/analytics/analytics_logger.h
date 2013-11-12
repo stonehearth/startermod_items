@@ -23,7 +23,7 @@ public:
 
    void SetBasicValues(std::string userid, std::string sessionid, std::string build_version);
    void SubmitLogEvent(json::Node event_node, std::string event_category);
-   void SubmitPost(json::Node event_node, std::string domain, std::string path, std::string authorization_string);
+   void SubmitPost(json::Node event_node, std::string uri, std::string authorization_string);
 
 private:
    void SendPostsToServer();
