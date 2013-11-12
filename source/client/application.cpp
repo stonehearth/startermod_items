@@ -8,11 +8,12 @@
 #include "lib/perfmon/perfmon.h"
 #include "lib/analytics/analytics.h"
 #include "core/config.h"
-#include "poco/UUIDGenerator.h"
+#include "build_number.h"
 #include "boost/thread.hpp"
 #include "lib/crash_reporter/client/crash_reporter_client.h"
 
 using radiant::client::Application;
+namespace po = boost::program_options;
 
 void protobuf_log_handler(google::protobuf::LogLevel level, const char* filename,
                           int line, const std::string& message)
@@ -34,6 +35,13 @@ bool Application::LoadConfig(int argc, const char* argv[])
 
    Client::GetInstance().GetConfigOptions();
    game_engine::arbiter::GetInstance().GetConfigOptions();
+   po::options_description config_file("Renderer options");
+   config_file.add_options()
+      (
+         "support.crash_dump_server",
+         po::value<std::string>(&crash_dump_uri_)->default_value(CRASH_DUMP_URI), "Where to send crash dumps"
+      );
+   core::Config::GetInstance().GetConfigFileOptions().add(config_file);
 
    return config.Load(argc, argv);
 }
@@ -41,9 +49,8 @@ bool Application::LoadConfig(int argc, const char* argv[])
 bool Application::InitializeCrashReporting(std::string& error_string)
 {
    std::string const crash_dump_path = core::Config::GetInstance().GetTmpDirectory().string();
-   std::string const crash_dump_uri = "http://posttestserver.com/post.php"; // 3rd party test server
 
-   return crash_reporter::client::CrashReporterClient::GetInstance().Start(crash_dump_path, crash_dump_uri, error_string);
+   return crash_reporter::client::CrashReporterClient::GetInstance().Start(crash_dump_path, crash_dump_uri_, error_string);
 }
 
 void Application::ClientThreadMain()
