@@ -20,6 +20,7 @@
 #include "egRenderer.h"
 
 #include "utDebug.h"
+#include "lib/perfmon/perfmon.h"
 
 //#include "radiant.h"
 
@@ -505,6 +506,7 @@ NodeRegEntry *SceneManager::findType( const std::string &typeString )
 
 void SceneManager::updateNodes()
 {
+   radiant::perfmon::TimelineCounterGuard un("updateNodes");
 	getRootNode().update();
 }
 
@@ -512,6 +514,7 @@ void SceneManager::updateNodes()
 void SceneManager::updateQueues( const char* reason, const Frustum &frustum1, const Frustum *frustum2, RenderingOrder::List order,
                                  uint32 filterIgnore, uint32 filterRequired, bool lightQueue, bool renderableQueue )
 {
+   radiant::perfmon::TimelineCounterGuard uq("updateQueues");
 	_spatialGraph->updateQueues( reason, frustum1, frustum2, order, filterIgnore, filterRequired, lightQueue, renderableQueue );
 }
 

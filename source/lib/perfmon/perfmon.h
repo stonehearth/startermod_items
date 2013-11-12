@@ -9,9 +9,11 @@ BEGIN_RADIANT_PERFMON_NAMESPACE
 class TimelineCounterGuard {
 public:
    TimelineCounterGuard(char const* name);
+   void Dispose();
    ~TimelineCounterGuard();
    
 private:
+   bool              disposed_;
    Counter*          last_counter_;
 };
 

@@ -430,7 +430,6 @@ void Client::mainloop()
    authoringStore_.FireTraces();
    authoringStore_.FireFinishedTraces();
 
-   perfmon::SwitchToCounter("render");
    Renderer::GetInstance().RenderOneFrame(now_, alpha);
 
    if (send_queue_) {
