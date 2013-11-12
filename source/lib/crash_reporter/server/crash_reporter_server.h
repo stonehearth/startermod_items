@@ -1,7 +1,6 @@
 #ifndef _RADIANT_CRASH_REPORTER_SERVER_CRASH_REPORTER_SERVER_H
 #define _RADIANT_CRASH_REPORTER_SERVER_CRASH_REPORTER_SERVER_H
 
-#include "radiant.h"
 #include "namespace.h"
 #include "core/singleton.h"
 #include <functional>

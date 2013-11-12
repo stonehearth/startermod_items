@@ -1,5 +1,9 @@
+#include "radiant.h"
+#include "radiant_macros.h"
 #include "crash_reporter_server.h"
+#include "build_number.h"
 #include <fstream>
+#include <sstream>
 
 #include <boost/filesystem.hpp>
 
@@ -92,9 +96,18 @@ void CrashReporterServer::SendCrashReport(std::string const& dump_filename)
 
    // Set up HTTP POST
    Poco::URI uri(uri_);
+
+   std::ostringstream query;
+   query <<  "branch="   << PRODUCT_BRANCH;
+   query << "&product="  << PRODUCT_NAME;
+   query << "&build="    << PRODUCT_BUILD_NUMBER;
+   query << "&revision=" << PRODUCT_REVISION;
+   uri.setQuery(query.str());
+
    std::string path(uri.getPathAndQuery());
    Poco::Net::HTTPClientSession session(uri.getHost(), uri.getPort());
    Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, path, Poco::Net::HTTPMessage::HTTP_1_1);
+   
 
    request.setContentType("application/octet-stream");
    request.setContentLength(zip_file_length);
