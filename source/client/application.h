@@ -23,6 +23,9 @@ namespace radiant {
             bool InitializeCrashReporting(std::string& error_string);
 
             static void ClientThreadMain();
+
+         private:
+            std::string crash_dump_uri_;
       };
    };
 };

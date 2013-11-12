@@ -1,5 +1,6 @@
 #include "pch.h"
 #include <regex>
+#include "build_number.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include "core/config.h"
@@ -42,6 +43,7 @@
 #include "lib/lua/voxel/open.h"
 #include "lib/lua/analytics/open.h"
 #include "lib/analytics/design_event.h"
+#include "lib/analytics/post_data.h"
 #include "lib/audio/input_stream.h"
 #include "client/renderer/render_entity.h"
 #include "lib/perfmon/perfmon.h"
@@ -182,6 +184,30 @@ Client::Client() :
          node.set("has_expressed_preference", config.IsCollectionStatusSet());
          node.set("collection_status", config.GetCollectionStatus());
          result->Resolve(node);
+      } catch (std::exception const& e) {
+         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
+      }
+      return result;
+   });
+
+   //Pass framerate, cpu, card, memory info up
+   core_reactor_->AddRoute("radiant:send_performance_stats", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:send_performance_stats");
+      try {
+         json::Node node;
+         SystemStats stats = Renderer::GetInstance().GetStats();
+         node.set("framerate", stats.frameRate);
+         node.set("cpu", stats.cpuInfo);
+         node.set("memory", stats.memInfo);
+         node.set("card", stats.gpuInfo);
+
+         // xxx, parse GAME_DEMOGRAPHICS_URL into domain and path, in postdata
+         std::string domain = "";
+         std::string path = "";
+         analytics::PostData post_data(node, GAME_DEMOGRAPHICS_URI,  "");
+         post_data.Send();
+         result->ResolveWithMsg("success");
+
       } catch (std::exception const& e) {
          result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
       }

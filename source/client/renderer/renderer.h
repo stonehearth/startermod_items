@@ -62,6 +62,13 @@ struct RendererConfig {
    int  shadow_resolution;
 };
 
+struct SystemStats {
+   float frameRate;
+   std::string cpuInfo;
+   std::string gpuInfo;
+   int memInfo;
+};
+
 class Renderer
 {
    public:
@@ -87,6 +94,7 @@ class Renderer
       int GetWidth() const;
       int GetHeight() const;
       void SetUITextureSize(int width, int height);
+	  SystemStats GetStats();
 
       csg::Point2 GetMousePosition() const;
       csg::Matrix4 GetNodeTransform(H3DNode node) const;

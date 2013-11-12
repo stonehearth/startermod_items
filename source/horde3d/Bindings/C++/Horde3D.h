@@ -127,6 +127,7 @@ struct H3DStats
 		ParticleGPUTime   - GPU time in ms spent for drawing particles
 		TextureVMem       - Estimated amount of video memory used by textures (in Mb)
 		GeometryVMem      - Estimated amount of video memory used by geometry (in Mb)
+      AverageFrame Time - Average time over the last number of frames.
 	*/
 	enum List
 	{
@@ -142,7 +143,8 @@ struct H3DStats
 		ShadowsGPUTime,
 		ParticleGPUTime,
 		TextureVMem,
-		GeometryVMem
+		GeometryVMem,
+      AverageFrameTime
 	};
 };
 

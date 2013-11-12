@@ -258,6 +258,61 @@ void Renderer::ApplyConfig()
    h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples);
 }
 
+SystemStats Renderer::GetStats()
+{
+	SystemStats result;
+
+	result.frameRate = 1000.0f / h3dGetStat(H3DStats::AverageFrameTime, false);
+
+	char *vendor = (char *)glGetString( GL_VENDOR );
+	char *renderer = (char *)glGetString( GL_RENDERER );
+	char *version = (char *)glGetString( GL_VERSION );
+	std::string gpuStr;
+	gpuStr.append(vendor); gpuStr.append(": ");
+	gpuStr.append(renderer); gpuStr.append(": ");
+	gpuStr.append(version);
+	result.gpuInfo = gpuStr;
+
+    int CPUInfo[4] = {-1};
+    __cpuid(CPUInfo, 0x80000000);
+    unsigned int nExIds = CPUInfo[0];
+
+    // Get the information associated with each extended ID.
+    char CPUBrandString[0x40] = { 0 };
+    for( unsigned int i=0x80000000; i<=nExIds; ++i)
+    {
+        __cpuid(CPUInfo, i);
+
+        // Interpret CPU brand string and cache information.
+        if  (i == 0x80000002)
+        {
+            memcpy( CPUBrandString,
+            CPUInfo,
+            sizeof(CPUInfo));
+        }
+        else if( i == 0x80000003 )
+        {
+            memcpy( CPUBrandString + 16,
+            CPUInfo,
+            sizeof(CPUInfo));
+        }
+        else if( i == 0x80000004 )
+        {
+            memcpy(CPUBrandString + 32, CPUInfo, sizeof(CPUInfo));
+        }
+	}
+	result.cpuInfo = std::string(CPUBrandString);
+
+#ifdef _WIN32
+	MEMORYSTATUSEX status;
+    status.dwLength = sizeof(status);
+    GlobalMemoryStatusEx(&status);
+	result.memInfo = (int)(status.ullTotalPhys / 1048576.0f);
+#endif
+	LOG(WARNING) << "reported fps: " << result.frameRate;
+	return result;
+}
+
 void Renderer::SetStageEnable(const char* stageName, bool enabled)
 {
    int stageCount = h3dGetResElemCount(currentPipeline_, H3DPipeRes::StageElem);
@@ -355,7 +410,7 @@ HWND Renderer::GetWindowHandle() const
 
 void Renderer::RenderOneFrame(int now, float alpha)
 {
-   perfmon::TimelineCounterGuard cg("render");
+   perfmon::TimelineCounterGuard tcg("render one");
 
    bool debug = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS;
    bool showStats = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
@@ -385,38 +440,38 @@ void Renderer::RenderOneFrame(int now, float alpha)
                           ww,       .9f,    1, 1, };
    }
 
-   perfmon::TimelineCounterGuard rft("render fire traces") ;  
+   perfmon::SwitchToCounter("render fire traces") ;  
    render_frame_start_slot_.Signal(FrameStartInfo(now, alpha));
-   rft.Dispose();
 
    if (showStats) { 
-      perfmon::TimelineCounterGuard ss("show stats") ;  
+      perfmon::SwitchToCounter("show stats") ;  
       // show stats
       h3dCollectDebugFrame();
       h3dutShowFrameStats( fontMatRes_, panelMatRes_, H3DUTMaxStatMode );
    }
 
-   perfmon::TimelineCounterGuard lr("render load res");
+   perfmon::SwitchToCounter("render load res");
    fileWatcher_.update();
    LoadResources();
-   lr.Dispose();
 
    h3dSetMaterialArrayUniform( ssaoMat, "samplerKernel", ssaoSamplerData.data(), ssaoSamplerData.size());
 
    // Render scene
+   perfmon::SwitchToCounter("render h3d");
    h3dRender(camera_->GetNode());
 
    // Finish rendering of frame
    UpdateCamera();
+   perfmon::SwitchToCounter("render finalize");
    h3dFinalizeFrame();
+   //glFinish();
 
    // Advance emitter time; this must come AFTER rendering, because we only know which emitters
    // to update after doing a render pass.
-   perfmon::TimelineCounterGuard uc("update cubemitter");
+   perfmon::SwitchToCounter("render ce");
    float delta = (now - last_render_time_) / 1000.0f;
    h3dRadiantAdvanceCubemitterTime(delta);
    h3dRadiantAdvanceAnimatedLightTime(delta);
-   uc.Dispose();
 
    // Remove all overlays
    h3dClearOverlays();
@@ -424,9 +479,8 @@ void Renderer::RenderOneFrame(int now, float alpha)
    // Write all messages to log file
    h3dutDumpMessages();
 
-   perfmon::TimelineCounterGuard sw("render swap");
+   perfmon::SwitchToCounter("render swap");
    glfwSwapBuffers(glfwGetCurrentContext());
-   sw.Dispose();
 
    last_render_time_ = now;
 }
