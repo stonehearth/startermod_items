@@ -34,4 +34,7 @@
 #define GAME_ANALYTICS_SECRET_KEY      "70904f041d9e579c3d34f40cdb5bc0c16ad0c09a"
 #define GAME_ANALYTICS_DATA_API_KEY    "79fbff531bea1d30436ef6ec63a2ab71ecf6f62"
 
+#define GAME_DEMOGRAPHICS_DOMAIN       "localhost"
+#define GAME_DEMOGRAPHICS_PATH         "/demo/log.php"
+
 #endif // _BUILD_DEFAULTS_H

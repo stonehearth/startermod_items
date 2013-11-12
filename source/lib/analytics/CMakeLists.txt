@@ -10,6 +10,7 @@ add_library(analytics
             analytics.cpp
             analytics_logger.cpp
             design_event.cpp
+            post_data.cpp
             event_data.cpp
             )
 
