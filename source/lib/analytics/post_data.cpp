@@ -9,11 +9,10 @@ using namespace ::radiant;
 using namespace ::radiant::analytics;
 
 //Helper data class, Event Data
-PostData::PostData(json::Node node, std::string domain, std::string path, std::string authorization_string)
+PostData::PostData(json::Node node, std::string uri, std::string authorization_string)
 {
    node_ = node;
-   domain_ = domain;
-   path_ = path;
+   uri_ = uri;
    authorization_string_ = authorization_string;
 }
 
@@ -26,14 +25,9 @@ json::Node PostData::GetJsonNode()
    return node_;
 }
 
-std::string PostData::GetDomain()
+std::string PostData::GetUri()
 {
-   return domain_;
-}
-
-std::string PostData::GetPath()
-{
-   return path_;
+   return uri_;
 }
 
 std::string PostData::GetAuthorizationString()
@@ -44,5 +38,5 @@ std::string PostData::GetAuthorizationString()
 void PostData::Send()
 {
    analytics::AnalyticsLogger &logger = analytics::AnalyticsLogger::GetInstance();
-   logger.SubmitPost(node_, domain_, path_, authorization_string_);
+   logger.SubmitPost(node_, uri_, authorization_string_);
 }

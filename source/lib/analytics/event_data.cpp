@@ -21,7 +21,7 @@ const std::string API_VERSION = "1";
 
 //Helper data class, Event Data
 EventData::EventData(json::Node event_node, std::string event_category)
-   : PostData(event_node, GAME_ANALYTICS_DOMAIN,  "/" + API_VERSION + "/" + GAME_ANALYTICS_GAME_KEY + "/" + event_category, "")
+: PostData(event_node, std::string(GAME_ANALYTICS_URI) + "/" + std::string(GAME_ANALYTICS_API_VERSION) + "/" + std::string(GAME_ANALYTICS_GAME_KEY) + "/" + event_category, "")
 {
    event_node_ = event_node;
    event_category_ = event_category;

@@ -204,7 +204,7 @@ Client::Client() :
          // xxx, parse GAME_DEMOGRAPHICS_URL into domain and path, in postdata
          std::string domain = "";
          std::string path = "";
-         analytics::PostData post_data(node, GAME_DEMOGRAPHICS_DOMAIN, GAME_DEMOGRAPHICS_PATH,  "");
+         analytics::PostData post_data(node, GAME_DEMOGRAPHICS_URI,  "");
          post_data.Send();
          result->ResolveWithMsg("success");
 

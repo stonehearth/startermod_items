@@ -7,12 +7,6 @@
       this._super();
       this._traces = {};
       this._trace = new RadiantTrace();
-
-      //Note: some views have no template, ignore
-      if (this.templateName != null) {
-         radiant.call('radiant:send_design_event', 
-                      'ui:show_ui:' + this.templateName);
-      }
    },
 
    destroy: function() {
