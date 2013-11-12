@@ -6,6 +6,8 @@
 #include "libjson.h"
 #include <boost/algorithm/string.hpp>
 #include "core/config.h"
+#include "post_data.h"
+#include "event_data.h"
 
 // Crytop stuff (xxx - change the include path so these generic headers aren't in it)
 #define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
@@ -26,9 +28,6 @@ using Poco::Net::HTTPMessage;
 using namespace ::radiant;
 using namespace ::radiant::analytics;
 
-const std::string GAME_ANALYTICS_DOMAIN = "api.gameanalytics.com";
-const std::string API_VERSION = "1";
-
 //Logger begins here
 DEFINE_SINGLETON(AnalyticsLogger);
 
@@ -40,7 +39,7 @@ AnalyticsLogger::AnalyticsLogger() :
    // They do not have the proper top level exception handling behavior which is configured
    // using SetUnhandledExceptionFilter on Windows.
    // Windows CreateThread and boost::thread appear to work
-   event_sender_thread_(std::bind(AnalyticsThreadMain, this))
+   post_sender_thread_(std::bind(AnalyticsThreadMain, this))
 {   
 }
 
@@ -49,7 +48,7 @@ AnalyticsLogger::~AnalyticsLogger()
 {
    stopping_thread_ = true;
    cv_.notify_one();
-   event_sender_thread_.join();
+   post_sender_thread_.join();
    // do any other cleanup after thread terminates (none currently)
 }
 
@@ -84,7 +83,7 @@ void AnalyticsLogger::SubmitLogEvent(json::Node event_node, std::string event_ca
       std::lock_guard<std::mutex> lock(m_);
 
       //put the node and the category into the queue
-      waiting_events_.push(EventData(event_node, event_category));
+      waiting_posts_.push(EventData(event_node, event_category));
 
       //The lock goes away when lock goes out of scope
       //Note: yes, it is possible for multiple events to be queued up if
@@ -95,10 +94,43 @@ void AnalyticsLogger::SubmitLogEvent(json::Node event_node, std::string event_ca
    cv_.notify_one();
 }
 
-void AnalyticsLogger::SendEventsToServer()
+//Construct the full event data and send it to the analytics server
+void AnalyticsLogger::SubmitPost(json::Node event_node, std::string domain, std::string path, std::string authorization_string)
+{
+   //If the user has asked us not to collect data, don't. 
+   if (!core::Config::GetInstance().GetCollectionStatus()) {
+      return;
+   }
+
+   ASSERT(!userid_.empty());
+   ASSERT(!sessionid_.empty());
+   ASSERT(!build_version_.empty());
+
+   //Append common data to the node
+   event_node.set("user_id", userid_);
+   event_node.set("session_id", sessionid_);
+   event_node.set("build", build_version_);
+
+   {
+      //Grab the lock
+      std::lock_guard<std::mutex> lock(m_);
+
+      //put the node and the category into the queue
+      waiting_posts_.push(PostData(event_node, domain, path, authorization_string));
+
+      //The lock goes away when lock goes out of scope
+      //Note: yes, it is possible for multiple events to be queued up if
+      //they fire while the post is stuck
+   }
+
+   //notify the conditional 
+   cv_.notify_one();
+}
+
+void AnalyticsLogger::SendPostsToServer()
 {
    //Local, to hold the events popped off the structure shared b/w threads
-   std::queue<EventData> send_events;
+   std::queue<PostData> send_posts;
 
    while(true) {
       //Grab the lock. If there is nothing in the queue and we're not supposed to
@@ -108,21 +140,21 @@ void AnalyticsLogger::SendEventsToServer()
       {
          std::unique_lock<std::mutex> lock(m_);
 
-         if (waiting_events_.empty() && !stopping_thread_) {
+         if (waiting_posts_.empty() && !stopping_thread_) {
             cv_.wait(lock);
          } 
 
-         ASSERT(send_events.empty());
-         send_events = std::move(waiting_events_);
-         ASSERT(waiting_events_.empty());
+         ASSERT(send_posts.empty());
+         send_posts = std::move(waiting_posts_);
+         ASSERT(waiting_posts_.empty());
       }
 
-      //Take all the events in send_events and post them. 
+      //Take all the events in send_posts and post them. 
       //Possible perf. optimization: create all posts and then do curl_multi_perform once at the end
-      while (!send_events.empty()) {
-         EventData target_event = send_events.front();
-         send_events.pop();
-         PostEvent(target_event.GetJsonNode(), target_event.GetCategory());
+      while (!send_posts.empty()) {
+         PostData target_post = send_posts.front();
+         send_posts.pop();
+         PostJson(target_post);
       }
 
       //If we're supposed to stop, take this opportunity to do so. 
@@ -132,40 +164,24 @@ void AnalyticsLogger::SendEventsToServer()
    }
 }
 
-void AnalyticsLogger::PostEvent(json::Node event_node, std::string event_category)
+void AnalyticsLogger::PostJson(PostData post_data)
 {
-   std::string event_string = event_node.write();
+   json::Node node = post_data.GetJsonNode();
+   std::string domain = post_data.GetDomain();
+   std::string path = post_data.GetPath();
+   std::string authorization_string = post_data.GetAuthorizationString();
 
-   // the header is the data + secret key
-   std::string header = event_string + GAME_ANALYTICS_SECRET_KEY;
+   std::string node_string = node.write();
 
-   // Hash the header with md5
-   // Borrowing sample code from http://www.cryptopp.com/wiki/Hash_Functions
-   CryptoPP::Weak::MD5 hash;
-   byte digest[CryptoPP::Weak::MD5::DIGESTSIZE];
-   hash.CalculateDigest(digest, (byte*)header.c_str(), header.length());
-
-   CryptoPP::HexEncoder encoder;
-   std::string digest_string;
-   encoder.Attach(new CryptoPP::StringSink(digest_string));
-   encoder.Put(digest, sizeof(digest));
-   encoder.MessageEnd();
-
-   // Super important to make sure the final hex is all lower case
-   boost::algorithm::to_lower(digest_string);
-
-   std::string path = "/" + API_VERSION + "/" + GAME_ANALYTICS_GAME_KEY + "/" + event_category;
-
-   HTTPClientSession session(GAME_ANALYTICS_DOMAIN);
-
+   HTTPClientSession session(domain);
    HTTPRequest request(HTTPRequest::HTTP_POST, path, HTTPMessage::HTTP_1_1);
    request.setContentType("text/plain");
-   request.add("Authorization", digest_string);
-   request.setContentLength(event_string.length());
+   request.add("Authorization", authorization_string);
+   request.setContentLength(node_string.length());
 
    // Send request, returns open stream
    std::ostream& request_stream = session.sendRequest(request);
-   request_stream << event_string;
+   request_stream << node_string;
 
    // Get response
    HTTPResponse response;
@@ -183,5 +199,5 @@ void AnalyticsLogger::PostEvent(json::Node event_node, std::string event_categor
 // Don't go through Singleton because we would have a race condition with the constructor calling this function
 void AnalyticsLogger::AnalyticsThreadMain(AnalyticsLogger* logger)
 {
-   logger->SendEventsToServer();
+   logger->SendPostsToServer();
 }

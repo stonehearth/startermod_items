@@ -35,4 +35,7 @@
 #define GAME_ANALYTICS_DATA_API_KEY    "79fbff531bea1d30436ef6ec63a2ab71ecf6f62"
 #define CRASH_DUMP_URI                 "http://support-stage/crash_dump/add_report"
 
+#define GAME_DEMOGRAPHICS_DOMAIN       "localhost"
+#define GAME_DEMOGRAPHICS_PATH         "/demo/log.php"
+
 #endif // _BUILD_DEFAULTS_H

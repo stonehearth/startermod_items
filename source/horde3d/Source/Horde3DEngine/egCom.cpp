@@ -294,8 +294,12 @@ StatManager::StatManager()
 	_statBatchCount = 0;
 	_statLightPassCount = 0;
 
+   _curFrame = 0;
 	_frameTime = 0;
-
+	for (int i = 0; i < 20; i++)
+	{
+		_frameTimes[i] = 0.0;
+	}
 	_fwdLightsGPUTimer = new GPUTimer();
 	_defLightsGPUTimer = new GPUTimer();
 	_shadowsGPUTimer = new GPUTimer();
@@ -315,6 +319,7 @@ StatManager::~StatManager()
 float StatManager::getStat( int param, bool reset )
 {
 	float value;	
+   float sum = 0.0;
 	
 	switch( param )
 	{
@@ -334,6 +339,13 @@ float StatManager::getStat( int param, bool reset )
 		value = _frameTime;
 		if( reset ) _frameTime = 0;
 		return value;
+   case EngineStats::AverageFrameTime:
+      for (int i = 0; i < 20; i++)
+      {
+         sum += _frameTimes[i];
+      }
+      value = sum / 20.0f;
+      return value;
 	case EngineStats::AnimationTime:
 		value = _animTimer.getElapsedTimeMS();
 		if( reset ) _animTimer.reset();
@@ -388,6 +400,8 @@ void StatManager::incStat( int param, float value )
 		break;
 	case EngineStats::FrameTime:
 		_frameTime += value;
+      _frameTimes[_curFrame] = _frameTime;
+      _curFrame = (_curFrame + 1) % 20;
 		break;
 	}
 }
