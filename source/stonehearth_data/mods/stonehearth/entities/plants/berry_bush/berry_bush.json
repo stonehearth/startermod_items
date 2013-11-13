@@ -35,7 +35,7 @@
       },
       "stonehearth:harvestable" : {
          "renewable" : true, 
-         "renewal_time" : 3,
+         "renewal_time" : 1,
          "takeaway_entity" : "stonehearth:berry_basket",
          "harvest_command" : "harvest_berries"
       }

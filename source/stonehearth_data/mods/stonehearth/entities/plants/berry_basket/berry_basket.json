@@ -3,6 +3,8 @@
    "type": "entity",
    "components": {
       "item": {
+         "stacks" : 5,
+         "maxStacks" : 5
       },
       "model_variants": [
          {
@@ -17,9 +19,9 @@
       },
       "stonehearth:material" : {
          "tags" :  "dye resource fruit food"
-      },
-      "stonehearth:attributes": {
-         "max_servings" : 5
       }
+   },
+   "entity_data" : {
+      "stonehearth:serving_item" : "stonehearth:berry_plate"
    }
 }

@@ -37,7 +37,7 @@ function HarvestPlantsAction:run(ai, entity, path, task)
    self._task = task
 
    -- Log successful grab
-   event_service:add_entry('<' .. worker_name .. '>:' .. 'Mmm! A ' .. plant_name)
+   event_service:add_entry(worker_name .. ' is collecting stuff from a ' .. plant_name)
 
    ai:execute('stonehearth:follow_path', path)
    radiant.entities.turn_to_face(entity, plant)
@@ -53,9 +53,6 @@ function HarvestPlantsAction:run(ai, entity, path, task)
       local front_point = self._entity:get_component('mob'):get_location_in_front()
       radiant.terrain.place_entity(basket, Point3(front_point.x, front_point.y, front_point.z))
    end   
-   --ai:execute('stonehearth:pickup_item_on_ground', basket)
-   --radiant.entities.pickup_item(entity, basket)
-   --ai:execute('stonehearth:run_effect', 'carry_pickup')
 
    --If we got here, we succeeded at the action.  We can get rid of this task now.
    self._task:destroy()

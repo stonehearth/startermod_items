@@ -9,7 +9,9 @@
             "stonehearth:actions:sleep_on_ground_action",
             "stonehearth:actions:grab_talisman_action",
             "stonehearth:actions:admire_fire_action",
-            "stonehearth:actions:find_food_action"
+            "stonehearth:actions:find_food_action",
+            "stonehearth:actions:serve_food_action",
+            "stonehearth:actions:eat_food_action"
          ],
           "observers": [
             "stonehearth:observers:sleep",

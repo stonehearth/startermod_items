@@ -81,6 +81,7 @@
          "pink_flower" : "file(entities/ground_clutter/pink_flower)",
 
          "berry_basket" : "file(entities/plants/berry_basket)",
+         "berry_plate" : "file(entities/plants/berry_plate)",
 
          "arch_backed_chair" :       "file(entities/furniture/arch_backed_chair)",
          "arch_backed_chair_proxy" : "file(entities/furniture/arch_backed_chair/arch_backed_chair_proxy.json)",
@@ -170,6 +171,8 @@
          "actions:grab_talisman_action" : "file(ai/actions/grab_talisman_action.lua)",
          "actions:admire_fire_action" : "file(ai/actions/admire_fire_action.lua)",
          "actions:find_food_action" : "file(ai/actions/find_food_action.lua)",
+         "actions:serve_food_action" : "file(ai/actions/serve_food_action.lua)",
+         "actions:eat_food_action" : "file(ai/actions/eat_food_action.lua)",
          "actions:chop_tree_action" : "file(ai/actions/chop_tree_action.lua)",
          "actions:carry_item_on_path_to" : "file(ai/actions/carry_item_on_path_to.lua)",
          "actions:worker_task_dispatcher" : "file(ai/actions/worker_task_dispatcher.lua)",

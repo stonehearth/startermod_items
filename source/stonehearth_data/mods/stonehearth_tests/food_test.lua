@@ -10,6 +10,7 @@ function FoodTest:__init()
    local bush = self:place_item('stonehearth:berry_bush', -4, 4)
    local bush = self:place_item('stonehearth:berry_bush', 4, -4)
 
+   --self:place_item('stonehearth:arch_backed_chair', -6, -6)
 
    local tree = self:place_tree(-12, -12)
 
@@ -18,7 +19,7 @@ function FoodTest:__init()
    local faction = worker:get_component('unit_info'):get_faction()
 
    self:at(10,  function()
-         self:place_stockpile_cmd(faction, 12, 12, 4, 4)
+         self:place_stockpile_cmd(faction, 8, 8, 4, 4)
       end)
 
    self:at(100, function()

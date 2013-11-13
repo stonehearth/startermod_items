@@ -11,11 +11,15 @@
       ],
       "unit_info": {
          "name": "Cathedral-Arch Chair",
-         "description": "Borrows class from the impression of piety.",
+         "description": "Classy like piety.",
          "icon" : "file(arch_backed_chair.png)"
       },
       "stonehearth:material" : {
          "tags" : "wood furniture"
-      }
+      },
+      "stonehearth:lease_component" : {}
+   },
+    "entity_data" : {
+      "stonehearth:chair" : {}
    }
 }

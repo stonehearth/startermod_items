@@ -1,0 +1,19 @@
+{
+   "type": "entity",
+   "components": {
+      "unit_info": {
+         "name": "Plate of berries",
+         "description": "TODO: invent whipped cream."
+      },
+      "stonehearth:attributes" : {
+        "sates_hunger" : 100
+      },
+      "model_variants": [
+         {
+            "models": [
+               "file(berry_plate.qb)"
+            ]
+         }
+      ]
+   }
+}

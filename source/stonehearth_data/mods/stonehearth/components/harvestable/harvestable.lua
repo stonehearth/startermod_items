@@ -10,18 +10,22 @@ local Harvestable = class()
 function Harvestable:__init(entity, data_store)
    self._entity = entity
 
-   self._renewal_time = nil         --num in-game hours till renewal
+   self._renewable = false           --Whether the resource can regrow
+   self._renewal_time = nil          --num in-game hours till renewal
    self._takeaway_entity_type = nil  --entity to create on harvest
 
    self._data = data_store:get_data()
    self._data.hours_till_next_growth = nil
    self._data_store = data_store
 
-   radiant.events.listen(calendar, 'stonehearth:hourly', self, self.on_hourly)
 end
 
 function Harvestable:extend(json)
    if json then
+      if json.renewable then
+         self._renewable = json.renewable
+         radiant.events.listen(calendar, 'stonehearth:hourly', self, self.on_hourly)
+      end
       if json.renewal_time then
          self._renewal_time = json.renewal_time
       end
@@ -37,25 +41,20 @@ end
 function Harvestable:get_takeaway_type()
    return self._takeaway_entity_type
 end
+
 --- Let plant know it's giving up resources
 -- Disable the icon
 -- Produce the harvestable thing
 -- Set the clock so the renewal period can count down
 function Harvestable:harvest()
    local bush_commands = self._entity:get_component('stonehearth:commands')
-   bush_commands:enable_command('harvest_berries', false)
-
-   --TODO: change model to be the version w/o the collectable
-
-   --local basket = radiant.entities.create_entity(self._takeaway_entity_type)
-   --radiant.terrain.place_entity(basket, self._entity:get_component('mob'):get_world_grid_location())
-
+   bush_commands:enable_command(self._harvest_command_name, false)
    self._data.hours_till_next_growth = self._renewal_time
 end
 
 --- Every hour, if there are no harvestable items, check if they've regrown yet.
 function Harvestable:on_hourly()
-   --There's something harvestable on the plant. Return.
+   --There's already something harvestable on the plant. Return.
    if self._data.hours_till_next_growth == nil then
       return
    end
@@ -63,11 +62,8 @@ function Harvestable:on_hourly()
    --- Countdown till we're harvestable again.
    -- Once we're harvestable, change the bush model and the UI. 
    if self._data.hours_till_next_growth <= 0 then
-
-      --TODO: change the model to be the version with the collectable
-
       local bush_commands = self._entity:get_component('stonehearth:commands')
-      bush_commands:enable_command('harvest_berries', true)
+      bush_commands:enable_command(self._harvest_command_name, true)
       self._data.hours_till_next_growth = nil
    else  
       self._data.hours_till_next_growth = self._data.hours_till_next_growth - 1

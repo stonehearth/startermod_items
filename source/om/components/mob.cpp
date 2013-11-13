@@ -128,7 +128,7 @@ csg::Quaternion Mob::GetRotation() const
    return (*transform_).orientation;
 }
 
-//Given the orientation of the character, get the location 1 unit in front of him. 
+//Given the orientation of the character, get a location 1 unit away from him. 
 csg::Point3 Mob::GetLocationInFront() const
 {
    csg::Quaternion q = (*transform_).orientation;
