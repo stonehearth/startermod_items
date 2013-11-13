@@ -26,12 +26,12 @@ endif
 
 # default commands and such
 7ZA=7za
-MSBUILD='/c/windows/Microsoft.NET/Framework/v4.0.30319/msbuild.exe' -nologo -maxcpucount -p:PlatformToolset=v110 
+MSBUILD='/c/windows/Microsoft.NET/Framework/v4.0.30319/msbuild.exe' -nologo -maxcpucount -p:PlatformToolset=$(RADIANT_VISUAL_STUDIO_PLATFORM_TOOLS_VERSION)
 
 CMAKE_C_FLAG_OVERRIDE=-DCMAKE_USER_MAKE_RULES_OVERRIDE=${MAKE_ROOT_DOS}/c_flag_overrides.cmake
 CMAKE_CXX_FLAG_OVERRIDE=-DCMAKE_USER_MAKE_RULES_OVERRIDE_CXX=${MAKE_ROOT_DOS}/cxx_flag_overrides.cmake
 CMAKE_FLAG_OVERRIDE=$(CMAKE_C_FLAG_OVERRIDE) $(CMAKE_CXX_FLAG_OVERRIDE)
-CMAKE=cmake.exe $(CMAKE_FLAG_OVERRIDE)
+CMAKE=cmake.exe -T $(RADIANT_VISUAL_STUDIO_PLATFORM_TOOLS_VERSION) $(CMAKE_FLAG_OVERRIDE)
 
 #CMAKE=cmake.exe
 VCUPGRADE=vcupgrade -overwrite

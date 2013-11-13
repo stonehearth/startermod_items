@@ -2,8 +2,9 @@
    "type" : "debuff",
    
    "name" : "Groggy",
+   "description" : "A hard night's sleep on the ground lowers speed by 50%. A bed would be much better!",
    "icon" : "file(groggy_buff.png)",
-   "duration" : "2h",
+   "duration" : "1h",
 
    "modifiers" : {
       "speed" : {

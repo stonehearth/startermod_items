@@ -26,6 +26,7 @@
 #include "lib/json/node.h"
 #include "lib/lua/script_host.h"
 #include "lib/perfmon/perfmon.h"
+#include "lib/audio/input_stream.h"
 #include <SFML/Audio.hpp>
 
 using namespace ::radiant;
@@ -571,13 +572,6 @@ PlayMusicEffect::PlayMusicEffect(RenderEntity& e, om::EffectPtr effect, const JS
 	entity_(e)
 {
    startTime_ = effect->GetStartTime();
-   std::string trackName = node["track"].as_string();
-   try {
-      trackName = res::ResourceManager2::GetInstance().GetResourceFileName(trackName, "");
-   } catch (res::Exception& e) {
-      LOG(WARNING) << "could not load music effect: " << e.what();
-      return;
-   }
    
    loop_ = PLAY_MUSIC_EFFECT_DEFAULT_LOOP;
 
@@ -586,11 +580,12 @@ PlayMusicEffect::PlayMusicEffect(RenderEntity& e, om::EffectPtr effect, const JS
       loop_ = (bool)i->as_bool();
    }
 
-   if (music_.openFromFile(trackName)) {
+   std::string track = node["track"].as_string();
+   if (music_.openFromStream(audio::InputStream(track))) {
       music_.setLoop(loop_);
       music_.play();
    } else { 
-      LOG(INFO) << "Can't find Music! " << trackName;
+      LOG(INFO) << "Can't find Music! " << track;
    }
 }
 
@@ -647,13 +642,7 @@ void SingMusicEffect::PlayMusic(om::EffectPtr effect, const JSONNode& node)
 {   
    startTime_ = effect->GetStartTime();
 
-   std::string trackName = node["track"].as_string();
-   try {
-      trackName = res::ResourceManager2::GetInstance().GetResourceFileName(trackName, "");
-   } catch (res::Exception& e) {
-      LOG(WARNING) << "could not load music: " << e.what();
-      return;
-   }
+   std::string track = node["track"].as_string();
    
    loop_ = SING_MUSIC_EFFECT_DEFAULT_LOOP;
 
@@ -664,15 +653,15 @@ void SingMusicEffect::PlayMusic(om::EffectPtr effect, const JSONNode& node)
 
    //If there is already music playing, note next track for update
    if (music_.getStatus() == sf::Music::Playing) {
-     nextTrack_ = trackName;
+     nextTrack_ = track;
    } else {
       //If there is no music, immediately start bg music
-      if (music_.openFromFile(trackName)) {
+      if (music_.openFromStream(audio::InputStream(track))) {
          music_.setLoop(loop_);
          music_.setVolume((float)volume_);
 	      music_.play();
       } else { 
-         LOG(INFO) << "Can't find Music! " << trackName;
+         LOG(INFO) << "Can't find Music! " << track;
       }
    }
 }
@@ -781,16 +770,8 @@ PlaySoundEffect::PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JS
    firstPlay_ = true;
    numSounds_++;
 
-   std::string trackName;
-   try {
-      trackName = res::ResourceManager2::GetInstance().GetResourceFileName(
-         node["track"].as_string(), "");
-   } catch (std::exception& e) {
-      LOG(WARNING) << "could not load sound effect: " << e.what();
-      return;
-   }
-
-   if (soundBuffer_.loadFromFile(trackName)) {
+   std::string track = node["track"].as_string();
+   if (soundBuffer_.loadFromStream(audio::InputStream(track))) {
       sound_.setBuffer(soundBuffer_);
       AssignFromJSON_(node);
       if (delay_ == 0) {
@@ -798,7 +779,7 @@ PlaySoundEffect::PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JS
 	      sound_.play();
       }
    } else { 
-      LOG(INFO) << "Can't find Sound Effect! " << trackName;
+      LOG(INFO) << "Can't find Sound Effect! " << track;
    }
 }
 

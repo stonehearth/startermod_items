@@ -25,11 +25,9 @@ std::shared_ptr<voxel::QubicleFile> RenderRenderInfo::LoadQubicleFile(std::strin
    if (i != qubicle_map__.end()) {
       return i->second;
    }
-   std::ifstream input;
-   res::ResourceManager2::GetInstance().OpenResource(uri, input);
-   ASSERT(input.good());
+   std::shared_ptr<std::istream> is = res::ResourceManager2::GetInstance().OpenResource(uri);
    std::shared_ptr<voxel::QubicleFile> q = std::make_shared<voxel::QubicleFile>();
-   input >> *q;
+   (*is) >> *q;
 
    qubicle_map__[uri] = q;
    return q;

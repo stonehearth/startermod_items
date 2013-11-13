@@ -1,8 +1,10 @@
 #include "pch.h"
 #include <regex>
+#include "build_number.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include "core/config.h"
+#include "radiant_file.h"
 #include "radiant_exceptions.h"
 #include "xz_region_selector.h"
 #include "om/entity.h"
@@ -41,8 +43,11 @@
 #include "lib/lua/voxel/open.h"
 #include "lib/lua/analytics/open.h"
 #include "lib/analytics/design_event.h"
+#include "lib/analytics/post_data.h"
+#include "lib/audio/input_stream.h"
 #include "client/renderer/render_entity.h"
 #include "lib/perfmon/perfmon.h"
+#include "platform/sysinfo.h"
 #include "glfw3.h"
 
 #include <SFML/Audio.hpp>
@@ -186,23 +191,46 @@ Client::Client() :
       return result;
    });
 
+   //Pass framerate, cpu, card, memory info up
+   core_reactor_->AddRoute("radiant:send_performance_stats", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:send_performance_stats");
+      try {
+         json::Node node;
+         SystemStats stats = Renderer::GetInstance().GetStats();
+         node.set("UserId", core::Config::GetInstance().GetUserID());
+         node.set("FrameRate", 1.0f); //stats.frame_rate);
+         node.set("GpuVendor", stats.gpu_vendor);
+         node.set("GpuRenderer", stats.gpu_renderer);
+         node.set("GlVersion", stats.gl_version);
+         node.set("CpuInfo", stats.cpu_info);
+         node.set("MemoryGb", stats.memory_gb);
+         node.set("OsName", platform::SysInfo::GetOSName());
+         node.set("OsVersion", platform::SysInfo::GetOSVersion());
+
+         // xxx, parse GAME_DEMOGRAPHICS_URL into domain and path, in postdata
+         analytics::PostData post_data(node, REPORT_SYSINFO_URI,  "");
+         post_data.Send();
+         result->ResolveWithMsg("success");
+
+      } catch (std::exception const& e) {
+         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
+      }
+      return result;
+   });
+
    core_reactor_->AddRoute("radiant:play_sound", [this](rpc::Function const& f) {
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:play_sound");
       try {
          json::Node node(f.args);
          std::string sound_url = node.getn(0).as<std::string>();
 
-         std::string trackName;
-         trackName = res::ResourceManager2::GetInstance().GetResourceFileName(sound_url, "");
-         //trackName = res::ResourceManager2::GetInstance().GetResourceFileName(node[0].as_string(), "");
-
-         if (soundBuffer_.loadFromFile(trackName)) {
+         if (soundBuffer_.loadFromStream(audio::InputStream(sound_url))) {
             // TODO, add a sound manager instead of this temp solution!
             // see http://bugs.radiant-entertainment.com:8080/browse/SH-29
             sound_.setBuffer(soundBuffer_);
 	         sound_.play();
          } else { 
-            LOG(INFO) << "Can't find Sound Effect! " << trackName;
+            LOG(INFO) << "Can't find Sound Effect! " << sound_url;
          }
 
          result->ResolveWithMsg("success");
@@ -324,6 +352,13 @@ void Client::run()
       currentCursor_ = NULL;
    };
 
+   if (core::Config::GetInstance().GetCrashKeyEnabled()) {
+      _commands[GLFW_KEY_PAUSE] = []() {
+         // throw an exception that is not caught by Client::OnInput
+         throw std::string("User hit crash key");
+      };
+   }
+
    // _commands[VK_NUMPAD0] = std::shared_ptr<command>(new command_build_blueprint(*_proxy_manager, *_renderer, 500));
 
    setup_connections();
@@ -339,6 +374,7 @@ void Client::run()
 
       static int last_stat_dump = 0;
       mainloop();
+
       int now = timeGetTime();
    }
 }
@@ -425,7 +461,6 @@ void Client::mainloop()
    authoringStore_.FireTraces();
    authoringStore_.FireFinishedTraces();
 
-   perfmon::SwitchToCounter("render");
    Renderer::GetInstance().RenderOneFrame(now_, alpha);
 
    if (send_queue_) {
@@ -851,15 +886,22 @@ Client::Cursor Client::LoadCursor(std::string const& path)
 {
    Cursor cursor;
 
-   std::string filename = res::ResourceManager2::GetInstance().GetResourceFileName(path, ".cur");
+   std::string filename = res::ResourceManager2::GetInstance().ConvertToCanonicalPath(path, ".cur");
    auto i = cursors_.find(filename);
    if (i != cursors_.end()) {
       cursor = i->second;
    } else {
-      HCURSOR hcursor = (HCURSOR)LoadImageA(GetModuleHandle(NULL), filename.c_str(), IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
+      std::shared_ptr<std::istream> is = res::ResourceManager2::GetInstance().OpenResource(filename);
+      std::string buffer = io::read_contents(*is);
+
+      std::string tempname = boost::filesystem::unique_path().string();
+      std::ofstream(tempname, std::ios::out | std::ios::binary).write(buffer.c_str(), buffer.size());
+
+      HCURSOR hcursor = (HCURSOR)LoadImageA(GetModuleHandle(NULL), tempname.c_str(), IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
       if (hcursor) {
          cursors_[filename] = cursor = Cursor(hcursor);
       }
+      boost::filesystem::remove(tempname);
    }
    return cursor;
 }

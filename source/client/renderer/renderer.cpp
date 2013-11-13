@@ -258,6 +258,38 @@ void Renderer::ApplyConfig()
    h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples);
 }
 
+SystemStats Renderer::GetStats()
+{
+   SystemStats result;
+
+   result.frame_rate = 1000.0f / h3dGetStat(H3DStats::AverageFrameTime, false);
+
+   result.gpu_vendor = (char *)glGetString( GL_VENDOR );
+   result.gpu_renderer = (char *)glGetString( GL_RENDERER );
+   result.gl_version = (char *)glGetString( GL_VERSION );
+
+   int CPUInfo[5] = { 0 };
+   __cpuid(CPUInfo, 0x80000000);
+   unsigned int nExIds = CPUInfo[0];
+
+   std::ostringstream info;
+   for (uint i = 0x80000002; i <= std::min(0x80000004, nExIds); i++) {
+      __cpuid(CPUInfo, i);
+      info << (char *)(CPUInfo);
+   }
+   result.cpu_info = info.str();
+
+#ifdef _WIN32
+   MEMORYSTATUSEX status;
+   status.dwLength = sizeof(status);
+   GlobalMemoryStatusEx(&status);
+   result.memory_gb = (int)(status.ullTotalPhys / 1048576.0f);
+#endif
+
+   LOG(WARNING) << "reported fps: " << result.frame_rate;
+   return result;
+}
+
 void Renderer::SetStageEnable(const char* stageName, bool enabled)
 {
    int stageCount = h3dGetResElemCount(currentPipeline_, H3DPipeRes::StageElem);

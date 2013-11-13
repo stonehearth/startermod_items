@@ -23,10 +23,11 @@ public:
 
    void SetBasicValues(std::string userid, std::string sessionid, std::string build_version);
    void SubmitLogEvent(json::Node event_node, std::string event_category);
+   void SubmitPost(json::Node event_node, std::string uri, std::string authorization_string);
 
 private:
-   void SendEventsToServer();
-   void PostEvent(json::Node event_node, std::string event_category);
+   void SendPostsToServer();
+   void PostJson(PostData post_data);
 
    static void AnalyticsThreadMain(AnalyticsLogger* logger);
 
@@ -34,11 +35,11 @@ private:
    std::string sessionid_;
    std::string build_version_;
 
-   std::queue<EventData> waiting_events_;
+   std::queue<PostData> waiting_posts_;
 
    std::mutex m_;
    std::condition_variable cv_;
-   boost::thread event_sender_thread_;
+   boost::thread post_sender_thread_;
 
    bool stopping_thread_;
 };

@@ -24,11 +24,10 @@ public:
    JSONNode const& LookupJson(std::string path) const;
    AnimationPtr LookupAnimation(std::string path) const;
 
-   void OpenResource(std::string const& path, std::ifstream& in) const;
-   std::string GetResourceFileName(std::string const& path, const char* serach_ext) const;  // xxx: used only for lua... it's bad!
    std::string ConvertToCanonicalPath(std::string path, const char* search_ext) const;
 
    std::string GetEntityUri(std::string const& mod_name, std::string const& entity_name) const;
+   std::shared_ptr<std::istream> OpenResource(std::string const& stream) const;
 
 private:
    ResourceManager2();
@@ -38,7 +37,6 @@ private:
                       std::string& canonical_path,
                       boost::filesystem::path& file_path,
                       const char* search_ext) const;
-   std::string GetFilepath(std::string const& path) const;
    AnimationPtr LoadAnimation(std::string const& canonical_path) const;
    JSONNode LoadJson(std::string const& path) const;
    void ParseNodeExtension(std::string const& path, JSONNode& node) const;
@@ -49,7 +47,8 @@ private:
 
 private:
    boost::filesystem::path                       resource_dir_;
-   std::vector<std::string>                      moduleNames_;
+   std::unordered_map<std::string, IModule*>     modules_;
+   std::vector<std::string>                      module_names_;
    mutable std::recursive_mutex                  mutex_;
    mutable std::unordered_map<std::string, AnimationPtr> animations_;
    mutable std::unordered_map<std::string, JSONNode>     jsons_;

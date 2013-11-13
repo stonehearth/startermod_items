@@ -39,6 +39,7 @@ Timeline::BeginFrame()
       // Let everyone know about it.  must be called *after* we've created the
       // new frame so those counters get counted, too
       on_frame_end_slot_.Signal(last_frame);
+      delete last_frame;
    }
 }
 

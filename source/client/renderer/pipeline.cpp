@@ -429,8 +429,8 @@ Pipeline::NamedNodeMap Pipeline::LoadQubicleFile(std::string const& uri)
    voxel::QubicleFile f;
    std::ifstream input;
 
-   res::ResourceManager2::GetInstance().OpenResource(uri, input);
-   input >> f;
+   std::shared_ptr<std::istream> is = res::ResourceManager2::GetInstance().OpenResource(uri);
+   (*is) >> f;
 
    for (const auto& entry : f) {
       // Qubicle requires that every matrix in the file have a unique name.  While authoring,

@@ -1,7 +1,9 @@
 #include "pch.h"
 #include <stdexcept>
+#include "radiant_file.h"
 #include "core/config.h"
 #include "script_host.h"
+#include "lua_supplemental.h"
 #include "client/renderer/render_entity.h"
 #include "lib/json/namespace.h"
 
@@ -225,19 +227,18 @@ luabind::object ScriptHost::LoadScript(std::string path)
    std::ifstream in;
    luabind::object obj;
 
-   LOG(WARNING) << "loading script " << path;
-   // this is the slightly crappier version
-   std::string filepath;
+   LOG(INFO) << "loading script " << path;
+   
+   int error;
    try {
-       filepath = res::ResourceManager2::GetInstance().GetResourceFileName(path, ".lua");
-   } catch (res::Exception& e) {
+      error = luaL_loadfile_from_resource(L_, path.c_str());
+   } catch (std::exception const& e) {
       LOG(WARNING) << e.what();
-	   return obj;
+      return luabind::object();
    }
 
-   int error = luaL_loadfile(L_, filepath.c_str());
    if (error == LUA_ERRFILE) {
-      OnError("Coud not open script file " + filepath);
+      OnError("Coud not open script file " + path);
    } else if (error != 0) {
       OnError(lua_tostring(L_, -1));
       lua_pop(L_, 1);
@@ -298,10 +299,6 @@ luabind::object ScriptHost::Require(std::string const& s)
    std::string path, name;
    std::ostringstream script;
 
-   if (boost::ends_with(s, ".lua") || s.find('/') != std::string::npos || s.find('\\') != std::string::npos) {
-      throw std::logic_error(BUILD_STRING("invalid path in require: " << s));
-   }
-
    std::vector<std::string> parts;
    boost::split(parts, s, boost::is_any_of("."));
    parts.erase(std::remove(parts.begin(), parts.end(), ""), parts.end());
@@ -313,14 +310,28 @@ luabind::object ScriptHost::Require(std::string const& s)
 
 luabind::object ScriptHost::RequireScript(std::string const& path)
 {
-   std::string canonical_path = res::ResourceManager2::GetInstance().ConvertToCanonicalPath(path, nullptr);
+   std::string canonical_path;
+   res::ResourceManager2 const& rm = res::ResourceManager2::GetInstance();
+   try {
+      // Try foo.lua first...
+      canonical_path = rm.ConvertToCanonicalPath(path, nullptr);
+   } catch (std::exception const& e) {
+      // No?  Try foo.luac...
+      try {
+         canonical_path = rm.ConvertToCanonicalPath(path + "c", nullptr);
+      } catch (std::exception const&) {
+         // Neither worked.  Complain about the .lua one 
+         throw e;
+      }
+   }
+
    luabind::object obj;
 
    auto i = required_.find(canonical_path);
    if (i != required_.end()) {
       obj = i->second;
    } else {
-      LOG(WARNING) << "requiring script " << canonical_path;
+      LOG(INFO) << "requiring script " << canonical_path;
       required_[canonical_path] = luabind::object();
       obj = LoadScript(canonical_path);
       required_[canonical_path] = obj;

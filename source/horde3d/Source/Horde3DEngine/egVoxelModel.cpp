@@ -278,7 +278,7 @@ void VoxelModelNode::setParamI( int param, int value )
 		return;
    case VoxelModelNodeParams::PolygonOffsetEnabledI:
       _polygon_offset_used = (value != 0);
-      break;
+      return;
 	}
 
 	SceneNode::setParamI( param, value );

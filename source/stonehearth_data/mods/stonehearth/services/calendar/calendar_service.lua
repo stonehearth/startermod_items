@@ -22,19 +22,31 @@ local constants = radiant.resources.load_json('/stonehearth/services/calendar/ca
 CalendarService = class()
 
 function CalendarService:__init()
+   self._timers = {}
    self._event_service = require 'services.event.event_service'
    self._constants = constants
    radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self._on_event_loop)
 end
 
-function CalendarService:set_time(second, minute, hour)
+function CalendarService:set_time(hour, minute, second)
    data.date.hour = hour;
    data.date.minute = minute;
    data.date.second = second;
 end
 
--- For starters, returns base time of day.
--- TODO: change based on the season/time of year
+function CalendarService:set_timer(hours, minutes, seconds, fn, param)
+   local timer_length = (hours * self._constants.minutes_per_hour * self._constants.seconds_per_minute ) +
+                            (minutes * self._constants.seconds_per_minute) + seconds
+
+
+   table.insert(self._timers, 
+      {
+         length = timer_length,
+         fn = fn,
+         param = param
+      })
+end
+
 function CalendarService:get_constants()
    return constants
 end
@@ -84,9 +96,20 @@ function CalendarService:_on_event_loop(e)
    -- the date, formatting into a string
    data.date.date = self:format_date()
 
+   self:update_timers(t)
+
    data._lastNow = now
 end
 
+function CalendarService:update_timers(dt)
+   for i, timer in ipairs(self._timers) do
+      timer.length = timer.length - dt
+      if timer.length <= 0 then
+         timer.fn(timer.param)
+         table.remove(self._timers, i)
+      end
+   end
+end
 --[[
    If the hour is greater than the set time of day, then fire the
    relevant event.

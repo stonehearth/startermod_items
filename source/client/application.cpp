@@ -8,16 +8,12 @@
 #include "lib/perfmon/perfmon.h"
 #include "lib/analytics/analytics.h"
 #include "core/config.h"
-#include "poco/UUIDGenerator.h"
+#include "build_number.h"
 #include "boost/thread.hpp"
-
-// Uncomment if assertions should be handled by Breakpad in DEBUG builds
-#define ENABLE_BREAKPAD_IN_DEBUG_BUILDS
+#include "lib/crash_reporter/client/crash_reporter_client.h"
 
 using radiant::client::Application;
-
-static std::string const NAMED_PIPE_PREFIX = "\\\\.\\pipe\\";
-static std::string const CRASH_REPORTER_NAME = "crash_reporter";
+namespace po = boost::program_options;
 
 void protobuf_log_handler(google::protobuf::LogLevel level, const char* filename,
                           int line, const std::string& message)
@@ -39,96 +35,55 @@ bool Application::LoadConfig(int argc, const char* argv[])
 
    Client::GetInstance().GetConfigOptions();
    game_engine::arbiter::GetInstance().GetConfigOptions();
+   po::options_description config_file("Renderer options");
+   config_file.add_options()
+      (
+         "support.crash_dump_server",
+         po::value<std::string>(&crash_dump_uri_)->default_value(REPORT_CRASHDUMP_URI), "Where to send crash dumps"
+      );
+   core::Config::GetInstance().GetConfigFileOptions().add(config_file);
 
    return config.Load(argc, argv);
 }
 
-std::string Application::GeneratePipeName() {
-   std::string const uuid_string = Poco::UUIDGenerator::defaultGenerator().create().toString();
-   std::string const pipe_name = BUILD_STRING(NAMED_PIPE_PREFIX << CRASH_REPORTER_NAME << "\\" << uuid_string);
-   return pipe_name;
-}
-
-void Application::StartCrashReporter(std::string const& crash_dump_path, std::string const& crash_dump_pipe_name, std::string const& crash_dump_uri)
-{
-   std::string const filename = CRASH_REPORTER_NAME + ".exe";
-   std::string const command_line = BUILD_STRING(filename << " " << crash_dump_pipe_name << " " << crash_dump_path << " " << crash_dump_uri);
-
-   crash_reporter_process_.reset(new radiant::core::Process(command_line));
-}
-
-void Application::InitializeExceptionHandlingEnvironment(std::string const& crash_dump_pipe_name)
-{
-#ifdef ENABLE_BREAKPAD_IN_DEBUG_BUILDS
-   //_CrtSetReportMode(_CRT_ASSERT, 0);
-#endif
-
-   std::wstring pipe_name_wstring(crash_dump_pipe_name.begin(), crash_dump_pipe_name.end());
-
-   // This API is inconsistent, but trying to avoid too many changes to Breakpad's sample code in case it versions
-   exception_handler_.reset(new google_breakpad::ExceptionHandler(
-                                                 std::wstring(),                   // local dump path (ignored since we are out of process)
-                                                 nullptr,                          // filter callback 
-                                                 nullptr,                          // minidump callback
-                                                 nullptr,                          // context for the callbacks
-                                                 google_breakpad::ExceptionHandler::HANDLER_ALL, // exceptions to trap
-                                                 MiniDumpNormal,                   // type of minidump
-                                                 pipe_name_wstring.data(),         // name of pipe for out of process dump
-                                                 nullptr));                        // CustomClientInfo
-}
-
-void Application::InitializeCrashReporting()
+bool Application::InitializeCrashReporting(std::string& error_string)
 {
    std::string const crash_dump_path = core::Config::GetInstance().GetTmpDirectory().string();
-   std::string const crash_dump_pipe_name = GeneratePipeName();
-   std::string const crash_dump_uri = "http://posttestserver.com/post.php"; // 3rd party test server 
+   std::string const userid = core::Config::GetInstance().GetUserID();
 
-   StartCrashReporter(crash_dump_path, crash_dump_pipe_name, crash_dump_uri);
-   InitializeExceptionHandlingEnvironment(crash_dump_pipe_name);
+   return crash_reporter::client::CrashReporterClient::GetInstance().Start(crash_dump_path, crash_dump_uri_, userid, error_string);
 }
 
 void Application::ClientThreadMain()
 {
-#ifdef _DEBUG
-   try {
-#endif // _DEBUG
+   crash_reporter::client::CrashReporterClient::RunWithExceptionWrapper([]() {
       radiant::client::Client::GetInstance().run();
-#ifdef _DEBUG
-   } catch (std::exception &e) {
-      LOG(WARNING) << "unhandled exception: " << e.what();
-      ASSERT(false);
-   }
-#endif // _DEBUG
+   });
 }
 
 int Application::Run(int argc, const char** argv)
 {
-#ifdef _DEBUG
-   try {
-#endif // _DEBUG
-      core::Config& config = core::Config::GetInstance();
+   core::Config& config = core::Config::GetInstance();
 
-      if (!LoadConfig(argc, argv)) {
-         return 0;
-      }
+   if (!LoadConfig(argc, argv)) {
+      return 0;
+   }
 
-      std::string error_reason;
-      try {
-         // Start crash reporter after config has been successfully loaded so we have a temp directory for the dump_path
-         // Start before the logger in case the logger fails
-         InitializeCrashReporting();
-      } catch (std::exception const& e) {
-         // No crash reporting, but application can continue to run
-         error_reason = std::string(e.what());
-      } catch (...) {
-         error_reason = "Unknown reason";
-      }
+   // Start crash reporter after config has been successfully loaded so we have a temp directory for the dump_path
+   // Start before the logger in case the logger fails
+   std::string error_string;
+   bool crash_reporter_started = InitializeCrashReporting(error_string);
+
+   // Not much point in catching exceptions before this point
+   // Maybe write a MessageBox with the error
+
+   crash_reporter::client::CrashReporterClient::RunWithExceptionWrapper([&]() {
 
       radiant::logger::init(config.GetTmpDirectory() / (config.GetName() + ".log"));
 
       // Have to wait for the logger to initialize before logging error
-      if (!error_reason.empty()) {
-         LOG(WARNING) << "Crash reporter failed to start: " + error_reason;
+      if (!crash_reporter_started) {
+         LOG(WARNING) << "Crash reporter failed to start: " << error_string;
       }
 
       // factor this out into some protobuf helper like we did with log
@@ -155,14 +110,9 @@ int Application::Run(int argc, const char** argv)
       client_thread.join();
 
       radiant::logger::exit();
-#ifdef _DEBUG
-   } catch (std::exception &e) {
-      LOG(WARNING) << "unhandled exception: " << e.what();
-      ASSERT(false);
-      //TODO: put a stop session when we implement graceful in-game quit, too.
-      //TODO: Eventually pass data as to why the session stopped. Crash reporter integration?
-      analytics::StopSession();
-   }
-#endif // _DEBUG
+   });
+
+   analytics::StopSession();
+
    return 0;
 }

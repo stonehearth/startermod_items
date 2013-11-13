@@ -20,7 +20,7 @@ function MoveItemTest:__init()
    local bed = self:place_item('stonehearth:firepit', 0, 0, faction)
 
    local calendar = radiant.mods.load('stonehearth').calendar
-   calendar:set_time(0, 59, 21)
+   calendar:set_time(21, 59, 0)
 
 end
 
