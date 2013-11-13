@@ -47,6 +47,7 @@
 #include "lib/audio/input_stream.h"
 #include "client/renderer/render_entity.h"
 #include "lib/perfmon/perfmon.h"
+#include "platform/sysinfo.h"
 #include "glfw3.h"
 
 #include <SFML/Audio.hpp>
@@ -197,12 +198,14 @@ Client::Client() :
          json::Node node;
          SystemStats stats = Renderer::GetInstance().GetStats();
          node.set("UserId", core::Config::GetInstance().GetUserID());
-         node.set("FrameRate", stats.frame_rate);
+         node.set("FrameRate", 1.0f); //stats.frame_rate);
          node.set("GpuVendor", stats.gpu_vendor);
          node.set("GpuRenderer", stats.gpu_renderer);
          node.set("GlVersion", stats.gl_version);
          node.set("CpuInfo", stats.cpu_info);
          node.set("MemoryGb", stats.memory_gb);
+         node.set("OsName", platform::SysInfo::GetOSName());
+         node.set("OsVersion", platform::SysInfo::GetOSVersion());
 
          // xxx, parse GAME_DEMOGRAPHICS_URL into domain and path, in postdata
          analytics::PostData post_data(node, REPORT_SYSINFO_URI,  "");
