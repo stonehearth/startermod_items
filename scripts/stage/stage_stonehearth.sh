@@ -136,7 +136,7 @@ function compile_lua
    pushd $OUTPUT_DIR/$1/.. > /dev/null
    for infile in $(find $MOD_NAME -type f -name '*.lua'); do
      OUTFILE=${infile}c
-     $LUA_BIN_ROOT/luac.exe -s -o $OUTFILE $infile
+     $LUA_BIN_ROOT/luac.exe -o $OUTFILE $infile
    done
    echo Removing plaintext lua files in $1
    echo DEBUG - Leaving lua files in place until loading compiled lua works
