@@ -6,7 +6,7 @@ usage: $(basename $0) options
 
 Stage the stonehearth bits into some deployment directory
 
-Require:
+Required:
    --o      the directory to write the files to
    --t      the build type to stage (e.g. Debug)
 
@@ -116,6 +116,22 @@ if [ ! -z $STAGE_BIN ]; then
    cp -u $CRASH_REPORTER_ROOT/server/$BUILD_TYPE/crash_reporter.exe $OUTPUT_DIR
 fi
 
+function compile_lua
+{
+   # $1 - the name of the mod to stage
+   echo Compiling lua files in $1
+   MOD_NAME=${1##*/}
+   pushd $OUTPUT_DIR/$1/.. > /dev/null
+   for infile in $(find $MOD_NAME -type f -name '*.lua'); do
+     OUTFILE=${infile}c
+     $LUA_BIN_ROOT/luac.exe -s -o $OUTFILE $infile
+   done
+   echo Removing plaintext lua files in $1
+   echo DEBUG - Leaving lua files in place until loading compiled lua works
+   #find $MOD_NAME -type f -name '*.lua' -print0 | xargs -0 rm -f
+   popd > /dev/null
+}
+
 function stage_data_dir
 {
    # $1 - the name of the mod to stage
@@ -125,17 +141,19 @@ function stage_data_dir
    find . -type f  \
       ! -name '*.qmo' \
       -print0 | xargs -0 cp -u --parents --target-directory $OUTPUT_DIR/$1
-   popd  > /dev/null
+   popd > /dev/null
+   compile_lua $1
 }
 
 if [ ! -z $STAGE_DATA ]; then
    DATA_ROOT=$STONEHEARTH_ROOT/source/stonehearth_data
+   LUA_BIN_ROOT=$STONEHEARTH_ROOT/modules/lua/package/lua/solutions/release
 
-   pushd $DATA_ROOT  > /dev/null
+   pushd $DATA_ROOT > /dev/null
    find . -maxdepth 1 -type f  \
       ! -name '*.log' \
       -print0 | xargs -0 cp -u --target-directory $OUTPUT_DIR
-   popd  > /dev/null
+   popd > /dev/null
 
    stage_data_dir horde
    stage_data_dir mods/radiant
