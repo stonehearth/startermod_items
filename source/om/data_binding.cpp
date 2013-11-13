@@ -2,7 +2,7 @@
 #include "data_binding.h"
 #include "om/entity.h"
 #include "dm/store.h"
-#include "lua/script_host.h"
+#include "lib/lua/script_host.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;

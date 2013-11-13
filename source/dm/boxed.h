@@ -1,8 +1,8 @@
 #pragma once
 #include "object.h"
 #include "store.pb.h"
-#include "radiant_luabind.h"
-#include "lua/register.h"
+#include "lib/lua/bind.h"
+#include "lib/lua/register.h"
 #include "namespace.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
@@ -82,7 +82,11 @@ public:
             // xxx: see bug SH-7.  this is a temporary work around
             auto callbacks = changedCbs_;
             for (auto& cb : callbacks) {
-               luabind::call_function<void>(cb);
+               try {
+                  luabind::call_function<void>(cb);
+               } catch (std::exception const& e) {
+                  LOG(WARNING) << "lua error firing trace: " << e.what();
+               }
             }
          });
       }
@@ -105,26 +109,29 @@ public:
          changedCbs_.clear();
       }
 
-      Promise* PushChangedCb(luabind::object cb) {
+      Promise& PushChangedCb(luabind::object cb) {
          changedCbs_.push_back(cb);
-         return this;
+         return *this;
       }
+
+   private:
+      NO_COPY_CONSTRUCTOR(Promise)
 
    private:
       core::Guard                     guard_;
       std::vector<luabind::object>  changedCbs_;
    };
 
-   std::shared_ptr<Promise> CreatePromise(const char* reason) const {
-      return std::make_shared<Promise>(*this, reason);
+   Promise* CreatePromise(const char* reason) const {
+      return new Promise(*this, reason);
    }
 
    static luabind::scope RegisterLuaType(struct lua_State* L, std::string tname = std::string()) {
       if (tname.empty()) {
-         tname = lua::GetTypeName<Boxed>();
+         tname = GetShortTypeName<Boxed>();
       }
       return
-         lua::RegisterObject<Boxed>(tname.c_str())
+         lua::RegisterType<Boxed>(tname.c_str())
             .def("get",               &Boxed::Get)
             .def("modify",            &Boxed::Modify)
             .def("trace",             &Boxed::CreatePromise)

@@ -5,7 +5,10 @@
       "unit_info": {
          "name": "Fire Pit",
          "description": "Provides warmth and light",
-         "icon" : "file(/entities/generic/default_object/default_object.png)"
+         "icon" : "file(firepit.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "light"
       },
       "model_variants": [
          {
@@ -16,6 +19,9 @@
       ],
       "stonehearth:firepit" : {
          "effective_radius" : 6
+      },
+      "stonehearth:placed_item" : {
+         "proxy_entity" : "stonehearth:firepit_proxy"
       }
    }
 }

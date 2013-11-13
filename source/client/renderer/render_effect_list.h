@@ -19,14 +19,14 @@ class RenderEntity;
 
 class RenderEffect {
 public:
-   virtual void Update(int now, int dt, bool& done) = 0;
+   virtual void Update(FrameStartInfo const& info, bool& done) = 0;
 };
 
 class RenderAnimationEffect : public RenderEffect {
 public:
    RenderAnimationEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
 
-   void Update(int now, int dt, bool& done) override;
+   void Update(FrameStartInfo const& info, bool& done) override;
 
 private:
    RenderEntity&  entity_;
@@ -41,7 +41,7 @@ public:
    RenderAttachItemEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
    ~RenderAttachItemEffect();
 
-   void Update(int now, int dt, bool& done) override;
+   void Update(FrameStartInfo const& info, bool& done) override;
 
 private:
    RenderEntity&                 entity_;
@@ -59,11 +59,12 @@ public:
    FloatingCombatTextEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
    ~FloatingCombatTextEffect();
 
-   void Update(int now, int dt, bool& done) override;
+   void Update(FrameStartInfo const& info, bool& done) override;
 
 private:
    RenderEntity&                 entity_;
    int                           startTime_;
+   int                           lastUpdated_;
    double                        height_;
    horde3d::ToastNode*           toastNode_;
    std::unique_ptr<claw::tween::single_tweener> tweener_;
@@ -74,7 +75,7 @@ public:
    HideBoneEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
    ~HideBoneEffect();
 
-   void Update(int now, int dt, bool& done) override;
+   void Update(FrameStartInfo const& info, bool& done) override;
 
 private:
    RenderEntity&                 entity_;
@@ -88,7 +89,7 @@ public:
    CubemitterEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
    ~CubemitterEffect();
 
-   void Update(int now, int dt, bool& done) override;
+   void Update(FrameStartInfo const& info, bool& done) override;
 
 private:
    RenderEntity&                 entity_;
@@ -107,7 +108,7 @@ public:
    LightEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
    ~LightEffect();
 
-   void Update(int now, int dt, bool& done) override;
+   void Update(FrameStartInfo const& info, bool& done) override;
 
 private:
    void parseTransforms(const JSONNode& node, float* x, float* y, float* z);
@@ -121,7 +122,7 @@ public:
 	PlayMusicEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
 	~PlayMusicEffect();
 
-	void Update(int now, int dt, bool& done) override;
+	void Update(FrameStartInfo const& info, bool& done) override;
 
 private:
    RenderEntity&	entity_;
@@ -135,7 +136,7 @@ struct SingMusicEffect : public RenderEffect {
 public:
    static std::shared_ptr<SingMusicEffect> GetMusicInstance(RenderEntity& e);
    void PlayMusic(om::EffectPtr effect, const JSONNode& node);
-   void Update(int now, int dt, bool& done) override;
+   void Update(FrameStartInfo const& info, bool& done) override;
 
    //Getting erros if this is private
    SingMusicEffect(RenderEntity& e);  // Private so that it can  not be called
@@ -152,6 +153,7 @@ private:
    std::string    nextTrack_;
    double         volume_;
    int            startTime_;
+   int            lastUpdated_;
    std::unique_ptr<claw::tween::single_tweener> tweener_;
 };
 
@@ -163,7 +165,7 @@ public:
    PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
    ~PlaySoundEffect();
 
-	void Update(int now, int dt, bool& done) override;
+	void Update(FrameStartInfo const& info, bool& done) override;
 
 private:
    static int      numSounds_;
@@ -177,7 +179,7 @@ private:
    int             maxDistance_; //distance under which sound will be heard at maximum volume. 1 is default
 
    void  AssignFromJSON_(const JSONNode& node);
-   float CalculateAttenuation_(int maxDistance, int minDistance);
+   float CalculateAttenuation(int maxDistance, int minDistance);
 
 };
 
@@ -185,7 +187,7 @@ struct RenderInnerEffectList {
    RenderInnerEffectList() {}
    RenderInnerEffectList(RenderEntity& e, om::EffectPtr effect);
 
-   void Update(int now, int dt, bool& finished);
+   void Update(FrameStartInfo const& info, bool& finished);
 private:
    std::vector<std::shared_ptr<RenderEffect>>   effects_;
    std::vector<std::shared_ptr<RenderEffect>>   finished_;
@@ -199,7 +201,7 @@ public:
 private:
    void AddEffect(const om::EffectPtr effect);
    void RemoveEffect(const om::EffectPtr effect);
-   void UpdateEffects();
+   void UpdateEffects(FrameStartInfo const& info);
 
 private:
    typedef std::unordered_map<dm::ObjectId, RenderInnerEffectList> EffectMap;
@@ -207,9 +209,8 @@ private:
 private:
    RenderEntity&        entity_;
    om::EffectListRef    effectList_;
-   core::Guard            tracer_;
+   core::Guard          tracer_;
    EffectMap            effects_;
-   int                  lastUpdateTime_;
    int                  dt;
 };
 

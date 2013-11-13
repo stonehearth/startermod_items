@@ -11,7 +11,10 @@
       ],
       "destination": {
          "region": [
-            [ [-1, 0, -1], [2, 1, 2] ]
+            {
+               "min" : { "x" : -1, "y" : 0, "z" : -1 },
+               "max" : { "x" :  2, "y" : 1, "z" :  2 }
+            }
          ]
       },
       "unit_info": {
@@ -19,7 +22,13 @@
          "description": "I dreamed... of flying sheep.",
          "icon" : "file(comfy_bed.png)"
       },
-      "stonehearth:lease_component" : {}
+      "stonehearth:material" : {
+         "tags" : "wood furniture"
+      },      
+      "stonehearth:lease_component" : {},
+      "stonehearth:placed_item" : {
+         "proxy_entity" : "stonehearth:comfy_bed_proxy"
+      }
    },
    "entity_data" : {
       "stonehearth:bed" : {}

@@ -6,9 +6,6 @@
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
-class Ray;
-template <typename S, int C> class Region;
-
 template <typename S, int C>
 class Cube
 {
@@ -85,19 +82,22 @@ public:
       max.SetZero();
    }
 
-   template <class U> void Translate(const U& pt) {
-      for (int i = 0; i < C; i++) {
-         min[i] += static_cast<S>(pt[i]);
-         max[i] += static_cast<S>(pt[i]);
-      }
+   void Translate(const Point& pt) {
+      min += pt;
+      max += pt;
    }
-   template <class U> Cube Translated(const U& pt) const {
+
+   Cube Translated(const Point& pt) const {
       Cube result(*this);
       result.Translate(pt);
       return result;
    }
 
-   Cube Scaled(float factor) { return Cube(min.Scaled(factor), max.Scaled(factor)); }
+   Cube Inflated(Point amount) const {
+      return Cube(min - amount, max + amount, GetTag());
+   }
+
+   Cube Scaled(float factor) const { return Cube(min.Scaled(factor), max.Scaled(factor)); }
    Cube ProjectOnto(int axis, S plane) const;
 
    bool Intersects(const Cube& other) const;
@@ -110,6 +110,7 @@ public:
    Cube operator&(const Cube& other) const;
    Region operator&(const Region& other) const;
    Cube operator+(const Point& other) const;
+   Cube operator-() const;
    Region operator-(const Cube& other) const;
    Region operator-(const Region& other) const;
 
@@ -149,17 +150,6 @@ std::ostream& operator<<(std::ostream& os, const Cube<S, C>& in)
 {
    return in.Format(os);
 }
-
-typedef Cube<int, 1> Line1;
-typedef Cube<int, 2> Rect2;
-typedef Cube<int, 3> Cube3;
-typedef Cube<float, 2> Rect2f;
-typedef Cube<float, 3> Cube3f;
-
-class Ray3;
-
-bool Cube3Intersects(const Cube3& rgn, const Ray3& ray, float& distance);
-bool Cube3Intersects(const Cube3f& rgn, const Ray3& ray, float& distance);
 
 END_RADIANT_CSG_NAMESPACE
 

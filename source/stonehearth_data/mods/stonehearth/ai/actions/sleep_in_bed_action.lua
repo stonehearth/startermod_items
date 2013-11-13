@@ -13,6 +13,7 @@ SleepInBedAction.priority = 1
 function SleepInBedAction:__init(ai, entity)
    self._entity = entity         --the game character
    self._ai = ai
+   self._bed = nil
 end
 
 --[[
@@ -21,8 +22,24 @@ end
 function SleepInBedAction:run(ai, entity, bed, path)
    -- renew our lease on the bed.
 
+   -- Mark the bed as being used
+   self._bed = bed
+
+   -- If the bed moves or is destroyed between now and before the sleeper wakes up, just
+   -- go ahead and abort.
+   self._bed_moved_promise = radiant.entities.on_entity_moved(bed, function()
+      ai:abort()
+   end);
+
+   radiant.entities.on_destroy(bed, function()
+      self._bed = nil
+      local bed_lease = self._entity:get_component('stonehearth:bed_lease')
+      bed_lease:set_bed(nil)
+      ai:abort()
+   end);
+   
    --Am I carrying anything? If so, drop it
-   local drop_location = path:get_source_point_of_interest()
+   local drop_location = radiant.entities.get_world_grid_location(entity)
    ai:execute('stonehearth:drop_carrying', drop_location)
 
    -- walk over to the bed
@@ -41,7 +58,16 @@ function SleepInBedAction:run(ai, entity, bed, path)
 
    -- goto sleep
    ai:execute('stonehearth:run_effect', 'goto_sleep')
+   radiant.entities.add_buff(self._entity, 'stonehearth:buffs:sleeping');
    ai:execute('stonehearth:run_effect', 'sleep')
+end
+
+function SleepInBedAction:stop()
+   if self._bed_moved_promise then
+      self._bed_moved_promise:destroy()
+      self._bed_moved_promise = nil
+   end
+   radiant.entities.remove_buff(self._entity, 'stonehearth:buffs:sleeping');
 end
 
 return SleepInBedAction

@@ -3,6 +3,7 @@
 #include "cube.h"
 #include "ray.h"
 #include "region.h"
+#include "csg/util.h" // xxx: should be csg/namespace.h
 
 using namespace ::radiant;
 using namespace ::radiant::csg;
@@ -13,6 +14,7 @@ Rect2 Rect2::zero(Point2(0, 0), Point2(0, 0));
 Rect2 Rect2::one(Point2(0, 0), Point2(1, 1));
 Line1 Line1::zero(Point1(0), Point1(0));
 Line1 Line1::one(Point1(0), Point1(1));
+
 Rect2f Rect2f::zero(Point2f(0, 0), Point2f(0, 0));
 Rect2f Rect2f::one(Point2f(0, 0), Point2f(1, 1));
 Cube3f Cube3f::zero(Point3f(0, 0, 0), Point3f(0, 0, 0));
@@ -116,11 +118,18 @@ template <typename S, int C>
 bool Cube<S, C>::Intersects(const Cube& other) const
 {
    for (int i = 0; i < C; i++) {
-      if (min[i] >= other.max[i] || other.min[i] >= max[i]) {
+      if (csg::IsGreaterEqual(min[i], other.max[i]) ||
+          csg::IsGreaterEqual(other.min[i], max[i])) {
          return false;
       }
    }
    return true;
+}
+
+template <typename S, int C>
+Cube<S, C> Cube<S, C>::operator-() const
+{
+   return this->Scaled(-1);
 }
 
 template <typename S, int C>
@@ -215,7 +224,7 @@ template <typename S, int C>
 bool Cube<S, C>::Contains(const Point& pt) const
 {
    for (int i = 0; i < C; i++) {
-      if (pt[i] < min[i] || pt[i] >= max[i]) {
+      if (!IsBetween(min[i], pt[i], max[i])) {
          return false;
       }
    }
@@ -231,24 +240,26 @@ void Cube<S, C>::Grow(const Point& pt)
    }
 }
 
-template <class S, int C>
-Cube<S, C> Cube<S, C>::ProjectOnto(int axis, S plane) const
-{
-   return Cube(min.ProjectOnto(axis, plane), max.ProjectOnto(axis, plane + 1), tag_);
+template <int C>
+Cube<float, C> csg::ToFloat(Cube<int, C> const& cube) {
+   return Cube<float, C>(ToFloat(cube.min), ToFloat(cube.max), cube.GetTag());
 }
 
-#if 0
-template <class S, int C>
-Cube<S, C> Cube<S, C>::Construct(Point min_value, Point max_value, int tag)
-{
-   for (int i = 0; i < C; i++) {
-      if (min_value[i] > max_value[i]) {
-         std::swap(min_value[i], max_value[i]);
-      }
-   }
-   return Cube(min_value, max_value, tag);
+template <int C>
+Cube<float, C> const& csg::ToFloat(Cube<float, C> const& pt) {
+   return pt;
 }
-#endif
+
+template <int C>
+Cube<int, C> csg::ToInt(Cube<float, C> const& cube) {
+   return Cube<int, C>(csg::ToInt(cube.min), csg::ToInt(cube.max), cube.GetTag());
+}
+
+template <int C>
+Cube<int, C> const& csg::ToInt(Cube<int, C> const& cube) {
+   return cube;
+}
+
 
 #define MAKE_CUBE(Cls) \
    template Cls::Cube(); \
@@ -259,15 +270,24 @@ Cube<S, C> Cube<S, C>::Construct(Point min_value, Point max_value, int tag)
    template Cls Cls::operator&(const Cls& offset) const; \
    template Cls::Region Cls::operator&(const Cls::Region& offset) const; \
    template Cls Cls::operator+(const Cls::Point& offset) const; \
+   template Cls Cls::operator-() const; \
    template Cls::Region Cls::operator-(const Cls& other) const; \
    template Cls::Region Cls::operator-(const Cls::Region& other) const; \
    template bool Cls::Contains(const Cls::Point& other) const; \
    template Cls::Point Cls::GetClosestPoint2(const Cls::Point& other, Cls::ScalarType*) const; \
    template void Cls::Grow(const Cls::Point& other); \
-   template Cls Cls::ProjectOnto(int axis, Cls::ScalarType plane) const; \
 
 MAKE_CUBE(Cube3)
 MAKE_CUBE(Cube3f)
 MAKE_CUBE(Rect2)
 MAKE_CUBE(Rect2f)
 MAKE_CUBE(Line1)
+
+#define DEFINE_CUBE_CONVERSIONS(C) \
+   template Cube<float, C> csg::ToFloat(Cube<int, C> const&); \
+   template Cube<float, C> const& csg::ToFloat(Cube<float, C> const&); \
+   template Cube<int, C> const& csg::ToInt(Cube<int, C> const&); \
+   template Cube<int, C> csg::ToInt(Cube<float, C> const&);
+
+DEFINE_CUBE_CONVERSIONS(2)
+DEFINE_CUBE_CONVERSIONS(3)

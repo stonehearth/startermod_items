@@ -13,7 +13,9 @@
          "name": "Dining Table",
          "description": "Sitting down to eat is a sign of civilization.",
          "icon" : "file(dining_table.png)"
-
-      }
+      },
+      "stonehearth:material" : {
+         "tags" : "wood furniture"
+      }      
    }
 }

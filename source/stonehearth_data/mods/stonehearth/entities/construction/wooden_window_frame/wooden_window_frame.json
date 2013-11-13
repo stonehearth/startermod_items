@@ -14,6 +14,9 @@
          "description": "So much for privacy...",
          "icon" : "file(wooden_window_frame.png)"
 
-      }
+      },
+      "stonehearth:material" : {
+         "tags" : "wood portal"
+      }            
    }
 }

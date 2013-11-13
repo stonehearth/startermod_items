@@ -6,7 +6,7 @@
     <RenderTarget id="SSAOBUF" depthBuf="false" numColBufs="1" format="RGBA8" maxSamples="0" scale="1.0" />
     <RenderTarget id="SSAOBLUR" depthBuf="false" numColBufs="1" format="RGBA8" maxSamples="0" scale="1.0" />
     <RenderTarget id="TEMPSSAOBLUR" depthBuf="false" numColBufs="1" format="RGBA8" scale="1.0" />
-    <RenderTarget id="SelectedTemp" depthBuf="false" numColBufs="1" format="RGBA8" scale="1.0"/>
+    <RenderTarget id="SelectedTemp" depthBuf="true" numColBufs="1" format="RGBA8" scale="1.0"/>
   </Setup>
   <CommandQueue>
 
@@ -31,6 +31,14 @@
       <DoDeferredLightLoop class="~Translucent" noShadows="false"/>
 
       <UnbindBuffers />
+    </Stage>
+
+    <!-- This stage should only be enabled when SSAO is disabled. -->
+    <Stage id="SSAO Default" enabled="false">
+      <SwitchTarget target="SSAOBUF"/>
+      <ClearTarget colBuf0="true" col_R="1.0" col_G="1.0" col_B="1.0" col_A="1.0"/>
+      <SwitchTarget target="SSAOBLUR"/>
+      <ClearTarget colBuf0="true" col_R="1.0" col_G="1.0" col_B="1.0" col_A="1.0"/>
     </Stage>
 
     <Stage id="SSAO">
@@ -64,6 +72,15 @@
       <UnbindBuffers />
     </Stage>
 
+    <!-- This stage should only be enabled when SSAO blurring is disabled, but SSAO
+         is enabled -->
+    <Stage id="SSAO Copy" enabled="false">
+      <SwitchTarget target="SSAOBLUR" />
+      <BindBuffer sampler="buf0" sourceRT="SSAOBUF" bufIndex="0" />
+      <DrawQuad material="pipelines/outline.material.xml" context="DRAW_COLORBUF" />
+      <UnbindBuffers />
+    </Stage>
+
     <Stage id="Material">
       <SwitchTarget target="OUTPUT" />
       <BindBuffer sampler="lightingBuffer" sourceRT="LightingBuffer" bufIndex="0"/>
@@ -77,6 +94,9 @@
     <Stage id="Clouds">
       <SwitchTarget target="OUTPUT" />
       <DrawGeometry context="CLOUDS" class="~Translucent" />
+      <DrawGeometry context="TRANSLUCENT"/>
+      <DrawGeometry context="BLUEPRINTS" />
+      <DrawGeometry context="DEBUG_SHAPES" />
     </Stage>
 
     <Stage id="Translucent">
@@ -88,13 +108,13 @@
 
     <Stage id="Selected">
        <SwitchTarget target="SelectedTemp" />
-       <ClearTarget colBuf0="true"/>
+       <ClearTarget colBuf0="true" depthBuf="true"/>
        <DrawSelected context="SELECTED_SCREENSPACE" />
 
        <SwitchTarget target="OUTPUT" />
        <BindBuffer sampler="outlineSampler" sourceRT="SelectedTemp" bufIndex="0"/>
+       <BindBuffer sampler="outlineDepth" sourceRT="SelectedTemp" bufIndex="32"/>
        <DrawQuad material="terrain/default_material.xml" context="SELECTED_SCREENSPACE_OUTLINER" />
-
        <UnbindBuffers />
     </Stage>
 

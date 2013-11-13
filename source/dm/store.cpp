@@ -73,7 +73,9 @@ void Store::Reset()
 void Store::RegisterObject(Object& obj)
 {
    ASSERT(obj.IsValid());
-   ASSERT(objects_.find(obj.GetObjectId()) == objects_.end());
+   if (objects_.find(obj.GetObjectId()) != objects_.end()) {
+      throw std::logic_error(BUILD_STRING("data mode object " << obj.GetObjectId() << "being registered twice."));
+   }
 
    objects_[obj.GetObjectId()] = &obj;
 

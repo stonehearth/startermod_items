@@ -24,12 +24,12 @@ HttpReactor::HttpReactor(CoreReactor &core) :
    });
 }
 
-ReactorDeferredPtr HttpReactor::Call(json::ConstJsonObject const& query, std::string const& postdata)
+ReactorDeferredPtr HttpReactor::Call(json::Node const& query, std::string const& postdata)
 {
    try {
       rpc::Function fn;
-      fn.route = query.get<std::string>("fn");
-      fn.object = query.get<std::string>("obj");
+      fn.route = query.get<std::string>("fn", "");
+      fn.object = query.get<std::string>("obj", "");
 
       LOG(INFO) << "http reactor dispatching " << fn;
 
@@ -163,7 +163,6 @@ bool HttpReactor::HttpGetFile(std::string const& uri, int &code, std::string& co
       { "woff", "application/font-woff" },
       { "cur",  "image/vnd.microsoft.icon" },
    };
-   std::ifstream infile;
    auto const& rm = res::ResourceManager2::GetInstance();
 
    try {
@@ -171,9 +170,9 @@ bool HttpReactor::HttpGetFile(std::string const& uri, int &code, std::string& co
          JSONNode const& node = rm.LookupJson(uri);
          content = node.write();
       } else {
-         LOG(WARNING) << "reading file " << uri;
-         rm.OpenResource(uri, infile);
-         content = io::read_contents(infile);
+         LOG(INFO) << "reading file " << uri;
+         std::shared_ptr<std::istream> is = rm.OpenResource(uri);
+         content = io::read_contents(*is);
       }
    } catch (std::exception& e) {
       LOG(WARNING) << "error code 404: " << e.what();

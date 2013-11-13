@@ -21,9 +21,9 @@ FilePath::operator std::string() {
    return path_;
 }
 
-Function::Function(std::string const& name, json::ConstJsonObject const& n) :
+Function::Function(std::string const& name, json::Node const& n) :
    name_(name),
-   json::ConstJsonObject(n)
+   json::Node(n)
 {
 }
 

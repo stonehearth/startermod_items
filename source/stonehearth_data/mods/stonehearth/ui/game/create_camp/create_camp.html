@@ -2,14 +2,20 @@
    <div id="createCamp">
       <div id="scroll3" class="scroll">
          <div id="content">
+            <!--
             <center>
                <div class="subtitle">{{i18n stonehearth:new_game_setup_finished}}</div>
             </center>
+            -->
             <div class="help">
                {{i18n stonehearth:new_game_setup_finished_help}}
-               <p>
-               <a href="#" {{action finish target="view"}}>Got it</a>
             </div>
+
+            <a href="#" {{action finish target="view"}}>
+               <center>
+                  <div id="finishButton">{{i18n stonehearth:new_game_setup_finished_button}}</div>
+               </center>
+            </a>
          </div>
       </div>
 
@@ -36,16 +42,20 @@
          </div>
       </div>
 
+      <div id="banner">
+         <div>{{i18n stonehearth:new_game_place_banner}}</div>
+      </div>
+      
       <a href="#" {{action placeBanner target="view"}}>
-         <div id="banner">
-            <div>{{i18n stonehearth:new_game_place_banner}}</div>
-         </div>
+         <div class="coverLink"  id="bannerCoverLink"></div>
       </a>
 
+      <div id="crate">
+         <div>{{i18n stonehearth:new_game_place_stockpile}}</div>
+      </div>
+      
       <a href="#" {{action placeStockpile target="view"}}>
-         <div id="crate">
-            <div>{{i18n stonehearth:new_game_place_stockpile}}</div>
-         </div>
+         <div class="coverLink"  id="crateCoverLink"></div>
       </a>
    </div>
 </script>

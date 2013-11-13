@@ -17,6 +17,7 @@ class RegionCollisionShape : public Component,
 {
 public:
    DEFINE_OM_OBJECT_TYPE(RegionCollisionShape, region_collision_shape);
+   void ExtendObject(json::Node const& obj) override;
 
    CollisionType GetType() const override { return CollisionShape::REGION; }
    csg::Cube3f GetAABB() const override;

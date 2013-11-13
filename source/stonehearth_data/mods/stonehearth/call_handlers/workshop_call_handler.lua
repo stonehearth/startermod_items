@@ -1,4 +1,8 @@
 local Point3 = _radiant.csg.Point3
+local Cube3 = _radiant.csg.Cube3
+local Color3 = _radiant.csg.Color3
+local Rect2 = _radiant.csg.Rect2
+local Point2 = _radiant.csg.Point2
 local WorkshopCallHandler = class()
 
 -- client side object to add a new bench to the world.  this method is invoked
@@ -71,13 +75,18 @@ function WorkshopCallHandler:_on_mouse_event(e, workbench_entity, response)
       -- called.  this will return a Deferred object which we can use to track
       -- the call's progress
       _radiant.call('stonehearth:create_workbench', workbench_entity, pt, self._curr_rotation + 180)
+               :done(function (result)
+                     response:resolve(result)
+                  end)
+               :fail(function(result)
+                     response:reject(result)
+                  end)
                :always(function ()
                      -- whether the request succeeds or fails, go ahead and destroy
                      -- the authoring entity.  do it after the request returns to avoid
                      -- the ugly flickering that would occur had we destroyed it when
                      -- we uninstalled the mouse cursor
                      _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
-                     response:resolve({})
                   end)
 
    end
@@ -101,16 +110,84 @@ function WorkshopCallHandler:create_workbench(session, response, workbench_entit
    radiant.entities.turn_to(workbench_entity, rotation)
 
    -- Place the promotion talisman on the workbench, if there is one
-   local promotion_talisman_entity, outbox_entity = workshop_component:init_from_scratch()
+   local promotion_talisman_entity = workshop_component:init_from_scratch()
 
    -- set the faction of the bench and talisman
    workbench_entity:get_component('unit_info'):set_faction(session.faction)
    promotion_talisman_entity:get_component('unit_info'):set_faction(session.faction)
-   outbox_entity:get_component('unit_info'):set_faction(session.faction)
 
    -- return the entity, in case the client cares (e.g. if they want to make that
    -- the selected item)
-   return { workbench_entity = workbench_entity }
+   return { 
+      workbench_entity = workbench_entity
+   }
 end
+
+function WorkshopCallHandler:choose_outbox_location(session, response, workbench_entity)
+
+   self._region = _radiant.client.alloc_region2()
+   
+   -- create a new "cursor entity".  this is the entity that will move around the
+   -- screen to preview where the workbench will go.  these entities are called
+   -- "authoring entities", because they exist only on the client side to help
+   -- in the authoring of new content.
+   local cursor_entity = radiant.entities.create_entity()
+   local mob = cursor_entity:add_component('mob')
+   mob:set_interpolate_movement(false)
+   
+   -- add a render object so the cursor entity gets rendered.
+   local cursor_render_entity = _radiant.client.create_render_entity(1, cursor_entity)
+   local parent_node = cursor_render_entity:get_node()
+   local node
+
+   -- change the actual game cursor
+   local stockpile_cursor = _radiant.client.set_cursor('stonehearth:cursors:create_stockpile')
+
+   local cleanup = function()
+      if node then
+         h3dRemoveNode(node)
+      end
+      stockpile_cursor:destroy()
+      _radiant.client.destroy_authoring_entity(cursor_entity:get_id())
+   end
+
+   _radiant.client.select_xz_region()
+      :progress(function (box)
+            local cursor = self._region:modify()
+            cursor:clear()
+            cursor:add_cube(Rect2(Point2(0, 0), 
+                                  Point2(box.max.x - box.min.x + 1, box.max.z - box.min.z + 1)))
+            mob:set_location_grid_aligned(box.min)
+            if node then
+               h3dRemoveNode(node)
+            end
+            node = _radiant.client.create_designation_node(parent_node, cursor, Color3(0, 153, 255), Color3(0, 153, 255));
+         end)
+      :done(function (box)
+            local size = {
+               box.max.x - box.min.x + 1,
+               box.max.z - box.min.z + 1,
+            }
+            _radiant.call('stonehearth:create_outbox', box.min, size, workbench_entity:get_id())
+                     :done(function(r)
+                           response:resolve(r)
+                        end)
+                     :always(function()
+                           cleanup()
+                        end)
+         end)
+      :fail(function()
+            cleanup()
+         end)
+end
+
+function WorkshopCallHandler:create_outbox(session, response, location, size, workbench_entity_id)
+   local workbench_entity = radiant.entities.get_entity(workbench_entity_id)
+   local workshop_component = workbench_entity:get_component('stonehearth:workshop')
+   workshop_component:create_outbox(location, size)
+
+   return true
+end
+
 
 return WorkshopCallHandler

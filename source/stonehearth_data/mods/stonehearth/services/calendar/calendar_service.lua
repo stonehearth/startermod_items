@@ -1,6 +1,6 @@
 local data = {
    date = {
-      hour = 22,
+      hour = 6,
       minute = 0,
       second = 0,
       day = 0,
@@ -9,8 +9,10 @@ local data = {
    }, --the calendar data to export
    _lastNow = 0,
    _remainderTime = 0,
-   _fired_sunrise_today = false,
-   _fired_noon_today = false,
+
+   --When you change the start time change these to match
+   _fired_sunrise_today = true,
+   _fired_noon_today = true,
    _fired_sunset_today = false,
    _fired_midnight_today = false
 }
@@ -19,37 +21,40 @@ local constants = radiant.resources.load_json('/stonehearth/services/calendar/ca
 
 CalendarService = class()
 
-radiant.events.register_event('radiant:events:calendar:minutely')
-radiant.events.register_event('radiant:events:calendar:hourly')
-
-radiant.events.register_event('radiant:events:calendar:sunrise')
-radiant.events.register_event('radiant:events:calendar:noon')
-radiant.events.register_event('radiant:events:calendar:sunset')
-radiant.events.register_event('radiant:events:calendar:midnight')
-
 function CalendarService:__init()
+   self._timers = {}
    self._event_service = require 'services.event.event_service'
    self._constants = constants
-   radiant.events.listen('radiant:events:gameloop', function (_, now)
-         self:_on_event_loop(now)
-      end)
+   radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self._on_event_loop)
 end
 
-function CalendarService:set_time(second, minute, hour)
+function CalendarService:set_time(hour, minute, second)
    data.date.hour = hour;
    data.date.minute = minute;
    data.date.second = second;
 end
 
--- For starters, returns base time of day.
--- TODO: change based on the season/time of year
+function CalendarService:set_timer(hours, minutes, seconds, fn, param)
+   local timer_length = (hours * self._constants.minutes_per_hour * self._constants.seconds_per_minute ) +
+                            (minutes * self._constants.seconds_per_minute) + seconds
+
+
+   table.insert(self._timers, 
+      {
+         length = timer_length,
+         fn = fn,
+         param = param
+      })
+end
+
 function CalendarService:get_constants()
    return constants
 end
 
 -- recompute the game calendar based on the time
-function CalendarService:_on_event_loop(now)
+function CalendarService:_on_event_loop(e)
    local t
+   local now = e.now
 
    -- determine how many seconds have gone by since the last loop
    local dt = now - data._lastNow + data._remainderTime
@@ -76,11 +81,11 @@ function CalendarService:_on_event_loop(now)
    data.date.year = year
 
    if sec >= self._constants.seconds_per_minute  then
-      radiant.events.broadcast_msg('radiant:events:calendar:minutely', data.date)
+      radiant.events.trigger(self, 'stonehearth:minutely', { now = data.date})
    end
 
    if min >= self._constants.minutes_per_hour then
-      radiant.events.broadcast_msg('radiant:events:calendar:hourly', data.date)
+      radiant.events.trigger(self, 'stonehearth:hourly', {now = data.date})
    end
 
    self:fire_time_of_day_events()
@@ -91,9 +96,20 @@ function CalendarService:_on_event_loop(now)
    -- the date, formatting into a string
    data.date.date = self:format_date()
 
+   self:update_timers(t)
+
    data._lastNow = now
 end
 
+function CalendarService:update_timers(dt)
+   for i, timer in ipairs(self._timers) do
+      timer.length = timer.length - dt
+      if timer.length <= 0 then
+         timer.fn(timer.param)
+         table.remove(self._timers, i)
+      end
+   end
+end
 --[[
    If the hour is greater than the set time of day, then fire the
    relevant event.
@@ -106,7 +122,7 @@ function CalendarService:fire_time_of_day_events()
       hour < curr_day_periods.sunrise and
       not data._fired_midnight_today then
 
-      radiant.events.broadcast_msg('radiant:events:calendar:midnight')
+      radiant.events.trigger(self, 'stonehearth:midnight')
       data._fired_midnight_today = true
 
       data._fired_sunrise_today = false
@@ -118,7 +134,7 @@ function CalendarService:fire_time_of_day_events()
    if hour >= curr_day_periods.sunrise and
       not data._fired_sunrise_today then
 
-      radiant.events.broadcast_msg('radiant:events:calendar:sunrise')
+      radiant.events.trigger(self, 'stonehearth:sunrise')
       --xxx localise
       self._event_service:add_entry('The sun has risen on ' .. self:format_date() .. '.')
       data._fired_sunrise_today = true
@@ -129,7 +145,7 @@ function CalendarService:fire_time_of_day_events()
    if hour >= curr_day_periods.midday and
       not data._fired_noon_today then
 
-      radiant.events.broadcast_msg('radiant:events:calendar:noon')
+      radiant.events.trigger(self, 'stonehearth:noon')
       data._fired_noon_today = true
       return
    end
@@ -137,7 +153,7 @@ function CalendarService:fire_time_of_day_events()
    if hour >= curr_day_periods.sunset and
       not data._fired_sunset_today then
 
-      radiant.events.broadcast_msg('radiant:events:calendar:sunset')
+      radiant.events.trigger(self, 'stonehearth:sunset')
       --xxx localize
       self._event_service:add_entry('The sun has set.')
       data._fired_sunset_today = true

@@ -1,3 +1,8 @@
 add_subdirectory(rpc)
 add_subdirectory(voxel)
 add_subdirectory(perfmon)
+add_subdirectory(json)
+add_subdirectory(lua)
+add_subdirectory(analytics)
+add_subdirectory(crash_reporter)
+add_subdirectory(audio)

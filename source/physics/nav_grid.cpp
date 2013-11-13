@@ -19,7 +19,7 @@ T ToLocalCoordinates(const T& coord, const std::shared_ptr<C> component)
    auto mob = entity.GetComponent<om::Mob>();
    if (mob) {
       T result(coord);
-      auto origin = mob->GetWorldLocation();
+      csg::Point3 origin = mob->GetWorldGridLocation();
       result.Translate(-origin);
       return result;
    }

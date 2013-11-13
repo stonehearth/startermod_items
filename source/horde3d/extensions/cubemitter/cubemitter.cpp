@@ -4,7 +4,7 @@
 #include "egMaterial.h"
 #include "egCamera.h"
 #include "libjson.h"
-#include "radiant_json.h"
+#include "lib/json/node.h"
 
 #if defined(ASSERT)
 #  undef ASSERT
@@ -19,7 +19,7 @@ using namespace ::radiant;
 using namespace ::radiant::json;
 using namespace ::radiant::horde3d;
 
-cubemitter::OriginData::SurfaceKind parseSurfaceKind(ConstJsonObject &n)
+cubemitter::OriginData::SurfaceKind parseSurfaceKind(Node &n)
 {
    if (n.as<std::string>() == "POINT") {
       return cubemitter::OriginData::POINT;
@@ -27,7 +27,7 @@ cubemitter::OriginData::SurfaceKind parseSurfaceKind(ConstJsonObject &n)
    return cubemitter::OriginData::RECTANGLE;
 }
 
-cubemitter::OriginData parseOrigin(ConstJsonObject &n) {
+cubemitter::OriginData parseOrigin(Node &n) {
    cubemitter::OriginData result;
    if (n.has("surface"))
    {
@@ -36,14 +36,14 @@ cubemitter::OriginData parseOrigin(ConstJsonObject &n) {
    if (result.surfaceKind == cubemitter::OriginData::SurfaceKind::RECTANGLE) {
       if (n.has("values"))
       {
-         result.length = n.getn("values").get<float>(0);
-         result.width = n.getn("values").get<float>(1);
+         result.length = n.getn("values").get<float>(0, 0.0f);
+         result.width = n.getn("values").get<float>(1, 0.0f);
       }
    }
    return result;
 }
 
-cubemitter::EmissionData parseEmission(ConstJsonObject& n) 
+cubemitter::EmissionData parseEmission(Node& n) 
 {
    cubemitter::EmissionData result;
    result.rate = parseChannel(n, "rate", 1.0f);
@@ -55,14 +55,14 @@ cubemitter::EmissionData parseEmission(ConstJsonObject& n)
    return result;
 }
 
-cubemitter::LifetimeData parseLifetime(ConstJsonObject& n)
+cubemitter::LifetimeData parseLifetime(Node& n)
 {
    cubemitter::LifetimeData result;
    result.start = parseChannel(n, "start", 5.0f);
    return result;
 }
 
-cubemitter::SpeedData parseSpeed(ConstJsonObject& n)
+cubemitter::SpeedData parseSpeed(Node& n)
 {
    cubemitter::SpeedData result;
    result.start = parseChannel(n, "start", 5.0f);
@@ -70,7 +70,7 @@ cubemitter::SpeedData parseSpeed(ConstJsonObject& n)
    return result;
 }
 
-cubemitter::RotationData parseRotation(ConstJsonObject& n)
+cubemitter::RotationData parseRotation(Node& n)
 {
    cubemitter::RotationData result;
    result.over_lifetime_x = parseChannel(n, "over_lifetime_x", 0.0f);
@@ -79,7 +79,7 @@ cubemitter::RotationData parseRotation(ConstJsonObject& n)
    return result;
 }
 
-cubemitter::VelocityData parseVelocity(ConstJsonObject& n)
+cubemitter::VelocityData parseVelocity(Node& n)
 {
    cubemitter::VelocityData result;
    result.over_lifetime_x = parseChannel(n, "over_lifetime_x", 0.0f);
@@ -88,7 +88,7 @@ cubemitter::VelocityData parseVelocity(ConstJsonObject& n)
    return result;
 }
 
-cubemitter::ColorData parseColor(ConstJsonObject& n)
+cubemitter::ColorData parseColor(Node& n)
 {
    cubemitter::ColorData result;
    result.start = parseChannel(n, "start", Vec4f(1, 0, 0, 1));
@@ -99,7 +99,7 @@ cubemitter::ColorData parseColor(ConstJsonObject& n)
    return result;
 }
 
-cubemitter::ScaleData parseScale(ConstJsonObject& n)
+cubemitter::ScaleData parseScale(Node& n)
 {
    cubemitter::ScaleData result;
    result.start = parseChannel(n, "start", 1.0f);
@@ -107,7 +107,7 @@ cubemitter::ScaleData parseScale(ConstJsonObject& n)
    return result;
 }
 
-cubemitter::ParticleData parseParticle(ConstJsonObject& n) 
+cubemitter::ParticleData parseParticle(Node& n) 
 {
    cubemitter::ParticleData result;
    if (n.has("speed"))
@@ -185,7 +185,7 @@ bool CubemitterResource::load( const char *data, int size )
 	if( !Resource::load( data, size ) ) return false;
 
    std::string jsonData(data, size);
-   ConstJsonObject root(libjson::parse(jsonData));
+   Node root(libjson::parse(jsonData));
 
    emitterData.duration = root.get("duration", 10.0f);
 
@@ -374,10 +374,6 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 	GPUTimer *timer = Modules::stats().getGPUTimer( EngineStats::ParticleGPUTime );
 	if( Modules::config().gatherTimeStats ) timer->beginQuery( Modules::renderer().getFrameID() );
 
-	// Bind cube geometry
-   gRDI->setVertexBuffer( 0, Extension::getCubemitterCubeVBO(), 0, sizeof( CubeVert ) );
-   gRDI->setIndexBuffer( Extension::getCubemitterCubeIBO(), IDXFMT_16 );
-
 	// Loop through and find all Cubemitters.
 	for( const auto &entry : Modules::sceneMan().getRenderableQueue() )
 	{
@@ -434,23 +430,14 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 			curMatRes = emitter->_materialRes;
 		}
 
-		// Set vertex layout
-      gRDI->setVertexLayout( Extension::getCubemitterCubeVL() );
-		
-		if( queryObj )
-			gRDI->beginQuery( queryObj );
-		
-		// Shader uniforms
-		ShaderCombination *curShader = Modules::renderer().getCurShader();
-		if( curShader->uni_nodeId >= 0 )
-		{
-			float id = (float)emitter->getHandle();
-			gRDI->setShaderConst( curShader->uni_nodeId, CONST_FLOAT, &id );
-		}
+	   if( queryObj )
+		   gRDI->beginQuery( queryObj );
 
-      gRDI->updateBufferData(emitter->_attributeBuf, 0, sizeof(CubeAttribute) * emitter->_maxCubes, emitter->_attributesBuff);
-      gRDI->setVertexBuffer(1, emitter->_attributeBuf, 0, sizeof(CubeAttribute));
-      gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, 36, 0, emitter->_maxCubes);
+      if (gRDI->getCaps().hasInstancing) {
+         emitter->renderWithInstancing();
+      } else {
+         emitter->renderWithBatches();
+      }
       
       emitter->_wasVisible = true;
 
@@ -465,6 +452,74 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 		Modules::renderer().drawOccProxies( 0 );
 	
 	gRDI->setVertexLayout( 0 );
+}
+
+void CubemitterNode::renderWithInstancing()
+{
+   // Set vertex layout
+   gRDI->setVertexLayout( Extension::getCubemitterCubeVL() );
+
+	// Bind cube geometry
+   gRDI->setVertexBuffer( 0, Extension::getCubemitterCubeVBO(), 0, sizeof( CubeVert ) );
+   gRDI->setIndexBuffer( Extension::getCubemitterCubeIBO(), IDXFMT_16 );
+
+   // Shader uniforms
+	ShaderCombination *curShader = Modules::renderer().getCurShader();
+
+   gRDI->updateBufferData(_attributeBuf, 0, sizeof(CubeAttribute) * _maxCubes, _attributesBuff);
+   gRDI->setVertexBuffer(1, _attributeBuf, 0, sizeof(CubeAttribute));
+   gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, 36, 0, _maxCubes);
+}
+
+void CubemitterNode::renderWithBatches()
+{
+   // Set vertex layout
+   gRDI->setVertexLayout(Extension::getCubemitterBatchCubeVL());
+
+   gRDI->setVertexBuffer(0, Extension::getCubemitterBatchCubeVBO(), 0, sizeof(CubeBatchVert));
+   gRDI->setIndexBuffer(Extension::getCubemitterBatchCubeIBO(), IDXFMT_16);
+
+   // Shader uniforms
+	ShaderCombination *curShader = Modules::renderer().getCurShader();
+
+   uint32 batchNum = 0;
+   for (batchNum; batchNum < _maxCubes / CubesPerBatch; batchNum++)
+   {
+      renderBatch(curShader, batchNum, CubesPerBatch);
+   }
+   uint32 count = _maxCubes % CubesPerBatch;
+	if(count > 0)
+   {
+      renderBatch(curShader, batchNum, count);
+   }
+}
+
+void CubemitterNode::renderBatch(ShaderCombination *curShader, int batchNum, int count)
+{
+   float matArray[16 * CubesPerBatch];
+   float colorArray[4 * CubesPerBatch];
+
+   for (int i = 0; i < count; i++)
+   {
+      memcpy(matArray + (i * 16), _attributesBuff[(CubesPerBatch * batchNum) + i].matrix.x, 16 * sizeof(float));
+      colorArray[i * 4 + 0] = _attributesBuff[(CubesPerBatch * batchNum) + i].color.x;
+      colorArray[i * 4 + 1] = _attributesBuff[(CubesPerBatch * batchNum) + i].color.y;
+      colorArray[i * 4 + 2] = _attributesBuff[(CubesPerBatch * batchNum) + i].color.z;
+      colorArray[i * 4 + 3] = _attributesBuff[(CubesPerBatch * batchNum) + i].color.w;
+   }
+
+	if (curShader->uni_cubeBatchTransformArray >= 0)
+   {
+      gRDI->setShaderConst(curShader->uni_cubeBatchTransformArray, CONST_FLOAT44, matArray, count);
+   }
+	if (curShader->uni_cubeBatchColorArray >= 0)
+   {
+      gRDI->setShaderConst(curShader->uni_cubeBatchColorArray, CONST_FLOAT4, colorArray, count);
+   }
+   gRDI->drawIndexed(PRIM_TRILIST, 0, count * 36, 0, count * 8);
+
+   Modules::stats().incStat( EngineStats::BatchCount, 1 );
+   Modules::stats().incStat( EngineStats::TriCount, count * 12.0f );
 }
 
 void CubemitterNode::onPostUpdate()

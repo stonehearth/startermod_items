@@ -13,6 +13,17 @@ namespace radiant {
    // conflicts with cef_types.h ... why don't they have type guards!!
    // typedef signed __int64     sint64, int64;
    // typedef unsigned __int64   uint64;
+
+
+   // helper functions for types
+
+   template <class T>
+   static inline const char* GetShortTypeName()
+   {
+      const char* name = typeid(T).name();
+      const char* last = strrchr(name, ':');
+      return last ? last + 1 : name;
+   }
 };
 
 #endif // _RADIANT_TYPES_H

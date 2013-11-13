@@ -51,6 +51,9 @@ protected:
 	
    uint32                _size;
    uint32                _buffer;
+   void*                 _pinnedMemory;
+   void*                 _pinnedMemoryAligned;
+   bool                  _usePinnedMemory;
 
    friend class ResourceManager;
 };

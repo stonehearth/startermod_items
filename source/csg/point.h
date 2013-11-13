@@ -2,7 +2,6 @@
 #define _RADIANT_CSG_POINT_H
 
 #include <ostream>
-#include <libjson.h>
 #include "radiant_macros.h"
 #include "csg.h"
 #include "namespace.h"
@@ -22,17 +21,6 @@ public:
    S& operator[](int offset) { return static_cast<Derived*>(this)->Coord(offset); }
    S operator[](int offset) const { return static_cast<const Derived*>(this)->Coord(offset);  }
 
-   JSONNode ToJson() const
-   {
-      char label[2] = { 'x', '\0' };
-      JSONNode result;
-      for (int i = 0; i < C; i++) {
-         result.push_back(JSONNode(label, (*this)[i]));
-         label[0]++;
-      }
-      return result;
-   }
-
    // manipulators
    void Scale(float s) {
       for (int i = 0; i < C; i++) {
@@ -43,6 +31,18 @@ public:
    Derived Scaled(float s) const {
       Derived result(*static_cast<Derived const*>(this));
       result.Scale(s);
+      return result;
+   }
+
+   void Translate(const Derived& pt) {
+      for (int i = 0; i < C; i++) {
+         (*this)[i] += pt[i];
+      }
+   }
+
+   Derived Translated(const Derived& pt) const {
+      Derived result(*this);
+      result.Translate(pt);
       return result;
    }
 
@@ -65,13 +65,6 @@ public:
       for (int i = 0; i < C; i++) {
          result[i] = (a[i] + b[i]) / 2;
       }
-      return result;
-   }
-
-   Derived ProjectOnto(int axis, S plane) const
-   {
-      Derived result = *static_cast<const Derived*>(this);
-      result[axis] = plane;
       return result;
    }
 
@@ -143,6 +136,13 @@ public:
       return result;
    }
 
+   const Derived& operator*=(S scale) {
+      for (int i = 0; i < C; i++) {
+         (*this)[i] *= scale;
+      }
+      return static_cast<const Derived&>(*this);
+   }
+
    const Derived& operator+=(const Derived& other) {
       for (int i = 0; i < C; i++) {
          (*this)[i] += other[i];
@@ -163,12 +163,6 @@ public:
          result[i] = (*this)[i] + other[i];
       }
       return result;
-   }
-
-   template <class U> void Translate(const U& pt) {
-      for (int i = 0; i < C; i++) {
-         (*this)[i] += static_cast<S>(pt[i]);
-      }
    }
 
    Derived operator-(const Derived& other) const {
@@ -357,19 +351,6 @@ std::ostream& operator<<(std::ostream& os, const Point<S, C>& in)
 {
    return in.Print(os);
 }
-
-typedef Point<int, 1>      Point1;
-typedef Point<int, 2>      Point2;
-typedef Point<int, 3>      Point3;
-typedef Point<int, 4>      Point4;
-typedef Point<float, 1>    Point1f;
-typedef Point<float, 2>    Point2f;
-typedef Point<float, 3>    Point3f;
-typedef Point<float, 4>    Point4f;
-
-static inline Point3f ToFloat(Point3 const& pt) { return Point3f((float)pt.x, (float)pt.y, (float)pt.z); };
-Point3 ToInt(Point3f const& pt);
-Point3f Interpolate(Point3f const& a, Point3f const& b, float alpha);
 
 END_RADIANT_CSG_NAMESPACE
 

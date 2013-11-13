@@ -37,6 +37,11 @@ bool Selection::HasLocation() const
    return (flags_ & HAS_LOCATION) != 0;
 }
 
+csg::Point3f Selection::GetLocation() const
+{
+   return location_;
+}
+
 void Selection::AddLocation(const csg::Point3f& location, const csg::Point3f& normal)
 {
    flags_ |= HAS_LOCATION;

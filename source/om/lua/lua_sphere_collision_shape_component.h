@@ -1,7 +1,7 @@
 #ifndef _RADIANT_OM_LUA_SPHERE_COLLISION_SHAPE_COMPONENT_H
 #define _RADIANT_OM_LUA_SPHERE_COLLISION_SHAPE_COMPONENT_H
 
-#include "radiant_luabind.h"
+#include "lib/lua/bind.h"
 #include "om/namespace.h"
 
 BEGIN_RADIANT_OM_NAMESPACE

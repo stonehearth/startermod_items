@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "lua/register.h"
+#include "lib/lua/register.h"
 #include "lua_sensor_list_component.h"
 #include "om/components/sensor_list.h"
 
@@ -10,12 +10,12 @@ using namespace ::radiant::om;
 scope LuaSensorListComponent::RegisterLuaTypes(lua_State* L)
 {
    return
-      lua::RegisterDerivedObject<SensorList, Component>()
+      lua::RegisterWeakGameObjectDerived<SensorList, Component>()
          .def("add_sensor",               &SensorList::AddSensor)
          .def("get_sensor",               &SensorList::GetSensor)
          .def("remove_sensor",            &SensorList::RemoveSensor)
       ,
-      lua::RegisterObject<Sensor>()
+      lua::RegisterWeakGameObject<Sensor>()
          .def("set_name",                 &Sensor::SetName)
          .def("get_name",                 &Sensor::GetName)
          .def("get_contents",             &Sensor::GetContents)

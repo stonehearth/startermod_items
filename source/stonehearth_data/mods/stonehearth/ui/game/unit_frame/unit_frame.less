@@ -6,37 +6,73 @@
    bottom: 16px;
    left: 10px;
 
+   #buffs {
+      position: absolute;
+      top: 24px;
+      left: 6px;
+
+      .item {
+         float: left;
+         width: 46px;
+
+         height: 51px;
+         img {
+            width: 46px;
+            height: 51px;
+         }
+      }
+
+      .buff {
+         background: url('./images/buff_bg.png');
+      }
+
+      .debuff {
+         background: url('./images/debuff_bg.png');
+      }
+
+   }
+
    #info {
       .controlFont;
       position: absolute;
       left: 0px;
       bottom: 0px;
-      height: 45px;
-      padding: 10px;
+      width: 324px;
+      height: 98px;
+      background: url('./images/bg.png');
       font-size: 32px;
-      line-height: 30px;
+      line-height: 26px;
+      text-align: center;
+
+         .name {
+            padding-top: 24px;
+            font-size: 28px;
+         }
 
          .description {
-         .smallFont;
+         font-size: 18px;
          color: @controlLightFontColor;
       }
    }
 
    #commandButtons {
       position: absolute;
-      bottom: 55px;
-      left: 8px;
-      width: 325px;
-      height: 70px;
-      //background: url('./images/command_button_well.png');
+      bottom: 0px;
+      left: 330px;
+      width: 400px;
 
       .commandButton {
          position: relative;
-         display: inline-block;
-         width: 63px;
-         height: 65px;
+         float: left;
+         width: 93px;
+         height: 98px;
          background: url('./images/command_button_bg.png');
          border: 0px;
+         margin-right: 8px;
+
+         img {
+            width: 90px;
+         }
 
          .active {
             background: red !important;
@@ -45,8 +81,8 @@
          #hotkey {
             .hotkey;
             position: absolute;
-            bottom: 4px;
-            right: 6px;
+            bottom: 15px;
+            right: 12px;
          }
       }
 

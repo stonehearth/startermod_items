@@ -3,7 +3,7 @@
 #include "core/guard.h"
 #include "namespace.h"
 #include "store.pb.h"
-#include "radiant_luabind.h"
+#include "lib/lua/bind.h"
 #include <boost/any.hpp>
 
 BEGIN_RADIANT_DM_NAMESPACE

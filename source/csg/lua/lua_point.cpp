@@ -1,19 +1,14 @@
 #include "pch.h"
-#include "lua/register.h"
+#include "lib/lua/register.h"
 #include "lua_point.h"
 #include "csg/point.h"
 #include "csg/color.h"
 #include "csg/transform.h"
+#include "csg/util.h" // xxx: should be in csg/csg.h
 
 using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::csg;
-
-template <typename T>
-std::string PointToJson(T const& pt, luabind::object state)
-{
-   return pt.ToJson().write();
-}
 
 template <typename T>
 bool Point_IsAdjacentTo(T const& a, T const& b)
@@ -34,10 +29,8 @@ static luabind::class_<T> RegisterCommon(struct lua_State* L, const char* name)
 {
    return
       lua::RegisterType<T>(name)
-         .def(tostring(const_self))
          .def(constructor<>())
          .def(constructor<T const&>())
-         .def("__tojson",  &PointToJson<T>)
          .def(const_self + other<T const&>())
          .def(const_self - other<T const&>())
          .def(const_self == other<T const&>())
@@ -47,7 +40,9 @@ static luabind::class_<T> RegisterCommon(struct lua_State* L, const char* name)
          .def("is_adjacent_to",     &Point_IsAdjacentTo<T>)
          .def("scale",              &T::Scale)
          .def("normalize",          &T::Normalize)
-         .def("dot",                &T::Dot);
+         .def("dot",                &T::Dot)
+         .def("scaled",             &T::Scaled)
+         ;
 
 }
 
@@ -91,6 +86,11 @@ scope LuaPoint::RegisterLuaTypes(lua_State* L)
          .def("lerp",   (Point3f (*)(Point3f const& a, Point3f const& b, float alpha))&csg::Interpolate),
       lua::RegisterType<Transform>("Transform")
          .def("lerp",   (Transform (*)(Transform const& a, Transform const& b, float alpha))&csg::Interpolate),
+      lua::RegisterType<Color3>("Color3")
+         .def(constructor<int, int, int>())
+         .def_readwrite("r", &Color3::r)
+         .def_readwrite("g", &Color3::g)
+         .def_readwrite("b", &Color3::b),
       lua::RegisterType<Color4>("Color4")
          .def(constructor<int, int, int, int>())
          .def_readwrite("r", &Color4::r)

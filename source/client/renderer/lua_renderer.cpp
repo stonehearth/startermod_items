@@ -4,6 +4,7 @@
 #include "om/object_formatter/object_formatter.h"
 #include "lua_renderer.h"
 #include "h3d_resource_types.h"
+#include "lib/json/core_json.h"
 #include "Horde3DRadiant.h"
 
 using namespace luabind;
@@ -102,6 +103,8 @@ std::ostream& operator<<(std::ostream& os, const RayCastResult& in)
    return os;
 }
 
+DEFINE_INVALID_JSON_CONVERSION(RayCastResult);
+
 void LuaRenderer::RegisterType(lua_State* L)
 {
    module(L) [
@@ -163,6 +166,11 @@ void LuaRenderer::RegisterType(lua_State* L)
 		   value("ShadowContextStr",           H3DLight::ShadowContextStr),
          value("DirectionalI",               H3DLight::DirectionalI)
       ],
+      class_<H3DNodeParams>("H3DNodeParams")
+         .enum_("constants")
+      [
+         value("NameStr",                   H3DNodeParams::NameStr)
+      ],
       class_<H3DNodeFlags>("H3DNodeFlags")
          .enum_("constants")
       [
@@ -176,12 +184,11 @@ void LuaRenderer::RegisterType(lua_State* L)
       def("h3dAddLightNode",                 &h3dAddLightNode),
       def("h3dRadiantAddCubemitterNode",     &h3dRadiantAddCubemitterNode),
       def("h3dAddResource",                  &h3dAddResource),
-      def("h3dRadiantCreateStockpileNode",   &h3dRadiantCreateStockpileNode),
-      def("h3dRadiantResizeStockpileNode",   &h3dRadiantResizeStockpileNode),
       def("h3dSetMaterialUniform",           &h3dSetMaterialUniform),
       def("h3dSetNodeTransform",             &h3dSetNodeTransform),
       def("h3dSetNodeParamI",                &h3dSetNodeParamI),
       def("h3dSetNodeParamF",                &h3dSetNodeParamF),
+      def("h3dSetNodeParamStr",              &h3dSetNodeParamStr),
       def("h3dSetNodeFlags",                 &h3dSetNodeFlags)
    ];
    globals(L)["H3DRootNode"] = H3DRootNode;

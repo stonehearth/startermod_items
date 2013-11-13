@@ -2,12 +2,11 @@
 #include <regex>
 #include "stonehearth.h"
 #include "entity.h"
-#include "radiant_json.h"
-#include "radiant_luabind.h"
-#include "lua/radiant_lua.h"
+#include "lib/json/node.h"
+#include "lib/lua/bind.h"
 #include "resources/res_manager.h"
 #include "resources/exceptions.h"
-#include "lua/script_host.h"
+#include "lib/lua/script_host.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -80,7 +79,7 @@ GetLuaComponentUri(std::string name)
       modname = name.substr(0, offset);
       name = name.substr(offset + 1, std::string::npos);
 
-      json::ConstJsonObject manifest = res::ResourceManager2::GetInstance().LookupManifest(modname).GetNode();
+      json::Node manifest = res::ResourceManager2::GetInstance().LookupManifest(modname).GetNode();
       return manifest.getn("components").get<std::string>(name);
    }
    // xxx: throw an exception...
@@ -141,6 +140,17 @@ Stonehearth::GetComponentData(lua_State* L, om::EntityRef e, std::string name)
    return component;
 }
 
+object
+Stonehearth::AddComponentData(lua_State* L, om::EntityRef e, std::string name)
+{
+   object o = GetComponentData(L, e, name);
+   if (!o.is_valid() || type(o) == LUA_TNIL) {
+      o = newtable(L);
+      SetComponentData(L, e, name, o);
+   }
+   return o;
+}
+
 static object
 AddNativeComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
 {
@@ -149,7 +159,7 @@ AddNativeComponent(lua_State* L, om::EntityPtr entity, std::string const& name)
       auto component = entity->GetComponent<om::Clas>(); \
       if (!component) { \
          component = entity->AddComponent<om::Clas>(); \
-         component->ExtendObject(json::ConstJsonObject(JSONNode())); \
+         component->ExtendObject(json::Node(JSONNode())); \
       } \
       return object(L, std::weak_ptr<om::Clas>(component)); \
    }
@@ -231,9 +241,9 @@ Stonehearth::SetComponentData(lua_State* L, om::EntityRef e, std::string name, o
 
 void Stonehearth::InitEntity(om::EntityPtr entity, std::string const& uri, lua_State* L)
 {
-   if (L) {
-      L = lua::ScriptHost::GetCallbackThread(L);
-   }
+   ASSERT(L);
+   L = lua::ScriptHost::GetCallbackThread(L);
+   bool is_server = object_cast<bool>(globals(L)["radiant"]["is_server"]);
 
    entity->SetUri(uri);
    entity->SetDebugText(uri);
@@ -246,27 +256,47 @@ void Stonehearth::InitEntity(om::EntityPtr entity, std::string const& uri, lua_S
    #define OM_OBJECT(Cls, lower) \
          if (entry.name() == #lower) { \
             auto component = entity->AddComponent<om::Cls>(); \
-            component->ExtendObject(json::ConstJsonObject(entry)); \
+            component->ExtendObject(json::Node(entry)); \
             continue; \
          }
          OM_ALL_COMPONENTS
    #undef OM_OBJECT
+
          // Lua components...
-         if (L) {
+         object component_data = lua::ScriptHost::JsonToLua(L, entry);
+         if (is_server) {
             object component = Stonehearth::AddComponent(L, entity, entry.name());
             if (type(component) != LUA_TNIL) {
                object extend = component["extend"];
                if (type(extend) == LUA_TFUNCTION) {
-                  call_function<void>(extend, component, lua::ScriptHost::JsonToLua(L, entry));
+                  call_function<void>(extend, component, component_data);
                }
+            }
+         } else {
+            SetLuaComponentData(L, entity, entry.name(), component_data);
+         }
+      }
+   }
+   // go through again and call the post create function...
+   if (is_server) {
+      auto lua_components = entity->GetComponent<LuaComponents>();
+      if (lua_components) {
+         for (auto const& entry : lua_components->GetComponentMap()) {
+            object component = entry.second->GetModelObject();
+            ASSERT(component.is_valid() && type(component) != LUA_TNIL);
+
+            object on_created = component["on_created"];
+            if (type(on_created) == LUA_TFUNCTION) {
+               call_function<void>(on_created, component);
             }
          }
       }
    }
+
    // xxx: refaactor me!!!111!
    if (L) {
-      json::ConstJsonObject n(node);
-      std::string init_script = n.get<std::string>("init_script");
+      json::Node n(node);
+      std::string init_script = n.get<std::string>("init_script", "");
       if (!init_script.empty()) {
          try {        
             object fn = lua::ScriptHost::RequireScript(L, init_script);

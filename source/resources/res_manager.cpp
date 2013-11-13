@@ -8,10 +8,12 @@
 #include <boost/tokenizer.hpp>
 #include "radiant.h"
 #include "radiant_file.h"
-#include "radiant_json.h"
+#include "lib/json/node.h"
 #include "res_manager.h"
 #include "animation.h"
 #include "core/config.h"
+#include "directory_module.h"
+#include "zip_module.h"
 
 // Crytop stuff (xxx - change the include path so these generic headers aren't in it)
 #include "sha.h"
@@ -33,8 +35,21 @@ static std::vector<std::string> SplitPath(std::string const& path)
    std::vector<std::string> s;
    boost::split(s, path, boost::is_any_of("/"));
    s.erase(std::remove(s.begin(), s.end(), ""), s.end());
-   
+
    return s;
+}
+
+static void ParsePath(std::string const& path, std::string& modname, std::vector<std::string>& parts)
+{
+   std::vector<std::string> s = SplitPath(path);
+   
+   parts.clear();
+   if (s.size() > 0) {
+      modname = *s.begin();
+      std::copy(s.begin() + 1, s.end(), std::back_inserter(parts));
+   } else {
+      modname = "";
+   }
 }
 
 static std::string Checksum(std::string input)
@@ -51,10 +66,9 @@ static std::string Checksum(std::string input)
 
 AnimationPtr ResourceManager2::LoadAnimation(std::string const& canonical_path) const
 {
-   std::ifstream json_in;
-   OpenResource(canonical_path, json_in);
+   std::shared_ptr<std::istream> json_in = OpenResource(canonical_path);
 
-   std::string jsonfile = io::read_contents(json_in);
+   std::string jsonfile = io::read_contents(*json_in);
    std::string jsonhash = Checksum(jsonfile);
    fs::path animation_cache = core::Config::GetInstance().GetCacheDirectory() / "animations";
    if (!fs::is_directory(animation_cache)) {
@@ -76,7 +90,7 @@ AnimationPtr ResourceManager2::LoadAnimation(std::string const& canonical_path) 
    }
    if (buffer.empty()) {
       JSONNode node = libjson::parse(jsonfile);
-      std::string type = json::ConstJsonObject(node).get<std::string>("type");
+      std::string type = json::Node(node).get<std::string>("type", "");
       if (type.empty()) {
          throw InvalidResourceException(canonical_path, "'type' field missing");
       }
@@ -113,8 +127,18 @@ ResourceManager2::ResourceManager2()
    fs::directory_iterator end;
    for (fs::directory_iterator i(resource_dir_); i != end; i++) {
       fs::path path = i->path();
-      if (fs::is_directory(path)) {
-         moduleNames_.push_back(path.filename().string());
+      std::string const& name = path.filename().stem().string();
+      
+      if (modules_.find(name) == modules_.end()) {
+         // check for the zipfile first
+         std::string zipfile = path.string() + ".zip";
+         if (fs::is_regular_file(zipfile)) {
+            modules_[name] = new ZipModule(zipfile);
+            module_names_.push_back(name);
+         } else if (fs::is_directory(path)) {
+            modules_[name] = new DirectoryModule(path);
+            module_names_.push_back(name);
+         }
       }
    }
 }
@@ -162,25 +186,28 @@ AnimationPtr ResourceManager2::LookupAnimation(std::string path) const
    return (animations_[key] = LoadAnimation(key));
 }
 
-void ResourceManager2::OpenResource(std::string const& canonical_path, std::ifstream& in) const
+std::shared_ptr<std::istream> ResourceManager2::OpenResource(std::string const& path) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
+   
+   std::string modname;
+   std::vector<std::string> parts;
 
-   std::string filepath = GetFilepath(canonical_path);
+   std::string canonical_path = ConvertToCanonicalPath(path, nullptr);
+   ParsePath(canonical_path, modname, parts);
 
-   in = std::ifstream(filepath, std::ios::in | std::ios::binary);
-   if (!in.good()) {
-      // how can we get here?  GetFilepath validates the filepath.
-      // maybe if we can't open the file for some reason?
-      throw InvalidFilePath(filepath);
+   auto i = modules_.find(modname);
+   if (i == modules_.end()) {
+      throw InvalidFilePath(canonical_path);
    }
-}
 
-std::string ResourceManager2::GetResourceFileName(std::string const& path, const char* search_ext) const
-{
-   std::lock_guard<std::recursive_mutex> lock(mutex_);
+   std::string filename = boost::algorithm::join(parts, "/");
+   std::shared_ptr<std::istream> result = i->second->OpenResource(filename);
+   if (!result) {
+      throw InvalidFilePath(canonical_path);
+   }
+   return result;
 
-   return GetFilepath(ConvertToCanonicalPath(path, search_ext));
 }
 
 void ResourceManager2::ExpandMacros(std::string const& base_path, JSONNode& node, bool full) const
@@ -202,56 +229,34 @@ std::string ResourceManager2::ConvertToCanonicalPath(std::string path, const cha
 
    path = ExpandMacro(path, ".", true); // so we can lookup things like 'stonehearth:wooden_axe'
 
-   std::vector<std::string> parts = SplitPath(path);
+   std::string modname;
+   std::vector<std::string> parts;
+   ParsePath(path, modname, parts);
 
-   if (parts.size() < 1) {
+   auto i = modules_.find(modname);
+   if (i == modules_.end()) {
       throw InvalidFilePath(path);
    }
 
-   fs::path filepath = fs::path(resource_dir_);
-   for (std::string part : parts) {
-      filepath /= part;
+   if (!i->second->CheckFilePath(parts)) {
+      if (!search_ext) {
+         throw InvalidFilePath(path);
+      }
+      // try the 2nd form...
+      parts.push_back(parts.back() + search_ext);
+      if (!i->second->CheckFilePath(parts)) {
+         throw InvalidFilePath(path);
+      }
    }
-
-   // if the file path is a directory, look for a file with the name of
-   // the last part in there (e.g. /foo/bar -> /foo/bar/bar.json
-   if (fs::is_directory(filepath)) {
-      std::string filename = filepath.filename().string() + search_ext;
-      parts.push_back(filename);
-      filepath /= filename;
-   }
-
-   if (!fs::is_regular_file(filepath)) {
-      throw InvalidFilePath(path);
-   }
-   return boost::algorithm::join(parts, "/");
-}
-
-
-std::string ResourceManager2::GetFilepath(std::string const& canonical_path) const
-{
-   std::vector<std::string> parts = SplitPath(canonical_path);
-
-   fs::path filepath = fs::path(resource_dir_);
-   for (std::string const& part : parts) {
-      filepath /= part;
-   }
-
-   std::wstring native_path = filepath.native();
-   return std::string(native_path.begin(), native_path.end());
+   return modname + "/" + boost::algorithm::join(parts, "/");
 }
 
 JSONNode ResourceManager2::LoadJson(std::string const& canonical_path) const
 {
-   std::string filepath = GetFilepath(canonical_path);
-
-   std::ifstream in(filepath, std::ios::in);
-   if (!in.good()) {
-      throw InvalidFilePath(canonical_path);
-   }
+   std::shared_ptr<std::istream> is = OpenResource(canonical_path);
 
    std::stringstream reader;
-   reader << in.rdbuf();
+   reader << is->rdbuf();
 
    json_string json = reader.str();
    if (!libjson::is_valid(json)) {
@@ -266,10 +271,11 @@ JSONNode ResourceManager2::LoadJson(std::string const& canonical_path) const
 }
 
 
-void ResourceManager2::ParseNodeExtension(std::string const& path, JSONNode& node) const
+void ResourceManager2::ParseNodeExtension(std::string const& path, JSONNode& n) const
 {
-   std::string extends = json::ConstJsonObject(node).get<std::string>("extends");
-   if (!extends.empty()) {
+   json::Node node(n);
+   if (node.has("extends")) {
+      std::string extends = node.get<std::string>("extends");
       JSONNode parent;
       std::string uri = ExpandMacro(extends, extends, true);
 
@@ -281,7 +287,7 @@ void ResourceManager2::ParseNodeExtension(std::string const& path, JSONNode& nod
 
       //LOG(WARNING) << "node pre-extend: " << node.write_formatted();
       //LOG(WARNING) << "extending with: " << parent.write_formatted();
-      ExtendNode(node, parent);
+      ExtendNode(n, parent);
       //LOG(WARNING) << "node post-extend: " << node.write_formatted();
    }
 }
@@ -322,7 +328,7 @@ void ResourceManager2::ExtendNode(JSONNode& node, const JSONNode& parent) const
 std::vector<std::string> const& ResourceManager2::GetModuleNames() const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
-   return moduleNames_;
+   return module_names_;
 }
 
 std::string ResourceManager2::ConvertToAbsolutePath(std::string const& path, std::string const& base_path) const
@@ -354,9 +360,10 @@ std::string ResourceManager2::GetEntityUri(std::string const& mod_name, std::str
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
 
-   json::ConstJsonObject manifest = res::ResourceManager2::GetInstance().LookupManifest(mod_name);
-   json::ConstJsonObject entities = manifest.getn("radiant").getn("entities");
-   std::string uri = entities.get<std::string>(entity_name);
+   json::Node manifest = res::ResourceManager2::GetInstance().LookupManifest(mod_name);
+   json::Node entities = manifest.getn("radiant.entities");
+   std::string uri = entities.get<std::string>(entity_name, "");
+
    if (uri.empty()) {
       std::ostringstream error;
       error << "'" << mod_name << "' has no entity named '" << entity_name << "' in the manifest.";

@@ -1,7 +1,8 @@
 #include "pch.h"
-#include "lua/register.h"
+#include "lib/lua/register.h"
 #include "lua_cube.h"
 #include "csg/cube.h"
+#include "lib/json/namespace.h"
 
 using namespace ::luabind;
 using namespace ::radiant;
@@ -24,6 +25,8 @@ static luabind::scope Register(struct lua_State* L, const char* name)
          .def("contains",     &T::Contains)
          .def("width",        &T::GetWidth) 
          .def("height",       &T::GetHeight)
+         .def("translated",   &T::Translated)
+         .def("scaled",       &T::Scaled)
       ;
 }
 

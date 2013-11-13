@@ -2,8 +2,12 @@ _host:require 'radiant.lib.env' -- there's no module path installed, so use the 
 decoda_name = "radiant server"
 
 radiant = {
+   is_server = true,
    _root_entity = _radiant.sim.create_empty_entity()
 }
+-- The root entity should not be interpolated; if it is, all children (the entire universe)
+-- will be dirtied, and horde will walk the scene-graph _every_ _single_ _frame_.
+radiant._root_entity:add_component('mob'):set_interpolate_movement(false)
 
 radiant.log = require 'modules.log'
 radiant.util = require 'lib.util'
@@ -27,21 +31,7 @@ local api = {}
 function api.update(interval)
    radiant.gamestate._increment_clock(interval)
    radiant.events._update()
-   --[[
-   if now > self._lastProfileReport + 5000 then
-      ProFi:stop();
-      ProFi:writeReport();
-      ProFi:reset();
-      ProFi:start();
-      self._lastProfileReport = now
-   end
-   copas.step(0)
-   ]]
    return radiant.gamestate.now()
-end
-
-function api.call_game_hook(stage)
-   radiant.events._call_game_hook(stage)
 end
 
 return api

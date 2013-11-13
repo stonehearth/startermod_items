@@ -12,7 +12,6 @@
 #include "jobs/follow_path.h"
 #include "jobs/goto_location.h"
 #include "resources/res_manager.h"
-#include "lua/radiant_lua.h"
 #include "dm/store.h"
 #include "om/entity.h"
 #include "om/components/clock.h"
@@ -26,12 +25,13 @@
 #include "om/data_binding.h"
 //#include "native_commands/create_room_cmd.h"
 #include "jobs/job.h"
-#include "lua/script_host.h"
-#include "lua/res/open.h"
-#include "lua/rpc/open.h"
-#include "lua/sim/open.h"
-#include "lua/om/open.h"
-#include "lua/voxel/open.h"
+#include "lib/lua/script_host.h"
+#include "lib/lua/res/open.h"
+#include "lib/lua/rpc/open.h"
+#include "lib/lua/sim/open.h"
+#include "lib/lua/om/open.h"
+#include "lib/lua/voxel/open.h"
+#include "lib/lua/analytics/open.h"
 #include "om/lua/lua_om.h"
 #include "csg/lua/lua_csg.h"
 #include "lib/rpc/session.h"
@@ -114,24 +114,6 @@ Simulation::Simulation() :
 
 }
 
-void Simulation::InitializeModules()
-{
-   auto& rm = res::ResourceManager2::GetInstance();
-   for (std::string const& modname : rm.GetModuleNames()) {
-      try {
-         json::ConstJsonObject manifest = rm.LookupManifest(modname);
-         json::ConstJsonObject const& block = manifest.get<JSONNode>("server");
-         if (!block.empty()) {
-            LOG(WARNING) << "loading init script for " << modname << "...";
-            LoadModuleInitScript(block);
-            LoadModuleGameObjects(modname, block);
-         }
-      } catch (std::exception const& e) {
-         LOG(WARNING) << "load failed: " << e.what();
-      }
-   }
-}
-
 Simulation::~Simulation()
 {
    // Control the order that items get destroyed for graceful shutdown.
@@ -144,39 +126,12 @@ Simulation::~Simulation()
 }
 
 
-void Simulation::LoadModuleInitScript(json::ConstJsonObject const& block)
-{
-   std::string filename = block.get<std::string>("init_script");
-   if (!filename.empty()) {
-      scriptHost_->RequireScript(filename);
-   }
-}
-
 static std::string SanatizePath(std::string const& path)
 {
    std::vector<std::string> s;
    boost::split(s, path, boost::is_any_of("/"));
    s.erase(std::remove(s.begin(), s.end(), ""), s.end());
    return std::string("/") + boost::algorithm::join(s, "/");
-}
-
-void Simulation::LoadModuleGameObjects(std::string const& modname, json::ConstJsonObject const& block)
-{
-   res::ResourceManager2 &rm = res::ResourceManager2::GetInstance();
-   for (auto const& node : block.get<JSONNode>("game_objects")) {
-      json::ConstJsonObject info(node);
-
-      std::string dataBindingName = modname + std::string(".") + node.name();
-      std::string controller = info.get<std::string>("controller");
-
-      om::DataBindingPtr binding = GetStore().AllocObject<om::DataBinding>();
-      binding->SetDataObject(luabind::newtable(scriptHost_->GetInterpreter()));
-      luabind::object ctor = scriptHost_->RequireScript(controller);
-      luabind::object model = luabind::call_function<luabind::object>(ctor, binding);
-      std::ostringstream uri;
-      uri << modname << "." << node.name();
-      trace_router_->AddObject(uri.str(), binding);
-   }
 }
 
 void Simulation::CreateNew()
@@ -190,6 +145,10 @@ void Simulation::CreateNew()
       using namespace luabind;
 
       lua_State* L = scriptHost_->GetInterpreter();
+      lua_State* callback_thread = scriptHost_->GetCallbackThread();
+   
+      store_.SetInterpreter(callback_thread); // xxx move to dm open or something
+
       om::RegisterLuaTypes(L);
       csg::RegisterLuaTypes(L);
       lua::sim::open(L);
@@ -197,11 +156,10 @@ void Simulation::CreateNew()
       lua::voxel::open(L);
       lua::rpc::open(L, core_reactor_);
       lua::om::register_json_to_lua_objects(L, store_);
+      lua::analytics::open(L);
       om::RegisterObjectTypes(store_);
 
       game_api_ = scriptHost_->Require("radiant.server");
-
-      InitializeModules();
 
       auto vm = core::Config::GetInstance().GetVarMap();
       std::string game_script = vm["game.script"].as<std::string>();
@@ -609,159 +567,9 @@ void Simulation::UpdateTargetTables(int now, int interval)
    }
 }
 
-// xxx: Merge into a common route thingy...
-void Simulation::HandleRouteRequest(luabind::object ctor, JSONNode const& query, std::string const& postdata, proto::PostCommandReply* reply)
-{
-#if 0
-   // convert the json query data to a lua table...
-   try {
-      using namespace luabind;
-      lua_State* L = scriptHost_->GetCallbackThread();
-      object queryObj = ScriptHost::JsonToLua(L, query);
-      object coder = globals(L)["radiant"]["json"];
-
-      object obj = call_function<object>(ctor);
-      object fn = obj["handle_request"];
-      auto i = query.find("fn");
-      if (i != query.end() && i->type() == JSON_STRING) {
-         std::string fname = i->as_string();
-         if (!fname.empty())  {
-            fn = obj[fname];
-         }
-      }
-      std::string json = scriptHost_->PostCommand(fn, obj, postdata);
-
-      reply->set_status_code(200);
-      reply->set_content(json);
-      reply->set_mime_type("application/json");
-   } catch (std::exception &e) {
-      JSONNode result;
-      result.push_back(JSONNode("error", e.what()));
-      reply->set_status_code(500);
-      reply->set_content(result.write());
-      reply->set_mime_type("application/json");
-   }
-#endif
-}
-
-void Simulation::ProcessCallModuleRequest(std::string const& mod_name, std::string const& function_name, proto::PostCommandRequest const& request, proto::PostCommandReply* reply)
-{
-#if 0
-   res::Manifest manifest = res::ResourceManager2::GetInstance().LookupManifest(mod_name);
-   res::Function f = manifest.get_function(function_name);
-   std::string what = BUILD_STRING("'" << mod_name << "', '" << function_name << "'");
-   if (!f) {
-      throw core::InvalidArgumentException(what + " is not exported from manifest");
-   }
-
-   if (f.endpoint() != f.SERVER) {
-      throw core::InvalidArgumentException(what + " is not a server endpoint");
-   }
-
-   res::FilePath path = f.script();
-   if (!path) {
-      throw core::InvalidArgumentException(what + " script path is invalid");
-   }
-
-   using namespace luabind;
-   object fn;
-   try {
-      lua_State *L = scriptHost_->GetCallbackThread();
-      object ctor(L, scriptHost_->LuaRequire(path));
-      if (!ctor.is_valid() || type(ctor) == LUA_TNIL) {
-         throw core::Exception(BUILD_STRING("failed to retrieve lua call handler while processing " << what));
-      }
-      object obj = call_function<object>(ctor);
-      object fn = obj[function_name];
-      if (!fn.is_valid() || type(fn) != LUA_TFUNCTION) {
-         throw core::Exception(BUILD_STRING("constructed lua handler does not implement " << what));
-      }
-      object result = call_function<object>(fn, obj, session, response);
-   }
-
-   luabind::object obj = scriptHost_->LuaRequire(path);
-   if (!obj.is_valid() || luabind::type(obj) != LUA_TNIL) { // xxx: Just let the exception thing happen!
-      response = scriptHost_->PostCommand(obj, data);
-   } else {
-      error = "no such object";
-   }
-#endif
-}
-
 void Simulation::PostCommand(proto::PostCommandRequest const& request)
 {
    protobuf_reactor_->Dispatch(session_, request);
-#if 0
-   try {
-      luabind::object obj, fn;
-      std::string const& object_name = request.object();
-      std::string const& function_name = request.function();
-
-      dm::ObjectPtr obj = om::ObjectFormatter().GetObject(GetStore(), object_name);
-      if (obj) {
-      } else {
-         ProcessCallModuleRequest(object_name, function_name, request, reply);
-      }
-      luabind::object caller(cb_thread_, obj);
-      om::DataBindingPtr db = std::static_pointer_cast<om::DataBinding>(obj);
-      std::string fname = node.get<std::string>("fn");
-      luabind::object obj = db->GetModelObject();
-      luabind::object fn = obj[fname];
-      response = scriptHost_->PostCommand(fn, obj, data);
-
-   } catch (std::exception &e) {
-      JSONNode error;
-      error.push_back(JSONNode("error", "failed to dispatch call on server"));
-      error.push_back(JSONNode("reason", e.what());
-      reply->set_status_code(500);
-      reply->set_mime_type("application/json");
-      reply->set_content(error.write_formatted());
-   }
-   auto i = routes_.find(path);
-   if (i != routes_.end()) {
-      JSONNode args;
-      // xxx: what about data?  if it's empty, we're in trouble, right?
-      if (!query.empty()) {
-         args = libjson::parse(query); // xxx: what if this throws an exception?  we're going to die!!
-      }
-      HandleRouteRequest(i->second, args, data, reply);
-      return;
-   }
-
-   dm::ObjectPtr obj = om::ObjectFormatter().GetObject(GetStore(), request.path());
-   if (obj) {
-      if (obj->GetObjectType() == om::DataBindingObjectType) {
-         JSONNode n = libjson::parse(query); // xxx: turn json::ConstJsonObject into a REAL WRAPPER instead of this const ref crap.
-         json::ConstJsonObject node(n);
-         try {
-            om::DataBindingPtr db = std::static_pointer_cast<om::DataBinding>(obj);
-            std::string fname = node.get<std::string>("fn");
-            luabind::object obj = db->GetModelObject();
-            luabind::object fn = obj[fname];
-            response = scriptHost_->PostCommand(fn, obj, data);
-         } catch (std::exception const& e) {
-            error = e.what();
-         }
-      }
-   } else {
-      luabind::object obj = scriptHost_->LuaRequire(path);
-      if (obj && luabind::type(obj) != LUA_TNIL) { // xxx: Just let the exception thing happen!
-         response = scriptHost_->PostCommand(obj, data);
-      } else {
-         error = "no such object";
-      }
-   }
-
-   reply->set_mime_type("application/json");
-   reply->set_status_code(200); // xxx: or 500 or something?
-   if (error.empty()) {
-      reply->set_content(response);
-   } else {
-      JSONNode errorNode;
-      errorNode.push_back(JSONNode("error", error));
-      reply->set_content(errorNode.write());
-   }
-#endif
 }
 
 bool Simulation::ProcessMessage(const proto::Request& msg, protocol::SendQueuePtr queue)

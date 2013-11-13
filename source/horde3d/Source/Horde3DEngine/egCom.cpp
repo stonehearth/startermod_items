@@ -40,6 +40,7 @@ EngineConfig::EngineConfig()
 	debugViewMode = false;
 	dumpFailedShaders = false;
 	gatherTimeStats = true;
+   enableShadows = true;
 }
 
 
@@ -75,6 +76,8 @@ float EngineConfig::getOption( EngineOptions::List param )
 		return dumpFailedShaders ? 1.0f : 0.0f;
 	case EngineOptions::GatherTimeStats:
 		return gatherTimeStats ? 1.0f : 0.0f;
+   case EngineOptions::EnableShadows:
+      return enableShadows ? 1.0f : 0.0f;
 	default:
 		Modules::setError( "Invalid param for h3dGetOption" );
 		return Math::NaN;
@@ -116,7 +119,12 @@ bool EngineConfig::setOption( EngineOptions::List param, float value )
 		size = ftoi_r( value );
 
 		if( size == shadowMapSize ) return true;
-		if( size != 128 && size != 256 && size != 512 && size != 1024 && size != 2048 ) return false;
+
+      if ( size <= 0 ) return false;
+
+      size = (int)pow(2, floor(log(size) / log(2.0)));
+
+      if(size > gRDI->getCaps().maxTextureSize) return false;
 
 		// Update shadow map
 		Modules::renderer().releaseShadowRB();
@@ -148,6 +156,9 @@ bool EngineConfig::setOption( EngineOptions::List param, float value )
 	case EngineOptions::GatherTimeStats:
 		gatherTimeStats = (value != 0);
 		return true;
+   case EngineOptions::EnableShadows:
+      enableShadows = (value != 0);
+      return true;
 	default:
 		Modules::setError( "Invalid param for h3dSetOption" );
 		return false;
@@ -283,8 +294,12 @@ StatManager::StatManager()
 	_statBatchCount = 0;
 	_statLightPassCount = 0;
 
+   _curFrame = 0;
 	_frameTime = 0;
-
+	for (int i = 0; i < 20; i++)
+	{
+		_frameTimes[i] = 0.0;
+	}
 	_fwdLightsGPUTimer = new GPUTimer();
 	_defLightsGPUTimer = new GPUTimer();
 	_shadowsGPUTimer = new GPUTimer();
@@ -304,6 +319,7 @@ StatManager::~StatManager()
 float StatManager::getStat( int param, bool reset )
 {
 	float value;	
+   float sum = 0.0;
 	
 	switch( param )
 	{
@@ -323,6 +339,13 @@ float StatManager::getStat( int param, bool reset )
 		value = _frameTime;
 		if( reset ) _frameTime = 0;
 		return value;
+   case EngineStats::AverageFrameTime:
+      for (int i = 0; i < 20; i++)
+      {
+         sum += _frameTimes[i];
+      }
+      value = sum / 20.0f;
+      return value;
 	case EngineStats::AnimationTime:
 		value = _animTimer.getElapsedTimeMS();
 		if( reset ) _animTimer.reset();
@@ -377,6 +400,8 @@ void StatManager::incStat( int param, float value )
 		break;
 	case EngineStats::FrameTime:
 		_frameTime += value;
+      _frameTimes[_curFrame] = _frameTime;
+      _curFrame = (_curFrame + 1) % 20;
 		break;
 	}
 }

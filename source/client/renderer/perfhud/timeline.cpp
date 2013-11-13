@@ -34,6 +34,7 @@ Timeline::Timeline() :
    SetMaxColumns(300);
 
    perfmon_guard_ = perfmon::OnFrameEnd([=](perfmon::Frame* f) {
+      perfmon::TimelineCounterGuard tcg("perhud add frame");
       AddFrame(f);
    });
 }

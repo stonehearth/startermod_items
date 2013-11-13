@@ -1,13 +1,27 @@
 local PopulationFaction = class()
 
-function PopulationFaction:__init(faction)
+--Separate the faction name (player chosen) from the kingdom name (ascendency, etc.)
+function PopulationFaction:__init(faction, kingdom)
    self._faction = faction
-   self._data = radiant.resources.load_json(faction)
-   self._faction_name = 'civ' -- xxx: for now....
+   self._data = radiant.resources.load_json(kingdom)
+   self._faction_name = faction --TODO: differentiate b/w user id and name?
 end
 
 function PopulationFaction:create_new_citizen()   
-   local gender = 'male'
+   local gender
+
+   -- xxx, replace this with a coin flip using math.random
+   if not self._always_one_girl_hack then
+      gender = 'female'
+      self._always_one_girl_hack = true
+   else 
+      if math.random(2) == 1 then
+         gender = 'male'
+      else 
+         gender = 'female'
+      end
+   end
+
    local entities = self._data[gender .. '_entities']
    local kind = entities[math.random(#entities)]
    local citizen = radiant.entities.create_entity(kind)

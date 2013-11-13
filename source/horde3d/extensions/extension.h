@@ -16,6 +16,8 @@ static const int RT_AnimatedLightResource = 1008;
 static const int SNT_AnimatedLightNode    = 1009;
 static const int SNT_ScreenSpaceNode      = 1010;
 
+const uint32 CubesPerBatch = 32;
+
 BEGIN_RADIANT_HORDE3D_NAMESPACE
 
 class Extension : public Horde3D::IExtension
@@ -33,10 +35,21 @@ public:
    static uint32 getCubemitterCubeIBO() { return _cubeIdxBuf; }
    static uint32 getCubemitterCubeVL() { return _vlCube; }
 
+   static uint32 getCubemitterBatchCubeVBO() { return _cubeBatchVBO; }
+   static uint32 getCubemitterBatchCubeIBO() { return _cubeBatchIdxBuf; }
+   static uint32 getCubemitterBatchCubeVL() { return _vlBatchCube; }
+
 private:
+   void createCubeInstanceData();
+   void createCubeBatchData();
+
    static uint32 _cubeVBO;
    static uint32 _cubeIdxBuf;
    static uint32 _vlCube;
+
+   static uint32 _cubeBatchVBO;
+   static uint32 _cubeBatchIdxBuf;
+   static uint32 _vlBatchCube;
 };
 
 END_RADIANT_HORDE3D_NAMESPACE

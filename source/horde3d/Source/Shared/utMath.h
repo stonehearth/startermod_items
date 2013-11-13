@@ -285,6 +285,24 @@ public:
 	{
 		return Vec3f( x + (v.x - x) * f, y + (v.y - y) * f, z + (v.z - z) * f ); 
 	}
+
+   void quantize(const Vec3f& value)
+   {
+      x = quantizeValue_(x, value.x);
+      y = quantizeValue_(y, value.y);
+      z = quantizeValue_(z, value.z);
+   }
+
+private:
+   float quantizeValue_(float v, float q)
+   {
+      if (q != 0.0f)
+      {
+         v /= q;
+         v = std::floorf(v) * q;
+      }
+      return v;
+   }
 };
 
 
@@ -893,10 +911,76 @@ public:
 	}
 };
 
+class Polygon
+{
+public:
+   explicit Polygon(const std::vector<Vec3f>& points)
+   {
+      if (points.size() > 2)
+      {
+         for (const auto& p : points)
+         {
+            _points.push_back(p);
+         }
+         _plane = Plane(points[0], points[1], points[2]);
+      } else {
+         _plane.dist = 0;
+         _plane.normal = Vec3f(0, 0, 0);
+      }
+   }
+
+   explicit Polygon(const Vec3f& a, const Vec3f& b, const Vec3f& c, const Vec3f& d)
+   {
+      _points.push_back(a);
+      _points.push_back(b);
+      _points.push_back(c);
+      _points.push_back(d);
+      _plane = Plane(_points[0], _points[1], _points[2]);
+   }
+
+   const Vec3f& normal() const
+   {
+      return _plane.normal;
+   }
+
+   const Plane& plane() const
+   {
+      return _plane;
+   }
+
+   const std::vector<Vec3f> points() const
+   {
+      return _points;
+   }
+
+private:
+   Polygon();
+
+   std::vector<Vec3f> _points;
+   Plane _plane;
+};
 
 // -------------------------------------------------------------------------------------------------
 // Intersection
 // -------------------------------------------------------------------------------------------------
+
+inline bool rayPlaneIntersection(const Vec3f& start, const Vec3f& end, const Plane& plane, Vec3f* result)
+{
+   Vec3f rayDir = end - start;
+   rayDir.normalize();
+   if (fabs(rayDir.dot(plane.normal)) < 0.00001f)
+   {
+      return false;
+   }
+
+   float num = -(plane.distToPoint(start));
+   float denom = plane.normal.dot(rayDir);
+   float t = num / denom;
+
+   *result = start + (rayDir * t);
+
+   return true;
+}
 
 inline bool rayTriangleIntersection( const Vec3f &rayOrig, const Vec3f &rayDir, 
                                      const Vec3f &vert0, const Vec3f &vert1, const Vec3f &vert2,
@@ -1016,6 +1100,34 @@ inline float nearestDistToAABB( const Vec3f &pos, const Vec3f &mins, const Vec3f
 	nearestVec.z = maxf( 0, fabsf( pos.z - center.z ) - extent.z );
 	
 	return nearestVec.length();
+}
+
+inline Polygon clipPolyToPlane(const Plane& plane, const Polygon& polygon)
+{
+   std::vector<Vec3f> resultPoints;
+
+   for (unsigned int i = 0; i < polygon.points().size(); i++)
+   {
+      const Vec3f startPoint = polygon.points().at(i);
+      const Vec3f endPoint = polygon.points().at((i + 1) % polygon.points().size());
+      if (plane.distToPoint(startPoint) <= 0)
+      {
+         resultPoints.push_back(startPoint);
+
+         if (plane.distToPoint(endPoint) > 0)
+         {
+            Vec3f result;
+            rayPlaneIntersection(startPoint, endPoint, plane, &result);
+            resultPoints.push_back(result);
+         }
+      } else if (plane.distToPoint(endPoint) <= 0) {
+         Vec3f result;
+         rayPlaneIntersection(startPoint, endPoint, plane, &result);
+         resultPoints.push_back(result);
+      }
+   }
+
+   return Polygon(resultPoints);
 }
 
 }

@@ -4,9 +4,9 @@
 #include "om.h"
 #include "dm/dm.h"
 #include "csg/cube.h"
-#include "protocols/store.pb.h"
-#include "protocols/tesseract.pb.h"
-#include "radiant_luabind.h"
+#include "store.pb.h"
+#include "tesseract.pb.h"
+#include "lib/lua/bind.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
 
@@ -42,6 +42,7 @@ public:
    const csg::Point3& GetBlock() const;
 
    bool HasLocation() const;
+   csg::Point3f GetLocation() const;
    void AddLocation(const csg::Point3f& location, const csg::Point3f& normal);
    const csg::Point3f& GetNormal();
    

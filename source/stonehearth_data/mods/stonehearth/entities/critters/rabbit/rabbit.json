@@ -9,10 +9,11 @@
       },
       "stonehearth:ai" : {
          "actions" : [
-            "stonehearth:actions:wander_action"
+            "stonehearth:actions:follow_leash",
+            "stonehearth:actions:wander"
          ]
       },
-      "attributes": {
+      "stonehearth:attributes": {
          "health": 1,
          "speed" : 50
       },      

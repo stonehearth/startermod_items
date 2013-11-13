@@ -4,7 +4,7 @@
 #include <vector>
 #include "namespace.h"
 #include "radiant.h"
-#include "radiant_luabind.h"
+#include "lib/lua/bind.h"
 #include "radiant_stdutil.h"
 #include "dbg_indenter.h"
 
@@ -124,26 +124,37 @@ public:
          guard_.Clear();
       }
 
-      LuaPromise* PushAddedCb(luabind::object cb) {
+      LuaPromise& PushAddedCb(luabind::object cb) {
          changedCbs_.push_back(cb);
-         return this;
+         return *this;
       }
 
-      LuaPromise* PushRemovedCb(luabind::object cb) {
+      LuaPromise& PushRemovedCb(luabind::object cb) {
          removedCbs_.push_back(cb);
-         return this;
+         return *this;
       }
 
       void OnChange(const T& value) {
          for (auto& cb : changedCbs_) {
-            luabind::call_function<void>(cb, value);
+            try {
+               luabind::call_function<void>(cb, value);
+            } catch (std::exception const& e) {
+               LOG(WARNING) << "lua error firing trace: " << e.what();
+            }
          }
       }
       void OnRemove(const T& value)  {
          for (auto& cb : removedCbs_) {
-            luabind::call_function<void>(cb, value);
+            try {
+               luabind::call_function<void>(cb, value);
+            } catch (std::exception const& e) {
+               LOG(WARNING) << "lua error firing trace: " << e.what();
+            }
          }
       }
+
+   private:
+      NO_COPY_CONSTRUCTOR(LuaPromise)
 
    private:
       core::Guard                     guard_;
@@ -173,6 +184,9 @@ public:
             lua_pushnil(L);
          }
       }
+
+   private:
+      NO_COPY_CONSTRUCTOR(LuaIterator)
 
    private:
       const T& container_;

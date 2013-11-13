@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "lua/register.h"
+#include "lib/lua/register.h"
 #include "lua_clock_component.h"
 #include "om/components/clock.h"
 
@@ -10,7 +10,7 @@ using namespace ::radiant::om;
 scope LuaClockComponent::RegisterLuaTypes(lua_State* L)
 {
    return
-      lua::RegisterDerivedObject<Clock, Component>()
+      lua::RegisterWeakGameObjectDerived<Clock, Component>()
          .def("set_time",              &Clock::SetTime)
          .def("get_time",              &Clock::GetTime)
       ;

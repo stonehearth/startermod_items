@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "lua/register.h"
+#include "lib/lua/register.h"
 #include "lua_vertical_pathing_region_component.h"
 #include "om/components/vertical_pathing_region.h"
 
@@ -39,7 +39,7 @@ VerticalPathingRegionRef VerticalPathingRegion_SetNormal(VerticalPathingRegionRe
 scope LuaVerticalPathingRegionComponent::RegisterLuaTypes(lua_State* L)
 {
    return
-      lua::RegisterDerivedObject<VerticalPathingRegion, Component>()
+      lua::RegisterWeakGameObjectDerived<VerticalPathingRegion, Component>()
          .def("get_region",               &VerticalPathingRegion_GetRegion)
          .def("set_region",               &VerticalPathingRegion_SetRegion)
          .def("trace_region",             &VerticalPathingRegion_TraceRegion)

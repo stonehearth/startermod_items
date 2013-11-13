@@ -5,7 +5,7 @@
 #include "namespace.h"
 #include "all_objects_types.h"
 #include "dm_save_impl.h"
-#include "radiant_luabind.h"
+#include "lib/lua/bind.h"
 #include "dbg_info.h"
 #include <unordered_map>
 
@@ -51,9 +51,14 @@ public:
       LuaPromise(const char* reason, T const& c) {
          auto changed = [=]() {
             for (auto& cb : cbs_) {
-               luabind::call_function<void>(cb);
+               try {
+                  luabind::call_function<void>(cb);
+               } catch (std::exception const& e) {
+                  LOG(WARNING) << "lua error firing trace: " << e.what();
+               }
             }
          };
+         callback_thread_ = c.GetStore().GetInterpreter();
          guard_ = c.TraceObjectChanges(reason, changed);
       }
 
@@ -68,7 +73,7 @@ public:
             class_<LuaPromise<T>>(tname.c_str())
                .def(tostring(const_self))               
                .def("on_changed",    &LuaPromise::PushChangedCb)
-               .def("destroy",      &LuaPromise::Destroy)
+               .def("destroy",       &LuaPromise::Destroy)
             ;
       }
 
@@ -77,13 +82,15 @@ public:
       }
 
       LuaPromise* PushChangedCb(luabind::object cb) {
-         cbs_.push_back(cb);
+         luabind::object fn(callback_thread_, cb);
+         cbs_.push_back(fn);
          return this;
       }
 
    private:
+      lua_State*                      callback_thread_;
       core::Guard                     guard_;
-      std::vector<luabind::object>  cbs_;
+      std::vector<luabind::object>    cbs_;
    };
 
    void SaveObject(Protocol::Object* msg) const;

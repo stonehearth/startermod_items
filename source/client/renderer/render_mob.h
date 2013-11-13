@@ -17,19 +17,19 @@ public:
    RenderMob(const RenderEntity& entity, om::MobPtr mob);
 
 private:
+   void RenderAxes();
+   void RemoveAxes();
    void Move();
    void Update();
-   void Interpolate();
-   void StartInterpolate();
 
 private:
    const RenderEntity&  entity_;
    om::MobRef           mob_;
-   core::Guard              tracer_;
-   csg::Transform    _initial;
-   csg::Transform    _final;
-   csg::Transform    _current;
-   H3DNodeUnique     _axes;
+   core::Guard          guards_;
+   csg::Transform      _initial;
+   csg::Transform      _final;
+   csg::Transform      _current;
+   H3DNodeUnique       _axes;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

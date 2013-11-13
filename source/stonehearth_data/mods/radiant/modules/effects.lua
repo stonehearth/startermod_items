@@ -23,9 +23,10 @@ function effects._init_entity(entity, resource)
 end
 ]]
 
-function effects._on_event_loop(msg, now)
+function effects._on_event_loop(_, e)
+   local now = e.now
    for id, mgr in pairs(singleton._all_effects) do
-      mgr:on_event_loop(now)
+      mgr:on_event_loop(e)
    end
 end
 
@@ -40,16 +41,16 @@ function effects.run_effect(entity, effect_name, ...)
       effect_mgr = EffectManager(entity)
       singleton._all_effects[id] = effect_mgr
       radiant.entities.on_destroy(entity, function()
-         singleton._all_effects[id]:destroy(entity)
+         if singleton._all_effects[id] then
+            singleton._all_effects[id]:destroy(entity)
+         end
          singleton._all_effects[id] = nil
       end)
    end
    return effect_mgr:start_effect(effect_name, ...)
 end
 
-radiant.events.register_event('radiant:animation:on_trigger')
-radiant.events.register_event('radiant:effect:frame_data:on_segment')
-radiant.events.listen('radiant:events:gameloop', effects._on_event_loop)
+radiant.events.listen(radiant.events, 'stonehearth:gameloop', effects, effects._on_event_loop)
 
 effects.__init()
 return effects

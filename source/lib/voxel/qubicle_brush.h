@@ -12,15 +12,18 @@ class QubicleBrush
 public:
    enum PaintMode {
       Color,
-      Opaque
+      Opaque,
    };
 
+   QubicleBrush();
    QubicleBrush(std::istream& in);
+   QubicleBrush(QubicleMatrix const*);
 
    QubicleBrush& SetNormal(csg::Point3 const& normal);
+   QubicleBrush& SetPreserveMatrixOrigin(bool value);
    QubicleBrush& SetPaintMode(PaintMode mode);
 
-   csg::Region3 Paint();
+   csg::Region3 PaintOnce();
    csg::Region3 PaintThroughStencil(csg::Region3 const& stencil);
 
 private:
@@ -29,6 +32,7 @@ private:
    csg::Region3 IterateThroughStencil(csg::Region3 const& brush, csg::Region3 const& stencil);
 
 private:
+   bool                  preserve_matrix_origin_;
    PaintMode             paint_mode_;
    csg::Point3           normal_;
    QubicleMatrix const*  qubicle_matrix_;

@@ -15,6 +15,7 @@ App.StonehearthCreateCampView = App.View.extend({
       }
 
       this._bounceBanner();
+      $("#crateCoverLink").hide();
    },
 
    actions : {
@@ -31,6 +32,7 @@ App.StonehearthCreateCampView = App.View.extend({
 
       placeStockpile: function () {
          var self = this;
+         self._hideCrate();
          $(top).trigger('create_stockpile.radiant', {
             callback : function() {
                setTimeout( function() {
@@ -49,18 +51,14 @@ App.StonehearthCreateCampView = App.View.extend({
       var self = this
       this._hideScroll('#scroll1', function() {
          setTimeout( function() {
-            self._showStockpileHint()
+            self._enableStockpileButton()
          }, 200);
       });
    },
 
    _gotoFinishStep: function() {
       var self = this
-      this._hideScroll('#scroll2', function() {
-         setTimeout( function() {
-            self._hideCrate()
-         }, 200);
-      });
+      this._hideScroll('#scroll2');
    },
 
    _bounceBanner: function() {
@@ -96,6 +94,7 @@ App.StonehearthCreateCampView = App.View.extend({
    _hideBanner: function() {
       this._bannerPlaced = true
       $('#banner').animate({ 'bottom' : -300 }, 100);
+      $("#bannerCoverLink").hide();
    },
 
    _hideScroll: function(id, callback) {
@@ -104,11 +103,13 @@ App.StonehearthCreateCampView = App.View.extend({
 
    _hideCrate: function() {
       this._cratePlaced = true
-      $('#crate').animate({ 'bottom' : -200 }, 100);
+      $('#crate').animate({ 'bottom' : -240 }, 150);
+      $("#crateCoverLink").hide();
    },
 
-   _showStockpileHint: function() {
+   _enableStockpileButton: function() {
       var self = this;
+      $("#crateCoverLink").show();
       $('#crate > div').fadeIn('slow', function() {
          self._bounceCrate();
       });

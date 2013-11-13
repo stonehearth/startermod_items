@@ -2,7 +2,7 @@
 #define _RADIANT_SIMULATION_SIMULATION_H
 
 #include "om/om.h"
-#include "radiant_luabind.h"
+#include "lib/lua/bind.h"
 #include "physics/octtree.h"
 #include "platform/utils.h"
 #include "platform/random.h"
@@ -12,15 +12,9 @@
 #include "core/guard.h"
 #include "libjson.h"
 #include "physics/namespace.h"
-#include "radiant_json.h"
+#include "lib/json/node.h"
 #include "lib/rpc/forward_defines.h"
-#include "lua/namespace.h"
-#include "lib/rpc/forward_defines.h"
-
-// Forward Declarations
-IN_RADIANT_LUA_NAMESPACE(
-   class ScriptHost;
-)
+#include "lib/lua/lua.h"
 
 IN_RADIANT_OM_NAMESPACE(
    class Entity;
@@ -92,10 +86,6 @@ private:
    void TraceAura(om::AuraListRef auraList, om::AuraPtr aura);
    void TraceTargetTables(om::TargetTablesPtr tables);
    void UpdateTargetTables(int now, int interval);
-   void HandleRouteRequest(luabind::object ctor, JSONNode const& query, std::string const& postdata, tesseract::protocol::PostCommandReply* response);
-   void LoadModuleInitScript(json::ConstJsonObject const& block);
-   void LoadModuleGameObjects(std::string const& modname, json::ConstJsonObject const& block);
-   void ProcessCallModuleRequest(std::string const& mod_name, std::string const& function_name, tesseract::protocol::PostCommandRequest const& request, tesseract::protocol::PostCommandReply* reply);
    void SendReply(tesseract::protocol::PostCommandReply const& reply);
    void InitializeModules();
 private:

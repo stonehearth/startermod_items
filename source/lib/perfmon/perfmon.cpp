@@ -17,25 +17,25 @@ static Timeline& GetTimeline()
    return *store__->GetTimeline();
 }
 
-FrameGuard::FrameGuard()
-{
-   BeginFrame();
-}
-
-FrameGuard::~FrameGuard()
-{
-   EndFrame();
-}
-
 TimelineCounterGuard::TimelineCounterGuard(const char* name)
 {
+   disposed_ = false;
    last_counter_ = GetTimeline().GetCurrentCounter();
    SwitchToCounter(name);
 }
 
+void TimelineCounterGuard::Dispose()
+{
+   if (!disposed_)
+   {
+      GetTimeline().SetCounter(last_counter_);
+      disposed_ = true;
+   }
+}
+
 TimelineCounterGuard::~TimelineCounterGuard()
 {
-   GetTimeline().SetCounter(last_counter_);
+   Dispose();
 }
 
 void perfmon::SwitchToCounter(char const* name)
@@ -48,11 +48,6 @@ void perfmon::SwitchToCounter(char const* name)
 void perfmon::BeginFrame()
 {
    GetTimeline().BeginFrame();
-}
-
-void perfmon::EndFrame()
-{
-   GetTimeline().EndFrame();
 }
 
 core::Guard perfmon::OnFrameEnd(std::function<void(Frame*)> fn)

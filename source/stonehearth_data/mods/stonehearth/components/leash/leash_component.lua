@@ -27,6 +27,10 @@ function LeashComponent:set_info(info)
    self._data_store:update(self._info)
 end
 
+function LeashComponent:set_to_entity_location(entity)
+   self:set_location(radiant.entities.get_location_aligned(entity))
+end
+
 function LeashComponent:get_location()
    return self._info.position
 end

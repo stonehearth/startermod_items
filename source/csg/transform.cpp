@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "csg/util.h" // xxx: should be csg/namespace.h
 #include "transform.h"
 
 using namespace radiant;

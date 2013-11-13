@@ -6,8 +6,12 @@
          "actions" : [
             "stonehearth:actions:sleep_action",
             "stonehearth:actions:sleep_in_bed_action",
+            "stonehearth:actions:sleep_on_ground_action",
             "stonehearth:actions:grab_talisman_action",
             "stonehearth:actions:admire_fire_action"
+         ],
+          "observers": [
+            "stonehearth:observers:sleep"
          ]
       },
 	   "unit_info" : {
@@ -20,16 +24,19 @@
 		  "health": 5,
         "speed" : 100
 	   },
+      "stonehearth:attributes" : {
+        "speed" : 100
+      },
       "sensor_list": {
          "sensors": {
             "sight": {
                "type": "sensor",
-               "radius": 10
+               "radius": 16
             }
          }
       },
-      "stonehearth:materials" : {
-         "materials" : [ "meat" ]
+      "stonehearth:material" : {
+         "tags" : "meat"
       },
       "carry_block": {
       },

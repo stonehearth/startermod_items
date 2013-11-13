@@ -1,9 +1,10 @@
 #ifndef _RADIANT_HORDE3D_EXTENSIONS_DATACHANNEL_H
 #define _RADIANT_HORDE3D_EXTENSIONS_DATACHANNEL_H
 
+#include <vector>
 #include "egPrimitives.h"
 #include "namespace.h"
-#include "radiant_json.h"
+#include "lib/json/node.h"
 
 using namespace ::radiant;
 using namespace ::radiant::json;
@@ -307,11 +308,11 @@ private:
    std::vector<std::pair<float, float> > _randomValues;
 };
 
-ValueEmitter<float>* parseChannel(ConstJsonObject &n, const char *childName, float def);
+ValueEmitter<float>* parseChannel(Node &n, const char *childName, float def);
 
-ValueEmitter<Vec3f>* parseChannel(ConstJsonObject &n, const char *childName, const Vec3f &def);
+ValueEmitter<Vec3f>* parseChannel(Node &n, const char *childName, const Vec3f &def);
 
-ValueEmitter<Vec4f>* parseChannel(ConstJsonObject &n, const char *childName, const Vec4f &def);
+ValueEmitter<Vec4f>* parseChannel(Node &n, const char *childName, const Vec4f &def);
 
 END_RADIANT_HORDE3D_NAMESPACE
 

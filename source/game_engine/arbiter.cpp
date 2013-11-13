@@ -43,10 +43,11 @@ void arbiter::GetConfigOptions()
    po::options_description config_file("Server options");
    po::options_description cmd_line("Server options");
 
+   std::string name = core::Config::GetInstance().GetName();
    cmd_line.add_options()
       ("game.noidle",   po::bool_switch(&config_.noidle), "suspend the idle loop, running the game as fast as possible.")
-      ("game.script",   po::value<std::string>()->default_value("stonehearth/start_game.lua"), "the game script to load")  //xxx: put this in a constant
-      ("game.mod",     po::value<std::string>()->default_value("stonehearth"), "the mod to load")
+      ("game.script",   po::value<std::string>()->default_value(name + "/start_game.lua"), "the game script to load")  //xxx: put this in a constant
+      ("game.mod",     po::value<std::string>()->default_value(name), "the mod to load")
       ;
    core::Config::GetInstance().GetCommandLineOptions().add(cmd_line);
    core::Config::GetInstance().GetConfigFileOptions().add(cmd_line);
@@ -59,14 +60,8 @@ arbiter::~arbiter()
 
 void arbiter::Run()
 {
-   try {
-      Start();
-      main();
-   } catch (std::exception &e) {
-      LOG(WARNING) << "Unhandled exception in game loop: " << e.what();
-      LOG(WARNING) << "DYING! =..(";
-      ASSERT(false);
-   }
+   Start();
+   main();
 }
 
 void arbiter::Start()

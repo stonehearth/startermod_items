@@ -27,8 +27,8 @@ end
 
 --Update returns true if we should continue, false if we should stop
 --If we're looping, return true. Otherwise, return if we've past the end time
-function MusicEffect:update(now)
-   return self._loop or self._end_time >= now
+function MusicEffect:update(e)
+   return self._loop or self._end_time >= e.now
 end
 
 return MusicEffect

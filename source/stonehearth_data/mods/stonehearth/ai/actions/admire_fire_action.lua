@@ -4,7 +4,7 @@
    but it always happens, people naturally gravitate towards moving, lit things.
    TODO: rename to "find fireside seat or something"
 ]]
-local Calendar = require 'services.calendar.calendar_service'
+local calendar = require 'services.calendar.calendar_service'
 
 local AdmireFire = class()
 
@@ -21,7 +21,7 @@ function AdmireFire:__init(ai, entity)
 
    self._standing_fire_effects = radiant.entities.get_entity_data(entity, "stonehearth:idle_fire_effects")
 
-   radiant.events.listen('radiant:events:calendar:sunrise', self)
+   radiant.events.listen(calendar, 'stonehearth:sunrise', self, self.on_sunrise)
 
    --People look for lit firepits after dark.
    self._known_firepit_callbacks = {}
@@ -33,35 +33,40 @@ function AdmireFire:__init(ai, entity)
    end
    self._promise = radiant.terrain.trace_world_entities('firepit tracker', added_cb, removed_cb)
 
-   self._time_constants = Calendar.get_constants()
+   self._time_constants = calendar.get_constants()
 end
 
 --- Trace all fire sources. Whenever one is added, trace its properties.
 -- When a fire is lit and it's nighttime, tell people to look for fires.
 -- TODO: how to release a trace?
--- TODO: test once we have move-item in place
+-- TODO: Bug: I suspect people will not know how to look for fires that appeared
+-- before they were added to the world.
 function AdmireFire:_on_entity_add(id, entity)
    local firepit_component = entity:get_component('stonehearth:firepit')
    if firepit_component and
-      radiant.entities.get_faction(entity) == radiant.entities.get_faction(self._entity) then
+      radiant.entities.get_faction(entity) == radiant.entities.get_faction(self._entity) and 
+      not self._known_firepit_callbacks[id] then
 
       local promise = firepit_component:get_data_store():trace('follow firepit data')
       self._known_firepit_callbacks[id] = promise
       promise:on_changed(function()
          if firepit_component:is_lit() then
-            self:_should_light_fire()
+            self:_should_find_fire()
          end
       end)
    end
 end
 
+
 function AdmireFire:_on_entity_remove(id)
-   self._known_firepit_callbacks[id] = nil
+   if self._known_firepit_callbacks[id] then
+      self._known_firepit_callbacks[id] = nil
+   end
 end
 
 ---Whenever there is a lit fire, if idle, go to it and hang out
-function AdmireFire:_should_light_fire()
-   local curr_time = Calendar.get_time_and_date()
+function AdmireFire:_should_find_fire()
+   local curr_time = calendar.get_time_and_date()
    if curr_time.hour >= self._time_constants.event_times.sunset or
       curr_time.hour < self._time_constants.event_times.sunrise then
       self._should_look_for_fire = true
@@ -72,7 +77,7 @@ function AdmireFire:_should_light_fire()
 end
 
 --- At dawn, stop looking, release all seats, unset postures
-AdmireFire['radiant:events:calendar:sunrise'] = function(self, calendar)
+function AdmireFire:on_sunrise(e)
    self._should_look_for_fire = false
    self:_clear_variables()
 end
@@ -95,6 +100,7 @@ function AdmireFire:_is_seat_by_lit_firepit(item)
             end
          end
       end
+
    end
    --To get here, there is either no lease,
    --or the lease is taken or it's not a fire
@@ -145,6 +151,23 @@ end
 function AdmireFire:run(ai, entity)
    assert(self._path_to_fire)
 
+   --Get the fire associated with the firepit
+   local spot_component = self._firepit_seat:get_component('stonehearth:center_of_attention_spot')
+   if not spot_component then
+      ai:abort()
+   end 
+   self._firepit = spot_component:get_center_of_attention()
+
+   -- If the firepit moves or is destroyed between now and before the
+   -- sleeper wakes up, just go ahead and abort.
+   self._firepit_moved_promise = radiant.entities.on_entity_moved(self._firepit, function()
+      ai:abort()
+   end);
+   radiant.entities.on_destroy(self._firepit, function()
+      --Can't call ai:abort, may not be on the correct thread.
+      self._firepit = nil
+   end);
+   
    -- Go to the fire!
    ai:execute('stonehearth:follow_path', self._path_to_fire)
 
@@ -152,8 +175,6 @@ function AdmireFire:run(ai, entity)
    local drop_location = self._path_to_fire:get_destination_point_of_interest()
    ai:execute('stonehearth:drop_carrying', drop_location)
 
-   --Get the fire associated with the firepit
-   local spot_component = self._firepit_seat:get_component('stonehearth:center_of_attention_spot')
    radiant.entities.turn_to_face(self._entity, spot_component:get_center_of_attention())
 
    self:_do_random_actions(ai)
@@ -165,6 +186,9 @@ end
 -- TODO: Add a standing animation, so the loop can continue
 function AdmireFire:_do_random_actions(ai)
    while true do
+      if not self._firepit then
+         ai:abort()
+      end
       local random_action = math.random(100)
       if random_action < 30 then
          ai:execute('stonehearth:idle')
@@ -199,6 +223,11 @@ end
 function AdmireFire:_clear_variables()
    self._ai:set_action_priority(self, 0)
 
+   if self._firepit_moved_promise then
+      self._firepit_moved_promise:destroy()
+      self._firepit_moved_promise = nil
+   end
+
    if self._pathfinder then
       self._pathfinder:stop()
       self._pathfinder = nil
@@ -207,7 +236,7 @@ function AdmireFire:_clear_variables()
    --We now run this action for as long as we're standing beside the seat.
    --So when stopping, unconditionally release the lease.
    --If stop is called and the entity successfully is beside his seat, then stop
-   if self._firepit_seat then
+   if self._firepit_seat and self._firepit_seat:get_component('stonehearth:lease_component') then
       self._firepit_seat:get_component('stonehearth:lease_component'):release_lease(self._entity)
    end
 end

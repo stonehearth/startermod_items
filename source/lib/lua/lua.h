@@ -1,0 +1,13 @@
+#ifndef _RADIANT_LIB_LUA_LUA_H
+#define _RADIANT_LIB_LUA_LUA_H
+
+#define BEGIN_RADIANT_LUA_NAMESPACE  namespace radiant { namespace lua {
+#define END_RADIANT_LUA_NAMESPACE    } }
+
+BEGIN_RADIANT_LUA_NAMESPACE
+
+class ScriptHost;
+
+END_RADIANT_LUA_NAMESPACE
+
+#endif //  _RADIANT_LIB_LUA_LUA_H

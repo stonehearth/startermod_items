@@ -1,8 +1,10 @@
 #include "pch.h"
 #include <regex>
+#include "build_number.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include "core/config.h"
+#include "radiant_file.h"
 #include "radiant_exceptions.h"
 #include "xz_region_selector.h"
 #include "om/entity.h"
@@ -17,9 +19,8 @@
 #include "platform/utils.h"
 #include "resources/manifest.h"
 #include "resources/res_manager.h"
-#include "lua/radiant_lua.h"
-#include "lua/register.h"
-#include "lua/script_host.h"
+#include "lib/lua/register.h"
+#include "lib/lua/script_host.h"
 #include "om/stonehearth.h"
 #include "om/object_formatter/object_formatter.h"
 #include "horde3d/Source/Horde3DEngine/egModules.h"
@@ -35,14 +36,21 @@
 #include "lib/rpc/lua_object_router.h"
 #include "lib/rpc/trace_object_router.h"
 #include "lib/rpc/http_deferred.h" // xxx: does not belong in rpc!
-#include "lua/client/open.h"
-#include "lua/res/open.h"
-#include "lua/rpc/open.h"
-#include "lua/om/open.h"
-#include "lua/voxel/open.h"
+#include "lib/lua/client/open.h"
+#include "lib/lua/res/open.h"
+#include "lib/lua/rpc/open.h"
+#include "lib/lua/om/open.h"
+#include "lib/lua/voxel/open.h"
+#include "lib/lua/analytics/open.h"
+#include "lib/analytics/design_event.h"
+#include "lib/analytics/post_data.h"
+#include "lib/audio/input_stream.h"
 #include "client/renderer/render_entity.h"
 #include "lib/perfmon/perfmon.h"
 #include "glfw3.h"
+
+#include <SFML/Audio.hpp>
+
 
 //  #include "GFx/AS3/AS3_Global.h"
 #include "client.h"
@@ -59,6 +67,9 @@ static const std::regex call_path_regex__("/r/call/?");
 
 DEFINE_SINGLETON(Client);
 
+sf::SoundBuffer soundBuffer_;
+sf::Sound       sound_;
+
 Client::Client() :
    _tcp_socket(_io_service),
    _server_last_update_time(0),
@@ -73,7 +84,6 @@ Client::Client() :
    currentCursor_(NULL),
    last_server_request_id_(0),
    next_input_id_(1),
-   next_trace_frame_id_(1),
    mouse_x_(0),
    mouse_y_(0),
    perf_hud_shown_(false)
@@ -113,12 +123,118 @@ Client::Client() :
       return GetModules(f);
    });
    core_reactor_->AddRoute("radiant:install_trace", [this](rpc::Function const& f) {
-      json::ConstJsonObject args(f.args);
-      std::string uri = args.get<std::string>(0);
+      json::Node args(f.args);
+      std::string uri = args.get<std::string>(0, "");
       return http_reactor_->InstallTrace(rpc::Trace(f.caller, f.call_id, uri));
    });
    core_reactor_->AddRoute("radiant:remove_trace", [this](rpc::Function const& f) {
       return core_reactor_->RemoveTrace(rpc::UnTrace(f.caller, f.call_id));
+   });
+   core_reactor_->AddRoute("radiant:send_design_event", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:design_event");
+      try {
+         json::Node node(f.args);
+         std::string event_name = node.getn(0).as<std::string>();
+         analytics::DesignEvent design_event(event_name);
+
+         if (node.size() > 1) {
+            json::Node params = node.getn(1);
+            if (params.has("value")) {
+               design_event.SetValue(params.get<float>("value"));
+            }
+            if (params.has("position")) {
+               //csg::Point3f pos = params.get<csg::Point3f>("position");
+               design_event.SetPosition(params.get<csg::Point3f>("position"));
+            }
+            if (params.has("area")) {
+               design_event.SetArea(params.get<std::string>("area"));
+            }
+         }
+         design_event.SendEvent();
+         result->ResolveWithMsg("success");
+      } catch (std::exception const& e) {
+         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
+      }
+      //return GetModules(f);
+      return result;
+   });
+
+   //Allow user to opt in/out of analytics from JS
+   core_reactor_->AddRoute("radiant:set_collection_status", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:design_event");
+      try {
+         json::Node node(f.args);
+         bool collect_stats = node.getn(0).as<bool>();
+         core::Config::GetInstance().SetCollectionStatus(collect_stats);
+         result->ResolveWithMsg("success");
+      } catch (std::exception const& e) {
+         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
+      }
+      //return GetModules(f);
+      return result;
+   });
+
+   //Pass analytics status to JS
+   //TODO: re-write as general settings getter/setters
+   core_reactor_->AddRoute("radiant:get_collection_status", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:design_event");
+      try {
+         json::Node node;
+         core::Config& config = core::Config::GetInstance();
+         node.set("has_expressed_preference", config.IsCollectionStatusSet());
+         node.set("collection_status", config.GetCollectionStatus());
+         result->Resolve(node);
+      } catch (std::exception const& e) {
+         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
+      }
+      return result;
+   });
+
+   //Pass framerate, cpu, card, memory info up
+   core_reactor_->AddRoute("radiant:send_performance_stats", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:send_performance_stats");
+      try {
+         json::Node node;
+         SystemStats stats = Renderer::GetInstance().GetStats();
+         node.set("UserId", core::Config::GetInstance().GetUserID());
+         node.set("FrameRate", stats.frame_rate);
+         node.set("GpuVendor", stats.gpu_vendor);
+         node.set("GpuRenderer", stats.gpu_renderer);
+         node.set("GlVersion", stats.gl_version);
+         node.set("CpuInfo", stats.cpu_info);
+         node.set("MemoryGb", stats.memory_gb);
+
+         // xxx, parse GAME_DEMOGRAPHICS_URL into domain and path, in postdata
+         analytics::PostData post_data(node, REPORT_SYSINFO_URI,  "");
+         post_data.Send();
+         result->ResolveWithMsg("success");
+
+      } catch (std::exception const& e) {
+         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
+      }
+      return result;
+   });
+
+   core_reactor_->AddRoute("radiant:play_sound", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:play_sound");
+      try {
+         json::Node node(f.args);
+         std::string sound_url = node.getn(0).as<std::string>();
+
+         if (soundBuffer_.loadFromStream(audio::InputStream(sound_url))) {
+            // TODO, add a sound manager instead of this temp solution!
+            // see http://bugs.radiant-entertainment.com:8080/browse/SH-29
+            sound_.setBuffer(soundBuffer_);
+	         sound_.play();
+         } else { 
+            LOG(INFO) << "Can't find Sound Effect! " << sound_url;
+         }
+
+         result->ResolveWithMsg("success");
+      } catch (std::exception const& e) {
+         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
+      }
+      return result;
    });
 }
 
@@ -129,20 +245,21 @@ Client::~Client()
 
 void Client::GetConfigOptions()
 {
+   Renderer::GetConfigOptions();
 }
 
 
 extern bool realtime;
 void Client::run()
 {
+   perfmon::BeginFrame();
+
    hover_cursor_ = LoadCursor("stonehearth:cursors:hover");
    default_cursor_ = LoadCursor("stonehearth:cursors:default");
 
    octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree());
       
    Renderer& renderer = Renderer::GetInstance();
-   //renderer.SetCurrentPipeline("pipelines/deferred_lighting.xml");
-   //renderer.SetCurrentPipeline("pipelines/forward.pipeline.xml");
 
    Horde3D::Modules::log().SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
       error_browser_->AddRecord(r);
@@ -156,16 +273,19 @@ void Client::run()
    });
 
    namespace po = boost::program_options;
-   auto vm = core::Config::GetInstance().GetVarMap();
-   std::string loader = vm["game.mod"].as<std::string>();
-   json::ConstJsonObject manifest(res::ResourceManager2::GetInstance().LookupManifest(loader));
-   std::string docroot = "http://radiant/" + manifest.getn("loader").getn("ui").get<std::string>("homepage");
+   auto varMap = core::Config::GetInstance().GetVarMap();
+   std::string loader = varMap["game.mod"].as<std::string>();
+   json::Node manifest(res::ResourceManager2::GetInstance().LookupManifest(loader));
+   std::string docroot = "http://radiant/" + manifest.get<std::string>("loader.ui.homepage");
 
    // seriously???
-   std::string game_script = vm["game.script"].as<std::string>();
-   if (game_script != "stonehearth/start_game.lua") {
+   std::string name = core::Config::GetInstance().GetName();
+   std::string game_script = varMap["game.script"].as<std::string>();
+   if (game_script != name + "/start_game.lua") {
       docroot += "?skip_title=true";
    }
+
+   renderer.ApplyConfig();
 
    int screen_width = renderer.GetWidth();
    int screen_height = renderer.GetHeight();
@@ -195,26 +315,29 @@ void Client::run()
    });
 
    lua_State* L = scriptHost_->GetInterpreter();
+   lua_State* callback_thread = scriptHost_->GetCallbackThread();
    renderer.SetScriptHost(GetScriptHost());
    om::RegisterLuaTypes(L);
    csg::RegisterLuaTypes(L);
-   store_.SetInterpreter(L); // xxx move to dm open or something
-   authoringStore_.SetInterpreter(L); // xxx move to dm open or something
+   store_.SetInterpreter(callback_thread); // xxx move to dm open or something
+   authoringStore_.SetInterpreter(callback_thread); // xxx move to dm open or something
    lua::om::register_json_to_lua_objects(L, store_);
    lua::om::register_json_to_lua_objects(L, authoringStore_);
    lua::client::open(L);
    lua::res::open(L);
    lua::voxel::open(L);
    lua::rpc::open(L, core_reactor_);
+   lua::analytics::open(L);
 
 
    //luabind::globals(L)["_client"] = luabind::object(L, this);
 
-   json::ConstJsonObject::RegisterLuaType(L);
-
    // this locks down the environment!  all types must be registered by now!!
    scriptHost_->Require("radiant.client");
 
+   _commands[GLFW_KEY_F12] = [&renderer]() {
+      renderer.SetShowDebugShapes(!renderer.GetShowDebugShapes());
+   };
    _commands[GLFW_KEY_F10] = [&renderer, this]() {
       perf_hud_shown_ = !perf_hud_shown_;
       renderer.ShowPerfHud(perf_hud_shown_);
@@ -226,6 +349,13 @@ void Client::run()
       currentCursor_ = NULL;
    };
 
+   if (core::Config::GetInstance().GetCrashKeyEnabled()) {
+      _commands[GLFW_KEY_PAUSE] = []() {
+         // throw an exception that is not caught by Client::OnInput
+         throw std::string("User hit crash key");
+      };
+   }
+
    // _commands[VK_NUMPAD0] = std::shared_ptr<command>(new command_build_blueprint(*_proxy_manager, *_renderer, 500));
 
    setup_connections();
@@ -234,9 +364,15 @@ void Client::run()
    _client_interval_start = platform::get_current_time_in_ms();
    _server_last_update_time = 0;
 
+   int last_event_time = 0;
    while (renderer.IsRunning()) {
+      perfmon::BeginFrame();
+      perfmon::TimelineCounterGuard tcg("client run loop") ;
+
       static int last_stat_dump = 0;
       mainloop();
+
+      int now = timeGetTime();
    }
 }
 
@@ -245,8 +381,8 @@ void Client::InitializeModules()
    auto& rm = res::ResourceManager2::GetInstance();
    for (std::string const& modname : rm.GetModuleNames()) {
       try {
-         json::ConstJsonObject manifest = rm.LookupManifest(modname);
-         json::ConstJsonObject const& block = manifest.getn("client");
+         json::Node manifest = rm.LookupManifest(modname);
+         json::Node const& block = manifest.getn("client");
          if (!block.empty()) {
             LOG(WARNING) << "loading init script for " << modname << "...";
             LoadModuleInitScript(block);
@@ -257,9 +393,9 @@ void Client::InitializeModules()
    }
 }
 
-void Client::LoadModuleInitScript(json::ConstJsonObject const& block)
+void Client::LoadModuleInitScript(json::Node const& block)
 {
-   std::string filename = block.get<std::string>("init_script");
+   std::string filename = block.get<std::string>("init_script", "");
    if (!filename.empty()) {
       scriptHost_->RequireScript(filename);
    }
@@ -291,10 +427,8 @@ void Client::setup_connections()
 
 void Client::mainloop()
 {
-   perfmon::FrameGuard frame_guard;
-
    process_messages();
-   ProcessBrowserJobQueue();   
+   ProcessBrowserJobQueue();
 
    int currentTime = platform::get_current_time_in_ms();
    float alpha = (currentTime - _client_interval_start) / (float)_server_interval_duration;
@@ -302,6 +436,7 @@ void Client::mainloop()
    alpha = std::min(1.0f, std::max(alpha, 0.0f));
    now_ = (int)(_server_last_update_time + (_server_interval_duration * alpha));
 
+   perfmon::SwitchToCounter("flush http events");
    http_reactor_->FlushEvents();
    if (browser_) {
       perfmon::SwitchToCounter("browser poll");
@@ -309,7 +444,7 @@ void Client::mainloop()
       auto cb = [](const csg::Region2 &rgn, const char* buffer) {
          Renderer::GetInstance().UpdateUITexture(rgn, buffer);
       };
-      perfmon::SwitchToCounter("browser poll");
+      perfmon::SwitchToCounter("update browser display");
       browser_->UpdateDisplay(cb);
    }
 
@@ -323,8 +458,6 @@ void Client::mainloop()
    authoringStore_.FireTraces();
    authoringStore_.FireFinishedTraces();
 
-   perfmon::SwitchToCounter("render");
-   CallTraceRenderFrameHandlers( Renderer::GetInstance().GetLastFrameRenderTime() );
    Renderer::GetInstance().RenderOneFrame(now_, alpha);
 
    if (send_queue_) {
@@ -606,88 +739,35 @@ bool Client::CallInputHandlers(Input const& input)
    return false;
 }
 
-
-Client::TraceRenderFrameId Client::AddTraceRenderFrameHandler(TraceRenderFrameHandlerCb const& cb)
-{
-   TraceRenderFrameId id = ReserveTraceRenderFrameHandler();
-   SetTraceRenderFrameHandler(id, cb);
-   return id;
-}
-
-void Client::SetTraceRenderFrameHandler(TraceRenderFrameId id, TraceRenderFrameHandlerCb const& cb)
-{
-   trace_frame_handlers_.emplace_back(std::make_pair(id, cb));
-}
-
-Client::TraceRenderFrameId Client::ReserveTraceRenderFrameHandler() {
-   return next_trace_frame_id_++;
-}
-
-void Client::RemoveTraceRenderFrameHandler(TraceRenderFrameId id)
-{
-   auto i = trace_frame_handlers_.begin();
-   while (i != trace_frame_handlers_.end()) {
-      if (i->first == id) {
-         trace_frame_handlers_.erase(i);
-         break;
-      }
-   }
-};
-
-void Client::CallTraceRenderFrameHandlers(float frameTime)
-{
-   for (const auto& entry : trace_frame_handlers_) {
-      entry.second(frameTime);
-   }
-}
-
 void Client::UpdateSelection(const MouseInput &mouse)
 {
+   perfmon::TimelineCounterGuard tcg("update selection") ;
+
    om::Selection s;
    Renderer::GetInstance().QuerySceneRay(mouse.x, mouse.y, s);
 
-   csg::Ray3 r;
-   Renderer::GetInstance().GetCameraToViewportRay(mouse.x, mouse.y, &r);
-   om::EntityPtr stockpile = NULL;
-
-   float minDistance = FLT_MAX;
-   auto cb = [&minDistance, &stockpile] (om::EntityPtr obj, float d) {
+   if (s.HasEntities()) {
 #if 0
-      auto s = obj->GetComponent<om::StockpileDesignation>();
-      if (s && d < minDistance) {
-         minDistance = d;
-         stockpile = obj;
-      }
-#endif
-   };
-   octtree_->TraceRay(r, cb);
-   if (stockpile) {
-      LOG(WARNING) << "selecting stockpile";
-      SelectEntity(stockpile);
-   } else {
-      if (s.HasEntities()) {
-#if 0
-         for (dm::ObjectId id : s.GetEntities()) {
-            auto entity = GetEntity(id);
-            if (entity && entity->GetComponent<om::Room>()) {
-               LOG(WARNING) << "selecting room " << entity->GetObjectId();
-               SelectEntity(entity);
-               return;
-            }
-         }
-#endif
-         auto entity = GetEntity(s.GetEntities().front());
-         if (entity->GetComponent<om::Terrain>()) {
-            LOG(WARNING) << "clearing selection (clicked on terrain)";
-            SelectEntity(nullptr);
-         } else {
-            LOG(WARNING) << "selecting " << entity->GetObjectId();
+      for (dm::ObjectId id : s.GetEntities()) {
+         auto entity = GetEntity(id);
+         if (entity && entity->GetComponent<om::Room>()) {
+            LOG(WARNING) << "selecting room " << entity->GetObjectId();
             SelectEntity(entity);
+            return;
          }
-      } else {
-         LOG(WARNING) << "no entities!";
-         SelectEntity(nullptr);
       }
+#endif
+      auto entity = GetEntity(s.GetEntities().front());
+      if (entity->GetComponent<om::Terrain>()) {
+         LOG(WARNING) << "clearing selection (clicked on terrain)";
+         SelectEntity(nullptr);
+      } else {
+         LOG(WARNING) << "selecting " << entity->GetObjectId();
+         SelectEntity(entity);
+      }
+   } else {
+      LOG(WARNING) << "no entities!";
+      SelectEntity(nullptr);
    }
 }
 
@@ -767,6 +847,8 @@ void Client::InstallCurrentCursor()
 
 void Client::HilightMouseover()
 {
+   perfmon::TimelineCounterGuard tcg("hilight mouseover") ;
+
    om::Selection selection;
    auto &renderer = Renderer::GetInstance();
    csg::Point2 pt = renderer.GetMousePosition();
@@ -783,14 +865,16 @@ void Client::HilightMouseover()
       }
    }
    hilightedObjects_.clear();
+
+   // hilight something
    if (selection.HasEntities()) {
-      auto entity = GetEntity(selection.GetEntities().front());
-      if (entity && entity != rootObject_) {
-         auto renderObject = renderer.GetRenderObject(entity);
+      om::EntityPtr hilightEntity = GetEntity(selection.GetEntities().front());
+      if (hilightEntity && hilightEntity != rootObject_) {
+         RenderEntityPtr renderObject = renderer.GetRenderObject(hilightEntity);
          if (renderObject) {
             renderObject->SetSelected(true);
          }
-         hilightedObjects_.push_back(entity);
+         hilightedObjects_.push_back(hilightEntity);
       }
    }
 }
@@ -799,15 +883,22 @@ Client::Cursor Client::LoadCursor(std::string const& path)
 {
    Cursor cursor;
 
-   std::string filename = res::ResourceManager2::GetInstance().GetResourceFileName(path, ".cur");
+   std::string filename = res::ResourceManager2::GetInstance().ConvertToCanonicalPath(path, ".cur");
    auto i = cursors_.find(filename);
    if (i != cursors_.end()) {
       cursor = i->second;
    } else {
-      HCURSOR hcursor = (HCURSOR)LoadImageA(GetModuleHandle(NULL), filename.c_str(), IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
+      std::shared_ptr<std::istream> is = res::ResourceManager2::GetInstance().OpenResource(filename);
+      std::string buffer = io::read_contents(*is);
+
+      std::string tempname = boost::filesystem::unique_path().string();
+      std::ofstream(tempname, std::ios::out | std::ios::binary).write(buffer.c_str(), buffer.size());
+
+      HCURSOR hcursor = (HCURSOR)LoadImageA(GetModuleHandle(NULL), tempname.c_str(), IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
       if (hcursor) {
          cursors_[filename] = cursor = Cursor(hcursor);
       }
+      boost::filesystem::remove(tempname);
    }
    return cursor;
 }
@@ -850,7 +941,7 @@ rpc::ReactorDeferredPtr Client::GetModules(rpc::Function const& fn)
 }
 
 // This function is called on the chrome thread!
-void Client::BrowserRequestHandler(std::string const& path, json::ConstJsonObject const& query, std::string const& postdata, rpc::HttpDeferredPtr response)
+void Client::BrowserRequestHandler(std::string const& path, json::Node const& query, std::string const& postdata, rpc::HttpDeferredPtr response)
 {
    try {
       // file requests can be dispatched immediately.
@@ -875,7 +966,7 @@ void Client::BrowserRequestHandler(std::string const& path, json::ConstJsonObjec
    }
 }
 
-void Client::CallHttpReactor(std::string path, json::ConstJsonObject query, std::string postdata, rpc::HttpDeferredPtr response)
+void Client::CallHttpReactor(std::string path, json::Node query, std::string postdata, rpc::HttpDeferredPtr response)
 {
    JSONNode node;
    int status = 404;
@@ -916,7 +1007,7 @@ om::EntityPtr Client::CreateEmptyAuthoringEntity()
 om::EntityPtr Client::CreateAuthoringEntity(std::string const& uri)
 {
    om::EntityPtr entity = CreateEmptyAuthoringEntity();
-   om::Stonehearth::InitEntity(entity, uri, nullptr);
+   om::Stonehearth::InitEntity(entity, uri, scriptHost_->GetInterpreter());
    return entity;
 }
 

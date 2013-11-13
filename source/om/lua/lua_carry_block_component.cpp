@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "lua/register.h"
+#include "lib/lua/register.h"
 #include "lua_carry_block_component.h"
 #include "om/components/carry_block.h"
 
@@ -29,7 +29,7 @@ bool CarryBlockIsCarrying(om::CarryBlock& c)
 scope LuaCarryBlockComponent::RegisterLuaTypes(lua_State* L)
 {
    return
-      lua::RegisterDerivedObject<CarryBlock, Component>()
+      lua::RegisterWeakGameObjectDerived<CarryBlock, Component>()
          .def("get_carrying",          &om::CarryBlock::GetCarrying)
          .def("is_carrying",           &CarryBlockIsCarrying)
          .def("set_carrying",          &CarryBlockSetCarrying)

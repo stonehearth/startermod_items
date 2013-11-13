@@ -1,14 +1,13 @@
 #include "pch.h"
 #include <regex>
 #include "radiant_macros.h"
-#include "radiant_json.h"
+#include "lib/json/node.h"
 #include "lua_module_router.h"
 #include "lua_deferred.h"
 #include "reactor_deferred.h"
 #include "session.h"
 #include "function.h"
-#include "lua/script_host.h"
-#include "lua/radiant_lua.h"
+#include "lib/lua/script_host.h"
 #include "resources/manifest.h"
 #include "resources/res_manager.h"
 

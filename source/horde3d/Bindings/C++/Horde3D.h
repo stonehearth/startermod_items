@@ -87,6 +87,7 @@ struct H3DOptions
 		DumpFailedShaders   - Enables or disables storing of shader code that failed to compile in a text file; this can be
 		                      useful in combination with the line numbers given back by the shader compiler. (Values: 0, 1; Default: 0)
 		GatherTimeStats     - Enables or disables gathering of time stats that are useful for profiling (Values: 0, 1; Default: 1)
+      EnableShadows       - Enables or disables shadows, engine-wide (Values: 0, 1; Default: 1)
 	*/
 	enum List
 	{
@@ -103,7 +104,8 @@ struct H3DOptions
 		WireframeMode,
 		DebugViewMode,
 		DumpFailedShaders,
-		GatherTimeStats
+		GatherTimeStats,
+      EnableShadows
 	};
 };
 
@@ -125,6 +127,7 @@ struct H3DStats
 		ParticleGPUTime   - GPU time in ms spent for drawing particles
 		TextureVMem       - Estimated amount of video memory used by textures (in Mb)
 		GeometryVMem      - Estimated amount of video memory used by geometry (in Mb)
+      AverageFrame Time - Average time over the last number of frames.
 	*/
 	enum List
 	{
@@ -140,7 +143,8 @@ struct H3DStats
 		ShadowsGPUTime,
 		ParticleGPUTime,
 		TextureVMem,
-		GeometryVMem
+		GeometryVMem,
+      AverageFrameTime
 	};
 };
 
@@ -505,7 +509,9 @@ struct H3DModel
 		LodDist1F,
 		LodDist2F,
 		LodDist3F,
-		LodDist4F
+		LodDist4F,
+      PolygonOffsetEnabledI,
+      PolygonOffsetF,
 	};
 };
 

@@ -1,0 +1,12 @@
+"DepotBuildConfig"
+{
+  "DepotID" "253251"
+
+	// include all files recursively
+  "FileMapping"
+  {
+    "LocalPath" "*"
+    "DepotPath" "."
+    "recursive" "1"
+  }
+}

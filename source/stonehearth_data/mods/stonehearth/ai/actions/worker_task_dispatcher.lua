@@ -36,15 +36,16 @@ function WorkerTaskDispatcher:_wait_for_next_task()
 end
 
 function WorkerTaskDispatcher:run(ai, entity, ...)
-   if self._task then
-      local name = entity:get_component('unit_info'):get_display_name()
-      --TODO: put this up over thier heads, like dialog!
-      radiant.log.info('Worker %s: Hey! About to %s!', name, self._task[1])
-      ai:execute(unpack(self._task))
-      self._task = nil
-   else
-      radiant.log.warning('trying to dispatch a nil task in WorkerTaskDispatcher for %s', tostring(entity))
-   end
+   self._scheduler:remove_worker(self._entity)
+   assert(self._task, "worker dispatcher has no task to run")
+   
+   
+   --TODO: put this up over thier heads, like dialog!
+   local name = entity:get_component('unit_info'):get_display_name()
+   radiant.log.info('Worker %s: Hey! About to %s!', name, self._task[1])
+   
+   ai:execute(unpack(self._task))
+   self._task = nil
 end
 
 function WorkerTaskDispatcher:stop()

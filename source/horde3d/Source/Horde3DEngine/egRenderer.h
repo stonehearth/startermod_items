@@ -86,13 +86,24 @@ struct ParticleVert
 struct CubeVert
 {
    float x, y, z;       // Object-space location.
-	// float  u, v;         // Texture coordinates
-	//float  index;        // Index in property array
 
 	CubeVert() {}
 
 	CubeVert( float x, float y, float z ):
 		x( x ), y( y ), z( z )
+	{
+	}
+};
+
+struct CubeBatchVert
+{
+   float x, y, z;       // Object-space location.
+	float  index;        // Index in property array
+
+	CubeBatchVert() {}
+
+	CubeBatchVert( float x, float y, float z, float index ):
+		x( x ), y( y ), z( z ), index(index)
 	{
 	}
 };
@@ -130,9 +141,12 @@ public:
 	bool init();
 	void initStates();
 
+   void collectOneDebugFrame();
 	void drawAABB( const Vec3f &bbMin, const Vec3f &bbMax );
 	void drawSphere( const Vec3f &pos, float radius );
-	void drawCone( float height, float fov, const Matrix4f &transMat );	
+	void drawCone( float height, float fov, const Matrix4f &transMat );
+   void drawFrustum(const Frustum& frust);
+   void drawPoly(const std::vector<Vec3f>& poly);
 
 	bool createShaderComb( const char* filename, const char *vertexShader, const char *fragmentShader, ShaderCombination &sc );
 	void releaseShaderComb( ShaderCombination &sc );
@@ -183,7 +197,12 @@ protected:
 	
 	void setupShadowMap( bool noShadows );
 	Matrix4f calcCropMatrix( const Frustum &frustSlice, const Vec3f lightPos, const Matrix4f &lightViewProjMat );
-	void updateShadowMap();
+   Matrix4f calcDirectionalLightShadowProj(const BoundingBox& worldBounds, const Frustum& frustSlice, const Matrix4f& lightViewMat, int numShadowMaps);
+   void computeLightFrustumNearFar(const BoundingBox& worldBounds, const Matrix4f& lightViewMat, const Vec3f& lightMin, const Vec3f& lightMax, float* nearV, float* farV);
+   float computeTightCameraFarDistance();
+   Frustum computeDirectionalLightFrustum(float farPlaneDist);
+   void quantizeShadowFrustum(const Frustum& frustSlice, int shadowMapSize, Vec3f* min, Vec3f* max);
+   void updateShadowMap(const Frustum* lightFrus, float maxDist);
 
 	void drawOverlays( const std::string &shaderContext );
 
@@ -193,7 +212,7 @@ protected:
 	void drawGeometry( const std::string &shaderContext, const std::string &theClass,
 	                   RenderingOrder::List order, int filterRequired, int occSet );
 	void drawLightGeometry( const std::string &shaderContext, const std::string &theClass,
-	                        bool noShadows, RenderingOrder::List order, int occSet );
+	                        bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly );
 	void drawLightShapes( const std::string &shaderContext, bool noShadows, int occSet );
 	
 	void drawRenderables( const std::string &shaderContext, const std::string &theClass, bool debugView,
@@ -238,6 +257,7 @@ protected:
 	uint32                             _vlPosOnly, _vlOverlay, _vlModel, _vlParticle, _vlVoxelModel;
 	uint32                             _vbCube, _ibCube, _vbSphere, _ibSphere;
 	uint32                             _vbCone, _ibCone, _vbFSPoly;
+   uint32                             _vbFrust, _vbPoly, _ibPoly;
 public:
    // needed to draw debug shapes in extensions!
    glslopt_ctx*                       _glsl_opt_ctx;

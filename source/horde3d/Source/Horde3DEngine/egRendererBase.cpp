@@ -20,6 +20,7 @@
 
 #include "utDebug.h"
 #include "om/error_browser/error_browser.h"
+#include "lib/perfmon/perfmon.h"
 
 namespace Horde3D {
 
@@ -140,6 +141,8 @@ RenderDevice::RenderDevice()
 	_curIndexBuf = _newIndexBuf = 0;
 	_indexFormat = (uint32)IDXFMT_16;
 	_pendingMask = 0;
+   _shadowFactor = 0.0f;
+   _shadowUnits = 0.0f;
 }
 
 
@@ -214,6 +217,10 @@ bool RenderDevice::init()
 	_caps.texFloat = glExt::ARB_texture_float ? 1 : 0;
 	_caps.texNPOT = glExt::ARB_texture_non_power_of_two ? 1 : 0;
 	_caps.rtMultisampling = glExt::EXT_framebuffer_multisample ? 1 : 0;
+   _caps.hasInstancing = (glExt::majorVersion * 10 + glExt::minorVersion) >= 33;
+   _caps.renderer = renderer;
+   _caps.vendor = vendor;
+   glGetIntegerv(GL_MAX_TEXTURE_SIZE, &_caps.maxTextureSize);
 
 	// Find supported depth format (some old ATI cards only support 16 bit depth for FBOs)
 	_depthFormat = GL_DEPTH_COMPONENT24;
@@ -315,10 +322,10 @@ uint32 RenderDevice::createIndexBuffer( uint32 size, const void *data )
 }
 
 
-uint32 RenderDevice::createPixelBuffer( uint32 size, const void *data )
+uint32 RenderDevice::createPixelBuffer( uint32 type, uint32 size, const void *data )
 {
    RDIBuffer buf = { 0xff };
-   buf.type = GL_PIXEL_UNPACK_BUFFER;
+   buf.type = type;
    buf.size = size;
    glGenBuffers(1, &buf.glObj);
 
@@ -370,10 +377,15 @@ void RenderDevice::updateBufferData( uint32 bufObj, uint32 offset, uint32 size, 
 }
 
 
-void* RenderDevice::mapBuffer(uint32 bufObj)
+void* RenderDevice::mapBuffer(uint32 bufObj, bool discard)
 {
    const RDIBuffer &buf = _buffers.getRef( bufObj );
    glBindBuffer(buf.type, buf.glObj);
+
+   if (discard)
+   {
+      glBufferData(buf.type, buf.size, NULL, GL_STREAM_DRAW);
+   }
    void* result = glMapBuffer(buf.type, GL_WRITE_ONLY);
    glBindBuffer(buf.type, 0);
 
@@ -502,10 +514,10 @@ uint32 RenderDevice::createTexture( TextureTypes::List type, int width, int heig
 	return _textures.add( tex );
 }
 
-
-void RenderDevice::copyTextureDataFromPbo( uint32 texObj, uint32 pboGlObj, int xOffset, int yOffset, int width, int height )
+void RenderDevice::copyTextureDataFromPbo( uint32 texObj, uint32 pboObj, int xOffset, int yOffset, int width, int height )
 {
    const RDITexture &tex = _textures.getRef( texObj );
+   const RDIBuffer &buf = _buffers.getRef(pboObj);
    int inputFormat = GL_BGRA, inputType = GL_UNSIGNED_BYTE;
 
    switch( tex.format )
@@ -531,9 +543,9 @@ void RenderDevice::copyTextureDataFromPbo( uint32 texObj, uint32 pboGlObj, int x
    ASSERT(height <= tex.height);
 
    glBindTexture(GL_TEXTURE_2D, tex.glObj);
-   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pboGlObj);
-   
-   glTexSubImage2D(GL_TEXTURE_2D, 0, xOffset, yOffset, width, height, inputFormat, inputType, 0);
+   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, buf.glObj);
+
+   glTexSubImage2D(GL_TEXTURE_2D, 0, xOffset, yOffset, width, height, inputFormat, inputType, 0);   
    
    glBindTexture(GL_TEXTURE_2D, 0);
    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
@@ -1241,6 +1253,7 @@ void RenderDevice::checkGLError()
 
 bool RenderDevice::applyVertexLayout()
 {
+   radiant::perfmon::TimelineCounterGuard avl("applyVertexLayout");
 	if( _newVertLayout == 0 || _curShaderId == 0 ) return false;
 
 	RDIVertexLayout &vl = _vertexLayouts[_newVertLayout - 1];
@@ -1265,21 +1278,29 @@ bool RenderDevice::applyVertexLayout()
 			
 			glBindBuffer( GL_ARRAY_BUFFER, _buffers.getRef( _vertBufSlots[attrib.vbSlot].vbObj ).glObj );
 
-         int numPositions = attrib.size / 4;
-         if (numPositions == 0) {
-            numPositions = 1;
-         }
-         // If we have more than one position to fill, assume we're filling an entire vec4.
-         // (The current vertex layout only gives size, so we can't tell a 4x3 from a 3x4).
-         int realSize = numPositions > 1 ? 4 : attrib.size;
-         for ( int curPos = 0; curPos < numPositions; curPos++) {
-			   glVertexAttribPointer( attribIndex + curPos, realSize, GL_FLOAT, GL_FALSE,
-			                          vbSlot.stride, 
-                                   (char *)0 + vbSlot.offset + attrib.offset + (curPos * 4 * sizeof(float)));
+         if (_caps.hasInstancing) {
+            int numPositions = attrib.size / 4;
+            if (numPositions == 0) {
+               numPositions = 1;
+            }
+            // If we have more than one position to fill, assume we're filling an entire vec4.
+            // (The current vertex layout only gives size, so we can't tell a 4x3 from a 3x4).
+            int realSize = numPositions > 1 ? 4 : attrib.size;
+            for ( int curPos = 0; curPos < numPositions; curPos++) {
+			      glVertexAttribPointer( attribIndex + curPos, realSize, GL_FLOAT, GL_FALSE,
+			                             vbSlot.stride, 
+                                      (char *)0 + vbSlot.offset + attrib.offset + (curPos * 4 * sizeof(float)));
 
-            glVertexAttribDivisor(attribIndex + curPos, vl.divisors[i].divisor);
+               glVertexAttribDivisor(attribIndex + curPos, vl.divisors[i].divisor);
 
-            newVertexAttribMask |= 1 << (attribIndex + curPos);
+               newVertexAttribMask |= 1 << (attribIndex + curPos);
+            }
+         } else {
+            glVertexAttribPointer( attribIndex, attrib.size, GL_FLOAT, GL_FALSE,
+			                           vbSlot.stride, 
+                                    (char *)0 + vbSlot.offset + attrib.offset);
+
+            newVertexAttribMask |= 1 << attribIndex;
          }
 		}
 	}
@@ -1339,6 +1360,7 @@ void RenderDevice::applySamplerState( RDITexture &tex )
 
 bool RenderDevice::commitStates( uint32 filter )
 {
+   radiant::perfmon::TimelineCounterGuard cs("commitStates");
 	if( _pendingMask & filter )
 	{
 		uint32 mask = _pendingMask & filter;
@@ -1492,6 +1514,8 @@ void RenderDevice::drawIndexed( RDIPrimType primType, uint32 firstIndex, uint32 
 	{
 		firstIndex *= (_indexFormat == IDXFMT_16) ? sizeof( short ) : sizeof( int );
 		
+      radiant::perfmon::TimelineCounterGuard di("drawIndexed");
+
 		glDrawRangeElements( (uint32)primType, firstVert, firstVert + numVerts,
 		                     numIndices, _indexFormat, (char *)0 + firstIndex );
 	}
@@ -1597,6 +1621,18 @@ void RenderDevice::ReportShaderError(uint32 shader_id, ShaderType type, const ch
       }
       delete [] info;
    }
+}
+
+const bool RenderDevice::getShadowOffsets(float* factor, float* units) {
+   if (factor)
+   {
+      *factor = _shadowFactor; 
+   }
+   if (units)
+   {
+      *units = _shadowUnits;
+   }
+   return _shadowFactor != 0.0f || _shadowUnits != 0.0f;
 }
 
 

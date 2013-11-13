@@ -65,7 +65,7 @@ class SensorList : public Component
 {
 public:
    DEFINE_OM_OBJECT_TYPE(SensorList, sensor_list);
-   void ExtendObject(json::ConstJsonObject const& obj) override;
+   void ExtendObject(json::Node const& obj) override;
 
    const dm::Map<std::string, SensorPtr>& GetSensors() const { return sensors_; }
 

@@ -1,0 +1,8 @@
+{
+   "type": "entity", 
+   "components": {
+      "render_info" : {
+         "material" : "materials/blueprint_gridlines.xml"
+      }
+   }
+}

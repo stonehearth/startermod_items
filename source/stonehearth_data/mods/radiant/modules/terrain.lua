@@ -1,21 +1,24 @@
 local Point3 = _radiant.csg.Point3
 
 local Terrain = {}
+local singleton = {}
 
 local _terrain = radiant._root_entity:add_component('terrain')
 
 function Terrain.place_entity(entity, location)
-   radiant.entities.add_child(radiant._root_entity, entity, location)
    local render_info = entity:add_component('render_info')
    local variant = render_info:get_model_variant()
    if variant == '' then
       render_info:set_model_variant('iconic')
    end
 
-   if type(location) == "table" then
-      location = Point3(location.x, location.y, location.z)
+   radiant.entities.add_child(radiant._root_entity, entity, location)
+   if location then
+      if type(location) == "table" then
+         location = Point3(location.x, location.y, location.z)
+      end
+      _terrain:place_entity(entity, location)
    end
-   _terrain:place_entity(entity, location)
 end
 
 function Terrain.remove_entity(entity)

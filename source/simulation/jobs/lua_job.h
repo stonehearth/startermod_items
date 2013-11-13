@@ -2,7 +2,7 @@
 #define _RADIANT_SIMULATION_JOBS_LUA_JOB_H
 
 #include "radiant_macros.h"
-#include "radiant_luabind.h"
+#include "lib/lua/bind.h"
 #include "job.h"
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE

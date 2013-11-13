@@ -14,6 +14,7 @@
 #define _egRendererBase_H_
 
 #include "egPrerequisites.h"
+#include "egFrameDebugInfo.h"
 #include "utMath.h"
 #include "utOpenGL.h"
 #include "om/error_browser/error_browser.h"
@@ -108,6 +109,11 @@ struct DeviceCaps
 	bool  texFloat;
 	bool  texNPOT;
 	bool  rtMultisampling;
+   bool  hasInstancing;
+   int   maxTextureSize;
+
+   const char* vendor;
+   const char* renderer;
 };
 
 
@@ -353,12 +359,12 @@ public:
 	// Buffers
 	uint32 createVertexBuffer( uint32 size, const void *data );
 	uint32 createIndexBuffer( uint32 size, const void *data );
-   uint32 createPixelBuffer( uint32 size, const void *data );
+   uint32 createPixelBuffer( uint32 type, uint32 size, const void *data );
 	void destroyBuffer( uint32 bufObj );
 	void updateBufferData( uint32 bufObj, uint32 offset, uint32 size, void *data );
 	uint32 getBufferMem() { return _bufferMem; }
 
-   void* mapBuffer(uint32 bufObj);
+   void* mapBuffer(uint32 bufObj, bool discard=true);
    void unmapBuffer(uint32 bufObj);
 
 
@@ -404,6 +410,8 @@ public:
 // Commands
 // -----------------------------------------------------------------------------
 	
+   void setShadowOffsets(float factor, float units)
+      { _shadowFactor = factor; _shadowUnits = units; }
 	void setViewport( int x, int y, int width, int height )
 		{ _vpX = x; _vpY = y; _vpWidth = width; _vpHeight = height; _pendingMask |= PM_VIEWPORT; }
 	void setScissorRect( int x, int y, int width, int height )
@@ -427,7 +435,6 @@ public:
 	void draw( RDIPrimType primType, uint32 firstVert, uint32 numVerts );
 	void drawIndexed( RDIPrimType primType, uint32 firstIndex, uint32 numIndices,
 	                  uint32 firstVert, uint32 numVerts );
-   //void drawInstanced( RDIPrimType primType, uint32 firstIndex, uint32 numVerts, uint32 numPrims);
    void drawInstanced( RDIPrimType primType, uint32 count, uint32 firstIndex, GLsizei primcount);
 
 // -----------------------------------------------------------------------------
@@ -438,6 +445,7 @@ public:
 	const RDIBuffer &getBuffer( uint32 bufObj ) { return _buffers.getRef( bufObj ); }
 	const RDITexture &getTexture( uint32 texObj ) { return _textures.getRef( texObj ); }
 	const RDIRenderBuffer &getRenderBuffer( uint32 rbObj ) { return _rendBufs.getRef( rbObj ); }
+   const bool getShadowOffsets(float* factor, float* units);
 
 	friend class Renderer;
 
@@ -480,6 +488,7 @@ protected:
 	uint32        _curRendBuf;
 	int           _outputBufferIndex;  // Left and right eye for stereo rendering
 	uint32        _textureMem, _bufferMem;
+   float         _shadowFactor, _shadowUnits;
 
 	uint32                         _numVertexLayouts;
 	RDIVertexLayout                _vertexLayouts[MaxNumVertexLayouts];
@@ -496,6 +505,8 @@ protected:
 	uint32            _indexFormat;
 	uint32            _activeVertexAttribsMask;
 	uint32            _pendingMask;
+
+   FrameDebugInfo    _frameDebugInfo;
 };
 
 }

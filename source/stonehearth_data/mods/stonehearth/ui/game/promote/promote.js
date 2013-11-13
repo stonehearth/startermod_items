@@ -1,6 +1,6 @@
 $(document).ready(function(){
 
-   $(top).on("promote_citizen.stonehearth", function (_, e) {
+   $(top).on("promote_to_profession.stonehearth", function (_, e) {
       var view = App.gameView.addView(App.StonehearthClassesPromoteView, { 
          talisman: e.entity,
          promotionClass : 'XXX_TODO_INSERT_CLASS_NAME'
@@ -16,6 +16,35 @@ App.StonehearthClassesPromoteView = App.View.extend({
 
    init: function() {
       this._super();
+      var self = this;
+      radiant.call('stonehearth:get_worker_tracker')
+         .done(function(response) {
+            self._worker_tracker = response.tracker;
+            self._trace = new RadiantTrace();
+            self._trace.traceUri(response.tracker, 
+               {
+                  'entities': {
+                     'unit_info' : {}
+                  }
+               })
+               .progress(function(data) {
+                  self._workers = data.entities;
+               });
+         });
+
+/*
+      $(top).on("selection_changed.radiant", function (_, data) {
+         
+         for (var i = 0; i < self._workers.length; i++) {
+            var uri = self._workers[i]['__self']
+            if (uri == data.selected_entity) {
+               self.set('context.citizenToPromote', self._workers[i]);
+               self._gotoApproveStep()
+               break;
+            }
+         }
+      });
+*/
    },
 
    destroy: function() {
@@ -51,32 +80,33 @@ App.StonehearthClassesPromoteView = App.View.extend({
                            uri: response.tracker,
                            title: 'Choose the worker to promote', //xxx localize
                            css: {
-                              top: 350,
-                              left: 105
+                              left: 703,
+                              bottom: 50
                            },
                            callback: function(person) {
                               self.set('context.citizenToPromote', person);
 
-                              $('#promoteButton')
-                                 .show()
-                                 .pulse()
+                              self._gotoApproveStep()
                            }
                         });
             });
       },
 
-      promoteCitizen: function() {
+      approve: function() {
          var self = this;
-         var person = this.get('context.citizenToPromote').__self;
-         radiant.call('stonehearth:grab_promotion_talisman', person, this.talisman)
-            .done(function(data) {
-               radiant.log.info("promote_citizen.stonehearth finished!", data)
-            })
-            .fail(function(data) {
-               radiant.log.warning("promote_citizen.stonehearth failed:", data)
-            })
-            .always(function(return_data){
-               self.destroy();
+         // animate down
+         $('#approveStamper').animate({ bottom: 60 }, 100 , function() {
+            //animate up
+            $('#approvedStamp').show();
+            $(this)
+               .delay(200)
+               .animate({ bottom: 200 }, 150, function () {
+                  //promote the citizen after a short delay
+                  setTimeout(function() {
+                     self._promoteCitizen();
+                     self.destroy();
+                  }, 1000);
+               });
             });
       }
    },
@@ -90,5 +120,38 @@ App.StonehearthClassesPromoteView = App.View.extend({
          date = "Ooops, clock's broken."
       }
       return date;
+   },
+
+   _gotoApproveStep: function() {
+      var scroll = $('#promoteScroll');
+      var stamp = scroll.find('#approveStamp');
+      setTimeout(function () {
+         scroll.find('#approveStamper').fadeIn();   
+      }, 500);
+      
+      /*
+      stamp.on('mouseover', function() {
+         // show the stamper
+         stamp.off('mouseover');
+         scroll.find('#approveStamper').fadeIn();
+      })
+      */
+   },
+
+   _promoteCitizen: function() {
+      var self = this;
+      var person = this.get('context.citizenToPromote').__self;
+
+      $('#promoteScroll').animate({ 'bottom' : -400 }, 200, function() { 
+         radiant.call('stonehearth:grab_promotion_talisman', person, self.talisman)
+            .done(function(data) {
+               radiant.log.info("promote finished!", data)
+            })
+            .fail(function(data) {
+               radiant.log.warning("promote failed:", data)
+            });
+
+         self.destroy();
+      });
    }
 });

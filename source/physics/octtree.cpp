@@ -1,6 +1,9 @@
 #include "radiant.h"
 #include "octtree.h"
 #include "metrics.h"
+#include "csg/ray.h"
+#include "csg/region.h"
+#include "csg/util.h" // xxx: should be csg/namespace.h
 #include "om/entity.h"
 #include "om/components/mob.h"
 #include "om/components/entity_container.h"

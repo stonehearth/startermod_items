@@ -14,11 +14,14 @@
 #include "Horde3D.h"
 #include "egModules.h"
 #include "egVoxelGeometry.h"
+#include "egRenderer.h"
 #include "utPlatform.h"
 #include "utMath.h"
 #include <math.h>
 #ifdef PLATFORM_WIN
-#	define WIN32_LEAN_AND_MEAN 1
+#  ifndef WIN32_LEAN_AND_MEAN
+#	   define WIN32_LEAN_AND_MEAN 1
+#  endif
 #	ifndef NOMINMAX
 #		define NOMINMAX
 #	endif
@@ -467,6 +470,12 @@ void addInfoBoxRow( const char *column1, const char *column2 )
 	// Second column
 	x = infoBox.x + infoBox.width - ((strlen( column2 ) - 1) * fontWidth + fontSize);
 	h3dutShowText( column2, x - 0.005f, y, fontSize, 1, 1, 1, infoBox.fontMatRes );
+}
+
+
+DLLEXP void h3dCollectDebugFrame()
+{
+   Horde3D::Modules::renderer().collectOneDebugFrame();
 }
 
 

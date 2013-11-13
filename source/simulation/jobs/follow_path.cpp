@@ -2,6 +2,7 @@
 #include "follow_path.h"
 #include "om/entity.h"
 #include "om/components/mob.h"
+#include "csg/util.h" // xxx: should be csg/csg.h
 #include <boost/program_options.hpp>
 
 using namespace ::radiant;

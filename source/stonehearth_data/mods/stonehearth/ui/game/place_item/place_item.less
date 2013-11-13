@@ -1,0 +1,59 @@
+#itemPicker {
+   position: absolute;
+   right: 20px;
+   bottom: -1000px;
+   min-height: 50px;
+   max-height: 700px;
+   width: 436px;
+
+   background: #417cb9;
+   background-clip: padding-box;
+   border-width: 10px 10px 15px 10px;
+   border-image: url(./images/menuBorder.png) 10 10 15 10 repeat;
+
+   #closeButton {
+      position: absolute;
+      top: 0px;
+      right: -2px;
+
+      img {
+         content: url('./images/close.png');
+      }
+   }
+
+   .pickerGrid {
+
+      .pickable_item {
+         position: relative;
+         width: 50px;
+         height: 50px;
+         float: left;
+         margin-right: 4px;
+         margin-bottom: 4px;
+         padding: 10px;
+         border: 2px solid rgba(255,255,255,0.2);
+
+         .pickable_image {
+            width: 50px;
+            height: auto;
+         }
+
+         .num_pickable {
+            .controlFont;
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            z-index: 4;
+            color: white;
+         }
+      }
+
+      .placementDiv {
+         margin-top: 40px;
+         text-align: center;
+      }
+   }
+
+
+
+}

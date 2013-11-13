@@ -5,12 +5,12 @@ local ProfessionCallHandler = class()
 -- by doing a POST to the route for this file specified in the manifest.
 
 function ProfessionCallHandler:grab_promotion_talisman(session, response, person, talisman)
-   radiant.events.broadcast_msg(
-      'stonehearth:events:compulsion_event',
-      GrabTalismanAction,
-      person,
-      {talisman = talisman})
-      return true
+
+   radiant.events.trigger(person, 'stonehearth:grab_talisman', {
+      talisman = talisman
+   })
+
+   return true
 end
 
 return ProfessionCallHandler

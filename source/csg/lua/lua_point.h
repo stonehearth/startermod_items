@@ -1,7 +1,7 @@
 #ifndef _RADIANT_CSG_LUA_LUA_POINT_H
 #define _RADIANT_CSG_LUA_LUA_POINT_H
 
-#include "radiant_luabind.h"
+#include "lib/lua/bind.h"
 #include "csg/namespace.h"
 
 BEGIN_RADIANT_CSG_NAMESPACE

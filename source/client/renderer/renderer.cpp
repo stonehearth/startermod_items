@@ -8,9 +8,11 @@
 #include "glfw3.h"
 #include "glfw3native.h"
 #include "render_entity.h"
+#include "lib/perfmon/perfmon.h"
 #include "om/selection.h"
 #include "om/entity.h"
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/program_options.hpp>
 #include <SFML/Audio.hpp>
 #include "camera.h"
 #include "lib/perfmon/perfmon.h"
@@ -18,10 +20,14 @@
 
 using namespace ::radiant;
 using namespace ::radiant::client;
+namespace po = boost::program_options;
+
 std::vector<float> ssaoSamplerData;
 H3DRes ssaoMat;
 
 static std::unique_ptr<Renderer> renderer_;
+RendererConfig Renderer::config_;
+
 Renderer& Renderer::GetInstance()
 {
    if (!renderer_) {
@@ -36,20 +42,21 @@ Renderer::Renderer() :
    initialized_(false),
    viewMode_(Standard),
    scriptHost_(nullptr),
-   nextTraceId_(1),
    camera_(nullptr),
-   currentFrameTime_(0),
-   lastFrameTimeInSeconds_(0),
    uiWidth_(0),
    uiHeight_(0),
    uiTexture_(0),
    uiMatRes_(0),
-   uiPbo_(0)
-
+   uiPbo_(0),
+   last_render_time_(0),
+   server_tick_slot_("server tick"),
+   render_frame_start_slot_("render frame start"),
+   screen_resize_slot_("screen resize"),
+   show_debug_shapes_changed_slot_("show debug shapes")
 {
    try {
 
-      boost::property_tree::json_parser::read_json("config/renderer.json", config_);
+      boost::property_tree::json_parser::read_json("mods/stonehearth/renderers/terrain/config.json", terrainConfig_);
    } catch(boost::property_tree::json_parser::json_parser_error &e) {
       LOG(WARNING) << "Error parsing: " << e.filename() << " on line: " << e.line() << std::endl;
       LOG(WARNING) << e.message() << std::endl;
@@ -58,40 +65,40 @@ Renderer::Renderer() :
    assert(renderer_.get() == nullptr);
    renderer_.reset(this);
 
-   width_ = 1920;
-   height_ = 1080;
+   windowWidth_ = 1920;
+   windowHeight_ = 1080;
 
    glfwInit();
 
    GLFWwindow *window;
    // Fullscreen: add glfwGetPrimaryMonitor() instead of the first NULL.
-   if (!(window = glfwCreateWindow(width_, height_, "Stonehearth", NULL, NULL))) {
+   if (!(window = glfwCreateWindow(windowWidth_, windowHeight_, "Stonehearth", NULL, NULL))) {
       glfwTerminate();
    }
 
    glfwMakeContextCurrent(window);
    
-	glfwSwapInterval(0);
+   glfwSwapInterval(0);
 
-	if (!h3dInit()) {	
-		h3dutDumpMessages();
+   if (!h3dInit()) {   
+      h3dutDumpMessages();
       return;
    }
 
-	// Set options
-	h3dSetOption(H3DOptions::LoadTextures, 1);
-	h3dSetOption(H3DOptions::TexCompression, 0);
-	h3dSetOption(H3DOptions::MaxAnisotropy, 4);
-	h3dSetOption(H3DOptions::ShadowMapSize, 2048);
-	h3dSetOption(H3DOptions::FastAnimation, 1);
+   // Set options
+   h3dSetOption(H3DOptions::LoadTextures, 1);
+   h3dSetOption(H3DOptions::TexCompression, 0);
+   h3dSetOption(H3DOptions::MaxAnisotropy, 4);
+   h3dSetOption(H3DOptions::ShadowMapSize, (float)config_.shadow_resolution);
+   h3dSetOption(H3DOptions::FastAnimation, 1);
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
-   h3dSetOption(H3DOptions::SampleCount, 4);
+   h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples);
 
    SetCurrentPipeline("pipelines/forward.pipeline.xml");
 
    // Overlays
-	fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
-	panelMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/panel.material.xml", 0 );
+   fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
+   panelMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/panel.material.xml", 0 );
 
 
    H3DRes skyBoxRes = h3dAddResource( H3DResTypes::SceneGraph, "models/skybox/skybox.scene.xml", 0 );
@@ -108,7 +115,6 @@ Renderer::Renderer() :
    {
       float x = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
       float y = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
-      //float z = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
       float z = 0;
       Horde3D::Vec3f v(x,y,z);
       v.normalize();
@@ -122,29 +128,26 @@ Renderer::Renderer() :
 
    // Sampler kernel generation--a work in progress.
    const int KernelSize = 16;
-	for (int i = 0; i < KernelSize; ++i) {
+   for (int i = 0; i < KernelSize; ++i) {
       float x = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
       float y = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
-      float z = ((rand() / (float)RAND_MAX) * -1.0f);
+      float z = ((rand() / (float)RAND_MAX) * 0.5f) - 1.0f;
       Horde3D::Vec3f v(x,y,z);
       v.normalize();
 
-		float scale = (float)i / (float)KernelSize;
+      float scale = (float)i / (float)KernelSize;
       float f = scale;// * scale;
-		v *= ((1.0f - f) * 0.3f) + (f);
+      v *= ((1.0f - f) * 0.3f) + (f);
 
       ssaoSamplerData.push_back(v.x);
       ssaoSamplerData.push_back(v.y);
       ssaoSamplerData.push_back(v.z);
       ssaoSamplerData.push_back(0.0);
-	}
+   }
 
-	// Add camera   
+   // Add camera   
    camera_ = new Camera(H3DRootNode, "Camera", currentPipeline_);
-
    h3dSetNodeParamI(camera_->GetNode(), H3DCamera::PipeResI, currentPipeline_);
-   // Resize
-   Resize(width_, height_);
 
    memset(&input_.mouse, 0, sizeof input_.mouse);
 
@@ -188,6 +191,9 @@ Renderer::Renderer() :
       Renderer::GetInstance().FlushMaterials();
    }, true);
 
+   OnWindowResized(windowWidth_, windowHeight_);
+   SetShowDebugShapes(false);
+
    initialized_ = true;
 }
 
@@ -196,6 +202,124 @@ void Renderer::ShowPerfHud(bool value) {
       perf_hud_.reset(new PerfHud(*this));
    } else if (!value && perf_hud_) {
       delete perf_hud_.release();
+   }
+}
+
+void Renderer::GetConfigOptions()
+{
+   po::options_description config_file("Renderer options");
+   po::options_description cmd_line("Renderer options");
+
+   cmd_line.add_options()
+      (
+         "renderer.use_forward_renderer",
+         po::bool_switch(&config_.use_forward_renderer)->default_value(true), "Uses the forward-renderer, instead of the deferred renderer."
+      )
+      (
+         "renderer.use_ssao_blur",
+         po::bool_switch(&config_.use_ssao_blur)->default_value(true), "Enables SSAO blur."
+      )
+      (
+         "renderer.enable_shadows",
+         po::bool_switch(&config_.use_shadows)->default_value(true), "Enables shadows."
+      )
+      (
+         "renderer.enable_ssao",
+         po::bool_switch(&config_.use_ssao)->default_value(true), "Enables Screen-Space Ambient Occlusion (SSAO)."
+      )
+      (
+         "renderer.msaa_samples",
+         po::value<int>(&config_.num_msaa_samples)->default_value(0), "Sets the number of Multi-Sample Anti Aliasing samples to use."
+      )
+      (
+         "renderer.shadow_resolution",
+         po::value<int>(&config_.shadow_resolution)->default_value(2048), "Sets the square resolution of the shadow maps."
+      );
+   core::Config::GetInstance().GetCommandLineOptions().add(cmd_line);
+   core::Config::GetInstance().GetConfigFileOptions().add(cmd_line);
+}
+
+void Renderer::ApplyConfig()
+{
+   if (config_.use_forward_renderer) {
+      SetCurrentPipeline("pipelines/forward.pipeline.xml");
+   } else {
+      SetCurrentPipeline("pipelines/deferred_lighting.xml");
+   }
+
+   SetStageEnable("SSAO", config_.use_ssao);
+   SetStageEnable("Simple, once-pass SSAO Blur", config_.use_ssao_blur);
+   // Turn on copying if we're using SSAO, but not using blur.
+   SetStageEnable("SSAO Copy", config_.use_ssao && !config_.use_ssao_blur);
+   SetStageEnable("SSAO Default", !config_.use_ssao);
+
+   h3dSetOption(H3DOptions::EnableShadows, config_.use_shadows ? 1.0f : 0.0f);
+   h3dSetOption(H3DOptions::ShadowMapSize, (float)config_.shadow_resolution);
+   h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples);
+}
+
+SystemStats Renderer::GetStats()
+{
+	SystemStats result;
+
+	result.frame_rate = 1000.0f / h3dGetStat(H3DStats::AverageFrameTime, false);
+
+	result.gpu_vendor = (char *)glGetString( GL_VENDOR );
+	result.gpu_renderer = (char *)glGetString( GL_RENDERER );
+	result.gl_version = (char *)glGetString( GL_VERSION );
+
+    int CPUInfo[4] = {-1};
+    __cpuid(CPUInfo, 0x80000000);
+    unsigned int nExIds = CPUInfo[0];
+
+    // Get the information associated with each extended ID.
+    char CPUBrandString[0x40] = { 0 };
+    for( unsigned int i=0x80000000; i<=nExIds; ++i)
+    {
+        __cpuid(CPUInfo, i);
+
+        // Interpret CPU brand string and cache information.
+        if  (i == 0x80000002)
+        {
+            memcpy( CPUBrandString,
+            CPUInfo,
+            sizeof(CPUInfo));
+        }
+        else if( i == 0x80000003 )
+        {
+            memcpy( CPUBrandString + 16,
+            CPUInfo,
+            sizeof(CPUInfo));
+        }
+        else if( i == 0x80000004 )
+        {
+            memcpy(CPUBrandString + 32, CPUInfo, sizeof(CPUInfo));
+        }
+	}
+	result.cpu_info = std::string(CPUBrandString);
+
+#ifdef _WIN32
+	MEMORYSTATUSEX status;
+    status.dwLength = sizeof(status);
+    GlobalMemoryStatusEx(&status);
+	result.memory_gb = (int)(status.ullTotalPhys / 1048576.0f);
+#endif
+	LOG(WARNING) << "reported fps: " << result.frame_rate;
+	return result;
+}
+
+void Renderer::SetStageEnable(const char* stageName, bool enabled)
+{
+   int stageCount = h3dGetResElemCount(currentPipeline_, H3DPipeRes::StageElem);
+
+   for (int i = 0; i < stageCount; i++)
+   {
+      const char* curStageName = h3dGetResParamStr(currentPipeline_, H3DPipeRes::StageElem, i, H3DPipeRes::StageNameStr);
+      if (_strcmpi(stageName, curStageName) == 0)
+      {
+         h3dSetResParamI(currentPipeline_, H3DPipeRes::StageElem, i, H3DPipeRes::StageActivationI, enabled ? 1 : 0);
+         break;
+      }
    }
 }
 
@@ -238,9 +362,7 @@ void Renderer::FlushMaterials() {
       h3dUnloadResource(r);
    }
 
-   for (const auto& entry : pipelines_) {
-      h3dResizePipelineBuffers(entry.second, uiWidth_, uiHeight_);
-   }
+   ResizePipelines();
 }
 
 Renderer::~Renderer()
@@ -273,7 +395,8 @@ void Renderer::Cleanup()
 
 void Renderer::SetServerTick(int tick)
 {
-   FireTraces(interpolationStartTraces_);
+   perfmon::TimelineCounterGuard tcg("signal server tick");
+   server_tick_slot_.Signal(tick);
 }
 
 void Renderer::DecodeDebugShapes(const ::radiant::protocol::shapelist& msg)
@@ -290,12 +413,6 @@ void Renderer::RenderOneFrame(int now, float alpha)
 {
    perfmon::TimelineCounterGuard tcg("render one");
 
-   int deltaNow = now - currentFrameTime_;
-
-   lastFrameTimeInSeconds_ = deltaNow / 1000.0f;
-   currentFrameTime_ =  now;
-   currentFrameInterp_ = alpha;
-
    bool debug = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS;
    bool showStats = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
   
@@ -307,7 +424,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    h3dSetOption(H3DOptions::WireframeMode, debug);
    // h3dSetOption(H3DOptions::DebugViewMode, _debugViewMode ? 1.0f : 0.0f);
    // h3dSetOption(H3DOptions::WireframeMode, _wireframeMode ? 1.0f : 0.0f);
-	
+   
    h3dSetCurrentRenderTime(now / 1000.0f);
 
    if (showUI && uiMatRes_) { // show UI
@@ -324,12 +441,13 @@ void Renderer::RenderOneFrame(int now, float alpha)
                           ww,       .9f,    1, 1, };
    }
 
-   perfmon::SwitchToCounter("render fire traces") ;
-   FireTraces(renderFrameTraces_);
-
+   perfmon::SwitchToCounter("render fire traces") ;  
+   render_frame_start_slot_.Signal(FrameStartInfo(now, alpha));
 
    if (showStats) { 
+      perfmon::SwitchToCounter("show stats") ;  
       // show stats
+      h3dCollectDebugFrame();
       h3dutShowFrameStats( fontMatRes_, panelMatRes_, H3DUTMaxStatMode );
    }
 
@@ -344,6 +462,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    h3dRender(camera_->GetNode());
 
    // Finish rendering of frame
+   UpdateCamera();
    perfmon::SwitchToCounter("render finalize");
    h3dFinalizeFrame();
    //glFinish();
@@ -351,8 +470,9 @@ void Renderer::RenderOneFrame(int now, float alpha)
    // Advance emitter time; this must come AFTER rendering, because we only know which emitters
    // to update after doing a render pass.
    perfmon::SwitchToCounter("render ce");
-   h3dRadiantAdvanceCubemitterTime(deltaNow / 1000.0f);
-   h3dRadiantAdvanceAnimatedLightTime(deltaNow / 1000.0f);
+   float delta = (now - last_render_time_) / 1000.0f;
+   h3dRadiantAdvanceCubemitterTime(delta);
+   h3dRadiantAdvanceAnimatedLightTime(delta);
 
    // Remove all overlays
    h3dClearOverlays();
@@ -362,6 +482,8 @@ void Renderer::RenderOneFrame(int now, float alpha)
 
    perfmon::SwitchToCounter("render swap");
    glfwSwapBuffers(glfwGetCurrentContext());
+
+   last_render_time_ = now;
 }
 
 bool Renderer::IsRunning() const
@@ -373,8 +495,8 @@ void Renderer::GetCameraToViewportRay(int windowX, int windowY, csg::Ray3* ray)
 {
    // compute normalized window coordinates in preparation for casting a ray
    // through the scene
-   float nwx = ((float)windowX) / width_;
-   float nwy = 1.0f - ((float)windowY) / height_;
+   float nwx = ((float)windowX) / windowWidth_;
+   float nwy = 1.0f - ((float)windowY) / windowHeight_;
 
    // calculate the ray starting at the eye position of the camera, casting
    // through the specified window coordinates into the scene
@@ -393,12 +515,12 @@ void Renderer::CastRay(const csg::Point3f& origin, const csg::Point3f& direction
    if (h3dCastRay(rootRenderObject_->GetNode(),
       origin.x, origin.y, origin.z,
       direction.x, direction.y, direction.z, 1) == 0) {
-		return;
-	}
+      return;
+   }
 
    // Pull out the intersection node and intersection point
-	H3DNode node = 0;
-	if (!h3dGetCastRayResult( 0, &(result->node), 0, &(result->point.x), &(result->normal.x) )) {
+   H3DNode node = 0;
+   if (!h3dGetCastRayResult( 0, &(result->node), 0, &(result->point.x), &(result->normal.x) )) {
       return;
    }
    result->origin = origin;
@@ -475,55 +597,46 @@ void Renderer::UpdateUITexture(const csg::Region2& rgn, const char* buffer)
 
       if (data) {
          perfmon::SwitchToCounter("copy client mem to ui pbo");
-
-         // We can't loop through the individual rects and copy only them, because the PBO won't have
-         // all the pixels in between (and we do NOT want to flush the renderer just to get them), so
-         // this is a good compromise.
-
-         int srcPitch = uiWidth_ * 4;
-         int destPitch = bounds.GetWidth() * 4;
-         int xStart = bounds.GetMin().x * 4;
-         int yStart = bounds.GetMin().y;
-         int amount = bounds.GetWidth() * 4;
-
-         for (int y = yStart; y < bounds.GetMax().y; y++) {
-            char* dst = data + ((y - yStart) * destPitch);
-            const char* src = buffer + (y * srcPitch) + xStart;
-            memcpy(dst, src, amount);
-         }
+         // If you think this is slow (bliting everything instead of just the dirty rects), please
+         // talk to Klochek; the explanation is too large to fit in the margins of this code....
+         memcpy(data, buffer, uiWidth_ * uiHeight_ * 4);
       }
       perfmon::SwitchToCounter("unmap ui pbo");
       h3dUnmapResStream(uiPbo_);
 
       perfmon::SwitchToCounter("copy ui pbo to ui texture") ;
 
-      h3dCopyBufferToBuffer(uiPbo_, uiTexture_, bounds.GetMin().x, bounds.GetMin().y, 
-         bounds.GetWidth(), bounds.GetHeight());
+      h3dCopyBufferToBuffer(uiPbo_, uiTexture_, 0, 0, uiWidth_, uiHeight_);
    }
 }
 
-void Renderer::Resize( int width, int height )
+void Renderer::ResizeWindow(int width, int height)
 {
-   width_ = width;
-   height_ = height;
+   windowWidth_ = width;
+   windowHeight_ = height;
 
-   SetUITextureSize(width, height);
-   
+   SetUITextureSize(windowWidth_, windowHeight_);
+}
+
+void Renderer::ResizePipelines()
+{
+   for (const auto& entry : pipelines_) {
+      h3dResizePipelineBuffers(entry.second, windowWidth_, windowHeight_);
+   }
+}
+
+void Renderer::ResizeViewport()
+{
    H3DNode camera = camera_->GetNode();
 
    // Resize viewport
    h3dSetNodeParamI( camera, H3DCamera::ViewportXI, 0 );
    h3dSetNodeParamI( camera, H3DCamera::ViewportYI, 0 );
-   h3dSetNodeParamI( camera, H3DCamera::ViewportWidthI, width );
-   h3dSetNodeParamI( camera, H3DCamera::ViewportHeightI, height );
-	
+   h3dSetNodeParamI( camera, H3DCamera::ViewportWidthI, windowWidth_ );
+   h3dSetNodeParamI( camera, H3DCamera::ViewportHeightI, windowHeight_ );
+   
    // Set virtual camera parameters
-   h3dSetupCameraView( camera, 45.0f, (float)width / height, 4.0f, 4000.0f);
-   for (const auto& entry : pipelines_) {
-      h3dResizePipelineBuffers(entry.second, width, height);
-   }
-
-   screen_resize_slot_.Signal(csg::Point2(width_, height_));
+   h3dSetupCameraView( camera, 45.0f, (float)windowWidth_ / windowHeight_, 2.0f, 1000.0f);
 }
 
 std::shared_ptr<RenderEntity> Renderer::CreateRenderObject(H3DNode parent, om::EntityPtr entity)
@@ -537,9 +650,7 @@ std::shared_ptr<RenderEntity> Renderer::CreateRenderObject(H3DNode parent, om::E
 
    if (i != entities.end()) {
       auto entity = i->second;
-      if (entity->GetParent() != parent) {
-         entity->SetParent(parent);
-      }
+      entity->SetParent(parent);
       result = entity;
    } else {
       // LOG(WARNING) << "CREATING RENDER OBJECT " << sid << ", " << id;
@@ -667,12 +778,19 @@ void Renderer::OnKey(int key, int down)
 }
 
 void Renderer::OnWindowResized(int newWidth, int newHeight) {
-   Resize(newWidth, newHeight);
+   if (newWidth == 0 || newHeight == 0)
+   {
+      return;
+   }
+
+   ResizeWindow(newWidth, newHeight);
+   ResizeViewport();
+   ResizePipelines();
+   screen_resize_slot_.Signal(csg::Point2(windowWidth_, windowHeight_));
 }
 
 core::Guard Renderer::TraceSelected(H3DNode node, UpdateSelectionFn fn)
 {
-   ASSERT(!stdutil::contains(selectableCbs_, node));
    selectableCbs_[node] = fn;
    return core::Guard([=]() { selectableCbs_.erase(node); });
 }
@@ -683,15 +801,10 @@ void Renderer::SetCurrentPipeline(std::string name)
 
    auto i = pipelines_.find(name);
    if (i == pipelines_.end()) {
-	   p = h3dAddResource(H3DResTypes::Pipeline, name.c_str(), 0);
+      p = h3dAddResource(H3DResTypes::Pipeline, name.c_str(), 0);
       pipelines_[name] = p;
 
-   	LoadResources();
-
-      // xxx - This keeps all pipeline buffers around all the time.  Should we
-      // nuke all non-active pipelines so we can use their buffer memory for
-      // something else (e.g. bigger shadows, better support for older hardware)
-      h3dResizePipelineBuffers(p, width_, height_);
+      LoadResources();
    } else {
       p = i->second;
    }
@@ -735,35 +848,6 @@ void Renderer::SetViewMode(ViewMode mode)
    viewMode_ = mode;
 }
 
-core::Guard Renderer::TraceFrameStart(std::function<void()> fn)
-{
-   return AddTrace(renderFrameTraces_, fn);
-}
-
-core::Guard Renderer::TraceInterpolationStart(std::function<void()> fn)
-{
-   return AddTrace(interpolationStartTraces_, fn);
-}
-
-core::Guard Renderer::AddTrace(TraceMap& m, std::function<void()> fn)
-{
-   dm::TraceId tid = nextTraceId_++;
-   m[tid] = fn;
-   return core::Guard(std::bind(&Renderer::RemoveTrace, this, std::ref(m), tid));
-}
-
-void Renderer::RemoveTrace(TraceMap& m, dm::TraceId tid)
-{
-   m.erase(tid);
-}
-
-void Renderer::FireTraces(const TraceMap& m)
-{
-   for (const auto& entry : m) {
-      entry.second();
-   }
-}
-
 void Renderer::LoadResources()
 {
    if (!h3dutLoadResourcesFromDisk("horde")) {
@@ -782,17 +866,17 @@ csg::Point2 Renderer::GetMousePosition() const
 
 int Renderer::GetWidth() const
 {
-   return width_;
+   return windowWidth_;
 }
 
 int Renderer::GetHeight() const
 {
-   return height_;
+   return windowHeight_;
 }
 
-boost::property_tree::ptree const& Renderer::GetConfig() const
+boost::property_tree::ptree const& Renderer::GetTerrainConfig() const
 {  
-   return config_;
+   return terrainConfig_;
 }
 
 void Renderer::SetScriptHost(lua::ScriptHost* scriptHost)
@@ -808,37 +892,68 @@ lua::ScriptHost* Renderer::GetScriptHost() const
 
 void Renderer::SetUITextureSize(int width, int height)
 {
-   uiWidth_ = width;
-   uiHeight_ = height;
+   if (width != uiWidth_ || height != uiHeight_) {
+      uiWidth_ = width;
+      uiHeight_ = height;
 
-   if (uiPbo_) {
-      h3dRemoveResource(uiPbo_);
+      if (uiPbo_) {
+         h3dRemoveResource(uiPbo_);
+         uiPbo_ = 0x0;
+      }
+      if (uiTexture_) {
+         h3dRemoveResource(uiTexture_);
+         h3dUnloadResource(uiMatRes_);
+         uiTexture_ = 0x0;
+         uiMatRes_ = 0x0;
+      }
+      h3dReleaseUnusedResources();
+
+      uiPbo_ = h3dCreatePixelBuffer("screenui", width * height * 4);
+
+      uiTexture_ = h3dCreateTexture("UI Texture", uiWidth_, uiHeight_, H3DFormats::List::TEX_BGRA8, H3DResFlags::NoTexMipmaps);
+      unsigned char *data = (unsigned char *)h3dMapResStream(uiTexture_, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
+      memset(data, 0, uiWidth_ * uiHeight_ * 4);
+      h3dUnmapResStream(uiTexture_);
+
+      std::ostringstream material;
+      material << "<Material>" << std::endl;
+      material << "   <Shader source=\"shaders/overlay.shader\"/>" << std::endl;
+      material << "   <Sampler name=\"albedoMap\" map=\"" << h3dGetResName(uiTexture_) << "\" />" << std::endl;
+      material << "</Material>" << std::endl;
+
+      uiMatRes_ = h3dAddResource(H3DResTypes::Material, "UI Material", 0);
+      bool result = h3dLoadResource(uiMatRes_, material.str().c_str(), material.str().length());
+      ASSERT(result);
    }
-   if (uiTexture_) {
-      h3dRemoveResource(uiTexture_);
-      h3dUnloadResource(uiMatRes_);
-   }
-   h3dReleaseUnusedResources();
-
-   uiPbo_ = h3dCreatePixelBuffer("screenui", width * height * 4);
-
-   uiTexture_ = h3dCreateTexture("UI Texture", uiWidth_, uiHeight_, H3DFormats::List::TEX_BGRA8, H3DResFlags::NoTexMipmaps);
-   unsigned char *data = (unsigned char *)h3dMapResStream(uiTexture_, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
-   memset(data, 0, uiWidth_ * uiHeight_ * 4);
-   h3dUnmapResStream(uiTexture_);
-
-   std::ostringstream material;
-   material << "<Material>" << std::endl;
-	material << "   <Shader source=\"shaders/overlay.shader\"/>" << std::endl;
-	material << "   <Sampler name=\"albedoMap\" map=\"" << h3dGetResName(uiTexture_) << "\" />" << std::endl;
-   material << "</Material>" << std::endl;
-
-   uiMatRes_ = h3dAddResource(H3DResTypes::Material, "UI Material", 0);
-   bool result = h3dLoadResource(uiMatRes_, material.str().c_str(), material.str().length());
-   assert(result);
 }
 
 core::Guard Renderer::OnScreenResize(std::function<void(csg::Point2)> fn)
 {
    return screen_resize_slot_.Register(fn);
+}
+
+core::Guard Renderer::OnServerTick(std::function<void(int)> fn)
+{
+   return server_tick_slot_.Register(fn);
+}
+
+core::Guard Renderer::OnRenderFrameStart(std::function<void(FrameStartInfo const&)> fn)
+{
+   return render_frame_start_slot_.Register(fn);
+}
+
+bool Renderer::GetShowDebugShapes()
+{
+   return show_debug_shapes_;
+}
+
+void Renderer::SetShowDebugShapes(bool show_debug_shapes)
+{
+   show_debug_shapes_ = show_debug_shapes;
+   show_debug_shapes_changed_slot_.Signal(show_debug_shapes);
+}
+
+core::Guard Renderer::OnShowDebugShapesChanged(std::function<void(bool)> fn)
+{
+   return show_debug_shapes_changed_slot_.Register(fn);
 }

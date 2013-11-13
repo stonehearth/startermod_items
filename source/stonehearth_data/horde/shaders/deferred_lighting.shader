@@ -38,19 +38,24 @@ context OMNI_LIGHTING
 
 
 [[VS_DIRECTIONAL_LIGHTING_VERTEX_SHADER]]
+#version 130
 
 uniform mat4 projMat;
-attribute vec3 vertPos;
-        
+
+in vec3 vertPos;
+
 void main( void )
 {
-  gl_Position = projMat * vec4( vertPos, 1 );;
+  gl_Position = projMat * vec4(vertPos, 1);
 }
 
 [[FS_LIGHTING_DIRECTIONAL]]
-#include "shaders/utilityLib/fragLighting.glsl" 
+#version 130
 
-// uniform vec3 viewerPos; -- already declared.  harumph.
+#include "shaders/utilityLib/fragLighting.glsl" 
+#include "shaders/shadows.shader"
+
+uniform vec3 viewerPos;
 uniform mat4 viewMat;
 uniform sampler2D positions;
 uniform sampler2D normals;
@@ -63,24 +68,29 @@ void main( void )
 {
   vec2 fragCoord = vec2(gl_FragCoord.xy / frameBufSize);
 
-  vec3 pos = texture2D(positions, fragCoord).xyz + viewerPos;
-  float vsPos = (viewMat * vec4( pos, 1.0 )).z;
+  vec3 worldspace_pos = texture2D(positions, fragCoord).xyz + viewerPos;
+  float vsPos = (viewMat * vec4(worldspace_pos, 1.0 )).z;
 
   vec3 normal = texture2D(normals, fragCoord).xyz;
-  vec3 intensity = calcSimpleDirectionalLight(pos, normal, -vsPos) + lightAmbientColor;
-  outLightColor = vec4(intensity, 1.0);
+
+  float shadowTerm = getShadowValue(worldspace_pos);
+  vec3 intensity = shadowTerm * calcSimpleDirectionalLight(viewerPos, worldspace_pos, normal, -vsPos) + 
+      lightAmbientColor;
+  outLightColor = vec4(intensity, 1.0);// + vec4(getCascadeColor(worldspace_pos), 0);
 }
 
 
 
 // =================================================================================================
 [[VS_OMNI_LIGHTING_VERTEX_SHADER]]
+#version 130
 
 uniform mat4 viewProjMat;
 uniform mat4 viewMat;
 uniform mat4 worldMat;
 uniform mat4 camViewProjMatInv;
-attribute vec3 vertPos;
+
+in vec3 vertPos;
         
 void main( void )
 {
@@ -88,9 +98,11 @@ void main( void )
 }
 
 [[FS_OMNI_LIGHTING]]
+#version 130
+
 #include "shaders/utilityLib/fragLighting.glsl" 
 
-// uniform vec3 viewerPos; -- already declared.  harumph.
+uniform vec3 viewerPos;
 uniform mat4 viewMat;
 uniform sampler2D positions;
 uniform sampler2D normals;
@@ -105,7 +117,7 @@ void main( void )
   vec3 pos = texture2D(positions, fragCoord).xyz + viewerPos;
 
   vec3 normal = texture2D(normals, fragCoord).xyz;
-  vec3 intensity = calcPhongOmniLight(pos, normalize(normal));
+  vec3 intensity = calcPhongOmniLight(viewerPos, pos, normalize(normal));
 
   outLightColor = vec4(intensity, 1.0);
 }

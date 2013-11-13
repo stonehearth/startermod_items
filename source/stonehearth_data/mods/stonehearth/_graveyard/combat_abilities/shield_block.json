@@ -1,8 +1,0 @@
-{
-   "type": "combat_ability",
-   "tags": ["defend", "shield"],
-   "cooldown" : 0,
-   "priority" :  100,
-   "effect": "combat/shield_block",
-   "action_script_name" : "radiant.actions.shield_block"
-}

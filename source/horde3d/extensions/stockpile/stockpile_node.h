@@ -8,6 +8,7 @@
 #include "om/om.h"
 #include "csg/cube.h"
 #include "Horde3D.h"
+#include "utMath.h"
 
 BEGIN_RADIANT_HORDE3D_NAMESPACE
 
@@ -36,6 +37,8 @@ public:
 
 public:
    void UpdateShape(const csg::Cube3& bounds);
+   bool checkIntersection( const Horde3D::Vec3f &rayOrig, const Horde3D::Vec3f &rayDir, Horde3D::Vec3f &intsPos, Horde3D::Vec3f &intsNorm ) const override;
+   void onFinishedUpdate() override;
 
 private:
 	StockpileNode(const StockpileTpl &terrainTpl);
@@ -45,6 +48,7 @@ private:
    std::vector<Entry>      corners_;
    std::vector<Entry>      edges_;
    Entry                   center_;
+   Horde3D::BoundingBox    _bLocalBox;  // AABB in bobject space  
 };
 
 END_RADIANT_HORDE3D_NAMESPACE

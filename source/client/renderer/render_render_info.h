@@ -57,13 +57,16 @@ private:
    void AccumulateModelVariant(ModelMap& m, om::ModelVariantPtr v);
    void AccumulateModelVariants(ModelMap& m, om::ModelVariantsPtr model_variants, std::string const& current_variant);
    void RebuildModels(om::RenderInfoPtr render_info);
+   void CheckMaterial(om::RenderInfoPtr render_info);
    void FlattenModelMap(ModelMap& m, FlatModelMap& flattened);
    void RemoveObsoleteNodes(FlatModelMap const& m);
    std::string GetBoneName(std::string const& matrix_name);
    void AddModelNode(om::RenderInfoPtr render_info, std::string const& bone, voxel::QubicleMatrix const* matrix);
    void AddMissingNodes(om::RenderInfoPtr render_info, FlatModelMap const& m);
    void RebuildBoneOffsets(om::RenderInfoPtr render_info);
+   void UpdateNextFrame();
    void Update();
+   void SetDirtyBits(int flags);
    std::string GetModelVariant(om::RenderInfoPtr render_info) const;
 
 private:
@@ -74,12 +77,15 @@ private:
    RenderEntity&           entity_;
    int                     dirty_;
    om::RenderInfoRef       render_info_;
-   core::Guard               renderer_frame_trace_;
-   core::Guard               variant_guards_;
-   core::Guard               render_info_guards_;
+   core::Guard             renderer_frame_trace_;
+   core::Guard             variant_guards_;
+   core::Guard             render_info_guards_;
    NodeMap                 nodes_;
    BoneOffsetMap           bones_offsets_;
    std::string             model_variant_override_;
+   H3DResUnique            material_;
+   std::string             material_path_;
+   std::string             model_mode_;
    bool                    use_model_variant_override_;
 };
 

@@ -1,10 +1,13 @@
 <script type="text/x-handlebars" data-template-name="stonehearthNewGame">
    <div id="newGame">
       <div class="inner">
-         New game options go here, like world size, bumpiness, and seed.
+         New game options go here, like world size, bumpiness, and seed. <br>
 
+         <input type="checkbox" id="analyticsCheckbox"{{bindAttr checked=collection_status}}>
+         <label for="analyticsCheckbox">Make our game better by sending us data about your session!</label>
+         
          <a href="#" {{action startNewGame target="view"}}>
-            <div class="button" id="embarkButton">{{i18n stonehearth:new_game_embark_button}}</div>
+            <button id="embarkButton">{{i18n stonehearth:new_game_embark_button}}</button>
          </a>
       </div>
    </div>

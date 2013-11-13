@@ -5,6 +5,7 @@
 #include "renderer.h"
 #include "lib/voxel/qubicle_file.h"
 #include "resources/res_manager.h"
+#include "csg/region_tools.h"
 #include <fstream>
 #include <unordered_map>
 
@@ -48,22 +49,25 @@ Pipeline::~Pipeline()
 
 // From: http://mikolalysenko.github.com/MinecraftMeshes2/js/greedy.js
 
-H3DNodeUnique Pipeline::AddMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m)
+H3DNodeUnique Pipeline::AddMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m, H3DNode* mesh)
 {
    static int unique = 0;
    std::string name = "mesh data ";
 
    H3DRes res = h3dutCreateVoxelGeometryRes((name + stdutil::ToString(unique++)).c_str(), (VoxelGeometryVertex *)m.vertices.data(), m.vertices.size(), (uint *)m.indices.data(), m.indices.size());
    H3DRes matRes = h3dAddResource(H3DResTypes::Material, "terrain/default_material.xml", 0);
-   H3DNodeUnique modelNode = h3dAddVoxelModelNode(parent, (name + stdutil::ToString(unique++)).c_str(), res);
-   H3DNode meshNode = h3dAddVoxelMeshNode(modelNode.get(), (name + stdutil::ToString(unique++)).c_str(), matRes, 0, m.indices.size(), 0, m.vertices.size() - 1);
+   H3DNode model_node = h3dAddVoxelModelNode(parent, (name + stdutil::ToString(unique++)).c_str(), res);
+   H3DNode mesh_node = h3dAddVoxelMeshNode(model_node, (name + stdutil::ToString(unique++)).c_str(), matRes, 0, m.indices.size(), 0, m.vertices.size() - 1);
 
-   // xxx: how do res, matRes, and meshNode get deleted? - tony
+   if (mesh) {
+      *mesh = mesh_node;
+   }
 
-   return modelNode;
+   // xxx: how do res, matRes, and mesh_node get deleted? - tony
+   return H3DNodeUnique(model_node);
 }
 
-H3DNodeUnique Pipeline::AddQubicleNode(H3DNode parent, const voxel::QubicleMatrix& m, const csg::Point3f& origin)
+H3DNodeUnique Pipeline::AddQubicleNode(H3DNode parent, const voxel::QubicleMatrix& m, const csg::Point3f& origin, H3DNode* mesh)
 {
    std::vector<VoxelGeometryVertex> vertices;
    std::vector<uint32> indices;
@@ -230,13 +234,192 @@ H3DNodeUnique Pipeline::AddQubicleNode(H3DNode parent, const voxel::QubicleMatri
 
    static int unique = 0;
    std::string name = "qubicle data ";
-   H3DRes res = h3dutCreateVoxelGeometryRes((name + stdutil::ToString(unique++)).c_str(), vertices.data(), vertices.size(), indices.data(), indices.size());
+   H3DRes geoRes = h3dutCreateVoxelGeometryRes((name + stdutil::ToString(unique++)).c_str(), vertices.data(), vertices.size(), indices.data(), indices.size());
    H3DRes matRes = h3dAddResource(H3DResTypes::Material, "terrain/default_material.xml", 0);
-   H3DNodeUnique modelNode = h3dAddVoxelModelNode(parent, (name + stdutil::ToString(unique++)).c_str(), res);
-   H3DNode meshNode = h3dAddVoxelMeshNode(modelNode.get(), (name + stdutil::ToString(unique++)).c_str(), matRes, 0, indices.size(), 0, vertices.size() - 1);
-   return modelNode;
+   H3DNode model_node = h3dAddVoxelModelNode(parent, (name + stdutil::ToString(unique++)).c_str(), geoRes);
+   H3DNode mesh_node = h3dAddVoxelMeshNode(model_node, (name + stdutil::ToString(unique++)).c_str(), matRes, 0, indices.size(), 0, vertices.size() - 1);
+
+   if (mesh) {
+      *mesh = mesh_node;
+   }
+   return H3DNodeUnique(model_node);
 }
 
+
+H3DNode Pipeline::CreateModel(H3DNode parent,
+                              csg::mesh_tools::mesh const& mesh,
+                              std::string const& material_path)
+{
+   H3DNode mesh_node;
+
+   H3DNodeUnique model_node = Pipeline::GetInstance().AddMeshNode(parent, mesh, &mesh_node);
+   if (!material_path.empty()) {
+      H3DRes material = h3dAddResource(H3DResTypes::Material, material_path.c_str(), 0);
+      h3dSetNodeParamI(mesh_node, H3DMesh::MatResI, material);
+   }
+
+   H3DNode node = model_node.get();
+   model_node.release();
+
+   return node;
+}
+
+H3DNodeUnique Pipeline::CreateBlueprintNode(H3DNode parent,
+                                            csg::Region3 const& model,
+                                            float thickness,
+                                            std::string const& material_path)
+{
+   static int unique = 1;
+
+   H3DNode group = h3dAddGroupNode(parent, BUILD_STRING("blueprint node " << unique++).c_str());
+
+   csg::mesh_tools::mesh panels_mesh, outline_mesh;
+   panels_mesh.SetColor(csg::Color3::FromString("#00DFFC"));
+   outline_mesh.SetColor(csg::Color3::FromString("#005FFB"));
+   csg::RegionTools3().ForEachPlane(model, [&](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
+      csg::Region2f outline = csg::RegionTools2().GetInnerBorder(plane, thickness);
+      csg::Region2f panels = ToFloat(plane) - outline;
+      outline_mesh.AddRegion(outline, csg::ToFloat(pi));
+      panels_mesh.AddRegion(panels, csg::ToFloat(pi));
+   });
+   CreateModel(group, panels_mesh, material_path);
+   CreateModel(group, outline_mesh, material_path);
+
+   return group;
+}
+
+H3DNodeUnique Pipeline::CreateVoxelNode(H3DNode parent,
+                                        csg::Region3 const& model,
+                                        std::string const& material_path)
+{
+   static int unique = 1;
+
+   csg::mesh_tools::mesh mesh;
+   csg::RegionTools3().ForEachPlane(model, [&](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
+      mesh.AddRegion(plane, pi);
+   });
+   return CreateModel(parent, mesh, material_path);
+}
+
+void Pipeline::AddDesignationStripes(csg::mesh_tools::mesh& m, csg::Region2 const& panels)
+{   
+   float y = 0;
+   for (csg::Rect2 const& c: panels) {      
+      csg::Rect2f cube = ToFloat(c);
+      csg::Point2f size = cube.GetSize();
+      for (float i = 0; i < size.y; i ++) {
+         // xxx: why do we have to use a clockwise winding here?
+         float x1 = std::min(i + 1.0f, size.x);
+         float x2 = std::min(i + 0.5f, size.x);
+         float y1 = std::max(i + 1.0f - size.x, 0.0f);
+         float y2 = std::max(i + 0.5f - size.x, 0.0f);
+         csg::Point3f points[] = {
+            csg::Point3f(cube.min.x, y, cube.min.y + i + 1.0f),
+            csg::Point3f(cube.min.x + x1, y, cube.min.y + y1),
+            csg::Point3f(cube.min.x + x2, y, cube.min.y + y2),
+            csg::Point3f(cube.min.x, y, cube.min.y + i + 0.5f),
+         };
+         m.AddFace(points, csg::Point3f::unitY, csg::Color3(0, 0, 0));
+      }
+      for (float i = 0; i < size.x; i ++) {
+         // xxx: why do we have to use a clockwise winding here?
+         float x0 = i + 0.5f;
+         float x1 = i + 1.0f;
+         float x2 = std::min(x1 + size.y, size.x);
+         float x3 = std::min(x0 + size.y, size.x);
+         float y2 = -std::min(x2 - x1, size.y);
+         float y3 = -std::min(x3 - x0, size.y);
+         csg::Point3f points[] = {
+            csg::Point3f(cube.min.x + x0, y, cube.max.y),
+            csg::Point3f(cube.min.x + x1, y, cube.max.y),
+            csg::Point3f(cube.min.x + x2, y, cube.max.y + y2),
+            csg::Point3f(cube.min.x + x3, y, cube.max.y + y3),
+         };
+         m.AddFace(points, csg::Point3f::unitY, csg::Color3(0, 0, 0));
+      }
+   }
+}
+
+void Pipeline::AddDesignationBorder(csg::mesh_tools::mesh& m, csg::EdgeMap2& edgemap)
+{
+   float thickness = 0.25f;
+   csg::PlaneInfo3f pi;
+   pi.reduced_coord = 1;
+   pi.reduced_value = 0;
+   pi.x = 0;
+   pi.y = 2;
+   pi.normal_dir = 1;
+
+   for (auto const& edge : edgemap) {
+      // Compute the iteration direction
+      int t = 0, n = 1;
+      if (edge.normal.x) {
+         t = 1, n = 0;
+      }
+
+      csg::Point2f min = ToFloat(edge.min->location);
+      csg::Point2f max = ToFloat(edge.max->location);
+      max -= ToFloat(edge.normal) * thickness;
+
+      csg::Rect2f dash = csg::Rect2f::Construct(min, max);
+      float min_t = dash.min[t];
+      float max_t = dash.max[t];
+
+      // Min corner...
+      if (edge.min->accumulated_normals.Length() > 1) {
+         dash.min[t] = min_t;
+         dash.max[t] = dash.min[t] + 0.75f;
+         m.AddRect(dash, ToFloat(pi));
+         min_t += 1.0f;
+      }
+      // Max corner...
+      if (edge.max->accumulated_normals.Length() > 1) {
+         dash.max[t] = max_t;
+         dash.min[t] = dash.max[t] - 0.75f;
+         m.AddRect(dash, ToFloat(pi));
+         max_t -= 1.0f;
+      }
+      // Range...
+      for (float v = min_t; v < max_t; v++) {
+         dash.min[t] = v + 0.25f;
+         dash.max[t] = v + 0.75f;
+         m.AddRect(dash, ToFloat(pi));
+      }
+   }
+}
+
+H3DNodeUnique
+Pipeline::CreateDesignationNode(H3DNode parent,
+                                csg::Region2 const& plane,
+                                csg::Color3 const& outline_color,
+                                csg::Color3 const& stripes_color)
+{
+   csg::RegionTools2 tools;
+
+   csg::mesh_tools::mesh outline_mesh;
+   csg::mesh_tools::mesh stripes_mesh;
+
+   // flip the normal, since this is the bottom face
+   outline_mesh.SetColor(outline_color);
+   stripes_mesh.SetColor(stripes_color);
+
+   csg::EdgeMap2 edgemap = csg::RegionTools2().GetEdgeMap(plane);
+   AddDesignationBorder(outline_mesh, edgemap);
+   AddDesignationStripes(stripes_mesh, plane);
+
+   H3DNode group = h3dAddGroupNode(parent, "designation group node");
+   H3DNode stripes = CreateModel(group, stripes_mesh, "materials/designation/stripes.material.xml");
+   h3dSetNodeParamI(stripes, H3DModel::PolygonOffsetEnabledI, 1);
+   h3dSetNodeParamF(stripes, H3DModel::PolygonOffsetF, 0, -.01f);
+   h3dSetNodeParamF(stripes, H3DModel::PolygonOffsetF, 1, -.01f);
+
+   H3DNode outline = CreateModel(group, outline_mesh, "materials/designation/outline.material.xml");
+   h3dSetNodeParamI(outline, H3DModel::PolygonOffsetEnabledI, 1);
+   h3dSetNodeParamF(outline, H3DModel::PolygonOffsetF, 0, -.01f);
+   h3dSetNodeParamF(outline, H3DModel::PolygonOffsetF, 1, -.01f);
+
+   return group;
+}
 
 Pipeline::NamedNodeMap Pipeline::LoadQubicleFile(std::string const& uri)
 {   
@@ -246,8 +429,8 @@ Pipeline::NamedNodeMap Pipeline::LoadQubicleFile(std::string const& uri)
    voxel::QubicleFile f;
    std::ifstream input;
 
-   res::ResourceManager2::GetInstance().OpenResource(uri, input);
-   input >> f;
+   std::shared_ptr<std::istream> is = res::ResourceManager2::GetInstance().OpenResource(uri);
+   (*is) >> f;
 
    for (const auto& entry : f) {
       // Qubicle requires that every matrix in the file have a unique name.  While authoring,

@@ -2,6 +2,7 @@ _host:require 'radiant.lib.env' -- there's no module path installed, so use the 
 decoda_name = "radiant client"
 
 radiant = {
+   is_server = false
 }
 
 radiant.log = require 'modules.log'

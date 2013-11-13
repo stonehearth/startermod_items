@@ -5,8 +5,8 @@
 #include "namespace.h"
 #include "radiant.h"
 #include "radiant_stdutil.h"
-#include "radiant_luabind.h"
-#include "lua/register.h"
+#include "lib/lua/bind.h"
+#include "lib/lua/register.h"
 #include "dbg_indenter.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
@@ -121,10 +121,9 @@ public:
    }
 
 
-   template <class T>
    class LuaIterator {
    public:
-      LuaIterator(const T& container) : container_(container) {
+      LuaIterator(const ContainerType& container) : container_(container) {
          i_ = container_.begin();
       }
 
@@ -144,15 +143,18 @@ public:
       }
 
    private:
-      const T& container_;
-      typename T::const_iterator i_;
+      NO_COPY_CONSTRUCTOR(LuaIterator)
+
+   private:
+      const ContainerType&                   container_;
+      typename ContainerType::const_iterator i_;
    };
 
    static void LuaIteratorStart(lua_State *L, const Map& s)
    {
       using namespace luabind;
-      lua_pushcfunction(L, &LuaIterator<ContainerType>::NextIteration); // f
-      object(L, new LuaIterator<ContainerType>(s.items_)).push(L); // s
+      lua_pushcfunction(L, &LuaIterator::NextIteration); // f
+      object(L, new LuaIterator(s.items_)).push(L); // s
       object(L, 1).push(L); // var (ignored)
    }
 
@@ -187,14 +189,25 @@ public:
 
       void OnChange(const KeyType& key, const ValueType& value) {
          for (auto& cb : changedCbs_) {
-            luabind::call_function<void>(cb, key, value);
+            try {   
+               luabind::call_function<void>(cb, key, value);
+            } catch (std::exception const& e) {
+               LOG(WARNING) << "lua error firing trace: " << e.what();
+            }
          }
       }
       void OnRemove(const KeyType& key)  {
          for (auto& cb : removedCbs_) {
-            luabind::call_function<void>(cb, key);
+            try {
+               luabind::call_function<void>(cb, key);
+            } catch (std::exception const& e) {
+               LOG(WARNING) << "lua error firing trace: " << e.what();
+            }
          }
       }
+
+   private:
+      NO_COPY_CONSTRUCTOR(LuaPromise)
 
    private:
       core::Guard                     guard_;
@@ -226,7 +239,7 @@ public:
             .def("items",        &Map::LuaIteratorStart)
             .def("trace",        &Map::LuaTrace)
          ,
-         lua::RegisterType<LuaIterator<ContainerType>>()
+         lua::RegisterType<LuaIterator>()
          ,
          lua::RegisterType<LuaPromise>()
             .def("on_added",     &LuaPromise::PushAddedCb)
@@ -234,7 +247,6 @@ public:
             .def("destroy",      &LuaPromise::Destroy) // xxx: make this __gc!!
          ;
    }
-   typedef LuaIterator<ContainerType>  LuaIteratorType;
 
 public:
    void SaveValue(const Store& store, Protocol::Value* valmsg) const override {

@@ -31,6 +31,7 @@ public:
    QubicleFile();
 
    std::istream& Read(std::istream& in);
+   QubicleMatrix* GetMatrix(std::string const& name);
 
    typedef std::map<std::string, QubicleMatrix> MatrixMap;
 

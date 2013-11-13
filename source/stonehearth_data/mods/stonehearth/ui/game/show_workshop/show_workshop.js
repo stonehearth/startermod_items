@@ -1,9 +1,12 @@
 $(document).ready(function(){
-   // When we get the show_workshop event, toggle the crafting window
-   // for this entity.
    $(top).on("show_workshop.stonehearth", function (_, e) {
       var view = App.gameView.addView(App.StonehearthCrafterView, { uri: e.entity });
    });
+
+   $(top).on("show_workshop_from_crafter.stonehearth", function (_, e) {
+      var view = App.gameView.addView(App.StonehearthCrafterView, { uri: e.event_data.workshop });
+   });
+
 });
 
 // Expects the uri to be an entity with a stonehearth:workshop
@@ -33,9 +36,10 @@ App.StonehearthCrafterView = App.View.extend({
    //alias for stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes
    recipes: null,
 
-   init: function() {
-      this._super();
-   },
+   //alias because the colon messes up bindAttr
+   skinClass: function() {
+      this.set('context.skinClass', this.get('context.stonehearth:workshop.skin_class'));
+   }.observes('context.shonehearth:workshop.skin_class'),
 
    destroy: function() {
       radiant.keyboard.setFocus(null);
@@ -147,8 +151,6 @@ App.StonehearthCrafterView = App.View.extend({
          });
    },
 
-   workshopIsPaused: Ember.computed.alias("stonehearth:workshop.is_paused"),
-
    _workshopIsPausedAlias: function() {
       var isPaused = this.get('context.stonehearth:workshop.is_paused');
       this.set('context.workshopIsPaused', isPaused)
@@ -180,7 +182,6 @@ App.StonehearthCrafterView = App.View.extend({
                $(this).css('-webkit-transform', 'rotate(' + now + 'deg) scale(' + scaleX +', 1)');
             }
       });
-
 
    }.observes('context.stonehearth:workshop.is_paused'),
 

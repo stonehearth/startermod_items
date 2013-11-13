@@ -12,8 +12,8 @@ template <typename A0>
 class BufferedSlot : public Slot<A0>
 {
 public:
-   BufferedSlot() : last_state_set_(false) { }
-   BufferedSlot(A0 const& a0) : last_state_(a0), last_state_set_(false) { }
+   BufferedSlot(std::string const& name) : Slot(name), last_state_set_(false) { }
+   BufferedSlot(std::string const& name, A0 const& a0) : Slot(name), last_state_(a0), last_state_set_(false) { }
 
    void Signal(A0 const& arg0) {
       last_state_ = arg0;

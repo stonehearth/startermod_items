@@ -13,7 +13,7 @@ std::ostream& om::operator<<(std::ostream& os, const ModelVariant& o)
 }
 
 
-void ModelVariants::ExtendObject(json::ConstJsonObject const& obj)
+void ModelVariants::ExtendObject(json::Node const& obj)
 {
    // All entities with models must have a render_info...
    GetEntity().AddComponent<RenderInfo>();
@@ -55,7 +55,7 @@ ModelVariantPtr ModelVariants::GetModelVariant(std::string const& v) const
 
 static std::unordered_map<std::string, ModelVariant::Layer> __str_to_layer; // xxx -- would LOVE initializer here..
 
-void ModelVariant::ExtendObject(json::ConstJsonObject const& obj)
+void ModelVariant::ExtendObject(json::Node const& obj)
 {
    if (__str_to_layer.empty()) {
       __str_to_layer["skeleton"] = Layer::SKELETON;
@@ -65,7 +65,7 @@ void ModelVariant::ExtendObject(json::ConstJsonObject const& obj)
       __str_to_layer["cloak"] = Layer::CLOAK;
    }
 
-   std::string layer_type = obj.get<std::string>("layer");
+   std::string layer_type = obj.get<std::string>("layer", "");
    if (layer_type.empty()) {
       layer_type = "skin";
    }
@@ -75,12 +75,12 @@ void ModelVariant::ExtendObject(json::ConstJsonObject const& obj)
    variants_ = obj.get<std::string>("variants", "");
 
    for (const auto& node : obj.get("models", JSONNode())) {
-      json::ConstJsonObject e(node);
+      json::Node e(node);
       std::string model_name;
       if (e.type() == JSON_STRING) {
          model_name = e.GetNode().as_string();
       } else if (e.type() == JSON_NODE) {
-         if (e.get<std::string>("type") == "one_of") {
+         if (e.get<std::string>("type", "") == "one_of") {
             JSONNode items = e.get("items", JSONNode());
             uint c = rand() * items.size() / RAND_MAX;
             ASSERT(c < items.size());

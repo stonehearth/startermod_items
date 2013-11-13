@@ -55,7 +55,7 @@ Function(PostBuildCopy SRCFILE DIRTO)
     Set ( ALL_SOURCES ${ALL_SOURCES} ${DIRFROM}/${FILENAME} PARENT_SCOPE)
 EndFunction()
 
-#SET(RADIANT_ROOT              "$ENV{RADIANT_ROOT}")
+SET(RADIANT_ROOT              "$ENV{RADIANT_ROOT}")
 #MESSAGE("Radiant root is ${RADIANT_ROOT}")
 #string(REGEX REPLACE "\\\\" "/" RADIANT_ROOT ${RADIANT_ROOT} )
 #
@@ -66,6 +66,7 @@ MESSAGE("Stonehearth Root is: ${STONEHEARTH_ROOT}")
 
 SET(RADIANT_MODULE_ROOT "${STONEHEARTH_ROOT}/modules")
 INCLUDE(${RADIANT_MODULE_ROOT}/boost_bin/cmake/config.txt)
+INCLUDE(${RADIANT_MODULE_ROOT}/breakpad/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/chromium-embedded/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/cryptopp/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/googletest/cmake/config.txt)
@@ -73,6 +74,7 @@ INCLUDE(${RADIANT_MODULE_ROOT}/libclaw/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/libjson/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/lua/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/luabind/cmake/config.txt)
+INCLUDE(${RADIANT_MODULE_ROOT}/poco/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/protobuf/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/sfml/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/snappy/cmake/config.txt)
@@ -81,8 +83,19 @@ set(Boost_USE_STATIC_LIBS     ON)
 set(Boost_USE_STATIC_RUNTIME  ON)
 set(Boost_USE_MULTITHREADED   ON)
 
+# this must be first, to pickup build_overrides.h before the one in source/include
+FIND_PATH(BUILD_OVERRIDES build_overrides.h PATHS "${CMAKE_CURRENT_BINARY_DIR}")
+if (BUILD_OVERRIDES)
+   MESSAGE("using build_overrides")
+   INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+   ADD_DEFINITIONS(-DUSE_BUILD_OVERRIDES)
+endif()
+
 FIND_PACKAGE(Boost 1.48.0 COMPONENTS filesystem thread system regex date_time program_options log log_setup chrono REQUIRED)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 
+add_definitions( -DCURL_STATICLIB )
+
 add_subdirectory(source)
+
 

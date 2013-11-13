@@ -2,7 +2,9 @@
 #define _RADIANT_CORE_SLOT_H
 
 #include <vector>
+#include <boost/container/flat_map.hpp>
 #include "guard.h"
+#include "lib/perfmon/perfmon.h"
 
 // Named after the classic signal/slot pattern...
 // The client must assure that the owner of the slot out-lives all
@@ -17,37 +19,49 @@ class Slot
 public:
    typedef std::function<void(A0 const&)> Fn;
 
-   Slot() : firing_(false) { }
+   Slot(std::string const& name) : name_(std::string("signal ") + name), firing_(false) { }
 
    core::Guard Register(Fn fn) {
-      VERIFY(!firing_, "attempt to register for slot while firing callbacks");
       int id = next_id_++;
    
-      callbacks_.emplace_back(std::make_pair(id, fn));
+      if (firing_) {
+         added_callbacks_[id] = fn;
+      } else {
+         callbacks_[id] = fn;
+      }
       return core::Guard([this, id]() {
          Remove(id);
       });
    }
 
    void Signal(A0 const& arg) {
+      perfmon::TimelineCounterGuard tcg(name_.c_str());
+
       firing_ = true;
       for (auto const& entry : callbacks_) {
          entry.second(arg);
       }
+
+      for (int id : removed_callbacks_) {
+         callbacks_.erase(id);
+      }
+      callbacks_.insert(added_callbacks_.begin(), added_callbacks_.end());
+      added_callbacks_.clear();
+      removed_callbacks_.clear();
       firing_ = false;
    }
 
 private:
    void Remove(int id) {
-      VERIFY(!firing_, "attempt to deregister for slot while firing callbacks");
-
-      int c = callbacks_.size();
-      for (int i = 0; i < c; i++) {
-         if (callbacks_[i].first == id) {
-            callbacks_[i] = callbacks_[c-1];
-            callbacks_.resize(c-1);
-            return;
+      if (firing_) {
+         auto i = added_callbacks_.find(id);
+         if (i == added_callbacks_.end()) {
+            removed_callbacks_.push_back(id);
+         } else {
+            added_callbacks_.erase(i);
          }
+      } else {
+         callbacks_.erase(id);
       }
    }
 
@@ -55,9 +69,12 @@ private:
    NO_COPY_CONSTRUCTOR(Slot);
 
 private:
-   bool                             firing_;
-   int                              next_id_;
-   std::vector<std::pair<int, Fn>>  callbacks_;
+   std::string                         name_;
+   bool                                firing_;
+   int                                 next_id_;
+   boost::container::flat_map<int,Fn>  callbacks_;
+   boost::container::flat_map<int,Fn>  added_callbacks_;
+   std::vector<int>                    removed_callbacks_;
 };
 
 END_RADIANT_CORE_NAMESPACE

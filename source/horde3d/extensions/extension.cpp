@@ -21,6 +21,10 @@ radiant::uint32 Extension::_cubeVBO;
 radiant::uint32 Extension::_cubeIdxBuf;
 radiant::uint32 Extension::_vlCube;
 
+radiant::uint32 Extension::_cubeBatchVBO;
+radiant::uint32 Extension::_cubeBatchIdxBuf;
+radiant::uint32 Extension::_vlBatchCube;
+
 Extension::Extension()
 {
 }
@@ -79,9 +83,17 @@ bool Extension::init()
 	if (matRes == 0x0 || matRes->getType() != ResourceTypes::Material ) {
       return 0;
    }
-   DebugShapesNode::material = (MaterialResource *)matRes;
+   DebugShapesNode::default_material = (MaterialResource *)matRes;
 
+   createCubeInstanceData();
+   createCubeBatchData();
+   return true;
+}
 
+void Extension::createCubeInstanceData()
+{
+   // Global constants for cubemitter vertex layout/vertices/index buffer.  These are ONLY
+   // used with instanced geometry.
    const int numCubeAttributes = 3;
    VertexLayoutAttrib attribsCube[numCubeAttributes] = {
       {"vertPos", 0, 3, 0},
@@ -112,8 +124,62 @@ bool Extension::init()
 		4, 0, 3, 3, 7, 4,   3, 2, 6, 6, 7, 3,   4, 5, 1, 1, 0, 4
 	};
    _cubeIdxBuf = gRDI->createIndexBuffer(36 * sizeof(uint16), (void *)cubeInds);
+}
 
    return true;
+void Extension::createCubeBatchData()
+{
+   // Global constants for cubemitter vertex layout/vertices/index buffer.  These are ONLY
+   // used with batch geometry.
+   const int numCubeAttributes = 2;
+   VertexLayoutAttrib attribsCube[numCubeAttributes] = {
+      {"vertPos", 0, 3, 0},
+      {"parIdx", 0, 1, 12}
+	};
+	_vlBatchCube = gRDI->registerVertexLayout( numCubeAttributes, attribsCube);
+
+   // Create cube geometry array
+   CubeBatchVert cvs[8];
+   cvs[0] = CubeBatchVert(-0.5, -0.5, 0.5, 0);
+   cvs[1] = CubeBatchVert( 0.5, -0.5, 0.5, 0);
+   cvs[2] = CubeBatchVert( 0.5,  0.5, 0.5, 0);
+   cvs[3] = CubeBatchVert(-0.5,  0.5, 0.5, 0);
+   cvs[4] = CubeBatchVert(-0.5, -0.5, -0.5, 0);
+   cvs[5] = CubeBatchVert( 0.5, -0.5, -0.5, 0);
+   cvs[6] = CubeBatchVert( 0.5,  0.5, -0.5, 0);
+   cvs[7] = CubeBatchVert(-0.5,  0.5, -0.5, 0);
+
+   CubeBatchVert *cubeVerts = new CubeBatchVert[CubesPerBatch * 8];
+   for (uint32 i = 0; i < CubesPerBatch; i++)
+   {
+      cubeVerts[i * 8 + 0] = cvs[0]; cubeVerts[i * 8 + 0].index = (float)i;
+      cubeVerts[i * 8 + 1] = cvs[1]; cubeVerts[i * 8 + 1].index = (float)i;
+      cubeVerts[i * 8 + 2] = cvs[2]; cubeVerts[i * 8 + 2].index = (float)i;
+      cubeVerts[i * 8 + 3] = cvs[3]; cubeVerts[i * 8 + 3].index = (float)i;
+      cubeVerts[i * 8 + 4] = cvs[4]; cubeVerts[i * 8 + 4].index = (float)i;
+      cubeVerts[i * 8 + 5] = cvs[5]; cubeVerts[i * 8 + 5].index = (float)i;
+      cubeVerts[i * 8 + 6] = cvs[6]; cubeVerts[i * 8 + 6].index = (float)i;
+      cubeVerts[i * 8 + 7] = cvs[7]; cubeVerts[i * 8 + 7].index = (float)i;
+   }
+	_cubeBatchVBO = gRDI->createVertexBuffer( CubesPerBatch * 8 * sizeof( CubeBatchVert ), (float *)cubeVerts );
+   delete[] cubeVerts;
+
+   // Create cube geometry indices.
+	uint16 cubeInds[36] = {
+		0, 1, 2, 2, 3, 0,   1, 5, 6, 6, 2, 1,   5, 4, 7, 7, 6, 5,
+		4, 0, 3, 3, 7, 4,   3, 2, 6, 6, 7, 3,   4, 5, 1, 1, 0, 4
+	};
+   uint16 *cubeIdx = new uint16[36 * CubesPerBatch];
+
+   for (uint32 i = 0; i < CubesPerBatch; i++)
+   {
+      for (int j = 0; j < 36; j++)
+      {
+         cubeIdx[i * 36 + j] = cubeInds[j] + (i * 8);
+      }
+   }
+   _cubeBatchIdxBuf = gRDI->createIndexBuffer(CubesPerBatch * 36 * sizeof(uint16), (void *)cubeIdx);
+   delete[] cubeIdx;
 }
 
 void Extension::release()
@@ -194,14 +260,24 @@ DLL H3DNode h3dRadiantAddDebugShapes(H3DNode parent, const char* nam)
 	return Modules::sceneMan().addNode(sn, *parentNode);
 }
 
-DLL H3DNode h3dRadiantAddCubemitterNode(H3DNode parent, const char* nam, H3DRes cubemitter, H3DRes mat)
+DLL H3DNode h3dRadiantAddCubemitterNode(H3DNode parent, const char* nam, H3DRes cubemitter)
 {
    std::string name(nam);
 	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
 	APIFUNC_VALIDATE_NODE(parentNode, "h3dRadiantAddCubemitterNode", 0);
-	
+
+   H3DRes matResHandle;
+   // TODO(klochek): This is pretty stupid.  What we want is for specific card capabilities to be exposed
+   // to the shader combiner/compiler as shader flags, which can then enable specific paths in the low-level
+   // vertex/fragment programs.  That way, one material (one shader file, really) can have multiple implementation
+   // paths in it, and the right one gets chosen upon material load/creation.
+   if (gRDI->getCaps().hasInstancing) {
+      matResHandle = h3dAddResource(H3DResTypes::Material, "materials/cubemitter.material.xml", 0);
+   } else {
+      matResHandle = h3dAddResource(H3DResTypes::Material, "materials/cubemitterBatch.material.xml", 0);
+   }
    CubemitterResource *cubeRes = (CubemitterResource *)Modules::resMan().resolveResHandle(cubemitter);
-   MaterialResource *matRes = (MaterialResource *)Modules::resMan().resolveResHandle(mat);
+   MaterialResource *matRes = (MaterialResource *)Modules::resMan().resolveResHandle(matResHandle);
    
    APIFUNC_VALIDATE_RES_TYPE(matRes, ResourceTypes::Material, "h3dRadiantAddCubemitterNode", 0);
    APIFUNC_VALIDATE_RES_TYPE(cubeRes, RT_CubemitterResource, "h3dRadiantAddCubemitterNode", 0);

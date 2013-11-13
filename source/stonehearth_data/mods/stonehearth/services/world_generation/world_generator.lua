@@ -3,7 +3,7 @@ local TerrainType = require 'services.world_generation.terrain_type'
 local TerrainGenerator = require 'services.world_generation.terrain_generator'
 local Landscaper = require 'services.world_generation.landscaper'
 local HeightMapRenderer = require 'services.world_generation.height_map_renderer'
-local Timer = radiant.mods.require('stonehearth_debugtools.timer')
+local Timer = require 'services.world_generation.timer'
 local Point3 = _radiant.csg.Point3
 
 local WorldGenerator = class()
@@ -11,10 +11,10 @@ local WorldGenerator = class()
 function WorldGenerator:__init(async)
    self._async = async
 
-   self._terrain_generator = TerrainGenerator(self._async)
-   self._height_map_renderer = HeightMapRenderer(self._terrain_generator.zone_size,
-                                                 self._terrain_generator.terrain_info)
-   self._landscaper = Landscaper(self._terrain_generator.terrain_info)
+   local tg = TerrainGenerator(self._async)
+   self._terrain_generator = tg
+   self._height_map_renderer = HeightMapRenderer(tg.zone_size, tg.terrain_info)
+   self._landscaper = Landscaper(tg.terrain_info, tg.zone_size, tg.zone_size)
 end
 
 function WorldGenerator:create_world()
@@ -27,7 +27,6 @@ function WorldGenerator:create_world()
       local zones
       zones = self:_create_world_blueprint()
       --zones = self:_create_test_blueprint()
-      --self._height_map_renderer.tesselator_test()
       self:_generate_world(zones)
 
       cpu_timer:stop()
@@ -76,18 +75,15 @@ function WorldGenerator:_generate_world(zones)
 
       timer:start()
       region3_boxed = renderer:create_new_region()
-
       renderer:render_height_map_to_region(region3_boxed, zone_map)
-
       self._landscaper:place_boulders(region3_boxed, zone_map)
-
       renderer:add_region_to_terrain(region3_boxed, offset_pt)
       timer:stop()
       radiant.log.info('HeightMapRenderer time: %.3fs', timer:seconds())
       self:_yield()
 
       timer:start()
-      self._landscaper:place_trees(zone_map, offset_x, offset_y)
+      self._landscaper:place_flora(zone_map, offset_x, offset_y)
       timer:stop()
       radiant.log.info('Landscaper time: %.3fs', timer:seconds())
       self:_yield()
@@ -101,7 +97,7 @@ function WorldGenerator:_yield()
 end
 
 function WorldGenerator:_create_test_blueprint()
-   local zones = self:_get_empty_blueprint(1, 1, TerrainType.Foothills)
+   local zones = self:_get_empty_blueprint(1, 1, TerrainType.Grassland)
 
    --zones:get(1, 1).terrain_type = TerrainType.Mountains
    --zones:get(2, 1).terrain_type = TerrainType.Grassland

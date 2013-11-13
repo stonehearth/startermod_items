@@ -16,7 +16,7 @@ class UnitInfo : public Component
 {
 public:
    DEFINE_OM_OBJECT_TYPE(UnitInfo, unit_info);
-   void ExtendObject(json::ConstJsonObject const& obj) override;
+   void ExtendObject(json::Node const& obj) override;
 
    std::string GetDisplayName() const { return *name_; }
    void SetDisplayName(std::string name) { name_ = name; }

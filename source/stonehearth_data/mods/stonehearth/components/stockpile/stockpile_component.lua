@@ -1,3 +1,6 @@
+local priorities = require('constants').priorities.worker_task
+local inventory_service = radiant.mods.load('stonehearth').inventory
+
 local StockpileComponent = class()
 
 local Cube3 = _radiant.csg.Cube3
@@ -16,7 +19,7 @@ local all_stockpiles = {}
 
 function get_stockpile_containing_entity(entity)
    for id, stockpile in pairs(all_stockpiles) do
-      if stockpile and stockpile:contains(entity) then
+      if stockpile and stockpile:contains(entity) and stockpile:can_stock_entity(entity) then
          return stockpile
       end
    end
@@ -24,22 +27,68 @@ end
 
 function StockpileComponent:__init(entity, data_binding)
    self._entity = entity
+   self._filter = {
+      wood = true,
+      stone = true,
+      ore = true,
+      animal_part = true,
+      portal = true,
+      furniture = true,
+      defense = true,
+      light = true,
+      decoration = true,
+      refined_cloth = true,
+      refined_animal_part = true,
+      refined_ore = true,
+      melee_weapon = true,
+      ranged_weapon = true,
+      light_armor = true,
+      heavy_armor = true,
+      exotic_gear = true,
+      fruit = true,
+      vegetable = true,
+      baked = true,
+      meat = true,
+      drink = true,
+      gold = true,
+      gem = true
+   }
+
    self._destination = entity:add_component('destination')
    self._data = {
       items = {},
-      size  = { 0, 0 }
+      size  = { 0, 0 },
+      filter = self._filter
    }
    self._data_binding = data_binding
    self._data_binding:update(self._data)
 
    self._destination:set_region(_radiant.sim.alloc_region())
-   radiant.events.listen('radiant:events:gameloop', self)
+   radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
    all_stockpiles[self._entity:get_id()] = self
 end
 
+function StockpileComponent:set_filter(values)
+   for name, _ in pairs(self._filter) do
+      self._filter[name] = false
+   end
+
+   for i, name in ipairs(values) do
+      self._filter[name] = true
+   end
+   
+   self._data_binding:update(self._data)
+
+   --restart the worker tasks
+   self._pickup_task:destroy()
+   self._restock_task:destroy()
+   self:_create_worker_tasks()
+   return self
+end
+
 -- xxx: the 'fire one when i'm constructed' pattern again...
-StockpileComponent['radiant:events:gameloop'] = function(self)
-   radiant.events.unlisten('radiant:events:gameloop', self)
+function StockpileComponent:on_gameloop()
+   radiant.events.unlisten(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
 
    self:_create_worker_tasks()
 
@@ -61,6 +110,12 @@ StockpileComponent['radiant:events:gameloop'] = function(self)
                               self:_rebuild_item_data()
                            end)
 
+   local unit_info = self._entity:add_component('unit_info')
+   self._unit_info_trace = unit_info:trace('stockpile tracking faction')
+      :on_changed(function()
+            self:_on_faction_changed()
+         end)
+      
    self:_rebuild_item_data()
 end
 
@@ -72,6 +127,10 @@ end
 
 function StockpileComponent:get_items()
    return self._data.items;
+end
+
+function StockpileComponent:set_private(value)
+   self._private = value
 end
 
 function StockpileComponent:_get_bounds()
@@ -161,6 +220,12 @@ function StockpileComponent:_add_item(entity)
          -- hold onto the item...
          self._data.items[entity:get_id()] = entity
 
+         -- add the item to the inventory 
+         radiant.events.trigger(self._entity, "stonehearth:item_added", { 
+            storage = self._entity,
+            item = entity 
+         })
+
          -- update our destination component to *remove* the space
          -- where the item is, since we can't drop anything there
          self:_remove_world_point_from_region(location)
@@ -201,14 +266,47 @@ function StockpileComponent:_rebuild_item_data()
    end
 end
 
+function StockpileComponent:_on_faction_changed()
+   local faction = self._entity:add_component('unit_info'):get_faction()
+
+   if not self._faction or self._faction ~= faction then
+      if self._faction then
+         -- unregister from the current inventory service
+         local inventory = inventory_service:get_inventory(self._faction)
+         inventory:remove_storage(self._entity)
+      end
+
+      -- register with the inventory service for this faction
+      if faction then
+         local inventory = inventory_service:get_inventory(faction)
+         inventory:add_storage(self._entity)
+      end
+   end
+
+   self._faction = faction
+end
+
 
 --- Returns whether or not the stockpile should stock this entity
 -- @param entity The entity you're interested in
 -- @return true if the entity can be stocked here, false otherwise.
 
 function StockpileComponent:can_stock_entity(entity)
-   -- xxx: obviously should be more specific than this...
-   return entity and entity:get_component('item') ~= nil
+   if not entity or not entity:get_component('item') then
+      return false
+   end
+   
+   local material = entity:get_component('stonehearth:material')
+   if not material then
+      return false
+   end
+
+   local in_filter = false
+   for name, value in pairs(self._filter) do
+      if value and material:is(name) then
+         return true
+      end
+   end
 end
 
 
@@ -220,6 +318,9 @@ end
 -- them inside us.
 
 function StockpileComponent:_create_worker_tasks()
+   if self._private then
+      return
+   end
 
    local faction = radiant.entities.get_faction(self._entity)
    local worker_scheduler = radiant.mods.load('stonehearth').worker_scheduler:get_worker_scheduler(faction)
@@ -229,6 +330,7 @@ function StockpileComponent:_create_worker_tasks()
    -- by the worker task.
    self._pickup_task = worker_scheduler:add_worker_task('pickup_to_restock')
                           :set_action('stonehearth:pickup_item_on_path')
+                          :set_priority(priorities.RESTOCK_STOCKPILE)
 
    -- Only consider workers that aren't currently carrying anything.
    self._pickup_task:set_worker_filter_fn(
@@ -254,6 +356,7 @@ function StockpileComponent:_create_worker_tasks()
    -- Next is the restock task, which will actually do the dumping of items
    -- into the stockpile.
    self._restock_task = worker_scheduler:add_worker_task('restock_stockpile')
+                                        :set_priority(priorities.RESTOCK_STOCKPILE)
 
    -- We should only consider workers that are carrying and item that belongs
    -- in the stockpile AND workers who aren't already standing in a stockpile

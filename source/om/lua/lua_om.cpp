@@ -24,7 +24,10 @@
 #include "lua_paperdoll_component.h"
 #include "lua_carry_block_component.h"
 #include "lua_data_binding.h"
-#include "lua/script_host.h"
+#include "lib/lua/script_host.h"
+
+#include "lib/json/core_json.h"
+#include "lib/json/dm_json.h"
 
 #include "dm/store.h"
 #include "om/all_object_defs.h"
@@ -35,6 +38,8 @@ using namespace ::radiant;
 using namespace ::radiant::om;
 
 IMPLEMENT_TRIVIAL_TOSTRING(DeepRegionGuardLua)
+DEFINE_INVALID_JSON_CONVERSION(DeepRegionGuardLua)
+DEFINE_INVALID_JSON_CONVERSION(om::Region3BoxedPtrBoxed)
 
 DeepRegionGuardLua::DeepRegionGuardLua(lua_State* L, Region3BoxedPtrBoxed const& bbrp, const char* reason)
 {

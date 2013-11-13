@@ -205,6 +205,7 @@ void PathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
       pathColor.SaveValue(coord->mutable_color());
    }
 
+#if 0
    int maxF = 0;
    for (const auto& pt : open_) {
       auto i = h_.find(pt);
@@ -230,6 +231,7 @@ void PathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
          csg::Color4(0, 0, 128, 192).SaveValue(coord->mutable_color());
       }
    }
+#endif
    for (const auto& dst : destinations_) {
       dst.second->EncodeDebugShapes(msg, debug_color_);
    }

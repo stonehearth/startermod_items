@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "lua/register.h"
+#include "lib/lua/register.h"
 #include "lua_model_variants_component.h"
 #include "om/components/model_variants.h"
 
@@ -10,8 +10,8 @@ using namespace ::radiant::om;
 scope LuaModelVariantsComponent::RegisterLuaTypes(lua_State* L)
 {
    return
-      lua::RegisterDerivedObject<ModelVariants, Component>()
+      lua::RegisterWeakGameObjectDerived<ModelVariants, Component>()
       ,
-      lua::RegisterObject<ModelVariant>()
+      lua::RegisterWeakGameObject<ModelVariant>()
       ;
 }

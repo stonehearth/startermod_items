@@ -1,0 +1,11 @@
+<script type="text/x-handlebars" data-template-name="resourceScoreboard">   
+
+   <div id="resourceScoreboard">
+   </div>
+   <div>
+      {{#each resources}}
+         <img class="icon" {{bindAttr src=this.icon}}/> {{this.name}} : {{this.count}}<br>
+      {{/each}}
+   </div>
+
+</script>

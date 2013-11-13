@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "radiant.h"
 #include "radiant_macros.h"
-#include "lua/register.h"
-#include "lua/script_host.h"
+#include "lib/lua/register.h"
+#include "lib/lua/script_host.h"
 #include "lua_om.h"
 #include "lua_destination_component.h"
 #include "om/components/destination.h"
@@ -50,10 +50,17 @@ DestinationRef Destination_SetAdjacent(DestinationRef d, Region3BoxedPtr r)
    return d;
 }
 
+
+void Destination_ExtendObject(lua_State* L, Destination& mob, luabind::object o)
+{
+   mob.ExtendObject(lua::ScriptHost::LuaToJson(L, o));
+}
+
 scope LuaDestinationComponent::RegisterLuaTypes(lua_State* L)
 {
    return
-      lua::RegisterDerivedObject<Destination, Component>()
+      lua::RegisterWeakGameObjectDerived<Destination, Component>()
+         .def("extend",                   &Destination_ExtendObject)
          .def("get_region",               &Destination_GetRegion)
          .def("set_region",               &Destination_SetRegion)
          .def("trace_region",             &Destination_TraceRegion)

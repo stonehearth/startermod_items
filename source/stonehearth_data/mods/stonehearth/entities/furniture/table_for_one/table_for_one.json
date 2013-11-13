@@ -13,6 +13,9 @@
          "name": "Table for One",
          "description": "Dining furniture for introverts.",
          "icon" : "file(table_for_one.png)"
-      }
+      },
+      "stonehearth:material" : {
+         "tags" : "wood furniture"
+      }      
    }
 }

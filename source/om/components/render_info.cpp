@@ -13,15 +13,19 @@ void RenderInfo::InitializeRecordFields()
    AddRecordField("animation_table", animation_table_);
    AddRecordField("scale", scale_);
    AddRecordField("attached", attached_);
+   AddRecordField("material", material_);
+   AddRecordField("model_mode", model_mode_);
    if (!IsRemoteRecord()) {
       scale_ = 0.1f;
    }
 }
 
 
-void RenderInfo::ExtendObject(json::ConstJsonObject const& obj)
+void RenderInfo::ExtendObject(json::Node const& obj)
 {
    scale_ = obj.get<float>("scale", *scale_);
+   material_ = obj.get<std::string>("material", *material_);
+   model_mode_ = obj.get<std::string>("model_mode", *model_mode_);
    model_variant_ = obj.get<std::string>("model_variant", *model_variant_);
    animation_table_ = obj.get<std::string>("animation_table", *animation_table_);
 }
@@ -58,4 +62,3 @@ void RenderInfo::RemoveFromWorld(EntityPtr entity)
       ASSERT(mob->GetParent() == nullptr);
    }
 }
-

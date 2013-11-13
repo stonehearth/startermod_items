@@ -1,10 +1,17 @@
+local Cube3 = _radiant.csg.Cube3
+local Point3 = _radiant.csg.Point3
+local Color3 = _radiant.csg.Color3
+local Rect2 = _radiant.csg.Rect2
+local Point2 = _radiant.csg.Point2
+
 local StockpileRenderer = class()
 
 function StockpileRenderer:__init(render_entity, data_store)
-   local parent_node = render_entity:get_node()
+   self._parent_node = render_entity:get_node()
    self._size = { 0, 0 }   
    self._data_store = data_store
-   self._node = h3dRadiantCreateStockpileNode(parent_node, 'stockpile designation')
+   self._region = _radiant.client.alloc_region2()
+
    self._promise = data_store:trace('rendering stockpile designation')
    self._promise:on_changed(function()
          self:_update()
@@ -13,23 +20,33 @@ function StockpileRenderer:__init(render_entity, data_store)
 end
 
 --- xxx: someone call destroy please!!
+function StockpileRenderer:destroy()
+   self:_clear()
+end
+
 function StockpileRenderer:_update()
    local data = self._data_store:get_data()
    if data and data.size then
       local size = data.size
       if self._size[1] ~= size[1] or self._size[2] ~= size[2] then
          self._size = { size[1], size[2] }
-         h3dRadiantResizeStockpileNode(self._node, size[1], size[2])
+         local cursor = self._region:modify()
+         cursor:clear()
+         cursor:add_cube(Rect2(Point2(0, 0), Point2(size[1], size[2])))
+         
+         self:_clear()
+         self._node = _radiant.client.create_designation_node(self._parent_node, cursor, Color3(0, 153, 255), Color3(0, 153, 255));
       end
    end
 end
 
-function StockpileRenderer:destroy()
+function StockpileRenderer:_clear()
    if self._node then
-      _radiant.renderer.remove_node(self._node)
+      h3dRemoveNode(self._node)
       self._node = nil
    end
 end
+
 
 return StockpileRenderer
 

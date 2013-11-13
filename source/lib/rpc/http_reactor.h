@@ -3,7 +3,7 @@
 
 #include <unordered_map>
 #include "namespace.h"
-#include "radiant_json.h"
+#include "lib/json/node.h"
 #include "lib/rpc/forward_defines.h"
 
 BEGIN_RADIANT_RPC_NAMESPACE
@@ -12,7 +12,7 @@ class HttpReactor {
 public:
    HttpReactor(CoreReactor &core);
 
-   ReactorDeferredPtr Call(json::ConstJsonObject const& query, std::string const& postdata);
+   ReactorDeferredPtr Call(json::Node const& query, std::string const& postdata);
    ReactorDeferredPtr InstallTrace(Trace const& t);
 
    bool HttpGetFile(std::string const& uri, int &code, std::string& content, std::string& mimetype);

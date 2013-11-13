@@ -10,37 +10,37 @@ function MicroWorld:__init(size)
    self._times = {}
    self._timers = {}
    self._running = false
-   
+
    if not size then
       size = 32
    end
    self._size = size
 
-   radiant.events.listen('radiant:events:gameloop', self)
+   radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
 end
 
 -- xxx: this timer system really should be in radiant.events.  nuke it!
-MicroWorld['radiant:events:gameloop'] = function(self, time)
+function MicroWorld:on_gameloop(e)
    if not self._running then
       self._running = true;
       table.sort(self._times);
    end
    local nextTimer = self._times[self._nextTime];
-   while nextTimer ~= nil and nextTimer <= time do
-      self._timers[nextTimer](time);
+   while nextTimer ~= nil and nextTimer <= e.now do
+      self._timers[nextTimer](e.now);
       self._nextTime = self._nextTime + 1
       nextTimer = self._times[self._nextTime]
    end
 end
 
 function MicroWorld:create_world()
-   local region3 = _radiant.sim.alloc_region()   
-   local r3 = region3:modify() 
-   
+   local region3 = _radiant.sim.alloc_region()
+   local r3 = region3:modify()
+
    r3:add_cube(Cube3(Point3(0, -16, 0), Point3(self._size, 0, self._size), Terrain.SOIL))
    r3:add_cube(Cube3(Point3(0,   0, 0), Point3(self._size, 1, self._size), Terrain.LIGHT_GRASS))
-   
-   local terrain = radiant._root_entity:add_component('terrain')   
+
+   local terrain = radiant._root_entity:add_component('terrain')
    terrain:set_zone_size(self._size)
    terrain:add_zone(Point3(-16, 0, -16), region3)
 end
@@ -56,10 +56,10 @@ end
 
 function MicroWorld:place_item(uri, x, z, faction)
    local entity = radiant.entities.create_entity(uri)
-   radiant.terrain.place_entity(entity, Point3(x, 1, z))
    if faction then
       entity:add_component('unit_info'):set_faction(faction)
    end
+   radiant.terrain.place_entity(entity, Point3(x, 1, z))
    return entity
 end
 
@@ -75,7 +75,7 @@ end
 
 function MicroWorld:place_citizen(x, z, profession, data)
    local pop_service = radiant.mods.load('stonehearth').population
-   local pop = pop_service:get_faction('stonehearth:factions:ascendancy')
+   local pop = pop_service:get_faction('civ', 'stonehearth:factions:ascendancy')
    local citizen = pop:create_new_citizen()
    profession = profession and profession or 'worker'
 
@@ -97,27 +97,6 @@ function MicroWorld:place_stockpile_cmd(faction, x, z, w, h)
    local inventory_service = radiant.mods.load('stonehearth').inventory
    local inventory = inventory_service:get_inventory(faction)
    inventory:create_stockpile(location, size)
-end
-
-function MicroWorld:create_room(faction, x, z, w, h)
-   w = w and w or 3
-   h = h and h or 3
-   local bounds = Cube3(Point3(x, 1, z),
-                                 Point3(x + w, 2, z + h))
-
-   return radiant.mods.get_singleton('stonehearth_building').create_room(faction, x, z, w, h)
-end
-
-function MicroWorld:create_door_cmd(wall, x, y, z)
-   radiant.check.is_a(wall, Wall)
-   local json, obj = radiant.commands.call('radiant:commands:create_portal', wall, '//stonehearth/buildings/wooden_door', Point3(x, y, z))
-   return om:get_entity(obj.entity_id)
-end
-
-function MicroWorld:start_project_cmd(blueprint)
-   radiant.check.is_entity(blueprint);
-   local json, obj = radiant.commands.call('radiant:commands:start_project', blueprint)
-   return om:get_entity(obj.entity_id)
 end
 
 return MicroWorld

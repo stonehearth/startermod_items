@@ -3,6 +3,6 @@
 
 #include "radiant.h"
 #include "radiant_stdutil.h"
-#include "radiant_luabind.h"
+#include "lib/lua/bind.h"
 
 #endif // _RADIANT_CLIENT_PCH_H

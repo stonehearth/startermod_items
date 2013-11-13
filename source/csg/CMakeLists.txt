@@ -13,12 +13,11 @@ add_library(csg STATIC
             matrix3.cpp
             matrix4.cpp
             meshtools.cpp
+            region_tools.cpp
             quaternion.cpp
             ray.cpp
             sphere.cpp
             transform.cpp
-            voronoi.cpp
-            voronoi_map.cpp
             heightmap.cpp
             util.cpp
             pch.cpp

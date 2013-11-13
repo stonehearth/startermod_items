@@ -4,11 +4,10 @@
 #define BEGIN_RADIANT_RES_NAMESPACE  namespace radiant { namespace res {
 #define END_RADIANT_RES_NAMESPACE    } }
 
-#define RADIANT_RES_NAMESPACE    ::radiant::res
+BEGIN_RADIANT_RES_NAMESPACE
 
-#define IN_RADIANT_RES_NAMESPACE(x) \
-   BEGIN_RADIANT_RES_NAMESPACE \
-   x  \
-   END_RADIANT_RES_NAMESPACE
+class IModule;
+
+END_RADIANT_RES_NAMESPACE
 
 #endif //  _RADIANT_RES_NAMESPACE_H

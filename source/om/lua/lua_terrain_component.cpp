@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "lua/register.h"
+#include "lib/lua/register.h"
 #include "lua_terrain_component.h"
 #include "om/components/terrain.h"
 
@@ -10,7 +10,7 @@ using namespace ::radiant::om;
 scope LuaTerrainComponent::RegisterLuaTypes(lua_State* L)
 {
    return
-      lua::RegisterDerivedObject<Terrain, Component>()
+      lua::RegisterWeakGameObjectDerived<Terrain, Component>()
          .def(tostring(self))
          .def("create_new",            &Terrain::CreateNew)
          .def("set_zone_size",         &Terrain::SetZoneSize)

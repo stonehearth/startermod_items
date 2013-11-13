@@ -18,7 +18,6 @@
 #include <queue>
 #include <cstdarg>
 #include <functional>
-#include "lib/namespace.h"
 #include "utTimer.h"
 #include "om/error_browser/error_browser.h"
 
@@ -47,7 +46,8 @@ struct EngineOptions
 		WireframeMode,
 		DebugViewMode,
 		DumpFailedShaders,
-		GatherTimeStats
+		GatherTimeStats,
+      EnableShadows
 	};
 };
 
@@ -75,6 +75,7 @@ public:
 	bool  debugViewMode;
 	bool  dumpFailedShaders;
 	bool  gatherTimeStats;
+   bool  enableShadows;
 };
 
 
@@ -155,7 +156,8 @@ struct EngineStats
 		ShadowsGPUTime,
 		ParticleGPUTime,
 		TextureVMem,
-		GeometryVMem
+		GeometryVMem,
+      AverageFrameTime
 	};
 };
 
@@ -182,6 +184,8 @@ protected:
 	Timer     _geoUpdateTimer;
 	Timer     _particleSimTimer;
 	float     _frameTime;
+   float     _frameTimes[20];
+   int       _curFrame;
 
 	GPUTimer  *_fwdLightsGPUTimer;
 	GPUTimer  *_defLightsGPUTimer;

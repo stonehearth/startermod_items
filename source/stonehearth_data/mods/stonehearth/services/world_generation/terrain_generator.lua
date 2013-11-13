@@ -8,7 +8,7 @@ local Wavelet = require 'services.world_generation.filter.wavelet'
 local WaveletFns = require 'services.world_generation.filter.wavelet_fns'
 local EdgeDetailer = require 'services.world_generation.edge_detailer'
 local TileInfo = require 'services.world_generation.tile_info'
-local Timer = radiant.mods.require('stonehearth_debugtools.timer')
+local Timer = require 'services.world_generation.timer'
 
 local TerrainGenerator = class()
 
@@ -175,7 +175,6 @@ function TerrainGenerator:_fill_blend_map(blend_map, zones, x, y)
    if terrain_type == TerrainType.Mountains and
       self:_surrounded_by_terrain(TerrainType.Mountains, zones, x, y) then
       terrain_mean = terrain_mean + self.terrain_info[TerrainType.Mountains].step_size
-      radiant.log.info('High mountains on %d, %d', x, y)
    end
 
    if terrain_type == TerrainType.Grassland and
