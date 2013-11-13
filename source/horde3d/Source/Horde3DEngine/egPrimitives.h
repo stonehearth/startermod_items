@@ -157,6 +157,9 @@ public:
 
    void clipAABB(const BoundingBox& b, std::vector<Polygon>* results) const;
 
+   bool operator==(const Frustum& other) const;
+   bool operator!=(const Frustum& other) const;
+
 private:
 	Plane  _planes[6];  // Planes of frustum
 	Vec3f  _origin;

@@ -909,6 +909,19 @@ public:
 	{
 		return normal.dot( v ) + dist;
 	}
+
+   // -----------
+   // Comparisons
+   // -----------
+   bool operator==(const Plane& v) const
+   {
+      return normal == v.normal && v.dist == dist;
+   }
+
+   bool operator!=(const Plane& v) const
+   {
+      return normal != v.normal || v.dist != dist;
+   }
 };
 
 class Polygon
