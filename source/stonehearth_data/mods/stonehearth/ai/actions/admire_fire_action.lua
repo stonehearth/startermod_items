@@ -235,10 +235,7 @@ function AdmireFire:_clear_variables()
 
    --We now run this action for as long as we're standing beside the seat.
    --So when stopping, unconditionally release the lease.
-   --If stop is called and the entity successfully is beside his seat, then stop
-   if self._firepit_seat and self._firepit_seat:get_component('stonehearth:lease_component') then
-      self._firepit_seat:get_component('stonehearth:lease_component'):release_lease(self._entity)
-   end
+   self:_release_seat_reservation()
 end
 
 return AdmireFire
