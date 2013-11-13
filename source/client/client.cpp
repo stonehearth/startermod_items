@@ -205,7 +205,7 @@ Client::Client() :
          node.set("MemoryGb", stats.memory_gb);
 
          // xxx, parse GAME_DEMOGRAPHICS_URL into domain and path, in postdata
-         analytics::PostData post_data(node, GAME_DEMOGRAPHICS_URI,  "");
+         analytics::PostData post_data(node, REPORT_SYSINFO_URI,  "");
          post_data.Send();
          result->ResolveWithMsg("success");
 
@@ -371,7 +371,6 @@ void Client::run()
 
       static int last_stat_dump = 0;
       mainloop();
-      core_reactor_->Call(rpc::Function("radiant:send_performance_stats"));
 
       int now = timeGetTime();
    }

@@ -39,7 +39,7 @@ bool Application::LoadConfig(int argc, const char* argv[])
    config_file.add_options()
       (
          "support.crash_dump_server",
-         po::value<std::string>(&crash_dump_uri_)->default_value(CRASH_DUMP_URI), "Where to send crash dumps"
+         po::value<std::string>(&crash_dump_uri_)->default_value(REPORT_CRASHDUMP_URI), "Where to send crash dumps"
       );
    core::Config::GetInstance().GetConfigFileOptions().add(config_file);
 
