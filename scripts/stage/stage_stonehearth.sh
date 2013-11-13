@@ -116,6 +116,18 @@ if [ ! -z $STAGE_BIN ]; then
    cp -u $CRASH_REPORTER_ROOT/server/$BUILD_TYPE/crash_reporter.exe $OUTPUT_DIR
 fi
 
+function stage_data_dir
+{
+   # $1 - the name of the mod to stage
+   echo Copying data files for $1
+   mkdir -p $OUTPUT_DIR/$1
+   pushd $DATA_ROOT/$1 > /dev/null
+   find . -type f  \
+      ! -name '*.qmo' \
+      -print0 | xargs -0 cp -u --parents --target-directory $OUTPUT_DIR/$1
+   popd > /dev/null
+}
+
 function compile_lua
 {
    # $1 - the name of the mod to stage
@@ -132,19 +144,6 @@ function compile_lua
    popd > /dev/null
 }
 
-function stage_data_dir
-{
-   # $1 - the name of the mod to stage
-   echo Copying data files for $1
-   mkdir -p $OUTPUT_DIR/$1
-   pushd $DATA_ROOT/$1 > /dev/null
-   find . -type f  \
-      ! -name '*.qmo' \
-      -print0 | xargs -0 cp -u --parents --target-directory $OUTPUT_DIR/$1
-   popd > /dev/null
-   compile_lua $1
-}
-
 if [ ! -z $STAGE_DATA ]; then
    DATA_ROOT=$STONEHEARTH_ROOT/source/stonehearth_data
    LUA_BIN_ROOT=$STONEHEARTH_ROOT/modules/lua/package/lua/solutions/release
@@ -158,4 +157,7 @@ if [ ! -z $STAGE_DATA ]; then
    stage_data_dir horde
    stage_data_dir mods/radiant
    stage_data_dir mods/stonehearth
+
+   compile_lua mods/radiant
+   compile_lua mods/stonehearth
 fi
