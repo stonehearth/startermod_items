@@ -117,14 +117,16 @@ function EatFoodAction:run(ai, entity, food)
 
    elseif hunger >= 80 then
       --if we have a path, grab the seat's lease, goto the seat, sit, and eat
-      if self._path_to_seat and self._seat:add_component('stonehearth:lease_component'):try_to_acquire_lease(entity) then 
+      if self._path_to_seat and self._seat and
+         self._seat:add_component('stonehearth:lease_component'):try_to_acquire_lease(entity) then 
+         
          --We successfully acquired the lease
          radiant.log.info('leasing %s to %s', tostring(self._seat), tostring(self._entity))
          ai:execute('stonehearth:goto_entity', self._seat)
 
          self:_register_for_chair_events()
 
-         --play sitting and eating animation
+         --TODO: play sitting and eating animation
          ai:execute('stonehearth:run_effect', 'work')
          --TODO: alter the chair modifier depending on distance from table, kind of chair
          satisfaction = satisfaction * CHAIR_MODIFIER
@@ -186,8 +188,6 @@ function EatFoodAction:stop()
    --TODO: figure out sitting down posture
    --radiant.entities.stand_up(self._entity)
    self:_release_seat_reservation()
-
-
 end
 
 return EatFoodAction
