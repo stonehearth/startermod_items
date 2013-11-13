@@ -260,52 +260,34 @@ void Renderer::ApplyConfig()
 
 SystemStats Renderer::GetStats()
 {
-	SystemStats result;
+   SystemStats result;
 
-	result.frame_rate = 1000.0f / h3dGetStat(H3DStats::AverageFrameTime, false);
+   result.frame_rate = 1000.0f / h3dGetStat(H3DStats::AverageFrameTime, false);
 
-	result.gpu_vendor = (char *)glGetString( GL_VENDOR );
-	result.gpu_renderer = (char *)glGetString( GL_RENDERER );
-	result.gl_version = (char *)glGetString( GL_VERSION );
+   result.gpu_vendor = (char *)glGetString( GL_VENDOR );
+   result.gpu_renderer = (char *)glGetString( GL_RENDERER );
+   result.gl_version = (char *)glGetString( GL_VERSION );
 
-    int CPUInfo[4] = {-1};
-    __cpuid(CPUInfo, 0x80000000);
-    unsigned int nExIds = CPUInfo[0];
+   int CPUInfo[5] = { 0 };
+   __cpuid(CPUInfo, 0x80000000);
+   unsigned int nExIds = CPUInfo[0];
 
-    // Get the information associated with each extended ID.
-    char CPUBrandString[0x40] = { 0 };
-    for( unsigned int i=0x80000000; i<=nExIds; ++i)
-    {
-        __cpuid(CPUInfo, i);
-
-        // Interpret CPU brand string and cache information.
-        if  (i == 0x80000002)
-        {
-            memcpy( CPUBrandString,
-            CPUInfo,
-            sizeof(CPUInfo));
-        }
-        else if( i == 0x80000003 )
-        {
-            memcpy( CPUBrandString + 16,
-            CPUInfo,
-            sizeof(CPUInfo));
-        }
-        else if( i == 0x80000004 )
-        {
-            memcpy(CPUBrandString + 32, CPUInfo, sizeof(CPUInfo));
-        }
-	}
-	result.cpu_info = std::string(CPUBrandString);
+   std::ostringstream info;
+   for (uint i = 0x80000002; i <= std::min(0x80000004, nExIds); i++) {
+      __cpuid(CPUInfo, i);
+      info << (char *)(CPUInfo);
+   }
+   result.cpu_info = info.str();
 
 #ifdef _WIN32
-	MEMORYSTATUSEX status;
-    status.dwLength = sizeof(status);
-    GlobalMemoryStatusEx(&status);
-	result.memory_gb = (int)(status.ullTotalPhys / 1048576.0f);
+   MEMORYSTATUSEX status;
+   status.dwLength = sizeof(status);
+   GlobalMemoryStatusEx(&status);
+   result.memory_gb = (int)(status.ullTotalPhys / 1048576.0f);
 #endif
-	LOG(WARNING) << "reported fps: " << result.frame_rate;
-	return result;
+
+   LOG(WARNING) << "reported fps: " << result.frame_rate;
+   return result;
 }
 
 void Renderer::SetStageEnable(const char* stageName, bool enabled)

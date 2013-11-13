@@ -24,7 +24,7 @@ clean:
 	rm -rf build
 
 .PHONY: official-build
-official-build: init-build submodules configure stonehearth symbols stage
+official-build: clean init-build submodules configure stonehearth symbols stage
 
 .PHONY: init-build
 init-build:

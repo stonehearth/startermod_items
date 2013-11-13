@@ -20,7 +20,7 @@ DEFINE_SINGLETON(CrashReporterClient);
 
 bool CrashReporterClient::running_ = false;
 
-#ifdef DEBUG
+#ifdef _DEBUG
 bool const CrashReporterClient::debug_build_ = true;
 #else
 bool const CrashReporterClient::debug_build_ = false;

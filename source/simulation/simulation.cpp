@@ -136,49 +136,45 @@ static std::string SanatizePath(std::string const& path)
 
 void Simulation::CreateNew()
 {
-   try {
-      ASSERT(this == &Simulation::GetInstance());
+   ASSERT(this == &Simulation::GetInstance());
 
-      guards_ += store_.TraceDynamicObjectAlloc(std::bind(&Simulation::OnObjectAllocated, this, std::placeholders::_1));
+   guards_ += store_.TraceDynamicObjectAlloc(std::bind(&Simulation::OnObjectAllocated, this, std::placeholders::_1));
 
 
-      using namespace luabind;
+   using namespace luabind;
 
-      lua_State* L = scriptHost_->GetInterpreter();
-      lua_State* callback_thread = scriptHost_->GetCallbackThread();
+   lua_State* L = scriptHost_->GetInterpreter();
+   lua_State* callback_thread = scriptHost_->GetCallbackThread();
    
-      store_.SetInterpreter(callback_thread); // xxx move to dm open or something
+   store_.SetInterpreter(callback_thread); // xxx move to dm open or something
 
-      om::RegisterLuaTypes(L);
-      csg::RegisterLuaTypes(L);
-      lua::sim::open(L);
-      lua::res::open(L);
-      lua::voxel::open(L);
-      lua::rpc::open(L, core_reactor_);
-      lua::om::register_json_to_lua_objects(L, store_);
-      lua::analytics::open(L);
-      om::RegisterObjectTypes(store_);
+   om::RegisterLuaTypes(L);
+   csg::RegisterLuaTypes(L);
+   lua::sim::open(L);
+   lua::res::open(L);
+   lua::voxel::open(L);
+   lua::rpc::open(L, core_reactor_);
+   lua::om::register_json_to_lua_objects(L, store_);
+   lua::analytics::open(L);
+   om::RegisterObjectTypes(store_);
 
-      game_api_ = scriptHost_->Require("radiant.server");
+   game_api_ = scriptHost_->Require("radiant.server");
 
-      auto vm = core::Config::GetInstance().GetVarMap();
-      std::string game_script = vm["game.script"].as<std::string>();
-      object game_ctor = scriptHost_->RequireScript(game_script);
-      game_ = luabind::call_function<luabind::object>(game_ctor);
+   auto vm = core::Config::GetInstance().GetVarMap();
+   std::string game_script = vm["game.script"].as<std::string>();
+   object game_ctor = scriptHost_->RequireScript(game_script);
+   game_ = luabind::call_function<luabind::object>(game_ctor);
       
-      /* xxx: this is all SUPER SUPER dangerous.  if any of these things cause lua
-         to blow up, the process will exit(), since there's no protected handler installed!
-         */
-      object radiant = globals(L)["radiant"];
-      object gs = radiant["gamestate"];
-      object create_player = gs["_create_player"];
-      if (type(create_player) == LUA_TFUNCTION) {
-         p1_ = luabind::call_function<object>(create_player, 'civ');
-      }
-      now_ = 0;
-   } catch (std::exception const& e) {
-      throw std::logic_error(BUILD_STRING("fatal error initializing game: " << e.what()));
+   /* xxx: this is all SUPER SUPER dangerous.  if any of these things cause lua
+      to blow up, the process will exit(), since there's no protected handler installed!
+      */
+   object radiant = globals(L)["radiant"];
+   object gs = radiant["gamestate"];
+   object create_player = gs["_create_player"];
+   if (type(create_player) == LUA_TFUNCTION) {
+      p1_ = luabind::call_function<object>(create_player, 'civ');
    }
+   now_ = 0;
 }
 
 void Simulation::StepPathFinding()
