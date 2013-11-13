@@ -126,7 +126,6 @@ void Extension::createCubeInstanceData()
    _cubeIdxBuf = gRDI->createIndexBuffer(36 * sizeof(uint16), (void *)cubeInds);
 }
 
-   return true;
 void Extension::createCubeBatchData()
 {
    // Global constants for cubemitter vertex layout/vertices/index buffer.  These are ONLY
