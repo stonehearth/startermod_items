@@ -52,14 +52,14 @@ void CrashReporterClient::InitializeExceptionHandlingEnvironment(std::string con
                                                  nullptr));                        // CustomClientInfo
 }
 
-bool CrashReporterClient::Start(std::string const& crash_dump_path, std::string const& crash_dump_uri, std::string& error_string)
+bool CrashReporterClient::Start(std::string const& crash_dump_path, std::string const& crash_dump_uri, std::string const& userid, std::string& error_string)
 {
    ASSERT(!running_);
 
    try {
       std::string const pipe_name = GeneratePipeName();
       std::string const filename = CRASH_REPORTER_NAME + ".exe";
-      std::string const command_line = BUILD_STRING(filename << " " << pipe_name << " " << crash_dump_path << " " << crash_dump_uri);
+      std::string const command_line = BUILD_STRING(filename << " " << pipe_name << " " << crash_dump_path << " " << crash_dump_uri << " " << userid);
 
       crash_reporter_server_process_.reset(new radiant::core::Process(command_line));
 

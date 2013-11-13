@@ -12,7 +12,7 @@ static std::string WstringToString(std::wstring const& input_string)
    return std::string(input_string.begin(), input_string.end());
 }
 
-static void GetParameters(std::string& pipe_name, std::string& dump_path, std::string& uri)
+static void GetParameters(std::string& pipe_name, std::string& dump_path, std::string& uri, std::string& userid)
 {
    LPWSTR *args;
    int num_args;
@@ -22,6 +22,7 @@ static void GetParameters(std::string& pipe_name, std::string& dump_path, std::s
       pipe_name = WstringToString(args[1]);
       dump_path = WstringToString(args[2]);
       uri = WstringToString(args[3]);
+      userid = WstringToString(args[4]);
    }
 
    if (args) {
@@ -32,16 +33,16 @@ static void GetParameters(std::string& pipe_name, std::string& dump_path, std::s
 
 static void InitializeServer()
 {
-   std::string pipe_name, dump_path, uri;
+   std::string pipe_name, dump_path, uri, userid;
 
-   GetParameters(pipe_name, dump_path, uri);
+   GetParameters(pipe_name, dump_path, uri, userid);
    if (pipe_name.empty() || dump_path.empty() || uri.empty()) {
       throw std::invalid_argument("Invalid parameters to crash_reporter");
    }
 
    int const main_thread_id = GetCurrentThreadId();
 
-   CrashReporterServer::GetInstance().Run(pipe_name, dump_path, uri, [=]() {
+   CrashReporterServer::GetInstance().Run(pipe_name, dump_path, uri, userid, [=]() {
       PostThreadMessage(main_thread_id, WM_QUIT, 0, 0);
    });
 }

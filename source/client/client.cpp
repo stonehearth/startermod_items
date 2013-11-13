@@ -196,14 +196,15 @@ Client::Client() :
       try {
          json::Node node;
          SystemStats stats = Renderer::GetInstance().GetStats();
-         node.set("framerate", stats.frameRate);
-         node.set("cpu", stats.cpuInfo);
-         node.set("memory", stats.memInfo);
-         node.set("card", stats.gpuInfo);
+         node.set("UserId", core::Config::GetInstance().GetUserID());
+         node.set("FrameRate", stats.frame_rate);
+         node.set("GpuVendor", stats.gpu_vendor);
+         node.set("GpuRenderer", stats.gpu_renderer);
+         node.set("GlVersion", stats.gl_version);
+         node.set("CpuInfo", stats.cpu_info);
+         node.set("MemoryGb", stats.memory_gb);
 
          // xxx, parse GAME_DEMOGRAPHICS_URL into domain and path, in postdata
-         std::string domain = "";
-         std::string path = "";
          analytics::PostData post_data(node, GAME_DEMOGRAPHICS_URI,  "");
          post_data.Send();
          result->ResolveWithMsg("success");
@@ -370,6 +371,8 @@ void Client::run()
 
       static int last_stat_dump = 0;
       mainloop();
+      core_reactor_->Call(rpc::Function("radiant:send_performance_stats"));
+
       int now = timeGetTime();
    }
 }

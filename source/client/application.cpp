@@ -49,8 +49,9 @@ bool Application::LoadConfig(int argc, const char* argv[])
 bool Application::InitializeCrashReporting(std::string& error_string)
 {
    std::string const crash_dump_path = core::Config::GetInstance().GetTmpDirectory().string();
+   std::string const userid = core::Config::GetInstance().GetUserID();
 
-   return crash_reporter::client::CrashReporterClient::GetInstance().Start(crash_dump_path, crash_dump_uri_, error_string);
+   return crash_reporter::client::CrashReporterClient::GetInstance().Start(crash_dump_path, crash_dump_uri_, userid, error_string);
 }
 
 void Application::ClientThreadMain()

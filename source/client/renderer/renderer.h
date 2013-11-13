@@ -63,10 +63,12 @@ struct RendererConfig {
 };
 
 struct SystemStats {
-   float frameRate;
-   std::string cpuInfo;
-   std::string gpuInfo;
-   int memInfo;
+   float frame_rate;
+   std::string cpu_info;
+   std::string gpu_vendor;
+   std::string gpu_renderer;
+   std::string gl_version;
+   int memory_gb;
 };
 
 class Renderer

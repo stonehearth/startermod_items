@@ -35,7 +35,7 @@
 #define GAME_ANALYTICS_GAME_KEY        "2b6cc12b9457de0ae969e0d9f8b04291"
 #define GAME_ANALYTICS_SECRET_KEY      "70904f041d9e579c3d34f40cdb5bc0c16ad0c09a"
 #define GAME_ANALYTICS_DATA_API_KEY    "79fbff531bea1d30436ef6ec63a2ab71ecf6f62"
-#define GAME_DEMOGRAPHICS_URI          "http://support-stage/demographics/add_player"
+#define GAME_DEMOGRAPHICS_URI          "http://support-stage/sysinfo/add_report"
 #define CRASH_DUMP_URI                 "http://support-stage/crash_dump/add_report"
 
 #endif // _BUILD_DEFAULTS_H

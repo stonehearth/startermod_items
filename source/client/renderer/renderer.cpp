@@ -262,16 +262,11 @@ SystemStats Renderer::GetStats()
 {
 	SystemStats result;
 
-	result.frameRate = 1000.0f / h3dGetStat(H3DStats::AverageFrameTime, false);
+	result.frame_rate = 1000.0f / h3dGetStat(H3DStats::AverageFrameTime, false);
 
-	char *vendor = (char *)glGetString( GL_VENDOR );
-	char *renderer = (char *)glGetString( GL_RENDERER );
-	char *version = (char *)glGetString( GL_VERSION );
-	std::string gpuStr;
-	gpuStr.append(vendor); gpuStr.append(": ");
-	gpuStr.append(renderer); gpuStr.append(": ");
-	gpuStr.append(version);
-	result.gpuInfo = gpuStr;
+	result.gpu_vendor = (char *)glGetString( GL_VENDOR );
+	result.gpu_renderer = (char *)glGetString( GL_RENDERER );
+	result.gl_version = (char *)glGetString( GL_VERSION );
 
     int CPUInfo[4] = {-1};
     __cpuid(CPUInfo, 0x80000000);
@@ -301,15 +296,15 @@ SystemStats Renderer::GetStats()
             memcpy(CPUBrandString + 32, CPUInfo, sizeof(CPUInfo));
         }
 	}
-	result.cpuInfo = std::string(CPUBrandString);
+	result.cpu_info = std::string(CPUBrandString);
 
 #ifdef _WIN32
 	MEMORYSTATUSEX status;
     status.dwLength = sizeof(status);
     GlobalMemoryStatusEx(&status);
-	result.memInfo = (int)(status.ullTotalPhys / 1048576.0f);
+	result.memory_gb = (int)(status.ullTotalPhys / 1048576.0f);
 #endif
-	LOG(WARNING) << "reported fps: " << result.frameRate;
+	LOG(WARNING) << "reported fps: " << result.frame_rate;
 	return result;
 }
 

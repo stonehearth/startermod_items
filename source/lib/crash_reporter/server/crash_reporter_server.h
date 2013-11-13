@@ -17,6 +17,7 @@ class CrashReporterServer : public radiant::core::Singleton<CrashReporterServer>
 public:
    // Starts a crash reporter server to dump and upload the process state when the application crashes
    void Run(std::string const& pipe_name, std::string const& dump_path, std::string const& uri,
+            std::string const& userid,
             std::function<void()> const& exit_process_function);
 
 private:
@@ -33,6 +34,7 @@ private:
    std::string pipe_name_;
    std::string dump_path_;
    std::string uri_;
+   std::string userid_;
 
    // need a shared_ptr to use a forward declaration for CrashGenerationServer
    std::shared_ptr<google_breakpad::CrashGenerationServer> crash_server_;
