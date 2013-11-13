@@ -1280,9 +1280,9 @@ void Renderer::updateShadowMap(const Frustum* lightFrus, float maxDist)
 
 	Modules::sceneMan().updateQueues(reason.str().c_str(), *lightFrus, 0x0,
 		RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
-	for( size_t j = 0, s = Modules::sceneMan().getRenderableQueue().size(); j < s; ++j )
+	for( const auto& entry : Modules::sceneMan().getRenderableQueue() )
 	{
-      SceneNode* n = Modules::sceneMan().getRenderableQueue()[j].node;
+      SceneNode* n = entry.node;
       litAabb.makeUnion(n->getBBox());
 	}
 
@@ -1690,9 +1690,9 @@ float Renderer::computeTightCameraFarDistance()
    BoundingBox visibleAabb;
    Modules::sceneMan().updateQueues("computing tight camera", _curCamera->getFrustum(), 0x0,
       RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
-   for( size_t j = 0, s = Modules::sceneMan().getRenderableQueue().size(); j < s; ++j )
+   for( const auto& entry : Modules::sceneMan().getRenderableQueue() )
    {
-      SceneNode* n = Modules::sceneMan().getRenderableQueue()[j].node;
+      SceneNode* n = entry.node;
 	   visibleAabb.makeUnion(n->getBBox()); 
    }
 
@@ -1751,9 +1751,9 @@ void Renderer::drawLightGeometry( const std::string &shaderContext, const std::s
 	GPUTimer *timer = Modules::stats().getGPUTimer( EngineStats::FwdLightsGPUTime );
 	if( Modules::config().gatherTimeStats ) timer->beginQuery( _frameID );
 	
-	for( size_t i = 0, s = Modules::sceneMan().getLightQueue().size(); i < s; ++i )
+	for( const auto& entry : Modules::sceneMan().getLightQueue() )
 	{
-		_curLight = (LightNode *)Modules::sceneMan().getLightQueue()[i];
+		_curLight = (LightNode *)entry;
       const Frustum* lightFrus;
       Frustum dirLightFrus;
 
@@ -1882,9 +1882,9 @@ void Renderer::drawLightShapes( const std::string &shaderContext, bool noShadows
 	GPUTimer *timer = Modules::stats().getGPUTimer( EngineStats::DefLightsGPUTime );
 	if( Modules::config().gatherTimeStats ) timer->beginQuery( _frameID );
 	
-	for( size_t i = 0, s = Modules::sceneMan().getLightQueue().size(); i < s; ++i )
+	for( const auto& entry : Modules::sceneMan().getLightQueue() )
 	{
-		_curLight = (LightNode *)Modules::sceneMan().getLightQueue()[i];
+		_curLight = (LightNode *)entry;
 
 		// Check if light is not visible
       if( !_curLight->_directional && _curCamera->getFrustum().cullFrustum( _curLight->getFrustum() ) ) {
@@ -2065,11 +2065,11 @@ void Renderer::drawMeshes( const std::string &shaderContext, const std::string &
 	MaterialResource *curMatRes = 0x0;
 
 	// Loop over mesh queue
-	for( size_t i = 0, si = Modules::sceneMan().getRenderableQueue().size(); i < si; ++i )
+	for( const auto& entry : Modules::sceneMan().getRenderableQueue() )
 	{
-		if( Modules::sceneMan().getRenderableQueue()[i].type != SceneNodeTypes::Mesh ) continue;
+		if( entry.type != SceneNodeTypes::Mesh ) continue;
 		
-		MeshNode *meshNode = (MeshNode *)Modules::sceneMan().getRenderableQueue()[i].node;
+		MeshNode *meshNode = (MeshNode *)entry.node;
 		ModelNode *modelNode = meshNode->getParentModel();
 		
 		// Check that mesh is valid
@@ -2244,11 +2244,11 @@ void Renderer::drawVoxelMeshes(const std::string &shaderContext, const std::stri
 	MaterialResource *curMatRes = 0x0;
 
 	// Loop over mesh queue
-	for( size_t i = 0, si = Modules::sceneMan().getRenderableQueue().size(); i < si; ++i )
+	for( const auto& entry : Modules::sceneMan().getRenderableQueue() )
 	{
-		if( Modules::sceneMan().getRenderableQueue()[i].type != SceneNodeTypes::VoxelMesh ) continue;
+		if( entry.type != SceneNodeTypes::VoxelMesh ) continue;
 		
-		VoxelMeshNode *meshNode = (VoxelMeshNode *)Modules::sceneMan().getRenderableQueue()[i].node;
+		VoxelMeshNode *meshNode = (VoxelMeshNode *)entry.node;
 		VoxelModelNode *modelNode = meshNode->getParentModel();
 		
 		// Check that mesh is valid
@@ -2416,11 +2416,11 @@ void Renderer::drawParticles( const std::string &shaderContext, const std::strin
 	ASSERT( QuadIndexBufCount >= ParticlesPerBatch * 6 );
 
 	// Loop through emitter queue
-	for( uint32 i = 0; i < Modules::sceneMan().getRenderableQueue().size(); ++i )
+	for( const auto& entry : Modules::sceneMan().getRenderableQueue() )
 	{
-		if( Modules::sceneMan().getRenderableQueue()[i].type != SceneNodeTypes::Emitter ) continue; 
+		if( entry.type != SceneNodeTypes::Emitter ) continue; 
 		
-		EmitterNode *emitter = (EmitterNode *)Modules::sceneMan().getRenderableQueue()[i].node;
+		EmitterNode *emitter = (EmitterNode *)entry.node;
 		
 		if( emitter->_particleCount == 0 ) continue;
 		if( !emitter->_materialRes->isOfClass( theClass ) ) continue;
@@ -2714,6 +2714,7 @@ void Renderer::finalizeFrame()
 	Modules::stats().getStat( EngineStats::FrameTime, true );  // Reset
 	Modules::stats().incStat( EngineStats::FrameTime, timer->getElapsedTimeMS() );
 	timer->reset();
+   Modules::sceneMan().clearQueryCache();
    gRDI->_frameDebugInfo.endFrame();
 }
 
