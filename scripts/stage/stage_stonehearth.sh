@@ -139,8 +139,7 @@ function compile_lua
      $LUA_BIN_ROOT/luac.exe -o $OUTFILE $infile
    done
    echo Removing plaintext lua files in $1
-   echo DEBUG - Leaving lua files in place until loading compiled lua works
-   #find $MOD_NAME -type f -name '*.lua' -print0 | xargs -0 rm -f
+   find $MOD_NAME -type f -name '*.lua' -print0 | xargs -0 rm -f
    popd > /dev/null
 }
 
