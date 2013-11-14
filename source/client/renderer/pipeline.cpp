@@ -55,7 +55,7 @@ H3DNodeUnique Pipeline::AddMeshNode(H3DNode parent, const csg::mesh_tools::mesh&
    std::string name = "mesh data ";
 
    H3DRes res = h3dutCreateVoxelGeometryRes((name + stdutil::ToString(unique++)).c_str(), (VoxelGeometryVertex *)m.vertices.data(), m.vertices.size(), (uint *)m.indices.data(), m.indices.size());
-   H3DRes matRes = h3dAddResource(H3DResTypes::Material, "terrain/default_material.xml", 0);
+   H3DRes matRes = h3dAddResource(H3DResTypes::Material, "materials/default_material.xml", 0);
    H3DNode model_node = h3dAddVoxelModelNode(parent, (name + stdutil::ToString(unique++)).c_str(), res);
    H3DNode mesh_node = h3dAddVoxelMeshNode(model_node, (name + stdutil::ToString(unique++)).c_str(), matRes, 0, m.indices.size(), 0, m.vertices.size() - 1);
 
@@ -235,7 +235,7 @@ H3DNodeUnique Pipeline::AddQubicleNode(H3DNode parent, const voxel::QubicleMatri
    static int unique = 0;
    std::string name = "qubicle data ";
    H3DRes geoRes = h3dutCreateVoxelGeometryRes((name + stdutil::ToString(unique++)).c_str(), vertices.data(), vertices.size(), indices.data(), indices.size());
-   H3DRes matRes = h3dAddResource(H3DResTypes::Material, "terrain/default_material.xml", 0);
+   H3DRes matRes = h3dAddResource(H3DResTypes::Material, "materials/default_material.xml", 0);
    H3DNode model_node = h3dAddVoxelModelNode(parent, (name + stdutil::ToString(unique++)).c_str(), geoRes);
    H3DNode mesh_node = h3dAddVoxelMeshNode(model_node, (name + stdutil::ToString(unique++)).c_str(), matRes, 0, indices.size(), 0, vertices.size() - 1);
 

@@ -35,7 +35,7 @@
          <SwitchTarget target="OUTPUT" />
          <BindBuffer sampler="outlineSampler" sourceRT="SelectedTemp" bufIndex="0"/>
          <BindBuffer sampler="outlineDepth" sourceRT="SelectedTemp" bufIndex="32"/>
-         <DrawQuad material="terrain/default_material.xml" context="SELECTED_SCREENSPACE_OUTLINER" />
+         <DrawQuad material="materials/default_material.xml" context="SELECTED_SCREENSPACE_OUTLINER" />
       </Stage>
 
       <Stage id="Overlays">
