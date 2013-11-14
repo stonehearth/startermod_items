@@ -3,8 +3,8 @@
    "type": "entity",
    "components": {
       "item": {
-         "stacks" : 4,
-         "maxStacks" : 4
+         "stacks" : 12,
+         "maxStacks" : 12
       },
       "model_variants": [
          {
