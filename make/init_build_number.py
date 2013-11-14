@@ -10,7 +10,7 @@ DEFINES = {
    'BAMBOO_PRODUCT_VERSION_MINOR': ('PRODUCT_MINOR_VERSION', 'number'),
    'BAMBOO_PRODUCT_VERSION_PATCH': ('PRODUCT_PATCH_VERSION', 'number'),
    'BAMBOO_BUILD_NUMBER' : ('PRODUCT_BUILD_NUMBER', 'number'),
-   'BAMBOO_BUILD_TIME' : ('PRODUCT_BUILD_TIME', 'number'),
+   'BAMBOO_BUILD_TIME' : ('PRODUCT_BUILD_TIME', 'string'),
    'BAMBOO_BRANCH_NAME': ('PRODUCT_BRANCH', 'string'),
    'BAMBOO_BRANCH_REVISION' : ('PRODUCT_REVISION', 'string'),
 }
@@ -64,8 +64,8 @@ if __name__ == "__main__":
    for k, (name, t)  in OVERRIDES.iteritems():
       value = os.environ.get(k, None)
       if value:
-         contents += "#undef %-30s\n" % k
-         contents += "#define %-30s \"%s\"\n" % (k, str(value))
+         contents += "#undef %-30s\n" % name
+         contents += "#define %-30s \"%s\"\n" % (name, str(value))
 
    contents += "\n"
    contents += "#endif // _BUILD_OVERRIDES_H\n"
