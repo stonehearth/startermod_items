@@ -45,7 +45,7 @@
       <Stage id="Final">
          <SwitchTarget target="" />
          <BindBuffer sampler="buf0" sourceRT="OUTPUT" bufIndex="0" />
-         <DrawQuad material="materials/outline.material.xml" context="DRAW_COLORBUF" />
+         <DrawQuad material="materials/fullscreen_quad.material.xml" context="FSQUAD_COPY" />
          <UnbindBuffers />
       </Stage>
 	</CommandQueue>
