@@ -198,7 +198,7 @@ Client::Client() :
          json::Node node;
          SystemStats stats = Renderer::GetInstance().GetStats();
          node.set("UserId", core::Config::GetInstance().GetUserID());
-         node.set("FrameRate", 1.0f); //stats.frame_rate);
+         node.set("FrameRate", stats.frame_rate);
          node.set("GpuVendor", stats.gpu_vendor);
          node.set("GpuRenderer", stats.gpu_renderer);
          node.set("GlVersion", stats.gl_version);
