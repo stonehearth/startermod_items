@@ -131,6 +131,8 @@ function stage_data_dir
 function compile_lua_and_package_module
 {
    # $1 - the name of the mod to stage
+   stage_data_dir $1
+
    echo Compiling lua and packaging module in $1
    MOD_NAME=${1##*/}
    pushd $OUTPUT_DIR/$1/.. > /dev/null
@@ -141,8 +143,8 @@ function compile_lua_and_package_module
 
    # zip the package
    # no silent mode for 7-zip, could save output to file and cat file if [ $? -ne 0 ] 
-   rm -f $MOD_NAME.stmod
-   7za a -r -tzip -mx=9 $MOD_NAME.stmod $MOD_NAME/'*' > /dev/null
+   rm -f $MOD_NAME.zip
+   7za a -r -tzip -mx=9 $MOD_NAME.zip $MOD_NAME/'*' > /dev/null
 
    # remove loose files
    rm -rf $MOD_NAME
@@ -160,8 +162,6 @@ if [ ! -z $STAGE_DATA ]; then
    popd > /dev/null
 
    stage_data_dir horde
-   stage_data_dir mods/radiant
-   stage_data_dir mods/stonehearth
 
    compile_lua_and_package_module mods/radiant
    compile_lua_and_package_module mods/stonehearth

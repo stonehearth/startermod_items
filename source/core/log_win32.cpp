@@ -8,6 +8,7 @@
 
 using namespace radiant::logger;
 
+#if defined(_DEBUG)
 #pragma warning(push)
 #pragma warning(disable:4996)
 static void redirect_io_to_console()
@@ -31,10 +32,11 @@ static void redirect_io_to_console()
    freopen("conout$","w",stderr);
 }
 #pragma warning(pop)
+#endif
 
 void radiant::logger::platform_init()
 {
-   redirect_io_to_console();
+   DEBUG_ONLY(redirect_io_to_console();)
 }
 
 void radiant::logger::platform_exit()
