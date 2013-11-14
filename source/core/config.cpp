@@ -6,6 +6,7 @@
 #include <rpc.h>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
+#include "poco/UUIDGenerator.h"
 
 using namespace ::radiant;
 using namespace ::radiant::core;
@@ -88,10 +89,10 @@ bool Config::Load(int argc, const char *argv[])
    //Make sure we have a session and userid
    userid_ = ReadConfigOption("userid");
    if (userid_.empty()) {
-      userid_ = MakeUUIDString();
+      userid_ = Poco::UUIDGenerator::defaultGenerator().create().toString();
       WriteConfigOption("userid", userid_);
    }
-   sessionid_ = MakeUUIDString();
+   sessionid_ = Poco::UUIDGenerator::defaultGenerator().create().toString();
    collect_analytics_ = ReadConfigOption("collect_analytics");
 
    // Load the config files...
@@ -232,28 +233,3 @@ std::string Config::GetBuildNumber()
 {
    return BUILD_NUMBER;
 }
-
-//Make a new UUID and return it as a string.
-//the UUID to string function seems to internally
-//allocate memory, so we have to remember to free it
-std::string Config::MakeUUIDString() 
-{
-   std::string resultString;
-   char* sTemp;
-   UUID uuid;
-   HRESULT hr;
-   hr = UuidCreate(&uuid);
-   if (hr == RPC_S_OK) {
-      hr = UuidToString(&uuid, (unsigned char**) &sTemp);
-      if (hr == RPC_S_OK && sTemp != NULL) {
-         std::string tempStr(sTemp, strlen(sTemp));         
-         resultString = tempStr;
-         RpcStringFree((unsigned char**) &sTemp);
-      } else {
-         LOG(WARNING) << "uuid creation error: " << hr;
-      }
-   }
-
-   return resultString;
-}
-
