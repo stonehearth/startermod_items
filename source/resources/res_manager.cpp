@@ -142,7 +142,7 @@ ResourceManager2::ResourceManager2()
    std::vector<fs::path> zip_paths;
    zip_paths = GetPaths(resource_dir_, [](fs::path const& path) {
       if (fs::is_regular_file(path) &&
-          path.filename().extension() == ".zip") {
+          path.filename().extension() == ".smod") {
          return true;
       }
       return false;
@@ -417,4 +417,32 @@ std::string ResourceManager2::ExpandMacro(std::string const& current, std::strin
       }
    }
    return current;
+}
+
+std::string ResourceManager2::FindScript(std::string const& script) const
+{
+   std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+   if (!boost::ends_with(script, ".lua")) {
+      throw std::logic_error("expected script path to end with .lua");
+   }
+   std::string path = ExpandMacro(script, ".", true); // so we can lookup things like 'stonehearth:sleep_action'
+
+   std::string modname;
+   std::vector<std::string> parts;
+   ParsePath(path, modname, parts);
+
+   auto i = modules_.find(modname);
+   if (i == modules_.end()) {
+      throw InvalidFilePath(path);
+   }
+
+   if (!i->second->CheckFilePath(parts)) {
+      // try the compiled version...
+      parts.back() += "c";
+      if (!i->second->CheckFilePath(parts)) {
+         throw InvalidFilePath(script);
+      }
+   }
+   return modname + "/" + boost::algorithm::join(parts, "/");
 }
