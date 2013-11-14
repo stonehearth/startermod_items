@@ -142,7 +142,7 @@ ResourceManager2::ResourceManager2()
    std::vector<fs::path> zip_paths;
    zip_paths = GetPaths(resource_dir_, [](fs::path const& path) {
       if (fs::is_regular_file(path) &&
-          path.filename().extension() == ".zip") {
+          path.filename().extension() == ".smod") {
          return true;
       }
       return false;
