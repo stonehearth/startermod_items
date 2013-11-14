@@ -1,11 +1,11 @@
 --[[
    Listen on changes to hunger attribute. If > 80, start looking for optimal food.
-   If >100, set priority to 5. If > 120, set priority to 10. 
-   Sleep always wins over food.
+   If > 120, set starving debuff. Once we've found food, set priority of eating it
+   based on how hungry we are. 
 --]]
 radiant.mods.load('stonehearth')
 local priorities = require('constants').priorities.needs
-
+local event_service = require 'services.event.event_service'
 
 local FindFoodAction = class()
 
@@ -17,61 +17,58 @@ function FindFoodAction:__init(ai, entity)
    radiant.check.is_entity(entity)
    self._entity = entity         --the game character
    self._ai = ai
-
    self._hunger = nil
-
    self._pathfinder = nil
    self._food = nil
    self._path_to_food = nil
-
    self._looking_for_food = false
 
    radiant.events.listen(entity, 'stonehearth:attribute_changed:hunger', self, self.on_hunger_changed)
 end
 
+--- Changes behavior based on hunger
+--  The first time hunger > 120, add starving debuff and set priority high 
+--  so we run the starving animation regardless of whether we've found food.
+--  When > 80, look for food. If < 80, we're not hungry, so stop
+--  looking for food. 
+--  @param e - e.value is the status of hunger
 function FindFoodAction:on_hunger_changed(e)
    self._hunger = e.value
    
-   --TODO: debuffs!
-
    if self._hunger >= 120 then
-      --We're starving! Set priority higher!
-      --TODO: if old pathfinder has not yet returned, dump it and 
-      --start a new one that will look for any food.
-      --(Extra bonus in cases where we missed the 80-100 window)
-      self._ai:set_action_priority(self, priorities.REALLY_HUNGRY)
-      --TODO: add "starved" debuff
-   elseif self._hunger >= 100  then
-      --If we haven't eaten yet, our priority was too low. Set it to 10
-      self._ai:set_action_priority(self, priorities.HUNGRY)
-   elseif self._hunger >= 80  then
-      --self._ai:set_action_priority(self, priorities.BARELY_HUNGRY)
+      if not radiant.entities.has_buff(self._entity, 'stonehearth:buffs:starving') then
+         radiant.entities.add_buff(self._entity, 'stonehearth:buffs:starving')
+         self._ai:set_action_priority(self, priorities.REALLY_HUNGRY)
+      end
+   end
+
+   if self._hunger >= 80  then
       self:start_looking_for_best_food()
-   else
-      -- we're not hungry. If we were looking for food, stop
+   else   
       if self._looking_for_food then
          self:stop_looking_for_food()
+      end
+      if radiant.entities.has_buff(self._entity, 'stonehearth:buffs:starving') then
+         radiant.entities.remove_buff(self._entity, 'stonehearth:buffs:starving')
       end
       self._ai:set_action_priority(self, 0)
    end
 end
 
+--- Kick off pathfinder to look for good food 
 function FindFoodAction:start_looking_for_best_food()
    if self._looking_for_food then
       return
    end
-   
    assert(not self._pathfinder)
-   
    self._looking_for_food = true;
-
    if not self._pathfinder then
       self:find_good_food()
    end
 end
 
+--- Tell pf we don't need to look for food anymore. 
 function FindFoodAction:stop_looking_for_food()
-   -- tell the pathfinder to stop searching in the background
    if self._pathfinder then
       self._pathfinder:stop()
       self._pathfinder = nil
@@ -79,24 +76,31 @@ function FindFoodAction:stop_looking_for_food()
    self._looking_for_food = false
 end
 
---[[
-   Find good food to eat. 
-   Right now this means that it's fruit AND food. 
-   Later we may relax our criteria to just food.  
---]]
+--- Make a pf to find good food to eat.
+--  Right now this means that it's fruit AND food. 
+--  TODO: Make "preferred foods" different based on person and food type. Have
+--  people go for unpreferred foods if they're hungry enough. 
+--  Once we've found food, set priority based on hunger, so if we're
+--  really hungry, we can go eat right away. 
 function FindFoodAction:find_good_food()
    assert(not self._pathfinder)
 
    local filter_fn = function(item)
-      local is_good_food = item:get_component('stonehearth:material'):is('fruit food')
+      local is_good_food = item:add_component('stonehearth:material'):is('fruit food')
       return is_good_food
    end
 
-   -- save the path to the food once we find it
    local solved_cb = function(path)
       self._food = path:get_destination()
       self._path_to_food = path
-      self._ai:set_action_priority(self, priorities.BARELY_HUNGRY)
+
+      if self._hunger >= 120 then
+         self._ai:set_action_priority(self, priorities.REALLY_HUNGRY)
+      elseif self._hunger >= 100 then
+         self._ai:set_action_priority(self, priorities.HUNGRY)
+      elseif self._hunger >=80 then
+         self._ai:set_action_priority(self, priorities.BARELY_HUNGRY)
+      end
    end
 
    -- go find the path to the food
@@ -111,23 +115,30 @@ function FindFoodAction:find_good_food()
    assert(self._pathfinder)
 end
 
+--- If we have a path to food, go get it. If not
+--  and if hunger > 120, run a despairing animation
 function FindFoodAction:run(ai, entity)
+   local name = radiant.entities.get_display_name(self._entity)
+   
    if self._path_to_food then
       self:stop_looking_for_food()
       ai:execute('stonehearth:serve_food', self._path_to_food)
    elseif self._hunger >= 120 then
       -- Cry in despair because we're so hungry
-      --self._ai:execute('stonehearth:???')
+      -- TODO: self._ai:execute('stonehearth:???')
+      -- xxx, localize
+      event_service:add_entry(name .. ' is so hungry it feels like despair.', 'warning')
    end
 end
 
---[[
-   If the action is stopped, stop the pathfinder
---]]
+--- Whether we're eating or have run the despair animation or just
+--  got interrupted, set priority to 0. It will go up again as soon
+--  as we've found some food. 
 function FindFoodAction:stop()
    if self._hunger < 80 then 
       self:stop_looking_for_food()
    end
+   self._ai:set_action_priority(self, 0)
 end
 
 return FindFoodAction

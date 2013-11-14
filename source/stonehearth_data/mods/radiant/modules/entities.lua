@@ -150,7 +150,9 @@ end
 
 function entities.get_world_grid_location(entity)
    radiant.check.is_entity(entity)
-   return entity:add_component('mob'):get_world_grid_location()
+   if entity and entity:add_component('mob') then
+      return entity:add_component('mob'):get_world_grid_location()
+   end
 end
 
 function entities.get_entity_data(entity, key)

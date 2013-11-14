@@ -52,9 +52,8 @@ function Harvestable:harvest()
    self._data.hours_till_next_growth = self._renewal_time
 end
 
---- Every hour, if there are no harvestable items, check if they've regrown yet.
+--- If the player has harvested the goods, check if it's time to re-grow them
 function Harvestable:on_hourly()
-   --There's already something harvestable on the plant. Return.
    if self._data.hours_till_next_growth == nil then
       return
    end

@@ -3,8 +3,8 @@
    "components": {
       "stonehearth:commands" : {
          "commands" : [
-            "file(/data/commands/chop_tree)",
-            "file(/data/commands/harvest_berries)"
+            "file(/data/commands/harvest_berries)",
+            "file(/data/commands/chop_tree)"
          ]
       },
       "model_variants": [
@@ -35,7 +35,7 @@
       },
       "stonehearth:harvestable" : {
          "renewable" : true, 
-         "renewal_time" : 1,
+         "renewal_time" : 12,
          "takeaway_entity" : "stonehearth:berry_basket",
          "harvest_command" : "harvest_berries"
       }

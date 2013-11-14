@@ -1,0 +1,18 @@
+{
+   "type" : "debuff",
+   
+   "name" : "Starving",
+   "description" : "Starving citizen needs food badly!",
+   "icon" : "file(starving_buff.png)",
+
+   "modifiers" : {
+      "speed" : {
+         "multiply" : 0.8
+      }
+   },
+
+   "effect" : "stonehearth:effects:whatever",
+   "tags" : [
+      "hungry"
+   ]
+} 
