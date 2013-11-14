@@ -423,10 +423,10 @@ std::string ResourceManager2::FindScript(std::string const& script) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
 
-   if (!boost::ends_with(script, ".lua")) {
+   std::string path = ExpandMacro(script, ".", true); // so we can lookup things like 'stonehearth:sleep_action'
+   if (!boost::ends_with(path, ".lua")) {
       throw std::logic_error("expected script path to end with .lua");
    }
-   std::string path = ExpandMacro(script, ".", true); // so we can lookup things like 'stonehearth:sleep_action'
 
    std::string modname;
    std::vector<std::string> parts;
