@@ -139,14 +139,14 @@ function compile_lua_and_package_module
    for infile in $(find $MOD_NAME -type f -name '*.lua'); do
      OUTFILE=${infile}c
      $LUA_BIN_ROOT/luac.exe -o $OUTFILE $infile
+     rm -f $infile
    done
 
    # zip the package
    # no silent mode for 7-zip, could save output to file and cat file if [ $? -ne 0 ] 
-   rm -f $MOD_NAME.zip
-   7za a -r -tzip -mx=9 $MOD_NAME.zip $MOD_NAME/'*' > /dev/null
+   rm -f $MOD_NAME.smod
+   7za a -r -tzip -mx=9 $MOD_NAME.smod $MOD_NAME/'*' > /dev/null
 
-   # remove loose files
    rm -rf $MOD_NAME
    popd > /dev/null
 }
