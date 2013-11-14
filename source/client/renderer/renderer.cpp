@@ -101,9 +101,6 @@ Renderer::Renderer() :
    // Overlays
    fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
    panelMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/panel.material.xml", 0 );
-
-
-   H3DRes skyBoxRes = h3dAddResource( H3DResTypes::SceneGraph, "models/skybox/skybox.scene.xml", 0 );
    
    // xxx - should move this into the horde extension for debug shapes, but it doesn't know
    // how to actually get the resource loaded!

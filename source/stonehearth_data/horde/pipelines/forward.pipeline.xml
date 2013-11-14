@@ -5,7 +5,7 @@
       <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" format="RGBA8" scale="1.0"/>
    </Setup>
    <CommandQueue>
-      <Stage id="Depth" link="pipelines/globalSettings.material.xml">
+      <Stage id="Depth">
          <SwitchTarget target="OUTPUT" />
          <ClearTarget depthBuf="true" colBuf0="true"/>
          <DrawGeometry context="AMBIENT" class="~Translucent" />

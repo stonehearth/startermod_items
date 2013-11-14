@@ -1,3 +1,0 @@
-<!-- Deferred Shading Pipeline -->
-<Pipeline script="horde/pipelines/deferred_pipeline.lua">
-</Pipeline>
