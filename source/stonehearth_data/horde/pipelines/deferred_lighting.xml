@@ -77,7 +77,7 @@
     <Stage id="SSAO Copy" enabled="false">
       <SwitchTarget target="SSAOBLUR" />
       <BindBuffer sampler="buf0" sourceRT="SSAOBUF" bufIndex="0" />
-      <DrawQuad material="pipelines/outline.material.xml" context="DRAW_COLORBUF" />
+      <DrawQuad material="materials/outline.material.xml" context="DRAW_COLORBUF" />
       <UnbindBuffers />
     </Stage>
 
@@ -118,7 +118,7 @@
     <Stage id="Final">
        <SwitchTarget target="" />
        <BindBuffer sampler="buf0" sourceRT="OUTPUT" bufIndex="0" />
-       <DrawQuad material="pipelines/outline.material.xml" context="DRAW_COLORBUF" />
+       <DrawQuad material="materials/outline.material.xml" context="DRAW_COLORBUF" />
        <UnbindBuffers />
     </Stage>
 
