@@ -118,27 +118,59 @@ ResourceManager2& ResourceManager2::GetInstance()
    return *singleton_;
 }
 
+static std::vector<fs::path> GetPaths(fs::path const& directory, std::function<bool(fs::path const&)> filter_function)
+{
+   fs::directory_iterator const end;
+   std::vector<fs::path> paths;
+
+   for (fs::directory_iterator i(directory); i != end; i++) {
+      fs::path const path = i->path();
+      if (filter_function(path)) {
+         paths.push_back(path);
+      }
+   }
+   return paths;
+}
+
 ResourceManager2::ResourceManager2()
 {
    ASSERT(!singleton_);
 
    resource_dir_ = "mods";
 
-   fs::directory_iterator end;
-   for (fs::directory_iterator i(resource_dir_); i != end; i++) {
-      fs::path path = i->path();
-      std::string const& name = path.filename().stem().string();
-      
-      if (modules_.find(name) == modules_.end()) {
-         // check for the zipfile first
-         std::string zipfile = path.string() + ".zip";
-         if (fs::is_regular_file(zipfile)) {
-            modules_[name] = new ZipModule(zipfile);
-            module_names_.push_back(name);
-         } else if (fs::is_directory(path)) {
-            modules_[name] = new DirectoryModule(path);
-            module_names_.push_back(name);
-         }
+   // get a list of zip modules
+   std::vector<fs::path> zip_paths;
+   zip_paths = GetPaths(resource_dir_, [](fs::path const& path) {
+      if (fs::is_regular_file(path) &&
+          path.filename().extension() == ".stmod") {
+         return true;
+      }
+      return false;
+   });
+
+   // get a list of directory modules
+   std::vector<fs::path> directory_paths;
+   directory_paths = GetPaths(resource_dir_, [](fs::path const& path) {
+      return fs::is_directory(path);
+   });
+
+   // zip modules have priority - install them first
+   for (int i=0; i < zip_paths.size(); i++) {
+      fs::path const& path = zip_paths[i];
+      std::string const module_name = path.filename().stem().string();
+      modules_[module_name] = std::unique_ptr<IModule>(new ZipModule(module_name, path));
+      module_names_.push_back(module_name);
+   }
+
+   // install directory module only if zip module doesn't exist
+   for (int i=0; i < directory_paths.size(); i++) {
+      fs::path const& path = directory_paths[i];
+      // don't stem - allow directories with '.'
+      std::string const module_name = path.filename().string();
+
+      if (modules_.find(module_name) == modules_.end()) {
+         modules_[module_name] = std::unique_ptr<IModule>(new DirectoryModule(path));
+         module_names_.push_back(module_name);
       }
    }
 }

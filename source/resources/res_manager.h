@@ -47,7 +47,7 @@ private:
 
 private:
    boost::filesystem::path                       resource_dir_;
-   std::unordered_map<std::string, IModule*>     modules_;
+   std::unordered_map<std::string, std::unique_ptr<IModule>>     modules_;
    std::vector<std::string>                      module_names_;
    mutable std::recursive_mutex                  mutex_;
    mutable std::unordered_map<std::string, AnimationPtr> animations_;

@@ -8,10 +8,9 @@
 using namespace ::radiant;
 using namespace ::radiant::res;
 
-namespace fs = ::boost::filesystem;
-
-ZipModule::ZipModule(fs::path const& path) :
-   stream_(path.string(), std::ios::binary),
+ZipModule::ZipModule(std::string const& module_name, boost::filesystem::path const& zipfile_path) :
+   module_name_(module_name),
+   stream_(zipfile_path.string(), std::ios::binary),
    zip_(stream_)
 {
 }
@@ -22,12 +21,16 @@ ZipModule::~ZipModule()
 
 bool ZipModule::CheckFilePath(std::vector<std::string> const& parts) const
 {
-   return zip_.findHeader(boost::algorithm::join(parts, "/")) != zip_.headerEnd();
+   bool found = zip_.findHeader(GetQualifiedPath(boost::algorithm::join(parts, "/"))) != zip_.headerEnd();
+   if (!found) {
+      int dummy = 1;
+   }
+   return found;
 }
 
 std::shared_ptr<std::istream> ZipModule::OpenResource(std::string const& canonical_path) const
 {
-   auto i = zip_.findHeader(canonical_path);
+   auto i = zip_.findHeader(GetQualifiedPath(canonical_path));
    if (i == zip_.headerEnd()) {
       return nullptr;
    }
@@ -37,4 +40,9 @@ std::shared_ptr<std::istream> ZipModule::OpenResource(std::string const& canonic
    Poco::StreamCopier::copyStream(input, *stream);
 
    return stream;
+}
+
+std::string ZipModule::GetQualifiedPath(std::string const& resource_name) const
+{
+   return module_name_ + "/" + resource_name;
 }
