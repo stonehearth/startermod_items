@@ -1,0 +1,35 @@
+{
+   "type": "entity", 
+   "components": {
+      "model_variants": [
+         {
+            "models": [
+               "file(berries.qb)" 
+            ]
+         }
+      ],
+      "render_info" : {
+         "scale" : 0.15
+      },
+      "unit_info": {
+         "name": "Berries", 
+         "description": " Crunchy, juicy, purple sugar"
+      }, 
+      "stonehearth:commands" : {
+         "commands" : [
+            "file(/data/commands/harvest_berries)"
+         ]
+      },
+      "destination" : {
+         "region" : [
+            {
+               "min" : { "x" : -1, "y" : 0, "z" : -1 },
+               "max" : { "x" :  2, "y" : 1, "z" :  2 }
+            }
+         ]
+      }
+   },
+   "entity_data" : {
+      "stonehearth:havestable_item" : {}
+   }
+}

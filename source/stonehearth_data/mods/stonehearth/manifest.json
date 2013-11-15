@@ -77,6 +77,7 @@
          "large_juniper_tree" : "file(entities/trees/juniper_tree/large_juniper_tree)",
 
          "berry_bush" : "file(entities/plants/berry_bush)",
+         "berries" : "file(entities/plants/berries)",
 
          "pink_flower" : "file(entities/ground_clutter/pink_flower)",
 

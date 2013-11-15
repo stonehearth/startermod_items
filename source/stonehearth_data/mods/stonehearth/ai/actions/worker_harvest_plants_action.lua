@@ -1,3 +1,10 @@
+--[[
+   Tell a worker to collect food and resources from a plant. 
+   TODO: Right now, the plant and the harvestable material are separate entities
+   Consider implications of having the worker find and act on the 
+   harvested material, rather than the plant containing it. 
+]]
+
 local event_service = require 'services.event.event_service'
 local Point3 = _radiant.csg.Point3
 
@@ -15,6 +22,14 @@ end
 
 function HarvestPlantsAction:run(ai, entity, path, task)
    local plant = path:get_destination()
+
+   --is the plant the berries or the bush? 
+   local is_harvestable_item =  radiant.entities.get_entity_data(plant, 'stonehearth:havestable_item')
+   if is_harvestable_item then
+      --we actually want its parent, the plant that contains the harvestable item
+      plant = plant:get_component('mob'):get_parent()
+   end
+
    if not plant then
       ai:abort('plant does not exist anymore in stonehearth:harvest_plants')
    end
@@ -42,12 +57,11 @@ function HarvestPlantsAction:run(ai, entity, path, task)
 
    ai:execute('stonehearth:follow_path', path)
    radiant.entities.turn_to_face(entity, plant)
-   ai:execute('stonehearth:run_effect','fiddle')
 
-   --Pop the basket
-   --TODO: get the basket from a component attached to the plant
+   --Fiddle with the bush and pop the basket
    local harvestable_component = plant:get_component('stonehearth:harvestable')
-   if harvestable_component then
+   if harvestable_component and harvestable_component:get_harvest_entity() then
+      ai:execute('stonehearth:run_effect','fiddle')
       harvestable_component:harvest()
 
       local basket = radiant.entities.create_entity(harvestable_component:get_takeaway_type())

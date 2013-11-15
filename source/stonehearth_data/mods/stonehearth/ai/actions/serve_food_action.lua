@@ -37,13 +37,10 @@ function ServeFoodAction:run(ai, entity, path)
    end
 
    local plate_type =  radiant.entities.get_entity_data(food_source, 'stonehearth:serving_item')
-   local plate_entity = nil
-   if plate_type then
-      plate_entity = radiant.entities.create_entity(plate_type)
-   else
-      plate_entity = radiant.entities.create_entity(food_source:get_uri())
+   if not plate_type then
+      ai:abort()
    end
-   plate_entity = radiant.entities.create_entity(plate_type)
+   local plate_entity = radiant.entities.create_entity(plate_type)
    
    radiant.entities.pickup_item(entity, plate_entity)
    ai:execute('stonehearth:run_effect', 'carry_pickup')

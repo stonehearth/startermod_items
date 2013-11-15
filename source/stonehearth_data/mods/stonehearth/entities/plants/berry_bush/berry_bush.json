@@ -10,7 +10,7 @@
       "model_variants": [
          {
             "models": [
-               "file(berry_bush.qb)" 
+               "file(berry_bush_empty.qb)" 
             ]
          }
       ],
@@ -36,6 +36,7 @@
       "stonehearth:harvestable" : {
          "renewable" : true, 
          "renewal_time" : 12,
+         "harvestable_entity" : "stonehearth:berries",
          "takeaway_entity" : "stonehearth:berry_basket",
          "harvest_command" : "harvest_berries"
       }
