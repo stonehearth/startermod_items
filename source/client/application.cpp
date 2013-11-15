@@ -46,8 +46,12 @@ bool Application::LoadConfig(int argc, const char* argv[])
    return config.Load(argc, argv);
 }
 
+// returns false on error
 bool Application::InitializeCrashReporting(std::string& error_string)
 {
+   // don't install exception handling hooks in debug builds
+   DEBUG_ONLY(return true;)
+
    std::string const crash_dump_path = core::Config::GetInstance().GetTmpDirectory().string();
    std::string const userid = core::Config::GetInstance().GetUserID();
 
@@ -72,7 +76,7 @@ int Application::Run(int argc, const char** argv)
    // Start crash reporter after config has been successfully loaded so we have a temp directory for the dump_path
    // Start before the logger in case the logger fails
    std::string error_string;
-   bool crash_reporter_started = InitializeCrashReporting(error_string);
+   bool crash_reporting_initialized = InitializeCrashReporting(error_string);
 
    // Not much point in catching exceptions before this point
    // Maybe write a MessageBox with the error
@@ -82,7 +86,7 @@ int Application::Run(int argc, const char** argv)
       radiant::logger::init(config.GetTmpDirectory() / (config.GetName() + ".log"));
 
       // Have to wait for the logger to initialize before logging error
-      if (!crash_reporter_started) {
+      if (!crash_reporting_initialized) {
          LOG(WARNING) << "Crash reporter failed to start: " << error_string;
       }
 
