@@ -41,8 +41,11 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiDirsComponent">
     <ROW Directory="APPDIR" Directory_Parent="TARGETDIR" DefaultDir="APPDIR:." IsPseudoRoot="1" DirectoryOptions="3"/>
+    <ROW Directory="Anjmations_Dir" Directory_Parent="Stonehearth_Dir" DefaultDir="Animat~1|Animations" DirectoryOptions="3"/>
     <ROW Directory="DesktopFolder" Directory_Parent="TARGETDIR" DefaultDir="Deskto~1|DesktopFolder" IsPseudoRoot="1"/>
+    <ROW Directory="LocalAppDataFolder" Directory_Parent="TARGETDIR" DefaultDir="LocalA~1|LocalAppDataFolder" IsPseudoRoot="1"/>
     <ROW Directory="SHORTCUTDIR" Directory_Parent="TARGETDIR" DefaultDir="SHORTC~1|SHORTCUTDIR" IsPseudoRoot="1"/>
+    <ROW Directory="Stonehearth_Dir" Directory_Parent="LocalAppDataFolder" DefaultDir="Stoneh~1|Stonehearth" DirectoryOptions="3"/>
     <ROW Directory="TARGETDIR" DefaultDir="SourceDir"/>
     <ROW Directory="animatedlights_Dir" Directory_Parent="horde_Dir" DefaultDir="animat~1|animatedlights" DirectoryOptions="3"/>
     <ROW Directory="common_Dir" Directory_Parent="textures_Dir" DefaultDir="common" DirectoryOptions="3"/>
@@ -234,6 +237,7 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.AiRemoveFileComponent">
     <ROW RemoveFile="debug.log" Condition="(AI_CLEAN_RESOURCES_UNINSTALL = &quot;1&quot;)" Options="1"/>
+    <ROW RemoveFile="__1" Options="3"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BootstrOptComponent">
     <ROW BootstrOptKey="GlobalOptions" GeneralOptions="h" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites"/>
@@ -562,6 +566,14 @@
     <ROW Registry="Version" Root="-1" Key="Software\[Manufacturer]\[ProductName]" Name="Version" Value="[ProductVersion]" Component_="ProductInformation"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiRemoveFileComponent">
+    <ROW FileKey="_" Component_="AI_ExePath" DirProperty="Stonehearth_Dir" InstallMode="2"/>
+    <ROW FileKey="__1" Component_="AI_ExePath" DirProperty="Anjmations_Dir" InstallMode="3"/>
+    <ROW FileKey="crash.dmp" Component_="AI_ExePath" FileName="crash.dmp" DirProperty="Stonehearth_Dir" InstallMode="3"/>
+    <ROW FileKey="crash1.dmp" Component_="AI_ExePath" FileName="crash.zip" DirProperty="Stonehearth_Dir" InstallMode="3"/>
+    <ROW FileKey="crash2.dmp" Component_="AI_ExePath" FileName="fragment_shader.log" DirProperty="Stonehearth_Dir" InstallMode="3"/>
+    <ROW FileKey="crash3.dmp" Component_="AI_ExePath" FileName="vertex_shader.log" DirProperty="Stonehearth_Dir" InstallMode="3"/>
+    <ROW FileKey="crash4.dmp" Component_="AI_ExePath" FileName="horde3d_log.html" DirProperty="Stonehearth_Dir" InstallMode="3"/>
+    <ROW FileKey="crash5.dmp" Component_="AI_ExePath" FileName="stonehearth.log" DirProperty="Stonehearth_Dir" InstallMode="3"/>
     <ROW FileKey="debug.log" Component_="AI_ExePath" FileName="debug.log" DirProperty="APPDIR" InstallMode="2"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiShortsComponent">
