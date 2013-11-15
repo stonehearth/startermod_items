@@ -17,7 +17,7 @@
  */
 
 #define PRODUCT_IDENTIFIER          "stonehearth"
-#define PRODUCT_NAME                "Stonehearth Development"
+#define PRODUCT_NAME                "Stonehearth: Internal Build"
 #define PRODUCT_MAJOR_VERSION       1
 #define PRODUCT_MINOR_VERSION       2
 #define PRODUCT_PATCH_VERSION       3

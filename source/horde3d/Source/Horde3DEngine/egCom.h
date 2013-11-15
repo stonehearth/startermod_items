@@ -184,8 +184,9 @@ protected:
 	Timer     _geoUpdateTimer;
 	Timer     _particleSimTimer;
 	float     _frameTime;
-   float     _frameTimes[20];
+   float     _frameTimes[100];
    int       _curFrame;
+   int       _totalFrames;
 
 	GPUTimer  *_fwdLightsGPUTimer;
 	GPUTimer  *_defLightsGPUTimer;

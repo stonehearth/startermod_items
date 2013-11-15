@@ -18,6 +18,7 @@
 #include "camera.h"
 #include "lib/perfmon/perfmon.h"
 #include "perfhud/perfhud.h"
+#include "resources/res_manager.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -56,8 +57,9 @@ Renderer::Renderer() :
    show_debug_shapes_changed_slot_("show debug shapes")
 {
    try {
-
-      boost::property_tree::json_parser::read_json("mods/stonehearth/renderers/terrain/config.json", terrainConfig_);
+      std::stringstream stream;
+      stream << res::ResourceManager2::GetInstance().OpenResource("stonehearth/renderers/terrain/config.json")->rdbuf();
+      boost::property_tree::json_parser::read_json(stream, terrainConfig_);
    } catch(boost::property_tree::json_parser::json_parser_error &e) {
       LOG(WARNING) << "Error parsing: " << e.filename() << " on line: " << e.line() << std::endl;
       LOG(WARNING) << e.message() << std::endl;
@@ -100,9 +102,6 @@ Renderer::Renderer() :
    // Overlays
    fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
    panelMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/panel.material.xml", 0 );
-
-
-   H3DRes skyBoxRes = h3dAddResource( H3DResTypes::SceneGraph, "models/skybox/skybox.scene.xml", 0 );
    
    // xxx - should move this into the horde extension for debug shapes, but it doesn't know
    // how to actually get the resource loaded!

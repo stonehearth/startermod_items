@@ -10,6 +10,7 @@
 //
 // *************************************************************************************************
 
+#include "radiant.h"
 #include "egCom.h"
 #include "utMath.h"
 #include "egModules.h"
@@ -296,7 +297,8 @@ StatManager::StatManager()
 
    _curFrame = 0;
 	_frameTime = 0;
-	for (int i = 0; i < 20; i++)
+   _totalFrames = 0;
+	for (int i = 0; i < ARRAY_SIZE(_frameTimes); i++)
 	{
 		_frameTimes[i] = 0.0;
 	}
@@ -320,7 +322,8 @@ float StatManager::getStat( int param, bool reset )
 {
 	float value;	
    float sum = 0.0;
-	
+	int c;
+
 	switch( param )
 	{
 	case EngineStats::TriCount:
@@ -340,11 +343,12 @@ float StatManager::getStat( int param, bool reset )
 		if( reset ) _frameTime = 0;
 		return value;
    case EngineStats::AverageFrameTime:
-      for (int i = 0; i < 20; i++)
+      c = std::min((int)_totalFrames, (int)ARRAY_SIZE(_frameTimes));
+      for (int i = 0; i < c; i++)
       {
          sum += _frameTimes[i];
       }
-      value = sum / 20.0f;
+      value = sum / c;
       return value;
 	case EngineStats::AnimationTime:
 		value = _animTimer.getElapsedTimeMS();
@@ -401,7 +405,8 @@ void StatManager::incStat( int param, float value )
 	case EngineStats::FrameTime:
 		_frameTime += value;
       _frameTimes[_curFrame] = _frameTime;
-      _curFrame = (_curFrame + 1) % 20;
+      _totalFrames++;
+      _curFrame = (_curFrame + 1) % ARRAY_SIZE(_frameTimes);
 		break;
 	}
 }

@@ -310,20 +310,8 @@ luabind::object ScriptHost::Require(std::string const& s)
 
 luabind::object ScriptHost::RequireScript(std::string const& path)
 {
-   std::string canonical_path;
    res::ResourceManager2 const& rm = res::ResourceManager2::GetInstance();
-   try {
-      // Try foo.lua first...
-      canonical_path = rm.ConvertToCanonicalPath(path, nullptr);
-   } catch (std::exception const& e) {
-      // No?  Try foo.luac...
-      try {
-         canonical_path = rm.ConvertToCanonicalPath(path + "c", nullptr);
-      } catch (std::exception const&) {
-         // Neither worked.  Complain about the .lua one 
-         throw e;
-      }
-   }
+   std::string canonical_path = rm.FindScript(path);
 
    luabind::object obj;
 

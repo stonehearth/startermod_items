@@ -1,4 +1,0 @@
-<Model name="scaffold_1_2" geometry="models\scaffolding/scaffold_1_2.geo">
-
-	<Mesh name="" material="models\scaffolding/scaffolding_simpletex.material.xml" tx="-25" ty="-30" tz="5" batchStart="0" batchCount="1068" vertRStart="0" vertREnd="967" />
-</Model>

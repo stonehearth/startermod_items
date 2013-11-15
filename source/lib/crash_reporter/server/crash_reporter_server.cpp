@@ -100,7 +100,7 @@ void CrashReporterServer::SendCrashReport(std::string const& dump_filename)
    Poco::URI uri(uri_);
 
    std::ostringstream query;
-   query <<  "branch="   << PRODUCT_BRANCH;
+   query << "branch="    << PRODUCT_BRANCH;
    query << "&userid="   << userid_;
    query << "&product="  << PRODUCT_NAME;
    query << "&build="    << PRODUCT_BUILD_NUMBER;
@@ -159,18 +159,27 @@ void CrashReporterServer::ExitProcess()
 // Static callbacks for Breakpad
 void CrashReporterServer::OnClientConnected(void* context, google_breakpad::ClientInfo const* client_info)
 {
+   try {
+   } catch (...) {
+   }
 }
 
 void CrashReporterServer::OnClientCrashed(void* context, google_breakpad::ClientInfo const* client_info, std::wstring const* dump_filename_w)
 {
-   CrashReporterServer* crash_reporter = (CrashReporterServer*) context;
-   crash_reporter->SendCrashReport(WstringToString(*dump_filename_w));
+   try {
+      CrashReporterServer* crash_reporter = (CrashReporterServer*) context;
+      crash_reporter->SendCrashReport(WstringToString(*dump_filename_w));
 
-   crash_reporter->ExitProcess();
+      crash_reporter->ExitProcess();
+   } catch (...) {
+   }
 }
 
 void CrashReporterServer::OnClientExited(void* context, google_breakpad::ClientInfo const* client_info)
 {
-   CrashReporterServer* crash_reporter = (CrashReporterServer*) context;
-   crash_reporter->ExitProcess();
+   try {
+      CrashReporterServer* crash_reporter = (CrashReporterServer*) context;
+      crash_reporter->ExitProcess();
+   } catch (...) {
+   }
 }

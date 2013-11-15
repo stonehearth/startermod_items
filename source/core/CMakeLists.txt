@@ -1,3 +1,7 @@
+FIND_PACKAGE(Poco REQUIRED)
+
+include_directories(${Poco_INCLUDE_DIRS})
+
 add_library(core STATIC 
             config.cpp
             log.cpp
@@ -9,4 +13,5 @@ add_library(core STATIC
 
 target_link_libraries(core
                       rpcrt4
+                      ${Poco_LIBRARIES}
                       )
