@@ -4,6 +4,10 @@
     <ROW Property="AGREE_CHECKBOX" Value="True" Type="4"/>
     <ROW Property="AI_BITMAP_DISPLAY_MODE" Value="0"/>
     <ROW Property="AI_CF_TYPE" Value="1" MultiBuildValue="DefaultBuild:0" Type="4" MsiKey="AI_CF_TYPE"/>
+    <ROW Property="AI_CLEAN_RESOURCES_DISABLE_UPGRADE" Value="0"/>
+    <ROW Property="AI_CLEAN_RESOURCES_UNINSTALL" Value="1"/>
+    <ROW Property="AI_CLEAN_RESOURCES_USER_PROMPT_BASIC_UI" Value="0"/>
+    <ROW Property="AI_CLEAN_RESOURCES_USER_PROMPT_FULL_UI" Value="0"/>
     <ROW Property="AI_COLOR_DISABLED_TEXT" Value="1644825" MultiBuildValue="DefaultBuild:15529969" MsiKey="AI_COLOR_DISABLED_TEXT"/>
     <ROW Property="AI_CONTROL_VISUAL_STYLE" Value="2960685;4276545;6776679;16176031" MultiBuildValue="DefaultBuild:16777215;16580605;10395294;4108658" MsiKey="AI_CONTROL_VISUAL_STYLE"/>
     <ROW Property="AI_CONTROL_VISUAL_STYLE_FLAT" MultiBuildValue="DefaultBuild:15925239;15138798;10395294;4108658" MsiKey="AI_CONTROL_VISUAL_STYLE_FLAT"/>
@@ -15,7 +19,6 @@
     <ROW Property="AI_ThemeStyle" Value="default" MultiBuildValue="DefaultBuild:metrowhite" MsiKey="AI_ThemeStyle"/>
     <ROW Property="AI_ThemeStyleEx" Value="border" MsiKey="AI_ThemeStyleEx"/>
     <ROW Property="ALLUSERS" Value="1" MultiBuildValue="DefaultBuild:2"/>
-    <ROW Property="ARPCOMMENTS" Value="Standalone (non-Steam) Stonehearth installation" ValueLocId="*"/>
     <ROW Property="ARPNOMODIFY" MultiBuildValue="DefaultBuild:1"/>
     <ROW Property="ARPPRODUCTICON" Value="stonehearth.exe" Type="8"/>
     <ROW Property="AiPreferFastOem" MultiBuildValue="DefaultBuild:1"/>
@@ -37,40 +40,30 @@
     <ROW Property="WindowsTypeNT40Display" MultiBuildValue="DefaultBuild:Windows NT 4.0" ValueLocId="-"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiDirsComponent">
-    <ROW Directory="APPDIR" Directory_Parent="TARGETDIR" DefaultDir="APPDIR:." IsPseudoRoot="1"/>
+    <ROW Directory="APPDIR" Directory_Parent="TARGETDIR" DefaultDir="APPDIR:." IsPseudoRoot="1" DirectoryOptions="3"/>
     <ROW Directory="DesktopFolder" Directory_Parent="TARGETDIR" DefaultDir="Deskto~1|DesktopFolder" IsPseudoRoot="1"/>
     <ROW Directory="SHORTCUTDIR" Directory_Parent="TARGETDIR" DefaultDir="SHORTC~1|SHORTCUTDIR" IsPseudoRoot="1"/>
     <ROW Directory="TARGETDIR" DefaultDir="SourceDir"/>
-    <ROW Directory="animatedlights_Dir" Directory_Parent="horde_Dir" DefaultDir="animat~1|animatedlights"/>
-    <ROW Directory="common_Dir" Directory_Parent="textures_Dir" DefaultDir="common"/>
-    <ROW Directory="designation_Dir" Directory_Parent="materials_Dir" DefaultDir="design~1|designation"/>
-    <ROW Directory="environment_Dir" Directory_Parent="textures_Dir" DefaultDir="enviro~1|environment"/>
-    <ROW Directory="fire_1_Dir" Directory_Parent="particles_Dir" DefaultDir="fire"/>
-    <ROW Directory="fire_Dir" Directory_Parent="animatedlights_Dir" DefaultDir="fire"/>
-    <ROW Directory="fixtures_Dir" Directory_Parent="models_Dir" DefaultDir="fixtures"/>
-    <ROW Directory="fonts_Dir" Directory_Parent="horde_Dir" DefaultDir="fonts"/>
-    <ROW Directory="horde_Dir" Directory_Parent="APPDIR" DefaultDir="horde"/>
-    <ROW Directory="images_Dir" Directory_Parent="scaffolding_Dir" DefaultDir="images"/>
-    <ROW Directory="locales_Dir" Directory_Parent="APPDIR" DefaultDir="locales"/>
-    <ROW Directory="materials_Dir" Directory_Parent="horde_Dir" DefaultDir="materi~1|materials"/>
-    <ROW Directory="models_1_Dir" Directory_Parent="textures_Dir" DefaultDir="models"/>
-    <ROW Directory="models_Dir" Directory_Parent="horde_Dir" DefaultDir="models"/>
-    <ROW Directory="mods_Dir" Directory_Parent="APPDIR" DefaultDir="mods"/>
-    <ROW Directory="overlays_Dir" Directory_Parent="horde_Dir" DefaultDir="overlays"/>
-    <ROW Directory="particleSys1_Dir" Directory_Parent="particles_Dir" DefaultDir="partic~1|particleSys1"/>
-    <ROW Directory="particles_1_Dir" Directory_Parent="textures_Dir" DefaultDir="partic~1|particles"/>
-    <ROW Directory="particles_Dir" Directory_Parent="horde_Dir" DefaultDir="partic~1|particles"/>
-    <ROW Directory="pipelines_Dir" Directory_Parent="horde_Dir" DefaultDir="pipeli~1|pipelines"/>
-    <ROW Directory="resources_Dir" Directory_Parent="models_Dir" DefaultDir="resour~1|resources"/>
-    <ROW Directory="scaffolding_Dir" Directory_Parent="models_Dir" DefaultDir="scaffo~1|scaffolding"/>
-    <ROW Directory="shaders_Dir" Directory_Parent="horde_Dir" DefaultDir="shaders"/>
-    <ROW Directory="skybox_Dir" Directory_Parent="models_Dir" DefaultDir="skybox"/>
-    <ROW Directory="sparks_Dir" Directory_Parent="particles_Dir" DefaultDir="sparks"/>
-    <ROW Directory="stockpile_Dir" Directory_Parent="materials_Dir" DefaultDir="stockp~1|stockpile"/>
-    <ROW Directory="talisman_Dir" Directory_Parent="particles_Dir" DefaultDir="talisman"/>
-    <ROW Directory="terrain_Dir" Directory_Parent="horde_Dir" DefaultDir="terrain"/>
-    <ROW Directory="textures_Dir" Directory_Parent="horde_Dir" DefaultDir="textures"/>
-    <ROW Directory="utilityLib_Dir" Directory_Parent="shaders_Dir" DefaultDir="utilit~1|utilityLib"/>
+    <ROW Directory="animatedlights_Dir" Directory_Parent="horde_Dir" DefaultDir="animat~1|animatedlights" DirectoryOptions="3"/>
+    <ROW Directory="common_Dir" Directory_Parent="textures_Dir" DefaultDir="common" DirectoryOptions="3"/>
+    <ROW Directory="designation_Dir" Directory_Parent="materials_Dir" DefaultDir="design~1|designation" DirectoryOptions="3"/>
+    <ROW Directory="environment_Dir" Directory_Parent="textures_Dir" DefaultDir="enviro~1|environment" DirectoryOptions="3"/>
+    <ROW Directory="fire_1_Dir" Directory_Parent="particles_Dir" DefaultDir="fire" DirectoryOptions="3"/>
+    <ROW Directory="fire_Dir" Directory_Parent="animatedlights_Dir" DefaultDir="fire" DirectoryOptions="3"/>
+    <ROW Directory="fonts_Dir" Directory_Parent="horde_Dir" DefaultDir="fonts" DirectoryOptions="3"/>
+    <ROW Directory="horde_Dir" Directory_Parent="APPDIR" DefaultDir="horde" DirectoryOptions="3"/>
+    <ROW Directory="locales_Dir" Directory_Parent="APPDIR" DefaultDir="locales" DirectoryOptions="3"/>
+    <ROW Directory="materials_Dir" Directory_Parent="horde_Dir" DefaultDir="materi~1|materials" DirectoryOptions="3"/>
+    <ROW Directory="mods_Dir" Directory_Parent="APPDIR" DefaultDir="mods" DirectoryOptions="3"/>
+    <ROW Directory="overlays_Dir" Directory_Parent="horde_Dir" DefaultDir="overlays" DirectoryOptions="3"/>
+    <ROW Directory="particles_Dir" Directory_Parent="horde_Dir" DefaultDir="partic~1|particles" DirectoryOptions="3"/>
+    <ROW Directory="pipelines_Dir" Directory_Parent="horde_Dir" DefaultDir="pipeli~1|pipelines" DirectoryOptions="3"/>
+    <ROW Directory="shaders_Dir" Directory_Parent="horde_Dir" DefaultDir="shaders" DirectoryOptions="3"/>
+    <ROW Directory="sparks_Dir" Directory_Parent="particles_Dir" DefaultDir="sparks" DirectoryOptions="3"/>
+    <ROW Directory="stockpile_Dir" Directory_Parent="materials_Dir" DefaultDir="stockp~1|stockpile" DirectoryOptions="3"/>
+    <ROW Directory="talisman_Dir" Directory_Parent="particles_Dir" DefaultDir="talisman" DirectoryOptions="3"/>
+    <ROW Directory="textures_Dir" Directory_Parent="horde_Dir" DefaultDir="textures" DirectoryOptions="3"/>
+    <ROW Directory="utilityLib_Dir" Directory_Parent="shaders_Dir" DefaultDir="utilit~1|utilityLib" DirectoryOptions="3"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
     <ROW Component="AI_ExePath" ComponentId="{A80C4D74-6F7C-47DC-9786-EA62D1B45806}" Directory_="APPDIR" Attributes="4" KeyPath="AI_ExePath"/>
@@ -78,288 +71,172 @@
     <ROW Component="SHORTCUTDIR" ComponentId="{9587F0B0-9BA1-41C6-89A4-BEF419983823}" Directory_="SHORTCUTDIR" Attributes="0"/>
     <ROW Component="Stonehearth.exe" ComponentId="{1F771080-0BB4-4C10-9703-F04C0BCB09F4}" Directory_="APPDIR" Attributes="0" KeyPath="Stonehearth.exe"/>
     <ROW Component="am.pak" ComponentId="{E90056F5-39AC-4DA1-AA5D-657EC153AA77}" Directory_="locales_Dir" Attributes="0" KeyPath="am.pak" Type="0"/>
-    <ROW Component="ambientMap.dds" ComponentId="{173216EC-B5EA-4738-9E10-EA039123E27F}" Directory_="textures_Dir" Attributes="0" KeyPath="ambientMap.dds" Type="0"/>
-    <ROW Component="bedrock_material.xml" ComponentId="{986B416F-D18F-468D-A269-317E4682E49A}" Directory_="terrain_Dir" Attributes="0" KeyPath="bedrock_material.xml" Type="0"/>
     <ROW Component="berlin_sans_fb_bold_32.PNG" ComponentId="{62D4C62E-2D89-400F-B9FB-76757AB9E41F}" Directory_="fonts_Dir" Attributes="0" KeyPath="berlin_sans_fb_bold_32.PNG" Type="0"/>
-    <ROW Component="blueprint.deferred.pipeline.xml" ComponentId="{28F67507-3113-4161-8FDE-A9775E4A6CCC}" Directory_="pipelines_Dir" Attributes="0" KeyPath="blueprint.deferred.pipeline.xml" Type="0"/>
+    <ROW Component="blueprint.deferred.pipeline.xml" ComponentId="{28F67507-3113-4161-8FDE-A9775E4A6CCC}" Directory_="pipelines_Dir" Attributes="0" KeyPath="deferred_lighting.xml" Type="0"/>
     <ROW Component="blueprint_gridlines.shader" ComponentId="{657F616E-93DC-4E32-8D5D-D0DCAAA4441C}" Directory_="shaders_Dir" Attributes="0" KeyPath="blueprint_gridlines.shader" Type="0"/>
     <ROW Component="blueprint_gridlines.xml" ComponentId="{3D8908EB-BBF4-448A-A4E5-9B673F5390D3}" Directory_="materials_Dir" Attributes="0" KeyPath="blueprint_gridlines.xml" Type="0"/>
     <ROW Component="blur.glsl" ComponentId="{436265A8-29B2-41F7-A07B-24C3AB300C15}" Directory_="utilityLib_Dir" Attributes="0" KeyPath="blur.glsl" Type="0"/>
     <ROW Component="center.material.xml" ComponentId="{D263AA11-89F5-4D78-9616-76A66B0FE741}" Directory_="stockpile_Dir" Attributes="0" KeyPath="center.material.xml" Type="0"/>
     <ROW Component="cloudmap.png" ComponentId="{BD0B145C-0438-4445-91D3-98BC4870D705}" Directory_="environment_Dir" Attributes="0" KeyPath="cloudmap.png" Type="0"/>
-    <ROW Component="corners.png" ComponentId="{AEF5E177-07B0-4E94-989B-E037A324D3A9}" Directory_="common_Dir" Attributes="0" KeyPath="corners.png" Type="0"/>
+    <ROW Component="corners.png" ComponentId="{AEF5E177-07B0-4E94-989B-E037A324D3A9}" Directory_="common_Dir" Attributes="0" KeyPath="defnorm.tga" Type="0"/>
     <ROW Component="crash_reporter.exe" ComponentId="{8EA071A6-0410-4B91-92A8-5FE94089FC19}" Directory_="APPDIR" Attributes="0" KeyPath="crash_reporter.exe"/>
-    <ROW Component="door_frame_wood.DAE" ComponentId="{D2AF0044-9A22-4CCE-BB82-C005E2AA33A3}" Directory_="fixtures_Dir" Attributes="0" KeyPath="door_frame_wood.DAE" Type="0"/>
     <ROW Component="fire.animatedlight.json" ComponentId="{4FA28BF6-85DF-4A3C-9ADD-0F1D22004C43}" Directory_="fire_Dir" Attributes="0" KeyPath="fire.animatedlight.json" Type="0"/>
     <ROW Component="fire.cubemitter.json" ComponentId="{8E3D4CDE-1D88-45A0-A0B8-5B01C0302B62}" Directory_="fire_1_Dir" Attributes="0" KeyPath="fire.cubemitter.json" Type="0"/>
-    <ROW Component="fire.material.xml" ComponentId="{5AF78209-9669-4A13-A8C0-D14CDABB1C82}" Directory_="talisman_Dir" Attributes="0" KeyPath="fire.material.xml_1" Type="0"/>
+    <ROW Component="fire.material.xml" ComponentId="{5AF78209-9669-4A13-A8C0-D14CDABB1C82}" Directory_="talisman_Dir" Attributes="0" KeyPath="talisman.cubemitter.json" Type="0"/>
     <ROW Component="flint_spark.json" ComponentId="{F1744EA7-901D-4927-8481-BFCC0BA8ABA2}" Directory_="sparks_Dir" Attributes="0" KeyPath="flint_spark.json" Type="0"/>
     <ROW Component="font.material.xml" ComponentId="{22ECFBBC-20A1-44AD-9F8B-667E545CA479}" Directory_="overlays_Dir" Attributes="0" KeyPath="font.material.xml" Type="0"/>
     <ROW Component="icudt.dll" ComponentId="{13AF237F-31EC-4770-82AB-F6B1C3C05EAE}" Directory_="APPDIR" Attributes="0" KeyPath="icudt.dll"/>
-    <ROW Component="innertop.png" ComponentId="{AF3C0D18-393C-4B1A-A5AA-13D4307DFA7F}" Directory_="images_Dir" Attributes="0" KeyPath="innertop.png" Type="0"/>
-    <ROW Component="innertop.png_1" ComponentId="{E92FCEDC-C740-4E03-81AB-555FC3FF2EEA}" Directory_="scaffolding_Dir" Attributes="0" KeyPath="innertop.png_1" Type="0"/>
-    <ROW Component="layingrock.jpg" ComponentId="{0069B590-6B09-442C-A887-2A655A90560F}" Directory_="models_1_Dir" Attributes="0" KeyPath="layingrock.jpg" Type="0"/>
     <ROW Component="libcef.dll" ComponentId="{F54B527C-5B28-41A8-B238-085EE9164002}" Directory_="APPDIR" Attributes="0" KeyPath="libcef.dll"/>
     <ROW Component="libsndfile1.dll" ComponentId="{9873B520-88AC-4435-B988-9869DA54E439}" Directory_="APPDIR" Attributes="0" KeyPath="libsndfile1.dll"/>
     <ROW Component="lua5.1.5.dll" ComponentId="{A096F0E1-593F-492A-98F0-12B53CCA3FB6}" Directory_="APPDIR" Attributes="0" KeyPath="lua5.1.5.dll"/>
-    <ROW Component="oak_log.DAE" ComponentId="{5A059C1D-D134-4F16-A2A7-216823AF1B75}" Directory_="resources_Dir" Attributes="0" KeyPath="oak_log.DAE" Type="0"/>
     <ROW Component="openal32.dll" ComponentId="{3CBADAC3-2CB2-40FE-BBC4-F20B28EC1EFB}" Directory_="APPDIR" Attributes="0" KeyPath="openal32.dll"/>
     <ROW Component="outline.material.xml" ComponentId="{5204D9F7-5E9F-4E2F-9363-1F267D31C12E}" Directory_="designation_Dir" Attributes="0" KeyPath="outline.material.xml_1" Type="0"/>
-    <ROW Component="particle1.material.xml" ComponentId="{BD4D1E2E-015B-41B4-809F-B49A3241F37D}" Directory_="particleSys1_Dir" Attributes="0" KeyPath="particle1.material.xml" Type="0"/>
-    <ROW Component="particle1.tga" ComponentId="{7E579726-483A-4888-AE71-5E07A5F2557C}" Directory_="particles_1_Dir" Attributes="0" KeyPath="particle1.tga" Type="0"/>
-    <ROW Component="radiant.stmod" ComponentId="{2D3222A5-51E4-4DA8-9207-A15E91393E88}" Directory_="mods_Dir" Attributes="0" KeyPath="radiant.stmod" Type="0"/>
+    <ROW Component="radiant.stmod" ComponentId="{2D3222A5-51E4-4DA8-9207-A15E91393E88}" Directory_="mods_Dir" Attributes="0" KeyPath="radiant.smod" Type="0"/>
     <ROW Component="sfmlaudio2.dll" ComponentId="{93FB4AB2-C736-42E8-BF8C-A3D7F072F399}" Directory_="APPDIR" Attributes="0" KeyPath="sfmlaudio2.dll"/>
     <ROW Component="sfmlsystem2.dll" ComponentId="{499BA0D3-32B3-4ACF-B2E0-58ED86FA9C0B}" Directory_="APPDIR" Attributes="0" KeyPath="sfmlsystem2.dll"/>
-    <ROW Component="skyboxblue.dds" ComponentId="{3ADC8E12-4DE1-4457-AF57-B34627F3DE64}" Directory_="skybox_Dir" Attributes="0" KeyPath="skyboxblue.dds" Type="0"/>
     <ROW Component="stonehearth.ini" ComponentId="{3CF6C0E6-DAFC-49FE-90CA-34D93E86130A}" Directory_="APPDIR" Attributes="0" KeyPath="stonehearth.ini" Type="0"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
-    <ROW Feature="MainFeature" Title="MainFeature" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0" Components="AI_ExePath ProductInformation SHORTCUTDIR Stonehearth.exe am.pak ambientMap.dds bedrock_material.xml berlin_sans_fb_bold_32.PNG blueprint.deferred.pipeline.xml blueprint_gridlines.shader blueprint_gridlines.xml blur.glsl center.material.xml cloudmap.png corners.png crash_reporter.exe door_frame_wood.DAE fire.animatedlight.json fire.cubemitter.json fire.material.xml flint_spark.json font.material.xml icudt.dll innertop.png innertop.png_1 layingrock.jpg libcef.dll libsndfile1.dll lua5.1.5.dll oak_log.DAE openal32.dll outline.material.xml particle1.material.xml particle1.tga radiant.stmod sfmlaudio2.dll sfmlsystem2.dll skyboxblue.dds stonehearth.ini"/>
+    <ROW Feature="MainFeature" Title="MainFeature" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0" Components="AI_ExePath ProductInformation SHORTCUTDIR Stonehearth.exe am.pak berlin_sans_fb_bold_32.PNG blueprint.deferred.pipeline.xml blueprint_gridlines.shader blueprint_gridlines.xml blur.glsl center.material.xml cloudmap.png corners.png crash_reporter.exe fire.animatedlight.json fire.cubemitter.json fire.material.xml flint_spark.json font.material.xml icudt.dll libcef.dll libsndfile1.dll lua5.1.5.dll openal32.dll outline.material.xml radiant.stmod sfmlaudio2.dll sfmlsystem2.dll stonehearth.ini"/>
     <ATTRIBUTE name="CurrentFeature" value="MainFeature"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
-    <ROW File="Stonehearth.exe" Component_="Stonehearth.exe" FileName="Stoneh~1.exe|Stonehearth.exe" Attributes="0" SourcePath="..\..\build\stage\Stonehearth.exe" SelfReg="false" NextFile="stonehearth.ini" DigSign="true"/>
-    <ROW File="_3__Default.material.xml" Component_="door_frame_wood.DAE" FileName="_3_-_D~1.xml|_3_-_Default.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\fixtures\_3_-_Default.material.xml" SelfReg="false" NextFile="oak_log.DAE"/>
-    <ROW File="am.pak" Component_="am.pak" FileName="am.pak" Attributes="0" SourcePath="..\..\build\stage\locales\am.pak" SelfReg="false" NextFile="ar.pak"/>
-    <ROW File="ambientMap.dds" Component_="ambientMap.dds" FileName="ambien~1.dds|ambientMap.dds" Attributes="0" SourcePath="..\..\build\stage\horde\textures\ambientMap.dds" SelfReg="false" NextFile="corners.png"/>
-    <ROW File="ar.pak" Component_="am.pak" FileName="ar.pak" Attributes="0" SourcePath="..\..\build\stage\locales\ar.pak" SelfReg="false" NextFile="bg.pak"/>
-    <ROW File="bedrock_material.xml" Component_="bedrock_material.xml" FileName="bedroc~1.xml|bedrock_material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\terrain\bedrock_material.xml" SelfReg="false" NextFile="default_material.xml"/>
-    <ROW File="berlin_sans_fb_bold_32.PNG" Component_="berlin_sans_fb_bold_32.PNG" FileName="berlin~1.PNG|berlin_sans_fb_bold_32.PNG" Attributes="0" SourcePath="..\..\build\stage\horde\fonts\berlin_sans_fb_bold_32.PNG" SelfReg="false" NextFile="berlin_sans_fb_bold_32.xml"/>
-    <ROW File="berlin_sans_fb_bold_32.xml" Component_="berlin_sans_fb_bold_32.PNG" FileName="berlin~1.xml|berlin_sans_fb_bold_32.xml" Attributes="0" SourcePath="..\..\build\stage\horde\fonts\berlin_sans_fb_bold_32.xml" SelfReg="false" NextFile="fontdinerdotcom_huggable_regular_20.dds"/>
-    <ROW File="bg.pak" Component_="am.pak" FileName="bg.pak" Attributes="0" SourcePath="..\..\build\stage\locales\bg.pak" SelfReg="false" NextFile="bn.pak"/>
-    <ROW File="blueprint.deferred.pipeline.xml" Component_="blueprint.deferred.pipeline.xml" FileName="bluepr~1.xml|blueprint.deferred.pipeline.xml" Attributes="0" SourcePath="..\..\build\stage\horde\pipelines\blueprint.deferred.pipeline.xml" SelfReg="false" NextFile="deferredcandy.pipeline.xml"/>
-    <ROW File="blueprint_gridlines.shader" Component_="blueprint_gridlines.shader" FileName="bluepr~1.sha|blueprint_gridlines.shader" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\blueprint_gridlines.shader" SelfReg="false" NextFile="clouds.shader"/>
-    <ROW File="blueprint_gridlines.xml" Component_="blueprint_gridlines.xml" FileName="bluepr~1.xml|blueprint_gridlines.xml" Attributes="0" SourcePath="..\..\build\stage\horde\materials\blueprint_gridlines.xml" SelfReg="false" NextFile="clouds.material.xml"/>
-    <ROW File="blur.glsl" Component_="blur.glsl" FileName="blur~1.gls|blur.glsl" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\utilityLib\blur.glsl" SelfReg="false" NextFile="cubemitterCommon.glsl"/>
-    <ROW File="bn.pak" Component_="am.pak" FileName="bn.pak" Attributes="0" SourcePath="..\..\build\stage\locales\bn.pak" SelfReg="false" NextFile="ca.pak"/>
-    <ROW File="ca.pak" Component_="am.pak" FileName="ca.pak" Attributes="0" SourcePath="..\..\build\stage\locales\ca.pak" SelfReg="false" NextFile="cs.pak"/>
-    <ROW File="center.material.xml" Component_="center.material.xml" FileName="center~1.xml|center.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\materials\stockpile\center.material.xml" SelfReg="false" NextFile="center.png"/>
-    <ROW File="center.png" Component_="center.material.xml" FileName="center.png" Attributes="0" SourcePath="..\..\build\stage\horde\materials\stockpile\center.png" SelfReg="false" NextFile="corner.material.xml"/>
-    <ROW File="cloudmap.png" Component_="cloudmap.png" FileName="cloudmap.png" Attributes="0" SourcePath="..\..\build\stage\horde\textures\environment\cloudmap.png" SelfReg="false" NextFile="layingrock.jpg"/>
-    <ROW File="clouds.material.xml" Component_="blueprint_gridlines.xml" FileName="clouds~1.xml|clouds.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\materials\clouds.material.xml" SelfReg="false" NextFile="cubemitter.material.xml"/>
-    <ROW File="clouds.shader" Component_="blueprint_gridlines.shader" FileName="clouds~1.sha|clouds.shader" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\clouds.shader" SelfReg="false" NextFile="cubemitter.shader"/>
-    <ROW File="corner.material.xml" Component_="center.material.xml" FileName="corner~1.xml|corner.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\materials\stockpile\corner.material.xml" SelfReg="false" NextFile="corner.png"/>
-    <ROW File="corner.png" Component_="center.material.xml" FileName="corner.png" Attributes="0" SourcePath="..\..\build\stage\horde\materials\stockpile\corner.png" SelfReg="false" NextFile="edge.material.xml"/>
-    <ROW File="corners.png" Component_="corners.png" FileName="corners.png" Attributes="0" SourcePath="..\..\build\stage\horde\textures\common\corners.png" SelfReg="false" NextFile="cross.png"/>
-    <ROW File="crash_reporter.exe" Component_="crash_reporter.exe" FileName="crash_~1.exe|crash_reporter.exe" Attributes="0" SourcePath="..\..\build\stage\crash_reporter.exe" SelfReg="false" NextFile="outline.material.xml_1" DigSign="true"/>
-    <ROW File="cross.png" Component_="corners.png" FileName="cross.png" Attributes="0" SourcePath="..\..\build\stage\horde\textures\common\cross.png" SelfReg="false" NextFile="defnorm.tga"/>
-    <ROW File="cs.pak" Component_="am.pak" FileName="cs.pak" Attributes="0" SourcePath="..\..\build\stage\locales\cs.pak" SelfReg="false" NextFile="da.pak"/>
-    <ROW File="cubemitter.material.xml" Component_="blueprint_gridlines.xml" FileName="cubemi~1.xml|cubemitter.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\materials\cubemitter.material.xml" SelfReg="false" NextFile="cubemitterBatch.material.xml"/>
-    <ROW File="cubemitter.shader" Component_="blueprint_gridlines.shader" FileName="cubemi~1.sha|cubemitter.shader" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\cubemitter.shader" SelfReg="false" NextFile="debug_shape.shader"/>
-    <ROW File="cubemitterBatch.material.xml" Component_="blueprint_gridlines.xml" FileName="cubemi~2.xml|cubemitterBatch.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\materials\cubemitterBatch.material.xml" SelfReg="false" NextFile="debug_shape.material.xml"/>
-    <ROW File="cubemitterCommon.glsl" Component_="blur.glsl" FileName="cubemi~1.gls|cubemitterCommon.glsl" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\utilityLib\cubemitterCommon.glsl" SelfReg="false" NextFile="fragDeferredRead.glsl"/>
-    <ROW File="da.pak" Component_="am.pak" FileName="da.pak" Attributes="0" SourcePath="..\..\build\stage\locales\da.pak" SelfReg="false" NextFile="de.pak"/>
-    <ROW File="de.pak" Component_="am.pak" FileName="de.pak" Attributes="0" SourcePath="..\..\build\stage\locales\de.pak" SelfReg="false" NextFile="el.pak"/>
-    <ROW File="debug.log" Component_="stonehearth.ini" FileName="debug.log" Attributes="0" SourcePath="..\..\build\stage\debug.log" SelfReg="false" NextFile="radiant.stmod"/>
-    <ROW File="debug_shape.material.xml" Component_="blueprint_gridlines.xml" FileName="debug_~1.xml|debug_shape.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\materials\debug_shape.material.xml" SelfReg="false" NextFile="deferred_light.material.xml"/>
-    <ROW File="debug_shape.shader" Component_="blueprint_gridlines.shader" FileName="debug_~1.sha|debug_shape.shader" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\debug_shape.shader" SelfReg="false" NextFile="deferredLighting.shader"/>
-    <ROW File="default_material.xml" Component_="bedrock_material.xml" FileName="defaul~1.xml|default_material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\terrain\default_material.xml" SelfReg="false" NextFile="terrain.shader"/>
-    <ROW File="deferred.pipeline.xml" Component_="blueprint.deferred.pipeline.xml" FileName="deferr~2.xml|deferred.pipeline.xml" Attributes="0" SourcePath="..\..\build\stage\horde\pipelines\deferred.pipeline.xml" SelfReg="false" NextFile="deferred.tester.pipeline.xml"/>
-    <ROW File="deferred.tester.pipeline.xml" Component_="blueprint.deferred.pipeline.xml" FileName="deferr~3.xml|deferred.tester.pipeline.xml" Attributes="0" SourcePath="..\..\build\stage\horde\pipelines\deferred.tester.pipeline.xml" SelfReg="false" NextFile="deferred_lighting.xml"/>
-    <ROW File="deferredLighting.shader" Component_="blueprint_gridlines.shader" FileName="deferr~1.sha|deferredLighting.shader" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\deferredLighting.shader" SelfReg="false" NextFile="deferred_lighting.shader"/>
-    <ROW File="deferred_light.material.xml" Component_="blueprint_gridlines.xml" FileName="deferr~1.xml|deferred_light.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\materials\deferred_light.material.xml" SelfReg="false" NextFile="light.material.xml"/>
-    <ROW File="deferred_lighting.shader" Component_="blueprint_gridlines.shader" FileName="deferr~2.sha|deferred_lighting.shader" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\deferred_lighting.shader" SelfReg="false" NextFile="model.shader"/>
-    <ROW File="deferred_lighting.xml" Component_="blueprint.deferred.pipeline.xml" FileName="deferr~4.xml|deferred_lighting.xml" Attributes="0" SourcePath="..\..\build\stage\horde\pipelines\deferred_lighting.xml" SelfReg="false" NextFile="deferred_pipeline.lua"/>
-    <ROW File="deferred_pipeline.lua" Component_="blueprint.deferred.pipeline.xml" FileName="deferr~1.lua|deferred_pipeline.lua" Attributes="0" SourcePath="..\..\build\stage\horde\pipelines\deferred_pipeline.lua" SelfReg="false" NextFile="deferred_pipeline.xml"/>
-    <ROW File="deferred_pipeline.xml" Component_="blueprint.deferred.pipeline.xml" FileName="deferr~5.xml|deferred_pipeline.xml" Attributes="0" SourcePath="..\..\build\stage\horde\pipelines\deferred_pipeline.xml" SelfReg="false" NextFile="deferred_pipeline_static.xml"/>
-    <ROW File="deferred_pipeline_static.xml" Component_="blueprint.deferred.pipeline.xml" FileName="deferr~6.xml|deferred_pipeline_static.xml" Attributes="0" SourcePath="..\..\build\stage\horde\pipelines\deferred_pipeline_static.xml" SelfReg="false" NextFile="forward.pipeline.xml"/>
-    <ROW File="deferredcandy.pipeline.xml" Component_="blueprint.deferred.pipeline.xml" FileName="deferr~1.xml|deferred-candy.pipeline.xml" Attributes="0" SourcePath="..\..\build\stage\horde\pipelines\deferred-candy.pipeline.xml" SelfReg="false" NextFile="deferred.pipeline.xml"/>
-    <ROW File="defnorm.tga" Component_="corners.png" FileName="defnorm.tga" Attributes="0" SourcePath="..\..\build\stage\horde\textures\common\defnorm.tga" SelfReg="false" NextFile="flat.png"/>
-    <ROW File="door_frame_wood.DAE" Component_="door_frame_wood.DAE" FileName="door_f~1.DAE|door_frame_wood.DAE" Attributes="0" SourcePath="..\..\build\stage\horde\models\fixtures\door_frame_wood.DAE" SelfReg="false" NextFile="door_frame_wood.png"/>
-    <ROW File="door_frame_wood.png" Component_="door_frame_wood.DAE" FileName="door_f~1.png|door_frame_wood.png" Attributes="0" SourcePath="..\..\build\stage\horde\models\fixtures\door_frame_wood.png" SelfReg="false" NextFile="door_frame_wood.scene.xml"/>
-    <ROW File="door_frame_wood.scene.xml" Component_="door_frame_wood.DAE" FileName="door_f~1.xml|door_frame_wood.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\fixtures\door_frame_wood.scene.xml" SelfReg="false" NextFile="door_frame_wood_simpletex.material.xml"/>
-    <ROW File="door_frame_wood_simpletex.material.xml" Component_="door_frame_wood.DAE" FileName="door_f~2.xml|door_frame_wood_simpletex.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\fixtures\door_frame_wood_simpletex.material.xml" SelfReg="false" NextFile="lantern.png"/>
-    <ROW File="edge.material.xml" Component_="center.material.xml" FileName="edgema~1.xml|edge.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\materials\stockpile\edge.material.xml" SelfReg="false" NextFile="edge.png"/>
-    <ROW File="edge.png" Component_="center.material.xml" FileName="edge.png" Attributes="0" SourcePath="..\..\build\stage\horde\materials\stockpile\edge.png" SelfReg="false" NextFile="stockpile.shader"/>
-    <ROW File="el.pak" Component_="am.pak" FileName="el.pak" Attributes="0" SourcePath="..\..\build\stage\locales\el.pak" SelfReg="false" NextFile="enGB.pak"/>
-    <ROW File="enGB.pak" Component_="am.pak" FileName="en-GB.pak" Attributes="0" SourcePath="..\..\build\stage\locales\en-GB.pak" SelfReg="false" NextFile="enUS.pak"/>
-    <ROW File="enUS.pak" Component_="am.pak" FileName="en-US.pak" Attributes="0" SourcePath="..\..\build\stage\locales\en-US.pak" SelfReg="false" NextFile="es419.pak"/>
-    <ROW File="es.pak" Component_="am.pak" FileName="es.pak" Attributes="0" SourcePath="..\..\build\stage\locales\es.pak" SelfReg="false" NextFile="et.pak"/>
-    <ROW File="es419.pak" Component_="am.pak" FileName="es-419.pak" Attributes="0" SourcePath="..\..\build\stage\locales\es-419.pak" SelfReg="false" NextFile="es.pak"/>
-    <ROW File="et.pak" Component_="am.pak" FileName="et.pak" Attributes="0" SourcePath="..\..\build\stage\locales\et.pak" SelfReg="false" NextFile="fa.pak"/>
-    <ROW File="fa.pak" Component_="am.pak" FileName="fa.pak" Attributes="0" SourcePath="..\..\build\stage\locales\fa.pak" SelfReg="false" NextFile="fi.pak"/>
-    <ROW File="fi.pak" Component_="am.pak" FileName="fi.pak" Attributes="0" SourcePath="..\..\build\stage\locales\fi.pak" SelfReg="false" NextFile="fil.pak"/>
-    <ROW File="fil.pak" Component_="am.pak" FileName="fil.pak" Attributes="0" SourcePath="..\..\build\stage\locales\fil.pak" SelfReg="false" NextFile="fr.pak"/>
-    <ROW File="fire.animatedlight.json" Component_="fire.animatedlight.json" FileName="firean~1.jso|fire.animatedlight.json" Attributes="0" SourcePath="..\..\build\stage\horde\animatedlights\fire\fire.animatedlight.json" SelfReg="false" NextFile="berlin_sans_fb_bold_32.PNG"/>
-    <ROW File="fire.cubemitter.json" Component_="fire.cubemitter.json" FileName="firecu~1.jso|fire.cubemitter.json" Attributes="0" SourcePath="..\..\build\stage\horde\particles\fire\fire.cubemitter.json" SelfReg="false" NextFile="fire.material.xml"/>
-    <ROW File="fire.material.xml" Component_="fire.cubemitter.json" FileName="firema~1.xml|fire.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\particles\fire\fire.material.xml" SelfReg="false" NextFile="particle1.material.xml"/>
-    <ROW File="fire.material.xml_1" Component_="fire.material.xml" FileName="firema~1.xml|fire.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\particles\talisman\fire.material.xml" SelfReg="false" NextFile="talisman.cubemittercircular.json"/>
-    <ROW File="flat.png" Component_="corners.png" FileName="flat.png" Attributes="0" SourcePath="..\..\build\stage\horde\textures\common\flat.png" SelfReg="false" NextFile="gridMap.dds"/>
-    <ROW File="flint_spark.json" Component_="flint_spark.json" FileName="flint_~1.jso|flint_spark.json" Attributes="0" SourcePath="..\..\build\stage\horde\particles\sparks\flint_spark.json" SelfReg="false" NextFile="hit_spark.json"/>
-    <ROW File="font.material.xml" Component_="font.material.xml" FileName="fontma~1.xml|font.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\overlays\font.material.xml" SelfReg="false" NextFile="font.tga"/>
-    <ROW File="font.tga" Component_="font.material.xml" FileName="font.tga" Attributes="0" SourcePath="..\..\build\stage\horde\overlays\font.tga" SelfReg="false" NextFile="logo.material.xml"/>
-    <ROW File="fontdinerdotcom_huggable_regular_20.PNG" Component_="berlin_sans_fb_bold_32.PNG" FileName="fontdi~1.PNG|fontdinerdotcom_huggable_regular_20.PNG" Attributes="0" SourcePath="..\..\build\stage\horde\fonts\fontdinerdotcom_huggable_regular_20.PNG" SelfReg="false" NextFile="fontdinerdotcom_huggable_regular_20.xml"/>
-    <ROW File="fontdinerdotcom_huggable_regular_20.dds" Component_="berlin_sans_fb_bold_32.PNG" FileName="fontdi~1.dds|fontdinerdotcom_huggable_regular_20.dds" Attributes="0" SourcePath="..\..\build\stage\horde\fonts\fontdinerdotcom_huggable_regular_20.dds" SelfReg="false" NextFile="fontdinerdotcom_huggable_regular_20.PNG"/>
-    <ROW File="fontdinerdotcom_huggable_regular_20.xml" Component_="berlin_sans_fb_bold_32.PNG" FileName="fontdi~1.xml|fontdinerdotcom_huggable_regular_20.xml" Attributes="0" SourcePath="..\..\build\stage\horde\fonts\fontdinerdotcom_huggable_regular_20.xml" SelfReg="false" NextFile="toast_text.fnt"/>
-    <ROW File="forward.pipeline.xml" Component_="blueprint.deferred.pipeline.xml" FileName="forwar~1.xml|forward.pipeline.xml" Attributes="0" SourcePath="..\..\build\stage\horde\pipelines\forward.pipeline.xml" SelfReg="false" NextFile="globalSettings.material.xml"/>
-    <ROW File="fr.pak" Component_="am.pak" FileName="fr.pak" Attributes="0" SourcePath="..\..\build\stage\locales\fr.pak" SelfReg="false" NextFile="gu.pak"/>
-    <ROW File="fragDeferredRead.glsl" Component_="blur.glsl" FileName="fragDe~1.gls|fragDeferredRead.glsl" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\utilityLib\fragDeferredRead.glsl" SelfReg="false" NextFile="fragDeferredWrite.glsl"/>
-    <ROW File="fragDeferredWrite.glsl" Component_="blur.glsl" FileName="fragDe~2.gls|fragDeferredWrite.glsl" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\utilityLib\fragDeferredWrite.glsl" SelfReg="false" NextFile="fragLighting.glsl"/>
-    <ROW File="fragLighting.glsl" Component_="blur.glsl" FileName="fragLi~1.gls|fragLighting.glsl" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\utilityLib\fragLighting.glsl" SelfReg="false" NextFile="fragPostProcess.glsl"/>
-    <ROW File="fragPostProcess.glsl" Component_="blur.glsl" FileName="fragPo~1.gls|fragPostProcess.glsl" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\utilityLib\fragPostProcess.glsl" SelfReg="false" NextFile="fullscreen_quad.glsl"/>
-    <ROW File="fullscreen_quad.glsl" Component_="blur.glsl" FileName="fullsc~1.gls|fullscreen_quad.glsl" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\utilityLib\fullscreen_quad.glsl" SelfReg="false" NextFile="outline.glsl"/>
-    <ROW File="globalSettings.material.xml" Component_="blueprint.deferred.pipeline.xml" FileName="global~1.xml|globalSettings.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\pipelines\globalSettings.material.xml" SelfReg="false" NextFile="outline.material.xml"/>
-    <ROW File="gridMap.dds" Component_="corners.png" FileName="gridMap.dds" Attributes="0" SourcePath="..\..\build\stage\horde\textures\common\gridMap.dds" SelfReg="false" NextFile="gridmap.tga"/>
-    <ROW File="gridMap2.dds" Component_="corners.png" FileName="gridMap2.dds" Attributes="0" SourcePath="..\..\build\stage\horde\textures\common\gridMap2.dds" SelfReg="false" NextFile="white.tga"/>
-    <ROW File="gridmap.tga" Component_="corners.png" FileName="gridmap.tga" Attributes="0" SourcePath="..\..\build\stage\horde\textures\common\gridmap.tga" SelfReg="false" NextFile="gridMap2.dds"/>
-    <ROW File="gu.pak" Component_="am.pak" FileName="gu.pak" Attributes="0" SourcePath="..\..\build\stage\locales\gu.pak" SelfReg="false" NextFile="he.pak"/>
-    <ROW File="he.pak" Component_="am.pak" FileName="he.pak" Attributes="0" SourcePath="..\..\build\stage\locales\he.pak" SelfReg="false" NextFile="hi.pak"/>
-    <ROW File="hi.pak" Component_="am.pak" FileName="hi.pak" Attributes="0" SourcePath="..\..\build\stage\locales\hi.pak" SelfReg="false" NextFile="hr.pak"/>
-    <ROW File="hit_spark.json" Component_="flint_spark.json" FileName="hit_sp~1.jso|hit_spark.json" Attributes="0" SourcePath="..\..\build\stage\horde\particles\sparks\hit_spark.json" SelfReg="false" NextFile="spark.material.xml"/>
-    <ROW File="hr.pak" Component_="am.pak" FileName="hr.pak" Attributes="0" SourcePath="..\..\build\stage\locales\hr.pak" SelfReg="false" NextFile="hu.pak"/>
-    <ROW File="hu.pak" Component_="am.pak" FileName="hu.pak" Attributes="0" SourcePath="..\..\build\stage\locales\hu.pak" SelfReg="false" NextFile="id.pak"/>
-    <ROW File="icudt.dll" Component_="icudt.dll" FileName="icudt.dll" Attributes="0" SourcePath="..\..\build\stage\icudt.dll" SelfReg="false" NextFile="libcef.dll"/>
-    <ROW File="id.pak" Component_="am.pak" FileName="id.pak" Attributes="0" SourcePath="..\..\build\stage\locales\id.pak" SelfReg="false" NextFile="it.pak"/>
-    <ROW File="inner_top_simpletex.material.xml" Component_="innertop.png_1" FileName="inner_~1.xml|inner_top_simpletex.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\inner_top_simpletex.material.xml" SelfReg="false" NextFile="scaffolding.png_1"/>
-    <ROW File="innertop.png" Component_="innertop.png" FileName="inner-~1.png|inner-top.png" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\images\inner-top.png" SelfReg="false" NextFile="scaffolding.png"/>
-    <ROW File="innertop.png_1" Component_="innertop.png_1" FileName="inner-~1.png|inner-top.png" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\inner-top.png" SelfReg="false" NextFile="inner_top_simpletex.material.xml"/>
-    <ROW File="it.pak" Component_="am.pak" FileName="it.pak" Attributes="0" SourcePath="..\..\build\stage\locales\it.pak" SelfReg="false" NextFile="ja.pak"/>
-    <ROW File="ja.pak" Component_="am.pak" FileName="ja.pak" Attributes="0" SourcePath="..\..\build\stage\locales\ja.pak" SelfReg="false" NextFile="kn.pak"/>
-    <ROW File="kn.pak" Component_="am.pak" FileName="kn.pak" Attributes="0" SourcePath="..\..\build\stage\locales\kn.pak" SelfReg="false" NextFile="ko.pak"/>
-    <ROW File="ko.pak" Component_="am.pak" FileName="ko.pak" Attributes="0" SourcePath="..\..\build\stage\locales\ko.pak" SelfReg="false" NextFile="lt.pak"/>
-    <ROW File="lantern.png" Component_="door_frame_wood.DAE" FileName="lantern.png" Attributes="0" SourcePath="..\..\build\stage\horde\models\fixtures\lantern.png" SelfReg="false" NextFile="lantern_simpletex.material.xml"/>
-    <ROW File="lantern_simpletex.material.xml" Component_="door_frame_wood.DAE" FileName="lanter~1.xml|lantern_simpletex.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\fixtures\lantern_simpletex.material.xml" SelfReg="false" NextFile="lantern_wall.DAE"/>
-    <ROW File="lantern_wall.DAE" Component_="door_frame_wood.DAE" FileName="lanter~1.DAE|lantern_wall.DAE" Attributes="0" SourcePath="..\..\build\stage\horde\models\fixtures\lantern_wall.DAE" SelfReg="false" NextFile="lantern_wall.scene.xml"/>
-    <ROW File="lantern_wall.scene.xml" Component_="door_frame_wood.DAE" FileName="lanter~2.xml|lantern_wall.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\fixtures\lantern_wall.scene.xml" SelfReg="false" NextFile="_3__Default.material.xml"/>
-    <ROW File="layingrock.jpg" Component_="layingrock.jpg" FileName="laying~1.jpg|layingrock.jpg" Attributes="0" SourcePath="..\..\build\stage\horde\textures\models\layingrock.jpg" SelfReg="false" NextFile="layingrockBump.tga"/>
-    <ROW File="layingrockBump.tga" Component_="layingrock.jpg" FileName="laying~1.tga|layingrockBump.tga" Attributes="0" SourcePath="..\..\build\stage\horde\textures\models\layingrockBump.tga" SelfReg="false" NextFile="particle1.tga"/>
-    <ROW File="libcef.dll" Component_="libcef.dll" FileName="libcef.dll" Attributes="0" SourcePath="..\..\build\stage\libcef.dll" SelfReg="false" NextFile="libsndfile1.dll"/>
-    <ROW File="libsndfile1.dll" Component_="libsndfile1.dll" FileName="libsnd~1.dll|libsndfile-1.dll" Attributes="0" SourcePath="..\..\build\stage\libsndfile-1.dll" SelfReg="false" NextFile="am.pak"/>
-    <ROW File="license.rtf" Component_="stonehearth.ini" FileName="license.rtf" Attributes="0" SourcePath="..\..\build\stage\license.rtf" SelfReg="false" NextFile="crash_reporter.exe"/>
-    <ROW File="light.material.xml" Component_="blueprint_gridlines.xml" FileName="lightm~1.xml|light.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\materials\light.material.xml" SelfReg="false" NextFile="ssao.material.xml"/>
-    <ROW File="logo.material.xml" Component_="font.material.xml" FileName="logoma~1.xml|logo.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\overlays\logo.material.xml" SelfReg="false" NextFile="logo.tga"/>
-    <ROW File="logo.tga" Component_="font.material.xml" FileName="logo.tga" Attributes="0" SourcePath="..\..\build\stage\horde\overlays\logo.tga" SelfReg="false" NextFile="panel.material.xml"/>
-    <ROW File="lt.pak" Component_="am.pak" FileName="lt.pak" Attributes="0" SourcePath="..\..\build\stage\locales\lt.pak" SelfReg="false" NextFile="lv.pak"/>
-    <ROW File="lua5.1.5.dll" Component_="lua5.1.5.dll" FileName="lua-51~1.dll|lua-5.1.5.dll" Attributes="0" SourcePath="..\..\build\stage\lua-5.1.5.dll" SelfReg="false" NextFile="openal32.dll"/>
-    <ROW File="lv.pak" Component_="am.pak" FileName="lv.pak" Attributes="0" SourcePath="..\..\build\stage\locales\lv.pak" SelfReg="false" NextFile="ml.pak"/>
-    <ROW File="ml.pak" Component_="am.pak" FileName="ml.pak" Attributes="0" SourcePath="..\..\build\stage\locales\ml.pak" SelfReg="false" NextFile="mr.pak"/>
-    <ROW File="model.shader" Component_="blueprint_gridlines.shader" FileName="model~1.sha|model.shader" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\model.shader" SelfReg="false" NextFile="outline.shader"/>
-    <ROW File="mr.pak" Component_="am.pak" FileName="mr.pak" Attributes="0" SourcePath="..\..\build\stage\locales\mr.pak" SelfReg="false" NextFile="ms.pak"/>
-    <ROW File="ms.pak" Component_="am.pak" FileName="ms.pak" Attributes="0" SourcePath="..\..\build\stage\locales\ms.pak" SelfReg="false" NextFile="nb.pak"/>
-    <ROW File="nb.pak" Component_="am.pak" FileName="nb.pak" Attributes="0" SourcePath="..\..\build\stage\locales\nb.pak" SelfReg="false" NextFile="nl.pak"/>
-    <ROW File="nl.pak" Component_="am.pak" FileName="nl.pak" Attributes="0" SourcePath="..\..\build\stage\locales\nl.pak" SelfReg="false" NextFile="pl.pak"/>
-    <ROW File="oak_log.DAE" Component_="oak_log.DAE" FileName="oak_log.DAE" Attributes="0" SourcePath="..\..\build\stage\horde\models\resources\oak_log.DAE" SelfReg="false" NextFile="oak_log.scene.xml"/>
-    <ROW File="oak_log.scene.xml" Component_="oak_log.DAE" FileName="oak_lo~1.xml|oak_log.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\resources\oak_log.scene.xml" SelfReg="false" NextFile="woodlog.png"/>
-    <ROW File="openal32.dll" Component_="openal32.dll" FileName="openal32.dll" Attributes="0" SourcePath="..\..\build\stage\openal32.dll" SelfReg="false" NextFile="Stonehearth.exe"/>
-    <ROW File="outline.glsl" Component_="blur.glsl" FileName="outlin~1.gls|outline.glsl" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\utilityLib\outline.glsl" SelfReg="false" NextFile="vertCommon.glsl"/>
-    <ROW File="outline.material.xml" Component_="blueprint.deferred.pipeline.xml" FileName="outlin~1.xml|outline.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\pipelines\outline.material.xml" SelfReg="false" NextFile="postHDR.material.xml"/>
-    <ROW File="outline.material.xml_1" Component_="outline.material.xml" FileName="outlin~1.xml|outline.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\materials\designation\outline.material.xml" SelfReg="false" NextFile="outline.shader_1"/>
-    <ROW File="outline.shader" Component_="blueprint_gridlines.shader" FileName="outlin~1.sha|outline.shader" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\outline.shader" SelfReg="false" NextFile="overlay.shader"/>
-    <ROW File="outline.shader_1" Component_="outline.material.xml" FileName="outlin~1.sha|outline.shader" Attributes="0" SourcePath="..\..\build\stage\horde\materials\designation\outline.shader" SelfReg="false" NextFile="stripes.material.xml"/>
-    <ROW File="overlay.shader" Component_="blueprint_gridlines.shader" FileName="overla~1.sha|overlay.shader" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\overlay.shader" SelfReg="false" NextFile="particle.shader"/>
-    <ROW File="panel.material.xml" Component_="font.material.xml" FileName="panelm~1.xml|panel.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\overlays\panel.material.xml" SelfReg="false" NextFile="fire.cubemitter.json"/>
-    <ROW File="particle.shader" Component_="blueprint_gridlines.shader" FileName="partic~1.sha|particle.shader" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\particle.shader" SelfReg="false" NextFile="postHDR.shader"/>
-    <ROW File="particle1.material.xml" Component_="particle1.material.xml" FileName="partic~1.xml|particle1.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\particles\particleSys1\particle1.material.xml" SelfReg="false" NextFile="particle1.particle.xml"/>
-    <ROW File="particle1.particle.xml" Component_="particle1.material.xml" FileName="partic~2.xml|particle1.particle.xml" Attributes="0" SourcePath="..\..\build\stage\horde\particles\particleSys1\particle1.particle.xml" SelfReg="false" NextFile="particle2.material.xml"/>
-    <ROW File="particle1.tga" Component_="particle1.tga" FileName="partic~1.tga|particle1.tga" Attributes="0" SourcePath="..\..\build\stage\horde\textures\particles\particle1.tga" SelfReg="false" NextFile="ssaoRandom.jpg"/>
-    <ROW File="particle2.material.xml" Component_="particle1.material.xml" FileName="partic~3.xml|particle2.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\particles\particleSys1\particle2.material.xml" SelfReg="false" NextFile="particle2.particle.xml"/>
-    <ROW File="particle2.particle.xml" Component_="particle1.material.xml" FileName="partic~4.xml|particle2.particle.xml" Attributes="0" SourcePath="..\..\build\stage\horde\particles\particleSys1\particle2.particle.xml" SelfReg="false" NextFile="particleSys1.scene.xml"/>
-    <ROW File="particleSys1.scene.xml" Component_="particle1.material.xml" FileName="partic~5.xml|particleSys1.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\particles\particleSys1\particleSys1.scene.xml" SelfReg="false" NextFile="flint_spark.json"/>
-    <ROW File="pl.pak" Component_="am.pak" FileName="pl.pak" Attributes="0" SourcePath="..\..\build\stage\locales\pl.pak" SelfReg="false" NextFile="ptBR.pak"/>
-    <ROW File="postHDR.material.xml" Component_="blueprint.deferred.pipeline.xml" FileName="postHD~1.xml|postHDR.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\pipelines\postHDR.material.xml" SelfReg="false" NextFile="ssao.material.xml_1"/>
-    <ROW File="postHDR.shader" Component_="blueprint_gridlines.shader" FileName="postHD~1.sha|postHDR.shader" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\postHDR.shader" SelfReg="false" NextFile="skybox.shader"/>
-    <ROW File="ptBR.pak" Component_="am.pak" FileName="pt-BR.pak" Attributes="0" SourcePath="..\..\build\stage\locales\pt-BR.pak" SelfReg="false" NextFile="ptPT.pak"/>
-    <ROW File="ptPT.pak" Component_="am.pak" FileName="pt-PT.pak" Attributes="0" SourcePath="..\..\build\stage\locales\pt-PT.pak" SelfReg="false" NextFile="ro.pak"/>
-    <ROW File="radiant.stmod" Component_="radiant.stmod" FileName="radian~1.stm|radiant.stmod" Attributes="0" SourcePath="..\..\build\stage\mods\radiant.stmod" SelfReg="false" NextFile="stonehearth.stmod"/>
-    <ROW File="ro.pak" Component_="am.pak" FileName="ro.pak" Attributes="0" SourcePath="..\..\build\stage\locales\ro.pak" SelfReg="false" NextFile="ru.pak"/>
-    <ROW File="ru.pak" Component_="am.pak" FileName="ru.pak" Attributes="0" SourcePath="..\..\build\stage\locales\ru.pak" SelfReg="false" NextFile="sk.pak"/>
-    <ROW File="scaffold_0_0.DAE" Component_="innertop.png_1" FileName="scaffo~1.DAE|scaffold_0_0.DAE" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_0_0.DAE" SelfReg="false" NextFile="scaffold_0_0.scene.xml"/>
-    <ROW File="scaffold_0_0.scene.xml" Component_="innertop.png_1" FileName="scaffo~2.xml|scaffold_0_0.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_0_0.scene.xml" SelfReg="false" NextFile="scaffold_0_1.DAE"/>
-    <ROW File="scaffold_0_1.DAE" Component_="innertop.png_1" FileName="scaffo~2.DAE|scaffold_0_1.DAE" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_0_1.DAE" SelfReg="false" NextFile="scaffold_0_1.scene.xml"/>
-    <ROW File="scaffold_0_1.scene.xml" Component_="innertop.png_1" FileName="scaffo~3.xml|scaffold_0_1.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_0_1.scene.xml" SelfReg="false" NextFile="scaffold_0_2.DAE"/>
-    <ROW File="scaffold_0_2.DAE" Component_="innertop.png_1" FileName="scaffo~3.DAE|scaffold_0_2.DAE" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_0_2.DAE" SelfReg="false" NextFile="scaffold_0_2.scene.xml"/>
-    <ROW File="scaffold_0_2.scene.xml" Component_="innertop.png_1" FileName="scaffo~4.xml|scaffold_0_2.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_0_2.scene.xml" SelfReg="false" NextFile="scaffold_0_3.DAE"/>
-    <ROW File="scaffold_0_3.DAE" Component_="innertop.png_1" FileName="scaffo~4.DAE|scaffold_0_3.DAE" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_0_3.DAE" SelfReg="false" NextFile="scaffold_0_3.scene.xml"/>
-    <ROW File="scaffold_0_3.scene.xml" Component_="innertop.png_1" FileName="scaffo~5.xml|scaffold_0_3.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_0_3.scene.xml" SelfReg="false" NextFile="scaffold_1_0.DAE"/>
-    <ROW File="scaffold_1_0.DAE" Component_="innertop.png_1" FileName="scaffo~5.DAE|scaffold_1_0.DAE" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_1_0.DAE" SelfReg="false" NextFile="scaffold_1_0.scene.xml"/>
-    <ROW File="scaffold_1_0.scene.xml" Component_="innertop.png_1" FileName="scaffo~6.xml|scaffold_1_0.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_1_0.scene.xml" SelfReg="false" NextFile="scaffold_1_1.DAE"/>
-    <ROW File="scaffold_1_1.DAE" Component_="innertop.png_1" FileName="scaffo~6.DAE|scaffold_1_1.DAE" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_1_1.DAE" SelfReg="false" NextFile="scaffold_1_1.scene.xml"/>
-    <ROW File="scaffold_1_1.scene.xml" Component_="innertop.png_1" FileName="scaffo~7.xml|scaffold_1_1.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_1_1.scene.xml" SelfReg="false" NextFile="scaffold_1_2.DAE"/>
-    <ROW File="scaffold_1_2.DAE" Component_="innertop.png_1" FileName="scaffo~7.DAE|scaffold_1_2.DAE" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_1_2.DAE" SelfReg="false" NextFile="scaffold_1_2.scene.xml"/>
-    <ROW File="scaffold_1_2.scene.xml" Component_="innertop.png_1" FileName="scaffo~8.xml|scaffold_1_2.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_1_2.scene.xml" SelfReg="false" NextFile="scaffold_1_3.DAE"/>
-    <ROW File="scaffold_1_3.DAE" Component_="innertop.png_1" FileName="scaffo~8.DAE|scaffold_1_3.DAE" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_1_3.DAE" SelfReg="false" NextFile="scaffold_1_3.scene.xml"/>
-    <ROW File="scaffold_1_3.scene.xml" Component_="innertop.png_1" FileName="scaffo~9.xml|scaffold_1_3.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_1_3.scene.xml" SelfReg="false" NextFile="scaffold_2_0.DAE"/>
-    <ROW File="scaffold_2_0.DAE" Component_="innertop.png_1" FileName="scaffo~9.DAE|scaffold_2_0.DAE" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_2_0.DAE" SelfReg="false" NextFile="scaffold_2_0.scene.xml"/>
-    <ROW File="scaffold_2_0.scene.xml" Component_="innertop.png_1" FileName="scaff~10.xml|scaffold_2_0.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_2_0.scene.xml" SelfReg="false" NextFile="scaffold_2_1.DAE"/>
-    <ROW File="scaffold_2_1.DAE" Component_="innertop.png_1" FileName="scaff~10.DAE|scaffold_2_1.DAE" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_2_1.DAE" SelfReg="false" NextFile="scaffold_2_1.scene.xml"/>
-    <ROW File="scaffold_2_1.scene.xml" Component_="innertop.png_1" FileName="scaff~11.xml|scaffold_2_1.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_2_1.scene.xml" SelfReg="false" NextFile="scaffold_2_2.DAE"/>
-    <ROW File="scaffold_2_2.DAE" Component_="innertop.png_1" FileName="scaff~11.DAE|scaffold_2_2.DAE" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_2_2.DAE" SelfReg="false" NextFile="scaffold_2_2.scene.xml"/>
-    <ROW File="scaffold_2_2.scene.xml" Component_="innertop.png_1" FileName="scaff~12.xml|scaffold_2_2.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_2_2.scene.xml" SelfReg="false" NextFile="scaffold_2_3.DAE"/>
-    <ROW File="scaffold_2_3.DAE" Component_="innertop.png_1" FileName="scaff~12.DAE|scaffold_2_3.DAE" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_2_3.DAE" SelfReg="false" NextFile="scaffold_2_3.scene.xml"/>
-    <ROW File="scaffold_2_3.scene.xml" Component_="innertop.png_1" FileName="scaff~13.xml|scaffold_2_3.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_2_3.scene.xml" SelfReg="false" NextFile="scaffold_3_0.DAE"/>
-    <ROW File="scaffold_3_0.DAE" Component_="innertop.png_1" FileName="scaff~13.DAE|scaffold_3_0.DAE" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_3_0.DAE" SelfReg="false" NextFile="scaffold_3_0.scene.xml"/>
-    <ROW File="scaffold_3_0.scene.xml" Component_="innertop.png_1" FileName="scaff~14.xml|scaffold_3_0.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_3_0.scene.xml" SelfReg="false" NextFile="scaffold_3_1.DAE"/>
-    <ROW File="scaffold_3_1.DAE" Component_="innertop.png_1" FileName="scaff~14.DAE|scaffold_3_1.DAE" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_3_1.DAE" SelfReg="false" NextFile="scaffold_3_1.scene.xml"/>
-    <ROW File="scaffold_3_1.scene.xml" Component_="innertop.png_1" FileName="scaff~15.xml|scaffold_3_1.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_3_1.scene.xml" SelfReg="false" NextFile="scaffold_3_2.DAE"/>
-    <ROW File="scaffold_3_2.DAE" Component_="innertop.png_1" FileName="scaff~15.DAE|scaffold_3_2.DAE" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_3_2.DAE" SelfReg="false" NextFile="scaffold_3_2.scene.xml"/>
-    <ROW File="scaffold_3_2.scene.xml" Component_="innertop.png_1" FileName="scaff~16.xml|scaffold_3_2.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_3_2.scene.xml" SelfReg="false" NextFile="scaffold_3_3.DAE"/>
-    <ROW File="scaffold_3_3.DAE" Component_="innertop.png_1" FileName="scaff~16.DAE|scaffold_3_3.DAE" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_3_3.DAE" SelfReg="false" NextFile="scaffold_3_3.scene.xml"/>
-    <ROW File="scaffold_3_3.scene.xml" Component_="innertop.png_1" FileName="scaff~17.xml|scaffold_3_3.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_3_3.scene.xml" SelfReg="false" NextFile="scaffold_top.DAE"/>
-    <ROW File="scaffold_top.DAE" Component_="innertop.png_1" FileName="scaff~17.DAE|scaffold_top.DAE" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_top.DAE" SelfReg="false" NextFile="scaffold_top.scene.xml"/>
-    <ROW File="scaffold_top.scene.xml" Component_="innertop.png_1" FileName="scaff~18.xml|scaffold_top.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_top.scene.xml" SelfReg="false" NextFile="scaffold_top_0.DAE"/>
-    <ROW File="scaffold_top_0.DAE" Component_="innertop.png_1" FileName="scaff~18.DAE|scaffold_top_0.DAE" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_top_0.DAE" SelfReg="false" NextFile="scaffold_top_0.scene.xml"/>
-    <ROW File="scaffold_top_0.scene.xml" Component_="innertop.png_1" FileName="scaff~19.xml|scaffold_top_0.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_top_0.scene.xml" SelfReg="false" NextFile="scaffold_top_1.DAE"/>
-    <ROW File="scaffold_top_1.DAE" Component_="innertop.png_1" FileName="scaff~19.DAE|scaffold_top_1.DAE" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_top_1.DAE" SelfReg="false" NextFile="scaffold_top_1.scene.xml"/>
-    <ROW File="scaffold_top_1.scene.xml" Component_="innertop.png_1" FileName="scaff~20.xml|scaffold_top_1.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_top_1.scene.xml" SelfReg="false" NextFile="scaffold_top_2.DAE"/>
-    <ROW File="scaffold_top_2.DAE" Component_="innertop.png_1" FileName="scaff~20.DAE|scaffold_top_2.DAE" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_top_2.DAE" SelfReg="false" NextFile="scaffold_top_2.scene.xml"/>
-    <ROW File="scaffold_top_2.scene.xml" Component_="innertop.png_1" FileName="scaff~21.xml|scaffold_top_2.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_top_2.scene.xml" SelfReg="false" NextFile="scaffold_top_3.DAE"/>
-    <ROW File="scaffold_top_3.DAE" Component_="innertop.png_1" FileName="scaff~21.DAE|scaffold_top_3.DAE" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_top_3.DAE" SelfReg="false" NextFile="scaffold_top_3.scene.xml"/>
-    <ROW File="scaffold_top_3.scene.xml" Component_="innertop.png_1" FileName="scaff~22.xml|scaffold_top_3.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffold_top_3.scene.xml" SelfReg="false" NextFile="skyboxblue.dds"/>
-    <ROW File="scaffolding.png" Component_="innertop.png" FileName="scaffo~1.png|scaffolding.png" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\images\scaffolding.png" SelfReg="false" NextFile="innertop.png_1"/>
-    <ROW File="scaffolding.png_1" Component_="innertop.png_1" FileName="scaffo~1.png|scaffolding.png" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffolding.png" SelfReg="false" NextFile="scaffolding_simpletex.material.xml"/>
-    <ROW File="scaffolding_simpletex.material.xml" Component_="innertop.png_1" FileName="scaffo~1.xml|scaffolding_simpletex.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\scaffolding\scaffolding_simpletex.material.xml" SelfReg="false" NextFile="scaffold_0_0.DAE"/>
-    <ROW File="sfmlaudio2.dll" Component_="sfmlaudio2.dll" FileName="sfml-a~1.dll|sfml-audio-2.dll" Attributes="0" SourcePath="..\..\build\stage\sfml-audio-2.dll" SelfReg="false" NextFile="sfmlsystem2.dll"/>
-    <ROW File="sfmlsystem2.dll" Component_="sfmlsystem2.dll" FileName="sfml-s~1.dll|sfml-system-2.dll" Attributes="0" SourcePath="..\..\build\stage\sfml-system-2.dll" SelfReg="false"/>
-    <ROW File="shadows.shader" Component_="blueprint_gridlines.shader" FileName="shadow~1.sha|shadows.shader" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\shadows.shader" SelfReg="false" NextFile="debug.log"/>
-    <ROW File="sk.pak" Component_="am.pak" FileName="sk.pak" Attributes="0" SourcePath="..\..\build\stage\locales\sk.pak" SelfReg="false" NextFile="sl.pak"/>
-    <ROW File="skybox.dds" Component_="skyboxblue.dds" FileName="skybox.dds" Attributes="0" SourcePath="..\..\build\stage\horde\models\skybox\skybox.dds" SelfReg="false" NextFile="skybox.geo"/>
-    <ROW File="skybox.geo" Component_="skyboxblue.dds" FileName="skybox.geo" Attributes="0" SourcePath="..\..\build\stage\horde\models\skybox\skybox.geo" SelfReg="false" NextFile="skybox.material.xml"/>
-    <ROW File="skybox.material.xml" Component_="skyboxblue.dds" FileName="skybox~1.xml|skybox.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\skybox\skybox.material.xml" SelfReg="false" NextFile="skybox.scene.xml"/>
-    <ROW File="skybox.scene.xml" Component_="skyboxblue.dds" FileName="skybox~2.xml|skybox.scene.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\skybox\skybox.scene.xml" SelfReg="false" NextFile="font.material.xml"/>
-    <ROW File="skybox.shader" Component_="blueprint_gridlines.shader" FileName="skybox~1.sha|skybox.shader" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\skybox.shader" SelfReg="false" NextFile="ssao.shader"/>
-    <ROW File="skyboxblue.dds" Component_="skyboxblue.dds" FileName="skybox~1.dds|skybox-blue.dds" Attributes="0" SourcePath="..\..\build\stage\horde\models\skybox\skybox-blue.dds" SelfReg="false" NextFile="skyboxchecker.dds"/>
-    <ROW File="skyboxchecker.dds" Component_="skyboxblue.dds" FileName="skybox~2.dds|skybox-checker.dds" Attributes="0" SourcePath="..\..\build\stage\horde\models\skybox\skybox-checker.dds" SelfReg="false" NextFile="skyboxnight.dds"/>
-    <ROW File="skyboxnight.dds" Component_="skyboxblue.dds" FileName="skybox~3.dds|skybox-night.dds" Attributes="0" SourcePath="..\..\build\stage\horde\models\skybox\skybox-night.dds" SelfReg="false" NextFile="skybox.dds"/>
-    <ROW File="sl.pak" Component_="am.pak" FileName="sl.pak" Attributes="0" SourcePath="..\..\build\stage\locales\sl.pak" SelfReg="false" NextFile="sr.pak"/>
-    <ROW File="spark.material.xml" Component_="flint_spark.json" FileName="sparkm~1.xml|spark.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\particles\sparks\spark.material.xml" SelfReg="false" NextFile="fire.material.xml_1"/>
-    <ROW File="sr.pak" Component_="am.pak" FileName="sr.pak" Attributes="0" SourcePath="..\..\build\stage\locales\sr.pak" SelfReg="false" NextFile="sv.pak"/>
-    <ROW File="ssao.material.xml" Component_="blueprint_gridlines.xml" FileName="ssaoma~1.xml|ssao.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\materials\ssao.material.xml" SelfReg="false" NextFile="center.material.xml"/>
-    <ROW File="ssao.material.xml_1" Component_="blueprint.deferred.pipeline.xml" FileName="ssaoma~1.xml|ssao.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\pipelines\ssao.material.xml" SelfReg="false" NextFile="blueprint_gridlines.shader"/>
-    <ROW File="ssao.shader" Component_="blueprint_gridlines.shader" FileName="ssao~1.sha|ssao.shader" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\ssao.shader" SelfReg="false" NextFile="ssao2.shader"/>
-    <ROW File="ssao2.shader" Component_="blueprint_gridlines.shader" FileName="ssao2~1.sha|ssao2.shader" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\ssao2.shader" SelfReg="false" NextFile="blur.glsl"/>
-    <ROW File="ssaoRandom.jpg" Component_="ambientMap.dds" FileName="ssaoRa~1.jpg|ssaoRandom.jpg" Attributes="0" SourcePath="..\..\build\stage\horde\textures\ssaoRandom.jpg" SelfReg="false" NextFile="icudt.dll"/>
-    <ROW File="stockpile.shader" Component_="center.material.xml" FileName="stockp~1.sha|stockpile.shader" Attributes="0" SourcePath="..\..\build\stage\horde\materials\stockpile\stockpile.shader" SelfReg="false" NextFile="door_frame_wood.DAE"/>
-    <ROW File="stonehearth.ini" Component_="stonehearth.ini" FileName="stoneh~1.ini|stonehearth.ini" Attributes="0" SourcePath="..\..\build\stage\stonehearth.ini" SelfReg="false" NextFile="license.rtf"/>
-    <ROW File="stonehearth.stmod" Component_="radiant.stmod" FileName="stoneh~1.stm|stonehearth.stmod" Attributes="0" SourcePath="..\..\build\stage\mods\stonehearth.stmod" SelfReg="false" NextFile="sfmlaudio2.dll"/>
-    <ROW File="stripes.material.xml" Component_="outline.material.xml" FileName="stripe~1.xml|stripes.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\materials\designation\stripes.material.xml" SelfReg="false" NextFile="stripes.shader"/>
-    <ROW File="stripes.shader" Component_="outline.material.xml" FileName="stripe~1.sha|stripes.shader" Attributes="0" SourcePath="..\..\build\stage\horde\materials\designation\stripes.shader" SelfReg="false" NextFile="shadows.shader"/>
-    <ROW File="sv.pak" Component_="am.pak" FileName="sv.pak" Attributes="0" SourcePath="..\..\build\stage\locales\sv.pak" SelfReg="false" NextFile="sw.pak"/>
-    <ROW File="sw.pak" Component_="am.pak" FileName="sw.pak" Attributes="0" SourcePath="..\..\build\stage\locales\sw.pak" SelfReg="false" NextFile="ta.pak"/>
-    <ROW File="ta.pak" Component_="am.pak" FileName="ta.pak" Attributes="0" SourcePath="..\..\build\stage\locales\ta.pak" SelfReg="false" NextFile="te.pak"/>
-    <ROW File="talisman.cubemitter.json" Component_="fire.material.xml" FileName="talism~2.jso|talisman.cubemitter.json" Attributes="0" SourcePath="..\..\build\stage\horde\particles\talisman\talisman.cubemitter.json" SelfReg="false" NextFile="blueprint.deferred.pipeline.xml"/>
-    <ROW File="talisman.cubemittercircular.json" Component_="fire.material.xml" FileName="talism~1.jso|talisman.cubemitter - circular.json" Attributes="0" SourcePath="..\..\build\stage\horde\particles\talisman\talisman.cubemitter - circular.json" SelfReg="false" NextFile="talisman.cubemitter.json"/>
-    <ROW File="te.pak" Component_="am.pak" FileName="te.pak" Attributes="0" SourcePath="..\..\build\stage\locales\te.pak" SelfReg="false" NextFile="th.pak"/>
-    <ROW File="terrain.shader" Component_="bedrock_material.xml" FileName="terrai~1.sha|terrain.shader" Attributes="0" SourcePath="..\..\build\stage\horde\terrain\terrain.shader" SelfReg="false" NextFile="topsoil_material.xml"/>
-    <ROW File="th.pak" Component_="am.pak" FileName="th.pak" Attributes="0" SourcePath="..\..\build\stage\locales\th.pak" SelfReg="false" NextFile="tr.pak"/>
-    <ROW File="toast_text.fnt" Component_="berlin_sans_fb_bold_32.PNG" FileName="toast_~1.fnt|toast_text.fnt" Attributes="0" SourcePath="..\..\build\stage\horde\fonts\toast_text.fnt" SelfReg="false" NextFile="toast_text.material.xml"/>
-    <ROW File="toast_text.material.xml" Component_="berlin_sans_fb_bold_32.PNG" FileName="toast_~1.xml|toast_text.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\fonts\toast_text.material.xml" SelfReg="false" NextFile="toast_text.png"/>
-    <ROW File="toast_text.png" Component_="berlin_sans_fb_bold_32.PNG" FileName="toast_~1.png|toast_text.png" Attributes="0" SourcePath="..\..\build\stage\horde\fonts\toast_text.png" SelfReg="false" NextFile="toast_text.shader"/>
-    <ROW File="toast_text.shader" Component_="berlin_sans_fb_bold_32.PNG" FileName="toast_~1.sha|toast_text.shader" Attributes="0" SourcePath="..\..\build\stage\horde\fonts\toast_text.shader" SelfReg="false" NextFile="blueprint_gridlines.xml"/>
-    <ROW File="topsoil_material.xml" Component_="bedrock_material.xml" FileName="topsoi~1.xml|topsoil_material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\terrain\topsoil_material.xml" SelfReg="false" NextFile="ambientMap.dds"/>
-    <ROW File="tr.pak" Component_="am.pak" FileName="tr.pak" Attributes="0" SourcePath="..\..\build\stage\locales\tr.pak" SelfReg="false" NextFile="uk.pak"/>
-    <ROW File="uk.pak" Component_="am.pak" FileName="uk.pak" Attributes="0" SourcePath="..\..\build\stage\locales\uk.pak" SelfReg="false" NextFile="vi.pak"/>
-    <ROW File="vertCommon.glsl" Component_="blur.glsl" FileName="vertCo~1.gls|vertCommon.glsl" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\utilityLib\vertCommon.glsl" SelfReg="false" NextFile="vertParticle.glsl"/>
-    <ROW File="vertParticle.glsl" Component_="blur.glsl" FileName="vertPa~1.gls|vertParticle.glsl" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\utilityLib\vertParticle.glsl" SelfReg="false" NextFile="vertSkinning.glsl"/>
-    <ROW File="vertSkinning.glsl" Component_="blur.glsl" FileName="vertSk~1.gls|vertSkinning.glsl" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\utilityLib\vertSkinning.glsl" SelfReg="false" NextFile="bedrock_material.xml"/>
-    <ROW File="vi.pak" Component_="am.pak" FileName="vi.pak" Attributes="0" SourcePath="..\..\build\stage\locales\vi.pak" SelfReg="false" NextFile="zhCN.pak"/>
-    <ROW File="white.tga" Component_="corners.png" FileName="white.tga" Attributes="0" SourcePath="..\..\build\stage\horde\textures\common\white.tga" SelfReg="false" NextFile="cloudmap.png"/>
-    <ROW File="wood_log_simpletex.material.xml" Component_="oak_log.DAE" FileName="wood_l~1.xml|wood_log_simpletex.material.xml" Attributes="0" SourcePath="..\..\build\stage\horde\models\resources\wood_log_simpletex.material.xml" SelfReg="false" NextFile="innertop.png"/>
-    <ROW File="woodlog.png" Component_="oak_log.DAE" FileName="wood-log.png" Attributes="0" SourcePath="..\..\build\stage\horde\models\resources\wood-log.png" SelfReg="false" NextFile="wood_log_simpletex.material.xml"/>
-    <ROW File="zhCN.pak" Component_="am.pak" FileName="zh-CN.pak" Attributes="0" SourcePath="..\..\build\stage\locales\zh-CN.pak" SelfReg="false" NextFile="zhTW.pak"/>
-    <ROW File="zhTW.pak" Component_="am.pak" FileName="zh-TW.pak" Attributes="0" SourcePath="..\..\build\stage\locales\zh-TW.pak" SelfReg="false" NextFile="lua5.1.5.dll"/>
+    <ROW File="Stonehearth.exe" Component_="Stonehearth.exe" FileName="Stoneh~1.exe|Stonehearth.exe" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\Stonehearth.exe" SelfReg="false" NextFile="stonehearth.ini" DigSign="true"/>
+    <ROW File="am.pak" Component_="am.pak" FileName="am.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\am.pak" SelfReg="false" NextFile="ar.pak"/>
+    <ROW File="ar.pak" Component_="am.pak" FileName="ar.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\ar.pak" SelfReg="false" NextFile="bg.pak"/>
+    <ROW File="berlin_sans_fb_bold_32.PNG" Component_="berlin_sans_fb_bold_32.PNG" FileName="berlin~1.PNG|berlin_sans_fb_bold_32.PNG" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\fonts\berlin_sans_fb_bold_32.PNG" SelfReg="false" NextFile="berlin_sans_fb_bold_32.xml"/>
+    <ROW File="berlin_sans_fb_bold_32.xml" Component_="berlin_sans_fb_bold_32.PNG" FileName="berlin~1.xml|berlin_sans_fb_bold_32.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\fonts\berlin_sans_fb_bold_32.xml" SelfReg="false" NextFile="fontdinerdotcom_huggable_regular_20.dds"/>
+    <ROW File="bg.pak" Component_="am.pak" FileName="bg.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\bg.pak" SelfReg="false" NextFile="bn.pak"/>
+    <ROW File="blueprint_gridlines.shader" Component_="blueprint_gridlines.shader" FileName="bluepr~1.sha|blueprint_gridlines.shader" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\blueprint_gridlines.shader" SelfReg="false" NextFile="cubemitter.shader"/>
+    <ROW File="blueprint_gridlines.xml" Component_="blueprint_gridlines.xml" FileName="bluepr~1.xml|blueprint_gridlines.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\materials\blueprint_gridlines.xml" SelfReg="false" NextFile="cubemitter.material.xml"/>
+    <ROW File="blur.glsl" Component_="blur.glsl" FileName="blur~1.gls|blur.glsl" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\utilityLib\blur.glsl" SelfReg="false" NextFile="cubemitterCommon.glsl"/>
+    <ROW File="bn.pak" Component_="am.pak" FileName="bn.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\bn.pak" SelfReg="false" NextFile="ca.pak"/>
+    <ROW File="ca.pak" Component_="am.pak" FileName="ca.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\ca.pak" SelfReg="false" NextFile="cs.pak"/>
+    <ROW File="center.material.xml" Component_="center.material.xml" FileName="center~1.xml|center.material.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\materials\stockpile\center.material.xml" SelfReg="false" NextFile="center.png"/>
+    <ROW File="center.png" Component_="center.material.xml" FileName="center.png" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\materials\stockpile\center.png" SelfReg="false" NextFile="corner.material.xml"/>
+    <ROW File="cloudmap.png" Component_="cloudmap.png" FileName="cloudmap.png" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\textures\environment\cloudmap.png" SelfReg="false" NextFile="icudt.dll"/>
+    <ROW File="corner.material.xml" Component_="center.material.xml" FileName="corner~1.xml|corner.material.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\materials\stockpile\corner.material.xml" SelfReg="false" NextFile="corner.png"/>
+    <ROW File="corner.png" Component_="center.material.xml" FileName="corner.png" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\materials\stockpile\corner.png" SelfReg="false" NextFile="edge.material.xml"/>
+    <ROW File="crash_reporter.exe" Component_="crash_reporter.exe" FileName="crash_~1.exe|crash_reporter.exe" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\crash_reporter.exe" SelfReg="false" NextFile="outline.material.xml_1" DigSign="true"/>
+    <ROW File="cs.pak" Component_="am.pak" FileName="cs.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\cs.pak" SelfReg="false" NextFile="da.pak"/>
+    <ROW File="cubemitter.material.xml" Component_="blueprint_gridlines.xml" FileName="cubemi~1.xml|cubemitter.material.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\materials\cubemitter.material.xml" SelfReg="false" NextFile="cubemitterBatch.material.xml"/>
+    <ROW File="cubemitter.shader" Component_="blueprint_gridlines.shader" FileName="cubemi~1.sha|cubemitter.shader" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\cubemitter.shader" SelfReg="false" NextFile="debug_shape.shader"/>
+    <ROW File="cubemitterBatch.material.xml" Component_="blueprint_gridlines.xml" FileName="cubemi~2.xml|cubemitterBatch.material.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\materials\cubemitterBatch.material.xml" SelfReg="false" NextFile="debug_shape.material.xml"/>
+    <ROW File="cubemitterCommon.glsl" Component_="blur.glsl" FileName="cubemi~1.gls|cubemitterCommon.glsl" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\utilityLib\cubemitterCommon.glsl" SelfReg="false" NextFile="fragDeferredRead.glsl"/>
+    <ROW File="da.pak" Component_="am.pak" FileName="da.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\da.pak" SelfReg="false" NextFile="de.pak"/>
+    <ROW File="de.pak" Component_="am.pak" FileName="de.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\de.pak" SelfReg="false" NextFile="el.pak"/>
+    <ROW File="debug_shape.material.xml" Component_="blueprint_gridlines.xml" FileName="debug_~1.xml|debug_shape.material.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\materials\debug_shape.material.xml" SelfReg="false" NextFile="deferred_light.material.xml"/>
+    <ROW File="debug_shape.shader" Component_="blueprint_gridlines.shader" FileName="debug_~1.sha|debug_shape.shader" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\debug_shape.shader" SelfReg="false" NextFile="deferred_lighting.shader"/>
+    <ROW File="default.shader" Component_="blueprint_gridlines.shader" FileName="defaul~1.sha|default.shader" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\default.shader" SelfReg="false" NextFile="fullscreen_quad.shader"/>
+    <ROW File="default_material.xml_1" Component_="blueprint_gridlines.xml" FileName="defaul~1.xml|default_material.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\materials\default_material.xml" SelfReg="false" NextFile="fullscreen_quad.material.xml"/>
+    <ROW File="deferred_light.material.xml" Component_="blueprint_gridlines.xml" FileName="deferr~1.xml|deferred_light.material.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\materials\deferred_light.material.xml" SelfReg="false" NextFile="ssao.material.xml"/>
+    <ROW File="deferred_lighting.shader" Component_="blueprint_gridlines.shader" FileName="deferr~2.sha|deferred_lighting.shader" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\deferred_lighting.shader" SelfReg="false" NextFile="overlay.shader"/>
+    <ROW File="deferred_lighting.xml" Component_="blueprint.deferred.pipeline.xml" FileName="deferr~4.xml|deferred_lighting.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\pipelines\deferred_lighting.xml" SelfReg="false" NextFile="forward.pipeline.xml"/>
+    <ROW File="defnorm.tga" Component_="corners.png" FileName="defnorm.tga" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\textures\common\defnorm.tga" SelfReg="false" NextFile="gridMap.dds"/>
+    <ROW File="edge.material.xml" Component_="center.material.xml" FileName="edgema~1.xml|edge.material.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\materials\stockpile\edge.material.xml" SelfReg="false" NextFile="edge.png"/>
+    <ROW File="edge.png" Component_="center.material.xml" FileName="edge.png" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\materials\stockpile\edge.png" SelfReg="false" NextFile="stockpile.shader"/>
+    <ROW File="el.pak" Component_="am.pak" FileName="el.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\el.pak" SelfReg="false" NextFile="enGB.pak"/>
+    <ROW File="enGB.pak" Component_="am.pak" FileName="en-GB.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\en-GB.pak" SelfReg="false" NextFile="enUS.pak"/>
+    <ROW File="enUS.pak" Component_="am.pak" FileName="en-US.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\en-US.pak" SelfReg="false" NextFile="es419.pak"/>
+    <ROW File="es.pak" Component_="am.pak" FileName="es.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\es.pak" SelfReg="false" NextFile="et.pak"/>
+    <ROW File="es419.pak" Component_="am.pak" FileName="es-419.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\es-419.pak" SelfReg="false" NextFile="es.pak"/>
+    <ROW File="et.pak" Component_="am.pak" FileName="et.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\et.pak" SelfReg="false" NextFile="fa.pak"/>
+    <ROW File="fa.pak" Component_="am.pak" FileName="fa.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\fa.pak" SelfReg="false" NextFile="fi.pak"/>
+    <ROW File="fi.pak" Component_="am.pak" FileName="fi.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\fi.pak" SelfReg="false" NextFile="fil.pak"/>
+    <ROW File="fil.pak" Component_="am.pak" FileName="fil.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\fil.pak" SelfReg="false" NextFile="fr.pak"/>
+    <ROW File="fire.animatedlight.json" Component_="fire.animatedlight.json" FileName="firean~1.jso|fire.animatedlight.json" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\animatedlights\fire\fire.animatedlight.json" SelfReg="false" NextFile="berlin_sans_fb_bold_32.PNG"/>
+    <ROW File="fire.cubemitter.json" Component_="fire.cubemitter.json" FileName="firecu~1.jso|fire.cubemitter.json" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\particles\fire\fire.cubemitter.json" SelfReg="false" NextFile="fire.material.xml"/>
+    <ROW File="fire.material.xml" Component_="fire.cubemitter.json" FileName="firema~1.xml|fire.material.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\particles\fire\fire.material.xml" SelfReg="false" NextFile="flint_spark.json"/>
+    <ROW File="flint_spark.json" Component_="flint_spark.json" FileName="flint_~1.jso|flint_spark.json" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\particles\sparks\flint_spark.json" SelfReg="false" NextFile="hit_spark.json"/>
+    <ROW File="font.material.xml" Component_="font.material.xml" FileName="fontma~1.xml|font.material.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\overlays\font.material.xml" SelfReg="false" NextFile="font.tga"/>
+    <ROW File="font.tga" Component_="font.material.xml" FileName="font.tga" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\overlays\font.tga" SelfReg="false" NextFile="panel.material.xml"/>
+    <ROW File="fontdinerdotcom_huggable_regular_20.PNG" Component_="berlin_sans_fb_bold_32.PNG" FileName="fontdi~1.PNG|fontdinerdotcom_huggable_regular_20.PNG" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\fonts\fontdinerdotcom_huggable_regular_20.PNG" SelfReg="false" NextFile="fontdinerdotcom_huggable_regular_20.xml"/>
+    <ROW File="fontdinerdotcom_huggable_regular_20.dds" Component_="berlin_sans_fb_bold_32.PNG" FileName="fontdi~1.dds|fontdinerdotcom_huggable_regular_20.dds" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\fonts\fontdinerdotcom_huggable_regular_20.dds" SelfReg="false" NextFile="fontdinerdotcom_huggable_regular_20.PNG"/>
+    <ROW File="fontdinerdotcom_huggable_regular_20.xml" Component_="berlin_sans_fb_bold_32.PNG" FileName="fontdi~1.xml|fontdinerdotcom_huggable_regular_20.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\fonts\fontdinerdotcom_huggable_regular_20.xml" SelfReg="false" NextFile="toast_text.fnt"/>
+    <ROW File="forward.pipeline.xml" Component_="blueprint.deferred.pipeline.xml" FileName="forwar~1.xml|forward.pipeline.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\pipelines\forward.pipeline.xml" SelfReg="false" NextFile="blueprint_gridlines.shader"/>
+    <ROW File="fr.pak" Component_="am.pak" FileName="fr.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\fr.pak" SelfReg="false" NextFile="gu.pak"/>
+    <ROW File="fragDeferredRead.glsl" Component_="blur.glsl" FileName="fragDe~1.gls|fragDeferredRead.glsl" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\utilityLib\fragDeferredRead.glsl" SelfReg="false" NextFile="fragDeferredWrite.glsl"/>
+    <ROW File="fragDeferredWrite.glsl" Component_="blur.glsl" FileName="fragDe~2.gls|fragDeferredWrite.glsl" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\utilityLib\fragDeferredWrite.glsl" SelfReg="false" NextFile="fragLighting.glsl"/>
+    <ROW File="fragLighting.glsl" Component_="blur.glsl" FileName="fragLi~1.gls|fragLighting.glsl" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\utilityLib\fragLighting.glsl" SelfReg="false" NextFile="fullscreen_quad.glsl"/>
+    <ROW File="fullscreen_quad.glsl" Component_="blur.glsl" FileName="fullsc~1.gls|fullscreen_quad.glsl" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\utilityLib\fullscreen_quad.glsl" SelfReg="false" NextFile="outline.glsl"/>
+    <ROW File="fullscreen_quad.material.xml" Component_="blueprint_gridlines.xml" FileName="fullsc~1.xml|fullscreen_quad.material.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\materials\fullscreen_quad.material.xml" SelfReg="false" NextFile="default.shader"/>
+    <ROW File="fullscreen_quad.shader" Component_="blueprint_gridlines.shader" FileName="fullsc~1.sha|fullscreen_quad.shader" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\fullscreen_quad.shader" SelfReg="false" NextFile="radiant.smod"/>
+    <ROW File="gridMap.dds" Component_="corners.png" FileName="gridMap.dds" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\textures\common\gridMap.dds" SelfReg="false" NextFile="gridmap.tga"/>
+    <ROW File="gridmap.tga" Component_="corners.png" FileName="gridmap.tga" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\textures\common\gridmap.tga" SelfReg="false" NextFile="white.tga"/>
+    <ROW File="gu.pak" Component_="am.pak" FileName="gu.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\gu.pak" SelfReg="false" NextFile="he.pak"/>
+    <ROW File="he.pak" Component_="am.pak" FileName="he.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\he.pak" SelfReg="false" NextFile="hi.pak"/>
+    <ROW File="hi.pak" Component_="am.pak" FileName="hi.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\hi.pak" SelfReg="false" NextFile="hr.pak"/>
+    <ROW File="hit_spark.json" Component_="flint_spark.json" FileName="hit_sp~1.jso|hit_spark.json" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\particles\sparks\hit_spark.json" SelfReg="false" NextFile="spark.material.xml"/>
+    <ROW File="hr.pak" Component_="am.pak" FileName="hr.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\hr.pak" SelfReg="false" NextFile="hu.pak"/>
+    <ROW File="hu.pak" Component_="am.pak" FileName="hu.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\hu.pak" SelfReg="false" NextFile="id.pak"/>
+    <ROW File="icudt.dll" Component_="icudt.dll" FileName="icudt.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\icudt.dll" SelfReg="false" NextFile="libcef.dll"/>
+    <ROW File="id.pak" Component_="am.pak" FileName="id.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\id.pak" SelfReg="false" NextFile="it.pak"/>
+    <ROW File="it.pak" Component_="am.pak" FileName="it.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\it.pak" SelfReg="false" NextFile="ja.pak"/>
+    <ROW File="ja.pak" Component_="am.pak" FileName="ja.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\ja.pak" SelfReg="false" NextFile="kn.pak"/>
+    <ROW File="kn.pak" Component_="am.pak" FileName="kn.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\kn.pak" SelfReg="false" NextFile="ko.pak"/>
+    <ROW File="ko.pak" Component_="am.pak" FileName="ko.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\ko.pak" SelfReg="false" NextFile="lt.pak"/>
+    <ROW File="libcef.dll" Component_="libcef.dll" FileName="libcef.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\libcef.dll" SelfReg="false" NextFile="libsndfile1.dll"/>
+    <ROW File="libsndfile1.dll" Component_="libsndfile1.dll" FileName="libsnd~1.dll|libsndfile-1.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\libsndfile-1.dll" SelfReg="false" NextFile="am.pak"/>
+    <ROW File="license.rtf" Component_="stonehearth.ini" FileName="license.rtf" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\license.rtf" SelfReg="false"/>
+    <ROW File="lt.pak" Component_="am.pak" FileName="lt.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\lt.pak" SelfReg="false" NextFile="lv.pak"/>
+    <ROW File="lua5.1.5.dll" Component_="lua5.1.5.dll" FileName="lua-51~1.dll|lua-5.1.5.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\lua-5.1.5.dll" SelfReg="false" NextFile="openal32.dll"/>
+    <ROW File="lv.pak" Component_="am.pak" FileName="lv.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\lv.pak" SelfReg="false" NextFile="ml.pak"/>
+    <ROW File="ml.pak" Component_="am.pak" FileName="ml.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\ml.pak" SelfReg="false" NextFile="mr.pak"/>
+    <ROW File="mr.pak" Component_="am.pak" FileName="mr.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\mr.pak" SelfReg="false" NextFile="ms.pak"/>
+    <ROW File="ms.pak" Component_="am.pak" FileName="ms.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\ms.pak" SelfReg="false" NextFile="nb.pak"/>
+    <ROW File="nb.pak" Component_="am.pak" FileName="nb.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\nb.pak" SelfReg="false" NextFile="nl.pak"/>
+    <ROW File="nl.pak" Component_="am.pak" FileName="nl.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\nl.pak" SelfReg="false" NextFile="pl.pak"/>
+    <ROW File="openal32.dll" Component_="openal32.dll" FileName="openal32.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\openal32.dll" SelfReg="false" NextFile="Stonehearth.exe"/>
+    <ROW File="outline.glsl" Component_="blur.glsl" FileName="outlin~1.gls|outline.glsl" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\utilityLib\outline.glsl" SelfReg="false" NextFile="vertCommon.glsl"/>
+    <ROW File="outline.material.xml_1" Component_="outline.material.xml" FileName="outlin~1.xml|outline.material.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\materials\designation\outline.material.xml" SelfReg="false" NextFile="outline.shader_1"/>
+    <ROW File="outline.shader_1" Component_="outline.material.xml" FileName="outlin~1.sha|outline.shader" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\materials\designation\outline.shader" SelfReg="false" NextFile="stripes.material.xml"/>
+    <ROW File="overlay.shader" Component_="blueprint_gridlines.shader" FileName="overla~1.sha|overlay.shader" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\overlay.shader" SelfReg="false" NextFile="ssao2.shader"/>
+    <ROW File="panel.material.xml" Component_="font.material.xml" FileName="panelm~1.xml|panel.material.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\overlays\panel.material.xml" SelfReg="false" NextFile="fire.cubemitter.json"/>
+    <ROW File="pl.pak" Component_="am.pak" FileName="pl.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\pl.pak" SelfReg="false" NextFile="ptBR.pak"/>
+    <ROW File="ptBR.pak" Component_="am.pak" FileName="pt-BR.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\pt-BR.pak" SelfReg="false" NextFile="ptPT.pak"/>
+    <ROW File="ptPT.pak" Component_="am.pak" FileName="pt-PT.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\pt-PT.pak" SelfReg="false" NextFile="ro.pak"/>
+    <ROW File="radiant.smod" Component_="radiant.stmod" FileName="radian~1.smo|radiant.smod" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\mods\radiant.smod" SelfReg="false" NextFile="stonehearth.smod"/>
+    <ROW File="ro.pak" Component_="am.pak" FileName="ro.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\ro.pak" SelfReg="false" NextFile="ru.pak"/>
+    <ROW File="ru.pak" Component_="am.pak" FileName="ru.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\ru.pak" SelfReg="false" NextFile="sk.pak"/>
+    <ROW File="sfmlaudio2.dll" Component_="sfmlaudio2.dll" FileName="sfml-a~1.dll|sfml-audio-2.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\sfml-audio-2.dll" SelfReg="false" NextFile="sfmlsystem2.dll"/>
+    <ROW File="sfmlsystem2.dll" Component_="sfmlsystem2.dll" FileName="sfml-s~1.dll|sfml-system-2.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\sfml-system-2.dll" SelfReg="false" NextFile="default_material.xml_1"/>
+    <ROW File="shadows.shader" Component_="blueprint_gridlines.shader" FileName="shadow~1.sha|shadows.shader" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\shadows.shader" SelfReg="false" NextFile="sfmlaudio2.dll"/>
+    <ROW File="sk.pak" Component_="am.pak" FileName="sk.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\sk.pak" SelfReg="false" NextFile="sl.pak"/>
+    <ROW File="sl.pak" Component_="am.pak" FileName="sl.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\sl.pak" SelfReg="false" NextFile="sr.pak"/>
+    <ROW File="spark.material.xml" Component_="flint_spark.json" FileName="sparkm~1.xml|spark.material.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\particles\sparks\spark.material.xml" SelfReg="false" NextFile="talisman.cubemittercircular.json"/>
+    <ROW File="sr.pak" Component_="am.pak" FileName="sr.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\sr.pak" SelfReg="false" NextFile="sv.pak"/>
+    <ROW File="ssao.material.xml" Component_="blueprint_gridlines.xml" FileName="ssaoma~1.xml|ssao.material.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\materials\ssao.material.xml" SelfReg="false" NextFile="center.material.xml"/>
+    <ROW File="ssao2.shader" Component_="blueprint_gridlines.shader" FileName="ssao2~1.sha|ssao2.shader" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\ssao2.shader" SelfReg="false" NextFile="blur.glsl"/>
+    <ROW File="stockpile.shader" Component_="center.material.xml" FileName="stockp~1.sha|stockpile.shader" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\materials\stockpile\stockpile.shader" SelfReg="false" NextFile="font.material.xml"/>
+    <ROW File="stonehearth.ini" Component_="stonehearth.ini" FileName="stoneh~1.ini|stonehearth.ini" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\stonehearth.ini" SelfReg="false" NextFile="crash_reporter.exe"/>
+    <ROW File="stonehearth.smod" Component_="radiant.stmod" FileName="stoneh~1.smo|stonehearth.smod" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\mods\stonehearth.smod" SelfReg="false" NextFile="license.rtf"/>
+    <ROW File="stripes.material.xml" Component_="outline.material.xml" FileName="stripe~1.xml|stripes.material.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\materials\designation\stripes.material.xml" SelfReg="false" NextFile="stripes.shader"/>
+    <ROW File="stripes.shader" Component_="outline.material.xml" FileName="stripe~1.sha|stripes.shader" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\materials\designation\stripes.shader" SelfReg="false" NextFile="shadows.shader"/>
+    <ROW File="sv.pak" Component_="am.pak" FileName="sv.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\sv.pak" SelfReg="false" NextFile="sw.pak"/>
+    <ROW File="sw.pak" Component_="am.pak" FileName="sw.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\sw.pak" SelfReg="false" NextFile="ta.pak"/>
+    <ROW File="ta.pak" Component_="am.pak" FileName="ta.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\ta.pak" SelfReg="false" NextFile="te.pak"/>
+    <ROW File="talisman.cubemitter.json" Component_="fire.material.xml" FileName="talism~2.jso|talisman.cubemitter.json" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\particles\talisman\talisman.cubemitter.json" SelfReg="false" NextFile="deferred_lighting.xml"/>
+    <ROW File="talisman.cubemittercircular.json" Component_="fire.material.xml" FileName="talism~1.jso|talisman.cubemitter - circular.json" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\particles\talisman\talisman.cubemitter - circular.json" SelfReg="false" NextFile="talisman.cubemitter.json"/>
+    <ROW File="te.pak" Component_="am.pak" FileName="te.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\te.pak" SelfReg="false" NextFile="th.pak"/>
+    <ROW File="th.pak" Component_="am.pak" FileName="th.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\th.pak" SelfReg="false" NextFile="tr.pak"/>
+    <ROW File="toast_text.fnt" Component_="berlin_sans_fb_bold_32.PNG" FileName="toast_~1.fnt|toast_text.fnt" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\fonts\toast_text.fnt" SelfReg="false" NextFile="toast_text.material.xml"/>
+    <ROW File="toast_text.material.xml" Component_="berlin_sans_fb_bold_32.PNG" FileName="toast_~1.xml|toast_text.material.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\fonts\toast_text.material.xml" SelfReg="false" NextFile="toast_text.png"/>
+    <ROW File="toast_text.png" Component_="berlin_sans_fb_bold_32.PNG" FileName="toast_~1.png|toast_text.png" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\fonts\toast_text.png" SelfReg="false" NextFile="toast_text.shader"/>
+    <ROW File="toast_text.shader" Component_="berlin_sans_fb_bold_32.PNG" FileName="toast_~1.sha|toast_text.shader" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\fonts\toast_text.shader" SelfReg="false" NextFile="blueprint_gridlines.xml"/>
+    <ROW File="tr.pak" Component_="am.pak" FileName="tr.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\tr.pak" SelfReg="false" NextFile="uk.pak"/>
+    <ROW File="uk.pak" Component_="am.pak" FileName="uk.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\uk.pak" SelfReg="false" NextFile="vi.pak"/>
+    <ROW File="vertCommon.glsl" Component_="blur.glsl" FileName="vertCo~1.gls|vertCommon.glsl" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\utilityLib\vertCommon.glsl" SelfReg="false" NextFile="vertSkinning.glsl"/>
+    <ROW File="vertSkinning.glsl" Component_="blur.glsl" FileName="vertSk~1.gls|vertSkinning.glsl" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\utilityLib\vertSkinning.glsl" SelfReg="false" NextFile="defnorm.tga"/>
+    <ROW File="vi.pak" Component_="am.pak" FileName="vi.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\vi.pak" SelfReg="false" NextFile="zhCN.pak"/>
+    <ROW File="white.tga" Component_="corners.png" FileName="white.tga" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\textures\common\white.tga" SelfReg="false" NextFile="cloudmap.png"/>
+    <ROW File="zhCN.pak" Component_="am.pak" FileName="zh-CN.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\zh-CN.pak" SelfReg="false" NextFile="zhTW.pak"/>
+    <ROW File="zhTW.pak" Component_="am.pak" FileName="zh-TW.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\zh-TW.pak" SelfReg="false" NextFile="lua5.1.5.dll"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.AiRemoveFileComponent">
+    <ROW RemoveFile="debug.log" Condition="(AI_CLEAN_RESOURCES_UNINSTALL = &quot;1&quot;)" Options="1"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BootstrOptComponent">
-    <ROW BootstrOptKey="GlobalOptions" GeneralOptions="h" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites" EulaPath="..\..\build\stage\license.rtf"/>
+    <ROW BootstrOptKey="GlobalOptions" GeneralOptions="h" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BuildComponent">
     <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="1" PackageFolder="..\..\build\advanced-installer" PackageFileName="install_stonehearth" Languages="en" InstallationType="2" CabsLocation="1" UseLzma="true" LzmaMethod="2" LzmaCompressionLevel="2" PackageType="1" FilesInsideExe="true" ExtractionFolder="[AppDataFolder][|Manufacturer]\[|ProductName] [|ProductVersion]\install" ExtUI="true" UseLargeSchema="true" ExeName="install_stonehearth"/>
@@ -387,6 +264,11 @@
     <ROW Fragment="VerifyRepairDlg.aip" Path="&lt;AI_THEMES&gt;surface\fragments\VerifyRepairDlg.aip"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiActionTextComponent">
+    <ROW Action="AI_AiRemoveFilesCommit" Description="Executing file removal operations" Template="Executing file removal: [1]" DescriptionLocId="ActionText.Description.AI_AiRemoveFilesCommit" TemplateLocId="ActionText.Template.AI_AiRemoveFilesCommit"/>
+    <ROW Action="AI_AiRemoveFilesDeferred_Permanent" Description="Preparing files for removal" Template="Preparing file: [1]" DescriptionLocId="ActionText.Description.AI_AiRemoveFilesDeferred_Permanent" TemplateLocId="ActionText.Template.AI_AiRemoveFilesDeferred_Permanent"/>
+    <ROW Action="AI_AiRemoveFilesDeferred_Undoable" Description="Preparing files for removal" Template="Preparing file: [1]" DescriptionLocId="ActionText.Description.AI_AiRemoveFilesDeferred_Undoable" TemplateLocId="ActionText.Template.AI_AiRemoveFilesDeferred_Undoable"/>
+    <ROW Action="AI_AiRemoveFilesImmediate" Description="Preparing files for removal" Template="Preparing file: [1]" DescriptionLocId="ActionText.Description.AI_AiRemoveFilesImmediate" TemplateLocId="ActionText.Template.AI_AiRemoveFilesImmediate"/>
+    <ROW Action="AI_AiRemoveFilesRollback" Description="Restoring removed files" Template="Restoring file: [1]" DescriptionLocId="ActionText.Description.AI_AiRemoveFilesRollback" TemplateLocId="ActionText.Template.AI_AiRemoveFilesRollback"/>
     <ROW Action="AI_DeleteLzma" Description="Deleting files extracted from archive" DescriptionLocId="ActionText.Description.AI_DeleteLzma" TemplateLocId="-"/>
     <ROW Action="AI_DeleteRLzma" Description="Deleting files extracted from archive" DescriptionLocId="ActionText.Description.AI_DeleteLzma" TemplateLocId="-"/>
     <ROW Action="AI_ExtractFiles" Description="Extracting files from archive" DescriptionLocId="ActionText.Description.AI_ExtractLzma" TemplateLocId="-"/>
@@ -399,6 +281,7 @@
   <COMPONENT cid="caphyon.advinst.msicomp.MsiBinaryComponent">
     <ROW Name="ExternalUICleaner.dll" SourcePath="&lt;AI_CUSTACTS&gt;ExternalUICleaner.dll"/>
     <ROW Name="Prereq.dll" SourcePath="&lt;AI_CUSTACTS&gt;Prereq.dll"/>
+    <ROW Name="ResourceCleaner.dll" SourcePath="&lt;AI_CUSTACTS&gt;ResourceCleaner.dll"/>
     <ROW Name="aicustact.dll" SourcePath="&lt;AI_CUSTACTS&gt;aicustact.dll"/>
     <ROW Name="lzmaextractor.dll" SourcePath="&lt;AI_CUSTACTS&gt;lzmaextractor.dll"/>
     <ROW Name="stonehearth_logo.bmp" SourcePath="stonehearth_logo.bmp"/>
@@ -587,6 +470,11 @@
     <ROW Directory_="SHORTCUTDIR" Component_="SHORTCUTDIR"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCustActComponent">
+    <ROW Action="AI_AiRemoveFilesCommit" Type="11777" Source="ResourceCleaner.dll" Target="OnAiRemoveFilesCommit" WithoutSeq="true"/>
+    <ROW Action="AI_AiRemoveFilesDeferred_Permanent" Type="11265" Source="ResourceCleaner.dll" Target="OnAiRemoveFilesPermanent" WithoutSeq="true"/>
+    <ROW Action="AI_AiRemoveFilesDeferred_Undoable" Type="11265" Source="ResourceCleaner.dll" Target="OnAiRemoveFilesUndoable" WithoutSeq="true"/>
+    <ROW Action="AI_AiRemoveFilesImmediate" Type="1" Source="ResourceCleaner.dll" Target="OnAiRemoveFilesImmediate"/>
+    <ROW Action="AI_AiRemoveFilesRollback" Type="11521" Source="ResourceCleaner.dll" Target="OnAiUndoRemoveFiles"/>
     <ROW Action="AI_BACKUP_AI_SETUPEXEPATH" Type="51" Source="AI_SETUPEXEPATH_ORIGINAL" Target="[AI_SETUPEXEPATH]"/>
     <ROW Action="AI_ChooseTextStyles" Type="1" Source="aicustact.dll" Target="ChooseTextStyles"/>
     <ROW Action="AI_DATA_SETTER" Type="51" Source="AI_ExtractFiles" Target="[AI_SETUPEXEPATH]"/>
@@ -645,6 +533,8 @@
     <ROW Action="AI_EstimateExtractFiles" Sequence="3999" Builds="DefaultBuild"/>
     <ROW Action="AI_RemoveExternalUIStub" Condition="(REMOVE=&quot;ALL&quot;) AND ((VersionNT &gt; 500) OR((VersionNT = 500) AND (ServicePackLevel &gt;= 4)))" Sequence="1501"/>
     <ROW Action="AI_SETMIXINSTLOCATION" Sequence="748"/>
+    <ROW Action="AI_AiRemoveFilesRollback" Sequence="3099"/>
+    <ROW Action="AI_AiRemoveFilesImmediate" Sequence="3499"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiInstallUISequenceComponent">
     <ROW Action="AI_RESTORE_LOCATION" Condition="APPDIR=&quot;&quot;" Sequence="749"/>
@@ -670,6 +560,9 @@
     <ROW Registry="AI_ExePath" Root="-1" Key="Software\Caphyon\Advanced Installer\LZMA\[ProductCode]\[ProductVersion]" Name="AI_ExePath" Value="[AI_SETUPEXEPATH]" Component_="AI_ExePath"/>
     <ROW Registry="Path" Root="-1" Key="Software\[Manufacturer]\[ProductName]" Name="Path" Value="[APPDIR]" Component_="ProductInformation"/>
     <ROW Registry="Version" Root="-1" Key="Software\[Manufacturer]\[ProductName]" Name="Version" Value="[ProductVersion]" Component_="ProductInformation"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiRemoveFileComponent">
+    <ROW FileKey="debug.log" Component_="AI_ExePath" FileName="debug.log" DirProperty="APPDIR" InstallMode="2"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiShortsComponent">
     <ROW Shortcut="Stonehearth.exe" Directory_="SHORTCUTDIR" Name="Stoneh~1.exe|Stonehearth.exe" Component_="Stonehearth.exe" Target="[#Stonehearth.exe]" Description="Stonehearth.exe" Hotkey="0" IconIndex="0" ShowCmd="1" WkDir="APPDIR"/>
