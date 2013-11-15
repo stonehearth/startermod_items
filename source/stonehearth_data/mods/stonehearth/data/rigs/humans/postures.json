@@ -9,6 +9,10 @@
    "sitting" : {
       "idle_breathe" : "sitting_idle",
       "idle_sway" : "sitting_idle",
-      "idle_look_around" : "sitting_idle"
+      "idle_look_around" : "sitting_idle",
+      "eat" : "sitting_eat"
+   },
+   "sitting_on_surface" : {
+      "eat" : "sitting_surface_eat"
    }
 }

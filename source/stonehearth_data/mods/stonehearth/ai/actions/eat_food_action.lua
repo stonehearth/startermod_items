@@ -117,8 +117,8 @@ function EatFoodAction:run(ai, entity, food)
       local z = math.random(0 - CLOSE_DISTANCE, CLOSE_DISTANCE)
       ai:execute('stonehearth:goto_location', Point3(entity_loc.x + x, entity_loc.y, entity_loc.z + z))
 
-      --TODO: replace with standing/eating animation
-      ai:execute('stonehearth:run_effect', 'work')
+      radiant.entities.sit_down(self._entity)
+      ai:execute('stonehearth:run_effect', 'sit_on_ground')
       satisfaction = satisfaction * HURRIED_MODIFIER
       consumption_text = radiant.entities.get_entity_data(food, 'stonehearth:message_starved')
 
@@ -130,7 +130,8 @@ function EatFoodAction:run(ai, entity, food)
          self:_register_for_chair_events()
 
          --TODO: play sitting and eating animation
-         ai:execute('stonehearth:run_effect', 'work')
+         radiant.entities.set_posture(self._entity, 'sitting_on_surface')
+         ai:execute('stonehearth:run_effect', 'sit_on_chair')
          --TODO: alter the chair modifier depending on distance from table, kind of chair
          satisfaction = satisfaction * CHAIR_MODIFIER
          consumption_text = radiant.entities.get_entity_data(food, 'stonehearth:message_normal')
@@ -140,12 +141,15 @@ function EatFoodAction:run(ai, entity, food)
          local x = math.random(0 - FAR_DISTANCE, FAR_DISTANCE)
          local z = math.random(0 - FAR_DISTANCE, FAR_DISTANCE)
          ai:execute('stonehearth:goto_location', Point3(entity_loc.x + x, entity_loc.y, entity_loc.z + z))
-         --TODO: replace with sitting/eating animation
-         ai:execute('stonehearth:run_effect', 'work')
+         
+         radiant.entities.sit_down(self._entity)
+         ai:execute('stonehearth:run_effect', 'sit_on_ground')
          consumption_text = radiant.entities.get_entity_data(food, 'stonehearth:message_floor')
-
       end
    end
+
+   --Eat. Should vary based on the postures set above
+   ai:execute('stonehearth:run_effect', 'eat')
 
    --Decrement hunger by amount relevant to the food type
    local entity_attribute_comp = entity:get_component('stonehearth:attributes')
@@ -195,9 +199,11 @@ function EatFoodAction:stop()
       self._chair_moved_promise = nil
    end
 
-   --TODO: Do sitting down posture
-   --radiant.entities.stand_up(self._entity)
    self:_release_seat_reservation()
+
+   --Whatever posture we had going in (sitting, sitting on chair, etc) should be unset now. 
+   local posture = radiant.entities.get_posture(self._entity)
+   radiant.entities.unset_posture(self._entity, posture)
 end
 
 return EatFoodAction
