@@ -18,6 +18,7 @@
 #include "egParticle.h"
 #include "egLight.h"
 #include "egCamera.h"
+#include "egHudElement.h"
 #include "egModules.h"
 #include "egVoxelGeometry.h"
 #include "egVoxelModel.h"
@@ -2229,6 +2230,27 @@ void Renderer::drawMeshes( const std::string &shaderContext, const std::string &
 	if( occSet >= 0 )
 		Modules::renderer().drawOccProxies( 0 );
 
+	gRDI->setVertexLayout( 0 );
+}
+
+
+void Renderer::drawHudElements(const std::string &shaderContext, const std::string &theClass, bool debugView,
+                               const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
+                               int occSet)
+{
+   radiant::perfmon::TimelineCounterGuard dvm("drawHudElements");
+	if( frust1 == 0x0 ) return;
+	
+	for( const auto& entry : Modules::sceneMan().getRenderableQueue() )
+	{
+      if( entry.type != SceneNodeTypes::HudElement ) continue;
+      HudElementNode* hudNode = (HudElementNode*) entry.node;
+      
+      for (const auto& hudElement : hudNode->getSubElements())
+      {
+         hudElement->draw(shaderContext, theClass);
+      }
+   }
 	gRDI->setVertexLayout( 0 );
 }
 

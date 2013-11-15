@@ -173,6 +173,8 @@ public:
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet );
 	static void drawParticles( const std::string &shaderContext, const std::string &theClass, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet );
+   static void drawHudElements(const std::string &shaderContext, const std::string &theClass, bool debugView,
+      const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet);
 
 	void render( CameraNode *camNode );
 	void finalizeFrame();

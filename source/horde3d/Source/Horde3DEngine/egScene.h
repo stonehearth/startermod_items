@@ -49,6 +49,7 @@ struct SceneNodeTypes
 		Emitter,
       VoxelModel,
       VoxelMesh,
+      HudElement
 	};
 };
 

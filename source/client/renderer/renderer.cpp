@@ -5,6 +5,7 @@
 #include "renderer.h"
 #include "Horde3DUtils.h"
 #include "Horde3DRadiant.h"
+#include "horde3d\Source\Horde3DEngine\egHudElement.h"
 #include "glfw3.h"
 #include "glfw3native.h"
 #include "render_entity.h"
@@ -359,10 +360,10 @@ void Renderer::Initialize(om::EntityPtr rootObject)
    debugShapes_ = h3dRadiantAddDebugShapes(H3DRootNode, "renderer debug shapes");
 
    H3DNode n = h3dAddGroupNode(rootRenderObject_->GetNode(), "test1");
-   h3dSetNodeTransform(n, 0, 30, 0, 0, 0, 0, 1, 1, 1);
+   h3dSetNodeTransform(n, 0, 20, 0, 0, 0, 0, 1, 1, 1);
+   H3DRes matRes = h3dAddResource(H3DResTypes::Material, "materials/rect.material.xml", 0);
 
-   ::radiant::horde3d::ScreenSpaceNode*ssn = h3dRadiantAddScreenSpaceNode(n, "ss1");
-   ssn->addRect(0, 960, 0, 100);
+   h3dAddHudElementNode(n, "hud1")->addRect(64, 32, 0, 0, matRes);
 }
 
 void Renderer::Cleanup()
