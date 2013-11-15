@@ -41,7 +41,7 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiDirsComponent">
     <ROW Directory="APPDIR" Directory_Parent="TARGETDIR" DefaultDir="APPDIR:." IsPseudoRoot="1" DirectoryOptions="3"/>
-    <ROW Directory="Anjmations_Dir" Directory_Parent="Stonehearth_Dir" DefaultDir="Animat~1|Animations" DirectoryOptions="3"/>
+    <ROW Directory="Animations_Dir" Directory_Parent="Stonehearth_Dir" DefaultDir="Animat~1|Animations" DirectoryOptions="3"/>
     <ROW Directory="DesktopFolder" Directory_Parent="TARGETDIR" DefaultDir="Deskto~1|DesktopFolder" IsPseudoRoot="1"/>
     <ROW Directory="LocalAppDataFolder" Directory_Parent="TARGETDIR" DefaultDir="LocalA~1|LocalAppDataFolder" IsPseudoRoot="1"/>
     <ROW Directory="SHORTCUTDIR" Directory_Parent="TARGETDIR" DefaultDir="SHORTC~1|SHORTCUTDIR" IsPseudoRoot="1"/>
@@ -180,7 +180,6 @@
     <ROW File="ko.pak" Component_="am.pak" FileName="ko.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\ko.pak" SelfReg="false" NextFile="lt.pak"/>
     <ROW File="libcef.dll" Component_="libcef.dll" FileName="libcef.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\libcef.dll" SelfReg="false" NextFile="libsndfile1.dll"/>
     <ROW File="libsndfile1.dll" Component_="libsndfile1.dll" FileName="libsnd~1.dll|libsndfile-1.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\libsndfile-1.dll" SelfReg="false" NextFile="am.pak"/>
-    <ROW File="license.rtf" Component_="stonehearth.ini" FileName="license.rtf" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\license.rtf" SelfReg="false"/>
     <ROW File="lt.pak" Component_="am.pak" FileName="lt.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\lt.pak" SelfReg="false" NextFile="lv.pak"/>
     <ROW File="lua5.1.5.dll" Component_="lua5.1.5.dll" FileName="lua-51~1.dll|lua-5.1.5.dll" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\lua-5.1.5.dll" SelfReg="false" NextFile="openal32.dll"/>
     <ROW File="lv.pak" Component_="am.pak" FileName="lv.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\lv.pak" SelfReg="false" NextFile="ml.pak"/>
@@ -212,7 +211,7 @@
     <ROW File="ssao2.shader" Component_="blueprint_gridlines.shader" FileName="ssao2~1.sha|ssao2.shader" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\shaders\ssao2.shader" SelfReg="false" NextFile="blur.glsl"/>
     <ROW File="stockpile.shader" Component_="center.material.xml" FileName="stockp~1.sha|stockpile.shader" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\materials\stockpile\stockpile.shader" SelfReg="false" NextFile="font.material.xml"/>
     <ROW File="stonehearth.ini" Component_="stonehearth.ini" FileName="stoneh~1.ini|stonehearth.ini" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\stonehearth.ini" SelfReg="false" NextFile="crash_reporter.exe"/>
-    <ROW File="stonehearth.smod" Component_="radiant.stmod" FileName="stoneh~1.smo|stonehearth.smod" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\mods\stonehearth.smod" SelfReg="false" NextFile="license.rtf"/>
+    <ROW File="stonehearth.smod" Component_="radiant.stmod" FileName="stoneh~1.smo|stonehearth.smod" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\mods\stonehearth.smod" SelfReg="false"/>
     <ROW File="stripes.material.xml" Component_="outline.material.xml" FileName="stripe~1.xml|stripes.material.xml" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\materials\designation\stripes.material.xml" SelfReg="false" NextFile="stripes.shader"/>
     <ROW File="stripes.shader" Component_="outline.material.xml" FileName="stripe~1.sha|stripes.shader" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\horde\materials\designation\stripes.shader" SelfReg="false" NextFile="shadows.shader"/>
     <ROW File="sv.pak" Component_="am.pak" FileName="sv.pak" Version="65535.65535.65535.65535" Attributes="0" SourcePath="..\..\build\stage\locales\sv.pak" SelfReg="false" NextFile="sw.pak"/>
@@ -567,7 +566,7 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiRemoveFileComponent">
     <ROW FileKey="_" Component_="AI_ExePath" DirProperty="Stonehearth_Dir" InstallMode="2"/>
-    <ROW FileKey="__1" Component_="AI_ExePath" DirProperty="Anjmations_Dir" InstallMode="3"/>
+    <ROW FileKey="__1" Component_="AI_ExePath" DirProperty="Animations_Dir" InstallMode="3"/>
     <ROW FileKey="crash.dmp" Component_="AI_ExePath" FileName="crash.dmp" DirProperty="Stonehearth_Dir" InstallMode="3"/>
     <ROW FileKey="crash1.dmp" Component_="AI_ExePath" FileName="crash.zip" DirProperty="Stonehearth_Dir" InstallMode="3"/>
     <ROW FileKey="crash2.dmp" Component_="AI_ExePath" FileName="fragment_shader.log" DirProperty="Stonehearth_Dir" InstallMode="3"/>
