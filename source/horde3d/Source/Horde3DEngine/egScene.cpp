@@ -203,15 +203,14 @@ bool SceneNode::canAttach( SceneNode &/*parent*/ )
 
 
 void SceneNode::markChildrenDirty()
-{	
-	for( vector< SceneNode * >::iterator itr = _children.begin(),
-	     end = _children.end(); itr != end; ++itr )
-	{
-		if( !(*itr)->_dirty )
+{
+   for (const auto& child : _children)
+   {
+		if( !child->_dirty )
 		{	
-			(*itr)->_dirty = true;
-			(*itr)->_transformed = true;
-			(*itr)->markChildrenDirty();
+			child->_dirty = true;
+			child->_transformed = true;
+			child->markChildrenDirty();
 		}
 	}
 }
@@ -250,7 +249,6 @@ void SceneNode::update()
    if (_absTrans.c[3][0] != 0.0f && !(_absTrans.c[3][0] < 0.0f) && !(_absTrans.c[3][0] > 0.0f)) {
       DebugBreak();
    }
-	Modules::sceneMan().updateSpatialNode( _sgHandle );
 
 	onPostUpdate();
 
@@ -263,6 +261,8 @@ void SceneNode::update()
 	}	
 
 	onFinishedUpdate();
+
+   Modules::sceneMan().updateSpatialNode( _sgHandle );
 }
 
 

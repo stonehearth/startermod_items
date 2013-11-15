@@ -106,7 +106,7 @@ struct BoundingBox
 	}
 
 
-	bool makeUnion( BoundingBox &b )
+	bool makeUnion( const BoundingBox &b )
 	{
 		bool changed = false;
 
