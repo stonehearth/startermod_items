@@ -24,8 +24,9 @@ int lua_main(int argc, const char** argv)
       return radiant::client::Application().Run(argc, argv);
 #ifdef _DEBUG
    } catch (std::exception const& e) {
-      LOG(WARNING) << "!!!!!!!!!!!! UNCAUGHT EXCEPTION !!!!!!!!!!!!!";
-      LOG(WARNING) << e.what();
+      std::string const error_message = BUILD_STRING("Unhandled Exception: " << e.what());
+      LOG(WARNING) << error_message;
+      MessageBox(nullptr, error_message.c_str(), "Stonehearth", MB_OK);
    }
 #endif // _DEBUG
    return 1;

@@ -78,12 +78,12 @@ bool Config::Load(int argc, const char *argv[])
    // Figure out where to run the game...
    run_directory_ = boost::filesystem::path(".");
    if (!fs::is_directory(run_directory_)) {
-      throw std::invalid_argument(BUILD_STRING("run directory " << run_directory_ << " does not exist."));
+      throw std::invalid_argument(BUILD_STRING("Run directory " << fs::absolute(run_directory_) << " does not exist."));
    }
 
    // If there's no .ini file here, complain quite loudly...
    if (!fs::is_regular(run_directory_ / config_filename_)) {
-      throw std::invalid_argument(BUILD_STRING("run directory " << run_directory_ << " does not contain " << name << " data."));
+      throw std::invalid_argument(BUILD_STRING("Run directory " << fs::absolute(run_directory_) << " does not contain " << name << ".ini."));
    }
 
    //Make sure we have a session and userid
