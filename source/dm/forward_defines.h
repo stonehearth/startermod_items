@@ -1,7 +1,7 @@
 #ifndef _RADIANT_DM_FORWARD_DEFINES_H
 #define _RADIANT_DM_FORWARD_DEFINES_H
 
-#include "namespace.h"
+#include "dm.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 

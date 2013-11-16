@@ -88,6 +88,8 @@ private:
    void UpdateTargetTables(int now, int interval);
    void SendReply(tesseract::protocol::PostCommandReply const& reply);
    void InitializeModules();
+   void InitDataModel();
+
 private:
    static Simulation*                           singleton_;
 
@@ -132,6 +134,8 @@ private:
    rpc::TraceObjectRouterPtr   trace_router_;
    rpc::ProtobufReactorPtr     protobuf_reactor_;
    std::vector<tesseract::protocol::Update>  buffered_updates_;
+
+   dm::StreamerPtr      streamer_;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

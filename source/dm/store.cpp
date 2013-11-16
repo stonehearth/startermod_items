@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "radiant.h"
 #include "store.h"
 
 using namespace ::radiant;
@@ -19,8 +19,6 @@ Store::Store(int which, std::string const& name) :
    storeId_(which),
    nextObjectId_(1),
    nextGenerationId_(1),
-   nextTraceId_(1),
-   firingCallbacks_(false),
    name_(name)
 {
    ASSERT(storeId_);
@@ -92,97 +90,7 @@ void Store::UnregisterObject(const Object& obj)
 
    objects_.erase(id);
    dynamicObjects_.erase(id);
-
-   if (!firingCallbacks_) {
-      // LOG(INFO) << "adding " << id << " to destroyed.";
-      destroyed_.push_back(id);
-   } else {
-      // LOG(INFO) << "adding " << id << " to deferred destroyed.";
-      deferredDestroyedObjects_.push_back(id);
-   }      
-}
-
-core::Guard Store::TraceDynamicObjectAlloc(ObjectAllocCb fn)
-{
-   return AddTrace(allocTraces_, -1, "dynamic alloc trace", fn);
-}
-
-core::Guard Store::TraceObjectChanges(const Object& obj, const char* reason, ObjectChangeCb fn)
-{
-   return AddTrace(changeTraces_, obj.GetObjectId(), reason, fn);
-}
-
-core::Guard Store::TraceObjectLifetime(const Object& obj, const char* reason, ObjectDestroyCb fn)
-{
-   return AddTrace(destroyTraces_, obj.GetObjectId(), reason, fn);
-}
-
-core::Guard Store::TraceFinishedFiringTraces(const char* reason, TracesFinishedCb fn)
-{
-   return AddTrace(finishedFiringTraces_, -1, reason, fn);
-}
-
-core::Guard Store::AddTraceFn(TraceObjectMap &traceMap, ObjectId oid, const char* reason, boost::any fn)
-{
-   TraceId tid = nextTraceId_++;
-
-   ValidateObjectId(oid);
-
-   // LOG(INFO) << "creating trace '" << reason << "'.";
-   if (firingCallbacks_) {
-      deferredTraces_.insert(std::make_pair(tid, TraceReservation(traceMap, oid, reason, fn)));
-      // LOG(INFO) << "deferring add trace " << reason;
-   } else {
-      traceMap[oid].push_back(tid);
-      traceCallbacks_[tid] = Trace(reason, fn);
-      // LOG(INFO) << "adding trace " << tid << " : " << traceCallbacks_[tid].reason;
-   }
-
-   return core::Guard(std::bind(&Store::RemoveTrace, this, std::ref(traceMap), oid, tid));
-}
-
-void Store::RemoveTrace(TraceObjectMap &traceMap, ObjectId oid, TraceId tid)
-{
-   if (firingCallbacks_) {
-      deadTraces_.insert(std::make_pair(tid, DeadTrace(traceMap, tid, oid)));
-      return;
-   }
-   // Remove the trace from the global list
-   auto i = traceCallbacks_.find(tid);
-   ASSERT(i != traceCallbacks_.end());
-   if (i != traceCallbacks_.end()) {
-      // LOG(INFO) << "removing trace " << tid << " : " << i->second.reason;
-      // LOG(INFO) << "removing trace '" << i->first << "'.";
-      traceCallbacks_.erase(i);
-
-      // Remove the trace from the TraceObjectMap
-      auto j = traceMap.find(oid);
-      if (j != traceMap.end()) {
-         auto& v = j->second;
-         ASSERT(v.size() > 0);
-
-         stdutil::FastRemove(v, tid);
-         if (v.empty()) {
-            traceMap.erase(j);
-         }
-      }
-      return;
-   }
-
-   auto j = deferredTraces_.find(tid);
-   if (j != deferredTraces_.end()) {
-      deferredTraces_.erase(j);
-      return;
-   }
-   ASSERT(false); // duplicate trace removal!
-}
-
-
-void Store::ValidateTraceId(TraceId tid) const
-{
-   ASSERT(tid > 0 && tid < nextTraceId_);
-   ASSERT(traceCallbacks_.find(tid) != traceCallbacks_.end());
-   ASSERT(deadTraces_.find(tid) == deadTraces_.end());
+   destroyed_.push_back(id);
 }
 
 void Store::ValidateObjectId(ObjectId oid) const
@@ -193,11 +101,6 @@ void Store::ValidateObjectId(ObjectId oid) const
 int Store::GetObjectCount() const
 {
    return objects_.size();
-}
-
-int Store::GetTraceCount() const
-{
-   return traceCallbacks_.size();
 }
 
 ObjectId Store::GetNextObjectId()
@@ -221,16 +124,10 @@ void Store::OnAllocObject(std::shared_ptr<Object> obj)
 
    ObjectId id = obj->GetObjectId();
    dynamicObjects_[id] = DynamicObject(obj, obj->GetObjectType());
-   if (!firingCallbacks_) {
-      // LOG(INFO) << "adding " << id << " to alloced.";
-      alloced_.push_back(obj);
-   } else {
-      // LOG(INFO) << "adding " << id << " to deferred alloced.";
-      deferredAllocedObjects_.push_back(obj);
-   }
+   alloced_.push_back(obj);
 }
 
-Object* Store::FetchStaticObject(ObjectId id)
+Object* Store::FetchStaticObject(ObjectId id) const
 {
    auto i = objects_.find(id);
    return i == objects_.end() ? nullptr : i->second;
@@ -273,130 +170,10 @@ std::vector<ObjectId> Store::GetModifiedSince(GenerationId when)
 void Store::OnObjectChanged(const Object& obj)
 {
    ObjectId id = obj.GetObjectId();
-   
-   if (!firingCallbacks_) {
-      stdutil::UniqueInsert(modifiedObjects_, id);
-   } else {
-      stdutil::UniqueInsert(deferredModifiedObjects_, id);
+ 
+   for (auto const& entry : tracers_) {
+      entry.second->OnObjectChanged(id);
    }
-}
-
-void Store::FireTraces()
-{
-   firingCallbacks_ = true;
-
-   ASSERT(deadTraces_.empty());
-   ASSERT(deferredTraces_.empty());
-   ASSERT(deferredModifiedObjects_.empty());
-   ASSERT(deferredAllocedObjects_.empty());
-   ASSERT(deferredDestroyedObjects_.empty());
-
-   // xxx: This is quite a tremendous hack.  Each object only uses 1 datum to track
-   // the deltas for both pending traces and object remoting.  This datum is cleared
-   // at the end of a frame when we encode objects.  This means there cannot be any
-   // outstanding traces at encode time, or we just completely miss out on firing it.
-   // Loop until there are no more traces (this could cause an infinite loop, but we
-   // hope clients are conservative in the implementation of their callbacks).
-   //
-   // A real fix would be to track trace state and object encoding state independanctly,
-   // but that's quite a bit to take on right now.
-   do {
-      for (ObjectRef o : alloced_) {
-         auto obj = o.lock();
-         if (obj) {
-            // LOG(INFO) << "firing " << obj->GetObjectId() << " alloc cb.";
-            for (TraceId tid : allocTraces_[-1]) {
-               if (!stdutil::contains(deadTraces_, tid)) {
-                  ValidateTraceId(tid);
-                  ObjectAllocCb cb = boost::any_cast<ObjectAllocCb>(traceCallbacks_[tid].cb);
-                  if (cb) {
-                     cb(obj);
-                  }
-               }
-            }
-         }
-      }
-
-      for (ObjectId id : destroyed_) {
-         auto i = destroyTraces_.find(id);
-         if (i != destroyTraces_.end()) {
-            // LOG(INFO) << "firing " << id << " destroy cb.";
-            for (TraceId tid : i->second) {
-               if (!stdutil::contains(deadTraces_, tid)) {
-                  ValidateTraceId(tid);
-                  ObjectDestroyCb cb = boost::any_cast<ObjectDestroyCb>(traceCallbacks_[tid].cb);
-                  if (cb) {
-                     cb();
-                  }
-               }
-            }
-         }
-      }
-
-      for (ObjectId id : modifiedObjects_) {
-         if (objects_.find(id) != objects_.end()) {
-            // LOG(INFO) << "firing " << id << " change cb.";
-            auto i = changeTraces_.find(id);
-            if (i != changeTraces_.end()) {
-               for (TraceId tid : i->second) {
-                  if (!stdutil::contains(deadTraces_, tid)) {
-                     ValidateTraceId(tid);
-                     // LOG(INFO) << "firing trace " << tid;
-                     ObjectChangeCb cb = boost::any_cast<ObjectChangeCb>(traceCallbacks_[tid].cb);
-                     if (cb) {
-                        cb();
-                     }
-                  }
-               }
-            }
-         } else {
-            // LOG(INFO) << "ignoring change cb on invalid object " << id;
-         }
-      }
-
-      for (TraceId tid : finishedFiringTraces_[-1]) {
-         if (!stdutil::contains(deadTraces_, tid)) {
-            ValidateTraceId(tid);
-            TracesFinishedCb cb = boost::any_cast<TracesFinishedCb>(traceCallbacks_[tid].cb);
-            if (cb) {
-               cb();
-            }
-         }
-      }
-
-      for (TraceId tid : finishedFiringTraces_[-1]) {
-         if (!stdutil::contains(deadTraces_, tid)) {
-            ValidateTraceId(tid);
-            TracesFinishedCb cb = boost::any_cast<TracesFinishedCb>(traceCallbacks_[tid].cb);
-            if (cb) {
-               cb();
-            }
-         }
-      }
-
-      modifiedObjects_ = std::move(deferredModifiedObjects_);
-      alloced_ = std::move(deferredAllocedObjects_);
-      destroyed_ = std::move(deferredDestroyedObjects_);
-   } while (!modifiedObjects_.empty());
-
-   firingCallbacks_ = false;
-
-   for (const auto& entry : deferredTraces_) {
-      TraceId tid = entry.first;
-      const TraceReservation& r = entry.second;
-      r.traceMap[r.oid].push_back(tid);
-      traceCallbacks_[tid] = Trace(r.reason, r.cb);
-      // LOG(INFO) << "adding deferred trace " << tid << " : " << traceCallbacks_[tid].reason;
-   }
-   for (const auto &entry : deadTraces_) {
-      const DeadTrace& d = entry.second;
-      RemoveTrace(d.traceMap, d.oid, d.tid);
-   }
-   deferredTraces_.clear();
-   deadTraces_.clear();
-
-   ASSERT(modifiedObjects_.empty());
-   ASSERT(deferredModifiedObjects_.empty());
 }
 
 bool Store::IsDynamicObject(ObjectId id)
@@ -404,7 +181,3 @@ bool Store::IsDynamicObject(ObjectId id)
    return dynamicObjects_.find(id) != dynamicObjects_.end();
 }
 
-
-void Store::FireFinishedTraces()
-{
-}

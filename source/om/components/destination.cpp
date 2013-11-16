@@ -48,7 +48,6 @@ Destination& Destination::SetAutoUpdateAdjacent(bool value)
    if (auto_update_adjacent_ != value) {
       region_guard_ = nullptr;
       reserved_guard_ = nullptr;
-      update_adjacent_guard_.Clear();
       auto_update_adjacent_ = value;
 
       if (value) {
@@ -57,14 +56,6 @@ Destination& Destination::SetAutoUpdateAdjacent(bool value)
             UpdateDerivedValues();
             update_adjacent_guard_.Clear();
          };
-         auto mark_dirty = [=]() {
-            if (update_adjacent_guard_.Empty()) {
-               update_adjacent_guard_ = GetStore().TraceFinishedFiringTraces("auto-updating destination region", flush_dirty);
-            }
-         };
-         region_guard_ = DeepTraceRegionVoid(region_, "updating destination derived values (region changed)", mark_dirty);
-         reserved_guard_ = DeepTraceRegionVoid(reserved_, "updating destination derived values (reserved changed)", mark_dirty);
-         mark_dirty();
       }
    }
    return *this;

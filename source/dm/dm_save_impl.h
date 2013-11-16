@@ -1,7 +1,7 @@
 #ifndef _RADIANT_DM_SAVE_IMPL_H
 #define _RADIANT_DM_SAVE_IMPL_H
 
-#include "namespace.h"
+#include "dm.h"
 #include "dbg_info.h"
 #include <memory>
 

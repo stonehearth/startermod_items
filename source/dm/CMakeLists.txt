@@ -6,18 +6,13 @@ include_directories(${PROTOBUF_INCLUDE_DIRS})
 add_library(dm STATIC
             dbg_info.cpp
             dbg_indenter.cpp
-            tracer.cpp
             object.cpp
             record.cpp
             store.cpp
-            types.cpp
-            pch.cpp
+            receiver.cpp
+            streamer.cpp
+            tracer_buffered.cpp
             )
-
-if (MSVC)
-   set_target_properties(dm PROPERTIES COMPILE_FLAGS "/Yupch.h")
-   set_source_files_properties(pch.cpp PROPERTIES COMPILE_FLAGS "/Ycpch.h")
-endif(MSVC)
 
 target_link_libraries(dm
                       protocols

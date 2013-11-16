@@ -49,6 +49,7 @@
 #include "lib/perfmon/perfmon.h"
 #include "platform/sysinfo.h"
 #include "glfw3.h"
+#include "dm/receiver.h"
 
 #include <SFML/Audio.hpp>
 
@@ -91,6 +92,7 @@ Client::Client() :
 {
    om::RegisterObjectTypes(store_);
    om::RegisterObjectTypes(authoringStore_);
+   receiver_ = std::make_shared<dm::Receiver>(store_);
 
    std::vector<std::pair<dm::ObjectId, dm::ObjectType>>  allocated_;
    scriptHost_.reset(new lua::ScriptHost());
@@ -486,6 +488,7 @@ void Client::Reset()
    octtree_->Cleanup();
 
    store_.Reset();
+   receiver_ = std::make_shared<dm::Receiver>(store_);
 
    _server_last_update_time = 0;
    _server_interval_duration = 1;
@@ -493,7 +496,6 @@ void Client::Reset()
 
    rootObject_ = NULL;
    selectedObject_ = NULL;
-   objects_.clear();
 }
 
 bool Client::ProcessMessage(const proto::Update& msg)
@@ -562,55 +564,27 @@ void Client::SetServerTick(const proto::SetServerTick& msg)
 
 void Client::AllocObjects(const proto::AllocObjects& update)
 {
-   const auto& msg = update.objects();
-
-   for (const proto::AllocObjects::Entry& entry : msg) {
-      dm::ObjectId id = entry.object_id();
-      ASSERT(!store_.FetchStaticObject(id));
-
-      objects_[id] = store_.AllocSlaveObject(entry.object_type(), id);
-   }
+   receiver_->ProcessAlloc(update);
 }
 
 void Client::UpdateObject(const proto::UpdateObject& update)
 {
-   const auto& msg = update.object();
-   dm::ObjectId id = msg.object_id();
-
-   dm::Object* obj = store_.FetchStaticObject(id);
-   ASSERT(obj);
-   obj->LoadObject(msg);
+   receiver_->ProcessUpdate(update);
 }
 
 void Client::RemoveObjects(const proto::RemoveObjects& update)
 {
-   const auto& msg = update.objects();
-
-   for (int id : update.objects()) {
-      auto i = objects_.find(id);
-
-      if (selectedObject_ && id == selectedObject_->GetObjectId()) {
-         SelectEntity(nullptr);
-      }
-      if (rootObject_ && id == rootObject_ ->GetObjectId()) {
-         rootObject_  = nullptr;
-      }
-      Renderer::GetInstance().RemoveRenderObject(GetStore().GetStoreId(), id);
-
-      ASSERT(i != objects_.end());
-
-      // Not necessarily true... only true for entities.  Entities
-      // explicitly hold references to their components!
-      // ASSERT(i->second.use_count() == 1);
-      if (i->second->GetObjectType() == om::EntityObjectType) {
-         ASSERT(i->second.use_count() <= 2);
-      }
-
-      if (i != objects_.end()) {
-         objects_.erase(i);
-      }
-
-   }
+   ASSERT(false); // need destory traces everywhere!!! to replace this;
+#if 0
+         if (selectedObject_ && id == selectedObject_->GetObjectId()) {
+            SelectEntity(nullptr);
+         }
+         if (rootObject_ && id == rootObject_ ->GetObjectId()) {
+            rootObject_  = nullptr;
+         }
+         Renderer::GetInstance().RemoveRenderObject(GetStore().GetStoreId(), id);
+#endif
+   receiver_->ProcessRemove(update);
 }
 
 void Client::UpdateDebugShapes(const proto::UpdateDebugShapes& msg)
@@ -777,9 +751,9 @@ void Client::UpdateSelection(const MouseInput &mouse)
 
 void Client::SelectEntity(dm::ObjectId id)
 {
-   auto i = objects_.find(id);
-   if (i != objects_.end() && i->second->GetObjectType() == om::EntityObjectType) {      
-      SelectEntity(std::static_pointer_cast<om::Entity>(i->second));
+   om::EntityPtr entity = GetEntity(id);
+   if (entity) {
+      SelectEntity(entity);
    }
 }
 
@@ -818,7 +792,7 @@ void Client::SelectEntity(om::EntityPtr obj)
 
 om::EntityPtr Client::GetEntity(dm::ObjectId id)
 {
-   auto obj = objects_[id];
+   dm::ObjectPtr obj = store_.FetchObject(id);
    return (obj && obj->GetObjectType() == om::Entity::DmType) ? std::static_pointer_cast<om::Entity>(obj) : nullptr;
 }
 

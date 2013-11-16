@@ -1,16 +1,9 @@
 #pragma once
 #include "object.h"
 #include "store.pb.h"
-#include "lib/lua/bind.h"
-#include "lib/lua/register.h"
-#include "namespace.h"
+#include "dm.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
-
-struct Integer {
-   static decltype(Protocol::integer) extension;
-   int value;
-};
 
 template <class T, int OT = BoxedObjectType>
 class Boxed : public Object
@@ -19,6 +12,8 @@ public:
    enum { DmType = OT };
    ObjectType GetObjectType() const override { return OT; }
    const char *GetObjectClassNameLower() const override { return "boxed"; }
+
+   IMPLEMENT_DYNAMIC_TO_STATIC_DISPATCH(Boxed);
 
    typedef T   Value;
 
@@ -52,7 +47,7 @@ public:
    operator const T&() const { return value_; }
    const Boxed& operator=(const T& rhs) {
       value_ = rhs;
-      MarkChanged();
+      GetStore().OnBoxedChanged(*this);
       return *this;
    }
 
@@ -63,92 +58,13 @@ public:
 
    // Allow for modifications
    T& Modify() {
-      MarkChanged();
+      NOT_YET_IMPLEMENTED(); // can't notify that the object has changed until the client is done with it! (UG!)
+      GetStore().OnBoxedChanged(*this);
       return value_;
-   }
-
-   core::Guard TraceValue(const char* reason, std::function<void(const T&)> fn) const {
-      auto cb = [=]() {
-         fn(value_);
-      };
-      return TraceObjectChanges(reason, cb);
-   }
-
-   class Promise
-   {
-   public:
-      Promise(const Boxed& c, const char* reason) {
-         guard_ = c.TraceValue(reason, [=](Boxed::Value const&) {
-            // xxx: see bug SH-7.  this is a temporary work around
-            auto callbacks = changedCbs_;
-            for (auto& cb : callbacks) {
-               try {
-                  luabind::call_function<void>(cb);
-               } catch (std::exception const& e) {
-                  LOG(WARNING) << "lua error firing trace: " << e.what();
-               }
-            }
-         });
-      }
-      ~Promise() {
-         LOG(WARNING) << "killing Promise...";
-      }
-
-   public:
-      static luabind::scope RegisterLuaType(struct lua_State* L, std::string const& tname) {
-         std::string name = tname + "Promise";
-         return
-            lua::RegisterTypePtr<Promise>(name.c_str())
-               .def("on_changed",&Promise::PushChangedCb)
-               .def("destroy",   &Promise::Destroy);
-      }
-
-   public:
-      void Destroy() {
-         guard_.Clear();
-         changedCbs_.clear();
-      }
-
-      Promise& PushChangedCb(luabind::object cb) {
-         changedCbs_.push_back(cb);
-         return *this;
-      }
-
-   private:
-      NO_COPY_CONSTRUCTOR(Promise)
-
-   private:
-      core::Guard                     guard_;
-      std::vector<luabind::object>  changedCbs_;
-   };
-
-   Promise* CreatePromise(const char* reason) const {
-      return new Promise(*this, reason);
-   }
-
-   static luabind::scope RegisterLuaType(struct lua_State* L, std::string tname = std::string()) {
-      if (tname.empty()) {
-         tname = GetShortTypeName<Boxed>();
-      }
-      return
-         lua::RegisterType<Boxed>(tname.c_str())
-            .def("get",               &Boxed::Get)
-            .def("modify",            &Boxed::Modify)
-            .def("trace",             &Boxed::CreatePromise)
-         ,
-         Promise::RegisterLuaType(L, tname);
    }
 
 private:
    Boxed(const Boxed<T>&); // opeartor= is ok, though.
-
-protected:
-   void SaveValue(const Store& store, Protocol::Value* msg) const override {
-      SaveImpl<T>::SaveValue(store, msg, value_);
-   }
-   void LoadValue(const Store& store, const Protocol::Value& msg) override {
-      SaveImpl<T>::LoadValue(store, msg, value_);
-   }
 
 private:
    T     value_;

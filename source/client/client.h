@@ -15,7 +15,6 @@
 #include "om/om.h"
 #include "dm/dm.h"
 #include "dm/store.h"
-#include "dm/trace_map.h"
 #include "physics/octtree.h"
 #include "libjson.h"
 #include "core/singleton.h"
@@ -140,6 +139,7 @@ class Client : public core::Singleton<Client> {
       void HandleServerCallRequest(std::string const& obj, std::string const& function_name, json::Node const& node, rpc::HttpDeferredPtr response);
       void BrowserCallRequestHandler(json::Node const& query, std::string const& postdata, rpc::HttpDeferredPtr response);
       void CallHttpReactor(std::string parts, json::Node query, std::string postdata, rpc::HttpDeferredPtr response);
+      void InitDataModel();
 
 private:
       /*
@@ -168,7 +168,6 @@ private:
       om::EntityPtr                    rootObject_;
       om::EntityPtr                    selectedObject_;
       std::vector<om::EntityRef>       hilightedObjects_;
-      std::unordered_map<dm::ObjectId, std::shared_ptr<dm::Object>> objects_;
 
       // local authoring object storage and tracking...
       dm::Store                        authoringStore_;
@@ -221,6 +220,8 @@ private:
       int                         mouse_y_;
       core::Guard                 guards_;
       bool                        perf_hud_shown_;
+
+      dm::ReceiverPtr             receiver_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

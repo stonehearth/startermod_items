@@ -13,6 +13,7 @@
 #include "jobs/goto_location.h"
 #include "resources/res_manager.h"
 #include "dm/store.h"
+#include "dm/streamer.h"
 #include "om/entity.h"
 #include "om/components/clock.h"
 #include "om/components/mob.h"
@@ -67,6 +68,8 @@ Simulation::Simulation() :
    singleton_ = this;
    octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree());
    scriptHost_.reset(new lua::ScriptHost());
+
+   InitDataModel();
 
    // sessions (xxx: stub it out for single player)
    session_ = std::make_shared<rpc::Session>();
@@ -268,6 +271,7 @@ void Simulation::EncodeUpdates(protocol::SendQueuePtr queue, ClientState& cs)
       queue->Push(protocol::Encode(update));
    }
 
+#if 0
    auto modified = store_.GetModifiedSince(cs.last_update);
    std::sort(modified.begin(), modified.end());
 
@@ -287,6 +291,11 @@ void Simulation::EncodeUpdates(protocol::SendQueuePtr queue, ClientState& cs)
          queue->Push(protocol::Encode(update));
       }
    }
+#else
+   streamer_->Flush(queue.get());
+   streamer_tracker_set_->Flush();
+#endif
+
    EncodeDebugShapes(queue);
    PushServerRemoteObjects(queue);
 
@@ -597,4 +606,10 @@ void Simulation::SendReply(proto::PostCommandReply const& reply)
 
 lua::ScriptHost& Simulation::GetScript() {
    return *scriptHost_;
+}
+
+void Simulation::InitDataModel()
+{
+   streamer_ = std::make_shared<dm::StreamSet>(store_);
+   store_.AddTracer(1, streamer_);
 }

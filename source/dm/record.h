@@ -1,7 +1,7 @@
 #pragma once
 #include "object.h"
 #include "store.pb.h"
-#include "namespace.h"
+#include "dm.h"
 #include "dm.h"
 
 BEGIN_RADIANT_DM_NAMESPACE

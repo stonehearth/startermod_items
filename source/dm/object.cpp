@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "radiant.h"
 #include "object.h"
 #include "store.h"
 
@@ -71,39 +71,23 @@ void Object::MarkChanged()
    GetStore().OnObjectChanged(*this);
 }
 
-core::Guard Object::TraceObjectLifetime(const char* reason, std::function<void()> fn) const
-{
-   return GetStore().TraceObjectLifetime(*this, reason, fn);
-}
-
-core::Guard Object::TraceObjectChanges(const char* reason, std::function<void()> fn) const
-{
-   return GetStore().TraceObjectChanges(*this, reason, fn);
-}
-
 Store& Object::GetStore() const
 {
    return Store::GetStore(id_.store);
 }
 
-void Object::SaveObject(Protocol::Object* msg) const
+void Object::LoadHeader(Protocol::Object const& msg)
 {
-   msg->set_object_id(id_.id);
-   msg->set_object_type(GetObjectType());
-   msg->set_timestamp(timestamp_);
-   SaveValue(GetStore(), msg->mutable_value());
+   const auto& update = msg.object();
+   ObjectId id = update.object_id();
+
+   Object* obj = store_.FetchStaticObject(id);
+   ASSERT(obj);
+   ASSERT(update.object_type() == obj->GetObjectType());
+
+   id_.id = id;
+   timestamp_ = timestamp;
 }
-
-void Object::LoadObject(const Protocol::Object& msg)
-{
-   ASSERT(msg.object_type() == GetObjectType());
-
-   id_.id = msg.object_id();
-   timestamp_ = msg.timestamp();
-   LoadValue(GetStore(), msg.value());
-   MarkChanged();
-}
-
 
 bool Object::IsValid() const
 {

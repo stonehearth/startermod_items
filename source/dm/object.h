@@ -1,31 +1,48 @@
-#pragma once
-#include "types.h"
-#include "core/guard.h"
-#include "store.pb.h"
-#include "namespace.h"
+#ifndef _RADIANT_DM_OBJECT_H
+#define _RADIANT_DM_OBJECT_H
+
+#include "dm.h"
 #include "all_objects_types.h"
+#include "store.pb.h"
 #include "dm_save_impl.h"
-#include "lib/lua/bind.h"
 #include "dbg_info.h"
 #include <unordered_map>
 
+#define IMPLEMENT_DYNAMIC_TO_STATIC_DISPATCH(Cls) \
+   void Load(Protocol::Object const& msg) override \
+   {  \
+      dm::LoadObject(msg); \
+      LoadHeader(msg); \
+   } \
+   \
+   std::shared_ptr<Cls ## Trace<Cls>> Trace ## Cls ## Changes(const char* reason, int category) \
+   { \
+      return GetStore().Trace ## Cls ## Changes(reason, this, category); \
+   }
+
+
 BEGIN_RADIANT_DM_NAMESPACE
 
-class Store;
-class Object;
-
-typedef std::weak_ptr<Object>  ObjectRef;
-typedef std::shared_ptr<Object>  ObjectPtr;
+struct ObjectIdentifier {
+#if 1
+   unsigned int      id;
+   unsigned int      store;
+#else
+   unsigned int      id:30;
+   unsigned int      store:2;
+#endif
+};
 
 // xxx: this is more like "object header".  it's just the metadata.
 class Object
 {
 public:
+
    Object();
    Object(Object&& other);
-
    virtual const char *GetObjectClassNameLower() const = 0;
    virtual void GetDbgInfo(DbgInfo &info) const = 0;
+   virtual void Load(Protocol::Object const& msg) = 0;
 
    virtual void Initialize(Store& s, ObjectId id);
    virtual void InitializeSlave(Store& s, ObjectId id);
@@ -41,61 +58,8 @@ public:
 
    bool IsValid() const;
 
-   virtual core::Guard TraceObjectLifetime(const char* reason, std::function<void()> fn) const;
-   virtual core::Guard TraceObjectChanges(const char* reason, std::function<void()> fn) const;
-
-   template <class T>
-   class LuaPromise
-   {
-   public:
-      LuaPromise(const char* reason, T const& c) {
-         auto changed = [=]() {
-            for (auto& cb : cbs_) {
-               try {
-                  luabind::call_function<void>(cb);
-               } catch (std::exception const& e) {
-                  LOG(WARNING) << "lua error firing trace: " << e.what();
-               }
-            }
-         };
-         callback_thread_ = c.GetStore().GetInterpreter();
-         guard_ = c.TraceObjectChanges(reason, changed);
-      }
-
-   public:
-      static luabind::scope RegisterLuaType(struct lua_State* L) {
-         using namespace luabind;
-         const char* name = typeid(T).name();
-         const char* last = strrchr(name, ':');
-         static std::string tname = std::string(last ? last + 1 : name) + "Trace";
-
-         return
-            class_<LuaPromise<T>>(tname.c_str())
-               .def(tostring(const_self))               
-               .def("on_changed",    &LuaPromise::PushChangedCb)
-               .def("destroy",       &LuaPromise::Destroy)
-            ;
-      }
-
-      void Destroy() {
-         guard_.Clear();
-      }
-
-      LuaPromise* PushChangedCb(luabind::object cb) {
-         luabind::object fn(callback_thread_, cb);
-         cbs_.push_back(fn);
-         return this;
-      }
-
-   private:
-      lua_State*                      callback_thread_;
-      core::Guard                     guard_;
-      std::vector<luabind::object>    cbs_;
-   };
-
-   void SaveObject(Protocol::Object* msg) const;
-   void LoadObject(const Protocol::Object& msg);
-   
+protected:
+   void LoadHeader(Protocol::Object const& msg);
 
 protected:
    friend Store;
@@ -104,10 +68,6 @@ protected:
 public:
    void MarkChanged();
 
-public:
-   virtual void SaveValue(const Store& store, Protocol::Value* msg) const = 0;
-   virtual void LoadValue(const Store& store, const Protocol::Value& msg) = 0;
-   
 private:
    // Do not allow copying or accidental copying creation.  Because objects
    // do not implement operator=, they cannot be put in stl containers, nor
@@ -122,15 +82,6 @@ private:
    GenerationId         timestamp_;
 };
 
-template <typename T>
-static std::ostream& operator<<(std::ostream& os, const Object::LuaPromise<T>& in)
-{
-   const char* name = typeid(T).name();
-   const char* last = strrchr(name, ':');
-   name = last ? last + 1 : name;
-   os << "[" << name << " Promise]";
-   return os;
-}
 
 // TODO: only for T's which are Objects!
 template <class T>
@@ -179,3 +130,5 @@ struct SaveImpl<std::weak_ptr<T>>
 };
 
 END_RADIANT_DM_NAMESPACE
+
+#endif // _RADIANT_DM_OBJECT_H

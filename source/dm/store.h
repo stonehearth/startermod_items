@@ -1,10 +1,10 @@
 #pragma once
 #include "object.h"
-#include "core/guard.h"
-#include "namespace.h"
-#include "store.pb.h"
-#include "lib/lua/bind.h"
-#include <boost/any.hpp>
+#include "tracer_sync.h"
+#include "tracer_buffered.h"
+#include "streamer.h"
+
+struct lua_State;
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -30,12 +30,9 @@ public:
    void SetName(std::string const& name);
 
    int GetObjectCount() const;
-   int GetTraceCount() const;
 
    std::vector<ObjectId> GetModifiedSince(GenerationId when);
    bool IsDynamicObject(ObjectId id);
-   
-   core::Guard TraceDynamicObjectAlloc(ObjectAllocCb fn);
 
    void RegisterAllocator(ObjectType t, ObjectAllocFn allocator);
 
@@ -47,15 +44,6 @@ public:
       obj->Initialize(*this, GetNextObjectId());
       OnAllocObject(obj);
       return obj;
-   }
-
-
-   template <class T>
-   std::shared_ptr<T> SharedFromThis(T* that) const {
-      dm::ObjectPtr obj = FetchObject(that->GetObjectId(), -1);
-      std::shared_ptr<T> self = std::dynamic_pointer_cast<T>(obj);
-      ASSERT(that == self.get());
-      return self;
    }
 
    std::shared_ptr<Object> FetchObject(ObjectId id, ObjectType type) const;
@@ -72,49 +60,95 @@ public:
       return FetchObject(id, -1);
    }
 
-   template<class T> T* FetchStaticObject(ObjectId id) {
+   template<class T> T* FetchStaticObject(ObjectId id) const {
       Object* obj = FetchStaticObject(id);
       T* result = dynamic_cast<T*>(obj);
       ASSERT((result && obj) || (!result && !obj)); // xxx - it would be nice to check the typeid here, too
       return result;
    }
-   Object* FetchStaticObject(ObjectId id);
+   Object* FetchStaticObject(ObjectId id) const;
 
-   void FireTraces();
-   void FireFinishedTraces();
    void Reset();
    GenerationId GetNextGenerationId();
    GenerationId GetCurrentGenerationId();
    ObjectId GetNextObjectId();
-   core::Guard TraceFinishedFiringTraces(const char* reason, TracesFinishedCb fn);
 
 private:
-   typedef std::vector<Tracker*> TrackerList;
-   typedef std::unordered_map<ObjectId, TrackerList> TrackerMap;
+   typedef std::vector<TraceRef> TraceList;
+   typedef std::unordered_map<ObjectId, TraceList> TraceMap;
+
+   typedef std::unordered_map<int, TracerPtr> TracerMap;
 
 public:
    // New hotness.  These are the demuxes.  Fan out a single "hi, i'm a map and i've changed!"
-   // to every single MapTracker (some of which are sync and some of which are buffered).
+   // to every single MapTrace (some of which are sync and some of which are buffered).
 
-   template <typename M> void OnMapRemoved(M const& map, typename M::Key const& key) {
-      auto i = trackers_.find(map.GetObjectId());
-      if (i != trackers_.end()) {
-         for (Tracker* t : i->second) {
-            static_cast<MapTracker<M>*>(t)->OnRemoved(key);
-         }
+   template <typename M> void OnMapRemoved(M const& map, typename M::Key const& key)
+   {
+      map.MarkChanged();
+      auto i = traces_.find(map.GetObjectId());
+      if (i != traces_.end()) {
+         stdutil::ForEachPrune(i->second, [](std::shared_ptr<Trace> t) {
+            std::static_pointer_cast<MapTrace<M>>(t)->OnRemoved(key);
+         });
       }
    }
-   template <typename M> void OnMapChanged(M const& map, typename M::Key const& key, typename M::Key const& value) {
-      auto i = trackers_.find(map.GetObjectId());
-      if (i != trackers_.end()) {
-         for (Tracker* t : i->second) {
-            static_cast<MapTracker<M>*>(t)->OnChanged(key, value);
-         }
+   template <typename M> void OnMapChanged(M const& map, typename M::Key const& key, typename M::Key const& value)
+   {
+      map.MarkChanged();
+      auto i = traces_.find(map.GetObjectId());
+      if (i != traces_.end()) {
+         stdutil::ForEachPrune(i->second, [](std::shared_ptr<Trace> t) {
+            std::static_pointer_cast<MapTrace<M>>(t)->OnChanged(key, value);
+         });
       }
    }
 
-   template <typename M> std::shared_ptr<Tracker*> TrackMapChanges(M const& map, bool buffered);
+#define CALL_TRACE_SET(category, invocation) \
+   do { \
+      auto t = GetTracer(category); \
+      switch (t->GetType()) { \
+      case TRACER_SYNC: \
+         std::static_pointer_cast<TracerSync>(t)->invocation; \
+         break; \
+      case TRACER_BUFFERED: \
+         std::static_pointer_cast<TracerBuffered>(t)->invocation; \
+         break; \
+      case TRACER_BUFFERED: \
+         std::static_pointer_cast<Streamer>(t)->invocation; \
+         break; \
+      default: \
+         throw std::logic_error(BUILD_STRING("unknown tracker set type " << t->GetType())); \
+      } \
+   } while (FALSE)
 
+   // useful so we don't have to pass the tracker set all over the world.  refer to it by category
+   template <typename M> std::shared_ptr<MapTrace<M>> TraceMapChanges(const char* reason, M const* map, int category)
+   {
+      dm::ObjectId id = map.GetObjectId();
+      std::shared_ptr<MapTrace<M>> tracker;
+
+      tracker = CALL_TRACE_SET(category, TraceMapChanges(reason, map));
+      traces_[id].push_back(tracker);
+      return tracker;
+   }
+
+   TracerPtr GetTracer(int category)
+   {
+      auto i = tracers_.find(category);
+      if (i == tracers_.end()) {
+         throw std::logic_error(BUILD_STRING("store has no tracker set for category " << category));
+      }
+      return i->second;
+   }
+
+   void AddTracer(int category, TracerPtr set)
+   {
+      auto entry = tracers_.insert(std::make_pair(category, set));
+      if (entry.second) {
+         throw std::logic_error(BUILD_STRING("duplicate tracer category " << category));
+      }
+   }
 
 protected: // Internal interface for Objects only
    friend Object;
@@ -122,58 +156,9 @@ protected: // Internal interface for Objects only
    void RegisterObject(Object& obj);
    void UnregisterObject(const Object& obj);
    void OnObjectChanged(const Object& obj);
-   core::Guard TraceObjectLifetime(const Object& obj, const char* reason, ObjectDestroyCb fn);
-   core::Guard TraceObjectChanges(const Object& obj, const char* reason, ObjectChangeCb fn);
    void OnAllocObject(std::shared_ptr<Object> obj);
 
 private:
-   // Types of trace functions.
-
-   // The TraceMap is a mapping from trace id's to callback functions.  It exists
-   // only because c++ function objects do not implement operator==, therefore
-   // we need a unique token so that we can compare them (to handle auto unregisration
-   // when the core::Guard object is destroyed).  Use a boost::any so we can store any
-   // types of cb function here.
-   struct Trace {
-      Trace() { }
-      Trace(const char *r, boost::any c) : reason(r), cb(c) { };
-
-      const char *reason;
-      boost::any cb;
-   };
-
-   typedef std::unordered_map<TraceId, Trace> TraceMap;
-
-
-   // The TraceObjectMap is a map of all the notifications of a certain type on
-   // a specified object.  For example, the dtors_ map contains all the trace id's
-   // of callback functions registered for object destruction notification (for all
-   // objects).
-   typedef std::unordered_map<ObjectId, std::vector<TraceId> > TraceObjectMap;
-
-
-   struct TraceReservation : public Trace {
-      TraceReservation(TraceObjectMap& m, ObjectId o, const char *r, boost::any cb) : Trace(r, cb), traceMap(m), oid(o) { }
-
-      TraceObjectMap& traceMap;
-      ObjectId oid;
-   };
-
-   struct DeadTrace {
-      DeadTrace(TraceObjectMap& m, TraceId t, ObjectId o) : traceMap(m), tid(t), oid(o) { }
-
-      TraceObjectMap& traceMap;
-      ObjectId oid;
-      TraceId tid;
-   };
-
-   template <typename T> core::Guard AddTrace(TraceObjectMap &traceMap, ObjectId id, const char* reason, T fn) {
-      return AddTraceFn(traceMap, id, reason, boost::any(fn));
-   }
-
-   core::Guard AddTraceFn(TraceObjectMap &traceMap, ObjectId oid, const char* reason, boost::any fn);
-   void RemoveTrace(TraceObjectMap &traceMap, ObjectId oid, TraceId tid);
-   void ValidateTraceId(TraceId tid) const;
    void ValidateObjectId(ObjectId oid) const;
 
 private:
@@ -189,8 +174,6 @@ private:
       DynamicObject(std::weak_ptr<Object> o, ObjectType t) : object(o), type(t) { }
    };
 
-   typedef std::unordered_map<dm::TraceId, std::function<void(ObjectPtr)>> TraceAllocMap;
-
    int            storeId_;
    std::string    name_;
    ObjectId       nextObjectId_;
@@ -198,29 +181,15 @@ private:
    TraceId        nextTraceId_;
    lua_State*     L_;
 
-   TraceMap                traceCallbacks_;
-   TraceObjectMap          allocTraces_;
-   TraceObjectMap          changeTraces_;
-   TraceObjectMap          destroyTraces_;
-   TraceObjectMap          finishedFiringTraces_;
-
-   std::vector<ObjectId>   modifiedObjects_;
    std::vector<ObjectRef>  alloced_;
    std::vector<ObjectId>   destroyed_;
-
-   std::vector<ObjectId>   deferredModifiedObjects_;
-   std::vector<ObjectRef>  deferredAllocedObjects_;
-   std::vector<ObjectId>   deferredDestroyedObjects_;
-   std::unordered_map<TraceId, TraceReservation> deferredTraces_;
-   std::unordered_map<TraceId, DeadTrace> deadTraces_;
-
-   bool                    firingCallbacks_;
 
    std::unordered_map<ObjectId, Object*>                     objects_;
    std::unordered_map<ObjectType, ObjectAllocFn>             allocators_;
    mutable std::unordered_map<ObjectId, DynamicObject>       dynamicObjects_;
 
-   TrackerMap     trackers_;
+   TraceMap     traces_;
+   TracerMap    tracers_;
 };
 
 

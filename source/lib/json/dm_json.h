@@ -1,7 +1,6 @@
 #ifndef _RADIANT_LIB_JSON_DM_DM_JSON_H
 #define _RADIANT_LIB_JSON_DM_DM_JSON_H
 
-#include "dm/namespace.h"
 #include "dm/boxed.h"
 #include "dm/map.h"
 #include "lib/json/core_json.h"
