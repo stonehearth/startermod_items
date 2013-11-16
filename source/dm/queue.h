@@ -11,7 +11,7 @@ template <class T>
 class Queue : public Object
 {
 public:
-   typedef T ValueType;
+   typedef T Value;
    typedef std::vector<T> ContainerType;
 
    //static decltype(Protocol::Queue::contents) extension;

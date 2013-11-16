@@ -4,13 +4,10 @@
 #define BEGIN_RADIANT_DM_NAMESPACE  namespace radiant { namespace dm {
 #define END_RADIANT_DM_NAMESPACE    } }
 
-#define RADIANT_DM_NAMESPACE ::radiant::dm
+BEGIN_RADIANT_DM_NAMESPACE
 
-#define IN_RADIANT_DM_NAMESPACE(x)      \
-   BEGIN_RADIANT_DM_NAMESPACE        \
-   x                                    \
-   END_RADIANT_DM_NAMESPACE
+class Tracker;
 
-#include "types.h"
+END_RADIANT_DM_NAMESPACE
 
 #endif //  _RADIANT_DM_NAMESPACE_H

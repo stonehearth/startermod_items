@@ -20,7 +20,7 @@ public:
    ObjectType GetObjectType() const override { return OT; }
    const char *GetObjectClassNameLower() const override { return "boxed"; }
 
-   typedef T   ValueType;
+   typedef T   Value;
 
    Boxed() : Object() { }
 
@@ -78,7 +78,7 @@ public:
    {
    public:
       Promise(const Boxed& c, const char* reason) {
-         guard_ = c.TraceValue(reason, [=](Boxed::ValueType const&) {
+         guard_ = c.TraceValue(reason, [=](Boxed::Value const&) {
             // xxx: see bug SH-7.  this is a temporary work around
             auto callbacks = changedCbs_;
             for (auto& cb : callbacks) {

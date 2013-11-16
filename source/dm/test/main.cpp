@@ -95,9 +95,9 @@ void TestObjectRemoting()
    }
 }
 
-template <class T> void TestObjectPersistance(Store &source, Store &sink, typename T::ValueType value)
+template <class T> void TestObjectPersistance(Store &source, Store &sink, typename T::Value value)
 {
-   T::ValueType initializer;
+   T::Value initializer;
    Protocol::Object msg;
 
    T t(source);
@@ -110,7 +110,7 @@ template <class T> void TestObjectPersistance(Store &source, Store &sink, typena
    ASSERT(t == value);
 }
 
-template <class T> void TestObjectTrace(typename T::ValueType v1, typename T::ValueType v2)
+template <class T> void TestObjectTrace(typename T::Value v1, typename T::Value v2)
 {
    Store source(1), sink(2);
 
@@ -139,9 +139,9 @@ template <class T> void TestObjectTrace(typename T::ValueType v1, typename T::Va
    ASSERT(c == 1);
 }
 
-template <class T> void TestObjectAssignment(Store &source, Store &sink, typename T::ValueType value)
+template <class T> void TestObjectAssignment(Store &source, Store &sink, typename T::Value value)
 {
-   T::ValueType initializer;
+   T::Value initializer;
    T t(source);
 
    // assignment...
@@ -154,7 +154,7 @@ template <class T> void TestObjectAssignment(Store &source, Store &sink, typenam
 
    // checkout type assignment
    t = initializer;
-   T::ValueType& v = t.Modify();
+   T::Value& v = t.Modify();
    ASSERT(v == initializer);
    ASSERT(t == initializer);
    v = value;

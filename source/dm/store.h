@@ -88,6 +88,34 @@ public:
    ObjectId GetNextObjectId();
    core::Guard TraceFinishedFiringTraces(const char* reason, TracesFinishedCb fn);
 
+private:
+   typedef std::vector<Tracker*> TrackerList;
+   typedef std::unordered_map<ObjectId, TrackerList> TrackerMap;
+
+public:
+   // New hotness.  These are the demuxes.  Fan out a single "hi, i'm a map and i've changed!"
+   // to every single MapTracker (some of which are sync and some of which are buffered).
+
+   template <typename M> void OnMapRemoved(M const& map, typename M::Key const& key) {
+      auto i = trackers_.find(map.GetObjectId());
+      if (i != trackers_.end()) {
+         for (Tracker* t : i->second) {
+            static_cast<MapTracker<M>*>(t)->OnRemoved(key);
+         }
+      }
+   }
+   template <typename M> void OnMapChanged(M const& map, typename M::Key const& key, typename M::Key const& value) {
+      auto i = trackers_.find(map.GetObjectId());
+      if (i != trackers_.end()) {
+         for (Tracker* t : i->second) {
+            static_cast<MapTracker<M>*>(t)->OnChanged(key, value);
+         }
+      }
+   }
+
+   template <typename M> std::shared_ptr<Tracker*> TrackMapChanges(M const& map, bool buffered);
+
+
 protected: // Internal interface for Objects only
    friend Object;
    static Store& GetStore(int id);
@@ -191,6 +219,8 @@ private:
    std::unordered_map<ObjectId, Object*>                     objects_;
    std::unordered_map<ObjectType, ObjectAllocFn>             allocators_;
    mutable std::unordered_map<ObjectId, DynamicObject>       dynamicObjects_;
+
+   TrackerMap     trackers_;
 };
 
 

@@ -18,8 +18,8 @@ class Map : public Object
 public:
    DEFINE_DM_OBJECT_TYPE(Map, map);
 
-   typedef K KeyType;
-   typedef V ValueType;
+   typedef K Key;
+   typedef V Value;
 
    Map() : Object() { }
 
@@ -55,14 +55,12 @@ public:
    typename ContainerType::const_iterator find(const K& key) const { return items_.find(key); }
 
    typename ContainerType::const_iterator RemoveIterator(typename ContainerType::const_iterator i) {
-      const K& key = i->first;
-
-      stdutil::FastRemove(changed_, key);
-      removed_.push_back(key);
       MarkChanged();
       return items_.erase(i);
+      GetStore().OnMapRemoved(*this, i->first);
    }
 
+#if 0
    core::Guard TraceMapChanges(const char* reason,
                              std::function<void(const K& k, const V& v)> added,
                              std::function<void(const K& k)> removed) const
@@ -85,7 +83,11 @@ public:
       };
       return TraceObjectChanges(reason, cb);
    }
+#else
 
+#endif
+
+#if 0
    // "add-or-update" operator, just like std::map and its ilk.
    V& operator[](const K& key) {
       ContainerType::iterator i = items_.find(key);
@@ -97,6 +99,14 @@ public:
       }
       return i->second;
    }
+#else
+   void Add(K const& key, V const& value) {
+      auto result = items_.insert(std::make_pair(key, value));
+      if (result.second || result.first->second != value) {
+         GetStore().OnMapChanged(*this, key, value);
+      }
+   }
+#endif
    
    void Remove(const K& key) {
       auto i = items_.find(key);
@@ -187,7 +197,7 @@ public:
          return this;
       }
 
-      void OnChange(const KeyType& key, const ValueType& value) {
+      void OnChange(const Key& key, const Value& value) {
          for (auto& cb : changedCbs_) {
             try {   
                luabind::call_function<void>(cb, key, value);
@@ -196,7 +206,7 @@ public:
             }
          }
       }
-      void OnRemove(const KeyType& key)  {
+      void OnRemove(const Key& key)  {
          for (auto& cb : removedCbs_) {
             try {
                luabind::call_function<void>(cb, key);
@@ -249,6 +259,10 @@ public:
    }
 
 public:
+   void MarshallObject(Marshall& m) override {
+      m.AddObject(*this);
+   }
+
    void SaveValue(const Store& store, Protocol::Value* valmsg) const override {
       Protocol::Map::Update* msg = valmsg->MutableExtension(Protocol::Map::extension);
       for (const auto& key : changed_) {
@@ -296,8 +310,6 @@ private:
 
 private:
    ContainerType           items_;
-   mutable std::vector<K>  changed_;
-   mutable std::vector<K>  removed_;
 };
 
 template <typename K, typename V, typename H>

@@ -14,7 +14,7 @@ template <class T>
 class Set : public Object
 {
 public:
-   typedef T ValueType;
+   typedef T Value;
    typedef std::vector<T> ContainerType;
 
    //static decltype(Protocol::Set::contents) extension;
