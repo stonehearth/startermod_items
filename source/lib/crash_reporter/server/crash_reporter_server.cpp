@@ -22,6 +22,7 @@ using namespace radiant;
 using namespace radiant::crash_reporter::server;
 
 static std::string const CRASH_DUMP_FILENAME = "crash.dmp";
+static std::string const HORDE_LOG_FILENAME = "horde3d_log.html";
 
 DEFINE_SINGLETON(CrashReporterServer);
 
@@ -83,12 +84,18 @@ void CrashReporterServer::SendCrashReport(std::string const& dump_filename)
    boost::filesystem::remove(new_dump_path);
    boost::filesystem::rename(old_dump_path, new_dump_path);
 
+   // Get Horde log
+   boost::filesystem::path horde_log_path = (old_dump_path.parent_path() / HORDE_LOG_FILENAME).string();
+
    // Get zip filename
    boost::filesystem::path zip_path(new_dump_path);
    zip_path.replace_extension(".zip");
 
    // Create zip package
-   CreateZip(zip_path.string(), new_dump_path.string());
+   std::vector<std::string> files;
+   files.push_back(new_dump_path.string());
+   files.push_back(horde_log_path.string());
+   CreateZip(zip_path.string(), files);
 
    // Get the length of the zip file
    std::ifstream zip_file(zip_path.string().c_str(), std::ios::in|std::ios::binary);
@@ -137,14 +144,16 @@ void CrashReporterServer::SendCrashReport(std::string const& dump_filename)
 }
 
 // Extend this to package a list of files for submission
-void CrashReporterServer::CreateZip(std::string const& zip_filename, std::string const& dump_filename) const
+void CrashReporterServer::CreateZip(std::string const& zip_filename, const std::vector<std::string>& files) const
 {
    std::ofstream zip_file(zip_filename, std::ios::binary);
    Poco::Zip::Compress encoder(zip_file, true);
 
-   std::string const unq_dump_filename(boost::filesystem::path(dump_filename).filename().string());
-   encoder.addFile(dump_filename, unq_dump_filename);
-   // Add additional files here
+   for (const auto& file : files)
+   {
+      std::string const unq_dump_filename(boost::filesystem::path(file).filename().string());
+      encoder.addFile(file, unq_dump_filename);
+   }
    encoder.close();
 }
 
