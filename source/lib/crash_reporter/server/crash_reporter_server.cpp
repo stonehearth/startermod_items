@@ -137,7 +137,7 @@ void CrashReporterServer::SendCrashReport(std::string const& dump_filename)
 }
 
 // Extend this to package a list of files for submission
-void CrashReporterServer::CreateZip(std::string const& zip_filename, std::string const& dump_filename)
+void CrashReporterServer::CreateZip(std::string const& zip_filename, std::string const& dump_filename) const
 {
    std::ofstream zip_file(zip_filename, std::ios::binary);
    Poco::Zip::Compress encoder(zip_file, true);

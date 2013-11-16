@@ -23,7 +23,7 @@ public:
 private:
    bool StartCrashGenerationServer();
    void SendCrashReport(std::string const& dump_filename);
-   void CreateZip(std::string const& zip_filename, std::string const& dump_filename);
+   void CreateZip(std::string const& zip_filename, std::string const& dump_filename) const;
    void ExitProcess();
 
    // Breakpad callbacks
