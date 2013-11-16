@@ -208,6 +208,8 @@ class Renderer
       std::unique_ptr<PerfHud>            perf_hud_;
       H3DRes                              uiPbo_;
       int                                 last_render_time_;
+      
+      std::string                         lastGlfwError_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE
