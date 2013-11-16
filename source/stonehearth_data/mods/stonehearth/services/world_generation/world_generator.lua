@@ -9,7 +9,8 @@ local Point3 = _radiant.csg.Point3
 local WorldGenerator = class()
 
 function WorldGenerator:__init(async)
-   self._async = async
+   --self._async = async
+   self._async = false
 
    local tg = TerrainGenerator(self._async)
    self._terrain_generator = tg
@@ -18,6 +19,21 @@ function WorldGenerator:__init(async)
 end
 
 function WorldGenerator:create_world()
+   radiant.events.trigger(radiant.events, 'stonehearth:generate_world_progress', { 
+      progress = 0,
+      complete = false
+   })
+
+   radiant.events.trigger(radiant.events, 'stonehearth:generate_world_progress', { 
+      progress = 50,
+      complete = false
+   })
+   
+   radiant.events.trigger(radiant.events, 'stonehearth:generate_world_progress', { 
+      progress = 90,
+      complete = false
+   })
+
    local terrain_thread = function()
       local cpu_timer = Timer(Timer.CPU_TIME)
       local wall_clock_timer = Timer(Timer.WALL_CLOCK)
@@ -87,7 +103,19 @@ function WorldGenerator:_generate_world(zones)
       timer:stop()
       radiant.log.info('Landscaper time: %.3fs', timer:seconds())
       self:_yield()
+
+      radiant.events.trigger(radiant.events, 'stonehearth:generate_world_progress', { 
+         progress = n / #zone_order_list,
+         complete = false
+      })
+
    end
+
+   radiant.events.trigger(radiant.events, 'stonehearth:generate_world_progress', {
+      progress = 1,
+      complete = true
+   })
+
 end
 
 function WorldGenerator:_yield()

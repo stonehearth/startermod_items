@@ -182,6 +182,10 @@
          "sounds:axe_chopping_sound" : "file(data/sounds/effects/axe_chopping_sound.ogg)"
       },
       "functions" : {
+         "get_world_generation_progress": {
+            "controller" : "file(call_handlers/world_generation_call_handler.lua)",
+            "endpoint" : "server"
+         },
          "new_game": {
             "controller" : "file(call_handlers/new_game_call_handler.lua)",
             "endpoint" : "server"
@@ -341,6 +345,7 @@
          "file(ui/shell/shell.html)",
          "file(ui/shell/title/title.html)",
          "file(ui/shell/new_game/new_game.html)",
+         "file(ui/shell/loading_screen/loading_screen.html)",
          "file(ui/game/game.html)",
          "file(ui/game/create_camp/create_camp.html)",
          "file(ui/game/build_workshop/build_workshop.html)",
@@ -362,6 +367,7 @@
          "file(ui/shell/shell.js)",
          "file(ui/shell/title/title.js)",
          "file(ui/shell/new_game/new_game.js)",
+         "file(ui/shell/loading_screen/loading_screen.js)",
          "file(ui/game/game.js)",
          "file(ui/game/create_camp/create_camp.js)",
          "file(ui/game/build_workshop/build_workshop.js)",
@@ -386,6 +392,7 @@
          "file(ui/shell/shell.less)",
          "file(ui/shell/title/title.less)",
          "file(ui/shell/new_game/new_game.less)",
+         "file(ui/shell/loading_screen/loading_screen.less)",
          "file(ui/game/game.less)",
          "file(ui/game/create_camp/create_camp.less)",
          "file(ui/game/build_workshop/build_workshop.less)",
