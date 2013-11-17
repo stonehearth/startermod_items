@@ -15,8 +15,7 @@ end
 
 function WorldGenerationCallHandler:update_progress(e)
    progress:update({
-      progress = e.progress,
-      complete = e.complete   
+      progress = e.progress   
    })
 end
    

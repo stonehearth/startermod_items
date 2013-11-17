@@ -23,7 +23,8 @@ App.StonehearthNewGameView = App.View.extend({
 
    actions : {
       startNewGame: function() {
-         this.get('parentView').addView(App.StonehearthLoadingScreenView)
+         App.gameView.addView(App.StonehearthLoadingScreenView)
+         App.gotoGame();
          this.destroy();
 
          radiant.call('radiant:set_collection_status', $('#analyticsCheckbox').is(':checked'));

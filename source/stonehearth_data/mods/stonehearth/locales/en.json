@@ -16,6 +16,13 @@
    "new_game_place_stockpile" : "Click me to place your stockpile",
    "new_game_setup_finished_button" : "Ok, got it",
 
+   "loading_map": "Generating World",
+   "loading_map_1": "sharpening right angles...",
+   "loading_map_2": "decompressing voxels...",
+   "loading_map_3": "synthesizing fauna...",
+   "loading_map_4": "redistubuting redistrubutables...",
+   "loading_map_5": "extruding sprites...",
+
    "show_stockpile_all" : "All",
    "show_stockpile_none" : "None",
    "show_stockpile_storage_for" : "Storage for:",
