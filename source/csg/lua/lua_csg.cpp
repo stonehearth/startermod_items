@@ -6,6 +6,7 @@
 #include "lua_edgelist.h"
 #include "lua_quaternion.h"
 #include "lua_ray.h"
+#include "lua_random_number_generator.h"
 
 using namespace ::luabind;
 using namespace ::radiant;
@@ -22,7 +23,8 @@ void csg::RegisterLuaTypes(lua_State* L)
             LuaHeightmap::RegisterLuaTypes(L),
             LuaEdgeList::RegisterLuaTypes(L),
             LuaQuaternion::RegisterLuaTypes(L),
-            LuaRay::RegisterLuaTypes(L)
+            LuaRay::RegisterLuaTypes(L),
+            LuaRandomNumberGenerator::RegisterLuaTypes(L)
          ]
       ]
    ];
