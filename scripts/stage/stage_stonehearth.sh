@@ -128,18 +128,26 @@ function stage_data_dir
    popd > /dev/null
 }
 
-function compile_lua
+function compile_lua_and_package_module
 {
    # $1 - the name of the mod to stage
-   echo Compiling lua files in $1
+   stage_data_dir $1
+
+   echo Compiling lua and packaging module in $1
    MOD_NAME=${1##*/}
    pushd $OUTPUT_DIR/$1/.. > /dev/null
    for infile in $(find $MOD_NAME -type f -name '*.lua'); do
      OUTFILE=${infile}c
      $LUA_BIN_ROOT/luac.exe -o $OUTFILE $infile
+     rm -f $infile
    done
-   echo Removing plaintext lua files in $1
-   find $MOD_NAME -type f -name '*.lua' -print0 | xargs -0 rm -f
+
+   # zip the package
+   # no silent mode for 7-zip, could save output to file and cat file if [ $? -ne 0 ] 
+   rm -f $MOD_NAME.smod
+   7za a -r -tzip -mx=9 $MOD_NAME.smod $MOD_NAME/'*' > /dev/null
+
+   rm -rf $MOD_NAME
    popd > /dev/null
 }
 
@@ -154,9 +162,7 @@ if [ ! -z $STAGE_DATA ]; then
    popd > /dev/null
 
    stage_data_dir horde
-   stage_data_dir mods/radiant
-   stage_data_dir mods/stonehearth
 
-   compile_lua mods/radiant
-   compile_lua mods/stonehearth
+   compile_lua_and_package_module mods/radiant
+   compile_lua_and_package_module mods/stonehearth
 fi

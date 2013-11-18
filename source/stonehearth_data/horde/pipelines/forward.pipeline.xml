@@ -5,7 +5,7 @@
       <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" format="RGBA8" scale="1.0"/>
    </Setup>
    <CommandQueue>
-      <Stage id="Depth" link="pipelines/globalSettings.material.xml">
+      <Stage id="Depth">
          <SwitchTarget target="OUTPUT" />
          <ClearTarget depthBuf="true" colBuf0="true"/>
          <DrawGeometry context="AMBIENT" class="~Translucent" />
@@ -35,7 +35,7 @@
          <SwitchTarget target="OUTPUT" />
          <BindBuffer sampler="outlineSampler" sourceRT="SelectedTemp" bufIndex="0"/>
          <BindBuffer sampler="outlineDepth" sourceRT="SelectedTemp" bufIndex="32"/>
-         <DrawQuad material="terrain/default_material.xml" context="SELECTED_SCREENSPACE_OUTLINER" />
+         <DrawQuad material="materials/default_material.xml" context="SELECTED_SCREENSPACE_OUTLINER" />
       </Stage>
 
       <Stage id="Overlays">
@@ -45,7 +45,7 @@
       <Stage id="Final">
          <SwitchTarget target="" />
          <BindBuffer sampler="buf0" sourceRT="OUTPUT" bufIndex="0" />
-         <DrawQuad material="pipelines/outline.material.xml" context="DRAW_COLORBUF" />
+         <DrawQuad material="materials/fullscreen_quad.material.xml" context="FSQUAD_COPY" />
          <UnbindBuffers />
       </Stage>
 	</CommandQueue>

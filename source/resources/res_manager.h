@@ -25,6 +25,7 @@ public:
    AnimationPtr LookupAnimation(std::string path) const;
 
    std::string ConvertToCanonicalPath(std::string path, const char* search_ext) const;
+   std::string FindScript(std::string const& script) const;
 
    std::string GetEntityUri(std::string const& mod_name, std::string const& entity_name) const;
    std::shared_ptr<std::istream> OpenResource(std::string const& stream) const;
@@ -47,7 +48,7 @@ private:
 
 private:
    boost::filesystem::path                       resource_dir_;
-   std::unordered_map<std::string, IModule*>     modules_;
+   std::unordered_map<std::string, std::unique_ptr<IModule>>     modules_;
    std::vector<std::string>                      module_names_;
    mutable std::recursive_mutex                  mutex_;
    mutable std::unordered_map<std::string, AnimationPtr> animations_;

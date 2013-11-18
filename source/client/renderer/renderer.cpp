@@ -17,6 +17,7 @@
 #include "camera.h"
 #include "lib/perfmon/perfmon.h"
 #include "perfhud/perfhud.h"
+#include "resources/res_manager.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -52,11 +53,13 @@ Renderer::Renderer() :
    server_tick_slot_("server tick"),
    render_frame_start_slot_("render frame start"),
    screen_resize_slot_("screen resize"),
-   show_debug_shapes_changed_slot_("show debug shapes")
+   show_debug_shapes_changed_slot_("show debug shapes"),
+   lastGlfwError_("none")
 {
    try {
-
-      boost::property_tree::json_parser::read_json("mods/stonehearth/renderers/terrain/config.json", terrainConfig_);
+      std::stringstream stream;
+      stream << res::ResourceManager2::GetInstance().OpenResource("stonehearth/renderers/terrain/config.json")->rdbuf();
+      boost::property_tree::json_parser::read_json(stream, terrainConfig_);
    } catch(boost::property_tree::json_parser::json_parser_error &e) {
       LOG(WARNING) << "Error parsing: " << e.filename() << " on line: " << e.line() << std::endl;
       LOG(WARNING) << e.message() << std::endl;
@@ -68,12 +71,22 @@ Renderer::Renderer() :
    windowWidth_ = 1920;
    windowHeight_ = 1080;
 
-   glfwInit();
+   glfwSetErrorCallback([](int errorCode, const char* errorString) {
+      std::string s;
+      s.append(errorString).append(": [").append(std::to_string(errorCode)).append("]");
+      Renderer::GetInstance().lastGlfwError_ = s;
+   });
+
+   if (!glfwInit())
+   {
+      throw std::exception(("Unable to initialize glfw: " + lastGlfwError_).c_str());
+   }
 
    GLFWwindow *window;
    // Fullscreen: add glfwGetPrimaryMonitor() instead of the first NULL.
    if (!(window = glfwCreateWindow(windowWidth_, windowHeight_, "Stonehearth", NULL, NULL))) {
       glfwTerminate();
+      throw std::exception(("Unable to create glfw window: " + lastGlfwError_).c_str());
    }
 
    glfwMakeContextCurrent(window);
@@ -82,7 +95,7 @@ Renderer::Renderer() :
 
    if (!h3dInit()) {   
       h3dutDumpMessages();
-      return;
+      throw std::exception("Unable to initialize renderer.  Check horde log for details.");
    }
 
    // Set options
@@ -99,9 +112,6 @@ Renderer::Renderer() :
    // Overlays
    fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
    panelMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/panel.material.xml", 0 );
-
-
-   H3DRes skyBoxRes = h3dAddResource( H3DResTypes::SceneGraph, "models/skybox/skybox.scene.xml", 0 );
    
    // xxx - should move this into the horde extension for debug shapes, but it doesn't know
    // how to actually get the resource loaded!

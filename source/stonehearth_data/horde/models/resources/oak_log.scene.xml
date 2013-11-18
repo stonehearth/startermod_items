@@ -1,4 +1,0 @@
-<Model name="oak_log" geometry="models\resources/oak_log.geo">
-
-	<Mesh name="" material="models\resources/wood_log_simpletex.material.xml" tx="0.5" ty="4.96928" tz="0.5" rx="0" ry="-90" rz="0" batchStart="0" batchCount="3252" vertRStart="0" vertREnd="1037" />
-</Model>

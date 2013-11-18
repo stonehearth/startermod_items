@@ -46,8 +46,12 @@ bool Application::LoadConfig(int argc, const char* argv[])
    return config.Load(argc, argv);
 }
 
+// Returns false on error
 bool Application::InitializeCrashReporting(std::string& error_string)
 {
+   // Don't install exception handling hooks in debug builds
+   DEBUG_ONLY(return true;)
+
    std::string const crash_dump_path = core::Config::GetInstance().GetTmpDirectory().string();
    std::string const userid = core::Config::GetInstance().GetUserID();
 
@@ -63,26 +67,37 @@ void Application::ClientThreadMain()
 
 int Application::Run(int argc, const char** argv)
 {
-   core::Config& config = core::Config::GetInstance();
-
-   if (!LoadConfig(argc, argv)) {
-      return 0;
+   // Exception handling prior to initializing crash reporter or log
+   try {
+      core::Config& config = core::Config::GetInstance();
+      
+      if (!LoadConfig(argc, argv)) {
+         return 0;
+      }
+   } catch (std::exception const& e) {
+      std::string const error_message = BUILD_STRING("Unhandled exception during application bootstrap.\n\n" << e.what());
+      crash_reporter::client::CrashReporterClient::TerminateApplicationWithMessage(error_message);
    }
 
    // Start crash reporter after config has been successfully loaded so we have a temp directory for the dump_path
    // Start before the logger in case the logger fails
    std::string error_string;
-   bool crash_reporter_started = InitializeCrashReporting(error_string);
+   bool crash_reporting_initialized = false;
+   try {
+      crash_reporting_initialized = InitializeCrashReporting(error_string);
+   } catch (...) {
+      // Continue running without crash reporter
+      // Log the error string when the log comes up
+   }
 
-   // Not much point in catching exceptions before this point
-   // Maybe write a MessageBox with the error
-
+   // Exception handling after crash reporter is initialized
    crash_reporter::client::CrashReporterClient::RunWithExceptionWrapper([&]() {
+      core::Config& config = core::Config::GetInstance();
 
       radiant::logger::init(config.GetTmpDirectory() / (config.GetName() + ".log"));
 
       // Have to wait for the logger to initialize before logging error
-      if (!crash_reporter_started) {
+      if (!crash_reporting_initialized) {
          LOG(WARNING) << "Crash reporter failed to start: " << error_string;
       }
 
@@ -93,7 +108,7 @@ int Application::Run(int argc, const char** argv)
       res::ResourceManager2::GetInstance();
       client::Client::GetInstance();
 
-      //Start the analytics session before spawning threads too
+      // Start the analytics session before spawning threads too
       std::string userid = config.GetUserID();
       std::string sessionid = config.GetSessionID();
       std::string build_number = config.GetBuildNumber();
