@@ -6,20 +6,20 @@
 radiant.mods.load('stonehearth')
 local priorities = require('constants').priorities.needs
 
-local ServeFoodAction = class()
+local GetFoodAction = class()
 
-ServeFoodAction.name = 'serve food'
-ServeFoodAction.does = 'stonehearth:serve_food'
-ServeFoodAction.priority = 5                    --The minute this action is called, it runs
+GetFoodAction.name = 'ged food!'
+GetFoodAction.does = 'stonehearth:get_food'
+GetFoodAction.priority = 5                    --The minute this action is called, it runs
 
-function ServeFoodAction:__init(ai, entity)
+function GetFoodAction:__init(ai, entity)
    radiant.check.is_entity(entity)
    self._entity = entity                        
    self._ai = ai
  end
 
 --- Run to food, pick up a serving item, and go eat.
-function ServeFoodAction:run(ai, entity, path)
+function GetFoodAction:run(ai, entity, path)
 
    --Am I carrying anything? If so, drop it
    local drop_location = radiant.entities.get_world_grid_location(entity)
@@ -42,8 +42,11 @@ function ServeFoodAction:run(ai, entity, path)
    end
    local plate_entity = radiant.entities.create_entity(plate_type)
    
+   radiant.entities.turn_to_face(entity, food_source)
+   ai:execute('stonehearth:run_effect','fiddle')
    radiant.entities.pickup_item(entity, plate_entity)
-   ai:execute('stonehearth:run_effect', 'carry_pickup')
+   --ai:execute('stonehearth:run_effect', 'carry_pickup')
+
    
    --Deduct one serving from the serving entity
    --REVIEW QUESTION: OK TO USE STACKS LIKE THIS?
@@ -66,4 +69,4 @@ function ServeFoodAction:run(ai, entity, path)
    ai:execute('stonehearth:eat_food', plate_entity)
 end
 
-return ServeFoodAction
+return GetFoodAction

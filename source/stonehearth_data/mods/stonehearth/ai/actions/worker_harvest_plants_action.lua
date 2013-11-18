@@ -11,7 +11,7 @@ local Point3 = _radiant.csg.Point3
 local HarvestPlantsAction = class()
 
 HarvestPlantsAction.name = 'harvest plants'
-HarvestPlantsAction.does = 'stonehearth:harvest_plants'
+HarvestPlantsAction.does = 'stonehearth:harvest_plant'
 HarvestPlantsAction.priority = 9
 
 function HarvestPlantsAction:__init(ai, entity)
@@ -31,7 +31,7 @@ function HarvestPlantsAction:run(ai, entity, path, task)
    end
 
    if not plant then
-      ai:abort('plant does not exist anymore in stonehearth:harvest_plants')
+      ai:abort('plant does not exist anymore in stonehearth:harvest_plant')
    end
 
    local worker_name = radiant.entities.get_display_name(entity)
@@ -59,14 +59,11 @@ function HarvestPlantsAction:run(ai, entity, path, task)
    radiant.entities.turn_to_face(entity, plant)
 
    --Fiddle with the bush and pop the basket
-   local harvestable_component = plant:get_component('stonehearth:harvestable')
-   if harvestable_component and harvestable_component:get_harvest_entity() then
+   local factory = plant:get_component('stonehearth:renewable_resource_node')
+   if factory then
       ai:execute('stonehearth:run_effect','fiddle')
-      harvestable_component:harvest()
-
-      local basket = radiant.entities.create_entity(harvestable_component:get_takeaway_type())
       local front_point = self._entity:get_component('mob'):get_location_in_front()
-      radiant.terrain.place_entity(basket, Point3(front_point.x, front_point.y, front_point.z))
+      factory:spawn_resource(Point3(front_point.x, front_point.y, front_point.z))
    end   
 
    --If we got here, we succeeded at the action.  We can get rid of this task now.

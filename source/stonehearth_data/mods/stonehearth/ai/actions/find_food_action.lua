@@ -36,27 +36,24 @@ function FindFoodAction:on_hunger_changed(e)
    self._hunger = e.value
    
    if self._hunger >= 120 then
-      if not radiant.entities.has_buff(self._entity, 'stonehearth:buffs:starving') then
-         radiant.entities.add_buff(self._entity, 'stonehearth:buffs:starving')
-         self._ai:set_action_priority(self, priorities.REALLY_HUNGRY)
-      end
+      radiant.entities.add_buff(self._entity, 'stonehearth:buffs:starving')
+      self._ai:set_action_priority(self, priorities.REALLY_HUNGRY)
    end
 
    if self._hunger >= 80  then
-      self:start_looking_for_best_food()
+      self:start_looking_for_food()
    else   
       if self._looking_for_food then
          self:stop_looking_for_food()
       end
-      if radiant.entities.has_buff(self._entity, 'stonehearth:buffs:starving') then
-         radiant.entities.remove_buff(self._entity, 'stonehearth:buffs:starving')
-      end
+
+      radiant.entities.remove_buff(self._entity, 'stonehearth:buffs:starving')
       self._ai:set_action_priority(self, 0)
    end
 end
 
 --- Kick off pathfinder to look for good food 
-function FindFoodAction:start_looking_for_best_food()
+function FindFoodAction:start_looking_for_food()
    if self._looking_for_food then
       return
    end
@@ -86,7 +83,7 @@ function FindFoodAction:find_good_food()
    assert(not self._pathfinder)
 
    local filter_fn = function(item)
-      local is_good_food = item:add_component('stonehearth:material'):is('fruit food')
+      local is_good_food = item:add_component('stonehearth:material'):is('food')
       return is_good_food
    end
 
@@ -122,7 +119,7 @@ function FindFoodAction:run(ai, entity)
    
    if self._path_to_food then
       self:stop_looking_for_food()
-      ai:execute('stonehearth:serve_food', self._path_to_food)
+      ai:execute('stonehearth:get_food', self._path_to_food)
    elseif self._hunger >= 120 then
       -- Cry in despair because we're so hungry
       -- TODO: self._ai:execute('stonehearth:???')

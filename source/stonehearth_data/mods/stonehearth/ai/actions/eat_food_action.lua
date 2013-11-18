@@ -40,7 +40,7 @@ function EatFoodAction:__init(ai, entity)
 --- Whenever the entity is hungry, subliminally start looking for a seat
 function EatFoodAction:on_hunger_changed(e)
    self._hunger = e.value
-   if self._hunger >= 80  then
+   if self._hunger >= 90  then
       self:start_looking_for_seat()
    else
       self:stop_looking_for_seat()
@@ -81,8 +81,12 @@ function EatFoodAction:find_seat()
    end
 
    local solved_cb = function(path)
-      self._seat = path:get_destination()
-      self._path_to_seat = path
+      local seat = path:get_destination()
+      if seat:add_component('stonehearth:lease_component'):try_to_acquire_lease(self._entity) then 
+         self._seat = seat
+         self._path_to_seat = path
+         self:stop_looking_for_seat()
+      end
    end
 
    radiant.log.info('%s creating pathfinder to find a seat', tostring(self._entity));
@@ -107,7 +111,7 @@ function EatFoodAction:run(ai, entity, food)
    local attributes_component = entity:add_component('stonehearth:attributes')
    local hunger = attributes_component:get_attribute('hunger')
    local entity_loc = entity:get_component('mob'):get_world_grid_location()
-   local satisfaction = food:get_component('stonehearth:attributes'):get_attribute('sates_hunger')
+   local satisfaction = food:get_component('stonehearth:attributes'):get_attribute('nourishment')
    local consumption_text = ''
    local worker_name = radiant.entities.get_display_name(entity)
    self._food = food
@@ -117,21 +121,23 @@ function EatFoodAction:run(ai, entity, food)
       local z = math.random(0 - CLOSE_DISTANCE, CLOSE_DISTANCE)
       ai:execute('stonehearth:goto_location', Point3(entity_loc.x + x, entity_loc.y, entity_loc.z + z))
 
-      radiant.entities.sit_down(self._entity)
+      radiant.entities.set_posture(self._entity, 'sitting')
       ai:execute('stonehearth:run_effect', 'sit_on_ground')
       satisfaction = satisfaction * HURRIED_MODIFIER
       consumption_text = radiant.entities.get_entity_data(food, 'stonehearth:message_starved')
 
    elseif hunger >= 80 then
 
-      if self._path_to_seat and self._seat and
-         self._seat:add_component('stonehearth:lease_component'):try_to_acquire_lease(entity) then 
+      if self._seat then
          ai:execute('stonehearth:goto_entity', self._seat)
          self:_register_for_chair_events()
 
-         --TODO: play sitting and eating animation
-         radiant.entities.set_posture(self._entity, 'sitting_on_surface')
-         ai:execute('stonehearth:run_effect', 'sit_on_chair')
+         
+         self._pre_eating_location = radiant.entities.get_location_aligned(self._entity)
+         radiant.entities.move_to(self._entity, radiant.entities.get_location_aligned(self._seat))
+         radiant.entities.set_posture(self._entity, 'sitting_on_chair')
+         --ai:execute('stonehearth:run_effect', 'sit_on_chair')
+         
          --TODO: alter the chair modifier depending on distance from table, kind of chair
          satisfaction = satisfaction * CHAIR_MODIFIER
          consumption_text = radiant.entities.get_entity_data(food, 'stonehearth:message_normal')
@@ -142,14 +148,16 @@ function EatFoodAction:run(ai, entity, food)
          local z = math.random(0 - FAR_DISTANCE, FAR_DISTANCE)
          ai:execute('stonehearth:goto_location', Point3(entity_loc.x + x, entity_loc.y, entity_loc.z + z))
          
-         radiant.entities.sit_down(self._entity)
+         radiant.entities.set_posture(self._entity, 'sitting')
          ai:execute('stonehearth:run_effect', 'sit_on_ground')
          consumption_text = radiant.entities.get_entity_data(food, 'stonehearth:message_floor')
       end
    end
 
    --Eat. Should vary based on the postures set above
-   ai:execute('stonehearth:run_effect', 'eat')
+   for i = 1, 3 do
+      ai:execute('stonehearth:run_effect', 'eat')
+   end
 
    --Decrement hunger by amount relevant to the food type
    local entity_attribute_comp = entity:get_component('stonehearth:attributes')
@@ -204,6 +212,13 @@ function EatFoodAction:stop()
    --Whatever posture we had going in (sitting, sitting on chair, etc) should be unset now. 
    local posture = radiant.entities.get_posture(self._entity)
    radiant.entities.unset_posture(self._entity, posture)
+   radiant.entities.unset_posture(self._entity, 'sitting_on_chair')
+
+   --move off the chair if necessary
+   if self._pre_eating_location then
+      radiant.entities.move_to(self._entity, self._pre_eating_location)
+      self._pre_eating_location = nil
+   end
 end
 
 return EatFoodAction

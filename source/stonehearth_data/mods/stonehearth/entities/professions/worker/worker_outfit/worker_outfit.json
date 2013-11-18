@@ -34,7 +34,7 @@
                "stonehearth:actions:worker_restock_action",
                "stonehearth:actions:worker_place_action",
                "stonehearth:actions:worker_light_fire_action",
-               "stonehearth:actions:worker_harvest_plants"
+               "stonehearth:actions:worker_harvest_plant_action"
             ]
          }
       }

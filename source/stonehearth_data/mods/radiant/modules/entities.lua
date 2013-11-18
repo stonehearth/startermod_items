@@ -383,13 +383,6 @@ function entities._drop_helper(entity)
    end
 end
 
-function entities.sit_down(entity)
-   radiant.entities.set_posture(entity, 'sitting')
-end
-
-function entities.stand_up(entity)
-   radiant.entities.unset_posture(entity, 'sitting')
-end
 
 --[[
    Checks if an entity is next to a location, updated

@@ -8,7 +8,7 @@
    "icon": "file(gather_berries.png)",
 
    "action": "call",
-   "function": "stonehearth:harvest_plants",
+   "function": "stonehearth:harvest_plant",
    "args": [
       "{{self}}"
    ]

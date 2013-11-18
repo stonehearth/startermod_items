@@ -23,7 +23,7 @@ function ResourceCallHandler:harvest_tree(session, response, tree)
    return true
 end
 
-function ResourceCallHandler:harvest_plants(session, response, plant)
+function ResourceCallHandler:harvest_plant(session, response, plant)
    local worker_scheduler = radiant.mods.load('stonehearth').worker_scheduler:get_worker_scheduler(session.faction)
 
    -- Any worker that's not carrying anything will do...
@@ -38,7 +38,7 @@ function ResourceCallHandler:harvest_plants(session, response, plant)
 
    harvest_task:set_action_fn(
       function (path)
-         return 'stonehearth:harvest_plants', path, harvest_task
+         return 'stonehearth:harvest_plant', path, harvest_task
       end
    )
 

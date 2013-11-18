@@ -12,7 +12,7 @@
       "idle_look_around" : "sitting_idle",
       "eat" : "sitting_eat"
    },
-   "sitting_on_surface" : {
-      "eat" : "sitting_surface_eat"
+   "sitting_on_chair" : {
+      "eat" : "sitting_on_chair_eat"
    }
 }
