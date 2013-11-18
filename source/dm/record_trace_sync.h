@@ -1,28 +1,28 @@
-#ifndef _RADIANT_DM_BOXED_TRACE_SYNC_H
-#define _RADIANT_DM_BOXED_TRACE_SYNC_H
+#ifndef _RADIANT_DM_RECORD_TRACE_SYNC_H
+#define _RADIANT_DM_RECORD_TRACE_SYNC_H
 
 #include "dm.h"
-#include "boxed_trace.h"
+#include "trace_sync.h"
+#include "record_trace.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename M>
-class BoxedTraceSync : public BoxedTrace<M>
+class RecordTraceSync : public RecordTrace<M>,
+                        public TraceSync                        
 {
 public:
-   BoxedTraceSync(const char* reason) :
-      BoxedTrace(reason)
-   {
-   }
+   RecordTraceSync(const char* reason, Record const& r, int category) :
+      RecordTrace(reason, r, category) { }
 
 private:
-   void OnChanged(Value const& value) override
+   void NotifyObjectChanged() override
    {
-      SignalChanged(value);
+      SignalChanged();
    }
 };
 
 END_RADIANT_DM_NAMESPACE
 
-#endif // _RADIANT_DM_BOXED_TRACE_SYNC_H
+#endif // _RADIANT_DM_RECORD_TRACE_SYNC_H
 

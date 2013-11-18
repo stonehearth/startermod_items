@@ -10,6 +10,7 @@ add_library(dm STATIC
             record.cpp
             store.cpp
             receiver.cpp
+            record_loader.cpp
             streamer.cpp
             tracer_buffered.cpp
             )

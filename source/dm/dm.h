@@ -4,6 +4,11 @@
 #define BEGIN_RADIANT_DM_NAMESPACE  namespace radiant { namespace dm {
 #define END_RADIANT_DM_NAMESPACE    } }
 
+// xxx: move this into a protocol.h header?
+namespace Protocol {
+   class Value;
+};
+
 BEGIN_RADIANT_DM_NAMESPACE
  
 typedef int GenerationId;
@@ -25,6 +30,10 @@ class Stream;
 class Streamer;
 class Receiver;
 
+class Record;
+template <typename T> class ObjectTrace;
+template <typename T> class RecordTrace;
+
 DECLARE_SHARED_POINTER_TYPES(Object)
 DECLARE_SHARED_POINTER_TYPES(Store)
 DECLARE_SHARED_POINTER_TYPES(Trace)
@@ -35,6 +44,10 @@ DECLARE_SHARED_POINTER_TYPES(TracerSync)
 DECLARE_SHARED_POINTER_TYPES(TracerBuffered)
 DECLARE_SHARED_POINTER_TYPES(Streamer)
 DECLARE_SHARED_POINTER_TYPES(Receiver)
+
+void LoadObject(Record& record, Protocol::Value const& msg);
+void SaveObject(Record const& store, Protocol::Value* msg);
+void SaveObjectDelta(Record const& store, Protocol::Value* msg);
 
 END_RADIANT_DM_NAMESPACE
 

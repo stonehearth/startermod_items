@@ -13,7 +13,7 @@ public:
    ObjectType GetObjectType() const override { return OT; }
    const char *GetObjectClassNameLower() const override { return "boxed"; }
 
-   IMPLEMENT_DYNAMIC_TO_STATIC_DISPATCH(Boxed);
+   DECLARE_STATIC_DISPATCH(Boxed);
 
    typedef T   Value;
 

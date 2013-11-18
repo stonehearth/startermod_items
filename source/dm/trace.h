@@ -8,16 +8,28 @@ BEGIN_RADIANT_DM_NAMESPACE
 class Trace
 {
 public:
-   Trace(const char* reason) : 
-      reason_(reason)
+   typedef std::function<void()> ChangedCb;
+
+public:
+   Trace(const char* reason) : reason_(reason) { }
+   virtual ~Trace() { }
+
+   void OnChanged(ChangedCb changed)
    {
+      on_changed_ = changed;
    }
 
-   virtual ~Trace() {
+protected:
+   void SignalChanged()
+   {
+      if (on_changed_) {
+         on_changed_();
+      }
    }
 
 private:
    const char*    reason_;
+   ChangedCb      on_changed_;
 };
 
 END_RADIANT_DM_NAMESPACE

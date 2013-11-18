@@ -18,7 +18,7 @@ public:
    }
 
 private:
-   void OnChanged(uint i, Key const& key) override
+   void OnChanged(uint i, Value const& key) override
    {
       changed_[i] = key;
    }

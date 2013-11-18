@@ -1,10 +1,9 @@
-#ifndef _RADIANT_DM_RECEIVER_H
-#define _RADIANT_DM_RECEIVER_H
+#ifndef _RADIANT_DM_MAP_LOADER_H
+#define _RADIANT_DM_MAP_LOADER_H
 
 #include "dm.h"
 #include "store.pb.h"
 #include "protocol.h"
-#include "object.h"
 #include "map.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
@@ -28,9 +27,15 @@ static void Load(Map<K, V, H>& map, Protocol::Value const& value)
 }
 
 template <typename K, typename V, typename H>
-static void Save(std::unordered_map<K, V, H> const& changed,
-                 std::vector<typename Map<K, V, H>::Key> const& removed,
-                 Protocol::Value* value)
+void SaveObject(Map<K, V, H> const& map, Protocol::Value* msg)
+{
+   NOT_YET_IMPLEMENTED();
+}
+
+template <typename K, typename V, typename H>
+static void SaveObjectDelta(std::unordered_map<K, V, H> const& changed,
+                            std::vector<typename Map<K, V, H>::Key> const& removed,
+                            Protocol::Value* value)
 {
    Protocol::Map::Update* msg = value->MutableExtension(Protocol::Map::extension);
 
@@ -46,5 +51,5 @@ static void Save(std::unordered_map<K, V, H> const& changed,
 
 END_RADIANT_DM_NAMESPACE
 
-#endif // _RADIANT_DM_RECEIVER_H
+#endif // _RADIANT_DM_MAP_LOADER_H
 

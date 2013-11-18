@@ -7,7 +7,7 @@
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename T>
-class BoxedTrace : public Trace
+class BoxedTrace : virtual public Trace
 {
 public:
    typedef typename T::Value     Value;
@@ -20,7 +20,7 @@ public:
    }
 
 protected:
-   void SignalChanged(Value const& value) override {
+   void SignalChanged(Value const& value) {
       if (changed) {
          changed_(value)
       }

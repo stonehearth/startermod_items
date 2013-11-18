@@ -9,7 +9,7 @@ BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename M>
 class SetTraceBuffered : public TraceBuffered,
-                           public SetTrace<M> {
+                         public SetTrace<M> {
 public:
    void Flush()
    {
@@ -19,21 +19,21 @@ public:
    }
 
 private:
-   void OnAdded(Key const& key, Key const& value) override
+   void OnAdded(Value const& value) override
    {
-      stdutil::FastRemove(removed_, key);
-      added_.push_back(std::make_pair(key, value));
+      stdutil::FastRemove(removed_, value);
+      added_.push_back(value);
    }
 
-   void OnRemoved(Key const& key) override
+   void OnRemoved(Value const& value) override
    {
-      stdutil::FastRemove(added_, key);
-      removed_.push_back(key);
+      stdutil::FastRemove(added_, value);
+      removed_.push_back(value);
    }
 
 private:
-   std::vector<T>  added_;
-   std::vector<T>  removed_;
+   ValueList  added_;
+   ValueList  removed_;
 };
 
 END_RADIANT_DM_NAMESPACE

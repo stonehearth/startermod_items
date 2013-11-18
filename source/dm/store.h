@@ -104,40 +104,50 @@ public:
       }
    }
 
-#define CALL_TRACE_SET(category, invocation) \
+#define CALL_TRACER(category, invocation) \
    do { \
-      auto t = GetTracer(category); \
-      switch (t->GetType()) { \
-      case TRACER_SYNC: \
-         std::static_pointer_cast<TracerSync>(t)->invocation; \
+   } while (FALSE)
+
+#define ADD_TRACE_TO_TRACKER(trace, category, Cls) \
+   do { \
+      auto tracer = GetTracer(category); \
+      switch (tracer->GetType()) { \
+      case Tracer::SYNC: \
+         trace = std::static_pointer_cast<TracerSync>(tracer)->Trace ## Cls ## Changes(reason, o); \
          break; \
-      case TRACER_BUFFERED: \
-         std::static_pointer_cast<TracerBuffered>(t)->invocation; \
+      case Tracer::BUFFERED: \
+         trace = std::static_pointer_cast<TracerBuffered>(tracer)->Trace ## Cls ## Changes(reason, o); \
          break; \
-      case TRACER_BUFFERED: \
-         std::static_pointer_cast<Streamer>(t)->invocation; \
+      case Tracer::STREAMER: \
+         trace = std::static_pointer_cast<Streamer>(tracer)->Trace ## Cls ## Changes(reason, o); \
          break; \
       default: \
-         throw std::logic_error(BUILD_STRING("unknown tracker set type " << t->GetType())); \
+         throw std::logic_error(BUILD_STRING("unknown tracer type " << tracer->GetType())); \
       } \
    } while (FALSE)
 
-   // useful so we don't have to pass the tracker set all over the world.  refer to it by category
-   template <typename M> std::shared_ptr<MapTrace<M>> TraceMapChanges(const char* reason, M const* map, int category)
-   {
-      dm::ObjectId id = map.GetObjectId();
-      std::shared_ptr<MapTrace<M>> tracker;
-
-      tracker = CALL_TRACE_SET(category, TraceMapChanges(reason, map));
-      traces_[id].push_back(tracker);
-      return tracker;
+#define TRACE_TYPE_METHOD(Cls) \
+   template <typename Cls> std::shared_ptr<Cls ## Trace<Cls>> Trace ## Cls ## Changes(const char* reason, Cls const& o, int category) \
+   {  \
+      dm::ObjectId id = o.GetObjectId(); \
+      std::shared_ptr<Cls ## Trace<Cls>> trace; \
+      ADD_TRACE_TO_TRACKER(trace, category, Cls); \
+      traces_[id].push_back(trace); \
+      return trace; \
    }
+
+   TRACE_TYPE_METHOD(Object)
+   TRACE_TYPE_METHOD(Record)
+   TRACE_TYPE_METHOD(Boxed)
+   TRACE_TYPE_METHOD(Set)
+   TRACE_TYPE_METHOD(Array)
+   TRACE_TYPE_METHOD(Map)
 
    TracerPtr GetTracer(int category)
    {
       auto i = tracers_.find(category);
       if (i == tracers_.end()) {
-         throw std::logic_error(BUILD_STRING("store has no tracker set for category " << category));
+         throw std::logic_error(BUILD_STRING("store has no trace set for category " << category));
       }
       return i->second;
    }

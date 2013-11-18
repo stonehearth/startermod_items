@@ -18,6 +18,10 @@ Object::Object(Object&& other)
    other.id_.store = 0;
 }
 
+std::shared_ptr<ObjectTrace<Object>> Object::TraceObjectChanges(const char* reason, int category)
+{
+   return GetStore().TraceObjectChanges(reason, *this, category);
+}
 
 void Object::Initialize(Store& store, ObjectId id)
 {
@@ -78,15 +82,8 @@ Store& Object::GetStore() const
 
 void Object::LoadHeader(Protocol::Object const& msg)
 {
-   const auto& update = msg.object();
-   ObjectId id = update.object_id();
-
-   Object* obj = store_.FetchStaticObject(id);
-   ASSERT(obj);
-   ASSERT(update.object_type() == obj->GetObjectType());
-
-   id_.id = id;
-   timestamp_ = timestamp;
+   id_.id = msg.object_id();
+   timestamp_ = msg.timestamp();
 }
 
 bool Object::IsValid() const

@@ -18,7 +18,7 @@ public:
 
    //static decltype(Protocol::Set::contents) extension;
    DEFINE_DM_OBJECT_TYPE(Set, set);
-   IMPLEMENT_DYNAMIC_TO_STATIC_DISPATCH(Set);
+   DECLARE_STATIC_DISPATCH(Set);
    Set() : Object() { }
 
 

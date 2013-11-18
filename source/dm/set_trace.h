@@ -7,13 +7,14 @@
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename T>
-class SetTrace : public Trace
+class SetTrace : virtual public Trace
 {
 public:
    typedef typename T::Value     Value;
    typedef std::function<void(Value const& v)> AddedCb;
    typedef std::function<void(Value const& v)> RemovedCb;
-   typedef std::function<void(std::vector<Value> const& added, std::vector<Value> const& removed)> UpdatedCb;
+   typedef std::vector<Value> ValueList;
+   typedef std::function<void(ValueList const& added, ValueList const& removed)> UpdatedCb;
    
 public:
    void OnAdded(AddedCb added)
@@ -32,25 +33,25 @@ public:
    }
 
 protected:
-   void SignalRemoved(Key const& key)
+   void SignalRemoved(Value const& value)
    {
       if (removed_) {
-         removed_(key);
+         removed_(value);
       } else if (updated_) {
          NOT_YET_IMPLEMENTED();
       }
    }
 
-   void SignalAdded(Key const& key, Value const& value) 
+   void SignalAdded(Value const& value) 
    {
       if (added) {
-         added_(key, value)
+         added_(value)
       } else if (updated_) {
          NOT_YET_IMPLEMENTED();
       }
    }
 
-   void SignalUpdated(std::vector<Entry> const& added, std::vector<Key> const& removed)
+   void SignalUpdated(ValueList const& added, ValueList const& removed)
    {
       if (updated_) {
          update_(added, removed);

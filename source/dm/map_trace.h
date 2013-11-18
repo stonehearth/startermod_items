@@ -7,16 +7,17 @@
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename M>
-class MapTrace : public Trace
+class MapTrace : virtual public Trace
 {
 public:
    typedef typename M::Key       Key;
    typedef typename M::Value     Value;
+   typedef std::vector<Key>      KeyList;
    typedef std::unordered_map<Key, Value> ChangeMap;
 
    typedef std::function<void(Key const& k)> RemovedCb;
    typedef std::function<void(Key const& k, Value const& v)> ChangedCb;
-   typedef std::function<void(ChangeMap const& changed, std::vector<Key> const& removed)> UpdatedCb;
+   typedef std::function<void(ChangeMap const& changed, KeyList const& removed)> UpdatedCb;
 
 public:
    void OnChanged(ChangedCb changed)
@@ -53,7 +54,7 @@ protected:
       }
    }
 
-   void SignalUpdated(ChangeMap const& changed, std::vector<Key> const& removed)
+   void SignalUpdated(ChangeMap const& changed, KeyList const& removed)
    {
       if (updated_) {
          update_(changed, removed);

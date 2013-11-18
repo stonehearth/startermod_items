@@ -5,7 +5,7 @@
 
 BEGIN_RADIANT_DM_NAMESPACE
 
-class TraceBuffered : public Trace
+class TraceBuffered
 {
 public:
    virtual void Flush() = 0;
@@ -14,4 +14,3 @@ public:
 END_RADIANT_DM_NAMESPACE
 
 #endif // _RADIANT_DM_TRACE_BUFFERED_H
-

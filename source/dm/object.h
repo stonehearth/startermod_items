@@ -8,17 +8,23 @@
 #include "dbg_info.h"
 #include <unordered_map>
 
-#define IMPLEMENT_DYNAMIC_TO_STATIC_DISPATCH(Cls) \
-   void Load(Protocol::Object const& msg) override \
+#define DECLARE_STATIC_DISPATCH(Cls) \
+   void LoadObject(Protocol::Object const& msg) override; \
+   std::shared_ptr<Cls ## Trace<Cls>> TraceChanges(const char* reason, int category);
+
+#define DEFINE_STATIC_DISPATCH(Cls) \
+   void Cls::LoadObject(Protocol::Object const& msg) \
    {  \
-      dm::LoadObject(msg); \
+      dm::LoadObject(*this, msg.value()); \
       LoadHeader(msg); \
    } \
    \
-   std::shared_ptr<Cls ## Trace<Cls>> Trace ## Cls ## Changes(const char* reason, int category) \
+   std::shared_ptr<Cls ## Trace<Cls>> Cls::TraceChanges(const char* reason, int category) \
    { \
-      return GetStore().Trace ## Cls ## Changes(reason, this, category); \
+      return GetStore().Trace ## Cls ## Changes(reason, *this, category); \
    }
+
+   //return GetStore().Trace ## Cls ## Changes(reason, this, category); \
 
 
 BEGIN_RADIANT_DM_NAMESPACE
@@ -42,7 +48,8 @@ public:
    Object(Object&& other);
    virtual const char *GetObjectClassNameLower() const = 0;
    virtual void GetDbgInfo(DbgInfo &info) const = 0;
-   virtual void Load(Protocol::Object const& msg) = 0;
+   virtual void LoadObject(Protocol::Object const& msg) = 0;
+   std::shared_ptr<ObjectTrace<Object>> TraceObjectChanges(const char* reason, int category);
 
    virtual void Initialize(Store& s, ObjectId id);
    virtual void InitializeSlave(Store& s, ObjectId id);

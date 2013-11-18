@@ -5,15 +5,16 @@
 using namespace radiant;
 using namespace radiant::dm;
 
-Streamer::Streamer(Store& store) :
+Streamer::Streamer(Store& store, int category) :
+   TracerBuffered(category),
    store_(store),
-   queue_(nullptr)      
+   queue_(nullptr)
 {
 }
 
 Tracer::TracerType Streamer::GetType() const
 {
-   return TRACER_STREAMER;
+   return STREAMER;
 }
 
 // xxx: this should move to the constructor once the arbiter is smart

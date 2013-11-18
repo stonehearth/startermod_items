@@ -5,9 +5,8 @@
 
 BEGIN_RADIANT_DM_NAMESPACE
 
-class TraceSync : public Trace
+class TraceSync
 {
-public:
 };
 
 END_RADIANT_DM_NAMESPACE

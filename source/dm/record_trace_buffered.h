@@ -1,41 +1,38 @@
-#ifndef _RADIANT_DM_BOXED_TRACE_BUFFERED_H
-#define _RADIANT_DM_BOXED_TRACE_BUFFERED_H
+#ifndef _RADIANT_DM_RECORD_TRACE_BUFFERED_H
+#define _RADIANT_DM_RECORD_TRACE_BUFFERED_H
 
 #include "dm.h"
 #include "trace_buffered.h"
-#include "boxed_trace.h"
+#include "record_trace.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename M>
-class BoxedTraceBuffered : public TraceBuffered,
-                           public BoxedTrace<M> {
+class RecordTraceBuffered : public RecordTrace<M>,
+                            public TraceBuffered
+{
 public:
-   BoxedTraceBuffered(const char* reason) :
-      TraceBuffered(reason),
-      value_(nullptr)
-   {
-   }
+   RecordTraceBuffered(const char* reason, Record const& r, int category) : RecordTrace(reason, r, category) { }
 
-   void Flush()
+   void Flush() override
    {
-      if (value_) {
-         SignalChanged(*value_);
-         value_ = nullptr;
+      ASSERT(changed_);
+      if (changed_) {
+         SignalChanged();
       }
    }
 
 private:
-   void OnChanged(Value const& value) override
+   void NotifyObjectChanged() override
    {
-      value_ = &value;
+      changed_ = true;
    }
 
 private:
-   Value const*      value_;
+   bool        changed_;
 };
 
 END_RADIANT_DM_NAMESPACE
 
-#endif // _RADIANT_DM_BOXED_TRACE_BUFFERED_H
+#endif // _RADIANT_DM_RECORD_TRACE_BUFFERED_H
 

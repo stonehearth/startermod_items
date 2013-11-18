@@ -12,7 +12,7 @@ class Array : public Object
 public:
    //static decltype(Protocol::Array::contents) extension;
    DEFINE_DM_OBJECT_TYPE(Array, array);
-   IMPLEMENT_DYNAMIC_TO_STATIC_DISPATCH(Array);
+   DECLARE_STATIC_DISPATCH(Array);
 
    Array() : Object() { }
 

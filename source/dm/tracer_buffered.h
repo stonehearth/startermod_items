@@ -4,26 +4,40 @@
 #include "radiant_stdutil.h"
 #include "tracer.h"
 #include "map_trace_buffered.h"
+#include "record_trace_buffered.h"
+#include "object_trace_buffered.h"
+#include "set_trace_buffered.h"
+#include "boxed_trace_buffered.h"
+#include "array_trace_buffered.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
 class TracerBuffered : public Tracer
 {
 public:
+   TracerBuffered(int category) : Tracer(category) {}
    virtual ~TracerBuffered();
 
-   TracerType GetType() const
-   {
-      return TRACER_BUFFERED;
+   TracerType GetType() const { return BUFFERED; }
+   
+#define DEFINE_TRACE_CLS_CHANGES(Cls, ctor_sig) \
+   template <typename C> \
+   std::shared_ptr<Cls ## Trace<C>> Trace ## Cls ## Changes(const char* reason, C const& object) \
+   { \
+      ObjectId id = object.GetObjectId(); \
+      std::shared_ptr<Cls ## TraceBuffered<C>> trace = std::make_shared<Cls ## TraceBuffered<C>> ctor_sig; \
+      traces_[id].push_back(trace); \
+      return trace; \
    }
 
-   template <typename C>
-   std::shared_ptr<MapTrace<C>> TraceMapChanges(const char* reason, C const& map)
-   {
-      std::shared_ptr<MapTraceBuffered> trace = std::make_shared<MapTraceBuffered<M>>(reason);
-      traces_[id].push_back(trace);
-      return trace;
-   }
+   DEFINE_TRACE_CLS_CHANGES(Object, (reason))
+   DEFINE_TRACE_CLS_CHANGES(Record, (reason, object, GetCategory()))
+   DEFINE_TRACE_CLS_CHANGES(Map, (reason))
+   DEFINE_TRACE_CLS_CHANGES(Boxed, (reason))
+   DEFINE_TRACE_CLS_CHANGES(Set, (reason))
+   DEFINE_TRACE_CLS_CHANGES(Array, (reason))
+
+#undef DEFINE_TRACE_CLS_CHANGES
 
    void OnObjectChanged(ObjectId id) override;
    void Flush();

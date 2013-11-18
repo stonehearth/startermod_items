@@ -7,7 +7,7 @@
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename T>
-class ArrayTrace : public Trace
+class ArrayTrace : virtual public Trace
 {
 public:
    typedef typename T::Value     Value;

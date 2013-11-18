@@ -22,7 +22,7 @@ void Receiver::ProcessAlloc(tesseract::protocol::AllocObjects const& msg)
    }
 }
 
-void Receiver::ProcessUpdate(const tesseract::protocol::UpdateObject const& msg) 
+void Receiver::ProcessUpdate(tesseract::protocol::UpdateObject const& msg) 
 {
    const auto& update = msg.object();
    ObjectId id = update.object_id();
@@ -31,10 +31,10 @@ void Receiver::ProcessUpdate(const tesseract::protocol::UpdateObject const& msg)
    ASSERT(obj);
    ASSERT(update.object_type() == obj->GetObjectType());
 
-   obj->LoadObject(*this, update);
+   obj->LoadObject(update);
 }
 
-void Receiver::ProcessRemove(const proto::RemoveObjects const& msg)
+void Receiver::ProcessRemove(tesseract::protocol::RemoveObjects const& msg)
 {
    for (int id : msg.objects()) {
       auto i = objects_.find(id);

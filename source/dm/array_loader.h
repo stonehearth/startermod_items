@@ -1,15 +1,15 @@
-#ifndef _RADIANT_DM_RECEIVER_H
-#define _RADIANT_DM_RECEIVER_H
+#ifndef _RADIANT_DM_ARRAY_LOADER_H
+#define _RADIANT_DM_ARRAY_LOADER_H
 
 #include "dm.h"
 #include "store.pb.h"
 #include "protocol.h"
-#include "object.h"
+#include "array.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename T, int C>
-static void Load(Array<T, C>& a, Protocol::Value const& value)
+void Load(Array<T, C>& a, Protocol::Value const& value)
 {
    int i, c = valmsg.ExtensionSize(Protocol::Array::extension);
    T item;
@@ -21,8 +21,14 @@ static void Load(Array<T, C>& a, Protocol::Value const& value)
 }
 
 template <typename T, int C>
-static void Save(std::unordered_map<uint, typename Array<T, C>::Value> const& changed
-                 Protocol::Value const& value)
+void SaveObject(Array<T, C> const& arr, Protocol::Value* msg)
+{
+   NOT_YET_IMPLEMENTED();
+}
+
+template <typename T, int C>
+void SaveObjectDelta(std::unordered_map<uint, typename Array<T, C>::Value> const& changed, 
+                     Protocol::Value const& value)
 {
    for (const auto& entry : changed) {
       Protocol::Array::Entry* msg = valmsg->AddExtension(Protocol::Array::extension);
@@ -33,5 +39,5 @@ static void Save(std::unordered_map<uint, typename Array<T, C>::Value> const& ch
 
 END_RADIANT_DM_NAMESPACE
 
-#endif // _RADIANT_DM_RECEIVER_H
+#endif // _RADIANT_DM_ARRAY_LOADER_H
 

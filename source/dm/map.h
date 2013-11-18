@@ -16,7 +16,7 @@ class Map : public Object
 {
 public:
    DEFINE_DM_OBJECT_TYPE(Map, map);
-   IMPLEMENT_DYNAMIC_TO_STATIC_DISPATCH(Map);
+   DECLARE_STATIC_DISPATCH(Map);
 
    typedef K Key;
    typedef V Value;

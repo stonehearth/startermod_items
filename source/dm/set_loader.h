@@ -1,15 +1,15 @@
-#ifndef _RADIANT_DM_RECEIVER_H
-#define _RADIANT_DM_RECEIVER_H
+#ifndef _RADIANT_DM_SET_LOADER_H
+#define _RADIANT_DM_SET_LOADER_H
 
 #include "dm.h"
 #include "store.pb.h"
 #include "protocol.h"
-#include "object.h"
+#include "set.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename T>
-static void Load(Set<T>& set, Protocol::Value const& value)
+void Load(Set<T>& set, Protocol::Value const& value)
 {
    const Protocol::Set::Update& msg = value.GetExtension(Protocol::Set::extension);
    T value;
@@ -25,9 +25,15 @@ static void Load(Set<T>& set, Protocol::Value const& value)
 }
 
 template <typename T>
-static void Save(std::vector<typename Set<T>::Value> const& added,
-                 std::vector<typename Set<T>::Value> const& removed,
-                 Protocol::Value const& value)
+void SaveObject(Set<T> const& set, Protocol::Value* msg)
+{
+   NOT_YET_IMPLEMENTED();
+}
+
+template <typename T>
+void SaveObjectDelta(std::vector<typename Set<T>::Value> const& added,
+                     std::vector<typename Set<T>::Value> const& removed,
+                     Protocol::Value const& value)
 {
    Protocol::Set::Update* msg = value->MutableExtension(Protocol::Set::extension);
    for (const T& item : added) {
@@ -42,5 +48,5 @@ static void Save(std::vector<typename Set<T>::Value> const& added,
 
 END_RADIANT_DM_NAMESPACE
 
-#endif // _RADIANT_DM_RECEIVER_H
+#endif // _RADIANT_DM_SET_LOADER_H
 

@@ -25,7 +25,7 @@ private:
       removed_.push_back(key);
    }
 
-   void OnChanged(Key const& key, Key const& value) override
+   void OnChanged(Key const& key, Value const& value) override
    {
       stdutil::FastRemove(removed_, key);
       changed_[key] = value;
@@ -33,7 +33,7 @@ private:
 
 private:
    ChangeMap            changed_;
-   std::vector<Key>     removed_;
+   KeyList              removed_;
 };
 
 END_RADIANT_DM_NAMESPACE
