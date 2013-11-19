@@ -23,24 +23,11 @@ App.StonehearthNewGameView = App.View.extend({
 
    actions : {
       startNewGame: function() {
-         var self = this;
-         radiant.call('stonehearth:new_game')
-            .done(function(o) {
-               console.log('stonehearth:newgame came back with result: ' + o);
-               App.gotoGame();
-               self.buildStartingCamp();
-            });         
+         App.shellView.addView(App.StonehearthLoadingScreenView);
+         this.destroy();
 
-         radiant.call('radiant:set_collection_status', $('#analyticsCheckbox').is(':checked'))
-            .done(function(o) {
-               console.log('radiant:set_collection_status came back with result: ' + o);
-            });         
-
+         radiant.call('radiant:set_collection_status', $('#analyticsCheckbox').is(':checked'));
       }
-   },
-
-   buildStartingCamp: function() {
-      App.gameView.addView(App.StonehearthCreateCampView)
-      this.destroy();
    }
+
 });
