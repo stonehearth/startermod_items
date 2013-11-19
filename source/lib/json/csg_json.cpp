@@ -8,6 +8,7 @@
 #include "csg/color.h"
 #include "csg/util.h" // xxx: should be csg/edge.h
 #include "csg/heightmap.h"
+#include "csg/random_number_generator.h"
 #include "lib/json/node.h"
 #include "lib/json/macros.h"
 #include "lib/json/csg_json.h"
@@ -164,3 +165,4 @@ DEFINE_INVALID_JSON_CONVERSION(std::shared_ptr<csg::HeightMap<double>>)
 DEFINE_INVALID_JSON_CONVERSION(std::shared_ptr<csg::EdgePointX>)
 DEFINE_INVALID_JSON_CONVERSION(std::shared_ptr<csg::EdgeX>)
 DEFINE_INVALID_JSON_CONVERSION(std::shared_ptr<csg::EdgeList>)
+DEFINE_INVALID_JSON_CONVERSION(csg::RandomNumberGenerator)
