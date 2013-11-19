@@ -82,8 +82,6 @@ private:
 
    void TraceEntity(om::EntityPtr e);
    void ComponentAdded(om::EntityRef e, dm::ObjectType type, std::shared_ptr<dm::Object> component);
-   void UpdateAuras(int now);
-   void TraceAura(om::AuraListRef auraList, om::AuraPtr aura);
    void TraceTargetTables(om::TargetTablesPtr tables);
    void UpdateTargetTables(int now, int interval);
    void SendReply(tesseract::protocol::PostCommandReply const& reply);
@@ -92,15 +90,6 @@ private:
 
 private:
    static Simulation*                           singleton_;
-
-private:
-   struct AuraListEntry {
-      AuraListEntry() {}
-      AuraListEntry(om::AuraListRef l, om::AuraRef a) : list(l), aura(a) { }
-
-      om::AuraRef aura;
-      om::AuraListRef list;
-   };   
 
 private:
    dm::Store                                             store_;
@@ -119,7 +108,6 @@ private:
    bool                                         _singleStepPathFinding;
    std::list<std::weak_ptr<Job>>                jobs_;
    std::list<std::weak_ptr<Task>>               tasks_;
-   std::vector<AuraListEntry>                   auras_;
    std::vector<om::TargetTablesRef>             targetTables_;   
    std::unordered_map<std::string, luabind::object>   routes_;
    std::vector<std::pair<std::string, std::string>>   serverRemoteObjects_;

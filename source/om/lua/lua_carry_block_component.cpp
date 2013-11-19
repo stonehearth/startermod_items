@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "lib/lua/register.h"
 #include "lua_carry_block_component.h"
-#include "om/components/carry_block.h"
+#include "om/components/carry_block.ridl.h"
 
 using namespace ::luabind;
 using namespace ::radiant;

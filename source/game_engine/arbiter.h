@@ -7,7 +7,7 @@
 #include "platform/thread.h"
 #include "protocol.h"
 #include "client.h"
-#include "tesseract.pb.h"
+#include "protocols/tesseract.pb.h"
 #include "core/singleton.h"
 #include <luabind/luabind.hpp>
 #include <luabind/class_info.hpp>

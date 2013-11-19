@@ -6,7 +6,6 @@ include_directories(${Boost_INCLUDE_DIR})
 
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS
                       radiant.proto
-                      world.proto
                       store.proto
                       tesseract.proto)
 

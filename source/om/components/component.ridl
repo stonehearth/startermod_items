@@ -1,0 +1,128 @@
+<% from ridl.om import dm %>
+##ifndef ${env.guard_name(C)}
+##define ${env.guard_name(C)}
+
+##include "component.h"
+##include "om/object_enums.h"
+
+BEGIN_RADIANT_OM_NAMESPACE
+
+class ${C.__name__} : public ${C.__bases__[0].__name__}
+{
+public:
+   DEFINE_OM_OBJECT_TYPE(${C.__name__}, ${C.__name__ | env.lower});
+   void ExtendObject(json::Node const& obj) override;
+
+## -------------------------------------------------------------------------
+##  Properties
+##
+% for name, info in env.properties(C, dm.Boxed):
+   % if info.get == 'define':
+   ${info.type} Get${name | env.upper}() const
+   {
+      return *${name}_;
+   }
+      
+   % elif info.get == declare:
+   ${info.type} Get${name | env.upper}() const;
+   % endif
+% endfor
+% for name, info in env.properties(C, dm.Boxed):
+   % if info.set == 'define':
+   ${C.__name__}& Set${name | env.upper}(${info.type} const& value)
+   { 
+      ${name}_ = value;
+      return *this
+   }
+
+   % elif info.set == 'declare':
+   ${C.__name__}& Set${name | env.upper}(${info.type} const& value);
+   % endif
+% endfor
+% for name, info in env.properties(C, dm.Boxed):
+   % if info.trace:
+   std::shared_ptr<dm::BoxedTrace<${info.type}>>
+   Trace${name | env.upper}(const char* reason, int category) const
+   {
+      return ${name}_.TraceObject(reason, category);
+   }
+
+   % endif %
+% endfor
+## -------------------------------------------------------------------------
+##  Sets
+##
+% for name, info in env.properties(C, dm.Set):
+   % if info.add == 'define':
+   ${C.__name__}& Add${name | env.upper}(${info.type} const& value)
+   { 
+      ${name}_.Insert(value);
+      return *this
+   }
+
+   % elif info.add == 'declare':
+   ${C.__name__}& Add${name | env.upper}(${info.type} const& value);
+   % endif
+% endfor
+% for name, info in env.properties(C, dm.Set):
+   <% name = hasattr(info, 'name') and info.name or name %>
+   % if info.remove == 'define':
+   ${C.__name__}& Remove${name | env.upper}(${info.type} const& value)
+   {
+      ${name}_.Remove(value);
+      return *this;
+   }
+      
+   % elif info.remove == declare:
+   ${info.type} Remove{name | env.upper}() const;
+   % endif
+% endfor
+% for name, info in env.properties(C, dm.Set):
+   % if info.trace:
+   std::shared_ptr<dm::SetTrace<${info.type}>>
+   Trace${name | env.upper}(const char* reason, int category) const
+   {
+      return ${name}_.TraceObject(reason, category);
+   }
+
+   % endif %
+% endfor
+% if C._public_methods:
+public:
+${C._public_methods}
+% endif
+
+protected:
+   void InitializeRecordFields() override
+   {
+      Component::InitializeRecordFields();
+% for name, info in env.properties(C, [dm.Map, dm.Set, dm.Boxed]):
+      AddRecordField("${name}", ${name}_);
+% endfor
+   }
+
+% if C._generate_construct_object:
+protected:
+   void ConstructObject() override;
+% endif
+
+% if C._private_methods:
+private:
+${C._private_methods}
+% endif
+
+private:
+% for name, info in env.properties(C, dm.Boxed):
+   dm::Boxed<${info.type}>    ${name}_;
+% endfor
+% for name, info in env.properties(C, dm.Map):
+   dm::Map<${info.key}, ${info.value}>    ${name}_;
+% endfor
+% for name, info in env.properties(C, dm.Set):
+   dm::Set<${info.type}>    ${name}_;
+% endfor
+};
+
+END_RADIANT_OM_NAMESPACE
+
+##endif // ${env.guard_name(C)}

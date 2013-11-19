@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include "irouter.h"
 #include "forward_defines.h"
-#include "tesseract.pb.h"
+#include "protocols/tesseract.pb.h"
 #include "dm/dm.h"
 
 BEGIN_RADIANT_RPC_NAMESPACE

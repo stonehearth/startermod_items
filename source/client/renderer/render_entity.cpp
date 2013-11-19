@@ -24,7 +24,7 @@
 #include "om/components/effect_list.h"
 #include "om/components/render_info.h"
 #include "om/components/paperdoll.h"
-#include "om/components/carry_block.h"
+#include "om/components/carry_block.ridl.h"
 #include "om/selection.h"
 #include "lib/lua/script_host.h"
 

@@ -58,7 +58,7 @@ END_RADIANT_DM_NAMESPACE
 // xxx: super not happy that these headers have to be here.  Need to move the LoadValue/SaveValue
 // implementation out of the classes which get serialized and into a helper library (like how
 // lib/json does it). - tony
-#include "store.pb.h"
+#include "protocols/store.pb.h"
 #include "dm_save_impl.h"
 
 #endif //  _RADIANT_DM_NAMESPACE_H

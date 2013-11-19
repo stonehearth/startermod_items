@@ -3,7 +3,7 @@
 
 #include "simulation/namespace.h"
 #include "platform/utils.h"
-#include "radiant.pb.h"
+#include "protocols/radiant.pb.h"
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
 

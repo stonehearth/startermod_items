@@ -2,8 +2,8 @@
 #define _RADIANT_DM_RECEIVER_H
 
 #include "dm.h"
-#include "store.pb.h"
-#include "tesseract.pb.h"
+#include "protocols/store.pb.h"
+#include "protocols/tesseract.pb.h"
 #include "protocol.h"
 #include "object.h"
 

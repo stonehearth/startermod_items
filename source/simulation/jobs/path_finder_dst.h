@@ -3,7 +3,7 @@
 
 #include "om/om.h"
 #include "job.h"
-#include "radiant.pb.h"
+#include "protocols/radiant.pb.h"
 #include "path.h"
 #include "csg/point.h"
 #include "om/region.h"

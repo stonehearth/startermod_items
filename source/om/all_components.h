@@ -16,7 +16,7 @@
 #include "components/lua_components.h"
 #include "components/destination.h"
 #include "components/render_region.h"
-#include "components/carry_block.h"
+#include "components/carry_block.ridl.h"
 #include "components/paperdoll.h"
 #include "components/unit_info.h"
 #include "components/item.h"

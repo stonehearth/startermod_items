@@ -220,7 +220,6 @@ void Simulation::Step(platform::timer &timer, int interval)
 
    // Collision detection...
    GetOctTree().Update(now_);
-   UpdateAuras(now_);
    UpdateTargetTables(now_, now_ - lastNow_);
 
    ProcessTaskList(timer);
@@ -484,65 +483,12 @@ void Simulation::ComponentAdded(om::EntityRef e, dm::ObjectType type, std::share
    auto entity = e.lock();
    if (entity) {
       switch (type) {
-      case om::AuraListObjectType: {
-         om::AuraListPtr list = std::static_pointer_cast<om::AuraList>(component);
-         const auto& auras = list->GetAuras();
-         guards_ += auras.TraceSetChanges("sim update auras",
-                                          std::bind(&Simulation::TraceAura, this, om::AuraListRef(list), std::placeholders::_1),
-                                          nullptr);
-         for (om::AuraPtr aura : auras) {
-            TraceAura(list, aura);
-         }
-         break;
-      }
       case om::TargetTablesObjectType: {
          TraceTargetTables(std::static_pointer_cast<om::TargetTables>(component));
          break;
       }
       }
    }
-}
-
-void Simulation::UpdateAuras(int now)
-{
-   int i = 0, c = auras_.size();
-
-   while (i < c) {
-      AuraListEntry &entry = auras_[i];
-      auto aura = entry.aura.lock();
-      if (aura) {
-         int expires = aura->GetExpireTime();
-         if (expires && expires < now) {
-            auto list = entry.list.lock();
-            list->RemoveAura(aura);
-
-            auto L = scriptHost_->GetInterpreter();
-            luabind::object handler = aura->GetMsgHandler();
-            luabind::object md = luabind::globals(L)["md"];
-            luabind::object aobj(L, aura);
-            luabind::call_function<void>(md["send_msg"], md, handler, "radiant:events:aura_expired", aobj);
-            aura = nullptr;
-         }         
-      } 
-      if (aura) {
-         i++;
-      } else {
-         auras_[i] = auras_[--c];
-         auras_.resize(c);
-      }
-   }
-}
-
-void Simulation::TraceAura(om::AuraListRef list, om::AuraPtr aura)
-{
-   // xxx - this is annoying... can we avoid the dup checking with
-   // smarter trace firing code?
-   for (const AuraListEntry& entry : auras_) {
-      if (aura == entry.aura.lock()) {
-         return;
-      }
-   }
-   auras_.push_back(AuraListEntry(list, aura));
 }
 
 void Simulation::TraceTargetTables(om::TargetTablesPtr tables)

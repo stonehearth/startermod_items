@@ -5,7 +5,7 @@
 #include "namespace.h"
 #include "point.h"
 #include "Quaternion.h"
-#include "radiant.pb.h"
+#include "protocols/radiant.pb.h"
 
 BEGIN_RADIANT_CSG_NAMESPACE
 

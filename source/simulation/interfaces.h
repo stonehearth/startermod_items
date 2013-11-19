@@ -2,7 +2,7 @@
 #define _RADIANT_SIMULATION_INTERFACES_H
 
 #include "platform/namespace.h"
-#include "tesseract.pb.h"
+#include "protocols/tesseract.pb.h"
 #include "namespace.h"
 #include "protocol.h"
 #include <luabind/luabind.hpp>

@@ -1,6 +1,6 @@
 #pragma once
 #include "object.h"
-#include "store.pb.h"
+#include "protocols/store.pb.h"
 #include <vector>
 #include "dm.h"
 

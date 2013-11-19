@@ -4,7 +4,7 @@
 #include "csg/point.h"
 #include "csg/color.h"
 #include "csg/meshtools.h"
-#include "radiant.pb.h"
+#include "protocols/radiant.pb.h"
 
 const int H3DRadiant_NodeType_DebugShape = 1000;
 

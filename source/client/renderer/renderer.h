@@ -11,7 +11,7 @@
 #include "csg/matrix.h"
 #include "om/om.h"
 #include "resources/namespace.h"
-#include "tesseract.pb.h"
+#include "protocols/tesseract.pb.h"
 #include "csg/region.h"
 #include "radiant_file.h"
 #include <unordered_map>

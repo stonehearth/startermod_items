@@ -5,7 +5,7 @@
 #include "om/object_enums.h"
 #include "dm/set.h"
 #include "dm/record.h"
-#include "store.pb.h"
+#include "protocols/store.pb.h"
 #include "component.h"
 
 BEGIN_RADIANT_OM_NAMESPACE

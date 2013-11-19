@@ -3,7 +3,7 @@
 
 #include "dm.h"
 #include "all_objects_types.h"
-#include "store.pb.h"
+#include "protocols/store.pb.h"
 #include "dm_save_impl.h"
 #include "dbg_info.h"
 #include <unordered_map>

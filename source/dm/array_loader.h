@@ -2,7 +2,7 @@
 #define _RADIANT_DM_ARRAY_LOADER_H
 
 #include "dm.h"
-#include "store.pb.h"
+#include "protocols/store.pb.h"
 #include "protocol.h"
 #include "array.h"
 

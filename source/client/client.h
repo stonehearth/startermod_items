@@ -10,7 +10,7 @@
 #include "namespace.h"
 #include "radiant_net.h"
 #include "protocol.h"
-#include "tesseract.pb.h"
+#include "protocols/tesseract.pb.h"
 #include "metrics.h"
 #include "om/om.h"
 #include "dm/dm.h"
