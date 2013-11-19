@@ -893,8 +893,7 @@ Client::Cursor Client::LoadCursor(std::string const& path)
    } else {
       std::shared_ptr<std::istream> is = res::ResourceManager2::GetInstance().OpenResource(filename);
       std::string buffer = io::read_contents(*is);
-
-      std::string tempname = boost::filesystem::unique_path().string();
+      std::string tempname = boost::filesystem::temp_directory_path().string() + boost::filesystem::unique_path().string();
       std::ofstream(tempname, std::ios::out | std::ios::binary).write(buffer.c_str(), buffer.size());
 
       HCURSOR hcursor = (HCURSOR)LoadImageA(GetModuleHandle(NULL), tempname.c_str(), IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);

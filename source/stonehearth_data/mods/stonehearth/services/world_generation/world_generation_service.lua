@@ -2,6 +2,7 @@ local WorldGenerator = require 'services.world_generation.world_generator'
 local WorldGenerationService = class()
 
 function WorldGenerationService:__init()
+   
 end
 
 function WorldGenerationService:create_world(async)
