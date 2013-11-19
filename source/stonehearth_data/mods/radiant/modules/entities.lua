@@ -150,7 +150,9 @@ end
 
 function entities.get_world_grid_location(entity)
    radiant.check.is_entity(entity)
-   return entity:add_component('mob'):get_world_grid_location()
+   if entity and entity:add_component('mob') then
+      return entity:add_component('mob'):get_world_grid_location()
+   end
 end
 
 function entities.get_entity_data(entity, key)
@@ -381,13 +383,6 @@ function entities._drop_helper(entity)
    end
 end
 
-function entities.sit_down(entity)
-   radiant.entities.set_posture(entity, 'sitting')
-end
-
-function entities.stand_up(entity)
-   radiant.entities.unset_posture(entity, 'sitting')
-end
 
 --[[
    Checks if an entity is next to a location, updated
