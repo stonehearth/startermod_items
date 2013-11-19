@@ -10,19 +10,26 @@
 
 BEGIN_RADIANT_OM_NAMESPACE
 
+
+#define CLOCK_TEMPLATE \
+   OM_BEGIN_CLASS(Clock, clock, Component) \
+      OM_PROPERTY(Clock, time, Time, int) \
+   OM_END_CLASS(Clock, clock, Component)
+
 class Clock : public Component
 {
 public:
-   DEFINE_OM_OBJECT_TYPE(Clock, clock);
+   void ConstructObject() override;
 
-   void SetTime(int now) { now_ = now; }
-   int GetTime() const { return *now_; }
+   #include "om/reflection/generate_cpp.h"
+   CLOCK_TEMPLATE
 
 private:
-   void InitializeRecordFields() override;
+   #include "om/reflection/generate_record.h"
+   CLOCK_TEMPLATE
 
-public:
-   dm::Boxed<int>             now_;
+   #include "om/reflection/generate_record_init.h"
+   CLOCK_TEMPLATE
 };
 
 END_RADIANT_OM_NAMESPACE

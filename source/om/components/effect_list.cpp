@@ -13,7 +13,9 @@ std::ostream& om::operator<<(std::ostream& os, const Effect& o)
 
 void Effect::AddParam(std::string name, luabind::object o)
 {
-   params_[name].FromLuaObject(o);
+   Selection s;
+   s.FromLuaObject(o);
+   params_.Insert(name, s);
 }
 
 void EffectList::ExtendObject(json::Node const& obj)

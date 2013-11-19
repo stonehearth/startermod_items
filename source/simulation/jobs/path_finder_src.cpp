@@ -8,6 +8,7 @@
 #include "om/components/destination.h"
 #include "om/region.h"
 #include "csg/color.h"
+#include "simulation/trace_categoies.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -24,16 +25,20 @@ PathFinderSrc::PathFinderSrc(PathFinder &pf, om::EntityRef e) :
    if (entity) {
       auto mob = entity->GetComponent<om::Mob>();
       if (mob) {
-         guards_ += mob->GetBoxedTransform().TraceValue("pathfinder entity mob trace (xform)", [=](csg::Transform const&) {
-                        pf_.RestartSearch();
-                     });
+         auto transform_trace = mob->GetBoxedTransform().TraceChanges("pf src", PATHFINDER_TRACES);
+         transform_trace->OnChanged([this](csg::Transform const&) {
+            pf_.RestartSearch();
+         });
+         traces_.push_back(transform_trace);
 
-         guards_ += mob->GetBoxedMoving().TraceValue( "pathfinder entity mob trace (moving)", [=](bool const& moving) {
-                        moving_ = moving;
-                        if (moving_) {
-                           pf_.RestartSearch();
-                        }
-                     });
+         auto moving_trace = mob->GetBoxedMoving().TraceChanges( "pf src", PATHFINDER_TRACES);
+         moving_trace->OnChanged([this](bool const& moving) {
+            moving_ = moving;
+            if (moving_) {
+               pf_.RestartSearch();
+            }
+         });
+         traces_.push_back(transform_trace);
       }
    }
 }

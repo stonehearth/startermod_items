@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "mob.h"
+#include "om/object_formatter/object_formatter.h"
 #include "csg/util.h" // xxx: should be in csg/csg.h
 
 using namespace ::radiant;

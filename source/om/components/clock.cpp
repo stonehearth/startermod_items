@@ -4,9 +4,7 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-void Clock::InitializeRecordFields()
+void Clock::ConstructObject()
 {
-   Component::InitializeRecordFields();
-   AddRecordField("now", now_);
-   now_ = 0;
+   time_ = 0;
 }

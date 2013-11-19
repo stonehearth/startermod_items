@@ -9,8 +9,6 @@ include_directories(${Libjson_INCLUDE_DIRS})
 include_directories(${Cryptopp_INCLUDE_DIRS})
 
 add_library(om_lua STATIC
-            lua_attributes_component.cpp
-            lua_aura_list_component.cpp
             lua_clock_component.cpp
             lua_component.cpp
             lua_effect_list_component.cpp

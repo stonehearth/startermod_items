@@ -32,12 +32,12 @@ private:
 
 public:
    PathFinder&                pf_;
-   core::Guard                  guards_;
    om::EntityRef              entity_;
    bool                       moving_;
    om::DeepRegionGuardPtr     region_guard_;
    phys::TerrainChangeCbId    collision_cb_id_;
    csg::Region3               world_space_adjacent_region_;
+   std::vector<dm::TracePtr>  traces_;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

@@ -37,8 +37,34 @@ luabind::object json_to_lua(dm::Store const& store, lua_State* L, JSONNode const
    return luabind::object();
 }
 
+template <typename T, typename Cls, T const& (Cls::*Fn)() const>
+T PropertyGet(std::weak_ptr<Cls> const w)
+{
+   auto p = w.lock();
+   if (p)  {
+      return ((*p).*Fn)();
+   }
+   throw std::invalid_argument("invalid reference in native getter");
+   return T(); // unreached
+}
+
+template <typename T, typename Cls, Cls& (Cls::*Fn)(T const&)>
+std::weak_ptr<Cls> PropertySet(std::weak_ptr<Cls> w, T const& value)
+{
+   auto p = w.lock();
+   if (p) {
+      (((*p).*Fn)(value));
+   }
+   throw std::invalid_argument("invalid reference in native setter");
+   return w;
+}
+
 void lua::om::open(lua_State* L)
 {
+   using namespace radiant::om;
+
+   #include "om/reflection/generate_lua.h"
+   OM_ALL_COMPONENT_TEMPLATES
 }
 
 void lua::om::register_json_to_lua_objects(lua_State* L, dm::Store& dm)

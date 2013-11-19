@@ -2,6 +2,7 @@
 #include "entity_container.h"
 #include "mob.h"
 #include "om/entity.h"
+#include "om/trace_categoies.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -25,10 +26,12 @@ EntityContainer& EntityContainer::AddChild(om::EntityRef c)
       mob->SetParent(GetEntity().AddComponent<Mob>());
 
       dm::ObjectId id = child->GetObjectId();
-      children_[id] = child;
-      destroy_guards_[id] = child->TraceObjectLifetime("remove from ec on destroy", [=]() {
+      children_.Insert(id, child);
+      auto trace = child->TraceObjectChanges("ec dtor", OM_TRACES);
+      trace->OnDestroyed([this, id]() {
          children_.Remove(id);
       });
+      destroy_traces_[id] = trace;
    }
    return *this;
 }
@@ -39,7 +42,7 @@ EntityContainer& EntityContainer::RemoveChild(om::EntityRef c)
    if (child) {
       dm::ObjectId id = child->GetObjectId();
       children_.Remove(id);
-      destroy_guards_.erase(id);
+      destroy_traces_.erase(id);
       auto mob = child->GetComponent<Mob>();
       if (mob) {
          mob->SetParent(nullptr);

@@ -53,7 +53,7 @@ TargetTableEntryPtr TargetTable::AddEntry(om::EntityRef e)
       if (!entry) {
          entry = GetStore().AllocObject<TargetTableEntry>();
          entry->SetTarget(entity);
-         entries_[id] = entry;
+         entries_.Insert(id, entry);
       }
    }
 
@@ -148,7 +148,7 @@ TargetTablePtr TargetTables::AddTable(std::string category)
    if (!group) {
       group = GetStore().AllocObject<TargetTableGroup>();
       group->SetCategory(category);
-      tables_[category] = group;
+      tables_.Insert(category, group);
    }
    return group->AddTable();
 }

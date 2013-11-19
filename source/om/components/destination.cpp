@@ -46,6 +46,7 @@ Destination& Destination::SetAutoUpdateAdjacent(bool value)
 {
    value = !!value; // cohearse to 1 or 0
    if (auto_update_adjacent_ != value) {
+      NOT_YET_IMPLEMENTED(); // UG!
       region_guard_ = nullptr;
       reserved_guard_ = nullptr;
       auto_update_adjacent_ = value;

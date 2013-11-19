@@ -10,7 +10,7 @@
 
 #define DECLARE_STATIC_DISPATCH(Cls) \
    void LoadObject(Protocol::Object const& msg) override; \
-   std::shared_ptr<Cls ## Trace<Cls>> TraceChanges(const char* reason, int category);
+   std::shared_ptr<Cls ## Trace<Cls>> TraceChanges(const char* reason, int category) const ;
 
 #define DEFINE_STATIC_DISPATCH(Cls) \
    void Cls::LoadObject(Protocol::Object const& msg) \
@@ -19,7 +19,7 @@
       LoadHeader(msg); \
    } \
    \
-   std::shared_ptr<Cls ## Trace<Cls>> Cls::TraceChanges(const char* reason, int category) \
+   std::shared_ptr<Cls ## Trace<Cls>> Cls::TraceChanges(const char* reason, int category) const \
    { \
       return GetStore().Trace ## Cls ## Changes(reason, *this, category); \
    }
@@ -72,8 +72,9 @@ protected:
    friend Store;
    bool WriteDbgInfoHeader(DbgInfo &info) const;
 
-public:
-   void MarkChanged();
+private:  
+   friend Store;
+   void MarkChanged(); // This thing doesn't actually fire traces!   Use the typed fns (e.g. OnMapChanged)
 
 private:
    // Do not allow copying or accidental copying creation.  Because objects

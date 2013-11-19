@@ -72,7 +72,6 @@ ObjectId Object::GetObjectId() const
 void Object::MarkChanged()
 {
    timestamp_ = GetStore().GetNextGenerationId();
-   GetStore().OnObjectChanged(*this);
 }
 
 Store& Object::GetStore() const

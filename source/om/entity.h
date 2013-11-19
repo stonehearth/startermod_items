@@ -19,8 +19,6 @@ public:
    DEFINE_OM_OBJECT_TYPE(Entity, entity);
    virtual ~Entity() { }
 
-   core::Guard TraceObjectChanges(const char* reason, std::function<void()> fn) const override;
-
    typedef dm::Map<dm::ObjectType, std::shared_ptr<Object>> ComponentMap;
 
    const ComponentMap& GetComponents() const { return components_; }

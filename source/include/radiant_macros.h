@@ -4,6 +4,9 @@
 #define OFFSET_OF(t, f)    (int)(&((t *)(NULL))->f)
 #define ARRAY_SIZE(a)      ((sizeof (a)) / sizeof((a)[0]))
 
+#define BEGIN_RADIANT_NAMESPACE  namespace radiant {
+#define END_RADIANT_NAMESPACE    }
+
 #if defined(ASSERT)
 #  error ASSERT defined before inclusion of radiant_macros.h.  Aborting
 #endif

@@ -8,28 +8,42 @@ BEGIN_RADIANT_DM_NAMESPACE
 class Trace
 {
 public:
-   typedef std::function<void()> ChangedCb;
+   typedef std::function<void()> ModifiedCb;
+   typedef std::function<void()> DestroyedCb;
 
 public:
    Trace(const char* reason) : reason_(reason) { }
    virtual ~Trace() { }
 
-   void OnChanged(ChangedCb changed)
+   void OnModified(ModifiedCb modified)
    {
-      on_changed_ = changed;
+      on_modified_ = modified;
+   }
+
+   void OnDestroyed(DestroyedCb destroyed)
+   {
+      on_destroyed_ = destroyed;
    }
 
 protected:
-   void SignalChanged()
+   void SignalModified()
    {
-      if (on_changed_) {
-         on_changed_();
+      if (on_modified_) {
+         on_modified_();
+      }
+   }
+
+   void SignalDestroyed()
+   {
+      if (on_destroyed_) {
+         on_destroyed_();
       }
    }
 
 private:
    const char*    reason_;
-   ChangedCb      on_changed_;
+   ModifiedCb     on_modified_;
+   DestroyedCb    on_destroyed_;
 };
 
 END_RADIANT_DM_NAMESPACE

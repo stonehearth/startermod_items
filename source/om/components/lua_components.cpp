@@ -22,6 +22,6 @@ DataBindingPtr LuaComponents::AddLuaComponent(std::string name)
       return i->second;
    }
    auto component = GetStore().AllocObject<DataBinding>();
-   lua_components_[name] = component;
+   lua_components_.Insert(name, component);
    return component;
 }

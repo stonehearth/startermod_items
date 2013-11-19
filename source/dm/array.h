@@ -10,6 +10,8 @@ template <class T, int C>
 class Array : public Object
 {
 public:
+   typedef T Value;
+
    //static decltype(Protocol::Array::contents) extension;
    DEFINE_DM_OBJECT_TYPE(Array, array);
    DECLARE_STATIC_DISPATCH(Array);
@@ -40,11 +42,9 @@ public:
       return items_[i];
    }
    
-   T& operator[](int i) {
-      ASSERT(i >= 0 && i < C);
-      NOT_YET_IMPLEMENTED(); // can't notify that the object has changed until the client is done with it! (UG!)
+   void Set(uint i, T const& value) {
+      items_[i] = value;
       GetStore().OnArrayChanged(*this, i, items_[i]);
-      return items_[i];
    }
 
    typename const T* begin() const { return items_; }

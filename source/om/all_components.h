@@ -12,8 +12,6 @@
 #include "components/effect_list.h"
 #include "components/render_info.h"
 #include "components/sensor_list.h"
-#include "components/attributes.h"
-#include "components/aura_list.h"
 #include "components/target_tables.h"
 #include "components/lua_components.h"
 #include "components/destination.h"
@@ -22,5 +20,9 @@
 #include "components/paperdoll.h"
 #include "components/unit_info.h"
 #include "components/item.h"
+
+#define OM_ALL_COMPONENT_TEMPLATES \
+   CARRY_BLOCK_TEMPLATE \
+   CLOCK_TEMPLATE
 
 #endif // _RADIANT_OM_ALL_COMPONENTS

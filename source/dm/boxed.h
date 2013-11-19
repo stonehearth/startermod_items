@@ -47,7 +47,7 @@ public:
    operator const T&() const { return value_; }
    const Boxed& operator=(const T& rhs) {
       value_ = rhs;
-      GetStore().OnBoxedChanged(*this);
+      GetStore().OnBoxedChanged(*this, value_);
       return *this;
    }
 
@@ -59,7 +59,7 @@ public:
    // Allow for modifications
    T& Modify() {
       NOT_YET_IMPLEMENTED(); // can't notify that the object has changed until the client is done with it! (UG!)
-      GetStore().OnBoxedChanged(*this);
+      GetStore().OnBoxedChanged(*this, value_);
       return value_;
    }
 

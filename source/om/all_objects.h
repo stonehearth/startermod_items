@@ -7,7 +7,6 @@
 #include "json_store.h"
 #include "components/effect_list.h"
 #include "components/sensor_list.h"
-#include "components/aura_list.h"
 #include "components/target_tables.h"
 #include "components/lua_components.h"
 #include "error_browser/error_browser.h"

@@ -13,8 +13,6 @@
       OM_OBJECT(EffectList,            effect_list) \
       OM_OBJECT(RenderInfo,            render_info) \
       OM_OBJECT(SensorList,            sensor_list) \
-      OM_OBJECT(Attributes,            attributes) \
-      OM_OBJECT(AuraList,              aura_list) \
       OM_OBJECT(TargetTables,          target_tables) \
       OM_OBJECT(LuaComponents,         lua_components) \
       OM_OBJECT(Destination,           destination) \

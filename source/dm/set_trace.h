@@ -7,7 +7,7 @@
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename T>
-class SetTrace : virtual public Trace
+class SetTrace : public Trace
 {
 public:
    typedef typename T::Value     Value;

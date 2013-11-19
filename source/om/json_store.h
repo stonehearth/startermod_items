@@ -23,8 +23,8 @@ public:
    JSONNode const& Get() const;
    
 protected:
-   void SaveValue(const dm::Store& store, Protocol::Value* msg) const override;
-   void LoadValue(const dm::Store& store, const Protocol::Value& msg) override;
+   void SaveValue(const dm::Store& store, Protocol::Value* msg) const;
+   void LoadValue(const dm::Store& store, const Protocol::Value& msg);
 
 private:
    JSONNode       json_;

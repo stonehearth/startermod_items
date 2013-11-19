@@ -3,8 +3,10 @@
 
 #include "dm/boxed.h"
 #include "csg/region.h"
+#include "core/guard.h"
 #include "radiant_macros.h"
 #include "object_enums.h"
+#include "lib/lua/bind.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
 
@@ -60,7 +62,6 @@ DeepRegionGuardPtr DeepTraceRegion(Region3BoxedPtrBoxed const& boxedRegionPtrFie
 DeepRegionGuardPtr DeepTraceRegionVoid(Region3BoxedPtrBoxed const& boxedRegionPtrField,
                                        const char* reason,
                                        std::function<void()> updateCb);
-
 
 class Region3BoxedPromise
 {

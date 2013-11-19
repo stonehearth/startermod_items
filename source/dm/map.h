@@ -1,12 +1,7 @@
 #pragma once
-#include "object.h"
-#include "store.pb.h"
 #include <unordered_map>
-#include "dm.h"
-#include "radiant.h"
-#include "radiant_stdutil.h"
+#include "object.h"
 #include "dbg_indenter.h"
-#include "map_loader.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -62,7 +57,7 @@ public:
 
    void Insert(K const& key, V const& value) {
       auto result = items_.insert(std::make_pair(key, value));
-      if (result.second || result.first->second != value) {
+      if (result.second) {
          GetStore().OnMapChanged(*this, key, value);
       }
    }

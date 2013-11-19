@@ -1,6 +1,4 @@
 #include "pch.h"
-#include "lua_attributes_component.h"
-#include "lua_aura_list_component.h"
 #include "lua_clock_component.h"
 #include "lua_component.h"
 #include "lua_effect_list_component.h"

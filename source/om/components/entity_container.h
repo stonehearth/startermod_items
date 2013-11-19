@@ -32,7 +32,7 @@ private:
 
 public:
    Container children_;
-   std::unordered_map<dm::ObjectId, core::Guard> destroy_guards_;
+   std::unordered_map<dm::ObjectId, dm::TracePtr> destroy_traces_;
 };
 
 END_RADIANT_OM_NAMESPACE

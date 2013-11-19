@@ -33,6 +33,10 @@ class Receiver;
 class Record;
 template <typename T> class ObjectTrace;
 template <typename T> class RecordTrace;
+template <typename T> class BoxedTrace;
+template <typename T> class SetTrace;
+template <typename T> class MapTrace;
+template <typename T> class ArrayTrace;
 
 DECLARE_SHARED_POINTER_TYPES(Object)
 DECLARE_SHARED_POINTER_TYPES(Store)
@@ -50,5 +54,11 @@ void SaveObject(Record const& store, Protocol::Value* msg);
 void SaveObjectDelta(Record const& store, Protocol::Value* msg);
 
 END_RADIANT_DM_NAMESPACE
+
+// xxx: super not happy that these headers have to be here.  Need to move the LoadValue/SaveValue
+// implementation out of the classes which get serialized and into a helper library (like how
+// lib/json does it). - tony
+#include "store.pb.h"
+#include "dm_save_impl.h"
 
 #endif //  _RADIANT_DM_NAMESPACE_H

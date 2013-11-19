@@ -41,7 +41,7 @@ std::string StrongGameObjectToJson(std::shared_ptr<T> obj, luabind::object state
       return "null";
    }
    std::ostringstream output;
-   output << '"' << om::ObjectFormatter().GetPathToObject(obj) << '"';
+   output << '"' << ::radiant::om::ObjectFormatter().GetPathToObject(obj) << '"';
    return output.str();
 }
 

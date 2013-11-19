@@ -7,7 +7,7 @@
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename T>
-class BoxedTrace : virtual public Trace
+class BoxedTrace : public Trace
 {
 public:
    typedef typename T::Value     Value;

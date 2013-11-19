@@ -83,25 +83,53 @@ public:
    // New hotness.  These are the demuxes.  Fan out a single "hi, i'm a map and i've changed!"
    // to every single MapTrace (some of which are sync and some of which are buffered).
 
-   template <typename M> void OnMapRemoved(M const& map, typename M::Key const& key)
+   template <typename T, typename TraceType>
+   void MarkChangedAndFire(T& obj, std::function<void(typename TraceType&)> cb)
    {
-      map.MarkChanged();
-      auto i = traces_.find(map.GetObjectId());
+      obj.MarkChanged();
+      auto i = traces_.find(obj.GetObjectId());
       if (i != traces_.end()) {
-         stdutil::ForEachPrune(i->second, [](std::shared_ptr<Trace> t) {
-            std::static_pointer_cast<MapTrace<M>>(t)->OnRemoved(key);
+         stdutil::ForEachPrune<Trace>(i->second, [&](std::shared_ptr<Trace> t) {
+            TraceType *trace = static_cast<TraceType*>(t.get());
+            cb(*trace);
          });
       }
    }
-   template <typename M> void OnMapChanged(M const& map, typename M::Key const& key, typename M::Key const& value)
+   template <typename T> void OnMapRemoved(T& map, typename T::Key const& key)
    {
-      map.MarkChanged();
-      auto i = traces_.find(map.GetObjectId());
-      if (i != traces_.end()) {
-         stdutil::ForEachPrune(i->second, [](std::shared_ptr<Trace> t) {
-            std::static_pointer_cast<MapTrace<M>>(t)->OnChanged(key, value);
-         });
-      }
+      MarkChangedAndFire<T, MapTrace<T>>(map, [&](MapTrace<T>& trace) {
+         trace.OnRemoved(key);
+      });
+   }
+   template <typename T> void OnMapChanged(T& map, typename T::Key const& key, typename T::Value const& value)
+   {
+      MarkChangedAndFire<T, MapTrace<T>>(map, [&](MapTrace<T>& trace) {
+         trace.OnChanged(key, value);
+      });
+   }
+   template <typename T> void OnSetRemoved(T& set, typename T::Value const& value)
+   {
+      MarkChangedAndFire<T, SetTrace<T>>(set, [&](SetTrace<T>& trace) {
+         trace.OnRemoved(value);
+      });
+   }
+   template <typename T> void OnSetAdded(T& set, typename T::Value const& value)
+   {
+      MarkChangedAndFire<T, SetTrace<T>>(set, [&](SetTrace<T>& trace) {
+         trace.OnAdded(value);
+      });
+   }
+   template <typename T> void OnArrayChanged(T& arr, uint i, typename T::Value const& value)
+   {
+      MarkChangedAndFire<T, ArrayTrace<T>>(arr, [&](ArrayTrace<T>& trace) {
+         trace.OnChanged(i, value);
+      });
+   }
+   template <typename T> void OnBoxedChanged(T& boxed, typename T::Value const& value)
+   {
+      MarkChangedAndFire<T, BoxedTrace<T>>(boxed, [&](BoxedTrace<T>& trace) {
+         trace.OnChanged(value);
+      });
    }
 
 #define CALL_TRACER(category, invocation) \

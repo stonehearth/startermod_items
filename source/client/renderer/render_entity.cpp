@@ -263,9 +263,7 @@ void RenderEntity::OnSelected(om::Selection& sel, const csg::Ray3& ray,
       auto mob = entity->GetComponent<om::Mob>();
       // xxx: don't select authored objects!
       ASSERT(entity->GetStoreId() == 2);
-      if (true || (mob && mob->IsSelectable())) {
-         sel.AddEntity(entity->GetObjectId());
-      }
+      sel.AddEntity(entity->GetObjectId());
    }
 }
 

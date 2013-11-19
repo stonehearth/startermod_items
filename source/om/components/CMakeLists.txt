@@ -8,10 +8,39 @@ include_directories(${Luabind_INCLUDE_DIRS})
 include_directories(${Libjson_INCLUDE_DIRS})
 include_directories(${Cryptopp_INCLUDE_DIRS})
 
+function(PROCESS_RADIANT_IDLS GENERATED_SRC)
+  if(NOT ARGN)
+    message(SEND_ERROR "Error: RIDL_GENERATE_CPP() called without any ridl files")
+    return()
+  endif()
+
+  set(${GENERATED_SRC})
+  foreach(FIL ${ARGN})
+    get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
+    get_filename_component(FIL_WE ${FIL} NAME_WE)
+
+    list(APPEND ${GENERATED_SRC} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.ridl.h")
+
+    add_custom_command(
+      OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.ridl.h"
+      COMMAND  ${STONEHEARTH_ROOT}/scripts/ridlc.cmd
+      ARGS ${CMAKE_CURRENT_BINARY_DIR} ${ABS_FIL}
+      DEPENDS ${ABS_FIL}
+      COMMENT "Running Radiant IDL compiler on ${FIL}"
+      VERBATIM )
+  endforeach()
+
+  set_source_files_properties(${${GENERATED_SRC}} PROPERTIES GENERATED TRUE)
+  set(${GENERATED_SRC} ${${GENERATED_SRC}} PARENT_SCOPE)
+endfunction()
+
+PROCESS_RADIANT_IDLS(RIDL_SRC
+                     carry_block.ridl)
+
+
 add_library(om_components STATIC
+            ${RIDL_SRC}
             pch.cpp
-            attributes.cpp
-            aura_list.cpp
             clock.cpp
             collision_shape.cpp
             component.cpp

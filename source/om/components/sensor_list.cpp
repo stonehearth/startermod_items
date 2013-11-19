@@ -73,7 +73,7 @@ SensorPtr SensorList::AddSensor(std::string name, int radius)
    sensor->SetCube(box);
    sensor->SetEntity(GetEntityRef());
 
-   sensors_[name] = sensor;
+   sensors_.Insert(name, sensor);
    return sensor;
 }
 

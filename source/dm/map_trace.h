@@ -7,7 +7,7 @@
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename M>
-class MapTrace : virtual public Trace
+class MapTrace : public Trace
 {
 public:
    typedef typename M::Key       Key;

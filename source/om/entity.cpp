@@ -64,17 +64,6 @@ dm::ObjectPtr Entity::GetComponent(dm::ObjectType t) const
    return i != components_.end() ? i->second : nullptr;
 }
 
-
-// xxx: this will end up remoting the unit info record a 2nd time whenever something
-// in the unit info changes.  arg!  what we really want to say is "hey record, install
-// this trace whenever *you* change or any of *your fields* change).
-core::Guard Entity::TraceObjectChanges(const char* reason, std::function<void()> fn) const
-{
-   core::Guard guard = Record::TraceObjectChanges(reason, fn);
-   guard += GetComponent<LuaComponents>()->TraceObjectChanges(reason, fn);
-   return guard;
-}
-
 template <class T> std::shared_ptr<T> Entity::GetComponent() const
 {
    return std::static_pointer_cast<T>(GetComponent(T::DmType));

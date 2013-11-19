@@ -29,8 +29,6 @@ public:
    std::string GetCategory() const {return *category_;}
    void SetCategory(std::string category) { category_ = category; }
 
-   core::Guard TraceStacks(const char* reason, std::function<void()> fn) { return stacks_.TraceObjectChanges(reason, fn); };
-
 private:
    NO_COPY_CONSTRUCTOR(Item)
 

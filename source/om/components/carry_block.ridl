@@ -1,0 +1,57 @@
+#ifndef ${env.guard_name(C)}
+#define ${env.guard_name(C)}
+
+#include "component.h"
+#include "om/object_enums.h"
+
+BEGIN_RADIANT_OM_NAMESPACE
+
+class ${C.__name__} : public Component
+{
+public:
+   DEFINE_OM_OBJECT_TYPE(${C.__name__}, ${C.__name__ | env.lower});
+
+% for name, info in env.properties(C):
+   % if info.get:
+   ${info.type} Get${name | env.upper}() const
+   {
+      return *${name}_;
+   }
+
+   % endif
+   % if info.set:
+   ${C.__name__}& Set${name | env.upper}(${info.type} const& value)
+   { 
+      ${name}_ = value;
+      return *this
+   }
+
+   % endif
+   % if info.trace:
+   std::shared_ptr<dm::BoxedTrace<${info.type}>>
+   Trace${name | env.upper}(const char* reason, int category) const
+   {
+      return ${name}_.TraceObject(reason, category);
+   }
+
+   % endif %
+% endfor
+
+public:
+   void InitializeRecordFields() override
+   {
+      Component::InitializeRecordFields();
+% for name, info in env.properties(C):
+      AddRecordField("${name}", ${name}_);
+% endfor
+   }
+
+private:
+% for name, info in env.properties(C):
+   dm::Boxed<${info.type}>    ${name}_;
+% endfor
+};
+
+END_RADIANT_OM_NAMESPACE
+
+#endif // ${env.guard_name(C)}
