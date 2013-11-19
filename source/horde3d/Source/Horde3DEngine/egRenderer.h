@@ -134,7 +134,7 @@ public:
 	
 	unsigned char *useScratchBuf( uint32 minSize );
 	
-	bool init();
+	bool init(int glMajor, int glMinor);
 	void initStates();
 
    void collectOneDebugFrame();

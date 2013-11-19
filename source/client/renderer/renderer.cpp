@@ -93,7 +93,8 @@ Renderer::Renderer() :
    
    glfwSwapInterval(0);
 
-   if (!h3dInit()) {   
+   // Init Horde, looking for OpenGL 2.0 minimum.
+   if (!h3dInit(2, 0)) {
       h3dutDumpMessages();
       throw std::exception("Unable to initialize renderer.  Check horde log for details.");
    }
