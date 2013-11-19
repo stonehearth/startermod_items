@@ -191,7 +191,9 @@
 
          "class_info" : "file(entities/class_info)",
 
-         "sounds:axe_chopping_sound" : "file(data/sounds/effects/axe_chopping_sound.ogg)"
+         "sounds:axe_chopping_sound" : "file(data/sounds/effects/axe_chopping_sound.ogg)",
+         "sounds:saw_deep" : "file(data/sounds/effects/sh_saw_01.wav)",
+         "sounds:saw_high" : "file(data/sounds/effects/sh_saw_02.wav)"
       },
       "functions" : {
          "get_world_generation_progress": {
