@@ -24,9 +24,9 @@ App.StonehearthNewGameView = App.View.extend({
    actions : {
       startNewGame: function() {
          App.shellView.addView(App.StonehearthLoadingScreenView);
+         var box_checked = $('#analyticsCheckbox').is(':checked')
+         radiant.call('radiant:set_collection_status', box_checked);
          this.destroy();
-
-         radiant.call('radiant:set_collection_status', $('#analyticsCheckbox').is(':checked'));
       }
    }
 
