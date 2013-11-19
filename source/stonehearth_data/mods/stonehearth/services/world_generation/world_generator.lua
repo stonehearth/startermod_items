@@ -10,7 +10,6 @@ local WorldGenerator = class()
 
 function WorldGenerator:__init(async)
    self._async = async
-   --self._async = false
    self._progress = 0
 
    local tg = TerrainGenerator(self._async)
@@ -105,12 +104,6 @@ function WorldGenerator:_generate_world(zones)
       self:_yield()
 
       self._progress = (n / #zone_order_list) * 100
-      --[[
-      radiant.events.trigger(radiant.events, 'stonehearth:generate_world_progress', { 
-         progress = n / #zone_order_list,
-         complete = false
-      })
-      --]]
 
    end
 

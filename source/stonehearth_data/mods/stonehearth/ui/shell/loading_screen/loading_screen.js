@@ -38,6 +38,7 @@ App.StonehearthLoadingScreenView = App.View.extend({
          this._progressbar.progressbar( "option", "value", result.progress );
 
          if (result.progress == 100) {
+            App.gotoGame();
             App.gameView.addView(App.StonehearthCreateCampView)
             this.destroy();
          }

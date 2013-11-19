@@ -4,20 +4,46 @@
    left: 0px;
    right: 0px;
    bottom: 0px;
-   background: rgba(0,0,0,1.0);
+   background: url('./images/bg.jpg');
    color: #fff;
    padding: 20px;
    display: flex;
 
 
    #controls {
-      position: absolute;
-      left: 560px;
-      bottom: 80px;
-      width: 800px;
+      position: relative;
+      text-align: center;
+      margin: auto;
+      width: 409px;
+      height: 93px;
+
+      #message {
+         .controlFont;
+         position: absolute;
+         top: 24px;
+         width: 100%;
+         color: #fff;
+         font-size: 18px;
+      }
+
+      #frame {
+         position: absolute;
+         width: 100%;
+         height: 100%;
+         background: url('./images/progress_Frame.png');
+      }
 
       #progressbar {
-         width: 100%;
+         position: absolute;
+         top: 11px;
+         left: 15px;
+         width: 375px;
+         height: 50px;
+
+         .ui-progressbar-value {
+            position: absolute;
+            height: 35px;
+         }
       }
    }
 }
