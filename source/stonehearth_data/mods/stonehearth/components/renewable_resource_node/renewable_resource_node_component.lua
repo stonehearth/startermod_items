@@ -7,6 +7,9 @@ function RenewableResourceNodeComponent:__init(entity)
    self._resource = nil       -- the entity spawned when the resource is harvested
    self._renewal_time = nil   -- how long until the resource respawns
    self._calendar_constants = calendar.get_constants();
+   self._harvest_command_name = nil   --name of the cmd that harvests the resource
+   self._original_description = self._entity:get_component('unit_info'):get_description()
+   self._wait_text = self._original_description
 end
    
 function RenewableResourceNodeComponent:extend(json)
@@ -25,10 +28,21 @@ function RenewableResourceNodeComponent:extend(json)
 
       self._renewal_time = tonumber(duration)
    end
+   if json.harvest_command then
+      self._harvest_command_name = json.harvest_command
+   end
+   if json.wait_text then
+      self._wait_text = json.wait_text
+   end
 end
 
 function RenewableResourceNodeComponent:spawn_resource(location)
    if self._resource then
+      --Disable the harvest command
+      local bush_commands = self._entity:get_component('stonehearth:commands')
+      bush_commands:enable_command(self._harvest_command_name, false)
+
+      --Create the harvested entity and put it on the ground
       local item = radiant.entities.create_entity(self._resource)
       radiant.terrain.place_entity(item, location)
 
@@ -37,12 +51,23 @@ function RenewableResourceNodeComponent:spawn_resource(location)
       render_info:set_model_variant('depleted')
       self._renewal_countdown = self._renewal_time
       radiant.events.listen(calendar, 'stonehearth:hourly', self, self.on_hourly)
+
+      --Change the description
+      self._entity:get_component('unit_info'):set_description(self._wait_text)
    end
 end
 
 function RenewableResourceNodeComponent:renew(location)
+   --Change the model
    local render_info = self._entity:add_component('render_info')
    render_info:set_model_variant('')
+   
+   --Enable the command again
+   local bush_commands = self._entity:get_component('stonehearth:commands')
+   bush_commands:enable_command(self._harvest_command_name, true)
+   
+   --Change the description
+   self._entity:get_component('unit_info'):set_description(self._original_description)
 end
 
 function RenewableResourceNodeComponent:on_hourly()
@@ -53,7 +78,5 @@ function RenewableResourceNodeComponent:on_hourly()
       self._renewal_countdown = self._renewal_countdown - 1
    end
 end
-
-
 
 return RenewableResourceNodeComponent

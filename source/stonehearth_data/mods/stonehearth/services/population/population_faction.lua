@@ -22,9 +22,6 @@ function PopulationFaction:create_new_citizen()
       end
    end
 
-   --HACK DO NOT CHECK IN; NO FOOD ANIMATIONS FOR DUDES YET
-   gender = 'male'
-
    local entities = self._data[gender .. '_entities']
    local kind = entities[math.random(#entities)]
    local citizen = radiant.entities.create_entity(kind)

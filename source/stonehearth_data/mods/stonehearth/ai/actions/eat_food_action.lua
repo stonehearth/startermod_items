@@ -40,7 +40,7 @@ function EatFoodAction:__init(ai, entity)
 --- Whenever the entity is hungry, subliminally start looking for a seat
 function EatFoodAction:on_hunger_changed(e)
    self._hunger = e.value
-   if self._hunger >= 90  then
+   if self._hunger >= 80  then
       self:start_looking_for_seat()
    else
       self:stop_looking_for_seat()
@@ -111,7 +111,7 @@ function EatFoodAction:run(ai, entity, food)
    local attributes_component = entity:add_component('stonehearth:attributes')
    local hunger = attributes_component:get_attribute('hunger')
    local entity_loc = entity:get_component('mob'):get_world_grid_location()
-   local satisfaction = food:get_component('stonehearth:attributes'):get_attribute('nourishment')
+   local satisfaction = food:get_component('stonehearth:attributes'):get_attribute('sates_hunger')
    local consumption_text = ''
    local worker_name = radiant.entities.get_display_name(entity)
    self._food = food
@@ -136,7 +136,9 @@ function EatFoodAction:run(ai, entity, food)
          self._pre_eating_location = radiant.entities.get_location_aligned(self._entity)
          radiant.entities.move_to(self._entity, radiant.entities.get_location_aligned(self._seat))
          radiant.entities.set_posture(self._entity, 'sitting_on_chair')
-         --ai:execute('stonehearth:run_effect', 'sit_on_chair')
+
+         local angle  = self._seat:get_component('mob'):get_rotation()
+         self._entity:get_component('mob'):turn_to_quaternion(angle)
          
          --TODO: alter the chair modifier depending on distance from table, kind of chair
          satisfaction = satisfaction * CHAIR_MODIFIER

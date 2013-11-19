@@ -5,8 +5,6 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-const float PI = 3.14159265359;
-
 void Mob::Describe(std::ostringstream& os) const
 {
    os << "pos:" << GetLocation();
@@ -43,6 +41,9 @@ void Mob::MoveToGridAligned(const csg::Point3& location)
 void Mob::TurnTo(const csg::Quaternion& orientation)
 {
    LOG(INFO) << "turning entity " << GetEntity().GetObjectId() << " to " << orientation;
+   //Like TurnToAngle, have to rotate 180 degrees
+   csg::Quaternion orientation_rotated = orientation * csg::Quaternion(0, 0, 1, 0);
+   transform_.Modify().orientation = orientation_rotated;
 }
 
 void Mob::TurnToAngle(float angle)
@@ -54,7 +55,6 @@ void Mob::TurnToAngle(float angle)
    if (angle >= 360) {
       angle -= 360;
    }
-   LOG(INFO) << "turning entity " << GetEntity().GetObjectId() << " to angle " << angle;
    csg::Quaternion q(csg::Point3f::unitY, angle / 180.0f * csg::k_pi);
    transform_.Modify().orientation = q;
 }
@@ -128,17 +128,15 @@ csg::Quaternion Mob::GetRotation() const
    return (*transform_).orientation;
 }
 
-//Given the orientation of the character, get a location 1 unit away from him. 
-csg::Point3 Mob::GetLocationInFront() const
+//Given the orientation of the character, get a location 1 unit in front of him
+//TODO: keep testing; not sure if it works from all 360 angles
+csg::Point3f Mob::GetLocationInFront() const
 {
    csg::Quaternion q = (*transform_).orientation;
-   float angle;
-   q.get_axis_angle(csg::Point3f::unitY, angle);
-   float angle_as_radian = angle * PI / 180;
-   int x = (*transform_).position.x + floor(cosf(angle) + 0.5);
-   int z = (*transform_).position.z + floor(sinf(angle)  + 0.5);
-   //The y position should be calculated by placing the object on the actual terrain. 
-   return csg::Point3(x, 1, z);
+   csg::Point3f translation =  q.rotate(csg::Point3f(0, 0, 1));
+   int x = (*transform_).position.x + floor(translation.x + 0.5);
+   int z = (*transform_).position.z + floor(translation.z + 0.5);
+   return csg::Point3f(x, (*transform_).position.y, z);
 }
 
 csg::Transform Mob::GetTransform() const

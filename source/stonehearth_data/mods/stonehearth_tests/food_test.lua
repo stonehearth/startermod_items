@@ -10,13 +10,13 @@ function FoodTest:__init()
    local bush = self:place_item('stonehearth:berry_bush', -4, 4)
    local bush = self:place_item('stonehearth:berry_bush', 4, -4)
 
-   self:place_item('stonehearth:arch_backed_chair', -6, -6)
+   self:place_item('stonehearth:arch_backed_chair_proxy', 6, 6)
 
    local tree = self:place_tree(-12, -12)
 
    self:place_citizen(10, 10)
    local worker = self:place_citizen(-5, -5)
-   worker:add_component('stonehearth:attributes'):set_attribute('hunger', 110)
+   worker:add_component('stonehearth:attributes'):set_attribute('hunger', 70)
 
    local faction = worker:get_component('unit_info'):get_faction()
    
