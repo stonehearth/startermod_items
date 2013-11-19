@@ -132,9 +132,7 @@ end
 --  got interrupted, set priority to 0. It will go up again as soon
 --  as we've found some food. 
 function FindFoodAction:stop()
-   if self._hunger < 80 then 
-      self:stop_looking_for_food()
-   end
+   self:stop_looking_for_food()
    self._ai:set_action_priority(self, 0)
 end
 
