@@ -17,6 +17,7 @@ add_library(csg_lua STATIC
             lua_edgelist.cpp
             lua_quaternion.cpp
             lua_ray.cpp
+            lua_random_number_generator.cpp
             pch.cpp
             )
 
