@@ -76,7 +76,12 @@
          "medium_juniper_tree" : "file(entities/trees/juniper_tree/medium_juniper_tree)",
          "large_juniper_tree" : "file(entities/trees/juniper_tree/large_juniper_tree)",
 
+         "berry_bush" : "file(entities/plants/berry_bush)",
+
          "pink_flower" : "file(entities/ground_clutter/pink_flower)",
+
+         "berry_basket" : "file(entities/plants/berry_basket)",
+         "berry_plate" : "file(entities/plants/berry_plate)",
 
          "arch_backed_chair" :       "file(entities/furniture/arch_backed_chair)",
          "arch_backed_chair_proxy" : "file(entities/furniture/arch_backed_chair/arch_backed_chair_proxy.json)",
@@ -129,6 +134,7 @@
          "buffs:groggy" : "file(data/buffs/groggy/groggy_buff.json)",
          "buffs:carrying" : "file(data/buffs/carrying/carrying_buff.json)",
          "buffs:sleeping" : "file(data/buffs/sleeping/sleeping_buff.json)",
+         "buffs:starving" : "file(data/buffs/starving/starving_buff.json)",
 
          "actions:attack_action" : "file(ai/actions/combat/attack_action.lua)",
          "actions:attack_top_aggro_action" : "file(ai/actions/combat/attack_top_aggro_action.lua)",
@@ -165,7 +171,11 @@
          "actions:gather_and_craft_action" : "file(ai/actions/gather_and_craft_action.lua)",
          "actions:grab_talisman_action" : "file(ai/actions/grab_talisman_action.lua)",
          "actions:admire_fire_action" : "file(ai/actions/admire_fire_action.lua)",
+         "actions:find_food_action" : "file(ai/actions/find_food_action.lua)",
+         "actions:get_food_action" : "file(ai/actions/get_food_action.lua)",
+         "actions:eat_food_action" : "file(ai/actions/eat_food_action.lua)",
          "actions:chop_tree_action" : "file(ai/actions/chop_tree_action.lua)",
+         "actions:worker_harvest_plant_action" : "file(ai/actions/worker_harvest_plants_action.lua)",
          "actions:carry_item_on_path_to" : "file(ai/actions/carry_item_on_path_to.lua)",
          "actions:worker_task_dispatcher" : "file(ai/actions/worker_task_dispatcher.lua)",
          "actions:worker_pickup_action" : "file(ai/actions/worker_pickup_action.lua)",
@@ -174,8 +184,10 @@
          "actions:worker_light_fire_action" : "file(ai/actions/worker_light_fire_action.lua)",
          "actions:play_with_ball_action" : "file(ai/actions/play_with_ball_action.lua)",
          "actions:fabricate" : "file(ai/actions/fabricate_action.lua)",
+
          "observers:look_for_enemies" : "file(ai/observers/look_for_enemies.lua)",
          "observers:sleep" : "file(ai/observers/sleep_observer.lua)",
+         "observers:hunger" : "file(ai/observers/hunger_observer.lua)",
 
          "class_info" : "file(entities/class_info)",
 
@@ -227,6 +239,10 @@
             "endpoint" : "server"
          },
          "harvest_tree" : {
+            "controller": "file(call_handlers/resource_call_handler.lua)",
+            "endpoint" : "server"
+         },
+         "harvest_plant" : {
             "controller": "file(call_handlers/resource_call_handler.lua)",
             "endpoint" : "server"
          },
@@ -298,6 +314,7 @@
       "center_of_attention_spot" : "file(components/center_of_attention/coa_spot_component.lua)",
       "material" : "file(components/material/material_component.lua)",
       "resource_node" : "file(components/resource_node/resource_node_component.lua)",
+      "renewable_resource_node" : "file(components/renewable_resource_node/renewable_resource_node_component.lua)",
       "stockpile" : "file(components/stockpile/stockpile_component.lua)",
       "workshop" : "file(components/workshop/workshop_component.lua)",
       "crafter"  : "file(components/crafter/crafter_component.lua)",

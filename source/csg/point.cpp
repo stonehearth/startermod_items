@@ -12,23 +12,23 @@ const int PointBase<float, 3, Point3f>::Dimension = 3;
 const int PointBase<float, 2, Point2f>::Dimension = 2;
 const int PointBase<float, 1, Point1f>::Dimension = 1;
 
-Point3f Point3f::zero(0, 0, 0);
-Point3f Point3f::one(1, 1, 1);
-Point3f Point3f::unitX(1, 0, 0);
-Point3f Point3f::unitY(0, 1, 0);
-Point3f Point3f::unitZ(0, 0, 1);
+const Point3f Point3f::zero(0, 0, 0);
+const Point3f Point3f::one(1, 1, 1);
+const Point3f Point3f::unitX(1, 0, 0);
+const Point3f Point3f::unitY(0, 1, 0);
+const Point3f Point3f::unitZ(0, 0, 1);
 
-Point2f Point2f::zero(0, 0);
-Point2f Point2f::one(1, 1);
+const Point2f Point2f::zero(0, 0);
+const Point2f Point2f::one(1, 1);
 
-Point3 Point3::zero(0, 0, 0);
-Point3 Point3::one(1, 1, 1);
+const Point3 Point3::zero(0, 0, 0);
+const Point3 Point3::one(1, 1, 1);
 
-Point2 Point2::zero(0, 0);
-Point2 Point2::one(1, 1);
+const Point2 Point2::zero(0, 0);
+const Point2 Point2::one(1, 1);
 
-Point1 Point1::zero(0);
-Point1 Point1::one(1);
+const Point1 Point1::zero(0);
+const Point1 Point1::one(1);
 
 
 template <int C>

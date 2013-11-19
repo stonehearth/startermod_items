@@ -15,6 +15,10 @@ function WorkerScheduler:dispatch_solution(priority, id, action)
    local dispatcher = self._dispatchers[id]
    
    if self._strict then
+      --TODO: This is getting really frustrating.
+      --I don't know why the workers are being cycled through twice, but it 
+      --happens 100% of the time we try to make 2 stockpiles with exclusive requirements.
+      --When not strict, game proceeds fine
       assert(dispatcher, string.format('unknown worker id %d in _dispatch_solution', id))
    elseif not dispatcher then
       radiant.log.warning('unknown worker id %d in _dispatch_solution', id)

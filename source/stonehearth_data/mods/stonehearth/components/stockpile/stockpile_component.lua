@@ -243,8 +243,12 @@ function StockpileComponent:_remove_item(id)
       -- add this point to our destination region
       local region = self._destination:get_region()
       local origin = radiant.entities.get_world_grid_location(entity)
-      local offset = origin - radiant.entities.get_world_grid_location(self._entity)
-      region:modify():add_point(Point3(offset))
+      --TODO: find source bug; sometimes by here,
+      --entity has been sufficiently disposed of that we find out where it is to reclaim its space.
+      if origin then 
+         local offset = origin - radiant.entities.get_world_grid_location(self._entity)
+         region:modify():add_point(Point3(offset))
+      end
    end
 end
 

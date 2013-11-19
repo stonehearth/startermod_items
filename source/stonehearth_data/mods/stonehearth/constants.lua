@@ -13,7 +13,16 @@ local constants = {
          CHOP_TREE          = 4,
          CONSTRUCT_BUILDING = 7,
          PLACE_ITEM         = 8,
+         GATHER_FOOD        = 9,
          LIGHT_FIRE         = 10,
+      },
+
+      -- Priorities for basic needs
+      -- TODO: integrate sleep
+      needs = {
+         BARELY_HUNGRY = 3,
+         HUNGRY = 5,
+         REALLY_HUNGRY = 10
       }
    },
 

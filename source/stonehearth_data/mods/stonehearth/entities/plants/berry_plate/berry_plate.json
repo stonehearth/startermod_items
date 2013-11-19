@@ -1,0 +1,24 @@
+{
+   "type": "entity",
+   "components": {
+      "unit_info": {
+         "name": "Plate of berries",
+         "description": "TODO: invent whipped cream."
+      },
+      "stonehearth:attributes" : {
+         "sates_hunger" : 100
+      },
+      "model_variants": [
+         {
+            "models": [
+               "file(berry_plate.qb)"
+            ]
+         }
+      ]
+   },
+   "entity_data" : {
+      "stonehearth:message_starved" : "BERRIES! GLUMPH! CRUNCH! GLORPH!",
+      "stonehearth:message_normal" : "Mmmm! Berries are delicious!",
+      "stonehearth:message_floor" : "Wish I could eat these berries while sitting in a chair..."
+   }
+}

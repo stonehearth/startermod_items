@@ -25,6 +25,7 @@ public:
    void MoveToGridAligned(const csg::Point3& location);
    
    void TurnToAngle(float degrees);
+
    void TurnToFacePoint(const csg::Point3& location);   
 
    csg::Cube3f GetWorldAABB() const;
@@ -32,7 +33,11 @@ public:
    void SetAABB(const csg::Cube3f& box) { aabb_.Modify() = box; }
 
    csg::Point3f GetLocation() const;
+
    csg::Quaternion GetRotation() const;
+   void TurnTo(const csg::Quaternion& orientation);
+
+   csg::Point3f GetLocationInFront() const;
    csg::Transform GetTransform() const;
    bool GetMoving() const { return moving_; }
    MobPtr GetParent() const { return (*parent_).lock(); }
@@ -56,9 +61,6 @@ public:
 private:
    friend EntityContainer;
    void SetParent(MobPtr parent);
-
-private:
-   void TurnTo(const csg::Quaternion& orientation);
 
 private:
    enum Flags {
