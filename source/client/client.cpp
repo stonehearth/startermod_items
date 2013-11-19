@@ -253,9 +253,11 @@ void Client::GetConfigOptions()
 
 
 extern bool realtime;
-void Client::run()
+void Client::run(int server_port)
 {
    perfmon::BeginFrame();
+
+   server_port_ = server_port;
 
    hover_cursor_ = LoadCursor("stonehearth:cursors:hover");
    default_cursor_ = LoadCursor("stonehearth:cursors:default");
@@ -424,7 +426,7 @@ void Client::setup_connections()
    recv_queue_ = std::make_shared<protocol::RecvQueue>(_tcp_socket);
    send_queue_ = protocol::SendQueue::Create(_tcp_socket);
 
-   boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string("127.0.0.1"), 8888);
+   boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string("127.0.0.1"), server_port_);
    _tcp_socket.async_connect(endpoint, std::bind(&Client::handle_connect, this, std::placeholders::_1));
 }
 
