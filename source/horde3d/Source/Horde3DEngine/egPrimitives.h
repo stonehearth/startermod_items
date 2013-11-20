@@ -30,7 +30,7 @@ struct BoundingBox
    BoundingBox()
    {
       min = Vec3f(FLT_MAX, FLT_MAX, FLT_MAX);
-      max = Vec3f(FLT_MIN, FLT_MIN, FLT_MIN);
+      max = Vec3f(-FLT_MAX, -FLT_MAX, -FLT_MAX);
    }
 
    void addPoint(Vec3f& p)
