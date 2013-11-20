@@ -1,29 +1,24 @@
-from ridl.om import *
-from ridl.ridl import *
+from ridl.om_types import *
+import ridl.ridl as ridl
+import ridl.c_types as c
+import ridl.dm_types as dm
+import ridl.std_types as std
 
 class Effect(dm.Record):
-   name = dm.Boxed(string, set=None, trace=None)
-   start_time = dm.Boxed(int, set=None, trace=None)
-   params = dm.Map(string, Selection, get=None, set=None, trace=None)
+   name = dm.Boxed(std.string(), set=None, trace=None)
+   start_time = dm.Boxed(c.int(), set=None, trace=None)
+   params = dm.Map(std.string(), Selection(), remove=None, get=None, insert=None, trace=None)
 
-   _public_methods = """
-   void Init(std::string name, int start)
-   {
-      name_ = name;
-      start_time_ = start;
-   }
-
-   
+   _includes = [ "lib/lua/bind.h", "csg/namespace.h", "om/selection.h" ]
+   _public = \
+   """
+   void Init(std::string name, int start);
    void AddParam(std::string param, luabind::object o);
-   const Selection& GetParam(std::string param) const
-   {
-      static const Selection null;
-      auto i = params_.find(param);
-      return i != params_.end() ? i->second : null;
-   }
+   const Selection& GetParam(std::string param) const;
    """
 
-   _private_methods = """
+   _private = \
+   """
    void UpdateDerivedValues();
    void ComputeAdjacentRegion(csg::Region3 const& r);
    """

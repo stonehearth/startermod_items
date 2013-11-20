@@ -16,12 +16,12 @@ public:
    }
 
 private:
-   void OnRemoved(Key const& key) override
+   void NotifyRemoved(Key const& key) override
    {
       SignalRemoved(key);
    }
 
-   void OnChanged(Key const& key, Key const& value) override
+   void NotifyChanged(Key const& key, Key const& value) override
    {
       SignalChanged(key, value);
    }

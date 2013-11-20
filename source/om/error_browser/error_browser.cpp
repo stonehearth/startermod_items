@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "dm/store.h"
-#include "om/json_store.h"
 #include "error_browser.h"
 
 using namespace ::radiant;
@@ -20,7 +19,7 @@ void ErrorBrowser::AddRecord(ErrorBrowser::Record const& r)
    JSONNode n = r.GetNode();
    n.push_back(JSONNode("id", stdutil::ToString(next_record_id_++)));
 
-   om::JsonStorePtr entry = GetStore().AllocObject<om::JsonStore>();
+   auto entry = GetStore().AllocObject<dm::Boxed<json::Node>>();
    entry->Modify() = n;
 
    entries_.Insert(entry);

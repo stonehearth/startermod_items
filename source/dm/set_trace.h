@@ -68,8 +68,8 @@ protected:
 
 private:
    friend Store;
-   virtual void OnRemoved(Value const& value);
-   virtual void OnAdded(Value const& value);
+   virtual void NotifyRemoved(Value const& value);
+   virtual void NotifyAdded(Value const& value);
 
 private:
    RemovedCb      removed_;

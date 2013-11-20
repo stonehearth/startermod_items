@@ -9,7 +9,6 @@ include_directories(${Libjson_INCLUDE_DIRS})
 include_directories(${Cryptopp_INCLUDE_DIRS})
 
 add_subdirectory(components)
-add_subdirectory(lua)
 add_subdirectory(object_formatter)
 add_subdirectory(error_browser)
 
@@ -20,8 +19,6 @@ add_library(om STATIC
             region.cpp
             selection.cpp
             stonehearth.cpp
-            data_binding.cpp
-            json_store.cpp
             )
 
 if (MSVC)

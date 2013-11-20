@@ -5,7 +5,7 @@
 #include "dm/dm.h"
 #include "dm/map.h"
 #include "om/om.h"
-#include "om/components/entity_container.h"
+#include "om/components/entity_container.ridl.h"
 #include "render_component.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE

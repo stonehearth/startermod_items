@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "lib/lua/register.h"
 #include "lua_entity_container_component.h"
-#include "om/components/entity_container.h"
+#include "om/components/entity_container.ridl.h"
 #include "lib/json/dm_json.h"
 
 using namespace ::luabind;

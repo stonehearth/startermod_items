@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "clock.h"
+#include "clock.ridl.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;

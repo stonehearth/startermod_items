@@ -16,7 +16,6 @@ public:
    Component() { }
 
    virtual void ExtendObject(json::Node const& obj) { };
-   virtual void ConstructObject() { };
    virtual void Describe(std::ostringstream& os) const { };
 
    EntityPtr GetEntityPtr() const { return (*entity_).lock(); }

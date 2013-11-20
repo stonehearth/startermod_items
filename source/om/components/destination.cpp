@@ -1,23 +1,14 @@
 #include "pch.h"
-#include "destination.h"
+#include "destination.ridl.h"
+#include "om/region.h"
 #include "csg/util.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-void Destination::InitializeRecordFields()
+void Destination::ConstructObject()
 {
-   Component::InitializeRecordFields();
-   AddRecordField("region", region_);
-   AddRecordField("reserved", reserved_);
-   AddRecordField("adjacent", adjacent_);
-   AddRecordField("auto_update_adjacent", auto_update_adjacent_);
-
-   lastUpdated_ = 0;
-   lastChanged_ = 0;
-   if (!IsRemoteRecord()) {
-      auto_update_adjacent_ = false;
-   }
+   auto_update_adjacent_ = false;
 }
 
 /*
@@ -47,15 +38,12 @@ Destination& Destination::SetAutoUpdateAdjacent(bool value)
    value = !!value; // cohearse to 1 or 0
    if (auto_update_adjacent_ != value) {
       NOT_YET_IMPLEMENTED(); // UG!
-      region_guard_ = nullptr;
-      reserved_guard_ = nullptr;
       auto_update_adjacent_ = value;
 
       if (value) {
          dm::ObjectId component_id = GetObjectId();
          auto flush_dirty = [=]() {
             UpdateDerivedValues();
-            update_adjacent_guard_.Clear();
          };
       }
    }
@@ -86,21 +74,12 @@ void Destination::ComputeAdjacentRegion(csg::Region3 const& r)
    (*adjacent_)->Modify() = csg::GetAdjacent(r);
 }
 
-void Destination::SetRegion(Region3BoxedPtr r)
-{
-   region_ = r;
-}
-
-void Destination::SetReserved(Region3BoxedPtr r)
-{
-   reserved_ = r;
-}
-
-void Destination::SetAdjacent(Region3BoxedPtr r)
+Destination& Destination::SetAdjacent(Region3BoxedPtr r)
 {
    adjacent_ = r;
    LOG(INFO) << dm::DbgInfo::GetInfoString(adjacent_);
 
    // Manually setting the adjacent region turns off auto adjacency stuff by default
    SetAutoUpdateAdjacent(false);
+   return *this;
 }

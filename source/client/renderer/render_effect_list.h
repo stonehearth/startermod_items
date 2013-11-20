@@ -9,7 +9,7 @@
 #include "skeleton.h"
 #include "render_component.h"
 #include "resources/animation.h"
-#include "om/components/effect_list.h"
+#include "om/components/effect_list.ridl.h"
 #include <SFML/Audio.hpp>
 
 BEGIN_RADIANT_CLIENT_NAMESPACE

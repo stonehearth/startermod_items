@@ -10,6 +10,7 @@ sys.path = [ root,
 
 from mako.template import Template
 from mako.runtime import Context
+from mako import exceptions
 from StringIO import StringIO
 from ridl.env import Env
 
@@ -30,8 +31,11 @@ if __name__ == "__main__":
    ctx = Context(buf, C=obj, env=env)
    t = Template(filename=template_filename)
 
-   print 'generating', outfile
-   t.render_context(ctx)
+   try:
+      t.render_context(ctx)
+   except:
+      print exceptions.text_error_template().render()
+      sys.exit(1)
 
    file(outfile, 'wb').write(buf.getvalue())
 

@@ -50,7 +50,7 @@ protected:
 
 private:
    friend Store;
-   virtual void OnChanged(uint i, Value const& value);
+   virtual void NotifySet(uint i, Value const& value);
 
 private:
    ChangedCb      changed_;

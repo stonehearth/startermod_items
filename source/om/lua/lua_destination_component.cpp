@@ -5,7 +5,7 @@
 #include "lib/lua/script_host.h"
 #include "lua_om.h"
 #include "lua_destination_component.h"
-#include "om/components/destination.h"
+#include "om/components/destination.ridl.h"
 #include "core/guard.h"
 
 using namespace ::luabind;

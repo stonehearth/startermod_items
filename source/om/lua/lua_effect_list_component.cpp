@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "lib/lua/register.h"
 #include "lua_effect_list_component.h"
-#include "om/components/effect_list.h"
+#include "om/components/effect_list.ridl.h"
 
 using namespace ::luabind;
 using namespace ::radiant;

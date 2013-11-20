@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "renderer.h"
 #include "render_carry_block.h"
-#include "om/components/carry_block.ridl.h"
+#include "om/components/carry_block.ridl.ridl.h"
 #include "om/entity.h"
 #include "client/client.h"
 #include "dm/store.h"

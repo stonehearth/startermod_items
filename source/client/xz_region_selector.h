@@ -4,7 +4,7 @@
 #include "namespace.h"
 #include "core/deferred.h"
 #include "radiant_file.h"
-#include "om/components/terrain.h"
+#include "om/components/terrain.ridl.h"
 #include "csg/point.h"
 #include "csg/color.h"
 

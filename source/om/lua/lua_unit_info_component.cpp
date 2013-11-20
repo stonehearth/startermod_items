@@ -2,7 +2,7 @@
 #include "lib/lua/register.h"
 #include "lib/lua/script_host.h"
 #include "lua_unit_info_component.h"
-#include "om/components/unit_info.h"
+#include "om/components/unit_info.ridl.h"
 
 using namespace ::luabind;
 using namespace ::radiant;

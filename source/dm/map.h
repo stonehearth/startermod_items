@@ -73,7 +73,7 @@ public:
       return items_.find(key) != items_.end();
    }
 
-   V Lookup(const K& key, V default) const {
+   V Get(const K& key, V default) const {
       auto i = items_.find(key);
       return i != items_.end() ? i->second : default;
    }

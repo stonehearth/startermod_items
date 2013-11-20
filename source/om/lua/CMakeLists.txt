@@ -22,12 +22,10 @@ add_library(om_lua STATIC
             lua_model_variants_component.cpp
             lua_sensor_list_component.cpp
             lua_target_tables_component.cpp
-            lua_sphere_collision_shape_component.cpp
             lua_terrain_component.cpp
             lua_vertical_pathing_region_component.cpp
             lua_lua_components_component.cpp
             lua_destination_component.cpp
-            lua_render_region_component.cpp
             lua_paperdoll_component.cpp
             lua_carry_block_component.cpp
             lua_unit_info_component.cpp

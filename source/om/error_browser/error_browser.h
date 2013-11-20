@@ -6,7 +6,6 @@
 #include "om/om.h"
 #include "om/macros.h"
 #include "om/object_enums.h"
-#include "om/json_store.h"
 #include "dm/set.h"
 #include "dm/record.h"
 
@@ -45,13 +44,13 @@ public:
    DEFINE_OM_OBJECT_TYPE(ErrorBrowser, error_browser);
    void AddRecord(Record const& r);
 
-   dm::Set<om::JsonStorePtr>  const& GetEntries() const { return entries_; }
+   dm::Set<std::shared_ptr<dm::Boxed<json::Node>>>  const& GetEntries() const { return entries_; }
 
 private:
    void InitializeRecordFields() override;
 
 private:
-   dm::Set<om::JsonStorePtr>  entries_;
+   dm::Set<std::shared_ptr<dm::Boxed<json::Node>>>  entries_;
    int                        next_record_id_;
 };
 

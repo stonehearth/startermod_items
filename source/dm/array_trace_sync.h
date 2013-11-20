@@ -16,7 +16,7 @@ public:
    }
 
 private:
-   void OnChanged(uint i, Value const& value) override
+   void NotifySet(uint i, Value const& value) override
    {
       SignalChanged(i, value);
    }

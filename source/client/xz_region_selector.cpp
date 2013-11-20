@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "xz_region_selector.h"
-#include "om/components/terrain.h"
+#include "om/components/terrain.ridl.h"
 #include "om/selection.h"
 #include "client/client.h"
 #include "client/renderer/renderer.h" // xxx: move to Client

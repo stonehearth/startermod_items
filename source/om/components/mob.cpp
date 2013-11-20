@@ -1,31 +1,25 @@
 #include "pch.h"
-#include "mob.h"
+#include "mob.ridl.h"
 #include "om/object_formatter/object_formatter.h"
 #include "csg/util.h" // xxx: should be in csg/csg.h
 
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+#if 0
 void Mob::Describe(std::ostringstream& os) const
 {
    os << "pos:" << GetLocation();
 }
+#endif
 
-void Mob::InitializeRecordFields()
+void Mob::ConstructObject()
 {
-   Component::InitializeRecordFields();
-   AddRecordField("transform", transform_);
-   AddRecordField("aabb", aabb_);
-   AddRecordField("flags", flags_);
-   AddRecordField("parent", parent_);
-   AddRecordField("moving", moving_);
-
-   transform_.Modify().SetZero();
-   aabb_.Modify().SetZero();
-   flags_ = (INTERPOLATE_MOVEMENT | SELECTABLE);
-   if (!IsRemoteRecord()) {
-      moving_ = false;
-   }
+   transform_ = csg::Transform(csg::Point3f::zero, csg::Quaternion());
+   aabb_ = csg::Cube3f::zero;
+   interpolate_movement_ = true;
+   selectable_ = true;
+   moving_ = false;
 }
 
 void Mob::MoveTo(const csg::Point3f& location)
@@ -39,7 +33,7 @@ void Mob::MoveToGridAligned(const csg::Point3& location)
    MoveTo(csg::ToFloat(location));
 }
 
-void Mob::TurnTo(const csg::Quaternion& orientation)
+void Mob::TurnTo(csg::Quaternion const& orientation)
 {
    LOG(INFO) << "turning entity " << GetEntity().GetObjectId() << " to " << orientation;
 }
@@ -80,14 +74,9 @@ void Mob::TurnToFacePoint(const csg::Point3& location)
    transform_.Modify().orientation = q;
 }
 
-csg::Cube3f Mob::GetWorldAABB() const
+csg::Cube3f Mob::GetWorldAabb() const
 {
    return *aabb_ + GetWorldLocation();
-}
-
-csg::Cube3f Mob::GetAABB() const
-{
-   return aabb_;
 }
 
 csg::Point3f Mob::GetLocation() const
@@ -127,38 +116,9 @@ csg::Quaternion Mob::GetRotation() const
    return (*transform_).orientation;
 }
 
-csg::Transform Mob::GetTransform() const
-{
-   return *transform_;
-}
-
 csg::Point3 Mob::GetGridLocation() const
 {
    return csg::ToInt(GetLocation());
-}
-
-bool Mob::InterpolateMovement() const
-{
-   return ((*flags_) & INTERPOLATE_MOVEMENT) != 0;
-}
-
-bool Mob::IsSelectable() const
-{
-   return ((*flags_) & SELECTABLE) != 0;
-}
-
-void Mob::SetInterpolateMovement(bool value)
-{
-   if (value) {
-      flags_ = (*flags_) | INTERPOLATE_MOVEMENT;
-   } else {
-      flags_ = (*flags_) & ~INTERPOLATE_MOVEMENT;
-   }
-}
-
-void Mob::SetParent(MobPtr parent)
-{
-   parent_ = parent;
 }
 
 void Mob::ExtendObject(json::Node const& obj)
@@ -172,16 +132,3 @@ void Mob::ExtendObject(json::Node const& obj)
       parent_ = ObjectFormatter().GetObject<Mob>(GetStore(), obj.get<std::string>("parent", ""));
    }
 }
-
-Mob& Mob::SetMoving(bool m)
-{
-   moving_ = m;
-   return *this;
-}
-
-Mob& Mob::SetTransform(csg::Transform const& t)
-{
-   transform_ = t;
-   return *this;
-}
-

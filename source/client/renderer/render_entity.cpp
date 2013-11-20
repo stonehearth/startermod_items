@@ -10,21 +10,20 @@
 #include "render_destination.h"
 #include "render_effect_list.h"
 #include "render_render_info.h"
-#include "render_render_region.h"
 #include "render_carry_block.h"
 #include "render_paperdoll.h"
 #include "render_vertical_pathing_region.h"
 #include "resources/res_manager.h"
 #include "resources/animation.h"
 #include "om/entity.h"
-#include "om/components/mob.h"
-#include "om/components/entity_container.h"
-#include "om/components/terrain.h"
-#include "om/components/lua_components.h"
-#include "om/components/effect_list.h"
-#include "om/components/render_info.h"
-#include "om/components/paperdoll.h"
-#include "om/components/carry_block.ridl.h"
+#include "om/components/mob.ridl.h"
+#include "om/components/entity_container.ridl.h"
+#include "om/components/terrain.ridl.h"
+#include "om/components/lua_components.ridl.h"
+#include "om/components/effect_list.ridl.h"
+#include "om/components/render_info.ridl.h"
+#include "om/components/paperdoll.ridl.h"
+#include "om/components/carry_block.ridl.ridl.h"
 #include "om/selection.h"
 #include "lib/lua/script_host.h"
 
@@ -190,11 +189,6 @@ void RenderEntity::AddComponent(dm::ObjectType key, std::shared_ptr<dm::Object> 
          case om::EffectListObjectType: {
             om::EffectListPtr el = std::static_pointer_cast<om::EffectList>(value);
             components_[key] = std::make_shared<RenderEffectList>(*this, el);
-            break;
-         }
-         case om::RenderRegionObjectType: {
-            om::RenderRegionPtr renderRegion = std::static_pointer_cast<om::RenderRegion>(value);
-            components_[key] = std::make_shared<RenderRenderRegion>(*this, renderRegion);
             break;
          }
          case om::CarryBlockObjectType: {

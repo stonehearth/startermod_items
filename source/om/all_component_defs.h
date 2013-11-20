@@ -6,7 +6,6 @@
       OM_OBJECT(EntityContainer,       entity_container) \
       OM_OBJECT(Mob,                   mob) \
       OM_OBJECT(ModelVariants,         model_variants) \
-      OM_OBJECT(SphereCollisionShape,  sphere_collision_shape) \
       OM_OBJECT(RegionCollisionShape,  region_collision_shape) \
       OM_OBJECT(Terrain,               terrain) \
       OM_OBJECT(VerticalPathingRegion, vertical_pathing_region) \
@@ -16,7 +15,6 @@
       OM_OBJECT(TargetTables,          target_tables) \
       OM_OBJECT(LuaComponents,         lua_components) \
       OM_OBJECT(Destination,           destination) \
-      OM_OBJECT(RenderRegion,          render_region) \
       OM_OBJECT(Paperdoll,             paperdoll) \
       OM_OBJECT(CarryBlock,            carry_block) \
       OM_OBJECT(UnitInfo,              unit_info) \

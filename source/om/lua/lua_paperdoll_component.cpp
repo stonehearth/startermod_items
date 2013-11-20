@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "lib/lua/register.h"
 #include "lua_paperdoll_component.h"
-#include "om/components/paperdoll.h"
+#include "om/components/paperdoll.ridl.h"
 
 using namespace ::luabind;
 using namespace ::radiant;

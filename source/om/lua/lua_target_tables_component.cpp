@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "lib/lua/register.h"
 #include "lua_target_tables_component.h"
-#include "om/components/target_tables.h"
+#include "om/components/target_tables.ridl.h"
 
 using namespace ::luabind;
 using namespace ::radiant;

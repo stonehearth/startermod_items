@@ -10,7 +10,7 @@ template <typename T>
 class BoxedTrace : public Trace
 {
 public:
-   typedef typename T::Value     Value;
+   typedef typename T   Value;
    typedef std::function<void(Value const& v)> ChangedCb;
 
 public:
@@ -28,7 +28,7 @@ protected:
 
 private:
    friend Store;
-   virtual void OnChanged(Value const& value);
+   virtual void NotifyChanged(Value const& value);
 
 private:
    ChangedCb      changed_;

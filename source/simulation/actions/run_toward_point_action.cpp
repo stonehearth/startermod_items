@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "run_toward_point_action.h"
 #include "om/entity.h"
-#include "om/components/mob.h"
+#include "om/components/mob.ridl.h"
 #include <boost/program_options.hpp>
 
 using namespace ::radiant;

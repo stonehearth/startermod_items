@@ -1,30 +1,14 @@
 #include "pch.h"
-#include "terrain.h"
+#include "mob.ridl.h"
+#include "terrain.ridl.h"
 #include "om/entity.h"
-#include "mob.h"
+#include "om/region.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
 
 void Terrain::CreateNew()
 {
-}
-
-void Terrain::InitializeRecordFields()
-{
-   Component::InitializeRecordFields();
-   AddRecordField("zones", zones_);
-   AddRecordField("zone_size", zone_size_);
-}
-
-int Terrain::GetZoneSize()
-{
-   return zone_size_;
-}
-
-void Terrain::SetZoneSize(int zone_size)
-{
-   zone_size_ = zone_size;
 }
 
 void Terrain::AddZone(csg::Point3 const& zone_offset, Region3BoxedPtr region3)

@@ -19,13 +19,13 @@ public:
    }
 
 private:
-   void OnRemoved(Key const& key) override
+   void NotifyRemoved(Key const& key) override
    {
       changed_.erase(key);
       removed_.push_back(key);
    }
 
-   void OnChanged(Key const& key, Value const& value) override
+   void NotifyChanged(Key const& key, Value const& value) override
    {
       stdutil::FastRemove(removed_, key);
       changed_[key] = value;

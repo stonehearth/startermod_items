@@ -20,7 +20,7 @@
 #include "client/client.h"
 #include "om/entity.h"
 #include "om/stonehearth.h"
-#include "om/components/mob.h"
+#include "om/components/mob.ridl.h"
 #include "resources/res_manager.h"
 #include "resources/animation.h"
 #include "lib/json/node.h"

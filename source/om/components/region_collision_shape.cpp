@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "om/region.h"
 #include "region_collision_shape.ridl.h"
 
 using namespace ::radiant;

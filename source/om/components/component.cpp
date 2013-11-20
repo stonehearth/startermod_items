@@ -18,8 +18,6 @@ static const std::string names_upper__[] = {
    std::string("OmObjectTypeBase"),
    OM_ALL_OBJECTS
    OM_ALL_COMPONENTS
-   std::string("Region2BoxedObjectType"),
-   std::string("Region3BoxedObjectType"),
 #undef OM_OBJECT
 };
 

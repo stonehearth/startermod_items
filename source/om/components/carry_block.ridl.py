@@ -1,6 +1,7 @@
-from ridl.om import *
-from ridl.ridl import *
+import ridl.ridl as ridl
+import ridl.std_types as std
+import ridl.dm_types as dm
+from ridl.om_types import *
 
 class CarryBlock(Component):
-   carry_block = dm.Boxed(Ref(Entity))
-   
+   carrying = dm.Boxed(EntityRef())

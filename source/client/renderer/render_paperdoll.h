@@ -9,7 +9,7 @@
 #include "render_entity.h"
 #include "render_component.h"
 #include "resources/animation.h"
-#include "om/components/paperdoll.h"
+#include "om/components/paperdoll.ridl.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 

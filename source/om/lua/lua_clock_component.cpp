@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "lib/lua/register.h"
 #include "lua_clock_component.h"
-#include "om/components/clock.h"
+#include "om/components/clock.ridl.h"
 
 using namespace ::luabind;
 using namespace ::radiant;

@@ -1,22 +1,10 @@
 #include "pch.h"
-#include "effect_list.h"
+#include "effect.ridl.h"
+#include "effect_list.ridl.h"
 #include "om/entity.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
-
-std::ostream& om::operator<<(std::ostream& os, const Effect& o)
-{
-   os << "[Effect " << o.GetObjectId() << " name:" << o.GetName() << "]";
-   return os;
-}
-
-void Effect::AddParam(std::string name, luabind::object o)
-{
-   Selection s;
-   s.FromLuaObject(o);
-   params_.Insert(name, s);
-}
 
 void EffectList::ExtendObject(json::Node const& obj)
 {
@@ -26,8 +14,7 @@ void EffectList::ExtendObject(json::Node const& obj)
    }
 }
 
-
-EffectPtr EffectList::AddEffect(std::string effectName, int startTime)
+EffectPtr EffectList::AddEffect(std::string const& effectName, int startTime)
 {
    auto effect = GetStore().AllocObject<Effect>();
    effect->Init(effectName, startTime);

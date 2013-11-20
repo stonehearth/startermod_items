@@ -18,12 +18,12 @@ public:
    {
       ASSERT(changed_);
       if (changed_) {
-         SignalChanged();
+         SignalModified();
       }
    }
 
 private:
-   void NotifyObjectChanged() override
+   void NotifyRecordChanged() override
    {
       changed_ = true;
    }

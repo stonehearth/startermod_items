@@ -18,50 +18,40 @@ dm::GenerationId om::DeepObj_GetLastModified(Region3BoxedPtrBoxed const& boxedRe
 
 // xxx: hmm.  guards are looking more like promises!!! (shared_ptr<Promise> in fact).
 DeepRegionGuardPtr om::DeepTraceRegion(Region3BoxedPtrBoxed const& boxedRegionPtrField,
-                                                  const char* reason,
-                                                  std::function<void(csg::Region3 const& r)> updateCb)
+                                       const char* reason,
+                                       int category)
 {   
-   auto fieldValueChangedCb = [=, &boxedRegionPtrField](Region3BoxedRef v) {
-      Region3BoxedPtr value = v.lock();
-      if (value) {
-         LOG(INFO) << "boxed-boxed-region-ptr's inner box modified (!)";
-         LOG(INFO) << dm::DbgInfo::GetInfoString(*value);
-         updateCb(value->Get());
-      }
-   };
-
-   DeepRegionGuardPtr result = std::make_shared<DeepRegionGuard>(boxedRegionPtrField.GetStoreId(), boxedRegionPtrField.GetObjectId());
+   DeepRegionGuardPtr result = std::make_shared<DeepRegionGuard>(boxedRegionPtrField.GetStoreId(),
+                                                                 boxedRegionPtrField.GetObjectId());
    DeepRegionGuardRef r = result;
-   auto fieldChangedCb = [=, &boxedRegionPtrField]() {
-      DeepRegionGuardPtr g = r.lock();
-      if (g) {
-         LOG(INFO) << "boxed-boxed-region-ptr's outer box modified (!)";
-         LOG(INFO) << dm::DbgInfo::GetInfoString(boxedRegionPtrField);
 
-         Region3BoxedPtr fieldValue = boxedRegionPtrField.Get();
-         if (fieldValue == nullptr) {
-            updateCb(csg::Region3());
+   auto boxed_trace = boxedRegionPtrField.TraceChanges(reason, category);
+   result->boxed_trace = boxed_trace;
+
+   boxed_trace->OnChanged([r, reason, category](Region3BoxedPtr value) {
+      auto guard = r.lock();
+      if (guard) {
+         if (value) {
+            auto region_trace = value->TraceChanges(reason, category);
+            guard->region_trace = region_trace;
+
+            region_trace->OnChanged([r](csg::Region3 const& region) {
+               auto guard = r.lock();
+               if (guard) {
+                  guard->SignalChanged(region);
+               }
+            });
          } else {
-            g->region = fieldValue->TraceObjectChanges(reason, std::bind(fieldValueChangedCb, Region3BoxedRef(fieldValue)));
-            fieldValueChangedCb(fieldValue); // xxx: all these manual callbacks need to go!  ug!!
+            guard->SignalChanged(csg::Region3());
+            guard->region_trace = nullptr;
          }
       }
-   };
+   });
 
-   result->boxed = boxedRegionPtrField.TraceObjectChanges(reason, fieldChangedCb);
-   fieldChangedCb(); // xxx: all these manual callbacks need to go!  ug!!
    return result;
 }
 
-DeepRegionGuardPtr om::DeepTraceRegionVoid(Region3BoxedPtrBoxed const& boxedRegionPtrField,
-                                                      const char* reason,
-                                                      std::function<void()> updateCb)
-{
-   return DeepTraceRegion(boxedRegionPtrField, reason, [=](csg::Region3 const& r) {
-      updateCb();
-   });
-}
-
+#if 0
 Region3BoxedPromise::Region3BoxedPromise(Region3BoxedPtrBoxed const& boxedRegionPtrField, const char* reason)
 {
    region_guard_ = DeepTraceRegion(boxedRegionPtrField, reason, [=](csg::Region3 const& r) {
@@ -75,3 +65,4 @@ Region3BoxedPromise* Region3BoxedPromise::PushChangedCb(luabind::object cb) {
    changedCbs_.push_back(cb);
    return this;
 }
+#endif

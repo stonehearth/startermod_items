@@ -16,9 +16,9 @@ public:
       RecordTrace(reason, r, category) { }
 
 private:
-   void NotifyObjectChanged() override
+   void NotifyRecordChanged() override
    {
-      SignalChanged();
+      SignalModified();
    }
 };
 

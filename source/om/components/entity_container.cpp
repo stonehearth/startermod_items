@@ -1,32 +1,26 @@
 #include "pch.h"
-#include "entity_container.h"
-#include "mob.h"
+#include "entity_container.ridl.h"
+#include "mob.ridl.h"
 #include "om/entity.h"
 #include "om/trace_categoies.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-void EntityContainer::InitializeRecordFields()
-{
-   Component::InitializeRecordFields();
-   AddRecordField("children", children_);
-}
-
-EntityContainer& EntityContainer::AddChild(om::EntityRef c)
+EntityContainer& EntityContainer::InsertChild(dm::ObjectId key, std::weak_ptr<Entity> c)
 {
    auto child = c.lock();
    if (child) {
       auto mob = child->AddComponent<Mob>();
-      auto parent = mob->GetParent();
+      auto parent = mob->GetParent().lock();
       if (parent) {
          auto container = parent->GetEntity().GetComponent<EntityContainer>();
-         container->RemoveChild(c);
+         container->RemoveChild(child->GetObjectId());
       }
       mob->SetParent(GetEntity().AddComponent<Mob>());
 
       dm::ObjectId id = child->GetObjectId();
-      children_.Insert(id, child);
+      children_.Insert(id, c);
       auto trace = child->TraceObjectChanges("ec dtor", OM_TRACES);
       trace->OnDestroyed([this, id]() {
          children_.Remove(id);
@@ -36,16 +30,16 @@ EntityContainer& EntityContainer::AddChild(om::EntityRef c)
    return *this;
 }
 
-EntityContainer& EntityContainer::RemoveChild(om::EntityRef c)
+EntityContainer& EntityContainer::RemoveChild(dm::ObjectId id)
 {
-   auto child = c.lock();
-   if (child) {
-      dm::ObjectId id = child->GetObjectId();
+   auto i = children_.find(id);
+   if (i != children_.end()) {
+      EntityPtr child = i->second.lock();
       children_.Remove(id);
       destroy_traces_.erase(id);
       auto mob = child->GetComponent<Mob>();
       if (mob) {
-         mob->SetParent(nullptr);
+         mob->SetParent(MobRef());
       }
    }
    return *this;

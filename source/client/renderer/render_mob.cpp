@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "render_mob.h"
 #include "render_entity.h"
-#include "om/components/mob.h"
+#include "om/components/mob.ridl.h"
 #include "lib/perfmon/perfmon.h"
 #include "renderer.h"
 

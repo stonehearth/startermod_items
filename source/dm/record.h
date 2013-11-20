@@ -18,6 +18,7 @@ public:
 
    void Initialize(Store& s, ObjectId id) override;
    void InitializeSlave(Store& s, ObjectId id) override;
+   virtual void ConstructObject() { };
    virtual void InitializeRecordFields() { };
 
    bool IsRemoteRecord() const { return slave_; }

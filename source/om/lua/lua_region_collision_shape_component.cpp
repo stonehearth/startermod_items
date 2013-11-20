@@ -2,7 +2,7 @@
 #include "lib/lua/register.h"
 #include "lib/lua/script_host.h"
 #include "lua_region_collision_shape_component.h"
-#include "om/components/region_collision_shape.h"
+#include "om/components/region_collision_shape.ridl.h"
 
 using namespace ::luabind;
 using namespace ::radiant;

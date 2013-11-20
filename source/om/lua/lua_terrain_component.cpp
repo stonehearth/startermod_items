@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "lib/lua/register.h"
 #include "lua_terrain_component.h"
-#include "om/components/terrain.h"
+#include "om/components/terrain.ridl.h"
 
 using namespace ::luabind;
 using namespace ::radiant;

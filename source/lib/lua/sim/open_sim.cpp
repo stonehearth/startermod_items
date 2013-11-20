@@ -9,7 +9,6 @@
 #include "om/entity.h"
 #include "om/stonehearth.h"
 #include "om/region.h"
-#include "om/json_store.h"
 #include "om/data_binding.h"
 #include "lib/voxel/qubicle_brush.h"
 #include "lib/json/core_json.h"

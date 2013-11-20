@@ -20,6 +20,7 @@ void Record::Initialize(Store& s, ObjectId id)
 {
    Object::Initialize(s, id);
    InitializeRecordFields();
+   ConstructObject();
 }
 
 void Record::InitializeSlave(Store& s, ObjectId id)

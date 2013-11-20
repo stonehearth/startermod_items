@@ -5,11 +5,10 @@
 #include "csg/region.h"
 #include "csg/util.h" // xxx: should be csg/namespace.h
 #include "om/entity.h"
-#include "om/components/mob.h"
-#include "om/components/entity_container.h"
-#include "om/components/collision_shape.h"
-#include "om/components/sphere_collision_shape.h"
-#include "om/components/sensor_list.h"
+#include "om/components/mob.ridl.h"
+#include "om/components/entity_container.ridl.h"
+#include "om/components/collision_shape.ridl.h"
+#include "om/components/sensor_list.ridl.h"
 
 using namespace radiant;
 using namespace radiant::phys;

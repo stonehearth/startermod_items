@@ -15,14 +15,14 @@ public:
    {
       for (const auto& field : r.GetFields()) {
          TracePtr t = r.GetStore().FetchStaticObject(field.second)->TraceObjectChanges(reason, category);
-         t->OnChanged([=]() {
-            NotifyObjectChanged();
+         t->OnModified([=]() {
+            NotifyRecordChanged();
          });
          field_traces_.push_back(t);
       }
    }
 private:
-   virtual void NotifyObjectChanged() = 0;
+   virtual void NotifyRecordChanged() = 0;
 
 private:
    std::vector<TracePtr>   field_traces_;

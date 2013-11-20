@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "lib/lua/register.h"
 #include "lua_vertical_pathing_region_component.h"
-#include "om/components/vertical_pathing_region.h"
+#include "om/components/vertical_pathing_region.ridl.h"
 
 using namespace ::luabind;
 using namespace ::radiant;

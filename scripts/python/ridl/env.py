@@ -29,7 +29,7 @@ class Env:
       return result
 
    def guard_name(self, o):
-      guardname = self.PATH + '_' + o.__name__ + "_H"
+      guardname = self.PATH + '_' + o.__name__ + "_RIDL_H"
       result = ''
       for ch in guardname:
          if ch.isalnum():
@@ -40,7 +40,7 @@ class Env:
 
    
    def properties(self, obj, desired_type):
-      desired_type_list = type(desired_type) == 'list' and desired_type or [ desired_type ]
+      desired_type_list = type(desired_type) == type([]) and desired_type or [ desired_type ]
       result = []
       for name in dir(obj):
          attr = getattr(obj, name)

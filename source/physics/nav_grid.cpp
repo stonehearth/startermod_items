@@ -2,10 +2,10 @@
 #include "radiant_macros.h"
 #include "nav_grid.h"
 #include "dm/store.h"
-#include "om/components/mob.h"
-#include "om/components/terrain.h"
-#include "om/components/vertical_pathing_region.h"
-#include "om/components/region_collision_shape.h"
+#include "om/components/mob.ridl.h"
+#include "om/components/terrain.ridl.h"
+#include "om/components/vertical_pathing_region.ridl.h"
+#include "om/components/region_collision_shape.ridl.h"
 
 using namespace radiant;
 using namespace radiant::phys;

@@ -71,8 +71,8 @@ protected:
 
 private:
    friend Store;
-   virtual void OnRemoved(Key const& key);
-   virtual void OnChanged(Key const& key, Value const& value);
+   virtual void NotifyRemoved(Key const& key);
+   virtual void NotifyChanged(Key const& key, Value const& value);
 
 private:
    RemovedCb      removed_;

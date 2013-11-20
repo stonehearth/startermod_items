@@ -20,7 +20,6 @@ add_library(client_renderer STATIC
             render_destination.cpp
             render_paperdoll.cpp
             render_carry_block.cpp
-            render_render_region.cpp
             render_render_info.cpp
             render_util.cpp
             render_vertical_pathing_region.cpp

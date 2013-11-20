@@ -1,5 +1,12 @@
-from ridl.om import *
-from ridl.ridl import *
+from ridl.om_types import *
+import ridl.ridl as ridl
+import ridl.c_types as c
+import ridl.dm_types as dm
 
 class RegionCollisionShape(Component):
-   region = dm.Boxed(Ptr(dm.Boxed(csg.Region3)))
+   region = dm.Boxed(Region3BoxedPtr())
+
+   _includes = [
+      "om/region.h"
+   ]
+

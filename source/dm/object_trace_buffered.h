@@ -21,7 +21,7 @@ public:
    void Flush()
    {
       if (changed_) {
-         SignalChanged();
+         SignalModified();
       }
    }
 

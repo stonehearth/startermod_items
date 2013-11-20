@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "lib/lua/register.h"
 #include "lua_sensor_list_component.h"
-#include "om/components/sensor_list.h"
+#include "om/components/sensor_list.ridl.h"
 
 using namespace ::luabind;
 using namespace ::radiant;

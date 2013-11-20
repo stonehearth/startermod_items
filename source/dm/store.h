@@ -98,37 +98,37 @@ public:
    template <typename T> void OnMapRemoved(T& map, typename T::Key const& key)
    {
       MarkChangedAndFire<T, MapTrace<T>>(map, [&](MapTrace<T>& trace) {
-         trace.OnRemoved(key);
+         trace.NotifyRemoved(key);
       });
    }
    template <typename T> void OnMapChanged(T& map, typename T::Key const& key, typename T::Value const& value)
    {
       MarkChangedAndFire<T, MapTrace<T>>(map, [&](MapTrace<T>& trace) {
-         trace.OnChanged(key, value);
+         trace.NotifyChanged(key, value);
       });
    }
    template <typename T> void OnSetRemoved(T& set, typename T::Value const& value)
    {
       MarkChangedAndFire<T, SetTrace<T>>(set, [&](SetTrace<T>& trace) {
-         trace.OnRemoved(value);
+         trace.NotifyRemoved(value);
       });
    }
    template <typename T> void OnSetAdded(T& set, typename T::Value const& value)
    {
       MarkChangedAndFire<T, SetTrace<T>>(set, [&](SetTrace<T>& trace) {
-         trace.OnAdded(value);
+         trace.NotifyAdded(value);
       });
    }
    template <typename T> void OnArrayChanged(T& arr, uint i, typename T::Value const& value)
    {
       MarkChangedAndFire<T, ArrayTrace<T>>(arr, [&](ArrayTrace<T>& trace) {
-         trace.OnChanged(i, value);
+         trace.NotifySet(i, value);
       });
    }
    template <typename T> void OnBoxedChanged(T& boxed, typename T::Value const& value)
    {
       MarkChangedAndFire<T, BoxedTrace<T>>(boxed, [&](BoxedTrace<T>& trace) {
-         trace.OnChanged(value);
+         trace.NotifyChanged(value);
       });
    }
 

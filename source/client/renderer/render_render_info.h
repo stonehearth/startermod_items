@@ -7,7 +7,7 @@
 #include "dm/set.h"
 #include "h3d_resource_types.h"
 #include "render_component.h"
-#include "om/components/render_info.h"
+#include "om/components/render_info.ridl.h"
 #include "lib/voxel/forward_defines.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE

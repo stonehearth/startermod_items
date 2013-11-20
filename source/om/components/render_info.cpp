@@ -1,25 +1,15 @@
 #include "pch.h"
-#include "render_info.h"
-#include "mob.h"
-#include "entity_container.h"
+#include "mob.ridl.h"
+#include "render_info.ridl.h"
+#include "entity_container.ridl.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-void RenderInfo::InitializeRecordFields()
+void RenderInfo::ConstructObject()
 {
-   Component::InitializeRecordFields();
-   AddRecordField("render_mode", model_variant_);
-   AddRecordField("animation_table", animation_table_);
-   AddRecordField("scale", scale_);
-   AddRecordField("attached", attached_);
-   AddRecordField("material", material_);
-   AddRecordField("model_mode", model_mode_);
-   if (!IsRemoteRecord()) {
-      scale_ = 0.1f;
-   }
+   scale_ = 0.1f;
 }
-
 
 void RenderInfo::ExtendObject(json::Node const& obj)
 {
@@ -35,16 +25,16 @@ void RenderInfo::AttachEntity(om::EntityRef e)
    auto entity = e.lock();
    if (entity) {
       RemoveFromWorld(entity);
-      attached_.Insert(e);
+      attached_entities_.Insert(e);
    }
 }
 
 EntityRef RenderInfo::RemoveEntity(std::string const& uri)
 {
-   for (auto const& e : attached_) {
+   for (auto const& e : attached_entities_) {
       auto entity = e.lock();
       if (entity && entity->GetUri() == uri) {
-         attached_.Remove(e);
+         attached_entities_.Remove(e);
          return e;
       }
    }
@@ -55,10 +45,10 @@ void RenderInfo::RemoveFromWorld(EntityPtr entity)
 {
    auto mob = entity->GetComponent<om::Mob>();
    if (mob) {
-      auto parent = mob->GetParent();
+      auto parent = mob->GetParent().lock();
       if (parent) {
-         parent->GetEntity().GetComponent<EntityContainer>()->RemoveChild(entity);
+         parent->GetEntity().GetComponent<EntityContainer>()->RemoveChild(entity->GetObjectId());
       }
-      ASSERT(mob->GetParent() == nullptr);
+      ASSERT(mob->GetParent().expired());
    }
 }

@@ -19,13 +19,13 @@ public:
    }
 
 private:
-   void OnAdded(Value const& value) override
+   void NotifyAdded(Value const& value) override
    {
       stdutil::FastRemove(removed_, value);
       added_.push_back(value);
    }
 
-   void OnRemoved(Value const& value) override
+   void NotifyRemoved(Value const& value) override
    {
       stdutil::FastRemove(added_, value);
       removed_.push_back(value);

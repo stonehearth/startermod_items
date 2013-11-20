@@ -2,7 +2,7 @@
 #include "lib/lua/register.h"
 #include "lib/lua/script_host.h"
 #include "lua_mob_component.h"
-#include "om/components/mob.h"
+#include "om/components/mob.ridl.h"
 #include "lib/json/core_json.h"
 #include "lib/json/csg_json.h"
 #include "lib/json/dm_json.h"

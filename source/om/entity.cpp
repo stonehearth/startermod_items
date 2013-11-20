@@ -51,7 +51,7 @@ template <class T> std::shared_ptr<T> Entity::AddComponent()
       // that of the owning entity.  we can defend against this better if we return
       // weak references from GetComponent, etc.
       component->SetEntity(shared_from_this()); 
-      components_[T::DmType] = component;
+      components_.Insert(T::DmType, component);
 
       // Hold onto the new comp
    }
