@@ -15,6 +15,7 @@ function SleepAction:__init(ai, entity)
    radiant.check.is_entity(entity)
    self._entity = entity         --the game character
    self._ai = ai
+   self._sleepy_effect = nil
 
    self._looking_for_a_bed = false
 
@@ -46,7 +47,9 @@ function SleepAction:start_looking_for_bed()
    
    assert(not self._pathfinder)
    
-   self._looking_for_a_bed = true;
+   self._sleepy_effect = radiant.effects.run_effect(self._entity, 
+      '/stonehearth/data/effects/unit_status_effects/sleepy_indicator')
+   self._looking_for_a_bed = true
 
    --[[
       Pathfinder callback. When it's time to go to sleep, the pathfinder
@@ -69,6 +72,9 @@ function SleepAction:stop_looking_for_bed()
    if self._pathfinder then
       self._pathfinder:stop()
       self._pathfinder = nil
+   end
+   if self._sleepy_effect then
+      self._sleepy_effect:stop()
    end
    self._looking_for_a_bed = false
 end
