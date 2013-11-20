@@ -7,7 +7,6 @@
 #include "animatedlight/animatedlight.h"
 #include "cubemitter/cubemitter.h"
 #include "debug_shapes/debug_shapes.h"
-#include "screenspace/screenspace.h"
 #include "stockpile/decal_node.h"
 #include "stockpile/stockpile_node.h"
 #include "stockpile/toast_node.h"
@@ -62,11 +61,6 @@ bool Extension::init()
                                     AnimatedLightNode::parsingFunc,
                                     AnimatedLightNode::factoryFunc,
                                     0x0);
-   Modules::sceneMan().registerType(SNT_ScreenSpaceNode, "ScreenSpaceNode",
-                                    ScreenSpaceNode::parsingFunc,
-                                    ScreenSpaceNode::factoryFunc,
-                                    0x0);
-
    Modules::resMan().registerType(RT_CubemitterResource, "Cubemitter", 0x0, 0x0, 
                                     CubemitterResource::factoryFunc);
    Modules::resMan().registerType(RT_AnimatedLightResource, "AnimatedLight", 0x0, 0x0,
@@ -413,14 +407,4 @@ DLL void h3dRadiantAdvanceAnimatedLightTime(float timeDelta) {
          an->advanceTime( timeDelta );
       }
    }
-}
-
-::radiant::horde3d::ScreenSpaceNode* h3dRadiantAddScreenSpaceNode(H3DNode parent, const std::string& name)
-{
-	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
-	APIFUNC_VALIDATE_NODE(parentNode, "h3dRadiantAddScreenSpaceNode", nullptr);
-
-   ScreenSpaceNode* sn = (ScreenSpaceNode*)Modules::sceneMan().findType(SNT_ScreenSpaceNode)->factoryFunc(ScreenSpaceNodeTpl(name));
-	H3DNode node = Modules::sceneMan().addNode(sn, *parentNode);
-   return sn;
 }

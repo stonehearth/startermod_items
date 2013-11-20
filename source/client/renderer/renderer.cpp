@@ -371,12 +371,6 @@ void Renderer::Initialize(om::EntityPtr rootObject)
 {
    rootRenderObject_ = CreateRenderObject(H3DRootNode, rootObject);
    debugShapes_ = h3dRadiantAddDebugShapes(H3DRootNode, "renderer debug shapes");
-
-   H3DNode n = h3dAddGroupNode(rootRenderObject_->GetNode(), "test1");
-   h3dSetNodeTransform(n, 0, 20, 0, 0, 0, 0, 1, 1, 1);
-   H3DRes matRes = h3dAddResource(H3DResTypes::Material, "materials/rect.material.xml", 0);
-
-   h3dAddHudElementNode(n, "hud1")->addRect(64, 32, 0, 0, matRes);
 }
 
 void Renderer::Cleanup()

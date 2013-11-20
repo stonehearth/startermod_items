@@ -5,7 +5,6 @@ add_subdirectory(debug_shapes)
 add_subdirectory(stockpile)
 add_subdirectory(cubemitter)
 add_subdirectory(animatedlight)
-add_subdirectory(screenspace)
 
 add_definitions(-DCMAKE )
 
@@ -19,5 +18,4 @@ target_link_libraries(horde3d_extensions
                       horde3d_stockpile
                       horde3d_cubemitter
                       horde3d_animatedlight
-                      horde3d_screenspace
                       )
