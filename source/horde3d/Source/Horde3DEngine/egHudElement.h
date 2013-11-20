@@ -27,35 +27,88 @@ class HudElement
 public:
    const BoundingBox& getBounds() const;
    virtual void updateGeometry(const Matrix4f& absTrans) = 0;
-   virtual void draw(const std::string &shaderContext, const std::string &theClass) {}
+   virtual void draw(const std::string &shaderContext, const std::string &theClass, Matrix4f& worldMat);
 
 protected:
+
    BoundingBox bounds_;
 };
 
-class RectHudElement : public HudElement
+class WorldspaceLineElement : public HudElement
 {
 public:
-
    void updateGeometry(const Matrix4f& absTrans);
-   void draw(const std::string &shaderContext, const std::string &theClass);
-
-   RectHudElement* setSize(int width, int height);
-   RectHudElement* setOffsets(int offsetX, int offsetY);
+   //void draw(const std::string &shaderContext, const std::string &theClass);
 
 private:
    PMaterialResource materialRes_;
 
-   int width_, height_;
-   int offsetX_, offsetY_;
+   int width_;
+   Vec3f start_, end_;
+   Vec4f color_;
+
+   uint32 rectVBO_;
+   uint32 rectIdxBuf_;
+
+protected:
+   WorldspaceLineElement(Vec3f startPoint, Vec3f endPoint, int width, Vec4f color, ResHandle matRes);
+   ~WorldspaceLineElement();
+
+   friend class HudElementNode;
+};
+
+class ScreenspaceRectHudElement : public HudElement
+{
+public:
+
+   void updateGeometry(const Matrix4f& absTrans);
+   void draw(const std::string &shaderContext, const std::string &theClass, Matrix4f& worldMat);
+
+   ScreenspaceRectHudElement* setSize(int width, int height);
+   ScreenspaceRectHudElement* setOffsets(int offsetX, int offsetY);
+
+private:
+   PMaterialResource materialRes_;
+
+   float width_, height_;
+   float offsetX_, offsetY_;
+   Vec4f color_;
+
+   uint32 rectVBO_;
+   uint32 rectIdxBuf_;
+
+protected:
+   ScreenspaceRectHudElement(int width, int height, int offsetX, int offsetY, Vec4f color, ResHandle matRes);
+   ~ScreenspaceRectHudElement();
+
+   friend class HudElementNode;
+};
+
+
+class WorldspaceRectHudElement : public HudElement
+{
+public:
+
+   void updateGeometry(const Matrix4f& absTrans);
+   void draw(const std::string &shaderContext, const std::string &theClass, Matrix4f& worldMat);
+
+   WorldspaceRectHudElement* setSize(int width, int height);
+   WorldspaceRectHudElement* setOffsets(int offsetX, int offsetY);
+
+private:
+   PMaterialResource materialRes_;
+
+   float width_, height_;
+   float offsetX_, offsetY_;
+   Vec4f color_;
 
    uint32 rectVBO_;
    uint32 rectIdxBuf_;
    uint32 vlRect_;
 
 protected:
-   RectHudElement(int width, int height, int offsetX, int offsetY, ResHandle matRes);
-   ~RectHudElement();
+   WorldspaceRectHudElement(int width, int height, int offsetX, int offsetY, Vec4f color, ResHandle matRes);
+   ~WorldspaceRectHudElement();
 
    friend class HudElementNode;
 };
@@ -94,7 +147,9 @@ public:
 
 	~HudElementNode();
 
-   RectHudElement* addRect(int width, int height, int offsetX, int offsetY, ResHandle matRes);
+   
+   ScreenspaceRectHudElement* addScreenspaceRect(int width, int height, int offsetX, int offsetY, Vec4f color, ResHandle matRes);
+   WorldspaceRectHudElement* addWorldspaceRect(int width, int height, int offsetX, int offsetY, Vec4f color, ResHandle matRes);
 
 	void recreateNodeList();
 	int getParamI( int param );

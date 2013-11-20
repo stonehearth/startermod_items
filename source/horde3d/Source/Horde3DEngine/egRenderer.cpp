@@ -159,6 +159,20 @@ bool Renderer::init(int glMajor, int glMinor)
 	};
 	_vlParticle = gRDI->registerVertexLayout( 2, attribsParticle );
 	
+   VertexLayoutAttrib attribsClipspace[3] = {
+      {"vertPos", 0, 4, 0},
+      {"texCoords0", 0, 2, 16},
+      {"color", 0, 4, 24}
+   };
+   _vlClipspace = gRDI->registerVertexLayout( 3, attribsClipspace);
+
+   VertexLayoutAttrib attribsPosColTex[3] = {
+      {"vertPos", 0, 3, 0},
+      {"texCoords0", 0, 2, 12},
+      {"color", 0, 4, 20}
+   };
+   _vlPosColTex = gRDI->registerVertexLayout( 3, attribsPosColTex);
+
    // Upload default shaders
 	if( !createShaderComb( NULL, vsDefColor, fsDefColor, _defColorShader ) )
 	{
@@ -2248,7 +2262,7 @@ void Renderer::drawHudElements(const std::string &shaderContext, const std::stri
       
       for (const auto& hudElement : hudNode->getSubElements())
       {
-         hudElement->draw(shaderContext, theClass);
+         hudElement->draw(shaderContext, theClass, hudNode->_absTrans);
       }
    }
 	gRDI->setVertexLayout( 0 );

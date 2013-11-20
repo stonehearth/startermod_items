@@ -185,6 +185,9 @@ public:
 	uint32 getQuadIdxBuf() { return _quadIdxBuf; }
 	uint32 getParticleVBO() { return _particleVBO; }
 
+   uint32 getClipspaceLayout() { return _vlClipspace; }
+   uint32 getPosColTexLayout() { return _vlPosColTex; }
+
    void setCurrentTime(float time) { _currentTime = time; }
    uint32 getShadowRendBuf() const { return _shadowRB; }
 
@@ -256,7 +259,7 @@ protected:
 	float                              _splitPlanes[5];
 	Matrix4f                           _lightMats[4];
 
-	uint32                             _vlPosOnly, _vlOverlay, _vlModel, _vlParticle, _vlVoxelModel;
+	uint32                             _vlPosOnly, _vlOverlay, _vlModel, _vlParticle, _vlVoxelModel, _vlClipspace, _vlPosColTex;
 	uint32                             _vbCube, _ibCube, _vbSphere, _ibSphere;
 	uint32                             _vbCone, _ibCone, _vbFSPoly;
    uint32                             _vbFrust, _vbPoly, _ibPoly;
