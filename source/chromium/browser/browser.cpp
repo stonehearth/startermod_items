@@ -44,8 +44,8 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
 
    CefSettings settings;   
 
-   CefString(&settings.log_file) = (core::Config::GetInstance().GetTmpDirectory() / "chromium.log").wstring().c_str();
-   settings.log_severity = LOGSEVERITY_DEFAULT;
+   CefString(&settings.log_file) = (core::Config::GetInstance().GetTmpDirectory() / "chromium.log").wstring().c_str();   
+   settings.log_severity = LOGSEVERITY_DISABLE;
    settings.single_process = false; // single process mode eats nearly the entire frame time
    settings.remote_debugging_port = debug_port;
 
@@ -200,16 +200,19 @@ void Browser::OnPaint(CefRefPtr<CefBrowser> browser,
          memcpy(browser_framebuffer_.data() + offset, src + offset, r.width * 4);
          offset += width;
       }
-      dirtyRegion_ += csg::Rect2(csg::Point2(r.x, r.y), csg::Point2(r.x + r.width, r.y + r.height));
    }
 }
 
 void Browser::UpdateDisplay(PaintCb cb)
 {
    std::lock_guard<std::mutex> guard(ui_lock_);
+   
+   // Always inform clients that our entire view has changed.  This is because it's possible
+   // that our OnPaint method can be called more than once before UpdateDisplay is polled, leading
+   // to outdated bounding rect information being sent to any clients.
+   csg::Region2 r(csg::Rect2(csg::Point2(0, 0), csg::Point2(uiWidth_, uiHeight_)));
 
-   cb(dirtyRegion_, (const char*)browser_framebuffer_.data());
-   dirtyRegion_.Clear();
+   cb(r, (const char*)browser_framebuffer_.data());
 }
 
 int Browser::GetCefKeyboardModifiers(WPARAM wparam, LPARAM lparam)

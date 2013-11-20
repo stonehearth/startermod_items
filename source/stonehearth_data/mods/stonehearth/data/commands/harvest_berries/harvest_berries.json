@@ -1,0 +1,15 @@
+{
+   "type" : "command",
+
+   "name": "harvest_berries",
+   "enabled_tooltip": "Gather Berries",
+   "disabled_tooltip": "Not ripe yet!",
+   "default_enabled": true,  
+   "icon": "file(gather_berries.png)",
+
+   "action": "call",
+   "function": "stonehearth:harvest_plant",
+   "args": [
+      "{{self}}"
+   ]
+}

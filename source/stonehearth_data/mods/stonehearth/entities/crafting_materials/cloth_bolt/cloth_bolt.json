@@ -18,7 +18,7 @@
          "icon" : "file(cloth_bolt.png)"
       },
       "stonehearth:material" : {
-         "flags" :  "cloth resource"
+         "tags" :  "cloth resource"
       }
    }
 }

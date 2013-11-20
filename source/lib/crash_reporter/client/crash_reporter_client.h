@@ -25,17 +25,17 @@ public:
    bool Start(std::string const& crash_dump_path, std::string const& crash_dump_uri, std::string const& userid, std::string& error_string);
 
    // Thread-safe function that wraps either Breakpad or Windows exception handling around your function
-   static void CrashReporterClient::RunWithExceptionWrapper(std::function<void()> fn);
+   static void CrashReporterClient::RunWithExceptionWrapper(std::function<void()> const& fn, bool const terminate_on_error = false);
+   static void TerminateApplicationWithMessage(std::string const& error_message);
 
 private:
-   std::string GeneratePipeName();
+   std::string GeneratePipeName() const;
    void InitializeExceptionHandlingEnvironment(std::string const& crash_dump_pipe_name);
 
    std::unique_ptr<google_breakpad::ExceptionHandler> exception_handler_;
    std::unique_ptr<radiant::core::Process> crash_reporter_server_process_;
 
    static bool running_;
-   static bool const debug_build_;
 };
 
 END_RADIANT_CRASH_REPORTER_CLIENT_NAMESPACE

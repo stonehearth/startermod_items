@@ -83,6 +83,8 @@ Renderer::Renderer() :
       throw std::exception(("Unable to initialize glfw: " + lastGlfwError_).c_str());
    }
 
+   glfwWindowHint(GLFW_SAMPLES, config_.num_msaa_samples);
+
    GLFWwindow *window;
    // Fullscreen: add glfwGetPrimaryMonitor() instead of the first NULL.
    if (!(window = glfwCreateWindow(windowWidth_, windowHeight_, "Stonehearth", NULL, NULL))) {
@@ -94,7 +96,8 @@ Renderer::Renderer() :
    
    glfwSwapInterval(0);
 
-   if (!h3dInit()) {   
+   // Init Horde, looking for OpenGL 2.0 minimum.
+   if (!h3dInit(2, 0)) {
       h3dutDumpMessages();
       throw std::exception("Unable to initialize renderer.  Check horde log for details.");
    }

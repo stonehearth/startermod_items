@@ -157,14 +157,14 @@ void RenderDevice::initStates()
 }
 
 
-bool RenderDevice::init()
+bool RenderDevice::init(int glMajor, int glMinor)
 {
 	bool failed = false;
 
 	char *vendor = (char *)glGetString( GL_VENDOR );
 	char *renderer = (char *)glGetString( GL_RENDERER );
 	char *version = (char *)glGetString( GL_VERSION );
-	
+
 	Modules::log().writeInfo( "Initializing GL2 backend using OpenGL driver '%s' by '%s' on '%s'",
 	                          version, vendor, renderer );
 	
@@ -175,12 +175,12 @@ bool RenderDevice::init()
 		failed = true;
 	}
 
-	// Check that OpenGL 2.0 is available
-	if( glExt::majorVersion * 10 + glExt::minorVersion < 20 )
-	{
-		Modules::log().writeError( "OpenGL 2.0 not available" );
-		failed = true;
-	}
+   // Check that the requested version of OpenGL 2.0 available
+   if( glExt::majorVersion * 10 + glExt::minorVersion < (glMajor * 10 + glMinor) )
+   {
+      Modules::log().writeError( "OpenGL %d.%d not available", glMajor, glMinor );
+      failed = true;
+   }
 	
 	// Check that required extensions are supported
 	if( !glExt::EXT_framebuffer_object )

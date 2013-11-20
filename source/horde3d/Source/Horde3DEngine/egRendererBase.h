@@ -346,7 +346,7 @@ public:
 	virtual ~RenderDevice();
 	
 	void initStates();
-	virtual bool init();
+	virtual bool init(int glMajor, int glMinor);
 	
 // -----------------------------------------------------------------------------
 // Resources

@@ -770,7 +770,20 @@ PlaySoundEffect::PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JS
    firstPlay_ = true;
    numSounds_++;
 
-   std::string track = node["track"].as_string();
+   std::string track = "";
+   json::Node n(node["track"]);
+
+   if (n.type() == JSON_STRING) {
+      track = n.GetNode().as_string();
+   } else if (n.type() == JSON_NODE) {
+      if (n.get<std::string>("type", "") == "one_of") {
+         JSONNode items = n.get("items", JSONNode());
+         uint c = rand() * items.size() / RAND_MAX;
+         ASSERT(c < items.size());
+         track = items.at(c).as_string();
+      }
+   }
+   
    if (soundBuffer_.loadFromStream(audio::InputStream(track))) {
       sound_.setBuffer(soundBuffer_);
       AssignFromJSON_(node);

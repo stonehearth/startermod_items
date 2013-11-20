@@ -3,6 +3,7 @@
 #include "core/process.h"
 #include "poco/UUIDGenerator.h"
 #include <sstream>
+#include <mutex>
 
  // google_breakpad
 #include "client/windows/handler/exception_handler.h"
@@ -20,13 +21,7 @@ DEFINE_SINGLETON(CrashReporterClient);
 
 bool CrashReporterClient::running_ = false;
 
-#ifdef _DEBUG
-bool const CrashReporterClient::debug_build_ = true;
-#else
-bool const CrashReporterClient::debug_build_ = false;
-#endif
-
-std::string CrashReporterClient::GeneratePipeName() {
+std::string CrashReporterClient::GeneratePipeName() const {
    std::string const uuid_string = Poco::UUIDGenerator::defaultGenerator().create().toString();
    std::string const pipe_name = BUILD_STRING(NAMED_PIPE_PREFIX << CRASH_REPORTER_NAME << "\\" << uuid_string);
    return pipe_name;
@@ -79,22 +74,36 @@ bool CrashReporterClient::Start(std::string const& crash_dump_path, std::string 
 }
 
 // This static method must be thread safe!
-void CrashReporterClient::RunWithExceptionWrapper(std::function<void()> fn)
+void CrashReporterClient::RunWithExceptionWrapper(std::function<void()> const& fn, bool const terminate_on_error)
 {
-   if (running_ && !debug_build_) {
+   if (running_) {
       // run naked and let crash reporter catch exceptions
+      // currently don't have a way to report the exception message to the user / modder when breakpad is active
+      // catch and rethrow might disrupt the stack that breakpad needs to read
       fn();
    } else {
-      std::string error_string;
       try {
          fn();
-         return;
       } catch (std::exception const& e) {
-         error_string = e.what();
-      } catch (...) {
-         error_string = "Unknown reason";
+         std::string const error_message = BUILD_STRING("Unhandled exception: " << e.what());
+         LOG(ERROR) << error_message;
+
+         // currently unused
+         if (terminate_on_error) {
+            TerminateApplicationWithMessage(error_message);
+         }
       }
-      // Make the catch behavior a function if caller wants to control behavior
-      LOG(ERROR) << "Unhandled exception: " << error_string;
    }
+}
+
+// This static method must be thread safe!
+void CrashReporterClient::TerminateApplicationWithMessage(std::string const& error_message)
+{
+   static std::mutex mutex;
+
+   {
+      std::lock_guard<std::mutex> lock(mutex);
+      MessageBox(nullptr, error_message.c_str(), "Stonehearth has crashed!", MB_OK);
+   }
+   std::terminate();
 }

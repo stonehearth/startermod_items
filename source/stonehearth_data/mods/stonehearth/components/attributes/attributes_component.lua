@@ -35,6 +35,12 @@ function AttributesComponent:get_attribute(name)
 end
 
 function AttributesComponent:set_attribute(name, value)
+   if not self._attributes[name] then
+      self._attributes[name] = {
+         value = 0
+      }
+   end
+
    if value ~= self._attributes[name].value then
       self._attributes[name].value = value
       self._attributes[name].effective_value = nil
