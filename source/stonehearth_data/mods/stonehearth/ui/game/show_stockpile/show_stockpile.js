@@ -1,7 +1,7 @@
 $(document).ready(function(){
    // When we get the show_workshop event, toggle the crafting window
    // for this entity.
-   $(top).on("show_stockpile.stonehearth", function (_, e) {
+   $(top).on("radiant_show_stockpile", function (_, e) {
       var view = App.gameView.addView(App.StonehearthShowStockpileView, { uri: e.entity });
    });
 });

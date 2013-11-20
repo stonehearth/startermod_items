@@ -43,7 +43,7 @@ App.StonehearthCrafterBuildWorkshopView = App.View.extend({
    createWorkbench: function(workbenchType) {
       var self = this;
       // xxx, localize
-      $(top).trigger('show_tip.radiant', {
+      $(top).trigger('radiant_show_tip', {
          title : 'Place your workshop',
          description : 'Click in the spot where you want to put this new workshop!'
       });
@@ -59,8 +59,8 @@ App.StonehearthCrafterBuildWorkshopView = App.View.extend({
             self._gotoPage2();
          })
          .always(function(o) {
-            $(top).trigger('hide_tip.radiant');
-            $(top).trigger('show_tip.radiant', {
+            $(top).trigger('radiant_hide_tip');
+            $(top).trigger('radiant_show_tip', {
                title : "Click and drag to create your crafter's outbox",
                description : 'Your crafter will store crafted goods in the outbox.'
             });
@@ -81,7 +81,7 @@ App.StonehearthCrafterBuildWorkshopView = App.View.extend({
    _finish : function() {
       var self = this;
 
-      $(top).trigger('hide_tip.radiant');
+      $(top).trigger('radiant_hide_tip');
       this._hideScroll('#page2', function() {
          self.destroy();
       });

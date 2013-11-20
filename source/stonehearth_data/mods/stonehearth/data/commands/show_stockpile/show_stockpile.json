@@ -7,6 +7,6 @@
    "icon": "file(show_stockpile.png)",
 
    "action": "fire_event",
-   "event_name" : "show_stockpile.stonehearth",
+   "event_name" : "radiant_show_stockpile",
    "event_data" : {}
 }

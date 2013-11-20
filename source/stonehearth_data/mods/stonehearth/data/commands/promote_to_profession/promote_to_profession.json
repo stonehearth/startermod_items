@@ -6,7 +6,7 @@
    "icon": "file(promote_to_profession.png)",
 
    "action": "fire_event",
-   "event_name" : "promote_to_profession.stonehearth",
+   "event_name" : "radiant_promote_to_profession",
    "event_data" : {
    }
 }

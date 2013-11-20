@@ -8,6 +8,6 @@
    "icon": "file(../show_workshop/show_workshop.png)",
 
    "action": "fire_event",
-   "event_name" : "show_workshop_from_crafter.stonehearth",
+   "event_name" : "radiant_show_workshop_from_crafter",
    "event_data" : {}
 }
