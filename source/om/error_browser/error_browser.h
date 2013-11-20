@@ -8,6 +8,8 @@
 #include "om/object_enums.h"
 #include "dm/set.h"
 #include "dm/record.h"
+#include "dm/boxed.h"
+#include "lib/json/node.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
 

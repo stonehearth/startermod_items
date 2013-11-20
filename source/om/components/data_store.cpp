@@ -62,7 +62,7 @@ JSONNode DataStore::GetJsonData() const
    dm::GenerationId last_modified = GetLastModified();
    if (last_encode_ < last_modified) {
       cached_json_ = JSONNode();
-      luabind::object c = *controller_;
+      luabind::object c = *controller_object_;
       if (c.is_valid() && type(c) != LUA_TNIL) {
          cached_json_ = lua::ScriptHost::LuaToJson(c.interpreter(), c);
       }

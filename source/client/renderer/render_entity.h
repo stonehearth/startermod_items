@@ -9,6 +9,7 @@
 #include "dm/dm.h"
 #include "render_component.h"
 #include "skeleton.h"
+#include "core/guard.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -71,6 +72,8 @@ protected:
       LuaComponentMap   lua_components_;
       LuaComponentMap   lua_invariants_;
       bool              initialized_;
+      core::Guard       guard_;
+      std::vector<dm::TracePtr> traces_;
 };
 
 typedef std::shared_ptr<RenderEntity>  RenderEntityPtr;

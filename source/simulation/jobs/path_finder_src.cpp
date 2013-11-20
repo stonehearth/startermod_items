@@ -25,13 +25,13 @@ PathFinderSrc::PathFinderSrc(PathFinder &pf, om::EntityRef e) :
    if (entity) {
       auto mob = entity->GetComponent<om::Mob>();
       if (mob) {
-         auto transform_trace = mob->GetBoxedTransform().TraceChanges("pf src", PATHFINDER_TRACES);
+         auto transform_trace = mob->TraceTransform("pf src", PATHFINDER_TRACES);
          transform_trace->OnChanged([this](csg::Transform const&) {
             pf_.RestartSearch();
          });
          traces_.push_back(transform_trace);
 
-         auto moving_trace = mob->GetBoxedMoving().TraceChanges( "pf src", PATHFINDER_TRACES);
+         auto moving_trace = mob->TraceMoving("pf src", PATHFINDER_TRACES);
          moving_trace->OnChanged([this](bool const& moving) {
             moving_ = moving;
             if (moving_) {

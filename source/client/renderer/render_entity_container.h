@@ -18,7 +18,6 @@ public:
    ~RenderEntityContainer();
 
 private:
-   void Update(const om::EntityContainer::Container& children);
    void AddChild(dm::ObjectId key, om::EntityRef child);
    void RemoveChild(dm::ObjectId key);
 

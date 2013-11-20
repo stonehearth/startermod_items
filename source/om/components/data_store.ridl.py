@@ -5,8 +5,8 @@ import ridl.dm_types as dm
 import ridl.luabind_types as luabind
 
 class DataStore(dm.Record):
-   controller = dm.Boxed(luabind.object, trace=None)
-   model = dm.Boxed(luabind.object)
+   controller_object = dm.Boxed(luabind.object, trace=None)
+   data_object = dm.Boxed(luabind.object)
    
    _public = \
    """

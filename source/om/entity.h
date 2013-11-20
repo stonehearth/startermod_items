@@ -22,6 +22,10 @@ public:
    typedef dm::Map<dm::ObjectType, std::shared_ptr<Object>> ComponentMap;
 
    const ComponentMap& GetComponents() const { return components_; }
+   std::shared_ptr<dm::MapTrace<ComponentMap>> TraceComponents(const char* reason, int category)
+   {
+      return components_.TraceChanges(reason, category);
+   }
 
    template <class T> std::shared_ptr<T> AddComponent();
    template <class T> std::shared_ptr<T> GetComponent() const;
@@ -42,9 +46,6 @@ public:
 private:
    void InitializeRecordFields() override;
    NO_COPY_CONSTRUCTOR(Entity)
-
-private:
-   typedef std::unordered_map<dm::TraceId, std::function<void(dm::ObjectPtr)>> ComponentTraceMap;
 
 private:
    dm::Boxed<std::string>  debug_text_;

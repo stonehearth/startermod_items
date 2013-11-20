@@ -19,13 +19,14 @@
 #include "om/components/mob.ridl.h"
 #include "om/components/entity_container.ridl.h"
 #include "om/components/terrain.ridl.h"
-#include "om/components/lua_components.ridl.h"
+#include "om/components/lua_components.h"
 #include "om/components/effect_list.ridl.h"
 #include "om/components/render_info.ridl.h"
 #include "om/components/paperdoll.ridl.h"
-#include "om/components/carry_block.ridl.ridl.h"
+#include "om/components/carry_block.ridl.h"
 #include "om/selection.h"
 #include "lib/lua/script_host.h"
+#include "client/trace_categories.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -50,8 +51,16 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
    auto added = std::bind(&RenderEntity::AddComponent, this, std::placeholders::_1, std::placeholders::_2);
    auto removed = std::bind(&RenderEntity::RemoveComponent, this, std::placeholders::_1);
 
-   tracer_ += entity->GetComponents().TraceMapChanges("render entity components", added, removed);
-   tracer_ += Renderer::GetInstance().TraceSelected(node_.get(), std::bind(&RenderEntity::OnSelected, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+   auto components_trace = entity->TraceComponents("render entity components", RENDERER_TRACES);
+   components_trace->OnChanged([this](dm::ObjectType type, std::shared_ptr<dm::Object> obj) {
+      AddComponent(type, obj);
+   });
+   components_trace->OnRemoved([this](dm::ObjectType type) {
+      RemoveComponent(type);
+   });
+   // xxx: convert to something more dm::Trace like...
+   guard_ += Renderer::GetInstance().TraceSelected(node_.get(), std::bind(&RenderEntity::OnSelected, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+   traces_.push_back(components_trace);
 }
 
 void RenderEntity::FinishConstruction()
