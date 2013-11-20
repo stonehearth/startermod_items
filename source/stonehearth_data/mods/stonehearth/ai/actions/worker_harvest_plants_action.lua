@@ -1,8 +1,5 @@
 --[[
    Tell a worker to collect food and resources from a plant. 
-   TODO: Right now, the plant and the harvestable material are separate entities
-   Consider implications of having the worker find and act on the 
-   harvested material, rather than the plant containing it. 
 ]]
 
 local event_service = require 'services.event.event_service'

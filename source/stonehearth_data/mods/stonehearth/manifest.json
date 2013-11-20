@@ -190,6 +190,9 @@
          "observers:hunger" : "file(ai/observers/hunger_observer.lua)",
 
          "class_info" : "file(entities/class_info)",
+         "personality_types" : "file(data/personality/personality_types.json)",
+         "personal_logs:chopping_wood" : "file(data/personality/chopping_wood.json)",
+         "personal_logs:embarking" :     "file(data/personality/embarking.json)",
 
          "sounds:axe_chopping_sound" : "file(data/sounds/effects/axe_chopping_sound.ogg)"
       },
@@ -338,7 +341,8 @@
       "scaffolding_fabricator" : "file(components/scaffolding_fabricator/scaffolding_fabricator_component.lua)",
       "portal" : "file(components/portal/portal_component.lua)",
       "no_construction_zone" : "file(components/no_construction_zone/no_construction_zone_component.lua)",
-      "construction_data" : "file(components/construction_data/construction_data_component.lua)"
+      "construction_data" : "file(components/construction_data/construction_data_component.lua)",
+      "personality" : "file(components/personality/personality_component.lua)"
    },
    "component_renderers" : {
       "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",

@@ -1,5 +1,7 @@
 local PopulationFaction = class()
 
+local personality_service = require 'services.personality.personality_service'
+
 --Separate the faction name (player chosen) from the kingdom name (ascendency, etc.)
 function PopulationFaction:__init(faction, kingdom)
    self._faction = faction
@@ -27,6 +29,9 @@ function PopulationFaction:create_new_citizen()
    local citizen = radiant.entities.create_entity(kind)
    local name = self:generate_random_name(gender)
    radiant.entities.set_display_name(citizen, name)
+
+   local personality = personality_service:get_new_personality()
+   citizen:add_component('stonehearth:personality'):set_personality(personality)
    
    citizen:add_component('unit_info'):set_faction(self._faction_name) -- xxx: for now...
    return citizen

@@ -1,5 +1,6 @@
 local NewGameCallHandler = class()
 local game_master = require 'services.game_master.game_master_service'
+local personality_service = require 'services.personality.personality_service'
 
 local Point3 = _radiant.csg.Point3
 
@@ -75,6 +76,9 @@ end
 
 function NewGameCallHandler:create_camp(session, response, pt)
    local faction = radiant.mods.load('stonehearth').population:get_faction('civ', 'stonehearth:factions:ascendancy')
+   
+   --Load the embarkation log if it's never been loaded before
+   personality_service:load_activity('stonehearth:personal_logs:embarking')
 
    -- place the stanfard in the middle of the camp
    local location = Point3(pt.x, pt.y, pt.z)
@@ -87,9 +91,17 @@ function NewGameCallHandler:create_camp(session, response, pt)
    local camp_z = pt.z
 
    local worker1 = self:place_citizen(camp_x-3, camp_z-3)
+   worker1:get_component('stonehearth:personality'):register_notable_event('embarking', 100)
+
    local worker2 = self:place_citizen(camp_x+0, camp_z-3)
+   worker2:get_component('stonehearth:personality'):register_notable_event('embarking', 100)
+
    local worker3 = self:place_citizen(camp_x+3, camp_z-3)
-   self:place_citizen(camp_x-3, camp_z+3)
+   worker3:get_component('stonehearth:personality'):register_notable_event('embarking', 100)
+
+   local worker4 = self:place_citizen(camp_x-3, camp_z+3)
+   worker4:get_component('stonehearth:personality'):register_notable_event('embarking', 100)
+
    --self:place_citizen(camp_x+0, camp_z+3)
    --self:place_citizen(camp_x+3, camp_z+3)
    --self:place_citizen(camp_x-3, camp_z+0)
