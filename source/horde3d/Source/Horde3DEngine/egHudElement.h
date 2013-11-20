@@ -107,7 +107,7 @@ private:
    uint32 vlRect_;
 
 protected:
-   WorldspaceRectHudElement(int width, int height, int offsetX, int offsetY, Vec4f color, ResHandle matRes);
+   WorldspaceRectHudElement(float width, float height, float offsetX, float offsetY, Vec4f color, ResHandle matRes);
    ~WorldspaceRectHudElement();
 
    friend class HudElementNode;
@@ -149,7 +149,7 @@ public:
 
    
    ScreenspaceRectHudElement* addScreenspaceRect(int width, int height, int offsetX, int offsetY, Vec4f color, ResHandle matRes);
-   WorldspaceRectHudElement* addWorldspaceRect(int width, int height, int offsetX, int offsetY, Vec4f color, ResHandle matRes);
+   WorldspaceRectHudElement* addWorldspaceRect(float width, float height, float offsetX, float offsetY, Vec4f color, ResHandle matRes);
 
 	void recreateNodeList();
 	int getParamI( int param );

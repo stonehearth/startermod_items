@@ -176,7 +176,7 @@ ScreenspaceRectHudElement::~ScreenspaceRectHudElement()
 
 
 
-WorldspaceRectHudElement::WorldspaceRectHudElement(int width, int height, int xOffset, int yOffset, Vec4f color, ResHandle matRes)
+WorldspaceRectHudElement::WorldspaceRectHudElement(float width, float height, float xOffset, float yOffset, Vec4f color, ResHandle matRes)
 {
    // Create cube geometry array
    rectVBO_ = gRDI->createVertexBuffer( sizeof(WorldspaceRectVertex) * 4, 0x0 );
@@ -188,10 +188,10 @@ WorldspaceRectHudElement::WorldspaceRectHudElement(int width, int height, int xO
    };
    rectIdxBuf_ = gRDI->createIndexBuffer(6 * sizeof(uint16), cubeInds);
 
-   width_ = (float)width;
-   height_ = (float)height;
-   offsetX_ = (float)xOffset;
-   offsetY_ = (float)yOffset;
+   width_ = width;
+   height_ = height;
+   offsetX_ = xOffset;
+   offsetY_ = yOffset;
    color_ = color;
 
    MaterialResource* mr = (MaterialResource*)Modules::resMan().resolveResHandle( matRes );
@@ -199,19 +199,19 @@ WorldspaceRectHudElement::WorldspaceRectHudElement(int width, int height, int xO
 
    WorldspaceRectVertex* verts = (WorldspaceRectVertex*)gRDI->mapBuffer(rectVBO_);
 
-   verts[0].pos = Vec3f(-width_, -height_, 0);
+   verts[0].pos = Vec3f(xOffset, yOffset, 0);
    verts[0].texU = 0; verts[0].texV = 1;
    verts[0].color = color_;
 
-   verts[1].pos = Vec3f(-width_, height_, 0);
+   verts[1].pos = Vec3f(xOffset, height_ + yOffset, 0);
    verts[1].texU = 0; verts[1].texV = 0;
    verts[1].color = color_;
 
-   verts[2].pos = Vec3f(width_, height_, 0);
+   verts[2].pos = Vec3f(width_ + xOffset, height_ + yOffset, 0);
    verts[2].texU = 1; verts[2].texV = 0;
    verts[2].color = color_;
 
-   verts[3].pos = Vec3f(width_, -height_, 0);
+   verts[3].pos = Vec3f(width_ + xOffset, yOffset, 0);
    verts[3].texU = 1; verts[3].texV = 1;
    verts[3].color = color_;
 
@@ -252,16 +252,16 @@ void WorldspaceRectHudElement::updateGeometry(const Matrix4f& absTrans)
    const Matrix4f& invView = viewMat.inverted();
    const Vec3f origin = absTrans.getTrans();
 
-   Vec3f p = Vec3f(-width_, -height_, 0);
+   Vec3f p = Vec3f(offsetX_, offsetY_, 0);
    bounds_.addPoint(origin + (invView.mult33Vec(p)));
 
-   p = Vec3f(-width_, height_, 0);
+   p = Vec3f(0, height_ + offsetY_, 0);
    bounds_.addPoint(origin + (invView.mult33Vec(p)));
 
-   p = Vec3f(width_, height_, 0);
+   p = Vec3f(width_ + offsetX_, height_ + offsetY_, 0);
    bounds_.addPoint(origin + (invView.mult33Vec(p)));
 
-   p = Vec3f(width_, -height_, 0);
+   p = Vec3f(width_ + offsetX_, offsetY_, 0);
    bounds_.addPoint(origin + (invView.mult33Vec(p)));
 }
 
@@ -363,7 +363,7 @@ ScreenspaceRectHudElement* HudElementNode::addScreenspaceRect(int width, int hei
    return result;
 }
 
-WorldspaceRectHudElement* HudElementNode::addWorldspaceRect(int width, int height, int offsetX, int offsetY, Vec4f color, ResHandle matRes)
+WorldspaceRectHudElement* HudElementNode::addWorldspaceRect(float width, float height, float offsetX, float offsetY, Vec4f color, ResHandle matRes)
 {
    WorldspaceRectHudElement* result = new WorldspaceRectHudElement(width, height, offsetX, offsetY, color, matRes);
    elements_.push_back(result);
