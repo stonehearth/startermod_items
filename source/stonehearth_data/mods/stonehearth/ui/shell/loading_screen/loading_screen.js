@@ -43,7 +43,7 @@ App.StonehearthLoadingScreenView = App.View.extend({
 
    _updateMessage : function() {
       var self = this;
-      var max = 5;
+      var max = 29;
       var min = 1;
       var random =  Math.floor(Math.random() * (max - min + 1)) + min;
       $('#message').html($.t("loading_map_" + random));

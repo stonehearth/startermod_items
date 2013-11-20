@@ -109,10 +109,10 @@ unsigned char *Renderer::useScratchBuf( uint32 minSize )
 }
 
 
-bool Renderer::init()
+bool Renderer::init(int glMajor, int glMinor)
 {
 	// Init Render Device Interface
-	if( !gRDI->init() ) return false;
+	if( !gRDI->init(glMajor, glMinor) ) return false;
 
 	// Check capabilities
 	if( !gRDI->getCaps().texFloat )

@@ -715,12 +715,13 @@ DLL bool h3dGetError();
 		called several times on different rendering contexts in order to initialize them.
 	
 	Parameters:
-		none
+      glMajor - The major version of OpenGL required.
+      glMinor - The minor version of OpenGL required.
 		
 	Returns:
 		true in case of success, otherwise false
 */
-DLL bool h3dInit();
+DLL bool h3dInit(int glMajor, int glMinor);
 
 /* Function: h3dRelease
 		Releases the engine.

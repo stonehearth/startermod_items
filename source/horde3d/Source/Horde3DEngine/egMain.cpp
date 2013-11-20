@@ -88,7 +88,7 @@ DLLEXP bool h3dGetError()
 }
 
 
-DLLEXP bool h3dInit()
+DLLEXP bool h3dInit(int glMajor, int glMinor)
 {
 	if( initialized )
 	{	
@@ -98,7 +98,7 @@ DLLEXP bool h3dInit()
 	}
 	initialized = true;
 
-	return Modules::init();
+	return Modules::init(glMajor, glMinor);
 }
 
 DLLEXP void h3dRelease()

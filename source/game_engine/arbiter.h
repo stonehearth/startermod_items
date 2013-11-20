@@ -33,7 +33,7 @@ namespace radiant {
 
             void GetConfigOptions();
 
-            void Run();
+            void Run(tcp::acceptor* acceptor, boost::asio::io_service* io_service);
 
          protected:
             void Start();
@@ -58,9 +58,8 @@ namespace radiant {
             bool ProcessMessage(std::shared_ptr<client> c, const tesseract::protocol::Request& msg);
 
          protected:
-            boost::asio::io_service             _io_service;
-            tcp::socket                         _tcp_listen_socket;
-            tcp::acceptor                       _tcp_acceptor;
+            boost::asio::io_service*            _io_service;
+            tcp::acceptor*                      _tcp_acceptor;
 
             std::vector<std::shared_ptr<client>>          _clients;
             int                                 _next_tick;
