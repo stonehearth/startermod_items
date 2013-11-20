@@ -88,20 +88,20 @@ ReactorDeferredPtr HttpReactor::CreateDeferredResponse(Function const& fn, React
       QueueEvent(t, node);
    };
    d->Progress([d, queue_event](JSONNode node) {
-      queue_event("call_progress.radiant", node);
+      queue_event("radiant_call_progress", node);
    });
    d->Done([d, queue_event](JSONNode node) {
-      queue_event("call_done.radiant", node);
+      queue_event("radiant_call_done", node);
    });
    d->Fail([d, queue_event](JSONNode node) {
-      queue_event("call_fail.radiant", node);
+      queue_event("radiant_call_fail", node);
    });
 
    // return a deferred deferred =)
    LOG(INFO) << "http reactor creating deferred to deliver call_deferred result";
    ReactorDeferredPtr result = std::make_shared<ReactorDeferred>(std::string("http response to ") + fn.desc());
    JSONNode done;
-   done.push_back(JSONNode("type",     "call_deferred.radiant"));
+   done.push_back(JSONNode("type",     "radiant_call_deferred"));
    done.push_back(JSONNode("call_id",  call_id));
    result->Resolve(done);
 

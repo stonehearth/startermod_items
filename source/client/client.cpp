@@ -814,7 +814,7 @@ void Client::SelectEntity(om::EntityPtr obj)
          std::string uri = om::ObjectFormatter().GetPathToObject(selectedObject_);
          data.push_back(JSONNode("selected_entity", uri));
       }
-      http_reactor_->QueueEvent("selection_changed", data);
+      http_reactor_->QueueEvent("radiant_selection_changed", data);
    }
 }
 
