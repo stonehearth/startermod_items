@@ -414,6 +414,8 @@ public:
       { _shadowFactor = factor; _shadowUnits = units; }
 	void setViewport( int x, int y, int width, int height )
 		{ _vpX = x; _vpY = y; _vpWidth = width; _vpHeight = height; _pendingMask |= PM_VIEWPORT; }
+   void getViewport(int* x, int* y, int* width, int* height) 
+      { *x = _vpX; *y = _vpY; *width = _vpWidth; *height = _vpHeight; }
 	void setScissorRect( int x, int y, int width, int height )
 		{ _scX = x; _scY = y; _scWidth = width; _scHeight = height; _pendingMask |= PM_SCISSOR; }
 	void setIndexBuffer( uint32 bufObj, RDIIndexFormat idxFmt )

@@ -18,6 +18,7 @@
 #include "egScene.h"
 #include "egLight.h"
 #include "egCamera.h"
+#include "egHudElement.h"
 #include "egResource.h"
 #include "egRendererBase.h"
 #include "egRenderer.h"
@@ -136,6 +137,8 @@ bool Modules::init(int glMajor, int glMinor)
 		VoxelModelNode::parsingFunc, VoxelModelNode::factoryFunc, 0x0 );
 	sceneMan().registerType( SceneNodeTypes::VoxelMesh, "VoxelMesh",
 		VoxelMeshNode::parsingFunc, VoxelMeshNode::factoryFunc, Renderer::drawVoxelMeshes );
+   sceneMan().registerType( SceneNodeTypes::HudElement, "HudElement",
+      HudElementNode::parsingFunc, HudElementNode::factoryFunc, Renderer::drawHudElements );
 	
 	// Install extensions
 	installExtensions();

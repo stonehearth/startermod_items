@@ -203,15 +203,14 @@ bool SceneNode::canAttach( SceneNode &/*parent*/ )
 
 
 void SceneNode::markChildrenDirty()
-{	
-	for( vector< SceneNode * >::iterator itr = _children.begin(),
-	     end = _children.end(); itr != end; ++itr )
-	{
-		if( !(*itr)->_dirty )
+{
+   for (const auto& child : _children)
+   {
+		if( !child->_dirty )
 		{	
-			(*itr)->_dirty = true;
-			(*itr)->_transformed = true;
-			(*itr)->markChildrenDirty();
+			child->_dirty = true;
+			child->_transformed = true;
+			child->markChildrenDirty();
 		}
 	}
 }
@@ -250,7 +249,6 @@ void SceneNode::update()
    if (_absTrans.c[3][0] != 0.0f && !(_absTrans.c[3][0] < 0.0f) && !(_absTrans.c[3][0] > 0.0f)) {
       DebugBreak();
    }
-	Modules::sceneMan().updateSpatialNode( _sgHandle );
 
 	onPostUpdate();
 
@@ -263,6 +261,8 @@ void SceneNode::update()
 	}	
 
 	onFinishedUpdate();
+
+   Modules::sceneMan().updateSpatialNode( _sgHandle );
 }
 
 
@@ -305,8 +305,6 @@ SceneNode *GroupNode::factoryFunc( const SceneNodeTpl &nodeTpl )
 
 SpatialGraph::SpatialGraph()
 {
-	_lightQueue.reserve( 20 );
-	_renderableQueue.reserve( 500 );
 }
 
 
@@ -335,10 +333,6 @@ void SpatialGraph::removeNode( uint32 sgHandle )
 {
 	if( sgHandle == 0 || _nodes[sgHandle - 1] == 0x0 ) return;
 
-	// Reset queues
-	_lightQueue.resize( 0 );
-	_renderableQueue.resize( 0 );
-	
 	_nodes[sgHandle - 1]->_sgHandle = 0;
 	_nodes[sgHandle - 1] = 0x0;
 	_freeList.push_back( sgHandle - 1 );
@@ -359,23 +353,19 @@ struct RendQueueItemCompFunc
 };
 
 
-void SpatialGraph::updateQueues( const char* reason, const Frustum &frustum1, const Frustum *frustum2, RenderingOrder::List order,
-                                 uint32 filterIgnore, uint32 filterRequired, bool lightQueue, bool renderQueue )
+void SpatialGraph::query(const SpatialQuery& query, std::vector<RendQueueItem>& renderableQueue, 
+      std::vector<SceneNode*>& lightQueue)
 {
-   ASSERT(lightQueue || renderQueue);
+   ASSERT(query.useLightQueue || query.useRenderableQueue);
 
    // LOG(WARNING) << "----------" << reason << "--------------------";
 
 	Modules::sceneMan().updateNodes();
 	
-	Vec3f camPos( frustum1.getOrigin() );
+	Vec3f camPos( query.frustum.getOrigin() );
 	if( Modules::renderer().getCurCamera() != 0x0 )
 		camPos = Modules::renderer().getCurCamera()->getAbsPos();
 	
-	// Clear without affecting capacity
-	if( lightQueue ) _lightQueue.resize( 0 );
-	if( renderQueue ) _renderableQueue.resize( 0 );
-
 	// Culling
 	for( size_t i = 0, s = _nodes.size(); i < s; ++i )
 	{
@@ -384,22 +374,22 @@ void SpatialGraph::updateQueues( const char* reason, const Frustum &frustum1, co
          // LOG(WARNING) << "ignoring node (null)";
          continue;
       }
-      if (node->_flags & filterIgnore) {
+      if (node->_flags & query.filterIgnore) {
          // LOG(WARNING) << "ignoring node (in ignore set) " << node->getName() << " " << node->getHandle();
          continue;
       }
-      if ((node->_flags & filterRequired) != filterRequired) {
+      if ((node->_flags & query.filterRequired) != query.filterRequired) {
          // LOG(WARNING) << "ignoring node (no required flag) " << node->getName() << " " << node->getHandle();
          continue;
       }
 
-      if (renderQueue) {
+      if (query.useRenderableQueue) {
          if (!node->_renderable) {
             // LOG(WARNING) << "ignoring node (unrenderable) " << node->getName() << " " << node->getHandle();
             continue;
          }
 
-         if (frustum1.cullBox( node->_bBox ) && (frustum2 == 0x0 || frustum2->cullBox( node ->_bBox ))) {
+         if (query.frustum.cullBox( node->_bBox ) && (query.secondaryFrustum == 0x0 || query.secondaryFrustum->cullBox( node ->_bBox ))) {
             // LOG(WARNING) << "ignoring node (culled) " << node->getName() << " " << node->getHandle();
             continue;
          }
@@ -415,31 +405,31 @@ void SpatialGraph::updateQueues( const char* reason, const Frustum &frustum1, co
 				
          float sortKey = 0;
 
-         switch( order )
+         switch( query.order )
          {
          case RenderingOrder::StateChanges:
             sortKey = node->_sortKey;
             break;
          case RenderingOrder::FrontToBack:
-            sortKey = nearestDistToAABB( frustum1.getOrigin(), node->_bBox.min, node->_bBox.max );
+            sortKey = nearestDistToAABB( query.frustum.getOrigin(), node->_bBox.min, node->_bBox.max );
             break;
          case RenderingOrder::BackToFront:
-            sortKey = -nearestDistToAABB( frustum1.getOrigin(), node->_bBox.min, node->_bBox.max );
+            sortKey = -nearestDistToAABB( query.frustum.getOrigin(), node->_bBox.min, node->_bBox.max );
             break;
          }
 				
          // LOG(WARNING) << "adding node " << node->getName() << " " << node->getHandle();
-         _renderableQueue.push_back( RendQueueItem( node->_type, sortKey, node ) );
+         renderableQueue.push_back( RendQueueItem( node->_type, sortKey, node ) );
       }
-      if (lightQueue && node->_type == SceneNodeTypes::Light) {		 
+      if (query.useLightQueue && node->_type == SceneNodeTypes::Light) {		 
          // LOG(WARNING) << "adding light " << node->getName() << " " << node->getHandle();
-         _lightQueue.push_back( node );
+         lightQueue.push_back( node );
       }
    }
 
 	// Sort
-	if( order != RenderingOrder::None )
-		std::sort( _renderableQueue.begin(), _renderableQueue.end(), RendQueueItemCompFunc() );
+	if( query.order != RenderingOrder::None )
+		std::sort( renderableQueue.begin(), renderableQueue.end(), RendQueueItemCompFunc() );
 }
 
 
@@ -454,6 +444,14 @@ SceneManager::SceneManager()
 	_nodes.push_back( rootNode );
 
 	_spatialGraph = new SpatialGraph();
+
+   _queryCacheCount = 0;
+   _currentQuery = -1;
+   for (int i = 0; i < QueryCacheSize; i++)
+   {
+      _queryCache[i].lightQueue.reserve(20);
+      _queryCache[i].renderableQueue.reserve(1000);
+   }
 }
 
 
@@ -512,10 +510,69 @@ void SceneManager::updateNodes()
 
 
 void SceneManager::updateQueues( const char* reason, const Frustum &frustum1, const Frustum *frustum2, RenderingOrder::List order,
-                                 uint32 filterIgnore, uint32 filterRequired, bool lightQueue, bool renderableQueue )
+                                 uint32 filterIgnore, uint32 filterRequired, bool useLightQueue, bool useRenderableQueue )
 {
    radiant::perfmon::TimelineCounterGuard uq("updateQueues");
-	_spatialGraph->updateQueues( reason, frustum1, frustum2, order, filterIgnore, filterRequired, lightQueue, renderableQueue );
+
+   SpatialQuery query;
+   query.filterIgnore = filterIgnore;
+   query.filterRequired = filterRequired;
+   query.frustum = frustum1;
+   query.order = order;
+   query.secondaryFrustum = frustum2;
+   query.useLightQueue = useLightQueue;
+   query.useRenderableQueue = useRenderableQueue;
+
+   _currentQuery = _checkQueryCache(query);
+ 
+    if (_currentQuery != -1)
+    {
+       // Cache hit!.
+       return;
+    }
+    // Cache miss.
+ 
+    // We effectively use the last cache spot as a scratch space, if we see more than QueryCacheSize 
+    // distinct spatial queries.
+    if (_queryCacheCount < QueryCacheSize) {
+       _queryCacheCount++;
+    }
+    _currentQuery = _queryCacheCount - 1;
+    SpatialQueryResult& sqr = _queryCache[_currentQuery];
+ 
+    sqr.query.filterIgnore = filterIgnore;
+    sqr.query.filterRequired = filterRequired;
+    sqr.query.frustum = frustum1;
+    sqr.query.order = order;
+    sqr.query.secondaryFrustum = frustum2;
+    sqr.query.useLightQueue = useLightQueue;
+    sqr.query.useRenderableQueue = useRenderableQueue;
+ 
+   // Clear without affecting capacity
+    if (useLightQueue) 
+    {
+       sqr.lightQueue.resize(0);
+    }
+    if (useRenderableQueue )
+    {
+       sqr.renderableQueue.resize(0);
+    }
+ 
+    _spatialGraph->query(query, sqr.renderableQueue, sqr.lightQueue);
+}
+
+
+std::vector<SceneNode*>& SceneManager::getLightQueue() 
+{ 
+   ASSERT(_currentQuery != -1);
+   return _queryCache[_currentQuery].lightQueue;
+}
+
+
+std::vector<RendQueueItem>& SceneManager::getRenderableQueue() 
+{ 
+   ASSERT(_currentQuery != -1);
+   return _queryCache[_currentQuery].renderableQueue;
 }
 
 
@@ -823,6 +880,54 @@ int SceneManager::checkNodeVisibility( SceneNode &node, CameraNode &cam, bool ch
 		return node.calcLodLevel( cam.getAbsPos() );
 	else
 		return 0;
+}
+
+
+void SceneManager::clearQueryCache()
+{
+   _queryCacheCount = 0;
+   _currentQuery = -1;
+}
+
+
+int SceneManager::_checkQueryCache(const SpatialQuery& query)
+{
+   for (int i = 0; i < _queryCacheCount; i++)
+   {
+      SpatialQueryResult& r = _queryCache[i];
+
+      if (r.query.filterIgnore != query.filterIgnore)
+      {
+         continue;
+      }
+      if (r.query.filterRequired!= query.filterRequired)
+      {
+         continue;
+      }
+      if (r.query.order != query.order)
+      {
+         continue;
+      }
+      if (query.secondaryFrustum != nullptr && r.query.secondaryFrustum != nullptr)
+      {
+         if (*query.secondaryFrustum != *r.query.secondaryFrustum)
+         {
+            continue;
+         }
+      } else if (query.secondaryFrustum != r.query.secondaryFrustum) {
+         continue;
+      }
+
+      if (query.frustum != r.query.frustum)
+      {
+         continue;
+      }
+
+      // Cache hit!
+      return i;
+   }
+
+   return -1;
 }
 
 }  // namespace
