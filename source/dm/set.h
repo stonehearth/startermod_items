@@ -40,7 +40,7 @@ public:
       }
    }
 
-   const std::vector<T>& GetContents() const { return items_; }
+   //const std::vector<T>& GetContents() const { return items_; }
 
    void Clear() {
       while (!items_.empty()) {
@@ -81,10 +81,17 @@ public:
    }
 
 private:
+   friend Store;
+   ContainerType const& GetContainer() const
+   {
+      return items_;
+   }
+
+private:
    NO_COPY_CONSTRUCTOR(Set<T>);
 
 private:
-   std::vector<T>          items_;
+   ContainerType          items_;
 };
 
 template <typename T>

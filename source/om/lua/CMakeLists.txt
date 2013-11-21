@@ -26,7 +26,6 @@ add_library(om_lua STATIC
             lua_vertical_pathing_region_component.cpp
             lua_lua_components_component.cpp
             lua_destination_component.cpp
-            lua_paperdoll_component.cpp
             lua_carry_block_component.cpp
             lua_unit_info_component.cpp
             lua_item_component.cpp

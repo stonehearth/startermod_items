@@ -25,8 +25,7 @@ void Destination::ExtendObject(json::Node const& obj)
 {
    if (obj.has("region")) {
       region_ = GetStore().AllocObject<Region3Boxed>();
-      csg::Region3& region = (*region_)->Modify();
-      region = obj.get("region", csg::Region3());
+      (*region_)->Set(obj.get("region", csg::Region3()));
    }
    SetAutoUpdateAdjacent(obj.get<bool>("auto_update_adjacent", true));
    LOG(INFO) << "finished constructing new destination for entity " << GetEntity().GetObjectId();
@@ -37,14 +36,22 @@ Destination& Destination::SetAutoUpdateAdjacent(bool value)
 {
    value = !!value; // cohearse to 1 or 0
    if (auto_update_adjacent_ != value) {
-      NOT_YET_IMPLEMENTED(); // UG!
       auto_update_adjacent_ = value;
 
       if (value) {
          dm::ObjectId component_id = GetObjectId();
-         auto flush_dirty = [=]() {
-            UpdateDerivedValues();
-         };
+         region_trace_ = DeepTraceRegion(region_, "auto_update_adjacent", dm::OBJECT_MODEL_TRACES)
+            ->OnChanged([this](csg::Region3 const& r) {
+               UpdateDerivedValues();
+            });
+
+         reserved_trace_ = DeepTraceRegion(region_, "auto_update_adjacent", dm::OBJECT_MODEL_TRACES)
+            ->OnChanged([this](csg::Region3 const& r) {
+               UpdateDerivedValues();
+            });
+      } else {
+         region_trace_ = nullptr;
+         reserved_trace_ = nullptr;
       }
    }
    return *this;
@@ -71,7 +78,8 @@ void Destination::UpdateDerivedValues()
 
 void Destination::ComputeAdjacentRegion(csg::Region3 const& r)
 {
-   (*adjacent_)->Modify() = csg::GetAdjacent(r);
+   ASSERT(*adjacent_);
+   (*adjacent_)->Set(csg::GetAdjacent(r));
 }
 
 Destination& Destination::SetAdjacent(Region3BoxedPtr r)

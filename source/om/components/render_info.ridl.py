@@ -10,7 +10,7 @@ class RenderInfo(Component):
    animation_table = dm.Boxed(std.string())
    model_mode = dm.Boxed(std.string())
    material = dm.Boxed(std.string())
-   attached_entities = dm.Set(EntityRef(), add=None, remove=None)
+   attached_entities = dm.Set(EntityRef(), add=None, remove=None, iterate='define')
 
    attach_entity = ridl.Method(c.void(), ('entity', EntityRef()))
    remove_entity = ridl.Method(EntityRef(), ('uri', std.string().const.ref))

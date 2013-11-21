@@ -21,6 +21,7 @@ public:
    {
       ASSERT(value_);
       if (value_) {
+         // xxx: this might be an old value since it points back into the box (ug!)
          SignalChanged(*value_);
          value_ = nullptr;
       }
@@ -30,6 +31,12 @@ private:
    void NotifyChanged(Value const& value) override
    {
       value_ = &value;
+   }
+
+   void NotifyObjectState(Value const& value) override
+   {
+      value_ = nullptr;
+      BoxedTrace<M>::PushObjectState(value);
    }
 
 private:

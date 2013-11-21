@@ -12,7 +12,7 @@ class ModelLayer(dm.Record):
       CLOAK       = 4,
       NUM_LAYERS  = 5
    )
-   models = dm.Set(std.string())
+   models = dm.Set(std.string(), iterate='define')
    layer = dm.Boxed(layer_type)
    variants = dm.Boxed(std.string())
 

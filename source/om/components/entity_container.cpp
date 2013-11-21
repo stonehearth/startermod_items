@@ -2,7 +2,6 @@
 #include "entity_container.ridl.h"
 #include "mob.ridl.h"
 #include "om/entity.h"
-#include "om/trace_categoies.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -21,7 +20,7 @@ EntityContainer& EntityContainer::InsertChild(dm::ObjectId key, std::weak_ptr<En
 
       dm::ObjectId id = child->GetObjectId();
       children_.Insert(id, c);
-      auto trace = child->TraceObjectChanges("ec dtor", OM_TRACES);
+      auto trace = child->TraceObjectChanges("ec dtor", dm::OBJECT_MODEL_TRACES);
       trace->OnDestroyed([this, id]() {
          children_.Remove(id);
       });

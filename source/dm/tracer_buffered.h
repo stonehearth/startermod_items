@@ -9,6 +9,7 @@
 #include "set_trace_buffered.h"
 #include "boxed_trace_buffered.h"
 #include "array_trace_buffered.h"
+#include "alloc_trace_buffered.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -22,7 +23,7 @@ public:
    
 #define DEFINE_TRACE_CLS_CHANGES(Cls, ctor_sig) \
    template <typename C> \
-   std::shared_ptr<Cls ## Trace<C>> Trace ## Cls ## Changes(const char* reason, C const& object) \
+   std::shared_ptr<Cls ## Trace<C>> Trace ## Cls ## Changes(const char* reason, Store const& store, C const& object) \
    { \
       ObjectId id = object.GetObjectId(); \
       std::shared_ptr<Cls ## TraceBuffered<C>> trace = std::make_shared<Cls ## TraceBuffered<C>> ctor_sig; \
@@ -30,12 +31,12 @@ public:
       return trace; \
    }
 
-   DEFINE_TRACE_CLS_CHANGES(Object, (reason))
-   DEFINE_TRACE_CLS_CHANGES(Record, (reason, object, GetCategory()))
-   DEFINE_TRACE_CLS_CHANGES(Map, (reason))
-   DEFINE_TRACE_CLS_CHANGES(Boxed, (reason))
-   DEFINE_TRACE_CLS_CHANGES(Set, (reason))
-   DEFINE_TRACE_CLS_CHANGES(Array, (reason))
+   DEFINE_TRACE_CLS_CHANGES(Object, (reason, object, store))
+   DEFINE_TRACE_CLS_CHANGES(Record, (reason, object, store, GetCategory()))
+   DEFINE_TRACE_CLS_CHANGES(Map, (reason, object, store))
+   DEFINE_TRACE_CLS_CHANGES(Boxed, (reason, object, store))
+   DEFINE_TRACE_CLS_CHANGES(Set, (reason, object, store))
+   DEFINE_TRACE_CLS_CHANGES(Array, (reason, object, store))
 
 #undef DEFINE_TRACE_CLS_CHANGES
 

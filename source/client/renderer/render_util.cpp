@@ -18,18 +18,12 @@ om::DeepRegionGuardPtr client::CreateRegionDebugShape(H3DNode parent,
 
    H3DNode s = h3dRadiantAddDebugShapes(parent, name.c_str());
    shape = H3DNodeUnique(s);
-   
-   auto update_shape = [s, color](csg::Region3 const& r) {
-      h3dRadiantClearDebugShape(s);
-      h3dRadiantAddDebugRegion(s, r, color);
-      h3dRadiantCommitDebugShape(s);
-   };
 
-   
-   if (*region) {
-      update_shape(**region);
-   }
-   return om::DeepTraceRegion(region, "rendering destination debug region", update_shape);
+   return om::DeepTraceRegion(region, "rendering destination debug region", RENDER_TRACES)
+      ->OnChanged([s, color](csg::Region3 const& r) {
+         h3dRadiantClearDebugShape(s);
+         h3dRadiantAddDebugRegion(s, r, color);
+         h3dRadiantCommitDebugShape(s);
+      })
+      ->PushObjectState();
 }
-
-

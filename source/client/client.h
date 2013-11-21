@@ -221,6 +221,8 @@ private:
       core::Guard                 guards_;
       bool                        perf_hud_shown_;
 
+      dm::TracerBufferedPtr       game_render_tracer_;
+      dm::TracerBufferedPtr       authoring_render_tracer_;
       dm::ReceiverPtr             receiver_;
 };
 

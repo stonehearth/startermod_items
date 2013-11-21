@@ -12,7 +12,10 @@ class RecordTraceBuffered : public RecordTrace<M>,
                             public TraceBuffered
 {
 public:
-   RecordTraceBuffered(const char* reason, Record const& r, int category) : RecordTrace(reason, r, category) { }
+   RecordTraceBuffered(const char* reason, Record const& r, Store const& s, int category) :
+      RecordTrace(reason, r, s, category)
+   {
+   }
 
    void Flush() override
    {

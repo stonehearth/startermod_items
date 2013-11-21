@@ -12,8 +12,8 @@ class RecordTraceSync : public RecordTrace<M>,
                         public TraceSync                        
 {
 public:
-   RecordTraceSync(const char* reason, Record const& r, int category) :
-      RecordTrace(reason, r, category) { }
+   RecordTraceSync(const char* reason, Record const& r, Store const& s, int category) :
+      RecordTrace(reason, r, s, category) { }
 
 private:
    void NotifyRecordChanged() override

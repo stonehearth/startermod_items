@@ -14,16 +14,17 @@
 #include "resources/res_manager.h"
 #include "dm/store.h"
 #include "dm/streamer.h"
+#include "dm/tracer_buffered.h"
+#include "dm/tracer_sync.h"
 #include "om/entity.h"
 #include "om/components/clock.ridl.h"
 #include "om/components/mob.ridl.h"
 #include "om/components/terrain.ridl.h"
 #include "om/components/entity_container.ridl.h"
-#include "om/components/aura_list.ridl.h"
 #include "om/components/target_tables.ridl.h"
-#include "om/components/lua_components.ridl.h"
+#include "om/components/lua_components.h"
 #include "om/object_formatter/object_formatter.h"
-#include "om/data_binding.h"
+#include "om/components/data_store.ridl.h"
 //#include "native_commands/create_room_cmd.h"
 #include "jobs/job.h"
 #include "lib/lua/script_host.h"
@@ -66,7 +67,7 @@ Simulation::Simulation() :
    store_(1, "game")
 {
    singleton_ = this;
-   octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree());
+   octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree(dm::OBJECT_MODEL_TRACES));
    scriptHost_.reset(new lua::ScriptHost());
 
    InitDataModel();
@@ -556,6 +557,11 @@ lua::ScriptHost& Simulation::GetScript() {
 
 void Simulation::InitDataModel()
 {
-   streamer_ = std::make_shared<dm::StreamSet>(store_);
-   store_.AddTracer(1, streamer_);
+   object_model_traces_ = std::make_shared<dm::TracerSync>();
+   pathfinder_traces_ = std::make_shared<dm::TracerSync>();
+   streamer_ = std::make_shared<dm::Streamer>(store_);
+
+   store_.AddTracer(streamer_, dm::PLAYER_1_TRACES);
+   store_.AddTracer(object_model_traces_, dm::OBJECT_MODEL_TRACES);
+   store_.AddTracer(pathfinder_traces_, dm::PATHFINDER_TRACES);
 }

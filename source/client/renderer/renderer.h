@@ -165,8 +165,12 @@ class Renderer
       void DispatchInputEvent();
 
    protected:
+      struct RenderMapEntry {
+         std::shared_ptr<RenderEntity>    render_entity;
+         dm::TracePtr                     lifetime_trace;
+      };
       typedef std::unordered_map<H3DNode, UpdateSelectionFn> SelectableMap;
-      typedef std::unordered_map<dm::ObjectId, std::shared_ptr<RenderEntity>> RenderEntityMap;
+      typedef std::unordered_map<dm::ObjectId, RenderMapEntry> RenderEntityMap;
       typedef std::unordered_map<std::string, H3DRes>    H3DResourceMap;
       int               windowWidth_;
       int               windowHeight_;

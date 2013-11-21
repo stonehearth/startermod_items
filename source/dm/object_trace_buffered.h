@@ -13,8 +13,8 @@ class ObjectTraceBuffered : public ObjectTrace<T>,
                             
 {
 public:
-   ObjectTraceBuffered(const char* reason) :
-      ObjectTrace(reason)
+   ObjectTraceBuffered(const char* reason, Object const& o, Store const& store) :
+      ObjectTrace(reason, o, store)
    {
    }
 
@@ -26,9 +26,10 @@ public:
    }
 
 private:
-   void NotifyObjectChanged()
+   void NotifyObjectState() override
    {
-      changed_ = true;
+      changed_ = false;
+      ObjectTrace::PushObjectState();
    }
 
 private:

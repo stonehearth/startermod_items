@@ -12,11 +12,6 @@ Node encode(dm::Boxed<T, OT> const &obj) {
    return json::encode(obj.Get());
 }
 
-template <class T, int OT>
-Node encode(class dm::Boxed<T, OT>::Promise const &obj) {
-   throw std::invalid_argument(BUILD_STRING("cannot convert boxed " << GetShortTypeName<T>() << " promise to json"));
-}
-
 template <class K, class V, class Hash>
 Node encode(dm::Map<K, V, Hash> const &obj) {
    Node result;
@@ -24,6 +19,12 @@ Node encode(dm::Map<K, V, Hash> const &obj) {
       result.set(BUILD_STRING(entry.first), json::encode(entry.second));
    }
    return Node();
+}
+
+#if 0
+template <class T, int OT>
+Node encode(class dm::Boxed<T, OT>::Promise const &obj) {
+   throw std::invalid_argument(BUILD_STRING("cannot convert boxed " << GetShortTypeName<T>() << " promise to json"));
 }
 
 template <class K, class V, class Hash>
@@ -35,6 +36,7 @@ template <class K, class V, class Hash>
 Node encode(class dm::Map<K, V, Hash>::LuaPromise const &obj) {
    throw std::invalid_argument(BUILD_STRING("cannot convert map promise to json"));
 }
+#endif
 
 END_RADIANT_JSON_NAMESPACE
 

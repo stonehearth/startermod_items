@@ -9,6 +9,7 @@ static const std::string names_lower__[] = {
    std::string("om_object_type_base"),
    OM_ALL_OBJECTS
    OM_ALL_COMPONENTS
+   std::string("boxed_region2_object_type"),
    std::string("boxed_region3_object_type"),
 #undef OM_OBJECT
 };
@@ -18,6 +19,8 @@ static const std::string names_upper__[] = {
    std::string("OmObjectTypeBase"),
    OM_ALL_OBJECTS
    OM_ALL_COMPONENTS
+   std::string("BoxedRegion2ObjectType"),
+   std::string("BoxedRegion3ObjectType"),
 #undef OM_OBJECT
 };
 

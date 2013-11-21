@@ -209,7 +209,8 @@ private:
 private:
    RenderEntity&        entity_;
    om::EffectListRef    effectList_;
-   core::Guard          tracer_;
+   core::Guard          renderer_guard_;
+   dm::TracePtr         effects_list_trace_;
    EffectMap            effects_;
    int                  dt;
 };

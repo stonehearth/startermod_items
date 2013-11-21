@@ -2,7 +2,7 @@
 #include "open.h"
 #include "om/entity.h"
 #include "om/selection.h"
-#include "om/data_binding.h"
+#include "om/components/data_store.ridl.h"
 #include "lib/json/core_json.h"
 #include "lib/rpc/lua_deferred.h"
 #include "lib/rpc/reactor_deferred.h"
@@ -241,10 +241,10 @@ std::shared_ptr<T> Client_AllocObject()
    return Client::GetInstance().GetAuthoringStore().AllocObject<T>();
 }
 
-om::DataBindingPPtr Client_CreateDataStore(lua_State* L)
+om::DataStorePtr Client_CreateDataStore(lua_State* L)
 {
    // make sure we return the strong pointer version
-   om::DataBindingPPtr db = Client_AllocObject<om::DataBindingP>();
+   om::DataStorePtr db = Client_AllocObject<om::DataStore>();
    db->SetDataObject(newtable(L));
    return db;
 }

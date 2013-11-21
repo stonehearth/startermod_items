@@ -2,30 +2,14 @@ from ridl.om_types import *
 import ridl.ridl as ridl
 import ridl.c_types as c
 import ridl.dm_types as dm
-import ridl.luabind_types as luabind
+import ridl.std_types as std
+import ridl.lua_types as lua
 
 class DataStore(dm.Record):
-   controller_object = dm.Boxed(luabind.object, trace=None)
-   data_object = dm.Boxed(luabind.object)
-   
-   _public = \
-   """
-   JSONNode GetJsonData() const;
-   """
+   controller = dm.Boxed(lua.ControllerObject())
+   data = dm.Boxed(lua.DataObject())
 
-   _generate_construct_object = True
-   
    _includes = [
-      "lib/lua/bind.h"
+      "lib/lua/controller_object.h",
+      "lib/lua/data_object.h",
    ]
-
-   _private = \
-   """
-   mutable JSONNode           cached_json_;
-   mutable dm::GenerationId   last_encode_;
-   """
-
-   _global_post = \
-   """
-   IMPLEMENT_DM_NOP(luabind::object)
-   """

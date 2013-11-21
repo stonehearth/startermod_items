@@ -14,7 +14,7 @@
 #include "om/om_alloc.h"
 #include "csg/lua/lua_csg.h"
 #include "om/lua/lua_om.h"
-#include "om/data_binding.h"
+#include "om/components/data_store.ridl.h"
 #include "platform/utils.h"
 #include "resources/manifest.h"
 #include "resources/res_manager.h"
@@ -261,7 +261,7 @@ void Client::run()
    hover_cursor_ = LoadCursor("stonehearth:cursors:hover");
    default_cursor_ = LoadCursor("stonehearth:cursors:default");
 
-   octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree());
+   octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree(dm::RENDER_TRACES));
       
    Renderer& renderer = Renderer::GetInstance();
 
@@ -333,6 +333,11 @@ void Client::run()
    lua::rpc::open(L, core_reactor_);
    lua::analytics::open(L);
 
+
+   game_render_tracer_ = std::make_shared<dm::TracerBuffered>();
+   authoring_render_tracer_ = std::make_shared<dm::TracerBuffered>();
+   store_.AddTracer(game_render_tracer_, dm::RENDER_TRACES);
+   authoringStore_.AddTracer(authoring_render_tracer_, dm::RENDER_TRACES);
 
    //luabind::globals(L)["_client"] = luabind::object(L, this);
 
@@ -550,8 +555,7 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
    // Only fire the remote store traces at sequence boundaries.  The
    // data isn't guaranteed to be in a consistent state between
    // boundaries.
-   store_.FireTraces();
-   store_.FireFinishedTraces();
+   game_render_tracer_->Flush();
 }
 
 void Client::SetServerTick(const proto::SetServerTick& msg)

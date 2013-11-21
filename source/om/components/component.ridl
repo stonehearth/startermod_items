@@ -133,6 +133,17 @@ public:
 
    % endif %
 % endfor
+% for name, set in env.properties(C, dm.Set):
+   % if set.iterate == 'define':
+   ${set.name} const&
+   All${name | env.upper}() const
+   {
+      /* Usage: for (${set.value.name} const& i : obj.All${name | env.upper}()) ... */
+      return ${name}_;
+   }
+
+   % endif %
+% endfor
 ## -------------------------------------------------------------------------
 ##  Maps
 ##
@@ -180,6 +191,17 @@ public:
    Trace${name | env.upper}(const char* reason, int category) const
    {
       return ${name}_.TraceChanges(reason, category);
+   }
+
+   % endif %
+% endfor
+% for name, map in env.properties(C, dm.Map):
+   % if map.iterate == 'define':
+   ${map.name} const&
+   All${name | env.upper}() const
+   {
+      /* Usage: for (${map.value.name} const& i : obj.All${name | env.upper}()) ... */
+      return ${name}_;
    }
 
    % endif %

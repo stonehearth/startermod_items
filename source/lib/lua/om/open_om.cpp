@@ -62,9 +62,6 @@ std::weak_ptr<Cls> PropertySet(std::weak_ptr<Cls> w, T const& value)
 void lua::om::open(lua_State* L)
 {
    using namespace radiant::om;
-
-   #include "om/reflection/generate_lua.h"
-   OM_ALL_COMPONENT_TEMPLATES
 }
 
 void lua::om::register_json_to_lua_objects(lua_State* L, dm::Store& dm)

@@ -7,14 +7,14 @@
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename T>
-class RecordTrace : public Trace
+class RecordTrace : public TraceImpl<RecordTrace<T>>
 {
 public:
-   RecordTrace(const char* reason, Record const& r, int category) :
-      Trace(reason)
+   RecordTrace(const char* reason, Record const& r, Store const& s, int category) :
+      TraceImpl(reason, r, s)
    {
       for (const auto& field : r.GetFields()) {
-         TracePtr t = r.GetStore().FetchStaticObject(field.second)->TraceObjectChanges(reason, category);
+         auto t = r.GetStore().FetchStaticObject(field.second)->TraceObjectChanges(reason, category);
          t->OnModified([=]() {
             NotifyRecordChanged();
          });

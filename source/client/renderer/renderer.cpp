@@ -635,18 +635,20 @@ std::shared_ptr<RenderEntity> Renderer::CreateRenderObject(H3DNode parent, om::E
    auto i = entities.find(id);
 
    if (i != entities.end()) {
-      auto entity = i->second;
-      entity->SetParent(parent);
-      result = entity;
+      RenderMapEntry const& entry = i->second;
+      entry.render_entity->SetParent(parent);
+      result = entry.render_entity;
    } else {
       // LOG(WARNING) << "CREATING RENDER OBJECT " << sid << ", " << id;
-      result = std::make_shared<RenderEntity>(parent, entity);
-      result->FinishConstruction();
-      entities[id] = result;
-      traces_ += entity->TraceObjectLifetime("render entity lifetime", [=]() { 
-         // LOG(WARNING) << "DESTROYING RENDER OBJECT " << sid << ", " << id;
-         entities_[sid].erase(id);
-      });
+      RenderMapEntry entry;
+      entry.render_entity = std::make_shared<RenderEntity>(parent, entity);
+      entry.render_entity->FinishConstruction();
+      entry.lifetime_trace = entity->TraceChanges("render dtor", RENDER_TRACES)
+                                       ->OnDestroyed([this, sid, id]() { 
+                                          // LOG(WARNING) << "DESTROYING RENDER OBJECT " << sid << ", " << id;
+                                            entities_[sid].erase(id);
+                                         });
+      entities[id] = entry;
    }
    return result;
 }
@@ -664,7 +666,7 @@ std::shared_ptr<RenderEntity> Renderer::GetRenderObject(int sid, dm::ObjectId id
 {
    auto i = entities_[sid].find(id);
    if (i != entities_[sid].end()) {
-      return i->second;
+      return i->second.render_entity;
    }
    return nullptr;
 }

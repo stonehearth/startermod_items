@@ -3,6 +3,7 @@
 
 #include "dm/dm.h"
 #include "dm/boxed.h"
+#include "dm/boxed_trace.h"
 #include "csg/region.h"
 #include "core/guard.h"
 #include "radiant_macros.h"
@@ -36,9 +37,9 @@ typedef dm::Boxed<Region3BoxedPtr> Region3BoxedPtrBoxed;
 //
 // That's what the DeepRegionGuard is for!
 
-struct DeepRegionGuard {
+struct DeepRegionGuard : public std::enable_shared_from_this<DeepRegionGuard> {
    dm::TracePtr   region_trace;
-   dm::TracePtr   boxed_trace;
+   std::shared_ptr<dm::BoxedTrace<Region3BoxedPtrBoxed>>   boxed_trace;
    dm::ObjectId   store_id;
    dm::ObjectId   object_id;
    std::function<void(csg::Region3 const&)> changed_cb_;
@@ -52,8 +53,16 @@ struct DeepRegionGuard {
    ~DeepRegionGuard() {
    }
 
-   void OnChanged(std::function<void(csg::Region3 const& r)> cb) {
+   std::shared_ptr<DeepRegionGuard> OnChanged(std::function<void(csg::Region3 const& r)> cb)
+   {
       changed_cb_ = cb;
+      return shared_from_this();
+   }
+
+   std::shared_ptr<DeepRegionGuard> PushObjectState()
+   {      
+      boxed_trace->PushObjectState();
+      return shared_from_this();
    }
 
    void SignalChanged(csg::Region3 const& r) {

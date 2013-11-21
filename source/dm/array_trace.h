@@ -7,7 +7,7 @@
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename T>
-class ArrayTrace : public Trace
+class ArrayTrace : public TraceImpl<ArrayTrace<T>>
 {
 public:
    typedef typename T::Value     Value;
@@ -17,14 +17,21 @@ public:
    typedef std::function<void(ChangeMap const& v)> UpdatedCb;
    
 public:
-   void OnChanged(ChangedCb changed)
+   ArrayTrace(const char* reason, Object const& o, Store const& store) :
+      TraceImpl(reason, o, store)
    {
-      changed_ = changed;
    }
 
-   void OnUpdated(UpdatedCb updated)
+   std::shared_ptr<ArrayTrace> OnChanged(ChangedCb changed)
+   {
+      changed_ = changed;
+      return shared_from_this();
+   }
+
+   std::shared_ptr<ArrayTrace> OnUpdated(UpdatedCb updated)
    {
       updated_ = updated;
+      return shared_from_this();
    }
 
 protected:

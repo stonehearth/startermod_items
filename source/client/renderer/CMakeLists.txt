@@ -18,7 +18,6 @@ add_library(client_renderer STATIC
             render_terrain.cpp
             render_effect_list.cpp
             render_destination.cpp
-            render_paperdoll.cpp
             render_carry_block.cpp
             render_render_info.cpp
             render_util.cpp

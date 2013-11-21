@@ -10,8 +10,8 @@ template <typename M>
 class SetTraceSync : public SetTrace<M>
 {
 public:
-   SetTraceSync(const char* reason) :
-      SetTrace(reason)
+   SetTraceSync(const char* reason, Object const& o, Store const& store) :
+      SetTrace(reason, o, store)
    {
    }
 

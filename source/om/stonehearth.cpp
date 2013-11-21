@@ -94,7 +94,7 @@ GetLuaComponent(lua_State* L, EntityPtr entity, std::string const& name)
    if (component) {
       DataStorePtr db = component->GetLuaComponent(name);
       if (db) {
-         return db->GetControllerObject();
+         return db->GetController();
       }
    }
    return object();
@@ -107,7 +107,10 @@ GetLuaComponentData(lua_State* L, EntityPtr entity, std::string const& name)
    if (component) {
       DataStorePtr db = component->GetLuaComponent(name);
       if (db) {
-         return lua::ScriptHost::JsonToLua(L, db->GetJsonData());
+         // return lua::ScriptHost::JsonToLua(L, db->GetJsonData());
+         // xxx: does this work?
+         NOT_TESTED();
+         return db->GetData().GetDataObject();
       }
    }
    return object();
@@ -188,17 +191,17 @@ AddLuaComponent(lua_State* L, EntityPtr entity, std::string const& name)
 {
    object result;
    LuaComponentsPtr component = entity->AddComponent<LuaComponents>();
-   DataStorePtr data_binding = component->GetLuaComponent(name);
-   if (data_binding) {
-      result = data_binding->GetControllerObject();
+   DataStorePtr data_store = component->GetLuaComponent(name);
+   if (data_store) {
+      result = data_store->GetController();
    } else {
       std::string uri = GetLuaComponentUri(name);
       object ctor = lua::ScriptHost::RequireScript(L, uri);
       if (ctor) {
-         data_binding = component->AddLuaComponent(name);
-         data_binding->SetDataObject(newtable(L));
-         result = call_function<object>(ctor, EntityRef(entity), DataStoreRef(data_binding));
-         data_binding->SetControllerObject(result);
+         data_store = component->AddLuaComponent(name);
+         data_store->SetData(lua::DataObject(newtable(L)));
+         result = call_function<object>(ctor, EntityRef(entity), DataStoreRef(data_store));
+         data_store->SetController(lua::ControllerObject(result));
       }
    }
    return result;
@@ -209,8 +212,8 @@ SetLuaComponentData(lua_State* L, EntityPtr entity, std::string const& name, obj
 {
    object result;
    LuaComponentsPtr component = entity->AddComponent<LuaComponents>();
-   DataStorePtr data_binding = component->AddLuaComponent(name);
-   data_binding->SetDataObject(data);
+   DataStorePtr data_store = component->AddLuaComponent(name);
+   data_store->SetData(lua::DataObject(data));
 }
 
 object
@@ -283,7 +286,7 @@ void Stonehearth::InitEntity(EntityPtr entity, std::string const& uri, lua_State
       auto lua_components = entity->GetComponent<LuaComponents>();
       if (lua_components) {
          for (auto const& entry : lua_components->GetComponentMap()) {
-            object component = entry.second->GetControllerObject();
+            object component = entry.second->GetController();
             ASSERT(component.is_valid() && type(component) != LUA_TNIL);
 
             object on_created = component["on_created"];

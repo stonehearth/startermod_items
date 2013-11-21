@@ -25,8 +25,8 @@ private:
    typedef std::unordered_map<dm::ObjectId, std::weak_ptr<RenderEntity>> EntityContainerMap;
 
    const RenderEntity&  entity_;
-   core::Guard              tracer_;
    EntityContainerMap   children_;
+   dm::TracePtr         trace_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

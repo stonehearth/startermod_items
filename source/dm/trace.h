@@ -8,21 +8,41 @@ BEGIN_RADIANT_DM_NAMESPACE
 class Trace
 {
 public:
+   virtual ~Trace();
+};
+
+template <typename Derived>
+class TraceImpl : public Trace,
+                  public std::enable_shared_from_this<Derived>
+{
+public:
    typedef std::function<void()> ModifiedCb;
    typedef std::function<void()> DestroyedCb;
 
 public:
-   Trace(const char* reason) : reason_(reason) { }
-   virtual ~Trace() { }
+   TraceImpl(const char* reason, Object const& o, Store const& store) : store_(store), object_id_(o.GetObjectId()), reason_(reason) { }
+   virtual ~TraceImpl() { }
 
-   void OnModified(ModifiedCb modified)
+   std::shared_ptr<Derived> OnModified(ModifiedCb modified)
    {
       on_modified_ = modified;
+      return shared_from_this();
    }
 
-   void OnDestroyed(DestroyedCb destroyed)
+   std::shared_ptr<Derived> OnDestroyed(DestroyedCb destroyed)
    {
       on_destroyed_ = destroyed;
+      return shared_from_this();
+   }
+
+   ObjectId GetObjectId() const
+   {
+      return object_id_;
+   }
+
+   Store const& GetStore() const
+   {
+      return store_;
    }
 
 protected:
@@ -42,6 +62,8 @@ protected:
 
 private:
    const char*    reason_;
+   Store const&   store_;
+   ObjectId       object_id_;
    ModifiedCb     on_modified_;
    DestroyedCb    on_destroyed_;
 };

@@ -66,14 +66,13 @@ protected:
       std::string       node_name_;
       H3DNodeUnique     node_;
       om::EntityRef     entity_;
-      core::Guard       tracer_;
       Skeleton          skeleton_;
       ComponentMap      components_;
       LuaComponentMap   lua_components_;
       LuaComponentMap   lua_invariants_;
       bool              initialized_;
-      core::Guard       guard_;
-      std::vector<dm::TracePtr> traces_;
+      core::Guard       renderer_guard_;
+      dm::TracePtr      components_trace_;
 };
 
 typedef std::shared_ptr<RenderEntity>  RenderEntityPtr;

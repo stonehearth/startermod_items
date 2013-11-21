@@ -9,7 +9,6 @@
 #include "om/components/destination.ridl.h"
 #include "om/region.h"
 #include "csg/color.h"
-#include "simulation/trace_categoies.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -38,31 +37,29 @@ PathFinderDst::PathFinderDst(PathFinder &pf, om::EntityRef e) :
 
       auto mob = entity->GetComponent<om::Mob>();
       if (mob) {
-         moving_ = *mob->GetBoxedMoving();
+         moving_ = mob->GetMoving();
 
-         auto transform_trace = mob->GetBoxedTransform().TraceChanges("pf dst", PATHFINDER_TRACES);
-         transform_trace->OnChanged([=](csg::Transform const&) {
-            destination_may_have_changed();
-         });
+         transform_trace_ = mob->TraceTransform("pf dst", dm::PATHFINDER_TRACES)
+                                 ->OnChanged([=](csg::Transform const&) {
+                                    destination_may_have_changed();
+                                 });
 
-         auto moving_trace = mob->GetBoxedMoving().TraceChanges( "pf dst", PATHFINDER_TRACES);
-         moving_trace->OnChanged([=](bool const& moving) {
-            if (moving != moving_) {
-               moving_ = moving;
-               if (moving_) {
-                  pf_.RestartSearch();
-               }
-            }
-         });
-
-         traces_.push_back(transform_trace);
-         traces_.push_back(moving_trace);
+         moving_trace_ = mob->TraceMoving("pf dst", dm::PATHFINDER_TRACES)
+                                 ->OnChanged([=](bool const& moving) {
+                                    if (moving != moving_) {
+                                       moving_ = moving;
+                                       if (moving_) {
+                                          pf_.RestartSearch();
+                                       }
+                                    }
+                                 });
       }
       auto dst = entity->GetComponent<om::Destination>();
       if (dst) {
-         region_guard_ = om::DeepTraceRegionVoid(dst->GetAdjacent(),
-                              "pathfinder destination trace",
-                              destination_may_have_changed);
+         region_guard_ = om::DeepTraceRegion(dst->GetAdjacent(), "pf dst", dm::PATHFINDER_TRACES)
+                              ->OnChanged([destination_may_have_changed](csg::Region3 const&) {
+                                 destination_may_have_changed();
+                              });
       }
       ClipAdjacentToTerrain();
    }
@@ -97,7 +94,7 @@ void PathFinderDst::ClipAdjacentToTerrain()
          om::Region3BoxedPtr adjacent;
          auto destination = entity->GetComponent<om::Destination>();
          if (destination) {
-            adjacent = *destination->GetAdjacent();
+            adjacent = destination->GetAdjacent();
          }
          if (adjacent) {
             world_space_adjacent_region_ = adjacent->Get();
@@ -143,7 +140,7 @@ int PathFinderDst::EstimateMovementCost(const csg::Point3& from) const
    om::Region3BoxedPtr adjacent;
    om::DestinationPtr dst = entity->GetComponent<om::Destination>();
    if (dst) {
-      adjacent = *dst->GetAdjacent();
+      adjacent = dst->GetAdjacent();
    }
    if (adjacent) {
       csg::Region3 const& rgn = *adjacent;

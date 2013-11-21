@@ -44,11 +44,9 @@ PROCESS_RADIANT_IDLS(component.ridl RIDL_SRC
                      effect_list.ridl.py
                      entity_container.ridl.py
                      item.ridl.py
-                     data_store.ridl.py
                      mob.ridl.py
                      model_layer.ridl.py
                      model_variants.ridl.py
-                     paperdoll.ridl.py
                      region_collision_shape.ridl.py
                      render_info.ridl.py
                      sensor.ridl.py
@@ -68,7 +66,6 @@ add_library(om_components STATIC
             pch.cpp
             clock.cpp
             component.cpp
-            data_store.cpp
             destination.cpp
             effect.cpp
             effect_list.cpp
@@ -86,7 +83,6 @@ add_library(om_components STATIC
             target_table_group.cpp
             target_table_entry.cpp
             terrain.cpp
-            paperdoll.cpp
             vertical_pathing_region.cpp
             item.cpp
             unit_info.cpp

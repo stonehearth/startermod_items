@@ -20,4 +20,8 @@ class Destination(Component):
    """
    void UpdateDerivedValues();
    void ComputeAdjacentRegion(csg::Region3 const& r);
+
+private:
+   DeepRegionGuardPtr      region_trace_;
+   DeepRegionGuardPtr      reserved_trace_;
    """

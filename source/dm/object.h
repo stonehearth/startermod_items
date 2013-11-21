@@ -10,6 +10,7 @@
 
 #define DECLARE_STATIC_DISPATCH(Cls) \
    void LoadObject(Protocol::Object const& msg) override; \
+   void SaveObject(Protocol::Object* msg) const override; \
    std::shared_ptr<Cls ## Trace<Cls>> TraceChanges(const char* reason, int category) const ;
 
 #define DEFINE_STATIC_DISPATCH(Cls) \
@@ -49,6 +50,8 @@ public:
    virtual const char *GetObjectClassNameLower() const = 0;
    virtual void GetDbgInfo(DbgInfo &info) const = 0;
    virtual void LoadObject(Protocol::Object const& msg) = 0;
+   virtual void SaveObject(Protocol::Object* msg) const = 0;
+
    std::shared_ptr<ObjectTrace<Object>> TraceObjectChanges(const char* reason, int category);
 
    virtual void Initialize(Store& s, ObjectId id);

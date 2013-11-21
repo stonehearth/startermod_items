@@ -1,5 +1,6 @@
 #include "radiant.h"
 #include "store.h"
+#include "alloc_trace.h"
 
 using namespace ::radiant;
 using namespace ::radiant::dm;
@@ -124,7 +125,10 @@ void Store::OnAllocObject(std::shared_ptr<Object> obj)
 
    ObjectId id = obj->GetObjectId();
    dynamicObjects_[id] = DynamicObject(obj, obj->GetObjectType());
-   alloced_.push_back(obj);
+   
+   stdutil::ForEachPrune<AllocTrace>(alloc_traces_, [&](std::shared_ptr<AllocTrace> t) {
+      t->NotifyAlloc(obj);
+   });
 }
 
 Object* Store::FetchStaticObject(ObjectId id) const
@@ -181,3 +185,22 @@ bool Store::IsDynamicObject(ObjectId id)
    return dynamicObjects_.find(id) != dynamicObjects_.end();
 }
 
+
+AllocTracePtr Store::TraceAlloc(const char* reason, int category)
+{
+   AllocTracePtr trace = std::make_shared<AllocTrace>(*this);
+   alloc_traces_.push_back(trace);
+   return trace;
+}
+
+void Store::PushAllocState(AllocTrace& trace) const
+{
+   std::vector<ObjectPtr> objects;
+   for (const auto& entry : dynamicObjects_) {
+      ObjectPtr obj = entry.second.object.lock();
+      if (obj) {
+         objects.push_back(obj);
+      }
+   }
+   trace.NotifyAllocState(objects);
+}

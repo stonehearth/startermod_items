@@ -17,7 +17,6 @@
 #include "lua_destination_component.h"
 #include "lua_unit_info_component.h"
 #include "lua_item_component.h"
-#include "lua_paperdoll_component.h"
 #include "lua_carry_block_component.h"
 #include "lua_data_binding.h"
 #include "lib/lua/script_host.h"
@@ -80,7 +79,7 @@ void radiant::om::RegisterLuaTypes(lua_State* L)
 #undef OM_OBJECT
             LuaEntity::RegisterLuaTypes(L),
             LuaRegion::RegisterLuaTypes(L),
-            LuaDataBinding::RegisterLuaTypes(L),
+            LuaDataStore::RegisterLuaTypes(L),
 
             lua::RegisterTypePtr<DeepRegionGuardLua>()
                .def("on_changed",               &DeepRegionGuardLua::OnChanged)

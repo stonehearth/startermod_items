@@ -15,7 +15,6 @@
       OM_OBJECT(TargetTables,          target_tables) \
       OM_OBJECT(LuaComponents,         lua_components) \
       OM_OBJECT(Destination,           destination) \
-      OM_OBJECT(Paperdoll,             paperdoll) \
       OM_OBJECT(CarryBlock,            carry_block) \
       OM_OBJECT(UnitInfo,              unit_info) \
       OM_OBJECT(Item,                  item) \

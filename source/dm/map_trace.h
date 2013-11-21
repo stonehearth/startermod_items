@@ -7,32 +7,46 @@
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename M>
-class MapTrace : public Trace
+class MapTrace : public TraceImpl<MapTrace<M>>
 {
 public:
-   typedef typename M::Key       Key;
-   typedef typename M::Value     Value;
-   typedef std::vector<Key>      KeyList;
-   typedef std::unordered_map<Key, Value> ChangeMap;
+   typedef typename M::Key             Key;
+   typedef typename M::Value           Value;
+   typedef std::vector<Key>            KeyList;
+   typedef typename M::ContainerType   ChangeMap;
 
    typedef std::function<void(Key const& k)> RemovedCb;
    typedef std::function<void(Key const& k, Value const& v)> ChangedCb;
    typedef std::function<void(ChangeMap const& changed, KeyList const& removed)> UpdatedCb;
 
 public:
-   void OnChanged(ChangedCb changed)
+   MapTrace(const char* reason, Object const& o, Store const& store) :
+      TraceImpl(reason, o, store)
+   {
+   }
+
+   std::shared_ptr<MapTrace> OnChanged(ChangedCb changed)
    {
       changed_ = changed;
+      return shared_from_this();
    }
 
-   void OnRemoved(RemovedCb removed)
+   std::shared_ptr<MapTrace>  OnRemoved(RemovedCb removed)
    {
       removed_ = removed;
+      return shared_from_this();
    }
 
-   void OnUpdated(UpdatedCb updated)
+   std::shared_ptr<MapTrace>  OnUpdated(UpdatedCb updated)
    {
       updated_ = updated;
+      return shared_from_this();
+   }
+
+   std::shared_ptr<MapTrace> PushObjectState()
+   {
+      GetStore().PushMapState(*this, GetObjectId());
+      return shared_from_this();
    }
 
 protected:
@@ -57,14 +71,18 @@ protected:
    void SignalUpdated(ChangeMap const& changed, KeyList const& removed)
    {
       if (updated_) {
-         update_(changed, removed);
+         updated_(changed, removed);
       } else {
-         for (const auto& entry : changed) {
-            SignalChanged(entry.first, entry.second);
+         if (changed_) {
+            for (const auto& entry : changed) {
+               changed_(entry.first, entry.second);
+            }
          }
 
-         for (const auto& key : removed) {
-            SignalRemoved(key);
+         if (removed_) {
+            for (const auto& key : removed) {
+               removed_(key);
+            }
          }
       }
    }
@@ -73,6 +91,10 @@ private:
    friend Store;
    virtual void NotifyRemoved(Key const& key);
    virtual void NotifyChanged(Key const& key, Value const& value);
+   virtual void NotifyObjectState(typename M::ContainerType const& contents)
+   {
+      SignalUpdated(contents, KeyList());
+   }
 
 private:
    RemovedCb      removed_;

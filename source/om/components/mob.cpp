@@ -25,7 +25,9 @@ void Mob::ConstructObject()
 void Mob::MoveTo(const csg::Point3f& location)
 {
    LOG(INFO) << "moving entity " << GetEntity().GetObjectId() << " to " << location;
-   transform_.Modify().position = location;
+   transform_.Modify([&](csg::Transform& t) {
+      t.position = location;
+   });
 }
 
 void Mob::MoveToGridAligned(const csg::Point3& location)
@@ -49,7 +51,9 @@ void Mob::TurnToAngle(float angle)
    }
    LOG(INFO) << "turning entity " << GetEntity().GetObjectId() << " to angle " << angle;
    csg::Quaternion q(csg::Point3f::unitY, angle / 180.0f * csg::k_pi);
-   transform_.Modify().orientation = q;
+   transform_.Modify([&](csg::Transform& t) {
+      t.orientation = q;
+   });
 }
 
 void Mob::TurnToFacePoint(const csg::Point3& location)
@@ -71,7 +75,9 @@ void Mob::TurnToFacePoint(const csg::Point3& location)
 
    csg::Quaternion q(csg::Point3f::unitY, angle);
    ASSERT(q.is_unit());
-   transform_.Modify().orientation = q;
+   transform_.Modify([&](csg::Transform& t) {
+      t.orientation = q;
+   });
 }
 
 csg::Cube3f Mob::GetWorldAabb() const

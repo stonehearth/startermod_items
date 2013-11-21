@@ -7,7 +7,8 @@
 #include "om/entity.h"
 #include "om/components/mob.ridl.h"
 #include "om/components/entity_container.ridl.h"
-#include "om/components/collision_shape.ridl.h"
+#include "om/components/region_collision_shape.ridl.h"
+#include "om/components/sensor.ridl.h"
 #include "om/components/sensor_list.ridl.h"
 
 using namespace radiant;
@@ -41,7 +42,8 @@ T WorldToLocal(const T& coord, const om::Entity& entity)
    return coord - origin;
 }
 
-OctTree::OctTree()
+OctTree::OctTree(int trace_category) :
+   trace_category_(trace_category)
 {
 }
 
@@ -59,41 +61,48 @@ void OctTree::TraceEntity(om::EntityPtr entity)
    if (entity) {
       dm::ObjectId id = entity->GetObjectId();
       if (!stdutil::contains(entities_, id)) {
-         entities_[id] = entity;
-
-         const auto& components = entity->GetComponents();
-
-         guards_ += components.TraceMapChanges("octtree component checking",
-                                               std::bind(&OctTree::OnComponentAdded, this, om::EntityRef(entity), std::placeholders::_1, std::placeholders::_2),
-                                               nullptr);
-
-         for (const auto& entry : components) {
-            OnComponentAdded(entity, entry.first, entry.second);
-         }
+         EntityMapEntry& entry = entities_[id];
+         entry.entity = entity;
+         entry.components_trace = entity->TraceComponents("octtree", trace_category_)
+                                             ->OnChanged([this, id](dm::ObjectType type, std::shared_ptr<dm::Object> obj) {
+                                                OnComponentAdded(id, type, obj);
+                                             })
+                                             ->PushObjectState();
       }
    }
 }
 
-void OctTree::OnComponentAdded(om::EntityRef e, dm::ObjectType type, std::shared_ptr<dm::Object> component)
+void OctTree::OnComponentAdded(dm::ObjectId id, dm::ObjectType type, std::shared_ptr<dm::Object> component)
 {
-   om::EntityPtr entity = e.lock();
+   auto i = entities_.find(id);
+   if (i == entities_.end()) {
+      return;
+   }
+   EntityMapEntry& entry = i->second;
+   om::EntityPtr entity = entry.entity.lock();
 
    if (entity) {
       switch (component->GetObjectType()) {
-      case om::EntityContainerObjectType: {
-         UpdateEntityContainer(std::static_pointer_cast<om::EntityContainer>(component));
-         break;
-      };
-      case om::SensorListObjectType: {
-         const auto& sensors = std::static_pointer_cast<om::SensorList>(component)->GetSensors();
-         guards_ += sensors.TraceMapChanges("oct tree sensors",
-                                            std::bind(&OctTree::TraceSensor, this, std::placeholders::_2),
-                                            nullptr);
-         for (const auto& entry : sensors) {
-            TraceSensor(entry.second);
+         case om::EntityContainerObjectType: {
+            om::EntityContainerPtr entity_container = std::static_pointer_cast<om::EntityContainer>(component);
+            entry.children_trace = entity_container->TraceChildren("octtree", trace_category_)
+               ->OnChanged([this](dm::ObjectId id, om::EntityRef e) {
+                     TraceEntity(e.lock());
+               })
+               ->PushObjectState();
+            break;
+         };
+         case om::SensorListObjectType: {
+            om::SensorListPtr sensor_list = std::static_pointer_cast<om::SensorList>(component);
+            entry.sensor_list_trace = sensor_list->TraceSensors("octtree", trace_category_)
+               ->OnChanged([this](std::string const& name, om::SensorPtr sensor) {
+                  TraceSensor(sensor);
+               })
+               ->OnRemoved([this](std::string const& name) {
+                  NOT_YET_IMPLEMENTED();
+               })
+               ->PushObjectState();
          }
-         break;
-      }
       }
       navgrid_.TrackComponent(type, component);
    }       
@@ -124,7 +133,7 @@ void OctTree::TraceRay(const csg::Ray3 &ray, RayQueryCallback cb)
       float t;
       auto mob = entity->GetComponent<om::Mob>();
       if (mob) {
-         csg::Cube3f box = mob->GetWorldAABB();
+         csg::Cube3f box = mob->GetWorldAabb();
          if (csg::Cube3Intersects(box, ray, t)) {
             cb(entity, t);
             return true;
@@ -139,7 +148,7 @@ void OctTree::FilterAllActors(std::function <bool(om::EntityPtr)> filter)
 {
    auto i = entities_.begin();
    while (i != entities_.end()) {
-      om::EntityPtr entity = i->second.lock();
+      om::EntityPtr entity = i->second.entity.lock();
       if (entity) {
          filter(entity);
          i++;
@@ -156,7 +165,7 @@ om::EntityPtr OctTree::FindFirstActor(om::EntityPtr root, std::function <bool(om
    }
    om::EntityContainerPtr container = root->GetComponent<om::EntityContainer>();
    if (container) {
-      for (const auto& child : container->GetChildren()) {
+      for (const auto& child : container->AllChildren()) {
          auto entity = child.second.lock();
          if (entity) {
             auto result = FindFirstActor(entity, filter);
@@ -381,11 +390,11 @@ bool OctTree::UpdateSensor(om::SensorPtr sensor)
    std::vector<dm::ObjectId> intersects;
    auto i = entities_.begin();
    while (i != entities_.end()) {
-      auto entity = i->second.lock();
+      om::EntityPtr entity = i->second.entity.lock();
       if (entity) {
-         auto mob = entity->GetComponent<om::Mob>();
+         om::MobPtr mob = entity->GetComponent<om::Mob>();
          if (mob) {
-            auto box = mob->GetWorldAABB();
+            csg::Cube3f const& box = mob->GetWorldAabb();
             if (cube.Intersects(box)) {
                intersects.push_back(entity->GetObjectId());
             }
@@ -416,20 +425,6 @@ void OctTree::UpdateSensors()
       } else {
          i = sensors_.erase(i);
       }
-   }
-}
-
-void OctTree::UpdateEntityContainer(om::EntityContainerPtr container)
-{
-   const auto& children = container->GetChildren();
-
-   auto on_change = [=](const dm::ObjectId, const om::EntityRef e) {
-      TraceEntity(e.lock());
-   };
-   guards_ += children.TraceMapChanges("octtree entity children checking", on_change, nullptr);
-
-   for (const auto& entry : children) {
-      TraceEntity(entry.second.lock());
    }
 }
 

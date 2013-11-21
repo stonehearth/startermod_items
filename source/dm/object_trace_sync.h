@@ -12,12 +12,9 @@ class ObjectTraceSync : public ObjectTrace<T>,
                         public TraceSync
 {
 public:
-   ObjectTraceSync(const char* reason) : ObjectTrace(reason) { }
-
-private:
-   void NotifyObjectChanged()
+   ObjectTraceSync(const char* reason, Object const& o, Store const& store) :
+      ObjectTrace(reason, o, store)
    {
-      SignalModified();
    }
 };
 

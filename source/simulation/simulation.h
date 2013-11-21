@@ -123,7 +123,9 @@ private:
    rpc::ProtobufReactorPtr     protobuf_reactor_;
    std::vector<tesseract::protocol::Update>  buffered_updates_;
 
-   dm::StreamerPtr      streamer_;
+   dm::StreamerPtr         streamer_;
+   dm::TracerSyncPtr       object_model_traces_;
+   dm::TracerSyncPtr       pathfinder_traces_;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

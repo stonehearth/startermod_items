@@ -75,6 +75,7 @@ public:
 
 private:
    typedef std::vector<TraceRef> TraceList;
+   typedef std::vector<AllocTraceRef> AllocTraceList;
    typedef std::unordered_map<ObjectId, TraceList> TraceMap;
 
    typedef std::unordered_map<int, TracerPtr> TracerMap;
@@ -141,13 +142,13 @@ public:
       auto tracer = GetTracer(category); \
       switch (tracer->GetType()) { \
       case Tracer::SYNC: \
-         trace = std::static_pointer_cast<TracerSync>(tracer)->Trace ## Cls ## Changes(reason, o); \
+         trace = std::static_pointer_cast<TracerSync>(tracer)->Trace ## Cls ## Changes(reason, *this, o); \
          break; \
       case Tracer::BUFFERED: \
-         trace = std::static_pointer_cast<TracerBuffered>(tracer)->Trace ## Cls ## Changes(reason, o); \
+         trace = std::static_pointer_cast<TracerBuffered>(tracer)->Trace ## Cls ## Changes(reason, *this, o); \
          break; \
       case Tracer::STREAMER: \
-         trace = std::static_pointer_cast<Streamer>(tracer)->Trace ## Cls ## Changes(reason, o); \
+         trace = std::static_pointer_cast<Streamer>(tracer)->Trace ## Cls ## Changes(reason, *this, o); \
          break; \
       default: \
          throw std::logic_error(BUILD_STRING("unknown tracer type " << tracer->GetType())); \
@@ -171,6 +172,8 @@ public:
    TRACE_TYPE_METHOD(Array)
    TRACE_TYPE_METHOD(Map)
 
+   AllocTracePtr TraceAlloc(const char* reason, int category);
+
    TracerPtr GetTracer(int category)
    {
       auto i = tracers_.find(category);
@@ -180,13 +183,52 @@ public:
       return i->second;
    }
 
-   void AddTracer(int category, TracerPtr set)
+   void AddTracer(TracerPtr set, int category)
    {
       auto entry = tracers_.insert(std::make_pair(category, set));
       if (entry.second) {
          throw std::logic_error(BUILD_STRING("duplicate tracer category " << category));
       }
    }
+
+   void PushAllocState(AllocTrace& trace) const;
+
+   template <typename T>
+   void PushObjectState(ObjectTrace<T>& trace, ObjectId id) const
+   {
+      auto i = objects_.find(id);
+      if (i != objects_.end()) {
+         trace.NotifyObjectState();
+      }
+   }
+
+   template <typename T>
+   void PushBoxedState(BoxedTrace<T>& trace, ObjectId id) const
+   {
+      auto i = objects_.find(id);
+      if (i != objects_.end()) {
+         trace.NotifyObjectState(static_cast<T const*>(i->second)->Get());
+      }
+   }
+
+   template <typename T>
+   void PushSetState(SetTrace<T>& trace, ObjectId id) const
+   {
+      auto i = objects_.find(id);
+      if (i != objects_.end()) {
+         trace.NotifyObjectState(static_cast<T const*>(i->second)->GetContainer());
+      }
+   }
+
+   template <typename T>
+   void PushMapState(MapTrace<T>& trace, ObjectId id) const
+   {
+      auto i = objects_.find(id);
+      if (i != objects_.end()) {
+         trace.NotifyObjectState(static_cast<T const*>(i->second)->GetContainer());
+      }
+   }
+
 
 protected: // Internal interface for Objects only
    friend Object;
@@ -219,15 +261,15 @@ private:
    TraceId        nextTraceId_;
    lua_State*     L_;
 
-   std::vector<ObjectRef>  alloced_;
    std::vector<ObjectId>   destroyed_;
 
    std::unordered_map<ObjectId, Object*>                     objects_;
    std::unordered_map<ObjectType, ObjectAllocFn>             allocators_;
    mutable std::unordered_map<ObjectId, DynamicObject>       dynamicObjects_;
 
-   TraceMap     traces_;
-   TracerMap    tracers_;
+   TraceMap       traces_;
+   TracerMap      tracers_;
+   AllocTraceList alloc_traces_;
 };
 
 

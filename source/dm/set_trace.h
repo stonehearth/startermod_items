@@ -7,7 +7,7 @@
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename T>
-class SetTrace : public Trace
+class SetTrace : public TraceImpl<SetTrace<T>>
 {
 public:
    typedef typename T::Value     Value;
@@ -17,19 +17,33 @@ public:
    typedef std::function<void(ValueList const& added, ValueList const& removed)> UpdatedCb;
    
 public:
-   void OnAdded(AddedCb added)
+   SetTrace(const char* reason, Object const& o, Store const& store) :
+      TraceImpl(reason, o, store)
+   {
+   }
+
+   std::shared_ptr<SetTrace> OnAdded(AddedCb added)
    {
       added_ = added;
+      return shared_from_this();
    }
 
-   void OnRemoved(RemovedCb removed)
+   std::shared_ptr<SetTrace> OnRemoved(RemovedCb removed)
    {
       removed_ = removed;
+      return shared_from_this();
    }
 
-   void OnUpdated(UpdatedCb updated)
+   std::shared_ptr<SetTrace> OnUpdated(UpdatedCb updated)
    {
       updated_ = updated;
+      return shared_from_this();
+   }
+
+   std::shared_ptr<SetTrace> PushObjectState()
+   {
+      GetStore().PushSetState<T>(*this, GetObjectId());
+      return shared_from_this();
    }
 
 protected:
@@ -44,8 +58,8 @@ protected:
 
    void SignalAdded(Value const& value) 
    {
-      if (added) {
-         added_(value)
+      if (added_) {
+         added_(value);
       } else if (updated_) {
          NOT_YET_IMPLEMENTED();
       }
@@ -54,7 +68,7 @@ protected:
    void SignalUpdated(ValueList const& added, ValueList const& removed)
    {
       if (updated_) {
-         update_(added, removed);
+         updated_(added, removed);
       } else {
          for (const auto& value : added) {
             SignalAdded(value);
@@ -70,6 +84,10 @@ private:
    friend Store;
    virtual void NotifyRemoved(Value const& value);
    virtual void NotifyAdded(Value const& value);
+   void NotifyObjectState(typename T::ContainerType const& contents)
+   {
+      SignalUpdated(contents, ValueList());
+   }
 
 private:
    RemovedCb      removed_;

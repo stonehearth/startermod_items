@@ -1,12 +1,12 @@
-#ifndef _RADIANT_OM_LUA_DATA_BINDING_H
-#define _RADIANT_OM_LUA_DATA_BINDING_H
+#ifndef _RADIANT_OM_LUA_DATA_STORE_H
+#define _RADIANT_OM_LUA_DATA_STORE_H
 
 #include "lib/lua/bind.h"
 #include "om/namespace.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
 
-struct LuaDataBinding {
+struct LuaDataStore {
    static luabind::scope RegisterLuaTypes(lua_State* L);
 };
 

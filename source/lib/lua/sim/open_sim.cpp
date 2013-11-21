@@ -9,7 +9,7 @@
 #include "om/entity.h"
 #include "om/stonehearth.h"
 #include "om/region.h"
-#include "om/data_binding.h"
+#include "om/components/data_store.ridl.h"
 #include "lib/voxel/qubicle_brush.h"
 #include "lib/json/core_json.h"
 
@@ -68,10 +68,10 @@ std::shared_ptr<T> Sim_AllocObject()
    return Simulation::GetInstance().GetStore().AllocObject<T>();
 }
 
-om::DataBindingPPtr Sim_AllocDataStore(lua_State* L)
+om::DataStorePtr Sim_AllocDataStore(lua_State* L)
 {
    // make sure we return the strong pointer version
-   om::DataBindingPPtr db = Sim_AllocObject<om::DataBindingP>();
+   om::DataStorePtr db = Sim_AllocObject<om::DataStore>();
    db->SetDataObject(newtable(L));
    return db;
 }

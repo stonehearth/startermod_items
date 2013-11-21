@@ -8,8 +8,7 @@ using namespace ::radiant::om;
 void RegionCollisionShape::ExtendObject(json::Node const& obj)
 {
    if (obj.has("region")) {
-      Region3BoxedPtr region = GetStore().AllocObject<Region3Boxed>();
-      region->Modify() = obj.get<csg::Region3>("region", csg::Region3());
-      SetRegion(region);
+      region_ = GetStore().AllocObject<Region3Boxed>();
+      (*region_)->Set(obj.get("region", csg::Region3()));
    }
 }

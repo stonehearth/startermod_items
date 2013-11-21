@@ -10,8 +10,9 @@ template <typename M>
 class ArrayTraceSync : public ArrayTrace<M>
 {
 public:
-   ArrayTraceSync(const char* reason) :
-      ArrayTrace(reason)
+public:
+   ArrayTraceSync(const char* reason, Object const& o, Store const& store) :
+      ArrayTrace(reason, o, store)
    {
    }
 

@@ -10,8 +10,9 @@ template <typename M>
 class BoxedTraceSync : public BoxedTrace<M>
 {
 public:
-   BoxedTraceSync(const char* reason) :
-      BoxedTrace(reason)
+public:
+   BoxedTraceSync(const char* reason, Object const& o, Store const& store) :
+      BoxedTrace(reason, o, store)
    {
    }
 

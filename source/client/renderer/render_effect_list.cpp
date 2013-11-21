@@ -65,20 +65,23 @@ RenderEffectList::RenderEffectList(RenderEntity& entity, om::EffectListPtr effec
 {
    ASSERT(effectList);
 
-   auto added = std::bind(&RenderEffectList::AddEffect, this, std::placeholders::_1);
-   auto removed = std::bind(&RenderEffectList::RemoveEffect, this, std::placeholders::_1);
+   effects_list_trace_ = \
+      effectList->TraceEffects("render", RENDER_TRACES)
+                     ->OnUpdated([this](std::vector<om::EffectPtr> const& added,
+                                        std::vector<om::EffectPtr> const& removed) {
+                        for (om::EffectPtr e : added) {
+                           AddEffect(e);
+                        }
+                        for (om::EffectPtr e : removed) {
+                           RemoveEffect(e);
+                        }
+                     })
+                     ->PushObjectState();
 
-   auto &effects = effectList->GetEffects();
-
-   tracer_ += effects.TraceSetChanges("render rig rigs", added, removed);
-   tracer_ += Renderer::GetInstance().OnRenderFrameStart([this](FrameStartInfo const& info) {
+   renderer_guard_ += Renderer::GetInstance().OnRenderFrameStart([this](FrameStartInfo const& info) {
       perfmon::TimelineCounterGuard tcg("update effects");
       UpdateEffects(info);
    });
-
-   for (const om::EffectPtr effect : effects) {
-      AddEffect(effect);
-   }
 }
 
 RenderEffectList::~RenderEffectList()
@@ -190,7 +193,7 @@ RenderAnimationEffect::RenderAnimationEffect(RenderEntity& e, om::EffectPtr effe
    animationName_ = node["animation"].as_string();
    
    // compute the location of the animation
-   std::string animationTable = *e.GetEntity()->GetComponent<om::RenderInfo>()->GetAnimationTable();
+   std::string animationTable = e.GetEntity()->GetComponent<om::RenderInfo>()->GetAnimationTable();
    json::Node json = res::ResourceManager2::GetInstance().LookupJson(animationTable);
    std::string animationRoot = json.get<std::string>("animation_root", "");
 
@@ -415,6 +418,7 @@ RenderAttachItemEffect::RenderAttachItemEffect(RenderEntity& e, om::EffectPtr ef
 
       auto i = node.find("render_info");
       if (i != node.end()) {
+         // xxx: can we get rid of this abomination? -- tony
          auto j = i->find("model_variant");
          if (j != i->end()) {
             model_variant_override_ = j->as_string();
@@ -507,7 +511,7 @@ FloatingCombatTextEffect::FloatingCombatTextEffect(RenderEntity& e, om::EffectPt
    if (entity) {
       om::RenderInfoPtr render_info = entity->GetComponent<om::RenderInfo>();
       if (render_info) {
-         std::string animationTableName = *render_info->GetAnimationTable();
+         std::string animationTableName = render_info->GetAnimationTable();
 
          json::Node json = res::ResourceManager2::GetInstance().LookupJson(animationTableName);
          json::Node cs = json.get<JSONNode>("collision_shape", JSONNode());

@@ -37,7 +37,8 @@ public:
    om::DeepRegionGuardPtr     region_guard_;
    phys::TerrainChangeCbId    collision_cb_id_;
    csg::Region3               world_space_adjacent_region_;
-   std::vector<dm::TracePtr>  traces_;
+   dm::TracePtr               moving_trace_;
+   dm::TracePtr               transform_trace_;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

@@ -31,6 +31,7 @@ class Streamer;
 class Receiver;
 
 class Record;
+class AllocTrace;
 template <typename T> class ObjectTrace;
 template <typename T> class RecordTrace;
 template <typename T> class BoxedTrace;
@@ -46,6 +47,7 @@ DECLARE_SHARED_POINTER_TYPES(TraceBuffered)
 DECLARE_SHARED_POINTER_TYPES(Tracer)
 DECLARE_SHARED_POINTER_TYPES(TracerSync)
 DECLARE_SHARED_POINTER_TYPES(TracerBuffered)
+DECLARE_SHARED_POINTER_TYPES(AllocTrace)
 DECLARE_SHARED_POINTER_TYPES(Streamer)
 DECLARE_SHARED_POINTER_TYPES(Receiver)
 
@@ -60,5 +62,6 @@ END_RADIANT_DM_NAMESPACE
 // lib/json does it). - tony
 #include "protocols/store.pb.h"
 #include "dm_save_impl.h"
+#include "trace_categories.h"
 
 #endif //  _RADIANT_DM_NAMESPACE_H

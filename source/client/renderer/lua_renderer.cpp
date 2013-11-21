@@ -5,6 +5,7 @@
 #include "lua_renderer.h"
 #include "h3d_resource_types.h"
 #include "lib/json/core_json.h"
+#include "lib/lua/register.h"
 #include "Horde3DRadiant.h"
 
 using namespace luabind;

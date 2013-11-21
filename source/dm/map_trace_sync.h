@@ -10,8 +10,9 @@ template <typename M>
 class MapTraceSync : public MapTrace<M>
 {
 public:
-   MapTraceSync(const char* reason) :
-      MapTrace(reason)
+public:
+   MapTraceSync(const char* reason, Object const& o, Store const& store) :
+      MapTrace(reason, o, store)
    {
    }
 

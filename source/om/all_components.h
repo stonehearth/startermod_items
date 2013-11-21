@@ -14,7 +14,6 @@
 #include "om/components/target_tables.ridl.h"
 #include "om/components/destination.ridl.h"
 #include "om/components/carry_block.ridl.h"
-#include "om/components/paperdoll.ridl.h"
 #include "om/components/unit_info.ridl.h"
 #include "om/components/item.ridl.h"
 #include "om/components/lua_components.h"

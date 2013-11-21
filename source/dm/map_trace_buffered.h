@@ -11,6 +11,11 @@ template <typename M>
 class MapTraceBuffered : public TraceBuffered,
                          public MapTrace<M> {
 public:
+   MapTraceBuffered(const char* reason, Object const& o, Store const& store) :
+      MapTrace(reason, o, store)
+   {
+   }
+
    void Flush()
    {
       SignalUpdated(changed_, removed_);
@@ -29,6 +34,13 @@ private:
    {
       stdutil::FastRemove(removed_, key);
       changed_[key] = value;
+   }
+
+   void NotifyObjectState(typename M::ContainerType const& contents) override
+   {
+      changed_.clear();
+      removed_.clear();
+      MapTrace<M>::PushObjectState(contents);
    }
 
 private:

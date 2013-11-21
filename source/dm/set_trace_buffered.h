@@ -11,6 +11,11 @@ template <typename M>
 class SetTraceBuffered : public TraceBuffered,
                          public SetTrace<M> {
 public:
+   SetTraceBuffered(const char* reason, Object const& o, Store const& store) :
+      SetTrace(reason, o, store)
+   {
+   }
+
    void Flush()
    {
       SignalUpdated(added_, removed_);
@@ -29,6 +34,14 @@ private:
    {
       stdutil::FastRemove(added_, value);
       removed_.push_back(value);
+   }
+
+
+   void NotifyObjectState(typename M::ContainerType const& contents) override
+   {
+      added_.clear();
+      removed_.clear();
+      SetTrace<M>::PushObjectState(contents);
    }
 
 private:

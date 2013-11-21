@@ -11,6 +11,11 @@ template <typename M>
 class ArrayTraceBuffered : public TraceBuffered,
                            public ArrayTrace<M> {
 public:
+   ArrayTraceBuffered(const char* reason, Object const& o, Store const& store) :
+      ArrayTrace(reason, o, store)
+   {
+   }
+
    void Flush()
    {
       SignalUpdated(changed_);

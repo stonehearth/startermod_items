@@ -9,6 +9,7 @@ class TraceBuffered
 {
 public:
    virtual void Flush() = 0;
+   virtual void SaveDeltas(Protocol::Object* msg) = 0;
 };
 
 END_RADIANT_DM_NAMESPACE

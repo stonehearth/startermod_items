@@ -4,6 +4,8 @@
 #include "trace_object_router.h"
 #include "om/object_formatter/object_formatter.h"
 #include "dm/object.h"
+#include "dm/store.h"
+#include "dm/object_trace.h"
 
 using namespace ::radiant;
 using namespace ::radiant::rpc;
@@ -42,11 +44,11 @@ ReactorDeferredPtr TraceObjectRouter::GetTrace(Trace const& trace)
 {
    auto i = traces_.find(trace.route);
    if (i != traces_.end()) {
-      ObjectTraceEntry &ote = i->second;
-      dm::ObjectPtr obj = ote.o.lock();
-      ReactorDeferredPtr d = ote.d.lock();
-      if (obj && d) {
-         return d;
+      ObjectTraceEntry &entry = i->second;
+      dm::ObjectPtr obj = entry.obj.lock();
+      ReactorDeferredPtr deferred = entry.deferred.lock();
+      if (obj && deferred) {
+         return deferred;
       }
       traces_.erase(i);
    }
@@ -61,23 +63,22 @@ ReactorDeferredPtr TraceObjectRouter::InstallTrace(Trace const& trace, dm::Objec
       return nullptr;
    }
 
-   ReactorDeferredPtr d = std::make_shared<ReactorDeferred>(trace.desc());
-   ObjectTraceEntry ote(obj, d);
+   ReactorDeferredPtr deferred = std::make_shared<ReactorDeferred>(trace.desc());
+   ObjectTraceEntry& entry = traces_[uri];
+   entry.obj = obj;
+   entry.deferred = deferred;
+   entry.trace = obj->TraceObjectChanges("rpc", dm::RPC_TRACES)
+                        ->OnModified([this, uri, entry]() {
+                           auto obj = entry.obj.lock();
+                           auto deferred = entry.deferred.lock();
+                           if (obj && deferred) {
+                              JSONNode data = om::ObjectFormatter().ObjectToJson(obj);
+                              deferred->Notify(data);
+                           } else {
+                              traces_.erase(uri);
+                           }
+                        })
+                        ->PushObjectState();
 
-   auto fireTrace = [this, uri, ote]() {
-      auto obj = ote.o.lock();
-      auto d = ote.d.lock();
-      if (obj && d) {
-         JSONNode data = om::ObjectFormatter().ObjectToJson(obj);
-         d->Notify(data);
-      } else {
-         traces_.erase(uri);
-         guards_.erase(uri);
-      }
-   };
-   traces_[uri] = ote;
-   guards_[uri] = obj->TraceObjectChanges(reason, fireTrace);
-   fireTrace();
-
-   return d;
+   return deferred;
 }

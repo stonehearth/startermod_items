@@ -16,6 +16,7 @@ public:
    typedef K Key;
    typedef V Value;
    typedef std::pair<K, V> Entry;
+   typedef std::unordered_map<K, V, Hash> ContainerType;
 
    Map() : Object() { }
 
@@ -39,7 +40,6 @@ public:
       }
    }
 
-   typedef std::unordered_map<K, V, Hash> ContainerType;
 
    int GetSize() const { return items_.size(); }
    bool IsEmpty() const { return items_.empty(); }
@@ -86,6 +86,13 @@ public:
 
    std::ostream& ToString(std::ostream& os) const {
       return (os << "(Map size:" << items_.size() << ")");
+   }
+
+private:
+   friend Store;
+   ContainerType const& GetContainer() const
+   {
+      return items_;
    }
 
 private:

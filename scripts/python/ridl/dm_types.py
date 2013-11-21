@@ -21,6 +21,7 @@ class Set(ridl.Type):
       self.add = kwargs.get('add', 'define')
       self.remove = kwargs.get('remove', 'define')
       self.trace = kwargs.get('trace', 'define')
+      self.iterate = kwargs.get('iterate', None)
       self.singular_name = kwargs.get('singular_name', None)
       self.value = value
       self.name = "dm::Set<%s>" % value.name
@@ -29,6 +30,7 @@ class Array(ridl.Type):
    def __init__(self, value, count, **kwargs):
       self.set = kwargs.get('set', 'define')
       self.trace = kwargs.get('trace', 'define')
+      self.iterate = kwargs.get('iterate', None)
       self.singular_name = kwargs.get('singular_name', None)
       self.value = value
       self.name = "dm::Array<%s, %d>" % (value.name, count)
@@ -39,6 +41,7 @@ class Map(object):
       self.remove = kwargs.get('remove', 'define')
       self.get = kwargs.get('get', 'define')
       self.trace = kwargs.get('trace', 'define')
+      self.iterate = kwargs.get('iterate', None)
       self.singular_name = kwargs.get('singular_name', None)
       self.key = key
       self.value = value

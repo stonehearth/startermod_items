@@ -25,15 +25,13 @@ private:
 
 private:
    struct ObjectTraceEntry {
-      dm::ObjectRef           o;
-      ReactorDeferredRef      d;
-      ObjectTraceEntry() {}
-      ObjectTraceEntry(dm::ObjectPtr op, ReactorDeferredPtr dp) : o(op), d(dp) { } 
+      dm::ObjectRef           obj;
+      ReactorDeferredRef      deferred;
+      dm::TracePtr            trace;
    };
 private:
    dm::Store&                                          store_;
    std::unordered_map<std::string, ObjectTraceEntry>   traces_;
-   std::unordered_map<std::string, core::Guard>          guards_;
    std::unordered_map<std::string, dm::ObjectRef>      namedObjects_;
 };
 

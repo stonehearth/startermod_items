@@ -12,7 +12,7 @@ RenderDestination::RenderDestination(const RenderEntity& entity, om::Destination
    entity_ = &entity;
    destination_ = destination;
 
-   tracer_ += Renderer::GetInstance().OnShowDebugShapesChanged([this](bool enabled) {
+   renderer_guard_ += Renderer::GetInstance().OnShowDebugShapesChanged([this](bool enabled) {
       if (enabled) {
          RenderDestinationRegion();
       } else {
@@ -24,12 +24,12 @@ RenderDestination::RenderDestination(const RenderEntity& entity, om::Destination
 void RenderDestination::RenderDestinationRegion()
 {
    H3DNode node = entity_->GetNode();
-   region_guard_ = CreateRegionDebugShape(node, regionDebugShape_, destination_->GetRegion(), csg::Color4(128, 128, 128, 128));
+   region_trace_ = CreateRegionDebugShape(node, regionDebugShape_, destination_->GetRegion(), csg::Color4(128, 128, 128, 128));
 }
 
 void RenderDestination::RemoveDestinationRegion()
 {
-   region_guard_ = nullptr;
+   region_trace_ = nullptr;
    regionDebugShape_.reset(0);
 }
 

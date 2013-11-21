@@ -1,10 +1,9 @@
 #include "pch.h"
 #include "renderer.h"
 #include "render_carry_block.h"
-#include "om/components/carry_block.ridl.ridl.h"
 #include "om/entity.h"
 #include "client/client.h"
-#include "dm/store.h"
+#include "om/components/carry_block.ridl.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -16,7 +15,11 @@ RenderCarryBlock::RenderCarryBlock(RenderEntity& entity, om::CarryBlockPtr carry
 {
    carryBone_ = entity_.GetSkeleton().GetSceneNode("carry");
 
-   tracer_ += carryBlock->TraceCarrying("render carry block", std::bind(&RenderCarryBlock::UpdateCarrying, this));
+   trace_ = carryBlock->TraceChanges("render", RENDER_TRACES)
+                           ->OnModified([this]() {
+                                 UpdateCarrying();
+                           });
+   
    UpdateCarrying();
 }
 

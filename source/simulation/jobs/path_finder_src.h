@@ -27,7 +27,8 @@ public:
    om::EntityRef              entity_;
    bool                       moving_;
    core::Guard                guards_;
-   std::vector<dm::TracePtr>  traces_;
+   dm::TracePtr               transform_trace_;
+   dm::TracePtr               moving_trace_;
    phys::TerrainChangeCbId    collision_cb_id_;
 };
 

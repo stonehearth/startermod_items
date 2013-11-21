@@ -5,7 +5,6 @@
 #include "protocols/store.pb.h"
 #include "protocols/tesseract.pb.h"
 #include "protocol.h"
-#include "tracer_buffered.h"
 #include "map_loader.h"
 #include "record_loader.h"
 #include "set_loader.h"
@@ -14,25 +13,28 @@
 
 BEGIN_RADIANT_DM_NAMESPACE
 
-class Streamer : public TracerBuffered
+class Streamer
 {
 public:
    //using ::radiant::tesseract::protocol;
+   Streamer(Store const& store, int category, protocol::SendQueue* queue)
+   {
+      alloc_trace_ = store.TraceAlloc()
+         ->
+   }
 
-   Streamer(Store& store, int category);
-   TracerType GetType() const override;
 
-   // xxx: this should move to the constructor once the arbiter is smart
-   // enough to let the simulation handle queue lifetime.
-   void Flush(protocol::SendQueue* queue);
+   void Flush();
 
+   // xxx: THIS IS THE ONE!
+   
    template <typename C>
-   std::shared_ptr<MapTrace<C>> TraceMapChanges(const char* reason, C const& map)
+   std::shared_ptr<MapTrace<C>> TraceMapChanges(const char* reason, Store const& store, C const& map)
    {
       ObjectId id = map.GetObjectId();
       SaveObjectState(map);
 
-      auto trace = TracerBuffered::TraceMapChanges(reason, map);
+      auto trace = TracerBuffered::TraceMapChanges(reason, store, map);
       trace->OnUpdated([this, id](MapTrace<C>::ChangeMap const& changed, MapTrace<C>::KeyList const& removed) {
          Protocol::Object* msg = StartUpdate(id);
          if (msg) {
@@ -44,12 +46,29 @@ public:
    }
 
    template <typename C>
-   std::shared_ptr<SetTrace<C>> TraceSetChanges(const char* reason, C const& set)
+   std::shared_ptr<MapTrace<C>> TraceMapChanges(const char* reason, Store const& store, C const& map)
+   {
+      ObjectId id = map.GetObjectId();
+      SaveObjectState(map);
+
+      auto trace = TracerBuffered::TraceMapChanges(reason, store, map);
+      trace->OnUpdated([this, id](MapTrace<C>::ChangeMap const& changed, MapTrace<C>::KeyList const& removed) {
+         Protocol::Object* msg = StartUpdate(id);
+         if (msg) {
+            EncodeDelta(changed, removed, msg);
+            FinishUpdate(msg);
+         }
+      });
+      return trace;
+   }
+
+   template <typename C>
+   std::shared_ptr<SetTrace<C>> TraceSetChanges(const char* reason, Store const& store, C const& set)
    {
       ObjectId id = map.GetObjectId();
       SaveObjectState(set);
 
-      auto trace = TracerBuffered::TraceSetChanges(reason, set);
+      auto trace = TracerBuffered::TraceSetChanges(reason, store, set);
       trace->OnUpdated([this, id](SetTrace<C>::ValueList const& added, SetTrace<C>::ValueList const& removed) {
          Protocol::Object* msg = StartUpdate(id);
          if (msg) {
@@ -61,12 +80,12 @@ public:
    }
 
    template <typename C>
-   std::shared_ptr<ArrayTrace<C>> TraceArrayChanges(const char* reason, C const& arr)
+   std::shared_ptr<ArrayTrace<C>> TraceArrayChanges(const char* reason, Store const& store, C const& arr)
    {
       ObjectId id = arr.GetObjectId();
       SaveObjectState(arr);
 
-      auto trace = TracerBuffered::TraceArrayChanges(reason, arr);
+      auto trace = TracerBuffered::TraceArrayChanges(reason, store, arr);
       trace->OnUpdated([this, id](ArraTrace<C>::ChangeMap const& changed) {
          Protocol::Object* msg = StartUpdate(id);
          if (msg) {
@@ -78,12 +97,12 @@ public:
    }
 
    template <typename C>
-   std::shared_ptr<BoxedTrace<C>> TraceBoxedChanges(const char* reason, C const& boxed)
+   std::shared_ptr<BoxedTrace<C>> TraceBoxedChanges(const char* reason, Store const& store, C const& boxed)
    {
       ObjectId id = boxed.GetObjectId();
       SaveObjectState(boxed);
 
-      auto trace = TracerBuffered::TraceBoxedChanges(reason, boxed);
+      auto trace = TracerBuffered::TraceBoxedChanges(reason, store, boxed);
       trace->OnChanged([this, id](BoxedTrace<C>::Value const& value) {
          Protocol::Object* msg = StartUpdate(id);
          if (msg) {
@@ -95,11 +114,11 @@ public:
    }
 
    template <typename C>
-   std::shared_ptr<RecordTrace<C>> TraceRecordChanges(const char* reason, C const& record)
+   std::shared_ptr<RecordTrace<C>> TraceRecordChanges(const char* reason, Store const& store, C const& record)
    {
       SaveObjectState(record);
       // Nothing to do for records aside from sending the initial layout
-      return TracerBuffered::TraceRecordChanges(reason, record);
+      return TracerBuffered::TraceRecordChanges(reason, store, record);
    }
 
 private:

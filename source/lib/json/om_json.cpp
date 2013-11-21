@@ -21,7 +21,7 @@ using namespace radiant::json;
       OM_OBJECT(TargetTableGroup,   target_table_group)
       OM_OBJECT(TargetTableEntry,   target_table_entry)
       OM_OBJECT(Clock,                 clock)
-      OM_OBJECT(ModelVariant,          model_variant)
+      OM_OBJECT(ModelLayer,            model_layer)
       OM_OBJECT(ModelVariants,         model_variants)
       OM_OBJECT(Terrain,               terrain)
       OM_OBJECT(VerticalPathingRegion, vertical_pathing_region)
@@ -29,7 +29,6 @@ using namespace radiant::json;
       OM_OBJECT(RenderInfo,            render_info)
       OM_OBJECT(SensorList,            sensor_list)
       OM_OBJECT(TargetTables,          target_tables)
-      OM_OBJECT(Paperdoll,             paperdoll)
       OM_OBJECT(Item,                  item)
       OM_OBJECT(CarryBlock,            carry_block)
 
@@ -79,7 +78,7 @@ template <> Node json::encode(om::EntityContainer const& obj)
    om::ObjectFormatter f;
    Node node;
 
-   for (auto const& entry : obj.GetChildren()) {
+   for (auto const& entry : obj.AllChildren()) {
       om::EntityPtr child = entry.second.lock();
       if (child) {
          node.set(stdutil::ToString(entry.first), f.GetPathToObject(child));
@@ -137,19 +136,9 @@ template <> Node json::encode(om::Destination const& obj)
    return node;
 }
 
-template <> Node json::encode(om::DataBinding const& obj)
+template <> Node json::encode(om::DataStore const& obj)
 {
    return obj.GetJsonData();
-}
-
-template <> Node json::encode(om::DataBindingP const& obj)
-{
-   return obj.GetJsonData();
-}
-
-template <> Node json::encode(om::JsonStore const& obj)
-{
-   return Node(obj.Get());
 }
 
 template <> Node json::encode(om::ErrorBrowser const& obj)
