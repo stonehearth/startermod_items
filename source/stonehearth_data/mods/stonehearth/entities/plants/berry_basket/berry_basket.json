@@ -1,0 +1,28 @@
+{
+   "extends": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "stacks" : 3,
+         "maxStacks" : 3
+      },
+      "model_variants": [
+         {
+            "models": [
+               "file(berry_basket.qb)"
+            ]
+         }
+      ],
+      "unit_info": {
+         "name": "Basket of Berries",
+         "description": "Creme of the caveman diet.",
+         "icon" : "file(berry_basket.png)"
+      },
+      "stonehearth:material" : {
+         "tags" :  "dye resource fruit food"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:serving_item" : "stonehearth:berry_plate"
+   }
+}

@@ -2,17 +2,14 @@ var stonehearthTipData = {};
 
 $(document).ready(function(){
 
-   $(top).on('show_tip.radiant', function (_, data) {
+   $(top).on('radiant_show_tip', function (_, data) {
       destroyCurrentTip();
-
-      //$(top).trigger('hide_main_actionbar.radiant');
       stonehearthTipData.currentTip = App.gameView.addView(App.StonehearthTipPopup, data);
-
    });
 
-   $(top).on('hide_tip.radiant', function (_, e) {
+   $(top).on('radiant_hide_tip', function (_, e) {
       destroyCurrentTip();
-      //$(top).trigger('show_main_actionbar.radiant');
+      //$(top).trigger('radiant_show_main_actionbar');
    });
 
    var destroyCurrentTip = function() {

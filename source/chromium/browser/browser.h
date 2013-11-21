@@ -164,7 +164,6 @@ private:
    CefRefPtr<CefBrowser>         browser_;
 
    std::mutex                    ui_lock_;
-   csg::Region2                  dirtyRegion_;
    PaintCb                       onPaint_;
    CursorChangeCb                cursorChangeCb_;
 

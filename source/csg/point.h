@@ -224,8 +224,8 @@ public:
    Point() { }
    Point(S x) : x(x) { }
 
-   static Point zero;
-   static Point one;
+   static const Point zero;
+   static const Point one;
 
    S Coord(int i) const { return (&x)[i]; }
    S& Coord(int i) { return (&x)[i]; }
@@ -250,8 +250,8 @@ public:
    Point() { }
    Point(S x, S y) : x(x), y(y) { }
 
-   static Point zero;
-   static Point one;
+   static const Point zero;
+   static const Point one;
 
    S Coord(int i) const { return (&x)[i]; }
    S& Coord(int i) { return (&x)[i]; }
@@ -278,11 +278,11 @@ public:
    Point(S x, S y, S z) : x(x), y(y), z(z) { }
    Point(protocol::point3f const& msg) { LoadValue(msg); }
 
-   static Point zero;
-   static Point one;
-   static Point unitX;
-   static Point unitY;
-   static Point unitZ;
+   static const Point zero;
+   static const Point one;
+   static const Point unitX;
+   static const Point unitY;
+   static const Point unitZ;
 
    S Coord(int i) const { return (&x)[i]; }
    S& Coord(int i) { return (&x)[i]; }
@@ -319,8 +319,8 @@ public:
    Point() { }
    Point(S x, S y, S z, S w) : x(x), y(y), z(z), w(w) { }
 
-   static Point zero;
-   static Point one;
+   static const Point zero;
+   static const Point one;
 
    S Coord(int i) const { return (&x)[i]; }
    S& Coord(int i) { return (&x)[i]; }

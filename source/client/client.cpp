@@ -254,9 +254,11 @@ void Client::GetConfigOptions()
 
 
 extern bool realtime;
-void Client::run()
+void Client::run(int server_port)
 {
    perfmon::BeginFrame();
+
+   server_port_ = server_port;
 
    hover_cursor_ = LoadCursor("stonehearth:cursors:hover");
    default_cursor_ = LoadCursor("stonehearth:cursors:default");
@@ -430,7 +432,7 @@ void Client::setup_connections()
    recv_queue_ = std::make_shared<protocol::RecvQueue>(_tcp_socket);
    send_queue_ = protocol::SendQueue::Create(_tcp_socket);
 
-   boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string("127.0.0.1"), 8888);
+   boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string("127.0.0.1"), server_port_);
    _tcp_socket.async_connect(endpoint, std::bind(&Client::handle_connect, this, std::placeholders::_1));
 }
 
@@ -789,7 +791,7 @@ void Client::SelectEntity(om::EntityPtr obj)
          std::string uri = om::ObjectFormatter().GetPathToObject(selectedObject_);
          data.push_back(JSONNode("selected_entity", uri));
       }
-      http_reactor_->QueueEvent("selection_changed.radiant", data);
+      http_reactor_->QueueEvent("radiant_selection_changed", data);
    }
 }
 
@@ -870,8 +872,7 @@ Client::Cursor Client::LoadCursor(std::string const& path)
    } else {
       std::shared_ptr<std::istream> is = res::ResourceManager2::GetInstance().OpenResource(filename);
       std::string buffer = io::read_contents(*is);
-
-      std::string tempname = boost::filesystem::unique_path().string();
+      std::string tempname = boost::filesystem::temp_directory_path().string() + boost::filesystem::unique_path().string();
       std::ofstream(tempname, std::ios::out | std::ios::binary).write(buffer.c_str(), buffer.size());
 
       HCURSOR hcursor = (HCURSOR)LoadImageA(GetModuleHandle(NULL), tempname.c_str(), IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);

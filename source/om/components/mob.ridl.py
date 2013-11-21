@@ -25,10 +25,12 @@ class Mob(Component):
    get_world_aabb = ridl.Method(csg.Cube3f()).const
    get_rotation = ridl.Method(csg.Quaternion()).const
    get_location = ridl.Method(csg.Point3f()).const
+   get_location = ridl.Method(csg.Point3f()).const
    get_grid_location = ridl.Method(csg.Point3()).const
    get_world_location = ridl.Method(csg.Point3f()).const
    get_world_grid_location = ridl.Method(csg.Point3()).const
    get_world_transform = ridl.Method(csg.Transform()).const
+   get_location_in_front = ridl.Method(csg.Point3f()).const
 
    _generate_construct_object = True
    _includes = [

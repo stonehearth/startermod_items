@@ -1,6 +1,8 @@
 
 App.ContainerView = Ember.ContainerView.extend({
 
+   _viewLookup: {},
+
    addView: function(type, options) {
       console.log("adding view " + type);
 
@@ -15,8 +17,13 @@ App.ContainerView = Ember.ContainerView.extend({
          this.pushObject(modalOverlay);
       }
 
+      this._viewLookup[type] = childView;
       this.pushObject(childView);
       return childView;
    },
+
+   getView: function(type) {
+      return this._viewLookup[type];
+   }
 
 });

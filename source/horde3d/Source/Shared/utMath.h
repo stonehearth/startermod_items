@@ -335,6 +335,21 @@ public:
 	{
 		return Vec4f( x * f, y * f, z * f, w * f );
 	}
+
+   Vec4f operator-( const Vec4f &v ) const 
+	{
+		return Vec4f( x - v.x, y - v.y, z - v.z, w - v.w );
+	}
+
+	Vec4f &operator-=( const Vec4f &v )
+	{
+		return *this = *this - v;
+	}
+
+   Vec3f xyz() const
+   {
+      return Vec3f(x, y, z);
+   }
 };
 
 
@@ -909,6 +924,19 @@ public:
 	{
 		return normal.dot( v ) + dist;
 	}
+
+   // -----------
+   // Comparisons
+   // -----------
+   bool operator==(const Plane& v) const
+   {
+      return normal == v.normal && v.dist == dist;
+   }
+
+   bool operator!=(const Plane& v) const
+   {
+      return normal != v.normal || v.dist != dist;
+   }
 };
 
 class Polygon

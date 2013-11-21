@@ -13,6 +13,7 @@
 #include "lib/voxel/qubicle_file.h"
 #include "lib/voxel/qubicle_brush.h"
 #include "pipeline.h"
+#include "Horde3D.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -191,7 +192,7 @@ std::string RenderRenderInfo::GetBoneName(std::string const& matrix_name)
    return bone;
 }
 
-void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string const& bone, voxel::QubicleMatrix const* matrix)
+void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string const& bone, voxel::QubicleMatrix const* matrix, float offset)
 {
    ASSERT(nodes_.find(bone) == nodes_.end());
 
@@ -219,17 +220,22 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
          h3dSetNodeParamI(mesh, H3DMesh::MatResI, material_.get());
       }
    }
+   h3dSetNodeParamI(node.get(), H3DModel::PolygonOffsetEnabledI, 1);
+   h3dSetNodeParamF(node.get(), H3DModel::PolygonOffsetF, 0, offset * 0.04f);
+   h3dSetNodeParamF(node.get(), H3DModel::PolygonOffsetF, 1, offset * 10.0f);
    h3dSetNodeTransform(node.get(), 0, 0, 0, 0, 0, 0, scale, scale, scale);
    nodes_[bone] = NodeMapEntry(matrix, node);
 }
 
 void RenderRenderInfo::AddMissingNodes(om::RenderInfoPtr render_info, FlatModelMap const& m)
 {
+   float offset = 0;
    auto i = m.begin();
    while (i != m.end()) {
       auto j = nodes_.find(i->first);
       if (j == nodes_.end() || i->second != j->second.matrix) {
-         AddModelNode(render_info, i->first, i->second);
+         AddModelNode(render_info, i->first, i->second, offset);
+         offset += 1.0f;
       }
       i++;
    }

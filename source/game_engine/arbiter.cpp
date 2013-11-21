@@ -30,11 +30,10 @@ static void* LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize)
 }
 
 arbiter::arbiter() :
-   _tcp_listen_socket(_io_service),
-   _tcp_acceptor(_io_service),
    _next_tick(0),
    sequence_number_(1),
-   paused_(false)
+   paused_(false),
+   _tcp_acceptor(nullptr)
 {
 }
 
@@ -58,8 +57,10 @@ arbiter::~arbiter()
 {
 }
 
-void arbiter::Run()
+void arbiter::Run(tcp::acceptor* acceptor, boost::asio::io_service* io_service)
 {
+   _tcp_acceptor = acceptor;
+   _io_service = io_service;
    Start();
    main();
 }
@@ -92,20 +93,14 @@ void arbiter::handle_accept(std::shared_ptr<tcp::socket> socket, const boost::sy
 
 void arbiter::start_accept()
 {
-   std::shared_ptr<tcp::socket> socket(new tcp::socket(_io_service));
+   std::shared_ptr<tcp::socket> socket(new tcp::socket(*_io_service));
    auto cb = bind(&arbiter::handle_accept, this, socket, std::placeholders::_1);
-   _tcp_acceptor.async_accept(*socket, cb);
+   _tcp_acceptor->async_accept(*socket, cb);
 }
 
 void arbiter::main()
 {
-   boost::asio::ip::tcp::resolver resolver(_io_service);
-   boost::asio::ip::tcp::resolver::query query("127.0.0.1", "8888");
-   boost::asio::ip::tcp::endpoint endpoint = *resolver.resolve(query);
-   _tcp_acceptor.open(endpoint.protocol());
-   _tcp_acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
-   _tcp_acceptor.bind(endpoint);
-   _tcp_acceptor.listen();
+   _tcp_acceptor->listen();
    start_accept();
 
    _simulation->CreateNew();
@@ -208,8 +203,8 @@ void arbiter::process_messages()
 {
    PROFILE_BLOCK();
 
-   _io_service.poll();
-   _io_service.reset();
+   _io_service->poll();
+   _io_service->reset();
 
    for (auto c : _clients) {
       c->recv_queue->Process<proto::Request>([=](proto::Request const& msg) -> bool {

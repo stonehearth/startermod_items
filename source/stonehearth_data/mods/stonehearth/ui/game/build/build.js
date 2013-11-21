@@ -9,10 +9,10 @@ $(document).ready(function(){
          console.dir(e)
       })
 
-   $(top).on("create_wall.radiant", function (_, e) {
+   $(top).on("radiant_create_wall", function (_, e) {
       radiant.call_obj(build_editor, 'place_new_wall');
    });
-   $(top).on("create_room.radiant", function (_, e) {
+   $(top).on("radiant_create_room", function (_, e) {
       radiant.call_obj(build_editor, 'create_room');
    });
 });
