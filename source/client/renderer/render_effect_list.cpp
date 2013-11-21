@@ -424,7 +424,7 @@ ActivityOverlayEffect::ActivityOverlayEffect(RenderEntity& e, om::EffectPtr effe
    Horde3D::HudElementNode* hud = h3dAddHudElementNode(e.GetNode(), "");
    getBoundsForGroupNode(&minX, &maxX, &minY, &maxY, e.GetNode());
    h3dSetNodeTransform(hud->getHandle(), 0, maxY - minY + 4, 0, 0, 0, 0, 1, 1, 1);
-   hud->addScreenspaceRect(overlayWidth, overlayHeight, -overlayWidth / 2.0f, 0, Horde3D::Vec4f(1, 1, 1, 1), mat);
+   hud->addScreenspaceRect(overlayWidth, overlayHeight, (int)(-overlayWidth / 2.0f), 0, Horde3D::Vec4f(1, 1, 1, 1), mat);
 
    overlayNode_ = H3DNodeUnique(hud->getHandle());
 }

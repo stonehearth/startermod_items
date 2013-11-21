@@ -5,7 +5,6 @@
 #include "renderer.h"
 #include "Horde3DUtils.h"
 #include "Horde3DRadiant.h"
-#include "horde3d\Source\Horde3DEngine\egHudElement.h"
 #include "glfw3.h"
 #include "glfw3native.h"
 #include "render_entity.h"
