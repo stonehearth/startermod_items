@@ -20,6 +20,7 @@ function Personality:__init(entity, data_store)
    self._data.log = {}
    self._data.daily_event_log = {}
    self._data_store = data_store
+   self._data_store:mark_changed()
 
    radiant.events.listen(calendar, 'stonehearth:sunset', self, self.on_sunset)
 end
@@ -68,6 +69,8 @@ function Personality:_add_log_entry(entry_title, entry_text)
    --For now, put the note in the event log. Eventually, put in UI
    local name = radiant.entities.get_display_name(self._entity)
    event_service:add_entry(name .. ': ' .. entry_text)
+
+   self._data_store:mark_changed()
 end
 
 return Personality

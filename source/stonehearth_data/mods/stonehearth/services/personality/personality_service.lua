@@ -51,6 +51,7 @@ function PersonalityService:get_activity_log(activity_name, personality_type)
          
          log_entry = self:_get_sequential_unused_from_table(log_data.logs, log_data.use_counter)
       end
+      log_data.use_counter = log_data.use_counter + 1
    end
    return prefix, log_entry
 end
