@@ -8,7 +8,7 @@ App.StonehearthStartMenuView = App.View.extend({
    menuActions: {
       createStockpile: {
          click: function () {
-            $(top).trigger('create_stockpile.radiant');
+            $(top).trigger('radiant_create_stockpile');
          }
       },
       buildCarpenterWorkshop: {
@@ -20,17 +20,17 @@ App.StonehearthStartMenuView = App.View.extend({
       },
       buildWallLoop: {
          click: function () {
-            $(top).trigger('create_wall.radiant');
+            $(top).trigger('radiant_create_wall');
          }         
       },
       buildRoom: {
          click: function () {
-            $(top).trigger('create_room.radiant');
+            $(top).trigger('radiant_create_room');
          }         
       },
       placeItem: {
          click: function () {
-            $(top).trigger('placement_menu.radiant');
+            $(top).trigger('radiant_show_placement_menu');
          }         
       }
    },

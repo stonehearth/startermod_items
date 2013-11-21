@@ -30,7 +30,7 @@ struct BoundingBox
    BoundingBox()
    {
       min = Vec3f(FLT_MAX, FLT_MAX, FLT_MAX);
-      max = Vec3f(FLT_MIN, FLT_MIN, FLT_MIN);
+      max = Vec3f(-FLT_MAX, -FLT_MAX, -FLT_MAX);
    }
 
    void addPoint(Vec3f& p)
@@ -106,7 +106,7 @@ struct BoundingBox
 	}
 
 
-	bool makeUnion( BoundingBox &b )
+	bool makeUnion( const BoundingBox &b )
 	{
 		bool changed = false;
 
@@ -156,6 +156,9 @@ public:
 	void calcAABB( Vec3f &mins, Vec3f &maxs ) const;
 
    void clipAABB(const BoundingBox& b, std::vector<Polygon>* results) const;
+
+   bool operator==(const Frustum& other) const;
+   bool operator!=(const Frustum& other) const;
 
 private:
 	Plane  _planes[6];  // Planes of frustum

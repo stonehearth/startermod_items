@@ -5,7 +5,7 @@ App.StonehearthCreateCampView = App.View.extend({
       if (!this.first) {
          /// xxx localize
          /*
-         $(top).trigger('show_tip.radiant', {
+         $(top).trigger('radiant_show_tip', {
             title : 'Choose your base camp location',
             description : '',
          });
@@ -33,7 +33,7 @@ App.StonehearthCreateCampView = App.View.extend({
       placeStockpile: function () {
          var self = this;
          self._hideCrate();
-         $(top).trigger('create_stockpile.radiant', {
+         $(top).trigger('radiant_create_stockpile', {
             callback : function() {
                setTimeout( function() {
                   self._gotoFinishStep();

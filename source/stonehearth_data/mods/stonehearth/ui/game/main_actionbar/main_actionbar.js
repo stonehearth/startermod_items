@@ -1,16 +1,5 @@
 var stonehearthMainActionbarElement = null;
 
-$(document).ready(function(){
-   $(top).on('show_main_actionbar.radiant', function (_, data) {
-      stonehearthMainActionbarElement.show();
-   });
-
-   $(top).on('hide_main_actionbar.radiant', function (_, e) {
-      stonehearthMainActionbarElement.hide();
-   });
-
-});
-
 App.StonehearthMainActionbarView = App.View.extend({
    templateName: 'stonehearthMainActionbar',
 
@@ -40,7 +29,7 @@ App.StonehearthMainActionbarView = App.View.extend({
                      icon: imagePath + 'stockpile.png',
                      hotkey: 's',
                      click: function () {
-                        $(top).trigger('create_stockpile.radiant');
+                        $(top).trigger('radiant_create_stockpile');
                      }
                   },
                   workshop: {
@@ -70,7 +59,7 @@ App.StonehearthMainActionbarView = App.View.extend({
                            icon: imagePath + 'stockpile.png',
                            hotkey: 'c',
                            click: function () {
-                              $(top).trigger('create_wall.radiant');
+                              $(top).trigger('radiant_create_wall');
                            }
                         }
                      }
@@ -80,7 +69,7 @@ App.StonehearthMainActionbarView = App.View.extend({
                      icon: imagePath + 'place_item.png',
                      hotkey: 'p',
                      click: function () {
-                        $(top).trigger('placement_menu.radiant');
+                        $(top).trigger('radiant_show_placement_menu');
                      }
                   }
                }

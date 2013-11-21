@@ -1,6 +1,6 @@
 $(document).ready(function(){
 
-   $(top).on("promote_to_profession.stonehearth", function (_, e) {
+   $(top).on("radiant_promote_to_profession", function (_, e) {
       var view = App.gameView.addView(App.StonehearthClassesPromoteView, { 
          talisman: e.entity,
          promotionClass : 'XXX_TODO_INSERT_CLASS_NAME'
@@ -12,7 +12,7 @@ $(document).ready(function(){
 // component
 App.StonehearthClassesPromoteView = App.View.extend({
    templateName: 'stonehearthClassesPromote',
-   modal: true,
+   modal: false,
 
    init: function() {
       this._super();
@@ -32,33 +32,32 @@ App.StonehearthClassesPromoteView = App.View.extend({
                });
          });
 
-/*
-      $(top).on("selection_changed.radiant", function (_, data) {
-         
+      App.gameView.getView(App.StonehearthUnitFrameView).supressSelection(true);
+      $(top).on("radiant_selection_changed.promote_view", function (_, data) {
+         var foundWorker = false;
          for (var i = 0; i < self._workers.length; i++) {
             var uri = self._workers[i]['__self']
             if (uri == data.selected_entity) {
                self.set('context.citizenToPromote', self._workers[i]);
-               self._gotoApproveStep()
+               foundWorker = true;
                break;
             }
          }
+
+         if (foundWorker) {
+            self._gotoApproveStep();
+         } else {
+            self.destroy();
+         }
       });
-*/
+
    },
 
    destroy: function() {
-      var self = this;
-
       this.set('context.citizenToPromote', null);
+      $(top).off("radiant_selection_changed.promote_view");
+      App.gameView.getView(App.StonehearthUnitFrameView).supressSelection(false);
       this._super();
-
-      /*
-      $('#crafterPromoteScroll').fadeOut(function() {
-         //...
-      });
-      */
-
    },
 
    didInsertElement: function() {

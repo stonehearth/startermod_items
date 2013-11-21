@@ -209,6 +209,7 @@ void Frustum::calcAABB( Vec3f &mins, Vec3f &maxs ) const
 	}
 }
 
+
 void Frustum::clipAABB(const BoundingBox& box, std::vector<Polygon>* results) const
 {
    std::vector<Polygon> initialQuads;
@@ -232,6 +233,33 @@ void Frustum::clipAABB(const BoundingBox& box, std::vector<Polygon>* results) co
          results->push_back(temp);
       }
    }
+}
+
+
+bool Frustum::operator==(const Frustum& other) const
+{
+   for (int i = 0; i < 6; i++)
+   {
+      if (other._planes[i] != _planes[i])
+      {
+         return false;
+      }
+   }
+
+   return true;
+}
+
+bool Frustum::operator!=(const Frustum& other) const
+{
+   for (int i = 0; i < 6; i++)
+   {
+      if (other._planes[i] != _planes[i])
+      {
+         return true;
+      }
+   }
+
+   return false;
 }
 
 }  // namespace

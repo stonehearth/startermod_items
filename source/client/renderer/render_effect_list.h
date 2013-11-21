@@ -115,6 +115,37 @@ private:
    RenderEntity&      entity_;
    H3DNodeUnique      lightNode_;
 };
+class ::radiant::horde3d::DecalNode;
+
+/* For creating activity effects from a given JSON file. */
+struct ActivityOverlayEffect : public RenderEffect {
+public:
+   ActivityOverlayEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
+   ~ActivityOverlayEffect();
+
+   void Update(FrameStartInfo const& info, bool& done) override;
+
+private:
+   void parseTransforms(const JSONNode& node, float* x, float* y, float* z);
+   RenderEntity&      entity_;
+   H3DNodeUnique      overlayNode_;
+};
+
+
+/* For creating unit overlay effects from a given JSON file. */
+struct UnitStatusEffect : public RenderEffect {
+public:
+   UnitStatusEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
+   ~UnitStatusEffect();
+
+   void Update(FrameStartInfo const& info, bool& done) override;
+
+private:
+   void parseTransforms(const JSONNode& node, float* x, float* y, float* z);
+   RenderEntity&      entity_;
+   H3DNodeUnique      statusNode_;
+};
+
 
 /* For playing simple background music*/
 struct PlayMusicEffect : public RenderEffect {

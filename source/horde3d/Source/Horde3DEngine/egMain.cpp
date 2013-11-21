@@ -16,6 +16,7 @@
 #include "egRenderer.h"
 #include "egModel.h"
 #include "egVoxelModel.h"
+#include "egHudElement.h"
 #include "egLight.h"
 #include "egCamera.h"
 #include "egParticle.h"
@@ -88,7 +89,7 @@ DLLEXP bool h3dGetError()
 }
 
 
-DLLEXP bool h3dInit()
+DLLEXP bool h3dInit(int glMajor, int glMinor)
 {
 	if( initialized )
 	{	
@@ -98,7 +99,7 @@ DLLEXP bool h3dInit()
 	}
 	initialized = true;
 
-	return Modules::init();
+	return Modules::init(glMajor, glMinor);
 }
 
 DLLEXP void h3dRelease()
@@ -796,6 +797,19 @@ DLLEXP NodeHandle h3dAddVoxelModelNode( NodeHandle parent, const char *name, Res
 	SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::VoxelModel )->factoryFunc( tpl );
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }
+
+
+HudElementNode* h3dAddHudElementNode( NodeHandle parent, const char *name )
+{
+   SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
+   APIFUNC_VALIDATE_NODE( parentNode, "h3dAddHudElementNode", 0 );
+
+   HudElementNodeTpl tpl( safeStr( name, 0 ) );
+   HudElementNode* sn = (HudElementNode*)Modules::sceneMan().findType( SceneNodeTypes::HudElement )->factoryFunc( tpl );
+   Modules::sceneMan().addNode( sn, *parentNode );
+   return sn;
+}
+
 
 DLLEXP void h3dSetupModelAnimStage( NodeHandle modelNode, int stage, ResHandle animationRes, int layer,
                                     const char *startNode, bool additive )

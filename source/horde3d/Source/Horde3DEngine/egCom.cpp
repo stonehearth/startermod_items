@@ -143,7 +143,7 @@ bool EngineConfig::setOption( EngineOptions::List param, float value )
 			return true;
 		}
 	case EngineOptions::SampleCount:
-		sampleCount = ftoi_r( value );
+      sampleCount = gRDI->getCaps().rtMultisampling ? ftoi_r( value ) : 0;
 		return true;
 	case EngineOptions::WireframeMode:
 		wireframeMode = (value != 0);

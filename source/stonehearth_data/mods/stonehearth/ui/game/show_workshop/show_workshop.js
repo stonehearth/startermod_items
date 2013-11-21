@@ -1,9 +1,9 @@
 $(document).ready(function(){
-   $(top).on("show_workshop.stonehearth", function (_, e) {
+   $(top).on("radiant_show_workshop", function (_, e) {
       var view = App.gameView.addView(App.StonehearthCrafterView, { uri: e.entity });
    });
 
-   $(top).on("show_workshop_from_crafter.stonehearth", function (_, e) {
+   $(top).on("radiant_show_workshop_from_crafter", function (_, e) {
       var view = App.gameView.addView(App.StonehearthCrafterView, { uri: e.event_data.workshop });
    });
 
