@@ -14,6 +14,7 @@ static const int SNT_CubemitterNode       = 1006;
 static const int RT_CubemitterResource    = 1007;
 static const int RT_AnimatedLightResource = 1008;
 static const int SNT_AnimatedLightNode    = 1009;
+static const int SNT_ScreenSpaceNode      = 1010;
 
 const uint32 CubesPerBatch = 32;
 

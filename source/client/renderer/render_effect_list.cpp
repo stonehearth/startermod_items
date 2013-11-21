@@ -28,6 +28,8 @@
 #include "lib/perfmon/perfmon.h"
 #include "lib/audio/input_stream.h"
 #include <SFML/Audio.hpp>
+#include "horde3d\Source\Horde3DEngine\egHudElement.h"
+#include "horde3d\Source\Shared\utMath.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -125,7 +127,11 @@ RenderInnerEffectList::RenderInnerEffectList(RenderEntity& renderEntity, om::Eff
          } else if (type == "floating_combat_text") {
             e = std::make_shared<FloatingCombatTextEffect>(renderEntity, effect, node); 
          } else if (type == "hide_bone") {
-            e = std::make_shared<HideBoneEffect>(renderEntity, effect, node); 
+            e = std::make_shared<HideBoneEffect>(renderEntity, effect, node);
+         } else if (type == "activity_overlay_effect") {
+            e = std::make_shared<ActivityOverlayEffect>(renderEntity, effect, node);
+         } else if (type == "unit_status_effect") {
+            e = std::make_shared<UnitStatusEffect>(renderEntity, effect, node);
          } else if (type == "music_effect") {
             //Use this class if you just want simple, single-track background music
             //e = std::make_shared<PlayMusicEffect>(renderEntity, effect, node); 
@@ -361,6 +367,107 @@ LightEffect::~LightEffect()
 }
 
 void LightEffect::Update(FrameStartInfo const& info, bool& finished)
+{
+   finished = false;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// ActivityOverlayEffect
+///////////////////////////////////////////////////////////////////////////////
+
+void getBoundsForGroupNode(float* minX, float* maxX, float *minY, float *maxY, H3DNode node)
+{
+   float sMinY = 999999, sMaxY = -999999;
+   float sMinX = 999999, sMaxX = -999999;
+   *minY = sMinY;
+   *maxY = sMaxY;
+   *minX = sMinX;
+   *maxX = sMaxX;
+
+   int i = 0;
+   H3DNode n = 0;
+   while ((n = h3dGetNodeChild(node, i)) != 0) {
+      if (h3dGetNodeType(n) == Horde3D::SceneNodeTypes::VoxelModel) {
+         h3dGetNodeAABB(n, &sMinX, &sMinY, nullptr, &sMaxX, &sMaxY, nullptr);
+      } else if (h3dGetNodeType(n) == Horde3D::SceneNodeTypes::Group) {
+         getBoundsForGroupNode(&sMinX, &sMaxX, &sMinY, &sMaxY, n);
+      }
+      if (*minY > sMinY) {
+         *minY = sMinY;
+      }
+      if (*maxY < sMaxY) {
+         *maxY = sMaxY;
+      }
+      if (*minX > sMinX) {
+         *minX = sMinX;
+      }
+      if (*maxX < sMaxX) {
+         *maxX = sMaxX;
+      }
+      i++;
+   }
+}
+
+ActivityOverlayEffect::ActivityOverlayEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
+   entity_(e)
+{
+   float minX, maxX, minY, maxY;
+   json::Node cjo(node);
+
+   std::string matName = cjo.get("material", std::string("materials/chop_overlay/chop_overlay.material.xml"));
+   int overlayWidth = cjo.get("width", 32);
+   int overlayHeight = cjo.get("height", 32);
+
+   H3DRes mat = h3dAddResource(H3DResTypes::Material, matName.c_str(), 0);
+
+   Horde3D::HudElementNode* hud = h3dAddHudElementNode(e.GetNode(), "");
+   getBoundsForGroupNode(&minX, &maxX, &minY, &maxY, e.GetNode());
+   h3dSetNodeTransform(hud->getHandle(), 0, maxY - minY + 4, 0, 0, 0, 0, 1, 1, 1);
+   hud->addScreenspaceRect(overlayWidth, overlayHeight, (int)(-overlayWidth / 2.0f), 0, Horde3D::Vec4f(1, 1, 1, 1), mat);
+
+   overlayNode_ = H3DNodeUnique(hud->getHandle());
+}
+
+ActivityOverlayEffect::~ActivityOverlayEffect()
+{
+}
+
+void ActivityOverlayEffect::Update(FrameStartInfo const& info, bool& finished)
+{
+   finished = false;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// UnitStatusEffect
+///////////////////////////////////////////////////////////////////////////////
+
+UnitStatusEffect::UnitStatusEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
+   entity_(e)
+{
+   json::Node cjo(node);
+   std::string matName = cjo.get("material", std::string("materials/sleepy_indicator/sleepy_indicator.material.xml"));
+   float statusWidth = cjo.get("width", 3.0f);
+   float statusHeight = cjo.get("height", 3.0f);
+   float xOffset = cjo.get("xOffset", 0.0f);
+   float yOffset = cjo.get("yOffset", 0.0f);
+   H3DNode n = e.GetSkeleton().GetSceneNode(cjo.get("bone", std::string("head")));
+
+   H3DRes mat = h3dAddResource(H3DResTypes::Material, matName.c_str(), 0);
+
+   Horde3D::HudElementNode* hud = h3dAddHudElementNode(n, "");
+   h3dSetNodeTransform(hud->getHandle(), 0, 0, 0, 0, 0, 0, 1, 1, 1);
+   hud->addWorldspaceRect(statusWidth, statusHeight, 
+      xOffset- (statusWidth / 2.0f), yOffset, Horde3D::Vec4f(1, 1, 1, 1), mat);
+   statusNode_ = H3DNodeUnique(hud->getHandle());
+}
+
+UnitStatusEffect::~UnitStatusEffect()
+{
+}
+
+void UnitStatusEffect::Update(FrameStartInfo const& info, bool& finished)
 {
    finished = false;
 }

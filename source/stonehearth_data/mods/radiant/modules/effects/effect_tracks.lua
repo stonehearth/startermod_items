@@ -5,6 +5,8 @@ local TriggerEffect = require 'modules.effects.trigger_effect'
 local MusicEffect = require 'modules.effects.music_effect'
 local CubemitterEffect = require 'modules.effects.cubemitter_effect'
 local LightEffect = require 'modules.effects.light_effect'
+local ActivityOverlayEffect = require 'modules.effects.activity_overlay_effect'
+local UnitStatusEffect = require 'modules.effects.unit_status_effect'
 
 local EffectTracks = class()
 function EffectTracks:__init(mgr, entity, effect_path, effect_name, start_time, trigger_handler, args)
@@ -40,6 +42,10 @@ function EffectTracks:__init(mgr, entity, effect_path, effect_name, start_time, 
          table.insert(self._effects, MusicEffect(start_time, trigger_handler, e, self._effect, args))
       elseif e.type == "light" then
          table.insert(self._effects, LightEffect(e))
+      elseif e.type == "activity_overlay_effect" then
+         table.insert(self._effects, ActivityOverlayEffect(e))
+      elseif e.type == "unit_status_effect" then
+         table.insert(self._effects, UnitStatusEffect(e))
       else
          radiant.log.info('unknown effect type "%s".  using generic', e.type)
          table.insert(self._effects, GenericEffect(start_time, trigger_handler, e, self._effect))

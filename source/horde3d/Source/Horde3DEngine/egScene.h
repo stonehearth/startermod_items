@@ -28,6 +28,7 @@ class SceneGraphResource;
 
 
 const int RootNode = 1;
+const int QueryCacheSize = 32;
 
 
 // =================================================================================================
@@ -48,6 +49,7 @@ struct SceneNodeTypes
 		Emitter,
       VoxelModel,
       VoxelMesh,
+      HudElement
 	};
 };
 
@@ -201,6 +203,18 @@ protected:
 // Spatial Graph
 // =================================================================================================
 
+struct SpatialQuery
+{
+  Frustum frustum;
+  const Frustum* secondaryFrustum;
+  Vec3f camPos;
+  RenderingOrder::List order;
+  uint32 filterIgnore; 
+  uint32 filterRequired;
+  bool useRenderableQueue;
+  bool useLightQueue;
+};
+
 struct RendQueueItem
 {
 	SceneNode  *node;
@@ -220,17 +234,12 @@ public:
 	void removeNode( uint32 sgHandle );
 	void updateNode( uint32 sgHandle );
 
-	void updateQueues( const char* reason, const Frustum &frustum1, const Frustum *frustum2,
-	                   RenderingOrder::List order, uint32 filterIgnore, uint32 filterRequired, bool lightQueue, bool renderQueue );
-
-	std::vector< SceneNode * > &getLightQueue() { return _lightQueue; }
-	std::vector< RendQueueItem > &getRenderableQueue() { return _renderableQueue; }
+   void query(const SpatialQuery& query, std::vector<RendQueueItem>& renderableQueue, 
+      std::vector<SceneNode*>& lightQueue);
 
 protected:
 	std::vector< SceneNode * >     _nodes;		// Renderable nodes and lights
 	std::vector< uint32 >          _freeList;
-	std::vector< SceneNode * >     _lightQueue;
-	std::vector< RendQueueItem >   _renderableQueue;
 };
 
 
@@ -258,6 +267,13 @@ struct CastRayResult
 	float      distance;
 	Vec3f      intersection;
    Vec3f      normal;
+};
+
+struct SpatialQueryResult
+{
+   SpatialQuery query;
+   std::vector<RendQueueItem> renderableQueue;
+   std::vector<SceneNode*> lightQueue;
 };
 
 // =================================================================================================
@@ -294,13 +310,16 @@ public:
 
 	SceneNode &getRootNode() { return *_nodes[0]; }
 	SceneNode &getDefCamNode() { return *_nodes[1]; }
-	std::vector< SceneNode * > &getLightQueue() { return _spatialGraph->getLightQueue(); }
-	std::vector< RendQueueItem > &getRenderableQueue() { return _spatialGraph->getRenderableQueue(); }
+	std::vector< SceneNode * > &getLightQueue();
+	std::vector< RendQueueItem > &getRenderableQueue();
 	
 	SceneNode *resolveNodeHandle( NodeHandle handle )
 		{ return (handle != 0 && (unsigned)(handle - 1) < _nodes.size()) ? _nodes[handle - 1] : 0x0; }
 
+   void clearQueryCache();
+
 protected:
+   int _checkQueryCache(const SpatialQuery& query);
 	NodeHandle parseNode( SceneNodeTpl &tpl, SceneNode *parent );
 	void removeNodeRec( SceneNode &node );
 
@@ -318,6 +337,10 @@ protected:
 	Vec3f                          _rayOrigin;  // Don't put these values on the stack during recursive search
 	Vec3f                          _rayDirection;  // Ditto
 	int                            _rayNum;  // Ditto
+
+   SpatialQueryResult             _queryCache[QueryCacheSize];
+   int                            _queryCacheCount;
+   int                            _currentQuery;
 
 	friend class Renderer;
 };

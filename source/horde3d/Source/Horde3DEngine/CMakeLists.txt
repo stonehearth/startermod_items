@@ -7,8 +7,9 @@ set(HORDE3D_SOURCES
 	egCamera.cpp
 	egCom.cpp
 	egExtensions.cpp
-        egFrameDebugInfo.cpp
+	egFrameDebugInfo.cpp
 	egGeometry.cpp
+	egHudElement.cpp
 	egLight.cpp
 	egMain.cpp
 	egMaterial.cpp
@@ -16,7 +17,7 @@ set(HORDE3D_SOURCES
 	egModules.cpp
 	egParticle.cpp
 	egPipeline.cpp
-        egPixelBuffer.cpp
+  egPixelBuffer.cpp
 	egPrimitives.cpp
 	egRendererBase.cpp
 	egRenderer.cpp
@@ -25,9 +26,9 @@ set(HORDE3D_SOURCES
 	egSceneGraphRes.cpp
 	egShader.cpp
 	egTexture.cpp
-   egVoxelModel.cpp
-   egVoxelMesh.cpp
-   egVoxelGeometry.cpp
+  egVoxelModel.cpp
+  egVoxelMesh.cpp
+  egVoxelGeometry.cpp
 	utImage.cpp
 	utOpenGL.cpp
 	config.h
@@ -36,8 +37,9 @@ set(HORDE3D_SOURCES
 	egCamera.h
 	egCom.h
 	egExtensions.h
-        egFrameDebugInfo.h
+	egFrameDebugInfo.h
 	egGeometry.h
+	egHudElement.h
 	egLight.h
 	egMaterial.h
 	egModel.h
