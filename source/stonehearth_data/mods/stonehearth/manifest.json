@@ -193,6 +193,7 @@
          "personality_types" : "file(data/personality/personality_types.json)",
          "personal_logs:chopping_wood" : "file(data/personality/chopping_wood.json)",
          "personal_logs:embarking" :     "file(data/personality/embarking.json)",
+         "personal_logs:eating_berries" :"file(data/personality/eating_berries.json)",
 
          "sounds:axe_chopping_sound" : "file(data/sounds/effects/axe_chopping_sound.ogg)"
       },
