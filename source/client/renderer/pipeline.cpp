@@ -409,11 +409,13 @@ Pipeline::CreateDesignationNode(H3DNode parent,
 
    H3DNode group = h3dAddGroupNode(parent, "designation group node");
    H3DNode stripes = CreateModel(group, stripes_mesh, "materials/designation/stripes.material.xml");
+   h3dSetNodeParamI(stripes, H3DModel::UseCoarseCollisionBoxI, 1);
    h3dSetNodeParamI(stripes, H3DModel::PolygonOffsetEnabledI, 1);
    h3dSetNodeParamF(stripes, H3DModel::PolygonOffsetF, 0, -.01f);
    h3dSetNodeParamF(stripes, H3DModel::PolygonOffsetF, 1, -.01f);
 
    H3DNode outline = CreateModel(group, outline_mesh, "materials/designation/outline.material.xml");
+   h3dSetNodeParamI(outline, H3DModel::UseCoarseCollisionBoxI, 1);
    h3dSetNodeParamI(outline, H3DModel::PolygonOffsetEnabledI, 1);
    h3dSetNodeParamF(outline, H3DModel::PolygonOffsetF, 0, -.01f);
    h3dSetNodeParamF(outline, H3DModel::PolygonOffsetF, 1, -.01f);

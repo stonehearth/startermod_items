@@ -512,6 +512,7 @@ struct H3DModel
 		LodDist4F,
       PolygonOffsetEnabledI,
       PolygonOffsetF,
+      UseCoarseCollisionBoxI
 	};
 };
 
