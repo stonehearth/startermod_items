@@ -43,7 +43,7 @@ App.StonehearthStartMenuView = App.View.extend({
    didInsertElement: function() {
       var self = this;
       $('#startMenuTrigger').click(function() {
-         //radiant.call('radiant:play_sound', 'stonehearth:sounds:axe_chopping_sound' );
+         //radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:trigger_click' );
       });
 
       $( '#startMenu' ).dlmenu({
@@ -65,11 +65,26 @@ App.StonehearthStartMenuView = App.View.extend({
             $(this).removeClass('startMenuHoverIn')
             $(this).addClass('startMenuHoverOut')
       });      
+
+      $('#startMenu').on( 'mouseover', 'a', function() {
+         //radiant.call('radiant:play_sound', "stonehearth:sounds:ui:action_hover");
+      });
+
+      $('#startMenu').on( 'mousedown', 'li', function() {
+         //radiant.call('radiant:play_sound', "stonehearth:sounds:ui:action_click");
+      });
+
    },
 
    onMenuClick: function(menuId) {
       this.menuActions[menuId].click();
-   }  
+   },
+
+   destroy: function() {
+      $('#startMenu').off('mouseover.start_menu');
+      $('#startMenu').off('click.start_menu');
+      this._super();
+   }
 
 });
 

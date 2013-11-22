@@ -18,6 +18,9 @@ function SleepOnGroundAction:run(ai, entity, bed, path)
    ai:execute('stonehearth:drop_carrying', drop_location)
 
    ai:execute('stonehearth:run_effect', 'yawn')
+
+   radiant.entities.unthink(self._entity, '/stonehearth/data/effects/thoughts/sleepy')
+   
    ai:execute('stonehearth:run_effect', 'sit_on_ground')
    radiant.entities.add_buff(self._entity, 'stonehearth:buffs:sleeping');
    ai:execute('stonehearth:run_effect', 'sleep')

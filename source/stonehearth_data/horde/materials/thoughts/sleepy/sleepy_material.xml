@@ -1,0 +1,4 @@
+<Material>
+   <Shader source="shaders/billboard.shader" />
+   <Sampler name="albedoMap" map="materials/thoughts/sleepy/thought_sleepy.png" />
+</Material>
