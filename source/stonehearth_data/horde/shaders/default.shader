@@ -69,13 +69,6 @@ context SELECTED_SCREENSPACE_OUTLINER
   ZWriteEnable = false;
 }
 
-context SHADOWMAP
-{
-  VertexShader = compile GLSL VS_SHADOWMAP;
-  PixelShader = compile GLSL FS_SHADOWMAP;
-  CullMode = Back;
-}
-
 context OMNI_LIGHTING
 {
   VertexShader = compile GLSL VS_GENERAL;
@@ -93,6 +86,13 @@ context DIRECTIONAL_LIGHTING
   
   ZWriteEnable = false;
   BlendMode = Add;
+  CullMode = Back;
+}
+
+context DIRECTIONAL_SHADOWMAP
+{
+  VertexShader = compile GLSL VS_DIRECTIONAL_SHADOWMAP;
+  PixelShader = compile GLSL FS_DIRECTIONAL_SHADOWMAP;
   CullMode = Back;
 }
 
@@ -154,43 +154,6 @@ void main( void )
   gl_FragColor = vec4(0, 0, 0, 1);
 }
 
-[[VS_SHADOWMAP]]
-// =================================================================================================
-  
-#include "shaders/utilityLib/vertCommon.glsl"
-#include "shaders/utilityLib/vertSkinning.glsl"
-
-uniform mat4 viewProjMat;
-uniform vec4 lightPos;
-
-attribute vec3 vertPos;
-
-varying vec3 lightVec;
-
-void main( void )
-{
-  vec4 pos = calcWorldPos( vec4( vertPos, 1.0 ) );
-  lightVec = lightPos.xyz - pos.xyz;
-  gl_Position = viewProjMat * pos;
-}
-  
-  
-[[FS_SHADOWMAP]]
-// =================================================================================================
-
-uniform vec4 lightPos;
-uniform float shadowBias;
-
-varying vec3 lightVec;
-
-void main( void )
-{
-  float dist = length( lightVec ) / lightPos.w;
-  gl_FragDepth = dist;// + shadowBias;
-  
-  // Clearly better bias but requires SM 3.0
-  // gl_FragDepth = dist + abs( dFdx( dist ) ) + abs( dFdy( dist ) ) + shadowBias;
-}
 
 [[FS_OMNI_LIGHTING]]
 // =================================================================================================
@@ -237,6 +200,30 @@ void main( void )
 
   gl_FragColor = vec4(lightColor, 1.0);
 }
+
+[[VS_DIRECTIONAL_SHADOWMAP]]
+#include "shaders/utilityLib/vertCommon.glsl"
+#include "shaders/utilityLib/vertSkinning.glsl"
+
+uniform mat4 viewProjMat;
+
+attribute vec3 vertPos;
+
+void main( void )
+{
+  vec4 pos = calcWorldPos( vec4( vertPos, 1.0 ) );
+  gl_Position = viewProjMat * pos;
+}
+  
+  
+[[FS_DIRECTIONAL_SHADOWMAP]]
+void main( void )
+{
+  gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+}
+
+
+
 
 [[FS_CLOUDS]]
 

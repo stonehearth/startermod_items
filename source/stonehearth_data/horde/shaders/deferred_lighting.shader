@@ -38,19 +38,17 @@ context OMNI_LIGHTING
 
 
 [[VS_DIRECTIONAL_LIGHTING_VERTEX_SHADER]]
-#version 130
 
 uniform mat4 projMat;
 
-in vec3 vertPos;
+attribute vec3 vertPos;
 
 void main( void )
 {
-  gl_Position = projMat * vec4(vertPos, 1);
+  gl_Position = projMat * vec4(vertPos, 1.0);
 }
 
 [[FS_LIGHTING_DIRECTIONAL]]
-#version 130
 
 #include "shaders/utilityLib/fragLighting.glsl" 
 #include "shaders/shadows.shader"
@@ -62,43 +60,40 @@ uniform sampler2D normals;
 uniform vec3 lightAmbientColor;
 uniform vec2 frameBufSize;
 
-out vec4 outLightColor;
-
 void main( void )
 {
   vec2 fragCoord = vec2(gl_FragCoord.xy / frameBufSize);
 
   vec3 worldspace_pos = texture2D(positions, fragCoord).xyz + viewerPos;
-  float vsPos = (viewMat * vec4(worldspace_pos, 1.0 )).z;
+  float vsPos = (viewMat * vec4(worldspace_pos, 1.0)).z;
 
   vec3 normal = texture2D(normals, fragCoord).xyz;
 
   float shadowTerm = getShadowValue(worldspace_pos);
   vec3 intensity = shadowTerm * calcSimpleDirectionalLight(viewerPos, worldspace_pos, normal, -vsPos) + 
       lightAmbientColor;
-  outLightColor = vec4(intensity, 1.0);// + vec4(getCascadeColor(worldspace_pos), 0);
+  
+  gl_FragColor = vec4(intensity, 1.0);// + vec4(getCascadeColor(worldspace_pos), 0.0);
 }
 
 
 
 // =================================================================================================
 [[VS_OMNI_LIGHTING_VERTEX_SHADER]]
-#version 130
 
 uniform mat4 viewProjMat;
 uniform mat4 viewMat;
 uniform mat4 worldMat;
 uniform mat4 camViewProjMatInv;
 
-in vec3 vertPos;
+attribute vec3 vertPos;
         
 void main( void )
 {
-  gl_Position = viewProjMat * worldMat * vec4(vertPos, 1);
+  gl_Position = viewProjMat * worldMat * vec4(vertPos, 1.0);
 }
 
 [[FS_OMNI_LIGHTING]]
-#version 130
 
 #include "shaders/utilityLib/fragLighting.glsl" 
 
@@ -107,8 +102,6 @@ uniform mat4 viewMat;
 uniform sampler2D positions;
 uniform sampler2D normals;
 uniform vec2 frameBufSize;
-
-out vec4 outLightColor;
 
 void main( void )
 {
@@ -119,5 +112,5 @@ void main( void )
   vec3 normal = texture2D(normals, fragCoord).xyz;
   vec3 intensity = calcPhongOmniLight(viewerPos, pos, normalize(normal));
 
-  outLightColor = vec4(intensity, 1.0);
+  gl_FragColor = vec4(intensity, 1.0);
 }

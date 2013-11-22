@@ -27,7 +27,7 @@ int _selectShadowCascade(const vec3 worldSpace_fragmentPos, out vec4 cascadeTexC
 
 vec4 _shadowCoordsByMap(const vec3 worldSpace_fragmentPos, out int cascadeNum) {
   vec2 cascadeTexCoord;
-  vec4 hWorldSpace_fragmentPos = vec4(worldSpace_fragmentPos, 1);
+  vec4 hWorldSpace_fragmentPos = vec4(worldSpace_fragmentPos, 1.0);
   vec4 projLightSpace_FragmentPos;
 
   projLightSpace_FragmentPos = shadowMats[0] * hWorldSpace_fragmentPos;
