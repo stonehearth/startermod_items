@@ -17,6 +17,10 @@
 #include "egRenderer.h"
 #include <stdarg.h>
 #include <stdio.h>
+#include <fstream>
+#include <sstream>
+#include <iomanip>
+#include <iostream>
 
 #include "utDebug.h"
 
@@ -171,10 +175,113 @@ bool EngineConfig::setOption( EngineOptions::List param, float value )
 // Class EngineLog
 // *************************************************************************************************
 
-EngineLog::EngineLog()
+
+void EngineLog::dumpMessages()
+{
+   if (!_outf.is_open()) {
+      return;
+   }
+
+   while (!_messages.empty())
+   {
+      const LogMessage& message = _messages.front();
+      _outf << "<tr>\n";
+      _outf << "<td width=\"100\">";
+      _outf << message.time;
+      _outf << "</td>\n";
+      _outf << "<td class=\"";
+		
+      switch(message.level)
+      {
+      case 1:
+         _outf << "err";
+         break;
+      case 2:
+         _outf << "warn";
+         break;
+      case 3:
+         _outf << "info";
+      break;
+         default:
+         _outf << "debug";
+      }
+		
+      _outf << "\"><pre>\n";
+      _outf << message.text.c_str();
+      _outf << "\n</pre></td>\n";
+      _outf << "</tr>\n";
+      _messages.pop();
+   }
+   _outf.flush();	
+}
+
+EngineLog::EngineLog(const std::string& logFilePath)
 {
 	_timer.setEnabled( true );
 	_maxNumMessages = 512;
+	// Reset log file
+	_outf.setf( std::ios::fixed );
+	_outf.precision( 3 );
+
+	_outf.open(logFilePath, std::ios::out );	
+	_outf << "<html>\n";
+	_outf << "<head>\n";
+	_outf << "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n";
+	_outf << "<title>Horde3D Log</title>\n";
+	_outf << "<style type=\"text/css\">\n";
+		
+	_outf << "body, html {\n";
+	_outf << "background: #000000;\n";
+	_outf << "width: 1000px;\n";
+	_outf << "font-family: Arial;\n";
+	_outf << "font-size: 16px;\n";
+	_outf << "color: #C0C0C0;\n";
+	_outf << "}\n";
+
+	_outf << "h1 {\n";
+	_outf << "color : #FFFFFF;\n";
+	_outf << "border-bottom : 1px dotted #888888;\n";
+	_outf << "}\n";
+
+	_outf << "pre {\n";
+	_outf << "font-family : arial;\n";
+	_outf << "margin : 0;\n";
+	_outf << "}\n";
+
+	_outf << ".box {\n";
+	_outf << "border : 1px dotted #818286;\n";
+	_outf << "padding : 5px;\n";
+	_outf << "margin: 5px;\n";
+	_outf << "width: 950px;\n";
+	_outf << "background-color : #292929;\n";
+	_outf << "}\n";
+
+	_outf << ".err {\n";
+	_outf << "color: #EE1100;\n";
+	_outf << "font-weight: bold\n";
+	_outf << "}\n";
+
+	_outf << ".warn {\n";
+	_outf << "color: #FFCC00;\n";
+	_outf << "font-weight: bold\n";
+	_outf << "}\n";
+
+	_outf << ".info {\n";
+	_outf << "color: #C0C0C0;\n";
+	_outf << "}\n";
+
+	_outf << ".debug {\n";
+	_outf << "color: #CCA0A0;\n";
+	_outf << "}\n";
+
+	_outf << "</style>\n";
+	_outf << "</head>\n\n";
+
+	_outf << "<body>\n";
+	_outf << "<h1>Horde3D Log</h1>\n";
+	_outf << "<div class=\"box\">\n";
+	_outf << "<table>\n";
+	_outf.flush();
 }
 
 
@@ -199,6 +306,8 @@ void EngineLog::pushMessage( int level, const char *msg, va_list args )
 	{
 		_messages.push( LogMessage( "Message queue is full", 1, time ) );
 	}
+
+   dumpMessages();
 
 #if defined( PLATFORM_WIN ) && defined( H3D_DEBUGGER_OUTPUT )
 	const TCHAR *headers[6] = { TEXT(""), TEXT("  [h3d-err] "), TEXT("  [h3d-warn] "), TEXT("[h3d] "), TEXT("  [h3d-dbg] "), TEXT("[h3d- ] ")};

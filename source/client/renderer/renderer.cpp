@@ -83,6 +83,8 @@ Renderer::Renderer() :
    }
 
    glfwWindowHint(GLFW_SAMPLES, config_.num_msaa_samples);
+   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
    GLFWwindow *window;
    // Fullscreen: add glfwGetPrimaryMonitor() instead of the first NULL.
@@ -96,7 +98,8 @@ Renderer::Renderer() :
    glfwSwapInterval(0);
 
    // Init Horde, looking for OpenGL 2.0 minimum.
-   if (!h3dInit(2, 0)) {
+   std::string s = (radiant::core::Config::GetInstance().GetTmpDirectory() / "horde3d_log.html").string();
+   if (!h3dInit(2, 0, s.c_str())) {
       h3dutDumpMessages();
       throw std::exception("Unable to initialize renderer.  Check horde log for details.");
    }

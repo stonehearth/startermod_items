@@ -287,7 +287,7 @@ DLLEXP bool h3dutLoadResourcesFromDisk( const char *contentDir )
 
 DLLEXP bool h3dutDumpMessages()
 {
-	if( !outf.is_open() )
+	/*if( !outf.is_open() )
 	{
 		// Reset log file
 		outf.setf( ios::fixed );
@@ -394,7 +394,7 @@ DLLEXP bool h3dutDumpMessages()
 		outf.flush();
 		
 		text = h3dGetMessage( &level, &time );
-	}
+	}*/
 	
 	return true;
 }
