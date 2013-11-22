@@ -14,9 +14,9 @@ add_subdirectory(jobs)
 # add_subdirectory(script)
 
 add_library(simulation STATIC
-            interfaces.cpp
             simulation.cpp
-               pch.cpp
+            remote_client.cpp
+            pch.cpp
             )
 
 if (MSVC)

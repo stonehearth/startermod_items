@@ -44,8 +44,7 @@
 #include "lib/rpc/trace_object_router.h"
 #include "lib/rpc/lua_module_router.h"
 #include "lib/rpc/lua_object_router.h"
-
-static const int __initialCivCount = 3;
+#include "remote_client.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -53,20 +52,15 @@ using namespace ::radiant::simulation;
 namespace proto = ::radiant::tesseract::protocol;
 namespace po = boost::program_options;
 
-Simulation* Simulation::singleton_;
-
-Simulation& Simulation::GetInstance()
-{
-   ASSERT(singleton_ != nullptr);
-   return *singleton_;
-}
-
 Simulation::Simulation() :
    _showDebugNodes(false),
    _singleStepPathFinding(false),
-   store_(1, "game")
+   store_(1, "game"),
+   sequence_number_(1),
+   paused_(false),
+   noidle_(false),
+   _tcp_acceptor(nullptr)
 {
-   singleton_ = this;
    octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree(dm::OBJECT_MODEL_TRACES));
    scriptHost_.reset(new lua::ScriptHost());
 
@@ -205,7 +199,7 @@ void Simulation::Load(std::string id)
    ASSERT(false);
 }
 
-void Simulation::Step(platform::timer &timer, int interval)
+void Simulation::Step()
 {
    PROFILE_BLOCK();
    lastNow_ = now_;
@@ -214,7 +208,7 @@ void Simulation::Step(platform::timer &timer, int interval)
 
    // Run AI...
    try {
-      now_ = luabind::call_function<int>(game_api_["update"], interval);
+      now_ = luabind::call_function<int>(game_api_["update"], _stepInterval);
    } catch (std::exception const& e) {
       LOG(WARNING) << "fatal error initializing game update: " << e.what();
    }
@@ -223,20 +217,15 @@ void Simulation::Step(platform::timer &timer, int interval)
    GetOctTree().Update(now_);
    UpdateTargetTables(now_, now_ - lastNow_);
 
-   ProcessTaskList(timer);
-   ProcessJobList(timer);
+   ProcessTaskList(_timer);
+   ProcessJobList(_timer);
 
    // Send out change notifications
    store_.FireTraces();
    store_.FireFinishedTraces();
 }
 
-void Simulation::Idle(platform::timer &timer)
-{
-   scriptHost_->GC(timer);
-}
-
-void Simulation::EncodeUpdates(protocol::SendQueuePtr queue, ClientState& cs)
+void Simulation::EncodeUpdates(protocol::SendQueuePtr queue)
 {
    proto::Update update;
 
@@ -304,8 +293,6 @@ void Simulation::EncodeUpdates(protocol::SendQueuePtr queue, ClientState& cs)
       queue->Push(msg);
    }
    buffered_updates_.clear();
-
-   cs.last_update = store_.GetNextGenerationId();
 }
 
 phys::OctTree &Simulation::GetOctTree()
@@ -524,7 +511,7 @@ void Simulation::PostCommand(proto::PostCommandRequest const& request)
    protobuf_reactor_->Dispatch(session_, request);
 }
 
-bool Simulation::ProcessMessage(const proto::Request& msg, protocol::SendQueuePtr queue)
+bool Simulation::ProcessMessage(std::shared_ptr<RemoteClient> c, const proto::Request& msg)
 {
    proto::Update reply;
 
@@ -564,4 +551,155 @@ void Simulation::InitDataModel()
    store_.AddTracer(streamer_, dm::PLAYER_1_TRACES);
    store_.AddTracer(object_model_traces_, dm::OBJECT_MODEL_TRACES);
    store_.AddTracer(pathfinder_traces_, dm::PATHFINDER_TRACES);
+}
+
+void Simulation::GetConfigOptions()
+{
+   po::options_description config_file("Server options");
+   po::options_description cmd_line("Server options");
+
+   std::string name = core::Config::GetInstance().GetName();
+   cmd_line.add_options()
+      ("game.noidle",   po::bool_switch(&noidle_), "suspend the idle loop, running the game as fast as possible.")
+      ("game.script",   po::value<std::string>()->default_value(name + "/start_game.lua"), "the game script to load")  //xxx: put this in a constant
+      ("game.mod",     po::value<std::string>()->default_value(name), "the mod to load")
+      ;
+   core::Config::GetInstance().GetCommandLineOptions().add(cmd_line);
+   core::Config::GetInstance().GetConfigFileOptions().add(cmd_line);
+   core::Config::GetInstance().GetConfigFileOptions().add(config_file);
+}
+
+void Simulation::Run(tcp::acceptor* acceptor, boost::asio::io_service* io_service)
+{
+   _tcp_acceptor = acceptor;
+   _io_service = io_service;
+   main();
+}
+
+void Simulation::handle_accept(std::shared_ptr<tcp::socket> socket, const boost::system::error_code& error)
+{
+   if (!error) {
+      std::shared_ptr<RemoteClient> c = std::make_shared<RemoteClient>();
+
+      c->socket = socket;
+      c->send_queue = protocol::SendQueue::Create(*socket);
+      c->recv_queue = std::make_shared<protocol::RecvQueue>(*socket);
+      c->recv_queue->Read();
+
+      _clients.push_back(c);
+      //queue_network_read(c, protocol::alloc_buffer(1024 * 1024));
+   }
+   start_accept();
+}
+
+void Simulation::start_accept()
+{
+   std::shared_ptr<tcp::socket> socket(new tcp::socket(*_io_service));
+   auto cb = bind(&arbiter::handle_accept, this, socket, std::placeholders::_1);
+   _tcp_acceptor->async_accept(*socket, cb);
+}
+
+void Simulation::main()
+{
+   _tcp_acceptor->listen();
+   start_accept();
+   CreateNew();
+
+   unsigned int last_stat_dump = 0;
+
+   _stepInterval = 1000 / 20;
+   _timer.set(_stepInterval);
+
+   while (1) {
+      mainloop();
+
+      unsigned int now = platform::get_current_time_in_ms();
+      if (now - last_stat_dump > 3000) {
+         //PROFILE_DUMP_STATS();
+         PROFILE_RESET();
+         last_stat_dump = now;
+      }
+   }
+}
+
+void Simulation::mainloop()
+{
+   PROFILE_BLOCK();
+
+   process_messages();
+
+   if (!paused_) {
+      Step();
+   }
+   send_client_updates();
+   idle();
+}
+
+void Simulation::idle()
+{
+   PROFILE_BLOCK();
+
+   // LOG(WARNING) << _timer.remaining() << " time left in idle";
+
+   // xxx: we should probably read and parse network events even while idle.
+   scriptHost_->GC(_timer);
+
+   if (!noidle_) {
+      while (!_timer.expired()) {
+         platform::sleep(1);
+      }
+   }
+   _timer.set(_stepInterval);
+}
+
+void Simulation::send_client_updates()
+{
+   PROFILE_BLOCK();
+   for (std::shared_ptr<RemoteClient> c : _clients) {
+      SendUpdates(c);
+   };
+}
+
+void Simulation::SendUpdates(std::shared_ptr<RemoteClient> c)
+{
+   EncodeUpdates(c);
+   ProcessSendQueue(c);
+}
+
+void Simulation::ProcessSendQueue(std::shared_ptr<RemoteClient> c) 
+{
+   protocol::SendQueue::Flush(c->send_queue);
+}
+
+void Simulation::EncodeUpdates(std::shared_ptr<RemoteClient> c)
+{
+   // Update the sequence number...
+   proto::Update update;
+   update.set_type(proto::Update::BeginUpdate);
+   auto msg = update.MutableExtension(proto::BeginUpdate::extension);
+   msg->set_sequence_number(sequence_number_);
+   c->send_queue->Push(protocol::Encode(update));
+   c->sequence_number = sequence_number_;
+
+   // Get the updates from the simulation   
+   EncodeUpdates(c->send_queue);
+
+   // End the sequence
+   update.Clear();
+   update.set_type(proto::Update::EndUpdate);
+   c->send_queue->Push(protocol::Encode(update));
+}
+
+void Simulation::process_messages()
+{
+   PROFILE_BLOCK();
+
+   _io_service->poll();
+   _io_service->reset();
+
+   for (auto c : _clients) {
+      c->recv_queue->Process<proto::Request>([=](proto::Request const& msg) -> bool {
+         return ProcessMessage(c, msg);
+      });
+   }
 }

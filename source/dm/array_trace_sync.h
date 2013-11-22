@@ -2,12 +2,14 @@
 #define _RADIANT_DM_ARRAY_TRACE_SYNC_H
 
 #include "dm.h"
+#include "destroy_trace.h"
 #include "array_trace.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename M>
-class ArrayTraceSync : public ArrayTrace<M>
+class ArrayTraceSync : public DestroyTrace,
+                       public ArrayTrace<M>
 {
 public:
 public:
@@ -20,6 +22,11 @@ private:
    void NotifySet(uint i, Value const& value) override
    {
       SignalChanged(i, value);
+   }
+
+   void NotifyDestroyed() override
+   {
+      SignalDestroyed();
    }
 };
 

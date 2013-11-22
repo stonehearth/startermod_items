@@ -4,6 +4,7 @@
 #include "dm.h"
 #include "trace_buffered.h"
 #include "map_trace.h"
+#include "map_loader.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -21,6 +22,11 @@ public:
       SignalUpdated(changed_, removed_);
       changed_.clear();
       removed_.clear();
+   }
+
+   void SaveObjectDelta(Object* obj, Protocol::Value* value) override
+   {
+      SaveObjectDelta(changed_, removed_, value);
    }
 
 private:

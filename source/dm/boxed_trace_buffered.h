@@ -4,6 +4,7 @@
 #include "dm.h"
 #include "trace_buffered.h"
 #include "boxed_trace.h"
+#include "boxed_loader.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -24,6 +25,14 @@ public:
          // xxx: this might be an old value since it points back into the box (ug!)
          SignalChanged(*value_);
          value_ = nullptr;
+      }
+   }
+
+   void SaveObjectDelta(Object* obj, Protocol::Value* value) override
+   {
+      ASSERT(value_);
+      if (value) {
+         SaveObjectDelta(*value_, value);
       }
    }
 

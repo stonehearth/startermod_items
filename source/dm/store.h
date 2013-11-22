@@ -2,7 +2,7 @@
 #include "object.h"
 #include "tracer_sync.h"
 #include "tracer_buffered.h"
-#include "streamer.h"
+#include "destroy_trace.h"
 
 struct lua_State;
 
@@ -147,9 +147,6 @@ public:
       case Tracer::BUFFERED: \
          trace = std::static_pointer_cast<TracerBuffered>(tracer)->Trace ## Cls ## Changes(reason, *this, o); \
          break; \
-      case Tracer::STREAMER: \
-         trace = std::static_pointer_cast<Streamer>(tracer)->Trace ## Cls ## Changes(reason, *this, o); \
-         break; \
       default: \
          throw std::logic_error(BUILD_STRING("unknown tracer type " << tracer->GetType())); \
       } \
@@ -172,7 +169,7 @@ public:
    TRACE_TYPE_METHOD(Array)
    TRACE_TYPE_METHOD(Map)
 
-   AllocTracePtr TraceAlloc(const char* reason, int category);
+   AllocTracePtr TraceAlloced(const char* reason, int category);
 
    TracerPtr GetTracer(int category)
    {
@@ -269,7 +266,6 @@ private:
 
    TraceMap       traces_;
    TracerMap      tracers_;
-   AllocTraceList alloc_traces_;
 };
 
 

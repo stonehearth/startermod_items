@@ -49,6 +49,7 @@ public:
 protected:
    void SignalRemoved(Value const& value)
    {
+      SignalModified();
       if (removed_) {
          removed_(value);
       } else if (updated_) {
@@ -58,6 +59,7 @@ protected:
 
    void SignalAdded(Value const& value) 
    {
+      SignalModified();
       if (added_) {
          added_(value);
       } else if (updated_) {
@@ -67,6 +69,7 @@ protected:
 
    void SignalUpdated(ValueList const& added, ValueList const& removed)
    {
+      SignalModified();
       if (updated_) {
          updated_(added, removed);
       } else {

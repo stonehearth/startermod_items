@@ -8,7 +8,27 @@ BEGIN_RADIANT_DM_NAMESPACE
 class Trace
 {
 public:
+   typedef std::function<void()> ModifiedCb;
+   typedef std::function<void()> DestroyedCb;
+
+   Trace(const char* reason, Object const& o, Store const& store);
    virtual ~Trace();
+
+   ObjectId GetObjectId() const;
+   Store const& GetStore() const;
+
+   virtual void NotifyDestroyed() { }
+
+public:
+   void SignalModified();  // must ALWAYS be signals first when sending multiple signals
+   void SignalDestroyed();
+
+protected:
+   const char*    reason_;
+   Store const&   store_;
+   ObjectId       object_id_;
+   ModifiedCb     on_modified_;
+   DestroyedCb    on_destroyed_;
 };
 
 template <typename Derived>
@@ -16,12 +36,10 @@ class TraceImpl : public Trace,
                   public std::enable_shared_from_this<Derived>
 {
 public:
-   typedef std::function<void()> ModifiedCb;
-   typedef std::function<void()> DestroyedCb;
-
-public:
-   TraceImpl(const char* reason, Object const& o, Store const& store) : store_(store), object_id_(o.GetObjectId()), reason_(reason) { }
-   virtual ~TraceImpl() { }
+   TraceImpl(const char* reason, Object const& o, Store const& store) :
+      Trace(reason, o, store)
+   {
+   }
 
    std::shared_ptr<Derived> OnModified(ModifiedCb modified)
    {
@@ -34,38 +52,6 @@ public:
       on_destroyed_ = destroyed;
       return shared_from_this();
    }
-
-   ObjectId GetObjectId() const
-   {
-      return object_id_;
-   }
-
-   Store const& GetStore() const
-   {
-      return store_;
-   }
-
-protected:
-   void SignalModified()
-   {
-      if (on_modified_) {
-         on_modified_();
-      }
-   }
-
-   void SignalDestroyed()
-   {
-      if (on_destroyed_) {
-         on_destroyed_();
-      }
-   }
-
-private:
-   const char*    reason_;
-   Store const&   store_;
-   ObjectId       object_id_;
-   ModifiedCb     on_modified_;
-   DestroyedCb    on_destroyed_;
 };
 
 END_RADIANT_DM_NAMESPACE

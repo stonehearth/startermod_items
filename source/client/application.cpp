@@ -35,7 +35,7 @@ bool Application::LoadConfig(int argc, const char* argv[])
    core::Config& config = core::Config::GetInstance();
 
    Client::GetInstance().GetConfigOptions();
-   game_engine::arbiter::GetInstance().GetConfigOptions();
+   sim_.GetConfigOptions();
    po::options_description config_file("Renderer options");
    config_file.add_options()
       (
@@ -162,7 +162,7 @@ int Application::Run(int argc, const char** argv)
       // Windows CreateThread and boost::thread appear to work
       boost::thread client_thread(ClientThreadMain, server_port_);
 
-      game_engine::arbiter::GetInstance().Run(acceptor, &_io_service);
+      sim_.Run(acceptor, &_io_service);
       client_thread.join();
 
       radiant::logger::exit();

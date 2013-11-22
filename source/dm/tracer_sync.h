@@ -8,7 +8,6 @@
 #include "set_trace_sync.h"
 #include "boxed_trace_sync.h"
 #include "array_trace_sync.h"
-#include "alloc_trace_sync.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -38,10 +37,9 @@ private:
 
 #undef DEFINE_TRACE_CLS_CHANGES
 
-   void OnObjectChanged(ObjectId id) override
-   {
-      // Nothing to do.
-   }
+   void OnObjectChanged(ObjectId id) override;
+   void OnObjectAlloced(ObjectPtr obj) override;
+   void OnObjectDestroyed(ObjectId id) override;
 };
 
 END_RADIANT_DM_NAMESPACE

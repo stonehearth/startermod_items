@@ -2,12 +2,14 @@
 #define _RADIANT_DM_BOXED_TRACE_SYNC_H
 
 #include "dm.h"
+#include "destroy_trace.h"
 #include "boxed_trace.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename M>
-class BoxedTraceSync : public BoxedTrace<M>
+class BoxedTraceSync : public DestroyTrace,
+                       public BoxedTrace<M>
 {
 public:
 public:
@@ -20,6 +22,11 @@ private:
    void NotifyChanged(Value const& value) override
    {
       SignalChanged(value);
+   }
+
+   void NotifyDestroyed() override
+   {
+      SignalDestroyed();
    }
 };
 

@@ -52,6 +52,7 @@ public:
 protected:
    void SignalRemoved(Key const& key)
    {
+      SignalModified();
       if (removed_) {
          removed_(key);
       } else if (updated_) {
@@ -61,6 +62,7 @@ protected:
 
    void SignalChanged(Key const& key, Value const& value) 
    {
+      SignalModified();
       if (changed) {
          changed_(key, value)
       } else if (updated_) {
@@ -70,6 +72,7 @@ protected:
 
    void SignalUpdated(ChangeMap const& changed, KeyList const& removed)
    {
+      SignalModified();
       if (updated_) {
          updated_(changed, removed);
       } else {

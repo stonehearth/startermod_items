@@ -2,9 +2,8 @@
 #include "client.h"
 
 using namespace radiant;
-using namespace radiant::game_engine;
 
-client::client() :
+RemoteClient::RemoteClient() :
    sequence_number(0)
 {
 }

@@ -22,7 +22,13 @@ public:
    {
       if (changed_) {
          SignalModified();
+         changed_ = false;
       }
+   }
+
+   void SaveObjectDelta(Object* obj, Protocol::Value* value) override
+   {
+      throw std::logic_error("cannot save state of non-specific object!");
    }
 
 private:

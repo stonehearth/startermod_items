@@ -34,6 +34,7 @@ public:
 protected:
    void SignalChanged(Value const& value)
    {
+      SignalModified();
       if (changed_) {
          changed_(value);
       }

@@ -4,6 +4,7 @@
 #include "dm.h"
 #include "trace_buffered.h"
 #include "set_trace.h"
+#include "set_loader.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -23,6 +24,12 @@ public:
       removed_.clear();
    }
 
+   void SaveObjectDelta(Object* obj, Protocol::Value* value) override
+   {
+      SaveObjectDelta(added_, removed_ value);
+   }
+
+
 private:
    void NotifyAdded(Value const& value) override
    {
@@ -36,7 +43,6 @@ private:
       removed_.push_back(value);
    }
 
-
    void NotifyObjectState(typename M::ContainerType const& contents) override
    {
       added_.clear();
@@ -45,8 +51,8 @@ private:
    }
 
 private:
-   ValueList  added_;
-   ValueList  removed_;
+   ValueList   added_;
+   ValueList   removed_;
 };
 
 END_RADIANT_DM_NAMESPACE

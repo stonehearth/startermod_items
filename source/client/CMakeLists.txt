@@ -52,7 +52,6 @@ target_link_libraries(client
                              crash_reporter_client
                              csg
                              dm
-                             game_engine
                              glfw
                              Horde3D
                              Horde3DUtils

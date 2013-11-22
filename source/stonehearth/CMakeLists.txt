@@ -33,7 +33,6 @@ target_link_libraries(stonehearth
                              core
                              csg
                              dm
-                             game_engine
                              metrics
                              om
                              physics

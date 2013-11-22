@@ -4,6 +4,7 @@ FIND_PACKAGE(Snappy  REQUIRED)
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 
 add_library(dm STATIC
+            alloc_trace.cpp
             dbg_info.cpp
             dbg_indenter.cpp
             object.cpp
@@ -12,6 +13,9 @@ add_library(dm STATIC
             receiver.cpp
             record_loader.cpp
             streamer.cpp
+            trace.cpp
+            tracer.cpp
+            tracer_sync.cpp
             tracer_buffered.cpp
             )
 

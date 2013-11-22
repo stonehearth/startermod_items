@@ -16,6 +16,29 @@ BEGIN_RADIANT_DM_NAMESPACE
 class Streamer
 {
 public:
+   Streamer(Store& store, int category, protocol::SendQueue* queue);
+
+   void Flush(int now);
+
+private:
+   Protocol::Object* StartUpdate(tesseract::protocol::Update& update, ObjectId id);
+   void FinishUpdate(tesseract::protocol::Update const& update);
+   void OnAlloced(std::vector<ObjectPtr> const& objects);
+   void OnModified(TraceBufferedRef t, ObjectRef o);
+   void OnDestroyed(ObjectId id);
+   void SetServerTick(int now);
+
+private:
+   Store const&            store_;
+   protocol::SendQueue*    queue_;
+   AllocTracePtr           alloc_trace_;
+   TracerBufferedPtr       tracer_;
+   std::unordered_map<ObjectId, TracePtr> dtor_traces_;
+   int                     category_;
+   tesseract::protocol::Update   destroyed_update_;
+   tesseract::protocol::RemoveObjects *destroyed_msg_;
+
+#if 0
    //using ::radiant::tesseract::protocol;
    Streamer(Store const& store, int category, protocol::SendQueue* queue)
    {
@@ -140,6 +163,7 @@ private:
    TracerBufferedPtr             tracer_;
    tesseract::protocol::Update   update_;
    protocol::SendQueue*          queue_;
+#endif
 };
 
 END_RADIANT_DM_NAMESPACE

@@ -37,6 +37,7 @@ public:
 protected:
    void SignalChanged(uint i, Value const& value) 
    {
+      SignalModified();
       if (changed) {
          changed_(i, value)
       } else if (updated_) {
@@ -46,6 +47,7 @@ protected:
 
    void SignalUpdated(ChangeMap const& updated)
    {
+      SignalModified();
       if (updated_) {
          updated_(updates);
       } else {

@@ -8,11 +8,7 @@ BEGIN_RADIANT_DM_NAMESPACE
 class Tracer
 {
 public:
-   Tracer(int category) :
-      category_(category)
-   {
-   }
-
+   Tracer(int category);
    virtual ~Tracer();
 
    enum TracerType {
@@ -21,15 +17,20 @@ public:
       STREAMER,
    };
 
-   int GetCategory() const
-   {
-      return category_;
-   }
+   int GetCategory() const;
+
+private:
+   friend Store;
+
+   AllocTracePtr TraceAlloced(Store const& store, const char* reason);
 
    virtual TracerType GetType() const = 0;
    virtual void OnObjectChanged(ObjectId id) = 0;
+   virtual void OnObjectAlloced(ObjectPtr obj) = 0;
+   virtual void OnObjectDestroyed(ObjectId id) = 0;
 
-private:
+protected:
+   std::vector<AllocTraceRef>    alloc_traces_;
    int   category_;
 };
 

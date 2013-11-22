@@ -26,6 +26,11 @@ private:
    {
       SignalChanged(key, value);
    }
+
+   void NotifyDestroyed() override
+   {
+      SignalDestroyed();
+   }
 };
 
 END_RADIANT_DM_NAMESPACE

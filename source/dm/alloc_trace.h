@@ -1,74 +1,30 @@
 #ifndef _RADIANT_DM_ALLOC_TRACE_H
 #define _RADIANT_DM_ALLOC_TRACE_H
 
-#include "trace.h"
+#include "dm.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
-class Trace
-{
-public:
-   virtual ~Trace();
-};
-
-class AllocTrace : public Trace,
-                   public std::enable_shared_from_this<AllocTrace>
+class AllocTrace : public std::enable_shared_from_this<AllocTrace>
 {
 public:
    typedef std::function<void(ObjectRef)> AllocedCb;
-   typedef std::function<void(std::vector<ObjectPtr>)> UpdatedCb;
+   typedef std::function<void(std::vector<ObjectPtr> const&)> UpdatedCb;
 
 public:
-   AllocTrace(Store const& store) : 
-      store_(store)
-   {
-   }
+   AllocTrace(Store const& store);
 
-   std::shared_ptr<AllocTrace> OnAlloc(AllocedCb on_alloced)
-   {
-      on_alloced_ = on_alloced;
-      return shared_from_this();
-   }
-
-   std::shared_ptr<AllocTrace> OnUpdated(UpdatedCb on_updated)
-   {
-      on_updated_ = on_updated;
-      return shared_from_this();
-   }
-
-   std::shared_ptr<AllocTrace> PushObjectState()
-   {
-      store_.PushAllocState(*this);
-      return shared_from_this();
-   }
+   std::shared_ptr<AllocTrace> OnAlloced(AllocedCb on_alloced);
+   std::shared_ptr<AllocTrace> OnUpdated(UpdatedCb on_updated);
+   std::shared_ptr<AllocTrace> PushObjectState();
 
 protected:
    friend Store;
+   friend TracerSync;
+   friend TracerBuffered;
 
-   void SignalAlloc(ObjectPtr obj)
-   {
-      if (on_alloced_) {
-         on_alloced_(obj);
-      } else if (on_updated_) {
-         std::vector<ObjectPtr> objs;
-         objs.push_back(obj);
-         on_updated_(objs);
-      }
-   }
-
-   void NotifyAllocState(std::vector<ObjectPtr> const& objs)
-   {
-      if (on_updated_) {
-         on_updated_(objs);
-      } else if (on_alloced_) {
-         for (ObjectRef o : objs) {
-            on_alloced_(o);
-         }
-      }
-   }
-
-protected:
-   virtual void NotifyAlloc(ObjectPtr obj) = 0;
+   void SignalAlloc(ObjectPtr obj);
+   void SignalUpdated(std::vector<ObjectPtr> const& objs);
 
 private:
    Store const& store_;

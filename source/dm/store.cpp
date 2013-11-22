@@ -91,6 +91,17 @@ void Store::UnregisterObject(const Object& obj)
 
    objects_.erase(id);
    dynamicObjects_.erase(id);
+   auto i = traces_.find(id);
+   if (i != traces_.end()) {
+      stdutil::ForEachPrune<Trace>(i->second, [&](std::shared_ptr<Trace> t) {
+         t->NotifyDestroyed();
+      });
+   }
+
+   for (const auto& entry : tracers_) {
+      entry.second->OnObjectDestroyed(id);
+   }
+
    destroyed_.push_back(id);
 }
 
@@ -125,10 +136,10 @@ void Store::OnAllocObject(std::shared_ptr<Object> obj)
 
    ObjectId id = obj->GetObjectId();
    dynamicObjects_[id] = DynamicObject(obj, obj->GetObjectType());
-   
-   stdutil::ForEachPrune<AllocTrace>(alloc_traces_, [&](std::shared_ptr<AllocTrace> t) {
-      t->NotifyAlloc(obj);
-   });
+
+   for (auto const& entry : tracers_) {
+      entry.second->OnObjectAlloced(obj);
+   };
 }
 
 Object* Store::FetchStaticObject(ObjectId id) const
@@ -174,7 +185,7 @@ std::vector<ObjectId> Store::GetModifiedSince(GenerationId when)
 void Store::OnObjectChanged(const Object& obj)
 {
    ObjectId id = obj.GetObjectId();
- 
+
    for (auto const& entry : tracers_) {
       entry.second->OnObjectChanged(id);
    }
@@ -186,11 +197,9 @@ bool Store::IsDynamicObject(ObjectId id)
 }
 
 
-AllocTracePtr Store::TraceAlloc(const char* reason, int category)
+AllocTracePtr Store::TraceAlloced(const char* reason, int category)
 {
-   AllocTracePtr trace = std::make_shared<AllocTrace>(*this);
-   alloc_traces_.push_back(trace);
-   return trace;
+   return GetTracer(category)->TraceAlloced(*this, reason);
 }
 
 void Store::PushAllocState(AllocTrace& trace) const
@@ -202,5 +211,5 @@ void Store::PushAllocState(AllocTrace& trace) const
          objects.push_back(obj);
       }
    }
-   trace.NotifyAllocState(objects);
+   trace.SignalUpdated(objects);
 }
