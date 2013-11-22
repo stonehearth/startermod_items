@@ -17,6 +17,7 @@
 #include "egModules.h"
 #include "egCom.h"
 #include "utOpenGL.h"
+#include <gl\GLU.h>
 
 #include "utDebug.h"
 #include "om/error_browser/error_browser.h"
@@ -30,7 +31,7 @@ namespace Horde3D {
 #	define CHECK_GL_ERROR
 #endif
 
-   void validateGLCall(const char* errorStr)
+void validateGLCall(const char* errorStr)
 {
    uint32 error = glGetError();
    if (error != GL_NO_ERROR) {
@@ -166,6 +167,30 @@ void RenderDevice::initStates()
 	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 }
 
+CardType RenderDevice::getCardType(const char* cardString)
+{
+   if (cardString == nullptr)
+   {
+      return CardType::UNKNOWN;
+   }
+
+   if (strncmp("ATI", gRDI->getCaps().vendor, 3) == 0 ||
+       strncmp("AMD", gRDI->getCaps().vendor, 3) == 0)
+   {
+      return CardType::ATI;
+   }
+
+   if (strncmp("Intel", gRDI->getCaps().vendor, 5) == 0)
+   {
+      return CardType::INTEL;
+   }
+
+   if (strncmp("NVIDIA", gRDI->getCaps().vendor, 6) == 0)
+   {
+      return CardType::NVIDIA;
+   }
+   return CardType::UNKNOWN;
+}
 
 bool RenderDevice::init(int glMajor, int glMinor)
 {
@@ -227,9 +252,11 @@ bool RenderDevice::init(int glMajor, int glMinor)
 	_caps.texFloat = glExt::ARB_texture_float ? 1 : 0;
 	_caps.texNPOT = glExt::ARB_texture_non_power_of_two ? 1 : 0;
 	_caps.rtMultisampling = glExt::EXT_framebuffer_multisample ? 1 : 0;
-   _caps.hasInstancing = (glExt::majorVersion * 10 + glExt::minorVersion) >= 33;
+   _caps.glVersion = glExt::majorVersion * 10 + glExt::minorVersion;
+   _caps.hasInstancing = _caps.glVersion >= 33;
    _caps.renderer = renderer;
    _caps.vendor = vendor;
+   _caps.cardType = getCardType(vendor);
    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &_caps.maxTextureSize);
 
 	// Find supported depth format (some old ATI cards only support 16 bit depth for FBOs)
@@ -557,6 +584,18 @@ void RenderDevice::copyTextureDataFromPbo( uint32 texObj, uint32 pboObj, int xOf
 }
 
 
+bool RenderDevice::useGluMipmapFallback()
+{
+   if (getCaps().glVersion < 33) {
+      if (getCaps().cardType == CardType::INTEL)
+      {
+         return true;
+      }
+   }
+   return false;
+}
+
+
 void RenderDevice::uploadTextureData( uint32 texObj, int slice, int mipLevel, const void *pixels )
 {
 	const RDITexture &tex = _textures.getRef( texObj );
@@ -564,7 +603,6 @@ void RenderDevice::uploadTextureData( uint32 texObj, int slice, int mipLevel, co
 
    glActiveTexture( GL_TEXTURE15 );
 	glBindTexture( tex.type, tex.glObj );
-	   validateGLCall("Error uploading texture data1: %d");
 
 	int inputFormat = GL_BGRA, inputType = GL_UNSIGNED_BYTE;
 	bool compressed = (format == TextureFormats::DXT1) || (format == TextureFormats::DXT3) ||
@@ -614,23 +652,34 @@ void RenderDevice::uploadTextureData( uint32 texObj, int slice, int mipLevel, co
 			glTexImage3D( GL_TEXTURE_3D, mipLevel, tex.glFmt, width, height, depth, 0,
 			              inputFormat, inputType, pixels );
 	}
-      validateGLCall("Error uploading texture data2: %d");
 
 	if( tex.genMips && (tex.type != GL_TEXTURE_CUBE_MAP || slice == 5) )
 	{
+      if (useGluMipmapFallback())
+      {
+         if (inputFormat == GL_BGRA && inputType == GL_UNSIGNED_BYTE)
+         {
+            Modules::log().writeInfo("Taking glu path for mipmap generation.");
+            gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA , width, height, inputFormat, GL_UNSIGNED_BYTE, pixels);
+         } else {
+            Modules::log().writeWarning("Attempting risky mipmap generation (%d, %d, %x, %x)", width, height, inputFormat, inputType);
+		      glEnable( tex.type );  // Workaround for ATI driver bug
+		      glGenerateMipmapEXT( tex.type );
+		      glDisable( tex.type );
+         }
+      } else {
+		   glEnable( tex.type );  // Workaround for ATI driver bug
+		   glGenerateMipmapEXT( tex.type );
+		   glDisable( tex.type );
+      }
 		// Note: for cube maps mips are only generated when the side with the highest index is uploaded
-		//glEnable( tex.type );  // Workaround for ATI driver bug
-		//glGenerateMipmapEXT( tex.type );
-		//glDisable( tex.type );
 	}
-      validateGLCall("Error uploading texture data3: %d");
-
 
 	glBindTexture( tex.type, 0 );
 	if( _texSlots[15].texObj )
 		glBindTexture( _textures.getRef( _texSlots[15].texObj ).type, _textures.getRef( _texSlots[15].texObj ).glObj );
 
-   validateGLCall("Error uploading texture data4: %d");
+   validateGLCall("Error uploading texture data: %d");
 }
 
 
@@ -1101,13 +1150,18 @@ void RenderDevice::resolveRenderBuffer( uint32 rbObj )
 
 	glBindFramebufferEXT( GL_READ_FRAMEBUFFER_EXT, 0 );
 	glBindFramebufferEXT( GL_DRAW_FRAMEBUFFER_EXT, 0 );
+
+   validateGLCall("Error resolving render buffer");
 }
 
 
 void RenderDevice::setRenderBuffer( uint32 rbObj )
 {
 	// Resolve render buffer if necessary
-	if( _curRendBuf != 0 ) resolveRenderBuffer( _curRendBuf );
+	if(_curRendBuf != 0)
+   {
+      resolveRenderBuffer(_curRendBuf);
+   }
 	
 	// Set new render buffer
 	_curRendBuf = rbObj;
@@ -1123,7 +1177,10 @@ void RenderDevice::setRenderBuffer( uint32 rbObj )
 	else
 	{
 		// Unbind all textures to make sure that no FBO attachment is bound any more
-		for( uint32 i = 0; i < 16; ++i ) setTexture( i, 0, 0 );
+		for( uint32 i = 0; i < 16; ++i ) 
+      {
+         setTexture( i, 0, 0 );
+      }
 		commitStates( PM_TEXTURES );
 		
 		RDIRenderBuffer &rb = _rendBufs.getRef( rbObj );
@@ -1133,8 +1190,12 @@ void RenderDevice::setRenderBuffer( uint32 rbObj )
 		_fbWidth = rb.width;
 		_fbHeight = rb.height;
 
-		if( rb.fboMS != 0 ) glEnable( GL_MULTISAMPLE );
-		else glDisable( GL_MULTISAMPLE );
+		if( rb.fboMS != 0 )
+      {
+         glEnable( GL_MULTISAMPLE );
+      } else {
+         glDisable( GL_MULTISAMPLE );
+      }
 	}
 }
 
