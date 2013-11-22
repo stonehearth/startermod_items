@@ -3,7 +3,6 @@
 #include "arbiter.h"
 #include "metrics.h"
 #include "simulation.h"
-#include <boost/program_options.hpp>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 extern "C" {
     #include "lauxlib.h"
@@ -39,18 +38,23 @@ arbiter::arbiter() :
 
 void arbiter::GetConfigOptions()
 {
-   po::options_description config_file("Server options");
-   po::options_description cmd_line("Server options");
+   core::Config& config = core::Config::GetInstance();
+   std::string mod_name = config.GetName();
 
-   std::string name = core::Config::GetInstance().GetName();
-   cmd_line.add_options()
-      ("game.noidle",   po::bool_switch(&config_.noidle), "suspend the idle loop, running the game as fast as possible.")
-      ("game.script",   po::value<std::string>()->default_value(name + "/start_game.lua"), "the game script to load")  //xxx: put this in a constant
-      ("game.mod",     po::value<std::string>()->default_value(name), "the mod to load")
-      ;
-   core::Config::GetInstance().GetCommandLineOptions().add(cmd_line);
-   core::Config::GetInstance().GetConfigFileOptions().add(cmd_line);
-   core::Config::GetInstance().GetConfigFileOptions().add(config_file);
+   // "suspend the idle loop, running the game as fast as possible."
+   config_.noidle = config.GetProperty("game.noidle", true);
+
+   std::string game_script = config.GetProperty("game.script", "");
+   if (game_script.empty()) {
+      game_script = mod_name + "/start_game.lua";
+      config.SetProperty("game.script", game_script);
+   }
+
+   std::string game_mod = config.GetProperty("game.mod", "");
+   if (game_mod.empty()) {
+      game_mod = mod_name;
+      config.SetProperty("game.mod", game_mod);
+   }
 }
 
 arbiter::~arbiter()

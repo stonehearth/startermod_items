@@ -19,7 +19,7 @@ void Item::InitializeRecordFields()
 
 void Item::ExtendObject(json::Node const& obj)
 {
-   JSONNode const& node = obj.GetNode();
+   JSONNode const& node = obj.get_internal_node();
    int count = obj.get<int>("stacks", *maxStacks_);
    stacks_ = count;
    maxStacks_ = count;

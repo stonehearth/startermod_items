@@ -12,6 +12,7 @@ public:
    Node() { }
    Node(JSONNode const& node) : node_(node) { }
 
+   std::string name() const { return node_.name(); }
    int type() const { return node_.type(); }
    int size() const { return node_.size(); }
    bool empty() const { return node_.empty(); }
@@ -24,7 +25,7 @@ public:
       return node_.write_formatted();
    }
 
-   JSONNode const& GetNode() const {
+   JSONNode const& get_internal_node() const {
       return node_;
    }
 
@@ -32,39 +33,94 @@ public:
       return node_;
    }
 
-   bool has(std::string const& name) const {
-      return find(name) != end();
+   bool has(std::string const& path) const {
+      return find(path) != end();
    }
 
    template <typename T> T as() const {
       return json::decode<T>(*this);
    }
 
-   template <typename T> T as(T const& def) const {
+   template <typename T> T as(T const& default_value) const {
       try {
          return as<T>();
       } catch (InvalidJson const&) {
       }
-      return def;
+      return default_value;
    }
 
-   template <typename T> T get(std::string const& name) const {
-      auto i = find(name);
-      if (i != end()) {
-         return Node(*i).as<T>();
-      }
-      throw InvalidJson(BUILD_STRING("node has no key named " << name));
-   }
+   template <typename T> T get(std::string const& path) const {
+      std::string current_path, next_path, next_node_name;
+      JSONNode const* node = &node_;
 
-   template <typename T> T get(std::string const& name, T const& def) const {
+      current_path = path;
+
       try {
-         auto i = find(name);
-         if (i != end()) {
-            return Node(*i).as<T>();
+         while (true) {
+            if (!is_nested_path(current_path)) {
+               // no nesting, just get it
+               auto i = node->find(current_path);
+
+               if (i != node->end()) {
+                  // replace existing value
+                  return Node(*i).as<T>();
+               }
+               throw InvalidJson(BUILD_STRING("JSON node has no key named '" << current_path << "'."));
+            }
+
+            chop_path_front(current_path, next_node_name, next_path);
+            auto i = node->find(next_node_name);
+
+            if (i == node->end()) {
+               throw InvalidJson(BUILD_STRING("JSON node '" << next_node_name << "' not found."));
+            }
+
+            // path exists, make sure it's a node and not a property
+            if (i->type() != JSON_NODE) {
+               throw InvalidJson(BUILD_STRING("Cannot navigate through '" << next_node_name << "'"));
+            }
+
+            current_path = next_path;
+            node = &*i;
          }
-      } catch (InvalidJson const&) {
+      } catch (std::exception const& e) {
+         throw InvalidJson(BUILD_STRING("Error getting path '" << path << "'. " << e.what()));
       }
-      return def;
+   }
+
+   template <typename T> T get(std::string const& path, T const& default_value) const {
+      std::string current_path, next_path, next_node_name;
+      JSONNode const* node = &node_;
+
+      current_path = path;
+
+      while (true) {
+         if (!is_nested_path(current_path)) {
+            // no nesting, just get it
+            auto i = node->find(current_path);
+
+            if (i != node->end()) {
+               // replace existing value
+               return Node(*i).as<T>();
+            }
+            return default_value;
+         }
+
+         chop_path_front(current_path, next_node_name, next_path);
+         auto i = node->find(next_node_name);
+
+         if (i == node->end()) {
+            return default_value;
+         }
+
+         // path exists, make sure it's a node and not a property
+         if (i->type() != JSON_NODE) {
+            return default_value;
+         }
+
+         current_path = next_path;
+         node = &*i;
+      }
    }
 
    template <typename T> T get(unsigned int index) const {
@@ -72,86 +128,79 @@ public:
       if (index >= 0 && index < (int)node_.size()) {
          return Node(node_.at(index)).as<T>();
       }
-      throw InvalidJson(BUILD_STRING("index " << index << " out-of-bounds"));
+      throw InvalidJson(BUILD_STRING("index " << index << " out-of-bounds."));
    }
 
-   template <typename T> T get(unsigned int index, T const& def) const {
+   template <typename T> T get(unsigned int index, T const& default_value) const {
       try {
          if (index >= 0 && index < (int)node_.size()) {
             return Node(node_.at(index)).as<T>();
          }
       } catch (InvalidJson const&) {
       }
-      return def;
+      return default_value;
    }
 
-   Node getn(std::string const& name, Node const& def = Node()) const {
-      return Node(get<JSONNode>(name, def));
+   Node get_node(std::string const& name, Node const& default = Node()) const {
+      return Node(get<JSONNode>(name, default));
    }
 
-   Node getn(unsigned int index, Node const& def = Node()) const {
-      return Node(get<JSONNode>(index, def));
+   Node get_node(unsigned int index, Node const& default = Node()) const {
+      return Node(get<JSONNode>(index, default));
    }
 
-   template <typename T> JSONNode create_node(std::string const& name, T const& value) const {
-      JSONNode node = encode(value);
-      node.set_name(name);
-      return node;
-   }
+   template <typename T> Node& set(std::string const& path, T const& value) {
+      std::string current_path, next_path, next_node_name;
+      JSONNode* node = &node_;
 
-   template <> JSONNode create_node(std::string const& name, int const& value) const {
-      return JSONNode(name, value);
-   }
+      current_path = path;
 
-   template <> JSONNode create_node(std::string const& name, bool const& value) const {
-      return JSONNode(name, value);
-   }
+      try {
+         while (true) {
+            if (!is_nested_path(current_path)) {
+               // no nesting, just set it
+               auto i = node->find(current_path);
 
-   template <> JSONNode create_node(std::string const& name, float const& value) const {
-      return JSONNode(name, value);
-   }
+               if (i != node->end()) {
+                  // replace existing value
+                  *i = create_node(current_path, value);
+               } else {
+                  // add new node
+                  node->push_back(create_node(current_path, value));
+               }
+               return *this;
+            }
 
-   template <> JSONNode create_node(std::string const& name, double const& value) const {
-      return JSONNode(name, value);
-   }
+            chop_path_front(current_path, next_node_name, next_path);
+            auto i = node->find(next_node_name);
 
-   template <> JSONNode create_node(std::string const& name, std::string const& value) const {
-      return JSONNode(name, value);
-   }
+            if (i == node->end()) {
+               // node doesn't exist, create and assign the subgraph
+               node->push_back(create_node(current_path, value));
+               return *this;
+            }
 
-   template <> JSONNode create_node(std::string const& name, char* const& value) const {
-      return JSONNode(name, std::string(value));
-   }
-
-   template <> JSONNode create_node(std::string const& name, JSONNode const& value) const {
-      JSONNode result = value;
-      result.set_name(name);
-      return result;
-   }
-
-   template <typename T> Node& set(std::string const& name, T const& value) {
-      size_t offset = name.find('.');
-      if (offset == std::string::npos) {
-         auto i = node_.find(name);
-         if (i != node_.end()) {
-            *i = create_node(name, value);
-         } else {
-            node_.push_back(create_node(name, value));
-         }
-      } else {
-         auto i = node_.find(name.substr(0, offset));
-         if (i != node_.end()) {
+            // path exists, make sure it's a node and not a property
             if (i->type() != JSON_NODE) {
-               throw InvalidJson(BUILD_STRING("cannot set key " << name << " of non-node json value"));
-            }     
-            Node(*i).set(name.substr(offset + 1), value);
-         } else {
-            Node child;
-            child.node_.set_name(name.substr(0, offset));
-            child.set(name.substr(offset + 1), value);
-            node_.push_back(child);
+               throw InvalidJson(BUILD_STRING("Cannot navigate through '" << next_node_name << "'"));
+            }
+
+            current_path = next_path;
+            node = &*i;
          }
+      } catch (std::exception const& e) {
+         throw InvalidJson(BUILD_STRING("Error setting path '" << path << "'. " << e.what()));
       }
+   }
+
+   Node& add_node(Node const& new_node)
+   {
+      node_.push_back(new_node.node_);
+      return *this;
+   }
+
+   template <typename T> Node& add(std::string const& name, T const& value) {
+      node_.push_back(create_node(name, value));
       return *this;
    }
 
@@ -160,23 +209,104 @@ public:
       return *this;
    }
 
+   class const_iterator;
 
-   // xxx: these should return Node's, right?
-   JSONNode::const_iterator begin() const { return node_.begin(); }
-   JSONNode::const_iterator end() const { return node_.end(); }
-   JSONNode::const_iterator find(std::string const& name) const {
-      size_t offset = name.find('.');
-      if (offset == std::string::npos) {
-         return node_.find(name);
+   const_iterator begin() const { return const_iterator(node_.begin()); }
+   const_iterator end() const { return const_iterator(node_.end()); }
+   const_iterator find(std::string const& path) const {
+      if (!is_nested_path(path)) {
+         return const_iterator(node_.find(path));
       }
-      auto i = node_.find(name.substr(0, offset));
+      std::string next_node_name, next_path;
+      chop_path_front(path, next_node_name, next_path);
+
+      auto i = node_.find(next_node_name);
       if (i == node_.end()) {
-         return i;
+         return const_iterator(i);
       }
-      return Node(*i).find(name.substr(offset + 1));
+      return Node(*i).find(next_path);
    }
 
+   class const_iterator {
+   public:
+      inline const_iterator(JSONNode::const_iterator it) : it_(it) {}
+      inline const_iterator(const_iterator const& rhs) : it_(rhs.it_) {}
+      inline const_iterator& operator=(const_iterator const& rhs) { it_ = rhs.it_; return *this; }
+
+      inline Node const operator*() const { return Node(*it_); }
+
+      inline bool operator!=(const_iterator const& rhs) const { return it_ != rhs.it_; }
+      inline bool operator==(const_iterator const& rhs) const { return it_ == rhs.it_; }
+
+      inline const_iterator& operator++() { ++it_; return *this; }
+      inline const_iterator& operator--() { --it_; return *this; }
+
+      inline const_iterator operator++(int) { const_iterator result(*this); ++it_; return result; }
+      inline const_iterator operator--(int) { const_iterator result(*this); --it_; return result; }
+
+   private:
+      JSONNode::const_iterator it_;
+   };
+
 private:
+   template <typename T> JSONNode create_node(std::string const& path, T const& value) const {
+      std::string remaining_path, node_name;
+      chop_path_back(path, node_name, remaining_path);
+      JSONNode node = (JSONNode)encode(value);
+      node.set_name(node_name);
+      return create_ancestors(remaining_path, node);
+   }
+
+   template <> JSONNode create_node(std::string const& path, int const& value) const {
+      std::string remaining_path, node_name;
+      chop_path_back(path, node_name, remaining_path);
+      return create_ancestors(remaining_path, JSONNode(node_name, value));
+   }
+
+   template <> JSONNode create_node(std::string const& path, bool const& value) const {
+      std::string remaining_path, node_name;
+      chop_path_back(path, node_name, remaining_path);
+      return create_ancestors(remaining_path, JSONNode(node_name, value));
+   }
+
+   template <> JSONNode create_node(std::string const& path, float const& value) const {
+      std::string remaining_path, node_name;
+      chop_path_back(path, node_name, remaining_path);
+      return create_ancestors(remaining_path, JSONNode(node_name, value));
+   }
+
+   template <> JSONNode create_node(std::string const& path, double const& value) const {
+      std::string remaining_path, node_name;
+      chop_path_back(path, node_name, remaining_path);
+      return create_ancestors(remaining_path, JSONNode(node_name, value));
+   }
+
+   template <> JSONNode create_node(std::string const& path, std::string const& value) const {
+      std::string remaining_path, node_name;
+      chop_path_back(path, node_name, remaining_path);
+      return create_ancestors(remaining_path, JSONNode(node_name, value));
+   }
+
+   template <> JSONNode create_node(std::string const& path, char* const& value) const {
+      std::string remaining_path, node_name;
+      chop_path_back(path, node_name, remaining_path);
+      return create_ancestors(remaining_path, JSONNode(node_name, value));
+   }
+
+   template <> JSONNode create_node(std::string const& path, JSONNode const& value) const {
+      std::string remaining_path, node_name;
+      chop_path_back(path, node_name, remaining_path);
+      JSONNode node(value);
+      node.set_name(node_name);
+      return create_ancestors(remaining_path, node);
+   }
+
+   bool is_nested_path(std::string const& path) const;
+   void chop_path_front(std::string const& path, std::string& node_name, std::string& remaining_path) const;
+   void chop_path_back(std::string const& path, std::string& node_name, std::string& remaining_path) const;
+   JSONNode create_ancestors(std::string const& path, JSONNode& node) const;
+
+   static char const path_delimiter = '.';
    JSONNode node_;
 };
 

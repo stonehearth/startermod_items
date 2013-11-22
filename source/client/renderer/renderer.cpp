@@ -12,7 +12,6 @@
 #include "om/selection.h"
 #include "om/entity.h"
 #include <boost/property_tree/json_parser.hpp>
-#include <boost/program_options.hpp>
 #include <SFML/Audio.hpp>
 #include "camera.h"
 #include "lib/perfmon/perfmon.h"
@@ -21,7 +20,6 @@
 
 using namespace ::radiant;
 using namespace ::radiant::client;
-namespace po = boost::program_options;
 
 std::vector<float> ssaoSamplerData;
 H3DRes ssaoMat;
@@ -218,38 +216,28 @@ void Renderer::ShowPerfHud(bool value) {
    }
 }
 
+// These options should be worded so that they can default to false
 void Renderer::GetConfigOptions()
 {
-   po::options_description config_file("Renderer options");
-   po::options_description cmd_line("Renderer options");
+   core::Config& config = core::Config::GetInstance();
 
-   cmd_line.add_options()
-      (
-         "renderer.use_forward_renderer",
-         po::bool_switch(&config_.use_forward_renderer)->default_value(true), "Uses the forward-renderer, instead of the deferred renderer."
-      )
-      (
-         "renderer.use_ssao_blur",
-         po::bool_switch(&config_.use_ssao_blur)->default_value(true), "Enables SSAO blur."
-      )
-      (
-         "renderer.enable_shadows",
-         po::bool_switch(&config_.use_shadows)->default_value(true), "Enables shadows."
-      )
-      (
-         "renderer.enable_ssao",
-         po::bool_switch(&config_.use_ssao)->default_value(true), "Enables Screen-Space Ambient Occlusion (SSAO)."
-      )
-      (
-         "renderer.msaa_samples",
-         po::value<int>(&config_.num_msaa_samples)->default_value(0), "Sets the number of Multi-Sample Anti Aliasing samples to use."
-      )
-      (
-         "renderer.shadow_resolution",
-         po::value<int>(&config_.shadow_resolution)->default_value(2048), "Sets the square resolution of the shadow maps."
-      );
-   core::Config::GetInstance().GetCommandLineOptions().add(cmd_line);
-   core::Config::GetInstance().GetConfigFileOptions().add(cmd_line);
+   // "Uses the forward-renderer, instead of the deferred renderer."
+   config_.use_forward_renderer = config.GetProperty("renderer.use_forward_renderer", true);
+
+   // "Enables SSAO blur."
+   config_.use_ssao_blur = config.GetProperty("renderer.use_ssao_blur", true);
+
+   // "Enables shadows."
+   config_.use_shadows = config.GetProperty("renderer.enable_shadows", true);
+
+   // "Enables Screen-Space Ambient Occlusion (SSAO)."
+   config_.use_ssao = config.GetProperty("renderer.enable_ssao", true);
+
+   // "Sets the number of Multi-Sample Anti Aliasing samples to use."
+   config_.num_msaa_samples = config.GetProperty("renderer.msaa_samples", 0);
+
+   // "Sets the square resolution of the shadow maps."
+   config_.shadow_resolution = config.GetProperty("renderer.shadow_resolution", 2048);
 }
 
 void Renderer::ApplyConfig()

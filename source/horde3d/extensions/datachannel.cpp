@@ -24,7 +24,7 @@ std::vector<std::pair<float, float> > parseCurveValues(Node &n) {
 
    for (const auto &child : n)
    {
-      result.push_back(std::pair<float, float>((float)child.at(0).as_float(), (float)child.at(1).as_float()));
+      result.push_back(std::pair<float, float>(child.get<float>(0), child.get<float>(1))); // CHECKCHECK
    }
 
    return result;
@@ -37,13 +37,13 @@ ValueEmitter<float>* ::radiant::horde3d::parseChannel(Node &n, const char *child
       return new ConstantValueEmitter<float>(def);
    }
 
-   auto childNode = n.getn(childName);
+   auto childNode = n.get_node(childName);
 
    if (!childNode.has("values") || !childNode.has("kind"))
    {
       return new ConstantValueEmitter<float>(def);
    }
-   auto vals = childNode.getn("values");
+   auto vals = childNode.get_node("values");
    std::string kind = childNode.get<std::string>("kind", "");
 
    if (kind == "CONSTANT")
@@ -58,7 +58,7 @@ ValueEmitter<float>* ::radiant::horde3d::parseChannel(Node &n, const char *child
    } //else kind == "RANDOM_BETWEEN_CURVES"
 
    return new RandomBetweenLinearCurvesValueEmitter(
-      parseCurveValues(vals.getn(0)), parseCurveValues(vals.getn(1)));
+      parseCurveValues(vals.get_node(0)), parseCurveValues(vals.get_node(1)));
 }
 
 ValueEmitter<Vec3f>* ::radiant::horde3d::parseChannel(Node &n, const char *childName, const Vec3f &def)
@@ -68,13 +68,13 @@ ValueEmitter<Vec3f>* ::radiant::horde3d::parseChannel(Node &n, const char *child
       return new ConstantValueEmitter<Vec3f>(def);
    }
 
-   auto childNode = n.getn(childName);
+   auto childNode = n.get_node(childName);
 
    if (!childNode.has("values") || !childNode.has("kind"))
    {
       return new ConstantValueEmitter<Vec3f>(def);
    }
-   auto vals = childNode.getn("values");
+   auto vals = childNode.get_node("values");
    std::string kind = childNode.get<std::string>("kind", "");
 
    if (kind == "CONSTANT")
@@ -83,8 +83,8 @@ ValueEmitter<Vec3f>* ::radiant::horde3d::parseChannel(Node &n, const char *child
       return new ConstantValueEmitter<Vec3f>(val);
    } //else kind == "RANDOM_BETWEEN"
 
-   Node vec1node = vals.getn(0);
-   Node vec2node = vals.getn(1);
+   Node vec1node = vals.get_node(0);
+   Node vec2node = vals.get_node(1);
 
    return new RandomBetweenVec3fEmitter(parseVec3f(vec1node, def), parseVec3f(vec2node, def));
 }
@@ -96,13 +96,13 @@ ValueEmitter<Vec4f>* ::radiant::horde3d::parseChannel(Node &n, const char *child
       return new ConstantValueEmitter<Vec4f>(def);
    }
 
-   auto childNode = n.getn(childName);
+   auto childNode = n.get_node(childName);
 
    if (!childNode.has("values") || !childNode.has("kind"))
    {
       return new ConstantValueEmitter<Vec4f>(def);
    }
-   auto vals = childNode.getn("values");
+   auto vals = childNode.get_node("values");
    std::string kind = childNode.get<std::string>("kind", "");
 
    if (kind == "CONSTANT")
@@ -110,6 +110,6 @@ ValueEmitter<Vec4f>* ::radiant::horde3d::parseChannel(Node &n, const char *child
       return new ConstantValueEmitter<Vec4f>(parseVec4f(vals, def));
    } //else kind == "RANDOM_BETWEEN"
 
-   return new RandomBetweenVec4fEmitter(parseVec4f(vals.getn(0), def), 
-      parseVec4f(vals.getn(1), def));
+   return new RandomBetweenVec4fEmitter(parseVec4f(vals.get_node(0), def), 
+      parseVec4f(vals.get_node(1), def));
 }

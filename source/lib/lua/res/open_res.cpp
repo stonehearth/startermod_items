@@ -23,7 +23,7 @@ object load_json(lua_State* L, std::string const& uri)
 object load_manifest(lua_State* L, std::string const& mod_name)
 {
    res::Manifest m = res::ResourceManager2::GetInstance().LookupManifest(mod_name);
-   return lua::ScriptHost::JsonToLua(L, m.GetNode());
+   return lua::ScriptHost::JsonToLua(L, m.get_internal_node());
 }
 
 DEFINE_INVALID_JSON_CONVERSION(Animation);

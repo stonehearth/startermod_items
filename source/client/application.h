@@ -20,7 +20,7 @@ namespace radiant {
 
          private:
             boost::asio::ip::tcp::acceptor* FindServerPort();
-            bool LoadConfig(int argc, const char** argv);
+            void LoadConfig(int argc, const char** argv);
             bool InitializeCrashReporting(std::string& error_string);
 
             static void ClientThreadMain(int server_port);

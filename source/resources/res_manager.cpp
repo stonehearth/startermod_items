@@ -242,19 +242,6 @@ std::shared_ptr<std::istream> ResourceManager2::OpenResource(std::string const& 
 
 }
 
-void ResourceManager2::ExpandMacros(std::string const& base_path, JSONNode& node, bool full) const
-{
-   int type = node.type();
-   if (type == JSON_NODE || type == JSON_ARRAY) {
-      for (auto& i : node) {
-         ExpandMacros(base_path, i, full);
-      }
-   } else if (type == JSON_STRING) {
-      std::string expanded = ExpandMacro(node.as_string(), base_path, full);
-      node = JSONNode(node.name(), expanded);
-   }
-}
-
 std::string ResourceManager2::ConvertToCanonicalPath(std::string path, const char* search_ext) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -302,6 +289,18 @@ JSONNode ResourceManager2::LoadJson(std::string const& canonical_path) const
    return node;
 }
 
+void ResourceManager2::ExpandMacros(std::string const& base_path, JSONNode& node, bool full) const
+{
+   int type = node.type();
+   if (type == JSON_NODE || type == JSON_ARRAY) {
+      for (auto& i : node) {
+         ExpandMacros(base_path, i, full);
+      }
+   } else if (type == JSON_STRING) {
+      std::string expanded = ExpandMacro(node.as_string(), base_path, full);
+      node = JSONNode(node.name(), expanded);
+   }
+}
 
 void ResourceManager2::ParseNodeExtension(std::string const& path, JSONNode& n) const
 {
@@ -393,7 +392,7 @@ std::string ResourceManager2::GetEntityUri(std::string const& mod_name, std::str
    std::lock_guard<std::recursive_mutex> lock(mutex_);
 
    json::Node manifest = res::ResourceManager2::GetInstance().LookupManifest(mod_name);
-   json::Node entities = manifest.getn("radiant.entities");
+   json::Node entities = manifest.get_node("radiant.entities");
    std::string uri = entities.get<std::string>(entity_name, "");
 
    if (uri.empty()) {

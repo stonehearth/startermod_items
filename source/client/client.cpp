@@ -135,11 +135,11 @@ Client::Client() :
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:design_event");
       try {
          json::Node node(f.args);
-         std::string event_name = node.getn(0).as<std::string>();
+         std::string event_name = node.get_node(0).as<std::string>();
          analytics::DesignEvent design_event(event_name);
 
          if (node.size() > 1) {
-            json::Node params = node.getn(1);
+            json::Node params = node.get_node(1);
             if (params.has("value")) {
                design_event.SetValue(params.get<float>("value"));
             }
@@ -165,7 +165,7 @@ Client::Client() :
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:design_event");
       try {
          json::Node node(f.args);
-         bool collect_stats = node.getn(0).as<bool>();
+         bool collect_stats = node.get_node(0).as<bool>();
          core::Config::GetInstance().SetCollectionStatus(collect_stats);
          result->ResolveWithMsg("success");
       } catch (std::exception const& e) {
@@ -222,7 +222,7 @@ Client::Client() :
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:play_sound");
       try {
          json::Node node(f.args);
-         std::string sound_url = node.getn(0).as<std::string>();
+         std::string sound_url = node.get_node(0).as<std::string>();
 
          if (soundBuffer_.loadFromStream(audio::InputStream(sound_url))) {
             // TODO, add a sound manager instead of this temp solution!
@@ -277,16 +277,15 @@ void Client::run(int server_port)
       OnInput(input);
    });
 
-   namespace po = boost::program_options;
-   auto varMap = core::Config::GetInstance().GetVarMap();
-   std::string loader = varMap["game.mod"].as<std::string>();
+   core::Config& config = core::Config::GetInstance();
+   std::string loader = config.GetProperty<std::string>("game.mod");
    json::Node manifest(res::ResourceManager2::GetInstance().LookupManifest(loader));
    std::string docroot = "http://radiant/" + manifest.get<std::string>("loader.ui.homepage");
 
    // seriously???
-   std::string name = core::Config::GetInstance().GetName();
-   std::string game_script = varMap["game.script"].as<std::string>();
-   if (game_script != name + "/start_game.lua") {
+   std::string mod_name = config.GetName();
+   std::string game_script = config.GetProperty<std::string>("game.script");
+   if (game_script != mod_name + "/start_game.lua") {
       docroot += "?skip_title=true";
    }
 
@@ -354,7 +353,7 @@ void Client::run(int server_port)
       currentCursor_ = NULL;
    };
 
-   if (core::Config::GetInstance().GetCrashKeyEnabled()) {
+   if (core::Config::GetInstance().GetProperty("crash_key_enabled", false)) {
       _commands[GLFW_KEY_PAUSE] = []() {
          // throw an exception that is not caught by Client::OnInput
          throw std::string("User hit crash key");
@@ -387,7 +386,7 @@ void Client::InitializeModules()
    for (std::string const& modname : rm.GetModuleNames()) {
       try {
          json::Node manifest = rm.LookupManifest(modname);
-         json::Node const& block = manifest.getn("client");
+         json::Node const& block = manifest.get_node("client");
          if (!block.empty()) {
             LOG(WARNING) << "loading init script for " << modname << "...";
             LoadModuleInitScript(block);
@@ -933,7 +932,7 @@ rpc::ReactorDeferredPtr Client::GetModules(rpc::Function const& fn)
    for (std::string const& modname : rm.GetModuleNames()) {
       JSONNode manifest;
       try {
-         manifest = rm.LookupManifest(modname).GetNode();
+         manifest = rm.LookupManifest(modname).get_internal_node();
       } catch (std::exception const&) {
          // Just use an empty manifest...f
       }

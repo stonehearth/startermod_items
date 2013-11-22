@@ -79,8 +79,8 @@ GetLuaComponentUri(std::string name)
       modname = name.substr(0, offset);
       name = name.substr(offset + 1, std::string::npos);
 
-      json::Node manifest = res::ResourceManager2::GetInstance().LookupManifest(modname).GetNode();
-      return manifest.getn("components").get<std::string>(name);
+      json::Node manifest = res::ResourceManager2::GetInstance().LookupManifest(modname).get_internal_node();
+      return manifest.get_node("components").get<std::string>(name);
    }
    // xxx: throw an exception...
    return "";

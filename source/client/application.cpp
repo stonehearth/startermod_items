@@ -14,7 +14,7 @@
 #include "csg/random_number_generator.h"
 
 using radiant::client::Application;
-namespace po = boost::program_options;
+//namespace po = boost::program_options;
 
 void protobuf_log_handler(google::protobuf::LogLevel level, const char* filename,
                           int line, const std::string& message)
@@ -30,21 +30,15 @@ Application::~Application()
 {
 }
 
-bool Application::LoadConfig(int argc, const char* argv[])
+void Application::LoadConfig(int argc, const char* argv[])
 {
    core::Config& config = core::Config::GetInstance();
+   config.Load(argc, argv);
 
    Client::GetInstance().GetConfigOptions();
    game_engine::arbiter::GetInstance().GetConfigOptions();
-   po::options_description config_file("Renderer options");
-   config_file.add_options()
-      (
-         "support.crash_dump_server",
-         po::value<std::string>(&crash_dump_uri_)->default_value(REPORT_CRASHDUMP_URI), "Where to send crash dumps"
-      );
-   core::Config::GetInstance().GetConfigFileOptions().add(config_file);
 
-   return config.Load(argc, argv);
+   crash_dump_uri_ = config.GetProperty("support.crash_dump_server", REPORT_CRASHDUMP_URI);
 }
 
 // Returns false on error
@@ -107,13 +101,9 @@ int Application::Run(int argc, const char** argv)
 {
    // Exception handling prior to initializing crash reporter or log
    try {
-      core::Config& config = core::Config::GetInstance();
-      
-      if (!LoadConfig(argc, argv)) {
-         return 0;
-      }
+      LoadConfig(argc, argv);
    } catch (std::exception const& e) {
-      std::string const error_message = BUILD_STRING("Unhandled exception during application bootstrap.\n\n" << e.what());
+      std::string const error_message = BUILD_STRING("Unhandled exception during application bootstrap:\n\n" << e.what());
       crash_reporter::client::CrashReporterClient::TerminateApplicationWithMessage(error_message);
    }
 

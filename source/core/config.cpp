@@ -2,129 +2,178 @@
 #include "radiant.h"
 #include "build_number.h"
 #include "config.h"
+#include "lib/json/node.h"
+#include "libjson.h"
 #include <iostream>
 #include <rpc.h>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/ini_parser.hpp>
+#include <boost/algorithm/string.hpp>
 #include "poco/UUIDGenerator.h"
 
 using namespace ::radiant;
 using namespace ::radiant::core;
-
-namespace fs = boost::filesystem;
-namespace po = boost::program_options;
-namespace pt = boost::property_tree;
 
 DEFINE_SINGLETON(Config)
 
 //Analytics uses the build_number for a/b testing.
 const std::string BUILD_NUMBER = "preview_0.1a";
 
-Config::Config() :
-   cmd_line_options_("command line options"),
-   config_file_options_("configuration file options"), 
-   collect_analytics_("yes"),
-   crash_key_enabled_(false)
+Config::Config()
 {
 }
 
-bool Config::Load(int argc, const char *argv[])
+boost::filesystem::path Config::LookupCacheDirectory() const
 {
-   std::string name = GetName();
-
-   cmd_line_options_.add_options()
-      ("help",             "produce help message")
-      ("cache.directory",  po::value<std::string>(),
-                           "the directory containing the runtime game files")
-      ("config",           po::value<std::string>(&config_filename_)->default_value(name + ".ini"),
-                           "name of a file of a configuration.")
-      ;
-
-   config_file_options_.add_options()
-      ("userid", po::value<std::string>())
-      ("collect_analytics", po::value<std::string>())
-      ("crash_key_enabled", po::value<bool>()->default_value(crash_key_enabled_))
-      ;
-
-   auto options = po::command_line_parser(argc, argv)
-      //.options(cmdLineOptions)
-      .options(cmd_line_options_)
-      .allow_unregistered()
-      .run();
-
-   po::store(options, configvm_);
-   po::notify(configvm_);
-
-   // If they just asked for help, bail now...
-   if (configvm_.count("help")) {
-      std::cout << cmd_line_options_ << std::endl;
-      return false;
+   TCHAR path[MAX_PATH];
+   if (SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, path) != S_OK) {
+      throw std::invalid_argument("Could not retrieve path to local application data");
    }
+   return boost::filesystem::path(path) / GetName();
+}
 
-   // Figure out where to keep temporary files
-   if (configvm_.count("cache.directory")) {
-      cache_directory_ = configvm_["cache.directory"].as<std::string>();
-   } else {
-      TCHAR path[MAX_PATH];
-      if (SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, path) != S_OK) {
-         throw std::invalid_argument("could not retrieve path to common application data");
+static void JsonParseErrorCallback(json_string const& message)
+{
+   throw json::InvalidJson(libjson::to_std_string(message).c_str());
+}
+
+json::Node Config::ParseJsonFile(boost::filesystem::path const& filepath) const
+{
+   std::ifstream stream(filepath.string());
+   std::stringstream reader;
+   reader << stream.rdbuf();
+   json_string json_text = reader.str();
+
+   if (!libjson::is_valid(json_text)) {
+      std::string error_message = "Unknown reason";
+
+      try {
+         JSONNode node = libjson::parse(json_text);
+         // force libjson to resolve the nodes and hit the error
+         node.write_formatted();
+      } catch (std::exception const& e) {
+         error_message = e.what();
       }
-      cache_directory_ = fs::path(path) / name;
-   }
-   if (!fs::is_directory(cache_directory_)) {
-      fs::create_directory(cache_directory_);
+
+      throw json::InvalidJson(BUILD_STRING(
+         "Invalid JSON: " << error_message << "\n\n" <<
+         "in file " << filepath << "\n\n" <<
+         "Source:\n" << json_text
+      ));
    }
 
-   // Figure out where to run the game...
-   run_directory_ = boost::filesystem::path(".");
-   if (!fs::is_directory(run_directory_)) {
-      throw std::invalid_argument(BUILD_STRING("Run directory " << fs::absolute(run_directory_) << " does not exist."));
+   JSONNode node = libjson::parse(json_text);
+   return json::Node(node);
+}
+
+void Config::MergeConfigNodes(JSONNode& base, JSONNode const& override) const
+{
+   if (base.type() != override.type()) {
+      throw json::InvalidJson("");
    }
 
-   // If there's no .ini file here, complain quite loudly...
-   if (!fs::is_regular(run_directory_ / config_filename_)) {
-      throw std::invalid_argument(BUILD_STRING("Run directory " << fs::absolute(run_directory_) << " does not contain " << name << ".ini."));
+   switch (override.type()) {
+   case JSON_NODE:
+      {
+         for (JSONNode const& n : override) {
+            std::string const& name = n.name();
+            auto it = base.find(name);
+            if (it == base.end()) {
+               // override does not exist in base, add it
+               base.push_back(n);
+            } else {
+               // override exists in base. merge the two nodes
+               MergeConfigNodes(*it, n);
+            }
+         }
+         break;
+      }
+   case JSON_ARRAY:
+      throw json::InvalidJson(BUILD_STRING("Array not expected on node '" << override.name() << "'"));
+      break;
+   default:
+      base = override;
+      break;      
+   }
+}
+
+json::Node Config::ReadConfigFile(boost::filesystem::path const& file_path, bool throw_on_not_found) const
+{
+   if (!boost::filesystem::is_regular(file_path)) {
+      if (throw_on_not_found) {
+         throw std::invalid_argument(BUILD_STRING(file_path << "does not exist"));
+      }
+      return JSONNode();
    }
 
-   //Make sure we have a session and userid
-   userid_ = ReadConfigOption("userid");
+   return ParseJsonFile(file_path);
+}
+
+void Config::WriteConfigFile(boost::filesystem::path const& file_path, json::Node const& config) const
+{
+   std::string text = config.write_formatted();
+   std::ofstream ostream(file_path.string());
+   ostream << text;
+}
+
+void Config::CmdLineParamToKeyValue(std::string const& param, std::string& key, std::string& value) const
+{
+   std::string trimmed_param = param;
+   boost::algorithm::trim_left_if(trimmed_param, boost::algorithm::is_any_of("-"));
+
+   size_t const offset = trimmed_param.find('=');
+   if (offset != std::string::npos) {
+      key = trimmed_param.substr(0, offset);
+      value = trimmed_param.substr(offset + 1);
+   } else {
+      key = std::string();
+      value = std::string();
+   }
+}
+
+json::Node Config::ParseCommandLine(int argc, const char *argv[]) const
+{
+   json::Node node;
+   std::string key, value;
+
+   for (int i=0; i < argc; i++) {
+      CmdLineParamToKeyValue(argv[i], key, value);
+      if (!key.empty()) {
+         node.set(key, value);
+      }
+   }
+
+   return node;
+}   
+
+void Config::Load(int argc, const char *argv[])
+{
+   json::Node command_line_config = ParseCommandLine(argc, argv);
+
+   // configure filesystem      
+   config_filename_ = GetName() + ".json";
+   run_directory_ = boost::filesystem::canonical(boost::filesystem::path("."));
+   cache_directory_ = LookupCacheDirectory();
+
+   if (!boost::filesystem::is_directory(cache_directory_)) {
+      boost::filesystem::create_directory(cache_directory_);
+   }
+
+   // read config files
+   // need to define JSON_DEBUG in libjson.h to get enable the callback for good error messages
+   //libjson::register_debug_callback(JsonParseErrorCallback);
+   root_config_node_ = ReadConfigFile(run_directory_ / config_filename_);
+   json::Node user_config = ReadConfigFile(cache_directory_ / config_filename_, false);
+
+   // ugly const_cast - alternatively use a friend class or expose a writable node reference
+   MergeConfigNodes(const_cast<JSONNode&>(root_config_node_.get_internal_node()), user_config.get_internal_node());
+   MergeConfigNodes(const_cast<JSONNode&>(root_config_node_.get_internal_node()), command_line_config.get_internal_node());
+
+   // initialize session
+   userid_ = GetProperty("user_id", "");
    if (userid_.empty()) {
       userid_ = Poco::UUIDGenerator::defaultGenerator().create().toString();
-      WriteConfigOption("userid", userid_);
+      SetProperty("user_id", userid_, true);
    }
    sessionid_ = Poco::UUIDGenerator::defaultGenerator().create().toString();
-   collect_analytics_ = ReadConfigOption("collect_analytics");
-
-   // Load the config files...
-   LoadConfigFile(run_directory_ / config_filename_);
-   LoadConfigFile(cache_directory_ / config_filename_);
-
-   if (configvm_.count("crash_key_enabled")) {
-      crash_key_enabled_ = configvm_["crash_key_enabled"].as<bool>();
-   }
-
-   return true;
-}
-
-void Config::LoadConfigFile(boost::filesystem::path const& configfile)
-{
-   if (fs::is_regular(configfile) || fs::is_symlink(configfile)) {
-      std::ifstream ifs(configfile.string());
-      if (ifs) {
-         po::store(po::parse_config_file(ifs, config_file_options_), configvm_);
-         po::notify(configvm_);
-      }
-   }
-}
-
-boost::program_options::options_description& Config::GetConfigFileOptions() 
-{
-   return config_file_options_;
-}
-
-boost::program_options::options_description& Config::GetCommandLineOptions() 
-{
-   return cmd_line_options_;
 }
 
 std::string Config::GetName() const
@@ -142,94 +191,32 @@ boost::filesystem::path Config::GetTmpDirectory() const
    return cache_directory_;
 }
 
-std::string Config::GetUserID()
+std::string Config::GetUserID() const
 {
    return userid_;
 }
 
-//True if we should collect analytics
-//(if collect_analytics_ is "yes") false otherwise
-bool Config::GetCollectionStatus()
-{
-   return (collect_analytics_ == "yes");
-}
-
-void Config::SetCollectionStatus(bool should_collect) 
-{
-   if (should_collect) {
-      collect_analytics_ = "yes";
-   } else {
-      collect_analytics_ = "no";
-   }
-   WriteConfigOption("collect_analytics", collect_analytics_);
-}
-
-//True if the user has set the collecton status, false otherwise
-bool Config::IsCollectionStatusSet()
-{
-   return (!collect_analytics_.empty());
-}
-
-bool Config::GetCrashKeyEnabled()
-{
-   return crash_key_enabled_;
-}
-
-//WriteConfigOption
-//Note that write_ini will create a new file if necessary. It will also intelligently 
-//not overwrite any values already in the file.
-//Tested with file empty, file present, file present but no userid data, and file present
-//with junk data but no userid data.
-void Config::WriteConfigOption(std::string option_name, std::string option_value)
-{
-    //this option has not yet been set in this instance of the program. Try to load it from the ini file.
-   fs::path save_path = cache_directory_ / config_filename_;
-   std::string save_path_str = save_path.string();
-   pt::ptree properties;
-
-   if (fs::is_regular(save_path)) {
-      //Ok, the file exists. Load it into a property tree
-      pt::read_ini(save_path_str, properties);
-   }
-
-   properties.put(option_name, option_value);
-   pt::write_ini(save_path_str, properties);
-}
-
-//ReadConfigOption
-//Return specified option or "" if the file is not there
-//Reference: http://stackoverflow.com/questions/15647299/how-to-read-and-write-ini-files-using-boost-library
-//Reference: http://www.boost.org/doc/libs/1_53_0/doc/html/boost_propertytree/accessing.html
-//Reference: http://www.boost.org/doc/libs/1_44_0/doc/html/boost_propertytree/tutorial.html
-std::string Config::ReadConfigOption(std::string option_name)
-{
-   //this option has not yet been set in this instance of the program. Try to load it from the ini file.
-   fs::path save_path = cache_directory_ / config_filename_;
-   std::string save_path_str = save_path.string();
-   pt::ptree properties;
-
-   if (fs::is_regular(save_path)) {
-      //Ok, the file exists. Load it into a property tree
-      pt::read_ini(save_path_str, properties);
-      std::string new_value = properties.get(option_name, "");
-
-      if (!new_value.empty()) {
-         //we got the id, can just return it now
-         return new_value;
-      }
-   }
-
-   //If we're here, either the file doesn't exist, or the file exists
-   //but the key isn't there.
-   return "";
-}
-
-std::string Config::GetSessionID()
+std::string Config::GetSessionID() const
 {
    return sessionid_;
 }
 
-std::string Config::GetBuildNumber()
+std::string Config::GetBuildNumber() const
 {
    return BUILD_NUMBER;
+}
+
+bool Config::GetCollectionStatus() const
+{
+   return GetProperty("collect_analytics", false);
+}
+
+void Config::SetCollectionStatus(bool should_collect) 
+{
+   SetProperty("collect_analytics", should_collect, true);
+}
+
+bool Config::IsCollectionStatusSet() const
+{
+   return HasProperty("collect_analytics");
 }

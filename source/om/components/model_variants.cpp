@@ -78,7 +78,7 @@ void ModelVariant::ExtendObject(json::Node const& obj)
       json::Node e(node);
       std::string model_name;
       if (e.type() == JSON_STRING) {
-         model_name = e.GetNode().as_string();
+         model_name = e.get_internal_node().as_string();
       } else if (e.type() == JSON_NODE) {
          if (e.get<std::string>("type", "") == "one_of") {
             JSONNode items = e.get("items", JSONNode());
