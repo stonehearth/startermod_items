@@ -15,8 +15,8 @@ int _selectShadowCascade(const vec3 worldSpace_fragmentPos, out vec4 cascadeTexC
   int cascadeFound = 0;
   int cascadeNum = 3;
   for (int i = 0; i < 4 /*cascade count*/ && cascadeFound == 0; i++) {
-    if (min(cascadeTexCoord.x, cascadeTexCoord.y) > 0 &&
-      (max(cascadeTexCoord.x, cascadeTexCoord.y) < 1)) {
+    if (min(cascadeTexCoord.x, cascadeTexCoord.y) > 0.0 &&
+      (max(cascadeTexCoord.x, cascadeTexCoord.y) < 1.0)) {
         cascadeNum = i;
         cascadeFound = 1;
     }
@@ -80,11 +80,11 @@ float _PCF( vec4 projShadow ) {
   
   float offset = 1.0 / shadowMapSize;
   
-  float shadowTerm = textureProj(shadowMap, projShadow);
-  shadowTerm += textureProj(shadowMap, projShadow + vec4(-0.866 * offset, 0.5 * offset, 0.0, 0.0));
-  shadowTerm += textureProj(shadowMap, projShadow + vec4(-0.866 * offset, -0.5 * offset, 0.0, 0.0));
-  shadowTerm += textureProj(shadowMap, projShadow + vec4(0.866 * offset, -0.5 * offset, 0.0, 0.0));
-  shadowTerm += textureProj(shadowMap, projShadow + vec4(0.866 * offset, 0.5 * offset, 0.0, 0.0));
+  float shadowTerm = shadow2DProj(shadowMap, projShadow).r;
+  shadowTerm += shadow2DProj(shadowMap, projShadow + vec4(-0.866 * offset, 0.5 * offset, 0.0, 0.0)).r;
+  shadowTerm += shadow2DProj(shadowMap, projShadow + vec4(-0.866 * offset, -0.5 * offset, 0.0, 0.0)).r;
+  shadowTerm += shadow2DProj(shadowMap, projShadow + vec4(0.866 * offset, -0.5 * offset, 0.0, 0.0)).r;
+  shadowTerm += shadow2DProj(shadowMap, projShadow + vec4(0.866 * offset, 0.5 * offset, 0.0, 0.0)).r;
   
   return shadowTerm / 5.0;
 }
@@ -100,7 +100,7 @@ float getShadowValue(const vec3 worldSpace_fragmentPos)
   //vec4 projCoords = _shadowCoordsByDistance(worldSpace_fragmentPos, cascadeNum);
   vec4 projCoords = _shadowCoordsByMap(worldSpace_fragmentPos, cascadeNum);
 
-  float shadowTerm = textureProj(shadowMap, projCoords);
+  float shadowTerm = shadow2DProj(shadowMap, projCoords).r;
 
   return shadowTerm;
 }
