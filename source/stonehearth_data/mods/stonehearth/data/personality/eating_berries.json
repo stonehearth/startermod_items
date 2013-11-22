@@ -2,8 +2,14 @@
    "activities" : [
       {
          "id" : "eating_berries",
+         "trigger_policy" : [
+            {
+               "trigger_id" : "eating_berries",
+               "probability" : 20
+            }
+         ],
          "text" : "On Berries:",
-         "type" : "sequential",
+         "type" : "random",
          "logs_by_personality" : {
             "belaguered_leader" : {
                "logs" : [
@@ -12,7 +18,7 @@
                "Berries! They taste better than starving.",
                "Have you eaten your berries today? I know I've eaten mine!",
                "I wonder what's for dinner? I know--BERRIES!",
-               "Everyone's been pretty good about eating so many but berries. I try to set a good example.",
+               "Everyone's been pretty good about eating so many berries. I try to set a good example.",
                "200 days till the revolt. Except that the alternative is to starve to death. Never mind!"
                ]
             },
@@ -36,7 +42,7 @@
                "There's nothing to eat but berries? 10 days till I kill someone for their meat.",
                "Huh. These berries are actually kind of growing on me. They've got that fresh, non-manured taste.",
                "I'm not sure. They make me feel kind of... light inside. I don't like where this is going.",
-               "Now I know why hippies are vegetarian."
+               "Now I know why hippies are vegetarian. Screw this."
                ]
             },
             "insufferable_academic" : {

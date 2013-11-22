@@ -2,6 +2,12 @@
    "activities" : [
       {
          "id" : "embarking",
+         "trigger_policy" : [
+            {
+               "trigger_id" : "person_embarks",
+               "probability" : 100
+            }
+         ],
          "text" : "On Arriving:",
          "type" : "random",
          "logs_by_personality" : {
@@ -17,7 +23,8 @@
             },
             "lovable_rogue" : {
                "logs" : [
-               "Well, here we are, I guess. A million miles away from civilization. Great."
+               "Well, here we are, I guess. A million miles away from civilization. Great.",
+               "Mom was right. We're all going to get eaten by bears."
                ]
             },
             "psychopathic_misanthrope" : {

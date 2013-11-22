@@ -2,6 +2,12 @@
    "activities" : [
       {
          "id" : "chopping_logs",
+         "trigger_policy" : [
+            {
+               "trigger_id" : "chop_tree",
+               "probability" : 20
+            }
+         ],
          "text" : "On Chopping Wood:",
          "type" : "random",
          "logs_by_personality" : {
@@ -22,7 +28,7 @@
             "hopeless_optimist" : {
                "logs" : [
                "Chop chop chop! If you say it over and over, it’s almost like a song!",
-               "Chopping wood builds muscles! Note to self: see if girls are noticing.",
+               "Chopping wood builds muscles! Note to self: see if anyone's noticed.",
                "We’re sorry Mr. Tree, but we have to cut you down so we can live inside of you. But we won’t ever forget that we’re warm and safe thanks to your sacrifice.",
                "There’s something really satisfying about cutting down something so much bigger than me!",
                "I’m Paul Revere! I mean, Bunyon!",

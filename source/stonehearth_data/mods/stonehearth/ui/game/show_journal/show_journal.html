@@ -4,9 +4,11 @@
       <div id="journalEntries">
          {{#each stonehearth:personality.log}}
             <p class="logDate">{{this.date}}</p>
-            <p class="logEntry">
-            <span class="logTitle">{{this.title}}</span> {{this.text}}
-            </p>
+            {{#each this.entries}}
+               <p class="logEntry">
+               <span class="logTitle">{{this.title}}</span> {{this.text}}
+               </p>
+            {{/each}}
          {{/each}}
       </div>
    </div>

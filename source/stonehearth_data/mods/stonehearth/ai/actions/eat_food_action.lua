@@ -14,7 +14,7 @@ local Point3 = _radiant.csg.Point3
 
 local EatFoodAction = class()
 
-EatFoodAction.name = 'eat food'
+EatFoodAction.name = 'stonehearth_eat_food'
 EatFoodAction.does = 'stonehearth:eat_food'
 EatFoodAction.priority = 5       --The minute this is called, it runs. 
 
@@ -34,9 +34,6 @@ function EatFoodAction:__init(ai, entity)
    self._pathfinder = nil
    self._hunger = nil
    self._food = nil
-
-   --Load food logs
-   personality_service:load_activity('stonehearth:personal_logs:eating_berries')
 
    radiant.events.listen(entity, 'stonehearth:attribute_changed:hunger', self, self.on_hunger_changed)
  end
@@ -171,12 +168,13 @@ function EatFoodAction:run(ai, entity, food)
    entity_attribute_comp:set_attribute('hunger', hunger - satisfaction)
 
    -- Log successful consumption
+   -- TODO: move to personality service
    event_service:add_entry(worker_name .. ': ' .. consumption_text .. '(+' .. satisfaction .. ')')
 
    --Log in personal event log
    local activity_name = radiant.entities.get_entity_data(food, 'stonehearth:activity_name')
-   entity:get_component('stonehearth:personality'):register_notable_event(activity_name, 30)
-
+   radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
+                          {entity = entity, description = activity_name})
 end
 
 --- Make sure we hear if the chair is moved while we're eating

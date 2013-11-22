@@ -3,13 +3,9 @@ local personality_service = require 'services.personality.personality_service'
 
 local ChopTreeAction = class()
 
+ChopTreeAction.name = 'chop tree'
 ChopTreeAction.does = 'stonehearth:chop_tree'
 ChopTreeAction.priority = 1
-
-function ChopTreeAction:__init()
-   --Load the activity log if it's never been loaded before
-   personality_service:load_activity('stonehearth:personal_logs:chopping_wood')
-end
 
 function ChopTreeAction:run(ai, entity, path)
    local tree = path:get_destination()
@@ -38,9 +34,8 @@ function ChopTreeAction:run(ai, entity, path)
       factory:spawn_resource(location)
    end
    
-   --Log in personal event log
-   entity:get_component('stonehearth:personality'):register_notable_event('chopping_logs', 50)
-
+   radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
+                          {entity = entity, description = 'chop_tree'})
 end
 
 return ChopTreeAction

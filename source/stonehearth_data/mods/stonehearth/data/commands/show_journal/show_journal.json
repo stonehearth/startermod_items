@@ -3,8 +3,8 @@
 
    "name": "show_journal",
    "enabled_tooltip": "Personal Journal",
-   "disabled_tooltip": "Can't open journal right now",
-   "default_enabled": true,
+   "disabled_tooltip": "No entries yet.",
+   "default_enabled": false,
    "icon": "file(show_journal.png)",
 
    "action": "fire_event",
