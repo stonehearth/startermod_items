@@ -30,6 +30,16 @@ namespace Horde3D {
 #	define CHECK_GL_ERROR
 #endif
 
+   void validateGLCall(const char* errorStr)
+{
+   uint32 error = glGetError();
+   if (error != GL_NO_ERROR) {
+      Modules::log().writeError(errorStr, error);
+      ASSERT(error == GL_NO_ERROR);
+   }
+}
+
+
 // =================================================================================================
 // GPUTimer
 // =================================================================================================
@@ -292,8 +302,7 @@ uint32 RenderDevice::createVertexBuffer( uint32 size, const void *data )
 	glBufferData( buf.type, size, data, GL_DYNAMIC_DRAW );
 	glBindBuffer( buf.type, 0 );
 	
-   GLenum error = glGetError();
-   ASSERT(error == GL_NO_ERROR);
+   validateGLCall("Error creating vertex buffer: %d");
 
    _bufferMem += size;
 	return _buffers.add( buf );
@@ -314,8 +323,7 @@ uint32 RenderDevice::createIndexBuffer( uint32 size, const void *data )
 	glBufferData( buf.type, size, data, GL_DYNAMIC_DRAW );
 	glBindBuffer( buf.type, 0 );
 	
-   GLenum error = glGetError();
-   ASSERT(error == GL_NO_ERROR);
+   validateGLCall("Error creating index buffer: %d");
 
    _bufferMem += size;
 	return _buffers.add( buf );
@@ -336,8 +344,7 @@ uint32 RenderDevice::createPixelBuffer( uint32 type, uint32 size, const void *da
    glBufferData(buf.type, size, data, GL_STREAM_DRAW);
    glBindBuffer(buf.type, 0);
 
-   GLenum error = glGetError();
-   ASSERT(error == GL_NO_ERROR);
+   validateGLCall("Error creating pixel buffer: %d");
 
    _bufferMem += size;
    return _buffers.add(buf);
@@ -351,8 +358,7 @@ void RenderDevice::destroyBuffer( uint32 bufObj )
 	RDIBuffer& buf = _buffers.getRef( bufObj );
 	glDeleteBuffers( 1, &buf.glObj );
 
-   GLenum error = glGetError();
-   ASSERT(error == GL_NO_ERROR);
+   validateGLCall("Error destroying buffer: %d");
 
 	_bufferMem -= buf.size;
 	_buffers.remove( bufObj );
@@ -389,8 +395,7 @@ void* RenderDevice::mapBuffer(uint32 bufObj, bool discard)
    void* result = glMapBuffer(buf.type, GL_WRITE_ONLY);
    glBindBuffer(buf.type, 0);
 
-   GLenum error = glGetError();
-   ASSERT(error == GL_NO_ERROR);
+   validateGLCall("Error mapping buffer: %d");
 
    return result;
 }
@@ -403,8 +408,7 @@ void RenderDevice::unmapBuffer(uint32 bufObj)
    glUnmapBuffer(buf.type);
    glBindBuffer(buf.type, 0);
 
-   GLenum error = glGetError();
-   ASSERT(error == GL_NO_ERROR);
+   validateGLCall("Error unmapping buffer: %d");
 }
 
 
@@ -502,8 +506,7 @@ uint32 RenderDevice::createTexture( TextureTypes::List type, int width, int heig
 	if( _texSlots[15].texObj )
 		glBindTexture( _textures.getRef( _texSlots[15].texObj ).type, _textures.getRef( _texSlots[15].texObj ).glObj );
 
-   GLenum error = glGetError();
-   ASSERT(error == GL_NO_ERROR);
+   validateGLCall("Error creating texture: %d");
 
    // Calculate memory requirements
 	tex.memSize = calcTextureSize( format, width, height, depth );
@@ -550,8 +553,7 @@ void RenderDevice::copyTextureDataFromPbo( uint32 texObj, uint32 pboObj, int xOf
    glBindTexture(GL_TEXTURE_2D, 0);
    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
    
-   GLenum error = glGetError();
-   ASSERT(error == GL_NO_ERROR);
+   validateGLCall("Error copying texture data from pbo: %d");
 }
 
 
@@ -562,7 +564,8 @@ void RenderDevice::uploadTextureData( uint32 texObj, int slice, int mipLevel, co
 
    glActiveTexture( GL_TEXTURE15 );
 	glBindTexture( tex.type, tex.glObj );
-	
+	   validateGLCall("Error uploading texture data1: %d");
+
 	int inputFormat = GL_BGRA, inputType = GL_UNSIGNED_BYTE;
 	bool compressed = (format == TextureFormats::DXT1) || (format == TextureFormats::DXT3) ||
 	                  (format == TextureFormats::DXT5);
@@ -611,22 +614,23 @@ void RenderDevice::uploadTextureData( uint32 texObj, int slice, int mipLevel, co
 			glTexImage3D( GL_TEXTURE_3D, mipLevel, tex.glFmt, width, height, depth, 0,
 			              inputFormat, inputType, pixels );
 	}
+      validateGLCall("Error uploading texture data2: %d");
 
 	if( tex.genMips && (tex.type != GL_TEXTURE_CUBE_MAP || slice == 5) )
 	{
 		// Note: for cube maps mips are only generated when the side with the highest index is uploaded
-		glEnable( tex.type );  // Workaround for ATI driver bug
-		glGenerateMipmapEXT( tex.type );
-		glDisable( tex.type );
+		//glEnable( tex.type );  // Workaround for ATI driver bug
+		//glGenerateMipmapEXT( tex.type );
+		//glDisable( tex.type );
 	}
+      validateGLCall("Error uploading texture data3: %d");
 
 
 	glBindTexture( tex.type, 0 );
 	if( _texSlots[15].texObj )
 		glBindTexture( _textures.getRef( _texSlots[15].texObj ).type, _textures.getRef( _texSlots[15].texObj ).glObj );
 
-   GLenum error = glGetError();
-   ASSERT(error == GL_NO_ERROR);
+   validateGLCall("Error uploading texture data4: %d");
 }
 
 

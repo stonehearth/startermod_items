@@ -21,6 +21,12 @@
 #include <string>
 #include <vector>
 
+#define VALIDATE_GL_CALL(error, msg) \
+   if (error != GL_NO_ERROR) \
+   { \
+     Modules::log().writeError(msg, error); \
+     ASSERT(error == GL_NO_ERROR); \
+   } \
 
 namespace Horde3D {
 
