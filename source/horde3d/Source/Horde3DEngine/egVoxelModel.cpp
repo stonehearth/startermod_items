@@ -30,7 +30,8 @@ VoxelModelNode::VoxelModelNode( const VoxelModelNodeTpl &modelTpl ) :
 	_lodDist1( modelTpl.lodDist1 ), _lodDist2( modelTpl.lodDist2 ),
 	_lodDist3( modelTpl.lodDist3 ), _lodDist4( modelTpl.lodDist4 ),
 	_softwareSkinning( modelTpl.softwareSkinning ), _skinningDirty( false ),
-	_nodeListDirty( false ), _morpherUsed( false ), _morpherDirty( false ), _polygon_offset_used(false)
+	_nodeListDirty( false ), _morpherUsed( false ), _morpherDirty( false ), _polygon_offset_used(false),
+   _useCoarseCollisionBox(false)
 {
 	if( _geometryRes != 0x0 )
 		setParamI( VoxelModelNodeParams::VoxelGeoResI, _geometryRes->getHandle() );
@@ -278,6 +279,9 @@ void VoxelModelNode::setParamI( int param, int value )
 		return;
    case VoxelModelNodeParams::PolygonOffsetEnabledI:
       _polygon_offset_used = (value != 0);
+      return;
+   case VoxelModelNodeParams::UseCoarseCollisionBoxI:
+      _useCoarseCollisionBox = (value != 0);
       return;
 	}
 
