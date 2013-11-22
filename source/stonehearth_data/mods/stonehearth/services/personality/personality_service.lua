@@ -102,21 +102,23 @@ end
 --  @return title, log
 function PersonalityService:get_activity_log(activity_name, personality_type)
    local activity_data = self._activity_logs[activity_name]
-   local prefix = activity_data.text
-   local log_entry = ""
-   if activity_data and activity_data.logs_by_personality[personality_type] then
-      local log_data = activity_data.logs_by_personality[personality_type]
-      if activity_data.type == 'random' then
-         log_entry = self:_get_random_unused_from_table(log_data.logs,
-                                                   log_data.unused_table, 
-                                                   log_data.use_counter)
-      elseif activity_data.type == 'sequential' then
-         
-         log_entry = self:_get_sequential_unused_from_table(log_data.logs, log_data.use_counter)
+   if activity_data then
+      local prefix = activity_data.text
+      local log_entry = nil
+      if activity_data and activity_data.logs_by_personality[personality_type] then
+         local log_data = activity_data.logs_by_personality[personality_type]
+         if activity_data.type == 'random' then
+            log_entry = self:_get_random_unused_from_table(log_data.logs,
+                                                      log_data.unused_table, 
+                                                      log_data.use_counter)
+         elseif activity_data.type == 'sequential' then
+            
+            log_entry = self:_get_sequential_unused_from_table(log_data.logs, log_data.use_counter)
+         end
+         log_data.use_counter = log_data.use_counter + 1
       end
-      log_data.use_counter = log_data.use_counter + 1
+      return prefix, log_entry
    end
-   return prefix, log_entry
 end
 
 --- Create a new array to track the use of a parent array

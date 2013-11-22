@@ -56,7 +56,9 @@ function Personality:register_notable_event(event_name, percent_chance)
       local roll = math.random(100)
       if roll <= percent_chance then
          local title, log = personality_service:get_activity_log(event_name, self._data.personality)
-         self:_add_log_entry(title, log)
+         if log then
+            self:_add_log_entry(title, log)
+         end
       end
       self._data.todays_events[event_name] = true
    end

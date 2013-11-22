@@ -14,7 +14,7 @@ local Point3 = _radiant.csg.Point3
 
 local EatFoodAction = class()
 
-EatFoodAction.name = 'stonehearth_eat_food'
+EatFoodAction.name = 'eat food'
 EatFoodAction.does = 'stonehearth:eat_food'
 EatFoodAction.priority = 5       --The minute this is called, it runs. 
 
