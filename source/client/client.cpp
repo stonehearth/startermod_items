@@ -290,8 +290,6 @@ void Client::run(int server_port)
       docroot += "?skip_title=true";
    }
 
-   renderer.ApplyConfig();
-
    int screen_width = renderer.GetWidth();
    int screen_height = renderer.GetHeight();
    browser_.reset(chromium::CreateBrowser(hwnd, docroot, screen_width, screen_height, 1338));

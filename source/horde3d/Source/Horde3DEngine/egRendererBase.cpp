@@ -969,7 +969,10 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
 
 	// Create framebuffers
 	glGenFramebuffersEXT( 1, &rb.fbo );
-	if( samples > 0 ) glGenFramebuffersEXT( 1, &rb.fboMS );
+	if( samples > 0 ) 
+   {
+      glGenFramebuffersEXT( 1, &rb.fboMS );
+   }
 
 	if( numColBufs > 0 )
 	{
@@ -1010,24 +1013,15 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
 			glDrawBuffers( numColBufs, buffers );
 		}
 	}
-	else
-	{	
-		glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, rb.fbo );
-		glDrawBuffer( GL_NONE );
-		glReadBuffer( GL_NONE );
-		
-		if( samples > 0 )
-		{
-			glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, rb.fboMS );
-			glDrawBuffer( GL_NONE );
-			glReadBuffer( GL_NONE );
-		}
-	}
 
 	// Attach depth buffer
 	if( depth )
 	{
 		glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, rb.fbo );
+      if (numColBufs == 0) {
+		   glDrawBuffer( GL_NONE );
+		   glReadBuffer( GL_NONE );
+      }
 		// Create a depth texture
 		uint32 texObj = createTexture( TextureTypes::Tex2D, rb.width, rb.height, 1, TextureFormats::DEPTH, false, false, false, false );
 		ASSERT( texObj != 0 );
@@ -1041,6 +1035,10 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
 		if( samples > 0 )
 		{
 			glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, rb.fboMS );
+         if (numColBufs == 0) {
+		      glDrawBuffer( GL_NONE );
+		      glReadBuffer( GL_NONE );
+         }
 			// Create a multisampled renderbuffer
 			glGenRenderbuffersEXT( 1, &rb.depthBuf );
 			glBindRenderbufferEXT( GL_RENDERBUFFER_EXT, rb.depthBuf );
@@ -1058,14 +1056,22 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
 	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, rb.fbo );
 	uint32 status = glCheckFramebufferStatusEXT( GL_FRAMEBUFFER_EXT );
 	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
-	if( status != GL_FRAMEBUFFER_COMPLETE_EXT ) valid = false;
+	if( status != GL_FRAMEBUFFER_COMPLETE_EXT ) 
+   {
+      Modules::log().writeError("Unable to create render buffer: %d, %d", status, rb.fbo);
+      valid = false;
+   }
 	
 	if( samples > 0 )
 	{
 		glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, rb.fboMS );
 		status = glCheckFramebufferStatusEXT( GL_FRAMEBUFFER_EXT );
 		glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
-		if( status != GL_FRAMEBUFFER_COMPLETE_EXT ) valid = false;
+		if( status != GL_FRAMEBUFFER_COMPLETE_EXT ) 
+      {
+         Modules::log().writeError("Unable to create render buffer (multisample).");
+         valid = false;
+      }
 	}
 
 	if( !valid )
@@ -1095,8 +1101,14 @@ void RenderDevice::destroyRenderBuffer( uint32 rbObj )
 		rb.colTexs[i] = rb.colBufs[i] = 0;
 	}
 
-	if( rb.fbo != 0 ) glDeleteFramebuffersEXT( 1, &rb.fbo );
-	if( rb.fboMS != 0 ) glDeleteFramebuffersEXT( 1, &rb.fboMS );
+	if( rb.fbo != 0 ) 
+   {
+      glDeleteFramebuffersEXT( 1, &rb.fbo );
+   }
+	if( rb.fboMS != 0 )
+   {
+      glDeleteFramebuffersEXT( 1, &rb.fboMS );
+   }
 	rb.fbo = rb.fboMS = 0;
 
 	_rendBufs.remove( rbObj );
@@ -1117,8 +1129,11 @@ void RenderDevice::resolveRenderBuffer( uint32 rbObj )
 {
 	RDIRenderBuffer &rb = _rendBufs.getRef( rbObj );
 	
-	if( rb.fboMS == 0 ) return;
-	
+	if( rb.fboMS == 0 )
+   {
+      return;
+   }
+
 	glBindFramebufferEXT( GL_READ_FRAMEBUFFER_EXT, rb.fboMS );
 	glBindFramebufferEXT( GL_DRAW_FRAMEBUFFER_EXT, rb.fbo );
 
@@ -1186,7 +1201,13 @@ void RenderDevice::setRenderBuffer( uint32 rbObj )
 		RDIRenderBuffer &rb = _rendBufs.getRef( rbObj );
 
 		glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, rb.fboMS != 0 ? rb.fboMS : rb.fbo );
-		ASSERT( glCheckFramebufferStatusEXT( GL_FRAMEBUFFER_EXT ) == GL_FRAMEBUFFER_COMPLETE_EXT );
+      int status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+
+      if (status != GL_FRAMEBUFFER_COMPLETE_EXT)
+      {
+         Modules::log().writeError("Bind Frambuffer error: %d, %d, %x, %d", rb.fbo, rb.fboMS, status, glGetError());
+      }
+		ASSERT(status == GL_FRAMEBUFFER_COMPLETE_EXT);
 		_fbWidth = rb.width;
 		_fbHeight = rb.height;
 
@@ -1641,47 +1662,50 @@ void RenderDevice::ReportShaderError(uint32 shader_id, ShaderType type, const ch
    if (info) {
 		(program_shader ? glGetProgramInfoLog : glGetShaderInfoLog)(shader_id, info_len, &c, info);
 
-      Modules::log().writeError("raw shader compile error: %s", info);
+      if (strncmp(info, "No errors.", 10) != 0)
+      {
+         Modules::log().writeError("raw shader compile error: %s", info);
 
-      std::vector<std::string> lines;
-      boost::split(lines, info, boost::is_any_of("\n\r"));
-      lines.erase(std::remove(lines.begin(), lines.end(), ""), lines.end());
+         std::vector<std::string> lines;
+         boost::split(lines, info, boost::is_any_of("\n\r"));
+         lines.erase(std::remove(lines.begin(), lines.end(), ""), lines.end());
 
-      for (std::string const& line : lines) {
-         ::radiant::om::ErrorBrowser::Record record;
+         for (std::string const& line : lines) {
+            ::radiant::om::ErrorBrowser::Record record;
 
-         std::regex exp("(\\d+)\\((\\d+)\\)(.*)");
-         std::smatch match;
-         if (line == "Vertex info") {
-            type = VERTEX_SHADER;
-            src = vs;
-         } else if (line == "Fragment info") {
-            type = FRAGMENT_SHADER;
-            src = fs;
-         } else if (std::regex_match(line, match, exp)) {
-            int char_offset = atoi(match[1].str().c_str());
-            int line_number = atoi(match[2].str().c_str());
-            std::string summary = match[3].str();
+            std::regex exp("(\\d+)\\((\\d+)\\)(.*)");
+            std::smatch match;
+            if (line == "Vertex info") {
+               type = VERTEX_SHADER;
+               src = vs;
+            } else if (line == "Fragment info") {
+               type = FRAGMENT_SHADER;
+               src = fs;
+            } else if (std::regex_match(line, match, exp)) {
+               int char_offset = atoi(match[1].str().c_str());
+               int line_number = atoi(match[2].str().c_str());
+               std::string summary = match[3].str();
 
-            record.SetSummary(summary);
+               record.SetSummary(summary);
 
-            if (strstr(line.c_str(), "error")) {
-               record.SetCategory(record.SEVERE);
-            } else {
-               record.SetCategory(record.WARNING);
-            }
-
-            if (filename) {
-               record.SetFilename(filename);
-            }
-            if (src) {
-               record.SetFileContent(src);
-               if (type != PROGRAM) {
-                  record.SetCharOffset(char_offset);
-                  record.SetLineNumber(line_number);
+               if (strstr(line.c_str(), "error")) {
+                  record.SetCategory(record.SEVERE);
+               } else {
+                  record.SetCategory(record.WARNING);
                }
+
+               if (filename) {
+                  record.SetFilename(filename);
+               }
+               if (src) {
+                  record.SetFileContent(src);
+                  if (type != PROGRAM) {
+                     record.SetCharOffset(char_offset);
+                     record.SetLineNumber(line_number);
+                  }
+               }
+               Modules::log().ReportError(record);
             }
-            Modules::log().ReportError(record);
          }
       }
       delete [] info;

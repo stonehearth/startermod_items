@@ -129,14 +129,14 @@ bool EngineConfig::setOption( EngineOptions::List param, float value )
 
       size = (int)pow(2, floor(log(size) / log(2.0)));
 
-      if(size > gRDI->getCaps().maxTextureSize) return false;
+      size = std::min(size, gRDI->getCaps().maxTextureSize);
 
 		// Update shadow map
 		Modules::renderer().releaseShadowRB();
 		
 		if( !Modules::renderer().createShadowRB( size, size ) )
 		{
-			Modules::log().writeWarning( "Failed to create shadow map" );
+			Modules::log().writeError( "Failed to create shadow map" );
 			// Restore old buffer
 			Modules::renderer().createShadowRB( shadowMapSize, shadowMapSize );
 			return false;

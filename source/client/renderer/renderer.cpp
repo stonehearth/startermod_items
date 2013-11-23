@@ -108,12 +108,10 @@ Renderer::Renderer() :
    h3dSetOption(H3DOptions::LoadTextures, 1);
    h3dSetOption(H3DOptions::TexCompression, 0);
    h3dSetOption(H3DOptions::MaxAnisotropy, 4);
-   h3dSetOption(H3DOptions::ShadowMapSize, (float)config_.shadow_resolution);
    h3dSetOption(H3DOptions::FastAnimation, 1);
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
-   h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples);
 
-   SetCurrentPipeline("pipelines/forward.pipeline.xml");
+   ApplyConfig();
 
    // Overlays
    fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
@@ -257,12 +255,6 @@ void Renderer::GetConfigOptions()
 
 void Renderer::ApplyConfig()
 {
-   if (config_.use_forward_renderer) {
-      SetCurrentPipeline("pipelines/forward.pipeline.xml");
-   } else {
-      SetCurrentPipeline("pipelines/deferred_lighting.xml");
-   }
-
    SetStageEnable("SSAO", config_.use_ssao);
    SetStageEnable("Simple, once-pass SSAO Blur", config_.use_ssao_blur);
    // Turn on copying if we're using SSAO, but not using blur.
@@ -272,6 +264,12 @@ void Renderer::ApplyConfig()
    h3dSetOption(H3DOptions::EnableShadows, config_.use_shadows ? 1.0f : 0.0f);
    h3dSetOption(H3DOptions::ShadowMapSize, (float)config_.shadow_resolution);
    h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples);
+
+   if (config_.use_forward_renderer) {
+      SetCurrentPipeline("pipelines/forward.pipeline.xml");
+   } else {
+      SetCurrentPipeline("pipelines/deferred_lighting.xml");
+   }
 }
 
 SystemStats Renderer::GetStats()
