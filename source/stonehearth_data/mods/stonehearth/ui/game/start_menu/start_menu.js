@@ -43,7 +43,7 @@ App.StonehearthStartMenuView = App.View.extend({
    didInsertElement: function() {
       var self = this;
       $('#startMenuTrigger').click(function() {
-         //radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:trigger_click' );
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:trigger_click' );
       });
 
       $( '#startMenu' ).dlmenu({
@@ -67,11 +67,11 @@ App.StonehearthStartMenuView = App.View.extend({
       });      
 
       $('#startMenu').on( 'mouseover', 'a', function() {
-         //radiant.call('radiant:play_sound', "stonehearth:sounds:ui:action_hover");
+         radiant.call('radiant:play_sound', "stonehearth:sounds:ui:action_hover");
       });
 
       $('#startMenu').on( 'mousedown', 'li', function() {
-         //radiant.call('radiant:play_sound', "stonehearth:sounds:ui:action_click");
+         radiant.call('radiant:play_sound', "stonehearth:sounds:ui:action_click");
       });
 
    },

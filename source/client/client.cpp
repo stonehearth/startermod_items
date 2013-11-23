@@ -45,12 +45,12 @@
 #include "lib/analytics/design_event.h"
 #include "lib/analytics/post_data.h"
 #include "lib/audio/input_stream.h"
+#include "lib/audio/audio.h"
 #include "client/renderer/render_entity.h"
 #include "lib/perfmon/perfmon.h"
 #include "platform/sysinfo.h"
 #include "glfw3.h"
 
-#include <SFML/Audio.hpp>
 
 
 //  #include "GFx/AS3/AS3_Global.h"
@@ -67,9 +67,6 @@ namespace proto = ::radiant::tesseract::protocol;
 static const std::regex call_path_regex__("/r/call/?");
 
 DEFINE_SINGLETON(Client);
-
-sf::SoundBuffer soundBuffer_;
-sf::Sound       sound_;
 
 Client::Client() :
    _tcp_socket(_io_service),
@@ -223,16 +220,7 @@ Client::Client() :
       try {
          json::Node node(f.args);
          std::string sound_url = node.getn(0).as<std::string>();
-
-         if (soundBuffer_.loadFromStream(audio::InputStream(sound_url))) {
-            // TODO, add a sound manager instead of this temp solution!
-            // see http://bugs.radiant-entertainment.com:8080/browse/SH-29
-            sound_.setBuffer(soundBuffer_);
-	         sound_.play();
-         } else { 
-            LOG(INFO) << "Can't find Sound Effect! " << sound_url;
-         }
-
+         audio::PlayUISound(sound_url);
          result->ResolveWithMsg("success");
       } catch (std::exception const& e) {
          result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
