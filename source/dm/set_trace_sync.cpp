@@ -28,3 +28,6 @@ void SetTraceSync<S>::NotifyDestroyed()
 {
    SignalDestroyed();
 }
+
+#define CREATE_SET(S)  template SetTraceSync<S>;
+#include "types/instantiate_types.h"

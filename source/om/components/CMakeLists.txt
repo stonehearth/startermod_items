@@ -7,9 +7,9 @@ include_directories(${Lua_INCLUDE_DIRS})
 include_directories(${Luabind_INCLUDE_DIRS})
 include_directories(${Libjson_INCLUDE_DIRS})
 include_directories(${Cryptopp_INCLUDE_DIRS})
-include_directories(${CMAKE_BINARY_DIR}/source/om/components
-)
-function(PROCESS_RADIANT_IDLS RIDL_TEMPLATE GENERATED_SRC)
+include_directories(${CMAKE_BINARY_DIR}/source/om/components)
+
+function(PROCESS_RADIANT_IDLS RIDL_TEMPLATE RIDL_EXT GENERATED_SRC)
   if(NOT ARGN)
     message(SEND_ERROR "Error: RIDL_GENERATE_CPP() called without any ridl files")
     return()
@@ -21,12 +21,12 @@ function(PROCESS_RADIANT_IDLS RIDL_TEMPLATE GENERATED_SRC)
   foreach(FIL ${ARGN})
     get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
     get_filename_component(FIL_WE ${FIL} NAME_WE)
-    list(APPEND ${GENERATED_SRC} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.ridl.h")
+    list(APPEND ${GENERATED_SRC} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.${RIDL_EXT}")
 
     add_custom_command(
-      OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.ridl.h"
+      OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.${RIDL_EXT}"
       COMMAND  ${STONEHEARTH_ROOT}/scripts/python/ridlc.cmd
-      ARGS "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.ridl.h" "${ABS_RIDL_TEMPLATE}" "${ABS_FIL}"
+      ARGS "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.${RIDL_EXT}" "${ABS_RIDL_TEMPLATE}" "${ABS_FIL}"
       DEPENDS ${ABS_FIL} ${ABS_RIDL_TEMPLATE} ${ABS_RIDLC}
       VERBATIM )
   endforeach()
@@ -35,35 +35,39 @@ function(PROCESS_RADIANT_IDLS RIDL_TEMPLATE GENERATED_SRC)
   set(${GENERATED_SRC} ${${GENERATED_SRC}} PARENT_SCOPE)
 endfunction()
 
-PROCESS_RADIANT_IDLS(component.ridl RIDL_SRC
-                     carry_block.ridl.py
-                     clock.ridl.py
-                     data_store.ridl.py
-                     destination.ridl.py
-                     effect.ridl.py
-                     effect_list.ridl.py
-                     entity_container.ridl.py
-                     item.ridl.py
-                     mob.ridl.py
-                     model_layer.ridl.py
-                     model_variants.ridl.py
-                     region_collision_shape.ridl.py
-                     render_info.ridl.py
-                     sensor.ridl.py
-                     sensor_list.ridl.py
-                     target_table.ridl.py
-                     target_tables.ridl.py
-                     target_table_entry.ridl.py
-                     target_table_group.ridl.py
-                     terrain.ridl.py
-                     unit_info.ridl.py
-                     vertical_pathing_region.ridl.py
-                     )
+SET(RIDL_SOURCES 
+    carry_block.ridl.py
+    clock.ridl.py
+    data_store.ridl.py
+    destination.ridl.py
+    effect.ridl.py
+    effect_list.ridl.py
+    entity_container.ridl.py
+    item.ridl.py
+    mob.ridl.py
+    model_layer.ridl.py
+    model_variants.ridl.py
+    region_collision_shape.ridl.py
+    render_info.ridl.py
+    sensor.ridl.py
+    sensor_list.ridl.py
+    target_table.ridl.py
+    target_tables.ridl.py
+    target_table_entry.ridl.py
+    target_table_group.ridl.py
+    terrain.ridl.py
+    unit_info.ridl.py
+    vertical_pathing_region.ridl.py
+    )
 
+PROCESS_RADIANT_IDLS(component.ridl "ridl.h" RIDL_HEADERS ${RIDL_SOURCES})
+PROCESS_RADIANT_IDLS(lua_component.ridl "lua.cpp" RIDL_LUA_COMPONENTS ${RIDL_SOURCES})
 
 add_library(om_components STATIC
-            ${RIDL_SRC}
+            ${RIDL_HEADERS}
+            ${RIDL_LUA_COMPONENTS}
             pch.cpp
+            carry_block.cpp
             clock.cpp
             component.cpp
             destination.cpp

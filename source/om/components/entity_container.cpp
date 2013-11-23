@@ -2,9 +2,14 @@
 #include "entity_container.ridl.h"
 #include "mob.ridl.h"
 #include "om/entity.h"
+#include "dm/object_trace.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
+
+void EntityContainer::ExtendObject(json::Node const& obj)
+{
+}
 
 EntityContainer& EntityContainer::InsertChild(dm::ObjectId key, std::weak_ptr<Entity> c)
 {

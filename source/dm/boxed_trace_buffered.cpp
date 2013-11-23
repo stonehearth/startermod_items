@@ -44,8 +44,8 @@ template <typename B>
 void BoxedTraceBuffered<B>::NotifyObjectState(Value const& value)
 {
    value_ = nullptr;
-   BoxedTrace<B>::PushObjectState();
+   BoxedTrace<B>::NotifyObjectState(value);
 }
 
-#define DM_BOXED(v) template BoxedTraceBuffered<Boxed<v>>;
-#include "defs/boxes.h"
+#define CREATE_BOXED(B)           template BoxedTraceBuffered<B>;
+#include "types/instantiate_types.h"

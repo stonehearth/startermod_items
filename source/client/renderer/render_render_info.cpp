@@ -5,6 +5,7 @@
 #include "render_entity.h"
 #include "render_render_info.h"
 #include "pipeline.h"
+#include "dm/set_trace.h"
 #include "om/components/model_variants.ridl.h"
 #include "om/components/render_info.ridl.h"
 #include "Horde3DUtils.h"

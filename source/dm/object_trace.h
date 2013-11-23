@@ -13,7 +13,7 @@ public:
    ObjectTrace(const char* reason, Object const& o, Store const& store);
    std::shared_ptr<ObjectTrace> PushObjectState();
 
-private:
+protected:
    friend Store;
    virtual void NotifyObjectState();
 };

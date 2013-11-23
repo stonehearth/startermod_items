@@ -18,6 +18,7 @@
 #include "render_effect_list.h"
 #include "skeleton.h"
 #include "client/client.h"
+#include "dm/set_trace.h"
 #include "om/entity.h"
 #include "om/stonehearth.h"
 #include "om/components/mob.ridl.h"

@@ -1,0 +1,35 @@
+<%
+import ridl.ridl as ridl
+import ridl.dm_types as dm
+class_upper = C.__name__
+class_lower = env.lower(class_upper)
+is_component = C.__bases__[0]().name == 'Component' 
+%>
+#include "radiant.h"
+#include "lib/lua/register.h"
+#include "om/components/lua_helpers.h"
+
+using namespace luabind;
+using namespace radiant;
+using namespace radiant::om;
+
+scope Register${class_upper}(lua_State* L)
+{
+   auto result = 
+      lua::RegisterWeakGameObjectDerived<${class_upper}, ${C.__bases__[0]().name}>()
+%if is_component:
+         def("extend", &MethodCall<void, ${class_upper}, ${class_upper}::ExtendObject)
+%endif
+## - Boxed -----------------------------------------------------------------------------------
+% for name, boxed in env.properties(C, dm.Boxed):
+   % if boxed.get:
+         def("get_${class_lower}", &PropertyGet<${boxed.value.name}, ${class_upper}, ${class_upper}::Get${name | env.upper})
+   % endif
+   % if boxed.set:
+         def("set_${class_lower}", &PropertySet<${boxed.value.name}, ${class_upper}, ${class_upper}::Set${name | env.upper})
+   % endif
+   % if boxed.trace:
+         def("trace_${class_lower}", &PropertyTrace<dm::BoxedTrace<${boxed.name}>, ${class_upper}, ${class_upper}::Trace{name | env.upper})
+   % endif
+% endfor
+}

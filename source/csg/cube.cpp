@@ -293,6 +293,3 @@ MAKE_CUBE(Line1)
 
 DEFINE_CUBE_CONVERSIONS(2)
 DEFINE_CUBE_CONVERSIONS(3)
-
-IMPLEMENT_DM_EXTENSION(::radiant::csg::Cube3, Protocol::cube3i)
-IMPLEMENT_DM_EXTENSION(::radiant::csg::Cube3f, Protocol::cube3f)

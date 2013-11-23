@@ -78,6 +78,3 @@ std::ostream& ::radiant::csg::operator<<(std::ostream& out, const Color3 &c)
    out << "RGBA(" << (int)c.r << ", " << (int)c.g << ", " << (int)c.b << ", " << ")";
    return out;    
 }
-
-IMPLEMENT_DM_EXTENSION(::radiant::csg::Color3, Protocol::color)
-IMPLEMENT_DM_EXTENSION(::radiant::csg::Color4, Protocol::color)

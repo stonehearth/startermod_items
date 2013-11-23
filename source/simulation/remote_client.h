@@ -16,9 +16,6 @@ public:
    protocol::SendQueuePtr        send_queue;
    protocol::RecvQueuePtr        recv_queue;
    dm::StreamerPtr               streamer;
-
-public:
-   RemoteClient();
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

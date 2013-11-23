@@ -38,7 +38,7 @@ std::shared_ptr<SetTrace<S>> SetTrace<S>::OnUpdated(UpdatedCb updated)
 template <typename S>
 std::shared_ptr<SetTrace<S>> SetTrace<S>::PushObjectState()
 {
-   GetStore().PushSetState<T>(*this, GetObjectId());
+   GetStore().PushSetState<S>(*this, GetObjectId());
    return shared_from_this();
 }
 
@@ -86,3 +86,6 @@ void SetTrace<S>::NotifyObjectState(typename S::ContainerType const& contents)
 {
    SignalUpdated(contents, ValueList());
 }
+
+#define CREATE_SET(S)  template SetTrace<S>;
+#include "types/instantiate_types.h"

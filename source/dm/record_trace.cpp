@@ -3,6 +3,7 @@
 #include "record_trace.h"
 #include "store.h"
 #include "dm_save_impl.h"
+#include "object_trace.h"
 #include "protocols/store.pb.h"
 
 using namespace radiant;
@@ -20,3 +21,5 @@ RecordTrace<R>::RecordTrace(const char* reason, Record const& r, Store& s, Trace
       field_traces_.push_back(t);
    }
 }
+
+template RecordTrace<Record>;

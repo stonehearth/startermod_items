@@ -49,6 +49,7 @@
 #include "platform/sysinfo.h"
 #include "glfw3.h"
 #include "dm/receiver.h"
+#include "dm/tracer_buffered.h"
 
 #include <SFML/Audio.hpp>
 

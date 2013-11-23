@@ -120,7 +120,6 @@ Simulation::~Simulation()
    // references to things, with explicit lifetime registration callbacks
    // in the new Storage system if you REALLY care. (xxx)
    octtree_.release();
-   singleton_ = nullptr;
 }
 
 
@@ -142,7 +141,7 @@ void Simulation::CreateNew()
    store_.SetInterpreter(callback_thread); // xxx move to dm open or something
 
    csg::RegisterLuaTypes(L);
-   lua::om::open(L, this);
+   lua::om::open(L);
    lua::sim::open(L, this);
    lua::res::open(L);
    lua::voxel::open(L);

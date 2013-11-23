@@ -29,7 +29,6 @@ void MapTraceSync<M>::NotifyDestroyed()
    SignalDestroyed();
 }
 
-#undef DM_MAP
-#define DM_MAP(k, v)  template MapTraceSync<Map<k, v>>;
-#include "all_objects.h"
+#define CREATE_MAP(M)  template MapTraceSync<M>;
+#include "types/instantiate_types.h"
 

@@ -1,4 +1,5 @@
 #include "radiant.h"
+#include "radiant_stdutil.h"
 #include "set.h"
 #include "set_trace_buffered.h"
 
@@ -23,13 +24,13 @@ template <typename S>
 void SetTraceBuffered<S>::SaveObjectDelta(Object* obj, Protocol::Value* value)
 {
    Protocol::Set::Update* msg = value->MutableExtension(Protocol::Set::extension);
-   for (const T& item : added_) {
+   for (const Value& item : added_) {
       Protocol::Value* submsg = msg->add_added();
-      SaveImpl<T>::SaveValue(store, submsg, item);
+      SaveImpl<Value>::SaveValue(GetStore(), submsg, item);
    }
-   for (const T& item : removed_) {
+   for (const Value& item : removed_) {
       Protocol::Value* submsg = msg->add_removed();
-      SaveImpl<T>::SaveValue(store, submsg, item);
+      SaveImpl<Value>::SaveValue(GetStore(), submsg, item);
    }
 }
 
@@ -52,5 +53,9 @@ void SetTraceBuffered<S>::NotifyObjectState(typename S::ContainerType const& con
 {
    added_.clear();
    removed_.clear();
-   SetTrace<M>::PushObjectState(contents);
+   SetTrace<S>::NotifyObjectState(contents);
 }
+
+#define CREATE_SET(S)  template SetTraceBuffered<S>;
+#include "types/instantiate_types.h"
+

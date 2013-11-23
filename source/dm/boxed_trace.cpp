@@ -43,5 +43,5 @@ void BoxedTrace<B>::NotifyObjectState(Value const& value)
    SignalChanged(value);
 }
 
-#define DM_BOXED(v) template BoxedTrace<Boxed<v>>;
-#include "defs/boxes.h"
+#define CREATE_BOXED(B)           template BoxedTrace<B>;
+#include "types/instantiate_types.h"

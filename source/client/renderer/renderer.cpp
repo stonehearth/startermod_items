@@ -9,6 +9,7 @@
 #include "glfw3native.h"
 #include "render_entity.h"
 #include "lib/perfmon/perfmon.h"
+#include "dm/record_trace.h"
 #include "om/selection.h"
 #include "om/entity.h"
 #include <boost/property_tree/json_parser.hpp>

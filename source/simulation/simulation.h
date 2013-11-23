@@ -112,9 +112,6 @@ private:
    void EncodeUpdates(std::shared_ptr<RemoteClient> c);
 
 private:
-   static Simulation*                           singleton_;
-
-private:
    dm::Store                                             store_;
    core::Guard                                             guards_;
    std::vector<std::pair<dm::ObjectId, dm::ObjectType>>  allocated_;

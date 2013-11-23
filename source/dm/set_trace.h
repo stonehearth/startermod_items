@@ -28,7 +28,7 @@ protected:
    void SignalAdded(Value const& value) ;
    void SignalUpdated(ValueList const& added, ValueList const& removed);
 
-private:
+protected:
    friend Store;
    virtual void NotifyRemoved(Value const& value) = 0;
    virtual void NotifyAdded(Value const& value) = 0;

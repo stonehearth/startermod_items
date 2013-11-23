@@ -1,5 +1,8 @@
 #include "radiant.h"
 #include "store.h"
+#include "alloc_trace.h"
+#include "tracer_sync.h"
+#include "tracer_buffered.h"
 #include "object.h"
 
 using namespace ::radiant;
@@ -213,3 +216,192 @@ void Store::PushAllocState(AllocTrace& trace) const
    }
    trace.SignalUpdated(objects);
 }
+TracerPtr Store::GetTracer(int category)
+{
+   auto i = tracers_.find(category);
+   if (i == tracers_.end()) {
+      throw std::logic_error(BUILD_STRING("store has no trace set for category " << category));
+   }
+   return i->second;
+}
+
+void Store::AddTracer(TracerPtr set, int category)
+{
+   auto entry = tracers_.insert(std::make_pair(category, set));
+   if (!entry.second) {
+      throw std::logic_error(BUILD_STRING("duplicate tracer category " << category));
+   }
+}
+
+template <typename T, typename TraceType>
+void Store::MarkChangedAndFire(T& obj, std::function<void(typename TraceType&)> cb)
+{
+   obj.MarkChanged();
+   auto i = traces_.find(obj.GetObjectId());
+   if (i != traces_.end()) {
+      stdutil::ForEachPrune<Trace>(i->second, [&](std::shared_ptr<Trace> t) {
+         TraceType *trace = static_cast<TraceType*>(t.get());
+         cb(*trace);
+      });
+   }
+}
+
+template <typename T>
+void Store::OnMapRemoved(T& map, typename T::Key const& key)
+{
+   MarkChangedAndFire<T, MapTrace<T>>(map, [&](MapTrace<T>& trace) {
+      trace.NotifyRemoved(key);
+   });
+}
+template <typename T>
+void Store::OnMapChanged(T& map, typename T::Key const& key, typename T::Value const& value)
+{
+   MarkChangedAndFire<T, MapTrace<T>>(map, [&](MapTrace<T>& trace) {
+      trace.NotifyChanged(key, value);
+   });
+}
+template <typename T>
+void Store::OnSetRemoved(T& set, typename T::Value const& value)
+{
+   MarkChangedAndFire<T, SetTrace<T>>(set, [&](SetTrace<T>& trace) {
+      trace.NotifyRemoved(value);
+   });
+}
+template <typename T>
+void Store::OnSetAdded(T& set, typename T::Value const& value)
+{
+   MarkChangedAndFire<T, SetTrace<T>>(set, [&](SetTrace<T>& trace) {
+      trace.NotifyAdded(value);
+   });
+}
+template <typename T>
+void Store::OnArrayChanged(T& arr, uint i, typename T::Value const& value)
+{
+   MarkChangedAndFire<T, ArrayTrace<T>>(arr, [&](ArrayTrace<T>& trace) {
+      trace.NotifySet(i, value);
+   });
+}
+template <typename T>
+void Store::OnBoxedChanged(T& boxed, typename T::Value const& value)
+{
+   MarkChangedAndFire<T, BoxedTrace<T>>(boxed, [&](BoxedTrace<T>& trace) {
+      trace.NotifyChanged(value);
+   });
+}
+
+template <typename T>
+void Store::PushObjectState(ObjectTrace<T>& trace, ObjectId id) const
+{
+   auto i = objects_.find(id);
+   if (i != objects_.end()) {
+      trace.NotifyObjectState();
+   }
+}
+
+template <typename T>
+void Store::PushBoxedState(BoxedTrace<T>& trace, ObjectId id) const
+{
+   auto i = objects_.find(id);
+   if (i != objects_.end()) {
+      trace.NotifyObjectState(static_cast<T const*>(i->second)->Get());
+   }
+}
+
+template <typename T>
+void Store::PushSetState(SetTrace<T>& trace, ObjectId id) const
+{
+   auto i = objects_.find(id);
+   if (i != objects_.end()) {
+      trace.NotifyObjectState(static_cast<T const*>(i->second)->GetContainer());
+   }
+}
+
+template <typename T>
+void Store::PushMapState(MapTrace<T>& trace, ObjectId id) const
+{
+   auto i = objects_.find(id);
+   if (i != objects_.end()) {
+      trace.NotifyObjectState(static_cast<T const*>(i->second)->GetContainer());
+   }
+}
+
+
+#define ADD_TRACE_TO_TRACER(trace, tracer, Cls) \
+      switch (tracer->GetType()) { \
+      case Tracer::SYNC: \
+         trace = static_cast<TracerSync*>(tracer)->Trace ## Cls ## Changes(reason, *this, o); \
+         break; \
+      case Tracer::BUFFERED: \
+         trace = static_cast<TracerBuffered*>(tracer)->Trace ## Cls ## Changes(reason, *this, o); \
+         break; \
+      default: \
+         throw std::logic_error(BUILD_STRING("unknown tracer type " << tracer->GetType())); \
+      } \
+
+#define ADD_TRACE_TO_TRACKER_CATEGORY(trace, category, Cls) \
+   do { \
+      auto tracer = GetTracer(category); \
+      ADD_TRACE_TO_TRACER(trace, tracer.get(), Cls) \
+   } while (FALSE)
+
+#define TRACE_TYPE_METHOD(Cls) \
+   template <typename Cls> std::shared_ptr<Cls ## Trace<Cls>> Store::Trace ## Cls ## Changes(const char* reason, Cls const& o, int category) \
+   {  \
+      dm::ObjectId id = o.GetObjectId(); \
+      std::shared_ptr<Cls ## Trace<Cls>> trace; \
+      ADD_TRACE_TO_TRACKER_CATEGORY(trace, category, Cls); \
+      traces_[id].push_back(trace); \
+      return trace; \
+   } \
+   \
+   template <typename Cls> std::shared_ptr<Cls ## Trace<Cls>> Store::Trace ## Cls ## Changes(const char* reason, Cls const& o, Tracer* tracer) \
+   {  \
+      dm::ObjectId id = o.GetObjectId(); \
+      std::shared_ptr<Cls ## Trace<Cls>> trace; \
+      ADD_TRACE_TO_TRACER(trace, tracer, Cls) \
+      traces_[id].push_back(trace); \
+      return trace; \
+   } \
+
+TRACE_TYPE_METHOD(Object)
+TRACE_TYPE_METHOD(Record)
+TRACE_TYPE_METHOD(Boxed)
+TRACE_TYPE_METHOD(Set)
+TRACE_TYPE_METHOD(Array)
+TRACE_TYPE_METHOD(Map)
+
+#undef TRACE_TYPE_METHOD
+
+template std::shared_ptr<RecordTrace<Record>> Store::TraceRecordChanges(const char*, Record const&, int);
+template std::shared_ptr<RecordTrace<Record>> Store::TraceRecordChanges(const char*, Record const&, Tracer*);
+template std::shared_ptr<ObjectTrace<Object>> Store::TraceObjectChanges(const char*, Object const&, int);
+template std::shared_ptr<ObjectTrace<Object>> Store::TraceObjectChanges(const char*, Object const&, Tracer*);
+template void Store::PushObjectState(ObjectTrace<Object>&, ObjectId) const;
+
+#define CREATE_MAP(M)    template std::shared_ptr<MapTrace<M>> Store::TraceMapChanges(const char*, M const&, int); \
+                         template std::shared_ptr<MapTrace<M>> Store::TraceMapChanges(const char*, M const&, Tracer*); \
+                         template void Store::PushMapState(MapTrace<M>&, ObjectId) const;  \
+                         template void Store::MarkChangedAndFire(M&, std::function<void(MapTrace<M>&)>); \
+                         template void Store::OnMapRemoved(M&, M::Key const&); \
+                         template void Store::OnMapChanged(M&, M::Key const&, M::Value const&);
+
+#define CREATE_SET(S)    template std::shared_ptr<SetTrace<S>> Store::TraceSetChanges(const char*, S const&, int); \
+                         template std::shared_ptr<SetTrace<S>> Store::TraceSetChanges(const char*, S const&, Tracer*); \
+                         template void Store::PushSetState(SetTrace<S>&, ObjectId id) const; \
+                         template void Store::MarkChangedAndFire(S&, std::function<void(SetTrace<S>&)>); \
+                         template void Store::OnSetRemoved(S&, S::Value const&); \
+                         template void Store::OnSetAdded(S&, S::Value const&); \
+
+#define CREATE_BOXED(B)  template std::shared_ptr<BoxedTrace<B>> Store::TraceBoxedChanges(const char*, B const&, int); \
+                         template std::shared_ptr<BoxedTrace<B>> Store::TraceBoxedChanges(const char*, B const&, Tracer*); \
+                         template void Store::PushBoxedState(BoxedTrace<B>&, ObjectId id) const; \
+                         template void Store::MarkChangedAndFire(B&, std::function<void(BoxedTrace<B>&)>); \
+                         template void Store::OnBoxedChanged(B&, B::Value const&);
+
+#define CREATE_ARRAY(A)  template std::shared_ptr<ArrayTrace<A>> Store::TraceArrayChanges(const char*, A const&, int); \
+                         template std::shared_ptr<ArrayTrace<A>> Store::TraceArrayChanges(const char*, A const&, Tracer*); \
+                         template void Store::PushArrayState(ArrayTrace<A>&, ObjectId id) const; \
+                         template void Store::MarkChangedAndFire(A&, std::function<void(ArrayTrace<A>&)>); \
+                         template void Store::OnArrayChanged(A&, A::Value const&);
+
+#include "types/instantiate_types.h"

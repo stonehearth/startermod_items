@@ -34,4 +34,3 @@ void Transform::LoadValue(const protocol::transform &msg)
    orientation.LoadValue(msg.orientation());
 }
 
-IMPLEMENT_DM_EXTENSION(::radiant::csg::Transform, Protocol::transform)

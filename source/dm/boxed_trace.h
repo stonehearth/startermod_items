@@ -22,7 +22,7 @@ public:
 protected:
    void SignalChanged(Value const& value);
 
-private:
+protected:
    friend Store;
    virtual void NotifyChanged(Value const& value) = 0;
    virtual void NotifyObjectState(Value const& value);

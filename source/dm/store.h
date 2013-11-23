@@ -1,10 +1,8 @@
 #ifndef _RADIANT_DM_STORE_H
 #define _RADIANT_DM_STORE_H
 
+#include <unordered_map>
 #include "dm.h"
-#include "alloc_trace.h"
-#include "tracer_sync.h"
-#include "tracer_buffered.h"
 
 struct lua_State;
 
@@ -86,91 +84,17 @@ public:
    // New hotness.  These are the demuxes.  Fan out a single "hi, i'm a map and i've changed!"
    // to every single MapTrace (some of which are sync and some of which are buffered).
 
-   template <typename T, typename TraceType>
-   void MarkChangedAndFire(T& obj, std::function<void(typename TraceType&)> cb)
-   {
-      obj.MarkChanged();
-      auto i = traces_.find(obj.GetObjectId());
-      if (i != traces_.end()) {
-         stdutil::ForEachPrune<Trace>(i->second, [&](std::shared_ptr<Trace> t) {
-            TraceType *trace = static_cast<TraceType*>(t.get());
-            cb(*trace);
-         });
-      }
-   }
-   template <typename T> void OnMapRemoved(T& map, typename T::Key const& key)
-   {
-      MarkChangedAndFire<T, MapTrace<T>>(map, [&](MapTrace<T>& trace) {
-         trace.NotifyRemoved(key);
-      });
-   }
-   template <typename T> void OnMapChanged(T& map, typename T::Key const& key, typename T::Value const& value)
-   {
-      MarkChangedAndFire<T, MapTrace<T>>(map, [&](MapTrace<T>& trace) {
-         trace.NotifyChanged(key, value);
-      });
-   }
-   template <typename T> void OnSetRemoved(T& set, typename T::Value const& value)
-   {
-      MarkChangedAndFire<T, SetTrace<T>>(set, [&](SetTrace<T>& trace) {
-         trace.NotifyRemoved(value);
-      });
-   }
-   template <typename T> void OnSetAdded(T& set, typename T::Value const& value)
-   {
-      MarkChangedAndFire<T, SetTrace<T>>(set, [&](SetTrace<T>& trace) {
-         trace.NotifyAdded(value);
-      });
-   }
-   template <typename T> void OnArrayChanged(T& arr, uint i, typename T::Value const& value)
-   {
-      MarkChangedAndFire<T, ArrayTrace<T>>(arr, [&](ArrayTrace<T>& trace) {
-         trace.NotifySet(i, value);
-      });
-   }
-   template <typename T> void OnBoxedChanged(T& boxed, typename T::Value const& value)
-   {
-      MarkChangedAndFire<T, BoxedTrace<T>>(boxed, [&](BoxedTrace<T>& trace) {
-         trace.NotifyChanged(value);
-      });
-   }
-
-#define ADD_TRACE_TO_TRACER(trace, tracer, Cls) \
-      switch (tracer->GetType()) { \
-      case Tracer::SYNC: \
-         trace = static_cast<TracerSync*>(tracer)->Trace ## Cls ## Changes(reason, *this, o); \
-         break; \
-      case Tracer::BUFFERED: \
-         trace = static_cast<TracerBuffered*>(tracer)->Trace ## Cls ## Changes(reason, *this, o); \
-         break; \
-      default: \
-         throw std::logic_error(BUILD_STRING("unknown tracer type " << tracer->GetType())); \
-      } \
-
-#define ADD_TRACE_TO_TRACKER_CATEGORY(trace, category, Cls) \
-   do { \
-      auto tracer = GetTracer(category); \
-      ADD_TRACE_TO_TRACER(trace, tracer.get(), Cls) \
-   } while (FALSE)
+   template <typename T, typename TraceType> void MarkChangedAndFire(T& obj, std::function<void(typename TraceType&)> cb);
+   template <typename T> void OnMapRemoved(T& map, typename T::Key const& key);
+   template <typename T> void OnMapChanged(T& map, typename T::Key const& key, typename T::Value const& value);
+   template <typename T> void OnSetRemoved(T& set, typename T::Value const& value);
+   template <typename T> void OnSetAdded(T& set, typename T::Value const& value);
+   template <typename T> void OnArrayChanged(T& arr, uint i, typename T::Value const& value);
+   template <typename T> void OnBoxedChanged(T& boxed, typename T::Value const& value);
 
 #define TRACE_TYPE_METHOD(Cls) \
-   template <typename Cls> std::shared_ptr<Cls ## Trace<Cls>> Trace ## Cls ## Changes(const char* reason, Cls const& o, int category) \
-   {  \
-      dm::ObjectId id = o.GetObjectId(); \
-      std::shared_ptr<Cls ## Trace<Cls>> trace; \
-      ADD_TRACE_TO_TRACKER_CATEGORY(trace, category, Cls); \
-      traces_[id].push_back(trace); \
-      return trace; \
-   } \
-   \
-   template <typename Cls> std::shared_ptr<Cls ## Trace<Cls>> Trace ## Cls ## Changes(const char* reason, Cls const& o, Tracer* tracer) \
-   {  \
-      dm::ObjectId id = o.GetObjectId(); \
-      std::shared_ptr<Cls ## Trace<Cls>> trace; \
-      ADD_TRACE_TO_TRACER(trace, tracer, Cls) \
-      traces_[id].push_back(trace); \
-      return trace; \
-   } \
+   template <typename Cls> std::shared_ptr<Cls ## Trace<Cls>> Trace ## Cls ## Changes(const char* reason, Cls const& o, int category); \
+   template <typename Cls> std::shared_ptr<Cls ## Trace<Cls>> Trace ## Cls ## Changes(const char* reason, Cls const& o, Tracer* tracer);
 
    TRACE_TYPE_METHOD(Object)
    TRACE_TYPE_METHOD(Record)
@@ -179,63 +103,17 @@ public:
    TRACE_TYPE_METHOD(Array)
    TRACE_TYPE_METHOD(Map)
 
+#undef TRACE_TYPE_METHOD
+
    AllocTracePtr TraceAlloced(const char* reason, int category);
-
-   TracerPtr GetTracer(int category)
-   {
-      auto i = tracers_.find(category);
-      if (i == tracers_.end()) {
-         throw std::logic_error(BUILD_STRING("store has no trace set for category " << category));
-      }
-      return i->second;
-   }
-
-   void AddTracer(TracerPtr set, int category)
-   {
-      auto entry = tracers_.insert(std::make_pair(category, set));
-      if (entry.second) {
-         throw std::logic_error(BUILD_STRING("duplicate tracer category " << category));
-      }
-   }
-
+   TracerPtr GetTracer(int category);
+   void AddTracer(TracerPtr set, int category);
    void PushAllocState(AllocTrace& trace) const;
 
-   template <typename T>
-   void PushObjectState(ObjectTrace<T>& trace, ObjectId id) const
-   {
-      auto i = objects_.find(id);
-      if (i != objects_.end()) {
-         trace.NotifyObjectState();
-      }
-   }
-
-   template <typename T>
-   void PushBoxedState(BoxedTrace<T>& trace, ObjectId id) const
-   {
-      auto i = objects_.find(id);
-      if (i != objects_.end()) {
-         trace.NotifyObjectState(static_cast<T const*>(i->second)->Get());
-      }
-   }
-
-   template <typename T>
-   void PushSetState(SetTrace<T>& trace, ObjectId id) const
-   {
-      auto i = objects_.find(id);
-      if (i != objects_.end()) {
-         trace.NotifyObjectState(static_cast<T const*>(i->second)->GetContainer());
-      }
-   }
-
-   template <typename T>
-   void PushMapState(MapTrace<T>& trace, ObjectId id) const
-   {
-      auto i = objects_.find(id);
-      if (i != objects_.end()) {
-         trace.NotifyObjectState(static_cast<T const*>(i->second)->GetContainer());
-      }
-   }
-
+   template <typename T> void PushObjectState(ObjectTrace<T>& trace, ObjectId id) const;
+   template <typename T> void PushBoxedState(BoxedTrace<T>& trace, ObjectId id) const;
+   template <typename T> void PushSetState(SetTrace<T>& trace, ObjectId id) const;
+   template <typename T> void PushMapState(MapTrace<T>& trace, ObjectId id) const;
 
 protected: // Internal interface for Objects only
    friend Object;

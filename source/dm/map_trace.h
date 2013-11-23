@@ -31,7 +31,7 @@ protected:
    void SignalChanged(Key const& key, Value const& value) ;
    void SignalUpdated(ChangeMap const& changed, KeyList const& removed);
 
-private:
+protected:
    friend Store;
    virtual void NotifyRemoved(Key const& key) = 0;
    virtual void NotifyChanged(Key const& key, Value const& value) = 0;

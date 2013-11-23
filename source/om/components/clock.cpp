@@ -8,3 +8,8 @@ void Clock::ConstructObject()
 {
    time_ = 0;
 }
+
+void Clock::ExtendObject(json::Node const& obj)
+{
+}
+

@@ -91,4 +91,6 @@ void MapTrace<M>::NotifyObjectState(typename M::ContainerType const& contents)
    SignalUpdated(contents, KeyList());
 }
 
-template MapTrace<Map<int, ObjectPtr>>;
+#define CREATE_MAP(M)    template MapTrace<M>;
+#include "types/instantiate_types.h"
+

@@ -417,5 +417,3 @@ MAKE_REGION(Region1)
 DEFINE_REGION_CONVERSIONS(2)
 DEFINE_REGION_CONVERSIONS(3)
 
-IMPLEMENT_DM_EXTENSION(::radiant::csg::Region3, Protocol::region3i)
-IMPLEMENT_DM_EXTENSION(::radiant::csg::Region2, Protocol::region2i)

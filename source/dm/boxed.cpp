@@ -52,6 +52,6 @@ void Boxed<T, OT>::Modify(std::function<void(T& value)> cb) {
    GetStore().OnBoxedChanged(*this, value_);
 }
 
-#define DM_BOXED(v) template Boxed<v>;
-#include "defs/boxes.h"
+#define CREATE_BOXED(B)           template B;
+#include "types/instantiate_types.h"
 

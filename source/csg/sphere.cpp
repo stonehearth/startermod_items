@@ -276,4 +276,3 @@ void Sphere::LoadValue(const protocol::sphere3f& msg) {
    _radius = msg.radius();
 }
 
-IMPLEMENT_DM_EXTENSION(::radiant::csg::Sphere, Protocol::sphere3f)

@@ -1,4 +1,5 @@
 #include "radiant.h"
+#include "radiant_stdutil.h"
 #include "set.h"
 #include "store.h"
 #include "dbg_info.h"
@@ -99,5 +100,5 @@ typename Set<T>::ContainerType const& Set<T>::GetContainer() const
    return items_;
 }
 
-#define DM_SET(v) template Set<v>;
-#include "defs/sets.h"
+#define CREATE_SET(S)      template S;
+#include "types/instantiate_types.h"

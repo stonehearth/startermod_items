@@ -128,11 +128,6 @@ struct ::radiant::dm::SaveImpl<T> \
    } \
 };
 
-IMPLEMENT_DM_BASIC_TYPE(int,  Protocol::integer);
-IMPLEMENT_DM_BASIC_TYPE(bool, Protocol::boolean);
-IMPLEMENT_DM_BASIC_TYPE(float, Protocol::floatingpoint);
-IMPLEMENT_DM_BASIC_TYPE(std::string, Protocol::string);
-
 END_RADIANT_DM_NAMESPACE
 
 #endif //  _RADIANT_DM_SAVE_IMPL_H

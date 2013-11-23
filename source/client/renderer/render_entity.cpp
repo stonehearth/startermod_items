@@ -14,6 +14,7 @@
 #include "render_vertical_pathing_region.h"
 #include "resources/res_manager.h"
 #include "resources/animation.h"
+#include "dm/map_trace.h"
 #include "om/entity.h"
 #include "om/components/mob.ridl.h"
 #include "om/components/entity_container.ridl.h"

@@ -3,6 +3,7 @@
 #include "render_entity.h"
 #include "render_entity_container.h"
 #include "pipeline.h"
+#include "dm/map_trace.h"
 #include "om/components/entity_container.ridl.h"
 #include "Horde3DUtils.h"
 

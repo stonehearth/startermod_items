@@ -8,7 +8,8 @@
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
-struct Transform {
+class Transform {
+public:
    Point3f            position;
    Quaternion        orientation;
 
@@ -30,6 +31,5 @@ Transform Interpolate(const Transform &t0, const Transform &t1, float alpha);
 std::ostream& operator<<(std::ostream& out, const Transform& source);
 
 END_RADIANT_CSG_NAMESPACE
-
 
 #endif

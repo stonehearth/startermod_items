@@ -1,9 +1,10 @@
 #include "pch.h"
 #include "renderer.h"
 #include "render_carry_block.h"
-#include "om/entity.h"
 #include "client/client.h"
+#include "om/entity.h"
 #include "om/components/carry_block.ridl.h"
+#include "dm/record_trace.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;

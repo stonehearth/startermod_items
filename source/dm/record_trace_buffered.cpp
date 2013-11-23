@@ -30,7 +30,7 @@ template <typename R>
 void RecordTraceBuffered<R>::SaveObjectDelta(Object* obj, Protocol::Value* value)
 {
    if (first_save_) {
-      SaveObject(*static_cast<Record*>(obj), value);
+      static_cast<Record*>(obj)->SaveValue(value);
       first_save_ = false;
    }
    // A record gets all it's fields initialized prior to the first save and

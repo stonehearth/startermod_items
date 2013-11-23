@@ -2,6 +2,7 @@
 #include "pipeline.h"
 #include "renderer.h"
 #include "render_terrain.h"
+#include "dm/map_trace.h"
 #include "om/components/terrain.ridl.h"
 #include "csg/meshtools.h"
 #include "lib/perfmon/perfmon.h"

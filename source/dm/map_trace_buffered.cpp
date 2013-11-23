@@ -1,6 +1,7 @@
 #include "radiant.h"
+#include "radiant_stdutil.h"
 #include "map.h"
-#include "map_trace_sync.h"
+#include "map_trace_buffered.h"
 #include "store.h"
 #include "dm_save_impl.h"
 #include "protocols/store.pb.h"
@@ -57,8 +58,8 @@ void MapTraceBuffered<M>::NotifyObjectState(typename M::ContainerType const& con
 {
    changed_.clear();
    removed_.clear();
-   MapTrace<M>::PushObjectState();
+   MapTrace<M>::NotifyObjectState(contents);
 }
 
-#define DM_MAP(k, v)  template MapTraceBuffered<Map<k, v>>;
-#include "defs/maps.h"
+#define CREATE_MAP(M)  template MapTraceBuffered<M>;
+#include "types/instantiate_types.h"

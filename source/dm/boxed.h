@@ -1,6 +1,7 @@
 #ifndef _RADIANT_DM_BOXED_H_
 #define _RADIANT_DM_BOXED_H_
 
+#include <typeinfo>
 #include "object.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
@@ -18,7 +19,7 @@ public:
    std::shared_ptr<BoxedTrace<Boxed>> TraceChanges(const char* reason, int category) const;
 
    std::ostream& GetDebugDescription(std::ostream& os) const {
-      return (os << "boxed value:" << value_);
+      return (os << "boxed " << typeid(T).name());
    }
 
    void LoadValue(Protocol::Value const& msg) override;

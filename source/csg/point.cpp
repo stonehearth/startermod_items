@@ -88,6 +88,3 @@ template float csg::Interpolate(float const&, float const&, float);
 DEFINE_POINT_CONVERSIONS(2)
 DEFINE_POINT_CONVERSIONS(3)
 
-IMPLEMENT_DM_EXTENSION(::radiant::csg::Point2, Protocol::point2i)
-IMPLEMENT_DM_EXTENSION(::radiant::csg::Point3, Protocol::point3i)
-IMPLEMENT_DM_EXTENSION(::radiant::csg::Point3f, Protocol::point3f)

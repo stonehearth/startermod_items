@@ -1,4 +1,5 @@
 #include "radiant.h"
+#include "radiant_stdutil.h"
 #include "om/all_objects.h"
 #include "om/all_components.h"
 #include "om/object_formatter/object_formatter.h"
