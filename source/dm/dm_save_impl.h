@@ -1,9 +1,9 @@
 #ifndef _RADIANT_DM_SAVE_IMPL_H
 #define _RADIANT_DM_SAVE_IMPL_H
 
-#include "dm.h"
-#include "dbg_info.h"
 #include <memory>
+#include "dbg_info.h"
+#include "protocols/store.pb.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -23,6 +23,52 @@ struct SaveImpl
    }
    static void GetDbgInfo(T const& obj, DbgInfo &info) {
       obj.GetDbgInfo(info);
+   }
+};
+
+// TODO: only for T's which are Objects!
+template <class T>
+struct SaveImpl<std::shared_ptr<T>>
+{
+   static void SaveValue(const Store& store, Protocol::Value* msg, const std::shared_ptr<T>& value) {
+      ObjectId id = value ? value->GetObjectId() : 0;
+      msg->SetExtension(Protocol::Ref::ref_object_id, id);
+   }
+   static void LoadValue(const Store& store, const Protocol::Value& msg, std::shared_ptr<T>& value) {
+      ObjectId id = msg.GetExtension(Protocol::Ref::ref_object_id);
+      value = store.FetchObject<T>(id);
+   }
+   static void GetDbgInfo(std::shared_ptr<T> obj, DbgInfo &info) {
+      if (obj) {
+         info.os << "[shared_ptr ";
+         SaveImpl<T>::GetDbgInfo(*obj, info);
+         info.os << "]";
+      } else {
+         info.os << "[shared_ptr nullptr]";
+      }
+   }
+};
+
+// TODO: only for T's which are Objects!
+template <class T>
+struct SaveImpl<std::weak_ptr<T>>
+{
+   static void SaveValue(const Store& store, Protocol::Value* msg, const std::weak_ptr<T>& value) {
+      SaveImpl<std::shared_ptr<T>>().SaveValue(store, msg, value.lock());
+   }
+   static void LoadValue(const Store& store, const Protocol::Value& msg, std::weak_ptr<T>& value) {
+      ObjectId id = msg.GetExtension(Protocol::Ref::ref_object_id);
+      value = store.FetchObject<T>(id);
+   }
+   static void GetDbgInfo(std::weak_ptr<T> o, DbgInfo &info) {
+      auto obj = o.lock();
+      if (obj) {
+         info.os << "[weak_ptr ";
+         SaveImpl<T>::GetDbgInfo(*obj, info);
+         info.os << "]";
+      } else {
+         info.os << "[weak_ptr nullptr]";
+      }
    }
 };
 

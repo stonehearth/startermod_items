@@ -32,40 +32,7 @@ using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-IMPLEMENT_TRIVIAL_TOSTRING(DeepRegionGuardLua)
-DEFINE_INVALID_JSON_CONVERSION(DeepRegionGuardLua)
 DEFINE_INVALID_JSON_CONVERSION(om::Region3BoxedPtrBoxed)
-
-DeepRegionGuardLua::DeepRegionGuardLua(lua_State* L, Region3BoxedPtrBoxed const& bbrp, const char* reason)
-{
-   L_ = lua::ScriptHost::GetCallbackThread(L);
-   region_guard_ = DeepTraceRegionVoid(bbrp, reason, [=]{
-      FireTrace();
-   });
-}
-
-DeepRegionGuardLuaPtr DeepRegionGuardLua::OnChanged(object cb)
-{
-   cbs_.push_back(object(L_, cb));
-   return shared_from_this();
-}
-
-void DeepRegionGuardLua::Destroy()
-{
-   region_guard_ = nullptr;
-   cbs_.clear();
-}
-
-void DeepRegionGuardLua::FireTrace()
-{
-   for (const auto& cb : cbs_) {
-      try {
-         call_function<void>(cb);
-      } catch (std::exception &e) {
-         LOG(WARNING) << "error in lua callback: " << e.what();
-      }
-   }
-}
 
 void radiant::om::RegisterLuaTypes(lua_State* L)
 {
@@ -80,10 +47,6 @@ void radiant::om::RegisterLuaTypes(lua_State* L)
             LuaEntity::RegisterLuaTypes(L),
             LuaRegion::RegisterLuaTypes(L),
             LuaDataStore::RegisterLuaTypes(L),
-
-            lua::RegisterTypePtr<DeepRegionGuardLua>()
-               .def("on_changed",               &DeepRegionGuardLua::OnChanged)
-               .def("destroy",                  &DeepRegionGuardLua::Destroy)
          ]
       ]
    ];

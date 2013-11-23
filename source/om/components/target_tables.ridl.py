@@ -9,3 +9,8 @@ class TargetTableGroup(dm.Record):
 
 class TargetTables(Component):
    tables = dm.Map(std.string(), std.shared_ptr(TargetTableGroup), singular_name='table')
+
+   _includes = [
+      "om/components/target_table_group.ridl.h"
+   ]
+

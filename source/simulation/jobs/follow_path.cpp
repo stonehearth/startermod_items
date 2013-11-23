@@ -14,8 +14,8 @@ std::ostream& simulation::operator<<(std::ostream& os, FollowPath const& o)
    return os << "[FollowPath ...]";
 }
 
-FollowPath::FollowPath(om::EntityRef e, float speed, std::shared_ptr<Path> path, float close_to_distance, luabind::object arrived_cb) :
-   Task("follow path"),
+FollowPath::FollowPath(Simulation& sim, om::EntityRef e, float speed, std::shared_ptr<Path> path, float close_to_distance, luabind::object arrived_cb) :
+   Task(sim, "follow path"),
    entity_(e),
    path_(path),
    pursuing_(0),

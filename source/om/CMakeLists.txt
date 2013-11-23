@@ -29,7 +29,6 @@ endif(MSVC)
 
 target_link_libraries(om
                       om_components
-                      om_lua
                       om_object_formatter
                       om_error_browser
                       )

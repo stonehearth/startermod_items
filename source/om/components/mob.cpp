@@ -37,10 +37,10 @@ void Mob::MoveToGridAligned(const csg::Point3& location)
 
 void Mob::TurnTo(csg::Quaternion const& orientation)
 {
-   LOG(INFO) << "turning entity " << GetEntity().GetObjectId() << " to " << orientation;
-   //Like TurnToAngle, have to rotate 180 degrees
-   csg::Quaternion orientation_rotated = orientation * csg::Quaternion(0, 0, 1, 0);
-   transform_.Modify().orientation = orientation_rotated;
+   NOT_TESTED();
+   transform_.Modify([&](csg::Transform& t) {
+      t.orientation = orientation;
+   });
 }
 
 void Mob::TurnToAngle(float angle)
@@ -128,11 +128,9 @@ csg::Quaternion Mob::GetRotation() const
 //TODO: keep testing; not sure if it works from all 360 angles
 csg::Point3f Mob::GetLocationInFront() const
 {
+   NOT_TESTED();
    csg::Quaternion q = (*transform_).orientation;
-   csg::Point3f translation =  q.rotate(csg::Point3f(0, 0, 1));
-   int x = (*transform_).position.x + floor(translation.x + 0.5);
-   int z = (*transform_).position.z + floor(translation.z + 0.5);
-   return csg::Point3f(x, (*transform_).position.y, z);
+   return q.rotate(csg::Point3f(0, 0, -1));
 }
 
 

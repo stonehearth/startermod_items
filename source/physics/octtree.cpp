@@ -43,7 +43,8 @@ T WorldToLocal(const T& coord, const om::Entity& entity)
 }
 
 OctTree::OctTree(int trace_category) :
-   trace_category_(trace_category)
+   trace_category_(trace_category),
+   navgrid_(trace_category)
 {
 }
 

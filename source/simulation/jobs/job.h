@@ -11,9 +11,10 @@ typedef unsigned int JobId;
 
 class Job {
    public:
-      Job(std::string name);
+      Job(Simulation& sim, std::string name);
 
       std::string GetName() const;
+      Simulation& GetSim() const;
 
       JobId GetId() const;
       virtual bool IsFinished() const = 0;
@@ -24,20 +25,9 @@ class Job {
 
    private:
       static JobId                     _nextJobId;
-
+      Simulation&                      _sim;
       JobId                            _id;
-      std::string                           _name;
-};
-
-class Task {
-   public:
-      Task(std::string const& name);
-
-      std::string const& GetName() const;
-      virtual bool Work(const platform::timer &timer) = 0;
-
-   private:
-      std::string    name_;
+      std::string                      _name;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

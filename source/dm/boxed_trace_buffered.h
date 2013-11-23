@@ -4,7 +4,6 @@
 #include "dm.h"
 #include "trace_buffered.h"
 #include "boxed_trace.h"
-#include "boxed_loader.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -12,41 +11,14 @@ template <typename M>
 class BoxedTraceBuffered : public TraceBuffered,
                            public BoxedTrace<M> {
 public:
-   BoxedTraceBuffered(const char* reason) :
-      TraceBuffered(reason),
-      value_(nullptr)
-   {
-   }
-
-   void Flush()
-   {
-      ASSERT(value_);
-      if (value_) {
-         // xxx: this might be an old value since it points back into the box (ug!)
-         SignalChanged(*value_);
-         value_ = nullptr;
-      }
-   }
-
-   void SaveObjectDelta(Object* obj, Protocol::Value* value) override
-   {
-      ASSERT(value_);
-      if (value) {
-         SaveObjectDelta(*value_, value);
-      }
-   }
+   BoxedTraceBuffered(const char* reason, Object const& o, Store const& store);
+   
+   void Flush();
+   void SaveObjectDelta(Object* obj, Protocol::Value* value) override;
 
 private:
-   void NotifyChanged(Value const& value) override
-   {
-      value_ = &value;
-   }
-
-   void NotifyObjectState(Value const& value) override
-   {
-      value_ = nullptr;
-      BoxedTrace<M>::PushObjectState(value);
-   }
+   void NotifyChanged(Value const& value) override;
+   void NotifyObjectState(Value const& value) override;
 
 private:
    Value const*      value_;

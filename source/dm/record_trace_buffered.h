@@ -4,7 +4,6 @@
 #include "dm.h"
 #include "trace_buffered.h"
 #include "record_trace.h"
-#include "record_loader.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -13,35 +12,13 @@ class RecordTraceBuffered : public RecordTrace<M>,
                             public TraceBuffered
 {
 public:
-   RecordTraceBuffered(const char* reason, Record const& r, Store const& s, int category) :
-      RecordTrace(reason, r, s, category),
-      first_save_(true),
-      changed_(false)
-   {
-   }
+   RecordTraceBuffered(const char* reason, Record const& r, Store& s, Tracer* tracer);
 
-   void Flush() override
-   {
-      ASSERT(changed_);
-      if (changed_) {
-         SignalModified();
-         changed_ = false;
-      }
-   }
-
-   void SaveObjectDelta(Object* obj, Protocol::Value* value) override
-   {
-      if (first_save_) {
-         SaveObject(*static_cast<Record*>(obj), value);
-         first_save_ = false;
-      }
-   }
+   void Flush() override;
+   void SaveObjectDelta(Object* obj, Protocol::Value* value) override;
 
 private:
-   void NotifyRecordChanged() override
-   {
-      changed_ = true;
-   }
+   void NotifyRecordChanged() override;
 
 private:
    bool        changed_;

@@ -167,7 +167,7 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
             zones_[location] = render_zone;
          }
          RenderZoneRef rt = render_zone;
-         render_zone->trace = region->TraceChanges("render", RENDER_TRACES)
+         render_zone->trace = region->TraceChanges("render", dm::RENDER_TRACES)
                                        ->OnModified([this, rt]{
                                           AddDirtyZone(rt);
                                        })
@@ -181,7 +181,7 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
       zones_.erase(location);
    };
 
-   zones_trace_ = terrain->TraceZones("render", RENDER_TRACES)
+   zones_trace_ = terrain->TraceZones("render", dm::RENDER_TRACES)
                               ->OnChanged(on_add_zone)
                               ->OnRemoved([=](csg::Point3 const&) {
                                  NOT_YET_IMPLEMENTED();

@@ -6,6 +6,10 @@
 using namespace radiant;
 using namespace radiant::dm;
 
+TracerSync::TracerSync()
+{
+}
+
 TracerSync::~TracerSync()
 {
 }

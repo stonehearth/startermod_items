@@ -2,7 +2,7 @@
 #define _RADIANT_DM_MAP_TRACE_H
 
 #include "dm.h"
-#include "trace.h"
+#include "trace_impl.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -20,84 +20,22 @@ public:
    typedef std::function<void(ChangeMap const& changed, KeyList const& removed)> UpdatedCb;
 
 public:
-   MapTrace(const char* reason, Object const& o, Store const& store) :
-      TraceImpl(reason, o, store)
-   {
-   }
-
-   std::shared_ptr<MapTrace> OnChanged(ChangedCb changed)
-   {
-      changed_ = changed;
-      return shared_from_this();
-   }
-
-   std::shared_ptr<MapTrace>  OnRemoved(RemovedCb removed)
-   {
-      removed_ = removed;
-      return shared_from_this();
-   }
-
-   std::shared_ptr<MapTrace>  OnUpdated(UpdatedCb updated)
-   {
-      updated_ = updated;
-      return shared_from_this();
-   }
-
-   std::shared_ptr<MapTrace> PushObjectState()
-   {
-      GetStore().PushMapState(*this, GetObjectId());
-      return shared_from_this();
-   }
+   MapTrace(const char* reason, Object const& o, Store const& store);
+   std::shared_ptr<MapTrace> OnChanged(ChangedCb changed);
+   std::shared_ptr<MapTrace> OnRemoved(RemovedCb removed);
+   std::shared_ptr<MapTrace> OnUpdated(UpdatedCb updated);
+   std::shared_ptr<MapTrace> PushObjectState();
 
 protected:
-   void SignalRemoved(Key const& key)
-   {
-      SignalModified();
-      if (removed_) {
-         removed_(key);
-      } else if (updated_) {
-         NOT_YET_IMPLEMENTED();
-      }
-   }
-
-   void SignalChanged(Key const& key, Value const& value) 
-   {
-      SignalModified();
-      if (changed) {
-         changed_(key, value)
-      } else if (updated_) {
-         NOT_YET_IMPLEMENTED();
-      }
-   }
-
-   void SignalUpdated(ChangeMap const& changed, KeyList const& removed)
-   {
-      SignalModified();
-      if (updated_) {
-         updated_(changed, removed);
-      } else {
-         if (changed_) {
-            for (const auto& entry : changed) {
-               changed_(entry.first, entry.second);
-            }
-         }
-
-         if (removed_) {
-            for (const auto& key : removed) {
-               removed_(key);
-            }
-         }
-      }
-   }
+   void SignalRemoved(Key const& key);
+   void SignalChanged(Key const& key, Value const& value) ;
+   void SignalUpdated(ChangeMap const& changed, KeyList const& removed);
 
 private:
    friend Store;
-   virtual void NotifyRemoved(Key const& key);
-   virtual void NotifyChanged(Key const& key, Value const& value);
-   virtual void NotifyObjectState(typename M::ContainerType const& contents)
-   {
-      SignalUpdated(contents, KeyList());
-   }
+   virtual void NotifyRemoved(Key const& key) = 0;
+   virtual void NotifyChanged(Key const& key, Value const& value) = 0;
+   virtual void NotifyObjectState(typename M::ContainerType const& contents);
 
 private:
    RemovedCb      removed_;

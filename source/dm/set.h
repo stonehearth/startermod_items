@@ -1,11 +1,8 @@
-#pragma once
-#include "object.h"
-#include "protocols/store.pb.h"
+#ifndef _RADIANT_DM_SET_H_
+#define _RADIANT_DM_SET_H_
+
 #include <vector>
-#include "dm.h"
-#include "radiant.h"
-#include "radiant_stdutil.h"
-#include "dbg_indenter.h"
+#include "object.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -16,76 +13,30 @@ public:
    typedef T Value;
    typedef std::vector<T> ContainerType;
 
-   //static decltype(Protocol::Set::contents) extension;
-   DEFINE_DM_OBJECT_TYPE(Set, set);
-   DECLARE_STATIC_DISPATCH(Set);
    Set() : Object() { }
-
-
-   void GetDbgInfo(DbgInfo &info) const override {
-      if (WriteDbgInfoHeader(info)) {
-         info.os << " [" << std::endl;
-         {
-            Indenter indent(info.os);
-            auto i = items_.begin(), end = items_.end();
-            while (i != end) {
-               SaveImpl<T>::GetDbgInfo(*i, info);
-               if (++i != end) {
-                  info.os << ",";
-               }
-               info.os << std::endl;
-            }
-         }
-         info.os << "]";
-      }
+   DEFINE_DM_OBJECT_TYPE(Set, set);
+   std::ostream& GetDebugDescription(std::ostream& os) const {
+      return (os << "set size:" << items_.size());
    }
 
-   //const std::vector<T>& GetContents() const { return items_; }
+   void GetDbgInfo(DbgInfo &info) const override;
+   void LoadValue(Protocol::Value const& value) override;
+   void SaveValue(Protocol::Value* msg) const override;
 
-   void Clear() {
-      while (!items_.empty()) {
-         Remove(items_.back());
-      }
-   }
-   void Remove(const T& item) {
-      // this could be faster...
-      if (stdutil::UniqueRemove(items_, item)) {
-         GetStore().OnSetRemoved(*this, item);
-      }
-   }
+   void Clear();
+   void Remove(const T& item);
+   void Insert(const T& item);
 
-   void Insert(const T& item) {
-      if (!stdutil::contains(items_, item)) {
-         GetStore().OnSetAdded(*this, item);
-         items_.push_back(item);
-      }
-   }
-
-   bool IsEmpty() const {
-      return items_.empty();
-   }
-
-   int Size() const {
-      return items_.size();
-   }
-
-   bool Contains(const T& item) {
-      return stdutil::contains(items_, item);
-   }
+   bool IsEmpty() const;
+   int Size() const;
+   bool Contains(const T& item);
 
    typename std::vector<T>::const_iterator begin() const { return items_.begin(); }
    typename std::vector<T>::const_iterator end() const { return items_.end(); }
 
-   std::ostream& ToString(std::ostream& os) const {
-      return (os << "(Set size:" << items_.size() << ")");
-   }
-
 private:
    friend Store;
-   ContainerType const& GetContainer() const
-   {
-      return items_;
-   }
+   ContainerType const& GetContainer() const;
 
 private:
    NO_COPY_CONSTRUCTOR(Set<T>);
@@ -94,10 +45,6 @@ private:
    ContainerType          items_;
 };
 
-template <typename T>
-static std::ostream& operator<<(std::ostream& os, const Set<T>& in)
-{
-   return in.ToString(os);
-}
-
 END_RADIANT_DM_NAMESPACE
+
+#endif // _RADIANT_DM_SET_H_

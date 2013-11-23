@@ -22,13 +22,13 @@ RenderMob::RenderMob(const RenderEntity& entity, om::MobPtr mob) :
       }
    });
 
-   interp_trace_ = mob->TraceInterpolateMovement("render", RENDER_TRACES)
+   interp_trace_ = mob->TraceInterpolateMovement("render", dm::RENDER_TRACES)
                                  ->OnChanged([this](bool interpolate) {
                                     UpdateInterpolate(interpolate);
                                  })
                                  ->PushObjectState();
 
-   transform_trace_ = mob->TraceTransform("render", RENDER_TRACES)
+   transform_trace_ = mob->TraceTransform("render", dm::RENDER_TRACES)
                                  ->OnChanged([this](csg::Transform const& transform) {
                                     UpdateTransform(transform);
                                  })

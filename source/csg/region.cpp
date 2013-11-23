@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "region.h"
 #include "util.h"
+#include "protocols/store.pb.h"
+#include "dm/dm_save_impl.h"
 
 using namespace ::radiant;
 using namespace ::radiant::csg;
@@ -414,3 +416,6 @@ MAKE_REGION(Region1)
 
 DEFINE_REGION_CONVERSIONS(2)
 DEFINE_REGION_CONVERSIONS(3)
+
+IMPLEMENT_DM_EXTENSION(::radiant::csg::Region3, Protocol::region3i)
+IMPLEMENT_DM_EXTENSION(::radiant::csg::Region2, Protocol::region2i)

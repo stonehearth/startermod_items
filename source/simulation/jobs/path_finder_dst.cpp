@@ -30,7 +30,7 @@ PathFinderDst::PathFinderDst(PathFinder &pf, om::EntityRef e) :
          }
       };
 
-      auto& o = Simulation::GetInstance().GetOctTree();
+      auto& o = GetSim().GetOctTree();
       collision_cb_id_ = o.AddCollisionRegionChangeCb(&world_space_adjacent_region_, [destination_may_have_changed] {
          destination_may_have_changed();
       });
@@ -56,10 +56,10 @@ PathFinderDst::PathFinderDst(PathFinder &pf, om::EntityRef e) :
       }
       auto dst = entity->GetComponent<om::Destination>();
       if (dst) {
-         region_guard_ = om::DeepTraceRegion(dst->GetAdjacent(), "pf dst", dm::PATHFINDER_TRACES)
-                              ->OnChanged([destination_may_have_changed](csg::Region3 const&) {
-                                 destination_may_have_changed();
-                              });
+         region_guard_ = dst->TraceAdjacent("pf dst", dm::PATHFINDER_TRACES)
+                                 ->OnChanged([destination_may_have_changed](csg::Region3 const&) {
+                                    destination_may_have_changed();
+                                 });
       }
       ClipAdjacentToTerrain();
    }
@@ -68,7 +68,7 @@ PathFinderDst::PathFinderDst(PathFinder &pf, om::EntityRef e) :
 PathFinderDst::~PathFinderDst()
 {
    if (collision_cb_id_) {
-      auto& o = Simulation::GetInstance().GetOctTree();
+      auto& o = GetSim().GetOctTree();
       o.RemoveCollisionRegionChangeCb(collision_cb_id_);
       collision_cb_id_ = 0;
    }
@@ -77,7 +77,7 @@ PathFinderDst::~PathFinderDst()
 
 void PathFinderDst::ClipAdjacentToTerrain()
 {
-   const auto& o = Simulation::GetInstance().GetOctTree();
+   const auto& o = GetSim().GetOctTree();
    world_space_adjacent_region_.Clear();
 
    if (moving_) {
@@ -203,12 +203,6 @@ csg::Point3 PathFinderDst::GetPointfInterest(csg::Point3 const& adjacent_pt) con
       csg::Region3 const& rgn = **dst->GetRegion();
 
       if (dst->GetAutoUpdateAdjacent()) {
-         dm::GenerationId region_modified = om::DeepObj_GetLastModified(dst->GetRegion());
-         dm::GenerationId adjacent_modified = om::DeepObj_GetLastModified(dst->GetAdjacent());
-         dm::GenerationId reserved_modified = om::DeepObj_GetLastModified(dst->GetReserved());
-
-         ASSERT(adjacent_modified >= region_modified);
-         ASSERT(adjacent_modified >= reserved_modified);
          csg::Region3 const& adjacent = **dst->GetAdjacent();
 
          ASSERT(world_space_adjacent_region_.GetArea() <= adjacent.GetArea());

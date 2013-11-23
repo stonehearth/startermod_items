@@ -20,7 +20,7 @@ class Simulation;
 
 class PathFinder : public Job {
    public:
-      PathFinder(lua_State* L, std::string name);
+      PathFinder(Simulation& sim, std::string name);
       virtual ~PathFinder();
 
       void AddDestination(om::EntityRef dst);

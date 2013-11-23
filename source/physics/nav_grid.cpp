@@ -26,8 +26,9 @@ T ToLocalCoordinates(const T& coord, const std::shared_ptr<C> component)
    return coord;
 }
 
-NavGrid::NavGrid() :
-   next_region_change_cb_id_(1)
+NavGrid::NavGrid(int trace_category) :
+   next_region_change_cb_id_(1),
+   trace_category_(trace_category)
 {
 }
 
@@ -56,9 +57,10 @@ void NavGrid::AddRegionCollisionShape(om::RegionCollisionShapePtr region)
    dm::ObjectId id = region->GetObjectId();
    auto co = std::make_shared<RegionCollisionShapeObject>(region);
 
-   co->guard = om::DeepTraceRegion(region->GetRegion(), "navgrid region tracking", [this](csg::Region3 const& r) {
-      FireRegionChangeNotifications(r);
-   });
+   co->trace = region->TraceRegion("navgrid region tracking", trace_category_)
+                           ->OnChanged([this](csg::Region3 const& r) {
+                              FireRegionChangeNotifications(r);
+                           });
    regionCollisionShapes_[id] = co;
 }
 
@@ -142,7 +144,7 @@ bool NavGrid::IsEmpty(csg::Cube3 const& bounds) const
 
 bool NavGrid::Intersects(csg::Cube3 const&  bounds, om::RegionCollisionShapePtr rgnCollsionShape) const
 {
-   om::Region3BoxedPtr const region = *rgnCollsionShape->GetRegion();
+   om::Region3BoxedPtr const region = rgnCollsionShape->GetRegion();
    if (region) {      
       csg::Cube3 box = ToLocalCoordinates(bounds, rgnCollsionShape);
       const csg::Region3& rgn = **region;
@@ -157,7 +159,7 @@ bool NavGrid::PointOnLadder(csg::Point3 const& pt) const
    while (i != vprs_.end()) {
       auto vpr = i->second->obj.lock();
       if (vpr) {
-         om::Region3BoxedPtr r = *vpr->GetRegion();
+         om::Region3BoxedPtr r = vpr->GetRegion();
          if (r) {
             csg::Region3 const& region = r->Get();
             csg::Point3 p = ToLocalCoordinates(pt, vpr);

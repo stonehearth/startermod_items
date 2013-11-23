@@ -5,6 +5,7 @@
 #include "csg/point.h"
 #include "csg/color.h"
 #include "qubicle_file_format.h"
+#include <unordered_map>
 
 BEGIN_RADIANT_VOXEL_NAMESPACE
 
@@ -33,7 +34,7 @@ public:
    std::istream& Read(std::istream& in);
    QubicleMatrix* GetMatrix(std::string const& name);
 
-   typedef std::map<std::string, QubicleMatrix> MatrixMap;
+   typedef std::unordered_map<std::string, QubicleMatrix> MatrixMap;
 
    const MatrixMap::const_iterator begin() const { return matrices_.begin(); }
    const MatrixMap::const_iterator end() const { return matrices_.end(); }

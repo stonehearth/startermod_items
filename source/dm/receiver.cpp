@@ -2,7 +2,6 @@
 #include "receiver.h"
 #include "object.h"
 #include "store.h"
-#include "map_loader.h"
 
 using namespace radiant;
 using namespace radiant::dm;

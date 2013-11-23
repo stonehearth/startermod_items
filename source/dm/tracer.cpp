@@ -6,18 +6,12 @@
 using namespace radiant;
 using namespace radiant::dm;
 
-Tracer::Tracer(int category) :
-   category_(category)
+Tracer::Tracer()
 {
 }
 
 Tracer::~Tracer()
 {
-}
-
-int Tracer::GetCategory() const
-{
-   return category_;
 }
 
 AllocTracePtr Tracer::TraceAlloced(Store const& store, const char* reason)

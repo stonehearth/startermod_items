@@ -25,8 +25,8 @@ using namespace ::radiant::simulation;
 #  define VERIFY_HEAPINESS()
 #endif
 
-PathFinder::PathFinder(lua_State* L, std::string name) :
-   Job(name),
+PathFinder::PathFinder(Simulation& sim, std::string name) :
+   Job(sim, name),
    rebuildHeap_(false),
    restart_search_(true),
    enabled_(true),
@@ -268,7 +268,7 @@ void PathFinder::Work(const platform::timer &timer)
    VERIFY_HEAPINESS();
 
    // Check each neighbor...
-   const auto& o = Simulation::GetInstance().GetOctTree();
+   const auto& o = GetSim().GetOctTree();
    
    // xxx: not correct for reversed search yet...
    auto neighbors = o.ComputeNeighborMovementCost(current);

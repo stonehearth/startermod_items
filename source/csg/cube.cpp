@@ -4,6 +4,8 @@
 #include "ray.h"
 #include "region.h"
 #include "csg/util.h" // xxx: should be csg/namespace.h
+#include "protocols/store.pb.h"
+#include "dm/dm_save_impl.h"
 
 using namespace ::radiant;
 using namespace ::radiant::csg;
@@ -291,3 +293,6 @@ MAKE_CUBE(Line1)
 
 DEFINE_CUBE_CONVERSIONS(2)
 DEFINE_CUBE_CONVERSIONS(3)
+
+IMPLEMENT_DM_EXTENSION(::radiant::csg::Cube3, Protocol::cube3i)
+IMPLEMENT_DM_EXTENSION(::radiant::csg::Cube3f, Protocol::cube3f)

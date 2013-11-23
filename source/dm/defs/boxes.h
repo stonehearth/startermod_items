@@ -1,0 +1,1 @@
+DM_BOXED(std::string)

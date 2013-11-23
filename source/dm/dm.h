@@ -7,10 +7,19 @@
 // xxx: move this into a protocol.h header?
 namespace Protocol {
    class Value;
+   class Object;
 };
 
 BEGIN_RADIANT_DM_NAMESPACE
- 
+
+enum {
+   SetObjectType = 1,
+   MapObjectType,
+   RecordObjectType,
+   ArrayObjectType,
+   BoxedObjectType,   
+};
+
 typedef int GenerationId;
 typedef int TraceId;
 typedef int ObjectId;
@@ -21,7 +30,6 @@ class ObjectDumper;
 class Store;
 
 class Trace;
-class TraceSync;
 class TraceBuffered;
 class Tracer;
 class TracerSync;
@@ -29,6 +37,7 @@ class TracerBuffered;
 class Stream;
 class Streamer;
 class Receiver;
+class DbgInfo;
 
 class Record;
 class AllocTrace;
@@ -44,7 +53,6 @@ template <typename T> class ArrayTrace;
 DECLARE_SHARED_POINTER_TYPES(Object)
 DECLARE_SHARED_POINTER_TYPES(Store)
 DECLARE_SHARED_POINTER_TYPES(Trace)
-DECLARE_SHARED_POINTER_TYPES(TraceSync)
 DECLARE_SHARED_POINTER_TYPES(TraceBuffered)
 DECLARE_SHARED_POINTER_TYPES(Tracer)
 DECLARE_SHARED_POINTER_TYPES(TracerSync)
@@ -64,8 +72,6 @@ END_RADIANT_DM_NAMESPACE
 // xxx: super not happy that these headers have to be here.  Need to move the LoadValue/SaveValue
 // implementation out of the classes which get serialized and into a helper library (like how
 // lib/json does it). - tony
-#include "protocols/store.pb.h"
-#include "dm_save_impl.h"
 #include "trace_categories.h"
 
 #endif //  _RADIANT_DM_NAMESPACE_H

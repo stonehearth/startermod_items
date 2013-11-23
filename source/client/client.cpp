@@ -18,8 +18,6 @@
 #include "platform/utils.h"
 #include "resources/manifest.h"
 #include "resources/res_manager.h"
-#include "lib/lua/register.h"
-#include "lib/lua/script_host.h"
 #include "om/stonehearth.h"
 #include "om/object_formatter/object_formatter.h"
 #include "horde3d/Source/Horde3DEngine/egModules.h"
@@ -35,6 +33,8 @@
 #include "lib/rpc/lua_object_router.h"
 #include "lib/rpc/trace_object_router.h"
 #include "lib/rpc/http_deferred.h" // xxx: does not belong in rpc!
+#include "lib/lua/register.h"
+#include "lib/lua/script_host.h"
 #include "lib/lua/client/open.h"
 #include "lib/lua/res/open.h"
 #include "lib/lua/rpc/open.h"
@@ -323,10 +323,10 @@ void Client::run(int server_port)
    lua_State* L = scriptHost_->GetInterpreter();
    lua_State* callback_thread = scriptHost_->GetCallbackThread();
    renderer.SetScriptHost(GetScriptHost());
-   om::RegisterLuaTypes(L);
    csg::RegisterLuaTypes(L);
    store_.SetInterpreter(callback_thread); // xxx move to dm open or something
    authoringStore_.SetInterpreter(callback_thread); // xxx move to dm open or something
+   lua::om::open(L);
    lua::om::register_json_to_lua_objects(L, store_);
    lua::om::register_json_to_lua_objects(L, authoringStore_);
    lua::client::open(L);
@@ -466,8 +466,7 @@ void Client::mainloop()
    // we may create or modify authoring objects as a result of input events
    // or calls from the browser.
    perfmon::SwitchToCounter("fire traces");
-   authoringStore_.FireTraces();
-   authoringStore_.FireFinishedTraces();
+   authoring_render_tracer_->Flush();
 
    Renderer::GetInstance().RenderOneFrame(now_, alpha);
 
@@ -797,7 +796,7 @@ void Client::SelectEntity(om::EntityPtr obj)
 
 om::EntityPtr Client::GetEntity(dm::ObjectId id)
 {
-   dm::ObjectPtr obj = store_.FetchObject(id);
+   dm::ObjectPtr obj = store_.FetchObject<dm::Object>(id);
    return (obj && obj->GetObjectType() == om::Entity::DmType) ? std::static_pointer_cast<om::Entity>(obj) : nullptr;
 }
 

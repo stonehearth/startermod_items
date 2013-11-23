@@ -16,6 +16,9 @@
 #include "lib/json/node.h"
 #include "lib/rpc/forward_defines.h"
 #include "lib/lua/lua.h"
+#include "namespace.h"
+#include "protocols/tesseract.pb.h"
+#include "protocol.h"
 
 using boost::asio::ip::tcp;
 namespace boost {
@@ -68,7 +71,7 @@ public:
    void AddTask(std::shared_ptr<Task> task);
    void AddJob(std::shared_ptr<Job> job);
 
-   bool ProcessMessage(std::shared_ptr<RemoteClient> c, const ::radiant::tesseract::protocol::Request& msg);
+   bool ProcessMessage(std::shared_ptr<RemoteClient> c, const tesseract::protocol::Request& msg);
    void EncodeUpdates(protocol::SendQueuePtr queue);
    void Step();
 
@@ -83,18 +86,9 @@ public:
 private:
    void PostCommand(tesseract::protocol::PostCommandRequest const& request);
    void EncodeDebugShapes(protocol::SendQueuePtr queue);
-   void PushServerRemoteObjects(protocol::SendQueuePtr queue);
    void ProcessTaskList(platform::timer &timer);
    void ProcessJobList(platform::timer &timer);
-   void OnObjectAllocated(dm::ObjectPtr obj);
-   void OnObjectDestroyed(dm::ObjectId id);
-
    void StepPathFinding();
-
-   void TraceEntity(om::EntityPtr e);
-   void ComponentAdded(om::EntityRef e, dm::ObjectType type, std::shared_ptr<dm::Object> component);
-   void TraceTargetTables(om::TargetTablesPtr tables);
-   void UpdateTargetTables(int now, int interval);
    void SendReply(tesseract::protocol::PostCommandReply const& reply);
    void InitializeModules();
    void InitDataModel();
@@ -108,11 +102,13 @@ private:
    //void on_keyboard_pressed(render3d::RendererInterface *renderer, const render3d::keyboard_event &e);
 
    void process_messages();
-            
+
    void start_accept();
    void handle_accept(std::shared_ptr<tcp::socket> s, const boost::system::error_code& error);
    void SendUpdates(std::shared_ptr<RemoteClient> c);
-   void ProcessSendQueue(std::shared_ptr<RemoteClient> c);
+   void EncodeBeginUpdate(std::shared_ptr<RemoteClient> c);
+   void EncodeEndUpdate(std::shared_ptr<RemoteClient> c);
+   void EncodeServerTick(std::shared_ptr<RemoteClient> c);
    void EncodeUpdates(std::shared_ptr<RemoteClient> c);
 
 private:
@@ -135,9 +131,7 @@ private:
    bool                                         _singleStepPathFinding;
    std::list<std::weak_ptr<Job>>                jobs_;
    std::list<std::weak_ptr<Task>>               tasks_;
-   std::vector<om::TargetTablesRef>             targetTables_;   
    std::unordered_map<std::string, luabind::object>   routes_;
-   std::vector<std::pair<std::string, std::string>>   serverRemoteObjects_;
 
    luabind::object                              p1_;
    luabind::object                              game_;
@@ -150,9 +144,9 @@ private:
    rpc::ProtobufReactorPtr     protobuf_reactor_;
    std::vector<tesseract::protocol::Update>  buffered_updates_;
 
-   dm::StreamerPtr         streamer_;
    dm::TracerSyncPtr       object_model_traces_;
    dm::TracerSyncPtr       pathfinder_traces_;
+   dm::TracerBufferedPtr   lua_traces_;
 
    int            sequence_number_;
    bool           paused_;

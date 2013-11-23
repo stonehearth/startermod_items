@@ -1,5 +1,6 @@
 #include "radiant.h"
 #include "streamer.h"
+#include "object.h"
 #include "store.h"
 #include "alloc_trace.h"
 #include "protocol.h"
@@ -11,11 +12,10 @@ using namespace radiant::dm;
 namespace proto = ::radiant::tesseract::protocol;
 
 Streamer::Streamer(Store& store, int category, protocol::SendQueue* queue) :
-   store_(store),
    queue_(queue),
    category_(category)
 {
-   tracer_ = std::make_shared<TracerBuffered>(store, category);
+   tracer_ = std::make_shared<TracerBuffered>();
    store.AddTracer(tracer_, category);
 
    alloc_trace_ = store.TraceAlloced("streamer", category)
@@ -25,26 +25,14 @@ Streamer::Streamer(Store& store, int category, protocol::SendQueue* queue) :
                            ->PushObjectState();
 }
 
-void Streamer::Flush(int now)
+void Streamer::Flush()
 {
-   SetServerTick(now);
-   
    tracer_->Flush();
 
    if (destroyed_msg_) {
-      FinishUpdate(destroyed_update_);
+      QueueUpdate(destroyed_update_);
       destroyed_msg_ = nullptr;
    }
-}
-
-void Streamer::SetServerTick(int now)
-{
-   proto::Update update;
-
-   update.set_type(proto::Update::SetServerTick);
-   auto msg = update.MutableExtension(proto::SetServerTick::extension);
-   msg->set_now(now);
-   queue_->Push(protocol::Encode(update));
 }
 
 void Streamer::OnAlloced(std::vector<ObjectPtr> const& objects)
@@ -91,7 +79,7 @@ void Streamer::OnModified(TraceBufferedRef t, ObjectRef o)
       msg->set_timestamp(obj->GetLastModified());
       trace->SaveObjectDelta(obj.get(), msg->mutable_value());
 
-      FinishUpdate(update);
+      QueueUpdate(update);
    }
 }
 
@@ -105,52 +93,7 @@ void Streamer::OnDestroyed(ObjectId id)
    destroyed_msg_->add_objects(id);
 }
 
-Protocol::Object* Streamer::StartUpdate(proto::Update& update, ObjectId id)
-{
-   namespace proto = ::radiant::tesseract::protocol;
-   Object* obj = store_.FetchStaticObject(id);
-   if (!obj) {
-      return nullptr;
-   }
-
-   update.Clear();
-   update.set_type(proto::Update::UpdateObject);
-
-   Protocol::Object* msg = update.MutableExtension(proto::UpdateObject::extension)->mutable_object();
-   msg->set_object_id(id);
-   msg->set_object_type(obj->GetObjectType());
-   msg->set_timestamp(obj->GetLastModified());
-
-   return msg;
-}
-
-void Streamer::FinishUpdate(proto::Update const& update)
+void Streamer::QueueUpdate(proto::Update const& update)
 {
    queue_->Push(protocol::Encode(update));
 }
-
-#if 0
-
-Streamer::Streamer(Store& store, int category) :
-   TracerBuffered(category),
-   store_(store),
-   queue_(nullptr)
-{
-}
-
-Tracer::TracerType Streamer::GetType() const
-{
-   return STREAMER;
-}
-
-// xxx: this should move to the constructor once the arbiter is smart
-// enough to let the simulation handle queue lifetime.
-void Streamer::Flush(protocol::SendQueue* queue)
-{
-   queue_ = queue;
-   TracerBuffered::Flush();
-   queue_ = nullptr;
-}
-
-
-#endif

@@ -7,6 +7,10 @@
 using namespace ::radiant;
 using namespace ::radiant::dm;
 
+TracerBuffered::TracerBuffered()
+{
+}
+
 TracerBuffered::~TracerBuffered()
 {
 }

@@ -1,8 +1,10 @@
-#pragma once
-#include "object.h"
+#ifndef _RADIANT_DM_STORE_H
+#define _RADIANT_DM_STORE_H
+
+#include "dm.h"
+#include "alloc_trace.h"
 #include "tracer_sync.h"
 #include "tracer_buffered.h"
-#include "destroy_trace.h"
 
 struct lua_State;
 
@@ -133,23 +135,22 @@ public:
       });
    }
 
-#define CALL_TRACER(category, invocation) \
-   do { \
-   } while (FALSE)
-
-#define ADD_TRACE_TO_TRACKER(trace, category, Cls) \
-   do { \
-      auto tracer = GetTracer(category); \
+#define ADD_TRACE_TO_TRACER(trace, tracer, Cls) \
       switch (tracer->GetType()) { \
       case Tracer::SYNC: \
-         trace = std::static_pointer_cast<TracerSync>(tracer)->Trace ## Cls ## Changes(reason, *this, o); \
+         trace = static_cast<TracerSync*>(tracer)->Trace ## Cls ## Changes(reason, *this, o); \
          break; \
       case Tracer::BUFFERED: \
-         trace = std::static_pointer_cast<TracerBuffered>(tracer)->Trace ## Cls ## Changes(reason, *this, o); \
+         trace = static_cast<TracerBuffered*>(tracer)->Trace ## Cls ## Changes(reason, *this, o); \
          break; \
       default: \
          throw std::logic_error(BUILD_STRING("unknown tracer type " << tracer->GetType())); \
       } \
+
+#define ADD_TRACE_TO_TRACKER_CATEGORY(trace, category, Cls) \
+   do { \
+      auto tracer = GetTracer(category); \
+      ADD_TRACE_TO_TRACER(trace, tracer.get(), Cls) \
    } while (FALSE)
 
 #define TRACE_TYPE_METHOD(Cls) \
@@ -157,10 +158,19 @@ public:
    {  \
       dm::ObjectId id = o.GetObjectId(); \
       std::shared_ptr<Cls ## Trace<Cls>> trace; \
-      ADD_TRACE_TO_TRACKER(trace, category, Cls); \
+      ADD_TRACE_TO_TRACKER_CATEGORY(trace, category, Cls); \
       traces_[id].push_back(trace); \
       return trace; \
-   }
+   } \
+   \
+   template <typename Cls> std::shared_ptr<Cls ## Trace<Cls>> Trace ## Cls ## Changes(const char* reason, Cls const& o, Tracer* tracer) \
+   {  \
+      dm::ObjectId id = o.GetObjectId(); \
+      std::shared_ptr<Cls ## Trace<Cls>> trace; \
+      ADD_TRACE_TO_TRACER(trace, tracer, Cls) \
+      traces_[id].push_back(trace); \
+      return trace; \
+   } \
 
    TRACE_TYPE_METHOD(Object)
    TRACE_TYPE_METHOD(Record)
@@ -270,3 +280,6 @@ private:
 
 
 END_RADIANT_DM_NAMESPACE
+
+   
+#endif // _RADIANT_DM_STORE_H

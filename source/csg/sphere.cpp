@@ -4,6 +4,8 @@
 #include "quaternion.h"
 #include "matrix3.h"
 #include "ray.h"
+#include "protocols/store.pb.h"
+#include "dm/dm_save_impl.h"
 
 using namespace ::radiant;
 using namespace ::radiant::csg;
@@ -263,3 +265,15 @@ Sphere::compute_collision(const Sphere& other, Point3f& collision_normal,
     return false;
 
 }  // End of ::compute_collision()
+
+void Sphere::SaveValue(protocol::sphere3f* msg) const {
+   _center.SaveValue(msg->mutable_center());
+   msg->set_radius(_radius);
+}
+
+void Sphere::LoadValue(const protocol::sphere3f& msg) {
+   _center.LoadValue(msg.center());
+   _radius = msg.radius();
+}
+
+IMPLEMENT_DM_EXTENSION(::radiant::csg::Sphere, Protocol::sphere3f)

@@ -17,6 +17,11 @@ class TargetTableGroup(dm.Record):
 
    add_table = ridl.Method(std.shared_ptr(TargetTable()))
 
+   _includes = [
+      "om/components/target_table.ridl.h"
+   ]
+
+
    _public = \
    """
    void Update(int now, int interval);

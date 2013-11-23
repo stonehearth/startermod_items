@@ -5,7 +5,7 @@ import ridl.csg_types as csg
 from ridl.om_types import *
 
 class VerticalPathingRegion(Component):
-   region = dm.Boxed(Region3BoxedPtr())
+   region = dm.Boxed(Region3BoxedPtr(), trace='deep_region')
    normal = dm.Boxed(csg.Point3())
 
    _includes = [

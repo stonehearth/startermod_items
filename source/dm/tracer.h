@@ -8,7 +8,7 @@ BEGIN_RADIANT_DM_NAMESPACE
 class Tracer
 {
 public:
-   Tracer(int category);
+   Tracer();
    virtual ~Tracer();
 
    enum TracerType {
@@ -16,8 +16,6 @@ public:
       BUFFERED,
       STREAMER,
    };
-
-   int GetCategory() const;
 
 private:
    friend Store;

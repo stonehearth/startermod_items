@@ -45,7 +45,7 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
 
    skeleton_.SetSceneNode(node_.get());
 
-   components_trace_ = entity->TraceComponents("render", RENDER_TRACES)
+   components_trace_ = entity->TraceComponents("render", dm::RENDER_TRACES)
                                     ->OnChanged([this](dm::ObjectType type, std::shared_ptr<dm::Object> obj) {
                                        AddComponent(type, obj);
                                     })

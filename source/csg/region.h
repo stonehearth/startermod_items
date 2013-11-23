@@ -98,7 +98,4 @@ std::ostream& operator<<(std::ostream& os, const Region<S, C>& o)
 
 END_RADIANT_CSG_NAMESPACE
 
-IMPLEMENT_DM_EXTENSION(::radiant::csg::Region3, Protocol::region3i)
-IMPLEMENT_DM_EXTENSION(::radiant::csg::Region2, Protocol::region2i)
-
 #endif // _RADIANT_CSG_REGION_H

@@ -12,6 +12,12 @@ TargetTableEntryPtr TargetTable::AddEntry(om::EntityRef e)
 {
    TargetTableEntryPtr entry;
 
+   // The fix for this is for the target table component to register for an event that
+   // will get fired every game loop and calls Update(now, interval).  We can add as 
+   // a component on the root object, but there's currently no way to fetch the root
+   // entity from the store! --tony
+   LOG(WARNING) << "FYI!! Target tables are currently somewhat broken (they don't update...)";
+
    auto entity = e.lock();
    if (entity) {
       dm::ObjectId id = entity->GetObjectId();
@@ -32,7 +38,7 @@ void TargetTable::Update(int now, int interval)
    while (i != entries_.end()) {
       om::TargetTableEntryPtr entry = i->second;
       if (!entry->Update(now, interval)) {
-         i = entries_.RemoveIterator(i);
+         i = entries_.Remove(i);
       } else {
          i++;
       }

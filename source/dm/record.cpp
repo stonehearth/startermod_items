@@ -2,12 +2,12 @@
 #include "record.h"
 #include "record_trace.h"
 #include "store.h"
+#include "protocols/store.pb.h"
+#include "dbg_info.h"
 #include "dbg_indenter.h"
 
 using namespace ::radiant;
 using namespace ::radiant::dm;
-
-DEFINE_STATIC_DISPATCH(Record)
 
 Record::Record() : 
    slave_(false),
@@ -15,6 +15,12 @@ Record::Record() :
    saveCount_(0)
 {
 }   
+
+
+std::shared_ptr<RecordTrace<Record>> Record::TraceChanges(const char* reason, int category) const
+{
+   return GetStore().TraceRecordChanges(reason, *this, category);
+}
 
 void Record::Initialize(Store& s, ObjectId id)
 {
@@ -27,6 +33,27 @@ void Record::InitializeSlave(Store& s, ObjectId id)
 {
    slave_ = true;
    Object::InitializeSlave(s, id);
+}
+
+void Record::LoadValue(Protocol::Value const& msg)
+{
+   ASSERT(GetFields().empty());
+
+   int c = msg.ExtensionSize(Protocol::Record::record_fields);
+   for (int i = 0; i < c ; i++) {
+      const Protocol::Record::Entry& entry = msg.GetExtension(Protocol::Record::record_fields, i);
+      AddRecordField(entry.field(), entry.value());
+   }
+   InitializeRecordFields();
+}
+
+void Record::SaveValue(Protocol::Value* msg) const
+{
+   for (const auto& field : GetFields()) {
+      Protocol::Record::Entry* entry = msg->AddExtension(Protocol::Record::record_fields);
+      entry->set_field(field.first);
+      entry->set_value(field.second);
+   }
 }
 
 void Record::AddRecordField(std::string name, Object& field)

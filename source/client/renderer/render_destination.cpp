@@ -24,7 +24,8 @@ RenderDestination::RenderDestination(const RenderEntity& entity, om::Destination
 void RenderDestination::RenderDestinationRegion()
 {
    H3DNode node = entity_->GetNode();
-   region_trace_ = CreateRegionDebugShape(node, regionDebugShape_, destination_->GetRegion(), csg::Color4(128, 128, 128, 128));
+   region_trace_ = destination_->TraceRegion("rendering destination debug region", dm::RENDER_TRACES);
+   CreateRegionDebugShape(node, regionDebugShape_, region_trace_, csg::Color4(128, 128, 128, 128));
 }
 
 void RenderDestination::RemoveDestinationRegion()

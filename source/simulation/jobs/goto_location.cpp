@@ -13,8 +13,8 @@ std::ostream& simulation::operator<<(std::ostream& os, GotoLocation const& o)
    return os << "[GotoLocation ...]";
 }
 
-GotoLocation::GotoLocation(om::EntityRef entity, float speed, const csg::Point3f& location, float close_to_distance, luabind::object arrived_cb) :
-   Task("goto location"),
+GotoLocation::GotoLocation(Simulation& sim, om::EntityRef entity, float speed, const csg::Point3f& location, float close_to_distance, luabind::object arrived_cb) :
+   Task(sim, "goto location"),
    entity_(entity),
    target_location_(location),
    speed_(speed),
@@ -28,8 +28,8 @@ GotoLocation::GotoLocation(om::EntityRef entity, float speed, const csg::Point3f
    Report("constructor");
 }
 
-GotoLocation::GotoLocation(om::EntityRef entity, float speed, const om::EntityRef target, float close_to_distance, luabind::object arrived_cb) :
-   Task("goto entity"),
+GotoLocation::GotoLocation(Simulation& sim, om::EntityRef entity, float speed, const om::EntityRef target, float close_to_distance, luabind::object arrived_cb) :
+   Task(sim, "goto entity"),
    entity_(entity),
    target_entity_(target),
    speed_(speed),

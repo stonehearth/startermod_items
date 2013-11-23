@@ -15,7 +15,7 @@ RenderCarryBlock::RenderCarryBlock(RenderEntity& entity, om::CarryBlockPtr carry
 {
    carryBone_ = entity_.GetSkeleton().GetSceneNode("carry");
 
-   trace_ = carryBlock->TraceChanges("render", RENDER_TRACES)
+   trace_ = carryBlock->TraceChanges("render", dm::RENDER_TRACES)
                            ->OnModified([this]() {
                                  UpdateCarrying();
                            });

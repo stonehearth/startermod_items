@@ -4,6 +4,7 @@
 #include <boost/asio.hpp>
 #include "namespace.h"
 #include "protocol.h"
+#include "dm/dm.h"
 
 using boost::asio::ip::tcp;
 
@@ -11,10 +12,10 @@ BEGIN_RADIANT_SIMULATION_NAMESPACE
 
 class RemoteClient {
 public:
-   uint32                        sequence_number;
    std::shared_ptr<tcp::socket>  socket;
    protocol::SendQueuePtr        send_queue;
    protocol::RecvQueuePtr        recv_queue;
+   dm::StreamerPtr               streamer;
 
 public:
    RemoteClient();

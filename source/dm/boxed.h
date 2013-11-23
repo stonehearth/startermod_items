@@ -1,93 +1,47 @@
-#pragma once
+#ifndef _RADIANT_DM_BOXED_H_
+#define _RADIANT_DM_BOXED_H_
+
 #include "object.h"
-#include "protocols/store.pb.h"
-#include "dm.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
-   template <class T, int OT = BoxedObjectType>
+template <class T, int OT = BoxedObjectType>
 class Boxed : public Object
 {
 public:
-   enum { DmType = OT };
-   ObjectType GetObjectType() const override { return OT; }
-   const char *GetObjectClassNameLower() const override { return "boxed"; }
-
-   DECLARE_STATIC_DISPATCH(Boxed);
-
    typedef T   Value;
 
+   enum { DmType = OT };
    Boxed() : Object() { }
+   ObjectType GetObjectType() const override { return OT; }
+   const char *GetObjectClassNameLower() const override { return "boxed"; }
+   std::shared_ptr<BoxedTrace<Boxed>> TraceChanges(const char* reason, int category) const;
 
-   // Still needs to get initialized later!
-   Boxed(const T& v) : Object(), value_(v) { }
-
-   Boxed(Store& store)
-   {
-      Initialize(store);
+   std::ostream& GetDebugDescription(std::ostream& os) const {
+      return (os << "boxed value:" << value_);
    }
 
-   Boxed(Store& store, const T& v) :
-      value_(v) 
-   {
-      Initialize(store)
-   }
-
-   void GetDbgInfo(DbgInfo &info) const override {
-      if (WriteDbgInfoHeader(info)) {
-         info.os << " -> ";
-         SaveImpl<T>::GetDbgInfo(value_, info);
-      }
-   }
+   void LoadValue(Protocol::Value const& msg) override;
+   void SaveValue(Protocol::Value* msg) const override;   
+   void GetDbgInfo(DbgInfo &info) const override;
 
    // Make a boxed value behave just like a value for read-only operations.
    const T& Get() const { return value_; }
    const T& operator*() const { return value_; }
    operator const T&() const { return value_; }
 
-   void Set(T const& value) {
-      value_ = value;
-      GetStore().OnBoxedChanged(*this, value_);
-   }
-
-   const Boxed& operator=(const T& rhs) {
-      Set(rhs);
-      return *this;
-   }
-
-#if 0
-   // xxx: this makes my head hurt... can we nuke it?  -- tony
-   const Boxed& operator=(const Boxed& rhs) {
-      *this = *rhs;
-      return *this;
-   }
-#endif
-
-   void Modify(std::function<void(T& value)> cb) {
-      cb(value_);
-      GetStore().OnBoxedChanged(*this, value_);
-   }
+   void Set(T const& value);
+   const Boxed& operator=(const T& rhs);
+   void Modify(std::function<void(T& value)> cb);
 
 private:
-   Boxed(const Boxed<T>&); // opeartor= is ok, though.
+   Boxed(Boxed<T, OT> const&); // opeartor= is ok, though.
 
 private:
    T     value_;
 };
 
-template <class T, int OT>
-std::ostream& operator<<(std::ostream& os, const Boxed<T, OT>& o)
-{
-   std::ostringstream details;
-   details << o.Get();
-
-   os << "(ObjectReference " << o.GetObjectId();
-   if (!details.str().empty()) {
-      os << " -> " << details.str() << " ";
-   }
-   os << ")";
-   return os;
-}
-
 END_RADIANT_DM_NAMESPACE
+
+#endif // _RADIANT_DM_BOXED_H_
 

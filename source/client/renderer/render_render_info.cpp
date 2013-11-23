@@ -60,18 +60,18 @@ RenderRenderInfo::RenderRenderInfo(RenderEntity& entity, om::RenderInfoPtr rende
       SetDirtyBits(MODEL_DIRTY);
    };
 
-   scale_trace_ = render_info->TraceScale("render", RENDER_TRACES)
+   scale_trace_ = render_info->TraceScale("render", dm::RENDER_TRACES)
                                  ->OnModified(set_scale_dirty_bit);
 
    // if the variant we want to render changes...
-   model_variant_trace_ = render_info->TraceModelVariant("render", RENDER_TRACES)->OnModified(set_model_dirty_bit);
+   model_variant_trace_ = render_info->TraceModelVariant("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
 
    // if any entry in the attached items thing changes...
-   attached_trace_ = render_info->TraceAttachedEntities("render", RENDER_TRACES)->OnModified(set_model_dirty_bit);
+   attached_trace_ = render_info->TraceAttachedEntities("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
 
    // if the material changes...
-   material_trace_ = render_info->TraceMaterial("render", RENDER_TRACES)->OnModified(set_model_dirty_bit);
-   mode_trace_ = render_info->TraceModelMode("render", RENDER_TRACES)->OnModified(set_model_dirty_bit);
+   material_trace_ = render_info->TraceMaterial("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
+   mode_trace_ = render_info->TraceModelMode("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
 
    SetDirtyBits(-1);
 }
@@ -85,7 +85,7 @@ void RenderRenderInfo::AccumulateModelVariant(ModelMap& m, om::ModelLayerPtr v)
    if (v) {
       om::ModelLayer::Layer layer = v->GetLayer();
 
-      variant_trace_ = v->TraceModels("render", RENDER_TRACES)
+      variant_trace_ = v->TraceModels("render", dm::RENDER_TRACES)
                               ->OnModified([this]() {
                                  SetDirtyBits(MODEL_DIRTY);
                               });

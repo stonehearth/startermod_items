@@ -40,7 +40,7 @@ class Terrain(Component):
       "csg/point.h"
    ]
 
-   _private = \
+   _public = \
    """
    Region3BoxedPtr GetZone(csg::Point3 const& location, csg::Point3& zone_offset);
    """

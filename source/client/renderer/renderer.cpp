@@ -646,7 +646,7 @@ std::shared_ptr<RenderEntity> Renderer::CreateRenderObject(H3DNode parent, om::E
       RenderMapEntry entry;
       entry.render_entity = std::make_shared<RenderEntity>(parent, entity);
       entry.render_entity->FinishConstruction();
-      entry.lifetime_trace = entity->TraceChanges("render dtor", RENDER_TRACES)
+      entry.lifetime_trace = entity->TraceChanges("render dtor", dm::RENDER_TRACES)
                                        ->OnDestroyed([this, sid, id]() { 
                                           // LOG(WARNING) << "DESTROYING RENDER OBJECT " << sid << ", " << id;
                                             entities_[sid].erase(id);

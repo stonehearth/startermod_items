@@ -1,10 +1,7 @@
-#ifndef _RADIANT_DM_ARRAY_LOADER_H
-#define _RADIANT_DM_ARRAY_LOADER_H
+#ifndef _RADIANT_DM_CSG_LOADER_H
+#define _RADIANT_DM_CSG_LOADER_H
 
-#include "dm.h"
-#include "protocols/store.pb.h"
-#include "protocol.h"
-#include "array.h"
+#include "loader_macros.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -39,5 +36,5 @@ void SaveObjectDelta(std::unordered_map<uint, typename Array<T, C>::Value> const
 
 END_RADIANT_DM_NAMESPACE
 
-#endif // _RADIANT_DM_ARRAY_LOADER_H
+#endif // _RADIANT_DM_CSG_LOADER_H
 

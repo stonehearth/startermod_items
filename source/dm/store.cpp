@@ -1,6 +1,6 @@
 #include "radiant.h"
 #include "store.h"
-#include "alloc_trace.h"
+#include "object.h"
 
 using namespace ::radiant;
 using namespace ::radiant::dm;

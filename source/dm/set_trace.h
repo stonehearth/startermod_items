@@ -1,8 +1,7 @@
 #ifndef _RADIANT_DM_SET_TRACE_H
 #define _RADIANT_DM_SET_TRACE_H
 
-#include "dm.h"
-#include "trace.h"
+#include "trace_impl.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -17,80 +16,23 @@ public:
    typedef std::function<void(ValueList const& added, ValueList const& removed)> UpdatedCb;
    
 public:
-   SetTrace(const char* reason, Object const& o, Store const& store) :
-      TraceImpl(reason, o, store)
-   {
-   }
+   SetTrace(const char* reason, Object const& o, Store const& store);
 
-   std::shared_ptr<SetTrace> OnAdded(AddedCb added)
-   {
-      added_ = added;
-      return shared_from_this();
-   }
-
-   std::shared_ptr<SetTrace> OnRemoved(RemovedCb removed)
-   {
-      removed_ = removed;
-      return shared_from_this();
-   }
-
-   std::shared_ptr<SetTrace> OnUpdated(UpdatedCb updated)
-   {
-      updated_ = updated;
-      return shared_from_this();
-   }
-
-   std::shared_ptr<SetTrace> PushObjectState()
-   {
-      GetStore().PushSetState<T>(*this, GetObjectId());
-      return shared_from_this();
-   }
+   std::shared_ptr<SetTrace> OnAdded(AddedCb added);
+   std::shared_ptr<SetTrace> OnRemoved(RemovedCb removed);
+   std::shared_ptr<SetTrace> OnUpdated(UpdatedCb updated);
+   std::shared_ptr<SetTrace> PushObjectState();
 
 protected:
-   void SignalRemoved(Value const& value)
-   {
-      SignalModified();
-      if (removed_) {
-         removed_(value);
-      } else if (updated_) {
-         NOT_YET_IMPLEMENTED();
-      }
-   }
-
-   void SignalAdded(Value const& value) 
-   {
-      SignalModified();
-      if (added_) {
-         added_(value);
-      } else if (updated_) {
-         NOT_YET_IMPLEMENTED();
-      }
-   }
-
-   void SignalUpdated(ValueList const& added, ValueList const& removed)
-   {
-      SignalModified();
-      if (updated_) {
-         updated_(added, removed);
-      } else {
-         for (const auto& value : added) {
-            SignalAdded(value);
-         }
-
-         for (const auto& value : removed) {
-            SignalRemoved(value);
-         }
-      }
-   }
+   void SignalRemoved(Value const& value);
+   void SignalAdded(Value const& value) ;
+   void SignalUpdated(ValueList const& added, ValueList const& removed);
 
 private:
    friend Store;
-   virtual void NotifyRemoved(Value const& value);
-   virtual void NotifyAdded(Value const& value);
-   void NotifyObjectState(typename T::ContainerType const& contents)
-   {
-      SignalUpdated(contents, ValueList());
-   }
+   virtual void NotifyRemoved(Value const& value) = 0;
+   virtual void NotifyAdded(Value const& value) = 0;
+   virtual void NotifyObjectState(typename T::ContainerType const& contents);
 
 private:
    RemovedCb      removed_;

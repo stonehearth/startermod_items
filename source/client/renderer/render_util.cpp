@@ -8,19 +8,19 @@ static void UpdateShape(csg::Region3 const& region, H3DNode shape, csg::Color4 c
 {
 }
 
-om::DeepRegionGuardPtr client::CreateRegionDebugShape(H3DNode parent,
-                                                      H3DNodeUnique& shape,
-                                                      om::Region3BoxedPtrBoxed const& region,
-                                                      csg::Color4 const& color)
+void client::CreateRegionDebugShape(H3DNode parent,
+                                    H3DNodeUnique& shape,
+                                    om::DeepRegionGuardPtr trace,
+                                    csg::Color4 const& color)
 {
+
    static std::atomic<int> count = 1;
    std::string name = "debug region " + stdutil::ToString(count++);
 
    H3DNode s = h3dRadiantAddDebugShapes(parent, name.c_str());
    shape = H3DNodeUnique(s);
 
-   return om::DeepTraceRegion(region, "rendering destination debug region", RENDER_TRACES)
-      ->OnChanged([s, color](csg::Region3 const& r) {
+   trace->OnChanged([s, color](csg::Region3 const& r) {
          h3dRadiantClearDebugShape(s);
          h3dRadiantAddDebugRegion(s, r, color);
          h3dRadiantCommitDebugShape(s);

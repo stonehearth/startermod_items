@@ -4,7 +4,6 @@
 #include "dm.h"
 #include "trace_buffered.h"
 #include "set_trace.h"
-#include "set_loader.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -12,43 +11,15 @@ template <typename M>
 class SetTraceBuffered : public TraceBuffered,
                          public SetTrace<M> {
 public:
-   SetTraceBuffered(const char* reason, Object const& o, Store const& store) :
-      SetTrace(reason, o, store)
-   {
-   }
+   SetTraceBuffered(const char* reason, Object const& o, Store const& store);
 
-   void Flush()
-   {
-      SignalUpdated(added_, removed_);
-      added_.clear();
-      removed_.clear();
-   }
-
-   void SaveObjectDelta(Object* obj, Protocol::Value* value) override
-   {
-      SaveObjectDelta(added_, removed_ value);
-   }
-
+   void Flush();
+   void SaveObjectDelta(Object* obj, Protocol::Value* value) override;
 
 private:
-   void NotifyAdded(Value const& value) override
-   {
-      stdutil::FastRemove(removed_, value);
-      added_.push_back(value);
-   }
-
-   void NotifyRemoved(Value const& value) override
-   {
-      stdutil::FastRemove(added_, value);
-      removed_.push_back(value);
-   }
-
-   void NotifyObjectState(typename M::ContainerType const& contents) override
-   {
-      added_.clear();
-      removed_.clear();
-      SetTrace<M>::PushObjectState(contents);
-   }
+   void NotifyAdded(Value const& value) override;
+   void NotifyRemoved(Value const& value) override;
+   void NotifyObjectState(typename M::ContainerType const& contents) override;
 
 private:
    ValueList   added_;

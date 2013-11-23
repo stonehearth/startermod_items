@@ -1,16 +1,17 @@
 #ifndef _RADIANT_SIMULATION_GOTO_LOCATION_JOB_H
 #define _RADIANT_SIMULATION_GOTO_LOCATION_JOB_H
 
-#include "job.h"
-#include "path.h"
+#include "task.h"
+#include "om/om.h"
+#include "csg/point.h"
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
 
 class GotoLocation : public Task
 {
 public:
-   GotoLocation(om::EntityRef entity, float speed, const csg::Point3f& location, float close_to_distance, luabind::object arrived_cb);
-   GotoLocation(om::EntityRef entity, float speed, om::EntityRef target, float close_to_distance, luabind::object arrived_cb);
+   GotoLocation(Simulation& sim, om::EntityRef entity, float speed, const csg::Point3f& location, float close_to_distance, luabind::object arrived_cb);
+   GotoLocation(Simulation& sim, om::EntityRef entity, float speed, om::EntityRef target, float close_to_distance, luabind::object arrived_cb);
 
 public:
    bool Work(const platform::timer &timer) override;
@@ -24,7 +25,7 @@ protected:
 protected:
    om::EntityRef        entity_;
    om::EntityRef        target_entity_;
-   csg::Point3f       target_location_;
+   csg::Point3f         target_location_;
    float                speed_;
    bool                 target_is_entity_;
    float                close_to_distance_;

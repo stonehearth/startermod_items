@@ -2,14 +2,12 @@
 #define _RADIANT_DM_OBJECT_TRACE_SYNC_H
 
 #include "dm.h"
-#include "destroy_trace.h"
 #include "object_trace.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename T>
-class ObjectTraceSync : public DestroyTrace,
-                        public ObjectTrace<T>
+class ObjectTraceSync : public ObjectTrace<T>
 {
 public:
    ObjectTraceSync(const char* reason, Object const& o, Store const& store) :

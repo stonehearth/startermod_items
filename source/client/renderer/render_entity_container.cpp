@@ -12,7 +12,7 @@ using namespace ::radiant::client;
 RenderEntityContainer::RenderEntityContainer(const RenderEntity& entity, om::EntityContainerPtr container) :
    entity_(entity)
 {
-   trace_ = container->TraceChildren("render", RENDER_TRACES)
+   trace_ = container->TraceChildren("render", dm::RENDER_TRACES)
                            ->OnChanged([=](dm::ObjectId id, om::EntityRef child) {
                               AddChild(id, child);
                            })

@@ -5,6 +5,7 @@
 #include "om/object_enums.h"
 #include "dm/boxed.h"
 #include "dm/record.h"
+#include "dm/set.h"
 #include "om/entity.h"
 #include "lib/json/node.h"
 

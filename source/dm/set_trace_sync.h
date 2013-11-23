@@ -2,36 +2,20 @@
 #define _RADIANT_DM_SET_TRACE_SYNC_H
 
 #include "dm.h"
-#include "destroy_trace.h"
 #include "set_trace.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename M>
-class SetTraceSync : public DestroyTrace,
-                     public SetTrace<M>
+class SetTraceSync : public SetTrace<M>
 {
 public:
-   SetTraceSync(const char* reason, Object const& o, Store const& store) :
-      SetTrace(reason, o, store)
-   {
-   }
+   SetTraceSync(const char* reason, Object const& o, Store const& store);
 
 private:
-   void NotifyAdded(Value const& value) override
-   {
-      SignalAdded(value);
-   }
-
-   void NotifyRemoved(Value const& value) override
-   {
-      SignalRemoved(value);
-   }
-
-   void NotifyDestroyed() override
-   {
-      SignalDestroyed();
-   }
+   void NotifyAdded(Value const& value) override;
+   void NotifyRemoved(Value const& value) override;
+   void NotifyDestroyed() override;
 };
 
 END_RADIANT_DM_NAMESPACE

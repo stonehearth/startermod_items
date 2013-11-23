@@ -40,12 +40,12 @@ Destination& Destination::SetAutoUpdateAdjacent(bool value)
 
       if (value) {
          dm::ObjectId component_id = GetObjectId();
-         region_trace_ = DeepTraceRegion(region_, "auto_update_adjacent", dm::OBJECT_MODEL_TRACES)
+         region_trace_ = TraceRegion("auto_update_adjacent", dm::OBJECT_MODEL_TRACES)
             ->OnChanged([this](csg::Region3 const& r) {
                UpdateDerivedValues();
             });
 
-         reserved_trace_ = DeepTraceRegion(region_, "auto_update_adjacent", dm::OBJECT_MODEL_TRACES)
+         reserved_trace_ = TraceReserved("auto_update_adjacent", dm::OBJECT_MODEL_TRACES)
             ->OnChanged([this](csg::Region3 const& r) {
                UpdateDerivedValues();
             });

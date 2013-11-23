@@ -1,7 +1,7 @@
 #ifndef _RADIANT_DM_TRACE_BUFFERED_H
 #define _RADIANT_DM_TRACE_BUFFERED_H
 
-#include "trace.h"
+#include "trace_impl.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 

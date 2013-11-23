@@ -2,7 +2,7 @@
 #define _RADIANT_SIMULATION_FOLLOW_PATH_JOB_H
 
 #include "lib/lua/bind.h"
-#include "job.h"
+#include "task.h"
 #include "path.h"
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
@@ -10,7 +10,7 @@ BEGIN_RADIANT_SIMULATION_NAMESPACE
 class FollowPath : public Task
 {
 public:
-   FollowPath(om::EntityRef entity, float speed, std::shared_ptr<Path> path, float close_to_distance, luabind::object arrived_cb);
+   FollowPath(Simulation& sim, om::EntityRef entity, float speed, std::shared_ptr<Path> path, float close_to_distance, luabind::object arrived_cb);
 
 public:
    bool Work(const platform::timer &timer) override;

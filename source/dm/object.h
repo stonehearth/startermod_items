@@ -2,31 +2,8 @@
 #define _RADIANT_DM_OBJECT_H
 
 #include "dm.h"
-#include "all_objects_types.h"
-#include "protocols/store.pb.h"
-#include "dm_save_impl.h"
-#include "dbg_info.h"
+#include "object_macros.h"
 #include <unordered_map>
-
-#define DECLARE_STATIC_DISPATCH(Cls) \
-   void LoadObject(Protocol::Object const& msg) override; \
-   void SaveObject(Protocol::Object* msg) const override; \
-   std::shared_ptr<Cls ## Trace<Cls>> TraceChanges(const char* reason, int category) const ;
-
-#define DEFINE_STATIC_DISPATCH(Cls) \
-   void Cls::LoadObject(Protocol::Object const& msg) \
-   {  \
-      dm::LoadObject(*this, msg.value()); \
-      LoadHeader(msg); \
-   } \
-   \
-   std::shared_ptr<Cls ## Trace<Cls>> Cls::TraceChanges(const char* reason, int category) const \
-   { \
-      return GetStore().Trace ## Cls ## Changes(reason, *this, category); \
-   }
-
-   //return GetStore().Trace ## Cls ## Changes(reason, this, category); \
-
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -40,17 +17,16 @@ struct ObjectIdentifier {
 #endif
 };
 
-// xxx: this is more like "object header".  it's just the metadata.
 class Object
 {
 public:
-
    Object();
-   Object(Object&& other);
    virtual const char *GetObjectClassNameLower() const = 0;
    virtual void GetDbgInfo(DbgInfo &info) const = 0;
-   virtual void LoadObject(Protocol::Object const& msg) = 0;
-   virtual void SaveObject(Protocol::Object* msg) const = 0;
+   virtual void LoadValue(Protocol::Value const& msg) = 0;
+   virtual void SaveValue(Protocol::Value* msg) const = 0;
+   void LoadObject(Protocol::Object const& msg);
+   void SaveObject(Protocol::Object* msg) const;
 
    std::shared_ptr<ObjectTrace<Object>> TraceObjectChanges(const char* reason, int category);
 
@@ -67,9 +43,6 @@ public:
    virtual ObjectType GetObjectType() const = 0;
 
    bool IsValid() const;
-
-protected:
-   void LoadHeader(Protocol::Object const& msg);
 
 protected:
    friend Store;
@@ -93,52 +66,6 @@ private:
    GenerationId         timestamp_;
 };
 
-
-// TODO: only for T's which are Objects!
-template <class T>
-struct SaveImpl<std::shared_ptr<T>>
-{
-   static void SaveValue(const Store& store, Protocol::Value* msg, const std::shared_ptr<T>& value) {
-      ObjectId id = value ? value->GetObjectId() : 0;
-      msg->SetExtension(Protocol::Ref::ref_object_id, id);
-   }
-   static void LoadValue(const Store& store, const Protocol::Value& msg, std::shared_ptr<T>& value) {
-      ObjectId id = msg.GetExtension(Protocol::Ref::ref_object_id);
-      value = store.FetchObject<T>(id);
-   }
-   static void GetDbgInfo(std::shared_ptr<T> obj, DbgInfo &info) {
-      if (obj) {
-         info.os << "[shared_ptr ";
-         SaveImpl<T>::GetDbgInfo(*obj, info);
-         info.os << "]";
-      } else {
-         info.os << "[shared_ptr nullptr]";
-      }
-   }
-};
-
-// TODO: only for T's which are DYNAMIC!! Objects!
-template <class T>
-struct SaveImpl<std::weak_ptr<T>>
-{
-   static void SaveValue(const Store& store, Protocol::Value* msg, const std::weak_ptr<T>& value) {
-      SaveImpl<std::shared_ptr<T>>().SaveValue(store, msg, value.lock());
-   }
-   static void LoadValue(const Store& store, const Protocol::Value& msg, std::weak_ptr<T>& value) {
-      ObjectId id = msg.GetExtension(Protocol::Ref::ref_object_id);
-      value = store.FetchObject<T>(id);
-   }
-   static void GetDbgInfo(std::weak_ptr<T> o, DbgInfo &info) {
-      auto obj = o.lock();
-      if (obj) {
-         info.os << "[weak_ptr ";
-         SaveImpl<T>::GetDbgInfo(*obj, info);
-         info.os << "]";
-      } else {
-         info.os << "[weak_ptr nullptr]";
-      }
-   }
-};
 
 END_RADIANT_DM_NAMESPACE
 

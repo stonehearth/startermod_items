@@ -13,6 +13,10 @@ class TargetTable(dm.Record):
    category = dm.Boxed(std.string())
    top = dm.Boxed(std.shared_ptr(TargetTableEntry))
 
+   _includes = [
+      "om/components/target_table_entry.ridl.h"
+   ]
+
    _public = \
    """
    TargetTableEntryPtr AddEntry(om::EntityRef e);

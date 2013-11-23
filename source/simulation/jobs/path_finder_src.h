@@ -22,6 +22,9 @@ public:
    void InitializeOpenSet(std::vector<csg::Point3>& open);
    void EncodeDebugShapes(protocol::shapelist *msg) const;
 
+protected:
+   Simulation& GetSim() const { return pf_.GetSim(); }
+
 public:
    PathFinder&                pf_;
    om::EntityRef              entity_;

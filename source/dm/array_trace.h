@@ -2,7 +2,8 @@
 #define _RADIANT_DM_ARRAY_TRACE_H
 
 #include "dm.h"
-#include "trace.h"
+#include "trace_impl.h"
+#include <unordered_map>
 
 BEGIN_RADIANT_DM_NAMESPACE
 
@@ -17,49 +18,18 @@ public:
    typedef std::function<void(ChangeMap const& v)> UpdatedCb;
    
 public:
-   ArrayTrace(const char* reason, Object const& o, Store const& store) :
-      TraceImpl(reason, o, store)
-   {
-   }
+   ArrayTrace(const char* reason, Object const& o, Store const& store);
 
-   std::shared_ptr<ArrayTrace> OnChanged(ChangedCb changed)
-   {
-      changed_ = changed;
-      return shared_from_this();
-   }
-
-   std::shared_ptr<ArrayTrace> OnUpdated(UpdatedCb updated)
-   {
-      updated_ = updated;
-      return shared_from_this();
-   }
+   std::shared_ptr<ArrayTrace> OnChanged(ChangedCb changed);
+   std::shared_ptr<ArrayTrace> OnUpdated(UpdatedCb updated);
 
 protected:
-   void SignalChanged(uint i, Value const& value) 
-   {
-      SignalModified();
-      if (changed) {
-         changed_(i, value)
-      } else if (updated_) {
-         NOT_YET_IMPLEMENTED();
-      }
-   }
-
-   void SignalUpdated(ChangeMap const& updated)
-   {
-      SignalModified();
-      if (updated_) {
-         updated_(updates);
-      } else {
-         for (const auto& entry : updated) {
-            SignalChanged(entry.first, entry.second);
-         }
-      }
-   }
+   void SignalChanged(uint i, Value const& value);
+   void SignalUpdated(ChangeMap const& updated);
 
 private:
    friend Store;
-   virtual void NotifySet(uint i, Value const& value);
+   virtual void NotifySet(uint i, Value const& value) = 0;
 
 private:
    ChangedCb      changed_;

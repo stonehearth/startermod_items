@@ -2,29 +2,19 @@
 #define _RADIANT_DM_RECORD_TRACE_SYNC_H
 
 #include "dm.h"
-#include "destroy_trace.h"
 #include "record_trace.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
 template <typename M>
-class RecordTraceSync : public DestroyTrace,
-                        public RecordTrace<M>                  
+class RecordTraceSync : public RecordTrace<M>                  
 {
 public:
-   RecordTraceSync(const char* reason, Record const& r, Store const& s, int category) :
-      RecordTrace(reason, r, s, category) { }
+   RecordTraceSync(const char* reason, Record const& r, Store& s, Tracer* tracer);
 
 private:
-   void NotifyRecordChanged() override
-   {
-      SignalModified();
-   }
-
-   void NotifyDestroyed() override
-   {
-      SignalDestroyed();
-   }
+   void NotifyRecordChanged() override;
+   void NotifyDestroyed() override;
 };
 
 END_RADIANT_DM_NAMESPACE

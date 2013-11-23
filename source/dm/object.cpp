@@ -1,6 +1,8 @@
 #include "radiant.h"
 #include "object.h"
 #include "store.h"
+#include "dbg_info.h"
+#include "protocols/store.pb.h"
 
 using namespace ::radiant;
 using namespace ::radiant::dm;
@@ -9,13 +11,6 @@ Object::Object()
 {
    id_.id = 0;
    id_.store = 0;
-}
-
-Object::Object(Object&& other)
-{
-   id_ = other.id_;
-   other.id_.id = 0;
-   other.id_.store = 0;
 }
 
 std::shared_ptr<ObjectTrace<Object>> Object::TraceObjectChanges(const char* reason, int category)
@@ -79,10 +74,18 @@ Store& Object::GetStore() const
    return Store::GetStore(id_.store);
 }
 
-void Object::LoadHeader(Protocol::Object const& msg)
+void Object::LoadObject(Protocol::Object const& msg)
 {
    id_.id = msg.object_id();
    timestamp_ = msg.timestamp();
+   LoadValue(msg.value());
+}
+
+void Object::SaveObject(Protocol::Object* msg) const
+{
+   msg->set_object_id(id_.id);
+   msg->set_timestamp(timestamp_);
+   SaveValue(msg->mutable_value());
 }
 
 bool Object::IsValid() const

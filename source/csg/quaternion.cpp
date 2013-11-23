@@ -2,6 +2,8 @@
 #include "quaternion.h"
 #include "point.h"
 #include "matrix.h"
+#include "protocols/store.pb.h"
+#include "dm/dm_save_impl.h"
 
 using namespace ::radiant;
 using namespace ::radiant::csg;
@@ -643,4 +645,19 @@ csg::approx_slerp(Quaternion& result, const Quaternion& start, const Quaternion&
     }
 
 }   // End of approx_slerp()
+
+
+void Quaternion::SaveValue(protocol::quaternion *msg) const {
+   msg->set_x(x);
+   msg->set_y(y);
+   msg->set_z(z);
+   msg->set_w(w);
+}
+
+void Quaternion::LoadValue(const protocol::quaternion &msg) {
+   x = msg.x();
+   y = msg.y();
+   z = msg.z();
+   w = msg.w();
+}
 
