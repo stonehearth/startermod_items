@@ -110,10 +110,28 @@ unsigned char *Renderer::useScratchBuf( uint32 minSize )
 }
 
 
+void Renderer::setGpuCompatibility()
+{
+   CardType gpu = gRDI->getCaps().cardType;
+   int glVer = gRDI->getCaps().glVersion;
+
+   // Shadows: we don't trust intel less than gl version 30.
+   // TODO: Eventually, we get to a nice big matrix of manufacturer/driver.
+   gpuCompatibility_.canDoShadows = !(gpu == CardType::INTEL && glVer < 30);
+}
+
+
 bool Renderer::init(int glMajor, int glMinor)
 {
 	// Init Render Device Interface
 	if( !gRDI->init(glMajor, glMinor) ) return false;
+
+   setGpuCompatibility();
+
+   if (!gpuCompatibility_.canDoShadows)
+   {
+      Modules::log().writeWarning("Renderer: disabling shadows.");
+   }
 
 	// Check capabilities
 	if( !gRDI->getCaps().texFloat )
@@ -2625,6 +2643,8 @@ void Renderer::render( CameraNode *camNode )
 		finishRendering();
 		return;
 	}
+
+   bool drawShadows = Modules::config().enableShadows && gpuCompatibility_.canDoShadows;
 	
 	// Initialize
 	gRDI->_outputBufferIndex = _curCamera->_outputBufferIndex;
@@ -2716,12 +2736,12 @@ void Renderer::render( CameraNode *camNode )
 
 			case PipelineCommands::DoForwardLightLoop:
 				drawLightGeometry( pc.params[0].getString(), pc.params[1].getString(),
-               pc.params[2].getBool() || !Modules::config().enableShadows, (RenderingOrder::List)pc.params[3].getInt(),
+               pc.params[2].getBool() || !drawShadows, (RenderingOrder::List)pc.params[3].getInt(),
                                _curCamera->_occSet, pc.params[4].getBool() );
 				break;
 
 			case PipelineCommands::DoDeferredLightLoop:
-				drawLightShapes( pc.params[0].getString(), pc.params[1].getBool() || !Modules::config().enableShadows, 
+				drawLightShapes( pc.params[0].getString(), pc.params[1].getBool() || !drawShadows, 
                _curCamera->_occSet );
 				break;
 

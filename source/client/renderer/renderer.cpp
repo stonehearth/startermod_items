@@ -83,6 +83,8 @@ Renderer::Renderer() :
    }
 
    glfwWindowHint(GLFW_SAMPLES, config_.num_msaa_samples);
+   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
    GLFWwindow *window;
    // Fullscreen: add glfwGetPrimaryMonitor() instead of the first NULL.
@@ -96,7 +98,8 @@ Renderer::Renderer() :
    glfwSwapInterval(0);
 
    // Init Horde, looking for OpenGL 2.0 minimum.
-   if (!h3dInit(2, 0)) {
+   std::string s = (radiant::core::Config::GetInstance().GetTmpDirectory() / "horde3d_log.html").string();
+   if (!h3dInit(2, 0, s.c_str())) {
       h3dutDumpMessages();
       throw std::exception("Unable to initialize renderer.  Check horde log for details.");
    }
@@ -105,12 +108,10 @@ Renderer::Renderer() :
    h3dSetOption(H3DOptions::LoadTextures, 1);
    h3dSetOption(H3DOptions::TexCompression, 0);
    h3dSetOption(H3DOptions::MaxAnisotropy, 4);
-   h3dSetOption(H3DOptions::ShadowMapSize, (float)config_.shadow_resolution);
    h3dSetOption(H3DOptions::FastAnimation, 1);
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
-   h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples);
 
-   SetCurrentPipeline("pipelines/forward.pipeline.xml");
+   ApplyConfig();
 
    // Overlays
    fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
@@ -254,12 +255,6 @@ void Renderer::GetConfigOptions()
 
 void Renderer::ApplyConfig()
 {
-   if (config_.use_forward_renderer) {
-      SetCurrentPipeline("pipelines/forward.pipeline.xml");
-   } else {
-      SetCurrentPipeline("pipelines/deferred_lighting.xml");
-   }
-
    SetStageEnable("SSAO", config_.use_ssao);
    SetStageEnable("Simple, once-pass SSAO Blur", config_.use_ssao_blur);
    // Turn on copying if we're using SSAO, but not using blur.
@@ -269,6 +264,12 @@ void Renderer::ApplyConfig()
    h3dSetOption(H3DOptions::EnableShadows, config_.use_shadows ? 1.0f : 0.0f);
    h3dSetOption(H3DOptions::ShadowMapSize, (float)config_.shadow_resolution);
    h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples);
+
+   if (config_.use_forward_renderer) {
+      SetCurrentPipeline("pipelines/forward.pipeline.xml");
+   } else {
+      SetCurrentPipeline("pipelines/deferred_lighting.xml");
+   }
 }
 
 SystemStats Renderer::GetStats()

@@ -25,9 +25,7 @@ using namespace std;
 
 bool usePinnedMemory()
 {
-   // For now, just blindly check that the vendor starts with "ATI", and that it's 'modern'.
-   return (strncmp("ATI", gRDI->getCaps().vendor, 3) == 0) && 
-      (glExt::majorVersion > 3 || (glExt::majorVersion == 3 && glExt::minorVersion >= 2));
+   return gRDI->getCaps().cardType == CardType::ATI && gRDI->getCaps().glVersion >= 32;
 }
 
 
