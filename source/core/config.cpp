@@ -138,9 +138,12 @@ void Config::Load(int argc, const char *argv[])
    }
 
    // read config files
-   JSONNode internal_root_config = ReadConfigFile(run_directory_ / config_filename_).get_internal_node();
-   json::Node user_config = ReadConfigFile(cache_directory_ / config_filename_, false);
+   base_config_filename_ = run_directory_ / config_filename_;
+   override_config_filename_ = cache_directory_ / config_filename_;
+   JSONNode internal_root_config = ReadConfigFile(base_config_filename_).get_internal_node();
+   json::Node user_config = ReadConfigFile(override_config_filename_, false);
 
+   // user config overrides base config
    try {
       // Merge the root config before wrapping it as a json::Node because json::Node cannot expose it without copying
       MergeConfigNodes(internal_root_config, user_config.get_internal_node());
@@ -148,6 +151,7 @@ void Config::Load(int argc, const char *argv[])
       throw core::Exception(BUILD_STRING("Error merging " << override_config_filename_ << " with " << base_config_filename_ << ":\n\n" << e.what()));
    }
 
+   // command line options override options in config files
    try {
       // Merge the root config before wrapping it as a json::Node because json::Node cannot expose it without copying
       MergeConfigNodes(internal_root_config, command_line_config.get_internal_node());
@@ -164,8 +168,6 @@ void Config::Load(int argc, const char *argv[])
       SetProperty("user_id", userid_, true);
    }
    sessionid_ = Poco::UUIDGenerator::defaultGenerator().create().toString();
-
-   //MessageBox(nullptr, root_config_.write_formatted().c_str(), "", MB_OK);
 }
 
 std::string Config::GetName() const

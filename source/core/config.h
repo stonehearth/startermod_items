@@ -48,10 +48,9 @@ public:
 
       if (write_to_user_config) {
          // don't cache the user_config since this is an uncommon operation
-         boost::filesystem::path const file_path = cache_directory_ / config_filename_;
-         json::Node user_config = ReadConfigFile(file_path, false);
+         json::Node user_config = ReadConfigFile(override_config_filename_, false);
          user_config.set(property_path, value);
-         WriteConfigFile(file_path, user_config);
+         WriteConfigFile(override_config_filename_, user_config);
       }
    }
 

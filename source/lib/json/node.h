@@ -12,6 +12,9 @@ public:
    Node() { }
    Node(JSONNode const& node) : node_(node) { }
 
+   template <class T>
+   Node(std::string const& name, T const& value) : node_(JSONNode(name, value)) { }
+
    std::string name() const { return node_.name(); }
    void set_name(std::string const& name) { return node_.set_name(name); }
    int type() const { return node_.type(); }
