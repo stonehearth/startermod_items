@@ -12,9 +12,10 @@
 #include "boost/thread.hpp"
 #include "lib/crash_reporter/client/crash_reporter_client.h"
 #include "csg/random_number_generator.h"
+#include "lib/json/json.h"
 
+using namespace radiant;
 using radiant::client::Application;
-//namespace po = boost::program_options;
 
 void protobuf_log_handler(google::protobuf::LogLevel level, const char* filename,
                           int line, const std::string& message)
@@ -47,7 +48,7 @@ bool Application::InitializeCrashReporting(std::string& error_string)
    // Don't install exception handling hooks in debug builds
    DEBUG_ONLY(return true;)
 
-   std::string const crash_dump_path = core::Config::GetInstance().GetTmpDirectory().string();
+   std::string const crash_dump_path = core::Config::GetInstance().GetTempDirectory().string();
    std::string const userid = core::Config::GetInstance().GetUserID();
 
    return crash_reporter::client::CrashReporterClient::GetInstance().Start(crash_dump_path, crash_dump_uri_, userid, error_string);
@@ -101,6 +102,7 @@ int Application::Run(int argc, const char** argv)
 {
    // Exception handling prior to initializing crash reporter or log
    try {
+      json::InitialzeErrorHandler();
       LoadConfig(argc, argv);
    } catch (std::exception const& e) {
       std::string const error_message = BUILD_STRING("Unhandled exception during application bootstrap:\n\n" << e.what());
@@ -122,7 +124,7 @@ int Application::Run(int argc, const char** argv)
    crash_reporter::client::CrashReporterClient::RunWithExceptionWrapper([&]() {
       core::Config& config = core::Config::GetInstance();
 
-      radiant::logger::init(config.GetTmpDirectory() / (config.GetName() + ".log"));
+      radiant::logger::init(config.GetTempDirectory() / (config.GetName() + ".log"));
 
       // Have to wait for the logger to initialize before logging error
       if (!crash_reporting_initialized) {

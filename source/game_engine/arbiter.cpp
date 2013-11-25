@@ -42,7 +42,7 @@ void arbiter::GetConfigOptions()
    std::string mod_name = config.GetName();
 
    // "suspend the idle loop, running the game as fast as possible."
-   config_.noidle = config.GetProperty("game.noidle", true);
+   config_.noidle = config.GetProperty("game.noidle", false);
 
    std::string game_script = config.GetProperty("game.script", "");
    if (game_script.empty()) {

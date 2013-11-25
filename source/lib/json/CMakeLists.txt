@@ -4,4 +4,5 @@ add_library(lib_json
             om_json.cpp
             dm_json.cpp
             core_json.cpp
+            json.cpp
             )

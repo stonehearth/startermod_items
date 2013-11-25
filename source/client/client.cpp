@@ -135,7 +135,7 @@ Client::Client() :
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:design_event");
       try {
          json::Node node(f.args);
-         std::string event_name = node.get_node(0).as<std::string>();
+         std::string event_name = node.get<std::string>(0);
          analytics::DesignEvent design_event(event_name);
 
          if (node.size() > 1) {
@@ -165,8 +165,8 @@ Client::Client() :
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:design_event");
       try {
          json::Node node(f.args);
-         bool collect_stats = node.get_node(0).as<bool>();
-         core::Config::GetInstance().SetCollectionStatus(collect_stats);
+         bool collect_stats = node.get<bool>(0);
+         analytics::SetCollectionStatus(collect_stats);
          result->ResolveWithMsg("success");
       } catch (std::exception const& e) {
          result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
@@ -182,8 +182,8 @@ Client::Client() :
       try {
          json::Node node;
          core::Config& config = core::Config::GetInstance();
-         node.set("has_expressed_preference", config.IsCollectionStatusSet());
-         node.set("collection_status", config.GetCollectionStatus());
+         node.set("has_expressed_preference", analytics::IsCollectionStatusSet());
+         node.set("collection_status", analytics::GetCollectionStatus());
          result->Resolve(node);
       } catch (std::exception const& e) {
          result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
@@ -222,7 +222,7 @@ Client::Client() :
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:play_sound");
       try {
          json::Node node(f.args);
-         std::string sound_url = node.get_node(0).as<std::string>();
+         std::string sound_url = node.get<std::string>(0);
 
          if (soundBuffer_.loadFromStream(audio::InputStream(sound_url))) {
             // TODO, add a sound manager instead of this temp solution!
@@ -925,17 +925,17 @@ void Client::RemoveCursor(CursorStackId id)
 rpc::ReactorDeferredPtr Client::GetModules(rpc::Function const& fn)
 {
    rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>(fn.route);
-   JSONNode result;
+   json::Node result;
    auto& rm = res::ResourceManager2::GetInstance();
    for (std::string const& modname : rm.GetModuleNames()) {
-      JSONNode manifest;
+      json::Node manifest;
       try {
-         manifest = rm.LookupManifest(modname).get_internal_node();
+         manifest = rm.LookupManifest(modname);
       } catch (std::exception const&) {
          // Just use an empty manifest...f
       }
       manifest.set_name(modname);
-      result.push_back(manifest);
+      result.add_node(manifest);
    }
    d->Resolve(result);
    return d;

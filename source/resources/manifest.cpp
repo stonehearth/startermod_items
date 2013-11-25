@@ -38,7 +38,7 @@ FilePath Function::script()
 }
 
 Function::operator bool() {
-   return !get_internal_node().empty();
+   return !empty();
 }
 
 
@@ -49,7 +49,7 @@ Function FunctionsBlock::get_function(std::string const& name)
 
 FunctionsBlock Manifest::get_functions()
 {
-   return FunctionsBlock(mod_name_, get_node("radiant").get_node("functions"));
+   return FunctionsBlock(mod_name_, get_node("radiant.functions"));
 }
 
 Function Manifest::get_function(std::string name)

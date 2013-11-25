@@ -13,6 +13,7 @@ public:
    Node(JSONNode const& node) : node_(node) { }
 
    std::string name() const { return node_.name(); }
+   void set_name(std::string const& name) { return node_.set_name(name); }
    int type() const { return node_.type(); }
    int size() const { return node_.size(); }
    bool empty() const { return node_.empty(); }
@@ -84,7 +85,7 @@ public:
             node = &*i;
          }
       } catch (std::exception const& e) {
-         throw InvalidJson(BUILD_STRING("Error getting path '" << path << "'. " << e.what()));
+         throw InvalidJson(BUILD_STRING("Error getting path '" << path << "':\n\n" << e.what()));
       }
    }
 
@@ -121,6 +122,10 @@ public:
          current_path = next_path;
          node = &*i;
       }
+   }
+
+   std::string get(std::string const& path, char const* const default_value) const {
+      return get(path, std::string(default_value));
    }
 
    template <typename T> T get(unsigned int index) const {
@@ -189,7 +194,7 @@ public:
             node = &*i;
          }
       } catch (std::exception const& e) {
-         throw InvalidJson(BUILD_STRING("Error setting path '" << path << "'. " << e.what()));
+         throw InvalidJson(BUILD_STRING("Error setting path '" << path << "':\n\n" << e.what()));
       }
    }
 
@@ -245,6 +250,9 @@ public:
       inline const_iterator operator--(int) { const_iterator result(*this); --it_; return result; }
 
    private:
+      // not supported - use operator* instead
+      Node const* operator->() const;
+
       JSONNode::const_iterator it_;
    };
 

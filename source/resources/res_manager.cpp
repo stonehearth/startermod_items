@@ -9,6 +9,7 @@
 #include "radiant.h"
 #include "radiant_file.h"
 #include "lib/json/node.h"
+#include "lib/json/json.h"
 #include "res_manager.h"
 #include "animation.h"
 #include "core/config.h"
@@ -272,17 +273,18 @@ std::string ResourceManager2::ConvertToCanonicalPath(std::string path, const cha
 
 JSONNode ResourceManager2::LoadJson(std::string const& canonical_path) const
 {
+   JSONNode node;
+   std::string error_message;
+   bool success;
+
    std::shared_ptr<std::istream> is = OpenResource(canonical_path);
-
-   std::stringstream reader;
-   reader << is->rdbuf();
-
-   json_string json = reader.str();
-   if (!libjson::is_valid(json)) {
-      throw InvalidJsonAtPathException(canonical_path);
+   success = json::ReadJson(*is, node, error_message);
+   if (!success) {
+      std::string full_message = BUILD_STRING("Error reading file " << canonical_path << ":\n\n" << error_message);
+      LOG(ERROR) << full_message;
+      throw core::Exception(full_message);
    }
 
-   JSONNode node = libjson::parse(json);
    ExpandMacros(canonical_path, node, false);
    ParseNodeExtension(canonical_path, node);
 

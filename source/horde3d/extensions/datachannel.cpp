@@ -24,7 +24,7 @@ std::vector<std::pair<float, float> > parseCurveValues(Node &n) {
 
    for (const auto &child : n)
    {
-      result.push_back(std::pair<float, float>(child.get<float>(0), child.get<float>(1))); // CHECKCHECK
+      result.push_back(std::pair<float, float>(child.get<float>(0), child.get<float>(1)));
    }
 
    return result;

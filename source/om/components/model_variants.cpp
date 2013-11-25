@@ -74,17 +74,16 @@ void ModelVariant::ExtendObject(json::Node const& obj)
 
    variants_ = obj.get<std::string>("variants", "");
 
-   for (const auto& node : obj.get("models", JSONNode())) {
-      json::Node e(node);
+   for (const auto& e : obj.get("models", json::Node())) {
       std::string model_name;
       if (e.type() == JSON_STRING) {
-         model_name = e.get_internal_node().as_string();
+         model_name = e.as<std::string>();
       } else if (e.type() == JSON_NODE) {
          if (e.get<std::string>("type", "") == "one_of") {
-            JSONNode items = e.get("items", JSONNode());
-            uint c = rand() * items.size() / RAND_MAX;
+            json::Node items = e.get("items", json::Node());
+            int c = (int)(rand() * items.size() / RAND_MAX);
             ASSERT(c < items.size());
-            model_name = items.at(c).as_string();
+            model_name = items.get<std::string>(c);
          }
       }
       models_.Insert(model_name);

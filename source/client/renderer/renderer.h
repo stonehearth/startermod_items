@@ -104,7 +104,7 @@ class Renderer
       bool IsRunning() const;
       HWND GetWindowHandle() const;
 
-      boost::property_tree::ptree const& GetTerrainConfig() const;
+      json::Node GetTerrainConfig() const;
 
       std::shared_ptr<RenderEntity> CreateRenderObject(H3DNode parent, om::EntityPtr obj);
       std::shared_ptr<RenderEntity> GetRenderObject(om::EntityPtr obj);
@@ -198,7 +198,7 @@ class Renderer
       bool                          initialized_;
 
       ViewMode                      viewMode_;
-      boost::property_tree::basic_ptree<std::string, std::string> terrainConfig_;
+      json::Node                    terrainConfig_;
       lua::ScriptHost*              scriptHost_;
 
       core::BufferedSlot<csg::Point2>     screen_resize_slot_;

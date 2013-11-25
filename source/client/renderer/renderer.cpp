@@ -11,7 +11,6 @@
 #include "lib/perfmon/perfmon.h"
 #include "om/selection.h"
 #include "om/entity.h"
-#include <boost/property_tree/json_parser.hpp>
 #include <SFML/Audio.hpp>
 #include "camera.h"
 #include "lib/perfmon/perfmon.h"
@@ -54,14 +53,7 @@ Renderer::Renderer() :
    show_debug_shapes_changed_slot_("show debug shapes"),
    lastGlfwError_("none")
 {
-   try {
-      std::stringstream stream;
-      stream << res::ResourceManager2::GetInstance().OpenResource("stonehearth/renderers/terrain/config.json")->rdbuf();
-      boost::property_tree::json_parser::read_json(stream, terrainConfig_);
-   } catch(boost::property_tree::json_parser::json_parser_error &e) {
-      LOG(WARNING) << "Error parsing: " << e.filename() << " on line: " << e.line() << std::endl;
-      LOG(WARNING) << e.message() << std::endl;
-   }
+   terrainConfig_ = json::Node(res::ResourceManager2::GetInstance().LookupJson("stonehearth/renderers/terrain/config.json"));
 
    assert(renderer_.get() == nullptr);
    renderer_.reset(this);
@@ -96,7 +88,7 @@ Renderer::Renderer() :
    glfwSwapInterval(0);
 
    // Init Horde, looking for OpenGL 2.0 minimum.
-   std::string s = (radiant::core::Config::GetInstance().GetTmpDirectory() / "horde3d_log.html").string();
+   std::string s = (radiant::core::Config::GetInstance().GetTempDirectory() / "horde3d_log.html").string();
    if (!h3dInit(2, 0, s.c_str())) {
       h3dutDumpMessages();
       throw std::exception("Unable to initialize renderer.  Check horde log for details.");
@@ -852,7 +844,7 @@ int Renderer::GetHeight() const
    return windowHeight_;
 }
 
-boost::property_tree::ptree const& Renderer::GetTerrainConfig() const
+json::Node Renderer::GetTerrainConfig() const
 {  
    return terrainConfig_;
 }

@@ -15,8 +15,6 @@ void UnitInfo::InitializeRecordFields()
 
 void UnitInfo::ExtendObject(json::Node const& obj)
 {
-   JSONNode const& node = obj.get_internal_node();
-
    name_ = obj.get<std::string>("name", *name_);
    description_ = obj.get<std::string>("description", *description_);
    faction_ = obj.get<std::string>("faction", *faction_);

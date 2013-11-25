@@ -2,7 +2,9 @@
 #include "radiant.h"
 #include "build_number.h"
 #include "config.h"
+#include "radiant_exceptions.h"
 #include "lib/json/node.h"
+#include "lib/json/json.h"
 #include "libjson.h"
 #include <iostream>
 #include <rpc.h>
@@ -17,51 +19,17 @@ DEFINE_SINGLETON(Config)
 //Analytics uses the build_number for a/b testing.
 const std::string BUILD_NUMBER = "preview_0.1a";
 
-Config::Config()
+Config::Config() : config_filename_(GetName() + ".json")
 {
 }
 
-boost::filesystem::path Config::LookupCacheDirectory() const
+boost::filesystem::path Config::DefaultCacheDirectory() const
 {
    TCHAR path[MAX_PATH];
    if (SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, path) != S_OK) {
       throw std::invalid_argument("Could not retrieve path to local application data");
    }
    return boost::filesystem::path(path) / GetName();
-}
-
-static void JsonParseErrorCallback(json_string const& message)
-{
-   throw json::InvalidJson(libjson::to_std_string(message).c_str());
-}
-
-json::Node Config::ParseJsonFile(boost::filesystem::path const& filepath) const
-{
-   std::ifstream stream(filepath.string());
-   std::stringstream reader;
-   reader << stream.rdbuf();
-   json_string json_text = reader.str();
-
-   if (!libjson::is_valid(json_text)) {
-      std::string error_message = "Unknown reason";
-
-      try {
-         JSONNode node = libjson::parse(json_text);
-         // force libjson to resolve the nodes and hit the error
-         node.write_formatted();
-      } catch (std::exception const& e) {
-         error_message = e.what();
-      }
-
-      throw json::InvalidJson(BUILD_STRING(
-         "Invalid JSON: " << error_message << "\n\n" <<
-         "in file " << filepath << "\n\n" <<
-         "Source:\n" << json_text
-      ));
-   }
-
-   JSONNode node = libjson::parse(json_text);
-   return json::Node(node);
 }
 
 void Config::MergeConfigNodes(JSONNode& base, JSONNode const& override) const
@@ -101,10 +69,19 @@ json::Node Config::ReadConfigFile(boost::filesystem::path const& file_path, bool
       if (throw_on_not_found) {
          throw std::invalid_argument(BUILD_STRING(file_path << "does not exist"));
       }
-      return JSONNode();
+      return json::Node();
    }
 
-   return ParseJsonFile(file_path);
+   JSONNode node;
+   std::string error_message;
+   bool success;
+
+   success = json::ReadJsonFile(file_path.string(), node, error_message);
+   if (!success) {
+      throw core::Exception(BUILD_STRING("Error reading file " << file_path << ":\n\n" << error_message));
+   }
+      
+   return json::Node(node);
 }
 
 void Config::WriteConfigFile(boost::filesystem::path const& file_path, json::Node const& config) const
@@ -114,7 +91,7 @@ void Config::WriteConfigFile(boost::filesystem::path const& file_path, json::Nod
    ostream << text;
 }
 
-void Config::CmdLineParamToKeyValue(std::string const& param, std::string& key, std::string& value) const
+void Config::CmdLineOptionToKeyValue(std::string const& param, std::string& key, std::string& value) const
 {
    std::string trimmed_param = param;
    boost::algorithm::trim_left_if(trimmed_param, boost::algorithm::is_any_of("-"));
@@ -135,7 +112,7 @@ json::Node Config::ParseCommandLine(int argc, const char *argv[]) const
    std::string key, value;
 
    for (int i=0; i < argc; i++) {
-      CmdLineParamToKeyValue(argv[i], key, value);
+      CmdLineOptionToKeyValue(argv[i], key, value);
       if (!key.empty()) {
          node.set(key, value);
       }
@@ -149,23 +126,36 @@ void Config::Load(int argc, const char *argv[])
    json::Node command_line_config = ParseCommandLine(argc, argv);
 
    // configure filesystem      
-   config_filename_ = GetName() + ".json";
    run_directory_ = boost::filesystem::canonical(boost::filesystem::path("."));
-   cache_directory_ = LookupCacheDirectory();
+   cache_directory_ = command_line_config.get("cache_directory", DefaultCacheDirectory().string());
 
    if (!boost::filesystem::is_directory(cache_directory_)) {
-      boost::filesystem::create_directory(cache_directory_);
+      try {
+         boost::filesystem::create_directory(cache_directory_);
+      } catch (std::exception const& e) {
+         throw core::Exception(BUILD_STRING("Cannot create cache directory " << cache_directory_ << ":\n\n" << e.what()));
+      }
    }
 
    // read config files
-   // need to define JSON_DEBUG in libjson.h to get enable the callback for good error messages
-   //libjson::register_debug_callback(JsonParseErrorCallback);
-   root_config_node_ = ReadConfigFile(run_directory_ / config_filename_);
+   JSONNode internal_root_config = ReadConfigFile(run_directory_ / config_filename_).get_internal_node();
    json::Node user_config = ReadConfigFile(cache_directory_ / config_filename_, false);
 
-   // ugly const_cast - alternatively use a friend class or expose a writable node reference
-   MergeConfigNodes(const_cast<JSONNode&>(root_config_node_.get_internal_node()), user_config.get_internal_node());
-   MergeConfigNodes(const_cast<JSONNode&>(root_config_node_.get_internal_node()), command_line_config.get_internal_node());
+   try {
+      // Merge the root config before wrapping it as a json::Node because json::Node cannot expose it without copying
+      MergeConfigNodes(internal_root_config, user_config.get_internal_node());
+   } catch (std::exception const& e) {
+      throw core::Exception(BUILD_STRING("Error merging " << override_config_filename_ << " with " << base_config_filename_ << ":\n\n" << e.what()));
+   }
+
+   try {
+      // Merge the root config before wrapping it as a json::Node because json::Node cannot expose it without copying
+      MergeConfigNodes(internal_root_config, command_line_config.get_internal_node());
+   } catch (std::exception const& e) {
+      throw core::Exception(BUILD_STRING("Error merging command line options with " << base_config_filename_ << ":\n\n" << e.what()));
+   }
+
+   root_config_ = json::Node(internal_root_config);
 
    // initialize session
    userid_ = GetProperty("user_id", "");
@@ -174,6 +164,8 @@ void Config::Load(int argc, const char *argv[])
       SetProperty("user_id", userid_, true);
    }
    sessionid_ = Poco::UUIDGenerator::defaultGenerator().create().toString();
+
+   //MessageBox(nullptr, root_config_.write_formatted().c_str(), "", MB_OK);
 }
 
 std::string Config::GetName() const
@@ -186,7 +178,7 @@ boost::filesystem::path Config::GetCacheDirectory() const
    return cache_directory_;
 }
 
-boost::filesystem::path Config::GetTmpDirectory() const
+boost::filesystem::path Config::GetTempDirectory() const
 {
    return cache_directory_;
 }
@@ -204,19 +196,4 @@ std::string Config::GetSessionID() const
 std::string Config::GetBuildNumber() const
 {
    return BUILD_NUMBER;
-}
-
-bool Config::GetCollectionStatus() const
-{
-   return GetProperty("collect_analytics", false);
-}
-
-void Config::SetCollectionStatus(bool should_collect) 
-{
-   SetProperty("collect_analytics", should_collect, true);
-}
-
-bool Config::IsCollectionStatusSet() const
-{
-   return HasProperty("collect_analytics");
 }
