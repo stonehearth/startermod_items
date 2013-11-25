@@ -32,21 +32,21 @@ vec4 _shadowCoordsByMap(const vec3 worldSpace_fragmentPos, out int cascadeNum) {
 
   projLightSpace_FragmentPos = shadowMats[0] * hWorldSpace_fragmentPos;
   cascadeTexCoord = projLightSpace_FragmentPos.xy / projLightSpace_FragmentPos.w;
-  if (max(abs(cascadeTexCoord.x - 0.25), abs(cascadeTexCoord.y - 0.25)) < 0.25) {
+  if (max(abs(cascadeTexCoord.x - 0.25), abs(cascadeTexCoord.y - 0.25)) <= 0.249) {
     cascadeNum = 0;
     return projLightSpace_FragmentPos;
   }
 
   projLightSpace_FragmentPos = shadowMats[1] * hWorldSpace_fragmentPos;
   cascadeTexCoord = projLightSpace_FragmentPos.xy / projLightSpace_FragmentPos.w;
-  if (max(abs(cascadeTexCoord.x - 0.75), abs(cascadeTexCoord.y - 0.25)) < 0.25) {
+  if (max(abs(cascadeTexCoord.x - 0.75), abs(cascadeTexCoord.y - 0.25)) <= 0.249) {
     cascadeNum = 1;
     return projLightSpace_FragmentPos;
   }
 
   projLightSpace_FragmentPos = shadowMats[2] * hWorldSpace_fragmentPos;
   cascadeTexCoord = projLightSpace_FragmentPos.xy / projLightSpace_FragmentPos.w;
-  if (max(abs(cascadeTexCoord.x - 0.75), abs(cascadeTexCoord.y - 0.75)) < 0.25) {
+  if (max(abs(cascadeTexCoord.x - 0.75), abs(cascadeTexCoord.y - 0.75)) <= 0.249) {
     cascadeNum = 2;
     return projLightSpace_FragmentPos;
   }
