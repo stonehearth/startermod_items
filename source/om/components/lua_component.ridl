@@ -4,32 +4,83 @@ import ridl.dm_types as dm
 class_upper = C.__name__
 class_lower = env.lower(class_upper)
 is_component = C.__bases__[0]().name == 'Component' 
+trace_includes = []
+for name, boxed in env.properties(C, dm.Boxed):
+   trace_includes += [ "dm/boxed_trace.h" ]
+   break
 %>
+#include "pch.h"
 #include "radiant.h"
+#include "lib/lua/bind.h"
 #include "lib/lua/register.h"
+% for filename in trace_includes:
+#include "${filename}"
+% endfor
+#include "dm/trace_categories.h"
 #include "om/components/lua_helpers.h"
+#include "om/components/${ class_lower }.ridl.h"
 
 using namespace luabind;
 using namespace radiant;
 using namespace radiant::om;
 
+## - Boxed -----------------------------------------------------------------------------------
+% for name, boxed in env.properties(C, dm.Boxed):
+   % if boxed.get:
+static ${boxed.value.name} ${class_upper}_Get${name | env.upper}(std::weak_ptr<${class_upper}> const o)
+{
+   auto object = o.lock();
+   if (object)  {
+      return object->Get${name | env.upper}();
+   }
+   throw std::invalid_argument("invalid reference in native getter");
+}
+
+   % endif
+   % if boxed.set:
+static std::weak_ptr<${class_upper}> ${class_upper}_Set${name | env.upper}(std::weak_ptr<${class_upper}> o, ${boxed.value.name} value)
+{
+   auto object = o.lock();
+   if (object)  {
+      object->Set${name | env.upper}(value);
+      return o;
+   }
+   throw std::invalid_argument("invalid reference in native getter");
+}
+
+   % endif
+   % if boxed.trace:
+static std::shared_ptr<dm::BoxedTrace<${boxed.name}>>
+${class_upper}_Trace${name | env.upper}(std::weak_ptr<${class_upper}> o, const char* reason)
+{
+   auto object = o.lock();
+   if (object)  {
+      return object->Trace${name | env.upper}(reason, dm::LUA_TRACES);
+   }
+   throw std::invalid_argument("invalid reference in native getter");
+}
+
+   % endif
+% endfor
+
 scope Register${class_upper}(lua_State* L)
 {
-   auto result = 
+   return
       lua::RegisterWeakGameObjectDerived<${class_upper}, ${C.__bases__[0]().name}>()
 %if is_component:
-         def("extend", &MethodCall<void, ${class_upper}, ${class_upper}::ExtendObject)
+         // .def("extend", &CallMethod<void, ${class_upper}, ${class_upper}::ExtendObject)
 %endif
 ## - Boxed -----------------------------------------------------------------------------------
 % for name, boxed in env.properties(C, dm.Boxed):
    % if boxed.get:
-         def("get_${class_lower}", &PropertyGet<${boxed.value.name}, ${class_upper}, ${class_upper}::Get${name | env.upper})
+         .def("get_${name | env.lower}", ${class_upper}_Get${name | env.upper})
    % endif
    % if boxed.set:
-         def("set_${class_lower}", &PropertySet<${boxed.value.name}, ${class_upper}, ${class_upper}::Set${name | env.upper})
+         .def("set_${name | env.lower}", ${class_upper}_Set${name | env.upper})
    % endif
    % if boxed.trace:
-         def("trace_${class_lower}", &PropertyTrace<dm::BoxedTrace<${boxed.name}>, ${class_upper}, ${class_upper}::Trace{name | env.upper})
+         .def("trace_${name | env.lower}", ${class_upper}_Trace${name | env.upper})
    % endif
 % endfor
+      ;
 }

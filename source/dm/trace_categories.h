@@ -8,7 +8,7 @@ enum TraceCategories {
    PATHFINDER_TRACES,
    RENDER_TRACES,
    RPC_TRACES,
-   LUA_SIM_TRACES,
+   LUA_TRACES,
    PLAYER_1_TRACES,
 };
 
