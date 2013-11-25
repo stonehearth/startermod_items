@@ -54,7 +54,8 @@ Renderer::Renderer() :
    render_frame_start_slot_("render frame start"),
    screen_resize_slot_("screen resize"),
    show_debug_shapes_changed_slot_("show debug shapes"),
-   lastGlfwError_("none")
+   lastGlfwError_("none"),
+   currentPipeline_(0)
 {
    try {
       std::stringstream stream;
@@ -255,20 +256,34 @@ void Renderer::GetConfigOptions()
 
 void Renderer::ApplyConfig()
 {
+   if (config_.use_forward_renderer) {
+      SetCurrentPipeline("pipelines/forward.pipeline.xml");
+   } else {
+      SetCurrentPipeline("pipelines/deferred_lighting.xml");
+   }
+
    SetStageEnable("SSAO", config_.use_ssao);
    SetStageEnable("Simple, once-pass SSAO Blur", config_.use_ssao_blur);
    // Turn on copying if we're using SSAO, but not using blur.
    SetStageEnable("SSAO Copy", config_.use_ssao && !config_.use_ssao_blur);
    SetStageEnable("SSAO Default", !config_.use_ssao);
 
+   int oldMSAACount = (int)h3dGetOption(H3DOptions::SampleCount);
+
    h3dSetOption(H3DOptions::EnableShadows, config_.use_shadows ? 1.0f : 0.0f);
    h3dSetOption(H3DOptions::ShadowMapSize, (float)config_.shadow_resolution);
    h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples);
 
-   if (config_.use_forward_renderer) {
-      SetCurrentPipeline("pipelines/forward.pipeline.xml");
-   } else {
-      SetCurrentPipeline("pipelines/deferred_lighting.xml");
+   if (oldMSAACount != (int)h3dGetOption(H3DOptions::SampleCount))
+   {
+      // MSAA change requires that we reload our pipelines (so that we can regenerate our
+      // render target textures with the appropriate sampling).
+      H3DRes r = 0;
+      while ((r = h3dGetNextResource(H3DResTypes::Pipeline, r)) != 0) {
+         h3dUnloadResource(r);
+      }
+
+      LoadResources();
    }
 }
 
