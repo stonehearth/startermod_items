@@ -5,6 +5,7 @@ include_directories(${Poco_INCLUDE_DIRS})
 include_directories(${Libjson_INCLUDE_DIRS})
 
 add_library(core STATIC 
+            assert.cpp
             config.cpp
             log.cpp
             log_win32.cpp

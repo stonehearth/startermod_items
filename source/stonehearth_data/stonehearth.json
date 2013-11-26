@@ -7,6 +7,8 @@
       "enable_ssao" : false,
 
       "msaa_samples" : 4,
-      "shadow_resolution" : 4096
+      "shadow_resolution" : 4096,
+
+      "enable_vsync" : true
    }
 }

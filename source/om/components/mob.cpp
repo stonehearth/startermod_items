@@ -134,8 +134,8 @@ csg::Point3f Mob::GetLocationInFront() const
 {
    csg::Quaternion q = (*transform_).orientation;
    csg::Point3f translation =  q.rotate(csg::Point3f(0, 0, 1));
-   int x = (*transform_).position.x + floor(translation.x + 0.5);
-   int z = (*transform_).position.z + floor(translation.z + 0.5);
+   float x = (*transform_).position.x + (float)floor(translation.x + 0.5);
+   float z = (*transform_).position.z + (float)floor(translation.z + 0.5);
    return csg::Point3f(x, (*transform_).position.y, z);
 }
 

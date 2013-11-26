@@ -1,6 +1,9 @@
 #ifndef _RADIANT_EXCEPTIONS_H
 #define _RADIANT_EXCEPTIONS_H
 
+#include <exception>
+#include <string>
+
 namespace radiant {
    namespace core {
 
@@ -22,6 +25,11 @@ namespace radiant {
 
       typedef Exception InvalidArgumentException;
       typedef Exception InvalidDataException;
+   };
+
+   // Does not inherit from 'exception', so that only the top-level handler that catches '...' 
+   // will be able to catch this.
+   class CrashException {
    };
 };
 #endif // _RADIANT_EXCEPTIONS_H
