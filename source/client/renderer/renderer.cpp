@@ -95,8 +95,6 @@ Renderer::Renderer() :
    }
 
    glfwMakeContextCurrent(window);
-   
-   glfwSwapInterval(0);
 
    // Init Horde, looking for OpenGL 2.0 minimum.
    std::string s = (radiant::core::Config::GetInstance().GetTmpDirectory() / "horde3d_log.html").string();
@@ -243,6 +241,10 @@ void Renderer::GetConfigOptions()
          po::bool_switch(&config_.use_ssao)->default_value(true), "Enables Screen-Space Ambient Occlusion (SSAO)."
       )
       (
+         "renderer.enable_vsync",
+         po::bool_switch(&config_.enable_vsync)->default_value(false), "Enables vertical sync."
+      )
+      (
          "renderer.msaa_samples",
          po::value<int>(&config_.num_msaa_samples)->default_value(0), "Sets the number of Multi-Sample Anti Aliasing samples to use."
       )
@@ -285,6 +287,8 @@ void Renderer::ApplyConfig()
 
       LoadResources();
    }
+
+   glfwSwapInterval(config_.enable_vsync ? 1 : 0);
 }
 
 SystemStats Renderer::GetStats()
