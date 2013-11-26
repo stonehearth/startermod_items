@@ -3,6 +3,7 @@ FIND_PACKAGE(Poco REQUIRED)
 include_directories(${Poco_INCLUDE_DIRS})
 
 add_library(core STATIC 
+            assert.cpp
             config.cpp
             log.cpp
             log_win32.cpp

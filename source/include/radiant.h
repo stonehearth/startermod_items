@@ -8,6 +8,8 @@
 #  error "Unsupported platform in radiant.h"
 #endif
 
+#include "radiant_exceptions.h"
+#include "radiant_assert.h"
 #include "radiant_types.h"
 #include "radiant_macros.h"
 #include "radiant_logger.h"
