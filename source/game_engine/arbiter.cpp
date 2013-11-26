@@ -38,23 +38,8 @@ arbiter::arbiter() :
 
 void arbiter::GetConfigOptions()
 {
-   core::Config& config = core::Config::GetInstance();
-   std::string mod_name = config.GetName();
-
    // "suspend the idle loop, running the game as fast as possible."
-   config_.noidle = config.GetProperty("game.noidle", false);
-
-   std::string game_script = config.GetProperty("game.script", "");
-   if (game_script.empty()) {
-      game_script = mod_name + "/start_game.lua";
-      config.SetProperty("game.script", game_script);
-   }
-
-   std::string game_mod = config.GetProperty("game.mod", "");
-   if (game_mod.empty()) {
-      game_mod = mod_name;
-      config.SetProperty("game.mod", game_mod);
-   }
+   config_.noidle = core::Config::GetInstance().Get("game.noidle", false);
 }
 
 arbiter::~arbiter()
@@ -65,6 +50,7 @@ void arbiter::Run(tcp::acceptor* acceptor, boost::asio::io_service* io_service)
 {
    _tcp_acceptor = acceptor;
    _io_service = io_service;
+   GetConfigOptions();
    Start();
    main();
 }

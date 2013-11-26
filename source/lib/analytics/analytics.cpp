@@ -25,15 +25,15 @@ void analytics::StopSession()
 
 bool analytics::IsCollectionStatusSet()
 {
-   return core::Config::GetInstance().HasProperty(collect_analytics_property_name);
+   return core::Config::GetInstance().Has(collect_analytics_property_name);
 }
 
 bool analytics::GetCollectionStatus()
 {
-   return core::Config::GetInstance().GetProperty(collect_analytics_property_name, false);
+   return core::Config::GetInstance().Get(collect_analytics_property_name, false);
 }
 
 void analytics::SetCollectionStatus(bool should_collect) 
 {
-   core::Config::GetInstance().SetProperty(collect_analytics_property_name, should_collect, true);
+   core::Config::GetInstance().Set(collect_analytics_property_name, should_collect);
 }

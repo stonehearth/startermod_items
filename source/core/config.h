@@ -15,79 +15,78 @@ public:
    
    void Load(int argc, const char *argv[]);
 
-   bool HasProperty(std::string const& property_path) const
+   bool Has(std::string const& property_path) const
    {
       std::lock_guard<std::recursive_mutex> lock(mutex_);
       return root_config_.has(property_path);
    }
 
    template <class T>
-   T GetProperty(std::string const& property_path) const
+   T Get(std::string const& property_path) const
    {
       std::lock_guard<std::recursive_mutex> lock(mutex_);
       return root_config_.get<T>(property_path);
    }
 
    template <class T>
-   T GetProperty(std::string const& property_path, T const& default_value) const
+   T Get(std::string const& property_path, T const& default_value) const
    {
       std::lock_guard<std::recursive_mutex> lock(mutex_);
       return root_config_.get(property_path, default_value);
    }
 
-   std::string GetProperty(std::string const& property_path, const char* const default_value) const
+   // help the compiler with default values that are string literals
+   std::string Get(std::string const& property_path, const char* const default_value) const
    {
-      return GetProperty(property_path, std::string(default_value));
+      return Get(property_path, std::string(default_value));
    }
 
    template <class T>
-   void SetProperty(std::string const& property_path, T const& value, bool write_to_user_config = false)
+   void Set(std::string const& property_path, T const& value)
    {
       std::lock_guard<std::recursive_mutex> lock(mutex_);
       root_config_.set(property_path, value);
 
-      if (write_to_user_config) {
-         // don't cache the user_config since this is an uncommon operation
-         json::Node user_config = ReadConfigFile(override_config_filename_, false);
-         user_config.set(property_path, value);
-         WriteConfigFile(override_config_filename_, user_config);
+      // write to the user config
+      // don't cache the user config since this is an uncommon operation
+      json::Node user_config;
+      if (boost::filesystem::exists(override_config_filename_)) {
+         user_config = ReadConfigFile(override_config_filename_);
       }
-   }
-
-   void SetProperty(std::string const& property_path, const char* const value, bool write_to_user_config = false)
-   {
-      SetProperty(property_path, std::string(value), write_to_user_config);
+      user_config.set(property_path, value);
+      WriteConfigFile(override_config_filename_, user_config);
    }
 
    std::string GetName() const;
-   boost::filesystem::path GetCacheDirectory() const;
-   boost::filesystem::path GetTempDirectory() const;
-
    std::string GetUserID() const;
    std::string GetSessionID() const;
    std::string GetBuildNumber() const;
+   std::string GetGameScript() const;
+   std::string GetGameMod() const;
+   bool ShouldSkipTitleScreen() const;
 
 private:
-   Config(const Config&);              // Prevent copy-construction
-   Config& operator=(const Config&);   // Prevent assignment
+   NO_COPY_CONSTRUCTOR(Config);
 
-   boost::filesystem::path DefaultCacheDirectory() const;
+   void InitializeSession();
    void CmdLineOptionToKeyValue(std::string const& param, std::string& key, std::string& value) const;
    json::Node ParseCommandLine(int argc, const char *argv[]) const;
-   json::Node ReadConfigFile(boost::filesystem::path const& file_path, bool throw_on_not_found = true) const;
+   json::Node ReadConfigFile(boost::filesystem::path const& file_path) const;
    void WriteConfigFile(boost::filesystem::path const& file_path, json::Node const& config) const;
    void MergeConfigNodes(JSONNode& base, JSONNode const& override) const;
 
 private:
    std::string const              config_filename_;
-   boost::filesystem::path        run_directory_;
    boost::filesystem::path        base_config_filename_;
-   boost::filesystem::path        cache_directory_;
    boost::filesystem::path        override_config_filename_;
+   boost::filesystem::path        temp_directory_;
    json::Node                     root_config_;
    mutable std::recursive_mutex   mutex_;
    std::string                    sessionid_;
    std::string                    userid_;
+   std::string                    game_script_;
+   std::string                    game_mod_;
+   bool                           should_skip_title_screen_;
 };
 
 END_RADIANT_CORE_NAMESPACE

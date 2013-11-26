@@ -19,9 +19,10 @@ namespace radiant {
             int Run(int argc, const char **argv);
 
          private:
+            bool ShouldShowHelp(int argc, const char* argv[]) const;
+            void ShowHelp() const;
             boost::asio::ip::tcp::acceptor* FindServerPort();
-            void LoadConfig(int argc, const char** argv);
-            bool InitializeCrashReporting(std::string& error_string);
+            void InitializeCrashReporting();
 
             static void ClientThreadMain(int server_port);
 

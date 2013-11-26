@@ -13,6 +13,7 @@
 #include "res_manager.h"
 #include "animation.h"
 #include "core/config.h"
+#include "core/system.h"
 #include "directory_module.h"
 #include "zip_module.h"
 
@@ -71,7 +72,7 @@ AnimationPtr ResourceManager2::LoadAnimation(std::string const& canonical_path) 
 
    std::string jsonfile = io::read_contents(*json_in);
    std::string jsonhash = Checksum(jsonfile);
-   fs::path animation_cache = core::Config::GetInstance().GetCacheDirectory() / "animations";
+   fs::path animation_cache = core::System::GetInstance().GetTempDirectory() / "animations";
    if (!fs::is_directory(animation_cache)) {
       fs::create_directories(animation_cache);
    }

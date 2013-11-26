@@ -12,6 +12,7 @@ add_library(core STATIC
             deferred.cpp
             guard.cpp
             process.cpp
+            system.cpp
             )
 
 target_link_libraries(core

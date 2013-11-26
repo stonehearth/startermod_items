@@ -1,6 +1,7 @@
 #include "crash_reporter_client.h"
 #include "radiant_macros.h"
 #include "core/process.h"
+#include "build_number.h"
 #include "poco/UUIDGenerator.h"
 #include <sstream>
 #include <mutex>
@@ -47,30 +48,19 @@ void CrashReporterClient::InitializeExceptionHandlingEnvironment(std::string con
                                                  nullptr));                        // CustomClientInfo
 }
 
-bool CrashReporterClient::Start(std::string const& crash_dump_path, std::string const& crash_dump_uri, std::string const& userid, std::string& error_string)
+void CrashReporterClient::Start(std::string const& crash_dump_path, std::string const& crash_dump_uri, std::string const& userid)
 {
    ASSERT(!running_);
 
-   try {
-      std::string const pipe_name = GeneratePipeName();
-      std::string const filename = CRASH_REPORTER_NAME + ".exe";
-      std::string const command_line = BUILD_STRING(filename << " " << pipe_name << " " << crash_dump_path << " " << crash_dump_uri << " " << userid);
+   std::string const pipe_name = GeneratePipeName();
+   std::string const filename = CRASH_REPORTER_NAME + ".exe";
+   std::string const command_line = BUILD_STRING(filename << " " << pipe_name << " " << crash_dump_path << " " << crash_dump_uri << " " << userid);
 
-      crash_reporter_server_process_.reset(new radiant::core::Process(command_line));
+   crash_reporter_server_process_.reset(new radiant::core::Process(command_line));
 
-      InitializeExceptionHandlingEnvironment(pipe_name);
+   InitializeExceptionHandlingEnvironment(pipe_name);
    
-      // no exception was thrown, so we're up
-      running_ = true;
-      error_string.clear();
-   } catch (std::exception const& e) {
-      // eat the exception and let the app run without a crash reporter
-      error_string = e.what();
-   } catch (...) {
-      error_string = "Unknown reason";
-   }
-
-   return running_;
+   running_ = true;
 }
 
 // This static method must be thread safe!
@@ -85,7 +75,7 @@ void CrashReporterClient::RunWithExceptionWrapper(std::function<void()> const& f
       try {
          fn();
       } catch (std::exception const& e) {
-         std::string const error_message = BUILD_STRING("Unhandled exception: " << e.what());
+         std::string const error_message = BUILD_STRING("Error: " << e.what());
          LOG(ERROR) << error_message;
 
          // currently unused
@@ -103,7 +93,7 @@ void CrashReporterClient::TerminateApplicationWithMessage(std::string const& err
 
    {
       std::lock_guard<std::mutex> lock(mutex);
-      MessageBox(nullptr, error_message.c_str(), "Stonehearth has crashed!", MB_OK);
+      MessageBox(nullptr, error_message.c_str(), PRODUCT_IDENTIFIER, MB_OK);
    }
    std::terminate();
 }

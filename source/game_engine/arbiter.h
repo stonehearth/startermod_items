@@ -31,11 +31,10 @@ namespace radiant {
             arbiter();
             ~arbiter();
 
-            void GetConfigOptions();
-
             void Run(tcp::acceptor* acceptor, boost::asio::io_service* io_service);
 
          protected:
+            void GetConfigOptions();
             void Start();
             void main(); // public for the server.  xxx - there's a better way to factor this between the server and the in-proc listen server
             void mainloop();

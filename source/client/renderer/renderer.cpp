@@ -2,6 +2,7 @@
 #include "radiant.h"
 #include "radiant_stdutil.h"
 #include "core/config.h"
+#include "core/system.h"
 #include "renderer.h"
 #include "Horde3DUtils.h"
 #include "Horde3DRadiant.h"
@@ -24,7 +25,6 @@ std::vector<float> ssaoSamplerData;
 H3DRes ssaoMat;
 
 static std::unique_ptr<Renderer> renderer_;
-RendererConfig Renderer::config_;
 
 Renderer& Renderer::GetInstance()
 {
@@ -54,7 +54,7 @@ Renderer::Renderer() :
    lastGlfwError_("none"),
    currentPipeline_(0)
 {
-   terrainConfig_ = json::Node(res::ResourceManager2::GetInstance().LookupJson("stonehearth/renderers/terrain/config.json"));
+   terrainConfig_ = res::ResourceManager2::GetInstance().LookupJson("stonehearth/renderers/terrain/config.json");
 
    assert(renderer_.get() == nullptr);
    renderer_.reset(this);
@@ -87,7 +87,7 @@ Renderer::Renderer() :
    glfwMakeContextCurrent(window);
 
    // Init Horde, looking for OpenGL 2.0 minimum.
-   std::string s = (radiant::core::Config::GetInstance().GetTempDirectory() / "horde3d_log.html").string();
+   std::string s = (radiant::core::System::GetInstance().GetTempDirectory() / "horde3d_log.html").string();
    if (!h3dInit(2, 0, s.c_str())) {
       h3dutDumpMessages();
       throw std::exception("Unable to initialize renderer.  Check horde log for details.");
@@ -100,6 +100,7 @@ Renderer::Renderer() :
    h3dSetOption(H3DOptions::FastAnimation, 1);
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
 
+   GetConfigOptions();
    ApplyConfig();
 
    // Overlays
@@ -214,25 +215,25 @@ void Renderer::GetConfigOptions()
    core::Config& config = core::Config::GetInstance();
 
    // "Uses the forward-renderer, instead of the deferred renderer."
-   config_.use_forward_renderer = config.GetProperty("renderer.use_forward_renderer", true);
+   config_.use_forward_renderer = config.Get("renderer.use_forward_renderer", true);
 
    // "Enables SSAO blur."
-   config_.use_ssao_blur = config.GetProperty("renderer.use_ssao_blur", true);
+   config_.use_ssao_blur = config.Get("renderer.use_ssao_blur", true);
 
    // "Enables shadows."
-   config_.use_shadows = config.GetProperty("renderer.enable_shadows", true);
+   config_.use_shadows = config.Get("renderer.enable_shadows", true);
 
    // "Enables Screen-Space Ambient Occlusion (SSAO)."
-   config_.use_ssao = config.GetProperty("renderer.enable_ssao", true);
+   config_.use_ssao = config.Get("renderer.enable_ssao", true);
 
    // "Sets the number of Multi-Sample Anti Aliasing samples to use."
-   config_.num_msaa_samples = config.GetProperty("renderer.msaa_samples", 0);
+   config_.num_msaa_samples = config.Get("renderer.msaa_samples", 0);
 
    // "Sets the square resolution of the shadow maps."
-   config_.shadow_resolution = config.GetProperty("renderer.shadow_resolution", 2048);
+   config_.shadow_resolution = config.Get("renderer.shadow_resolution", 2048);
 
    // "Enables vertical sync."
-   config_.enable_vsync = config.GetProperty("renderer.enable_vsync", true);
+   config_.enable_vsync = config.Get("renderer.enable_vsync", true);
 }
 
 void Renderer::ApplyConfig()

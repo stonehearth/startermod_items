@@ -2,6 +2,7 @@
 #include "radiant.h"
 #include "build_number.h"
 #include "config.h"
+#include "system.h"
 #include "radiant_exceptions.h"
 #include "lib/json/node.h"
 #include "lib/json/json.h"
@@ -17,25 +18,18 @@ using namespace ::radiant::core;
 DEFINE_SINGLETON(Config)
 
 //Analytics uses the build_number for a/b testing.
-const std::string BUILD_NUMBER = "preview_0.1a";
+static std::string const BUILD_NUMBER = "preview_0.1a";
+static std::string const DEFAULT_GAME_SCRIPT = "start_game.lua";
 
 Config::Config() : config_filename_(GetName() + ".json")
 {
 }
 
-boost::filesystem::path Config::DefaultCacheDirectory() const
-{
-   TCHAR path[MAX_PATH];
-   if (SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, path) != S_OK) {
-      throw std::invalid_argument("Could not retrieve path to local application data");
-   }
-   return boost::filesystem::path(path) / GetName();
-}
-
 void Config::MergeConfigNodes(JSONNode& base, JSONNode const& override) const
 {
    if (base.type() != override.type()) {
-      throw json::InvalidJson("");
+      // ignore the override
+      return;
    }
 
    switch (override.type()) {
@@ -63,12 +57,10 @@ void Config::MergeConfigNodes(JSONNode& base, JSONNode const& override) const
    }
 }
 
-json::Node Config::ReadConfigFile(boost::filesystem::path const& file_path, bool throw_on_not_found) const
+json::Node Config::ReadConfigFile(boost::filesystem::path const& file_path) const
 {
    if (!boost::filesystem::is_regular(file_path)) {
-      if (throw_on_not_found) {
-         throw std::invalid_argument(BUILD_STRING(file_path << "does not exist"));
-      }
+      throw std::invalid_argument(BUILD_STRING(file_path << "does not exist"));
       return json::Node();
    }
 
@@ -101,8 +93,7 @@ void Config::CmdLineOptionToKeyValue(std::string const& param, std::string& key,
       key = trimmed_param.substr(0, offset);
       value = trimmed_param.substr(offset + 1);
    } else {
-      key = std::string();
-      value = std::string();
+      throw core::Exception(BUILD_STRING("'=' not found in command line option '" << param << "'"));
    }
 }
 
@@ -111,7 +102,7 @@ json::Node Config::ParseCommandLine(int argc, const char *argv[]) const
    json::Node node;
    std::string key, value;
 
-   for (int i=0; i < argc; i++) {
+   for (int i=1; i < argc; i++) {
       CmdLineOptionToKeyValue(argv[i], key, value);
       if (!key.empty()) {
          node.set(key, value);
@@ -126,29 +117,34 @@ void Config::Load(int argc, const char *argv[])
    json::Node command_line_config = ParseCommandLine(argc, argv);
 
    // configure filesystem      
-   run_directory_ = boost::filesystem::canonical(boost::filesystem::path("."));
-   cache_directory_ = command_line_config.get("cache_directory", DefaultCacheDirectory().string());
+   boost::filesystem::path run_directory = boost::filesystem::canonical(boost::filesystem::path("."));
+   temp_directory_ = core::System::GetInstance().GetTempDirectory();
 
-   if (!boost::filesystem::is_directory(cache_directory_)) {
+   if (!boost::filesystem::is_directory(temp_directory_)) {
       try {
-         boost::filesystem::create_directory(cache_directory_);
+         boost::filesystem::create_directory(temp_directory_);
       } catch (std::exception const& e) {
-         throw core::Exception(BUILD_STRING("Cannot create cache directory " << cache_directory_ << ":\n\n" << e.what()));
+         throw core::Exception(BUILD_STRING("Cannot create cache directory " << temp_directory_ << ":\n\n" << e.what()));
       }
    }
 
    // read config files
-   base_config_filename_ = run_directory_ / config_filename_;
-   override_config_filename_ = cache_directory_ / config_filename_;
+   base_config_filename_ = run_directory / config_filename_;
+   override_config_filename_ = temp_directory_ / config_filename_;
    JSONNode internal_root_config = ReadConfigFile(base_config_filename_).get_internal_node();
-   json::Node user_config = ReadConfigFile(override_config_filename_, false);
+   json::Node user_config;
+
+   if (boost::filesystem::exists(override_config_filename_)) {
+      user_config = ReadConfigFile(override_config_filename_);
+   }
 
    // user config overrides base config
    try {
       // Merge the root config before wrapping it as a json::Node because json::Node cannot expose it without copying
       MergeConfigNodes(internal_root_config, user_config.get_internal_node());
    } catch (std::exception const& e) {
-      throw core::Exception(BUILD_STRING("Error merging " << override_config_filename_ << " with " << base_config_filename_ << ":\n\n" << e.what()));
+      LOG(ERROR) << BUILD_STRING("Error merging " << override_config_filename_ << " with " << base_config_filename_ << ":\n\n" <<
+         e.what() << "\n\nIgnoring errors.");
    }
 
    // command line options override options in config files
@@ -161,28 +157,29 @@ void Config::Load(int argc, const char *argv[])
 
    root_config_ = json::Node(internal_root_config);
 
-   // initialize session
-   userid_ = GetProperty("user_id", "");
+   InitializeSession();
+}
+
+void Config::InitializeSession()
+{
+   userid_ = Get("user_id", "");
    if (userid_.empty()) {
       userid_ = Poco::UUIDGenerator::defaultGenerator().create().toString();
-      SetProperty("user_id", userid_, true);
+      Set("user_id", userid_);
    }
    sessionid_ = Poco::UUIDGenerator::defaultGenerator().create().toString();
+
+   std::string default_mod_name = GetName();
+   std::string default_game_script = default_mod_name + "/" + DEFAULT_GAME_SCRIPT;
+   game_script_ = Get("game.script", default_game_script);
+   game_mod_ = Get("game.mod", default_mod_name);
+
+   should_skip_title_screen_ = (game_script_ != default_game_script);
 }
 
 std::string Config::GetName() const
 {
    return std::string(PRODUCT_IDENTIFIER);
-}
-
-boost::filesystem::path Config::GetCacheDirectory() const
-{
-   return cache_directory_;
-}
-
-boost::filesystem::path Config::GetTempDirectory() const
-{
-   return cache_directory_;
 }
 
 std::string Config::GetUserID() const
@@ -198,4 +195,19 @@ std::string Config::GetSessionID() const
 std::string Config::GetBuildNumber() const
 {
    return BUILD_NUMBER;
+}
+
+std::string Config::GetGameScript() const
+{
+   return game_script_;
+}
+
+std::string Config::GetGameMod() const
+{
+   return game_mod_;
+}
+
+bool Config::ShouldSkipTitleScreen() const
+{
+   return should_skip_title_screen_;
 }

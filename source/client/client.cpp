@@ -52,7 +52,6 @@
 
 #include <SFML/Audio.hpp>
 
-
 //  #include "GFx/AS3/AS3_Global.h"
 #include "client.h"
 #include "renderer/renderer.h"
@@ -246,12 +245,6 @@ Client::~Client()
    octtree_.release();
 }
 
-void Client::GetConfigOptions()
-{
-   Renderer::GetConfigOptions();
-}
-
-
 extern bool realtime;
 void Client::run(int server_port)
 {
@@ -278,14 +271,11 @@ void Client::run(int server_port)
    });
 
    core::Config& config = core::Config::GetInstance();
-   std::string loader = config.GetProperty<std::string>("game.mod");
+   std::string loader = config.GetGameMod();
    json::Node manifest(res::ResourceManager2::GetInstance().LookupManifest(loader));
    std::string docroot = "http://radiant/" + manifest.get<std::string>("loader.ui.homepage");
 
-   // seriously???
-   std::string mod_name = config.GetName();
-   std::string game_script = config.GetProperty<std::string>("game.script");
-   if (game_script != mod_name + "/start_game.lua") {
+   if (config.ShouldSkipTitleScreen()) {
       docroot += "?skip_title=true";
    }
 
@@ -351,7 +341,7 @@ void Client::run(int server_port)
       currentCursor_ = NULL;
    };
 
-   if (core::Config::GetInstance().GetProperty("crash_key_enabled", false)) {
+   if (core::Config::GetInstance().Get("crash_key_enabled", false)) {
       _commands[GLFW_KEY_PAUSE] = []() {
          // throw an exception that is not caught by Client::OnInput
          throw std::string("User hit crash key");
@@ -925,17 +915,17 @@ void Client::RemoveCursor(CursorStackId id)
 rpc::ReactorDeferredPtr Client::GetModules(rpc::Function const& fn)
 {
    rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>(fn.route);
-   json::Node result;
+   JSONNode result;
    auto& rm = res::ResourceManager2::GetInstance();
    for (std::string const& modname : rm.GetModuleNames()) {
-      json::Node manifest;
+      JSONNode manifest;
       try {
-         manifest = rm.LookupManifest(modname);
+         manifest = rm.LookupManifest(modname).get_internal_node();
       } catch (std::exception const&) {
          // Just use an empty manifest...f
       }
       manifest.set_name(modname);
-      result.add_node(manifest);
+      result.push_back(manifest);
    }
    d->Resolve(result);
    return d;

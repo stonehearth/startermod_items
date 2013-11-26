@@ -80,8 +80,6 @@ class Renderer
 
    public:
       static Renderer& GetInstance();
-      static void GetConfigOptions();
-      static RendererConfig config_;
 
       void Initialize(om::EntityPtr rootObject);
       void SetScriptHost(lua::ScriptHost* host);
@@ -92,7 +90,6 @@ class Renderer
       void LoadResources();
       void ShowPerfHud(bool value);
       void SetServerTick(int tick);
-      void ApplyConfig();
 
       int GetWidth() const;
       int GetHeight() const;
@@ -144,8 +141,12 @@ class Renderer
 
    private:
       NO_COPY_CONSTRUCTOR(Renderer);
+      RendererConfig config_;
 
    private:
+      void GetConfigOptions();
+      void ApplyConfig();
+
       void SetStageEnable(const char* stageName, bool enabled);
       void OnWindowResized(int newWidth, int newHeight);
       void OnKey(int key, int down);
