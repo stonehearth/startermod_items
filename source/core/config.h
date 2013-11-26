@@ -50,20 +50,16 @@ public:
       // write to the user config
       // don't cache the user config since this is an uncommon operation
       json::Node user_config;
-      if (boost::filesystem::exists(override_config_filename_)) {
-         user_config = ReadConfigFile(override_config_filename_);
+      if (boost::filesystem::exists(override_config_file_path_)) {
+         user_config = ReadConfigFile(override_config_file_path_);
       }
       user_config.set(property_path, value);
-      WriteConfigFile(override_config_filename_, user_config);
+      WriteConfigFile(override_config_file_path_, user_config);
    }
 
-   std::string GetName() const;
    std::string GetUserID() const;
    std::string GetSessionID() const;
    std::string GetBuildNumber() const;
-   std::string GetGameScript() const;
-   std::string GetGameMod() const;
-   bool ShouldSkipTitleScreen() const;
 
 private:
    NO_COPY_CONSTRUCTOR(Config);
@@ -77,8 +73,8 @@ private:
 
 private:
    std::string const              config_filename_;
-   boost::filesystem::path        base_config_filename_;
-   boost::filesystem::path        override_config_filename_;
+   boost::filesystem::path        base_config_file_path_;
+   boost::filesystem::path        override_config_file_path_;
    boost::filesystem::path        temp_directory_;
    json::Node                     root_config_;
    mutable std::recursive_mutex   mutex_;

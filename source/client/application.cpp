@@ -18,6 +18,7 @@
 using namespace radiant;
 using radiant::client::Application;
 
+static std::string const LOG_FILENAME = std::string(PRODUCT_IDENTIFIER) + ".log";
 static std::string const EXE_NAME = std::string(PRODUCT_IDENTIFIER) + ".exe";
 static std::string const HELP_MESSAGE = BUILD_STRING(
    "Options can be specified on the command-line using the format:\n" <<
@@ -127,7 +128,7 @@ int Application::Run(int argc, const char** argv)
          ShowHelp();
          std::exit(0);
       }
-      radiant::logger::init(core::System::GetInstance().GetTempDirectory() / (std::string(PRODUCT_IDENTIFIER) + ".log"));
+      radiant::logger::init(core::System::GetInstance().GetTempDirectory() / LOG_FILENAME);
       json::InitialzeErrorHandler();
       core::Config::GetInstance().Load(argc, argv);
    } catch (std::exception const& e) {

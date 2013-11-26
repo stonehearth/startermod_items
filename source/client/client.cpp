@@ -271,11 +271,12 @@ void Client::run(int server_port)
    });
 
    core::Config& config = core::Config::GetInstance();
-   std::string loader = config.GetGameMod();
+   std::string loader = config.Get<std::string>("game.mod");
    json::Node manifest(res::ResourceManager2::GetInstance().LookupManifest(loader));
    std::string docroot = "http://radiant/" + manifest.get<std::string>("loader.ui.homepage");
 
-   if (config.ShouldSkipTitleScreen()) {
+   // this will get cleaned up later
+   if (config.Get<std::string>("game.script") != (std::string(PRODUCT_IDENTIFIER) + "/start_game.lua")) {
       docroot += "?skip_title=true";
    }
 

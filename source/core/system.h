@@ -18,6 +18,7 @@ private:
 
    bool IsAncestorDirectory(boost::filesystem::path const& ancestor, boost::filesystem::path const& directory) const;
    boost::filesystem::path DefaultTempDirectory(std::string const& application_name) const;
+   bool IsWritableDirectory(std::string const& directory) const;
 
    boost::filesystem::path temp_directory_;
 };

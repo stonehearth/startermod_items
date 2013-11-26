@@ -19,9 +19,10 @@ DEFINE_SINGLETON(Config)
 
 //Analytics uses the build_number for a/b testing.
 static std::string const BUILD_NUMBER = "preview_0.1a";
-static std::string const DEFAULT_GAME_SCRIPT = "start_game.lua";
+static std::string const BASE_CONFIG_FILENAME = std::string(PRODUCT_IDENTIFIER) + ".json";
+static std::string const USER_CONFIG_FILENAME = "user_settings.json";
 
-Config::Config() : config_filename_(GetName() + ".json")
+Config::Config()
 {
 }
 
@@ -129,13 +130,13 @@ void Config::Load(int argc, const char *argv[])
    }
 
    // read config files
-   base_config_filename_ = run_directory / config_filename_;
-   override_config_filename_ = temp_directory_ / config_filename_;
-   JSONNode internal_root_config = ReadConfigFile(base_config_filename_).get_internal_node();
+   base_config_file_path_ = run_directory / BASE_CONFIG_FILENAME;
+   override_config_file_path_ = temp_directory_ / USER_CONFIG_FILENAME;
+   JSONNode internal_root_config = ReadConfigFile(base_config_file_path_).get_internal_node();
    json::Node user_config;
 
-   if (boost::filesystem::exists(override_config_filename_)) {
-      user_config = ReadConfigFile(override_config_filename_);
+   if (boost::filesystem::exists(override_config_file_path_)) {
+      user_config = ReadConfigFile(override_config_file_path_);
    }
 
    // user config overrides base config
@@ -143,7 +144,7 @@ void Config::Load(int argc, const char *argv[])
       // Merge the root config before wrapping it as a json::Node because json::Node cannot expose it without copying
       MergeConfigNodes(internal_root_config, user_config.get_internal_node());
    } catch (std::exception const& e) {
-      LOG(ERROR) << BUILD_STRING("Error merging " << override_config_filename_ << " with " << base_config_filename_ << ":\n\n" <<
+      LOG(ERROR) << BUILD_STRING("Error merging " << override_config_file_path_ << " with " << base_config_file_path_ << ":\n\n" <<
          e.what() << "\n\nIgnoring errors.");
    }
 
@@ -152,7 +153,7 @@ void Config::Load(int argc, const char *argv[])
       // Merge the root config before wrapping it as a json::Node because json::Node cannot expose it without copying
       MergeConfigNodes(internal_root_config, command_line_config.get_internal_node());
    } catch (std::exception const& e) {
-      throw core::Exception(BUILD_STRING("Error merging command line options with " << base_config_filename_ << ":\n\n" << e.what()));
+      throw core::Exception(BUILD_STRING("Error merging command line options with " << base_config_file_path_ << ":\n\n" << e.what()));
    }
 
    root_config_ = json::Node(internal_root_config);
@@ -169,17 +170,14 @@ void Config::InitializeSession()
    }
    sessionid_ = Poco::UUIDGenerator::defaultGenerator().create().toString();
 
-   std::string default_mod_name = GetName();
-   std::string default_game_script = default_mod_name + "/" + DEFAULT_GAME_SCRIPT;
-   game_script_ = Get("game.script", default_game_script);
-   game_mod_ = Get("game.mod", default_mod_name);
+   // this will be read from the mod manifest later
+   if (!root_config_.has("game.script")) {
+      root_config_.set("game.script", std::string(PRODUCT_IDENTIFIER) + "/start_game.lua");
+   }
 
-   should_skip_title_screen_ = (game_script_ != default_game_script);
-}
-
-std::string Config::GetName() const
-{
-   return std::string(PRODUCT_IDENTIFIER);
+   if (!root_config_.has("game.mod")) {
+      root_config_.set("game.mod", PRODUCT_IDENTIFIER);
+   }
 }
 
 std::string Config::GetUserID() const
@@ -195,19 +193,4 @@ std::string Config::GetSessionID() const
 std::string Config::GetBuildNumber() const
 {
    return BUILD_NUMBER;
-}
-
-std::string Config::GetGameScript() const
-{
-   return game_script_;
-}
-
-std::string Config::GetGameMod() const
-{
-   return game_mod_;
-}
-
-bool Config::ShouldSkipTitleScreen() const
-{
-   return should_skip_title_screen_;
 }
