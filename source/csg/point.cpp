@@ -51,7 +51,7 @@ Point<int, C> csg::ToInt(Point<float, C> const& pt)
    Point<int, C> result;
    for (int i = 0; i < C; i++) {
       float s = pt[i];
-      result[i] = floor0(s + (s > 0 ? k_epsilon : -k_epsilon));
+      result[i] = (int)floor0(s + (s > 0 ? k_epsilon : -k_epsilon));
    }
    return result;
 }

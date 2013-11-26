@@ -20,7 +20,6 @@
 #include <gl\GLU.h>
 
 #include "utDebug.h"
-#include "om/error_browser/error_browser.h"
 #include "lib/perfmon/perfmon.h"
 
 namespace Horde3D {
@@ -36,7 +35,7 @@ void validateGLCall(const char* errorStr)
    uint32 error = glGetError();
    if (error != GL_NO_ERROR) {
       Modules::log().writeError(errorStr, error);
-      ASSERT(error == GL_NO_ERROR);
+      ASSERT(false);
    }
 }
 
