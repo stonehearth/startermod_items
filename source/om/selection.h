@@ -94,6 +94,4 @@ static std::ostream& operator<<(std::ostream& out, const Selection& source) { re
 
 END_RADIANT_OM_NAMESPACE
 
-IMPLEMENT_DM_EXTENSION(::radiant::om::Selection, Protocol::Selection::extension)
-
 #endif //  _RADIANT_OM_SELECTION_H

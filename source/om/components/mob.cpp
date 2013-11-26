@@ -140,8 +140,6 @@ csg::Point3 Mob::GetGridLocation() const
 
 void Mob::ExtendObject(json::Node const& obj)
 {
-   LOG(WARNING) << "Expanding mob " << obj.write_formatted();
-
    SetInterpolateMovement(obj.get<bool>("interpolate_movement", false));
    transform_ = obj.get<csg::Transform>("transform", csg::Transform(csg::Point3f(0, 0, 0), csg::Quaternion(1, 0, 0, 0)));
    

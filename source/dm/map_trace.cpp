@@ -2,8 +2,6 @@
 #include "map.h"
 #include "map_trace.h"
 #include "store.h"
-#include "dm_save_impl.h"
-#include "protocols/store.pb.h"
 
 using namespace radiant;
 using namespace radiant::dm;
@@ -92,5 +90,5 @@ void MapTrace<M>::NotifyObjectState(typename M::ContainerType const& contents)
 }
 
 #define CREATE_MAP(M)    template MapTrace<M>;
-#include "types/instantiate_types.h"
-
+#include "types/all_map_types.h"
+ALL_DM_MAP_TYPES

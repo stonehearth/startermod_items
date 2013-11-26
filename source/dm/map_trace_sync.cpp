@@ -30,5 +30,5 @@ void MapTraceSync<M>::NotifyDestroyed()
 }
 
 #define CREATE_MAP(M)  template MapTraceSync<M>;
-#include "types/instantiate_types.h"
-
+#include "types/all_map_types.h"
+ALL_DM_MAP_TYPES

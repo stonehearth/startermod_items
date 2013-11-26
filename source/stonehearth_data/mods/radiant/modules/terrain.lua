@@ -33,7 +33,7 @@ function Terrain.trace_world_entities(reason, added_cb, removed_cb)
    -- go on and off the terrain.  each item is forwarded to the
    -- appropriate tracker.
    return ec:trace_children('radiant.terrain: ' .. reason)
-                        :on_added(added_cb)
+                        :on_changed(added_cb)
                         :on_removed(removed_cb)
                         :push_object_state()
 end

@@ -16,7 +16,7 @@ class Boxed(ridl.Type):
       self.value = value
       self.name = "dm::Boxed<%s>" % value.name
       self.short_name = "boxed"
-      self.trace_name = "std::shared_ptr<dm::BoxedTrace<%s>>" % self.name
+      self.trace_name = "dm::BoxedTrace<%s>" % self.name
 
 class Set(ridl.Type):
    def __init__(self, value, **kwargs):
@@ -28,7 +28,7 @@ class Set(ridl.Type):
       self.value = value
       self.name = "dm::Set<%s>" % value.name
       self.short_name = "set"
-      self.trace_name = "std::shared_ptr<dm::SetTrace<%s>>" % self.name
+      self.trace_name = "dm::SetTrace<%s>" % self.name
 
 class Array(ridl.Type):
    def __init__(self, value, count, **kwargs):
@@ -39,7 +39,7 @@ class Array(ridl.Type):
       self.value = value
       self.name = "dm::Array<%s, %d>" % (value.name, count)
       self.short_name = "array"
-      self.trace_name = "std::shared_ptr<dm::ArrayTrace<%s>>" % self.name
+      self.trace_name = "dm::ArrayTrace<%s>" % self.name
 
 class Map(object):
    def __init__(self, key, value, **kwargs):
@@ -56,4 +56,4 @@ class Map(object):
       else:
          self.name = "dm::Map<%s, %s>" % (self.key.name, self.value.name)
       self.short_name = "map"
-      self.trace_name = "std::shared_ptr<dm::MapTrace<%s>>" % self.name
+      self.trace_name = "dm::MapTrace<%s>" % self.name

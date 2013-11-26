@@ -404,4 +404,5 @@ template void Store::PushObjectState(ObjectTrace<Object>&, ObjectId) const;
                          template void Store::MarkChangedAndFire(A&, std::function<void(ArrayTrace<A>&)>); \
                          template void Store::OnArrayChanged(A&, A::Value const&);
 
-#include "types/instantiate_types.h"
+#include "types/all_types.h"
+ALL_DM_TYPES

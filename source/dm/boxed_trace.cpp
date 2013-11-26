@@ -44,4 +44,5 @@ void BoxedTrace<B>::NotifyObjectState(Value const& value)
 }
 
 #define CREATE_BOXED(B)           template BoxedTrace<B>;
-#include "types/instantiate_types.h"
+#include "types/all_boxed_types.h"
+ALL_DM_BOXED_TYPES

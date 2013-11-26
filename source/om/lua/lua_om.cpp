@@ -2,7 +2,7 @@
 #include "lua_component.h"
 #include "lua_entity.h"
 #include "lib/lua/script_host.h"
-
+#include "lib/lua/register.h"
 #include "lib/json/core_json.h"
 #include "lib/json/dm_json.h"
 
@@ -15,7 +15,8 @@ using namespace ::radiant;
 using namespace ::radiant::om;
 
 DEFINE_INVALID_JSON_CONVERSION(om::Region3BoxedPtrBoxed)
-
+IMPLEMENT_TRIVIAL_TOSTRING(Region2Boxed)
+IMPLEMENT_TRIVIAL_TOSTRING(Region3Boxed)
 
 #define OM_OBJECT(Cls, cls) scope Register ## Cls(lua_State* L);
 OM_ALL_COMPONENTS
@@ -37,7 +38,12 @@ void radiant::om::RegisterLuaTypes(lua_State* L)
             OM_ALL_COMPONENTS
 #undef OM_OBJECT
             LuaEntity::RegisterLuaTypes(L),
-            RegisterDataStore(L)
+            RegisterDataStore(L),
+            lua::RegisterTypePtr<Region2Boxed>()
+               .def("get",    &Region2Boxed::Get)
+            ,
+            lua::RegisterTypePtr<Region3Boxed>()
+               .def("get",    &Region3Boxed::Get)
          ]
       ]
    ];

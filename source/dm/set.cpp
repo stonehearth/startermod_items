@@ -101,4 +101,6 @@ typename Set<T>::ContainerType const& Set<T>::GetContainer() const
 }
 
 #define CREATE_SET(S)      template S;
-#include "types/instantiate_types.h"
+#include "types/all_loader_types.h"
+#include "types/all_set_types.h"
+ALL_DM_SET_TYPES

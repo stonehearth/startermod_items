@@ -30,4 +30,5 @@ void SetTraceSync<S>::NotifyDestroyed()
 }
 
 #define CREATE_SET(S)  template SetTraceSync<S>;
-#include "types/instantiate_types.h"
+#include "types/all_set_types.h"
+ALL_DM_SET_TYPES

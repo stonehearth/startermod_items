@@ -127,4 +127,6 @@ typename Map<K, V, H>::ContainerType const& Map<K, V, H>::GetContainer() const
 }
 
 #define CREATE_MAP(M)    template M;
-#include "types/instantiate_types.h"
+#include "types/all_map_types.h"
+#include "types/all_loader_types.h"
+ALL_DM_MAP_TYPES

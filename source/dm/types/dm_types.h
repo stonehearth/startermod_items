@@ -1,1 +1,0 @@
-MAP(int, ObjectPtr)

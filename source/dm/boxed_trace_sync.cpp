@@ -24,4 +24,6 @@ void BoxedTraceSync<B>::NotifyDestroyed()
 }
 
 #define CREATE_BOXED(B)           template BoxedTraceSync<B>;
-#include "types/instantiate_types.h"
+#include "types/all_boxed_types.h"
+ALL_DM_BOXED_TYPES
+

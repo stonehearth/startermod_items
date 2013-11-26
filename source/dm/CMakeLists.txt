@@ -7,7 +7,7 @@ add_library(dm STATIC
             alloc_trace.cpp
             array.cpp
             array_trace.cpp
-            array_trace._sync.cpp
+            array_trace_sync.cpp
             array_trace_buffered.cpp
             boxed.cpp
             boxed_trace.cpp

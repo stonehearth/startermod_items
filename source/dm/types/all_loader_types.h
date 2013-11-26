@@ -1,8 +1,14 @@
-#include "csg/color.h"
-#include "csg/sphere.h"
-#include "csg/transform.h"
+#include "dm/dm_save_impl.h"
 #include "csg/region.h"
+#include "csg/color.h"
+#include "csg/transform.h"
+#include "csg/sphere.h"
+#include "om/selection.h"
 
+IMPLEMENT_DM_BASIC_TYPE(int,  Protocol::integer);
+IMPLEMENT_DM_BASIC_TYPE(bool, Protocol::boolean);
+IMPLEMENT_DM_BASIC_TYPE(float, Protocol::floatingpoint);
+IMPLEMENT_DM_BASIC_TYPE(std::string, Protocol::string);
 IMPLEMENT_DM_EXTENSION(csg::Color3, Protocol::color)
 IMPLEMENT_DM_EXTENSION(csg::Color4, Protocol::color)
 IMPLEMENT_DM_EXTENSION(csg::Cube3, Protocol::cube3i)
@@ -14,11 +20,4 @@ IMPLEMENT_DM_EXTENSION(csg::Region3, Protocol::region3i)
 IMPLEMENT_DM_EXTENSION(csg::Region2, Protocol::region2i)
 IMPLEMENT_DM_EXTENSION(csg::Sphere, Protocol::sphere3f)
 IMPLEMENT_DM_EXTENSION(csg::Transform, Protocol::transform)
-
-BOXED(csg::Region3)
-BOXED(csg::Region2)
-BOXED(csg::Point3)
-BOXED(csg::Point3f)
-BOXED(csg::Cube3)
-BOXED(csg::Cube3f)
-BOXED(csg::Transform)
+IMPLEMENT_DM_EXTENSION(om::Selection, Protocol::Selection::extension)

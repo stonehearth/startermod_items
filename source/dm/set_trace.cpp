@@ -88,4 +88,6 @@ void SetTrace<S>::NotifyObjectState(typename S::ContainerType const& contents)
 }
 
 #define CREATE_SET(S)  template SetTrace<S>;
-#include "types/instantiate_types.h"
+#include "types/all_set_types.h"
+ALL_DM_SET_TYPES
+

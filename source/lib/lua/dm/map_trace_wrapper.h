@@ -1,20 +1,20 @@
-#ifndef _RADIANT_LUA_DM_TRACES_H
-#define _RADIANT_LUA_DM_TRACES_H
+#ifndef _RADIANT_LUA_DM_MAP_TRACE_WRAPPER_H
+#define _RADIANT_LUA_DM_MAP_TRACE_WRAPPER_H
 
 #include "lib/lua/lua.h"
 
 BEGIN_RADIANT_LUA_NAMESPACE
 
 template <typename T>
-class TraceWrapper : public std::enable_shared_from_this<TraceWrapper<T>>
+class MapTraceWrapper : public std::enable_shared_from_this<MapTraceWrapper<T>>
 {
 public:
-   TraceWrapper(std::shared_ptr<T> trace) :
+   MapTraceWrapper(std::shared_ptr<T> trace) :
       trace_(trace)
    {
    }
 
-   std::shared_ptr<TraceWrapper<T>> OnChanged(luabind::object changed_cb)
+   std::shared_ptr<MapTraceWrapper<T>> OnChanged(luabind::object changed_cb)
    {
       if (!trace_) {
          throw std::logic_error("called on_changed on invalid trace");
@@ -29,7 +29,7 @@ public:
       return shared_from_this();
    }
 
-   std::shared_ptr<TraceWrapper<T>> OnRemoved(luabind::object removed_cb)
+   std::shared_ptr<MapTraceWrapper<T>> OnRemoved(luabind::object removed_cb)
    {
       if (!trace_) {
          throw std::logic_error("called on_removed on invalid trace");
@@ -44,7 +44,7 @@ public:
       return shared_from_this();
    }
 
-   std::shared_ptr<TraceWrapper<T>> PushObjectState()
+   std::shared_ptr<MapTraceWrapper<T>> PushObjectState()
    {
       if (!trace_) {
          throw std::logic_error("called push_object_state on invalid trace");
@@ -64,4 +64,4 @@ private:
 
 END_RADIANT_LUA_NAMESPACE
 
-#endif //  _RADIANT_LUA_DM_TRACES_H
+#endif //  _RADIANT_LUA_DM_MAP_TRACE_WRAPPER_H

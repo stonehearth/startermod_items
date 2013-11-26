@@ -2,8 +2,6 @@
 #include "store.h"
 #include "boxed.h"
 #include "dbg_indenter.h"
-#include "dm_save_impl.h"
-#include "protocols/store.pb.h"
 
 using namespace radiant;
 using namespace radiant::dm;
@@ -53,5 +51,6 @@ void Boxed<T, OT>::Modify(std::function<void(T& value)> cb) {
 }
 
 #define CREATE_BOXED(B)           template B;
-#include "types/instantiate_types.h"
-
+#include "types/all_loader_types.h"
+#include "types/all_boxed_types.h"
+ALL_DM_BOXED_TYPES

@@ -19,6 +19,9 @@ for name, obj in env.properties(C, [dm.Boxed, dm.Set, dm.Array, dm.Map]):
 #include "radiant.h"
 #include "lib/lua/bind.h"
 #include "lib/lua/register.h"
+#include "lib/lua/dm/boxed_trace_wrapper.h"
+#include "lib/lua/dm/map_trace_wrapper.h"
+#include "lib/lua/dm/set_trace_wrapper.h"
 #include "lib/lua/dm_iterators.h"
 % for filename in trace_includes:
 #include "${filename}"
@@ -111,20 +114,28 @@ static std::shared_ptr<lua::SetIterator<${set.name}>> ${class_upper}_Each${singu
 % for name, obj in env.properties(C, [dm.Boxed, dm.Set, dm.Array, dm.Map]):
    % if obj.trace:
       % if obj.trace == 'deep_region':
-static DeepRegionGuardPtr
-      % else:
-static std::shared_ptr<lua::TraceWrapper<${obj.trace_name}>>
-      % endif
+static std::shared_ptr<lua::${obj.short_name | env.upper}TraceWrapper<DeepRegionGuard>>
 ${class_upper}_Trace${name | env.upper}(std::weak_ptr<${class_upper}> o, const char* reason)
 {
-   auto object = o.lock();
+   auto object = o.lock(); 
    if (object)  {
       auto trace = object->Trace${name | env.upper}(reason, dm::LUA_TRACES);
-      return std::make_shared<lua::TraceWrapper<${obj.trace_name}>>(trace);
+      return std::make_shared<lua::${obj.short_name | env.upper}TraceWrapper<DeepRegionGuard>>(trace);
    }
    throw std::invalid_argument("invalid reference in native tracer");
 }
-
+      % else:
+static std::shared_ptr<lua::${obj.short_name | env.upper}TraceWrapper<${obj.trace_name}>>
+${class_upper}_Trace${name | env.upper}(std::weak_ptr<${class_upper}> o, const char* reason)
+{
+   auto object = o.lock(); 
+   if (object)  {
+      auto trace = object->Trace${name | env.upper}(reason, dm::LUA_TRACES);
+      return std::make_shared<lua::${obj.short_name | env.upper}TraceWrapper<${obj.trace_name}>>(trace);
+   }
+   throw std::invalid_argument("invalid reference in native tracer");
+}
+      % endif
    % endif
 % endfor
 

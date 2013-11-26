@@ -57,5 +57,6 @@ void SetTraceBuffered<S>::NotifyObjectState(typename S::ContainerType const& con
 }
 
 #define CREATE_SET(S)  template SetTraceBuffered<S>;
-#include "types/instantiate_types.h"
-
+#include "types/all_set_types.h"
+#include "types/all_loader_types.h"
+ALL_DM_SET_TYPES

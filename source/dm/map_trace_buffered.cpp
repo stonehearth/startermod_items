@@ -3,8 +3,6 @@
 #include "map.h"
 #include "map_trace_buffered.h"
 #include "store.h"
-#include "dm_save_impl.h"
-#include "protocols/store.pb.h"
 
 using namespace radiant;
 using namespace radiant::dm;
@@ -62,4 +60,6 @@ void MapTraceBuffered<M>::NotifyObjectState(typename M::ContainerType const& con
 }
 
 #define CREATE_MAP(M)  template MapTraceBuffered<M>;
-#include "types/instantiate_types.h"
+#include "types/all_loader_types.h"
+#include "types/all_map_types.h"
+ALL_DM_MAP_TYPES
