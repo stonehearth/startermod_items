@@ -113,13 +113,14 @@ static std::shared_ptr<lua::SetIterator<${set.name}>> ${class_upper}_Each${singu
       % if obj.trace == 'deep_region':
 static DeepRegionGuardPtr
       % else:
-static ${obj.trace_name}
+static std::shared_ptr<lua::TraceWrapper<${obj.trace_name}>>
       % endif
 ${class_upper}_Trace${name | env.upper}(std::weak_ptr<${class_upper}> o, const char* reason)
 {
    auto object = o.lock();
    if (object)  {
-      return object->Trace${name | env.upper}(reason, dm::LUA_TRACES);
+      auto trace = object->Trace${name | env.upper}(reason, dm::LUA_TRACES);
+      return std::make_shared<lua::TraceWrapper<${obj.trace_name}>>(trace);
    }
    throw std::invalid_argument("invalid reference in native tracer");
 }
