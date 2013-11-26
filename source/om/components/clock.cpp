@@ -4,6 +4,11 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+std::ostream& operator<<(std::ostream& os, Clock const& o)
+{
+   return (os << "[Clock " << o.GetTime() << "]");
+}
+
 void Clock::ConstructObject()
 {
    time_ = 0;

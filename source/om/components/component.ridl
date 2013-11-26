@@ -25,7 +25,7 @@ public:
 ##  Enum
 ##
 % for name, enum in env.properties(C, ridl.Enum):
-   enum ${enum.name} {
+   enum ${enum.internal_name} {
 % for name, value in enum.values:
       ${name} = ${value},
 % endfor
@@ -141,11 +141,12 @@ public:
    % endif %
 % endfor
 % for name, set in env.properties(C, dm.Set):
+   <% singular_name = hasattr(set, 'singular_name') and set.singular_name or name %>
    % if set.iterate == 'define':
    ${set.name} const&
-   All${name | env.upper}() const
+   Each${singular_name | env.upper}() const
    {
-      /* Usage: for (${set.value.name} const& i : obj.All${name | env.upper}()) ... */
+      /* Usage: for (${set.value.name} const& i : obj.Each${singular_name | env.upper}()) ... */
       return ${name}_;
    }
 
@@ -256,6 +257,8 @@ private:
 };
 
 END_RADIANT_OM_NAMESPACE
+
+std::ostream& operator<<(std::ostream& os, radiant::om::${C.__name__} const& o);
 
 ${C._global_post}
 #endif // ${env.guard_name(C)}

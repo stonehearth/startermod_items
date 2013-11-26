@@ -39,6 +39,7 @@
 #include "lib/lua/res/open.h"
 #include "lib/lua/rpc/open.h"
 #include "lib/lua/om/open.h"
+#include "lib/lua/dm/open.h"
 #include "lib/lua/voxel/open.h"
 #include "lib/lua/analytics/open.h"
 #include "lib/analytics/design_event.h"
@@ -330,6 +331,7 @@ void Client::run(int server_port)
    lua::om::open(L);
    lua::om::register_json_to_lua_objects(L, store_);
    lua::om::register_json_to_lua_objects(L, authoringStore_);
+   lua::dm::open(L);
    lua::client::open(L);
    lua::res::open(L);
    lua::voxel::open(L);

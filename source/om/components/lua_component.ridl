@@ -5,24 +5,41 @@ class_upper = C.__name__
 class_lower = env.lower(class_upper)
 is_component = C.__bases__[0]().name == 'Component' 
 trace_includes = []
-for name, boxed in env.properties(C, dm.Boxed):
-   trace_includes += [ "dm/boxed_trace.h" ]
-   break
+for name, obj in env.properties(C, [dm.Boxed, dm.Set, dm.Array, dm.Map]):
+   if obj.trace:
+      if obj.trace == 'deep_region':
+         trace_includes += [ "om/region.h" ]
+      else:
+         trace_includes += [
+            "dm/%s.h" % obj.short_name,
+            "dm/%s_trace.h" % obj.short_name
+         ]
 %>
 #include "pch.h"
 #include "radiant.h"
 #include "lib/lua/bind.h"
 #include "lib/lua/register.h"
+#include "lib/lua/dm_iterators.h"
 % for filename in trace_includes:
 #include "${filename}"
 % endfor
 #include "dm/trace_categories.h"
-#include "om/components/lua_helpers.h"
 #include "om/components/${ class_lower }.ridl.h"
 
 using namespace luabind;
 using namespace radiant;
 using namespace radiant::om;
+
+static std::ostream& operator<<(std::ostream& os, std::weak_ptr<${class_upper}> o)
+{
+   auto object = o.lock();
+   if (object) {
+      os << *object;
+   } else {
+      os << "[invalid ${class_lower} reference]";
+   }
+   return os;
+}
 
 ## - Boxed -----------------------------------------------------------------------------------
 % for name, boxed in env.properties(C, dm.Boxed):
@@ -49,15 +66,62 @@ static std::weak_ptr<${class_upper}> ${class_upper}_Set${name | env.upper}(std::
 }
 
    % endif
-   % if boxed.trace:
-static std::shared_ptr<dm::BoxedTrace<${boxed.name}>>
+% endfor
+
+## - Set -----------------------------------------------------------------------------------
+% for name, set in env.properties(C, dm.Set):
+   <% singular_name = hasattr(set, 'singular_name') and set.singular_name or name %>
+   % if set.add:
+static std::weak_ptr<${class_upper}> ${class_upper}_Add${singular_name | env.upper}(std::weak_ptr<${class_upper}> const o, ${set.value.name} value)
+{
+   auto object = o.lock();
+   if (object)  {
+      object->Add${singular_name | env.upper}(value);
+      return o;
+   }
+   throw std::invalid_argument("invalid reference in native add");
+}
+
+   % endif
+   % if set.remove:
+static std::weak_ptr<${class_upper}> ${class_upper}_Remove${singular_name | env.upper}(std::weak_ptr<${class_upper}> o, ${set.value.name} value)
+{
+   auto object = o.lock();
+   if (object)  {
+      object->Remove${singular_name | env.upper}(value);
+      return o;
+   }
+   throw std::invalid_argument("invalid reference in native getter");
+}
+
+   % endif
+   % if set.iterate:
+static std::shared_ptr<lua::SetIterator<${set.name}>> ${class_upper}_Each${singular_name | env.upper}(std::weak_ptr<${class_upper}> o)
+{
+   auto object = o.lock();
+   if (object)  {
+      return std::make_shared<lua::SetIterator<${set.name}>>(object->Each${singular_name | env.upper}());
+   }
+   throw std::invalid_argument("invalid reference in native each");
+}
+   % endif
+% endfor
+
+## - All Traces-----------------------------------------------------------------------------------
+% for name, obj in env.properties(C, [dm.Boxed, dm.Set, dm.Array, dm.Map]):
+   % if obj.trace:
+      % if obj.trace == 'deep_region':
+static DeepRegionGuardPtr
+      % else:
+static ${obj.trace_name}
+      % endif
 ${class_upper}_Trace${name | env.upper}(std::weak_ptr<${class_upper}> o, const char* reason)
 {
    auto object = o.lock();
    if (object)  {
       return object->Trace${name | env.upper}(reason, dm::LUA_TRACES);
    }
-   throw std::invalid_argument("invalid reference in native getter");
+   throw std::invalid_argument("invalid reference in native tracer");
 }
 
    % endif
@@ -66,9 +130,10 @@ ${class_upper}_Trace${name | env.upper}(std::weak_ptr<${class_upper}> o, const c
 scope Register${class_upper}(lua_State* L)
 {
    return
-      lua::RegisterWeakGameObjectDerived<${class_upper}, ${C.__bases__[0]().name}>()
 %if is_component:
-         // .def("extend", &CallMethod<void, ${class_upper}, ${class_upper}::ExtendObject)
+      lua::RegisterWeakGameObjectDerived<${class_upper}, ${C.__bases__[0]().name}>()
+%else:
+      lua::RegisterStrongGameObject<${class_upper}>()
 %endif
 ## - Boxed -----------------------------------------------------------------------------------
 % for name, boxed in env.properties(C, dm.Boxed):
@@ -78,7 +143,20 @@ scope Register${class_upper}(lua_State* L)
    % if boxed.set:
          .def("set_${name | env.lower}", ${class_upper}_Set${name | env.upper})
    % endif
-   % if boxed.trace:
+% endfor
+## - Set -----------------------------------------------------------------------------------
+% for name, set in env.properties(C, dm.Set):
+   <% singular_name = hasattr(set, 'singular_name') and set.singular_name or name %>
+   % if set.add:
+         .def("add_${singular_name | env.lower}", ${class_upper}_Add${singular_name | env.upper})
+   % endif
+   % if set.remove:
+         .def("remove_${singular_name | env.lower}", ${class_upper}_Remove${singular_name | env.upper})
+   % endif
+% endfor
+## - All Traces ------------------------------------------------------------------------------
+% for name, set in env.properties(C, [dm.Set, dm.Map, dm.Boxed, dm.Array]):
+   % if set.trace:
          .def("trace_${name | env.lower}", ${class_upper}_Trace${name | env.upper})
    % endif
 % endfor

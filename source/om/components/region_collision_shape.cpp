@@ -5,6 +5,12 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+
+std::ostream& operator<<(std::ostream& os, RegionCollisionShape const& o)
+{
+   return (os << "[RegionCollisionShape]");
+}
+
 void RegionCollisionShape::ExtendObject(json::Node const& obj)
 {
    if (obj.has("region")) {

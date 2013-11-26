@@ -18,6 +18,7 @@ add_library(lua
             client/open_client.cpp
             rpc/open_rpc.cpp
             om/open_om.cpp
+            dm/open_dm.cpp
             voxel/open_voxel.cpp
             pch.cpp
             )

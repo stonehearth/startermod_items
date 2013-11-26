@@ -24,20 +24,6 @@ static const std::string names_upper__[] = {
 #undef OM_OBJECT
 };
 
-std::ostream& ::radiant::om::operator<<(std::ostream& os, Component const& o)
-{
-   os << "[" << om::GetObjectName(o) << " " << o.GetObjectId();
-
-   std::ostringstream strm;
-   o.Describe(strm);
-   std::string desc = strm.str();
-   if (!desc.empty()) {
-      os << " " << desc << " ";
-   }
-   os << "]";
-   return os;
-}
-
 std::string radiant::om::GetObjectNameLower(dm::ObjectPtr obj)
 {
    return obj.get() ? GetObjectNameLower(*obj) : std::string("nullptr");

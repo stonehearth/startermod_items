@@ -4,7 +4,7 @@ import ridl.std_types as std
 import ridl.ridl as ridl
 
 class ModelLayer(dm.Record):
-   layer_type = ridl.Enum('Layer',
+   layer_type = ridl.Enum('ModelLayer', 'Layer',
       SKELETON    = 0,
       SKIN        = 1,
       CLOTHING    = 2,
@@ -12,7 +12,7 @@ class ModelLayer(dm.Record):
       CLOAK       = 4,
       NUM_LAYERS  = 5
    )
-   models = dm.Set(std.string(), iterate='define')
+   models = dm.Set(std.string(), iterate='define', singular_name='model')
    layer = dm.Boxed(layer_type)
    variants = dm.Boxed(std.string())
 

@@ -6,7 +6,7 @@ import ridl.csg_types as csg
 from ridl.om_types import *
 
 class Terrain(Component):
-   block_types = ridl.Enum('BlockTypes',
+   block_types = ridl.Enum('Terrain', 'BlockTypes',
       Null          = 0,
       RockLayer1    = 1,
       RockLayer2    = 2,

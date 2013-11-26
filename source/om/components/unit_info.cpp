@@ -4,6 +4,11 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+std::ostream& operator<<(std::ostream& os, UnitInfo const& o)
+{
+   return (os << "[UnitInfo " << o.GetDisplayName() << "]");
+}
+
 void UnitInfo::ExtendObject(json::Node const& obj)
 {
    JSONNode const& node = obj.GetNode();

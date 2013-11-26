@@ -5,6 +5,11 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+std::ostream& operator<<(std::ostream& os, Item const& o)
+{
+   return (os << "[Item]");
+}
+
 void Item::ConstructObject()
 {
    stacks_ = 1;

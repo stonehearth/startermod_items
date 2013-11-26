@@ -11,6 +11,7 @@ include_directories(${Cryptopp_INCLUDE_DIRS})
 add_subdirectory(components)
 add_subdirectory(object_formatter)
 add_subdirectory(error_browser)
+add_subdirectory(lua)
 
 add_library(om STATIC
             pch.cpp
@@ -28,6 +29,7 @@ endif(MSVC)
 
 
 target_link_libraries(om
+                      om_lua
                       om_components
                       om_object_formatter
                       om_error_browser

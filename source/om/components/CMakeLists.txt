@@ -70,6 +70,7 @@ add_library(om_components STATIC
             carry_block.cpp
             clock.cpp
             component.cpp
+            data_store.cpp
             destination.cpp
             effect.cpp
             effect_list.cpp

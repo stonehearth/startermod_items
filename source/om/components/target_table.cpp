@@ -8,6 +8,11 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+std::ostream& operator<<(std::ostream& os, TargetTable const& o)
+{
+   return (os << "[TargetTable]");
+}
+
 TargetTableEntryPtr TargetTable::AddEntry(om::EntityRef e)
 {
    TargetTableEntryPtr entry;

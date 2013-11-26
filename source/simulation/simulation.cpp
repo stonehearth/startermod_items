@@ -32,6 +32,7 @@
 #include "lib/lua/rpc/open.h"
 #include "lib/lua/sim/open.h"
 #include "lib/lua/om/open.h"
+#include "lib/lua/dm/open.h"
 #include "lib/lua/voxel/open.h"
 #include "lib/lua/analytics/open.h"
 #include "om/lua/lua_om.h"
@@ -142,6 +143,7 @@ void Simulation::CreateNew()
 
    csg::RegisterLuaTypes(L);
    lua::om::open(L);
+   lua::dm::open(L);
    lua::sim::open(L, this);
    lua::res::open(L);
    lua::voxel::open(L);
@@ -402,7 +404,7 @@ void Simulation::InitDataModel()
    pathfinder_traces_ = std::make_shared<dm::TracerSync>();
    lua_traces_ = std::make_shared<dm::TracerBuffered>();  
 
-   store_.AddTracer(lua_traces_, dm::LUA_SIM_TRACES);
+   store_.AddTracer(lua_traces_, dm::LUA_TRACES);
    store_.AddTracer(object_model_traces_, dm::OBJECT_MODEL_TRACES);
    store_.AddTracer(pathfinder_traces_, dm::PATHFINDER_TRACES);
 }

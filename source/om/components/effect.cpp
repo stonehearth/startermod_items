@@ -6,13 +6,11 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-#if 0
-std::ostream& om::operator<<(std::ostream& os, const Effect& o)
+std::ostream& operator<<(std::ostream& os, const Effect& o)
 {
    os << "[Effect " << o.GetObjectId() << " name:" << o.GetName() << "]";
    return os;
 }
-#endif
 
 void Effect::Init(std::string name, int start)
 {

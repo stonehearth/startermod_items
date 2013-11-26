@@ -6,6 +6,12 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+std::ostream& operator<<(std::ostream& os, const Destination& o)
+{
+   os << "[Destination]";
+   return os;
+}
+
 void Destination::ConstructObject()
 {
    auto_update_adjacent_ = false;

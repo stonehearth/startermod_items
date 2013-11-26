@@ -6,6 +6,11 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+std::ostream& operator<<(std::ostream& os, RenderInfo const& o)
+{
+   return (os << "[RenderInfo]");
+}
+
 void RenderInfo::ConstructObject()
 {
    scale_ = 0.1f;

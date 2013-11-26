@@ -7,35 +7,10 @@ using namespace ::radiant;
 using namespace ::radiant::om;
 
 
-#if 0
-std::ostream& om::operator<<(std::ostream& os, const TargetTableEntry& o)
+std::ostream& operator<<(std::ostream& os, TargetTableEntry const& o)
 {
-   auto entity = o.GetTarget().lock();
-   if (!entity) {
-      return (os << "[TargetTableEntry null]");
-   }
-   return (os << "[TargetTableEntry entity:" << entity->GetObjectId() << " value:" << o.GetValue() << "]");
+   return (os << "[TargetTableEntry]");
 }
-
-std::ostream& om::operator<<(std::ostream& os, const TargetTable& o)
-{
-   return (os << "[TargetTable category:" << o.GetCategory() << " name:" << o.GetName());
-}
-
-std::ostream& om::operator<<(std::ostream& os, const TargetTableTop& o)
-{
-   auto entity = o.target.lock();
-   if (!entity) {
-      return (os << "[TargetTableEntry null]");
-   }
-   return (os << "[TargetTableEntry entity:" << entity->GetObjectId() << " value:" << o.value << "]");
-}
-
-std::ostream& om::operator<<(std::ostream& os, const TargetTableGroup& o)
-{
-   return (os << "[TargetTableGroup category:" << o.GetCategory() << " #:" << o.GetTableCount() << "]");
-}
-#endif
 
 void TargetTableEntry::ConstructObject()
 {

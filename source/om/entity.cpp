@@ -5,15 +5,6 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-std::ostream& ::radiant::om::operator<<(std::ostream& os, EntityPtr o)
-{
-   if (o) {
-      return os << *o;
-   } else {
-      return os << "[Entity null!]";
-   }
-}
-
 std::ostream& ::radiant::om::operator<<(std::ostream& os, Entity const& o)
 {
    std::string debug_text = o.GetDebugText();

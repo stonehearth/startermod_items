@@ -5,13 +5,11 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-#if 0
-std::ostream& om::operator<<(std::ostream& os, const Sensor& o)
+std::ostream& operator<<(std::ostream& os, const Sensor& o)
 {
    os << "[Sensor " << o.GetObjectId() << " name:" << o.GetName() << "]";
    return os;
 }
-#endif
 
 void Sensor::UpdateIntersection(std::vector<EntityId> intersection)
 {

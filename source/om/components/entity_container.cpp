@@ -7,6 +7,11 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+std::ostream& operator<<(std::ostream& os, EntityContainer const& o)
+{
+   return (os << "[EntityContainer]");
+}
+
 void EntityContainer::ExtendObject(json::Node const& obj)
 {
 }

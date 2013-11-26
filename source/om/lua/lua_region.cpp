@@ -10,11 +10,7 @@ using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-BEGIN_RADIANT_JSON_NAMESPACE
-DEFINE_INVALID_JSON_CONVERSION(Region3BoxedPromise)
-END_RADIANT_JSON_NAMESPACE
-
-
+#if 0
 std::ostream& operator<<(std::ostream& os, Region2Boxed::Promise const& f)
 {
    return os << "[Region2Boxed::Promise]";
@@ -29,15 +25,12 @@ std::ostream& operator<<(std::ostream& os, Region3Boxed::Promise const& f)
 {
    return os << "[Region3Boxed::Promise]";
 }
+#endif
 
 scope LuaRegion::RegisterLuaTypes(lua_State* L)
 {
    return
-      Region2Boxed::RegisterLuaType(L)
-      ,
+      Region2Boxed::RegisterLuaType(L),
       Region3Boxed::RegisterLuaType(L)
-      ,
-      lua::RegisterTypePtr<Region3BoxedPromise>()
-         .def("on_changed", &Region3BoxedPromise::PushChangedCb)
       ;
 }

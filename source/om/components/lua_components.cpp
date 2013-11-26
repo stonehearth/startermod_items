@@ -6,6 +6,12 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+
+std::ostream& operator<<(std::ostream& os, LuaComponents const& o)
+{
+   return (os << "[LuaComponents]");
+}
+
 void LuaComponents::ExtendObject(json::Node const& obj) 
 {
 }

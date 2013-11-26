@@ -8,6 +8,11 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+std::ostream& operator<<(std::ostream& os, TargetTableGroup const& o)
+{
+   return (os << "[TargetTableGroup]");
+}
+
 TargetTablePtr TargetTableGroup::AddTable()
 {
    TargetTablePtr table = GetStore().AllocObject<TargetTable>();

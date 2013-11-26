@@ -6,12 +6,11 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-#if 0
-void Mob::Describe(std::ostringstream& os) const
+
+std::ostream& operator<<(std::ostream& os, Mob const& o)
 {
-   os << "pos:" << GetLocation();
+   return (os << "[Mob]");
 }
-#endif
 
 void Mob::ConstructObject()
 {

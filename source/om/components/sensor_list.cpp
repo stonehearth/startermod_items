@@ -7,13 +7,11 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-#if 0
-std::ostream& om::operator<<(std::ostream& os, const Sensor& o)
+std::ostream& operator<<(std::ostream& os, const SensorList& o)
 {
-   os << "[Sensor " << o.GetObjectId() << " name:" << o.GetName() << "]";
+   os << "[SensorList]";
    return os;
 }
-#endif
 
 void SensorList::ExtendObject(json::Node const& obj)
 {

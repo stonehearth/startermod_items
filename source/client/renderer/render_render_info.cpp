@@ -91,7 +91,7 @@ void RenderRenderInfo::AccumulateModelVariant(ModelMap& m, om::ModelLayerPtr v)
                                  SetDirtyBits(MODEL_DIRTY);
                               });
 
-      for (std::string const& model : v->AllModels()) {
+      for (std::string const& model : v->EachModel()) {
          std::shared_ptr<voxel::QubicleFile> qubicle;
          try {
             qubicle = LoadQubicleFile(model);
@@ -135,7 +135,7 @@ void RenderRenderInfo::RebuildModels(om::RenderInfoPtr render_info)
 
    variant_trace_ = nullptr;
    std::string current_variant = GetModelVariant(render_info);
-   for (om::EntityRef const& a : render_info->AllAttachedEntities()) {
+   for (om::EntityRef const& a : render_info->EachAttachedEntity()) {
       auto attached = a.lock();
       if (attached) {
          auto mv = attached->GetComponent<om::ModelVariants>();

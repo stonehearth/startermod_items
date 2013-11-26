@@ -7,6 +7,11 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+std::ostream& operator<<(std::ostream& os, Terrain const& o)
+{
+   return (os << "[Terrain]");
+}
+
 void Terrain::CreateNew()
 {
 }

@@ -6,13 +6,11 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-#if 0
-std::ostream& om::operator<<(std::ostream& os, const ModelLayer& o)
+std::ostream& operator<<(std::ostream& os, const ModelLayer& o)
 {
    os << "[ModelLayer " << o.GetObjectId() << " variants:" << o.GetVariants() << "]";
    return os;
 }
-#endif
 
 static std::unordered_map<std::string, ModelLayer::Layer> __str_to_layer; // xxx -- would LOVE initializer here..
 

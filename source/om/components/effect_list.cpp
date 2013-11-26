@@ -6,6 +6,11 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+std::ostream& operator<<(std::ostream& os, EffectList const& o)
+{
+   return (os << "[EffectList]");
+}
+
 void EffectList::ExtendObject(json::Node const& obj)
 {
    for (json::Node const& entry : obj.getn("effects")) {

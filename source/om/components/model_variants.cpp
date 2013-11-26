@@ -7,6 +7,11 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+std::ostream& operator<<(std::ostream& os, ModelVariants const& o)
+{
+   return (os << "[ModelVariants]");
+}
+
 void ModelVariants::ExtendObject(json::Node const& obj)
 {
    // All entities with models must have a render_info...

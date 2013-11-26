@@ -47,11 +47,12 @@ class Class(Type):
    _includes = []
 
 class Enum(Type):
-   def __init__(self, name, **kwargs):
-      Type.__init__(self)     
+   def __init__(self, clsname, name, **kwargs):
+      Type.__init__(self)  
       self.values = [(k, kwargs[k]) for k in kwargs]
       self.values.sort(key=lambda x: x[1]) # sort by value
-      self.name = name
+      self.name = '%s::%s' % (clsname, name)
+      self.internal_name = name
 
    def __getattr__(self, name):
       for k, v in self.values:
