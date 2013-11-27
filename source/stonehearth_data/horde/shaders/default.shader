@@ -23,11 +23,12 @@ sampler2D ssaoBuffer = sampler_state
 sampler2D outlineSampler = sampler_state
 {
   Address = Clamp;
-  Filter = Trilinear;
+  Filter = None;
 };
 
 sampler2D outlineDepth = sampler_state
 {
+  Filter = None;
   Address = Clamp;
 };
 
@@ -57,6 +58,7 @@ context SELECTED_SCREENSPACE
   VertexShader = compile GLSL VS_GENERAL;
   PixelShader = compile GLSL FS_SELECTED_SCREENSPACE;
   ZWriteEnable = true;
+  CullMode = None;
 }
 
 context SELECTED_SCREENSPACE_OUTLINER
@@ -65,20 +67,6 @@ context SELECTED_SCREENSPACE_OUTLINER
   PixelShader = compile GLSL FS_SELECTED_SCREENSPACE_OUTLINER;
   BlendMode = Blend;
   ZWriteEnable = false;
-}
-
-context SHADOWMAP
-{
-  VertexShader = compile GLSL VS_SHADOWMAP;
-  PixelShader = compile GLSL FS_SHADOWMAP;
-  CullMode = Back;
-}
-
-context DIRECTIONAL_SHADOWMAP
-{
-  VertexShader = compile GLSL VS_DIRECTIONAL_SHADOWMAP;
-  PixelShader = compile GLSL FS_DIRECTIONAL_SHADOWMAP;
-  CullMode = Back;
 }
 
 context OMNI_LIGHTING
@@ -101,6 +89,13 @@ context DIRECTIONAL_LIGHTING
   CullMode = Back;
 }
 
+context DIRECTIONAL_SHADOWMAP
+{
+  VertexShader = compile GLSL VS_DIRECTIONAL_SHADOWMAP;
+  PixelShader = compile GLSL FS_DIRECTIONAL_SHADOWMAP;
+  CullMode = Back;
+}
+
 
 context CLOUDS
 {
@@ -113,19 +108,18 @@ context CLOUDS
 }
 
 [[VS_GENERAL]]
-#version 130
 #include "shaders/utilityLib/vertCommon.glsl"
 
 uniform mat4 viewProjMat;
 
-in vec3 vertPos;
-in vec3 normal;
-in vec3 color;
+attribute vec3 vertPos;
+attribute vec3 normal;
+attribute vec3 color;
 
-out vec4 pos;
-out vec4 vsPos;
-out vec3 tsbNormal;
-out vec3 albedo;
+varying vec4 pos;
+varying vec4 vsPos;
+varying vec3 tsbNormal;
+varying vec3 albedo;
 
 
 void main( void )
@@ -140,76 +134,80 @@ void main( void )
 
 
 [[FS_DEFERRED_DEPTH_AND_LIGHT]] 
-#version 130
 
 uniform vec3 viewerPos;
 
-in vec4 pos;
-in vec3 tsbNormal;
-
-out vec4 fragNormal;
-out vec4 fragViewPos;
+varying vec4 pos;
+varying vec3 tsbNormal;
 
 void main( void )
 {
-  fragNormal.xyz = normalize(tsbNormal).xyz;
-  fragViewPos.xyz = pos.xyz - viewerPos;
+  gl_FragData[0].xyz = normalize(tsbNormal).xyz;
+  gl_FragData[1].xyz = pos.xyz - viewerPos;
 }
 
 
 [[FS_FORWARD_AMBIENT]]  
-#version 130
-
-out vec4 fragColor;
 
 void main( void )
 {
-  fragColor = vec4(0, 0, 0, 1);
+  gl_FragColor = vec4(0, 0, 0, 1);
 }
 
-[[VS_SHADOWMAP]]
-// =================================================================================================
-  
-#include "shaders/utilityLib/vertCommon.glsl"
-#include "shaders/utilityLib/vertSkinning.glsl"
 
-uniform mat4 viewProjMat;
-uniform vec4 lightPos;
-in vec3 vertPos;
-varying vec3 lightVec;
+[[FS_OMNI_LIGHTING]]
+// =================================================================================================
+
+#include "shaders/utilityLib/fragLighting.glsl" 
+
+uniform vec3 viewerPos;
+uniform vec4 matDiffuseCol;
+uniform vec4 matSpecParams;
+uniform sampler2D albedoMap;
+
+varying vec4 pos;
+varying vec4 vsPos;
+varying vec3 albedo;
+varying vec3 tsbNormal;
 
 void main( void )
 {
-  vec4 pos = calcWorldPos( vec4( vertPos, 1.0 ) );
-  lightVec = lightPos.xyz - pos.xyz;
-  gl_Position = viewProjMat * pos;
+  vec3 normal = tsbNormal;
+  vec3 newPos = pos.xyz;
+  gl_FragColor = vec4(calcPhongOmniLight(viewerPos, newPos, normalize(normal)) * albedo, 1.0);
 }
-  
-  
-[[FS_SHADOWMAP]]
+
+[[FS_DIRECTIONAL_LIGHTING]]
 // =================================================================================================
 
-uniform vec4 lightPos;
-uniform float shadowBias;
-in vec3 lightVec;
+#include "shaders/utilityLib/fragLighting.glsl" 
+#include "shaders/shadows.shader"
+
+uniform vec3 viewerPos;
+uniform vec3 lightAmbientColor;
+
+varying vec4 pos;
+varying vec4 vsPos;
+varying vec3 albedo;
+varying vec3 tsbNormal;
 
 void main( void )
 {
-  float dist = length( lightVec ) / lightPos.w;
-  gl_FragDepth = dist;// + shadowBias;
-  
-  // Clearly better bias but requires SM 3.0
-  // gl_FragDepth = dist + abs( dFdx( dist ) ) + abs( dFdy( dist ) ) + shadowBias;
+  float shadowTerm = getShadowValue(pos.xyz);
+  vec3 lightColor = calcSimpleDirectionalLight(viewerPos, pos.xyz, normalize(tsbNormal), -vsPos.z);
+
+  lightColor = (shadowTerm * (lightColor * albedo)) + (lightAmbientColor * albedo);
+
+  gl_FragColor = vec4(lightColor, 1.0);
 }
 
 [[VS_DIRECTIONAL_SHADOWMAP]]
-// =================================================================================================
-  
 #include "shaders/utilityLib/vertCommon.glsl"
 #include "shaders/utilityLib/vertSkinning.glsl"
 
 uniform mat4 viewProjMat;
-in vec3 vertPos;
+
+attribute vec3 vertPos;
 
 void main( void )
 {
@@ -219,115 +217,64 @@ void main( void )
   
   
 [[FS_DIRECTIONAL_SHADOWMAP]]
-// =================================================================================================
-
 void main( void )
 {
+  gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
 }
 
-[[FS_OMNI_LIGHTING]]
-// =================================================================================================
-#version 130
 
-#include "shaders/utilityLib/fragLighting.glsl" 
 
-uniform vec3 viewerPos;
-uniform vec4 matDiffuseCol;
-uniform vec4 matSpecParams;
-uniform sampler2D albedoMap;
-
-in vec4 pos;
-in vec4 vsPos;
-in vec3 albedo;
-in vec3 tsbNormal;
-
-out vec4 outLightColor;
-
-void main( void )
-{
-  vec3 normal = tsbNormal;
-  vec3 newPos = pos.xyz;
-  outLightColor.rgb = calcPhongOmniLight(viewerPos, newPos, normalize(normal)) * albedo;
-}
-
-[[FS_DIRECTIONAL_LIGHTING]]
-// =================================================================================================
-#version 130
-
-#include "shaders/utilityLib/fragLighting.glsl" 
-#include "shaders/shadows.shader"
-
-uniform vec3 viewerPos;
-uniform vec3 lightAmbientColor;
-
-in vec4 pos;
-in vec4 vsPos;
-in vec3 albedo;
-in vec3 tsbNormal;
-
-out vec4 outLightColor;
-
-void main( void )
-{
-  float shadowTerm = getShadowValue(pos.xyz);
-  vec3 lightColor = calcSimpleDirectionalLight(viewerPos, pos.xyz, normalize(tsbNormal), -vsPos.z);
-
-  lightColor = (shadowTerm * (lightColor * albedo)) + (lightAmbientColor * albedo);
-
-  outLightColor = vec4(lightColor, 1.0);
-}
 
 [[FS_CLOUDS]]
-#version 130
-in vec4 pos;
+
 uniform sampler2D cloudMap;
 uniform float currentTime;
-out vec4 cloudColor;
+
+varying vec4 pos;
 
 void main( void )
 {
   vec2 fragCoord = pos.xz * 0.3;
   float cloudSpeed = currentTime / 80.0;
-  cloudColor = texture2D(cloudMap, fragCoord.xy / 128.0 + cloudSpeed);
-  cloudColor *= texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0));
+  vec4 cloudColor = texture2D(cloudMap, fragCoord.xy / 128.0 + cloudSpeed);
+  gl_FragColor = cloudColor * texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0));
 }
 
 
 [[FS_DEFERRED_MATERIAL]]
-#version 130
+
 uniform sampler2D lightingBuffer;
 uniform sampler2D ssaoBuffer;
 uniform vec2 frameBufSize;
-in vec3 albedo;
-out vec4 fragColor;
+
+varying vec3 albedo;
 
 void main(void)
 {
   vec2 fragCoord = vec2(gl_FragCoord.xy / frameBufSize);
   vec3 lightColor = texture2D(lightingBuffer, fragCoord).xyz;
   float ssaoIntensity = texture2D(ssaoBuffer, fragCoord).x;
-  fragColor = vec4(lightColor * albedo * ssaoIntensity, 1.0);
+  gl_FragColor = vec4(lightColor * albedo * ssaoIntensity, 1.0);
 }
 
 
 [[FS_SELECTED_SCREENSPACE]]
-#version 130
-out vec4 fragColor;
 
 void main(void)
 {
-  fragColor = vec4(1, 1, 0, 1);
+  gl_FragColor = vec4(1, 1, 0, 1);
 }
 
 
 [[VS_SELECTED_SCREENSPACE_OUTLINER]]
-#version 130
 
 #include "shaders/utilityLib/fullscreen_quad.glsl" 
 
 uniform mat4 projMat;
-in vec3 vertPos;
-out vec2 texCoords;
+
+attribute vec3 vertPos;
+
+varying vec2 texCoords;
         
 void main( void )
 {
@@ -336,18 +283,16 @@ void main( void )
 
 
 [[FS_SELECTED_SCREENSPACE_OUTLINER]]
-#version 130
 
 #include "shaders/utilityLib/outline.glsl"
 
 uniform sampler2D outlineSampler;
 uniform sampler2D outlineDepth;
 
-in vec2 texCoords;
-out vec4 fragColor;
+varying vec2 texCoords;
 
 void main(void)
 {
-  fragColor = compute_outline_color(outlineSampler, texCoords);
+  gl_FragColor = compute_outline_color(outlineSampler, texCoords);
   gl_FragDepth = compute_outline_depth(outlineDepth, texCoords);
 }

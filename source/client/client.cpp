@@ -42,16 +42,15 @@
 #include "lib/lua/om/open.h"
 #include "lib/lua/voxel/open.h"
 #include "lib/lua/analytics/open.h"
+#include "lib/lua/audio/open.h"
 #include "lib/analytics/design_event.h"
 #include "lib/analytics/post_data.h"
 #include "lib/audio/input_stream.h"
+#include "lib/audio/audio_manager.h"
 #include "client/renderer/render_entity.h"
 #include "lib/perfmon/perfmon.h"
 #include "platform/sysinfo.h"
 #include "glfw3.h"
-
-#include <SFML/Audio.hpp>
-
 
 //  #include "GFx/AS3/AS3_Global.h"
 #include "client.h"
@@ -67,9 +66,6 @@ namespace proto = ::radiant::tesseract::protocol;
 static const std::regex call_path_regex__("/r/call/?");
 
 DEFINE_SINGLETON(Client);
-
-sf::SoundBuffer soundBuffer_;
-sf::Sound       sound_;
 
 Client::Client() :
    _tcp_socket(_io_service),
@@ -135,11 +131,11 @@ Client::Client() :
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:design_event");
       try {
          json::Node node(f.args);
-         std::string event_name = node.getn(0).as<std::string>();
+         std::string event_name = node.get<std::string>(0);
          analytics::DesignEvent design_event(event_name);
 
          if (node.size() > 1) {
-            json::Node params = node.getn(1);
+            json::Node params = node.get_node(1);
             if (params.has("value")) {
                design_event.SetValue(params.get<float>("value"));
             }
@@ -165,8 +161,8 @@ Client::Client() :
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:design_event");
       try {
          json::Node node(f.args);
-         bool collect_stats = node.getn(0).as<bool>();
-         core::Config::GetInstance().SetCollectionStatus(collect_stats);
+         bool collect_stats = node.get<bool>(0);
+         analytics::SetCollectionStatus(collect_stats);
          result->ResolveWithMsg("success");
       } catch (std::exception const& e) {
          result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
@@ -182,8 +178,8 @@ Client::Client() :
       try {
          json::Node node;
          core::Config& config = core::Config::GetInstance();
-         node.set("has_expressed_preference", config.IsCollectionStatusSet());
-         node.set("collection_status", config.GetCollectionStatus());
+         node.set("has_expressed_preference", analytics::IsCollectionStatusSet());
+         node.set("collection_status", analytics::GetCollectionStatus());
          result->Resolve(node);
       } catch (std::exception const& e) {
          result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
@@ -218,20 +214,43 @@ Client::Client() :
       return result;
    });
 
+   //TODO: take arguments to accomodate effects sounds
    core_reactor_->AddRoute("radiant:play_sound", [this](rpc::Function const& f) {
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:play_sound");
       try {
          json::Node node(f.args);
-         std::string sound_url = node.getn(0).as<std::string>();
+         std::string sound_url = node.get_node(0).as<std::string>();
+         audio::AudioManager &a = audio::AudioManager::GetInstance();
+         a.PlaySound(sound_url);
+         result->ResolveWithMsg("success");
+      } catch (std::exception const& e) {
+         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
+      }
+      return result;
+   });
 
-         if (soundBuffer_.loadFromStream(audio::InputStream(sound_url))) {
-            // TODO, add a sound manager instead of this temp solution!
-            // see http://bugs.radiant-entertainment.com:8080/browse/SH-29
-            sound_.setBuffer(soundBuffer_);
-	         sound_.play();
-         } else { 
-            LOG(INFO) << "Can't find Sound Effect! " << sound_url;
+   core_reactor_->AddRoute("radiant:play_music", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:play_bgm");
+      try {         
+         json::Node node(f.args);
+         json::Node params = node.get_node(0);
+
+         audio::AudioManager &a = audio::AudioManager::GetInstance();
+         
+         //Get track, channel, and other optional data out of the node
+         std::string uri = params.get<std::string>("track");
+         std::string channel = params.get<std::string>("channel");
+
+         if (params.has("loop")) {
+            a.SetNextMusicLoop(params.get<bool>("loop"), channel);
          }
+         if (params.has("fade")) {
+            a.SetNextMusicFade(params.get<int>("fade"), channel);
+         }
+         if (params.has("volume")) {
+            a.SetNextMusicVolume(params.get<int>("volume"), channel);
+         }        
+         a.PlayMusic(uri, channel);
 
          result->ResolveWithMsg("success");
       } catch (std::exception const& e) {
@@ -245,12 +264,6 @@ Client::~Client()
 {
    octtree_.release();
 }
-
-void Client::GetConfigOptions()
-{
-   Renderer::GetConfigOptions();
-}
-
 
 extern bool realtime;
 void Client::run(int server_port)
@@ -277,20 +290,15 @@ void Client::run(int server_port)
       OnInput(input);
    });
 
-   namespace po = boost::program_options;
-   auto varMap = core::Config::GetInstance().GetVarMap();
-   std::string loader = varMap["game.mod"].as<std::string>();
-   json::Node manifest(res::ResourceManager2::GetInstance().LookupManifest(loader));
+   core::Config const& config = core::Config::GetInstance();
+   std::string const loader = config.Get<std::string>("game.mod");
+   json::Node const manifest = res::ResourceManager2::GetInstance().LookupManifest(loader);
    std::string docroot = "http://radiant/" + manifest.get<std::string>("loader.ui.homepage");
 
-   // seriously???
-   std::string name = core::Config::GetInstance().GetName();
-   std::string game_script = varMap["game.script"].as<std::string>();
-   if (game_script != name + "/start_game.lua") {
+   // skip title screen if there is a script override
+   if (config.Has("game.script")) {
       docroot += "?skip_title=true";
    }
-
-   renderer.ApplyConfig();
 
    int screen_width = renderer.GetWidth();
    int screen_height = renderer.GetHeight();
@@ -333,6 +341,7 @@ void Client::run(int server_port)
    lua::voxel::open(L);
    lua::rpc::open(L, core_reactor_);
    lua::analytics::open(L);
+   lua::audio::open(L);
 
 
    //luabind::globals(L)["_client"] = luabind::object(L, this);
@@ -354,7 +363,7 @@ void Client::run(int server_port)
       currentCursor_ = NULL;
    };
 
-   if (core::Config::GetInstance().GetCrashKeyEnabled()) {
+   if (core::Config::GetInstance().Get("crash_key_enabled", false)) {
       _commands[GLFW_KEY_PAUSE] = []() {
          // throw an exception that is not caught by Client::OnInput
          throw std::string("User hit crash key");
@@ -387,7 +396,7 @@ void Client::InitializeModules()
    for (std::string const& modname : rm.GetModuleNames()) {
       try {
          json::Node manifest = rm.LookupManifest(modname);
-         json::Node const& block = manifest.getn("client");
+         json::Node const& block = manifest.get_node("client");
          if (!block.empty()) {
             LOG(WARNING) << "loading init script for " << modname << "...";
             LoadModuleInitScript(block);
@@ -474,6 +483,10 @@ void Client::mainloop()
    perfmon::SwitchToCounter("lua gc");
    platform::timer t(10);
    scriptHost_->GC(t);
+
+   //Update the audio_manager with the current time
+   audio::AudioManager &a = audio::AudioManager::GetInstance();
+   a.UpdateAudio(now_);
 }
 
 om::TerrainPtr Client::GetTerrain()
@@ -814,7 +827,7 @@ void Client::SelectEntity(om::EntityPtr obj)
          std::string uri = om::ObjectFormatter().GetPathToObject(selectedObject_);
          data.push_back(JSONNode("selected_entity", uri));
       }
-      http_reactor_->QueueEvent("selection_changed.radiant", data);
+      http_reactor_->QueueEvent("radiant_selection_changed", data);
    }
 }
 
@@ -933,7 +946,7 @@ rpc::ReactorDeferredPtr Client::GetModules(rpc::Function const& fn)
    for (std::string const& modname : rm.GetModuleNames()) {
       JSONNode manifest;
       try {
-         manifest = rm.LookupManifest(modname).GetNode();
+         manifest = rm.LookupManifest(modname).get_internal_node();
       } catch (std::exception const&) {
          // Just use an empty manifest...f
       }

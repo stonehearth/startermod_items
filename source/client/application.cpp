@@ -8,13 +8,29 @@
 #include "lib/perfmon/perfmon.h"
 #include "lib/analytics/analytics.h"
 #include "core/config.h"
+#include "core/system.h"
 #include "build_number.h"
 #include "boost/thread.hpp"
 #include "lib/crash_reporter/client/crash_reporter_client.h"
 #include "csg/random_number_generator.h"
+#include "lib/json/json.h"
 
+using namespace radiant;
 using radiant::client::Application;
-namespace po = boost::program_options;
+
+static std::string const LOG_FILENAME = std::string(PRODUCT_IDENTIFIER) + ".log";
+static std::string const EXE_NAME = std::string(PRODUCT_IDENTIFIER) + ".exe";
+static std::string const HELP_MESSAGE = BUILD_STRING(
+   "Options can be specified on the command-line using the format:\n" <<
+   "      " << EXE_NAME << " name1=value1 name2=value2 name3=value3\n\n" <<
+   "Name should be the path to the property you want to set. For example, to set this config file property:\n" <<
+   "      \"renderer\" : { \"enable_shadows\" }\n" <<
+   "you would use:\n" <<
+   "      " << EXE_NAME << " renderer.enable_shadows=true\n\n" <<
+   "Any of the options specified in the stonehearth.json config files can be set this way and will override the config file setting.\n\n" <<
+   "To show this message again use:\n" <<
+   "      " << EXE_NAME << " help"
+);
 
 void protobuf_log_handler(google::protobuf::LogLevel level, const char* filename,
                           int line, const std::string& message)
@@ -30,33 +46,19 @@ Application::~Application()
 {
 }
 
-bool Application::LoadConfig(int argc, const char* argv[])
-{
-   core::Config& config = core::Config::GetInstance();
-
-   Client::GetInstance().GetConfigOptions();
-   game_engine::arbiter::GetInstance().GetConfigOptions();
-   po::options_description config_file("Renderer options");
-   config_file.add_options()
-      (
-         "support.crash_dump_server",
-         po::value<std::string>(&crash_dump_uri_)->default_value(REPORT_CRASHDUMP_URI), "Where to send crash dumps"
-      );
-   core::Config::GetInstance().GetConfigFileOptions().add(config_file);
-
-   return config.Load(argc, argv);
-}
-
 // Returns false on error
-bool Application::InitializeCrashReporting(std::string& error_string)
+void Application::InitializeCrashReporting()
 {
    // Don't install exception handling hooks in debug builds
-   DEBUG_ONLY(return true;)
+   DEBUG_ONLY(return;)
 
-   std::string const crash_dump_path = core::Config::GetInstance().GetTmpDirectory().string();
-   std::string const userid = core::Config::GetInstance().GetUserID();
+   core::Config& config = core::Config::GetInstance();
 
-   return crash_reporter::client::CrashReporterClient::GetInstance().Start(crash_dump_path, crash_dump_uri_, userid, error_string);
+   std::string const crash_dump_path = core::System::GetInstance().GetTempDirectory().string();
+   std::string const userid = config.GetUserID();
+   crash_dump_uri_ = config.Get("support.crash_dump_server", REPORT_CRASHDUMP_URI);
+
+   crash_reporter::client::CrashReporterClient::GetInstance().Start(crash_dump_path, crash_dump_uri_, userid);
 }
 
 boost::asio::ip::tcp::acceptor* Application::FindServerPort()
@@ -103,41 +105,51 @@ void Application::ClientThreadMain(int server_port)
    });
 }
 
+bool Application::ShouldShowHelp(int argc, const char* argv[]) const
+{
+   if (argc > 1) {
+      std::string option(argv[1]);
+      return option.find('=') == std::string::npos;
+   }
+   return false;
+}
+
+void Application::ShowHelp() const
+{
+   // Should call a cross-platform message window
+   MessageBox(nullptr, HELP_MESSAGE.c_str(), PRODUCT_IDENTIFIER, MB_OK);
+}
+
 int Application::Run(int argc, const char** argv)
 {
-   // Exception handling prior to initializing crash reporter or log
+   // Exception handling prior to initializing crash reporter
    try {
-      core::Config& config = core::Config::GetInstance();
-      
-      if (!LoadConfig(argc, argv)) {
-         return 0;
+      if (ShouldShowHelp(argc, argv)) {
+         ShowHelp();
+         std::exit(0);
       }
+      radiant::logger::init(core::System::GetInstance().GetTempDirectory() / LOG_FILENAME);
+      json::InitialzeErrorHandler();
+      core::Config::GetInstance().Load(argc, argv);
    } catch (std::exception const& e) {
-      std::string const error_message = BUILD_STRING("Unhandled exception during application bootstrap.\n\n" << e.what());
+      std::string const error_message = BUILD_STRING("Error starting application:\n\n" << e.what());
+      try {
+         // Log it if possible
+         LOG(ERROR) << error_message;
+      } catch (...) {}
       crash_reporter::client::CrashReporterClient::TerminateApplicationWithMessage(error_message);
    }
 
-   // Start crash reporter after config has been successfully loaded so we have a temp directory for the dump_path
-   // Start before the logger in case the logger fails
-   std::string error_string;
-   bool crash_reporting_initialized = false;
    try {
-      crash_reporting_initialized = InitializeCrashReporting(error_string);
-   } catch (...) {
+      InitializeCrashReporting();
+   } catch (std::exception const& e) {
       // Continue running without crash reporter
-      // Log the error string when the log comes up
+      LOG(WARNING) << "Crash reporter failed to start: " << e.what();
    }
 
-   // Exception handling after crash reporter is initialized
+   // Exception handling after initializing crash reporter
    crash_reporter::client::CrashReporterClient::RunWithExceptionWrapper([&]() {
       core::Config& config = core::Config::GetInstance();
-
-      radiant::logger::init(config.GetTmpDirectory() / (config.GetName() + ".log"));
-
-      // Have to wait for the logger to initialize before logging error
-      if (!crash_reporting_initialized) {
-         LOG(WARNING) << "Crash reporter failed to start: " << error_string;
-      }
 
       // factor this out into some protobuf helper like we did with log
       google::protobuf::SetLogHandler(protobuf_log_handler);

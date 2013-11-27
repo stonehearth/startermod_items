@@ -20,7 +20,6 @@ radiant.effects = require 'modules.effects'
 radiant.entities = require 'modules.entities'
 radiant.terrain = require 'modules.terrain'
 radiant.mods = require 'modules.mods'
-radiant.music = require 'modules.bgm_manager'
 radiant.pathfinder = require 'modules.pathfinder'
 
 radiant.gamestate._start()

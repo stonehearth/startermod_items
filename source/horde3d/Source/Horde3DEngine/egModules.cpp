@@ -18,6 +18,7 @@
 #include "egScene.h"
 #include "egLight.h"
 #include "egCamera.h"
+#include "egHudElement.h"
 #include "egResource.h"
 #include "egRendererBase.h"
 #include "egRenderer.h"
@@ -76,11 +77,11 @@ void Modules::installExtensions()
 }
 
 
-bool Modules::init(int glMajor, int glMinor)
+bool Modules::init(int glMajor, int glMinor, const std::string& logFilePath)
 {
 	// Create modules (order is important because of dependencies)
 	if( _extensionManager == 0x0 ) _extensionManager = new ExtensionManager();
-	if( _engineLog == 0x0 ) _engineLog = new EngineLog();
+	if( _engineLog == 0x0 ) _engineLog = new EngineLog(logFilePath);
 	if( _engineConfig == 0x0 ) _engineConfig = new EngineConfig();
 	if( _sceneManager == 0x0 ) _sceneManager = new SceneManager();
 	if( _resourceManager == 0x0 ) _resourceManager = new ResourceManager();
@@ -136,6 +137,8 @@ bool Modules::init(int glMajor, int glMinor)
 		VoxelModelNode::parsingFunc, VoxelModelNode::factoryFunc, 0x0 );
 	sceneMan().registerType( SceneNodeTypes::VoxelMesh, "VoxelMesh",
 		VoxelMeshNode::parsingFunc, VoxelMeshNode::factoryFunc, Renderer::drawVoxelMeshes );
+   sceneMan().registerType( SceneNodeTypes::HudElement, "HudElement",
+      HudElementNode::parsingFunc, HudElementNode::factoryFunc, Renderer::drawHudElements );
 	
 	// Install extensions
 	installExtensions();

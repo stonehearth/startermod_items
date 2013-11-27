@@ -10,14 +10,14 @@ function call_server_to_place_item(e) {
          radiant.call('stonehearth:place_item_in_world', e.event_data.self, e.event_data.full_sized_entity_uri, o.location, o.rotation);
       })
       .always(function(o) {
-         $(top).trigger('hide_tip.radiant');
+         $(top).trigger('radiant_hide_tip');
       });
 };
 
 $(document).ready(function(){
    //Fires when someone clicks the place button on an iconic item in the world
-   $(top).on("place_item.stonehearth", function (_, e) {
-      $(top).trigger('show_tip.radiant', {
+   $(top).on("radiant_place_item", function (_, e) {
+      $(top).trigger('radiant_show_tip', {
          title : i18n.t('stonehearth:item_placement_title') + " " + e.event_data.item_name,
          description : i18n.t('stonehearth:place_description')
       });
@@ -25,8 +25,8 @@ $(document).ready(function(){
    });
 
    //Fires when someone clicks the move button on a full-sized item in the world
-   $(top).on("move_item.stonehearth", function (_, e) {
-      $(top).trigger('show_tip.radiant', {
+   $(top).on("radiant_move_item", function (_, e) {
+      $(top).trigger('radiant_show_tip', {
          title : i18n.t('stonehearth:item_movement_title') + " " + e.event_data.item_name,
          description : i18n.t('stonehearth:move_description')
       });
@@ -35,7 +35,7 @@ $(document).ready(function(){
    });
 
    //Fires when someone clicks the "place" button in the UI to bring up the picker
-   $(top).on("placement_menu.radiant", function (_, e) {
+   $(top).on("radiant_show_placement_menu", function (_, e) {
       radiant.call('stonehearth:get_placable_items_tracker')
          .done(function(response) {
             App.gameView.addView(App.StonehearthPlaceItemView, {

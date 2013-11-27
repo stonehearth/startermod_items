@@ -10,6 +10,8 @@
 #include "render_component.h"
 #include "resources/animation.h"
 #include "om/components/effect_list.h"
+#include "lib/audio/input_stream.h"
+
 #include <SFML/Audio.hpp>
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
@@ -115,46 +117,35 @@ private:
    RenderEntity&      entity_;
    H3DNodeUnique      lightNode_;
 };
+class ::radiant::horde3d::DecalNode;
 
-/* For playing simple background music*/
-struct PlayMusicEffect : public RenderEffect {
+/* For creating activity effects from a given JSON file. */
+struct ActivityOverlayEffect : public RenderEffect {
 public:
-	PlayMusicEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
-	~PlayMusicEffect();
+   ActivityOverlayEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
+   ~ActivityOverlayEffect();
 
-	void Update(FrameStartInfo const& info, bool& done) override;
-
-private:
-   RenderEntity&	entity_;
-   sf::Music      music_;
-   bool           loop_;
-   int            startTime_;
-};
-
-/*Singleton, for playing fading BG music. Replace with simple version later.*/
-struct SingMusicEffect : public RenderEffect {
-public:
-   static std::shared_ptr<SingMusicEffect> GetMusicInstance(RenderEntity& e);
-   void PlayMusic(om::EffectPtr effect, const JSONNode& node);
    void Update(FrameStartInfo const& info, bool& done) override;
 
-   //Getting erros if this is private
-   SingMusicEffect(RenderEntity& e);  // Private so that it can  not be called
-   ~SingMusicEffect();   //If this is private, will it ever get called?
+private:
+   void parseTransforms(const JSONNode& node, float* x, float* y, float* z);
+   RenderEntity&      entity_;
+   H3DNodeUnique      overlayNode_;
+};
 
+
+/* For creating unit overlay effects from a given JSON file. */
+struct UnitStatusEffect : public RenderEffect {
+public:
+   UnitStatusEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
+   ~UnitStatusEffect();
+
+   void Update(FrameStartInfo const& info, bool& done) override;
 
 private:
-   //TODO: do we need to make the copy constructor and assignment operator private also?
-   static std::shared_ptr<SingMusicEffect> music_instance_;
-
-   RenderEntity&	entity_;
-   sf::Music      music_;
-   bool           loop_;
-   std::string    nextTrack_;
-   double         volume_;
-   int            startTime_;
-   int            lastUpdated_;
-   std::unique_ptr<claw::tween::single_tweener> tweener_;
+   void parseTransforms(const JSONNode& node, float* x, float* y, float* z);
+   RenderEntity&      entity_;
+   H3DNodeUnique      statusNode_;
 };
 
 /* For playing short sound effects*/

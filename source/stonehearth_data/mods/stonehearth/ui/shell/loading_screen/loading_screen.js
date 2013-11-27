@@ -6,6 +6,14 @@ App.StonehearthLoadingScreenView = App.View.extend({
       this._super();
       var self = this;
 
+      //Play another kind of bgm during the loading screen if needed
+      //var args = {
+      //   'track': '<fill in new trackhere>',
+      //   'fade': 500,
+      //   'channel' : 'bgm'
+      //};
+      //radiant.call('radiant:play_music', args);      
+
       radiant.call('stonehearth:get_world_generation_progress')
             .done(function(o) {
                   this.trace = radiant.trace(o.tracker)
@@ -30,11 +38,7 @@ App.StonehearthLoadingScreenView = App.View.extend({
 
       if (result.progress) {
 
-         if (!this._timer) {
-            this._timer = true;
-            setTimeout( function () { self._updateMessage(); }, 2000);
-         }
-
+         self._updateMessage();
          this._progressbar.progressbar( "option", "value", result.progress );
 
          if (result.progress == 100) {
@@ -51,6 +55,5 @@ App.StonehearthLoadingScreenView = App.View.extend({
       var min = 1;
       var random =  Math.floor(Math.random() * (max - min + 1)) + min;
       $('#message').html($.t("loading_map_" + random));
-      setTimeout( function () { self._updateMessage(); }, 2000);
    }
 });

@@ -127,7 +127,7 @@ template <typename T>
 static Node encode_region(T const& value) {
    Node node(JSONNode(JSON_ARRAY));
    for (auto const& cube : value) {
-      node.add(cube);
+      node.set("", cube);
    }
    return node;
 }

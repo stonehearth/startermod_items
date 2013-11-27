@@ -39,6 +39,7 @@ struct VoxelModelNodeParams
 		LodDist4F,
       PolygonOffsetEnabledI,
       PolygonOffsetF,
+      UseCoarseCollisionBoxI
 	};
 };
 
@@ -108,7 +109,7 @@ public:
       return _polygon_offset_used;
    }
    bool useCoarseCollisionBox() {
-      return _polygon_offset_used;
+      return _useCoarseCollisionBox;
    }
 
 protected:
@@ -135,6 +136,7 @@ protected:
 	bool                          _morpherUsed, _morpherDirty;
    float                         _polygon_offset[2];
    bool                          _polygon_offset_used;
+   bool                          _useCoarseCollisionBox;
 
 	friend class SceneManager;
 	friend class SceneNode;

@@ -61,7 +61,6 @@ bool Extension::init()
                                     AnimatedLightNode::parsingFunc,
                                     AnimatedLightNode::factoryFunc,
                                     0x0);
-
    Modules::resMan().registerType(RT_CubemitterResource, "Cubemitter", 0x0, 0x0, 
                                     CubemitterResource::factoryFunc);
    Modules::resMan().registerType(RT_AnimatedLightResource, "AnimatedLight", 0x0, 0x0,

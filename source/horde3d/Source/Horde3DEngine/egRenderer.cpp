@@ -18,6 +18,7 @@
 #include "egParticle.h"
 #include "egLight.h"
 #include "egCamera.h"
+#include "egHudElement.h"
 #include "egModules.h"
 #include "egVoxelGeometry.h"
 #include "egVoxelModel.h"
@@ -109,10 +110,28 @@ unsigned char *Renderer::useScratchBuf( uint32 minSize )
 }
 
 
+void Renderer::setGpuCompatibility()
+{
+   CardType gpu = gRDI->getCaps().cardType;
+   int glVer = gRDI->getCaps().glVersion;
+
+   // Shadows: we don't trust intel less than gl version 30.
+   // TODO: Eventually, we get to a nice big matrix of manufacturer/driver.
+   gpuCompatibility_.canDoShadows = !(gpu == CardType::INTEL && glVer < 30);
+}
+
+
 bool Renderer::init(int glMajor, int glMinor)
 {
 	// Init Render Device Interface
 	if( !gRDI->init(glMajor, glMinor) ) return false;
+
+   setGpuCompatibility();
+
+   if (!gpuCompatibility_.canDoShadows)
+   {
+      Modules::log().writeWarning("Renderer: disabling shadows.");
+   }
 
 	// Check capabilities
 	if( !gRDI->getCaps().texFloat )
@@ -158,6 +177,20 @@ bool Renderer::init(int glMajor, int glMinor)
 	};
 	_vlParticle = gRDI->registerVertexLayout( 2, attribsParticle );
 	
+   VertexLayoutAttrib attribsClipspace[3] = {
+      {"vertPos", 0, 4, 0},
+      {"texCoords0", 0, 2, 16},
+      {"color", 0, 4, 24}
+   };
+   _vlClipspace = gRDI->registerVertexLayout( 3, attribsClipspace);
+
+   VertexLayoutAttrib attribsPosColTex[3] = {
+      {"vertPos", 0, 3, 0},
+      {"texCoords0", 0, 2, 12},
+      {"color", 0, 4, 20}
+   };
+   _vlPosColTex = gRDI->registerVertexLayout( 3, attribsPosColTex);
+
    // Upload default shaders
 	if( !createShaderComb( NULL, vsDefColor, fsDefColor, _defColorShader ) )
 	{
@@ -1280,9 +1313,9 @@ void Renderer::updateShadowMap(const Frustum* lightFrus, float maxDist)
 
 	Modules::sceneMan().updateQueues(reason.str().c_str(), *lightFrus, 0x0,
 		RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
-	for( size_t j = 0, s = Modules::sceneMan().getRenderableQueue().size(); j < s; ++j )
+	for( const auto& entry : Modules::sceneMan().getRenderableQueue() )
 	{
-      SceneNode* n = Modules::sceneMan().getRenderableQueue()[j].node;
+      SceneNode* n = entry.node;
       litAabb.makeUnion(n->getBBox());
 	}
 
@@ -1690,9 +1723,9 @@ float Renderer::computeTightCameraFarDistance()
    BoundingBox visibleAabb;
    Modules::sceneMan().updateQueues("computing tight camera", _curCamera->getFrustum(), 0x0,
       RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
-   for( size_t j = 0, s = Modules::sceneMan().getRenderableQueue().size(); j < s; ++j )
+   for( const auto& entry : Modules::sceneMan().getRenderableQueue() )
    {
-      SceneNode* n = Modules::sceneMan().getRenderableQueue()[j].node;
+      SceneNode* n = entry.node;
 	   visibleAabb.makeUnion(n->getBBox()); 
    }
 
@@ -1751,9 +1784,9 @@ void Renderer::drawLightGeometry( const std::string &shaderContext, const std::s
 	GPUTimer *timer = Modules::stats().getGPUTimer( EngineStats::FwdLightsGPUTime );
 	if( Modules::config().gatherTimeStats ) timer->beginQuery( _frameID );
 	
-	for( size_t i = 0, s = Modules::sceneMan().getLightQueue().size(); i < s; ++i )
+	for( const auto& entry : Modules::sceneMan().getLightQueue() )
 	{
-		_curLight = (LightNode *)Modules::sceneMan().getLightQueue()[i];
+		_curLight = (LightNode *)entry;
       const Frustum* lightFrus;
       Frustum dirLightFrus;
 
@@ -1882,9 +1915,9 @@ void Renderer::drawLightShapes( const std::string &shaderContext, bool noShadows
 	GPUTimer *timer = Modules::stats().getGPUTimer( EngineStats::DefLightsGPUTime );
 	if( Modules::config().gatherTimeStats ) timer->beginQuery( _frameID );
 	
-	for( size_t i = 0, s = Modules::sceneMan().getLightQueue().size(); i < s; ++i )
+	for( const auto& entry : Modules::sceneMan().getLightQueue() )
 	{
-		_curLight = (LightNode *)Modules::sceneMan().getLightQueue()[i];
+		_curLight = (LightNode *)entry;
 
 		// Check if light is not visible
       if( !_curLight->_directional && _curCamera->getFrustum().cullFrustum( _curLight->getFrustum() ) ) {
@@ -2065,11 +2098,11 @@ void Renderer::drawMeshes( const std::string &shaderContext, const std::string &
 	MaterialResource *curMatRes = 0x0;
 
 	// Loop over mesh queue
-	for( size_t i = 0, si = Modules::sceneMan().getRenderableQueue().size(); i < si; ++i )
+	for( const auto& entry : Modules::sceneMan().getRenderableQueue() )
 	{
-		if( Modules::sceneMan().getRenderableQueue()[i].type != SceneNodeTypes::Mesh ) continue;
+		if( entry.type != SceneNodeTypes::Mesh ) continue;
 		
-		MeshNode *meshNode = (MeshNode *)Modules::sceneMan().getRenderableQueue()[i].node;
+		MeshNode *meshNode = (MeshNode *)entry.node;
 		ModelNode *modelNode = meshNode->getParentModel();
 		
 		// Check that mesh is valid
@@ -2233,6 +2266,27 @@ void Renderer::drawMeshes( const std::string &shaderContext, const std::string &
 }
 
 
+void Renderer::drawHudElements(const std::string &shaderContext, const std::string &theClass, bool debugView,
+                               const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
+                               int occSet)
+{
+   radiant::perfmon::TimelineCounterGuard dvm("drawHudElements");
+	if( frust1 == 0x0 ) return;
+	
+	for( const auto& entry : Modules::sceneMan().getRenderableQueue() )
+	{
+      if( entry.type != SceneNodeTypes::HudElement ) continue;
+      HudElementNode* hudNode = (HudElementNode*) entry.node;
+      
+      for (const auto& hudElement : hudNode->getSubElements())
+      {
+         hudElement->draw(shaderContext, theClass, hudNode->_absTrans);
+      }
+   }
+	gRDI->setVertexLayout( 0 );
+}
+
+
 void Renderer::drawVoxelMeshes(const std::string &shaderContext, const std::string &theClass, bool debugView,
                                const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
                                int occSet)
@@ -2244,11 +2298,11 @@ void Renderer::drawVoxelMeshes(const std::string &shaderContext, const std::stri
 	MaterialResource *curMatRes = 0x0;
 
 	// Loop over mesh queue
-	for( size_t i = 0, si = Modules::sceneMan().getRenderableQueue().size(); i < si; ++i )
+	for( const auto& entry : Modules::sceneMan().getRenderableQueue() )
 	{
-		if( Modules::sceneMan().getRenderableQueue()[i].type != SceneNodeTypes::VoxelMesh ) continue;
+		if( entry.type != SceneNodeTypes::VoxelMesh ) continue;
 		
-		VoxelMeshNode *meshNode = (VoxelMeshNode *)Modules::sceneMan().getRenderableQueue()[i].node;
+		VoxelMeshNode *meshNode = (VoxelMeshNode *)entry.node;
 		VoxelModelNode *modelNode = meshNode->getParentModel();
 		
 		// Check that mesh is valid
@@ -2416,11 +2470,11 @@ void Renderer::drawParticles( const std::string &shaderContext, const std::strin
 	ASSERT( QuadIndexBufCount >= ParticlesPerBatch * 6 );
 
 	// Loop through emitter queue
-	for( uint32 i = 0; i < Modules::sceneMan().getRenderableQueue().size(); ++i )
+	for( const auto& entry : Modules::sceneMan().getRenderableQueue() )
 	{
-		if( Modules::sceneMan().getRenderableQueue()[i].type != SceneNodeTypes::Emitter ) continue; 
+		if( entry.type != SceneNodeTypes::Emitter ) continue; 
 		
-		EmitterNode *emitter = (EmitterNode *)Modules::sceneMan().getRenderableQueue()[i].node;
+		EmitterNode *emitter = (EmitterNode *)entry.node;
 		
 		if( emitter->_particleCount == 0 ) continue;
 		if( !emitter->_materialRes->isOfClass( theClass ) ) continue;
@@ -2589,6 +2643,8 @@ void Renderer::render( CameraNode *camNode )
 		finishRendering();
 		return;
 	}
+
+   bool drawShadows = Modules::config().enableShadows && gpuCompatibility_.canDoShadows;
 	
 	// Initialize
 	gRDI->_outputBufferIndex = _curCamera->_outputBufferIndex;
@@ -2680,12 +2736,12 @@ void Renderer::render( CameraNode *camNode )
 
 			case PipelineCommands::DoForwardLightLoop:
 				drawLightGeometry( pc.params[0].getString(), pc.params[1].getString(),
-               pc.params[2].getBool() || !Modules::config().enableShadows, (RenderingOrder::List)pc.params[3].getInt(),
+               pc.params[2].getBool() || !drawShadows, (RenderingOrder::List)pc.params[3].getInt(),
                                _curCamera->_occSet, pc.params[4].getBool() );
 				break;
 
 			case PipelineCommands::DoDeferredLightLoop:
-				drawLightShapes( pc.params[0].getString(), pc.params[1].getBool() || !Modules::config().enableShadows, 
+				drawLightShapes( pc.params[0].getString(), pc.params[1].getBool() || !drawShadows, 
                _curCamera->_occSet );
 				break;
 
@@ -2714,6 +2770,7 @@ void Renderer::finalizeFrame()
 	Modules::stats().getStat( EngineStats::FrameTime, true );  // Reset
 	Modules::stats().incStat( EngineStats::FrameTime, timer->getElapsedTimeMS() );
 	timer->reset();
+   Modules::sceneMan().clearQueryCache();
    gRDI->_frameDebugInfo.endFrame();
 }
 

@@ -28,6 +28,8 @@
 #include "lib/perfmon/perfmon.h"
 #include "lib/audio/input_stream.h"
 #include <SFML/Audio.hpp>
+#include "horde3d\Source\Horde3DEngine\egHudElement.h"
+#include "horde3d\Source\Shared\utMath.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -125,16 +127,11 @@ RenderInnerEffectList::RenderInnerEffectList(RenderEntity& renderEntity, om::Eff
          } else if (type == "floating_combat_text") {
             e = std::make_shared<FloatingCombatTextEffect>(renderEntity, effect, node); 
          } else if (type == "hide_bone") {
-            e = std::make_shared<HideBoneEffect>(renderEntity, effect, node); 
-         } else if (type == "music_effect") {
-            //Use this class if you just want simple, single-track background music
-            //e = std::make_shared<PlayMusicEffect>(renderEntity, effect, node); 
-         
-            //Use this if you want the current bg music to fade out before new bg music starts to play
-            //TODO: remove this class when we have lua event interrupting
-            std::shared_ptr<SingMusicEffect> m = SingMusicEffect::GetMusicInstance(renderEntity);
-            m ->PlayMusic(effect, node); 
-            e = m;
+            e = std::make_shared<HideBoneEffect>(renderEntity, effect, node);
+         } else if (type == "activity_overlay_effect") {
+            e = std::make_shared<ActivityOverlayEffect>(renderEntity, effect, node);
+         } else if (type == "unit_status_effect") {
+            e = std::make_shared<UnitStatusEffect>(renderEntity, effect, node);
          } else if (type == "sound_effect") {
             if (PlaySoundEffect::ShouldCreateSound()) {
                e = std::make_shared<PlaySoundEffect>(renderEntity, effect, node); 
@@ -292,7 +289,7 @@ CubemitterEffect::CubemitterEffect(RenderEntity& e, om::EffectPtr effect, const 
    }
    filename_ = node["cubemitter"].as_string();
 
-   json::Node transforms = o.getn("transforms");
+   json::Node transforms = o.get_node("transforms");
    pos_.x = transforms.get("x", 0.0f);
    pos_.y = transforms.get("y", 0.0f);
    pos_.z = transforms.get("z", 0.0f);
@@ -361,6 +358,107 @@ LightEffect::~LightEffect()
 }
 
 void LightEffect::Update(FrameStartInfo const& info, bool& finished)
+{
+   finished = false;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// ActivityOverlayEffect
+///////////////////////////////////////////////////////////////////////////////
+
+void getBoundsForGroupNode(float* minX, float* maxX, float *minY, float *maxY, H3DNode node)
+{
+   float sMinY = 999999, sMaxY = -999999;
+   float sMinX = 999999, sMaxX = -999999;
+   *minY = sMinY;
+   *maxY = sMaxY;
+   *minX = sMinX;
+   *maxX = sMaxX;
+
+   int i = 0;
+   H3DNode n = 0;
+   while ((n = h3dGetNodeChild(node, i)) != 0) {
+      if (h3dGetNodeType(n) == Horde3D::SceneNodeTypes::VoxelModel) {
+         h3dGetNodeAABB(n, &sMinX, &sMinY, nullptr, &sMaxX, &sMaxY, nullptr);
+      } else if (h3dGetNodeType(n) == Horde3D::SceneNodeTypes::Group) {
+         getBoundsForGroupNode(&sMinX, &sMaxX, &sMinY, &sMaxY, n);
+      }
+      if (*minY > sMinY) {
+         *minY = sMinY;
+      }
+      if (*maxY < sMaxY) {
+         *maxY = sMaxY;
+      }
+      if (*minX > sMinX) {
+         *minX = sMinX;
+      }
+      if (*maxX < sMaxX) {
+         *maxX = sMaxX;
+      }
+      i++;
+   }
+}
+
+ActivityOverlayEffect::ActivityOverlayEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
+   entity_(e)
+{
+   float minX, maxX, minY, maxY;
+   json::Node cjo(node);
+
+   std::string matName = cjo.get("material", std::string("materials/chop_overlay/chop_overlay.material.xml"));
+   int overlayWidth = cjo.get("width", 32);
+   int overlayHeight = cjo.get("height", 32);
+
+   H3DRes mat = h3dAddResource(H3DResTypes::Material, matName.c_str(), 0);
+
+   Horde3D::HudElementNode* hud = h3dAddHudElementNode(e.GetNode(), "");
+   getBoundsForGroupNode(&minX, &maxX, &minY, &maxY, e.GetNode());
+   h3dSetNodeTransform(hud->getHandle(), 0, maxY - minY + 4, 0, 0, 0, 0, 1, 1, 1);
+   hud->addScreenspaceRect(overlayWidth, overlayHeight, (int)(-overlayWidth / 2.0f), 0, Horde3D::Vec4f(1, 1, 1, 1), mat);
+
+   overlayNode_ = H3DNodeUnique(hud->getHandle());
+}
+
+ActivityOverlayEffect::~ActivityOverlayEffect()
+{
+}
+
+void ActivityOverlayEffect::Update(FrameStartInfo const& info, bool& finished)
+{
+   finished = false;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// UnitStatusEffect
+///////////////////////////////////////////////////////////////////////////////
+
+UnitStatusEffect::UnitStatusEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
+   entity_(e)
+{
+   json::Node cjo(node);
+   std::string matName = cjo.get("material", std::string("materials/sleepy_indicator/sleepy_indicator.material.xml"));
+   float statusWidth = cjo.get("width", 3.0f);
+   float statusHeight = cjo.get("height", 3.0f);
+   float xOffset = cjo.get("xOffset", 0.0f);
+   float yOffset = cjo.get("yOffset", 0.0f);
+   H3DNode n = e.GetSkeleton().GetSceneNode(cjo.get("bone", std::string("head")));
+
+   H3DRes mat = h3dAddResource(H3DResTypes::Material, matName.c_str(), 0);
+
+   Horde3D::HudElementNode* hud = h3dAddHudElementNode(n, "");
+   h3dSetNodeTransform(hud->getHandle(), 0, 0, 0, 0, 0, 0, 1, 1, 1);
+   hud->addWorldspaceRect(statusWidth, statusHeight, 
+      xOffset- (statusWidth / 2.0f), yOffset, Horde3D::Vec4f(1, 1, 1, 1), mat);
+   statusNode_ = H3DNodeUnique(hud->getHandle());
+}
+
+UnitStatusEffect::~UnitStatusEffect()
+{
+}
+
+void UnitStatusEffect::Update(FrameStartInfo const& info, bool& finished)
 {
    finished = false;
 }
@@ -555,181 +653,6 @@ void FloatingCombatTextEffect::Update(FrameStartInfo const& info, bool& finished
    h3dSetNodeTransform(toastNode_->GetNode(), 0, static_cast<float>(height_), 0, 0, 0, 0, 1, 1, 1);
 }
 
-/* Sound Effect Classes 
- * See http://wiki.rad-ent.com/doku.php?id=adding_music_and_sound_effects&#adding_a_sound_effect 
- * for a full description of how to create a sound effect in json that is then interpreted here.
- */
-
-/* PlayMusicEffect
- * Constructor
- * Simple class to play background music, currently not in use
- * TODO: when we have the ability to interrupt effects, return to using this
- * and add code to quiet the music as it fades.
-**/
-#define PLAY_MUSIC_EFFECT_DEFAULT_LOOP true;
-
-PlayMusicEffect::PlayMusicEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
-	entity_(e)
-{
-   startTime_ = effect->GetStartTime();
-   
-   loop_ = PLAY_MUSIC_EFFECT_DEFAULT_LOOP;
-
-   auto i = node.find("loop");
-   if (i != node.end()) {
-      loop_ = (bool)i->as_bool();
-   }
-
-   std::string track = node["track"].as_string();
-   if (music_.openFromStream(audio::InputStream(track))) {
-      music_.setLoop(loop_);
-      music_.play();
-   } else { 
-      LOG(INFO) << "Can't find Music! " << track;
-   }
-}
-
-PlayMusicEffect::~PlayMusicEffect()
-{
-    //Nothing actually needs to be destroyed here
-}
-
-/* PlayMusicEffect::Update
- * On update, check if we are finished.
- * If we're looping, we're never finished. If we aren't looping,
- * then finished is true if we're past the start time and music duration.
- * TODO: implement delay for background music?
-**/
-void PlayMusicEffect::Update(FrameStartInfo const& info, bool& finished)
-{
-   if (music_.getLoop()) {
-      finished = false;
-   } else {
-      finished = info.now > startTime_ + music_.getDuration().asMilliseconds(); 
-   }
-}
-
-/* "Singleton" version of PlayMusicEffect*
- * Uses GetMusicInstance to call the constructor, so that we can be sure to
- * quiet the old music before playing the new music passed in. 
- * TODO: Replace with simple verson once we have a mechanism to quiet music.
-**/
-#define SING_MUSIC_EFFECT_DEF_VOL 40; //I like my music quieter than my sound effects
-#define SING_MUSIC_EFFECT_FADE 2000;  //MS to have old music fade
-#define SING_MUSIC_EFFECT_DEFAULT_LOOP true;
-
-std::shared_ptr<SingMusicEffect> SingMusicEffect::music_instance_ = NULL;
-
-/* SingMusicEffect::GetMusicInstance
- * Use this static function to get the music instance.
- * Create a new one if necessary
- * Returns a shared ptr to a SingMusicInstance.
-**/
-std::shared_ptr<SingMusicEffect> SingMusicEffect::GetMusicInstance(RenderEntity& e)
-{
-   if (!music_instance_) {   
-      //TODO: If we want music to be tied to a particular activity, and fade as we get further
-      //we may need to create a new instance each time since the entity can only be assigned in the constructor
-      music_instance_ = std::make_shared<SingMusicEffect>(e);
-    }
-    return music_instance_;
-}
-
-/* SingMusicEffect::PlayMusic
- * Call whenever we have a new song to play
-**/
-void SingMusicEffect::PlayMusic(om::EffectPtr effect, const JSONNode& node)
-{   
-   startTime_ = effect->GetStartTime();
-
-   std::string track = node["track"].as_string();
-   
-   loop_ = SING_MUSIC_EFFECT_DEFAULT_LOOP;
-
-   auto i = node.find("loop");
-   if (i != node.end()) {
-      loop_ = (bool)i->as_bool();
-   }
-
-   //If there is already music playing, note next track for update
-   if (music_.getStatus() == sf::Music::Playing) {
-     nextTrack_ = track;
-   } else {
-      //If there is no music, immediately start bg music
-      if (music_.openFromStream(audio::InputStream(track))) {
-         music_.setLoop(loop_);
-         music_.setVolume((float)volume_);
-	      music_.play();
-      } else { 
-         LOG(INFO) << "Can't find Music! " << track;
-      }
-   }
-}
-
-/* SingMusicEffect
- * Constructor (Public, but do not call!)
- * Unfortunately, can't make this private because the shared ptr expects it
-**/
-SingMusicEffect::SingMusicEffect(RenderEntity& e) : 
-   entity_(e),
-   lastUpdated_(0)
-{
-   nextTrack_ = "";
-   volume_ = SING_MUSIC_EFFECT_DEF_VOL;
-   tweener_ = NULL;
-}
-
-SingMusicEffect::~SingMusicEffect()
-{
-}
-
-/* SingMusicEffect::Update
- * On update, keep playing the current BG music, unless there is a new music track
- * If so, fade out the old one and eventually introduce the new one. 
-**/
-void SingMusicEffect::Update(FrameStartInfo const& info, bool& finished)
-{
-   double dt = lastUpdated_ ? (info.now - lastUpdated_) : 0.0;
-   lastUpdated_ = info.now;
-
-   if (music_.getLoop()) {
-      finished = false;
-   } else {
-      finished = info.now > startTime_ + music_.getDuration().asMilliseconds(); 
-   }
-
-   //If there is another track to play after this one
-   if (nextTrack_.length() > 0) {
-      if (!tweener_.get()) {
-         //if we have another track to do and the tweener is null, then create a new tweener
-         int fade = SING_MUSIC_EFFECT_FADE;
-         tweener_.reset(new claw::tween::single_tweener(volume_, 0, fade, get_easing_function("sine_out")));
-      } else {
-         //There is a next track and a tweener, we must be in the process of quieting the prev music
-         if (tweener_->is_finished()) {
-            //If the tweener is finished, play the next track
-            tweener_ = NULL;
-            music_.stop();
-            if (music_.openFromFile(nextTrack_)) {
-            //TODO: crossfade
-            volume_ = SING_MUSIC_EFFECT_DEF_VOL;
-            music_.setVolume((float)volume_);
-            music_.setLoop(loop_);
-            music_.play();
-            } else { 
-               LOG(INFO) << "Can't find Music! " << nextTrack_;
-            }
-            nextTrack_ = "";
-         } else {
-            //If the tweener is not finished, soften the volume
-            tweener_->update(dt);
-            music_.setVolume((float)volume_);
-         }
-      }
-   }
-}
-
-
 /* PlaySoundEffect
  * Class to play a short sound. Loads sound into memory.
  * Can only play 250 sounds at once; limitation of sfml
@@ -770,7 +693,20 @@ PlaySoundEffect::PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JS
    firstPlay_ = true;
    numSounds_++;
 
-   std::string track = node["track"].as_string();
+   std::string track = "";
+   json::Node n(node["track"]);
+
+   if (n.type() == JSON_STRING) {
+      track = n.get_internal_node().as_string();
+   } else if (n.type() == JSON_NODE) {
+      if (n.get<std::string>("type", "") == "one_of") {
+         JSONNode items = n.get("items", JSONNode());
+         uint c = rand() * items.size() / RAND_MAX;
+         ASSERT(c < items.size());
+         track = items.at(c).as_string();
+      }
+   }
+   
    if (soundBuffer_.loadFromStream(audio::InputStream(track))) {
       sound_.setBuffer(soundBuffer_);
       AssignFromJSON_(node);

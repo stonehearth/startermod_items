@@ -100,18 +100,18 @@
                var d = self._pendingCalls[o.call_id];
                if (d) {
                   var f = {
-                     'call_progress' : d.notify,
-                     'call_done' : d.resolve,
-                     'call_fail' : d.reject
+                     'radiant_call_progress' : d.notify,
+                     'radiant_call_done' : d.resolve,
+                     'radiant_call_fail' : d.reject
                   }[e.type];
                   if (f) {
                      f(o.data);
                   }
                }
             };
-            $(top).on("call_progress.radiant", foward_fn);
-            $(top).on("call_done.radiant", foward_fn);
-            $(top).on("call_fail.radiant", foward_fn);
+            $(top).on("radiant_call_progress", foward_fn);
+            $(top).on("radiant_call_done", foward_fn);
+            $(top).on("radiant_call_fail", foward_fn);
          });
       },
 
@@ -145,7 +145,7 @@
             radiant.report_error('low level call ' + url + ' failed.', data);
             deferred.reject(data);
          }).done(function(data) {
-            if (data.type == 'call_deferred.radiant') {
+            if (data.type == 'radiant_call_deferred') {
                self._pendingCalls[data.call_id] = deferred;
             } else {
                deferred.resolve(data);

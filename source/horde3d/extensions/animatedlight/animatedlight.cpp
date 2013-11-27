@@ -93,17 +93,17 @@ bool AnimatedLightResource::load( const char *data, int size )
 
    if (root.has("intensity"))
    {
-      lightData.intensity = parseIntensity(root.getn("intensity"));
+      lightData.intensity = parseIntensity(root.get_node("intensity"));
    }
    
    if (root.has("color"))
    {
-      lightData.color = parseColor(root.getn("color"));
+      lightData.color = parseColor(root.get_node("color"));
    }
 
    if (root.has("radius"))
    {
-      lightData.radius = parseRadius(root.getn("radius"));
+      lightData.radius = parseRadius(root.get_node("radius"));
    }
 
    lightData.loops = root.get("loops", true);

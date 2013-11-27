@@ -13,8 +13,8 @@ App.StonehearthUnitFrameView = App.View.extend({
       this._super();
 
       var self = this;
-      $(top).on("selection_changed.radiant", function (_, data) {
-         //if ($('.captureSelection').length == 0) {
+      $(top).on("radiant_selection_changed.unit_frame", function (_, data) {
+         if (!self._supressSelection) {
            var selected = data.selected_entity;
            self._selected_entity = selected;
            if (self._selected_entity) {
@@ -24,8 +24,12 @@ App.StonehearthUnitFrameView = App.View.extend({
               //self.set('uri', null);
               self.hide();
            }
-         //}
+         }
       });
+   },
+
+   supressSelection: function(supress) {
+      this._supressSelection = supress;
    },
 
    buffs: function() {

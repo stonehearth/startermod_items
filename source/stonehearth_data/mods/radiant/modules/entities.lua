@@ -141,6 +141,16 @@ function entities.turn_to_face(entity, arg2)
    entity:add_component('mob'):turn_to_face_point(location)
 end
 
+function entities.think(entity, uri, priority)
+   radiant.check.is_entity(entity)
+   entity:add_component('stonehearth:thought_bubble'):set_thought(uri, priority)
+end
+
+function entities.unthink(entity, uri)
+   radiant.check.is_entity(entity)
+   entity:add_component('stonehearth:thought_bubble'):unset_thought(uri)
+end
+
 function entities.get_location_aligned(entity)
    radiant.check.is_entity(entity)
    if entity then

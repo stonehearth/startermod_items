@@ -22,7 +22,7 @@ class CrashReporterClient : public radiant::core::Singleton<CrashReporterClient>
 public:
    // Install exception hooks and create the out-of-process server to catch crashes
    // Returns false on error with the message in error_string
-   bool Start(std::string const& crash_dump_path, std::string const& crash_dump_uri, std::string const& userid, std::string& error_string);
+   void Start(std::string const& crash_dump_path, std::string const& crash_dump_uri, std::string const& userid);
 
    // Thread-safe function that wraps either Breakpad or Windows exception handling around your function
    static void CrashReporterClient::RunWithExceptionWrapper(std::function<void()> const& fn, bool const terminate_on_error = false);

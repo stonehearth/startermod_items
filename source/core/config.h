@@ -1,9 +1,10 @@
 #ifndef _RADIANT_CORE_CONFIG_H
 #define _RADIANT_CORE_CONFIG_H
 
+#include <mutex>
 #include <boost/filesystem.hpp>
-#include <boost/program_options.hpp>
 #include "singleton.h"
+#include "lib/json/node.h"
 
 BEGIN_RADIANT_CORE_NAMESPACE
 
@@ -12,45 +13,76 @@ class Config : public Singleton<Config>
 public:
    Config();
    
-   bool Load(int argc, const char *argv[]);
+   void Load(int argc, const char *argv[]);
 
-   boost::program_options::options_description& GetConfigFileOptions();
-   boost::program_options::options_description& GetCommandLineOptions();
+   bool Has(std::string const& property_path) const
+   {
+      std::lock_guard<std::recursive_mutex> lock(mutex_);
+      return root_config_.has(property_path);
+   }
 
-   std::string GetName() const;
-   boost::filesystem::path GetCacheDirectory() const;
-   boost::filesystem::path GetTmpDirectory() const;
+   template <class T>
+   T Get(std::string const& property_path) const
+   {
+      std::lock_guard<std::recursive_mutex> lock(mutex_);
+      return root_config_.get<T>(property_path);
+   }
 
-   std::string GetUserID();
-   std::string GetSessionID();
-   std::string GetBuildNumber();
-   bool GetCollectionStatus();
-   void SetCollectionStatus(bool should_collect);
-   bool IsCollectionStatusSet();
+   template <class T>
+   T Get(std::string const& property_path, T const& default_value) const
+   {
+      std::lock_guard<std::recursive_mutex> lock(mutex_);
+      return root_config_.get(property_path, default_value);
+   }
 
-   bool GetCrashKeyEnabled();
+   // help the compiler with default values that are string literals
+   std::string Get(std::string const& property_path, const char* const default_value) const
+   {
+      return Get(property_path, std::string(default_value));
+   }
 
-   boost::program_options::variables_map const& GetVarMap() const { return configvm_; }
-   
+   template <class T>
+   void Set(std::string const& property_path, T const& value)
+   {
+      std::lock_guard<std::recursive_mutex> lock(mutex_);
+      root_config_.set(property_path, value);
+
+      // write to the user config
+      // don't cache the user config since this is an uncommon operation
+      json::Node user_config;
+      if (boost::filesystem::exists(override_config_file_path_)) {
+         user_config = ReadConfigFile(override_config_file_path_);
+      }
+      user_config.set(property_path, value);
+      WriteConfigFile(override_config_file_path_, user_config);
+   }
+
+   std::string GetUserID() const;
+   std::string GetSessionID() const;
+   std::string GetBuildNumber() const;
+
 private:
-   void LoadConfigFile(boost::filesystem::path const& configfile);
-   std::string MakeUUIDString();
-   std::string ReadConfigOption(std::string option_name);
-   void WriteConfigOption(std::string option_name, std::string option_value);
+   NO_COPY_CONSTRUCTOR(Config);
+
+   void InitializeSession();
+   void CmdLineOptionToKeyValue(std::string const& param, std::string& key, std::string& value) const;
+   json::Node ParseCommandLine(int argc, const char *argv[]) const;
+   json::Node ReadConfigFile(boost::filesystem::path const& file_path) const;
+   void WriteConfigFile(boost::filesystem::path const& file_path, json::Node const& config) const;
+   void MergeConfigNodes(JSONNode& base, JSONNode const& override) const;
 
 private:
-   boost::program_options::options_description  cmd_line_options_;
-   boost::program_options::options_description  config_file_options_;
-   boost::program_options::variables_map        configvm_;
-   std::string                                  config_filename_;
-
-   boost::filesystem::path                      cache_directory_;
-   boost::filesystem::path                      run_directory_;
-   
-   std::string                                  sessionid_;
-   std::string                                  userid_;
-   std::string                                  collect_analytics_;
-   bool                                         crash_key_enabled_;
+   std::string const              config_filename_;
+   boost::filesystem::path        base_config_file_path_;
+   boost::filesystem::path        override_config_file_path_;
+   boost::filesystem::path        temp_directory_;
+   json::Node                     root_config_;
+   mutable std::recursive_mutex   mutex_;
+   std::string                    sessionid_;
+   std::string                    userid_;
+   std::string                    game_script_;
+   std::string                    game_mod_;
+   bool                           should_skip_title_screen_;
 };
 
 END_RADIANT_CORE_NAMESPACE

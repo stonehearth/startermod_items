@@ -61,6 +61,10 @@ struct OverlayBatch
 
 struct OverlayVert
 {
+   OverlayVert() {}
+   OverlayVert(float x, float y, float u, float v) :
+      x(x), y(y), u(u), v(v) {};
+
 	float  x, y;  // Position
 	float  u, v;  // Texture coordinates
 };
@@ -125,6 +129,10 @@ struct PipeSamplerBinding
 	uint32  bufIndex;
 };
 
+struct GpuCompatibility {
+   bool canDoShadows;
+};
+
 
 class Renderer
 {
@@ -169,6 +177,8 @@ public:
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet );
 	static void drawParticles( const std::string &shaderContext, const std::string &theClass, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet );
+   static void drawHudElements(const std::string &shaderContext, const std::string &theClass, bool debugView,
+      const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet);
 
 	void render( CameraNode *camNode );
 	void finalizeFrame();
@@ -178,6 +188,9 @@ public:
 	CameraNode *getCurCamera() { return _curCamera; }
 	uint32 getQuadIdxBuf() { return _quadIdxBuf; }
 	uint32 getParticleVBO() { return _particleVBO; }
+
+   uint32 getClipspaceLayout() { return _vlClipspace; }
+   uint32 getPosColTexLayout() { return _vlPosColTex; }
 
    void setCurrentTime(float time) { _currentTime = time; }
    uint32 getShadowRendBuf() const { return _shadowRB; }
@@ -217,6 +230,8 @@ protected:
 	void renderDebugView();
 	void finishRendering();
 
+   void setGpuCompatibility();
+
 protected:
 	unsigned char                      *_scratchBuf;
 	uint32                             _scratchBufSize;
@@ -250,10 +265,13 @@ protected:
 	float                              _splitPlanes[5];
 	Matrix4f                           _lightMats[4];
 
-	uint32                             _vlPosOnly, _vlOverlay, _vlModel, _vlParticle, _vlVoxelModel;
+	uint32                             _vlPosOnly, _vlOverlay, _vlModel, _vlParticle, _vlVoxelModel, _vlClipspace, _vlPosColTex;
 	uint32                             _vbCube, _ibCube, _vbSphere, _ibSphere;
 	uint32                             _vbCone, _ibCone, _vbFSPoly;
    uint32                             _vbFrust, _vbPoly, _ibPoly;
+
+   // Feature-level compatibility of the card, determined by GPU specifics.
+   GpuCompatibility                    gpuCompatibility_;
 public:
    // needed to draw debug shapes in extensions!
    glslopt_ctx*                       _glsl_opt_ctx;

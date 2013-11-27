@@ -46,7 +46,8 @@ function SleepAction:start_looking_for_bed()
    
    assert(not self._pathfinder)
    
-   self._looking_for_a_bed = true;
+   radiant.entities.think(self._entity, '/stonehearth/data/effects/thoughts/sleepy')
+   self._looking_for_a_bed = true
 
    --[[
       Pathfinder callback. When it's time to go to sleep, the pathfinder
@@ -57,6 +58,7 @@ function SleepAction:start_looking_for_bed()
    local found_bed_cb = function(bed, path)
       self._bed = bed
       self._path_to_bed = path
+      self._ai:set_action_priority(self, 100)
    end
 
    if not self._pathfinder then
@@ -170,6 +172,7 @@ function SleepAction:run(ai, entity)
    else 
       self._ai:execute('stonehearth:sleep_on_ground')
    end
+   
 end
 
 --[[

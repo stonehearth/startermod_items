@@ -40,7 +40,7 @@ function PickupItemOnTable:run(ai, entity, item, table)
    radiant.entities.pickup_item(entity, item)
    
    -- TODO: run the 'pickup item off table' effect
-   ai:execute('stonehearth:run_effect', 'carry_pickup')
+   ai:execute('stonehearth:run_effect', 'carry_pickup_from_table')
 end
 
 return PickupItemOnTable

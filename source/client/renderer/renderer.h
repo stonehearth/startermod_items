@@ -49,8 +49,9 @@ struct RayCastResult
 struct FrameStartInfo {
    int         now;
    float       interpolate;
+   int         frame_time;
 
-   FrameStartInfo(int n, float i) : now(n), interpolate(i) { }
+   FrameStartInfo(int n, float i, int ft) : now(n), interpolate(i), frame_time(ft) { }
 };
 
 struct RendererConfig {
@@ -58,6 +59,7 @@ struct RendererConfig {
    bool use_ssao;
    bool use_ssao_blur;
    bool use_shadows;
+   bool enable_vsync;
    int  num_msaa_samples;
    int  shadow_resolution;
 };
@@ -79,8 +81,6 @@ class Renderer
 
    public:
       static Renderer& GetInstance();
-      static void GetConfigOptions();
-      static RendererConfig config_;
 
       void Initialize(om::EntityPtr rootObject);
       void SetScriptHost(lua::ScriptHost* host);
@@ -91,7 +91,6 @@ class Renderer
       void LoadResources();
       void ShowPerfHud(bool value);
       void SetServerTick(int tick);
-      void ApplyConfig();
 
       int GetWidth() const;
       int GetHeight() const;
@@ -104,7 +103,7 @@ class Renderer
       bool IsRunning() const;
       HWND GetWindowHandle() const;
 
-      boost::property_tree::ptree const& GetTerrainConfig() const;
+      json::Node GetTerrainConfig() const;
 
       std::shared_ptr<RenderEntity> CreateRenderObject(H3DNode parent, om::EntityPtr obj);
       std::shared_ptr<RenderEntity> GetRenderObject(om::EntityPtr obj);
@@ -143,8 +142,12 @@ class Renderer
 
    private:
       NO_COPY_CONSTRUCTOR(Renderer);
+      RendererConfig config_;
 
    private:
+      void GetConfigOptions();
+      void ApplyConfig();
+
       void SetStageEnable(const char* stageName, bool enabled);
       void OnWindowResized(int newWidth, int newHeight);
       void OnKey(int key, int down);
@@ -198,7 +201,7 @@ class Renderer
       bool                          initialized_;
 
       ViewMode                      viewMode_;
-      boost::property_tree::basic_ptree<std::string, std::string> terrainConfig_;
+      json::Node                    terrainConfig_;
       lua::ScriptHost*              scriptHost_;
 
       core::BufferedSlot<csg::Point2>     screen_resize_slot_;

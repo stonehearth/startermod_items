@@ -32,7 +32,7 @@ end
 --  When > 80, look for food. If < 80, we're not hungry, so stop
 --  looking for food. 
 --  @param e - e.value is the status of hunger
-function FindFoodAction:on_hunger_changed(e)
+function FindFoodAction:on_hunger_changed(e)  
    self._hunger = e.value
    
    if self._hunger >= 120 then
@@ -61,6 +61,7 @@ function FindFoodAction:start_looking_for_food()
    self._looking_for_food = true;
    if not self._pathfinder then
       self:find_good_food()
+      radiant.entities.think(self._entity, '/stonehearth/data/effects/thoughts/hungry')
    end
 end
 

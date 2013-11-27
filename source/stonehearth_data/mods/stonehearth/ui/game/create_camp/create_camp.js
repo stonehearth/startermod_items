@@ -5,17 +5,26 @@ App.StonehearthCreateCampView = App.View.extend({
       if (!this.first) {
          /// xxx localize
          /*
-         $(top).trigger('show_tip.radiant', {
+         $(top).trigger('radiant_show_tip', {
             title : 'Choose your base camp location',
             description : '',
          });
          */
 
-         this.first = true;         
-      }
+         this.first = true;      
+
+         //Play music as the game starts
+         var args = {
+            'track': 'stonehearth:music:world_start',
+            'channel' : 'bgm',
+            'fade': 500
+         };
+         radiant.call('radiant:play_music', args);         
+         }
 
       this._bounceBanner();
       $("#crateCoverLink").hide();
+
    },
 
    actions : {
@@ -33,7 +42,7 @@ App.StonehearthCreateCampView = App.View.extend({
       placeStockpile: function () {
          var self = this;
          self._hideCrate();
-         $(top).trigger('create_stockpile.radiant', {
+         $(top).trigger('radiant_create_stockpile', {
             callback : function() {
                setTimeout( function() {
                   self._gotoFinishStep();

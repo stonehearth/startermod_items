@@ -157,6 +157,8 @@ function EatFoodAction:run(ai, entity, food)
       end
    end
 
+   radiant.entities.unthink(self._entity, '/stonehearth/data/effects/thoughts/hungry')
+
    --Eat. Should vary based on the postures set above
    for i = 1, 3 do
       ai:execute('stonehearth:run_effect', 'eat')

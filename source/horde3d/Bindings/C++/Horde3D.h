@@ -512,6 +512,7 @@ struct H3DModel
 		LodDist4F,
       PolygonOffsetEnabledI,
       PolygonOffsetF,
+      UseCoarseCollisionBoxI
 	};
 };
 
@@ -721,7 +722,7 @@ DLL bool h3dGetError();
 	Returns:
 		true in case of success, otherwise false
 */
-DLL bool h3dInit(int glMajor, int glMinor);
+DLL bool h3dInit(int glMajor, int glMinor, const char* logFilePath);
 
 /* Function: h3dRelease
 		Releases the engine.
@@ -1879,6 +1880,12 @@ DLL H3DNode h3dAddGroupNode( H3DNode parent, const char *name );
 */
 DLL H3DNode h3dAddModelNode( H3DNode parent, const char *name, H3DRes geometryRes );
 DLL H3DNode h3dAddVoxelModelNode( H3DNode parent, const char *name, H3DRes voxelGeometryRes );
+
+namespace Horde3D {
+   class HudElementNode;
+}
+//class Horde3D::HudElementNode;
+Horde3D::HudElementNode* h3dAddHudElementNode( H3DNode parent, const char *name );
 
 /* Function: h3dSetupModelAnimStage
 		Configures an animation stage of a Model node.
