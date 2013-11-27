@@ -49,8 +49,9 @@ struct RayCastResult
 struct FrameStartInfo {
    int         now;
    float       interpolate;
+   int         frame_time;
 
-   FrameStartInfo(int n, float i) : now(n), interpolate(i) { }
+   FrameStartInfo(int n, float i, int ft) : now(n), interpolate(i), frame_time(ft) { }
 };
 
 struct RendererConfig {

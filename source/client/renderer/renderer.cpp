@@ -431,7 +431,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    }
 
    perfmon::SwitchToCounter("render fire traces") ;  
-   render_frame_start_slot_.Signal(FrameStartInfo(now, alpha));
+   render_frame_start_slot_.Signal(FrameStartInfo(now, alpha, now - last_render_time_));
 
    if (showStats) { 
       perfmon::SwitchToCounter("show stats") ;  
