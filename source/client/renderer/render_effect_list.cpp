@@ -420,12 +420,13 @@ ActivityOverlayEffect::ActivityOverlayEffect(RenderEntity& e, om::EffectPtr effe
    int overlayHeight = cjo.get("height", 32);
 
    H3DRes mat = h3dAddResource(H3DResTypes::Material, matName.c_str(), 0);
+   H3DRes lineMat = h3dAddResource(H3DResTypes::Material, "materials/line.material.xml", 0);
 
    Horde3D::HudElementNode* hud = h3dAddHudElementNode(e.GetNode(), "");
    getBoundsForGroupNode(&minX, &maxX, &minY, &maxY, e.GetNode());
    h3dSetNodeTransform(hud->getHandle(), 0, maxY - minY + 4, 0, 0, 0, 0, 1, 1, 1);
-   hud->addScreenspaceRect(overlayWidth, overlayHeight, (int)(-overlayWidth / 2.0f), 0, Horde3D::Vec4f(1, 1, 1, 1), mat);
-
+   hud->addScreenspaceRect(overlayWidth, overlayHeight, (int)(-overlayWidth / 2.0f), -2, Horde3D::Vec4f(1, 1, 1, 1), mat);
+   hud->addWorldspaceLine(2, Horde3D::Vec4f(0,1,0,1), lineMat);
    overlayNode_ = H3DNodeUnique(hud->getHandle());
 }
 
