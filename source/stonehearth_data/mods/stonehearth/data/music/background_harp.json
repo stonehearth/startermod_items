@@ -1,9 +1,0 @@
-{
-   "type" : "effect",
-   "tracks": {
-      "sound": {
-         "type": "music_effect",
-         "track" : "file(af_the_pearl.ogg)"
-      }
-   }
-}

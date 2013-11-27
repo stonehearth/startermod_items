@@ -9,15 +9,18 @@ function SoundTest:__init()
    local tree = self:place_tree(-12, -12)
    local dude = self:place_citizen(12, 12)
 
-   radiant.music:play_music_effect("/stonehearth/data/music/background_music.json")
-   
-   --TODO: it would be nice if we could play music from a track instead of pre-creating an effect for it
-   --radiant.music:play_music("data/stonehearth/effects/background_music/soothing.ogg", true)
+   --REVIEW QUESTION: Couldn't make this work... how to pass json from Lua?
+   --Otherwise, would have to pass all the variables
+   --local json = {
+   --   track = 'stonehearth:music:title_screen'
+   --}
+   --_radiant.audio.play_music(radiant.json.encode(json))
+   _radiant.audio.play_music('stonehearth:music:title_screen', true, 500, 50, 'bgm')
 
    ---[[
    --Some time in seconds in, play a different background music
    self:at(20000, function()
-         radiant.music:play_music_effect("/stonehearth/data/music/background_harp.json")
+         _radiant.audio.play_music('stonehearth:music:world_start', true, 500, 50, 'bgm')
       end)
    --]]
 

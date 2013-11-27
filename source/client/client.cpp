@@ -42,15 +42,16 @@
 #include "lib/lua/om/open.h"
 #include "lib/lua/voxel/open.h"
 #include "lib/lua/analytics/open.h"
+#include "lib/lua/audio/open.h"
 #include "lib/analytics/design_event.h"
 #include "lib/analytics/post_data.h"
 #include "lib/audio/input_stream.h"
-#include "lib/audio/audio.h"
+//#include "lib/audio/audio.h"
+#include "lib/audio/audio_manager.h"
 #include "client/renderer/render_entity.h"
 #include "lib/perfmon/perfmon.h"
 #include "platform/sysinfo.h"
 #include "glfw3.h"
-
 
 
 //  #include "GFx/AS3/AS3_Global.h"
@@ -215,12 +216,29 @@ Client::Client() :
       return result;
    });
 
+   //TODO: take arguments to accomodate effects sounds
    core_reactor_->AddRoute("radiant:play_sound", [this](rpc::Function const& f) {
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:play_sound");
       try {
          json::Node node(f.args);
          std::string sound_url = node.getn(0).as<std::string>();
-         audio::PlayUISound(sound_url);
+         audio::AudioManager &a = audio::AudioManager::GetInstance();
+         a.PlaySound(sound_url);
+         result->ResolveWithMsg("success");
+      } catch (std::exception const& e) {
+         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
+      }
+      return result;
+   });
+
+   core_reactor_->AddRoute("radiant:play_bgm", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:play_bgm");
+      try {
+         json::Node node(f.args);
+         json::Node params = node.getn(0);
+         LOG(WARNING)<<params.write();
+         audio::AudioManager &a = audio::AudioManager::GetInstance();
+         a.PlayMusic(params);
          result->ResolveWithMsg("success");
       } catch (std::exception const& e) {
          result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
@@ -321,6 +339,7 @@ void Client::run(int server_port)
    lua::voxel::open(L);
    lua::rpc::open(L, core_reactor_);
    lua::analytics::open(L);
+   lua::audio::open(L);
 
 
    //luabind::globals(L)["_client"] = luabind::object(L, this);
@@ -462,6 +481,10 @@ void Client::mainloop()
    perfmon::SwitchToCounter("lua gc");
    platform::timer t(10);
    scriptHost_->GC(t);
+
+   //Update the audio_manager with the current time
+   audio::AudioManager &a = audio::AudioManager::GetInstance();
+   a.UpdateAudio(now_);
 }
 
 om::TerrainPtr Client::GetTerrain()

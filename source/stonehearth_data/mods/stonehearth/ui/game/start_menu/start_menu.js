@@ -38,6 +38,14 @@ App.StonehearthStartMenuView = App.View.extend({
    init: function() {
       this._super();
       // xxx, grab the initial button state from some server-side component
+
+      //Play music as the game starts
+      var args = {
+         'track': 'stonehearth:music:world_start',
+         'fade': 500
+      };
+      radiant.call('radiant:play_bgm', args);      
+
    },
 
    didInsertElement: function() {

@@ -2,10 +2,14 @@
 #define _RADIANT_AUDIO_AUDIO_MANAGER_H
 
 #include "audio.h"
+#include "channel.h"
+#include "libjson.h"
 #include "core/singleton.h"
-#include <SFML/Audio.hpp>
-#include <list>
 #include <unordered_map>
+#include <vector>
+
+namespace sf { class SoundBuffer; class Sound; class Music;}
+namespace claw { namespace tween {class single_tweener;} }
 
 BEGIN_RADIANT_AUDIO_NAMESPACE
 
@@ -15,27 +19,25 @@ public:
    AudioManager();
    ~AudioManager();
 
-   void PlayUISound(std::string uri);
-   void PlayBGM(std::string uri);
+   void PlaySound(std::string uri);
 
-   json::Node GetUIEFXSettings();
-   void SetUIEFXSettings();
+   void PlayMusic(json::Node node);
+   void UpdateAudio(int currTime);
 
-   json::Node GetBGMSettings();
-   void SetBGMSettings();
+   //TODO: implement getter/setters for sound/music by channel
 
 private:
    void CleanupSounds();
 
    std::unordered_map<std::string, sf::SoundBuffer*> sound_buffers_;
-   std::list<sf::Sound*> ui_sounds_;
-
-   sf::Music bgm_music_;
-
-   float ui_efx_volume_;
-   float bgm_volume_;
-
+   std::vector<sf::Sound*> sounds_;
+   float ui_efx_volume_;   
    int num_sounds_;
+
+   //TODO: if we ever have more than 2, use a vector of channels
+   Channel  bgm_channel_;
+   Channel  ambient_channel;
+   
 };
 
 END_RADIANT_AUDIO_NAMESPACE

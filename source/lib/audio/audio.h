@@ -10,15 +10,6 @@ BEGIN_RADIANT_AUDIO_NAMESPACE
 
 class InputStream;
 
-void PlayUISound(std::string uri);
-void PlayBGM(std::string uri);
-
-json::Node GetUIEFXSettings();
-void SetUIEFXSettings();
-
-json::Node GetBGMSettings();
-void SetBGMSettings();
-
 END_RADIANT_AUDIO_NAMESPACE
 
 #endif //  _RADIANT_AUDIO_AUDIO_H
