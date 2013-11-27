@@ -160,8 +160,12 @@ void Simulation::CreateNew()
 
    game_api_ = scriptHost_->Require("radiant.server");
 
-   core::Config& config = core::Config::GetInstance();
-   std::string game_script = config.Get<std::string>("game.script");
+   core::Config const& config = core::Config::GetInstance();
+   std::string const module = config.Get<std::string>("game.mod");
+   json::Node const manifest = res::ResourceManager2::GetInstance().LookupManifest(module);
+   std::string const default_script = module + "/" + manifest.get<std::string>("game.script");
+
+   std::string const game_script = config.Get("game.script", default_script);
    object game_ctor = scriptHost_->RequireScript(game_script);
    game_ = luabind::call_function<luabind::object>(game_ctor);
       

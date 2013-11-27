@@ -53,7 +53,7 @@ public:
    template <typename T> T get(std::string const& path) const {
       auto i = find(path);
       if (i == end()) {
-         throw InvalidJson(BUILD_STRING("Error getting path '" << path << "."));
+         throw InvalidJson(BUILD_STRING("Error getting path '" << path << "'."));
       }
       return (*i).as<T>();
    }

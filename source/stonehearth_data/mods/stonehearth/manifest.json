@@ -1,6 +1,10 @@
 {
-   "info" :{
+   "info" : {
       "name" : "Stonehearth"
+   },
+
+   "game" : {
+      "script" : "start_game.lua"
    },
 
    "radiant": {

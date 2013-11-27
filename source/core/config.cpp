@@ -170,11 +170,6 @@ void Config::InitializeSession()
    }
    sessionid_ = Poco::UUIDGenerator::defaultGenerator().create().toString();
 
-   // this will be read from the mod manifest later
-   if (!root_config_.has("game.script")) {
-      root_config_.set("game.script", std::string(PRODUCT_IDENTIFIER) + "/start_game.lua");
-   }
-
    if (!root_config_.has("game.mod")) {
       root_config_.set("game.mod", PRODUCT_IDENTIFIER);
    }
