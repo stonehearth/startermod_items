@@ -219,8 +219,7 @@ Client::Client() :
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:play_sound");
       try {
          json::Node node(f.args);
-<<<<<<< HEAD
-         std::string sound_url = node.getn(0).as<std::string>();
+         std::string sound_url = node.get_node(0).as<std::string>();
          audio::AudioManager &a = audio::AudioManager::GetInstance();
          a.PlaySound(sound_url);
          result->ResolveWithMsg("success");
@@ -234,10 +233,7 @@ Client::Client() :
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:play_bgm");
       try {         
          json::Node node(f.args);
-         json::Node params = node.getn(0);
-=======
-         std::string sound_url = node.get<std::string>(0);
->>>>>>> 7f33f5857aa1e6e408c7f3dd0545e24bbfb5eb07
+         json::Node params = node.get_node(0);
 
          audio::AudioManager &a = audio::AudioManager::GetInstance();
          

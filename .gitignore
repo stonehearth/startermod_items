@@ -31,6 +31,8 @@ local.mk
 *.bin
 *.gitignore
 *_log.txt
+*horde3d_log.html
+*user_settings.json
 
 # OS generated files #
 ######################
