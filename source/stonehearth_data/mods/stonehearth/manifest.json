@@ -202,6 +202,13 @@
          "sounds:saw_deep" : "file(data/sounds/effects/sh_saw_01.wav)",
          "sounds:saw_high" : "file(data/sounds/effects/sh_saw_02.wav)",
 
+         "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
+         "music:world_start"     : "file(data/music/levelmusic.ogg)",
+
+         "ambient:summer_day"   : "file(data/ambient/sh_amb_summer_day.ogg)",
+         "ambient:summer_night" : "file(data/ambient/sh_amb_summer_night.ogg)",
+
+
          "indicators:sleepy" : "file(/stonehearth/data/effects/unit_status_effects/sleepy_indicator)",
          "indicators:hungry" : "file(/stonehearth/data/effects/unit_status_effects/hungry_indicator)"
       },
