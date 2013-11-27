@@ -46,6 +46,6 @@ void ModelLayer::Init(json::Node const& obj)
             model_name = items.at(c).as_string();
          }
       }
-      models_.Insert(model_name);
+      models_.Add(model_name);
    }
 }

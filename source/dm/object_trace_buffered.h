@@ -35,7 +35,7 @@ private:
    void NotifyObjectState() override
    {
       changed_ = false;
-      ObjectTrace::PushObjectState();
+      ObjectTrace::NotifyObjectState();
    }
 
 private:

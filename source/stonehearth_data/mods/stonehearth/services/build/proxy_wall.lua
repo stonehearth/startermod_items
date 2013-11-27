@@ -30,7 +30,9 @@ function ProxyWall:layout(brush)
    end
    local bounds = Region3(Cube3(self._start_pt, self._end_pt, 0))
    local collsion_shape = brush:paint_through_stencil(bounds)
-   self:get_region():modify():copy_region(collsion_shape)
+   self:get_region():modify(function(cursor)
+      cursor:copy_region(collsion_shape)
+   end)
 
    -- adjust the shape based on our children   
    for _, proxy in pairs(self:get_children()) do
@@ -61,7 +63,9 @@ function ProxyWall:_stencil_portal(portal)
       max[n] = self._end_pt[n]
       cutter3:add_unique_cube(Cube3(min, max))
    end
-   self:get_region():modify():subtract_region(cutter3)
+   self:get_region():modify(function(cursor)
+      cursor:subtract_region(cutter3)
+   end)
 end
 
 function ProxyWall:get_length()

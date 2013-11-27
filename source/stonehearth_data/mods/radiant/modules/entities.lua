@@ -64,15 +64,7 @@ function entities.has_child_by_id(parent, child_id)
    if not component then
       return false
    end
-
-   local children = component:get_children()
-   local found = false
-   for id, child in children:items() do
-      if child_id == id then
-        found = true
-      end
-   end
-   return found
+   return component:get_child(child_id) ~= nil
 end
 
 function entities.get_name(entity)
@@ -272,7 +264,7 @@ end
 
 
 function entities.set_attribute(entity, attribute_name, value)
-   entity:add_component('attributes'):set_attribute(attribute_name, value)
+   entity:add_component('stonehearth:attributes'):set_attribute(attribute_name, value)
 end
 
 function entities.add_buff(entity, buff_name)
@@ -434,8 +426,8 @@ function entities.kill_entity(entity)
 end
 
 function entities.compare_attribute(entity_a, entity_b, attribute)
-   local attributes_a = entity_a:get_component('attributes')
-   local attributes_b = entity_b:get_component('attributes')
+   local attributes_a = entity_a:get_component('stonehearth:attributes')
+   local attributes_b = entity_b:get_component('stonehearth:attributes')
 
    if attributes_a and attributes_b then
       local ferocity_a = attributes_a:get_attribute(attribute)
@@ -465,7 +457,7 @@ end
 
 function entities.on_entity_moved(entity, fn, reason)
    reason = reason and reason or 'on_entity_moved promise'
-   return entity:add_component('mob'):trace(reason):on_changed(fn)
+   return entity:add_component('mob'):trace_object_changes(reason):on_modified(fn)
 end
 
 entities.__init()

@@ -14,7 +14,7 @@ RenderEntityContainer::RenderEntityContainer(const RenderEntity& entity, om::Ent
    entity_(entity)
 {
    trace_ = container->TraceChildren("render", dm::RENDER_TRACES)
-                           ->OnChanged([=](dm::ObjectId id, om::EntityRef child) {
+                           ->OnAdded([=](dm::ObjectId id, om::EntityRef child) {
                               AddChild(id, child);
                            })
                            ->OnRemoved([=](dm::ObjectId id) {

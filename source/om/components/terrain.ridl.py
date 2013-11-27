@@ -21,18 +21,13 @@ class Terrain(Component):
       Magma         = 11,
    )
 
-   zones = dm.Map(csg.Point3(), Region3BoxedPtr(), insert=None, remove=None, get=None)
+   zones = dm.Map(csg.Point3(), Region3BoxedPtr(), add=None, remove=None, get=None)
    zone_size = dm.Boxed(c.int())
 
    add_zone = ridl.Method(c.void(),
                           ('zone_offset', csg.Point3().const.ref),
                           ('region3', Region3BoxedPtr()))
-   place_entity = ridl.Method(c.void(), ('location', csg.Point3().const.ref))
    create_new = ridl.Method(c.void())
-   get_zone = ridl.Method(Region3BoxedPtr(),
-                          ('location', csg.Point3().const.ref),
-                          ('zone_offset', csg.Point3().const.ref))
-
    place_entity = ridl.Method(c.void(), ('e', EntityRef()), ('location', csg.Point3().const.ref))
 
    _includes = [

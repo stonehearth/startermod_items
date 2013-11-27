@@ -96,7 +96,6 @@ public:
    template <typename Cls> std::shared_ptr<Cls ## Trace<Cls>> Trace ## Cls ## Changes(const char* reason, Cls const& o, int category); \
    template <typename Cls> std::shared_ptr<Cls ## Trace<Cls>> Trace ## Cls ## Changes(const char* reason, Cls const& o, Tracer* tracer);
 
-   TRACE_TYPE_METHOD(Object)
    TRACE_TYPE_METHOD(Record)
    TRACE_TYPE_METHOD(Boxed)
    TRACE_TYPE_METHOD(Set)
@@ -110,7 +109,6 @@ public:
    void AddTracer(TracerPtr set, int category);
    void PushAllocState(AllocTrace& trace) const;
 
-   template <typename T> void PushObjectState(ObjectTrace<T>& trace, ObjectId id) const;
    template <typename T> void PushBoxedState(BoxedTrace<T>& trace, ObjectId id) const;
    template <typename T> void PushSetState(SetTrace<T>& trace, ObjectId id) const;
    template <typename T> void PushMapState(MapTrace<T>& trace, ObjectId id) const;

@@ -8,7 +8,7 @@ class TargetTableEntry(dm.Record):
    name = 'TargetTableEntry'
 
 class TargetTable(dm.Record):
-   entries = dm.Map(dm.ObjectId(), std.shared_ptr(TargetTableEntry), singular_name='entry', insert=None)
+   entries = dm.Map(dm.ObjectId(), std.shared_ptr(TargetTableEntry), singular_name='entry', add=None)
    name = dm.Boxed(std.string())
    category = dm.Boxed(std.string())
    top = dm.Boxed(std.shared_ptr(TargetTableEntry))

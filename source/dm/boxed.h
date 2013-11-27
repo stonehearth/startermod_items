@@ -17,6 +17,8 @@ public:
    ObjectType GetObjectType() const override { return OT; }
    const char *GetObjectClassNameLower() const override { return "boxed"; }
    std::shared_ptr<BoxedTrace<Boxed>> TraceChanges(const char* reason, int category) const;
+   TracePtr TraceObjectChanges(const char* reason, int category) const override;
+   TracePtr TraceObjectChanges(const char* reason, Tracer* tracer) const override;
 
    std::ostream& GetDebugDescription(std::ostream& os) const {
       return (os << "boxed " << typeid(T).name());

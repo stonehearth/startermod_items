@@ -13,11 +13,6 @@ Object::Object()
    id_.store = 0;
 }
 
-std::shared_ptr<ObjectTrace<Object>> Object::TraceObjectChanges(const char* reason, int category)
-{
-   return GetStore().TraceObjectChanges(reason, *this, category);
-}
-
 void Object::Initialize(Store& store, ObjectId id)
 {
    // prevent stack based allocation of objects... too dangerous

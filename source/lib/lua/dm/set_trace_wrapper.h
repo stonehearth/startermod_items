@@ -19,9 +19,9 @@ public:
       if (!trace_) {
          throw std::logic_error("called on_added on invalid trace");
       }
-      trace_->OnAdded([this, added_cb](typename T::Key const& key, typename T::Value const& value) {
+      trace_->OnAdded([this, added_cb](typename T::Value const& value) {
          try {
-            call_function<void>(added_cb, key, value);
+            call_function<void>(added_cb, value);
          } catch (std::exception const& e) {
             LOG(WARNING) << "exception delivering lua trace: " << e.what();
          }
@@ -34,9 +34,9 @@ public:
       if (!trace_) {
          throw std::logic_error("called on_removed on invalid trace");
       }
-      trace_->OnRemoved([this, removed_cb](typename T::Key const& key) {
+      trace_->OnRemoved([this, removed_cb](typename T::Value const& value) {
          try {
-            call_function<void>(removed_cb, key);
+            call_function<void>(removed_cb, value);
          } catch (std::exception const& e) {
             LOG(WARNING) << "exception delivering lua trace: " << e.what();
          }

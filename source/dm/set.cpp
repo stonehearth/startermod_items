@@ -15,6 +15,18 @@ std::shared_ptr<SetTrace<Set<V>>> Set<V>::TraceChanges(const char* reason, int c
    return GetStore().TraceSetChanges(reason, *this, category);
 }
 
+template <class V>
+TracePtr Set<V>::TraceObjectChanges(const char* reason, int category) const
+{
+   return GetStore().TraceSetChanges(reason, *this, category);
+}
+
+template <class V>
+TracePtr Set<V>::TraceObjectChanges(const char* reason, Tracer* tracer) const
+{
+   return GetStore().TraceSetChanges(reason, *this, tracer);
+}
+
 template <class T>
 void Set<T>::LoadValue(Protocol::Value const& value)
 {
@@ -23,7 +35,7 @@ void Set<T>::LoadValue(Protocol::Value const& value)
 
    for (const Protocol::Value& item : msg.added()) {
       SaveImpl<T>::LoadValue(GetStore(), item, v);
-      Insert(v);
+      Add(v);
    }
    for (const Protocol::Value& item : msg.removed()) {
       SaveImpl<T>::LoadValue(GetStore(), item, v);
@@ -72,7 +84,7 @@ void Set<T>::Remove(const T& item) {
 }
 
 template <class T>
-void Set<T>::Insert(const T& item) {
+void Set<T>::Add(const T& item) {
    if (!stdutil::contains(items_, item)) {
       GetStore().OnSetAdded(*this, item);
       items_.push_back(item);

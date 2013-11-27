@@ -30,7 +30,7 @@ TargetTableEntryPtr TargetTable::AddEntry(om::EntityRef e)
       if (!entry) {
          entry = GetStore().AllocObject<TargetTableEntry>();
          entry->SetTarget(entity);
-         entries_.Insert(id, entry);
+         entries_.Add(id, entry);
       }
    }
 

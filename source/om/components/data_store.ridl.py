@@ -9,6 +9,15 @@ class DataStore(dm.Record):
    controller = dm.Boxed(lua.ControllerObject())
    data = dm.Boxed(lua.DataObject())
 
+   _no_lua = True
+   _public = \
+   """
+   void MarkDataChanged()
+   {
+      data_.Modify([](lua::DataObject&) {});
+   }
+   """
+
    _includes = [
       "lib/lua/controller_object.h",
       "lib/lua/data_object.h",

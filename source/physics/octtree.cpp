@@ -67,7 +67,7 @@ void OctTree::TraceEntity(om::EntityPtr entity)
          EntityMapEntry& entry = entities_[id];
          entry.entity = entity;
          entry.components_trace = entity->TraceComponents("octtree", trace_category_)
-                                             ->OnChanged([this, id](dm::ObjectType type, std::shared_ptr<dm::Object> obj) {
+                                             ->OnAdded([this, id](dm::ObjectType type, std::shared_ptr<dm::Object> obj) {
                                                 OnComponentAdded(id, type, obj);
                                              })
                                              ->PushObjectState();
@@ -89,7 +89,7 @@ void OctTree::OnComponentAdded(dm::ObjectId id, dm::ObjectType type, std::shared
          case om::EntityContainerObjectType: {
             om::EntityContainerPtr entity_container = std::static_pointer_cast<om::EntityContainer>(component);
             entry.children_trace = entity_container->TraceChildren("octtree", trace_category_)
-               ->OnChanged([this](dm::ObjectId id, om::EntityRef e) {
+               ->OnAdded([this](dm::ObjectId id, om::EntityRef e) {
                      TraceEntity(e.lock());
                })
                ->PushObjectState();
@@ -98,7 +98,7 @@ void OctTree::OnComponentAdded(dm::ObjectId id, dm::ObjectType type, std::shared
          case om::SensorListObjectType: {
             om::SensorListPtr sensor_list = std::static_pointer_cast<om::SensorList>(component);
             entry.sensor_list_trace = sensor_list->TraceSensors("octtree", trace_category_)
-               ->OnChanged([this](std::string const& name, om::SensorPtr sensor) {
+               ->OnAdded([this](std::string const& name, om::SensorPtr sensor) {
                   TraceSensor(sensor);
                })
                ->OnRemoved([this](std::string const& name) {
@@ -168,7 +168,7 @@ om::EntityPtr OctTree::FindFirstActor(om::EntityPtr root, std::function <bool(om
    }
    om::EntityContainerPtr container = root->GetComponent<om::EntityContainer>();
    if (container) {
-      for (const auto& child : container->AllChildren()) {
+      for (const auto& child : container->EachChild()) {
          auto entity = child.second.lock();
          if (entity) {
             auto result = FindFirstActor(entity, filter);

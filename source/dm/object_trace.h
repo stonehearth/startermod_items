@@ -12,6 +12,7 @@ class ObjectTrace : public TraceImpl<ObjectTrace<T>>
 public:
    ObjectTrace(const char* reason, Object const& o, Store const& store);
    std::shared_ptr<ObjectTrace> PushObjectState();
+   FORWARD_BASE_PUSH_OBJECT_STATE()
 
 protected:
    friend Store;

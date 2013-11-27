@@ -9,7 +9,9 @@ class Sensor(dm.Record):
    entity = dm.Boxed(EntityRef())
    name = dm.Boxed(std.string())
    cube = dm.Boxed(csg.Cube3f())
-   contents = dm.Set(dm.ObjectId())
+   contents = dm.Set(dm.ObjectId(), iterate='define')
+
+   _lua_weak_ref = True
 
    _includes = [
       "csg/cube.h"

@@ -369,8 +369,6 @@ void Simulation::PostCommand(proto::PostCommandRequest const& request)
 
 bool Simulation::ProcessMessage(std::shared_ptr<RemoteClient> c, const proto::Request& msg)
 {
-   proto::Update reply;
-
 #define DISPATCH_MSG(MsgName) \
    case proto::Request::MsgName ## Request: \
       MsgName(msg.GetExtension(proto::MsgName ## Request::extension)); \

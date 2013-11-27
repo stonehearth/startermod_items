@@ -18,6 +18,7 @@ public:
    BoxedTrace(const char* reason, Object const& o, Store const& store);
    std::shared_ptr<BoxedTrace> OnChanged(ChangedCb changed);
    std::shared_ptr<BoxedTrace> PushObjectState();
+   FORWARD_BASE_PUSH_OBJECT_STATE()
 
 protected:
    void SignalChanged(Value const& value);

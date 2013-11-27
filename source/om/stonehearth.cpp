@@ -200,7 +200,7 @@ AddLuaComponent(lua_State* L, EntityPtr entity, std::string const& name)
       if (ctor) {
          data_store = component->AddLuaComponent(name);
          data_store->SetData(lua::DataObject(newtable(L)));
-         result = call_function<object>(ctor, EntityRef(entity), DataStoreRef(data_store));
+         result = call_function<object>(ctor, EntityRef(entity), data_store);
          data_store->SetController(lua::ControllerObject(result));
       }
    }

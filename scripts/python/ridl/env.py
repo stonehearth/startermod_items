@@ -3,6 +3,16 @@ from ridl import *
 class Env:
    PATH = 'radiant/om/components'
 
+   def caps(self, obj):
+      "FooBar -> foo_bar"
+      result = ''
+      for ch in obj:
+         if ch.isupper():
+            if result:
+               result += '_'
+         result += ch.upper()
+      return result
+
    def lower(self, obj):
       "FooBar -> foo_bar"
       result = ''

@@ -17,6 +17,17 @@ public:
    ObjectId GetObjectId() const;
    Store const& GetStore() const;
 
+   void OnModified(ModifiedCb modified)
+   {
+      on_modified_ = modified;
+   }
+   void OnDestroyed(DestroyedCb destroyed)
+   {
+      on_destroyed_ = destroyed;
+   }
+   virtual void PushObjectState_() = 0;
+   virtual void SaveObjectDelta(Object* obj, Protocol::Value* value) = 0;
+
    virtual void NotifyDestroyed() { }
 
 public:
@@ -30,6 +41,11 @@ protected:
    ModifiedCb     on_modified_;
    DestroyedCb    on_destroyed_;
 };
+
+#define FORWARD_BASE_PUSH_OBJECT_STATE() \
+   void PushObjectState_() override { \
+      PushObjectState(); \
+   }
 
 END_RADIANT_DM_NAMESPACE
 

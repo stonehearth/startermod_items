@@ -79,7 +79,7 @@ template <> Node json::encode(om::EntityContainer const& obj)
    om::ObjectFormatter f;
    Node node;
 
-   for (auto const& entry : obj.AllChildren()) {
+   for (auto const& entry : obj.EachChild()) {
       om::EntityPtr child = entry.second.lock();
       if (child) {
          node.set(stdutil::ToString(entry.first), f.GetPathToObject(child));

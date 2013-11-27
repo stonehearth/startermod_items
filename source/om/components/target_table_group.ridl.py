@@ -21,9 +21,9 @@ class TargetTableGroup(dm.Record):
       "om/components/target_table.ridl.h"
    ]
 
-
    _public = \
    """
    void Update(int now, int interval);
    """
-   
+
+

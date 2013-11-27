@@ -14,7 +14,7 @@ RecordTrace<R>::RecordTrace(const char* reason, Record const& r, Store& s, Trace
    TraceImpl(reason, r, s)
 {
    for (const auto& field : r.GetFields()) {
-      auto t = s.TraceObjectChanges(reason, *s.FetchStaticObject(field.second), tracer);
+      auto t = s.FetchStaticObject(field.second)->TraceObjectChanges(reason, tracer);
       t->OnModified([=]() {
          NotifyRecordChanged();
       });

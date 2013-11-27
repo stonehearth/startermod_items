@@ -25,10 +25,10 @@ public:
    virtual void GetDbgInfo(DbgInfo &info) const = 0;
    virtual void LoadValue(Protocol::Value const& msg) = 0;
    virtual void SaveValue(Protocol::Value* msg) const = 0;
+   virtual TracePtr TraceObjectChanges(const char* reason, int category) const = 0;
+   virtual TracePtr TraceObjectChanges(const char* reason, Tracer* tracer) const = 0;
    void LoadObject(Protocol::Object const& msg);
    void SaveObject(Protocol::Object* msg) const;
-
-   std::shared_ptr<ObjectTrace<Object>> TraceObjectChanges(const char* reason, int category);
 
    virtual void Initialize(Store& s, ObjectId id);
    virtual void InitializeSlave(Store& s, ObjectId id);

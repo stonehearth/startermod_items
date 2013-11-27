@@ -38,6 +38,10 @@ class Method(object):
       return ', '.join(args)
    formal_params = property(_get_formal_params)
 
+   def _get_actual_params(self):
+      return ', '.join(a[0] for a in self.args)
+   actual_params = property(_get_actual_params)
+
 class Class(Type):
    _generate_construct_object = False
    _public = None
@@ -45,6 +49,9 @@ class Class(Type):
    _protected = None
    _global_post = ""
    _includes = []
+   _no_lua = False
+   _lua_weak_ref = False
+   _lua_includes = []
 
 class Enum(Type):
    def __init__(self, clsname, name, **kwargs):

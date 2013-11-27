@@ -23,7 +23,7 @@ void Terrain::ExtendObject(json::Node const& obj)
 void Terrain::AddZone(csg::Point3 const& zone_offset, Region3BoxedPtr region3)
 {
    // zones are stored using the location of their 0, 0 coordinate in the world
-   zones_.Insert(zone_offset, region3);
+   zones_.Add(zone_offset, region3);
 }
 
 void Terrain::PlaceEntity(EntityRef e, const csg::Point3& location)

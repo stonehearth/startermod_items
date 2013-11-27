@@ -13,7 +13,7 @@ MapTrace<M>::MapTrace(const char* reason, Object const& o, Store const& store) :
 }
 
 template <typename M>
-std::shared_ptr<MapTrace<M>> MapTrace<M>::OnChanged(ChangedCb changed)
+std::shared_ptr<MapTrace<M>> MapTrace<M>::OnAdded(ChangedCb changed)
 {
    changed_ = changed;
    return shared_from_this();

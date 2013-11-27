@@ -278,10 +278,10 @@ end
    Returns an array of all the items currently on the bench.
 ]]
 function WorkshopComponent:get_items_on_bench()
-   local children = self:get_entity():add_component('entity_container'):get_children()
+   local ec = self:get_entity():add_component('entity_container')
 
    local items = {}
-   for _, item in children:items() do
+   for _, item in ec:each_child() do
       table.insert(items, item)
    end
    return items
@@ -332,14 +332,14 @@ function WorkshopComponent:_verify_curr_recipe()
    if self._current_ingredients then
       -- verify that all the items in the current ingredients are on the
       -- bench, and nothing else!
-      local ec = self._entity:get_component('entity_container'):get_children()
+      local ec = self._entity:get_component('entity_container')
 
       for _, ingredient in pairs(self._current_ingredients) do
          if not radiant.entities.has_child_by_id(self._entity, ingredient.item:get_id()) then
             return false
          end
       end
-      return #self._current_ingredients <= ec:size()
+      return #self._current_ingredients <= ec:num_children()
    end
 end
 

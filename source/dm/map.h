@@ -36,10 +36,11 @@ public:
 
    typename ContainerType::const_iterator Remove(typename ContainerType::const_iterator i);
 
-   void Insert(K const& key, V const& value);
+   void Add(K const& key, V const& value);
    void Remove(const K& key);
    bool Contains(const K& key) const;
    V Get(const K& key, V default) const;
+   int Size() const { return items_.size(); }
    void Clear();
 
 private:

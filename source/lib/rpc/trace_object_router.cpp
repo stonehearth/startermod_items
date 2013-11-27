@@ -67,18 +67,18 @@ ReactorDeferredPtr TraceObjectRouter::InstallTrace(Trace const& trace, dm::Objec
    ObjectTraceEntry& entry = traces_[uri];
    entry.obj = obj;
    entry.deferred = deferred;
-   entry.trace = obj->TraceObjectChanges("rpc", dm::RPC_TRACES)
-                        ->OnModified([this, uri, entry]() {
-                           auto obj = entry.obj.lock();
-                           auto deferred = entry.deferred.lock();
-                           if (obj && deferred) {
-                              JSONNode data = om::ObjectFormatter().ObjectToJson(obj);
-                              deferred->Notify(data);
-                           } else {
-                              traces_.erase(uri);
-                           }
-                        })
-                        ->PushObjectState();
+   entry.trace = obj->TraceObjectChanges("rpc", dm::RPC_TRACES);
+   entry.trace->OnModified([this, uri, entry]() {
+      auto obj = entry.obj.lock();
+      auto deferred = entry.deferred.lock();
+      if (obj && deferred) {
+         JSONNode data = om::ObjectFormatter().ObjectToJson(obj);
+         deferred->Notify(data);
+      } else {
+         traces_.erase(uri);
+      }
+   });
+   entry.trace->PushObjectState();
 
    return deferred;
 }

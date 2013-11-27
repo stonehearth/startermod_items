@@ -17,7 +17,7 @@ TargetTablePtr TargetTableGroup::AddTable()
 {
    TargetTablePtr table = GetStore().AllocObject<TargetTable>();
    table->SetCategory(*category_);
-   tables_.Insert(table);
+   tables_.Add(table);
    return table;
 }
 

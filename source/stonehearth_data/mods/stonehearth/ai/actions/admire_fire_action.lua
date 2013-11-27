@@ -47,7 +47,7 @@ function AdmireFire:_on_entity_add(id, entity)
       radiant.entities.get_faction(entity) == radiant.entities.get_faction(self._entity) and 
       not self._known_firepit_callbacks[id] then
 
-      local promise = firepit_component:get_data_store():trace('follow firepit data')
+      local promise = firepit_component:get_data_store():trace_data('follow firepit data')
       self._known_firepit_callbacks[id] = promise
       promise:on_changed(function()
          if firepit_component:is_lit() then

@@ -20,7 +20,7 @@ void SensorList::ExtendObject(json::Node const& obj)
    }
 }
 
-SensorPtr SensorList::AddSensor(std::string const& name, int radius)
+SensorRef SensorList::AddSensor(std::string const& name, int radius)
 {
    float r = (float)radius;
    SensorPtr sensor = GetStore().AllocObject<Sensor>();
@@ -29,6 +29,6 @@ SensorPtr SensorList::AddSensor(std::string const& name, int radius)
    sensor->SetCube(box);
    sensor->SetEntity(GetEntityRef());
 
-   sensors_.Insert(name, sensor);
+   sensors_.Add(name, sensor);
    return sensor;
 }

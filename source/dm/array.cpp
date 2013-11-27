@@ -14,6 +14,19 @@ std::shared_ptr<ArrayTrace<Array<T, C>>> Array<T, C>::TraceChanges(const char* r
    return GetStore().TraceArrayChanges(reason, *this, category);
 }
 
+
+template <class T, int C>
+TracePtr Array<T, C>::TraceObjectChanges(const char* reason, int category) const
+{
+   return GetStore().TraceArrayChanges(reason, *this, category);
+}
+
+template <class T, int C>
+TracePtr Array<T, C>::TraceObjectChanges(const char* reason, Tracer* tracer) const
+{
+   return GetStore().TraceArrayChanges(reason, *this, tracer);
+}
+
 template <class T, int C>
 void Array<T, C>::LoadValue(Protocol::Value const& value)
 {

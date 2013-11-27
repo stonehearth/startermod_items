@@ -30,7 +30,7 @@ void RenderInfo::AttachEntity(om::EntityRef e)
    auto entity = e.lock();
    if (entity) {
       RemoveFromWorld(entity);
-      attached_entities_.Insert(e);
+      attached_entities_.Add(e);
    }
 }
 

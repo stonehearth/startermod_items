@@ -183,7 +183,7 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
    };
 
    zones_trace_ = terrain->TraceZones("render", dm::RENDER_TRACES)
-                              ->OnChanged(on_add_zone)
+                              ->OnAdded(on_add_zone)
                               ->OnRemoved([=](csg::Point3 const&) {
                                  NOT_YET_IMPLEMENTED();
                               })

@@ -8,9 +8,12 @@ class Sensor:
    name = "Sensor"
 
 class SensorList(Component):
-   sensors = dm.Map(std.string(), std.shared_ptr(Sensor), insert=None)
+   sensors = dm.Map(std.string(), std.shared_ptr(Sensor), add=None, singular_name='sensor', accessor_value=std.weak_ptr(Sensor))
 
-   add_sensor = ridl.Method(std.shared_ptr(Sensor),
+   add_sensor = ridl.Method(std.weak_ptr(Sensor),
                             ('name', std.string().const.ref),
                             ('radius', c.int()))
+   _lua_includes = [
+      "om/components/sensor.ridl.h"
+   ]
 

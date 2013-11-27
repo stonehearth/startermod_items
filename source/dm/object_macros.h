@@ -6,6 +6,8 @@
    enum { DmType = Cls ## ObjectType }; \
    ObjectType GetObjectType() const override { return Cls::DmType; } \
    const char *GetObjectClassNameLower() const override { return #lower; } \
-   std::shared_ptr<Cls ## Trace<Cls>> TraceChanges(const char* reason, int category) const ;
+   std::shared_ptr<Cls ## Trace<Cls>> TraceChanges(const char* reason, int category) const; \
+   TracePtr TraceObjectChanges(const char* reason, int category) const; \
+   TracePtr TraceObjectChanges(const char* reason, Tracer* tracer) const;
 
 #endif //  _RADIANT_DM_OBJECT_MACROS_H

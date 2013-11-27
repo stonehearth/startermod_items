@@ -37,10 +37,11 @@ void TracerBuffered::Flush()
       alloced.push_back(obj);
    });
    alloced_objects_.clear();
-
-   stdutil::ForEachPrune<AllocTrace>(alloc_traces_, [&alloced](AllocTracePtr trace) {
-      trace->SignalUpdated(alloced);
-   });
+   if (!alloced.empty()) {
+      stdutil::ForEachPrune<AllocTrace>(alloc_traces_, [&alloced](AllocTracePtr trace) {
+         trace->SignalUpdated(alloced);
+      });
+   }
 
    for (ObjectId id : modified_objects_) {
       auto i = buffered_traces_.find(id);

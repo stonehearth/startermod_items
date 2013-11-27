@@ -24,8 +24,10 @@ class Set(ridl.Type):
       self.remove = kwargs.get('remove', 'define')
       self.trace = kwargs.get('trace', 'define')
       self.iterate = kwargs.get('iterate', None)
+      self.num = kwargs.get('num', 'define')
       self.singular_name = kwargs.get('singular_name', None)
       self.value = value
+      self.accessor_value = kwargs.get('accessor_value', self.value)
       self.name = "dm::Set<%s>" % value.name
       self.short_name = "set"
       self.trace_name = "dm::SetTrace<%s>" % self.name
@@ -43,14 +45,16 @@ class Array(ridl.Type):
 
 class Map(object):
    def __init__(self, key, value, **kwargs):
-      self.insert = kwargs.get('insert', 'define')
+      self.key = key
+      self.value = value
+      self.add = kwargs.get('add', 'define')
       self.remove = kwargs.get('remove', 'define')
       self.get = kwargs.get('get', 'define')
+      self.num = kwargs.get('num', 'define')
       self.trace = kwargs.get('trace', 'define')
       self.iterate = kwargs.get('iterate', None)
       self.singular_name = kwargs.get('singular_name', None)
-      self.key = key
-      self.value = value
+      self.accessor_value = kwargs.get('accessor_value', self.value)
       if hasattr(self.key, 'hash') and self.key.hash:
          self.name = "dm::Map<%s, %s, %s>" % (self.key.name, self.value.name, self.key.hash)
       else:

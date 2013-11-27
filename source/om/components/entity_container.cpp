@@ -16,7 +16,7 @@ void EntityContainer::ExtendObject(json::Node const& obj)
 {
 }
 
-EntityContainer& EntityContainer::InsertChild(dm::ObjectId key, std::weak_ptr<Entity> c)
+void EntityContainer::AddChild(std::weak_ptr<Entity> c)
 {
    auto child = c.lock();
    if (child) {
@@ -29,14 +29,13 @@ EntityContainer& EntityContainer::InsertChild(dm::ObjectId key, std::weak_ptr<En
       mob->SetParent(GetEntity().AddComponent<Mob>());
 
       dm::ObjectId id = child->GetObjectId();
-      children_.Insert(id, c);
+      children_.Add(id, c);
       auto trace = child->TraceObjectChanges("ec dtor", dm::OBJECT_MODEL_TRACES);
       trace->OnDestroyed([this, id]() {
          children_.Remove(id);
       });
       destroy_traces_[id] = trace;
    }
-   return *this;
 }
 
 EntityContainer& EntityContainer::RemoveChild(dm::ObjectId id)

@@ -21,5 +21,5 @@ void ErrorBrowser::AddRecord(ErrorBrowser::Record const& r)
 
    auto entry = GetStore().AllocObject<dm::Boxed<json::Node>>();
    entry->Set(n);
-   entries_.Insert(entry);
+   entries_.Add(entry);
 }

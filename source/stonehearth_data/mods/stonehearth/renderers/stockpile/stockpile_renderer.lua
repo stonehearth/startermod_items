@@ -12,7 +12,7 @@ function StockpileRenderer:__init(render_entity, data_store)
    self._data_store = data_store
    self._region = _radiant.client.alloc_region2()
 
-   self._promise = data_store:trace('rendering stockpile designation')
+   self._promise = data_store:trace_data('rendering stockpile designation')
    self._promise:on_changed(function()
          self:_update()
       end)
@@ -30,12 +30,13 @@ function StockpileRenderer:_update()
       local size = data.size
       if self._size[1] ~= size[1] or self._size[2] ~= size[2] then
          self._size = { size[1], size[2] }
-         local cursor = self._region:modify()
-         cursor:clear()
-         cursor:add_cube(Rect2(Point2(0, 0), Point2(size[1], size[2])))
+         self._region:modify(function(cursor)
+            cursor:clear()
+            cursor:add_cube(Rect2(Point2(0, 0), Point2(size[1], size[2])))
+         end)
          
          self:_clear()
-         self._node = _radiant.client.create_designation_node(self._parent_node, cursor, Color3(0, 153, 255), Color3(0, 153, 255));
+         self._node = _radiant.client.create_designation_node(self._parent_node, self._region:get(), Color3(0, 153, 255), Color3(0, 153, 255));
       end
    end
 end

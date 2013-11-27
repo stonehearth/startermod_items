@@ -29,6 +29,6 @@ DataStorePtr LuaComponents::AddLuaComponent(std::string name)
       return i->second;
    }
    auto component = GetStore().AllocObject<DataStore>();
-   lua_components_.Insert(name, component);
+   lua_components_.Add(name, component);
    return component;
 }

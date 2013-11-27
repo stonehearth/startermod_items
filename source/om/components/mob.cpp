@@ -147,3 +147,9 @@ void Mob::ExtendObject(json::Node const& obj)
       parent_ = ObjectFormatter().GetObject<Mob>(GetStore(), obj.get<std::string>("parent", ""));
    }
 }
+
+void Mob::SetLocationGridAligned(csg::Point3 const& location)
+{
+   MoveTo(csg::ToFloat(location));
+}
+

@@ -14,3 +14,7 @@ void CarryBlock::ExtendObject(json::Node const& obj)
 {
 }
 
+bool CarryBlock::IsCarrying() const
+{
+   return GetCarrying().lock() == nullptr;
+}

@@ -278,7 +278,6 @@ end
 -----
 
 function Landscaper:place_boulders(region3_boxed, zone_map)
-   local region3 = region3_boxed:modify()
    local boulder_region
    local grid_spacing = 32
    local exclusion_radius = 4
@@ -287,18 +286,20 @@ function Landscaper:place_boulders(region3_boxed, zone_map)
    local elevation, i, j, x, y
 
    -- no boulders on edge of map since they can get cut off
-   for j=2, boulder_map_height-1 do
-      for i=2, boulder_map_width-1 do
-         x, y = perturbation_grid:get_perturbed_coordinates(i, j, exclusion_radius)
+   region3_boxed:modify(function(cursor)
+      for j=2, boulder_map_height-1 do
+         for i=2, boulder_map_width-1 do
+            x, y = perturbation_grid:get_perturbed_coordinates(i, j, exclusion_radius)
 
-         elevation = zone_map:get(x, y)
+            elevation = zone_map:get(x, y)
 
-         if self:_should_place_boulder(elevation) then
-            boulder_region = self:_create_boulder(x, y, elevation)
-            region3:add_region(boulder_region)
+            if self:_should_place_boulder(elevation) then
+               boulder_region = self:_create_boulder(x, y, elevation)
+               region3:add_region(boulder_region)
+            end
          end
       end
-   end
+   end)
 end
 
 function Landscaper:_should_place_boulder(elevation)

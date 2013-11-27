@@ -47,7 +47,7 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
    skeleton_.SetSceneNode(node_.get());
 
    components_trace_ = entity->TraceComponents("render", dm::RENDER_TRACES)
-                                    ->OnChanged([this](dm::ObjectType type, std::shared_ptr<dm::Object> obj) {
+                                    ->OnAdded([this](dm::ObjectType type, std::shared_ptr<dm::Object> obj) {
                                        AddComponent(type, obj);
                                     })
                                     ->OnRemoved([this](dm::ObjectType type) {
@@ -232,7 +232,7 @@ void RenderEntity::AddLuaComponents(om::LuaComponentsPtr lua_components)
             std::weak_ptr<RenderEntity> re = shared_from_this();
             luabind::object render_component;
             try {
-               om::DataStoreRef data_store = entry.second;
+               om::DataStorePtr data_store = entry.second;
                render_component = script->CallFunction<luabind::object>(ctor, re, data_store);
             } catch (std::exception const& e) {
                LOG(WARNING) << e.what();

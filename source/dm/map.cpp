@@ -16,6 +16,18 @@ std::shared_ptr<MapTrace<Map<K, V, H>>> Map<K, V, H>::TraceChanges(const char* r
 }
 
 template <class K, class V, class H>
+TracePtr Map<K, V, H>::TraceObjectChanges(const char* reason, int category) const
+{
+   return GetStore().TraceMapChanges(reason, *this, category);
+}
+
+template <class K, class V, class H>
+TracePtr Map<K, V, H>::TraceObjectChanges(const char* reason, Tracer* tracer) const
+{
+   return GetStore().TraceMapChanges(reason, *this, tracer);
+}
+
+template <class K, class V, class H>
 void Map<K, V, H>::LoadValue(Protocol::Value const& value)
 {
    auto msg = value.GetExtension(Protocol::Map::extension);
@@ -25,7 +37,7 @@ void Map<K, V, H>::LoadValue(Protocol::Value const& value)
    for (Protocol::Map::Entry const& entry : msg.added()) {
       SaveImpl<K>::LoadValue(GetStore(), entry.key(), key);
       SaveImpl<V>::LoadValue(GetStore(), entry.value(), val);
-      Insert(key, val);
+      Add(key, val);
    }
    for (Protocol::Value const& removed : msg.removed()) {
       SaveImpl<K>::LoadValue(GetStore(), removed, key);
@@ -87,7 +99,7 @@ typename Map<K, V, H>::ContainerType::const_iterator Map<K, V, H>::Remove(typena
 }
 
 template <class K, class V, class H>
-void Map<K, V, H>::Insert(K const& key, V const& value) {
+void Map<K, V, H>::Add(K const& key, V const& value) {
    auto result = items_.insert(std::make_pair(key, value));
    if (result.second) {
       GetStore().OnMapChanged(*this, key, value);

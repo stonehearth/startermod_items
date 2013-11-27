@@ -25,7 +25,7 @@ public:
 
    void Clear();
    void Remove(const T& item);
-   void Insert(const T& item);
+   void Add(const T& item);
 
    bool IsEmpty() const;
    int Size() const;

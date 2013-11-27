@@ -8,7 +8,7 @@ function FabricatorRenderer:__init(render_entity, data_store)
 
    self._data = data_store:get_data()
    self._data_store = data_store
-   self._ds_promise = data_store:trace('rendering a fabrication')
+   self._ds_promise = data_store:trace_data('rendering a fabrication')
                         :on_changed(function()
                            self:_update()
                         end)

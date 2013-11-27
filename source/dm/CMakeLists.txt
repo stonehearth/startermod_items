@@ -20,7 +20,6 @@ add_library(dm STATIC
             map_trace_buffered.cpp
             map_trace_sync.cpp
             object.cpp
-            object_trace.cpp
             receiver.cpp
             record.cpp
             record_trace.cpp

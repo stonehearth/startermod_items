@@ -19,7 +19,7 @@ void ModelVariants::ExtendObject(json::Node const& obj)
    for (auto const& e : obj) {
       ModelLayerPtr layer = GetStore().AllocObject<ModelLayer>();
       layer->Init(e);
-      model_variants_.Insert(layer);
+      model_variants_.Add(layer);
    }
 }
 

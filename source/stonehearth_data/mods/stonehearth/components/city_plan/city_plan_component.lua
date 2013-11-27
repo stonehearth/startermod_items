@@ -47,7 +47,7 @@ end
 function CityPlanComponent:_init_fabricator_children(fabricator, blueprint)
    local ec = blueprint:get_component('entity_container')  
    if ec then
-      for id, child in ec:get_children():items() do
+      for id, child in ec:each_child() do
          local fc = self:_create_fabricator(child)
          fabricator:add_component('entity_container'):add_child(fc)
       end

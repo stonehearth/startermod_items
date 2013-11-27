@@ -13,6 +13,18 @@ std::shared_ptr<BoxedTrace<Boxed<T, OT>>> Boxed<T, OT>::TraceChanges(const char*
 }
 
 template <class T, int OT>
+TracePtr Boxed<T, OT>::TraceObjectChanges(const char* reason, int category) const
+{
+   return GetStore().TraceBoxedChanges(reason, *this, category);
+}
+
+template <class T, int OT>
+TracePtr Boxed<T, OT>::TraceObjectChanges(const char* reason, Tracer* tracer) const
+{
+   return GetStore().TraceBoxedChanges(reason, *this, tracer);
+}
+
+template <class T, int OT>
 void Boxed<T, OT>::LoadValue(Protocol::Value const& msg)
 {
    SaveImpl<T>::LoadValue(GetStore(), msg, value_);

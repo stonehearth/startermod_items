@@ -1,10 +1,6 @@
 {
    "type": "entity", 
    "components": {
-      "attributes": {
-         "ferocity": 100, 
-         "health": 100
-      }, 
       "render_info" : {
          "animation_table": "file(/data/rigs/critters/goblin)"
       },
@@ -25,6 +21,10 @@
       ], 
       "unit_info": {
          "faction": "goblin"
+      }, 
+      "stonehearth:attributes": {
+         "ferocity": 100, 
+         "health": 100
       }, 
       "stonehearth:ai": {
          "observers": [

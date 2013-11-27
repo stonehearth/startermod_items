@@ -14,12 +14,12 @@ public:
    {
    }
 
-   std::shared_ptr<MapTraceWrapper<T>> OnChanged(luabind::object changed_cb)
+   std::shared_ptr<MapTraceWrapper<T>> OnAdded(luabind::object changed_cb)
    {
       if (!trace_) {
-         throw std::logic_error("called on_changed on invalid trace");
+         throw std::logic_error("called on_added on invalid trace");
       }
-      trace_->OnChanged([this, changed_cb](typename T::Key const& key, typename T::Value const& value) {
+      trace_->OnAdded([this, changed_cb](typename T::Key const& key, typename T::Value const& value) {
          try {
             call_function<void>(changed_cb, key, value);
          } catch (std::exception const& e) {

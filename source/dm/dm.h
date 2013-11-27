@@ -43,7 +43,6 @@ class Record;
 class AllocTrace;
 class AllocTraceSync;
 class AllocTraceBuffered;
-template <typename T> class ObjectTrace;
 template <typename T> class RecordTrace;
 template <typename T> class BoxedTrace;
 template <typename T> class SetTrace;

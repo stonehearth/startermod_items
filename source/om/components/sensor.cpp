@@ -40,7 +40,7 @@ void Sensor::UpdateIntersection(std::vector<EntityId> intersection)
       for (EntityId id : intersection) {
          if (entity_id != id) {
             LOG(WARNING) << "adding entity " << id << " to sensor for entity " << entity_id;
-            contents_.Insert(id);
+            contents_.Add(id);
          }
       }
    }

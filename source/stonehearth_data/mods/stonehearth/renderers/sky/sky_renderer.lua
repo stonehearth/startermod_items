@@ -21,7 +21,7 @@ function SkyRenderer:__init()
       :done(
          function (o)
             self._clock_object = o.clock_object
-            self._clock_promise = self._clock_object:trace('drawing sky')
+            self._clock_promise = self._clock_object:trace_data('drawing sky')
             self._clock_promise:on_changed(
                function ()
                   local date = self._clock_object:get_data()

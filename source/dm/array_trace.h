@@ -20,7 +20,7 @@ public:
 public:
    ArrayTrace(const char* reason, Object const& o, Store const& store);
 
-   std::shared_ptr<ArrayTrace> OnChanged(ChangedCb changed);
+   std::shared_ptr<ArrayTrace> OnAdded(ChangedCb changed);
    std::shared_ptr<ArrayTrace> OnUpdated(UpdatedCb updated);
 
 protected:

@@ -13,3 +13,13 @@ void TargetTables::ExtendObject(json::Node const& obj)
 {
 }
 
+TargetTablePtr TargetTables::AddTable(std::string const& category)
+{
+   TargetTableGroupPtr group = tables_.Get(category, nullptr);
+   if (!group) {
+      group = GetStore().AllocObject<TargetTableGroup>();
+      group->SetCategory(category);
+      tables_.Add(category, group);
+   }
+   return group->AddTable();
+}

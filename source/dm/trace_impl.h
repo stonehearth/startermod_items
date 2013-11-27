@@ -17,13 +17,13 @@ public:
 
    std::shared_ptr<Derived> OnModified(ModifiedCb modified)
    {
-      on_modified_ = modified;
+      Trace::OnModified(destroyed);
       return shared_from_this();
    }
 
    std::shared_ptr<Derived> OnDestroyed(DestroyedCb destroyed)
    {
-      on_destroyed_ = destroyed;
+      Trace::OnDestroyed(destroyed);
       return shared_from_this();
    }
 };

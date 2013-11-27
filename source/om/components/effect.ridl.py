@@ -7,7 +7,7 @@ import ridl.std_types as std
 class Effect(dm.Record):
    name = dm.Boxed(std.string(), set=None, trace=None)
    start_time = dm.Boxed(c.int(), set=None, trace=None)
-   params = dm.Map(std.string(), Selection(), remove=None, get=None, insert=None, trace=None)
+   params = dm.Map(std.string(), Selection(), remove=None, get=None, add=None, trace=None)
 
    _includes = [ "lib/lua/bind.h", "csg/namespace.h", "om/selection.h" ]
    _public = \

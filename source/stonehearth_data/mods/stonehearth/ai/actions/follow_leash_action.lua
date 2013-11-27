@@ -9,7 +9,7 @@ function FollowLeash:__init(ai, entity)
    
    --self:set_next_run()
    local leash = entity:add_component('stonehearth:leash')
-   local promise = leash:get_data_store():trace('follow leash ai')
+   local promise = leash:get_data_store():trace_data('follow leash ai')
    promise:on_changed(function() 
       ai:set_action_priority(self, 2)
    end)

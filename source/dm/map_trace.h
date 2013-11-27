@@ -21,10 +21,11 @@ public:
 
 public:
    MapTrace(const char* reason, Object const& o, Store const& store);
-   std::shared_ptr<MapTrace> OnChanged(ChangedCb changed);
+   std::shared_ptr<MapTrace> OnAdded(ChangedCb changed);
    std::shared_ptr<MapTrace> OnRemoved(RemovedCb removed);
    std::shared_ptr<MapTrace> OnUpdated(UpdatedCb updated);
    std::shared_ptr<MapTrace> PushObjectState();
+   FORWARD_BASE_PUSH_OBJECT_STATE()
 
 protected:
    void SignalRemoved(Key const& key);

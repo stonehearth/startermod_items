@@ -23,12 +23,9 @@
 		  "description": "Citizen of your town",
 		  "faction": "civ"
 	   },
-	   "attributes" : {
+      "stonehearth:attributes" : {
 		  "ferocity": 1,
 		  "health": 5,
-        "speed" : 100
-	   },
-      "stonehearth:attributes" : {
         "speed" : 100
       },
       "sensor_list": {

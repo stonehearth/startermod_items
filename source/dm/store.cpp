@@ -290,15 +290,6 @@ void Store::OnBoxedChanged(T& boxed, typename T::Value const& value)
 }
 
 template <typename T>
-void Store::PushObjectState(ObjectTrace<T>& trace, ObjectId id) const
-{
-   auto i = objects_.find(id);
-   if (i != objects_.end()) {
-      trace.NotifyObjectState();
-   }
-}
-
-template <typename T>
 void Store::PushBoxedState(BoxedTrace<T>& trace, ObjectId id) const
 {
    auto i = objects_.find(id);
@@ -363,7 +354,6 @@ void Store::PushMapState(MapTrace<T>& trace, ObjectId id) const
       return trace; \
    } \
 
-TRACE_TYPE_METHOD(Object)
 TRACE_TYPE_METHOD(Record)
 TRACE_TYPE_METHOD(Boxed)
 TRACE_TYPE_METHOD(Set)
@@ -374,9 +364,6 @@ TRACE_TYPE_METHOD(Map)
 
 template std::shared_ptr<RecordTrace<Record>> Store::TraceRecordChanges(const char*, Record const&, int);
 template std::shared_ptr<RecordTrace<Record>> Store::TraceRecordChanges(const char*, Record const&, Tracer*);
-template std::shared_ptr<ObjectTrace<Object>> Store::TraceObjectChanges(const char*, Object const&, int);
-template std::shared_ptr<ObjectTrace<Object>> Store::TraceObjectChanges(const char*, Object const&, Tracer*);
-template void Store::PushObjectState(ObjectTrace<Object>&, ObjectId) const;
 
 #define CREATE_MAP(M)    template std::shared_ptr<MapTrace<M>> Store::TraceMapChanges(const char*, M const&, int); \
                          template std::shared_ptr<MapTrace<M>> Store::TraceMapChanges(const char*, M const&, Tracer*); \

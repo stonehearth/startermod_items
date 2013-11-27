@@ -23,7 +23,7 @@ EffectPtr EffectList::AddEffect(std::string const& effectName, int startTime)
 {
    auto effect = GetStore().AllocObject<Effect>();
    effect->Init(effectName, startTime);
-   effects_.Insert(effect);
+   effects_.Add(effect);
    return effect;
 }
 

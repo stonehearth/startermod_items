@@ -16,10 +16,20 @@ Record::Record() :
 {
 }   
 
-
 std::shared_ptr<RecordTrace<Record>> Record::TraceChanges(const char* reason, int category) const
 {
    return GetStore().TraceRecordChanges(reason, *this, category);
+}
+
+
+TracePtr Record::TraceObjectChanges(const char* reason, int category) const
+{
+   return GetStore().TraceRecordChanges(reason, *this, category);
+}
+
+TracePtr Record::TraceObjectChanges(const char* reason, Tracer* tracer) const
+{
+   return GetStore().TraceRecordChanges(reason, *this, tracer);
 }
 
 void Record::Initialize(Store& s, ObjectId id)

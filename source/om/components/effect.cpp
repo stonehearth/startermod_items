@@ -22,7 +22,7 @@ void Effect::AddParam(std::string name, luabind::object o)
 {
    Selection s;
    s.FromLuaObject(o);
-   params_.Insert(name, s);
+   params_.Add(name, s);
 }
 
 const Selection& Effect::GetParam(std::string param) const

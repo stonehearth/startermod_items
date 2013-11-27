@@ -15,7 +15,7 @@ ArrayTrace<A>::ArrayTrace(const char* reason, Object const& o, Store const& stor
 }
 
 template <typename A>
-std::shared_ptr<ArrayTrace<A>> ArrayTrace<A>::OnChanged(ChangedCb changed)
+std::shared_ptr<ArrayTrace<A>> ArrayTrace<A>::OnAdded(ChangedCb changed)
 {
    changed_ = changed;
    return shared_from_this();

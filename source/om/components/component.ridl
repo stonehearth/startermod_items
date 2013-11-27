@@ -107,27 +107,27 @@ public:
 % for name, set in env.properties(C, dm.Set):
    <% singular_name = hasattr(set, 'singular_name') and set.singular_name or name %>
    % if set.add == 'define':
-   ${C.__name__}& Add${singular_name | env.upper}(${set.value.name} value)
+   ${C.__name__}& Add${singular_name | env.upper}(${set.accessor_value.name} value)
    { 
-      ${name}_.Insert(value);
+      ${name}_.Add(value);
       return *this;
    }
 
    % elif set.add == 'declare':
-   ${C.__name__}& Add${singular_name | env.upper}(${set.value.name} value);
+   ${C.__name__}& Add${singular_name | env.upper}(${set.accessor_value.name} value);
    % endif
 % endfor
 % for name, set in env.properties(C, dm.Set):
    <% singular_name = hasattr(set, 'singular_name') and set.singular_name or name %>
    % if set.remove == 'define':
-   ${C.__name__}& Remove${singular_name | env.upper}(${set.value.name} value)
+   ${C.__name__}& Remove${singular_name | env.upper}(${set.accessor_value.name} value)
    {
       ${name}_.Remove(value);
       return *this;
    }
       
    % elif set.remove == 'declare':
-   ${C.__name__}& Remove${singular_name | env.upper}(${set.value.name} value);
+   ${C.__name__}& Remove${singular_name | env.upper}(${set.accessor_value.name} value);
    % endif
 % endfor
 % for name, set in env.properties(C, dm.Set):
@@ -146,8 +146,17 @@ public:
    ${set.name} const&
    Each${singular_name | env.upper}() const
    {
-      /* Usage: for (${set.value.name} const& i : obj.Each${singular_name | env.upper}()) ... */
+      /* Usage: for (${set.accessor_value.name} const& i : obj.Each${singular_name | env.upper}()) ... */
       return ${name}_;
+   }
+
+   % endif %
+% endfor
+% for name, set in env.properties(C, dm.Set):
+   % if set.num:
+   int Num${name | env.upper}() const
+   {
+      return ${name}_.Size();
    }
 
    % endif %
@@ -157,15 +166,15 @@ public:
 ##
 % for name, map in env.properties(C, dm.Map):
    <% singular_name = hasattr(map, 'singular_name') and map.singular_name or name %>
-   % if map.insert == 'define':
-   ${C.__name__}& Insert${singular_name | env.upper}(${map.key.name} key, ${map.value.name} value)
+   % if map.add == 'define':
+   ${C.__name__}& Add${singular_name | env.upper}(${map.key.name} key, ${map.accessor_value.name} value)
    { 
-      ${name}_.Insert(key, value);
+      ${name}_.Add(key, value);
       return *this;
    }
 
-   % elif map.insert == 'declare':
-   ${C.__name__}& Insert${singular_name | env.upper}(${map.key.name} key, ${map.value.name} value);
+   % elif map.add == 'declare':
+   ${C.__name__}& Add${singular_name | env.upper}(${map.key.name} key, ${map.accessor_value.name} value);
    % endif
 % endfor
 % for name, map in env.properties(C, dm.Map):
@@ -184,13 +193,13 @@ public:
 % for name, map in env.properties(C, dm.Map):
    <% singular_name = hasattr(map, 'singular_name') and map.singular_name or name %>
    % if map.get == 'define':
-   ${map.value.name} Get${singular_name | env.upper}(${map.key.name} key)
+   ${map.accessor_value.name} Get${singular_name | env.upper}(${map.key.name} key)
    {
       return ${name}_.Get(key, ${map.value.name}());
    }
       
    % elif map.get == 'declare':
-   ${map.value.name} Get${singular_name | env.upper}(${map.key.name} key);
+   ${map.accessor_value.name} Get${singular_name | env.upper}(${map.key.name} key);
    % endif
 % endfor
 % for name, map in env.properties(C, dm.Map):
@@ -204,12 +213,22 @@ public:
    % endif %
 % endfor
 % for name, map in env.properties(C, dm.Map):
+   <% singular_name = hasattr(map, 'singular_name') and map.singular_name or name %>
    % if map.iterate == 'define':
    ${map.name} const&
-   All${name | env.upper}() const
+   Each${singular_name | env.upper}() const
    {
-      /* Usage: for (${map.value.name} const& i : obj.All${name | env.upper}()) ... */
+      /* Usage: for (${map.accessor_value.name} const& i : obj.Each${singular_name | env.upper}()) ... */
       return ${name}_;
+   }
+
+   % endif %
+% endfor
+% for name, map in env.properties(C, dm.Map):
+   % if map.num:
+   int Num${name | env.upper}() const
+   {
+      return ${name}_.Size();
    }
 
    % endif %

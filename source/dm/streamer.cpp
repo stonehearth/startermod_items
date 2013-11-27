@@ -13,7 +13,8 @@ namespace proto = ::radiant::tesseract::protocol;
 
 Streamer::Streamer(Store& store, int category, protocol::SendQueue* queue) :
    queue_(queue),
-   category_(category)
+   category_(category),
+   destroyed_msg_(nullptr)
 {
    tracer_ = std::make_shared<TracerBuffered>();
    store.AddTracer(tracer_, category);
@@ -58,7 +59,8 @@ void Streamer::OnAlloced(std::vector<ObjectPtr> const& objects)
       })
       ->OnDestroyed([this, id]() {
          OnDestroyed(id);
-      });
+      })
+      ->PushObjectState();
       dtor_traces_[id] = trace;
    }
    queue_->Push(protocol::Encode(update));

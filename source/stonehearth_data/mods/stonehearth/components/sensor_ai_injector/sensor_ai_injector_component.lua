@@ -11,17 +11,17 @@ function SensorAiInjectorComponent:extend(json)
    self._sensor = self._entity:get_component('sensor_list'):get_sensor(json.sensor)   
    self._ai = json.ai
 
-   self.promise = self._sensor:get_contents():trace()
-
-   self.promise:on_added(
-      function (id)
-         self:on_added_to_sensor(id)
-      end
-   ):on_removed(
-      function (id)
-         self:on_removed_from_sensor(id)
-      end
-   ) 
+   self.promise = self._sensor:trace_contents('ai injector')
+                                    :on_added(
+                                       function (id)
+                                          self:on_added_to_sensor(id)
+                                       end
+                                    )
+                                    :on_removed(
+                                       function (id)
+                                          self:on_removed_from_sensor(id)
+                                       end
+                                    ) 
 end
 
 function SensorAiInjectorComponent:on_added_to_sensor(entity_id)

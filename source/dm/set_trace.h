@@ -22,6 +22,7 @@ public:
    std::shared_ptr<SetTrace> OnRemoved(RemovedCb removed);
    std::shared_ptr<SetTrace> OnUpdated(UpdatedCb updated);
    std::shared_ptr<SetTrace> PushObjectState();
+   FORWARD_BASE_PUSH_OBJECT_STATE()
 
 protected:
    void SignalRemoved(Value const& value);
