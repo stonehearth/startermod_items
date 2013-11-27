@@ -42,9 +42,10 @@ App.StonehearthStartMenuView = App.View.extend({
       //Play music as the game starts
       var args = {
          'track': 'stonehearth:music:world_start',
+         'channel': 'bgm',
          'fade': 500
       };
-      radiant.call('radiant:play_bgm', args);      
+      radiant.call('radiant:play_music', args);      
 
    },
 

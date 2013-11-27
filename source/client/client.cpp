@@ -46,7 +46,6 @@
 #include "lib/analytics/design_event.h"
 #include "lib/analytics/post_data.h"
 #include "lib/audio/input_stream.h"
-//#include "lib/audio/audio.h"
 #include "lib/audio/audio_manager.h"
 #include "client/renderer/render_entity.h"
 #include "lib/perfmon/perfmon.h"
@@ -231,14 +230,29 @@ Client::Client() :
       return result;
    });
 
-   core_reactor_->AddRoute("radiant:play_bgm", [this](rpc::Function const& f) {
+   core_reactor_->AddRoute("radiant:play_music", [this](rpc::Function const& f) {
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:play_bgm");
-      try {
+      try {         
          json::Node node(f.args);
          json::Node params = node.getn(0);
-         LOG(WARNING)<<params.write();
+
          audio::AudioManager &a = audio::AudioManager::GetInstance();
-         a.PlayMusic(params);
+         
+         //Get track, channel, and other optional data out of the node
+         std::string uri = params.get<std::string>("track");
+         std::string channel = params.get<std::string>("channel");
+
+         if (params.has("loop")) {
+            a.SetNextMusicLoop(params.get<bool>("loop"), channel);
+         }
+         if (params.has("fade")) {
+            a.SetNextMusicFade(params.get<int>("fade"), channel);
+         }
+         if (params.has("volume")) {
+            a.SetNextMusicVolume(params.get<int>("volume"), channel);
+         }        
+         a.PlayMusic(uri, channel);
+
          result->ResolveWithMsg("success");
       } catch (std::exception const& e) {
          result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));

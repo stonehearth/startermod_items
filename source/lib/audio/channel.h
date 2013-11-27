@@ -19,12 +19,11 @@ public:
    ~Channel();
 
    //Music (BGM, Ambient)
-   void PlayMusic(json::Node node);
+   void SetNextMusicVolume(int volume);
+   void SetNextMusicFade(int fade);
+   void SetNextMusicLoop(bool loop);
 
-   //Implement when we have a UI
-   json::Node GetMusicSettings();
-   void SetMusicSettings();
-
+   void PlayMusic(std::string track);
    void UpdateMusic(int currTime);
 
 private:
@@ -32,15 +31,14 @@ private:
 
    std::unordered_map<std::string, std::string*>      music_buffers_;
 
-   sf::Music*     bg_music_;
-   std::string    bg_music_name_;
-   bool           bgm_loop_;
-   int            bgm_fade_;
-   double         bgm_volume_;
-   double         bgm_fading_volume_;
-   float          bgm_master_volume_;
+   sf::Music*     music_;
+   std::string    music_name_;
+   bool           loop_;
+   int            fade_;
+   double         volume_;
+   double         fading_volume_;
+   float          master_volume_;
    std::string    nextTrack_;
-   int            startTime_;
    int            lastUpdated_;
    std::unique_ptr<claw::tween::single_tweener> tweener_;
 };

@@ -8,8 +8,6 @@
 #include <SFML/Audio.hpp>
 #include "resources/res_manager.h"
 
-
-
 using namespace ::radiant;
 using namespace ::radiant::audio;
 
@@ -29,14 +27,12 @@ AudioManager::~AudioManager()
    //Cleanup the sound
    uint i, c = sounds_.size();
    for (i = 0; i < c; i++) {
-      if (sounds_[i]->getStatus() == sf::SoundSource::Status::Stopped) {
-         delete sounds_[i];
-      }
+      delete sounds_[i];
    }
 
    //Clean up all the sound buffers
-   for ( std::unordered_map<std::string, sf::SoundBuffer*>::iterator it = sound_buffers_.begin(); it != sound_buffers_.end(); it++ ) {
-      delete[] it->second;
+   for (auto const& entry : sound_buffers_) {
+      delete entry.second; // note: using delete, not delete[]. delete[] is for things allocated with new []
    }
 }
 
@@ -54,7 +50,7 @@ void AudioManager::PlaySound(std::string uri)
    }
 
    sf::SoundBuffer *buffer = sound_buffers_[uri];
-   if (buffer == NULL) {
+   if (buffer == nullptr) {
       buffer = new sf::SoundBuffer();
       if (buffer->loadFromStream(audio::InputStream(uri))) {
          //We loaded the stream
@@ -62,6 +58,7 @@ void AudioManager::PlaySound(std::string uri)
       } else {
          //If this fails, log and return
          LOG(INFO) << "Can't find Sound Effect! " << uri;
+         delete buffer;
          return;
       }
    }   
@@ -87,25 +84,49 @@ void AudioManager::CleanupSounds()
    sounds_.resize(c);
 }
 
+//Set some properties on the next piece of music that plays
+//TODO: use a vector and switch if there are ever more than 2 or 3 channels
+void AudioManager::SetNextMusicVolume(int volume, std::string channel)
+{
+    if (channel.compare("ambient") == 0) {
+       ambient_channel_.SetNextMusicVolume(volume);
+   } else {
+      bgm_channel_.SetNextMusicVolume(volume);
+   }
+}
+
+void AudioManager::SetNextMusicFade(int fade, std::string channel)
+{
+   if (channel.compare("ambient") == 0) {
+       ambient_channel_.SetNextMusicFade(fade);
+   } else {
+      bgm_channel_.SetNextMusicFade(fade);
+   }
+}
+
+void AudioManager::SetNextMusicLoop(bool loop, std::string channel)
+{
+   if (channel.compare("ambient") == 0) {
+       ambient_channel_.SetNextMusicLoop(loop);
+   } else {
+      bgm_channel_.SetNextMusicLoop(loop);
+   }
+}
+
 //By default, play the music in the bgm channel. If something else
 //is specified (ambient) play it there instead.
-//TODO: use a vector and switch if there are ever more than 2 or 3 channels
-void AudioManager::PlayMusic(json::Node node)
+void AudioManager::PlayMusic(std::string track, std::string channel)
 {
-   //Get the channel out of the node, if specified.
-   if (node.has("channel")) {
-      std::string channel_name = node.get<std::string>("channel");
-      if (channel_name.compare("ambient") == 0) {
-         ambient_channel.PlayMusic(node);
-         return;
-      }
+   if (channel.compare("ambient") == 0) {
+      ambient_channel_.PlayMusic(track);
+   } else {
+      bgm_channel_.PlayMusic(track);
    }
-   bgm_channel_.PlayMusic(node);
 }
 
 //Go through the music channels and call their update functions
 void AudioManager::UpdateAudio(int currTime)
 {
-   ambient_channel.UpdateMusic(currTime);
+   ambient_channel_.UpdateMusic(currTime);
    bgm_channel_.UpdateMusic(currTime);
 }

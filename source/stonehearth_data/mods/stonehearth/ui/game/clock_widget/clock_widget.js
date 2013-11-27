@@ -82,7 +82,7 @@ App.StonehearthCalendarView = App.View.extend({
                'channel': 'ambient', 
                'volume' : 90
             };
-            radiant.call('radiant:play_bgm', args);   
+            radiant.call('radiant:play_music', args);   
          }   
       } else {
          if (date.hour < this._constants.event_times.sunrise) {
@@ -124,7 +124,7 @@ App.StonehearthCalendarView = App.View.extend({
                'channel': 'ambient',
                'volume' : 90
             };
-            radiant.call('radiant:play_bgm', args);      
+            radiant.call('radiant:play_music', args);      
          }
       }
 

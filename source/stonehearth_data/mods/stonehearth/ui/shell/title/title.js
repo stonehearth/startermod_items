@@ -6,7 +6,7 @@ App.StonehearthTitleScreenView = App.View.extend({
    init: function() {
       this._super();
       //Start playing some kind of bgm. 
-      radiant.call('radiant:play_bgm', {'track': 'stonehearth:music:title_screen'} );      
+      radiant.call('radiant:play_music', {'track': 'stonehearth:music:title_screen', 'channel' : 'bgm'} );      
    },
 
    actions: {
