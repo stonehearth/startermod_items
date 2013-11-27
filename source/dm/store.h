@@ -109,16 +109,11 @@ public:
    void AddTracer(TracerPtr set, int category);
    void PushAllocState(AllocTrace& trace) const;
 
-   template <typename T> void PushBoxedState(BoxedTrace<T>& trace, ObjectId id) const;
-   template <typename T> void PushSetState(SetTrace<T>& trace, ObjectId id) const;
-   template <typename T> void PushMapState(MapTrace<T>& trace, ObjectId id) const;
-
 protected: // Internal interface for Objects only
    friend Object;
    static Store& GetStore(int id);
    void RegisterObject(Object& obj);
    void UnregisterObject(const Object& obj);
-   void OnObjectChanged(const Object& obj);
    void OnAllocObject(std::shared_ptr<Object> obj);
 
 private:
@@ -141,7 +136,6 @@ private:
    std::string    name_;
    ObjectId       nextObjectId_;
    GenerationId   nextGenerationId_;
-   TraceId        nextTraceId_;
    lua_State*     L_;
 
    std::vector<ObjectId>   destroyed_;

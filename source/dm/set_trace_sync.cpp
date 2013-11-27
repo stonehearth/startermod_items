@@ -6,8 +6,8 @@ using namespace radiant;
 using namespace radiant::dm;
 
 template <typename S>
-SetTraceSync<S>::SetTraceSync(const char* reason, Object const& o, Store const& store) :
-   SetTrace(reason, o, store)
+SetTraceSync<S>::SetTraceSync(const char* reason, S const& set) :
+   SetTrace(reason, set)
 {
 }
 

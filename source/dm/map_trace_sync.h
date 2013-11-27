@@ -10,7 +10,7 @@ class MapTraceSync : public MapTrace<M>
 {
 public:
 public:
-   MapTraceSync(const char* reason, Object const& o, Store const& store);
+   MapTraceSync(const char* reason, M const& m);
 
 private:
    void NotifyRemoved(Key const& key) override;

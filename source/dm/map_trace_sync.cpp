@@ -6,8 +6,8 @@ using namespace radiant;
 using namespace radiant::dm;
 
 template <typename M>
-MapTraceSync<M>::MapTraceSync(const char* reason, Object const& o, Store const& store) :
-   MapTrace(reason, o, store)
+MapTraceSync<M>::MapTraceSync(const char* reason, M const& m) :
+   MapTrace(reason, m)
 {
 }
 

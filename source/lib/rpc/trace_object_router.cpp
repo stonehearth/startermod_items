@@ -5,7 +5,7 @@
 #include "om/object_formatter/object_formatter.h"
 #include "dm/object.h"
 #include "dm/store.h"
-#include "dm/object_trace.h"
+#include "dm/trace.h"
 
 using namespace ::radiant;
 using namespace ::radiant::rpc;
@@ -68,7 +68,7 @@ ReactorDeferredPtr TraceObjectRouter::InstallTrace(Trace const& trace, dm::Objec
    entry.obj = obj;
    entry.deferred = deferred;
    entry.trace = obj->TraceObjectChanges("rpc", dm::RPC_TRACES);
-   entry.trace->OnModified([this, uri, entry]() {
+   entry.trace->OnModified_([this, uri, entry]() {
       auto obj = entry.obj.lock();
       auto deferred = entry.deferred.lock();
       if (obj && deferred) {
@@ -78,7 +78,7 @@ ReactorDeferredPtr TraceObjectRouter::InstallTrace(Trace const& trace, dm::Objec
          traces_.erase(uri);
       }
    });
-   entry.trace->PushObjectState();
+   entry.trace->PushObjectState_();
 
    return deferred;
 }

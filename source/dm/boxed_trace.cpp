@@ -9,9 +9,22 @@ using namespace radiant;
 using namespace radiant::dm;
 
 template <typename B>
-BoxedTrace<B>::BoxedTrace(const char* reason, Object const& o, Store const& store) :
-   TraceImpl(reason, o, store)
+BoxedTrace<B>::BoxedTrace(const char* reason, B const& b) :
+   TraceImpl(reason),
+   boxed_(b)
 {
+}
+
+template <typename B>
+ObjectId BoxedTrace<B>::GetObjectId() const
+{
+   return boxed_.GetObjectId();
+}
+
+template <typename B>
+Store const& BoxedTrace<B>::GetStore() const
+{
+   return boxed_.GetStore();
 }
 
 template <typename B>
@@ -22,10 +35,9 @@ std::shared_ptr<BoxedTrace<B>> BoxedTrace<B>::OnChanged(ChangedCb changed)
 }
 
 template <typename B>
-std::shared_ptr<BoxedTrace<B>> BoxedTrace<B>::PushObjectState()
+void BoxedTrace<B>::SignalObjectState()
 {
-   GetStore().PushBoxedState<B>(*this, GetObjectId());
-   return shared_from_this();
+   SignalChanged(boxed_.Get());
 }
 
 template <typename B>
@@ -35,12 +47,6 @@ void BoxedTrace<B>::SignalChanged(Value const& value)
    if (changed_) {
       changed_(value);
    }
-}
-
-template <typename B>
-void BoxedTrace<B>::NotifyObjectState(Value const& value)
-{
-   SignalChanged(value);
 }
 
 #define CREATE_BOXED(B)           template BoxedTrace<B>;

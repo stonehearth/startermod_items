@@ -8,21 +8,22 @@ using namespace radiant;
 using namespace radiant::dm;
 
 template <typename M>
-MapTraceBuffered<M>::MapTraceBuffered(const char* reason, Object const& o, Store const& store) :
-   MapTrace(reason, o, store)
+MapTraceBuffered<M>::MapTraceBuffered(const char* reason, M const& m) :
+   MapTrace(reason, m)
 {
 }
 
 template <typename M>
 void MapTraceBuffered<M>::Flush()
 {
-   SignalUpdated(changed_, removed_);
-   changed_.clear();
-   removed_.clear();
+   if (!changed_.empty() || !removed_.empty()) {
+      SignalUpdated(changed_, removed_);
+      ClearCachedState();
+   }
 }
 
 template <typename M>
-void MapTraceBuffered<M>::SaveObjectDelta(Object* obj, Protocol::Value* value)
+void MapTraceBuffered<M>::SaveObjectDelta(Protocol::Value* value)
 {
    Store const& store = GetStore();
    Protocol::Map::Update* msg = value->MutableExtension(Protocol::Map::extension);
@@ -52,11 +53,10 @@ void MapTraceBuffered<M>::NotifyChanged(Key const& key, Value const& value)
 }
 
 template <typename M>
-void MapTraceBuffered<M>::NotifyObjectState(typename M::ContainerType const& contents)
+void MapTraceBuffered<M>::ClearCachedState()
 {
    changed_.clear();
    removed_.clear();
-   MapTrace<M>::NotifyObjectState(contents);
 }
 
 #define CREATE_MAP(M)  template MapTraceBuffered<M>;

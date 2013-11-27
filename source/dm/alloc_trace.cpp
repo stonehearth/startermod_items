@@ -45,7 +45,10 @@ void AllocTrace::SignalUpdated(std::vector<ObjectPtr> const& objs)
       on_updated_(objs);
    } else if (on_alloced_) {
       for (ObjectRef o : objs) {
-         on_alloced_(o);
+         ObjectPtr obj = o.lock();
+         if (obj) {
+            on_alloced_(obj);
+         }
       }
    }
 }

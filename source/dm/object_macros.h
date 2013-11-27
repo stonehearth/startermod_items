@@ -1,7 +1,6 @@
 #ifndef _RADIANT_DM_OBJECT_MACROS_H
 #define _RADIANT_DM_OBJECT_MACROS_H
 
-
 #define DEFINE_DM_OBJECT_TYPE(Cls, lower)   \
    enum { DmType = Cls ## ObjectType }; \
    ObjectType GetObjectType() const override { return Cls::DmType; } \

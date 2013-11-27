@@ -15,21 +15,22 @@ public:
    typedef std::function<void(Value const& v)> ChangedCb;
 
 public:
-   BoxedTrace(const char* reason, Object const& o, Store const& store);
+   BoxedTrace(const char* reason, BoxedType const& b);
    std::shared_ptr<BoxedTrace> OnChanged(ChangedCb changed);
-   std::shared_ptr<BoxedTrace> PushObjectState();
-   FORWARD_BASE_PUSH_OBJECT_STATE()
 
 protected:
    void SignalChanged(Value const& value);
+   void SignalObjectState() override;
+   ObjectId GetObjectId() const;
+   Store const& GetStore() const;
 
 protected:
    friend Store;
    virtual void NotifyChanged(Value const& value) = 0;
-   virtual void NotifyObjectState(Value const& value);
 
 private:
-   ChangedCb      changed_;
+   ChangedCb         changed_;
+   BoxedType const&  boxed_;
 };
 
 END_RADIANT_DM_NAMESPACE

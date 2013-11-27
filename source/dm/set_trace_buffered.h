@@ -7,23 +7,23 @@
 
 BEGIN_RADIANT_DM_NAMESPACE
 
-template <typename M>
+template <typename S>
 class SetTraceBuffered : public TraceBuffered,
-                         public SetTrace<M> {
+                         public SetTrace<S> {
 public:
-   SetTraceBuffered(const char* reason, Object const& o, Store const& store);
+   SetTraceBuffered(const char* reason, S const& set);
 
    void Flush();
-   void SaveObjectDelta(Object* obj, Protocol::Value* value) override;
+   void SaveObjectDelta(Protocol::Value* value) override;
 
 private:
+   void ClearCachedState() override;
    void NotifyAdded(Value const& value) override;
    void NotifyRemoved(Value const& value) override;
-   void NotifyObjectState(typename M::ContainerType const& contents) override;
 
 private:
-   ValueList   added_;
-   ValueList   removed_;
+   ValueList      added_;
+   ValueList      removed_;
 };
 
 END_RADIANT_DM_NAMESPACE

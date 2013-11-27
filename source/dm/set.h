@@ -34,8 +34,7 @@ public:
    typename std::vector<T>::const_iterator begin() const { return items_.begin(); }
    typename std::vector<T>::const_iterator end() const { return items_.end(); }
 
-private:
-   friend Store;
+public:
    ContainerType const& GetContainer() const;
 
 private:

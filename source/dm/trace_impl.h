@@ -10,20 +10,26 @@ class TraceImpl : public Trace,
                   public std::enable_shared_from_this<Derived>
 {
 public:
-   TraceImpl(const char* reason, Object const& o, Store const& store) :
-      Trace(reason, o, store)
+   TraceImpl(const char* reason) :
+      Trace(reason)
    {
    }
 
    std::shared_ptr<Derived> OnModified(ModifiedCb modified)
    {
-      Trace::OnModified(destroyed);
+      Trace::OnModified_(modified);
       return shared_from_this();
    }
 
    std::shared_ptr<Derived> OnDestroyed(DestroyedCb destroyed)
    {
-      Trace::OnDestroyed(destroyed);
+      Trace::OnDestroyed_(destroyed);
+      return shared_from_this();
+   }
+
+   std::shared_ptr<Derived> PushObjectState()
+   {
+      PushObjectState_();
       return shared_from_this();
    }
 };

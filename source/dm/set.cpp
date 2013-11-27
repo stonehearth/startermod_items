@@ -1,6 +1,7 @@
 #include "radiant.h"
 #include "radiant_stdutil.h"
 #include "set.h"
+#include "set_trace.h"
 #include "store.h"
 #include "dbg_info.h"
 #include "dbg_indenter.h"

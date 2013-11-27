@@ -10,7 +10,7 @@ template <typename M>
 class RecordTraceSync : public RecordTrace<M>                  
 {
 public:
-   RecordTraceSync(const char* reason, Record const& r, Store& s, Tracer* tracer);
+   RecordTraceSync(const char* reason, Record const& r, Tracer&);
 
 private:
    void NotifyRecordChanged() override;

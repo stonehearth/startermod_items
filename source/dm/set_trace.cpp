@@ -9,9 +9,22 @@ using namespace radiant;
 using namespace radiant::dm;
 
 template <typename S>
-SetTrace<S>::SetTrace(const char* reason, Object const& o, Store const& store) :
-   TraceImpl(reason, o, store)
+SetTrace<S>::SetTrace(const char* reason, S const& set) :
+   TraceImpl(reason),
+   set_(set)
 {
+}
+
+template <typename S>
+ObjectId SetTrace<S>::GetObjectId() const
+{
+   return set_.GetObjectId();
+}
+
+template <typename S>
+Store const& SetTrace<S>::GetStore() const
+{
+   return set_.GetStore();
 }
 
 template <typename S>
@@ -36,10 +49,9 @@ std::shared_ptr<SetTrace<S>> SetTrace<S>::OnUpdated(UpdatedCb updated)
 }
 
 template <typename S>
-std::shared_ptr<SetTrace<S>> SetTrace<S>::PushObjectState()
+void SetTrace<S>::SignalObjectState()
 {
-   GetStore().PushSetState<S>(*this, GetObjectId());
-   return shared_from_this();
+   SignalUpdated(set_.GetContainer(), ValueList());
 }
 
 template <typename S>
@@ -79,12 +91,6 @@ void SetTrace<S>::SignalUpdated(ValueList const& added, ValueList const& removed
          SignalRemoved(value);
       }
    }
-}
-
-template <typename S>
-void SetTrace<S>::NotifyObjectState(typename S::ContainerType const& contents)
-{
-   SignalUpdated(contents, ValueList());
 }
 
 #define CREATE_SET(S)  template SetTrace<S>;

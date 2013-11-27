@@ -11,15 +11,15 @@ template <typename M>
 class MapTraceBuffered : public TraceBuffered,
                          public MapTrace<M> {
 public:
-   MapTraceBuffered(const char* reason, Object const& o, Store const& store);
+   MapTraceBuffered(const char* reason, M const& m);
 
    void Flush();
-   void SaveObjectDelta(Object* obj, Protocol::Value* value) override;
+   void SaveObjectDelta(Protocol::Value* value) override;
 
 private:
+   void ClearCachedState() override;
    void NotifyRemoved(Key const& key) override;
    void NotifyChanged(Key const& key, Value const& value) override;
-   void NotifyObjectState(typename M::ContainerType const& contents) override;
 
 private:
    ChangeMap            changed_;

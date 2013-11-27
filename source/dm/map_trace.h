@@ -20,25 +20,26 @@ public:
    typedef std::function<void(ChangeMap const& changed, KeyList const& removed)> UpdatedCb;
 
 public:
-   MapTrace(const char* reason, Object const& o, Store const& store);
+   MapTrace(const char* reason, M const& m);
    std::shared_ptr<MapTrace> OnAdded(ChangedCb changed);
    std::shared_ptr<MapTrace> OnRemoved(RemovedCb removed);
    std::shared_ptr<MapTrace> OnUpdated(UpdatedCb updated);
-   std::shared_ptr<MapTrace> PushObjectState();
-   FORWARD_BASE_PUSH_OBJECT_STATE()
 
 protected:
+   ObjectId GetObjectId() const;
+   Store const& GetStore() const;
    void SignalRemoved(Key const& key);
    void SignalChanged(Key const& key, Value const& value) ;
+   void SignalObjectState() override;
    void SignalUpdated(ChangeMap const& changed, KeyList const& removed);
 
 protected:
    friend Store;
    virtual void NotifyRemoved(Key const& key) = 0;
    virtual void NotifyChanged(Key const& key, Value const& value) = 0;
-   virtual void NotifyObjectState(typename M::ContainerType const& contents);
 
 private:
+   M const&       map_;
    RemovedCb      removed_;
    ChangedCb      changed_;
    UpdatedCb      updated_;

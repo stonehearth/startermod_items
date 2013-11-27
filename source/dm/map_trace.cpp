@@ -7,8 +7,9 @@ using namespace radiant;
 using namespace radiant::dm;
 
 template <typename M>
-MapTrace<M>::MapTrace(const char* reason, Object const& o, Store const& store) :
-   TraceImpl(reason, o, store)
+MapTrace<M>::MapTrace(const char* reason, M const& m) :
+   TraceImpl(reason),
+   map_(m)
 {
 }
 
@@ -17,6 +18,19 @@ std::shared_ptr<MapTrace<M>> MapTrace<M>::OnAdded(ChangedCb changed)
 {
    changed_ = changed;
    return shared_from_this();
+}
+
+
+template <typename M>
+ObjectId MapTrace<M>::GetObjectId() const
+{
+   return map_.GetObjectId();
+}
+
+template <typename M>
+Store const& MapTrace<M>::GetStore() const
+{
+   return map_.GetStore();
 }
 
 template <typename M>
@@ -34,10 +48,9 @@ std::shared_ptr<MapTrace<M>> MapTrace<M>::OnUpdated(UpdatedCb updated)
 }
 
 template <typename M>
-std::shared_ptr<MapTrace<M>> MapTrace<M>::PushObjectState()
+void MapTrace<M>::SignalObjectState()
 {
-   GetStore().PushMapState(*this, GetObjectId());
-   return shared_from_this();
+   SignalUpdated(map_.GetContainer(), KeyList());
 }
 
 template <typename M>
@@ -81,12 +94,6 @@ void MapTrace<M>::SignalUpdated(ChangeMap const& changed, KeyList const& removed
          }
       }
    }
-}
-
-template <typename M>
-void MapTrace<M>::NotifyObjectState(typename M::ContainerType const& contents)
-{
-   SignalUpdated(contents, KeyList());
 }
 
 #define CREATE_MAP(M)    template MapTrace<M>;

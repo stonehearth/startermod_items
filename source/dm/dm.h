@@ -64,7 +64,6 @@ DECLARE_SHARED_POINTER_TYPES(Receiver)
 
 void LoadObject(Record& record, Protocol::Value const& msg);
 void SaveObject(Record const& store, Protocol::Value* msg);
-void SaveObjectDelta(Record const& store, Protocol::Value* msg);
 
 END_RADIANT_DM_NAMESPACE
 

@@ -43,8 +43,7 @@ public:
    int Size() const { return items_.size(); }
    void Clear();
 
-private:
-   friend Store;
+public:
    ContainerType const& GetContainer() const;
 
 private:

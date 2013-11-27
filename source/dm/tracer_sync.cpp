@@ -6,17 +6,13 @@
 using namespace radiant;
 using namespace radiant::dm;
 
-TracerSync::TracerSync()
+TracerSync::TracerSync(std::string const& name) :
+   Tracer(name)
 {
 }
 
 TracerSync::~TracerSync()
 {
-}
-
-void TracerSync::OnObjectChanged(ObjectId id)
-{
-   // Nothing to do.
 }
 
 void TracerSync::OnObjectAlloced(ObjectPtr obj)

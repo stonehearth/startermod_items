@@ -7,18 +7,18 @@
 
 BEGIN_RADIANT_DM_NAMESPACE
 
-template <typename M>
+template <typename BoxedType>
 class BoxedTraceBuffered : public TraceBuffered,
-                           public BoxedTrace<M> {
+                           public BoxedTrace<BoxedType> {
 public:
-   BoxedTraceBuffered(const char* reason, Object const& o, Store const& store);
+   BoxedTraceBuffered(const char* reason, BoxedType const& b);
    
    void Flush();
-   void SaveObjectDelta(Object* obj, Protocol::Value* value) override;
+   void SaveObjectDelta(Protocol::Value* value) override;
 
 private:
+   void ClearCachedState() override;
    void NotifyChanged(Value const& value) override;
-   void NotifyObjectState(Value const& value) override;
 
 private:
    Value const*      value_;

@@ -339,10 +339,12 @@ void Client::run(int server_port)
    lua::analytics::open(L);
 
 
-   game_render_tracer_ = std::make_shared<dm::TracerBuffered>();
-   authoring_render_tracer_ = std::make_shared<dm::TracerBuffered>();
+   game_render_tracer_ = std::make_shared<dm::TracerBuffered>("client render");
+   authoring_render_tracer_ = std::make_shared<dm::TracerBuffered>("client tmp render");
    store_.AddTracer(game_render_tracer_, dm::RENDER_TRACES);
+   store_.AddTracer(game_render_tracer_, dm::LUA_TRACES);
    authoringStore_.AddTracer(authoring_render_tracer_, dm::RENDER_TRACES);
+   authoringStore_.AddTracer(authoring_render_tracer_, dm::LUA_TRACES);
 
    //luabind::globals(L)["_client"] = luabind::object(L, this);
 

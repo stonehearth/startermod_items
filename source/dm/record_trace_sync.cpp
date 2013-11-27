@@ -6,8 +6,8 @@ using namespace radiant;
 using namespace radiant::dm;
 
 template <typename R>
-RecordTraceSync<R>::RecordTraceSync(const char* reason, Record const& r, Store& s, Tracer* tracer) :
-   RecordTrace(reason, r, s, tracer)
+RecordTraceSync<R>::RecordTraceSync(const char* reason, Record const& r, Tracer& tracer) :
+   RecordTrace(reason, r, tracer)
 {
 }
 

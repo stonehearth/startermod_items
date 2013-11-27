@@ -6,8 +6,8 @@ using namespace radiant;
 using namespace radiant::dm;
 
 template <typename B>
-BoxedTraceSync<B>::BoxedTraceSync(const char* reason, Object const& o, Store const& store) :
-   BoxedTrace(reason, o, store)
+BoxedTraceSync<B>::BoxedTraceSync(const char* reason, B const& b) :
+   BoxedTrace(reason, b)
 {
 }
 

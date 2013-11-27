@@ -8,7 +8,7 @@ BEGIN_RADIANT_DM_NAMESPACE
 class AllocTrace : public std::enable_shared_from_this<AllocTrace>
 {
 public:
-   typedef std::function<void(ObjectRef)> AllocedCb;
+   typedef std::function<void(ObjectPtr)> AllocedCb;
    typedef std::function<void(std::vector<ObjectPtr> const&)> UpdatedCb;
 
 public:

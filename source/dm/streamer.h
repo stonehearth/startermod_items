@@ -17,20 +17,24 @@ public:
    void Flush();
 
 private:
+   void QueueAlloced();
    void QueueUpdate(tesseract::protocol::Update const& update);
-   void OnAlloced(std::vector<ObjectPtr> const& objects);
+   void QueueAllocs();
+   void QueueAllocUpdates();
+   void QueueDestroyed();
+   void QueueUpdates();
    void OnModified(TraceBufferedRef t, ObjectRef o);
-   void OnDestroyed(ObjectId id);
    void SetServerTick(int now);
 
 private:
    protocol::SendQueue*    queue_;
-   AllocTracePtr           alloc_trace_;
    TracerBufferedPtr       tracer_;
+   AllocTracePtr           alloc_trace_;
    std::unordered_map<ObjectId, TracePtr> dtor_traces_;
    int                     category_;
-   tesseract::protocol::Update   destroyed_update_;
-   tesseract::protocol::RemoveObjects *destroyed_msg_;
+   std::map<ObjectId, ObjectRef>   alloced_;
+   std::vector<ObjectId>           destroyed_;
+   std::vector<std::pair<TraceBufferedRef, ObjectRef>>   updated_;
 };
 
 END_RADIANT_DM_NAMESPACE

@@ -6,7 +6,8 @@
 using namespace radiant;
 using namespace radiant::dm;
 
-Tracer::Tracer()
+Tracer::Tracer(std::string const& name) :
+   name_(name)
 {
 }
 

@@ -6,11 +6,11 @@
 
 BEGIN_RADIANT_DM_NAMESPACE
 
-template <typename M>
-class SetTraceSync : public SetTrace<M>
+template <typename S>
+class SetTraceSync : public SetTrace<S>
 {
 public:
-   SetTraceSync(const char* reason, Object const& o, Store const& store);
+   SetTraceSync(const char* reason, S const& set);
 
 private:
    void NotifyAdded(Value const& value) override;

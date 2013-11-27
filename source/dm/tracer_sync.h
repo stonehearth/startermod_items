@@ -4,17 +4,15 @@
 #include "tracer.h"
 #include "map_trace_sync.h"
 #include "record_trace_sync.h"
-#include "object_trace_sync.h"
 #include "set_trace_sync.h"
 #include "boxed_trace_sync.h"
-#include "array_trace_sync.h"
 
 BEGIN_RADIANT_DM_NAMESPACE
 
 class TracerSync : public Tracer
 {
 public:
-   TracerSync();
+   TracerSync(std::string const&);
    virtual ~TracerSync();
 
 private:
@@ -29,16 +27,13 @@ private:
       return std::make_shared<Cls ## TraceSync<C>> ctor_sig; \
    } \
 
-   DEFINE_TRACE_CLS_CHANGES(Object, (reason, object, store))
-   DEFINE_TRACE_CLS_CHANGES(Record, (reason, object, store, this))
-   DEFINE_TRACE_CLS_CHANGES(Map, (reason, object, store))
-   DEFINE_TRACE_CLS_CHANGES(Boxed, (reason, object, store))
-   DEFINE_TRACE_CLS_CHANGES(Set, (reason, object, store))
-   DEFINE_TRACE_CLS_CHANGES(Array, (reason, object, store))
+   DEFINE_TRACE_CLS_CHANGES(Record, (reason, object, *this))
+   DEFINE_TRACE_CLS_CHANGES(Map, (reason, object))
+   DEFINE_TRACE_CLS_CHANGES(Boxed, (reason, object))
+   DEFINE_TRACE_CLS_CHANGES(Set, (reason, object))
 
 #undef DEFINE_TRACE_CLS_CHANGES
 
-   void OnObjectChanged(ObjectId id) override;
    void OnObjectAlloced(ObjectPtr obj) override;
    void OnObjectDestroyed(ObjectId id) override;
 };

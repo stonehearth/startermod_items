@@ -33,7 +33,7 @@ void Boxed<T, OT>::LoadValue(Protocol::Value const& msg)
 template <class T, int OT>
 void Boxed<T, OT>::SaveValue(Protocol::Value* msg) const
 {
-   NOT_YET_IMPLEMENTED();
+   SaveImpl<T>::SaveValue(GetStore(), msg, value_);
 }
 
 template <class T, int OT>

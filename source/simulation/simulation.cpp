@@ -246,13 +246,13 @@ void Simulation::EncodeServerTick(std::shared_ptr<RemoteClient> c)
 
 void Simulation::EncodeUpdates(std::shared_ptr<RemoteClient> c)
 {
+   LOG(INFO) << "flushing streamer.............";
    c->streamer->Flush();
+   LOG(INFO) << "done flushing streamer.............";
    EncodeDebugShapes(c->send_queue);
 
-   // buffered stuff...
-   // xxx: we should just send these to the client immediately instead of
-   // bufferring them up.
    for (const auto& msg : buffered_updates_) {
+      LOG(INFO) << "sending buffered reply.............";
       c->send_queue->Push(msg);
    }
    buffered_updates_.clear();
@@ -389,6 +389,7 @@ void Simulation::SendReply(proto::PostCommandReply const& reply)
    proto::PostCommandReply* r = msg.MutableExtension(proto::PostCommandReply::extension);
    *r = reply; // is this kosher?
 
+   LOG(INFO) << "adding buffered reply.............";
    buffered_updates_.emplace_back(msg);
 }
 
@@ -398,9 +399,9 @@ lua::ScriptHost& Simulation::GetScript() {
 
 void Simulation::InitDataModel()
 {
-   object_model_traces_ = std::make_shared<dm::TracerSync>();
-   pathfinder_traces_ = std::make_shared<dm::TracerSync>();
-   lua_traces_ = std::make_shared<dm::TracerBuffered>();  
+   object_model_traces_ = std::make_shared<dm::TracerSync>("sim objects");
+   pathfinder_traces_ = std::make_shared<dm::TracerSync>("sim pathfinder");
+   lua_traces_ = std::make_shared<dm::TracerBuffered>("sim lua");  
 
    store_.AddTracer(lua_traces_, dm::LUA_TRACES);
    store_.AddTracer(object_model_traces_, dm::OBJECT_MODEL_TRACES);
@@ -510,10 +511,17 @@ void Simulation::idle()
 void Simulation::send_client_updates()
 {
    PROFILE_BLOCK();
+
+   LOG(INFO) << "sending client updates.............";
+   LOG(INFO) << "flushing lua traces.............";
+   lua_traces_->Flush();
+   LOG(INFO) << "done flushing lua traces.............";
+
    for (std::shared_ptr<RemoteClient> c : _clients) {
       SendUpdates(c);
       protocol::SendQueue::Flush(c->send_queue);
    };
+   LOG(INFO) << "finished sending client updates.............";
 }
 
 void Simulation::SendUpdates(std::shared_ptr<RemoteClient> c)

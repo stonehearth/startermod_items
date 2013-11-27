@@ -79,6 +79,7 @@ void Object::LoadObject(Protocol::Object const& msg)
 void Object::SaveObject(Protocol::Object* msg) const
 {
    msg->set_object_id(id_.id);
+   msg->set_object_type(GetObjectType());
    msg->set_timestamp(timestamp_);
    SaveValue(msg->mutable_value());
 }

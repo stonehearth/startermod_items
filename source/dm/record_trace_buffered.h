@@ -12,10 +12,10 @@ class RecordTraceBuffered : public RecordTrace<M>,
                             public TraceBuffered
 {
 public:
-   RecordTraceBuffered(const char* reason, Record const& r, Store& s, Tracer* tracer);
+   RecordTraceBuffered(const char* reason, Record const& r, Tracer&);
 
    void Flush() override;
-   void SaveObjectDelta(Object* obj, Protocol::Value* value) override;
+   void SaveObjectDelta(Protocol::Value* value) override;
 
 private:
    void NotifyRecordChanged() override;

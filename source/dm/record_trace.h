@@ -10,12 +10,18 @@ template <typename T>
 class RecordTrace : public TraceImpl<RecordTrace<T>>
 {
 public:
-   RecordTrace(const char* reason, Record const& r, Store& s, Tracer* tracer);
+   RecordTrace(const char* reason, Record const& r, Tracer& tracer);
 
 private:
    virtual void NotifyRecordChanged() = 0;
+   void SignalObjectState() override;
+
+protected:
+   ObjectId GetObjectId() const;
+   Record const& GetRecord() const;
 
 private:
+   Record const&           record_;
    std::vector<TracePtr>   field_traces_;
 };
 
