@@ -15,7 +15,6 @@ function SleepAction:__init(ai, entity)
    radiant.check.is_entity(entity)
    self._entity = entity         --the game character
    self._ai = ai
-   self._sleepy_effect = nil
 
    self._looking_for_a_bed = false
 
@@ -47,8 +46,7 @@ function SleepAction:start_looking_for_bed()
    
    assert(not self._pathfinder)
    
-   self._sleepy_effect = radiant.effects.run_effect(self._entity, 
-      '/stonehearth/data/effects/unit_status_effects/sleepy_indicator')
+   radiant.entities.think(self._entity, '/stonehearth/data/effects/thoughts/sleepy')
    self._looking_for_a_bed = true
 
    --[[
@@ -60,6 +58,7 @@ function SleepAction:start_looking_for_bed()
    local found_bed_cb = function(bed, path)
       self._bed = bed
       self._path_to_bed = path
+      self._ai:set_action_priority(self, 100)
    end
 
    if not self._pathfinder then
@@ -72,9 +71,6 @@ function SleepAction:stop_looking_for_bed()
    if self._pathfinder then
       self._pathfinder:stop()
       self._pathfinder = nil
-   end
-   if self._sleepy_effect then
-      self._sleepy_effect:stop()
    end
    self._looking_for_a_bed = false
 end
@@ -176,6 +172,7 @@ function SleepAction:run(ai, entity)
    else 
       self._ai:execute('stonehearth:sleep_on_ground')
    end
+   
 end
 
 --[[

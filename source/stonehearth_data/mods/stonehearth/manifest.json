@@ -192,8 +192,21 @@
          "class_info" : "file(entities/class_info)",
 
          "sounds:axe_chopping_sound" : "file(data/sounds/effects/axe_chopping_sound.ogg)",
+         "sounds:ui:action_hover" : "file(data/sounds/ui/action/action_hover.wav)",
+         "sounds:ui:action_click" : "file(data/sounds/ui/action/action_click.wav)",
+         "sounds:ui:start_menu:trigger_click" : "file(data/sounds/ui/start_menu/trigger_click.wav)",
          "sounds:saw_deep" : "file(data/sounds/effects/sh_saw_01.wav)",
-         "sounds:saw_high" : "file(data/sounds/effects/sh_saw_02.wav)"
+         "sounds:saw_high" : "file(data/sounds/effects/sh_saw_02.wav)",
+
+         "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
+         "music:world_start"     : "file(data/music/levelmusic.ogg)",
+
+         "ambient:summer_day"   : "file(data/ambient/sh_amb_summer_day.ogg)",
+         "ambient:summer_night" : "file(data/ambient/sh_amb_summer_night.ogg)",
+
+
+         "indicators:sleepy" : "file(/stonehearth/data/effects/unit_status_effects/sleepy_indicator)",
+         "indicators:hungry" : "file(/stonehearth/data/effects/unit_status_effects/hungry_indicator)"
       },
       "functions" : {
          "get_world_generation_progress": {
@@ -313,6 +326,7 @@
    "components" :  {
       "ai" : "file(components/ai/ai_component.lua)",
       "commands" : "file(components/commands/commands_component.lua)",
+      "thought_bubble" : "file(components/thought_bubble/thought_bubble_component.lua)",
       "center_of_attention_spot" : "file(components/center_of_attention/coa_spot_component.lua)",
       "material" : "file(components/material/material_component.lua)",
       "resource_node" : "file(components/resource_node/resource_node_component.lua)",
