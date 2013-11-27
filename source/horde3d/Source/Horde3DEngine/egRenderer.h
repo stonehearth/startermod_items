@@ -129,6 +129,10 @@ struct PipeSamplerBinding
 	uint32  bufIndex;
 };
 
+struct GpuCompatibility {
+   bool canDoShadows;
+};
+
 
 class Renderer
 {
@@ -226,6 +230,8 @@ protected:
 	void renderDebugView();
 	void finishRendering();
 
+   void setGpuCompatibility();
+
 protected:
 	unsigned char                      *_scratchBuf;
 	uint32                             _scratchBufSize;
@@ -263,6 +269,9 @@ protected:
 	uint32                             _vbCube, _ibCube, _vbSphere, _ibSphere;
 	uint32                             _vbCone, _ibCone, _vbFSPoly;
    uint32                             _vbFrust, _vbPoly, _ibPoly;
+
+   // Feature-level compatibility of the card, determined by GPU specifics.
+   GpuCompatibility                    gpuCompatibility_;
 public:
    // needed to draw debug shapes in extensions!
    glslopt_ctx*                       _glsl_opt_ctx;

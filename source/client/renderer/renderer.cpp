@@ -2,6 +2,7 @@
 #include "radiant.h"
 #include "radiant_stdutil.h"
 #include "core/config.h"
+#include "core/system.h"
 #include "renderer.h"
 #include "Horde3DUtils.h"
 #include "Horde3DRadiant.h"
@@ -11,8 +12,6 @@
 #include "lib/perfmon/perfmon.h"
 #include "om/selection.h"
 #include "om/entity.h"
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/program_options.hpp>
 #include <SFML/Audio.hpp>
 #include "camera.h"
 #include "lib/perfmon/perfmon.h"
@@ -21,13 +20,11 @@
 
 using namespace ::radiant;
 using namespace ::radiant::client;
-namespace po = boost::program_options;
 
 std::vector<float> ssaoSamplerData;
 H3DRes ssaoMat;
 
 static std::unique_ptr<Renderer> renderer_;
-RendererConfig Renderer::config_;
 
 Renderer& Renderer::GetInstance()
 {
@@ -54,16 +51,10 @@ Renderer::Renderer() :
    render_frame_start_slot_("render frame start"),
    screen_resize_slot_("screen resize"),
    show_debug_shapes_changed_slot_("show debug shapes"),
-   lastGlfwError_("none")
+   lastGlfwError_("none"),
+   currentPipeline_(0)
 {
-   try {
-      std::stringstream stream;
-      stream << res::ResourceManager2::GetInstance().OpenResource("stonehearth/renderers/terrain/config.json")->rdbuf();
-      boost::property_tree::json_parser::read_json(stream, terrainConfig_);
-   } catch(boost::property_tree::json_parser::json_parser_error &e) {
-      LOG(WARNING) << "Error parsing: " << e.filename() << " on line: " << e.line() << std::endl;
-      LOG(WARNING) << e.message() << std::endl;
-   }
+   terrainConfig_ = res::ResourceManager2::GetInstance().LookupJson("stonehearth/renderers/terrain/config.json");
 
    assert(renderer_.get() == nullptr);
    renderer_.reset(this);
@@ -83,6 +74,8 @@ Renderer::Renderer() :
    }
 
    glfwWindowHint(GLFW_SAMPLES, config_.num_msaa_samples);
+   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
    GLFWwindow *window;
    // Fullscreen: add glfwGetPrimaryMonitor() instead of the first NULL.
@@ -92,11 +85,10 @@ Renderer::Renderer() :
    }
 
    glfwMakeContextCurrent(window);
-   
-   glfwSwapInterval(0);
 
    // Init Horde, looking for OpenGL 2.0 minimum.
-   if (!h3dInit(2, 0)) {
+   std::string s = (radiant::core::System::GetInstance().GetTempDirectory() / "horde3d_log.html").string();
+   if (!h3dInit(2, 0, s.c_str())) {
       h3dutDumpMessages();
       throw std::exception("Unable to initialize renderer.  Check horde log for details.");
    }
@@ -105,12 +97,11 @@ Renderer::Renderer() :
    h3dSetOption(H3DOptions::LoadTextures, 1);
    h3dSetOption(H3DOptions::TexCompression, 0);
    h3dSetOption(H3DOptions::MaxAnisotropy, 4);
-   h3dSetOption(H3DOptions::ShadowMapSize, (float)config_.shadow_resolution);
    h3dSetOption(H3DOptions::FastAnimation, 1);
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
-   h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples);
 
-   SetCurrentPipeline("pipelines/forward.pipeline.xml");
+   GetConfigOptions();
+   ApplyConfig();
 
    // Overlays
    fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
@@ -218,38 +209,31 @@ void Renderer::ShowPerfHud(bool value) {
    }
 }
 
+// These options should be worded so that they can default to false
 void Renderer::GetConfigOptions()
 {
-   po::options_description config_file("Renderer options");
-   po::options_description cmd_line("Renderer options");
+   core::Config& config = core::Config::GetInstance();
 
-   cmd_line.add_options()
-      (
-         "renderer.use_forward_renderer",
-         po::bool_switch(&config_.use_forward_renderer)->default_value(true), "Uses the forward-renderer, instead of the deferred renderer."
-      )
-      (
-         "renderer.use_ssao_blur",
-         po::bool_switch(&config_.use_ssao_blur)->default_value(true), "Enables SSAO blur."
-      )
-      (
-         "renderer.enable_shadows",
-         po::bool_switch(&config_.use_shadows)->default_value(true), "Enables shadows."
-      )
-      (
-         "renderer.enable_ssao",
-         po::bool_switch(&config_.use_ssao)->default_value(true), "Enables Screen-Space Ambient Occlusion (SSAO)."
-      )
-      (
-         "renderer.msaa_samples",
-         po::value<int>(&config_.num_msaa_samples)->default_value(0), "Sets the number of Multi-Sample Anti Aliasing samples to use."
-      )
-      (
-         "renderer.shadow_resolution",
-         po::value<int>(&config_.shadow_resolution)->default_value(2048), "Sets the square resolution of the shadow maps."
-      );
-   core::Config::GetInstance().GetCommandLineOptions().add(cmd_line);
-   core::Config::GetInstance().GetConfigFileOptions().add(cmd_line);
+   // "Uses the forward-renderer, instead of the deferred renderer."
+   config_.use_forward_renderer = config.Get("renderer.use_forward_renderer", true);
+
+   // "Enables SSAO blur."
+   config_.use_ssao_blur = config.Get("renderer.use_ssao_blur", true);
+
+   // "Enables shadows."
+   config_.use_shadows = config.Get("renderer.enable_shadows", true);
+
+   // "Enables Screen-Space Ambient Occlusion (SSAO)."
+   config_.use_ssao = config.Get("renderer.enable_ssao", true);
+
+   // "Sets the number of Multi-Sample Anti Aliasing samples to use."
+   config_.num_msaa_samples = config.Get("renderer.msaa_samples", 0);
+
+   // "Sets the square resolution of the shadow maps."
+   config_.shadow_resolution = config.Get("renderer.shadow_resolution", 2048);
+
+   // "Enables vertical sync."
+   config_.enable_vsync = config.Get("renderer.enable_vsync", true);
 }
 
 void Renderer::ApplyConfig()
@@ -266,9 +250,25 @@ void Renderer::ApplyConfig()
    SetStageEnable("SSAO Copy", config_.use_ssao && !config_.use_ssao_blur);
    SetStageEnable("SSAO Default", !config_.use_ssao);
 
+   int oldMSAACount = (int)h3dGetOption(H3DOptions::SampleCount);
+
    h3dSetOption(H3DOptions::EnableShadows, config_.use_shadows ? 1.0f : 0.0f);
    h3dSetOption(H3DOptions::ShadowMapSize, (float)config_.shadow_resolution);
    h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples);
+
+   if (oldMSAACount != (int)h3dGetOption(H3DOptions::SampleCount))
+   {
+      // MSAA change requires that we reload our pipelines (so that we can regenerate our
+      // render target textures with the appropriate sampling).
+      H3DRes r = 0;
+      while ((r = h3dGetNextResource(H3DResTypes::Pipeline, r)) != 0) {
+         h3dUnloadResource(r);
+      }
+
+      LoadResources();
+   }
+
+   glfwSwapInterval(config_.enable_vsync ? 1 : 0);
 }
 
 SystemStats Renderer::GetStats()
@@ -431,7 +431,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    }
 
    perfmon::SwitchToCounter("render fire traces") ;  
-   render_frame_start_slot_.Signal(FrameStartInfo(now, alpha));
+   render_frame_start_slot_.Signal(FrameStartInfo(now, alpha, now - last_render_time_));
 
    if (showStats) { 
       perfmon::SwitchToCounter("show stats") ;  
@@ -863,7 +863,7 @@ int Renderer::GetHeight() const
    return windowHeight_;
 }
 
-boost::property_tree::ptree const& Renderer::GetTerrainConfig() const
+json::Node Renderer::GetTerrainConfig() const
 {  
    return terrainConfig_;
 }

@@ -33,7 +33,6 @@ ReactorDeferredPtr HttpReactor::Call(json::Node const& query, std::string const&
 
       LOG(INFO) << "http reactor dispatching " << fn;
 
-      JSONNode args;
       try {
          fn.args = libjson::parse(postdata);
       } catch (std::exception&) {

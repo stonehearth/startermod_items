@@ -17,6 +17,8 @@
 #include <string>
 #include <queue>
 #include <cstdarg>
+#include <iostream>
+#include <fstream>
 #include <functional>
 #include "utTimer.h"
 #include "om/error_browser/error_browser.h"
@@ -104,12 +106,14 @@ struct LogMessage
 class EngineLog
 {
 public:
-	EngineLog();
+	EngineLog(const std::string& logFilePath);
 
 	void writeError( const char *msg, ... );
 	void writeWarning( const char *msg, ... );
 	void writeInfo( const char *msg, ... );
 	void writeDebugInfo( const char *msg, ... );
+
+   void dumpMessages();
 
 	bool getMessage( LogMessage &msg );
 
@@ -129,7 +133,7 @@ protected:
 	char                      _textBuf[2048];
 	uint32                    _maxNumMessages;
 	std::queue< LogMessage >  _messages;
-
+   std::ofstream             _outf;
    ReportErrorCb             error_cb_;
    std::vector<::radiant::om::ErrorBrowser::Record> errors_;
 

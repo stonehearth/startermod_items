@@ -8,7 +8,7 @@ float fetch_eye_z(vec2 uv, sampler2D depthbuff)
 //-------------------------------------------------------------------------
 float BlurFunction(vec2 uv, float r, float center_c, float center_d, inout float w_total, sampler2D depthbuff, sampler2D ssaobuff)
 {
-    float c = texture2D(ssaobuff, uv);
+    float c = texture2D(ssaobuff, uv).r;
     float d = fetch_eye_z(uv, depthbuff);
     float g_BlurFalloff = 0.2;
     float g_Sharpness = 1.0;

@@ -52,7 +52,6 @@
 #include "platform/sysinfo.h"
 #include "glfw3.h"
 
-
 //  #include "GFx/AS3/AS3_Global.h"
 #include "client.h"
 #include "renderer/renderer.h"
@@ -132,11 +131,11 @@ Client::Client() :
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:design_event");
       try {
          json::Node node(f.args);
-         std::string event_name = node.getn(0).as<std::string>();
+         std::string event_name = node.get<std::string>(0);
          analytics::DesignEvent design_event(event_name);
 
          if (node.size() > 1) {
-            json::Node params = node.getn(1);
+            json::Node params = node.get_node(1);
             if (params.has("value")) {
                design_event.SetValue(params.get<float>("value"));
             }
@@ -162,8 +161,8 @@ Client::Client() :
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:design_event");
       try {
          json::Node node(f.args);
-         bool collect_stats = node.getn(0).as<bool>();
-         core::Config::GetInstance().SetCollectionStatus(collect_stats);
+         bool collect_stats = node.get<bool>(0);
+         analytics::SetCollectionStatus(collect_stats);
          result->ResolveWithMsg("success");
       } catch (std::exception const& e) {
          result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
@@ -179,8 +178,8 @@ Client::Client() :
       try {
          json::Node node;
          core::Config& config = core::Config::GetInstance();
-         node.set("has_expressed_preference", config.IsCollectionStatusSet());
-         node.set("collection_status", config.GetCollectionStatus());
+         node.set("has_expressed_preference", analytics::IsCollectionStatusSet());
+         node.set("collection_status", analytics::GetCollectionStatus());
          result->Resolve(node);
       } catch (std::exception const& e) {
          result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
@@ -220,6 +219,7 @@ Client::Client() :
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:play_sound");
       try {
          json::Node node(f.args);
+<<<<<<< HEAD
          std::string sound_url = node.getn(0).as<std::string>();
          audio::AudioManager &a = audio::AudioManager::GetInstance();
          a.PlaySound(sound_url);
@@ -235,6 +235,9 @@ Client::Client() :
       try {         
          json::Node node(f.args);
          json::Node params = node.getn(0);
+=======
+         std::string sound_url = node.get<std::string>(0);
+>>>>>>> 7f33f5857aa1e6e408c7f3dd0545e24bbfb5eb07
 
          audio::AudioManager &a = audio::AudioManager::GetInstance();
          
@@ -266,12 +269,6 @@ Client::~Client()
    octtree_.release();
 }
 
-void Client::GetConfigOptions()
-{
-   Renderer::GetConfigOptions();
-}
-
-
 extern bool realtime;
 void Client::run(int server_port)
 {
@@ -297,20 +294,15 @@ void Client::run(int server_port)
       OnInput(input);
    });
 
-   namespace po = boost::program_options;
-   auto varMap = core::Config::GetInstance().GetVarMap();
-   std::string loader = varMap["game.mod"].as<std::string>();
-   json::Node manifest(res::ResourceManager2::GetInstance().LookupManifest(loader));
+   core::Config const& config = core::Config::GetInstance();
+   std::string const loader = config.Get<std::string>("game.mod");
+   json::Node const manifest = res::ResourceManager2::GetInstance().LookupManifest(loader);
    std::string docroot = "http://radiant/" + manifest.get<std::string>("loader.ui.homepage");
 
-   // seriously???
-   std::string name = core::Config::GetInstance().GetName();
-   std::string game_script = varMap["game.script"].as<std::string>();
-   if (game_script != name + "/start_game.lua") {
+   // skip title screen if there is a script override
+   if (config.Has("game.script")) {
       docroot += "?skip_title=true";
    }
-
-   renderer.ApplyConfig();
 
    int screen_width = renderer.GetWidth();
    int screen_height = renderer.GetHeight();
@@ -375,7 +367,7 @@ void Client::run(int server_port)
       currentCursor_ = NULL;
    };
 
-   if (core::Config::GetInstance().GetCrashKeyEnabled()) {
+   if (core::Config::GetInstance().Get("crash_key_enabled", false)) {
       _commands[GLFW_KEY_PAUSE] = []() {
          // throw an exception that is not caught by Client::OnInput
          throw std::string("User hit crash key");
@@ -408,7 +400,7 @@ void Client::InitializeModules()
    for (std::string const& modname : rm.GetModuleNames()) {
       try {
          json::Node manifest = rm.LookupManifest(modname);
-         json::Node const& block = manifest.getn("client");
+         json::Node const& block = manifest.get_node("client");
          if (!block.empty()) {
             LOG(WARNING) << "loading init script for " << modname << "...";
             LoadModuleInitScript(block);
@@ -958,7 +950,7 @@ rpc::ReactorDeferredPtr Client::GetModules(rpc::Function const& fn)
    for (std::string const& modname : rm.GetModuleNames()) {
       JSONNode manifest;
       try {
-         manifest = rm.LookupManifest(modname).GetNode();
+         manifest = rm.LookupManifest(modname).get_internal_node();
       } catch (std::exception const&) {
          // Just use an empty manifest...f
       }
