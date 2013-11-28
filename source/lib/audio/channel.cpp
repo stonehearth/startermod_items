@@ -3,6 +3,7 @@
 #include "lib/json/node.h"
 #include "input_stream.h"
 #include "channel.h"
+#include "audio.h"
 #include "resources/res_manager.h"
 
 #include <unordered_map>
@@ -23,10 +24,10 @@
 using namespace ::radiant;
 using namespace ::radiant::audio;
 
-#define DEF_VOL 50         //The volume for the playing music
+//#define DEF_VOL 50         //The volume for the playing music
 #define MASTER_DEF_VOL 0.5 //The volume % set by the user, between 0 and 1
-#define DEF_FADE 1000      //MS to have old music fade during crossfade
-#define DEFAULT_LOOP true
+//#define DEF_FADE 1000      //MS to have old music fade during crossfade
+//#define DEFAULT_LOOP true
 
 //Delcare some tweening functions to gently the fade in/out of sound effects
 //TODO: maybe add to some central tweener util?
@@ -64,10 +65,10 @@ get_audio_easing_function(std::string easing)
 
 Channel::Channel() :
    music_(nullptr),
-   fade_(DEF_FADE),
-   volume_(DEF_VOL),
+   fade_(DEF_MUSIC_FADE),
+   volume_(DEF_MUSIC_VOL),
    master_volume_(MASTER_DEF_VOL),
-   loop_(DEFAULT_LOOP),
+   loop_(DEF_MUSIC_LOOP),
    lastUpdated_(0)
 {
 }

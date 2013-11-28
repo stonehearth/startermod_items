@@ -47,6 +47,7 @@
 #include "lib/analytics/post_data.h"
 #include "lib/audio/input_stream.h"
 #include "lib/audio/audio_manager.h"
+#include "lib/audio/audio.h"
 #include "client/renderer/render_entity.h"
 #include "lib/perfmon/perfmon.h"
 #include "platform/sysinfo.h"
@@ -238,18 +239,25 @@ Client::Client() :
          audio::AudioManager &a = audio::AudioManager::GetInstance();
          
          //Get track, channel, and other optional data out of the node
+         //TODO: get the defaults from audio.cpp instead of 
          std::string uri = params.get<std::string>("track");
          std::string channel = params.get<std::string>("channel");
 
          if (params.has("loop")) {
             a.SetNextMusicLoop(params.get<bool>("loop"), channel);
+         } else {
+            a.SetNextMusicLoop(audio::DEF_MUSIC_LOOP, channel);
          }
          if (params.has("fade")) {
             a.SetNextMusicFade(params.get<int>("fade"), channel);
+         } else {
+            a.SetNextMusicFade(audio::DEF_MUSIC_FADE, channel);
          }
          if (params.has("volume")) {
             a.SetNextMusicVolume(params.get<int>("volume"), channel);
-         }        
+         } else {
+            a.SetNextMusicVolume(audio::DEF_MUSIC_VOL, channel);
+         }
          a.PlayMusic(uri, channel);
 
          result->ResolveWithMsg("success");

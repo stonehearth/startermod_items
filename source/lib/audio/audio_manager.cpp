@@ -15,9 +15,12 @@ DEFINE_SINGLETON(AudioManager);
 
 #define MAX_SOUNDS 200
 #define EFX_DEF_VOL 50
+#define EFX_MASTER_DEF_VOL 0.5
 
 //TODO: get the default volumes not from contstants, but from user-set saved files
-AudioManager::AudioManager() 
+AudioManager::AudioManager() :
+   efx_volume_(EFX_DEF_VOL),
+   master_efx_volume_(EFX_MASTER_DEF_VOL)
 {
 }
 
@@ -66,6 +69,7 @@ void AudioManager::PlaySound(std::string uri)
    //By now, *buffer should have the correct thing loaded inside of it
    sf::Sound *s = new sf::Sound(*buffer);
    sounds_.push_back(s);
+   s->setVolume(efx_volume_ * master_efx_volume_);
    s->play();
 }
 
