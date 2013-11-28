@@ -35,6 +35,8 @@ private:
    std::unordered_map<std::string, sf::SoundBuffer*> sound_buffers_;
    std::vector<sf::Sound*> sounds_;
    int num_sounds_;
+   int efx_volume_;
+   float master_efx_volume_;
 
    //TODO: if we ever have more than 2, use a vector of channels
    Channel  bgm_channel_;
