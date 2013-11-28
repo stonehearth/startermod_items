@@ -1,0 +1,50 @@
+{
+   "activities" : [
+      {
+         "id" : "embarking",
+         "trigger_policy" : [
+            {
+               "trigger_id" : "person_embarks",
+               "probability" : 100
+            }
+         ],
+         "text" : "On Arriving:",
+         "type" : "random",
+         "logs_by_personality" : {
+            "belaguered_leader" : {
+               "logs" : [
+               "Everyone seems to have gotten here OK! Well... almost everyone..."
+               ]
+            },
+            "hopeless_optimist" : {
+               "logs" : [
+               "Wooo! Fresh air and new land! And lots and lots of trees! I'm going to love it here!" 
+               ]
+            },
+            "lovable_rogue" : {
+               "logs" : [
+               "Well, here we are, I guess. A million miles away from civilization. Great.",
+               "Mom was right. We're all going to get eaten by bears."
+               ]
+            },
+            "psychopathic_misanthrope" : {
+               "logs" : [
+               "At the time, wilderness seemed better than jailtime, but I'm starting to wonder.",
+               "Walk a thousand miles to get away from people and... there are still people. Spork."
+               ]
+            },
+            "insufferable_academic" : {
+               "logs" : [
+               "Three days have passed since I had a decent philosophical conversation. Trying not to panic. Failing. Trying to keep it in. Succeeding. Mostly."
+               ]
+            },
+            "diligent_sweetheart" : {
+               "logs" : [
+               "Wow! This is a lot of great outdoors. Well, time to form strong relationships and build community!"
+               ]
+            }
+         }
+      }
+   ]
+}
+            
