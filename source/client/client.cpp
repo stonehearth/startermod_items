@@ -42,15 +42,16 @@
 #include "lib/lua/om/open.h"
 #include "lib/lua/voxel/open.h"
 #include "lib/lua/analytics/open.h"
+#include "lib/lua/audio/open.h"
 #include "lib/analytics/design_event.h"
 #include "lib/analytics/post_data.h"
 #include "lib/audio/input_stream.h"
+#include "lib/audio/audio_manager.h"
+#include "lib/audio/audio.h"
 #include "client/renderer/render_entity.h"
 #include "lib/perfmon/perfmon.h"
 #include "platform/sysinfo.h"
 #include "glfw3.h"
-
-#include <SFML/Audio.hpp>
 
 //  #include "GFx/AS3/AS3_Global.h"
 #include "client.h"
@@ -66,9 +67,6 @@ namespace proto = ::radiant::tesseract::protocol;
 static const std::regex call_path_regex__("/r/call/?");
 
 DEFINE_SINGLETON(Client);
-
-sf::SoundBuffer soundBuffer_;
-sf::Sound       sound_;
 
 Client::Client() :
    _tcp_socket(_io_service),
@@ -217,20 +215,50 @@ Client::Client() :
       return result;
    });
 
+   //TODO: take arguments to accomodate effects sounds
    core_reactor_->AddRoute("radiant:play_sound", [this](rpc::Function const& f) {
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:play_sound");
       try {
          json::Node node(f.args);
-         std::string sound_url = node.get<std::string>(0);
+         std::string sound_url = node.get_node(0).as<std::string>();
+         audio::AudioManager &a = audio::AudioManager::GetInstance();
+         a.PlaySound(sound_url);
+         result->ResolveWithMsg("success");
+      } catch (std::exception const& e) {
+         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
+      }
+      return result;
+   });
 
-         if (soundBuffer_.loadFromStream(audio::InputStream(sound_url))) {
-            // TODO, add a sound manager instead of this temp solution!
-            // see http://bugs.radiant-entertainment.com:8080/browse/SH-29
-            sound_.setBuffer(soundBuffer_);
-	         sound_.play();
-         } else { 
-            LOG(INFO) << "Can't find Sound Effect! " << sound_url;
+   core_reactor_->AddRoute("radiant:play_music", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:play_bgm");
+      try {         
+         json::Node node(f.args);
+         json::Node params = node.get_node(0);
+
+         audio::AudioManager &a = audio::AudioManager::GetInstance();
+         
+         //Get track, channel, and other optional data out of the node
+         //TODO: get the defaults from audio.cpp instead of 
+         std::string uri = params.get<std::string>("track");
+         std::string channel = params.get<std::string>("channel");
+
+         if (params.has("loop")) {
+            a.SetNextMusicLoop(params.get<bool>("loop"), channel);
+         } else {
+            a.SetNextMusicLoop(audio::DEF_MUSIC_LOOP, channel);
          }
+         if (params.has("fade")) {
+            a.SetNextMusicFade(params.get<int>("fade"), channel);
+         } else {
+            a.SetNextMusicFade(audio::DEF_MUSIC_FADE, channel);
+         }
+         if (params.has("volume")) {
+            a.SetNextMusicVolume(params.get<int>("volume"), channel);
+         } else {
+            a.SetNextMusicVolume(audio::DEF_MUSIC_VOL, channel);
+         }
+         a.PlayMusic(uri, channel);
 
          result->ResolveWithMsg("success");
       } catch (std::exception const& e) {
@@ -321,6 +349,7 @@ void Client::run(int server_port)
    lua::voxel::open(L);
    lua::rpc::open(L, core_reactor_);
    lua::analytics::open(L);
+   lua::audio::open(L);
 
 
    //luabind::globals(L)["_client"] = luabind::object(L, this);
@@ -462,6 +491,10 @@ void Client::mainloop()
    perfmon::SwitchToCounter("lua gc");
    platform::timer t(10);
    scriptHost_->GC(t);
+
+   //Update the audio_manager with the current time
+   audio::AudioManager &a = audio::AudioManager::GetInstance();
+   a.UpdateAudio(now_);
 }
 
 om::TerrainPtr Client::GetTerrain()

@@ -9,15 +9,18 @@ function SoundTest:__init()
    local tree = self:place_tree(-12, -12)
    local dude = self:place_citizen(12, 12)
 
-   radiant.music:play_music_effect("/stonehearth/data/music/background_music.json")
-   
-   --TODO: it would be nice if we could play music from a track instead of pre-creating an effect for it
-   --radiant.music:play_music("data/stonehearth/effects/background_music/soothing.ogg", true)
+   --TODO: move to client-side, for example, sky-renderer would be able to call day/night effects
+   --TODO: also vary based on camera position
+   --local json = {
+   --   track = 'stonehearth:music:title_screen'
+   --}
+   --_radiant.audio.play_music(radiant.json.encode(json))
+   _radiant.audio.play_music('stonehearth:music:title_screen', 'bgm')
 
    ---[[
    --Some time in seconds in, play a different background music
    self:at(20000, function()
-         radiant.music:play_music_effect("/stonehearth/data/music/background_harp.json")
+         _radiant.audio.play_music('stonehearth:music:world_start', 'bgm')
       end)
    --]]
 

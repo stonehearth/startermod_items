@@ -55,12 +55,13 @@ Renderer::Renderer() :
    currentPipeline_(0)
 {
    terrainConfig_ = res::ResourceManager2::GetInstance().LookupJson("stonehearth/renderers/terrain/config.json");
+   GetConfigOptions();
 
    assert(renderer_.get() == nullptr);
    renderer_.reset(this);
 
-   windowWidth_ = 1920;
-   windowHeight_ = 1080;
+   windowWidth_ = config_.screen_width;
+   windowHeight_ = config_.screen_height;
 
    glfwSetErrorCallback([](int errorCode, const char* errorString) {
       std::string s;
@@ -78,8 +79,8 @@ Renderer::Renderer() :
    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
    GLFWwindow *window;
-   // Fullscreen: add glfwGetPrimaryMonitor() instead of the first NULL.
-   if (!(window = glfwCreateWindow(windowWidth_, windowHeight_, "Stonehearth", NULL, NULL))) {
+   if (!(window = glfwCreateWindow(windowWidth_, windowHeight_, "Stonehearth", 
+        config_.enable_fullscreen ? glfwGetPrimaryMonitor() : nullptr, nullptr))) {
       glfwTerminate();
       throw std::exception(("Unable to create glfw window: " + lastGlfwError_).c_str());
    }
@@ -100,7 +101,6 @@ Renderer::Renderer() :
    h3dSetOption(H3DOptions::FastAnimation, 1);
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
 
-   GetConfigOptions();
    ApplyConfig();
 
    // Overlays
@@ -234,6 +234,11 @@ void Renderer::GetConfigOptions()
 
    // "Enables vertical sync."
    config_.enable_vsync = config.Get("renderer.enable_vsync", true);
+
+   config_.enable_fullscreen = config.Get("renderer.enable_fullscreen", false);
+
+   config_.screen_width = config.Get("renderer.screen_width", 1280);
+   config_.screen_height = config.Get("renderer.screen_height", 720);
 }
 
 void Renderer::ApplyConfig()

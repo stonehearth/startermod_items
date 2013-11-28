@@ -1,0 +1,15 @@
+<script type="text/x-handlebars" data-template-name="stonehearthJournal">
+   <div id="journalWindow">
+      <div id="journalTitle">{{unit_info.name}}&#39;s Journal </div>
+      <div id="journalEntries">
+         {{#each stonehearth:personality.log}}
+            <p class="logDate">{{this.date}}</p>
+            {{#each this.entries}}
+               <p class="logEntry">
+               <span class="logTitle">{{this.title}}</span> {{this.text}}
+               </p>
+            {{/each}}
+         {{/each}}
+      </div>
+   </div>
+</script>
