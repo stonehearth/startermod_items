@@ -33,8 +33,8 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
    screenWidth_(width),
    screenHeight_(height)
 { 
-   uiWidth_ = 1920;
-   uiHeight_ = 1080;
+   uiWidth_ = screenWidth_;
+   uiHeight_ = screenHeight_;
    browser_framebuffer_.resize(uiWidth_ * uiHeight_);
    std::fill(browser_framebuffer_.begin(), browser_framebuffer_.end(), 0);
 

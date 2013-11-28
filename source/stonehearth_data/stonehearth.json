@@ -9,6 +9,11 @@
       "msaa_samples" : 4,
       "shadow_resolution" : 4096,
 
-      "enable_vsync" : true
+      "enable_vsync" : true,
+
+      "enable_fullscreen" : false,
+
+      "screen_width" : 1920,
+      "screen_height" : 1080
    }
 }
