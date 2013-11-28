@@ -235,6 +235,7 @@ struct _GLFWwindow
         GLFWscrollfun           scroll;
         GLFWkeyfun              key;
         GLFWcharfun             character;
+        GLFWfullscreenfun       fullscreen;
 
         // This is defined in the window API's platform.h
         _GLFW_PLATFORM_RAW_INPUT;
@@ -678,6 +679,7 @@ void _glfwInputMonitorChange(void);
  */
 void _glfwInputError(int error, const char* format, ...);
 
+void _glfwFullscreenToggle(_GLFWwindow* window);
 
 //========================================================================
 // Utility functions
