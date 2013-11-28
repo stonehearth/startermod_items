@@ -1165,7 +1165,7 @@ void RenderDevice::resolveRenderBuffer( uint32 rbObj )
 	glBindFramebufferEXT( GL_READ_FRAMEBUFFER_EXT, 0 );
 	glBindFramebufferEXT( GL_DRAW_FRAMEBUFFER_EXT, 0 );
 
-   validateGLCall("Error resolving render buffer");
+   validateGLCall("Error resolving render buffer: %d");
 }
 
 

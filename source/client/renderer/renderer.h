@@ -60,8 +60,12 @@ struct RendererConfig {
    bool use_ssao_blur;
    bool use_shadows;
    bool enable_vsync;
+   bool enable_fullscreen;
    int  num_msaa_samples;
    int  shadow_resolution;
+
+   int screen_width;
+   int screen_height;
 };
 
 struct SystemStats {
