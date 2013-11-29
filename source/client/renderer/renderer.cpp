@@ -2,6 +2,7 @@
 #include "radiant.h"
 #include "radiant_stdutil.h"
 #include "core/config.h"
+#include "core/system.h"
 #include "renderer.h"
 #include "Horde3DUtils.h"
 #include "Horde3DRadiant.h"
@@ -11,8 +12,6 @@
 #include "lib/perfmon/perfmon.h"
 #include "om/selection.h"
 #include "om/entity.h"
-#include <boost/property_tree/json_parser.hpp>
-#include <boost/program_options.hpp>
 #include <SFML/Audio.hpp>
 #include "camera.h"
 #include "lib/perfmon/perfmon.h"
@@ -21,13 +20,11 @@
 
 using namespace ::radiant;
 using namespace ::radiant::client;
-namespace po = boost::program_options;
 
 std::vector<float> ssaoSamplerData;
 H3DRes ssaoMat;
 
 static std::unique_ptr<Renderer> renderer_;
-RendererConfig Renderer::config_;
 
 Renderer& Renderer::GetInstance()
 {
@@ -57,20 +54,14 @@ Renderer::Renderer() :
    lastGlfwError_("none"),
    currentPipeline_(0)
 {
-   try {
-      std::stringstream stream;
-      stream << res::ResourceManager2::GetInstance().OpenResource("stonehearth/renderers/terrain/config.json")->rdbuf();
-      boost::property_tree::json_parser::read_json(stream, terrainConfig_);
-   } catch(boost::property_tree::json_parser::json_parser_error &e) {
-      LOG(WARNING) << "Error parsing: " << e.filename() << " on line: " << e.line() << std::endl;
-      LOG(WARNING) << e.message() << std::endl;
-   }
+   terrainConfig_ = res::ResourceManager2::GetInstance().LookupJson("stonehearth/renderers/terrain/config.json");
+   GetConfigOptions();
 
    assert(renderer_.get() == nullptr);
    renderer_.reset(this);
 
-   windowWidth_ = 1920;
-   windowHeight_ = 1080;
+   windowWidth_ = config_.screen_width;
+   windowHeight_ = config_.screen_height;
 
    glfwSetErrorCallback([](int errorCode, const char* errorString) {
       std::string s;
@@ -88,8 +79,8 @@ Renderer::Renderer() :
    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
    GLFWwindow *window;
-   // Fullscreen: add glfwGetPrimaryMonitor() instead of the first NULL.
-   if (!(window = glfwCreateWindow(windowWidth_, windowHeight_, "Stonehearth", NULL, NULL))) {
+   if (!(window = glfwCreateWindow(windowWidth_, windowHeight_, "Stonehearth", 
+        config_.enable_fullscreen ? glfwGetPrimaryMonitor() : nullptr, nullptr))) {
       glfwTerminate();
       throw std::exception(("Unable to create glfw window: " + lastGlfwError_).c_str());
    }
@@ -97,7 +88,7 @@ Renderer::Renderer() :
    glfwMakeContextCurrent(window);
 
    // Init Horde, looking for OpenGL 2.0 minimum.
-   std::string s = (radiant::core::Config::GetInstance().GetTmpDirectory() / "horde3d_log.html").string();
+   std::string s = (radiant::core::System::GetInstance().GetTempDirectory() / "horde3d_log.html").string();
    if (!h3dInit(2, 0, s.c_str())) {
       h3dutDumpMessages();
       throw std::exception("Unable to initialize renderer.  Check horde log for details.");
@@ -218,42 +209,36 @@ void Renderer::ShowPerfHud(bool value) {
    }
 }
 
+// These options should be worded so that they can default to false
 void Renderer::GetConfigOptions()
 {
-   po::options_description config_file("Renderer options");
-   po::options_description cmd_line("Renderer options");
+   core::Config& config = core::Config::GetInstance();
 
-   cmd_line.add_options()
-      (
-         "renderer.use_forward_renderer",
-         po::bool_switch(&config_.use_forward_renderer)->default_value(true), "Uses the forward-renderer, instead of the deferred renderer."
-      )
-      (
-         "renderer.use_ssao_blur",
-         po::bool_switch(&config_.use_ssao_blur)->default_value(true), "Enables SSAO blur."
-      )
-      (
-         "renderer.enable_shadows",
-         po::bool_switch(&config_.use_shadows)->default_value(true), "Enables shadows."
-      )
-      (
-         "renderer.enable_ssao",
-         po::bool_switch(&config_.use_ssao)->default_value(true), "Enables Screen-Space Ambient Occlusion (SSAO)."
-      )
-      (
-         "renderer.enable_vsync",
-         po::bool_switch(&config_.enable_vsync)->default_value(false), "Enables vertical sync."
-      )
-      (
-         "renderer.msaa_samples",
-         po::value<int>(&config_.num_msaa_samples)->default_value(0), "Sets the number of Multi-Sample Anti Aliasing samples to use."
-      )
-      (
-         "renderer.shadow_resolution",
-         po::value<int>(&config_.shadow_resolution)->default_value(2048), "Sets the square resolution of the shadow maps."
-      );
-   core::Config::GetInstance().GetCommandLineOptions().add(cmd_line);
-   core::Config::GetInstance().GetConfigFileOptions().add(cmd_line);
+   // "Uses the forward-renderer, instead of the deferred renderer."
+   config_.use_forward_renderer = config.Get("renderer.use_forward_renderer", true);
+
+   // "Enables SSAO blur."
+   config_.use_ssao_blur = config.Get("renderer.use_ssao_blur", true);
+
+   // "Enables shadows."
+   config_.use_shadows = config.Get("renderer.enable_shadows", true);
+
+   // "Enables Screen-Space Ambient Occlusion (SSAO)."
+   config_.use_ssao = config.Get("renderer.enable_ssao", true);
+
+   // "Sets the number of Multi-Sample Anti Aliasing samples to use."
+   config_.num_msaa_samples = config.Get("renderer.msaa_samples", 0);
+
+   // "Sets the square resolution of the shadow maps."
+   config_.shadow_resolution = config.Get("renderer.shadow_resolution", 2048);
+
+   // "Enables vertical sync."
+   config_.enable_vsync = config.Get("renderer.enable_vsync", true);
+
+   config_.enable_fullscreen = config.Get("renderer.enable_fullscreen", false);
+
+   config_.screen_width = config.Get("renderer.screen_width", 1280);
+   config_.screen_height = config.Get("renderer.screen_height", 720);
 }
 
 void Renderer::ApplyConfig()
@@ -451,7 +436,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    }
 
    perfmon::SwitchToCounter("render fire traces") ;  
-   render_frame_start_slot_.Signal(FrameStartInfo(now, alpha));
+   render_frame_start_slot_.Signal(FrameStartInfo(now, alpha, now - last_render_time_));
 
    if (showStats) { 
       perfmon::SwitchToCounter("show stats") ;  
@@ -883,7 +868,7 @@ int Renderer::GetHeight() const
    return windowHeight_;
 }
 
-boost::property_tree::ptree const& Renderer::GetTerrainConfig() const
+json::Node Renderer::GetTerrainConfig() const
 {  
    return terrainConfig_;
 }

@@ -11,6 +11,10 @@ class SendDesignEvent;
 void StartSession(std::string const& userid, std::string const& sessionid, std::string const& build_number);
 void StopSession();
 
+bool IsCollectionStatusSet();
+bool GetCollectionStatus();
+void SetCollectionStatus(bool should_collect);
+
 END_RADIANT_ANALYTICS_NAMESPACE
 
 #endif //  _RADIANT_ANALYTICS_ANALYTICS_H

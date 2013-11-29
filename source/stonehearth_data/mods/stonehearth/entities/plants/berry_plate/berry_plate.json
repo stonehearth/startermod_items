@@ -17,6 +17,7 @@
       ]
    },
    "entity_data" : {
+      "stonehearth:activity_name" : "eating_berries",
       "stonehearth:message_starved" : "BERRIES! GLUMPH! CRUNCH! GLORPH!",
       "stonehearth:message_normal" : "Mmmm! Berries are delicious!",
       "stonehearth:message_floor" : "Wish I could eat these berries while sitting in a chair..."

@@ -4,14 +4,9 @@ local MusicEffect = class(Effect)
 function MusicEffect:__init(start_time, handler, info, effect)
    self[Effect]:__init(info)
    self._info = info
-   self._loop = true
+   self._loop = false
    self._end_time = 0
    
-   --If we're a music effect, we loop by default. If we're a sound effect, we do not loop by default
-   if self._info.type == 'sound_effect' then
-      self._loop = false;
-   end
-
    --Now check if the user speified a loop variable. If so, assign it
    if self._info.loop ~= nil then
       self._loop = self._info.loop

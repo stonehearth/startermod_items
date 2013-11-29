@@ -7,9 +7,27 @@
 using namespace ::radiant;
 using namespace ::radiant::csg;
 
+std::map<boost::thread::id, std::unique_ptr<RandomNumberGenerator>> RandomNumberGenerator::instances_;
+std::recursive_mutex RandomNumberGenerator::mutex_;
+
+RandomNumberGenerator& RandomNumberGenerator::DefaultInstance()
+{
+   std::lock_guard<std::recursive_mutex> lock(mutex_);
+   boost::thread::id id = boost::this_thread::get_id();
+
+   auto i = instances_.find(id);
+   if (i != instances_.end()) {
+      return *i->second;
+   }
+
+   instances_[id] = std::unique_ptr<RandomNumberGenerator>(new RandomNumberGenerator());
+   return *instances_[id];
+}
+
 RandomNumberGenerator::RandomNumberGenerator()
 {
-   unsigned int seed = std::chrono::high_resolution_clock::now().time_since_epoch().count() % ULONG_MAX;
+   // too heavyweight? could lazy generate the seed if none is set
+   unsigned int seed = std::chrono::high_resolution_clock::now().time_since_epoch().count() % ULLONG_MAX;
    SetSeed(seed);
 }
 
@@ -20,6 +38,10 @@ RandomNumberGenerator::RandomNumberGenerator(unsigned int seed)
 
 void RandomNumberGenerator::SetSeed(unsigned int seed)
 {
+   if (seed == 0) {
+      // some generators do not accept 0 as a seed
+      seed = ULONG_MAX;
+   }
    generator_ = std::default_random_engine(seed);
 }
 

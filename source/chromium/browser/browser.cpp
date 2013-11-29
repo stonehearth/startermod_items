@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "radiant_file.h"
 #include "core/config.h"
+#include "core/system.h"
 #include "chromium/app/app.h"
 #include "lib/rpc/http_deferred.h"
 #include "browser.h"
@@ -32,8 +33,8 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
    screenWidth_(width),
    screenHeight_(height)
 { 
-   uiWidth_ = 1920;
-   uiHeight_ = 1080;
+   uiWidth_ = screenWidth_;
+   uiHeight_ = screenHeight_;
    browser_framebuffer_.resize(uiWidth_ * uiHeight_);
    std::fill(browser_framebuffer_.begin(), browser_framebuffer_.end(), 0);
 
@@ -44,7 +45,7 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
 
    CefSettings settings;   
 
-   CefString(&settings.log_file) = (core::Config::GetInstance().GetTmpDirectory() / "chromium.log").wstring().c_str();   
+   CefString(&settings.log_file) = (core::System::GetInstance().GetTempDirectory() / "chromium.log").wstring().c_str();   
    settings.log_severity = LOGSEVERITY_DISABLE;
    settings.single_process = false; // single process mode eats nearly the entire frame time
    settings.remote_debugging_port = debug_port;

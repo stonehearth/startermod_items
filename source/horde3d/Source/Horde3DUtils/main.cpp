@@ -293,7 +293,7 @@ DLLEXP bool h3dutDumpMessages()
 		outf.setf( ios::fixed );
 		outf.precision( 3 );
 
-      boost::filesystem::path filename = radiant::core::Config::GetInstance().GetTmpDirectory() / "horde3d_log.html";
+      boost::filesystem::path filename = radiant::core::Config::GetInstance().GetTempDirectory() / "horde3d_log.html";
 		outf.open(filename.string(), ios::out );
 		if( !outf ) return false;
 

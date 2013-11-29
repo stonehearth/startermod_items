@@ -80,6 +80,7 @@ void RenderMob::Update()
    auto mob = mob_.lock();
    if (mob) {
       if (mob->InterpolateMovement()) {
+         _initial = _final;
          _final = mob->GetTransform();
       } else {
          _current = mob->GetTransform();

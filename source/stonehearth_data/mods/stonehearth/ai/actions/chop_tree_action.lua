@@ -1,7 +1,9 @@
 local event_service = require 'services.event.event_service'
+local personality_service = require 'services.personality.personality_service'
 
 local ChopTreeAction = class()
 
+ChopTreeAction.name = 'chop tree'
 ChopTreeAction.does = 'stonehearth:chop_tree'
 ChopTreeAction.priority = 1
 
@@ -31,6 +33,9 @@ function ChopTreeAction:run(ai, entity, path)
       local location = radiant.entities.get_world_grid_location(entity)
       factory:spawn_resource(location)
    end
+   
+   radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
+                          {entity = entity, description = 'chop_tree'})
 end
 
 return ChopTreeAction

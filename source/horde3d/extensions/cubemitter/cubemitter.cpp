@@ -31,13 +31,13 @@ cubemitter::OriginData parseOrigin(Node &n) {
    cubemitter::OriginData result;
    if (n.has("surface"))
    {
-      result.surfaceKind = parseSurfaceKind(n.getn("surface"));
+      result.surfaceKind = parseSurfaceKind(n.get_node("surface"));
    }
    if (result.surfaceKind == cubemitter::OriginData::SurfaceKind::RECTANGLE) {
       if (n.has("values"))
       {
-         result.length = n.getn("values").get<float>(0, 0.0f);
-         result.width = n.getn("values").get<float>(1, 0.0f);
+         result.length = n.get_node("values").get<float>(0, 0.0f);
+         result.width = n.get_node("values").get<float>(1, 0.0f);
       }
    }
    return result;
@@ -50,7 +50,7 @@ cubemitter::EmissionData parseEmission(Node& n)
    result.angle = parseChannel(n, "angle", 25.0f);
    if (n.has("origin"))
    {
-      result.origin = parseOrigin(n.getn("origin"));
+      result.origin = parseOrigin(n.get_node("origin"));
    }
    return result;
 }
@@ -112,32 +112,32 @@ cubemitter::ParticleData parseParticle(Node& n)
    cubemitter::ParticleData result;
    if (n.has("speed"))
    {
-      result.speed = parseSpeed(n.getn("speed"));
+      result.speed = parseSpeed(n.get_node("speed"));
    }
 
    if (n.has("lifetime"))
    {
-      result.lifetime = parseLifetime(n.getn("lifetime"));
+      result.lifetime = parseLifetime(n.get_node("lifetime"));
    }
 
    if (n.has("color"))
    {
-      result.color = parseColor(n.getn("color"));
+      result.color = parseColor(n.get_node("color"));
    }
 
    if (n.has("scale"))
    {
-      result.scale = parseScale(n.getn("scale"));
+      result.scale = parseScale(n.get_node("scale"));
    }
 
    if (n.has("rotation"))
    {
-      result.rotation = parseRotation(n.getn("rotation"));
+      result.rotation = parseRotation(n.get_node("rotation"));
    }
 
    if (n.has("velocity"))
    {
-      result.velocity = parseVelocity(n.getn("velocity"));
+      result.velocity = parseVelocity(n.get_node("velocity"));
    }
    return result;
 }
@@ -193,11 +193,11 @@ bool CubemitterResource::load( const char *data, int size )
 
    if (root.has("particle"))
    {
-      emitterData.particle = parseParticle(root.getn("particle"));
+      emitterData.particle = parseParticle(root.get_node("particle"));
    }
    if (root.has("emission"))
    {
-      emitterData.emission = parseEmission(root.getn("emission"));
+      emitterData.emission = parseEmission(root.get_node("emission"));
    }
 	return true;
 }

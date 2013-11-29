@@ -32,6 +32,7 @@
 #include "lib/lua/om/open.h"
 #include "lib/lua/voxel/open.h"
 #include "lib/lua/analytics/open.h"
+#include "lib/lua/audio/open.h"
 #include "om/lua/lua_om.h"
 #include "csg/lua/lua_csg.h"
 #include "lib/rpc/session.h"
@@ -156,12 +157,17 @@ void Simulation::CreateNew()
    lua::rpc::open(L, core_reactor_);
    lua::om::register_json_to_lua_objects(L, store_);
    lua::analytics::open(L);
+   lua::audio::open(L);
    om::RegisterObjectTypes(store_);
 
    game_api_ = scriptHost_->Require("radiant.server");
 
-   auto vm = core::Config::GetInstance().GetVarMap();
-   std::string game_script = vm["game.script"].as<std::string>();
+   core::Config const& config = core::Config::GetInstance();
+   std::string const module = config.Get<std::string>("game.mod");
+   json::Node const manifest = res::ResourceManager2::GetInstance().LookupManifest(module);
+   std::string const default_script = module + "/" + manifest.get<std::string>("game.script");
+
+   std::string const game_script = config.Get("game.script", default_script);
    object game_ctor = scriptHost_->RequireScript(game_script);
    game_ = luabind::call_function<luabind::object>(game_ctor);
       

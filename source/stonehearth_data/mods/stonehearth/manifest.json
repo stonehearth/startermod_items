@@ -1,6 +1,10 @@
 {
-   "info" :{
+   "info" : {
       "name" : "Stonehearth"
+   },
+
+   "game" : {
+      "script" : "start_game.lua"
    },
 
    "radiant": {
@@ -190,6 +194,10 @@
          "observers:hunger" : "file(ai/observers/hunger_observer.lua)",
 
          "class_info" : "file(entities/class_info)",
+         "personality_types" : "file(data/personality/personality_types.json)",
+         "personal_logs:chopping_wood" : "file(data/personality/chopping_wood.json)",
+         "personal_logs:embarking" :     "file(data/personality/embarking.json)",
+         "personal_logs:eating_berries" :"file(data/personality/eating_berries.json)",
 
          "sounds:axe_chopping_sound" : "file(data/sounds/effects/axe_chopping_sound.ogg)",
          "sounds:ui:action_hover" : "file(data/sounds/ui/action/action_hover.wav)",
@@ -197,6 +205,13 @@
          "sounds:ui:start_menu:trigger_click" : "file(data/sounds/ui/start_menu/trigger_click.wav)",
          "sounds:saw_deep" : "file(data/sounds/effects/sh_saw_01.wav)",
          "sounds:saw_high" : "file(data/sounds/effects/sh_saw_02.wav)",
+
+         "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
+         "music:world_start"     : "file(data/music/levelmusic.ogg)",
+
+         "ambient:summer_day"   : "file(data/ambient/sh_amb_summer_day.ogg)",
+         "ambient:summer_night" : "file(data/ambient/sh_amb_summer_night.ogg)",
+
 
          "indicators:sleepy" : "file(/stonehearth/data/effects/unit_status_effects/sleepy_indicator)",
          "indicators:hungry" : "file(/stonehearth/data/effects/unit_status_effects/hungry_indicator)"
@@ -347,7 +362,8 @@
       "scaffolding_fabricator" : "file(components/scaffolding_fabricator/scaffolding_fabricator_component.lua)",
       "portal" : "file(components/portal/portal_component.lua)",
       "no_construction_zone" : "file(components/no_construction_zone/no_construction_zone_component.lua)",
-      "construction_data" : "file(components/construction_data/construction_data_component.lua)"
+      "construction_data" : "file(components/construction_data/construction_data_component.lua)",
+      "personality" : "file(components/personality/personality_component.lua)"
    },
    "component_renderers" : {
       "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",
@@ -376,6 +392,7 @@
          "file(ui/game/create_camp/create_camp.html)",
          "file(ui/game/build_workshop/build_workshop.html)",
          "file(ui/game/show_workshop/show_workshop.html)",
+         "file(ui/game/show_journal/show_journal.html)",
          "file(ui/game/clock_widget/clock_widget.html)",
          "file(ui/game/people_picker/people_picker.html)",
          "file(ui/game/promote/promote.html)",
@@ -398,6 +415,7 @@
          "file(ui/game/create_camp/create_camp.js)",
          "file(ui/game/build_workshop/build_workshop.js)",
          "file(ui/game/show_workshop/show_workshop.js)",
+         "file(ui/game/show_journal/show_journal.js)",
          "file(ui/game/clock_widget/clock_widget.js)",
          "file(ui/game/people_picker/people_picker.js)",
          "file(ui/game/promote/promote.js)",
@@ -423,6 +441,7 @@
          "file(ui/game/create_camp/create_camp.less)",
          "file(ui/game/build_workshop/build_workshop.less)",
          "file(ui/game/show_workshop/show_workshop.less)",
+         "file(ui/game/show_journal/show_journal.less)",
          "file(ui/game/clock_widget/clock_widget.less)",
          "file(ui/game/people_picker/people_picker.less)",
          "file(ui/game/promote/promote.less)",
