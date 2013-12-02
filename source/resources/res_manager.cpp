@@ -9,9 +9,11 @@
 #include "radiant.h"
 #include "radiant_file.h"
 #include "lib/json/node.h"
+#include "lib/json/json.h"
 #include "res_manager.h"
 #include "animation.h"
 #include "core/config.h"
+#include "core/system.h"
 #include "directory_module.h"
 #include "zip_module.h"
 
@@ -70,7 +72,7 @@ AnimationPtr ResourceManager2::LoadAnimation(std::string const& canonical_path) 
 
    std::string jsonfile = io::read_contents(*json_in);
    std::string jsonhash = Checksum(jsonfile);
-   fs::path animation_cache = core::Config::GetInstance().GetCacheDirectory() / "animations";
+   fs::path animation_cache = core::System::GetInstance().GetTempDirectory() / "animations";
    if (!fs::is_directory(animation_cache)) {
       fs::create_directories(animation_cache);
    }
@@ -242,19 +244,6 @@ std::shared_ptr<std::istream> ResourceManager2::OpenResource(std::string const& 
 
 }
 
-void ResourceManager2::ExpandMacros(std::string const& base_path, JSONNode& node, bool full) const
-{
-   int type = node.type();
-   if (type == JSON_NODE || type == JSON_ARRAY) {
-      for (auto& i : node) {
-         ExpandMacros(base_path, i, full);
-      }
-   } else if (type == JSON_STRING) {
-      std::string expanded = ExpandMacro(node.as_string(), base_path, full);
-      node = JSONNode(node.name(), expanded);
-   }
-}
-
 std::string ResourceManager2::ConvertToCanonicalPath(std::string path, const char* search_ext) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
@@ -285,23 +274,36 @@ std::string ResourceManager2::ConvertToCanonicalPath(std::string path, const cha
 
 JSONNode ResourceManager2::LoadJson(std::string const& canonical_path) const
 {
+   JSONNode node;
+   std::string error_message;
+   bool success;
+
    std::shared_ptr<std::istream> is = OpenResource(canonical_path);
-
-   std::stringstream reader;
-   reader << is->rdbuf();
-
-   json_string json = reader.str();
-   if (!libjson::is_valid(json)) {
-      throw InvalidJsonAtPathException(canonical_path);
+   success = json::ReadJson(*is, node, error_message);
+   if (!success) {
+      std::string full_message = BUILD_STRING("Error reading file " << canonical_path << ":\n\n" << error_message);
+      LOG(ERROR) << full_message;
+      throw core::Exception(full_message);
    }
 
-   JSONNode node = libjson::parse(json);
    ExpandMacros(canonical_path, node, false);
    ParseNodeExtension(canonical_path, node);
 
    return node;
 }
 
+void ResourceManager2::ExpandMacros(std::string const& base_path, JSONNode& node, bool full) const
+{
+   int type = node.type();
+   if (type == JSON_NODE || type == JSON_ARRAY) {
+      for (auto& i : node) {
+         ExpandMacros(base_path, i, full);
+      }
+   } else if (type == JSON_STRING) {
+      std::string expanded = ExpandMacro(node.as_string(), base_path, full);
+      node = JSONNode(node.name(), expanded);
+   }
+}
 
 void ResourceManager2::ParseNodeExtension(std::string const& path, JSONNode& n) const
 {
@@ -393,7 +395,7 @@ std::string ResourceManager2::GetEntityUri(std::string const& mod_name, std::str
    std::lock_guard<std::recursive_mutex> lock(mutex_);
 
    json::Node manifest = res::ResourceManager2::GetInstance().LookupManifest(mod_name);
-   json::Node entities = manifest.getn("radiant.entities");
+   json::Node entities = manifest.get_node("radiant.entities");
    std::string uri = entities.get<std::string>(entity_name, "");
 
    if (uri.empty()) {

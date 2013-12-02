@@ -2,13 +2,20 @@
 #define _RADIANT_CSG_RANDOM_NUMBER_GENERATOR_H
 
 #include <random>
+#include <mutex>
+#include <boost/thread/thread.hpp>
 #include "namespace.h"
+#include "radiant_macros.h"
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
 class RandomNumberGenerator
 {
 public:
+   // Gets the default instance for this thread
+   // If you want to set the seed, you need to set it on the instance after the thread is created
+   static RandomNumberGenerator& DefaultInstance();
+
    // Create a new RandomNumberGenerator seeded using the high resolution timer
    RandomNumberGenerator();
 
@@ -31,10 +38,15 @@ public:
    T GenerateGaussian(T mean, T std_dev);
 
 private:
+   NO_COPY_CONSTRUCTOR(RandomNumberGenerator);
+
+   static std::map<boost::thread::id, std::unique_ptr<RandomNumberGenerator>> instances_;
+   static std::recursive_mutex mutex_;
+
    std::default_random_engine generator_;
 };
 
-std::ostream& operator<<(std::ostream& out, const RandomNumberGenerator& source);
+std::ostream& operator<<(std::ostream& out, RandomNumberGenerator const& source);
 
 END_RADIANT_CSG_NAMESPACE
 

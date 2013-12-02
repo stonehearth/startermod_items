@@ -21,22 +21,26 @@ public:
 
    void PlaySound(std::string uri);
 
-   void PlayMusic(json::Node node);
-   void UpdateAudio(int currTime);
+   //These set the vars from whcih the next call to PlayMusic will draw its parameters
+   void SetNextMusicVolume(int volume, std::string channel);
+   void SetNextMusicFade(int fade, std::string channel);
+   void SetNextMusicLoop(bool loop, std::string channel);
 
-   //TODO: implement getter/setters for sound/music by channel
+   void PlayMusic(std::string track, std::string channel);
+   void UpdateAudio(int currTime);
 
 private:
    void CleanupSounds();
 
    std::unordered_map<std::string, sf::SoundBuffer*> sound_buffers_;
    std::vector<sf::Sound*> sounds_;
-   float ui_efx_volume_;   
    int num_sounds_;
+   int efx_volume_;
+   float master_efx_volume_;
 
    //TODO: if we ever have more than 2, use a vector of channels
    Channel  bgm_channel_;
-   Channel  ambient_channel;
+   Channel  ambient_channel_;
    
 };
 

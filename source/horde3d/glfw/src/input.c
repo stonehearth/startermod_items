@@ -212,6 +212,13 @@ void _glfwInputCursorEnter(_GLFWwindow* window, int entered)
         window->callbacks.cursorEnter((GLFWwindow*) window, entered);
 }
 
+void _glfwFullscreenToggle(_GLFWwindow* window)
+{
+   if (window->callbacks.fullscreen)
+      window->callbacks.fullscreen((GLFWwindow*) window);
+}
+
+
 
 //////////////////////////////////////////////////////////////////////////
 //////                        GLFW public API                       //////
@@ -395,3 +402,11 @@ GLFWAPI GLFWscrollfun glfwSetScrollCallback(GLFWwindow* handle,
     return cbfun;
 }
 
+GLFWAPI GLFWfullscreenfun glfwSetFullscreenCallback(GLFWwindow* handle,
+                                                    GLFWfullscreenfun cbfun)
+{
+    _GLFWwindow* window = (_GLFWwindow*) handle;
+    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _GLFW_SWAP_POINTERS(window->callbacks.fullscreen, cbfun);
+    return cbfun;
+}

@@ -17,10 +17,15 @@
 #include "egFrameDebugInfo.h"
 #include "utMath.h"
 #include "utOpenGL.h"
-#include "om/error_browser/error_browser.h"
 #include <string>
 #include <vector>
 
+#define VALIDATE_GL_CALL(error, msg) \
+   if (error != GL_NO_ERROR) \
+   { \
+     Modules::log().writeError(msg, error); \
+     ASSERT(error == GL_NO_ERROR); \
+   } \
 
 namespace Horde3D {
 
@@ -104,6 +109,14 @@ private:
 };
 
 
+enum CardType
+{
+   ATI,
+   NVIDIA,
+   INTEL,
+   UNKNOWN
+};
+
 struct DeviceCaps
 {
 	bool  texFloat;
@@ -111,6 +124,8 @@ struct DeviceCaps
 	bool  rtMultisampling;
    bool  hasInstancing;
    int   maxTextureSize;
+   CardType cardType;
+   int   glVersion;
 
    const char* vendor;
    const char* renderer;
@@ -468,6 +483,8 @@ protected:
 	bool linkShaderProgram(uint32 programObj, const char* filename, const char *vertexShaderSrc, const char *fragmentShaderSrc);
 	void resolveRenderBuffer( uint32 rbObj );
 
+   bool useGluMipmapFallback();
+   CardType getCardType(const char* cardString);
 	void checkGLError();
 	bool applyVertexLayout();
 	void applySamplerState( RDITexture &tex );

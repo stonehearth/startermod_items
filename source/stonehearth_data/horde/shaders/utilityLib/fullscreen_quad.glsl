@@ -8,5 +8,5 @@ void transform_fullscreen(
     out vec4 transformedPos, 
     out vec2 texCoords) {
   texCoords = vertexPos.xy;
-  transformedPos = projMat * vec4(vertexPos, 1.0f);
+  transformedPos = projMat * vec4(vertexPos, 1.0);
 }

@@ -192,7 +192,7 @@ public:
       luabind::object callback(L_, cb);
       guards_ += frame_start_slot_.Register([=](FrameStartInfo const &info) {
          perfmon::TimelineCounterGuard tcg(reason.c_str());
-         luabind::call_function<void>(callback, info.now, info.interpolate);
+         luabind::call_function<void>(callback, info.now, info.interpolate, info.frame_time);
       });
       return shared_from_this();
    }

@@ -10,6 +10,10 @@ BEGIN_RADIANT_AUDIO_NAMESPACE
 
 class InputStream;
 
+const int DEF_MUSIC_VOL = 50;
+const int DEF_MUSIC_FADE = 1000; 
+const int DEF_MUSIC_LOOP = true;
+
 END_RADIANT_AUDIO_NAMESPACE
 
 #endif //  _RADIANT_AUDIO_AUDIO_H

@@ -62,9 +62,10 @@ bool ToastNode::InitExtension()
 	if (matRes == 0x0 || matRes->getType() != ResourceTypes::Material ) {
       return 0;
    }
+   h3dutLoadResourcesFromDisk("horde");
 
    H3DRes texture = h3dGetResParamI(mat, MaterialResData::SamplerElem, 0, MaterialResData::SampTexResI);
-   if (texture) {
+   if (texture > 0) {
       textureWidth_  = (float)h3dGetResParamI(texture, TextureResData::ImageElem, 0, TextureResData::ImgWidthI);
       textureHeight_ = (float)h3dGetResParamI(texture, TextureResData::ImageElem, 0, TextureResData::ImgHeightI);
    }

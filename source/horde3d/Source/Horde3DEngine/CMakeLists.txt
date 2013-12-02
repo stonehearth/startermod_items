@@ -76,7 +76,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	IF(MSVC)
 		set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DSECURE_SCL=0")		
 	ENDIF(MSVC)
-	target_link_libraries(Horde3D opengl32)
+	target_link_libraries(Horde3D opengl32 glu32)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")

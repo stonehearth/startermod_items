@@ -89,7 +89,7 @@ DLLEXP bool h3dGetError()
 }
 
 
-DLLEXP bool h3dInit(int glMajor, int glMinor)
+DLLEXP bool h3dInit(int glMajor, int glMinor, const char* logFilePath)
 {
 	if( initialized )
 	{	
@@ -99,7 +99,7 @@ DLLEXP bool h3dInit(int glMajor, int glMinor)
 	}
 	initialized = true;
 
-	return Modules::init(glMajor, glMinor);
+	return Modules::init(glMajor, glMinor, std::string(logFilePath));
 }
 
 DLLEXP void h3dRelease()

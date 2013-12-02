@@ -11,20 +11,27 @@ using namespace ::radiant;
 using namespace ::radiant::audio;
 using namespace luabind;
 
-//TODO: how to make this take a json node from LUA?
-void play_music(std::string track, bool loop, int fade, int volume, std::string channel) {
-   json::Node node;
-   node.set("track", track);
-   node.set("loop", loop);
-   node.set("fade", fade);
-   node.set("volume", volume);
-   node.set("channel", channel);
-   
+void set_next_music_volume(int volume, std::string const& channel) {
    audio::AudioManager &a = audio::AudioManager::GetInstance();
-   a.PlayMusic(node);
+   a.SetNextMusicVolume(volume, channel);
 }
 
-void play_sound(std::string uri) {
+void set_next_music_fade(int fade, std::string const& channel) {
+   audio::AudioManager &a = audio::AudioManager::GetInstance();
+   a.SetNextMusicFade(fade, channel);
+}
+
+void set_next_music_loop(bool loop, std::string const& channel) {
+   audio::AudioManager &a = audio::AudioManager::GetInstance();
+   a.SetNextMusicLoop(loop, channel);
+}
+
+void play_music(std::string const& track, std::string const& channel) {
+   audio::AudioManager &a = audio::AudioManager::GetInstance();
+   a.PlayMusic(track, channel);
+}
+
+void play_sound(std::string const& uri) {
    audio::AudioManager &a = audio::AudioManager::GetInstance();
    a.PlaySound(uri);
 }
@@ -37,6 +44,9 @@ void lua::audio::open(lua_State *L)
    module(L) [
       namespace_("_radiant") [
          namespace_("audio") [
+            def("set_next_music_volume", &set_next_music_volume),
+            def("set_next_music_fade", &set_next_music_fade),
+            def("set_next_music_loop", &set_next_music_loop),
             def("play_music", &play_music),
             def("play_sound", &play_sound)
          ]

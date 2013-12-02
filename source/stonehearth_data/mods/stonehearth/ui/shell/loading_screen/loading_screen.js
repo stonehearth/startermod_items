@@ -8,10 +8,11 @@ App.StonehearthLoadingScreenView = App.View.extend({
 
       //Play another kind of bgm during the loading screen if needed
       //var args = {
-      //   'track': 'stonehearth:music:bgm2',
-      //   'fade': 500
+      //   'track': '<fill in new trackhere>',
+      //   'fade': 500,
+      //   'channel' : 'bgm'
       //};
-      //radiant.call('radiant:play_bgm', args);      
+      //radiant.call('radiant:play_music', args);      
 
       radiant.call('stonehearth:get_world_generation_progress')
             .done(function(o) {

@@ -289,7 +289,7 @@ CubemitterEffect::CubemitterEffect(RenderEntity& e, om::EffectPtr effect, const 
    }
    filename_ = node["cubemitter"].as_string();
 
-   json::Node transforms = o.getn("transforms");
+   json::Node transforms = o.get_node("transforms");
    pos_.x = transforms.get("x", 0.0f);
    pos_.y = transforms.get("y", 0.0f);
    pos_.z = transforms.get("z", 0.0f);
@@ -697,7 +697,7 @@ PlaySoundEffect::PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JS
    json::Node n(node["track"]);
 
    if (n.type() == JSON_STRING) {
-      track = n.GetNode().as_string();
+      track = n.get_internal_node().as_string();
    } else if (n.type() == JSON_NODE) {
       if (n.get<std::string>("type", "") == "one_of") {
          JSONNode items = n.get("items", JSONNode());

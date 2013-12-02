@@ -17,9 +17,9 @@
 #include "egModules.h"
 #include "egCom.h"
 #include "utOpenGL.h"
+#include <gl\GLU.h>
 
 #include "utDebug.h"
-#include "om/error_browser/error_browser.h"
 #include "lib/perfmon/perfmon.h"
 
 namespace Horde3D {
@@ -29,6 +29,16 @@ namespace Horde3D {
 #else
 #	define CHECK_GL_ERROR
 #endif
+
+void validateGLCall(const char* errorStr)
+{
+   uint32 error = glGetError();
+   if (error != GL_NO_ERROR) {
+      Modules::log().writeError(errorStr, error);
+      ASSERT(false);
+   }
+}
+
 
 // =================================================================================================
 // GPUTimer
@@ -156,6 +166,30 @@ void RenderDevice::initStates()
 	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 }
 
+CardType RenderDevice::getCardType(const char* cardString)
+{
+   if (cardString == nullptr)
+   {
+      return CardType::UNKNOWN;
+   }
+
+   if (strncmp("ATI", gRDI->getCaps().vendor, 3) == 0 ||
+       strncmp("AMD", gRDI->getCaps().vendor, 3) == 0)
+   {
+      return CardType::ATI;
+   }
+
+   if (strncmp("Intel", gRDI->getCaps().vendor, 5) == 0)
+   {
+      return CardType::INTEL;
+   }
+
+   if (strncmp("NVIDIA", gRDI->getCaps().vendor, 6) == 0)
+   {
+      return CardType::NVIDIA;
+   }
+   return CardType::UNKNOWN;
+}
 
 bool RenderDevice::init(int glMajor, int glMinor)
 {
@@ -217,9 +251,11 @@ bool RenderDevice::init(int glMajor, int glMinor)
 	_caps.texFloat = glExt::ARB_texture_float ? 1 : 0;
 	_caps.texNPOT = glExt::ARB_texture_non_power_of_two ? 1 : 0;
 	_caps.rtMultisampling = glExt::EXT_framebuffer_multisample ? 1 : 0;
-   _caps.hasInstancing = (glExt::majorVersion * 10 + glExt::minorVersion) >= 33;
+   _caps.glVersion = glExt::majorVersion * 10 + glExt::minorVersion;
+   _caps.hasInstancing = _caps.glVersion >= 33;
    _caps.renderer = renderer;
    _caps.vendor = vendor;
+   _caps.cardType = getCardType(vendor);
    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &_caps.maxTextureSize);
 
 	// Find supported depth format (some old ATI cards only support 16 bit depth for FBOs)
@@ -292,8 +328,7 @@ uint32 RenderDevice::createVertexBuffer( uint32 size, const void *data )
 	glBufferData( buf.type, size, data, GL_DYNAMIC_DRAW );
 	glBindBuffer( buf.type, 0 );
 	
-   GLenum error = glGetError();
-   ASSERT(error == GL_NO_ERROR);
+   validateGLCall("Error creating vertex buffer: %d");
 
    _bufferMem += size;
 	return _buffers.add( buf );
@@ -314,8 +349,7 @@ uint32 RenderDevice::createIndexBuffer( uint32 size, const void *data )
 	glBufferData( buf.type, size, data, GL_DYNAMIC_DRAW );
 	glBindBuffer( buf.type, 0 );
 	
-   GLenum error = glGetError();
-   ASSERT(error == GL_NO_ERROR);
+   validateGLCall("Error creating index buffer: %d");
 
    _bufferMem += size;
 	return _buffers.add( buf );
@@ -336,8 +370,7 @@ uint32 RenderDevice::createPixelBuffer( uint32 type, uint32 size, const void *da
    glBufferData(buf.type, size, data, GL_STREAM_DRAW);
    glBindBuffer(buf.type, 0);
 
-   GLenum error = glGetError();
-   ASSERT(error == GL_NO_ERROR);
+   validateGLCall("Error creating pixel buffer: %d");
 
    _bufferMem += size;
    return _buffers.add(buf);
@@ -351,8 +384,7 @@ void RenderDevice::destroyBuffer( uint32 bufObj )
 	RDIBuffer& buf = _buffers.getRef( bufObj );
 	glDeleteBuffers( 1, &buf.glObj );
 
-   GLenum error = glGetError();
-   ASSERT(error == GL_NO_ERROR);
+   validateGLCall("Error destroying buffer: %d");
 
 	_bufferMem -= buf.size;
 	_buffers.remove( bufObj );
@@ -389,8 +421,7 @@ void* RenderDevice::mapBuffer(uint32 bufObj, bool discard)
    void* result = glMapBuffer(buf.type, GL_WRITE_ONLY);
    glBindBuffer(buf.type, 0);
 
-   GLenum error = glGetError();
-   ASSERT(error == GL_NO_ERROR);
+   validateGLCall("Error mapping buffer: %d");
 
    return result;
 }
@@ -403,8 +434,7 @@ void RenderDevice::unmapBuffer(uint32 bufObj)
    glUnmapBuffer(buf.type);
    glBindBuffer(buf.type, 0);
 
-   GLenum error = glGetError();
-   ASSERT(error == GL_NO_ERROR);
+   validateGLCall("Error unmapping buffer: %d");
 }
 
 
@@ -502,8 +532,7 @@ uint32 RenderDevice::createTexture( TextureTypes::List type, int width, int heig
 	if( _texSlots[15].texObj )
 		glBindTexture( _textures.getRef( _texSlots[15].texObj ).type, _textures.getRef( _texSlots[15].texObj ).glObj );
 
-   GLenum error = glGetError();
-   ASSERT(error == GL_NO_ERROR);
+   validateGLCall("Error creating texture: %d");
 
    // Calculate memory requirements
 	tex.memSize = calcTextureSize( format, width, height, depth );
@@ -550,8 +579,19 @@ void RenderDevice::copyTextureDataFromPbo( uint32 texObj, uint32 pboObj, int xOf
    glBindTexture(GL_TEXTURE_2D, 0);
    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
    
-   GLenum error = glGetError();
-   ASSERT(error == GL_NO_ERROR);
+   validateGLCall("Error copying texture data from pbo: %d");
+}
+
+
+bool RenderDevice::useGluMipmapFallback()
+{
+   if (getCaps().glVersion < 33) {
+      if (getCaps().cardType == CardType::INTEL)
+      {
+         return true;
+      }
+   }
+   return false;
 }
 
 
@@ -562,7 +602,7 @@ void RenderDevice::uploadTextureData( uint32 texObj, int slice, int mipLevel, co
 
    glActiveTexture( GL_TEXTURE15 );
 	glBindTexture( tex.type, tex.glObj );
-	
+
 	int inputFormat = GL_BGRA, inputType = GL_UNSIGNED_BYTE;
 	bool compressed = (format == TextureFormats::DXT1) || (format == TextureFormats::DXT3) ||
 	                  (format == TextureFormats::DXT5);
@@ -614,19 +654,31 @@ void RenderDevice::uploadTextureData( uint32 texObj, int slice, int mipLevel, co
 
 	if( tex.genMips && (tex.type != GL_TEXTURE_CUBE_MAP || slice == 5) )
 	{
+      if (useGluMipmapFallback())
+      {
+         if (inputFormat == GL_BGRA && inputType == GL_UNSIGNED_BYTE)
+         {
+            Modules::log().writeInfo("Taking glu path for mipmap generation.");
+            gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA , width, height, inputFormat, GL_UNSIGNED_BYTE, pixels);
+         } else {
+            Modules::log().writeWarning("Attempting risky mipmap generation (%d, %d, %x, %x)", width, height, inputFormat, inputType);
+		      glEnable( tex.type );  // Workaround for ATI driver bug
+		      glGenerateMipmapEXT( tex.type );
+		      glDisable( tex.type );
+         }
+      } else {
+		   glEnable( tex.type );  // Workaround for ATI driver bug
+		   glGenerateMipmapEXT( tex.type );
+		   glDisable( tex.type );
+      }
 		// Note: for cube maps mips are only generated when the side with the highest index is uploaded
-		glEnable( tex.type );  // Workaround for ATI driver bug
-		glGenerateMipmapEXT( tex.type );
-		glDisable( tex.type );
 	}
-
 
 	glBindTexture( tex.type, 0 );
 	if( _texSlots[15].texObj )
 		glBindTexture( _textures.getRef( _texSlots[15].texObj ).type, _textures.getRef( _texSlots[15].texObj ).glObj );
 
-   GLenum error = glGetError();
-   ASSERT(error == GL_NO_ERROR);
+   validateGLCall("Error uploading texture data: %d");
 }
 
 
@@ -916,7 +968,10 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
 
 	// Create framebuffers
 	glGenFramebuffersEXT( 1, &rb.fbo );
-	if( samples > 0 ) glGenFramebuffersEXT( 1, &rb.fboMS );
+	if( samples > 0 ) 
+   {
+      glGenFramebuffersEXT( 1, &rb.fboMS );
+   }
 
 	if( numColBufs > 0 )
 	{
@@ -957,24 +1012,15 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
 			glDrawBuffers( numColBufs, buffers );
 		}
 	}
-	else
-	{	
-		glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, rb.fbo );
-		glDrawBuffer( GL_NONE );
-		glReadBuffer( GL_NONE );
-		
-		if( samples > 0 )
-		{
-			glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, rb.fboMS );
-			glDrawBuffer( GL_NONE );
-			glReadBuffer( GL_NONE );
-		}
-	}
 
 	// Attach depth buffer
 	if( depth )
 	{
 		glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, rb.fbo );
+      if (numColBufs == 0) {
+		   glDrawBuffer( GL_NONE );
+		   glReadBuffer( GL_NONE );
+      }
 		// Create a depth texture
 		uint32 texObj = createTexture( TextureTypes::Tex2D, rb.width, rb.height, 1, TextureFormats::DEPTH, false, false, false, false );
 		ASSERT( texObj != 0 );
@@ -988,6 +1034,10 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
 		if( samples > 0 )
 		{
 			glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, rb.fboMS );
+         if (numColBufs == 0) {
+		      glDrawBuffer( GL_NONE );
+		      glReadBuffer( GL_NONE );
+         }
 			// Create a multisampled renderbuffer
 			glGenRenderbuffersEXT( 1, &rb.depthBuf );
 			glBindRenderbufferEXT( GL_RENDERBUFFER_EXT, rb.depthBuf );
@@ -1005,14 +1055,22 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
 	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, rb.fbo );
 	uint32 status = glCheckFramebufferStatusEXT( GL_FRAMEBUFFER_EXT );
 	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
-	if( status != GL_FRAMEBUFFER_COMPLETE_EXT ) valid = false;
+	if( status != GL_FRAMEBUFFER_COMPLETE_EXT ) 
+   {
+      Modules::log().writeError("Unable to create render buffer: %d, %d", status, rb.fbo);
+      valid = false;
+   }
 	
 	if( samples > 0 )
 	{
 		glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, rb.fboMS );
 		status = glCheckFramebufferStatusEXT( GL_FRAMEBUFFER_EXT );
 		glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
-		if( status != GL_FRAMEBUFFER_COMPLETE_EXT ) valid = false;
+		if( status != GL_FRAMEBUFFER_COMPLETE_EXT ) 
+      {
+         Modules::log().writeError("Unable to create render buffer (multisample).");
+         valid = false;
+      }
 	}
 
 	if( !valid )
@@ -1042,8 +1100,14 @@ void RenderDevice::destroyRenderBuffer( uint32 rbObj )
 		rb.colTexs[i] = rb.colBufs[i] = 0;
 	}
 
-	if( rb.fbo != 0 ) glDeleteFramebuffersEXT( 1, &rb.fbo );
-	if( rb.fboMS != 0 ) glDeleteFramebuffersEXT( 1, &rb.fboMS );
+	if( rb.fbo != 0 ) 
+   {
+      glDeleteFramebuffersEXT( 1, &rb.fbo );
+   }
+	if( rb.fboMS != 0 )
+   {
+      glDeleteFramebuffersEXT( 1, &rb.fboMS );
+   }
 	rb.fbo = rb.fboMS = 0;
 
 	_rendBufs.remove( rbObj );
@@ -1064,8 +1128,11 @@ void RenderDevice::resolveRenderBuffer( uint32 rbObj )
 {
 	RDIRenderBuffer &rb = _rendBufs.getRef( rbObj );
 	
-	if( rb.fboMS == 0 ) return;
-	
+	if( rb.fboMS == 0 )
+   {
+      return;
+   }
+
 	glBindFramebufferEXT( GL_READ_FRAMEBUFFER_EXT, rb.fboMS );
 	glBindFramebufferEXT( GL_DRAW_FRAMEBUFFER_EXT, rb.fbo );
 
@@ -1097,13 +1164,18 @@ void RenderDevice::resolveRenderBuffer( uint32 rbObj )
 
 	glBindFramebufferEXT( GL_READ_FRAMEBUFFER_EXT, 0 );
 	glBindFramebufferEXT( GL_DRAW_FRAMEBUFFER_EXT, 0 );
+
+   validateGLCall("Error resolving render buffer: %d");
 }
 
 
 void RenderDevice::setRenderBuffer( uint32 rbObj )
 {
 	// Resolve render buffer if necessary
-	if( _curRendBuf != 0 ) resolveRenderBuffer( _curRendBuf );
+	if(_curRendBuf != 0)
+   {
+      resolveRenderBuffer(_curRendBuf);
+   }
 	
 	// Set new render buffer
 	_curRendBuf = rbObj;
@@ -1119,18 +1191,31 @@ void RenderDevice::setRenderBuffer( uint32 rbObj )
 	else
 	{
 		// Unbind all textures to make sure that no FBO attachment is bound any more
-		for( uint32 i = 0; i < 16; ++i ) setTexture( i, 0, 0 );
+		for( uint32 i = 0; i < 16; ++i ) 
+      {
+         setTexture( i, 0, 0 );
+      }
 		commitStates( PM_TEXTURES );
 		
 		RDIRenderBuffer &rb = _rendBufs.getRef( rbObj );
 
 		glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, rb.fboMS != 0 ? rb.fboMS : rb.fbo );
-		ASSERT( glCheckFramebufferStatusEXT( GL_FRAMEBUFFER_EXT ) == GL_FRAMEBUFFER_COMPLETE_EXT );
+      int status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+
+      if (status != GL_FRAMEBUFFER_COMPLETE_EXT)
+      {
+         Modules::log().writeError("Bind Frambuffer error: %d, %d, %x, %d", rb.fbo, rb.fboMS, status, glGetError());
+      }
+		ASSERT(status == GL_FRAMEBUFFER_COMPLETE_EXT);
 		_fbWidth = rb.width;
 		_fbHeight = rb.height;
 
-		if( rb.fboMS != 0 ) glEnable( GL_MULTISAMPLE );
-		else glDisable( GL_MULTISAMPLE );
+		if( rb.fboMS != 0 )
+      {
+         glEnable( GL_MULTISAMPLE );
+      } else {
+         glDisable( GL_MULTISAMPLE );
+      }
 	}
 }
 
@@ -1576,47 +1661,50 @@ void RenderDevice::ReportShaderError(uint32 shader_id, ShaderType type, const ch
    if (info) {
 		(program_shader ? glGetProgramInfoLog : glGetShaderInfoLog)(shader_id, info_len, &c, info);
 
-      Modules::log().writeError("raw shader compile error: %s", info);
+      if (strncmp(info, "No errors.", 10) != 0)
+      {
+         Modules::log().writeError("raw shader compile error: %s", info);
 
-      std::vector<std::string> lines;
-      boost::split(lines, info, boost::is_any_of("\n\r"));
-      lines.erase(std::remove(lines.begin(), lines.end(), ""), lines.end());
+         std::vector<std::string> lines;
+         boost::split(lines, info, boost::is_any_of("\n\r"));
+         lines.erase(std::remove(lines.begin(), lines.end(), ""), lines.end());
 
-      for (std::string const& line : lines) {
-         ::radiant::om::ErrorBrowser::Record record;
+         for (std::string const& line : lines) {
+            ::radiant::om::ErrorBrowser::Record record;
 
-         std::regex exp("(\\d+)\\((\\d+)\\)(.*)");
-         std::smatch match;
-         if (line == "Vertex info") {
-            type = VERTEX_SHADER;
-            src = vs;
-         } else if (line == "Fragment info") {
-            type = FRAGMENT_SHADER;
-            src = fs;
-         } else if (std::regex_match(line, match, exp)) {
-            int char_offset = atoi(match[1].str().c_str());
-            int line_number = atoi(match[2].str().c_str());
-            std::string summary = match[3].str();
+            std::regex exp("(\\d+)\\((\\d+)\\)(.*)");
+            std::smatch match;
+            if (line == "Vertex info") {
+               type = VERTEX_SHADER;
+               src = vs;
+            } else if (line == "Fragment info") {
+               type = FRAGMENT_SHADER;
+               src = fs;
+            } else if (std::regex_match(line, match, exp)) {
+               int char_offset = atoi(match[1].str().c_str());
+               int line_number = atoi(match[2].str().c_str());
+               std::string summary = match[3].str();
 
-            record.SetSummary(summary);
+               record.SetSummary(summary);
 
-            if (strstr(line.c_str(), "error")) {
-               record.SetCategory(record.SEVERE);
-            } else {
-               record.SetCategory(record.WARNING);
-            }
-
-            if (filename) {
-               record.SetFilename(filename);
-            }
-            if (src) {
-               record.SetFileContent(src);
-               if (type != PROGRAM) {
-                  record.SetCharOffset(char_offset);
-                  record.SetLineNumber(line_number);
+               if (strstr(line.c_str(), "error")) {
+                  record.SetCategory(record.SEVERE);
+               } else {
+                  record.SetCategory(record.WARNING);
                }
+
+               if (filename) {
+                  record.SetFilename(filename);
+               }
+               if (src) {
+                  record.SetFileContent(src);
+                  if (type != PROGRAM) {
+                     record.SetCharOffset(char_offset);
+                     record.SetLineNumber(line_number);
+                  }
+               }
+               Modules::log().ReportError(record);
             }
-            Modules::log().ReportError(record);
          }
       }
       delete [] info;

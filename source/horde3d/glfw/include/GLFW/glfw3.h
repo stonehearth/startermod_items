@@ -786,6 +786,10 @@ typedef void (* GLFWcharfun)(GLFWwindow*,unsigned int);
  */
 typedef void (* GLFWmonitorfun)(GLFWmonitor*,int);
 
+/*! @brief The function signature for fullscreen-toggle callbacks.
+ */
+typedef void (* GLFWfullscreenfun)(GLFWwindow*);
+
 /*! @brief Video mode type.
  *
  *  This describes a single video mode.
@@ -1671,6 +1675,8 @@ GLFWAPI GLFWwindowiconifyfun glfwSetWindowIconifyCallback(GLFWwindow* window, GL
  *  @ingroup window
  */
 GLFWAPI GLFWframebuffersizefun glfwSetFramebufferSizeCallback(GLFWwindow* window, GLFWframebuffersizefun cbfun);
+
+GLFWAPI GLFWfullscreenfun glfwSetFullscreenCallback(GLFWwindow* handle, GLFWfullscreenfun cbfun);
 
 /*! @brief Processes all pending events.
  *
