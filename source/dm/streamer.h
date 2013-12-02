@@ -27,6 +27,7 @@ private:
    void SetServerTick(int now);
 
 private:
+   Store const&            store_;
    protocol::SendQueue*    queue_;
    TracerBufferedPtr       tracer_;
    AllocTracePtr           alloc_trace_;

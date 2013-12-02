@@ -22,6 +22,11 @@ void TracerSync::OnObjectAlloced(ObjectPtr obj)
    });
 }
 
+void TracerSync::OnObjectRegistered(ObjectId id)
+{
+   // Nothing to do.
+}
+
 void TracerSync::OnObjectDestroyed(ObjectId id)
 {
    // Nothing to do.

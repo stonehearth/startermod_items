@@ -35,6 +35,7 @@ private:
 #undef DEFINE_TRACE_CLS_CHANGES
 
    void OnObjectAlloced(ObjectPtr obj) override;
+   void OnObjectRegistered(ObjectId id) override;
    void OnObjectDestroyed(ObjectId id) override;
 };
 

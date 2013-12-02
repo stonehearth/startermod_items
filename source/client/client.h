@@ -225,6 +225,8 @@ private:
       dm::TracerBufferedPtr       game_render_tracer_;
       dm::TracerBufferedPtr       authoring_render_tracer_;
       dm::ReceiverPtr             receiver_;
+      dm::TracePtr                store_alloc_trace_;
+      dm::TracePtr                authoring_store_alloc_trace_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

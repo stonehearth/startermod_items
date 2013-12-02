@@ -79,7 +79,11 @@ void Store::RegisterObject(Object& obj)
       throw std::logic_error(BUILD_STRING("data mode object " << obj.GetObjectId() << "being registered twice."));
    }
 
-   objects_[obj.GetObjectId()] = &obj;
+   ObjectId id = obj.GetObjectId();
+   objects_[id] = &obj;
+   for (auto const& entry : tracers_) {
+      entry.second->OnObjectRegistered(id);
+   };
 
    // std::cout << "Store " << storeId_ << " RegisterObject(oid:" << obj.GetObjectId() << ") " << typeid(obj).name() << std::endl;
 }

@@ -21,16 +21,16 @@ TracerBuffered::~TracerBuffered()
 {
 }
 
-void TracerBuffered::NotifyChanged(ObjectId id)
-{
-   TB_LOG(5) << "adding object " << id << " to modified set";
-   stdutil::UniqueInsert(modified_objects_, id);
-}
-
 void TracerBuffered::OnObjectAlloced(ObjectPtr obj)
 {
    TB_LOG(5) << "adding object " << obj->GetObjectId() << " to alloced set";
    alloced_objects_.push_back(obj);
+}
+
+void TracerBuffered::OnObjectRegistered(ObjectId id)
+{
+   TB_LOG(5) << "adding object " << id << " to modified set";
+   stdutil::UniqueInsert(modified_objects_, id);
 }
 
 void TracerBuffered::OnObjectDestroyed(ObjectId id)

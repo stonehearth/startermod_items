@@ -46,9 +46,16 @@ void Map<K, V, H>::LoadValue(Protocol::Value const& value)
 }
 
 template <class K, class V, class H>
-void Map<K, V, H>::SaveValue(Protocol::Value* msg) const
+void Map<K, V, H>::SaveValue(Protocol::Value* value) const
 {
-   NOT_YET_IMPLEMENTED();
+   Store const& store = GetStore();
+   Protocol::Map::Update* msg = value->MutableExtension(Protocol::Map::extension);
+
+   for (auto const& entry : items_) {
+      Protocol::Map::Entry* submsg = msg->add_added();
+      SaveImpl<Key>::SaveValue(store, submsg->mutable_key(), entry.first);
+      SaveImpl<Value>::SaveValue(store, submsg->mutable_value(), entry.second);
+   }
 }
 
 template <class K, class V, class H>

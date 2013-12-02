@@ -24,6 +24,7 @@ private:
 
    virtual TracerType GetType() const = 0;
    virtual void OnObjectAlloced(ObjectPtr obj) = 0;
+   virtual void OnObjectRegistered(ObjectId id) = 0;
    virtual void OnObjectDestroyed(ObjectId id) = 0;
 
 protected:

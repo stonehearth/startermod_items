@@ -45,9 +45,15 @@ void Set<T>::LoadValue(Protocol::Value const& value)
 }
 
 template <class T>
-void Set<T>::SaveValue(Protocol::Value* msg) const
+void Set<T>::SaveValue(Protocol::Value* value) const
 {
-   NOT_YET_IMPLEMENTED();
+   Store const& store = GetStore();
+   Protocol::Set::Update* msg = value->MutableExtension(Protocol::Set::extension);
+
+   for (const Value& item : items_) {
+      Protocol::Value* submsg = msg->add_added();
+      SaveImpl<Value>::SaveValue(store, submsg, item);
+   }
 }
 
 template <class T>

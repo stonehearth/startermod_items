@@ -37,13 +37,13 @@ public:
 #undef DEFINE_TRACE_CLS_CHANGES
 
    void OnObjectAlloced(ObjectPtr obj) override;
+   void OnObjectRegistered(ObjectId id) override;
    void OnObjectDestroyed(ObjectId id) override;
 
    void Flush();
 
 private:
    friend TraceBuffered;
-   void NotifyChanged(ObjectId id);
    void FlushOnce(std::vector<ObjectRef>& last_alloced,
                   std::vector<ObjectId>& last_modified,
                   std::vector<ObjectId>& last_destroyed);

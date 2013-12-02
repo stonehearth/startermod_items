@@ -15,6 +15,7 @@ using namespace radiant::dm;
 namespace proto = ::radiant::tesseract::protocol;
 
 Streamer::Streamer(Store& store, int category, protocol::SendQueue* queue) :
+   store_(store),
    queue_(queue),
    category_(category)
 {
