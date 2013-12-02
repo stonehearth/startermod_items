@@ -32,7 +32,6 @@ function WorkshopComponent:__init(entity, data_binding)
 
    self._data_binding = data_binding
    self._data_binding:mark_changed()
-
 end
 
 function WorkshopComponent:extend(json)
@@ -147,6 +146,9 @@ function WorkshopComponent:get_curr_order()
    return self._curr_order
 end
 
+function WorkshopComponent:get_talisman() 
+   return self._promotion_talisman_entity
+end
 
 --[[
    Associate a crafter entity with this bench.
@@ -168,13 +170,15 @@ function WorkshopComponent:set_crafter(crafter)
                                            :add_command('/stonehearth/data/commands/show_workshop_from_crafter')
 
 
-      -- xxx, localize                                          
-      local crafter_name = radiant.entities.get_name(crafter)
-      radiant.entities.set_description(self._entity, 'owned by ' .. crafter_name)
-
       show_workshop_command.event_data = {
          workshop = self._entity
       }
+
+      self._entity:add_component('stonehearth:commands'):remove_command('promote_to_profession')
+
+      -- xxx, localize                                          
+      local crafter_name = radiant.entities.get_name(crafter)
+      radiant.entities.set_description(self._entity, 'owned by ' .. crafter_name)
 
    end
 end
