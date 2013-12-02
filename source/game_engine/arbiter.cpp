@@ -142,7 +142,7 @@ void arbiter::idle()
          platform::sleep(1);
       }
    }
-   _timer.set(_stepInterval);
+   _timer.advance(_stepInterval);
 }
 
 void arbiter::update_simulation()
