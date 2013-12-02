@@ -20,10 +20,14 @@ function ThoughtBubbleComponent:set_thought(uri, priority)
    if not priority then
       priority = 0
    end
+
+   if uri == self._thought_uri and priority == self._thought_priority then
+      return
+   end
    
    if self._thought_effect then
-      if priority > self._thought_priority then
-         self:remove_thought(self._thought_uri)
+      if priority >= self._thought_priority then
+         self:unset_thought(self._thought_uri)
       else
          return
       end
@@ -45,4 +49,3 @@ function ThoughtBubbleComponent:unset_thought(uri)
 end
 
 return ThoughtBubbleComponent
-
