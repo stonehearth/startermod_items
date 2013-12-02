@@ -167,6 +167,11 @@ function WorkshopComponent:set_crafter(crafter)
       local show_workshop_command = crafter:add_component('stonehearth:commands')
                                            :add_command('/stonehearth/data/commands/show_workshop_from_crafter')
 
+
+      -- xxx, localize                                          
+      local crafter_name = radiant.entities.get_name(crafter)
+      radiant.entities.set_description(self._entity, 'owned by ' .. crafter_name)
+
       show_workshop_command.event_data = {
          workshop = self._entity
       }
