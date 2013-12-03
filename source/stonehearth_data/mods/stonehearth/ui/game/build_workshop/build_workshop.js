@@ -41,6 +41,7 @@ App.StonehearthCrafterBuildWorkshopView = App.View.extend({
    },
 
    createWorkbench: function(workbenchType) {
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
       var self = this;
       // xxx, localize
       $(top).trigger('radiant_show_tip', {

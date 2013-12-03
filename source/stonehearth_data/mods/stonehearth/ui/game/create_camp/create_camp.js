@@ -20,7 +20,14 @@ App.StonehearthCreateCampView = App.View.extend({
             'fade': 500
          };
          radiant.call('radiant:play_music', args);         
+          var args = {
+               'track': 'stonehearth:ambient:summer_day',
+               'channel': 'ambient', 
+               'volume' : 40
+            };
+            radiant.call('radiant:play_music', args);  
          }
+
 
       this._bounceBanner();
       $("#crateCoverLink").hide();
@@ -29,11 +36,14 @@ App.StonehearthCreateCampView = App.View.extend({
 
    actions : {
       placeBanner: function () {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:banner_grab' );
          var self = this;
          this._hideBanner();
          radiant.call('stonehearth:choose_camp_location')
          .done(function(o) {
+            radiant.call('radiant:play_sound', 'stonehearth:sounds:banner_plant' );
                setTimeout( function() {
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:paper_menu' );
                   self._gotoStockpileStep();
                }, 1000);
             });
@@ -66,11 +76,13 @@ App.StonehearthCreateCampView = App.View.extend({
    },
 
    _gotoFinishStep: function() {
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:paper_menu' );
       var self = this
       this._hideScroll('#scroll2');
    },
 
    _bounceBanner: function() {
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:banner_bounce' );
       var self = this
       if (!this._bannerPlaced) {
          $('#banner').effect( 'bounce', {
@@ -86,6 +98,7 @@ App.StonehearthCreateCampView = App.View.extend({
    },
 
    _bounceCrate: function() {
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:box_bounce' );
       var self = this
       if (!this._cratePlaced) {
          $('#crate').effect( 'bounce', {
@@ -125,6 +138,8 @@ App.StonehearthCreateCampView = App.View.extend({
    },
 
    _finish: function() {
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:paper_menu' );
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:action_click' );
       var self = this;
       $('#createCamp').animate({ 'bottom' : -300 }, 150, function() {
          App.gameView._addViews(App.gameView.views.complete);

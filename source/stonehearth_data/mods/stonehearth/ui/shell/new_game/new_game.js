@@ -23,6 +23,7 @@ App.StonehearthNewGameView = App.View.extend({
 
    actions : {
       startNewGame: function() {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:embark' );
          App.shellView.addView(App.StonehearthLoadingScreenView);
          var box_checked = $('#analyticsCheckbox').is(':checked')
          radiant.call('radiant:set_collection_status', box_checked);

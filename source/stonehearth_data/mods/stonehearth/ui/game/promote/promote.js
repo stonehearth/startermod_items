@@ -19,6 +19,7 @@ App.StonehearthClassesPromoteView = App.View.extend({
       var self = this;
       radiant.call('stonehearth:get_worker_tracker')
          .done(function(response) {
+            radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:promotion_menu:scroll_open' );
             self._worker_tracker = response.tracker;
             self._trace = new RadiantTrace();
             self._trace.traceUri(response.tracker, 
@@ -70,6 +71,7 @@ App.StonehearthClassesPromoteView = App.View.extend({
 
    actions: {
       chooseCitizen: function() {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:promotion_menu:sub_menu' );
          console.log('instantiate the picker!');
 
          var self = this;
@@ -83,6 +85,7 @@ App.StonehearthClassesPromoteView = App.View.extend({
                               bottom: 50
                            },
                            callback: function(person) {
+                              radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:promotion_menu:select' );
                               self.set('context.citizenToPromote', person);
 
                               self._gotoApproveStep()
@@ -92,6 +95,7 @@ App.StonehearthClassesPromoteView = App.View.extend({
       },
 
       approve: function() {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:promotion_menu:stamp' );
          var self = this;
          // animate down
          $('#approveStamper').animate({ bottom: 60 }, 100 , function() {
