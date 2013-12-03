@@ -29,7 +29,5 @@ private:
 
 END_RADIANT_LUA_NAMESPACE
 
-IMPLEMENT_DM_NOP(radiant::lua::ControllerObject);
-
 #endif
 

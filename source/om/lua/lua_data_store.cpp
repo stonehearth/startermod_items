@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "lib/json/macros.h"
 #include "lib/lua/register.h"
 #include "lib/lua/dm/boxed_trace_wrapper.h"
 #include "om/components/data_store.ridl.h"
@@ -7,6 +8,9 @@
 using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::om;
+
+IMPLEMENT_TRIVIAL_TOSTRING(lua::DataObject);
+DEFINE_INVALID_JSON_CONVERSION(lua::DataObject);
 
 static std::shared_ptr<lua::BoxedTraceWrapper<dm::BoxedTrace<dm::Boxed<lua::DataObject>>>>
 DataStore_Trace(std::shared_ptr<DataStore> data_store, const char* reason)
@@ -65,5 +69,7 @@ scope LuaDataStore::RegisterLuaTypes(lua_State* L)
          .def("trace_data",     &DataStore_Trace)
          .def("mark_changed",   &DataStore_MarkChanged)
          .def("set_controller", &DataStore_SetController)
+      ,
+      luabind::class_<lua::DataObject, std::shared_ptr<lua::DataObject>>(GetShortTypeName<lua::DataObject>())
       ;
 }

@@ -40,11 +40,11 @@ public:
       return cached_json_;
    }
 
-   void SetJsonNode(json::Node const& node)
+   void SetJsonNode(lua_State* L, json::Node const& node)
    {
-      ASSERT(!data_object_.is_valid()); // should only be used on the client by Load()...
       dirty_ = false;
       cached_json_ = node;
+      data_object_ = ScriptHost::JsonToLua(L, node);
    }
 
 public:
@@ -54,24 +54,5 @@ public:
 };
 
 END_RADIANT_LUA_NAMESPACE
-
-BEGIN_RADIANT_NAMESPACE
-
-template<>
-struct dm::SaveImpl<lua::DataObject> {
-   static void SaveValue(const dm::Store& store, Protocol::Value* msg, lua::DataObject const& obj) {
-      SaveImpl<json::Node>::SaveValue(store, msg, obj.GetJsonNode());
-   }
-   static void LoadValue(const Store& store, const Protocol::Value& msg, lua::DataObject& obj) {
-      json::Node node;
-      SaveImpl<json::Node>::LoadValue(store, msg, node);
-      obj.SetJsonNode(node);
-   }
-   static void GetDbgInfo(lua::DataObject const& obj, dm::DbgInfo &info) {
-      info.os << "[data_object " << obj.GetJsonNode().write() << "]";
-   }
-};
-
-END_RADIANT_NAMESPACE
 
 #endif

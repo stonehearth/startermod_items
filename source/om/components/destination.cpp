@@ -35,7 +35,7 @@ void Destination::ExtendObject(json::Node const& obj)
    }
    SetAutoUpdateAdjacent(obj.get<bool>("auto_update_adjacent", true));
    LOG(INFO) << "finished constructing new destination for entity " << GetEntity().GetObjectId();
-   LOG(INFO) << dm::DbgInfo::GetInfoString(region_);
+   //LOG(INFO) << dm::DbgInfo::GetInfoString(region_);
 }
 
 Destination& Destination::SetAutoUpdateAdjacent(bool value)
@@ -91,7 +91,6 @@ void Destination::ComputeAdjacentRegion(csg::Region3 const& r)
 Destination& Destination::SetAdjacent(Region3BoxedPtr r)
 {
    adjacent_ = r;
-   LOG(INFO) << dm::DbgInfo::GetInfoString(adjacent_);
 
    // Manually setting the adjacent region turns off auto adjacency stuff by default
    SetAutoUpdateAdjacent(false);

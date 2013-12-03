@@ -76,7 +76,7 @@ bool CrashReporterClient::Start(std::string const& crash_dump_path, std::string 
 // This static method must be thread safe!
 void CrashReporterClient::RunWithExceptionWrapper(std::function<void()> const& fn, bool const terminate_on_error)
 {
-   if (running_) {
+   if (running_ || IsDebuggerPresent()) {
       // run naked and let crash reporter catch exceptions
       // currently don't have a way to report the exception message to the user / modder when breakpad is active
       // catch and rethrow might disrupt the stack that breakpad needs to read

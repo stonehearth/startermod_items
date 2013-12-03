@@ -105,10 +105,10 @@ struct ::radiant::dm::SaveImpl<T> \
 template<> \
 struct ::radiant::dm::SaveImpl<T> \
 { \
-   static void SaveValue(const Store& store, Protocol::Value* msg, T value) { \
+   static void SaveValue(const Store& store, Protocol::Value* msg, const T& value) { \
       msg->SetExtension(Protocol::integer, (int)value); \
    } \
-   static void LoadValue(const Store& store, const Protocol::Value& msg, T value) { \
+   static void LoadValue(const Store& store, const Protocol::Value& msg, T& value) { \
       value = (T)msg.GetExtension(Protocol::integer); \
    } \
    static void GetDbgInfo(T const& obj, DbgInfo &info) { \

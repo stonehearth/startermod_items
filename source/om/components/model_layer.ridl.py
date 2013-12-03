@@ -16,15 +16,18 @@ class ModelLayer(dm.Record):
    layer = dm.Boxed(layer_type)
    variants = dm.Boxed(std.string())
 
+   _generate_construct_object = True
+
+   _includes = [
+      "dm/dm_save_impl.h",
+      "protocols/store.pb.h"
+   ]
+
    _public = \
    """
    void Init(json::Node const& obj);
    """
-   
-   _includes = [
-      #include "dm/dm_save_impl.h"
-      #include "protocols/store.pb.h"
-   ]
+
    _global_post = \
    """
 IMPLEMENT_DM_ENUM(radiant::om::ModelLayer::Layer);

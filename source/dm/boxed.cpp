@@ -28,6 +28,7 @@ template <class T, int OT>
 void Boxed<T, OT>::LoadValue(Protocol::Value const& msg)
 {
    SaveImpl<T>::LoadValue(GetStore(), msg, value_);
+   GetStore().OnBoxedChanged(*this, value_);
 }
 
 template <class T, int OT>

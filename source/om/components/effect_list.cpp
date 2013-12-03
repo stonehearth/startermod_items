@@ -22,18 +22,16 @@ void EffectList::ExtendObject(json::Node const& obj)
 EffectPtr EffectList::AddEffect(std::string const& effectName, int startTime)
 {
    auto effect = GetStore().AllocObject<Effect>();
-   effect->Init(effectName, startTime);
-   effects_.Add(effect);
+   int effect_id = (*next_id_);
+   next_id_ = (*next_id_) + 1;
+
+   effect->Init(effect_id, effectName, startTime);
+   effects_.Add(effect_id, effect);
    return effect;
 }
 
 void EffectList::RemoveEffect(EffectPtr effect)
 {
-   for (EffectPtr e : effects_) {
-      if (e == effect) {
-         effects_.Remove(e);
-         break;
-      }
-   }
+   effects_.Remove(effect->GetEffectId());
 }
 

@@ -18,7 +18,7 @@
 #include "render_effect_list.h"
 #include "skeleton.h"
 #include "client/client.h"
-#include "dm/set_trace.h"
+#include "dm/map_trace.h"
 #include "om/entity.h"
 #include "om/stonehearth.h"
 #include "om/components/mob.ridl.h"
@@ -70,13 +70,13 @@ RenderEffectList::RenderEffectList(RenderEntity& entity, om::EffectListPtr effec
 
    effects_list_trace_ = \
       effectList->TraceEffects("render", dm::RENDER_TRACES)
-                     ->OnUpdated([this](std::vector<om::EffectPtr> const& added,
-                                        std::vector<om::EffectPtr> const& removed) {
-                        for (om::EffectPtr e : added) {
-                           AddEffect(e);
+                     ->OnUpdated([this](om::EffectList::EffectsContainer const& added,
+                                        std::vector<int> const& removed) {
+                        for (auto const& entry : added) {
+                           AddEffect(entry.first, entry.second);
                         }
-                        for (om::EffectPtr e : removed) {
-                           RemoveEffect(e);
+                        for (int effect_id : removed) {
+                           RemoveEffect(effect_id);
                         }
                      })
                      ->PushObjectState();
@@ -91,15 +91,15 @@ RenderEffectList::~RenderEffectList()
 {
 }
 
-void RenderEffectList::AddEffect(const om::EffectPtr effect)
+void RenderEffectList::AddEffect(int effect_id, const om::EffectPtr effect)
 {
    std::string name = effect->GetName();
-   effects_[effect->GetObjectId()] = RenderInnerEffectList(entity_, effect);
+   effects_[effect_id] = RenderInnerEffectList(entity_, effect);
 }
 
-void RenderEffectList::RemoveEffect(const om::EffectPtr effect)
+void RenderEffectList::RemoveEffect(int effect_id)
 {
-   effects_.erase(effect->GetObjectId());
+   effects_.erase(effect_id);
 }
 
 void RenderEffectList::UpdateEffects(FrameStartInfo const& info)

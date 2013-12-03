@@ -204,6 +204,8 @@ public:
 % endfor
 % for name, map in env.properties(C, dm.Map):
    % if map.trace:
+   typedef ${map.name}::ContainerType ${name | env.upper}Container;
+
    std::shared_ptr<dm::MapTrace<${map.name}>>
    Trace${name | env.upper}(const char* reason, int category) const
    {

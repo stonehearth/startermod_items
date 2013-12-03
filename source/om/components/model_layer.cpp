@@ -14,6 +14,11 @@ std::ostream& operator<<(std::ostream& os, const ModelLayer& o)
 
 static std::unordered_map<std::string, ModelLayer::Layer> __str_to_layer; // xxx -- would LOVE initializer here..
 
+void ModelLayer::ConstructObject()
+{
+   layer_ = Layer::SKELETON;
+}
+
 void ModelLayer::Init(json::Node const& obj)
 {
    if (__str_to_layer.empty()) {

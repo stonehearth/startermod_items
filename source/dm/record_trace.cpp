@@ -37,7 +37,8 @@ Record const& RecordTrace<R>::GetRecord() const
 template <typename R>
 void RecordTrace<R>::SignalObjectState()
 {
-   // nothing to do...
+   // PushObjectState() of a record needs to do something!
+   SignalModified();
 }
 
 template RecordTrace<Record>;

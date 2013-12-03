@@ -19,20 +19,13 @@ public:
 
 private:
    friend Store;
-
-   AllocTracePtr TraceAlloced(Store const& store, const char* reason);
-
    virtual TracerType GetType() const = 0;
-   virtual void OnObjectAlloced(ObjectPtr obj) = 0;
-   virtual void OnObjectRegistered(ObjectId id) = 0;
-   virtual void OnObjectDestroyed(ObjectId id) = 0;
 
 protected:
    std::string const& GetName () const { return name_; }
 
 protected:
    std::string                   name_;
-   std::vector<AllocTraceRef>    alloc_traces_;
 };
 
 END_RADIANT_DM_NAMESPACE

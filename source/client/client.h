@@ -227,6 +227,9 @@ private:
       dm::ReceiverPtr             receiver_;
       dm::TracePtr                store_alloc_trace_;
       dm::TracePtr                authoring_store_alloc_trace_;
+      dm::TracePtr                selected_trace_;
+      dm::TracePtr                root_object_trace_;
+      std::shared_ptr<rpc::TraceObjectRouter> trace_object_router_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

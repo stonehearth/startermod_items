@@ -34,19 +34,20 @@ TracePtr Record::TraceObjectChanges(const char* reason, Tracer* tracer) const
 
 void Record::Initialize(Store& s, ObjectId id)
 {
-   Object::Initialize(s, id);
-   InitializeRecordFields();
-   ConstructObject();
+   SetObjectMetadata(id, s);
+   InitializeRecord();
 }
-
+ 
 void Record::InitializeSlave(Store& s, ObjectId id)
 {
    slave_ = true;
-   Object::InitializeSlave(s, id);
+   SetObjectMetadata(id, s);
+   // A LoadValue's coming... don't worry
 }
 
 void Record::LoadValue(Protocol::Value const& msg)
 {
+   ASSERT(slave_);
    ASSERT(GetFields().empty());
 
    int c = msg.ExtensionSize(Protocol::Record::record_fields);
@@ -54,7 +55,7 @@ void Record::LoadValue(Protocol::Value const& msg)
       const Protocol::Record::Entry& entry = msg.GetExtension(Protocol::Record::record_fields, i);
       AddRecordField(entry.field(), entry.value());
    }
-   InitializeRecordFields();
+   InitializeRecord();
 }
 
 void Record::SaveValue(Protocol::Value* msg) const
@@ -116,4 +117,14 @@ void Record::GetDbgInfo(DbgInfo &info) const
       }
       info.os << "}";
    }
+}
+
+void Record::InitializeRecord()
+{
+   InitializeRecordFields();
+   if (!slave_) {
+      ConstructObject();
+   }
+   MarkChanged();
+   GetStore().SignalRegistered(this);
 }

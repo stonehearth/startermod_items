@@ -87,7 +87,7 @@ Simulation::Simulation() :
       std::ostringstream msg;
       _showDebugNodes = !_showDebugNodes;
       msg << "debug nodes turned " << (_showDebugNodes ? "ON" : "OFF");
-      LOG(WARNING) << msg;
+      LOG(WARNING) << msg.str();
 
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:toggle_debug_nodes");
       result->ResolveWithMsg(msg.str());
@@ -97,7 +97,7 @@ Simulation::Simulation() :
       std::ostringstream msg;
       _singleStepPathFinding = !_singleStepPathFinding;
       msg << "single step path finding turned " << (_singleStepPathFinding ? "ON" : "OFF");
-      LOG(WARNING) << msg;
+      LOG(WARNING) << msg.str();
 
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:toggle_step_paths");
       result->ResolveWithMsg(msg.str());
@@ -401,7 +401,7 @@ void Simulation::InitDataModel()
 {
    object_model_traces_ = std::make_shared<dm::TracerSync>("sim objects");
    pathfinder_traces_ = std::make_shared<dm::TracerSync>("sim pathfinder");
-   lua_traces_ = std::make_shared<dm::TracerBuffered>("sim lua");  
+   lua_traces_ = std::make_shared<dm::TracerBuffered>("sim lua", store_);  
 
    store_.AddTracer(lua_traces_, dm::LUA_TRACES);
    store_.AddTracer(object_model_traces_, dm::OBJECT_MODEL_TRACES);

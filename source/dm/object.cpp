@@ -27,12 +27,8 @@ void Object::Initialize(Store& store, ObjectId id)
    }
 #endif
    ASSERT(id);
-
-   id_.id = id;
-   id_.store = store.GetStoreId();
-
-   MarkChanged();
-   store.RegisterObject(*this);   
+   SetObjectMetadata(id, store);
+   GetStore().SignalRegistered(this);
 }
 
 void Object::InitializeSlave(Store& store, ObjectId id)
@@ -100,3 +96,13 @@ bool Object::WriteDbgInfoHeader(DbgInfo &info) const
    info.os << " modified:" << GetLastModified() << "]";
    return true;
 }
+
+void Object::SetObjectMetadata(ObjectId id, Store& store)
+{
+   id_.id = id;
+   id_.store = store.GetStoreId();
+
+   MarkChanged();
+   store.RegisterObject(*this);   
+}
+

@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "radiant_stdutil.h"
 #include "trace.h"
 #include "reactor_deferred.h"
 #include "trace_object_router.h"
@@ -15,29 +16,43 @@ TraceObjectRouter::TraceObjectRouter(dm::Store& store) :
 {
 }
 
-void TraceObjectRouter::AddObject(std::string const& name, dm::ObjectPtr obj)
+void TraceObjectRouter::CheckDeferredTraces()
 {
-   namedObjects_[name] = obj;
+   auto i = deferred_traces_.begin();
+   while (i != deferred_traces_.end()) {
+      ReactorDeferredPtr d = i->second.lock();
+      if (!d) {
+         i = deferred_traces_.erase(i);
+         continue;
+      }
+      std::string const& uri = i->first;
+      dm::ObjectPtr obj = om::ObjectFormatter().GetObject(store_, uri);
+      if (obj) {
+         InstallTrace(uri, d, obj);
+         i = deferred_traces_.erase(i);
+         continue;
+      }
+      i++;
+   }
 }
 
 ReactorDeferredPtr TraceObjectRouter::InstallTrace(Trace const& trace)
 {
    const char* reason = trace.reason.c_str();
 
-   ReactorDeferredPtr result = GetTrace(trace);
-   if (!result) {
-      // look in the named object store first...
-      auto i = namedObjects_.find(trace.route);
-      if (i != namedObjects_.end()) {
-         result = InstallTrace(trace, i->second.lock(), reason);
-      }
+   ReactorDeferredPtr d = GetTrace(trace);
+   if (d) {
+      return d;
    }
-   if (!result) {
-      // now check the object store...
-      dm::ObjectPtr obj = om::ObjectFormatter().GetObject(store_, trace.route);
-      result = InstallTrace(trace, obj, reason);
+   dm::ObjectPtr obj = om::ObjectFormatter().GetObject(store_, trace.route);
+   if (obj) {
+      ReactorDeferredPtr deferred = std::make_shared<ReactorDeferred>(trace.desc());
+      InstallTrace(trace.route, deferred, obj);
+      return deferred;
    }
-   return result;
+   ReactorDeferredPtr deferred = std::make_shared<ReactorDeferred>(trace.desc());
+   deferred_traces_[trace.route] = deferred;
+   return deferred;
 }
 
 ReactorDeferredPtr TraceObjectRouter::GetTrace(Trace const& trace)
@@ -55,18 +70,14 @@ ReactorDeferredPtr TraceObjectRouter::GetTrace(Trace const& trace)
    return nullptr;
 }
 
-ReactorDeferredPtr TraceObjectRouter::InstallTrace(Trace const& trace, dm::ObjectPtr obj, const char* reason)
+void TraceObjectRouter::InstallTrace(std::string const& uri, ReactorDeferredPtr deferred, dm::ObjectPtr obj)
 {
-   std::string uri = trace.route;
+   ASSERT(obj);
+   ASSERT(!stdutil::contains(traces_, uri));
 
-   if (!obj) {
-      return nullptr;
-   }
-
-   ReactorDeferredPtr deferred = std::make_shared<ReactorDeferred>(trace.desc());
    ObjectTraceEntry& entry = traces_[uri];
-   entry.obj = obj;
    entry.deferred = deferred;
+   entry.obj = obj;
    entry.trace = obj->TraceObjectChanges("rpc", dm::RPC_TRACES);
    entry.trace->OnModified_([this, uri, entry]() {
       auto obj = entry.obj.lock();
@@ -79,6 +90,4 @@ ReactorDeferredPtr TraceObjectRouter::InstallTrace(Trace const& trace, dm::Objec
       }
    });
    entry.trace->PushObjectState_();
-
-   return deferred;
 }

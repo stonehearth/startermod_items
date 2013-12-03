@@ -193,22 +193,4 @@ static std::ostream& operator<<(std::ostream& os, const Node& o) { return (os <<
 
 END_RADIANT_JSON_NAMESPACE
 
-#include "dm/dm_save_impl.h"
-template<>
-struct radiant::dm::SaveImpl<radiant::json::Node>
-{
-   static void SaveValue(const Store& store, Protocol::Value* msg, const radiant::json::Node& node) {
-      // A compile error here probably means you do not have the corrent
-      // template specialization for your type.  See IMPLEMENT_DM_EXTENSION
-      // below.
-      msg->SetExtension(Protocol::string, node.write());
-   }
-   static void LoadValue(const Store& store, const Protocol::Value& msg, radiant::json::Node& node) {
-      node = radiant::json::Node(libjson::parse(msg.GetExtension(Protocol::string)));
-   }
-   static void GetDbgInfo(radiant::json::Node const& node, DbgInfo &info) {
-      info.os << "... json ...";
-   }
-};
-
 #endif // _RADIANT_JSON_NODE_H

@@ -2,7 +2,7 @@
 #define _RADIANT_DM_STORE_H
 
 #include <unordered_map>
-#include "dm.h"
+#include "dm.h "
 
 struct lua_State;
 
@@ -75,8 +75,9 @@ public:
 
 private:
    typedef std::vector<TraceRef> TraceList;
-   typedef std::vector<AllocTraceRef> AllocTraceList;
+   typedef std::vector<StoreTraceRef> StoreTraceList;
    typedef std::unordered_map<ObjectId, TraceList> TraceMap;
+   typedef std::vector<StoreTraceRef> StoreTraces;
 
    typedef std::unordered_map<int, TracerPtr> TracerMap;
 
@@ -104,15 +105,17 @@ public:
 
 #undef TRACE_TYPE_METHOD
 
-   AllocTracePtr TraceAlloced(const char* reason, int category);
+   StoreTracePtr TraceStore(const char* reason);
    TracerPtr GetTracer(int category);
    void AddTracer(TracerPtr set, int category);
-   void PushAllocState(AllocTrace& trace) const;
+   void PushStoreState(StoreTrace& trace) const;
 
 protected: // Internal interface for Objects only
    friend Object;
+   friend Record;
    static Store& GetStore(int id);
    void RegisterObject(Object& obj);
+   void SignalRegistered(Object const* pobj);
    void UnregisterObject(const Object& obj);
    void OnAllocObject(std::shared_ptr<Object> obj);
 
@@ -146,6 +149,7 @@ private:
 
    TraceMap       traces_;
    TracerMap      tracers_;
+   StoreTraces    store_traces_;
 };
 
 

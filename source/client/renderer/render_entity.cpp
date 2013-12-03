@@ -46,22 +46,24 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
 
    skeleton_.SetSceneNode(node_.get());
 
-   components_trace_ = entity->TraceComponents("render", dm::RENDER_TRACES)
-                                    ->OnAdded([this](dm::ObjectType type, std::shared_ptr<dm::Object> obj) {
-                                       AddComponent(type, obj);
-                                    })
-                                    ->OnRemoved([this](dm::ObjectType type) {
-                                       RemoveComponent(type);
-                                    })
-                                    ->PushObjectState();
-
    // xxx: convert to something more dm::Trace like...
    renderer_guard_ += Renderer::GetInstance().TraceSelected(node_.get(), std::bind(&RenderEntity::OnSelected, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
 }
 
 void RenderEntity::FinishConstruction()
 {
-   UpdateComponents();
+   auto entity = GetEntity();
+   if (entity) {
+      components_trace_ = entity->TraceComponents("render", dm::RENDER_TRACES)
+                                       ->OnAdded([this](dm::ObjectType type, std::shared_ptr<dm::Object> obj) {
+                                          AddComponent(type, obj);
+                                       })
+                                       ->OnRemoved([this](dm::ObjectType type) {
+                                          RemoveComponent(type);
+                                       })
+                                       ->PushObjectState();
+   }
+
    UpdateInvariantRenderers();
    initialized_ = true;
 }
@@ -100,17 +102,6 @@ std::string RenderEntity::GetName() const
 int RenderEntity::GetTotalObjectCount()
 {
    return totalObjectCount_;
-}
-
-void RenderEntity::UpdateComponents()
-{
-   auto entity = entity_.lock();
-   if (entity) {
-      components_.clear();
-      for (const auto& entry : entity->GetComponents()) {
-         AddComponent(entry.first, entry.second);
-      }
-   }
 }
 
 void RenderEntity::UpdateInvariantRenderers()

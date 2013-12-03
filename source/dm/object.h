@@ -48,6 +48,10 @@ protected:
    friend Store;
    bool WriteDbgInfoHeader(DbgInfo &info) const;
 
+private:
+   friend Record;
+   void SetObjectMetadata(ObjectId id, Store& store);
+
 private:  
    friend Store;
    void MarkChanged(); // This thing doesn't actually fire traces!   Use the typed fns (e.g. OnMapChanged)

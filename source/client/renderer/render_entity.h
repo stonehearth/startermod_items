@@ -49,7 +49,6 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       void RemoveChild(om::EntityPtr child);
       void MoveSceneNode(H3DNode node, const csg::Transform& transform, float scale = 1.0f);
       void UpdateNodeFlags();
-      void UpdateComponents();
       void UpdateInvariantRenderers();
       void AddComponent(dm::ObjectType key, std::shared_ptr<dm::Object> value);
       void AddLuaComponents(om::LuaComponentsPtr lua_components);

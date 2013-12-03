@@ -13,7 +13,7 @@ BEGIN_RADIANT_DM_NAMESPACE
 class TracerBuffered : public Tracer
 {
 public:
-   TracerBuffered(std::string const&);
+   TracerBuffered(std::string const&, Store& store);
    virtual ~TracerBuffered();
 
    TracerType GetType() const { return BUFFERED; }
@@ -36,17 +36,13 @@ public:
 
 #undef DEFINE_TRACE_CLS_CHANGES
 
-   void OnObjectAlloced(ObjectPtr obj) override;
-   void OnObjectRegistered(ObjectId id) override;
-   void OnObjectDestroyed(ObjectId id) override;
-
    void Flush();
 
 private:
-   friend TraceBuffered;
-   void FlushOnce(std::vector<ObjectRef>& last_alloced,
-                  std::vector<ObjectId>& last_modified,
+   void FlushOnce(std::vector<ObjectId>& last_modified,
                   std::vector<ObjectId>& last_destroyed);
+   void OnObjectDestroyed(ObjectId id);
+   void OnObjectModified(ObjectId id);
 
 private:
    typedef std::vector<TraceBufferedRef> TraceBufferedList;
@@ -58,7 +54,7 @@ private:
 private:
    std::vector<ObjectId>   modified_objects_;
    std::vector<ObjectId>   destroyed_objects_;
-   std::vector<ObjectRef>  alloced_objects_;
+   StoreTracePtr           store_trace_;
    TraceMap                traces_;
    TraceBufferedMap        buffered_traces_;
 };

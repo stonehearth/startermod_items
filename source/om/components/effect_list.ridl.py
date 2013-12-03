@@ -7,7 +7,8 @@ class Effect(dm.Record):
    name = 'Effect'
 
 class EffectList(Component):
-   effects = dm.Set(std.shared_ptr(Effect()), singular_name="effect", add=None, remove=None)
+   next_id = dm.Boxed(c.int(), get=None, set=None, trace=None)
+   effects = dm.Map(c.int(), std.shared_ptr(Effect()), singular_name="effect", add=None, remove=None)
    add_effect = ridl.Method(std.shared_ptr(Effect()), ('effect_name', std.string().const.ref), ('start_time', c.int()))
    remove_effect = ridl.Method(c.void(), ('effect', std.shared_ptr(Effect())))
    

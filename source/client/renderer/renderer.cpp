@@ -631,7 +631,6 @@ void Renderer::ResizeViewport()
 
 std::shared_ptr<RenderEntity> Renderer::CreateRenderObject(H3DNode parent, om::EntityPtr entity)
 {
-   std::shared_ptr<RenderEntity> result;
    dm::ObjectId id = entity->GetObjectId();
    int sid = entity->GetStoreId();
 
@@ -641,20 +640,20 @@ std::shared_ptr<RenderEntity> Renderer::CreateRenderObject(H3DNode parent, om::E
    if (i != entities.end()) {
       RenderMapEntry const& entry = i->second;
       entry.render_entity->SetParent(parent);
-      result = entry.render_entity;
-   } else {
-      // LOG(WARNING) << "CREATING RENDER OBJECT " << sid << ", " << id;
-      RenderMapEntry entry;
-      entry.render_entity = std::make_shared<RenderEntity>(parent, entity);
-      entry.render_entity->FinishConstruction();
-      entry.lifetime_trace = entity->TraceChanges("render dtor", dm::RENDER_TRACES)
-                                       ->OnDestroyed([this, sid, id]() { 
-                                          // LOG(WARNING) << "DESTROYING RENDER OBJECT " << sid << ", " << id;
-                                            entities_[sid].erase(id);
-                                         });
-      entities[id] = entry;
+      return entry.render_entity;
    }
-   return result;
+
+   // LOG(WARNING) << "CREATING RENDER OBJECT " << sid << ", " << id;
+   RenderMapEntry entry;
+   entry.render_entity = std::make_shared<RenderEntity>(parent, entity);
+   entry.render_entity->FinishConstruction();
+   entry.lifetime_trace = entity->TraceChanges("render dtor", dm::RENDER_TRACES)
+                                    ->OnDestroyed([this, sid, id]() { 
+                                       // LOG(WARNING) << "DESTROYING RENDER OBJECT " << sid << ", " << id;
+                                          entities_[sid].erase(id);
+                                       });
+   entities[id] = entry;
+   return entry.render_entity;
 }
 
 std::shared_ptr<RenderEntity> Renderer::GetRenderObject(om::EntityPtr entity)

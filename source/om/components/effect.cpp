@@ -12,10 +12,11 @@ std::ostream& operator<<(std::ostream& os, const Effect& o)
    return os;
 }
 
-void Effect::Init(std::string name, int start)
+void Effect::Init(int effect_id, std::string name, int start)
 {
    name_ = name;
    start_time_ = start;
+   effect_id_ = effect_id;
 }
 
 void Effect::AddParam(std::string name, luabind::object o)

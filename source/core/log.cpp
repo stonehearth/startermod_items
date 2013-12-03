@@ -14,6 +14,7 @@ namespace logging = boost::log;
 namespace src = boost::log::sources;
 namespace sinks = boost::log::sinks;
 namespace keywords = boost::log::keywords;
+namespace attrs = boost::log::attributes;
 
 boost::log::sources::severity_logger< Severity > __radiant_log_source;
 
@@ -23,14 +24,14 @@ void radiant::logger::init(boost::filesystem::path const& logfile)
 {
    boost::log::add_file_log(
       keywords::file_name = logfile.string(),
-      keywords::auto_flush = true
+      keywords::auto_flush = true,
+      keywords::format = "[%TimeStamp%]: %Message%"
    );
    boost::log::add_console_log(
       std::cout,
       keywords::filter = severity >= ::radiant::logger::WARNING
    );
    boost::log::add_common_attributes();
-
 
    platform_init();
 }

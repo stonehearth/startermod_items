@@ -17,25 +17,37 @@ public:
    void Flush();
 
 private:
-   void QueueAlloced();
+   void OnAlloced(ObjectPtr object);
+   void OnRegistered(Object const* obj);
+   void OnDestroyed(ObjectId obj, bool dynamic);
+   void OnModified(TraceBufferedRef t, Object const* obj);
+
+   void QueueAllocated();
+   void QueueUnsavedObjects();
+   void QueueModifiedObjects();
+   void QueueDestroyedObjects();
+
    void QueueUpdate(tesseract::protocol::Update const& update);
    void QueueAllocs();
    void QueueAllocUpdates();
    void QueueDestroyed();
    void QueueUpdates();
-   void OnModified(TraceBufferedRef t, ObjectRef o);
-   void SetServerTick(int now);
+
+private:
+   typedef std::vector<tesseract::protocol::Update> UpdateList;
 
 private:
    Store const&            store_;
    protocol::SendQueue*    queue_;
    TracerBufferedPtr       tracer_;
-   AllocTracePtr           alloc_trace_;
-   std::unordered_map<ObjectId, TracePtr> dtor_traces_;
+   StoreTracePtr           store_trace_;
+   std::unordered_map<ObjectId, TraceBufferedPtr> traces_;
    int                     category_;
-   std::map<ObjectId, ObjectRef>   alloced_;
-   std::vector<ObjectId>           destroyed_;
-   std::vector<std::pair<TraceBufferedRef, ObjectRef>>   updated_;
+
+   std::map<ObjectId, ObjectRef>          allocated_objects_;
+   std::map<ObjectId, Object const*>      unsaved_objects_;
+   std::unordered_map<ObjectId, UpdateList>  object_updates_;
+   std::map<ObjectId, bool>               destroyed_objects_;
 };
 
 END_RADIANT_DM_NAMESPACE

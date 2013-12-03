@@ -5,7 +5,6 @@
 #include "region.h"
 #include "csg/util.h" // xxx: should be csg/namespace.h
 #include "protocols/store.pb.h"
-#include "dm/dm_save_impl.h"
 
 using namespace ::radiant;
 using namespace ::radiant::csg;

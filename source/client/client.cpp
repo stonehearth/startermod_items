@@ -106,9 +106,10 @@ Client::Client() :
    http_reactor_ = std::make_shared<rpc::HttpReactor>(*core_reactor_);
 
    // Routers...
+   trace_object_router_ = std::make_shared<rpc::TraceObjectRouter>(GetStore());
    core_reactor_->AddRouter(std::make_shared<rpc::LuaModuleRouter>(scriptHost_.get(), "client"));
    core_reactor_->AddRouter(std::make_shared<rpc::LuaObjectRouter>(scriptHost_.get(), GetAuthoringStore()));
-   core_reactor_->AddRouter(std::make_shared<rpc::TraceObjectRouter>(GetStore()));
+   core_reactor_->AddRouter(trace_object_router_);
    core_reactor_->AddRouter(std::make_shared<rpc::TraceObjectRouter>(GetAuthoringStore()));
 
    // protobuf router should be last!
@@ -339,8 +340,8 @@ void Client::run(int server_port)
    lua::analytics::open(L);
 
 
-   game_render_tracer_ = std::make_shared<dm::TracerBuffered>("client render");
-   authoring_render_tracer_ = std::make_shared<dm::TracerBuffered>("client tmp render");
+   game_render_tracer_ = std::make_shared<dm::TracerBuffered>("client render", store_);
+   authoring_render_tracer_ = std::make_shared<dm::TracerBuffered>("client tmp render", authoringStore_);
    store_.AddTracer(game_render_tracer_, dm::RENDER_TRACES);
    store_.AddTracer(game_render_tracer_, dm::LUA_TRACES);
    store_.AddTracer(game_render_tracer_, dm::RPC_TRACES);
@@ -551,6 +552,8 @@ void Client::BeginUpdate(const proto::BeginUpdate& msg)
 
 void Client::EndUpdate(const proto::EndUpdate& msg)
 {
+   trace_object_router_->CheckDeferredTraces();
+
    if (!rootObject_) {
       auto rootEntity = GetStore().FetchObject<om::Entity>(1);
       if (rootEntity) {
@@ -585,16 +588,6 @@ void Client::UpdateObject(const proto::UpdateObject& update)
 
 void Client::RemoveObjects(const proto::RemoveObjects& update)
 {
-   ASSERT(false); // need destory traces everywhere!!! to replace this;
-#if 0
-         if (selectedObject_ && id == selectedObject_->GetObjectId()) {
-            SelectEntity(nullptr);
-         }
-         if (rootObject_ && id == rootObject_ ->GetObjectId()) {
-            rootObject_  = nullptr;
-         }
-         Renderer::GetInstance().RemoveRenderObject(GetStore().GetStoreId(), id);
-#endif
    receiver_->ProcessRemove(update);
 }
 
@@ -784,6 +777,10 @@ void Client::SelectEntity(om::EntityPtr obj)
       selectedObject_ = obj;
       if (selectedObject_) {
          LOG(WARNING) << "Selected actor " << selectedObject_->GetObjectId();
+         selected_trace_ = selectedObject_->TraceChanges("selection", dm::RENDER_TRACES)
+                              ->OnDestroyed([=]() {
+                                 SelectEntity(nullptr);
+                              });
       } else {
          LOG(WARNING) << "Cleared selected actor.";
       }

@@ -33,6 +33,7 @@ protected:
    bool FieldIsUnique(std::string name, Object& field);
    void AddRecordField(std::string name, Object& field);
    void AddRecordField(std::string name, ObjectId id);
+   void InitializeRecord();
    
 private:
    NO_COPY_CONSTRUCTOR(Record);

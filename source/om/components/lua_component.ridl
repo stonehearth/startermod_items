@@ -22,6 +22,7 @@ for name, obj in env.properties(C, [dm.Boxed, dm.Set, dm.Array, dm.Map]):
 #include "radiant.h"
 #include "lib/lua/bind.h"
 #include "lib/lua/register.h"
+#include "lib/lua/script_host.h"
 #include "lib/lua/dm/boxed_trace_wrapper.h"
 #include "lib/lua/dm/map_iterator.h"
 #include "lib/lua/dm/map_trace_wrapper.h"
@@ -50,6 +51,18 @@ static std::ostream& operator<<(std::ostream& os, std::weak_ptr<${class_upper}> 
    }
    return os;
 }
+
+% if is_component:
+static std::weak_ptr<${class_upper}> ${class_upper}_ExtendObject(lua_State* L, std::weak_ptr<${class_upper}> o, object obj)
+{
+   auto object = o.lock();
+   if (object)  {
+      object->ExtendObject(lua::ScriptHost::LuaToJson(L, obj));
+      return o;
+   }
+   throw std::invalid_argument("invalid reference in native ${class_lower}::extend");
+}
+% endif
 
 ## - Boxed -----------------------------------------------------------------------------------
 % for name, boxed in env.properties(C, dm.Boxed):
@@ -272,6 +285,9 @@ scope Register${class_upper}(lua_State* L)
             value("${enum.values[count][0] | env.caps}",  ${class_upper}::${enum.values[count][0]})
          ]
 % endfor
+% if is_component:
+         .def("extend",                &${class_upper}_ExtendObject)
+% endif
 ## - Boxed -----------------------------------------------------------------------------------
 % for name, boxed in env.properties(C, dm.Boxed):
    % if boxed.get:

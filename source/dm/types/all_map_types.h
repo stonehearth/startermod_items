@@ -4,6 +4,7 @@
 #include "om/selection.h"
 #include "om/components/sensor.ridl.h"
 #include "om/components/data_store.ridl.h"
+#include "om/components/effect.ridl.h"
 #include "om/components/target_table_group.ridl.h"
 #include "om/components/target_table_entry.ridl.h"
 
@@ -11,6 +12,7 @@
    MAP(int, ObjectPtr) \
    MAP(int, om::TargetTableEntryPtr) \
    MAP(int, om::EntityRef) \
+   MAP(int, om::EffectPtr) \
    MAP(std::string, om::Selection) \
    MAP(std::string, om::SensorPtr) \
    MAP(std::string, om::DataStorePtr) \

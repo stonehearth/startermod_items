@@ -40,9 +40,7 @@ class Receiver;
 class DbgInfo;
 
 class Record;
-class AllocTrace;
-class AllocTraceSync;
-class AllocTraceBuffered;
+class StoreTrace;
 template <typename T> class RecordTrace;
 template <typename T> class BoxedTrace;
 template <typename T> class SetTrace;
@@ -56,9 +54,7 @@ DECLARE_SHARED_POINTER_TYPES(TraceBuffered)
 DECLARE_SHARED_POINTER_TYPES(Tracer)
 DECLARE_SHARED_POINTER_TYPES(TracerSync)
 DECLARE_SHARED_POINTER_TYPES(TracerBuffered)
-DECLARE_SHARED_POINTER_TYPES(AllocTrace)
-DECLARE_SHARED_POINTER_TYPES(AllocTraceSync)
-DECLARE_SHARED_POINTER_TYPES(AllocTraceBuffered)
+DECLARE_SHARED_POINTER_TYPES(StoreTrace)
 DECLARE_SHARED_POINTER_TYPES(Streamer)
 DECLARE_SHARED_POINTER_TYPES(Receiver)
 

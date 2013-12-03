@@ -2,7 +2,6 @@
 #include "region.h"
 #include "util.h"
 #include "protocols/store.pb.h"
-#include "dm/dm_save_impl.h"
 
 using namespace ::radiant;
 using namespace ::radiant::csg;

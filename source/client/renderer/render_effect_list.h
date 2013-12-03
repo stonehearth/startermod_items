@@ -230,8 +230,8 @@ public:
    ~RenderEffectList();
 
 private:
-   void AddEffect(const om::EffectPtr effect);
-   void RemoveEffect(const om::EffectPtr effect);
+   void AddEffect(int effect_id, const om::EffectPtr effect);
+   void RemoveEffect(int effect_id);
    void UpdateEffects(FrameStartInfo const& info);
 
 private:

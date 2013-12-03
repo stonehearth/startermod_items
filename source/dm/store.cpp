@@ -1,6 +1,6 @@
 #include "radiant.h"
 #include "store.h"
-#include "alloc_trace.h"
+#include "store_trace.h"
 #include "tracer_sync.h"
 #include "tracer_buffered.h"
 #include "object.h"
@@ -80,10 +80,15 @@ void Store::RegisterObject(Object& obj)
    }
 
    ObjectId id = obj.GetObjectId();
-   objects_[id] = &obj;
-   for (auto const& entry : tracers_) {
-      entry.second->OnObjectRegistered(id);
-   };
+   Object* pobj = &obj;
+   objects_[id] = pobj;
+}
+
+void Store::SignalRegistered(Object const* pobj)
+{
+   stdutil::ForEachPrune<StoreTrace>(store_traces_, [=](StoreTracePtr trace) {
+      trace->SignalRegistered(pobj);
+   });
 
    // std::cout << "Store " << storeId_ << " RegisterObject(oid:" << obj.GetObjectId() << ") " << typeid(obj).name() << std::endl;
 }
@@ -97,7 +102,11 @@ void Store::UnregisterObject(const Object& obj)
    ObjectId id = obj.GetObjectId();
 
    objects_.erase(id);
-   dynamicObjects_.erase(id);
+   auto j = dynamicObjects_.find(id);
+   bool dynamic = j != dynamicObjects_.end();
+   if (dynamic) {
+      dynamicObjects_.erase(j);
+   }
    auto i = traces_.find(id);
    if (i != traces_.end()) {
       stdutil::ForEachPrune<Trace>(i->second, [&](std::shared_ptr<Trace> t) {
@@ -105,9 +114,9 @@ void Store::UnregisterObject(const Object& obj)
       });
    }
 
-   for (const auto& entry : tracers_) {
-      entry.second->OnObjectDestroyed(id);
-   }
+   stdutil::ForEachPrune<StoreTrace>(store_traces_, [=](StoreTracePtr trace) {
+      trace->SignalDestroyed(id, dynamic);
+   });
 
    destroyed_.push_back(id);
 }
@@ -144,9 +153,9 @@ void Store::OnAllocObject(std::shared_ptr<Object> obj)
    ObjectId id = obj->GetObjectId();
    dynamicObjects_[id] = DynamicObject(obj, obj->GetObjectType());
 
-   for (auto const& entry : tracers_) {
-      entry.second->OnObjectAlloced(obj);
-   };
+   stdutil::ForEachPrune<StoreTrace>(store_traces_, [=](StoreTracePtr trace) {
+      trace->SignalAllocated(obj);
+   });
 }
 
 Object* Store::FetchStaticObject(ObjectId id) const
@@ -195,21 +204,24 @@ bool Store::IsDynamicObject(ObjectId id)
 }
 
 
-AllocTracePtr Store::TraceAlloced(const char* reason, int category)
+StoreTracePtr Store::TraceStore(const char* reason)
 {
-   return GetTracer(category)->TraceAlloced(*this, reason);
+   StoreTracePtr trace = std::make_shared<StoreTrace>(*this);
+   store_traces_.push_back(trace);
+   return trace;
 }
 
-void Store::PushAllocState(AllocTrace& trace) const
+void Store::PushStoreState(StoreTrace& trace) const
 {
-   std::vector<ObjectPtr> objects;
    for (const auto& entry : dynamicObjects_) {
       ObjectPtr obj = entry.second.object.lock();
       if (obj) {
-         objects.push_back(obj);
+         trace.SignalAllocated(obj);
       }
    }
-   trace.SignalUpdated(objects);
+   for (const auto& entry : objects_) {
+      trace.SignalRegistered(entry.second);
+   }
 }
 TracerPtr Store::GetTracer(int category)
 {
@@ -231,8 +243,14 @@ void Store::AddTracer(TracerPtr set, int category)
 template <typename T, typename TraceType>
 void Store::MarkChangedAndFire(T& obj, std::function<void(typename TraceType&)> cb)
 {
+   ObjectId id = obj.GetObjectId();
    obj.MarkChanged();
-   auto i = traces_.find(obj.GetObjectId());
+
+   stdutil::ForEachPrune<StoreTrace>(store_traces_, [=](StoreTracePtr trace) {
+      trace->SignalModified(id);
+   });
+
+   auto i = traces_.find(id);
    if (i != traces_.end()) {
       stdutil::ForEachPrune<Trace>(i->second, [&](std::shared_ptr<Trace> t) {
          TraceType *trace = static_cast<TraceType*>(t.get());
