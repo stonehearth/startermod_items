@@ -21,6 +21,15 @@ App.StonehearthNewGameView = App.View.extend({
             });  
    },
 
+   didInsertElement: function() {
+      $( "#newGame" ).position({
+           of: $( "#newGameButton" ),
+           my: "center top",
+           at: "center bottom+10"
+         })
+         .fadeIn();
+   },
+
    actions : {
       startNewGame: function() {
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:embark' );

@@ -1,11 +1,14 @@
 #titlescreen {
    //background: #529864;
-   background: url(./images/background.png);
+   background: url(./images/background.jpg);
+   background-size: cover;
+   background-repeat: no-repeat;
    position: absolute;
    top: 0;
    left: 0;
    right: 0;
    bottom: 0;
+   text-align: center;
 
    #menubar {
       position: absolute;
@@ -24,34 +27,32 @@
       }
    }
 
+   #logo {
+      content: url(./images/stonehearth_logo.png);
+      width: 40%;
+      padding-top: 60px
+   }
+
    #controls {
       position: absolute;
-      top: 70px;
-      left: 40px;
-      display: inline-block;
+      width: 100%;
+      bottom: 100px;
 
-      #logo {
-         content: url(./images/stonehearth_logo.png);
-         padding-bottom: 50px
-      }
-
-      .button {
+      .control {
          .outlined;
+         width: 702px;
+         height: 57px;
+         font-size: 34px;
+         margin: 0 auto;
+         background: url(./images/button_bg.png);
          text-align: center;
          vertical-align: middle;
-         background: url(./images/button_bg.png);
-         width: 703px;
-         height: 71px;
-         color: @controlFontColor;
-         font-family: @controlFontFamily;
-         font-size: 34px;
-         margin-top: 10px;
-         display: table-cell;
+         padding-top: 14px;
 
          &:hover {
             color: @hoverColor;
          };
-      }
 
+      }
    }
 }
