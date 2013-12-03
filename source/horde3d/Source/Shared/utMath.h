@@ -322,9 +322,14 @@ public:
 	{
 	}
 
-	explicit Vec4f( Vec3f v ) : x( v.x ), y( v.y ), z( v.z ), w( 1.0f )
+	explicit Vec4f(const Vec3f& v ) : x( v.x ), y( v.y ), z( v.z ), w( 1.0f )
 	{
 	}
+
+   explicit Vec4f(const Vec3f& v, float w) :
+      x(v.x), y(v.y), z(v.z), w(w)
+   {
+   }
 
 	Vec4f operator+( const Vec4f &v ) const
 	{

@@ -116,6 +116,13 @@ App.StonehearthCrafterView = App.View.extend({
 
       $("#craftWindow")
          .animate({ top: 0 }, {duration: 500, easing: 'easeOutBounce'});
+
+      $("#craftButton").hover(function() {
+            $(this).find('#craftButtonLabel').fadeIn();
+         }, function () {
+            $(this).find('#craftButtonLabel').fadeOut();
+         });
+         
    },
 
    _setRadioButtons: function(remaining, maintainNumber) {
