@@ -23,14 +23,16 @@ QubicleBrush::QubicleBrush() :
    normal_(0, 0, -1),
    qubicle_matrix_(nullptr),
    paint_mode_(Color),
-   preserve_matrix_origin_(false)
+   preserve_matrix_origin_(false),
+   qubicle_file_("")
 {
 }
 
 QubicleBrush::QubicleBrush(std::istream& in) :
    normal_(0, 0, -1),
    paint_mode_(Color),
-   preserve_matrix_origin_(false)
+   preserve_matrix_origin_(false),
+   qubicle_file_("")
 {
    in >> qubicle_file_;
    qubicle_matrix_ = &qubicle_file_.begin()->second;
@@ -40,7 +42,8 @@ QubicleBrush::QubicleBrush(QubicleMatrix const* m) :
    normal_(0, 0, -1),
    qubicle_matrix_(m),
    paint_mode_(Color),
-   preserve_matrix_origin_(false)
+   preserve_matrix_origin_(false),
+   qubicle_file_("")
 {
 }
 

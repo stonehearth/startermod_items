@@ -8,7 +8,7 @@ namespace radiant {
       }
 
       inline void sleep(int ms) {
-         //WIN32_ONLY(::Sleep(ms);)
+         WIN32_ONLY(::Sleep(ms);)
       }
 
       class timer {
