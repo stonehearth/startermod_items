@@ -55,6 +55,8 @@ Destination& Destination::SetAutoUpdateAdjacent(bool value)
             ->OnChanged([this](csg::Region3 const& r) {
                UpdateDerivedValues();
             });
+
+         UpdateDerivedValues();
       } else {
          region_trace_ = nullptr;
          reserved_trace_ = nullptr;
