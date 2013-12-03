@@ -33,7 +33,7 @@
             "rx":0,
             "ry":180,
             "rz":0
-         }
+         }   
       },
       "spark_3": {
          "type": "cubemitter",
@@ -47,7 +47,35 @@
             "rx":0,
             "ry":180,
             "rz":0
-         }
+         }   
+      },
+      "sound": {
+         "type": "sound_effect",
+         "duration": 300,
+         "start_delay":  500,
+         "min_distance": 20,
+         "max_distance": 60,
+         "volume": 20,
+         "track" : "stonehearth:sounds:flint_01_sound"
+      },
+      "sound": {
+         "type": "sound_effect",
+         "duration": 300,
+         "start_delay": 2000,
+         "min_distance": 20,
+         "max_distance": 60,
+         "volume": 20,
+         "track" : "stonehearth:sounds:flint_02_sound"
+      },
+      "sound": {
+         "type": "sound_effect",
+         "duration": 300,
+         "start_delay": 2666,
+         "min_distance": 20,
+         "max_distance": 60,
+         "volume": 20,
+         "track" : "stonehearth:sounds:flint_03_sound"
+                 
       }
    }
 }

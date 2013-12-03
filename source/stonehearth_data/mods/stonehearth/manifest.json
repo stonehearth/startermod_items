@@ -199,7 +199,6 @@
          "personal_logs:embarking" :     "file(data/personality/embarking.json)",
          "personal_logs:eating_berries" :"file(data/personality/eating_berries.json)",
 
-         "sounds:axe_chopping_sound" : "file(data/sounds/effects/axe_chopping_sound.ogg)",
          "sounds:ui:action_hover" : "file(data/sounds/ui/action/action_hover.wav)",
          "sounds:ui:action_click" : "file(data/sounds/ui/action/action_click.wav)",
          "sounds:ui:start_menu:trigger_click" : "file(data/sounds/ui/start_menu/trigger_click.wav)",
@@ -222,13 +221,36 @@
          "sounds:ui:promotion_menu:scroll_open" : "file(data/sounds/ui/promotion_menu/ui_prom_scroll_open.wav)",
          "sounds:ui:promotion_menu:stamp" : "file(data/sounds/ui/promotion_menu/ui_prom_stamp.wav)",
          "sounds:ui:promotion_menu:sub_menu" : "file(data/sounds/ui/promotion_menu/ui_prom_submenu.wav)",
+        
          "sounds:banner_plant" : "file(data/sounds/effects/sh_banner_plant.wav)",
          "sounds:banner_grab" : "file(data/sounds/effects/sh_banner_grab.wav)",
          "sounds:banner_bounce" : "file(data/sounds/effects/sh_banner_bounce.wav)",
          "sounds:box_bounce" : "file(data/sounds/effects/sh_box_bounce.wav)",
-         "sounds:saw_deep" : "file(data/sounds/effects/sh_saw_01.wav)",
-         "sounds:saw_high" : "file(data/sounds/effects/sh_saw_02.wav)",
-
+         "sounds:axe_chopping_sound_01" : "file(data/sounds/effects/sh_axe_01.wav)",
+         "sounds:axe_chopping_sound_02" : "file(data/sounds/effects/sh_axe_02.wav)",
+         "sounds:axe_chopping_sound_03" : "file(data/sounds/effects/sh_axe_03.wav)",
+         "sounds:firepit_ignite_sound" : "file(data/sounds/effects/sh_firepit_ignite_01.wav)",
+         "sounds:firepit_loop_sound" : "file(data/sounds/effects/sh_firepit_loop.wav)",
+         "sounds:hammer_sound" : "file(data/sounds/effects/sh_hammer_01.wav)",
+         "sounds:flint_01_sound" : "file(data/sounds/effects/sh_flint_02.wav)",
+         "sounds:flint_02_sound" : "file(data/sounds/effects/sh_flint_03.wav)",
+         "sounds:flint_03_sound" : "file(data/sounds/effects/sh_flint_04.wav)",
+         "sounds:drop_wood_sound_01" : "file(data/sounds/effects/sh_drop_wood_01.wav)",
+         "sounds:drop_wood_sound_02" : "file(data/sounds/effects/sh_drop_wood_02.wav)",
+         "sounds:drop_wood_sound_03" : "file(data/sounds/effects/sh_drop_wood_03.wav)",
+         "sounds:footsteps_walk_sound" : "file(data/sounds/effects/sh_footsteps_walk.wav)",
+         "sounds:footsteps_run_sound" : "file(data/sounds/effects/sh_footsteps_run.wav)",
+         "sounds:prom_angel_sound" : "file(data/sounds/effects/sh_prom_angel.wav)",
+         "sounds:prom_angel_jingle_sound" : "file(data/sounds/effects/sh_prom_angel_jingle.wav)",
+         "sounds:prom_whoosh_jingle_sound" : "file(data/sounds/effects/sh_prom_whoosh_jingle.wav)",
+         "sounds:footsteps_small_sound" : "file(data/sounds/effects/sh_footsteps_small.wav)",
+         "sounds:amb_summer_day" : "file(data/sounds/effects/sh_amb_summer_day.ogg)",
+         "sounds:amb_summer_night" : "file(data/sounds/effects/sh_amb_summer_night.ogg)",
+         "sounds:saw_light_01_sound" : "file(data/sounds/effects/sh_saw_light_01.wav)",
+         "sounds:saw_light_02_sound" : "file(data/sounds/effects/sh_saw_light_02.wav)",
+         "sounds:saw_light_03_sound" : "file(data/sounds/effects/sh_saw_light_03.wav)",
+         "sounds:place_structure" : "file(data/sounds/effects/sh_place_structure.wav)",
+         
          "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
          "music:world_start"     : "file(data/music/levelmusic.ogg)",
 
@@ -237,7 +259,7 @@
 
 
          "indicators:sleepy" : "file(/stonehearth/data/effects/unit_status_effects/sleepy_indicator)",
-         "indicators:hungry" : "file(/stonehearth/data/effects/unit_status_effects/hungry_indicator)"
+         "indicators:hungry" : "file(/stonehearth/data/effects/unit_status_effects/hungry_indicator)"         
       },
       "functions" : {
          "get_world_generation_progress": {
