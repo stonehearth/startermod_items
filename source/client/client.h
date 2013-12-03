@@ -156,6 +156,7 @@ private:
       protocol::SendQueuePtr           send_queue_;
       protocol::RecvQueuePtr           recv_queue_;
       int                              now_;
+      int                              _server_skew;
       int                              server_port_;
 
       // the local object trace system...

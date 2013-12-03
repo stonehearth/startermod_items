@@ -80,6 +80,25 @@ function entities.get_name(entity)
    return unit_info and unit_info:get_display_name() or nil
 end
 
+function entities.set_name(entity, name)
+   local unit_info = entity:get_component('unit_info')
+   if unit_info then
+      unit_info:set_display_name(name)
+   end
+end
+
+function entities.get_description(entity)
+   local unit_info = entity:get_component('unit_info')
+   return unit_info and unit_info:get_description() or nil
+end
+
+function entities.set_description(entity, description)
+   local unit_info = entity:get_component('unit_info')
+   if unit_info then
+      unit_info:set_description(description)
+   end
+end
+
 function entities.get_faction(entity)
    local unit_info = entity:get_component('unit_info')
    return unit_info and unit_info:get_faction() or nil

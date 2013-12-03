@@ -19,7 +19,7 @@ $(document).ready(function(){
    $(top).on("radiant_place_item", function (_, e) {
       $(top).trigger('radiant_show_tip', {
          title : i18n.t('stonehearth:item_placement_title') + " " + e.event_data.item_name,
-         description : i18n.t('stonehearth:place_description')
+         description : i18n.t('stonehearth:item_placement_description')
       });
       call_server_to_place_item(e);
    });

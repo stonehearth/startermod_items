@@ -79,9 +79,18 @@ function StockpileComponent:set_filter(values)
    
    self._data_binding:update(self._data)
 
-   --restart the worker tasks
-   self._pickup_task:destroy()
-   self._restock_task:destroy()
+   -- for items that no longer match the filter, 
+   -- remove then re-add the item from its parent. Other stockpiles
+   -- will be notified when it is added to the world and will
+   -- reconsider it for placement.
+   for _, item in pairs(self._data.items) do
+      if not self:can_stock_entity(item) then
+         local parent = item:add_component('mob'):get_parent()
+         parent:get_component('entity_container'):remove_child(item)
+         parent:get_component('entity_container'):add_child(item)
+      end
+   end
+
    self:_create_worker_tasks()
    return self
 end
@@ -153,7 +162,7 @@ end
 function StockpileComponent:contains(item_entity)
    local location = radiant.entities.get_world_grid_location(item_entity)
    local world_bounds = self:_get_world_bounds()
-   return world_bounds:contains(location)
+   return world_bounds:contains(location) and self:can_stock_entity(item_entity)
 end
 
 function StockpileComponent:get_size()
@@ -214,7 +223,8 @@ function StockpileComponent:_add_item(entity)
    local location = radiant.entities.get_world_grid_location(entity)
    local world_bounds = self:_get_world_bounds()
 
-   if world_bounds:contains(location) then
+      
+   if self:can_stock_entity(entity) then
       local item = entity:get_component('item')
       if item then
          -- hold onto the item...
@@ -329,8 +339,17 @@ function StockpileComponent:_create_worker_tasks()
    local faction = radiant.entities.get_faction(self._entity)
    local worker_scheduler = radiant.mods.load('stonehearth').worker_scheduler:get_worker_scheduler(faction)
 
+   if self._pickup_task then
+      worker_scheduler:remove_worker_task(self._pickup_task)
+      self._pickup_task:destroy()
+   end
+   if self._restock_task then
+      worker_scheduler:remove_worker_task(self._restock_task)
+      self._restock_task:destroy()
+   end
+
    -- This is the pickup task.  When it finishes, we want to run the
-   -- stonehearth:pickup_item_on_path item, passing in the path found
+   -- stonehearth:pickup_item_on_path action, passing in the path found
    -- by the worker task.
    self._pickup_task = worker_scheduler:add_worker_task('pickup_to_restock')
                           :set_action('stonehearth:pickup_item_on_path')

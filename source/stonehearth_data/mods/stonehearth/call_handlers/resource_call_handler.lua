@@ -20,6 +20,7 @@ function ResourceCallHandler:harvest_tree(session, response, tree)
                    :set_action('stonehearth:chop_tree')
                    :set_priority(priorities.CHOP_TREE)
                    :start()
+   radiant.effects.run_effect(tree, '/stonehearth/data/effects/chop_overlay_effect')
    return true
 end
 

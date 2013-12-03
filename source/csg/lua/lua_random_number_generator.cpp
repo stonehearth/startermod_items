@@ -16,6 +16,9 @@ scope LuaRandomNumberGenerator::RegisterLuaTypes(lua_State* L)
       .def("set_seed", &RandomNumberGenerator::SetSeed)
       .def("generate_uniform_int", &RandomNumberGenerator::GenerateUniformInt<int>)
       .def("generate_uniform_real", &RandomNumberGenerator::GenerateUniformReal<double>)
-      .def("generate_gaussian", &RandomNumberGenerator::GenerateGaussian<double>)
-   ;
+      .def("generate_gaussian", &RandomNumberGenerator::GenerateGaussian<double>),
+
+   namespace_("RandomNumberGenerator") [
+       def("get_default_instance", &csg::RandomNumberGenerator::DefaultInstance)
+   ];
 }

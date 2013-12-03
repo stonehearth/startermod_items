@@ -72,6 +72,7 @@ Client::Client() :
    _tcp_socket(_io_service),
    _server_last_update_time(0),
    _server_interval_duration(1),
+   _server_skew(0),
    selectedObject_(NULL),
    last_sequence_number_(-1),
    rootObject_(NULL),
@@ -453,9 +454,8 @@ void Client::mainloop()
    ProcessBrowserJobQueue();
 
    int currentTime = platform::get_current_time_in_ms();
-   float alpha = (currentTime - _client_interval_start) / (float)_server_interval_duration;
+   float alpha = (currentTime - ((int)_client_interval_start - _server_skew)) / (float)_server_interval_duration;
 
-   alpha = std::min(1.0f, std::max(alpha, 0.0f));
    now_ = (int)(_server_last_update_time + (_server_interval_duration * alpha));
 
    perfmon::SwitchToCounter("flush http events");
@@ -513,6 +513,7 @@ void Client::Reset()
    _server_last_update_time = 0;
    _server_interval_duration = 1;
    _client_interval_start = 0;
+   _server_skew = 0;
 
    rootObject_ = NULL;
    selectedObject_ = NULL;
@@ -659,14 +660,19 @@ void Client::ProcessReadQueue()
 
 void Client::update_interpolation(int time)
 {
+   uint32 current_time = platform::get_current_time_in_ms();
    if (_server_last_update_time) {
+      // The client can be slightly behind or ahead of the server, so calculate a per-update delta
+      // that we can use to bias our interpolation so that we avoid rendering consecutive identical
+      // frames.
+      _server_skew = (int)current_time - (int)_client_interval_start - (int)_server_interval_duration;
       _server_interval_duration = time - _server_last_update_time;
    }
    _server_last_update_time = time;
 
    // We want to interpolate from the current point to the new destiation over
    // the interval returned by the server.
-   _client_interval_start = platform::get_current_time_in_ms();
+   _client_interval_start = current_time;
 }
 
 void Client::OnInput(Input const& input) {
