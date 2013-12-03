@@ -21,6 +21,15 @@ App.StonehearthNewGameView = App.View.extend({
             });  
    },
 
+   didInsertElement: function() {
+      $( "#newGame" ).position({
+           of: $( "#newGameButton" ),
+           my: "center top",
+           at: "center bottom+10"
+         })
+         .fadeIn();
+   },
+
    actions : {
       startNewGame: function() {
          App.shellView.addView(App.StonehearthLoadingScreenView);
