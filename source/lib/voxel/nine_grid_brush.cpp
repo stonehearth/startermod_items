@@ -7,7 +7,8 @@ using namespace ::radiant::voxel;
 NineGridBrush::NineGridBrush(std::istream& in) :
    normal_(0, 0, -1),
    tile_mode_(NineGridLeftToRight),
-   paint_mode_(Color)
+   paint_mode_(Color),
+   qubicle_file_("")
 {
    in >> qubicle_file_;
 }

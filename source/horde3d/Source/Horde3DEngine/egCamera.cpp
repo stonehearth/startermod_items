@@ -291,4 +291,33 @@ void CameraNode::onPostUpdate()
 	_frustum.buildViewFrustum( _viewMat, _projMat );
 }
 
+const Vec4f CameraNode::toScreenPos(const Vec3f& worldPos) const
+{
+   const Matrix4f clipMat = _projMat * _viewMat;
+   const Matrix4f invClipMat = (_projMat * _viewMat).inverted();
+
+   const Vec4f clipPos = clipMat * Vec4f(worldPos, 1.0);
+   float clipW = clipPos.w;
+   const Vec3f projPos = clipPos.xyz() / clipW;
+   Vec3f screenPos = Vec3f(projPos.x * 0.5, projPos.y * 0.5, projPos.z) + Vec3f(0.5, 0.5, 0.0);
+   screenPos.y = 1.0f - screenPos.y;
+   screenPos.x *= _vpWidth;
+   screenPos.y *= _vpHeight;
+
+   return Vec4f(screenPos, clipW);
+}
+
+const Vec3f CameraNode::toWorldPos(const Vec4f& screenPos) const
+{
+   const Matrix4f invClipMat = (_projMat * _viewMat).inverted();
+   Vec4f clipPos = Vec4f(
+      ((screenPos.x / _vpWidth) - 0.5f) * 2, 
+      ((1.0f - (screenPos.y / _vpHeight)) - 0.5f) * 2, 
+      screenPos.z,
+      1.0) * screenPos.w;
+
+   return (invClipMat * clipPos).xyz();
+}
+
+
 }  // namespace

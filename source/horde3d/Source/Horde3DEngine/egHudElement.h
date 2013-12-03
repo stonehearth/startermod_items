@@ -34,25 +34,25 @@ protected:
    BoundingBox bounds_;
 };
 
-class WorldspaceLineElement : public HudElement
+class WorldspaceLineHudElement : public HudElement
 {
 public:
    void updateGeometry(const Matrix4f& absTrans);
-   //void draw(const std::string &shaderContext, const std::string &theClass);
+   void draw(const std::string &shaderContext, const std::string &theClass, Matrix4f& worldMat);
 
 private:
    PMaterialResource materialRes_;
 
+   NodeHandle parentNode_;
    int width_;
-   Vec3f start_, end_;
    Vec4f color_;
 
    uint32 rectVBO_;
    uint32 rectIdxBuf_;
 
 protected:
-   WorldspaceLineElement(Vec3f startPoint, Vec3f endPoint, int width, Vec4f color, ResHandle matRes);
-   ~WorldspaceLineElement();
+   WorldspaceLineHudElement(NodeHandle parentNode, int width, Vec4f color, ResHandle matRes);
+   ~WorldspaceLineHudElement();
 
    friend class HudElementNode;
 };
@@ -150,6 +150,7 @@ public:
    
    ScreenspaceRectHudElement* addScreenspaceRect(int width, int height, int offsetX, int offsetY, Vec4f color, ResHandle matRes);
    WorldspaceRectHudElement* addWorldspaceRect(float width, float height, float offsetX, float offsetY, Vec4f color, ResHandle matRes);
+   WorldspaceLineHudElement* addWorldspaceLine(int width, Vec4f color, ResHandle matRes);
 
 	void recreateNodeList();
 	int getParamI( int param );

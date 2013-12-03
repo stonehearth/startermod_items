@@ -3,6 +3,12 @@
 // the object to which the element is attached.
 [[FX]]
 
+sampler2D albedoMap = sampler_state
+{
+  Address = Clamp;
+  Filter = Pixely;
+};
+
 context TRANSLUCENT
 {
 	VertexShader = compile GLSL VS_OVERLAY;
@@ -14,20 +20,28 @@ context TRANSLUCENT
 }
 
 [[VS_OVERLAY]]
-#version 130
 
-in vec4 vertPos;
+attribute vec4 vertPos;
+attribute vec2 texCoords0;
+attribute vec4 color;
+
+varying vec4 oColor;
+varying vec2 texCoords;
 
 void main() {
+  texCoords = texCoords0;
+  oColor = color;
 	gl_Position = vertPos;
 }
 
 
 [[FS_OVERLAY]]
-#version 130
 
-out vec4 fragColor;
+uniform sampler2D albedoMap;
+
+attribute vec4 oColor;
+attribute vec2 texCoords;
 
 void main() {
-   fragColor = vec4(1, 1, 1, 1);
-};
+   gl_FragColor = oColor * texture2D(albedoMap, texCoords);
+}

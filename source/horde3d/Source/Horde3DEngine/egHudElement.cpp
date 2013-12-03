@@ -54,16 +54,86 @@ struct WorldspaceRectVertex
    Vec4f color;
 };
 
-WorldspaceLineElement::WorldspaceLineElement(Vec3f startPoint, Vec3f endPoint, int width, Vec4f color, ResHandle matRes)
+WorldspaceLineHudElement::WorldspaceLineHudElement(NodeHandle parentNode, int width, Vec4f color, ResHandle matRes)
 {
+   parentNode_ = parentNode;
 
+   rectVBO_ = gRDI->createVertexBuffer( sizeof(ScreenspaceRectVertex) * 4, 0x0 );
+
+   // Create cube geometry indices.
+   uint16 cubeInds[6] = {
+      0, 1, 2,
+      0, 2, 3
+   };
+   rectIdxBuf_ = gRDI->createIndexBuffer(6 * sizeof(uint16), cubeInds);
+
+   width_ = width;
+   color_ = color;
+
+   MaterialResource* mr = (MaterialResource*)Modules::resMan().resolveResHandle( matRes );
+   materialRes_ = mr;
 }
 
 
-
-void WorldspaceLineElement::updateGeometry(const Matrix4f& absTrans)
+void WorldspaceLineHudElement::draw(const std::string &shaderContext, const std::string &theClass, Matrix4f& worldMat)
 {
-   // Soon....
+   if (!materialRes_->isOfClass(theClass)) 
+   {
+      return;
+   }
+
+   if (!Modules::renderer().setMaterial(materialRes_, shaderContext))
+   {
+      return;
+   }
+   gRDI->setVertexLayout(Modules::renderer().getClipspaceLayout());
+
+   gRDI->setVertexBuffer(0, rectVBO_, 0, sizeof(ScreenspaceRectVertex));
+   gRDI->setIndexBuffer(rectIdxBuf_, IDXFMT_16);
+
+   gRDI->drawIndexed(PRIM_TRILIST, 0, 6, 0, 4);
+}
+
+
+void WorldspaceLineHudElement::updateGeometry(const Matrix4f& absTrans)
+{
+   bounds_ = BoundingBox();
+   Vec3f endPos = absTrans.getTrans();
+   Vec3f startPos = Modules::sceneMan().resolveNodeHandle(parentNode_)->getAbsTrans().getTrans();
+   const CameraNode* cam = Modules::renderer().getCurCamera();
+   const Matrix4f clipMatrix = cam->getProjMat() * cam->getViewMat();
+
+   bounds_.addPoint(endPos);
+   bounds_.addPoint(startPos);
+
+   Vec4f screenStartPos = cam->toScreenPos(startPos);
+   Vec4f screenEndPos = cam->toScreenPos(endPos);
+   Vec3f screenDirection = (screenEndPos.xyz() - screenStartPos.xyz()).normalized();
+   Vec4f lineWidthDir(screenDirection.y, -screenDirection.x, 0, 0);
+
+   ScreenspaceRectVertex* verts = (ScreenspaceRectVertex*)gRDI->mapBuffer(rectVBO_);
+
+   Vec3f worldP = cam->toWorldPos(screenStartPos + (lineWidthDir * width_));
+   verts[0].pos = clipMatrix * Vec4f(worldP, 1.0);
+   verts[0].texU = 0.0; verts[0].texV = 0.0;
+   verts[0].color = color_;
+
+   worldP = cam->toWorldPos(screenEndPos + (lineWidthDir * width_));
+   verts[1].pos = clipMatrix * Vec4f(worldP, 1.0);
+   verts[1].texU = 1.0; verts[1].texV = 0.0;
+   verts[1].color = color_;
+
+   worldP = cam->toWorldPos(screenEndPos - (lineWidthDir * width_));
+   verts[2].pos = clipMatrix * Vec4f(worldP, 1.0);
+   verts[2].texU = 1.0; verts[2].texV = 1.0;
+   verts[2].color = color_;
+
+   worldP = cam->toWorldPos(screenStartPos - (lineWidthDir * width_));
+   verts[3].pos = clipMatrix * Vec4f(worldP, 1.0);
+   verts[3].texU = 0.0; verts[3].texV = 1.0;
+   verts[3].color = color_;
+
+   gRDI->unmapBuffer(rectVBO_);
 }
 
 
@@ -369,6 +439,14 @@ WorldspaceRectHudElement* HudElementNode::addWorldspaceRect(float width, float h
    elements_.push_back(result);
    return result;
 }
+
+WorldspaceLineHudElement* HudElementNode::addWorldspaceLine(int width, Vec4f color, ResHandle matRes)
+{
+   WorldspaceLineHudElement* result = new WorldspaceLineHudElement(getParent()->getHandle(), width, color, matRes);
+   elements_.push_back(result);
+   return result;
+}
+
 
 const std::vector<HudElement*>& HudElementNode::getSubElements() const {
    return elements_;
