@@ -49,8 +49,9 @@ std::istream& QubicleMatrix::Read(const QbHeader& header, std::istream& in)
    return in;
 }
 
-QubicleFile::QubicleFile()
+QubicleFile::QubicleFile(const std::string& uri)
 {
+   uri_ = uri;
 }
 
 std::istream& QubicleFile::Read(std::istream& in)
@@ -66,6 +67,7 @@ std::istream& QubicleFile::Read(std::istream& in)
       name[c] = '\0';
 
       matrices_[name].Read(header, in);
+      matrices_[name].uri_ = uri_;
    }
    return in;
 }
