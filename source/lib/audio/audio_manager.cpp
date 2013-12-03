@@ -15,7 +15,7 @@ DEFINE_SINGLETON(AudioManager);
 
 #define MAX_SOUNDS 200
 #define EFX_DEF_VOL 50
-#define EFX_MASTER_DEF_VOL 0.5
+#define EFX_MASTER_DEF_VOL 1.0
 
 //TODO: get the default volumes not from contstants, but from user-set saved files
 AudioManager::AudioManager() :

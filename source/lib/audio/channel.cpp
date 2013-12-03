@@ -25,7 +25,7 @@ using namespace ::radiant;
 using namespace ::radiant::audio;
 
 //#define DEF_VOL 50         //The volume for the playing music
-#define MASTER_DEF_VOL 0.5 //The volume % set by the user, between 0 and 1
+#define MASTER_DEF_VOL 1.0 //The volume % set by the user, between 0 and 1
 //#define DEF_FADE 1000      //MS to have old music fade during crossfade
 //#define DEFAULT_LOOP true
 
