@@ -420,26 +420,11 @@ void Simulation::InitDataModel()
 
 }
 
-void Simulation::GetConfigOptions()
-{
-   po::options_description config_file("Server options");
-   po::options_description cmd_line("Server options");
-
-   std::string name = core::Config::GetInstance().GetName();
-   cmd_line.add_options()
-      ("game.noidle",   po::bool_switch(&noidle_), "suspend the idle loop, running the game as fast as possible.")
-      ("game.script",   po::value<std::string>()->default_value(name + "/start_game.lua"), "the game script to load")  //xxx: put this in a constant
-      ("game.mod",     po::value<std::string>()->default_value(name), "the mod to load")
-      ;
-   core::Config::GetInstance().GetCommandLineOptions().add(cmd_line);
-   core::Config::GetInstance().GetConfigFileOptions().add(cmd_line);
-   core::Config::GetInstance().GetConfigFileOptions().add(config_file);
-}
-
 void Simulation::Run(tcp::acceptor* acceptor, boost::asio::io_service* io_service)
 {
    _tcp_acceptor = acceptor;
    _io_service = io_service;
+   noidle_ = core::Config::GetInstance().Get("game.noidle", false);
    main();
 }
 

@@ -62,7 +62,6 @@ public:
    void Save(std::string id);
    void Load(std::string id);
 
-   void GetConfigOptions();
    void Run(tcp::acceptor* acceptor, boost::asio::io_service* io_service);
 
    /* New object model stuff goes here */

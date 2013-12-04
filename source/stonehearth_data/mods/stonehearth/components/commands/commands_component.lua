@@ -39,7 +39,7 @@ function CommandsComponent:remove_command(name)
    end
 end
 
-function CommandsComponent:modify_command(name)
+function CommandsComponent:modify_command(name, cb)
    local command = self:_find_command_by_name(name)
    if command then
       cb(command)
