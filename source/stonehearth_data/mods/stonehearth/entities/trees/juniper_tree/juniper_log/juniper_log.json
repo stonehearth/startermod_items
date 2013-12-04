@@ -3,7 +3,7 @@
    "type": "entity", 
    "components": {
       "item": {
-         "stacks": 20
+         "stacks": 5
       }, 
       "model_variants": [
          {

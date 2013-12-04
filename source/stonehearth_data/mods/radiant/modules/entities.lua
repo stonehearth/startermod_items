@@ -381,6 +381,31 @@ function entities.drop_carrying_on_ground(entity, location)
    end
 end
 
+--Uses up the thing a person is carrying
+function entities.consume_carrying(entity)
+   radiant.check.is_entity(entity)
+
+   --if the item has stacks, consume stacks
+   --when stacks are zero, remove
+   local carry_block = entity:get_component('carry_block')
+   if carry_block then
+      local item = carry_block:get_carrying()
+      if item then
+         local item_component = item:get_component('item')
+         if item_component and item_component:get_stacks() > 0 then
+            local stacks = item_component:get_stacks() - 1
+            item_component:set_stacks(stacks)
+            return
+         end
+      end
+   end
+
+   local item = entities._drop_helper(entity)
+   if item then
+      entities.destroy_entity(item)
+   end
+end
+
 --- Put an object down on another object
 -- @param entity The entity carrying the object
 -- @param target The object that will get the new thing added to it
