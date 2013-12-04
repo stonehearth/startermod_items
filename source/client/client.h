@@ -220,6 +220,7 @@ private:
       int                         mouse_y_;
       core::Guard                 guards_;
       bool                        perf_hud_shown_;
+      bool                        connected_;
 
       dm::TracerSyncPtr           object_model_traces_;
       dm::TracerBufferedPtr       game_render_tracer_;

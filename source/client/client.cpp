@@ -87,7 +87,8 @@ Client::Client() :
    next_input_id_(1),
    mouse_x_(0),
    mouse_y_(0),
-   perf_hud_shown_(false)
+   perf_hud_shown_(false),
+   connected_(false)
 {
    om::RegisterObjectTypes(store_);
    om::RegisterObjectTypes(authoringStore_);
@@ -451,13 +452,14 @@ void Client::handle_connect(const boost::system::error_code& error)
       LOG(WARNING) << "connection to server failed (" << error << ").  retrying...";
       setup_connections();
    } else {
-      recv_queue_->Read();
+      recv_queue_ = std::make_shared<protocol::RecvQueue>(_tcp_socket);
+      connected_ = true;
    }
 }
 
 void Client::setup_connections()
 {
-   recv_queue_ = std::make_shared<protocol::RecvQueue>(_tcp_socket);
+   connected_ = false;
    send_queue_ = protocol::SendQueue::Create(_tcp_socket);
 
    boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string("127.0.0.1"), server_port_);
@@ -497,7 +499,7 @@ void Client::mainloop()
 
    Renderer::GetInstance().RenderOneFrame(now_, alpha);
 
-   if (send_queue_) {
+   if (send_queue_ && connected_) {
       perfmon::SwitchToCounter("send msgs");
       protocol::SendQueue::Flush(send_queue_);
    }

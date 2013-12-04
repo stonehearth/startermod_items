@@ -82,7 +82,6 @@ namespace radiant {
       class RecvQueue : public std::enable_shared_from_this<RecvQueue> {
       public:
          RecvQueue(boost::asio::ip::tcp::socket& s);
-         void Read();
 
       public:
          template <class T> void Process(std::function<bool(T&)> fn)
@@ -131,6 +130,9 @@ namespace radiant {
 
       protected:
          void HandleRead(RecvQueuePtr q, const boost::system::error_code& e, std::size_t bytes_transferred);
+
+      private:
+         void Read();
 
       private:
          boost::asio::ip::tcp::socket&    socket_;
