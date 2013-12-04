@@ -1,31 +1,9 @@
 #include "pch.h"
-#include "lua_attributes_component.h"
-#include "lua_aura_list_component.h"
-#include "lua_clock_component.h"
 #include "lua_component.h"
-#include "lua_effect_list_component.h"
 #include "lua_entity.h"
-#include "lua_entity_container_component.h"
-#include "lua_mob_component.h"
-#include "lua_region.h"
-#include "lua_region_collision_shape_component.h"
-#include "lua_render_info_component.h"
-#include "lua_model_variants_component.h"
-#include "lua_sensor_list_component.h"
-#include "lua_target_tables_component.h"
-#include "lua_sphere_collision_shape_component.h"
-#include "lua_terrain_component.h"
-#include "lua_vertical_pathing_region_component.h"
-#include "lua_lua_components_component.h"
-#include "lua_destination_component.h"
-#include "lua_render_region_component.h"
-#include "lua_unit_info_component.h"
-#include "lua_item_component.h"
-#include "lua_paperdoll_component.h"
-#include "lua_carry_block_component.h"
-#include "lua_data_binding.h"
+#include "lua_data_store.h"
 #include "lib/lua/script_host.h"
-
+#include "lib/lua/register.h"
 #include "lib/json/core_json.h"
 #include "lib/json/dm_json.h"
 
@@ -37,39 +15,34 @@ using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-IMPLEMENT_TRIVIAL_TOSTRING(DeepRegionGuardLua)
-DEFINE_INVALID_JSON_CONVERSION(DeepRegionGuardLua)
 DEFINE_INVALID_JSON_CONVERSION(om::Region3BoxedPtrBoxed)
+IMPLEMENT_TRIVIAL_TOSTRING(Region2Boxed)
+IMPLEMENT_TRIVIAL_TOSTRING(Region3Boxed)
 
-DeepRegionGuardLua::DeepRegionGuardLua(lua_State* L, Region3BoxedPtrBoxed const& bbrp, const char* reason)
+template <typename Boxed>
+static void ModifyBoxed(Boxed& boxed, luabind::object cb)
 {
-   L_ = lua::ScriptHost::GetCallbackThread(L);
-   region_guard_ = DeepTraceRegionVoid(bbrp, reason, [=]{
-      FireTrace();
+   boxed.Modify([cb](typename Boxed::Value& value) {
+      try {
+         call_function<void>(cb, &value);
+      } catch (std::exception const& e) {
+         LOG(WARNING) << "error modifying boxed object: " << e.what();
+      }
    });
 }
 
-DeepRegionGuardLuaPtr DeepRegionGuardLua::OnChanged(object cb)
-{
-   cbs_.push_back(object(L_, cb));
-   return shared_from_this();
-}
+#define OM_OBJECT(Cls, cls) scope Register ## Cls(lua_State* L);
+OM_ALL_COMPONENTS
+#undef OM_OBJECT
+scope RegisterEffect(lua_State* L);
+scope RegisterSensor(lua_State* L);
+scope RegisterTargetTable(lua_State* L);
+scope RegisterTargetTableGroup(lua_State* L);
+scope RegisterTargetTableEntry(lua_State* L);
 
-void DeepRegionGuardLua::Destroy()
+scope RegisterLuaComponents(lua_State *L)
 {
-   region_guard_ = nullptr;
-   cbs_.clear();
-}
-
-void DeepRegionGuardLua::FireTrace()
-{
-   for (const auto& cb : cbs_) {
-      try {
-         call_function<void>(cb);
-      } catch (std::exception &e) {
-         LOG(WARNING) << "error in lua callback: " << e.what();
-      }
-   }
+   return scope();
 }
 
 void radiant::om::RegisterLuaTypes(lua_State* L)
@@ -78,17 +51,23 @@ void radiant::om::RegisterLuaTypes(lua_State* L)
       namespace_("_radiant") [
          namespace_("om") [
             LuaComponent_::RegisterLuaTypes(L),
-
-#define OM_OBJECT(Cls, lower) Lua ## Cls ## Component::RegisterLuaTypes(L),
+#define OM_OBJECT(Cls, cls) Register ## Cls(L),
             OM_ALL_COMPONENTS
 #undef OM_OBJECT
+            RegisterSensor(L),
+            RegisterEffect(L),
+            RegisterTargetTable(L),
+            RegisterTargetTableGroup(L),
+            RegisterTargetTableEntry(L),
             LuaEntity::RegisterLuaTypes(L),
-            LuaRegion::RegisterLuaTypes(L),
-            LuaDataBinding::RegisterLuaTypes(L),
-
-            lua::RegisterTypePtr<DeepRegionGuardLua>()
-               .def("on_changed",               &DeepRegionGuardLua::OnChanged)
-               .def("destroy",                  &DeepRegionGuardLua::Destroy)
+            LuaDataStore::RegisterLuaTypes(L),
+            lua::RegisterTypePtr<Region2Boxed>()
+               .def("get",       &Region2Boxed::Get)
+               .def("modify",    &ModifyBoxed<Region2Boxed>)
+            ,
+            lua::RegisterTypePtr<Region3Boxed>()
+               .def("get",       &Region3Boxed::Get)
+               .def("modify",    &ModifyBoxed<Region3Boxed>)
          ]
       ]
    ];

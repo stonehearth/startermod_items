@@ -42,7 +42,7 @@ function pathfinder._track_world_items(pathfinder)
    singleton.pathfinders[pathfinder:get_id()] = pathfinder:to_weak_ref()
 
    -- xxx: iterate through every item in a range provided by the client
-   for id, entity in radiant.terrain.get_world_entities() do
+   for id, entity in radiant.terrain.each_world_entity() do
       --TODO: why is this sometimes nil?
       if entity then
          pathfinder:add_destination(entity)

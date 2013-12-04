@@ -9,13 +9,10 @@
 #include "om/object_enums.h"
 #include "om/om.h"
 #include "om/entity.h"
-#include "om/data_binding.h"
 #include "component.h"
 #include "csg/cube.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
-
-class DataBinding;
 
 class LuaComponents : public Component
 {
@@ -23,10 +20,10 @@ public:
    DEFINE_OM_OBJECT_TYPE(LuaComponents, lua_components);
    void ExtendObject(json::Node const& obj) override;
 
-   DataBindingPtr GetLuaComponent(std::string name) const;
-   DataBindingPtr AddLuaComponent(std::string name);
+   DataStorePtr GetLuaComponent(std::string name) const;
+   DataStorePtr AddLuaComponent(std::string name);
 
-   typedef dm::Map<std::string, DataBindingPtr> ComponentMap;
+   typedef dm::Map<std::string, DataStorePtr> ComponentMap;
    ComponentMap const& GetComponentMap() const { return lua_components_; }
 
 private:

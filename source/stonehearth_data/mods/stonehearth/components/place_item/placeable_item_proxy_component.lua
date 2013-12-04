@@ -84,10 +84,11 @@ function PlaceableItemProxyComponent:_create_derived_components()
    local commands = self._entity:add_component('stonehearth:commands')
    commands:add_command('/stonehearth/data/commands/place_item')
 
-   local command_data = commands:modify_command('place_item')
-   command_data.event_data.full_sized_entity_uri = full_sized_uri
-   command_data.event_data.proxy = self._data_binding
-   command_data.event_data.item_name = self._entity:add_component('unit_info'):get_display_name()
+   commands:modify_command('place_item', function (command_data)
+      command_data.event_data.full_sized_entity_uri = full_sized_uri
+      command_data.event_data.proxy = self._data_binding
+      command_data.event_data.item_name = self._entity:add_component('unit_info'):get_display_name()
+   end)
 end
 
 return PlaceableItemProxyComponent

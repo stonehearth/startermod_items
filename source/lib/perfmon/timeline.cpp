@@ -28,7 +28,6 @@ Timeline::BeginFrame()
    Frame* last_frame = nullptr;
    if (current_frame_) {
       last_frame = current_frame_;
-      frames_.push_front(current_frame_);
    }
 
    // switch frames and restart the counter...

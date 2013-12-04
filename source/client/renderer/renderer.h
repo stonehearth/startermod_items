@@ -11,7 +11,7 @@
 #include "csg/matrix.h"
 #include "om/om.h"
 #include "resources/namespace.h"
-#include "tesseract.pb.h"
+#include "protocols/tesseract.pb.h"
 #include "csg/region.h"
 #include "radiant_file.h"
 #include <unordered_map>
@@ -172,8 +172,12 @@ class Renderer
       void DispatchInputEvent();
 
    protected:
+      struct RenderMapEntry {
+         std::shared_ptr<RenderEntity>    render_entity;
+         dm::TracePtr                     lifetime_trace;
+      };
       typedef std::unordered_map<H3DNode, UpdateSelectionFn> SelectableMap;
-      typedef std::unordered_map<dm::ObjectId, std::shared_ptr<RenderEntity>> RenderEntityMap;
+      typedef std::unordered_map<dm::ObjectId, RenderMapEntry> RenderEntityMap;
       typedef std::unordered_map<std::string, H3DRes>    H3DResourceMap;
       int               windowWidth_;
       int               windowHeight_;

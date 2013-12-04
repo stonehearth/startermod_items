@@ -5,6 +5,7 @@
 #include "om/object_enums.h"
 #include "dm/boxed.h"
 #include "dm/record.h"
+#include "dm/set.h"
 #include "om/entity.h"
 #include "lib/json/node.h"
 
@@ -16,7 +17,6 @@ public:
    Component() { }
 
    virtual void ExtendObject(json::Node const& obj) { };
-   virtual void Describe(std::ostringstream& os) const { };
 
    EntityPtr GetEntityPtr() const { return (*entity_).lock(); }
    EntityRef GetEntityRef() const { return (*entity_); }
@@ -31,7 +31,6 @@ protected:
 private:
    dm::Boxed<EntityRef>    entity_;
 };
-std::ostream& operator<<(std::ostream& os, const Component& o);
 
 END_RADIANT_OM_NAMESPACE
 

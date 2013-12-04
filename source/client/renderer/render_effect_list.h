@@ -9,9 +9,8 @@
 #include "skeleton.h"
 #include "render_component.h"
 #include "resources/animation.h"
-#include "om/components/effect_list.h"
+#include "om/components/effect_list.ridl.h"
 #include "lib/audio/input_stream.h"
-
 #include <SFML/Audio.hpp>
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
@@ -190,8 +189,8 @@ public:
    ~RenderEffectList();
 
 private:
-   void AddEffect(const om::EffectPtr effect);
-   void RemoveEffect(const om::EffectPtr effect);
+   void AddEffect(int effect_id, const om::EffectPtr effect);
+   void RemoveEffect(int effect_id);
    void UpdateEffects(FrameStartInfo const& info);
 
 private:
@@ -200,7 +199,8 @@ private:
 private:
    RenderEntity&        entity_;
    om::EffectListRef    effectList_;
-   core::Guard          tracer_;
+   core::Guard          renderer_guard_;
+   dm::TracePtr         effects_list_trace_;
    EffectMap            effects_;
    int                  dt;
 };

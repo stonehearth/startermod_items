@@ -48,21 +48,25 @@ function ScaffoldingFabricator:_update_scaffolding_size()
    local project_rgn = self._project_dst:get_region():get()
    
    -- scaffolding is 1 unit away from and not overlapping the project.
-   local cursor = self._entity_dst:get_region():modify()
-   cursor:copy_region(project_rgn)
-   cursor:translate(self._normal)
-   cursor:subtract_region(project_rgn)
+   self._entity_dst:get_region():modify(function(cursor)
+      cursor:copy_region(project_rgn)
+      cursor:translate(self._normal)
+      cursor:subtract_region(project_rgn)
+   end)
    
    -- put a ladder in column 0.  this one is 2 units away from the
    -- project in the direction of the normal (as the scaffolding itself
    -- is 1 unit away)
-   local ladder = _radiant.csg.region3_intersection(cursor, self._ladder_stencil)
+   local region = self._entity_dst:get_region():get()
+   local ladder = _radiant.csg.region3_intersection(region, self._ladder_stencil)
    ladder:translate(self._normal)
-   self._entity_ladder:get_region():modify():copy_region(ladder)
+   self._entity_ladder:get_region():modify(function(cursor)
+      cursor:copy_region(ladder)
+   end)
    if not self._entity_ladder:get_region():get():empty() then
       radiant.log.info('grew the ladder!')
    end
-   radiant.log.info('(%s) updating scaffolding supporting %s -> %s (ladder:%s)', tostring(self._entity), self._project, cursor, tostring(ladder:get_bounds()))
+   radiant.log.info('(%s) updating scaffolding supporting %s -> %s (ladder:%s)', tostring(self._entity), self._project, region, tostring(ladder:get_bounds()))
 end
 
 return ScaffoldingFabricator

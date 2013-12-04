@@ -19,9 +19,13 @@ add_library(lua
             client/open_client.cpp
             rpc/open_rpc.cpp
             om/open_om.cpp
+            dm/open_dm.cpp
             voxel/open_voxel.cpp
             pch.cpp
             )
+
+add_dependencies(lua
+                 om_generated_headers)
 
 if (MSVC)
    set_target_properties(client PROPERTIES COMPILE_FLAGS "/Yupch.h")

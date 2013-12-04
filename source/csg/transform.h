@@ -8,7 +8,8 @@
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
-struct Transform {
+class Transform {
+public:
    Point3f            position;
    Quaternion        orientation;
 
@@ -18,15 +19,8 @@ struct Transform {
 
    void SetZero() { position.SetZero(); orientation.SetIdentity(); }
 
-   void SaveValue(protocol::transform *msg) const {
-      position.SaveValue(msg->mutable_position());
-      orientation.SaveValue(msg->mutable_orientation());
-   }
-
-   void LoadValue(const protocol::transform &msg) {
-      position.LoadValue(msg.position());
-      orientation.LoadValue(msg.orientation());
-   }
+   void SaveValue(protocol::transform *msg) const;
+   void LoadValue(const protocol::transform &msg);
 
    bool operator==(const Transform &o) { return position == o.position && orientation == o.orientation; }
    bool operator!=(const Transform &o) { return position != o.position && orientation != o.orientation; }
@@ -37,7 +31,5 @@ Transform Interpolate(const Transform &t0, const Transform &t1, float alpha);
 std::ostream& operator<<(std::ostream& out, const Transform& source);
 
 END_RADIANT_CSG_NAMESPACE
-
-IMPLEMENT_DM_EXTENSION(::radiant::csg::Transform, Protocol::transform)
 
 #endif

@@ -138,8 +138,8 @@ function EatFoodAction:run(ai, entity, food)
          radiant.entities.move_to(self._entity, radiant.entities.get_location_aligned(self._seat))
          radiant.entities.set_posture(self._entity, 'sitting_on_chair')
 
-         local angle  = self._seat:get_component('mob'):get_rotation()
-         self._entity:get_component('mob'):turn_to_quaternion(angle)
+         local q = self._seat:get_component('mob'):get_rotation()
+         self._entity:get_component('mob'):set_rotation(q)
          
          --TODO: alter the chair modifier depending on distance from table, kind of chair
          satisfaction = satisfaction * CHAIR_MODIFIER

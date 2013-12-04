@@ -8,7 +8,7 @@
 #include "function.h"
 #include "dm/store.h"
 #include "om/object_formatter/object_formatter.h"
-#include "om/data_binding.h"
+#include "om/components/data_store.ridl.h"
 
 using namespace ::radiant;
 using namespace ::radiant::rpc;
@@ -30,12 +30,12 @@ ReactorDeferredPtr LuaObjectRouter::Call(Function const& fn)
          return nullptr;
       }
       dm::ObjectType t = o->GetObjectType();
-      if (t != om::DataBindingObjectType && t != om::DataBindingPObjectType) {
+      if (t != om::DataStoreObjectType) {
          return nullptr;
       }
-      om::DataBindingPtr db = std::dynamic_pointer_cast<om::DataBinding>(o);
+      om::DataStorePtr db = std::dynamic_pointer_cast<om::DataStore>(o);
 
-      object obj = db->GetModelObject();
+      object obj = db->GetController();
       if (!obj.is_valid()) {
          return nullptr;
       }

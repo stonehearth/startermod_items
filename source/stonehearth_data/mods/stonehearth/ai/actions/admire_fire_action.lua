@@ -47,7 +47,7 @@ function AdmireFire:_on_entity_add(id, entity)
       radiant.entities.get_faction(entity) == radiant.entities.get_faction(self._entity) and 
       not self._known_firepit_callbacks[id] then
 
-      local promise = firepit_component:get_data_store():trace('follow firepit data')
+      local promise = firepit_component:get_data_store():trace_data('follow firepit data')
       self._known_firepit_callbacks[id] = promise
       promise:on_changed(function()
          if firepit_component:is_lit() then
@@ -203,11 +203,11 @@ function AdmireFire:_do_random_actions(ai)
 end
 
 function AdmireFire:_release_seat_reservation()
-   if self._firepit_seat then
+   if self._firepit_seat and self._firepit_seat:is_valid() then
       local seat_lease = self._firepit_seat:get_component('stonehearth:lease_component')
       seat_lease:release_lease(self._entity)
-      self._firepit_seat = nil
    end
+   self._firepit_seat = nil
 end
 
 function AdmireFire:stop()

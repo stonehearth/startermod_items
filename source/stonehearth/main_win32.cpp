@@ -1,3 +1,6 @@
+//#define OVERRIDE_NEW_DELETE
+//#include "MemProLib/src_combined/MemPro.cpp"
+
 #include <signal.h>
 #include <boost/filesystem.hpp>
 #include "radiant.h"

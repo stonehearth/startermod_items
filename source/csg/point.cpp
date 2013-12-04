@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "point.h"
 #include "util.h" // xxx: should be csg/namespace.h
+#include "protocols/store.pb.h"
 
 using namespace ::radiant;
 using namespace ::radiant::csg;
@@ -51,7 +52,7 @@ Point<int, C> csg::ToInt(Point<float, C> const& pt)
    Point<int, C> result;
    for (int i = 0; i < C; i++) {
       float s = pt[i];
-      result[i] = (int)floor0(s + (s > 0 ? k_epsilon : -k_epsilon));
+      result[i] = static_cast<int>(floor0(s + (s > 0 ? k_epsilon : -k_epsilon)));
    }
    return result;
 }
@@ -85,3 +86,4 @@ template float csg::Interpolate(float const&, float const&, float);
 
 DEFINE_POINT_CONVERSIONS(2)
 DEFINE_POINT_CONVERSIONS(3)
+

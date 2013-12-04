@@ -1,6 +1,7 @@
 #ifndef _RADIANT_CSG_REGION_TOOLS_TRAITS_H
 #define _RADIANT_CSG_REGION_TOOLS_TRAITS_H
 
+#include <unordered_map>
 #include "edge_tools.h"
 
 BEGIN_RADIANT_CSG_NAMESPACE

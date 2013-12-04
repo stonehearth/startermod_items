@@ -6,10 +6,10 @@ function GhostItemRenderer:__init(render_entity, data_store)
    self._ghost_item_rendered = nil
 
    self._data_store  = data_store
-   self._promise = data_store:trace('rendering a ghost item')
-   self._promise:on_changed(function()
-         self:_update()
-      end)
+   self._promise = data_store:trace_data('rendering a ghost item')
+                                 :on_changed(function()
+                                    self:_update()
+                                 end)
    self:_update()
 end
 

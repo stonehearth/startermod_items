@@ -7,7 +7,8 @@ using namespace ::radiant::simulation;
 
 JobId Job::_nextJobId = 1;
 
-Job::Job(std::string name)  :
+Job::Job(Simulation& sim, std::string name)  :
+   _sim(sim),
    _id(_nextJobId++)
 {
    std::ostringstream s;
@@ -25,6 +26,11 @@ std::string Job::GetName() const
    return _name;
 }
 
+Simulation& Job::GetSim() const
+{
+   return _sim;
+}
+
 void Job::LogProgress(std::ostream& ) const
 {
 }
@@ -32,14 +38,3 @@ void Job::LogProgress(std::ostream& ) const
 void Job::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
 {
 }
-
-Task::Task(std::string const& name) :
-   name_(name)
-{
-}
-
-std::string const& Task::GetName() const
-{
-   return name_;
-}
-

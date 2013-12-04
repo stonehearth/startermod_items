@@ -1,4 +1,5 @@
 #include "radiant.h"
+#include "radiant_stdutil.h"
 #include "om/all_objects.h"
 #include "om/all_components.h"
 #include "om/object_formatter/object_formatter.h"
@@ -17,24 +18,18 @@ using namespace radiant::json;
 
       OM_OBJECT(Effect,         effect)
       OM_OBJECT(Sensor,         sensor)
-      OM_OBJECT(Aura,           aura)
       OM_OBJECT(TargetTable,        target_table)
       OM_OBJECT(TargetTableGroup,   target_table_group)
       OM_OBJECT(TargetTableEntry,   target_table_entry)
       OM_OBJECT(Clock,                 clock)
-      OM_OBJECT(ModelVariant,          model_variant)
+      OM_OBJECT(ModelLayer,            model_layer)
       OM_OBJECT(ModelVariants,         model_variants)
-      OM_OBJECT(SphereCollisionShape,  sphere_collision_shape)
       OM_OBJECT(Terrain,               terrain)
       OM_OBJECT(VerticalPathingRegion, vertical_pathing_region)
       OM_OBJECT(EffectList,            effect_list)
       OM_OBJECT(RenderInfo,            render_info)
       OM_OBJECT(SensorList,            sensor_list)
-      OM_OBJECT(Attributes,            attributes)
-      OM_OBJECT(AuraList,              aura_list)
       OM_OBJECT(TargetTables,          target_tables)
-      OM_OBJECT(RenderRegion,          render_region)
-      OM_OBJECT(Paperdoll,             paperdoll)
       OM_OBJECT(Item,                  item)
       OM_OBJECT(CarryBlock,            carry_block)
 
@@ -84,7 +79,7 @@ template <> Node json::encode(om::EntityContainer const& obj)
    om::ObjectFormatter f;
    Node node;
 
-   for (auto const& entry : obj.GetChildren()) {
+   for (auto const& entry : obj.EachChild()) {
       om::EntityPtr child = entry.second.lock();
       if (child) {
          node.set(stdutil::ToString(entry.first), f.GetPathToObject(child));
@@ -112,7 +107,7 @@ template <> Node json::encode(om::Mob const& obj)
    node.set("transform", obj.GetTransform());
    node.set("entity", om::ObjectFormatter().GetPathToObject(obj.GetEntityPtr()));
    node.set("moving", obj.GetMoving());
-   om::MobPtr parent = obj.GetParent();
+   om::EntityPtr parent = obj.GetParent().lock();
    if (parent) {
       node.set("parent", om::ObjectFormatter().GetPathToObject(parent));
    }
@@ -124,7 +119,7 @@ template <> Node json::encode(om::RegionCollisionShape const& obj)
 {
    Node node;
 
-   om::Region3BoxedPtr region = *obj.GetRegion();
+   om::Region3BoxedPtr region = obj.GetRegion();
    if (region) {
       node.set("region", region->Get());
    }
@@ -135,26 +130,16 @@ template <> Node json::encode(om::Destination const& obj)
 {
    Node node;
 
-   om::Region3BoxedPtr region = *obj.GetRegion();
+   om::Region3BoxedPtr region = obj.GetRegion();
    if (region) {
       node.set("region", region->Get());
    }
    return node;
 }
 
-template <> Node json::encode(om::DataBinding const& obj)
+template <> Node json::encode(om::DataStore const& obj)
 {
-   return obj.GetJsonData();
-}
-
-template <> Node json::encode(om::DataBindingP const& obj)
-{
-   return obj.GetJsonData();
-}
-
-template <> Node json::encode(om::JsonStore const& obj)
-{
-   return Node(obj.Get());
+   return obj.GetData().GetJsonNode();
 }
 
 template <> Node json::encode(om::ErrorBrowser const& obj)

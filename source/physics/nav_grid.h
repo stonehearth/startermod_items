@@ -14,7 +14,7 @@ BEGIN_RADIANT_PHYSICS_NAMESPACE
 
 class NavGrid {
    public:
-      NavGrid();
+      NavGrid(int trace_category);
 
       void TrackComponent(dm::ObjectType type, std::shared_ptr<dm::Object> component);
       bool CanStand(csg::Point3 const& pt) const;
@@ -38,7 +38,7 @@ class NavGrid {
    private:
       struct TerrainCollisionObject {
          std::weak_ptr<om::Terrain> obj;
-         core::Guard                  guard;
+         om::DeepRegionGuardPtr     trace;
          TerrainCollisionObject() { }
          TerrainCollisionObject(std::shared_ptr<om::Terrain> o) : obj(o) { }
       private:
@@ -56,7 +56,7 @@ class NavGrid {
 
       struct RegionCollisionShapeObject {
          std::weak_ptr<om::RegionCollisionShape> obj;
-         om::DeepRegionGuardPtr                  guard;
+         om::DeepRegionGuardPtr                  trace;
          RegionCollisionShapeObject() { }
          RegionCollisionShapeObject(std::shared_ptr<om::RegionCollisionShape> o) : obj(o) { }
       private:
@@ -73,6 +73,7 @@ class NavGrid {
          TerrainChangeCb      cb;
       };
 
+      int                                             trace_category_;
       TerrainChangeCbId                               next_region_change_cb_id_;
       std::map<TerrainChangeCbId, TerrainChangeEntry> region_change_cb_map_;
 };

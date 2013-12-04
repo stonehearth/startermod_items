@@ -11,6 +11,9 @@ add_library(simulation_jobs STATIC
             lua_job.cpp
             )
 
+add_dependencies(simulation_jobs
+                 protobuf_generated_headers)
+
 if (MSVC)
    set_target_properties(simulation_jobs PROPERTIES COMPILE_FLAGS "/Yupch.h")
    set_source_files_properties(pch.cpp PROPERTIES COMPILE_FLAGS "/Ycpch.h")

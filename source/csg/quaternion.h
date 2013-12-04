@@ -15,7 +15,9 @@ class Quaternion
       inline Quaternion(float _w, float _x, float _y, float _z) : w(_w), x(_x), y(_y), z(_z) { }
       Quaternion(Point3f const& axis, float angle);
       Quaternion(Point3f const& from, Point3f const& to);
-      Quaternion(const protocol::quaternion &p) : x(p.x()), y(p.y()), z(p.z()), w(p.w()) { }
+      Quaternion(const protocol::quaternion& c) {
+         LoadValue(c);
+      }
       explicit Quaternion(Point3f const& vector);
       explicit Quaternion(const Matrix3& rotation);
       inline ~Quaternion() {}
@@ -31,18 +33,8 @@ class Quaternion
       float magnitude() const;
       float norm() const;
 
-      void SaveValue(protocol::quaternion *msg) const {
-         msg->set_x(x);
-         msg->set_y(y);
-         msg->set_z(z);
-         msg->set_w(w);
-      }
-      void LoadValue(const protocol::quaternion &msg) {
-         x = msg.x();
-         y = msg.y();
-         z = msg.z();
-         w = msg.w();
-      }
+      void SaveValue(protocol::quaternion *msg) const;
+      void LoadValue(const protocol::quaternion &msg);
 
       // comparison
       bool operator==(const Quaternion& other) const;
@@ -134,6 +126,5 @@ std::ostream& operator<<(std::ostream& out, const Quaternion& source);
 
 END_RADIANT_CSG_NAMESPACE
 
-// IMPLEMENT_DM_EXTENSION(::radiant::csg::Quaternion, Protocol::quaternion)
 
 #endif

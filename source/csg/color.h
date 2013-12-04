@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <sstream>
 #include "namespace.h"
+#include "protocols/forward_defines.h"
 #include "dm/dm.h"
 
 BEGIN_RADIANT_CSG_NAMESPACE
@@ -42,19 +43,8 @@ public:
       }
    }
 
-   void LoadValue(const protocol::color& c) {
-      r = c.r();
-      g = c.g();
-      b = c.b();
-      a = c.a();
-   }
-
-   void SaveValue(protocol::color *c) const {
-      c->set_r(r);
-      c->set_g(g);
-      c->set_b(b);
-      c->set_a(a);
-   }
+   void LoadValue(const protocol::color& c);
+   void SaveValue(protocol::color *c) const;
 
    int ToInteger() const {
       return ((unsigned int)r) |
@@ -110,17 +100,8 @@ public:
       }
    }
 
-   void SaveValue(protocol::color *c) const {
-      c->set_r(r);
-      c->set_g(g);
-      c->set_b(b);
-   }
-
-   void LoadValue(const protocol::color& c) {
-      r = c.r();
-      g = c.g();
-      b = c.b();
-   }
+   void SaveValue(protocol::color *c) const;
+   void LoadValue(const protocol::color& c);
 
    int ToInteger() const {
       return ((unsigned int)r) |
@@ -155,8 +136,5 @@ struct Histogram {
 };
 
 END_RADIANT_CSG_NAMESPACE
-
-IMPLEMENT_DM_EXTENSION(::radiant::csg::Color3, Protocol::color)
-IMPLEMENT_DM_EXTENSION(::radiant::csg::Color4, Protocol::color)
 
 #endif

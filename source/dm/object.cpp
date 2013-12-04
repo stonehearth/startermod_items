@@ -1,6 +1,8 @@
-#include "pch.h"
+#include "radiant.h"
 #include "object.h"
 #include "store.h"
+#include "dbg_info.h"
+#include "protocols/store.pb.h"
 
 using namespace ::radiant;
 using namespace ::radiant::dm;
@@ -10,14 +12,6 @@ Object::Object()
    id_.id = 0;
    id_.store = 0;
 }
-
-Object::Object(Object&& other)
-{
-   id_ = other.id_;
-   other.id_.id = 0;
-   other.id_.store = 0;
-}
-
 
 void Object::Initialize(Store& store, ObjectId id)
 {
@@ -33,12 +27,8 @@ void Object::Initialize(Store& store, ObjectId id)
    }
 #endif
    ASSERT(id);
-
-   id_.id = id;
-   id_.store = store.GetStoreId();
-
-   MarkChanged();
-   store.RegisterObject(*this);   
+   SetObjectMetadata(id, store);
+   GetStore().SignalRegistered(this);
 }
 
 void Object::InitializeSlave(Store& store, ObjectId id)
@@ -68,17 +58,6 @@ ObjectId Object::GetObjectId() const
 void Object::MarkChanged()
 {
    timestamp_ = GetStore().GetNextGenerationId();
-   GetStore().OnObjectChanged(*this);
-}
-
-core::Guard Object::TraceObjectLifetime(const char* reason, std::function<void()> fn) const
-{
-   return GetStore().TraceObjectLifetime(*this, reason, fn);
-}
-
-core::Guard Object::TraceObjectChanges(const char* reason, std::function<void()> fn) const
-{
-   return GetStore().TraceObjectChanges(*this, reason, fn);
 }
 
 Store& Object::GetStore() const
@@ -86,24 +65,20 @@ Store& Object::GetStore() const
    return Store::GetStore(id_.store);
 }
 
+void Object::LoadObject(Protocol::Object const& msg)
+{
+   id_.id = msg.object_id();
+   timestamp_ = msg.timestamp();
+   LoadValue(msg.value());
+}
+
 void Object::SaveObject(Protocol::Object* msg) const
 {
    msg->set_object_id(id_.id);
    msg->set_object_type(GetObjectType());
    msg->set_timestamp(timestamp_);
-   SaveValue(GetStore(), msg->mutable_value());
+   SaveValue(msg->mutable_value());
 }
-
-void Object::LoadObject(const Protocol::Object& msg)
-{
-   ASSERT(msg.object_type() == GetObjectType());
-
-   id_.id = msg.object_id();
-   timestamp_ = msg.timestamp();
-   LoadValue(GetStore(), msg.value());
-   MarkChanged();
-}
-
 
 bool Object::IsValid() const
 {
@@ -121,3 +96,13 @@ bool Object::WriteDbgInfoHeader(DbgInfo &info) const
    info.os << " modified:" << GetLastModified() << "]";
    return true;
 }
+
+void Object::SetObjectMetadata(ObjectId id, Store& store)
+{
+   id_.id = id;
+   id_.store = store.GetStoreId();
+
+   MarkChanged();
+   store.RegisterObject(*this);   
+}
+

@@ -14,10 +14,14 @@ add_subdirectory(jobs)
 # add_subdirectory(script)
 
 add_library(simulation STATIC
-            interfaces.cpp
             simulation.cpp
-               pch.cpp
+            remote_client.cpp
+            pch.cpp
             )
+
+add_dependencies(simulation
+                 om_generated_headers
+                 protobuf_generated_headers)
 
 if (MSVC)
    set_target_properties(simulation PROPERTIES COMPILE_FLAGS "/Yupch.h")

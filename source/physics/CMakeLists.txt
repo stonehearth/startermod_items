@@ -4,3 +4,6 @@ add_library(physics STATIC
             nav_grid.cpp
             )
 
+add_dependencies(physics
+                 om_generated_headers)
+
