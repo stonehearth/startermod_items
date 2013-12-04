@@ -3,6 +3,7 @@
 #include "store_trace.h"
 #include "tracer_sync.h"
 #include "tracer_buffered.h"
+#include "record.h"
 #include "object.h"
 
 using namespace ::radiant;
@@ -240,11 +241,29 @@ void Store::AddTracer(TracerPtr set, int category)
    }
 }
 
+template <typename TraceType>
+void Store::ForEachTrace(ObjectId id, std::function<void(typename TraceType&)> cb)
+{
+   stdutil::ForEachPrune<StoreTrace>(store_traces_, [=](StoreTracePtr trace) {
+      trace->SignalModified(id);
+   });
+
+   auto i = traces_.find(id);
+   if (i != traces_.end()) {
+      stdutil::ForEachPrune<Trace>(i->second, [&](std::shared_ptr<Trace> t) {
+         TraceType *trace = static_cast<TraceType*>(t.get());
+         cb(*trace);
+      });
+   }
+}
+
+
 template <typename T, typename TraceType>
 void Store::MarkChangedAndFire(T& obj, std::function<void(typename TraceType&)> cb)
 {
    ObjectId id = obj.GetObjectId();
    obj.MarkChanged();
+   ForEachTrace<TraceType>(id, cb);
 
    stdutil::ForEachPrune<StoreTrace>(store_traces_, [=](StoreTracePtr trace) {
       trace->SignalModified(id);
@@ -299,6 +318,13 @@ void Store::OnBoxedChanged(T& boxed, typename T::Value const& value)
 {
    MarkChangedAndFire<T, BoxedTrace<T>>(boxed, [&](BoxedTrace<T>& trace) {
       trace.NotifyChanged(value);
+   });
+}
+
+void Store::OnRecordFieldChanged(Record const& record)
+{
+   ForEachTrace<RecordTrace<Record>>(record.GetObjectId(), [&](RecordTrace<Record>& trace) {
+      trace.NotifyRecordChanged();
    });
 }
 

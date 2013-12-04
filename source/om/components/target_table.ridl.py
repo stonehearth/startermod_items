@@ -8,10 +8,11 @@ class TargetTableEntry(dm.Record):
    name = 'TargetTableEntry'
 
 class TargetTable(dm.Record):
-   entries = dm.Map(dm.ObjectId(), std.shared_ptr(TargetTableEntry), singular_name='entry', add=None)
-   name = dm.Boxed(std.string())
+   entries = dm.Map(dm.ObjectId(), std.shared_ptr(TargetTableEntry), singular_name='entry', add=None, num=None)
+   name = dm.Boxed(std.string(), set=None)
    category = dm.Boxed(std.string())
-   top = dm.Boxed(std.shared_ptr(TargetTableEntry))
+   top = dm.Boxed(std.shared_ptr(TargetTableEntry), set=None)
+   add_entry = ridl.Method(std.shared_ptr(TargetTableEntry()), ('entity', std.weak_ptr(Entity())))
 
    _includes = [
       "om/components/target_table_entry.ridl.h"
@@ -19,6 +20,5 @@ class TargetTable(dm.Record):
 
    _public = \
    """
-   TargetTableEntryPtr AddEntry(om::EntityRef e);
    void Update(int now, int interval);
    """

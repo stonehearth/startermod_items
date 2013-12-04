@@ -370,13 +370,20 @@ function StockpileComponent:_create_worker_tasks()
    -- in the stockpile AND workers who aren't already standing in a stockpile
    -- (since they've probably just picked up something from that stockpile)
    -- TODO: Ask Tony if this counts as a hack
+   -- Yes, this is a horrible hack.  OMG!!  The way to fix it is to make restocking
+   -- stuff the lowest level task and make sure people use a "one task for the whole
+   -- pipeline" pattern like place item does.  Then the restock pathfinder will never
+   -- get a crack at people who pull stuff out of the stockpile to do other things.
+   --  - tony
+   
    self._restock_task:set_worker_filter_fn(
       function (worker)
          local entity = radiant.entities.get_carrying(worker)
-         local can_stock_this = self:can_stock_entity(entity)
+         if not self:can_stock_entity(entity) then
+            return false
+         end
          --TODO: what if the worker is standing just outside the stockpile?
-         local in_stockpile_now = self:contains(worker)
-         return can_stock_this and not in_stockpile_now
+         return not self:contains(worker)
       end
    )
 

@@ -11,7 +11,7 @@ std::ostream& operator<<(std::ostream& os, const Sensor& o)
    return os;
 }
 
-void Sensor::UpdateIntersection(std::vector<EntityId> intersection)
+void Sensor::UpdateIntersection(std::unordered_map<dm::ObjectId, om::EntityRef> const& intersection)
 {
    // xxx: move this whole routine into the dm::Set class?  It would
    // facilitiate optimization...
@@ -22,25 +22,22 @@ void Sensor::UpdateIntersection(std::vector<EntityId> intersection)
       int entity_id = entity->GetObjectId();
 
       // removed...
-      std::vector<EntityId> missing;
-      for (EntityId id : contents_) {
-         if (!stdutil::contains(intersection, id)) {
-            missing.push_back(id);
+      std::vector<dm::ObjectId> removed;
+      for (const auto& entry : contents_) {
+         auto i = intersection.find(entry.first);
+         if (i == intersection.end()) {
+            removed.push_back(entry.first);
          }
       }
-      for (EntityId id : missing) {
+      for (dm::ObjectId id : removed) {
          contents_.Remove(id);
       }
 
       // added...
-      std::vector<EntityId> added;
-      for (EntityId id : contents_) {
-         stdutil::UniqueRemove(intersection, id);
-      }
-      for (EntityId id : intersection) {
-         if (entity_id != id) {
-            LOG(WARNING) << "adding entity " << id << " to sensor for entity " << entity_id;
-            contents_.Add(id);
+      for (const auto& entry : intersection) {
+         auto i = contents_.find(entry.first);
+         if (i == contents_.end()) {
+            contents_.Add(entry.first, entry.second);
          }
       }
    }

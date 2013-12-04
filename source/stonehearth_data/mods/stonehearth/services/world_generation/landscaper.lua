@@ -286,7 +286,7 @@ function Landscaper:place_boulders(region3_boxed, zone_map)
    local elevation, i, j, x, y
 
    -- no boulders on edge of map since they can get cut off
-   region3_boxed:modify(function(cursor)
+   region3_boxed:modify(function(region3)
       for j=2, boulder_map_height-1 do
          for i=2, boulder_map_width-1 do
             x, y = perturbation_grid:get_perturbed_coordinates(i, j, exclusion_radius)

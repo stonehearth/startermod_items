@@ -390,7 +390,7 @@ bool OctTree::UpdateSensor(om::SensorPtr sensor)
    csg::Point3f origin = mob->GetWorldLocation();
    csg::Cube3f cube = sensor->GetCube() + origin;
 
-   std::vector<dm::ObjectId> intersects;
+   std::unordered_map<dm::ObjectId, om::EntityRef> intersects;
    auto i = entities_.begin();
    while (i != entities_.end()) {
       om::EntityPtr entity = i->second.entity.lock();
@@ -399,7 +399,7 @@ bool OctTree::UpdateSensor(om::SensorPtr sensor)
          if (mob) {
             csg::Cube3f const& box = mob->GetWorldAabb();
             if (cube.Intersects(box)) {
-               intersects.push_back(entity->GetObjectId());
+               intersects[entity->GetObjectId()] = entity;
             }
          }
          i++;

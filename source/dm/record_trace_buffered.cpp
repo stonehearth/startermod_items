@@ -22,7 +22,6 @@ RecordTraceBuffered<R>::RecordTraceBuffered(const char* reason, Record const& r,
 template <typename R>
 void RecordTraceBuffered<R>::Flush()
 {
-   ASSERT(changed_);
    if (changed_) {
       SignalModified();
       changed_ = false;
@@ -30,15 +29,10 @@ void RecordTraceBuffered<R>::Flush()
 }
 
 template <typename R>
-void RecordTraceBuffered<R>::SaveObjectDelta(Protocol::Value* value)
+bool RecordTraceBuffered<R>::SaveObjectDelta(Protocol::Value* value)
 {
-   TRACE_LOG(5) << "saving record trace buffered delta for object " << GetObjectId() << " (first: " << first_save_ <<")";
-   if (first_save_) {
-      GetRecord().SaveValue(value);
-      first_save_ = false;
-   }
-   // A record gets all it's fields initialized prior to the first save and
-   // never changes thereafter.  So there's nothing to do!
+   // Nothing to do...
+   return false;
 }
 
 template <typename R>

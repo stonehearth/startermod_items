@@ -48,7 +48,7 @@ function HeightMapRenderer:render_height_map_to_region(region3_boxed, height_map
 
    self:_convert_height_map_to_region2(region2, height_map)
 
-   region3_boxed:modify(function(cursor)
+   region3_boxed:modify(function(region3)
       self:_add_bedrock_to_region(region3, height_map, 4)
 
       for rect in region2:contents() do

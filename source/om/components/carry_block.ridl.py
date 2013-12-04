@@ -7,3 +7,4 @@ from ridl.om_types import *
 class CarryBlock(Component):
    carrying = dm.Boxed(EntityRef())
    is_carrying = ridl.Method(c.bool()).const
+   clear_carrying = ridl.Method(c.void())

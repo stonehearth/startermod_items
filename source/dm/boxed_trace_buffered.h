@@ -14,7 +14,7 @@ public:
    BoxedTraceBuffered(const char* reason, BoxedType const& b);
    
    void Flush();
-   void SaveObjectDelta(Protocol::Value* value) override;
+   bool SaveObjectDelta(Protocol::Value* value) override;
 
 private:
    void ClearCachedState() override;

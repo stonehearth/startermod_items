@@ -34,15 +34,24 @@ void Mob::MoveToGridAligned(const csg::Point3& location)
    MoveTo(csg::ToFloat(location));
 }
 
-void Mob::TurnTo(csg::Quaternion const& orientation)
+void Mob::SetRotation(csg::Quaternion const& orientation)
 {
+#if 1
+   //Like TurnToAngle, have to rotate 180 degrees
+   csg::Quaternion orientation_rotated = orientation * csg::Quaternion(0, 0, 1, 0);
+   transform_.Modify([&](csg::Transform& t) {
+      t.orientation = orientation_rotated;
+   });
+#else
+   // This seems to be the proper implemenation, but doesn't work at all.  Why?
    NOT_TESTED();
    transform_.Modify([&](csg::Transform& t) {
       t.orientation = orientation;
    });
+#endif
 }
 
-void Mob::TurnToAngle(float angle)
+void Mob::TurnTo(float angle)
 {
    // xxx - resources are currently loaded looking down the positive z
    // axis.  we really want to look down the negative z axix, so just
@@ -93,19 +102,18 @@ csg::Point3f Mob::GetLocation() const
 
 csg::Point3f Mob::GetWorldLocation() const
 {
-
    return GetWorldTransform().position;
 }
 
 csg::Transform Mob::GetWorldTransform() const
 {
-   auto parent = (*parent_).lock();
+   EntityPtr parent = (*parent_).lock();
    if (!parent) {
       return GetTransform();
    }
 
    const csg::Transform& local = GetTransform();
-   csg::Transform world = parent->GetWorldTransform();
+   csg::Transform world = parent->AddComponent<Mob>()->GetWorldTransform();
 
    world.position += world.orientation.rotate(csg::Point3f(local.position));
    world.orientation *= local.orientation;
@@ -127,9 +135,18 @@ csg::Quaternion Mob::GetRotation() const
 //TODO: keep testing; not sure if it works from all 360 angles
 csg::Point3f Mob::GetLocationInFront() const
 {
+#if 1
+   csg::Quaternion q = (*transform_).orientation;
+   csg::Point3f translation = q.rotate(csg::Point3f(0, 0, 1));
+   float x = (*transform_).position.x + (float)floor(translation.x + 0.5);
+   float z = (*transform_).position.z + (float)floor(translation.z + 0.5);
+   return csg::Point3f(x, (*transform_).position.y, z);
+#else
+   // This seems to be the proper implemenation, but doesn't work at all.  Why?
    NOT_TESTED();
    csg::Quaternion q = (*transform_).orientation;
    return q.rotate(csg::Point3f(0, 0, -1));
+#endif
 }
 
 
@@ -144,7 +161,7 @@ void Mob::ExtendObject(json::Node const& obj)
    transform_ = obj.get<csg::Transform>("transform", csg::Transform(csg::Point3f(0, 0, 0), csg::Quaternion(1, 0, 0, 0)));
    
    if (obj.has("parent")) {
-      parent_ = ObjectFormatter().GetObject<Mob>(GetStore(), obj.get<std::string>("parent", ""));
+      parent_ = ObjectFormatter().GetObject<Entity>(GetStore(), obj.get<std::string>("parent", ""));
    }
 }
 

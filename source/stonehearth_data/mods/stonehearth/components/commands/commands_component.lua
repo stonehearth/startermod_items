@@ -29,12 +29,12 @@ function CommandsComponent:add_command(uri)
    return t
 end
 
-function CommandsComponent:modify_command(name)
+function CommandsComponent:modify_command(name, cb)
    local command = self:_find_command_by_name(name)
    if command then
+      cb(command)
       self._data_binding:mark_changed()
    end
-   return command
 end
 
 --Set the runtime properties like enabled or tooltip

@@ -10,7 +10,7 @@ class Mob(Component):
    name = "Mob"
 
 class Mob(Component):
-   parent = dm.Boxed(std.weak_ptr(Mob))
+   parent = dm.Boxed(std.weak_ptr(Entity()))
    transform = dm.Boxed(csg.Transform)
    aabb = dm.Boxed(csg.Cube3f)
    moving = dm.Boxed(c.bool())
@@ -19,12 +19,11 @@ class Mob(Component):
 
    move_to = ridl.Method(c.void(), ('location', csg.Point3f().const.ref))
    move_to_grid_aligned = ridl.Method(c.void(), ('location', csg.Point3().const.ref))
-   turn_to = ridl.Method(c.void(), ('q', csg.Quaternion().const.ref))
-   turn_to_angle = ridl.Method(c.void(), ('degrees', c.float()))
+   turn_to = ridl.Method(c.void(), ('degrees', c.float()))
    turn_to_face_point = ridl.Method(c.void(), ('location', csg.Point3().const.ref))
+   set_rotation = ridl.Method(c.void(), ('q', csg.Quaternion().const.ref))
    get_world_aabb = ridl.Method(csg.Cube3f()).const
    get_rotation = ridl.Method(csg.Quaternion()).const
-   get_location = ridl.Method(csg.Point3f()).const
    get_location = ridl.Method(csg.Point3f()).const
    get_grid_location = ridl.Method(csg.Point3()).const
    get_world_location = ridl.Method(csg.Point3f()).const

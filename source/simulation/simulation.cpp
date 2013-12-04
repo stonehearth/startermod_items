@@ -13,6 +13,7 @@
 #include "jobs/goto_location.h"
 #include "resources/res_manager.h"
 #include "dm/store.h"
+#include "dm/store_trace.h"
 #include "dm/streamer.h"
 #include "dm/tracer_buffered.h"
 #include "dm/tracer_sync.h"
@@ -406,6 +407,13 @@ void Simulation::InitDataModel()
    store_.AddTracer(lua_traces_, dm::LUA_TRACES);
    store_.AddTracer(object_model_traces_, dm::OBJECT_MODEL_TRACES);
    store_.AddTracer(pathfinder_traces_, dm::PATHFINDER_TRACES);
+   store_trace_ = store_.TraceStore("sim")->OnAlloced([=](dm::ObjectPtr obj) {
+      if (obj->GetObjectId() == 1) {
+         GetOctTree().SetRootEntity(std::dynamic_pointer_cast<om::Entity>(obj));
+         store_trace_ = nullptr;
+      }
+   });
+
 }
 
 void Simulation::GetConfigOptions()

@@ -52,7 +52,7 @@ void RenderInfo::RemoveFromWorld(EntityPtr entity)
    if (mob) {
       auto parent = mob->GetParent().lock();
       if (parent) {
-         parent->GetEntity().GetComponent<EntityContainer>()->RemoveChild(entity->GetObjectId());
+         parent->GetComponent<EntityContainer>()->RemoveChild(entity->GetObjectId());
       }
       ASSERT(mob->GetParent().expired());
    }

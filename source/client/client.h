@@ -222,10 +222,10 @@ private:
       core::Guard                 guards_;
       bool                        perf_hud_shown_;
 
+      dm::TracerSyncPtr           object_model_traces_;
       dm::TracerBufferedPtr       game_render_tracer_;
       dm::TracerBufferedPtr       authoring_render_tracer_;
       dm::ReceiverPtr             receiver_;
-      dm::TracePtr                store_alloc_trace_;
       dm::TracePtr                authoring_store_alloc_trace_;
       dm::TracePtr                selected_trace_;
       dm::TracePtr                root_object_trace_;

@@ -50,6 +50,7 @@
 #include "platform/sysinfo.h"
 #include "glfw3.h"
 #include "dm/receiver.h"
+#include "dm/tracer_sync.h"
 #include "dm/tracer_buffered.h"
 
 #include <SFML/Audio.hpp>
@@ -345,9 +346,11 @@ void Client::run(int server_port)
    store_.AddTracer(game_render_tracer_, dm::RENDER_TRACES);
    store_.AddTracer(game_render_tracer_, dm::LUA_TRACES);
    store_.AddTracer(game_render_tracer_, dm::RPC_TRACES);
+   object_model_traces_ = std::make_shared<dm::TracerSync>("client om");
    authoringStore_.AddTracer(authoring_render_tracer_, dm::RENDER_TRACES);
    authoringStore_.AddTracer(authoring_render_tracer_, dm::LUA_TRACES);
    authoringStore_.AddTracer(authoring_render_tracer_, dm::RPC_TRACES);
+   authoringStore_.AddTracer(object_model_traces_, dm::OBJECT_MODEL_TRACES);
 
    //luabind::globals(L)["_client"] = luabind::object(L, this);
 

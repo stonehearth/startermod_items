@@ -4,13 +4,19 @@ class Env:
    PATH = 'radiant/om/components'
 
    def caps(self, obj):
-      "FooBar -> foo_bar"
+      "FooBar -> FOO_BAR"
       result = ''
+      last_digit = False
       for ch in obj:
-         if ch.isupper():
-            if result:
+         is_digit = ch.isdigit()
+         if result:
+            underscore = ch.isupper()
+            if is_digit != last_was_digit:
+               underscore = True
+            if underscore:
                result += '_'
          result += ch.upper()
+         last_was_digit = is_digit
       return result
 
    def lower(self, obj):

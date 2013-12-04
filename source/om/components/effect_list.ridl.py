@@ -12,5 +12,6 @@ class EffectList(Component):
    add_effect = ridl.Method(std.shared_ptr(Effect()), ('effect_name', std.string().const.ref), ('start_time', c.int()))
    remove_effect = ridl.Method(c.void(), ('effect', std.shared_ptr(Effect())))
    
+   _generate_construct_object = True
    _includes = [ "dm/set.h" ]
    _lua_includes = [ "om/components/effect.ridl.h" ]

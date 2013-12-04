@@ -144,6 +144,7 @@ private:
    dm::TracerSyncPtr       object_model_traces_;
    dm::TracerSyncPtr       pathfinder_traces_;
    dm::TracerBufferedPtr   lua_traces_;
+   dm::StoreTracePtr       store_trace_;
 
    int            sequence_number_;
    bool           paused_;

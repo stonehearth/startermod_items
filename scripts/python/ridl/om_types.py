@@ -10,6 +10,7 @@ class Selection(ridl.Type):
 
 class Component(dm.Record):
    name = "Component"
+   _lua_weak_ref = True
 
 class Region2Boxed(ridl.Type):
    name = "Region2Boxed"
@@ -25,6 +26,7 @@ class Region3BoxedPtr(ridl.Type):
 
 def EntityRef():
    return std.weak_ptr(Entity())
+   _lua_weak_ref = True
 
 def EntityPtr():
    return std.shared_ptr(Entity())

@@ -84,14 +84,13 @@ private:
 public:
    // New hotness.  These are the demuxes.  Fan out a single "hi, i'm a map and i've changed!"
    // to every single MapTrace (some of which are sync and some of which are buffered).
-
-   template <typename T, typename TraceType> void MarkChangedAndFire(T& obj, std::function<void(typename TraceType&)> cb);
    template <typename T> void OnMapRemoved(T& map, typename T::Key const& key);
    template <typename T> void OnMapChanged(T& map, typename T::Key const& key, typename T::Value const& value);
    template <typename T> void OnSetRemoved(T& set, typename T::Value const& value);
    template <typename T> void OnSetAdded(T& set, typename T::Value const& value);
    template <typename T> void OnArrayChanged(T& arr, uint i, typename T::Value const& value);
    template <typename T> void OnBoxedChanged(T& boxed, typename T::Value const& value);
+   void OnRecordFieldChanged(Record const& record);
 
 #define TRACE_TYPE_METHOD(Cls) \
    template <typename Cls> std::shared_ptr<Cls ## Trace<Cls>> Trace ## Cls ## Changes(const char* reason, Cls const& o, int category); \
@@ -120,6 +119,8 @@ protected: // Internal interface for Objects only
    void OnAllocObject(std::shared_ptr<Object> obj);
 
 private:
+   template <typename TraceType> void ForEachTrace(ObjectId id, std::function<void(typename TraceType&)> cb);
+   template <typename T, typename TraceType> void MarkChangedAndFire(T& obj, std::function<void(typename TraceType&)> cb);
    void ValidateObjectId(ObjectId oid) const;
 
 private:

@@ -65,7 +65,7 @@ bool FollowPath::Work(const platform::timer &timer)
          mob->MoveTo(current + (direction * (maxDistance / distance)));
          maxDistance = 0;
       }
-      mob->TurnToAngle(angle(direction) * 180 / csg::k_pi);
+      mob->TurnTo(angle(direction) * 180 / csg::k_pi);
    }
    if (Arrived(mob)) {
       Report("arrived!");

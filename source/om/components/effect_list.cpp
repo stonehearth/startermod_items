@@ -11,6 +11,11 @@ std::ostream& operator<<(std::ostream& os, EffectList const& o)
    return (os << "[EffectList]");
 }
 
+void EffectList::ConstructObject()
+{
+   next_id_ = 1;
+}
+
 void EffectList::ExtendObject(json::Node const& obj)
 {
    for (json::Node const& entry : obj.getn("effects")) {

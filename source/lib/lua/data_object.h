@@ -27,6 +27,11 @@ public:
       return data_object_;
    }
 
+   void MarkDirty()
+   {
+      dirty_ = true;
+   }
+
    json::Node const& GetJsonNode() const
    {
       if (dirty_) {

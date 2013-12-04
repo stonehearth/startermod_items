@@ -162,10 +162,12 @@ void Streamer::OnModified(TraceBufferedRef t, Object const* obj)
          msg->set_object_id(id);
          msg->set_object_type(obj->GetObjectType());
          msg->set_timestamp(obj->GetLastModified());
-         trace->SaveObjectDelta(msg->mutable_value());
-
-         STREAMER_LOG(5) << "queuing object state for object " << id;
-         object_updates_[id].emplace_back(update);
+         if (trace->SaveObjectDelta(msg->mutable_value())) {
+            STREAMER_LOG(5) << "queuing object state for object " << id;
+            object_updates_[id].emplace_back(update);
+         } else {
+            STREAMER_LOG(5) << "ignoring changes to object " << id;
+         }
       }
    }
 }

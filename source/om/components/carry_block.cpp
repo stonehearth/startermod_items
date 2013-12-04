@@ -16,5 +16,10 @@ void CarryBlock::ExtendObject(json::Node const& obj)
 
 bool CarryBlock::IsCarrying() const
 {
-   return GetCarrying().lock() == nullptr;
+   return GetCarrying().lock() != nullptr;
+}
+
+void CarryBlock::ClearCarrying()
+{
+   carrying_ = EntityRef();
 }

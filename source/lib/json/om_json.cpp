@@ -107,7 +107,7 @@ template <> Node json::encode(om::Mob const& obj)
    node.set("transform", obj.GetTransform());
    node.set("entity", om::ObjectFormatter().GetPathToObject(obj.GetEntityPtr()));
    node.set("moving", obj.GetMoving());
-   om::MobPtr parent = obj.GetParent().lock();
+   om::EntityPtr parent = obj.GetParent().lock();
    if (parent) {
       node.set("parent", om::ObjectFormatter().GetPathToObject(parent));
    }

@@ -12,8 +12,10 @@ class RecordTrace : public TraceImpl<RecordTrace<T>>
 public:
    RecordTrace(const char* reason, Record const& r, Tracer& tracer);
 
-private:
+public:
    virtual void NotifyRecordChanged() = 0;
+
+private:
    void SignalObjectState() override;
 
 protected:

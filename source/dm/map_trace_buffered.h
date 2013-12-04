@@ -14,7 +14,7 @@ public:
    MapTraceBuffered(const char* reason, M const& m);
 
    void Flush();
-   void SaveObjectDelta(Protocol::Value* value) override;
+   bool SaveObjectDelta(Protocol::Value* value) override;
 
 private:
    void ClearCachedState() override;
@@ -22,6 +22,7 @@ private:
    void NotifyChanged(Key const& key, Value const& value) override;
 
 private:
+   bool                 firing_;
    ChangeMap            changed_;
    KeyList              removed_;
 };

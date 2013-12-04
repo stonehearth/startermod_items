@@ -29,7 +29,7 @@ class Terrain(Component):
                           ('region3', Region3BoxedPtr()))
    create_new = ridl.Method(c.void())
    place_entity = ridl.Method(c.void(), ('e', EntityRef()), ('location', csg.Point3().const.ref))
-
+   
    _includes = [
       "om/region.h",
       "csg/point.h"

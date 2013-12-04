@@ -203,11 +203,11 @@ function AdmireFire:_do_random_actions(ai)
 end
 
 function AdmireFire:_release_seat_reservation()
-   if self._firepit_seat then
+   if self._firepit_seat and self._firepit_seat:is_valid() then
       local seat_lease = self._firepit_seat:get_component('stonehearth:lease_component')
       seat_lease:release_lease(self._entity)
-      self._firepit_seat = nil
    end
+   self._firepit_seat = nil
 end
 
 function AdmireFire:stop()

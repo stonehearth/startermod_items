@@ -12,10 +12,7 @@ class DataStore(dm.Record):
    _no_lua = True
    _public = \
    """
-   void MarkDataChanged()
-   {
-      data_.Modify([](lua::DataObject&) {});
-   }
+   void MarkDataChanged();
    """
 
    _includes = [

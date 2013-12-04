@@ -44,7 +44,7 @@ void RunTowardPoint::Update()
       mob->MoveTo(dst_);
       finished_ = true;
    } else {
-      mob->TurnToAngle(angle(direction) * 180 / csg::k_pi);
+      mob->TurnTo(angle(direction) * 180 / csg::k_pi);
       mob->MoveTo(current + (direction * (maxDistance / distance)));
    }
 }

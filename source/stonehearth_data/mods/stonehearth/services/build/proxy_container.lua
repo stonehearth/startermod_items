@@ -31,8 +31,8 @@ function ProxyContainer:_trace_entity(entity)
    if not result then
       result = {}      
       local mob = entity:add_component('mob')
-      result.mob_promise = mob:trace_object_changes('no construnction zone')
-                                 :on_modified(function ( ... )
+      result.mob_promise = mob:trace_transform('no construnction zone')
+                                 :on_changed(function ()
                                     self:_move_child(entity)                              
                                  end)
 

@@ -9,7 +9,7 @@ class Sensor(dm.Record):
    entity = dm.Boxed(EntityRef())
    name = dm.Boxed(std.string())
    cube = dm.Boxed(csg.Cube3f())
-   contents = dm.Set(dm.ObjectId(), iterate='define')
+   contents = dm.Map(dm.ObjectId(), std.weak_ptr(Entity()), iterate='define')
 
    _lua_weak_ref = True
 
@@ -19,7 +19,7 @@ class Sensor(dm.Record):
 
    _public = \
    """
-   void UpdateIntersection(std::vector<EntityId> intersection);
+   void UpdateIntersection(std::unordered_map<dm::ObjectId, om::EntityRef> const&);
    """
 
    _protected = \

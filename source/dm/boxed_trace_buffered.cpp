@@ -28,12 +28,14 @@ void BoxedTraceBuffered<B>::Flush()
 }
 
 template <typename B>
-void BoxedTraceBuffered<B>::SaveObjectDelta(Protocol::Value* value)
+bool BoxedTraceBuffered<B>::SaveObjectDelta(Protocol::Value* value)
 {
    TRACE_LOG(5) << "saving boxed trace buffered for object " << GetObjectId();
    if (value_) {
       SaveImpl<B::Value>::SaveValue(GetStore(), value, *value_);
+      return true;
    }
+   return false;
 }
 
 template <typename B>

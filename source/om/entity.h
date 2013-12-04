@@ -53,7 +53,6 @@ private:
    ComponentMap            components_;
 };
 std::ostream& operator<<(std::ostream& os, const Entity& o);
-std::ostream& operator<<(std::ostream& os, EntityPtr o);
 
 END_RADIANT_OM_NAMESPACE
 

@@ -7,6 +7,11 @@ using namespace ::radiant::om;
 
 std::ostream& ::radiant::om::operator<<(std::ostream& os, Entity const& o)
 {
+   // ug! luabind!!
+   if (&o == nullptr) {
+      return (os << "invalid entity reference");
+   }
+
    std::string debug_text = o.GetDebugText();
    std::string uri = o.GetUri();
 

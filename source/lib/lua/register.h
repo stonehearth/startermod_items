@@ -46,6 +46,12 @@ std::string StrongGameObjectToJson(std::shared_ptr<T> obj, luabind::object state
 }
 
 template <class T>
+bool WeakPtr_IsValid(std::weak_ptr<T> o)
+{
+   return !o.expired();
+}
+
+template <class T>
 std::string WeakGameObjectToJson(std::weak_ptr<T> o, luabind::object state)
 {
    return StrongGameObjectToJson(o.lock(), state);
@@ -89,6 +95,7 @@ luabind::class_<T, std::weak_ptr<T>> RegisterWeakGameObject(const char* name = n
    name = name ? name : GetShortTypeName<T>();
    return luabind::class_<T, std::weak_ptr<T>>(name)
       .def(tostring(luabind::self))
+      .def("is_valid",       &WeakPtr_IsValid<T>)
       .def("__tojson",       &WeakGameObjectToJson<T>)
       .def("get_id",         &T::GetObjectId)
       .def("get_type_name",  &GetTypeName<T>);
@@ -102,6 +109,7 @@ luabind::class_<Derived, Base, std::weak_ptr<Derived>> RegisterWeakGameObjectDer
    name = name ? name : GetShortTypeName<Derived>();
    return luabind::class_<Derived, Base, std::weak_ptr<Derived>>(name)
       .def(tostring(luabind::self))
+      .def("is_valid",       &WeakPtr_IsValid<Derived>)
       .def("__tojson",       &WeakGameObjectToJson<Derived>)
       .def("get_id",         &Derived::GetObjectId)
       .def("get_type_name",  &GetTypeName<Derived>);

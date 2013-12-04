@@ -50,7 +50,7 @@ function entities.remove_child(parent, child)
 
    local component = parent:get_component('entity_container')
 
-   component:remove_child(child)
+   component:remove_child(child:get_id())
    entities.move_to(child, Point3(0, 0, 0))
 end
 
@@ -317,7 +317,7 @@ function entities.pickup_item(entity, item)
       else
          radiant.entities.unset_posture(entity, 'carrying')
          radiant.entities.remove_buff(entity, 'stonehearth:buffs:carrying')
-         carry_block:set_carrying(nil)
+         carry_block:clear_carrying()
       end
    end
 end
@@ -369,7 +369,7 @@ function entities._drop_helper(entity)
       if item then
          radiant.entities.unset_posture(entity, 'carrying')
          radiant.entities.remove_buff(entity, 'stonehearth:buffs:carrying')
-         carry_block:set_carrying(nil)
+         carry_block:clear_carrying()
          return item
       end
    end
@@ -457,7 +457,7 @@ end
 
 function entities.on_entity_moved(entity, fn, reason)
    reason = reason and reason or 'on_entity_moved promise'
-   return entity:add_component('mob'):trace_object_changes(reason):on_modified(fn)
+   return entity:add_component('mob'):trace_transform(reason):on_changed(fn)
 end
 
 entities.__init()

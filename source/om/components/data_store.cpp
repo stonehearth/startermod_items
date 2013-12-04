@@ -8,3 +8,10 @@ std::ostream& operator<<(std::ostream& os, DataStore const& o)
 {
    return (os << "[DataStore]");
 }
+
+void DataStore::MarkDataChanged()
+{
+   data_.Modify([](lua::DataObject& obj) {
+      obj.MarkDirty();
+   });
+}

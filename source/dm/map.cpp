@@ -101,8 +101,10 @@ typename Map<K, V, H>::ContainerType const & Map<K, V, H>::GetContents() const
 template <class K, class V, class H>
 typename Map<K, V, H>::ContainerType::const_iterator Map<K, V, H>::Remove(typename ContainerType::const_iterator i)
 {
-   return items_.erase(i);
-   GetStore().OnMapRemoved(*this, i->first);
+   K key = i->first;
+   auto result = items_.erase(i);
+   GetStore().OnMapRemoved(*this, key);
+   return result;
 }
 
 template <class K, class V, class H>

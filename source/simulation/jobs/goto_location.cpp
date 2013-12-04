@@ -89,7 +89,7 @@ bool GotoLocation::Work(const platform::timer &timer)
       }
       return false;
    }
-   mob->TurnToAngle(angle(direction) * 180 / csg::k_pi);
+   mob->TurnTo(angle(direction) * 180 / csg::k_pi);
    mob->MoveTo(current + direction * maxDistance);
    Report("moving");
    return true;
