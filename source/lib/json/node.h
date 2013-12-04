@@ -97,7 +97,17 @@ public:
       return Node(get<JSONNode>(index, default));
    }
 
+   // add is use to build arrays.  do not use set!
+   template <typename T> Node& add(T const& value) {
+      ASSERT(node_.type() == JSON_ARRAY);
+      node_.push_back(encode(value));
+      return *this;
+   }
+
+   // set is used to modify associative arrays.  do not use add!
    template <typename T> Node& set(std::string const& path, T const& value) {
+      ASSERT(node_.type() == JSON_NODE);
+
       std::string current_path, next_path, next_node_name;
       JSONNode* node = &node_;
 
