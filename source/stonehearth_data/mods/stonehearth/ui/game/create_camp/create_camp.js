@@ -50,10 +50,13 @@ App.StonehearthCreateCampView = App.View.extend({
       },
 
       placeStockpile: function () {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:box_grab' );
          var self = this;
          self._hideCrate();
          $(top).trigger('radiant_create_stockpile', {
             callback : function() {
+               radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
                setTimeout( function() {
                   self._gotoFinishStep();
                }, 1000);

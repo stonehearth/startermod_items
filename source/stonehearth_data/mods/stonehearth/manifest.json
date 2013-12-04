@@ -205,6 +205,7 @@
          "sounds:ui:start_menu:paper_menu" : "file(data/sounds/ui/start_menu/ui_paper_menu.wav)",
          "sounds:ui:start_menu:sub_menu" : "file(data/sounds/ui/start_menu/ui_mm_submenu_select.wav)",
          "sounds:ui:start_menu:embark" : "file(data/sounds/ui/start_menu/ui_mm_embark.wav)",
+         "sounds:ui:start_menu:popup" : "file(data/sounds/ui/start_menu/ui_popup_menu.wav)",
          "sounds:ui:carpenter_menu:add_remove" : "file(data/sounds/ui/carpenter_menu/sh_carp_add_remove.wav)",
          "sounds:ui:carpenter_menu:closed" : "file(data/sounds/ui/carpenter_menu/sh_carp_closed.wav)",
          "sounds:ui:carpenter_menu:confirm" : "file(data/sounds/ui/carpenter_menu/sh_carp_confirm.wav)",
@@ -224,8 +225,9 @@
         
          "sounds:banner_plant" : "file(data/sounds/effects/sh_banner_plant.wav)",
          "sounds:banner_grab" : "file(data/sounds/effects/sh_banner_grab.wav)",
-         "sounds:banner_bounce" : "file(data/sounds/effects/sh_banner_bounce.wav)",
-         "sounds:box_bounce" : "file(data/sounds/effects/sh_box_bounce.wav)",
+         "sounds:box_grab" : "file(data/sounds/effects/sh_box_grab.wav)",
+         "sounds:banner_bounce" : "file(data/sounds/effects/sh_banner_bounce_small.wav)",
+         "sounds:box_bounce" : "file(data/sounds/effects/sh_box_bounce_small.wav)",
          "sounds:axe_chopping_sound_01" : "file(data/sounds/effects/sh_axe_01.wav)",
          "sounds:axe_chopping_sound_02" : "file(data/sounds/effects/sh_axe_02.wav)",
          "sounds:axe_chopping_sound_03" : "file(data/sounds/effects/sh_axe_03.wav)",
@@ -250,6 +252,8 @@
          "sounds:saw_light_02_sound" : "file(data/sounds/effects/sh_saw_light_02.wav)",
          "sounds:saw_light_03_sound" : "file(data/sounds/effects/sh_saw_light_03.wav)",
          "sounds:place_structure" : "file(data/sounds/effects/sh_place_structure.wav)",
+         "sounds:owl_call" : "file(data/sounds/effects/sh_owl_call.wav)",
+         "sounds:rooster_call" : "file(data/sounds/effects/sh_rooster_call.wav)",
          
          "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
          "music:world_start"     : "file(data/music/levelmusic.ogg)",
