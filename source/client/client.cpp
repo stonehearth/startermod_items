@@ -8,19 +8,16 @@
 #include "radiant_exceptions.h"
 #include "xz_region_selector.h"
 #include "om/entity.h"
-#include "om/components/terrain.h"
+#include "om/components/terrain.ridl.h"
 #include "om/error_browser/error_browser.h"
 #include "om/selection.h"
 #include "om/om_alloc.h"
 #include "csg/lua/lua_csg.h"
 #include "om/lua/lua_om.h"
-#include "om/json_store.h"
-#include "om/data_binding.h"
+#include "om/components/data_store.ridl.h"
 #include "platform/utils.h"
 #include "resources/manifest.h"
 #include "resources/res_manager.h"
-#include "lib/lua/register.h"
-#include "lib/lua/script_host.h"
 #include "om/stonehearth.h"
 #include "om/object_formatter/object_formatter.h"
 #include "horde3d/Source/Horde3DEngine/egModules.h"
@@ -36,10 +33,13 @@
 #include "lib/rpc/lua_object_router.h"
 #include "lib/rpc/trace_object_router.h"
 #include "lib/rpc/http_deferred.h" // xxx: does not belong in rpc!
+#include "lib/lua/register.h"
+#include "lib/lua/script_host.h"
 #include "lib/lua/client/open.h"
 #include "lib/lua/res/open.h"
 #include "lib/lua/rpc/open.h"
 #include "lib/lua/om/open.h"
+#include "lib/lua/dm/open.h"
 #include "lib/lua/voxel/open.h"
 #include "lib/lua/analytics/open.h"
 #include "lib/lua/audio/open.h"
@@ -52,6 +52,9 @@
 #include "lib/perfmon/perfmon.h"
 #include "platform/sysinfo.h"
 #include "glfw3.h"
+#include "dm/receiver.h"
+#include "dm/tracer_sync.h"
+#include "dm/tracer_buffered.h"
 
 //  #include "GFx/AS3/AS3_Global.h"
 #include "client.h"
@@ -73,7 +76,6 @@ Client::Client() :
    _server_last_update_time(0),
    _server_interval_duration(1),
    _server_skew(0),
-   selectedObject_(NULL),
    last_sequence_number_(-1),
    rootObject_(NULL),
    store_(2, "game"),
@@ -85,10 +87,12 @@ Client::Client() :
    next_input_id_(1),
    mouse_x_(0),
    mouse_y_(0),
-   perf_hud_shown_(false)
+   perf_hud_shown_(false),
+   connected_(false)
 {
    om::RegisterObjectTypes(store_);
    om::RegisterObjectTypes(authoringStore_);
+   receiver_ = std::make_shared<dm::Receiver>(store_);
 
    std::vector<std::pair<dm::ObjectId, dm::ObjectType>>  allocated_;
    scriptHost_.reset(new lua::ScriptHost());
@@ -101,9 +105,10 @@ Client::Client() :
    http_reactor_ = std::make_shared<rpc::HttpReactor>(*core_reactor_);
 
    // Routers...
+   trace_object_router_ = std::make_shared<rpc::TraceObjectRouter>(GetStore());
    core_reactor_->AddRouter(std::make_shared<rpc::LuaModuleRouter>(scriptHost_.get(), "client"));
    core_reactor_->AddRouter(std::make_shared<rpc::LuaObjectRouter>(scriptHost_.get(), GetAuthoringStore()));
-   core_reactor_->AddRouter(std::make_shared<rpc::TraceObjectRouter>(GetStore()));
+   core_reactor_->AddRouter(trace_object_router_);
    core_reactor_->AddRouter(std::make_shared<rpc::TraceObjectRouter>(GetAuthoringStore()));
 
    // protobuf router should be last!
@@ -284,7 +289,7 @@ void Client::run(int server_port)
    hover_cursor_ = LoadCursor("stonehearth:cursors:hover");
    default_cursor_ = LoadCursor("stonehearth:cursors:default");
 
-   octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree());
+   octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree(dm::RENDER_TRACES));
       
    Renderer& renderer = Renderer::GetInstance();
 
@@ -339,12 +344,13 @@ void Client::run(int server_port)
    lua_State* L = scriptHost_->GetInterpreter();
    lua_State* callback_thread = scriptHost_->GetCallbackThread();
    renderer.SetScriptHost(GetScriptHost());
-   om::RegisterLuaTypes(L);
    csg::RegisterLuaTypes(L);
    store_.SetInterpreter(callback_thread); // xxx move to dm open or something
    authoringStore_.SetInterpreter(callback_thread); // xxx move to dm open or something
+   lua::om::open(L);
    lua::om::register_json_to_lua_objects(L, store_);
    lua::om::register_json_to_lua_objects(L, authoringStore_);
+   lua::dm::open(L);
    lua::client::open(L);
    lua::res::open(L);
    lua::voxel::open(L);
@@ -352,6 +358,17 @@ void Client::run(int server_port)
    lua::analytics::open(L);
    lua::audio::open(L);
 
+
+   game_render_tracer_ = std::make_shared<dm::TracerBuffered>("client render", store_);
+   authoring_render_tracer_ = std::make_shared<dm::TracerBuffered>("client tmp render", authoringStore_);
+   store_.AddTracer(game_render_tracer_, dm::RENDER_TRACES);
+   store_.AddTracer(game_render_tracer_, dm::LUA_TRACES);
+   store_.AddTracer(game_render_tracer_, dm::RPC_TRACES);
+   object_model_traces_ = std::make_shared<dm::TracerSync>("client om");
+   authoringStore_.AddTracer(authoring_render_tracer_, dm::RENDER_TRACES);
+   authoringStore_.AddTracer(authoring_render_tracer_, dm::LUA_TRACES);
+   authoringStore_.AddTracer(authoring_render_tracer_, dm::RPC_TRACES);
+   authoringStore_.AddTracer(object_model_traces_, dm::OBJECT_MODEL_TRACES);
 
    //luabind::globals(L)["_client"] = luabind::object(L, this);
 
@@ -435,13 +452,14 @@ void Client::handle_connect(const boost::system::error_code& error)
       LOG(WARNING) << "connection to server failed (" << error << ").  retrying...";
       setup_connections();
    } else {
-      recv_queue_->Read();
+      recv_queue_ = std::make_shared<protocol::RecvQueue>(_tcp_socket);
+      connected_ = true;
    }
 }
 
 void Client::setup_connections()
 {
-   recv_queue_ = std::make_shared<protocol::RecvQueue>(_tcp_socket);
+   connected_ = false;
    send_queue_ = protocol::SendQueue::Create(_tcp_socket);
 
    boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string("127.0.0.1"), server_port_);
@@ -477,12 +495,11 @@ void Client::mainloop()
    // we may create or modify authoring objects as a result of input events
    // or calls from the browser.
    perfmon::SwitchToCounter("fire traces");
-   authoringStore_.FireTraces();
-   authoringStore_.FireFinishedTraces();
+   authoring_render_tracer_->Flush();
 
    Renderer::GetInstance().RenderOneFrame(now_, alpha);
 
-   if (send_queue_) {
+   if (send_queue_ && connected_) {
       perfmon::SwitchToCounter("send msgs");
       protocol::SendQueue::Flush(send_queue_);
    }
@@ -509,15 +526,15 @@ void Client::Reset()
    octtree_->Cleanup();
 
    store_.Reset();
+   receiver_ = std::make_shared<dm::Receiver>(store_);
 
    _server_last_update_time = 0;
    _server_interval_duration = 1;
    _client_interval_start = 0;
    _server_skew = 0;
 
-   rootObject_ = NULL;
-   selectedObject_ = NULL;
-   objects_.clear();
+   rootObject_ = nullptr;
+   selectedObject_ = om::EntityRef();
 }
 
 bool Client::ProcessMessage(const proto::Update& msg)
@@ -561,6 +578,8 @@ void Client::BeginUpdate(const proto::BeginUpdate& msg)
 
 void Client::EndUpdate(const proto::EndUpdate& msg)
 {
+   trace_object_router_->CheckDeferredTraces();
+
    if (!rootObject_) {
       auto rootEntity = GetStore().FetchObject<om::Entity>(1);
       if (rootEntity) {
@@ -573,8 +592,7 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
    // Only fire the remote store traces at sequence boundaries.  The
    // data isn't guaranteed to be in a consistent state between
    // boundaries.
-   store_.FireTraces();
-   store_.FireFinishedTraces();
+   game_render_tracer_->Flush();
 }
 
 void Client::SetServerTick(const proto::SetServerTick& msg)
@@ -586,55 +604,17 @@ void Client::SetServerTick(const proto::SetServerTick& msg)
 
 void Client::AllocObjects(const proto::AllocObjects& update)
 {
-   const auto& msg = update.objects();
-
-   for (const proto::AllocObjects::Entry& entry : msg) {
-      dm::ObjectId id = entry.object_id();
-      ASSERT(!store_.FetchStaticObject(id));
-
-      objects_[id] = store_.AllocSlaveObject(entry.object_type(), id);
-   }
+   receiver_->ProcessAlloc(update);
 }
 
 void Client::UpdateObject(const proto::UpdateObject& update)
 {
-   const auto& msg = update.object();
-   dm::ObjectId id = msg.object_id();
-
-   dm::Object* obj = store_.FetchStaticObject(id);
-   ASSERT(obj);
-   obj->LoadObject(msg);
+   receiver_->ProcessUpdate(update);
 }
 
 void Client::RemoveObjects(const proto::RemoveObjects& update)
 {
-   const auto& msg = update.objects();
-
-   for (int id : update.objects()) {
-      auto i = objects_.find(id);
-
-      if (selectedObject_ && id == selectedObject_->GetObjectId()) {
-         SelectEntity(nullptr);
-      }
-      if (rootObject_ && id == rootObject_ ->GetObjectId()) {
-         rootObject_  = nullptr;
-      }
-      Renderer::GetInstance().RemoveRenderObject(GetStore().GetStoreId(), id);
-
-      ASSERT(i != objects_.end());
-
-      // Not necessarily true... only true for entities.  Entities
-      // explicitly hold references to their components!
-      // ASSERT(i->second.use_count() == 1);
-      if (i->second->GetObjectType() == om::EntityObjectType) {
-         ASSERT(i->second.use_count() <= 2);
-      }
-
-      if (i != objects_.end()) {
-         objects_.erase(i);
-      }
-
-   }
+   receiver_->ProcessRemove(update);
 }
 
 void Client::UpdateDebugShapes(const proto::UpdateDebugShapes& msg)
@@ -806,48 +786,57 @@ void Client::UpdateSelection(const MouseInput &mouse)
 
 void Client::SelectEntity(dm::ObjectId id)
 {
-   auto i = objects_.find(id);
-   if (i != objects_.end() && i->second->GetObjectType() == om::EntityObjectType) {      
-      SelectEntity(std::static_pointer_cast<om::Entity>(i->second));
+   om::EntityPtr entity = GetEntity(id);
+   if (entity) {
+      SelectEntity(entity);
    }
 }
 
 void Client::SelectEntity(om::EntityPtr obj)
 {
-   if (selectedObject_ != obj) {
+   om::EntityPtr selectedObject = selectedObject_.lock();
+   RenderEntityPtr renderEntity;
+
+   if (selectedObject != obj) {
+      JSONNode selectionChanged(JSON_NODE);
+
       if (obj && obj->GetStore().GetStoreId() != GetStore().GetStoreId()) {
          LOG(WARNING) << "ignoring selected object with non-client store id.";
          return;
       }
 
-      auto renderEntity = Renderer::GetInstance().GetRenderObject(selectedObject_);
-      if (renderEntity) {
-         renderEntity->SetSelected(false);
+      if (selectedObject) {
+         renderEntity = Renderer::GetInstance().GetRenderObject(selectedObject);
+         if (renderEntity) {
+            renderEntity->SetSelected(false);
+         }
       }
 
       selectedObject_ = obj;
-      if (selectedObject_) {
-         LOG(WARNING) << "Selected actor " << selectedObject_->GetObjectId();
+      if (obj) {
+         LOG(WARNING) << "Selected actor " << obj->GetObjectId();
+         selected_trace_ = obj->TraceChanges("selection", dm::RENDER_TRACES)
+                              ->OnDestroyed([=]() {
+                                 SelectEntity(nullptr);
+                              });
+
+         renderEntity = Renderer::GetInstance().GetRenderObject(obj);
+         if (renderEntity) {
+            renderEntity->SetSelected(true);
+         }
+         std::string uri = om::ObjectFormatter().GetPathToObject(obj);
+         selectionChanged.push_back(JSONNode("selected_entity", uri));
       } else {
          LOG(WARNING) << "Cleared selected actor.";
       }
-      renderEntity = Renderer::GetInstance().GetRenderObject(selectedObject_);
-      if (renderEntity) {
-         renderEntity->SetSelected(true);
-      }
 
-      JSONNode data(JSON_NODE);
-      if (selectedObject_) {
-         std::string uri = om::ObjectFormatter().GetPathToObject(selectedObject_);
-         data.push_back(JSONNode("selected_entity", uri));
-      }
-      http_reactor_->QueueEvent("radiant_selection_changed", data);
+      http_reactor_->QueueEvent("radiant_selection_changed", selectionChanged);
    }
 }
 
 om::EntityPtr Client::GetEntity(dm::ObjectId id)
 {
-   auto obj = objects_[id];
+   dm::ObjectPtr obj = store_.FetchObject<dm::Object>(id);
    return (obj && obj->GetObjectType() == om::Entity::DmType) ? std::static_pointer_cast<om::Entity>(obj) : nullptr;
 }
 
@@ -887,9 +876,10 @@ void Client::HilightMouseover()
 
    renderer.QuerySceneRay(pt.x, pt.y, selection);
 
+   om::EntityPtr selectedObject = selectedObject_.lock();
    for (const auto &e: hilightedObjects_) {
-      auto entity = e.lock();
-      if (entity && entity != selectedObject_) {
+      om::EntityPtr entity = e.lock();
+      if (entity && entity != selectedObject) {
          auto renderObject = renderer.GetRenderObject(entity);
          if (renderObject) {
             renderObject->SetSelected(false);

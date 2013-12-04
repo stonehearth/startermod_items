@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "region.h"
 #include "util.h"
+#include "protocols/store.pb.h"
 
 using namespace ::radiant;
 using namespace ::radiant::csg;
@@ -414,3 +415,4 @@ MAKE_REGION(Region1)
 
 DEFINE_REGION_CONVERSIONS(2)
 DEFINE_REGION_CONVERSIONS(3)
+

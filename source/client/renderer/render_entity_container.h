@@ -5,7 +5,7 @@
 #include "dm/dm.h"
 #include "dm/map.h"
 #include "om/om.h"
-#include "om/components/entity_container.h"
+#include "om/components/entity_container.ridl.h"
 #include "render_component.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
@@ -18,7 +18,6 @@ public:
    ~RenderEntityContainer();
 
 private:
-   void Update(const om::EntityContainer::Container& children);
    void AddChild(dm::ObjectId key, om::EntityRef child);
    void RemoveChild(dm::ObjectId key);
 
@@ -26,8 +25,8 @@ private:
    typedef std::unordered_map<dm::ObjectId, std::weak_ptr<RenderEntity>> EntityContainerMap;
 
    const RenderEntity&  entity_;
-   core::Guard              tracer_;
    EntityContainerMap   children_;
+   dm::TracePtr         trace_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

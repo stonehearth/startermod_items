@@ -4,7 +4,7 @@
    "work_units"  : 3,
    "recipe_name" : "Picket Fence Gate",
    "description" : "Lets people through your picket fence.",
-   "flavor"      : "Don't like your neighbors? Don't install.",
+   "flavor"      : "",
    "portrait"    : "/stonehearth/entities/construction/picket_fence_gate/picket_fence_gate.png",
    "category"    : "weapons",
 

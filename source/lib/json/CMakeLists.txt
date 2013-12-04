@@ -6,3 +6,6 @@ add_library(lib_json
             core_json.cpp
             json.cpp
             )
+
+add_dependencies(lib_json
+                 om_generated_headers)

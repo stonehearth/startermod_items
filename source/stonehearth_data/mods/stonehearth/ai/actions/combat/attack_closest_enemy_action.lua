@@ -28,17 +28,13 @@ function AttackClosestEnemy:init_sight_sensor()
    end
 
    self._sensor = list:get_sensor('sight')
-   self.promise = self._sensor:get_contents():trace()
-
-   self.promise:on_added(
-      function (id)
-         self:on_added_to_sensor(id)
-      end
-   ):on_removed(
-      function (id)
-         self:on_removed_from_sensor(id)
-      end
-   ) 
+   self.promise = self._sensor:trace_contents('attack closest')
+                                 :on_added(function (id)
+                                    self:on_added_to_sensor(id)
+                                 end)
+                                 :on_removed(function (id)
+                                    self:on_removed_from_sensor(id)
+                                 end) 
 end
 
 function AttackClosestEnemy:on_added_to_sensor(entity_id)

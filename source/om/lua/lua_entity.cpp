@@ -3,7 +3,7 @@
 #include "lua_entity.h"
 #include "om/all_components.h"
 #include "om/entity.h"
-#include "om/data_binding.h"
+#include "om/components/data_store.ridl.h"
 #include "om/stonehearth.h"
 #include "resources/res_manager.h"
 

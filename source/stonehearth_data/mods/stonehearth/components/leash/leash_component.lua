@@ -9,7 +9,7 @@ function LeashComponent:__init(entity, data_store)
    self._data_store = data_store
 end
 
--- local promise = leash:get_data_store():trace('reason why tracking')
+-- local promise = leash:get_data_store():trace_data('reason why tracking')
 -- promise:on_changed(function() end)
 --   later...
 -- promise:destroy()

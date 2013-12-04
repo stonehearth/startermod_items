@@ -1,5 +1,4 @@
 import "radiant.proto";
-import "world.proto";
 import "store.proto";
 
 package radiant.tesseract.protocol;

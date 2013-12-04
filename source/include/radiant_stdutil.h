@@ -209,6 +209,7 @@ namespace radiant {
          return value;
       }
       
+
       template <class K> void ForEachPrune(std::list<std::weak_ptr<K>> &container, std::function <void (std::shared_ptr<K>)> fn) {
          for (auto i = container.begin(); i != container.end(); ) {
             std::shared_ptr<K> p = i->lock();

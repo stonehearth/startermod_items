@@ -1,12 +1,20 @@
 #include "pch.h"
-#include "clock.h"
+#include "clock.ridl.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-void Clock::InitializeRecordFields()
+std::ostream& operator<<(std::ostream& os, Clock const& o)
 {
-   Component::InitializeRecordFields();
-   AddRecordField("now", now_);
-   now_ = 0;
+   return (os << "[Clock " << o.GetTime() << "]");
 }
+
+void Clock::ConstructObject()
+{
+   time_ = 0;
+}
+
+void Clock::ExtendObject(json::Node const& obj)
+{
+}
+

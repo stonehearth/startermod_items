@@ -4,8 +4,8 @@
 #include "path_finder_src.h"
 #include "simulation/simulation.h"
 #include "om/entity.h"
-#include "om/components/mob.h"
-#include "om/components/destination.h"
+#include "om/components/mob.ridl.h"
+#include "om/components/destination.ridl.h"
 #include "om/region.h"
 #include "csg/color.h"
 
@@ -24,16 +24,18 @@ PathFinderSrc::PathFinderSrc(PathFinder &pf, om::EntityRef e) :
    if (entity) {
       auto mob = entity->GetComponent<om::Mob>();
       if (mob) {
-         guards_ += mob->GetBoxedTransform().TraceValue("pathfinder entity mob trace (xform)", [=](csg::Transform const&) {
-                        pf_.RestartSearch();
-                     });
+         transform_trace_ = mob->TraceTransform("pf src", dm::PATHFINDER_TRACES)
+                                    ->OnChanged([this](csg::Transform const&) {
+                                       pf_.RestartSearch();
+                                    });
 
-         guards_ += mob->GetBoxedMoving().TraceValue( "pathfinder entity mob trace (moving)", [=](bool const& moving) {
-                        moving_ = moving;
-                        if (moving_) {
-                           pf_.RestartSearch();
-                        }
-                     });
+         moving_trace_ = mob->TraceMoving("pf src", dm::PATHFINDER_TRACES)
+                                    ->OnChanged([this](bool const& moving) {
+                                       moving_ = moving;
+                                       if (moving_) {
+                                          pf_.RestartSearch();
+                                       }
+                                    });
       }
    }
 }

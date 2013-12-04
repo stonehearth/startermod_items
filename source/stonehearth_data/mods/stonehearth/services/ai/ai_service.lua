@@ -77,10 +77,6 @@ function AiService:inject_ai(entity, injecting_entity, ai)
    return AiInjector(entity, injecting_entity, ai)
 end
 
-function AiService:revoke_injected_ai(ai_injector)
-   ai_injector:destroy()
-end
-
 -- injecting entity may be null
 function AiService:add_action(entity, uri, injecting_entity)
    local ctor = radiant.mods.load_script(uri)

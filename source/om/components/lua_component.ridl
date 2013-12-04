@@ -1,0 +1,358 @@
+#include "pch.h"
+<%
+if C._no_lua:
+   return
+
+import ridl.ridl as ridl
+import ridl.dm_types as dm
+class_upper = C.__name__
+class_lower = env.lower(class_upper)
+is_component = C.__bases__[0]().name == 'Component' 
+
+if C._lua_weak_ref:
+   class_to_pointer = 'auto instance = o.lock();'
+   class_formal_parameter = 'std::weak_ptr<%s> o' % class_upper
+   class_formal_parameter_const = 'std::weak_ptr<%s> const o' % class_upper
+   class_return_type = 'std::weak_ptr<%s>' % class_upper
+else:
+   class_to_pointer = ''
+   class_formal_parameter = 'std::shared_ptr<%s> instance' % class_upper
+   class_formal_parameter_const = 'std::shared_ptr<%s> const instance' % class_upper
+   class_return_type = 'std::shared_ptr<%s>' % class_upper
+
+trace_includes = []
+for name, obj in env.properties(C, [dm.Boxed, dm.Set, dm.Array, dm.Map]):
+   if obj.trace:
+      if obj.trace == 'deep_region':
+         trace_includes += [ "om/region.h" ]
+      else:
+         trace_includes += [
+            "dm/%s.h" % obj.short_name,
+            "dm/%s_trace.h" % obj.short_name
+         ]
+%>
+#include "radiant.h"
+#include "lib/lua/bind.h"
+#include "lib/lua/register.h"
+#include "lib/lua/script_host.h"
+#include "lib/lua/dm/boxed_trace_wrapper.h"
+#include "lib/lua/dm/map_iterator.h"
+#include "lib/lua/dm/map_trace_wrapper.h"
+#include "lib/lua/dm/set_iterator.h"
+#include "lib/lua/dm/set_trace_wrapper.h"
+% for filename in trace_includes:
+#include "${filename}"
+% endfor
+#include "dm/trace_categories.h"
+% for f in C._lua_includes:
+#include "${f}"
+% endfor
+#include "om/components/${ class_lower }.ridl.h"
+
+using namespace luabind;
+using namespace radiant;
+using namespace radiant::om;
+
+static std::ostream& operator<<(std::ostream& os, ${class_formal_parameter})
+{
+   ${class_to_pointer}
+   if (instance) {
+      os << *instance;
+   } else {
+      os << "[invalid ${class_lower} reference]";
+   }
+   return os;
+}
+
+% if is_component:
+static ${class_return_type} ${class_upper}_ExtendObject(lua_State* L, ${class_formal_parameter}, object obj)
+{
+   ${class_to_pointer}
+   if (instance)  {
+      instance->ExtendObject(lua::ScriptHost::LuaToJson(L, obj));
+      return instance;
+   }
+   throw std::invalid_argument("invalid reference in native ${class_lower}::extend");
+}
+% endif
+
+## - Boxed -----------------------------------------------------------------------------------
+% for name, boxed in env.properties(C, dm.Boxed):
+   % if boxed.get:
+static ${boxed.value.name} ${class_upper}_Get${name | env.upper}(${class_formal_parameter_const})
+{
+   ${class_to_pointer}
+   if (instance)  {
+      return instance->Get${name | env.upper}();
+   }
+   throw std::invalid_argument("invalid reference in native ${class_lower}::get_${name}");
+}
+
+   % endif
+   % if boxed.set:
+static ${class_return_type} ${class_upper}_Set${name | env.upper}(${class_formal_parameter}, ${boxed.value.name} value)
+{
+   ${class_to_pointer}
+   if (instance)  {
+      instance->Set${name | env.upper}(value);
+      return instance;
+   }
+   throw std::invalid_argument("invalid reference in native ${class_lower}::set_${name}");
+}
+
+   % endif
+% endfor
+
+## - Set -----------------------------------------------------------------------------------
+% for name, set in env.properties(C, dm.Set):
+   <% singular_name = hasattr(set, 'singular_name') and set.singular_name or name %>
+   % if set.add:
+static ${class_return_type} ${class_upper}_Add${singular_name | env.upper}(${class_formal_parameter_const}, ${set.accessor_value.name} value)
+{
+   ${class_to_pointer}
+   if (instance)  {
+      instance->Add${singular_name | env.upper}(value);
+      return instance;
+   }
+   throw std::invalid_argument("invalid reference in native ${class_lower}::add_${singular_name}");
+}
+
+   % endif
+   % if set.remove:
+static ${class_return_type} ${class_upper}_Remove${singular_name | env.upper}(${class_formal_parameter}, ${set.accessor_value.name} value)
+{
+   ${class_to_pointer}
+   if (instance)  {
+      instance->Remove${singular_name | env.upper}(value);
+      return instance;
+   }
+   throw std::invalid_argument("invalid reference in native ${class_lower}::remove_${singular_name}");
+}
+
+   % endif
+   % if set.num:
+static int ${class_upper}_Num${name | env.upper}(${class_formal_parameter})
+{
+   ${class_to_pointer}
+   if (instance)  {
+      return instance->Num${name | env.upper}();
+   }
+   throw std::invalid_argument("invalid reference in native ${class_lower}::num_${name}");
+}
+
+   % endif
+   % if set.iterate:
+static std::shared_ptr<lua::SetIterator<${set.name}>> ${class_upper}_Each${singular_name | env.upper}(${class_formal_parameter})
+{
+   ${class_to_pointer}
+   if (instance)  {
+      return std::make_shared<lua::SetIterator<${set.name}>>(instance->Each${singular_name | env.upper}());
+   }
+   throw std::invalid_argument("invalid reference in native ${class_lower}::each_${singular_name}");
+}
+   % endif
+% endfor
+
+## - Map -----------------------------------------------------------------------------------
+% for name, map in env.properties(C, dm.Map):
+   <% singular_name = hasattr(map, 'singular_name') and map.singular_name or name %>
+   % if map.add:
+static ${class_return_type} ${class_upper}_Add${singular_name | env.upper}(${class_formal_parameter_const}, ${map.key.name} key, ${map.accessor_value.name} value)
+{
+   ${class_to_pointer}
+   if (instance)  {
+      instance->Add${singular_name | env.upper}(key, value);
+      return instance;
+   }
+   throw std::invalid_argument("invalid reference in native ${class_lower}::add_${singular_name}");
+}
+
+   % endif
+   % if map.remove:
+static ${class_return_type} ${class_upper}_Remove${singular_name | env.upper}(${class_formal_parameter}, ${map.key.name} key)
+{
+   ${class_to_pointer}
+   if (instance)  {
+      instance->Remove${singular_name | env.upper}(key);
+      return instance;
+   }
+   throw std::invalid_argument("invalid reference in native ${class_lower}::remove_${singular_name}");
+}
+
+   % endif
+   % if map.get:
+static ${map.accessor_value.name} ${class_upper}_Get${singular_name | env.upper}(${class_formal_parameter}, ${map.key.name} key)
+{
+   ${class_to_pointer}
+   if (instance)  {
+      return instance->Get${singular_name | env.upper}(key);
+   }
+   throw std::invalid_argument("invalid reference in native ${class_lower}::get_${singular_name}");
+}
+
+   % endif
+   % if map.iterate:
+static void ${class_upper}_Each${singular_name | env.upper}(lua_State *L, ${class_formal_parameter})
+{
+   ${class_to_pointer}
+   if (instance)  {
+      typedef lua::MapIterator<${map.name}> Iterator;
+      lua_pushcfunction(L, Iterator::NextIteration);                              // f
+      object(L, new Iterator(instance->Each${singular_name | env.upper}())).push(L); // s
+      object(L, 1).push(L);                                                       // var (ignored)
+      return;
+   }
+   throw std::invalid_argument("invalid reference in native ${class_lower}::each_${singular_name}");
+}
+   % endif
+   % if map.num:
+static int ${class_upper}_Num${name | env.upper}(${class_formal_parameter})
+{
+   ${class_to_pointer}
+   if (instance)  {
+      return instance->Num${name | env.upper}();
+   }
+   throw std::invalid_argument("invalid reference in native num");
+}
+   % endif
+
+% endfor
+
+## - Methods -----------------------------------------------------------------------------------
+% for method_name, method in env.properties(C, ridl.Method):
+<% 
+   formal_params = class_formal_parameter
+   additional_params = method.formal_params
+   if len(additional_params) > 0:
+      formal_params += ', ' + additional_params
+%>
+%   if method.result.name == 'void':
+${class_return_type} ${class_upper}_${method_name | env.upper}(${formal_params})
+{
+   ${class_to_pointer}
+   if (instance) {
+      instance->${method_name | env.upper}(${method.actual_params});
+      return instance;
+   }
+   throw std::invalid_argument("invalid reference in ${class_lower}::${method_name}");
+}
+%   else:
+${method.result.name} ${class_upper}_${method_name | env.upper}(${formal_params})
+{
+   ${class_to_pointer}
+   if (instance) {
+      return instance->${method_name | env.upper}(${method.actual_params});
+   }
+   throw std::invalid_argument("invalid reference in ${class_lower}::${method_name}");
+}
+%   endif
+% endfor
+
+## - All Traces-----------------------------------------------------------------------------------
+% for name, obj in env.properties(C, [dm.Boxed, dm.Set, dm.Array, dm.Map]):
+   % if obj.trace:
+      % if obj.trace == 'deep_region':
+static std::shared_ptr<lua::${obj.short_name | env.upper}TraceWrapper<DeepRegionGuard>>
+${class_upper}_Trace${name | env.upper}(${class_formal_parameter}, const char* reason)
+{
+   ${class_to_pointer} 
+   if (instance)  {
+      auto trace = instance->Trace${name | env.upper}(reason, dm::LUA_TRACES);
+      return std::make_shared<lua::${obj.short_name | env.upper}TraceWrapper<DeepRegionGuard>>(trace);
+   }
+   throw std::invalid_argument("invalid reference in native ${class_lower}::trace_${name}");
+}
+      % else:
+static std::shared_ptr<lua::${obj.short_name | env.upper}TraceWrapper<${obj.trace_name}>>
+${class_upper}_Trace${name | env.upper}(${class_formal_parameter}, const char* reason)
+{
+   ${class_to_pointer} 
+   if (instance)  {
+      auto trace = instance->Trace${name | env.upper}(reason, dm::LUA_TRACES);
+      return std::make_shared<lua::${obj.short_name | env.upper}TraceWrapper<${obj.trace_name}>>(trace);
+   }
+   throw std::invalid_argument("invalid reference in native ${class_lower}::trace_${name}");
+}
+      % endif
+   % endif
+% endfor
+
+scope Register${class_upper}(lua_State* L)
+{
+   return
+%if is_component:
+      lua::RegisterWeakGameObjectDerived<${class_upper}, ${C.__bases__[0]().name}>()
+%elif C._lua_weak_ref:
+      lua::RegisterWeakGameObject<${class_upper}>()
+%else:
+      lua::RegisterStrongGameObject<${class_upper}>()
+%endif
+## - Enum -----------------------------------------------------------------------------------
+% for name, enum in env.properties(C, ridl.Enum):
+   <% count = len(enum.values) - 1 %>
+         .enum_("${enum.internal_name}") [
+%   for i in xrange(count):
+            value("${enum.values[i][0] | env.caps}",  ${class_upper}::${enum.values[i][0]}),
+%   endfor
+            value("${enum.values[count][0] | env.caps}",  ${class_upper}::${enum.values[count][0]})
+         ]
+% endfor
+% if is_component:
+         .def("extend",                &${class_upper}_ExtendObject)
+% endif
+## - Boxed -----------------------------------------------------------------------------------
+% for name, boxed in env.properties(C, dm.Boxed):
+   % if boxed.get:
+         .def("get_${name | env.lower}", ${class_upper}_Get${name | env.upper})
+   % endif
+   % if boxed.set:
+         .def("set_${name | env.lower}", ${class_upper}_Set${name | env.upper})
+   % endif
+% endfor
+## - Set -----------------------------------------------------------------------------------
+% for name, set in env.properties(C, dm.Set):
+   <% singular_name = hasattr(set, 'singular_name') and set.singular_name or name %>
+   % if set.add:
+         .def("add_${singular_name | env.lower}", ${class_upper}_Add${singular_name | env.upper})
+   % endif
+   % if set.remove:
+         .def("remove_${singular_name | env.lower}", ${class_upper}_Remove${singular_name | env.upper})
+   % endif
+   % if set.iterate:
+         .def("each_${singular_name | env.lower}", ${class_upper}_Each${singular_name | env.upper})
+   % endif
+   % if set.num:
+         .def("num_${name | env.lower}", ${class_upper}_Num${name | env.upper})
+   % endif
+% endfor
+## - Map -----------------------------------------------------------------------------------
+% for name, map in env.properties(C, dm.Map):
+   <% singular_name = hasattr(map, 'singular_name') and map.singular_name or name %>
+   % if map.add:
+         .def("add_${singular_name | env.lower}", ${class_upper}_Add${singular_name | env.upper})
+   % endif
+   % if map.remove:
+         .def("remove_${singular_name | env.lower}", ${class_upper}_Remove${singular_name | env.upper})
+   % endif
+   % if map.get:
+         .def("get_${singular_name | env.lower}", ${class_upper}_Get${singular_name | env.upper})
+   % endif
+   % if map.iterate:
+         .def("each_${singular_name | env.lower}", ${class_upper}_Each${singular_name | env.upper})
+   % endif
+   % if map.num:
+         .def("num_${name | env.lower}", ${class_upper}_Num${name | env.upper})
+   % endif
+% endfor
+## - All Traces ------------------------------------------------------------------------------
+% for name, set in env.properties(C, [dm.Set, dm.Map, dm.Boxed, dm.Array]):
+   % if set.trace:
+         .def("trace_${name | env.lower}", ${class_upper}_Trace${name | env.upper})
+   % endif
+% endfor
+## - Methods -----------------------------------------------------------------------------------
+% for method_name, method in env.properties(C, ridl.Method):
+         .def("${method_name | env.lower}", &${class_upper}_${method_name | env.upper})
+% endfor
+      ;
+}

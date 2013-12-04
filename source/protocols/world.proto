@@ -1,3 +1,0 @@
-import "radiant.proto";
-
-package radiant.world.protocol;

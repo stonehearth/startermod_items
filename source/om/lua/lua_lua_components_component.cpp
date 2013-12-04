@@ -1,3 +1,4 @@
+#if 0
 #include "pch.h"
 #include "lib/lua/register.h"
 #include "lua_lua_components_component.h"
@@ -15,3 +16,4 @@ scope LuaLuaComponentsComponent::RegisterLuaTypes(lua_State* L)
         .def("add_lua_component",   &LuaComponents::AddLuaComponent)
       ;
 }
+#endif

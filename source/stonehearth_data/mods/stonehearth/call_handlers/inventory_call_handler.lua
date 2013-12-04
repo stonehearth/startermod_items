@@ -36,15 +36,16 @@ function InventoryCallHandler:choose_stockpile_location(session, response)
 
    _radiant.client.select_xz_region()
       :progress(function (box)
-            local cursor = self._region:modify()
-            cursor:clear()
-            cursor:add_cube(Rect2(Point2(0, 0), 
-                                  Point2(box.max.x - box.min.x + 1, box.max.z - box.min.z + 1)))
+            self._region:modify(function(cursor)
+               cursor:clear()
+               cursor:add_cube(Rect2(Point2(0, 0), 
+                                     Point2(box.max.x - box.min.x + 1, box.max.z - box.min.z + 1)))
+            end)
             mob:set_location_grid_aligned(box.min)
             if node then
                h3dRemoveNode(node)
             end
-            node = _radiant.client.create_designation_node(parent_node, cursor, Color3(0, 153, 255), Color3(0, 153, 255));
+            node = _radiant.client.create_designation_node(parent_node, self._region:get(), Color3(0, 153, 255), Color3(0, 153, 255));
          end)
       :done(function (box)
             local size = {

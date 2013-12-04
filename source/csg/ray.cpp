@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "matrix4.h"
 #include "ray.h"
+#include "protocols/store.pb.h"
 
 using namespace ::radiant;
 using namespace ::radiant::csg;
@@ -471,4 +472,16 @@ Ray3::closest_point(const Point3f& point) const
         // else somewhere else in ray
         return origin + direction*(proj/vsq);
     }
+}
+
+void Ray3::SaveValue(protocol::ray3f* msg) const
+{
+   origin.SaveValue(msg->mutable_origin());
+   direction.SaveValue(msg->mutable_direction());
+}
+
+void Ray3::LoadValue(const protocol::ray3f& msg)
+{
+   origin.LoadValue(msg.origin());
+   direction.LoadValue(msg.direction());
 }

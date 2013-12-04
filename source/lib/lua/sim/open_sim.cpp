@@ -9,8 +9,7 @@
 #include "om/entity.h"
 #include "om/stonehearth.h"
 #include "om/region.h"
-#include "om/json_store.h"
-#include "om/data_binding.h"
+#include "om/components/data_store.ridl.h"
 #include "lib/voxel/qubicle_brush.h"
 #include "lib/json/core_json.h"
 
@@ -32,6 +31,11 @@ private:
    std::weak_ptr<T>  obj_;
 };
 
+std::ostream& operator<<(std::ostream& os, Simulation const&s)
+{
+   return (os << "[radiant simulation]");
+}
+
 std::ostream& operator<<(std::ostream& os, WeakObjectReference<PathFinder> const& o)
 {
    auto p = o.Lock();
@@ -46,14 +50,23 @@ WeakObjectReference<PathFinder> ToWeakPathFinder(lua_State* L, std::shared_ptr<P
    return WeakObjectReference<PathFinder>(p);
 }
 
-om::EntityRef Sim_CreateEmptyEntity()
+static Simulation& GetSim(lua_State* L)
 {
-   return Simulation::GetInstance().CreateEntity();
+   Simulation* sim = object_cast<Simulation*>(globals(L)["_sim"]);
+   if (!sim) {
+      throw std::logic_error("could not find script host in interpreter");
+   }
+   return *sim;
+}
+
+om::EntityRef Sim_CreateEmptyEntity(lua_State* L)
+{
+   return GetSim(L).CreateEntity();
 }
 
 om::EntityRef Sim_CreateEntity(lua_State* L, std::string const& uri)
 {
-   om::EntityPtr entity = Simulation::GetInstance().CreateEntity();
+   om::EntityPtr entity = GetSim(L).CreateEntity();
    om::Stonehearth::InitEntity(entity, uri, L);
    return entity;
 }
@@ -64,28 +77,28 @@ std::string Sim_GetEntityUri(lua_State* L, std::string const& mod_name, std::str
 }
 
 template <typename T>
-std::shared_ptr<T> Sim_AllocObject()
+std::shared_ptr<T> Sim_AllocObject(lua_State* L)
 {
-   return Simulation::GetInstance().GetStore().AllocObject<T>();
+   return GetSim(L).GetStore().AllocObject<T>();
 }
 
-om::DataBindingPPtr Sim_AllocDataStore(lua_State* L)
+om::DataStorePtr Sim_AllocDataStore(lua_State* L)
 {
    // make sure we return the strong pointer version
-   om::DataBindingPPtr db = Sim_AllocObject<om::DataBindingP>();
-   db->SetDataObject(newtable(L));
+   om::DataStorePtr db = Sim_AllocObject<om::DataStore>(L);
+   db->SetData(newtable(L));
    return db;
 }
 
 
-om::EntityRef Sim_GetEntity(object id)
+om::EntityRef Sim_GetEntity(lua_State* L, object id)
 {
    using namespace luabind;
    if (type(id) == LUA_TNUMBER) {
-      return Simulation::GetInstance().GetEntity(object_cast<int>(id));
+      return GetSim(L).GetEntity(object_cast<int>(id));
    }
    if (type(id) == LUA_TSTRING) {
-      dm::Store& store = Simulation::GetInstance().GetStore();
+      dm::Store& store = GetSim(L).GetStore();
       dm::ObjectPtr obj = om::ObjectFormatter().GetObject(store, object_cast<std::string>(id));
       if (obj->GetObjectType() == om::EntityObjectType) {
          return std::static_pointer_cast<om::Entity>(obj);
@@ -95,49 +108,54 @@ om::EntityRef Sim_GetEntity(object id)
 }
 
 
-void Sim_DestroyEntity(std::weak_ptr<om::Entity> e)
+void Sim_DestroyEntity(lua_State* L, std::weak_ptr<om::Entity> e)
 {
    auto entity = e.lock();
    if (entity) {
-      return Simulation::GetInstance().DestroyEntity(entity->GetObjectId());
+      return GetSim(L).DestroyEntity(entity->GetObjectId());
    }
 }
 
 std::shared_ptr<FollowPath> Sim_CreateFollowPath(lua_State *L, om::EntityRef entity, float speed, std::shared_ptr<Path> path, float close_to_distance, object arrived_cb)
 {
+   Simulation &sim = GetSim(L);
    object cb(lua::ScriptHost::GetCallbackThread(L), arrived_cb);
-   std::shared_ptr<FollowPath> fp = std::make_shared<FollowPath>(entity, speed, path, close_to_distance, cb);
-   Simulation::GetInstance().AddTask(fp);
+   std::shared_ptr<FollowPath> fp(new FollowPath(sim, entity, speed, path, close_to_distance, cb));
+   sim.AddTask(fp);
    return fp;
 }
 
 std::shared_ptr<GotoLocation> Sim_CreateGotoLocation(lua_State *L, om::EntityRef entity, float speed, const csg::Point3f& location, float close_to_distance, object arrived_cb)
 {
+   Simulation &sim = GetSim(L);
    object cb(lua::ScriptHost::GetCallbackThread(L), arrived_cb);
-   std::shared_ptr<GotoLocation> fp = std::make_shared<GotoLocation>(entity, speed, location, close_to_distance, cb);
-   Simulation::GetInstance().AddTask(fp);
+   std::shared_ptr<GotoLocation> fp(new GotoLocation(sim, entity, speed, location, close_to_distance, cb));
+   sim.AddTask(fp);
    return fp;
 }
 
 std::shared_ptr<GotoLocation> Sim_CreateGotoEntity(lua_State *L, om::EntityRef entity, float speed, om::EntityRef target, float close_to_distance, object arrived_cb)
 {
+   Simulation &sim = GetSim(L);
    object cb(lua::ScriptHost::GetCallbackThread(L), arrived_cb);
-   std::shared_ptr<GotoLocation> fp = std::make_shared<GotoLocation>(entity, speed, target, close_to_distance, cb);
-   Simulation::GetInstance().AddTask(fp);
+   std::shared_ptr<GotoLocation> fp(new GotoLocation(sim, entity, speed, target, close_to_distance, cb));
+   sim.AddTask(fp);
    return fp;
 }
 
 std::shared_ptr<PathFinder> Sim_CreatePathFinder(lua_State *L, std::string name)
 {
-   std::shared_ptr<PathFinder> pf = std::make_shared<PathFinder>(lua::ScriptHost::GetCallbackThread(L), name);
-   Simulation::GetInstance().AddJob(pf);
+   Simulation &sim = GetSim(L);
+   std::shared_ptr<PathFinder> pf(new PathFinder(sim, name));
+   sim.AddJob(pf);
    return pf;
 }
 
 std::shared_ptr<LuaJob> Sim_CreateJob(lua_State *L, std::string const& name, object cb)
 {
-   std::shared_ptr<LuaJob> job = std::make_shared<LuaJob>(name, object(lua::ScriptHost::GetCallbackThread(L), cb));
-   Simulation::GetInstance().AddJob(job);
+   Simulation &sim = GetSim(L);
+   std::shared_ptr<LuaJob> job = std::make_shared<LuaJob>(sim, name, object(lua::ScriptHost::GetCallbackThread(L), cb));
+   sim.AddJob(job);
    return job;
 }
 
@@ -177,9 +195,9 @@ DEFINE_INVALID_JSON_CONVERSION(FollowPath);
 DEFINE_INVALID_JSON_CONVERSION(GotoLocation);
 DEFINE_INVALID_JSON_CONVERSION(WeakObjectReference<PathFinder>);
 DEFINE_INVALID_JSON_CONVERSION(LuaJob);
+DEFINE_INVALID_JSON_CONVERSION(Simulation);
 
-
-void lua::sim::open(lua_State* L)
+void lua::sim::open(lua_State* L, Simulation* sim)
 {
    module(L) [
       namespace_("_radiant") [
@@ -220,7 +238,9 @@ void lua::sim::open(lua_State* L)
                .def("start",              &PathFinder::Start)
                .def("restart",            &PathFinder::Restart)
             ,
-            RegisterType<WeakObjectReference<PathFinder>>()
+            lua::RegisterType<Simulation>()
+            ,
+            lua::RegisterType<WeakObjectReference<PathFinder>>()
                .def("lock",               &WeakObjectReference<PathFinder>::Lock)
             ,
             lua::RegisterTypePtr<FollowPath>()
@@ -234,4 +254,5 @@ void lua::sim::open(lua_State* L)
          ]
       ]
    ];
+   globals(L)["_sim"] = object(L, sim);
 }

@@ -4,24 +4,43 @@ FIND_PACKAGE(Snappy  REQUIRED)
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 
 add_library(dm STATIC
-            dbg_info.cpp
+            array.cpp
+            boxed.cpp
+            boxed_trace.cpp
+            boxed_trace_buffered.cpp
+            boxed_trace_sync.cpp
             dbg_indenter.cpp
-            tracer.cpp
+            dbg_info.cpp
+            map.cpp
+            map_trace.cpp
+            map_trace_buffered.cpp
+            map_trace_sync.cpp
             object.cpp
+            receiver.cpp
             record.cpp
+            record_trace.cpp
+            record_trace_buffered.cpp
+            record_trace_sync.cpp
+            set.cpp
+            set_trace.cpp
+            set_trace_buffered.cpp
+            set_trace_sync.cpp
             store.cpp
-            types.cpp
-            pch.cpp
+            store_trace.cpp
+            streamer.cpp
+            trace.cpp
+            tracer.cpp
+            tracer_buffered.cpp
+            tracer_sync.cpp
             )
 
-if (MSVC)
-   set_target_properties(dm PROPERTIES COMPILE_FLAGS "/Yupch.h")
-   set_source_files_properties(pch.cpp PROPERTIES COMPILE_FLAGS "/Ycpch.h")
-endif(MSVC)
-
 target_link_libraries(dm
-                      protocols
+                      protobuf
                       ${Snappy_LIBRARIES}
                       )
+add_dependencies(dm
+                 om_generated_headers
+                 protobuf_generated_headers)
+
 
 # GENERATE_EXPORT_HEADER(dm)

@@ -4,8 +4,8 @@
 #include "om.h"
 #include "dm/dm.h"
 #include "csg/cube.h"
-#include "store.pb.h"
-#include "tesseract.pb.h"
+#include "protocols/store.pb.h"
+#include "protocols/tesseract.pb.h"
 #include "lib/lua/bind.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
@@ -93,7 +93,5 @@ private:
 static std::ostream& operator<<(std::ostream& out, const Selection& source) { return source.Format(out); }
 
 END_RADIANT_OM_NAMESPACE
-
-IMPLEMENT_DM_EXTENSION(::radiant::om::Selection, Protocol::Selection::extension)
 
 #endif //  _RADIANT_OM_SELECTION_H

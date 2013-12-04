@@ -9,9 +9,9 @@ include_directories(${Libjson_INCLUDE_DIRS})
 include_directories(${Cryptopp_INCLUDE_DIRS})
 
 add_subdirectory(components)
-add_subdirectory(lua)
 add_subdirectory(object_formatter)
 add_subdirectory(error_browser)
+add_subdirectory(lua)
 
 add_library(om STATIC
             pch.cpp
@@ -20,9 +20,10 @@ add_library(om STATIC
             region.cpp
             selection.cpp
             stonehearth.cpp
-            data_binding.cpp
-            json_store.cpp
             )
+
+add_dependencies(om
+                 protobuf_generated_headers)
 
 if (MSVC)
    set_target_properties(om PROPERTIES COMPILE_FLAGS "/Yupch.h")
@@ -31,8 +32,8 @@ endif(MSVC)
 
 
 target_link_libraries(om
-                      om_components
                       om_lua
+                      om_components
                       om_object_formatter
                       om_error_browser
                       )

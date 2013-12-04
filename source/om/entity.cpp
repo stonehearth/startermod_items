@@ -5,17 +5,13 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-std::ostream& ::radiant::om::operator<<(std::ostream& os, EntityPtr o)
-{
-   if (o) {
-      return os << *o;
-   } else {
-      return os << "[Entity null!]";
-   }
-}
-
 std::ostream& ::radiant::om::operator<<(std::ostream& os, Entity const& o)
 {
+   // ug! luabind!!
+   if (&o == nullptr) {
+      return (os << "invalid entity reference");
+   }
+
    std::string debug_text = o.GetDebugText();
    std::string uri = o.GetUri();
 
@@ -51,7 +47,7 @@ template <class T> std::shared_ptr<T> Entity::AddComponent()
       // that of the owning entity.  we can defend against this better if we return
       // weak references from GetComponent, etc.
       component->SetEntity(shared_from_this()); 
-      components_[T::DmType] = component;
+      components_.Add(T::DmType, component);
 
       // Hold onto the new comp
    }
@@ -62,17 +58,6 @@ dm::ObjectPtr Entity::GetComponent(dm::ObjectType t) const
 {
    auto i = components_.find(t);
    return i != components_.end() ? i->second : nullptr;
-}
-
-
-// xxx: this will end up remoting the unit info record a 2nd time whenever something
-// in the unit info changes.  arg!  what we really want to say is "hey record, install
-// this trace whenever *you* change or any of *your fields* change).
-core::Guard Entity::TraceObjectChanges(const char* reason, std::function<void()> fn) const
-{
-   core::Guard guard = Record::TraceObjectChanges(reason, fn);
-   guard += GetComponent<LuaComponents>()->TraceObjectChanges(reason, fn);
-   return guard;
 }
 
 template <class T> std::shared_ptr<T> Entity::GetComponent() const

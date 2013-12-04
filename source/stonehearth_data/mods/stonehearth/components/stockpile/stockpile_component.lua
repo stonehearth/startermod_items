@@ -103,15 +103,14 @@ function StockpileComponent:on_gameloop()
 
    local root = radiant.entities.get_root_entity()
    local ec = radiant.entities.get_root_entity():get_component('entity_container')
-   local children = ec:get_children()
 
-   self._ec_trace = children:trace('tracking stockpile')
-   self._ec_trace:on_added(function (id, entity)
-         self:_add_item(entity)
-      end)
-   self._ec_trace:on_removed(function (id, entity)
-         self:_remove_item(id)
-      end)
+   self._ec_trace = ec:trace_children('tracking stockpile')
+                           :on_added(function (id, entity)
+                              self:_add_item(entity)
+                           end)
+                           :on_removed(function (id, entity)
+                              self:_remove_item(id)
+                           end)
 
    local mob = self._entity:add_component('mob')
    self._mob_trace = mob:trace_transform('stockpile tracking self position')
@@ -120,10 +119,10 @@ function StockpileComponent:on_gameloop()
                            end)
 
    local unit_info = self._entity:add_component('unit_info')
-   self._unit_info_trace = unit_info:trace('stockpile tracking faction')
-      :on_changed(function()
-            self:_on_faction_changed()
-         end)
+   self._unit_info_trace = unit_info:trace_faction('stockpile tracking faction')
+                                       :on_changed(function()
+                                             self:_on_faction_changed()
+                                          end)
       
    self:_rebuild_item_data()
 end
@@ -199,7 +198,9 @@ function StockpileComponent:reserve(location)
    local pt = Point3(location) - origin
    local region = self._destination:get_region()
    if region:get():contains(pt) then
-      region:modify():subtract_point(pt)
+      region:modify(function(cursor)
+         cursor:subtract_point(pt)
+      end)
       return true
    end
 end
@@ -208,10 +209,11 @@ function StockpileComponent:_remove_world_point_from_region(location)
    local origin = radiant.entities.get_world_grid_location(self._entity)
    local offset = location - origin
    local region = self._destination:get_region()
-   local cursor = region:modify()
-   cursor:subtract_point(offset)
+   region:modify(function(cursor)
+      cursor:subtract_point(offset)
+   end)
    if self._pickup_task then
-      if cursor:empty() then
+      if region:get():empty() then
          self._pickup_task:stop()
       else
          self._pickup_task:start()
@@ -257,25 +259,27 @@ function StockpileComponent:_remove_item(id)
       --entity has been sufficiently disposed of that we find out where it is to reclaim its space.
       if origin then 
          local offset = origin - radiant.entities.get_world_grid_location(self._entity)
-         region:modify():add_point(Point3(offset))
+         region:modify(function(cursor)
+            cursor:add_point(Point3(offset))
+         end)
       end
    end
 end
 
 function StockpileComponent:_rebuild_item_data()
    local region = self._destination:get_region()
-   local cursor = region:modify()
-   cursor:clear()
-   cursor:add_cube(self:_get_bounds())
+   region:modify(function(cursor)
+      cursor:clear()
+      cursor:add_cube(self:_get_bounds())
+   end)
 
    self._data.items = {}
    self._data_binding:mark_changed()
 
    local ec = radiant.entities.get_root_entity()
                   :get_component('entity_container')
-                  :get_children()
 
-   for id, child in ec:items() do
+   for id, child in ec:each_child() do
       self:_add_item(child)
    end
 end
@@ -385,13 +389,20 @@ function StockpileComponent:_create_worker_tasks()
    -- in the stockpile AND workers who aren't already standing in a stockpile
    -- (since they've probably just picked up something from that stockpile)
    -- TODO: Ask Tony if this counts as a hack
+   -- Yes, this is a horrible hack.  OMG!!  The way to fix it is to make restocking
+   -- stuff the lowest level task and make sure people use a "one task for the whole
+   -- pipeline" pattern like place item does.  Then the restock pathfinder will never
+   -- get a crack at people who pull stuff out of the stockpile to do other things.
+   --  - tony
+   
    self._restock_task:set_worker_filter_fn(
       function (worker)
          local entity = radiant.entities.get_carrying(worker)
-         local can_stock_this = self:can_stock_entity(entity)
+         if not self:can_stock_entity(entity) then
+            return false
+         end
          --TODO: what if the worker is standing just outside the stockpile?
-         local in_stockpile_now = self:contains(worker)
-         return can_stock_this and not in_stockpile_now
+         return not self:contains(worker)
       end
    )
 

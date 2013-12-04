@@ -19,11 +19,13 @@ public:
    DEFINE_OM_OBJECT_TYPE(Entity, entity);
    virtual ~Entity() { }
 
-   core::Guard TraceObjectChanges(const char* reason, std::function<void()> fn) const override;
-
    typedef dm::Map<dm::ObjectType, std::shared_ptr<Object>> ComponentMap;
 
    const ComponentMap& GetComponents() const { return components_; }
+   std::shared_ptr<dm::MapTrace<ComponentMap>> TraceComponents(const char* reason, int category)
+   {
+      return components_.TraceChanges(reason, category);
+   }
 
    template <class T> std::shared_ptr<T> AddComponent();
    template <class T> std::shared_ptr<T> GetComponent() const;
@@ -46,15 +48,11 @@ private:
    NO_COPY_CONSTRUCTOR(Entity)
 
 private:
-   typedef std::unordered_map<dm::TraceId, std::function<void(dm::ObjectPtr)>> ComponentTraceMap;
-
-private:
    dm::Boxed<std::string>  debug_text_;
    dm::Boxed<std::string>  uri_;
    ComponentMap            components_;
 };
 std::ostream& operator<<(std::ostream& os, const Entity& o);
-std::ostream& operator<<(std::ostream& os, EntityPtr o);
 
 END_RADIANT_OM_NAMESPACE
 

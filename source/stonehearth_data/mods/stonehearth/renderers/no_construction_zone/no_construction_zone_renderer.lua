@@ -7,10 +7,10 @@ function NoConstructionZoneRenderer:__init(render_entity, data_store)
    self._parent_node = render_entity:get_node()
    self._data_store = data_store
 
-   self._promise = data_store:trace('rendering')
-   self._promise:on_changed(function()
-         self:_update()
-      end)
+   self._promise = data_store:trace_data('rendering')
+                                 :on_changed(function()
+                                    self:_update()
+                                 end)
    self:_update()
 end
 

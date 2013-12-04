@@ -23,7 +23,6 @@ class Timeline {
       void EndFrame();
 
    private:
-      std::deque<Frame*>   frames_;
       Frame*               current_frame_;
       Counter*             current_counter_;
       Timer                timer_;
