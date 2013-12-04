@@ -48,8 +48,6 @@ function SleepInBedAction:run(ai, entity, bed, path)
    -- get ready to go to sleep
    ai:execute('stonehearth:run_effect', 'yawn')
 
-   radiant.entities.unthink(self._entity, '/stonehearth/data/effects/thoughts/sleepy')
-
    -- move directly on top of the bed
    local bed_location = radiant.entities.get_world_grid_location(bed)
 
@@ -70,6 +68,7 @@ function SleepInBedAction:stop()
       self._bed_moved_promise = nil
    end
    radiant.entities.remove_buff(self._entity, 'stonehearth:buffs:sleeping');
+   radiant.entities.unthink(self._entity, '/stonehearth/data/effects/thoughts/sleepy')
 end
 
 return SleepInBedAction

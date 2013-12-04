@@ -44,9 +44,7 @@ function SleepAction:start_looking_for_bed()
       return
    end
    
-   assert(not self._pathfinder)
-   
-   radiant.entities.think(self._entity, '/stonehearth/data/effects/thoughts/sleepy', 1)
+   assert(not self._pathfinder)   
    self._looking_for_a_bed = true
 
    --[[
@@ -151,6 +149,7 @@ end
 --]]
 function SleepAction:run(ai, entity)
    self:stop_looking_for_bed()
+   radiant.entities.think(self._entity, '/stonehearth/data/effects/thoughts/sleepy', 1)
 
    if self._path_to_bed then
       -- we found a bed. Let's sleep in it
