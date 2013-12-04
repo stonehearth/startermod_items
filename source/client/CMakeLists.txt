@@ -27,42 +27,43 @@ add_library(client
             pch.cpp
             )
 
+add_dependencies(client
+                 om_generated_headers
+                 protobuf_generated_headers)
+
 if (MSVC)
    set_target_properties(client PROPERTIES COMPILE_FLAGS "/Yupch.h")
    set_source_files_properties(pch.cpp PROPERTIES COMPILE_FLAGS "/Ycpch.h")
 endif(MSVC)
 
 target_link_libraries(client 
-                             ${PROTOBUF_LIBRARIES}
-                             ${Boost_LIBRARIES}
-                             ${Python_LIBRARIES}
-                             ${Cryptopp_LIBRARIES}
-                             ${Libjson_LIBRARIES}
-                             ${Breakpad_LIBRARIES}
-                             ${Poco_LIBRARIES}
-							 ${Sfml_LIBRARIES}
-#                             ${Bullet_LIBRARIES}
-                             comctl32
-                             winmm
-#                             "C:/Program Files (x86)/Microsoft DirectX SDK (June 2010)/Lib/x86/d3dx9.lib"
-#                             "C:/Program Files (x86)/Microsoft DirectX SDK (June 2010)/Lib/x86/d3d9.lib"
-                             chromium_browser
-                             client_renderer
-                             core
-                             crash_reporter_client
-                             csg
-                             dm
-                             glfw
-                             Horde3D
-                             Horde3DUtils
-                             horde3d_extensions
-                             lua
-                             metrics
-                             om
-                             physics
-                             platform
-                             protocols
-                             resources
-                             simulation
-                             rpc
-                             )
+                      ${PROTOBUF_LIBRARIES}
+                      ${Boost_LIBRARIES}
+                      ${Python_LIBRARIES}
+                      ${Cryptopp_LIBRARIES}
+                      ${Libjson_LIBRARIES}
+                      ${Breakpad_LIBRARIES}
+                      ${Poco_LIBRARIES}
+                      ${Sfml_LIBRARIES}
+                      comctl32
+                      winmm
+                      chromium_browser
+                      client_renderer
+                      core
+                      crash_reporter_client
+                      csg
+                      dm
+                      glfw
+                      Horde3D
+                      Horde3DUtils
+                      horde3d_extensions
+                      lua
+                      metrics
+                      om
+                      physics
+                      platform
+                      protobuf
+                      resources
+                      simulation
+                      rpc
+                     )

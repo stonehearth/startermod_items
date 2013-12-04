@@ -35,8 +35,12 @@ add_library(dm STATIC
             )
 
 target_link_libraries(dm
-                      protocols
+                      protobuf
                       ${Snappy_LIBRARIES}
                       )
+add_dependencies(dm
+                 om_generated_headers
+                 protobuf_generated_headers)
+
 
 # GENERATE_EXPORT_HEADER(dm)

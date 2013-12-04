@@ -24,6 +24,9 @@ add_library(lua
             pch.cpp
             )
 
+add_dependencies(lua
+                 om_generated_headers)
+
 if (MSVC)
    set_target_properties(client PROPERTIES COMPILE_FLAGS "/Yupch.h")
    set_source_files_properties(pch.cpp PROPERTIES COMPILE_FLAGS "/Ycpch.h")

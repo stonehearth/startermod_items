@@ -63,8 +63,11 @@ SET(RIDL_SOURCES
 PROCESS_RADIANT_IDLS(component.ridl "ridl.h" RIDL_HEADERS ${RIDL_SOURCES})
 PROCESS_RADIANT_IDLS(lua_component.ridl "lua.cpp" RIDL_LUA_COMPONENTS ${RIDL_SOURCES})
 
-add_library(om_components STATIC
+add_library(om_generated_headers
             ${RIDL_HEADERS}
+            nop.cpp)
+
+add_library(om_components STATIC
             ${RIDL_LUA_COMPONENTS}
             pch.cpp
             carry_block.cpp
@@ -92,6 +95,9 @@ add_library(om_components STATIC
             item.cpp
             unit_info.cpp
             )
+
+add_dependencies(om_components
+                 om_generated_headers)
 
 if (MSVC)
    set_target_properties(om_components PROPERTIES COMPILE_FLAGS "/Yupch.h")

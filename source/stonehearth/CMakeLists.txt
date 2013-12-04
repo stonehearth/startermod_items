@@ -37,7 +37,8 @@ target_link_libraries(stonehearth
                              om
                              physics
                              platform
-                             protocols
+                             protobuf
+                             protobuf_generated_headers
                              resources
                              simulation
                              perfmon

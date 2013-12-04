@@ -5,7 +5,7 @@
 #include "namespace.h"
 #include "point.h"
 #include "Quaternion.h"
-#include "protocols/radiant.pb.h"
+#include "protocols/forward_defines.h"
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
@@ -21,14 +21,8 @@ public:
    Ray3(const Ray3& other);
    Ray3& operator=(const Ray3& other);
 
-   void SaveValue(protocol::ray3f* msg) const {
-      origin.SaveValue(msg->mutable_origin());
-      direction.SaveValue(msg->mutable_direction());
-   }
-   void LoadValue(const protocol::ray3f& msg) {
-      origin.LoadValue(msg.origin());
-      direction.LoadValue(msg.direction());
-   }
+   void SaveValue(protocol::ray3f* msg) const;
+   void LoadValue(const protocol::ray3f& msg);
 
    // comparison
    bool operator==(const Ray3& ray) const;

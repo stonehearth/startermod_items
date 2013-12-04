@@ -19,6 +19,10 @@ add_library(simulation STATIC
             pch.cpp
             )
 
+add_dependencies(simulation
+                 om_generated_headers
+                 protobuf_generated_headers)
+
 if (MSVC)
    set_target_properties(simulation PROPERTIES COMPILE_FLAGS "/Yupch.h")
    set_source_files_properties(pch.cpp PROPERTIES COMPILE_FLAGS "/Ycpch.h")

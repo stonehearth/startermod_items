@@ -9,14 +9,19 @@ PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS
                       store.proto
                       tesseract.proto)
 
-
-add_library(protocols STATIC
-            ${PROTO_SRCS}
+add_library(protobuf_generated_headers STATIC
             ${PROTO_HDRS}
-            ${PROTO_PYTHON}
+            ${PROTO_SRCS}
+            nop.cpp
+            )
+
+add_library(protobuf STATIC
             protocol.cpp
             )
 
-target_link_libraries(protocols
+add_dependencies(protobuf
+                 protobuf_generated_headers)
+
+target_link_libraries(protobuf
                     ${PROTOBUF_LIBRARIES}
                     )

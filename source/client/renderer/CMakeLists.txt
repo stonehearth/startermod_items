@@ -31,6 +31,10 @@ add_library(client_renderer STATIC
             perfhud/render_context.cpp
             )
 
+add_dependencies(client_renderer
+                 om_generated_headers
+                 protobuf_generated_headers)
+
 if (MSVC)
    set_target_properties(client_renderer PROPERTIES COMPILE_FLAGS "/Yupch.h")
    set_source_files_properties(pch.cpp PROPERTIES COMPILE_FLAGS "/Ycpch.h")

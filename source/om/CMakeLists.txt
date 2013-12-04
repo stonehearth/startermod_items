@@ -22,6 +22,9 @@ add_library(om STATIC
             stonehearth.cpp
             )
 
+add_dependencies(om
+                 protobuf_generated_headers)
+
 if (MSVC)
    set_target_properties(om PROPERTIES COMPILE_FLAGS "/Yupch.h")
    set_source_files_properties(pch.cpp PROPERTIES COMPILE_FLAGS "/Ycpch.h")
