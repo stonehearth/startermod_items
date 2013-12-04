@@ -55,10 +55,16 @@ App.StonehearthCalendarView = App.View.extend({
          hoursRemaining = this._constants.event_times.sunset - date.hour;
 
          if (this._hoursRemaining != hoursRemaining) {
+
+            if(!this._sunBody.is(':visible')) {
+               radiant.call('radiant:play_sound', 'stonehearth:sounds:rooster_call' );
+            }
+
             //transition to day
             this._moonBody.hide();
             this._moonRays.hide();
             this._sunBody.show();
+
             /*
             if(this._moonBody.is(':visible')) {
                this._moon.animate({ 'top': 0, 'left' : 120 }, 500, function() {
@@ -80,9 +86,9 @@ App.StonehearthCalendarView = App.View.extend({
             var args = {
                'track': 'stonehearth:ambient:summer_day',
                'channel': 'ambient', 
-               'volume' : 90
+               'volume' : 40
             };
-            radiant.call('radiant:play_music', args);   
+            radiant.call('radiant:play_music', args);
          }   
       } else {
          if (date.hour < this._constants.event_times.sunrise) {
@@ -92,6 +98,11 @@ App.StonehearthCalendarView = App.View.extend({
          }
 
          if (this._hoursRemaining != hoursRemaining) {
+
+            if(!this._moonBody.is(':visible')) {
+               radiant.call('radiant:play_sound', 'stonehearth:sounds:owl_call' );
+            }
+
             //transition to night
             this._sunBody.hide();
             this._sunRays.hide();
@@ -122,9 +133,9 @@ App.StonehearthCalendarView = App.View.extend({
             var args = {
                'track': 'stonehearth:ambient:summer_night',
                'channel': 'ambient',
-               'volume' : 90
+               'volume' : 20
             };
-            radiant.call('radiant:play_music', args);      
+            radiant.call('radiant:play_music', args);  
          }
       }
 

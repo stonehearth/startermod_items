@@ -70,6 +70,19 @@ void RenderEntity::FinishConstruction()
 
 RenderEntity::~RenderEntity()
 {
+   for (const auto& e : lua_components_) 
+   {
+      lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
+      try {
+         luabind::object obj = e.second;
+         luabind::object fn = obj["destroy"];
+         if (fn && fn.is_valid()) {
+            luabind::call_function<void>(fn, obj);
+         }
+      } catch (std::exception const& e) {
+         LOG(WARNING) << "error destroying component renderer: " << e.what();
+      }
+   }
    totalObjectCount_--;
 }
 

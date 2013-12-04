@@ -56,10 +56,11 @@ App.StonehearthCrafterView = App.View.extend({
 
    actions: {
       hide: function() {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:menu_closed' );
          var self = this;
          $("#craftWindow")
             .animate({ top: -1900 }, 500, 'easeOutBounce', function() {
-               self.destroy();
+               self.destroy()
          });
       },
 
@@ -72,6 +73,7 @@ App.StonehearthCrafterView = App.View.extend({
 
       //Call this function when the user is ready to submit an order
       craft: function() {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:confirm' );
          var workshop = this.getWorkshop();
          var recipe = this.getCurrentRecipe();
 
@@ -88,6 +90,14 @@ App.StonehearthCrafterView = App.View.extend({
 
       togglePause: function(){
          var workshop = this.getWorkshop();
+         //if (this.get('context.workshopIsPaused') {
+            // play the open sound
+            //radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:open' );
+         //} else {
+            // play the closed sound
+           // radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:closed' );
+        // }
+
          radiant.call_obj(workshop, 'toggle_pause');
       },
 
@@ -172,7 +182,7 @@ App.StonehearthCrafterView = App.View.extend({
             duration: 200,
             step: function(now,fx) {
                var percentDone;
-               var end = fx.end;
+               var end = fx.end; 
                var start = fx.start;
 
                if (end > start) {
@@ -229,6 +239,7 @@ App.StonehearthCrafterView = App.View.extend({
       });
       // open the first category
       element.find("h3")[0].click();
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:menu_open' );
       element.find("a")[0].click();
    },
 
@@ -286,6 +297,7 @@ App.StonehearthCrafterView = App.View.extend({
                radiant.call_obj(workshop, 'delete_order', id)
                   .done(function(return_data){
                      ui.item.remove();
+                     radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:trash' );
                   });
              }
          },
@@ -293,6 +305,7 @@ App.StonehearthCrafterView = App.View.extend({
             //Called whenever we hover over a new target
             if (event.target.id == "garbageList") {
                ui.item.find(".deleteLabel").addClass("showDelete");
+               radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:highlight' );
             } else {
                ui.item.find(".deleteLabel").removeClass("showDelete");
             }
