@@ -25,6 +25,7 @@
     
     Tipsy.prototype = {
         show: function() {
+            $('.tipsy').remove();
             var title = this.getTitle();
             var subtitle = this.getSubtitle();
             if (title && this.enabled) {
@@ -103,7 +104,7 @@
         
         getTitle: function() {
             var title, $e = this.$element, o = this.options;
-            this.fixTitle();
+        this.fixTitle();
             var title, o = this.options;
             if (typeof o.title == 'string') {
                 title = $e.attr(o.title == 'title' ? 'original-title' : o.title);
