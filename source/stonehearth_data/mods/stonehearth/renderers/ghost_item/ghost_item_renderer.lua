@@ -17,12 +17,9 @@ function GhostItemRenderer:_update()
    local data = self._data_store:get_data()
    if data and data.full_sized_mod_url ~= '' then
       self._ghost_entity = radiant.entities.create_entity(data.full_sized_mod_url)
-
-      --TODO: debug this, not actually appearing in the world at the moment
-      --local ghost_entity_unit_info = self._ghost_entity:add_component('unit_info')
-      --ghost_entity_unit_info:set_display_name(data.unit_info_name)
-      --ghost_entity_unit_info:set_description(data.unit_info_description)
-      --ghost_entity_unit_info:set_icon(data.unit_info_icon)
+      self._ghost_entity:add_component('render_info')
+         :set_material('materials/ghost_item.xml')
+         :set_model_mode('blueprint')
 
       self._ghost_item_rendered = _radiant.client.create_render_entity(1, self._ghost_entity)
 
