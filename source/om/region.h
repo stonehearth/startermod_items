@@ -80,21 +80,6 @@ DeepRegionGuardPtr DeepTraceRegion(Region3BoxedPtrBoxed const& boxedRegionPtrFie
                                    const char* reason, int category);
 
 
-#if 0
-// just shove DeepRegionGuard in!
-class Region3BoxedPromise
-{
-public:
-   Region3BoxedPromise(Region3BoxedPtrBoxed const& boxedRegionPtrField, const char* reason);
-
-public:
-   Region3BoxedPromise* PushChangedCb(luabind::object cb);
-
-private:
-   DeepRegionGuardPtr            region_guard_;
-   std::vector<luabind::object>  changedCbs_;
-};
-#endif
 
 END_RADIANT_OM_NAMESPACE
 

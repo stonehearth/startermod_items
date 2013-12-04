@@ -202,7 +202,6 @@ void ScriptHost::NotifyError(std::string const& error, std::string const& traceb
    LOG(WARNING) << "-- Lua Error End   ------------------------------- ";
    lastError_ = error;
    lastTraceback_ = traceback;
-   DebugBreak();
 }
 
 lua_State* ScriptHost::GetInterpreter()

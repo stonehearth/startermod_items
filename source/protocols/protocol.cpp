@@ -22,11 +22,6 @@ void SendQueue::Flush(std::shared_ptr<SendQueue> sendQueue)
 
       while (!queue.empty()) {
          auto buffer = queue.front();
-         static int i = 0;
-         static int total = 0;
-         total += buffer->size();
-         LOG(INFO) << i++ << " server sending buffer of length " << buffer->size() << "(total: " << total <<").";
-
          sendQueue->socket_.async_send(boost::asio::buffer(buffer->data(), buffer->size()), 
                                        std::bind(&SendQueue::HandleWrite, sendQueue, buffer, std::placeholders::_1, std::placeholders::_2));
          queue.pop();

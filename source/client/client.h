@@ -166,7 +166,7 @@ private:
       // remote object storage and tracking...
       dm::Store                        store_;
       om::EntityPtr                    rootObject_;
-      om::EntityPtr                    selectedObject_;
+      om::EntityRef                    selectedObject_;
       std::vector<om::EntityRef>       hilightedObjects_;
 
       // local authoring object storage and tracking...

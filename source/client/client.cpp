@@ -76,7 +76,6 @@ Client::Client() :
    _server_last_update_time(0),
    _server_interval_duration(1),
    _server_skew(0),
-   selectedObject_(NULL),
    last_sequence_number_(-1),
    rootObject_(NULL),
    store_(2, "game"),
@@ -532,8 +531,8 @@ void Client::Reset()
    _client_interval_start = 0;
    _server_skew = 0;
 
-   rootObject_ = NULL;
-   selectedObject_ = NULL;
+   rootObject_ = nullptr;
+   selectedObject_ = om::EntityRef();
 }
 
 bool Client::ProcessMessage(const proto::Update& msg)
@@ -793,38 +792,43 @@ void Client::SelectEntity(dm::ObjectId id)
 
 void Client::SelectEntity(om::EntityPtr obj)
 {
-   if (selectedObject_ != obj) {
+   om::EntityPtr selectedObject = selectedObject_.lock();
+   RenderEntityPtr renderEntity;
+
+   if (selectedObject != obj) {
+      JSONNode selectionChanged(JSON_NODE);
+
       if (obj && obj->GetStore().GetStoreId() != GetStore().GetStoreId()) {
          LOG(WARNING) << "ignoring selected object with non-client store id.";
          return;
       }
 
-      auto renderEntity = Renderer::GetInstance().GetRenderObject(selectedObject_);
-      if (renderEntity) {
-         renderEntity->SetSelected(false);
+      if (selectedObject) {
+         renderEntity = Renderer::GetInstance().GetRenderObject(selectedObject);
+         if (renderEntity) {
+            renderEntity->SetSelected(false);
+         }
       }
 
       selectedObject_ = obj;
-      if (selectedObject_) {
-         LOG(WARNING) << "Selected actor " << selectedObject_->GetObjectId();
-         selected_trace_ = selectedObject_->TraceChanges("selection", dm::RENDER_TRACES)
+      if (obj) {
+         LOG(WARNING) << "Selected actor " << obj->GetObjectId();
+         selected_trace_ = obj->TraceChanges("selection", dm::RENDER_TRACES)
                               ->OnDestroyed([=]() {
                                  SelectEntity(nullptr);
                               });
+
+         renderEntity = Renderer::GetInstance().GetRenderObject(obj);
+         if (renderEntity) {
+            renderEntity->SetSelected(true);
+         }
+         std::string uri = om::ObjectFormatter().GetPathToObject(obj);
+         selectionChanged.push_back(JSONNode("selected_entity", uri));
       } else {
          LOG(WARNING) << "Cleared selected actor.";
       }
-      renderEntity = Renderer::GetInstance().GetRenderObject(selectedObject_);
-      if (renderEntity) {
-         renderEntity->SetSelected(true);
-      }
 
-      JSONNode data(JSON_NODE);
-      if (selectedObject_) {
-         std::string uri = om::ObjectFormatter().GetPathToObject(selectedObject_);
-         data.push_back(JSONNode("selected_entity", uri));
-      }
-      http_reactor_->QueueEvent("radiant_selection_changed", data);
+      http_reactor_->QueueEvent("radiant_selection_changed", selectionChanged);
    }
 }
 
@@ -870,9 +874,10 @@ void Client::HilightMouseover()
 
    renderer.QuerySceneRay(pt.x, pt.y, selection);
 
+   om::EntityPtr selectedObject = selectedObject_.lock();
    for (const auto &e: hilightedObjects_) {
-      auto entity = e.lock();
-      if (entity && entity != selectedObject_) {
+      om::EntityPtr entity = e.lock();
+      if (entity && entity != selectedObject) {
          auto renderObject = renderer.GetRenderObject(entity);
          if (renderObject) {
             renderObject->SetSelected(false);

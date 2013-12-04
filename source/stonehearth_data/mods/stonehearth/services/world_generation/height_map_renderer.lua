@@ -178,7 +178,7 @@ function HeightMapRenderer:visualize_height_map(height_map)
 
    self:_convert_height_map_to_region2(region2, height_map)
 
-   region3_boxed:modify(function(cursor)
+   region3_boxed:modify(function(region3)
       for rect in region2:contents() do
          height = rect.tag
          if height >= 1 then
@@ -199,7 +199,7 @@ function HeightMapRenderer.tesselator_test()
    local region3_boxed = _radiant.sim.alloc_region()
    local height = 10
 
-   region3_boxed:modify(function(cursor)
+   region3_boxed:modify(function(region3)
       --region3:add_cube(Cube3(Point3(0, height-1, 0), Point3(16, height, 16), Terrain.DARK_GRASS))
       --region3:add_cube(Cube3(Point3(16, height-1, 1), Point3(17, height, 15), Terrain.SOIL))
 
