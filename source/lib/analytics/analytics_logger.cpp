@@ -66,7 +66,7 @@ void AnalyticsLogger::SetBasicValues(std::string userid, std::string sessionid, 
 void AnalyticsLogger::SubmitLogEvent(json::Node event_node, std::string event_category)
 {
    //If the user has asked us not to collect data, don't. 
-   if (!core::Config::GetInstance().GetCollectionStatus()) {
+   if (!analytics::GetCollectionStatus()) {
       return;
    }
 
@@ -99,7 +99,7 @@ void AnalyticsLogger::SubmitLogEvent(json::Node event_node, std::string event_ca
 void AnalyticsLogger::SubmitPost(json::Node post_node, std::string uri, std::string authorization_string)
 {
    //If the user has asked us not to collect data, don't. 
-   if (!core::Config::GetInstance().GetCollectionStatus()) {
+   if (!analytics::GetCollectionStatus()) {
       return;
    }
 

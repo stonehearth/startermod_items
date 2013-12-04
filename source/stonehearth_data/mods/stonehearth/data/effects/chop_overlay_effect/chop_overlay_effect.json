@@ -1,0 +1,9 @@
+{
+   "type" : "effect",
+   "tracks": {
+      "activity_overlay_effect": {
+         "type": "activity_overlay_effect",
+         "material": "materials/chop_overlay/chop_overlay.material.xml"
+     }
+   }
+}

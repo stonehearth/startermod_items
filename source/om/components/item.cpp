@@ -18,7 +18,6 @@ void Item::ConstructObject()
 
 void Item::ExtendObject(json::Node const& obj)
 {
-   JSONNode const& node = obj.GetNode();
    int count = obj.get<int>("stacks", *max_stacks_);
    stacks_ = count;
    max_stacks_ = count;

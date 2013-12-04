@@ -15,8 +15,8 @@ std::ostream& operator<<(std::ostream& os, const SensorList& o)
 
 void SensorList::ExtendObject(json::Node const& obj)
 {
-   for (auto const& e : obj.GetNode()["sensors"]) {
-      AddSensor(e.name(), e["radius"].as_int());
+   for (auto const& e : obj.get_node("sensors")) {
+      AddSensor(e.name(), e.get<int>("radius"));
    }
 }
 

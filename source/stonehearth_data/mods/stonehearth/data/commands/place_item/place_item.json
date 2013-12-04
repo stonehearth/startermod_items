@@ -2,7 +2,7 @@
    "type" : "command",
 
    "name": "place_item",
-   "tooltip": "Place a full sized version in the world",
+   "tooltip": "Place this item",
    "icon": "file(place_item.png)",
 
    "action": "fire_event",

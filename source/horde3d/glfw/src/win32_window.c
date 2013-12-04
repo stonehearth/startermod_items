@@ -398,6 +398,7 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
 
     switch (uMsg)
     {
+
         case WM_CREATE:
         {
             CREATESTRUCT* cs = (CREATESTRUCT*) lParam;
@@ -498,6 +499,15 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
         {
             const int scancode = (lParam >> 16) & 0xff;
             const int key = translateKey(wParam, lParam);
+            
+            if (key == GLFW_KEY_ENTER)
+            {
+               if (GetKeyState(VK_MENU)) 
+               {
+                  _glfwFullscreenToggle(window);
+               }
+            }
+            
             if (key == _GLFW_KEY_INVALID)
                 break;
 

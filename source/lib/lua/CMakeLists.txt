@@ -13,6 +13,7 @@ add_library(lua
             script_host.cpp
             lua_supplemental.cpp
             analytics/open_analytics.cpp
+            audio/open_audio.cpp
             res/open_res.cpp
             sim/open_sim.cpp
             client/open_client.cpp

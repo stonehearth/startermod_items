@@ -28,7 +28,7 @@ std::shared_ptr<voxel::QubicleFile> RenderRenderInfo::LoadQubicleFile(std::strin
       return i->second;
    }
    std::shared_ptr<std::istream> is = res::ResourceManager2::GetInstance().OpenResource(uri);
-   std::shared_ptr<voxel::QubicleFile> q = std::make_shared<voxel::QubicleFile>();
+   std::shared_ptr<voxel::QubicleFile> q = std::make_shared<voxel::QubicleFile>(uri);
    (*is) >> *q;
 
    qubicle_map__[uri] = q;
@@ -216,7 +216,7 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
                                  .PaintOnce();
       node = pipeline.CreateBlueprintNode(parent, model, 0.5f, material_path_);
    } else {
-      node = pipeline.AddQubicleNode(parent, *matrix, origin, &mesh);
+      node = pipeline.AddQubicleNode(parent, *matrix, origin, bone, &mesh);
       if (material_.get()) {
          h3dSetNodeParamI(mesh, H3DMesh::MatResI, material_.get());
       }

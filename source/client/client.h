@@ -45,8 +45,6 @@ class Client : public core::Singleton<Client> {
       static void RegisterLuaTypes(lua_State* L);
             
    public:
-      void GetConfigOptions();
-
       void run(int server_port);
       lua::ScriptHost* GetScriptHost() const { return scriptHost_.get(); }
       void BrowserRequestHandler(std::string const& uri, json::Node const& query, std::string const& postdata, rpc::HttpDeferredPtr response);
@@ -158,6 +156,7 @@ private:
       protocol::SendQueuePtr           send_queue_;
       protocol::RecvQueuePtr           recv_queue_;
       int                              now_;
+      int                              _server_skew;
       int                              server_port_;
 
       // the local object trace system...

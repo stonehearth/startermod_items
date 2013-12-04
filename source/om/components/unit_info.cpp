@@ -11,8 +11,6 @@ std::ostream& operator<<(std::ostream& os, UnitInfo const& o)
 
 void UnitInfo::ExtendObject(json::Node const& obj)
 {
-   JSONNode const& node = obj.GetNode();
-
    display_name_ = obj.get<std::string>("name", *display_name_);
    description_ = obj.get<std::string>("description", *description_);
    faction_ = obj.get<std::string>("faction", *faction_);

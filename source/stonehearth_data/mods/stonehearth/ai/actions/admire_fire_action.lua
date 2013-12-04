@@ -191,7 +191,7 @@ function AdmireFire:_do_random_actions(ai)
       end
       local random_action = math.random(100)
       if random_action < 30 then
-         ai:execute('stonehearth:idle')
+         ai:execute('stonehearth:idle:breathe')
       elseif random_action > 80 and radiant.entities.get_posture(self._entity) ~= 'sitting' then
          radiant.entities.set_posture(self._entity, 'sitting')
          ai:execute('stonehearth:run_effect', 'sit_on_ground')

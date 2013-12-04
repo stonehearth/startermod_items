@@ -1,6 +1,8 @@
 #ifndef _RADIANT_MACROS_H
 #define _RADIANT_MACROS_H
 
+#include "radiant_assert.h"
+
 #define OFFSET_OF(t, f)    (int)(&((t *)(NULL))->f)
 #define ARRAY_SIZE(a)      ((sizeof (a)) / sizeof((a)[0]))
 
@@ -12,14 +14,9 @@
 #endif
 
 #define ASSERT(x) \
-   do { /* xxx: relegate all this logic to some Assert class */ \
+   do { \
       if (!(x)) { \
-         if (IsDebuggerPresent()) { \
-            DebugBreak(); \
-         } else { \
-            ::MessageBox(NULL, #x, "Stonehearth Assertion Failed", MB_OK | MB_ICONEXCLAMATION); \
-            DebugBreak(); \
-         } \
+         radiant::HandleAssert(#x); \
       } \
    } while(false)
 

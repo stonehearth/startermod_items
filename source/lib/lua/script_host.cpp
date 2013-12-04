@@ -128,7 +128,7 @@ luabind::object ScriptHost::JsonToLua(JSONNode const& json)
 luabind::object ScriptHost::GetJson(std::string const& uri)
 {
    json::Node json = res::ResourceManager2::GetInstance().LookupJson(uri);
-   return JsonToLua(json.GetNode());
+   return JsonToLua(json.get_internal_node());
 }
 
 res::AnimationPtr ScriptHost_LoadAnimation(std::string uri)

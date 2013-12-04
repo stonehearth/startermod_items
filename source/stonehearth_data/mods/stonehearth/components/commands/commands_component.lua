@@ -29,7 +29,17 @@ function CommandsComponent:add_command(uri)
    return t
 end
 
-function CommandsComponent:modify_command(name, cb)
+function CommandsComponent:remove_command(name)
+   for i, command in ipairs(self._data.commands) do
+      if command.name == name then
+         table.remove(self._data.commands, i)
+         self._data_binding:mark_changed()
+         break;
+      end
+   end
+end
+
+function CommandsComponent:modify_command(name)
    local command = self:_find_command_by_name(name)
    if command then
       cb(command)

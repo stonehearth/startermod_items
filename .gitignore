@@ -32,6 +32,9 @@ mostly done
 *.bin
 *.gitignore
 *_log.txt
+*horde3d_log.html
+*user_settings.json
+*.dmp
 
 # OS generated files #
 ######################

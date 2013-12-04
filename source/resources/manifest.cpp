@@ -38,18 +38,18 @@ FilePath Function::script()
 }
 
 Function::operator bool() {
-   return !GetNode().empty();
+   return !empty();
 }
 
 
 Function FunctionsBlock::get_function(std::string const& name)
 {
-   return Function(mod_name_, getn(name));
+   return Function(mod_name_, get_node(name));
 }
 
 FunctionsBlock Manifest::get_functions()
 {
-   return FunctionsBlock(mod_name_, getn("radiant").getn("functions"));
+   return FunctionsBlock(mod_name_, get_node("radiant.functions"));
 }
 
 Function Manifest::get_function(std::string name)

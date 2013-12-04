@@ -2,6 +2,7 @@
 #include "pipeline.h"
 #include "metrics.h"
 #include "Horde3DUtils.h"
+#include "horde3d/Source/Horde3DEngine/egVoxelGeometry.h"
 #include "renderer.h"
 #include "lib/voxel/qubicle_file.h"
 #include "resources/res_manager.h"
@@ -67,7 +68,34 @@ H3DNodeUnique Pipeline::AddMeshNode(H3DNode parent, const csg::mesh_tools::mesh&
    return H3DNodeUnique(model_node);
 }
 
-H3DNodeUnique Pipeline::AddQubicleNode(H3DNode parent, const voxel::QubicleMatrix& m, const csg::Point3f& origin, H3DNode* mesh)
+H3DNodeUnique Pipeline::AddQubicleNode(H3DNode parent, const voxel::QubicleMatrix& m, const csg::Point3f& origin, const std::string& boneName, H3DNode* mesh)
+{
+   static int unique = 0;
+   const std::string& geoName = m.uri_.size() > 0 ? m.uri_ + boneName : "qubicle geometry " + stdutil::ToString(unique);
+
+   H3DRes geoRes = h3dFindResource(H3DResTypes::VoxelGeometry, geoName.c_str());
+
+   if (geoRes <= 0) {
+      geoRes = CreateGeometryFromQubicleMatrix(geoName, m, origin);
+   }
+
+   int indexCount = h3dGetResParamI(geoRes, Horde3D::VoxelGeometryResData::VoxelGeometryElem, 0, 
+      Horde3D::VoxelGeometryResData::VoxelGeoIndexCountI);
+   int vertexCount = h3dGetResParamI(geoRes, Horde3D::VoxelGeometryResData::VoxelGeometryElem, 0, 
+      Horde3D::VoxelGeometryResData::VoxelGeoVertexCountI);
+
+   H3DRes matRes = h3dAddResource(H3DResTypes::Material, "materials/default_material.xml", 0);
+   H3DNode model_node = h3dAddVoxelModelNode(parent, ("qubicle model " + stdutil::ToString(unique)).c_str(), geoRes);
+   H3DNode mesh_node = h3dAddVoxelMeshNode(model_node, ("qubicle mesh " + stdutil::ToString(unique)).c_str(), matRes, 0, indexCount, 0, vertexCount - 1);
+   unique++;
+   if (mesh) {
+      *mesh = mesh_node;
+   }
+   return H3DNodeUnique(model_node);
+}
+
+
+H3DRes Pipeline::CreateGeometryFromQubicleMatrix(const std::string& geoName, const voxel::QubicleMatrix& m, const csg::Point3f& origin)
 {
    std::vector<VoxelGeometryVertex> vertices;
    std::vector<uint32> indices;
@@ -232,19 +260,8 @@ H3DNodeUnique Pipeline::AddQubicleNode(H3DNode parent, const voxel::QubicleMatri
    }
    delete[] mask;
 
-   static int unique = 0;
-   std::string name = "qubicle data ";
-   H3DRes geoRes = h3dutCreateVoxelGeometryRes((name + stdutil::ToString(unique++)).c_str(), vertices.data(), vertices.size(), indices.data(), indices.size());
-   H3DRes matRes = h3dAddResource(H3DResTypes::Material, "materials/default_material.xml", 0);
-   H3DNode model_node = h3dAddVoxelModelNode(parent, (name + stdutil::ToString(unique++)).c_str(), geoRes);
-   H3DNode mesh_node = h3dAddVoxelMeshNode(model_node, (name + stdutil::ToString(unique++)).c_str(), matRes, 0, indices.size(), 0, vertices.size() - 1);
-
-   if (mesh) {
-      *mesh = mesh_node;
-   }
-   return H3DNodeUnique(model_node);
+   return h3dutCreateVoxelGeometryRes(geoName.c_str(), vertices.data(), vertices.size(), indices.data(), indices.size());
 }
-
 
 H3DNode Pipeline::CreateModel(H3DNode parent,
                               csg::mesh_tools::mesh const& mesh,
@@ -409,11 +426,13 @@ Pipeline::CreateDesignationNode(H3DNode parent,
 
    H3DNode group = h3dAddGroupNode(parent, "designation group node");
    H3DNode stripes = CreateModel(group, stripes_mesh, "materials/designation/stripes.material.xml");
+   h3dSetNodeParamI(stripes, H3DModel::UseCoarseCollisionBoxI, 1);
    h3dSetNodeParamI(stripes, H3DModel::PolygonOffsetEnabledI, 1);
    h3dSetNodeParamF(stripes, H3DModel::PolygonOffsetF, 0, -.01f);
    h3dSetNodeParamF(stripes, H3DModel::PolygonOffsetF, 1, -.01f);
 
    H3DNode outline = CreateModel(group, outline_mesh, "materials/designation/outline.material.xml");
+   h3dSetNodeParamI(outline, H3DModel::UseCoarseCollisionBoxI, 1);
    h3dSetNodeParamI(outline, H3DModel::PolygonOffsetEnabledI, 1);
    h3dSetNodeParamF(outline, H3DModel::PolygonOffsetF, 0, -.01f);
    h3dSetNodeParamF(outline, H3DModel::PolygonOffsetF, 1, -.01f);
@@ -426,7 +445,7 @@ Pipeline::NamedNodeMap Pipeline::LoadQubicleFile(std::string const& uri)
    NamedNodeMap result;
 
    // xxx: no.  Make a qubicle resource type so they only get loaded once, ever.
-   voxel::QubicleFile f;
+   voxel::QubicleFile f(uri);
    std::ifstream input;
 
    std::shared_ptr<std::istream> is = res::ResourceManager2::GetInstance().OpenResource(uri);
@@ -438,7 +457,7 @@ Pipeline::NamedNodeMap Pipeline::LoadQubicleFile(std::string const& uri)
       // dismabiguate them.  Ignore everything after the _ so we don't make authors manually
       // rename every single part when this happens.
       std::string matrixName = entry.first;
-      result[matrixName] = AddQubicleNode(orphaned_.get(), entry.second, csg::Point3f(0, 0, 0));
+      result[matrixName] = AddQubicleNode(orphaned_.get(), entry.second, csg::Point3f(0, 0, 0), matrixName);
    }
 
    return result;

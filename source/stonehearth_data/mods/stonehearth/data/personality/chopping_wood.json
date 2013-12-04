@@ -1,0 +1,91 @@
+{
+   "activities" : [
+      {
+         "id" : "chopping_logs",
+         "trigger_policy" : [
+            {
+               "trigger_id" : "chop_tree",
+               "probability" : 20
+            }
+         ],
+         "text" : "On Chopping Wood:",
+         "type" : "random",
+         "logs_by_personality" : {
+            "belaguered_leader" : {
+               "logs" : [
+               "Today, we’re chopping trees for wood. I’m already sick of the wood jokes.",
+               "Timbeerrrrr!!! I could get used to saying that.",
+               "Attacked more trees today. By Sid there’s a lot of trees out here.",
+               "The gang’s keeping track of who’s chopped down the most trees. It’s me but in the time it would take to correct their math I’d rather just add another tree to my total.",
+               "Thought I saw a hornet’s nest while we were logging. Luckily, everyone got out of the way in time.",
+               "Wood: our eternal taskmaster. Got to keep our eye on the goal.",
+               "Everyone chop together! Chop! Chop! Chop! Yes, hurry too!",
+               "Ok gang, breaktime’s over. Back to chopping!",
+               "Every time I swing this axe, I visualize my dream house and exactly how I’m going to build it. Side effect of all this chopping: the floorplan’s getting smaller.",
+               "Falling wood! Run, people! RUN!"
+               ]
+            },
+            "hopeless_optimist" : {
+               "logs" : [
+               "Chop chop chop! If you say it over and over, it’s almost like a song!",
+               "Chopping wood builds muscles! Note to self: see if anyone's noticed.",
+               "We’re sorry Mr. Tree, but we have to cut you down so we can live inside of you. But we won’t ever forget that we’re warm and safe thanks to your sacrifice.",
+               "There’s something really satisfying about cutting down something so much bigger than me!",
+               "I’m Paul Revere! I mean, Bunyon!",
+               "How much wood would a woodchuck chuck, if a woodchuck could chuck wood? Well if my name were Woodchuck, the answer would be: lots! Note to self: find out later what a woodchuck looks like.",
+               "OH eeeeyyyyeeeI ahm a lumberjack and ihm okayyyy, I sleep all niiiight and work all daaaayyy, eyeh cut down trees, I eat my lunch, I go to the firepit, and during Bittermun, I have buttered scones for teeeeeaaa!!!!",
+               "Lumber lumber lumber, must be lumber, in a woodman’s world. Ah-aaaa, all the things I could do, if I had a little lumber, it’s a woodman’s worrrllld. Ahhh-AAAAAIIEEE---FALLING TREEEE!!!!!",
+               "I hear I’m not supposed to sing anymore when I’m chopping trees. Whatever!",
+               " Oh no! Mr. Squirrel! I’m so sorry. I didn’t mean to cut down your house. Tell you what--move in with me! Nuts are on the house. Oh. I probably shouldn’t have mentioned the house..."
+               ]
+            },
+            "lovable_rogue" : {
+               "logs" : [
+               "Step 1: Chop wood. Step 2: ???. Step 3: Profit!! Hm. Still working on step 2.",
+               "I would be more excited to chop trees if they had a discernable anatomy. Or if I could get combat advantage! Or if they could be flanked. Or if they even just had facing, so I could backstab! Not that I ever heard of anyone felling a tree with a backstab.",
+               "My hands are getting rough from all this chopping.",
+               "Top reason chopping trees is fun: perfecting the swing of the axe. May be useful one day!",
+               "Top reason carrying wood is fun: can’t think of one.",
+               "I wonder how much I could sell this wood for back home. ...Nothing, probably.",
+               "I wonder if I could get out of chopping wood by pretending to have a splinter? Oh right, it woudln’t be pretending.",
+               "Ow! Blister! Why am I doing this to myself? An at-will employment contract is pretty much beside the point when you’re OUT IN THE MIDDLE OF NOWHERE.",
+               "Splinters! Everywhere! Ok, calming breath. Calming breath. Anyone got tweezers?"
+               ]
+            },
+            "psychopathic_misanthrope" : {
+               "logs" : [
+               "Heeeaaaahhhhrrrghhh!!!",
+               "Raaaarrrrrrghhhhh!",
+               "Spork those trees, you know? Just spork them all!",
+               "I’ve chopped about a billion trees today. Call me axe murderer!!!",
+               "People say I have deep-seated aggression problems, but nobody complains about all the wood I produce",
+               "Is anyone else chopping these trees? It it just me?",
+               "Glad I’m doing something so physical. Sitting and knitting all day would drive me crazy."
+               ]
+            },
+            "insufferable_academic" : {
+               "logs" : [
+               "This is an appalling underutilization of my keen mental faculties.",
+               "If I never see another axe again it will be too soon.",
+               "This might almost be worth the effort if only the lumber were destined for a paper mill.",
+               "Is there no one else who could engage in such menial labor?",
+               "I have perfected a mathematically ideal chopping motion. Alas, there are no peer-reviewed journals here in which I might publish my findings."
+               ]
+            },
+            "diligent_sweetheart" : {
+               "logs" : [
+               "I guess I can learn to chop down trees if that’s what needs to be done.",
+               "I’m going to put a little splinter beside the campfire for every tree I’ve cut down, separated by day. That way I can tell if I’m getting better at it!",
+               "I hope people think callouses on the palms of the hands are attractive.",
+               "I hear suffering builds character!",
+               "Chopping is kind of soothing, if you just don’t worry too much about the tree falling on you.",
+               "I hope we’re not disturbing anyone’s home. Imagine what it would be like to have your home cut down around you to use to make someone else’s home!",
+               "I hope trees don’t have nerves. This would hurt a lot if they did. If they’re screaming for us to stop, it must be on a different frequency.",
+               "I was holding my axe today and I realized I could do some real harm if I ever used it on a person, instead of on a tree."
+               ]
+            }
+         }
+      }
+   ]
+}
+            

@@ -550,8 +550,6 @@ csg::lerp(Quaternion& result, const Quaternion& start, const Quaternion& end, fl
 void 
 csg::slerp(Quaternion& result, const Quaternion& start, const Quaternion& end, float t)
 {
-   ASSERT(t >= 0.0f && t <= 1.0f);
-
    // get cosine of "angle" between Quaternions
    float cosTheta = start.Dot(end);
    float startInterp, endInterp;

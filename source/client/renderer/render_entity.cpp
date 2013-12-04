@@ -114,7 +114,7 @@ void RenderEntity::UpdateInvariantRenderers()
          auto const& res = res::ResourceManager2::GetInstance();
          json::Node json = res.LookupJson(uri);
          if (json.has("entity_data")) {
-            for (auto const& entry : json.getn("entity_data")) {
+            for (auto const& entry : json.get_node("entity_data")) {
                std::string name = entry.name();
                size_t offset = name.find(':');
                if (offset != std::string::npos) {
@@ -122,7 +122,7 @@ void RenderEntity::UpdateInvariantRenderers()
                   std::string invariant_name = name.substr(offset + 1, std::string::npos);
 
                   json::Node manifest = res.LookupManifest(modname);
-                  json::Node invariants = manifest.getn("invariant_renderers");
+                  json::Node invariants = manifest.get_node("invariant_renderers");
                   std::string path = invariants.get<std::string>(invariant_name, "");
                   if (!path.empty()) {
                      lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
@@ -213,7 +213,7 @@ void RenderEntity::AddLuaComponents(om::LuaComponentsPtr lua_components)
 
          auto const& res = res::ResourceManager2::GetInstance();
          json::Node const& manifest = res.LookupManifest(modname);
-         json::Node cr = manifest.getn("component_renderers");
+         json::Node cr = manifest.get_node("component_renderers");
          std::string path = cr.get<std::string>(component_name, "");
 
          if (!path.empty()) {

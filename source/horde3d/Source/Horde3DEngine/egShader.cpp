@@ -22,6 +22,7 @@
 
 #include "radiant.h"
 #include "core/config.h"
+#include "core/system.h"
 
 namespace Horde3D {
 
@@ -879,7 +880,7 @@ void ShaderResource::compileCombination( ShaderContext &context, ShaderCombinati
 
 		if( Modules::config().dumpFailedShaders )
 		{
-         boost::filesystem::path path = radiant::core::Config::GetInstance().GetTmpDirectory();
+         boost::filesystem::path path = radiant::core::System::GetInstance().GetTempDirectory();
 			std::ofstream out0( (path / "vertex_shader.log").string(), ios::binary );
          std::ofstream out1( (path / "fragment_shader.log").string(), ios::binary );
 			if( out0.good() ) out0 << _tmpCode0;

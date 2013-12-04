@@ -25,11 +25,12 @@ public:
    csg::Point3    size_;
    csg::Point3    position_;
    uint32*        matrix_;
+   std::string    uri_;  // The originating uri for this qubicle resource.
 };
 
 class QubicleFile {
 public:
-   QubicleFile();
+   QubicleFile(const std::string& uri);
 
    std::istream& Read(std::istream& in);
    QubicleMatrix* GetMatrix(std::string const& name);
@@ -40,6 +41,7 @@ public:
    const MatrixMap::const_iterator end() const { return matrices_.end(); }
 
 protected:
+   std::string uri_; 
    MatrixMap matrices_;
 };
 

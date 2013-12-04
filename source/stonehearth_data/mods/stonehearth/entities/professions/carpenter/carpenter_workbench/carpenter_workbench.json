@@ -4,7 +4,7 @@
    "components": {
       "unit_info": {
          "name": "Carpenter Workbench",
-         "description": "Clean enough."
+         "description": "Unclaimed"
       },
       "stonehearth:workshop": {
          "skin_class" : "carpenter",
@@ -17,7 +17,7 @@
          "region": [
             {
                "min" : { "x" : 0, "y" : 0, "z" : 0 },
-               "max" : { "x" :  2, "y" : 1, "z" :  2 }
+               "max" : { "x" :  1, "y" : 1, "z" :  1 }
             }
          ]
       },

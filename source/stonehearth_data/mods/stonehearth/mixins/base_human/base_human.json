@@ -11,7 +11,8 @@
             "stonehearth:actions:admire_fire_action",
             "stonehearth:actions:find_food_action",
             "stonehearth:actions:get_food_action",
-            "stonehearth:actions:eat_food_action"
+            "stonehearth:actions:eat_food_action",
+            "stonehearth:actions:wander"
          ],
           "observers": [
             "stonehearth:observers:sleep",
@@ -23,6 +24,11 @@
 		  "description": "Citizen of your town",
 		  "faction": "civ"
 	   },
+      "stonehearth:commands" : {
+         "commands" : [
+            "file(/data/commands/show_journal)",
+         ]
+      },
       "stonehearth:attributes" : {
 		  "ferocity": 1,
 		  "health": 5,

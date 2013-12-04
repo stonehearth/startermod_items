@@ -38,12 +38,21 @@ App.StonehearthStartMenuView = App.View.extend({
    init: function() {
       this._super();
       // xxx, grab the initial button state from some server-side component
+
+      //Play music as the game starts
+      var args = {
+         'track': 'stonehearth:music:world_start',
+         'channel': 'bgm',
+         'fade': 500
+      };
+      radiant.call('radiant:play_music', args);      
+
    },
 
    didInsertElement: function() {
       var self = this;
       $('#startMenuTrigger').click(function() {
-         //radiant.call('radiant:play_sound', 'stonehearth:sounds:axe_chopping_sound' );
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:trigger_click' );
       });
 
       $( '#startMenu' ).dlmenu({
@@ -65,11 +74,26 @@ App.StonehearthStartMenuView = App.View.extend({
             $(this).removeClass('startMenuHoverIn')
             $(this).addClass('startMenuHoverOut')
       });      
+
+      $('#startMenu').on( 'mouseover', 'a', function() {
+         radiant.call('radiant:play_sound', "stonehearth:sounds:ui:action_hover");
+      });
+
+      $('#startMenu').on( 'mousedown', 'li', function() {
+         radiant.call('radiant:play_sound', "stonehearth:sounds:ui:action_click");
+      });
+
    },
 
    onMenuClick: function(menuId) {
       this.menuActions[menuId].click();
-   }  
+   },
+
+   destroy: function() {
+      $('#startMenu').off('mouseover.start_menu');
+      $('#startMenu').off('click.start_menu');
+      this._super();
+   }
 
 });
 

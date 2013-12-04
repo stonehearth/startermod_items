@@ -3,7 +3,7 @@ local Point3 = _radiant.csg.Point3
 local Wander = class()
 
 Wander.name = 'wander'
-Wander.does = 'stonehearth:top'
+Wander.does = 'stonehearth:idle'
 Wander.priority = 0
 
 function Wander:__init(ai, entity)
@@ -15,9 +15,10 @@ end
 
 function Wander:on_poll()
    if self._polls_before_move == 0 then
-      if (self._entity:get_component('stonehearth:leash')) then
-         self._ai:set_action_priority(self, 2)
+      if not self._entity:get_component('stonehearth:leash') then
+         self._entity:add_component('stonehearth:leash'):set_to_entity_location(self._entity)
       end
+      self._ai:set_action_priority(self, 2)
       self._polls_before_move = math.random(5, 8)
    else
       self._polls_before_move = self._polls_before_move - 1

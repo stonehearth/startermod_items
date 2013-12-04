@@ -18,7 +18,7 @@ void EffectList::ConstructObject()
 
 void EffectList::ExtendObject(json::Node const& obj)
 {
-   for (json::Node const& entry : obj.getn("effects")) {
+   for (json::Node const& entry : obj.get_node("effects")) {
       std::string path = entry.as<std::string>();
       AddEffect(path, 0);
    }

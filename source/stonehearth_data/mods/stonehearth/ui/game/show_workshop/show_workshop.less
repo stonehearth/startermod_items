@@ -290,7 +290,10 @@
          margin-left: 5px;
       }
 
+      
       #craftButton {
+         display: flex;
+         /*
          position: absolute;
          right: 0px;
          top: -4px;
@@ -298,12 +301,14 @@
          img {
             content: url('./images/anvil.png');   
          }
-         
-
-         &:hover {
-            background-color: #6a4312 !important;
+         */
+         #craftButtonLabel {
+            .controlFont;
+            margin: auto;
+            display: none;
          }
-      }      
+      }
+          
    }
 }
 
