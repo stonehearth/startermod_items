@@ -406,6 +406,8 @@ void RenderDevice::updateBufferData( uint32 bufObj, uint32 offset, uint32 size, 
 	}
 
 	glBufferSubData( buf.type, offset, size, data );
+
+	glBindBuffer( buf.type, 0 );
 }
 
 
