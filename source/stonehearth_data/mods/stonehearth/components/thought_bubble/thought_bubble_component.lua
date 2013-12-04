@@ -45,6 +45,8 @@ function ThoughtBubbleComponent:unset_thought(uri)
    if uri == self._thought_uri and self._thought_effect then
       self._thought_effect:stop()
       self._thought_effect = nil
+      self._thought_uri = nil
+      self._thought_priority = nil
    end
 end
 
