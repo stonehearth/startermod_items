@@ -20,7 +20,8 @@ include_directories(include)
 
 include_directories("c:/program files (x86)/microsoft directx sdk (june 2010)/include")
 
-include_directories(${CMAKE_BINARY_DIR}/source/protocols) # xxx: BADDD
+include_directories(${CMAKE_BINARY_DIR}/source)
+
 SET(Horde3D_ROOT_DIR "${Stonehearth_SOURCE_DIR}/source/horde3d/")
 SET(Horde3D_INCLUDE_DIRS "${Horde3D_ROOT_DIR}/Source/Shared" "${Horde3D_ROOT_DIR}/Source/Horde3dEngine" "${Horde3D_ROOT_DIR}/Bindings/C++" "${Horde3D_ROOT_DIR}/glfw/include/GLFW" "${Horde3D_ROOT_DIR}/extensions/")
 
@@ -32,7 +33,6 @@ add_subdirectory(client)
 add_subdirectory(stonehearth)
 add_subdirectory(csg)
 add_subdirectory(lib)
-add_subdirectory(game_engine)
 add_subdirectory(horde3d)
 add_subdirectory(metrics)
 add_subdirectory(om)

@@ -3,13 +3,13 @@
 
 #include "entity.h"
 #include "region.h"
-#include "data_binding.h"
-#include "json_store.h"
-#include "components/effect_list.h"
-#include "components/sensor_list.h"
-#include "components/aura_list.h"
-#include "components/target_tables.h"
-#include "components/lua_components.h"
+#include "om/components/effect.ridl.h"
+#include "om/components/sensor.ridl.h"
+#include "om/components/model_layer.ridl.h"
+#include "om/components/target_table.ridl.h"
+#include "om/components/target_table_entry.ridl.h"
+#include "om/components/target_table_group.ridl.h"
+#include "om/components/data_store.ridl.h"
 #include "error_browser/error_browser.h"
 
 #endif

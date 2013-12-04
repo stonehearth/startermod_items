@@ -10,8 +10,9 @@ local Region3 = _radiant.csg.Region3
 function ProxyRoof:__init(parent_proxy, arg1)
    self[ProxyFabrication]:__init(self, parent_proxy, arg1)
    
-   local cursor = self:get_region():modify()
-   self:move_to(Point3(0, constants.STOREY_HEIGHT, 0))
+   self:get_region():modify(function(cursor)
+      self:move_to(Point3(0, constants.STOREY_HEIGHT, 0))
+   end)
 end
 
 function ProxyRoof:cover_region(region2)
@@ -27,7 +28,9 @@ function ProxyRoof:cover_region(region2)
 
    local brush = self:get_voxel_brush()
    local collsion_shape = brush:paint_once()
-   self:get_region():modify():copy_region(collsion_shape)
+   self:get_region():modify(function(cursor)
+      cursor:copy_region(collsion_shape)
+   end)
 end
 
 return ProxyRoof

@@ -1,21 +1,17 @@
 #include "pch.h"
-#include "unit_info.h"
+#include "unit_info.ridl.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-void UnitInfo::InitializeRecordFields()
+std::ostream& operator<<(std::ostream& os, UnitInfo const& o)
 {
-   Component::InitializeRecordFields();
-   AddRecordField("name", name_);
-   AddRecordField("description", description_);
-   AddRecordField("faction", faction_);
-   AddRecordField("icon", icon_);
+   return (os << "[UnitInfo " << o.GetDisplayName() << "]");
 }
 
 void UnitInfo::ExtendObject(json::Node const& obj)
 {
-   name_ = obj.get<std::string>("name", *name_);
+   display_name_ = obj.get<std::string>("name", *display_name_);
    description_ = obj.get<std::string>("description", *description_);
    faction_ = obj.get<std::string>("faction", *faction_);
    icon_ = obj.get<std::string>("icon", *icon_);

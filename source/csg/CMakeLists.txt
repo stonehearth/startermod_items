@@ -24,6 +24,9 @@ add_library(csg STATIC
             pch.cpp
             )
 
+add_dependencies(csg
+                 protobuf_generated_headers)
+
 add_subdirectory(lua)
 
 target_link_libraries(csg

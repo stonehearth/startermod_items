@@ -22,7 +22,7 @@ private:
 
 private:
    RenderEntity&        entity_;
-   core::Guard            tracer_;
+   dm::TracePtr         trace_;
    om::CarryBlockRef    carryBlock_;
    dm::ObjectId         carrying_;
    H3DNode              carryBone_;

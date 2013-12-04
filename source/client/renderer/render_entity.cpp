@@ -10,21 +10,19 @@
 #include "render_destination.h"
 #include "render_effect_list.h"
 #include "render_render_info.h"
-#include "render_render_region.h"
 #include "render_carry_block.h"
-#include "render_paperdoll.h"
 #include "render_vertical_pathing_region.h"
 #include "resources/res_manager.h"
 #include "resources/animation.h"
+#include "dm/map_trace.h"
 #include "om/entity.h"
-#include "om/components/mob.h"
-#include "om/components/entity_container.h"
-#include "om/components/terrain.h"
+#include "om/components/mob.ridl.h"
+#include "om/components/entity_container.ridl.h"
+#include "om/components/terrain.ridl.h"
 #include "om/components/lua_components.h"
-#include "om/components/effect_list.h"
-#include "om/components/render_info.h"
-#include "om/components/paperdoll.h"
-#include "om/components/carry_block.h"
+#include "om/components/effect_list.ridl.h"
+#include "om/components/render_info.ridl.h"
+#include "om/components/carry_block.ridl.h"
 #include "om/selection.h"
 #include "lib/lua/script_host.h"
 
@@ -48,16 +46,24 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
 
    skeleton_.SetSceneNode(node_.get());
 
-   auto added = std::bind(&RenderEntity::AddComponent, this, std::placeholders::_1, std::placeholders::_2);
-   auto removed = std::bind(&RenderEntity::RemoveComponent, this, std::placeholders::_1);
-
-   tracer_ += entity->GetComponents().TraceMapChanges("render entity components", added, removed);
-   tracer_ += Renderer::GetInstance().TraceSelected(node_.get(), std::bind(&RenderEntity::OnSelected, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+   // xxx: convert to something more dm::Trace like...
+   renderer_guard_ += Renderer::GetInstance().TraceSelected(node_.get(), std::bind(&RenderEntity::OnSelected, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
 }
 
 void RenderEntity::FinishConstruction()
 {
-   UpdateComponents();
+   auto entity = GetEntity();
+   if (entity) {
+      components_trace_ = entity->TraceComponents("render", dm::RENDER_TRACES)
+                                       ->OnAdded([this](dm::ObjectType type, std::shared_ptr<dm::Object> obj) {
+                                          AddComponent(type, obj);
+                                       })
+                                       ->OnRemoved([this](dm::ObjectType type) {
+                                          RemoveComponent(type);
+                                       })
+                                       ->PushObjectState();
+   }
+
    UpdateInvariantRenderers();
    initialized_ = true;
 }
@@ -109,17 +115,6 @@ std::string RenderEntity::GetName() const
 int RenderEntity::GetTotalObjectCount()
 {
    return totalObjectCount_;
-}
-
-void RenderEntity::UpdateComponents()
-{
-   auto entity = entity_.lock();
-   if (entity) {
-      components_.clear();
-      for (const auto& entry : entity->GetComponents()) {
-         AddComponent(entry.first, entry.second);
-      }
-   }
 }
 
 void RenderEntity::UpdateInvariantRenderers()
@@ -205,19 +200,9 @@ void RenderEntity::AddComponent(dm::ObjectType key, std::shared_ptr<dm::Object> 
             components_[key] = std::make_shared<RenderEffectList>(*this, el);
             break;
          }
-         case om::RenderRegionObjectType: {
-            om::RenderRegionPtr renderRegion = std::static_pointer_cast<om::RenderRegion>(value);
-            components_[key] = std::make_shared<RenderRenderRegion>(*this, renderRegion);
-            break;
-         }
          case om::CarryBlockObjectType: {
             om::CarryBlockPtr renderRegion = std::static_pointer_cast<om::CarryBlock>(value);
             components_[key] = std::make_shared<RenderCarryBlock>(*this, renderRegion);
-            break;
-         }
-         case om::PaperdollObjectType: {
-            om::PaperdollPtr renderRegion = std::static_pointer_cast<om::Paperdoll>(value);
-            components_[key] = std::make_shared<RenderPaperdoll>(*this, renderRegion);
             break;
          }
          case om::VerticalPathingRegionObjectType: {
@@ -251,7 +236,7 @@ void RenderEntity::AddLuaComponents(om::LuaComponentsPtr lua_components)
             std::weak_ptr<RenderEntity> re = shared_from_this();
             luabind::object render_component;
             try {
-               om::DataBindingRef data_store = entry.second;
+               om::DataStorePtr data_store = entry.second;
                render_component = script->CallFunction<luabind::object>(ctor, re, data_store);
             } catch (std::exception const& e) {
                LOG(WARNING) << e.what();
@@ -276,9 +261,7 @@ void RenderEntity::OnSelected(om::Selection& sel, const csg::Ray3& ray,
       auto mob = entity->GetComponent<om::Mob>();
       // xxx: don't select authored objects!
       ASSERT(entity->GetStoreId() == 2);
-      if (true || (mob && mob->IsSelectable())) {
-         sel.AddEntity(entity->GetObjectId());
-      }
+      sel.AddEntity(entity->GetObjectId());
    }
 }
 

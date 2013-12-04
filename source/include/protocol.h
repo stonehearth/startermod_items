@@ -92,8 +92,6 @@ namespace radiant {
 
             int remaining = readBuf_.size();
 
-            //LOG(WARNING) << "entering processing loop.. (remaining: " << remaining << ")";
-
             // Read all we can...
             while (!readBuf_.empty()) {
                const void* tail;
@@ -101,8 +99,6 @@ namespace radiant {
                   remaining = 0;
                   break;
                }
-
-               //LOG(WARNING) << "inside processing loop.. (remaining: " << remaining << ")";
 
                T msg;
                google::protobuf::uint32 c = 0;

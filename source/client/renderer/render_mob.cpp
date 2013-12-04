@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "render_mob.h"
 #include "render_entity.h"
-#include "om/components/mob.h"
+#include "om/components/mob.ridl.h"
 #include "lib/perfmon/perfmon.h"
 #include "renderer.h"
 
@@ -14,27 +14,25 @@ RenderMob::RenderMob(const RenderEntity& entity, om::MobPtr mob) :
 {
    ASSERT(mob);
 
-   guards_ += Renderer::GetInstance().OnShowDebugShapesChanged([this](bool enabled) {
+   show_debug_shape_guard_ += Renderer::GetInstance().OnShowDebugShapesChanged([this](bool enabled) {
       if (enabled) {
          RenderAxes();
       } else {
          RemoveAxes();
       }
    });
-   
-   guards_ += mob->TraceRecordField("transform", "move render entity", std::bind(&RenderMob::Update, this));
-   if (mob->InterpolateMovement()) {
-      guards_ += Renderer::GetInstance().OnServerTick([this](int now) {
-         _initial = _current;
-      });
-      guards_ += Renderer::GetInstance().OnRenderFrameStart([this](FrameStartInfo const& info) {
-         perfmon::TimelineCounterGuard tcg("move mob");
-         _current = csg::Interpolate(_initial, _final, info.interpolate);
-         Move();
-      });
-   }
-   _current = _initial = _final = mob->GetTransform();
 
+   interp_trace_ = mob->TraceInterpolateMovement("render", dm::RENDER_TRACES)
+                                 ->OnChanged([this](bool interpolate) {
+                                    UpdateInterpolate(interpolate);
+                                 })
+                                 ->PushObjectState();
+
+   transform_trace_ = mob->TraceTransform("render", dm::RENDER_TRACES)
+                                 ->OnChanged([this](csg::Transform const& transform) {
+                                    UpdateTransform(transform);
+                                 })
+                                 ->PushObjectState();
    Move();
 }
 
@@ -75,16 +73,32 @@ void RenderMob::Move()
    }
 }
 
-void RenderMob::Update()
+void RenderMob::UpdateTransform(csg::Transform const& transform)
 {
    auto mob = mob_.lock();
    if (mob) {
-      if (mob->InterpolateMovement()) {
+      if (mob->GetInterpolateMovement()) {
          _initial = _final;
          _final = mob->GetTransform();
       } else {
          _current = mob->GetTransform();
          Move();
       }
+   }
+}
+
+void RenderMob::UpdateInterpolate(bool interpolate)
+{
+   if (interpolate) {
+      renderer_guard_ += Renderer::GetInstance().OnServerTick([this](int now) {
+         _initial = _current;
+      });
+      renderer_guard_ += Renderer::GetInstance().OnRenderFrameStart([this](FrameStartInfo const& info) {
+         perfmon::TimelineCounterGuard tcg("move mob");
+         _current = csg::Interpolate(_initial, _final, info.interpolate);
+         Move();
+      });
+   } else {
+      renderer_guard_.Clear();
    }
 }

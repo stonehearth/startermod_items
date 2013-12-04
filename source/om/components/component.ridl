@@ -1,0 +1,285 @@
+#ifndef ${env.guard_name(C)}
+#define ${env.guard_name(C)}
+<%
+import ridl.ridl as ridl
+import ridl.dm_types as dm
+is_component = C.__bases__[0]().name == 'Component'
+%>
+#include "om/components/component.h"
+#include "om/object_enums.h"
+% for f in C._includes:
+#include "${f}"
+% endfor
+
+BEGIN_RADIANT_OM_NAMESPACE
+
+class ${C.__name__} : public ${C.__bases__[0]().name}
+{
+public:
+   DEFINE_OM_OBJECT_TYPE(${C.__name__}, ${C.__name__ | env.lower});
+%if is_component:
+   void ExtendObject(json::Node const& obj) override;
+%endif
+
+## -------------------------------------------------------------------------
+##  Enum
+##
+% for name, enum in env.properties(C, ridl.Enum):
+   enum ${enum.internal_name} {
+% for name, value in enum.values:
+      ${name} = ${value},
+% endfor
+   };
+
+% endfor
+## -------------------------------------------------------------------------
+##  Boxed
+##
+% for name, boxed in env.properties(C, dm.Boxed):
+   % if boxed.get == 'define':
+   ${boxed.value.name} const& Get${name | env.upper}() const
+   {
+      return *${name}_;
+   }
+      
+   % elif boxed.get == 'declare':
+   ${boxed.value.name} const& Get${name | env.upper}() const;
+   % endif
+% endfor
+% for name, boxed in env.properties(C, dm.Boxed):
+   % if boxed.set == 'define':
+   ${C.__name__}& Set${name | env.upper}(${boxed.value.name} value)
+   { 
+      ${name}_ = value;
+      return *this;
+   }
+
+   % elif boxed.set == 'declare':
+   ${C.__name__}& Set${name | env.upper}(${boxed.value.name} value);
+   % endif
+% endfor
+% for name, boxed in env.properties(C, dm.Boxed):
+   % if boxed.trace == 'define':
+   std::shared_ptr<dm::BoxedTrace<${boxed.name}>>
+   Trace${name | env.upper}(const char* reason, int category) const
+   {
+      return ${name}_.TraceChanges(reason, category);
+   }
+
+   % elif boxed.trace == 'deep_region':
+   DeepRegionGuardPtr
+   Trace${name | env.upper}(const char* reason, int category) const
+   {
+      return DeepTraceRegion(${name}_, reason, category);
+   }
+
+   % endif %
+% endfor
+## -------------------------------------------------------------------------
+##  Arrays
+##
+% for name, arr in env.properties(C, dm.Array):
+   <% singular_name = hasattr(arr, 'singular_name') and arr.singular_name or name %>
+   % if arr.set == 'define':
+   ${C.__name__}& Set${singular_name | env.upper}(uint i, ${arr.value.name} value)
+   { 
+      ${name}_.Set(i, value);
+      return *this;
+   }
+
+   % elif arr.add == 'declare':
+   ${C.__name__}& Set${singular_name | env.upper}(uint i, ${arr.value.name} value);
+   % endif
+% endfor
+% for name, arr in env.properties(C, dm.Array):
+   % if arr.trace:
+   std::shared_ptr<dm::ArrayTrace<${arr.name}>>
+   Trace${name | env.upper}(const char* reason, int category) const
+   {
+      return ${name}_.TraceChanges(reason, category);
+   }
+
+   % endif %
+% endfor
+## -------------------------------------------------------------------------
+##  Sets
+##
+% for name, set in env.properties(C, dm.Set):
+   <% singular_name = hasattr(set, 'singular_name') and set.singular_name or name %>
+   % if set.add == 'define':
+   ${C.__name__}& Add${singular_name | env.upper}(${set.accessor_value.name} value)
+   { 
+      ${name}_.Add(value);
+      return *this;
+   }
+
+   % elif set.add == 'declare':
+   ${C.__name__}& Add${singular_name | env.upper}(${set.accessor_value.name} value);
+   % endif
+% endfor
+% for name, set in env.properties(C, dm.Set):
+   <% singular_name = hasattr(set, 'singular_name') and set.singular_name or name %>
+   % if set.remove == 'define':
+   ${C.__name__}& Remove${singular_name | env.upper}(${set.accessor_value.name} value)
+   {
+      ${name}_.Remove(value);
+      return *this;
+   }
+      
+   % elif set.remove == 'declare':
+   ${C.__name__}& Remove${singular_name | env.upper}(${set.accessor_value.name} value);
+   % endif
+% endfor
+% for name, set in env.properties(C, dm.Set):
+   % if set.trace:
+   std::shared_ptr<dm::SetTrace<${set.name}>>
+   Trace${name | env.upper}(const char* reason, int category) const
+   {
+      return ${name}_.TraceChanges(reason, category);
+   }
+
+   % endif %
+% endfor
+% for name, set in env.properties(C, dm.Set):
+   <% singular_name = hasattr(set, 'singular_name') and set.singular_name or name %>
+   % if set.iterate == 'define':
+   ${set.name} const&
+   Each${singular_name | env.upper}() const
+   {
+      /* Usage: for (${set.accessor_value.name} const& i : obj.Each${singular_name | env.upper}()) ... */
+      return ${name}_;
+   }
+
+   % endif %
+% endfor
+% for name, set in env.properties(C, dm.Set):
+   % if set.num:
+   int Num${name | env.upper}() const
+   {
+      return ${name}_.Size();
+   }
+
+   % endif %
+% endfor
+## -------------------------------------------------------------------------
+##  Maps
+##
+% for name, map in env.properties(C, dm.Map):
+   <% singular_name = hasattr(map, 'singular_name') and map.singular_name or name %>
+   % if map.add == 'define':
+   ${C.__name__}& Add${singular_name | env.upper}(${map.key.name} key, ${map.accessor_value.name} value)
+   { 
+      ${name}_.Add(key, value);
+      return *this;
+   }
+
+   % elif map.add == 'declare':
+   ${C.__name__}& Add${singular_name | env.upper}(${map.key.name} key, ${map.accessor_value.name} value);
+   % endif
+% endfor
+% for name, map in env.properties(C, dm.Map):
+   <% singular_name = hasattr(map, 'singular_name') and map.singular_name or name %>
+   % if map.remove == 'define':
+   ${C.__name__}& Remove${singular_name | env.upper}(${map.key.name} key)
+   {
+      ${name}_.Remove(key);
+      return *this;
+   }
+      
+   % elif map.remove == 'declare':
+   ${C.__name__}& Remove${singular_name | env.upper}(${map.key.name} key);
+   % endif
+% endfor
+% for name, map in env.properties(C, dm.Map):
+   <% singular_name = hasattr(map, 'singular_name') and map.singular_name or name %>
+   % if map.get == 'define':
+   ${map.accessor_value.name} Get${singular_name | env.upper}(${map.key.name} key)
+   {
+      return ${name}_.Get(key, ${map.value.name}());
+   }
+      
+   % elif map.get == 'declare':
+   ${map.accessor_value.name} Get${singular_name | env.upper}(${map.key.name} key);
+   % endif
+% endfor
+% for name, map in env.properties(C, dm.Map):
+   % if map.trace:
+   typedef ${map.name}::ContainerType ${name | env.upper}Container;
+
+   std::shared_ptr<dm::MapTrace<${map.name}>>
+   Trace${name | env.upper}(const char* reason, int category) const
+   {
+      return ${name}_.TraceChanges(reason, category);
+   }
+
+   % endif %
+% endfor
+% for name, map in env.properties(C, dm.Map):
+   <% singular_name = hasattr(map, 'singular_name') and map.singular_name or name %>
+   % if map.iterate == 'define':
+   ${map.name} const&
+   Each${singular_name | env.upper}() const
+   {
+      /* Usage: for (${map.accessor_value.name} const& i : obj.Each${singular_name | env.upper}()) ... */
+      return ${name}_;
+   }
+
+   % endif %
+% endfor
+% for name, map in env.properties(C, dm.Map):
+   % if map.num:
+   int Num${name | env.upper}() const
+   {
+      return ${name}_.Size();
+   }
+
+   % endif %
+% endfor
+% if C._public:
+public:
+${C._public}
+% endif
+## -------------------------------------------------------------------------
+##  Methods
+##
+% for method_name, method in env.properties(C, ridl.Method):
+   ${method.result} ${method_name | env.upper}(${method.formal_params})${method.postsig};
+% endfor
+
+protected:
+   void InitializeRecordFields() override
+   {
+%if is_component:
+      Component::InitializeRecordFields();
+% endif
+% for name, info in env.properties(C, [dm.Map, dm.Set, dm.Boxed, dm.Array]):
+      AddRecordField("${name}", ${name}_);
+% endfor
+   }
+% if C._generate_construct_object:
+protected:
+   void ConstructObject() override;
+% endif
+
+% if C._protected:
+protected:
+${C._protected}
+% endif
+
+% if C._private:
+private:
+${C._private}
+% endif
+
+private:
+% for name, var in env.properties(C, [dm.Set, dm.Boxed, dm.Map, dm.Array]):
+   ${var.name}       ${name}_;
+% endfor
+};
+
+END_RADIANT_OM_NAMESPACE
+
+std::ostream& operator<<(std::ostream& os, radiant::om::${C.__name__} const& o);
+
+${C._global_post}
+#endif // ${env.guard_name(C)}

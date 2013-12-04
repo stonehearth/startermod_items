@@ -4,7 +4,7 @@
 #include "om/om.h"
 #include "job.h"
 #include "physics/namespace.h"
-#include "radiant.pb.h"
+#include "protocols/radiant.pb.h"
 #include "path.h"
 #include "csg/point.h"
 #include "om/region.h"
@@ -22,11 +22,16 @@ public:
    void InitializeOpenSet(std::vector<csg::Point3>& open);
    void EncodeDebugShapes(protocol::shapelist *msg) const;
 
+protected:
+   Simulation& GetSim() const { return pf_.GetSim(); }
+
 public:
    PathFinder&                pf_;
    om::EntityRef              entity_;
    bool                       moving_;
-   core::Guard                  guards_;
+   core::Guard                guards_;
+   dm::TracePtr               transform_trace_;
+   dm::TracePtr               moving_trace_;
    phys::TerrainChangeCbId    collision_cb_id_;
 };
 

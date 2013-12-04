@@ -2,10 +2,10 @@
 #define _RADIANT_CSG_POINT_H
 
 #include <ostream>
-#include "radiant_macros.h"
 #include "csg.h"
-#include "namespace.h"
 #include "dm/dm.h"
+#include "namespace.h"
+#include "protocols/forward_defines.h"
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
@@ -353,9 +353,5 @@ std::ostream& operator<<(std::ostream& os, const Point<S, C>& in)
 }
 
 END_RADIANT_CSG_NAMESPACE
-
-IMPLEMENT_DM_EXTENSION(::radiant::csg::Point2, Protocol::point2i)
-IMPLEMENT_DM_EXTENSION(::radiant::csg::Point3, Protocol::point3i)
-IMPLEMENT_DM_EXTENSION(::radiant::csg::Point3f, Protocol::point3f)
 
 #endif // _RADIANT_CSG_POINT_H

@@ -1,4 +1,6 @@
 #include "radiant.h"
+#include <iostream>
+#include <iomanip> 
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/io/coded_stream.h>
 #include "protocol.h"
@@ -20,11 +22,6 @@ void SendQueue::Flush(std::shared_ptr<SendQueue> sendQueue)
 
       while (!queue.empty()) {
          auto buffer = queue.front();
-         static int i = 0;
-         static int total = 0;
-         total += buffer->size();
-         //DLOG(WARNING) << i++ << " server sending buffer of length " << buffer->size() << "(total: " << total <<").";
-
          sendQueue->socket_.async_send(boost::asio::buffer(buffer->data(), buffer->size()), 
                                        std::bind(&SendQueue::HandleWrite, sendQueue, buffer, std::placeholders::_1, std::placeholders::_2));
          queue.pop();
@@ -88,7 +85,7 @@ void RecvQueue::HandleRead(RecvQueuePtr q, const boost::system::error_code& e, s
 
       int deltaTime = timeGetTime() - startTime;
       double kbps = (total * 8 / 1024.0) * 1000 / deltaTime;
-      //LOG(WARNING) << "(" << std::fixed << std::setw(11) << std::setprecision(2) << kbps << ") kbps... " << total << " bytes in " << deltaTime / 1000.0 << " seconds";
+      LOG(INFO) << "(" << std::fixed << std::setw(11) << std::setprecision(2) << kbps << ") kbps... " << total << " bytes in " << deltaTime / 1000.0 << " seconds";
       Read();
    }
 }

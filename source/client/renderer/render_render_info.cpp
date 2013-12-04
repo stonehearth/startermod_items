@@ -5,8 +5,9 @@
 #include "render_entity.h"
 #include "render_render_info.h"
 #include "pipeline.h"
-#include "om/components/model_variants.h"
-#include "om/components/render_info.h"
+#include "dm/set_trace.h"
+#include "om/components/model_variants.ridl.h"
+#include "om/components/render_info.ridl.h"
 #include "Horde3DUtils.h"
 #include "resources/res_manager.h"
 #include "lib/perfmon/perfmon.h"
@@ -38,12 +39,11 @@ void RenderRenderInfo::SetDirtyBits(int flags)
 {
    dirty_ |= flags;
 
-   if (renderer_frame_trace_.Empty()) {
-      renderer_frame_trace_ = Renderer::GetInstance().OnRenderFrameStart([=](FrameStartInfo const&) {
+   if (renderer_frame_guard_.Empty()) {
+      renderer_frame_guard_ = Renderer::GetInstance().OnRenderFrameStart([=](FrameStartInfo const&) {
          perfmon::TimelineCounterGuard tcg("update render_info");
          Update();
       });
-      ASSERT(!renderer_frame_trace_.Empty());
    }
 }
 
@@ -61,17 +61,19 @@ RenderRenderInfo::RenderRenderInfo(RenderEntity& entity, om::RenderInfoPtr rende
       SetDirtyBits(MODEL_DIRTY);
    };
 
-   render_info_guards_ += render_info->GetScale().TraceObjectChanges("scale changed in render_info", set_scale_dirty_bit);
+   scale_trace_ = render_info->TraceScale("render", dm::RENDER_TRACES)
+                                 ->OnModified(set_scale_dirty_bit);
 
-   // if the model variant changes...
-   render_info_guards_ += render_info->GetModelVariant().TraceObjectChanges("model variant changed in render_info", set_model_dirty_bit);
+   // if the variant we want to render changes...
+   model_variant_trace_ = render_info->TraceModelVariant("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
 
    // if any entry in the attached items thing changes...
-   render_info_guards_ += render_info->GetAttachedEntities().TraceObjectChanges("attached changed in render_info", set_model_dirty_bit);
+   attached_trace_ = render_info->TraceAttachedEntities("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
 
    // if the material changes...
-   render_info_guards_ += render_info->GetMaterial().TraceObjectChanges("material changed in render_info", set_model_dirty_bit);
-   render_info_guards_ += render_info->GetModelMode().TraceObjectChanges("model_mode changed in render_info", set_model_dirty_bit);
+   material_trace_ = render_info->TraceMaterial("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
+   mode_trace_ = render_info->TraceModelMode("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
+
    SetDirtyBits(-1);
 }
 
@@ -79,17 +81,17 @@ RenderRenderInfo::~RenderRenderInfo()
 {
 }
 
-void RenderRenderInfo::AccumulateModelVariant(ModelMap& m, om::ModelVariantPtr v)
+void RenderRenderInfo::AccumulateModelVariant(ModelMap& m, om::ModelLayerPtr v)
 {
    if (v) {
-      om::ModelVariant::Layer layer = v->GetLayer();
+      om::ModelLayer::Layer layer = v->GetLayer();
 
-      auto set_model_dirty_bit = [=]() {
-         SetDirtyBits(MODEL_DIRTY);
-      };
-      variant_guards_ += v->GetModels().TraceObjectChanges("model variant changed in render_info", set_model_dirty_bit);
+      variant_trace_ = v->TraceModels("render", dm::RENDER_TRACES)
+                              ->OnModified([this]() {
+                                 SetDirtyBits(MODEL_DIRTY);
+                              });
 
-      for (std::string const& model : v->GetModels()) {
+      for (std::string const& model : v->EachModel()) {
          std::shared_ptr<voxel::QubicleFile> qubicle;
          try {
             qubicle = LoadQubicleFile(model);
@@ -119,7 +121,7 @@ void RenderRenderInfo::AccumulateModelVariants(ModelMap& m, om::ModelVariantsPtr
 
 void RenderRenderInfo::CheckMaterial(om::RenderInfoPtr render_info)
 {
-   std::string const& material_path = *render_info->GetMaterial();
+   std::string const& material_path = render_info->GetMaterial();
    if (material_path_ != material_path) {
       material_path_  = material_path;
       H3DRes material = h3dAddResource(H3DResTypes::Material, material_path.c_str(), 0);
@@ -131,9 +133,9 @@ void RenderRenderInfo::RebuildModels(om::RenderInfoPtr render_info)
 {
    ModelMap all_models;
 
-   variant_guards_.Clear();
+   variant_trace_ = nullptr;
    std::string current_variant = GetModelVariant(render_info);
-   for (om::EntityRef const& a : render_info->GetAttachedEntities()) {
+   for (om::EntityRef const& a : render_info->EachAttachedEntity()) {
       auto attached = a.lock();
       if (attached) {
          auto mv = attached->GetComponent<om::ModelVariants>();
@@ -153,7 +155,7 @@ void RenderRenderInfo::FlattenModelMap(ModelMap& m, FlatModelMap& flattened)
 {
    for (const auto& entry : m) {
       voxel::QubicleMatrix const* matrix = nullptr;
-      for (int i = om::ModelVariant::NUM_LAYERS - 1; i >= 0; i--) {
+      for (int i = om::ModelLayer::NUM_LAYERS - 1; i >= 0; i--) {
          matrix = entry.second.layers[i];
          if (matrix != nullptr) {
             break;
@@ -200,7 +202,7 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
    if (i != bones_offsets_.end()) {
       origin = i->second;
    }
-   float scale = *render_info->GetScale();
+   float scale = render_info->GetScale();
 
    auto& pipeline = Pipeline::GetInstance();
    H3DNode mesh;
@@ -243,7 +245,7 @@ void RenderRenderInfo::AddMissingNodes(om::RenderInfoPtr render_info, FlatModelM
 void RenderRenderInfo::RebuildBoneOffsets(om::RenderInfoPtr render_info)
 {
    bones_offsets_.clear();
-   std::string const& animation_table_name = *render_info->GetAnimationTable();
+   std::string const& animation_table_name = render_info->GetAnimationTable();
    if (!animation_table_name.empty()) {
       json::Node table = res::ResourceManager2::GetInstance().LookupJson(animation_table_name);
       for (const auto& entry : table.get("skeleton", JSONNode())) {
@@ -267,17 +269,17 @@ void RenderRenderInfo::Update()
             SetDirtyBits(MODEL_DIRTY);
          }
          if (dirty_ & MODEL_DIRTY) {
-            model_mode_ = *render_info->GetModelMode();
+            model_mode_ = render_info->GetModelMode();
             CheckMaterial(render_info);
             RebuildModels(render_info);
          }
          if (dirty_ & SCALE_DIRTY) {
-            entity_.GetSkeleton().SetScale(*render_info->GetScale());
+            entity_.GetSkeleton().SetScale(render_info->GetScale());
          }
       }
       dirty_ = 0;
    }
-   renderer_frame_trace_.Clear();
+   renderer_frame_guard_.Clear();
 }
 
 void RenderRenderInfo::SetModelVariantOverride(bool enabled, std::string const& variant)
@@ -292,5 +294,5 @@ void RenderRenderInfo::SetModelVariantOverride(bool enabled, std::string const& 
 std::string RenderRenderInfo::GetModelVariant(om::RenderInfoPtr render_info) const
 {
    ASSERT(render_info);
-   return use_model_variant_override_ ? model_variant_override_ : *render_info->GetModelVariant();
+   return use_model_variant_override_ ? model_variant_override_ : render_info->GetModelVariant();
 }

@@ -5,7 +5,7 @@ function CityPlanRenderer:__init(render_entity, data_store)
    self._node = render_entity:get_node()
    self._data_store = data_store
    
-   self._promise = data_store:trace('updating render orders')
+   self._promise = data_store:trace_data('updating render orders')
    self._promise:on_changed(function ()
          self:_update()
       end)

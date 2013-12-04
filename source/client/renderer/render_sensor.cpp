@@ -20,15 +20,7 @@ RenderSensor::~RenderSensor()
 
 void RenderSensor::PrepareToRender(int now, float alpha)
 {
-   auto sphere = sensor_->GetInterface<ObjectModel::ISphereCollisionShape>();
-   if (sphere) {
-      //LOG(WARNING) << color_ << " vs. " << sensor_->GetDebugColor() << "(" << sensor_->GetId() << ")";
-      if (sphere_ != sphere->GetSphereCollisionShape() ||
-          color_ != sensor_->GetDebugColor()) {
-         sphere_ = sphere->GetSphereCollisionShape();
-         UpdateSensor();
-      }
-   }
+   NOT_YET_IMPLEMENTED()
 }
 
 void RenderSensor::UpdateSensor()

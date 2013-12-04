@@ -7,6 +7,8 @@
 BEGIN_RADIANT_CSG_NAMESPACE
 
 class Ray3;
+class Transform;
+class Quaternion;
 
 template <class S, int C> class Region;
 

@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "color.h"
+#include "protocols/store.pb.h"
 
 using namespace radiant;
 using namespace radiant::csg;
@@ -37,6 +38,32 @@ Color3 Histogram::Sample(float f)
       result[i] = (unsigned char)((first[i] * (1 - alpha)) + (second[i] * alpha));
    }
    return result;
+}
+
+void Color4::LoadValue(const protocol::color& c) {
+   r = c.r();
+   g = c.g();
+   b = c.b();
+   a = c.a();
+}
+
+void Color4::SaveValue(protocol::color *c) const {
+   c->set_r(r);
+   c->set_g(g);
+   c->set_b(b);
+   c->set_a(a);
+}
+
+void Color3::SaveValue(protocol::color *c) const {
+   c->set_r(r);
+   c->set_g(g);
+   c->set_b(b);
+}
+
+void Color3::LoadValue(const protocol::color& c) {
+   r = c.r();
+   g = c.g();
+   b = c.b();
 }
 
 std::ostream& ::radiant::csg::operator<<(std::ostream& out, const Color4 &c)

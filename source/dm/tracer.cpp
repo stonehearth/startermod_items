@@ -1,7 +1,14 @@
-#include "pch.h"
-#include "trace_map.h"
+#include "radiant.h"
+#include "tracer.h"
 
-using namespace ::radiant;
-using namespace ::radiant::dm;
+using namespace radiant;
+using namespace radiant::dm;
 
-std::atomic<dm::TraceId>  TraceMapData::nextTraceId_(1);
+Tracer::Tracer(std::string const& name) :
+   name_(name)
+{
+}
+
+Tracer::~Tracer()
+{
+}

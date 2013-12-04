@@ -24,14 +24,14 @@ else
 endif
 
 .PHONY: default
-default: submodules configure stonehearth
+default: submodules configure crash_reporter stonehearth
 
 .PHONY: clean
 clean:
 	rm -rf build
 
 .PHONY: official-build
-official-build: clean init-build submodules configure stonehearth symbols stage
+official-build: clean init-build submodules configure crash_reporter stonehearth symbols stage
 
 .PHONY: init-build
 init-build:
@@ -54,9 +54,12 @@ configure:
 .PHONY: stonehearth
 stonehearth:
 	@echo Build type is ${BUILD_TYPE}.
-	$(MSBUILD) $(BUILD_ROOT)/Stonehearth.sln -p:configuration=$(MSBUILD_CONFIGURATION) -t:protocols
-	$(MSBUILD) $(BUILD_ROOT)/Stonehearth.sln -p:configuration=$(MSBUILD_CONFIGURATION) -t:crash_reporter_server
 	$(MSBUILD) $(BUILD_ROOT)/Stonehearth.sln -p:configuration=$(MSBUILD_CONFIGURATION) -t:stonehearth
+
+.PHONY: crash_reporter
+crash_reporter:
+	@echo Build type is ${BUILD_TYPE}.
+	$(MSBUILD) $(BUILD_ROOT)/Stonehearth.sln -p:configuration=$(MSBUILD_CONFIGURATION) -t:crash_reporter_server
 
 .PHONY: symbols
 symbols:

@@ -4,6 +4,7 @@
 #include <ostream>
 #include "dm/dm.h"
 #include "point.h"
+#include "protocols/forward_defines.h"
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
@@ -19,14 +20,8 @@ public:
       inline Sphere(const Point3f& _center, float _radius) : _center(_center), _radius(_radius){ }
       inline ~Sphere() { }
 
-      void SaveValue(protocol::sphere3f* msg) const {
-         _center.SaveValue(msg->mutable_center());
-         msg->set_radius(_radius);
-      }
-      void LoadValue(const protocol::sphere3f& msg) {
-         _center.LoadValue(msg.center());
-         _radius = msg.radius();
-      }
+      void SaveValue(protocol::sphere3f* msg) const;
+      void LoadValue(const protocol::sphere3f& msg);
 
       // copy operations
       Sphere(const Sphere& other);
@@ -68,7 +63,5 @@ std::ostream& operator<<(std::ostream& out, const Sphere& source);
 void merge(Sphere& result, const Sphere& s0, const Sphere& s1);
 
 END_RADIANT_CSG_NAMESPACE
-
-IMPLEMENT_DM_EXTENSION(::radiant::csg::Sphere, Protocol::sphere3f)
 
 #endif

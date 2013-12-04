@@ -25,8 +25,8 @@ class RenderDestination : public RenderComponent {
       const RenderEntity*     entity_;
       om::DestinationPtr      destination_;
       H3DNodeUnique           regionDebugShape_;
-      om::DeepRegionGuardPtr  region_guard_;
-      core::Guard             tracer_;
+      om::DeepRegionGuardPtr  region_trace_;
+      core::Guard             renderer_guard_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

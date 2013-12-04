@@ -9,7 +9,7 @@ BEGIN_RADIANT_SIMULATION_NAMESPACE
 
 class LuaJob: public Job {
    public:
-      LuaJob(std::string const& name, luabind::object cb);
+      LuaJob(Simulation& sim, std::string const& name, luabind::object cb);
       virtual ~LuaJob();
 
    public: // Job Interface
