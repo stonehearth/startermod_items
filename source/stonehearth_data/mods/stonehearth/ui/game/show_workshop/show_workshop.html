@@ -4,7 +4,10 @@
       <div id="shingle">
          <a id="closeButton" {{action hide target="view"}}></a>
          <div id="title">{{unit_info.name}}</div>
-         <div id="subtitle">{{stonehearth:workshop.crafter.unit_info.name}}</div>
+         <div id="subtitle">
+            {{i18n stonehearth:show_workshop_description}}
+            {{stonehearth:workshop.crafter.unit_info.name}}
+         </div>
       </div>
 
       {{#if stonehearth:workshop.order_list}}
