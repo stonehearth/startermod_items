@@ -16,6 +16,7 @@ local Point2 = _radiant.csg.Point2
 -- this is the component which manages the fabricator entity.
 function ProxyRoomBuilder:__init()
    self[ProxyBuilder]:__init(self, self._on_mouse_event, self._on_keyboard_event)
+   self._curr_door_wall = nil
 end
 
 function ProxyRoomBuilder:go()
@@ -32,7 +33,8 @@ function ProxyRoomBuilder:go()
    self._right = self:add_wall()
 
    self._door = self:add_door()
-   self._bot:add_child(self._door)
+   self._curr_door_wall = self._bot
+   self._curr_door_wall:add_child(self._door)
    
    self._roof = self:add_roof()
    
@@ -49,10 +51,10 @@ function ProxyRoomBuilder:layout()
    self._top:connect_to(self._top_right, self._top_left)
    self._left:connect_to(self._top_left, self._bot_left)
      
-   local length = self._bot:get_length()
-   local position = self._bot:reface_point(Point3(length / 2, 0, 0))
+   local length = self._curr_door_wall:get_length()
+   local position = self._curr_door_wall:reface_point(Point3(length / 2, 0, 0))
    self._door:move_to(position)
-   self._bot:layout()
+   self._curr_door_wall:layout()
    
    local min = self._bot_left:get_location()
    local max = self._top_right:get_location()
@@ -84,10 +86,36 @@ function ProxyRoomBuilder:_on_mouse_event(e)
       elseif e:up(2) then
          -- regions cannot be rotated!
          -- self:rotate()
+         -- The least we can do is rotate what wall the door appears on
+         self:_move_door()
       end
       return true
    end
    return false
+end
+
+--Temporary, till we figure out how to rotate regions
+function ProxyRoomBuilder:_move_door()
+   --remove the door from the current wall
+   self._curr_door_wall:remove_child(self._door)
+   self._curr_door_wall:layout()
+
+   --Change the wall (counter-clockwise)
+   if self._curr_door_wall == self._bot then
+      self._curr_door_wall = self._left
+   elseif self._curr_door_wall == self._left then
+      self._curr_door_wall = self._top 
+   elseif self._curr_door_wall == self._top then
+      self._curr_door_wall = self._right
+   elseif self._curr_door_wall == self._right then
+      self._curr_door_wall = self._bot
+   end
+
+   self._curr_door_wall:add_child(self._door)
+   local length = self._curr_door_wall:get_length()
+   local position = self._curr_door_wall:reface_point(Point3(length / 2, 0, 0))
+   self._door:move_to(position)
+   self._curr_door_wall:layout()
 end
 
 function ProxyRoomBuilder:_on_keyboard_event(e)
