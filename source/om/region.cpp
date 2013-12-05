@@ -29,24 +29,27 @@ DeepRegionGuardPtr om::DeepTraceRegion(Region3BoxedPtrBoxed const& boxedRegionPt
    result->boxed_trace = boxed_trace;
 
    boxed_trace->OnChanged([r, reason, category](Region3BoxedPtr value) {
-      auto guard = r.lock();
-      if (guard) {
-         if (value) {
-            auto region_trace = value->TraceChanges(reason, category);
-            guard->region_trace = region_trace;
+         auto guard = r.lock();
+         if (guard) {
+            if (value) {
+               auto region_trace = value->TraceChanges(reason, category);
+               guard->region_trace = region_trace;
 
-            region_trace->OnChanged([r](csg::Region3 const& region) {
-               auto guard = r.lock();
-               if (guard) {
-                  guard->SignalChanged(region);
-               }
-            });
-         } else {
-            guard->SignalChanged(csg::Region3());
-            guard->region_trace = nullptr;
+               region_trace
+                  ->OnChanged([r](csg::Region3 const& region) {
+                     auto guard = r.lock();
+                     if (guard) {
+                        guard->SignalChanged(region);
+                     }
+                  })
+                  ->PushObjectState();
+            } else {
+               guard->SignalChanged(csg::Region3());
+               guard->region_trace = nullptr;
+            }
          }
-      }
-   });
+      })
+      ->PushObjectState();
 
    return result;
 }

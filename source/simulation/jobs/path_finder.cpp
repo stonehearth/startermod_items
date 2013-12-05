@@ -121,20 +121,15 @@ void PathFinder::AddDestination(om::EntityRef e)
    auto entity = e.lock();
    if (entity) {
       if (dst_filter_.is_valid() && luabind::type(dst_filter_) == LUA_TFUNCTION) {
+         bool ok = false;
          try {
             auto L = dst_filter_.interpreter();
             luabind::object e(L, std::weak_ptr<om::Entity>(entity));
-            if (!luabind::call_function<bool>(dst_filter_, e)) {
-               return;
-            }
-         } catch (luabind::error& e) {
-            LOG(WARNING) << "luabind::error " << e.what();
-            return;
+            ok = luabind::call_function<bool>(dst_filter_, e);
          } catch (std::exception& e) {
-            LOG(WARNING) << "std::exception " << e.what();
-            return;
-         } catch (...) {
-            LOG(WARNING) << "unknown error in pathfinder filter cb...";
+            LOG(WARNING) << "exception in pathfinder filter function: " << e.what();
+         }
+         if (!ok) {
             return;
          }
       }

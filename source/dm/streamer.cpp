@@ -138,12 +138,19 @@ void Streamer::OnRegistered(Object const* obj)
 
 void Streamer::OnDestroyed(ObjectId id, bool dynamic)
 {
-   if (dynamic) {
-      STREAMER_LOG(5) << "adding object to destroyed set (object: " << id << ")";
-      destroyed_objects_[id] = true;
+   auto i = unsaved_objects_.find(id);
+   if (i != unsaved_objects_.end()) {
+      if (dynamic) {
+         STREAMER_LOG(5) << "removing unsaved object from set rather than adding to destroy set (object: " << id << ")";
+      }
+      unsaved_objects_.erase(i);
+   } else {
+      if (dynamic) {
+         STREAMER_LOG(5) << "adding object to destroyed set (object: " << id << ")";
+         destroyed_objects_[id] = true;
+      }
    }
    traces_.erase(id);
-   unsaved_objects_.erase(id);
    object_updates_.erase(id);
 }
 

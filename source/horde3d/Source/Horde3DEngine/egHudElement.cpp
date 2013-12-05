@@ -113,22 +113,23 @@ void WorldspaceLineHudElement::updateGeometry(const Matrix4f& absTrans)
 
    ScreenspaceRectVertex* verts = (ScreenspaceRectVertex*)gRDI->mapBuffer(rectVBO_);
 
-   Vec3f worldP = cam->toWorldPos(screenStartPos + (lineWidthDir * width_));
+   float width = static_cast<float>(width_);
+   Vec3f worldP = cam->toWorldPos(screenStartPos + (lineWidthDir * width));
    verts[0].pos = clipMatrix * Vec4f(worldP, 1.0);
    verts[0].texU = 0.0; verts[0].texV = 0.0;
    verts[0].color = color_;
 
-   worldP = cam->toWorldPos(screenEndPos + (lineWidthDir * width_));
+   worldP = cam->toWorldPos(screenEndPos + (lineWidthDir * width));
    verts[1].pos = clipMatrix * Vec4f(worldP, 1.0);
    verts[1].texU = 1.0; verts[1].texV = 0.0;
    verts[1].color = color_;
 
-   worldP = cam->toWorldPos(screenEndPos - (lineWidthDir * width_));
+   worldP = cam->toWorldPos(screenEndPos - (lineWidthDir * width));
    verts[2].pos = clipMatrix * Vec4f(worldP, 1.0);
    verts[2].texU = 1.0; verts[2].texV = 1.0;
    verts[2].color = color_;
 
-   worldP = cam->toWorldPos(screenStartPos - (lineWidthDir * width_));
+   worldP = cam->toWorldPos(screenStartPos - (lineWidthDir * width));
    verts[3].pos = clipMatrix * Vec4f(worldP, 1.0);
    verts[3].texU = 0.0; verts[3].texV = 1.0;
    verts[3].color = color_;

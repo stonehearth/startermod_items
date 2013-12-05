@@ -93,7 +93,7 @@ function Proxy:remove_child(proxy)
    local entity_id = entity:get_id()
    if self._children[entity_id] then
       proxy:_set_parent(nil)
-      self._entity:add_component('entity_container'):remove_child(entity)
+      self._entity:add_component('entity_container'):remove_child(entity_id)
       self._children[entity_id] = nil
    end
 end
