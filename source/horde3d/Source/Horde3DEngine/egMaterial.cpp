@@ -224,7 +224,7 @@ bool MaterialResource::setArrayUniform( const std::string &name, float* data, in
 		{
          _uniforms[i].arrayValues.clear();
 
-         for (int j = 0; j < 4 * dataCount; j++)
+         for (int j = 0; j < dataCount; j++)
          {
             _uniforms[i].arrayValues.push_back(data[j]);
          }

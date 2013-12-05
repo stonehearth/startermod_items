@@ -3,8 +3,8 @@
 
    "work_units"  : 3,
    "recipe_name" : "Simple Wooden Chair",
-   "description" : "Sit on this to maximize the value of the table.",
-   "flavor"      : "Culmination of 50,000 years of research.",
+   "description" : "When sitting, food is 20% more satisfying.",
+   "flavor"      : "",
    "portrait"    : "/stonehearth/entities/furniture/simple_wooden_chair/simple_wooden_chair.png",
    "category"    : "weapons",
 

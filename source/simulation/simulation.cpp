@@ -432,7 +432,6 @@ void Simulation::handle_accept(std::shared_ptr<tcp::socket> socket, const boost:
       c->socket = socket;
       c->send_queue = protocol::SendQueue::Create(*socket);
       c->recv_queue = std::make_shared<protocol::RecvQueue>(*socket);
-      c->recv_queue->Read();
       c->streamer = std::make_shared<dm::Streamer>(store_, dm::PLAYER_1_TRACES, c->send_queue.get());
       _clients.push_back(c);
 
