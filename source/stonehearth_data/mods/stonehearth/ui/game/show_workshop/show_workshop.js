@@ -18,6 +18,7 @@ App.StonehearthCrafterView = App.View.extend({
       "unit_info": {},
       "stonehearth:workshop": {
          "crafter": {
+            "unit_info" : {},
             "stonehearth:crafter": {
                "craftable_recipes" : {
                   "recipes" : []
