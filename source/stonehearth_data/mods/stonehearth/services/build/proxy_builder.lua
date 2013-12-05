@@ -145,6 +145,14 @@ function ProxyBuilder:publish()
    end
 end
 
+function ProxyBuilder:cancel()
+   self:_clear()
+   if self._input_capture then
+      self._input_capture:destroy()
+      self._input_capture = nil
+   end
+end
+
 function ProxyBuilder:rotate()
    self._rotation = self._rotation + 90
    if self._rotation >= 360 then

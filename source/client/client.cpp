@@ -368,9 +368,6 @@ void Client::run(int server_port)
    _commands[GLFW_KEY_F9] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_debug_nodes")); };
    _commands[GLFW_KEY_F3] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_step_paths")); };
    _commands[GLFW_KEY_F4] = [=]() { core_reactor_->Call(rpc::Function("radiant:step_paths")); };
-   _commands[GLFW_KEY_ESCAPE] = [=]() {
-      currentCursor_ = NULL;
-   };
 
    if (core::Config::GetInstance().Get("crash_key_enabled", false)) {
       _commands[GLFW_KEY_PAUSE] = []() {

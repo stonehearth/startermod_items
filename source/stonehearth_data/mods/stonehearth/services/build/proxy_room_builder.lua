@@ -17,6 +17,16 @@ local Point2 = _radiant.csg.Point2
 function ProxyRoomBuilder:__init()
    self[ProxyBuilder]:__init(self, self._on_mouse_event, self._on_keyboard_event)
    self._curr_door_wall = nil
+
+   self._input_capture = _radiant.client.capture_input()
+   self._input_capture:on_input(function(e)
+      if e.type == _radiant.client.Input.KEYBOARD then
+        self:_on_keyboard_event(
+          e.keyboard)
+      end
+      -- Don't consume the event, since the UI might want to do something, too.
+      return false
+    end)
 end
 
 function ProxyRoomBuilder:go()
@@ -119,6 +129,11 @@ function ProxyRoomBuilder:_move_door()
 end
 
 function ProxyRoomBuilder:_on_keyboard_event(e)
+   local esc_down = _radiant.client.is_key_down(_radiant.client.KeyboardInput.ESC)
+   if esc_down then
+      self:cancel()
+      return true
+   end
    return false
 end
 

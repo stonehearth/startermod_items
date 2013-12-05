@@ -372,7 +372,9 @@ void lua::client::open(lua_State* L)
                   value("LEFT_CTRL",         GLFW_KEY_LEFT_CONTROL),
                   value("RIGHT_CTRL",        GLFW_KEY_RIGHT_CONTROL),
                   value("LEFT_ALT",          GLFW_KEY_LEFT_ALT),
-                  value("RIGHT_ALT",         GLFW_KEY_RIGHT_ALT)
+                  value("RIGHT_ALT",         GLFW_KEY_RIGHT_ALT),
+                  value("ESC",               GLFW_KEY_ESCAPE),
+                  value("BACKSPACE",         GLFW_KEY_BACKSPACE)
                ]
                .def_readonly("key",    &KeyboardInput::key)
                .def_readonly("down",   &KeyboardInput::down)
