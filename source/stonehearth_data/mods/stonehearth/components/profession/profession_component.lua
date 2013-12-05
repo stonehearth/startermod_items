@@ -4,7 +4,8 @@
 
 local ProfessionComponent = class()
 
-function ProfessionComponent:__init()
+function ProfessionComponent:__init(entity)
+   self._entity = entity
    self._info = {}
 end
 
@@ -14,6 +15,9 @@ end
 
 function ProfessionComponent:set_info(info)
    self._info = info
+   if self._info and self._info.name then 
+      self._entity:add_component('unit_info'):set_description(self._info.name)
+   end
 end
 
 function ProfessionComponent:get_name()
