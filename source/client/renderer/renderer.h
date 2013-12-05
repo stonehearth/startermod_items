@@ -207,6 +207,7 @@ class Renderer
 
       Input                         input_;  // Mouse coordinates in the GL window-space.
       bool                          initialized_;
+      bool                          iconified_;
 
       ViewMode                      viewMode_;
       json::Node                    terrainConfig_;

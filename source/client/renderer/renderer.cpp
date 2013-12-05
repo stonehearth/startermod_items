@@ -53,7 +53,8 @@ Renderer::Renderer() :
    screen_resize_slot_("screen resize"),
    show_debug_shapes_changed_slot_("show debug shapes"),
    lastGlfwError_("none"),
-   currentPipeline_(0)
+   currentPipeline_(0),
+   iconified_(false)
 {
    terrainConfig_ = res::ResourceManager2::GetInstance().LookupJson("stonehearth/renderers/terrain/config.json");
    GetConfigOptions();
@@ -157,7 +158,11 @@ Renderer::Renderer() :
    memset(&input_.mouse, 0, sizeof input_.mouse);
 
    glfwSetWindowSizeCallback(window, [](GLFWwindow *window, int newWidth, int newHeight) { 
-      Renderer::GetInstance().OnWindowResized(newWidth, newHeight); 
+      Renderer::GetInstance().OnWindowResized(newWidth, newHeight);
+   });
+
+   glfwSetWindowIconifyCallback(window, [](GLFWwindow *window, int iconified) {
+      Renderer::GetInstance().iconified_ = iconified == GL_TRUE;
    });
 
    glfwSetKeyCallback(window, [](GLFWwindow *window, int key, int scancode, int action, int mods) { 
@@ -406,6 +411,10 @@ HWND Renderer::GetWindowHandle() const
 
 void Renderer::RenderOneFrame(int now, float alpha)
 {
+   if (iconified_) {
+      return;
+   }
+
    perfmon::TimelineCounterGuard tcg("render one");
 
    bool debug = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS;
@@ -460,7 +469,6 @@ void Renderer::RenderOneFrame(int now, float alpha)
    UpdateCamera();
    perfmon::SwitchToCounter("render finalize");
    h3dFinalizeFrame();
-   //glFinish();
 
    // Advance emitter time; this must come AFTER rendering, because we only know which emitters
    // to update after doing a render pass.
@@ -476,6 +484,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    h3dutDumpMessages();
 
    perfmon::SwitchToCounter("render swap");
+
    glfwSwapBuffers(glfwGetCurrentContext());
 
    last_render_time_ = now;

@@ -411,8 +411,9 @@ ActivityOverlayEffect::ActivityOverlayEffect(RenderEntity& e, om::EffectPtr effe
    json::Node cjo(node);
 
    std::string matName = cjo.get("material", std::string("materials/chop_overlay/chop_overlay.material.xml"));
-   int overlayWidth = cjo.get("width", 32);
-   int overlayHeight = cjo.get("height", 32);
+   int overlayWidth = cjo.get("width", 64);
+   int overlayHeight = cjo.get("height", 64);
+   int yOffset = cjo.get("y_offset", 0);
 
    H3DRes mat = h3dAddResource(H3DResTypes::Material, matName.c_str(), 0);
    H3DRes lineMat = h3dAddResource(H3DResTypes::Material, "materials/line.material.xml", 0);
@@ -420,8 +421,7 @@ ActivityOverlayEffect::ActivityOverlayEffect(RenderEntity& e, om::EffectPtr effe
    Horde3D::HudElementNode* hud = h3dAddHudElementNode(e.GetNode(), "");
    getBoundsForGroupNode(&minX, &maxX, &minY, &maxY, e.GetNode());
    h3dSetNodeTransform(hud->getHandle(), 0, maxY - minY + 4, 0, 0, 0, 0, 1, 1, 1);
-   hud->addScreenspaceRect(overlayWidth, overlayHeight, (int)(-overlayWidth / 2.0f), -2, Horde3D::Vec4f(1, 1, 1, 1), mat);
-   hud->addWorldspaceLine(2, Horde3D::Vec4f(0,1,0,1), lineMat);
+   hud->addScreenspaceRect(overlayWidth, overlayHeight, (int)(-overlayWidth / 2.0f), yOffset, Horde3D::Vec4f(1, 1, 1, 1), mat);
    overlayNode_ = H3DNodeUnique(hud->getHandle());
 }
 
