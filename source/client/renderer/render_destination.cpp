@@ -12,25 +12,28 @@ RenderDestination::RenderDestination(const RenderEntity& entity, om::Destination
    entity_ = &entity;
    destination_ = destination;
 
-   tracer_ += Renderer::GetInstance().OnShowDebugShapesChanged([this](bool enabled) {
+   renderer_guard_ += Renderer::GetInstance().OnShowDebugShapesChanged([this](bool enabled) {
       if (enabled) {
-         RenderDestinationRegion();
+         RenderDestinationRegion(REGION, destination_->TraceRegion("debug rendering", dm::RENDER_TRACES), csg::Color4(128, 128, 128, 128));
+         RenderDestinationRegion(ADJACENT, destination_->TraceAdjacent("debug rendering", dm::RENDER_TRACES), csg::Color4(0, 255, 0, 128));
       } else {
-         RemoveDestinationRegion();
+         RemoveDestinationRegion(REGION);
+         RemoveDestinationRegion(ADJACENT);
       }
    });
 }
 
-void RenderDestination::RenderDestinationRegion()
+void RenderDestination::RenderDestinationRegion(int i, om::DeepRegionGuardPtr trace, csg::Color4 const& color)
 {
    H3DNode node = entity_->GetNode();
-   region_guard_ = CreateRegionDebugShape(node, regionDebugShape_, destination_->GetRegion(), csg::Color4(128, 128, 128, 128));
+   region_trace_[i] = trace;
+   CreateRegionDebugShape(node, regionDebugShape_[i], region_trace_[i], color);
 }
 
-void RenderDestination::RemoveDestinationRegion()
+void RenderDestination::RemoveDestinationRegion(int i)
 {
-   region_guard_ = nullptr;
-   regionDebugShape_.reset(0);
+   region_trace_[i] = nullptr;
+   regionDebugShape_[i].reset(0);
 }
 
 RenderDestination::~RenderDestination()

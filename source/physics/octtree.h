@@ -12,7 +12,7 @@ BEGIN_RADIANT_PHYSICS_NAMESPACE
 
 class OctTree {
    public:
-      OctTree();
+      OctTree(int trace_category);
 
       void SetRootEntity(om::EntityPtr);
       void Cleanup();
@@ -58,17 +58,24 @@ class OctTree {
 
    private:
       void TraceEntity(om::EntityPtr entity);
-      void OnComponentAdded(om::EntityRef e, dm::ObjectType type, std::shared_ptr<dm::Object> component);
+      void OnComponentAdded(dm::ObjectId id, std::shared_ptr<dm::Object> component);
       void TraceSensor(om::SensorPtr sensor);
       void UpdateSensors();
       bool UpdateSensor(om::SensorPtr sensor);
-      void UpdateEntityContainer(om::EntityContainerPtr container);
     
    protected:
-      std::map<dm::ObjectId, om::EntityRef>           entities_;
-      std::map<dm::ObjectId, om::SensorRef>           sensors_;
-      core::Guard                                       guards_;
-      NavGrid                                         navgrid_;
+      struct EntityMapEntry
+      {
+         om::EntityRef  entity;
+         dm::TracePtr   components_trace;
+         dm::TracePtr   children_trace;
+         dm::TracePtr   sensor_list_trace;
+      };
+      std::map<dm::ObjectId, EntityMapEntry>       entities_;
+      std::map<dm::ObjectId, om::SensorRef>        sensors_;
+      core::Guard                               guards_;
+      NavGrid                                   navgrid_;
+      int                                       trace_category_;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE

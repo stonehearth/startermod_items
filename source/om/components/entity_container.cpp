@@ -1,48 +1,47 @@
 #include "pch.h"
-#include "entity_container.h"
-#include "mob.h"
+#include "entity_container.ridl.h"
+#include "mob.ridl.h"
 #include "om/entity.h"
+#include "dm/trace.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-void EntityContainer::InitializeRecordFields()
+std::ostream& operator<<(std::ostream& os, EntityContainer const& o)
 {
-   Component::InitializeRecordFields();
-   AddRecordField("children", children_);
+   return (os << "[EntityContainer]");
 }
 
-EntityContainer& EntityContainer::AddChild(om::EntityRef c)
+void EntityContainer::ExtendObject(json::Node const& obj)
+{
+}
+
+void EntityContainer::AddChild(std::weak_ptr<Entity> c)
 {
    auto child = c.lock();
    if (child) {
-      auto mob = child->AddComponent<Mob>();
-      auto parent = mob->GetParent();
+      MobPtr mob = child->AddComponent<Mob>();
+      EntityPtr parent = mob->GetParent().lock();
       if (parent) {
-         auto container = parent->GetEntity().GetComponent<EntityContainer>();
-         container->RemoveChild(c);
+         auto container = parent->GetComponent<EntityContainer>();
+         container->RemoveChild(child->GetObjectId());
       }
-      mob->SetParent(GetEntity().AddComponent<Mob>());
+      mob->SetParent(GetEntityRef());
 
       dm::ObjectId id = child->GetObjectId();
-      children_[id] = child;
-      destroy_guards_[id] = child->TraceObjectLifetime("remove from ec on destroy", [=]() {
-         children_.Remove(id);
-      });
+      children_.Add(id, c);
    }
-   return *this;
 }
 
-EntityContainer& EntityContainer::RemoveChild(om::EntityRef c)
+EntityContainer& EntityContainer::RemoveChild(dm::ObjectId id)
 {
-   auto child = c.lock();
-   if (child) {
-      dm::ObjectId id = child->GetObjectId();
+   auto i = children_.find(id);
+   if (i != children_.end()) {
+      EntityPtr child = i->second.lock();
       children_.Remove(id);
-      destroy_guards_.erase(id);
       auto mob = child->GetComponent<Mob>();
       if (mob) {
-         mob->SetParent(nullptr);
+         mob->SetParent(EntityRef());
       }
    }
    return *this;

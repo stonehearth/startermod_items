@@ -10,6 +10,7 @@
 #include "glfw3native.h"
 #include "render_entity.h"
 #include "lib/perfmon/perfmon.h"
+#include "dm/record_trace.h"
 #include "om/selection.h"
 #include "om/entity.h"
 #include <SFML/Audio.hpp>
@@ -52,7 +53,8 @@ Renderer::Renderer() :
    screen_resize_slot_("screen resize"),
    show_debug_shapes_changed_slot_("show debug shapes"),
    lastGlfwError_("none"),
-   currentPipeline_(0)
+   currentPipeline_(0),
+   iconified_(false)
 {
    terrainConfig_ = res::ResourceManager2::GetInstance().LookupJson("stonehearth/renderers/terrain/config.json");
    GetConfigOptions();
@@ -156,7 +158,11 @@ Renderer::Renderer() :
    memset(&input_.mouse, 0, sizeof input_.mouse);
 
    glfwSetWindowSizeCallback(window, [](GLFWwindow *window, int newWidth, int newHeight) { 
-      Renderer::GetInstance().OnWindowResized(newWidth, newHeight); 
+      Renderer::GetInstance().OnWindowResized(newWidth, newHeight);
+   });
+
+   glfwSetWindowIconifyCallback(window, [](GLFWwindow *window, int iconified) {
+      Renderer::GetInstance().iconified_ = iconified == GL_TRUE;
    });
 
    glfwSetKeyCallback(window, [](GLFWwindow *window, int key, int scancode, int action, int mods) { 
@@ -405,6 +411,10 @@ HWND Renderer::GetWindowHandle() const
 
 void Renderer::RenderOneFrame(int now, float alpha)
 {
+   if (iconified_) {
+      return;
+   }
+
    perfmon::TimelineCounterGuard tcg("render one");
 
    bool debug = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS;
@@ -459,7 +469,6 @@ void Renderer::RenderOneFrame(int now, float alpha)
    UpdateCamera();
    perfmon::SwitchToCounter("render finalize");
    h3dFinalizeFrame();
-   //glFinish();
 
    // Advance emitter time; this must come AFTER rendering, because we only know which emitters
    // to update after doing a render pass.
@@ -475,6 +484,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    h3dutDumpMessages();
 
    perfmon::SwitchToCounter("render swap");
+
    glfwSwapBuffers(glfwGetCurrentContext());
 
    last_render_time_ = now;
@@ -635,7 +645,6 @@ void Renderer::ResizeViewport()
 
 std::shared_ptr<RenderEntity> Renderer::CreateRenderObject(H3DNode parent, om::EntityPtr entity)
 {
-   std::shared_ptr<RenderEntity> result;
    dm::ObjectId id = entity->GetObjectId();
    int sid = entity->GetStoreId();
 
@@ -643,20 +652,22 @@ std::shared_ptr<RenderEntity> Renderer::CreateRenderObject(H3DNode parent, om::E
    auto i = entities.find(id);
 
    if (i != entities.end()) {
-      auto entity = i->second;
-      entity->SetParent(parent);
-      result = entity;
-   } else {
-      // LOG(WARNING) << "CREATING RENDER OBJECT " << sid << ", " << id;
-      result = std::make_shared<RenderEntity>(parent, entity);
-      result->FinishConstruction();
-      entities[id] = result;
-      traces_ += entity->TraceObjectLifetime("render entity lifetime", [=]() { 
-         // LOG(WARNING) << "DESTROYING RENDER OBJECT " << sid << ", " << id;
-         entities_[sid].erase(id);
-      });
+      RenderMapEntry const& entry = i->second;
+      entry.render_entity->SetParent(parent);
+      return entry.render_entity;
    }
-   return result;
+
+   // LOG(WARNING) << "CREATING RENDER OBJECT " << sid << ", " << id;
+   RenderMapEntry entry;
+   entry.render_entity = std::make_shared<RenderEntity>(parent, entity);
+   entry.render_entity->FinishConstruction();
+   entry.lifetime_trace = entity->TraceChanges("render dtor", dm::RENDER_TRACES)
+                                    ->OnDestroyed([this, sid, id]() { 
+                                       // LOG(WARNING) << "DESTROYING RENDER OBJECT " << sid << ", " << id;
+                                          entities_[sid].erase(id);
+                                       });
+   entities[id] = entry;
+   return entry.render_entity;
 }
 
 std::shared_ptr<RenderEntity> Renderer::GetRenderObject(om::EntityPtr entity)
@@ -672,7 +683,7 @@ std::shared_ptr<RenderEntity> Renderer::GetRenderObject(int sid, dm::ObjectId id
 {
    auto i = entities_[sid].find(id);
    if (i != entities_[sid].end()) {
-      return i->second;
+      return i->second.render_entity;
    }
    return nullptr;
 }

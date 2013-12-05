@@ -26,25 +26,26 @@ function Terrain.remove_entity(entity)
 end
 
 function Terrain.trace_world_entities(reason, added_cb, removed_cb)
+   local root = radiant.entities.get_root_entity()
    local ec = radiant.entities.get_root_entity():add_component('entity_container');
-   local children = ec:get_children()
 
    -- put a trace on the root entity container to detect when items
    -- go on and off the terrain.  each item is forwarded to the
    -- appropriate tracker.
-   local trace = children:trace('radiant.terrain: ' .. reason)
-                     :on_added(added_cb)
-                     :on_removed(removed_cb)
-   for id, entity in children:items() do
-      added_cb(id, entity)
-   end
-   return trace
+   return ec:trace_children('radiant.terrain: ' .. reason)
+                        :on_added(function (id, entity) 
+                              if entity and entity:is_valid() then
+                                 added_cb(id, entity)
+                              end
+                           end)
+                        :on_removed(removed_cb)
+                        :push_object_state()
 end
 
-function Terrain.get_world_entities()
+
+function Terrain.each_world_entity()
    local ec = radiant.entities.get_root_entity():add_component('entity_container');
-   local children = ec:get_children()
-   return children:items()
+   return ec:each_child()
 end
 
 return Terrain

@@ -22,7 +22,7 @@ template <typename T>
 T floor0( const T& value )
 {
    T result = std::floor(std::fabs( value ));
-   return (value < 0.0) ? -result : result;
+   return static_cast<T>((value < 0.0) ? -result : result);
 }
 
 END_RADIANT_CSG_NAMESPACE

@@ -402,10 +402,13 @@ void RenderDevice::updateBufferData( uint32 bufObj, uint32 offset, uint32 size, 
 	{
 		// Replacing the whole buffer can help the driver to avoid pipeline stalls
 		glBufferData( buf.type, size, data, GL_DYNAMIC_DRAW );
+   	glBindBuffer( buf.type, 0 );
 		return;
 	}
 
 	glBufferSubData( buf.type, offset, size, data );
+
+	glBindBuffer( buf.type, 0 );
 }
 
 

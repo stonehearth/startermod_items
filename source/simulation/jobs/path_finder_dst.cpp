@@ -5,8 +5,8 @@
 #include "path_finder_dst.h"
 #include "simulation/simulation.h"
 #include "om/entity.h"
-#include "om/components/mob.h"
-#include "om/components/destination.h"
+#include "om/components/mob.ridl.h"
+#include "om/components/destination.ridl.h"
 #include "om/region.h"
 #include "csg/color.h"
 
@@ -30,33 +30,36 @@ PathFinderDst::PathFinderDst(PathFinder &pf, om::EntityRef e) :
          }
       };
 
-      auto& o = Simulation::GetInstance().GetOctTree();
+      auto& o = GetSim().GetOctTree();
       collision_cb_id_ = o.AddCollisionRegionChangeCb(&world_space_adjacent_region_, [destination_may_have_changed] {
          destination_may_have_changed();
       });
 
       auto mob = entity->GetComponent<om::Mob>();
       if (mob) {
-         moving_ = *mob->GetBoxedMoving();
+         moving_ = mob->GetMoving();
 
-         guards_ += mob->GetBoxedTransform().TraceValue("pathfinder entity mob trace (xform)", [=](csg::Transform const&) {
-                        destination_may_have_changed();
-                     });
+         transform_trace_ = mob->TraceTransform("pf dst", dm::PATHFINDER_TRACES)
+                                 ->OnChanged([=](csg::Transform const&) {
+                                    destination_may_have_changed();
+                                 });
 
-         guards_ += mob->GetBoxedMoving().TraceValue( "pathfinder entity mob trace (moving)", [=](bool const& moving) {
-                        if (moving != moving_) {
-                           moving_ = moving;
-                           if (moving_) {
-                              pf_.RestartSearch();
-                           }
-                        }
-                     });
+         moving_trace_ = mob->TraceMoving("pf dst", dm::PATHFINDER_TRACES)
+                                 ->OnChanged([=](bool const& moving) {
+                                    if (moving != moving_) {
+                                       moving_ = moving;
+                                       if (moving_) {
+                                          pf_.RestartSearch();
+                                       }
+                                    }
+                                 });
       }
       auto dst = entity->GetComponent<om::Destination>();
       if (dst) {
-         region_guard_ = om::DeepTraceRegionVoid(dst->GetAdjacent(),
-                              "pathfinder destination trace",
-                              destination_may_have_changed);
+         region_guard_ = dst->TraceAdjacent("pf dst", dm::PATHFINDER_TRACES)
+                                 ->OnChanged([destination_may_have_changed](csg::Region3 const&) {
+                                    destination_may_have_changed();
+                                 });
       }
       ClipAdjacentToTerrain();
    }
@@ -65,7 +68,7 @@ PathFinderDst::PathFinderDst(PathFinder &pf, om::EntityRef e) :
 PathFinderDst::~PathFinderDst()
 {
    if (collision_cb_id_) {
-      auto& o = Simulation::GetInstance().GetOctTree();
+      auto& o = GetSim().GetOctTree();
       o.RemoveCollisionRegionChangeCb(collision_cb_id_);
       collision_cb_id_ = 0;
    }
@@ -74,7 +77,7 @@ PathFinderDst::~PathFinderDst()
 
 void PathFinderDst::ClipAdjacentToTerrain()
 {
-   const auto& o = Simulation::GetInstance().GetOctTree();
+   const auto& o = GetSim().GetOctTree();
    world_space_adjacent_region_.Clear();
 
    if (moving_) {
@@ -91,7 +94,7 @@ void PathFinderDst::ClipAdjacentToTerrain()
          om::Region3BoxedPtr adjacent;
          auto destination = entity->GetComponent<om::Destination>();
          if (destination) {
-            adjacent = *destination->GetAdjacent();
+            adjacent = destination->GetAdjacent();
          }
          if (adjacent) {
             world_space_adjacent_region_ = adjacent->Get();
@@ -137,7 +140,7 @@ int PathFinderDst::EstimateMovementCost(const csg::Point3& from) const
    om::Region3BoxedPtr adjacent;
    om::DestinationPtr dst = entity->GetComponent<om::Destination>();
    if (dst) {
-      adjacent = *dst->GetAdjacent();
+      adjacent = dst->GetAdjacent();
    }
    if (adjacent) {
       csg::Region3 const& rgn = *adjacent;
@@ -200,12 +203,6 @@ csg::Point3 PathFinderDst::GetPointfInterest(csg::Point3 const& adjacent_pt) con
       csg::Region3 const& rgn = **dst->GetRegion();
 
       if (dst->GetAutoUpdateAdjacent()) {
-         dm::GenerationId region_modified = om::DeepObj_GetLastModified(dst->GetRegion());
-         dm::GenerationId adjacent_modified = om::DeepObj_GetLastModified(dst->GetAdjacent());
-         dm::GenerationId reserved_modified = om::DeepObj_GetLastModified(dst->GetReserved());
-
-         ASSERT(adjacent_modified >= region_modified);
-         ASSERT(adjacent_modified >= reserved_modified);
          csg::Region3 const& adjacent = **dst->GetAdjacent();
 
          ASSERT(world_space_adjacent_region_.GetArea() <= adjacent.GetArea());

@@ -14,17 +14,21 @@
          "item": "stonehearth:carpenter:saw",
          "bone": "mainHand"
       },
-      "sound": {
+       "sound": {
          "type": "sound_effect",
-         "duration": 1000,
+         "duration": 500,
          "start_delay": 0,
+         "min_distance": 30,
+         "max_distance": 90,
+         "volume": 30,
          "track" : {
             "type": "one_of",
             "items": [
-               "stonehearth:sounds:saw_deep",
-               "stonehearth:sounds:saw_high"
-            ]
-         }      
+               "stonehearth:sounds:saw_light_01_sound",
+               "stonehearth:sounds:saw_light_02_sound",
+               "stonehearth:sounds:saw_light_03_sound"
+            ]    
+         }
       }
    }
 }

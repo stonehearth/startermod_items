@@ -19,7 +19,7 @@ function ProxyContainer:_trace_all_children(entity)
 
    local ec = entity:get_component('entity_container')
    if ec then
-      for id, child in ec:get_children():items() do
+      for id, child in ec:each_child() do
          self:_trace_all_children(child)
       end
    end   
@@ -29,17 +29,22 @@ function ProxyContainer:_trace_entity(entity)
    local id = entity:get_id()
    local result = self._all_children[id]
    if not result then
-      result = {}      
+      result = {}
+      result.destroy_promise = entity:trace_object('proxy container destroy')
+                                          :on_destroyed(function()
+                                             self:_remove_child(id)
+                                          end)
+                                          
       local mob = entity:add_component('mob')
-      result.mob_promise = mob:trace('no construnction zone')
-                                 :on_changed(function ( ... )
+      result.mob_promise = mob:trace_transform('no construnction zone')
+                                 :on_changed(function ()
                                     self:_move_child(entity)                              
                                  end)
 
       result.entity = entity
       local ec = entity:add_component('entity_container')
       if ec then
-         result.ec_promise = ec:get_children():trace('no construction zone')
+         result.ec_promise = ec:trace_children('no construction zone')
                                                 :on_added(function(...)
                                                    self:_add_child(...)
                                                 end)
@@ -61,7 +66,7 @@ function ProxyContainer:_remove_all_children(id)
       if info.entity then
          local ec = info.entity:get_component('entity_container')
          if ec then
-            for id, child in ec:get_children():items() do
+            for id, child in ec:each_child() do
                self:_remove_all_children(id)
             end
          end
@@ -117,15 +122,19 @@ function ProxyContainer:_add_nobuild_zone(entity, origin, cursor)
 end
 
 function ProxyContainer:_rebuild_zone()
-   local origin = self:get_entity():get_component('mob'):get_world_grid_location()
-   local cursor = self._rgn2:modify()
-   cursor:clear()   
-   for id, info in pairs(self._all_children) do
-      if info.entity then
-         self:_add_nobuild_zone(info.entity, origin, cursor)
-      end
+   local entity = self:get_entity()
+   if entity and entity:is_valid() then
+      local origin = entity:get_component('mob'):get_world_grid_location()
+      self._rgn2:modify(function(cursor)
+         cursor:clear()   
+         for id, info in pairs(self._all_children) do
+            if info.entity then
+               self:_add_nobuild_zone(info.entity, origin, cursor)
+            end
+         end
+      end)
+      entity:set_component_data('stonehearth:no_construction_zone', { region2 = self._rgn2 })
    end
-   self:get_entity():set_component_data('stonehearth:no_construction_zone', { region2 = self._rgn2 })
 end
 
 return ProxyContainer

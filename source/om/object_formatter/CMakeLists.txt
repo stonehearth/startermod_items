@@ -11,3 +11,6 @@ include_directories(${Luabind_INCLUDE_DIRS})
 add_library(om_object_formatter STATIC
             object_formatter.cpp
             )
+
+add_dependencies(om_object_formatter
+                 om_generated_headers)

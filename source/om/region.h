@@ -1,10 +1,14 @@
 #ifndef _RADIANT_OM_REGION_H
 #define _RADIANT_OM_REGION_H
 
+#include "dm/dm.h"
 #include "dm/boxed.h"
+#include "dm/boxed_trace.h"
 #include "csg/region.h"
+#include "core/guard.h"
 #include "radiant_macros.h"
 #include "object_enums.h"
+#include "lib/lua/bind.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
 
@@ -33,11 +37,12 @@ typedef dm::Boxed<Region3BoxedPtr> Region3BoxedPtrBoxed;
 //
 // That's what the DeepRegionGuard is for!
 
-struct DeepRegionGuard {
-   core::Guard   region;        // trace the region in the Region3Boxed
-   core::Guard   boxed;         // trace the pointer in the Region3BoxedPtrBoxed
-   dm::ObjectId store_id;
-   dm::ObjectId object_id;
+struct DeepRegionGuard : public std::enable_shared_from_this<DeepRegionGuard> {
+   dm::TracePtr   region_trace;
+   std::shared_ptr<dm::BoxedTrace<Region3BoxedPtrBoxed>>   boxed_trace;
+   dm::ObjectId   store_id;
+   dm::ObjectId   object_id;
+   std::function<void(csg::Region3 const&)> changed_cb_;
 
    DeepRegionGuard(dm::ObjectId s, dm::ObjectId o) : 
       store_id(s),
@@ -47,6 +52,24 @@ struct DeepRegionGuard {
 
    ~DeepRegionGuard() {
    }
+
+   std::shared_ptr<DeepRegionGuard> OnChanged(std::function<void(csg::Region3 const& r)> cb)
+   {
+      changed_cb_ = cb;
+      return shared_from_this();
+   }
+
+   std::shared_ptr<DeepRegionGuard> PushObjectState()
+   {      
+      boxed_trace->PushObjectState();
+      return shared_from_this();
+   }
+
+   void SignalChanged(csg::Region3 const& r) {
+      if (changed_cb_) {
+         changed_cb_(r);
+      }
+   }
 };
 
 DECLARE_SHARED_POINTER_TYPES(DeepRegionGuard)
@@ -54,26 +77,9 @@ DECLARE_SHARED_POINTER_TYPES(DeepRegionGuard)
 dm::GenerationId DeepObj_GetLastModified(Region3BoxedPtrBoxed const& boxedRegionPtrField);
 
 DeepRegionGuardPtr DeepTraceRegion(Region3BoxedPtrBoxed const& boxedRegionPtrField,
-                                   const char* reason,
-                                   std::function<void(csg::Region3 const& r)> updateCb);
-
-DeepRegionGuardPtr DeepTraceRegionVoid(Region3BoxedPtrBoxed const& boxedRegionPtrField,
-                                       const char* reason,
-                                       std::function<void()> updateCb);
+                                   const char* reason, int category);
 
 
-class Region3BoxedPromise
-{
-public:
-   Region3BoxedPromise(Region3BoxedPtrBoxed const& boxedRegionPtrField, const char* reason);
-
-public:
-   Region3BoxedPromise* PushChangedCb(luabind::object cb);
-
-private:
-   DeepRegionGuardPtr           region_guard_;
-   std::vector<luabind::object>  changedCbs_;
-};
 
 END_RADIANT_OM_NAMESPACE
 

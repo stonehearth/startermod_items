@@ -153,7 +153,4 @@ std::ostream& operator<<(std::ostream& os, const Cube<S, C>& in)
 
 END_RADIANT_CSG_NAMESPACE
 
-IMPLEMENT_DM_EXTENSION(::radiant::csg::Cube3, Protocol::cube3i)
-IMPLEMENT_DM_EXTENSION(::radiant::csg::Cube3f, Protocol::cube3f)
-
 #endif // _RADIANT_CSG_BOX_H

@@ -8,10 +8,10 @@
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
-om::DeepRegionGuardPtr CreateRegionDebugShape(H3DNode parent,
-                                              H3DNodeUnique& shape,
-                                              om::Region3BoxedPtrBoxed const& region,
-                                              csg::Color4 const& color);
+void CreateRegionDebugShape(H3DNode parent,
+                            H3DNodeUnique& shape,
+                            om::DeepRegionGuardPtr trace,
+                            csg::Color4 const& color);
 
 END_RADIANT_CLIENT_NAMESPACE
 

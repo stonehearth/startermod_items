@@ -18,12 +18,11 @@ add_library(client_renderer STATIC
             render_terrain.cpp
             render_effect_list.cpp
             render_destination.cpp
-            render_paperdoll.cpp
             render_carry_block.cpp
-            render_render_region.cpp
             render_render_info.cpp
             render_util.cpp
             render_vertical_pathing_region.cpp
+            render_lua_component.cpp
             lua_renderer.cpp
             lua_render_entity.cpp
             camera.cpp
@@ -32,6 +31,10 @@ add_library(client_renderer STATIC
             perfhud/timeline_column.cpp
             perfhud/render_context.cpp
             )
+
+add_dependencies(client_renderer
+                 om_generated_headers
+                 protobuf_generated_headers)
 
 if (MSVC)
    set_target_properties(client_renderer PROPERTIES COMPILE_FLAGS "/Yupch.h")

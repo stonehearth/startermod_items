@@ -1,19 +1,19 @@
 #include "pch.h"
-#include "effect_list.h"
+#include "effect.ridl.h"
+#include "effect_list.ridl.h"
 #include "om/entity.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-std::ostream& om::operator<<(std::ostream& os, const Effect& o)
+std::ostream& operator<<(std::ostream& os, EffectList const& o)
 {
-   os << "[Effect " << o.GetObjectId() << " name:" << o.GetName() << "]";
-   return os;
+   return (os << "[EffectList]");
 }
 
-void Effect::AddParam(std::string name, luabind::object o)
+void EffectList::ConstructObject()
 {
-   params_[name].FromLuaObject(o);
+   next_id_ = 1;
 }
 
 void EffectList::ExtendObject(json::Node const& obj)
@@ -24,22 +24,19 @@ void EffectList::ExtendObject(json::Node const& obj)
    }
 }
 
-
-EffectPtr EffectList::AddEffect(std::string effectName, int startTime)
+EffectPtr EffectList::AddEffect(std::string const& effectName, int startTime)
 {
    auto effect = GetStore().AllocObject<Effect>();
-   effect->Init(effectName, startTime);
-   effects_.Insert(effect);
+   int effect_id = (*next_id_);
+   next_id_ = (*next_id_) + 1;
+
+   effect->Init(effect_id, effectName, startTime);
+   effects_.Add(effect_id, effect);
    return effect;
 }
 
 void EffectList::RemoveEffect(EffectPtr effect)
 {
-   for (EffectPtr e : effects_) {
-      if (e == effect) {
-         effects_.Remove(e);
-         break;
-      }
-   }
+   effects_.Remove(effect->GetEffectId());
 }
 

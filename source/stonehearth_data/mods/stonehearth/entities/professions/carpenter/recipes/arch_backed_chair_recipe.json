@@ -3,8 +3,8 @@
 
    "work_units"  : 2,
    "recipe_name" : "Cathedral-Arch Chair",
-   "description" : "Just like a normal chair, except it impresses your neighbors.",
-   "flavor"      : "Borrows class from the impression of piety.",
+   "description" : "Just like a normal chair, except it impresses your neighbors. When sitting, food is 20% more satisfying.",
+   "flavor"      : "",
    "portrait"    : "/stonehearth/entities/furniture/arch_backed_chair/arch_backed_chair.png",
    "category"    : "weapons",
 

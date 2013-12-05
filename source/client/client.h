@@ -10,12 +10,11 @@
 #include "namespace.h"
 #include "radiant_net.h"
 #include "protocol.h"
-#include "tesseract.pb.h"
+#include "protocols/tesseract.pb.h"
 #include "metrics.h"
 #include "om/om.h"
 #include "dm/dm.h"
 #include "dm/store.h"
-#include "dm/trace_map.h"
 #include "physics/octtree.h"
 #include "libjson.h"
 #include "core/singleton.h"
@@ -138,6 +137,7 @@ class Client : public core::Singleton<Client> {
       void HandleServerCallRequest(std::string const& obj, std::string const& function_name, json::Node const& node, rpc::HttpDeferredPtr response);
       void BrowserCallRequestHandler(json::Node const& query, std::string const& postdata, rpc::HttpDeferredPtr response);
       void CallHttpReactor(std::string parts, json::Node query, std::string postdata, rpc::HttpDeferredPtr response);
+      void InitDataModel();
 
 private:
       /*
@@ -166,9 +166,8 @@ private:
       // remote object storage and tracking...
       dm::Store                        store_;
       om::EntityPtr                    rootObject_;
-      om::EntityPtr                    selectedObject_;
+      om::EntityRef                    selectedObject_;
       std::vector<om::EntityRef>       hilightedObjects_;
-      std::unordered_map<dm::ObjectId, std::shared_ptr<dm::Object>> objects_;
 
       // local authoring object storage and tracking...
       dm::Store                        authoringStore_;
@@ -221,6 +220,16 @@ private:
       int                         mouse_y_;
       core::Guard                 guards_;
       bool                        perf_hud_shown_;
+      bool                        connected_;
+
+      dm::TracerSyncPtr           object_model_traces_;
+      dm::TracerBufferedPtr       game_render_tracer_;
+      dm::TracerBufferedPtr       authoring_render_tracer_;
+      dm::ReceiverPtr             receiver_;
+      dm::TracePtr                authoring_store_alloc_trace_;
+      dm::TracePtr                selected_trace_;
+      dm::TracePtr                root_object_trace_;
+      std::shared_ptr<rpc::TraceObjectRouter> trace_object_router_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

@@ -4,27 +4,20 @@
    },
 
    "ui" :  {
-      "dock" : [
-         {
-            "icon" : "file(/html/images/dock_icon.png)",
-            "class" : "StonehearthObjectBrowserView"      
-         }
-      ],
-
       "html" : [
-         "file(/html/stonehearth_object_browser.html)",
-         "file(/html/stonehearth_error_browser.html)",
-         "file(/html/stonehearth_error_dialog.html)"
+         "file(/ui/object_browser/object_browser.html)",
+         "file(/ui/error_browser/error_browser.html)",
+         "file(/ui/error_dialog/error_dialog.html)"
       ],
       "js" : [
-         "file(/html/js/stonehearth_object_browser.js)",
-         "file(/html/js/stonehearth_error_browser.js)",
-         "file(/html/js/stonehearth_error_dialog.js)"
+         "file(/ui/object_browser/object_browser.js)",
+         "file(/ui/error_browser/error_browser.js)",
+         "file(/ui/error_dialog/error_dialog.js)"
       ],
       "less" : [
-         "file(/html/css/stonehearth_object_browser.less)",
-         "file(/html/css/stonehearth_error_browser.less)",
-         "file(/html/css/stonehearth_error_dialog.less)"
+         "file(/ui/object_browser/object_browser.less)",
+         "file(/ui/error_browser/error_browser.less)",
+         "file(/ui/error_dialog/error_dialog.less)"
       ]
    }
 }

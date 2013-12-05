@@ -3,6 +3,7 @@
 
 #include "radiant.h"
 #include "bind.h"
+#include "om/object_formatter/object_formatter.h"
 #include "register.h"
 #include "resources/res_manager.h"
 #include <libjson.h>

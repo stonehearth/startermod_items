@@ -4,7 +4,7 @@
 #include "om/om.h"
 #include "job.h"
 #include "physics/namespace.h"
-#include "radiant.pb.h"
+#include "protocols/radiant.pb.h"
 #include "path.h"
 #include "csg/point.h"
 #include "csg/color.h"
@@ -20,7 +20,7 @@ class Simulation;
 
 class PathFinder : public Job {
    public:
-      PathFinder(lua_State* L, std::string name);
+      PathFinder(Simulation& sim, std::string name);
       virtual ~PathFinder();
 
       void AddDestination(om::EntityRef dst);

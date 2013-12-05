@@ -50,7 +50,7 @@ function entities.remove_child(parent, child)
 
    local component = parent:get_component('entity_container')
 
-   component:remove_child(child)
+   component:remove_child(child:get_id())
    entities.move_to(child, Point3(0, 0, 0))
 end
 
@@ -64,15 +64,7 @@ function entities.has_child_by_id(parent, child_id)
    if not component then
       return false
    end
-
-   local children = component:get_children()
-   local found = false
-   for id, child in children:items() do
-      if child_id == id then
-        found = true
-      end
-   end
-   return found
+   return component:get_child(child_id) ~= nil
 end
 
 function entities.get_name(entity)
@@ -301,7 +293,7 @@ end
 
 
 function entities.set_attribute(entity, attribute_name, value)
-   entity:add_component('attributes'):set_attribute(attribute_name, value)
+   entity:add_component('stonehearth:attributes'):set_attribute(attribute_name, value)
 end
 
 function entities.add_buff(entity, buff_name)
@@ -354,7 +346,7 @@ function entities.pickup_item(entity, item)
       else
          radiant.entities.unset_posture(entity, 'carrying')
          radiant.entities.remove_buff(entity, 'stonehearth:buffs:carrying')
-         carry_block:set_carrying(nil)
+         carry_block:clear_carrying()
       end
    end
 end
@@ -431,7 +423,7 @@ function entities._drop_helper(entity)
       if item then
          radiant.entities.unset_posture(entity, 'carrying')
          radiant.entities.remove_buff(entity, 'stonehearth:buffs:carrying')
-         carry_block:set_carrying(nil)
+         carry_block:clear_carrying()
          return item
       end
    end
@@ -488,8 +480,8 @@ function entities.kill_entity(entity)
 end
 
 function entities.compare_attribute(entity_a, entity_b, attribute)
-   local attributes_a = entity_a:get_component('attributes')
-   local attributes_b = entity_b:get_component('attributes')
+   local attributes_a = entity_a:get_component('stonehearth:attributes')
+   local attributes_b = entity_b:get_component('stonehearth:attributes')
 
    if attributes_a and attributes_b then
       local ferocity_a = attributes_a:get_attribute(attribute)
@@ -504,8 +496,8 @@ end
 function entities.is_hostile(entity_a, entity_b)
    -- xxx: this check shouldn't be in the generic "is_hostile" function.  what
    -- happens when we add things that aren't made of meat? (e.g. robots?)
-   local ok = entity_b:add_component('stonehearth:material'):is('meat')
-   if not ok then
+   local material = entity_b:get_component('stonehearth:material')
+   if not material or not material:is('meat') then
       return false
    end
 
@@ -519,7 +511,7 @@ end
 
 function entities.on_entity_moved(entity, fn, reason)
    reason = reason and reason or 'on_entity_moved promise'
-   return entity:add_component('mob'):trace(reason):on_changed(fn)
+   return entity:add_component('mob'):trace_transform(reason):on_changed(fn)
 end
 
 entities.__init()

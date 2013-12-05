@@ -1,21 +1,16 @@
 #include "pch.h"
 #include "entity.h"
-#include "components/lua_components.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-std::ostream& ::radiant::om::operator<<(std::ostream& os, EntityPtr o)
-{
-   if (o) {
-      return os << *o;
-   } else {
-      return os << "[Entity null!]";
-   }
-}
-
 std::ostream& ::radiant::om::operator<<(std::ostream& os, Entity const& o)
 {
+   // ug! luabind!!
+   if (&o == nullptr) {
+      return (os << "invalid entity reference");
+   }
+
    std::string debug_text = o.GetDebugText();
    std::string uri = o.GetUri();
 
@@ -31,15 +26,16 @@ std::ostream& ::radiant::om::operator<<(std::ostream& os, Entity const& o)
    return os;
 }
 
+void Entity::ConstructObject()
+{
+}
+
 void Entity::InitializeRecordFields()
 {
    // LOG(WARNING) << "creating entity " << GetObjectId();
    AddRecordField("components",  components_);
    AddRecordField("debug_text",  debug_text_);
    AddRecordField("uri",         uri_);
-   if (!IsRemoteRecord()) {
-      AddComponent<LuaComponents>();
-   }
 }
 
 template <class T> std::shared_ptr<T> Entity::AddComponent()
@@ -51,33 +47,25 @@ template <class T> std::shared_ptr<T> Entity::AddComponent()
       // that of the owning entity.  we can defend against this better if we return
       // weak references from GetComponent, etc.
       component->SetEntity(shared_from_this()); 
-      components_[T::DmType] = component;
-
-      // Hold onto the new comp
+      components_.Add(component->GetObjectClassNameLower(), component);
    }
    return component;
 }
 
-dm::ObjectPtr Entity::GetComponent(dm::ObjectType t) const
+dm::ObjectPtr Entity::GetComponent(std::string const& name) const
 {
-   auto i = components_.find(t);
-   return i != components_.end() ? i->second : nullptr;
+   return components_.Get(name, nullptr);
 }
 
-
-// xxx: this will end up remoting the unit info record a 2nd time whenever something
-// in the unit info changes.  arg!  what we really want to say is "hey record, install
-// this trace whenever *you* change or any of *your fields* change).
-core::Guard Entity::TraceObjectChanges(const char* reason, std::function<void()> fn) const
+void Entity::AddComponent(std::string const& name, DataStorePtr component)
 {
-   core::Guard guard = Record::TraceObjectChanges(reason, fn);
-   guard += GetComponent<LuaComponents>()->TraceObjectChanges(reason, fn);
-   return guard;
+   ASSERT(!components_.Contains(name));
+   components_.Add(name, component);
 }
 
 template <class T> std::shared_ptr<T> Entity::GetComponent() const
 {
-   return std::static_pointer_cast<T>(GetComponent(T::DmType));
+   return std::static_pointer_cast<T>(GetComponent(T::GetClassNameLower()));
 }
 
 #define OM_OBJECT(Clas, lower) \

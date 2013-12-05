@@ -4,6 +4,7 @@
 #include "ray.h"
 #include "region.h"
 #include "csg/util.h" // xxx: should be csg/namespace.h
+#include "protocols/store.pb.h"
 
 using namespace ::radiant;
 using namespace ::radiant::csg;

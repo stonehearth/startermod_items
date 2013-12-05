@@ -2,7 +2,8 @@
 #include "pipeline.h"
 #include "renderer.h"
 #include "render_terrain.h"
-#include "om/components/terrain.h"
+#include "dm/map_trace.h"
+#include "om/components/terrain.ridl.h"
 #include "csg/meshtools.h"
 #include "lib/perfmon/perfmon.h"
 #include "Horde3D.h"
@@ -21,7 +22,7 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
    terrain_(terrain)
 {  
    terrain_root_node_ = H3DNodeUnique(h3dAddGroupNode(entity_.GetNode(), "terrain root node"));
-   tracer_ += Renderer::GetInstance().TraceSelected(terrain_root_node_.get(), [this](om::Selection& sel, const csg::Ray3& ray, const csg::Point3f& intersection, const csg::Point3f& normal) {
+   selected_guard_ = Renderer::GetInstance().TraceSelected(terrain_root_node_.get(), [this](om::Selection& sel, const csg::Ray3& ray, const csg::Point3f& intersection, const csg::Point3f& normal) {
       OnSelected(sel, ray, intersection, normal);
    });
 
@@ -167,10 +168,11 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
             zones_[location] = render_zone;
          }
          RenderZoneRef rt = render_zone;
-         render_zone->guard = region->TraceObjectChanges("rendering terrain zone", [this, rt]() {
-            AddDirtyZone(rt);
-         });
-         AddDirtyZone(rt);
+         render_zone->trace = region->TraceChanges("render", dm::RENDER_TRACES)
+                                       ->OnModified([this, rt]{
+                                          AddDirtyZone(rt);
+                                       })
+                                       ->PushObjectState();
       } else {
          zones_.erase(location);
       }
@@ -180,12 +182,12 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
       zones_.erase(location);
    };
 
-   auto const& zone_map = terrain->GetZoneMap();
-   
-   tracer_ += zone_map.TraceMapChanges("terrain renderer", on_add_zone, on_remove_zone);
-   for (const auto& entry : zone_map) {
-      on_add_zone(entry.first, entry.second);
-   }
+   zones_trace_ = terrain->TraceZones("render", dm::RENDER_TRACES)
+                              ->OnAdded(on_add_zone)
+                              ->OnRemoved([=](csg::Point3 const&) {
+                                 NOT_YET_IMPLEMENTED();
+                              })
+                              ->PushObjectState();
 }
 
 RenderTerrain::~RenderTerrain()

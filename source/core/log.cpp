@@ -14,16 +14,20 @@ namespace logging = boost::log;
 namespace src = boost::log::sources;
 namespace sinks = boost::log::sinks;
 namespace keywords = boost::log::keywords;
+namespace attrs = boost::log::attributes;
 
 boost::log::sources::severity_logger< Severity > __radiant_log_source;
 
 BOOST_LOG_ATTRIBUTE_KEYWORD(severity, "Severity", ::radiant::logger::Severity)
 
+static boost::shared_ptr< boost::log::sinks::synchronous_sink< boost::log::sinks::text_file_backend > > file_log_sink;
+
 void radiant::logger::init(boost::filesystem::path const& logfile)
 {
-   boost::log::add_file_log(
+   file_log_sink = boost::log::add_file_log(
       keywords::file_name = logfile.string(),
-      keywords::auto_flush = true
+      keywords::auto_flush = false,
+      keywords::format = "[%TimeStamp%]: %Message%"
    );
    boost::log::add_console_log(
       std::cout,
@@ -31,8 +35,14 @@ void radiant::logger::init(boost::filesystem::path const& logfile)
    );
    boost::log::add_common_attributes();
 
-
    platform_init();
+}
+
+void radiant::logger::flush()
+{
+   if (file_log_sink) {
+      file_log_sink->flush();
+   }
 }
 
 void radiant::logger::exit()

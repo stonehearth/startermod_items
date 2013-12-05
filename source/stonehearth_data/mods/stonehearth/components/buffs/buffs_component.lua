@@ -17,19 +17,18 @@ end
 function BuffsComponent:add_buff(uri)
    assert(not string.find(uri, '%.'), 'tried to add a buff with a uri containing "." Use an alias instead')
 
+   local buff
    if self._buffs[uri] then
       --xxx, check a policy for status vs. stacking buffs
-      self:remove_buff(uri)
+      buff = self._buffs[uri]
+   else 
+      buff = Buff(self._entity, uri)
+      self._buffs[uri] = buff
+      self:_apply_duration(uri, buff)
+      self:_apply_modifiers(uri, buff)
+      self._data_binding:mark_changed()
    end
 
-   local buff = Buff(self._entity, uri)
-   self._buffs[uri] = buff
-
-
-   self:_apply_duration(uri, buff)
-   self:_apply_modifiers(uri, buff)
-   self._data_binding:mark_changed()
-   
    return buff
 end
 

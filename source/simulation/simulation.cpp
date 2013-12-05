@@ -13,16 +13,18 @@
 #include "jobs/goto_location.h"
 #include "resources/res_manager.h"
 #include "dm/store.h"
+#include "dm/store_trace.h"
+#include "dm/streamer.h"
+#include "dm/tracer_buffered.h"
+#include "dm/tracer_sync.h"
 #include "om/entity.h"
-#include "om/components/clock.h"
-#include "om/components/mob.h"
-#include "om/components/terrain.h"
-#include "om/components/entity_container.h"
-#include "om/components/aura_list.h"
-#include "om/components/target_tables.h"
-#include "om/components/lua_components.h"
+#include "om/components/clock.ridl.h"
+#include "om/components/mob.ridl.h"
+#include "om/components/terrain.ridl.h"
+#include "om/components/entity_container.ridl.h"
+#include "om/components/target_tables.ridl.h"
 #include "om/object_formatter/object_formatter.h"
-#include "om/data_binding.h"
+#include "om/components/data_store.ridl.h"
 //#include "native_commands/create_room_cmd.h"
 #include "jobs/job.h"
 #include "lib/lua/script_host.h"
@@ -30,9 +32,9 @@
 #include "lib/lua/rpc/open.h"
 #include "lib/lua/sim/open.h"
 #include "lib/lua/om/open.h"
+#include "lib/lua/dm/open.h"
 #include "lib/lua/voxel/open.h"
 #include "lib/lua/analytics/open.h"
-#include "lib/lua/audio/open.h"
 #include "om/lua/lua_om.h"
 #include "csg/lua/lua_csg.h"
 #include "lib/rpc/session.h"
@@ -43,8 +45,7 @@
 #include "lib/rpc/trace_object_router.h"
 #include "lib/rpc/lua_module_router.h"
 #include "lib/rpc/lua_object_router.h"
-
-static const int __initialCivCount = 3;
+#include "remote_client.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -52,22 +53,19 @@ using namespace ::radiant::simulation;
 namespace proto = ::radiant::tesseract::protocol;
 namespace po = boost::program_options;
 
-Simulation* Simulation::singleton_;
-
-Simulation& Simulation::GetInstance()
-{
-   ASSERT(singleton_ != nullptr);
-   return *singleton_;
-}
-
 Simulation::Simulation() :
    _showDebugNodes(false),
    _singleStepPathFinding(false),
-   store_(1, "game")
+   store_(1, "game"),
+   sequence_number_(1),
+   paused_(false),
+   noidle_(false),
+   _tcp_acceptor(nullptr)
 {
-   singleton_ = this;
-   octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree());
+   octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree(dm::OBJECT_MODEL_TRACES));
    scriptHost_.reset(new lua::ScriptHost());
+
+   InitDataModel();
 
    // sessions (xxx: stub it out for single player)
    session_ = std::make_shared<rpc::Session>();
@@ -89,7 +87,7 @@ Simulation::Simulation() :
       std::ostringstream msg;
       _showDebugNodes = !_showDebugNodes;
       msg << "debug nodes turned " << (_showDebugNodes ? "ON" : "OFF");
-      LOG(WARNING) << msg;
+      LOG(WARNING) << msg.str();
 
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:toggle_debug_nodes");
       result->ResolveWithMsg(msg.str());
@@ -99,7 +97,7 @@ Simulation::Simulation() :
       std::ostringstream msg;
       _singleStepPathFinding = !_singleStepPathFinding;
       msg << "single step path finding turned " << (_singleStepPathFinding ? "ON" : "OFF");
-      LOG(WARNING) << msg;
+      LOG(WARNING) << msg.str();
 
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:toggle_step_paths");
       result->ResolveWithMsg(msg.str());
@@ -123,7 +121,6 @@ Simulation::~Simulation()
    // references to things, with explicit lifetime registration callbacks
    // in the new Storage system if you REALLY care. (xxx)
    octtree_.release();
-   singleton_ = nullptr;
 }
 
 
@@ -137,11 +134,6 @@ static std::string SanatizePath(std::string const& path)
 
 void Simulation::CreateNew()
 {
-   ASSERT(this == &Simulation::GetInstance());
-
-   guards_ += store_.TraceDynamicObjectAlloc(std::bind(&Simulation::OnObjectAllocated, this, std::placeholders::_1));
-
-
    using namespace luabind;
 
    lua_State* L = scriptHost_->GetInterpreter();
@@ -149,15 +141,15 @@ void Simulation::CreateNew()
    
    store_.SetInterpreter(callback_thread); // xxx move to dm open or something
 
-   om::RegisterLuaTypes(L);
    csg::RegisterLuaTypes(L);
-   lua::sim::open(L);
+   lua::om::open(L);
+   lua::dm::open(L);
+   lua::sim::open(L, this);
    lua::res::open(L);
    lua::voxel::open(L);
    lua::rpc::open(L, core_reactor_);
    lua::om::register_json_to_lua_objects(L, store_);
    lua::analytics::open(L);
-   lua::audio::open(L);
    om::RegisterObjectTypes(store_);
 
    game_api_ = scriptHost_->Require("radiant.server");
@@ -207,7 +199,7 @@ void Simulation::Load(std::string id)
    ASSERT(false);
 }
 
-void Simulation::Step(platform::timer &timer, int interval)
+void Simulation::Step()
 {
    PROFILE_BLOCK();
    lastNow_ = now_;
@@ -216,93 +208,55 @@ void Simulation::Step(platform::timer &timer, int interval)
 
    // Run AI...
    try {
-      now_ = luabind::call_function<int>(game_api_["update"], interval);
+      now_ = luabind::call_function<int>(game_api_["update"], _stepInterval);
    } catch (std::exception const& e) {
       LOG(WARNING) << "fatal error initializing game update: " << e.what();
    }
 
    // Collision detection...
    GetOctTree().Update(now_);
-   UpdateAuras(now_);
-   UpdateTargetTables(now_, now_ - lastNow_);
 
-   ProcessTaskList(timer);
-   ProcessJobList(timer);
-
-   // Send out change notifications
-   store_.FireTraces();
-   store_.FireFinishedTraces();
+   ProcessTaskList(_timer);
+   ProcessJobList(_timer);
+   lua_traces_->Flush();
 }
 
-void Simulation::Idle(platform::timer &timer)
+void Simulation::EncodeBeginUpdate(std::shared_ptr<RemoteClient> c)
 {
-   scriptHost_->GC(timer);
+   proto::Update update;
+   update.set_type(proto::Update::BeginUpdate);
+   auto msg = update.MutableExtension(proto::BeginUpdate::extension);
+   msg->set_sequence_number(sequence_number_);
+   c->send_queue->Push(protocol::Encode(update));
 }
 
-void Simulation::EncodeUpdates(protocol::SendQueuePtr queue, ClientState& cs)
+void Simulation::EncodeEndUpdate(std::shared_ptr<RemoteClient> c)
 {
    proto::Update update;
 
-   // Set the server tick...
+   update.set_type(proto::Update::EndUpdate);
+   c->send_queue->Push(protocol::Encode(update));
+}
+
+void Simulation::EncodeServerTick(std::shared_ptr<RemoteClient> c)
+{
+   proto::Update update;
+
    update.set_type(proto::Update::SetServerTick);
    auto msg = update.MutableExtension(proto::SetServerTick::extension);
    msg->set_now(now_);
-   queue->Push(protocol::Encode(update));
+   c->send_queue->Push(protocol::Encode(update));
+}
 
-   // Process all objects which have been modified since 
-   if (!allocated_.empty()) {
-      update.Clear();
-      update.set_type(proto::Update::AllocObjects);
-      auto msg = update.MutableExtension(proto::AllocObjects::extension);
-      for (const auto& o : allocated_) {
-         auto allocMsg = msg->add_objects();
-         allocMsg->set_object_id(o.first);
-         allocMsg->set_object_type(o.second);
-      }
-      allocated_.clear();
-      queue->Push(protocol::Encode(update));
-   }
+void Simulation::EncodeUpdates(std::shared_ptr<RemoteClient> c)
+{
+   c->streamer->Flush();
+   EncodeDebugShapes(c->send_queue);
 
-   if (!destroyed_.empty()) {
-      update.Clear();
-      update.set_type(proto::Update::RemoveObjects);
-      auto msg = update.MutableExtension(proto::RemoveObjects::extension);
-      for (dm::ObjectId id : destroyed_) {
-         msg->add_objects(id);
-      }
-      destroyed_.clear();
-      queue->Push(protocol::Encode(update));
-   }
-
-   auto modified = store_.GetModifiedSince(cs.last_update);
-   std::sort(modified.begin(), modified.end());
-
-   // The delta tracking of saved objects can keep deleted objects alive temporarily.
-   // For example, if the last referece to a std::shared_ptr<Foo> is in the removed list
-   // of dm::Set bar, that object won't be reclaimed until we push the changes for
-   // bar.  If Foo is also in the modified set, the object id for Foo will reference
-   // freed memory.
-   for (dm::ObjectId id : modified) {
-      dm::Object* obj = store_.FetchStaticObject(id);
-      if (obj) {
-         update.Clear();
-         update.set_type(proto::Update::UpdateObject);
-         auto msg = update.MutableExtension(proto::UpdateObject::extension);
-
-         obj->SaveObject(msg->mutable_object());
-         queue->Push(protocol::Encode(update));
-      }
-   }
-   EncodeDebugShapes(queue);
-   PushServerRemoteObjects(queue);
-
-   // buffered stuff...
    for (const auto& msg : buffered_updates_) {
-      queue->Push(msg);
+      c->send_queue->Push(msg);
    }
    buffered_updates_.clear();
-
-   cs.last_update = store_.GetNextGenerationId();
 }
 
 phys::OctTree &Simulation::GetOctTree()
@@ -361,22 +315,6 @@ void Simulation::EncodeDebugShapes(protocol::SendQueuePtr queue)
    queue->Push(protocol::Encode(update));
 }
 
-void Simulation::PushServerRemoteObjects(protocol::SendQueuePtr queue)
-{
-   if (!serverRemoteObjects_.empty()) {
-      proto::Update update;
-      update.set_type(proto::Update::DefineRemoteObject);
-      auto drs = update.MutableExtension(proto::DefineRemoteObject::extension);
-      for (const auto& entry : serverRemoteObjects_) {
-         drs->set_uri(entry.first);
-         drs->set_object_uri(entry.second);
-         queue->Push(protocol::Encode(update));
-      }
-      serverRemoteObjects_.clear();
-   }
-}
-
-
 void Simulation::ProcessTaskList(platform::timer &timer)
 {
    PROFILE_BLOCK();
@@ -384,8 +322,6 @@ void Simulation::ProcessTaskList(platform::timer &timer)
    auto i = tasks_.begin();
    while (i != tasks_.end()) {
       std::shared_ptr<Task> task = i->lock();
-
-      store_.FireTraces(); // xxx: not quite the right place...
 
       if (task && task->Work(timer)) {
          i++;
@@ -412,8 +348,6 @@ void Simulation::ProcessJobList(platform::timer &timer)
       std::shared_ptr<Job> job = front.lock();
       if (job) {
 
-         store_.FireTraces();
-
          if (!job->IsFinished()) {
             if (!job->IsIdle()) {
                idleCountdown = jobs_.size() + 2;
@@ -429,155 +363,13 @@ void Simulation::ProcessJobList(platform::timer &timer)
    }
 }
 
-void Simulation::OnObjectAllocated(dm::ObjectPtr obj)
-{
-   dm::ObjectId id = obj->GetObjectId();
-
-   ASSERT(obj->GetObjectType() >= 1000);
-
-   // LOG(WARNING) << "tracking object allocate: " << id;
-
-   allocated_.push_back(std::make_pair(obj->GetObjectId(), obj->GetObjectType()));
-   guards_ += obj->TraceObjectLifetime("simulation entity lifetime", std::bind(&Simulation::OnObjectDestroyed, this, id));
-   
-   if (obj->GetObjectType() == om::EntityObjectType) {
-      TraceEntity(std::static_pointer_cast<om::Entity>(obj));
-   }
-}
-
-void Simulation::OnObjectDestroyed(dm::ObjectId id)
-{
-   int c = allocated_.size();
-   for (int i = 0; i < c; i++) {
-      if (allocated_[i].first == id) {
-         // LOG(WARNING) << "tracking object destroy (removing from allocated_): " << id;
-         allocated_[i] = allocated_[--c];
-         allocated_.resize(c);
-         return;
-      }
-   }
-   // LOG(WARNING) << "tracking object destroy: " << id;
-   destroyed_.push_back(id);
-}
-
-
-void Simulation::TraceEntity(om::EntityPtr entity)
-{
-   if (entity->GetObjectId() == 1) {
-      octtree_->SetRootEntity(entity);
-   }
-
-   const auto& components = entity->GetComponents();
-   guards_ += components.TraceMapChanges("simulation component checking",
-                                          std::bind(&Simulation::ComponentAdded, this, om::EntityRef(entity), std::placeholders::_1, std::placeholders::_2),
-                                          nullptr);
-   for (const auto& entry : components) {
-      ComponentAdded(entity, entry.first, entry.second);
-   }
-}
-
-void Simulation::ComponentAdded(om::EntityRef e, dm::ObjectType type, std::shared_ptr<dm::Object> component)
-{
-   auto entity = e.lock();
-   if (entity) {
-      switch (type) {
-      case om::AuraListObjectType: {
-         om::AuraListPtr list = std::static_pointer_cast<om::AuraList>(component);
-         const auto& auras = list->GetAuras();
-         guards_ += auras.TraceSetChanges("sim update auras",
-                                          std::bind(&Simulation::TraceAura, this, om::AuraListRef(list), std::placeholders::_1),
-                                          nullptr);
-         for (om::AuraPtr aura : auras) {
-            TraceAura(list, aura);
-         }
-         break;
-      }
-      case om::TargetTablesObjectType: {
-         TraceTargetTables(std::static_pointer_cast<om::TargetTables>(component));
-         break;
-      }
-      }
-   }
-}
-
-void Simulation::UpdateAuras(int now)
-{
-   int i = 0, c = auras_.size();
-
-   while (i < c) {
-      AuraListEntry &entry = auras_[i];
-      auto aura = entry.aura.lock();
-      if (aura) {
-         int expires = aura->GetExpireTime();
-         if (expires && expires < now) {
-            auto list = entry.list.lock();
-            list->RemoveAura(aura);
-
-            auto L = scriptHost_->GetInterpreter();
-            luabind::object handler = aura->GetMsgHandler();
-            luabind::object md = luabind::globals(L)["md"];
-            luabind::object aobj(L, aura);
-            luabind::call_function<void>(md["send_msg"], md, handler, "radiant:events:aura_expired", aobj);
-            aura = nullptr;
-         }         
-      } 
-      if (aura) {
-         i++;
-      } else {
-         auras_[i] = auras_[--c];
-         auras_.resize(c);
-      }
-   }
-}
-
-void Simulation::TraceAura(om::AuraListRef list, om::AuraPtr aura)
-{
-   // xxx - this is annoying... can we avoid the dup checking with
-   // smarter trace firing code?
-   for (const AuraListEntry& entry : auras_) {
-      if (aura == entry.aura.lock()) {
-         return;
-      }
-   }
-   auras_.push_back(AuraListEntry(list, aura));
-}
-
-void Simulation::TraceTargetTables(om::TargetTablesPtr tables)
-{
-   // xxx - this is annoying... can we avoid the dup checking with
-   // smarter trace firing code?
-   for (const om::TargetTablesRef& t : targetTables_) {
-      if (tables == t.lock()) {
-         return;
-      }
-   }
-   targetTables_.push_back(tables);
-}
-
-void Simulation::UpdateTargetTables(int now, int interval)
-{
-   int i = 0, c = targetTables_.size();
-   for (i = 0; i < c; i++) {
-      om::TargetTablesPtr table = targetTables_[i].lock();
-      if (table) {
-         table->Update(now, interval);
-         i++;
-      } else {
-         targetTables_[i] = targetTables_[--c];
-         targetTables_.resize(c);
-      }
-   }
-}
-
 void Simulation::PostCommand(proto::PostCommandRequest const& request)
 {
    protobuf_reactor_->Dispatch(session_, request);
 }
 
-bool Simulation::ProcessMessage(const proto::Request& msg, protocol::SendQueuePtr queue)
+bool Simulation::ProcessMessage(std::shared_ptr<RemoteClient> c, const proto::Request& msg)
 {
-   proto::Update reply;
-
 #define DISPATCH_MSG(MsgName) \
    case proto::Request::MsgName ## Request: \
       MsgName(msg.GetExtension(proto::MsgName ## Request::extension)); \
@@ -598,9 +390,145 @@ void Simulation::SendReply(proto::PostCommandReply const& reply)
    proto::PostCommandReply* r = msg.MutableExtension(proto::PostCommandReply::extension);
    *r = reply; // is this kosher?
 
+   LOG(INFO) << "adding buffered reply.............";
    buffered_updates_.emplace_back(msg);
 }
 
 lua::ScriptHost& Simulation::GetScript() {
    return *scriptHost_;
+}
+
+void Simulation::InitDataModel()
+{
+   object_model_traces_ = std::make_shared<dm::TracerSync>("sim objects");
+   pathfinder_traces_ = std::make_shared<dm::TracerSync>("sim pathfinder");
+   lua_traces_ = std::make_shared<dm::TracerBuffered>("sim lua", store_);  
+
+   store_.AddTracer(lua_traces_, dm::LUA_TRACES);
+   store_.AddTracer(object_model_traces_, dm::OBJECT_MODEL_TRACES);
+   store_.AddTracer(pathfinder_traces_, dm::PATHFINDER_TRACES);
+   store_trace_ = store_.TraceStore("sim")->OnAlloced([=](dm::ObjectPtr obj) {
+      if (obj->GetObjectId() == 1) {
+         GetOctTree().SetRootEntity(std::dynamic_pointer_cast<om::Entity>(obj));
+         store_trace_ = nullptr;
+      }
+   });
+
+}
+
+void Simulation::Run(tcp::acceptor* acceptor, boost::asio::io_service* io_service)
+{
+   _tcp_acceptor = acceptor;
+   _io_service = io_service;
+   noidle_ = core::Config::GetInstance().Get("game.noidle", false);
+   main();
+}
+
+void Simulation::handle_accept(std::shared_ptr<tcp::socket> socket, const boost::system::error_code& error)
+{
+   if (!error) {
+      std::shared_ptr<RemoteClient> c = std::make_shared<RemoteClient>();
+
+      c->socket = socket;
+      c->send_queue = protocol::SendQueue::Create(*socket);
+      c->recv_queue = std::make_shared<protocol::RecvQueue>(*socket);
+      c->streamer = std::make_shared<dm::Streamer>(store_, dm::PLAYER_1_TRACES, c->send_queue.get());
+      _clients.push_back(c);
+
+      //queue_network_read(c, protocol::alloc_buffer(1024 * 1024));
+   }
+   start_accept();
+}
+
+void Simulation::start_accept()
+{
+   std::shared_ptr<tcp::socket> socket(new tcp::socket(*_io_service));
+   auto cb = bind(&Simulation::handle_accept, this, socket, std::placeholders::_1);
+   _tcp_acceptor->async_accept(*socket, cb);
+}
+
+void Simulation::main()
+{
+   _tcp_acceptor->listen();
+   start_accept();
+   CreateNew();
+
+   unsigned int last_stat_dump = 0;
+
+   _stepInterval = 1000 / 20;
+   _timer.set(_stepInterval);
+
+   while (1) {
+      mainloop();
+
+      unsigned int now = platform::get_current_time_in_ms();
+      if (now - last_stat_dump > 3000) {
+         //PROFILE_DUMP_STATS();
+         PROFILE_RESET();
+         last_stat_dump = now;
+      }
+   }
+}
+
+void Simulation::mainloop()
+{
+   PROFILE_BLOCK();
+
+   process_messages();
+
+   if (!paused_) {
+      Step();
+   }
+   send_client_updates();
+   idle();
+}
+
+void Simulation::idle()
+{
+   PROFILE_BLOCK();
+
+   // LOG(WARNING) << _timer.remaining() << " time left in idle";
+
+   // xxx: we should probably read and parse network events even while idle.
+   scriptHost_->GC(_timer);
+
+   if (!noidle_) {
+      while (!_timer.expired()) {
+         platform::sleep(1);
+      }
+   }
+   _timer.advance(_stepInterval);
+}
+
+void Simulation::send_client_updates()
+{
+   PROFILE_BLOCK();
+
+   lua_traces_->Flush();
+   for (std::shared_ptr<RemoteClient> c : _clients) {
+      SendUpdates(c);
+      protocol::SendQueue::Flush(c->send_queue);
+   };
+}
+
+void Simulation::SendUpdates(std::shared_ptr<RemoteClient> c)
+{
+   EncodeBeginUpdate(c);
+   EncodeServerTick(c);
+   EncodeUpdates(c);
+   EncodeEndUpdate(c);
+}
+
+void Simulation::process_messages()
+{
+   PROFILE_BLOCK();
+
+   _io_service->poll();
+   _io_service->reset();
+
+   for (auto c : _clients) {
+      c->recv_queue->Process<proto::Request>([=](proto::Request const& msg) -> bool {
+         return ProcessMessage(c, msg);
+      });
+   }
 }

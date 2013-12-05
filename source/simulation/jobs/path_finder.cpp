@@ -6,8 +6,8 @@
 #include "path_finder_dst.h"
 #include "simulation/simulation.h"
 #include "om/entity.h"
-#include "om/components/mob.h"
-#include "om/components/destination.h"
+#include "om/components/mob.ridl.h"
+#include "om/components/destination.ridl.h"
 #include "om/region.h"
 #include "csg/color.h"
 
@@ -25,8 +25,8 @@ using namespace ::radiant::simulation;
 #  define VERIFY_HEAPINESS()
 #endif
 
-PathFinder::PathFinder(lua_State* L, std::string name) :
-   Job(name),
+PathFinder::PathFinder(Simulation& sim, std::string name) :
+   Job(sim, name),
    rebuildHeap_(false),
    restart_search_(true),
    enabled_(true),
@@ -121,20 +121,15 @@ void PathFinder::AddDestination(om::EntityRef e)
    auto entity = e.lock();
    if (entity) {
       if (dst_filter_.is_valid() && luabind::type(dst_filter_) == LUA_TFUNCTION) {
+         bool ok = false;
          try {
             auto L = dst_filter_.interpreter();
             luabind::object e(L, std::weak_ptr<om::Entity>(entity));
-            if (!luabind::call_function<bool>(dst_filter_, e)) {
-               return;
-            }
-         } catch (luabind::error& e) {
-            LOG(WARNING) << "luabind::error " << e.what();
-            return;
+            ok = luabind::call_function<bool>(dst_filter_, e);
          } catch (std::exception& e) {
-            LOG(WARNING) << "std::exception " << e.what();
-            return;
-         } catch (...) {
-            LOG(WARNING) << "unknown error in pathfinder filter cb...";
+            LOG(WARNING) << "exception in pathfinder filter function: " << e.what();
+         }
+         if (!ok) {
             return;
          }
       }
@@ -268,7 +263,7 @@ void PathFinder::Work(const platform::timer &timer)
    VERIFY_HEAPINESS();
 
    // Check each neighbor...
-   const auto& o = Simulation::GetInstance().GetOctTree();
+   const auto& o = GetSim().GetOctTree();
    
    // xxx: not correct for reversed search yet...
    auto neighbors = o.ComputeNeighborMovementCost(current);

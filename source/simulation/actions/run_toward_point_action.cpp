@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "run_toward_point_action.h"
 #include "om/entity.h"
-#include "om/components/mob.h"
+#include "om/components/mob.ridl.h"
 #include <boost/program_options.hpp>
 
 using namespace ::radiant;
@@ -44,7 +44,7 @@ void RunTowardPoint::Update()
       mob->MoveTo(dst_);
       finished_ = true;
    } else {
-      mob->TurnToAngle(angle(direction) * 180 / csg::k_pi);
+      mob->TurnTo(angle(direction) * 180 / csg::k_pi);
       mob->MoveTo(current + (direction * (maxDistance / distance)));
    }
 }

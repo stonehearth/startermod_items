@@ -26,6 +26,7 @@ function Fabricator:__init(name, entity, blueprint)
    dst:set_region(_radiant.sim.alloc_region())
       :set_adjacent(_radiant.sim.alloc_region())
        
+   radiant.log.info("fabricator tracing destination %d", dst:get_id())
    self._adjacent_guard = dst:trace_region('updating fabricator adjacent')
    self._adjacent_guard:on_changed(function ()
       self:_update_adjacent()
@@ -39,6 +40,7 @@ function Fabricator:__init(name, entity, blueprint)
    self._project = radiant.entities.create_entity(blueprint:get_uri())
    self._project:add_component('destination')
                      :set_region(rgn)
+                     :set_auto_update_adjacent(true)
    self._project:add_component('region_collision_shape')
                      :set_region(rgn)
    radiant.entities.set_faction(self._project, blueprint)
@@ -78,9 +80,11 @@ function Fabricator:add_block(material_entity, location)
    -- location is in world coordinates.  transform it to the local coordinate space
    -- before building
    local origin = radiant.entities.get_world_grid_location(self._entity)
-   local cursor = self._project:add_component('destination'):get_region():modify()
    local pt = location - origin
-   cursor:add_point(pt)
+
+   self._project:add_component('destination'):get_region():modify(function(cursor)
+      cursor:add_point(pt)
+   end)
    
    -- ladders are a special case used for scaffolding.  if there's one on the
    -- blueprint at this location, go ahead and add it to the project as well.
@@ -88,8 +92,9 @@ function Fabricator:add_block(material_entity, location)
       local rgn = self._blueprint_ladder:get_region():get()
       local normal = self._blueprint_ladder:get_normal()
       if rgn:contains(pt + normal) then
-         local cursor = self._project_ladder:get_region():modify()
-         cursor:add_point(pt + normal)
+         self._project_ladder:get_region():modify(function(cursor)
+            cursor:add_point(pt + normal)
+         end)
       end
    end
 end
@@ -207,7 +212,9 @@ function Fabricator:_update_adjacent()
    adjacent:subtract_region(rgn)
    
    -- finally, copy into the adjacent region for our destination
-   dst:get_adjacent():modify():copy_region(adjacent)
+   dst:get_adjacent():modify(function(cursor)
+      cursor:copy_region(adjacent)
+   end)
 end
 
 function Fabricator:_trace_blueprint_and_project()
@@ -223,16 +230,18 @@ function Fabricator:_trace_blueprint_and_project()
 
       -- rgn(f) = rgn(b) - rgn(p) ... (see comment above)
       local dst = self._entity:add_component('destination')
-      local cursor = dst:get_region():modify()
-      cursor:copy_region(br)
-      cursor:subtract_region(pr)
+      radiant.log.info("fabricator modifying dst %d", dst:get_id())
+      dst:get_region():modify(function(cursor)
+         cursor:copy_region(br)
+         cursor:subtract_region(pr)
+         if cursor:empty() then
+            self:_stop_worker_tasks()      
+         else
+            self:_start_worker_tasks()      
+         end
+      end);
       
-      if cursor:empty() then
-         self:_stop_worker_tasks()      
-      else
-         self:_start_worker_tasks()      
-      end
-      radiant.log.info('updating fabricator %s region -> %s', self.name, cursor)
+      radiant.log.info('updating fabricator %s region -> %s', self.name, dst:get_region():get())
    end
      
    self._blueprint_region_trace = self._blueprint:add_component('destination'):trace_region('updating fabricator')

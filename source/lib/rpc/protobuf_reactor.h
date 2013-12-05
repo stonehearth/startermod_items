@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include "namespace.h"
 #include "lib/json/node.h"
-#include "tesseract.pb.h"
+#include "protocols/tesseract.pb.h"
 #include "lib/rpc/forward_defines.h"
 
 BEGIN_RADIANT_RPC_NAMESPACE

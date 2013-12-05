@@ -18,6 +18,9 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, enti
 
    -- add a render object so the cursor entity gets rendered.
    local re = _radiant.client.create_render_entity(1, self._cursor_entity)
+   self._cursor_entity:add_component('render_info')
+      :set_material('materials/ghost_item.xml')
+      :set_model_mode('blueprint')
 
    radiant.log.info("created render entity")
 

@@ -19,6 +19,15 @@
          "end_time": 0,
          "item": "stonehearth:worker_hammer",
          "bone": "mainHand"
-      }
+      },
+       "sound": {
+         "type": "sound_effect",
+         "duration": 300,
+         "start_delay": 300,
+         "min_distance": 20,
+         "max_distance": 90,
+         "volume": 50,
+         "track" : "stonehearth:sounds:hammer_sound"
+      }   
    }
 }

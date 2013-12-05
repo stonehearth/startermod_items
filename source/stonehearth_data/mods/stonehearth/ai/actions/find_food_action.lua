@@ -22,8 +22,14 @@ function FindFoodAction:__init(ai, entity)
    self._food = nil
    self._path_to_food = nil
    self._looking_for_food = false
+   self._hunger_logged = false;
 
-   radiant.events.listen(entity, 'stonehearth:attribute_changed:hunger', self, self.on_hunger_changed)
+   radiant.events.listen(radiant.events, 'stonehearth:very_slow_poll', self, self.on_poll)
+end
+
+function FindFoodAction:on_poll()
+   self._hunger = radiant.entities.get_attribute(self._entity, 'hunger')
+   self:check_hunger()
 end
 
 --- Changes behavior based on hunger
@@ -32,15 +38,22 @@ end
 --  When > 80, look for food. If < 80, we're not hungry, so stop
 --  looking for food. 
 --  @param e - e.value is the status of hunger
-function FindFoodAction:on_hunger_changed(e)  
-   self._hunger = e.value
-   
+function FindFoodAction:check_hunger()   
    if self._hunger >= 120 then
+      -- Cry in despair because we're so hungry
+      -- TODO: self._ai:execute('stonehearth:???')
+      -- xxx, localize
+      
+      if not self._hunger_logged then
+          local name = radiant.entities.get_display_name(self._entity)     
+          event_service:add_entry(name .. ' is so hungry it feels like despair.', 'warning')
+          self._hunger_logged = true
+      end
       radiant.entities.add_buff(self._entity, 'stonehearth:buffs:starving')
-      self._ai:set_action_priority(self, priorities.REALLY_HUNGRY)
    end
 
    if self._hunger >= 80  then
+      radiant.entities.think(self._entity, '/stonehearth/data/effects/thoughts/hungry')
       self:start_looking_for_food()
    else   
       if self._looking_for_food then
@@ -48,6 +61,8 @@ function FindFoodAction:on_hunger_changed(e)
       end
 
       radiant.entities.remove_buff(self._entity, 'stonehearth:buffs:starving')
+      radiant.entities.unthink(self._entity, '/stonehearth/data/effects/thoughts/hungry')
+      
       self._ai:set_action_priority(self, 0)
    end
 end
@@ -61,7 +76,6 @@ function FindFoodAction:start_looking_for_food()
    self._looking_for_food = true;
    if not self._pathfinder then
       self:find_good_food()
-      radiant.entities.think(self._entity, '/stonehearth/data/effects/thoughts/hungry')
    end
 end
 
@@ -84,7 +98,8 @@ function FindFoodAction:find_good_food()
    assert(not self._pathfinder)
 
    local filter_fn = function(item)
-      local is_good_food = item:add_component('stonehearth:material'):is('food')
+      local material = item:get_component('stonehearth:material')
+      local is_good_food = material and material:is('food')
       return is_good_food
    end
 
@@ -116,17 +131,10 @@ end
 --- If we have a path to food, go get it. If not
 --  and if hunger > 120, run a despairing animation
 function FindFoodAction:run(ai, entity)
-   local name = radiant.entities.get_display_name(self._entity)
-   
-   if self._path_to_food then
-      self:stop_looking_for_food()
-      ai:execute('stonehearth:get_food', self._path_to_food)
-   elseif self._hunger >= 120 then
-      -- Cry in despair because we're so hungry
-      -- TODO: self._ai:execute('stonehearth:???')
-      -- xxx, localize
-      event_service:add_entry(name .. ' is so hungry it feels like despair.', 'warning')
-   end
+   assert(self._path_to_food)
+   self:stop_looking_for_food()
+   ai:execute('stonehearth:get_food', self._path_to_food)
+   self._hunger_logged = false;
 end
 
 --- Whether we're eating or have run the despair animation or just

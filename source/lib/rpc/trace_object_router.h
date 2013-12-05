@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include "irouter.h"
 #include "forward_defines.h"
-#include "tesseract.pb.h"
+#include "protocols/tesseract.pb.h"
 #include "dm/dm.h"
 
 BEGIN_RADIANT_RPC_NAMESPACE
@@ -14,27 +14,26 @@ class TraceObjectRouter : public IRouter
 public:
    TraceObjectRouter(dm::Store& store);
 
-   void AddObject(std::string const& name, dm::ObjectPtr obj);
+   void CheckDeferredTraces();
 
 public:     // IRouter
    ReactorDeferredPtr InstallTrace(Trace const& trace) override;
 
 private:
-   ReactorDeferredPtr InstallTrace(Trace const& trace, dm::ObjectPtr obj, const char* reason);
-   ReactorDeferredPtr GetTrace(Trace const& trace);
+   struct ObjectTraceEntry {
+      dm::ObjectRef           obj;
+      ReactorDeferredRef      deferred;
+      dm::TracePtr            trace;
+   };
 
 private:
-   struct ObjectTraceEntry {
-      dm::ObjectRef           o;
-      ReactorDeferredRef      d;
-      ObjectTraceEntry() {}
-      ObjectTraceEntry(dm::ObjectPtr op, ReactorDeferredPtr dp) : o(op), d(dp) { } 
-   };
+   ReactorDeferredPtr GetTrace(Trace const& trace);
+   void InstallTrace(std::string const& uri, ReactorDeferredPtr deferred, dm::ObjectPtr obj);
+
 private:
-   dm::Store&                                          store_;
-   std::unordered_map<std::string, ObjectTraceEntry>   traces_;
-   std::unordered_map<std::string, core::Guard>          guards_;
-   std::unordered_map<std::string, dm::ObjectRef>      namedObjects_;
+   dm::Store&                                            store_;
+   std::unordered_map<std::string, ObjectTraceEntry>     traces_;
+   std::unordered_map<std::string, ReactorDeferredRef>   deferred_traces_;
 };
 
 END_RADIANT_RPC_NAMESPACE

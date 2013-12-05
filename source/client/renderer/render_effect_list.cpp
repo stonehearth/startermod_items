@@ -18,9 +18,10 @@
 #include "render_effect_list.h"
 #include "skeleton.h"
 #include "client/client.h"
+#include "dm/map_trace.h"
 #include "om/entity.h"
 #include "om/stonehearth.h"
-#include "om/components/mob.h"
+#include "om/components/mob.ridl.h"
 #include "resources/res_manager.h"
 #include "resources/animation.h"
 #include "lib/json/node.h"
@@ -67,35 +68,38 @@ RenderEffectList::RenderEffectList(RenderEntity& entity, om::EffectListPtr effec
 {
    ASSERT(effectList);
 
-   auto added = std::bind(&RenderEffectList::AddEffect, this, std::placeholders::_1);
-   auto removed = std::bind(&RenderEffectList::RemoveEffect, this, std::placeholders::_1);
+   effects_list_trace_ = \
+      effectList->TraceEffects("render", dm::RENDER_TRACES)
+                     ->OnUpdated([this](om::EffectList::EffectsContainer const& added,
+                                        std::vector<int> const& removed) {
+                        for (auto const& entry : added) {
+                           AddEffect(entry.first, entry.second);
+                        }
+                        for (int effect_id : removed) {
+                           RemoveEffect(effect_id);
+                        }
+                     })
+                     ->PushObjectState();
 
-   auto &effects = effectList->GetEffects();
-
-   tracer_ += effects.TraceSetChanges("render rig rigs", added, removed);
-   tracer_ += Renderer::GetInstance().OnRenderFrameStart([this](FrameStartInfo const& info) {
+   renderer_guard_ += Renderer::GetInstance().OnRenderFrameStart([this](FrameStartInfo const& info) {
       perfmon::TimelineCounterGuard tcg("update effects");
       UpdateEffects(info);
    });
-
-   for (const om::EffectPtr effect : effects) {
-      AddEffect(effect);
-   }
 }
 
 RenderEffectList::~RenderEffectList()
 {
 }
 
-void RenderEffectList::AddEffect(const om::EffectPtr effect)
+void RenderEffectList::AddEffect(int effect_id, const om::EffectPtr effect)
 {
    std::string name = effect->GetName();
-   effects_[effect->GetObjectId()] = RenderInnerEffectList(entity_, effect);
+   effects_[effect_id] = RenderInnerEffectList(entity_, effect);
 }
 
-void RenderEffectList::RemoveEffect(const om::EffectPtr effect)
+void RenderEffectList::RemoveEffect(int effect_id)
 {
-   effects_.erase(effect->GetObjectId());
+   effects_.erase(effect_id);
 }
 
 void RenderEffectList::UpdateEffects(FrameStartInfo const& info)
@@ -187,7 +191,7 @@ RenderAnimationEffect::RenderAnimationEffect(RenderEntity& e, om::EffectPtr effe
    animationName_ = node["animation"].as_string();
    
    // compute the location of the animation
-   std::string animationTable = *e.GetEntity()->GetComponent<om::RenderInfo>()->GetAnimationTable();
+   std::string animationTable = e.GetEntity()->GetComponent<om::RenderInfo>()->GetAnimationTable();
    json::Node json = res::ResourceManager2::GetInstance().LookupJson(animationTable);
    std::string animationRoot = json.get<std::string>("animation_root", "");
 
@@ -407,8 +411,9 @@ ActivityOverlayEffect::ActivityOverlayEffect(RenderEntity& e, om::EffectPtr effe
    json::Node cjo(node);
 
    std::string matName = cjo.get("material", std::string("materials/chop_overlay/chop_overlay.material.xml"));
-   int overlayWidth = cjo.get("width", 32);
-   int overlayHeight = cjo.get("height", 32);
+   int overlayWidth = cjo.get("width", 64);
+   int overlayHeight = cjo.get("height", 64);
+   int yOffset = cjo.get("y_offset", 0);
 
    H3DRes mat = h3dAddResource(H3DResTypes::Material, matName.c_str(), 0);
    H3DRes lineMat = h3dAddResource(H3DResTypes::Material, "materials/line.material.xml", 0);
@@ -416,8 +421,7 @@ ActivityOverlayEffect::ActivityOverlayEffect(RenderEntity& e, om::EffectPtr effe
    Horde3D::HudElementNode* hud = h3dAddHudElementNode(e.GetNode(), "");
    getBoundsForGroupNode(&minX, &maxX, &minY, &maxY, e.GetNode());
    h3dSetNodeTransform(hud->getHandle(), 0, maxY - minY + 4, 0, 0, 0, 0, 1, 1, 1);
-   hud->addScreenspaceRect(overlayWidth, overlayHeight, (int)(-overlayWidth / 2.0f), -2, Horde3D::Vec4f(1, 1, 1, 1), mat);
-   hud->addWorldspaceLine(2, Horde3D::Vec4f(0,1,0,1), lineMat);
+   hud->addScreenspaceRect(overlayWidth, overlayHeight, (int)(-overlayWidth / 2.0f), yOffset, Horde3D::Vec4f(1, 1, 1, 1), mat);
    overlayNode_ = H3DNodeUnique(hud->getHandle());
 }
 
@@ -514,6 +518,7 @@ RenderAttachItemEffect::RenderAttachItemEffect(RenderEntity& e, om::EffectPtr ef
 
       auto i = node.find("render_info");
       if (i != node.end()) {
+         // xxx: can we get rid of this abomination? -- tony
          auto j = i->find("model_variant");
          if (j != i->end()) {
             model_variant_override_ = j->as_string();
@@ -606,7 +611,7 @@ FloatingCombatTextEffect::FloatingCombatTextEffect(RenderEntity& e, om::EffectPt
    if (entity) {
       om::RenderInfoPtr render_info = entity->GetComponent<om::RenderInfo>();
       if (render_info) {
-         std::string animationTableName = *render_info->GetAnimationTable();
+         std::string animationTableName = render_info->GetAnimationTable();
 
          json::Node json = res::ResourceManager2::GetInstance().LookupJson(animationTableName);
          json::Node cs = json.get<JSONNode>("collision_shape", JSONNode());

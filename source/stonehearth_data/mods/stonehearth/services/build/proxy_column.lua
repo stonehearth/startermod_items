@@ -9,8 +9,9 @@ local Region3 = _radiant.csg.Region3
 -- this is the component which manages the fabricator entity.
 function ProxyColumn:__init(parent_proxy, arg1)
    self[ProxyFabrication]:__init(self, parent_proxy, arg1)
-   local cursor = self:get_region():modify()
-   cursor:copy_region(Region3(Cube3(Point3(0, 0, 0), Point3(1, constants.STOREY_HEIGHT, 1))))
+   self:get_region():modify(function(cursor)
+      cursor:copy_region(Region3(Cube3(Point3(0, 0, 0), Point3(1, constants.STOREY_HEIGHT, 1))))
+   end)
    
    local data = self:add_construction_data()
    data.connected_to = {}

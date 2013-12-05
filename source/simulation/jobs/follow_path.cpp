@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "follow_path.h"
 #include "om/entity.h"
-#include "om/components/mob.h"
+#include "om/components/mob.ridl.h"
 #include "csg/util.h" // xxx: should be csg/csg.h
 #include <boost/program_options.hpp>
 
@@ -14,8 +14,8 @@ std::ostream& simulation::operator<<(std::ostream& os, FollowPath const& o)
    return os << "[FollowPath ...]";
 }
 
-FollowPath::FollowPath(om::EntityRef e, float speed, std::shared_ptr<Path> path, float close_to_distance, luabind::object arrived_cb) :
-   Task("follow path"),
+FollowPath::FollowPath(Simulation& sim, om::EntityRef e, float speed, std::shared_ptr<Path> path, float close_to_distance, luabind::object arrived_cb) :
+   Task(sim, "follow path"),
    entity_(e),
    path_(path),
    pursuing_(0),
@@ -65,7 +65,7 @@ bool FollowPath::Work(const platform::timer &timer)
          mob->MoveTo(current + (direction * (maxDistance / distance)));
          maxDistance = 0;
       }
-      mob->TurnToAngle(angle(direction) * 180 / csg::k_pi);
+      mob->TurnTo(angle(direction) * 180 / csg::k_pi);
    }
    if (Arrived(mob)) {
       Report("arrived!");

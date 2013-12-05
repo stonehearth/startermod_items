@@ -1,36 +1,29 @@
 #include "pch.h"
-#include "terrain.h"
+#include "mob.ridl.h"
+#include "terrain.ridl.h"
 #include "om/entity.h"
-#include "mob.h"
+#include "om/region.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
+
+std::ostream& operator<<(std::ostream& os, Terrain const& o)
+{
+   return (os << "[Terrain]");
+}
 
 void Terrain::CreateNew()
 {
 }
 
-void Terrain::InitializeRecordFields()
+void Terrain::ExtendObject(json::Node const& obj)
 {
-   Component::InitializeRecordFields();
-   AddRecordField("zones", zones_);
-   AddRecordField("zone_size", zone_size_);
-}
-
-int Terrain::GetZoneSize()
-{
-   return zone_size_;
-}
-
-void Terrain::SetZoneSize(int zone_size)
-{
-   zone_size_ = zone_size;
 }
 
 void Terrain::AddZone(csg::Point3 const& zone_offset, Region3BoxedPtr region3)
 {
    // zones are stored using the location of their 0, 0 coordinate in the world
-   zones_[zone_offset] = region3;
+   zones_.Add(zone_offset, region3);
 }
 
 void Terrain::PlaceEntity(EntityRef e, const csg::Point3& location)

@@ -1,26 +1,25 @@
 #include "pch.h"
-#include "item.h"
-#include "mob.h"
+#include "item.ridl.h"
+#include "mob.ridl.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-void Item::InitializeRecordFields()
+std::ostream& operator<<(std::ostream& os, Item const& o)
 {
-   Component::InitializeRecordFields();
-   AddRecordField("kind", kind_);
-   AddRecordField("stacks", stacks_);
-   AddRecordField("maxStacks", maxStacks_);
-   AddRecordField("category", category_);
+   return (os << "[Item]");
+}
 
+void Item::ConstructObject()
+{
    stacks_ = 1;
-   maxStacks_ = 1;
+   max_stacks_ = 1;
 }
 
 void Item::ExtendObject(json::Node const& obj)
 {
-   int count = obj.get<int>("stacks", *maxStacks_);
+   int count = obj.get<int>("stacks", *max_stacks_);
    stacks_ = count;
-   maxStacks_ = count;
+   max_stacks_ = count;
    category_ = obj.get<std::string>("category", *category_);
 }
