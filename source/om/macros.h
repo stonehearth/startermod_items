@@ -7,6 +7,7 @@
    enum { DmType = Class ## ObjectType }; \
    dm::ObjectType GetObjectType() const override { return Class::DmType; } \
    const char *GetObjectClassNameLower() const override { return #lower; } \
+   static const char *GetClassNameLower() { return #lower; }
 
 
 #define DEFINE_OM_OBJECT_TYPE(Class, lower)   \

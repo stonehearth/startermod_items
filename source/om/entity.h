@@ -19,7 +19,7 @@ public:
    DEFINE_OM_OBJECT_TYPE(Entity, entity);
    virtual ~Entity() { }
 
-   typedef dm::Map<dm::ObjectType, std::shared_ptr<Object>> ComponentMap;
+   typedef dm::Map<std::string, dm::ObjectPtr> ComponentMap;
 
    const ComponentMap& GetComponents() const { return components_; }
    std::shared_ptr<dm::MapTrace<ComponentMap>> TraceComponents(const char* reason, int category)
@@ -29,7 +29,9 @@ public:
 
    template <class T> std::shared_ptr<T> AddComponent();
    template <class T> std::shared_ptr<T> GetComponent() const;
-   dm::ObjectPtr GetComponent(dm::ObjectType t) const;
+
+   dm::ObjectPtr GetComponent(std::string const& name) const;
+   void AddComponent(std::string const& name, DataStorePtr component);
 
    template <class T> std::weak_ptr<T> AddComponentRef() { return AddComponent<T>(); }
    template <class T> std::weak_ptr<T> GetComponentRef() const { return GetComponent<T>(); }
@@ -44,6 +46,7 @@ public:
    void SetUri(std::string str) { uri_ = str; }
 
 private:
+   void ConstructObject() override;
    void InitializeRecordFields() override;
    NO_COPY_CONSTRUCTOR(Entity)
 

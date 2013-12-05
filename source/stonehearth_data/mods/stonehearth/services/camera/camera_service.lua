@@ -27,7 +27,7 @@ function CameraService:__init()
   self._drag_origin = Vec3(0, 0, 0)
 
   self._min_zoom = 10
-  self._max_zoom = 100
+  self._max_zoom = 300
 
   self:_update_camera(0)
 

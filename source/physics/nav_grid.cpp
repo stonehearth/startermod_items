@@ -32,7 +32,7 @@ NavGrid::NavGrid(int trace_category) :
 {
 }
 
-void NavGrid::TrackComponent(dm::ObjectType type, std::shared_ptr<dm::Object> component)
+void NavGrid::TrackComponent(std::shared_ptr<dm::Object> component)
 {
    switch (component->GetObjectType()) {
    case om::TerrainObjectType: {

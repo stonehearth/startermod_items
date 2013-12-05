@@ -78,7 +78,6 @@ add_library(om_components STATIC
             effect.cpp
             effect_list.cpp
             entity_container.cpp
-            lua_components.cpp
             mob.cpp
             region_collision_shape.cpp
             render_info.cpp
