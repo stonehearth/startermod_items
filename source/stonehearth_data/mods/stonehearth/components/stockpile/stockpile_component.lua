@@ -224,7 +224,7 @@ function StockpileComponent:_add_item(entity)
    local world_bounds = self:_get_world_bounds()
 
       
-   if self:can_stock_entity(entity) then
+   if self:can_stock_entity(entity) and self:contains(entity) then
       local item = entity:get_component('item')
       if item then
          -- hold onto the item...
@@ -259,6 +259,12 @@ function StockpileComponent:_remove_item(id)
          local offset = origin - radiant.entities.get_world_grid_location(self._entity)
          region:modify():add_point(Point3(offset))
       end
+
+      --Remove items that have been taken out of the stockpile
+      radiant.events.trigger(self._entity, "stonehearth:item_removed", { 
+         storage = self._entity,
+         item = entity 
+      })
    end
 end
 

@@ -11,7 +11,7 @@ local constants = {
          DEFAULT            = 2,
          RESTOCK_STOCKPILE  = 2,
          CHOP_TREE          = 4,
-         CONSTRUCT_BUILDING = 7,
+         CONSTRUCT_BUILDING = 5,
          PLACE_ITEM         = 8,
          GATHER_FOOD        = 9,
          LIGHT_FIRE         = 10,
@@ -21,7 +21,7 @@ local constants = {
       -- TODO: integrate sleep
       needs = {
          BARELY_HUNGRY = 3,
-         HUNGRY = 5,
+         HUNGRY = 6,
          REALLY_HUNGRY = 10
       }
    },
