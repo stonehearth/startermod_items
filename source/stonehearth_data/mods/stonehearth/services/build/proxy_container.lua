@@ -59,7 +59,7 @@ function ProxyContainer:_remove_all_children(id)
       info.ec_promise:destroy()
       self._all_children[id] = nil
       if info.entity then
-         local ec = entity:get_component('entity_container')
+         local ec = info.entity:get_component('entity_container')
          if ec then
             for id, child in ec:get_children():items() do
                self:_remove_all_children(id)

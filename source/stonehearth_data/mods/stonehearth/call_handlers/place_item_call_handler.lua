@@ -35,12 +35,15 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, enti
             self:_on_mouse_event(e.mouse, response)
             return true
          end
+         if e.type == _radiant.client.Input.KEYBOARD then
+            self:_on_keyboard_event(e.keyboard)
+         end
+         --Don't consume the event in case the UI wants to do something too
          return false
       end)
 end
 
 -- called each time the mouse moves on the client.
--- TODO: FIX THIS TO THE NEW TASK MODEL BEFORE PUSHING!!!!
 function PlaceItemCallHandler:_on_mouse_event(e, response)
    -- query the scene to figure out what's under the mouse cursor
    local s = _radiant.client.query_scene(e.x, e.y)
@@ -84,6 +87,16 @@ function PlaceItemCallHandler:_on_mouse_event(e, response)
 
    -- return true to prevent the mouse event from propogating to the UI
    return true
+end
+
+function PlaceItemCallHandler:_on_keyboard_event(e)
+   local esc_down = _radiant.client.is_key_down(_radiant.client.KeyboardInput.ESC)
+   if esc_down then
+      self._capture:destroy()
+      self._capture = nil
+      _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
+   end
+   return false
 end
 
 --- Tell a worker to place the item in the world

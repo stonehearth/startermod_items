@@ -128,6 +128,7 @@ function ProxyRoomBuilder:_move_door()
    self._curr_door_wall:layout()
 end
 
+--TODO: Ok, so this cancels, but does it ever stop listening?
 function ProxyRoomBuilder:_on_keyboard_event(e)
    local esc_down = _radiant.client.is_key_down(_radiant.client.KeyboardInput.ESC)
    if esc_down then
