@@ -50,9 +50,8 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       void MoveSceneNode(H3DNode node, const csg::Transform& transform, float scale = 1.0f);
       void UpdateNodeFlags();
       void UpdateInvariantRenderers();
-      void AddComponent(dm::ObjectType key, std::shared_ptr<dm::Object> value);
-      void AddLuaComponents(om::LuaComponentsPtr lua_components);
-      void RemoveComponent(dm::ObjectType key);
+      void AddComponent(std::string const& key, std::shared_ptr<dm::Object> value);
+      void RemoveComponent(std::string const& key);
       void OnSelected(om::Selection& sel, const csg::Ray3& ray,
                       const csg::Point3f& intersection, const csg::Point3f& normal);
 
@@ -60,14 +59,13 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       static int                          totalObjectCount_;
 
 protected:
-      typedef std::unordered_map<dm::ObjectType, std::shared_ptr<RenderComponent>> ComponentMap;
+      typedef std::unordered_map<std::string, std::shared_ptr<RenderComponent>> ComponentMap;
       typedef std::unordered_map<std::string, luabind::object> LuaComponentMap;
       std::string       node_name_;
       H3DNodeUnique     node_;
       om::EntityRef     entity_;
       Skeleton          skeleton_;
       ComponentMap      components_;
-      LuaComponentMap   lua_components_;
       LuaComponentMap   lua_invariants_;
       bool              initialized_;
       core::Guard       renderer_guard_;

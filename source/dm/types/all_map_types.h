@@ -9,10 +9,10 @@
 #include "om/components/target_table_entry.ridl.h"
 
 #define ALL_DM_MAP_TYPES \
-   MAP(int, ObjectPtr) \
    MAP(int, om::TargetTableEntryPtr) \
    MAP(int, om::EntityRef) \
    MAP(int, om::EffectPtr) \
+   MAP(std::string, ObjectPtr) \
    MAP(std::string, om::Selection) \
    MAP(std::string, om::SensorPtr) \
    MAP(std::string, om::DataStorePtr) \
