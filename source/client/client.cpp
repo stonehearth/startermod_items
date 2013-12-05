@@ -473,7 +473,7 @@ void Client::mainloop()
 
    int currentTime = platform::get_current_time_in_ms();
    float alpha = (currentTime - ((int)_client_interval_start - _server_skew)) / (float)_server_interval_duration;
-
+   alpha = std::max(0.0f, alpha);
    now_ = (int)(_server_last_update_time + (_server_interval_duration * alpha));
 
    perfmon::SwitchToCounter("flush http events");
