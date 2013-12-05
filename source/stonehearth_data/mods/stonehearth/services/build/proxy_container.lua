@@ -29,7 +29,12 @@ function ProxyContainer:_trace_entity(entity)
    local id = entity:get_id()
    local result = self._all_children[id]
    if not result then
-      result = {}      
+      result = {}
+      result.destroy_promise = entity:trace_object('proxy container destroy')
+                                          :on_destroyed(function()
+                                             self:_remove_child(id)
+                                          end)
+                                          
       local mob = entity:add_component('mob')
       result.mob_promise = mob:trace_transform('no construnction zone')
                                  :on_changed(function ()
@@ -59,7 +64,7 @@ function ProxyContainer:_remove_all_children(id)
       info.ec_promise:destroy()
       self._all_children[id] = nil
       if info.entity then
-         local ec = entity:get_component('entity_container')
+         local ec = info.entity:get_component('entity_container')
          if ec then
             for id, child in ec:each_child() do
                self:_remove_all_children(id)
@@ -117,16 +122,19 @@ function ProxyContainer:_add_nobuild_zone(entity, origin, cursor)
 end
 
 function ProxyContainer:_rebuild_zone()
-   local origin = self:get_entity():get_component('mob'):get_world_grid_location()
-   self._rgn2:modify(function(cursor)
-      cursor:clear()   
-      for id, info in pairs(self._all_children) do
-         if info.entity then
-            self:_add_nobuild_zone(info.entity, origin, cursor)
+   local entity = self:get_entity()
+   if entity and entity:is_valid() then
+      local origin = entity:get_component('mob'):get_world_grid_location()
+      self._rgn2:modify(function(cursor)
+         cursor:clear()   
+         for id, info in pairs(self._all_children) do
+            if info.entity then
+               self:_add_nobuild_zone(info.entity, origin, cursor)
+            end
          end
-      end
-   end)
-   self:get_entity():set_component_data('stonehearth:no_construction_zone', { region2 = self._rgn2 })
+      end)
+      entity:set_component_data('stonehearth:no_construction_zone', { region2 = self._rgn2 })
+   end
 end
 
 return ProxyContainer

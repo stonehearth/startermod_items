@@ -2654,7 +2654,6 @@ void Renderer::render( CameraNode *camNode )
 		gRDI->setRenderBuffer( 0 );
 
 	// Process pipeline commands
-   _curCamera->_pipelineRes->prepareToRender();
 	for( uint32 i = 0; i < _curCamera->_pipelineRes->_stages.size(); ++i )
 	{
 		PipelineStagePtr &stage = _curCamera->_pipelineRes->_stages[i];
