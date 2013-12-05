@@ -84,7 +84,8 @@ function FindFoodAction:find_good_food()
    assert(not self._pathfinder)
 
    local filter_fn = function(item)
-      local is_good_food = item:add_component('stonehearth:material'):is('food')
+      local material = item:get_component('stonehearth:material')
+      local is_good_food = material and material:is('food')
       return is_good_food
    end
 

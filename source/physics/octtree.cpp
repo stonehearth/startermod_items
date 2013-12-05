@@ -67,15 +67,15 @@ void OctTree::TraceEntity(om::EntityPtr entity)
          EntityMapEntry& entry = entities_[id];
          entry.entity = entity;
          entry.components_trace = entity->TraceComponents("octtree", trace_category_)
-                                             ->OnAdded([this, id](dm::ObjectType type, std::shared_ptr<dm::Object> obj) {
-                                                OnComponentAdded(id, type, obj);
+                                             ->OnAdded([this, id](std::string const& name, std::shared_ptr<dm::Object> obj) {
+                                                OnComponentAdded(id, obj);
                                              })
                                              ->PushObjectState();
       }
    }
 }
 
-void OctTree::OnComponentAdded(dm::ObjectId id, dm::ObjectType type, std::shared_ptr<dm::Object> component)
+void OctTree::OnComponentAdded(dm::ObjectId id, std::shared_ptr<dm::Object> component)
 {
    auto i = entities_.find(id);
    if (i == entities_.end()) {
@@ -107,7 +107,7 @@ void OctTree::OnComponentAdded(dm::ObjectId id, dm::ObjectType type, std::shared
                ->PushObjectState();
          }
       }
-      navgrid_.TrackComponent(type, component);
+      navgrid_.TrackComponent(component);
    }       
 }
 

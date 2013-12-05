@@ -285,7 +285,7 @@ void ScriptHost::OnError(std::string description)
       LOG(WARNING) << "-- endstack";
    }
 #endif
-#if 1
+#if 0
    int startTime = timeGetTime();
    while(timeGetTime() - startTime < 1500000) {
       Sleep(0);

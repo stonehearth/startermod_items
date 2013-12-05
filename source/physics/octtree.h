@@ -58,7 +58,7 @@ class OctTree {
 
    private:
       void TraceEntity(om::EntityPtr entity);
-      void OnComponentAdded(dm::ObjectId id, dm::ObjectType type, std::shared_ptr<dm::Object> component);
+      void OnComponentAdded(dm::ObjectId id, std::shared_ptr<dm::Object> component);
       void TraceSensor(om::SensorPtr sensor);
       void UpdateSensors();
       bool UpdateSensor(om::SensorPtr sensor);

@@ -16,7 +16,7 @@ class NavGrid {
    public:
       NavGrid(int trace_category);
 
-      void TrackComponent(dm::ObjectType type, std::shared_ptr<dm::Object> component);
+      void TrackComponent(std::shared_ptr<dm::Object> component);
       bool CanStand(csg::Point3 const& pt) const;
       bool IsEmpty(csg::Point3 const& pt) const;
       bool IsEmpty(csg::Cube3 const& pt) const;
