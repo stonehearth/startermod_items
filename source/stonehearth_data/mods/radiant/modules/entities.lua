@@ -471,8 +471,8 @@ end
 function entities.is_hostile(entity_a, entity_b)
    -- xxx: this check shouldn't be in the generic "is_hostile" function.  what
    -- happens when we add things that aren't made of meat? (e.g. robots?)
-   local ok = entity_b:add_component('stonehearth:material'):is('meat')
-   if not ok then
+   local material = entity_b:get_component('stonehearth:material')
+   if not material or not material:is('meat') then
       return false
    end
 

@@ -87,33 +87,44 @@ GetLuaComponentUri(std::string name)
    return "";
 }
 
+static DataStorePtr GetLuaComponentDataStore(lua_State* L, EntityPtr entity, std::string const& name)
+{
+   dm::ObjectPtr component = entity->GetComponent(name);
+   if (component && component->GetObjectType() == DataStoreObjectType) {
+      return std::static_pointer_cast<DataStore>(component);
+   }
+   return nullptr;
+}
+
+static DataStorePtr AddLuaComponentDataStore(lua_State* L, EntityPtr entity, std::string const& name)
+{
+   DataStorePtr ds = GetLuaComponentDataStore(L, entity, name);
+   if (!ds) {
+      std::string uri = GetLuaComponentUri(name);
+      object ctor = lua::ScriptHost::RequireScript(L, uri);
+      if (ctor) {
+         ds = entity->GetStore().AllocObject<DataStore>();
+         LOG(WARNING) << "adding lua component " << ds->GetObjectId() << " " << name << " to " << entity->GetObjectId();
+
+         ds->SetData(lua::DataObject(newtable(L)));
+         entity->AddComponent(name, ds);         
+      }
+   }
+   return ds;
+}
+
 static object
 GetLuaComponent(lua_State* L, EntityPtr entity, std::string const& name)
 {
-   LuaComponentsPtr component = entity->GetComponent<LuaComponents>();
-   if (component) {
-      DataStorePtr db = component->GetLuaComponent(name);
-      if (db) {
-         return db->GetController();
-      }
-   }
-   return object();
+   DataStorePtr ds = GetLuaComponentDataStore(L, entity, name);
+   return ds ? ds->GetController() : object();
 }
 
 static object
 GetLuaComponentData(lua_State* L, EntityPtr entity, std::string const& name)
 {
-   LuaComponentsPtr component = entity->GetComponent<LuaComponents>();
-   if (component) {
-      DataStorePtr db = component->GetLuaComponent(name);
-      if (db) {
-         // return lua::ScriptHost::JsonToLua(L, db->GetJsonData());
-         // xxx: does this work?
-         NOT_TESTED();
-         return db->GetData().GetDataObject();
-      }
-   }
-   return object();
+   DataStorePtr ds = GetLuaComponentDataStore(L, entity, name);
+   return ds ? ds->GetData().GetDataObject() : object();
 }
 
 object
@@ -189,31 +200,26 @@ SetNativeComponentData(lua_State* L, EntityPtr entity, std::string const& name, 
 static object
 AddLuaComponent(lua_State* L, EntityPtr entity, std::string const& name)
 {
-   object result;
-   LuaComponentsPtr component = entity->AddComponent<LuaComponents>();
-   DataStorePtr data_store = component->GetLuaComponent(name);
-   if (data_store) {
-      result = data_store->GetController();
+   luabind::object controller;
+   DataStorePtr ds = GetLuaComponentDataStore(L, entity, name);
+   if (ds) {
+      controller = ds->GetController();
    } else {
       std::string uri = GetLuaComponentUri(name);
       object ctor = lua::ScriptHost::RequireScript(L, uri);
-      if (ctor) {
-         data_store = component->AddLuaComponent(name);
-         data_store->SetData(lua::DataObject(newtable(L)));
-         result = call_function<object>(ctor, EntityRef(entity), data_store);
-         data_store->SetController(lua::ControllerObject(result));
-      }
+
+      ds = AddLuaComponentDataStore(L, entity, name);
+      controller = call_function<object>(ctor, EntityRef(entity), ds);
+      ds->SetController(lua::ControllerObject(controller));
    }
-   return result;
+   return controller;
 }
 
 static void
 SetLuaComponentData(lua_State* L, EntityPtr entity, std::string const& name, object data)
 {
-   object result;
-   LuaComponentsPtr component = entity->AddComponent<LuaComponents>();
-   DataStorePtr data_store = component->AddLuaComponent(name);
-   data_store->SetData(lua::DataObject(data));
+   DataStorePtr ds = AddLuaComponentDataStore(L, entity, name);
+   ds->SetData(lua::DataObject(data));
 }
 
 object
@@ -283,15 +289,16 @@ void Stonehearth::InitEntity(EntityPtr entity, std::string const& uri, lua_State
    }
    // go through again and call the post create function...
    if (is_server) {
-      auto lua_components = entity->GetComponent<LuaComponents>();
-      if (lua_components) {
-         for (auto const& entry : lua_components->GetComponentMap()) {
-            object component = entry.second->GetController();
-            ASSERT(component.is_valid() && type(component) != LUA_TNIL);
-
-            object on_created = component["on_created"];
-            if (type(on_created) == LUA_TFUNCTION) {
-               call_function<void>(on_created, component);
+      for (auto const& entry : entity->GetComponents()) {
+         dm::ObjectPtr obj = entry.second;
+         if (obj->GetObjectType() == DataStoreObjectType) {
+            DataStorePtr ds = std::static_pointer_cast<DataStore>(obj);
+            object controller = ds->GetController();
+            if (controller && controller.is_valid()) {
+               object on_created = controller["on_created"];
+               if (type(on_created) == LUA_TFUNCTION) {
+                  call_function<void>(on_created, controller);
+               }
             }
          }
       }

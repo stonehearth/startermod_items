@@ -35,17 +35,6 @@ using namespace radiant::json;
 
 #undef OM_OBJECT
 
-template <> Node json::encode(om::LuaComponents const& obj)
-{
-   om::ObjectFormatter f;
-   Node node;
-
-   for (auto const& entry : obj.GetComponentMap()) {
-      node.set(entry.first, f.GetPathToObject(entry.second));
-   }
-   return node;
-}
-
 template <> Node json::encode(om::Entity const& obj)
 {
    om::ObjectFormatter f;
@@ -62,14 +51,7 @@ template <> Node json::encode(om::Entity const& obj)
    auto const& components = obj.GetComponents();
    for (auto const& entry : components) {
       dm::ObjectPtr c = entry.second;
-      if (c->GetObjectType() == om::LuaComponentsObjectType) {
-         JSONNode luac = json::encode(static_cast<om::LuaComponents&>(*c.get()));
-         for (auto const& entry : luac) {
-            node.set(entry.name(), entry);
-         }
-      } else {
-         node.set(om::GetObjectNameLower(c), f.GetPathToObject(c));
-      }
+      node.set(entry.first, f.GetPathToObject(c));
    }
    return node;
 }
