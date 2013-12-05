@@ -19,8 +19,6 @@
 #include <vector>
 #include <memory>
 
-struct lua_State;
-
 namespace Horde3D {
 
 class XMLNode;
@@ -174,7 +172,6 @@ public:
 	void setElemParamI( int elem, int elemIdx, int param, int value );
 	const char *getElemParamStr( int elem, int elemIdx, int param );
 
-   void prepareToRender();
 	bool getRenderTargetData( const std::string &target, int bufIndex, int *width, int *height,
 	                          int *compCount, void *dataBuffer, int bufferSize );
 
@@ -196,7 +193,6 @@ private:
    PipelineStagePtr compileStageNode(XMLNode const& node);
 
 private:
-   lua_State*                       _L;
 	std::vector< RenderTarget >      _renderTargets;
 	std::vector< PipelineStagePtr >  _stages;
 	uint32                           _baseWidth, _baseHeight;

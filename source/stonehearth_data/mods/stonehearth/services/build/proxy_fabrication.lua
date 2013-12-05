@@ -12,6 +12,7 @@ function ProxyFabrication:__init(derived,parent_proxy, arg1, component_name)
    self._rgn = _radiant.client.alloc_region()
    entity:add_component('destination')
                         :set_region(self._rgn)
+                        :set_auto_update_adjacent(true)
    entity:add_component('region_collision_shape')
                         :set_region(self._rgn)
 

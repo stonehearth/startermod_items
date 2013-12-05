@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "lua_component.h"
 #include "lua_entity.h"
+#include "lua_region.h"
 #include "lua_data_store.h"
 #include "lib/lua/script_host.h"
 #include "lib/lua/register.h"
@@ -10,14 +11,17 @@
 #include "dm/store.h"
 #include "om/all_object_defs.h"
 #include "om/all_component_defs.h"
+#include "lib/lua/dm/boxed_trace_wrapper.h"
 
 using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-DEFINE_INVALID_JSON_CONVERSION(om::Region3BoxedPtrBoxed)
+DEFINE_INVALID_JSON_CONVERSION(Region3BoxedPtrBoxed)
+DEFINE_INVALID_JSON_CONVERSION(DeepRegionGuard)
 IMPLEMENT_TRIVIAL_TOSTRING(Region2Boxed)
 IMPLEMENT_TRIVIAL_TOSTRING(Region3Boxed)
+IMPLEMENT_TRIVIAL_TOSTRING(DeepRegionGuard)
 
 template <typename Boxed>
 static void ModifyBoxed(Boxed& boxed, luabind::object cb)
@@ -68,6 +72,11 @@ void radiant::om::RegisterLuaTypes(lua_State* L)
             lua::RegisterTypePtr<Region3Boxed>()
                .def("get",       &Region3Boxed::Get)
                .def("modify",    &ModifyBoxed<Region3Boxed>)
+            ,
+            luabind::class_<LuaDeepRegionGuard, std::shared_ptr<LuaDeepRegionGuard>>(GetShortTypeName<LuaDeepRegionGuard>())
+               .def("on_changed",         &LuaDeepRegionGuard::OnChanged)
+               .def("push_object_state",  &LuaDeepRegionGuard::PushObjectState)
+               .def("destroy",            &LuaDeepRegionGuard::Destroy)
          ]
       ]
    ];

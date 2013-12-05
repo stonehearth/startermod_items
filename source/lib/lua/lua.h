@@ -7,6 +7,9 @@
 BEGIN_RADIANT_LUA_NAMESPACE
 
 class ScriptHost;
+class TraceWrapper;
+
+DECLARE_SHARED_POINTER_TYPES(TraceWrapper);
 
 END_RADIANT_LUA_NAMESPACE
 

@@ -26,6 +26,7 @@ function Fabricator:__init(name, entity, blueprint)
    dst:set_region(_radiant.sim.alloc_region())
       :set_adjacent(_radiant.sim.alloc_region())
        
+   radiant.log.info("fabricator tracing destination %d", dst:get_id())
    self._adjacent_guard = dst:trace_region('updating fabricator adjacent')
    self._adjacent_guard:on_changed(function ()
       self:_update_adjacent()
@@ -39,6 +40,7 @@ function Fabricator:__init(name, entity, blueprint)
    self._project = radiant.entities.create_entity(blueprint:get_uri())
    self._project:add_component('destination')
                      :set_region(rgn)
+                     :set_auto_update_adjacent(true)
    self._project:add_component('region_collision_shape')
                      :set_region(rgn)
    radiant.entities.set_faction(self._project, blueprint)
@@ -78,8 +80,9 @@ function Fabricator:add_block(material_entity, location)
    -- location is in world coordinates.  transform it to the local coordinate space
    -- before building
    local origin = radiant.entities.get_world_grid_location(self._entity)
+   local pt = location - origin
+
    self._project:add_component('destination'):get_region():modify(function(cursor)
-      local pt = location - origin
       cursor:add_point(pt)
    end)
    
@@ -226,6 +229,7 @@ function Fabricator:_trace_blueprint_and_project()
 
       -- rgn(f) = rgn(b) - rgn(p) ... (see comment above)
       local dst = self._entity:add_component('destination')
+      radiant.log.info("fabricator modifying dst %d", dst:get_id())
       dst:get_region():modify(function(cursor)
          cursor:copy_region(br)
          cursor:subtract_region(pr)

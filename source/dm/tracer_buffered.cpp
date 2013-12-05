@@ -38,6 +38,7 @@ void TracerBuffered::OnObjectDestroyed(ObjectId id)
 {
    TB_LOG(5) << "adding object " << id << " to destroyed set";
    destroyed_objects_.push_back(id);
+   stdutil::FastRemove(modified_objects_, id);
 }
 
 void TracerBuffered::Flush()

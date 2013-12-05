@@ -5,15 +5,34 @@
 #include "dm/map_trace.h"
 #include "dm/boxed_trace.h"
 #include "map_iterator.h"
+#include "set_iterator.h"
 #include "map_trace_wrapper.h"
 #include "set_trace_wrapper.h"
 #include "boxed_trace_wrapper.h"
-#include "set_iterator.h"
+#include "trace_wrapper.h"
 #include "open.h"
 
 using namespace luabind;
 using namespace radiant;
 using namespace radiant::dm;
+
+
+void RegisterGenericTrace(lua_State* L)
+{
+   typedef lua::TraceWrapper Trace;
+
+   module(L) [
+      namespace_("_radiant") [
+         namespace_("om") [
+            luabind::class_<Trace, std::shared_ptr<Trace>>(GetShortTypeName<Trace>())
+               .def("on_changed",         &Trace::OnChanged)
+               .def("on_destroyed",       &Trace::OnDestroyed)
+               .def("push_object_state",  &Trace::PushObjectState)
+               .def("destroy",            &Trace::Destroy)
+         ]
+      ]
+   ];
+}
 
 template <typename T>
 void RegisterMap(lua_State* L)
@@ -80,6 +99,8 @@ static void OpenDm(lua_State* L)
 #define CREATE_MAP(M)      RegisterMap<M>(L);
 #define CREATE_BOXED(B)    RegisterBoxed<B>(L);
    ALL_DM_TYPES
+
+   RegisterGenericTrace(L);
 }
 
 void lua::dm::open(lua_State* L)

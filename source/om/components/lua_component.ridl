@@ -24,7 +24,7 @@ trace_includes = []
 for name, obj in env.properties(C, [dm.Boxed, dm.Set, dm.Array, dm.Map]):
    if obj.trace:
       if obj.trace == 'deep_region':
-         trace_includes += [ "om/region.h" ]
+         trace_includes += [ "om/lua/lua_region.h" ]
       else:
          trace_includes += [
             "dm/%s.h" % obj.short_name,
@@ -252,13 +252,13 @@ ${method.result.name} ${class_upper}_${method_name | env.upper}(${formal_params}
 % for name, obj in env.properties(C, [dm.Boxed, dm.Set, dm.Array, dm.Map]):
    % if obj.trace:
       % if obj.trace == 'deep_region':
-static std::shared_ptr<lua::${obj.short_name | env.upper}TraceWrapper<DeepRegionGuard>>
+static LuaDeepRegionGuardPtr
 ${class_upper}_Trace${name | env.upper}(${class_formal_parameter}, const char* reason)
 {
    ${class_to_pointer} 
    if (instance)  {
-      auto trace = instance->Trace${name | env.upper}(reason, dm::LUA_TRACES);
-      return std::make_shared<lua::${obj.short_name | env.upper}TraceWrapper<DeepRegionGuard>>(trace);
+      DeepRegionGuardPtr trace = instance->Trace${name | env.upper}(reason, dm::LUA_TRACES);
+      return std::make_shared<LuaDeepRegionGuard>(trace);
    }
    throw std::invalid_argument("invalid reference in native ${class_lower}::trace_${name}");
 }
