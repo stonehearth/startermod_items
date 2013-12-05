@@ -10,7 +10,6 @@
 //
 // *************************************************************************************************
 
-#include "lib/lua/bind.h"
 #include "egPipeline.h"
 #include "egMaterial.h"
 #include "egModules.h"
@@ -21,31 +20,6 @@
 #include <fstream>
 
 #include "utDebug.h"
-
-static std::string luaError, luaTraceback;
-static int sh_pcall_callback_fun(lua_State* L)
-{
-   if (!lua_isstring(L, 1))  /* 'message' not a string? */
-      return 1;  /* keep it intact */
-
-   luaError = lua_tostring(L, 1);
-
-   lua_getfield(L, LUA_GLOBALSINDEX, "debug");
-   if (!lua_istable(L, -1)) {
-      lua_pop(L, 1);
-      return 1;
-   }
-   lua_getfield(L, -1, "traceback");
-   if (!lua_isfunction(L, -1)) {
-      lua_pop(L, 2);
-      return 1;
-   }
-   lua_call(L, 0, 1);  /* call debug.traceback */
-   luaTraceback = std::string(lua_tostring(L, -1));
-   lua_pop(L, 1);
-
-   return 1;
-}
 
 static void* LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize)
 {
@@ -76,7 +50,6 @@ PipelineResource::~PipelineResource()
 
 void PipelineResource::initDefault()
 {
-   _L = nullptr;
 	_baseWidth = 320; _baseHeight = 240;
 }
 
@@ -87,11 +60,6 @@ void PipelineResource::release()
 
 	_renderTargets.clear();
 	_stages.clear();
-
-   if (_L) {
-      lua_close(_L);
-      _L = nullptr;
-   }
 }
 
 
@@ -414,69 +382,7 @@ bool PipelineResource::load( const char *data, int size )
 	if( strcmp( rootNode.getName(), "Pipeline" ) != 0 )
 		return raiseError( "Not a pipeline resource file" );
 
-   std::string script = rootNode.getAttribute("script");
-   if (!script.empty()) {
-      return loadLuaPipeline(script);
-   }
    return loadXMLPipeline(rootNode);
-}
-
-bool PipelineResource::loadLuaPipeline(std::string const& filename)
-{
-   _L = lua_newstate(LuaAllocFn, this);
-
-	luaL_openlibs(_L);
-   luabind::open(_L);
-   luabind::bind_class_info(_L);
-
-   luabind::set_pcall_callback(sh_pcall_callback_fun); // xxx - move this to radiant_luabbind so we can share it with scripthost
-
-   luabind::module(_L) [
-      luabind::class_<PipelineStage, std::shared_ptr<PipelineStage> >("PipelineStage")
-      ,
-      luabind::class_<PipelineResource>("PipelineResource")
-         .def("setup",           &PipelineResource::setupPipeline)
-         .def("compile_stage",   &PipelineResource::compileStage)
-   ];
-
-   int result = luaL_dofile(_L, filename.c_str());
-   if (result) {
-      const char* error = lua_tostring(_L, -1);
-      return raiseError(error);
-   }
-   try {
-      luabind::globals(_L)["pipeline"] = luabind::object(_L, this);
-      luabind::call_function<luabind::object>(_L, "setup");
-   } catch (luabind::error& e) {
-      std::ostringstream desc;
-      desc << "error in render pipeline setup(): " << e.what();
-
-      if (!luaError.empty()) {
-         desc << "(lua error string: " << luaError <<")";
-      }
-      if (!luaTraceback.empty()) {
-         desc << std::endl << luaTraceback;
-      }
-      return raiseError(desc.str().c_str());
-   }
-   return true;
-}
-
-void PipelineResource::prepareToRender()
-{
-   if (_L) {
-      _stages.clear();
-      try {
-         luabind::object stages = luabind::call_function<luabind::object>(_L, "get_stages");
-         for (luabind::iterator i(stages), end; i != end; ++i) {
-            _stages.push_back(luabind::object_cast<PipelineStagePtr>(*i));
-         }
-      } catch (luabind::error& e) {
-         std::ostringstream error;
-         error << "error assembling render pipeline: " << e.what();
-         raiseError(error.str().c_str());
-      }
-   }
 }
 
 bool PipelineResource::setupPipeline(std::string const& xml)

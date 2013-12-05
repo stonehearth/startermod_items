@@ -18,6 +18,7 @@ App.StonehearthCrafterView = App.View.extend({
       "unit_info": {},
       "stonehearth:workshop": {
          "crafter": {
+            "unit_info" : {},
             "stonehearth:crafter": {
                "craftable_recipes" : {
                   "recipes" : []
@@ -46,11 +47,11 @@ App.StonehearthCrafterView = App.View.extend({
       this._super();
    },
 
-   getWorkshop : function() {
+   getWorkshop: function() {
       return this.get('context.stonehearth:workshop').__self;
    },
 
-   getCurrentRecipe : function() {
+   getCurrentRecipe: function() {
       return this.get('context.current');
    },
 
@@ -131,8 +132,7 @@ App.StonehearthCrafterView = App.View.extend({
             $(this).find('#craftButtonLabel').fadeIn();
          }, function () {
             $(this).find('#craftButtonLabel').fadeOut();
-         });
-         
+         });     
    },
 
    _setRadioButtons: function(remaining, maintainNumber) {

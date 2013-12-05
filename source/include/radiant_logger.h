@@ -14,6 +14,7 @@ namespace radiant {
          ERROR = 2
       };
       void init(boost::filesystem::path const& logfile);
+      void flush();
       void exit();
    };
 };

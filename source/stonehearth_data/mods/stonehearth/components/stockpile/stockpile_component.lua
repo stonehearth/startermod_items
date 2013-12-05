@@ -121,9 +121,10 @@ function StockpileComponent:on_gameloop()
    local unit_info = self._entity:add_component('unit_info')
    self._unit_info_trace = unit_info:trace_faction('stockpile tracking faction')
                                        :on_changed(function()
-                                             self:_on_faction_changed()
+                                             self:_assign_to_faction()
                                           end)
       
+   self:_assign_to_faction()
    self:_rebuild_item_data()
 end
 
@@ -226,7 +227,7 @@ function StockpileComponent:_add_item(entity)
    local world_bounds = self:_get_world_bounds()
 
       
-   if self:can_stock_entity(entity) then
+   if self:can_stock_entity(entity) and self:contains(entity) then
       local item = entity:get_component('item')
       if item then
          -- hold onto the item...
@@ -284,7 +285,7 @@ function StockpileComponent:_rebuild_item_data()
    end
 end
 
-function StockpileComponent:_on_faction_changed()
+function StockpileComponent:_assign_to_faction()
    local faction = self._entity:add_component('unit_info'):get_faction()
 
    if not self._faction or self._faction ~= faction then

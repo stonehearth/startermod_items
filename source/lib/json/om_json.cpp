@@ -116,6 +116,14 @@ template <> Node json::encode(om::Destination const& obj)
    if (region) {
       node.set("region", region->Get());
    }
+   if (obj.GetAutoUpdateAdjacent()) {
+      node.set("auto_update_adjacent", true);
+   } else {
+      om::Region3BoxedPtr adjacent = obj.GetAdjacent();
+      if (region) {
+         node.set("adjacent", adjacent->Get());
+      }
+   }
    return node;
 }
 

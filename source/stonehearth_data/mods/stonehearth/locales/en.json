@@ -80,10 +80,12 @@
    "show_stockpile_tooltip_gold" : "gold",
    "show_stockpile_tooltip_gem" : "gems and trophies",
 
+   "show_workshop_description" : "Owned by ",
    "craft_number_left": "Craft",
    "craft_number_right": "right now.",
    "craft_up_to_left": "Maintain",
    "craft_up_to_right": "in inventory.",
+   "craft_ingredients": "Ingredients:",
    "crafting_status": "crafting...",
    "workshop_paused_status": "paused...",
    "workshop_remove_confirm": "Remove?",

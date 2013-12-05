@@ -32,8 +32,13 @@ void Destination::ExtendObject(json::Node const& obj)
    if (obj.has("region")) {
       region_ = GetStore().AllocObject<Region3Boxed>();
       (*region_)->Set(obj.get("region", csg::Region3()));
+
+      if (!obj.has("adjacent")) {
+         adjacent_ = GetStore().AllocObject<Region3Boxed>();
+         UpdateDerivedValues();
+      }
    }
-   SetAutoUpdateAdjacent(obj.get<bool>("auto_update_adjacent", true));
+   SetAutoUpdateAdjacent(obj.get<bool>("auto_update_adjacent", false));
    LOG(INFO) << "finished constructing new destination for entity " << GetEntity().GetObjectId();
    //LOG(INFO) << dm::DbgInfo::GetInfoString(region_);
 }
