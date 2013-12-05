@@ -4,7 +4,10 @@
       <div id="shingle">
          <a id="closeButton" {{action hide target="view"}}></a>
          <div id="title">{{unit_info.name}}</div>
-         <div id="subtitle">TODO: insert crafter name here: {{skinClass}}</div>
+         <div id="subtitle">
+            {{i18n stonehearth:show_workshop_description}}
+            {{stonehearth:workshop.crafter.unit_info.name}}
+         </div>
       </div>
 
       {{#if stonehearth:workshop.order_list}}
@@ -67,13 +70,13 @@
          <img id="portrait">
       </div>
 
-      <div id="ingredients">
-         {{#each model.ingredients}}
-            {{material}} {{count}} <br>
-         {{/each}}
-      </div>
-
       <div id="description">
+         <h2>{{i18n stonehearth:craft_ingredients}}</h2>
+         {{#each model.ingredients}}
+            {{count}} {{material}}<br>
+         {{/each}}
+
+         <br><br>
          <div id="usefulText"></div>
          <div id="flavorText"></div>
       </div>

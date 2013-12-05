@@ -147,7 +147,3 @@ App.StonehearthCalendarView = App.View.extend({
    }.observes('context.date')
 
 });
-
-$(document).ready(function(){
-
-});

@@ -212,7 +212,7 @@ local sky_colors = {
 
 local sky_ambient_colors = {
    off = Vec3(0, 0, 0),
-   day = Vec3(0.4, 0.4, 0.4),
+   day = Vec3(0.5, 0.5, 0.5),
    sunset = Vec3(0.4, 0.35, 0.3),
    night = Vec3(0.0, 0.20, 0.52)
 }
