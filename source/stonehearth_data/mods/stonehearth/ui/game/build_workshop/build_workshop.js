@@ -77,6 +77,7 @@ App.StonehearthCrafterBuildWorkshopView = App.View.extend({
    },
 
    _gotoPage2 : function() {
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:workshop_bench' );
       radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
       radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:page_up' );
       this._hideScroll('#page1');

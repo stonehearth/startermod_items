@@ -258,6 +258,8 @@
          "sounds:place_structure" : "file(data/sounds/effects/sh_place_structure.wav)",
          "sounds:owl_call" : "file(data/sounds/effects/sh_owl_call.wav)",
          "sounds:rooster_call" : "file(data/sounds/effects/sh_rooster_call.wav)",
+         "sounds:workshop_bench" : "file(data/sounds/effects/sh_workshop_bench.wav)",
+         "sounds:sleeping_lullaby" : "file(data/sounds/effects/sleeping_lullaby.wav)",
          
          "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
          "music:world_start"     : "file(data/music/levelmusic.ogg)",

@@ -6,6 +6,15 @@
          "start_time": 0,
          "animation": "sleep.json",
          "loop": true
+      },
+     "sound": {
+         "type": "sound_effect",
+         "loop" : true,
+         "start_delay": 10,
+         "min_distance": 10,
+         "max_distance": 30,
+         "volume": 45,
+         "track" : "stonehearth:sounds:sleeping_lullaby"        
       }
    }
 }
