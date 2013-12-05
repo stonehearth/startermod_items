@@ -29,6 +29,9 @@ function CameraService:__init()
   self._min_zoom = 10
   self._max_zoom = 300
 
+  -- xxx, initialize this from a user setting?
+  self._scroll_on_drag = true
+
   self:_update_camera(0)
 
   self._input_capture = _radiant.client.capture_input()
@@ -213,7 +216,10 @@ end
 function CameraService:_calculate_drag(e)
   local drag_key_down = _radiant.client.is_key_down(_radiant.client.KeyboardInput.LEFT_SHIFT) or
                         _radiant.client.is_key_down(_radiant.client.KeyboardInput.RIGHT_SHIFT)
-  if e:down(1) and drag_key_down then
+
+  local drag = drag_key_down or self._scroll_on_drag
+  
+  if e:down(1) and drag then
     local r = _radiant.renderer.scene.cast_screen_ray(e.x, e.y)
     local screen_ray = _radiant.renderer.scene.get_screen_ray(e.x, e.y)
     self._dragging = true
@@ -226,7 +232,7 @@ function CameraService:_calculate_drag(e)
       screen_ray.direction:scale(d)
       self._drag_start = screen_ray.origin + screen_ray.direction
     end
-  elseif (e:up(1) or not drag_key_down) and self._dragging then
+  elseif (e:up(1) or not drag) and self._dragging then
     self._dragging = false
   end
 
