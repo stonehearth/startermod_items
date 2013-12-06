@@ -6,15 +6,20 @@
 using namespace radiant;
 using namespace radiant::dm;
 
+#define TRACE_LOG(level)  LOG_CATEGORY(dm.trace, level, "buffered set<" << GetShortTypeName<S::Value>() << ">")
+
 template <typename S>
 SetTraceBuffered<S>::SetTraceBuffered(const char* reason, S const& set) :
    SetTrace(reason, set)
 {
+   TRACE_LOG(5) << "creating trace for object " << GetObjectId();
 }
 
 template <typename S>
 void SetTraceBuffered<S>::Flush()
 {
+   TRACE_LOG(5) << "flushing trace for object " << GetObjectId();
+
    SignalUpdated(added_, removed_);
    ClearCachedState();
 }
@@ -24,6 +29,8 @@ bool SetTraceBuffered<S>::SaveObjectDelta(Protocol::Value* value)
 {
    Store const& store = GetStore();
    Protocol::Set::Update* msg = value->MutableExtension(Protocol::Set::extension);
+
+   TRACE_LOG(5) << "saving trace for object " << GetObjectId();
 
    if (!added_.empty() || !removed_.empty()) {
       for (const Value& item : added_) {

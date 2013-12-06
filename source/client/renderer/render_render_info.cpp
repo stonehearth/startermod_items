@@ -19,6 +19,7 @@
 using namespace ::radiant;
 using namespace ::radiant::client;
 
+#define RI_LOG(level)      LOG(renderer.render_info, level)
 
 void RenderRenderInfo::SetDirtyBits(int flags)
 {
@@ -81,7 +82,7 @@ void RenderRenderInfo::AccumulateModelVariant(ModelMap& m, om::ModelLayerPtr v)
          try {
             qubicle = Pipeline::GetInstance().LoadQubicleFile(model);
          } catch (res::Exception& e) {
-            LOG(WARNING) << "could not load qubicle file: " << e.what();
+            RI_LOG(1) << "could not load qubicle file: " << e.what();
             return;
          }
          for (const auto& entry : *qubicle) {
@@ -248,7 +249,7 @@ void RenderRenderInfo::Update()
    if (dirty_) {
       auto render_info = render_info_.lock();
       if (render_info) {
-         //LOG(WARNING) << "updating render_info for " << entity_.GetEntity();
+         RI_LOG(5) << "updating render_info for " << entity_.GetObjectId();
          if (dirty_ & ANIMATION_TABLE_DIRTY) {
             RebuildBoneOffsets(render_info);
             SetDirtyBits(MODEL_DIRTY);

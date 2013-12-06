@@ -8,16 +8,18 @@ function BuildTest:__init()
    self[MicroWorld]:__init()
    self:create_world()
 
-   self:place_item_cluster('stonehearth:oak_log', 11, 11, 2, 2);
+   --self:place_item_cluster('stonehearth:oak_log', 11, 11, 2, 2);
+   self:place_citizen(0, 0)
+   if true then
+      return
+   end
+   
    --local worker = self:place_citizen(13, 13)
    for i = -8, 8, 4 do
       self:place_citizen(0, i)
    end
    
    
-   if true then
-      return
-   end
    
    local root = radiant.entities.get_root_entity()
    local city_plan = root:add_component('stonehearth:city_plan')

@@ -9,6 +9,8 @@ BEGIN_RADIANT_LUA_NAMESPACE
 class ScriptHost;
 class TraceWrapper;
 
+#define LUA_LOG(level)     LOG(lua, level)
+
 DECLARE_SHARED_POINTER_TYPES(TraceWrapper);
 
 END_RADIANT_LUA_NAMESPACE

@@ -23,7 +23,7 @@ public:
          try {
             call_function<void>(changed_cb, value);
          } catch (std::exception const& e) {
-            LOG(WARNING) << "exception delivering lua trace: " << e.what();
+            LUA_LOG(1) << "exception delivering lua trace: " << e.what();
          }
       });
       return shared_from_this();

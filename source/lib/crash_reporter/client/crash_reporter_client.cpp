@@ -76,7 +76,7 @@ void CrashReporterClient::RunWithExceptionWrapper(std::function<void()> const& f
          fn();
       } catch (std::exception const& e) {
          std::string const error_message = BUILD_STRING("Error: " << e.what());
-         LOG(ERROR) << error_message;
+         LOG_CRITICAL() << error_message;
 
          // currently unused
          if (terminate_on_error) {
@@ -90,7 +90,7 @@ void CrashReporterClient::RunWithExceptionWrapper(std::function<void()> const& f
 void CrashReporterClient::TerminateApplicationWithMessage(std::string const& error_message)
 {
    static std::mutex mutex;
-   radiant::logger::flush();
+   radiant::logger::Flush();
    {
       std::lock_guard<std::mutex> lock(mutex);
       MessageBox(nullptr, error_message.c_str(), PRODUCT_IDENTIFIER, MB_OK);

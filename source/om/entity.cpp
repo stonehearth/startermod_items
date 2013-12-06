@@ -4,6 +4,8 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+#define E_LOG(level)    LOG_CATEGORY(om.entity, level, *this)
+
 std::ostream& ::radiant::om::operator<<(std::ostream& os, Entity const& o)
 {
    // ug! luabind!!
@@ -14,15 +16,13 @@ std::ostream& ::radiant::om::operator<<(std::ostream& os, Entity const& o)
    std::string debug_text = o.GetDebugText();
    std::string uri = o.GetUri();
 
-   os << "[Entity " << o.GetObjectId();
+   os << "entity " << o.GetObjectId();
    if (!uri.empty()) {
       os << " " << uri;
    }
    if (!debug_text.empty()) {
       os << " " << debug_text;
    }
-   os << "]";
-
    return os;
 }
 
@@ -32,10 +32,10 @@ void Entity::ConstructObject()
 
 void Entity::InitializeRecordFields()
 {
-   // LOG(WARNING) << "creating entity " << GetObjectId();
    AddRecordField("components",  components_);
    AddRecordField("debug_text",  debug_text_);
    AddRecordField("uri",         uri_);
+   E_LOG(3) << "creating entity " << GetObjectId();
 }
 
 template <class T> std::shared_ptr<T> Entity::AddComponent()

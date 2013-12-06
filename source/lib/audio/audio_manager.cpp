@@ -11,6 +11,8 @@
 using namespace ::radiant;
 using namespace ::radiant::audio;
 
+#define A_LOG(level)    LOG(audio, level)
+
 DEFINE_SINGLETON(AudioManager);
 
 #define MAX_SOUNDS 200
@@ -60,7 +62,7 @@ void AudioManager::PlaySound(std::string uri)
          sound_buffers_[uri] = buffer;
       } else {
          //If this fails, log and return
-         LOG(INFO) << "Can't find Sound Effect! " << uri;
+         A_LOG(1) << "Can't find Sound Effect! " << uri;
          delete buffer;
          return;
       }

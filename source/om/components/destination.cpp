@@ -6,6 +6,8 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+#define D_LOG(level)    LOG(om.destination, level)
+
 std::ostream& operator<<(std::ostream& os, const Destination& o)
 {
    os << "[Destination]";
@@ -39,8 +41,7 @@ void Destination::ExtendObject(json::Node const& obj)
       }
    }
    SetAutoUpdateAdjacent(obj.get<bool>("auto_update_adjacent", false));
-   LOG(INFO) << "finished constructing new destination for entity " << GetEntity().GetObjectId();
-   //LOG(INFO) << dm::DbgInfo::GetInfoString(region_);
+   D_LOG(5) << "finished constructing new destination for entity " << GetEntity().GetObjectId();
 }
 
 Destination& Destination::SetAutoUpdateAdjacent(bool value)

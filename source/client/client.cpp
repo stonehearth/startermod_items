@@ -424,11 +424,11 @@ void Client::InitializeModules()
          json::Node manifest = rm.LookupManifest(modname);
          json::Node const& block = manifest.get_node("client");
          if (!block.empty()) {
-            LOG(WARNING) << "loading init script for " << modname << "...";
+            CLIENT_LOG(3) << "loading init script for " << modname << "...";
             LoadModuleInitScript(block);
          }
       } catch (std::exception const& e) {
-         LOG(WARNING) << "load failed: " << e.what();
+         CLIENT_LOG(1) << "load failed: " << e.what();
       }
    }
 }
@@ -449,7 +449,7 @@ static std::string SanatizePath(std::string const& path)
 void Client::handle_connect(const boost::system::error_code& error)
 {
    if (error) {
-      LOG(WARNING) << "connection to server failed (" << error << ").  retrying...";
+      CLIENT_LOG(3) << "connection to server failed (" << error << ").  retrying...";
       setup_connections();
    } else {
       recv_queue_ = std::make_shared<protocol::RecvQueue>(_tcp_socket);
@@ -475,6 +475,10 @@ void Client::mainloop()
    float alpha = (currentTime - ((int)_client_interval_start - _server_skew)) / (float)_server_interval_duration;
    alpha = std::max(0.0f, alpha);
    now_ = (int)(_server_last_update_time + (_server_interval_duration * alpha));
+
+   static int last_now = 0;
+   now_ = std::max(last_now, now_);
+   last_now = now_;
 
    perfmon::SwitchToCounter("flush http events");
    http_reactor_->FlushEvents();
@@ -665,7 +669,7 @@ void Client::OnInput(Input const& input) {
          OnRawInput(input);
       }
    } catch (std::exception &e) {
-      LOG(WARNING) << "error dispatching input: " << e.what();
+      CLIENT_LOG(1) << "error dispatching input: " << e.what();
    }
 }
 
@@ -684,7 +688,7 @@ void Client::OnMouseInput(Input const& input)
 
    if (!CallInputHandlers(input)) {
       if (rootObject_ && input.mouse.up[0]) {
-         LOG(WARNING) << "updating selection...";
+         CLIENT_LOG(2) << "updating selection...";
          UpdateSelection(input.mouse);
       }
    }
@@ -759,26 +763,16 @@ void Client::UpdateSelection(const MouseInput &mouse)
    Renderer::GetInstance().QuerySceneRay(mouse.x, mouse.y, s);
 
    if (s.HasEntities()) {
-#if 0
-      for (dm::ObjectId id : s.GetEntities()) {
-         auto entity = GetEntity(id);
-         if (entity && entity->GetComponent<om::Room>()) {
-            LOG(WARNING) << "selecting room " << entity->GetObjectId();
-            SelectEntity(entity);
-            return;
-         }
-      }
-#endif
       auto entity = GetEntity(s.GetEntities().front());
       if (entity->GetComponent<om::Terrain>()) {
-         LOG(WARNING) << "clearing selection (clicked on terrain)";
+         CLIENT_LOG(3) << "clearing selection (clicked on terrain)";
          SelectEntity(nullptr);
       } else {
-         LOG(WARNING) << "selecting " << entity->GetObjectId();
+         CLIENT_LOG(3) << "selecting " << entity->GetObjectId();
          SelectEntity(entity);
       }
    } else {
-      LOG(WARNING) << "no entities!";
+      CLIENT_LOG(3) << "no entities!";
       SelectEntity(nullptr);
    }
 }
@@ -801,7 +795,7 @@ void Client::SelectEntity(om::EntityPtr obj)
       JSONNode selectionChanged(JSON_NODE);
 
       if (obj && obj->GetStore().GetStoreId() != GetStore().GetStoreId()) {
-         LOG(WARNING) << "ignoring selected object with non-client store id.";
+         CLIENT_LOG(3) << "ignoring selected object with non-client store id.";
          return;
       }
 
@@ -814,7 +808,7 @@ void Client::SelectEntity(om::EntityPtr obj)
 
       selectedObject_ = obj;
       if (obj) {
-         LOG(WARNING) << "Selected actor " << obj->GetObjectId();
+         CLIENT_LOG(3) << "Selected actor " << obj->GetObjectId();
          selected_trace_ = obj->TraceChanges("selection", dm::RENDER_TRACES)
                               ->OnDestroyed([=]() {
                                  SelectEntity(nullptr);
@@ -827,7 +821,7 @@ void Client::SelectEntity(om::EntityPtr obj)
          std::string uri = om::ObjectFormatter().GetPathToObject(obj);
          selectionChanged.push_back(JSONNode("selected_entity", uri));
       } else {
-         LOG(WARNING) << "Cleared selected actor.";
+         CLIENT_LOG(3) << "Cleared selected actor.";
       }
 
       http_reactor_->QueueEvent("radiant_selection_changed", selectionChanged);
@@ -1002,7 +996,7 @@ void Client::CallHttpReactor(std::string path, json::Node query, std::string pos
       return;
    }
    d->Progress([response](JSONNode n) {
-      LOG(WARNING) << "error: got progress from deferred meant for rpc::HttpDeferredPtr! (logical error)";
+      CLIENT_LOG(3) << "error: got progress from deferred meant for rpc::HttpDeferredPtr! (logical error)";
       JSONNode result;
       n.set_name("data");
       result.push_back(JSONNode("error", "incomplete response"));

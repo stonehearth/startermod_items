@@ -21,7 +21,7 @@ TargetTableEntryPtr TargetTable::AddEntry(om::EntityRef e)
    // will get fired every game loop and calls Update(now, interval).  We can add as 
    // a component on the root object, but there's currently no way to fetch the root
    // entity from the store! --tony
-   LOG(WARNING) << "FYI!! Target tables are currently somewhat broken (they don't update...)";
+   TT_LOG(1) << "FYI!! Target tables are currently somewhat broken (they don't update...)";
 
    auto entity = e.lock();
    if (entity) {

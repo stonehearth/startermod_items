@@ -199,7 +199,7 @@ TEST(RegionTools2D, ForEachPlane) {
    RegionTools2 tools;
    tools.ForEachPlane(r2, [=](Region1 const& r1, RegionTools2::PlaneInfo const& pi) {
       for (const auto &c : r1) {
-         LOG(WARNING) << c << " " << pi.reduced_value;
+         LOG_() << c << " " << pi.reduced_value;
       }
    });
 }
@@ -210,7 +210,7 @@ TEST(RegionTools2, ForEachEdge) {
 
    RegionTools2 tools;
    tools.ForEachEdge(r2, [=](csg::EdgeInfo2 const& edge_info) {
-      LOG(WARNING) << edge_info.min << " " << edge_info.max << " " << edge_info.normal;
+      LOG_() << edge_info.min << " " << edge_info.max << " " << edge_info.normal;
    });
 }
 
@@ -221,7 +221,7 @@ TEST(RegionTools2, Inset) {
    RegionTools2 tools;
    Region2f inset = tools.Inset(r2, 0.1f);
    for (const auto &c : inset) {
-      LOG(WARNING) << c;
+      LOG_() << c;
    }
 }
 
@@ -232,7 +232,7 @@ TEST(RegionTools3, ForEachPlane) {
    RegionTools3 tools;
    tools.ForEachPlane(r3, [=](Region2 const& r2, RegionTools3::PlaneInfo const& pi) {
       for (const auto &c : r2) {
-         LOG(WARNING) << c << " " << pi.reduced_value;
+         LOG_() << c << " " << pi.reduced_value;
       }
    });
 }
@@ -244,7 +244,7 @@ TEST(RegionTools3, ForEachEdge) {
    RegionTools3 tools;
    int i = 0;
    tools.ForEachEdge(r3, [&](csg::EdgeInfo3 const& edge_info) {
-      LOG(WARNING) << std::setw(3) << i++ << " " << edge_info.min << " " << edge_info.max << " " << edge_info.normal;
+      LOG_() << std::setw(3) << i++ << " " << edge_info.min << " " << edge_info.max << " " << edge_info.normal;
    });
 }
 
@@ -255,13 +255,13 @@ TEST(RegionTools3, Inset) {
    RegionTools3 tools;
    Region3f inset = tools.Inset(r3, 0.01f);
    for (const auto &c : inset) {
-      LOG(WARNING) << c;
+      LOG_() << c;
    }
-   LOG(WARNING) << "---";
+   LOG_() << "---";
    tools.ForEachPlane(r3, [=](Region2 const& r2, RegionTools3::PlaneInfo const& pi) {
       Region2f inset = RegionTools2().Inset(r2, 0.1f);
       for (const auto &c : inset) {
-         LOG(WARNING) << RegionToolsTraits<float, 3>::ExpandCube(c, ToFloat(pi));
+         LOG_() << RegionToolsTraits<float, 3>::ExpandCube(c, ToFloat(pi));
       }
    });
 }
@@ -276,13 +276,13 @@ TEST(RegionTools3, InsetConcave) {
    RegionTools3 tools;
    Region3f inset = tools.Inset(r3, 1);
    for (const auto &c : inset) {
-      LOG(WARNING) << c;
+      LOG_() << c;
    }
-   LOG(WARNING) << "---";
+   LOG_() << "---";
    tools.ForEachPlane(r3, [=](Region2 const& r2, RegionTools3::PlaneInfo const& pi) {
       Region2f inset = RegionTools2().Inset(r2, 1);
       for (const auto &c : inset) {
-         LOG(WARNING) << RegionToolsTraits<float, 3>::ExpandCube(c, ToFloat(pi));
+         LOG_() << RegionToolsTraits<float, 3>::ExpandCube(c, ToFloat(pi));
       }
    });
 }

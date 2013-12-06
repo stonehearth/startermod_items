@@ -11,6 +11,6 @@
    x  \
    END_RADIANT_RPC_NAMESPACE
 
-
+#define RPC_LOG(level)     LOG(rpc, level)
 
 #endif //  _RADIANT_RPC_NAMESPACE_H

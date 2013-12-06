@@ -5,6 +5,8 @@
 using namespace ::radiant;
 using namespace ::radiant::core;
 
+#define GUARD_LOG(level)      LOG(core.guard, level)
+
 std::atomic<int> Guard::nextGuardId__(1);
 
 Guard::Guard() :
@@ -26,7 +28,7 @@ Guard::Guard(std::function<void()> untrack) :
 
 Guard::~Guard()
 {
-   //LOG(WARNING) << "destroying guard " << id_;
+   GUARD_LOG(5) << "destroying guard " << id_;
    UntrackNodes();
 }
 
