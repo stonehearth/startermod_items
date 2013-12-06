@@ -29,8 +29,7 @@ struct BoundingBox
 
    BoundingBox()
    {
-      min = Vec3f(FLT_MAX, FLT_MAX, FLT_MAX);
-      max = Vec3f(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+      clear();
    }
 
    void addPoint(Vec3f& p)
@@ -50,8 +49,8 @@ struct BoundingBox
 	
 	void clear()
 	{
-		min = Vec3f( 0, 0, 0 );
-		max = Vec3f( 0, 0, 0 );
+      min = Vec3f(FLT_MAX, FLT_MAX, FLT_MAX);
+      max = Vec3f(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 	}
 
 	Vec3f getCorner( uint32 index ) const
