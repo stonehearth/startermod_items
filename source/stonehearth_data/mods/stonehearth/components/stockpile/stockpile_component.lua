@@ -64,6 +64,8 @@ function StockpileComponent:__init(entity, data_binding)
    self._data_binding:update(self._data)
 
    self._destination:set_region(_radiant.sim.alloc_region())
+                    :set_auto_update_adjacent(true)
+
    radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
    all_stockpiles[self._entity:get_id()] = self
 end
