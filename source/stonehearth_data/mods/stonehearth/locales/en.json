@@ -47,6 +47,10 @@
    "loading_map_28": "positioning plushies...",
    "loading_map_29": "regulating hairbobs...",
 
+   "hint_camera_pan": "Click and drag to move the camera",
+   "hint_camera_orbit": "Right click and drag to rotate the camera",
+   "hint_camera_zoom": "Use the mouse scroll wheel to zoom in and out",
+
    "show_stockpile_all" : "All",
    "show_stockpile_none" : "None",
    "show_stockpile_storage_for" : "Storage for:",
