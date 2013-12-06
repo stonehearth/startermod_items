@@ -1,9 +1,6 @@
 {
    "type" : "entity",
    "components" : {
-      "mob" : {
-         "interpolate_movement" : false
-      },
       "render_info" : {
          "scale" : 0.2
       },
