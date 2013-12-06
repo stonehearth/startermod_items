@@ -4,14 +4,14 @@
 using namespace ::radiant;
 using namespace ::radiant::voxel;
 
-QubicleMatrix::QubicleMatrix() :
-   matrix_(nullptr)
+QubicleMatrix::QubicleMatrix(QubicleFile const& qubicle_file, std::string const& name) :
+   qubicle_file_(qubicle_file),
+   name_(name)
 {
 }
 
 QubicleMatrix::~QubicleMatrix()
 {
-   delete [] matrix_;
 }
 
 radiant::uint32 QubicleMatrix::At(int x, int  y, int z) const
@@ -43,8 +43,8 @@ std::istream& QubicleMatrix::Read(const QbHeader& header, std::istream& in)
    ASSERT(header.compression == COMPRESSION_NONE);
 
    int len = size_.x * size_.y * size_.z;
-   matrix_ = new uint32[len];
-   in.read((char *)matrix_, len * sizeof(uint32));
+   matrix_.resize(len);
+   in.read((char *)matrix_.data(), len * sizeof(uint32));
 
    return in;
 }
@@ -66,8 +66,10 @@ std::istream& QubicleFile::Read(std::istream& in)
       in.read(name, c);
       name[c] = '\0';
 
-      matrices_[name].Read(header, in);
-      matrices_[name].uri_ = uri_;
+
+      QubicleMatrix m(*this, name);
+      m.Read(header, in);
+      matrices_.insert(std::make_pair(name, std::move(m)));
    }
    return in;
 }

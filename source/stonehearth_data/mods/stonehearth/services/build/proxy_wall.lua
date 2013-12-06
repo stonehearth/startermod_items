@@ -54,7 +54,7 @@ function ProxyWall:_stencil_portal(portal)
    local t, n = self:_get_tangent_and_normal_coords()
    
    local origin = portal:get_location()
-   for r2 in cutter2:contents() do
+   for r2 in cutter2:each_cube() do
       local min = Point3(0, r2.min.y + origin.y, 0)
       local max = Point3(0, r2.max.y + origin.y, 0)
       min[t] = r2.min.x + origin[t]

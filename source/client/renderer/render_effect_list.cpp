@@ -230,7 +230,7 @@ void RenderAnimationEffect::Update(FrameStartInfo const& info, bool& finished)
 
       // if we're not looping, make sure we stop at the end frame.
       int animationDuration = (int)animation_->GetDuration();
-      if (offset > animationDuration) {
+      if (offset >= animationDuration) {
          offset = animationDuration - 1;
       }
    }
