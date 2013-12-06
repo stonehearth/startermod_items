@@ -133,7 +133,6 @@ function WorkshopCallHandler:choose_outbox_location(session, response, workbench
    -- in the authoring of new content.
    local cursor_entity = radiant.entities.create_entity()
    local mob = cursor_entity:add_component('mob')
-   mob:set_interpolate_movement(false)
    
    -- add a render object so the cursor entity gets rendered.
    local cursor_render_entity = _radiant.client.create_render_entity(1, cursor_entity)

@@ -64,6 +64,8 @@ function StockpileComponent:__init(entity, data_binding)
    self._data_binding:update(self._data)
 
    self._destination:set_region(_radiant.sim.alloc_region())
+                    :set_auto_update_adjacent(true)
+
    radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
    all_stockpiles[self._entity:get_id()] = self
 end
@@ -138,8 +140,12 @@ function StockpileComponent:get_items()
    return self._data.items;
 end
 
-function StockpileComponent:set_private(value)
-   self._private = value
+function StockpileComponent:set_outbox(value)
+   self._is_outbox = value
+end
+
+function StockpileComponent:is_outbox(value)
+   return self._is_outbox
 end
 
 function StockpileComponent:_get_bounds()
@@ -337,7 +343,7 @@ end
 -- them inside us.
 
 function StockpileComponent:_create_worker_tasks()
-   if self._private then
+   if self._is_outbox then
       return
    end
 
@@ -374,9 +380,13 @@ function StockpileComponent:_create_worker_tasks()
          if not self:can_stock_entity(entity) then
             return false
          end
-         if get_stockpile_containing_entity(entity) then
+
+         local stockpile = get_stockpile_containing_entity(entity)
+
+         if stockpile and not stockpile:is_outbox() then 
             return false
          end
+         
          return true
       end
    )

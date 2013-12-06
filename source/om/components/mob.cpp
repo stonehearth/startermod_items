@@ -16,7 +16,7 @@ void Mob::ConstructObject()
 {
    transform_ = csg::Transform(csg::Point3f::zero, csg::Quaternion());
    aabb_ = csg::Cube3f::zero;
-   interpolate_movement_ = true;
+   interpolate_movement_ = false;
    selectable_ = true;
    moving_ = false;
 }

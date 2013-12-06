@@ -1,5 +1,8 @@
 {
    "components" : {
+      "mob" : {
+         "interpolate_movement" : true
+      },
       "stonehearth:ai" : {
          "actions" : [
             "stonehearth:actions:carry_item_on_path_to",

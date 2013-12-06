@@ -272,6 +272,12 @@ Client::Client() :
       }
       return result;
    });
+
+   core_reactor_->AddRoute("radiant:exit", [this](rpc::Function const& f) {
+	  TerminateProcess(GetCurrentProcess(), 1);
+      return nullptr;
+   });
+
 }
 
 Client::~Client()

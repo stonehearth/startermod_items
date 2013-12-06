@@ -5,9 +5,6 @@ radiant = {
    is_server = true,
    _root_entity = _radiant.sim.create_empty_entity()
 }
--- The root entity should not be interpolated; if it is, all children (the entire universe)
--- will be dirtied, and horde will walk the scene-graph _every_ _single_ _frame_.
-radiant._root_entity:add_component('mob'):set_interpolate_movement(false)
 
 radiant.log = require 'modules.log'
 radiant.util = require 'lib.util'
