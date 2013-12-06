@@ -3,7 +3,7 @@ local Point3 = _radiant.csg.Point3
 local Wander = class()
 
 Wander.name = 'wander'
-Wander.does = 'stonehearth:idle'
+Wander.does = 'stonehearth:idle:bored'
 Wander.priority = 0
 
 function Wander:__init(ai, entity)
