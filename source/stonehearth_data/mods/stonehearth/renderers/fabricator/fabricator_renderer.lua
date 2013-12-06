@@ -34,7 +34,9 @@ function FabricatorRenderer:_update()
    local construction_data = blueprint:get_component_data('stonehearth:construction_data')
    local region = self._destination:get_region()
 
-   self._node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, construction_data, 'blueprint')
+   if construction_data.brush then
+      self._node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, construction_data, 'blueprint')
+   end
 end
 
 function FabricatorRenderer:destroy()

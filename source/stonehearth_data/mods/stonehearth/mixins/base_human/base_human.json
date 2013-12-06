@@ -26,7 +26,7 @@
 	   },
       "stonehearth:commands" : {
          "commands" : [
-            "file(/data/commands/show_journal)",
+            "file(/data/commands/show_journal)"
          ]
       },
       "stonehearth:attributes" : {
@@ -57,4 +57,3 @@
       "stonehearth:idle_fire_effects" : ["idle_warm_hands"]
    }
 }
-
