@@ -15,6 +15,8 @@ using namespace ::luabind;
 
 static const std::regex entity_macro_regex__("^([^:\\\\/]+):([^\\\\/]+)$");
 
+#define E_LOG(level)    LOG(om.entity, level)
+
 csg::Region3 Stonehearth::ComputeStandingRegion(const csg::Region3& r, int height)
 {
    csg::Region3 standing;
@@ -104,7 +106,7 @@ static DataStorePtr AddLuaComponentDataStore(lua_State* L, EntityPtr entity, std
       object ctor = lua::ScriptHost::RequireScript(L, uri);
       if (ctor) {
          ds = entity->GetStore().AllocObject<DataStore>();
-         LOG(WARNING) << "adding lua component " << ds->GetObjectId() << " " << name << " to " << entity->GetObjectId();
+         E_LOG(7) << "adding lua component " << ds->GetObjectId() << " " << name << " to " << entity->GetObjectId();
 
          ds->SetData(lua::DataObject(newtable(L)));
          entity->AddComponent(name, ds);         
@@ -312,12 +314,12 @@ void Stonehearth::InitEntity(EntityPtr entity, std::string const& uri, lua_State
          try {        
             object fn = lua::ScriptHost::RequireScript(L, init_script);
             if (!fn.is_valid() || type(fn) != LUA_TFUNCTION) {
-               LOG(WARNING) << "failed to load init script " << init_script << "... skipping.";
+               E_LOG(3) << "failed to load init script " << init_script << "... skipping.";
             } else {
                call_function<void>(fn, EntityRef(entity));
             }
          } catch (std::exception &e) {
-            LOG(WARNING) << "failed to run init script for " << uri << ": " << e.what();
+            E_LOG(3) << "failed to run init script for " << uri << ": " << e.what();
          }
       }
    }

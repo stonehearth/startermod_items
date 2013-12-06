@@ -36,7 +36,7 @@ void LuaJob::Work(const platform::timer &timer)
    try {
       finished_ = !call_function<bool>(cb_);
    } catch (std::exception const& e) {
-      LOG(WARNING) << "lua job worker thread error: " << e.what() << ".  killing thread";
+      LUA_LOG(1) << "lua job worker thread error: " << e.what() << ".  killing thread";
       finished_ = true;
    }
 }

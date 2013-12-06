@@ -88,7 +88,7 @@ int call_impl(lua_State* L, int start, std::string const& obj, std::string const
                converted = true;
             }
          } catch (std::exception& e) {
-            LOG(WARNING) << "failed to convert arg " << (i - start) << " calling " << fn << ". falling back to script host (" << e.what() << ")";
+            RPC_LOG(1) << "failed to convert arg " << (i - start) << " calling " << fn << ". falling back to script host (" << e.what() << ")";
          }         
       }
       if (!converted) {

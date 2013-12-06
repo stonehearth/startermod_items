@@ -6,6 +6,8 @@
 using namespace ::radiant;
 using namespace ::radiant::csg;
 
+#define MT_LOG(level)      LOG(csg.meshtools, level)
+
 mesh_tools::mesh_tools() :
    tesselators_(nullptr),
    offset_(-0.5f, 0.0f, -0.5f)
@@ -129,86 +131,6 @@ void mesh_tools::ForEachRegionEdge(Region3 const& region, int flags, ForEachRegi
       });
    });
 }
-
-#if 0
-mesh_tools::mesh mesh_tools::ConvertRegionToOutline(const Region3& r3, float thickness, Color3 const& color)
-{
-   EdgeMap3 edgemap;
-   ForEachRegionEdge(r3, 0, [&edgemap](EdgeInfo const& info) {
-      edgemap.AddEdge(info.min, info.max, info.normal);
-   });
-
-   mesh mesh;
-   mesh.offset_ = offset_;
-
-   int count = 0;
-   for (const auto& edge : edgemap) {
-      static struct {
-         int x, y, n, normal_dir;
-      } faces[] = {
-         { 0, 1, 2,  1 }, // facing +z
-         { 1, 2, 0,  1 }, // facing +x
-         { 2, 0, 1,  1 }, // facing +y
-         { 1, 0, 2, -1 }, // facing -z
-         { 2, 1, 0, -1 }, // facing -x
-         { 0, 2, 1, -1 }, // facing -y
-      };
-
-      // look at the accumualted normals at the endpoints of each edge.
-      // we need to generate a plane for each normal that the two points share
-      Point3 min_normal = edge.min->accumulated_normals;
-      Point3 max_normal = edge.max->accumulated_normals;
-      for (const auto& face : faces) {
-         if (edge.normal[face.n] == face.normal_dir) {
-            // Reverse min and max if necessary to fix the vertex winding.  The logic
-            // is funky to avoid doing a cross-product to determine the winding.  We
-            // absolutely know at this point that we want the face to be front-facing,
-            // and that (E(i=3) min[i] < max[i])
-            EdgePoint3 const *min = edge.min;
-            EdgePoint3 const *max = edge.max;
-
-            // xxx: this is somewhat expensive.  can we just add them together and
-            // have -1 cancel out 1?
-            Point3 common_normal = Point3::zero;
-            for (int i = 0; i < 3; i++) { 
-               if (i != face.n && min->accumulated_normals[i] == max->accumulated_normals[i]) {
-                  common_normal[i] = min->accumulated_normals[i];
-               }
-            }
-            if (common_normal.Length() != 1) {
-               LOG(WARNING) << "common normal is " << common_normal << ". what's going on!??!!!!!!!!!";
-            }
-            if (common_normal[face.x] == 1 || common_normal[face.y] == -1) {
-               max = edge.min;
-               min = edge.max;
-            }
-
-            // we need 4 points.  2 will be exactly along the edge.  
-            Point3f points[4];
-            points[0] = ToFloat(min->location);
-            points[3] = ToFloat(max->location);
-
-            // The other two will be inset by the opposite direction of the
-            // accumulated normals at the min and the max (co-planer to the
-            // edge itself)
-            points[1] = ToFloat(min->location);
-            points[1][face.x] -= static_cast<float>(min->accumulated_normals[face.x]) * thickness;
-            points[1][face.y] -= static_cast<float>(min->accumulated_normals[face.y]) * thickness;
-
-            points[2] = ToFloat(max->location);
-            points[2][face.y] -= static_cast<float>(max->accumulated_normals[face.y]) * thickness;
-            points[2][face.x] -= static_cast<float>(max->accumulated_normals[face.x]) * thickness;
-
-            // Add this quad to the map
-            mesh.AddFace(points, ToFloat(edge.normal), color);
-         }
-      }
-      count++;
-   }
-   
-   return mesh;   
-}
-#endif
 
 mesh_tools::mesh mesh_tools::ConvertRegionToMesh(const Region3& region)
 {   

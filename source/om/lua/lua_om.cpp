@@ -30,7 +30,7 @@ static void ModifyBoxed(Boxed& boxed, luabind::object cb)
       try {
          call_function<void>(cb, &value);
       } catch (std::exception const& e) {
-         LOG(WARNING) << "error modifying boxed object: " << e.what();
+         LUA_LOG(1) << "error modifying boxed object: " << e.what();
       }
    });
 }

@@ -11,6 +11,8 @@ using namespace ::radiant::res;
 using ::radiant::int32;
 using ::radiant::csg::Transform;
 
+#define ANI_LOG(level)     LOG(renderer.animation, level)
+
 Animation::Animation(std::string bin) :
    bin_(bin),
    _base(&bin_[0]),
@@ -110,7 +112,7 @@ void Animation::MoveNodes(float offset, AnimationFn fn)
 
 #define FRAME(count) (float *)(_base + header->firstFrameOffset + ((count) * (header->numBones * sizeof(float) * 7)))
 
-   //LOG(WARNING) << "Rendering animation " << _name << " offset " << offset << " frame " << f << " interpolated " << alpha << ".";
+   ANI_LOG(10) << "Rendering animation offset " << offset << " frame " << f << " interpolated " << alpha << ".";
 
    char *boneptr = ((char *)(header + 1));
    float *first = FRAME(f);
@@ -125,8 +127,8 @@ void Animation::MoveNodes(float offset, AnimationFn fn)
       csg::Transform b1(csg::Point3f(next[0], next[1], next[2]),
                            csg::Quaternion(next[3], next[4], next[5], next[6]));
 
-      //LOG(WARNING) << _name << " " << f << " " << bone << " " << "b0: " << b0.position;
-      //LOG(WARNING) << _name << " " << n << " " << bone << " " << "b1: " << b1.position;
+      ANI_LOG(10) << " " << f << " " << bone << " " << "b0: " << b0.position;
+      ANI_LOG(10) << " " << n << " " << bone << " " << "b1: " << b1.position;
 
       csg::Transform t = csg::Interpolate(b0, b1, alpha);
       //t.orientation = csg::Quaternion(csg::Point3f::unit_y, 0);
@@ -138,7 +140,7 @@ void Animation::MoveNodes(float offset, AnimationFn fn)
       ASSERT(((char *)first - _base) <= _len);
       ASSERT(((char *)next - _base) <= _len);
    }
-   //LOG(WARNING) << "---";
+   ANI_LOG(10) << "---";
 }
 
 void Animation::GetFrames(float offset, int &f0, int &f1, float &alpha)

@@ -27,6 +27,8 @@ namespace fs = ::boost::filesystem;
 using namespace ::radiant;
 using namespace ::radiant::res;
 
+#define RES_LOG(level)     LOG(resources, level)
+
 static const std::regex file_macro_regex__("^file\\((.*)\\)$");
 static const std::regex entity_macro_regex__("^([^:\\\\/]+):([^\\\\/]+)$");
 
@@ -189,7 +191,7 @@ Manifest ResourceManager2::LookupManifest(std::string const& modname) const
    try {
       result = LookupJson(modname + "/manifest.json");
    } catch (Exception &e) {
-      LOG(WARNING) << "error looking for manifest in " << modname << ": " << e.what();
+      RES_LOG(1) << "error looking for manifest in " << modname << ": " << e.what();
    }
    return Manifest(modname, result);
 }
@@ -282,7 +284,7 @@ JSONNode ResourceManager2::LoadJson(std::string const& canonical_path) const
    success = json::ReadJson(*is, node, error_message);
    if (!success) {
       std::string full_message = BUILD_STRING("Error reading file " << canonical_path << ":\n\n" << error_message);
-      LOG(ERROR) << full_message;
+      RES_LOG(1) << full_message;
       throw core::Exception(full_message);
    }
 
@@ -319,10 +321,10 @@ void ResourceManager2::ParseNodeExtension(std::string const& path, JSONNode& n) 
          throw InvalidFilePath(extends);
       }
 
-      //LOG(WARNING) << "node pre-extend: " << node.write_formatted();
-      //LOG(WARNING) << "extending with: " << parent.write_formatted();
+      RES_LOG(7) << "node pre-extend: " << node.write_formatted();
+      RES_LOG(7) << "extending with: " << parent.write_formatted();
       ExtendNode(n, parent);
-      //LOG(WARNING) << "node post-extend: " << node.write_formatted();
+      RES_LOG(7) << "node post-extend: " << node.write_formatted();
    }
 }
 

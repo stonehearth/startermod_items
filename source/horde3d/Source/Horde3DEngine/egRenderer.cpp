@@ -10,6 +10,7 @@
 //
 // *************************************************************************************************
 
+
 #include "radiant.h"
 #include "lib/perfmon/perfmon.h"
 
@@ -29,6 +30,8 @@
 #include <glsl/glsl_optimizer.h>
 #endif
 #include "utDebug.h"
+
+#define R_LOG(level)    LOG(horde.renderer, level)
 
 namespace Horde3D {
 
@@ -473,10 +476,10 @@ bool Renderer::createShaderComb( const char* filename, const char *vertexShader,
       bool optimizeOk = glslopt_get_status(shader);
 	   if (optimizeOk) {
          result = glslopt_get_output (shader);
-         //LOG(WARNING) << "using optimized shader " << result;
+         //R_LOG(1) << "using optimized shader " << result;
       } else {
-         //LOG(WARNING) << "shader optimization failed " << glslopt_get_log(shader);
-         //LOG(WARNING) << "original shader: " << std::endl << input;
+         //R_LOG(1) << "shader optimization failed " << glslopt_get_log(shader);
+         //R_LOG(1) << "original shader: " << std::endl << input;
          result = input;
       }
       glslopt_shader_delete(shader);
@@ -1048,8 +1051,8 @@ Matrix4f Renderer::calcCropMatrix( const Frustum &frustSlice, const Vec3f lightP
 		const BoundingBox &aabb = rendQueue[i].node->getBBox();
 		
 		// Check if light is inside AABB
-		if( lightPos.x >= aabb.min.x && lightPos.y >= aabb.min.y && lightPos.z >= aabb.min.z &&
-			lightPos.x <= aabb.max.x && lightPos.y <= aabb.max.y && lightPos.z <= aabb.max.z )
+		if( lightPos.x >= aabb.min().x && lightPos.y >= aabb.min().y && lightPos.z >= aabb.min().z &&
+			lightPos.x <= aabb.max().x && lightPos.y <= aabb.max().y && lightPos.z <= aabb.max().z )
 		{
 			bbMinX = bbMinY = bbMinZ = -1;
 			bbMaxX = bbMaxY = bbMaxZ = 1;
@@ -1385,7 +1388,7 @@ void Renderer::updateShadowMap(const Frustum* lightFrus, float maxDist)
          Matrix4f lightViewProjMat = lightProjMat * lightViewMat;
 		   lightProjMat = calcCropMatrix( frustum, lightAbsPos, lightViewProjMat ) * lightProjMat;
       } else {
-         lightAbsPos = Vec3f((litAabb.min.x + litAabb.max.x) / 2.0f, (litAabb.min.y + litAabb.max.y) / 2.0f, (litAabb.min.z + litAabb.max.z) / 2.0f);
+         lightAbsPos = (litAabb.min() + litAabb.max()) * 0.5f;
          lightViewMat = Matrix4f(_curLight->getViewMat());
          lightViewMat.x[12] = lightAbsPos.x;
          lightViewMat.x[13] = lightAbsPos.y;
@@ -1767,9 +1770,9 @@ Frustum Renderer::computeDirectionalLightFrustum(float farPlaneDist)
    // Ten-thousand units ought to be enough for anyone.  (This value is how far our light is from
    // it's center-point; ideally, we'll always over-estimate here, and then dynamically adjust during
    // shadow-map construction to a tight bound over the light-visible geometry.)
-   bb.max.z = 10000;  
+   bb.addPoint(Vec3f(bb.min().x, bb.min().y, 10000));
 
-   result.buildBoxFrustum(_curLight->getViewMat().inverted(), bb.min.x, bb.max.x, bb.min.y, bb.max.y, bb.max.z, bb.min.z);
+   result.buildBoxFrustum(_curLight->getViewMat().inverted(), bb.min().x, bb.max().x, bb.min().y, bb.max().y, bb.max().z, bb.min().z);
 
    return result;
 }
@@ -2135,11 +2138,11 @@ void Renderer::drawMeshes( const std::string &shaderContext, const std::string &
 					meshNode->_lastVisited[occSet] = Modules::renderer().getFrameID();
 				
 					// Check query result (viewer must be outside of bounding box)
-					if( nearestDistToAABB( frust1->getOrigin(), meshNode->getBBox().min,
-					                       meshNode->getBBox().max ) > 0 &&
+					if( nearestDistToAABB( frust1->getOrigin(), meshNode->getBBox().min(),
+					                       meshNode->getBBox().max() ) > 0 &&
 						gRDI->getQueryResult( meshNode->_occQueries[occSet] ) < 1 )
 					{
-						Modules::renderer().pushOccProxy( 0, meshNode->getBBox().min, meshNode->getBBox().max,
+						Modules::renderer().pushOccProxy( 0, meshNode->getBBox().min(), meshNode->getBBox().max(),
 						                                  meshNode->_occQueries[occSet] );
 						continue;
 					}
@@ -2334,11 +2337,11 @@ void Renderer::drawVoxelMeshes(const std::string &shaderContext, const std::stri
 					meshNode->_lastVisited[occSet] = Modules::renderer().getFrameID();
 				
 					// Check query result (viewer must be outside of bounding box)
-					if( nearestDistToAABB( frust1->getOrigin(), meshNode->getBBox().min,
-					                       meshNode->getBBox().max ) > 0 &&
+					if( nearestDistToAABB( frust1->getOrigin(), meshNode->getBBox().min(),
+					                       meshNode->getBBox().max() ) > 0 &&
 						gRDI->getQueryResult( meshNode->_occQueries[occSet] ) < 1 )
 					{
-						Modules::renderer().pushOccProxy( 0, meshNode->getBBox().min, meshNode->getBBox().max,
+						Modules::renderer().pushOccProxy( 0, meshNode->getBBox().min(), meshNode->getBBox().max(),
 						                                  meshNode->_occQueries[occSet] );
 						continue;
 					}
@@ -2501,12 +2504,12 @@ void Renderer::drawParticles( const std::string &shaderContext, const std::strin
 					emitter->_lastVisited[occSet] = Modules::renderer().getFrameID();
 				
 					// Check query result (viewer must be outside of bounding box)
-					if( nearestDistToAABB( frust1->getOrigin(), emitter->getBBox().min,
-					                       emitter->getBBox().max ) > 0 &&
+					if( nearestDistToAABB( frust1->getOrigin(), emitter->getBBox().min(),
+					                       emitter->getBBox().max() ) > 0 &&
 						gRDI->getQueryResult( emitter->_occQueries[occSet] ) < 1 )
 					{
-						Modules::renderer().pushOccProxy( 0, emitter->getBBox().min,
-							emitter->getBBox().max, emitter->_occQueries[occSet] );
+						Modules::renderer().pushOccProxy( 0, emitter->getBBox().min(),
+							emitter->getBBox().max(), emitter->_occQueries[occSet] );
 						continue;
 					}
 					else
@@ -2808,7 +2811,7 @@ void Renderer::renderDebugView()
 	{
 		SceneNode *sn = Modules::sceneMan().getRenderableQueue()[i].node;
 		
-		drawAABB( sn->_bBox.min, sn->_bBox.max );
+		drawAABB( sn->_bBox.min(), sn->_bBox.max() );
 	}
 
    int frustNum = 0;
@@ -2836,7 +2839,7 @@ void Renderer::renderDebugView()
    {
 	   color[0] = 0.0f; color[1] = 1.0f; color[2] = 0.0f; color[3] = 1;
 	   gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, color );
-      drawAABB(lightAABB.min, lightAABB.max);
+      drawAABB(lightAABB.min(), lightAABB.max());
    }
 
    glEnable( GL_CULL_FACE );

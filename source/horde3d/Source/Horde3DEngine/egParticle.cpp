@@ -560,9 +560,8 @@ void EmitterNode::onPostUpdate()
 	
 	Timer *timer = Modules::stats().getTimer( EngineStats::ParticleSimTime );
 	if( Modules::config().gatherTimeStats ) timer->setEnabled( true );
-	
-	Vec3f bBMin( Math::MaxFloat, Math::MaxFloat, Math::MaxFloat );
-	Vec3f bBMax( -Math::MaxFloat, -Math::MaxFloat, -Math::MaxFloat );
+
+   _bBox;
 	
 	if( _delay <= 0 )
 		_emissionAccum += _emissionRate * _timeDelta;
@@ -670,21 +669,11 @@ void EmitterNode::onPostUpdate()
 
 		// Update bounding box
 		Vec3f vertPos( _parPositions[i*3+0], _parPositions[i*3+1], _parPositions[i*3+2] );
-		if( vertPos.x < bBMin.x ) bBMin.x = vertPos.x;
-		if( vertPos.y < bBMin.y ) bBMin.y = vertPos.y;
-		if( vertPos.z < bBMin.z ) bBMin.z = vertPos.z;
-		if( vertPos.x > bBMax.x ) bBMax.x = vertPos.x;
-		if( vertPos.y > bBMax.y ) bBMax.y = vertPos.y;
-		if( vertPos.z > bBMax.z ) bBMax.z = vertPos.z;
+      _bBox.addPoint(vertPos);
 	}
 
 	// Avoid zero box dimensions for planes
-	if( bBMax.x - bBMin.x == 0 ) bBMax.x += Math::Epsilon;
-	if( bBMax.y - bBMin.y == 0 ) bBMax.y += Math::Epsilon;
-	if( bBMax.z - bBMin.z == 0 ) bBMax.z += Math::Epsilon;
-	
-	_bBox.min = bBMin;
-	_bBox.max = bBMax;
+   _bBox.feather();
 
 	_timeDelta = 0;
 	_prevAbsTrans = _absTrans;

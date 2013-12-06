@@ -11,4 +11,6 @@
    x                                    \
    END_RADIANT_OM_NAMESPACE
 
+#define TT_LOG(level)      LOG(om.target_tables, level)
+
 #endif //  _RADIANT_OM_NAMESPACE_H

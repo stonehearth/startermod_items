@@ -15,6 +15,8 @@
 using namespace ::radiant;
 using namespace ::radiant::core;
 
+#define CONFIG_LOG(level)     LOG(core.config, level)
+
 DEFINE_SINGLETON(Config)
 
 //Analytics uses the build_number for a/b testing.
@@ -144,7 +146,7 @@ void Config::Load(int argc, const char *argv[])
       // Merge the root config before wrapping it as a json::Node because json::Node cannot expose it without copying
       MergeConfigNodes(internal_root_config, user_config.get_internal_node());
    } catch (std::exception const& e) {
-      LOG(ERROR) << BUILD_STRING("Error merging " << override_config_file_path_ << " with " << base_config_file_path_ << ":\n\n" <<
+      CONFIG_LOG(1) << BUILD_STRING("Error merging " << override_config_file_path_ << " with " << base_config_file_path_ << ":\n\n" <<
          e.what() << "\n\nIgnoring errors.");
    }
 

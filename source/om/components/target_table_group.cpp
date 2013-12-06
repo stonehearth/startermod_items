@@ -41,7 +41,7 @@ TargetTableTopPtr TargetTableGroup::GetTop()
       }
    }
    if (values.empty()) {
-      // LOG(WARNING) << "no values at all...";
+      TT_LOG(1) << "no values at all...";
       return nullptr;
    }
 
@@ -55,7 +55,7 @@ TargetTableTopPtr TargetTableGroup::GetTop()
    }
 
    if (!target) {
-      // LOG(WARNING) << "no target...";
+      TT_LOG(1) << "no target...";
       return nullptr;
    }
    TargetTableTopPtr top = std::make_shared<TargetTableTop>();
@@ -65,7 +65,7 @@ TargetTableTopPtr TargetTableGroup::GetTop()
    top->value = value;
    top->expires = expireTimes[target->GetObjectId()];
 
-   // LOG(WARNING) << "returning new target table top ptr ..." << top;
+   TT_LOG(3) << "returning new target table top ptr ..." << top;
 
    return top;
 }

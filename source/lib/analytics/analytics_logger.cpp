@@ -29,6 +29,8 @@ using Poco::Net::HTTPMessage;
 using namespace ::radiant;
 using namespace ::radiant::analytics;
 
+#define ANALYTICS_LOG(level)     LOG(analytics, level)
+
 //Logger begins here
 DEFINE_SINGLETON(AnalyticsLogger);
 
@@ -193,11 +195,11 @@ void AnalyticsLogger::PostJson(PostData post_data)
       int status = response.getStatus();
       if (status != HTTPResponse::HTTP_OK)	{
          // unexpected result code
-         LOG(WARNING) << "AnalyticsLogger.PostEvent: Unexpected result code from HTTP POST: " << status;
-         LOG(WARNING) << "HTTP POST response was: " << response_stream;
+         ANALYTICS_LOG(1) << "AnalyticsLogger.PostEvent: Unexpected result code from HTTP POST: " << status;
+         ANALYTICS_LOG(1) << "HTTP POST response was: " << response_stream;
 	   }
    } catch (std::exception const& e) {
-      LOG(WARNING) << e.what();
+      ANALYTICS_LOG(1) << "error in PostJson: " << e.what();
    }
 }
 

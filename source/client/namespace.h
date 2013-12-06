@@ -11,6 +11,8 @@ class Renderer;
 class PerfHud;
 class RenderContext;
 
+#define CLIENT_LOG(level)     LOG(client, level)
+
 END_RADIANT_CLIENT_NAMESPACE
 
 #endif //  _RADIANT_CLIENT_NAMESPACE_H

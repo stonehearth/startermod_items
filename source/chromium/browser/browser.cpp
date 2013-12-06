@@ -9,6 +9,8 @@
 #include "lib/perfmon/perfmon.h"
 #include <fstream>
 
+#define BROWSER_LOG(level)    LOG(browser, level)
+
 using namespace radiant;
 using namespace radiant::chromium;
 
@@ -136,7 +138,7 @@ bool Browser::OnConsoleMessage(CefRefPtr<CefBrowser> browser, const CefString& m
       char msg[128];
       std::wcstombs(msg, message.c_str(), sizeof msg);
 
-      // LOG(WARNING) << "chromium: " << msg;
+      BROWSER_LOG(4) << "console log: " << msg;
    }
    return false;
 }
@@ -189,9 +191,9 @@ void Browser::OnPaint(CefRefPtr<CefBrowser> browser,
       // size of our backing store.  just ignore this paint.  this can sometimes happen
       // when the window is resized when we get paints from the old (and out of date)
       // size.
-      LOG(INFO) << "ignoring paint request from browser (" 
-                  << csg::Point2(width, height) << " != "
-                  << csg::Point2(uiWidth_, uiHeight_) << ")";
+      BROWSER_LOG(3) << "ignoring paint request from browser (" 
+                     << csg::Point2(width, height) << " != "
+                     << csg::Point2(uiWidth_, uiHeight_) << ")";
       return;
    }
    const uint32* src = (const uint32*)buffer;
@@ -338,7 +340,7 @@ void Browser::OnRawInput(const RawInput &msg)
          evt.type = KEYEVENT_CHAR;
       }
       evt.modifiers = GetCefKeyboardModifiers(msg.wp, msg.lp);
-      // LOG(WARNING) << " -------- SENDING KEY " << ((char)evt.windows_key_code) << " " << evt.type << " --------";
+      BROWSER_LOG(7) << "sending key " << ((char)evt.windows_key_code) << " " << evt.type;
 
       browser_->GetHost()->SendKeyEvent(evt);
       break;
@@ -372,7 +374,7 @@ void Browser::OnMouseInput(const MouseInput& mouse)
 
    auto host = browser_->GetHost();
    host->SendMouseMoveEvent(evt, false);
-   //LOG(WARNING) << "sending mouse move " << mouseX_ << ", " << mouseY_ << ".";
+   BROWSER_LOG(7) << "sending mouse move " << x << ", " << y << ".";
    
    for (auto type : types) {
       // xxx: until i have time to fix the "right click interpreted as middle click",

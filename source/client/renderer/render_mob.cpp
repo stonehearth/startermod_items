@@ -8,12 +8,16 @@
 using namespace ::radiant;
 using namespace ::radiant::client;
 
+#define M_LOG(level)      LOG(renderer.mob, level)
+
 RenderMob::RenderMob(const RenderEntity& entity, om::MobPtr mob) :
    entity_(entity),
    mob_(mob),
    first_update_(true)
 {
    ASSERT(mob);
+
+   entity_id_ = entity.GetObjectId();
 
    show_debug_shape_guard_ += Renderer::GetInstance().OnShowDebugShapesChanged([this](bool enabled) {
       if (enabled) {
@@ -70,7 +74,7 @@ void RenderMob::Move()
 
    bool result = h3dSetNodeTransMat(entity_.GetNode(), m.get_float_ptr());
    if (!result) {
-      LOG(WARNING) << "failed to set transform on node.";
+      M_LOG(1) << "failed to set transform on node.";
    }
 }
 
@@ -91,7 +95,10 @@ void RenderMob::UpdateTransform(csg::Transform const& transform)
             _initial = _final;
             _final = mob->GetTransform();
          }
+         M_LOG(7) << "mob: initial for object " << entity_id_ << " to " << _initial << " in update transform";
+         M_LOG(7) << "mob: final   for object " << entity_id_ << " to " << _final << " in update transform (stored value)";
       } else {
+         M_LOG(7) << "mob: current for object " << entity_id_ << " to " << _final << " in update transform (stored value, interp off)";
          _current = mob->GetTransform();
          Move();
       }
@@ -103,10 +110,12 @@ void RenderMob::UpdateInterpolate(bool interpolate)
    if (interpolate) {
       renderer_guard_ += Renderer::GetInstance().OnServerTick([this](int now) {
          _initial = _current;
+         M_LOG(7) << "mob: initial for object " << entity_id_ << " to " << _current << " in server tick";
       });
       renderer_guard_ += Renderer::GetInstance().OnRenderFrameStart([this](FrameStartInfo const& info) {
          perfmon::TimelineCounterGuard tcg("move mob");
          _current = csg::Interpolate(_initial, _final, info.interpolate);
+         M_LOG(7) << "mob: current for object " << entity_id_ << " to " << _current << " (a:" << info.interpolate << " n:" << info.now << " ft:" << info.frame_time << ")";
          Move();
       });
    } else {

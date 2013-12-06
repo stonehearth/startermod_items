@@ -8,6 +8,8 @@
 #include <boost/asio.hpp>
 #include <queue>
 
+#define NETWORK_LOG(level)    LOG(network, level)
+
 namespace radiant {
    namespace protocol {
       static const int ReadLowWaterMark = 1024;
@@ -35,7 +37,7 @@ namespace radiant {
                // back to the start.  If _readOffset is 0, there's no need to do the
                // move at all.
                int c = _writeOffset - _readOffset;
-               //LOG(WARNING) << "moving " << c << " bytes of data to compress buffer (read:" << _readOffset << " write:" << _writeOffset << ")";
+               NETWORK_LOG(7) << "moving " << c << " bytes of data to compress buffer (read:" << _readOffset << " write:" << _writeOffset << ")";
                memmove(_data, _data + _readOffset, c);
                _readOffset = 0;
                _writeOffset = c;
@@ -105,9 +107,9 @@ namespace radiant {
                if (!decoder.ReadLittleEndian32(&c)) {
                   break;
                }
-               //LOG(WARNING) << "next message size: " << c << ")";
+               NETWORK_LOG(7) << "next message size: " << c;
                if (c > (remaining - sizeof(int32))) {
-                  LOG(WARNING) << "breaking processing loop early (not enough buffer: " << (remaining - sizeof(int32)) << " < " << c << ")";
+                  NETWORK_LOG(3) << "breaking processing loop early (not enough buffer: " << (remaining - sizeof(int32)) << " < " << c << ")";
                   break;
                }
                ASSERT(c > 0 && c < 256 * 1024);

@@ -4,7 +4,7 @@ using namespace ::radiant;
 
 void radiant::HandleAssert(const char* assertMsg)
 {
-   radiant::logger::flush();
+   radiant::logger::Flush();
    if (IsDebuggerPresent()) {
       DebugBreak();
    } else {

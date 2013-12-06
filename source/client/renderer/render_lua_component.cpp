@@ -7,6 +7,8 @@
 using namespace ::radiant;
 using namespace ::radiant::client;
 
+#define LC_LOG(level)      LOG(renderer.lua_component, level)
+
 RenderLuaComponent::RenderLuaComponent(RenderEntity& entity, std::string const& name, om::DataStorePtr ds) :
    entity_(entity)
 {
@@ -28,7 +30,7 @@ RenderLuaComponent::RenderLuaComponent(RenderEntity& entity, std::string const& 
          try {
             obj_ = script->CallFunction<luabind::object>(ctor, re, ds);
          } catch (std::exception const& e) {
-            LOG(WARNING) << e.what();
+            LC_LOG(1) << e.what();
          }
       }
    }
@@ -44,7 +46,7 @@ RenderLuaComponent::~RenderLuaComponent()
             luabind::call_function<void>(fn, obj_);
          }
       } catch (std::exception const& e) {
-         LOG(WARNING) << "error destroying component renderer: " << e.what();
+         LC_LOG(1) << "error destroying component renderer: " << e.what();
       }
    }
 }

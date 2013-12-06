@@ -39,7 +39,7 @@ void store::pop_category(metrics::time delta)
 
 void store::dump_stats()
 {
-   LOG(INFO) << "----------------------------";
+   LOG(core.perf, 1) << "----------------------------";
    _root_category->dump_stats("", 1, 1);
 }
 
@@ -80,7 +80,7 @@ void store::profile_entry::dump_stats(std::string parent_category, metrics::time
    if (category.size()) {
       // full_category = (parent_category.size() ? (parent_category + "." + category) : (category));
       full_category = parent_category + std::string("   ");
-      LOG(WARNING) << std::setfill(' ') << std::left << std::setw(85) << (full_category + category) << std::setw(10) << std::setprecision(2) << std::fixed << percent_overall << "% (" << percent_of_parent << "% of parent)";
+      LOG(core.perf, 1) << std::setfill(' ') << std::left << std::setw(85) << (full_category + category) << std::setw(10) << std::setprecision(2) << std::fixed << percent_overall << "% (" << percent_of_parent << "% of parent)";
    }
 
    std::for_each(begin(children), end(children), [&](const std::unique_ptr<profile_entry> &child) {

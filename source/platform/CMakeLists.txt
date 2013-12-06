@@ -1,8 +1,6 @@
 add_subdirectory(win32)
 
 add_library(platform STATIC
-            backtrace.cpp
-            stackwalker.cpp
             thread_pool.cpp
             FileWatcher.cpp
             sysinfo.cpp

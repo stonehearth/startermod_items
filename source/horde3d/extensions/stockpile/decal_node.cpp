@@ -157,19 +157,11 @@ void DecalNode::UpdateShape(const Vertex* verts, int vertexCount)
       vertexBuffer_ = 0;
    }
 
+   _bLocalBox.clear();
    if (vertexCount) {
-      _bLocalBox.min.x = _bLocalBox.min.y = _bLocalBox.min.z = FLT_MAX;
-      _bLocalBox.max.x = _bLocalBox.max.y = _bLocalBox.max.z = FLT_MIN;
       for (int i = 0; i < vertexCount; i++) {
-         _bLocalBox.min.x = std::min(_bLocalBox.min.x, verts[i].x);
-         _bLocalBox.min.y = std::min(_bLocalBox.min.y, verts[i].y);
-         _bLocalBox.min.z = std::min(_bLocalBox.min.z, verts[i].z);
-         _bLocalBox.max.x = std::max(_bLocalBox.max.x, verts[i].x);
-         _bLocalBox.max.y = std::max(_bLocalBox.max.y, verts[i].y);
-         _bLocalBox.max.z = std::max(_bLocalBox.max.z, verts[i].z);
+         _bLocalBox.addPoint(Vec3f(verts[i].x, verts[i].y, verts[i].z));
       }
-   } else {
-      _bLocalBox.clear();
    }
 }
 
