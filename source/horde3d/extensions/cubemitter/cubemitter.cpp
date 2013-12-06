@@ -565,7 +565,11 @@ void CubemitterNode::updateAndSpawnCubes(int numToSpawn)
       }
 
       updateCube(d, ca);
-      _bBox.addPoint(d.position);
+
+      if (d.currentLife > 0) 
+      {
+         _bBox.addPoint(d.position);
+      }
    }
 }
 
