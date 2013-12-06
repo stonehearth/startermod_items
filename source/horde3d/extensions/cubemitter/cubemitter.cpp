@@ -407,12 +407,12 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 					emitter->_lastVisited[occSet] = Modules::renderer().getFrameID();
 				
 					// Check query result (viewer must be outside of bounding box)
-					if( nearestDistToAABB( frust1->getOrigin(), emitter->getBBox().min,
-					                       emitter->getBBox().max ) > 0 &&
+					if( nearestDistToAABB( frust1->getOrigin(), emitter->getBBox().min(),
+					                       emitter->getBBox().max() ) > 0 &&
 						gRDI->getQueryResult( emitter->_occQueries[occSet] ) < 1 )
 					{
-						Modules::renderer().pushOccProxy( 0, emitter->getBBox().min,
-							emitter->getBBox().max, emitter->_occQueries[occSet] );
+						Modules::renderer().pushOccProxy( 0, emitter->getBBox().min(),
+							emitter->getBBox().max(), emitter->_occQueries[occSet] );
                   emitter->_wasVisible = false;
 						continue;
 					}

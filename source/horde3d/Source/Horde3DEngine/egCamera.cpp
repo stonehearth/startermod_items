@@ -299,7 +299,7 @@ const Vec4f CameraNode::toScreenPos(const Vec3f& worldPos) const
    const Vec4f clipPos = clipMat * Vec4f(worldPos, 1.0);
    float clipW = clipPos.w;
    const Vec3f projPos = clipPos.xyz() / clipW;
-   Vec3f screenPos = Vec3f(projPos.x * 0.5, projPos.y * 0.5, projPos.z) + Vec3f(0.5, 0.5, 0.0);
+   Vec3f screenPos = Vec3f(projPos.x * 0.5f, projPos.y * 0.5f, projPos.z) + Vec3f(0.5f, 0.5f, 0.0);
    screenPos.y = 1.0f - screenPos.y;
    screenPos.x *= _vpWidth;
    screenPos.y *= _vpHeight;

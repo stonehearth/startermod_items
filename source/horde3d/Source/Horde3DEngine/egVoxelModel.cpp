@@ -173,35 +173,19 @@ void VoxelModelNode::updateLocalMeshAABBs()
 	{
 		VoxelMeshNode &mesh = *_meshList[i];
 		
-		Vec3f &bBMin = mesh._localBBox.min;
-		Vec3f &bBMax = mesh._localBBox.max;
+      mesh._localBBox.clear();
 		
 		if( mesh._vertRStart < _geometryRes->getVertCount() &&
 		    mesh._vertREnd < _geometryRes->getVertCount() )
 		{
-			bBMin = Vec3f( Math::MaxFloat, Math::MaxFloat, Math::MaxFloat );
-			bBMax = Vec3f( -Math::MaxFloat, -Math::MaxFloat, -Math::MaxFloat );
 			for( uint32 j = mesh._vertRStart; j <= mesh._vertREnd; ++j )
 			{
 				Vec3f &vertPos = _geometryRes->getVertexData()[j].pos;
-
-				if( vertPos.x < bBMin.x ) bBMin.x = vertPos.x;
-				if( vertPos.y < bBMin.y ) bBMin.y = vertPos.y;
-				if( vertPos.z < bBMin.z ) bBMin.z = vertPos.z;
-				if( vertPos.x > bBMax.x ) bBMax.x = vertPos.x;
-				if( vertPos.y > bBMax.y ) bBMax.y = vertPos.y;
-				if( vertPos.z > bBMax.z ) bBMax.z = vertPos.z;
+            mesh._localBBox.addPoint(vertPos);
 			}
 
 			// Avoid zero box dimensions for planes
-			if( bBMax.x - bBMin.x == 0 ) bBMax.x += Math::Epsilon;
-			if( bBMax.y - bBMin.y == 0 ) bBMax.y += Math::Epsilon;
-			if( bBMax.z - bBMin.z == 0 ) bBMax.z += Math::Epsilon;
-		}
-		else
-		{
-			bBMin = Vec3f( 0, 0, 0 );
-			bBMax = Vec3f( 0, 0, 0 );
+         mesh._localBBox.feather();
 		}
 	}
 }
@@ -473,24 +457,9 @@ void VoxelModelNode::onFinishedUpdate()
 	// Update AABBs of skinned meshes
 	if( _skinningDirty && !_geometryRes != 0x0 )
 	{
-		Vec3f bmin( Math::MaxFloat, Math::MaxFloat, Math::MaxFloat );
-		Vec3f bmax( -Math::MaxFloat, -Math::MaxFloat, -Math::MaxFloat );
-		
-		// Resize mesh AABBs according to change of skeleton extents
-		// Note: This is just a rough approximation but it should be conservative, so AABBs
-		//       will become too large but not too small
 		for( uint32 i = 0, s = (uint32)_meshList.size(); i < s; ++i )
 		{
-			Vec3f dmin = bmin;
-			Vec3f dmax = bmax;
-			
-			// Clamp so that bounding boxes can only grow and not shrink
-			if( dmin.x > 0 ) dmin.x = 0; if( dmin.y > 0 ) dmin.y = 0; if( dmin.z > 0 ) dmin.z = 0;
-			if( dmax.x < 0 ) dmax.x = 0; if( dmax.y < 0 ) dmax.y = 0; if( dmax.z < 0 ) dmax.z = 0;
-			
 			_meshList[i]->_bBox = _meshList[i]->_localBBox;
-			_meshList[i]->_bBox.min += dmin;
-			_meshList[i]->_bBox.max += dmax;
 			_meshList[i]->_bBox.transform( _meshList[i]->_absTrans );
 		}
 	}

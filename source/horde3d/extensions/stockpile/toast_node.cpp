@@ -244,12 +244,9 @@ void ToastNode::SetText(std::string text)
    }
    float start = -((float)total_width) / 2;
 
-   _bLocalBox.min.x = start;
-   _bLocalBox.max.x = start + total_width;
-   _bLocalBox.min.y = 0;
-   _bLocalBox.max.y = 0;
-   _bLocalBox.min.z = 0;
-   _bLocalBox.max.z = 0;
+   _bLocalBox.clear();
+   _bLocalBox.addPoint(Vec3f(start, 0, 0));
+   _bLocalBox.addPoint(Vec3f(start + total_width, 0, 0));
 
    vertexCount_ = text.size() * 4;
    indexCount_ = text.size() * 6;
@@ -285,7 +282,8 @@ void ToastNode::SetText(std::string text)
       indices[ii++] = voffset + 3;
       indices[ii++] = voffset + 0;
 
-      _bLocalBox.max.y = std::max(_bLocalBox.max.y, (float)glyph.height);
+      float newMaxY = std::max(_bLocalBox.max().y, (float)glyph.height);
+      _bLocalBox.addPoint(Vec3f(_bLocalBox.max().x, newMaxY, _bLocalBox.max().z));
       start += glyph.xadvance;
    }
 	gRDI->destroyBuffer(vertexBuffer_);

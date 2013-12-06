@@ -685,12 +685,12 @@ DLLEXP void h3dGetNodeAABB( NodeHandle node, float *minX, float *minY, float *mi
 	APIFUNC_VALIDATE_NODE( sn, "h3dGetNodeAABB", APIFUNC_RET_VOID );
 
 	Modules::sceneMan().updateNodes();
-	if( minX != 0x0 ) *minX = sn->getBBox().min.x;
-	if( minY != 0x0 ) *minY = sn->getBBox().min.y;
-	if( minZ != 0x0 ) *minZ = sn->getBBox().min.z;
-	if( maxX != 0x0 ) *maxX = sn->getBBox().max.x;
-	if( maxY != 0x0 ) *maxY = sn->getBBox().max.y;
-	if( maxZ != 0x0 ) *maxZ = sn->getBBox().max.z;
+	if( minX != 0x0 ) *minX = sn->getBBox().min().x;
+	if( minY != 0x0 ) *minY = sn->getBBox().min().y;
+	if( minZ != 0x0 ) *minZ = sn->getBBox().min().z;
+	if( maxX != 0x0 ) *maxX = sn->getBBox().max().x;
+	if( maxY != 0x0 ) *maxY = sn->getBBox().max().y;
+	if( maxZ != 0x0 ) *maxZ = sn->getBBox().max().z;
 }
 
 

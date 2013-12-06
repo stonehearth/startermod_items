@@ -279,6 +279,7 @@ bool SceneNode::checkIntersection( const Vec3f &/*rayOrig*/, const Vec3f &/*rayD
 GroupNode::GroupNode( const GroupNodeTpl &groupTpl ) :
 	SceneNode( groupTpl )
 {
+   //_bBox.addPoint(Vec3f(0, 0, 0));
 }
 
 
@@ -411,10 +412,10 @@ void SpatialGraph::query(const SpatialQuery& query, std::vector<RendQueueItem>& 
             sortKey = node->_sortKey;
             break;
          case RenderingOrder::FrontToBack:
-            sortKey = nearestDistToAABB( query.frustum.getOrigin(), node->_bBox.min, node->_bBox.max );
+            sortKey = nearestDistToAABB( query.frustum.getOrigin(), node->_bBox.min(), node->_bBox.max() );
             break;
          case RenderingOrder::BackToFront:
-            sortKey = -nearestDistToAABB( query.frustum.getOrigin(), node->_bBox.min, node->_bBox.max );
+            sortKey = -nearestDistToAABB( query.frustum.getOrigin(), node->_bBox.min(), node->_bBox.max() );
             break;
          }
 				

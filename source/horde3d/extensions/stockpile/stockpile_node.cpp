@@ -62,12 +62,9 @@ void StockpileNode::renderFunc(const std::string &shaderContext, const std::stri
 
 void StockpileNode::UpdateShape(const csg::Cube3& bounds)
 {
-   _bLocalBox.min.x = bounds.min.x - 0.5f;
-   _bLocalBox.max.x = bounds.max.x - 0.5f;
-   _bLocalBox.min.z = bounds.min.z - 0.5f;
-   _bLocalBox.max.z = bounds.max.z - 0.5f;
-   _bLocalBox.min.y = static_cast<float>(bounds.min.y);
-   _bLocalBox.max.y = bounds.min.y  + 0.01f;
+   _bLocalBox.clear();
+   _bLocalBox.addPoint(Vec3f(bounds.min.x - 0.5f, (float)bounds.min.y, bounds.min.z - 0.5f));
+   _bLocalBox.addPoint(Vec3f(bounds.max.x - 0.5f, bounds.min.y + 0.01f, bounds.max.z - 0.5f));
 
    if (!center_.first) {
       const DecalNode::Vertex cornerQuad[] = {
@@ -179,8 +176,8 @@ bool StockpileNode::checkIntersection( const Vec3f &rayOrig, const Vec3f &rayDir
 
    csg::Ray3 ray(origin, dir);
 
-   csg::Cube3f cube(csg::Point3f(_bBox.min.x, _bBox.min.y, _bBox.min.z),
-                    csg::Point3f(_bBox.max.x, _bBox.max.y, _bBox.max.z));
+   csg::Cube3f cube(csg::Point3f(_bBox.min().x, _bBox.min().y, _bBox.min().z),
+                    csg::Point3f(_bBox.max().x, _bBox.max().y, _bBox.max().z));
 
    if (!csg::Cube3Intersects(cube, ray, d)) {
       return false;

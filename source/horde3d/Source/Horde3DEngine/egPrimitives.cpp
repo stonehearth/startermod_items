@@ -159,10 +159,10 @@ bool Frustum::cullBox( BoundingBox &b ) const
 	{
 		const Vec3f &n = _planes[i].normal;
 		
-		Vec3f positive = b.min;
-		if( n.x <= 0 ) positive.x = b.max.x;
-		if( n.y <= 0 ) positive.y = b.max.y;
-		if( n.z <= 0 ) positive.z = b.max.z;
+		Vec3f positive = b.min();
+		if( n.x <= 0 ) positive.x = b.max().x;
+		if( n.y <= 0 ) positive.y = b.max().y;
+		if( n.z <= 0 ) positive.z = b.max().z;
 
 		if( _planes[i].distToPoint( positive ) > 0 ) return true;
 	}
