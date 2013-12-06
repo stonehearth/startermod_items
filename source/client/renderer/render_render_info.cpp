@@ -19,21 +19,6 @@
 using namespace ::radiant;
 using namespace ::radiant::client;
 
-RenderRenderInfo::QubicleFileMap RenderRenderInfo::qubicle_map__;
-
-std::shared_ptr<voxel::QubicleFile> RenderRenderInfo::LoadQubicleFile(std::string const& uri)
-{
-   auto i = qubicle_map__.find(uri);
-   if (i != qubicle_map__.end()) {
-      return i->second;
-   }
-   std::shared_ptr<std::istream> is = res::ResourceManager2::GetInstance().OpenResource(uri);
-   std::shared_ptr<voxel::QubicleFile> q = std::make_shared<voxel::QubicleFile>(uri);
-   (*is) >> *q;
-
-   qubicle_map__[uri] = q;
-   return q;
-}
 
 void RenderRenderInfo::SetDirtyBits(int flags)
 {
@@ -92,9 +77,9 @@ void RenderRenderInfo::AccumulateModelVariant(ModelMap& m, om::ModelLayerPtr v)
                               });
 
       for (std::string const& model : v->EachModel()) {
-         std::shared_ptr<voxel::QubicleFile> qubicle;
+         voxel::QubicleFile* qubicle;
          try {
-            qubicle = LoadQubicleFile(model);
+            qubicle = Pipeline::GetInstance().LoadQubicleFile(model);
          } catch (res::Exception& e) {
             LOG(WARNING) << "could not load qubicle file: " << e.what();
             return;
@@ -216,7 +201,7 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
                                  .PaintOnce();
       node = pipeline.CreateBlueprintNode(parent, model, 0.5f, material_path_);
    } else {
-      node = pipeline.AddQubicleNode(parent, *matrix, origin, bone, &mesh);
+      node = pipeline.AddQubicleNode(parent, *matrix, origin, &mesh);
       if (material_.get()) {
          h3dSetNodeParamI(mesh, H3DMesh::MatResI, material_.get());
       }

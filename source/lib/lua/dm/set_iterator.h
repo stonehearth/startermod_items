@@ -13,13 +13,19 @@ public:
       i_ = set_.begin();
    }
 
-   void NextIteration(lua_State *L, luabind::object s, luabind::object var) {
-      if (i_ != set_.end()) {
+   static int NextIteration(lua_State *L)
+   {
+      SetIterator* iter = object_cast<SetIterator*>(object(from_stack(L, -2)));
+      return iter->Next(L);
+   }
+
+   int Next(lua_State *L) {
+      if (i_ != map_.end()) {
          luabind::object(L, *i_).push(L);
          i_++;
-      } else {
-         lua_pushnil(L);
+         return 1;
       }
+      return 0;
    }
 
 private:

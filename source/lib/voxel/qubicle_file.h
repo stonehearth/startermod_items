@@ -11,27 +11,34 @@ BEGIN_RADIANT_VOXEL_NAMESPACE
 
 class QubicleMatrix {
 public:
-   QubicleMatrix();
    ~QubicleMatrix();
 
-   std::istream& Read(const QbHeader& header, std::istream& in);  
+   std::string const& GetName() const { return name_; }
+   std::istream& Read(QbHeader const& header, std::istream& in);  
    const csg::Point3& GetSize() const { return size_; }
    const csg::Point3& GetPosition() const { return position_; }
+   QubicleFile const& GetSourceFile() const { return qubicle_file_; }
 
    uint32 At(int x, int  y, int z) const;
    csg::Color3 GetColor(uint32 value) const;
 
-public:
-   csg::Point3    size_;
-   csg::Point3    position_;
-   uint32*        matrix_;
-   std::string    uri_;  // The originating uri for this qubicle resource.
+private:
+   friend QubicleFile;
+   QubicleMatrix(QubicleFile const& qubicle_file, std::string const& name);
+
+private:
+   csg::Point3          size_;
+   csg::Point3          position_;
+   std::vector<uint32>  matrix_;
+   std::string          name_;
+   QubicleFile const&   qubicle_file_;
 };
 
 class QubicleFile {
 public:
-   QubicleFile(const std::string& uri);
+   QubicleFile(std::string const& uri);
 
+   std::string const& GetUri() const { return uri_; }
    std::istream& Read(std::istream& in);
    QubicleMatrix* GetMatrix(std::string const& name);
 
@@ -40,7 +47,7 @@ public:
    const MatrixMap::const_iterator begin() const { return matrices_.begin(); }
    const MatrixMap::const_iterator end() const { return matrices_.end(); }
 
-protected:
+private:
    std::string uri_; 
    MatrixMap matrices_;
 };
