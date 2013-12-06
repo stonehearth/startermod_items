@@ -70,10 +70,6 @@ private:
    std::string GetModelVariant(om::RenderInfoPtr render_info) const;
 
 private:
-   static std::shared_ptr<voxel::QubicleFile> LoadQubicleFile(std::string const& uri);
-   static QubicleFileMap   qubicle_map__;
-
-private:
    RenderEntity&           entity_;
    int                     dirty_;
    om::RenderInfoRef       render_info_;

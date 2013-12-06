@@ -141,6 +141,7 @@ AnimatedLightNode::AnimatedLightNode( const AnimatedLightNodeTpl &animatedLightT
    _animatedLightRes = animatedLightTpl._animatedLightRes;
    _timeDelta = 0.0f;
    _lightTime = 0.0f;
+   _active = true;
 }
 
 void AnimatedLightNode::init()

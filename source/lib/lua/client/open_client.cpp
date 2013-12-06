@@ -42,6 +42,17 @@ H3DNodeUnique Client_CreateVoxelNode(lua_State* L,
    return Pipeline::GetInstance().CreateVoxelNode(parent, model, material_path);
 }
 
+H3DNode Client_CreateQubicleMatrixNode(lua_State* L, 
+                                       H3DNode parent,
+                                       std::string const& qubicle_file,
+                                       std::string const& qubicle_matrix,
+                                       csg::Point3f const& origin)
+{
+   H3DNodeUnique unique = Pipeline::GetInstance().CreateQubicleMatrixNode(parent, qubicle_file, qubicle_matrix, origin);
+   H3DNode node = unique.release();
+   return node;
+}
+
 H3DNode Client_CreateDesignationNode(lua_State* L, 
                                      H3DNode parent,
                                      csg::Region2 const& model,
@@ -325,6 +336,7 @@ void lua::client::open(lua_State* L)
             def("set_cursor",                      &Client_SetCursor),
             def("create_blueprint_node",           &Client_CreateBlueprintNode),
             def("create_voxel_node",               &Client_CreateVoxelNode),
+            def("create_qubicle_matrix_node",      &Client_CreateQubicleMatrixNode),
             def("create_designation_node",         &Client_CreateDesignationNode),
             def("alloc_region",                    &Client_AllocObject<om::Region3Boxed>),
             def("alloc_region2",                   &Client_AllocObject<om::Region2Boxed>),

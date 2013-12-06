@@ -185,6 +185,7 @@ void LuaRenderer::RegisterType(lua_State* L)
       def("h3dAddLightNode",                 &h3dAddLightNode),
       def("h3dRadiantAddCubemitterNode",     &h3dRadiantAddCubemitterNode),
       def("h3dAddResource",                  &h3dAddResource),
+      def("h3dAddGroupNode",                 &h3dAddGroupNode),
       def("h3dSetMaterialUniform",           &h3dSetMaterialUniform),
       def("h3dSetNodeTransform",             &h3dSetNodeTransform),
       def("h3dSetNodeParamI",                &h3dSetNodeParamI),

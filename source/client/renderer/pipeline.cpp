@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "radiant_macros.h"
 #include "pipeline.h"
 #include "metrics.h"
 #include "Horde3DUtils.h"
@@ -32,7 +33,8 @@ static const struct {
    { 0, 2, 1, voxel::LEFT_MASK,   csg::Point3f( 1,  0,  0) },
 };
 
-Pipeline::Pipeline()
+Pipeline::Pipeline() :
+   unique_id_(1)
 {
    //_actorMaterial = Ogre::MaterialManager::getSingleton().load("Tessaract/ActorMaterialTemplate", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
    //_tileMaterial = Ogre::MaterialManager::getSingleton().load("Tessaract/TileMaterialTemplate", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
@@ -52,13 +54,12 @@ Pipeline::~Pipeline()
 
 H3DNodeUnique Pipeline::AddMeshNode(H3DNode parent, const csg::mesh_tools::mesh& m, H3DNode* mesh)
 {
-   static int unique = 0;
    std::string name = "mesh data ";
 
-   H3DRes res = h3dutCreateVoxelGeometryRes((name + stdutil::ToString(unique++)).c_str(), (VoxelGeometryVertex *)m.vertices.data(), m.vertices.size(), (uint *)m.indices.data(), m.indices.size());
+   H3DRes res = h3dutCreateVoxelGeometryRes((name + stdutil::ToString(unique_id_++)).c_str(), (VoxelGeometryVertex *)m.vertices.data(), m.vertices.size(), (uint *)m.indices.data(), m.indices.size());
    H3DRes matRes = h3dAddResource(H3DResTypes::Material, "materials/default_material.xml", 0);
-   H3DNode model_node = h3dAddVoxelModelNode(parent, (name + stdutil::ToString(unique++)).c_str(), res);
-   H3DNode mesh_node = h3dAddVoxelMeshNode(model_node, (name + stdutil::ToString(unique++)).c_str(), matRes, 0, m.indices.size(), 0, m.vertices.size() - 1);
+   H3DNode model_node = h3dAddVoxelModelNode(parent, (name + stdutil::ToString(unique_id_++)).c_str(), res);
+   H3DNode mesh_node = h3dAddVoxelMeshNode(model_node, (name + stdutil::ToString(unique_id_++)).c_str(), matRes, 0, m.indices.size(), 0, m.vertices.size() - 1);
 
    if (mesh) {
       *mesh = mesh_node;
@@ -68,15 +69,25 @@ H3DNodeUnique Pipeline::AddMeshNode(H3DNode parent, const csg::mesh_tools::mesh&
    return H3DNodeUnique(model_node);
 }
 
-H3DNodeUnique Pipeline::AddQubicleNode(H3DNode parent, const voxel::QubicleMatrix& m, const csg::Point3f& origin, const std::string& boneName, H3DNode* mesh)
+H3DNodeUnique Pipeline::AddQubicleNode(H3DNode parent, const voxel::QubicleMatrix& m, const csg::Point3f& origin, H3DNode* mesh)
 {
-   static int unique = 0;
-   const std::string& geoName = m.uri_.size() > 0 ? m.uri_ + boneName : "qubicle geometry " + stdutil::ToString(unique);
+   // All nodes created with the same parameters share the same geometry.  Create a unique name which describes
+   // those parameters by concatenating the uri of qubicle file, the name of the matrix, and the origin in the matrix
+   // to use.
+   std::string const& uri = m.GetSourceFile().GetUri();
+   if (uri.empty()) {
+      throw std::logic_error("cannot create qubicle node for file with no uri");
+   }
+   std::string const& matrix_name = m.GetName();
+   if (matrix_name.empty()) {
+      throw std::logic_error("cannot create qubicle node for matrix with no name");
+   }
+   std::string unique_id_matrix_idenitifer = BUILD_STRING("qubicle_file:" << uri << " matrix:" << matrix_name << " origin:" << origin);
 
-   H3DRes geoRes = h3dFindResource(H3DResTypes::VoxelGeometry, geoName.c_str());
-
+   // If we have already genearted geometry for this set of parameters, use that one.  Otherwise, generate it
+   H3DRes geoRes = h3dFindResource(H3DResTypes::VoxelGeometry, unique_id_matrix_idenitifer.c_str());
    if (geoRes <= 0) {
-      geoRes = CreateGeometryFromQubicleMatrix(geoName, m, origin);
+      geoRes = CreateGeometryFromQubicleMatrix(unique_id_matrix_idenitifer, m, origin);
    }
 
    int indexCount = h3dGetResParamI(geoRes, Horde3D::VoxelGeometryResData::VoxelGeometryElem, 0, 
@@ -84,10 +95,10 @@ H3DNodeUnique Pipeline::AddQubicleNode(H3DNode parent, const voxel::QubicleMatri
    int vertexCount = h3dGetResParamI(geoRes, Horde3D::VoxelGeometryResData::VoxelGeometryElem, 0, 
       Horde3D::VoxelGeometryResData::VoxelGeoVertexCountI);
 
+   // Make sure the names of the model and mesh nodes are unique
    H3DRes matRes = h3dAddResource(H3DResTypes::Material, "materials/default_material.xml", 0);
-   H3DNode model_node = h3dAddVoxelModelNode(parent, ("qubicle model " + stdutil::ToString(unique)).c_str(), geoRes);
-   H3DNode mesh_node = h3dAddVoxelMeshNode(model_node, ("qubicle mesh " + stdutil::ToString(unique)).c_str(), matRes, 0, indexCount, 0, vertexCount - 1);
-   unique++;
+   H3DNode model_node = h3dAddVoxelModelNode(parent, ("qubicle model " + stdutil::ToString(unique_id_++)).c_str(), geoRes);
+   H3DNode mesh_node = h3dAddVoxelMeshNode(model_node, ("qubicle mesh " + stdutil::ToString(unique_id_++)).c_str(), matRes, 0, indexCount, 0, vertexCount - 1);
    if (mesh) {
       *mesh = mesh_node;
    }
@@ -105,7 +116,7 @@ H3DRes Pipeline::CreateGeometryFromQubicleMatrix(const std::string& geoName, con
    // Super greedy...   
  
    const csg::Point3& size = m.GetSize();
-   const csg::Point3f matrixPosition((float)m.position_.x, (float)m.position_.y, (float)m.position_.z);
+   const csg::Point3f matrixPosition = csg::ToFloat(m.GetPosition());
 
    uint32* mask = new uint32[size.x * size.y * size.z];
 
@@ -286,9 +297,7 @@ H3DNodeUnique Pipeline::CreateBlueprintNode(H3DNode parent,
                                             float thickness,
                                             std::string const& material_path)
 {
-   static int unique = 1;
-
-   H3DNode group = h3dAddGroupNode(parent, BUILD_STRING("blueprint node " << unique++).c_str());
+   H3DNode group = h3dAddGroupNode(parent, BUILD_STRING("blueprint node " << unique_id_++).c_str());
 
    csg::mesh_tools::mesh panels_mesh, outline_mesh;
    panels_mesh.SetColor(csg::Color3::FromString("#00DFFC"));
@@ -309,8 +318,6 @@ H3DNodeUnique Pipeline::CreateVoxelNode(H3DNode parent,
                                         csg::Region3 const& model,
                                         std::string const& material_path)
 {
-   static int unique = 1;
-
    csg::mesh_tools::mesh mesh;
    csg::RegionTools3().ForEachPlane(model, [&](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
       mesh.AddRegion(plane, pi);
@@ -440,25 +447,35 @@ Pipeline::CreateDesignationNode(H3DNode parent,
    return group;
 }
 
-Pipeline::NamedNodeMap Pipeline::LoadQubicleFile(std::string const& uri)
+voxel::QubicleFile* Pipeline::LoadQubicleFile(std::string const& uri)
 {   
-   NamedNodeMap result;
+   auto& r = res::ResourceManager2::GetInstance();
 
-   // xxx: no.  Make a qubicle resource type so they only get loaded once, ever.
-   voxel::QubicleFile f(uri);
-   std::ifstream input;
+   // Keep a cache of the most recently loaded qubicle files so we don't hammer the
+   // filesystem (where "recent" currently means, "ever").  Be sure to store them by
+   // the canoncial path so we don't get duplicates (e.g. stonehearth:foo vs.
+   // stonehearth/entities/foo/foo.qb)
 
-   std::shared_ptr<std::istream> is = res::ResourceManager2::GetInstance().OpenResource(uri);
-   (*is) >> f;
-
-   for (const auto& entry : f) {
-      // Qubicle requires that every matrix in the file have a unique name.  While authoring,
-      // if you copy/pasta a matrix, it will rename it from matrixName to matrixName_2 to
-      // dismabiguate them.  Ignore everything after the _ so we don't make authors manually
-      // rename every single part when this happens.
-      std::string matrixName = entry.first;
-      result[matrixName] = AddQubicleNode(orphaned_.get(), entry.second, csg::Point3f(0, 0, 0), matrixName);
+   std::string const& path = r.ConvertToCanonicalPath(uri, nullptr);
+   auto i = qubicle_files_.find(path);
+   if (i != qubicle_files_.end()) {
+      return i->second.get();
    }
+   voxel::QubicleFilePtr f = std::make_shared<voxel::QubicleFile>(path);
+   std::ifstream input;
+   std::shared_ptr<std::istream> is = res::ResourceManager2::GetInstance().OpenResource(uri);
+   (*is) >> *f;
+   qubicle_files_[path] = f;
 
-   return result;
+   return f.get();
+}
+
+H3DNodeUnique Pipeline::CreateQubicleMatrixNode(H3DNode parent, std::string const& qubicle_file, std::string const& qubicle_matrix, csg::Point3f const& origin)
+{
+   voxel::QubicleFile* f = LoadQubicleFile(qubicle_file);
+   voxel::QubicleMatrix* matrix = f->GetMatrix(qubicle_matrix);
+   if (!matrix) {
+      throw std::logic_error(BUILD_STRING("qubicle file " << qubicle_file << " has no matrix named " << qubicle_matrix));
+   }
+   return AddQubicleNode(parent, *matrix, origin);
 }
