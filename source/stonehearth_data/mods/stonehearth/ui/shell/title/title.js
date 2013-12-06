@@ -29,6 +29,10 @@ App.StonehearthTitleScreenView = App.View.extend({
          App.gotoGame();
       },
 
+      exit: function() {
+         radiant.call('radiant:exit');
+      },
+      
       credits: function() {
 
       }

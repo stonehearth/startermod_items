@@ -223,7 +223,7 @@ function WorkshopComponent:create_outbox(location, size)
    local outbox_component = self._outbox_entity:get_component('stonehearth:stockpile')
 
    outbox_component:set_size(size)
-   outbox_component:set_private(true)
+   outbox_component:set_outbox(true)
 
    self._outbox_component = outbox_component
    return self._outbox_entity

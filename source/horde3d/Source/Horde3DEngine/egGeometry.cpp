@@ -96,8 +96,6 @@ void GeometryResource::initDefault()
 	_tanVBuf = defVertBuffer;
 	_staticVBuf = defVertBuffer;
 	_minMorphIndex = 0; _maxMorphIndex = 0;
-	_skelAABB.min = Vec3f( 0, 0, 0 );
-	_skelAABB.max = Vec3f( 0, 0, 0 );
 }
 
 
@@ -416,12 +414,7 @@ bool GeometryResource::load( const char *data, int size )
 	for( uint32 i = 0; i < (uint32)_joints.size(); ++i )
 	{
 		Vec3f pos = _joints[i].invBindMat.inverted() * Vec3f( 0, 0, 0 );
-		if( pos.x < _skelAABB.min.x ) _skelAABB.min.x = pos.x;
-		if( pos.y < _skelAABB.min.y ) _skelAABB.min.y = pos.y;
-		if( pos.z < _skelAABB.min.z ) _skelAABB.min.z = pos.z;
-		if( pos.x > _skelAABB.max.x ) _skelAABB.max.x = pos.x;
-		if( pos.y > _skelAABB.max.y ) _skelAABB.max.y = pos.y;
-		if( pos.z > _skelAABB.max.z ) _skelAABB.max.z = pos.z;
+      _skelAABB.addPoint(pos);
 	}
 
 	// Add default joint if necessary

@@ -284,7 +284,7 @@ protected:
 	void onPostUpdate();
    void updateAndSpawnCubes(int numToSpawn);
    void spawnCube(CubeData& d, CubeAttribute& ca);
-   void updateCube(CubeData& d, CubeAttribute& ca, Vec3f& bBMin, Vec3f& bBMax);
+   void updateCube(CubeData& d, CubeAttribute& ca);
 
 protected:
 

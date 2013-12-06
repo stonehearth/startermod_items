@@ -158,23 +158,15 @@ void DebugShapesNode::createBuffers()
       primitives_.push_back(Primitives(PRIM_TRILIST, start, last));
    }
 
+   _bLocalBox.clear();
    if (!primitives_.empty()) {
       vertexBufferSize_ = verts.size() * sizeof(Vertex);
       if (vertexBufferSize_) {
          vertexBuffer_ = gRDI->createVertexBuffer(vertexBufferSize_, verts.data());
       }
-      _bLocalBox.min.x = _bLocalBox.min.y = _bLocalBox.min.z = FLT_MAX;
-      _bLocalBox.max.x = _bLocalBox.max.y = _bLocalBox.max.z = FLT_MIN;
       for (const auto& v : verts) {
-         _bLocalBox.min.x = std::min(_bLocalBox.min.x, v.position[0]);
-         _bLocalBox.min.y = std::min(_bLocalBox.min.y, v.position[1]);
-         _bLocalBox.min.z = std::min(_bLocalBox.min.z, v.position[2]);
-         _bLocalBox.max.x = std::max(_bLocalBox.max.x, v.position[0]);
-         _bLocalBox.max.y = std::max(_bLocalBox.max.y, v.position[1]);
-         _bLocalBox.max.z = std::max(_bLocalBox.max.z, v.position[2]);
+         _bLocalBox.addPoint(Vec3f(v.position[0], v.position[1], v.position[2]));
       }
-   } else {
-      _bLocalBox.clear();
    }
    markDirty();
 }
