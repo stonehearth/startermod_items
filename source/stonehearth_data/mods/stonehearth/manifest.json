@@ -385,7 +385,12 @@
          "camera_look_at_entity": {
             "controller" : "file(call_handlers/camera_call_handler.lua)",
             "endpoint" : "client"
+         },
+         "get_camera_tracker": {
+            "controller" : "file(call_handlers/camera_call_handler.lua)",
+            "endpoint" : "client"
          }         
+
       }
    },
    "components" :  {
@@ -450,6 +455,7 @@
          "file(ui/shell/loading_screen/loading_screen.html)",
          "file(ui/game/game.html)",
          "file(ui/game/create_camp/create_camp.html)",
+         "file(ui/game/help_camera/help_camera.html)",
          "file(ui/game/build_workshop/build_workshop.html)",
          "file(ui/game/show_workshop/show_workshop.html)",
          "file(ui/game/show_journal/show_journal.html)",
@@ -473,6 +479,7 @@
          "file(ui/shell/loading_screen/loading_screen.js)",
          "file(ui/game/game.js)",
          "file(ui/game/create_camp/create_camp.js)",
+         "file(ui/game/help_camera/help_camera.js)",
          "file(ui/game/build_workshop/build_workshop.js)",
          "file(ui/game/show_workshop/show_workshop.js)",
          "file(ui/game/show_journal/show_journal.js)",
@@ -499,6 +506,7 @@
          "file(ui/shell/loading_screen/loading_screen.less)",
          "file(ui/game/game.less)",
          "file(ui/game/create_camp/create_camp.less)",
+         "file(ui/game/help_camera/help_camera.less)",
          "file(ui/game/build_workshop/build_workshop.less)",
          "file(ui/game/show_workshop/show_workshop.less)",
          "file(ui/game/show_journal/show_journal.less)",

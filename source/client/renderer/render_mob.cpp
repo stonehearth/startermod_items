@@ -10,7 +10,8 @@ using namespace ::radiant::client;
 
 RenderMob::RenderMob(const RenderEntity& entity, om::MobPtr mob) :
    entity_(entity),
-   mob_(mob)
+   mob_(mob),
+   first_update_(true)
 {
    ASSERT(mob);
 
@@ -78,8 +79,18 @@ void RenderMob::UpdateTransform(csg::Transform const& transform)
    auto mob = mob_.lock();
    if (mob) {
       if (mob->GetInterpolateMovement()) {
-         _initial = _final;
-         _final = mob->GetTransform();
+         if (first_update_) {
+            // If this is the first update ever from the server, move the render entity to the
+            // location specified in the transform immediately.  Just set _initial and _final
+            // to the current transform and interpolate between then.
+            first_update_ = false;
+            _initial = _final = mob->GetTransform();
+         } else {
+            // Otherwise, update _initial and _final such that we smoothly interpolate between
+            // the current mob's position and their location on the server.
+            _initial = _final;
+            _final = mob->GetTransform();
+         }
       } else {
          _current = mob->GetTransform();
          Move();
