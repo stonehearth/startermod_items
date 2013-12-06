@@ -51,7 +51,7 @@ function HeightMapRenderer:render_height_map_to_region(region3_boxed, height_map
    region3_boxed:modify(function(region3)
       self:_add_bedrock_to_region(region3, height_map, 4)
 
-      for rect in region2:contents() do
+      for rect in region2:each_cube() do
          height = rect.tag
          if height > 0 then
             self:_add_land_to_region(region3, rect, height);
@@ -179,7 +179,7 @@ function HeightMapRenderer:visualize_height_map(height_map)
    self:_convert_height_map_to_region2(region2, height_map)
 
    region3_boxed:modify(function(region3)
-      for rect in region2:contents() do
+      for rect in region2:each_cube() do
          height = rect.tag
          if height >= 1 then
             region3:add_cube(Cube3(Point3(rect.min.x, -1,       rect.min.y),

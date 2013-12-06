@@ -55,7 +55,7 @@ end
 -- inside the construction_data
 function voxel_brush_util.create_construction_data_node(parent_node, entity, region, construction_data, paint_mode)
    local node
-   if region then
+   if region and construction_data.brush then
       local stencil = region:get()
       if stencil then
          local render_info = entity:get_component('render_info')
