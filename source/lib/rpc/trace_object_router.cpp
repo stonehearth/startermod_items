@@ -44,12 +44,25 @@ ReactorDeferredPtr TraceObjectRouter::InstallTrace(Trace const& trace)
    if (d) {
       return d;
    }
-   dm::ObjectPtr obj = om::ObjectFormatter().GetObject(store_, trace.route);
+   om::ObjectFormatter of;
+   if (!of.IsPathInStore(store_, trace.route)) {
+	   // Make sure the path is actually valid for this store (for example, if someone is trying
+	   // to trace the authoring store and this is the router for the game store, we should
+	   // just bail unconditionally).
+	   return nullptr;
+   }
+
+   dm::ObjectPtr obj = of.GetObject(store_, trace.route);
    if (obj) {
       ReactorDeferredPtr deferred = std::make_shared<ReactorDeferred>(trace.desc());
       InstallTrace(trace.route, deferred, obj);
       return deferred;
    }
+
+   // Hmm.  This is the right store, but the object isn't in it.  Maybe it
+   // will show up later! (e.g. when the client or ui traces an object that they
+   // know exists, but it hasn't been streamed by the server yet).    These
+   // traces get installed in CheckDeferredTraces.
    ReactorDeferredPtr deferred = std::make_shared<ReactorDeferred>(trace.desc());
    deferred_traces_[trace.route] = deferred;
    return deferred;

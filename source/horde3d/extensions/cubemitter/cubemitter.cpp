@@ -235,6 +235,7 @@ CubemitterNode::CubemitterNode( const CubemitterNodeTpl &emitterTpl ) :
    _nextSpawnTime = 0.0f;
    _curEmitterTime = 0.0f;
    _active = true;
+   _wasVisible = true;
 
    _attributeBuf = gRDI->createVertexBuffer(sizeof(CubeAttribute) * _maxCubes, 0x0);
 
@@ -544,7 +545,7 @@ void CubemitterNode::onPostUpdate()
    updateAndSpawnCubes(numberToSpawn);
    
    _timeDelta = 0.0f;
-
+   _wasVisible = false;
    timer->setEnabled(false);
 }
 

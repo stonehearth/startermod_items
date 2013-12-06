@@ -1,0 +1,53 @@
+#helpCamera {
+   position: absolute;
+   top: 0;
+   left: 0;
+   width: 100%;
+   text-align: center;
+
+   .hint {
+      .outlined; 
+      color: #fff;
+      width: 300px;
+      text-align: left;
+
+      img {
+         width: 52px;
+         height: 57px;
+         display: inline-block;
+         float: left;
+         padding-right: 10px;
+      }
+   }
+
+   #panHint {
+      position: absolute;
+      top: 80px;
+      left: 250px;
+
+      img {
+         content: url('images/mouse_left.png');
+      }
+   }
+
+   #orbitHint {
+      position: absolute;
+      top: 80px;
+      right: 250px;
+
+      img {
+         content: url('images/mouse_right.png');
+      }
+
+   }
+
+   #zoomHint {
+      margin: 80px auto;
+      display: none;
+
+      img {
+         content: url('images/mouse_wheel.png');
+      }
+
+   }   
+}
