@@ -25,7 +25,7 @@ App.StonehearthCreateCampView = App.View.extend({
           var args = {
                'track': 'stonehearth:ambient:summer_day',
                'channel': 'ambient', 
-               'volume' : 40
+               'volume' : 60
             };
             radiant.call('radiant:play_music', args);  
          }
