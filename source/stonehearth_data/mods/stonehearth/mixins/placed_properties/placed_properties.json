@@ -1,8 +1,5 @@
 {
    "components" : {
-      "mob" : {
-         "interpolate_movement" : false
-      },
       "render_info" : {},
       "stonehearth:placed_item" : {}
    }

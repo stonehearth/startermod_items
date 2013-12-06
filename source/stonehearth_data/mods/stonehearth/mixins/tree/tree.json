@@ -1,9 +1,6 @@
 {
    "type" : "entity",
    "components" : {
-      "mob" : {
-         "interpolate_movement" : false
-      },
 	   "stonehearth:commands" : {
 	   	"commands" : [
             "file(/data/commands/chop_tree)"
