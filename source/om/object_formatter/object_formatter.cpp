@@ -46,6 +46,16 @@ JSONNode ObjectFormatter::ObjectToJson(dm::ObjectPtr obj) const
    return JSONNode();
 }
 
+bool ObjectFormatter::IsPathInStore(dm::Store const& store, std::string const& path) const
+{
+   std::smatch match;
+   if (std::regex_match(path, match, path_regex__)) {
+      std::string store_name = match[1].str();
+      return store.GetName() == store_name;
+   }
+   return false;
+}
+
 dm::ObjectPtr ObjectFormatter::GetObject(dm::Store const& store, std::string const& path) const
 {
    std::smatch match;
