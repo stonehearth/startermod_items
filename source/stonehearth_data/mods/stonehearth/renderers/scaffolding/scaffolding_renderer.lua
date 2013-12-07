@@ -88,6 +88,7 @@ function ScaffoldingRenderer:_update_shape()
       local normal = construction_data.normal
       if normal then
          self._rotation = ROTATION_TABLE[normal.x][normal.z]
+         self._tangent = normal.x == 0 and 'x' or 'z'
       end
    end
    
@@ -106,10 +107,25 @@ function ScaffoldingRenderer:_update_shape()
       end
    end
 end
+
+--- Return a hord3d node for the scaffolding at point.
+--  Make sure we scale and rotate it correctly,
+--  and position it where it belongs relative to the scaffolding origin.
 function ScaffoldingRenderer:_create_segment_node(pt) 
-   -- Return a hord3d node for the scaffolding at point.  Make sure we scale and rotate it correctly,
-   -- and position it where it belongs relative to the scaffolding origin.
-   local node = _radiant.client.create_qubicle_matrix_node(self._node, self._lattice, 'head', self._origin)
+   --Use the direction we're facing for the X coordinate of the lattice node we want
+   --Layout from left to right
+   local tangent = math.abs(pt[self._tangent])    
+   local x = 3 - tangent % 4
+   local y = pt.y % 4
+
+   --Derive name of matrix (part of lattice we need from pt)
+   local matrix = string.format('scaffold_%d_%d',x, y )
+   local construction_data = self._entity:get_component_data('stonehearth:construction_data')
+   
+   --need to flip 180 around y axis
+   self._rotation = (self._rotation  + 180) % 360
+
+   local node = _radiant.client.create_qubicle_matrix_node(self._node, self._lattice, matrix, self._origin)
    h3dSetNodeTransform(node, pt.x, pt.y, pt.z, 0, self._rotation, 0, self._scale, self._scale, self._scale)
    return node
 end

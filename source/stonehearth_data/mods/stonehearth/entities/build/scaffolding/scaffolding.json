@@ -16,12 +16,12 @@
    },
    "entity_data" : {
       "stonehearth:scaffolding_render_data" : {
-         "lattice" : "file(/entities/humans/male_1/head_5.qb)",
+         "lattice" : "file(/entities/build/scaffolding/scaffolding.qb)",
          "scale" : 0.1,
          "origin" : {
-            "x" : 15.5,
-            "y" : 15,
-            "z" : 18
+            "x" : 5,
+            "y" : 5,
+            "z" : 0
          }
       }
    }
