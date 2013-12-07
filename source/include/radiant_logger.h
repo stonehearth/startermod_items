@@ -7,6 +7,35 @@
 #include <boost/filesystem.hpp>
 #include "radiant_log_categories.h"
 
+// Radiant Logging Module
+// 
+// Log levels are configured inside the "logging" key of the config object.  You can set "log_level"
+// at any group level to change the log level for all categories in that group, or the key specifically
+// to change just that level.  For example,
+//
+//     "logging" : {
+//        "log_level" : 4,
+//        "browser": 10,
+//        "physics" : {
+//           "log_level": 8
+//        },
+//        "renderer" : {
+//           "log_level" : 3,
+//           "mob": 1
+//        }
+//     }
+// 
+// 1) Sets the default log level for all categories to 4.  Categories not otherwise overriden will use
+//    this value (e.g. core.guard).
+// 2) Sets the log level of the browser group to 10
+// 3) Sets the log level of all categories in the physics group to 8
+// 4) Sets the log level of all categories in the renderer group to 3, except renderer.mob, which is 1.
+//
+// You can also set logging.console_log_severity to change the level at which things get put into
+// the console window.  I don't recommend a high value, here, as spamming the console has a huge
+// impact on game performance.
+//
+
 namespace radiant {
    namespace logger {
       void Init(boost::filesystem::path const& logfile);
@@ -17,7 +46,6 @@ namespace radiant {
       struct LogCategories {
          // Log lines <= console_log_severity will be written to the debug console as well as
          // the logfile
-         uint32   console_log_severity;
 
          // Create entries for all the log levels...
 #define BEGIN_GROUP(group)        struct {
@@ -27,8 +55,8 @@ namespace radiant {
          RADIANT_LOG_CATEGORIES
 
 #undef BEGIN_GROUP
+#undef ADD_CATEGORY
 #undef END_GROUP
-#undef BEGIN_GROUP
       };
    };
 };
