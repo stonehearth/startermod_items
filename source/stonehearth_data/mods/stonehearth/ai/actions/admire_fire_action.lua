@@ -197,7 +197,7 @@ function AdmireFire:_do_random_actions(ai)
          ai:execute('stonehearth:run_effect', 'sit_on_ground')
       elseif radiant.entities.get_posture(self._entity) ~= 'sitting' then
          --TODO: include these again if we have a standing animation
-         ai:execute('stonehearth:run_effect', self._standing_fire_effects[math.random(#self._standing_fire_effects)])
+         ai:execute('stonehearth:idle:warm_hands')
       end
    end
 end

@@ -241,6 +241,7 @@ function FirepitComponent:light(log)
       self:_add_seats()
    end
    self._data.is_lit = true
+   radiant.events.trigger(self._entity, 'stonehearth:fire:lit', { lit = true})
    self._data_store:mark_changed()
 end
 
@@ -256,6 +257,7 @@ function FirepitComponent:extinguish()
       self._curr_fire_effect:stop()
    end
    self._data.is_lit = false
+   radiant.events.trigger(self._entity, 'stonehearth:fire:lit', { lit = false})
 end
 
 --TODO: do we still need these? In any case, fix spelling

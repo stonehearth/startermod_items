@@ -7,9 +7,11 @@
          "description": "Provides warmth and light",
          "icon" : "file(firepit.png)"
       },
+
       "stonehearth:material" : {
          "tags" : "light"
       },
+
       "model_variants": [
          {
             "models": [
@@ -17,9 +19,29 @@
             ]
          }
       ],
+
       "stonehearth:firepit" : {
          "effective_radius" : 6
       },
+
+      "sensor_list" : {
+         "sensors" : {
+            "fire_radius" : {
+               "type": "sensor",
+               "radius": 6
+            }
+         }
+      },
+
+      "stonehearth:sensor_ai_injector" : {
+         "sensor" : "fire_radius",
+         "ai" : {
+            "actions" : [
+               "stonehearth:actions:idle:warm_hands"
+            ]
+         }
+      },
+
       "stonehearth:placed_item" : {
          "proxy_entity" : "stonehearth:firepit_proxy"
       }

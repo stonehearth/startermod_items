@@ -7,7 +7,6 @@ function AIComponent:__init(entity)
    self._actions = {}
    self._action_stack = {}
    self._priority_table = {}
-   self._valid_actions = {}
    self._ai_system = radiant.mods.load('stonehearth').ai
 end
 
@@ -38,16 +37,16 @@ end
 function AIComponent:add_action(uri, action)
    assert(not self._actions[uri])
    self._actions[uri] = action
-   self._valid_actions[action] = true
    self:set_action_priority(action, action.priority)
 end
 
-function AIComponent:remove_action(action)
+function AIComponent:remove_action(uri)
+   local action = self._actions[uri]
    if action then
       if action.destroy then
          action:destroy()
       end
-      self._valid_actions[action] = nil
+      self._actions[uri] = nil
    end
 end
 
@@ -67,11 +66,7 @@ end
 
 function AIComponent:set_action_priority(action, priority)
    -- update the priority table
-   if not self._valid_actions[action] then
-      radiant.log.warning('ignoring priority %d from unregistered action %s', priority, action.name)
-      return
-   end
-   
+  
    local activity_name = action.does
    local priorities = self._priority_table[activity_name]
    if not priorities then
@@ -101,7 +96,7 @@ function AIComponent:check_action_stack()
    local unwind_to_action = nil
    for i, entry in ipairs(self._action_stack) do
       local action, priority = self:_get_best_action(entry.activity, i-1)
-      if action ~= entry.action then
+      if action ~= entry.action and priority > entry.priority then
          -- radiant.log.info('switching from %s to %s (priority:%d)', entry.action.name, action.name, priority)
          unwind_to_action = i
          break
@@ -142,10 +137,11 @@ function AIComponent:_get_best_action(activity, filter_depth)
    assert(priorities)
 
    -- return the new maximum
-   local best_a, best_p
+   local best_a, best_p, list_best_a
+
    for a, p in pairs(priorities) do
       --radiant.log.info('activity %s: %s has priority %d', activity_name, a.name, p)
-      if not best_p or p > best_p then
+      if not best_p or p >= best_p then
          -- get_best_action is called both to check the health of the current action
          -- stack as well as to choose new actions to put on the stack.  In the first
          -- case, we're simply checking to make sure that the action chosen at every
@@ -156,10 +152,24 @@ function AIComponent:_get_best_action(activity, filter_depth)
          -- the graph and deferring to the other implementations as part of your
          -- implementation.
          if not self:_is_in_action_stack(a, filter_depth) then
-            best_a, best_p = a, p
+            if not best_p or p > best_p then
+                -- new best_p found, wipe out the old list of candidate actions
+                list_best_a = {}
+            end
+            best_p = p
+
+            local weight = a.weight or 1
+
+            for i = 1, weight do
+               table.insert(list_best_a, a)
+            end
          end
       end
    end
+
+   -- choose a random action amoung all the actions with the highest priority (they all tie)
+   best_a = list_best_a[math.random(#list_best_a)]
+   
    return best_a, best_p
 end
 
@@ -272,7 +282,7 @@ end
 
 function AIComponent:execute(...)
    local activity = {...}
-   local action = self:_get_best_action(activity, #self._action_stack)
+   local action, priority = self:_get_best_action(activity, #self._action_stack)
 
    local action_main = function()
       -- decoda_name = string.format("entity %d : %s action", self._entity:get_id(), tostring(action.name))
@@ -285,6 +295,7 @@ function AIComponent:execute(...)
    local entry = {
       activity = activity,
       action = action,
+      priority = priority,
       name = action.name and action.name or '- unnamed action -'
    }
    table.insert(self._action_stack, entry)
