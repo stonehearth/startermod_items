@@ -43,10 +43,12 @@ end
 function AIComponent:remove_action(uri)
    local action = self._actions[uri]
    if action then
+      self:remove_from_priority_table(action)
+      self._actions[uri] = nil
+
       if action.destroy then
          action:destroy()
       end
-      self._actions[uri] = nil
    end
 end
 
