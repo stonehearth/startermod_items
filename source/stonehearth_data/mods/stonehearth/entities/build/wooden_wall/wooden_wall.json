@@ -4,7 +4,7 @@
       "unit_info": {
          "icon": "...", 
          "name": "Wooden Wall", 
-         "description": "Better than straw, not quite as sturdy as brick"
+         "description": ""
       },
       "stonehearth:construction_data" : {
          "brush": "file(wooden_wall.qb)",
