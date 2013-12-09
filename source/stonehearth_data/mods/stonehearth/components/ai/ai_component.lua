@@ -74,6 +74,14 @@ function AIComponent:set_action_priority(action, priority)
       priorities = self._priority_table[activity_name]
    end
    priorities[action] = priority
+   
+   -- update the priority of the action in the action stack
+   for i=1, #self._action_stack do
+      local entry = self._action_stack[i]
+      if entry.action == action then
+         entry.priority = priority
+      end
+   end
 end
 
 function AIComponent:remove_from_priority_table(action)
