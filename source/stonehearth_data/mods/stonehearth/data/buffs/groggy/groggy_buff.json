@@ -13,7 +13,6 @@
    },
 
    "controller" : "file(groggy_buff.lua)",
-   "effect" : "stonehearth:effects:whatever",
    "tags" : [
       "sleepy"
    ]

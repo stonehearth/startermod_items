@@ -5,7 +5,6 @@
 --]]
 radiant.mods.load('stonehearth')
 local priorities = require('constants').priorities.needs
-local event_service = require 'services.event.event_service'
 
 local FindFoodAction = class()
 
@@ -22,7 +21,6 @@ function FindFoodAction:__init(ai, entity)
    self._food = nil
    self._path_to_food = nil
    self._looking_for_food = false
-   self._hunger_logged = false;
 
    radiant.events.listen(radiant.events, 'stonehearth:very_slow_poll', self, self.on_poll)
 end
@@ -40,15 +38,6 @@ end
 --  @param e - e.value is the status of hunger
 function FindFoodAction:check_hunger()   
    if self._hunger >= 120 then
-      -- Cry in despair because we're so hungry
-      -- TODO: self._ai:execute('stonehearth:???')
-      -- xxx, localize
-      
-      if not self._hunger_logged then
-          local name = radiant.entities.get_display_name(self._entity)     
-          event_service:add_entry(name .. ' is so hungry it feels like despair.', 'warning')
-          self._hunger_logged = true
-      end
       radiant.entities.add_buff(self._entity, 'stonehearth:buffs:starving')
    end
 
@@ -134,7 +123,6 @@ function FindFoodAction:run(ai, entity)
    assert(self._path_to_food)
    self:stop_looking_for_food()
    ai:execute('stonehearth:get_food', self._path_to_food)
-   self._hunger_logged = false;
 end
 
 --- Whether we're eating or have run the despair animation or just

@@ -4,6 +4,8 @@
    "components" : {
       "stonehearth:ai" : {
          "actions" : [
+            "stonehearth:actions:idle:sway",
+            "stonehearth:actions:idle:look_around",
             "stonehearth:actions:sleep_action",
             "stonehearth:actions:sleep_in_bed_action",
             "stonehearth:actions:sleep_on_ground_action",
@@ -51,9 +53,5 @@
       },
       "stonehearth:bed_lease" : {
       }
-   },
-   "entity_data" : {
-      "stonehearth:idle_boredom_effects" : ["idle_sway", "idle_look_around"],
-      "stonehearth:idle_fire_effects" : ["idle_warm_hands"]
    }
 }
