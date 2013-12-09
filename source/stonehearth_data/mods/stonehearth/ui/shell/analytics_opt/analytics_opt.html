@@ -1,0 +1,17 @@
+<script type="text/x-handlebars" data-template-name="analyticsOpt">
+   <div id="analyticsOpt">
+      <h1>{{i18n stonehearth:opt_title}}</h1>
+      <div id="text">{{i18n stonehearth:opt_text}}</div>
+
+      <div id="buttons">
+         <center>
+            <button {{action optIn true target=view}}>{{i18n stonehearth:opt_in_button}}</button>
+         <button {{action optIn false target=view}}>{{i18n stonehearth:opt_out_button}}</button>
+         </center>
+      </div>
+
+      <div id="thanks">
+         Thanks!
+      </div>
+   </div>
+</script>

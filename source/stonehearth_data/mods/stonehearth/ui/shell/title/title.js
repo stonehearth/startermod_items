@@ -9,20 +9,21 @@ App.StonehearthTitleScreenView = App.View.extend({
       radiant.call('radiant:play_music', {'track': 'stonehearth:music:title_screen', 'channel' : 'bgm'} );      
    },
 
+   didInsertElement: function() {
+      var self = this;
+      radiant.call('radiant:get_collection_status')
+         .done(function(o) {
+            if (!o.has_expressed_preference) {
+               self.get('parentView').addView(App.StonehearthAnalyticsOptView)
+            }
+         });  
+   },
+
    actions: {
       newGame: function() {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:sub_menu' );
-         this.get('parentView').addView(App.StonehearthNewGameView)
-         //App.gotoGame();
-         /*
-         $.get("...")
-            .progress( function(e) {
-               //update progress thingy
-            }
-            .done( function(e) {
-               App.gotoGame();
-            });
-         */
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:embark' );
+         App.shellView.addView(App.StonehearthLoadingScreenView);
+         //this.get('parentView').addView(App.StonehearthNewGameView)
       },
 
       loadGame: function() {
@@ -32,7 +33,7 @@ App.StonehearthTitleScreenView = App.View.extend({
       exit: function() {
          radiant.call('radiant:exit');
       },
-      
+
       credits: function() {
 
       }
