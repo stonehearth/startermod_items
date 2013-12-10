@@ -266,18 +266,6 @@ void Store::MarkChangedAndFire(T& obj, std::function<void(typename TraceType&)> 
    ObjectId id = obj.GetObjectId();
    obj.MarkChanged();
    ForEachTrace<TraceType>(id, cb);
-
-   stdutil::ForEachPrune<StoreTrace>(store_traces_, [=](StoreTracePtr trace) {
-      trace->SignalModified(id);
-   });
-
-   auto i = traces_.find(id);
-   if (i != traces_.end()) {
-      stdutil::ForEachPrune<Trace>(i->second, [&](std::shared_ptr<Trace> t) {
-         TraceType *trace = static_cast<TraceType*>(t.get());
-         cb(*trace);
-      });
-   }
 }
 
 template <typename T>
