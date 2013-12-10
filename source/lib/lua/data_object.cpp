@@ -1,52 +1,74 @@
 #include "pch.h"
-#include "color.h"
+#include "data_object.h"
 
 using namespace radiant;
-using namespace radiant::csg;
+using namespace radiant::lua;
 
-Color3 Color3::red(255, 0, 0);
-Color3 Color3::orange(255, 165, 0);
-Color3 Color3::yellow(255, 239, 0);
-Color3 Color3::green(34, 139, 34);
-Color3 Color3::blue(0, 0, 205);
-Color3 Color3::black(0, 0, 0);
-Color3 Color3::white(255, 255, 255);
+#define DO_LOG(level)      LOG_CATEGORY(lua.data, level, " v: " << data_object_.is_valid() << " i: " << (data_object_.interpreter()) << " h:" << GetLuaObjectIndex(&data_object_))
 
-static const csg::Color3 __histogram[] = {
-   Color3::red,
-   Color3::orange,
-   Color3::yellow,
-   Color3::green,
-   Color3::blue
-};
+// This is super dirty.  We know the index is 4 bytes into the
+// object (even though it's private...), so just grab it.  This
+// should only be used for debug logging!
+static inline int GetLuaObjectIndex(luabind::object const* o)
+{   
+   return ((int *)o)[1];
+}
 
-Color3 Histogram::Sample(float f)
+DataObject::DataObject() :
+   dirty_(false)
 {
-   f = std::min(std::max(f, 0.0f), 1.0f);
+   DO_LOG(8) << "data object default constructor";
+}
 
-   int range = ARRAYSIZE(__histogram) - 1;
-   float position = range * f;
-   int offset = (int)position;
-   float alpha = std::min(std::max(position - offset, 0.0f), 1.0f);
+DataObject::DataObject(luabind::object o) :
+   dirty_(true)
+{
+   DO_LOG(8) << "data object constructor";
+   SetDataObject(o);
+}
 
-   const Color3 &first  = __histogram[offset];
-   const Color3 &second = __histogram[offset+1];
+void DataObject::SetDataObject(luabind::object o) 
+{
+   DO_LOG(8) << "set data object to (new object: " << GetLuaObjectIndex(&o) << ")";
+   // make sure we use a durable interpreter!
+   lua_State* L = ScriptHost::GetInterpreter(o.interpreter());
+   data_object_ = luabind::object(L, o);
+   DO_LOG(8) << "finished set data object (old object: " << GetLuaObjectIndex(&o) << ")";
 
-   Color3 result;
-   for (int i = 0; i < 3; i++) {
-      result[i] = (unsigned char)((first[i] * (1 - alpha)) + (second[i] * alpha));
+   MarkDirty();
+}
+
+luabind::object DataObject::GetDataObject() const
+{
+   DO_LOG(8) << "get data object";
+   return data_object_;
+}
+
+void DataObject::MarkDirty()
+{
+   DO_LOG(8) << "mark dirty";
+   dirty_ = true;
+}
+
+json::Node const& DataObject::GetJsonNode() const
+{
+   if (dirty_) {
+      DO_LOG(8) << "recomputing json node";
+      if (data_object_.is_valid() && luabind::type(data_object_) != LUA_TNIL) {
+         cached_json_ = ScriptHost::LuaToJson(data_object_.interpreter(), data_object_);
+      } else {
+         cached_json_ = JSONNode();
+      }
+      dirty_ = false;
    }
-   return result;
+   return cached_json_;
 }
 
-std::ostream& ::radiant::csg::operator<<(std::ostream& out, const Color4 &c)
+void DataObject::SetJsonNode(lua_State* L, json::Node const& node)
 {
-   out << "rgba(" << (int)c.r << ", " << (int)c.g << ", " << (int)c.b << ", " << (int)c.a << ")";
-   return out;
-}
-
-std::ostream& ::radiant::csg::operator<<(std::ostream& out, const Color3 &c)
-{
-   out << "RGBA(" << (int)c.r << ", " << (int)c.g << ", " << (int)c.b << ", " << ")";
-   return out;    
+   DO_LOG(8) << "set json node";
+   dirty_ = false;
+   cached_json_ = node;
+   data_object_ = ScriptHost::JsonToLua(L, node);
+   DO_LOG(8) << "post set json node";
 }

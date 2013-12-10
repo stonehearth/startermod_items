@@ -129,7 +129,7 @@ template <> Node json::encode(om::Destination const& obj)
 
 template <> Node json::encode(om::DataStore const& obj)
 {
-   return obj.GetData().GetJsonNode();
+   return obj.GetJsonNode();
 }
 
 template <> Node json::encode(om::ErrorBrowser const& obj)

@@ -9,9 +9,13 @@
    ADD_CATEGORY(app) \
    ADD_CATEGORY(resources) \
    ADD_CATEGORY(analytics) \
-   ADD_CATEGORY(lua) \
    ADD_CATEGORY(audio) \
    ADD_CATEGORY(rpc) \
+   \
+   BEGIN_GROUP(lua) \
+      ADD_CATEGORY(code) \
+      ADD_CATEGORY(data) \
+   END_GROUP(lua) \
    \
    BEGIN_GROUP(physics) \
       ADD_CATEGORY(collision) \
