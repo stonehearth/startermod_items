@@ -135,7 +135,40 @@ function SkyRenderer:_update(seconds)
    for _, o in pairs(self._celestials) do
       self:_update_light(seconds, o)
    end
+
+   self:_update_sky_colors(seconds)
 end
+
+function SkyRenderer:_update_sky_colors(seconds)
+   local sky_start_colors = {
+      {0, Vec3(0,0,0)},
+      {self.timing.sunrise_start, Vec3(0,0,0)},
+      {self.timing.sunrise_end, Vec3(0,0.08,0.37)},
+      {self.timing.midday, Vec3(0,0.16,0.95)},
+      {self.timing.sunset_start, Vec3(0,0.16,0.75)},
+      {self.timing.sunset_peak, Vec3(0,0,0.50)},
+      {self.timing.sunset_end, Vec3(0,0,0)},
+      {self.timing.day_length, Vec3(0,0,0)}
+   }
+
+   local sky_end_colors = {
+      {0, Vec3(0, 0, 0.25)},
+      {self.timing.sunrise_start, Vec3(0, 0, 0.25)},
+      {self.timing.sunrise_end, Vec3(1, 0.9, 0.25)},
+      {self.timing.midday, Vec3(0.4, 1.0, 1.0)},
+      {self.timing.sunset_start, Vec3(0.4, 1.0, 1.0)},
+      {self.timing.sunset_peak, Vec3(1, 0.2, 0.1)},
+      {self.timing.sunset_end, Vec3(0, 0, 0.25)},
+      {self.timing.day_length, Vec3(0,0,0.25)}
+   }
+
+   local startCol = self:_find_value(seconds, sky_start_colors)
+   local endCol = self:_find_value(seconds, sky_end_colors)
+
+   _radiant.renderer.sky.set_sky_colors(startCol, endCol)
+end
+
+
 local last = 0
 
 function SkyRenderer:_update_light(seconds, light)
@@ -203,14 +236,14 @@ function SkyRenderer:_vec_interpolate(a, b, frac)
    return result
 end
 
-local sky_colors = {
+local light_colors = {
    off = Vec3(0, 0, 0),
    day = Vec3(0.6, 0.6, 0.6),
    sunset = Vec3(1.0, 1.0, 0.4),
    night = Vec3(0.31, 0.25, 0.55)
 }
 
-local sky_ambient_colors = {
+local light_ambient_colors = {
    off = Vec3(0, 0, 0),
    day = Vec3(0.5, 0.5, 0.5),
    sunset = Vec3(0.4, 0.35, 0.3),
@@ -235,21 +268,21 @@ function SkyRenderer:_init_sun()
    }
 
    local sun_colors = {
-      {0, sky_colors.off},
-      {self.timing.sunrise_start, sky_colors.off},
-      {self.timing.sunrise_end, sky_colors.day},
-      {self.timing.sunset_start, sky_colors.day},
-      {self.timing.sunset_peak, sky_colors.sunset},
-      {self.timing.sunset_end, sky_colors.off}
+      {0, light_colors.off},
+      {self.timing.sunrise_start, light_colors.off},
+      {self.timing.sunrise_end, light_colors.day},
+      {self.timing.sunset_start, light_colors.day},
+      {self.timing.sunset_peak, light_colors.sunset},
+      {self.timing.sunset_end, light_colors.off}
    }
 
    local sun_ambient_colors = {
-      {0, sky_ambient_colors.off},
-      {self.timing.sunrise_start, sky_ambient_colors.off},
-      {self.timing.sunrise_end, sky_ambient_colors.day},
-      {self.timing.sunset_start, sky_ambient_colors.day},
-      {self.timing.sunset_peak, sky_ambient_colors.sunset},
-      {self.timing.sunset_end, sky_ambient_colors.off}
+      {0, light_ambient_colors.off},
+      {self.timing.sunrise_start, light_ambient_colors.off},
+      {self.timing.sunrise_end, light_ambient_colors.day},
+      {self.timing.sunset_start, light_ambient_colors.day},
+      {self.timing.sunset_peak, light_ambient_colors.sunset},
+      {self.timing.sunset_end, light_ambient_colors.off}
    }
 
    local sun_angles = {
@@ -279,19 +312,19 @@ function SkyRenderer:_init_moon()
    }
 
    local moon_colors = {
-      {0, sky_colors.night},
-      {self.timing.sunrise_start, sky_colors.night},
-      {self.timing.sunrise_end, sky_colors.off},
-      {self.timing.sunset_peak, sky_colors.off},
-      {self.timing.sunset_end, sky_colors.night}
+      {0, light_colors.night},
+      {self.timing.sunrise_start, light_colors.night},
+      {self.timing.sunrise_end, light_colors.off},
+      {self.timing.sunset_peak, light_colors.off},
+      {self.timing.sunset_end, light_colors.night}
    }
 
    local moon_ambient_colors = {
-      {0, sky_ambient_colors.night},
-      {self.timing.sunrise_start, sky_ambient_colors.night},
-      {self.timing.sunrise_end, sky_ambient_colors.off},
-      {self.timing.sunset_peak, sky_ambient_colors.off},
-      {self.timing.sunset_end, sky_ambient_colors.night}
+      {0, light_ambient_colors.night},
+      {self.timing.sunrise_start, light_ambient_colors.night},
+      {self.timing.sunrise_end, light_ambient_colors.off},
+      {self.timing.sunset_peak, light_ambient_colors.off},
+      {self.timing.sunset_end, light_ambient_colors.night}
    }
 
    local moon_angles = {
