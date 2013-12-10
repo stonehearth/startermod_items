@@ -112,7 +112,9 @@ void Sim_DestroyEntity(lua_State* L, std::weak_ptr<om::Entity> e)
 {
    auto entity = e.lock();
    if (entity) {
-      return GetSim(L).DestroyEntity(entity->GetObjectId());
+      dm::ObjectId id = entity->GetObjectId();
+      entity = nullptr;
+      return GetSim(L).DestroyEntity(id);
    }
 }
 
@@ -216,7 +218,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             def("create_job",               &Sim_CreateJob),
             
             lua::RegisterTypePtr<Path>()
-               .def("get_points",         &Path::GetPoints)
+               .def("get_points",         &Path::GetPoints, return_stl_iterator)
                .def("get_source",         &Path::GetSource)
                .def("get_destination",    &Path::GetDestination)
                .def("get_start_point",    &Path::GetStartPoint)
