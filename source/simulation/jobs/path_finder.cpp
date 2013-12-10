@@ -51,7 +51,7 @@ void PathFinder::SetSource(om::EntityRef e)
    if (entity) {
       mob_ = entity->GetComponent<om::Mob>();
    }
-   RestartSearch();
+   RestartSearch("source changed");
 }
 
 void PathFinder::SetSolvedCb(luabind::object solved_cb)
@@ -62,7 +62,7 @@ void PathFinder::SetSolvedCb(luabind::object solved_cb)
 void PathFinder::SetFilterFn(luabind::object dst_filter)
 {
    dst_filter_ = dst_filter;
-   RestartSearch();
+   RestartSearch("filter function changed");
 }
 
 bool PathFinder::IsIdle() const
@@ -127,7 +127,9 @@ void PathFinder::AddDestination(om::EntityRef e)
          try {
             auto L = dst_filter_.interpreter();
             luabind::object e(L, std::weak_ptr<om::Entity>(entity));
+            PF_LOG(5) << "calling lua solution callback";
             ok = luabind::call_function<bool>(dst_filter_, e);
+            PF_LOG(5) << "finished calling lua solution callback";
          } catch (std::exception& e) {
             LUA_LOG(1) << "exception in pathfinder filter function: " << e.what();
          }
@@ -152,7 +154,7 @@ void PathFinder::RemoveDestination(dm::ObjectId id)
       if (solution_) {
          auto solution_entity = solution_->GetDestination().lock();
          if (solution_entity && solution_entity->GetObjectId() == id) {
-            RestartSearch();
+            RestartSearch("destination removed");
          }
       }
    }
@@ -161,6 +163,7 @@ void PathFinder::RemoveDestination(dm::ObjectId id)
 void PathFinder::Restart()
 {
    PROFILE_BLOCK();
+   PF_LOG(5) << "restarting search";
 
    ASSERT(restart_search_);
 
@@ -475,11 +478,14 @@ void PathFinder::SolveSearch(const csg::Point3& last, PathFinderDst* dst)
       end_point = GetSourceLocation();
    }
    csg::Point3 dst_point_of_interest = dst->GetPointfInterest(end_point);
+   PF_LOG(5) << "found solution to destination " << dst->GetEntityId();
    solution_ = std::make_shared<Path>(points, entity_.lock(), dst->GetEntity(), dst_point_of_interest);
    if (solved_cb_.is_valid()) {
+      PF_LOG(5) << "calling lua solved callback";
       auto L = solved_cb_.interpreter();
       luabind::object path(L, solution_);
       luabind::call_function<void>(solved_cb_, path);
+      PF_LOG(5) << "finished calling lua solved callback";
    }
 
    VERIFY_HEAPINESS();
@@ -490,8 +496,9 @@ PathPtr PathFinder::GetSolution() const
    return solution_;
 }
 
-void PathFinder::RestartSearch()
+void PathFinder::RestartSearch(const char* reason)
 {
+   PF_LOG(5) << "requesting search restart: " << reason;
    restart_search_ = true;
    solution_ = nullptr;
 }

@@ -22,17 +22,21 @@ public:
    om::EntityPtr GetEntity() const { return entity_.lock(); }
    
    bool IsIdle() const;
+   dm::ObjectId GetEntityId() const;
    csg::Point3 GetPointfInterest(csg::Point3 const& adjacent) const;
    int EstimateMovementCost(const csg::Point3& start) const;
    void EncodeDebugShapes(protocol::shapelist *msg, csg::Color4 const& debug_color) const;
    
-protected:
+private:
+   void CreateTraces();
+   void DestroyTraces();
    void ClipAdjacentToTerrain();
    int EstimateMovementCost(csg::Point3 const& start, csg::Point3 const& end) const;
    Simulation& GetSim() const { return pf_.GetSim(); }
 
 public:
    PathFinder&                pf_;
+   dm::ObjectId               id_;
    om::EntityRef              entity_;
    bool                       moving_;
    om::DeepRegionGuardPtr     region_guard_;

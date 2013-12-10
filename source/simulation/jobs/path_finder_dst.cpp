@@ -13,6 +13,8 @@
 using namespace ::radiant;
 using namespace ::radiant::simulation;
 
+#define PF_LOG(level)   LOG_CATEGORY(simulation.pathfinder, level, pf_.GetName() << " dst " << id_)
+
 PathFinderDst::PathFinderDst(PathFinder &pf, om::EntityRef e) :
    pf_(pf),
    entity_(e),
@@ -20,19 +22,37 @@ PathFinderDst::PathFinderDst(PathFinder &pf, om::EntityRef e) :
    collision_cb_id_(0)
 {
    ASSERT(!e.expired());
-   auto entity = e.lock();
+   id_ = entity_.lock()->GetObjectId();
+   CreateTraces();
+}
+
+PathFinderDst::~PathFinderDst()
+{
+   DestroyTraces();
+   if (collision_cb_id_) {
+      auto& o = GetSim().GetOctTree();
+      o.RemoveCollisionRegionChangeCb(collision_cb_id_);
+      collision_cb_id_ = 0;
+   }
+}
+
+void PathFinderDst::CreateTraces()
+{
+   auto entity = entity_.lock();
    if (entity) {
-      auto destination_may_have_changed = [this, e]() {
-         auto ep = e.lock();
+      PF_LOG(7) << "creating traces";
+
+      auto destination_may_have_changed = [this](const char* reason) {
+         auto ep = entity_.lock();
          if (ep) {
             ClipAdjacentToTerrain();
-            pf_.RestartSearch();
+            pf_.RestartSearch(reason);
          }
       };
 
       auto& o = GetSim().GetOctTree();
       collision_cb_id_ = o.AddCollisionRegionChangeCb(&world_space_adjacent_region_, [destination_may_have_changed] {
-         destination_may_have_changed();
+         destination_may_have_changed("new collision shape added to world");
       });
 
       auto mob = entity->GetComponent<om::Mob>();
@@ -41,15 +61,17 @@ PathFinderDst::PathFinderDst(PathFinder &pf, om::EntityRef e) :
 
          transform_trace_ = mob->TraceTransform("pf dst", dm::PATHFINDER_TRACES)
                                  ->OnChanged([=](csg::Transform const&) {
-                                    destination_may_have_changed();
+                                    PF_LOG(7) << "mob transform changed";
+                                    destination_may_have_changed("mob transform changed");
                                  });
 
          moving_trace_ = mob->TraceMoving("pf dst", dm::PATHFINDER_TRACES)
                                  ->OnChanged([=](bool const& moving) {
                                     if (moving != moving_) {
+                                       PF_LOG(7) << "mob moving changed";
                                        moving_ = moving;
                                        if (moving_) {
-                                          pf_.RestartSearch();
+                                          pf_.RestartSearch("mob moving changed");
                                        }
                                     }
                                  });
@@ -57,23 +79,14 @@ PathFinderDst::PathFinderDst(PathFinder &pf, om::EntityRef e) :
       auto dst = entity->GetComponent<om::Destination>();
       if (dst) {
          region_guard_ = dst->TraceAdjacent("pf dst", dm::PATHFINDER_TRACES)
-                                 ->OnChanged([destination_may_have_changed](csg::Region3 const&) {
-                                    destination_may_have_changed();
+                                 ->OnChanged([this, destination_may_have_changed](csg::Region3 const&) {
+                                    PF_LOG(7) << "adjacent region changed";
+                                    destination_may_have_changed("adjacent region changed");
                                  });
       }
       ClipAdjacentToTerrain();
    }
 }
-
-PathFinderDst::~PathFinderDst()
-{
-   if (collision_cb_id_) {
-      auto& o = GetSim().GetOctTree();
-      o.RemoveCollisionRegionChangeCb(collision_cb_id_);
-      collision_cb_id_ = 0;
-   }
-}
-
 
 void PathFinderDst::ClipAdjacentToTerrain()
 {
@@ -121,7 +134,6 @@ void PathFinderDst::ClipAdjacentToTerrain()
 int PathFinderDst::EstimateMovementCost(const csg::Point3& from) const
 {
    PROFILE_BLOCK();
-
    auto entity = GetEntity();
 
    if (!entity) {
@@ -143,11 +155,11 @@ int PathFinderDst::EstimateMovementCost(const csg::Point3& from) const
       adjacent = dst->GetAdjacent();
    }
    if (adjacent) {
-      csg::Region3 const& rgn = *adjacent;
-      if (rgn.IsEmpty()) {
+      csg::Region3 const& adj = *adjacent;
+      if (adj.IsEmpty()) {
          return INT_MAX;
       }
-      end = rgn.GetClosestPoint(start);
+      end = adj.GetClosestPoint(start);      
    } else {
       csg::Region3 adjacent;
       adjacent += csg::Point3(-1, 0,  0);
@@ -200,28 +212,41 @@ csg::Point3 PathFinderDst::GetPointfInterest(csg::Point3 const& adjacent_pt) con
    csg::Point3 end(0, 0, 0);
    om::DestinationPtr dst = entity->GetComponent<om::Destination>();
    if (dst) {
-      csg::Region3 const& rgn = **dst->GetRegion();
+      DEBUG_ONLY(
+         csg::Region3 rgn = **dst->GetRegion();
+         if (dst->GetReserved()) {
+            rgn -= **dst->GetReserved();
+         }
 
-      if (dst->GetAutoUpdateAdjacent()) {
-         csg::Region3 const& adjacent = **dst->GetAdjacent();
+         if (dst->GetAutoUpdateAdjacent()) {
+            csg::Region3 const& adjacent = **dst->GetAdjacent();
 
-         ASSERT(world_space_adjacent_region_.GetArea() <= adjacent.GetArea());
-         for (const auto& cube : adjacent) {
-            for (const auto& pt : cube) {
-               csg::Point3 closest = rgn.GetClosestPoint(pt);
-               csg::Point3 d = closest - pt;
-               // cubes adjacent to one rect in the region might actually be contained
-               // in another rect in the region!  therefore, just ensure that the distance
-               // from the adjacent to the non-adjacent is <= 1 (not exactly 1)...
-               ASSERT(d.LengthSquared() <= 1);
+            ASSERT(world_space_adjacent_region_.GetArea() <= adjacent.GetArea());
+            for (const auto& cube : adjacent) {
+               for (const auto& pt : cube) {
+                  csg::Point3 closest = rgn.GetClosestPoint(pt);
+                  csg::Point3 d = closest - pt;
+                  // cubes adjacent to one rect in the region might actually be contained
+                  // in another rect in the region!  therefore, just ensure that the distance
+                  // from the adjacent to the non-adjacent is <= 1 (not exactly 1)...
+                  ASSERT(d.LengthSquared() <= 1);
+               }
             }
          }
-      }
-      end = rgn.GetClosestPoint(adjacent_pt - origin);
+      )
+      end = dst->GetPointOfInterest(adjacent_pt - origin);
    }
 
    end += origin;
    return end;
+}
+
+void PathFinderDst::DestroyTraces()
+{
+   PF_LOG(7) << "destroying traces";
+   moving_trace_ = nullptr;
+   transform_trace_ = nullptr;
+   region_guard_ = nullptr;
 }
 
 bool PathFinderDst::IsIdle() const
@@ -236,4 +261,9 @@ void PathFinderDst::EncodeDebugShapes(radiant::protocol::shapelist *msg, csg::Co
    for (auto const& cube : world_space_adjacent_region_) {
       cube.SaveValue(region->add_cubes());
    }
+}
+
+dm::ObjectId PathFinderDst::GetEntityId() const
+{
+   return id_;
 }
