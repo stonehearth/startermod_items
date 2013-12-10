@@ -30,7 +30,6 @@
                "stonehearth:actions:fabricate",
                "stonehearth:actions:chop_tree_action",
                "stonehearth:actions:worker_task_dispatcher",
-               "stonehearth:actions:worker_pickup_action",
                "stonehearth:actions:worker_restock_action",
                "stonehearth:actions:worker_place_action",
                "stonehearth:actions:worker_light_fire_action",
