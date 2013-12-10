@@ -252,8 +252,8 @@ void Renderer::BuildSkySphere()
    for (int i = 0; i < 2046; i++)
    {
       texData[i * 2 + 0] = 0.0f;
-      texData[i * 2 + 1] = (spVerts[i].y * 0.5f) + 0.5f;
-      spVerts[i] *= 10.0f;
+      texData[i * 2 + 1] = 1.0f - ((spVerts[i].y * 0.5f) + 0.5f);
+      spVerts[i] *= 100.0f;
    }
 
    skysphereMat = h3dAddResource(H3DResTypes::Material, "materials/skysphere.material.xml", 0);

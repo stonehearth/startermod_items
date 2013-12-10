@@ -23,16 +23,14 @@ uniform vec4 skycolor_end;
 attribute vec3 vertPos;
 attribute vec2 texCoords0;
 
-varying vec2 texCoord;
+varying float colorT;
 varying vec4 startCol;
 varying vec4 endCol;
 
 void main() {
-  texCoord.x = 0;
+  // Compress the gradient to occupy the most visible band of the sky.
 
-  // Compress the 
-  float t = 1.0 - texCoords0.y;
-  texCoord.y = clamp((t * 10.0) - 2.9, 0.0, 1.0);
+  colorT = (10 * texCoords0.y) - 2.9, 0.0, 1.0;
   
   startCol = skycolor_start;
   endCol = skycolor_end;
@@ -42,10 +40,11 @@ void main() {
 
 [[FS_SKYSPHERE]]
 
+attribute float colorT;
 attribute vec4 startCol;
 attribute vec4 endCol;
-attribute vec2 texCoord;
 
 void main() {
-  gl_FragColor = startCol * (1.0 - texCoord.y) + texCoord.y * endCol;
+  float clampedT = clamp(colorT, 0.0, 1.0);
+  gl_FragColor = startCol * (1.0 - clampedT) + clampedT * endCol;
 }
