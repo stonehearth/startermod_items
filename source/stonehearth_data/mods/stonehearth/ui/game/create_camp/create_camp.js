@@ -11,27 +11,13 @@ App.StonehearthCreateCampView = App.View.extend({
          });
          */
 
-         this.first = true;      
+         this.first = true;
 
-         //Play music as the game starts
-         var args = {
-            'track': 'stonehearth:music:world_start',
-            'channel' : 'bgm',
-            'fade': 500
-         };
-         radiant.call('radiant:play_music', args);         
-          var args = {
-               'track': 'stonehearth:ambient:summer_day',
-               'channel': 'ambient', 
-               'volume' : 40
-            };
-            radiant.call('radiant:play_music', args);  
-         }
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:loading_screen_success' );      
 
-
-      this._bounceBanner();
-      $("#crateCoverLink").hide();
-
+         this._bounceBanner();
+         $("#crateCoverLink").hide();
+      }
    },
 
    actions : {

@@ -16,6 +16,8 @@
 using namespace radiant;
 using namespace radiant::phys;
 
+#define OT_LOG(level)   LOG(physics.collision, level)
+
 static const csg::Point3 _adjacent[] = {
    csg::Point3( 1,  0,  0),
    csg::Point3(-1,  0,  0),
@@ -117,7 +119,7 @@ void OctTree::GetActorsIn(const csg::Cube3f &bounds, QueryCallback cb)
    auto filter = [bounds, cb](om::EntityPtr entity) -> bool {
       auto a = entity->GetComponent<om::Mob>();
       auto shape = a->GetWorldAABB();
-      // LOG(WARNING) << a->GetType() << " " << a->GetId() << " bounds:" << bounds << " shape:" << shape << " hit:" << bounds.Intersects(shape);
+      OT_LOG(5) << a->GetType() << " " << a->GetId() << " bounds:" << bounds << " shape:" << shape << " hit:" << bounds.Intersects(shape);
       if (shape.Intersects(bounds)) {
          cb(entity);
          return true;

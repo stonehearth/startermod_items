@@ -11,6 +11,12 @@
       }
    },
 
+   "injected_ai" : {
+      "actions" : [
+         "stonehearth:actions:idle:despair"
+      ]
+   },
+
    "effect" : "stonehearth:effects:whatever",
    "tags" : [
       "hungry"

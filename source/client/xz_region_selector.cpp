@@ -83,7 +83,6 @@ void XZRegionSelector::SelectP0(const MouseInput &me)
 
 void XZRegionSelector::SelectP1(const MouseInput &me)
 {
-   //LOG(WARNING) << "P1...";
    csg::Point3 p;
    if (GetHoverBrick(me.x, me.y, p)) {
       ValidateP1(p.x, p.z);
@@ -149,6 +148,4 @@ finished:
    _p1.x = validx;
    _p1.y = _p0.y + 1;
    _p1.z = validz;
-
-   //LOG(WARNING) << "P1..." << _p1;
 }

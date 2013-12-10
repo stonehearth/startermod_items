@@ -36,6 +36,10 @@ end
 function GrabTalismanAction:run(ai, entity)
    assert(self._talisman_entity)
 
+   --Am I carrying anything? If so, drop it
+   local drop_location = radiant.entities.get_world_grid_location(entity)
+   ai:execute('stonehearth:drop_carrying', drop_location)
+
    local workbench_entity = self._talisman_entity:get_component('stonehearth:promotion_talisman'):get_workshop():get_entity();
 
    --TODO: if the dude is currently not a worker, he should drop his talisman

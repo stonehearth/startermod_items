@@ -62,7 +62,7 @@ void RecvQueue::Read()
       auto read_handler = std::bind(&RecvQueue::HandleRead, this, shared_from_this(), std::placeholders::_1, std::placeholders::_2);
       socket_.async_receive(boost::asio::buffer((void *)readBuf_.nextdata(), readBuf_.remaining()), read_handler);
    } else {
-      LOG(WARNING) << "buffer full in RecvQueue::Read.  Waiting for next process loop...";
+      NETWORK_LOG(3) << "buffer full in RecvQueue::Read.  Waiting for next process loop...";
    }
 }
 
@@ -85,7 +85,7 @@ void RecvQueue::HandleRead(RecvQueuePtr q, const boost::system::error_code& e, s
 
       int deltaTime = timeGetTime() - startTime;
       double kbps = (total * 8 / 1024.0) * 1000 / deltaTime;
-      LOG(INFO) << "(" << std::fixed << std::setw(11) << std::setprecision(2) << kbps << ") kbps... " << total << " bytes in " << deltaTime / 1000.0 << " seconds";
+      NETWORK_LOG(7) << "(" << std::fixed << std::setw(11) << std::setprecision(2) << kbps << ") kbps... " << total << " bytes in " << deltaTime / 1000.0 << " seconds";
       Read();
    }
 }

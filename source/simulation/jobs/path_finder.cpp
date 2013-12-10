@@ -14,6 +14,8 @@
 using namespace ::radiant;
 using namespace ::radiant::simulation;
 
+#define PF_LOG(level)   LOG_CATEGORY(simulation.pathfinder, level, GetName())
+
 #if defined(CHECK_HEAPINESS)
 #  define VERIFY_HEAPINESS() \
    do { \
@@ -127,7 +129,7 @@ void PathFinder::AddDestination(om::EntityRef e)
             luabind::object e(L, std::weak_ptr<om::Entity>(entity));
             ok = luabind::call_function<bool>(dst_filter_, e);
          } catch (std::exception& e) {
-            LOG(WARNING) << "exception in pathfinder filter function: " << e.what();
+            LUA_LOG(1) << "exception in pathfinder filter function: " << e.what();
          }
          if (!ok) {
             return;
@@ -283,7 +285,7 @@ void PathFinder::Work(const platform::timer &timer)
 
 void PathFinder::AddEdge(const csg::Point3 &current, const csg::Point3 &next, int movementCost)
 {
-   // LOG(WARNING) << "       Adding Edge " << neighbor.first << " cost:" << neighbor.second;
+   PF_LOG(10) << "       Adding Edge " << current << " cost:" << next;
 
    VERIFY_HEAPINESS();
 
@@ -312,10 +314,10 @@ void PathFinder::AddEdge(const csg::Point3 &current, const csg::Point3 &next, in
          h_[next] = h;
          VERIFY_HEAPINESS();
 
-         // LOG(WARNING) << "          Updating costs maps, f:" << (g+h) << "  g:" << g;
+         PF_LOG(10) << "          Updating costs maps, f:" << (g+h) << "  g:" << g;
       }
       if (!found) {
-         // LOG(WARNING) << "          Adding " << next << " to open set.";
+         PF_LOG(10) << "          Adding " << next << " to open set.";
          open_.push_back(next);
          if (!rebuildHeap_) {
             push_heap(open_.begin(), open_.end(), bind(&PathFinder::CompareEntries, this, std::placeholders::_1, std::placeholders::_2));
@@ -366,7 +368,7 @@ int PathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFinderDst
             continue;
          }
          int h = dst->EstimateMovementCost(from);
-         // LOG(WARNING) << GetName() << "    sub cost to dst: " << h << "(vs: " << hMin << ")";
+         PF_LOG(10) << "    sub cost to dst: " << h << "(vs: " << hMin << ")";
          if (h < hMin) {
             if (closest) {
                *closest = dst;
@@ -379,7 +381,7 @@ int PathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFinderDst
       float fudge = 1.25f; // to make the search finder at the hMin of accuracy
       hMin ? std::max(1, (int)(hMin * fudge)) : 0;
    }
-   //LOG(WARNING) << GetName() << "    EstimateCostToDestination returning " << hMin;
+   PF_LOG(10) << "    EstimateCostToDestination returning " << hMin;
    return hMin;
 }
 
@@ -393,7 +395,7 @@ csg::Point3 PathFinder::GetFirstOpen()
    open_.pop_back();
    VERIFY_HEAPINESS();
 
-   //LOG(WARNING) << GetName() << " open size is " << open_.size();
+   PF_LOG(10) << " open size is " << open_.size();
 
    return result;
 }

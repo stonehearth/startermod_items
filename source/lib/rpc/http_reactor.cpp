@@ -31,7 +31,7 @@ ReactorDeferredPtr HttpReactor::Call(json::Node const& query, std::string const&
       fn.route = query.get<std::string>("fn", "");
       fn.object = query.get<std::string>("obj", "");
 
-      LOG(INFO) << "http reactor dispatching " << fn;
+      RPC_LOG(5) << "http reactor dispatching " << fn;
 
       try {
          fn.args = libjson::parse(postdata);
@@ -47,7 +47,7 @@ ReactorDeferredPtr HttpReactor::Call(json::Node const& query, std::string const&
 
 
    } catch (std::exception &e) {
-      LOG(WARNING) << "critical error in http reactor: " << e.what();
+      RPC_LOG(3) << "critical error in http reactor: " << e.what();
    }
    return nullptr;
 }
@@ -63,7 +63,7 @@ ReactorDeferredPtr HttpReactor::InstallTrace(Trace const& t)
       try {
          d->Notify(libjson::parse(content));
       } catch (std::exception& e) {
-         LOG(WARNING) << "error trying to trace filesystem .json file: " << e.what();
+         RPC_LOG(3) << "error trying to trace filesystem .json file: " << e.what();
          return nullptr;
       }
       return d;
@@ -74,7 +74,7 @@ ReactorDeferredPtr HttpReactor::InstallTrace(Trace const& t)
 
 ReactorDeferredPtr HttpReactor::CreateDeferredResponse(Function const& fn, ReactorDeferredPtr d)
 {
-   LOG(INFO) << "http reactor creating deferred response for " << *d;
+   RPC_LOG(5) << "http reactor creating deferred response for " << *d;
 
    // send the result later in the event queue
    int call_id = fn.call_id;
@@ -83,7 +83,7 @@ ReactorDeferredPtr HttpReactor::CreateDeferredResponse(Function const& fn, React
       node.push_back(JSONNode("call_id", call_id));
       data.set_name("data");
       node.push_back(data);
-      LOG(INFO) << "http reactor queuing " << t << " event for call_id " << call_id << ".";
+      RPC_LOG(5) << "http reactor queuing " << t << " event for call_id " << call_id << ".";
       QueueEvent(t, node);
    };
    d->Progress([d, queue_event](JSONNode node) {
@@ -97,7 +97,7 @@ ReactorDeferredPtr HttpReactor::CreateDeferredResponse(Function const& fn, React
    });
 
    // return a deferred deferred =)
-   LOG(INFO) << "http reactor creating deferred to deliver call_deferred result";
+   RPC_LOG(5) << "http reactor creating deferred to deliver call_deferred result";
    ReactorDeferredPtr result = std::make_shared<ReactorDeferred>(std::string("http response to ") + fn.desc());
    JSONNode done;
    done.push_back(JSONNode("type",     "radiant_call_deferred"));
@@ -121,7 +121,7 @@ ReactorDeferredPtr HttpReactor::GetEvents(rpc::Function const& f)
 void HttpReactor::FlushEvents()
 {
    if (get_events_deferred_ && !queued_events_.empty()) {
-      LOG(INFO) << "flushing http_reactor events.";
+      RPC_LOG(5) << "flushing http_reactor events.";
       get_events_deferred_->Resolve(queued_events_);
       get_events_deferred_ = nullptr;
       queued_events_ = JSONNode(JSON_ARRAY);
@@ -130,7 +130,7 @@ void HttpReactor::FlushEvents()
 
 void HttpReactor::QueueEvent(std::string type, JSONNode payload)
 {
-   LOG(INFO) << "queuing new event of type " << type << " in http reactor.";
+   RPC_LOG(5) << "queuing new event of type " << type << " in http reactor.";
 
    JSONNode e(JSON_NODE);
    e.push_back(JSONNode("type", type));
@@ -169,12 +169,12 @@ bool HttpReactor::HttpGetFile(std::string const& uri, int &code, std::string& co
          JSONNode const& node = rm.LookupJson(uri);
          content = node.write();
       } else {
-         LOG(INFO) << "reading file " << uri;
+         RPC_LOG(5) << "reading file " << uri;
          std::shared_ptr<std::istream> is = rm.OpenResource(uri);
          content = io::read_contents(*is);
       }
    } catch (std::exception& e) {
-      LOG(WARNING) << "error code 404: " << e.what();
+      RPC_LOG(3) << "error code 404: " << e.what();
       code = 404;
       content = e.what();
       return false;
@@ -195,7 +195,7 @@ bool HttpReactor::HttpGetFile(std::string const& uri, int &code, std::string& co
       }
    }
    if (mimetype.empty()) {
-      LOG(WARNING) << "unrecognized mime type for uri: " <<  uri;
+      RPC_LOG(3) << "unrecognized mime type for uri: " <<  uri;
    }
    return true;
 }

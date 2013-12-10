@@ -22,6 +22,8 @@
 using namespace ::radiant;
 using namespace ::radiant::client;
 
+#define R_LOG(level)      LOG(renderer.renderer, level)
+
 std::vector<float> ssaoSamplerData;
 
 H3DRes ssaoMat;
@@ -69,14 +71,12 @@ Renderer::Renderer() :
    windowHeight_ = config_.screen_height;
 
    glfwSetErrorCallback([](int errorCode, const char* errorString) {
-      std::string s;
-      s.append(errorString).append(": [").append(std::to_string(errorCode)).append("]");
-      Renderer::GetInstance().lastGlfwError_ = s;
+      Renderer::GetInstance().lastGlfwError_ = BUILD_STRING(errorString << " (code: " << std::to_string(errorCode) << ")");
    });
 
    if (!glfwInit())
    {
-      throw std::exception(("Unable to initialize glfw: " + lastGlfwError_).c_str());
+      throw std::runtime_error(BUILD_STRING("Unable to initialize glfw: " << lastGlfwError_));
    }
 
    glfwWindowHint(GLFW_SAMPLES, config_.num_msaa_samples);
@@ -87,7 +87,7 @@ Renderer::Renderer() :
    if (!(window = glfwCreateWindow(windowWidth_, windowHeight_, "Stonehearth", 
         config_.enable_fullscreen ? glfwGetPrimaryMonitor() : nullptr, nullptr))) {
       glfwTerminate();
-      throw std::exception(("Unable to create glfw window: " + lastGlfwError_).c_str());
+      throw std::runtime_error(BUILD_STRING("Unable to create glfw window: " << lastGlfwError_));
    }
 
    glfwMakeContextCurrent(window);
@@ -96,7 +96,7 @@ Renderer::Renderer() :
    std::string s = (radiant::core::System::GetInstance().GetTempDirectory() / "horde3d_log.html").string();
    if (!h3dInit(2, 0, s.c_str())) {
       h3dutDumpMessages();
-      throw std::exception("Unable to initialize renderer.  Check horde log for details.");
+      throw std::runtime_error("Unable to initialize renderer.  Check horde log for details.");
    }
 
    // Set options
@@ -198,7 +198,7 @@ Renderer::Renderer() :
    
    glfwSetWindowCloseCallback(window, [](GLFWwindow* window) -> void {
       // die RIGHT NOW!!
-      LOG(WARNING) << "Bailing...";
+      R_LOG(0) << "window closed.  exiting process";
       TerminateProcess(GetCurrentProcess(), 1);
    });
    SetWindowPos(GetWindowHandle(), NULL, 0, 0 , 0, 0, SWP_NOSIZE);
@@ -367,7 +367,7 @@ SystemStats Renderer::GetStats()
    result.memory_gb = (int)(status.ullTotalPhys / 1048576.0f);
 #endif
 
-   LOG(WARNING) << "reported fps: " << result.frame_rate;
+   R_LOG(3) << "reported fps: " << result.frame_rate;
    return result;
 }
 
@@ -721,13 +721,13 @@ std::shared_ptr<RenderEntity> Renderer::CreateRenderObject(H3DNode parent, om::E
       return entry.render_entity;
    }
 
-   // LOG(WARNING) << "CREATING RENDER OBJECT " << sid << ", " << id;
+   R_LOG(5) << "creating render object " << sid << ", " << id;
    RenderMapEntry entry;
    entry.render_entity = std::make_shared<RenderEntity>(parent, entity);
    entry.render_entity->FinishConstruction();
    entry.lifetime_trace = entity->TraceChanges("render dtor", dm::RENDER_TRACES)
                                     ->OnDestroyed([this, sid, id]() { 
-                                       // LOG(WARNING) << "DESTROYING RENDER OBJECT " << sid << ", " << id;
+                                          R_LOG(5) << "destroying render object in trace callback " << sid << ", " << id;
                                           entities_[sid].erase(id);
                                        });
    entities[id] = entry;
@@ -756,7 +756,7 @@ void Renderer::RemoveRenderObject(int sid, dm::ObjectId id)
 {
    auto i = entities_[sid].find(id);
    if (i != entities_[sid].end()) {
-      LOG(WARNING) << "destroying render object (sid:" << sid << " id:" << id;
+      R_LOG(5) << "destroying render object (sid:" << sid << " id:" << id << ")";
       entities_[sid].erase(i);
    }
 }

@@ -1,5 +1,6 @@
 $(document).ready(function(){
    $(top).on('show_journal.stonehearth', function (_, e) {
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:journal_up' )
       var view = App.gameView.addView(App.StonehearthJournalView, { uri: e.entity });
    });
 });

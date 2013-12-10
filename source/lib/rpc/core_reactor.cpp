@@ -16,7 +16,7 @@ ReactorDeferredPtr CoreReactor::Call(Function const& fn)
 {
    ReactorDeferredPtr d;
 
-   LOG(INFO) << "dispatching call '" << fn << "'...";
+   RPC_LOG(5) << "dispatching call '" << fn << "'...";
 
    if (fn.object.empty()) {
       auto i = routes_.find(fn.route);
@@ -43,7 +43,7 @@ ReactorDeferredPtr CoreReactor::InstallTrace(Trace const& t)
 {
    ReactorDeferredPtr d;
 
-   LOG(INFO) << "dispatching trace '" << t << "'...";
+   RPC_LOG(5) << "dispatching trace '" << t << "'...";
    for (auto &router : routers_) {
       d = router->InstallTrace(t);
       if (d) {
@@ -61,7 +61,7 @@ ReactorDeferredPtr CoreReactor::RemoveTrace(UnTrace const& u)
 {
    ReactorDeferredPtr d;
 
-   LOG(INFO) << "removing trace '" << u << "'...";
+   RPC_LOG(5) << "removing trace '" << u << "'...";
    for (auto &router : routers_) {
       d = router->RemoveTrace(u);
       if (d) {
@@ -83,7 +83,7 @@ void CoreReactor::AddRoute(std::string const& route, CallCb cb)
 {
    auto i = routes_.find(route);
    if (i != routes_.end()) {
-      LOG(WARNING) << "overwriting existing route for " << route;
+      RPC_LOG(3) << "overwriting existing route for " << route;
       i->second = cb;
    } else {
       routes_[route] = cb;

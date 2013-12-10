@@ -3,12 +3,13 @@
 #include "record_trace_buffered.h"
 #include "tracer_buffered.h"
 #include "store.h"
-#include "dm_log.h"
 #include "dm_save_impl.h"
 #include "protocols/store.pb.h"
 
 using namespace radiant;
 using namespace radiant::dm;
+
+#define TRACE_LOG(level)  LOG_CATEGORY(dm.trace, level, "buffered record")
 
 template <typename R>
 RecordTraceBuffered<R>::RecordTraceBuffered(const char* reason, Record const& r, Tracer& tracer) :
@@ -16,7 +17,7 @@ RecordTraceBuffered<R>::RecordTraceBuffered(const char* reason, Record const& r,
    first_save_(true),
    changed_(false)
 {
-   TRACE_LOG(5) << "creating record trace buffered for object " << GetObjectId();
+   TRACE_LOG(5) << "creating trace for object " << GetObjectId();
 }
 
 template <typename R>

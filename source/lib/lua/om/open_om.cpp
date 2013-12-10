@@ -32,11 +32,11 @@ luabind::object json_to_lua(dm::Store const& store, lua_State* L, JSONNode const
 
 #undef OM_OBJECT
 
-            LOG(WARNING) << "unrecognized object type " << obj->GetObjectType() << " in lua_to_json!";
+            LUA_LOG(1) << "unrecognized object type " << obj->GetObjectType() << " in lua_to_json!";
          }
       }
    } catch (std::exception& e) {
-      LOG(WARNING) << "critical error in lua_to_json: " << e.what();
+      LUA_LOG(1) << "critical error in lua_to_json: " << e.what();
    }
    return luabind::object();
 }

@@ -73,6 +73,7 @@ function AiService:_on_event_loop(e)
    end
 end
 
+-- injecting entity may be null
 function AiService:inject_ai(entity, injecting_entity, ai) 
    return AiInjector(entity, injecting_entity, ai)
 end
@@ -86,9 +87,9 @@ function AiService:add_action(entity, uri, injecting_entity)
    return action
 end
 
-function AiService:remove_action(entity, action)
+function AiService:remove_action(entity, uri)
    local ai_component = self:_get_ai_component(entity)
-   ai_component:remove_action(action)
+   ai_component:remove_action(uri)
 end
 
 function AiService:add_observer(entity, uri, ...)

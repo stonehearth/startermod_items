@@ -24,20 +24,20 @@ static int PCallCallbackFn(lua_State* L)
    }
    std::string last_error = lua_tostring(L, 1);
 
-   LOG(WARNING) << lua_tostring(L, 1);
+   LUA_LOG(1) << lua_tostring(L, 1);
    lua_getfield(L, LUA_GLOBALSINDEX, "debug");
    if (!lua_istable(L, -1)) {
       lua_pop(L, 1);
-      LOG(WARNING) << "aborting traceback.  expected table for debug.";
+      LUA_LOG(1) << "aborting traceback.  expected table for debug.";
       return 1;
    }
    lua_getfield(L, -1, "traceback");
    if (!lua_isfunction(L, -1)) {
       lua_pop(L, 2);
-      LOG(WARNING) << "aborting traceback.  expected function for traceback.";
+      LUA_LOG(1) << "aborting traceback.  expected function for traceback.";
       return 1;
    }
-   LOG(WARNING) << "generating traceback...";
+   LUA_LOG(1) << "generating traceback...";
    lua_call(L, 0, 1);  /* call debug.traceback */
    std::string lastTraceback_ = std::string(lua_tostring(L, -1));
    lua_pop(L, 1);
@@ -71,7 +71,7 @@ JSONNode ScriptHost::LuaToJson(luabind::object obj)
          std::string json = call_function<std::string>(coder["encode"], obj);
          return libjson::parse(json);
       } catch (std::exception& e) {
-         LOG(WARNING) << "failed to convert coded json string to node: " << e.what();
+         LUA_LOG(1) << "failed to convert coded json string to node: " << e.what();
          return JSONNode();
       }
    } else if (t == LUA_TSTRING) {
@@ -87,7 +87,7 @@ JSONNode ScriptHost::LuaToJson(luabind::object obj)
    } else if (t == LUA_TBOOLEAN) {
       return JSONNode("", object_cast<bool>(obj));
    }
-   LOG(WARNING) << "unknown type converting lua to json: " << t;
+   LUA_LOG(1) << "unknown type converting lua to json: " << t;
    return JSONNode();
 }
 
@@ -187,19 +187,19 @@ void* ScriptHost::LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize)
 
 void ScriptHost::NotifyError(std::string const& error, std::string const& traceback)
 {
-   LOG(WARNING) << "-- Lua Error Begin ------------------------------- ";
+   LUA_LOG(1) << "-- Lua Error Begin ------------------------------- ";
    if (!error.empty()) {
-      LOG(WARNING) << lastError_;
+      LUA_LOG(1) << lastError_;
 
       std::string item;
       std::stringstream ss(traceback);
       while(std::getline(ss, item)) {
-         LOG(WARNING) << "   " << item;
+         LUA_LOG(1) << "   " << item;
       }
       lastError_.clear();
       lastTraceback_.clear();
    }
-   LOG(WARNING) << "-- Lua Error End   ------------------------------- ";
+   LUA_LOG(1) << "-- Lua Error End   ------------------------------- ";
    lastError_ = error;
    lastTraceback_ = traceback;
 }
@@ -227,13 +227,13 @@ luabind::object ScriptHost::LoadScript(std::string path)
    std::ifstream in;
    luabind::object obj;
 
-   LOG(INFO) << "loading script " << path;
+   LUA_LOG(5) << "loading script " << path;
    
    int error;
    try {
       error = luaL_loadfile_from_resource(L_, path.c_str());
    } catch (std::exception const& e) {
-      LOG(WARNING) << e.what();
+      LUA_LOG(1) << e.what();
       return luabind::object();
    }
 
@@ -257,32 +257,32 @@ luabind::object ScriptHost::LoadScript(std::string path)
 
 void ScriptHost::OnError(std::string description)
 {
-   LOG(WARNING) << "-- Lua Error Begin ------------------------------- ";
+   LUA_LOG(1) << "-- Lua Error Begin ------------------------------- ";
    std::string item;
    std::stringstream ss(description);
    while(std::getline(ss, item)) {
-      LOG(WARNING) << "   " << item;
+      LUA_LOG(1) << "   " << item;
    }
    if (!lastError_.empty()) {
-      LOG(WARNING) << lastError_;
+      LUA_LOG(1) << lastError_;
 
       std::stringstream ss(lastTraceback_);
       while(std::getline(ss, item)) {
-         LOG(WARNING) << "   " << item;
+         LUA_LOG(1) << "   " << item;
       }
       lastError_.clear();
       lastTraceback_.clear();
    }
-   LOG(WARNING) << "-- Lua Error End   ------------------------------- ";
+   LUA_LOG(1) << "-- Lua Error End   ------------------------------- ";
 
 #if 0
    luabind::object tb = luabind::globals(L_)["debug"]["traceback"];
    if (tb.is_valid()) { 
       std::string traceback = call_function<std::string>(tb);
-      LOG(WARNING) << lua_tostring(L_, -1);
-      LOG(WARNING) << "-- stack:";
-      LOG(WARNING) << traceback;
-      LOG(WARNING) << "-- endstack";
+      LUA_LOG(1) << lua_tostring(L_, -1);
+      LUA_LOG(1) << "-- stack:";
+      LUA_LOG(1) << traceback;
+      LUA_LOG(1) << "-- endstack";
    }
 #endif
 #if 0
@@ -319,7 +319,7 @@ luabind::object ScriptHost::RequireScript(std::string const& path)
    if (i != required_.end()) {
       obj = i->second;
    } else {
-      LOG(INFO) << "requiring script " << canonical_path;
+      LUA_LOG(5) << "requiring script " << canonical_path;
       required_[canonical_path] = luabind::object();
       obj = LoadScript(canonical_path);
       required_[canonical_path] = obj;
@@ -342,7 +342,7 @@ void ScriptHost::Call(luabind::object fn, luabind::object arg1)
 
 void ScriptHost::Log(std::string str)
 {
-   LOG(WARNING) << str;
+   LUA_LOG(1) << str;
 }
 
 void ScriptHost::AssertFailed(std::string reason)

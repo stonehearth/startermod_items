@@ -9,16 +9,18 @@
 #include "radiant_logger.h"
 #include "radiant_macros.h"
 
+#define DEFERRED_LOG(level)      LOG(deferred, level)
+
 BEGIN_RADIANT_CORE_NAMESPACE
 
 class DeferredBase {
 public:
    DeferredBase() : id_(next_deferred_id_++) { };
    DeferredBase(std::string const& dbg_name) : dbg_name_(dbg_name), id_(next_deferred_id_++) {
-      LOG(INFO) << LogPrefix() << "creating new deferred";
+      DEFERRED_LOG(5) << LogPrefix() << "creating new deferred";
    };
    ~DeferredBase() {
-      LOG(INFO) << LogPrefix() << "deferred destroyed";
+      DEFERRED_LOG(5) << LogPrefix() << "deferred destroyed";
    }
 
    std::string LogPrefix() const {
@@ -51,12 +53,12 @@ public:
    Deferred(std::string const& dbg_name) : DeferredBase(dbg_name), state_(Initialized) { }
 
    Deferred() : DeferredBase(), state_(Initialized) {
-      LOG(INFO) << LogPrefix() << "creating new deferred";
+      DEFERRED_LOG(5) << LogPrefix() << "creating new deferred";
    }
 
    ~Deferred() {
       if (IsPending()) {
-         LOG(INFO) << LogPrefix() << "rejecting deferred being destroying in wait state (this is probably an error!)";
+         DEFERRED_LOG(5) << LogPrefix() << "rejecting deferred being destroying in wait state (this is probably an error!)";
          Reject(error_);
       }
    }
@@ -64,38 +66,38 @@ public:
 public: // the promise...
    void Done(CompleteFn cb) override {
       if (state_ == Resolved) {
-         LOG(INFO) << LogPrefix() << "done called while resolved. firing cb.";
+         DEFERRED_LOG(5) << LogPrefix() << "done called while resolved. firing cb.";
          cb(result_);
       } else if (IsPending()) {
-         LOG(INFO) << LogPrefix() << "done called while waiting. buffering cb.";
+         DEFERRED_LOG(5) << LogPrefix() << "done called while waiting. buffering cb.";
          done_.push_back(cb);
       }
    }
    void Progress(typename CompleteFn cb) override {
       if (IsPending()) {         
-         LOG(INFO) << LogPrefix() << "progress called while waiting. buffering cb.";
+         DEFERRED_LOG(5) << LogPrefix() << "progress called while waiting. buffering cb.";
          progress_.push_back(cb);
          if (state_ == InProgress) {
-            LOG(INFO) << LogPrefix() << "notifying progress of last notify state";
+            DEFERRED_LOG(5) << LogPrefix() << "notifying progress of last notify state";
             cb(result_);
          }
       }      
    }
    void Fail(FailFn cb) override {
       if (state_ == Rejected) {
-         LOG(INFO) << LogPrefix() << "fail called while rejected. firing cb.";
+         DEFERRED_LOG(5) << LogPrefix() << "fail called while rejected. firing cb.";
          cb(error_);
       } else if (IsPending()) {
-         LOG(INFO) << LogPrefix() << "fail called while waiting. buffering cb.";
+         DEFERRED_LOG(5) << LogPrefix() << "fail called while waiting. buffering cb.";
          fail_.push_back(cb);
       }
    }
    void Always(VoidFn cb) override {
       if (IsPending()) {
-         LOG(INFO) << LogPrefix() << "fail called while waiting. buffering cb.";
+         DEFERRED_LOG(5) << LogPrefix() << "fail called while waiting. buffering cb.";
          always_.push_back(cb);
       } else {
-         LOG(INFO) << LogPrefix() << "fail called in non-wait state. firing cb.";
+         DEFERRED_LOG(5) << LogPrefix() << "fail called in non-wait state. firing cb.";
          cb();
       }
    }
@@ -118,7 +120,7 @@ public:  // the deferred...
    void Resolve(CompleteT result) {
       try {
          if (IsPending()) {
-            LOG(INFO) << LogPrefix() << "resolve called in wait state. firing all done cbs.";
+            DEFERRED_LOG(5) << LogPrefix() << "resolve called in wait state. firing all done cbs.";
             state_ = Resolved;
             result_ = result;
             for (const auto &cb : done_) {
@@ -126,33 +128,33 @@ public:  // the deferred...
             }
             Cleanup();
          } else {
-            LOG(ERROR) << LogPrefix() << "resolve called in non-wait state!";
+            DEFERRED_LOG(1) << LogPrefix() << "resolve called in non-wait state!";
          }
       } catch (std::exception &e) {
-         LOG(ERROR) << LogPrefix() << " caught exception in Resolve: " << e.what();
+         DEFERRED_LOG(1) << LogPrefix() << " caught exception in Resolve: " << e.what();
       }
    }
 
    void Notify(CompleteT obj) {
       try {
          if (IsPending()) {
-            LOG(INFO) << LogPrefix() << "notify called in wait state. firing all progress cbs.";
+            DEFERRED_LOG(5) << LogPrefix() << "notify called in wait state. firing all progress cbs.";
             for (const auto &cb : progress_) {
                cb(obj);
             }
             result_ = obj;
             state_ = InProgress;
          } else {
-            LOG(ERROR) << LogPrefix() << "notify called in non-wait state!";
+            DEFERRED_LOG(1) << LogPrefix() << "notify called in non-wait state!";
          }
       } catch (std::exception &e) {
-         LOG(ERROR) << LogPrefix() << " caught exception in Notify: " << e.what();
+         DEFERRED_LOG(1) << LogPrefix() << " caught exception in Notify: " << e.what();
       }
    }
    void Reject(FailT const& reason) {
       try {
          if (IsPending()) {
-            LOG(INFO) << LogPrefix() << "reject called in wait state. firing all fail cbs.";
+            DEFERRED_LOG(5) << LogPrefix() << "reject called in wait state. firing all fail cbs.";
             state_ = Rejected;
             error_ = reason;
             for (const auto &fn : fail_) {
@@ -160,10 +162,10 @@ public:  // the deferred...
             }
             Cleanup();
          } else {
-            LOG(ERROR) << LogPrefix() << "reject called in non-wait state!";
+            DEFERRED_LOG(1) << LogPrefix() << "reject called in non-wait state!";
          }
       } catch (std::exception &e) {
-         LOG(ERROR) << LogPrefix() << " caught exception in Reject: " << e.what();
+         DEFERRED_LOG(1) << LogPrefix() << " caught exception in Reject: " << e.what();
       }
    }
 
@@ -179,10 +181,10 @@ private:
             progress_.clear();
             fail_.clear();
          } else {
-            LOG(ERROR) << LogPrefix() << "cleanup called in non-wait state!";
+            DEFERRED_LOG(1) << LogPrefix() << "cleanup called in non-wait state!";
          }
       } catch (std::exception &e) {
-         LOG(ERROR) << LogPrefix() << " caught exception in Reject: " << e.what();
+         DEFERRED_LOG(1) << LogPrefix() << " caught exception in Reject: " << e.what();
       }
    }
 

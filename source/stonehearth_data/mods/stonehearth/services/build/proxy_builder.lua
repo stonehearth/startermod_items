@@ -48,7 +48,7 @@ function ProxyBuilder:_start()
       if e.type == _radiant.client.Input.MOUSE then
          return self._on_mouse(self._derived, e.mouse)
       elseif e.type == _radiant.client.Input.KEYBOARD then
-         return self._on_keyboard(self._derived, e.mouse)
+         return self._on_keyboard(self._derived, e.keyboard)
       end
       return false
    end)   
@@ -138,6 +138,14 @@ end
 function ProxyBuilder:publish()
    local package  = self:_package_proxy(self._root_proxy)
    _radiant.call('stonehearth:build_structures', package);
+   self:_clear()
+   if self._input_capture then
+      self._input_capture:destroy()
+      self._input_capture = nil
+   end
+end
+
+function ProxyBuilder:cancel()
    self:_clear()
    if self._input_capture then
       self._input_capture:destroy()

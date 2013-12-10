@@ -9,6 +9,14 @@
             ]
          }
       ],
+      "region_collision_shape" : {
+         "region": [
+            {
+               "min" : { "x" : -1, "y" : 0, "z" : -1 },
+               "max" : { "x" :  1, "y" : 3, "z" :  1 }
+            }
+         ]
+      },
       "unit_info": {
          "name": "Picket Fence",
          "description": "If it's not white, is our life unfulfilled?",

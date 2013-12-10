@@ -10,6 +10,7 @@
 //
 // *************************************************************************************************
 
+#include "radiant.h"
 #include "egScene.h"
 #include "egSceneGraphRes.h"
 #include "egLight.h"
@@ -22,7 +23,7 @@
 #include "utDebug.h"
 #include "lib/perfmon/perfmon.h"
 
-//#include "radiant.h"
+#define SCENE_LOG(level)      LOG(horde.scene, level)
 
 namespace Horde3D {
 
@@ -359,8 +360,6 @@ void SpatialGraph::query(const SpatialQuery& query, std::vector<RendQueueItem>& 
 {
    ASSERT(query.useLightQueue || query.useRenderableQueue);
 
-   // LOG(WARNING) << "----------" << reason << "--------------------";
-
 	Modules::sceneMan().updateNodes();
 	
 	Vec3f camPos( query.frustum.getOrigin() );
@@ -372,26 +371,26 @@ void SpatialGraph::query(const SpatialQuery& query, std::vector<RendQueueItem>& 
 	{
 		SceneNode *node = _nodes[i];
 		if (node == 0x0) {
-         // LOG(WARNING) << "ignoring node (null)";
+         SCENE_LOG(5) << "ignoring node (null)";
          continue;
       }
       if (node->_flags & query.filterIgnore) {
-         // LOG(WARNING) << "ignoring node (in ignore set) " << node->getName() << " " << node->getHandle();
+         SCENE_LOG(5) << "ignoring node (in ignore set) " << node->getName() << " " << node->getHandle();
          continue;
       }
       if ((node->_flags & query.filterRequired) != query.filterRequired) {
-         // LOG(WARNING) << "ignoring node (no required flag) " << node->getName() << " " << node->getHandle();
+         SCENE_LOG(5) << "ignoring node (no required flag) " << node->getName() << " " << node->getHandle();
          continue;
       }
 
       if (query.useRenderableQueue) {
          if (!node->_renderable) {
-            // LOG(WARNING) << "ignoring node (unrenderable) " << node->getName() << " " << node->getHandle();
+            SCENE_LOG(5) << "ignoring node (unrenderable) " << node->getName() << " " << node->getHandle();
             continue;
          }
 
          if (query.frustum.cullBox( node->_bBox ) && (query.secondaryFrustum == 0x0 || query.secondaryFrustum->cullBox( node ->_bBox ))) {
-            // LOG(WARNING) << "ignoring node (culled) " << node->getName() << " " << node->getHandle();
+            SCENE_LOG(5) << "ignoring node (culled) " << node->getName() << " " << node->getHandle();
             continue;
          }
 
@@ -399,7 +398,7 @@ void SpatialGraph::query(const SpatialQuery& query, std::vector<RendQueueItem>& 
          {
             uint32 curLod = ((MeshNode *)node)->getParentModel()->calcLodLevel( camPos );
             if( ((MeshNode *)node)->getLodLevel() != curLod ) {
-               // LOG(WARNING) << "ignoring node (wrong LOD level) " << node->getName() << " " << node->getHandle();
+               SCENE_LOG(5) << "ignoring node (wrong LOD level) " << node->getName() << " " << node->getHandle();
                continue;
             }
          }
@@ -419,11 +418,11 @@ void SpatialGraph::query(const SpatialQuery& query, std::vector<RendQueueItem>& 
             break;
          }
 				
-         // LOG(WARNING) << "adding node " << node->getName() << " " << node->getHandle();
+         SCENE_LOG(5) << "adding node " << node->getName() << " " << node->getHandle();
          renderableQueue.push_back( RendQueueItem( node->_type, sortKey, node ) );
       }
       if (query.useLightQueue && node->_type == SceneNodeTypes::Light) {		 
-         // LOG(WARNING) << "adding light " << node->getName() << " " << node->getHandle();
+         SCENE_LOG(5) << "adding light " << node->getName() << " " << node->getHandle();
          lightQueue.push_back( node );
       }
    }

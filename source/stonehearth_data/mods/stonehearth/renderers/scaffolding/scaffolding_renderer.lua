@@ -26,6 +26,9 @@ function ScaffoldingRenderer:__init(render_entity, ed)
    else
       self._origin = Point3f(0, 0, 0)
    end
+
+   self._pattern_width = ed.width
+   self._pattern_height = ed.height
    
    -- Create a new group node to store the individual nodes of each
    -- segment of the lattice.
@@ -88,6 +91,7 @@ function ScaffoldingRenderer:_update_shape()
       local normal = construction_data.normal
       if normal then
          self._rotation = ROTATION_TABLE[normal.x][normal.z]
+         self._tangent = normal.x == 0 and 'x' or 'z'
       end
    end
    
@@ -106,10 +110,24 @@ function ScaffoldingRenderer:_update_shape()
       end
    end
 end
+
+--- Return a hord3d node for the scaffolding at point.
+--  Make sure we scale and rotate it correctly,
+--  and position it where it belongs relative to the scaffolding origin.
 function ScaffoldingRenderer:_create_segment_node(pt) 
-   -- Return a hord3d node for the scaffolding at point.  Make sure we scale and rotate it correctly,
-   -- and position it where it belongs relative to the scaffolding origin.
-   local node = _radiant.client.create_qubicle_matrix_node(self._node, self._lattice, 'head', self._origin)
+   --Use the direction we're facing for the X coordinate of the lattice node we want
+   --Layout from left to right
+   local tangent = math.abs(pt[self._tangent])    
+   local x = (self._pattern_width - 1) - tangent % self._pattern_width
+   local y = pt.y % self._pattern_height
+
+   --Derive name of matrix (part of lattice we need from pt)
+   local matrix = string.format('scaffold_%d_%d',x, y )
+   
+   --need to flip 180 around y axis
+   self._rotation = (self._rotation  + 180) % 360
+
+   local node = _radiant.client.create_qubicle_matrix_node(self._node, self._lattice, matrix, self._origin)
    h3dSetNodeTransform(node, pt.x, pt.y, pt.z, 0, self._rotation, 0, self._scale, self._scale, self._scale)
    return node
 end

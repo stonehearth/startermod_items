@@ -270,6 +270,12 @@ function StockpileComponent:_remove_item(id)
             cursor:add_point(Point3(offset))
          end)
       end
+
+      --Remove items that have been taken out of the stockpile
+      radiant.events.trigger(self._entity, "stonehearth:item_removed", { 
+         storage = self._entity,
+         item = entity 
+      })
    end
 end
 
@@ -350,6 +356,7 @@ function StockpileComponent:_create_worker_tasks()
    local faction = radiant.entities.get_faction(self._entity)
    local worker_scheduler = radiant.mods.load('stonehearth').worker_scheduler:get_worker_scheduler(faction)
 
+   -- If the tasks already exist, blow them away so we can remake them
    if self._pickup_task then
       worker_scheduler:remove_worker_task(self._pickup_task)
       self._pickup_task:destroy()

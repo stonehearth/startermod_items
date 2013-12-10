@@ -7,13 +7,26 @@ local PlaceItemCallHandler = class()
 -- Client side object to place an item in the world. The item exists as an icon first
 -- This method is invoked by POSTing to the route for this file in the manifest.
 -- TODO: merge/factor out with CreateWorkshop?
-function PlaceItemCallHandler:choose_place_item_location(session, response, entity_uri)
+function PlaceItemCallHandler:choose_place_item_location(session, response, target_entity, entity_uri)
+   --Save whether the entity is just a type or an actual entity to determine if we're 
+   --going to place an actual object or just an object type
+   assert(target_entity, "Must pass entity data about the object to place")
+   self._next_call = nil
+   self._target_entity_data = nil
+   if type(target_entity) == 'string' then
+      self._next_call = 'stonehearth:place_item_type_in_world'
+      self._target_entity_data = target_entity
+   else
+      self._next_call = 'stonehearth:place_item_in_world'
+      self._target_entity_data = target_entity:get_id()
+   end
+   
    -- create a new "cursor entity".  this is the entity that will move around the
    -- screen to preview where the object will go.  these entities are called
    -- "authoring entities", because they exist only on the client side to help
    -- in the authoring of new content.
    -- TODO: show places the item cannot/should not be placed
-
+   self._entity_uri = entity_uri
    self._cursor_entity = radiant.entities.create_entity(entity_uri)
 
    -- add a render object so the cursor entity gets rendered.
@@ -38,12 +51,15 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, enti
             self:_on_mouse_event(e.mouse, response)
             return true
          end
+         if e.type == _radiant.client.Input.KEYBOARD then
+            self:_on_keyboard_event(e.keyboard)
+         end
+         --Don't consume the event in case the UI wants to do something too
          return false
       end)
 end
 
 -- called each time the mouse moves on the client.
--- TODO: FIX THIS TO THE NEW TASK MODEL BEFORE PUSHING!!!!
 function PlaceItemCallHandler:_on_mouse_event(e, response)
    -- query the scene to figure out what's under the mouse cursor
    local s = _radiant.client.query_scene(e.x, e.y)
@@ -71,30 +87,47 @@ function PlaceItemCallHandler:_on_mouse_event(e, response)
    end
 
    if e:up(1) and s.location then
-      -- destroy our capture object to release the mouse back to the client.  don't
-      -- destroy the authoring object yet!  doing so now will result in a brief period
-      -- of time where the server side object has not yet been created, yet the client
-      -- authoring object has been destroyed.  that leads to flicker, which is ugly.
-      self._capture:destroy()
-      self._capture = nil
 
-      response:resolve({
-         location = pt,
-         rotation = self._curr_rotation + 180
-      })
-      _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
+      self:_destroy_capture()
+      _radiant.call(self._next_call, self._target_entity_data, self._entity_uri, pt, self._curr_rotation+180)
+         :done(function (result)
+            response:resolve(result)
+            end)
+         :fail(function(result)
+            response:reject(result)
+            end)
+         :always(function ()
+            -- whether the request succeeds or fails, go ahead and destroy
+            -- the authoring entity.  Do it after the request returns to avoid
+            -- the ugly flickering that would occur had we destroyed it when
+            -- we uninstalled the mouse cursor
+            _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
+            end)
    end
-
    -- return true to prevent the mouse event from propogating to the UI
    return true
+end
+
+function PlaceItemCallHandler:_on_keyboard_event(e)
+   if e.key == _radiant.client.KeyboardInput.ESC and e.down then
+      self:_destroy_capture()
+       _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
+   end
+   return false
+end
+
+--- Destroy our capture object to release the mouse back to the client.
+function PlaceItemCallHandler:_destroy_capture()
+   self._capture:destroy()
+   self._capture = nil
 end
 
 --- Tell a worker to place the item in the world
 -- Server side object to handle creation of the workbench.  This is called
 -- by doing a POST to the route for this file specified in the manifest.
-function PlaceItemCallHandler:place_item_in_world(session, response, target_entity, full_sized_uri, location, rotation)
+function PlaceItemCallHandler:place_item_in_world(session, response, entity_id, full_sized_uri, location, rotation)
    local task = self:_init_pickup_worker_task(session, full_sized_uri, location, rotation)
-   task:add_work_object(target_entity)
+   task:add_work_object(_radiant.sim.get_entity(entity_id))
    task:start()
    return true
 end

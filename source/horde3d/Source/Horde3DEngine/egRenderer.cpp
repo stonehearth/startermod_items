@@ -31,6 +31,8 @@
 #endif
 #include "utDebug.h"
 
+#define R_LOG(level)    LOG(horde.renderer, level)
+
 namespace Horde3D {
 
 using namespace std;
@@ -474,10 +476,10 @@ bool Renderer::createShaderComb( const char* filename, const char *vertexShader,
       bool optimizeOk = glslopt_get_status(shader);
 	   if (optimizeOk) {
          result = glslopt_get_output (shader);
-         //LOG(WARNING) << "using optimized shader " << result;
+         //R_LOG(1) << "using optimized shader " << result;
       } else {
-         //LOG(WARNING) << "shader optimization failed " << glslopt_get_log(shader);
-         //LOG(WARNING) << "original shader: " << std::endl << input;
+         //R_LOG(1) << "shader optimization failed " << glslopt_get_log(shader);
+         //R_LOG(1) << "original shader: " << std::endl << input;
          result = input;
       }
       glslopt_shader_delete(shader);

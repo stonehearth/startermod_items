@@ -9,6 +9,8 @@
 using namespace ::radiant;
 using namespace ::radiant::client;
 
+#define CB_LOG(level)      LOG(renderer.carry_block, level)
+
 RenderCarryBlock::RenderCarryBlock(RenderEntity& entity, om::CarryBlockPtr carryBlock) :
    entity_(entity),
    carryBlock_(carryBlock),
@@ -30,7 +32,7 @@ RenderCarryBlock::~RenderCarryBlock()
 
 void RenderCarryBlock::UpdateCarrying()
 {
-   LOG(WARNING) << "updating carry block.";
+   CB_LOG(5) << "updating carry block.";
    auto carryBlock = carryBlock_.lock();
    if (carryBlock && carryBone_) {
       dm::ObjectId carryingId = 0;
@@ -43,10 +45,10 @@ void RenderCarryBlock::UpdateCarrying()
          if (carrying_) {
             auto renderObject = Renderer::GetInstance().GetRenderObject(2, carrying_); // xxx hard coded client store id =..(
             if (renderObject && renderObject->GetParent() == carryBone_) {
-               LOG(WARNING) << "setting render object " << carrying_ << " parent to " << 0;
+               CB_LOG(5) << "setting render object " << carrying_ << " parent to " << 0;
                renderObject->SetParent(0);
             } else {
-               LOG(WARNING) << "not reparenting old carrying.  already reparented off carry bone";
+               CB_LOG(5) << "not reparenting old carrying.  already reparented off carry bone";
             }
          }
 
@@ -60,7 +62,7 @@ void RenderCarryBlock::UpdateCarrying()
             // created) before firing traces, but who knows...
             om::EntityPtr entity = Client::GetInstance().GetStore().FetchObject<om::Entity>(carrying_);
             if (entity) {
-               LOG(WARNING) << "setting render object " << carrying_ << " parent to " << carryBone_;
+               CB_LOG(5) << "setting render object " << carrying_ << " parent to " << carryBone_;
                Renderer::GetInstance().CreateRenderObject(carryBone_, entity);
             }
          }

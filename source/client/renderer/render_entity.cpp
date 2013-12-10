@@ -31,11 +31,15 @@ using namespace ::radiant::client;
 
 int RenderEntity::totalObjectCount_ = 0;
 
+#define E_LOG(level)      LOG(renderer.entity, level)
+
 RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
    entity_(entity),
    initialized_(false)
 {
    ASSERT(parent);
+
+   E_LOG(5) << "creating render entity for object " << entity->GetObjectId();
 
    node_name_ = BUILD_STRING("[" << entity->GetDebugText() << " store:" << entity->GetStoreId() 
                                  << " id:" << entity->GetObjectId() << "]");
@@ -132,9 +136,9 @@ void RenderEntity::UpdateInvariantRenderers()
                      std::weak_ptr<RenderEntity> re = shared_from_this();
                      luabind::object render_invariant;
                      try {
-                        render_invariant = script->CallFunction<luabind::object>(ctor, re, script->JsonToLua(entry));
+                        render_invariant = luabind::call_function<luabind::object>(ctor, re, script->JsonToLua(entry));
                      } catch (std::exception const& e) {
-                        LOG(WARNING) << e.what();
+                        LUA_LOG(1) << e.what();
                         continue;
                      }
                      lua_invariants_[name] = render_invariant;

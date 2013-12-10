@@ -1,13 +1,12 @@
 #include "radiant.h"
 #include "receiver.h"
 #include "object.h"
-#include "dm_log.h"
 #include "store.h"
 
 using namespace radiant;
 using namespace radiant::dm;
 
-#define RECEIVER_LOG(level)      DM_LOG("receiver", level)
+#define RECEIVER_LOG(level)      LOG(dm.receiver, level)
 
 Receiver::Receiver(Store& store) :
    store_(store)

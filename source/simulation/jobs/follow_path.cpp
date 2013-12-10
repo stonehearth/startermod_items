@@ -3,11 +3,11 @@
 #include "om/entity.h"
 #include "om/components/mob.ridl.h"
 #include "csg/util.h" // xxx: should be csg/csg.h
-#include <boost/program_options.hpp>
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
-namespace po = boost::program_options;
+
+#define FP_LOG(level)      LOG_CATEGORY(simulation.follow_path, level, GetName())
 
 std::ostream& simulation::operator<<(std::ostream& os, FollowPath const& o)
 {
@@ -116,9 +116,9 @@ void FollowPath::Report(std::string msg)
          auto start = points.front();
          auto end = points.back();
          auto location = entity->GetComponent<om::Mob>()->GetWorldLocation();
-         LOG(INFO) << msg << " (follow path " << (void*)this << " entity:" << entity->GetObjectId() << " " << start << " -> " << end << " currently at " << location << ")";
+         FP_LOG(5) << msg << " (entity:" << entity->GetObjectId() << " " << start << " -> " << end << " currently at " << location << ")";
       } else {
-         LOG(INFO) << msg << " (follow path " << (void*)this << " entity:" << entity->GetObjectId() << " path has no points)";
+         FP_LOG(5) << msg << " ( entity:" << entity->GetObjectId() << " path has no points)";
       }
    }
 }

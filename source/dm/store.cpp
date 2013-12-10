@@ -9,12 +9,14 @@
 using namespace ::radiant;
 using namespace ::radiant::dm;
 
+#define STORE_LOG(level)      LOG(dm.store, level)
+
 Store*  Store::stores_[4 + 1] = { 0 };
 
 Store& Store::GetStore(int id)
 {
    if (!id) {
-      LOG(WARNING) << "object asked for store id 0.  we're about to die...";
+      STORE_LOG(0) << "object asked for store id 0.  we're about to die...";
    }
    ASSERT(id);
    return *stores_[id];
