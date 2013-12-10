@@ -48,7 +48,7 @@ function ProxyBuilder:_start()
       if e.type == _radiant.client.Input.MOUSE then
          return self._on_mouse(self._derived, e.mouse)
       elseif e.type == _radiant.client.Input.KEYBOARD then
-         return self._on_keyboard(self._derived, e.mouse)
+         return self._on_keyboard(self._derived, e.keyboard)
       end
       return false
    end)   

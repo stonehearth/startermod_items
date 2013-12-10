@@ -10,7 +10,7 @@ function Fabricate:run(ai, entity, path)
    local carrying = radiant.entities.get_carrying(entity)
    
    ai:execute('stonehearth:follow_path', path)
-   radiant.entities.turn_to_face(entity, endpoint)
+   radiant.entities.turn_to_face(entity, block)
    ai:execute('stonehearth:run_effect', 'work')
 
    fabricator:add_block(carrying, block)

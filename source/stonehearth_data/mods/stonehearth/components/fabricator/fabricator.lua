@@ -133,8 +133,7 @@ function Fabricator:_start_pickup_task()
    end
    
    local work_obj_filter_fn = function(item)
-      local is_wooden_resource = item:add_component('stonehearth:material'):is('wood resource')
-      return is_wooden_resource
+      return radiant.entities.is_material(item, 'wood resource')
    end   
 
    local name = 'pickup to fabricate ' .. self.name

@@ -26,6 +26,9 @@ function ScaffoldingRenderer:__init(render_entity, ed)
    else
       self._origin = Point3f(0, 0, 0)
    end
+
+   self._pattern_width = ed.width
+   self._pattern_height = ed.height
    
    -- Create a new group node to store the individual nodes of each
    -- segment of the lattice.
@@ -115,12 +118,11 @@ function ScaffoldingRenderer:_create_segment_node(pt)
    --Use the direction we're facing for the X coordinate of the lattice node we want
    --Layout from left to right
    local tangent = math.abs(pt[self._tangent])    
-   local x = 3 - tangent % 4
-   local y = pt.y % 4
+   local x = (self._pattern_width - 1) - tangent % self._pattern_width
+   local y = pt.y % self._pattern_height
 
    --Derive name of matrix (part of lattice we need from pt)
    local matrix = string.format('scaffold_%d_%d',x, y )
-   local construction_data = self._entity:get_component_data('stonehearth:construction_data')
    
    --need to flip 180 around y axis
    self._rotation = (self._rotation  + 180) % 360
