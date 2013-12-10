@@ -15,6 +15,7 @@ context SKY
 
 [[VS_SKYSPHERE]]
 
+uniform mat4 worldMat;
 uniform mat4 projMat;
 
 uniform vec4 skycolor_start;
@@ -29,13 +30,16 @@ varying vec4 endCol;
 
 void main() {
   // Compress the gradient to occupy the most visible band of the sky.
-
-  colorT = (10 * texCoords0.y) - 2.9, 0.0, 1.0;
+  colorT = (10.0 * texCoords0.y) - 2.5;
   
   startCol = skycolor_start;
   endCol = skycolor_end;
   
-  gl_Position = projMat * vec4(vertPos, 1.0);
+  // We rotate the sphere just a bit, in order to minimize the perspective warping
+  // of the sphere.
+  vertPos.y -= 50;
+  vec3 worldPos = worldMat * vec4(vertPos, 0.0);
+  gl_Position = projMat * vec4(worldPos, 1.0);
 }
 
 [[FS_SKYSPHERE]]

@@ -520,8 +520,8 @@ void Renderer::RenderOneFrame(int now, float alpha)
    
    // Update the position of the sky so that it is always around the camera.
    h3dSetNodeTransform(meshNode, 
-      camera_->GetPosition().x, camera_->GetPosition().y, camera_->GetPosition().z,
-      0.0, 0.0, 0.0, 
+      camera_->GetPosition().x, -50 + camera_->GetPosition().y, camera_->GetPosition().z,
+      25.0, 0.0, 0.0, 
       1.0, 1.0, 1.0);
 
    // Render scene
