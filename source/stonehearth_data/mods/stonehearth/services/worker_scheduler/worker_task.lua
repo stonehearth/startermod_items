@@ -41,6 +41,10 @@ function WorkerTask:set_action_fn(fn)
    return self
 end
 
+function WorkerTask:set_finish_fn(fn)
+   self._set_finish_fn = fn
+end
+
 function WorkerTask:set_action(action_name)
    self:set_action_fn(function (path)
          return action_name, path
@@ -59,6 +63,7 @@ function WorkerTask:set_work_object_filter_fn(filter_fn)
       self._promise = nil
    end
 
+   self._work_object_filter_fn = filter_fn
    if filter_fn then
       local on_added = function(id, entity)
          if filter_fn(entity) then
@@ -74,11 +79,14 @@ function WorkerTask:set_work_object_filter_fn(filter_fn)
 end
 
 function WorkerTask:add_work_object(dst)
-   self._destinations[dst:get_id()] = dst
-   for worker_id, pf in pairs(self._pathfinders) do
-      pf:add_destination(dst)
+   local ok = not self._work_object_filter_fn or self._work_object_filter_fn(dst)
+   if ok then
+      self._destinations[dst:get_id()] = dst
+      for worker_id, pf in pairs(self._pathfinders) do
+         pf:add_destination(dst)
+      end
+      return self
    end
-   return self
 end
 
 function WorkerTask:remove_work_object(id)
@@ -124,33 +132,47 @@ function WorkerTask:_consider_worker(worker)
    assert(self._get_action_fn, string.format('no action function set for WorkerTask %s', self._name))
    assert(self._worker_filter_fn, string.format('no worker filter function set for WorkerTask %s', self._name))
 
-   local id = worker:get_id()
-   if not self._pathfinders[id] then
-      local solved_cb = function(path)
-         self:_dispatch_solution(path)
-      end
-
+   local worker_id = worker:get_id()
+   if not self._pathfinders[worker_id] then
       if self._worker_filter_fn(worker) then
-         local name = string.format('%s for worker %d', self._name, id)
+         -- create a new pathfinder for this worker
+         local name = string.format('%s for worker %d', self._name, worker_id)
          local pf = radiant.pathfinder.create_path_finder(name)
                                        :set_source(worker)
-                                       :set_solved_cb(solved_cb)
                                        :set_debug_color(self._debug_color)
+                                       
+         -- forward all the valid destinations for this task to the new
+         -- pathfinder
          for id, dst in pairs(self._destinations) do
             pf:add_destination(dst)
          end
-         self._pathfinders[id] = pf
-         pf = pf
+         
+         -- in the pathfinder, setup a solution function to dispath the
+         -- task to the worker
+         pf:set_solved_cb(function(path)
+            self:_dispatch_solution(path)
+         end)
+         
+         self._pathfinders[worker_id] = pf
       else
-         self:_remove_worker(id)
+         self:_remove_worker(worker_id)
       end
    end
 end
 
 function WorkerTask:_dispatch_solution(path)
+   local worker_id = path:get_source():get_id()
+   local destination_id = path:get_destination():get_id()
+   local pf = self._pathfinders[worker_id]
+
    local action = { self._get_action_fn(path) }
-   local worker_id = path:get_source():get_id();
-   self._scheduler:dispatch_solution(self._priority, worker_id, action)
+   local finish_fn = function(success)
+      if self._finish_fn then
+         self._finish_fn(success, action)
+      end
+   end
+   pf:stop()
+   self._scheduler:dispatch_solution(self._priority, worker_id, destination_id, action, finish_fn)
 end
 
 return WorkerTask

@@ -12,14 +12,13 @@ PickupItemOnGround.priority = 5
 ]]
 function PickupItemOnGround:run(ai, entity, item)
    if not item then
-      ai:abort()
+      ai:abort('no item specified in stonehearth:pickup_item_on_ground')
    end
-
    radiant.check.is_entity(item)
    local carry_block = entity:get_component('carry_block')
 
-   if carry_block:is_carrying() then
-      local carrying = carry_block:get_carrying()
+   local carrying = carry_block:get_carrying()
+   if carrying then
       if carrying:get_id() ~= item:get_id() then
          ai:abort('cannot pick up another item while carrying one!')
       end

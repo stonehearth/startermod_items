@@ -64,7 +64,19 @@ function StockpileComponent:__init(entity, data_binding)
    self._data_binding:update(self._data)
 
    self._destination:set_region(_radiant.sim.alloc_region())
+                    :set_reserved(_radiant.sim.alloc_region())
                     :set_auto_update_adjacent(true)
+                    
+   self._adjacent_trace = self._destination:trace_adjacent('updating pickup task')
+      :on_changed(function(adjacent_region)
+         if self._pickup_task then
+            if adjacent_region:empty() then
+               self._pickup_task:stop()
+            else
+               self._pickup_task:start()
+            end
+         end
+      end)
 
    radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
    all_stockpiles[self._entity:get_id()] = self
@@ -200,39 +212,38 @@ function StockpileComponent:reserve_adjacent(location)
 end
 ]]--
 
-function StockpileComponent:reserve(location)
-   local origin = Point3(radiant.entities.get_world_grid_location(self._entity))
-   local pt = Point3(location) - origin
-   local region = self._destination:get_region()
-   if region:get():contains(pt) then
-      region:modify(function(cursor)
-         cursor:subtract_point(pt)
-      end)
-      return true
-   end
+function StockpileComponent:_add_to_region(location)
+   local pt = location - radiant.entities.get_world_grid_location(self._entity)
+   radiant.log.info('adding point %s to region', tostring(pt))
+   self._destination:get_region():modify(function(cursor)
+      cursor:subtract_point(pt)
+   end)
+   radiant.log.info('finished adding point %s to region', tostring(pt))
+   self:_unreserve(location)
 end
 
-function StockpileComponent:_remove_world_point_from_region(location)
-   local origin = radiant.entities.get_world_grid_location(self._entity)
-   local offset = location - origin
-   local region = self._destination:get_region()
-   region:modify(function(cursor)
-      cursor:subtract_point(offset)
+function StockpileComponent:_reserve(location)
+   local pt = location - radiant.entities.get_world_grid_location(self._entity)
+   radiant.log.info('adding point %s to reserve region', tostring(pt))
+   self._destination:get_reserved():modify(function(cursor)
+      cursor:add_point(pt)
    end)
-   if self._pickup_task then
-      if region:get():empty() then
-         self._pickup_task:stop()
-      else
-         self._pickup_task:start()
-      end
-   end
+   radiant.log.info('finished adding point %s to reserve region', tostring(pt))
+end
+
+function StockpileComponent:_unreserve(location)
+   local pt = location - radiant.entities.get_world_grid_location(self._entity)
+   radiant.log.info('removing point %s from reserve region', tostring(pt))
+   self._destination:get_reserved():modify(function(cursor)
+      cursor:subtract_point(pt)
+   end)
+   radiant.log.info('finished removing point %s from reserve region', tostring(pt))
 end
 
 function StockpileComponent:_add_item(entity)
    local location = radiant.entities.get_world_grid_location(entity)
    local world_bounds = self:_get_world_bounds()
-
-      
+   
    if self:can_stock_entity(entity) and self:contains(entity) then
       local item = entity:get_component('item')
       if item then
@@ -247,7 +258,7 @@ function StockpileComponent:_add_item(entity)
 
          -- update our destination component to *remove* the space
          -- where the item is, since we can't drop anything there
-         self:_remove_world_point_from_region(location)
+         self:_add_to_region(location)
          self._data_binding:mark_changed()
       end
    end
@@ -363,8 +374,24 @@ function StockpileComponent:_create_worker_tasks()
    -- stonehearth:pickup_item_on_path action, passing in the path found
    -- by the worker task.
    self._pickup_task = worker_scheduler:add_worker_task('pickup_to_restock')
-                          :set_action('stonehearth:pickup_item_on_path')
                           :set_priority(priorities.RESTOCK_STOCKPILE)
+                          
+   self._pickup_task:set_action_fn(
+      function (path)
+         radiant.log.info('dispatching pickup task')
+         local item = path:get_destination()
+         self._pickup_task:remove_work_object(item:get_id())
+         return 'stonehearth:pickup_item_on_path', path
+      end
+   )
+   self._pickup_task:set_finish_fn(
+      function(success, packed_action)
+         if not success then
+            local name, path = unpack(packed_action)
+            self._pickup_task:add_work_object(path:get_destination())
+         end
+      end
+   )
 
    -- Only consider workers that aren't currently carrying anything.
    self._pickup_task:set_worker_filter_fn(
@@ -380,13 +407,10 @@ function StockpileComponent:_create_worker_tasks()
          if not self:can_stock_entity(entity) then
             return false
          end
-
          local stockpile = get_stockpile_containing_entity(entity)
-
          if stockpile and not stockpile:is_outbox() then 
             return false
-         end
-         
+         end         
          return true
       end
    )
@@ -425,7 +449,20 @@ function StockpileComponent:_create_worker_tasks()
    -- whatever kind of activity we want
    self._restock_task:set_action_fn(
       function (path)
-         return 'stonehearth:restock', path, self
+         radiant.log.info('dispatching restock task')
+         local pt = path:get_destination_point_of_interest()
+         assert(radiant.entities.point_in_destination_region(self._entity, pt))
+         assert(not radiant.entities.point_in_destination_reserved(self._entity, pt))
+         self:_reserve(pt)
+         return 'stonehearth:restock', path, self, pt
+      end
+   )
+   self._restock_task:set_finish_fn(
+      function(success, packed_action)
+         local stonehearth_restock, path, self, pt = packed_action
+         if not success then
+            self:_unreserve(pt)
+         end
       end
    )
 

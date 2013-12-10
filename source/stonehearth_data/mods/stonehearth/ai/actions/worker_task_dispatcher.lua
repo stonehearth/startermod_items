@@ -11,8 +11,8 @@ function WorkerTaskDispatcher:__init(ai, entity)
 
    local faction = self._entity:get_component('unit_info'):get_faction()
    local ws = radiant.mods.load('stonehearth').worker_scheduler
-   self._scheduler = ws:get_worker_scheduler(faction)
-
+   
+   self._scheduler = ws:get_worker_scheduler(faction)   
    self:_wait_for_next_task()
 end
 
@@ -21,15 +21,17 @@ function WorkerTaskDispatcher:destroy()
 end
 
 function WorkerTaskDispatcher:_wait_for_next_task()
-   if self._task then
-      self._scheduler:abort_worker_task(self._task)
-      self._task = nil
+   if self._finish_fn then
+      self._finish_fn(self._task == nil)
+      self._finish_fn = nil
    end
+   self._task = nil
 
-   local dispatch_fn = function(priority, packed_action)
+   local dispatch_fn = function(priority, packed_action, finish_fn)
       self._task = packed_action
+      self._finish_fn = finish_fn
       self._ai:set_action_priority(self, priority)
-   end
+   end   
 
    self._ai:set_action_priority(self, 0)
    self._scheduler:add_worker(self._entity, dispatch_fn)

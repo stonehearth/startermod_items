@@ -11,20 +11,23 @@ function WorkerScheduler:__init(faction)
    self._strict = true
 end
 
-function WorkerScheduler:dispatch_solution(priority, id, action)
-   local dispatcher = self._dispatchers[id]
+function WorkerScheduler:dispatch_solution(priority, worker_id, destination_id, action, finish_fn)
+   local dispatcher = self._dispatchers[worker_id]
    
    if self._strict then
       --TODO: This is getting really frustrating.
       --I don't know why the workers are being cycled through twice, but it 
       --happens 100% of the time we try to make 2 stockpiles with exclusive requirements.
       --When not strict, game proceeds fine
-      assert(dispatcher, string.format('unknown worker id %d in _dispatch_solution', id))
+      assert(dispatcher, string.format('unknown worker id %d in _dispatch_solution', worker_id))
    elseif not dispatcher then
-      radiant.log.warning('unknown worker id %d in _dispatch_solution', id)
+      radiant.log.warning('unknown worker id %d in _dispatch_solution', worker_id)
+      if finish_fn then
+         finish_fn(false)
+      end
       return
    end
-   dispatcher:add_solution(priority, action)
+   dispatcher:add_solution(destination_id, priority, action, finish_fn)
 end
 
 function WorkerScheduler:abort_worker_task(task)

@@ -7,16 +7,15 @@ PickupItemOnPath.priority = 5
 
 function PickupItemOnPath:run(ai, entity, path)
    local item = path:get_destination()
-   --TODO: if the destination item changes, we should just abort from inside the pf
-   ai:execute('stonehearth:follow_path', path)
+   self._item_trace = radiant.entities.trace_location(item, 'pickup item on path')
+      :on_changed(function()
+         ai:abort('path destination changed')
+      end)
+      :on_destroyed(function()
+         ai:abort('path destination destroyed')
+      end)
 
-   --There's always a chance the item may no longer be there. Fail gracefully
-   --TODO: Put up a confused animation
-   if not item then
-      local name = entity:get_component('unit_info'):get_display_name()
-      radiant.log.info('%s (Worker %s): Huh? Where is the thing I was looking for?', tostring(entity), name)
-      ai:abort()
-   end
+   ai:execute('stonehearth:follow_path', path)
 
    --If the item has a placed_item_component, it's too big to pick up normally
    --and it might be in use. If it's in use, do not pick it up! Just abort.
@@ -24,18 +23,29 @@ function PickupItemOnPath:run(ai, entity, path)
    local placed_item_component = item:get_component('stonehearth:placed_item')
    if placed_item_component then
       local item_location = item:get_component('mob'):get_world_grid_location()
-
       local little_item = radiant.entities.create_entity(placed_item_component:get_proxy())
       ai:execute('stonehearth:run_effect', 'work')
+      
+      self:_clear_item_trace()
       local proxy_component = little_item:add_component('stonehearth:placeable_item_proxy')
       proxy_component:set_full_sized_entity(item)
       radiant.terrain.remove_entity(item)
-
       radiant.terrain.place_entity(little_item, item_location)
       item = little_item
    end
-
+   self:_clear_item_trace()
    ai:execute('stonehearth:pickup_item_on_ground', item)
+end
+
+function PickupItemOnPath:stop()
+   self:_clear_item_trace()
+end
+
+function PickupItemOnPath:_clear_item_trace()
+   if self._item_trace then
+      self._item_trace:destroy()
+      self._item_trace = nil
+   end
 end
 
 return PickupItemOnPath
