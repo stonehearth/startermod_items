@@ -122,10 +122,9 @@ App.StonehearthPlaceItemView = App.View.extend({
 
          var self = this;
 
-         radiant.call('stonehearth:choose_place_item_location', item.full_sized_entity_uri)
+         radiant.call('stonehearth:choose_place_item_location', item.entity_uri, item.full_sized_entity_uri)
             .done(function(o){
                var item_type = 1;
-               radiant.call('stonehearth:place_item_type_in_world', item.entity_uri, item.full_sized_entity_uri, o.location, o.rotation);
                radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
                               
                self.waitingForPlacement = false;

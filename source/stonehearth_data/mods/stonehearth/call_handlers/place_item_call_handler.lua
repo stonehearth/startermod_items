@@ -7,14 +7,26 @@ local PlaceItemCallHandler = class()
 -- Client side object to place an item in the world. The item exists as an icon first
 -- This method is invoked by POSTing to the route for this file in the manifest.
 -- TODO: merge/factor out with CreateWorkshop?
-function PlaceItemCallHandler:choose_place_item_location(session, response, entity, entity_uri)
+function PlaceItemCallHandler:choose_place_item_location(session, response, target_entity, entity_uri)
+   --Save whether the entity is just a type or an actual entity to determine if we're 
+   --going to place an actual object or just an object type
+   assert(target_entity, "Must pass entity data about the object to place")
+   self._next_call = nil
+   self._target_entity_data = nil
+   if type(target_entity) == 'string' then
+      self._next_call = 'stonehearth:place_item_type_in_world'
+      self._target_entity_data = target_entity
+   else
+      self._next_call = 'stonehearth:place_item_in_world'
+      self._target_entity_data = target_entity:get_id()
+   end
+   
    -- create a new "cursor entity".  this is the entity that will move around the
    -- screen to preview where the object will go.  these entities are called
    -- "authoring entities", because they exist only on the client side to help
    -- in the authoring of new content.
    -- TODO: show places the item cannot/should not be placed
    self._entity_uri = entity_uri
-   self._target_entity = entity
    self._cursor_entity = radiant.entities.create_entity(entity_uri)
 
    -- add a render object so the cursor entity gets rendered.
@@ -77,7 +89,7 @@ function PlaceItemCallHandler:_on_mouse_event(e, response)
    if e:up(1) and s.location then
 
       self:_destroy_capture()
-      _radiant.call('stonehearth:place_item_in_world', self._target_entity:get_id(), self._entity_uri, pt, self._curr_rotation+180)
+      _radiant.call(self._next_call, self._target_entity_data, self._entity_uri, pt, self._curr_rotation+180)
          :done(function (result)
             response:resolve(result)
             end)
