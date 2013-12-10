@@ -53,6 +53,8 @@ using namespace ::radiant::simulation;
 namespace proto = ::radiant::tesseract::protocol;
 namespace po = boost::program_options;
 
+#define SIM_LOG(level)     LOG(simulation.core, level)
+
 Simulation::Simulation() :
    _showDebugNodes(false),
    _singleStepPathFinding(false),
@@ -87,7 +89,7 @@ Simulation::Simulation() :
       std::ostringstream msg;
       _showDebugNodes = !_showDebugNodes;
       msg << "debug nodes turned " << (_showDebugNodes ? "ON" : "OFF");
-      LOG(WARNING) << msg.str();
+      SIM_LOG(3) << msg.str();
 
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:toggle_debug_nodes");
       result->ResolveWithMsg(msg.str());
@@ -97,7 +99,7 @@ Simulation::Simulation() :
       std::ostringstream msg;
       _singleStepPathFinding = !_singleStepPathFinding;
       msg << "single step path finding turned " << (_singleStepPathFinding ? "ON" : "OFF");
-      LOG(WARNING) << msg.str();
+      SIM_LOG(3) << msg.str();
 
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:toggle_step_paths");
       result->ResolveWithMsg(msg.str());
@@ -184,7 +186,7 @@ void Simulation::StepPathFinding()
 
          std::ostringstream progress;
          p->LogProgress(progress);
-         LOG(WARNING) << progress.str();
+         SIM_LOG(1) << progress.str();
       }
    });
 }
@@ -210,7 +212,7 @@ void Simulation::Step()
    try {
       now_ = luabind::call_function<int>(game_api_["update"], _stepInterval);
    } catch (std::exception const& e) {
-      LOG(WARNING) << "fatal error initializing game update: " << e.what();
+      SIM_LOG(3) << "fatal error initializing game update: " << e.what();
    }
 
    // Collision detection...
@@ -335,13 +337,13 @@ void Simulation::ProcessJobList(platform::timer &timer)
 {
    // Pahtfinders down here...
    if (_singleStepPathFinding) {
-      LOG(INFO) << "skipping job processing (single step is on).";
+      SIM_LOG(5) << "skipping job processing (single step is on).";
       return;
    }
 
 
    int idleCountdown = jobs_.size();
-   LOG(INFO) << timer.remaining() << " ms remaining in process job list (" << idleCountdown << " jobs).";
+   SIM_LOG(5) << timer.remaining() << " ms remaining in process job list (" << idleCountdown << " jobs).";
 
    while (!timer.expired() && !jobs_.empty() && idleCountdown) {
       std::weak_ptr<Job> front = radiant::stdutil::pop_front(jobs_);
@@ -352,11 +354,11 @@ void Simulation::ProcessJobList(platform::timer &timer)
             if (!job->IsIdle()) {
                idleCountdown = jobs_.size() + 2;
                job->Work(timer);
-               //job->LogProgress(LOG(WARNING));
+               //job->LogProgress(SIM_LOG(3));
             }
             jobs_.push_back(front);
          } else {
-            LOG(WARNING) << "destroying job..";
+            SIM_LOG(3) << "destroying job..";
          }
       }
       idleCountdown--;
@@ -390,7 +392,7 @@ void Simulation::SendReply(proto::PostCommandReply const& reply)
    proto::PostCommandReply* r = msg.MutableExtension(proto::PostCommandReply::extension);
    *r = reply; // is this kosher?
 
-   LOG(INFO) << "adding buffered reply.............";
+   SIM_LOG(5) << "adding buffered reply.............";
    buffered_updates_.emplace_back(msg);
 }
 
@@ -487,7 +489,7 @@ void Simulation::idle()
 {
    PROFILE_BLOCK();
 
-   // LOG(WARNING) << _timer.remaining() << " time left in idle";
+   // SIM_LOG(3) << _timer.remaining() << " time left in idle";
 
    // xxx: we should probably read and parse network events even while idle.
    scriptHost_->GC(_timer);

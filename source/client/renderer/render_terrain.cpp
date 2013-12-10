@@ -12,6 +12,8 @@
 using namespace ::radiant;
 using namespace ::radiant::client;
 
+#define T_LOG(level)      LOG(renderer.terrain, level)
+
 static csg::mesh_tools::tesselator_map tess_map;
 RenderTerrain::LayerDetailRingInfo RenderTerrain::light_grass_ring_info_;
 RenderTerrain::LayerDetailRingInfo RenderTerrain::dark_grass_ring_info_;
@@ -252,7 +254,7 @@ void RenderTerrain::TesselateTerrain(csg::Region3 const& terrain, csg::Region3& 
 {
    csg::Region3 light_grass, dark_grass, dirt_road;
 
-   LOG(WARNING) << "Tesselating Terrain...";
+   T_LOG(7) << "Tesselating Terrain...";
    for (csg::Cube3 const& cube : terrain) {
       switch (cube.GetTag()) {
       case om::Terrain::LightGrass:
@@ -272,7 +274,7 @@ void RenderTerrain::TesselateTerrain(csg::Region3 const& terrain, csg::Region3& 
    AddTerrainTypeToTesselation(light_grass, terrain, tess, light_grass_ring_info_);
    AddTerrainTypeToTesselation(dark_grass, terrain, tess, dark_grass_ring_info_);
    AddTerrainTypeToTesselation(dirt_road, csg::Region3(), tess, dirt_road_ring_info_);
-   LOG(WARNING) << "Done Tesselating Terrain!";
+   T_LOG(7) << "Done Tesselating Terrain!";
 }
 
 void RenderTerrain::AddTerrainTypeToTesselation(csg::Region3 const& region, csg::Region3 const& terrain, csg::Region3& tess, LayerDetailRingInfo const& ringInfo)
@@ -295,7 +297,7 @@ void RenderTerrain::TesselateLayer(csg::Region2 const& layer, int height, csg::R
    csg::EdgeListPtr segments = csg::Region2ToEdgeList(layer, height, clipper);
 
    for (auto const& layer : ringInfo.rings) {
-      LOG(WARNING) << " Building terrain ring " << height << " " << layer.width;
+      T_LOG(7) << " Building terrain ring " << height << " " << layer.width;
       csg::Region2 edge = csg::EdgeListToRegion2(segments, layer.width, &inner);      
       for (csg::Rect2 const& rect : edge) {
          csg::Point3 p0(rect.GetMin().x, height, rect.GetMin().y);

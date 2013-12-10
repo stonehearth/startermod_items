@@ -154,7 +154,6 @@
          "actions:idle_top_action" : "file(ai/actions/idle_top_action.lua)",
          "actions:idle_action" : "file(ai/actions/idle_action.lua)",
          "actions:idle_breathe_action" : "file(ai/actions/idle_breathe_action.lua)",
-         "actions:idle_bored_action" : "file(ai/actions/idle_bored_action.lua)",
          "actions:sleep_action" : "file(ai/actions/sleep_action.lua)",
          "actions:sleep_in_bed_action" : "file(ai/actions/sleep_in_bed_action.lua)",
          "actions:sleep_on_ground_action" : "file(ai/actions/sleep_on_ground_action.lua)",
@@ -188,6 +187,10 @@
          "actions:worker_light_fire_action" : "file(ai/actions/worker_light_fire_action.lua)",
          "actions:play_with_ball_action" : "file(ai/actions/play_with_ball_action.lua)",
          "actions:fabricate" : "file(ai/actions/fabricate_action.lua)",
+         "actions:idle:despair" : "file(ai/actions/idle_despair_action.lua)",
+         "actions:idle:look_around" : "file(ai/actions/idle_look_around_action.lua)",
+         "actions:idle:sway" : "file(ai/actions/idle_sway_action.lua)",
+         "actions:idle:warm_hands" : "file(ai/actions/idle_warm_hands_action.lua)",
 
          "observers:look_for_enemies" : "file(ai/observers/look_for_enemies.lua)",
          "observers:sleep" : "file(ai/observers/sleep_observer.lua)",
@@ -377,7 +380,12 @@
          "camera_look_at_entity": {
             "controller" : "file(call_handlers/camera_call_handler.lua)",
             "endpoint" : "client"
+         },
+         "get_camera_tracker": {
+            "controller" : "file(call_handlers/camera_call_handler.lua)",
+            "endpoint" : "client"
          }         
+
       }
    },
    "components" :  {
@@ -438,10 +446,12 @@
          "file(ui/common/modal_overlay/modal_overlay.html)",
          "file(ui/shell/shell.html)",
          "file(ui/shell/title/title.html)",
+         "file(ui/shell/analytics_opt/analytics_opt.html)",
          "file(ui/shell/new_game/new_game.html)",
          "file(ui/shell/loading_screen/loading_screen.html)",
          "file(ui/game/game.html)",
          "file(ui/game/create_camp/create_camp.html)",
+         "file(ui/game/help_camera/help_camera.html)",
          "file(ui/game/build_workshop/build_workshop.html)",
          "file(ui/game/show_workshop/show_workshop.html)",
          "file(ui/game/show_journal/show_journal.html)",
@@ -461,10 +471,12 @@
          "file(ui/common/modal_overlay/modal_overlay.js)",
          "file(ui/shell/shell.js)",
          "file(ui/shell/title/title.js)",
+         "file(ui/shell/analytics_opt/analytics_opt.js)",
          "file(ui/shell/new_game/new_game.js)",
          "file(ui/shell/loading_screen/loading_screen.js)",
          "file(ui/game/game.js)",
          "file(ui/game/create_camp/create_camp.js)",
+         "file(ui/game/help_camera/help_camera.js)",
          "file(ui/game/build_workshop/build_workshop.js)",
          "file(ui/game/show_workshop/show_workshop.js)",
          "file(ui/game/show_journal/show_journal.js)",
@@ -487,10 +499,12 @@
          "file(ui/common/modal_overlay/modal_overlay.less)",
          "file(ui/shell/shell.less)",
          "file(ui/shell/title/title.less)",
+         "file(ui/shell/analytics_opt/analytics_opt.less)",
          "file(ui/shell/new_game/new_game.less)",
          "file(ui/shell/loading_screen/loading_screen.less)",
          "file(ui/game/game.less)",
          "file(ui/game/create_camp/create_camp.less)",
+         "file(ui/game/help_camera/help_camera.less)",
          "file(ui/game/build_workshop/build_workshop.less)",
          "file(ui/game/show_workshop/show_workshop.less)",
          "file(ui/game/show_journal/show_journal.less)",

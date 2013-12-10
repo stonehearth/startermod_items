@@ -18,6 +18,7 @@ function Idle:reset_boredom()
 end
 
 function Idle:run(ai, entity)
+   self._finished = false
    if self._boredomCountdown <= 0 then
       ai:execute('stonehearth:idle:bored')
       self:reset_boredom()
@@ -25,10 +26,14 @@ function Idle:run(ai, entity)
       ai:execute('stonehearth:idle:breathe')
       self._boredomCountdown = self._boredomCountdown - 1
    end
+   
+   self._finished = true
 end
 
 function Idle:stop(ai, entity)
-   self:reset_boredom()
+   if not self._finished then
+      self:reset_boredom()
+   end
 end
 
 return Idle

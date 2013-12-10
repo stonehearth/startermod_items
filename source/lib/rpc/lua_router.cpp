@@ -81,7 +81,7 @@ void LuaRouter::CallLuaMethod(ReactorDeferredPtr d, object obj, object method, F
          lua_deferred->Resolve(result);
       }
    } catch (std::exception const& e) {
-      LOG(WARNING) << "error attempting to call " << fn << " in lua router: " << e.what();
+      RPC_LOG(3) << "error attempting to call " << fn << " in lua router: " << e.what();
       d->RejectWithMsg(e.what());
    }
 }

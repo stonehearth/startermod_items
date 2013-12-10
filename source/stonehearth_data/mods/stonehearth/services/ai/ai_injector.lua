@@ -18,7 +18,7 @@ function AiInjector:inject_ai(ai)
    if ai.actions then
       for _, uri in ipairs(ai.actions) do
          local action = ai_service:add_action(self._entity, uri, self._injecting_entity)
-         table.insert(self._injected.actions, action)
+         table.insert(self._injected.actions, uri)
       end
    end
 
@@ -36,8 +36,8 @@ function AiInjector:destroy()
    local ai_service = radiant.mods.load('stonehearth').ai
 
    if self._injected.actions then
-      for _, action  in ipairs(self._injected.actions) do
-         ai_service:remove_action(self._entity, action)
+      for _, uri  in ipairs(self._injected.actions) do
+         ai_service:remove_action(self._entity, uri)
       end
    end
 

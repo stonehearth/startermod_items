@@ -4,7 +4,10 @@
 using namespace ::radiant;
 using namespace ::radiant::csg;
 
-//#define LOG_EDGES
+// Most of this code is slated to be eliminated once tesselations moves to the
+// server and we use region_tools for edging
+#define EDGE_LOG(level)
+
 #define CLIP_ZONE_BOUNDARIES
 
 std::ostream& csg::operator<<(std::ostream& os, EdgePointX const& f)
@@ -286,10 +289,10 @@ EdgeListPtr csg::Region2ToEdgeList(Region2 const& rgn, int height, Region3 const
    }
 
 #if defined(LOG_EDGES)
-   LOG(WARNING) << "Post-join";
+   EDGE_LOG(5) << "Post-join";
    for (uint i = 0; i < edges->edges.size(); i++) {
       EdgePtr segment = edges->edges[i];
-      LOG(WARNING) << "segment " << i << " " << *segment->start << " to " << *segment->end << ".  normal " << segment->normal;
+      EDGE_LOG(5) << "segment " << i << " " << *segment->start << " to " << *segment->end << ".  normal " << segment->normal;
    }
 #endif
 
@@ -302,7 +305,7 @@ csg::Region2 csg::EdgeListToRegion2(EdgeListPtr edges, int width, csg::Region2 c
    csg::Region2 result;
 
 #if defined(LOG_EDGES)
-   LOG(WARNING) <<  "Converting segment list to region..." << width;
+   EDGE_LOG(5) <<  "Converting segment list to region..." << width;
 #endif
 
    for (EdgePtr segment : edges->edges) {
@@ -333,10 +336,10 @@ csg::Region2 csg::EdgeListToRegion2(EdgeListPtr edges, int width, csg::Region2 c
             rect = csg::Rect2::Construct(p0, p1);
          }
 #if defined(LOG_EDGES)
-         LOG(WARNING) << "segment " << *segment->start << " to " << *segment->end << ".  normal " << segment->normal;
-         LOG(WARNING) << "    start normal " << segment->end->normals;
-         LOG(WARNING) << "    end normal   " << segment->end->normals;
-         LOG(WARNING) << "    result       " << rect;
+         EDGE_LOG(5) << "segment " << *segment->start << " to " << *segment->end << ".  normal " << segment->normal;
+         EDGE_LOG(5) << "    start normal " << segment->end->normals;
+         EDGE_LOG(5) << "    end normal   " << segment->end->normals;
+         EDGE_LOG(5) << "    result       " << rect;
 #endif
          result += rect;
       }

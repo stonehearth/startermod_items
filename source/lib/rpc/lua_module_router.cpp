@@ -43,13 +43,13 @@ ReactorDeferredPtr LuaModuleRouter::Call(Function const& fn)
       if (!f || f.endpoint() != endpoint_) {
          return nullptr;
       }
-      LOG(INFO) << "lua router dispatching call '" << fn << "'...";
+      RPC_LOG(5) << "lua router dispatching call '" << fn << "'...";
 
       ReactorDeferredPtr d = std::make_shared<ReactorDeferred>(fn.desc());
       CallModuleFunction(d, fn, f.script(), route);
       return d;
    } catch (std::exception &e) {
-      LOG(WARNING) << "error dispatching " << fn << " in lua module router: " << e.what();
+      RPC_LOG(3) << "error dispatching " << fn << " in lua module router: " << e.what();
    }
    return nullptr;
 }
@@ -75,7 +75,7 @@ void LuaModuleRouter::CallModuleFunction(ReactorDeferredPtr d, Function const& f
       }
       CallLuaMethod(d, obj, method, fn);
    } catch (std::exception const& e) {
-      LOG(WARNING) << "error attempting to call " << fn << " in lua module router: " << e.what();
+      RPC_LOG(3) << "error attempting to call " << fn << " in lua module router: " << e.what();
       d->RejectWithMsg(e.what());
    }
 }

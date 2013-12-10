@@ -1,3 +1,4 @@
+#include "radiant.h"
 #include "deferred.h"
 
 using namespace radiant;

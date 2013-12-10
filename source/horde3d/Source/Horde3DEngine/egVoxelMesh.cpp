@@ -166,7 +166,7 @@ bool VoxelMeshNode::checkIntersection( const Vec3f &rayOrig, const Vec3f &rayDir
 	// Collision check is only done for base LOD
 	if( _lodLevel != 0 ) return false;
 
-	if( !rayAABBIntersection( rayOrig, rayDir, _bBox.min, _bBox.max ) ) return false;
+	if( !rayAABBIntersection( rayOrig, rayDir, _bBox.min(), _bBox.max() ) ) return false;
 
    if (_parentModel->useCoarseCollisionBox()) {
       float d;
@@ -176,8 +176,8 @@ bool VoxelMeshNode::checkIntersection( const Vec3f &rayOrig, const Vec3f &rayDir
 
       radiant::csg::Ray3 ray(origin, dir);
 
-      radiant::csg::Cube3f cube(radiant::csg::Point3f(_bBox.min.x, _bBox.min.y, _bBox.min.z),
-                                radiant::csg::Point3f(_bBox.max.x, _bBox.max.y, _bBox.max.z));
+      radiant::csg::Cube3f cube(radiant::csg::Point3f(_bBox.min().x, _bBox.min().y, _bBox.min().z),
+                                radiant::csg::Point3f(_bBox.max().x, _bBox.max().y, _bBox.max().z));
 
       if (!radiant::csg::Cube3Intersects(cube, ray, d)) {
          return false;

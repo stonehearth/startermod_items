@@ -1,5 +1,4 @@
 #include "radiant.h"
-#include "dm_log.h"
 #include "streamer.h"
 #include "object.h"
 #include "store.h"
@@ -7,7 +6,7 @@
 #include "protocol.h"
 #include "tracer_buffered.h"
 
-#define STREAMER_LOG(level)      DM_LOG("streamer", level)
+#define STREAMER_LOG(level)      LOG(dm.streamer, level)
 
 using namespace radiant;
 using namespace radiant::dm;

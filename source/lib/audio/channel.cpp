@@ -24,6 +24,8 @@
 using namespace ::radiant;
 using namespace ::radiant::audio;
 
+#define A_LOG(level)    LOG(audio, level)
+
 //#define DEF_VOL 50         //The volume for the playing music
 #define MASTER_DEF_VOL 1.0 //The volume % set by the user, between 0 and 1
 //#define DEF_FADE 1000      //MS to have old music fade during crossfade
@@ -143,7 +145,7 @@ void Channel::SetAndPlayMusic(std::string track)
       music_->play();
       music_name_ = track;
    } else { 
-      LOG(INFO) << "Can't find Music! " << track;
+      A_LOG(1) << "Can't find Music! " << track;
    }
 }
 

@@ -32,6 +32,8 @@ private:
    csg::Transform      _final;
    csg::Transform      _current;
    H3DNodeUnique       _axes;
+   bool                 first_update_;
+   dm::ObjectId         entity_id_;
    dm::TracePtr         interp_trace_;
    dm::TracePtr         transform_trace_;
 };

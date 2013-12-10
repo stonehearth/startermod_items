@@ -3,14 +3,13 @@
 #include "tracer_buffered.h"
 #include "object.h"
 #include "object_macros.h"
-#include "dm_log.h"
 #include "store.h"
 #include "store_trace.h"
 
 using namespace ::radiant;
 using namespace ::radiant::dm;
 
-#define TB_LOG(level)  DM_LOG("tracer buffered " << GetName(), 5)
+#define TRACE_LOG(level)  LOG_CATEGORY(dm.trace, level, "buffered tracer: " << GetName())
 
 TracerBuffered::TracerBuffered(std::string const& name, Store& store) :
    Tracer(name)
@@ -30,20 +29,20 @@ TracerBuffered::~TracerBuffered()
 
 void TracerBuffered::OnObjectModified(ObjectId id)
 {
-   TB_LOG(5) << "adding object " << id << " to modified set";
+   TRACE_LOG(5) << "adding object " << id << " to modified set";
    stdutil::UniqueInsert(modified_objects_, id);
 }
 
 void TracerBuffered::OnObjectDestroyed(ObjectId id)
 {
-   TB_LOG(5) << "adding object " << id << " to destroyed set";
+   TRACE_LOG(5) << "adding object " << id << " to destroyed set";
    destroyed_objects_.push_back(id);
    stdutil::FastRemove(modified_objects_, id);
 }
 
 void TracerBuffered::Flush()
 {
-   TB_LOG(5) << "starting flush...";
+   TRACE_LOG(5) << "starting flush...";
 
    bool finished;
    std::vector<ObjectId> modified;
@@ -53,7 +52,7 @@ void TracerBuffered::Flush()
       modified = std::move(modified_objects_);
       destroyed = std::move(destroyed_objects_);
 
-      TB_LOG(5) << "flushing -> ("
+      TRACE_LOG(5) << "flushing -> ("
                 << "modified: " << modified.size() << " "
                 << "destroyed: " << destroyed.size() << ")";     
       FlushOnce(modified, destroyed);
@@ -61,7 +60,7 @@ void TracerBuffered::Flush()
       finished = modified_objects_.empty() && destroyed_objects_.empty();
    } while (!finished);
 
-   TB_LOG(5) << "finished flush";
+   TRACE_LOG(5) << "finished flush";
 }
 
 void TracerBuffered::FlushOnce(std::vector<ObjectId>& last_modified,

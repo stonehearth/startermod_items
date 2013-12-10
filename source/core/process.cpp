@@ -59,7 +59,7 @@ void Process::Join()
    unsigned int result = WaitForSingleObject(process_information_.hProcess, INFINITE);
    if (result == WAIT_FAILED) {
       unsigned int error_code = GetLastError();
-      LOG(WARNING) << "radiant::core::Thread.Join failed with error code " << error_code;
+      LOG_CRITICAL() << "radiant::core::Process::Join failed with error code " << error_code;
    }
 #else
 #error radiant::core:Process::Join not implemented

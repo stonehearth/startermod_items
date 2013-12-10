@@ -8,6 +8,8 @@ using namespace ::radiant;
 using namespace ::radiant::simulation;
 namespace po = boost::program_options;
 
+#define G_LOG(level)      LOG_CATEGORY(simulation.goto_location, level, GetName())
+
 std::ostream& simulation::operator<<(std::ostream& os, GotoLocation const& o)
 {
    return os << "[GotoLocation ...]";
@@ -106,7 +108,7 @@ void GotoLocation::Report(std::string msg)
    auto entity = entity_.lock();
    if (entity) {
       auto location = entity->GetComponent<om::Mob>()->GetWorldLocation();
-      LOG(INFO) << msg << " (entity " << entity->GetObjectId() << " goto location " << (void*)this << " entity:" << entity->GetObjectId() << " " << target_location_ << " currently at " << location << 
+      G_LOG(5) << msg << " (entity:" << entity->GetObjectId() << " " << target_location_ << " currently at " << location << 
          ".  close to:" << close_to_distance_ << "  current d:" << target_location_.DistanceTo(location) <<  ")";
    }
 }

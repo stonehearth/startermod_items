@@ -12,6 +12,7 @@ class ObjectFormatter
 public:
    ObjectFormatter();
    JSONNode ObjectToJson(dm::ObjectPtr obj) const;
+   bool IsPathInStore(dm::Store const& store, std::string const& path) const;
    dm::ObjectPtr GetObject(dm::Store const& store, std::string const& path) const;
    template <typename T> std::shared_ptr<T> GetObject(dm::Store const& store, std::string const& path) const {
       dm::ObjectPtr obj = GetObject(store, path);

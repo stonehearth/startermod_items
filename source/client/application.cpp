@@ -18,6 +18,8 @@
 using namespace radiant;
 using radiant::client::Application;
 
+#define APP_LOG(level)     LOG(app, level)
+
 static std::string const LOG_FILENAME = std::string(PRODUCT_IDENTIFIER) + ".log";
 static std::string const EXE_NAME = std::string(PRODUCT_IDENTIFIER) + ".exe";
 static std::string const HELP_MESSAGE = BUILD_STRING(
@@ -35,7 +37,7 @@ static std::string const HELP_MESSAGE = BUILD_STRING(
 void protobuf_log_handler(google::protobuf::LogLevel level, const char* filename,
                           int line, const std::string& message)
 {
-   LOG(INFO) << message;
+   LOG(network, 1) << message;
 }
 
 Application::Application()
@@ -88,13 +90,13 @@ boost::asio::ip::tcp::acceptor* Application::FindServerPort()
 
       if (tcp_acceptor != nullptr)
       {
-         LOG(INFO) << "Running Stonehearth server on port " << port;
+         APP_LOG(1) << "Running Stonehearth server on port " << port;
          server_port_ = port;
          return tcp_acceptor;
       }
    }
 
-   LOG(ERROR) << "Could not find an open port to host Stonehearth!";
+   LOG_CRITICAL() << "Could not find an open port to host Stonehearth!";
    throw std::exception("Could not find an open port to host Stonehearth!");
 }
 
@@ -128,14 +130,15 @@ int Application::Run(int argc, const char** argv)
          ShowHelp();
          std::exit(0);
       }
-      radiant::logger::init(core::System::GetInstance().GetTempDirectory() / LOG_FILENAME);
+      radiant::logger::Init(core::System::GetInstance().GetTempDirectory() / LOG_FILENAME);
       json::InitialzeErrorHandler();
       core::Config::GetInstance().Load(argc, argv);
+      radiant::logger::InitLogLevels();
    } catch (std::exception const& e) {
       std::string const error_message = BUILD_STRING("Error starting application:\n\n" << e.what());
       try {
          // Log it if possible
-         LOG(ERROR) << error_message;
+         LOG_CRITICAL() << error_message;
       } catch (...) {}
       crash_reporter::client::CrashReporterClient::TerminateApplicationWithMessage(error_message);
    }
@@ -144,7 +147,7 @@ int Application::Run(int argc, const char** argv)
       InitializeCrashReporting();
    } catch (std::exception const& e) {
       // Continue running without crash reporter
-      LOG(WARNING) << "Crash reporter failed to start: " << e.what();
+      LOG_CRITICAL() << "Crash reporter failed to start: " << e.what();
    }
 
    // Exception handling after initializing crash reporter
@@ -177,7 +180,7 @@ int Application::Run(int argc, const char** argv)
       sim_.Run(acceptor, &_io_service);
       client_thread.join();
 
-      radiant::logger::exit();
+      radiant::logger::Exit();
    });
 
    analytics::StopSession();

@@ -10,6 +10,8 @@
 using namespace ::radiant;
 using namespace ::radiant::client;
 
+#define EC_LOG(level)      LOG(renderer.entity_container, level)
+
 RenderEntityContainer::RenderEntityContainer(const RenderEntity& entity, om::EntityContainerPtr container) :
    entity_(entity)
 {
@@ -31,7 +33,7 @@ void RenderEntityContainer::AddChild(dm::ObjectId key, om::EntityRef childRef)
 {
    auto child = childRef.lock();
    if (child) {
-      // LOG(WARNING) << "adding child entity to container " << child->GetObjectId();
+      EC_LOG(5) << "adding child entity to container " << child->GetObjectId();
       children_[key] = Renderer::GetInstance().CreateRenderObject(entity_.GetNode(), child);
    }
 }
@@ -40,7 +42,7 @@ void RenderEntityContainer::RemoveChild(dm::ObjectId key)
 {
    auto i = children_.find(key);
    if (i != children_.end()) {
-      LOG(WARNING) << "remmoving child entity to container " << key;
+      EC_LOG(5) << "remmoving child entity to container " << key;
       auto e = i->second.lock();
       if (e) {
          if (e->GetParent() == entity_.GetNode()) {

@@ -235,6 +235,7 @@ CubemitterNode::CubemitterNode( const CubemitterNodeTpl &emitterTpl ) :
    _nextSpawnTime = 0.0f;
    _curEmitterTime = 0.0f;
    _active = true;
+   _wasVisible = true;
 
    _attributeBuf = gRDI->createVertexBuffer(sizeof(CubeAttribute) * _maxCubes, 0x0);
 
@@ -406,12 +407,12 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 					emitter->_lastVisited[occSet] = Modules::renderer().getFrameID();
 				
 					// Check query result (viewer must be outside of bounding box)
-					if( nearestDistToAABB( frust1->getOrigin(), emitter->getBBox().min,
-					                       emitter->getBBox().max ) > 0 &&
+					if( nearestDistToAABB( frust1->getOrigin(), emitter->getBBox().min(),
+					                       emitter->getBBox().max() ) > 0 &&
 						gRDI->getQueryResult( emitter->_occQueries[occSet] ) < 1 )
 					{
-						Modules::renderer().pushOccProxy( 0, emitter->getBBox().min,
-							emitter->getBBox().max, emitter->_occQueries[occSet] );
+						Modules::renderer().pushOccProxy( 0, emitter->getBBox().min(),
+							emitter->getBBox().max(), emitter->_occQueries[occSet] );
                   emitter->_wasVisible = false;
 						continue;
 					}
@@ -544,14 +545,13 @@ void CubemitterNode::onPostUpdate()
    updateAndSpawnCubes(numberToSpawn);
    
    _timeDelta = 0.0f;
-
+   _wasVisible = false;
    timer->setEnabled(false);
 }
 
 void CubemitterNode::updateAndSpawnCubes(int numToSpawn) 
 {
-	Vec3f bBMin( Math::MaxFloat, Math::MaxFloat, Math::MaxFloat );
-	Vec3f bBMax( -Math::MaxFloat, -Math::MaxFloat, -Math::MaxFloat );
+   _bBox.clear();
 
    for (uint32 i = 0; i < _maxCubes; i++)
    {
@@ -564,11 +564,13 @@ void CubemitterNode::updateAndSpawnCubes(int numToSpawn)
          numToSpawn--;
       }
 
-      updateCube(d, ca, bBMin, bBMax);
-   }
+      updateCube(d, ca);
 
-   _bBox.min = bBMin;
-	_bBox.max = bBMax;
+      if (d.currentLife > 0) 
+      {
+         _bBox.addPoint(d.position);
+      }
+   }
 }
 
 void CubemitterNode::spawnCube(CubeData &d, CubeAttribute &ca)
@@ -679,7 +681,7 @@ void CubemitterNode::spawnCube(CubeData &d, CubeAttribute &ca)
    ca.color = d.currentColor;
 }
 
-void CubemitterNode::updateCube(CubeData& d, CubeAttribute& ca, Vec3f& bBMin, Vec3f& bBMax)
+void CubemitterNode::updateCube(CubeData& d, CubeAttribute& ca)
 {
    if (d.currentLife <= 0) {
       // Set the scale to zero, so nothing is rasterized (burning vertex ops should be fine).
@@ -716,16 +718,4 @@ void CubemitterNode::updateCube(CubeData& d, CubeAttribute& ca, Vec3f& bBMin, Ve
    ca.matrix.x[13] = d.position.y;
    ca.matrix.x[14] = d.position.z;
    ca.color = d.currentColor;
-
-	if( d.position.x < bBMin.x ) bBMin.x = d.position.x;
-	if( d.position.y < bBMin.y ) bBMin.y = d.position.y;
-	if( d.position.z < bBMin.z ) bBMin.z = d.position.z;
-	if( d.position.x > bBMax.x ) bBMax.x = d.position.x;
-	if( d.position.y > bBMax.y ) bBMax.y = d.position.y;
-	if( d.position.z > bBMax.z ) bBMax.z = d.position.z;
-
-	// Avoid zero box dimensions for planes
-	if( bBMax.x - bBMin.x == 0 ) bBMax.x += Math::Epsilon;
-	if( bBMax.y - bBMin.y == 0 ) bBMax.y += Math::Epsilon;
-	if( bBMax.z - bBMin.z == 0 ) bBMax.z += Math::Epsilon;	
 }

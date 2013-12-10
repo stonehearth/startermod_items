@@ -22,10 +22,10 @@ ReactorDeferredPtr ProtobufReactor::Dispatch(SessionPtr session, proto::PostComm
 {
    int call_id = msg.call_id();
 
-   LOG(INFO) << "protobuf reactor dispatching msg " << call_id << ": " << msg.route();
+   RPC_LOG(5) << "protobuf reactor dispatching msg " << call_id << ": " << msg.route();
 
    auto send_reply = [call_id, this](proto::PostCommandReply_Type type, JSONNode const& node) {
-      LOG(INFO) << "protobuf reactor got reply for " << call_id << ": " << type;
+      RPC_LOG(5) << "protobuf reactor got reply for " << call_id << ": " << type;
       proto::PostCommandReply reply;
       reply.set_call_id(call_id);
       reply.set_type(type);

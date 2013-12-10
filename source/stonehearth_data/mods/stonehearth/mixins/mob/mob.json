@@ -1,5 +1,8 @@
 {
    "components" : {
+      "mob" : {
+         "interpolate_movement" : true
+      },
       "stonehearth:ai" : {
          "actions" : [
             "stonehearth:actions:carry_item_on_path_to",
@@ -11,7 +14,6 @@
             "stonehearth:actions:goto_location_action",
             "stonehearth:actions:idle_top_action",
             "stonehearth:actions:idle_action",
-            "stonehearth:actions:idle_bored_action",
             "stonehearth:actions:idle_breathe_action",
             "stonehearth:actions:pickup_item_on_ground_action",
             "stonehearth:actions:pickup_item_on_table_action",

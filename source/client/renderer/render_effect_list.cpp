@@ -35,6 +35,8 @@
 using namespace ::radiant;
 using namespace ::radiant::client;
 
+#define EL_LOG(level)      LOG(renderer.effects_list, level)
+
 int GetStartTime(const JSONNode& node) 
 {
    auto i = node.find("start_time");
@@ -58,7 +60,7 @@ static void MoveSceneNode(H3DNode node, const csg::Transform& t, float scale)
    
    bool result = h3dSetNodeTransMat(node, m.get_float_ptr());
    if (!result) {
-      LOG(WARNING) << "failed to set transform on node.";
+      EL_LOG(5) << "failed to set transform on node.";
    }
 }
 
@@ -150,7 +152,7 @@ RenderInnerEffectList::RenderInnerEffectList(RenderEntity& renderEntity, om::Eff
          }
       }
    } catch (std::exception& e) {
-      LOG(WARNING) << "failed to create effect: " << e.what();
+      EL_LOG(5) << "failed to create effect: " << e.what();
    }
 }
 
@@ -212,7 +214,7 @@ RenderAnimationEffect::RenderAnimationEffect(RenderEntity& e, om::EffectPtr effe
          }
       }
    }
-   LOG(INFO) << "starting animation effect" << animationName_ << "(start_time: " << startTime_ << ")";
+   EL_LOG(5) << "starting animation effect" << animationName_ << "(start_time: " << startTime_ << ")";
 }
 
 
@@ -504,7 +506,7 @@ RenderAttachItemEffect::RenderAttachItemEffect(RenderEntity& e, om::EffectPtr ef
          om::Stonehearth::InitEntity(item, kind, Client::GetInstance().GetScriptHost()->GetInterpreter());
       } catch (res::Exception &e) {
          // xxx: put this in the error browser!!
-         LOG(WARNING) << "!!!!!!! ERROR IN RenderAttachItemEffect: " << e.what();
+         EL_LOG(5) << "!!!!!!! ERROR IN RenderAttachItemEffect: " << e.what();
       }
    }
 
@@ -721,7 +723,7 @@ PlaySoundEffect::PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JS
 	      sound_.play();
       }
    } else { 
-      LOG(INFO) << "Can't find Sound Effect! " << track;
+      EL_LOG(5) << "Can't find Sound Effect! " << track;
    }
 }
 

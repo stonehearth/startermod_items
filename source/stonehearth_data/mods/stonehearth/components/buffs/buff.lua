@@ -21,6 +21,14 @@ function Buff:get_modifiers()
    return self.modifiers
 end
 
+function Buff:get_duration()
+   return self.duration
+end
+
+function Buff:get_injected_ai()
+   return self.injected_ai 
+end
+
 function Buff:get_render_info()
    return self.render
 end

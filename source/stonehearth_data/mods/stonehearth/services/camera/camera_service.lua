@@ -86,6 +86,13 @@ function CameraService:_calculate_orbit(e)
   local deg_y = e.dy / -2.0
 
   self:_orbit(self._orbit_target, deg_y, deg_x, 30.0, 70.0)
+
+  radiant.events.trigger(self, 'stonehearth:camera:update', {
+    pan = false,
+    orbit = true,
+    zoom = false,
+  })
+
 end
 
 function CameraService:_orbit(target, x_deg, y_deg, min_x, max_x)
@@ -201,6 +208,12 @@ function CameraService:_calculate_zoom(e)
 
   self._impulse_delta = dir
 
+  radiant.events.trigger(self, 'stonehearth:camera:update', {
+      pan = false,
+      orbit = false,
+      zoom = true,
+    })
+
 end
 
 function CameraService:_find_target()
@@ -258,7 +271,14 @@ function CameraService:_drag(x, y)
 
   self._impulse_delta = self._impulse_delta + (self._drag_start - drag_end)
   
-  self._drag_start = drag_end
+  if self._drag_start ~= drag_end then
+    self._drag_start = drag_end
+    radiant.events.trigger(self, 'stonehearth:camera:update', {
+        pan = true,
+        orbit = false,
+        zoom = false,
+      })
+  end
 end
 
 function CameraService:_calculate_scroll(e, screen_x, screen_y, gutter)

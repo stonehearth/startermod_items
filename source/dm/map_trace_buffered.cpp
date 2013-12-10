@@ -7,16 +7,21 @@
 using namespace radiant;
 using namespace radiant::dm;
 
+#define TRACE_LOG(level)  LOG_CATEGORY(dm.trace, level, "buffered map<" << GetShortTypeName<M::Key>() << "," << GetShortTypeName<M::Value>() << ">")
+
 template <typename M>
 MapTraceBuffered<M>::MapTraceBuffered(const char* reason, M const& m) :
    MapTrace(reason, m),
    firing_(false)
 {
+   TRACE_LOG(5) << "creating trace for object " << GetObjectId();
 }
 
 template <typename M>
 void MapTraceBuffered<M>::Flush()
 {
+   TRACE_LOG(5) << "flushing trace for object " << GetObjectId();
+
    firing_ = true;
    if (!changed_.empty() || !removed_.empty()) {
       SignalUpdated(changed_, removed_);
@@ -30,6 +35,8 @@ bool MapTraceBuffered<M>::SaveObjectDelta(Protocol::Value* value)
 {
    Store const& store = GetStore();
    Protocol::Map::Update* msg = value->MutableExtension(Protocol::Map::extension);
+
+   TRACE_LOG(5) << "saving trace for object " << GetObjectId();
 
    if (!changed_.empty() || !removed_.empty()) {
       for (auto const& entry : changed_) {

@@ -2,24 +2,25 @@
 #include "boxed.h"
 #include "boxed_trace_buffered.h"
 #include "dm_save_impl.h"
-#include "dm_log.h"
 #include "protocols/store.pb.h"
 
 using namespace radiant;
 using namespace radiant::dm;
+
+#define TRACE_LOG(level)  LOG_CATEGORY(dm.trace, level, "buffered boxed<" << GetShortTypeName<B::Value>() << ">")
 
 template <typename B>
 BoxedTraceBuffered<B>::BoxedTraceBuffered(const char* reason, B const& b) :
    BoxedTrace(reason, b),
    value_(nullptr)
 {
-   TRACE_LOG(5) << "creating boxed trace buffered for object " << GetObjectId();
+   TRACE_LOG(5) << "creating trace for object " << GetObjectId();
 }
 
 template <typename B>
 void BoxedTraceBuffered<B>::Flush()
 {
-   TRACE_LOG(5) << "flushing boxed trace buffered for object " << GetObjectId();
+   TRACE_LOG(5) << "flushing trace for object " << GetObjectId();
    if (value_) {
       // xxx: this might be an old value since it points back into the box (ug!)
       SignalChanged(*value_);
@@ -30,7 +31,7 @@ void BoxedTraceBuffered<B>::Flush()
 template <typename B>
 bool BoxedTraceBuffered<B>::SaveObjectDelta(Protocol::Value* value)
 {
-   TRACE_LOG(5) << "saving boxed trace buffered for object " << GetObjectId();
+   TRACE_LOG(5) << "saving trace for object " << GetObjectId();
    if (value_) {
       SaveImpl<B::Value>::SaveValue(GetStore(), value, *value_);
       return true;

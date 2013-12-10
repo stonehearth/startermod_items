@@ -178,35 +178,23 @@ void ModelNode::updateLocalMeshAABBs()
 	{
 		MeshNode &mesh = *_meshList[i];
 		
-		Vec3f &bBMin = mesh._localBBox.min;
-		Vec3f &bBMax = mesh._localBBox.max;
-		
+      mesh._localBBox.clear();
+
 		if( mesh._vertRStart < _geometryRes->getVertCount() &&
 		    mesh._vertREnd < _geometryRes->getVertCount() )
 		{
-			bBMin = Vec3f( Math::MaxFloat, Math::MaxFloat, Math::MaxFloat );
-			bBMax = Vec3f( -Math::MaxFloat, -Math::MaxFloat, -Math::MaxFloat );
 			for( uint32 j = mesh._vertRStart; j <= mesh._vertREnd; ++j )
 			{
 				Vec3f &vertPos = _geometryRes->getVertPosData()[j];
-
-				if( vertPos.x < bBMin.x ) bBMin.x = vertPos.x;
-				if( vertPos.y < bBMin.y ) bBMin.y = vertPos.y;
-				if( vertPos.z < bBMin.z ) bBMin.z = vertPos.z;
-				if( vertPos.x > bBMax.x ) bBMax.x = vertPos.x;
-				if( vertPos.y > bBMax.y ) bBMax.y = vertPos.y;
-				if( vertPos.z > bBMax.z ) bBMax.z = vertPos.z;
+            mesh._localBBox.addPoint(vertPos);
 			}
 
 			// Avoid zero box dimensions for planes
-			if( bBMax.x - bBMin.x == 0 ) bBMax.x += Math::Epsilon;
-			if( bBMax.y - bBMin.y == 0 ) bBMax.y += Math::Epsilon;
-			if( bBMax.z - bBMin.z == 0 ) bBMax.z += Math::Epsilon;
+         mesh._localBBox.feather();
 		}
 		else
 		{
-			bBMin = Vec3f( 0, 0, 0 );
-			bBMax = Vec3f( 0, 0, 0 );
+         mesh._localBBox.addPoint(Vec3f(0, 0, 0));
 		}
 	}
 }
@@ -473,20 +461,13 @@ void ModelNode::onFinishedUpdate()
 	// Update AABBs of skinned meshes
 	if( _skinningDirty && !_jointList.empty() && _geometryRes != 0x0 )
 	{
-		Vec3f bmin( Math::MaxFloat, Math::MaxFloat, Math::MaxFloat );
-		Vec3f bmax( -Math::MaxFloat, -Math::MaxFloat, -Math::MaxFloat );
+      BoundingBox bbox;
 		
 		// Calculate AABB of skeleton
 		for( uint32 i = 0, s = (uint32)_jointList.size(); i < s; ++i )
 		{
 			Vec3f pos = _jointList[i]->_relModelMat * Vec3f( 0, 0, 0 );
-
-			if( pos.x < bmin.x ) bmin.x = pos.x;
-			if( pos.y < bmin.y ) bmin.y = pos.y;
-			if( pos.z < bmin.z ) bmin.z = pos.z;
-			if( pos.x > bmax.x ) bmax.x = pos.x;
-			if( pos.y > bmax.y ) bmax.y = pos.y;
-			if( pos.z > bmax.z ) bmax.z = pos.z;
+         bbox.addPoint(pos);
 		}
 
 		// Resize mesh AABBs according to change of skeleton extents
@@ -494,16 +475,16 @@ void ModelNode::onFinishedUpdate()
 		//       will become too large but not too small
 		for( uint32 i = 0, s = (uint32)_meshList.size(); i < s; ++i )
 		{
-			Vec3f dmin = bmin - _geometryRes->_skelAABB.min;
-			Vec3f dmax = bmax - _geometryRes->_skelAABB.max;
+			Vec3f dmin = bbox.min() - _geometryRes->_skelAABB.min();
+			Vec3f dmax = bbox.max() - _geometryRes->_skelAABB.max();
 			
 			// Clamp so that bounding boxes can only grow and not shrink
 			if( dmin.x > 0 ) dmin.x = 0; if( dmin.y > 0 ) dmin.y = 0; if( dmin.z > 0 ) dmin.z = 0;
 			if( dmax.x < 0 ) dmax.x = 0; if( dmax.y < 0 ) dmax.y = 0; if( dmax.z < 0 ) dmax.z = 0;
 			
 			_meshList[i]->_bBox = _meshList[i]->_localBBox;
-			_meshList[i]->_bBox.min += dmin;
-			_meshList[i]->_bBox.max += dmax;
+         _meshList[i]->_bBox.growMin(dmin);
+         _meshList[i]->_bBox.growMax(dmax);
 			_meshList[i]->_bBox.transform( _meshList[i]->_absTrans );
 		}
 	}

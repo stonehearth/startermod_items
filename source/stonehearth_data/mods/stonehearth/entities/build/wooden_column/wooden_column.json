@@ -1,13 +1,10 @@
 {
    "type": "entity", 
    "components": {
-      "mob" : {
-         "interpolate_movement" : false
-      },
       "unit_info": {
          "icon": "...", 
          "name": "Wooden Column", 
-         "description": "Better than straw, not quite as sturdy as brick"
+         "description": "Provides wall support"
       },
       "stonehearth:construction_data" : {
          "project_adjacent_to_base": true,

@@ -6,6 +6,7 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+#define M_LOG(level)    LOG(om.mob, level)
 
 std::ostream& operator<<(std::ostream& os, Mob const& o)
 {
@@ -16,14 +17,14 @@ void Mob::ConstructObject()
 {
    transform_ = csg::Transform(csg::Point3f::zero, csg::Quaternion());
    aabb_ = csg::Cube3f::zero;
-   interpolate_movement_ = true;
+   interpolate_movement_ = false;
    selectable_ = true;
    moving_ = false;
 }
 
 void Mob::MoveTo(const csg::Point3f& location)
 {
-   LOG(INFO) << "moving entity " << GetEntity().GetObjectId() << " to " << location;
+   M_LOG(5) << "moving entity " << GetEntity().GetObjectId() << " to " << location;
    transform_.Modify([&](csg::Transform& t) {
       t.position = location;
    });
@@ -81,7 +82,7 @@ void Mob::TurnToFacePoint(const csg::Point3& location)
       angle -= 2 * csg::k_pi;
    }
 
-   LOG(INFO) << "turning entity " << GetEntity().GetObjectId() << " to face " << location;
+   M_LOG(5) << "turning entity " << GetEntity().GetObjectId() << " to face " << location;
 
    csg::Quaternion q(csg::Point3f::unitY, angle);
    ASSERT(q.is_unit());

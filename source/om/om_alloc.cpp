@@ -5,8 +5,6 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-      //LOG(WARNING) << "creating new " #Clas " component"; \
-
 void radiant::om::RegisterObjectTypes(dm::Store& store)
 {
 #  define OM_OBJECT(Clas, lower) \

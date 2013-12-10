@@ -47,7 +47,7 @@ ReactorDeferredPtr LuaObjectRouter::Call(Function const& fn)
       }
       CallLuaMethod(d, obj, method, fn);
    } catch (std::exception &e) {
-      LOG(WARNING) << "error dispatching " << fn << " in lua module router: " << e.what();
+      RPC_LOG(3) << "error dispatching " << fn << " in lua module router: " << e.what();
       if (d) {
          d->RejectWithMsg(e.what());
       }
