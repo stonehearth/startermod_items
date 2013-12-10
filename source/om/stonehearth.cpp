@@ -258,7 +258,6 @@ void Stonehearth::InitEntity(EntityPtr entity, std::string const& uri, lua_State
    bool is_server = object_cast<bool>(globals(L)["radiant"]["is_server"]);
 
    entity->SetUri(uri);
-   entity->SetDebugText(uri);
 
    JSONNode const& node = res::ResourceManager2::GetInstance().LookupJson(uri);
    auto i = node.find("components");

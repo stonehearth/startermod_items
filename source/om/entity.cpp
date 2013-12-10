@@ -10,19 +10,20 @@ std::ostream& ::radiant::om::operator<<(std::ostream& os, Entity const& o)
 {
    // ug! luabind!!
    if (&o == nullptr) {
-      return (os << "invalid entity reference");
+      return (os << "(invalid entity reference)");
    }
 
    std::string debug_text = o.GetDebugText();
    std::string uri = o.GetUri();
 
-   os << "entity " << o.GetObjectId();
+   os << "(entity " << o.GetObjectId();
    if (!uri.empty()) {
       os << " " << uri;
    }
    if (!debug_text.empty()) {
       os << " " << debug_text;
    }
+   os << ")";
    return os;
 }
 
