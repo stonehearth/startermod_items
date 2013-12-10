@@ -60,6 +60,9 @@ end
 function RenewableResourceNodeComponent:renew(location)
    --Change the model
    local render_info = self._entity:add_component('render_info')
+   if not render_info then
+      return
+   end 
    render_info:set_model_variant('')
    
    --Enable the command again

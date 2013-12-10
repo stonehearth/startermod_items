@@ -270,6 +270,12 @@ function StockpileComponent:_remove_item(id)
             cursor:add_point(Point3(offset))
          end)
       end
+
+      --Remove items that have been taken out of the stockpile
+      radiant.events.trigger(self._entity, "stonehearth:item_removed", { 
+         storage = self._entity,
+         item = entity 
+      })
    end
 end
 

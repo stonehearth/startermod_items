@@ -5,10 +5,9 @@ function call_server_to_place_item(e) {
    // the workshop. The UI is out of the 'create workshop' process after
    // this. All the work is done in the client and server
 
-   radiant.call('stonehearth:choose_place_item_location', e.event_data.full_sized_entity_uri)
+   radiant.call('stonehearth:choose_place_item_location', e.event_data.self, e.event_data.full_sized_entity_uri)
       .done(function(o){
          radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' )
-         radiant.call('stonehearth:place_item_in_world', e.event_data.self, e.event_data.full_sized_entity_uri, o.location, o.rotation);
       })
       .always(function(o) {
          $(top).trigger('radiant_hide_tip');
