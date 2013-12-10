@@ -104,3 +104,19 @@ Destination& Destination::SetAdjacent(Region3BoxedPtr r)
    SetAutoUpdateAdjacent(false);
    return *this;
 }
+
+csg::Point3 Destination::GetPointOfInterest(csg::Point3 const& pt)
+{
+   if (!*region_) {
+      throw std::logic_error("destination has no region in GetPointOfInterest");
+   }
+   csg::Region3 const& rgn = ***region_;
+   if (*reserved_) {
+      csg::Region3 const& reserved = ***reserved_;
+      if (!reserved.IsEmpty()) {
+         return (rgn - reserved).GetClosestPoint(pt);
+      }
+   }
+   return rgn.GetClosestPoint(pt);
+}
+
