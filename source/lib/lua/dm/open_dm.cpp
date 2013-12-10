@@ -45,6 +45,7 @@ void RegisterMap(lua_State* L)
             luabind::class_<Trace, std::shared_ptr<Trace>>(GetShortTypeName<Trace>())
                .def("on_added",           &Trace::OnAdded)
                .def("on_removed",         &Trace::OnRemoved)
+               .def("on_destroyed",       &Trace::OnDestroyed)
                .def("push_object_state",  &Trace::PushObjectState)
                .def("destroy",            &Trace::Destroy)
             ,
@@ -63,6 +64,7 @@ void RegisterBoxed(lua_State* L)
          namespace_("om") [
             luabind::class_<Trace, std::shared_ptr<Trace>>(GetShortTypeName<Trace>())
                .def("on_changed",         &Trace::OnChanged)
+               .def("on_destroyed",       &Trace::OnDestroyed)
                .def("push_object_state",  &Trace::PushObjectState)
                .def("destroy",            &Trace::Destroy)
          ]
@@ -81,6 +83,7 @@ void RegisterSet(lua_State* L)
             luabind::class_<Trace, std::shared_ptr<Trace>>(GetShortTypeName<Trace>())
                .def("on_added",           &Trace::OnAdded)
                .def("on_removed",         &Trace::OnRemoved)
+               .def("on_destroyed",       &Trace::OnDestroyed)
                .def("push_object_state",  &Trace::PushObjectState)
                .def("destroy",            &Trace::Destroy)
             ,

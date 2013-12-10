@@ -14,6 +14,21 @@ public:
    {
    }
 
+   std::shared_ptr<SetTraceWrapper<T>> OnDestroyed(luabind::object destroyed_cb)
+   {
+      if (!trace_) {
+         throw std::logic_error("called on_added on invalid trace");
+      }
+      trace_->OnDestroyed([this, destroyed_cb]() {
+         try {
+            call_function<void>(destroyed_cb);
+         } catch (std::exception const& e) {
+            LUA_LOG(1) << "exception delivering lua trace: " << e.what();
+         }
+      });
+      return shared_from_this();
+   }
+
    std::shared_ptr<SetTraceWrapper<T>> OnAdded(luabind::object added_cb)
    {
       if (!trace_) {
