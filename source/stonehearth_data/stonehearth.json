@@ -15,18 +15,5 @@
 
       "screen_width" : 1920,
       "screen_height" : 1080
-   },
-   "logging": {
-      "log_level" : 1,
-      "renderer" : {
-         "mob": 0
-      },
-      "lua" : {
-         "data": 10,
-         "code": 10
-      },
-      "simulation" : {
-         "pathfinder": 7
-      }
    }
 }
