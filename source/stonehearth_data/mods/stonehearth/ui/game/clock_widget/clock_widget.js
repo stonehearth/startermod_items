@@ -85,8 +85,9 @@ App.StonehearthCalendarView = App.View.extend({
             //Play music as the game starts
             var args = {
                'track': 'stonehearth:ambient:summer_day',
-               'channel': 'ambient', 
-               'volume' : 40
+               'channel': 'ambient',
+               'fade': 500,
+               'volume' : 60
             };
             radiant.call('radiant:play_music', args);
          }   
@@ -133,7 +134,8 @@ App.StonehearthCalendarView = App.View.extend({
             var args = {
                'track': 'stonehearth:ambient:summer_night',
                'channel': 'ambient',
-               'volume' : 20
+               'fade': 500,
+               'volume' : 15
             };
             radiant.call('radiant:play_music', args);  
          }

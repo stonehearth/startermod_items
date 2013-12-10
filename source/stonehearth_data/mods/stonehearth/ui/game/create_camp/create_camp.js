@@ -11,19 +11,21 @@ App.StonehearthCreateCampView = App.View.extend({
          });
          */
 
-         this.first = true;      
+         this.first = true;
+
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:loading_screen_success' );      
 
          //Play music as the game starts
          var args = {
             'track': 'stonehearth:music:world_start',
             'channel' : 'bgm',
-            'fade': 500
+            'fade': 1250
          };
          radiant.call('radiant:play_music', args);         
           var args = {
                'track': 'stonehearth:ambient:summer_day',
                'channel': 'ambient', 
-               'volume' : 40
+               'volume' : 60
             };
             radiant.call('radiant:play_music', args);  
          }
@@ -50,14 +52,12 @@ App.StonehearthCreateCampView = App.View.extend({
       },
 
       placeStockpile: function () {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
          radiant.call('radiant:play_sound', 'stonehearth:sounds:box_grab' );
          var self = this;
          self._hideCrate();
          $(top).trigger('radiant_create_stockpile', {
             callback : function() {
-               radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-               setTimeout( function() {
+                  setTimeout( function() {
                   self._gotoFinishStep();
                }, 1000);
             }

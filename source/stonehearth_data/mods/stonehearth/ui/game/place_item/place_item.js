@@ -6,6 +6,9 @@ function call_server_to_place_item(e) {
    // this. All the work is done in the client and server
 
    radiant.call('stonehearth:choose_place_item_location', e.event_data.self, e.event_data.full_sized_entity_uri)
+      .done(function(o){
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' )
+      })
       .always(function(o) {
          $(top).trigger('radiant_hide_tip');
       });
@@ -14,6 +17,7 @@ function call_server_to_place_item(e) {
 $(document).ready(function(){
    //Fires when someone clicks the place button on an iconic item in the world
    $(top).on("radiant_place_item", function (_, e) {
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' )
       $(top).trigger('radiant_show_tip', {
          title : i18n.t('stonehearth:item_placement_title') + " " + e.event_data.item_name,
          description : i18n.t('stonehearth:item_placement_description')
@@ -23,6 +27,7 @@ $(document).ready(function(){
 
    //Fires when someone clicks the move button on a full-sized item in the world
    $(top).on("radiant_move_item", function (_, e) {
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' )
       $(top).trigger('radiant_show_tip', {
          title : i18n.t('stonehearth:item_movement_title') + " " + e.event_data.item_name,
          description : i18n.t('stonehearth:move_description')
@@ -33,8 +38,9 @@ $(document).ready(function(){
 
    //Fires when someone clicks the "place" button in the UI to bring up the picker
    $(top).on("radiant_show_placement_menu", function (_, e) {
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:page_up_right' )
       radiant.call('stonehearth:get_placable_items_tracker')
-         .done(function(response) {
+            .done(function(response) {
             App.gameView.addView(App.StonehearthPlaceItemView, {
                   uri: response.tracker
                });
@@ -98,10 +104,12 @@ App.StonehearthPlaceItemView = App.View.extend({
    actions: {
       //Fires whenever the user clicks on an object in the UI
       onSelectItemButton: function(item) {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:action_click' );
          this._actions.selectItem.call(this, item, 0);
       },
 
       close: function() {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:page_down_right' )
          this.destroy();
       },
 
@@ -118,9 +126,10 @@ App.StonehearthPlaceItemView = App.View.extend({
             .done(function(o){
                var item_type = 1;
                radiant.call('stonehearth:place_item_type_in_world', item.entity_uri, item.full_sized_entity_uri, o.location, o.rotation);
-
+               radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+                              
                self.waitingForPlacement = false;
-
+               
                //If we're holding down shift after the item has been placed
                //and there are more items of this type, immediately select the next in line.
                //Experiment: allow placement of N items, where N is the number of items at the time
