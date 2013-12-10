@@ -1,8 +1,10 @@
 local check = {}
 
 function check.is_entity(obj)
-   radiant.log.debug('!! implement is_entity !!')
-   return true
+   return obj and
+          obj.get_type_name and
+          obj:get_type_name() == 'class radiant::om::Entity' and
+          obj:is_valid()
 end
 
 function check.is_table(obj)
