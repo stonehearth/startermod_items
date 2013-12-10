@@ -11,7 +11,7 @@
       </div>
 
       {{#if stonehearth:workshop.order_list}}
-         <a  {{action togglePause target="view"}}>
+         <a {{action togglePause target="view"}} >
             <div id="statusSign" {{bindAttr class=workshopIsPaused:closed:open}}>
                <div id="message">
                   {{#if workshopIsPaused}}
@@ -48,10 +48,10 @@
    </div>
    <div id="recipeAccordion">
       {{#each stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes}}
-         <h3>{{category}}</h3>
+         <h3 class="uisounds">{{category}}</h3>
          <div>
             {{#each recipes}}
-               <a href="#" {{action select this target="view"}} class="recipeLink">{{this.recipe_name}}</a>
+               <a href="#" {{action select this target="view"}} class="recipeLink uisounds">{{this.recipe_name}}</a>
                <br>
             {{/each}}
          </div>
@@ -88,22 +88,22 @@
    <div id="orderOptions">
       <div id="craftOrderOption" class="orderOptionControls">
       <input type="radio" name="conditionGroup" value="make" class="craftRadioButton" id="make" checked>
-      <label for="make" style='width:auto;'>{{i18n stonehearth:craft_number_left}}</label>
+      <label for="make" style='width:auto;' clicksound="sounds:ui:carpenter_menu:add_remove">{{i18n stonehearth:craft_number_left}}</label>
       <span>
-         <div class="dec numericButton">-</div>
+         <div class="dec numericButton uisounds">-</div>
          <input type="number" name="quantityToMake" id="makeNumSelector" value="1" min="1" max="99" class="craftNumericSelect">
-         <div class="inc numericButton">+</div>
+         <div class="inc numericButton uisounds">+</div>
       </span>
       <label class="rightText" for="make" style='width:auto;'>{{i18n stonehearth:craft_number_right}}</label>
       </div>
 
       <div id="maintainOrderOption" class="orderOptionControls">
       <input type="radio" name="conditionGroup" value="mantain" class="craftRadioButton" id="maintain">
-      <label for="maintain" style='width:auto'>{{i18n stonehearth:craft_up_to_left}}</label>
+      <label for="maintain" style='width:auto' clicksound="sounds:ui:carpenter_menu:add_remove">{{i18n stonehearth:craft_up_to_left}}</label>
       <span>
-         <div class="dec numericButton">-</div>
+         <div class="dec numericButton uisounds">-</div>
          <input id="mantainNumSelector" type="number" name="quantityToMantain" value="1" min="1" max="99" class="craftNumericSelect">
-         <div class="inc numericButton">+</div>
+         <div class="inc numericButton uisounds">+</div>
       </span>
       <label class="rightText" for="maintain" style='width:auto'>{{i18n stonehearth:craft_up_to_right}}</label>
       </div>
@@ -140,8 +140,8 @@
       {{/each}}
       </div>
 
-      <a id="orderListUpBtn" {{action scrollOrderListUp target="view"}}><img /></a>
-      <a id="orderListDownBtn" {{action scrollOrderListDown target="view"}} ><img /></a>
+      <a id="orderListUpBtn" {{action scrollOrderListUp target="view"}} class='uisounds'><img /></a>
+      <a id="orderListDownBtn" {{action scrollOrderListDown target="view"}} class='uisounds'><img /></a>
 
       <div id="orderListControls">
          <a id="garbageButton" href="#"></a>

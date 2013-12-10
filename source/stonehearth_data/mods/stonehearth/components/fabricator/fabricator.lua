@@ -132,8 +132,8 @@ function Fabricator:_start_pickup_task()
       return not radiant.entities.get_carrying(worker)
    end
    
-   local work_obj_filter_fn = function(entity)
-      return entity and entity:get_component('item') ~= nil
+   local work_obj_filter_fn = function(item)
+      return radiant.entities.is_material(item, 'wood resource')
    end   
 
    local name = 'pickup to fabricate ' .. self.name

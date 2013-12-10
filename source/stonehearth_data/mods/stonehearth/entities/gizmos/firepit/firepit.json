@@ -19,11 +19,17 @@
             ]
          }
       ],
-
+      "region_collision_shape" : {
+         "region": [
+            {
+               "min" : { "x" : -1, "y" : 0, "z" : -1 },
+               "max" : { "x" :  1, "y" : 1, "z" :  1 }
+            }
+         ]
+      },
       "stonehearth:firepit" : {
          "effective_radius" : 6
       },
-
       "sensor_list" : {
          "sensors" : {
             "fire_radius" : {
@@ -32,7 +38,6 @@
             }
          }
       },
-
       "stonehearth:sensor_ai_injector" : {
          "sensor" : "fire_radius",
          "ai" : {

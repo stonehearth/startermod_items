@@ -91,13 +91,12 @@ App.StonehearthCrafterView = App.View.extend({
 
       togglePause: function(){
          var workshop = this.getWorkshop();
-         //if (this.get('context.workshopIsPaused') {
-            // play the open sound
-            //radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:open' );
-         //} else {
-            // play the closed sound
-           // radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:closed' );
-        // }
+
+         if (this.get('context.workshopIsPaused')) {
+            radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:open' );
+         } else {
+            radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:closed' );
+         }
 
          radiant.call_obj(workshop, 'toggle_pause');
       },
@@ -132,7 +131,8 @@ App.StonehearthCrafterView = App.View.extend({
             $(this).find('#craftButtonLabel').fadeIn();
          }, function () {
             $(this).find('#craftButtonLabel').fadeOut();
-         });     
+         });
+
    },
 
    _setRadioButtons: function(remaining, maintainNumber) {

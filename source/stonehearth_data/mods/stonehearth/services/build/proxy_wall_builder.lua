@@ -90,7 +90,7 @@ function ProxyWallBuilder:_on_mouse_event(e)
          return true
       end
    end
-   return false
+   return true
 end
 
 function ProxyWallBuilder:_on_keyboard_event(e)

@@ -350,9 +350,34 @@ function entities.drop_carrying_on_ground(entity, location)
    end
    radiant.check.is_a(location, Point3)
 
-   local item = entities._drop_helper(entity)
+   local item = entities._remove_carrying(entity)
    if item then
       radiant.terrain.place_entity(item, location)
+   end
+end
+
+--Uses up the thing a person is carrying
+function entities.consume_carrying(entity)
+   radiant.check.is_entity(entity)
+
+   --if the item has stacks, consume stacks
+   --when stacks are zero, remove
+   local carry_block = entity:get_component('carry_block')
+   if carry_block then
+      local item = carry_block:get_carrying()
+      if item then
+         local item_component = item:get_component('item')
+         if item_component and item_component:get_stacks() > 0 then
+            local stacks = item_component:get_stacks() - 1
+            item_component:set_stacks(stacks)
+            return
+         end
+      end
+   end
+
+   local item = entities._remove_carrying(entity)
+   if item then
+      entities.destroy_entity(item)
    end
 end
 
@@ -365,7 +390,7 @@ function entities.put_carrying_in_entity(entity, target, location)
    if not target_loc then
       target_loc = Point3(0,0,0)
    end
-   local item = entities._drop_helper(entity)
+   local item = entities._remove_carrying(entity)
    if item then
       entities.add_child(target, item, target_loc)
    end
@@ -374,8 +399,13 @@ end
 --- Helper for the drop functions.
 -- Determines the carried item from the entity
 -- @param entity The entity that is carrying the droppable item
+<<<<<<< HEAD
 function entities._drop_helper(entity)
    local carry_block = entity:get_component('stonehearth:carry_block')
+=======
+function entities._remove_carrying(entity)
+   local carry_block = entity:get_component('carry_block')
+>>>>>>> 8c55109f5cfde75afff5b397d4eb19cb63919ae7
    if carry_block then
       local item = carry_block:get_carrying()
       if item then
@@ -497,6 +527,15 @@ end
 
 function entities.point_in_destination_adjacent(entity, pt)
    return entities._point_in_destination('adjacent', entity, pt)
+
+function entities.is_material(entity, materials)
+   radiant.check.is_entity(entity)
+   local is_material = false
+   local material_component = entity:get_component('stonehearth:material')
+   if material_component then
+      is_material = material_component:is(materials)
+   end
+   return is_material
 end
 
 entities.__init()

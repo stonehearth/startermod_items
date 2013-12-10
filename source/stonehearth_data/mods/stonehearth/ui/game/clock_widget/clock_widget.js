@@ -58,6 +58,12 @@ App.StonehearthCalendarView = App.View.extend({
 
             if(!this._sunBody.is(':visible')) {
                radiant.call('radiant:play_sound', 'stonehearth:sounds:rooster_call' );
+               radiant.call('radiant:play_music', {
+                     'track': 'stonehearth:ambient:summer_day',
+                     'channel': 'ambient', 
+                     'volume' : 40
+                  });
+
             }
 
             //transition to day
@@ -81,15 +87,8 @@ App.StonehearthCalendarView = App.View.extend({
 
             this._sun.find('#ray' + hoursRemaining).fadeIn();
             this._hoursRemaining = hoursRemaining;
-
-            //Play music as the game starts
-            var args = {
-               'track': 'stonehearth:ambient:summer_day',
-               'channel': 'ambient', 
-               'volume' : 40
-            };
-            radiant.call('radiant:play_music', args);
          }   
+
       } else {
          if (date.hour < this._constants.event_times.sunrise) {
             hoursRemaining = this._constants.event_times.sunrise - date.hour
@@ -101,6 +100,11 @@ App.StonehearthCalendarView = App.View.extend({
 
             if(!this._moonBody.is(':visible')) {
                radiant.call('radiant:play_sound', 'stonehearth:sounds:owl_call' );
+               radiant.call('radiant:play_music', {
+                     'track': 'stonehearth:ambient:summer_night',
+                     'channel': 'ambient',
+                     'volume' : 20
+                  });                 
             }
 
             //transition to night
@@ -128,14 +132,6 @@ App.StonehearthCalendarView = App.View.extend({
 
             this._moon.find('#ray' + hoursRemaining).fadeIn();
             this._hoursRemaining = hoursRemaining;
-
-            //Play music as the game starts
-            var args = {
-               'track': 'stonehearth:ambient:summer_night',
-               'channel': 'ambient',
-               'volume' : 20
-            };
-            radiant.call('radiant:play_music', args);  
          }
       }
 

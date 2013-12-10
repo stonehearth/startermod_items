@@ -8,13 +8,13 @@ function BuildTest:__init()
    self[MicroWorld]:__init()
    self:create_world()
 
-   --self:place_item_cluster('stonehearth:oak_log', 11, 11, 2, 2);
+   self:place_item_cluster('stonehearth:oak_log', 8, 8, 6, 6)
+   self:place_item_cluster('stonehearth:berry_basket', -8, -8, 2, 2);
    self:place_citizen(0, 0)
    if true then
       return
    end
    
-   --local worker = self:place_citizen(13, 13)
    for i = -8, 8, 4 do
       self:place_citizen(0, i)
    end
