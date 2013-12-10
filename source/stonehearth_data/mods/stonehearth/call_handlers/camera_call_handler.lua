@@ -12,11 +12,6 @@ end
 function CameraCallHandler:get_camera_tracker(session, request)
    if not camera_tracker then
       camera_tracker = _radiant.client.create_data_store()
-      trace = camera_tracker:trace_data('checking')
-                      :on_changed(function()
-                        radiant.log.info('boo!')
-                      end)
-      
       radiant.events.listen(camera, 'stonehearth:camera:update', self, self.update_camera_tracker)
       self:update_camera_tracker()
    end
