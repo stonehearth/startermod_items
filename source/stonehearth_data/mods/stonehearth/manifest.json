@@ -181,7 +181,6 @@
          "actions:worker_harvest_plant_action" : "file(ai/actions/worker_harvest_plants_action.lua)",
          "actions:carry_item_on_path_to" : "file(ai/actions/carry_item_on_path_to.lua)",
          "actions:worker_task_dispatcher" : "file(ai/actions/worker_task_dispatcher.lua)",
-         "actions:worker_pickup_action" : "file(ai/actions/worker_pickup_action.lua)",
          "actions:worker_restock_action" : "file(ai/actions/worker_restock_action.lua)",
          "actions:worker_place_action" : "file(ai/actions/worker_place_action.lua)",
          "actions:worker_light_fire_action" : "file(ai/actions/worker_light_fire_action.lua)",
@@ -433,7 +432,8 @@
       "portal" : "file(components/portal/portal_component.lua)",
       "no_construction_zone" : "file(components/no_construction_zone/no_construction_zone_component.lua)",
       "construction_data" : "file(components/construction_data/construction_data_component.lua)",
-      "personality" : "file(components/personality/personality_component.lua)"
+      "personality" : "file(components/personality/personality_component.lua)",
+      "carry_block" : "file(components/carry_block/carry_block_component.lua)"
    },
    "component_renderers" : {
       "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",

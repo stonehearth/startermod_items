@@ -20,8 +20,8 @@ function PickupItemOnTable:run(ai, entity, item, table)
       ai:abort('item isn\'t on the table in pickup item on table action')
    end
    
-   if carry_block:is_carrying() then
-      local carrying = carry_block:get_carrying()
+   local carrying = carry_block:get_carrying()
+   if carrying then
       if carrying:get_id() ~= item:get_id() then
          ai:abort('cannot pick up another item while carrying one!')
       end

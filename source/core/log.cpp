@@ -34,7 +34,7 @@ void radiant::logger::Init(boost::filesystem::path const& logfile)
 {
    file_log_sink = boost::log::add_file_log(
       keywords::file_name = logfile.string(),
-      keywords::auto_flush = false,
+      keywords::auto_flush = true,
       keywords::format = "%TimeStamp%%Message%"
    );
    boost::log::add_console_log(

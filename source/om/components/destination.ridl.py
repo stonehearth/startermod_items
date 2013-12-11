@@ -16,6 +16,11 @@ class Destination(Component):
    ]
    _generate_construct_object = True
 
+   _public = \
+   """
+   csg::Point3 GetPointOfInterest(csg::Point3 const& pt);
+   """
+
    _private = \
    """
    void UpdateDerivedValues();

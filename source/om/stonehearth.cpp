@@ -108,7 +108,7 @@ static DataStorePtr AddLuaComponentDataStore(lua_State* L, EntityPtr entity, std
          ds = entity->GetStore().AllocObject<DataStore>();
          E_LOG(7) << "adding lua component " << ds->GetObjectId() << " " << name << " to " << entity->GetObjectId();
 
-         ds->SetData(lua::DataObject(newtable(L)));
+         ds->SetData(newtable(L));
          entity->AddComponent(name, ds);         
       }
    }
@@ -126,7 +126,7 @@ static object
 GetLuaComponentData(lua_State* L, EntityPtr entity, std::string const& name)
 {
    DataStorePtr ds = GetLuaComponentDataStore(L, entity, name);
-   return ds ? ds->GetData().GetDataObject() : object();
+   return ds ? ds->GetData() : object();
 }
 
 object
@@ -221,7 +221,7 @@ static void
 SetLuaComponentData(lua_State* L, EntityPtr entity, std::string const& name, object data)
 {
    DataStorePtr ds = AddLuaComponentDataStore(L, entity, name);
-   ds->SetData(lua::DataObject(data));
+   ds->SetData(data);
 }
 
 object
@@ -258,7 +258,6 @@ void Stonehearth::InitEntity(EntityPtr entity, std::string const& uri, lua_State
    bool is_server = object_cast<bool>(globals(L)["radiant"]["is_server"]);
 
    entity->SetUri(uri);
-   entity->SetDebugText(uri);
 
    JSONNode const& node = res::ResourceManager2::GetInstance().LookupJson(uri);
    auto i = node.find("components");

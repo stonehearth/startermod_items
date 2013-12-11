@@ -26,14 +26,14 @@ PathFinderSrc::PathFinderSrc(PathFinder &pf, om::EntityRef e) :
       if (mob) {
          transform_trace_ = mob->TraceTransform("pf src", dm::PATHFINDER_TRACES)
                                     ->OnChanged([this](csg::Transform const&) {
-                                       pf_.RestartSearch();
+                                       pf_.RestartSearch("source moved");
                                     });
 
          moving_trace_ = mob->TraceMoving("pf src", dm::PATHFINDER_TRACES)
                                     ->OnChanged([this](bool const& moving) {
                                        moving_ = moving;
                                        if (moving_) {
-                                          pf_.RestartSearch();
+                                          pf_.RestartSearch("source moving changed");
                                        }
                                     });
       }

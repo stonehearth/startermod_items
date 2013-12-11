@@ -7,12 +7,15 @@ import ridl.lua_types as lua
 
 class DataStore(dm.Record):
    controller = dm.Boxed(lua.ControllerObject())
-   data = dm.Boxed(lua.DataObject())
+   data = dm.Boxed(lua.DataObject(), get=None, set=None)
 
    _no_lua = True
    _public = \
    """
    void MarkDataChanged();
+   luabind::object GetData() const;
+   JSONNode GetJsonNode() const;
+   void SetData(luabind::object o);
    """
 
    _includes = [

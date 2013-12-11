@@ -5,8 +5,23 @@ FollowPathAction.does = 'stonehearth:follow_path'
 FollowPathAction.priority = 1
 
 function FollowPathAction:run(ai, entity, path, effect_name)
-   local speed = radiant.entities.get_attribute(entity, 'speed')
-   
+   self._path_trace = radiant.entities.trace_location(path:get_destination(), 'watching path')
+      :on_changed(function()
+         ai:abort('path destination changed')
+      end)
+      :on_destroyed(function()
+         ai:abort('path destination destroyed')
+      end)
+
+   local postures = entity:get_component('stonehearth:posture')
+   if postures then
+      self._postures_trace = postures:trace('follow path')
+         :on_changed(function()
+            ai:abort('posture changed while following path')
+         end)
+   end
+
+   local speed = radiant.entities.get_attribute(entity, 'speed')   
    if speed == nil then
       speed = 100
    end
@@ -15,35 +30,15 @@ function FollowPathAction:run(ai, entity, path, effect_name)
    if not effect_name then
       effect_name = 'run'
    end
-
    if not self._effect then
       self._effect = radiant.effects.run_effect(entity, effect_name)
-   end
-
-   local dest_entity = path:get_destination()
-   if not dest_entity or not dest_entity:get_component('mob') then
-      ai:abort()
-   end 
-   local destination_loc = dest_entity:get_component('mob'):get_world_grid_location()
-
+   end   
    local arrived_fn = function()
       ai:resume()
    end
-   self._mover = _radiant.sim.create_follow_path(entity, speed, path, 0, arrived_fn)
-   ai:suspend()
    
-   --if the item is no longer there or if it's moved, abort this
-   if not dest_entity then
-      ai:abort("Pathfinder's destination has disappeared! Help!")
-   end
-
-   local mob_component = dest_entity:get_component('mob')
-   if not mob_component or mob_component:get_world_grid_location() ~= destination_loc then
-      ai:abort("Pathfinder's destination has moved! Help!")
-   end
-
-   self._effect:stop()
-   self._effect = nil
+   self._mover = _radiant.sim.create_follow_path(entity, speed, path, 0, arrived_fn)   
+   ai:suspend()
 end
 
 function FollowPathAction:stop(ai, entity)
@@ -54,6 +49,14 @@ function FollowPathAction:stop(ai, entity)
    if self._mover then
       self._mover:stop()
       self._mover = nil
+   end
+   if self._path_trace then
+      self._path_trace:destroy()
+      self._path_trace = nil
+   end
+   if self._postures_trace then
+      self._postures_trace:destroy()
+      self._postures_trace = nil
    end
 end
 

@@ -256,7 +256,7 @@ om::DataStorePtr Client_CreateDataStore(lua_State* L)
 {
    // make sure we return the strong pointer version
    om::DataStorePtr db = Client_AllocObject<om::DataStore>();
-   db->SetData(lua::DataObject(newtable(L)));
+   db->SetData(newtable(L));
    return db;
 }
 

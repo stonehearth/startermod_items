@@ -16,6 +16,7 @@ set_target_properties(crash_reporter_server
 
 target_link_libraries(crash_reporter_server
                       core
+                      lib_json
                       ${Boost_LIBRARIES}
                       ${Breakpad_LIBRARIES}
                       ${Poco_LIBRARIES}

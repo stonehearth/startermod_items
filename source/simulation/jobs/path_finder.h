@@ -25,6 +25,7 @@ class PathFinder : public Job {
 
       void AddDestination(om::EntityRef dst);
       void RemoveDestination(dm::ObjectId id);
+
       void SetSource(om::EntityRef e);
       void SetSolvedCb(luabind::object solved);
       void SetFilterFn(luabind::object dst_filter);
@@ -48,7 +49,7 @@ class PathFinder : public Job {
    private:
       friend PathFinderSrc;
       friend PathFinderDst;
-      void RestartSearch();
+      void RestartSearch(const char* reason);
       bool IsSearchExhausted() const;
 
    private:

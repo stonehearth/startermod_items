@@ -98,6 +98,10 @@ static int Screen_GetHeight() {
    return Renderer::GetInstance().GetHeight();
 }
 
+static void Sky_SetSkyColor(const csg::Point3f& startCol, const csg::Point3f& endCol) {
+   Renderer::GetInstance().SetSkyColors(startCol, endCol);
+}
+
 std::ostream& operator<<(std::ostream& os, const RayCastResult& in)
 {
    os << in.is_valid << ", " << in.point;
@@ -132,6 +136,9 @@ void LuaRenderer::RegisterType(lua_State* L)
             namespace_("screen") [
                def("get_width",   &Screen_GetWidth),
                def("get_height",  &Screen_GetHeight)
+            ],
+            namespace_("sky") [
+               def("set_sky_colors", &Sky_SetSkyColor)
             ]
          ]
       ],

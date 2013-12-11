@@ -229,11 +229,11 @@ end
    returns: entity that is being carried, nil otherwise
 ]]
 function entities.get_carrying(entity)
-   local carry_block = entity:add_component('carry_block')
+   local carry_block = entity:get_component('stonehearth:carry_block')
    if not carry_block then
       return nil
    end
-   return carry_block:is_carrying() and carry_block:get_carrying() or nil
+   return carry_block:get_carrying()
 end
 
 --[[
@@ -244,13 +244,7 @@ end
 ]]
 function entities.is_carrying(entity)
    radiant.check.is_entity(entity)
-
-   local carry_block = entity:get_component('carry_block')
-   if not carry_block then
-      return nil
-   end
-
-   return carry_block:is_carrying()
+   return entities.get_carrying(entity) ~= nil
 end
 
 -- id here can be an int (e.g. 999) or uri (e.g. '/o/stores/server/objects/999')
@@ -325,30 +319,20 @@ end
    item: the thing to pick up
 ]]
 function entities.pickup_item(entity, item)
+   assert(item and item:is_valid())
    radiant.check.is_entity(entity)
    radiant.check.is_entity(item)
 
-   local carry_block = entity:get_component('carry_block')
-   if carry_block then
-      if item then
-         if carry_block:is_carrying() then
-            -- cannot pickup an item while carrying another!
-            return false
-         end
-         local parent = item:add_component('mob'):get_parent()
-         if parent then
-            entities.remove_child(parent, item)
-         end
-         radiant.entities.set_posture(entity, 'carrying')
-         radiant.entities.add_buff(entity, 'stonehearth:buffs:carrying')
-         carry_block:set_carrying(item)
-         entities.move_to(item, Point3(0, 0, 0))
-      else
-         radiant.entities.unset_posture(entity, 'carrying')
-         radiant.entities.remove_buff(entity, 'stonehearth:buffs:carrying')
-         carry_block:clear_carrying()
-      end
+   local carry_block = entity:get_component('stonehearth:carry_block')
+   assert(carry_block)
+
+   if carry_block:get_carrying() then
+      -- cannot pickup an item while carrying another!
+      return false
    end
+   carry_block:set_carrying(item)
+
+   return true
 end
 
 --[[
@@ -364,7 +348,6 @@ function entities.drop_carrying_on_ground(entity, location)
    if not location then
       location = radiant.entities.get_location_aligned(entity)
    end
-
    radiant.check.is_a(location, Point3)
 
    local item = entities._remove_carrying(entity)
@@ -417,13 +400,11 @@ end
 -- Determines the carried item from the entity
 -- @param entity The entity that is carrying the droppable item
 function entities._remove_carrying(entity)
-   local carry_block = entity:get_component('carry_block')
+   local carry_block = entity:get_component('stonehearth:carry_block')
    if carry_block then
       local item = carry_block:get_carrying()
       if item then
-         radiant.entities.unset_posture(entity, 'carrying')
-         radiant.entities.remove_buff(entity, 'stonehearth:buffs:carrying')
-         carry_block:clear_carrying()
+         carry_block:set_carrying(nil)
          return item
       end
    end
@@ -475,10 +456,6 @@ function entities.get_target_table_top(entity, table_name)
    return nil
 end
 
-function entities.kill_entity(entity)
-   --radiant.entities.destroy_entity(entity)
-end
-
 function entities.compare_attribute(entity_a, entity_b, attribute)
    local attributes_a = entity_a:get_component('stonehearth:attributes')
    local attributes_b = entity_b:get_component('stonehearth:attributes')
@@ -500,7 +477,6 @@ function entities.is_hostile(entity_a, entity_b)
    if not material or not material:is('meat') then
       return false
    end
-
    local faction_a = entity_a:add_component('unit_info'):get_faction()
    local faction_b = entity_b:add_component('unit_info'):get_faction()
 
@@ -512,6 +488,40 @@ end
 function entities.on_entity_moved(entity, fn, reason)
    reason = reason and reason or 'on_entity_moved promise'
    return entity:add_component('mob'):trace_transform(reason):on_changed(fn)
+end
+
+-- xxx: prefer this over on_entity_moved()
+function entities.trace_location(entity, reason)
+   return entity:add_component('mob'):trace_transform(reason)
+end
+
+function entities._point_in_destination(which, entity, pt)
+   local destination = entity:get_component('destination')
+   if destination then
+      local region = destination['get_' .. which](destination)
+      if region then
+         local region3 = region:get()
+         if region3 then      
+            local mob = entity:get_component('mob')
+            if mob then
+               pt = pt - mob:get_world_grid_location()      
+            end
+            return region3:contains(pt)
+         end
+     end
+   end
+end
+
+function entities.point_in_destination_region(entity, pt)
+   return entities._point_in_destination('region', entity, pt)
+end
+
+function entities.point_in_destination_reserved(entity, pt)
+   return entities._point_in_destination('reserved', entity, pt)
+end
+
+function entities.point_in_destination_adjacent(entity, pt)
+   return entities._point_in_destination('adjacent', entity, pt)
 end
 
 function entities.is_material(entity, materials)

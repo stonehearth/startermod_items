@@ -1,0 +1,5 @@
+<Material>
+  <Shader source="shaders/skysphere.shader" />
+  <Uniform name="skycolor_start" a="0.0" b="0.0" c="0.0" d="1.0"/>
+  <Uniform name="skycolor_end" a="0.0" b="0.0" c="0.0" d="1.0"/>
+</Material>

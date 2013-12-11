@@ -56,6 +56,7 @@ public:
 
 public: // the static interface
    static ScriptHost* GetScriptHost(lua_State*);
+   static lua_State* GetInterpreter(lua_State* L) { return GetScriptHost(L)->GetInterpreter(); }
    static lua_State* GetCallbackThread(lua_State* L) { return GetScriptHost(L)->GetCallbackThread(); }
    static luabind::object Require(lua_State* L, std::string const& path) { return GetScriptHost(L)->Require(path); }
    static luabind::object RequireScript(lua_State* L, std::string const& path) { return GetScriptHost(L)->RequireScript(path); }

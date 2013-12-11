@@ -21,16 +21,29 @@ end
 -- the highest priority and dispatches it to the worker
 -- @param priority The priority of this solution
 -- @param action A table containing the action to execute and all its arguments
-function WorkerDispatcher:add_solution(priority, action)
+function WorkerDispatcher:add_solution(destination_id, priority, action, finish_fn)
+   radiant.log.info('adding solution (action:%s priority:%d) to worker %s',
+                    tostring(action[1]), priority, tostring(self._worker))
+   
    -- If we haven't started the timer yet, go ahead and do so.
    if #self._solutions == 0 then
       self._countdown = DISPATCHER_WAIT_TIME
       radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self._check_dispatch)
    end
+   
+   -- Make sure this isn't a duplicate solution.  If we get one, it means someone
+   -- failed to stop a pathfinder or disable a destination for this worker.  Find
+   -- that bug and squash it!
+   for _, solution in ipairs(self._solutions) do
+      radiant.log.warning('duplicate solution in worker dispatcher!  ignoring')
+      return
+   end
 
    local solution = {
       priority = priority,
       action = action,
+      finish_fn = finish_fn,
+      destination_id = destination_id
    }  
    table.insert(self._solutions, solution)
 end
@@ -61,21 +74,26 @@ function WorkerDispatcher:_check_dispatch()
    
    self._countdown = self._countdown - 1
    if self._countdown == 0 then
-      local best = self:_get_best_solution()
+      self:_dispatch_best_solution()      
       self:_reset()
-      self._dispatch_fn(best.priority, best.action)
    end
 end
 
 --- Returns the solution with the highest priority
-function WorkerDispatcher:_get_best_solution()
+function WorkerDispatcher:_dispatch_best_solution()
    local best
    for _, solution in ipairs(self._solutions) do
       if not best or solution.priority > best.priority then
          best = solution
       end
    end
-   return best
+   -- dispatch the best solution and abort the rest
+   for _, solution in ipairs(self._solutions) do
+      if solution ~= best and solution.finish_fn then
+         solution.finish_fn(false)
+      end
+   end
+   self._dispatch_fn(best.priority, best.action, best.finish_fn)
 end
 
 return WorkerDispatcher

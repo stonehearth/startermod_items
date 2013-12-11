@@ -25,7 +25,10 @@ using namespace ::radiant::client;
 #define R_LOG(level)      LOG(renderer.renderer, level)
 
 std::vector<float> ssaoSamplerData;
+
 H3DRes ssaoMat;
+H3DNode meshNode;
+H3DRes skysphereMat;
 
 static std::unique_ptr<Renderer> renderer_;
 
@@ -130,6 +133,9 @@ Renderer::Renderer() :
       data2[(i * 4) + 2] = v.z;
    }
    h3dUnmapResStream(veclookup);
+
+   BuildSkySphere();
+
    LoadResources();
 
    // Sampler kernel generation--a work in progress.
@@ -205,6 +211,57 @@ Renderer::Renderer() :
    SetShowDebugShapes(false);
 
    initialized_ = true;
+}
+
+void Renderer::SetSkyColors(const csg::Point3f& startCol, const csg::Point3f& endCol)
+{
+   h3dSetMaterialUniform(skysphereMat, "skycolor_start", startCol.x, startCol.y, startCol.z, 1.0f);
+   h3dSetMaterialUniform(skysphereMat, "skycolor_end", endCol.x, endCol.y, endCol.z, 1.0f);
+}
+
+void Renderer::BuildSkySphere()
+{
+   float texData[2046 * 2];
+   // Unit (geodesic) sphere (created by recursively subdividing a base octahedron)
+   Horde3D::Vec3f spVerts[2046] = {  // x, y, z
+      Horde3D::Vec3f( 0.f, 1.f, 0.f ),   Horde3D::Vec3f( 0.f, -1.f, 0.f ),
+      Horde3D::Vec3f( -0.707f, 0.f, 0.707f ),   Horde3D::Vec3f( 0.707f, 0.f, 0.707f ),
+      Horde3D::Vec3f( 0.707f, 0.f, -0.707f ),   Horde3D::Vec3f( -0.707f, 0.f, -0.707f )
+   };
+   uint32 spInds[2048 * 3] = {  // Number of faces: (4 ^ iterations) * 8
+      2, 3, 0,   3, 4, 0,   4, 5, 0,   5, 2, 0,   2, 1, 3,   3, 1, 4,   4, 1, 5,   5, 1, 2
+   };
+   for( uint32 i = 0, nv = 6, ni = 24; i < 4; ++i )  // Two iterations
+   {
+      // Subdivide each face into 4 tris by bisecting each edge and push vertices onto unit sphere
+      for( uint32 j = 0, prevNumInds = ni; j < prevNumInds; j += 3 )
+      {
+         spVerts[nv++] = ((spVerts[spInds[j + 0]] + spVerts[spInds[j + 1]]) * 0.5f).normalized();
+         spVerts[nv++] = ((spVerts[spInds[j + 1]] + spVerts[spInds[j + 2]]) * 0.5f).normalized();
+         spVerts[nv++] = ((spVerts[spInds[j + 2]] + spVerts[spInds[j + 0]]) * 0.5f).normalized();
+
+         spInds[ni++] = spInds[j + 0]; spInds[ni++] = nv - 3; spInds[ni++] = nv - 1;
+         spInds[ni++] = nv - 3; spInds[ni++] = spInds[j + 1]; spInds[ni++] = nv - 2;
+         spInds[ni++] = nv - 2; spInds[ni++] = spInds[j + 2]; spInds[ni++] = nv - 1;
+         spInds[j + 0] = nv - 3; spInds[j + 1] = nv - 2; spInds[j + 2] = nv - 1;
+      }
+   }
+
+   // Set up texture coordinates for each vertex based on it's 'height'.  We will use this to
+   // interpolate a gradient.  Also, scale the vertices after computing the texture coordinate.
+   for (int i = 0; i < 2046; i++)
+   {
+      texData[i * 2 + 0] = 0.0f;
+      texData[i * 2 + 1] = 1.0f - ((spVerts[i].y * 0.5f) + 0.5f);
+      spVerts[i] *= 100.0f;
+   }
+
+   skysphereMat = h3dAddResource(H3DResTypes::Material, "materials/skysphere.material.xml", 0);
+   H3DRes geoRes = h3dutCreateGeometryRes("skysphere", 2046, 2048 * 3, (float*)spVerts, spInds, nullptr, nullptr, nullptr, texData, nullptr);
+
+   H3DNode modelNode = h3dAddModelNode(H3DRootNode, "skysphere_model", geoRes);
+   meshNode = h3dAddMeshNode(modelNode, "skysphere_mesh", skysphereMat, 0, 2048 * 3, 0, 2045);
+   h3dSetNodeFlags(modelNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery, true);
 }
 
 void Renderer::ShowPerfHud(bool value) {
@@ -460,6 +517,12 @@ void Renderer::RenderOneFrame(int now, float alpha)
    LoadResources();
 
    h3dSetMaterialArrayUniform( ssaoMat, "samplerKernel", ssaoSamplerData.data(), ssaoSamplerData.size());
+   
+   // Update the position of the sky so that it is always around the camera.
+   h3dSetNodeTransform(meshNode, 
+      camera_->GetPosition().x, -50 + camera_->GetPosition().y, camera_->GetPosition().z,
+      25.0, 0.0, 0.0, 
+      1.0, 1.0, 1.0);
 
    // Render scene
    perfmon::SwitchToCounter("render h3d");
@@ -476,6 +539,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    float delta = (now - last_render_time_) / 1000.0f;
    h3dRadiantAdvanceCubemitterTime(delta);
    h3dRadiantAdvanceAnimatedLightTime(delta);
+
 
    // Remove all overlays
    h3dClearOverlays();

@@ -144,6 +144,8 @@ class Renderer
 
       void FlushMaterials();
 
+      void SetSkyColors(const csg::Point3f& startCol, const csg::Point3f& endCol);
+
    private:
       NO_COPY_CONSTRUCTOR(Renderer);
       RendererConfig config_;
@@ -151,7 +153,7 @@ class Renderer
    private:
       void GetConfigOptions();
       void ApplyConfig();
-
+      void BuildSkySphere();
       void SetStageEnable(const char* stageName, bool enabled);
       void OnWindowResized(int newWidth, int newHeight);
       void OnKey(int key, int down);

@@ -11,7 +11,9 @@ App.StonehearthCreateCampView = App.View.extend({
          });
          */
 
-         this.first = true;      
+         this.first = true;
+
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:loading_screen_success' );      
 
          this._bounceBanner();
          $("#crateCoverLink").hide();
