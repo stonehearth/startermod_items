@@ -13,6 +13,7 @@ function WorkerScheduler:__init(faction)
 end
 
 function WorkerScheduler:dispatch_solution(priority, worker_id, destination_id, action, finish_fn)
+   assert(finish_fn)
    local dispatcher = self._dispatchers[worker_id]
    
    if self._strict then
@@ -23,27 +24,23 @@ function WorkerScheduler:dispatch_solution(priority, worker_id, destination_id, 
       assert(dispatcher, string.format('unknown worker id %d in _dispatch_solution', worker_id))
    elseif not dispatcher then
       log:warning('unknown worker id %d in _dispatch_solution', worker_id)
-      if finish_fn then
-         finish_fn(false)
-      end
+      finish_fn(false)
       return
    end
    dispatcher:add_solution(destination_id, priority, action, finish_fn)
 end
 
-function WorkerScheduler:abort_worker_task(task)
-   log:warning('aborting task in worker scheduler...')
-end
-
 function WorkerScheduler:add_worker_task(name)
    local task = WorkerTask(name, self)
    table.insert(self._tasks, task)
+   log:info('%s added to worker scheduler', task:get_name())
    return task
 end
 
 function WorkerScheduler:remove_worker_task(task)
    for i, t in ipairs(self._tasks) do
       if t == task then
+         log:info('%s removed from worker scheduler', tostring(task))
          table.remove(self._tasks, i)
          break
       end
@@ -56,22 +53,22 @@ function WorkerScheduler:add_worker(worker, dispatch_fn)
    local dispatcher = self._dispatchers[id]
    
    if self._strict then
-      assert(not dispatcher, 'adding duplicate worker %d to worker scheduler', id)
+      assert(not dispatcher, 'adding duplicate worker %s to worker scheduler', worker)
    elseif dispatcher then
-      log:warning('adding duplicate worker %d to worker scheduler', id)
+      log:warning('adding duplicate worker %s to worker scheduler', worker)
       return
    end
    
-   log:info('adding worker %d.', id)
+   log:info('%s adding to worker scheduler', worker)
    self._dispatchers[id] = WorkerDispatcher(worker, dispatch_fn)
    self:_introduce_worker_to_tasks(worker)
 end
 
 function WorkerScheduler:remove_worker(worker)
    assert(worker)
+   log:info('%s removing from worker scheduler', worker)
 
    local id = worker:get_id()
-   log:info('removing worker %d.', id)
    local dispatcher = self._dispatchers[id]
    if dispatcher then
       dispatcher:destroy()

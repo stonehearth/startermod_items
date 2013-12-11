@@ -2,7 +2,7 @@ local priorities = require('constants').priorities.worker_task
 local inventory_service = radiant.mods.load('stonehearth').inventory
 
 local StockpileComponent = class()
-local log = radiant.log.create_logger('inventory.stockpile')
+local log = radiant.log.create_logger('stockpile')
 
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
@@ -404,7 +404,6 @@ function StockpileComponent:_create_worker_tasks()
                           
    self._pickup_task:set_action_fn(
       function (path)
-         log:debug('dispatching pickup task')
          local item = path:get_destination()
          self._pickup_task:remove_work_object(item:get_id())
          return 'stonehearth:pickup_item_on_path', path
@@ -414,6 +413,7 @@ function StockpileComponent:_create_worker_tasks()
       function(success, packed_action)
          if not success then
             local name, path = unpack(packed_action)
+            log:debug('pickup action aborted.  adding item back to task')
             self._pickup_task:add_work_object(path:get_destination())
          end
       end
@@ -485,7 +485,7 @@ function StockpileComponent:_create_worker_tasks()
    )
    self._restock_task:set_finish_fn(
       function(success, packed_action)
-         local stonehearth_restock, path, self, pt = packed_action
+         local stonehearth_restock, path, stockpile, pt = unpack(packed_action)
          if not success then
             self:_unreserve(pt)
          end

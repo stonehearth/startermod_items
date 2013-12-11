@@ -82,7 +82,7 @@ namespace radiant {
 // LOG_CATEGORY writes to the log using a very specialized category string.
 // Useful when you want the log to contain context which might change each
 // time you execute the log line (e.g. the id of the current object).
-#define LOG_CATEGORY(category, level, prefix) if (LOG_IS_ENABLED(category, level)) LOG_CATEGORY_(level, prefix)
+#define LOG_CATEGORY(category, level, prefix) if (LOG_IS_ENABLED(category, level)) LOG_CATEGORY_(level, BUILD_STRING(prefix))
 
 
 // LOG writes to the log if the log level at the specified category is

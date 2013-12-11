@@ -13,7 +13,7 @@ function AiInjector:__init(entity, ai, injecting_entity)
 end
 
 function AiInjector:inject_ai(ai)
-   log:info('injected ai!')
+   log:info('injected ai into %s', self._entity)
    local ai_service = radiant.mods.load('stonehearth').ai
 
    if ai.actions then
@@ -33,7 +33,7 @@ function AiInjector:inject_ai(ai)
 end
 
 function AiInjector:destroy()
-   log:info('revoking injected ais!')
+   log:info('revoking injected ai from %s', self._entity)
    local ai_service = radiant.mods.load('stonehearth').ai
 
    if self._injected.actions then
