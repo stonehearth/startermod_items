@@ -35,7 +35,8 @@ function WorkerDispatcher:add_solution(destination_id, priority, action, finish_
    -- failed to stop a pathfinder or disable a destination for this worker.  Find
    -- that bug and squash it!
    for _, solution in ipairs(self._solutions) do
-      assert(solution.destination_id ~= destination_id, 'duplicate solution in worker dispatcher')
+      radiant.log.warning('duplicate solution in worker dispatcher!  ignoring')
+      return
    end
 
    local solution = {
