@@ -12,7 +12,7 @@
    MAP(int, om::TargetTableEntryPtr) \
    MAP(int, om::EntityRef) \
    MAP(int, om::EffectPtr) \
-   MAP(std::string, ObjectPtr) \
+   MAP(std::string, dm::ObjectPtr) \
    MAP(std::string, om::Selection) \
    MAP(std::string, om::SensorPtr) \
    MAP(std::string, om::DataStorePtr) \
