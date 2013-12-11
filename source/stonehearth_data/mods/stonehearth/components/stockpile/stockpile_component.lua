@@ -2,6 +2,7 @@ local priorities = require('constants').priorities.worker_task
 local inventory_service = radiant.mods.load('stonehearth').inventory
 
 local StockpileComponent = class()
+local log = radiant.log.create_logger('inventory.stockpile')
 
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
@@ -200,41 +201,41 @@ end
 function StockpileComponent:_add_to_region(entity)
    local location = radiant.entities.get_world_grid_location(entity)
    local pt = location - radiant.entities.get_world_grid_location(self._entity)
-   radiant.log.info('adding point %s to region', tostring(pt))
+   log:debug('adding point %s to region', tostring(pt))
    self._data.item_locations[entity:get_id()] = pt
    self._destination:get_region():modify(function(cursor)
       cursor:subtract_point(pt)
    end)
-   radiant.log.info('finished adding point %s to region', tostring(pt))
+   log:debug('finished adding point %s to region', tostring(pt))
    self:_unreserve(location)
 end
 
 function StockpileComponent:_remove_from_region(id)
    local pt = self._data.item_locations[id]
-   radiant.log.info('removing point %s from region', tostring(pt))
+   log:debug('removing point %s from region', tostring(pt))
    self._data.item_locations[id] = nil
    self._destination:get_region():modify(function(cursor)
       cursor:add_point(pt)
    end)
-   radiant.log.info('finished removing point %s from region', tostring(pt))
+   log:debug('finished removing point %s from region', tostring(pt))
 end
 
 function StockpileComponent:_reserve(location)
    local pt = location - radiant.entities.get_world_grid_location(self._entity)
-   radiant.log.info('adding point %s to reserve region', tostring(pt))
+   log:debug('adding point %s to reserve region', tostring(pt))
    self._destination:get_reserved():modify(function(cursor)
       cursor:add_point(pt)
    end)
-   radiant.log.info('finished adding point %s to reserve region', tostring(pt))
+   log:debug('finished adding point %s to reserve region', tostring(pt))
 end
 
 function StockpileComponent:_unreserve(location)
    local pt = location - radiant.entities.get_world_grid_location(self._entity)
-   radiant.log.info('removing point %s from reserve region', tostring(pt))
+   log:debug('removing point %s from reserve region', tostring(pt))
    self._destination:get_reserved():modify(function(cursor)
       cursor:subtract_point(pt)
    end)
-   radiant.log.info('finished removing point %s from reserve region', tostring(pt))
+   log:debug('finished removing point %s from reserve region', tostring(pt))
 end
 
 function StockpileComponent:_add_item(entity)
@@ -403,7 +404,7 @@ function StockpileComponent:_create_worker_tasks()
                           
    self._pickup_task:set_action_fn(
       function (path)
-         radiant.log.info('dispatching pickup task')
+         log:debug('dispatching pickup task')
          local item = path:get_destination()
          self._pickup_task:remove_work_object(item:get_id())
          return 'stonehearth:pickup_item_on_path', path
@@ -474,7 +475,7 @@ function StockpileComponent:_create_worker_tasks()
    -- whatever kind of activity we want
    self._restock_task:set_action_fn(
       function (path)
-         radiant.log.info('dispatching restock task')
+         log:debug('dispatching restock task')
          local pt = path:get_destination_point_of_interest()
          assert(radiant.entities.point_in_destination_region(self._entity, pt))
          assert(not radiant.entities.point_in_destination_reserved(self._entity, pt))

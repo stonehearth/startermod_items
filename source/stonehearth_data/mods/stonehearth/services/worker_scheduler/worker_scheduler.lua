@@ -2,9 +2,10 @@ local priorities = require('constants').priorities.worker_task
 local WorkerTask = require 'services.worker_scheduler.worker_task'
 local WorkerDispatcher = require 'services.worker_scheduler.worker_dispatcher'
 local WorkerScheduler = class()
+local log = radiant.log.create_logger('worker.scheduler')
 
 function WorkerScheduler:__init(faction)
-   --radiant.log.info('constructing worker scheduler...')
+   log:debug('constructing worker scheduler...')
    self._faction = faction
    self._tasks = {}
    self._dispatchers = {}
@@ -21,7 +22,7 @@ function WorkerScheduler:dispatch_solution(priority, worker_id, destination_id, 
       --When not strict, game proceeds fine
       assert(dispatcher, string.format('unknown worker id %d in _dispatch_solution', worker_id))
    elseif not dispatcher then
-      radiant.log.warning('unknown worker id %d in _dispatch_solution', worker_id)
+      log:warning('unknown worker id %d in _dispatch_solution', worker_id)
       if finish_fn then
          finish_fn(false)
       end
@@ -31,7 +32,7 @@ function WorkerScheduler:dispatch_solution(priority, worker_id, destination_id, 
 end
 
 function WorkerScheduler:abort_worker_task(task)
-   radiant.log.warning('aborting task in worker scheduler...')
+   log:warning('aborting task in worker scheduler...')
 end
 
 function WorkerScheduler:add_worker_task(name)
@@ -57,11 +58,11 @@ function WorkerScheduler:add_worker(worker, dispatch_fn)
    if self._strict then
       assert(not dispatcher, 'adding duplicate worker %d to worker scheduler', id)
    elseif dispatcher then
-      radiant.log.warning('adding duplicate worker %d to worker scheduler', id)
+      log:warning('adding duplicate worker %d to worker scheduler', id)
       return
    end
    
-   radiant.log.info('adding worker %d.', id)
+   log:info('adding worker %d.', id)
    self._dispatchers[id] = WorkerDispatcher(worker, dispatch_fn)
    self:_introduce_worker_to_tasks(worker)
 end
@@ -70,7 +71,7 @@ function WorkerScheduler:remove_worker(worker)
    assert(worker)
 
    local id = worker:get_id()
-   radiant.log.info('removing worker %d.', id)
+   log:info('removing worker %d.', id)
    local dispatcher = self._dispatchers[id]
    if dispatcher then
       dispatcher:destroy()

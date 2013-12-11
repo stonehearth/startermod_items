@@ -1,7 +1,5 @@
 local ResourceFactory = class()
 
-radiant.events.register_event_handler('radiant:msg_handlers:resource_factory', ResourceFactory)
-
 ResourceFactory['radiant:md:create'] = function(self, entity)
    self.entity = entity
    md:listen_to_entity(entity, 'radiant:resource_node:spawn_resource', self)

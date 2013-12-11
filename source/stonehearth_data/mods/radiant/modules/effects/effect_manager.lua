@@ -1,6 +1,7 @@
 local EffectTracks = require 'modules.effects.effect_tracks'
-
 local EffectManager = class()
+
+local log = radiant.log.create_logger('effects')
 
 function EffectManager:__init(entity)
    self._effects = {}
@@ -26,15 +27,12 @@ function EffectManager:destroy(entity)
 end
 
 function EffectManager:on_event_loop(e)
-   -- radiant.log.info('-----')
    for effect, _ in pairs(self._effects) do
-      -- radiant.log.info('checking effect %d', now)
       effect:update(e)
       if effect:finished() then
          self._effects[effect] = nil
       end
    end
-   -- radiant.log.info('-----')
 end
 
 function EffectManager:start_effect(action, trigger_handler, args)
@@ -65,7 +63,7 @@ function EffectManager:start_action_at_time(action, when, trigger_handler, args)
    --if trigger_handler then radiant.check.is_callable(trigger_handler) end
    if args then radiant.check.is_table(args) end
 
-   radiant.log.debug("staring effect %s at %d", action, when)
+   log:debug("staring effect %s at %d", action, when)
    return self:_add_effect(action, when, trigger_handler, args);
 end
 

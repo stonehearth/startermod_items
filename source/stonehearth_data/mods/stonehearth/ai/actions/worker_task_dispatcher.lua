@@ -1,4 +1,5 @@
 local WorkerTaskDispatcher = class()
+local log = radiant.log.create_logger('actions.worker_task_dispatcher')
 
 WorkerTaskDispatcher.name = 'worker task dispatcher'
 WorkerTaskDispatcher.does = 'stonehearth:top'
@@ -44,7 +45,7 @@ function WorkerTaskDispatcher:run(ai, entity, ...)
    
    --TODO: put this up over thier heads, like dialog!
    local name = entity:get_component('unit_info'):get_display_name()
-   radiant.log.info('Worker %s: Hey! About to %s!', name, self._task[1])
+   log:info('Worker %s: Hey! About to %s!', name, self._task[1])
    
    ai:execute(unpack(self._task))
    self._task = nil

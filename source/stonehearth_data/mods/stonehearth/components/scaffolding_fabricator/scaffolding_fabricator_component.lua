@@ -3,6 +3,7 @@ local Point2 = _radiant.csg.Point2
 local Region3 = _radiant.csg.Region3
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
+local log = radiant.log.create_logger('build')
 
 local COORD_MAX = 1000000 -- 1 million enough?
 
@@ -64,9 +65,9 @@ function ScaffoldingFabricator:_update_scaffolding_size()
       cursor:copy_region(ladder)
    end)
    if not self._entity_ladder:get_region():get():empty() then
-      radiant.log.info('grew the ladder!')
+      log:debug('grew the ladder!')
    end
-   radiant.log.info('(%s) updating scaffolding supporting %s -> %s (ladder:%s)', tostring(self._entity), self._project, region, tostring(ladder:get_bounds()))
+   log:debug('(%s) updating scaffolding supporting %s -> %s (ladder:%s)', tostring(self._entity), self._project, region, tostring(ladder:get_bounds()))
 end
 
 return ScaffoldingFabricator
