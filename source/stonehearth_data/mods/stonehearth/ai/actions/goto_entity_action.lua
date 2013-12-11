@@ -25,7 +25,7 @@ end
 
 function GotoEntityAction:stop()
    if self._trace then
-      self._trace:stop()
+      self._trace:destroy()
       self._trace = nil
    end
 end
