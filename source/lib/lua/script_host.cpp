@@ -343,7 +343,7 @@ void ScriptHost::Call(luabind::object fn, luabind::object arg1)
 
 void ScriptHost::Log(const char* category, int level, const char* str)
 {
-   LOG_CATEGORY_(level, "mod " << category) << str;
+   LOG_CATEGORY_(level, BUILD_STRING("mod " << category)) << str;
 }
 
 bool ScriptHost::LogEnabled(std::string category, int level)
@@ -357,7 +357,12 @@ bool ScriptHost::LogEnabled(std::string category, int level)
    int config_level = SENTINEL;
    while (last != std::string::npos) {
       std::string path = category.substr(0, last);
-      std::string flag = BUILD_STRING("logging.mods." << path << ".log_level");
+      std::string flag = BUILD_STRING("logging.mods." << path);
+      config_level = core::Config::GetInstance().Get<int>(flag, SENTINEL);
+      if (config_level != SENTINEL) {
+         break;
+      }
+      flag = BUILD_STRING("logging.mods." << path << ".log_level");
       config_level = core::Config::GetInstance().Get<int>(flag, SENTINEL);
       if (config_level != SENTINEL) {
          break;
