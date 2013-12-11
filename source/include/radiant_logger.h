@@ -5,6 +5,8 @@
 #include <boost/log/sources/severity_logger.hpp>
 #include <boost/log/sources/record_ostream.hpp>
 #include <boost/filesystem.hpp>
+#include <iostream>
+#include <iomanip>
 #include "radiant_log_categories.h"
 
 // Radiant Logging Module
@@ -72,7 +74,7 @@ namespace radiant {
 // Another unconditional logger.  Don't use this unless you've already
 // verified the level against some authority!
 #define LOG_CATEGORY_(level, prefix) \
-   LOG_(level) << " | " << level << " | " << prefix << " | "
+   LOG_(level) << " | " << level << " | " << std::setfill(' ') << std::setw(32) << prefix << " | "
 
 // Check to see if the specified log level is enabled
 #define LOG_IS_ENABLED(category, level)   (log_levels_.category >= level)
