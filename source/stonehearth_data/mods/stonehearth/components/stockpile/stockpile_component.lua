@@ -19,7 +19,7 @@ local all_stockpiles = {}
 
 function get_stockpile_containing_entity(entity)
    for id, stockpile in pairs(all_stockpiles) do
-      if stockpile and stockpile:contains(entity) and stockpile:can_stock_entity(entity) then
+      if stockpile and stockpile:bounds_contain(entity) and stockpile:can_stock_entity(entity) then
          return stockpile
       end
    end
@@ -56,7 +56,8 @@ function StockpileComponent:__init(entity, data_binding)
 
    self._destination = entity:add_component('destination')
    self._data = {
-      items = {},
+      stocked_items = {},
+      item_locations = {},
       size  = { 0, 0 },
       filter = self._filter
    }
@@ -97,11 +98,15 @@ function StockpileComponent:set_filter(values)
    -- remove then re-add the item from its parent. Other stockpiles
    -- will be notified when it is added to the world and will
    -- reconsider it for placement.
-   for _, item in pairs(self._data.items) do
-      if not self:can_stock_entity(item) then
-         local parent = item:add_component('mob'):get_parent()
-         parent:get_component('entity_container'):remove_child(item)
-         parent:get_component('entity_container'):add_child(item)
+   for id, location in pairs(self._data.item_locations) do
+      local item = radiant.entities.get_entity(id)
+      local can_stock = self:can_stock_entity(item)
+      local is_stocked = self._data.stocked_items[id] ~= nil
+      if can_stock and not is_stocked then
+         self:_add_item_to_stock(item)
+      end
+      if not can_stock and is_stocked then
+         self:_remove_item_from_stock(item:get_id())
       end
    end
 
@@ -149,7 +154,7 @@ function StockpileComponent:extend(json)
 end
 
 function StockpileComponent:get_items()
-   return self._data.items;
+   return self._data.stocked_items;
 end
 
 function StockpileComponent:set_outbox(value)
@@ -177,10 +182,10 @@ function StockpileComponent:is_full()
    return false
 end
 
-function StockpileComponent:contains(item_entity)
+function StockpileComponent:bounds_contain(item_entity)
    local location = radiant.entities.get_world_grid_location(item_entity)
    local world_bounds = self:_get_world_bounds()
-   return world_bounds:contains(location) and self:can_stock_entity(item_entity)
+   return world_bounds:contains(location)
 end
 
 function StockpileComponent:get_size()
@@ -192,34 +197,26 @@ function StockpileComponent:set_size(size)
    self:_rebuild_item_data()
 end
 
---[[
-function StockpileComponent:reserve_adjacent(location)
-   local origin = Point3(radiant.entities.get_world_grid_location(self._entity))
-   local pt = Point3(location) - origin
-   local points = {
-      Point3(pt.x + 1, pt.y, pt.z),
-      Point3(pt.x - 1, pt.y, pt.z),
-      Point3(pt.x, pt.y, pt.z + 1),
-      Point3(pt.x, pt.y, pt.z - 1),
-   }
-   local region = self._destination:get_region()
-   for _, p in ipairs(points) do
-      if region:contains(p) then
-         self:_remove_world_point_from_region(p)
-         return p
-      end
-   end
-end
-]]--
-
-function StockpileComponent:_add_to_region(location)
+function StockpileComponent:_add_to_region(entity)
+   local location = radiant.entities.get_world_grid_location(entity)
    local pt = location - radiant.entities.get_world_grid_location(self._entity)
    radiant.log.info('adding point %s to region', tostring(pt))
+   self._data.item_locations[entity:get_id()] = pt
    self._destination:get_region():modify(function(cursor)
       cursor:subtract_point(pt)
    end)
    radiant.log.info('finished adding point %s to region', tostring(pt))
    self:_unreserve(location)
+end
+
+function StockpileComponent:_remove_from_region(id)
+   local pt = self._data.item_locations[id]
+   radiant.log.info('removing point %s from region', tostring(pt))
+   self._data.item_locations[id] = nil
+   self._destination:get_region():modify(function(cursor)
+      cursor:add_point(pt)
+   end)
+   radiant.log.info('finished removing point %s from region', tostring(pt))
 end
 
 function StockpileComponent:_reserve(location)
@@ -241,70 +238,78 @@ function StockpileComponent:_unreserve(location)
 end
 
 function StockpileComponent:_add_item(entity)
-   local location = radiant.entities.get_world_grid_location(entity)
-   local world_bounds = self:_get_world_bounds()
-   
-   if self:can_stock_entity(entity) and self:contains(entity) then
-      local item = entity:get_component('item')
-      if item then
-         -- hold onto the item...
-         self._data.items[entity:get_id()] = entity
-
-         -- add the item to the inventory 
-         radiant.events.trigger(self._entity, "stonehearth:item_added", { 
-            storage = self._entity,
-            item = entity 
-         })
-
-         -- update our destination component to *remove* the space
-         -- where the item is, since we can't drop anything there
-         self:_add_to_region(location)
-         self._data_binding:mark_changed()
+   if self:bounds_contain(entity) and entity:get_component('item') then
+      -- whether we can stock the object or not, take this space out of
+      -- our destination region.
+      self:_add_to_region(entity)
+     
+      if self:can_stock_entity(entity) then
+         self:_add_item_to_stock(entity)
       end
    end
+end
+
+function StockpileComponent:_add_item_to_stock(entity)
+   assert(self:can_stock_entity(entity) and self:bounds_contain(entity))
+   
+   -- hold onto the item...
+   self._data.stocked_items[entity:get_id()] = entity
+   self._data_binding:mark_changed()
+
+   -- add the item to the inventory 
+   radiant.events.trigger(self._entity, "stonehearth:item_added", { 
+      storage = self._entity,
+      item = entity 
+   })
 end
 
 function StockpileComponent:_remove_item(id)
-   local entity = self._data.items[id]
-   if entity then
-      self._data.items[id] = nil
-      self._data_binding:mark_changed()
-
-      -- add this point to our destination region
-      local region = self._destination:get_region()
-      local origin = radiant.entities.get_world_grid_location(entity)
-      --TODO: find source bug; sometimes by here,
-      --entity has been sufficiently disposed of that we find out where it is to reclaim its space.
-      if origin then 
-         local offset = origin - radiant.entities.get_world_grid_location(self._entity)
-         region:modify(function(cursor)
-            cursor:add_point(Point3(offset))
-         end)
+   -- remove from the region
+   if self._data.item_locations[id] then
+      self:_remove_from_region(id)
+      if self._data.stocked_items[id] then
+         self:_remove_item_from_stock(id)
       end
-
-      --Remove items that have been taken out of the stockpile
-      radiant.events.trigger(self._entity, "stonehearth:item_removed", { 
-         storage = self._entity,
-         item = entity 
-      })
    end
 end
 
+function StockpileComponent:_remove_item_from_stock(id)
+   assert(self._data.stocked_items[id])
+   
+   self._data.stocked_items[id] = nil
+   self._data_binding:mark_changed()
+
+   --Remove items that have been taken out of the stockpile
+   local entity = radiant.entities.get_entity(id)
+   radiant.events.trigger(self._entity, "stonehearth:item_removed", { 
+      storage = self._entity,
+      item = entity
+   })
+end
+
 function StockpileComponent:_rebuild_item_data()
-   local region = self._destination:get_region()
-   region:modify(function(cursor)
+   self._destination:get_region():modify(function(cursor)
       cursor:clear()
       cursor:add_cube(self:_get_bounds())
    end)
+   self._destination:get_reserved():modify(function(cursor)
+      cursor:clear()
+   end)
 
-   self._data.items = {}
+   -- xxx: if this ever gets called with stocked items, we're probably
+   -- going to screw up the inventory system here (they get orphended!)
+   
+   self._data.stocked_items = {}
+   self._data.item_locations = {}
    self._data_binding:mark_changed()
 
    local ec = radiant.entities.get_root_entity()
                   :get_component('entity_container')
 
    for id, child in ec:each_child() do
-      self:_add_item(child)
+      if child and child:is_valid() then  -- xxx: why is this necessary?
+         self:_add_item(child)
+      end
    end
 end
 
@@ -322,12 +327,25 @@ function StockpileComponent:_assign_to_faction()
       if faction then
          local inventory = inventory_service:get_inventory(faction)
          inventory:add_storage(self._entity)
+         radiant.events.listen(inventory, 'stonehearth:item_added', self, self._on_item_added_to_inventory)
+         radiant.events.listen(inventory, 'stonehearth:item_removed', self, self._on_item_removed_from_inventory)
       end
    end
 
    self._faction = faction
 end
 
+function StockpileComponent:_on_item_added_to_inventory(e)
+   if self._pickup_task then
+      self._pickup_task:remove_work_object(e.item:get_id())
+   end
+end
+
+function StockpileComponent:_on_item_removed_from_inventory(e)
+   if self._pickup_task then      
+      self._pickup_task:add_work_object(e.item)
+   end
+end
 
 --- Returns whether or not the stockpile should stock this entity
 -- @param entity The entity you're interested in
@@ -417,7 +435,7 @@ function StockpileComponent:_create_worker_tasks()
          local stockpile = get_stockpile_containing_entity(entity)
          if stockpile and not stockpile:is_outbox() then 
             return false
-         end         
+         end
          return true
       end
    )
@@ -444,7 +462,7 @@ function StockpileComponent:_create_worker_tasks()
             return false
          end
          --TODO: what if the worker is standing just outside the stockpile?
-         return not self:contains(worker)
+         return not self:bounds_contain(worker)
       end
    )
 
