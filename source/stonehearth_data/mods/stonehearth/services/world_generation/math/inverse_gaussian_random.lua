@@ -68,7 +68,7 @@ function InverseGaussianRandom.simulate_probabilities(min, max, std_dev, iterati
    return probabilities
 end
 
-function InverseGaussianRandom.each_probability(min, max, std_dev, iterations, cb)
+function InverseGaussianRandom.print_probabilities(min, max, std_dev, iterations)
    local i, probabilities
    probabilities = InverseGaussianRandom.simulate_probabilities(min, max, std_dev, iterations)
 
