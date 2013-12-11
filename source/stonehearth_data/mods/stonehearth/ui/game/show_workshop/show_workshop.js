@@ -224,7 +224,7 @@ App.StonehearthCrafterView = App.View.extend({
             console.log("selecting... " + ui.item.value);
             //$("#searchInput").val(ui.item.label);
             this.val = ui.item.label;
-            self.select(ui.item.value)
+            self.send('select', ui.item.value)
          },
          focus: function (event, ui) {
             event.preventDefault();
@@ -251,7 +251,7 @@ App.StonehearthCrafterView = App.View.extend({
          var numRecipes = allRecipes.length;
          for (var i=0; i<numRecipes; i++) {
             if (userInput == allRecipes[i].label.toLowerCase()) {
-               this.select(allRecipes[i].value);
+               this.send('select', allRecipes[i].value);
                $(".ui-autocomplete").hide();
                break;
             }

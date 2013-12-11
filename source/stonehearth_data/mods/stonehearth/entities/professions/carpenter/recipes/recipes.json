@@ -21,20 +21,10 @@
          ]
       },
       {
-         "category" : "Tools & Goods",
-         "recipes" : [
-         ]
-      },
-      {
          "category" : "Weapons & Armor",
          "recipes" : [
             "file(wooden_sword_recipe.json)",
             "file(wooden_buckler_recipe.json)"
-         ]
-      },
-      {
-         "category" : "Food, Drink & Supplies",
-         "recipes" : [
          ]
       }
    ]
