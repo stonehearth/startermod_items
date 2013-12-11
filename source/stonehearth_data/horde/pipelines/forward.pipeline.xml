@@ -5,9 +5,13 @@
       <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" format="RGBA8" scale="1.0"/>
    </Setup>
    <CommandQueue>
-      <Stage id="Depth">
+      <Stage id="Sky">
          <SwitchTarget target="OUTPUT" />
-         <ClearTarget depthBuf="true" colBuf0="true"/>
+         <ClearTarget depthBuf="true"/>
+         <DrawGeometry context="SKY"/>
+      </Stage>
+
+      <Stage id="Depth">
          <DrawGeometry context="AMBIENT" class="~Translucent" />
       </Stage>
 
