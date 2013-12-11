@@ -69,10 +69,19 @@ namespace radiant {
 // extremely sparingly.
 #define LOG_CRITICAL() LOG_(0)
 
+// Another unconditional logger.  Don't use this unless you've already
+// verified the level against some authority!
+#define LOG_CATEGORY_(level, prefix) \
+   LOG_(level) << " | " << level << " | " << prefix << " | "
+
+// Check to see if the specified log level is enabled
+#define LOG_IS_ENABLED(category, level)   (log_levels_.category >= level)
+
 // LOG_CATEGORY writes to the log using a very specialized category string.
 // Useful when you want the log to contain context which might change each
 // time you execute the log line (e.g. the id of the current object).
-#define LOG_CATEGORY(category, level, prefix) if (log_levels_.category >= level) LOG_(level) << " | " << level << " | " << prefix << " | "
+#define LOG_CATEGORY(category, level, prefix) if (LOG_IS_ENABLED(category, level)) LOG_CATEGORY_(level, prefix)
+
 
 // LOG writes to the log if the log level at the specified category is
 // greater or equal to the level passed in the macro.  Yes, this means
