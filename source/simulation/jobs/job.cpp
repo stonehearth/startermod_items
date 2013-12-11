@@ -31,8 +31,9 @@ Simulation& Job::GetSim() const
    return _sim;
 }
 
-void Job::LogProgress(std::ostream& ) const
+std::string Job::GetProgress() const
 {
+   return "";
 }
 
 void Job::EncodeDebugShapes(radiant::protocol::shapelist *msg) const

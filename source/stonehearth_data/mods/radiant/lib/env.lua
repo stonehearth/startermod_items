@@ -8,11 +8,8 @@ end
 
 -- this function is only valid in very specific circumstances!  specfically, the
 -- caller must be called DIRECTLY from a 3rd party module source file.
-__get_current_module_name = function()
-   -- level 1 would be this function, __get_current_module_name in env.lua...
-   -- level 2 would be the caller of this function (e.g. require in env.lua...)
-   -- level 3 is the caller of the caller, which is in the module we're looking for!
-   local info = debug.getinfo(3, 'S')
+__get_current_module_name = function(depth)
+   local info = debug.getinfo(depth, 'S')
 
    if not info.source then
       _host:log('could not determine module file in radiant "require"')
@@ -41,7 +38,10 @@ require = function(s)
       return o
    end
 
-   local modname = __get_current_module_name()
+   -- level 1 would be the __get_current_module_name function in env.lua...
+   -- level 2 would be the caller of this function (e.g. require in env.lua...)
+   -- level 3 is the caller of the caller, which is in the module we're looking for!
+   local modname = __get_current_module_name(3)
    if modname then
       return _host:require(modname .. '.' ..s)
    end

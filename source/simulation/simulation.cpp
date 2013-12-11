@@ -53,7 +53,8 @@ using namespace ::radiant::simulation;
 namespace proto = ::radiant::tesseract::protocol;
 namespace po = boost::program_options;
 
-#define SIM_LOG(level)     LOG(simulation.core, level)
+#define SIM_LOG(level)              LOG(simulation.core, level)
+#define SIM_LOG_GAMELOOP(level)     LOG_CATEGORY(simulation.core, level, "simulation.core (time left: " << game_loop_timer_.remaining() << ")")
 
 Simulation::Simulation() :
    _showDebugNodes(false),
@@ -62,7 +63,8 @@ Simulation::Simulation() :
    sequence_number_(1),
    paused_(false),
    noidle_(false),
-   _tcp_acceptor(nullptr)
+   _tcp_acceptor(nullptr),
+   profile_next_lua_update_(false)
 {
    octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree(dm::OBJECT_MODEL_TRACES));
    scriptHost_.reset(new lua::ScriptHost());
@@ -110,6 +112,14 @@ Simulation::Simulation() :
 
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:step_paths");
       result->ResolveWithMsg("stepped...");
+      return result;
+   });
+   core_reactor_->AddRoute("radiant:profile_next_lua_upate", [this](rpc::Function const& f) {
+      profile_next_lua_update_ = true;
+      SIM_LOG(0) << "profiling next lua update";
+
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:profile_next_lua_upate");
+      result->ResolveWithMsg("ok");
       return result;
    });
 
@@ -183,10 +193,7 @@ void Simulation::StepPathFinding()
    radiant::stdutil::ForEachPrune<Job>(jobs_, [&](std::shared_ptr<Job> &p) {
       if (!p->IsFinished() && !p->IsIdle()) {
          p->Work(t);
-
-         std::ostringstream progress;
-         p->LogProgress(progress);
-         SIM_LOG(1) << progress.str();
+         SIM_LOG(5) << p->GetProgress();
       }
    });
 }
@@ -209,17 +216,22 @@ void Simulation::Step()
    //IncrementClock(interval);
 
    // Run AI...
+   SIM_LOG_GAMELOOP(7) << "calling lua update";
    try {
-      now_ = luabind::call_function<int>(game_api_["update"], _stepInterval);
+      now_ = luabind::call_function<int>(game_api_["update"], _stepInterval, profile_next_lua_update_);      
    } catch (std::exception const& e) {
       SIM_LOG(3) << "fatal error initializing game update: " << e.what();
    }
+   profile_next_lua_update_ = false;
 
    // Collision detection...
+   SIM_LOG_GAMELOOP(7) << "updating collision system";
    GetOctTree().Update(now_);
 
-   ProcessTaskList(_timer);
-   ProcessJobList(_timer);
+   ProcessTaskList();
+   ProcessJobList();
+
+   SIM_LOG_GAMELOOP(7) << "firing lua traces";
    lua_traces_->Flush();
 }
 
@@ -317,15 +329,16 @@ void Simulation::EncodeDebugShapes(protocol::SendQueuePtr queue)
    queue->Push(protocol::Encode(update));
 }
 
-void Simulation::ProcessTaskList(platform::timer &timer)
+void Simulation::ProcessTaskList()
 {
    PROFILE_BLOCK();
+   SIM_LOG_GAMELOOP(7) << "processing task list";
 
    auto i = tasks_.begin();
    while (i != tasks_.end()) {
       std::shared_ptr<Task> task = i->lock();
 
-      if (task && task->Work(timer)) {
+      if (task && task->Work(game_loop_timer_)) {
          i++;
       } else {
          i = tasks_.erase(i);
@@ -333,19 +346,17 @@ void Simulation::ProcessTaskList(platform::timer &timer)
    }
 }
 
-void Simulation::ProcessJobList(platform::timer &timer)
+void Simulation::ProcessJobList()
 {
    // Pahtfinders down here...
    if (_singleStepPathFinding) {
       SIM_LOG(5) << "skipping job processing (single step is on).";
       return;
    }
-
+   SIM_LOG_GAMELOOP(7) << "processing job list";
 
    int idleCountdown = jobs_.size();
-   SIM_LOG(5) << timer.remaining() << " ms remaining in process job list (" << idleCountdown << " jobs).";
-
-   while (!timer.expired() && !jobs_.empty() && idleCountdown) {
+   while (!game_loop_timer_.expired() && !jobs_.empty() && idleCountdown) {
       std::weak_ptr<Job> front = radiant::stdutil::pop_front(jobs_);
       std::shared_ptr<Job> job = front.lock();
       if (job) {
@@ -353,12 +364,14 @@ void Simulation::ProcessJobList(platform::timer &timer)
          if (!job->IsFinished()) {
             if (!job->IsIdle()) {
                idleCountdown = jobs_.size() + 2;
-               job->Work(timer);
-               //job->LogProgress(SIM_LOG(3));
+               job->Work(game_loop_timer_);
+               if (LOG_IS_ENABLED(simulation.core, 7)) {
+                  SIM_LOG_GAMELOOP(7) << job->GetProgress();
+               }
             }
             jobs_.push_back(front);
          } else {
-            SIM_LOG(3) << "destroying job..";
+            SIM_LOG_GAMELOOP(5) << "destroying job..";
          }
       }
       idleCountdown--;
@@ -458,7 +471,7 @@ void Simulation::main()
    unsigned int last_stat_dump = 0;
 
    _stepInterval = 1000 / 20;
-   _timer.set(_stepInterval);
+   game_loop_timer_.set(_stepInterval);
 
    while (1) {
       mainloop();
@@ -475,7 +488,7 @@ void Simulation::main()
 void Simulation::mainloop()
 {
    PROFILE_BLOCK();
-
+   SIM_LOG_GAMELOOP(7) << "starting next gameloop";
    process_messages();
 
    if (!paused_) {
@@ -488,25 +501,25 @@ void Simulation::mainloop()
 void Simulation::idle()
 {
    PROFILE_BLOCK();
-
-   // SIM_LOG(3) << _timer.remaining() << " time left in idle";
+   SIM_LOG_GAMELOOP(7) << "starting lua gc";
 
    // xxx: we should probably read and parse network events even while idle.
-   scriptHost_->GC(_timer);
+   scriptHost_->GC(game_loop_timer_);
 
    if (!noidle_) {
-      while (!_timer.expired()) {
+      SIM_LOG_GAMELOOP(7) << "idling";
+      while (!game_loop_timer_.expired()) {
          platform::sleep(1);
       }
    }
-   _timer.advance(_stepInterval);
+   game_loop_timer_.advance(_stepInterval);
 }
 
 void Simulation::send_client_updates()
 {
    PROFILE_BLOCK();
+   SIM_LOG_GAMELOOP(7) << "sending client updates";
 
-   lua_traces_->Flush();
    for (std::shared_ptr<RemoteClient> c : _clients) {
       SendUpdates(c);
       protocol::SendQueue::Flush(c->send_queue);
@@ -524,6 +537,7 @@ void Simulation::SendUpdates(std::shared_ptr<RemoteClient> c)
 void Simulation::process_messages()
 {
    PROFILE_BLOCK();
+   SIM_LOG_GAMELOOP(7) << "processing messages";
 
    _io_service->poll();
    _io_service->reset();

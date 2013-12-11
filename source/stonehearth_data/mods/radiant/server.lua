@@ -20,13 +20,21 @@ radiant.mods = require 'modules.mods'
 radiant.pathfinder = require 'modules.pathfinder'
 
 radiant.gamestate._start()
-radiant.log.info('radiant api initialized.')
+radiant.log.info('server', 'radiant api initialized.')
 
 local api = {}
 
-function api.update(interval)
+local ProFi = require 'lib.ProFi'
+function api.update(interval, profile)
+   if profile then
+      ProFi:start()
+   end
    radiant.gamestate._increment_clock(interval)
    radiant.events._update()
+   if profile then
+      ProFi:stop()
+      ProFi:writeReport()
+   end
    return radiant.gamestate.now()
 end
 

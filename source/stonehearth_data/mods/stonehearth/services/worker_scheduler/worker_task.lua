@@ -1,13 +1,14 @@
 local Color4 = _radiant.csg.Color4
 local WorkerTask = class()
 local priorities = require('constants').priorities.worker_task
+local log = radiant.log.create_logger('worker')
 
 local next_task_id = 1
 function WorkerTask:__init(name, scheduler)
    self.id = next_task_id
    next_task_id = next_task_id + 1
    
-   self._name = string.format('(id:%d) %s', self.id, name)
+   self._name = string.format('(worker_task %d %s)', self.id, name)
    self._scheduler = scheduler
    self._pathfinders = {}
    self._destinations = {}
@@ -42,7 +43,7 @@ function WorkerTask:set_action_fn(fn)
 end
 
 function WorkerTask:set_finish_fn(fn)
-   self._set_finish_fn = fn
+   self._finish_fn = fn
 end
 
 function WorkerTask:set_action(action_name)
@@ -81,11 +82,14 @@ end
 function WorkerTask:add_work_object(dst)
    local ok = not self._work_object_filter_fn or self._work_object_filter_fn(dst)
    if ok then
+      log:debug('%s adding work object %s in add_work_object()', self._name, dst)
       self._destinations[dst:get_id()] = dst
       for worker_id, pf in pairs(self._pathfinders) do
          pf:add_destination(dst)
       end
       return self
+   else
+      log:debug('%s ignoring non-suitable %s in add_work_object()', self._name, dst)
    end
 end
 
@@ -169,6 +173,8 @@ function WorkerTask:_dispatch_solution(path)
    local finish_fn = function(success)
       if self._finish_fn then
          self._finish_fn(success, action)
+      else
+         log:debug('%s no finish function set by client!  ignoring', self._name)
       end
    end
    pf:stop()

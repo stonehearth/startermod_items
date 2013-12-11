@@ -85,8 +85,8 @@ public:
 private:
    void PostCommand(tesseract::protocol::PostCommandRequest const& request);
    void EncodeDebugShapes(protocol::SendQueuePtr queue);
-   void ProcessTaskList(platform::timer &timer);
-   void ProcessJobList(platform::timer &timer);
+   void ProcessTaskList();
+   void ProcessJobList();
    void StepPathFinding();
    void SendReply(tesseract::protocol::PostCommandReply const& reply);
    void InitializeModules();
@@ -151,8 +151,9 @@ private:
    boost::asio::io_service*            _io_service;
    tcp::acceptor*                      _tcp_acceptor;
    std::vector<std::shared_ptr<RemoteClient>>   _clients;
-   platform::timer                     _timer;
+   platform::timer                     game_loop_timer_;
    int                                 _stepInterval;
+   bool                                profile_next_lua_update_;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

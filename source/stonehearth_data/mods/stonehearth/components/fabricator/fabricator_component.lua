@@ -18,7 +18,7 @@ end
 
 function FabricatorComponent:start_project(name, blueprint)
    self.name = name and name or '-- unnamed --'
-   radiant.log.info('starting project %s', self.name)
+   log:debug('starting project %s', self.name)
    
    self._fabricator = Fabricator(name, self._entity, blueprint)
    

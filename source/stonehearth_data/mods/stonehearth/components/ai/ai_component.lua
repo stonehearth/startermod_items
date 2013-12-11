@@ -1,5 +1,6 @@
 
 local AIComponent = class()
+local log = radiant.log.create_logger('ai.component')
 
 function AIComponent:__init(entity)
    self._entity = entity
@@ -107,7 +108,7 @@ function AIComponent:check_action_stack()
    for i, entry in ipairs(self._action_stack) do
       local action, priority = self:_get_best_action(entry.activity, i-1)
       if action ~= entry.action and priority > entry.priority then
-         -- radiant.log.info('switching from %s to %s (priority:%d)', entry.action.name, action.name, priority)
+         log:debug('switching from %s to %s (priority:%d)', entry.action.name, action.name, priority)
          unwind_to_action = i
          break
       end
@@ -119,9 +120,9 @@ function AIComponent:check_action_stack()
    self._action_stack
    local activity = self:_get_best_activity()
    if not self._current_activity or not self:_activities_equal(activity, self._current_activity) then
-      radiant.log.debug('behavior switching entity %s behavior:', tostring(self._entity))
-      radiant.log.debug('   from: %s', self:_format_activity(self._current_activity))
-      radiant.log.debug('   to:   %s', self:_format_activity(activity))
+      log:debug('behavior switching entity %s behavior:', tostring(self._entity))
+      log:debug('   from: %s', self:_format_activity(self._current_activity))
+      log:debug('   to:   %s', self:_format_activity(activity))
       self:restart(activity)
    end
    ]]
@@ -150,7 +151,7 @@ function AIComponent:_get_best_action(activity, filter_depth)
    local best_a, best_p, list_best_a
 
    for a, p in pairs(priorities) do
-      --radiant.log.info('activity %s: %s has priority %d', activity_name, a.name, p)
+      log:debug('activity %s: %s has priority %d', activity_name, a.name, p)
       if not best_p or p >= best_p then
          -- get_best_action is called both to check the health of the current action
          -- stack as well as to choose new actions to put on the stack.  In the first
@@ -187,19 +188,19 @@ end
 function AIComponent:_get_best_activity()
    radiant.check.is_entity(self._entity)
 
-   radiant.log.debug('computing best activity for %s.', tostring(self._entity))
+   log:debug('computing best activity for %s.', tostring(self._entity))
    local bp, ba = -1, nil
    for name, action in pairs(self._actions) do
       local p, a = action:recommend_activity(self._entity)
       if p ~= nil then
-         radiant.log.debug('  recommend activity %11d %s', p, self:_format_activity(a))
+         log:debug('  recommend activity %11d %s', p, self:_format_activity(a))
          if p > bp then
             bp, ba = p, a
          end
       end
    end
    assert(ba)
-   radiant.log.debug('best activity for %s is %s.', tostring(self._entity), self:_format_activity(ba))
+   log:debug('best activity for %s is %s.', tostring(self._entity), self:_format_activity(ba))
    return ba
 end
 ]]
@@ -268,7 +269,7 @@ end
 function AIComponent:abort(reason)
    -- xxx: assert that we're running inthe context of the coroutine
    if reason == nil then reason = 'no reason given' end
-   radiant.log.info('Aborting current action because: ' .. reason)
+   log:info('Aborting current action because: ' .. reason)
    
    self:_clear_action_stack()   
    -- all actions have had their stop method called on them.  yield
@@ -296,9 +297,9 @@ function AIComponent:execute(...)
 
    local action_main = function()
       -- decoda_name = string.format("entity %d : %s action", self._entity:get_id(), tostring(action.name))
-      --radiant.log.debug('coroutine starting action: %s for activity %s', action.name, self:_format_activity(activity))
+      --log:debug('coroutine starting action: %s for activity %s', action.name, self:_format_activity(activity))
       local result = { action:run(self, self._entity, select(2, unpack(activity))) }
-      --radiant.log.debug('coroutine finished: %s', action.name)
+      --log:debug('coroutine finished: %s', action.name)
       return result
    end
 

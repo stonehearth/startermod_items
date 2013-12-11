@@ -2,6 +2,7 @@ local Point3 = _radiant.csg.Point3
 local analytics = require 'services.analytics.analytics_service'
 
 local WorkerPlaceItemAction = class()
+local log = radiant.log.create_logger('actions.place_item')
 
 
 WorkerPlaceItemAction.name = 'place item'
@@ -38,7 +39,7 @@ function WorkerPlaceItemAction:run(ai, entity, path, ghost_entity, rotation, tas
 
    -- If the task is already stopped, someone else got this action first. Exit.
    if not task:is_running() then
-      radiant.log.info('%s (Worker %s): Never mind! You got the %s.', tostring(entity), name, object_name)
+      log:info('%s (Worker %s): Never mind! You got the %s.', tostring(entity), name, object_name)
       ai:abort()
    end
 
@@ -51,7 +52,7 @@ function WorkerPlaceItemAction:run(ai, entity, path, ghost_entity, rotation, tas
    self._task = task
 
    -- Log successful grab
-   radiant.log.info('%s (Worker %s): Hands off, guys! I have totally got this %s', tostring(entity), name, object_name)
+   log:info('%s (Worker %s): Hands off, guys! I have totally got this %s', tostring(entity), name, object_name)
 
    ai:execute('stonehearth:carry_item_on_path_to', path, ghost_entity)
 

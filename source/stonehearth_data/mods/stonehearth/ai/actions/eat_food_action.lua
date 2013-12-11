@@ -13,6 +13,7 @@ local personality_service = require 'services.personality.personality_service'
 local Point3 = _radiant.csg.Point3
 
 local EatFoodAction = class()
+local log = radiant.log.create_logger('actions.eat_food')
 
 EatFoodAction.name = 'eat food'
 EatFoodAction.does = 'stonehearth:eat_food'
@@ -90,7 +91,7 @@ function EatFoodAction:find_seat()
       end
    end
 
-   radiant.log.info('%s creating pathfinder to find a seat', tostring(self._entity));
+   log:debug('%s creating pathfinder to find a seat', tostring(self._entity));
    local desc = string.format('finding a seat for %s', tostring(self._entity))
    self._pathfinder = radiant.pathfinder.create_path_finder(desc)
                         :set_source(self._entity)
