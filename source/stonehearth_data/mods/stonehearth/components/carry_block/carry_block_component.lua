@@ -18,8 +18,12 @@ end
 function CarryBlock:set_carrying(item)
    if not item or not item:is_valid() then
       self._carry_block:clear_carrying()
+      radiant.entities.unset_posture(self._entity, 'carrying')
+      radiant.entities.remove_buff(self._entity, 'stonehearth:buffs:carrying')
    else
       self._carry_block:set_carrying(item)
+      radiant.entities.set_posture(self._entity, 'carrying')
+      radiant.entities.add_buff(self._entity, 'stonehearth:buffs:carrying')      
    end
 end
 
@@ -31,18 +35,12 @@ function CarryBlock:get_carrying()
 end
 
 function CarryBlock:_on_carrying_changed(item)
-   if item and item:is_valid() then
-      radiant.entities.set_posture(self._entity, 'carrying')
-      radiant.entities.add_buff(self._entity, 'stonehearth:buffs:carrying')
-      
+   if item and item:is_valid() then     
       self._carrying_item_trace = item:trace_object('carry destroy trace')
          :on_destroyed(function()
             self:set_carrying(nil)
          end)
    else
-      radiant.entities.unset_posture(self._entity, 'carrying')
-      radiant.entities.remove_buff(self._entity, 'stonehearth:buffs:carrying')
-
       if self._carrying_item_trace then
          self._carrying_item_trace:destroy()
          self._carrying_item_trace = nil
