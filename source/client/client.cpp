@@ -483,7 +483,7 @@ void Client::mainloop()
    } else {
       alpha = (currentTime - ((int)_client_interval_start - _server_skew)) / (float)_server_interval_duration;
    }
-   alpha = std::max(0.0f, alpha);
+   alpha = std::min(1.0f, std::max(0.0f, alpha));
    now_ = (int)(_server_last_update_time + (_server_interval_duration * alpha));
 
    static int last_now = 0;
