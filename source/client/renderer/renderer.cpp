@@ -296,11 +296,11 @@ void Renderer::BuildStarfield()
    {
       int size = rng.GenerateUniformInt(1, 2);
       texCoords[i + 0] = 0; texCoords[i + 1] = 0;
-      texCoords[i + 2] = 2 * size; texCoords[i + 3] = 0;
-      texCoords[i + 4] = 2 * size; texCoords[i + 5] = 2 * size;
-      texCoords[i + 6] = 0; texCoords[i + 7] = 2 * size;
+      texCoords[i + 2] = 2.0f * size; texCoords[i + 3] = 0;
+      texCoords[i + 4] = 2.0f * size; texCoords[i + 5] = 2.0f * size;
+      texCoords[i + 6] = 0; texCoords[i + 7] = 2.0f * size;
 
-      float brightness = rng.GenerateUniformInt(0, 1) == 0 ? 1.0 : 0.3;
+      float brightness = rng.GenerateUniformInt(0, 1) == 0 ? 1.0f : 0.3f;
       texCoords2[i + 0] = brightness; texCoords2[i + 1] = brightness;
       texCoords2[i + 2] = brightness; texCoords2[i + 3] = brightness;
       texCoords2[i + 4] = brightness; texCoords2[i + 5] = brightness;
