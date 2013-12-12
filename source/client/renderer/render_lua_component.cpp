@@ -38,12 +38,12 @@ RenderLuaComponent::RenderLuaComponent(RenderEntity& entity, std::string const& 
 
 RenderLuaComponent::~RenderLuaComponent()
 {
-   if (obj_ && obj_.is_valid()) {
+   if (obj_) {
       lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
       try {
          luabind::object fn = obj_["destroy"];
-         if (fn && fn.is_valid()) {
-            luabind::call_function<void>(fn, obj_);
+         if (fn) {
+            fn(obj_);
          }
       } catch (std::exception const& e) {
          LC_LOG(1) << "error destroying component renderer: " << e.what();

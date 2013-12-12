@@ -17,7 +17,9 @@ class Entity : public dm::Record,
                public std::enable_shared_from_this<Entity> {
 public:
    DEFINE_OM_OBJECT_TYPE(Entity, entity);
-   virtual ~Entity() { }
+   virtual ~Entity();
+
+   void Destroy();
 
    typedef dm::Map<std::string, dm::ObjectPtr> ComponentMap;
 
