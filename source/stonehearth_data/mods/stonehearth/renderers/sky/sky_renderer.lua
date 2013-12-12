@@ -137,6 +137,8 @@ function SkyRenderer:_update(seconds)
    end
 
    self:_update_sky_colors(seconds)
+
+   self:_update_starfield_brightness(seconds)
 end
 
 function SkyRenderer:_update_sky_colors(seconds)
@@ -168,6 +170,18 @@ function SkyRenderer:_update_sky_colors(seconds)
    _radiant.renderer.sky.set_sky_colors(startCol, endCol)
 end
 
+function SkyRenderer:_update_starfield_brightness(seconds)
+   local starfield_brightness = {
+      {0, Vec3(1.0, 1.0, 1.0)},
+      {self.timing.sunrise_start, Vec3(1.0, 1.0, 1.0)},
+      {self.timing.sunrise_end, Vec3(0.0, 0.0, 0.0)},
+      {self.timing.sunset_start, Vec3(0.0, 0.0, 0.0)},
+      {self.timing.sunset_end, Vec3(1.0, 1.0, 1.0)}
+   }
+
+   local brightness = self:_find_value(seconds, starfield_brightness)
+   _radiant.renderer.sky.set_starfield_brightness(brightness.x)
+end
 
 local last = 0
 

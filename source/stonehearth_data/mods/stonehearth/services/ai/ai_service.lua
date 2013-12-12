@@ -53,7 +53,7 @@ function AiService:_on_event_loop(e)
       self._running_thread = nil
       
       if not success then
-         radiant.check.report_thread_error(co, 'co-routine failed: ' .. tostring(wait_obj))
+         radiant.check.report_thread_error(co, 'entity ai error: ' .. tostring(wait_obj))
          self._scheduled[co] = nil
       end
 

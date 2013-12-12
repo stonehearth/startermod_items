@@ -2,6 +2,7 @@
 #include "follow_path.h"
 #include "om/entity.h"
 #include "om/components/mob.ridl.h"
+#include "simulation/simulation.h"
 #include "csg/util.h" // xxx: should be csg/csg.h
 
 using namespace ::radiant;
@@ -46,8 +47,7 @@ bool FollowPath::Work(const platform::timer &timer)
       return false;
    }
 
-   float speedMultiplier = 0.4f; // xxx: pass this into the action
-   float maxDistance = speed_ * speedMultiplier;
+   float maxDistance = speed_ * GetSim().GetBaseWalkSpeed();
    auto mob = entity->GetComponent<om::Mob>();
    const std::vector<csg::Point3> &points = path_->GetPoints();
 

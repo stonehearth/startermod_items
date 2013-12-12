@@ -78,6 +78,8 @@ public:
    phys::OctTree &GetOctTree();
    dm::Store& GetStore();
    lua::ScriptHost& GetScript();
+   float GetBaseWalkSpeed() const;
+   int GetStepInterval() const;
 
    WorkerScheduler* GetWorkerScheduler();
    BuildingScheduler* GetBuildingScehduler(dm::ObjectId id);
@@ -153,6 +155,7 @@ private:
    std::vector<std::shared_ptr<RemoteClient>>   _clients;
    platform::timer                     game_loop_timer_;
    int                                 _stepInterval;
+   float                               base_walk_speed_;
    bool                                profile_next_lua_update_;
 };
 

@@ -41,10 +41,10 @@ function check.report_error(...)
    check.report_thread_error(nil, ...)
 end
 
-function check.report_thread_error(thread, ...)   
-   radiant.log.write('radiant', 0, string.format('error: %s', ...))
-   local msg = thread and debug.traceback(thread) or debug.traceback()
-   radiant.log.write('radiant', 0, '%s', msg)
+function check.report_thread_error(thread, format, ...)   
+   local error = string.format(format, ...)
+   local traceback = thread and debug.traceback(thread) or debug.traceback()
+   host_:report_error(error, traceback)
 end
 
 function check.contains(t, value)

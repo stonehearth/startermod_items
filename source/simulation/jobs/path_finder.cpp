@@ -5,6 +5,7 @@
 #include "path_finder_src.h"
 #include "path_finder_dst.h"
 #include "simulation/simulation.h"
+#include "lib/lua/script_host.h"
 #include "om/entity.h"
 #include "om/components/mob.ridl.h"
 #include "om/components/destination.ridl.h"
@@ -122,16 +123,16 @@ void PathFinder::AddDestination(om::EntityRef e)
 
    auto entity = e.lock();
    if (entity) {
-      if (dst_filter_.is_valid() && luabind::type(dst_filter_) == LUA_TFUNCTION) {
+      if (dst_filter_ && luabind::type(dst_filter_) == LUA_TFUNCTION) {
          bool ok = false;
+         lua_State* L = dst_filter_.interpreter();
          try {
-            auto L = dst_filter_.interpreter();
             luabind::object e(L, std::weak_ptr<om::Entity>(entity));
             PF_LOG(5) << "calling lua solution callback";
-            ok = luabind::call_function<bool>(dst_filter_, e);
+            ok = lua::ScriptHost::CoerseToBool(dst_filter_(e));
             PF_LOG(5) << "finished calling lua solution callback";
          } catch (std::exception& e) {
-            LUA_LOG(1) << "exception in pathfinder filter function: " << e.what();
+            lua::ScriptHost::ReportCStackException(L, e);
          }
          if (!ok) {
             return;
