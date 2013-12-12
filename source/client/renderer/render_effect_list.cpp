@@ -106,6 +106,12 @@ void RenderEffectList::RemoveEffect(int effect_id)
 
 void RenderEffectList::UpdateEffects(FrameStartInfo const& info)
 {
+   if (!entity_.GetEntity()) {
+      EL_LOG(5) << "skipping updated effects for destroyed entity";
+      return;
+   }
+   EL_LOG(5) << "updating effects for entity " << entity_.GetName();
+
    auto i = effects_.begin();
    while (i != effects_.end()) {
       bool finished = false;
@@ -189,32 +195,36 @@ void RenderInnerEffectList::Update(FrameStartInfo const& info, bool& finished)
 RenderAnimationEffect::RenderAnimationEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
    entity_(e)
 {
-   int now = effect->GetStartTime();
-   animationName_ = node["animation"].as_string();
+   om::EntityPtr entity = e.GetEntity();
+
+   if (entity) {
+      int now = effect->GetStartTime();
+      animationName_ = node["animation"].as_string();
    
-   // compute the location of the animation
-   std::string animationTable = e.GetEntity()->GetComponent<om::RenderInfo>()->GetAnimationTable();
-   json::Node json = res::ResourceManager2::GetInstance().LookupJson(animationTable);
-   std::string animationRoot = json.get<std::string>("animation_root", "");
+      // compute the location of the animation
+      std::string animationTable = entity->GetComponent<om::RenderInfo>()->GetAnimationTable();
+      json::Node json = res::ResourceManager2::GetInstance().LookupJson(animationTable);
+      std::string animationRoot = json.get<std::string>("animation_root", "");
 
-   animationName_ = animationRoot + "/" + animationName_;
-   animation_ = res::ResourceManager2::GetInstance().LookupAnimation(animationName_);
+      animationName_ = animationRoot + "/" + animationName_;
+      animation_ = res::ResourceManager2::GetInstance().LookupAnimation(animationName_);
 
-   if (animation_) {
-      startTime_ = GetStartTime(node) + now;
-      auto i = node.find("loop");
-      if (i != node.end() && i->as_bool()) {
-         duration_ = 0;
-      } else {
-         auto i = node.find("end_time");
-         if (i != node.end()) {
-            duration_ = (float)i->as_float();
+      if (animation_) {
+         startTime_ = GetStartTime(node) + now;
+         auto i = node.find("loop");
+         if (i != node.end() && i->as_bool()) {
+            duration_ = 0;
          } else {
-            duration_ = animation_->GetDuration();
+            auto i = node.find("end_time");
+            if (i != node.end()) {
+               duration_ = (float)i->as_float();
+            } else {
+               duration_ = animation_->GetDuration();
+            }
          }
       }
+      EL_LOG(5) << "starting animation effect" << animationName_ << "(start_time: " << startTime_ << ")";
    }
-   EL_LOG(5) << "starting animation effect" << animationName_ << "(start_time: " << startTime_ << ")";
 }
 
 
@@ -820,7 +830,14 @@ PlaySoundEffect::~PlaySoundEffect()
 **/
 void PlaySoundEffect::Update(FrameStartInfo const& info, bool& finished)
 {
-   om::MobPtr mobP = entity_.GetEntity()->GetComponent<om::Mob>();
+   // Entity should never be null here, but it helps to code defensively.
+   om::EntityPtr entity = entity_.GetEntity();
+   if (!entity) {
+      finished = true;
+      return;
+   }
+
+   om::MobPtr mobP = entity->GetComponent<om::Mob>();
    if (mobP) {
       csg::Point3f loc = mobP -> GetWorldLocation();
       sound_.setPosition(loc.x, loc.y, loc.z);
@@ -835,7 +852,6 @@ void PlaySoundEffect::Update(FrameStartInfo const& info, bool& finished)
    } else {
       finished = info.now > startTime_ + delay_ + soundBuffer_.getDuration().asMilliseconds(); 
    }
-
 }
 
 
