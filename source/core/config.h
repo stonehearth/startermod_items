@@ -65,11 +65,11 @@ private:
    NO_COPY_CONSTRUCTOR(Config);
 
    void InitializeSession();
-   void CmdLineOptionToKeyValue(std::string const& param, std::string& key, std::string& value) const;
    json::Node ParseCommandLine(int argc, const char *argv[]) const;
    json::Node ReadConfigFile(boost::filesystem::path const& file_path) const;
    void WriteConfigFile(boost::filesystem::path const& file_path, json::Node const& config) const;
    void MergeConfigNodes(JSONNode& base, JSONNode const& override) const;
+   void ParseCmdLineOption(json::Node& node, std::string const& param) const;
 
 private:
    std::string const              config_filename_;
