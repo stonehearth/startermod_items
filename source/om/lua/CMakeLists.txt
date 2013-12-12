@@ -13,6 +13,7 @@ add_library(om_lua STATIC
             lua_entity.cpp
             lua_om.cpp
             lua_data_store.cpp
+            lua_region.cpp
             pch.cpp
             )
 
