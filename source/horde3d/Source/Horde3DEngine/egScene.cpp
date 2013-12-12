@@ -371,26 +371,21 @@ void SpatialGraph::query(const SpatialQuery& query, std::vector<RendQueueItem>& 
 	{
 		SceneNode *node = _nodes[i];
 		if (node == 0x0) {
-         SCENE_LOG(5) << "ignoring node (null)";
          continue;
       }
       if (node->_flags & query.filterIgnore) {
-         SCENE_LOG(5) << "ignoring node (in ignore set) " << node->getName() << " " << node->getHandle();
          continue;
       }
       if ((node->_flags & query.filterRequired) != query.filterRequired) {
-         SCENE_LOG(5) << "ignoring node (no required flag) " << node->getName() << " " << node->getHandle();
          continue;
       }
 
       if (query.useRenderableQueue) {
          if (!node->_renderable) {
-            SCENE_LOG(5) << "ignoring node (unrenderable) " << node->getName() << " " << node->getHandle();
             continue;
          }
 
          if (query.frustum.cullBox( node->_bBox ) && (query.secondaryFrustum == 0x0 || query.secondaryFrustum->cullBox( node ->_bBox ))) {
-            SCENE_LOG(5) << "ignoring node (culled) " << node->getName() << " " << node->getHandle();
             continue;
          }
 
@@ -398,7 +393,6 @@ void SpatialGraph::query(const SpatialQuery& query, std::vector<RendQueueItem>& 
          {
             uint32 curLod = ((MeshNode *)node)->getParentModel()->calcLodLevel( camPos );
             if( ((MeshNode *)node)->getLodLevel() != curLod ) {
-               SCENE_LOG(5) << "ignoring node (wrong LOD level) " << node->getName() << " " << node->getHandle();
                continue;
             }
          }
@@ -418,11 +412,9 @@ void SpatialGraph::query(const SpatialQuery& query, std::vector<RendQueueItem>& 
             break;
          }
 				
-         SCENE_LOG(5) << "adding node " << node->getName() << " " << node->getHandle();
          renderableQueue.push_back( RendQueueItem( node->_type, sortKey, node ) );
       }
       if (query.useLightQueue && node->_type == SceneNodeTypes::Light) {		 
-         SCENE_LOG(5) << "adding light " << node->getName() << " " << node->getHandle();
          lightQueue.push_back( node );
       }
    }
