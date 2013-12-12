@@ -154,6 +154,7 @@ class Renderer
       void GetConfigOptions();
       void ApplyConfig();
       void BuildSkySphere();
+      void BuildStarfield();
       void SetStageEnable(const char* stageName, bool enabled);
       void OnWindowResized(int newWidth, int newHeight);
       void OnKey(int key, int down);

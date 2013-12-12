@@ -37,16 +37,15 @@ void main() {
   
   // We rotate the sphere just a bit, in order to minimize the perspective warping
   // of the sphere.
-  vertPos.y -= 50;
-  vec3 worldPos = worldMat * vec4(vertPos, 0.0);
+  vec3 worldPos = (worldMat * vec4(vertPos.x, vertPos.y - 50.0, vertPos.z, 0.0)).xyz;
   gl_Position = projMat * vec4(worldPos, 1.0);
 }
 
 [[FS_SKYSPHERE]]
 
-attribute float colorT;
-attribute vec4 startCol;
-attribute vec4 endCol;
+in float colorT;
+in vec4 startCol;
+in vec4 endCol;
 
 void main() {
   float clampedT = clamp(colorT, 0.0, 1.0);

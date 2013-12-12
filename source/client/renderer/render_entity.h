@@ -33,7 +33,7 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       void SetParent(H3DNode node);
       H3DNode GetParent() const; 
       H3DNode GetNode() const;
-      std::string GetName() const;
+      std::string const& GetName() const;
 
       static int GetTotalObjectCount();
 
@@ -65,6 +65,7 @@ protected:
       std::string       node_name_;
       H3DNodeUnique     node_;
       om::EntityRef     entity_;
+      dm::ObjectId      entity_id_;
       Skeleton          skeleton_;
       ComponentMap      components_;
       LuaComponentMap   lua_invariants_;

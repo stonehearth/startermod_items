@@ -11,6 +11,10 @@
          <DrawGeometry context="SKY"/>
       </Stage>
 
+      <Stage id="Starfield">
+         <DrawGeometry context="STARFIELD"/>
+      </Stage>
+
       <Stage id="Depth">
          <DrawGeometry context="AMBIENT" class="~Translucent" />
       </Stage>
