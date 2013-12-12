@@ -21,6 +21,7 @@ add_library(lua
             rpc/open_rpc.cpp
             om/open_om.cpp
             dm/open_dm.cpp
+            dm/trace_wrapper.cpp
             dm/map_trace_wrapper.cpp
             dm/set_trace_wrapper.cpp
             dm/boxed_trace_wrapper.cpp

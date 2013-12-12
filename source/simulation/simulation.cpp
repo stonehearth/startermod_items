@@ -164,6 +164,10 @@ void Simulation::CreateNew()
    lua::analytics::open(L);
    om::RegisterObjectTypes(store_);
 
+   _stepInterval = core::Config::GetInstance().Get<int>("simulation.step_interval", 200);
+   base_walk_speed_ = core::Config::GetInstance().Get<float>("simulation.base_walk_speed", 0.3f);
+   base_walk_speed_ = base_walk_speed_ * 1000.0f / _stepInterval;
+
    game_api_ = scriptHost_->Require("radiant.server");
 
    core::Config const& config = core::Config::GetInstance();
@@ -221,6 +225,7 @@ void Simulation::Step()
       now_ = luabind::call_function<int>(game_api_["update"], _stepInterval, profile_next_lua_update_);      
    } catch (std::exception const& e) {
       SIM_LOG(3) << "fatal error initializing game update: " << e.what();
+      GetScript().ReportCStackThreadException(GetScript().GetCallbackThread(), e);
    }
    profile_next_lua_update_ = false;
 
@@ -259,6 +264,7 @@ void Simulation::EncodeServerTick(std::shared_ptr<RemoteClient> c)
    update.set_type(proto::Update::SetServerTick);
    auto msg = update.MutableExtension(proto::SetServerTick::extension);
    msg->set_now(now_);
+   SIM_LOG_GAMELOOP(7) << "sending server tick " << now_;
    c->send_queue->Push(protocol::Encode(update));
 }
 
@@ -293,7 +299,11 @@ om::EntityPtr Simulation::GetEntity(dm::ObjectId id)
 
 void Simulation::DestroyEntity(dm::ObjectId id)
 {
-   entityMap_.erase(id);
+   auto i = entityMap_.find(id);
+   if (i != entityMap_.end()) {
+      i->second->Destroy();
+      entityMap_.erase(i);
+   }
 }
 
 
@@ -470,7 +480,7 @@ void Simulation::main()
 
    unsigned int last_stat_dump = 0;
 
-   _stepInterval = 1000 / 20;
+   // Default to 5 game ticks per second
    game_loop_timer_.set(_stepInterval);
 
    while (1) {
@@ -547,4 +557,14 @@ void Simulation::process_messages()
          return ProcessMessage(c, msg);
       });
    }
+}
+
+float Simulation::GetBaseWalkSpeed() const
+{
+   return base_walk_speed_;
+}
+
+int Simulation::GetStepInterval() const
+{
+   return _stepInterval;
 }

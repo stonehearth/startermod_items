@@ -37,6 +37,7 @@ luabind::object json_to_lua(dm::Store const& store, lua_State* L, JSONNode const
       }
    } catch (std::exception& e) {
       LUA_LOG(1) << "critical error in lua_to_json: " << e.what();
+      lua::ScriptHost::ReportCStackException(L, e);
    }
    return luabind::object();
 }

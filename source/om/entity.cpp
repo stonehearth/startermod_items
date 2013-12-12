@@ -35,8 +35,36 @@ std::ostream& ::radiant::om::operator<<(std::ostream& os, Entity const& o)
    return os;
 }
 
+Entity::~Entity()
+{
+}
+
 void Entity::ConstructObject()
 {
+}
+
+void Entity::Destroy()
+{
+   for (const auto& entry : components_.GetContents()) {
+      if (entry.second->GetObjectType() == DataStoreObjectType) {
+         om::DataStorePtr ds = std::static_pointer_cast<DataStore>(entry.second);
+         luabind::object controller = ds->GetController();
+         if (controller) {
+            lua_State* L = lua::ScriptHost::GetCallbackThread(controller.interpreter());
+            try {
+               luabind::object destroy = controller["destroy"];
+               if (destroy) {
+                  E_LOG(3) << "destroying component " << entry.first;
+                  luabind::object cb(L, destroy);
+                  cb(controller);
+               }
+            } catch (std::exception const& e) {
+               lua::ScriptHost::ReportCStackException(L, e);
+               E_LOG(1) << "error destroying component '" << entry.first << "':" << e.what();
+            }
+         }
+      }
+   }
 }
 
 void Entity::InitializeRecordFields()

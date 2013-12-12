@@ -36,14 +36,15 @@ int RenderEntity::totalObjectCount_ = 0;
 
 RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
    entity_(entity),
+   entity_id_(entity->GetObjectId()),
    initialized_(false)
 {
    ASSERT(parent);
 
-   E_LOG(5) << "creating render entity for object " << entity->GetObjectId();
+   E_LOG(5) << "creating render entity for object " << entity_id_;
 
-   node_name_ = BUILD_STRING("[" << entity->GetDebugText() << " store:" << entity->GetStoreId() 
-                                 << " id:" << entity->GetObjectId() << "]");
+   node_name_ = BUILD_STRING("(" << *entity << " store:" << entity->GetStoreId() 
+                                 << " id:" << entity_id_ << ")");
 
    totalObjectCount_++;
    node_ = H3DNodeUnique(h3dAddGroupNode(parent, node_name_.c_str()));
@@ -75,7 +76,32 @@ void RenderEntity::FinishConstruction()
 
 RenderEntity::~RenderEntity()
 {
+   Destroy();
    totalObjectCount_--;
+}
+
+void RenderEntity::Destroy()
+{
+   lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
+
+   E_LOG(7) << "destroying render entity " << node_name_;
+
+   // xxx: share this with render_lua_component!!
+   for (const auto& entry : lua_invariants_) {
+      luabind::object obj = entry.second;
+      if (obj) {
+         try {
+            luabind::object fn = obj["destroy"];
+            if (fn) {
+               fn(obj);
+            }
+         } catch (std::exception const& e) {
+            E_LOG(1) << "error destroying component renderer: " << e.what();
+         }
+      }
+   }
+   lua_invariants_.clear();
+   components_.clear();
 }
 
 void RenderEntity::SetParent(H3DNode parent)
@@ -99,9 +125,9 @@ H3DNode RenderEntity::GetNode() const
    return node_.get();
 }
 
-std::string RenderEntity::GetName() const
+std::string const& RenderEntity::GetName() const
 {
-   return std::string(h3dGetNodeParamStr(node_.get(), H3DNodeParams::NameStr));
+   return node_name_;
 }
 
 int RenderEntity::GetTotalObjectCount()
@@ -225,8 +251,11 @@ void RenderEntity::OnSelected(om::Selection& sel, const csg::Ray3& ray,
    if (entity) {
       auto mob = entity->GetComponent<om::Mob>();
       // xxx: don't select authored objects!
-      ASSERT(entity->GetStoreId() == 2);
-      sel.AddEntity(entity->GetObjectId());
+      if (entity->GetStoreId() != 2) {
+         E_LOG(1) << "selected authoring entity " << *entity << ".  Ignoring";
+         return;
+      }
+      sel.AddEntity(entity_id_);
    }
 }
 
@@ -258,8 +287,7 @@ void RenderEntity::SetSelected(bool selected)
 
 dm::ObjectId RenderEntity::GetObjectId() const
 {
-   auto entity = entity_.lock();
-   return entity ? entity->GetObjectId() : 0;
+   return entity_id_;
 }
 
 // xxx: omg, get rid of this!

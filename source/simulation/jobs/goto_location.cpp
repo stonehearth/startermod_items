@@ -2,6 +2,7 @@
 #include "goto_location.h"
 #include "om/entity.h"
 #include "om/components/mob.ridl.h"
+#include "simulation/simulation.h"
 #include <boost/program_options.hpp>
 
 using namespace ::radiant;
@@ -74,8 +75,7 @@ bool GotoLocation::Work(const platform::timer &timer)
    auto mob = entity->GetComponent<om::Mob>();
    auto location = mob->GetLocation();
 
-   float speedMultiplier = 0.4f; // xxx: pass this into the action
-   float maxDistance = speed_ * speedMultiplier;
+   float maxDistance = speed_ * GetSim().GetBaseWalkSpeed();
 
    csg::Point3f current = mob->GetLocation();
    csg::Point3f direction = csg::Point3f(target_location_ - current);

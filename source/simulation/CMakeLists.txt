@@ -8,7 +8,6 @@ include_directories(${Lua_INCLUDE_DIRS})
 include_directories(${Luabind_INCLUDE_DIRS})
 
 
-add_subdirectory(actions)
 add_subdirectory(jobs)
 # add_subdirectory(scheduler)
 # add_subdirectory(script)
@@ -30,6 +29,5 @@ endif(MSVC)
 
 target_link_libraries(simulation
                       resources
-                      simulation_actions
                       simulation_jobs
                       )

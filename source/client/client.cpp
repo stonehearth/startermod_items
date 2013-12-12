@@ -476,8 +476,14 @@ void Client::mainloop()
    ProcessBrowserJobQueue();
 
    int currentTime = platform::get_current_time_in_ms();
-   float alpha = (currentTime - ((int)_client_interval_start - _server_skew)) / (float)_server_interval_duration;
-   alpha = std::max(0.0f, alpha);
+   float alpha;
+   if (_server_interval_duration == 0) {
+      // A zero server interval means the server is paused.  Turn off interpolation.
+      alpha = 0.0f;
+   } else {
+      alpha = (currentTime - ((int)_client_interval_start - _server_skew)) / (float)_server_interval_duration;
+   }
+   alpha = std::min(1.0f, std::max(0.0f, alpha));
    now_ = (int)(_server_last_update_time + (_server_interval_duration * alpha));
 
    static int last_now = 0;
@@ -622,6 +628,16 @@ void Client::UpdateObject(const proto::UpdateObject& update)
 
 void Client::RemoveObjects(const proto::RemoveObjects& update)
 {
+   for (int id : update.objects()) {
+      om::EntityPtr entity = GetEntity(id);
+
+      if (entity) {
+         auto render_entity = Renderer::GetInstance().GetRenderObject(entity);
+         if (render_entity) {
+            render_entity->Destroy();
+         }
+      }
+   }
    receiver_->ProcessRemove(update);
 }
 
@@ -1020,6 +1036,7 @@ om::EntityPtr Client::CreateEmptyAuthoringEntity()
 {
    om::EntityPtr entity = authoringStore_.AllocObject<om::Entity>();   
    authoredEntities_[entity->GetObjectId()] = entity;
+   CLIENT_LOG(7) << "created new authoring entity " << *entity;
    return entity;
 }
 
@@ -1027,6 +1044,7 @@ om::EntityPtr Client::CreateAuthoringEntity(std::string const& uri)
 {
    om::EntityPtr entity = CreateEmptyAuthoringEntity();
    om::Stonehearth::InitEntity(entity, uri, scriptHost_->GetInterpreter());
+   CLIENT_LOG(7) << "created new empty authoring entity " << *entity;
    return entity;
 }
 
@@ -1034,6 +1052,16 @@ void Client::DestroyAuthoringEntity(dm::ObjectId id)
 {
    auto i = authoredEntities_.find(id);
    if (i != authoredEntities_.end()) {
+      om::EntityPtr entity = i->second;
+
+      CLIENT_LOG(7) << "destroying authoring entity " << *entity;
+      entity->Destroy();
+      if (entity) {
+         auto render_entity = Renderer::GetInstance().GetRenderObject(entity);
+         if (render_entity) {
+            render_entity->Destroy();
+         }
+      }
       authoredEntities_.erase(i);
    }
 }

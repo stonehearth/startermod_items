@@ -145,6 +145,7 @@ class Renderer
       void FlushMaterials();
 
       void SetSkyColors(const csg::Point3f& startCol, const csg::Point3f& endCol);
+      void SetStarfieldBrightness(float brightness);
 
    private:
       NO_COPY_CONSTRUCTOR(Renderer);
@@ -154,6 +155,7 @@ class Renderer
       void GetConfigOptions();
       void ApplyConfig();
       void BuildSkySphere();
+      void BuildStarfield();
       void SetStageEnable(const char* stageName, bool enabled);
       void OnWindowResized(int newWidth, int newHeight);
       void OnKey(int key, int down);

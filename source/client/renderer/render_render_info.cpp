@@ -117,24 +117,28 @@ void RenderRenderInfo::CheckMaterial(om::RenderInfoPtr render_info)
 
 void RenderRenderInfo::RebuildModels(om::RenderInfoPtr render_info)
 {
-   ModelMap all_models;
+   om::EntityPtr entity = entity_.GetEntity();
 
-   variant_trace_ = nullptr;
-   std::string current_variant = GetModelVariant(render_info);
-   for (om::EntityRef const& a : render_info->EachAttachedEntity()) {
-      auto attached = a.lock();
-      if (attached) {
-         auto mv = attached->GetComponent<om::ModelVariants>();
-         AccumulateModelVariants(all_models, mv, current_variant);
+   if (entity) {
+      ModelMap all_models;
+
+      variant_trace_ = nullptr;
+      std::string current_variant = GetModelVariant(render_info);
+      for (om::EntityRef const& a : render_info->EachAttachedEntity()) {
+         auto attached = a.lock();
+         if (attached) {
+            auto mv = attached->GetComponent<om::ModelVariants>();
+            AccumulateModelVariants(all_models, mv, current_variant);
+         }
       }
-   }
-   auto mv = entity_.GetEntity()->GetComponent<om::ModelVariants>();
-   AccumulateModelVariants(all_models, mv, current_variant);
+      auto mv = entity->GetComponent<om::ModelVariants>();
+      AccumulateModelVariants(all_models, mv, current_variant);
 
-   FlatModelMap flattened;
-   FlattenModelMap(all_models, flattened);
-   RemoveObsoleteNodes(flattened);
-   AddMissingNodes(render_info, flattened);
+      FlatModelMap flattened;
+      FlattenModelMap(all_models, flattened);
+      RemoveObsoleteNodes(flattened);
+      AddMissingNodes(render_info, flattened);
+   }
 }
 
 void RenderRenderInfo::FlattenModelMap(ModelMap& m, FlatModelMap& flattened)

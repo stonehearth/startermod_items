@@ -15,36 +15,38 @@ using namespace ::radiant::lua;
 
 DEFINE_INVALID_JSON_CONVERSION(ScriptHost);
 
-static int PCallCallbackFn(lua_State* L)
+static std::string GetLuaTraceback(lua_State* L)
 {
-   using namespace luabind;
-
-   if (!lua_isstring(L, 1)) { /* 'message' not a string? */
-      return 1;  /* keep it intact */
-   }
-   std::string last_error = lua_tostring(L, 1);
-
-   LUA_LOG(1) << lua_tostring(L, 1);
    lua_getfield(L, LUA_GLOBALSINDEX, "debug");
    if (!lua_istable(L, -1)) {
       lua_pop(L, 1);
-      LUA_LOG(1) << "aborting traceback.  expected table for debug.";
-      return 1;
+      LUA_LOG(0) << "aborting traceback.  expected table for debug.";
+      return "";
    }
    lua_getfield(L, -1, "traceback");
    if (!lua_isfunction(L, -1)) {
       lua_pop(L, 2);
-      LUA_LOG(1) << "aborting traceback.  expected function for traceback.";
-      return 1;
+      LUA_LOG(0) << "aborting traceback.  expected function for traceback.";
+      return "";
    }
+
    LUA_LOG(1) << "generating traceback...";
    lua_call(L, 0, 1);  /* call debug.traceback */
-   std::string lastTraceback_ = std::string(lua_tostring(L, -1));
+   std::string traceback = std::string(lua_tostring(L, -1));
    lua_pop(L, 1);
 
-   ScriptHost* sh = object_cast<ScriptHost*>(globals(L)["_host"]);
-   sh->NotifyError(last_error, lastTraceback_);
+   return traceback;
+}
 
+static int PCallCallbackFn(lua_State* L)
+{
+   if (!lua_isstring(L, 1)) { /* 'message' not a string? */
+      LUA_LOG(0) << "error string missing at top of stack in PCallCallbackFn";
+      return 0;  /* keep it intact */
+   }
+   std::string error = lua_tostring(L, 1);
+   std::string traceback = GetLuaTraceback(L);
+   ScriptHost::ReportLuaStackException(L, error, traceback);
    return 1;
 }
 
@@ -72,6 +74,7 @@ JSONNode ScriptHost::LuaToJson(luabind::object obj)
          return libjson::parse(json);
       } catch (std::exception& e) {
          LUA_LOG(1) << "failed to convert coded json string to node: " << e.what();
+         ReportCStackThreadException(obj.interpreter(), e);
          return JSONNode();
       }
    } else if (t == LUA_TSTRING) {
@@ -141,6 +144,8 @@ IMPLEMENT_TRIVIAL_TOSTRING(ScriptHost);
 
 ScriptHost::ScriptHost()
 {
+   filter_c_exceptions_ = core::Config::GetInstance().Get<bool>("lua.filter_exceptions", true);
+
    L_ = lua_newstate(LuaAllocFn, this);
 	luaL_openlibs(L_);
    luaopen_lpeg(L_);
@@ -156,7 +161,7 @@ ScriptHost::ScriptHost()
             lua::RegisterType<ScriptHost>()
                .def("log",             &ScriptHost::Log)
                .def("log_enabled",     &ScriptHost::LogEnabled)
-               .def("assert_failed",   &ScriptHost::AssertFailed)
+               .def("report_error",    (void (ScriptHost::*)(std::string const& error, std::string const& traceback))&ScriptHost::ReportLuaStackException)
                .def("require",         (luabind::object (ScriptHost::*)(std::string const& name))&ScriptHost::Require)
                .def("require_script",  (luabind::object (ScriptHost::*)(std::string const& name))&ScriptHost::RequireScript)
          ]
@@ -186,23 +191,35 @@ void* ScriptHost::LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize)
    return realloc(ptr, nsize);
 }
 
-void ScriptHost::NotifyError(std::string const& error, std::string const& traceback)
+
+void ScriptHost::ReportCStackThreadException(lua_State* L, std::exception const& e)
 {
-   LUA_LOG(0) << "-- Lua Error Begin ------------------------------- ";
+   std::string error = BUILD_STRING("c++ exception: " << e.what());
+   std::string traceback = GetLuaTraceback(L);
+   ReportStackException("native", error, traceback);
+   if (!filter_c_exceptions_) {
+      throw;
+   }
+}
+
+void ScriptHost::ReportLuaStackException(std::string const& error, std::string const& traceback)
+{
+   ReportStackException("lua", error, traceback);
+}
+
+void ScriptHost::ReportStackException(std::string const& category, std::string const& error, std::string const& traceback)
+{
+   LUA_LOG(0) << "-- Script Error (" << category << ") Begin ------------------------------- ";
    if (!error.empty()) {
-      LUA_LOG(0) << lastError_;
+      LUA_LOG(0) << error;
 
       std::string item;
       std::stringstream ss(traceback);
       while(std::getline(ss, item)) {
          LUA_LOG(0) << "   " << item;
       }
-      lastError_.clear();
-      lastTraceback_.clear();
    }
    LUA_LOG(0) << "-- Lua Error End   ------------------------------- ";
-   lastError_ = error;
-   lastTraceback_ = traceback;
 }
 
 lua_State* ScriptHost::GetInterpreter()
@@ -258,41 +275,7 @@ luabind::object ScriptHost::LoadScript(std::string path)
 
 void ScriptHost::OnError(std::string description)
 {
-   LUA_LOG(1) << "-- Lua Error Begin ------------------------------- ";
-   std::string item;
-   std::stringstream ss(description);
-   while(std::getline(ss, item)) {
-      LUA_LOG(1) << "   " << item;
-   }
-   if (!lastError_.empty()) {
-      LUA_LOG(1) << lastError_;
-
-      std::stringstream ss(lastTraceback_);
-      while(std::getline(ss, item)) {
-         LUA_LOG(1) << "   " << item;
-      }
-      lastError_.clear();
-      lastTraceback_.clear();
-   }
-   LUA_LOG(1) << "-- Lua Error End   ------------------------------- ";
-
-#if 0
-   luabind::object tb = luabind::globals(L_)["debug"]["traceback"];
-   if (tb.is_valid()) { 
-      std::string traceback = call_function<std::string>(tb);
-      LUA_LOG(1) << lua_tostring(L_, -1);
-      LUA_LOG(1) << "-- stack:";
-      LUA_LOG(1) << traceback;
-      LUA_LOG(1) << "-- endstack";
-   }
-#endif
-#if 0
-   int startTime = timeGetTime();
-   while(timeGetTime() - startTime < 1500000) {
-      Sleep(0);
-      //DebugBreak();
-   }
-#endif
+   LUA_LOG(0) << description;
 }
 
 luabind::object ScriptHost::Require(std::string const& s)
@@ -375,10 +358,18 @@ bool ScriptHost::LogEnabled(std::string category, int level)
    return level <= config_level;
 }
 
-void ScriptHost::AssertFailed(std::string reason)
+bool ScriptHost::CoerseToBool(object const& o)
 {
-   lua_pushstring(L_, reason.c_str());
-   lua_insert(L_, 1);
-   PCallCallbackFn(L_);
-   OnError("Lua assert failed");
+   bool result = false;
+   if (o) {
+      switch (type(o)) {
+      case LUA_TNIL:
+         return false;
+      case LUA_TBOOLEAN:
+         return object_cast<bool>(o);
+      default:
+         return true;
+      }
+   }
+   return result;
 }

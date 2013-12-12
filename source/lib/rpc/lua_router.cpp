@@ -42,6 +42,7 @@ void LuaRouter::CallLuaMethod(ReactorDeferredPtr d, object obj, object method, F
                }
             } catch (std::exception& e) {
                std::string err = BUILD_STRING("error converting call result: " << e.what());
+               lua::ScriptHost::ReportCStackException(L, e);
                result.push_back(JSONNode("error", err));
             }               
          }
@@ -61,25 +62,31 @@ void LuaRouter::CallLuaMethod(ReactorDeferredPtr d, object obj, object method, F
       });
 
    
-      int top = lua_gettop(L);
+      try {
+         int top = lua_gettop(L);
 
-      int nargs = 3 + fn.args.size();
-      detail::push(L, method);               // method
-      detail::push(L, obj);                  // self
-      detail::push(L, fn.caller);            // session
-      detail::push(L, lua_deferred);         // response
-      for (const auto& arg : fn.args) {
-         detail::push(L, scriptHost_->JsonToLua(L, arg));
-      }
-      if (detail::pcall(L, nargs, 1)) {
-         throw luabind::error(L);
-      }
-      object result(from_stack(L, -1));
-      lua_pop(L, 1);
+         int nargs = 3 + fn.args.size();
+         detail::push(L, method);               // method
+         detail::push(L, obj);                  // self
+         detail::push(L, fn.caller);            // session
+         detail::push(L, lua_deferred);         // response
+         for (const auto& arg : fn.args) {
+            detail::push(L, scriptHost_->JsonToLua(L, arg));
+         }
+         if (detail::pcall(L, nargs, 1)) {
+            throw luabind::error(L);
+         }
+         object result(from_stack(L, -1));
+         lua_pop(L, 1);
 
-      if (result.is_valid() && type(result) != LUA_TNIL) {
-         lua_deferred->Resolve(result);
+         if (result.is_valid() && type(result) != LUA_TNIL) {
+            lua_deferred->Resolve(result);
+         }
+      } catch (std::exception const& e) {
+         lua::ScriptHost::ReportCStackException(L, e);
+         throw;
       }
+
    } catch (std::exception const& e) {
       RPC_LOG(3) << "error attempting to call " << fn << " in lua router: " << e.what();
       d->RejectWithMsg(e.what());

@@ -8,39 +8,11 @@ BEGIN_RADIANT_OM_NAMESPACE
 class LuaDeepRegionGuard : public std::enable_shared_from_this<LuaDeepRegionGuard>
 {
 public:
-   LuaDeepRegionGuard(DeepRegionGuardPtr trace) :
-      trace_(trace)
-   {
-   }
+   LuaDeepRegionGuard(DeepRegionGuardPtr trace);
 
-   std::shared_ptr<LuaDeepRegionGuard> OnChanged(luabind::object changed_cb)
-   {
-      if (!trace_) {
-         throw std::logic_error("called on_changed on invalid trace");
-      }
-      trace_->OnChanged([this, changed_cb](csg::Region3 const& value) {
-         try {
-            luabind::call_function<void>(changed_cb, value);
-         } catch (std::exception const& e) {
-            LUA_LOG(1) << "exception delivering lua trace: " << e.what();
-         }
-      });
-      return shared_from_this();
-   }
-
-   std::shared_ptr<LuaDeepRegionGuard> PushObjectState()
-   {
-      if (!trace_) {
-         throw std::logic_error("called push_object_state on invalid trace");
-      }
-      trace_->PushObjectState();
-      return shared_from_this();
-   }
-
-   void Destroy()
-   {
-      trace_ = nullptr;
-   }
+   std::shared_ptr<LuaDeepRegionGuard> OnChanged(luabind::object changed_cb);
+   std::shared_ptr<LuaDeepRegionGuard> PushObjectState();
+   void Destroy();
    
 private:
    DeepRegionGuardPtr   trace_;
