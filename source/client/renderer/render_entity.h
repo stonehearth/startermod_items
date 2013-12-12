@@ -23,6 +23,7 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       ~RenderEntity();
 
       void FinishConstruction();
+      void Destroy();
 
       void Show(bool show);
       void SetSelected(bool selected);

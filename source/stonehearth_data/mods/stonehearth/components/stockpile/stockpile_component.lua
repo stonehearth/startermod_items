@@ -84,6 +84,38 @@ function StockpileComponent:__init(entity, data_binding)
    all_stockpiles[self._entity:get_id()] = self
 end
 
+function StockpileComponent:destroy()
+   log:info('%s destroying stockpile component', self._entity)
+   all_stockpiles[self._entity:get_id()] = nil
+   for id, item in pairs(self._data.stocked_items) do
+      self:_remove_item_from_stock(id)
+   end
+   if self._pickup_task then
+      self._pickup_task:destroy()
+      self._pickup_task = nil
+   end
+   if self._restock_task then
+      self._restock_task:destroy()
+      self._restock_task = nil
+   end
+   if self._ec_trace then
+      self._ec_trace:destroy()
+      self._ec_trace = nil
+   end
+   if self._adjacent_trace then
+      self._adjacent_trace:destroy()
+      self._adjacent_trace = nil
+   end
+   if self._unit_info_trace then
+      self._unit_info_trace:destroy()
+      self._unit_info_trace = nil
+   end
+   if self._mob_trace then
+      self._mob_trace:destroy()
+      self._mob_trace= nil
+   end
+end
+
 function StockpileComponent:set_filter(values)
    for name, _ in pairs(self._filter) do
       self._filter[name] = false

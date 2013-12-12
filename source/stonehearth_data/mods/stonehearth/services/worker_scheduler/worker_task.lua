@@ -19,6 +19,10 @@ end
 function WorkerTask:destroy()
    self._running = false
    self._scheduler:remove_worker_task(self)
+   if self._promise then
+      self._promise:destroy()
+      self._promise = nil
+   end
 end
 
 function WorkerTask:get_name()

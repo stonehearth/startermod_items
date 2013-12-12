@@ -259,6 +259,7 @@ void Simulation::EncodeServerTick(std::shared_ptr<RemoteClient> c)
    update.set_type(proto::Update::SetServerTick);
    auto msg = update.MutableExtension(proto::SetServerTick::extension);
    msg->set_now(now_);
+   SIM_LOG_GAMELOOP(7) << "sending server tick " << now_;
    c->send_queue->Push(protocol::Encode(update));
 }
 
@@ -293,7 +294,11 @@ om::EntityPtr Simulation::GetEntity(dm::ObjectId id)
 
 void Simulation::DestroyEntity(dm::ObjectId id)
 {
-   entityMap_.erase(id);
+   auto i = entityMap_.find(id);
+   if (i != entityMap_.end()) {
+      i->second->Destroy();
+      entityMap_.erase(i);
+   }
 }
 
 
