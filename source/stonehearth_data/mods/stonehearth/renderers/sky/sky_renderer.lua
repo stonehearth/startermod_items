@@ -141,25 +141,25 @@ end
 
 function SkyRenderer:_update_sky_colors(seconds)
    local sky_start_colors = {
-      {0, Vec3(0,0,0)},
-      {self.timing.sunrise_start, Vec3(0,0,0)},
-      {self.timing.sunrise_end, Vec3(0,0.08,0.37)},
-      {self.timing.midday, Vec3(0,0.16,0.95)},
-      {self.timing.sunset_start, Vec3(0,0.16,0.75)},
-      {self.timing.sunset_peak, Vec3(0,0,0.50)},
-      {self.timing.sunset_end, Vec3(0,0,0)},
-      {self.timing.day_length, Vec3(0,0,0)}
+      {0, Vec3(0.1,0.05,0.11)},
+      {self.timing.sunrise_start, Vec3(0.1,0.05,0.11)},
+      {self.timing.sunrise_end, Vec3(.27,0.66,0.90)},
+      {self.timing.midday, Vec3(0.19,0.58,0.92)},
+      {self.timing.sunset_start, Vec3(0.19,0.58,0.92)},
+      {self.timing.sunset_peak, Vec3(0.48,0.43,0.60)},
+      {self.timing.sunset_end, Vec3(0.1,0.05,0.11)},
+      {self.timing.day_length, Vec3(0.1,0.05,0.11)}
    }
 
    local sky_end_colors = {
-      {0, Vec3(0, 0, 0.25)},
-      {self.timing.sunrise_start, Vec3(0, 0, 0.25)},
-      {self.timing.sunrise_end, Vec3(1, 0.9, 0.25)},
-      {self.timing.midday, Vec3(0.4, 1.0, 1.0)},
-      {self.timing.sunset_start, Vec3(0.4, 1.0, 1.0)},
-      {self.timing.sunset_peak, Vec3(1, 0.2, 0.1)},
-      {self.timing.sunset_end, Vec3(0, 0, 0.25)},
-      {self.timing.day_length, Vec3(0,0,0.25)}
+      {0, Vec3(.04, 0.16, 0.35)},
+      {self.timing.sunrise_start, Vec3(.04, 0.16, 0.35)},
+      {self.timing.sunrise_end, Vec3(1, 0.98, 0.55)},
+      {self.timing.midday, Vec3(0.48, .87, 1.0)},
+      {self.timing.sunset_start, Vec3(0.48, .87, 1.0)},
+      {self.timing.sunset_peak, Vec3(1, 0.56, 0.17)},
+      {self.timing.sunset_end, Vec3(.04, 0.16, 0.35)},
+      {self.timing.day_length, Vec3(.04, 0.16, 0.35)}
    }
 
    local startCol = self:_find_value(seconds, sky_start_colors)
