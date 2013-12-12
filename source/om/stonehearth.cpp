@@ -318,6 +318,7 @@ void Stonehearth::InitEntity(EntityPtr entity, std::string const& uri, lua_State
                call_function<void>(fn, EntityRef(entity));
             }
          } catch (std::exception &e) {
+            lua::ScriptHost::ReportCStackException(L, e);
             E_LOG(3) << "failed to run init script for " << uri << ": " << e.what();
          }
       }

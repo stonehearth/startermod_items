@@ -50,15 +50,16 @@ void Entity::Destroy()
          om::DataStorePtr ds = std::static_pointer_cast<DataStore>(entry.second);
          luabind::object controller = ds->GetController();
          if (controller) {
+            lua_State* L = lua::ScriptHost::GetCallbackThread(controller.interpreter());
             try {
                luabind::object destroy = controller["destroy"];
                if (destroy) {
                   E_LOG(3) << "destroying component " << entry.first;
-                  lua_State* L = lua::ScriptHost::GetCallbackThread(controller.interpreter());
                   luabind::object cb(L, destroy);
                   cb(controller);
                }
             } catch (std::exception const& e) {
+               lua::ScriptHost::ReportCStackException(L, e);
                E_LOG(1) << "error destroying component '" << entry.first << "':" << e.what();
             }
          }

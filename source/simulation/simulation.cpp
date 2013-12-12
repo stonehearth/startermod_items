@@ -164,6 +164,10 @@ void Simulation::CreateNew()
    lua::analytics::open(L);
    om::RegisterObjectTypes(store_);
 
+   _stepInterval = core::Config::GetInstance().Get<int>("simulation.step_interval", 200);
+   base_walk_speed_ = core::Config::GetInstance().Get<float>("simulation.base_walk_speed", 0.3f);
+   base_walk_speed_ = base_walk_speed_ * 1000.0f / _stepInterval;
+
    game_api_ = scriptHost_->Require("radiant.server");
 
    core::Config const& config = core::Config::GetInstance();
@@ -221,6 +225,7 @@ void Simulation::Step()
       now_ = luabind::call_function<int>(game_api_["update"], _stepInterval, profile_next_lua_update_);      
    } catch (std::exception const& e) {
       SIM_LOG(3) << "fatal error initializing game update: " << e.what();
+      GetScript().ReportCStackThreadException(GetScript().GetCallbackThread(), e);
    }
    profile_next_lua_update_ = false;
 
@@ -475,7 +480,7 @@ void Simulation::main()
 
    unsigned int last_stat_dump = 0;
 
-   _stepInterval = 1000 / 20;
+   // Default to 5 game ticks per second
    game_loop_timer_.set(_stepInterval);
 
    while (1) {
@@ -552,4 +557,14 @@ void Simulation::process_messages()
          return ProcessMessage(c, msg);
       });
    }
+}
+
+float Simulation::GetBaseWalkSpeed() const
+{
+   return base_walk_speed_;
+}
+
+int Simulation::GetStepInterval() const
+{
+   return _stepInterval;
 }
