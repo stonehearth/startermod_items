@@ -1,5 +1,7 @@
 [[FX]]
 
+float4 brightness;
+
 // Samplers
 sampler2D twinkleMap = sampler_state
 {
@@ -25,12 +27,13 @@ uniform mat4 worldMat;
 uniform mat4 viewProjMat;
 uniform vec2 frameBufSize;
 uniform float currentTime;
+uniform vec4 brightness;
 
 attribute vec3 vertPos;
 attribute vec2 texCoords0;
 attribute vec2 texCoords1;
 
-varying float brightness;
+varying float oBrightness;
 varying vec2 texCoords;
 
 void main() {
@@ -39,7 +42,7 @@ void main() {
   clipPos.y += (clipPos.w * 1.5 * texCoords0.y / frameBufSize.y);
 
   texCoords = vertPos.xy + vec2(currentTime, currentTime);
-  brightness = texCoords1.x;
+  oBrightness = texCoords1.x * brightness.x;
   gl_Position = clipPos;
 }
 
@@ -47,10 +50,10 @@ void main() {
 
 uniform sampler2D twinkleMap;
 
-in float brightness;
+in float oBrightness;
 in vec2 texCoords;
 
 void main() {
-  float b = brightness * (texture2D(twinkleMap, texCoords).x * 2);
-  gl_FragColor = vec4(1.0, 1.0, 1.0, b);
+  float finalBrightness = oBrightness * (texture2D(twinkleMap, texCoords).x * 2.0);
+  gl_FragColor = vec4(1.0, 1.0, 1.0, finalBrightness);
 }

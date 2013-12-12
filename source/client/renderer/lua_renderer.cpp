@@ -102,6 +102,10 @@ static void Sky_SetSkyColor(const csg::Point3f& startCol, const csg::Point3f& en
    Renderer::GetInstance().SetSkyColors(startCol, endCol);
 }
 
+static void Sky_SetStarfieldBrightness(double brightness) {
+   Renderer::GetInstance().SetStarfieldBrightness(brightness);
+}
+
 std::ostream& operator<<(std::ostream& os, const RayCastResult& in)
 {
    os << in.is_valid << ", " << in.point;
@@ -138,7 +142,8 @@ void LuaRenderer::RegisterType(lua_State* L)
                def("get_height",  &Screen_GetHeight)
             ],
             namespace_("sky") [
-               def("set_sky_colors", &Sky_SetSkyColor)
+               def("set_sky_colors", &Sky_SetSkyColor),
+               def("set_starfield_brightness", &Sky_SetStarfieldBrightness)
             ]
          ]
       ],

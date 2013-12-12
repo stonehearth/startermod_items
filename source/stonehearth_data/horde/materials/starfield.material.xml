@@ -1,3 +1,4 @@
 <Material>
   <Shader source="shaders/starfield.shader" />
+  <Uniform name="brightness" a="1.0" b="1.0" c="1.0" d="1.0"/>
 </Material>
