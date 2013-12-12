@@ -12,6 +12,7 @@
 #include "render_render_info.h"
 #include "render_carry_block.h"
 #include "render_lua_component.h"
+#include "render_region_collision_shape.h"
 #include "render_vertical_pathing_region.h"
 #include "resources/res_manager.h"
 #include "resources/animation.h"
@@ -195,6 +196,11 @@ void RenderEntity::AddComponent(std::string const& name, std::shared_ptr<dm::Obj
          case om::VerticalPathingRegionObjectType: {
             om::VerticalPathingRegionPtr obj = std::static_pointer_cast<om::VerticalPathingRegion>(value);
             components_[name] = std::make_shared<RenderVerticalPathingRegion>(*this, obj);
+            break;
+         }
+         case om::RegionCollisionShapeObjectType: {
+            om::RegionCollisionShapePtr obj = std::static_pointer_cast<om::RegionCollisionShape>(value);
+            components_[name] = std::make_shared<RenderRegionCollisionShape>(*this, obj);
             break;
          }
          case om::DataStoreObjectType: {

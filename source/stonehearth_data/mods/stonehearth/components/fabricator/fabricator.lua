@@ -5,6 +5,7 @@ local Region3 = _radiant.csg.Region3
 local Cube3 = _radiant.csg.Cube3
 
 local Fabricator = class()
+local log = radiant.log.create_logger('build.fabricator')
 
 local COORD_MAX = 1000000 -- 1 million enough?
 
@@ -26,7 +27,7 @@ function Fabricator:__init(name, entity, blueprint)
    dst:set_region(_radiant.sim.alloc_region())
       :set_adjacent(_radiant.sim.alloc_region())
        
-   radiant.log.info("fabricator tracing destination %d", dst:get_id())
+   log:debug("fabricator tracing destination %d", dst:get_id())
    self._adjacent_guard = dst:trace_region('updating fabricator adjacent')
    self._adjacent_guard:on_changed(function ()
       self:_update_adjacent()
@@ -161,7 +162,7 @@ function Fabricator:_start_fabricate_task()
 end
 
 function Fabricator:_stop_worker_tasks()
-   radiant.log.warning('fabricator %s stopping all worker tasks', self.name)
+   log:warning('fabricator %s stopping all worker tasks', self.name)
    if self._pickup_task then
       self._pickup_task:stop()
       self._pickup_task = nil
@@ -229,7 +230,7 @@ function Fabricator:_trace_blueprint_and_project()
 
       -- rgn(f) = rgn(b) - rgn(p) ... (see comment above)
       local dst = self._entity:add_component('destination')
-      radiant.log.info("fabricator modifying dst %d", dst:get_id())
+      log:debug("fabricator modifying dst %d", dst:get_id())
       dst:get_region():modify(function(cursor)
          cursor:copy_region(br)
          cursor:subtract_region(pr)
@@ -240,7 +241,7 @@ function Fabricator:_trace_blueprint_and_project()
          end
       end);
       
-      radiant.log.info('updating fabricator %s region -> %s', self.name, dst:get_region():get())
+      log:debug('updating fabricator %s region -> %s', self.name, dst:get_region():get())
    end
      
    self._blueprint_region_trace = self._blueprint:add_component('destination'):trace_region('updating fabricator')

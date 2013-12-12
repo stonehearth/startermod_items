@@ -9,6 +9,38 @@ bool Node::is_nested_path(std::string const& path) const
    return path.find(path_delimiter) != std::string::npos;
 }
 
+Node::const_iterator Node::find(std::string const& path) const {
+   size_t first = 0;
+   size_t last = path.find('.', first + 1);
+
+   JSONNode::const_iterator last_i = node_.end();
+   JSONNode::const_iterator last_end = node_.end();
+   JSONNode::const_iterator current_i = node_.find(path.substr(first, last));
+   for (;;) {
+      if (current_i == last_end) {
+         break;
+      }
+      if (last == std::string::npos) {
+         break;
+      }
+      if (current_i->type() != JSON_NODE) {
+         current_i = last_end;
+         break;
+      }
+      first = last + 1;
+      last = path.find('.', first + 1);
+      last_i = current_i;
+      last_end = last_i->end();
+
+      std::string key = path.substr(first, last - first);
+      current_i = last_i->find(key);
+   }
+   if (current_i == last_end) {
+      return node_.end();
+   }
+   return const_iterator(current_i);
+}
+
 void Node::chop_path_front(std::string const& path, std::string& node_name, std::string& remaining_path) const
 {
    size_t const offset = path.find(path_delimiter);

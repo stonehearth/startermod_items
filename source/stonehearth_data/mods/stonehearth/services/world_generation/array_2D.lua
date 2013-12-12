@@ -1,4 +1,5 @@
 local Array2D = class()
+local log = radiant.log.create_logger('world.generation')
 
 function Array2D:__init(width, height)
    self.width = width
@@ -110,7 +111,7 @@ function Array2D:print(format_string)
       for i=1, self.width do
          str = str .. ' ' .. string.format(format_string, self:get(i, j))
       end
-      radiant.log.info(str)
+      log:debug(str)
    end
 end
 

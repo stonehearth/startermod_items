@@ -7,6 +7,7 @@ local Timer = require 'services.world_generation.timer'
 local Point3 = _radiant.csg.Point3
 
 local WorldGenerator = class()
+local log = radiant.log.create_logger('world.generation')
 
 function WorldGenerator:__init(async)
    self._async = async
@@ -46,8 +47,8 @@ function WorldGenerator:create_world()
 
       cpu_timer:stop()
       wall_clock_timer:stop()
-      radiant.log.info('World generation cpu time (excludes terrain ring tesselator): %.3fs', cpu_timer:seconds())
-      radiant.log.info('World generation wall clock time: %.0fs', wall_clock_timer:seconds())
+      log:info('World generation cpu time (excludes terrain ring tesselator): %.3fs', cpu_timer:seconds())
+      log:info('World generation wall clock time: %.0fs', wall_clock_timer:seconds())
    end
 
    if self._async then
@@ -94,13 +95,13 @@ function WorldGenerator:_generate_world(zones)
       self._landscaper:place_boulders(region3_boxed, zone_map)
       renderer:add_region_to_terrain(region3_boxed, offset_pt)
       timer:stop()
-      radiant.log.info('HeightMapRenderer time: %.3fs', timer:seconds())
+      log:info('HeightMapRenderer time: %.3fs', timer:seconds())
       self:_yield()
 
       timer:start()
       self._landscaper:place_flora(zone_map, offset_x, offset_y)
       timer:stop()
-      radiant.log.info('Landscaper time: %.3fs', timer:seconds())
+      log:info('Landscaper time: %.3fs', timer:seconds())
       self:_yield()
 
       self._progress = (n / #zone_order_list) * 100

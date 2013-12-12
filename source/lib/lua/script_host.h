@@ -65,7 +65,8 @@ public: // the static interface
 
 private:
    static void* LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize);
-   void Log(std::string str);
+   void Log(const char* category, int level, const char* str);
+   bool LogEnabled(std::string category, int level);
 
 public:
    void NotifyError(std::string const& error, std::string const& traceback);

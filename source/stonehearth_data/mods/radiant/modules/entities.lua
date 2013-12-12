@@ -3,6 +3,7 @@ local singleton = {}
 
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
+local log = radiant.log.create_logger('entities')
 
 function entities.__init()
    singleton._entity_dtors = {}
@@ -203,7 +204,7 @@ function entities.add_outfit(entity, outfit_uri)
    radiant.check.is_entity(entity)
    radiant.check.is_string(outfit_uri)
 
-   radiant.log.debug('adding outfit "%s" to entity %d.', outfit_uri, entity:get_id())
+   log:debug('adding outfit "%s" to entity %d.', outfit_uri, entity:get_id())
 
    local rig_component = entity:add_component('render_rig')
    rig_component:add_rig(outfit_uri)

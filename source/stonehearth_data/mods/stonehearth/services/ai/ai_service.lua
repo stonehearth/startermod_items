@@ -1,5 +1,6 @@
 local AiService = class()
 local AiInjector = require 'services.ai.ai_injector'
+local log = radiant.log.create_logger('ai.service')
 
 function AiService:__init()
    -- SUSPEND_THREAD is a unique, non-integer token which indicates the thread
@@ -171,9 +172,9 @@ end
 
 function AiService:_complete_thread_termination(co)
    if self._running_thread ~= co then
-      radiant.log.info('killing non running thread... nothing to do.')
+      log:info('killing non running thread... nothing to do.')
    else 
-      radiant.log.info('killing running thread... yielding KILL_THREAD.')
+      log:info('killing running thread... yielding KILL_THREAD.')
       coroutine.yield(self.KILL_THREAD)
    end
 end

@@ -1,5 +1,6 @@
 local client_entities = {}
 local singleton = {}
+local log = radiant.log.create_logger('client')
 
 -- xxx: could use some factoring with the server entities...
 
@@ -13,7 +14,7 @@ function client_entities.create_entity(ref)
    if not ref then
       return _radiant.client.create_empty_authoring_entity()
    end
-   radiant.log.info('creating entity %s', ref)
+   log:info('client', 'creating entity %s', ref)
    return _radiant.client.create_authoring_entity(ref)
 end
 

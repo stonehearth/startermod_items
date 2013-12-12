@@ -2,6 +2,7 @@ local priorities = require('constants').priorities.worker_task
 local Point3 = _radiant.csg.Point3
 
 local PlaceItemCallHandler = class()
+local log = radiant.log.create_logger('call_handlers.place_item')
 
 
 -- Client side object to place an item in the world. The item exists as an icon first
@@ -35,7 +36,7 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, targ
       :set_material('materials/ghost_item.xml')
       :set_model_mode('blueprint')
 
-   radiant.log.info("created render entity")
+   log:debug("created render entity")
 
    -- set self._curr_rotation to 0, since there has been no rotation for this object yet
    self._curr_rotation = 0
@@ -80,7 +81,7 @@ function PlaceItemCallHandler:_on_mouse_event(e, response)
 
    --test for mouse right-click
    if e:up(2) and s.location then
-      radiant.log.info('Pressed right click')
+      log:info('Pressed right click')
       self._curr_rotation = self._curr_rotation + 90
       self._curr_rotation = self._curr_rotation % 360
       self._cursor_entity:add_component('mob'):turn_to(self._curr_rotation + 180)

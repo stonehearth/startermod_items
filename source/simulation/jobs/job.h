@@ -20,7 +20,7 @@ class Job {
       virtual bool IsFinished() const = 0;
       virtual bool IsIdle() const = 0;
       virtual void Work(const platform::timer &timer) = 0;
-      virtual void LogProgress(std::ostream&) const;
+      virtual std::string GetProgress() const;
       virtual void EncodeDebugShapes(radiant::protocol::shapelist *msg) const;
 
    private:

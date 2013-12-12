@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "entity.h"
+#include "om/components/unit_info.ridl.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -14,11 +15,18 @@ std::ostream& ::radiant::om::operator<<(std::ostream& os, Entity const& o)
    }
 
    std::string debug_text = o.GetDebugText();
-   std::string uri = o.GetUri();
 
-   os << "(entity " << o.GetObjectId();
-   if (!uri.empty()) {
-      os << " " << uri;
+   os << "(Entity " << o.GetObjectId();
+   std::string annotation;
+   UnitInfoPtr unit_info = o.GetComponent<UnitInfo>();
+   if (unit_info) {
+      annotation = unit_info->GetDisplayName();
+   }
+   if (annotation.empty()) {
+      annotation = o.GetUri();
+   }
+   if (!annotation.empty()) {
+      os << " " << annotation;
    }
    if (!debug_text.empty()) {
       os << " " << debug_text;

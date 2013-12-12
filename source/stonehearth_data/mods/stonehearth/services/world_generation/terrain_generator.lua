@@ -11,6 +11,7 @@ local TileInfo = require 'services.world_generation.tile_info'
 local Timer = require 'services.world_generation.timer'
 
 local TerrainGenerator = class()
+local log = radiant.log.create_logger('world.generation')
 
 -- Definitions
 -- Block = atomic unit of terrain
@@ -76,7 +77,7 @@ function TerrainGenerator:generate_zone(terrain_type, zones, x, y)
    local micro_map_timer = Timer(Timer.CPU_TIME)
 
    if zones ~= nil then
-      radiant.log.info('Generating zone %d, %d', x, y)
+      log:info('Generating zone %d, %d', x, y)
    end
 
    -- make each zone deterministic on x, y so we can modify a zone without affecting othes
@@ -87,11 +88,11 @@ function TerrainGenerator:generate_zone(terrain_type, zones, x, y)
 
    micro_map = self:_create_micro_map(terrain_type, zones, x, y)
    micro_map_timer:stop()
-   --radiant.log.info('Micromap generation time: %.3fs', micro_map_timer:seconds())
+   log:debug('Micromap generation time: %.3fs', micro_map_timer:seconds())
 
    zone_map = self:_create_zone_map(micro_map)
    zone_timer:stop()
-   radiant.log.info('Zone generation time: %.3fs', zone_timer:seconds())
+   log:info('Zone generation time: %.3fs', zone_timer:seconds())
 
    return zone_map, micro_map
 end
@@ -105,29 +106,29 @@ function TerrainGenerator:_create_micro_map(terrain_type, zones, x, y)
    noise_map.terrain_type = terrain_type
 
    self:_fill_blend_map(blend_map, zones, x, y)
-   --radiant.log.info('Blend map:'); _print_blend_map(blend_map)
+   -- log:debug('Blend map:'); _print_blend_map(blend_map)
 
    self:_fill_noise_map(noise_map, blend_map)
-   --radiant.log.info('Noise map:'); noise_map:print()
+   -- log:debug('Noise map:'); noise_map:print()
 
    micro_map = self:_filter_noise_map(noise_map)
-   --radiant.log.info('Filtered Noise map:'); micro_map:print()
+   -- log:debug('Filtered Noise map:'); micro_map:print()
 
    --self:_consolidate_mountain_blocks(micro_map, zones, x, y)
-   --radiant.log.info('Consolidated Micro map:'); micro_map:print()
+   -- log:debug('Consolidated Micro map:'); micro_map:print()
 
    self:_quantize_height_map(micro_map, true)
-   --radiant.log.info('Quantized Micro map:'); micro_map:print()
+   -- log:debug('Quantized Micro map:'); micro_map:print()
 
    self:_copy_forced_edge_values(micro_map, zones, x, y)
-   --radiant.log.info('Forced edge Micro map:'); micro_map:print()
+   -- log:debug('Forced edge Micro map:'); micro_map:print()
 
    self:_postprocess_micro_map(micro_map)
-   --radiant.log.info('Postprocessed Micro map:'); micro_map:print()
+   -- log:debug('Postprocessed Micro map:'); micro_map:print()
 
    -- copy edges again in case postprocessing changed them
    self:_copy_forced_edge_values(micro_map, zones, x, y)
-   --radiant.log.info('Final Micro map:'); micro_map:print()
+   -- log:debug('Final Micro map:'); micro_map:print()
 
    self:_yield()
 
@@ -697,7 +698,7 @@ function _print_blend_map(blend_map)
             str = str .. ' ' .. string.format('%4.1f/%4.1f' , tile.mean, tile.std_dev)
          end
       end
-      radiant.log.info(str)
+      log:info(str)
    end
 end
 

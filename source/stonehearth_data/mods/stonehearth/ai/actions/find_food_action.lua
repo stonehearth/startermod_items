@@ -7,6 +7,7 @@ radiant.mods.load('stonehearth')
 local priorities = require('constants').priorities.needs
 
 local FindFoodAction = class()
+local log = radiant.log.create_logger('actions.find_food')
 
 FindFoodAction.name = 'find food'
 FindFoodAction.does = 'stonehearth:top'
@@ -106,7 +107,7 @@ function FindFoodAction:find_good_food()
    end
 
    -- go find the path to the food
-   radiant.log.info('%s creating pathfinder to find food', tostring(self._entity));
+   log:debug('%s creating pathfinder to find food', tostring(self._entity));
    local desc = string.format('finding food for %s', tostring(self._entity))
    self._pathfinder = radiant.pathfinder.create_path_finder(desc)
                         :set_source(self._entity)

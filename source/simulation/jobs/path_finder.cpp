@@ -241,6 +241,8 @@ void PathFinder::Work(const platform::timer &timer)
 {
    PROFILE_BLOCK();
 
+   PF_LOG(7) << "entering work function";
+
    if (restart_search_) {
       Restart();
    }
@@ -429,9 +431,9 @@ void PathFinder::RecommendBestPath(std::vector<csg::Point3> &points) const
    }
 }
 
-void PathFinder::LogProgress(std::ostream& o) const
+std::string PathFinder::GetProgress() const
 {
-   o << GetName() << " " << "(open: " << open_.size() << "  closed: " << closed_.size() << ")";
+   return BUILD_STRING(GetName() << " " << "(open: " << open_.size() << "  closed: " << closed_.size() << ")");
 }
 
 bool PathFinder::CompareEntries(const csg::Point3 &a, const csg::Point3 &b)

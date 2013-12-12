@@ -13,7 +13,6 @@ public:
    Node(JSONNode const& node) : node_(node) { }
 
    std::string name() const { return node_.name(); }
-   void set_name(std::string const& name) { return node_.set_name(name); }
    int type() const { return node_.type(); }
    int size() const { return node_.size(); }
    bool empty() const { return node_.empty(); }
@@ -152,33 +151,6 @@ public:
 
    const_iterator begin() const { return const_iterator(node_.begin()); }
    const_iterator end() const { return const_iterator(node_.end()); }
-   const_iterator find(std::string const& path) const {
-      std::string next_node_name, next_path;
-      chop_path_front(path, next_node_name, next_path);
-
-      try {
-         // in illegal contexts, JSONNode::find may throw instead of returning end
-         // e.g. attempt to iterate over a property instead of a node
-         auto i = node_.find(next_node_name);
-         if (i == node_.end()) {
-            return this->end();
-         }
-         if (next_path.empty()) {
-            return const_iterator(i);
-         }
-
-         json::Node child_node = Node(*i);
-         auto child_i = child_node.find(next_path);
-
-         // child_node.end() != node_end(), so convert it
-         if (child_i == child_node.end()) {
-            return this->end();
-         }
-         return child_i;
-      } catch (...) {
-         return this->end();
-      }
-   }
 
    class const_iterator {
    public:
@@ -205,6 +177,9 @@ public:
    };
 
 private:
+   void set_name(std::string const& name) { return node_.set_name(name); }
+   const_iterator find(std::string const& path) const;
+
    template <typename T> JSONNode create_node(std::string const& path, T const& value) const {
       std::string remaining_path, node_name;
       chop_path_back(path, node_name, remaining_path);

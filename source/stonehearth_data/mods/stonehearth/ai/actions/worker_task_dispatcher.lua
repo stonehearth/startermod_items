@@ -1,4 +1,5 @@
 local WorkerTaskDispatcher = class()
+local log = radiant.log.create_logger('worker')
 
 WorkerTaskDispatcher.name = 'worker task dispatcher'
 WorkerTaskDispatcher.does = 'stonehearth:top'
@@ -33,19 +34,17 @@ function WorkerTaskDispatcher:_wait_for_next_task()
       self._ai:set_action_priority(self, priority)
    end   
 
+   log:info('%s rejoining worker scheduler to wait for next action', self._entity)
    self._ai:set_action_priority(self, 0)
    self._scheduler:add_worker(self._entity, dispatch_fn)
 end
 
 function WorkerTaskDispatcher:run(ai, entity, ...)
-   self._scheduler:remove_worker(self._entity)
    assert(self._task, "worker dispatcher has no task to run")
-   
-   
+   log:info('%s executing action %s', entity, self._task[1])
+
    --TODO: put this up over thier heads, like dialog!
-   local name = entity:get_component('unit_info'):get_display_name()
-   radiant.log.info('Worker %s: Hey! About to %s!', name, self._task[1])
-   
+   self._scheduler:remove_worker(self._entity)
    ai:execute(unpack(self._task))
    self._task = nil
 end

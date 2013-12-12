@@ -1,4 +1,5 @@
 local DeathAction = class()
+local log = radiant.log.create_logger('actions.death')
 
 DeathAction.name = 'die'
 DeathAction.does = 'stonehearth:top'
@@ -29,10 +30,10 @@ DeathAction['stonehearth:events:on_damage'] = function(self, entity, source, amo
    radiant.check.is_string(type)
 
    local health = radiant.entities.get_attribute(entity, 'health');
-   radiant.log.warning('health is %d before taking %d damage...', health, amount)
+   log:warning('health is %d before taking %d damage...', health, amount)
 
    health = radiant.entities.update_attribute(entity, 'health', -amount)
-   radiant.log.warning('health is now %d...', health)
+   log:warning('health is now %d...', health)
    
    if source then
       self._aggro_table:add_entry(source):set_value(amount)
