@@ -54,6 +54,7 @@ configure:
 .PHONY: stonehearth
 stonehearth:
 	@echo Build type is ${BUILD_TYPE}.
+	$(MSBUILD) $(BUILD_ROOT)/Stonehearth.sln -p:configuration=$(MSBUILD_CONFIGURATION) -t:protobuf
 	$(MSBUILD) $(BUILD_ROOT)/Stonehearth.sln -p:configuration=$(MSBUILD_CONFIGURATION) -t:stonehearth
 
 .PHONY: crash_reporter
