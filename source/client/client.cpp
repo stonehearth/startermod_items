@@ -630,6 +630,7 @@ void Client::RemoveObjects(const proto::RemoveObjects& update)
 {
    for (int id : update.objects()) {
       om::EntityPtr entity = GetEntity(id);
+
       if (entity) {
          auto render_entity = Renderer::GetInstance().GetRenderObject(entity);
          if (render_entity) {
@@ -1035,6 +1036,7 @@ om::EntityPtr Client::CreateEmptyAuthoringEntity()
 {
    om::EntityPtr entity = authoringStore_.AllocObject<om::Entity>();   
    authoredEntities_[entity->GetObjectId()] = entity;
+   CLIENT_LOG(7) << "created new authoring entity " << *entity;
    return entity;
 }
 
@@ -1042,6 +1044,7 @@ om::EntityPtr Client::CreateAuthoringEntity(std::string const& uri)
 {
    om::EntityPtr entity = CreateEmptyAuthoringEntity();
    om::Stonehearth::InitEntity(entity, uri, scriptHost_->GetInterpreter());
+   CLIENT_LOG(7) << "created new empty authoring entity " << *entity;
    return entity;
 }
 
@@ -1050,6 +1053,8 @@ void Client::DestroyAuthoringEntity(dm::ObjectId id)
    auto i = authoredEntities_.find(id);
    if (i != authoredEntities_.end()) {
       om::EntityPtr entity = i->second;
+
+      CLIENT_LOG(7) << "destroying authoring entity " << *entity;
       entity->Destroy();
       if (entity) {
          auto render_entity = Renderer::GetInstance().GetRenderObject(entity);
