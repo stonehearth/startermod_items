@@ -19,11 +19,12 @@ std::shared_ptr<SetTraceWrapper<T>> SetTraceWrapper<T>::OnDestroyed(lua_State* L
       throw std::logic_error("called on_added on invalid trace");
    }
    lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(L);
-   trace_->OnDestroyed([this, cb_thread, destroyed_cb]() {
+   trace_->OnDestroyed([this, L, cb_thread, destroyed_cb]() {
       try {
          luabind::object(cb_thread, destroyed_cb)();
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
+         lua::ScriptHost::ReportCStackException(L, e);
       }
    });
    return shared_from_this();
@@ -36,11 +37,12 @@ std::shared_ptr<SetTraceWrapper<T>> SetTraceWrapper<T>::OnAdded(lua_State* L, lu
       throw std::logic_error("called on_added on invalid trace");
    }
    lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(L);
-   trace_->OnAdded([this, cb_thread, added_cb](typename T::Value const& value) {
+   trace_->OnAdded([this, L, cb_thread, added_cb](typename T::Value const& value) {
       try {
          luabind::object(cb_thread, added_cb)(value);
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
+         lua::ScriptHost::ReportCStackException(L, e);
       }
    });
    return shared_from_this();
@@ -53,11 +55,12 @@ std::shared_ptr<SetTraceWrapper<T>> SetTraceWrapper<T>::OnRemoved(lua_State* L, 
       throw std::logic_error("called on_removed on invalid trace");
    }
    lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(L);
-   trace_->OnRemoved([this, cb_thread, removed_cb](typename T::Value const& value) {
+   trace_->OnRemoved([this, L, cb_thread, removed_cb](typename T::Value const& value) {
       try {
          luabind::object(cb_thread, removed_cb)(value);
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
+         lua::ScriptHost::ReportCStackException(L, e);
       }
    });
    return shared_from_this();

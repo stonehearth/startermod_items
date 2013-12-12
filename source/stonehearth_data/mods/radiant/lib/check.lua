@@ -44,7 +44,7 @@ end
 function check.report_thread_error(thread, format, ...)   
    local error = string.format(format, ...)
    local traceback = thread and debug.traceback(thread) or debug.traceback()
-   host_:report_error(error, traceback)
+   _host:report_error(error, traceback)
 end
 
 function check.contains(t, value)
