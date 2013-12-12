@@ -225,7 +225,10 @@ void RenderEntity::OnSelected(om::Selection& sel, const csg::Ray3& ray,
    if (entity) {
       auto mob = entity->GetComponent<om::Mob>();
       // xxx: don't select authored objects!
-      ASSERT(entity->GetStoreId() == 2);
+      if (entity->GetStoreId() != 2) {
+         E_LOG(1) << "selected authoring entity " << *entity << ".  Ignoring";
+         return;
+      }
       sel.AddEntity(entity->GetObjectId());
    }
 }
