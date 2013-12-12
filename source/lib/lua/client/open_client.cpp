@@ -155,7 +155,7 @@ public:
 
       c.SetInputHandler(id_, [=](Input const& input) -> bool {
          if (cb_.is_valid()) {
-            return luabind::call_function<bool>(cb_, input);
+            return lua::ScriptHost::CoerseToBool(cb_(input));
          }
          return false;
       });

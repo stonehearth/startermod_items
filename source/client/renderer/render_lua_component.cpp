@@ -30,7 +30,7 @@ RenderLuaComponent::RenderLuaComponent(RenderEntity& entity, std::string const& 
          try {
             obj_ = script->CallFunction<luabind::object>(ctor, re, ds);
          } catch (std::exception const& e) {
-            LC_LOG(1) << e.what();
+            script->ReportCStackThreadException(ctor.interpreter(), e);
          }
       }
    }
@@ -46,7 +46,7 @@ RenderLuaComponent::~RenderLuaComponent()
             fn(obj_);
          }
       } catch (std::exception const& e) {
-         LC_LOG(1) << "error destroying component renderer: " << e.what();
+         script->ReportCStackThreadException(obj_.interpreter(), e);
       }
    }
 }

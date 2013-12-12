@@ -97,6 +97,7 @@ void RenderEntity::Destroy()
             }
          } catch (std::exception const& e) {
             E_LOG(1) << "error destroying component renderer: " << e.what();
+            script->ReportCStackThreadException(obj.interpreter(), e);
          }
       }
    }
@@ -150,6 +151,7 @@ void RenderEntity::UpdateInvariantRenderers()
                std::string name = entry.name();
                size_t offset = name.find(':');
                if (offset != std::string::npos) {
+                  lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
                   std::string modname = name.substr(0, offset);
                   std::string invariant_name = name.substr(offset + 1, std::string::npos);
 
@@ -157,7 +159,6 @@ void RenderEntity::UpdateInvariantRenderers()
                   json::Node invariants = manifest.get_node("invariant_renderers");
                   std::string path = invariants.get<std::string>(invariant_name, "");
                   if (!path.empty()) {
-                     lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
                      luabind::object ctor = script->RequireScript(path);
 
                      std::weak_ptr<RenderEntity> re = shared_from_this();
@@ -165,7 +166,7 @@ void RenderEntity::UpdateInvariantRenderers()
                      try {
                         render_invariant = luabind::call_function<luabind::object>(ctor, re, script->JsonToLua(entry));
                      } catch (std::exception const& e) {
-                        LUA_LOG(1) << e.what();
+                        script->ReportCStackThreadException(ctor.interpreter(), e);
                         continue;
                      }
                      lua_invariants_[name] = render_invariant;
