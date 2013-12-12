@@ -26,11 +26,12 @@ std::shared_ptr<BoxedTraceWrapper<T>> BoxedTraceWrapper<T>::OnDestroyed(lua_Stat
    }
 
    lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(L);
-   trace_->OnDestroyed([this, cb_thread, destroyed_cb]() {
+   trace_->OnDestroyed([this, L, cb_thread, destroyed_cb]() {
       try {
          luabind::object(cb_thread, destroyed_cb)();
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
+         lua::ScriptHost::ReportCStackException(L, e);
       }
    });
    return shared_from_this();
@@ -43,11 +44,12 @@ std::shared_ptr<BoxedTraceWrapper<T>> BoxedTraceWrapper<T>::OnChanged(lua_State*
       throw std::logic_error("called on_changed on invalid trace");
    }
    lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(L);
-   trace_->OnChanged([this, cb_thread, changed_cb](typename T::Value const& value) {
+   trace_->OnChanged([this, L, cb_thread, changed_cb](typename T::Value const& value) {
       try {
          luabind::object(cb_thread, changed_cb)(value);
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
+         lua::ScriptHost::ReportCStackException(L, e);
       }
    });
    return shared_from_this();
