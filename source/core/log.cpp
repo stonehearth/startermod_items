@@ -65,7 +65,7 @@ static inline uint32 GetLogLevel(std::string const& key, uint32 deflt)
    if (log_level != sentinel) {
       return log_level;
    }
-   return deflt;
+   return config.Get<int>(key + ".log_level", deflt);
 }
 
 static void InitDefaults()
@@ -104,7 +104,7 @@ static void SetLogLevels()
 
    // Push the current default log level and group name onto the stack
 #define BEGIN_GROUP(group)        config_path.push_back(config_path.back() + "." #group); \
-                                  log_levels.push_back(config.Get<int>(config_path.back() + ".log_level", log_levels.back()));
+                                  log_levels.push_back(GetLogLevel(config_path.back() + ".log_level", log_levels.back()));
 
    // Generate the key in the config database by looking whatever's at the back of the config_path
    // stack and read the default.  Set the value by writing to the current offset in the log_levels_
