@@ -18,6 +18,7 @@
 #include "lib/perfmon/perfmon.h"
 #include "perfhud/perfhud.h"
 #include "resources/res_manager.h"
+#include "csg/random_number_generator.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -28,6 +29,7 @@ std::vector<float> ssaoSamplerData;
 
 H3DRes ssaoMat;
 H3DNode meshNode;
+H3DNode starfieldMeshNode;
 H3DRes skysphereMat;
 
 static std::unique_ptr<Renderer> renderer_;
@@ -135,6 +137,8 @@ Renderer::Renderer() :
    h3dUnmapResStream(veclookup);
 
    BuildSkySphere();
+
+   BuildStarfield();
 
    LoadResources();
 
@@ -261,6 +265,62 @@ void Renderer::BuildSkySphere()
 
    H3DNode modelNode = h3dAddModelNode(H3DRootNode, "skysphere_model", geoRes);
    meshNode = h3dAddMeshNode(modelNode, "skysphere_mesh", skysphereMat, 0, 2048 * 3, 0, 2045);
+   h3dSetNodeFlags(modelNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery, true);
+}
+
+void Renderer::BuildStarfield()
+{
+   const int NumStars = 2000;
+
+   Horde3D::Vec3f* verts = new Horde3D::Vec3f[4 * NumStars];
+   uint32* indices = new uint32[6 * NumStars];
+   float* texCoords = new float[4 * 2 * NumStars];
+   float* texCoords2 = new float[4 * 2 * NumStars];
+
+   csg::RandomNumberGenerator rng(123);
+   for (int i = 0; i < NumStars * 4; i+=4)
+   {
+      Horde3D::Vec3f starPos(
+         rng.GenerateUniformReal(-1.0f, 1.0f), 
+         rng.GenerateUniformReal(-0.8f, 0.1f), 
+         rng.GenerateUniformReal(-1.0f, 1.0f));
+      starPos.normalize();
+      starPos *= 900.0f;
+      verts[i + 0] = starPos;
+      verts[i + 1] = starPos;
+      verts[i + 2] = starPos;
+      verts[i + 3] = starPos;
+   }
+
+   for (int i = 0; i < NumStars * 4 * 2; i+=8)
+   {
+      int size = rng.GenerateUniformInt(1, 2);
+      texCoords[i + 0] = 0; texCoords[i + 1] = 0;
+      texCoords[i + 2] = 2 * size; texCoords[i + 3] = 0;
+      texCoords[i + 4] = 2 * size; texCoords[i + 5] = 2 * size;
+      texCoords[i + 6] = 0; texCoords[i + 7] = 2 * size;
+
+      float brightness = rng.GenerateUniformInt(0, 1) == 0 ? 1.0 : 0.3;
+      texCoords2[i + 0] = brightness; texCoords2[i + 1] = brightness;
+      texCoords2[i + 2] = brightness; texCoords2[i + 3] = brightness;
+      texCoords2[i + 4] = brightness; texCoords2[i + 5] = brightness;
+      texCoords2[i + 6] = brightness; texCoords2[i + 7] = brightness;
+   }
+
+   for (int i = 0, v = 0; i < NumStars * 6; i+=6, v += 4)
+   {
+      indices[i + 0] = v; indices[i + 1] = v + 1; indices[i + 2] = v + 2;
+      indices[i + 3] = v; indices[i + 4] = v + 2; indices[i + 5] = v + 3;
+   }
+
+   H3DRes starfieldMat = h3dAddResource(H3DResTypes::Material, "materials/starfield.material.xml", 0);
+   
+
+   H3DRes geoRes = h3dutCreateGeometryRes("starfield", NumStars * 4, NumStars * 6, (float*)verts, indices, nullptr, nullptr, nullptr, texCoords, texCoords2);
+   
+   
+   H3DNode modelNode = h3dAddModelNode(H3DRootNode, "starfield_model", geoRes);
+   starfieldMeshNode = h3dAddMeshNode(modelNode, "starfield_mesh", starfieldMat, 0, NumStars * 6, 0, NumStars * 4 - 1);
    h3dSetNodeFlags(modelNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery, true);
 }
 
@@ -522,6 +582,10 @@ void Renderer::RenderOneFrame(int now, float alpha)
    h3dSetNodeTransform(meshNode, 
       camera_->GetPosition().x, -50 + camera_->GetPosition().y, camera_->GetPosition().z,
       25.0, 0.0, 0.0, 
+      1.0, 1.0, 1.0);
+   h3dSetNodeTransform(starfieldMeshNode, 
+      camera_->GetPosition().x, camera_->GetPosition().y, camera_->GetPosition().z,
+      0.0, 0.0, 0.0, 
       1.0, 1.0, 1.0);
 
    // Render scene
