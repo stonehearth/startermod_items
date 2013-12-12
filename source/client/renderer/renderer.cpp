@@ -30,6 +30,7 @@ std::vector<float> ssaoSamplerData;
 H3DRes ssaoMat;
 H3DNode meshNode;
 H3DNode starfieldMeshNode;
+H3DRes starfieldMat;
 H3DRes skysphereMat;
 
 static std::unique_ptr<Renderer> renderer_;
@@ -268,6 +269,11 @@ void Renderer::BuildSkySphere()
    h3dSetNodeFlags(modelNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery, true);
 }
 
+void Renderer::SetStarfieldBrightness(float brightness)
+{
+   h3dSetMaterialUniform(starfieldMat, "brightness", brightness, brightness, brightness, brightness);
+}
+
 void Renderer::BuildStarfield()
 {
    const int NumStars = 2000;
@@ -313,11 +319,9 @@ void Renderer::BuildStarfield()
       indices[i + 3] = v; indices[i + 4] = v + 2; indices[i + 5] = v + 3;
    }
 
-   H3DRes starfieldMat = h3dAddResource(H3DResTypes::Material, "materials/starfield.material.xml", 0);
-   
+   starfieldMat = h3dAddResource(H3DResTypes::Material, "materials/starfield.material.xml", 0);
 
    H3DRes geoRes = h3dutCreateGeometryRes("starfield", NumStars * 4, NumStars * 6, (float*)verts, indices, nullptr, nullptr, nullptr, texCoords, texCoords2);
-   
    
    H3DNode modelNode = h3dAddModelNode(H3DRootNode, "starfield_model", geoRes);
    starfieldMeshNode = h3dAddMeshNode(modelNode, "starfield_mesh", starfieldMat, 0, NumStars * 6, 0, NumStars * 4 - 1);
