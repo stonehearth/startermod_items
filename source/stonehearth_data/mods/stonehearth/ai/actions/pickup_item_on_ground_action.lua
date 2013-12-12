@@ -1,4 +1,5 @@
 local PickupItemOnGround = class()
+local log = radiant.log.create_logger('actions.pickup_item')
 
 PickupItemOnGround.name = 'pickup an item on the ground'
 PickupItemOnGround.does = 'stonehearth:pickup_item_on_ground'
@@ -32,7 +33,7 @@ function PickupItemOnGround:run(ai, entity, item)
       ai:execute('stonehearth:goto_entity', item)
    end
 
-   radiant.log.info("picking up item at %s", tostring(obj_location))
+   log:info("picking up item at %s", tostring(obj_location))
    radiant.entities.turn_to_face(entity, item)
    radiant.entities.pickup_item(entity, item)
    ai:execute('stonehearth:run_effect', 'carry_pickup')

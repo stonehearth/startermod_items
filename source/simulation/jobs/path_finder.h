@@ -43,7 +43,7 @@ class PathFinder : public Job {
       bool IsIdle() const override;
       bool IsFinished() const override { return false; }
       void Work(const platform::timer &timer) override;
-      void LogProgress(std::ostream&) const override;
+      std::string GetProgress() const override;
       void EncodeDebugShapes(protocol::shapelist *msg) const override;
 
    private:

@@ -6,6 +6,7 @@ radiant.mods.load('stonehearth') -- make sure it's loaded...
 local calendar = require 'services.calendar.calendar_service'
 
 local SleepAction = class()
+local log = radiant.log.create_logger('actions.sleep')
 
 SleepAction.name = 'goto sleep'
 SleepAction.does = 'stonehearth:top'
@@ -90,7 +91,7 @@ function SleepAction:find_a_bed(result_cb)
    -- the bed lease is a required component for the sleeping behavior to work
    local bed_lease = self._entity:get_component('stonehearth:bed_lease')
    if not bed_lease then
-      radiant.log.warning('missing bed lease component.  ignoring sleep behavior.')
+      log:warning('missing bed lease component.  ignoring sleep behavior.')
       return
    end
 
@@ -101,7 +102,7 @@ function SleepAction:find_a_bed(result_cb)
       local solved_cb = function(path)
          result_cb(bed, path)
       end
-      radiant.log.info('%s creating pathfinder to my bed', tostring(self._entity));
+      log:debug('%s creating pathfinder to my bed', tostring(self._entity));
       self._pathfinder = radiant.pathfinder.create_path_finder(desc)
                            :set_source(self._entity)
                            :add_destination(bed)
@@ -109,7 +110,7 @@ function SleepAction:find_a_bed(result_cb)
    else
       -- find a bed and lease it
       local filter_fn = function(item)
-         -- radiant.log.info("looing for a bed")
+         -- log:info("looing for a bed")
          -- xxx: only look for beds compatible with this entities faction
          local is_bed = radiant.entities.get_entity_data(item, 'stonehearth:bed')
          local lease = item:get_component('stonehearth:lease_component')
@@ -127,7 +128,7 @@ function SleepAction:find_a_bed(result_cb)
       end
 
       -- go find the path to the bed
-      radiant.log.info('%s creating pathfinder to find a bed', tostring(self._entity));
+      log:debug('%s creating pathfinder to find a bed', tostring(self._entity));
       local desc = string.format('finding bed for %s', tostring(self._entity))
       self._pathfinder = radiant.pathfinder.create_path_finder(desc)
                            :set_source(self._entity)
@@ -158,7 +159,7 @@ function SleepAction:run(ai, entity)
       local lease_component = self._bed:get_component('stonehearth:lease_component')
       if lease_component:try_to_acquire_lease(entity) then
          --We successfully acquired the lease
-         radiant.log.info('leasing %s to %s', tostring(self._bed), tostring(self._entity))
+         log:info('leasing %s to %s', tostring(self._bed), tostring(self._entity))
          entity:get_component('stonehearth:bed_lease'):set_bed(self._bed)
          -- go to sleep!
          ai:execute('stonehearth:sleep_in_bed', self._bed, self._path_to_bed)

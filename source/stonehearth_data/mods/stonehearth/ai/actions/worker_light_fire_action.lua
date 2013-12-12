@@ -3,6 +3,7 @@
 ]]
 local Point3 = _radiant.csg.Point3
 local WorkerLightFireAction = class()
+local log = radiant.log.create_logger('actions.light_fire')
 
 WorkerLightFireAction.name = 'light fire'
 WorkerLightFireAction.does = 'stonehearth:light_fire'
@@ -22,7 +23,7 @@ function WorkerLightFireAction:run(ai, entity, path_to_log, firepit, task)
 
    -- If the task is already stopped, someone else got this action first. Exit.
    if not task:is_running() then
-      radiant.log.info('%s (Worker %s): Ok, someone else is taking care of the fire.', tostring(entity), name)
+      log:info('%s (Worker %s): Ok, someone else is taking care of the fire.', tostring(entity), name)
       ai:abort()
       --return
    end
@@ -36,7 +37,7 @@ function WorkerLightFireAction:run(ai, entity, path_to_log, firepit, task)
    self._task = task
 
    -- Log successful grab
-   radiant.log.info('%s (Worker %s): My turn to light the fiiayyyh!!!', tostring(entity), name)
+   log:info('%s (Worker %s): My turn to light the fiiayyyh!!!', tostring(entity), name)
 
    -- Pick up the log and bring it over
    ai:execute('stonehearth:carry_item_on_path_to', path_to_log, firepit)

@@ -6,7 +6,6 @@
 #include "dm/dm.h"
 #include "csg/color.h"
 #include "render_component.h"
-#include "horde3d/extensions/stockpile/stockpile_node.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 

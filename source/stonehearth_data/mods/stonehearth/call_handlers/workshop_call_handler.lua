@@ -4,6 +4,7 @@ local Color3 = _radiant.csg.Color3
 local Rect2 = _radiant.csg.Rect2
 local Point2 = _radiant.csg.Point2
 local WorkshopCallHandler = class()
+local log = radiant.log.create_logger('call_handlers.wor')
 
 -- client side object to add a new bench to the world.  this method is invoked
 -- by POSTing to the route for this file in the manifest.
@@ -54,7 +55,7 @@ function WorkshopCallHandler:_on_mouse_event(e, workbench_entity, response)
 
    --test for mouse right-click
    if e:up(2) and s.location then
-      radiant.log.info('Pressed right click')
+      log:info('Pressed right click')
       self._curr_rotation = self._curr_rotation + 90
       self._curr_rotation = self._curr_rotation % 360
       self._cursor_entity:add_component('mob'):turn_to(self._curr_rotation + 180)

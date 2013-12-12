@@ -9,6 +9,9 @@ local ActivityOverlayEffect = require 'modules.effects.activity_overlay_effect'
 local UnitStatusEffect = require 'modules.effects.unit_status_effect'
 
 local EffectTracks = class()
+
+local log = radiant.log.create_logger('effects')
+
 function EffectTracks:__init(mgr, entity, effect_path, effect_name, start_time, trigger_handler, args)
    self._mgr = mgr
    self._name = effect_name
@@ -47,7 +50,7 @@ function EffectTracks:__init(mgr, entity, effect_path, effect_name, start_time, 
       elseif e.type == "unit_status_effect" then
          table.insert(self._effects, UnitStatusEffect(e))
       else
-         radiant.log.info('unknown effect type "%s".  using generic', e.type)
+         log:debug('unknown effect type "%s".  using generic', e.type)
          table.insert(self._effects, GenericEffect(start_time, trigger_handler, e, self._effect))
       end
    end

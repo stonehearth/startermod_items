@@ -155,6 +155,7 @@ ScriptHost::ScriptHost()
          namespace_("lua") [
             lua::RegisterType<ScriptHost>()
                .def("log",             &ScriptHost::Log)
+               .def("log_enabled",     &ScriptHost::LogEnabled)
                .def("assert_failed",   &ScriptHost::AssertFailed)
                .def("require",         (luabind::object (ScriptHost::*)(std::string const& name))&ScriptHost::Require)
                .def("require_script",  (luabind::object (ScriptHost::*)(std::string const& name))&ScriptHost::RequireScript)
@@ -187,19 +188,19 @@ void* ScriptHost::LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize)
 
 void ScriptHost::NotifyError(std::string const& error, std::string const& traceback)
 {
-   LUA_LOG(1) << "-- Lua Error Begin ------------------------------- ";
+   LUA_LOG(0) << "-- Lua Error Begin ------------------------------- ";
    if (!error.empty()) {
-      LUA_LOG(1) << lastError_;
+      LUA_LOG(0) << lastError_;
 
       std::string item;
       std::stringstream ss(traceback);
       while(std::getline(ss, item)) {
-         LUA_LOG(1) << "   " << item;
+         LUA_LOG(0) << "   " << item;
       }
       lastError_.clear();
       lastTraceback_.clear();
    }
-   LUA_LOG(1) << "-- Lua Error End   ------------------------------- ";
+   LUA_LOG(0) << "-- Lua Error End   ------------------------------- ";
    lastError_ = error;
    lastTraceback_ = traceback;
 }
@@ -340,9 +341,38 @@ void ScriptHost::Call(luabind::object fn, luabind::object arg1)
 }
 #endif
 
-void ScriptHost::Log(std::string str)
+void ScriptHost::Log(const char* category, int level, const char* str)
 {
-   LUA_LOG(1) << str;
+   LOG_CATEGORY_(level, BUILD_STRING("mod " << category)) << str;
+}
+
+bool ScriptHost::LogEnabled(std::string category, int level)
+{   
+   static const int SENTINEL = 0xd3adb33f;
+   size_t last = category.size();
+
+   // Walk backwards until we can find a can find a value for this thing
+   // that matches. (e.g. try logging.mods.stonehearth.events.log_level, then
+   // logging.mods.stonehearth.log_level, then logging.mods.log_level...
+   int config_level = SENTINEL;
+   while (last != std::string::npos) {
+      std::string path = category.substr(0, last);
+      std::string flag = BUILD_STRING("logging.mods." << path);
+      config_level = core::Config::GetInstance().Get<int>(flag, SENTINEL);
+      if (config_level != SENTINEL) {
+         break;
+      }
+      flag = BUILD_STRING("logging.mods." << path << ".log_level");
+      config_level = core::Config::GetInstance().Get<int>(flag, SENTINEL);
+      if (config_level != SENTINEL) {
+         break;
+      }
+      last = category.rfind('.', last - 1);
+   }
+   if (config_level == SENTINEL) {
+      config_level = core::Config::GetInstance().Get<int>("logging.log_level", SENTINEL);
+   }
+   return level <= config_level;
 }
 
 void ScriptHost::AssertFailed(std::string reason)

@@ -55,7 +55,7 @@ function Inventory:on_item_added(e)
    assert(self._storage[e.storage:get_id()], 'tried to add an item to an untracked storage entity ' .. tostring(e.storage))
 
    table.insert(self._storage[e.storage:get_id()], e.item:get_id())
-   radiant.events.trigger(self, 'stonehearth:item_added', { item = e.item})
+   radiant.events.trigger(self, 'stonehearth:item_added', { item = e.item })
 end
 
 function Inventory:on_item_removed(e)
@@ -65,7 +65,7 @@ function Inventory:on_item_removed(e)
    for i, item in ipairs(self._storage[storage_id]) do
       if item == e.item:get_id() then
          table.remove(self._storage[storage_id], i)
-         radiant.events.trigger(self, 'stonehearth:item_removed', { item = e.item})
+         radiant.events.trigger(self, 'stonehearth:item_removed', { item = e.item })
          break
       end
    end

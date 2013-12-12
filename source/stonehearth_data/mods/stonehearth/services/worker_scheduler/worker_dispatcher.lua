@@ -1,5 +1,6 @@
 local WorkerDispatcher = class()
 local DISPATCHER_WAIT_TIME = require('constants').worker_scheduler.DISPATCHER_WAIT_TIME
+local log = radiant.log.create_logger('worker')
 
 --- Create a new worker dispatcher
 -- @param worker The worker who will receive new tasks
@@ -22,8 +23,8 @@ end
 -- @param priority The priority of this solution
 -- @param action A table containing the action to execute and all its arguments
 function WorkerDispatcher:add_solution(destination_id, priority, action, finish_fn)
-   radiant.log.info('adding solution (action:%s priority:%d) to worker %s',
-                    tostring(action[1]), priority, tostring(self._worker))
+   log:debug('dispatcher adding solution (action:%s priority:%d) to %s',
+             tostring(action[1]), priority, tostring(self._worker))
    
    -- If we haven't started the timer yet, go ahead and do so.
    if #self._solutions == 0 then
@@ -35,8 +36,10 @@ function WorkerDispatcher:add_solution(destination_id, priority, action, finish_
    -- failed to stop a pathfinder or disable a destination for this worker.  Find
    -- that bug and squash it!
    for _, solution in ipairs(self._solutions) do
-      radiant.log.warning('duplicate solution in worker dispatcher!  ignoring')
-      return
+      if solution.destination_id == destination_id and solution.action[0] == action[0] then
+         log:warning('duplicate solution in worker dispatcher!  ignoring')         
+         return
+      end
    end
 
    local solution = {
@@ -90,9 +93,14 @@ function WorkerDispatcher:_dispatch_best_solution()
    -- dispatch the best solution and abort the rest
    for _, solution in ipairs(self._solutions) do
       if solution ~= best and solution.finish_fn then
+         log:debug('%s aborting non-best solution (priority:%d action:%s)', self._worker, solution.priority, solution.action[1])
          solution.finish_fn(false)
+      else
+         log:debug('%s skipping abort of non-best solution (priority:%d action:%s).  no finish function!',
+                   self._worker, solution.priority, solution.action[1])
       end
    end
+   log:debug('%s dispatching best solution (priority:%d action:%s)', self._worker, best.priority, best.action[1])
    self._dispatch_fn(best.priority, best.action, best.finish_fn)
 end
 

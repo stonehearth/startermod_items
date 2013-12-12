@@ -30,7 +30,7 @@ varying vec4 endCol;
 
 void main() {
   // Compress the gradient to occupy the most visible band of the sky.
-  colorT = (10.0 * texCoords0.y) - 2.5;
+  colorT = (10.0 * texCoords0.y) - 3.0;
   
   startCol = skycolor_start;
   endCol = skycolor_end;

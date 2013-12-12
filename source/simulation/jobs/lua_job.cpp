@@ -41,10 +41,6 @@ void LuaJob::Work(const platform::timer &timer)
    }
 }
 
-void LuaJob::LogProgress(std::ostream&) const
-{
-}
-
 void LuaJob::EncodeDebugShapes(protocol::shapelist *msg) const
 {
 }

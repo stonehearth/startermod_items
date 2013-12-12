@@ -16,7 +16,6 @@ class LuaJob: public Job {
       bool IsIdle() const override;
       bool IsFinished() const override;
       void Work(const platform::timer &timer) override;
-      void LogProgress(std::ostream&) const override;
       void EncodeDebugShapes(protocol::shapelist *msg) const override;
 
    private:

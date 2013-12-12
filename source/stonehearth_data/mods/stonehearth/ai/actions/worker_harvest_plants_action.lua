@@ -6,6 +6,7 @@ local event_service = require 'services.event.event_service'
 local Point3 = _radiant.csg.Point3
 
 local HarvestPlantsAction = class()
+local log = radiant.log.create_logger('actions.harvest')
 
 HarvestPlantsAction.name = 'harvest plants'
 HarvestPlantsAction.does = 'stonehearth:harvest_plant'
@@ -36,7 +37,7 @@ function HarvestPlantsAction:run(ai, entity, path, task)
 
    -- If the task is already stopped, someone else got this action first. Exit.
    if not task:is_running() then
-      radiant.log.info('%s (Worker %s): Never mind! You got the %s.', tostring(entity), worker_name, plant_name)
+      log:info('%s (Worker %s): Never mind! You got the %s.', tostring(entity), worker_name, plant_name)
       ai:abort()
    end
 

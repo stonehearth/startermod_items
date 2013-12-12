@@ -12,6 +12,7 @@
 #include "render_render_info.h"
 #include "render_carry_block.h"
 #include "render_lua_component.h"
+#include "render_region_collision_shape.h"
 #include "render_vertical_pathing_region.h"
 #include "resources/res_manager.h"
 #include "resources/animation.h"
@@ -74,7 +75,30 @@ void RenderEntity::FinishConstruction()
 
 RenderEntity::~RenderEntity()
 {
+   Destroy();
    totalObjectCount_--;
+}
+
+void RenderEntity::Destroy()
+{
+   lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
+
+   // xxx: share this with render_lua_component!!
+   for (const auto& entry : lua_invariants_) {
+      luabind::object obj = entry.second;
+      if (obj) {
+         try {
+            luabind::object fn = obj["destroy"];
+            if (fn) {
+               fn(obj);
+            }
+         } catch (std::exception const& e) {
+            E_LOG(1) << "error destroying component renderer: " << e.what();
+         }
+      }
+   }
+   lua_invariants_.clear();
+   components_.clear();
 }
 
 void RenderEntity::SetParent(H3DNode parent)
@@ -197,6 +221,11 @@ void RenderEntity::AddComponent(std::string const& name, std::shared_ptr<dm::Obj
             components_[name] = std::make_shared<RenderVerticalPathingRegion>(*this, obj);
             break;
          }
+         case om::RegionCollisionShapeObjectType: {
+            om::RegionCollisionShapePtr obj = std::static_pointer_cast<om::RegionCollisionShape>(value);
+            components_[name] = std::make_shared<RenderRegionCollisionShape>(*this, obj);
+            break;
+         }
          case om::DataStoreObjectType: {
             om::DataStorePtr obj = std::static_pointer_cast<om::DataStore>(value);
             components_[name] = std::make_shared<RenderLuaComponent>(*this, name, obj);
@@ -219,7 +248,10 @@ void RenderEntity::OnSelected(om::Selection& sel, const csg::Ray3& ray,
    if (entity) {
       auto mob = entity->GetComponent<om::Mob>();
       // xxx: don't select authored objects!
-      ASSERT(entity->GetStoreId() == 2);
+      if (entity->GetStoreId() != 2) {
+         E_LOG(1) << "selected authoring entity " << *entity << ".  Ignoring";
+         return;
+      }
       sel.AddEntity(entity->GetObjectId());
    }
 }

@@ -388,6 +388,7 @@ void Client::run(int server_port)
       perf_hud_shown_ = !perf_hud_shown_;
       renderer.ShowPerfHud(perf_hud_shown_);
    };
+   _commands[GLFW_KEY_NUM_LOCK] = [=]() { core_reactor_->Call(rpc::Function("radiant:profile_next_lua_upate")); };
    _commands[GLFW_KEY_F9] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_debug_nodes")); };
    _commands[GLFW_KEY_F3] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_step_paths")); };
    _commands[GLFW_KEY_F4] = [=]() { core_reactor_->Call(rpc::Function("radiant:step_paths")); };
@@ -475,7 +476,13 @@ void Client::mainloop()
    ProcessBrowserJobQueue();
 
    int currentTime = platform::get_current_time_in_ms();
-   float alpha = (currentTime - ((int)_client_interval_start - _server_skew)) / (float)_server_interval_duration;
+   float alpha;
+   if (_server_interval_duration == 0) {
+      // A zero server interval means the server is paused.  Turn off interpolation.
+      alpha = 0.0f;
+   } else {
+      alpha = (currentTime - ((int)_client_interval_start - _server_skew)) / (float)_server_interval_duration;
+   }
    alpha = std::max(0.0f, alpha);
    now_ = (int)(_server_last_update_time + (_server_interval_duration * alpha));
 
@@ -621,6 +628,15 @@ void Client::UpdateObject(const proto::UpdateObject& update)
 
 void Client::RemoveObjects(const proto::RemoveObjects& update)
 {
+   for (int id : update.objects()) {
+      om::EntityPtr entity = GetEntity(id);
+      if (entity) {
+         auto render_entity = Renderer::GetInstance().GetRenderObject(entity);
+         if (render_entity) {
+            render_entity->Destroy();
+         }
+      }
+   }
    receiver_->ProcessRemove(update);
 }
 
@@ -1033,6 +1049,14 @@ void Client::DestroyAuthoringEntity(dm::ObjectId id)
 {
    auto i = authoredEntities_.find(id);
    if (i != authoredEntities_.end()) {
+      om::EntityPtr entity = i->second;
+      entity->Destroy();
+      if (entity) {
+         auto render_entity = Renderer::GetInstance().GetRenderObject(entity);
+         if (render_entity) {
+            render_entity->Destroy();
+         }
+      }
       authoredEntities_.erase(i);
    }
 }

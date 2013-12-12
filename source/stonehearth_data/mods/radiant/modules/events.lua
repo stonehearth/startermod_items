@@ -3,6 +3,8 @@ local singleton = {
    jobs = {}
 }
 
+local log = radiant.log.create_logger('events')
+
 function events.__init()
    events._senders = {}
 end
@@ -28,10 +30,10 @@ function events.listen(object, event, self, fn)
    if not sender[event] then
       sender[event] = {}
    end
-
+ 
    local listeners = sender[event]
 
-   radiant.log.info('listening to event ' .. event)
+   log:debug('listening to event ' .. event)
    
    table.insert(listeners, { self = self, fn = fn })
 end
@@ -42,23 +44,23 @@ function events.unlisten(object, event, self, fn)
    assert(object and event and self and fn)
    local senders = events._senders[key]
    if not senders then
-      radiant.log.warning('unlisten %s on unknown sender: %s', event, tostring(object))
+      log:debug('unlisten %s on unknown sender: %s', event, tostring(object))
       return
    end
    local listeners = senders[event]
    if not listeners then
-      radiant.log.warning('unlisten unknown event: %s on sender %s', event, tostring(object))
+      log:debug('unlisten unknown event: %s on sender %s', event, tostring(object))
       return
    end
 
    for i, listener in ipairs(listeners) do
       if listener.fn == fn and listener.self == self then
-         radiant.log.info('unlistening to event ' .. event)
+         log:debug('unlistening to event ' .. event)
          table.remove(listeners, i)
          return
       end
    end
-   radiant.log.warning('unlisten could not find registered listener for event: %s', event)
+   log:warning('unlisten could not find registered listener for event: %s', event)
 end
 
 function events.trigger(object, event, ...)
@@ -82,7 +84,7 @@ function events.trigger(object, event, ...)
                end
             end
 
-            radiant.log.info('triggering event ' .. event)
+            log:debug('triggering event ' .. event)
             listener.fn(listener.self, event_params)
          end
       end
@@ -109,11 +111,6 @@ function events._update()
    if now.now % 600000 == 0 then
       events.trigger(radiant.events, 'stonehearth:ten_minute_poll', now)
    end
-end
-
-
-function events.register_event_handler()
-   radiant.log.warning('this is defunct. Delete the caller')
 end
 
 radiant.create_background_task = function(name, fn)

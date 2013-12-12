@@ -9,6 +9,7 @@
 local MathFns = require 'services.world_generation.math.math_fns'
 
 local GaussianRandom = class()
+local log = radiant.log.create_logger('world.generation')
 
 local next_random = nil
 
@@ -90,7 +91,7 @@ function GaussianRandom.print_probabilities(min, max, std_dev, iterations)
    probabilities = GaussianRandom.simulate_probabilities(min, max, std_dev, iterations)
 
    for i=min, max do
-      radiant.log.info('%d: %.2f%%', i, probabilities[i]*100)
+      log:info('', '%d: %.2f%%', i, probabilities[i]*100)
    end
 end
 

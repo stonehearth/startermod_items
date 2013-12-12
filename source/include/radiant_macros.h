@@ -2,6 +2,7 @@
 #define _RADIANT_MACROS_H
 
 #include "radiant_assert.h"
+#include <sstream>
 
 #define OFFSET_OF(t, f)    (int)(&((t *)(NULL))->f)
 #define ARRAY_SIZE(a)      ((sizeof (a)) / sizeof((a)[0]))
