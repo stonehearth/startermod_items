@@ -5,6 +5,7 @@ local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 local Cube3 = _radiant.csg.Cube3
 local Color4 = _radiant.csg.Color4
+local log = radiant.log.create_logger('commands')
 
 -- this is the component which manages the fabricator entity.
 function FabricatorComponent:__init(entity, data_binding)
