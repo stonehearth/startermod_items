@@ -6,8 +6,13 @@
    "days_per_month" : 30,
    "months_per_year" : 12,
 
-   "starting_month" : 1,
-   "starting_year" : 1000,
+   "start" : {
+      "minute" : 0,
+      "hour" : 6,
+      "day" : 1,
+      "month" : 1,
+      "year" : 1000
+   },
 
    "hour_names" : [
       "Aughtaur",

@@ -20,11 +20,18 @@
       "destination": {
          "region": [
             {
-               "min" : { "x" : -3, "y" : 0, "z" : -3 },
-               "max" : { "x" :  4, "y" : 1, "z" :  4 }
+               "min" : { "x" : 0, "y" : 0, "z" : 0 },
+               "max" : { "x" :  1, "y" : 1, "z" :  1 }
             }
          ]
-      }
-
+      },
+      "region_collision_shape" : {
+         "region": [
+            {
+               "min" : { "x" : 0, "y" : 0, "z" : 0 },
+               "max" : { "x" :  1, "y" : 3, "z" :  1 }
+            }
+         ]
+      }      
    }
 }
