@@ -3,6 +3,7 @@
 #include "mob.ridl.h"
 #include "om/entity.h"
 #include "dm/trace.h"
+#include "dm/record_trace.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -29,6 +30,10 @@ void EntityContainer::AddChild(std::weak_ptr<Entity> c)
       mob->SetParent(GetEntityRef());
 
       dm::ObjectId id = child->GetObjectId();
+      dtor_traces_[id] = child->TraceChanges("entity container lifetime", dm::OBJECT_MODEL_TRACES)
+         ->OnDestroyed([this, id]() {
+            children_.Remove(id);
+         });
       children_.Add(id, c);
    }
 }
@@ -39,6 +44,7 @@ EntityContainer& EntityContainer::RemoveChild(dm::ObjectId id)
    if (i != children_.end()) {
       EntityPtr child = i->second.lock();
       children_.Remove(id);
+      dtor_traces_.erase(id);
       auto mob = child->GetComponent<Mob>();
       if (mob) {
          mob->SetParent(EntityRef());
