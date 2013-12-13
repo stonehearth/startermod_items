@@ -236,7 +236,7 @@ App.StonehearthCrafterView = App.View.extend({
          if (e.keyCode === 13) {
             self.findAndSelectRecipe();
          }
-      });
+      }).focus();
       // open the first category
       element.find("h3")[0].click();
       radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:menu_open' );
