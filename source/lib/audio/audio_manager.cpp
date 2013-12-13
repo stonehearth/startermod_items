@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <SFML/Audio.hpp>
 #include "resources/res_manager.h"
+#include "platform/utils.h"
 
 using namespace ::radiant;
 using namespace ::radiant::audio;
@@ -131,8 +132,9 @@ void AudioManager::PlayMusic(std::string track, std::string channel)
 }
 
 //Go through the music channels and call their update functions
-void AudioManager::UpdateAudio(int currTime)
+void AudioManager::UpdateAudio()
 {
-   ambient_channel_.UpdateMusic(currTime);
-   bgm_channel_.UpdateMusic(currTime);
+   int current_time = platform::get_current_time_in_ms();
+   ambient_channel_.UpdateMusic(current_time);
+   bgm_channel_.UpdateMusic(current_time);
 }

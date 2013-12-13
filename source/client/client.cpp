@@ -525,7 +525,7 @@ void Client::mainloop()
 
    //Update the audio_manager with the current time
    audio::AudioManager &a = audio::AudioManager::GetInstance();
-   a.UpdateAudio(now_);
+   a.UpdateAudio();
 }
 
 om::TerrainPtr Client::GetTerrain()
