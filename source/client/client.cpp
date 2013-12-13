@@ -87,6 +87,8 @@ Client::Client() :
    next_input_id_(1),
    mouse_x_(0),
    mouse_y_(0),
+   now_(0),
+   last_now_(0),
    perf_hud_shown_(false),
    connected_(false)
 {
@@ -484,11 +486,11 @@ void Client::mainloop()
       alpha = (currentTime - ((int)_client_interval_start - _server_skew)) / (float)_server_interval_duration;
    }
    alpha = std::min(1.0f, std::max(0.0f, alpha));
-   now_ = (int)(_server_last_update_time + (_server_interval_duration * alpha));
 
-   static int last_now = 0;
-   now_ = std::max(last_now, now_);
-   last_now = now_;
+   // make 100% sure the clock always moves forward
+   last_now_ = now_;
+   now_ = (int)(_server_last_update_time + (_server_interval_duration * alpha));
+   now_ = std::max(last_now_, now_);
 
    perfmon::SwitchToCounter("flush http events");
    http_reactor_->FlushEvents();
