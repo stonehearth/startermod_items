@@ -23,6 +23,14 @@ function WorkerTask:destroy()
       self._promise:destroy()
       self._promise = nil
    end
+   for _, pf in pairs(self._pathfinders) do
+      pf:stop()
+   end
+   
+   self._finish_fn = nil   
+   self._get_action_fn = nil
+   self._worker_filter_fn = nil
+   self._work_object_filter_fn = nil
 end
 
 function WorkerTask:get_name()

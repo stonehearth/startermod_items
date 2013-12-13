@@ -8,6 +8,25 @@ BEGIN_RADIANT_LUA_NAMESPACE
 template <typename M>
 class MapIterator
 {
+private:
+   typedef typename M::ContainerType::const_iterator Iterator;
+
+   template <typename V>
+   struct AdvanceIterator {
+      void operator()(M const& map, Iterator& i) {
+         i++;
+      }
+   };
+
+   template <typename V>
+   struct AdvanceIterator<std::weak_ptr<V>> {
+      void operator()(M const& map, Iterator& i) {
+         do {
+            i++;
+         } while (i != map.end() && i->second.expired());
+      }
+   };
+
 public:
    MapIterator(M const& map) : map_(map)
    {
@@ -24,7 +43,7 @@ public:
       if (i_ != map_.end()) {
          luabind::object(L, i_->first).push(L);
          luabind::object(L, i_->second).push(L);
-         i_++;
+         AdvanceIterator<typename M::Value>()(map_, i_);
          return 2;
       }
       return 0;
@@ -35,7 +54,7 @@ private:
 
 private:
    M const& map_;
-   typename M::ContainerType::const_iterator i_;
+   Iterator i_;
 };
 
 END_RADIANT_LUA_NAMESPACE

@@ -86,8 +86,9 @@ void Config::WriteConfigFile(boost::filesystem::path const& file_path, json::Nod
    ostream << text;
 }
 
-void Config::CmdLineOptionToKeyValue(std::string const& param, std::string& key, std::string& value) const
+void Config::ParseCmdLineOption(json::Node& node, std::string const& param) const
 {
+   std::string key, value;
    std::string trimmed_param = param;
    boost::algorithm::trim_left_if(trimmed_param, boost::algorithm::is_any_of("-"));
 
@@ -95,8 +96,11 @@ void Config::CmdLineOptionToKeyValue(std::string const& param, std::string& key,
    if (offset != std::string::npos) {
       key = trimmed_param.substr(0, offset);
       value = trimmed_param.substr(offset + 1);
+      if (!key.empty()) {
+         node.set(key, value);
+      }
    } else {
-      throw core::Exception(BUILD_STRING("'=' not found in command line option '" << param << "'"));
+      node.set(trimmed_param, true);
    }
 }
 
@@ -106,10 +110,7 @@ json::Node Config::ParseCommandLine(int argc, const char *argv[]) const
    std::string key, value;
 
    for (int i=1; i < argc; i++) {
-      CmdLineOptionToKeyValue(argv[i], key, value);
-      if (!key.empty()) {
-         node.set(key, value);
-      }
+      ParseCmdLineOption(node, argv[i]);
    }
 
    return node;
