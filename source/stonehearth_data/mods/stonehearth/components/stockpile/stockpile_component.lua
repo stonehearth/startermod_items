@@ -28,32 +28,7 @@ end
 
 function StockpileComponent:__init(entity, data_binding)
    self._entity = entity
-   self._filter = {
-      wood = true,
-      stone = true,
-      ore = true,
-      animal_part = true,
-      portal = true,
-      furniture = true,
-      defense = true,
-      light = true,
-      decoration = true,
-      refined_cloth = true,
-      refined_animal_part = true,
-      refined_ore = true,
-      melee_weapon = true,
-      ranged_weapon = true,
-      light_armor = true,
-      heavy_armor = true,
-      exotic_gear = true,
-      fruit = true,
-      vegetable = true,
-      baked = true,
-      meat = true,
-      drink = true,
-      gold = true,
-      gem = true
-   }
+   self._filter = nil
 
    self._destination = entity:add_component('destination')
    self._data = {
@@ -116,15 +91,9 @@ function StockpileComponent:destroy()
    end
 end
 
-function StockpileComponent:set_filter(values)
-   for name, _ in pairs(self._filter) do
-      self._filter[name] = false
-   end
-
-   for i, name in ipairs(values) do
-      self._filter[name] = true
-   end
-   
+function StockpileComponent:set_filter(filter)
+   self._filter = filter
+   self._data.filter = self._filter
    self._data_binding:update(self._data)
 
    -- for items that no longer match the filter, 
@@ -385,21 +354,41 @@ end
 -- @return true if the entity can be stocked here, false otherwise.
 
 function StockpileComponent:can_stock_entity(entity)
+
    if not entity or not entity:get_component('item') then
       return false
    end
    
+   if not self:_is_in_filter(entity) then
+      return false
+   end
+  
+   return true
+   
+end
+
+function StockpileComponent:_is_in_filter(entity)
    local material = entity:get_component('stonehearth:material')
    if not material then
       return false
    end
 
+   if not self._filter then 
+      return true
+   end
+   
    local in_filter = false
-   for name, value in pairs(self._filter) do
-      if value and material:is(name) then
-         return true
+
+   if self._filter then 
+      for i, filter in ipairs(self._filter) do
+         if material:is(filter) then
+            in_filter = true
+            break
+         end
       end
    end
+
+   return in_filter
 end
 
 
