@@ -1,11 +1,11 @@
 local data = {
    date = {
-      hour = 9,
+      hour = 0,
       minute = 0,
       second = 0,
       day = 0,
       month = 0,
-      year = 1000
+      year = 0
    }, --the calendar data to export
    _lastNow = 0,
    _remainderTime = 0,
@@ -26,6 +26,12 @@ function CalendarService:__init()
    self._event_service = require 'services.event.event_service'
    self._constants = constants
    radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self._on_event_loop)
+
+   data.date.minute = self._constants.start.minute
+   data.date.hour = self._constants.start.hour
+   data.date.day = self._constants.start.day
+   data.date.month = self._constants.start.month
+   data.date.year = self._constants.start.year
 end
 
 function CalendarService:set_time(hour, minute, second)

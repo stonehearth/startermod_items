@@ -58,7 +58,11 @@ function SleepInBedAction:run(ai, entity, bed, path)
 
    -- goto sleep
    ai:execute('stonehearth:run_effect', 'goto_sleep')
-   radiant.entities.add_buff(self._entity, 'stonehearth:buffs:sleeping');
+
+   if not radiant.entities.has_buff(self._entity, 'stonehearth:buffs:sleeping') then
+      radiant.entities.add_buff(self._entity, 'stonehearth:buffs:sleeping');
+   end
+   
    ai:execute('stonehearth:run_effect', 'sleep')
 end
 

@@ -15,7 +15,10 @@ end
 function SleepOnGroundAction:run(ai, entity, bed, path)
    --Am I carrying anything? If so, drop it
    local drop_location = radiant.entities.get_world_grid_location(entity)
-   radiant.entities.add_buff(self._entity, 'stonehearth:buffs:sleeping');
+
+   if not radiant.entities.has_buff(self._entity, 'stonehearth:buffs:sleeping') then
+      radiant.entities.add_buff(self._entity, 'stonehearth:buffs:sleeping');
+   end
       
    ai:execute('stonehearth:drop_carrying', drop_location)
    ai:execute('stonehearth:run_effect', 'yawn')

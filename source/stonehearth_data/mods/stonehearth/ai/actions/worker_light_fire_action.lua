@@ -19,7 +19,7 @@ end
 function WorkerLightFireAction:run(ai, entity, path_to_log, firepit, task)
    --Put in some logging
    local name = entity:get_component('unit_info'):get_display_name()
-   local log = path_to_log:get_destination()
+   local log_entity = path_to_log:get_destination()
 
    -- If the task is already stopped, someone else got this action first. Exit.
    if not task:is_running() then
@@ -50,7 +50,7 @@ function WorkerLightFireAction:run(ai, entity, path_to_log, firepit, task)
 
    -- Put the log IN the firepit and light it
    local firepit_component = firepit:get_component('stonehearth:firepit')
-   firepit_component:light(log)
+   firepit_component:light(log_entity)
 
    -- If we got here, we succeeded at the action.
    -- Note that we succeeded by setting the task to nil.

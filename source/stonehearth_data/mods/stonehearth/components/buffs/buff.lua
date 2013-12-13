@@ -7,7 +7,6 @@ end
 
 function Buff:_set_info(uri)
    local json = radiant.resources.load_json(uri)
-   assert (json.type and (json.type == 'buff' or json.type == 'debuff'), "tried to load a buff file who's type is not buff!")
    for name,value in pairs(json) do
       self[name] = value
    end
