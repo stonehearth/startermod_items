@@ -79,6 +79,21 @@ csg::Point3f Camera::GetPosition() const
    return m.get_translation();
 }
 
+void Camera::SetOrientation(const csg::Quaternion& quat)
+{
+   const csg::Point3f trans = GetMatrix().get_translation();
+   
+   csg::Matrix4 m = GetMatrix().rotation(quat);
+   m.set_translation(trans);
+   
+   h3dSetNodeTransMat(node_.get(), m.get_float_ptr());
+}
+
+csg::Quaternion Camera::GetOrientation() const
+{
+   return csg::Quaternion(GetMatrix());
+}
+
 void Camera::SetPosition(const csg::Point3f &newPos)
 {
    csg::Matrix4 m = GetMatrix();

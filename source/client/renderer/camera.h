@@ -20,7 +20,8 @@ class Camera
       void LookAt(const csg::Point3f &point);
 
       H3DNode GetNode() const;
-      //csg::Quaternion GetRotation() const;
+      void SetOrientation(const csg::Quaternion& quat);
+      csg::Quaternion GetOrientation() const;
       csg::Point3f GetPosition() const;
       void SetPosition(const csg::Point3f &newPos);
 
