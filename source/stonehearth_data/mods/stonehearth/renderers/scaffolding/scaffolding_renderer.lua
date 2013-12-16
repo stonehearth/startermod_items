@@ -2,6 +2,7 @@ local Point3f = _radiant.csg.Point3f
 local Region3 = _radiant.csg.Region3
 
 local ScaffoldingRenderer = class()
+local log = radiant.log.create_logger('scaffolding.renderer')
 
 -- A lookup table to convert a normal in the xz-plane to a rotation
 -- about the y-axis.  Usage: ROTATION_TABLE[normal.x][normal.z]
@@ -87,10 +88,12 @@ function ScaffoldingRenderer:_update_shape()
    -- the scaffolding normal contained in the stonehearth:construction_data component.
    self._rotation = 0
    local construction_data = self._entity:get_component_data('stonehearth:construction_data')
+   assert(construction_data)
    if construction_data then
       local normal = construction_data.normal
       if normal then
          self._rotation = ROTATION_TABLE[normal.x][normal.z]
+         self._rotation = (self._rotation  + 180) % 360 --need to flip 180 around y axis
          self._tangent = normal.x == 0 and 'x' or 'z'
       end
    end
@@ -122,13 +125,10 @@ function ScaffoldingRenderer:_create_segment_node(pt)
    local y = pt.y % self._pattern_height
 
    --Derive name of matrix (part of lattice we need from pt)
-   local matrix = string.format('scaffold_%d_%d',x, y )
-   
-   --need to flip 180 around y axis
-   self._rotation = (self._rotation  + 180) % 360
-
+   local matrix = string.format('scaffold_%d_%d',x, y )   
    local node = _radiant.client.create_qubicle_matrix_node(self._node, self._lattice, matrix, self._origin)
    h3dSetNodeTransform(node, pt.x, pt.y, pt.z, 0, self._rotation, 0, self._scale, self._scale, self._scale)
+   
    return node
 end
 

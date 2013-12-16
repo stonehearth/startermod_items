@@ -12,6 +12,7 @@ local constants = {
          RESTOCK_STOCKPILE  = 2,
          CHOP_TREE          = 4,
          CONSTRUCT_BUILDING = 5,
+         TEARDOWN_BUILDING  = 6,
          PLACE_ITEM         = 8,
          GATHER_FOOD        = 9,
          LIGHT_FIRE         = 10,

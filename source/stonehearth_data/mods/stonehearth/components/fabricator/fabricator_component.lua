@@ -1,10 +1,12 @@
 local Fabricator = require 'components.fabricator.fabricator'
-local FabricatorComponent = class()
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 local Cube3 = _radiant.csg.Cube3
 local Color4 = _radiant.csg.Color4
+
+local FabricatorComponent = class()
+local log = radiant.log.create_logger('build')
 
 -- this is the component which manages the fabricator entity.
 function FabricatorComponent:__init(entity, data_binding)
@@ -13,7 +15,11 @@ function FabricatorComponent:__init(entity, data_binding)
 end
 
 function FabricatorComponent:add_block(material, location)
-   self._fabricator:add_block(material, location)
+   return self._fabricator:add_block(material, location)
+end
+
+function FabricatorComponent:remove_block(location)
+   return self._fabricator:remove_block(location)
 end
 
 function FabricatorComponent:start_project(name, blueprint)
