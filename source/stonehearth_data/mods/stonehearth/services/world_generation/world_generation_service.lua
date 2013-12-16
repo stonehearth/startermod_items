@@ -5,10 +5,10 @@ function WorldGenerationService:__init()
    
 end
 
-function WorldGenerationService:create_world(async)
+function WorldGenerationService:create_world(async, seed)
    --self:test_filter()
 
-   local wg = WorldGenerator(async)
+   local wg = WorldGenerator(async, seed)
    wg:create_world()
    return wg
 end
