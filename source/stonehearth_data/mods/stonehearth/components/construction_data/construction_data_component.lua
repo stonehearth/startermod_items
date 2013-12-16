@@ -9,7 +9,7 @@ local Point3 = _radiant.csg.Point3
 function ConstructionDataComponent:__init(entity, data_binding)
    self._entity = entity
    self._data_binding = data_binding
-   self._data = {}  
+   self._data = {}
    self._data_binding:update(self._data)
 end
 
@@ -22,6 +22,16 @@ function ConstructionDataComponent:set_normal(normal)
    self._data.normal = normal
    self._data_binding:mark_changed()
    return self
+end
+
+function ConstructionDataComponent:set_finished(finished)
+   self._data.finished = finished
+   self._data_binding:mark_changed()
+   return self
+end
+
+function ConstructionDataComponent:get_finished()
+   return self._data.finished
 end
 
 return ConstructionDataComponent

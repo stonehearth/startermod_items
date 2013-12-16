@@ -14,6 +14,7 @@ function Fabricator:__init(name, entity, blueprint)
    self.name = name
    self._entity = entity
    self._blueprint = blueprint
+   self._teardown = false
    
    local faction = radiant.entities.get_faction(blueprint)
    local wss = radiant.mods.load('stonehearth').worker_scheduler
@@ -77,7 +78,10 @@ function Fabricator:get_blueprint()
    return self._blueprint
 end
 
+
 function Fabricator:add_block(material_entity, location)
+   assert(not self._teardown)
+   
    -- location is in world coordinates.  transform it to the local coordinate space
    -- before building
    local origin = radiant.entities.get_world_grid_location(self._entity)
@@ -86,7 +90,6 @@ function Fabricator:add_block(material_entity, location)
    self._project:add_component('destination'):get_region():modify(function(cursor)
       cursor:add_point(pt)
    end)
-   
    -- ladders are a special case used for scaffolding.  if there's one on the
    -- blueprint at this location, go ahead and add it to the project as well.
    if self._blueprint_ladder then
@@ -96,8 +99,35 @@ function Fabricator:add_block(material_entity, location)
          self._project_ladder:get_region():modify(function(cursor)
             cursor:add_point(pt + normal)
          end)
-      end
+      end   
    end
+end
+
+function Fabricator:remove_block(location)
+   -- location is in world coordinates.  transform it to the local coordinate space
+   -- before building
+   local origin = radiant.entities.get_world_grid_location(self._entity)
+   local pt = location - origin
+
+   local rgn = self._entity:get_component('destination'):get_region():get()
+   if not rgn:contains(pt) then
+      log:warning('trying to remove unbuild portion %s of construction project', pt)
+      return false
+   end
+   
+   self._project:add_component('destination'):get_region():modify(function(cursor)
+      cursor:subtract_point(pt)
+   end)
+   if self._project_ladder then
+      local rgn = self._project_ladder:get_region()
+      local normal = self._blueprint_ladder:get_normal()
+      if rgn:get():contains(pt + normal) then
+         rgn:modify(function(cursor)
+            cursor:subtract_point(pt + normal)
+         end)
+      end   
+   end
+   return true
 end
 
 function Fabricator:destroy()
@@ -106,28 +136,77 @@ function Fabricator:destroy()
       self._adjacent_guard = nil
    end
    self:_untrace_blueprint_and_project()
-   self:_stop_worker_tasks()
+   self:_stop_project()
 end
 
 function Fabricator:set_debug_color(color)
    if self._pickup_task then
       self._pickup_task:set_debug_color(color)
-    end
+   end
+   if self._teardown_task then
+      self._teardown_task:set_debug_color(color)
+   end
    if self._fabricate_task then
       self._fabricate_task:set_debug_color(color)
-    end
-    return self
+   end
+   return self
 end
 
-function Fabricator:_start_worker_tasks()
-   if not self._pickup_task then
-      self:_start_pickup_task()
-   end
-   if not self._fabricate_task then
-      self:_start_fabricate_task()
+function Fabricator:_start_project()
+   self._project:add_component('stonehearth:construction_data')
+                  :set_finished(false)
+
+   if self._teardown then
+      if self._pickup_task then
+         self._pickup_task:stop()
+         self._pickup_task = nil
+      end
+      if self._fabricate_task then
+         self._fabricate_task:stop()
+         self._fabricate_task = nil
+      end
+      if not self._teardown_task then
+         self:_start_teardown_task()
+      end
+   else
+      if self._teardown_task then
+         self._teardown_task:stop()
+         self._teardown_task = nil
+      end
+      if not self._pickup_task then
+         self:_start_pickup_task()
+      end
+      if not self._fabricate_task then
+         self:_start_fabricate_task()
+      end
    end
 end
 
+function Fabricator:_start_teardown_task()
+   local worker_filter_fn = function(worker)
+      local carrying  = radiant.entities.get_carrying(worker)
+      if not carrying then
+         return true
+      end
+      if not radiant.entities.is_material(carrying, 'wood resource') then
+         return false
+      end
+      local item = carrying:get_component('item')
+      if not item then
+         return false
+      end
+      return item:get_stacks() < item:get_max_stacks()
+   end
+   
+   local name = 'teardown ' .. self.name
+   self._teardown_task = self._worker_scheduler:add_worker_task(name)
+                           :set_worker_filter_fn(worker_filter_fn)
+                           :add_work_object(self._entity)
+                           :set_action('stonehearth:teardown')
+                           :set_priority(priorities.TEARDOWN_BUILDING)
+                           :start()
+end
+ 
 function Fabricator:_start_pickup_task()  
    local worker_filter_fn = function(worker)
       return not radiant.entities.get_carrying(worker)
@@ -161,7 +240,7 @@ function Fabricator:_start_fabricate_task()
                            :start()
 end
 
-function Fabricator:_stop_worker_tasks()
+function Fabricator:_stop_project()
    log:warning('fabricator %s stopping all worker tasks', self.name)
    if self._pickup_task then
       self._pickup_task:stop()
@@ -171,6 +250,8 @@ function Fabricator:_stop_worker_tasks()
       self._fabricate_task:stop()
       self._fabricate_task = nil
    end
+   self._project:add_component('stonehearth:construction_data')
+                  :set_finished(true)   
 end
 
 function Fabricator:_untrace_blueprint_and_project()
@@ -231,16 +312,32 @@ function Fabricator:_trace_blueprint_and_project()
       -- rgn(f) = rgn(b) - rgn(p) ... (see comment above)
       local dst = self._entity:add_component('destination')
       log:debug("fabricator modifying dst %d", dst:get_id())
-      dst:get_region():modify(function(cursor)
-         cursor:copy_region(br)
-         cursor:subtract_region(pr)
-         if cursor:empty() then
-            self:_stop_worker_tasks()      
-         else
-            self:_start_worker_tasks()      
-         end
-      end);
-      
+
+      local teardown_region = pr - br
+      local finished = false
+      self._teardown = not teardown_region:empty()
+
+      if self._teardown then
+         dst:get_region():modify(function(cursor)
+            -- we want to teardown from the top down, so just keep
+            -- the topmost row of the teardown region
+            local top = teardown_region:get_bounds().max.y - 1
+            local clipper = Region3(Cube3(Point3(-COORD_MAX, -COORD_MAX, -COORD_MAX),
+                                          Point3(COORD_MAX, top, COORD_MAX)))
+            cursor:copy_region(teardown_region - clipper)
+            finished = false
+         end)
+      else
+         dst:get_region():modify(function(cursor)
+            cursor:copy_region(br - pr)
+            finished = cursor:empty()
+         end)
+      end
+      if finished then
+         self:_stop_project()
+      else
+         self:_start_project()
+      end
       log:debug('updating fabricator %s region -> %s', self.name, dst:get_region():get())
    end
      
