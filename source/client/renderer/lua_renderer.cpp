@@ -69,6 +69,16 @@ static void Camera_LookAt(const csg::Point3f& target)
    Renderer::GetInstance().GetCamera()->LookAt(target);
 }
 
+static void Camera_SetOrientation(csg::Quaternion& angles)
+{
+   Renderer::GetInstance().GetCamera()->SetOrientation(angles);
+}
+
+static csg::Quaternion Camera_GetOrientation()
+{
+   return Renderer::GetInstance().GetCamera()->GetOrientation();
+}
+
 static csg::Ray3 Scene_GetScreenRay(double windowX, double windowY)
 {
    csg::Ray3 result;
@@ -125,14 +135,17 @@ void LuaRenderer::RegisterType(lua_State* L)
                def("get_left",     &Camera_GetLeft),
                def("get_position", &Camera_GetPosition),
                def("set_position", &Camera_SetPosition),
-               def("look_at",      &Camera_LookAt)
+               def("look_at",      &Camera_LookAt),
+               def("set_orientation", &Camera_SetOrientation),
+               def("get_orientation", &Camera_GetOrientation)
             ],
             namespace_("scene") [
                lua::RegisterType<RayCastResult>("RayCastResult")
                   .def(tostring(const_self))
                   .def(constructor<>())
                   .def_readonly("is_valid",          &RayCastResult::is_valid)
-                  .def_readonly("point",             &RayCastResult::point),
+                  .def_readonly("point",             &RayCastResult::point)
+                  .def_readonly("origin",            &RayCastResult::origin),
                def("cast_screen_ray",    &Scene_CastScreenRay),
                def("cast_ray",           &Scene_CastRay),
                def("get_screen_ray",     &Scene_GetScreenRay)

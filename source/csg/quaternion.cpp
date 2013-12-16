@@ -58,8 +58,40 @@ Quaternion::Quaternion(const Matrix3& rotation)
         *apkQuat[j] = (rotation(j,i) + rotation(i,j))*recip;
         *apkQuat[k] = (rotation(k,i) + rotation(i,k))*recip;
     }
+}
 
-} 
+Quaternion::Quaternion(const Matrix4& rotation)
+{
+    float trace = rotation(0,0) + rotation(1,1) + rotation(2,2);
+    if (trace > 0.0f)
+    {
+        float s = sqrt(trace + 1.0f);
+        w = s*0.5f;
+        float recip = 0.5f/s;
+        x = (rotation(2,1) - rotation(1,2))*recip;
+        y = (rotation(0,2) - rotation(2,0))*recip;
+        z = (rotation(1,0) - rotation(0,1))*recip;
+    }
+    else
+    {
+        unsigned int i = 0;
+        if (rotation(1,1) > rotation(0,0))
+            i = 1;
+        if (rotation(2,2) > rotation(i,i))
+            i = 2;
+        unsigned int j = (i+1)%3;
+        unsigned int k = (j+1)%3;
+
+        float s = sqrt(rotation(i,i) - rotation(j,j) - rotation(k,k) + 1.0f);
+
+        float* apkQuat[3] = { &x, &y, &z };
+        *apkQuat[i] = 0.5f*s;
+        float recip = 0.5f/s;
+        w = (rotation(k,j) - rotation(j,k))*recip;
+        *apkQuat[j] = (rotation(j,i) + rotation(i,j))*recip;
+        *apkQuat[k] = (rotation(k,i) + rotation(i,k))*recip;
+    }
+}
 
 Quaternion::Quaternion(const Quaternion& other) : 
     w(other.w),
@@ -181,7 +213,24 @@ Quaternion::set(const Point3f& axis, float angle)
     x = scaleFactor * axis.x;
     y = scaleFactor * axis.y;
     z = scaleFactor * axis.z;
+}
 
+void
+Quaternion::lookAt(const Point3f& from, const Point3f& target)
+{
+   Point3f forward = (from - target);
+   forward.Normalize();
+   Point3f up(0, 1, 0);
+   Point3f right = up.Cross(forward);
+   right.Normalize();
+   up = forward.Cross(right);
+   up.Normalize();
+
+	w = sqrtf(1.0f + right.x + up.y + forward.z) * 0.5f;
+	float w4_recip = 1.0f / (4.0f * w);
+	x = (up.z - forward.y) * w4_recip;
+	y = (forward.x - right.z) * w4_recip;
+	z = (right.y - up.x) * w4_recip;
 }
 
 void

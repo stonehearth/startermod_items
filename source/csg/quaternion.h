@@ -6,6 +6,7 @@
 BEGIN_RADIANT_CSG_NAMESPACE
 
 class Matrix3;
+class Matrix4;
 
 class Quaternion
 {
@@ -20,6 +21,7 @@ class Quaternion
       }
       explicit Quaternion(Point3f const& vector);
       explicit Quaternion(const Matrix3& rotation);
+      explicit Quaternion(const Matrix4& rotation);
       inline ~Quaternion() {}
 
       // copy operations
@@ -51,6 +53,7 @@ class Quaternion
       void set(Point3f const& from, Point3f const& to);
       // void set(const Matrix3& rotation);
       void set(float z_rotation, float y_rotation, float x_rotation); 
+      void lookAt(const Point3f& from, const Point3f& target);
 
       void get_axis_angle(Point3f& axis, float& angle);
 

@@ -18,56 +18,18 @@ App.StonehearthShowStockpileView = App.View.extend({
 
    modal: true,
 
-   groups : {
-      resources : [
-         "wood",
-         "stone",
-         "ore",
-         "animal_part"
-      ],
-      construction : [
-         "portal",
-         "furniture",
-         "defense",
-         "light",
-         "decoration"
-      ],
-      goods : [
-         "refined_cloth",
-         "refined_animal_part",
-         "refined_ore"
-      ],
-      gear : [
-         "melee_weapon",
-         "ranged_weapon",
-         "light_armor",
-         "heavy_armor",
-         "exotic_gear"
-      ],
-      food_and_drink : [
-         "fruit",
-         "baked",
-         "meat",
-         "drink"
-      ],
-      wealth : [
-         "gold",
-         "gem"
-      ]
-   },
-
    didInsertElement: function() {
       this._super();
       var self = this;
       this.taxonomyGrid = $('#taxonomyGrid');
       this.allNoneGrid = $('#allNoneGrid');
+      this.allButton = this.allNoneGrid.find('#all');
+      this.noneButton = this.allNoneGrid.find('#none');
       this.items = this.taxonomyGrid.find('.category');
+      this.groups = this.taxonomyGrid.find('.group');
 
       $( '#allNoneGrid' ).togglegrid({
-         radios: true,
-         onItemClick : function( el, ev ) { 
-            self._toggleAllNone(el);
-         }
+         radios: true
       });
 
       this.taxonomyGrid.togglegrid();
@@ -79,7 +41,15 @@ App.StonehearthShowStockpileView = App.View.extend({
       this.items.click(function() {
          self._itemClick($(this));
       });
+
+      this.allButton.click(function() {
+         self._selectAll();
+      });
       
+      this.noneButton.click(function() {
+         self._selectNone();
+      });
+
       $('#stockpileWindow').find('#name').keypress(function (e) {
          if (e.which == 13) {
             radiant.call('stonehearth:set_display_name', self.uri, $(this).val())
@@ -91,17 +61,15 @@ App.StonehearthShowStockpileView = App.View.extend({
       self._refeshGrids();
    },
 
-   _toggleAllNone : function(element) {
-      if (element.attr('id') == 'all') {
-         // do the on thing
-         this.taxonomyGrid.find('#all').click();
-         this.taxonomyGrid.find('.toggleButton').addClass('on');
-      } else {
-         // do the off thing
-         this.taxonomyGrid.find('#none').click();
-         this.taxonomyGrid.find('.toggleButton').removeClass('on');
-      }
+   _selectAll : function() {
+      //this.taxonomyGrid.find('#all').click();
+      this.items.addClass('on');
+      this._setStockpileFilter();
+   },
 
+   _selectNone : function() {
+      //this.taxonomyGrid.find('#none').click();
+      this.items.removeClass('on');
       this._setStockpileFilter();
    },
 
@@ -111,36 +79,45 @@ App.StonehearthShowStockpileView = App.View.extend({
       }
 
       var self = this;
+      var stockpileFilter = this.get('context.stonehearth:stockpile.filter');
 
-      console.log('refreshing stockpile grids!');
-      var filter = this.get('context.stonehearth:stockpile.filter');
+      $('.category').removeClass('on');
 
-      if (filter) {
-         this.items.removeClass('on');
+      if (stockpileFilter) {
+         this.items.each(function(i, element) {
+            var button = $(element)
+            var buttonFilter = button.attr('filter')
 
-         $.each(filter, function(name, value) {
-            var element = self.taxonomyGrid.find('#' + name);
-            if (value) {
-               element.addClass('on');
+            if (!buttonFilter) {
+               console.log('button ' + button.attr('id') + " has no filter!")
+            } else {
+               $.each(stockpileFilter, function(i, filter) {
+                  if (buttonFilter == filter) {
+                     button.addClass('on');
+                  }
+               });
             }
+
          });
 
          this._updateGroups();
+      } else {
+         this.allButton.addClass('on');
       }
 
    }.observes('context.stonehearth:stockpile.filter'),
 
    _toggleGroup : function(element) {
       var on = element.hasClass('on');
-      group = this.groups[element.attr('id')];
-      $.each(group, function(i, category) {
-         var button = $('#stockpileWindow').find('#' + category);
-         
-         if (button.length > 0) {
-            if(on) {
-               button.addClass('on');
+
+      element.siblings().each(function(i, sibling) {
+         var category = $(sibling);
+
+         if (category.hasClass('category')) {
+            if (on) {
+               category.addClass('on');
             } else {
-               button.removeClass('on');
+               category.removeClass('on');
             }
          }
       });
@@ -153,10 +130,10 @@ App.StonehearthShowStockpileView = App.View.extend({
    },
 
    _setStockpileFilter : function() {
-      var values = []
-      this.items.each(function(i, item) {
-         if($(item).hasClass('on')) {
-            values.push($(item).attr('id'));
+      var values = [];
+      $('#taxonomyGrid').find('.on').each(function(i, element) {
+         if ($(element).attr('filter')) {
+            values.push($(element).attr('filter'));
          }
       });
 
@@ -172,36 +149,43 @@ App.StonehearthShowStockpileView = App.View.extend({
       var allGroupsOn = true;
       var noGroupsOn = true;
 
-      $.each(self.groups, function(groupName, group) {
+      this.groups.each(function (i, group) {
          var allOn = true;
+         $(group).siblings().each(function(i, sibling) {
+            var category = $(sibling);
 
-         $.each(group, function(i, category) {
-            if(!self.taxonomyGrid.find('#' + category).hasClass('on')) {
-               allOn = false;
-               allGroupsOn = false;
-            } else {
-               noGroupsOn = false;
+            if (category.hasClass('category')) {
+               if (!category.hasClass('on')) {
+                  allOn = false;
+                  allGroupsOn = false;
+               } else {
+                  noGroupsOn = false;
+               }
             }
          });
 
          if (allOn) {
-            self.taxonomyGrid.find('#' + groupName).addClass('on');
+            $(group).addClass('on');
          } else {
-            self.taxonomyGrid.find('#' + groupName).removeClass('on');
+            $(group).removeClass('on');
          }         
 
       });
 
       if (allGroupsOn) {
-         self.allNoneGrid.find('#all').addClass('on')
+         self.allButton.addClass('on')
+         self.items.removeClass('on');
+         self.groups.removeClass('on');
       } else {
-         self.allNoneGrid.find('#all').removeClass('on')
+         self.allButton.removeClass('on')
       }
 
       if (noGroupsOn) {
-         self.allNoneGrid.find('#none').addClass('on')
+         self.noneButton.addClass('on')
+         self.items.removeClass('on');
+         self.groups.removeClass('on');
       } else {
-         self.allNoneGrid.find('#none').removeClass('on')
+         self.noneButton.removeClass('on')
       }
    }
 
