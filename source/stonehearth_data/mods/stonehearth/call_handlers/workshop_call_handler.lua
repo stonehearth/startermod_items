@@ -185,7 +185,7 @@ end
 function WorkshopCallHandler:create_outbox(session, response, location, size, workbench_entity_id)
    local workbench_entity = radiant.entities.get_entity(workbench_entity_id)
    local workshop_component = workbench_entity:get_component('stonehearth:workshop')
-   workshop_component:create_outbox(location, size)
+   workshop_component:create_outbox(location, size, session.faction)
 
    return true
 end

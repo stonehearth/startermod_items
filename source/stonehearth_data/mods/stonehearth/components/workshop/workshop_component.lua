@@ -17,6 +17,7 @@ local WorkshopComponent = class()
 function WorkshopComponent:__init(entity, data_binding)
    self._todo_list = CraftOrderList(data_binding)  -- The list of things we need to work on
    self._entity = entity                 -- The entity associated with this component
+   self._faction = nil
    self._curr_order = nil                -- The order currently being worked on. Nil until we get an order from the todo list
    self._curernt_item_progress = nil
                                          -- TODO: revise all three of these to use entity-container
@@ -215,8 +216,10 @@ end
    returns: outbox_entity
    TODO: Make this a speciatly stockpile, not like other stockpiles!
 ]]
-function WorkshopComponent:create_outbox(location, size)
+function WorkshopComponent:create_outbox(location, size, faction)
    self._outbox_entity = radiant.entities.create_entity('stonehearth:workshop_outbox')
+   self._outbox_entity:get_component('unit_info'):set_faction(faction)
+
    local bench_loc = radiant.entities.get_location_aligned(self._entity)
 
    radiant.terrain.place_entity(self._outbox_entity, location)
