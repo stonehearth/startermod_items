@@ -29,10 +29,6 @@
          <DoForwardLightLoop class="~Translucent" noShadows="false"/>
       </Stage>
 
-      <!--Stage id="Clouds">
-         <DrawGeometry context="CLOUDS" class="~Translucent" />
-      </Stage-->
-
       <Stage id="Translucent">
          <DrawGeometry context="TRANSLUCENT" order="BACK_TO_FRONT" />
          <DrawGeometry context="TRANSLUCENT_ON_TOP" order="BACK_TO_FRONT" />
