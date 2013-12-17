@@ -46,6 +46,18 @@ function ScaffoldingFabricator:get_scaffolding()
 end
 
 function ScaffoldingFabricator:_update_scaffolding_size()
+   local finished = self._project:add_component('stonehearth:construction_data')
+                                    :get_finished()
+   if not finished then
+      self:_cover_project_region()
+   else
+      -- make our region completely empty.  the fabricator will worrk about
+      -- the exact details of how this happens
+      self:_clear_destination_region()
+   end
+end
+
+function ScaffoldingFabricator:_cover_project_region()
    local project_rgn = self._project_dst:get_region():get()
    
    -- scaffolding is 1 unit away from and not overlapping the project.
@@ -68,6 +80,15 @@ function ScaffoldingFabricator:_update_scaffolding_size()
       log:debug('grew the ladder!')
    end
    log:debug('(%s) updating scaffolding supporting %s -> %s (ladder:%s)', tostring(self._entity), self._project, region, tostring(ladder:get_bounds()))
+end
+
+function ScaffoldingFabricator:_clear_destination_region()
+   self._entity_dst:get_region():modify(function(cursor)
+      cursor:clear()
+   end)
+   self._entity_ladder:get_region():modify(function(cursor)
+      cursor:clear()
+   end)
 end
 
 return ScaffoldingFabricator

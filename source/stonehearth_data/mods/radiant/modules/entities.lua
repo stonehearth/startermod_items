@@ -363,16 +363,14 @@ function entities.consume_carrying(entity)
 
    --if the item has stacks, consume stacks
    --when stacks are zero, remove
-   local carry_block = entity:get_component('carry_block')
-   if carry_block then
-      local item = carry_block:get_carrying()
-      if item then
-         local item_component = item:get_component('item')
-         if item_component and item_component:get_stacks() > 0 then
-            local stacks = item_component:get_stacks() - 1
-            item_component:set_stacks(stacks)
-            return
-         end
+   
+   local item = entities.get_carrying(entity)
+   if item then
+      local item_component = item:get_component('item')
+      if item_component and item_component:get_stacks() > 0 then
+         local stacks = item_component:get_stacks() - 1
+         item_component:set_stacks(stacks)
+         return
       end
    end
 
@@ -380,6 +378,23 @@ function entities.consume_carrying(entity)
    if item then
       entities.destroy_entity(item)
    end
+end
+
+function entities.increment_carrying(entity)
+   local item = entities.get_carrying(entity)
+   if not item then
+      return false, 'not carrying anything objects'
+   end
+   local item_component = item:get_component('item')
+   if not item_component then 
+      return false, 'carried entity has no item component'
+   end
+   local stacks = item_component:get_stacks()
+   if stacks >= item_component:get_max_stacks() then
+      return false, 'max stacks on carried object reached'
+   end
+   item_component:set_stacks(stacks + 1)
+   return true
 end
 
 --- Put an object down on another object

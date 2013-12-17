@@ -2,6 +2,7 @@
    "faction_name" : "Ascendancy",
    "male_entities" : [
       "stonehearth:male_1",
+      "stonehearth:male_1",
       "stonehearth:male_2",
       "stonehearth:male_3"
    ],

@@ -21,7 +21,7 @@ __get_current_module_name = function(depth)
    end
    local modname = info.source:match('@([^/\\]*)')
    if not modname then
-      modname = info.source:match('@\.[/\\]([^/\\]*)')
+      modname = info.source:match('@\\.[/\\]([^/\\]*)')
    end
    if not modname then
       _host:log(string.format('could not determine modname from source "%s"', info.source))
