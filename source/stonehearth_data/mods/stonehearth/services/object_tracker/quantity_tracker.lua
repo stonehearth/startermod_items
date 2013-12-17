@@ -39,13 +39,15 @@ end
 function QuantityTracker:on_item_added(e)
    assert(e.item, "Quantity Tracker: The event has been fired but the item no longer exists")
    local unit_info = e.item:get_component('unit_info')
-   local identifier, user_visible_name = self._identifier_fn(e.item)
+   local identifier, user_visible_name, icon = self._identifier_fn(e.item)
 
    if self._filter_fn(e.item) and unit_info and identifier then
       if self._data.tracked_items[identifier] then
          self._data.tracked_items[identifier].count = self._data.tracked_items[identifier].count + 1
       else
-         local icon = unit_info:get_icon()
+         if icon == nil then
+            icon = unit_info:get_icon()
+         end
          if user_visible_name == nil then
             user_visible_name = unit_info:get_display_name()
          end

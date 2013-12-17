@@ -59,11 +59,11 @@ function ObjectTrackerService:get_resource_tracker(faction)
          --TODO: other things can be included generically, but till then, will be
          --tracked by uri
          if radiant.entities.is_material(item, 'wood') then
-            return 'wood', 'Wood'
+            return 'wood', 'Wood', '/stonehearth/data/images/resources/log.png'
          elseif radiant.entities.is_material(item, 'food') then
-            return 'food', 'Food'
+            return 'food', 'Food', '/stonehearth/data/images/resources/food.png'
          else
-            return item:get_uri(), nil
+            return item:get_uri(), nil, nil
          end
       end
       return QuantityTracker(faction, filter_fn, identifier_fn)
