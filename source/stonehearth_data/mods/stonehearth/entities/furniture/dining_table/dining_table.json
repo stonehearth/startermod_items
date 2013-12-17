@@ -23,7 +23,7 @@
          "icon" : "file(dining_table.png)"
       },
       "stonehearth:material" : {
-         "tags" : "wood furniture"
+         "tags" : "wood furniture crafted"
       }      
    }
 }

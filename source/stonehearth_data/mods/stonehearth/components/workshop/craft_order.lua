@@ -31,6 +31,8 @@
    }
 ]]
 
+local object_tracker = require 'services.object_tracker.object_tracker_service'
+
 local CraftOrder = class()
 
 --(belongs to CraftOrder) variable to assign order IDs
@@ -53,13 +55,17 @@ function CraftOrder:__init(recipe, enabled, condition, workshop)
    self._recipe = recipe
    self._enabled = enabled
    self._condition = condition
+   if self._condition.inventory_below then
+      self._condition.inventory_below = tonumber(self._condition.inventory_below)
+   end
+
    self._workshop = workshop
 
    --TODO: call a function to figure out the queue art from the ingredients
    self._portrait = recipe.portrait
 
-   local faction = self._workshop:get_entity():add_component('unit_info'):get_faction()
-   assert(faction and (#faction > 0), "workshop has no faction.")
+   self._faction = self._workshop:get_entity():add_component('unit_info'):get_faction()
+   assert(self._faction and (#self._faction > 0), "workshop has no faction.")
 
    self._status = {is_crafting = false}
    self:_prep_ingredient_data()
@@ -219,16 +225,19 @@ end
    returns: true if conditions are not yet met, false if conditions are met
 ]]
 function CraftOrder:should_execute_order()
-   --TODO: set to waiting/blocked if we ever return false
    if self._condition.amount then
       return true
-   end
-   if self._condition.inventory_below then
-      --TODO: access the inventory
-      --TODO: ask if the inventory has self.condition.inventory_below of recipe object
-      --TODO: if not, return true
-      return true
-      --otherwise, return false
+   elseif self._condition.inventory_below > 0 then
+      local craftable_tracker = object_tracker:get_craftable_tracker(self._faction)
+      local target = self._recipe.produces[1].item
+      local num_targets = craftable_tracker:get_quantity(target)
+      if num_targets == nil then
+         num_targets = 0
+      end
+      if num_targets < self._condition.inventory_below then
+         return true
+      end
+      return false
    end
 end
 

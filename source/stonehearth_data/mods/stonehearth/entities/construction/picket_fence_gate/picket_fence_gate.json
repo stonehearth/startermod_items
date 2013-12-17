@@ -15,7 +15,7 @@
          "icon" : "file(picket_fence_gate.png)"
       },
       "stonehearth:material" : {
-         "tags" : "wood defenses"
+         "tags" : "wood defenses crafter"
       }            
    }
 }

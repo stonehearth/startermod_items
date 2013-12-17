@@ -34,7 +34,7 @@ function AnalyticsService:on_ten_minute_poll()
       local r_data = resource_tracker:get_data_store():get_data()
 
       send_string = send_string .. "_Resources_"
-      for uri, data in pairs(r_data.resource_types) do
+      for uri, data in pairs(r_data.tracked_items) do
          send_string = send_string .. data.name .. "_" .. data.count
       end   
    end

@@ -1,7 +1,8 @@
 
 local EntityTracker = require 'services.object_tracker.entity_tracker'
 local InventoryTracker = require 'services.object_tracker.inventory_tracker'
-local ResourceTracker = require 'services.object_tracker.resource_tracker'
+local QuantityTracker = require 'services.object_tracker.quantity_tracker'
+
 local ObjectTrackerService = class()
 
 function ObjectTrackerService:__init()
@@ -44,8 +45,49 @@ function ObjectTrackerService:get_resource_tracker(faction)
    local tracker_name = 'get_resource_tracker:' .. faction
 
    return self:_find_tracker(tracker_name, function()
-      return ResourceTracker(faction)
+      --Create filter function for wood and identification
+      local filter_fn = function(item)
+         assert(item, 'trying to filter a nil item')
+         return radiant.entities.is_material(item, 'resource')
+      end
+
+      --Returns the means to identify, and its display name, if we know it
+      local identifier_fn = function(item)
+         --The resource tracker tracks 2 generic categories right now: wood and food
+         --TODO: Localize!
+         --TODO: Generic icons!
+         --TODO: other things can be included generically, but till then, will be
+         --tracked by uri
+         if radiant.entities.is_material(item, 'wood') then
+            return 'wood', 'Wood'
+         elseif radiant.entities.is_material(item, 'food') then
+            return 'food', 'Food'
+         else
+            return item:get_uri(), nil
+         end
+      end
+      return QuantityTracker(faction, filter_fn, identifier_fn)
    end)
 end 
+
+function ObjectTrackerService:get_craftable_tracker(faction)
+   local tracker_name = 'get_craftable_tracker:' .. faction
+
+   return self:_find_tracker(tracker_name, function()
+      local filter_fn = function(item)
+         assert(item, 'trying to filter a nil item')
+         return radiant.entities.is_material(item, 'crafted')
+      end
+
+      local identifier_fn = function(item)
+         return item:get_uri(), nil
+      end
+      
+      return QuantityTracker(faction, filter_fn, identifier_fn)
+   end)
+end 
+
+
+
 
 return ObjectTrackerService()
