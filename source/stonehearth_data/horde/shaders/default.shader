@@ -201,7 +201,7 @@ void main( void )
   lightColor = (shadowTerm * (lightColor * albedo)) + (lightAmbientColor * albedo);
   
   // Fog.
-  float fogFac = clamp(exp(-vsPos.z / 700.0) - 2.9, 0.0, 1.0);
+  float fogFac = clamp(exp(-vsPos.z / 1000.0) - 1.7, 0.0, 1.0);
   vec3 fogColor = texture2D(skySampler, vec2(gl_FragCoord.x/frameBufSize.x, gl_FragCoord.y / frameBufSize.y)).xyz;
 
   // Clouds.
