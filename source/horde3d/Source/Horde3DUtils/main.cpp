@@ -495,7 +495,7 @@ DLLEXP void h3dutShowFrameStats( H3DRes fontMaterialRes, H3DRes boxMaterialRes, 
 	static float particleGPUTime = 0;
 
 	// Calculate FPS
-	float curFrameTime = h3dGetStat( H3DStats::FrameTime, true );
+	float curFrameTime = h3dGetStat(H3DStats::AverageFrameTime, true);
 	curFPS = 1000.0f / curFrameTime;
 	
 	timer += curFrameTime / 1000.0f;
