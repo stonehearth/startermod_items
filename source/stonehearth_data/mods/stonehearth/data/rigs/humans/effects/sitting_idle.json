@@ -5,7 +5,7 @@
          "type": "animation_effect",
          "start_time": 0,
          "animation": "sitting_idle.json",
-         "loop": false
+         "loop": true
       }
    }
 }

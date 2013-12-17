@@ -154,7 +154,9 @@ private:
    tcp::acceptor*                      _tcp_acceptor;
    std::vector<std::shared_ptr<RemoteClient>>   _clients;
    platform::timer                     game_loop_timer_;
-   int                                 _stepInterval;
+   platform::timer                     net_send_timer_;
+   int                                 game_tick_interval_;
+   int                                 net_send_interval_;
    float                               base_walk_speed_;
    bool                                profile_next_lua_update_;
 };
