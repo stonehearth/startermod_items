@@ -16,6 +16,6 @@
       "screen_width" : 1920,
       "screen_height" : 1080,
 
-      "enable_gl_logging" : true
+      "enable_gl_logging" : false
    }
 }

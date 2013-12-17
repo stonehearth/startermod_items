@@ -972,6 +972,7 @@ void Renderer::SetViewMode(ViewMode mode)
 
 void Renderer::LoadResources()
 {
+   uiBuffer_.allocateBuffers(uiWidth_, uiHeight_);
    if (!h3dutLoadResourcesFromDisk("horde")) {
       // at this time, there's a bug in horde3d (?) which causes render
       // pipline corruption if invalid resources are even attempted to
@@ -979,7 +980,6 @@ void Renderer::LoadResources()
       h3dutDumpMessages();
       ASSERT(false);
    }
-   uiBuffer_.allocateBuffers(uiWidth_, uiHeight_);
 }
 
 csg::Point2 Renderer::GetMousePosition() const
