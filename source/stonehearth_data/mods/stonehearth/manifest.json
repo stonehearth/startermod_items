@@ -409,6 +409,7 @@
       "resource_node" : "file(components/resource_node/resource_node_component.lua)",
       "renewable_resource_node" : "file(components/renewable_resource_node/renewable_resource_node_component.lua)",
       "stockpile" : "file(components/stockpile/stockpile_component.lua)",
+      "door" : "file(components/door/door_component.lua)",
       "workshop" : "file(components/workshop/workshop_component.lua)",
       "crafter"  : "file(components/crafter/crafter_component.lua)",
       "promotion_talisman" : "file(components/promotion_talisman/promotion_talisman_component.lua)",
