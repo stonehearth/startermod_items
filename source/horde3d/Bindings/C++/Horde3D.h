@@ -163,6 +163,7 @@ struct H3DResTypes
 		Texture         - Texture map
 		ParticleEffect  - Particle configuration
 		Pipeline        - Rendering pipeline
+      PixelBuffer     - PixelBuffer
 	*/
 	enum List
 	{
@@ -177,6 +178,7 @@ struct H3DResTypes
 		ParticleEffect,
 		Pipeline,
       VoxelGeometry,
+      PixelBuffer
 	};
 };
 

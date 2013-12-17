@@ -22,6 +22,7 @@
 #include "platform/FileWatcher.h"
 #include "core/input.h"
 #include "core/buffered_slot.h"
+#include "ui_buffer.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -194,8 +195,8 @@ class Renderer
 
       H3DRes            fontMatRes_;
       H3DRes            panelMatRes_;
-      H3DRes            uiMatRes_;
-      H3DRes            uiTexture_;
+
+      UiBuffer          uiBuffer_;
 
       Camera*            camera_;
       FW::FileWatcher   fileWatcher_;
@@ -223,7 +224,6 @@ class Renderer
       core::Slot<int>                     server_tick_slot_;
       core::Slot<FrameStartInfo const&>   render_frame_start_slot_;
       std::unique_ptr<PerfHud>            perf_hud_;
-      H3DRes                              uiPbo_;
       int                                 last_render_time_;
       
       std::string                         lastGlfwError_;
