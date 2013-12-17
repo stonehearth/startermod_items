@@ -7,7 +7,7 @@
          "icon" : "file(wooden_door.png)"
       },
       "stonehearth:material" : {
-         "tags" : "wood portal"
+         "tags" : "wood portal crafted"
       }            ,
       "model_variants": [
          {

@@ -2,7 +2,7 @@ App.StonehearthResourceScoreboardView = App.View.extend({
    templateName: 'resourceScoreboard',
 
    components: {
-      'resource_types' : {
+      'tracked_items' : {
 
       }
    },
@@ -27,7 +27,7 @@ App.StonehearthResourceScoreboardView = App.View.extend({
    },
 
    update: function(data) {
-      var newData = data.resource_types;
+      var newData = data.tracked_items;
       var board = $('#resourceScoreboard')
 
       for (var entry in newData) {
@@ -63,7 +63,7 @@ App.StonehearthResourceScoreboardView = App.View.extend({
    foo: function() {
 
       var ctx = this.get('context');
-      var newData = this.get('context').resource_types
+      var newData = this.get('context').tracked_items
 
       /*
       var board = $('#resourceScoreboard')

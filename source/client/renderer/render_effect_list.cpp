@@ -230,13 +230,16 @@ RenderAnimationEffect::RenderAnimationEffect(RenderEntity& e, om::EffectPtr effe
 
 void RenderAnimationEffect::Update(FrameStartInfo const& info, bool& finished)
 {
+   EL_LOG(9) << "updating animation effect" << animationName_;
    if (!animation_) {
+      EL_LOG(9) << "marking animation effect " << animationName_ << "finished (no animation)";
       finished = true;
       return;
    }
    int offset = info.now - startTime_;
    if (duration_) {    
       if (info.now > startTime_ + duration_) {
+         EL_LOG(9) << "marking animation effect " << animationName_ << "finished (duration exceeded)";
          finished = true;
       }
 

@@ -20,9 +20,6 @@ class Timeline {
       Counter* SetCounter(Counter* counter);
 
    private:
-      void EndFrame();
-
-   private:
       Frame*               current_frame_;
       Counter*             current_counter_;
       Timer                timer_;

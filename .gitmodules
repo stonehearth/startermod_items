@@ -54,3 +54,7 @@
 	path = modules/tbb
 	url = https://github.com/radent/tbb.git
 	branch = master
+[submodule "modules/luajit"]
+	path = modules/luajit
+	url = https://github.com/radent/luajit
+	branch = master

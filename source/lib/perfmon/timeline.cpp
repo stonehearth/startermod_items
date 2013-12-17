@@ -42,10 +42,6 @@ Timeline::BeginFrame()
    }
 }
 
-void Timeline::EndFrame()
-{
-}
-
 Counter* Timeline::GetCurrentCounter()
 {
    return current_counter_;

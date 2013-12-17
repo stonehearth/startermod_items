@@ -17,6 +17,9 @@
       },
       "item" : {
          "category" : "gear"
-      }
+      },
+      "stonehearth:material" : {
+         "tags" : "wood melee_weapon crafted"
+      }     
    }
 }

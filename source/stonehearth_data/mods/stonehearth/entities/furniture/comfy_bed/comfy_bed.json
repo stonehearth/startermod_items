@@ -31,7 +31,7 @@
          "icon" : "file(comfy_bed.png)"
       },
       "stonehearth:material" : {
-         "tags" : "wood furniture"
+         "tags" : "wood furniture crafted"
       },      
       "stonehearth:lease_component" : {},
       "stonehearth:placed_item" : {

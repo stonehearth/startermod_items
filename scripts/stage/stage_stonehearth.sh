@@ -60,10 +60,11 @@ done
 
 if [ $BUILD_TYPE == RelWithDebInfo ]; then
    MODULE_BUILD_TYPE=Release
+   MODULE_BUILD_SUFFIX=
 else
    MODULE_BUILD_TYPE=$BUILD_TYPE
+   MODULE_BUILD_SUFFIX=d
 fi
-echo $BUILD_TYPE $MODULE_BUILD_TYPE
 
 if [ -z $OUTPUT_DIR ] || [ -z $BUILD_TYPE ]; then
    usage
@@ -88,8 +89,14 @@ fi
 
 if [ ! -z $STAGE_BIN ]; then
    echo Copying lua binaries
+
+   # vanilla lua. no jit.  no fun.
    LUA_ROOT=$STONEHEARTH_ROOT/modules/lua/package/lua
    cp -u $LUA_ROOT/solutions/$MODULE_BUILD_TYPE/lua-5.1.5.dll $OUTPUT_DIR
+
+   # luajit up in here! party time!!
+   # LUA_ROOT=$STONEHEARTH_ROOT/modules/luajit/src
+   # cp -u $LUA_ROOT/lua51${MODULE_BUILD_SUFFIX}.dll $OUTPUT_DIR
 
    echo Copying chromium embedded
    CHROMIUM_ROOT=$STONEHEARTH_ROOT/modules/chromium-embedded/package/cef_binary_3.1547.1412_windows32

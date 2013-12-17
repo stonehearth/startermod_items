@@ -287,8 +287,6 @@ Client::~Client()
 extern bool realtime;
 void Client::run(int server_port)
 {
-   perfmon::BeginFrame();
-
    server_port_ = server_port;
 
    hover_cursor_ = LoadCursor("stonehearth:cursors:hover");
@@ -406,7 +404,7 @@ void Client::run(int server_port)
 
    int last_event_time = 0;
    while (renderer.IsRunning()) {
-      perfmon::BeginFrame();
+      perfmon::BeginFrame(perf_hud_shown_);
       perfmon::TimelineCounterGuard tcg("client run loop") ;
 
       static int last_stat_dump = 0;
