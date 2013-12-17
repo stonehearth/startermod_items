@@ -24,7 +24,9 @@ function Idle:run(ai, entity)
       self:reset_boredom()
    else
       ai:execute('stonehearth:idle:breathe')
-      self._boredomCountdown = self._boredomCountdown - 1
+      if not radiant.entities.is_carrying(entity) then
+         self._boredomCountdown = self._boredomCountdown - 1
+      end
    end
    
    self._finished = true
