@@ -19,8 +19,8 @@ namespace radiant {
 
             void advance(int more_time) { _expire_time += more_time; }
 
-            bool expired() const { 
-               return get_current_time_in_ms() > _expire_time;
+            bool expired(int threshold = 0) const { 
+               return (get_current_time_in_ms() + threshold) > _expire_time;
             }
 
             int remaining() const { return _expire_time - get_current_time_in_ms(); }

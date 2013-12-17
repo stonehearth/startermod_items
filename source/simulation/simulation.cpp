@@ -164,9 +164,10 @@ void Simulation::CreateNew()
    lua::analytics::open(L);
    om::RegisterObjectTypes(store_);
 
-   _stepInterval = core::Config::GetInstance().Get<int>("simulation.step_interval", 200);
+   game_tick_interval_ = core::Config::GetInstance().Get<int>("simulation.game_tick_interval", 200);
+   net_send_interval_ = core::Config::GetInstance().Get<int>("simulation.net_send_interval", 200);
    base_walk_speed_ = core::Config::GetInstance().Get<float>("simulation.base_walk_speed", 0.3f);
-   base_walk_speed_ = base_walk_speed_ * 1000.0f / _stepInterval;
+   base_walk_speed_ = base_walk_speed_ * 1000.0f / game_tick_interval_;
 
    game_api_ = scriptHost_->Require("radiant.server");
 
@@ -222,7 +223,7 @@ void Simulation::Step()
    // Run AI...
    SIM_LOG_GAMELOOP(7) << "calling lua update";
    try {
-      now_ = luabind::call_function<int>(game_api_["update"], _stepInterval, profile_next_lua_update_);      
+      now_ = luabind::call_function<int>(game_api_["update"], game_tick_interval_, profile_next_lua_update_);      
    } catch (std::exception const& e) {
       SIM_LOG(3) << "fatal error initializing game update: " << e.what();
       GetScript().ReportCStackThreadException(GetScript().GetCallbackThread(), e);
@@ -264,6 +265,8 @@ void Simulation::EncodeServerTick(std::shared_ptr<RemoteClient> c)
    update.set_type(proto::Update::SetServerTick);
    auto msg = update.MutableExtension(proto::SetServerTick::extension);
    msg->set_now(now_);
+   msg->set_interval(net_send_interval_);
+   msg->set_next_msg_time(net_send_interval_);
    SIM_LOG_GAMELOOP(7) << "sending server tick " << now_;
    c->send_queue->Push(protocol::Encode(update));
 }
@@ -376,7 +379,7 @@ void Simulation::ProcessJobList()
                idleCountdown = jobs_.size() + 2;
                job->Work(game_loop_timer_);
                if (LOG_IS_ENABLED(simulation.core, 7)) {
-                  SIM_LOG_GAMELOOP(7) << job->GetProgress();
+                  SIM_LOG_GAMELOOP(13) << job->GetProgress();
                }
             }
             jobs_.push_back(front);
@@ -386,6 +389,7 @@ void Simulation::ProcessJobList()
       }
       idleCountdown--;
    }
+   SIM_LOG_GAMELOOP(7) << "done processing job list";
 }
 
 void Simulation::PostCommand(proto::PostCommandRequest const& request)
@@ -480,9 +484,8 @@ void Simulation::main()
 
    unsigned int last_stat_dump = 0;
 
-   // Default to 5 game ticks per second
-   game_loop_timer_.set(_stepInterval);
-
+   net_send_timer_.set(0); // the first update gets pushed out immediately
+   game_loop_timer_.set(game_tick_interval_);
    while (1) {
       mainloop();
 
@@ -504,7 +507,12 @@ void Simulation::mainloop()
    if (!paused_) {
       Step();
    }
-   send_client_updates();
+   if (net_send_timer_.expired(20)) {
+      send_client_updates();
+      net_send_timer_.set(net_send_interval_); // this set is intentional...
+   } else {
+      SIM_LOG_GAMELOOP(7) << "net log still has " << net_send_timer_.remaining() << " till expired.";
+   }
    idle();
 }
 
@@ -521,14 +529,20 @@ void Simulation::idle()
       while (!game_loop_timer_.expired()) {
          platform::sleep(1);
       }
+      game_loop_timer_.advance(game_tick_interval_);
+   } else {
+      if (game_loop_timer_.expired()) { 
+         game_loop_timer_.advance(game_tick_interval_);
+      } else {
+         game_loop_timer_.set(game_tick_interval_);
+      }
    }
-   game_loop_timer_.advance(_stepInterval);
 }
 
 void Simulation::send_client_updates()
 {
    PROFILE_BLOCK();
-   SIM_LOG_GAMELOOP(7) << "sending client updates";
+   SIM_LOG_GAMELOOP(7) << "sending client updates (time left on net timer: " << net_send_timer_.remaining() << ")";
 
    for (std::shared_ptr<RemoteClient> c : _clients) {
       SendUpdates(c);
@@ -566,5 +580,5 @@ float Simulation::GetBaseWalkSpeed() const
 
 int Simulation::GetStepInterval() const
 {
-   return _stepInterval;
+   return game_tick_interval_;
 }

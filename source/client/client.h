@@ -26,6 +26,7 @@
 #include "core/guard.h"
 #include "core/unique_resource.h"
 #include "core/shared_resource.h"
+
 //#include <SFML/Audio.hpp>
 
 namespace sf{class Sound;}
@@ -101,7 +102,6 @@ class Client : public core::Singleton<Client> {
       void InitializeModules();
       void setup_connections();
       void process_messages();
-      void update_interpolation(int time);
       void handle_connect(const boost::system::error_code& e);
       void OnInput(Input const& input);
       void OnMouseInput(Input const& mouse);
@@ -149,15 +149,10 @@ private:
       // connection to the server...
       boost::asio::io_service       _io_service;
       boost::asio::ip::tcp::socket  _tcp_socket;
-      uint32                        _server_last_update_time;
-      uint32                        _server_interval_duration;
-      uint32                        _client_interval_start;
+      std::unique_ptr<Clock>           game_clock_;
       int                              last_sequence_number_;
       protocol::SendQueuePtr           send_queue_;
       protocol::RecvQueuePtr           recv_queue_;
-      int                              now_;
-      int                              last_now_;
-      int                              _server_skew;
       int                              server_port_;
 
       // the local object trace system...
