@@ -61,6 +61,7 @@ struct RendererConfig {
    bool use_shadows;
    bool enable_vsync;
    bool enable_fullscreen;
+   bool enable_gl_logging;
    int  num_msaa_samples;
    int  shadow_resolution;
 

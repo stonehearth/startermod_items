@@ -142,7 +142,7 @@ public:
 	
 	unsigned char *useScratchBuf( uint32 minSize );
 	
-	bool init(int glMajor, int glMinor);
+	bool init(int glMajor, int glMinor, bool enable_gl_logging);
 	void initStates();
 
    void collectOneDebugFrame();

@@ -85,6 +85,7 @@ Renderer::Renderer() :
    glfwWindowHint(GLFW_SAMPLES, config_.num_msaa_samples);
    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, config_.enable_gl_logging ? 1 : 0);
 
    GLFWwindow *window;
    if (!(window = glfwCreateWindow(windowWidth_, windowHeight_, "Stonehearth", 
@@ -97,7 +98,7 @@ Renderer::Renderer() :
 
    // Init Horde, looking for OpenGL 2.0 minimum.
    std::string s = (radiant::core::System::GetInstance().GetTempDirectory() / "horde3d_log.html").string();
-   if (!h3dInit(2, 0, s.c_str())) {
+   if (!h3dInit(2, 0, config_.enable_gl_logging, s.c_str())) {
       h3dutDumpMessages();
       throw std::runtime_error("Unable to initialize renderer.  Check horde log for details.");
    }
@@ -363,6 +364,8 @@ void Renderer::GetConfigOptions()
    config_.enable_vsync = config.Get("renderer.enable_vsync", true);
 
    config_.enable_fullscreen = config.Get("renderer.enable_fullscreen", false);
+
+   config_.enable_gl_logging = config.Get("renderer.enable_gl_logging", false);
 
    config_.screen_width = config.Get("renderer.screen_width", 1280);
    config_.screen_height = config.Get("renderer.screen_height", 720);
