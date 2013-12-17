@@ -186,6 +186,7 @@
          "actions:worker_light_fire_action" : "file(ai/actions/worker_light_fire_action.lua)",
          "actions:play_with_ball_action" : "file(ai/actions/play_with_ball_action.lua)",
          "actions:fabricate" : "file(ai/actions/fabricate_action.lua)",
+         "actions:teardown" : "file(ai/actions/teardown_action.lua)",
          "actions:idle:despair" : "file(ai/actions/idle_despair_action.lua)",
          "actions:idle:look_around" : "file(ai/actions/idle_look_around_action.lua)",
          "actions:idle:sway" : "file(ai/actions/idle_sway_action.lua)",
