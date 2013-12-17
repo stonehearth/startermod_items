@@ -11,7 +11,8 @@
          ]
       },
       "stonehearth:construction_data" : {
-         "project_adjacent_to_base" : true
+         "project_adjacent_to_base" : true,
+         "allow_diagonal_adjacency" : true
       }
    },
    "entity_data" : {

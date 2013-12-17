@@ -21,6 +21,7 @@ add_subdirectory(renderer)
 
 add_library(client
             application.cpp
+            clock.cpp
             client.cpp
             main.cpp
             xz_region_selector.cpp

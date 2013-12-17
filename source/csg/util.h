@@ -42,7 +42,7 @@ private:
    EdgePointPtr GetPoint(csg::Point2 const& pt, csg::Point2 const& normal);
 };
 
-Region3 GetAdjacent(Region3 const& r);
+Region3 GetAdjacent(Region3 const& r, bool allow_diagonals, int min_y, int max_y);
 bool Region3Intersects(const Region3& rgn, const csg::Ray3& ray, float& distance);
 void HeightmapToRegion2(HeightMap<double> const& h, Region2& r);
 EdgeListPtr Region2ToEdgeList(csg::Region2 const& rgn, int height, csg::Region3 const& clipper);

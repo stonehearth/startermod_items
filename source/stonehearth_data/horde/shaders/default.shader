@@ -20,6 +20,12 @@ sampler2D ssaoBuffer = sampler_state
   Filter = Bilinear;
 };
 
+sampler2D skySampler = sampler_state
+{
+  Address = Clamp;
+  Filter = Trilinear;
+};
+
 sampler2D outlineSampler = sampler_state
 {
   Address = Clamp;
@@ -97,16 +103,6 @@ context DIRECTIONAL_SHADOWMAP
 }
 
 
-context CLOUDS
-{
-   VertexShader = compile GLSL VS_GENERAL;
-   PixelShader = compile GLSL FS_CLOUDS;
-
-   ZWriteEnable = false;
-   BlendMode = Mult;
-   CullMode = Back;
-}
-
 [[VS_GENERAL]]
 #include "shaders/utilityLib/vertCommon.glsl"
 
@@ -183,8 +179,12 @@ void main( void )
 #include "shaders/utilityLib/fragLighting.glsl" 
 #include "shaders/shadows.shader"
 
+uniform sampler2D cloudMap;
+uniform sampler2D skySampler;
 uniform vec3 viewerPos;
 uniform vec3 lightAmbientColor;
+uniform vec2 frameBufSize;
+uniform float currentTime;
 
 varying vec4 pos;
 varying vec4 vsPos;
@@ -193,12 +193,27 @@ varying vec3 tsbNormal;
 
 void main( void )
 {
+  // Shadows.
   float shadowTerm = getShadowValue(pos.xyz);
+
+  // Light.
   vec3 lightColor = calcSimpleDirectionalLight(viewerPos, pos.xyz, normalize(tsbNormal), -vsPos.z);
-
   lightColor = (shadowTerm * (lightColor * albedo)) + (lightAmbientColor * albedo);
+  
+  // Fog.
+  float fogFac = clamp(exp(-vsPos.z / 700.0) - 2.9, 0.0, 1.0);
+  vec3 fogColor = texture2D(skySampler, vec2(gl_FragCoord.x/frameBufSize.x, gl_FragCoord.y / frameBufSize.y)).xyz;
 
-  gl_FragColor = vec4(lightColor, 1.0);
+  // Clouds.
+  float cloudSpeed = currentTime / 80.0;
+  vec2 fragCoord = pos.xz * 0.3;
+  vec4 cloudColor = texture2D(cloudMap, fragCoord.xy / 128.0 + cloudSpeed);
+  cloudColor = cloudColor * texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0));
+
+  // Mix it all together!  We want to fade to a single fog color, so only mix in the cloud
+  // color with the calculated light color.
+  gl_FragColor.rgb = mix(lightColor * cloudColor, fogColor, fogFac);
+  gl_FragColor.a = 1.0;
 }
 
 [[VS_DIRECTIONAL_SHADOWMAP]]
@@ -220,24 +235,6 @@ void main( void )
 void main( void )
 {
   gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
-}
-
-
-
-
-[[FS_CLOUDS]]
-
-uniform sampler2D cloudMap;
-uniform float currentTime;
-
-varying vec4 pos;
-
-void main( void )
-{
-  vec2 fragCoord = pos.xz * 0.3;
-  float cloudSpeed = currentTime / 80.0;
-  vec4 cloudColor = texture2D(cloudMap, fragCoord.xy / 128.0 + cloudSpeed);
-  gl_FragColor = cloudColor * texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0));
 }
 
 

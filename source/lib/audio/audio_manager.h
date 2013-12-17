@@ -27,7 +27,7 @@ public:
    void SetNextMusicLoop(bool loop, std::string channel);
 
    void PlayMusic(std::string track, std::string channel);
-   void UpdateAudio(int currTime);
+   void UpdateAudio();
 
 private:
    void CleanupSounds();

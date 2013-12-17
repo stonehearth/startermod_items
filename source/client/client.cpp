@@ -58,6 +58,7 @@
 
 //  #include "GFx/AS3/AS3_Global.h"
 #include "client.h"
+#include "clock.h"
 #include "renderer/renderer.h"
 #include "libjson.h"
 
@@ -73,9 +74,6 @@ DEFINE_SINGLETON(Client);
 
 Client::Client() :
    _tcp_socket(_io_service),
-   _server_last_update_time(0),
-   _server_interval_duration(1),
-   _server_skew(0),
    last_sequence_number_(-1),
    rootObject_(NULL),
    store_(2, "game"),
@@ -88,7 +86,8 @@ Client::Client() :
    mouse_x_(0),
    mouse_y_(0),
    perf_hud_shown_(false),
-   connected_(false)
+   connected_(false),
+   game_clock_(new Clock())
 {
    om::RegisterObjectTypes(store_);
    om::RegisterObjectTypes(authoringStore_);
@@ -288,8 +287,6 @@ Client::~Client()
 extern bool realtime;
 void Client::run(int server_port)
 {
-   perfmon::BeginFrame();
-
    server_port_ = server_port;
 
    hover_cursor_ = LoadCursor("stonehearth:cursors:hover");
@@ -405,12 +402,9 @@ void Client::run(int server_port)
    setup_connections();
    InitializeModules();
 
-   _client_interval_start = platform::get_current_time_in_ms();
-   _server_last_update_time = 0;
-
    int last_event_time = 0;
    while (renderer.IsRunning()) {
-      perfmon::BeginFrame();
+      perfmon::BeginFrame(perf_hud_shown_);
       perfmon::TimelineCounterGuard tcg("client run loop") ;
 
       static int last_stat_dump = 0;
@@ -475,20 +469,9 @@ void Client::mainloop()
    process_messages();
    ProcessBrowserJobQueue();
 
-   int currentTime = platform::get_current_time_in_ms();
+   int game_time;
    float alpha;
-   if (_server_interval_duration == 0) {
-      // A zero server interval means the server is paused.  Turn off interpolation.
-      alpha = 0.0f;
-   } else {
-      alpha = (currentTime - ((int)_client_interval_start - _server_skew)) / (float)_server_interval_duration;
-   }
-   alpha = std::min(1.0f, std::max(0.0f, alpha));
-   now_ = (int)(_server_last_update_time + (_server_interval_duration * alpha));
-
-   static int last_now = 0;
-   now_ = std::max(last_now, now_);
-   last_now = now_;
+   game_clock_->EstimateCurrentGameTime(game_time, alpha);
 
    perfmon::SwitchToCounter("flush http events");
    http_reactor_->FlushEvents();
@@ -511,7 +494,7 @@ void Client::mainloop()
    perfmon::SwitchToCounter("fire traces");
    authoring_render_tracer_->Flush();
 
-   Renderer::GetInstance().RenderOneFrame(now_, alpha);
+   Renderer::GetInstance().RenderOneFrame(game_time, alpha);
 
    if (send_queue_ && connected_) {
       perfmon::SwitchToCounter("send msgs");
@@ -525,7 +508,7 @@ void Client::mainloop()
 
    //Update the audio_manager with the current time
    audio::AudioManager &a = audio::AudioManager::GetInstance();
-   a.UpdateAudio(now_);
+   a.UpdateAudio();
 }
 
 om::TerrainPtr Client::GetTerrain()
@@ -541,11 +524,6 @@ void Client::Reset()
 
    store_.Reset();
    receiver_ = std::make_shared<dm::Receiver>(store_);
-
-   _server_last_update_time = 0;
-   _server_interval_duration = 1;
-   _client_interval_start = 0;
-   _server_skew = 0;
 
    rootObject_ = nullptr;
    selectedObject_ = om::EntityRef();
@@ -611,9 +589,9 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
 
 void Client::SetServerTick(const proto::SetServerTick& msg)
 {
-   int now = msg.now();
-   update_interpolation(now);
-   Renderer::GetInstance().SetServerTick(now);
+   int game_time = msg.now();
+   game_clock_->Update(msg.now(), msg.interval(), msg.next_msg_time());
+   Renderer::GetInstance().SetServerTick(game_time);
 }
 
 void Client::AllocObjects(const proto::AllocObjects& update)
@@ -660,23 +638,6 @@ void Client::ProcessReadQueue()
    if (recv_queue_) {
       recv_queue_->Process<proto::Update>(std::bind(&Client::ProcessMessage, this, std::placeholders::_1));
    }
-}
-
-void Client::update_interpolation(int time)
-{
-   uint32 current_time = platform::get_current_time_in_ms();
-   if (_server_last_update_time) {
-      // The client can be slightly behind or ahead of the server, so calculate a per-update delta
-      // that we can use to bias our interpolation so that we avoid rendering consecutive identical
-      // frames.
-      _server_skew = (int)current_time - (int)_client_interval_start - (int)_server_interval_duration;
-      _server_interval_duration = time - _server_last_update_time;
-   }
-   _server_last_update_time = time;
-
-   // We want to interpolate from the current point to the new destiation over
-   // the interval returned by the server.
-   _client_interval_start = current_time;
 }
 
 void Client::OnInput(Input const& input) {

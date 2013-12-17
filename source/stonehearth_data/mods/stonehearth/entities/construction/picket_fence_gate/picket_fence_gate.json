@@ -2,6 +2,10 @@
    "extends": "stonehearth:mixins:placed_properties",
    "type": "entity",
    "components": {
+      "render_info" : {
+         "animation_table" : "file(/data/rigs/double_door/double_door.json)"
+      },
+
       "model_variants": [
          {
             "models": [
@@ -9,13 +13,28 @@
             ]
          }
       ],
+
       "unit_info": {
          "name": "Picket Fence Gate",
          "description": "Don't like your neighbors? Don't install.",
          "icon" : "file(picket_fence_gate.png)"
       },
+
       "stonehearth:material" : {
-         "tags" : "wood defenses crafter"
-      }            
+         "tags" : "wood defenses crafted"
+      },
+
+      "sensor_list": {
+         "sensors": {
+            "door_sensor": {
+               "type": "sensor",
+               "radius": 4
+            }
+         }
+      },
+
+      "stonehearth:door" : {
+         "sensor" : "door_sensor"
+      }
    }
 }

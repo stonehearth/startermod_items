@@ -9,11 +9,11 @@ local Point3 = _radiant.csg.Point3
 local WorldGenerator = class()
 local log = radiant.log.create_logger('world.generation')
 
-function WorldGenerator:__init(async)
+function WorldGenerator:__init(async, seed)
    self._async = async
    self._progress = 0
 
-   local tg = TerrainGenerator(self._async)
+   local tg = TerrainGenerator(self._async, seed)
    self._terrain_generator = tg
    self._height_map_renderer = HeightMapRenderer(tg.zone_size, tg.terrain_info)
    self._landscaper = Landscaper(tg.terrain_info, tg.zone_size, tg.zone_size)
@@ -132,8 +132,36 @@ function WorldGenerator:_create_test_blueprint()
    return zones
 end
 
--- do this programmatically later
+
 function WorldGenerator:_create_world_blueprint()
+   
+   --local r = Rng()
+   local t = {
+      TerrainType.Grassland,
+      TerrainType.Foothills,
+      TerrainType.Mountains,
+   }
+
+   local zones = self:_get_empty_blueprint(5, 5)
+   for i = 1, 5 do
+      for j = 1, 5 do
+         --local random = r:generate_uniform_int(1, #t)
+         local random = math.random(1, 1000)
+         local type
+         if random < 400 then
+            type = TerrainType.Grassland
+         elseif random < 800 then
+            type = TerrainType.Foothills
+         else
+            type = TerrainType.Mountains
+         end
+         zones:get(i, j).terrain_type = type
+      end
+   end
+   return zones
+end
+
+function WorldGenerator:_create_world_blueprint_static()
    local zones = self:_get_empty_blueprint(5, 5)
 
    zones:get(1, 1).terrain_type = TerrainType.Grassland

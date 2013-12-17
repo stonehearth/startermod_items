@@ -61,6 +61,8 @@ message SetServerTick {
       optional SetServerTick extension = 102;
    }
    required uint32   now = 1;
+   required uint32   interval = 2;
+   required uint32   next_msg_time = 3;
 }
 
 message CommandReply {

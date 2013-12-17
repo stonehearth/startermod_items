@@ -14,7 +14,21 @@
                      "file(head_1.qb)",
                      "file(head_2.qb)",
                      "file(head_3.qb)",
-                     "file(head_5.qb)"
+                     "file(head_4.qb)",
+                     "file(head_5.qb)",
+                     "file(hhead_bald.qb)",
+                     "file(hhead_old_1_blonde.qb)",
+                     "file(head_old_1_brown.qb)",
+                     "file(head_old_1_sandy.qb)",
+                     "file(head_old_2_blonde.qb)",
+                     "file(head_old_2_brown.qb)",
+                     "file(head_old_2_sandy.qb)",
+                     "file(head_young_1_blonde.qb)",
+                     "file(head_young_1_brown.qb)",
+                     "file(head_young_1_sandy.qb)",
+                     "file(head_young_2_blonde.qb)",
+                     "file(head_young_2_brown.qb)",
+                     "file(head_young_2_sandy.qb)"
                   ]
                },            
                "file(body.qb)"

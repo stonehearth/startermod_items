@@ -4,9 +4,9 @@ local personality_service = require 'services.personality.personality_service'
 
 local Point3 = _radiant.csg.Point3
 
-function NewGameCallHandler:new_game(session, response)
+function NewGameCallHandler:new_game(session, response, seed)
    local wgs = radiant.mods.load('stonehearth').world_generation
-   local wg = wgs:create_world(true)
+   local wg = wgs:create_world(true, seed)
    return {}
 end
 

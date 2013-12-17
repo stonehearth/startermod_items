@@ -28,6 +28,7 @@
          "injected_ai" : {
             "actions" : [
                "stonehearth:actions:fabricate",
+               "stonehearth:actions:teardown",
                "stonehearth:actions:chop_tree_action",
                "stonehearth:actions:worker_task_dispatcher",
                "stonehearth:actions:worker_restock_action",

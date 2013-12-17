@@ -10,6 +10,7 @@ BEGIN_RADIANT_CLIENT_NAMESPACE
 class Renderer;
 class PerfHud;
 class RenderContext;
+class Clock;
 
 #define CLIENT_LOG(level)     LOG(client, level)
 

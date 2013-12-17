@@ -3,15 +3,20 @@
    <Setup>
       <RenderTarget id="OUTPUT" depthBuf="true" numColBufs="1" format="RGBA8" scale="1.0" maxSamples="4"/>
       <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" format="RGBA8" scale="1.0"/>
+      <RenderTarget id="SkyTemp" numColBufs="1" depthBuf="false" format="RGBA8" scale="0.125"/>
    </Setup>
    <CommandQueue>
       <Stage id="Sky">
          <SwitchTarget target="OUTPUT" />
          <ClearTarget depthBuf="true"/>
          <DrawGeometry context="SKY"/>
+
+         <SwitchTarget target="SkyTemp" />
+         <DrawGeometry context="SKY"/>
       </Stage>
 
       <Stage id="Starfield">
+         <SwitchTarget target="OUTPUT" />
          <DrawGeometry context="STARFIELD"/>
       </Stage>
 
@@ -20,11 +25,8 @@
       </Stage>
 
       <Stage id="Light">
+         <BindBuffer sampler="skySampler" sourceRT="SkyTemp" bufIndex="0"/>
          <DoForwardLightLoop class="~Translucent" noShadows="false"/>
-      </Stage>
-
-      <Stage id="Clouds">
-         <DrawGeometry context="CLOUDS" class="~Translucent" />
       </Stage>
 
       <Stage id="Translucent">

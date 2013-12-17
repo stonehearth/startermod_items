@@ -85,21 +85,26 @@ Region3 csg::Reface(Region3 const& rgn, Point3 const& forward)
 }
 
 
-Region3 csg::GetAdjacent(Region3 const& r)
+Region3 csg::GetAdjacent(Region3 const& r, bool allow_diagonals, int min_y, int max_y)
 {
    Region3 adjacent;
 
    for (const csg::Cube3& c : r) {
       csg::Point3 p0 = c.GetMin();
       csg::Point3 p1 = c.GetMax();
-      csg::Point3 delta = p1 - p0;
-      int x = delta.x, y = delta.y, z = delta.z;
+      if (allow_diagonals) {
+         adjacent.Add(csg::Cube3(p0 + csg::Point3(-1, 0, -1), p1 + csg::Point3(1, 0, 1)));
+      } else {
+         csg::Point3 delta = p1 - p0;
+         int x = delta.x, y = delta.y, z = delta.z;
 
-      adjacent.Add(csg::Cube3(p0 - csg::Point3(0, 0, 1), p0 + csg::Point3(x, y, 0)));  // top
-      adjacent.Add(csg::Cube3(p0 - csg::Point3(1, 0, 0), p0 + csg::Point3(0, y, z)));  // left
-      adjacent.Add(csg::Cube3(p0 + csg::Point3(0, 0, z), p0 + csg::Point3(x, y, z + 1)));  // bottom
-      adjacent.Add(csg::Cube3(p0 + csg::Point3(x, 0, 0), p0 + csg::Point3(x + 1, y, z)));  // right
+         adjacent.Add(csg::Cube3(p0 - csg::Point3(0, 0, 1), p0 + csg::Point3(x, y, 0)));     // top
+         adjacent.Add(csg::Cube3(p0 - csg::Point3(1, 0, 0), p0 + csg::Point3(0, y, z)));     // left
+         adjacent.Add(csg::Cube3(p0 + csg::Point3(0, 0, z), p0 + csg::Point3(x, y, z + 1))); // bottom
+         adjacent.Add(csg::Cube3(p0 + csg::Point3(x, 0, 0), p0 + csg::Point3(x + 1, y, z))); // right
+      }
    }
+
    adjacent.Optimize();
    return adjacent;
 }

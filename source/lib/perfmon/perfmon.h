@@ -9,7 +9,6 @@ BEGIN_RADIANT_PERFMON_NAMESPACE
 class TimelineCounterGuard {
 public:
    TimelineCounterGuard(char const* name);
-   void Dispose();
    ~TimelineCounterGuard();
    
 private:
@@ -17,7 +16,7 @@ private:
    Counter*          last_counter_;
 };
 
-void BeginFrame();
+void BeginFrame(bool enabled);
 void SwitchToCounter(char const* name);
 core::Guard OnFrameEnd(std::function<void(Frame*)>);
 uint CounterToMilliseconds(CounterValueType value);
