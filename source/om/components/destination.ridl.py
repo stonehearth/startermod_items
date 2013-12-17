@@ -10,6 +10,7 @@ class Destination(Component):
    reserved = dm.Boxed(Region3BoxedPtr(), trace='deep_region')
    adjacent = dm.Boxed(Region3BoxedPtr(), set='declare', trace='deep_region')
    auto_update_adjacent = dm.Boxed(c.bool(), set='declare')
+   allow_diagonal_adjacency = dm.Boxed(c.bool(), set='declare')
    
    _includes = [
       "om/region.h"

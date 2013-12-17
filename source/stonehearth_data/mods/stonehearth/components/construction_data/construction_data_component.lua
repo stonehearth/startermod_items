@@ -13,6 +13,10 @@ function ConstructionDataComponent:__init(entity, data_binding)
    self._data_binding:update(self._data)
 end
 
+function ConstructionDataComponent:get_data()
+   return self._data
+end
+
 function ConstructionDataComponent:extend(data)
    self._data = data
    self._data_binding:update(self._data)
@@ -32,6 +36,16 @@ end
 
 function ConstructionDataComponent:get_finished()
    return self._data.finished
+end
+
+function ConstructionDataComponent:get_allow_diagonal_adjacency()
+   -- coearse to bool 
+   return self._data.allow_diagonal_adjacency and true or false
+end
+
+function ConstructionDataComponent:get_project_adjacent_to_base()
+   -- coearse to bool 
+   return self._data.project_adjacent_to_base and true or false
 end
 
 return ConstructionDataComponent

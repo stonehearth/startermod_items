@@ -41,6 +41,7 @@ void Destination::ExtendObject(json::Node const& obj)
       }
    }
    SetAutoUpdateAdjacent(obj.get<bool>("auto_update_adjacent", false));
+   SetAllowDiagonalAdjacency(obj.get<bool>("allow_diagonal_adjacency", false));
    D_LOG(5) << "finished constructing new destination for entity " << GetEntity().GetObjectId();
 }
 
@@ -71,6 +72,17 @@ Destination& Destination::SetAutoUpdateAdjacent(bool value)
    return *this;
 }
 
+Destination& Destination::SetAllowDiagonalAdjacency(bool value)
+{
+   value = !!value; // cohearse to 1 or 0
+   if (allow_diagonal_adjacency_ != value) {
+      allow_diagonal_adjacency_ = value;
+      if (auto_update_adjacent_) {
+         UpdateDerivedValues();
+      }
+   }
+   return *this;
+}
 void Destination::UpdateDerivedValues()
 {
    if (auto_update_adjacent_ && !*adjacent_) {
@@ -93,7 +105,7 @@ void Destination::UpdateDerivedValues()
 void Destination::ComputeAdjacentRegion(csg::Region3 const& r)
 {
    ASSERT(*adjacent_);
-   (*adjacent_)->Set(csg::GetAdjacent(r));
+   (*adjacent_)->Set(csg::GetAdjacent(r, allow_diagonal_adjacency_, 0, 0));
 }
 
 Destination& Destination::SetAdjacent(Region3BoxedPtr r)

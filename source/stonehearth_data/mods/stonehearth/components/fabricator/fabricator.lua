@@ -34,6 +34,8 @@ function Fabricator:__init(name, entity, blueprint)
       self:_update_adjacent()
    end)
    
+   self._construction_data = blueprint:get_component('stonehearth:construction_data')
+   assert(self._construction_data)
                      
    -- create a new project.  projects start off completely unbuilt.
    -- projects are stored in as children to the fabricator, so there's
@@ -42,7 +44,7 @@ function Fabricator:__init(name, entity, blueprint)
    self._project = radiant.entities.create_entity(blueprint:get_uri())
    self._project:add_component('destination')
                      :set_region(rgn)
-                     :set_auto_update_adjacent(true)
+                     
    self._project:add_component('region_collision_shape')
                      :set_region(rgn)
    radiant.entities.set_faction(self._project, blueprint)
@@ -51,9 +53,8 @@ function Fabricator:__init(name, entity, blueprint)
 
    -- get fabrication specific info, if available.  copy it into the project, too
    -- so everything gets rendered correctly.
-   self._ci = blueprint:get_component_data('stonehearth:construction_data')
-   assert(self._ci)
-   self._project:add_component('stonehearth:construction_data'):extend(self._ci) -- actually 'load' or something.
+   self._project:add_component('stonehearth:construction_data')
+                  :extend(self._construction_data:get_data()) -- actually 'load' or something.
       
    -- hold onto the blueprint ladder component, if it exists.  we'll replicate
    -- the ladder into the project as it gets built up.
@@ -275,13 +276,16 @@ function Fabricator:_update_adjacent()
    local clipper = Region3(Cube3(Point3(-COORD_MAX, bottom + 1, -COORD_MAX),
                                  Point3( COORD_MAX, COORD_MAX,   COORD_MAX)))
    local bottom_row = rgn - clipper
-   local adjacent = bottom_row:get_adjacent()
    
+   local allow_diagonals = self._construction_data:get_allow_diagonal_adjacency()
+   local adjacent = bottom_row:get_adjacent(allow_diagonals, 0, 0)
+   
+
    -- some projects want the worker to stand at the base of the project and
    -- push columns up.  for example, scaffolding always gets built from the
    -- base.  if this is one of those, translate the adjacent region all the
    -- way to the bottom.
-   if self._ci.project_adjacent_to_base then
+   if self._construction_data:get_project_adjacent_to_base() then
       adjacent:translate(Point3(0, -bottom, 0))
    end
    
