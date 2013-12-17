@@ -7,6 +7,12 @@
 using namespace radiant;
 using namespace radiant::perfmon;
 
+// performance counters are somewhat expensive when used in inner loops.  they're
+// still useful, though, so work to minimize that overhead when we don't need time.
+// If enabled__ is false, do nothing in any of the perfmon functions.  enabled__ is
+// set/cleared on a per-frame basis (see perfmon::BeginFrame).
+static bool enabled__;
+
 __declspec(thread) Store* store__ = nullptr;
 
 static Timeline& GetTimeline()
@@ -19,35 +25,34 @@ static Timeline& GetTimeline()
 
 TimelineCounterGuard::TimelineCounterGuard(const char* name)
 {
-   disposed_ = false;
-   last_counter_ = GetTimeline().GetCurrentCounter();
-   SwitchToCounter(name);
-}
-
-void TimelineCounterGuard::Dispose()
-{
-   if (!disposed_)
-   {
-      GetTimeline().SetCounter(last_counter_);
-      disposed_ = true;
+   if (enabled__) {
+      last_counter_ = GetTimeline().GetCurrentCounter();
+      SwitchToCounter(name);
    }
 }
 
 TimelineCounterGuard::~TimelineCounterGuard()
 {
-   Dispose();
+   if (enabled__) {
+      GetTimeline().SetCounter(last_counter_);
+   }
 }
 
 void perfmon::SwitchToCounter(char const* name)
 {
-   Timeline& timeline = GetTimeline();
-   Counter* counter = timeline.GetCounter(name);
-   timeline.SetCounter(counter);
+   if (enabled__) {
+      Timeline& timeline = GetTimeline();
+      Counter* counter = timeline.GetCounter(name);
+      timeline.SetCounter(counter);
+   }
 }
 
-void perfmon::BeginFrame()
+void perfmon::BeginFrame(bool enabled)
 {
-   GetTimeline().BeginFrame();
+   enabled__ = enabled;
+   if (enabled__) {
+      GetTimeline().BeginFrame();
+   }
 }
 
 core::Guard perfmon::OnFrameEnd(std::function<void(Frame*)> fn)
