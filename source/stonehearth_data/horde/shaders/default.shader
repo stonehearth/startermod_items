@@ -20,6 +20,12 @@ sampler2D ssaoBuffer = sampler_state
   Filter = Bilinear;
 };
 
+sampler2D skySampler = sampler_state
+{
+  Address = Clamp;
+  Filter = Trilinear;
+};
+
 sampler2D outlineSampler = sampler_state
 {
   Address = Clamp;
@@ -183,8 +189,10 @@ void main( void )
 #include "shaders/utilityLib/fragLighting.glsl" 
 #include "shaders/shadows.shader"
 
+uniform sampler2D skySampler;
 uniform vec3 viewerPos;
 uniform vec3 lightAmbientColor;
+uniform vec2 frameBufSize;
 
 varying vec4 pos;
 varying vec4 vsPos;
@@ -197,8 +205,14 @@ void main( void )
   vec3 lightColor = calcSimpleDirectionalLight(viewerPos, pos.xyz, normalize(tsbNormal), -vsPos.z);
 
   lightColor = (shadowTerm * (lightColor * albedo)) + (lightAmbientColor * albedo);
+  
+  
+  float fogFac = clamp(exp(-vsPos.z / 700.0) - 2.9, 0.0, 1.0);
+  vec3 fogColor = texture2D(skySampler, vec2(gl_FragCoord.x/frameBufSize.x, gl_FragCoord.y / frameBufSize.y)).xyz;
+  
 
-  gl_FragColor = vec4(lightColor, 1.0);
+  gl_FragColor.rgb = mix(lightColor, fogColor, fogFac);
+  gl_FragColor.a = 1.0;
 }
 
 [[VS_DIRECTIONAL_SHADOWMAP]]
@@ -237,7 +251,9 @@ void main( void )
   vec2 fragCoord = pos.xz * 0.3;
   float cloudSpeed = currentTime / 80.0;
   vec4 cloudColor = texture2D(cloudMap, fragCoord.xy / 128.0 + cloudSpeed);
-  gl_FragColor = cloudColor * texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0));
+  cloudColor = cloudColor * texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0));
+
+  gl_FragColor = cloudColor;
 }
 
 
