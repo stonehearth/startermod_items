@@ -112,7 +112,7 @@ static void Sky_SetSkyColor(const csg::Point3f& startCol, const csg::Point3f& en
    Renderer::GetInstance().SetSkyColors(startCol, endCol);
 }
 
-static void Sky_SetStarfieldBrightness(double brightness) {
+static void Sky_SetStarfieldBrightness(float brightness) {
    Renderer::GetInstance().SetStarfieldBrightness(brightness);
 }
 

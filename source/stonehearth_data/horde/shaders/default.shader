@@ -207,8 +207,8 @@ void main( void )
   // Clouds.
   float cloudSpeed = currentTime / 80.0;
   vec2 fragCoord = pos.xz * 0.3;
-  vec4 cloudColor = texture2D(cloudMap, fragCoord.xy / 128.0 + cloudSpeed);
-  cloudColor = cloudColor * texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0));
+  vec3 cloudColor = texture2D(cloudMap, fragCoord.xy / 128.0 + cloudSpeed).xyz;
+  cloudColor = cloudColor * texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0)).xyz;
 
   // Mix it all together!  We want to fade to a single fog color, so only mix in the cloud
   // color with the calculated light color.
