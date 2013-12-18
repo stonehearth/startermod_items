@@ -28,6 +28,7 @@ namespace glExt
 	bool ARB_texture_float = false;
 	bool ARB_texture_non_power_of_two = false;
 	bool ARB_timer_query = false;
+   bool ARB_debug_output = false;
 
 	int	majorVersion = 1, minorVersion = 0;
 }
@@ -163,6 +164,12 @@ PFNGLDELETESYNCPROC glDeleteSync = 0x0;
 PFNGLVERTEXATTRIBDIVISORPROC   glVertexAttribDivisor = 0x0;
 PFNGLDRAWARRAYSINSTANCEDPROC   glDrawArraysInstanced = 0x0;
 PFNGLDRAWELEMENTSINSTANCEDPROC glDrawElementsInstanced = 0x0;
+
+// GL 4.1
+PFNGLDEBUGMESSAGECONTROLARBPROC   glDebugMessageControlARB   = 0x0;
+PFNGLDEBUGMESSAGEINSERTARBPROC    glDebugMessageInsertARB    = 0x0;
+PFNGLDEBUGMESSAGECALLBACKARBPROC  glDebugMessageCallbackARB  = 0x0;
+PFNGLGETDEBUGMESSAGELOGARBPROC    glGetDebugMessageLogARB    = 0x0;
 
 // GL_EXT_framebuffer_object
 PFNGLISRENDERBUFFEREXTPROC glIsRenderbufferEXT = 0x0;
@@ -435,6 +442,13 @@ bool initOpenGLExtensions()
       r &= (glVertexAttribDivisor = (PFNGLVERTEXATTRIBDIVISORPROC) platGetProcAddress( "glVertexAttribDivisor" )) != 0x0;
       r &= (glDrawArraysInstanced = (PFNGLDRAWARRAYSINSTANCEDPROC) platGetProcAddress( "glDrawArraysInstanced" )) != 0x0;
       r &= (glDrawElementsInstanced = (PFNGLDRAWELEMENTSINSTANCEDPROC) platGetProcAddress( "glDrawElementsInstanced" )) != 0x0;
+   }
+
+   if ((glExt::ARB_debug_output = isExtensionSupported("GL_ARB_debug_output"))) {
+      r &= (glDebugMessageControlARB = (PFNGLDEBUGMESSAGECONTROLARBPROC) platGetProcAddress("glDebugMessageControlARB")) != 0x0;
+      r &= (glDebugMessageInsertARB = (PFNGLDEBUGMESSAGEINSERTARBPROC) platGetProcAddress("glDebugMessageInsertARB")) != 0x0;
+      r &= (glDebugMessageCallbackARB = (PFNGLDEBUGMESSAGECALLBACKARBPROC) platGetProcAddress("glDebugMessageCallbackARB")) != 0x0;
+      r &= (glGetDebugMessageLogARB = (PFNGLGETDEBUGMESSAGELOGARBPROC) platGetProcAddress("glGetDebugMessageLogARB")) != 0x0;
    }
 
 	// Extensions

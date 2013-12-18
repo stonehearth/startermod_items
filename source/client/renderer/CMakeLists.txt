@@ -27,6 +27,7 @@ add_library(client_renderer STATIC
             lua_renderer.cpp
             lua_render_entity.cpp
             camera.cpp
+            ui_buffer.cpp
             perfhud/perfhud.cpp
             perfhud/timeline.cpp
             perfhud/timeline_column.cpp

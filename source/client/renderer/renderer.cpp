@@ -52,9 +52,6 @@ Renderer::Renderer() :
    camera_(nullptr),
    uiWidth_(0),
    uiHeight_(0),
-   uiTexture_(0),
-   uiMatRes_(0),
-   uiPbo_(0),
    last_render_time_(0),
    server_tick_slot_("server tick"),
    render_frame_start_slot_("render frame start"),
@@ -85,6 +82,7 @@ Renderer::Renderer() :
    glfwWindowHint(GLFW_SAMPLES, config_.num_msaa_samples);
    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, config_.enable_gl_logging ? 1 : 0);
 
    GLFWwindow *window;
    if (!(window = glfwCreateWindow(windowWidth_, windowHeight_, "Stonehearth", 
@@ -97,7 +95,7 @@ Renderer::Renderer() :
 
    // Init Horde, looking for OpenGL 2.0 minimum.
    std::string s = (radiant::core::System::GetInstance().GetTempDirectory() / "horde3d_log.html").string();
-   if (!h3dInit(2, 0, s.c_str())) {
+   if (!h3dInit(2, 0, config_.enable_gl_logging, s.c_str())) {
       h3dutDumpMessages();
       throw std::runtime_error("Unable to initialize renderer.  Check horde log for details.");
    }
@@ -364,6 +362,8 @@ void Renderer::GetConfigOptions()
 
    config_.enable_fullscreen = config.Get("renderer.enable_fullscreen", false);
 
+   config_.enable_gl_logging = config.Get("renderer.enable_gl_logging", false);
+
    config_.screen_width = config.Get("renderer.screen_width", 1280);
    config_.screen_height = config.Get("renderer.screen_height", 720);
 }
@@ -458,10 +458,12 @@ void Renderer::FlushMaterials() {
 
    r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::Material, r)) != 0) {
-      // TODO: create a set of manually-loaded materials.
-      if (r != uiMatRes_) {
-         h3dUnloadResource(r);
-      }
+      h3dUnloadResource(r);
+   }
+
+   r = 0;
+   while ((r = h3dGetNextResource(H3DResTypes::PixelBuffer, r)) != 0) {
+      h3dUnloadResource(r);
    }
 
    r = 0;
@@ -488,6 +490,8 @@ void Renderer::FlushMaterials() {
    while ((r = h3dGetNextResource(RT_AnimatedLightResource, r)) != 0) {
       h3dUnloadResource(r);
    }
+
+   uiBuffer_.buffersWereCleared();
 
    ResizePipelines();
 }
@@ -552,12 +556,12 @@ void Renderer::RenderOneFrame(int now, float alpha)
    
    h3dSetCurrentRenderTime(now / 1000.0f);
 
-   if (showUI && uiMatRes_) { // show UI
+   if (showUI && uiBuffer_.getMaterial()) { // show UI
       const float ovUI[] = { 0,  0, 0, 1, // flipped up-side-down!
                              0,  1, 0, 0,
                              ww, 1, 1, 0,
                              ww, 0, 1, 1, };
-      h3dShowOverlays(ovUI, 4, 1, 1, 1, 1, uiMatRes_, 0);
+      h3dShowOverlays(ovUI, 4, 1, 1, 1, 1, uiBuffer_.getMaterial(), 0);
    }
    if (false) { // show color mat
       const float v[] = { ww * .9f, .9f,    0, 1, // flipped up-side-down!
@@ -722,27 +726,8 @@ csg::Matrix4 Renderer::GetNodeTransform(H3DNode node) const
 
 void Renderer::UpdateUITexture(const csg::Region2& rgn, const char* buffer)
 {
-   if (!rgn.IsEmpty() && uiPbo_) {
-      auto bounds = rgn.GetBounds();
-      ASSERT(bounds.GetMax().x <= uiWidth_);
-      ASSERT(bounds.GetMax().y <= uiHeight_);
-
-      perfmon::SwitchToCounter("map ui pbo");
-
-      char *data = (char *)h3dMapResStream(uiPbo_, 0, 0, 0, false, true);
-
-      if (data) {
-         perfmon::SwitchToCounter("copy client mem to ui pbo");
-         // If you think this is slow (bliting everything instead of just the dirty rects), please
-         // talk to Klochek; the explanation is too large to fit in the margins of this code....
-         memcpy(data, buffer, uiWidth_ * uiHeight_ * 4);
-      }
-      perfmon::SwitchToCounter("unmap ui pbo");
-      h3dUnmapResStream(uiPbo_);
-
-      perfmon::SwitchToCounter("copy ui pbo to ui texture") ;
-
-      h3dCopyBufferToBuffer(uiPbo_, uiTexture_, 0, 0, uiWidth_, uiHeight_);
+   if (!rgn.IsEmpty()) {
+      uiBuffer_.update(buffer);
    }
 }
 
@@ -987,6 +972,7 @@ void Renderer::SetViewMode(ViewMode mode)
 
 void Renderer::LoadResources()
 {
+   uiBuffer_.allocateBuffers(uiWidth_, uiHeight_);
    if (!h3dutLoadResourcesFromDisk("horde")) {
       // at this time, there's a bug in horde3d (?) which causes render
       // pipline corruption if invalid resources are even attempted to
@@ -1029,39 +1015,9 @@ lua::ScriptHost* Renderer::GetScriptHost() const
 
 void Renderer::SetUITextureSize(int width, int height)
 {
-   if (width != uiWidth_ || height != uiHeight_) {
-      uiWidth_ = width;
-      uiHeight_ = height;
-
-      if (uiPbo_) {
-         h3dRemoveResource(uiPbo_);
-         uiPbo_ = 0x0;
-      }
-      if (uiTexture_) {
-         h3dRemoveResource(uiTexture_);
-         h3dUnloadResource(uiMatRes_);
-         uiTexture_ = 0x0;
-         uiMatRes_ = 0x0;
-      }
-      h3dReleaseUnusedResources();
-
-      uiPbo_ = h3dCreatePixelBuffer("screenui", width * height * 4);
-
-      uiTexture_ = h3dCreateTexture("UI Texture", uiWidth_, uiHeight_, H3DFormats::List::TEX_BGRA8, H3DResFlags::NoTexMipmaps);
-      unsigned char *data = (unsigned char *)h3dMapResStream(uiTexture_, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
-      memset(data, 0, uiWidth_ * uiHeight_ * 4);
-      h3dUnmapResStream(uiTexture_);
-
-      std::ostringstream material;
-      material << "<Material>" << std::endl;
-      material << "   <Shader source=\"shaders/overlay.shader\"/>" << std::endl;
-      material << "   <Sampler name=\"albedoMap\" map=\"" << h3dGetResName(uiTexture_) << "\" />" << std::endl;
-      material << "</Material>" << std::endl;
-
-      uiMatRes_ = h3dAddResource(H3DResTypes::Material, "UI Material", 0);
-      bool result = h3dLoadResource(uiMatRes_, material.str().c_str(), material.str().length());
-      ASSERT(result);
-   }
+   uiWidth_ = width;
+   uiHeight_ = height;
+   uiBuffer_.allocateBuffers(width, height);
 }
 
 core::Guard Renderer::OnScreenResize(std::function<void(csg::Point2)> fn)
