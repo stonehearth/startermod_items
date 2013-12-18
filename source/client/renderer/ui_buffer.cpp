@@ -71,6 +71,18 @@ void UiBuffer::update(const char* buffer)
    curBuff_ = (curBuff_ + 1) % MAX_BUFFERS;
 }
 
+bool UiBuffer::isUiMaterial(H3DRes r) const
+{
+   for (int i = 0; i < MAX_BUFFERS; i++)
+   {
+      if (r == uiMatRes_[i]) 
+      {
+         return true;
+      }
+   }
+   return false;
+}
+
 void UiBuffer::allocateBuffers(int width, int height)
 {
    if (width != width_ || height != height_) {

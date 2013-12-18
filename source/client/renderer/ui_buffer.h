@@ -18,6 +18,7 @@ class UiBuffer
       void update(const char* buffer);
       void allocateBuffers(int width, int height);
       H3DRes getMaterial() const;
+      bool isUiMaterial(H3DRes m) const;
 
    private:
       NO_COPY_CONSTRUCTOR(UiBuffer);

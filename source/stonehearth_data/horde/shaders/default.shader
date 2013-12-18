@@ -95,6 +95,16 @@ context DIRECTIONAL_LIGHTING
   CullMode = Back;
 }
 
+context FOG
+{
+  VertexShader = compile GLSL VS_GENERAL;
+  PixelShader = compile GLSL FS_FOG;
+  
+  ZWriteEnable = false;
+  BlendMode = Add;
+  CullMode = Back;
+}
+
 context DIRECTIONAL_SHADOWMAP
 {
   VertexShader = compile GLSL VS_DIRECTIONAL_SHADOWMAP;
@@ -178,9 +188,9 @@ void main( void )
 
 #include "shaders/utilityLib/fragLighting.glsl" 
 #include "shaders/shadows.shader"
+#include "shaders/utilityLib/fog.glsl"
 
 uniform sampler2D cloudMap;
-uniform sampler2D skySampler;
 uniform vec3 viewerPos;
 uniform vec3 lightAmbientColor;
 uniform vec2 frameBufSize;
@@ -200,9 +210,9 @@ void main( void )
   vec3 lightColor = calcSimpleDirectionalLight(viewerPos, pos.xyz, normalize(tsbNormal), -vsPos.z);
   lightColor = (shadowTerm * (lightColor * albedo)) + (lightAmbientColor * albedo);
   
-  // Fog.
-  float fogFac = clamp(exp(-vsPos.z / 1000.0) - 1.7, 0.0, 1.0);
-  vec3 fogColor = texture2D(skySampler, vec2(gl_FragCoord.x/frameBufSize.x, gl_FragCoord.y / frameBufSize.y)).xyz;
+  // Fog factor--needed to modulate our light pass.  The actual fog color is added in another
+  // pass.
+  float fogFac = calcFogFac(vsPos.z);
 
   // Clouds.
   float cloudSpeed = currentTime / 80.0;
@@ -210,11 +220,29 @@ void main( void )
   vec3 cloudColor = texture2D(cloudMap, fragCoord.xy / 128.0 + cloudSpeed).xyz;
   cloudColor = cloudColor * texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0)).xyz;
 
-  // Mix it all together!  We want to fade to a single fog color, so only mix in the cloud
-  // color with the calculated light color.
-  gl_FragColor.rgb = mix(lightColor * cloudColor, fogColor, fogFac);
+  // Mix it all together!
+  gl_FragColor.rgb = lightColor * cloudColor * (1.0 - fogFac);
   gl_FragColor.a = 1.0;
 }
+
+
+[[FS_FOG]]
+// =================================================================================================
+#include "shaders/utilityLib/fog.glsl"
+
+uniform sampler2D skySampler;
+uniform vec2 frameBufSize;
+
+varying vec4 vsPos;
+
+void main( void )
+{
+  float fogFac = calcFogFac(vsPos.z);
+  vec3 fogColor = texture2D(skySampler, gl_FragCoord.xy / frameBufSize.xy).rgb;
+
+  gl_FragColor = vec4(fogColor * fogFac, 1.0);
+}
+
 
 [[VS_DIRECTIONAL_SHADOWMAP]]
 #include "shaders/utilityLib/vertCommon.glsl"
