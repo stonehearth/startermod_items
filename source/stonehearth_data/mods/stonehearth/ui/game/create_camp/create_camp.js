@@ -45,11 +45,15 @@ App.StonehearthCreateCampView = App.View.extend({
          var self = this;
          self._hideCrate();
          $(top).trigger('radiant_create_stockpile', {
-            callback : function() {
-               radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-               setTimeout( function() {
-                  self._gotoFinishStep();
-               }, 1000);
+            callback : function(response) {
+               if(response.result) {
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+                  setTimeout( function() {
+                     self._gotoFinishStep();
+                  }, 1000);
+               } else {
+                  self._showCrate();
+               }
             }
          });
       },
@@ -120,6 +124,12 @@ App.StonehearthCreateCampView = App.View.extend({
 
    _hideScroll: function(id, callback) {
      $(id).animate({ 'bottom' : -300 }, 200, function() { callback(); }); 
+   },
+
+   _showCrate: function() {
+      this._cratePlaced = true
+      $('#crate').animate({ 'bottom' : -40 }, 150);
+      $("#crateCoverLink").show();
    },
 
    _hideCrate: function() {

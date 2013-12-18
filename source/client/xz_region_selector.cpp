@@ -65,6 +65,10 @@ bool XZRegionSelector::onInputEvent(Input const& evt)
          }
       }
       return true;
+   } else if (evt.type == Input::KEYBOARD) {
+      if (evt.keyboard.down && evt.keyboard.key == 256) { // esc
+         deferred_->Reject("escape key pressed");
+      }
    }
    return false;
 }
