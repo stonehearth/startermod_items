@@ -27,11 +27,15 @@ App.StonehearthCreateCampView = App.View.extend({
          this._hideBanner();
          radiant.call('stonehearth:choose_camp_location')
          .done(function(o) {
-            radiant.call('radiant:play_sound', 'stonehearth:sounds:banner_plant' );
-               setTimeout( function() {
-                  radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:paper_menu' );
-                  self._gotoStockpileStep();
-               }, 1000);
+               if (o.result) {
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:banner_plant' );
+                     setTimeout( function() {
+                        radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:paper_menu' );
+                        self._gotoStockpileStep();
+                     }, 1000);
+               } else {
+                  self._showBanner();
+               }
             });
       },
 
@@ -100,6 +104,12 @@ App.StonehearthCreateCampView = App.View.extend({
             self._bounceCrate();
          },1000)
       }
+   },
+
+   _showBanner: function() {
+      this._bannerPlaced = false
+      $('#banner').animate({ 'bottom' : -22 }, 100);
+      $("#bannerCoverLink").show();
    },
 
    _hideBanner: function() {
