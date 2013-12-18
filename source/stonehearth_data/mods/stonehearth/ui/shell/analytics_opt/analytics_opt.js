@@ -13,16 +13,6 @@ App.StonehearthAnalyticsOptView = App.View.extend({
          });  
    },
 
-   didInsertElement: function () {
-      $( "#newGame" ).position({
-        of: $( "#newGameButton" ),
-        my: "center top",
-        at: "center bottom+10"
-      })
-      .fadeIn();
-
-   },
-   
    actions: {
       optIn: function(optIn) {
          this._doOpt(optIn);  
