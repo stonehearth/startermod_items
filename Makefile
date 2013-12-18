@@ -60,6 +60,7 @@ stonehearth:
 .PHONY: crash_reporter
 crash_reporter:
 	@echo Build type is ${BUILD_TYPE}.
+	$(MSBUILD) $(BUILD_ROOT)/Stonehearth.sln -p:configuration=$(MSBUILD_CONFIGURATION) -t:protobuf
 	$(MSBUILD) $(BUILD_ROOT)/Stonehearth.sln -p:configuration=$(MSBUILD_CONFIGURATION) -t:crash_reporter_server
 
 .PHONY: symbols
