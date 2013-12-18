@@ -458,12 +458,10 @@ void Renderer::FlushMaterials() {
 
    r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::Material, r)) != 0) {
-      h3dUnloadResource(r);
-   }
-
-   r = 0;
-   while ((r = h3dGetNextResource(H3DResTypes::PixelBuffer, r)) != 0) {
-      h3dUnloadResource(r);
+      if (!uiBuffer_.isUiMaterial(r))
+      {
+         h3dUnloadResource(r);
+      }
    }
 
    r = 0;
@@ -490,8 +488,6 @@ void Renderer::FlushMaterials() {
    while ((r = h3dGetNextResource(RT_AnimatedLightResource, r)) != 0) {
       h3dUnloadResource(r);
    }
-
-   uiBuffer_.buffersWereCleared();
 
    ResizePipelines();
 }
