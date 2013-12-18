@@ -25,6 +25,21 @@ using namespace ::radiant;
 using namespace ::radiant::client;
 using namespace luabind;
 
+om::EntityRef Client_GetEntity(object id)
+{
+   if (type(id) == LUA_TNUMBER) {
+      return Client::GetInstance().GetEntity(object_cast<int>(id));
+   }
+   if (type(id) == LUA_TSTRING) {
+      dm::Store& store = Client::GetInstance().GetStore();
+      dm::ObjectPtr obj = om::ObjectFormatter().GetObject(store, object_cast<std::string>(id));
+      if (obj->GetObjectType() == om::EntityObjectType) {
+         return std::static_pointer_cast<om::Entity>(obj);
+      }
+   }
+   return om::EntityRef();
+}
+
 H3DNodeUnique Client_CreateBlueprintNode(lua_State* L, 
                                          H3DNode parent,
                                          csg::Region3 const& model,
@@ -325,6 +340,7 @@ void lua::client::open(lua_State* L)
    module(L) [
       namespace_("_radiant") [
          namespace_("client") [
+            def("get_entity",                      &Client_GetEntity),
             def("create_empty_authoring_entity",   &Client_CreateEmptyAuthoringEntity),
             def("create_authoring_entity",         &Client_CreateAuthoringEntity),
             def("destroy_authoring_entity",        &Client_DestroyAuthoringEntity),
