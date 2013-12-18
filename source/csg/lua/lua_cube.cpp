@@ -3,6 +3,7 @@
 #include "lua_cube.h"
 #include "csg/cube.h"
 #include "lib/json/namespace.h"
+#include "csg/util.h"
 
 using namespace ::luabind;
 using namespace ::radiant;
@@ -49,6 +50,11 @@ static void EachPoint(lua_State *L, T const& cube)
    object(L, 1).push(L);                                   // var (ignored)
 }
 
+Cube3f ToCube3f(const Cube3& r) {
+   return ToFloat(r);
+}
+
+
 IMPLEMENT_TRIVIAL_TOSTRING(PointIterator<Cube3>);
 DEFINE_INVALID_JSON_CONVERSION(PointIterator<Cube3>);
 
@@ -86,6 +92,7 @@ scope LuaCube::RegisterLuaTypes(lua_State* L)
    return
       def("ConstructCube3", &Cube3::Construct),
       Register<Cube3>(L,  "Cube3")
+         .def("to_float",     &ToCube3f)
          .def("each_point",   &EachPoint<Cube3>),
       Register<Cube3f>(L, "Cube3f"),
       Register<Rect2>(L,  "Rect2"),
