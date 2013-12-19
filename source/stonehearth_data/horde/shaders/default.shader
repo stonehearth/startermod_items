@@ -293,8 +293,6 @@ void main(void)
 
 [[VS_SELECTED_SCREENSPACE_OUTLINER]]
 
-#include "shaders/utilityLib/fullscreen_quad.glsl" 
-
 uniform mat4 projMat;
 
 attribute vec3 vertPos;
@@ -303,7 +301,8 @@ varying vec2 texCoords;
         
 void main( void )
 {
-  transform_fullscreen(vertPos, projMat, gl_Position, texCoords);
+  texCoords = vertPos.xy;
+  gl_Position = projMat * vec4(vertPos, 1.0);
 }
 
 
