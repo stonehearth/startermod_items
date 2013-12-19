@@ -7,6 +7,12 @@
 
 BEGIN_RADIANT_PHYSICS_NAMESPACE
    
+/* 
+ * -- VerticalPathingRegionTracker
+ *
+ * A CollisionTracker for VerticalPathingRegion components of Entities.  See collision_tracker.h
+ * for more details.
+ */
 class VerticalPathingRegionTracker : public CollisionTracker
 {
 public:

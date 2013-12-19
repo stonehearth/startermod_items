@@ -64,7 +64,7 @@ Simulation::Simulation() :
    paused_(false),
    noidle_(false),
    _tcp_acceptor(nullptr),
-   _debug_navgrid_enabled(false),
+   debug_navgrid_enabled_(false),
    profile_next_lua_update_(false)
 {
    octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree(dm::OBJECT_MODEL_TRACES));
@@ -90,9 +90,9 @@ Simulation::Simulation() :
 
    core_reactor_->AddRouteV("radiant:debug_navgrid", [this](rpc::Function const& f) {
       json::Node args = f.args;
-      _debug_navgrid_enabled = args.get<bool>("enabled", false);
-      if (_debug_navgrid_enabled) {
-         _debug_navgrid_point = args.get<csg::Point3>("cursor", csg::Point3::zero);
+      debug_navgrid_enabled_ = args.get<bool>("enabled", false);
+      if (debug_navgrid_enabled_) {
+         debug_navgrid_point_ = args.get<csg::Point3>("cursor", csg::Point3::zero);
       }
    });
 
@@ -331,8 +331,8 @@ void Simulation::EncodeDebugShapes(protocol::SendQueuePtr queue)
          job->EncodeDebugShapes(msg);
       });
    }
-   if (_debug_navgrid_enabled) {
-      GetOctTree().ShowDebugShapes(_debug_navgrid_point, msg);
+   if (debug_navgrid_enabled_) {
+      GetOctTree().ShowDebugShapes(debug_navgrid_point_, msg);
    }
    queue->Push(protocol::Encode(update));
 }

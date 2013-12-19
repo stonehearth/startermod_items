@@ -38,6 +38,7 @@ std::string GetObjectName(const dm::Object& obj);
 std::string GetObjectNameLower(dm::ObjectPtr obj);
 std::string GetObjectNameLower(const dm::Object& obj);
 
+
 void RegisterObjectTypes(dm::Store& store);
 
 END_RADIANT_OM_NAMESPACE

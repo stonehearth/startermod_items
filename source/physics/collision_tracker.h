@@ -6,15 +6,24 @@
 #include "om/om.h"
 
 BEGIN_RADIANT_PHYSICS_NAMESPACE
-   
+
+/* 
+ * -- CollisionTracker
+ *
+ * The CollisionTracker is an abstract base class for tracking navigation information
+ * about a game object.  Derived classes need to implement GetOverlappingRegion and
+ * MarkChanged, and call the NavGrid's Add*Tracker functions to register themselves
+ * with the NavGrid.
+ */
 class CollisionTracker : public std::enable_shared_from_this<CollisionTracker> {
 public:
    CollisionTracker(NavGrid& ng, om::EntityPtr entity);
 
    virtual void Initialize();
+   csg::Point3 GetEntityPosition() const;
+
    virtual csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const = 0;
    virtual void MarkChanged() = 0;
-   csg::Point3 GetEntityPosition() const;
 
 protected:
    NavGrid& GetNavGrid() const;

@@ -6,7 +6,17 @@
 #include "csg/point.h"
 
 BEGIN_RADIANT_PHYSICS_NAMESPACE
-   
+
+/* 
+ * -- TerrainTracker
+ *
+ * A CollisionTracker for Terarin components of Entities.  This tracker really doesn't
+ * to much: the terrain is just a container for terrain tiles, which contain collision
+ * regions.  Hence, all this does is manage TerrainTileTrackers on behalf of the
+ * NavGrid.
+ *
+ * See collision_tracker.h for more details.
+ */
 class TerrainTracker : public CollisionTracker
 {
 public:

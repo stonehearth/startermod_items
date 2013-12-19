@@ -7,6 +7,12 @@
 
 BEGIN_RADIANT_PHYSICS_NAMESPACE
    
+/* 
+ * -- RegionCollisionShapeTracker
+ *
+ * A CollisionTracker for RegionCollisionShape components of Entities.  See collision_tracker.h
+ * for more details.
+ */
 class RegionCollisionShapeTracker : public CollisionTracker
 {
 public:

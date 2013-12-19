@@ -16,6 +16,7 @@ BEGIN_RADIANT_PHYSICS_NAMESPACE
 typedef int TerrainChangeCbId;
 typedef std::function<void()> TerrainChangeCb;
 
+class OctTree;
 class NavGrid;
 class CollisionTracker;
 class TerrainTracker;

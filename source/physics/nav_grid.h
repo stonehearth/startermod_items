@@ -2,87 +2,64 @@
 #define _RADIANT_PHYSICS_NAV_GRID_H
 
 #include <unordered_map>
-#include "radiant_macros.h"
 #include "namespace.h"
-#include "csg/region.h"
 #include "om/om.h"
 #include "om/region.h"
 #include "dm/dm.h"
+#include "csg/namespace.h"
 #include "nav_grid_tile.h"
 
 BEGIN_RADIANT_PHYSICS_NAMESPACE
 
+/*
+ * -- NavGrid 
+ *
+ * The NavGrid provides an efficient implementation of functions to navigate the world.
+ * It's implemented using a sparse-array of 3d-bit vectors (one for each query).  The
+ * vectors themselves are managed by the NavGridTile class.  So each query is simply
+ * a std::unordered_map() lookup to find the tile for a point and a very fast bit-vector
+ * lookup on the proper table.
+ *
+ */
 
 class NavGrid {
-   public:
+   public: // public methods
       NavGrid(int trace_category);
 
-      void TrackComponent(std::shared_ptr<dm::Object> component);
       bool CanStandOn(om::EntityPtr entity, csg::Point3 const& pt) const;
       void RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3& r) const;
 
-      bool CanStandOn(csg::Cube3 const& cube) const;
       bool IsValidStandingRegion(csg::Region3 const& r) const;
-      int GetTraceCategory() const;
-
-   public:
       void ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg);
-
-   private:
+   
+   private: // methods for internal helper classes
       friend CollisionTracker;
       friend TerrainTracker;
       friend TerrainTileTracker;
       friend RegionCollisionShapeTracker;
       friend VerticalPathingRegionTracker;
+      int GetTraceCategory() const;
       void AddTerrainTileTracker(om::EntityRef entity, csg::Point3 const& offset, om::Region3BoxedPtr tile);
       void AddCollisionTracker(NavGridTile::TrackerType type, csg::Cube3 const& last_bounds, csg::Cube3 const& bounds, CollisionTrackerPtr tracker);
 
-   private:
-      bool IsEmpty(csg::Cube3 const& pt) const;
+   private: // methods exposed only to the OctTree
+      friend OctTree;
+      void TrackComponent(std::shared_ptr<dm::Object> component);
+
+   private: // helper methods
       NavGridTile& GridTile(csg::Point3 const& pt) const;
+      bool CanStandOn(csg::Cube3 const& cube) const;
 
-   private:
-      struct TerrainCollisionObject {
-         std::weak_ptr<om::Terrain> obj;
-         om::DeepRegionGuardPtr     trace;
-         TerrainCollisionObject() { }
-         TerrainCollisionObject(std::shared_ptr<om::Terrain> o) : obj(o) { }
-      private:
-         NO_COPY_CONSTRUCTOR(TerrainCollisionObject)
-      };
+   private: // private types
+      typedef std::unordered_map<csg::Point3, NavGridTile, csg::Point3::Hash> NavGridTileMap;
+      typedef std::unordered_map<dm::ObjectId, CollisionTrackerPtr> CollisionTrackerMap;
+      typedef std::unordered_map<csg::Point3, CollisionTrackerPtr, csg::Point3::Hash> TerrainTileCollisionTrackerMap;
 
-      struct VerticalPathingRegionCollisionObject {
-         std::weak_ptr<om::VerticalPathingRegion> obj;
-         core::Guard                                guard;
-         VerticalPathingRegionCollisionObject() { }
-         VerticalPathingRegionCollisionObject(std::shared_ptr<om::VerticalPathingRegion> o) : obj(o) { }
-      private:
-         NO_COPY_CONSTRUCTOR(VerticalPathingRegionCollisionObject)
-      };
-
-      struct RegionCollisionShapeObject {
-         std::weak_ptr<om::RegionCollisionShape> obj;
-         om::DeepRegionGuardPtr                  trace;
-         RegionCollisionShapeObject() { }
-         RegionCollisionShapeObject(std::shared_ptr<om::RegionCollisionShape> o) : obj(o) { }
-      private:
-         NO_COPY_CONSTRUCTOR(RegionCollisionShapeObject)
-      };
-
-      mutable std::unordered_map<dm::ObjectId, std::shared_ptr<TerrainCollisionObject>> terrain_;
-      mutable std::unordered_map<dm::ObjectId, std::shared_ptr<VerticalPathingRegionCollisionObject>> vprs_;
-      mutable std::unordered_map<dm::ObjectId, std::shared_ptr<RegionCollisionShapeObject>>  regionCollisionShapes_;
-
-     struct TerrainChangeEntry {
-         TerrainChangeEntry(csg::Region3 const* r, TerrainChangeCb c) : region(r), cb(c) { }
-         csg::Region3 const*  region;
-         TerrainChangeCb      cb;
-      };
-
-      int                                             trace_category_;
-      mutable std::unordered_map<csg::Point3, NavGridTile, csg::Point3::Hash>    nav_grid_;
-      std::unordered_map<dm::ObjectId, CollisionTrackerPtr> object_collsion_trackers_;
-      std::unordered_map<csg::Point3, CollisionTrackerPtr, csg::Point3::Hash> terrain_tile_collsion_trackers_;
+   private: // instance variables
+      int                              trace_category_;
+      mutable NavGridTileMap           tiles_;
+      CollisionTrackerMap              collision_trackers_;
+      TerrainTileCollisionTrackerMap   terrain_tile_collsion_trackers_;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE

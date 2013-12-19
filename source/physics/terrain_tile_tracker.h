@@ -7,6 +7,12 @@
 
 BEGIN_RADIANT_PHYSICS_NAMESPACE
    
+/* 
+ * -- TerrainTileTracker
+ *
+ * A CollisionTracker for tiles of Terarin components of Entities.  See collision_tracker.h
+ * for more details.
+ */
 class TerrainTileTracker : public CollisionTracker
 {
 public:
