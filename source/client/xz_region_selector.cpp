@@ -122,30 +122,7 @@ void XZRegionSelector::ValidateP1(int newx, int newz)
    int validx, validz;
    auto const& octtree = Client::GetInstance().GetOctTree();
 
-// xxx: DON"T CHECK THIS IN WITH THAT NULLPTR!!!!!!!!!!!!!!!!!!!
-// xxx: DON"T CHECK THIS IN WITH THAT NULLPTR!!!!!!!!!!!!!!!!!!!
-// xxx: DON"T CHECK THIS IN WITH THAT NULLPTR!!!!!!!!!!!!!!!!!!!
-// xxx: DON"T CHECK THIS IN WITH THAT NULLPTR!!!!!!!!!!!!!!!!!!!
-// xxx: DON"T CHECK THIS IN WITH THAT NULLPTR!!!!!!!!!!!!!!!!!!!
-// xxx: DON"T CHECK THIS IN WITH THAT NULLPTR!!!!!!!!!!!!!!!!!!!
-// xxx: DON"T CHECK THIS IN WITH THAT NULLPTR!!!!!!!!!!!!!!!!!!!
-// xxx: DON"T CHECK THIS IN WITH THAT NULLPTR!!!!!!!!!!!!!!!!!!!
-// xxx: DON"T CHECK THIS IN WITH THAT NULLPTR!!!!!!!!!!!!!!!!!!!
-// xxx: DON"T CHECK THIS IN WITH THAT NULLPTR!!!!!!!!!!!!!!!!!!!
-// xxx: DON"T CHECK THIS IN WITH THAT NULLPTR!!!!!!!!!!!!!!!!!!!
-// xxx: DON"T CHECK THIS IN WITH THAT NULLPTR!!!!!!!!!!!!!!!!!!!
-// xxx: DON"T CHECK THIS IN WITH THAT NULLPTR!!!!!!!!!!!!!!!!!!!
-// xxx: DON"T CHECK THIS IN WITH THAT NULLPTR!!!!!!!!!!!!!!!!!!!
-// xxx: DON"T CHECK THIS IN WITH THAT NULLPTR!!!!!!!!!!!!!!!!!!!
-// xxx: DON"T CHECK THIS IN WITH THAT NULLPTR!!!!!!!!!!!!!!!!!!!
-// xxx: DON"T CHECK THIS IN WITH THAT NULLPTR!!!!!!!!!!!!!!!!!!!
-// xxx: DON"T CHECK THIS IN WITH THAT NULLPTR!!!!!!!!!!!!!!!!!!!
-// xxx: DON"T CHECK THIS IN WITH THAT NULLPTR!!!!!!!!!!!!!!!!!!!
-// xxx: DON"T CHECK THIS IN WITH THAT NULLPTR!!!!!!!!!!!!!!!!!!!
-
 #define OK(x, y, z) octtree.CanStandOn(nullptr, csg::Point3(x, y, z))
-
-//#define OK(x, y, z) (grid->getVoxelResident(x, y, z) == 0 && grid->getVoxelResident(x, y - 1, z) != 0)
 
    // grow in the x direction
    for (validx = _p0.x + dx; validx != newx + dx; validx += dx) {
