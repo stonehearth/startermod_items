@@ -199,7 +199,11 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
    H3DNode parent = entity_.GetSkeleton().GetSceneNode(bone);
 
    H3DNodeUnique node;
+
    if (model_mode_ == "blueprint") {
+      //TODO: call a function to set the origin of the matrix when in blueprint mode
+      //instead of calling SetPreserveMatrixOrigin(false). Pass in the origin coordiantes.
+      //Part of this bug: http://bugs.radiant-entertainment.com:8080/browse/SH-38
       csg::Region3 model = voxel::QubicleBrush(matrix)
                                  .SetPaintMode(voxel::QubicleBrush::Opaque)
                                  .SetPreserveMatrixOrigin(true)
