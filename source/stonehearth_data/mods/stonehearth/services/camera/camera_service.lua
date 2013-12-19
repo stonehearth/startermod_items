@@ -231,7 +231,7 @@ function CameraService:_calculate_drag(e)
                         _radiant.client.is_key_down(_radiant.client.KeyboardInput.RIGHT_SHIFT)
 
   local drag = drag_key_down or self._scroll_on_drag
-  
+
   if e:down(1) and drag then
     local r = _radiant.renderer.scene.cast_screen_ray(e.x, e.y)
     local screen_ray = _radiant.renderer.scene.get_screen_ray(e.x, e.y)
@@ -244,6 +244,12 @@ function CameraService:_calculate_drag(e)
       local d = -self._drag_origin.y / screen_ray.direction.y
       screen_ray.direction:scale(d)
       self._drag_start = screen_ray.origin + screen_ray.direction
+    end
+    local root = _radiant.client.get_entity(1)
+    local terrain_comp = root:get_component('terrain')
+    local bounds = terrain_comp:get_bounds():to_float()
+    if not bounds:contains(self._drag_start) then
+      self._dragging = false
     end
   elseif (e:up(1) or not drag) and self._dragging then
     self._dragging = false
@@ -265,14 +271,22 @@ function CameraService:_drag(x, y)
 
   -- Intersect the plane, facing up (y = 1), on the point defined by _drag_start.
   local d = (self._drag_start.y - self._drag_origin.y) / screen_ray.direction.y
+
+  if d < 0 then
+    return
+  end
+  
   screen_ray.direction:scale(d)
 
   local drag_end = screen_ray.direction + self._drag_origin
 
-  self._impulse_delta = self._impulse_delta + (self._drag_start - drag_end)
-  
+  local drag_delta = (self._drag_start - drag_end)
+  local next_pos = self._drag_origin + drag_delta
+  local proj_pos = Vec3(self._next_position.x, 0.0, self._next_position.z)
+  if drag_end:distance_to(proj_pos) < 900 then
+    self._next_position = next_pos
+  end
   if self._drag_start ~= drag_end then
-    self._drag_start = drag_end
     radiant.events.trigger(self, 'stonehearth:camera:update', {
         pan = true,
         orbit = false,
@@ -319,7 +333,6 @@ end
 function CameraService:_update_camera(frame_time)
   self._next_position = self._next_position + self._continuous_delta + self._impulse_delta
 
-  -- Impulse delta is cleared on every camera update
   self._impulse_delta = Vec3(0, 0, 0)
 
   local lerp_pos = self:get_position():lerp(self._next_position, smoothness * frame_time)
