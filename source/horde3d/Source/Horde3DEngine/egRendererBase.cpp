@@ -538,8 +538,8 @@ uint32 RenderDevice::createTexture( TextureTypes::List type, int width, int heig
 	glBindTexture( tex.type, tex.glObj );
 	
 	float borderColor[] = { 1.0f, 1.0f, 1.0f, 0.0f };
-	glTexParameterfv( GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor );
-	
+	glTexParameterfv( tex.type, GL_TEXTURE_BORDER_COLOR, borderColor );
+
 	tex.samplerState = 0;
 	applySamplerState( tex );
 	
@@ -1039,10 +1039,14 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
 		// Create a depth texture
 		uint32 texObj = createTexture( TextureTypes::Tex2D, rb.width, rb.height, 1, TextureFormats::DEPTH, false, false, false, false );
 		ASSERT( texObj != 0 );
+
+      RDITexture &tex = _textures.getRef(texObj);
+      glBindTexture(GL_TEXTURE_2D, tex.glObj);
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE );
-		uploadTextureData( texObj, 0, 0, 0x0 );
+      glBindTexture(GL_TEXTURE_2D, 0);
+		
+      uploadTextureData( texObj, 0, 0, 0x0 );
 		rb.depthTex = texObj;
-		RDITexture &tex = _textures.getRef( texObj );
 		// Attach the texture
 		glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, tex.glObj, 0 );
 
