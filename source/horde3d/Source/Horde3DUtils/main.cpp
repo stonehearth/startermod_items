@@ -583,24 +583,6 @@ DLLEXP void h3dutShowFrameStats( H3DRes fontMaterialRes, H3DRes boxMaterialRes, 
 		text.str( "" );
 		text << particleSimTime << "ms";
 		addInfoBoxRow( "Particles", text.str().c_str() );
-
-		// GPU time
-		beginInfoBox( 0.03f, 0.65f, 0.32f, 3, "GPU Time", fontMaterialRes, boxMaterialRes );
-
-		// Forward and deferred lights
-		text.str( "" );
-		text << (fwdLightsGPUTime + defLightsGPUTime) << "ms";
-		addInfoBoxRow( "Lights", text.str().c_str() );
-		
-		// Shadows
-		text.str( "" );
-		text << shadowsGPUTime << "ms";
-		addInfoBoxRow( "Shadows", text.str().c_str() );
-
-		// Particles
-		text.str( "" );
-		text << particleGPUTime << "ms";
-		addInfoBoxRow( "Particles", text.str().c_str() );
 	}
 }
 

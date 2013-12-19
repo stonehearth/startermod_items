@@ -176,7 +176,6 @@ public:
 	float getStat( int param, bool reset );
 	void incStat( int param, float value );
 	Timer *getTimer( int param );
-	GPUTimer *getGPUTimer( int param );
 
 protected:
 	uint32    _statTriCount;
@@ -191,11 +190,6 @@ protected:
    float     _frameTimes[100];
    int       _curFrame;
    int       _totalFrames;
-
-	GPUTimer  *_fwdLightsGPUTimer;
-	GPUTimer  *_defLightsGPUTimer;
-	GPUTimer  *_shadowsGPUTimer;
-	GPUTimer  *_particleGPUTimer;
 
 	friend class ProfSample;
 };
