@@ -203,7 +203,7 @@ void NavGridTile::UpdateCollisionTracker(TrackerType type, CollisionTracker cons
  * Draw some debug shapes.  We draw a frame around the entire tile, then a blue
  * filter over the places where someone can stand.
  */
-void NavGridTile::ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg)
+void NavGridTile::ShowDebugShapes(protocol::shapelist* msg)
 {
    csg::Color4 blocked_color(0, 0, 255, 64);
    csg::Color4 border_color(0, 0, 128, 64);

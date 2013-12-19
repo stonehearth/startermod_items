@@ -48,7 +48,7 @@ public:
    bool CanStandOn(csg::Point3 const& pt);
 
 public:
-   void ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg);
+   void ShowDebugShapes(protocol::shapelist* msg);
 
 private:
    void FlushDirty();
