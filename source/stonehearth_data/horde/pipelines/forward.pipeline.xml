@@ -26,7 +26,6 @@
 
       <Stage id="Light">
          <DoForwardLightLoop class="~Translucent" noShadows="false"/>
-         <UnbindBuffers />
       </Stage>
 
       <Stage id="Fog">
