@@ -17,6 +17,11 @@ class OctTree {
       void SetRootEntity(om::EntityPtr);
       void Cleanup();
 
+      // good!
+      bool CanStandOn(om::EntityPtr entity, const csg::Point3& at) const;
+      void RemoveNonStandableRegion(om::EntityPtr e, csg::Region3& r) const;
+
+      // unknown...
       NavGrid& GetNavGrid() { return navgrid_; } // sigh
       NavGrid const& GetNavGrid() const { return navgrid_; } // sigh
 
@@ -28,25 +33,14 @@ class OctTree {
       void GetActorsIn(const csg::Cube3f &bounds, QueryCallback cb);      
       void TraceRay(const csg::Ray3 &ray, RayQueryCallback cb);
 
-      bool IsPassable(const csg::Point3& at) const;
-      bool CanStand(const csg::Point3& at) const { return navgrid_.CanStand(at); }
-      void ClipRegion(csg::Region3& r) const { return navgrid_.ClipRegion(r); }
-
-      bool IsStuck(om::EntityPtr object);
-      void Unstick(om::EntityPtr object);
-      void Unstick(std::vector<csg::Point3> &points);
-      csg::Point3 Unstick(const csg::Point3 &pt);
-
-      core::Guard TraceZonesContaining(om::EntityPtr entity);
-
-      TerrainChangeCbId AddCollisionRegionChangeCb(csg::Region3 const* r, TerrainChangeCb cb);
-      void RemoveCollisionRegionChangeCb(TerrainChangeCbId id);
-
       // Path finding helpers
-      std::vector<std::pair<csg::Point3, int>> ComputeNeighborMovementCost(const csg::Point3& from) const;
+      std::vector<std::pair<csg::Point3, int>> ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point3& from) const;
       int EstimateMovementCost(const csg::Point3& src, const csg::Point3& dst) const;
       int EstimateMovementCost(const csg::Point3& src, const std::vector<csg::Point3>& points) const;
       int EstimateMovementCost(const csg::Point3& src, const csg::Region3& dst) const;
+
+
+      void ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg);
 
    protected:
       bool Intersects(csg::Cube3f bounds, om::RegionCollisionShapePtr rgnCollsionShape) const;   

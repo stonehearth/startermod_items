@@ -115,6 +115,7 @@ class Client : public core::Singleton<Client> {
 
       void InstallCurrentCursor();
       void HilightMouseover();
+      void UpdateDebugCursor();
 
       static inline void CursorDeleter(HCURSOR hcursor) { DestroyCursor(hcursor); }
       typedef core::SharedResource<HCURSOR, Client::CursorDeleter> Cursor;
@@ -217,6 +218,7 @@ private:
       core::Guard                 guards_;
       bool                        perf_hud_shown_;
       bool                        connected_;
+      bool                        enable_debug_cursor_;
 
       dm::TracerSyncPtr           object_model_traces_;
       dm::TracerBufferedPtr       game_render_tracer_;

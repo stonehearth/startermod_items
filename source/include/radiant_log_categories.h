@@ -19,6 +19,7 @@
    \
    BEGIN_GROUP(physics) \
       ADD_CATEGORY(collision) \
+      ADD_CATEGORY(navgrid) \
    END_GROUP(physics) \
    \
    BEGIN_GROUP(csg) \
