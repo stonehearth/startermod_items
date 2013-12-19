@@ -64,6 +64,7 @@ Simulation::Simulation() :
    paused_(false),
    noidle_(false),
    _tcp_acceptor(nullptr),
+   _debug_navgrid_enabled(false),
    profile_next_lua_update_(false)
 {
    octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree(dm::OBJECT_MODEL_TRACES));
@@ -87,40 +88,32 @@ Simulation::Simulation() :
    trace_router_ = std::make_shared<rpc::TraceObjectRouter>(store_);
    core_reactor_->AddRouter(trace_router_);
 
-   core_reactor_->AddRoute("radiant:toggle_debug_nodes", [this](rpc::Function const& f) {
-      std::ostringstream msg;
+   core_reactor_->AddRouteV("radiant:debug_navgrid", [this](rpc::Function const& f) {
+      json::Node args = f.args;
+      _debug_navgrid_enabled = args.get<bool>("enabled", false);
+      if (_debug_navgrid_enabled) {
+         _debug_navgrid_point = args.get<csg::Point3>("cursor", csg::Point3::zero);
+      }
+   });
+
+   core_reactor_->AddRouteS("radiant:toggle_debug_nodes", [this](rpc::Function const& f) {
       _showDebugNodes = !_showDebugNodes;
-      msg << "debug nodes turned " << (_showDebugNodes ? "ON" : "OFF");
-      SIM_LOG(3) << msg.str();
-
-      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:toggle_debug_nodes");
-      result->ResolveWithMsg(msg.str());
-      return result;
+      std::string msg = BUILD_STRING("debug nodes turned " << (_showDebugNodes ? "ON" : "OFF"));
+      SIM_LOG(0) << msg;
+      return msg;
    });
-   core_reactor_->AddRoute("radiant:toggle_step_paths", [this](rpc::Function const& f) {
-      std::ostringstream msg;
+   core_reactor_->AddRouteS("radiant:toggle_step_paths", [this](rpc::Function const& f) {
       _singleStepPathFinding = !_singleStepPathFinding;
-      msg << "single step path finding turned " << (_singleStepPathFinding ? "ON" : "OFF");
-      SIM_LOG(3) << msg.str();
-
-      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:toggle_step_paths");
-      result->ResolveWithMsg(msg.str());
-      return result;
+      std::string msg = BUILD_STRING("single step path finding turned " << (_singleStepPathFinding ? "ON" : "OFF"));
+      SIM_LOG(0) << msg;
+      return msg;
    });
-   core_reactor_->AddRoute("radiant:step_paths", [this](rpc::Function const& f) {
+   core_reactor_->AddRouteV("radiant:step_paths", [this](rpc::Function const& f) {
       StepPathFinding();
-
-      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:step_paths");
-      result->ResolveWithMsg("stepped...");
-      return result;
    });
-   core_reactor_->AddRoute("radiant:profile_next_lua_upate", [this](rpc::Function const& f) {
+   core_reactor_->AddRouteV("radiant:profile_next_lua_upate", [this](rpc::Function const& f) {
       profile_next_lua_update_ = true;
       SIM_LOG(0) << "profiling next lua update";
-
-      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:profile_next_lua_upate");
-      result->ResolveWithMsg("ok");
-      return result;
    });
 
 }
@@ -338,7 +331,9 @@ void Simulation::EncodeDebugShapes(protocol::SendQueuePtr queue)
          job->EncodeDebugShapes(msg);
       });
    }
-
+   if (_debug_navgrid_enabled) {
+      GetOctTree().ShowDebugShapes(_debug_navgrid_point, msg);
+   }
    queue->Push(protocol::Encode(update));
 }
 
@@ -509,7 +504,14 @@ void Simulation::mainloop()
    }
    if (net_send_timer_.expired(20)) {
       send_client_updates();
-      net_send_timer_.set(net_send_interval_); // this set is intentional...
+      // reset the send timer.  We have a choice here of using "set" or "advance". Set
+      // will set the timer to the current time + the interval.  Advance will set it to
+      // the exact time we were *supposed* to render + the interval.  When the server is
+      // flush with CPU and se spend some time idling, these two numbers are nearly
+      // identical.  For very long ticks or when the server is just plain overloaded, however,
+      // "set" throttle the send rate, guaranteeing we get at least net_send_interval_ ms
+      // of simulation time before the update is sent.  
+      net_send_timer_.set(net_send_interval_); 
    } else {
       SIM_LOG_GAMELOOP(7) << "net log still has " << net_send_timer_.remaining() << " till expired.";
    }

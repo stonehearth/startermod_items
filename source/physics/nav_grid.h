@@ -8,6 +8,7 @@
 #include "om/om.h"
 #include "om/region.h"
 #include "dm/dm.h"
+#include "nav_grid_tile.h"
 
 BEGIN_RADIANT_PHYSICS_NAMESPACE
 
@@ -17,23 +18,28 @@ class NavGrid {
       NavGrid(int trace_category);
 
       void TrackComponent(std::shared_ptr<dm::Object> component);
-      bool CanStand(csg::Point3 const& pt) const;
-      bool IsEmpty(csg::Point3 const& pt) const;
-      bool IsEmpty(csg::Cube3 const& pt) const;
-      void ClipRegion(csg::Region3& r) const;
+      bool CanStandOn(om::EntityPtr entity, csg::Point3 const& pt) const;
+      void RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3& r) const;
 
       bool CanStandOn(csg::Cube3 const& cube) const;
       bool IsValidStandingRegion(csg::Region3 const& r) const;
-      TerrainChangeCbId AddCollisionRegionChangeCb(csg::Region3 const* r, TerrainChangeCb cb);
-      void RemoveCollisionRegionChangeCb(TerrainChangeCbId id);
+      int GetTraceCategory() const;
+
+   public:
+      void ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg);
 
    private:
-      void AddVerticalPathingRegion(om::VerticalPathingRegionPtr vpr);
-      void AddRegionCollisionShape(om::RegionCollisionShapePtr region);
-      bool CanStandOn(csg::Point3 const& pt) const;
-      bool Intersects(csg::Cube3 const& bounds, om::RegionCollisionShapePtr rgnCollsionShape) const;
-      bool PointOnLadder(csg::Point3 const& pt) const;
-      void FireRegionChangeNotifications(csg::Region3 const& r);
+      friend CollisionTracker;
+      friend TerrainTracker;
+      friend TerrainTileTracker;
+      friend RegionCollisionShapeTracker;
+      friend VerticalPathingRegionTracker;
+      void AddTerrainTileTracker(om::EntityRef entity, csg::Point3 const& offset, om::Region3BoxedPtr tile);
+      void AddCollisionTracker(NavGridTile::TrackerType type, csg::Cube3 const& last_bounds, csg::Cube3 const& bounds, CollisionTrackerPtr tracker);
+
+   private:
+      bool IsEmpty(csg::Cube3 const& pt) const;
+      NavGridTile& GridTile(csg::Point3 const& pt) const;
 
    private:
       struct TerrainCollisionObject {
@@ -74,8 +80,9 @@ class NavGrid {
       };
 
       int                                             trace_category_;
-      TerrainChangeCbId                               next_region_change_cb_id_;
-      std::map<TerrainChangeCbId, TerrainChangeEntry> region_change_cb_map_;
+      mutable std::unordered_map<csg::Point3, NavGridTile, csg::Point3::Hash>    nav_grid_;
+      std::unordered_map<dm::ObjectId, CollisionTrackerPtr> object_collsion_trackers_;
+      std::unordered_map<csg::Point3, CollisionTrackerPtr, csg::Point3::Hash> terrain_tile_collsion_trackers_;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE

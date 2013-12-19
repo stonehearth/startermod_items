@@ -203,8 +203,14 @@ public:
    % endif
 % endfor
 % for name, map in env.properties(C, dm.Map):
+   <% singular_name = hasattr(map, 'singular_name') and map.singular_name or name %>
    % if map.trace:
-   typedef ${map.name}::ContainerType ${name | env.upper}Container;
+   typedef ${map.name}::Key ${singular_name | env.upper}Key;
+   typedef ${map.name}::Value ${singular_name | env.upper}Value;
+   typedef ${map.name}::ContainerType ${singular_name | env.upper}Container;
+   typedef ${map.name}::ContainerType ${singular_name | env.upper}ChangeMap;
+
+   typedef std::vector<${map.name}::Key> ${singular_name | env.upper}KeyList;
 
    std::shared_ptr<dm::MapTrace<${map.name}>>
    Trace${name | env.upper}(const char* reason, int category) const

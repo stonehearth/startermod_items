@@ -9,6 +9,7 @@ enum TraceCategories {
    RENDER_TRACES = 2,
    RPC_TRACES = 3,
    LUA_TRACES = 4,
+   PHYSICS_TRACES = 5,
    PLAYER_1_TRACES = 1000,
 };
 

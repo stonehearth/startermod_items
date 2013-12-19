@@ -183,54 +183,7 @@ om::EntityPtr OctTree::FindFirstActor(om::EntityPtr root, std::function <bool(om
    return NULL;
 }
 
-bool OctTree::IsStuck(om::EntityPtr entity)
-{
-   auto mob = entity->GetComponent<om::Mob>();
-   return mob ? !navgrid_.IsEmpty(csg::ToInt(mob->GetLocation())) : false;
-}
-
-void OctTree::Unstick(std::vector<csg::Point3> &points)
-{
-   for (unsigned int i = 0; i < points.size(); i++) {
-      points[i] = Unstick(points[i]);
-   }
-}
-
-csg::Point3 OctTree::Unstick(const csg::Point3 &pt)
-{
-   csg::Point3 end = pt;
-
-   while (!navgrid_.IsEmpty(end)) {
-      end.y += 1;
-   }
-#if 0
-   while (IsPassable(end)) {
-      end.y -= 1;
-   }
-#endif
-
-   end.y += 1;
-   return csg::Point3(end);
-}
-
-void OctTree::Unstick(om::EntityPtr entity)
-{
-   auto mob = entity->GetComponent<om::Mob>();
-   if (mob) {
-      csg::Point3 end = csg::ToInt(mob->GetLocation());
-
-      while (!navgrid_.IsEmpty(end)) {
-         end.y += 1;
-      }
-      while (navgrid_.IsEmpty(end)) {
-         end.y -= 1;
-      }
-      end.y += 1;
-      mob->MoveTo(csg::ToFloat(end));
-   }
-}
-
-std::vector<std::pair<csg::Point3, int>> OctTree::ComputeNeighborMovementCost(const csg::Point3& from) const
+std::vector<std::pair<csg::Point3, int>> OctTree::ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point3& from) const
 {
    std::vector<std::pair<csg::Point3, int>> result;
 
@@ -257,7 +210,7 @@ std::vector<std::pair<csg::Point3, int>> OctTree::ComputeNeighborMovementCost(co
       csg::Point3 to;
       for (int dy = 1; dy >= -2; dy--) {
          csg::Point3 to = from + direction + csg::Point3(0, dy, 0);
-         if (navgrid_.CanStand(to)) {
+         if (navgrid_.CanStandOn(entity, to)) {
             result.push_back(std::make_pair(to, EstimateMovementCost(from, to)));
             break;
          }
@@ -265,55 +218,12 @@ std::vector<std::pair<csg::Point3, int>> OctTree::ComputeNeighborMovementCost(co
    }
    for (const auto& direction : climb) {
       csg::Point3 to = from + direction;
-      if (navgrid_.CanStand(to)) {
+      if (navgrid_.CanStandOn(entity, to)) {
          result.push_back(std::make_pair(to, EstimateMovementCost(from, to)));
       }
    }
-
-#if 0
-   for (const auto& v : verticals_) {
-      auto vpr = v.lock();
-      if (vpr) {
-         auto region = vpr->GetRegionPtr();
-         if (region) {
-            const csg::Point3 f = csg::Point3(WorldToLocal(csg::Point3f(from), vpr->GetEntity()));
-            const csg::Region3& rgn = **region;
-            for (const auto& direction : climb) {
-               csg::Point3 to = f + direction;
-               if (rgn.Contains(f) && rgn.Contains(to) && IsPassable(to)) {
-                  result.push_back(std::make_pair(from + direction, EstimateMovementCost(f, to)));
-               }
-            }
-         }
-      }
-   }
-#endif
    return result;
 }
-
-#if 0
-bool OctTree::CanStepUp(csg::Point3& at) const
-{
-   for (int i = 0; i < 2; i++) {
-      if (IsPassable(at)) {
-         return true;
-      }
-      at.y += 1;
-   }
-   return false;
-}
-
-bool OctTree::CanFallDown(csg::Point3& at) const
-{
-   for (int i = 0; i < 2; i++) {
-      if (CanStand(at)) {
-         return true;
-      }
-      at.y -= 1;
-   }
-   return false;
-}
-#endif
 
 int OctTree::EstimateMovementCost(const csg::Point3& start, const csg::Point3& end) const
 {
@@ -433,13 +343,17 @@ void OctTree::UpdateSensors()
    }
 }
 
-TerrainChangeCbId OctTree::AddCollisionRegionChangeCb(csg::Region3 const* r, TerrainChangeCb cb)
+void OctTree::ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg)
 {
-   return navgrid_.AddCollisionRegionChangeCb(r, cb);
+   navgrid_.ShowDebugShapes(pt, msg);
 }
 
-void OctTree::RemoveCollisionRegionChangeCb(TerrainChangeCbId id)
+bool OctTree::CanStandOn(om::EntityPtr entity, const csg::Point3& at) const
 {
-   navgrid_.RemoveCollisionRegionChangeCb(id);
+   return navgrid_.CanStandOn(entity, at);
 }
 
+void OctTree::RemoveNonStandableRegion(om::EntityPtr e, csg::Region3& r) const
+{
+   return navgrid_.RemoveNonStandableRegion(e, r);
+}

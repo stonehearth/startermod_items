@@ -2,6 +2,12 @@
 add_library(physics STATIC
             octtree.cpp
             nav_grid.cpp
+            nav_grid_tile.cpp
+            collision_tracker.cpp
+            terrain_tracker.cpp
+            terrain_tile_tracker.cpp
+            region_collision_shape_tracker.cpp
+            vertical_pathing_region_tracker.cpp
             )
 
 add_dependencies(physics

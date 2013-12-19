@@ -87,7 +87,8 @@ Client::Client() :
    mouse_y_(0),
    perf_hud_shown_(false),
    connected_(false),
-   game_clock_(new Clock())
+   game_clock_(new Clock()),
+   enable_debug_cursor_(false)
 {
    om::RegisterObjectTypes(store_);
    om::RegisterObjectTypes(authoringStore_);
@@ -381,6 +382,15 @@ void Client::run(int server_port)
    _commands[GLFW_KEY_F12] = [&renderer]() {
       renderer.SetShowDebugShapes(!renderer.GetShowDebugShapes());
    };
+   _commands[GLFW_KEY_F1] = [this]() {
+      enable_debug_cursor_ = !enable_debug_cursor_;
+      CLIENT_LOG(0) << "debug cursor " << (enable_debug_cursor_ ? "ON" : "OFF");
+      if (!enable_debug_cursor_) {
+         json::Node args;
+         args.set("enabled", false);
+         core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
+      }
+   };
    _commands[GLFW_KEY_F10] = [&renderer, this]() {
       perf_hud_shown_ = !perf_hud_shown_;
       renderer.ShowPerfHud(perf_hud_shown_);
@@ -487,6 +497,7 @@ void Client::mainloop()
 
    InstallCurrentCursor();
    HilightMouseover();
+   UpdateDebugCursor();
 
    // Fire the authoring traces *after* pumping the chrome message loop, since
    // we may create or modify authoring objects as a result of input events
@@ -872,6 +883,27 @@ void Client::HilightMouseover()
             renderObject->SetSelected(true);
          }
          hilightedObjects_.push_back(hilightEntity);
+      }
+   }
+}
+
+void Client::UpdateDebugCursor()
+{
+   if (enable_debug_cursor_) {
+      om::Selection selection;
+      auto &renderer = Renderer::GetInstance();
+      csg::Point2 pt = renderer.GetMousePosition();
+
+      renderer.QuerySceneRay(pt.x, pt.y, selection);
+      if (selection.HasBlock()) {
+         json::Node args;
+         args.set("enabled", true);
+         args.set("cursor", selection.GetBlock());
+         core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
+      } else {
+         json::Node args;
+         args.set("enabled", false);
+         core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
       }
    }
 }

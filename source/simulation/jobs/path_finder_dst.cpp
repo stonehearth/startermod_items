@@ -18,8 +18,7 @@ using namespace ::radiant::simulation;
 PathFinderDst::PathFinderDst(PathFinder &pf, om::EntityRef e) :
    pf_(pf),
    entity_(e),
-   moving_(false),
-   collision_cb_id_(0)
+   moving_(false)
 {
    ASSERT(!e.expired());
    id_ = entity_.lock()->GetObjectId();
@@ -29,11 +28,6 @@ PathFinderDst::PathFinderDst(PathFinder &pf, om::EntityRef e) :
 PathFinderDst::~PathFinderDst()
 {
    DestroyTraces();
-   if (collision_cb_id_) {
-      auto& o = GetSim().GetOctTree();
-      o.RemoveCollisionRegionChangeCb(collision_cb_id_);
-      collision_cb_id_ = 0;
-   }
 }
 
 void PathFinderDst::CreateTraces()
@@ -51,10 +45,6 @@ void PathFinderDst::CreateTraces()
       };
 
       auto& o = GetSim().GetOctTree();
-      collision_cb_id_ = o.AddCollisionRegionChangeCb(&world_space_adjacent_region_, [destination_may_have_changed] {
-         destination_may_have_changed("new collision shape added to world");
-      });
-
       auto mob = entity->GetComponent<om::Mob>();
       if (mob) {
          moving_ = mob->GetMoving();
@@ -112,7 +102,7 @@ void PathFinderDst::ClipAdjacentToTerrain()
          if (adjacent) {
             world_space_adjacent_region_ = adjacent->Get();
             world_space_adjacent_region_.Translate(origin);
-            o.ClipRegion(world_space_adjacent_region_);
+            o.RemoveNonStandableRegion(entity, world_space_adjacent_region_);
          } else {
             static csg::Point3 delta[] = {
                csg::Point3(-1, 0,  0),
@@ -122,7 +112,7 @@ void PathFinderDst::ClipAdjacentToTerrain()
             };
             for (const auto& d : delta) {
                csg::Point3 location = origin + d;
-               if (o.CanStand(location)) {
+               if (o.CanStandOn(entity, location)) {
                   world_space_adjacent_region_.AddUnique(csg::Cube3(location));
                }
             }

@@ -29,6 +29,7 @@ OM_ALL_COMPONENTS
 
 #undef OM_OBJECT
 
+class Component;
 class Selection;
 class TileAddress;
 
