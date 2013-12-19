@@ -3,6 +3,7 @@
 #include "csg/region.h"
 #include "csg/color.h"
 #include "csg/util.h"
+#include "nav_grid.h"
 #include "nav_grid_tile.h"
 #include "collision_tracker.h"
 #include "protocols/radiant.pb.h"
@@ -10,7 +11,7 @@
 using namespace radiant;
 using namespace radiant::phys;
 
-#define NG_LOG(level)              LOG(physics.navgrid, level)
+#define NG_LOG(level)              LOG_CATEGORY(physics.navgrid, level, "physics.navgridtile " << index_)
 
 /* 
  * -- NavGridTile::NavGridTile
@@ -21,6 +22,7 @@ using namespace radiant::phys;
  */
 NavGridTile::NavGridTile(NavGrid& ng, csg::Point3 const& index) :
    ng_(ng),
+   index_(index),
    dirty_(false)
 {
    bounds_.min = index.Scaled(TILE_SIZE);
@@ -34,7 +36,7 @@ NavGridTile::NavGridTile(NavGrid& ng, csg::Point3 const& index) :
  */
 void NavGridTile::RemoveCollisionTracker(TrackerType type, CollisionTrackerPtr tracker)
 {
-   dirty_ = true;
+   dirty_ = -1;
    stdutil::FastRemove(trackers_[type], tracker);
 }
 
@@ -45,7 +47,7 @@ void NavGridTile::RemoveCollisionTracker(TrackerType type, CollisionTrackerPtr t
  */
 void NavGridTile::AddCollisionTracker(TrackerType type, CollisionTrackerPtr tracker)
 {
-   dirty_ = true;
+   dirty_ = -1;
    stdutil::UniqueInsert(trackers_[type], tracker);
 }
 
@@ -130,7 +132,21 @@ int NavGridTile::Offset(csg::Point3 const& pt)
  */
 void NavGridTile::FlushDirty()
 {
-   if (dirty_) {
+   UpdateBaseVectors();
+   UpdateDerivedVectors();
+   dirty_ = 0;
+}
+
+/*
+ * -- NavGridTile::UpdateDerivedVectors
+ *
+ * Update the base vectors for the navgrid.
+ */
+void NavGridTile::UpdateBaseVectors()
+{
+   if (dirty_ & BASE_VECTORS) {
+      dirty_ &= ~BASE_VECTORS;
+
       for (int i = 0; i < MAX_TRACKER_TYPES; i++) {
          // Clear all the bits, then set the ones which are contained by
          // the trackers for that type.
@@ -140,9 +156,21 @@ void NavGridTile::FlushDirty()
             UpdateCollisionTracker(type, *tracker);
          });
       }
-      // Update all the derived vectors.
+   }
+}
+
+/*
+ * -- NavGridTile::UpdateDerivedVectors
+ *
+ * Update the derived vectors for the navgrid.  Will verify that the base vectors
+ * have been updated for you.
+ */
+void NavGridTile::UpdateDerivedVectors()
+{
+   UpdateBaseVectors();
+   if (dirty_ & DERIVED_VECTORS) {
+      dirty_ &= ~DERIVED_VECTORS;
       UpdateCanStand();
-      dirty_ = false;
    }
 }
 
@@ -155,7 +183,7 @@ void NavGridTile::FlushDirty()
 void NavGridTile::UpdateCollisionTracker(TrackerType type, CollisionTracker const& tracker)
 {
    // Ask the tracker to compute the overlap with this tile.  bounds_ is stored in
-   // world-coordinates, so translate it back to tile-coordinates when we get it back.
+// world-coordinates, so translate it back to tile-coordinates when we get it back.
    csg::Region3 overlap = tracker.GetOverlappingRegion(bounds_).Translated(-bounds_.min);
 
    // Now just loop through all the points and set the bit.  There's certainly a more
@@ -210,36 +238,49 @@ void NavGridTile::UpdateCanStand()
 {
    int i;
    static int CHARACTER_HEIGHT = 4;
+   NavGridTile& below = ng_.GridTile(index_ - csg::Point3(0, 1, 0));
+   NavGridTile& above = ng_.GridTile(index_ + csg::Point3(0, 1, 0));
+   above.UpdateBaseVectors();
+   below.UpdateBaseVectors();
    csg::Cube3 bounds(csg::Point3::zero, csg::Point3(TILE_SIZE, TILE_SIZE, TILE_SIZE));
 
+   // xxx: this loop could be made CHARACTER_HEIGHT times faster with a little more
+   // elbow grease...
    can_stand_.reset();
    for (csg::Point3 pt : bounds) {
-      if (pt.y == 0 || pt.y >= TILE_SIZE - CHARACTER_HEIGHT) {
-         // xxx: omg this is super gross.  the tiles aren't big enough yet =..(
-         // fix this by either adding a border to each tile or querying the other
-         // tiles directly.
-         continue;
-      }
+      NG_LOG(9) << "considering can_stand point " << pt;
 
       // Check the point directly below this one to see if it's in the LADDER or
       // COLLISION vectors.  That means we can stand there if there's enough room
       // overhead
-      int base = Offset(pt - csg::Point3(0, 1, 0));
-      if (IsMarked(COLLISION, base) || IsMarked(LADDER, base)) {
+      bool bottom_edge = pt.y == 0;
+      NavGridTile* tile = !bottom_edge ? this : &below;
+      csg::Point3 query_pt = !bottom_edge ? (pt - csg::Point3(0, 1, 0)) : csg::Point3(pt.x, TILE_SIZE-1, pt.z);
 
+      NG_LOG(9) << "looking for support in " << tile->index_ << " pt " << query_pt;
+      int base = Offset(query_pt);
+      if (tile->IsMarked(COLLISION, base) || tile->IsMarked(LADDER, base)) {
          // Compute how much room is overhead by making sure none of the COLLISION bits
          // are set for CHARACTER_HEIGHT voxels above this one (or the LADDER bit
          // is set).
+         tile = this;
          csg::Point3 riser = pt;
          for (i = 0; i < CHARACTER_HEIGHT; i++) {
-            bool empty_enough = !IsMarked(COLLISION, riser) || IsMarked(LADDER, riser);
+            if (riser.y == TILE_SIZE) {
+               riser.y = 0;
+               tile = &above;
+            }
+            NG_LOG(9) << "looking for air in " << tile->index_ << " pt " << riser 
+                      << " (collision: " << tile->IsMarked(COLLISION, riser)
+                      << " ladder: " << tile->IsMarked(LADDER, riser) << ")";
+            bool empty_enough = !tile->IsMarked(COLLISION, riser) || tile->IsMarked(LADDER, riser);
             if (!empty_enough) {
                break;
             }
             riser.y++;
          }
          if (i == CHARACTER_HEIGHT) {
-            NG_LOG(5) << "adding " << (bounds_.min + pt) << " to navgrid (offset" << pt << ")";
+            NG_LOG(7) << "adding " << (bounds_.min + pt) << " to navgrid (offset" << pt << ")";
             can_stand_[Offset(pt)] = true;
          }
       }

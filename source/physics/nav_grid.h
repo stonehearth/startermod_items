@@ -47,6 +47,7 @@ class NavGrid {
       void TrackComponent(std::shared_ptr<dm::Object> component);
 
    private: // helper methods
+      friend NavGridTile;
       NavGridTile& GridTile(csg::Point3 const& pt) const;
       bool CanStandOn(csg::Cube3 const& cube) const;
 
