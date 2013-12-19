@@ -27,11 +27,15 @@ App.StonehearthCreateCampView = App.View.extend({
          this._hideBanner();
          radiant.call('stonehearth:choose_camp_location')
          .done(function(o) {
-            radiant.call('radiant:play_sound', 'stonehearth:sounds:banner_plant' );
-               setTimeout( function() {
-                  radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:paper_menu' );
-                  self._gotoStockpileStep();
-               }, 1000);
+               if (o.result) {
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:banner_plant' );
+                     setTimeout( function() {
+                        radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:paper_menu' );
+                        self._gotoStockpileStep();
+                     }, 1000);
+               } else {
+                  self._showBanner();
+               }
             });
       },
 
@@ -41,11 +45,15 @@ App.StonehearthCreateCampView = App.View.extend({
          var self = this;
          self._hideCrate();
          $(top).trigger('radiant_create_stockpile', {
-            callback : function() {
-               radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-               setTimeout( function() {
-                  self._gotoFinishStep();
-               }, 1000);
+            callback : function(response) {
+               if(response.result) {
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+                  setTimeout( function() {
+                     self._gotoFinishStep();
+                  }, 1000);
+               } else {
+                  self._showCrate();
+               }
             }
          });
       },
@@ -102,6 +110,12 @@ App.StonehearthCreateCampView = App.View.extend({
       }
    },
 
+   _showBanner: function() {
+      this._bannerPlaced = false
+      $('#banner').animate({ 'bottom' : -22 }, 100);
+      $("#bannerCoverLink").show();
+   },
+
    _hideBanner: function() {
       this._bannerPlaced = true
       $('#banner').animate({ 'bottom' : -300 }, 100);
@@ -110,6 +124,12 @@ App.StonehearthCreateCampView = App.View.extend({
 
    _hideScroll: function(id, callback) {
      $(id).animate({ 'bottom' : -300 }, 200, function() { callback(); }); 
+   },
+
+   _showCrate: function() {
+      this._cratePlaced = true
+      $('#crate').animate({ 'bottom' : -40 }, 150);
+      $("#crateCoverLink").show();
    },
 
    _hideCrate: function() {
