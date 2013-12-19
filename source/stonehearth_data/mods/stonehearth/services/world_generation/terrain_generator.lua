@@ -11,7 +11,7 @@ local TileInfo = require 'services.world_generation.tile_info'
 local Timer = require 'services.world_generation.timer'
 
 local TerrainGenerator = class()
-local log = radiant.log.create_logger('world.generation')
+local log = radiant.log.create_logger('world_generation')
 
 -- Definitions
 -- Block = atomic unit of terrain

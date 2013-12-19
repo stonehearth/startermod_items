@@ -274,7 +274,7 @@ void PathFinder::Work(const platform::timer &timer)
    const auto& o = GetSim().GetOctTree();
    
    // xxx: not correct for reversed search yet...
-   auto neighbors = o.ComputeNeighborMovementCost(current);
+   auto neighbors = o.ComputeNeighborMovementCost(entity_.lock(), current);
 
    VERIFY_HEAPINESS();
    for (const auto& neighbor : neighbors) {

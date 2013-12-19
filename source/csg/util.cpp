@@ -30,20 +30,81 @@ std::ostream& csg::operator<<(std::ostream& os, EdgeList const& f)
    return os << "[EdgeList of " << f.points.size() << " points]";
 }
 
-int csg::RoundTowardNegativeInfinity(int i, int tile_size)
+int csg::GetChunkIndex(int value, int width)
 {
-   int tile_offset;
-   if (i > 0) {
-      tile_offset = i / tile_size;
+   int index;
+   if (value >= 0) {
+      index = value / width;
    } else {
-      tile_offset = (i - (tile_size - 1)) / tile_size;
+      index = ((value - (width - 1)) / width);
    }
-   return tile_offset * tile_size;
+   return index;
 }
 
-int csg::GetTileOffset(int position, int tile_size)
+void csg::GetChunkIndex(int value, int chunk_width, int& index, int& offset)
 {
-   return RoundTowardNegativeInfinity(position, tile_size) / tile_size;
+   index = csg::GetChunkIndex(value, chunk_width);
+   if (value >= 0) {
+      offset = value - (index * chunk_width);
+   } else {
+      offset = -(index * chunk_width) - -value;
+   }
+   ASSERT(offset >= 0 && offset < chunk_width);
+}
+
+Point3 csg::GetChunkIndex(Point3 const& value, int chunk_width)
+{
+   Point3 index;
+   for (int i = 0; i < 3; i++) {
+      index[i] = GetChunkIndex(value[i], chunk_width);
+   }
+   return index;
+}
+
+void csg::GetChunkIndex(Point3 const& value, int chunk_width, Point3& index, Point3& offset)
+{
+   for (int i = 0; i < 3; i++) {
+      GetChunkIndex(value[i], chunk_width, index[i], offset[i]);
+   }
+}
+
+Cube3 csg::GetChunkIndex(Cube3 const& value, int chunk_width)
+{
+   Point3 ceil(chunk_width - 1, chunk_width - 1, chunk_width - 1);
+   Cube3 index = Cube3(GetChunkIndex(value.min, chunk_width),
+                       GetChunkIndex(value.max + ceil, chunk_width),
+                       value.GetTag());
+   return index;
+}
+
+bool csg::PartitionCubeIntoChunks(Cube3 const& cube, int width, std::function<bool (Point3 const& index, Cube3 const& cube)> cb)
+{
+   Point3 const& cmin = cube.GetMin();
+   Point3 const& cmax = cube.GetMax();
+   Cube3 chunks = GetChunkIndex(cube, width);
+
+   for (Point3 const& cursor : chunks) {
+      Cube3 c;
+      for (int i = 0; i < 3; i++) {
+         c.min[i] = std::max(cmin[i] - cursor[i] * width, 0);
+         c.max[i] = std::min(cmax[i] - cursor[i] * width, width);
+      }
+      c.SetTag(cube.GetTag());
+
+      // sometimes this generates cubes of 0 dimensions. not sure why yet...
+      if (c.GetArea() > 0) {
+         if (!cb(cursor, c)) {
+            return false;
+         }
+      }
+   }
+   return true;
+}
+
+
+int csg::GetChunkAddress(int value, int width)
+{
+   return GetChunkIndex(value, width) * width;
 }
 
 Region3 csg::Reface(Region3 const& rgn, Point3 const& forward)

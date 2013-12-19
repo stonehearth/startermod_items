@@ -72,7 +72,7 @@ RenderEffectList::RenderEffectList(RenderEntity& entity, om::EffectListPtr effec
 
    effects_list_trace_ = \
       effectList->TraceEffects("render", dm::RENDER_TRACES)
-                     ->OnUpdated([this](om::EffectList::EffectsContainer const& added,
+                     ->OnUpdated([this](om::EffectList::EffectChangeMap const& added,
                                         std::vector<int> const& removed) {
                         for (auto const& entry : added) {
                            AddEffect(entry.first, entry.second);

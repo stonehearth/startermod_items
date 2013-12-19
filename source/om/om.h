@@ -29,6 +29,7 @@ OM_ALL_COMPONENTS
 
 #undef OM_OBJECT
 
+class Component;
 class Selection;
 class TileAddress;
 
@@ -36,6 +37,7 @@ std::string GetObjectName(dm::ObjectPtr obj);
 std::string GetObjectName(const dm::Object& obj);
 std::string GetObjectNameLower(dm::ObjectPtr obj);
 std::string GetObjectNameLower(const dm::Object& obj);
+
 
 void RegisterObjectTypes(dm::Store& store);
 

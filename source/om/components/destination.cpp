@@ -34,14 +34,18 @@ void Destination::ExtendObject(json::Node const& obj)
    if (obj.has("region")) {
       region_ = GetStore().AllocObject<Region3Boxed>();
       (*region_)->Set(obj.get("region", csg::Region3()));
-
-      if (!obj.has("adjacent")) {
-         adjacent_ = GetStore().AllocObject<Region3Boxed>();
-         UpdateDerivedValues();
-      }
    }
-   SetAutoUpdateAdjacent(obj.get<bool>("auto_update_adjacent", false));
-   SetAllowDiagonalAdjacency(obj.get<bool>("allow_diagonal_adjacency", false));
+   if (obj.has("adjacent")) {
+      adjacent_ = GetStore().AllocObject<Region3Boxed>();
+      (*adjacent_)->Set(obj.get("adjacent", csg::Region3()));
+   }
+   bool dflt = *region_ != nullptr && *adjacent_ == nullptr;
+   bool auto_update_adjacent =  obj.get<bool>("auto_update_adjacent", dflt);
+   allow_diagonal_adjacency_ = obj.get<bool>("allow_diagonal_adjacency", false);
+
+   // Installs traces and update derived values if true
+   SetAutoUpdateAdjacent(auto_update_adjacent);
+
    D_LOG(5) << "finished constructing new destination for entity " << GetEntity().GetObjectId();
 }
 

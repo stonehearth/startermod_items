@@ -89,3 +89,36 @@ void CoreReactor::AddRoute(std::string const& route, CallCb cb)
       routes_[route] = cb;
    }
 }
+
+void CoreReactor::AddRouteB(std::string const& route, CallBCb cb)
+{
+   AddRoute(route, [cb](Function const& f) -> ReactorDeferredPtr {
+      std::string msg;
+      rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>(f.route);
+      if (cb(f)) {
+         d->ResolveWithMsg(BUILD_STRING(f.route << " returned true"));
+      } else {
+         d->RejectWithMsg(BUILD_STRING(f.route << " returned false"));
+      }
+      return d;
+   });
+}
+
+void CoreReactor::AddRouteV(std::string const& route, CallVCb cb)
+{
+   AddRoute(route, [cb](Function const& f) -> ReactorDeferredPtr {
+      rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>(f.route);
+      cb(f);
+      d->ResolveWithMsg(BUILD_STRING(f.route << " completed"));
+      return d;
+   });
+}
+
+void CoreReactor::AddRouteS(std::string const& route, CallSCb cb)
+{
+   AddRoute(route, [cb](Function const& f) -> ReactorDeferredPtr {
+      rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>(f.route);
+      d->ResolveWithMsg(cb(f));
+      return d;
+   });
+}

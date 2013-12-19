@@ -7,7 +7,7 @@ local Timer = require 'services.world_generation.timer'
 local Point3 = _radiant.csg.Point3
 
 local WorldGenerator = class()
-local log = radiant.log.create_logger('world.generation')
+local log = radiant.log.create_logger('world_generation')
 
 function WorldGenerator:__init(async, seed)
    self._async = async

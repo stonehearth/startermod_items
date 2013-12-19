@@ -1,5 +1,5 @@
 local Array2D = class()
-local log = radiant.log.create_logger('world.generation')
+local log = radiant.log.create_logger('world_generation')
 
 function Array2D:__init(width, height)
    self.width = width

@@ -40,7 +40,6 @@ public:
    om::EntityRef              entity_;
    bool                       moving_;
    om::DeepRegionGuardPtr     region_guard_;
-   phys::TerrainChangeCbId    collision_cb_id_;
    csg::Region3               world_space_adjacent_region_;
    dm::TracePtr               moving_trace_;
    dm::TracePtr               transform_trace_;

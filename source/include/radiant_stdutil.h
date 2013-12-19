@@ -91,6 +91,28 @@ namespace radiant {
          return false;
       }
 
+      template <class T> bool UniqueInsert(std::vector<std::weak_ptr<T>> &container, const std::shared_ptr<T> element) {
+         bool found = false;
+         uint i = 0, c = container.size();
+         while (i < c) {
+            std::shared_ptr<T> entry = container[i].lock();
+            if (entry) {
+               if (entry == element) {
+                  found = true;
+                  break;
+               }
+               i++;
+            } else {
+               container[i] = container[--c];
+            }
+         }
+         container.resize(c);
+         if (!found) {
+            container.emplace_back(element);
+         }
+         return found;
+      }
+
       template <class T, class K> bool UniqueRemove(std::vector<T> &container, const K& element) {
          ASSERT(std::count(container.begin(), container.end(), element) <= 1);
 
@@ -122,7 +144,7 @@ namespace radiant {
          return false;
       }
 
-      template <class T, class K> int FastRemove(std::vector<T> &container, const K& element) {
+      template <class T, class K> int FastRemove(std::vector<T> &container, K const& element) {
          int c = 0;
          int size = container.size();
          for (int i = 0; i < size - c; ) {
@@ -138,9 +160,8 @@ namespace radiant {
       }
 
       // also compresses nulls out of the std::vector...
-      template <class T, class K> int FastRemove(std::vector<T> &container, const std::weak_ptr<K>& element) {
+      template <class K> int FastRemove(std::vector<std::weak_ptr<K>> &container, std::shared_ptr<K> const& e) {
          int c = container.size();
-         auto e = element.lock();
          if (e) {
             for (int i = 0; i < c; ) {
                auto ith = container[i].lock();
@@ -153,6 +174,10 @@ namespace radiant {
             container.resize(c);
          }
          return c;
+      }
+
+      template <class K> int FastRemove(std::vector<std::weak_ptr<K>> &container, std::weak_ptr<K> const& element) {
+         return FastRemove<K>(container, element.lock());
       }
 
       

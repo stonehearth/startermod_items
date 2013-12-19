@@ -2,7 +2,7 @@ local GaussianRandom = require 'services.world_generation.math.gaussian_random'
 local MathFns = require 'services.world_generation.math.math_fns'
 
 local InverseGaussianRandom = class()
-local log = radiant.log.create_logger('world.generation')
+local log = radiant.log.create_logger('world_generation')
 
 -- Inverse Gaussian distribution which is high at the endpoints and low in the middle
 -- Splits a Gaussian distribution into two pieces and slides each half to the min and max endpoints

@@ -16,6 +16,12 @@ void CopyRegion(T& region, T const& other)
 }
 
 template <typename T>
+T IntersectRegion(lua_State* L, T const& region, T const& other)
+{
+   return region & other;
+}
+
+template <typename T>
 void LoadRegion(lua_State* L, T& region, object obj)
 {
    // converts the lua object to a json object, then the json
@@ -91,7 +97,7 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("get_closest_point",  &T::GetClosestPoint)
          .def("translate",          &T::Translate)
          .def("translated",         &T::Translated)
-         .def("intersected",        &T::operator&)
+         .def("intersected",        &IntersectRegion<T>)
          .def("inflated",           &T::Inflated)
          .def("contains",           &T::Contains)
       ;
