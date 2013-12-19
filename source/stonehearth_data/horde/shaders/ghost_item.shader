@@ -40,7 +40,7 @@ void main() {
 
 [[FS_BLUEPRINTS_DEPTH_PASS]]
 
-in vec3 gridLineCoords;
+varying vec3 gridLineCoords;
 
 void main() {
    gl_FragColor = vec4(0, 0, 0, 0);
@@ -50,8 +50,8 @@ void main() {
 
 uniform sampler3D gridMap;
 
-in vec3 gridLineCoords;
-in vec3 outColor;
+varying vec3 gridLineCoords;
+varying vec3 outColor;
 
 void main() {
    vec4 theColor = vec4(outColor, 1);

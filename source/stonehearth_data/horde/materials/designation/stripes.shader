@@ -11,26 +11,23 @@ context TRANSLUCENT
 
 
 [[VS_GENERAL]]
-#version 130
-
 uniform   mat4    viewProjMat;
 uniform   mat4    worldMat;
 uniform   vec4    alpha;
-in        vec3    vertPos;
-in        vec3    color;
-out       vec4    vs_color;
+
+attribute vec3    vertPos;
+attribute vec3    color;
+varying   vec4    vs_color;
 
 void main() {
-   vs_color = vec4(color, alpha.a);
-	gl_Position = viewProjMat * worldMat * vec4(vertPos, 1.0);
+  vs_color = vec4(color, alpha.a);
+  gl_Position = viewProjMat * worldMat * vec4(vertPos, 1.0);
 }
 
 [[FS_AMBIENT]]	
-#version 130
 
-in       vec4    vs_color;
-out      vec4    fragment_color;
+varying vec4 vs_color;
+
 void main() {
-   fragment_color = vs_color;
-};
-
+  gl_FragColor = vs_color;
+}

@@ -1,13 +1,13 @@
 // *************************************************************************************************
 // Common functions for cubemitters; this hides the differing APIs needed for batching/instancing.
 // *************************************************************************************************
-in vec3 vertPos;
+attribute vec3 vertPos;
 
 #ifdef _F01_INSTANCE_SUPPORT
-  in vec4 cubeColor;
-  in mat4 particleWorldMatrix;
+  attribute vec4 cubeColor;
+  attribute mat4 particleWorldMatrix;
 #else
-  in float parIdx;
+  attribute float parIdx;
   uniform mat4 cubeBatchTransformArray[32];
   uniform vec4 cubeBatchColorArray[32];
 #endif

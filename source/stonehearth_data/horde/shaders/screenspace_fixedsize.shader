@@ -39,9 +39,9 @@ void main() {
 
 uniform sampler2D albedoMap;
 
-in vec4 oColor;
-in vec2 texCoords;
+varying vec4 oColor;
+varying vec2 texCoords;
 
 void main() {
-   gl_FragColor = oColor * texture2D(albedoMap, texCoords);
+  gl_FragColor = oColor * texture2D(albedoMap, texCoords);
 }

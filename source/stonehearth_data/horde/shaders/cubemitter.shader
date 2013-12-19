@@ -15,13 +15,11 @@ context TRANSLUCENT
 // Cubemitters can take two different paths for rendering (instancing, and the fallback: batching),
 // so always use the cubemitter interface to get your data!
 
-#version 130
-
 #include "shaders/utilityLib/cubemitterCommon.glsl"
 
 uniform mat4 viewProjMat;
 
-out vec4 color;
+varying vec4 color;
 
 void main(void)
 {
@@ -33,13 +31,9 @@ void main(void)
 [[FS_TRANSLUCENT]]
 // =================================================================================================
 
-#version 130
-
-in vec4 color;
-
-out vec4 fragColor;
+varying vec4 color;
 
 void main( void )
 {
-  fragColor.rgba = color;
+  gl_FragColor = color;
 }
