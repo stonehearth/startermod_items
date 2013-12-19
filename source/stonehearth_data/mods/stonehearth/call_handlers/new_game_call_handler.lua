@@ -120,6 +120,14 @@ function NewGameCallHandler:create_camp(session, response, pt)
    radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
                           {entity = worker4, description = 'person_embarks'})
 
+   local worker5 = self:place_citizen(camp_x+3, camp_z+3)
+   radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
+                          {entity = worker5, description = 'person_embarks'})
+
+   local worker6 = self:place_citizen(camp_x-3, camp_z+0)
+   radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
+                          {entity = worker6, description = 'person_embarks'})
+
    --self:place_citizen(camp_x+0, camp_z+3)
    --self:place_citizen(camp_x+3, camp_z+3)
    --self:place_citizen(camp_x-3, camp_z+0)
