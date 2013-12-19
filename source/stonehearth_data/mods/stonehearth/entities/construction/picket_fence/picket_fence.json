@@ -23,7 +23,7 @@
          "icon" : "file(picket_fence.png)"
       },
       "stonehearth:material" : {
-         "tags" : "wood defenses"
+         "tags" : "wood defenses crafted"
       }      
    }
 }

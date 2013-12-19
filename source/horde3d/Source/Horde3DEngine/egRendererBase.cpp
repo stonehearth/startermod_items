@@ -191,7 +191,14 @@ CardType RenderDevice::getCardType(const char* cardString)
    return CardType::UNKNOWN;
 }
 
-bool RenderDevice::init(int glMajor, int glMinor)
+void _stdcall glDebugCallback(unsigned int source, unsigned int type, unsigned int id, unsigned int severity, 
+      int length, const char* message, void* userParam)
+{
+   Modules::log().writeWarning(message);
+}
+
+
+bool RenderDevice::init(int glMajor, int glMinor, bool enable_gl_logging)
 {
 	bool failed = false;
 
@@ -247,6 +254,11 @@ bool RenderDevice::init(int glMajor, int glMinor)
 		return false;
 	}
 	
+   if (enable_gl_logging && glDebugMessageCallbackARB)
+   {
+      glDebugMessageCallbackARB(glDebugCallback, NULL);
+   }
+
 	// Get capabilities
 	_caps.texFloat = glExt::ARB_texture_float ? 1 : 0;
 	_caps.texNPOT = glExt::ARB_texture_non_power_of_two ? 1 : 0;

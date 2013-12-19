@@ -124,10 +124,10 @@ void Renderer::setGpuCompatibility()
 }
 
 
-bool Renderer::init(int glMajor, int glMinor)
+bool Renderer::init(int glMajor, int glMinor, bool enable_gl_logging)
 {
 	// Init Render Device Interface
-	if( !gRDI->init(glMajor, glMinor) ) return false;
+	if( !gRDI->init(glMajor, glMinor, enable_gl_logging) ) return false;
 
    setGpuCompatibility();
 

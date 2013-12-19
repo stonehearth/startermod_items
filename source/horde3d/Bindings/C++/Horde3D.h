@@ -163,6 +163,7 @@ struct H3DResTypes
 		Texture         - Texture map
 		ParticleEffect  - Particle configuration
 		Pipeline        - Rendering pipeline
+      PixelBuffer     - PixelBuffer
 	*/
 	enum List
 	{
@@ -177,6 +178,7 @@ struct H3DResTypes
 		ParticleEffect,
 		Pipeline,
       VoxelGeometry,
+      PixelBuffer
 	};
 };
 
@@ -722,7 +724,7 @@ DLL bool h3dGetError();
 	Returns:
 		true in case of success, otherwise false
 */
-DLL bool h3dInit(int glMajor, int glMinor, const char* logFilePath);
+DLL bool h3dInit(int glMajor, int glMinor, bool enable_gl_logging, const char* logFilePath);
 
 /* Function: h3dRelease
 		Releases the engine.

@@ -61,7 +61,11 @@ function GetFoodAction:run(ai, entity, path)
          food_source:get_component('unit_info'):set_description('Servings remaining: ' .. num_servings)
       end
       if num_servings <= 0 then
-         radiant.entities.destroy_entity(food_source)
+         radiant.terrain.remove_entity(food_source)
+         --BUG WITH DELETE: thing is already deleted by the time it gets
+         --the inventory tries to remove it. Either pass IDs to remove from stockpile or...?
+         --Filed here: http://bugs.radiant-entertainment.com:8080/browse/SH-36
+         --radiant.entities.destroy_entity(food_source)
       end
    end
 

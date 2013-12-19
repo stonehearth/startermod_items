@@ -137,7 +137,10 @@ end
 
 function ProxyBuilder:publish()
    local package  = self:_package_proxy(self._root_proxy)
-   _radiant.call('stonehearth:build_structures', package);
+   _radiant.call('stonehearth:build_structures', package)
+   --TODO: you COULD put this in an "always" so the capture doesn't
+   --go away till the fabricator appears, but the gap is so long
+   --it looks like a bug
    self:_clear()
    if self._input_capture then
       self._input_capture:destroy()

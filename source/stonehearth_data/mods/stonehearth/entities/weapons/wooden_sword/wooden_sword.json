@@ -15,7 +15,7 @@
          "icon" : "file(wooden_sword.png)"
       },
       "stonehearth:material" : {
-         "tags" : "wood melee_weapon"
+         "tags" : "wood melee_weapon crafted"
       }      
    }
 }

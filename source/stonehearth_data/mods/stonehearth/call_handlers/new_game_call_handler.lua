@@ -23,6 +23,9 @@ function NewGameCallHandler:choose_camp_location(session, response)
          if e.type == _radiant.client.Input.MOUSE then
             self:_on_mouse_event(e.mouse, response)
             return true
+         elseif e.type == _radiant.client.Input.KEYBOARD then
+            self:_on_keyboard_event(e.keyboard, response)
+            return true
          end
          return false
       end)
@@ -64,7 +67,7 @@ function NewGameCallHandler:_on_mouse_event(e, response)
                      -- the ugly flickering that would occur had we destroyed it when
                      -- we uninstalled the mouse cursor
                      _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
-                     response:resolve({})
+                     response:resolve({ result = true })
                   end)
 
    end
@@ -73,6 +76,20 @@ function NewGameCallHandler:_on_mouse_event(e, response)
    return true
 end
 
+function NewGameCallHandler:_on_keyboard_event(e, response)
+   if e.key == _radiant.client.KeyboardInput.ESC and e.down then
+      self:_destroy_capture()
+       _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
+       response:resolve({ result = false })
+   end
+   return true
+end
+
+--- Destroy our capture object to release the mouse back to the client.
+function NewGameCallHandler:_destroy_capture()
+   self._capture:destroy()
+   self._capture = nil
+end
 
 function NewGameCallHandler:create_camp(session, response, pt)
    local faction = radiant.mods.load('stonehearth').population:get_faction('civ', 'stonehearth:factions:ascendancy')
@@ -102,6 +119,14 @@ function NewGameCallHandler:create_camp(session, response, pt)
    local worker4 = self:place_citizen(camp_x-3, camp_z+3)
    radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
                           {entity = worker4, description = 'person_embarks'})
+
+   local worker5 = self:place_citizen(camp_x+3, camp_z+3)
+   radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
+                          {entity = worker5, description = 'person_embarks'})
+
+   local worker6 = self:place_citizen(camp_x-3, camp_z+0)
+   radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
+                          {entity = worker6, description = 'person_embarks'})
 
    --self:place_citizen(camp_x+0, camp_z+3)
    --self:place_citizen(camp_x+3, camp_z+3)

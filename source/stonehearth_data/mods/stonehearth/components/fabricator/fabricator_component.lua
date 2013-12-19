@@ -4,6 +4,7 @@ local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 local Cube3 = _radiant.csg.Cube3
 local Color4 = _radiant.csg.Color4
+local log = radiant.log.create_logger('commands')
 
 local FabricatorComponent = class()
 local log = radiant.log.create_logger('build')
