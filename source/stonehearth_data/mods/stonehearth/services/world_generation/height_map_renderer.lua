@@ -161,7 +161,7 @@ function HeightMapRenderer:_add_grassland_to_region(region3, rect, height)
    if height > grassland_min_height then
       material = Terrain.GRASS
    else 
-      material = Terrain.SOIL
+      material = Terrain.DIRT
    end
 
    region3:add_cube(Cube3(Point3(rect.min.x, height-1, rect.min.y),
