@@ -42,7 +42,7 @@ void Clock::EstimateCurrentGameTime(int &game_time, float& alpha) const
    int changed = game_time - last_reported_time_;
    last_reported_time_ = game_time;
 
-   CLIENT_LOG(3) << "estimate time: " << game_time << "(alpha: " << alpha << " change: " << changed << ")" << "["
+   CLIENT_LOG(5) << "estimate time: " << game_time << "(alpha: " << alpha << " change: " << changed << ")" << "["
                   << " gt start: " << game_time_start_
                   << " gt interval: " << game_time_interval_
                   << " gt next: " << game_time_next_delivery_
