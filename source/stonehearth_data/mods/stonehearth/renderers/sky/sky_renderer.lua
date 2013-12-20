@@ -50,9 +50,11 @@ function SkyRenderer:set_sky_constants()
    self.timing.sunrise_start = base_times.sunrise *seconds_per_hour
    self.timing.sunrise_end = (base_times.sunrise * seconds_per_hour) + constants.rise_set_length
    self.timing.midday = base_times.midday * seconds_per_hour
-   self.timing.sunset_start = (base_times.sunset * seconds_per_hour) - constants.rise_set_length
+   --self.timing.sunset_start = (base_times.sunset * seconds_per_hour) - constants.rise_set_length
+   self.timing.sunset_start = ((base_times.sunset_start) * seconds_per_hour) - constants.rise_set_length
+   self.timing.sunset_peak_start = ((base_times.sunset_start) * seconds_per_hour)
    self.timing.sunset_end = base_times.sunset * seconds_per_hour
-   self.timing.sunset_peak = self.timing.sunset_start + ((self.timing.sunset_end - self.timing.sunset_start) * 1/3)
+   self.timing.sunset_peak_end = self.timing.sunset_end - constants.rise_set_length
    self.timing.day_length = time_constants.hours_per_day * seconds_per_hour
    
    self._time_constants = time_constants
@@ -148,7 +150,8 @@ function SkyRenderer:_update_sky_colors(seconds)
       {self.timing.sunrise_end, Vec3(.27,0.66,0.90)},
       {self.timing.midday, Vec3(0.19,0.58,0.92)},
       {self.timing.sunset_start, Vec3(0.19,0.58,0.92)},
-      {self.timing.sunset_peak, Vec3(0.48,0.43,0.60)},
+      {self.timing.sunset_peak_start, Vec3(0.48,0.43,0.60)},
+      {self.timing.sunset_peak_end, Vec3(0.48,0.43,0.60)},
       {self.timing.sunset_end, Vec3(0.1,0.05,0.11)},
       {self.timing.day_length, Vec3(0.1,0.05,0.11)}
    }
@@ -159,7 +162,8 @@ function SkyRenderer:_update_sky_colors(seconds)
       {self.timing.sunrise_end, Vec3(1, 0.98, 0.55)},
       {self.timing.midday, Vec3(0.48, .87, 1.0)},
       {self.timing.sunset_start, Vec3(0.48, .87, 1.0)},
-      {self.timing.sunset_peak, Vec3(1, 0.56, 0.17)},
+      {self.timing.sunset_peak_start, Vec3(1, 0.56, 0.17)},
+      {self.timing.sunset_peak_end, Vec3(1, 0.56, 0.17)},
       {self.timing.sunset_end, Vec3(.04, 0.16, 0.35)},
       {self.timing.day_length, Vec3(.04, 0.16, 0.35)}
    }
@@ -286,7 +290,8 @@ function SkyRenderer:_init_sun()
       {self.timing.sunrise_start, light_colors.off},
       {self.timing.sunrise_end, light_colors.day},
       {self.timing.sunset_start, light_colors.day},
-      {self.timing.sunset_peak, light_colors.sunset},
+      {self.timing.sunset_peak_start, light_colors.sunset},
+      {self.timing.sunset_peak_end, light_colors.sunset},
       {self.timing.sunset_end, light_colors.off}
    }
 
@@ -295,7 +300,8 @@ function SkyRenderer:_init_sun()
       {self.timing.sunrise_start, light_ambient_colors.off},
       {self.timing.sunrise_end, light_ambient_colors.day},
       {self.timing.sunset_start, light_ambient_colors.day},
-      {self.timing.sunset_peak, light_ambient_colors.sunset},
+      {self.timing.sunset_peak_start, light_ambient_colors.sunset},
+      {self.timing.sunset_peak_end, light_ambient_colors.sunset},
       {self.timing.sunset_end, light_ambient_colors.off}
    }
 
@@ -329,7 +335,7 @@ function SkyRenderer:_init_moon()
       {0, light_colors.night},
       {self.timing.sunrise_start, light_colors.night},
       {self.timing.sunrise_end, light_colors.off},
-      {self.timing.sunset_peak, light_colors.off},
+      {self.timing.sunset_peak_end, light_colors.off},
       {self.timing.sunset_end, light_colors.night}
    }
 
@@ -337,7 +343,7 @@ function SkyRenderer:_init_moon()
       {0, light_ambient_colors.night},
       {self.timing.sunrise_start, light_ambient_colors.night},
       {self.timing.sunrise_end, light_ambient_colors.off},
-      {self.timing.sunset_peak, light_ambient_colors.off},
+      {self.timing.sunset_peak_end, light_ambient_colors.off},
       {self.timing.sunset_end, light_ambient_colors.night}
    }
 
