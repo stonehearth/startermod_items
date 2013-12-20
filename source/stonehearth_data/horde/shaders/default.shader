@@ -199,11 +199,9 @@ void main( void )
 #include "shaders/utilityLib/fragLighting.glsl" 
 #include "shaders/shadows.shader"
 
-uniform vec3 viewerPos;
 uniform vec3 lightAmbientColor;
 
 varying vec4 pos;
-varying vec4 vsPos;
 varying vec3 albedo;
 varying vec3 tsbNormal;
 
@@ -212,13 +210,13 @@ void main( void )
   // Shadows.
   float shadowTerm = getShadowValue(pos.xyz);
 
-  // Light.
-  vec3 lightColor = calcSimpleDirectionalLight(viewerPos, pos.xyz, normalize(tsbNormal), -vsPos.z);
+  // Light Color.
+  vec3 lightColor = calcSimpleDirectionalLight(normalize(tsbNormal));
+
+  // Mix light and shadow and ambient light.
   lightColor = (shadowTerm * (lightColor * albedo)) + (lightAmbientColor * albedo);
   
-  // Mix it all together!
-  gl_FragColor.rgb = lightColor;
-  gl_FragColor.a = 1.0;
+  gl_FragColor = vec4(lightColor, 1.0);
 }
 
 [[FS_CLOUDS]]
