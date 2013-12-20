@@ -69,22 +69,27 @@ void PathFinder::SetFilterFn(luabind::object dst_filter)
 bool PathFinder::IsIdle() const
 {
    if (!enabled_) {
+      PF_LOG(7) << "is_idle: yes.  not enabled";
       return true;
    }
 
    if (!source_ || source_->IsIdle()) {
+      PF_LOG(7) << "is_idle: yes.  no source, or source is idle";
       return true;
    }
 
    if (entity_.expired()) {
+      PF_LOG(7) << "is_idle: yes.  no source entity.";
       return true;
    }
 
    if (restart_search_) {
+      PF_LOG(7) << "is_idle: no.  restart pending";
       return false;
    }
 
    if (IsSearchExhausted()) {
+      PF_LOG(7) << "is_idle: yes. search exhausted.";
       return true;
    }
 
@@ -97,13 +102,17 @@ bool PathFinder::IsIdle() const
       }
    }
    if (all_idle) {
+      PF_LOG(7) << "is_idle: yes. all destinations idle.";
       return true;
    }
 
 
    if (solution_) {
+      PF_LOG(7) << "is_idle: yes. already solved!";
       return true;
    }
+
+   PF_LOG(7) << "is_idle: no.  still work to do!";
    return false;
 }
 
@@ -525,4 +534,15 @@ bool PathFinder::IsSearchExhausted() const
 void PathFinder::SetDebugColor(csg::Color4 const& color)
 {
    debug_color_ = color;
+}
+
+std::string PathFinder::DescribeProgress()
+{
+   std::ostringstream progress;
+   progress << GetName() << open_.size() << " open nodes. " << closed_.size() << " closed nodes. ";
+   if (open_.empty()) {
+      progress << EstimateCostToDestination(GetFirstOpen()) << " nodes from destination. ";
+   }
+   progress << "idle? " << IsIdle();
+   return progress.str();
 }

@@ -38,6 +38,7 @@ class PathFinder : public Job {
       int EstimateCostToSolution();
       std::ostream& Format(std::ostream& o) const;
       void SetDebugColor(csg::Color4 const& color);
+      std::string DescribeProgress();
 
    public: // Job Interface
       bool IsIdle() const override;

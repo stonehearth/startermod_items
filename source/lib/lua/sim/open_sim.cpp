@@ -239,6 +239,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
                .def("stop",               &PathFinder::Stop)
                .def("start",              &PathFinder::Start)
                .def("restart",            &PathFinder::Restart)
+               .def("describe_progress",  &PathFinder::DescribeProgress)
             ,
             lua::RegisterType<Simulation>()
             ,

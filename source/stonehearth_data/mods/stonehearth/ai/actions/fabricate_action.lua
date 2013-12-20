@@ -1,5 +1,6 @@
 local Fabricate = class()
 
+Fabricate.name = 'fabricate'
 Fabricate.does = 'stonehearth:fabricate'
 Fabricate.priority = 5
 

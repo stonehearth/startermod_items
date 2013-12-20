@@ -4,9 +4,12 @@ GotoEntityAction.name = 'goto entity'
 GotoEntityAction.does = 'stonehearth:goto_entity'
 GotoEntityAction.priority = 2
 --TODO we need a scale to  describe relative importance
+local log = radiant.log.create_logger('ai.goto_entity')
 
 function GotoEntityAction:run(ai, entity, target)
    radiant.check.is_entity(target)
+
+   log:debug('running goto entity action %s -> %s', entity, target)
    self._trace = radiant.entities.trace_location(target, 'goto target')
       :on_changed(function()
          ai:abort('target destination changed')
@@ -19,6 +22,7 @@ function GotoEntityAction:run(ai, entity, target)
                          :set_source(entity)
                          :add_destination(target)
 
+   log:debug('waiting for pathfinder to finish...')
    local path = ai:wait_for_path_finder(pathfinder)
    ai:execute('stonehearth:follow_path', path)
 end

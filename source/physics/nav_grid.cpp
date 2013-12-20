@@ -182,7 +182,7 @@ int NavGrid::GetTraceCategory() const
  */
 void NavGrid::AddCollisionTracker(NavGridTile::TrackerType type, csg::Cube3 const& last_bounds, csg::Cube3 const& bounds, CollisionTrackerPtr tracker)
 {
-   NG_LOG(5) << "collision notify bounds " << bounds << "changed";
+   NG_LOG(5) << "collision notify bounds " << bounds << "changed (last_bounds: " << last_bounds << ")";
    csg::Cube3 current_chunks = csg::GetChunkIndex(bounds, NavGridTile::TILE_SIZE);
    csg::Cube3 previous_chunks = csg::GetChunkIndex(last_bounds, NavGridTile::TILE_SIZE);
 
