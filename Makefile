@@ -77,7 +77,7 @@ run-%-test:
 	cd $(RUN_ROOT) && ../../build/source/stonehearth/$(MSBUILD_CONFIGURATION)/Stonehearth.exe --game.script=stonehearth_tests/$*_test.lua&
 
 run:
-	cd $(RUN_ROOT) && ../../build/source/stonehearth/$(MSBUILD_CONFIGURATION)/Stonehearth.exe 
+	cd $(RUN_ROOT) && ../../build/source/stonehearth/$(MSBUILD_CONFIGURATION)/Stonehearth.exe&
 
 # make a decoda project!
 .PHONY: decoda-project
