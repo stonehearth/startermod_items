@@ -34,7 +34,9 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, targ
    local re = _radiant.client.create_render_entity(1, self._cursor_entity)
    self._cursor_entity:add_component('render_info')
       :set_material('materials/ghost_item.xml')
-      :set_model_mode('blueprint')
+      --TODO: Qubicle brush fails on qb files with multiple matrices.
+      --See this bug: http://bugs.radiant-entertainment.com:8080/browse/SH-38 
+      --:set_model_mode('blueprint')
 
    log:debug("created render entity")
 

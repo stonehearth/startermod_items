@@ -6,6 +6,10 @@
          "animation_table" : "file(/data/rigs/double_door/double_door.json)"
       },
 
+      "effect_list" : {
+         "default" : "file(/data/rigs/double_door/effects/closed.json)"
+      },
+
       "model_variants": [
          {
             "models": [

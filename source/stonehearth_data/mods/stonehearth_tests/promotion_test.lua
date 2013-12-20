@@ -23,8 +23,7 @@ function PromoteTest:__init()
 
    local saw = workshop_component:init_from_scratch()
    saw:add_component('unit_info'):set_faction(faction)
-   local outbox = workshop_component:create_outbox(Point3(-9,0,-9), {3, 3})
-   outbox:add_component('unit_info'):set_faction(faction)
+   local outbox = workshop_component:create_outbox(Point3(-9,0,-9), {3, 3}, faction)
 
    local tree = self:place_tree(-12, 0)
    local tree2 = self:place_tree(-12, 12)
