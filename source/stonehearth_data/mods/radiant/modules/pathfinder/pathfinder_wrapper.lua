@@ -56,7 +56,7 @@ function PathFinderWrapper:get_solution()
 end
 
 function PathFinderWrapper:is_idle()
-   return self._pf:is_idle(d)
+   return self._pf:is_idle()
 end
 
 function PathFinderWrapper:describe_progress()
