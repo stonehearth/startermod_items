@@ -25,8 +25,6 @@
 
 namespace Horde3D {
 
-class GPUTimer;
-
 // =================================================================================================
 // Engine Config
 // =================================================================================================
@@ -155,10 +153,6 @@ struct EngineStats
 		AnimationTime,
 		GeoUpdateTime,
 		ParticleSimTime,
-		FwdLightsGPUTime,
-		DefLightsGPUTime,
-		ShadowsGPUTime,
-		ParticleGPUTime,
 		TextureVMem,
 		GeometryVMem,
       AverageFrameTime

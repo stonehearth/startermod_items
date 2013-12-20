@@ -121,10 +121,6 @@ struct H3DStats
 		AnimationTime     - CPU time in ms spent for animation
 		GeoUpdateTime     - CPU time in ms spent for software skinning and morphing
 		ParticleSimTime   - CPU time in ms spent for particle simulation and updates
-		FwdLightsGPUTime  - GPU time in ms spent for forward lighting passes
-		DefLightsGPUTime  - GPU time in ms spent for drawing deferred light volumes
-		ShadowsGPUTime    - GPU time in ms spent for generating shadow maps
-		ParticleGPUTime   - GPU time in ms spent for drawing particles
 		TextureVMem       - Estimated amount of video memory used by textures (in Mb)
 		GeometryVMem      - Estimated amount of video memory used by geometry (in Mb)
       AverageFrame Time - Average time over the last number of frames.
@@ -138,10 +134,6 @@ struct H3DStats
 		AnimationTime,
 		GeoUpdateTime,
 		ParticleSimTime,
-		FwdLightsGPUTime,
-		DefLightsGPUTime,
-		ShadowsGPUTime,
-		ParticleGPUTime,
 		TextureVMem,
 		GeometryVMem,
       AverageFrameTime

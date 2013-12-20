@@ -489,10 +489,6 @@ DLLEXP void h3dutShowFrameStats( H3DRes fontMaterialRes, H3DRes boxMaterialRes, 
 	static float animTime = 0;
 	static float geoUpdateTime = 0;
 	static float particleSimTime = 0;
-	static float fwdLightsGPUTime = 0;
-	static float defLightsGPUTime = 0;
-	static float shadowsGPUTime = 0;
-	static float particleGPUTime = 0;
 
 	// Calculate FPS
 	float curFrameTime = h3dGetStat(H3DStats::AverageFrameTime, true);
@@ -506,10 +502,6 @@ DLLEXP void h3dutShowFrameStats( H3DRes fontMaterialRes, H3DRes boxMaterialRes, 
 		animTime = h3dGetStat( H3DStats::AnimationTime, true );
 		geoUpdateTime = h3dGetStat( H3DStats::GeoUpdateTime, true );
 		particleSimTime = h3dGetStat( H3DStats::ParticleSimTime, true );
-		fwdLightsGPUTime = h3dGetStat( H3DStats::FwdLightsGPUTime, true );
-		defLightsGPUTime = h3dGetStat( H3DStats::DefLightsGPUTime, true );
-		shadowsGPUTime = h3dGetStat( H3DStats::ShadowsGPUTime, true );
-		particleGPUTime = h3dGetStat( H3DStats::ParticleGPUTime, true );
 		timer = 0;
 	}
 	else
