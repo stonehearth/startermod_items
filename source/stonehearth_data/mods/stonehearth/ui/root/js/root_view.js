@@ -42,13 +42,13 @@ App.RootView = Ember.ContainerView.extend({
       radiant.call('radiant:play_music', {
             'track': 'stonehearth:music:world_start',
             'channel' : 'bgm',
-            'fade': 500
+            'fade': 1400
          });         
          
       radiant.call('radiant:play_music', {
             'track': 'stonehearth:ambient:summer_day',
             'channel': 'ambient', 
-            'volume' : 40
+            'volume' : 60
          });  
    },
 

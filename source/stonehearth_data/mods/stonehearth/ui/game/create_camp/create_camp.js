@@ -35,6 +35,7 @@ App.StonehearthCreateCampView = App.View.extend({
                      }, 1000);
                } else {
                   self._showBanner();
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:banner_bounce' );
                }
             });
       },
@@ -53,6 +54,7 @@ App.StonehearthCreateCampView = App.View.extend({
                   }, 1000);
                } else {
                   self._showCrate();
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:box_bounce' );
                }
             }
          });
@@ -79,9 +81,9 @@ App.StonehearthCreateCampView = App.View.extend({
    },
 
    _bounceBanner: function() {
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:banner_bounce' );
       var self = this
       if (!this._bannerPlaced) {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:banner_bounce' )
          $('#banner').effect( 'bounce', {
             'distance' : 15,
             'times' : 1,
@@ -95,9 +97,9 @@ App.StonehearthCreateCampView = App.View.extend({
    },
 
    _bounceCrate: function() {
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:box_bounce' );
       var self = this
       if (!this._cratePlaced) {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:box_bounce' )
          $('#crate').effect( 'bounce', {
             'distance' : 15,
             'times' : 1,
