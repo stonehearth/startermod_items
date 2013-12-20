@@ -18,7 +18,7 @@ void EffectList::ConstructObject()
 void EffectList::ExtendObject(json::Node const& obj)
 {
    default_ = obj.get<std::string>("default", "");
-   default_in_list_ = false;
+   default_in_list_ = 0;
    next_id_ = 1;
    AddRemoveDefault();
    
@@ -30,26 +30,20 @@ void EffectList::ExtendObject(json::Node const& obj)
 
 void EffectList::AddRemoveDefault()
 {
-   if(default_.Get().compare("") == 0) {
+   if ((*default_).empty()) {
       //If there is no default, then always return
       return;
    }
-   if(default_in_list_) {
+   if (default_in_list_ > 0) {
       if (effects_.GetSize() >= 2) {
-         //If there is a default, it's ID is always the first one, 1
-         effects_.Remove(1);
-         default_in_list_ = false;
+         effects_.Remove(default_in_list_);
+         default_in_list_ = 0;
       }
    } else {
       //The default is not in the list, so add it if there are no other effects
       if (effects_.GetSize() == 0) {
-         auto effect = GetStore().AllocObject<Effect>();
-         int effect_id = (*next_id_);
-         next_id_ = (*next_id_) + 1;
-
-         effect->Init(effect_id, default_.Get(), 0);
-         effects_.Add(effect_id, effect);
-         default_in_list_ = true;
+         default_in_list_ = (*next_id_);
+         auto effect = CreateEffect(*default_, 0);
       }
    }
 
@@ -57,13 +51,19 @@ void EffectList::AddRemoveDefault()
 
 EffectPtr EffectList::AddEffect(std::string const& effectName, int startTime)
 {
+   auto effect = CreateEffect(effectName, startTime);
+   AddRemoveDefault();
+   return effect;
+}
+
+EffectPtr EffectList::CreateEffect(std::string const& effectName, int startTime)
+{
    auto effect = GetStore().AllocObject<Effect>();
    int effect_id = (*next_id_);
    next_id_ = (*next_id_) + 1;
 
    effect->Init(effect_id, effectName, startTime);
    effects_.Add(effect_id, effect);
-   AddRemoveDefault();
    return effect;
 }
 
