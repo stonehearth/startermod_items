@@ -5,7 +5,7 @@ sampler2D cloudMap = sampler_state
 {
   Texture = "textures/environment/cloudmap.png";
   Address = Wrap;
-   Filter = None;
+   Filter = Pixely;
 };
 
 sampler2D lightingBuffer = sampler_state
@@ -105,6 +105,16 @@ context FOG
   CullMode = Back;
 }
 
+context CLOUDS
+{
+  VertexShader = compile GLSL VS_GENERAL;
+  PixelShader = compile GLSL FS_CLOUDS;
+  
+  ZWriteEnable = false;
+  BlendMode = Mult;
+  CullMode = Back;
+}
+
 context DIRECTIONAL_SHADOWMAP
 {
   VertexShader = compile GLSL VS_DIRECTIONAL_SHADOWMAP;
@@ -189,14 +199,9 @@ void main( void )
 #include "shaders/utilityLib/fragLighting.glsl" 
 #include "shaders/shadows.shader"
 
-uniform sampler2D cloudMap;
-uniform vec3 viewerPos;
 uniform vec3 lightAmbientColor;
-uniform vec2 frameBufSize;
-uniform float currentTime;
 
 varying vec4 pos;
-varying vec4 vsPos;
 varying vec3 albedo;
 varying vec3 tsbNormal;
 
@@ -205,21 +210,31 @@ void main( void )
   // Shadows.
   float shadowTerm = getShadowValue(pos.xyz);
 
-  // Light.
-  vec3 lightColor = calcSimpleDirectionalLight(viewerPos, pos.xyz, normalize(tsbNormal), -vsPos.z);
+  // Light Color.
+  vec3 lightColor = calcSimpleDirectionalLight(normalize(tsbNormal));
+
+  // Mix light and shadow and ambient light.
   lightColor = (shadowTerm * (lightColor * albedo)) + (lightAmbientColor * albedo);
   
-  // Clouds.
+  gl_FragColor = vec4(lightColor, 1.0);
+}
+
+[[FS_CLOUDS]]
+// =================================================================================================
+
+uniform sampler2D cloudMap;
+uniform float currentTime;
+
+varying vec4 pos;
+
+void main( void )
+{
   float cloudSpeed = currentTime / 80.0;
   vec2 fragCoord = pos.xz * 0.3;
   vec3 cloudColor = texture2D(cloudMap, fragCoord.xy / 128.0 + cloudSpeed).xyz;
-  cloudColor = cloudColor * texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0)).xyz;
-
-  // Mix it all together!
-  gl_FragColor.rgb = lightColor * cloudColor;
+  gl_FragColor.rgb = cloudColor * texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0)).xyz;
   gl_FragColor.a = 1.0;
 }
-
 
 [[FS_FOG]]
 // =================================================================================================

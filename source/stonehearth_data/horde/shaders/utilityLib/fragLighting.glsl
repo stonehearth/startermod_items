@@ -81,14 +81,7 @@ vec3 calcPhongDirectionalLight( const vec3 viewerPos, const vec3 pos, const vec3
 }
 
 
-vec3 calcSimpleDirectionalLight(const vec3 viewerPos, const vec3 pos, const vec3 normal, 
-    const float viewDist) {
-  // Lambert diffuse
+vec3 calcSimpleDirectionalLight(const vec3 normal) {
   float atten = max( dot( normal, -lightDir.xyz ), 0.0 );
-
-  // Blinn-Phong specular with energy conservation
-  vec3 view = normalize( viewerPos - pos );
-  vec3 halfVec = normalize( lightDir.xyz + view );
-
   return atten * lightColor;
 }
