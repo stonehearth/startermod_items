@@ -5,6 +5,8 @@ uniform vec4 shadowSplitDists;
 uniform float shadowMapSize;
 
 uniform mat4 camViewMat;
+
+varying vec4 projShadowPos[3];
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Private Functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -25,33 +27,25 @@ int _selectShadowCascade(const vec3 worldSpace_fragmentPos, out vec4 cascadeTexC
   return cascadeNum;
 }
 
-vec4 _shadowCoordsByMap(const vec3 worldSpace_fragmentPos, out int cascadeNum) {
+vec4 _shadowCoordsByMap(const vec3 worldSpace_fragmentPos) {
   vec2 cascadeTexCoord;
   vec4 hWorldSpace_fragmentPos = vec4(worldSpace_fragmentPos, 1.0);
-  vec4 projLightSpace_FragmentPos;
 
-  projLightSpace_FragmentPos = shadowMats[0] * hWorldSpace_fragmentPos;
-  cascadeTexCoord = projLightSpace_FragmentPos.xy / projLightSpace_FragmentPos.w;
+  cascadeTexCoord = projShadowPos[0].xy;
   if (max(abs(cascadeTexCoord.x - 0.25), abs(cascadeTexCoord.y - 0.25)) <= 0.249) {
-    cascadeNum = 0;
-    return projLightSpace_FragmentPos;
+    return shadowMats[0] * hWorldSpace_fragmentPos;
   }
 
-  projLightSpace_FragmentPos = shadowMats[1] * hWorldSpace_fragmentPos;
-  cascadeTexCoord = projLightSpace_FragmentPos.xy / projLightSpace_FragmentPos.w;
+  cascadeTexCoord = projShadowPos[1].xy;
   if (max(abs(cascadeTexCoord.x - 0.75), abs(cascadeTexCoord.y - 0.25)) <= 0.249) {
-    cascadeNum = 1;
-    return projLightSpace_FragmentPos;
+    return shadowMats[1] * hWorldSpace_fragmentPos;
   }
 
-  projLightSpace_FragmentPos = shadowMats[2] * hWorldSpace_fragmentPos;
-  cascadeTexCoord = projLightSpace_FragmentPos.xy / projLightSpace_FragmentPos.w;
+  cascadeTexCoord = projShadowPos[2].xy;
   if (max(abs(cascadeTexCoord.x - 0.75), abs(cascadeTexCoord.y - 0.75)) <= 0.249) {
-    cascadeNum = 2;
-    return projLightSpace_FragmentPos;
+    return shadowMats[2] * hWorldSpace_fragmentPos;
   }
 
-  cascadeNum = 3;
   return shadowMats[3] * hWorldSpace_fragmentPos;
 }
 
@@ -96,9 +90,8 @@ float _PCF( vec4 projShadow ) {
 
 float getShadowValue(const vec3 worldSpace_fragmentPos)
 {
-  int cascadeNum;
   //vec4 projCoords = _shadowCoordsByDistance(worldSpace_fragmentPos, cascadeNum);
-  vec4 projCoords = _shadowCoordsByMap(worldSpace_fragmentPos, cascadeNum);
+  vec4 projCoords = _shadowCoordsByMap(worldSpace_fragmentPos);
 
   float shadowTerm = shadow2DProj(shadowMap, projCoords).r;
 
@@ -108,7 +101,7 @@ float getShadowValue(const vec3 worldSpace_fragmentPos)
 vec3 getCascadeColor(const vec3 worldSpace_fragmentPos) {
   int cascadeNum;
   //_shadowCoordsByDistance(worldSpace_fragmentPos, cascadeNum);
-  _shadowCoordsByMap(worldSpace_fragmentPos, cascadeNum);
+  _shadowCoordsByMap(worldSpace_fragmentPos);
 
   if (cascadeNum == 0) {
     return vec3(1, 0, 0);
