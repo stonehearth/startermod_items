@@ -897,9 +897,11 @@ void Client::UpdateDebugCursor()
       renderer.QuerySceneRay(pt.x, pt.y, selection);
       if (selection.HasBlock()) {
          json::Node args;
+         csg::Point3 pt = selection.GetBlock() + csg::ToInt(selection.GetNormal());
          args.set("enabled", true);
-         args.set("cursor", selection.GetBlock());
+         args.set("cursor", pt);
          core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
+         CLIENT_LOG(1) << "requesting debug shapes for nav grid tile " << csg::GetChunkIndex(pt, phys::NavGridTile::TILE_SIZE);
       } else {
          json::Node args;
          args.set("enabled", false);
