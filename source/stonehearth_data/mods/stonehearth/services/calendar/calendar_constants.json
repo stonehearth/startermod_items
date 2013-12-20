@@ -48,6 +48,7 @@
       "midnight" : 0,
       "sunrise" : 6,
       "midday" : 14,
+      "sunset_start" : 21,
       "sunset" : 22
    }
 
