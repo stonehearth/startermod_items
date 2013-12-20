@@ -26,8 +26,8 @@ private:
       GrassDetailBase = RenderDetailBase,
       GrassDetailMax  = GrassDetailBase + 2,
 
-      DirtRoadBase,
-      DirtRoadMax = DirtRoadBase + 1,
+      DirtBase,
+      DirtMax = DirtBase + 1,
 
       RenderDetailMax
    };
@@ -69,7 +69,7 @@ private:
    void AddDirtyZone(RenderZoneRef zone);
 
    static LayerDetailRingInfo grass_ring_info_;
-   static LayerDetailRingInfo dirt_road_ring_info_;
+   static LayerDetailRingInfo dirt_ring_info_;
 
 private:
    const RenderEntity&  entity_;
