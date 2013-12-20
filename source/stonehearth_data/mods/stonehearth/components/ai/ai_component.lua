@@ -108,7 +108,7 @@ function AIComponent:check_action_stack()
    for i, entry in ipairs(self._action_stack) do
       local action, priority = self:_get_best_action(entry.activity, i-1)
       if action ~= entry.action and priority > entry.priority then
-         log:debug('switching from %s to %s (priority:%d)', entry.action.name, action.name, priority)
+         log:debug('%s switching from %s to %s (priority:%d)', self._entity, entry.action.name, action.name, priority)
          unwind_to_action = i
          break
       end
@@ -120,7 +120,7 @@ function AIComponent:check_action_stack()
    self._action_stack
    local activity = self:_get_best_activity()
    if not self._current_activity or not self:_activities_equal(activity, self._current_activity) then
-      log:debug('behavior switching entity %s behavior:', tostring(self._entity))
+      log:debug('%s switching behavior:', self._entity)
       log:debug('   from: %s', self:_format_activity(self._current_activity))
       log:debug('   to:   %s', self:_format_activity(activity))
       self:restart(activity)
@@ -150,8 +150,9 @@ function AIComponent:_get_best_action(activity, filter_depth)
    -- return the new maximum
    local best_a, best_p, list_best_a
 
+   log:spam('%s looking for best action for %s', self._entity, activity_name)
    for a, p in pairs(priorities) do
-      log:debug('activity %s: %s has priority %d', activity_name, a.name, p)
+      log:spam('  action %s has priority %d', tostring(a.name), p)
       if not best_p or p >= best_p then
          -- get_best_action is called both to check the health of the current action
          -- stack as well as to choose new actions to put on the stack.  In the first
@@ -180,6 +181,7 @@ function AIComponent:_get_best_action(activity, filter_depth)
 
    -- choose a random action amoung all the actions with the highest priority (they all tie)
    best_a = list_best_a[math.random(#list_best_a)]
+   log:spam('%s  best action for %s is %s (priority: %d)', self._entity, activity_name, tostring(best_a.name), best_p)
    
    return best_a, best_p
 end
@@ -188,7 +190,7 @@ end
 function AIComponent:_get_best_activity()
    radiant.check.is_entity(self._entity)
 
-   log:debug('computing best activity for %s.', tostring(self._entity))
+   log:debug('%s computing best activity.', self._entity)
    local bp, ba = -1, nil
    for name, action in pairs(self._actions) do
       local p, a = action:recommend_activity(self._entity)
@@ -200,7 +202,7 @@ function AIComponent:_get_best_activity()
       end
    end
    assert(ba)
-   log:debug('best activity for %s is %s.', tostring(self._entity), self:_format_activity(ba))
+   log:debug('  best activity is %s.', self:_format_activity(ba))
    return ba
 end
 ]]
@@ -269,7 +271,7 @@ end
 function AIComponent:abort(reason)
    -- xxx: assert that we're running inthe context of the coroutine
    if reason == nil then reason = 'no reason given' end
-   log:info('Aborting current action because: ' .. reason)
+   log:info('%s Aborting current action because: %s', self._entity, reason)
    
    self:_clear_action_stack()   
    -- all actions have had their stop method called on them.  yield
@@ -297,9 +299,9 @@ function AIComponent:execute(...)
 
    local action_main = function()
       -- decoda_name = string.format("entity %d : %s action", self._entity:get_id(), tostring(action.name))
-      --log:debug('coroutine starting action: %s for activity %s', action.name, self:_format_activity(activity))
+      log:debug('%s coroutine starting action: %s for activity %s', self._entity, tostring(action.name), self:_format_activity(activity))
       local result = { action:run(self, self._entity, select(2, unpack(activity))) }
-      --log:debug('coroutine finished: %s', action.name)
+      log:debug('%s coroutine finished: %s', self._entity, tostring(action.name))
       return result
    end
 
@@ -381,8 +383,18 @@ function AIComponent:wait_for_path_finder(pf)
          path = solution
       end
    )
+   log:debug('%s blocking until pathfinder finishes', self._entity)
    self:wait_until(function()
-      return path ~= nil
+      if path ~= nil then
+         log:debug('%s pathfinder completed!  resuming action', self._entity)
+         return true
+      end
+      if pf:is_idle() then
+         log:debug('%s pathfinder went idle.  aborting!', self._entity)
+         self:abort('pathfinder unexpectedly went idle while finding path')
+      end
+      log:debug('%s waiting for pathfinder: %s', self._entity, pf:describe_progress())
+      return false
    end)
    return path
 end

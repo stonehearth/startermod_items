@@ -87,7 +87,7 @@ context OMNI_LIGHTING
 
 context DIRECTIONAL_LIGHTING
 {
-  VertexShader = compile GLSL VS_GENERAL;
+  VertexShader = compile GLSL VS_GENERAL_SHADOWS;
   PixelShader = compile GLSL FS_DIRECTIONAL_LIGHTING;
   
   ZWriteEnable = false;
@@ -144,6 +144,37 @@ void main( void )
   vsPos = calcViewPos(pos);
   tsbNormal = calcWorldVec(normal);
   albedo = color;
+
+  gl_Position = viewProjMat * pos;
+}
+
+
+[[VS_GENERAL_SHADOWS]]
+#include "shaders/utilityLib/vertCommon.glsl"
+
+uniform mat4 viewProjMat;
+uniform mat4 shadowMats[4];
+
+attribute vec3 vertPos;
+attribute vec3 normal;
+attribute vec3 color;
+
+varying vec4 pos;
+varying vec4 vsPos;
+varying vec3 tsbNormal;
+varying vec3 albedo;
+varying vec4 projShadowPos[3];
+
+void main( void )
+{
+  pos = calcWorldPos(vec4(vertPos, 1.0));
+  vsPos = calcViewPos(pos);
+  tsbNormal = calcWorldVec(normal);
+  albedo = color;
+
+  projShadowPos[0] = shadowMats[0] * pos;
+  projShadowPos[1] = shadowMats[1] * pos;
+  projShadowPos[2] = shadowMats[2] * pos;
 
   gl_Position = viewProjMat * pos;
 }

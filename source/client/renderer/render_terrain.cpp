@@ -15,9 +15,8 @@ using namespace ::radiant::client;
 #define T_LOG(level)      LOG(renderer.terrain, level)
 
 static csg::mesh_tools::tesselator_map tess_map;
-RenderTerrain::LayerDetailRingInfo RenderTerrain::light_grass_ring_info_;
-RenderTerrain::LayerDetailRingInfo RenderTerrain::dark_grass_ring_info_;
-RenderTerrain::LayerDetailRingInfo RenderTerrain::dirt_road_ring_info_;
+RenderTerrain::LayerDetailRingInfo RenderTerrain::grass_ring_info_;
+RenderTerrain::LayerDetailRingInfo RenderTerrain::dirt_ring_info_;
 
 RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain) :
    entity_(entity),
@@ -29,16 +28,12 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
    });
 
    if (tess_map.empty()) {
-      light_grass_ring_info_.rings.emplace_back(LayerDetailRingInfo::Ring(4, LightGrassDetailBase));
-      light_grass_ring_info_.rings.emplace_back(LayerDetailRingInfo::Ring(6, LightGrassDetailBase+1));
-      light_grass_ring_info_.inner = (TerrainDetailTypes)(LightGrassDetailMax);
+      grass_ring_info_.rings.emplace_back(LayerDetailRingInfo::Ring(4, GrassDetailBase));
+      grass_ring_info_.rings.emplace_back(LayerDetailRingInfo::Ring(6, GrassDetailBase+1));
+      grass_ring_info_.inner = (TerrainDetailTypes)(GrassDetailMax);
 
-      dark_grass_ring_info_.rings.emplace_back(LayerDetailRingInfo::Ring(2, DarkGrassDetailBase));
-      dark_grass_ring_info_.rings.emplace_back(LayerDetailRingInfo::Ring(3, DarkGrassDetailBase+1));
-      dark_grass_ring_info_.inner = (TerrainDetailTypes)(DarkGrassDetailMax);
-
-      dirt_road_ring_info_.rings.emplace_back(LayerDetailRingInfo::Ring(1, DirtRoadBase));
-      dirt_road_ring_info_.inner = (TerrainDetailTypes)(DirtRoadMax);
+      dirt_ring_info_.rings.emplace_back(LayerDetailRingInfo::Ring(8, DirtBase));
+      dirt_ring_info_.inner = (TerrainDetailTypes)(DirtMax);
 
       auto hex_to_decimal = [](char c) -> int {
          if (c >= 'A' && c <= 'F') {
@@ -68,8 +63,6 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
       csg::Point3f soil_light = parse_color(config.get("soil.light_color", "#ffff00"));
       csg::Point3f soil_dark = parse_color(config.get("soil.dark_color", "#ff00ff"));
       csg::Point3f soil_detail = parse_color(config.get("soil.detail_color", "#ff00ff"));
-      csg::Point3f dark_grass_color = parse_color(config.get("dark_grass.color", "#ff00ff"));
-      csg::Point3f dark_grass_dark_color = parse_color(config.get("dark_grass.dark_color", "#ff00ff"));
       csg::Point3f rock_layer_1_color = parse_color(config.get("rock.layer_1_color", "#ff00ff"));
       csg::Point3f rock_layer_2_color = parse_color(config.get("rock.layer_2_color", "#ff00ff"));
       csg::Point3f rock_layer_3_color = parse_color(config.get("rock.layer_3_color", "#ff00ff"));
@@ -78,14 +71,11 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
 
       // xxx: this is in no way thread safe! (see SH-8)
       static csg::Point3f detail_rings[] = {
-         parse_color(config.get("light_grass.ring_0_color", "#ff00ff")),
-         parse_color(config.get("light_grass.ring_1_color", "#ff00ff")),
-         parse_color(config.get("light_grass.ring_2_color", "#ff00ff")),
-         parse_color(config.get("dark_grass.ring_0_color", "#ff00ff")),
-         parse_color(config.get("dark_grass.ring_1_color", "#ff00ff")),
-         parse_color(config.get("dark_grass.ring_2_color", "#ff00ff")),
-         parse_color(config.get("dirt_road.edges", "#ff00ff")),
-         parse_color(config.get("dirt_road.center", "#ff00ff")),
+         parse_color(config.get("grass.ring_0_color", "#ff00ff")),
+         parse_color(config.get("grass.ring_1_color", "#ff00ff")),
+         parse_color(config.get("grass.ring_2_color", "#ff00ff")),
+         parse_color(config.get("dirt.ring_0_color", "#ff00ff")),
+         parse_color(config.get("dirt.ring_1_color", "#ff00ff")),
       };
 
       tess_map[om::Terrain::Soil] = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {
@@ -120,16 +110,8 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
             }
          }
       };
-      tess_map[om::Terrain::DarkWood] = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {
+      tess_map[om::Terrain::Wood] = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {
          m.add_face(points, normal, dark_wood_color);
-      };
-
-      tess_map[om::Terrain::DarkGrass] = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {
-         m.add_face(points, normal, dark_grass_color);
-      };
-
-      tess_map[om::Terrain::DarkGrassDark] = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {
-         m.add_face(points, normal, dark_grass_dark_color);
       };
 
       tess_map[om::Terrain::RockLayer1] = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {
@@ -252,28 +234,24 @@ void RenderTerrain::UpdateRenderRegion(RenderZonePtr render_zone)
 
 void RenderTerrain::TesselateTerrain(csg::Region3 const& terrain, csg::Region3& tess)
 {
-   csg::Region3 light_grass, dark_grass, dirt_road;
+   csg::Region3 grass, dirt;
 
    T_LOG(7) << "Tesselating Terrain...";
    for (csg::Cube3 const& cube : terrain) {
       switch (cube.GetTag()) {
-      case om::Terrain::LightGrass:
-         light_grass.AddUnique(cube);
+      case om::Terrain::Grass:
+         grass.AddUnique(cube);
          break;
-      case om::Terrain::DirtRoad:
-         dirt_road.AddUnique(cube);
-         break;
-      case om::Terrain::DarkGrass:
-         dark_grass.AddUnique(cube);
+      case om::Terrain::Dirt:
+         dirt.AddUnique(cube);
          break;
       default:
          tess.AddUnique(cube);
       }
    }
 
-   AddTerrainTypeToTesselation(light_grass, terrain, tess, light_grass_ring_info_);
-   AddTerrainTypeToTesselation(dark_grass, terrain, tess, dark_grass_ring_info_);
-   AddTerrainTypeToTesselation(dirt_road, csg::Region3(), tess, dirt_road_ring_info_);
+   AddTerrainTypeToTesselation(grass, terrain, tess, grass_ring_info_);
+   AddTerrainTypeToTesselation(dirt, csg::Region3(), tess, dirt_ring_info_);
    T_LOG(7) << "Done Tesselating Terrain!";
 }
 

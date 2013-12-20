@@ -43,8 +43,8 @@ function PathFinderWrapper:start()
    return self._pf:start()
 end
 
-function PathFinderWrapper:restart()
-   return self._pf:restart()
+function PathFinderWrapper:restart(reason)
+   return self._pf:restart(reason)
 end
 
 function PathFinderWrapper:stop()
@@ -56,7 +56,11 @@ function PathFinderWrapper:get_solution()
 end
 
 function PathFinderWrapper:is_idle()
-   return self._pf:is_idle(d)
+   return self._pf:is_idle()
+end
+
+function PathFinderWrapper:describe_progress()
+   return self._pf:describe_progress()
 end
 
 

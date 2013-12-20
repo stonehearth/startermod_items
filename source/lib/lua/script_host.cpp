@@ -160,7 +160,7 @@ ScriptHost::ScriptHost()
          namespace_("lua") [
             lua::RegisterType<ScriptHost>()
                .def("log",             &ScriptHost::Log)
-               .def("log_enabled",     &ScriptHost::LogEnabled)
+               .def("get_log_level",   &ScriptHost::GetLogLevel)
                .def("report_error",    (void (ScriptHost::*)(std::string const& error, std::string const& traceback))&ScriptHost::ReportLuaStackException)
                .def("require",         (luabind::object (ScriptHost::*)(std::string const& name))&ScriptHost::Require)
                .def("require_script",  (luabind::object (ScriptHost::*)(std::string const& name))&ScriptHost::RequireScript)
@@ -329,7 +329,7 @@ void ScriptHost::Log(const char* category, int level, const char* str)
    LOG_CATEGORY_(level, BUILD_STRING("mod " << category)) << str;
 }
 
-bool ScriptHost::LogEnabled(std::string category, int level)
+int ScriptHost::GetLogLevel(std::string const& category)
 {   
    static const int SENTINEL = 0xd3adb33f;
    size_t last = category.size();
@@ -355,7 +355,7 @@ bool ScriptHost::LogEnabled(std::string category, int level)
    if (config_level == SENTINEL) {
       config_level = core::Config::GetInstance().Get<int>("logging.log_level", SENTINEL);
    }
-   return level <= config_level;
+   return config_level;
 }
 
 bool ScriptHost::CoerseToBool(object const& o)

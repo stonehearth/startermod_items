@@ -2,6 +2,7 @@ local Point3 = _radiant.csg.Point3
 
 local PickupItemOnPath = class()
 
+PickupItemOnPath.name = 'pickup item on path'
 PickupItemOnPath.does = 'stonehearth:pickup_item_on_path'
 PickupItemOnPath.priority = 5
 

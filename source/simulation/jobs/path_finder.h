@@ -32,12 +32,13 @@ class PathFinder : public Job {
 
       PathPtr GetSolution() const;
 
-      void Restart();
+      void RestartSearch(const char* reason);
       void Start();
       void Stop();
       int EstimateCostToSolution();
       std::ostream& Format(std::ostream& o) const;
       void SetDebugColor(csg::Color4 const& color);
+      std::string DescribeProgress();
 
    public: // Job Interface
       bool IsIdle() const override;
@@ -49,7 +50,7 @@ class PathFinder : public Job {
    private:
       friend PathFinderSrc;
       friend PathFinderDst;
-      void RestartSearch(const char* reason);
+      void Restart();
       bool IsSearchExhausted() const;
 
    private:
