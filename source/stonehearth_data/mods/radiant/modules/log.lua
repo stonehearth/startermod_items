@@ -4,7 +4,8 @@ local Log = {
    ERROR = 1,
    WARNING = 3,
    INFO = 5,
-   DEBUG = 7,   
+   DEBUG = 7,
+   SPAM = 9,
 }
 
 local enabled_log_levels = {}
@@ -54,6 +55,10 @@ end
 
 function Log.debug(category, format, ...)
    Log.write_(category, Log.DEBUG, format, ...)
+end
+
+function Log.spam(category, format, ...)
+   Log.write_(category, Log.SPAM, format, ...)
 end
 
 function Log.create_logger(sub_category)

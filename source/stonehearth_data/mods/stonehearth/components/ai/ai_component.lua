@@ -150,9 +150,9 @@ function AIComponent:_get_best_action(activity, filter_depth)
    -- return the new maximum
    local best_a, best_p, list_best_a
 
-   log:debug('%s looking for best action for %s', self._entity, activity_name)
+   log:spam('%s looking for best action for %s', self._entity, activity_name)
    for a, p in pairs(priorities) do
-      log:debug('  action %s has priority %d', tostring(a.name), p)
+      log:spam('  action %s has priority %d', tostring(a.name), p)
       if not best_p or p >= best_p then
          -- get_best_action is called both to check the health of the current action
          -- stack as well as to choose new actions to put on the stack.  In the first
@@ -181,7 +181,7 @@ function AIComponent:_get_best_action(activity, filter_depth)
 
    -- choose a random action amoung all the actions with the highest priority (they all tie)
    best_a = list_best_a[math.random(#list_best_a)]
-   log:debug('  returning %s (priority: %d)', tostring(best_a.name), best_p)
+   log:spam('%s  best action for %s is %s (priority: %d)', self._entity, activity_name, tostring(best_a.name), best_p)
    
    return best_a, best_p
 end

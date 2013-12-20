@@ -29,4 +29,8 @@ function Logger:debug(format, ...)
    radiant.log.write_(self._category, radiant.log.DEBUG, format, ...)
 end
 
+function Logger:spam(format, ...)
+   radiant.log.write_(self._category, radiant.log.SPAM, format, ...)
+end
+
 return Logger
