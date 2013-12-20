@@ -174,6 +174,7 @@ bool RenderDevice::init(int glMajor, int glMinor, bool enable_gl_logging)
    _caps.renderer = renderer;
    _caps.vendor = vendor;
    _caps.cardType = getCardType(vendor);
+   _caps.hasPinnedMemory = glExt::AMD_pinned_memory;
    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &_caps.maxTextureSize);
 
 	// Find supported depth format (some old ATI cards only support 16 bit depth for FBOs)

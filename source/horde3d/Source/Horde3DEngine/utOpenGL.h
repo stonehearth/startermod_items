@@ -57,7 +57,7 @@ namespace glExt
 	extern bool ARB_texture_float;
 	extern bool ARB_texture_non_power_of_two;
 	extern bool ARB_timer_query;
-
+   extern bool AMD_pinned_memory;
 	extern int  majorVersion, minorVersion;
 }
 

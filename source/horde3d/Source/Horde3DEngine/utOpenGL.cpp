@@ -28,6 +28,7 @@ namespace glExt
 	bool ARB_texture_float = false;
 	bool ARB_texture_non_power_of_two = false;
 	bool ARB_timer_query = false;
+   bool AMD_pinned_memory = false;
    bool ARB_debug_output = false;
 
 	int	majorVersion = 1, minorVersion = 0;
@@ -502,6 +503,8 @@ bool initOpenGLExtensions()
 		r &= (glGetQueryObjecti64v = (PFNGLGETQUERYOBJECTI64VPROC) platGetProcAddress( "glGetQueryObjecti64v" )) != 0x0;
 		r &= (glGetQueryObjectui64v = (PFNGLGETQUERYOBJECTUI64VPROC) platGetProcAddress( "glGetQueryObjectui64v" )) != 0x0;
 	}
+
+   glExt::AMD_pinned_memory = isExtensionSupported("GL_AMD_pinned_memory");
 
 	return r;
 }

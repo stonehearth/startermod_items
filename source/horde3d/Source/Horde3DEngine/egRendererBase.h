@@ -123,6 +123,7 @@ struct DeviceCaps
 	bool  texNPOT;
 	bool  rtMultisampling;
    bool  hasInstancing;
+   bool  hasPinnedMemory;
    int   maxTextureSize;
    CardType cardType;
    int   glVersion;
