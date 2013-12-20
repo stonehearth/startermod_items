@@ -4,16 +4,10 @@
       "light_color": "#918154",
       "detail_color": "#A3905A"
    },
-   "light_grass": {
+   "grass": {
       "ring_0_color": "#99ce7c",
       "ring_1_color": "#87c076",
       "ring_2_color": "#75b370"
-   },
-   "dark_grass": {
-      "ring_0_color": "#5fa771",
-      "ring_1_color": "#589f6a",
-      "ring_2_color": "#529864",
-      "dark_color": "#458957"
    },
    "rock": {
       "layer_1_color": "#615e55",

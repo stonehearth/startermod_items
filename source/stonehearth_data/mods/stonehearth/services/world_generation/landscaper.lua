@@ -75,9 +75,15 @@ function Landscaper:_place_trees(zone_map, place_item)
    local noise_map = self.noise_map_buffer
    local density_map = self.density_map_buffer
    local default_tree_type = self:random_tree_type() -- default tree type for this zone
-   local i, j, x, y, tree_type, tree_name, occupied, value, elevation
+   local i, j, x, y, tree_type, tree_name, occupied, value, elevation, mean_density
+   
+   if zone_map.terrain_type == TerrainType.Grassland then
+      mean_density = 0
+   else
+      mean_density = 20
+   end
 
-   self:_fill_noise_map(noise_map, self.flora_map, 0, -20, -20)
+   self:_fill_noise_map(noise_map, self.flora_map, mean_density, -10, -10)
    FilterFns.filter_2D_025(density_map, noise_map, noise_map.width, noise_map.height, 8)
 
    for j=1, density_map.height do
@@ -117,7 +123,7 @@ function Landscaper:_place_flowers(zone_map, place_item)
    local ground_radius = 1
    local noise_map = self.noise_map_buffer
    local density_map = self.density_map_buffer
-   local density_bias = 10
+   local threshold = 10
    local i, j, x, y, occupied, value, elevation, terrain_type
 
    self:_fill_noise_map(noise_map, self.flora_map, 10, -50, -50)
@@ -127,11 +133,11 @@ function Landscaper:_place_flowers(zone_map, place_item)
       for i=1, density_map.width do
          value = density_map:get(i, j)
 
-         if value > 0  then
+         if value > threshold then
             occupied = self.flora_map:get(i, j) ~= nil
 
             if not occupied then
-               if math.random(100) <= value+density_bias then
+               if math.random(100) <= value then
                   x, y = self.flora_perturbation_grid:get_perturbed_coordinates(i, j, exclusion_radius)
 
                   if self:_is_flat(zone_map, x, y, ground_radius) then
@@ -174,6 +180,7 @@ function Landscaper:_place_berry_bushes(zone_map, place_item)
    local ground_radius = 0
    local noise_map = self.noise_map_buffer
    local density_map = self.density_map_buffer
+   local threshold = 50
    local i, j, x, y, occupied, value, placed
 
    local try_place_item = function(x, y)
@@ -186,7 +193,7 @@ function Landscaper:_place_berry_bushes(zone_map, place_item)
       return true
    end
 
-   self:_fill_noise_map(noise_map, self.flora_map, -25, 100, 0)
+   self:_fill_noise_map(noise_map, self.flora_map, -15, 100, 0)
    FilterFns.filter_2D_025(density_map, noise_map, noise_map.width, noise_map.height, 8)
 
    --log:debug('Noise map:'); noise_map:print()
@@ -196,7 +203,7 @@ function Landscaper:_place_berry_bushes(zone_map, place_item)
       for i=1, density_map.width do
          value = density_map:get(i, j)
 
-         if value > 0  then
+         if value > threshold then
             occupied = self.flora_map:get(i, j) ~= nil
 
             if not occupied then
@@ -216,9 +223,9 @@ function Landscaper:_place_berry_bushes(zone_map, place_item)
                   local w, h, factor, probability, nested_grid_spacing
                   x, y, w, h = self.flora_perturbation_grid:get_cell_bounds(i, j)
 
-                  factor = 0.5
-                  probability = value / 100
-
+                  factor = 0.33
+                  probability = value * 0.01
+                  
                   nested_grid_spacing = math.floor(grid_spacing * factor)
 
                   placed = self:_place_dense_items(zone_map, x, y, w, h, nested_grid_spacing, exclusion_radius, probability, try_place_item)
@@ -313,10 +320,15 @@ function Landscaper:_get_tree_type(elevation, default_tree_type)
 
    local terrain_type = terrain_info:get_terrain_type(elevation)
 
-   if terrain_type == TerrainType.Grassland then return oak end
    if terrain_type == TerrainType.Mountains then return juniper end
+   if terrain_type == TerrainType.Grassland then return oak end
 
-   return default_tree_type
+   if elevation < terrain_info[TerrainType.Foothills].max_height then
+      return oak
+   else
+      -- highest level of foothills can be junipers
+      return default_tree_type
+   end
 end
 
 function Landscaper:random_tree(tree_type, tree_size)
@@ -429,15 +441,15 @@ end
 function Landscaper:_get_boulder_dimensions(terrain_type)
    local half_length, half_width, half_height, aspect_ratio
 
-   if     terrain_type == TerrainType.Mountains then half_width = math.random(8, 16)
-   elseif terrain_type == TerrainType.Foothills then half_width = math.random(6, 10)
-   elseif terrain_type == TerrainType.Grassland then half_width = math.random(4, 8)
+   if     terrain_type == TerrainType.Mountains then half_width = math.random(6, 12)
+   elseif terrain_type == TerrainType.Foothills then half_width = math.random(4, 8)
+   elseif terrain_type == TerrainType.Grassland then half_width = math.random(2, 4)
    else return nil, nil, nil
    end
 
    half_height = half_width+1 -- make boulder look like its sitting slightly above ground
    half_length = half_width
-   aspect_ratio = GaussianRandom.generate(1, 0.25)
+   aspect_ratio = GaussianRandom.generate(1, 0.15)
 
    if math.random() <= 0.50 then half_width = MathFns.round(half_width*aspect_ratio)
    else                          half_length = MathFns.round(half_length*aspect_ratio)

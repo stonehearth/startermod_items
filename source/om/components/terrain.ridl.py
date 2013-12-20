@@ -13,12 +13,9 @@ class Terrain(Component):
       RockLayer3    = 3,
       Boulder       = 4,
       Soil          = 5,
-      DarkGrass     = 6,
-      DarkGrassDark = 7,
-      LightGrass    = 8,
-      DarkWood      = 9, 
-      DirtRoad      = 10, 
-      Magma         = 11,
+      Grass         = 6,
+      Wood          = 7,
+      DirtRoad      = 8
    )
 
    zones = dm.Map(csg.Point3(), Region3BoxedPtr(), singular_name='zone', add=None, remove=None, get=None)
