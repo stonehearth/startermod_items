@@ -1800,14 +1800,21 @@ void Renderer::drawLightGeometry( const std::string &shaderContext, const std::s
 
       if (_curLight->_directional)
       {
-         dirLightFrus = computeDirectionalLightFrustum(maxDist);
-         lightFrus = &dirLightFrus;
+         if (!noShadows)
+         {
+            dirLightFrus = computeDirectionalLightFrustum(maxDist);
+            lightFrus = &dirLightFrus;
+         } else {
+            // If we're a directional light, and no shadows are to be cast, then just light
+            // strictly only what is visible.
+            lightFrus = 0x0;
+         }
       } else {
          lightFrus = &(_curLight->getFrustum());
       }
 
 		// Check if light is not visible
-		if( _curCamera->getFrustum().cullFrustum( *lightFrus ) ) continue;
+		if( lightFrus && _curCamera->getFrustum().cullFrustum( *lightFrus ) ) continue;
 
 		// Check if light is occluded
 		if( occSet >= 0 )
