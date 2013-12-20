@@ -128,6 +128,8 @@ function NewGameCallHandler:create_camp(session, response, pt)
    radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
                           {entity = worker6, description = 'person_embarks'})
 
+   self:place_item('stonehearth:firepit', camp_x, camp_z+3, 'civ')
+
    --self:place_citizen(camp_x+0, camp_z+3)
    --self:place_citizen(camp_x+3, camp_z+3)
    --self:place_citizen(camp_x-3, camp_z+0)
@@ -135,7 +137,7 @@ function NewGameCallHandler:create_camp(session, response, pt)
 
    radiant.entities.pickup_item(worker1, faction:create_entity('stonehearth:oak_log'))
    radiant.entities.pickup_item(worker2, faction:create_entity('stonehearth:oak_log'))
-   radiant.entities.pickup_item(worker3, faction:create_entity('stonehearth:firepit_proxy'))
+   radiant.entities.pickup_item(worker3, faction:create_entity('stonehearth:oak_log'))
 
    -- start the game master service
    --game_master.start()
