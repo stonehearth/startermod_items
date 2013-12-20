@@ -11,14 +11,12 @@ context TRANSLUCENT_ON_TOP
 
 
 [[VS_GENERAL]]
-#version 130
-
-uniform   mat4    viewProjMat;
-uniform   mat4    worldMat;
-uniform   vec4    alpha;
-in        vec3    vertPos;
-in        vec3    color;
-out       vec4    vs_color;
+uniform    mat4    viewProjMat;
+uniform    mat4    worldMat;
+uniform    vec4    alpha;
+attribute  vec3    vertPos;
+attribute  vec3    color;
+varying    vec4    vs_color;
 
 void main() {
    vs_color = vec4(color, alpha.a);
@@ -26,11 +24,8 @@ void main() {
 }
 
 [[FS_AMBIENT]]	
-#version 130
 
-in       vec4    vs_color;
-out      vec4    fragment_color;
+varying vec4 vs_color;
 void main() {
-   fragment_color = vs_color;
-};
-
+  gl_FragColor = vs_color;
+}

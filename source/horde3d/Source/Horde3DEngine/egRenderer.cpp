@@ -1784,9 +1784,6 @@ void Renderer::drawLightGeometry( const std::string &shaderContext, const std::s
 	Modules::sceneMan().updateQueues("drawing light geometry", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
 	                                 SceneNodeFlags::NoDraw, 0, true, false );
 	
-	GPUTimer *timer = Modules::stats().getGPUTimer( EngineStats::FwdLightsGPUTime );
-	if( Modules::config().gatherTimeStats ) timer->beginQuery( _frameID );
-	
 	for( const auto& entry : Modules::sceneMan().getLightQueue() )
 	{
 		_curLight = (LightNode *)entry;
@@ -1852,15 +1849,8 @@ void Renderer::drawLightGeometry( const std::string &shaderContext, const std::s
 		// Update shadow map
 		if( !noShadows && _curLight->_shadowMapCount > 0 )
 		{
-			timer->endQuery();
-			GPUTimer *timerShadows = Modules::stats().getGPUTimer( EngineStats::ShadowsGPUTime );
-			if( Modules::config().gatherTimeStats ) timerShadows->beginQuery( _frameID );
-
 			updateShadowMap(lightFrus, maxDist);
 			setupShadowMap( false );
-
-			timerShadows->endQuery();
-			if( Modules::config().gatherTimeStats ) timer->beginQuery( _frameID );
 		}
 		else
 		{
@@ -1897,8 +1887,6 @@ void Renderer::drawLightGeometry( const std::string &shaderContext, const std::s
 
 	_curLight = 0x0;
 
-	timer->endQuery();
-
 	// Draw occlusion proxies
 	if( occSet >= 0 )
 	{
@@ -1914,10 +1902,7 @@ void Renderer::drawLightShapes( const std::string &shaderContext, bool noShadows
 	
 	Modules::sceneMan().updateQueues( "drawing light shapes", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
 	                                  SceneNodeFlags::NoDraw, 0, true, false );
-	
-	GPUTimer *timer = Modules::stats().getGPUTimer( EngineStats::DefLightsGPUTime );
-	if( Modules::config().gatherTimeStats ) timer->beginQuery( _frameID );
-	
+		
 	for( const auto& entry : Modules::sceneMan().getLightQueue() )
 	{
 		_curLight = (LightNode *)entry;
@@ -1986,16 +1971,9 @@ void Renderer::drawLightShapes( const std::string &shaderContext, bool noShadows
 		// Update shadow map
 		if( !noShadows && _curLight->_shadowMapCount > 0 )
 		{	
-			timer->endQuery();
-			GPUTimer *timerShadows = Modules::stats().getGPUTimer( EngineStats::ShadowsGPUTime );
-			if( Modules::config().gatherTimeStats ) timerShadows->beginQuery( _frameID );
-			
          updateShadowMap(lightFrus, maxDist);
 			setupShadowMap( false );
-			curMatRes = 0x0;
-			
-			timerShadows->endQuery();
-			if( Modules::config().gatherTimeStats ) timer->beginQuery( _frameID );
+			curMatRes = 0x0;			
 		}
 		else
 		{
@@ -2039,8 +2017,6 @@ void Renderer::drawLightShapes( const std::string &shaderContext, bool noShadows
 	}
 
 	_curLight = 0x0;
-
-	timer->endQuery();
 
 	// Draw occlusion proxies
 	if( occSet >= 0 )
@@ -2464,9 +2440,6 @@ void Renderer::drawParticles( const std::string &shaderContext, const std::strin
 
 	MaterialResource *curMatRes = 0x0;
 
-	GPUTimer *timer = Modules::stats().getGPUTimer( EngineStats::ParticleGPUTime );
-	if( Modules::config().gatherTimeStats ) timer->beginQuery( Modules::renderer().getFrameID() );
-
 	// Bind particle geometry
 	gRDI->setVertexBuffer( 0, Modules::renderer().getParticleVBO(), 0, sizeof( ParticleVert ) );
 	gRDI->setIndexBuffer( Modules::renderer().getQuadIdxBuf(), IDXFMT_16 );
@@ -2608,8 +2581,6 @@ void Renderer::drawParticles( const std::string &shaderContext, const std::strin
 		if( queryObj )
 			gRDI->endQuery( queryObj );
 	}
-
-	timer->endQuery();
 
 	// Draw occlusion proxies
 	if( occSet >= 0 )

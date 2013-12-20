@@ -11,9 +11,8 @@ context TRANSLUCENT
 }
 
 [[VS_OVERLAY]]
-#version 130
 
-in vec4 vertPos;
+attribute vec4 vertPos;
 
 void main() {
 	gl_Position = vertPos;
@@ -21,10 +20,7 @@ void main() {
 
 
 [[FS_OVERLAY]]
-#version 130
-
-out vec4 fragColor;
 
 void main() {
-   fragColor = vec4(1, 1, 1, 1);
-};
+  gl_FragColor = vec4(1, 1, 1, 1);
+}

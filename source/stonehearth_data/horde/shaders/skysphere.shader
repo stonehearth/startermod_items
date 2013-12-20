@@ -43,9 +43,9 @@ void main() {
 
 [[FS_SKYSPHERE]]
 
-in float colorT;
-in vec4 startCol;
-in vec4 endCol;
+varying float colorT;
+varying vec4 startCol;
+varying vec4 endCol;
 
 void main() {
   float clampedT = clamp(colorT, 0.0, 1.0);

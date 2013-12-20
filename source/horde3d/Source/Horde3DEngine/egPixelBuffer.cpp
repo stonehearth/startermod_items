@@ -25,7 +25,7 @@ using namespace std;
 
 bool usePinnedMemory()
 {
-   return gRDI->getCaps().cardType == CardType::ATI && gRDI->getCaps().glVersion >= 32;
+   return gRDI->getCaps().cardType == CardType::ATI && gRDI->getCaps().hasPinnedMemory;
 }
 
 

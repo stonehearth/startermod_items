@@ -50,8 +50,8 @@ void main() {
 
 uniform sampler2D twinkleMap;
 
-in float oBrightness;
-in vec2 texCoords;
+varying float oBrightness;
+varying vec2 texCoords;
 
 void main() {
   float finalBrightness = oBrightness * (texture2D(twinkleMap, texCoords).x * 2.0);

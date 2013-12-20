@@ -1,192 +1,159 @@
 #include "radiant.h"
 #include "radiant_macros.h"
 #include "nav_grid.h"
+#include "nav_grid_tile.h"
 #include "dm/store.h"
+#include "csg/util.h"
+#include "om/components/component.h"
 #include "om/components/mob.ridl.h"
 #include "om/components/terrain.ridl.h"
 #include "om/components/vertical_pathing_region.ridl.h"
 #include "om/components/region_collision_shape.ridl.h"
+#include "terrain_tracker.h"
+#include "terrain_tile_tracker.h"
+#include "region_collision_shape_tracker.h"
+#include "vertical_pathing_region_tracker.h"
 
 using namespace radiant;
 using namespace radiant::phys;
 
-
-template <class T, typename C>
-T ToLocalCoordinates(const T& coord, const std::shared_ptr<C> component)
-{
-   om::Entity const& entity = component->GetEntity(); 
-
-   auto mob = entity.GetComponent<om::Mob>();
-   if (mob) {
-      T result(coord);
-      csg::Point3 origin = mob->GetWorldGridLocation();
-      result.Translate(-origin);
-      return result;
-   }
-   return coord;
-}
+#define NG_LOG(level)              LOG(physics.navgrid, level)
 
 NavGrid::NavGrid(int trace_category) :
-   next_region_change_cb_id_(1),
    trace_category_(trace_category)
 {
 }
 
+/*
+ * -- NavGrid::TrackComponent
+ *
+ * Notifies the NavGrid that a new component has been added to some entity in the system.
+ * If we care, create a CollisionTracker object to keep track of it.  See collision_tracker.h
+ * for details.
+ */
 void NavGrid::TrackComponent(std::shared_ptr<dm::Object> component)
 {
+   dm::ObjectId id = component->GetObjectId();
+
    switch (component->GetObjectType()) {
    case om::TerrainObjectType: {
       auto terrain = std::static_pointer_cast<om::Terrain>(component);
-      dm::ObjectId id = terrain->GetObjectId();
-      terrain_[id] = std::make_shared<TerrainCollisionObject>(terrain);
+      CollisionTrackerPtr tracker = std::make_shared<TerrainTracker>(*this, terrain->GetEntityPtr(), terrain);
+      collision_trackers_[id] = tracker;
+      tracker->Initialize();
       break;
    }
    case om::RegionCollisionShapeObjectType: {
-      AddRegionCollisionShape(std::static_pointer_cast<om::RegionCollisionShape>(component));
+      auto rcs = std::static_pointer_cast<om::RegionCollisionShape>(component);
+      CollisionTrackerPtr tracker = std::make_shared<RegionCollisionShapeTracker>(*this, rcs->GetEntityPtr(), rcs);
+      collision_trackers_[id] = tracker;
+      tracker->Initialize();
       break;
    }
    case om::VerticalPathingRegionObjectType: {
-      AddVerticalPathingRegion(std::static_pointer_cast<om::VerticalPathingRegion>(component));
+      auto rcs = std::static_pointer_cast<om::VerticalPathingRegion>(component);
+      CollisionTrackerPtr tracker = std::make_shared<VerticalPathingRegionTracker>(*this, rcs->GetEntityPtr(), rcs);
+      collision_trackers_[id] = tracker;
+      tracker->Initialize();
       break;
    }
    }
 }
 
-void NavGrid::AddRegionCollisionShape(om::RegionCollisionShapePtr region)
+/*
+ * -- NavGrid::AddTerrainTileTracker
+ *
+ * Helper function for the TerrainCollisionTracker.  This will be called once for every terrain
+ * tile.
+ */
+void NavGrid::AddTerrainTileTracker(om::EntityRef e, csg::Point3 const& offset, om::Region3BoxedPtr tile)
 {
-   dm::ObjectId id = region->GetObjectId();
-   auto co = std::make_shared<RegionCollisionShapeObject>(region);
-
-   co->trace = region->TraceRegion("navgrid region tracking", trace_category_)
-                           ->OnChanged([this](csg::Region3 const& r) {
-                              FireRegionChangeNotifications(r);
-                           });
-   regionCollisionShapes_[id] = co;
-}
-
-bool NavGrid::IsValidStandingRegion(csg::Region3 const& r) const
-{
-   for (csg::Cube3 const& cube : r) {
-      return IsEmpty(cube) && CanStandOn(cube.Translated(csg::Point3(0, -1, 0)));
+   NG_LOG(3) << "tracking terrain tile at " << offset;
+   om::EntityPtr entity = e.lock();
+   if (entity) {
+      CollisionTrackerPtr tracker = std::make_shared<TerrainTileTracker>(*this, entity, offset, tile);
+      terrain_tile_collsion_trackers_[offset] = tracker;
+      tracker->Initialize();
    }
-   return false;
 }
 
-bool NavGrid::CanStand(csg::Point3 const& pt) const
+/*
+ * -- NavGrid::IsValidStandingRegion
+ *
+ * Return whether the collision shape specified is entirely supported by some other
+ * collision shape  (i.e. whether it can be placed there and not fall over).  Is
+ * useful (for example) for placing complicated objects like trees on terrain in
+ * such a way that they're not partially hanging off the edge of a cliff and not
+ * overlapping other trees.
+ */
+bool NavGrid::IsValidStandingRegion(csg::Region3 const& collision_shape) const
 {
-   return IsEmpty(pt) && CanStandOn(pt - csg::Point3(0, 1, 0));
-}
-
-// xxx: we need a "non-walkable" region to clip against.  until that exists,
-// do the slow thing...
-void NavGrid::ClipRegion(csg::Region3& r) const
-{
-   csg::Region3 r2;
-   for (csg::Cube3 const& cube : r) {
-      for (csg::Point3 const& pt : cube) {
-         if (CanStand(pt)) {
-            r2.AddUnique(pt);
-         }
-      }
-   }
-   r = r2;
-}
-
-bool NavGrid::IsEmpty(csg::Point3 const& pt) const
-{
-   csg::Cube3 bounds(pt, pt + csg::Point3(1, 4, 1));
-   return IsEmpty(bounds);
-}
-
-bool NavGrid::IsEmpty(csg::Cube3 const& bounds) const
-{
-   {
-      auto i = terrain_.begin();
-      while (i != terrain_.end()) {
-         auto terrain = i->second->obj.lock();
-         if (terrain) {
-            // xxx: ideally we would iterate through all the zones from the min
-            // to the max of the region, but that's very difficult given the
-            // terrain interface (e.g. what happens if min is in a zone and max
-            // isnt?)  so just check the min..
-            csg::Point3 origin;
-            om::Region3BoxedPtr zone = terrain->GetZone(bounds.GetMin(), origin);
-            if (zone) {
-               csg::Region3 const& region = **zone;
-               if (region.Intersects(bounds.Translated(-origin))) {
-                  return false;
-               }
-            }
-            i++;
-         } else {
-            i = terrain_.erase(i);
-         }
-      }
-   }
-
-   {
-      auto i = regionCollisionShapes_.begin();
-      while (i != regionCollisionShapes_.end()) {
-         auto region = i->second->obj.lock();
-         if (region) {
-            if (Intersects(bounds, region)) {
-               return false;
-            }
-            i++;
-         } else {
-            i = regionCollisionShapes_.erase(i);
-         }
+   for (csg::Cube3 const& cube : collision_shape) {
+      if (!CanStandOn(cube)) {
+         return false;
       }
    }
    return true;
 }
 
-
-bool NavGrid::Intersects(csg::Cube3 const&  bounds, om::RegionCollisionShapePtr rgnCollsionShape) const
+/*
+ * -- NavGrid::RemoveNonStandableRegion
+ *
+ * Given an entity and a region, remove the parts of the region that the
+ * entity cannot stand on.  This is useful to the valid places an entity
+ * can stand given a potentially valid set of spots.
+ *
+ * xxx: we need a "non-walkable" region to clip against.  until that exists,
+ * do the slow thing...
+ */
+void NavGrid::RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3& region) const
 {
-   om::Region3BoxedPtr const region = rgnCollsionShape->GetRegion();
-   if (region) {      
-      csg::Cube3 box = ToLocalCoordinates(bounds, rgnCollsionShape);
-      const csg::Region3& rgn = **region;
-      return rgn.Intersects(box);
-   }
-   return false;
-}
-
-bool NavGrid::PointOnLadder(csg::Point3 const& pt) const
-{
-   auto i = vprs_.begin();
-   while (i != vprs_.end()) {
-      auto vpr = i->second->obj.lock();
-      if (vpr) {
-         om::Region3BoxedPtr r = vpr->GetRegion();
-         if (r) {
-            csg::Region3 const& region = r->Get();
-            csg::Point3 p = ToLocalCoordinates(pt, vpr);
-            if (region.Contains(p)) {
-               return true;
-            }
+   csg::Region3 r2;
+   for (csg::Cube3 const& cube : region) {
+      for (csg::Point3 const& pt : cube) {
+         if (CanStandOn(entity, pt)) {
+            r2.AddUnique(pt);
          }
-         i++;
-      } else {
-         i = vprs_.erase(i);
       }
    }
-   return false;
+   region = r2;
 }
 
-// xxx: this is horribly, horribly expensive!  we should do this
-// with region clipping or somethign...
+/*
+ * -- NavGrid::CanStandOn
+ *
+ * Returns the entity can possibly stand on the specified point.
+ */
+bool NavGrid::CanStandOn(om::EntityPtr entity, csg::Point3 const& pt) const
+{
+   csg::Point3 index, offset;
+   csg::GetChunkIndex(pt, NavGridTile::TILE_SIZE, index, offset);
+   return GridTile(index).CanStandOn(offset);
+}
+
+/*
+ * -- NavGrid::CanStandOn
+ *
+ * Returns the entity can possibly stand on the specified point.  This function
+ * is private!  Never make it public please, as we want to be able to make
+ * a decision based on the entity asking the question (e.g. critters will
+ * be able to run through gated fences and titans will step over/through them,
+ * but people won't.)
+ *
+ * xxx: this is horribly, horribly expensive!  we should do this
+ * with region clipping or somethign...
+ */
 bool NavGrid::CanStandOn(csg::Cube3 const& cube) const
 {
    csg::Point3 const& min = cube.GetMin();
-   csg::Point3 const& max = cube.GetMin();
+   csg::Point3 const& max = cube.GetMax();
    csg::Point3 i;
 
-   i.y = min.y - 1;
+   i.y = min.y;
    for (i.x = min.x; i.x < max.x; i.x++) {
       for(i.z = min.z; i.z < max.z; i.z++) {
-         if (!CanStandOn(i)) {
+         // xxx:  remove this function and pass a collision shape
+         if (!CanStandOn(nullptr, i)) {
             return false;
          }
       }
@@ -194,42 +161,78 @@ bool NavGrid::CanStandOn(csg::Cube3 const& cube) const
    return true;
 }
 
-bool NavGrid::CanStandOn(csg::Point3 const& pt) const
+/*
+ * -- NavGrid::CanStandOn
+ *
+ * Returns the trace category to use in TraceChanges, TraceDestroyed,
+ * etc.
+ */
+int NavGrid::GetTraceCategory() const
 {
-   // If the blocks in a vertical pathing region, we can
-   // totally stand there!
-   if (PointOnLadder(pt)) {
-      return true;
+   return trace_category_;
+}
+
+/*
+ * -- NavGrid::AddCollisionTracker
+ *
+ * Helper function for CollisionTrackers used to notify the NavGrid that their collision
+ * shape has changed.  This removes trackers from tiles which no longer need to know
+ * about them and adds them to trackers which do.  This happens when regions are created,
+ * moved around in the world, or when they grow or shrink.
+ */
+void NavGrid::AddCollisionTracker(NavGridTile::TrackerType type, csg::Cube3 const& last_bounds, csg::Cube3 const& bounds, CollisionTrackerPtr tracker)
+{
+   NG_LOG(5) << "collision notify bounds " << bounds << "changed";
+   csg::Cube3 current_chunks = csg::GetChunkIndex(bounds, NavGridTile::TILE_SIZE);
+   csg::Cube3 previous_chunks = csg::GetChunkIndex(last_bounds, NavGridTile::TILE_SIZE);
+
+   // Remove trackers from tiles which no longer overlap the current bounds of the tracker,
+   // but did overlap their previous bounds.
+   for (csg::Point3 const& cursor : previous_chunks) {
+      if (!current_chunks.Contains(cursor)) {
+         NG_LOG(5) << "removing tracker to grid tile at " << cursor;
+         GridTile(cursor).RemoveCollisionTracker(type, tracker);
+      }
    }
 
-   // make sure we're on solid ground...
-   return !IsEmpty(pt);
-}
-
-void NavGrid::AddVerticalPathingRegion(om::VerticalPathingRegionPtr vpr)
-{
-   dm::ObjectId id = vpr->GetObjectId();
-   auto co = std::make_shared<VerticalPathingRegionCollisionObject>(vpr);
-
-   vprs_[id] = co;
-}
-
-void NavGrid::FireRegionChangeNotifications(csg::Region3 const& r)
-{
-   for (const auto& entry : region_change_cb_map_) {
-      entry.second.cb();
+   // Add trackers to tiles which overlap the current bounds of the tracker,
+   // but did not overlap their previous bounds.
+   for (csg::Point3 const& cursor : current_chunks) {
+      if (!previous_chunks.Contains(cursor)) {
+         NG_LOG(5) << "adding tracker to grid tile at " << cursor;
+         GridTile(cursor).AddCollisionTracker(type, tracker);
+      }
    }
 }
 
-TerrainChangeCbId NavGrid::AddCollisionRegionChangeCb(csg::Region3 const* r, TerrainChangeCb cb)
+
+/*
+ * -- NavGrid::GridTile
+ *
+ * Returns the tile for the world-coordinate point pt, creating it if it does
+ * not yet exist.  If you don't want to create the tile if the point is invalid,
+ * use .find on tiles_ directly.
+ */
+NavGridTile& NavGrid::GridTile(csg::Point3 const& pt) const
 {
-   TerrainChangeCbId id = next_region_change_cb_id_++;
-   region_change_cb_map_.insert(std::make_pair(id, TerrainChangeEntry(r, cb)));
-   return id;
+   auto i = tiles_.find(pt);
+   if (i != tiles_.end()) {
+      return i->second;
+   }
+   NG_LOG(5) << "constructing new grid tile at " << pt;
+   auto j = tiles_.insert(std::make_pair(pt, NavGridTile(const_cast<NavGrid&>(*this), pt))).first;
+   return j->second;
 }
 
-void NavGrid::RemoveCollisionRegionChangeCb(TerrainChangeCbId id)
+
+/*
+ * -- NavGrid::ShowDebugShapes
+ *
+ * Push some debugging information into the shaplist.
+ */
+void NavGrid::ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg)
 {
-   region_change_cb_map_.erase(id);
+   csg::Point3 index = csg::GetChunkIndex(pt, NavGridTile::TILE_SIZE);
+   GridTile(index).ShowDebugShapes(msg);
 }
 

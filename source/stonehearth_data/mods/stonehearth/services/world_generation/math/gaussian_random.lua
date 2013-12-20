@@ -9,7 +9,7 @@
 local MathFns = require 'services.world_generation.math.math_fns'
 
 local GaussianRandom = class()
-local log = radiant.log.create_logger('world.generation')
+local log = radiant.log.create_logger('world_generation')
 
 local next_random = nil
 

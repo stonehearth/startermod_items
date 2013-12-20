@@ -81,6 +81,7 @@ function WorkerPlaceItemAction:run(ai, entity, path, ghost_entity, rotation, tas
       radiant.entities.destroy_entity(carrying)
 
       -- Place the item in the world
+      radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/place_item')
       radiant.terrain.place_entity(full_sized_entity, radiant.entities.get_world_grid_location(ghost_entity))
       radiant.entities.turn_to(full_sized_entity, rotation)
 

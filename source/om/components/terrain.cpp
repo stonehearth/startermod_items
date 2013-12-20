@@ -26,6 +26,21 @@ void Terrain::AddZone(csg::Point3 const& zone_offset, Region3BoxedPtr region3)
    zones_.Add(zone_offset, region3);
 }
 
+csg::Cube3 Terrain::GetBounds()
+{
+   csg::Cube3 result = csg::Cube3::zero;
+
+   if (zones_.Size() > 0) {
+      const auto& firstZone = zones_.begin();
+      result = csg::Cube3(firstZone->first, firstZone->first + csg::Point3(GetZoneSize(), GetZoneSize(), GetZoneSize()));
+      for (const auto& zone : zones_) {
+         result.Grow(zone.first);
+         result.Grow(zone.first + csg::Point3(GetZoneSize(), GetZoneSize(), GetZoneSize()));
+      }
+   }
+   return result;
+}
+
 void Terrain::PlaceEntity(EntityRef e, const csg::Point3& location)
 {
    auto entity = e.lock();

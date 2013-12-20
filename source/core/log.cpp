@@ -76,7 +76,7 @@ static void InitDefaults()
    console_log_severity_ = config.Get<int>("logging.console_log_severity", DEFAULT_CONSOLE_LOG_SEVERITY);
 
    if (console_log_severity_ != DEFAULT_CONSOLE_LOG_SEVERITY) {
-      LOG_(0) << "console log severity " << default_log_level_;
+      LOG_(0) << "console log severity " << console_log_severity_;
    }
    if (default_log_level_ != DEFAULT_LOG_LEVEL) {
       LOG_(0) << "setting default log level to " << default_log_level_;
@@ -104,7 +104,7 @@ static void SetLogLevels()
 
    // Push the current default log level and group name onto the stack
 #define BEGIN_GROUP(group)        config_path.push_back(config_path.back() + "." #group); \
-                                  log_levels.push_back(GetLogLevel(config_path.back() + ".log_level", log_levels.back()));
+                                  log_levels.push_back(GetLogLevel(config_path.back(), log_levels.back()));
 
    // Generate the key in the config database by looking whatever's at the back of the config_path
    // stack and read the default.  Set the value by writing to the current offset in the log_levels_

@@ -41,100 +41,6 @@ void validateGLCall(const char* errorStr)
 
 
 // =================================================================================================
-// GPUTimer
-// =================================================================================================
-
-GPUTimer::GPUTimer() : _numQueries( 0 ),  _queryFrame( 0 ), _time( 0 ), _activeQuery( false )
-{
-	reset();
-}
-
-
-GPUTimer::~GPUTimer()
-{
-	if( !_queryPool.empty() )
-		glDeleteQueries( (uint32)_queryPool.size(), &_queryPool[0] );
-}
-
-
-void GPUTimer::beginQuery( uint32 frameID )
-{
-	if( !glExt::ARB_timer_query ) return;
-	ASSERT( !_activeQuery );
-	
-	if( _queryFrame != frameID )
-	{
-		if( !updateResults() ) return;
-
-		_queryFrame = frameID;
-		_numQueries = 0;
-	}
-	
-	// Create new query pair if necessary
-	uint32 queryObjs[2];
-	if( _numQueries++ * 2 == _queryPool.size() )
-	{
-		glGenQueries( 2, queryObjs );
-		_queryPool.push_back( queryObjs[0] );
-		_queryPool.push_back( queryObjs[1] );
-	}
-	else
-	{
-		queryObjs[0] = _queryPool[(_numQueries - 1) * 2];
-	}
-	
-	_activeQuery = true;
-	 glQueryCounter( queryObjs[0], GL_TIMESTAMP );
-}
-
-
-void GPUTimer::endQuery()
-{
-	if( _activeQuery )
-	{	
-		glQueryCounter( _queryPool[_numQueries * 2 - 1], GL_TIMESTAMP );
-		_activeQuery = false;
-	}
-}
-
-
-bool GPUTimer::updateResults()
-{
-	if( !glExt::ARB_timer_query ) return false;
-	
-	if( _numQueries == 0 )
-	{
-		_time = 0;
-		return true;
-	}
-	
-	// Make sure that last query is available
-	GLint available;
-	glGetQueryObjectiv( _queryPool[_numQueries * 2 - 1], GL_QUERY_RESULT_AVAILABLE, &available );
-	if( !available ) return false;
-	
-	//  Accumulate time
-	double time = 0;
-	GLuint64 timeStart = 0, timeEnd = 0, timeAccum = 0;
-	for( uint32 i = 0; i < _numQueries; ++i )
-	{
-		glGetQueryObjectui64v( _queryPool[i * 2], GL_QUERY_RESULT, &timeStart );
-		glGetQueryObjectui64v( _queryPool[i * 2 + 1], GL_QUERY_RESULT, &timeEnd );
-		timeAccum += timeEnd - timeStart;
-	}
-	
-	_time = (float)((double)timeAccum / 1000000.0);
-	return true;
-}
-
-
-void GPUTimer::reset()
-{
-	_time = glExt::ARB_timer_query ? 0.f : -1.f;
-}
-
-
-// =================================================================================================
 // RenderDevice
 // =================================================================================================
 
@@ -268,6 +174,7 @@ bool RenderDevice::init(int glMajor, int glMinor, bool enable_gl_logging)
    _caps.renderer = renderer;
    _caps.vendor = vendor;
    _caps.cardType = getCardType(vendor);
+   _caps.hasPinnedMemory = glExt::AMD_pinned_memory;
    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &_caps.maxTextureSize);
 
 	// Find supported depth format (some old ATI cards only support 16 bit depth for FBOs)
@@ -538,8 +445,8 @@ uint32 RenderDevice::createTexture( TextureTypes::List type, int width, int heig
 	glBindTexture( tex.type, tex.glObj );
 	
 	float borderColor[] = { 1.0f, 1.0f, 1.0f, 0.0f };
-	glTexParameterfv( GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor );
-	
+	glTexParameterfv( tex.type, GL_TEXTURE_BORDER_COLOR, borderColor );
+
 	tex.samplerState = 0;
 	applySamplerState( tex );
 	
@@ -1039,10 +946,14 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
 		// Create a depth texture
 		uint32 texObj = createTexture( TextureTypes::Tex2D, rb.width, rb.height, 1, TextureFormats::DEPTH, false, false, false, false );
 		ASSERT( texObj != 0 );
+
+      RDITexture &tex = _textures.getRef(texObj);
+      glBindTexture(GL_TEXTURE_2D, tex.glObj);
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE );
-		uploadTextureData( texObj, 0, 0, 0x0 );
+      glBindTexture(GL_TEXTURE_2D, 0);
+		
+      uploadTextureData( texObj, 0, 0, 0x0 );
 		rb.depthTex = texObj;
-		RDITexture &tex = _textures.getRef( texObj );
 		// Attach the texture
 		glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, tex.glObj, 0 );
 

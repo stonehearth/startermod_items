@@ -11,6 +11,9 @@ BEGIN_RADIANT_RPC_NAMESPACE
 class CoreReactor {
 public:
    typedef std::function<ReactorDeferredPtr(Function const&)> CallCb;
+   typedef std::function<bool(Function const&)> CallBCb;
+   typedef std::function<void(Function const&)> CallVCb;
+   typedef std::function<std::string(Function const&)> CallSCb;
 
 public:
    ReactorDeferredPtr Call(Function const& fn);
@@ -19,6 +22,9 @@ public:
 
    void AddRouter(IRouterPtr router);
    void AddRoute(std::string const& route, CallCb cb);
+   void AddRouteB(std::string const& route, CallBCb cb);
+   void AddRouteV(std::string const& route, CallVCb cb);
+   void AddRouteS(std::string const& route, CallSCb cb);
 
 private:
    std::string FindRouteToFunction(Function const& fn);

@@ -127,6 +127,9 @@ private:
    int                                          lastNow_;
    bool                                         _showDebugNodes;
    bool                                         _singleStepPathFinding;
+   bool                                         debug_navgrid_enabled_;
+   csg::Point3                                  debug_navgrid_point_;
+
    std::list<std::weak_ptr<Job>>                jobs_;
    std::list<std::weak_ptr<Task>>               tasks_;
    std::unordered_map<std::string, luabind::object>   routes_;

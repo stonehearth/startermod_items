@@ -372,9 +372,6 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 
 	MaterialResource *curMatRes = 0x0;
 
-	GPUTimer *timer = Modules::stats().getGPUTimer( EngineStats::ParticleGPUTime );
-	if( Modules::config().gatherTimeStats ) timer->beginQuery( Modules::renderer().getFrameID() );
-
 	// Loop through and find all Cubemitters.
 	for( const auto &entry : Modules::sceneMan().getRenderableQueue() )
 	{
@@ -445,8 +442,6 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 		if( queryObj )
 			gRDI->endQuery( queryObj );
 	}
-
-	timer->endQuery();
 
    // Draw occlusion proxies
 	if( occSet >= 0 )

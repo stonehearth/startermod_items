@@ -42,6 +42,14 @@ private:
    EdgePointPtr GetPoint(csg::Point2 const& pt, csg::Point2 const& normal);
 };
 
+int GetChunkAddress(int value, int chunk_width);
+int GetChunkIndex(int value, int chunk_width);
+void GetChunkIndex(int value, int chunk_width, int& index, int& offset);
+Point3 GetChunkIndex(Point3 const& value, int chunk_width);
+void GetChunkIndex(Point3 const& value, int chunk_width, Point3& index, Point3& offset);
+Cube3 GetChunkIndex(Cube3 const& value, int chunk_width);
+bool PartitionCubeIntoChunks(Cube3 const& cube, int width, std::function<bool(Point3 const& index, Cube3 const& cube)> cb);
+
 Region3 GetAdjacent(Region3 const& r, bool allow_diagonals, int min_y, int max_y);
 bool Region3Intersects(const Region3& rgn, const csg::Ray3& ray, float& distance);
 void HeightmapToRegion2(HeightMap<double> const& h, Region2& r);

@@ -20,19 +20,18 @@ context TRANSLUCENT
 }
 
 [[VS_OVERLAY]]
-#version 130
 
 uniform mat4 viewProjMat;
 uniform mat4 worldMat;
 uniform mat4 viewMat;
 uniform mat4 projMat;
 
-in vec3 vertPos;
-in vec2 texCoords0;
-in vec4 color;
+attribute vec3 vertPos;
+attribute vec2 texCoords0;
+attribute vec4 color;
 
-out vec2 texCoords;
-out vec4 oColor;
+varying vec2 texCoords;
+varying vec4 oColor;
 
 void main() {
 	texCoords = vec2(texCoords0.x, texCoords0.y);
@@ -44,15 +43,12 @@ void main() {
 
 
 [[FS_OVERLAY]]
-#version 130
 
 uniform sampler2D albedoMap;
 
-in vec2 texCoords;
-in vec4 oColor;
-
-out vec4 fragColor;
+varying vec2 texCoords;
+varying vec4 oColor;
 
 void main() {
-   fragColor = texture2D(albedoMap, texCoords) * oColor;
+	gl_FragColor = texture2D(albedoMap, texCoords) * oColor;
 }

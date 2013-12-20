@@ -101,7 +101,7 @@ context FOG
   PixelShader = compile GLSL FS_FOG;
   
   ZWriteEnable = false;
-  BlendMode = Add;
+  BlendMode = Blend;
   CullMode = Back;
 }
 
@@ -188,7 +188,6 @@ void main( void )
 
 #include "shaders/utilityLib/fragLighting.glsl" 
 #include "shaders/shadows.shader"
-#include "shaders/utilityLib/fog.glsl"
 
 uniform sampler2D cloudMap;
 uniform vec3 viewerPos;
@@ -210,10 +209,6 @@ void main( void )
   vec3 lightColor = calcSimpleDirectionalLight(viewerPos, pos.xyz, normalize(tsbNormal), -vsPos.z);
   lightColor = (shadowTerm * (lightColor * albedo)) + (lightAmbientColor * albedo);
   
-  // Fog factor--needed to modulate our light pass.  The actual fog color is added in another
-  // pass.
-  float fogFac = calcFogFac(vsPos.z);
-
   // Clouds.
   float cloudSpeed = currentTime / 80.0;
   vec2 fragCoord = pos.xz * 0.3;
@@ -221,7 +216,7 @@ void main( void )
   cloudColor = cloudColor * texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0)).xyz;
 
   // Mix it all together!
-  gl_FragColor.rgb = lightColor * cloudColor * (1.0 - fogFac);
+  gl_FragColor.rgb = lightColor * cloudColor;
   gl_FragColor.a = 1.0;
 }
 
@@ -240,7 +235,7 @@ void main( void )
   float fogFac = calcFogFac(vsPos.z);
   vec3 fogColor = texture2D(skySampler, gl_FragCoord.xy / frameBufSize.xy).rgb;
 
-  gl_FragColor = vec4(fogColor * fogFac, 1.0);
+  gl_FragColor = vec4(fogColor, fogFac);
 }
 
 
@@ -293,8 +288,6 @@ void main(void)
 
 [[VS_SELECTED_SCREENSPACE_OUTLINER]]
 
-#include "shaders/utilityLib/fullscreen_quad.glsl" 
-
 uniform mat4 projMat;
 
 attribute vec3 vertPos;
@@ -303,7 +296,8 @@ varying vec2 texCoords;
         
 void main( void )
 {
-  transform_fullscreen(vertPos, projMat, gl_Position, texCoords);
+  texCoords = vertPos.xy;
+  gl_Position = projMat * vec4(vertPos, 1.0);
 }
 
 

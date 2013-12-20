@@ -137,14 +137,6 @@ function NewGameCallHandler:create_camp(session, response, pt)
    radiant.entities.pickup_item(worker2, faction:create_entity('stonehearth:oak_log'))
    radiant.entities.pickup_item(worker3, faction:create_entity('stonehearth:firepit_proxy'))
 
-   --TODO: remove once Albert has bushes coming in from the terrain generator
-   --Add TEMPORARY BUSHES
-   local bush = self:place_item('stonehearth:berry_bush', camp_x-5, camp_z-5)
-   local bush = self:place_item('stonehearth:berry_bush', camp_x+0, camp_z-5)
-   local bush = self:place_item('stonehearth:berry_bush', camp_x+5, camp_z-5)
-   local bush = self:place_item('stonehearth:berry_bush', camp_x+7, camp_z-5)
-
-
    -- start the game master service
    --game_master.start()
 

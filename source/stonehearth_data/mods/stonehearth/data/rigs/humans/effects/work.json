@@ -22,12 +22,19 @@
       },
        "sound": {
          "type": "sound_effect",
-         "duration": 300,
-         "start_delay": 300,
-         "min_distance": 20,
+         "duration": 1000,
+         "start_delay": 200,
+         "min_distance": 30,
          "max_distance": 90,
-         "volume": 50,
-         "track" : "stonehearth:sounds:hammer_sound"
+         "volume": 40,
+         "track" : {
+            "type": "one_of",
+            "items": [
+               "stonehearth:sounds:hammer_sound_01",
+               "stonehearth:sounds:hammer_sound_02",
+               "stonehearth:sounds:hammer_sound_03"
+            ]
+         }
       }   
    }
 }

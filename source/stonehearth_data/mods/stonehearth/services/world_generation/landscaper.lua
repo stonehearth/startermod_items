@@ -5,6 +5,7 @@ local MathFns = require 'services.world_generation.math.math_fns'
 local GaussianRandom = require 'services.world_generation.math.gaussian_random'
 local FilterFns = require 'services.world_generation.filter.filter_fns'
 local PerturbationGrid = require 'services.world_generation.perturbation_grid'
+local log = radiant.log.create_logger('world_generation')
 
 local Terrain = _radiant.om.Terrain
 local Point3 = _radiant.csg.Point3
@@ -13,6 +14,7 @@ local ConstructCube3 = _radiant.csg.ConstructCube3
 local Region3 = _radiant.csg.Region3
 
 local mod_name = 'stonehearth'
+local mod_prefix = mod_name .. ':'
 
 local oak = 'oak_tree'
 local juniper = 'juniper_tree'
@@ -21,10 +23,11 @@ local tree_types = { oak, juniper }
 local small = 'small'
 local medium = 'medium'
 local large = 'large'
-local tree_widths = { small, medium, large }
+local tree_sizes = { small, medium, large }
 
-local pink_flower_name = mod_name .. ':' .. 'pink_flower'
-local rabbit_name = mod_name .. ':' .. 'rabbit'
+local pink_flower_name = mod_prefix .. 'pink_flower'
+local berry_bush_name = mod_prefix .. 'berry_bush'
+local rabbit_name = mod_prefix .. 'rabbit'
 
 local Landscaper = class()
 
@@ -59,6 +62,7 @@ function Landscaper:place_flora(zone_map, world_offset_x, world_offset_y)
 
    self.flora_map:clear(nil)
    self:_place_trees(zone_map, place_item)
+   self:_place_berry_bushes(zone_map, place_item)
    self:_place_flowers(zone_map, place_item)
 end
 
@@ -163,30 +167,98 @@ function Landscaper:_place_flowers(zone_map, place_item)
    end
 end
 
--- TODO: generalize
-function Landscaper:_place_dense_items(zone_map, cell_origin_x, cell_origin_y, cell_width, cell_height,
-                                       grid_spacing, exclusion_radius, item_name, place_item)
+-- TODO: refactor
+function Landscaper:_place_berry_bushes(zone_map, place_item)
+   local grid_spacing = self.flora_perturbation_grid.grid_spacing
+   local exclusion_radius = 1
+   local ground_radius = 0
+   local noise_map = self.noise_map_buffer
+   local density_map = self.density_map_buffer
+   local i, j, x, y, occupied, value, placed
 
-   local perturbation_grid = PerturbationGrid(cell_width, cell_height, grid_spacing)
-   local grid_width, grid_height = perturbation_grid:get_dimensions()
-   local i, j, dx, dy, x, y, elevation, terrain_type
+   local try_place_item = function(x, y)
+      local elevation = zone_map:get(x, y)
+      local terrain_type = self.terrain_info:get_terrain_type(elevation)
+      if terrain_type == TerrainType.Mountains then
+         return false
+      end
+      place_item(berry_bush_name, x, y)
+      return true
+   end
 
-   for j=1, grid_height do
-      for i=1, grid_width do
-         dx, dy = perturbation_grid:get_perturbed_coordinates(i, j, exclusion_radius)
+   self:_fill_noise_map(noise_map, self.flora_map, -25, 100, 0)
+   FilterFns.filter_2D_025(density_map, noise_map, noise_map.width, noise_map.height, 8)
 
-         -- -1 becuase get_perturbed_coordinates returns base 1 coords and cell_origin is already at 1,1 of cell
-         x = cell_origin_x + dx-1
-         y = cell_origin_y + dy-1
+   --log:debug('Noise map:'); noise_map:print()
+   --log:debug('Density map:'); density_map:print()
 
-         elevation = zone_map:get(x, y)
-         terrain_type = self.terrain_info:get_terrain_type(elevation)
+   for j=1, density_map.height do
+      for i=1, density_map.width do
+         value = density_map:get(i, j)
 
-         if terrain_type == TerrainType.Grassland then
-            place_item(item_name, x, y)
+         if value > 0  then
+            occupied = self.flora_map:get(i, j) ~= nil
+
+            if not occupied then
+               --if math.random(100) <= value then
+                  -- x, y = self.flora_perturbation_grid:get_perturbed_coordinates(i, j, exclusion_radius)
+
+                  -- if self:_is_flat(zone_map, x, y, ground_radius) then
+                  --    elevation = zone_map:get(x, y)
+                  --    terrain_type = self.terrain_info:get_terrain_type(elevation)
+
+                  --    if terrain_type ~= TerrainType.Mountains then
+                  --       place_item(berry_bush_name, x, y)
+                  --       self.flora_map:set(i, j, berry_bush_name)
+                  --    end
+                  -- end
+
+                  local w, h, factor, probability, nested_grid_spacing
+                  x, y, w, h = self.flora_perturbation_grid:get_cell_bounds(i, j)
+
+                  factor = 0.5
+                  probability = value / 100
+
+                  nested_grid_spacing = math.floor(grid_spacing * factor)
+
+                  placed = self:_place_dense_items(zone_map, x, y, w, h, nested_grid_spacing, exclusion_radius, probability, try_place_item)
+                  if placed then
+                     self.flora_map:set(i, j, berry_bush_name)
+                  end
+               --end
+            end
          end
       end
    end
+end
+
+function Landscaper:_place_dense_items(zone_map, cell_origin_x, cell_origin_y, cell_width, cell_height,
+                                       grid_spacing, exclusion_radius, probability, try_place_item)
+
+   -- consider removing this memory allocation
+   local perturbation_grid = PerturbationGrid(cell_width, cell_height, grid_spacing)
+   local grid_width, grid_height = perturbation_grid:get_dimensions()
+   local i, j, dx, dy, x, y, result
+   local placed = false
+
+   for j=1, grid_height do
+      for i=1, grid_width do
+         if math.random() < probability then
+            dx, dy = perturbation_grid:get_perturbed_coordinates(i, j, exclusion_radius)
+
+            -- -1 becuase get_perturbed_coordinates returns base 1 coords and cell_origin is already at 1,1 of cell
+            x = cell_origin_x + dx-1
+            y = cell_origin_y + dy-1
+
+            result = try_place_item(x, y)
+            if result then
+               placed = true
+            end
+         end
+      end
+   end
+
+   return placed
 end
 
 function Landscaper:_fill_noise_map(height_map, exclusion_map, mean, flora_exclusion_value, boundary_exclusion_value)
@@ -214,6 +286,8 @@ end
 
 -- checks if the rectangular region centered around x,y is flat
 function Landscaper:_is_flat(zone_map, x, y, distance)
+   if distance == 0 then return true end
+
    local start_x, start_y = zone_map:bound(x-distance, y-distance)
    local end_x, end_y = zone_map:bound(x+distance, y+distance)
    local block_width = end_x - start_x + 1
@@ -245,14 +319,14 @@ function Landscaper:_get_tree_type(elevation, default_tree_type)
    return default_tree_type
 end
 
-function Landscaper:random_tree(tree_type, tree_width)
+function Landscaper:random_tree(tree_type, tree_size)
    if tree_type == nil then
       tree_type = self:random_tree_type()
    end
-   if tree_width == nil then
-      tree_width = self:random_tree_width()
+   if tree_size == nil then
+      tree_size = self:random_tree_size()
    end
-   return get_tree_name(tree_type, tree_width)
+   return get_tree_name(tree_type, tree_size)
 end
 
 function Landscaper:random_tree_type()
@@ -261,18 +335,18 @@ function Landscaper:random_tree_type()
 end
 
 -- young and old trees are less common
-function Landscaper:random_tree_width()
-   local std_dev = #tree_widths*0.33 -- edge values about half as likely as center value
-   local roll = GaussianRandom.generate_int(1, #tree_widths, std_dev)
-   return tree_widths[roll]
+function Landscaper:random_tree_size()
+   local std_dev = #tree_sizes*0.33 -- edge values about half as likely as center value
+   local roll = GaussianRandom.generate_int(1, #tree_sizes, std_dev)
+   return tree_sizes[roll]
 end
 
 function _set_random_facing(entity)
    entity:add_component('mob'):turn_to(90*math.random(0, 3))
 end
 
-function get_tree_name(tree_type, tree_width)
-   return mod_name .. ':' .. tree_width .. '_' .. tree_type
+function get_tree_name(tree_type, tree_size)
+   return mod_prefix .. tree_size .. '_' .. tree_type
 end
 
 -----
@@ -325,7 +399,7 @@ function Landscaper:_should_place_boulder(elevation)
 end
 
 function Landscaper:_create_boulder(x, y, elevation)
-   local chunk_probability = 0.50
+   local chunk_probability = 1.0
    local terrain_info = self.terrain_info
    local terrain_type = terrain_info:get_terrain_type(elevation)
    local step_size = terrain_info[terrain_type].step_size
