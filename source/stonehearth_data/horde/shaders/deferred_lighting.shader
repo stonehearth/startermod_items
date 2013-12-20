@@ -70,8 +70,7 @@ void main( void )
   vec3 normal = texture2D(normals, fragCoord).xyz;
 
   float shadowTerm = getShadowValue(worldspace_pos);
-  vec3 intensity = shadowTerm * calcSimpleDirectionalLight(viewerPos, worldspace_pos, normal, -vsPos) + 
-      lightAmbientColor;
+  vec3 intensity = shadowTerm * calcSimpleDirectionalLight(normal) + lightAmbientColor;
   
   gl_FragColor = vec4(intensity, 1.0);// + vec4(getCascadeColor(worldspace_pos), 0.0);
 }
