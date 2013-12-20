@@ -48,7 +48,7 @@ public:
    bool CanStandOn(csg::Point3 const& pt);
 
 public:
-   void ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg);
+   void ShowDebugShapes(protocol::shapelist* msg);
 
 private:
    void FlushDirty();
@@ -56,11 +56,20 @@ private:
    bool IsMarked(TrackerType type, int bit_index);
    int Offset(csg::Point3 const& pt);
    void UpdateCollisionTracker(TrackerType type, CollisionTracker const& tracker);
+   void UpdateBaseVectors();
+   void UpdateDerivedVectors();
    void UpdateCanStand();
 
 private:
+   enum DirtyBits {
+      BASE_VECTORS =    (1 << 0),
+      DERIVED_VECTORS = (1 << 1)
+   };
+
+private:
    NavGrid&                                     ng_;
-   bool                                         dirty_;
+   int                                          dirty_;
+   csg::Point3                                  index_;
    csg::Cube3                                   bounds_;
    std::vector<CollisionTrackerRef>             trackers_[MAX_TRACKER_TYPES];
    std::bitset<TILE_SIZE*TILE_SIZE*TILE_SIZE>   marked_[MAX_TRACKER_TYPES];

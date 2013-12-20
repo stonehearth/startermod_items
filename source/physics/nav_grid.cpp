@@ -233,11 +233,6 @@ NavGridTile& NavGrid::GridTile(csg::Point3 const& pt) const
 void NavGrid::ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg)
 {
    csg::Point3 index = csg::GetChunkIndex(pt, NavGridTile::TILE_SIZE);
-   auto i = tiles_.find(index);
-   if (i != tiles_.end()) {
-      i->second.ShowDebugShapes(pt - i->first, msg);
-   } else {
-      NG_LOG(1) << "no navgrid tile at world coordinate " << pt << "!";
-   }
+   GridTile(index).ShowDebugShapes(msg);
 }
 
