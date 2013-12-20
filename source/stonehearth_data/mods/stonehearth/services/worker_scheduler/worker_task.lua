@@ -152,7 +152,7 @@ function WorkerTask:_consider_worker(worker)
    if not self._pathfinders[worker_id] then
       if self._worker_filter_fn(worker) then
          -- create a new pathfinder for this worker
-         local name = string.format('%s for worker %d', self._name, worker_id)
+         local name = string.format('%s for worker %s', self._name, tostring(worker))
          local pf = radiant.pathfinder.create_path_finder(name)
                                        :set_source(worker)
                                        :set_debug_color(self._debug_color)

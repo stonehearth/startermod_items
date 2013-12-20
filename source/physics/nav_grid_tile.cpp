@@ -189,12 +189,15 @@ void NavGridTile::UpdateCollisionTracker(TrackerType type, CollisionTracker cons
    // Now just loop through all the points and set the bit.  There's certainly a more
    // efficient implementation which sets contiguous bits in one go, but this already
    // doesn't appear on the profile (like < 0.1% of the total game time)
+   int count = 0;
    for (csg::Cube3 const& cube : overlap) {
       for (csg::Point3 const& pt : cube) {
-         NG_LOG(5) << "marking " << pt << " in bitvector " << type;
+         NG_LOG(9) << "marking " << pt << " in vector " << type;
          marked_[type][Offset(pt)] = true;
+         count++;
       }
    }
+   NG_LOG(5) << "marked " << count << " bits in vector " << type;
 }
 
 /*
@@ -205,6 +208,8 @@ void NavGridTile::UpdateCollisionTracker(TrackerType type, CollisionTracker cons
  */
 void NavGridTile::ShowDebugShapes(protocol::shapelist* msg)
 {
+   NG_LOG(5) << "sending debug shapes for tile " << index_;
+
    csg::Color4 blocked_color(0, 0, 255, 64);
    csg::Color4 border_color(0, 0, 128, 64);
 
@@ -236,7 +241,7 @@ void NavGridTile::ShowDebugShapes(protocol::shapelist* msg)
  */
 void NavGridTile::UpdateCanStand()
 {
-   int i;
+   int i, count = 0;
    static int CHARACTER_HEIGHT = 4;
    NavGridTile& below = ng_.GridTile(index_ - csg::Point3(0, 1, 0));
    NavGridTile& above = ng_.GridTile(index_ + csg::Point3(0, 1, 0));
@@ -282,7 +287,9 @@ void NavGridTile::UpdateCanStand()
          if (i == CHARACTER_HEIGHT) {
             NG_LOG(7) << "adding " << (bounds_.min + pt) << " to navgrid (offset" << pt << ")";
             can_stand_[Offset(pt)] = true;
+            count++;
          }
       }
    }
+   NG_LOG(5) << "marked " << count << " bits in can_stand vector.";
 }
