@@ -43,8 +43,8 @@ function PathFinderWrapper:start()
    return self._pf:start()
 end
 
-function PathFinderWrapper:restart()
-   return self._pf:restart()
+function PathFinderWrapper:restart(reason)
+   return self._pf:restart(reason)
 end
 
 function PathFinderWrapper:stop()

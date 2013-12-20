@@ -32,7 +32,7 @@ class PathFinder : public Job {
 
       PathPtr GetSolution() const;
 
-      void Restart();
+      void RestartSearch(const char* reason);
       void Start();
       void Stop();
       int EstimateCostToSolution();
@@ -50,7 +50,7 @@ class PathFinder : public Job {
    private:
       friend PathFinderSrc;
       friend PathFinderDst;
-      void RestartSearch(const char* reason);
+      void Restart();
       bool IsSearchExhausted() const;
 
    private:

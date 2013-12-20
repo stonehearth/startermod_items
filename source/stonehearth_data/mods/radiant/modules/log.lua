@@ -8,7 +8,7 @@ local Log = {
    SPAM = 9,
 }
 
-local enabled_log_levels = {}
+local LOG_LEVELS = {}
 
 -- Warning!  Before reorganizaing any of the logging code, see the comment in the
 -- body of write.  The stack has to be organized *just* so in order to get the
@@ -16,13 +16,13 @@ local enabled_log_levels = {}
 -- functions to disable tail-call optimization of write_.
 
 function Log.write_(category, level, format, ...)
-   local enabled = enabled_log_levels[category]
-   if enabled == nil then
-      enabled = _host:log_enabled(category, level)
-      enabled_log_levels[category] = enabled
+   local config_level = LOG_LEVELS[category]
+   if config_level == nil then
+      config_level = _host:get_log_level(category)
+      LOG_LEVELS[category] = config_level
    end
    
-   if enabled then
+   if level <= config_level then
       local args = {...}
       for i, arg in ipairs(args) do
          if type(arg) == 'userdata' then

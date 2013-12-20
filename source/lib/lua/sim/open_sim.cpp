@@ -238,7 +238,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
                .def("to_weak_ref",        &ToWeakPathFinder)
                .def("stop",               &PathFinder::Stop)
                .def("start",              &PathFinder::Start)
-               .def("restart",            &PathFinder::Restart)
+               .def("restart",            &PathFinder::RestartSearch)
                .def("describe_progress",  &PathFinder::DescribeProgress)
             ,
             lua::RegisterType<Simulation>()
