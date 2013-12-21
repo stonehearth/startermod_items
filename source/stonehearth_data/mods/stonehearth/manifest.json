@@ -99,6 +99,7 @@
          "dining_table_proxy" : "file(entities/furniture/dining_table/dining_table_proxy.json)",
 
          "camp_standard" : "file(entities/gizmos/camp_standard)",
+         "camp_standard_proxy" : "file(entities/gizmos/camp_standard/camp_standard_proxy.json)",
 
          "firepit" : "file(entities/gizmos/firepit)",
          "firepit_proxy" : "file(entities/gizmos/firepit/firepit_proxy.json)",
