@@ -60,13 +60,14 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
 
       using boost::property_tree::ptree;
       json::Node config = Renderer::GetInstance().GetTerrainConfig();
-      csg::Point3f soil_light = parse_color(config.get("soil.light_color", "#ffff00"));
-      csg::Point3f soil_dark = parse_color(config.get("soil.dark_color", "#ff00ff"));
-      csg::Point3f soil_detail = parse_color(config.get("soil.detail_color", "#ff00ff"));
       csg::Point3f rock_layer_1_color = parse_color(config.get("rock.layer_1_color", "#ff00ff"));
       csg::Point3f rock_layer_2_color = parse_color(config.get("rock.layer_2_color", "#ff00ff"));
       csg::Point3f rock_layer_3_color = parse_color(config.get("rock.layer_3_color", "#ff00ff"));
       csg::Point3f boulder_color = parse_color(config.get("rock.boulder_color", "#ff00ff"));
+      csg::Point3f soil_light_color = parse_color(config.get("soil.light_color", "#ffff00"));
+      csg::Point3f soil_dark_color = parse_color(config.get("soil.dark_color", "#ff00ff"));
+      csg::Point3f soil_detail_color = parse_color(config.get("soil.detail_color", "#ff00ff"));
+      csg::Point3f dark_grass_color = parse_color(config.get("grass.dark_color", "#ff00ff"));
       csg::Point3f dark_wood_color = parse_color(config.get("wood.dark_color", "#ff00ff"));
 
       // xxx: this is in no way thread safe! (see SH-8)
@@ -84,7 +85,7 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
          if (normal.y) {
             int y = ((int)((points[0].y + stripe_size) / stripe_size)) * stripe_size;
             bool light_stripe = ((y / stripe_size) & 1) != 0;
-            m.add_face(points, normal, light_stripe ? soil_light : soil_dark);
+            m.add_face(points, normal, light_stripe ? soil_light_color : soil_dark_color);
          } else {
             float ymin = std::min(points[0].y, points[1].y);
             float ymax = std::max(points[0].y, points[1].y);
@@ -100,7 +101,7 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
                y1 = std::min(y1, ymax);
                stripe[0].y = stripe[3].y = y0;
                stripe[1].y = stripe[2].y = y1;
-               m.add_face(stripe, normal, light_stripe ? soil_light : soil_dark);
+               m.add_face(stripe, normal, light_stripe ? soil_light_color : soil_dark_color);
                if (y1 == ymax) {
                   break;
                }
@@ -109,9 +110,6 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
                light_stripe = !light_stripe;
             }
          }
-      };
-      tess_map[om::Terrain::Wood] = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {
-         m.add_face(points, normal, dark_wood_color);
       };
 
       tess_map[om::Terrain::RockLayer1] = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {
@@ -128,6 +126,14 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
 
       tess_map[om::Terrain::Boulder] = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {
          m.add_face(points, normal, boulder_color);
+      };
+
+      tess_map[om::Terrain::DarkGrass] = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {
+         m.add_face(points, normal, dark_grass_color);
+      };
+
+      tess_map[om::Terrain::Wood] = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {
+         m.add_face(points, normal, dark_wood_color);
       };
 
       auto render_detail = [=](int tag, csg::Point3f const points[], csg::Point3f const& normal, csg::mesh_tools::mesh& m) {

@@ -15,7 +15,8 @@ class Terrain(Component):
       Soil          = 5,
       Dirt          = 6,
       Grass         = 7,
-      Wood          = 8
+      DarkGrass     = 8,
+      Wood          = 9
    )
 
    zones = dm.Map(csg.Point3(), Region3BoxedPtr(), singular_name='zone', add=None, remove=None, get=None)

@@ -36,14 +36,14 @@ function Landscaper:__init(terrain_info, zone_width, zone_height)
    self.zone_width = zone_width
    self.zone_height = zone_height
 
-   local grid_spacing = 18
+   local grid_spacing = 16
    self.flora_perturbation_grid = PerturbationGrid(zone_width, zone_height, grid_spacing)
 
-   local flora_map_width, flora_map_height = self.flora_perturbation_grid:get_dimensions()
-   self.flora_map = Array2D(flora_map_width, flora_map_height)
+   local feature_map_width, feature_map_height = self.flora_perturbation_grid:get_dimensions()
+   self.feature_map = Array2D(feature_map_width, feature_map_height)
 
-   self.noise_map_buffer = Array2D(self.flora_map.width, self.flora_map.height)
-   self.density_map_buffer = Array2D(self.flora_map.width, self.flora_map.height)
+   self.noise_map_buffer = Array2D(self.feature_map.width, self.feature_map.height)
+   self.density_map_buffer = Array2D(self.feature_map.width, self.feature_map.height)
 end
 
 function Landscaper:place_flora(zone_map, world_offset_x, world_offset_y)
@@ -60,7 +60,7 @@ function Landscaper:place_flora(zone_map, world_offset_x, world_offset_y)
       return entity
    end
 
-   self.flora_map:clear(nil)
+   self.feature_map:clear(nil)
    self:_place_trees(zone_map, place_item)
    self:_place_berry_bushes(zone_map, place_item)
    self:_place_flowers(zone_map, place_item)
@@ -80,10 +80,10 @@ function Landscaper:_place_trees(zone_map, place_item)
    if zone_map.terrain_type == TerrainType.Grassland then
       mean_density = 0
    else
-      mean_density = 20
+      mean_density = 0
    end
 
-   self:_fill_noise_map(noise_map, self.flora_map, mean_density, -10, -10)
+   self:_fill_noise_map(noise_map, self.feature_map, mean_density, -10, -10)
    FilterFns.filter_2D_025(density_map, noise_map, noise_map.width, noise_map.height, 8)
 
    for j=1, density_map.height do
@@ -91,7 +91,7 @@ function Landscaper:_place_trees(zone_map, place_item)
          value = density_map:get(i, j)
 
          if value > 0 then
-            occupied = self.flora_map:get(i, j) ~= nil
+            occupied = self.feature_map:get(i, j) ~= nil
 
             if not occupied then
                x, y = self.flora_perturbation_grid:get_perturbed_coordinates(i, j, max_trunk_radius)
@@ -107,7 +107,7 @@ function Landscaper:_place_trees(zone_map, place_item)
                      end
 
                      place_item(tree_name, x, y)
-                     self.flora_map:set(i, j, tree_name)
+                     self.feature_map:set(i, j, tree_name)
                   end
                end
             end
@@ -126,7 +126,7 @@ function Landscaper:_place_flowers(zone_map, place_item)
    local threshold = 10
    local i, j, x, y, occupied, value, elevation, terrain_type
 
-   self:_fill_noise_map(noise_map, self.flora_map, 10, -50, -50)
+   self:_fill_noise_map(noise_map, self.feature_map, 10, -50, -50)
    FilterFns.filter_2D_025(density_map, noise_map, noise_map.width, noise_map.height, 8)
 
    for j=1, density_map.height do
@@ -134,7 +134,7 @@ function Landscaper:_place_flowers(zone_map, place_item)
          value = density_map:get(i, j)
 
          if value > threshold then
-            occupied = self.flora_map:get(i, j) ~= nil
+            occupied = self.feature_map:get(i, j) ~= nil
 
             if not occupied then
                if math.random(100) <= value then
@@ -146,14 +146,14 @@ function Landscaper:_place_flowers(zone_map, place_item)
 
                      if terrain_type == TerrainType.Grassland then
                         place_item(pink_flower_name, x, y)
-                        self.flora_map:set(i, j, pink_flower_name)
+                        self.feature_map:set(i, j, pink_flower_name)
                      end
                   end
                end
             end
          end
          -- For dense flowers
-         -- occupied = self.flora_map:get(i, j) ~= nil
+         -- occupied = self.feature_map:get(i, j) ~= nil
          -- value = density_map:get(i, j)
 
          -- if not occupied and value > 0 then
@@ -167,7 +167,7 @@ function Landscaper:_place_flowers(zone_map, place_item)
          --    nested_grid_spacing = math.floor(grid_spacing * factor)
 
          --    self:_place_dense_items(zone_map, x, y, w, h, nested_grid_spacing, exclusion_radius, pink_flower_name, place_item)
-         --    self.flora_map:set(i, j, pink_flower_name)
+         --    self.feature_map:set(i, j, pink_flower_name)
          -- end
       end
    end
@@ -180,7 +180,7 @@ function Landscaper:_place_berry_bushes(zone_map, place_item)
    local ground_radius = 0
    local noise_map = self.noise_map_buffer
    local density_map = self.density_map_buffer
-   local threshold = 50
+   local threshold = 60
    local i, j, x, y, occupied, value, placed
 
    local try_place_item = function(x, y)
@@ -193,46 +193,32 @@ function Landscaper:_place_berry_bushes(zone_map, place_item)
       return true
    end
 
-   self:_fill_noise_map(noise_map, self.flora_map, -15, 100, 0)
+   self:_fill_noise_map(noise_map, self.feature_map, -15, 100, 0)
    FilterFns.filter_2D_025(density_map, noise_map, noise_map.width, noise_map.height, 8)
-
-   --log:debug('Noise map:'); noise_map:print()
-   --log:debug('Density map:'); density_map:print()
 
    for j=1, density_map.height do
       for i=1, density_map.width do
          value = density_map:get(i, j)
 
          if value > threshold then
-            occupied = self.flora_map:get(i, j) ~= nil
+            occupied = self.feature_map:get(i, j) ~= nil
 
             if not occupied then
-               --if math.random(100) <= value then
-                  -- x, y = self.flora_perturbation_grid:get_perturbed_coordinates(i, j, exclusion_radius)
+               local w, h, factor, probability, nested_grid_spacing
+               x, y, w, h = self.flora_perturbation_grid:get_cell_bounds(i, j)
 
-                  -- if self:_is_flat(zone_map, x, y, ground_radius) then
-                  --    elevation = zone_map:get(x, y)
-                  --    terrain_type = self.terrain_info:get_terrain_type(elevation)
+               factor = 0.33
+               --probability = value * 0.01
+               probability = 1.0
+               exclusion_radius = -1
+               
+               nested_grid_spacing = math.floor(grid_spacing * factor)
 
-                  --    if terrain_type ~= TerrainType.Mountains then
-                  --       place_item(berry_bush_name, x, y)
-                  --       self.flora_map:set(i, j, berry_bush_name)
-                  --    end
-                  -- end
-
-                  local w, h, factor, probability, nested_grid_spacing
-                  x, y, w, h = self.flora_perturbation_grid:get_cell_bounds(i, j)
-
-                  factor = 0.33
-                  probability = value * 0.01
-                  
-                  nested_grid_spacing = math.floor(grid_spacing * factor)
-
-                  placed = self:_place_dense_items(zone_map, x, y, w, h, nested_grid_spacing, exclusion_radius, probability, try_place_item)
-                  if placed then
-                     self.flora_map:set(i, j, berry_bush_name)
-                  end
-               --end
+               -- TODO: replace this with pattern stamps
+               placed = self:_place_dense_items(zone_map, x, y, w, h, nested_grid_spacing, exclusion_radius, probability, try_place_item)
+               if placed then
+                  self.feature_map:set(i, j, berry_bush_name)
+               end
             end
          end
       end
@@ -251,7 +237,11 @@ function Landscaper:_place_dense_items(zone_map, cell_origin_x, cell_origin_y, c
    for j=1, grid_height do
       for i=1, grid_width do
          if math.random() < probability then
-            dx, dy = perturbation_grid:get_perturbed_coordinates(i, j, exclusion_radius)
+            if exclusion_radius >= 0 then
+               dx, dy = perturbation_grid:get_perturbed_coordinates(i, j, exclusion_radius)
+            else
+               dx, dy = perturbation_grid:get_unperturbed_coordinates(i, j)
+            end
 
             -- -1 becuase get_perturbed_coordinates returns base 1 coords and cell_origin is already at 1,1 of cell
             x = cell_origin_x + dx-1
