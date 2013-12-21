@@ -9,7 +9,7 @@
 using namespace ::radiant;
 using namespace ::radiant::dm;
 
-#define TRACE_LOG(level)  LOG_CATEGORY(dm.trace, level, "buffered tracer: " << GetName())
+#define TRACE_LOG(level)  LOG_CATEGORY(dm.trace.buffered, level, "buffered tracer: " << GetName())
 
 TracerBuffered::TracerBuffered(std::string const& name, Store& store) :
    Tracer(name)

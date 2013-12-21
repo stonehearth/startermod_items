@@ -58,6 +58,7 @@
    END_GROUP(renderer) \
    \
    BEGIN_GROUP(om) \
+      ADD_CATEGORY(carry_block) \
       ADD_CATEGORY(entity) \
       ADD_CATEGORY(target_tables) \
       ADD_CATEGORY(destination) \
@@ -68,7 +69,12 @@
       ADD_CATEGORY(store) \
       ADD_CATEGORY(streamer) \
       ADD_CATEGORY(receiver) \
-      ADD_CATEGORY(trace) \
+      BEGIN_GROUP(trace) \
+         ADD_CATEGORY(boxed) \
+         ADD_CATEGORY(set) \
+         ADD_CATEGORY(map) \
+         ADD_CATEGORY(buffered) \
+      END_GROUP(trace) \
    END_GROUP(dm)
 
 

@@ -7,7 +7,7 @@
 using namespace radiant;
 using namespace radiant::dm;
 
-#define TRACE_LOG(level)  LOG_CATEGORY(dm.trace, level, "buffered map<" << GetShortTypeName<M::Key>() << "," << GetShortTypeName<M::Value>() << ">")
+#define TRACE_LOG(level)  LOG_CATEGORY(dm.trace.map, level, "buffered map<" << GetShortTypeName<M::Key>() << "," << GetShortTypeName<M::Value>() << ">")
 
 template <typename M>
 MapTraceBuffered<M>::MapTraceBuffered(const char* reason, M const& m) :
@@ -21,6 +21,12 @@ template <typename M>
 void MapTraceBuffered<M>::Flush()
 {
    TRACE_LOG(5) << "flushing trace for object " << GetObjectId();
+   for (const auto& entry : changed_) {
+      TRACE_LOG(5) << "  changed: " << entry.first;
+   }
+   for (const auto& key: removed_) {
+      TRACE_LOG(5) << "  changed: " << key;
+   }
 
    firing_ = true;
    if (!changed_.empty() || !removed_.empty()) {
@@ -56,6 +62,7 @@ template <typename M>
 void MapTraceBuffered<M>::NotifyRemoved(Key const& key)
 {
    ASSERT(!firing_);
+   TRACE_LOG(5) << "removing " << key << " from changed set";
    changed_.erase(key);
    stdutil::UniqueInsert(removed_, key);
 }
@@ -64,6 +71,7 @@ template <typename M>
 void MapTraceBuffered<M>::NotifyChanged(Key const& key, Value const& value)
 {
    ASSERT(!firing_);
+   TRACE_LOG(5) << "adding " << key << " to changed set";
    stdutil::FastRemove(removed_, key);
    changed_[key] = value;
 }

@@ -7,7 +7,7 @@
 using namespace radiant;
 using namespace radiant::dm;
 
-#define TRACE_LOG(level)  LOG_CATEGORY(dm.trace, level, "buffered boxed<" << GetShortTypeName<B::Value>() << ">")
+#define TRACE_LOG(level)  LOG_CATEGORY(dm.trace.boxed, level, "buffered boxed<" << GetShortTypeName<B::Value>() << ">")
 
 template <typename B>
 BoxedTraceBuffered<B>::BoxedTraceBuffered(const char* reason, B const& b) :
