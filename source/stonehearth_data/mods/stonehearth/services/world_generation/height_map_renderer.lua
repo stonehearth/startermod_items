@@ -11,11 +11,11 @@ local HeightMapCPP = _radiant.csg.HeightMap
 
 local HeightMapRenderer = class()
 
-function HeightMapRenderer:__init(zone_size, terrain_info)
-   self.zone_size = zone_size
+function HeightMapRenderer:__init(tile_size, terrain_info)
+   self.tile_size = tile_size
    self.terrain_info = terrain_info
    self._terrain = radiant._root_entity:add_component('terrain')
-   self._terrain:set_zone_size(zone_size)
+   self._terrain:set_zone_size(tile_size)
 
    -- rock layers
    local rock_layers = { {}, {}, {} }
@@ -40,8 +40,8 @@ function HeightMapRenderer:add_region_to_terrain(region3_boxed, offset)
 end
 
 function HeightMapRenderer:render_height_map_to_region(region3_boxed, height_map)
-   assert(height_map.width == self.zone_size)
-   assert(height_map.height == self.zone_size)
+   assert(height_map.width == self.tile_size)
+   assert(height_map.height == self.tile_size)
 
    local region2 = Region2()
    local height
