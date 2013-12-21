@@ -1,14 +1,22 @@
 {   
    "type" : "effect",
    "tracks": {
-         "sound": {
+        "sound": {
          "type": "sound_effect",
-         "duration": 2000,
+         "duration": 5000,
          "start_delay": 0,
          "min_distance": 30,
          "max_distance": 90,
-         "volume": 40,
-         "track" : "stonehearth:sounds:object_appear"
+         "volume": 50,
+         "track" : {
+            "type": "one_of",
+            "items": [
+               "stonehearth:sounds:object_appear_01",
+               "stonehearth:sounds:object_appear_02",
+               "stonehearth:sounds:object_appear_03",
+               "stonehearth:sounds:object_appear_04"
+                ]
+            }
         }
     }
 }

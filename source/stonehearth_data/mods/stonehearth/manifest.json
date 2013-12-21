@@ -260,8 +260,6 @@
          "sounds:prom_angel_jingle_sound" : "file(data/sounds/effects/sh_prom_angel_jingle.wav)",
          "sounds:prom_whoosh_jingle_sound" : "file(data/sounds/effects/sh_prom_whoosh_jingle.wav)",
          "sounds:footsteps_small_sound" : "file(data/sounds/effects/sh_footsteps_small.wav)",
-         "sounds:amb_summer_day" : "file(data/sounds/effects/sh_amb_summer_day.ogg)",
-         "sounds:amb_summer_night" : "file(data/sounds/effects/sh_amb_summer_night.ogg)",
          "sounds:saw_light_01_sound" : "file(data/sounds/effects/sh_saw_light_01.wav)",
          "sounds:saw_light_02_sound" : "file(data/sounds/effects/sh_saw_light_02.wav)",
          "sounds:saw_light_03_sound" : "file(data/sounds/effects/sh_saw_light_03.wav)",
@@ -272,13 +270,18 @@
          "sounds:sleeping_lullaby" : "file(data/sounds/effects/sleeping_lullaby.wav)",
          "sounds:eating" : "file(data/sounds/effects/sh_eating.wav)",
          "sounds:twinkle" : "file(data/sounds/effects/sh_twinkle.wav)",
-         "sounds:object_appear" : "file(data/sounds/effects/sh_object_appear.wav)",
+         "sounds:object_appear_01" : "file(data/sounds/effects/sh_object_appear_01.wav)",
+         "sounds:object_appear_02" : "file(data/sounds/effects/sh_object_appear_02.wav)",
+         "sounds:object_appear_03" : "file(data/sounds/effects/sh_object_appear_03.wav)",
+         "sounds:object_appear_04" : "file(data/sounds/effects/sh_object_appear_04.wav)",
+         "sounds:wolf_howl" : "file(data/sounds/effects/sh_wolf_howl.wav)",
                   
          "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
          "music:world_start"     : "file(data/music/levelmusic.ogg)",
 
          "ambient:summer_day"   : "file(data/ambient/sh_amb_summer_day.ogg)",
          "ambient:summer_night" : "file(data/ambient/sh_amb_summer_night.ogg)",
+         "ambient:dusk_wolves" : "file(data/ambient/sh_amb_dusk_wolves.ogg)",
 
 
          "indicators:sleepy" : "file(/stonehearth/data/effects/unit_status_effects/sleepy_indicator)",
