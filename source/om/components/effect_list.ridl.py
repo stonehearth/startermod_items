@@ -19,5 +19,6 @@ class EffectList(Component):
    _private = \
    """
    void AddRemoveDefault();
-   bool default_in_list_;
+   EffectPtr CreateEffect(std::string const& name, int startTime);
+   int default_in_list_;
    """
