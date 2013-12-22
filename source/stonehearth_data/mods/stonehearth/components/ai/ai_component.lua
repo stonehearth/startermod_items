@@ -116,16 +116,6 @@ function AIComponent:check_action_stack()
    if unwind_to_action then
       self:restart()
    end
-   --[[
-   self._action_stack
-   local activity = self:_get_best_activity()
-   if not self._current_activity or not self:_activities_equal(activity, self._current_activity) then
-      log:debug('%s switching behavior:', self._entity)
-      log:debug('   from: %s', self:_format_activity(self._current_activity))
-      log:debug('   to:   %s', self:_format_activity(activity))
-      self:restart(activity)
-   end
-   ]]
 end
 
 function AIComponent:restart()
@@ -185,27 +175,6 @@ function AIComponent:_get_best_action(activity, filter_depth)
    
    return best_a, best_p
 end
-
---[[
-function AIComponent:_get_best_activity()
-   radiant.check.is_entity(self._entity)
-
-   log:debug('%s computing best activity.', self._entity)
-   local bp, ba = -1, nil
-   for name, action in pairs(self._actions) do
-      local p, a = action:recommend_activity(self._entity)
-      if p ~= nil then
-         log:debug('  recommend activity %11d %s', p, self:_format_activity(a))
-         if p > bp then
-            bp, ba = p, a
-         end
-      end
-   end
-   assert(ba)
-   log:debug('  best activity is %s.', self:_format_activity(ba))
-   return ba
-end
-]]
 
 function AIComponent:_activities_equal(a, b)
    if not a or not b then
@@ -316,34 +285,6 @@ function AIComponent:execute(...)
 
    -- just call it and hope for the best.  manually unwind at yields...
    local result = action_main()
-
-   --[[
-   -- this is a loser. trying to yield in an pcall in a coroutine just doesn't work.
-   local traceback
-   local success, error = xpcall(action_main, function() traceback = debug.traceback() end)
-   if not success then
-      print(debug.traceback(co))
-      error(result)
-   end
-   ]]
-
-   --[[
-   -- this is a loser.  trying to unwind the coroutine stack hits the dreaded "yield
-   -- across c boundary", and coco is super expensive (fibers on windows)
-   local success, result
-   while coroutine.status(entry.co) ~= 'dead' do
-      success, result = coroutine.resume(entry.co)
-      print('--', success, result)
-      if not success then
-         print(debug.traceback(co))
-         error(result)
-      end
-      -- yield once.  this will end up unwinding the whole damn stack,
-      -- all the way out to the outer action (returning back to the
-      -- ai manager)
-      coroutine.yield(result)
-   end
-   ]]
    if action.stop then
       action:stop(self)
    end
@@ -352,24 +293,6 @@ function AIComponent:execute(...)
    assert(self._action_stack[len].action == action)
    self._action_stack[len] = nil
    return unpack(result)
-
---[[
-   local result = { action:run(self, self._entity, select(2, unpack(activity))) }
-   if self._dead then
-      assert(#self._action_stack == 0)
-      return
-   end
-
-   if action.stop then
-      action:stop(self, self._entity, true)
-   end
-
-   assert(#self._action_stack == len)
-   assert(self._action_stack[len] == action)
-   self._action_stack[len] = nil
-   return unpack(result)
-]]
-
 end
 
 function AIComponent:wait_until(obj)
