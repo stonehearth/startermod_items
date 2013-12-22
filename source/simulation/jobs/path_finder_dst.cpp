@@ -123,7 +123,6 @@ void PathFinderDst::ClipAdjacentToTerrain()
 
 int PathFinderDst::EstimateMovementCost(const csg::Point3& from) const
 {
-   PROFILE_BLOCK();
    auto entity = GetEntity();
 
    if (!entity) {
