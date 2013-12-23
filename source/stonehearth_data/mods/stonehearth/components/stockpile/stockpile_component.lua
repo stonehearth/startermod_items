@@ -364,6 +364,13 @@ end
 function StockpileComponent:_on_item_removed_from_inventory(e)
    if self._pickup_task then
       local item = e.item
+      -- there are lots of reason the item can be removed from the inventory (e.g.
+      -- a stockpile containing the entity was destroyed or someone picked up an
+      -- item from a stockpile).  we only want to add the item to the pickup task
+      -- if it's valid to be restocked.  the add_work_object function will call
+      -- our filter to verify that, but it also assume the item is on the terrain!
+      -- check to make sure this is the case before calling it (xxx: shouldn't
+      -- this be done by add_work_object internally? -- tony)
       local mob = item:get_component('mob')
       if mob and mob:get_parent() then
          self._pickup_task:add_work_object(item)
