@@ -6,7 +6,7 @@
 using namespace radiant;
 using namespace radiant::dm;
 
-#define TRACE_LOG(level)  LOG_CATEGORY(dm.trace, level, "buffered set<" << GetShortTypeName<S::Value>() << ">")
+#define TRACE_LOG(level)  LOG_CATEGORY(dm.trace.set, level, "buffered set<" << GetShortTypeName<S::Value>() << "> " << GetReason())
 
 template <typename S>
 SetTraceBuffered<S>::SetTraceBuffered(const char* reason, S const& set) :

@@ -211,11 +211,14 @@ void ScriptHost::ReportStackException(std::string const& category, std::string c
 {
    LUA_LOG(0) << "-- Script Error (" << category << ") Begin ------------------------------- ";
    if (!error.empty()) {
-      LUA_LOG(0) << error;
-
       std::string item;
-      std::stringstream ss(traceback);
-      while(std::getline(ss, item)) {
+      std::stringstream sse(error);
+      while(std::getline(sse, item)) {
+         LUA_LOG(0) << "   " << item;
+      }
+
+      std::stringstream sstb(traceback);
+      while(std::getline(sstb, item)) {
          LUA_LOG(0) << "   " << item;
       }
    }

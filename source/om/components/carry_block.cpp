@@ -7,6 +7,8 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+#define CB_LOG(level)    LOG(om.carry_block, level)
+
 std::ostream& operator<<(std::ostream& os, CarryBlock const& o)
 {
    return (os << "[CarryBlock]");
@@ -27,15 +29,19 @@ CarryBlock& CarryBlock::SetCarrying(std::weak_ptr<Entity> value)
    carrying_ = value;
    om::EntityPtr entity = value.lock();
    if (entity) {
+      CB_LOG(3) << GetEntity() << " put " << *entity << " on carry bone";
       om::MobPtr mob = entity->GetComponent<om::Mob>();
       if (mob) {
          om::EntityPtr parent = mob->GetParent().lock();
          if (parent) {
+            CB_LOG(5) << GetEntity() << " removing " << *entity << " from parent " << *parent;
             parent->GetComponent<EntityContainer>()->RemoveChild(entity->GetObjectId());
          }
-         mob->SetParent(EntityRef());
+         CB_LOG(5) << GetEntity() << " moving to zero";
          mob->SetLocationGridAligned(csg::Point3::zero);
       }
+   } else {
+      CB_LOG(3) << GetEntity() << " cleared carry bone";
    }
    return *this;
 }

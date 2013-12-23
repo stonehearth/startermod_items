@@ -1,5 +1,4 @@
 #include "pch.h"
-#include "metrics.h"
 #include "path_finder.h"
 #include "path_finder_src.h"
 #include "simulation/simulation.h"

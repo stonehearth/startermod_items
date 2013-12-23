@@ -36,6 +36,43 @@ App.StonehearthCalendarView = App.View.extend({
       this._moonRays = this._moon.find('.ray');
    },
 
+   _playDailySounds: function() {
+       var date = this.get('context.date');
+
+      if (date.hour == this._constants.event_times.sunrise && !this._sunrise_sounds_played) {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:rooster_call' );
+         radiant.call('radiant:play_music', {
+               'track': 'stonehearth:ambient:summer_day',
+               'channel': 'ambient', 
+               'volume' : 40
+            });
+
+         this._sunrise_sounds_played = true;
+      } else if (date.hour == this._constants.event_times.sunset_start && !this._sunset_start_sounds_played) {
+         radiant.call('radiant:play_music', {
+               'track': 'stonehearth:ambient:dusk_wolves',
+               'channel': 'ambient',
+               'volume' : 40
+            });                             
+
+         this._sunset_start_sounds_played = true;         
+      } else if (date.hour == this._constants.event_times.sunset && !this._sunset_sounds_played) {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:owl_call' );
+         radiant.call('radiant:play_music', {
+               'track': 'stonehearth:ambient:summer_night',
+               'channel': 'ambient',
+               'volume' : 20
+            });                 
+
+         this._sunset_sounds_played = true;
+      } else if (date.hour == 0) {
+         this._sunrise_sounds_played = false;
+         this._sunset_start_sounds_played = false
+         this._sunset_sounds_played = false
+      }
+
+   }.observes('context.date'),
+
    _updateClock: function() {
       var self = this;
 
@@ -55,16 +92,6 @@ App.StonehearthCalendarView = App.View.extend({
          hoursRemaining = this._constants.event_times.sunset - date.hour;
 
          if (this._hoursRemaining != hoursRemaining) {
-
-            if(!this._sunBody.is(':visible')) {
-               radiant.call('radiant:play_sound', 'stonehearth:sounds:rooster_call' );
-               radiant.call('radiant:play_music', {
-                     'track': 'stonehearth:ambient:summer_day',
-                     'channel': 'ambient', 
-                     'volume' : 40
-                  });
-
-            }
 
             //transition to day
             this._moonBody.hide();
@@ -97,15 +124,6 @@ App.StonehearthCalendarView = App.View.extend({
          }
 
          if (this._hoursRemaining != hoursRemaining) {
-
-            if(!this._moonBody.is(':visible')) {
-               radiant.call('radiant:play_sound', 'stonehearth:sounds:owl_call' );
-               radiant.call('radiant:play_music', {
-                     'track': 'stonehearth:ambient:summer_night',
-                     'channel': 'ambient',
-                     'volume' : 20
-                  });                 
-            }
 
             //transition to night
             this._sunBody.hide();

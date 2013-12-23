@@ -15,8 +15,8 @@ function WorldGenerator:__init(async, seed)
 
    local tg = TerrainGenerator(self._async, seed)
    self._terrain_generator = tg
-   self._height_map_renderer = HeightMapRenderer(tg.zone_size, tg.terrain_info)
-   self._landscaper = Landscaper(tg.terrain_info, tg.zone_size, tg.zone_size)
+   self._height_map_renderer = HeightMapRenderer(tg.tile_size, tg.terrain_info)
+   self._landscaper = Landscaper(tg.terrain_info, tg.tile_size, tg.tile_size)
 
    radiant.events.listen(radiant.events, 'stonehearth:slow_poll', self, self.on_poll)
 end
@@ -40,10 +40,10 @@ function WorldGenerator:create_world()
       cpu_timer:start()
       wall_clock_timer:start()
 
-      local zones
-      zones = self:_create_world_blueprint()
-      --zones = self:_create_test_blueprint()
-      self:_generate_world(zones)
+      local tiles
+      tiles = self:_create_world_blueprint()
+      --tiles = self:_create_test_blueprint()
+      self:_generate_world(tiles)
 
       cpu_timer:stop()
       wall_clock_timer:stop()
@@ -58,53 +58,53 @@ function WorldGenerator:create_world()
    end
 end
 
-function WorldGenerator:_generate_world(zones)
-   local num_zones_x = zones.width
-   local num_zones_y = zones.height
+function WorldGenerator:_generate_world(tiles)
+   local num_tiles_x = tiles.width
+   local num_tiles_y = tiles.height
    local terrain_info = self._terrain_generator.terrain_info
-   local zone_size = self._terrain_generator.zone_size
+   local tile_size = self._terrain_generator.tile_size
    local renderer = self._height_map_renderer
    local timer = Timer(Timer.CPU_TIME)
-   local zone_map, micro_map, zone_info
+   local tile_map, micro_map, tile_info
    local origin_x, origin_y, offset_x, offset_y, offset_pt
-   local i, j, n, zone_order_list
+   local i, j, n, tile_order_list
    local region3_boxed
 
-   zone_order_list = self:_build_zone_order_list(zones)
+   tile_order_list = self:_build_tile_order_list(tiles)
 
-   origin_x = num_zones_x * zone_size / 2
-   origin_y = num_zones_y * zone_size / 2
+   origin_x = num_tiles_x * tile_size / 2
+   origin_y = num_tiles_y * tile_size / 2
 
-   for n=1, #zone_order_list do
-      i = zone_order_list[n].x
-      j = zone_order_list[n].y 
-      zone_info = zones:get(i, j)
-      assert(not zone_info.generated)
+   for n=1, #tile_order_list do
+      i = tile_order_list[n].x
+      j = tile_order_list[n].y 
+      tile_info = tiles:get(i, j)
+      assert(not tile_info.generated)
 
-      zone_map, micro_map = self._terrain_generator:generate_zone(zone_info.terrain_type, zones, i, j)
-      zones:set(i, j, micro_map)
+      tile_map, micro_map = self._terrain_generator:generate_tile(tile_info.terrain_type, tiles, i, j)
+      tiles:set(i, j, micro_map)
       self:_yield()
 
-      offset_x = (i-1)*zone_size-origin_x
-      offset_y = (j-1)*zone_size-origin_y
+      offset_x = (i-1)*tile_size-origin_x
+      offset_y = (j-1)*tile_size-origin_y
       offset_pt = Point3(offset_x, 0, offset_y)
 
       timer:start()
       region3_boxed = renderer:create_new_region()
-      renderer:render_height_map_to_region(region3_boxed, zone_map)
-      self._landscaper:place_boulders(region3_boxed, zone_map)
+      renderer:render_height_map_to_region(region3_boxed, tile_map)
+      self._landscaper:place_boulders(region3_boxed, tile_map)
       renderer:add_region_to_terrain(region3_boxed, offset_pt)
       timer:stop()
       log:info('HeightMapRenderer time: %.3fs', timer:seconds())
       self:_yield()
 
       timer:start()
-      self._landscaper:place_flora(zone_map, offset_x, offset_y)
+      self._landscaper:place_flora(tile_map, offset_x, offset_y)
       timer:stop()
       log:info('Landscaper time: %.3fs', timer:seconds())
       self:_yield()
 
-      self._progress = (n / #zone_order_list) * 100
+      self._progress = (n / #tile_order_list) * 100
 
    end
 
@@ -122,14 +122,14 @@ function WorldGenerator:_yield()
 end
 
 function WorldGenerator:_create_test_blueprint()
-   local zones = self:_get_empty_blueprint(1, 1, TerrainType.Grassland)
+   local tiles = self:_get_empty_blueprint(1, 1, TerrainType.Grassland)
 
-   --zones:get(1, 1).terrain_type = TerrainType.Mountains
-   --zones:get(2, 1).terrain_type = TerrainType.Grassland
-   --zones:get(1, 2).terrain_type = TerrainType.Grassland
-   --zones:get(2, 2).terrain_type = TerrainType.Grassland
+   --tiles:get(1, 1).terrain_type = TerrainType.Mountains
+   --tiles:get(2, 1).terrain_type = TerrainType.Grassland
+   --tiles:get(1, 2).terrain_type = TerrainType.Grassland
+   --tiles:get(2, 2).terrain_type = TerrainType.Grassland
 
-   return zones
+   return tiles
 end
 
 
@@ -142,7 +142,7 @@ function WorldGenerator:_create_world_blueprint()
       TerrainType.Mountains,
    }
 
-   local zones = self:_get_empty_blueprint(5, 5)
+   local tiles = self:_get_empty_blueprint(5, 5)
    for i = 1, 5 do
       for j = 1, 5 do
          --local random = r:generate_uniform_int(1, #t)
@@ -155,70 +155,70 @@ function WorldGenerator:_create_world_blueprint()
          else
             type = TerrainType.Mountains
          end
-         zones:get(i, j).terrain_type = type
+         tiles:get(i, j).terrain_type = type
       end
    end
-   return zones
+   return tiles
 end
 
 function WorldGenerator:_create_world_blueprint_static()
-   local zones = self:_get_empty_blueprint(5, 5)
+   local tiles = self:_get_empty_blueprint(5, 5)
 
-   zones:get(1, 1).terrain_type = TerrainType.Grassland
-   zones:get(2, 1).terrain_type = TerrainType.Grassland
-   zones:get(3, 1).terrain_type = TerrainType.Foothills
-   zones:get(4, 1).terrain_type = TerrainType.Mountains
-   zones:get(5, 1).terrain_type = TerrainType.Mountains
+   tiles:get(1, 1).terrain_type = TerrainType.Grassland
+   tiles:get(2, 1).terrain_type = TerrainType.Grassland
+   tiles:get(3, 1).terrain_type = TerrainType.Foothills
+   tiles:get(4, 1).terrain_type = TerrainType.Mountains
+   tiles:get(5, 1).terrain_type = TerrainType.Mountains
 
-   zones:get(1, 2).terrain_type = TerrainType.Grassland
-   zones:get(2, 2).terrain_type = TerrainType.Grassland
-   zones:get(3, 2).terrain_type = TerrainType.Grassland
-   zones:get(4, 2).terrain_type = TerrainType.Foothills
-   zones:get(5, 2).terrain_type = TerrainType.Mountains
+   tiles:get(1, 2).terrain_type = TerrainType.Grassland
+   tiles:get(2, 2).terrain_type = TerrainType.Grassland
+   tiles:get(3, 2).terrain_type = TerrainType.Grassland
+   tiles:get(4, 2).terrain_type = TerrainType.Foothills
+   tiles:get(5, 2).terrain_type = TerrainType.Mountains
 
-   zones:get(1, 3).terrain_type = TerrainType.Foothills
-   zones:get(2, 3).terrain_type = TerrainType.Grassland
-   zones:get(3, 3).terrain_type = TerrainType.Grassland
-   zones:get(4, 3).terrain_type = TerrainType.Grassland
-   zones:get(5, 3).terrain_type = TerrainType.Foothills
+   tiles:get(1, 3).terrain_type = TerrainType.Foothills
+   tiles:get(2, 3).terrain_type = TerrainType.Grassland
+   tiles:get(3, 3).terrain_type = TerrainType.Grassland
+   tiles:get(4, 3).terrain_type = TerrainType.Grassland
+   tiles:get(5, 3).terrain_type = TerrainType.Foothills
 
-   zones:get(1, 4).terrain_type = TerrainType.Mountains
-   zones:get(2, 4).terrain_type = TerrainType.Foothills
-   zones:get(3, 4).terrain_type = TerrainType.Foothills
-   zones:get(4, 4).terrain_type = TerrainType.Grassland
-   zones:get(5, 4).terrain_type = TerrainType.Grassland
+   tiles:get(1, 4).terrain_type = TerrainType.Mountains
+   tiles:get(2, 4).terrain_type = TerrainType.Foothills
+   tiles:get(3, 4).terrain_type = TerrainType.Foothills
+   tiles:get(4, 4).terrain_type = TerrainType.Grassland
+   tiles:get(5, 4).terrain_type = TerrainType.Grassland
 
-   zones:get(1, 5).terrain_type = TerrainType.Mountains
-   zones:get(2, 5).terrain_type = TerrainType.Mountains
-   zones:get(3, 5).terrain_type = TerrainType.Mountains
-   zones:get(4, 5).terrain_type = TerrainType.Foothills
-   zones:get(5, 5).terrain_type = TerrainType.Grassland
+   tiles:get(1, 5).terrain_type = TerrainType.Mountains
+   tiles:get(2, 5).terrain_type = TerrainType.Mountains
+   tiles:get(3, 5).terrain_type = TerrainType.Mountains
+   tiles:get(4, 5).terrain_type = TerrainType.Foothills
+   tiles:get(5, 5).terrain_type = TerrainType.Grassland
 
-   return zones
+   return tiles
 end
 
 function WorldGenerator:_get_empty_blueprint(width, height, terrain_type)
    if terrain_type == nil then terrain_type = TerrainType.Grassland end
 
-   local zones = Array2D(width, height)
-   local i, j, zone_info
+   local tiles = Array2D(width, height)
+   local i, j, tile_info
 
-   for j=1, zones.height do
-      for i=1, zones.width do
-         zone_info = {}
-         zone_info.terrain_type = terrain_type
-         zone_info.generated = false
-         zones:set(i, j, zone_info)
+   for j=1, tiles.height do
+      for i=1, tiles.width do
+         tile_info = {}
+         tile_info.terrain_type = terrain_type
+         tile_info.generated = false
+         tiles:set(i, j, tile_info)
       end
    end
 
-   return zones
+   return tiles
 end
 
-function WorldGenerator:_build_zone_order_list(map)
+function WorldGenerator:_build_tile_order_list(map)
    local center_x = (map.width+1)/2
    local center_y = (map.height+1)/2
-   local zone_order = {}
+   local tile_order = {}
    local i, j, dx, dy, coord_info, angle
 
    for j=1, map.height do
@@ -233,15 +233,15 @@ function WorldGenerator:_build_zone_order_list(map)
          angle = self:_get_angle(dy, dx)
          coord_info.dist_metric = dx*dx + dy*dy + angle/1000
 
-         zone_order[#zone_order+1] = coord_info
+         tile_order[#tile_order+1] = coord_info
       end
    end
 
-   local compare_zone = function(a, b)
+   local compare_tile = function(a, b)
       return a.dist_metric < b.dist_metric
    end
-   table.sort(zone_order, compare_zone)
-   return zone_order
+   table.sort(tile_order, compare_tile)
+   return tile_order
 end
 
 function WorldGenerator:_get_angle(dy, dx)

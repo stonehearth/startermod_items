@@ -17,9 +17,10 @@
    "grass": {
       "ring_0_color": "#99ce7c",
       "ring_1_color": "#87c076",
-      "ring_2_color": "#75b370"
+      "ring_2_color": "#75b370",
+      "dark_color": "#529864"
    },
    "wood": {
-      "dark_color": "#523D27"
+      "dark_color": "#458957"
    }
 }

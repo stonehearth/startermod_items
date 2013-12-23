@@ -44,41 +44,41 @@ private:
    };
 
 private:
-   struct RenderZone {
+   struct RenderTile {
       csg::Point3                location;
       om::Region3BoxedRef        region;
       H3DNodeUnique              node;
       dm::TracePtr               trace;
 
-      RenderZone() { }
+      RenderTile() { }
       void Reset() {
          node.reset(0);
       }
    };
-   DECLARE_SHARED_POINTER_TYPES(RenderZone)
+   DECLARE_SHARED_POINTER_TYPES(RenderTile)
 
 private:
    void Update();
-   void UpdateRenderRegion(RenderZonePtr render_zone);
+   void UpdateRenderRegion(RenderTilePtr render_tile);
    void TesselateTerrain(csg::Region3 const& terrain, csg::Region3& tess);
    void OnSelected(om::Selection& sel, const csg::Ray3& ray,
                    const csg::Point3f& intersection, const csg::Point3f& normal);
 
    void AddTerrainTypeToTesselation(csg::Region3 const& grass, csg::Region3 const& terrain, csg::Region3& tess, LayerDetailRingInfo const &rings);
    void TesselateLayer(csg::Region2 const& layer, int height, csg::Region3 const& clipper, csg::Region3& tess, LayerDetailRingInfo const &rings);
-   void AddDirtyZone(RenderZoneRef zone);
+   void AddDirtyTile(RenderTileRef tile);
 
    static LayerDetailRingInfo grass_ring_info_;
    static LayerDetailRingInfo dirt_ring_info_;
 
 private:
    const RenderEntity&  entity_;
-   dm::TracePtr         zones_trace_;
+   dm::TracePtr         tiles_trace_;
    core::Guard          selected_guard_;
    om::TerrainRef       terrain_;
    H3DNodeUnique        terrain_root_node_;
-   std::map<csg::Point3, std::shared_ptr<RenderZone>>   zones_;
-   std::vector<RenderZoneRef> dirty_zones_;
+   std::map<csg::Point3, std::shared_ptr<RenderTile>>   tiles_;
+   std::vector<RenderTileRef> dirty_tiles_;
    core::Guard          renderer_frame_trace_;
 };
 
