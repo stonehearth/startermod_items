@@ -362,8 +362,12 @@ function StockpileComponent:_on_item_added_to_inventory(e)
 end
 
 function StockpileComponent:_on_item_removed_from_inventory(e)
-   if self._pickup_task then      
-      self._pickup_task:add_work_object(e.item)
+   if self._pickup_task then
+      local item = e.item
+      local mob = item:get_component('mob')
+      if mob and mob:get_parent() then
+         self._pickup_task:add_work_object(item)
+      end
    end
 end
 
@@ -469,7 +473,9 @@ function StockpileComponent:_create_worker_tasks()
    -- in any other stockpiles!
    self._pickup_task:set_work_object_filter_fn(
       function(entity)
+         log:spam('%s checking ok to pickup', entity)
          if not self:can_stock_entity(entity) then
+            log:spam('%s not stockable.  not picking up', entity)
             return false
          end
          local stockpile = get_stockpile_containing_entity(entity)
@@ -477,7 +483,7 @@ function StockpileComponent:_create_worker_tasks()
             log:spam('%s contained in stockpile.  not picking up', entity)
             return false
          end
-         log:spam('ok to pickup %s!', entity)
+         log:spam('ok to pickup %s (mob:%d)!', entity, entity:get_component('mob'):get_id())
          return true
       end
    )
