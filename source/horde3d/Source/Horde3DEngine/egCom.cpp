@@ -163,11 +163,39 @@ bool EngineConfig::setOption( EngineOptions::List param, float value )
 		return true;
    case EngineOptions::EnableShadows:
       enableShadows = (value != 0);
+      setGlobalShaderFlag("DISABLE_SHADOWS", !enableShadows);
       return true;
 	default:
 		Modules::setError( "Invalid param for h3dSetOption" );
 		return false;
 	}
+}
+
+void EngineConfig::setGlobalShaderFlag(const char* name, bool value)
+{
+   std::string flag(name);
+
+   if (shaderFlags.find(flag) != shaderFlags.end()) {
+      shaderFlags.erase(flag);
+      return;
+   }
+
+   if (!value) {
+      return;
+   }
+
+   shaderFlags.insert(flag);
+}
+
+bool EngineConfig::isGlobalShaderFlagSet(const char* name)
+{
+   std::string flag(name);
+
+   if (shaderFlags.find(flag) != shaderFlags.end()) {
+      return true;
+   }
+
+   return false;
 }
 
 

@@ -15,15 +15,16 @@ class Terrain(Component):
       Soil          = 5,
       Dirt          = 6,
       Grass         = 7,
-      Wood          = 8
+      DarkGrass     = 8,
+      Wood          = 9
    )
 
-   zones = dm.Map(csg.Point3(), Region3BoxedPtr(), singular_name='zone', add=None, remove=None, get=None)
-   zone_size = dm.Boxed(c.int())
+   tiles = dm.Map(csg.Point3(), Region3BoxedPtr(), singular_name='tile', add=None, remove=None, get=None)
+   tile_size = dm.Boxed(c.int())
 
    get_bounds = ridl.Method(csg.Cube3())
-   add_zone = ridl.Method(c.void(),
-                          ('zone_offset', csg.Point3().const.ref),
+   add_tile = ridl.Method(c.void(),
+                          ('tile_offset', csg.Point3().const.ref),
                           ('region3', Region3BoxedPtr()))
    create_new = ridl.Method(c.void())
    place_entity = ridl.Method(c.void(), ('e', EntityRef()), ('location', csg.Point3().const.ref))
@@ -35,5 +36,5 @@ class Terrain(Component):
 
    _public = \
    """
-   Region3BoxedPtr GetZone(csg::Point3 const& location, csg::Point3& zone_offset);
+   Region3BoxedPtr GetTile(csg::Point3 const& location, csg::Point3& tile_offset);
    """

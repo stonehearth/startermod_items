@@ -43,7 +43,7 @@ public:
 	bool load( const char *data, int size );
 
 	bool hasDependency( CodeResource *codeRes );
-	bool tryLinking( uint32 *flagMask );
+	bool tryLinking();
 	std::string assembleCode();
 
 	bool isLoaded() { return _loaded; }
@@ -54,7 +54,6 @@ private:
 	void updateShaders();
 
 private:
-	uint32                                             _flagMask;
 	std::string                                        _code;
 	std::vector< std::pair< PCodeResource, size_t > >  _includes;	// Pair: Included res and location in _code
 
@@ -121,8 +120,6 @@ struct CullModes
 
 struct ShaderCombination
 {
-	uint32              combMask;
-	
 	uint32              shaderObj;
 	uint32              lastUpdateStamp;
 
@@ -145,7 +142,7 @@ struct ShaderCombination
 
 
 	ShaderCombination() :
-		combMask( 0 ), shaderObj( 0 ), lastUpdateStamp( 0 )
+		shaderObj( 0 ), lastUpdateStamp( 0 )
 	{
 	}
 };
@@ -154,7 +151,6 @@ struct ShaderCombination
 struct ShaderContext
 {
 	std::string                       id;
-	uint32                            flagMask;
 	
 	// RenderConfig
 	BlendModes::List                  blendMode;
@@ -165,7 +161,7 @@ struct ShaderContext
 	bool                              alphaToCoverage;
 	
 	// Shaders
-	std::vector< ShaderCombination >  shaderCombs;
+	ShaderCombination                 shaderComb;
 	int                               vertCodeIdx, fragCodeIdx;
 	bool                              compiled;
 
@@ -215,17 +211,13 @@ public:
 	static void setPreambles( const std::string &vertPreamble, const std::string &fragPreamble )
 		{ _vertPreamble = vertPreamble; _fragPreamble = fragPreamble; }
 
-	static uint32 calcCombMask( const std::vector< std::string > &flags );
-	
 	ShaderResource( const std::string &name, int flags );
 	~ShaderResource();
 	
 	void initDefault();
 	void release();
 	bool load( const char *data, int size );
-	void preLoadCombination( uint32 combMask );
 	void compileContexts();
-	ShaderCombination *getCombination( ShaderContext &context, uint32 combMask );
 
 	int getElemCount( int elem );
 	int getElemParamI( int elem, int elemIdx, int param );
@@ -247,7 +239,7 @@ public:
 private:
 	bool raiseError( const std::string &msg, int line = -1 );
 	bool parseFXSection( char *data );
-	void compileCombination( ShaderContext &context, ShaderCombination &sc );
+	void compileCombination( ShaderContext &context );
 	
 private:
 	static std::string            _vertPreamble, _fragPreamble;
@@ -257,7 +249,6 @@ private:
 	std::vector< ShaderSampler >  _samplers;
 	std::vector< ShaderUniform >  _uniforms;
 	std::vector< CodeResource >   _codeSections;
-	std::set< uint32 >            _preLoadList;
 
 	friend class Renderer;
 };

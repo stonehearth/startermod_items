@@ -19,7 +19,7 @@
          "icon" : "file(berry_basket.png)"
       },
       "stonehearth:material" : {
-         "tags" :  "raw fruit food"
+         "tags" :  "resource fruit food"
       }
    },
    "entity_data" : {
