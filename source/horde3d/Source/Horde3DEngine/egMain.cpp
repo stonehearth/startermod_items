@@ -168,6 +168,11 @@ DLLEXP float h3dGetStat( EngineStats::List param, bool reset )
 	return Modules::stats().getStat( param, reset );
 }
 
+DLLEXP void h3dSetGlobalShaderFlag(const char* flagName, bool value)
+{
+   Modules::config().setGlobalShaderFlag(flagName, value);
+}
+
 
 DLLEXP void h3dShowOverlays( const float *verts, int vertCount, float colR, float colG,
                              float colB, float colA, uint32 materialRes, int flags )
