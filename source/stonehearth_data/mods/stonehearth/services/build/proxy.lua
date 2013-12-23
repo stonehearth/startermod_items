@@ -6,6 +6,7 @@ local Point3 = _radiant.csg.Point3
 function Proxy:__init(derived, parent_proxy, arg1)
    self._derived = derived
    self._children = {}
+   self._dependencies = {}
    if type(arg1) == 'string' or not arg1 then
       self._entity = radiant.entities.create_entity(arg1)
       self._render_entity = _radiant.client.create_render_entity(1, self._entity)   
@@ -36,6 +37,10 @@ function Proxy:destroy()
    self._render_entity = nil   
    
    return self._derived
+end
+
+function Proxy:get_id()
+   return self._entity:get_id()
 end
 
 function Proxy:move_to(location)
@@ -100,6 +105,16 @@ end
 
 function Proxy:get_children()
    return self._children
+end
+
+function Proxy:get_dependencies()
+   return self._dependencies
+end
+
+function Proxy:add_dependency(dependency)
+   local id = dependency:get_id()
+   self._dependencies[id] = dependency
+   return self._derived
 end
 
 function Proxy:update_datastore()
