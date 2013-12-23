@@ -57,8 +57,6 @@ Resource *CodeResource::clone()
 
 void CodeResource::initDefault()
 {
-	_flagMask = 0;
-	_code.clear();
 }
 
 
@@ -153,29 +151,11 @@ bool CodeResource::load( const char *data, int size )
 			}
 		}
 
-		// Check for flags
-		if( !lineComment && !blockComment && pData < eof - 4 )
-		{
-			if( *pData == '_' && *(pData+1) == 'F' && *(pData+4) == '_' &&
-			    *(pData+2) >= 48 && *(pData+2) <= 57 && *(pData+3) >= 48 && *(pData+3) <= 57 )
-			{
-				// Set flag
-				uint32 num = (*(pData+2) - 48) * 10 + (*(pData+3) - 48);
-				_flagMask |= 1 << (num - 1);
-				
-				for( uint32 i = 0; i < 5; ++i ) *pCode++ = *pData++;
-				
-				// Ignore rest of name
-				while( pData < eof && *pData != ' ' && *pData != '\t' && *pData != '\n' && *pData != '\r' )
-					++pData;
-			}
-		}
-
 		*pCode++ = *pData++;
 	}
 
 	*pCode = '\0';
-	_code = code;
+   _code = std::string(code);
 	delete[] code;
 
 	// Compile shaders that require this code block
@@ -200,14 +180,15 @@ bool CodeResource::hasDependency( CodeResource *codeRes )
 }
 
 
-bool CodeResource::tryLinking( uint32 *flagMask )
+bool CodeResource::tryLinking()
 {
 	if( !_loaded ) return false;
-	if( flagMask != 0x0 ) *flagMask |= _flagMask;
 	
 	for( uint32 i = 0; i < _includes.size(); ++i )
 	{
-		if( !_includes[i].first->tryLinking( flagMask ) ) return false;
+		if( !_includes[i].first->tryLinking()) {
+         return false;
+      }
 	}
 
 	return true;
@@ -409,16 +390,12 @@ void ShaderResource::release()
 {
 	for( uint32 i = 0; i < _contexts.size(); ++i )
 	{
-		for( uint32 j = 0; j < _contexts[i].shaderCombs.size(); ++j )
-		{
-			gRDI->destroyShader( _contexts[i].shaderCombs[j].shaderObj );
-		}
+		gRDI->destroyShader( _contexts[i].shaderComb.shaderObj );
 	}
 
 	_contexts.clear();
 	_samplers.clear();
 	_uniforms.clear();
-	//_preLoadList.clear();
 	_codeSections.clear();
 }
 
@@ -808,75 +785,45 @@ bool ShaderResource::load( const char *data, int size )
 }
 
 
-void ShaderResource::preLoadCombination( uint32 combMask )
+void ShaderResource::compileCombination( ShaderContext &context )
 {
-	if( !_loaded )
-	{
-		_preLoadList.insert( combMask );
-	}
-	else
-	{
-		for( uint32 i = 0; i < _contexts.size(); ++i )
-		{
-			if( getCombination( _contexts[i], combMask ) == 0x0 )
-				_preLoadList.insert( combMask );
-		}
-	}
-}
-
-
-void ShaderResource::compileCombination( ShaderContext &context, ShaderCombination &sc )
-{
-	uint32 combMask = sc.combMask;
-	
 	// Add preamble
 	_tmpCode0 = _vertPreamble;
 	_tmpCode1 = _fragPreamble;
 
 	// Insert defines for flags
-	if( combMask != 0 )
-	{
-		_tmpCode0 += "\r\n// ---- Flags ----\r\n";
-		_tmpCode1 += "\r\n// ---- Flags ----\r\n";
-		for( uint32 i = 1; i <= 32; ++i )
-		{
-			if( combMask & (1 << (i-1)) )
-			{
-				_tmpCode0 += "#define _F";
-				_tmpCode0 += (char)(48 + i / 10);
-				_tmpCode0 += (char)(48 + i % 10);
-				_tmpCode0 += "_\r\n";
-				
-				_tmpCode1 += "#define _F";
-				_tmpCode1 += (char)(48 + i / 10);
-				_tmpCode1 += (char)(48 + i % 10);
-				_tmpCode1 += "_\r\n";
-			}
-		}
-		_tmpCode0 += "// ---------------\r\n";
-		_tmpCode1 += "// ---------------\r\n";
-	}
+	_tmpCode0 += "\r\n// ---- Flags ----\r\n";
+	_tmpCode1 += "\r\n// ---- Flags ----\r\n";
+
+   for (const auto& flag : Modules::config().shaderFlags)
+   {
+		_tmpCode0 += "#define " + flag + "\r\n";				
+		_tmpCode1 += "#define " + flag + "\r\n";
+   }
+
+	_tmpCode0 += "// ---------------\r\n";
+	_tmpCode1 += "// ---------------\r\n";
 
 	// Add actual shader code
 	_tmpCode0 += getCode( context.vertCodeIdx )->assembleCode();
 	_tmpCode1 += getCode( context.fragCodeIdx )->assembleCode();
 
 	
-	Modules::log().writeInfo( "---- C O M P I L I N G  . S H A D E R . %s@%s[%i] ----",
-		_name.c_str(), context.id.c_str(), sc.combMask );
+	Modules::log().writeInfo( "---- C O M P I L I N G  . S H A D E R . %s@%s ----",
+		_name.c_str(), context.id.c_str() );
 	
 	// Unload shader if necessary
-	if( sc.shaderObj != 0 )
+   if( context.shaderComb.shaderObj != 0 )
 	{
-		gRDI->destroyShader( sc.shaderObj );
-		sc.shaderObj = 0;
+		gRDI->destroyShader( context.shaderComb.shaderObj );
+		context.shaderComb.shaderObj = 0;
 	}
 	
 	// Compile shader
-	if( !Modules::renderer().createShaderComb( _name.c_str(), _tmpCode0.c_str(), _tmpCode1.c_str(), sc ) )
+	if( !Modules::renderer().createShaderComb( _name.c_str(), _tmpCode0.c_str(), _tmpCode1.c_str(), context.shaderComb ) )
 	{
-		Modules::log().writeError( "Shader resource '%s': Failed to compile shader context '%s' (comb %i)",
-			_name.c_str(), context.id.c_str(), sc.combMask );
+		Modules::log().writeError( "Shader resource '%s': Failed to compile shader context '%s' ",
+			_name.c_str(), context.id.c_str() );
 
 		if( Modules::config().dumpFailedShaders )
 		{
@@ -891,14 +838,14 @@ void ShaderResource::compileCombination( ShaderContext &context, ShaderCombinati
 	}
 	else
 	{
-		gRDI->bindShader( sc.shaderObj );
+		gRDI->bindShader( context.shaderComb.shaderObj );
 
 		// Find samplers in compiled shader
-		sc.customSamplers.reserve( _samplers.size() );
+		context.shaderComb.customSamplers.reserve( _samplers.size() );
 		for( uint32 i = 0; i < _samplers.size(); ++i )
 		{
-			int samplerLoc = gRDI->getShaderSamplerLoc( sc.shaderObj, _samplers[i].id.c_str() );
-			sc.customSamplers.push_back( samplerLoc );
+			int samplerLoc = gRDI->getShaderSamplerLoc( context.shaderComb.shaderObj, _samplers[i].id.c_str() );
+			context.shaderComb.customSamplers.push_back( samplerLoc );
 			
 			// Set texture unit
 			if( samplerLoc >= 0 )
@@ -906,11 +853,11 @@ void ShaderResource::compileCombination( ShaderContext &context, ShaderCombinati
 		}
 		
 		// Find uniforms in compiled shader
-		sc.customUniforms.reserve( _uniforms.size() );
+		context.shaderComb.customUniforms.reserve( _uniforms.size() );
 		for( uint32 i = 0; i < _uniforms.size(); ++i )
 		{
-			sc.customUniforms.push_back(
-				gRDI->getShaderConstLoc( sc.shaderObj, _uniforms[i].id.c_str() ) );
+			context.shaderComb.customUniforms.push_back(
+				gRDI->getShaderConstLoc( context.shaderComb.shaderObj, _uniforms[i].id.c_str() ) );
 		}
 	}
 
@@ -926,90 +873,17 @@ void ShaderResource::compileContexts()
 
 		if( !context.compiled )
 		{
-			context.flagMask = 0;
-			if( !getCode( context.vertCodeIdx )->tryLinking( &context.flagMask ) ||
-			    !getCode( context.fragCodeIdx )->tryLinking( &context.flagMask ) )
+			if( !getCode( context.vertCodeIdx )->tryLinking() ||
+			    !getCode( context.fragCodeIdx )->tryLinking() )
 			{
 				continue;
 			}
 			
-			// Add preloaded combinations
-			for( std::set< uint32 >::iterator itr = _preLoadList.begin(); itr != _preLoadList.end(); ++itr )
-			{
-				uint32 combMask = *itr & context.flagMask;
-				
-				// Check if combination already exists
-				bool found = false;
-				for( size_t j = 0; j < context.shaderCombs.size(); ++j )
-				{
-					if( context.shaderCombs[j].combMask == combMask )
-					{
-						found = true;
-						break;
-					}
-				}
-
-				if( !found )
-				{	
-					context.shaderCombs.push_back( ShaderCombination() );
-					context.shaderCombs.back().combMask = combMask;
-				}
-			}
-			
-			for( size_t j = 0; j < context.shaderCombs.size(); ++j )
-			{
-				compileCombination( context, context.shaderCombs[j] );
-			}
-
+			compileCombination( context );
 			context.compiled = true;
 		}
 	}
 }
-
-
-ShaderCombination *ShaderResource::getCombination( ShaderContext &context, uint32 combMask )
-{
-	if( !context.compiled ) return 0x0;
-	
-	// Kill combination bits that are not used by the context
-	combMask &= context.flagMask;
-	
-	// Try to find combination
-	std::vector< ShaderCombination > &combs = context.shaderCombs;
-	for( size_t i = 0, s = combs.size(); i < s; ++i )
-	{
-		if( combs[i].combMask == combMask ) return &combs[i];
-	}
-
-	// Add combination
-	combs.push_back( ShaderCombination() );
-	combs.back().combMask = combMask;
-	compileCombination( context, combs.back() );
-
-	return &combs.back();
-}
-
-
-uint32 ShaderResource::calcCombMask( const std::vector< std::string > &flags )
-{	
-	uint32 combMask = 0;
-	
-	for( size_t i = 0, s = flags.size(); i < s; ++i )
-	{
-		const std::string &flag = flags[i];
-		
-		// Check format: _F<digit><digit>_
-		if( flag.length() < 5 ) continue;
-		if( flag[0] != '_' || flag[1] != 'F' || flag[4] != '_' ||
-		    flag[2] < 48 || flag[2] > 57 || flag[3] < 48 || flag[3] > 57 ) continue;
-		
-		uint32 num = (flag[2] - 48) * 10 + (flag[3] - 48);
-		combMask |= 1 << (num - 1);
-	}
-	
-	return combMask;
-}
-
 
 int ShaderResource::getElemCount( int elem )
 {

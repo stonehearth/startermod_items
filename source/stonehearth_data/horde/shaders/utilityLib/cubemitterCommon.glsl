@@ -3,7 +3,7 @@
 // *************************************************************************************************
 attribute vec3 vertPos;
 
-#ifdef _F01_INSTANCE_SUPPORT
+#ifdef INSTANCE_SUPPORT
   attribute vec4 cubeColor;
   attribute mat4 particleWorldMatrix;
 #else
@@ -15,8 +15,8 @@ attribute vec3 vertPos;
 vec4 cubemitter_getWorldspacePos()
 {
 
-#ifdef _F01_INSTANCE_SUPPORT
-  return particleWorldMatrix * vec4(vertPos, 1);
+#ifdef INSTANCE_SUPPORT
+  return particleWorldMatrix * vec4(vertPos, 1.0);
 #else
   return cubeBatchTransformArray[int(parIdx)] * vec4(vertPos, 1);
 #endif
@@ -24,7 +24,7 @@ vec4 cubemitter_getWorldspacePos()
 
 vec4 cubemitter_getColor()
 {
-#ifdef _F01_INSTANCE_SUPPORT
+#ifdef INSTANCE_SUPPORT
   return cubeColor;
 #else
   return cubeBatchColorArray[int(parIdx)];

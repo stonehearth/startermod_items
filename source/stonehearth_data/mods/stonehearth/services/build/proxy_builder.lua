@@ -98,22 +98,54 @@ function ProxyBuilder:shift_down()
          _radiant.client.is_key_down(_radiant.client.KeyboardInput.RIGHT_SHIFT)
 end
 
-function ProxyBuilder:_package_proxy(proxy)
-   local package = {}
-   self:_package_proxy_entity(package, proxy)
-   self:_package_proxy_children(package, proxy)
-   return package
+--- Add all descendants of proxy to the 'order' list in package order.
+-- The client is responsible for providing a list of proxies to the
+-- server in an order that's trivial to consume.  This means proxies
+-- must be defined before they can be referenced.  No problem!  Just do
+-- a post-order traversal of the proxy tree.  Since we're concerned about
+-- both the 'children' and 'dependency' trees, this is actually a weird
+-- directed graph (which means we need a visited map to keep track of where
+-- we've been).
+function ProxyBuilder:_compute_package_order(visited, order, proxy)
+   local id = proxy:get_id()
+
+   if not visited[id] then
+      visited[id] = true
+
+      for id, child in pairs(proxy:get_children()) do
+         self:_compute_package_order(visited, order, child)
+      end
+      for id, dependency in pairs(proxy:get_dependencies()) do
+         self:_compute_package_order(visited, order, dependency)
+      end
+      table.insert(order, proxy)
+   end
 end
 
-function ProxyBuilder:_package_proxy_entity(package, proxy)
+--- Package a single proxy for deliver to the server
+function ProxyBuilder:_package_proxy(proxy)
+   local package = {}
+
    local entity =  proxy:get_entity()  
+   package.entity_uri = entity:get_uri()
+   package.entity_id = entity:get_id()
    
-   package.entity = entity:get_uri()
+   local mob = entity:get_component('mob')   
+   if mob then
+      local parent = mob:get_parent()
+      if not parent then
+         package.add_to_build_plan = true
+      end
+   end
+
+   -- Package up the trival components...
    package.components = {
       mob = entity:get_component_data('mob'),
       destination = entity:get_component_data('destination'),
    }
    
+   -- Package up the stonehearth:construction_data component.  This is almost
+   -- trivial, but not quite.
    local data = entity:get_component_data('stonehearth:construction_data')
    if data then
       -- remove the paint_mode.  we just set it here so the blueprint
@@ -121,23 +153,35 @@ function ProxyBuilder:_package_proxy_entity(package, proxy)
       data.paint_mode = nil     
       package.components['stonehearth:construction_data'] = data
    end
-end
-   
-function ProxyBuilder:_package_proxy_children(package, proxy)   
-   assert(not package.children)
+
+   -- Package the child and dependency lists.
    local children = proxy:get_children()
    if next(children) then
       package.children = {}
-      for _, proxy in pairs(children) do
-         local p = self:_package_proxy(proxy)
-         table.insert(package.children, p)
+      for id, _ in pairs(children) do
+         table.insert(package.children, id)
       end
    end
+   
+   local dependencies = proxy:get_dependencies()
+   if next(dependencies) then
+      package.dependencies = {}
+      for id, _ in pairs(dependencies) do
+         table.insert(package.dependencies, id)
+      end
+   end
+
+   return package
 end
 
 function ProxyBuilder:publish()
-   local package  = self:_package_proxy(self._root_proxy)
-   _radiant.call('stonehearth:build_structures', package)
+   local changed = {}
+   self:_compute_package_order({}, changed, self._root_proxy)
+   for i, proxy in ipairs(changed) do
+      changed[i] = self:_package_proxy(proxy)
+   end
+
+   _radiant.call('stonehearth:build_structures', changed)
    --TODO: you COULD put this in an "always" so the capture doesn't
    --go away till the fabricator appears, but the gap is so long
    --it looks like a bug

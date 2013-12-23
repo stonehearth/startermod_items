@@ -13,6 +13,7 @@ local log = radiant.log.create_logger('build')
 function FabricatorComponent:__init(entity, data_binding)
    self._entity = entity
    self._data_binding = data_binding
+   self._data = data_binding:get_data()
 end
 
 function FabricatorComponent:add_block(material, location)
@@ -39,13 +40,26 @@ function FabricatorComponent:start_project(name, blueprint)
       self:_add_scaffolding_to_project(project, ci.normal)
    end
 
-   -- remember the blueprint and project to assist with rendering
-   self._data_binding:update({
+   -- remember the blueprint and project 
+   self._data = {
       project = project,
       blueprint = blueprint
-   })
+   }
+   self._data_binding:update(self._data)
+   
+   -- stick the fabricator entity in the blueprint and projects, too
+   blueprint:add_component('stonehearth:construction_data'):set_fabricator_entity(self._entity)
+   project:add_component('stonehearth:construction_data'):set_fabricator_entity(self._entity)
 
    return self
+end
+
+function FabricatorComponent:get_blueprint()
+   return self._data.blueprint
+end
+
+function FabricatorComponent:get_project()
+   return self._data.project
 end
 
 function FabricatorComponent:_add_scaffolding_to_project(project, normal)

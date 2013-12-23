@@ -34,7 +34,7 @@ function CityPlanComponent:_init_fabricator(fabricator, blueprint)
    fabricator:set_debug_text('fabricator for ' .. blueprint:get_debug_text())
    
    if blueprint:get_component('stonehearth:construction_data') then
-      local name = radiant.entities.get_name(blueprint)
+      local name = tostring(blueprint)
       fabricator:add_component('stonehearth:fabricator')
                      :start_project(name, blueprint)
                      :set_debug_color(Color4(255, 0, 0, 128))

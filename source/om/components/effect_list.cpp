@@ -42,8 +42,8 @@ void EffectList::AddRemoveDefault()
    } else {
       //The default is not in the list, so add it if there are no other effects
       if (effects_.GetSize() == 0) {
-         default_in_list_ = (*next_id_);
          auto effect = CreateEffect(*default_, 0);
+         default_in_list_ = effect->GetEffectId();
       }
    }
 

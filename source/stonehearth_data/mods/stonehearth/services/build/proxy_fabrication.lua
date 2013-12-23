@@ -49,5 +49,4 @@ function ProxyFabrication:extend(json)
    return self._derived
 end
 
-
 return ProxyFabrication

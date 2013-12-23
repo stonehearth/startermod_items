@@ -37,6 +37,10 @@ function ProxyRoomBuilder:go()
    self._curr_door_wall:add_child(self._door)
    
    self._roof = self:add_roof()
+   self._roof:add_dependency(self._bot)
+   self._roof:add_dependency(self._left)
+   self._roof:add_dependency(self._top)
+   self._roof:add_dependency(self._right)
    
    self:layout()
    
