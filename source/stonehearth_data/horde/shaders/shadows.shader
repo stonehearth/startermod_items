@@ -90,10 +90,16 @@ float _PCF( vec4 projShadow ) {
 
 float getShadowValue(const vec3 worldSpace_fragmentPos)
 {
+  float shadowTerm;
+
+#ifdef DISABLE_SHADOWS
+  shadowTerm = 1.0;
+#else
   //vec4 projCoords = _shadowCoordsByDistance(worldSpace_fragmentPos, cascadeNum);
   vec4 projCoords = _shadowCoordsByMap(worldSpace_fragmentPos);
 
-  float shadowTerm = shadow2DProj(shadowMap, projCoords).r;
+  shadowTerm = shadow2DProj(shadowMap, projCoords).r;
+#endif
 
   return shadowTerm;
 }

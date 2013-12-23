@@ -163,6 +163,7 @@ bool EngineConfig::setOption( EngineOptions::List param, float value )
 		return true;
    case EngineOptions::EnableShadows:
       enableShadows = (value != 0);
+      setGlobalShaderFlag("DISABLE_SHADOWS", !enableShadows);
       return true;
 	default:
 		Modules::setError( "Invalid param for h3dSetOption" );

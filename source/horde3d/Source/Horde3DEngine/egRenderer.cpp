@@ -145,10 +145,7 @@ bool Renderer::init(int glMajor, int glMinor, bool enable_gl_logging)
 		Modules::log().writeWarning( "Renderer: No multisampling for render targets available" );
 
    // TODO(klochek): expose flags as part of an interface; h3dGetSupportedShaderFlags(), or something?
-   // TODO(klochek): hide the set, add something cute to EngineConfig....
-   if (gRDI->getCaps().hasInstancing) {
-      Modules::config().shaderFlags.insert(std::string("INSTANCE_SUPPORT"));
-   }
+   Modules::config().setGlobalShaderFlag("INSTANCE_SUPPORT", gRDI->getCaps().hasInstancing);
 	
 	// Create vertex layouts
 	VertexLayoutAttrib attribsPosOnly[1] = {
