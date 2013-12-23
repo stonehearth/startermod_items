@@ -17,7 +17,6 @@ local WorkshopComponent = class()
 function WorkshopComponent:__init(entity, data_binding)
    self._todo_list = CraftOrderList(data_binding)  -- The list of things we need to work on
    self._entity = entity                 -- The entity associated with this component
-   self._faction = nil
    self._curr_order = nil                -- The order currently being worked on. Nil until we get an order from the todo list
    self._curernt_item_progress = nil
                                          -- TODO: revise all three of these to use entity-container
@@ -209,33 +208,17 @@ function WorkshopComponent:get_promotion_talisman_entity_uri()
    return self._promotion_talisman_entity_uri
 end
 
---[[
-   This is the outbox component (not the entity)
-   location: place in the world, relative to workbench, to put the outbox
-   size: size of outbox, {width,depth}
-   returns: outbox_entity
-   TODO: Make this a speciatly stockpile, not like other stockpiles!
-]]
-function WorkshopComponent:create_outbox(location, size, faction)
-   self._outbox_entity = radiant.entities.create_entity('stonehearth:workshop_outbox')
-   self._outbox_entity:get_component('unit_info'):set_faction(faction)
-
-   local bench_loc = radiant.entities.get_location_aligned(self._entity)
-
-   radiant.terrain.place_entity(self._outbox_entity, location)
-   local outbox_component = self._outbox_entity:get_component('stonehearth:stockpile')
-
-   outbox_component:set_size(size)
-   outbox_component:set_outbox(true)
-
-   self._outbox_component = outbox_component
+--- Add an existing outbox to the workshop
+--  Note: outbox should have a faction already
+function WorkshopComponent:associate_outbox(outbox_entity)
+   self._outbox_entity = outbox_entity
+   self._outbox_component = self._outbox_entity:get_component('stonehearth:stockpile')
    return self._outbox_entity
 end
 
 function WorkshopComponent:get_outbox_entity()
    return self._outbox_entity
 end
-
 
 --[[
    Get the crafter component of the crafter entity associated with
