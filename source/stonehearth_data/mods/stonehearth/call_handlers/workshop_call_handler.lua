@@ -34,6 +34,10 @@ function WorkshopCallHandler:choose_workbench_location(session, response, workbe
             self:_on_mouse_event(e.mouse, workbench_entity, response)
             return true
          end
+         if e.type == _radiant.client.Input.KEYBOARD then
+            self:_on_keyboard_event(e.keyboard, response)
+         end
+         --Don't consume the event in case the UI wants to do something too
          return false
       end)
 end
@@ -97,6 +101,34 @@ function WorkshopCallHandler:_on_mouse_event(e, workbench_entity, response)
    return true
 end
 
+--- When placing a workbench, if a key is pressed, call this function
+function WorkshopCallHandler:_on_keyboard_event(e, response)
+   if e.key == _radiant.client.KeyboardInput.ESC and e.down then
+      self:_destroy_capture()
+      if self._cursor_entity then
+         _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
+      end
+       response:resolve({})
+   end
+   return false
+end
+
+--- Destroy our capture object to release the mouse back to the client.
+function WorkshopCallHandler:_destroy_capture()
+   self._capture:destroy()
+   self._capture = nil
+end
+
+--- When placing an outbox, if a key is pressed, call this function
+--  Note: we don't need to destroy the capture becase the cleanup function already does.
+function WorkshopCallHandler:_on_outbox_keyboard_event(e, ghost_entity, response)
+   if e.key == _radiant.client.KeyboardInput.ESC and e.down then
+      _radiant.call('stonehearth:destroy_ghost_workbench', ghost_entity:get_id())
+      response:resolve({cancelled = true})
+   end
+   return false   
+end
+
 --- Create a shadow of the workbench.
 --  Workers are not actually asked to create the workbench until the outbox is placed too. 
 function WorkshopCallHandler:create_ghost_workbench(session, response, workbench_entity_uri, pt, rotation)
@@ -109,6 +141,13 @@ function WorkshopCallHandler:create_ghost_workbench(session, response, workbench
       workbench_entity = ghost_entity
    }
 end
+
+--- Destroys a shadow of a workbench
+function WorkshopCallHandler:destroy_ghost_workbench(session, response, ghost_entity_id)
+   local ghost_entity = radiant.entities.get_entity(ghost_entity_id)
+   radiant.entities.destroy_entity(ghost_entity)
+end
+
 
 --- Client side object to add the workbench's outbox to the world. 
 function WorkshopCallHandler:choose_outbox_location(session, response, workbench_entity)
@@ -130,12 +169,23 @@ function WorkshopCallHandler:choose_outbox_location(session, response, workbench
    -- change the actual game cursor
    local stockpile_cursor = _radiant.client.set_cursor('stonehearth:cursors:create_stockpile')
 
+   -- capture the keyboard.
+   self._capture = _radiant.client.capture_input()
+   self._capture:on_input(function(e)
+         if e.type == _radiant.client.Input.KEYBOARD then
+            self:_on_outbox_keyboard_event(e.keyboard, workbench_entity, response)
+         end
+         --Don't consume the event in case the UI wants to do something too
+         return false
+      end)
+
    local cleanup = function()
       if node then
          h3dRemoveNode(node)
       end
       stockpile_cursor:destroy()
       _radiant.client.destroy_authoring_entity(cursor_entity:get_id())
+      self:_destroy_capture()
    end
 
    _radiant.client.select_xz_region()
