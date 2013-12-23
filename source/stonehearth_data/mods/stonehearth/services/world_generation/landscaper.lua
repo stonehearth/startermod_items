@@ -208,9 +208,9 @@ function Landscaper:_place_berry_bushes(tile_map, place_item)
                x, y, w, h = self.flora_perturbation_grid:get_cell_bounds(i, j)
 
                factor = 0.33
-               --probability = value * 0.01
-               probability = 1.0
-               exclusion_radius = -1
+               probability = value * 0.01
+               --probability = 1.0
+               --exclusion_radius = -1
                
                nested_grid_spacing = math.floor(grid_spacing * factor)
 

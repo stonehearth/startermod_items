@@ -145,35 +145,35 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
    }
    ASSERT(terrain);
 
-   auto on_add_zone = [this](csg::Point3 location, om::Region3BoxedPtr const& region) {
-      RenderZonePtr render_zone;
+   auto on_add_tile = [this](csg::Point3 location, om::Region3BoxedPtr const& region) {
+      RenderTilePtr render_tile;
       if (region) {
-         auto i = zones_.find(location);
-         if (i != zones_.end()) {
-            render_zone = i->second;
+         auto i = tiles_.find(location);
+         if (i != tiles_.end()) {
+            render_tile = i->second;
          } else {
-            render_zone = std::make_shared<RenderZone>();
-            render_zone->location = location;
-            render_zone->region = region;
-            zones_[location] = render_zone;
+            render_tile = std::make_shared<RenderTile>();
+            render_tile->location = location;
+            render_tile->region = region;
+            tiles_[location] = render_tile;
          }
-         RenderZoneRef rt = render_zone;
-         render_zone->trace = region->TraceChanges("render", dm::RENDER_TRACES)
+         RenderTileRef rt = render_tile;
+         render_tile->trace = region->TraceChanges("render", dm::RENDER_TRACES)
                                        ->OnModified([this, rt]{
-                                          AddDirtyZone(rt);
+                                          AddDirtyTile(rt);
                                        })
                                        ->PushObjectState();
       } else {
-         zones_.erase(location);
+         tiles_.erase(location);
       }
    };
 
-   auto on_remove_zone = [this](csg::Point3 const& location) {
-      zones_.erase(location);
+   auto on_remove_tile = [this](csg::Point3 const& location) {
+      tiles_.erase(location);
    };
 
-   zones_trace_ = terrain->TraceZones("render", dm::RENDER_TRACES)
-                              ->OnAdded(on_add_zone)
+   tiles_trace_ = terrain->TraceTiles("render", dm::RENDER_TRACES)
+                              ->OnAdded(on_add_tile)
                               ->OnRemoved([=](csg::Point3 const&) {
                                  NOT_YET_IMPLEMENTED();
                               })
@@ -184,9 +184,9 @@ RenderTerrain::~RenderTerrain()
 {
 }
 
-void RenderTerrain::AddDirtyZone(RenderZoneRef zone)
+void RenderTerrain::AddDirtyTile(RenderTileRef tile)
 {
-   dirty_zones_.push_back(zone);
+   dirty_tiles_.push_back(tile);
    
    if (renderer_frame_trace_.Empty()) {
       renderer_frame_trace_ = Renderer::GetInstance().OnRenderFrameStart([=](FrameStartInfo const&) {
@@ -216,14 +216,14 @@ void RenderTerrain::OnSelected(om::Selection& sel, const csg::Ray3& ray,
    sel.AddBlock(brick);
 }
 
-void RenderTerrain::UpdateRenderRegion(RenderZonePtr render_zone)
+void RenderTerrain::UpdateRenderRegion(RenderTilePtr render_tile)
 {
-   om::Region3BoxedPtr region_ptr = render_zone->region.lock();
+   om::Region3BoxedPtr region_ptr = render_tile->region.lock();
 
-   render_zone->Reset();
+   render_tile->Reset();
 
    if (region_ptr) {
-      ASSERT(render_zone);
+      ASSERT(render_tile);
       csg::Region3 const& region = region_ptr->Get();
       csg::Region3 tesselatedRegion;
 
@@ -233,8 +233,8 @@ void RenderTerrain::UpdateRenderRegion(RenderZonePtr render_zone)
       mesh = csg::mesh_tools().SetTesselator(tess_map)
                               .ConvertRegionToMesh(tesselatedRegion);
    
-      render_zone->node = Pipeline::GetInstance().AddMeshNode(terrain_root_node_.get(), mesh);
-      h3dSetNodeTransform(render_zone->node.get(), (float)render_zone->location.x, (float)render_zone->location.y, (float)render_zone->location.z, 0, 0, 0, 1, 1, 1);
+      render_tile->node = Pipeline::GetInstance().AddMeshNode(terrain_root_node_.get(), mesh);
+      h3dSetNodeTransform(render_tile->node.get(), (float)render_tile->location.x, (float)render_tile->location.y, (float)render_tile->location.z, 0, 0, 0, 1, 1, 1);
    }
 }
 
@@ -301,13 +301,13 @@ void RenderTerrain::TesselateLayer(csg::Region2 const& layer, int height, csg::R
 void RenderTerrain::Update()
 {
    perfmon::TimelineCounterGuard tcg("tesselate terrain");
-   for (RenderZoneRef t : dirty_zones_) {
-      RenderZonePtr zone = t.lock();
-      if (zone) {
-         UpdateRenderRegion(zone);
+   for (RenderTileRef t : dirty_tiles_) {
+      RenderTilePtr tile = t.lock();
+      if (tile) {
+         UpdateRenderRegion(tile);
       }
    }
-   dirty_zones_.clear();
+   dirty_tiles_.clear();
    renderer_frame_trace_.Clear();
 }
 

@@ -20,22 +20,22 @@ void Terrain::ExtendObject(json::Node const& obj)
 {
 }
 
-void Terrain::AddZone(csg::Point3 const& zone_offset, Region3BoxedPtr region3)
+void Terrain::AddTile(csg::Point3 const& tile_offset, Region3BoxedPtr region3)
 {
-   // zones are stored using the location of their 0, 0 coordinate in the world
-   zones_.Add(zone_offset, region3);
+   // tiles are stored using the location of their 0, 0 coordinate in the world
+   tiles_.Add(tile_offset, region3);
 }
 
 csg::Cube3 Terrain::GetBounds()
 {
    csg::Cube3 result = csg::Cube3::zero;
 
-   if (zones_.Size() > 0) {
-      const auto& firstZone = zones_.begin();
-      result = csg::Cube3(firstZone->first, firstZone->first + csg::Point3(GetZoneSize(), GetZoneSize(), GetZoneSize()));
-      for (const auto& zone : zones_) {
-         result.Grow(zone.first);
-         result.Grow(zone.first + csg::Point3(GetZoneSize(), GetZoneSize(), GetZoneSize()));
+   if (tiles_.Size() > 0) {
+      const auto& firstTile = tiles_.begin();
+      result = csg::Cube3(firstTile->first, firstTile->first + csg::Point3(GetTileSize(), GetTileSize(), GetTileSize()));
+      for (const auto& tile : tiles_) {
+         result.Grow(tile.first);
+         result.Grow(tile.first + csg::Point3(GetTileSize(), GetTileSize(), GetTileSize()));
       }
    }
    return result;
@@ -46,9 +46,9 @@ void Terrain::PlaceEntity(EntityRef e, const csg::Point3& location)
    auto entity = e.lock();
    if (entity) {
       int max_y = INT_MIN;
-      csg::Point3 zone_offset;
-      Region3BoxedPtr region_ptr = GetZone(location, zone_offset);
-      csg::Point3 const& regionLocalPt = location - zone_offset;
+      csg::Point3 tile_offset;
+      Region3BoxedPtr region_ptr = GetTile(location, tile_offset);
+      csg::Point3 const& regionLocalPt = location - tile_offset;
 
       if (!region_ptr) {
          throw std::invalid_argument(BUILD_STRING("point " << location << " is not in world"));
@@ -71,13 +71,13 @@ void Terrain::PlaceEntity(EntityRef e, const csg::Point3& location)
    }
 }
 
-Region3BoxedPtr Terrain::GetZone(csg::Point3 const& location, csg::Point3& zone_offset)
+Region3BoxedPtr Terrain::GetTile(csg::Point3 const& location, csg::Point3& tile_offset)
 {
    // O(n) search - consider optimizing
-   for (auto& entry : zones_) {
-      zone_offset = entry.first;
-      if (location.x >= zone_offset.x && location.x < zone_offset.x + zone_size_ &&
-          location.z >= zone_offset.z && location.z < zone_offset.z + zone_size_) {
+   for (auto& entry : tiles_) {
+      tile_offset = entry.first;
+      if (location.x >= tile_offset.x && location.x < tile_offset.x + tile_size_ &&
+          location.z >= tile_offset.z && location.z < tile_offset.z + tile_size_) {
          return entry.second;
       }
    }

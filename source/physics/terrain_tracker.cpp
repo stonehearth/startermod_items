@@ -30,11 +30,11 @@ void TerrainTracker::Initialize()
 {
    om::TerrainPtr terrain = terrain_.lock();
    if (terrain) {
-      trace_ = terrain->TraceZones("nav grid", GetNavGrid().GetTraceCategory())
-            ->OnAdded([this](om::Terrain::ZoneKey const& offset, om::Terrain::ZoneValue const& region) {
+      trace_ = terrain->TraceTiles("nav grid", GetNavGrid().GetTraceCategory())
+            ->OnAdded([this](om::Terrain::TileKey const& offset, om::Terrain::TileValue const& region) {
                GetNavGrid().AddTerrainTileTracker(GetEntity(), offset, region);
             })
-            ->OnRemoved([this](om::Terrain::ZoneKey const& removed) {
+            ->OnRemoved([this](om::Terrain::TileKey const& removed) {
                NOT_YET_IMPLEMENTED();
             })
             ->PushObjectState();

@@ -15,7 +15,7 @@ function HeightMapRenderer:__init(tile_size, terrain_info)
    self.tile_size = tile_size
    self.terrain_info = terrain_info
    self._terrain = radiant._root_entity:add_component('terrain')
-   self._terrain:set_zone_size(tile_size)
+   self._terrain:set_tile_size(tile_size)
 
    -- rock layers
    local rock_layers = { {}, {}, {} }
@@ -36,7 +36,7 @@ end
 
 function HeightMapRenderer:add_region_to_terrain(region3_boxed, offset)
    if offset == nil then offset = Point3(0, 0, 0) end
-   self._terrain:add_zone(offset, region3_boxed)
+   self._terrain:add_tile(offset, region3_boxed)
 end
 
 function HeightMapRenderer:render_height_map_to_region(region3_boxed, height_map)
@@ -206,7 +206,7 @@ function HeightMapRenderer.tesselator_test()
       region3:add_cube(Cube3(Point3(0, height-1, 0), Point3(256, height, 256), Terrain.GRASS))
       --region3:add_cube(Cube3(Point3(256, height-1, 0), Point3(257, height, 256), Terrain.SOIL))
    end)
-   terrain:add_zone(Point3(0, 0, 0), region3_boxed)
+   terrain:add_tile(Point3(0, 0, 0), region3_boxed)
 end
 
 return HeightMapRenderer
