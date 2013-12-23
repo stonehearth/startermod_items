@@ -43,4 +43,8 @@ function GhostItemComponent:set_object_data(real_item_uri, location, rotation)
    self._data_binding:mark_changed()
 end
 
+function GhostItemComponent:get_object_data()
+   return self._data
+end
+
 return GhostItemComponent

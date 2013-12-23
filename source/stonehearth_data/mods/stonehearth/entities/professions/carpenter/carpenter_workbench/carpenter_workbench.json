@@ -11,6 +11,10 @@
          "promotion_talisman" : {
             "entity" : "stonehearth:carpenter:saw",
             "offset" : [0, 3, 0]
+         }, 
+         "ingredients" : {
+            "material" : "wood resource",
+            "count" : 1
          }
       },
       "destination": {
