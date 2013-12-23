@@ -56,11 +56,13 @@ void Application::InitializeCrashReporting()
 
    core::Config& config = core::Config::GetInstance();
 
-   std::string const crash_dump_path = core::System::GetInstance().GetTempDirectory().string();
-   std::string const userid = config.GetUserID();
-   crash_dump_uri_ = config.Get("support.crash_dump_server", REPORT_CRASHDUMP_URI);
+   if (!config.Get("support.disable_crash_dump_server", false)) {
+      std::string const crash_dump_path = core::System::GetInstance().GetTempDirectory().string();
+      std::string const userid = config.GetUserID();
+      crash_dump_uri_ = config.Get("support.crash_dump_server", REPORT_CRASHDUMP_URI);
 
-   crash_reporter::client::CrashReporterClient::GetInstance().Start(crash_dump_path, crash_dump_uri_, userid);
+      crash_reporter::client::CrashReporterClient::GetInstance().Start(crash_dump_path, crash_dump_uri_, userid);
+   }
 }
 
 boost::asio::ip::tcp::acceptor* Application::FindServerPort()

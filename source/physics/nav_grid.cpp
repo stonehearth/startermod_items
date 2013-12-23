@@ -182,7 +182,7 @@ int NavGrid::GetTraceCategory() const
  */
 void NavGrid::AddCollisionTracker(NavGridTile::TrackerType type, csg::Cube3 const& last_bounds, csg::Cube3 const& bounds, CollisionTrackerPtr tracker)
 {
-   NG_LOG(5) << "collision notify bounds " << bounds << "changed (last_bounds: " << last_bounds << ")";
+   NG_LOG(3) << "collision notify bounds " << bounds << "changed (last_bounds: " << last_bounds << ")";
    csg::Cube3 current_chunks = csg::GetChunkIndex(bounds, NavGridTile::TILE_SIZE);
    csg::Cube3 previous_chunks = csg::GetChunkIndex(last_bounds, NavGridTile::TILE_SIZE);
 
@@ -190,18 +190,15 @@ void NavGrid::AddCollisionTracker(NavGridTile::TrackerType type, csg::Cube3 cons
    // but did overlap their previous bounds.
    for (csg::Point3 const& cursor : previous_chunks) {
       if (!current_chunks.Contains(cursor)) {
-         NG_LOG(5) << "removing tracker to grid tile at " << cursor;
+         NG_LOG(5) << "removing tracker from grid tile at " << cursor;
          GridTile(cursor).RemoveCollisionTracker(type, tracker);
       }
    }
 
-   // Add trackers to tiles which overlap the current bounds of the tracker,
-   // but did not overlap their previous bounds.
+   // Add trackers to tiles which overlap the current bounds of the tracker.
    for (csg::Point3 const& cursor : current_chunks) {
-      if (!previous_chunks.Contains(cursor)) {
-         NG_LOG(5) << "adding tracker to grid tile at " << cursor;
-         GridTile(cursor).AddCollisionTracker(type, tracker);
-      }
+      NG_LOG(5) << "adding tracker to grid tile at " << cursor;
+      GridTile(cursor).AddCollisionTracker(type, tracker);
    }
 }
 

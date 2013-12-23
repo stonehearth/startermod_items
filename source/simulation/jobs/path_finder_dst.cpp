@@ -1,5 +1,4 @@
 #include "pch.h"
-#include "metrics.h"
 #include "path.h"
 #include "path_finder.h"
 #include "path_finder_dst.h"
@@ -123,7 +122,6 @@ void PathFinderDst::ClipAdjacentToTerrain()
 
 int PathFinderDst::EstimateMovementCost(const csg::Point3& from) const
 {
-   PROFILE_BLOCK();
    auto entity = GetEntity();
 
    if (!entity) {
@@ -163,8 +161,6 @@ int PathFinderDst::EstimateMovementCost(const csg::Point3& from) const
 
 int PathFinderDst::EstimateMovementCost(csg::Point3 const& start, csg::Point3 const& end) const
 {
-   PROFILE_BLOCK();
-
    static int COST_SCALE = 10;
    int cost = 0;
 
@@ -187,8 +183,6 @@ int PathFinderDst::EstimateMovementCost(csg::Point3 const& start, csg::Point3 co
 
 csg::Point3 PathFinderDst::GetPointfInterest(csg::Point3 const& adjacent_pt) const
 {
-   PROFILE_BLOCK();
-
    auto entity = GetEntity();
    ASSERT(entity);
 
