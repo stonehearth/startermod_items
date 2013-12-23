@@ -66,6 +66,15 @@ function WorkerPlaceWorkshop:run(ai, entity, path, ghost_entity, outbox_entity, 
    radiant.terrain.place_entity(workbench_entity, target_location)
    radiant.entities.turn_to(workbench_entity, real_item_rotation)
 
+   --TODO: Ask Doug if a different type of sound attenuates with distance?
+   local json = radiant.resources.load_json(real_item_uri)
+   if json and json.components then
+      local workshop_sound = json.components['stonehearth:workshop'].build_sound_effect
+      radiant.effects.run_effect(entity, workshop_sound)
+   end
+
+
+
    -- Place the promotion talisman on the workbench, if there is one
    local promotion_talisman_entity = workshop_component:init_from_scratch()
 
