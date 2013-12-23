@@ -15,6 +15,7 @@
 
 #include "egPrerequisites.h"
 #include <string>
+#include <set>
 #include <queue>
 #include <cstdarg>
 #include <iostream>
@@ -60,6 +61,8 @@ public:
 
 	float getOption( EngineOptions::List param );
 	bool setOption( EngineOptions::List param, float value );
+   void setGlobalShaderFlag(const char* name, bool value);
+   bool isGlobalShaderFlagSet(const char* name);
 
 public:
 	int   maxLogLevel;
@@ -76,6 +79,7 @@ public:
 	bool  dumpFailedShaders;
 	bool  gatherTimeStats;
    bool  enableShadows;
+   std::set<std::string> shaderFlags;
 };
 
 
