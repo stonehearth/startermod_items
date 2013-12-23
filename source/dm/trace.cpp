@@ -27,3 +27,8 @@ void Trace::SignalDestroyed()
       on_destroyed_();
    }
 }
+
+std::string const& Trace::GetReason() const
+{
+   return reason_;
+}

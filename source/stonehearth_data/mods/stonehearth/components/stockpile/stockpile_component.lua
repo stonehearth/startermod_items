@@ -19,10 +19,23 @@ local all_stockpiles = {}
 -- @returns The stockpile containing entity, or nil
 
 function get_stockpile_containing_entity(entity)
+   local location = radiant.entities.get_world_grid_location(entity)
    for id, stockpile in pairs(all_stockpiles) do
-      if stockpile and stockpile:bounds_contain(entity) and stockpile:can_stock_entity(entity) then
-         return stockpile
-      end
+      log:spam('checking %s pos:%s inside a stockpile', entity, location)
+      if not stockpile then
+         log:spam('  nil stockpile!  nope!')
+      else 
+         local name = tostring(stockpile:get_entity())
+         local bounds = stockpile:get_bounds();
+         if not bounds:contains(location) then
+            log:spam('  %s -> nope! wrong bounds, %s', name, bounds)
+         elseif not stockpile:can_stock_entity(entity) then
+            log:spam('  %s -> nope! cannot stock', name)
+         else
+            log:spam('  %s -> yup!', name)
+            return stockpile
+         end
+      end        
    end
 end
 
@@ -57,6 +70,10 @@ function StockpileComponent:__init(entity, data_binding)
 
    radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self.on_gameloop)
    all_stockpiles[self._entity:get_id()] = self
+end
+
+function StockpileComponent:get_entity()
+   return self._entity
 end
 
 function StockpileComponent:destroy()
@@ -173,7 +190,7 @@ function StockpileComponent:_get_bounds()
    return bounds
 end
 
-function StockpileComponent:_get_world_bounds()
+function StockpileComponent:get_bounds()
    local size = self:get_size()
    local origin = radiant.entities.get_world_grid_location(self._entity)
    local bounds = Cube3(origin, Point3(origin.x + size[1], origin.y + 1, origin.z + size[2]))
@@ -186,7 +203,7 @@ end
 
 function StockpileComponent:bounds_contain(item_entity)
    local location = radiant.entities.get_world_grid_location(item_entity)
-   local world_bounds = self:_get_world_bounds()
+   local world_bounds = self:get_bounds()
    return world_bounds:contains(location)
 end
 
@@ -246,6 +263,7 @@ function StockpileComponent:_add_item(entity)
       self:_add_to_region(entity)
      
       if self:can_stock_entity(entity) then
+         log:debug('adding %s to stock', entity)
          self:_add_item_to_stock(entity)
       end
    end
@@ -344,8 +362,12 @@ function StockpileComponent:_on_item_added_to_inventory(e)
 end
 
 function StockpileComponent:_on_item_removed_from_inventory(e)
-   if self._pickup_task then      
-      self._pickup_task:add_work_object(e.item)
+   if self._pickup_task then
+      local item = e.item
+      local mob = item:get_component('mob')
+      if mob and mob:get_parent() then
+         self._pickup_task:add_work_object(item)
+      end
    end
 end
 
@@ -354,17 +376,17 @@ end
 -- @return true if the entity can be stocked here, false otherwise.
 
 function StockpileComponent:can_stock_entity(entity)
-
    if not entity or not entity:get_component('item') then
+      log:spam('nil or non-item entity %s cannot be stocked', tostring(entity))
       return false
    end
    
    if not self:_is_in_filter(entity) then
+      log:spam('%s not in filter and cannot be stocked', tostring(entity))
       return false
-   end
-  
-   return true
-   
+   end 
+   log:spam('%s ok to stock %s!', tostring(self._entity), tostring(entity))
+   return true   
 end
 
 function StockpileComponent:_is_in_filter(entity)
@@ -451,13 +473,17 @@ function StockpileComponent:_create_worker_tasks()
    -- in any other stockpiles!
    self._pickup_task:set_work_object_filter_fn(
       function(entity)
+         log:spam('%s checking ok to pickup', entity)
          if not self:can_stock_entity(entity) then
+            log:spam('%s not stockable.  not picking up', entity)
             return false
          end
          local stockpile = get_stockpile_containing_entity(entity)
-         if stockpile and not stockpile:is_outbox() then 
+         if stockpile and not stockpile:is_outbox() then
+            log:spam('%s contained in stockpile.  not picking up', entity)
             return false
          end
+         log:spam('ok to pickup %s (mob:%d)!', entity, entity:get_component('mob'):get_id())
          return true
       end
    )
@@ -481,9 +507,12 @@ function StockpileComponent:_create_worker_tasks()
       function (worker)
          local entity = radiant.entities.get_carrying(worker)
          if not self:can_stock_entity(entity) then
+            log:spam('%s is no good for restock task.', tostring(worker))
             return false
          end
+         log:spam('%s is good for restock task.', tostring(worker))
          --TODO: what if the worker is standing just outside the stockpile?
+         --then we're screwd! -- tony (see comment above about the right fix)
          return not self:bounds_contain(worker)
       end
    )
@@ -496,8 +525,8 @@ function StockpileComponent:_create_worker_tasks()
    -- whatever kind of activity we want
    self._restock_task:set_action_fn(
       function (path)
-         log:debug('dispatching restock task')
          local pt = path:get_destination_point_of_interest()
+         log:debug('dispatching restock task at %s', pt)
          assert(radiant.entities.point_in_destination_region(self._entity, pt))
          assert(not radiant.entities.point_in_destination_reserved(self._entity, pt))
          self:_reserve(pt)
@@ -507,7 +536,10 @@ function StockpileComponent:_create_worker_tasks()
    self._restock_task:set_finish_fn(
       function(success, packed_action)
          local stonehearth_restock, path, stockpile, pt = unpack(packed_action)
-         if not success then
+         if success then
+            log:debug('restock success at %s!', pt)
+         else
+            log:debug('restock failed! unreserving %s', pt)
             self:_unreserve(pt)
          end
       end

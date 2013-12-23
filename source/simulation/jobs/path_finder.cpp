@@ -1,5 +1,4 @@
 #include "pch.h"
-#include "metrics.h"
 #include "path.h"
 #include "path_finder.h"
 #include "path_finder_src.h"
@@ -128,8 +127,6 @@ void PathFinder::Stop()
 
 void PathFinder::AddDestination(om::EntityRef e)
 {
-   PROFILE_BLOCK();
-
    auto entity = e.lock();
    if (entity) {
       if (dst_filter_ && luabind::type(dst_filter_) == LUA_TFUNCTION) {
@@ -156,8 +153,6 @@ void PathFinder::AddDestination(om::EntityRef e)
 
 void PathFinder::RemoveDestination(dm::ObjectId id)
 {
-   PROFILE_BLOCK();
-
    auto i = destinations_.find(id);
    if (i != destinations_.end()) {
       destinations_.erase(i);
@@ -172,7 +167,6 @@ void PathFinder::RemoveDestination(dm::ObjectId id)
 
 void PathFinder::Restart()
 {
-   PROFILE_BLOCK();
    PF_LOG(5) << "restarting search";
 
    ASSERT(restart_search_);
@@ -197,8 +191,6 @@ void PathFinder::Restart()
 
 void PathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
 {
-   PROFILE_BLOCK();
-
    std::vector<csg::Point3> best;
    csg::Color4 pathColor;
    if (!solution_) {
@@ -249,8 +241,6 @@ void PathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
 
 void PathFinder::Work(const platform::timer &timer)
 {
-   PROFILE_BLOCK();
-
    PF_LOG(7) << "entering work function";
 
    if (restart_search_) {
@@ -357,8 +347,6 @@ int PathFinder::EstimateCostToSolution()
 
 int PathFinder::EstimateCostToDestination(const csg::Point3 &from) const
 {
-   PROFILE_BLOCK();
-
    ASSERT(!restart_search_);
 
    return EstimateCostToDestination(from, nullptr);
@@ -402,7 +390,6 @@ int PathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFinderDst
 
 csg::Point3 PathFinder::GetFirstOpen()
 {
-   PROFILE_BLOCK();
    auto result = open_.front();
 
    VERIFY_HEAPINESS();
@@ -455,8 +442,6 @@ bool PathFinder::CompareEntries(const csg::Point3 &a, const csg::Point3 &b)
 
 void PathFinder::RebuildHeap()
 {
-   PROFILE_BLOCK();
-
    std::make_heap(open_.begin(), open_.end(), bind(&PathFinder::CompareEntries, this, std::placeholders::_1, std::placeholders::_2));
    VERIFY_HEAPINESS();
    rebuildHeap_ = false;

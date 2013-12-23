@@ -35,12 +35,14 @@ public:
 protected:
    virtual void SignalObjectState() = 0;
    virtual void ClearCachedState() { }
+   std::string const& GetReason() const;
+
 public:
    void SignalModified();  // must ALWAYS be signals first when sending multiple signals
    void SignalDestroyed();
 
 protected:
-   const char*    reason_;
+   std::string    reason_;
    ModifiedCb     on_modified_;
    DestroyedCb    on_destroyed_;
 };
