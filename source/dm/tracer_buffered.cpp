@@ -9,7 +9,8 @@
 using namespace ::radiant;
 using namespace ::radiant::dm;
 
-#define TRACE_LOG(level)  LOG_CATEGORY(dm.trace.buffered, level, "buffered tracer: " << GetName())
+#define TRACE_LOG(level)            LOG_CATEGORY(dm.trace.buffered, level, "buffered tracer: " << GetName())
+#define TRACE_LOG_ENABLED(level)    LOG_IS_ENABLED(dm.trace.map, level)
 
 TracerBuffered::TracerBuffered(std::string const& name, Store& store) :
    Tracer(name)
@@ -29,8 +30,16 @@ TracerBuffered::~TracerBuffered()
 
 void TracerBuffered::OnObjectModified(ObjectId id)
 {
-   TRACE_LOG(5) << "adding object " << id << " to modified set";
+   TRACE_LOG(5) << "adding object " << id << " to modified set:";
    stdutil::UniqueInsert(modified_objects_, id);
+
+   if (TRACE_LOG_ENABLED(9)) {
+      std::ostringstream buf;
+      for (dm::ObjectId id : modified_objects_) {
+         buf << " " << id;
+      }
+      TRACE_LOG(5) << "  now: " << buf.str();
+   }
 }
 
 void TracerBuffered::OnObjectDestroyed(ObjectId id)

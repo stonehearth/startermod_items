@@ -7,7 +7,8 @@
 using namespace radiant;
 using namespace radiant::dm;
 
-#define TRACE_LOG(level)  LOG_CATEGORY(dm.trace.map, level, "buffered map<" << GetShortTypeName<M::Key>() << "," << GetShortTypeName<M::Value>() << ">")
+#define TRACE_LOG(level)            LOG_CATEGORY(dm.trace.map, level, "buf map<" << GetShortTypeName<M::Key>() << "," << GetShortTypeName<M::Value>() << "> " << GetReason())
+#define TRACE_LOG_ENABLED(level)    LOG_IS_ENABLED(dm.trace.map, level)
 
 template <typename M>
 MapTraceBuffered<M>::MapTraceBuffered(const char* reason, M const& m) :
@@ -20,12 +21,14 @@ MapTraceBuffered<M>::MapTraceBuffered(const char* reason, M const& m) :
 template <typename M>
 void MapTraceBuffered<M>::Flush()
 {
-   TRACE_LOG(5) << "flushing trace for object " << GetObjectId();
-   for (const auto& entry : changed_) {
-      TRACE_LOG(5) << "  changed: " << entry.first;
-   }
-   for (const auto& key: removed_) {
-      TRACE_LOG(5) << "  changed: " << key;
+   if (TRACE_LOG_ENABLED(9)) {
+      TRACE_LOG(5) << "flushing trace for object " << GetObjectId();
+      for (const auto& entry : changed_) {
+         TRACE_LOG(9) << "  changed: " << entry.first;
+      }
+      for (const auto& key: removed_) {
+         TRACE_LOG(9) << "  removed: " << key;
+      }
    }
 
    firing_ = true;
@@ -63,8 +66,18 @@ void MapTraceBuffered<M>::NotifyRemoved(Key const& key)
 {
    ASSERT(!firing_);
    TRACE_LOG(5) << "removing " << key << " from changed set";
+   if (TRACE_LOG_ENABLED(9)) {
+      for (const auto& entry : changed_) {
+         TRACE_LOG(9) << "  changed: " << entry.first;
+      }
+      for (const auto& key: removed_) {
+         TRACE_LOG(9) << "  removed: " << key;
+      }
+   }
+
    changed_.erase(key);
    stdutil::UniqueInsert(removed_, key);
+
 }
 
 template <typename M>
@@ -72,6 +85,15 @@ void MapTraceBuffered<M>::NotifyChanged(Key const& key, Value const& value)
 {
    ASSERT(!firing_);
    TRACE_LOG(5) << "adding " << key << " to changed set";
+   if (TRACE_LOG_ENABLED(9)) {
+      for (const auto& entry : changed_) {
+         TRACE_LOG(9) << "  changed: " << entry.first;
+      }
+      for (const auto& key: removed_) {
+         TRACE_LOG(9) << "  removed: " << key;
+      }
+   }
+
    stdutil::FastRemove(removed_, key);
    changed_[key] = value;
 }
