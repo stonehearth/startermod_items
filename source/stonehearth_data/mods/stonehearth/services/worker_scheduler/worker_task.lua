@@ -12,6 +12,8 @@ function WorkerTask:__init(name, scheduler)
    self._scheduler = scheduler
    self._pathfinders = {}
    self._destinations = {}
+   self._max_workers = nil
+   self._num_workers = 0
    self._priority = priorities.DEFAULT
    self._debug_color = Color4(0, 255, 0, 128)
 end
@@ -35,6 +37,22 @@ end
 
 function WorkerTask:get_name()
    return self._name
+end
+
+function WorkerTask:set_max_workers(n)
+   self._max_workers = n
+end
+
+function WorkerTask:notify_started_working()
+   if self._max_workers and self._num_workers >= self._max_workers then
+      return false
+   end
+   self._num_workers = self._num_workers + 1
+   return true
+end
+
+function WorkerTask:notify_stopped_working()
+   self._num_workers = self._num_workers - 1
 end
 
 function WorkerTask:set_debug_color(color)
@@ -194,7 +212,7 @@ function WorkerTask:_dispatch_solution(path)
       end
    end
    pf:stop()
-   self._scheduler:dispatch_solution(self._priority, worker_id, destination_id, action, finish_fn)
+   self._scheduler:dispatch_solution(self._priority, worker_id, destination_id, action, finish_fn, self)
 end
 
 return WorkerTask
