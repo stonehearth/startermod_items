@@ -223,6 +223,12 @@ bool VoxelMeshNode::checkIntersection( const Vec3f &rayOrig, const Vec3f &rayDir
 			vert1 = &geoRes->getVertexData()[((uint32 *)geoRes->_indexData)[i + 1]].pos;
 			vert2 = &geoRes->getVertexData()[((uint32 *)geoRes->_indexData)[i + 2]].pos;
 		}
+
+      Plane p(*vert0, *vert1, *vert2);
+
+      if (p.distToPoint(orig) < 0) {
+         continue;
+      }
 		
 		if( rayTriangleIntersection( orig, dir, *vert0, *vert1, *vert2, intsPos ) )
 		{
