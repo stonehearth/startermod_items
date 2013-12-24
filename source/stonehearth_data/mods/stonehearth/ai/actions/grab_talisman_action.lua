@@ -49,6 +49,10 @@ function GrabTalismanAction:run(ai, entity)
    radiant.entities.remove_child(workbench_entity, self._talisman_entity)
    ai:execute('stonehearth:run_effect', 'promote', nil, {talisman = self._talisman_entity})
 
+   --Let people know that the promotion has happened.
+   local object_tracker_service = require 'services.object_tracker.object_tracker_service'
+   radiant.events.trigger(object_tracker_service, 'stonehearth:promote', {entity = entity})
+
    --Remove the entity from the world
    radiant.entities.destroy_entity(self._talisman_entity)
    self._ai:set_action_priority(self, 0)

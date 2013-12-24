@@ -28,7 +28,9 @@ function ObjectTrackerService:get_worker_tracker(faction)
                 profession:get_profession_type() == 'worker' and
                 radiant.entities.get_faction(entity) == faction
       end
-      return EntityTracker(filter_fn)
+      local event_array = {}
+      event_array[1] = {event_name = 'stonehearth:promote'}
+      return EntityTracker(tracker_name, filter_fn, event_array)
    end
    return self:_find_tracker(tracker_name, factory_fn)
 end
