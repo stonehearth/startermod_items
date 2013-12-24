@@ -22,7 +22,7 @@ end
 -- the highest priority and dispatches it to the worker
 -- @param priority The priority of this solution
 -- @param action A table containing the action to execute and all its arguments
-function WorkerDispatcher:add_solution(destination_id, priority, action, finish_fn)
+function WorkerDispatcher:add_solution(destination_id, priority, action, finish_fn, task)
    log:debug('dispatcher adding solution (action:%s priority:%d) to %s',
              tostring(action[1]), priority, tostring(self._worker))
    
@@ -46,7 +46,8 @@ function WorkerDispatcher:add_solution(destination_id, priority, action, finish_
       priority = priority,
       action = action,
       finish_fn = finish_fn,
-      destination_id = destination_id
+      destination_id = destination_id,
+      task = task
    }  
    table.insert(self._solutions, solution)
 end
@@ -101,7 +102,7 @@ function WorkerDispatcher:_dispatch_best_solution()
       end
    end
    log:debug('%s dispatching best solution (priority:%d action:%s)', self._worker, best.priority, best.action[1])
-   self._dispatch_fn(best.priority, best.action, best.finish_fn)
+   self._dispatch_fn(best.priority, best.action, best.finish_fn, best.task)
 end
 
 return WorkerDispatcher

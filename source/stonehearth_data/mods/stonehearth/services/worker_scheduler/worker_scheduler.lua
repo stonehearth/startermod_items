@@ -12,7 +12,7 @@ function WorkerScheduler:__init(faction)
    self._strict = true
 end
 
-function WorkerScheduler:dispatch_solution(priority, worker_id, destination_id, action, finish_fn)
+function WorkerScheduler:dispatch_solution(priority, worker_id, destination_id, action, finish_fn, task)
    assert(finish_fn)
    local dispatcher = self._dispatchers[worker_id]
    
@@ -27,7 +27,7 @@ function WorkerScheduler:dispatch_solution(priority, worker_id, destination_id, 
       finish_fn(false)
       return
    end
-   dispatcher:add_solution(destination_id, priority, action, finish_fn)
+   dispatcher:add_solution(destination_id, priority, action, finish_fn, task)
 end
 
 function WorkerScheduler:add_worker_task(name)
