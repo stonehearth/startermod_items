@@ -14,7 +14,8 @@ SCRIPTS_ROOT       = $(STONEHEARTH_ROOT)/scripts
 # this by using a more recent version of MSYS and pulling git into that
 # but that's a lot of work.  This, incidentally, would also get us a
 # version of gmake from 2006 instead of 2000 (!!)
-STAGE_ROOT         = build/stage
+STAGE_ROOT         = build/stage/stonehearth
+ZIP_PACKAGE_ROOT   = build/zip-package
 
 # figure out where to find the data files for the 'make run*' commands
 ifeq ($(RUN_STAGED),)
@@ -31,7 +32,7 @@ clean:
 	rm -rf build
 
 .PHONY: official-build
-official-build: clean init-build submodules configure crash_reporter stonehearth symbols stage
+official-build: clean init-build submodules configure crash_reporter stonehearth symbols stage zip-package
 
 .PHONY: init-build
 init-build:
@@ -91,4 +92,11 @@ dependency-graph:
 .PHONY: stage
 stage:
 	sh $(SCRIPTS_ROOT)/stage/stage_stonehearth.sh -o $(STAGE_ROOT) -t $(MSBUILD_CONFIGURATION) -c -a
+
+.PHONY: zip-package
+zip-package:
+	echo 'creating zip package'
+	-mkdir -p $(ZIP_PACKAGE_ROOT)
+	-rm $(ZIP_PACKAGE_ROOT)/stonehearth.zip
+	cd $(STAGE_ROOT)/.. && $(7ZA) a -bd -r -tzip -mx=9 $(STONEHEARTH_ROOT)/$(ZIP_PACKAGE_ROOT)/stonehearth.zip *
 
