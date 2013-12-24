@@ -257,7 +257,7 @@ ${class_upper}_Trace${name | env.upper}(${class_formal_parameter}, const char* r
 {
    ${class_to_pointer} 
    if (instance)  {
-      DeepRegionGuardPtr trace = instance->Trace${name | env.upper}(reason, dm::LUA_TRACES);
+      DeepRegionGuardPtr trace = instance->Trace${name | env.upper}(reason, dm::${obj.trace_category});
       return std::make_shared<LuaDeepRegionGuard>(trace);
    }
    throw std::invalid_argument("invalid reference in native ${class_lower}::trace_${name}");
@@ -268,7 +268,7 @@ ${class_upper}_Trace${name | env.upper}(${class_formal_parameter}, const char* r
 {
    ${class_to_pointer} 
    if (instance)  {
-      auto trace = instance->Trace${name | env.upper}(reason, dm::LUA_TRACES);
+      auto trace = instance->Trace${name | env.upper}(reason, dm::${obj.trace_category});
       return std::make_shared<lua::${obj.short_name | env.upper}TraceWrapper<${obj.trace_name}>>(trace);
    }
    throw std::invalid_argument("invalid reference in native ${class_lower}::trace_${name}");

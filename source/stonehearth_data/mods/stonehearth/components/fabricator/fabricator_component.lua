@@ -20,6 +20,10 @@ function FabricatorComponent:add_block(material, location)
    return self._fabricator:add_block(material, location)
 end
 
+function FabricatorComponent:find_another_block(material, location)
+   return self._fabricator:find_another_block(material, location)
+end
+
 function FabricatorComponent:remove_block(location)
    return self._fabricator:remove_block(location)
 end

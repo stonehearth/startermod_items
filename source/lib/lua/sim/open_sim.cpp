@@ -218,6 +218,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             def("create_job",               &Sim_CreateJob),
             
             lua::RegisterTypePtr<Path>()
+               .def("is_empty",           &Path::IsEmpty)
                .def("get_points",         &Path::GetPoints, return_stl_iterator)
                .def("get_source",         &Path::GetSource)
                .def("get_destination",    &Path::GetDestination)

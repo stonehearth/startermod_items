@@ -33,9 +33,9 @@ function Fabricator:__init(name, entity, blueprint)
        
    log:debug("%s fabricator tracing destination %d", self.name, dst:get_id())
    self._adjacent_guard = dst:trace_region('updating fabricator adjacent')
-   self._adjacent_guard:on_changed(function ()
-      self:_update_adjacent()
-   end)
+                                 :on_changed(function ()
+                                    self:_update_adjacent()
+                                 end)
    
    self._construction_data = blueprint:get_component('stonehearth:construction_data')
    assert(self._construction_data)
@@ -105,6 +105,20 @@ function Fabricator:add_block(material_entity, location)
             cursor:add_point(pt + normal)
          end)
       end   
+   end
+end
+
+function Fabricator:find_another_block(carrying, location)
+   if carrying then
+      local origin = radiant.entities.get_world_grid_location(self._entity)
+      local pt = location - origin
+      
+      local dst = self._entity:add_component('destination')
+      local adjacent = dst:get_adjacent():get()
+      if adjacent:contains(pt) then
+         local block = dst:get_point_of_interest(pt)
+         return block + origin
+      end
    end
 end
 

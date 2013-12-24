@@ -18,7 +18,7 @@ static std::shared_ptr<lua::BoxedTraceWrapper<dm::BoxedTrace<dm::Boxed<lua::Data
 DataStore_Trace(std::shared_ptr<DataStore> data_store, const char* reason)
 {
    if (data_store) {
-      auto trace = data_store->TraceData(reason, dm::LUA_TRACES);
+      auto trace = data_store->TraceData(reason, dm::LUA_ASYNC_TRACES);
       return std::make_shared<lua::BoxedTraceWrapper<dm::BoxedTrace<dm::Boxed<lua::DataObject>>>>(trace);
    }
    return nullptr;
