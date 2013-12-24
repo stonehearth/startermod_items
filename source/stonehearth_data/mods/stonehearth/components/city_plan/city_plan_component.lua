@@ -29,8 +29,14 @@ function CityPlanComponent:_create_fabricator(blueprint)
 end
 
 function CityPlanComponent:_init_fabricator(fabricator, blueprint)
-   local transform = blueprint:add_component('mob'):get_transform()
+   local blueprint_mob = blueprint:add_component('mob')
+   local parent = blueprint_mob:get_parent()
+   if parent then
+      parent:add_component('entity_container'):add_child(fabricator)
+   end
+   local transform = blueprint_mob:get_transform()
    fabricator:add_component('mob'):set_transform(transform)
+   
    fabricator:set_debug_text('fabricator for ' .. blueprint:get_debug_text())
    
    if blueprint:get_component('stonehearth:construction_data') then

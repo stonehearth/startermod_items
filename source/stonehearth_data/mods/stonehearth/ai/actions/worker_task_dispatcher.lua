@@ -9,10 +9,11 @@ WorkerTaskDispatcher.priority = 0
 function WorkerTaskDispatcher:__init(ai, entity)
    self._ai = ai
    self._entity = entity
-
+   self._queued = {}
+   
    local faction = self._entity:get_component('unit_info'):get_faction()
    local ws = radiant.mods.load('stonehearth').worker_scheduler
-      
+   
    self._scheduler = ws:get_worker_scheduler(faction)   
    self:_wait_for_next_task()
 end
@@ -37,50 +38,80 @@ function WorkerTaskDispatcher:_wait_for_next_task()
    self._packed_action = nil
    self._priority = 0
 
-   local dispatch_fn = function(priority, packed_action, finish_fn, task)
+   local dispatch_fn = function(priority, packed_action, finish_fn, task, distance)
       assert(not self._running)
-      local abort_current, override
-      if priority <= self._priority then
-         log:debug('current action %s (pri %d) takes precedence over %s (pri %d)', 
-                     self._packed_action[1], self._priority,
-                     packed_action[1], priority)
-         if finish_fn then
-            finish_fn(false, packed_action)
-         end
-         return
-      end
-      if self._finish_fn and self._packed_action then
-         log:debug('overriding current action %s (pri %d)', self._packed_action[1], self._priority)
-         self._finish_fn(false, self._packed_action)
-      end
-      log:debug('preserving action %s (pri %d) for dispatch', packed_action[1], priority)                        
-      self._packed_action = packed_action
-      self._task = task
-      self._finish_fn = finish_fn
-      self._priority = priority
-      self._ai:set_action_priority(self, priority)
+      local entry = {
+         priority = priority,
+         packed_action = packed_action,
+         distance = distance,
+         finish_fn = finish_fn,
+         task = task
+      }
+      -- add the entry to our queue action table.  then sort by priority and
+      -- set our to the highest priority entry.  break dies on equal priority
+      -- tasks by preferring the one that's closest
+      table.insert(self._queued, entry)
+      table.sort(self._queued, function(a, b) 
+            if a.priority == b.priority then
+               return a.distance > b.distance
+            end
+            return a.priority < b.priority 
+         end)
+      self._ai:set_action_priority(self, self._queued[#self._queued].priority)
    end   
 
    log:info('%s rejoining worker scheduler to wait for next action', self._entity)
    self._ai:set_action_priority(self, 0)
-   self._scheduler:add_worker(self._entity, dispatch_fn)
+   if not self._in_worker_scheduler then
+      self._scheduler:add_worker(self._entity, dispatch_fn)
+   end
 end
 
 function WorkerTaskDispatcher:run(ai, entity, ...)
-   assert(self._packed_action, "worker dispatcher has no task to run")
-   self._running = true
-   if self._task and not self._task:notify_started_working() then
-      log:info('%s rejecting action %s (too many workers!)', entity, self._packed_action[1])
-      return
-   end
-   self._started_action = true
+   assert(not self._task, "stale task leftover from last call to run")
+   assert(#self._queued > 0, "worker dispatcher has no task to run")
    
-   log:info('%s executing action %s', entity, self._packed_action[1])
-
-   --TODO: put this up over thier heads, like dialog!
+   self._running = true
    self._scheduler:remove_worker(self._entity)
-   ai:execute(unpack(self._packed_action))
-   self._packed_action = nil
+   
+   -- find something to do.  entries are sorted in priority order (highest at
+   -- the back).  keep trying to do something until we find a task which will
+   -- let us proceed.
+   while #self._queued > 0 do
+      local entry = table.remove(self._queued)
+      if entry.task:notify_started_working() then
+         -- yay!  this one's good.  remember some state and break out of the loop
+         self._task = entry.task
+         self._packed_action = entry.packed_action
+         self._finish_fn = entry.finish_fn
+         self._started_action = true         
+         break;
+      end
+      -- boo!  this one's no good.  call the finish function (if it's there) and
+      -- keep searching.
+      log:info('%s rejecting action %s (too many workers!)', entity, entry.packed_action[1])
+      if entry.finish_fn then
+         entry.finish_fn(false)
+      end
+   end
+   
+   -- now call the finish function on all the tasks we rejected...
+   while #self._queued > 0 do
+      local entry = table.remove(self._queued)
+      log:info('%s rejecting action %s (priority too low)', entity, entry.packed_action[1])
+      if entry.finish_fn then
+         entry.finish_fn(false)
+      end
+   end
+   
+   -- ...and execute the action
+   if self._packed_action then
+      log:info('%s executing action %s', entity, self._packed_action[1])
+
+      --TODO: put this up over thier heads, like dialog!
+      ai:execute(unpack(self._packed_action))
+      self._packed_action = nil
+   end
 end
 
 function WorkerTaskDispatcher:stop()

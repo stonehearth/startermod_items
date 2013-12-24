@@ -63,6 +63,13 @@ function ConstructionDataComponent:add_dependency(dep)
    self._data_binding:mark_changed()
 end
 
+function ConstructionDataComponent:get_max_workers()
+   if self._data.max_workers then
+      return self._data.max_workers
+   end
+   return 0
+end
+
 function ConstructionDataComponent:set_fabricator_entity(fentity)
    self._data.fabricator_entity = fentity
    self._data_binding:mark_changed()

@@ -41,6 +41,7 @@ end
 
 function WorkerTask:set_max_workers(n)
    self._max_workers = n
+   return self
 end
 
 function WorkerTask:notify_started_working()
@@ -74,6 +75,7 @@ end
 
 function WorkerTask:set_finish_fn(fn)
    self._finish_fn = fn
+   return self
 end
 
 function WorkerTask:set_action(action_name)
@@ -212,7 +214,7 @@ function WorkerTask:_dispatch_solution(path)
       end
    end
    pf:stop()
-   self._scheduler:dispatch_solution(self._priority, worker_id, destination_id, action, finish_fn, self)
+   self._scheduler:dispatch_solution(self._priority, worker_id, destination_id, action, finish_fn, self, path:get_distance())
 end
 
 return WorkerTask

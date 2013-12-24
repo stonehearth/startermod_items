@@ -29,8 +29,15 @@ std::ostream& Path::Format(std::ostream& os) const
    return os;
 }
 
+float Path::GetDistance() const
+{
+   if (points_.size() > 1) {
+      return points_.front().DistanceTo(points_.back());
+   }
+   return 0;
+}
+
 std::ostream& simulation::operator<<(std::ostream& os, const Path& in)
 {
    return in.Format(os);
 } 
-

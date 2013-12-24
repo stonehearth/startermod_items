@@ -219,6 +219,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             
             lua::RegisterTypePtr<Path>()
                .def("is_empty",           &Path::IsEmpty)
+               .def("get_distance",       &Path::GetDistance)
                .def("get_points",         &Path::GetPoints, return_stl_iterator)
                .def("get_source",         &Path::GetSource)
                .def("get_destination",    &Path::GetDestination)
