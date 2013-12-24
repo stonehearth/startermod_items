@@ -121,7 +121,7 @@ Destination& Destination::SetAdjacent(Region3BoxedPtr r)
    return *this;
 }
 
-csg::Point3 Destination::GetPointOfInterest(csg::Point3 const& pt)
+csg::Point3 Destination::GetPointOfInterest(csg::Point3 const& pt) const
 {
    if (!*region_) {
       throw std::logic_error("destination has no region in GetPointOfInterest");

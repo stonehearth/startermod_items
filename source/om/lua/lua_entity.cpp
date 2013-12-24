@@ -26,7 +26,7 @@ lua::TraceWrapperPtr Entity_TraceObject(std::weak_ptr<Entity> e, const char *rea
 {
    auto entity = e.lock();
    if (entity) {
-      return std::make_shared<lua::TraceWrapper>(entity->TraceObjectChanges(reason, dm::LUA_TRACES));
+      return std::make_shared<lua::TraceWrapper>(entity->TraceObjectChanges(reason, dm::LUA_ASYNC_TRACES));
    }
    throw std::exception("cannot trace expired entity reference");
 }
