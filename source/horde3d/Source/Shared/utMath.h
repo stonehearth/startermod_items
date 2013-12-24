@@ -1075,6 +1075,9 @@ inline bool rayTriangleIntersection( const Vec3f &rayOrig, const Vec3f &rayDir,
 	// Calculate t, ray intersects triangle
 	float t = edge2.dot( qvec ) * inv_det;
 
+   if (t < 0) {
+      return false;
+   }
 
 	// Calculate intersection point and test ray length and direction
 	intsPoint = rayOrig + rayDir * t;
