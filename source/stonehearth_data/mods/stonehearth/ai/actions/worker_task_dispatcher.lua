@@ -38,18 +38,25 @@ function WorkerTaskDispatcher:_wait_for_next_task()
    self._packed_action = nil
    self._priority = 0
 
-   local dispatch_fn = function(priority, packed_action, finish_fn, task)
+   local dispatch_fn = function(priority, packed_action, finish_fn, task, distance)
       assert(not self._running)
       local entry = {
          priority = priority,
          packed_action = packed_action,
+         distance = distance,
          finish_fn = finish_fn,
          task = task
       }
       -- add the entry to our queue action table.  then sort by priority and
-      -- set our to the highest priority entry.
+      -- set our to the highest priority entry.  break dies on equal priority
+      -- tasks by preferring the one that's closest
       table.insert(self._queued, entry)
-      table.sort(self._queued, function(a, b) return a.priority < b.priority end)
+      table.sort(self._queued, function(a, b) 
+            if a.priority == b.priority then
+               return a.distance > b.distance
+            end
+            return a.priority < b.priority 
+         end)
       self._ai:set_action_priority(self, self._queued[#self._queued].priority)
    end   
 

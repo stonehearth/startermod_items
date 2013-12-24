@@ -12,7 +12,7 @@ function WorkerScheduler:__init(faction)
    self._strict = true
 end
 
-function WorkerScheduler:dispatch_solution(priority, worker_id, destination_id, action, finish_fn, task)
+function WorkerScheduler:dispatch_solution(priority, worker_id, destination_id, action, finish_fn, task, distance)
    assert(finish_fn)
    local dispatcher = self._dispatchers[worker_id]
    
@@ -30,7 +30,7 @@ function WorkerScheduler:dispatch_solution(priority, worker_id, destination_id, 
    -- TODO: let's see how this works out.  completely bypass the WorkerDispatcher and invoke
    -- the callback immediately.  This makes the workers more responsive, but they might make
    -- very sub-optimal decisions
-   dispatcher._dispatch_fn(priority, action, finish_fn, task)
+   dispatcher._dispatch_fn(priority, action, finish_fn, task, distance)
    --dispatcher:add_solution(destination_id, priority, action, finish_fn, task)
 end
 

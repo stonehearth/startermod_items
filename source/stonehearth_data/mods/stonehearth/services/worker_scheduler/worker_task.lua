@@ -213,7 +213,7 @@ function WorkerTask:_dispatch_solution(path)
       end
    end
    pf:stop()
-   self._scheduler:dispatch_solution(self._priority, worker_id, destination_id, action, finish_fn, self)
+   self._scheduler:dispatch_solution(self._priority, worker_id, destination_id, action, finish_fn, self, path:get_distance())
 end
 
 return WorkerTask
