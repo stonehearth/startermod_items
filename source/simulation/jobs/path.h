@@ -15,6 +15,7 @@ class Path {
          return points_;
       }
 
+      bool IsEmpty() const { return points_.size() == 0; }
       om::EntityRef GetDestination() const { return destination_; }
       om::EntityRef GetSource() const { return source_; }
       csg::Point3 GetStartPoint() const { return points_.empty() ? csg::Point3(0, 0, 0) : points_.front(); }

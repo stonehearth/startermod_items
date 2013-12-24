@@ -5,6 +5,10 @@ FollowPathAction.does = 'stonehearth:follow_path'
 FollowPathAction.priority = 1
 
 function FollowPathAction:run(ai, entity, path, effect_name)
+   if path:is_empty() then
+      return
+   end
+   
    self._path_trace = radiant.entities.trace_location(path:get_destination(), 'watching path')
       :on_changed(function()
          ai:abort('path destination changed')
