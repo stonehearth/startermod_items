@@ -14,6 +14,7 @@ local constants = {
          CONSTRUCT_BUILDING = 5,
          TEARDOWN_BUILDING  = 6,
          PLACE_ITEM         = 8,
+         PLACE_WORKSHOP     = 8,
          GATHER_FOOD        = 9,
          LIGHT_FIRE         = 10,
       },

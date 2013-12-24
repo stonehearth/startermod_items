@@ -9,10 +9,6 @@ WorkerPlaceItemAction.name = 'place item'
 WorkerPlaceItemAction.does = 'stonehearth:place_item'
 WorkerPlaceItemAction.priority = 5
 
---TODO we need a scale to  describe relative importance.
---Right now all tasks dispatched by worker scheduler have the same priority, 10
---They override the given priority
-
 function WorkerPlaceItemAction:__init(ai, entity)
    self._ai = ai
    self._entity = entity

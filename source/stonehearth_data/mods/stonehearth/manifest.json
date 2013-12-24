@@ -184,6 +184,7 @@
          "actions:worker_task_dispatcher" : "file(ai/actions/worker_task_dispatcher.lua)",
          "actions:worker_restock_action" : "file(ai/actions/worker_restock_action.lua)",
          "actions:worker_place_action" : "file(ai/actions/worker_place_action.lua)",
+         "actions:worker_place_workshop" : "file(ai/actions/worker_place_workshop.lua)",
          "actions:worker_light_fire_action" : "file(ai/actions/worker_light_fire_action.lua)",
          "actions:play_with_ball_action" : "file(ai/actions/play_with_ball_action.lua)",
          "actions:fabricate" : "file(ai/actions/fabricate_action.lua)",
@@ -321,7 +322,11 @@
             "controller" : "file(call_handlers/workshop_call_handler.lua)",
             "endpoint" : "client"
          },
-         "create_workbench" : {
+         "create_ghost_workbench" : {
+            "controller" : "file(call_handlers/workshop_call_handler.lua)",
+            "endpoint" : "server"
+         },
+         "destroy_ghost_workbench" : {
             "controller" : "file(call_handlers/workshop_call_handler.lua)",
             "endpoint" : "server"
          },
