@@ -69,7 +69,7 @@ end
 function WorkerTaskDispatcher:run(ai, entity, ...)
    assert(self._packed_action, "worker dispatcher has no task to run")
    self._running = true
-   if not self._task:notify_started_working() then
+   if self._task and not self._task:notify_started_working() then
       log:info('%s rejecting action %s (too many workers!)', entity, self._packed_action[1])
       return
    end
