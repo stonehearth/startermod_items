@@ -525,7 +525,7 @@ std::string PathFinder::DescribeProgress()
 {
    std::ostringstream progress;
    progress << GetName() << open_.size() << " open nodes. " << closed_.size() << " closed nodes. ";
-   if (open_.empty()) {
+   if (!open_.empty()) {
       progress << EstimateCostToDestination(GetFirstOpen()) << " nodes from destination. ";
    }
    progress << "idle? " << IsIdle();
