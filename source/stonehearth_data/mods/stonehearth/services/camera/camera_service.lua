@@ -3,7 +3,7 @@ local Quat = _radiant.csg.Quaternion
 local Ray = _radiant.csg.Ray3
 
 local gutter_size = 60
-local scroll_speed = 1
+local scroll_speed = 150
 local smoothness = 0.0175
 local min_height = 10
 
@@ -137,7 +137,7 @@ function CameraService:_orbit(target, x_deg, y_deg, min_x, max_x)
 end
 
 function CameraService:_on_mouse_event(e, screen_x, screen_y, gutter)
-  --self:_calculate_scroll(e, screen_x, screen_y, gutter)
+  self:_calculate_scroll(e, screen_x, screen_y, gutter)
   self:_calculate_drag(e)
   self:_calculate_orbit(e)
   --self:_calculate_jump(e)
@@ -306,11 +306,6 @@ function CameraService:_drag(x, y)
 end
 
 function CameraService:_calculate_scroll(e, screen_x, screen_y, gutter)
-  if not e.in_client_area then
-    self._continuous_delta = Vec3(0, 0, 0)
-    return
-  end
-
   local mouse_x = e.x
   local mouse_y = e.y
 
@@ -341,7 +336,9 @@ function CameraService:_calculate_scroll(e, screen_x, screen_y, gutter)
 end
 
 function CameraService:_update_camera(frame_time)
-  self._next_position = self._next_position + self._continuous_delta + self._impulse_delta
+  local scaled_continuous_delta = Vec3(self._continuous_delta)
+  scaled_continuous_delta:scale(frame_time / 1000.0)
+  self._next_position = self._next_position + (scaled_continuous_delta) + self._impulse_delta
 
   self._impulse_delta = Vec3(0, 0, 0)
 
