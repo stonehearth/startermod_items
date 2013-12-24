@@ -1,7 +1,7 @@
 ;aic
 
 ;SetVersion 0.0.1
-SetVersion -fromfile ..\..\build\stage\Stonehearth.exe
+SetVersion -fromfile ..\..\build\stage\stonehearth\Stonehearth.exe
 
 ;Save ; do we need to save? hmmm.
 

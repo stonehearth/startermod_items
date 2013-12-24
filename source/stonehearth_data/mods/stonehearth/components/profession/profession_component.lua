@@ -17,6 +17,10 @@ function ProfessionComponent:set_info(info)
    self._info = info
    if self._info and self._info.name then 
       self._entity:add_component('unit_info'):set_description(self._info.name)
+
+      --Let people know that the promotion has (probably) happened.
+      local object_tracker_service = require 'services.object_tracker.object_tracker_service'
+      radiant.events.trigger(object_tracker_service, 'stonehearth:promote', {entity = self._entity})
    end
 end
 
