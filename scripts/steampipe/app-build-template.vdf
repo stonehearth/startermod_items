@@ -1,0 +1,15 @@
+"appbuild"
+{
+	"appid"	"253250"
+	"desc" "RADIANT_VDF_DESC" // description for this build
+	"buildoutput" "RADIANT_BUILD_ROOT/steam-package" // build output folder, relative to this file's directory
+	"contentroot" "RADIANT_STAGE_ROOT/stonehearth" // root content folder, relative to this file's directory
+	"setlive" "RADIANT_VDF_SETLIVE" // branch to set live after successful build, none if empty
+	"preview" "0" // to enable preview builds
+	"local"	"RADIANT_VDF_LOCAL" // web root of local content server 
+	
+	"depots"
+	{
+		"253251" "base-depot-build.vdf"
+	}
+}

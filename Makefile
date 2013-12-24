@@ -15,7 +15,8 @@ SCRIPTS_ROOT       = $(STONEHEARTH_ROOT)/scripts
 # but that's a lot of work.  This, incidentally, would also get us a
 # version of gmake from 2006 instead of 2000 (!!)
 STAGE_ROOT         = build/stage/stonehearth
-ZIP_PACKAGE_ROOT   = build/zip-package
+ZIP_PACKAGE_ROOT   = build/game-package
+STEAM_PACKAGE_ROOT = build/steam-package
 
 # figure out where to find the data files for the 'make run*' commands
 ifeq ($(RUN_STAGED),)
@@ -32,7 +33,7 @@ clean:
 	rm -rf build
 
 .PHONY: official-build
-official-build: clean init-build submodules configure crash_reporter stonehearth symbols stage zip-package
+official-build: clean init-build submodules configure crash_reporter stonehearth symbols stage game-package steam-package
 
 .PHONY: init-build
 init-build:
@@ -93,10 +94,17 @@ dependency-graph:
 stage:
 	sh $(SCRIPTS_ROOT)/stage/stage_stonehearth.sh -o $(STAGE_ROOT) -t $(MSBUILD_CONFIGURATION) -c -a
 
-.PHONY: zip-package
-zip-package:
-	echo 'creating zip package'
+.PHONY: game-package
+game-package:
+	echo 'creating game package'
 	-mkdir -p $(ZIP_PACKAGE_ROOT)
-	-rm $(ZIP_PACKAGE_ROOT)/stonehearth.zip
-	cd $(STAGE_ROOT)/.. && $(7ZA) a -bd -r -tzip -mx=9 $(STONEHEARTH_ROOT)/$(ZIP_PACKAGE_ROOT)/stonehearth.zip *
+	-rm $(ZIP_PACKAGE_ROOT)/stonehearth-game.zip
+	cd $(STAGE_ROOT)/.. && $(7ZA) a -bd -r -tzip -mx=9 $(STONEHEARTH_ROOT)/$(ZIP_PACKAGE_ROOT)/stonehearth-game.zip *
+
+.PHONY: steam-package
+steam-package:
+	echo 'creating steam package'
+	-mkdir -p $(STEAM_PACKAGE_ROOT)
+	-rm $(STEAM_PACKAGE_ROOT)/stonehearth-steam.zip
+	cd $(STONEHEARTH_ROOT)/scripts/steampipe && $(7ZA) a -bd -r -tzip -mx=9 $(STONEHEARTH_ROOT)/$(STEAM_PACKAGE_ROOT)/stonehearth-steam.zip *
 
