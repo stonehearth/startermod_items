@@ -143,6 +143,9 @@ bool Renderer::init(int glMajor, int glMinor, bool enable_gl_logging)
 		Modules::log().writeWarning( "Renderer: No non-Power-of-two texture support available" );
 	if( !gRDI->getCaps().rtMultisampling )
 		Modules::log().writeWarning( "Renderer: No multisampling for render targets available" );
+
+   // TODO(klochek): expose flags as part of an interface; h3dGetSupportedShaderFlags(), or something?
+   Modules::config().setGlobalShaderFlag("INSTANCE_SUPPORT", gRDI->getCaps().hasInstancing);
 	
 	// Create vertex layouts
 	VertexLayoutAttrib attribsPosOnly[1] = {
@@ -724,7 +727,7 @@ bool Renderer::isShaderContextSwitch(const std::string &newContext, const Materi
       return false;
    }
 
- 	ShaderCombination *scc = sr->getCombination(*sc, materialRes->_combMask);
+   ShaderCombination *scc = &(sc->shaderComb);
 	return scc != _curShader;
 }
 
@@ -749,7 +752,7 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, const std::string 
 		if( context == 0x0 ) return false;
 		
 		// Set shader combination
-		ShaderCombination *sc = shaderRes->getCombination( *context, materialRes->_combMask );
+      ShaderCombination *sc = &(context->shaderComb);
 		if( sc != _curShader ) setShaderComb( sc );
 		if( _curShader == 0x0 || gRDI->_curShaderId == 0 ) return false;
 

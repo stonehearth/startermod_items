@@ -9,7 +9,7 @@
 using namespace radiant;
 using namespace radiant::dm;
 
-#define TRACE_LOG(level)  LOG_CATEGORY(dm.trace, level, "buffered record")
+#define TRACE_LOG(level)  LOG_CATEGORY(dm.trace.buffered, level, "buffered record")
 
 template <typename R>
 RecordTraceBuffered<R>::RecordTraceBuffered(const char* reason, Record const& r, Tracer& tracer) :

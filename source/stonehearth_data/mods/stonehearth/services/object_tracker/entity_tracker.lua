@@ -1,7 +1,15 @@
 
 local EntityTracker = class()
 
-function EntityTracker:__init(filter_fn)
+--- Creates a list of objects that satisfies a set of criteria
+--  The list will update whenever a new entity is add/removed
+--  and whenever any of the specified events are triggered
+--  @tracker_name - used to identify the trace
+--  @filter_fn    - returns true if an object is worthy, false otherwise
+--  @event_array  - events we should listen to. Arr must contain the source 
+--                  module, the event name, and events must send 'entity' to
+--                  be evaluated.
+function EntityTracker:__init(tracker_name, filter_fn, event_array)
    local added_cb = function(id, entity)
       self:_on_entity_add(id, entity)
    end
@@ -14,7 +22,14 @@ function EntityTracker:__init(filter_fn)
    self._tracked_entities = {} -- used to avoid an O(n) removal for non workers
    
    self._filter_fn = filter_fn
-   self._promise = radiant.terrain.trace_world_entities('census of workers', added_cb, removed_cb)
+
+   self._promise = radiant.terrain.trace_world_entities(tracker_name, added_cb, removed_cb)
+
+   --Call our evaluation function each time each of these events fires.
+   local object_tracker_service = require 'services.object_tracker.object_tracker_service'
+   for i, event in ipairs(event_array) do
+      radiant.events.listen(object_tracker_service, event.event_name, self, self.on_entity_change)
+   end
 end
 
 function EntityTracker:get_data_store()
@@ -23,9 +38,31 @@ end
 
 function EntityTracker:_on_entity_add(id, entity)
    if self._filter_fn(entity) then
-      table.insert(self._data.entities, entity)
-      self._data_store:mark_changed()
-      self._tracked_entities[entity:get_id()] = true
+      self:_add_entity(entity)
+      --table.insert(self._data.entities, entity)
+      --self._data_store:mark_changed()
+      --self._tracked_entities[entity:get_id()] = true
+   end
+end
+
+function EntityTracker:_add_entity(entity)
+   table.insert(self._data.entities, entity)
+   self._data_store:mark_changed()
+   self._tracked_entities[entity:get_id()] = true
+end
+
+--- Fires when an entity has been changed
+--  If in its current state it no longer fits our filter function,
+--  we should remove it. If in its current state it now fits our 
+--  filter function and wasn't already present, we should add it. 
+function EntityTracker:on_entity_change(e)
+   local entity = e.entity
+   if self._filter_fn(entity) then
+      if not self._tracked_entities[entity:get_id()] then
+         self:_add_entity(entity)
+      end
+   else
+      self:_on_entity_remove(entity:get_id())
    end
 end
 

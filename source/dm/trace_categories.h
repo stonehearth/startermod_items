@@ -8,8 +8,9 @@ enum TraceCategories {
    PATHFINDER_TRACES = 1,
    RENDER_TRACES = 2,
    RPC_TRACES = 3,
-   LUA_TRACES = 4,
-   PHYSICS_TRACES = 5,
+   LUA_SYNC_TRACES = 4,
+   LUA_ASYNC_TRACES = 5,
+   PHYSICS_TRACES = 6,
    PLAYER_1_TRACES = 1000,
 };
 

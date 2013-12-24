@@ -12,6 +12,8 @@ function WorkerTask:__init(name, scheduler)
    self._scheduler = scheduler
    self._pathfinders = {}
    self._destinations = {}
+   self._max_workers = nil
+   self._num_workers = 0
    self._priority = priorities.DEFAULT
    self._debug_color = Color4(0, 255, 0, 128)
 end
@@ -35,6 +37,22 @@ end
 
 function WorkerTask:get_name()
    return self._name
+end
+
+function WorkerTask:set_max_workers(n)
+   self._max_workers = n
+end
+
+function WorkerTask:notify_started_working()
+   if self._max_workers and self._num_workers >= self._max_workers then
+      return false
+   end
+   self._num_workers = self._num_workers + 1
+   return true
+end
+
+function WorkerTask:notify_stopped_working()
+   self._num_workers = self._num_workers - 1
 end
 
 function WorkerTask:set_debug_color(color)
@@ -94,14 +112,14 @@ end
 function WorkerTask:add_work_object(dst)
    local ok = not self._work_object_filter_fn or self._work_object_filter_fn(dst)
    if ok then
-      log:debug('%s adding work object %s in add_work_object()', self._name, dst)
+      log:debug('%s adding work object %s in add_work_object()', self:get_name(), dst)
       self._destinations[dst:get_id()] = dst
       for worker_id, pf in pairs(self._pathfinders) do
          pf:add_destination(dst)
       end
       return self
    else
-      log:debug('%s ignoring non-suitable %s in add_work_object()', self._name, dst)
+      log:debug('%s ignoring non-suitable %s in add_work_object()', self:get_name(), dst)
    end
 end
 
@@ -144,15 +162,17 @@ end
 --- Consider Worker for task
 -- Test if the worker meets the filter function criteria. If so, activate pathfinder
 function WorkerTask:_consider_worker(worker)
-   assert(self._running, string.format('%s cannot consider worker while not running', self._name))
-   assert(self._get_action_fn, string.format('no action function set for WorkerTask %s', self._name))
-   assert(self._worker_filter_fn, string.format('no worker filter function set for WorkerTask %s', self._name))
+   assert(self._running, string.format('%s cannot consider worker while not running', self:get_name()))
+   assert(self._get_action_fn, string.format('no action function set for WorkerTask %s', self:get_name()))
+   assert(self._worker_filter_fn, string.format('no worker filter function set for WorkerTask %s', self:get_name()))
 
    local worker_id = worker:get_id()
    if not self._pathfinders[worker_id] then
       if self._worker_filter_fn(worker) then
          -- create a new pathfinder for this worker
-         local name = string.format('%s for worker %s', self._name, tostring(worker))
+         log:debug('%s creating new pathfinder for %s', self:get_name(), tostring(worker))
+         local name = string.format('%s for worker %s', self:get_name(), tostring(worker))
+         
          local pf = radiant.pathfinder.create_path_finder(name)
                                        :set_source(worker)
                                        :set_debug_color(self._debug_color)
@@ -160,12 +180,14 @@ function WorkerTask:_consider_worker(worker)
          -- forward all the valid destinations for this task to the new
          -- pathfinder
          for id, dst in pairs(self._destinations) do
+            log:debug('%s adding destination %s to pathfinder', self:get_name(), dst)
             pf:add_destination(dst)
          end
          
          -- in the pathfinder, setup a solution function to dispath the
          -- task to the worker
          pf:set_solved_cb(function(path)
+            log:debug('%s dispatching solution!', self:get_name())
             self:_dispatch_solution(path)
          end)
          
@@ -190,7 +212,7 @@ function WorkerTask:_dispatch_solution(path)
       end
    end
    pf:stop()
-   self._scheduler:dispatch_solution(self._priority, worker_id, destination_id, action, finish_fn)
+   self._scheduler:dispatch_solution(self._priority, worker_id, destination_id, action, finish_fn, self)
 end
 
 return WorkerTask

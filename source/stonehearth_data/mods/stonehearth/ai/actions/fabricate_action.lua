@@ -11,11 +11,15 @@ function Fabricate:run(ai, entity, path)
    local carrying = radiant.entities.get_carrying(entity)
    
    ai:execute('stonehearth:follow_path', path)
-   radiant.entities.turn_to_face(entity, block)
-   ai:execute('stonehearth:run_effect', 'work')
 
-   fabricator:add_block(carrying, block)
-   radiant.entities.consume_carrying(entity)
+   local entity_origin = radiant.entities.get_world_grid_location(entity)
+   repeat
+      radiant.entities.turn_to_face(entity, block)
+      ai:execute('stonehearth:run_effect', 'work')
+      fabricator:add_block(carrying, block)
+      carrying = radiant.entities.consume_carrying(entity)
+      block = fabricator:find_another_block(carrying, entity_origin)
+   until not block
 end
 
 return Fabricate

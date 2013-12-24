@@ -5,11 +5,12 @@ local Rect2 = _radiant.csg.Rect2
 local Point2 = _radiant.csg.Point2
 local WorkshopCallHandler = class()
 local log = radiant.log.create_logger('call_handlers.wor')
+local priorities = require('constants').priorities.worker_task
 
--- client side object to add a new bench to the world.  this method is invoked
--- by POSTing to the route for this file in the manifest.
+--- Client side object to add a new bench to the world.  this method is invoked
+--  by POSTing to the route for this file in the manifest.
 function WorkshopCallHandler:choose_workbench_location(session, response, workbench_entity)
-   -- create a new "cursor entity".  this is the entity that will move around the
+   -- create a new "cursor entity".  This is the entity that will move around the
    -- screen to preview where the workbench will go.  these entities are called
    -- "authoring entities", because they exist only on the client side to help
    -- in the authoring of new content.
@@ -17,12 +18,13 @@ function WorkshopCallHandler:choose_workbench_location(session, response, workbe
 
    -- add a render object so the cursor entity gets rendered.
    local re = _radiant.client.create_render_entity(1, self._cursor_entity)
+   self._cursor_entity:add_component('render_info')
+      :set_material('materials/ghost_item.xml')
 
    --Set this to zero, since there has been no rotation yet
    self._curr_rotation = 0
    -- at this point we could manipulate re to change the way the cursor gets
    -- rendered (e.g. transparent)...
-
 
    -- capture the mouse.  Call our _on_mouse_event each time, passing in
    -- the entity that we're supposed to create whenever the user clicks.
@@ -32,11 +34,15 @@ function WorkshopCallHandler:choose_workbench_location(session, response, workbe
             self:_on_mouse_event(e.mouse, workbench_entity, response)
             return true
          end
+         if e.type == _radiant.client.Input.KEYBOARD then
+            self:_on_keyboard_event(e.keyboard, response)
+         end
+         --Don't consume the event in case the UI wants to do something too
          return false
       end)
 end
 
--- called each time the mouse moves on the client.
+-- Called each time the mouse moves on the client.
 function WorkshopCallHandler:_on_mouse_event(e, workbench_entity, response)
    assert(self._capture, "got mouse event after releasing capture")
 
@@ -62,7 +68,7 @@ function WorkshopCallHandler:_on_mouse_event(e, workbench_entity, response)
    end
 
    -- if the mouse button just transitioned to up and we're actually pointing
-   -- to a box on the terrain, send a message to the server to create the
+   -- to a box on the terrain, send a message to the server to create the ghost
    -- entity.  this is done by posting to the correct route.
    if e:up(1) and s.location then
       -- destroy our capture object to release the mouse back to the client.  don't
@@ -75,7 +81,7 @@ function WorkshopCallHandler:_on_mouse_event(e, workbench_entity, response)
       -- pass "" for the function name so the deafult (handle_request) is
       -- called.  this will return a Deferred object which we can use to track
       -- the call's progress
-      _radiant.call('stonehearth:create_workbench', workbench_entity, pt, self._curr_rotation + 180)
+      _radiant.call('stonehearth:create_ghost_workbench', workbench_entity, pt, self._curr_rotation + 180)
                :done(function (result)
                      response:resolve(result)
                   end)
@@ -91,39 +97,59 @@ function WorkshopCallHandler:_on_mouse_event(e, workbench_entity, response)
                   end)
 
    end
-
    -- return true to prevent the mouse event from propogating to the UI
    return true
 end
 
--- server side object to handle creation of the workbench.  this is called
--- by doing a POST to the route for this file specified in the manifest.
+--- When placing a workbench, if a key is pressed, call this function
+function WorkshopCallHandler:_on_keyboard_event(e, response)
+   if e.key == _radiant.client.KeyboardInput.ESC and e.down then
+      self:_destroy_capture()
+      if self._cursor_entity then
+         _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
+      end
+       response:resolve({})
+   end
+   return false
+end
 
-function WorkshopCallHandler:create_workbench(session, response, workbench_entity_uri, pt, rotation)
-   -- pull the location and entity uri out of the postdata, create that
-   -- entity, and move it there.
+--- Destroy our capture object to release the mouse back to the client.
+function WorkshopCallHandler:_destroy_capture()
+   self._capture:destroy()
+   self._capture = nil
+end
+
+--- When placing an outbox, if a key is pressed, call this function
+--  Note: we don't need to destroy the capture becase the cleanup function already does.
+function WorkshopCallHandler:_on_outbox_keyboard_event(e, ghost_entity, response)
+   if e.key == _radiant.client.KeyboardInput.ESC and e.down then
+      _radiant.call('stonehearth:destroy_ghost_workbench', ghost_entity:get_id())
+      response:resolve({cancelled = true})
+   end
+   return false   
+end
+
+--- Create a shadow of the workbench.
+--  Workers are not actually asked to create the workbench until the outbox is placed too. 
+function WorkshopCallHandler:create_ghost_workbench(session, response, workbench_entity_uri, pt, rotation)
    local location = Point3(pt.x, pt.y, pt.z)
-   local workbench_entity = radiant.entities.create_entity(workbench_entity_uri)
-   local workshop_component = workbench_entity:get_component('stonehearth:workshop')
-
-   -- Plasde the bench in the world
-   radiant.terrain.place_entity(workbench_entity, location)
-   radiant.entities.turn_to(workbench_entity, rotation)
-
-   -- Place the promotion talisman on the workbench, if there is one
-   local promotion_talisman_entity = workshop_component:init_from_scratch()
-
-   -- set the faction of the bench and talisman
-   workbench_entity:get_component('unit_info'):set_faction(session.faction)
-   promotion_talisman_entity:get_component('unit_info'):set_faction(session.faction)
-
-   -- return the entity, in case the client cares (e.g. if they want to make that
-   -- the selected item)
-   return { 
-      workbench_entity = workbench_entity
+   local ghost_entity = radiant.entities.create_entity()
+   local ghost_entity_component = ghost_entity:add_component('stonehearth:ghost_item')
+   ghost_entity_component:set_object_data(workbench_entity_uri, location, rotation)
+   radiant.terrain.place_entity(ghost_entity, location)
+   return {
+      workbench_entity = ghost_entity
    }
 end
 
+--- Destroys a shadow of a workbench
+function WorkshopCallHandler:destroy_ghost_workbench(session, response, ghost_entity_id)
+   local ghost_entity = radiant.entities.get_entity(ghost_entity_id)
+   radiant.entities.destroy_entity(ghost_entity)
+end
+
+
+--- Client side object to add the workbench's outbox to the world. 
 function WorkshopCallHandler:choose_outbox_location(session, response, workbench_entity)
 
    self._region = _radiant.client.alloc_region2()
@@ -143,12 +169,23 @@ function WorkshopCallHandler:choose_outbox_location(session, response, workbench
    -- change the actual game cursor
    local stockpile_cursor = _radiant.client.set_cursor('stonehearth:cursors:create_stockpile')
 
+   -- capture the keyboard.
+   self._capture = _radiant.client.capture_input()
+   self._capture:on_input(function(e)
+         if e.type == _radiant.client.Input.KEYBOARD then
+            self:_on_outbox_keyboard_event(e.keyboard, workbench_entity, response)
+         end
+         --Don't consume the event in case the UI wants to do something too
+         return false
+      end)
+
    local cleanup = function()
       if node then
          h3dRemoveNode(node)
       end
       stockpile_cursor:destroy()
       _radiant.client.destroy_authoring_entity(cursor_entity:get_id())
+      self:_destroy_capture()
    end
 
    _radiant.client.select_xz_region()
@@ -182,12 +219,62 @@ function WorkshopCallHandler:choose_outbox_location(session, response, workbench
          end)
 end
 
+--- Create the outbox the user specified and tell a worker to build the workbench
 function WorkshopCallHandler:create_outbox(session, response, location, size, workbench_entity_id)
-   local workbench_entity = radiant.entities.get_entity(workbench_entity_id)
-   local workshop_component = workbench_entity:get_component('stonehearth:workshop')
-   workshop_component:create_outbox(location, size, session.faction)
-
+   local outbox_entity = radiant.entities.create_entity('stonehearth:workshop_outbox')
+   radiant.terrain.place_entity(outbox_entity, location)
+   outbox_entity:get_component('unit_info'):set_faction(session.faction)
+   local outbox_component = outbox_entity:get_component('stonehearth:stockpile')
+   outbox_component:set_size(size)
+   outbox_component:set_outbox(true)
+   self:_start_worker_create_task(session, outbox_entity, workbench_entity_id)
    return true
+end
+
+--- Create the worker task that will build the outbox. 
+function WorkshopCallHandler:_start_worker_create_task(session, outbox_entity, workbench_entity_id)
+   local ghost_entity = radiant.entities.get_entity(workbench_entity_id)
+
+   --Summon the worker scheduler
+   local ws = radiant.mods.load('stonehearth').worker_scheduler
+   local worker_scheduler = ws:get_worker_scheduler(session.faction)
+
+   -- Who can do this task? Any worker that's not carrying anything will do...
+   local not_carrying_fn = function (worker)
+      return radiant.entities.get_carrying(worker) == nil
+   end
+
+   --What object is suitable to build a workshop? By default, wood. 
+   --TODO: Right now, all workshops are built with 1 object.
+   --Fix worker action so it can build with multiple objects
+   local ghost_object_data = ghost_entity:get_component('stonehearth:ghost_item'):get_object_data()
+   local real_item_uri = ghost_object_data.full_sized_mod_url
+   local json = radiant.resources.load_json(real_item_uri)
+   local workshop_material = 'wood resource'
+   if json and json.components then
+      workshop_material = json.components['stonehearth:workshop'].ingredients.material
+   end
+
+   local object_filter_fn = function(entity)
+      local material = entity:get_component('stonehearth:material')
+      if material and material:is(workshop_material) then
+         return true
+      end
+      return false
+   end
+
+   --Actually create the worker task 
+   local place_workshop_task = worker_scheduler:add_worker_task('placing_workshop_task')
+      :set_worker_filter_fn(not_carrying_fn)
+      :set_priority(priorities.PLACE_WORKSHOP)
+      :set_work_object_filter_fn(object_filter_fn)
+
+   place_workshop_task:set_action_fn(
+      function(path)
+         return 'stonehearth:place_workshop', path, ghost_entity, outbox_entity, place_workshop_task
+      end)
+
+   place_workshop_task:start()
 end
 
 

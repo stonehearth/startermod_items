@@ -225,7 +225,7 @@ function EdgeDetailer:remove_mountain_chunks(height_map, micro_map)
    local foothills_max_height = self.terrain_info[TerrainType.Foothills].max_height
    local height, removed
 
-   -- TODO: resolve chunks on edge tiles
+   -- TODO: resolve chunks on edge macro_blocks
    for j=1, micro_map.height do
       for i=1, micro_map.width do
          height = micro_map:get(i, j)
@@ -263,7 +263,7 @@ end
 function EdgeDetailer:_remove_chunk(height_map, micro_map, x, y, dx, dy)
    local mountains_step_size = self.terrain_info[TerrainType.Mountains].step_size
    local height, adj_height
-   local tile_size, tile_x, tile_y, chunk_x, chunk_y
+   local macro_block_size, macro_block_x, macro_block_y, chunk_x, chunk_y
    local chunk_length, chunk_offset, chunk_depth
 
    height = micro_map:get(x, y)
@@ -278,29 +278,29 @@ function EdgeDetailer:_remove_chunk(height_map, micro_map, x, y, dx, dy)
       end
    end
 
-   tile_size = height_map.width / micro_map.width
-   tile_x = (x-1)*tile_size+1
-   tile_y = (y-1)*tile_size+1
+   macro_block_size = height_map.width / micro_map.width
+   macro_block_x = (x-1)*macro_block_size+1
+   macro_block_y = (y-1)*macro_block_size+1
 
-   chunk_length, chunk_offset = self:_generate_chunk_length_and_offset(tile_size)
+   chunk_length, chunk_offset = self:_generate_chunk_length_and_offset(macro_block_size)
    chunk_depth = mountains_step_size * 0.5
 
    if dy == -1 then
       -- left, (dx, dy) == (-1, 0)
-      chunk_x = tile_x + chunk_offset
-      chunk_y = tile_y
+      chunk_x = macro_block_x + chunk_offset
+      chunk_y = macro_block_y
    elseif dy == 1 then
       -- right, (dx, dy) == (1, 0)
-      chunk_x = tile_x + chunk_offset
-      chunk_y = tile_y + tile_size - chunk_depth
+      chunk_x = macro_block_x + chunk_offset
+      chunk_y = macro_block_y + macro_block_size - chunk_depth
    elseif dx == -1 then
       -- top, (dx, dy) == (0, -1)
-      chunk_x = tile_x
-      chunk_y = tile_y + chunk_offset
+      chunk_x = macro_block_x
+      chunk_y = macro_block_y + chunk_offset
    else
       -- bottom, (dx, dy) == (0, 1)
-      chunk_x = tile_x + tile_size - chunk_depth
-      chunk_y = tile_y + chunk_offset
+      chunk_x = macro_block_x + macro_block_size - chunk_depth
+      chunk_y = macro_block_y + chunk_offset
    end
 
    local new_height = height - chunk_depth
@@ -324,10 +324,10 @@ function EdgeDetailer:_remove_chunk(height_map, micro_map, x, y, dx, dy)
    return true
 end
 
-function EdgeDetailer:_generate_chunk_length_and_offset(tile_size)
-   local quarter_tile_size = tile_size * 0.25
-   local chunk_length = quarter_tile_size * math.random(1, 4)
-   local chunk_offset = (tile_size - chunk_length) * math.random(0, 1)
+function EdgeDetailer:_generate_chunk_length_and_offset(macro_block_size)
+   local quarter_macro_block_size = macro_block_size * 0.25
+   local chunk_length = quarter_macro_block_size * math.random(1, 4)
+   local chunk_offset = (macro_block_size - chunk_length) * math.random(0, 1)
    return chunk_length, chunk_offset
 end
 

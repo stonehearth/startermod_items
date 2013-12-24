@@ -428,7 +428,8 @@ void Simulation::InitDataModel()
    pathfinder_traces_ = std::make_shared<dm::TracerSync>("sim pathfinder");
    lua_traces_ = std::make_shared<dm::TracerBuffered>("sim lua", store_);  
 
-   store_.AddTracer(lua_traces_, dm::LUA_TRACES);
+   store_.AddTracer(lua_traces_, dm::LUA_ASYNC_TRACES);
+   store_.AddTracer(object_model_traces_, dm::LUA_SYNC_TRACES);
    store_.AddTracer(object_model_traces_, dm::OBJECT_MODEL_TRACES);
    store_.AddTracer(pathfinder_traces_, dm::PATHFINDER_TRACES);
    store_trace_ = store_.TraceStore("sim")->OnAlloced([=](dm::ObjectPtr obj) {

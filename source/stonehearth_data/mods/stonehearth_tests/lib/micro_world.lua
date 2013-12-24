@@ -41,8 +41,8 @@ function MicroWorld:create_world()
    end)
 
    local terrain = radiant._root_entity:add_component('terrain')
-   terrain:set_zone_size(self._size)
-   terrain:add_zone(Point3(-16, 0, -16), region3)
+   terrain:set_tile_size(self._size)
+   terrain:add_tile(Point3(-16, 0, -16), region3)
 end
 
 function MicroWorld:at(time, fn)

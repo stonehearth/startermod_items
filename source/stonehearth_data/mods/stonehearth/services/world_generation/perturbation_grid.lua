@@ -1,3 +1,4 @@
+local MathFns = require 'services.world_generation.math.math_fns'
 
 local PerturbationGrid = class()
 
@@ -62,6 +63,11 @@ function PerturbationGrid:get_perturbed_coordinates(i, j, margin_size)
    local cell_x = math.random(margin_size, width-1-margin_size)
    local cell_y = math.random(margin_size, height-1-margin_size)
    return x + cell_x, y + cell_y
+end
+
+function PerturbationGrid:get_unperturbed_coordinates(i, j)
+   local x, y, width, height = self:get_cell_bounds(i, j)
+   return MathFns.round(x + width*0.5), MathFns.round(y + height*0.5)
 end
 
 return PerturbationGrid

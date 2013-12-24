@@ -39,7 +39,7 @@ function TerrainInfo:__init()
    assert(foothills_info.max_height % mountains_info.step_size == 0)
 
    -- tree lines
-   self.tree_line = foothills_info.max_height + mountains_info.step_size*2
+   self.tree_line = foothills_info.max_height
    self.max_deciduous_height = foothills_info.max_height
    self.min_evergreen_height = grassland_info.max_height + 1
 end

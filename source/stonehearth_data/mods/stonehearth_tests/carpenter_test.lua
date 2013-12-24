@@ -18,7 +18,16 @@ function CarpenterTest:__init()
    local faction = radiant.entities.get_faction(carpenter)
    bench:add_component('unit_info'):set_faction(faction)
    
-   local outbox = workshop_component:create_outbox(Point3(-9,0,-9), {3, 3}, faction)
+   --Create the outbox and associate it with the workbench
+   local outbox_entity = radiant.entities.create_entity('stonehearth:workshop_outbox')
+   radiant.terrain.place_entity(outbox_entity, Point3(-9,0,-9))
+   outbox_entity:get_component('unit_info'):set_faction(faction)
+   local outbox_component = outbox_entity:get_component('stonehearth:stockpile')
+   outbox_component:set_size({3, 3})
+   outbox_component:set_outbox(true)
+   workshop_component:associate_outbox(outbox_entity)
+   
+   --local outbox = workshop_component:create_outbox(Point3(-9,0,-9), {3, 3}, faction)
 
    self:place_item('stonehearth:arch_backed_chair_proxy', 0, 0)
    self:place_item('stonehearth:comfy_bed_proxy', 1, 0)

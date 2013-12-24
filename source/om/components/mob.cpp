@@ -24,7 +24,7 @@ void Mob::ConstructObject()
 
 void Mob::MoveTo(const csg::Point3f& location)
 {
-   M_LOG(5) << "moving entity " << GetEntity().GetObjectId() << " to " << location;
+   M_LOG(5) << GetEntity() << " moving to " << location;
    transform_.Modify([&](csg::Transform& t) {
       t.position = location;
    });
