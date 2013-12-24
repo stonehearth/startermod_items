@@ -41,6 +41,7 @@ end
 
 function WorkerTask:set_max_workers(n)
    self._max_workers = n
+   return self
 end
 
 function WorkerTask:notify_started_working()

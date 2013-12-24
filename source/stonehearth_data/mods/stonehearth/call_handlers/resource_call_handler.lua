@@ -6,6 +6,8 @@ local ResourceCallHandler = class()
 -- @param tree The entity which you would like chopped down
 -- @return true on success, false on failure
 
+local all_harvest_tasks = {}
+
 function ResourceCallHandler:harvest_tree(session, response, tree)
    local worker_scheduler = radiant.mods.load('stonehearth').worker_scheduler:get_worker_scheduler(session.faction)
 
@@ -14,13 +16,18 @@ function ResourceCallHandler:harvest_tree(session, response, tree)
       return radiant.entities.get_carrying(worker) == nil
    end
 
-   worker_scheduler:add_worker_task('chop_tree')
-                   :set_worker_filter_fn(not_carrying_fn)
-                   :add_work_object(tree)
-                   :set_action('stonehearth:chop_tree')
-                   :set_priority(priorities.CHOP_TREE)
-                   :start()
-   radiant.effects.run_effect(tree, '/stonehearth/data/effects/chop_overlay_effect')
+   local id = tree:get_id()
+   if not all_harvest_tasks[id] then
+      all_harvest_tasks[id] = worker_scheduler:add_worker_task('chop_tree')
+                                                 :set_worker_filter_fn(not_carrying_fn)
+                                                 :add_work_object(tree)
+                                                 :set_action('stonehearth:chop_tree')
+                                                 :set_max_workers(1)
+                                                 :set_priority(priorities.CHOP_TREE)
+                                                 :start()
+      radiant.effects.run_effect(tree, '/stonehearth/data/effects/chop_overlay_effect')
+   end
+   
    return true
 end
 
