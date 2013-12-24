@@ -64,6 +64,11 @@ function CameraService:_calculate_orbit(e)
       self._orbit_target = r.point
     else
       local forward_dir = _radiant.renderer.camera.get_forward()
+
+      if math.abs(forward_dir.y) < 0.0001 then
+        return
+      end
+
       --Huh?  Why!?
       forward_dir:scale(-1)
 
@@ -99,6 +104,11 @@ function CameraService:_orbit(target, x_deg, y_deg, min_x, max_x)
   local deg_to_rad = 3.14159 / 180.0
 
   local origin_vec = self:get_position() - target
+
+  if origin_vec:length() < 0.1 then
+    return
+  end
+
   local new_position = Vec3(origin_vec.x, origin_vec.y, origin_vec.z)
   origin_vec:normalize()
 
@@ -122,7 +132,7 @@ function CameraService:_orbit(target, x_deg, y_deg, min_x, max_x)
   self._next_position = new_position + target
   self._continuous_delta = Vec3(0, 0, 0)
 
-  _radiant.renderer.camera.set_position(new_position + target)
+  _radiant.renderer.camera.set_position(self._next_position)
   _radiant.renderer.camera.look_at(target)
 end
 
