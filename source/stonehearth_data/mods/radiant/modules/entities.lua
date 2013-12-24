@@ -370,7 +370,7 @@ function entities.consume_carrying(entity)
       if item_component and item_component:get_stacks() > 0 then
          local stacks = item_component:get_stacks() - 1
          item_component:set_stacks(stacks)
-         return
+         return item
       end
    end
 
@@ -378,6 +378,7 @@ function entities.consume_carrying(entity)
    if item then
       entities.destroy_entity(item)
    end
+   return nil
 end
 
 function entities.increment_carrying(entity)
