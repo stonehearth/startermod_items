@@ -29,13 +29,16 @@ function Fabricator:__init(name, entity, blueprint)
    -- and just looks cooler
    local dst = self._entity:add_component('destination')
    dst:set_region(_radiant.sim.alloc_region())
+      :set_reserved(_radiant.sim.alloc_region())
       :set_adjacent(_radiant.sim.alloc_region())
        
    log:debug("%s fabricator tracing destination %d", self.name, dst:get_id())
-   self._adjacent_guard = dst:trace_region('updating fabricator adjacent')
-                                 :on_changed(function ()
-                                    self:_update_adjacent()
-                                 end)
+   self._traces = {}
+   local update_adjacent = function()
+      self:_update_adjacent()
+   end
+   table.insert(self._traces, dst:trace_region('fabricator adjacent'):on_changed(update_adjacent))
+   table.insert(self._traces, dst:trace_reserved('fabricator adjacent'):on_changed(update_adjacent))
    
    self._construction_data = blueprint:get_component('stonehearth:construction_data')
    assert(self._construction_data)
@@ -84,9 +87,7 @@ function Fabricator:get_blueprint()
 end
 
 
-function Fabricator:add_block(material_entity, location)
-   assert(not self._teardown)
-   
+function Fabricator:add_block(material_entity, location)  
    -- location is in world coordinates.  transform it to the local coordinate space
    -- before building
    local origin = radiant.entities.get_world_grid_location(self._entity)
@@ -95,6 +96,8 @@ function Fabricator:add_block(material_entity, location)
    self._project:add_component('destination'):get_region():modify(function(cursor)
       cursor:add_point(pt)
    end)
+   self:release_block(location)
+   
    -- ladders are a special case used for scaffolding.  if there's one on the
    -- blueprint at this location, go ahead and add it to the project as well.
    if self._blueprint_ladder then
@@ -109,6 +112,10 @@ function Fabricator:add_block(material_entity, location)
 end
 
 function Fabricator:find_another_block(carrying, location)
+   if self._teardown then
+      return nil
+   end
+   
    if carrying then
       local origin = radiant.entities.get_world_grid_location(self._entity)
       local pt = location - origin
@@ -116,8 +123,9 @@ function Fabricator:find_another_block(carrying, location)
       local dst = self._entity:add_component('destination')
       local adjacent = dst:get_adjacent():get()
       if adjacent:contains(pt) then
-         local block = dst:get_point_of_interest(pt)
-         return block + origin
+         local block = dst:get_point_of_interest(pt) + origin
+         self:reserve_block(block)
+         return block
       end
    end
 end
@@ -150,10 +158,10 @@ function Fabricator:remove_block(location)
 end
 
 function Fabricator:destroy()
-   if self._adjacent_guard then
-      self._adjacent_guard:destroy()
-      self._adjacent_guard = nil
+   for _, trace in ipairs(self._traces) do
+      trace:destroy()
    end
+   self._traces = {}
    self:_untrace_blueprint_and_project()
    self:_stop_project()
 end
@@ -248,6 +256,7 @@ function Fabricator:_start_pickup_task()
    self._pickup_task = self._worker_scheduler:add_worker_task(name)
                            :set_action('stonehearth:pickup_item_on_path')
                            :set_worker_filter_fn(worker_filter_fn)
+                           :set_max_workers(self:get_max_workers())
                            :set_work_object_filter_fn(work_obj_filter_fn)
                            :set_priority(priorities.CONSTRUCT_BUILDING)
                            :start()
@@ -259,13 +268,52 @@ function Fabricator:_start_fabricate_task()
       return carrying ~= nil
    end
    
+   local action_fn = function (path)
+      local pt = path:get_destination_point_of_interest()
+      assert(radiant.entities.point_in_destination_region(self._entity, pt))
+      assert(not radiant.entities.point_in_destination_reserved(self._entity, pt))
+      self:reserve_block(pt)
+      return 'stonehearth:fabricate', path, self, pt
+   end
+   
+   local finish_fn = function(success, packed_action)
+      local action_name, path, stockpile, pt = unpack(packed_action)
+      self:release_block(pt)
+   end
+
    local name = 'fabricate ' .. self.name
    self._fabricate_task = self._worker_scheduler:add_worker_task(name)
                            :set_worker_filter_fn(worker_filter_fn)
+                           :set_max_workers(self:get_max_workers())
                            :add_work_object(self._entity)
-                           :set_action('stonehearth:fabricate')
+                           :set_action_fn(action_fn)
+                           :set_finish_fn(finish_fn)
                            :set_priority(priorities.CONSTRUCT_BUILDING)
                            :start()
+end
+
+function Fabricator:reserve_block(location)
+   local dst = self._entity:add_component('destination')
+   local pt = location - radiant.entities.get_world_grid_location(self._entity)
+   log:debug('adding point %s to reserve region', tostring(pt))
+   dst:get_reserved():modify(function(cursor)
+      cursor:add_point(pt)
+   end)
+   log:debug('finished adding point %s to reserve region', tostring(pt))
+end
+
+function Fabricator:release_block(location)
+   local dst = self._entity:add_component('destination')
+   local pt = location - radiant.entities.get_world_grid_location(self._entity)
+   log:debug('removing point %s from reserve region', tostring(pt))
+   dst:get_reserved():modify(function(cursor)
+      cursor:subtract_point(pt)
+   end)
+   log:debug('finished removing point %s from reserve region', tostring(pt))
+end
+
+function Fabricator:get_max_workers()
+   return self._construction_data:get_max_workers()
 end
 
 function Fabricator:_stop_project()
@@ -297,7 +345,7 @@ end
 
 function Fabricator:_update_adjacent()
    local dst = self._entity:add_component('destination')
-   local rgn = dst:get_region():get()
+   local rgn = dst:get_region():get() - dst:get_reserved():get()
    
    -- build in layers.  stencil out all but the bottom layer of the 
    -- project

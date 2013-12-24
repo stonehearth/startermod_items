@@ -8,7 +8,8 @@
       },
       "stonehearth:construction_data" : {
          "brush": "file(wooden_wall.qb)",
-         "needs_scaffolding" : true
+         "needs_scaffolding" : true,
+         "max_workers": 2
       }
    }
 }

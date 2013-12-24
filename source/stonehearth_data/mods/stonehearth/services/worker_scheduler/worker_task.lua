@@ -75,6 +75,7 @@ end
 
 function WorkerTask:set_finish_fn(fn)
    self._finish_fn = fn
+   return self
 end
 
 function WorkerTask:set_action(action_name)

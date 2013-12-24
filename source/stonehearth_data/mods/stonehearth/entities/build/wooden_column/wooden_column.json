@@ -8,7 +8,8 @@
       },
       "stonehearth:construction_data" : {
          "project_adjacent_to_base": true,
-         "brush": "file(wooden_column.qb)"
+         "brush": "file(wooden_column.qb)",
+         "max_workers": 1
       }
    }
 }
