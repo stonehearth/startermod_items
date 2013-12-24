@@ -63,7 +63,8 @@ private:
 private:
    enum DirtyBits {
       BASE_VECTORS =    (1 << 0),
-      DERIVED_VECTORS = (1 << 1)
+      DERIVED_VECTORS = (1 << 1),
+      ALL_DIRTY_BITS =  (-1)
    };
 
 private:

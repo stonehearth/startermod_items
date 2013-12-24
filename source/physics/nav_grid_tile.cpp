@@ -23,7 +23,7 @@ using namespace radiant::phys;
 NavGridTile::NavGridTile(NavGrid& ng, csg::Point3 const& index) :
    ng_(ng),
    index_(index),
-   dirty_(false)
+   dirty_(ALL_DIRTY_BITS)
 {
    bounds_.min = index.Scaled(TILE_SIZE);
    bounds_.max = bounds_.min + csg::Point3(TILE_SIZE, TILE_SIZE, TILE_SIZE);
@@ -36,7 +36,7 @@ NavGridTile::NavGridTile(NavGrid& ng, csg::Point3 const& index) :
  */
 void NavGridTile::RemoveCollisionTracker(TrackerType type, CollisionTrackerPtr tracker)
 {
-   dirty_ = -1;
+   dirty_ = ALL_DIRTY_BITS;
    stdutil::FastRemove(trackers_[type], tracker);
 }
 
@@ -47,7 +47,7 @@ void NavGridTile::RemoveCollisionTracker(TrackerType type, CollisionTrackerPtr t
  */
 void NavGridTile::AddCollisionTracker(TrackerType type, CollisionTrackerPtr tracker)
 {
-   dirty_ = -1;
+   dirty_ = ALL_DIRTY_BITS;
    stdutil::UniqueInsert(trackers_[type], tracker);
 }
 
