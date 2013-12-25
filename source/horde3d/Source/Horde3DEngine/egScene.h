@@ -234,7 +234,7 @@ public:
 	void removeNode( uint32 sgHandle );
 	void updateNode( uint32 sgHandle );
 
-   void query(const SpatialQuery& query, std::vector<RendQueueItem>& renderableQueue, 
+   void query(const SpatialQuery& query, std::map<int, std::vector<RendQueueItem> >& renderableQueues, 
       std::vector<SceneNode*>& lightQueue);
 
 protected:
@@ -272,7 +272,7 @@ struct CastRayResult
 struct SpatialQueryResult
 {
    SpatialQuery query;
-   std::vector<RendQueueItem> renderableQueue;
+   std::map<int, std::vector<RendQueueItem> > renderableQueues;
    std::vector<SceneNode*> lightQueue;
 };
 
@@ -311,7 +311,8 @@ public:
 	SceneNode &getRootNode() { return *_nodes[0]; }
 	SceneNode &getDefCamNode() { return *_nodes[1]; }
 	std::vector< SceneNode * > &getLightQueue();
-	std::vector< RendQueueItem > &getRenderableQueue();
+	std::vector< RendQueueItem > &getRenderableQueue(int itemType);
+   std::map<int, std::vector<RendQueueItem> > &getRenderableQueues();
 	
 	SceneNode *resolveNodeHandle( NodeHandle handle )
 		{ return (handle != 0 && (unsigned)(handle - 1) < _nodes.size()) ? _nodes[handle - 1] : 0x0; }

@@ -1047,35 +1047,37 @@ Matrix4f Renderer::calcCropMatrix( const Frustum &frustSlice, const Vec3f lightP
 	// Find post-projective space AABB of all objects in frustum
 	Modules::sceneMan().updateQueues("calculating crop matrix", frustSlice, 0x0, RenderingOrder::None,
 		SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
-	std::vector< RendQueueItem > &rendQueue = Modules::sceneMan().getRenderableQueue();
 	
-	for( size_t i = 0, s = rendQueue.size(); i < s; ++i )
-	{
-		const BoundingBox &aabb = rendQueue[i].node->getBBox();
+   for (const auto& queue : Modules::sceneMan().getRenderableQueues())
+   {
+      for( const auto& entry : queue.second )
+	   {
+		   const BoundingBox &aabb = entry.node->getBBox();
 		
-		// Check if light is inside AABB
-		if( lightPos.x >= aabb.min().x && lightPos.y >= aabb.min().y && lightPos.z >= aabb.min().z &&
-			lightPos.x <= aabb.max().x && lightPos.y <= aabb.max().y && lightPos.z <= aabb.max().z )
-		{
-			bbMinX = bbMinY = bbMinZ = -1;
-			bbMaxX = bbMaxY = bbMaxZ = 1;
-			break;
-		}
+		   // Check if light is inside AABB
+		   if( lightPos.x >= aabb.min().x && lightPos.y >= aabb.min().y && lightPos.z >= aabb.min().z &&
+			   lightPos.x <= aabb.max().x && lightPos.y <= aabb.max().y && lightPos.z <= aabb.max().z )
+		   {
+			   bbMinX = bbMinY = bbMinZ = -1;
+			   bbMaxX = bbMaxY = bbMaxZ = 1;
+			   break;
+		   }
 		
-		for( uint32 j = 0; j < 8; ++j )
-		{
-			Vec4f v1 = lightViewProjMat * Vec4f( aabb.getCorner( j ) );
-			v1.w = 1.f / fabsf( v1.w );
-			v1.x *= v1.w; v1.y *= v1.w; v1.z *= v1.w;
+		   for( uint32 j = 0; j < 8; ++j )
+		   {
+			   Vec4f v1 = lightViewProjMat * Vec4f( aabb.getCorner( j ) );
+			   v1.w = 1.f / fabsf( v1.w );
+			   v1.x *= v1.w; v1.y *= v1.w; v1.z *= v1.w;
 			
-			if( v1.x < bbMinX ) bbMinX = v1.x;
-			if( v1.y < bbMinY ) bbMinY = v1.y;
-			if( v1.z < bbMinZ ) bbMinZ = v1.z;
-			if( v1.x > bbMaxX ) bbMaxX = v1.x;
-			if( v1.y > bbMaxY ) bbMaxY = v1.y;
-			if( v1.z > bbMaxZ ) bbMaxZ = v1.z;
-		}
-	}
+			   if( v1.x < bbMinX ) bbMinX = v1.x;
+			   if( v1.y < bbMinY ) bbMinY = v1.y;
+			   if( v1.z < bbMinZ ) bbMinZ = v1.z;
+			   if( v1.x > bbMaxX ) bbMaxX = v1.x;
+			   if( v1.y > bbMaxY ) bbMaxY = v1.y;
+			   if( v1.z > bbMaxZ ) bbMaxZ = v1.z;
+		   }
+	   }
+   }
 
 	// Find post-projective space AABB of frustum slice if light is not inside
 	if( frustSlice.cullSphere( _curLight->_absPos, 0 ) )
@@ -1319,10 +1321,13 @@ void Renderer::updateShadowMap(const Frustum* lightFrus, float maxDist)
 
 	Modules::sceneMan().updateQueues(reason.str().c_str(), *lightFrus, 0x0,
 		RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
-	for( const auto& entry : Modules::sceneMan().getRenderableQueue() )
+	for( const auto& queue : Modules::sceneMan().getRenderableQueues() )
 	{
-      SceneNode* n = entry.node;
-      litAabb.makeUnion(n->getBBox());
+      for (const auto& entry : queue.second) 
+      {
+         SceneNode* n = entry.node;
+         litAabb.makeUnion(n->getBBox());
+      }
 	}
 
    // Calculate split distances using PSSM scheme
@@ -1729,10 +1734,13 @@ float Renderer::computeTightCameraFarDistance()
    BoundingBox visibleAabb;
    Modules::sceneMan().updateQueues("computing tight camera", _curCamera->getFrustum(), 0x0,
       RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
-   for( const auto& entry : Modules::sceneMan().getRenderableQueue() )
+   for( const auto& queue : Modules::sceneMan().getRenderableQueues() )
    {
-      SceneNode* n = entry.node;
-	   visibleAabb.makeUnion(n->getBBox()); 
+      for (const auto& entry : queue.second)
+      {
+         SceneNode* n = entry.node;
+	      visibleAabb.makeUnion(n->getBBox());
+      }
    }
 
    // Tightly clip the resulting AABB of visible geometry against the frustum.
@@ -2087,10 +2095,8 @@ void Renderer::drawMeshes( const std::string &shaderContext, const std::string &
 	MaterialResource *curMatRes = 0x0;
 
 	// Loop over mesh queue
-	for( const auto& entry : Modules::sceneMan().getRenderableQueue() )
+	for( const auto& entry : Modules::sceneMan().getRenderableQueue(SceneNodeTypes::Mesh) )
 	{
-		if( entry.type != SceneNodeTypes::Mesh ) continue;
-		
 		MeshNode *meshNode = (MeshNode *)entry.node;
 		ModelNode *modelNode = meshNode->getParentModel();
 		
@@ -2262,9 +2268,8 @@ void Renderer::drawHudElements(const std::string &shaderContext, const std::stri
    radiant::perfmon::TimelineCounterGuard dvm("drawHudElements");
 	if( frust1 == 0x0 ) return;
 	
-	for( const auto& entry : Modules::sceneMan().getRenderableQueue() )
+	for( const auto& entry : Modules::sceneMan().getRenderableQueue(SceneNodeTypes::HudElement) )
 	{
-      if( entry.type != SceneNodeTypes::HudElement ) continue;
       HudElementNode* hudNode = (HudElementNode*) entry.node;
       
       for (const auto& hudElement : hudNode->getSubElements())
@@ -2287,10 +2292,8 @@ void Renderer::drawVoxelMeshes(const std::string &shaderContext, const std::stri
 	MaterialResource *curMatRes = 0x0;
 
 	// Loop over mesh queue
-	for( const auto& entry : Modules::sceneMan().getRenderableQueue() )
+	for( const auto& entry : Modules::sceneMan().getRenderableQueue(SceneNodeTypes::VoxelMesh) )
 	{
-		if( entry.type != SceneNodeTypes::VoxelMesh ) continue;
-		
 		VoxelMeshNode *meshNode = (VoxelMeshNode *)entry.node;
 		VoxelModelNode *modelNode = meshNode->getParentModel();
 		
@@ -2456,10 +2459,8 @@ void Renderer::drawParticles( const std::string &shaderContext, const std::strin
 	ASSERT( QuadIndexBufCount >= ParticlesPerBatch * 6 );
 
 	// Loop through emitter queue
-	for( const auto& entry : Modules::sceneMan().getRenderableQueue() )
+	for( const auto& entry : Modules::sceneMan().getRenderableQueue(SceneNodeTypes::Emitter) )
 	{
-		if( entry.type != SceneNodeTypes::Emitter ) continue; 
-		
 		EmitterNode *emitter = (EmitterNode *)entry.node;
 		
 		if( emitter->_particleCount == 0 ) continue;
@@ -2788,13 +2789,14 @@ void Renderer::renderDebugView()
 	gRDI->setShaderConst( _defColorShader.uni_worldMat, CONST_FLOAT44, &Matrix4f().x[0] );
 	color[0] = 0.4f; color[1] = 0.4f; color[2] = 0.4f; color[3] = 1;
 	gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, color );
-	for( uint32 i = 0, s = (uint32)Modules::sceneMan().getRenderableQueue().size(); i < s; ++i )
-	{
-		SceneNode *sn = Modules::sceneMan().getRenderableQueue()[i].node;
-		
-		drawAABB( sn->_bBox.min(), sn->_bBox.max() );
-	}
-
+   for (const auto& queue : Modules::sceneMan().getRenderableQueues())
+   {
+      for( const auto& entry : queue.second )
+	   {
+		   const SceneNode *sn = entry.node;
+		   drawAABB( sn->_bBox.min(), sn->_bBox.max() );
+	   }
+   }
    int frustNum = 0;
    float frustCol[16] = {
       1,0,0,1,

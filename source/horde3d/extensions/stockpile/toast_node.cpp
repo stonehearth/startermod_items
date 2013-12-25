@@ -190,10 +190,7 @@ void ToastNode::renderFunc(const std::string &shaderContext, const std::string &
                            const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet)
 {
    bool offsetSet = false;
-   for (const auto &entry : Modules::sceneMan().getRenderableQueue()) {
-      if (entry.type != SNT_ToastNode) {
-         continue;
-      }
+   for (const auto &entry : Modules::sceneMan().getRenderableQueue(SNT_ToastNode)) {
       ToastNode *toast = (ToastNode *)entry.node;
 
       if (!fontMaterial_ || !fontMaterial_->isOfClass(theClass)) {

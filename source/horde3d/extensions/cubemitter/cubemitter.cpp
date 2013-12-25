@@ -373,10 +373,8 @@ void CubemitterNode::renderFunc(const std::string &shaderContext, const std::str
 	MaterialResource *curMatRes = 0x0;
 
 	// Loop through and find all Cubemitters.
-	for( const auto &entry : Modules::sceneMan().getRenderableQueue() )
+	for( const auto &entry : Modules::sceneMan().getRenderableQueue(SNT_CubemitterNode) )
 	{
-      if( entry.type != SNT_CubemitterNode ) continue; 
-		
 		CubemitterNode *emitter = (CubemitterNode *)entry.node;
 
       if( emitter->_maxCubes == 0 ) continue;

@@ -81,10 +81,7 @@ void DecalNode::renderFunc(const std::string &shaderContext, const std::string &
                            const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet)
 {
    bool offsetSet = false;
-   for (const auto &entry : Modules::sceneMan().getRenderableQueue()) {
-      if (entry.type != SNT_DecalNode) {
-         continue;
-      }
+   for (const auto &entry : Modules::sceneMan().getRenderableQueue(SNT_DecalNode)) {
       DecalNode *decal = (DecalNode *)entry.node;
 
       MaterialResource* material = decal->GetMaterial();
