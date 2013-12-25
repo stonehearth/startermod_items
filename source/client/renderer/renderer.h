@@ -165,6 +165,7 @@ class Renderer
       void OnMouseMove(double x, double y);
       void OnMouseButton(int button, int press);
       void OnMouseEnter(int entered);
+      void OnFocusChanged(int wasFocused);
       void OnRawInput(UINT msg, WPARAM wParam, LPARAM lParam);
       void UpdateCamera();
       float DistFunc(float dist, int wheel, float minDist, float maxDist) const;

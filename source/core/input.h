@@ -43,6 +43,7 @@ namespace radiant {
       MouseInput     mouse;
       KeyboardInput  keyboard;
       RawInput       raw_input;     
+      bool           focused;
    };
 };
 

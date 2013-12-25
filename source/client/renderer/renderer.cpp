@@ -165,6 +165,7 @@ Renderer::Renderer() :
    h3dSetNodeParamI(camera_->GetNode(), H3DCamera::PipeResI, currentPipeline_);
 
    memset(&input_.mouse, 0, sizeof input_.mouse);
+   input_.focused = true;
 
    glfwSetWindowSizeCallback(window, [](GLFWwindow *window, int newWidth, int newHeight) { 
       Renderer::GetInstance().OnWindowResized(newWidth, newHeight);
@@ -180,6 +181,10 @@ Renderer::Renderer() :
 
    glfwSetCursorEnterCallback(window, [](GLFWwindow *window, int entered) {
       Renderer::GetInstance().OnMouseEnter(entered);
+   });
+
+   glfwSetWindowFocusCallback(window, [](GLFWwindow *window, int wasFocused) {
+      Renderer::GetInstance().OnFocusChanged(wasFocused);
    });
 
    glfwSetCursorPosCallback(window, [](GLFWwindow *window, double x, double y) {      
@@ -905,6 +910,12 @@ void Renderer::OnWindowResized(int newWidth, int newHeight) {
    ResizeViewport();
    ResizePipelines();
    screen_resize_slot_.Signal(csg::Point2(windowWidth_, windowHeight_));
+}
+
+void Renderer::OnFocusChanged(int wasFocused) {
+   input_.focused = wasFocused == GL_FALSE ? false : true;
+
+   DispatchInputEvent();
 }
 
 core::Guard Renderer::TraceSelected(H3DNode node, UpdateSelectionFn fn)

@@ -382,6 +382,7 @@ void lua::client::open(lua_State* L)
                .def_readonly("mouse",     &Input::mouse)
                .def_readonly("keyboard",  &Input::keyboard)
                .def_readonly("raw_input", &Input::raw_input)
+               .def_readonly("focused",   &Input::focused)
             ,
             lua::RegisterType<MouseInput>()
                .def_readonly("x",       &MouseInput::x)

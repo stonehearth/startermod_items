@@ -48,7 +48,8 @@ function CameraService:__init()
           e.mouse,
           _radiant.renderer.screen.get_width(), 
           _radiant.renderer.screen.get_height(), 
-          gutter_size)
+          gutter_size,
+          e.focused)
       end
       -- Don't consume the event, since the UI might want to do something, too.
       return false
@@ -136,8 +137,8 @@ function CameraService:_orbit(target, x_deg, y_deg, min_x, max_x)
   _radiant.renderer.camera.look_at(target)
 end
 
-function CameraService:_on_mouse_event(e, screen_x, screen_y, gutter)
-  self:_calculate_scroll(e, screen_x, screen_y, gutter)
+function CameraService:_on_mouse_event(e, screen_x, screen_y, gutter, focused)
+  self:_calculate_scroll(e, screen_x, screen_y, gutter, focused)
   self:_calculate_drag(e)
   self:_calculate_orbit(e)
   --self:_calculate_jump(e)
@@ -305,7 +306,11 @@ function CameraService:_drag(x, y)
   end
 end
 
-function CameraService:_calculate_scroll(e, screen_x, screen_y, gutter)
+function CameraService:_calculate_scroll(e, screen_x, screen_y, gutter, focused)
+  if not focused then
+    self._continuous_delta = Vec3(0, 0, 0)
+    return
+  end
   local mouse_x = e.x
   local mouse_y = e.y
 
