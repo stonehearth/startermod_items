@@ -133,6 +133,24 @@ struct GpuCompatibility {
    bool canDoShadows;
 };
 
+struct InstanceKey {
+   Resource* geoResource;
+   MaterialResource* matResource;
+
+   bool operator==(const InstanceKey& other) const {
+      return geoResource == other.geoResource &&
+         matResource == other.matResource;
+   }
+   bool operator!=(const InstanceKey& other) const {
+      return !(other == *this);
+   }
+};
+
+struct hash_InstanceKey {
+   size_t operator()(const InstanceKey& x) const {
+      return (uint32)(x.geoResource) ^ (uint32)(x.matResource);
+   }
+};
 
 class Renderer
 {
@@ -174,6 +192,8 @@ public:
 	static void drawMeshes( const std::string &shaderContext, const std::string &theClass, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet );
 	static void drawVoxelMeshes( const std::string &shaderContext, const std::string &theClass, bool debugView,
+		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet );
+	static void drawVoxelMeshes_Instances( const std::string &shaderContext, const std::string &theClass, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet );
 	static void drawParticles( const std::string &shaderContext, const std::string &theClass, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet );

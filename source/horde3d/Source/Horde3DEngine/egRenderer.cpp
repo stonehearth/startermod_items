@@ -2444,6 +2444,110 @@ void Renderer::drawVoxelMeshes(const std::string &shaderContext, const std::stri
 }
 
 
+void Renderer::drawVoxelMeshes_Instances(const std::string &shaderContext, const std::string &theClass, bool debugView,
+                               const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
+                               int occSet)
+{
+   radiant::perfmon::TimelineCounterGuard dvm("drawVoxelMeshes_Instances");
+	if( frust1 == 0x0 ) return;
+	
+	MaterialResource *curMatRes = 0x0;
+
+	// Loop over mesh queue
+	for( const auto& instanceKind : Modules::sceneMan().getInstanceRenderableQueue(SceneNodeTypes::VoxelMesh) )
+	{
+      const InstanceKey& instanceKey = instanceKind.first;
+   	VoxelGeometryResource *curVoxelGeoRes = (VoxelGeometryResource*) instanceKind.first;
+		// Check that mesh is valid
+		if(curVoxelGeoRes == 0x0) {
+			continue;
+      }
+
+      // Set vertex layout
+      // !!!!!!!!!!!!!!!!!WRONG Add the new vl for voxelinstancemodel.
+		gRDI->setVertexLayout( Modules::renderer()._vlVoxelModel );
+
+		// Bind geometry
+		// Indices
+		gRDI->setIndexBuffer(curVoxelGeoRes->getIndexBuf(),
+			                     curVoxelGeoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
+
+		// Vertices
+      gRDI->setVertexBuffer( 0, curVoxelGeoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
+
+		
+		ShaderCombination *prevShader = Modules::renderer().getCurShader();
+		
+		if( !debugView )
+		{
+         if( !instanceKey.matResource->isOfClass( theClass ) ) continue;
+			
+			// Set material
+			if( curMatRes != instanceKey.matResource )
+			{
+            if( !Modules::renderer().setMaterial( instanceKey.matResource, shaderContext ) )
+				{	
+					curMatRes = 0x0;
+					continue;
+				}
+            curMatRes = instanceKey.matResource;
+			}
+		} else {
+			Modules::renderer().setShaderComb( &Modules::renderer()._defColorShader );
+			Modules::renderer().commitGeneralUniforms();
+			Vec4f color( 0.5f, 0.75f, 1, 1 );
+			gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color.x );
+		}
+
+      // Collect positional data for every node of this mesh/material kind.
+      for (const auto& node : instanceKind.second) {
+		   VoxelMeshNode *meshNode = (VoxelMeshNode *)node.node;
+		   VoxelModelNode *modelNode = meshNode->getParentModel();
+		
+		   ShaderCombination *curShader = Modules::renderer().getCurShader();
+		
+		   // World transformation
+		   if( curShader->uni_worldMat >= 0 )
+		   {
+			   //gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &meshNode->_absTrans.x[0] );
+		   }
+		   if( curShader->uni_worldNormalMat >= 0 )
+		   {
+			   // TODO: Optimize this
+			   /*Matrix4f normalMat4 = meshNode->_absTrans.inverted().transposed();
+			   float normalMat[9] = { normalMat4.x[0], normalMat4.x[1], normalMat4.x[2],
+			                          normalMat4.x[4], normalMat4.x[5], normalMat4.x[6],
+			                          normalMat4.x[8], normalMat4.x[9], normalMat4.x[10] };
+			   gRDI->setShaderConst( curShader->uni_worldNormalMat, CONST_FLOAT33, normalMat );*/
+		   }
+
+         // Shadow offsets will always win against the custom model offsets (which we don't care about
+         // during a shadow pass.)
+         float offset_x, offset_y;
+         if (gRDI->getShadowOffsets(&offset_x, &offset_y) || modelNode->getPolygonOffset(offset_x, offset_y))
+         {
+            glEnable(GL_POLYGON_OFFSET_FILL);
+            glPolygonOffset(offset_x, offset_y);
+         } else {
+            glDisable(GL_POLYGON_OFFSET_FILL);
+         }
+      }
+
+      // Draw instanced meshes.
+      gRDI->updateBufferData(_attributeBuf, 0, sizeof(CubeAttribute) * _maxCubes, _attributesBuff);
+      gRDI->setVertexBuffer(1, _attributeBuf, 0, sizeof(CubeAttribute));
+      gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, 36, 0, _maxCubes);
+		// Render
+		gRDI->drawIndexed( PRIM_TRILIST, meshNode->getBatchStart(), meshNode->getBatchCount(),
+		                  meshNode->getVertRStart(), meshNode->getVertREnd() - meshNode->getVertRStart() + 1 );
+		Modules::stats().incStat( EngineStats::BatchCount, 1 );
+		Modules::stats().incStat( EngineStats::TriCount, meshNode->getBatchCount() / 3.0f );
+   }
+
+	gRDI->setVertexLayout( 0 );
+   glDisable(GL_POLYGON_OFFSET_FILL);
+}
+
 void Renderer::drawParticles( const std::string &shaderContext, const std::string &theClass, bool debugView,
                               const Frustum *frust1, const Frustum * /*frust2*/, RenderingOrder::List /*order*/,
                               int occSet )
@@ -2767,6 +2871,12 @@ void Renderer::collectOneDebugFrame()
 void Renderer::renderDebugView()
 {
 	float color[4] = { 0 };
+   float frustCol[16] = {
+      1,0,0,1,
+      0,1,0,1,
+      0,0,1,1,
+      1,1,0,1
+   };
 	
 	gRDI->setRenderBuffer( 0 );
 	setMaterial( 0x0, "" );
@@ -2774,8 +2884,6 @@ void Renderer::renderDebugView()
 
 	gRDI->clear( CLR_DEPTH | CLR_COLOR );
 
-	Modules::sceneMan().updateQueues( "rendering debug view", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
-	                                  SceneNodeFlags::NoDraw, 0, true, true );
 
 	// Draw renderable nodes as wireframe
 	setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
@@ -2788,22 +2896,39 @@ void Renderer::renderDebugView()
 	commitGeneralUniforms();
 	gRDI->setShaderConst( _defColorShader.uni_worldMat, CONST_FLOAT44, &Matrix4f().x[0] );
 	color[0] = 0.4f; color[1] = 0.4f; color[2] = 0.4f; color[3] = 1;
-	gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, color );
-   for (const auto& queue : Modules::sceneMan().getRenderableQueues())
-   {
-      for( const auto& entry : queue.second )
-	   {
-		   const SceneNode *sn = entry.node;
-		   drawAABB( sn->_bBox.min(), sn->_bBox.max() );
-	   }
-   }
    int frustNum = 0;
-   float frustCol[16] = {
-      1,0,0,1,
-      0,1,0,1,
-      0,0,1,1,
-      1,1,0,1
-   };
+
+   if (gRDI->_frameDebugInfo.getSplitFrustums().size() > 0) {
+      for (const auto& frust : gRDI->_frameDebugInfo.getSplitFrustums()) {
+   	   Modules::sceneMan().updateQueues( "rendering debug view", frust, 0x0, RenderingOrder::None,
+	                                     SceneNodeFlags::NoDraw, 0, true, true );
+	      gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &frustCol[frustNum * 4] );
+         for (const auto& queue : Modules::sceneMan().getRenderableQueues())
+         {
+            for( const auto& entry : queue.second )
+	         {
+		         const SceneNode *sn = entry.node;
+		         drawAABB( sn->_bBox.min(), sn->_bBox.max() );
+	         }
+         }
+         frustNum = (frustNum + 1) % 4;
+      }
+   } else {
+      Modules::sceneMan().updateQueues( "rendering debug view", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
+	                                    SceneNodeFlags::NoDraw, 0, true, true );
+	   gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color[0] );
+      for (const auto& queue : Modules::sceneMan().getRenderableQueues())
+      {
+         for( const auto& entry : queue.second )
+	      {
+		      const SceneNode *sn = entry.node;
+		      drawAABB( sn->_bBox.min(), sn->_bBox.max() );
+	      }
+      }
+   }
+
+	Modules::sceneMan().updateQueues( "rendering debug view", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
+	                                  SceneNodeFlags::NoDraw, 0, true, true );
    for (const auto& frust : gRDI->_frameDebugInfo.getShadowCascadeFrustums())
    {
 	   gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &frustCol[frustNum * 4] );

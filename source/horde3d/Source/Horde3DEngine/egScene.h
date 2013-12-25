@@ -312,6 +312,7 @@ public:
 	SceneNode &getDefCamNode() { return *_nodes[1]; }
 	std::vector< SceneNode * > &getLightQueue();
 	std::vector< RendQueueItem > &getRenderableQueue(int itemType);
+   std::map<InstanceKey, std::vector<RendQueueItem> > &getInstanceRenderableQueue(int itemType);
    std::map<int, std::vector<RendQueueItem> > &getRenderableQueues();
 	
 	SceneNode *resolveNodeHandle( NodeHandle handle )
