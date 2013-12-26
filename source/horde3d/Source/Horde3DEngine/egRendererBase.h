@@ -140,6 +140,7 @@ struct RDIBuffer
 	uint32  type;
 	uint32  glObj;
 	uint32  size;
+   uint32  usage;
 };
 
 struct RDIVertBufSlot
@@ -324,6 +325,14 @@ enum RDIPrimType
 	PRIM_TRISTRIP = GL_TRIANGLE_STRIP
 };
 
+enum RDIBufferUsage 
+{
+   STATIC = GL_STATIC_DRAW,
+   DYNAMIC = GL_DYNAMIC_DRAW,
+   STREAM = GL_STREAM_DRAW
+};
+
+
 // =================================================================================================
 
 
@@ -346,7 +355,7 @@ public:
 	uint32 registerVertexLayout( uint32 numAttribs, VertexLayoutAttrib *attribs, VertexDivisorAttrib *divisors );
 	
 	// Buffers
-	uint32 createVertexBuffer( uint32 size, const void *data );
+	uint32 createVertexBuffer( uint32 size, uint32 usage, const void *data );
 	uint32 createIndexBuffer( uint32 size, const void *data );
    uint32 createPixelBuffer( uint32 type, uint32 size, const void *data );
 	void destroyBuffer( uint32 bufObj );

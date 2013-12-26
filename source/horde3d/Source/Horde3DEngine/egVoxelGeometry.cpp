@@ -29,7 +29,7 @@ uint32 VoxelGeometryResource::defIndexBuffer = 0;
 
 void VoxelGeometryResource::initializationFunc()
 {
-	defVertexBuffer = gRDI->createVertexBuffer( 0, 0x0 );
+	defVertexBuffer = gRDI->createVertexBuffer( 0, STATIC, 0x0 );
 	defIndexBuffer = gRDI->createIndexBuffer( 0, 0x0 );
 }
 
@@ -62,7 +62,7 @@ Resource *VoxelGeometryResource::clone()
 	memcpy( res->_indexData, _indexData, _indexCount * (_16BitIndices ? 2 : 4) );
 	memcpy( res->_vertexData, _vertexData, _vertCount * sizeof( VoxelVertexData ) );
 	res->_indexBuf = gRDI->createIndexBuffer( _indexCount * (_16BitIndices ? 2 : 4), _indexData );
-	res->_vertexBuf = gRDI->createVertexBuffer( _vertCount * sizeof( Vec3f ), _vertexData );
+	res->_vertexBuf = gRDI->createVertexBuffer( _vertCount * sizeof( Vec3f ), STATIC, _vertexData );
 	
 	return res;
 }
@@ -232,7 +232,7 @@ bool VoxelGeometryResource::loadData(VoxelVertexData *vertices, int vcount, uint
 		_indexBuf = gRDI->createIndexBuffer( _indexCount * (_16BitIndices ? 2 : 4), _indexData );
 		
 		// Upload vertices
-		_vertexBuf = gRDI->createVertexBuffer(_vertCount * sizeof VoxelVertexData, _vertexData );
+		_vertexBuf = gRDI->createVertexBuffer(_vertCount * sizeof VoxelVertexData, STATIC, _vertexData );
 	}
    return true;
 }
