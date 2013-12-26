@@ -237,7 +237,7 @@ CubemitterNode::CubemitterNode( const CubemitterNodeTpl &emitterTpl ) :
    _active = true;
    _wasVisible = true;
 
-   _attributeBuf = gRDI->createVertexBuffer(sizeof(CubeAttribute) * _maxCubes, 0x0);
+   _attributeBuf = gRDI->createVertexBuffer(sizeof(CubeAttribute) * _maxCubes, STREAM, 0x0);
 
    for (unsigned int i = 0; i < _maxCubes; i++) {
       _attributesBuff[i].matrix.toIdentity();

@@ -293,7 +293,7 @@ void ToastNode::SetText(std::string text)
 
    if (vertexCount_) {
       indexBuffer_ = gRDI->createIndexBuffer(indexCount_ * sizeof(unsigned short), indices.data());
-      vertexBuffer_ = gRDI->createVertexBuffer(vertexCount_ * sizeof(Vertex), verts.data());
+      vertexBuffer_ = gRDI->createVertexBuffer(vertexCount_ * sizeof(Vertex), STREAM, verts.data());
    }
 }
 
