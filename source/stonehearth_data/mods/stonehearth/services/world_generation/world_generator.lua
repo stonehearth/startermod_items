@@ -29,7 +29,6 @@ function WorldGenerator:on_poll()
    if self._progress == 100 then
       radiant.events.unlisten(radiant.events, 'stonehearth:slow_poll', self, self.on_poll)
    end
-
 end
 
 function WorldGenerator:create_world()
@@ -90,6 +89,7 @@ function WorldGenerator:_generate_world(tiles)
       offset_pt = Point3(offset_x, 0, offset_y)
 
       timer:start()
+      self._landscaper:clear_feature_map()
       region3_boxed = renderer:create_new_region()
       renderer:render_height_map_to_region(region3_boxed, tile_map)
       self._landscaper:place_boulders(region3_boxed, tile_map)
@@ -105,7 +105,6 @@ function WorldGenerator:_generate_world(tiles)
       self:_yield()
 
       self._progress = (n / #tile_order_list) * 100
-
    end
 
    radiant.events.trigger(radiant.events, 'stonehearth:generate_world_progress', {
