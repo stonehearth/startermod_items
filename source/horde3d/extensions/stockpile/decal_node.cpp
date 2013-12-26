@@ -40,7 +40,7 @@ bool DecalNode::InitExtension()
 	Modules::sceneMan().registerType(SNT_DecalNode, "Decal",
 		                              DecalNode::parsingFunc,
                                     DecalNode::factoryFunc,
-                                    DecalNode::renderFunc);
+                                    DecalNode::renderFunc, 0x0);
 
 	VertexLayoutAttrib attribs[2] = {
 		"vertPos",     0, 3, 0,

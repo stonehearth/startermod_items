@@ -38,7 +38,7 @@ bool StockpileNode::InitExtension()
 	Modules::sceneMan().registerType(SNT_StockpileNode, "Stockpile",
 		                              StockpileNode::parsingFunc,
                                     StockpileNode::factoryFunc,
-                                    StockpileNode::renderFunc);   
+                                    StockpileNode::renderFunc, 0x0);   
    return true;
 }
 

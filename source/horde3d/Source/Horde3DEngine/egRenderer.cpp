@@ -52,6 +52,7 @@ const char *fsDefColor =
 	"	gl_FragColor = color;\n"
 	"}\n";
 
+uint32 Renderer::_vbInstanceVoxelData = 0;
 
 Renderer::Renderer()
 {
@@ -74,6 +75,7 @@ Renderer::Renderer()
 	_vlOverlay = 0;
 	_vlModel = 0;
    _vlVoxelModel = 0;
+   _vlInstanceVoxelModel = 0;
 	_vlParticle = 0;
    bool openglES = false;
 #if defined(OPTIMIZE_GSLS)
@@ -87,6 +89,7 @@ Renderer::~Renderer()
 	releaseShadowRB();
 	gRDI->destroyTexture( _defShadowMap );
 	gRDI->destroyBuffer( _particleVBO );
+   gRDI->destroyBuffer(_vbInstanceVoxelData);
 	releaseShaderComb( _defColorShader );
 #if defined(OPTIMIZE_GSLS)
    glslopt_cleanup(_glsl_opt_ctx);
@@ -177,7 +180,21 @@ bool Renderer::init(int glMajor, int glMinor, bool enable_gl_logging)
 	};
 	_vlVoxelModel = gRDI->registerVertexLayout( 3, attribsVoxelModel );
 
-	VertexLayoutAttrib attribsParticle[2] = {
+	VertexLayoutAttrib attribsInstanceVoxelModel[4] = {
+      { "vertPos",     0, 3, 0 }, 
+      { "normal",      0, 3, 12 },
+      { "color",       0, 3, 24 },
+      { "transform",   1, 16, 0 }
+	};
+
+   VertexDivisorAttrib divisorsInstanceVoxelModel[4] = {
+      0, 0, 0, 1
+   };
+	_vlInstanceVoxelModel = gRDI->registerVertexLayout( 4, attribsInstanceVoxelModel, divisorsInstanceVoxelModel );
+
+   _vbInstanceVoxelData = gRDI->createVertexBuffer(10000 * (4 * 4) * sizeof(float), DYNAMIC, nullptr);
+
+   VertexLayoutAttrib attribsParticle[2] = {
 		"texCoords0", 0, 2, 0,
 		"parIdx", 0, 1, 8
 	};
@@ -1329,6 +1346,14 @@ void Renderer::updateShadowMap(const Frustum* lightFrus, float maxDist)
          litAabb.makeUnion(n->getBBox());
       }
 	}
+   for (const auto& instanceKind : Modules::sceneMan().getInstanceRenderableQueue(SceneNodeTypes::VoxelMesh))
+   {
+      for (const auto& instance : instanceKind.second)
+      {
+         SceneNode* n = instance.node;
+         litAabb.makeUnion(n->getBBox());
+      }
+   }
 
    // Calculate split distances using PSSM scheme
    const float nearDist = _curCamera->_frustNear;
@@ -1742,6 +1767,14 @@ float Renderer::computeTightCameraFarDistance()
 	      visibleAabb.makeUnion(n->getBBox());
       }
    }
+   for (const auto& instanceKind : Modules::sceneMan().getInstanceRenderableQueue(SceneNodeTypes::VoxelMesh))
+   {
+      for (const auto& instance : instanceKind.second)
+      {
+         SceneNode* n = instance.node;
+         visibleAabb.makeUnion(n->getBBox());
+      }
+   }
 
    // Tightly clip the resulting AABB of visible geometry against the frustum.
    std::vector<Polygon> clippedAabb;
@@ -2070,9 +2103,12 @@ void Renderer::drawRenderables( const std::string &shaderContext, const std::str
 	{
 		if( itr->second.renderFunc != 0x0 ) {
 			(*itr->second.renderFunc)( shaderContext, theClass, debugView, frust1, frust2, order, occSet );
-      } else {
-         int i = 0;
       }
+
+      if (itr->second.instanceRenderFunc != 0x0) {
+         (*itr->second.instanceRenderFunc)( shaderContext, theClass, debugView, frust1, frust2, order, occSet );
+      }
+
 
 		++itr;
 	}
@@ -2453,19 +2489,36 @@ void Renderer::drawVoxelMeshes_Instances(const std::string &shaderContext, const
 	
 	MaterialResource *curMatRes = 0x0;
 
-	// Loop over mesh queue
+   // Set vertex layout
+	gRDI->setVertexLayout( Modules::renderer()._vlInstanceVoxelModel );
+
+   // Loop over mesh queue
 	for( const auto& instanceKind : Modules::sceneMan().getInstanceRenderableQueue(SceneNodeTypes::VoxelMesh) )
 	{
       const InstanceKey& instanceKey = instanceKind.first;
-   	VoxelGeometryResource *curVoxelGeoRes = (VoxelGeometryResource*) instanceKind.first;
+      const VoxelGeometryResource *curVoxelGeoRes = (VoxelGeometryResource*) instanceKind.first.geoResource;
 		// Check that mesh is valid
 		if(curVoxelGeoRes == 0x0) {
 			continue;
       }
 
-      // Set vertex layout
-      // !!!!!!!!!!!!!!!!!WRONG Add the new vl for voxelinstancemodel.
-		gRDI->setVertexLayout( Modules::renderer()._vlVoxelModel );
+      if (instanceKind.second.size() <= 0) {
+         continue;
+      }
+
+      // Shadow offsets will always win against the custom model offsets (which we don't care about
+      // during a shadow pass.)
+      // TODO(klochek): awful--but how to fix?  We can keep cramming stuff into the InstanceKey, but to what end?
+      VoxelMeshNode* vmn = (VoxelMeshNode*)instanceKind.second.front().node;
+
+      float offset_x, offset_y;
+      if (gRDI->getShadowOffsets(&offset_x, &offset_y) || vmn->getParentModel()->getPolygonOffset(offset_x, offset_y))
+      {
+         glEnable(GL_POLYGON_OFFSET_FILL);
+         glPolygonOffset(offset_x, offset_y);
+      } else {
+         glDisable(GL_POLYGON_OFFSET_FILL);
+      }
 
 		// Bind geometry
 		// Indices
@@ -2499,49 +2552,27 @@ void Renderer::drawVoxelMeshes_Instances(const std::string &shaderContext, const
 			gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color.x );
 		}
 
-      // Collect positional data for every node of this mesh/material kind.
+      // Collect transform data for every node of this mesh/material kind.
+      radiant::perfmon::SwitchToCounter("map transform buffer");
+      float* transformBuffer = (float*)gRDI->mapBuffer(_vbInstanceVoxelData);
       for (const auto& node : instanceKind.second) {
-		   VoxelMeshNode *meshNode = (VoxelMeshNode *)node.node;
-		   VoxelModelNode *modelNode = meshNode->getParentModel();
+		   const VoxelMeshNode *meshNode = (VoxelMeshNode *)node.node;
+		   const VoxelModelNode *modelNode = meshNode->getParentModel();
 		
-		   ShaderCombination *curShader = Modules::renderer().getCurShader();
-		
-		   // World transformation
-		   if( curShader->uni_worldMat >= 0 )
-		   {
-			   //gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &meshNode->_absTrans.x[0] );
-		   }
-		   if( curShader->uni_worldNormalMat >= 0 )
-		   {
-			   // TODO: Optimize this
-			   /*Matrix4f normalMat4 = meshNode->_absTrans.inverted().transposed();
-			   float normalMat[9] = { normalMat4.x[0], normalMat4.x[1], normalMat4.x[2],
-			                          normalMat4.x[4], normalMat4.x[5], normalMat4.x[6],
-			                          normalMat4.x[8], normalMat4.x[9], normalMat4.x[10] };
-			   gRDI->setShaderConst( curShader->uni_worldNormalMat, CONST_FLOAT33, normalMat );*/
-		   }
-
-         // Shadow offsets will always win against the custom model offsets (which we don't care about
-         // during a shadow pass.)
-         float offset_x, offset_y;
-         if (gRDI->getShadowOffsets(&offset_x, &offset_y) || modelNode->getPolygonOffset(offset_x, offset_y))
-         {
-            glEnable(GL_POLYGON_OFFSET_FILL);
-            glPolygonOffset(offset_x, offset_y);
-         } else {
-            glDisable(GL_POLYGON_OFFSET_FILL);
-         }
+         memcpy(transformBuffer, meshNode->_absTrans.x, sizeof(float) * 16);
+         transformBuffer += 16;
       }
+      gRDI->unmapBuffer(_vbInstanceVoxelData);
 
+      radiant::perfmon::SwitchToCounter("draw mesh instances");
       // Draw instanced meshes.
-      gRDI->updateBufferData(_attributeBuf, 0, sizeof(CubeAttribute) * _maxCubes, _attributesBuff);
-      gRDI->setVertexBuffer(1, _attributeBuf, 0, sizeof(CubeAttribute));
-      gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, 36, 0, _maxCubes);
+      gRDI->setVertexBuffer(1, _vbInstanceVoxelData, 0, sizeof(float) * 16);
+      gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, vmn->getBatchCount(), 0, instanceKind.second.size());
+      radiant::perfmon::SwitchToCounter("drawVoxelMeshes_Instances");
+
 		// Render
-		gRDI->drawIndexed( PRIM_TRILIST, meshNode->getBatchStart(), meshNode->getBatchCount(),
-		                  meshNode->getVertRStart(), meshNode->getVertREnd() - meshNode->getVertRStart() + 1 );
 		Modules::stats().incStat( EngineStats::BatchCount, 1 );
-		Modules::stats().incStat( EngineStats::TriCount, meshNode->getBatchCount() / 3.0f );
+		Modules::stats().incStat( EngineStats::TriCount, (vmn->getBatchCount() / 3.0f) * instanceKind.second.size() );
    }
 
 	gRDI->setVertexLayout( 0 );

@@ -287,7 +287,6 @@ void main( void )
 
 [[VS_DIRECTIONAL_SHADOWMAP]]
 #include "shaders/utilityLib/vertCommon.glsl"
-#include "shaders/utilityLib/vertSkinning.glsl"
 
 uniform mat4 viewProjMat;
 

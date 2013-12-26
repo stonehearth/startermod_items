@@ -13,10 +13,11 @@ uniform mat4 viewMat;
 uniform mat4 worldMat;
 uniform	mat3 worldNormalMat;
 
+attribute mat4 transform;
 
 vec4 calcWorldPos( const vec4 pos )
 {
-	return worldMat * pos;
+	return transform * pos;
 }
 
 vec4 calcViewPos( const vec4 pos )
@@ -26,7 +27,7 @@ vec4 calcViewPos( const vec4 pos )
 
 vec3 calcWorldVec( const vec3 vec )
 {
-	return worldNormalMat * vec;
+	return (transform * vec4(vec, 0)).xyz;
 }
 
 mat3 calcTanToWorldMat( const vec3 tangent, const vec3 bitangent, const vec3 normal )

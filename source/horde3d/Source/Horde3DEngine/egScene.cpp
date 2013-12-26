@@ -355,8 +355,8 @@ struct RendQueueItemCompFunc
 };
 
 
-void SpatialGraph::query(const SpatialQuery& query, std::map<int, std::vector<RendQueueItem> >& renderableQueues, 
-      std::vector<SceneNode*>& lightQueue)
+void SpatialGraph::query(const SpatialQuery& query, RenderableQueues& renderableQueues, 
+      InstanceRenderableQueues& instanceQueues, std::vector<SceneNode*>& lightQueue)
 {
    ASSERT(query.useLightQueue || query.useRenderableQueue);
 
@@ -411,12 +411,26 @@ void SpatialGraph::query(const SpatialQuery& query, std::map<int, std::vector<Re
             sortKey = -nearestDistToAABB( query.frustum.getOrigin(), node->_bBox.min(), node->_bBox.max() );
             break;
          }
-			
-         if (renderableQueues.find(node->_type) == renderableQueues.end()) {
-            renderableQueues[node->_type] = std::vector<RendQueueItem>();
-            renderableQueues[node->_type].reserve(1000);
+         
+         if (node->getInstanceKey() != 0x0) {
+            if (instanceQueues.find(node->_type) == instanceQueues.end()) {
+               instanceQueues[node->_type] = InstanceRenderableQueue();
+            }
+            InstanceRenderableQueue& iq = instanceQueues[node->_type];
+            
+            const InstanceKey& ik = *(node->getInstanceKey());
+            if (iq.find(ik) == iq.end()) {
+               iq[ik] = RenderableQueue();
+               iq[ik].reserve(1000);
+            }
+            iq[ik].push_back(RendQueueItem(node->_type, sortKey, node));
+         } else {
+            if (renderableQueues.find(node->_type) == renderableQueues.end()) {
+               renderableQueues[node->_type] = RenderableQueue();
+               renderableQueues[node->_type].reserve(1000);
+            }
+            renderableQueues[node->_type].push_back( RendQueueItem( node->_type, sortKey, node ) );
          }
-         renderableQueues[node->_type].push_back( RendQueueItem( node->_type, sortKey, node ) );
       }
       if (query.useLightQueue && node->_type == SceneNodeTypes::Light) {		 
          lightQueue.push_back( node );
@@ -427,6 +441,12 @@ void SpatialGraph::query(const SpatialQuery& query, std::map<int, std::vector<Re
 	if( query.order != RenderingOrder::None ) {
       for (auto& item : renderableQueues) {
          std::sort( item.second.begin(), item.second.end(), RendQueueItemCompFunc() );
+      }
+
+      for (auto& item : instanceQueues) {
+         for (auto& queue : item.second) {
+            std::sort(queue.second.begin(), queue.second.end(), RendQueueItemCompFunc());
+         }
       }
    }
 }
@@ -465,13 +485,14 @@ SceneManager::~SceneManager()
 
 
 void SceneManager::registerType( int type, const std::string &typeString, NodeTypeParsingFunc pf,
-								 NodeTypeFactoryFunc ff, NodeTypeRenderFunc rf )
+								 NodeTypeFactoryFunc ff, NodeTypeRenderFunc rf, NodeTypeRenderFunc irf )
 {
 	NodeRegEntry entry;
 	entry.typeString = typeString;
 	entry.parsingFunc = pf;
 	entry.factoryFunc = ff;
 	entry.renderFunc = rf;
+   entry.instanceRenderFunc = irf;
 	_registry[type] = entry;
 }
 
@@ -556,9 +577,15 @@ void SceneManager::updateQueues( const char* reason, const Frustum &frustum1, co
        for (auto& item : sqr.renderableQueues) {
           item.second.resize(0);
        }
+
+       for (auto& item : sqr.instanceRenderableQueues) {
+          for (auto& instances : item.second) {
+             instances.second.resize(0);
+          }
+       }
     }
  
-    _spatialGraph->query(query, sqr.renderableQueues, sqr.lightQueue);
+    _spatialGraph->query(query, sqr.renderableQueues, sqr.instanceRenderableQueues, sqr.lightQueue);
 }
 
 
@@ -569,23 +596,32 @@ std::vector<SceneNode*>& SceneManager::getLightQueue()
 }
 
 
-std::vector<RendQueueItem>& SceneManager::getRenderableQueue(int itemType) 
+RenderableQueue& SceneManager::getRenderableQueue(int itemType) 
 { 
    ASSERT(_currentQuery != -1);
-   std::map<int, std::vector<RendQueueItem> > &renderQueues = _queryCache[_currentQuery].renderableQueues;
+   RenderableQueues& renderQueues = _queryCache[_currentQuery].renderableQueues;
    if (renderQueues.find(itemType) == renderQueues.end()) {
-      renderQueues[itemType] = std::vector<RendQueueItem>();
+      renderQueues[itemType] = RenderableQueue();
       renderQueues[itemType].reserve(1000);
    }
    return renderQueues[itemType];
 }
 
-std::map<int, std::vector<RendQueueItem> >& SceneManager::getRenderableQueues()
+RenderableQueues& SceneManager::getRenderableQueues()
 {
    ASSERT(_currentQuery != -1);
    return _queryCache[_currentQuery].renderableQueues;
 }
 
+InstanceRenderableQueue& SceneManager::getInstanceRenderableQueue(int itemType)
+{
+   ASSERT(_currentQuery != -1);
+   InstanceRenderableQueues& renderQueues = _queryCache[_currentQuery].instanceRenderableQueues;
+   if (renderQueues.find(itemType) == renderQueues.end()) {
+      renderQueues[itemType] = InstanceRenderableQueue();
+   }
+   return renderQueues[itemType];
+}
 
 NodeHandle SceneManager::parseNode( SceneNodeTpl &tpl, SceneNode *parent )
 {

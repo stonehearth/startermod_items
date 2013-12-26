@@ -133,24 +133,6 @@ struct GpuCompatibility {
    bool canDoShadows;
 };
 
-struct InstanceKey {
-   Resource* geoResource;
-   MaterialResource* matResource;
-
-   bool operator==(const InstanceKey& other) const {
-      return geoResource == other.geoResource &&
-         matResource == other.matResource;
-   }
-   bool operator!=(const InstanceKey& other) const {
-      return !(other == *this);
-   }
-};
-
-struct hash_InstanceKey {
-   size_t operator()(const InstanceKey& x) const {
-      return (uint32)(x.geoResource) ^ (uint32)(x.matResource);
-   }
-};
 
 class Renderer
 {
@@ -285,10 +267,12 @@ protected:
 	float                              _splitPlanes[5];
 	Matrix4f                           _lightMats[4];
 
-	uint32                             _vlPosOnly, _vlOverlay, _vlModel, _vlParticle, _vlVoxelModel, _vlClipspace, _vlPosColTex;
+	uint32                             _vlPosOnly, _vlOverlay, _vlModel, _vlParticle, _vlVoxelModel, _vlClipspace, _vlPosColTex, _vlInstanceVoxelModel;
 	uint32                             _vbCube, _ibCube, _vbSphere, _ibSphere;
 	uint32                             _vbCone, _ibCone, _vbFSPoly;
    uint32                             _vbFrust, _vbPoly, _ibPoly;
+
+   static uint32                      _vbInstanceVoxelData;
 
    // Feature-level compatibility of the card, determined by GPU specifics.
    GpuCompatibility                    gpuCompatibility_;

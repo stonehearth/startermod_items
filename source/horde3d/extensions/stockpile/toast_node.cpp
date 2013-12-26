@@ -49,7 +49,7 @@ bool ToastNode::InitExtension()
 	Modules::sceneMan().registerType(SNT_ToastNode, "Toast",
 		                              ToastNode::parsingFunc,
                                     ToastNode::factoryFunc,
-                                    ToastNode::renderFunc);
+                                    ToastNode::renderFunc, 0x0);
 
 	VertexLayoutAttrib attribs[2] = {
 		"vertPos",     0, 3, 0,
