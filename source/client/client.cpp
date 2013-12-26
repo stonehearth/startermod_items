@@ -163,6 +163,29 @@ Client::Client() :
       return result;
    });
 
+  //Send information about this build of the client
+   core_reactor_->AddRoute("radiant:client_about_info", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:client_about_info");
+      try {
+         json::Node node;
+         core::Config& config = core::Config::GetInstance();
+         node.set("product_name", PRODUCT_NAME);
+         node.set("product_major_version", PRODUCT_MAJOR_VERSION);
+         node.set("product_minor_version", PRODUCT_MINOR_VERSION);
+         node.set("product_patch_version", PRODUCT_PATCH_VERSION);
+         node.set("product_build_number", PRODUCT_BUILD_NUMBER);
+         node.set("product_revision", PRODUCT_REVISION);
+         node.set("product_branch", PRODUCT_BRANCH);
+         node.set("product_version_string", PRODUCT_VERSION_STR);
+         node.set("product_file_version_string", PRODUCT_FILE_VERSION_STR);
+         result->Resolve(node);
+      } catch (std::exception const& e) {
+         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
+      }
+      //return GetModules(f);
+      return result;
+   });
+
    //Allow user to opt in/out of analytics from JS
    core_reactor_->AddRoute("radiant:set_collection_status", [this](rpc::Function const& f) {
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:design_event");
