@@ -13,9 +13,10 @@ function ProxyWallBuilder:__init()
    self[ProxyBuilder]:__init(self, self._on_mouse_event, self._on_keyboard_event)
 end
 
-function ProxyWallBuilder:go()
+function ProxyWallBuilder:go(response)
    self:_start()
    self:add_column()
+   self._response = response
    
    return self
 end
@@ -86,6 +87,7 @@ function ProxyWallBuilder:_on_mouse_event(e)
             self:add_column():move_to_absolute(world_location)
          else
             self:publish()
+            self._response:resolve({ result = true })
          end
          return true
       end
