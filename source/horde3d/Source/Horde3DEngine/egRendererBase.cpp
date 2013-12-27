@@ -30,12 +30,16 @@ namespace Horde3D {
 #	define CHECK_GL_ERROR
 #endif
 
+// Because glGetError is surprisingly expensive.
+static bool _enable_gl_validation = false;
 void validateGLCall(const char* errorStr)
 {
-   uint32 error = glGetError();
-   if (error != GL_NO_ERROR) {
-      Modules::log().writeError(errorStr, error);
-      ASSERT(false);
+   if (_enable_gl_validation) {
+      uint32 error = glGetError();
+      if (error != GL_NO_ERROR) {
+         Modules::log().writeError(errorStr, error);
+         ASSERT(false);
+      }
    }
 }
 
@@ -107,6 +111,7 @@ void _stdcall glDebugCallback(unsigned int source, unsigned int type, unsigned i
 bool RenderDevice::init(int glMajor, int glMinor, bool enable_gl_logging)
 {
 	bool failed = false;
+   _enable_gl_validation = enable_gl_logging;
 
 	char *vendor = (char *)glGetString( GL_VENDOR );
 	char *renderer = (char *)glGetString( GL_RENDERER );
