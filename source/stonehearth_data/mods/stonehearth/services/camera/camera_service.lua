@@ -2,7 +2,7 @@ local Vec3 = _radiant.csg.Point3f
 local Quat = _radiant.csg.Quaternion
 local Ray = _radiant.csg.Ray3
 
-local gutter_size = 10
+local gutter_size = -1
 local scroll_speed = 150
 local smoothness = 0.0175
 local min_height = 10
