@@ -412,7 +412,7 @@ void SpatialGraph::query(const SpatialQuery& query, RenderableQueues& renderable
             break;
          }
          
-         if (node->getInstanceKey() != 0x0) {
+         if (node->getInstanceKey() != 0x0 && !query.forceNoInstancing) {
             if (instanceQueues.find(node->_type) == instanceQueues.end()) {
                instanceQueues[node->_type] = InstanceRenderableQueue();
             }
@@ -529,7 +529,7 @@ void SceneManager::updateNodes()
 
 
 void SceneManager::updateQueues( const char* reason, const Frustum &frustum1, const Frustum *frustum2, RenderingOrder::List order,
-                                 uint32 filterIgnore, uint32 filterRequired, bool useLightQueue, bool useRenderableQueue )
+                                 uint32 filterIgnore, uint32 filterRequired, bool useLightQueue, bool useRenderableQueue, bool forceNoInstancing )
 {
    radiant::perfmon::TimelineCounterGuard uq("updateQueues");
 
@@ -541,6 +541,7 @@ void SceneManager::updateQueues( const char* reason, const Frustum &frustum1, co
    query.secondaryFrustum = frustum2;
    query.useLightQueue = useLightQueue;
    query.useRenderableQueue = useRenderableQueue;
+   query.forceNoInstancing = forceNoInstancing;
 
    _currentQuery = _checkQueryCache(query);
  
@@ -943,6 +944,10 @@ int SceneManager::_checkQueryCache(const SpatialQuery& query)
    {
       SpatialQueryResult& r = _queryCache[i];
 
+      if (r.query.forceNoInstancing != query.forceNoInstancing) 
+      {
+         continue;
+      }
       if (r.query.filterIgnore != query.filterIgnore)
       {
          continue;

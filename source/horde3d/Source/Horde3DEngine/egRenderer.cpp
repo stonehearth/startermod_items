@@ -1063,7 +1063,7 @@ Matrix4f Renderer::calcCropMatrix( const Frustum &frustSlice, const Vec3f lightP
 	
 	// Find post-projective space AABB of all objects in frustum
 	Modules::sceneMan().updateQueues("calculating crop matrix", frustSlice, 0x0, RenderingOrder::None,
-		SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
+		SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true, true );
 	
    for (const auto& queue : Modules::sceneMan().getRenderableQueues())
    {
@@ -1337,7 +1337,7 @@ void Renderer::updateShadowMap(const Frustum* lightFrus, float maxDist)
    reason << "update shadowmap for light " << _curLight->getName();
 
 	Modules::sceneMan().updateQueues(reason.str().c_str(), *lightFrus, 0x0,
-		RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
+		RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true, true );
 	for( const auto& queue : Modules::sceneMan().getRenderableQueues() )
 	{
       for (const auto& entry : queue.second) 
@@ -1346,14 +1346,6 @@ void Renderer::updateShadowMap(const Frustum* lightFrus, float maxDist)
          litAabb.makeUnion(n->getBBox());
       }
 	}
-   for (const auto& instanceKind : Modules::sceneMan().getInstanceRenderableQueue(SceneNodeTypes::VoxelMesh))
-   {
-      for (const auto& instance : instanceKind.second)
-      {
-         SceneNode* n = instance.node;
-         litAabb.makeUnion(n->getBBox());
-      }
-   }
 
    // Calculate split distances using PSSM scheme
    const float nearDist = _curCamera->_frustNear;
@@ -1758,21 +1750,13 @@ float Renderer::computeTightCameraFarDistance()
    // First, get all the visible objects in the full camera's frustum.
    BoundingBox visibleAabb;
    Modules::sceneMan().updateQueues("computing tight camera", _curCamera->getFrustum(), 0x0,
-      RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
+      RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true, true);
    for( const auto& queue : Modules::sceneMan().getRenderableQueues() )
    {
       for (const auto& entry : queue.second)
       {
          SceneNode* n = entry.node;
 	      visibleAabb.makeUnion(n->getBBox());
-      }
-   }
-   for (const auto& instanceKind : Modules::sceneMan().getInstanceRenderableQueue(SceneNodeTypes::VoxelMesh))
-   {
-      for (const auto& instance : instanceKind.second)
-      {
-         SceneNode* n = instance.node;
-         visibleAabb.makeUnion(n->getBBox());
       }
    }
 
@@ -2932,7 +2916,7 @@ void Renderer::renderDebugView()
    if (gRDI->_frameDebugInfo.getSplitFrustums().size() > 0) {
       for (const auto& frust : gRDI->_frameDebugInfo.getSplitFrustums()) {
    	   Modules::sceneMan().updateQueues( "rendering debug view", frust, 0x0, RenderingOrder::None,
-	                                     SceneNodeFlags::NoDraw, 0, true, true );
+	                                     SceneNodeFlags::NoDraw, 0, true, true, true );
 	      gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &frustCol[frustNum * 4] );
          for (const auto& queue : Modules::sceneMan().getRenderableQueues())
          {
@@ -2946,7 +2930,7 @@ void Renderer::renderDebugView()
       }
    } else {
       Modules::sceneMan().updateQueues( "rendering debug view", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
-	                                    SceneNodeFlags::NoDraw, 0, true, true );
+	                                    SceneNodeFlags::NoDraw, 0, true, true, true );
 	   gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color[0] );
       for (const auto& queue : Modules::sceneMan().getRenderableQueues())
       {

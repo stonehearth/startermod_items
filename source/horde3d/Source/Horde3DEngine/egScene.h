@@ -233,6 +233,7 @@ struct SpatialQuery
   uint32 filterRequired;
   bool useRenderableQueue;
   bool useLightQueue;
+  bool forceNoInstancing;
 };
 
 struct RendQueueItem
@@ -319,7 +320,7 @@ public:
 	void updateNodes();
 	void updateSpatialNode( uint32 sgHandle ) { _spatialGraph->updateNode( sgHandle ); }
 	void updateQueues( const char* reason, const Frustum &frustum1, const Frustum *frustum2,
-	                   RenderingOrder::List order, uint32 filterIgnore, uint32 filterRequired, bool lightQueue, bool renderableQueue );
+	                   RenderingOrder::List order, uint32 filterIgnore, uint32 filterRequired, bool lightQueue, bool renderableQueue, bool forceNoInstancing=false );
 	
 	NodeHandle addNode( SceneNode *node, SceneNode &parent );
 	NodeHandle addNodes( SceneNode &parent, SceneGraphResource &sgRes );
