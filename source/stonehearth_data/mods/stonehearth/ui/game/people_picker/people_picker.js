@@ -14,6 +14,13 @@ App.StonehearthPeoplePickerView = App.View.extend({
 
    init: function() {
       this._super();
+      var self = this;
+      $(top).on('keyup keydown', function(e){
+         if (e.keyCode == 27) {
+            //If escape, close window
+            self.destroy();
+         }
+      });
    },
 
 
