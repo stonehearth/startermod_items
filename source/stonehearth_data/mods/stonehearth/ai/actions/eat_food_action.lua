@@ -170,7 +170,7 @@ function EatFoodAction:run(ai, entity, food)
 
    -- Log successful consumption
    -- TODO: move to personality service
-   event_service:add_entry(worker_name .. ': ' .. consumption_text .. '(+' .. satisfaction .. ')')
+   --event_service:add_entry(worker_name .. ': ' .. consumption_text .. '(+' .. satisfaction .. ')')
 
    --Log in personal event log
    local activity_name = radiant.entities.get_entity_data(food, 'stonehearth:activity_name')
