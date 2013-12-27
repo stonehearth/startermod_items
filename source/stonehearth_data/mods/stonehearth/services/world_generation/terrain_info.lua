@@ -2,6 +2,7 @@ local TerrainType = require 'services.world_generation.terrain_type'
 
 local TerrainInfo = class()
 
+-- TODO: get rid of min_heights. they are poorly defined
 function TerrainInfo:__init()
    local base_step_size = 8
 
@@ -39,9 +40,7 @@ function TerrainInfo:__init()
    assert(foothills_info.max_height % mountains_info.step_size == 0)
 
    -- tree lines
-   self.tree_line = foothills_info.max_height
-   self.max_deciduous_height = foothills_info.max_height
-   self.min_evergreen_height = grassland_info.max_height + 1
+   --self.tree_line = foothills_info.max_height+mountains_info.step_size*2
 end
 
 function TerrainInfo:get_terrain_type(height)

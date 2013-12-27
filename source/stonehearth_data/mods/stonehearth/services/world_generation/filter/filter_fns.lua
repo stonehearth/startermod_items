@@ -94,7 +94,6 @@ filter_kernel_025[8] = BoundaryNormalizingFilter({
    0.00009279680549883
 })
 
-
 -- 10th order, cutoff 0.25
 filter_kernel_025[10] = BoundaryNormalizingFilter({
   -3.81677788641566e-003,
@@ -110,6 +109,22 @@ filter_kernel_025[10] = BoundaryNormalizingFilter({
   -3.81677788641566e-003
 })
 
+local filter_kernel_0125 = {}
+-- 10th order, cutoff 0.125
+filter_kernel_0125[10] = BoundaryNormalizingFilter({
+   0.00774833287177528,
+   0.02185753757663184,
+   0.06357709836358459,
+   0.12485646766152922,
+   0.18048074645626977,
+   0.20295963414041854,
+   0.18048074645626982,
+   0.12485646766152926,
+   0.06357709836358461,
+   0.02185753757663185,
+   0.00774833287177528
+})
+
 function FilterFns.filter_2D_050(dst, src, src_width, src_height, filter_order)
    local filter_kernel = filter_kernel_050[filter_order]
    assert(filter_kernel ~= nil) -- not supported
@@ -119,6 +134,14 @@ end
 
 function FilterFns.filter_2D_025(dst, src, src_width, src_height, filter_order)
    local filter_kernel = filter_kernel_025[filter_order]
+   assert(filter_kernel ~= nil) -- not supported
+   assert(filter_kernel.filter ~= nil)
+
+   FilterFns.filter_2D_generic(dst, src, src_width, src_height, filter_kernel)
+end
+
+function FilterFns.filter_2D_0125(dst, src, src_width, src_height, filter_order)
+   local filter_kernel = filter_kernel_0125[filter_order]
    assert(filter_kernel ~= nil) -- not supported
    assert(filter_kernel.filter ~= nil)
 
