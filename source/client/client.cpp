@@ -485,13 +485,20 @@ void Client::mainloop()
    float alpha;
    game_clock_->EstimateCurrentGameTime(game_time, alpha);
 
+   Renderer::GetInstance().HandleResize();
+
+   perfmon::SwitchToCounter("Update browser frambuffer");
+   browser_->UpdateBrowserFrambufferPtrs(
+      (unsigned int*)Renderer::GetInstance().GetLastUiBuffer(), 
+      (unsigned int*)Renderer::GetInstance().GetNextUiBuffer());
+
    perfmon::SwitchToCounter("flush http events");
    http_reactor_->FlushEvents();
    if (browser_) {
       perfmon::SwitchToCounter("browser poll");
       browser_->Work();
-      auto cb = [](const csg::Region2 &rgn, const char* buffer) {
-         Renderer::GetInstance().UpdateUITexture(rgn, buffer);
+      auto cb = [](const csg::Region2 &rgn) {
+         Renderer::GetInstance().UpdateUITexture(rgn);
       };
       perfmon::SwitchToCounter("update browser display");
       browser_->UpdateDisplay(cb);
