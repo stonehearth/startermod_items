@@ -14,8 +14,7 @@ function BuildEditor:get_model()
 end
 
 function BuildEditor:place_new_wall(session, response)
-   ProxyWallBuilder():go()
-   return true
+   ProxyWallBuilder():go(response)
 end
 
 function BuildEditor:create_room(session, response)

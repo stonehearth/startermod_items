@@ -3,7 +3,7 @@ $(document).ready(function(){
    $(top).on("radiant_promote_to_profession", function (_, e) {
       var view = App.gameView.addView(App.StonehearthClassesPromoteView, { 
          talisman: e.entity,
-         promotionClass : 'XXX_TODO_INSERT_CLASS_NAME'
+         promotionClass : e.event_data.promotion_name
       });
    });
 });
@@ -51,11 +51,16 @@ App.StonehearthClassesPromoteView = App.View.extend({
             self.destroy();
          }
       });
+      $(top).on('keyup keydown', function(e){
+         if (e.keyCode == 27) {
+            //If escape, close window
+            self.destroy();
+         }
+      });
 
    },
 
    destroy: function() {
-      this.set('context.citizenToPromote', null);
       $(top).off("radiant_selection_changed.promote_view");
       App.gameView.getView(App.StonehearthUnitFrameView).supressSelection(false);
       this._super();
