@@ -15,9 +15,10 @@ function ScaffoldingFabricator:__init(entity, data_binding)
 end
 
 
-function ScaffoldingFabricator:support_project(project, normal)
+function ScaffoldingFabricator:support_project(project, blueprint, normal)
    assert(normal)
    
+   self._blueprint = blueprint
    self._project = project
    self._normal = normal
    self._entity_dst = self._entity:add_component('destination')
@@ -34,6 +35,7 @@ function ScaffoldingFabricator:support_project(project, normal)
    
    -- keep track of when the project changes so we can change the scaffolding
    self._project_dst = self._project:get_component('destination')
+   self._blueprint_dst = self._blueprint:get_component('destination')
    
    self._project_trace = self._project_dst:trace_region('generating scaffolding')
    self._project_trace:on_changed(function()
@@ -51,7 +53,7 @@ function ScaffoldingFabricator:_update_scaffolding_size()
    if not finished then
       self:_cover_project_region()
    else
-      -- make our region completely empty.  the fabricator will worrk about
+      -- make our region completely empty.  the fabricator will worry about
       -- the exact details of how this happens
       self:_clear_destination_region()
    end
@@ -59,12 +61,34 @@ end
 
 function ScaffoldingFabricator:_cover_project_region()
    local project_rgn = self._project_dst:get_region():get()
+   local blueprint_rgn = self._blueprint_dst:get_region():get()
    
-   -- scaffolding is 1 unit away from and not overlapping the project.
    self._entity_dst:get_region():modify(function(cursor)
-      cursor:copy_region(project_rgn)
-      cursor:translate(self._normal)
-      cursor:subtract_region(project_rgn)
+      -- scaffolding is 1 unit away from the project.  this is a huge
+      -- optimization to make sure the scaffolding both reaches the ground
+      -- at every point and has no gaps in it when the project has gaps
+      -- (e.g. for doors and windows).  it will not work, however, for
+      -- irregularaly sized projects.  revisit if those ever show up!
+      local bounds = project_rgn:get_bounds()
+      cursor:clear()
+      
+      if bounds:get_area() > 0 then
+         -- if the top row isn't finished, lower the height by 1.  the top
+         -- row is finished if the project - the blueprint is empty
+         local clipper = Cube3(Point3(-COORD_MAX, bounds.min.y, -COORD_MAX),
+                               Point3( COORD_MAX, bounds.max.y,  COORD_MAX))
+                               
+         if not (blueprint_rgn:clip(clipper) - project_rgn):empty() then
+            bounds.max = bounds.max - Point3(0, 1, 0)
+         end
+         if bounds:get_area() > 0 then
+            local rgn = Region3()
+            rgn:add_cube(bounds:translated(self._normal))
+
+            -- finally, don't overlap the project
+            cursor:copy_region(rgn - project_rgn)
+         end
+      end
    end)
    
    -- put a ladder in column 0.  this one is 2 units away from the
