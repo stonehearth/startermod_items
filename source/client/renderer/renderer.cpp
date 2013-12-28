@@ -290,9 +290,9 @@ void Renderer::BuildStarfield()
    for (int i = 0; i < NumStars * 4; i+=4)
    {
       Horde3D::Vec3f starPos(
-         rng.GenerateUniformReal(-1.0f, 1.0f), 
-         rng.GenerateUniformReal(-0.8f, 0.1f), 
-         rng.GenerateUniformReal(-1.0f, 1.0f));
+         rng.GetReal(-1.0f, 1.0f), 
+         rng.GetReal(-0.8f, 0.1f), 
+         rng.GetReal(-1.0f, 1.0f));
       starPos.normalize();
       starPos *= 900.0f;
       verts[i + 0] = starPos;
@@ -303,13 +303,13 @@ void Renderer::BuildStarfield()
 
    for (int i = 0; i < NumStars * 4 * 2; i+=8)
    {
-      int size = rng.GenerateUniformInt(1, 2);
+      int size = rng.GetInt(1, 2);
       texCoords[i + 0] = 0; texCoords[i + 1] = 0;
       texCoords[i + 2] = 2.0f * size; texCoords[i + 3] = 0;
       texCoords[i + 4] = 2.0f * size; texCoords[i + 5] = 2.0f * size;
       texCoords[i + 6] = 0; texCoords[i + 7] = 2.0f * size;
 
-      float brightness = rng.GenerateUniformInt(0, 1) == 0 ? 1.0f : 0.3f;
+      float brightness = rng.GetInt(0, 1) == 0 ? 1.0f : 0.3f;
       texCoords2[i + 0] = brightness; texCoords2[i + 1] = brightness;
       texCoords2[i + 2] = brightness; texCoords2[i + 3] = brightness;
       texCoords2[i + 4] = brightness; texCoords2[i + 5] = brightness;
