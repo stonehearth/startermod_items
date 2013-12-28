@@ -48,6 +48,17 @@ function WorkshopComponent:extend(json)
       else 
          --xxx populate a default skin
       end
+      if json.profession_name then
+         --TODO: specific crafter workshops should get their commands from a mixin,
+         --but the mixins never load before the extend functions.
+         --Make a more solid guarantee system of getting commands before this point.
+         local command_component = self._entity:get_component('stonehearth:commands')
+         if command_component then
+            command_component:modify_command('promote_to_profession', function(command) 
+                  command.event_data.promotion_name = json.profession_name     
+               end)
+         end
+      end
    end
    self._data_binding:mark_changed()
 end
