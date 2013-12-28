@@ -135,7 +135,7 @@ class Renderer
       bool GetShowDebugShapes();
       void SetShowDebugShapes(bool show_debug_shapes);
 
-      void UpdateUITexture(const csg::Region2& rgn, const char* buffer);
+      void UpdateUITexture(const csg::Region2& rgn);
 
       Camera* GetCamera() { return camera_; }
 
@@ -149,6 +149,10 @@ class Renderer
       void SetSkyColors(const csg::Point3f& startCol, const csg::Point3f& endCol);
       void SetStarfieldBrightness(float brightness);
 
+      void HandleResize();
+
+      void* GetNextUiBuffer();
+      void* GetLastUiBuffer();
    private:
       NO_COPY_CONSTRUCTOR(Renderer);
       RendererConfig config_;
@@ -226,6 +230,8 @@ class Renderer
       core::Slot<FrameStartInfo const&>   render_frame_start_slot_;
       std::unique_ptr<PerfHud>            perf_hud_;
       int                                 last_render_time_;
+      bool                                resize_pending_;
+      int                                 nextWidth_, nextHeight_;
       
       std::string                         lastGlfwError_;
 };

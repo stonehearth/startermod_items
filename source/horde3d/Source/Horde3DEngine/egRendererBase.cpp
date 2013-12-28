@@ -287,7 +287,7 @@ uint32 RenderDevice::createPixelBuffer( uint32 type, uint32 size, const void *da
    RDIBuffer buf = { 0xff };
    buf.type = type;
    buf.size = size;
-   buf.usage = GL_STREAM_DRAW;
+   buf.usage = GL_DYNAMIC_DRAW;
    glGenBuffers(1, &buf.glObj);
 
    ASSERT(buf.glObj != -1);

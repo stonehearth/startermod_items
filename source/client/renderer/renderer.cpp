@@ -59,7 +59,8 @@ Renderer::Renderer() :
    show_debug_shapes_changed_slot_("show debug shapes"),
    lastGlfwError_("none"),
    currentPipeline_(0),
-   iconified_(false)
+   iconified_(false),
+   resize_pending_(false)
 {
    terrainConfig_ = res::ResourceManager2::GetInstance().LookupJson("stonehearth/renderers/terrain/config.json");
    GetConfigOptions();
@@ -168,7 +169,9 @@ Renderer::Renderer() :
    input_.focused = true;
 
    glfwSetWindowSizeCallback(window, [](GLFWwindow *window, int newWidth, int newHeight) { 
-      Renderer::GetInstance().OnWindowResized(newWidth, newHeight);
+      Renderer::GetInstance().resize_pending_ = true;
+      Renderer::GetInstance().nextHeight_ = newHeight;
+      Renderer::GetInstance().nextWidth_ = newWidth;
    });
 
    glfwSetWindowIconifyCallback(window, [](GLFWwindow *window, int iconified) {
@@ -725,10 +728,19 @@ csg::Matrix4 Renderer::GetNodeTransform(H3DNode node) const
    return transform;
  }
 
-void Renderer::UpdateUITexture(const csg::Region2& rgn, const char* buffer)
+void Renderer::UpdateUITexture(const csg::Region2& rgn)
 {
    if (!rgn.IsEmpty()) {
-      uiBuffer_.update(buffer);
+      uiBuffer_.update();
+   }
+}
+
+void Renderer::HandleResize()
+{
+   if (resize_pending_)
+   {
+      resize_pending_ = false;
+      OnWindowResized(nextWidth_, nextHeight_);
    }
 }
 
@@ -759,6 +771,16 @@ void Renderer::ResizeViewport()
    
    // Set virtual camera parameters
    h3dSetupCameraView( camera, 45.0f, (float)windowWidth_ / windowHeight_, 2.0f, 1000.0f);
+}
+
+void* Renderer::GetNextUiBuffer()
+{
+   return uiBuffer_.getNextUiBuffer();
+}
+
+void* Renderer::GetLastUiBuffer()
+{
+   return uiBuffer_.getLastUiBuffer();
 }
 
 std::shared_ptr<RenderEntity> Renderer::CreateRenderObject(H3DNode parent, om::EntityPtr entity)
