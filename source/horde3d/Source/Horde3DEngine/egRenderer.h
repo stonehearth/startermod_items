@@ -32,6 +32,7 @@ struct ShaderContext;
 const uint32 MaxNumOverlayVerts = (1 << 16); // about 32k..
 const uint32 ParticlesPerBatch = 64;	// Warning: The GPU must have enough registers
 const uint32 QuadIndexBufCount = MaxNumOverlayVerts * 6;
+const uint32 MaxVoxelInstanceCount = 10000;
 
 extern const char *vsDefColor;
 extern const char *fsDefColor;
@@ -273,6 +274,7 @@ protected:
    uint32                             _vbFrust, _vbPoly, _ibPoly;
 
    static uint32                      _vbInstanceVoxelData;
+   static float*                      _vbInstanceVoxelBuf;
 
    // Feature-level compatibility of the card, determined by GPU specifics.
    GpuCompatibility                    gpuCompatibility_;

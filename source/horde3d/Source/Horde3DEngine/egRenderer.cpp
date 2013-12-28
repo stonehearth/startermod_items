@@ -52,7 +52,8 @@ const char *fsDefColor =
 	"	gl_FragColor = color;\n"
 	"}\n";
 
-uint32 Renderer::_vbInstanceVoxelData = 0;
+uint32 Renderer::_vbInstanceVoxelData;
+float* Renderer::_vbInstanceVoxelBuf;
 
 Renderer::Renderer()
 {
@@ -90,6 +91,7 @@ Renderer::~Renderer()
 	gRDI->destroyTexture( _defShadowMap );
 	gRDI->destroyBuffer( _particleVBO );
    gRDI->destroyBuffer(_vbInstanceVoxelData);
+   delete[] _vbInstanceVoxelBuf;
 	releaseShaderComb( _defColorShader );
 #if defined(OPTIMIZE_GSLS)
    glslopt_cleanup(_glsl_opt_ctx);
@@ -192,7 +194,8 @@ bool Renderer::init(int glMajor, int glMinor, bool enable_gl_logging)
    };
 	_vlInstanceVoxelModel = gRDI->registerVertexLayout( 4, attribsInstanceVoxelModel, divisorsInstanceVoxelModel );
 
-   _vbInstanceVoxelData = gRDI->createVertexBuffer(10000 * (4 * 4) * sizeof(float), DYNAMIC, nullptr);
+   _vbInstanceVoxelData = gRDI->createVertexBuffer(MaxVoxelInstanceCount * (4 * 4) * sizeof(float), DYNAMIC, nullptr);
+   _vbInstanceVoxelBuf = new float[MaxVoxelInstanceCount * (4 * 4)];
 
    VertexLayoutAttrib attribsParticle[2] = {
 		"texCoords0", 0, 2, 0,
@@ -1599,7 +1602,7 @@ void Renderer::drawOverlays( const std::string &shaderContext )
 	if( numOverlayVerts == 0 ) return;
 	
 	// Upload overlay vertices
-	gRDI->updateBufferData( _overlayVB, 0, MaxNumOverlayVerts * sizeof( OverlayVert ), _overlayVerts );
+	gRDI->updateBufferData( _overlayVB, 0, numOverlayVerts * sizeof( OverlayVert ), _overlayVerts );
 
 	gRDI->setVertexBuffer( 0, _overlayVB, 0, sizeof( OverlayVert ) );
 	gRDI->setIndexBuffer( _quadIdxBuf, IDXFMT_16 );
@@ -1610,14 +1613,12 @@ void Renderer::drawOverlays( const std::string &shaderContext )
 	
 	MaterialResource *curMatRes = 0x0;
 	
-	for( size_t i = 0, s = _overlayBatches.size(); i < s; ++i )
-	{
-		OverlayBatch &ob = _overlayBatches[i];
-		
+	gRDI->setVertexLayout( _vlOverlay );
+	for(auto& ob : _overlayBatches)
+	{		
 		if( curMatRes != ob.materialRes )
 		{
 			if( !setMaterial( ob.materialRes, shaderContext ) ) continue;
-			gRDI->setVertexLayout( _vlOverlay );
 			curMatRes = ob.materialRes;
 		}
 		
@@ -2537,8 +2538,8 @@ void Renderer::drawVoxelMeshes_Instances(const std::string &shaderContext, const
 		}
 
       // Collect transform data for every node of this mesh/material kind.
-      radiant::perfmon::SwitchToCounter("map transform buffer");
-      float* transformBuffer = (float*)gRDI->mapBuffer(_vbInstanceVoxelData);
+      radiant::perfmon::SwitchToCounter("copy mesh instances");
+      float* transformBuffer = _vbInstanceVoxelBuf;
       for (const auto& node : instanceKind.second) {
 		   const VoxelMeshNode *meshNode = (VoxelMeshNode *)node.node;
 		   const VoxelModelNode *modelNode = meshNode->getParentModel();
@@ -2546,7 +2547,7 @@ void Renderer::drawVoxelMeshes_Instances(const std::string &shaderContext, const
          memcpy(transformBuffer, meshNode->_absTrans.x, sizeof(float) * 16);
          transformBuffer += 16;
       }
-      gRDI->unmapBuffer(_vbInstanceVoxelData);
+      gRDI->updateBufferData(_vbInstanceVoxelData, 0, (transformBuffer - _vbInstanceVoxelBuf) * sizeof(float), _vbInstanceVoxelBuf);
 
       radiant::perfmon::SwitchToCounter("draw mesh instances");
       // Draw instanced meshes.

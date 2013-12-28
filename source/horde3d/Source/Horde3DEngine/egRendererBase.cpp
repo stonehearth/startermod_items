@@ -266,7 +266,7 @@ uint32 RenderDevice::createIndexBuffer( uint32 size, const void *data )
 
 	buf.type = GL_ELEMENT_ARRAY_BUFFER;
 	buf.size = size;
-   buf.usage = GL_DYNAMIC_DRAW;
+   buf.usage = GL_STATIC_DRAW;
 	glGenBuffers( 1, &buf.glObj );
    ASSERT(buf.glObj != -1);
    ASSERT(buf.glObj != 0);
@@ -328,11 +328,13 @@ void RenderDevice::updateBufferData( uint32 bufObj, uint32 offset, uint32 size, 
 	if( offset == 0 &&  size == buf.size )
 	{
 		// Replacing the whole buffer can help the driver to avoid pipeline stalls
+		glBufferData( buf.type, size, NULL, buf.usage );
 		glBufferData( buf.type, size, data, buf.usage );
    	glBindBuffer( buf.type, 0 );
 		return;
 	}
 
+	glBufferData( buf.type, buf.size, NULL, buf.usage );
 	glBufferSubData( buf.type, offset, size, data );
 
 	glBindBuffer( buf.type, 0 );
