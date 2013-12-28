@@ -25,6 +25,7 @@ function TerrainGenerator:__init(async, seed)
    if async == nil then async = false end
    if seed == nil then seed = default_seed end
 
+   -- TODO: most of these should be private/underscore fields
    self.async = async
    self.random_seed = seed
 
@@ -141,7 +142,7 @@ function TerrainGenerator:_create_tile_map(micro_map)
    self:_create_oversize_map_from_micro_map(oversize_map, micro_map)
    self:_yield()
 
-   self:_shape_height_map(oversize_map, self.frequency_scaling_coeff, self.wavelet_levels) -- CHECKCHECK
+   self:_shape_height_map(oversize_map, self.frequency_scaling_coeff, self.wavelet_levels)
    self:_yield()
 
    self:_quantize_height_map(oversize_map, false)

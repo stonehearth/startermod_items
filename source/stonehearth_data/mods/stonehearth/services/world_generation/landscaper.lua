@@ -33,10 +33,12 @@ local boulder_name = "boulder"
 
 local Landscaper = class()
 
-function Landscaper:__init(terrain_info, tile_width, tile_height)
+function Landscaper:__init(terrain_info, tile_width, tile_height, async, random_seed)
    self.terrain_info = terrain_info
    self.tile_width = tile_width
    self.tile_height = tile_height
+   self._async = async
+   self._random_seed = random_seed
 
    -- assert that macroblocks are an integer multiple of the perturbation cell size
    -- no longer support arbitrary alignments in anticipation of future features
@@ -48,6 +50,12 @@ function Landscaper:__init(terrain_info, tile_width, tile_height)
 
    self.noise_map_buffer = Array2D(self.feature_map.width, self.feature_map.height)
    self.density_map_buffer = Array2D(self.feature_map.width, self.feature_map.height)
+end
+
+function Landscaper:_yield()
+   if self._async then
+      coroutine.yield()
+   end
 end
 
 function Landscaper:clear_feature_map()
@@ -69,8 +77,11 @@ function Landscaper:place_flora(tile_map, world_offset_x, world_offset_y)
    end
 
    self:_place_trees(tile_map, place_item)
+   self:_yield()
    self:_place_berry_bushes(tile_map, place_item)
+   self:_yield()
    self:_place_flowers(tile_map, place_item)
+   self:_yield()
 end
 
 function Landscaper:_place_trees(tile_map, place_item)
@@ -88,7 +99,7 @@ function Landscaper:_place_trees(tile_map, place_item)
    local density_map = self.density_map_buffer
    local i, j, x, y, tree_type, tree_name, occupied, value, elevation, terrain_type
 
-   local get_noise_parameters = function(i, j)
+   local noise_fn = function(i, j)
       local mean = 0
       local std_dev = 100
 
@@ -132,10 +143,10 @@ function Landscaper:_place_trees(tile_map, place_item)
          end
       end
 
-      return mean, std_dev
+      return GaussianRandom.generate(mean, std_dev)
    end
 
-   self:_fill_noise_map(noise_map, get_noise_parameters)
+   noise_map:fill(noise_fn)
    FilterFns.filter_2D_0125(density_map, noise_map, noise_map.width, noise_map.height, 10)
 
    for j=1, density_map.height do
@@ -219,7 +230,7 @@ function Landscaper:_place_berry_bushes(tile_map, place_item)
       return true
    end
 
-   local get_noise_parameters = function(i, j)
+   local noise_fn = function(i, j)
       local mean = -45
       local std_dev = 30
 
@@ -242,10 +253,10 @@ function Landscaper:_place_berry_bushes(tile_map, place_item)
          end
       end
 
-      return mean, std_dev
+      return GaussianRandom.generate(mean, std_dev)
    end
 
-   self:_fill_noise_map(noise_map, get_noise_parameters)
+   noise_map:fill(noise_fn)
    FilterFns.filter_2D_050(density_map, noise_map, noise_map.width, noise_map.height, 6)
 
    for j=1, density_map.height do
@@ -293,7 +304,7 @@ function Landscaper:_place_flowers(tile_map, place_item)
    local density_map = self.density_map_buffer
    local i, j, x, y, occupied, value, elevation, terrain_type
 
-   local get_noise_parameters = function(i, j)
+   local noise_fn = function(i, j)
       local mean = 0
       local std_dev = 100
 
@@ -308,10 +319,10 @@ function Landscaper:_place_flowers(tile_map, place_item)
          mean = mean - 50
       end
 
-      return mean, std_dev
+      return GaussianRandom.generate(mean, std_dev)
    end
 
-   self:_fill_noise_map(noise_map, get_noise_parameters)
+   noise_map:fill(noise_fn)
    FilterFns.filter_2D_025(density_map, noise_map, noise_map.width, noise_map.height, 8)
 
    for j=1, density_map.height do
@@ -344,19 +355,6 @@ function Landscaper:_place_flowers(tile_map, place_item)
                end
             end
          end
-      end
-   end
-end
-
-function Landscaper:_fill_noise_map(noise_map, get_noise_parameters)
-   local mean, std_dev
-   local i, j, value
-
-   for j=1, noise_map.height do
-      for i=1, noise_map.width do
-         mean, std_dev = get_noise_parameters(i, j)
-         value = GaussianRandom.generate(mean, std_dev)
-         noise_map:set(i, j, value)
       end
    end
 end
@@ -538,6 +536,8 @@ function Landscaper:place_boulders(region3_boxed, tile_map)
          end
       end
    end)
+
+   self:_yield()
 end
 
 function Landscaper:_should_place_boulder(elevation)
