@@ -3,7 +3,7 @@ $(document).ready(function(){
    $(top).on("radiant_promote_to_profession", function (_, e) {
       var view = App.gameView.addView(App.StonehearthClassesPromoteView, { 
          talisman: e.entity,
-         promotionClass : 'XXX_TODO_INSERT_CLASS_NAME'
+         promotionClass : e.event_data.promotion_name
       });
    });
 });
