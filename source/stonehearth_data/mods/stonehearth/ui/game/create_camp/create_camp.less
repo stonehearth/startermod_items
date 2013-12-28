@@ -12,7 +12,6 @@
       width: 472px;
       height: 293px;
       background: url(./images/scroll_bg.png) no-repeat;
-      font-family: @parchmentFontFamily;
 
       #content {
          padding-top: 20px;
@@ -20,21 +19,21 @@
          padding-right: 40px;
 
          .title {
+            .controlFont;
             .outlined(#464a3d);
             color: #92a174;
-            font-size: 66px;
+            font-size: 34px;
          }
 
          .subtitle {
-            position: relative;
-            top: -20px;
-            color: #606d45;
-            font-size: 45px;
+            .controlFont;
+            font-size: 30px;
+            padding-bottom: 10px;
          }
 
          .help {
             position: relative;
-            font-size: 28px;
+            font-size: 16px;
          }
       }
    }
@@ -48,16 +47,6 @@
       bottom: -50px;
       left: 205px;
       background: url(./images/scroll2_bg.png) no-repeat;
-   
-      #content {
-         padding-top: 60px;
-
-         .help {
-            position: relative;
-            top: -20px;
-            color: #000;
-         }
-      }
    }
 
    #scroll3 {
@@ -65,16 +54,6 @@
       bottom: -60px;
       left: 215px;
       background: url(./images/scroll2_bg.png) no-repeat;
-
-      #content {
-         padding-top: 60px;
-
-         .help {
-            position: relative;
-            top: -20px;
-            color: #000;
-         }
-      }
    }
 
    .coverLink {

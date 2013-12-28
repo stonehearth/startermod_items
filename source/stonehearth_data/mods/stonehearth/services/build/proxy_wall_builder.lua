@@ -96,6 +96,9 @@ function ProxyWallBuilder:_on_mouse_event(e)
 end
 
 function ProxyWallBuilder:_on_keyboard_event(e)
+   if e.key == _radiant.client.KeyboardInput.ESC and e.down then
+      self:cancel()
+   end
    return false
 end
 

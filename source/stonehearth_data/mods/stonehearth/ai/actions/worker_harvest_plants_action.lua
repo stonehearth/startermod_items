@@ -50,8 +50,8 @@ function HarvestPlantsAction:run(ai, entity, path, task)
    self._task = task
 
    -- Log successful grab
-   -- TODO: localize!
-   event_service:add_entry(worker_name .. ' is collecting stuff from a ' .. plant_name)
+   -- TODO: localize, and put in log!
+   --event_service:add_entry(worker_name .. ' is collecting stuff from a ' .. plant_name)
 
    ai:execute('stonehearth:follow_path', path)
    radiant.entities.turn_to_face(entity, plant)
