@@ -301,6 +301,24 @@ Client::Client() :
       return nullptr;
    });
 
+   core_reactor_->AddRoute("radiant:set_draw_world", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:set_draw_world");
+
+      try {
+         json::Node node(f.args);
+         json::Node params = node.get_node(0);
+
+         if (params.has("draw_world")) {
+            Renderer::GetInstance().SetDrawWorld(params.get<bool>("draw_world", true));
+         }
+
+         result->ResolveWithMsg("success");
+      } catch (std::exception const& e) {
+         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
+      }
+      return result;
+   });
+
 }
 
 Client::~Client()

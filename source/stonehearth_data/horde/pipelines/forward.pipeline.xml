@@ -6,9 +6,12 @@
       <RenderTarget id="SkyTemp" numColBufs="1" depthBuf="false" format="RGBA8" scale="0.125"/>
    </Setup>
    <CommandQueue>
-      <Stage id="Sky">
+      <Stage id="Init">
          <SwitchTarget target="OUTPUT" />
          <ClearTarget depthBuf="true"/>
+      </Stage>
+      
+      <Stage id="Sky">
          <DrawGeometry context="SKY"/>
 
          <SwitchTarget target="SkyTemp" />

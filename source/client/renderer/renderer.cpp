@@ -110,6 +110,8 @@ Renderer::Renderer() :
 
    ApplyConfig();
 
+   SetDrawWorld(false);
+
    // Overlays
    fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
    panelMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/panel.material.xml", 0 );
@@ -771,6 +773,18 @@ void Renderer::ResizeViewport()
    
    // Set virtual camera parameters
    h3dSetupCameraView( camera, 45.0f, (float)windowWidth_ / windowHeight_, 2.0f, 1000.0f);
+}
+
+void Renderer::SetDrawWorld(bool drawWorld) 
+{
+   SetStageEnable("Sky", drawWorld);
+   SetStageEnable("Starfield", drawWorld);
+   SetStageEnable("Depth", drawWorld);
+   SetStageEnable("Light", drawWorld);
+   SetStageEnable("Clouds", drawWorld);
+   SetStageEnable("Fog", drawWorld);
+   SetStageEnable("Translucent", drawWorld);
+   SetStageEnable("Selected", drawWorld);
 }
 
 void* Renderer::GetNextUiBuffer()
