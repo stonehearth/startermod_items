@@ -10,12 +10,27 @@ App.StonehearthTitleScreenView = App.View.extend({
    didInsertElement: function() {
       var self = this;
 
+      radiant.call('radiant:client_about_info')
+         .done(function(o) {
+            self.set('context.productName', o.product_name + ' ' + o.product_version_string + ' (' + o.product_branch + ' ' +  o.product_build_number + ')');
+            self._populateAboutDetails(o);
+         });
+
       radiant.call('radiant:get_collection_status')
          .done(function(o) {
             if (!o.has_expressed_preference) {
                self.get('parentView').addView(App.StonehearthAnalyticsOptView)
             }
-         });  
+         }); 
+
+      $('#about').click(function(e) {
+         $('#aboutDetails').position({
+              of: $( "#about" ),
+              my: "right bottom",
+              at: "right top-10"
+            })
+            .fadeIn();
+      });
    },
 
    actions: {
@@ -36,5 +51,19 @@ App.StonehearthTitleScreenView = App.View.extend({
       credits: function() {
 
       }
+   },
+
+   _populateAboutDetails: function(o) {
+      var window = $('#aboutDetails');
+
+      window.html('<table>');
+
+      for (var property in o) {
+         if (o.hasOwnProperty(property)) {
+            window.append('<tr><td>' + property + '<td>' + o[property])      
+         }
+      }
+
+      window.append('</table>');
    }
 });

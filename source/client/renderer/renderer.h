@@ -153,6 +153,8 @@ class Renderer
 
       void* GetNextUiBuffer();
       void* GetLastUiBuffer();
+
+      void SetDrawWorld(bool drawWorld);
    private:
       NO_COPY_CONSTRUCTOR(Renderer);
       RendererConfig config_;

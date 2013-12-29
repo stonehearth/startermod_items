@@ -49,6 +49,12 @@ App.StonehearthUnitFrameView = App.View.extend({
 
    //When we hover over a command button, show its tooltip
    didInsertElement: function() {
+      if (this.get('uri')) {
+        this.show();
+      } else {
+        this.hide();
+      }
+      
       $('[title]').tipsy();
       
       /*
@@ -70,15 +76,11 @@ App.StonehearthUnitFrameView = App.View.extend({
    },
 
    show: function() {
-      $('#unitFrame').css({
-         opacity: 1.0
-      })      
+      $('#unitFrame').show();
    },
 
    hide: function() {
-      $('#unitFrame').css({
-         opacity: 0.0
-      })      
+      $('#unitFrame').hide();
    }
 
 });

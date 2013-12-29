@@ -27,15 +27,15 @@ public:
 
    // Generates integers that are uniformly distributed over the interval [min, max] (min and max inclusive)
    template <class T>
-   T GenerateUniformInt(T min, T max);
+   T GetInt(T min, T max);
 
    // Generates real numbers that are uniformly distributed over the interval [min, max) (includes min, excludes max)
    template <class T>
-   T GenerateUniformReal(T min, T max);
+   T GetReal(T min, T max);
 
    // Generates real numbers that are have a Gaussian/Normal distribution with the specified mean and standard deviation
    template <class T>
-   T GenerateGaussian(T mean, T std_dev);
+   T GetGaussian(T mean, T std_dev);
 
 private:
    NO_COPY_CONSTRUCTOR(RandomNumberGenerator);

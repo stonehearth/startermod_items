@@ -2,7 +2,7 @@ local Vec3 = _radiant.csg.Point3f
 local Quat = _radiant.csg.Quaternion
 local Ray = _radiant.csg.Ray3
 
-local gutter_size = 60
+local gutter_size = -1
 local scroll_speed = 150
 local smoothness = 0.0175
 local min_height = 10
@@ -10,10 +10,8 @@ local min_height = 10
 local CameraService = class()
 
 function CameraService:__init()
-  self:set_position(Vec3(0, 1, 0))
-  self:look_at(Vec3(0, 0, -1))
-
-  self:set_position(Vec3(50, 200, 150))
+  self:set_position(Vec3(0, 120, 190))
+  self:look_at(Vec3(0, -5, -150))
 
   self._next_position = self:get_position()
   self._continuous_delta = Vec3(0, 0, 0)

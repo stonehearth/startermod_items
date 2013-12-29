@@ -23,6 +23,10 @@ App.StonehearthLoadingScreenView = App.View.extend({
          value: 0
       });
 
+      var numBackgrounds = 6;
+      var imageUrl = '/stonehearth/ui/shell/loading_screen/images/bg' + Math.floor((Math.random()*numBackgrounds)) +'.jpg';
+      $('#randomScreen').css('background-image', 'url(' + imageUrl + ')');
+
    },
 
    updateProgress: function(result) {

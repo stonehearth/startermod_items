@@ -52,6 +52,9 @@ function ScaffoldingRenderer:__init(render_entity, ed)
                                              end)
       self:_update_shape()
    end
+
+   --Handle scaffolding tops
+   self._tops = {}
 end
 
 function ScaffoldingRenderer:destroy()
@@ -103,6 +106,7 @@ function ScaffoldingRenderer:_update_shape()
       for pt in cube:each_point() do
          local node = self:_create_segment_node(pt)
          self:_add_segment(pt, node)
+         self:_move_top(pt)
       end
    end
 
@@ -110,6 +114,7 @@ function ScaffoldingRenderer:_update_shape()
    for cube in extra:each_cube() do
       for pt in cube:each_point() do
          self:_remove_segment(pt)
+         self:_move_top(pt)
       end
    end
 end
@@ -123,9 +128,11 @@ function ScaffoldingRenderer:_create_segment_node(pt)
    local tangent = math.abs(pt[self._tangent])    
    local x = (self._pattern_width - 1) - tangent % self._pattern_width
    local y = pt.y % self._pattern_height
+   --TODO: derive z; right now our scaffolding is always z=0
+   local z = 0
 
    --Derive name of matrix (part of lattice we need from pt)
-   local matrix = string.format('scaffold_%d_%d',x, y )   
+   local matrix = string.format('scaffold_%d_%d_%d',x, y, z)   
    local node = _radiant.client.create_qubicle_matrix_node(self._node, self._lattice, matrix, self._origin)
    h3dSetNodeTransform(node, pt.x, pt.y, pt.z, 0, self._rotation, 0, self._scale, self._scale, self._scale)
    
@@ -161,6 +168,70 @@ function ScaffoldingRenderer:_remove_segment(pt)
       end
    end
 end
+
+--- When a piece of scaffolding is added/removed, move the top segment to the correct spot.
+--  @param pt - the point the top should be moved to. 
+function ScaffoldingRenderer:_move_top(pt)
+   local top_data = self:_get_top_node(pt)
+   local old_top_y = top_data.top_y
+   local new_top_y = self:_get_highest_y(pt)
+   if new_top_y ~= old_top_y then
+      --If the top y has changed...   
+      if new_top_y <= -1 then
+         --If the top y is -1, then we should remove the node
+         h3dRemoveNode(top_data.node)
+         self._tops[pt.x][pt.z] = nil
+      else
+         --Otherwise, just move the top
+         h3dSetNodeTransform(top_data.node, pt.x, new_top_y, pt.z, 0, self._rotation, 0, self._scale, self._scale, self._scale)
+      end
+   end
+end
+
+function ScaffoldingRenderer:_get_top_node(pt)
+   if not self._tops[pt.x] then
+      self._tops[pt.x] = {}
+   end
+   if not self._tops[pt.x][pt.z] then
+      self._tops[pt.x][pt.z] = {}
+      
+      local tangent = math.abs(pt[self._tangent])    
+      local x = (self._pattern_width - 1) - tangent % self._pattern_width
+      --TODO: derive z; right now our scaffolding is always z=0
+      local z = 0
+      local matrix = string.format('scaffold_%d_top_%d', x, z)   
+      local node = _radiant.client.create_qubicle_matrix_node(self._node, self._lattice, matrix, self._origin)
+      h3dSetNodeTransform(node, pt.x, pt.y, pt.z, 0, self._rotation, 0, self._scale, self._scale, self._scale)
+      self._tops[pt.x][pt.z] = {
+         node = node, 
+         top_y = pt.y
+      }
+   end
+   return self._tops[pt.x][pt.z]
+end
+
+function ScaffoldingRenderer:_get_highest_y(pt)
+   local scaffold_node = self._segments[pt.y][pt.x][pt.z]
+   local top_node_data = self:_get_top_node(pt)
+
+   if scaffold_node then
+      --This pt was just added
+      if pt.y > top_node_data.top_y then
+         top_node_data.top_y = pt.y
+      end
+   else
+      --this pt was just removed. Iterate through the remaining and find the highest y
+      local highest_y = pt.y - 1
+      for i, x_z_matrix in ipairs(self._segments) do
+         if i > highest_y and x_z_matrix[pt.x] and x_z_matrix[pt.x][pt.z] then
+            highest_y = i
+         end
+      end
+      top_node_data.top_y = highest_y
+   end
+   return top_node_data.top_y
+end
+
 
 return ScaffoldingRenderer
 

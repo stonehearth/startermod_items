@@ -3,7 +3,9 @@ local TerrainType = require 'services.world_generation.terrain_type'
 local TerrainGenerator = require 'services.world_generation.terrain_generator'
 local Landscaper = require 'services.world_generation.landscaper'
 local HeightMapRenderer = require 'services.world_generation.height_map_renderer'
+local FilterFns = require 'services.world_generation.filter.filter_fns'
 local Timer = require 'services.world_generation.timer'
+local RandomNumberGenerator = _radiant.csg.RandomNumberGenerator
 local Point3 = _radiant.csg.Point3
 
 local WorldGenerator = class()
@@ -11,25 +13,25 @@ local log = radiant.log.create_logger('world_generation')
 
 function WorldGenerator:__init(async, seed)
    self._async = async
+   self._seed = seed
    self._progress = 0
 
    local tg = TerrainGenerator(self._async, seed)
    self._terrain_generator = tg
    self._height_map_renderer = HeightMapRenderer(tg.tile_size, tg.terrain_info)
-   self._landscaper = Landscaper(tg.terrain_info, tg.tile_size, tg.tile_size)
+   self._landscaper = Landscaper(tg.terrain_info, tg.tile_size, tg.tile_size, self._async, self._seed)
 
    radiant.events.listen(radiant.events, 'stonehearth:slow_poll', self, self.on_poll)
 end
 
 function WorldGenerator:on_poll()
-   radiant.events.trigger(radiant.events, 'stonehearth:generate_world_progress', { 
+   radiant.events.trigger(radiant.events, 'stonehearth:generate_world_progress', {
       progress = self._progress
    })
 
    if self._progress == 100 then
       radiant.events.unlisten(radiant.events, 'stonehearth:slow_poll', self, self.on_poll)
    end
-
 end
 
 function WorldGenerator:create_world()
@@ -42,7 +44,6 @@ function WorldGenerator:create_world()
 
       local tiles
       tiles = self:_create_world_blueprint()
-      --tiles = self:_create_test_blueprint()
       self:_generate_world(tiles)
 
       cpu_timer:stop()
@@ -90,6 +91,7 @@ function WorldGenerator:_generate_world(tiles)
       offset_pt = Point3(offset_x, 0, offset_y)
 
       timer:start()
+      self._landscaper:clear_feature_map()
       region3_boxed = renderer:create_new_region()
       renderer:render_height_map_to_region(region3_boxed, tile_map)
       self._landscaper:place_boulders(region3_boxed, tile_map)
@@ -105,14 +107,12 @@ function WorldGenerator:_generate_world(tiles)
       self:_yield()
 
       self._progress = (n / #tile_order_list) * 100
-
    end
 
    radiant.events.trigger(radiant.events, 'stonehearth:generate_world_progress', {
       progress = 1,
       complete = true
    })
-
 end
 
 function WorldGenerator:_yield()
@@ -132,20 +132,59 @@ function WorldGenerator:_create_test_blueprint()
    return tiles
 end
 
-
 function WorldGenerator:_create_world_blueprint()
-   
-   --local r = Rng()
-   local t = {
-      TerrainType.Grassland,
-      TerrainType.Foothills,
-      TerrainType.Mountains,
-   }
+   local num_tiles_x = 5
+   local num_tiles_y = 5
+   local tiles = self:_get_empty_blueprint(num_tiles_x, num_tiles_y)
+   local noise_map = Array2D(num_tiles_x, num_tiles_y)
+   local height_map = Array2D(num_tiles_x, num_tiles_y)
+   local rng = RandomNumberGenerator() -- TODO: synchronize seeds
+   local i, j, value, terrain_type
+   local stats = {}
+   stats[TerrainType.Grassland] = 0
+   stats[TerrainType.Foothills] = 0
+   stats[TerrainType.Mountains] = 0
 
+   local noise_fn = function(i, j)
+      return rng:get_gaussian(50, 50)
+   end
+
+   noise_map:fill(noise_fn)
+   FilterFns.filter_2D_050(height_map, noise_map, noise_map.width, noise_map.height, 4)
+
+   --log:debug('blueprint noise map')
+   --noise_map:print()
+   --log:debug('blueprint height map')
+   --height_map:print()
+
+   for i=1, num_tiles_y do
+      for j=1, num_tiles_x do
+         value = height_map:get(i, j)
+         if value >= 70 then
+            terrain_type = TerrainType.Mountains
+            stats[TerrainType.Mountains] = stats[TerrainType.Mountains] + 1
+         elseif value >= 50 then
+            terrain_type = TerrainType.Foothills
+            stats[TerrainType.Foothills] = stats[TerrainType.Foothills] + 1
+         else
+            terrain_type = TerrainType.Grassland
+            stats[TerrainType.Grassland] = stats[TerrainType.Grassland] + 1
+         end
+         tiles:get(i, j).terrain_type = terrain_type
+      end
+   end
+
+   log:debug('Terrain distribution:')
+   log:debug('Grasslands: %d, Foothills: %d, Mountains: %d', stats[TerrainType.Grassland],
+      stats[TerrainType.Foothills], stats[TerrainType.Mountains])
+
+   return tiles
+end
+
+function WorldGenerator:_create_world_blueprint_old()
    local tiles = self:_get_empty_blueprint(5, 5)
    for i = 1, 5 do
       for j = 1, 5 do
-         --local random = r:generate_uniform_int(1, #t)
          local random = math.random(1, 1000)
          local type
          if random < 400 then
