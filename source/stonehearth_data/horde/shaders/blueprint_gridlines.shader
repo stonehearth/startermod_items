@@ -46,7 +46,7 @@ void main() {
 
 [[FS_BLUEPRINTS_DEPTH_PASS]]
 
-attribute vec3 gridLineCoords;
+vec3 gridLineCoords;
 
 void main() {
    gl_FragColor = vec4(0, 0, 0, 0);
@@ -56,14 +56,13 @@ void main() {
 
 uniform sampler3D gridMap;
 
-attribute vec3 gridLineCoords;
-attribute vec3 outColor;
+vec3 gridLineCoords;
+vec3 outColor;
 
 void main() {
    vec4 theColor = vec4(outColor, 1);
-   vec4 gridlineColor = vec4(0, .4, .8, .4);
-   vec4 gridline = texture(gridMap, gridLineCoords + vec3(0.5, 0, 0.5));
-   gridline = vec4(1, 1, 1, 1) - gridline;
-   gl_FragColor = vec4(theColor.rgb, 0.3) * (1-gridline.a) + gridline * gridlineColor;
+   vec4 gridlineColor = vec4(0.0, .4, .8, .4);
+   vec4 gridline = texture3D(gridMap, gridLineCoords + vec3(0.5, 0.0, 0.5));
+   gridline = vec4(1.0, 1.0, 1.0, 1.0) - gridline;
+   gl_FragColor = vec4(theColor.rgb, 0.3) * (1 - gridline.a) + gridline * gridlineColor;
 }
-
