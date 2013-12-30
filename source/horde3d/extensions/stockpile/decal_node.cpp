@@ -152,7 +152,7 @@ void DecalNode::UpdateShape(const Vertex* verts, int vertexCount)
 	gRDI->destroyBuffer(vertexBuffer_);
    vertexCount_ = vertexCount;
    if (vertexCount_) {
-      vertexBuffer_ = gRDI->createVertexBuffer(vertexCount_ * sizeof(Vertex), verts);
+      vertexBuffer_ = gRDI->createVertexBuffer(vertexCount_ * sizeof(Vertex), STREAM, verts);
    } else {
       vertexBuffer_ = 0;
    }

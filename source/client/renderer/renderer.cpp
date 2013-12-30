@@ -59,7 +59,8 @@ Renderer::Renderer() :
    show_debug_shapes_changed_slot_("show debug shapes"),
    lastGlfwError_("none"),
    currentPipeline_(0),
-   iconified_(false)
+   iconified_(false),
+   resize_pending_(false)
 {
    terrainConfig_ = res::ResourceManager2::GetInstance().LookupJson("stonehearth/renderers/terrain/config.json");
    GetConfigOptions();
@@ -108,6 +109,8 @@ Renderer::Renderer() :
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
 
    ApplyConfig();
+
+   SetDrawWorld(false);
 
    // Overlays
    fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
@@ -168,7 +171,9 @@ Renderer::Renderer() :
    input_.focused = true;
 
    glfwSetWindowSizeCallback(window, [](GLFWwindow *window, int newWidth, int newHeight) { 
-      Renderer::GetInstance().OnWindowResized(newWidth, newHeight);
+      Renderer::GetInstance().resize_pending_ = true;
+      Renderer::GetInstance().nextHeight_ = newHeight;
+      Renderer::GetInstance().nextWidth_ = newWidth;
    });
 
    glfwSetWindowIconifyCallback(window, [](GLFWwindow *window, int iconified) {
@@ -290,9 +295,9 @@ void Renderer::BuildStarfield()
    for (int i = 0; i < NumStars * 4; i+=4)
    {
       Horde3D::Vec3f starPos(
-         rng.GenerateUniformReal(-1.0f, 1.0f), 
-         rng.GenerateUniformReal(-0.8f, 0.1f), 
-         rng.GenerateUniformReal(-1.0f, 1.0f));
+         rng.GetReal(-1.0f, 1.0f), 
+         rng.GetReal(-0.8f, 0.1f), 
+         rng.GetReal(-1.0f, 1.0f));
       starPos.normalize();
       starPos *= 900.0f;
       verts[i + 0] = starPos;
@@ -303,13 +308,13 @@ void Renderer::BuildStarfield()
 
    for (int i = 0; i < NumStars * 4 * 2; i+=8)
    {
-      int size = rng.GenerateUniformInt(1, 2);
+      int size = rng.GetInt(1, 2);
       texCoords[i + 0] = 0; texCoords[i + 1] = 0;
       texCoords[i + 2] = 2.0f * size; texCoords[i + 3] = 0;
       texCoords[i + 4] = 2.0f * size; texCoords[i + 5] = 2.0f * size;
       texCoords[i + 6] = 0; texCoords[i + 7] = 2.0f * size;
 
-      float brightness = rng.GenerateUniformInt(0, 1) == 0 ? 1.0f : 0.3f;
+      float brightness = rng.GetInt(0, 1) == 0 ? 1.0f : 0.3f;
       texCoords2[i + 0] = brightness; texCoords2[i + 1] = brightness;
       texCoords2[i + 2] = brightness; texCoords2[i + 3] = brightness;
       texCoords2[i + 4] = brightness; texCoords2[i + 5] = brightness;
@@ -725,10 +730,19 @@ csg::Matrix4 Renderer::GetNodeTransform(H3DNode node) const
    return transform;
  }
 
-void Renderer::UpdateUITexture(const csg::Region2& rgn, const char* buffer)
+void Renderer::UpdateUITexture(const csg::Region2& rgn)
 {
    if (!rgn.IsEmpty()) {
-      uiBuffer_.update(buffer);
+      uiBuffer_.update();
+   }
+}
+
+void Renderer::HandleResize()
+{
+   if (resize_pending_)
+   {
+      resize_pending_ = false;
+      OnWindowResized(nextWidth_, nextHeight_);
    }
 }
 
@@ -759,6 +773,28 @@ void Renderer::ResizeViewport()
    
    // Set virtual camera parameters
    h3dSetupCameraView( camera, 45.0f, (float)windowWidth_ / windowHeight_, 2.0f, 1000.0f);
+}
+
+void Renderer::SetDrawWorld(bool drawWorld) 
+{
+   SetStageEnable("Sky", drawWorld);
+   SetStageEnable("Starfield", drawWorld);
+   SetStageEnable("Depth", drawWorld);
+   SetStageEnable("Light", drawWorld);
+   SetStageEnable("Clouds", drawWorld);
+   SetStageEnable("Fog", drawWorld);
+   SetStageEnable("Translucent", drawWorld);
+   SetStageEnable("Selected", drawWorld);
+}
+
+void* Renderer::GetNextUiBuffer()
+{
+   return uiBuffer_.getNextUiBuffer();
+}
+
+void* Renderer::GetLastUiBuffer()
+{
+   return uiBuffer_.getLastUiBuffer();
 }
 
 std::shared_ptr<RenderEntity> Renderer::CreateRenderObject(H3DNode parent, om::EntityPtr entity)

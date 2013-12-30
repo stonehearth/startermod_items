@@ -30,12 +30,16 @@ namespace Horde3D {
 #	define CHECK_GL_ERROR
 #endif
 
+// Because glGetError is surprisingly expensive.
+static bool _enable_gl_validation = false;
 void validateGLCall(const char* errorStr)
 {
-   uint32 error = glGetError();
-   if (error != GL_NO_ERROR) {
-      Modules::log().writeError(errorStr, error);
-      ASSERT(false);
+   if (_enable_gl_validation) {
+      uint32 error = glGetError();
+      if (error != GL_NO_ERROR) {
+         Modules::log().writeError(errorStr, error);
+         ASSERT(false);
+      }
    }
 }
 
@@ -107,6 +111,7 @@ void _stdcall glDebugCallback(unsigned int source, unsigned int type, unsigned i
 bool RenderDevice::init(int glMajor, int glMinor, bool enable_gl_logging)
 {
 	bool failed = false;
+   _enable_gl_validation = enable_gl_logging;
 
 	char *vendor = (char *)glGetString( GL_VENDOR );
 	char *renderer = (char *)glGetString( GL_RENDERER );
@@ -233,18 +238,19 @@ uint32 RenderDevice::registerVertexLayout( uint32 numAttribs, VertexLayoutAttrib
 // Buffers
 // =================================================================================================
 
-uint32 RenderDevice::createVertexBuffer( uint32 size, const void *data )
+uint32 RenderDevice::createVertexBuffer( uint32 size, uint32 usage, const void *data )
 {
    RDIBuffer buf = { 0xff };
 
 	buf.type = GL_ARRAY_BUFFER;
 	buf.size = size;
+   buf.usage = usage;
 	glGenBuffers( 1, &buf.glObj );
    ASSERT(buf.glObj != -1);
    ASSERT(buf.glObj != 0);
 
 	glBindBuffer( buf.type, buf.glObj );
-	glBufferData( buf.type, size, data, GL_DYNAMIC_DRAW );
+	glBufferData( buf.type, size, data, usage );
 	glBindBuffer( buf.type, 0 );
 	
    validateGLCall("Error creating vertex buffer: %d");
@@ -260,12 +266,13 @@ uint32 RenderDevice::createIndexBuffer( uint32 size, const void *data )
 
 	buf.type = GL_ELEMENT_ARRAY_BUFFER;
 	buf.size = size;
+   buf.usage = GL_DYNAMIC_DRAW;
 	glGenBuffers( 1, &buf.glObj );
    ASSERT(buf.glObj != -1);
    ASSERT(buf.glObj != 0);
 
    glBindBuffer( buf.type, buf.glObj );
-	glBufferData( buf.type, size, data, GL_DYNAMIC_DRAW );
+	glBufferData( buf.type, size, data, buf.usage );
 	glBindBuffer( buf.type, 0 );
 	
    validateGLCall("Error creating index buffer: %d");
@@ -280,13 +287,14 @@ uint32 RenderDevice::createPixelBuffer( uint32 type, uint32 size, const void *da
    RDIBuffer buf = { 0xff };
    buf.type = type;
    buf.size = size;
+   buf.usage = GL_DYNAMIC_DRAW;
    glGenBuffers(1, &buf.glObj);
 
    ASSERT(buf.glObj != -1);
    ASSERT(buf.glObj != 0);
 
    glBindBuffer(buf.type, buf.glObj);
-   glBufferData(buf.type, size, data, GL_STREAM_DRAW);
+   glBufferData(buf.type, size, data, buf.usage);
    glBindBuffer(buf.type, 0);
 
    validateGLCall("Error creating pixel buffer: %d");
@@ -320,7 +328,7 @@ void RenderDevice::updateBufferData( uint32 bufObj, uint32 offset, uint32 size, 
 	if( offset == 0 &&  size == buf.size )
 	{
 		// Replacing the whole buffer can help the driver to avoid pipeline stalls
-		glBufferData( buf.type, size, data, GL_DYNAMIC_DRAW );
+		glBufferData( buf.type, size, data, buf.usage );
    	glBindBuffer( buf.type, 0 );
 		return;
 	}
@@ -338,7 +346,7 @@ void* RenderDevice::mapBuffer(uint32 bufObj, bool discard)
 
    if (discard)
    {
-      glBufferData(buf.type, buf.size, NULL, GL_STREAM_DRAW);
+      glBufferData(buf.type, buf.size, NULL, buf.usage);
    }
    void* result = glMapBuffer(buf.type, GL_WRITE_ONLY);
    glBindBuffer(buf.type, 0);

@@ -58,7 +58,7 @@ WorldspaceLineHudElement::WorldspaceLineHudElement(NodeHandle parentNode, int wi
 {
    parentNode_ = parentNode;
 
-   rectVBO_ = gRDI->createVertexBuffer( sizeof(ScreenspaceRectVertex) * 4, 0x0 );
+   rectVBO_ = gRDI->createVertexBuffer( sizeof(ScreenspaceRectVertex) * 4, STREAM, 0x0 );
 
    // Create cube geometry indices.
    uint16 cubeInds[6] = {
@@ -144,7 +144,7 @@ void WorldspaceLineHudElement::updateGeometry(const Matrix4f& absTrans)
 ScreenspaceRectHudElement::ScreenspaceRectHudElement(int width, int height, int xOffset, int yOffset, Vec4f color, ResHandle matRes)
 {
    // Create cube geometry array
-   rectVBO_ = gRDI->createVertexBuffer( sizeof(ScreenspaceRectVertex) * 4, 0x0 );
+   rectVBO_ = gRDI->createVertexBuffer( sizeof(ScreenspaceRectVertex) * 4, STREAM, 0x0 );
 
    // Create cube geometry indices.
    uint16 cubeInds[6] = {
@@ -250,7 +250,7 @@ ScreenspaceRectHudElement::~ScreenspaceRectHudElement()
 WorldspaceRectHudElement::WorldspaceRectHudElement(float width, float height, float xOffset, float yOffset, Vec4f color, ResHandle matRes)
 {
    // Create cube geometry array
-   rectVBO_ = gRDI->createVertexBuffer( sizeof(WorldspaceRectVertex) * 4, 0x0 );
+   rectVBO_ = gRDI->createVertexBuffer( sizeof(WorldspaceRectVertex) * 4, STREAM, 0x0 );
 
    // Create cube geometry indices.
    uint16 cubeInds[6] = {

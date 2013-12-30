@@ -54,6 +54,7 @@ protected:
    void*                 _pinnedMemory;
    void*                 _pinnedMemoryAligned;
    bool                  _usePinnedMemory;
+   void*                 _streambuff;
 
    friend class ResourceManager;
 };

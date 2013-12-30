@@ -14,11 +14,10 @@ scope LuaRandomNumberGenerator::RegisterLuaTypes(lua_State* L)
       .def(constructor<>())
       .def(constructor<unsigned int>())
       .def("set_seed", &RandomNumberGenerator::SetSeed)
-      .def("generate_uniform_int", &RandomNumberGenerator::GenerateUniformInt<int>)
-      .def("generate_uniform_real", &RandomNumberGenerator::GenerateUniformReal<double>)
-      .def("generate_gaussian", &RandomNumberGenerator::GenerateGaussian<double>),
-
-   namespace_("RandomNumberGenerator") [
-       def("get_default_instance", &csg::RandomNumberGenerator::DefaultInstance)
-   ];
+      .def("get_int", &RandomNumberGenerator::GetInt<int>)
+      .def("get_real", &RandomNumberGenerator::GetReal<double>)
+      .def("get_gaussian", &RandomNumberGenerator::GetGaussian<double>)
+      ,
+      def("get_default_random_number_generator", &csg::RandomNumberGenerator::DefaultInstance)
+      ;      
 }

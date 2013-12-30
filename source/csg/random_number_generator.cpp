@@ -46,7 +46,7 @@ void RandomNumberGenerator::SetSeed(unsigned int seed)
 }
 
 template <class T>
-T RandomNumberGenerator::GenerateUniformInt(T min, T max)
+T RandomNumberGenerator::GetInt(T min, T max)
 {
    static_assert(std::is_integral<T>::value, "<T> must be an integral type");
    ASSERT(min <= max);
@@ -56,7 +56,7 @@ T RandomNumberGenerator::GenerateUniformInt(T min, T max)
 }
 
 template <class T>
-T RandomNumberGenerator::GenerateUniformReal(T min, T max)
+T RandomNumberGenerator::GetReal(T min, T max)
 {
    static_assert(std::is_floating_point<T>::value, "<T> must be a floating point type");
    ASSERT(min <= max);
@@ -66,7 +66,7 @@ T RandomNumberGenerator::GenerateUniformReal(T min, T max)
 }
 
 template <class T>
-T RandomNumberGenerator::GenerateGaussian(T mean, T std_dev)
+T RandomNumberGenerator::GetGaussian(T mean, T std_dev)
 {
    static_assert(std::is_floating_point<T>::value, "<T> must be a floating point type");
 
@@ -81,11 +81,11 @@ std::ostream& csg::operator<<(std::ostream& out, const RandomNumberGenerator& so
 }
 
 #define MAKE_INT_METHODS(T) \
-   template T RandomNumberGenerator::GenerateUniformInt(T min, T max);
+   template T RandomNumberGenerator::GetInt(T min, T max);
 
 #define MAKE_REAL_METHODS(T) \
-   template T RandomNumberGenerator::GenerateUniformReal(T min, T max); \
-   template T RandomNumberGenerator::GenerateGaussian(T mean, T std_dev);
+   template T RandomNumberGenerator::GetReal(T min, T max); \
+   template T RandomNumberGenerator::GetGaussian(T mean, T std_dev);
 
 MAKE_INT_METHODS(int)
 MAKE_INT_METHODS(unsigned int)

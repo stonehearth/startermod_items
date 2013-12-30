@@ -243,13 +243,13 @@ bool Renderer::init(int glMajor, int glMinor, bool enable_gl_logging)
 		parVerts[i * 4 + 2] = v2; parVerts[i * 4 + 2].index = (float)i;
 		parVerts[i * 4 + 3] = v3; parVerts[i * 4 + 3].index = (float)i;
 	}
-	_particleVBO = gRDI->createVertexBuffer( ParticlesPerBatch * 4 * sizeof( ParticleVert ), (float *)parVerts );
+	_particleVBO = gRDI->createVertexBuffer( ParticlesPerBatch * 4 * sizeof( ParticleVert ), STREAM, (float *)parVerts );
 	delete[] parVerts; parVerts = 0x0;
 
    // Create overlay geometry array;
    _overlayBatches.reserve( 64 );
 	_overlayVerts = new OverlayVert[MaxNumOverlayVerts];
-	_overlayVB = gRDI->createVertexBuffer( MaxNumOverlayVerts * sizeof( OverlayVert ), 0x0 );
+	_overlayVB = gRDI->createVertexBuffer( MaxNumOverlayVerts * sizeof( OverlayVert ), STREAM, 0x0 );
 
 	// Create unit primitives
 	createPrimitives();
@@ -309,10 +309,10 @@ void Renderer::createPrimitives()
 		0, 1, 2, 2, 3, 0,   1, 5, 6, 6, 2, 1,   5, 4, 7, 7, 6, 5,
 		4, 0, 3, 3, 7, 4,   3, 2, 6, 6, 7, 3,   4, 5, 1, 1, 0, 4
 	};
-	_vbCube = gRDI->createVertexBuffer( 8 * 3 * sizeof( float ), cubeVerts );
+	_vbCube = gRDI->createVertexBuffer( 8 * 3 * sizeof( float ), STATIC, cubeVerts );
 	_ibCube = gRDI->createIndexBuffer( 36 * sizeof( uint16 ), cubeInds );
 
-   _vbFrust = gRDI->createVertexBuffer(8 * 3 * sizeof( float ), nullptr);
+   _vbFrust = gRDI->createVertexBuffer(8 * 3 * sizeof( float ), STREAM, nullptr);
 
    uint16 polyInds[96];
    for (int i = 0; i < 31; i++) {
@@ -320,7 +320,7 @@ void Renderer::createPrimitives()
       polyInds[i * 3 + 1] = i + 1;
       polyInds[i * 3 + 2] = i + 2;
    }
-   _vbPoly = gRDI->createVertexBuffer(32 * 3 * sizeof( float ), nullptr);
+   _vbPoly = gRDI->createVertexBuffer(32 * 3 * sizeof( float ), STREAM, nullptr);
    _ibPoly = gRDI->createIndexBuffer(96 * sizeof(uint16), polyInds);
 
 	// Unit (geodesic) sphere (created by recursively subdividing a base octahedron)
@@ -347,7 +347,7 @@ void Renderer::createPrimitives()
 			spInds[j + 0] = nv - 3; spInds[j + 1] = nv - 2; spInds[j + 2] = nv - 1;
 		}
 	}
-	_vbSphere = gRDI->createVertexBuffer( 126 * sizeof( Vec3f ), spVerts );
+	_vbSphere = gRDI->createVertexBuffer( 126 * sizeof( Vec3f ), STREAM, spVerts );
 	_ibSphere = gRDI->createIndexBuffer( 128 * 3 * sizeof( uint16 ), spInds );
 	
 	// Unit cone
@@ -364,14 +364,14 @@ void Renderer::createPrimitives()
 		10, 6, 2,   10, 8, 6,   10, 9, 8,   8, 7, 6,   6, 4, 2,   6, 5, 4,   4, 3, 2,
 		2, 12, 10,   2, 1, 12,   12, 11, 10
 	};
-	_vbCone = gRDI->createVertexBuffer( 13 * 3 * sizeof( float ), coneVerts );
+	_vbCone = gRDI->createVertexBuffer( 13 * 3 * sizeof( float ), STREAM, coneVerts );
 	_ibCone = gRDI->createIndexBuffer( 22 * 3 * sizeof( uint16 ), coneInds );
 
 	// Fullscreen polygon
 	float fsVerts[3 * 3] = {  // x, y, z
 		0.f, 0.f, 1.f,   2.f, 0.f, 1.f,   0.f, 2.f, 1.f
 	};
-	_vbFSPoly = gRDI->createVertexBuffer( 3 * 3 * sizeof( float ), fsVerts );
+	_vbFSPoly = gRDI->createVertexBuffer( 3 * 3 * sizeof( float ), STREAM, fsVerts );
 }
 
 void Renderer::drawFrustum(const Frustum& frust)

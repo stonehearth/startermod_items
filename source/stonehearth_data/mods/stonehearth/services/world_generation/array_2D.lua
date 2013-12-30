@@ -61,6 +61,18 @@ function Array2D:clear(value)
    self:process_map(fn)
 end
 
+function Array2D:fill(fn)
+   local i, j, offset
+
+   offset = 1
+   for j=1, self.height do
+      for i=1, self.width do
+         self[offset] = fn(i, j)
+         offset = offset + 1
+      end
+   end
+end
+
 function Array2D:set_block(x, y, block_width, block_height, value)
    local function fn() return value end
    self:process_block(x, y, block_width, block_height, fn)

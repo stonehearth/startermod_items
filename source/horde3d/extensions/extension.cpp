@@ -112,7 +112,7 @@ void Extension::createCubeInstanceData()
 	cvs[6] = CubeVert(  0.5,  0.5, -0.5);
 	cvs[7] = CubeVert(  -0.5,  0.5,  -0.5);
 	
-	_cubeVBO = gRDI->createVertexBuffer( 8 * sizeof( CubeVert ), (float *)cvs );
+	_cubeVBO = gRDI->createVertexBuffer( 8 * sizeof( CubeVert ), STATIC, (float *)cvs );
 	uint16 cubeInds[36] = {
 		0, 1, 2, 2, 3, 0,   1, 5, 6, 6, 2, 1,   5, 4, 7, 7, 6, 5,
 		4, 0, 3, 3, 7, 4,   3, 2, 6, 6, 7, 3,   4, 5, 1, 1, 0, 4
@@ -154,7 +154,7 @@ void Extension::createCubeBatchData()
       cubeVerts[i * 8 + 6] = cvs[6]; cubeVerts[i * 8 + 6].index = (float)i;
       cubeVerts[i * 8 + 7] = cvs[7]; cubeVerts[i * 8 + 7].index = (float)i;
    }
-	_cubeBatchVBO = gRDI->createVertexBuffer( CubesPerBatch * 8 * sizeof( CubeBatchVert ), (float *)cubeVerts );
+	_cubeBatchVBO = gRDI->createVertexBuffer( CubesPerBatch * 8 * sizeof( CubeBatchVert ), STATIC, (float *)cubeVerts );
    delete[] cubeVerts;
 
    // Create cube geometry indices.

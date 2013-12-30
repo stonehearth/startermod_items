@@ -10,10 +10,8 @@ local min_height = 10
 local CameraService = class()
 
 function CameraService:__init()
-  self:set_position(Vec3(0, 1, 0))
-  self:look_at(Vec3(0, 0, -1))
-
-  self:set_position(Vec3(50, 200, 150))
+  self:set_position(Vec3(0, 120, 190))
+  self:look_at(Vec3(0, -5, -150))
 
   self._next_position = self:get_position()
   self._continuous_delta = Vec3(0, 0, 0)

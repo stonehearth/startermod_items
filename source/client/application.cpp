@@ -73,7 +73,7 @@ boost::asio::ip::tcp::acceptor* Application::FindServerPort()
    for (int i = 0; i < 10; i++)
    {
       // Pick any address after port 10000.
-      unsigned short port = rng.GenerateUniformInt(10000, 65535);
+      unsigned short port = rng.GetInt(10000, 65535);
       boost::asio::ip::tcp::resolver::query query("127.0.0.1", std::to_string(port));
       boost::asio::ip::tcp::endpoint endpoint = *resolver.resolve(query);
       boost::asio::ip::tcp::acceptor* tcp_acceptor;

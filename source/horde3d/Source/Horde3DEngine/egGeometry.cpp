@@ -33,7 +33,7 @@ int GeometryResource::mappedWriteStream = -1;
 
 void GeometryResource::initializationFunc()
 {
-	defVertBuffer = gRDI->createVertexBuffer( 0, 0x0 );
+	defVertBuffer = gRDI->createVertexBuffer( 0, STATIC, 0x0 );
 	defIndexBuffer = gRDI->createIndexBuffer( 0, 0x0 );
 }
 
@@ -74,9 +74,9 @@ Resource *GeometryResource::clone()
 	memcpy( res->_vertTanData, _vertTanData, _vertCount * sizeof( VertexDataTan ) );
 	memcpy( res->_vertStaticData, _vertStaticData, _vertCount * sizeof( VertexDataStatic ) );
 	res->_indexBuf = gRDI->createIndexBuffer( _indexCount * (_16BitIndices ? 2 : 4), _indexData );
-	res->_posVBuf = gRDI->createVertexBuffer( _vertCount * sizeof( Vec3f ), _vertPosData );
-	res->_tanVBuf = gRDI->createVertexBuffer( _vertCount * sizeof( VertexDataTan ), _vertTanData );
-	res->_staticVBuf = gRDI->createVertexBuffer( _vertCount * sizeof( VertexDataStatic ), _vertStaticData );
+	res->_posVBuf = gRDI->createVertexBuffer( _vertCount * sizeof( Vec3f ), STREAM, _vertPosData );
+	res->_tanVBuf = gRDI->createVertexBuffer( _vertCount * sizeof( VertexDataTan ), STREAM, _vertTanData );
+	res->_staticVBuf = gRDI->createVertexBuffer( _vertCount * sizeof( VertexDataStatic ), STATIC, _vertStaticData );
 	
 	return res;
 }
@@ -430,9 +430,9 @@ bool GeometryResource::load( const char *data, int size )
 		_indexBuf = gRDI->createIndexBuffer( _indexCount * (_16BitIndices ? 2 : 4), _indexData );
 		
 		// Upload vertices
-		_posVBuf = gRDI->createVertexBuffer(_vertCount * sizeof( Vec3f ), _vertPosData );
-		_tanVBuf = gRDI->createVertexBuffer( _vertCount * sizeof( VertexDataTan ), _vertTanData );
-		_staticVBuf = gRDI->createVertexBuffer( _vertCount * sizeof( VertexDataStatic ), _vertStaticData );
+		_posVBuf = gRDI->createVertexBuffer(_vertCount * sizeof( Vec3f ), STREAM, _vertPosData );
+		_tanVBuf = gRDI->createVertexBuffer( _vertCount * sizeof( VertexDataTan ), STREAM, _vertTanData );
+		_staticVBuf = gRDI->createVertexBuffer( _vertCount * sizeof( VertexDataStatic ), STATIC, _vertStaticData );
 	}
 	
 	return true;

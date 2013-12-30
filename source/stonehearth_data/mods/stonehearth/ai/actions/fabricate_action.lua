@@ -26,7 +26,7 @@ end
 
 function Fabricate:stop(ai, entity)
    if self._current_block then
-      self._fabricator._fabricator:release_block(self._current_block)
+      self._fabricator:release_block(self._current_block)
       self._current_block = nil
    end
 end

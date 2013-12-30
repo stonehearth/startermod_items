@@ -30,7 +30,11 @@ UiBuffer::~UiBuffer()
 
 H3DRes UiBuffer::getMaterial() const 
 {
-   return uiMatRes_[curBuff_];
+   int lastBuff = curBuff_ - 1;
+   if (lastBuff < 0) {
+      lastBuff = MAX_BUFFERS - 1;
+   }
+   return uiMatRes_[lastBuff];
 }
 
 void UiBuffer::buffersWereCleared()
@@ -45,22 +49,34 @@ void UiBuffer::buffersWereCleared()
    allocateBuffers(width_, height_);
 }
 
-void UiBuffer::update(const char* buffer)
+void* UiBuffer::getNextUiBuffer() const
+{
+   if (!uiPbo_[curBuff_]) {
+      return nullptr;
+   }
+
+   return h3dMapResStream(uiPbo_[curBuff_], 0, 0, 0, false, true);
+}
+
+void* UiBuffer::getLastUiBuffer() const
+{
+   int lastBuff = curBuff_ - 1;
+   if (lastBuff < 0) {
+      lastBuff = MAX_BUFFERS - 1;
+   }
+   if (!uiPbo_[lastBuff]) {
+      return nullptr;
+   }
+
+   return h3dMapResStream(uiPbo_[lastBuff], 0, 0, 0, false, true);
+}
+
+void UiBuffer::update()
 {
    if (!uiPbo_[curBuff_]) {
       return;
    }
 
-   perfmon::SwitchToCounter("map ui pbo");
-
-   char *data = (char *)h3dMapResStream(uiPbo_[curBuff_], 0, 0, 0, false, true);
-
-   if (data) {
-      perfmon::SwitchToCounter("copy client mem to ui pbo");
-      // If you think this is slow (bliting everything instead of just the dirty rects), please
-      // talk to Klochek; the explanation is too large to fit in the margins of this code....
-      memcpy(data, buffer, width_ * height_ * 4);
-   }
    perfmon::SwitchToCounter("unmap ui pbo");
    h3dUnmapResStream(uiPbo_[curBuff_]);
 

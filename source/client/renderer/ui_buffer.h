@@ -15,10 +15,12 @@ class UiBuffer
       ~UiBuffer();
 
       void buffersWereCleared();
-      void update(const char* buffer);
+      void update();
       void allocateBuffers(int width, int height);
       H3DRes getMaterial() const;
       bool isUiMaterial(H3DRes m) const;
+      void* getNextUiBuffer() const;
+      void* getLastUiBuffer() const;
 
    private:
       NO_COPY_CONSTRUCTOR(UiBuffer);

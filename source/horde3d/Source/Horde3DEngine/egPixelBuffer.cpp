@@ -42,6 +42,7 @@ PixelBufferResource::PixelBufferResource( const std::string &name, uint32 size) 
 	_loaded = true;
    _usePinnedMemory = usePinnedMemory();
    _pinnedMemory = nullptr;
+   _streambuff = new unsigned char[size];
 
    if (!_usePinnedMemory)
    {
@@ -68,6 +69,7 @@ void PixelBufferResource::initDefault()
 {
    _size = 0;
    _buffer = 0;
+   _streambuff = 0x0;
 }
 
 
@@ -75,7 +77,7 @@ void PixelBufferResource::release()
 {
    if (_pinnedMemory)
    {
-      delete _pinnedMemory;
+      delete[] _pinnedMemory;
       _pinnedMemory = nullptr;
    }
 
@@ -83,6 +85,11 @@ void PixelBufferResource::release()
    {
 	   gRDI->destroyBuffer(_buffer);
       _buffer = 0;
+   }
+
+   if (_streambuff) {
+      delete[] _streambuff;
+      _streambuff = 0x0;
    }
 }
 
@@ -112,7 +119,8 @@ void *PixelBufferResource::mapStream( int elem, int elemIdx, int stream, bool re
    {
       return _pinnedMemoryAligned;
    }
-   return gRDI->mapBuffer(_buffer);
+
+   return _streambuff;
 }
 
 
@@ -120,7 +128,7 @@ void PixelBufferResource::unmapStream()
 {
    if (!_usePinnedMemory)
    {
-     gRDI->unmapBuffer(_buffer);
+      gRDI->updateBufferData(_buffer, 0, _size, _streambuff);
    }
 }
 

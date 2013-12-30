@@ -301,6 +301,24 @@ Client::Client() :
       return nullptr;
    });
 
+   core_reactor_->AddRoute("radiant:set_draw_world", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:set_draw_world");
+
+      try {
+         json::Node node(f.args);
+         json::Node params = node.get_node(0);
+
+         if (params.has("draw_world")) {
+            Renderer::GetInstance().SetDrawWorld(params.get<bool>("draw_world", true));
+         }
+
+         result->ResolveWithMsg("success");
+      } catch (std::exception const& e) {
+         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
+      }
+      return result;
+   });
+
 }
 
 Client::~Client()
@@ -508,13 +526,20 @@ void Client::mainloop()
    float alpha;
    game_clock_->EstimateCurrentGameTime(game_time, alpha);
 
+   Renderer::GetInstance().HandleResize();
+
+   perfmon::SwitchToCounter("Update browser frambuffer");
+   browser_->UpdateBrowserFrambufferPtrs(
+      (unsigned int*)Renderer::GetInstance().GetLastUiBuffer(), 
+      (unsigned int*)Renderer::GetInstance().GetNextUiBuffer());
+
    perfmon::SwitchToCounter("flush http events");
    http_reactor_->FlushEvents();
    if (browser_) {
       perfmon::SwitchToCounter("browser poll");
       browser_->Work();
-      auto cb = [](const csg::Region2 &rgn, const char* buffer) {
-         Renderer::GetInstance().UpdateUITexture(rgn, buffer);
+      auto cb = [](const csg::Region2 &rgn) {
+         Renderer::GetInstance().UpdateUITexture(rgn);
       };
       perfmon::SwitchToCounter("update browser display");
       browser_->UpdateDisplay(cb);

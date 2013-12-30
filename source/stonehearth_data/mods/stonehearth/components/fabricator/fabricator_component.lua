@@ -28,6 +28,10 @@ function FabricatorComponent:remove_block(location)
    return self._fabricator:remove_block(location)
 end
 
+function FabricatorComponent:release_block(location)
+   return self._fabricator:release_block(location)
+end
+
 function FabricatorComponent:start_project(name, blueprint)
    self.name = name and name or '-- unnamed --'
    log:debug('starting project %s', self.name)
