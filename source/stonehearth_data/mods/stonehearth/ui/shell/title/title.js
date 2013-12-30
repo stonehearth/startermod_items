@@ -31,6 +31,17 @@ App.StonehearthTitleScreenView = App.View.extend({
             })
             .fadeIn();
       });
+
+      $(document).keyup(function(e) {
+         if (e.keyCode == 27) { // esc
+            $('#titlescreen').show();
+         }   
+      });
+
+      $('#radiant').fadeIn(800);
+      setTimeout(function() {
+         $('#titlescreen').fadeIn(800);
+      }, 3000)
    },
 
    actions: {
