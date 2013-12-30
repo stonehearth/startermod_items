@@ -4,6 +4,7 @@ local TerrainGenerator = require 'services.world_generation.terrain_generator'
 local Landscaper = require 'services.world_generation.landscaper'
 local HeightMapRenderer = require 'services.world_generation.height_map_renderer'
 local FilterFns = require 'services.world_generation.filter.filter_fns'
+local MathFns = require 'services.world_generation.math.math_fns'
 local Timer = require 'services.world_generation.timer'
 local RandomNumberGenerator = _radiant.csg.RandomNumberGenerator
 local Point3 = _radiant.csg.Point3
@@ -140,37 +141,56 @@ function WorldGenerator:_create_world_blueprint()
    local height_map = Array2D(num_tiles_x, num_tiles_y)
    local rng = RandomNumberGenerator() -- TODO: synchronize seeds
    local i, j, value, terrain_type
+
+   local noise_fn = function(i, j)
+      return rng:get_gaussian(55, 50)
+   end
+
+   while (true) do
+      noise_map:fill(noise_fn)
+      FilterFns.filter_2D_050(height_map, noise_map, noise_map.width, noise_map.height, 4)
+
+      --log:debug('blueprint noise map')
+      --noise_map:print()
+      --log:debug('blueprint height map')
+      --height_map:print()
+
+      for i=1, num_tiles_y do
+         for j=1, num_tiles_x do
+            value = height_map:get(i, j)
+            if value >= 65 then
+               terrain_type = TerrainType.Mountains
+            elseif value >= 50 then
+               terrain_type = TerrainType.Foothills
+            else
+               terrain_type = TerrainType.Grassland
+            end
+            tiles:get(i, j).terrain_type = terrain_type
+         end
+      end
+
+      -- need this for maps with small sample size
+      if self:_is_playable_map(tiles) then
+         break
+      end
+   end
+
+   return tiles
+end
+
+function WorldGenerator:_is_playable_map(tiles)
+   local i, j, terrain_type, percent_mountains
+   local total_tiles = tiles.width * tiles.height
    local stats = {}
+
    stats[TerrainType.Grassland] = 0
    stats[TerrainType.Foothills] = 0
    stats[TerrainType.Mountains] = 0
 
-   local noise_fn = function(i, j)
-      return rng:get_gaussian(50, 50)
-   end
-
-   noise_map:fill(noise_fn)
-   FilterFns.filter_2D_050(height_map, noise_map, noise_map.width, noise_map.height, 4)
-
-   --log:debug('blueprint noise map')
-   --noise_map:print()
-   --log:debug('blueprint height map')
-   --height_map:print()
-
-   for i=1, num_tiles_y do
-      for j=1, num_tiles_x do
-         value = height_map:get(i, j)
-         if value >= 70 then
-            terrain_type = TerrainType.Mountains
-            stats[TerrainType.Mountains] = stats[TerrainType.Mountains] + 1
-         elseif value >= 50 then
-            terrain_type = TerrainType.Foothills
-            stats[TerrainType.Foothills] = stats[TerrainType.Foothills] + 1
-         else
-            terrain_type = TerrainType.Grassland
-            stats[TerrainType.Grassland] = stats[TerrainType.Grassland] + 1
-         end
-         tiles:get(i, j).terrain_type = terrain_type
+   for j=1, tiles.height do
+      for i=1, tiles.width do
+         terrain_type = tiles:get(i, j).terrain_type
+         stats[terrain_type] = stats[terrain_type] + 1
       end
    end
 
@@ -178,7 +198,9 @@ function WorldGenerator:_create_world_blueprint()
    log:debug('Grasslands: %d, Foothills: %d, Mountains: %d', stats[TerrainType.Grassland],
       stats[TerrainType.Foothills], stats[TerrainType.Mountains])
 
-   return tiles
+   percent_mountains = stats[TerrainType.Mountains] / total_tiles
+
+   return MathFns.in_bounds(percent_mountains, 0.20, 0.40)
 end
 
 function WorldGenerator:_create_world_blueprint_old()
