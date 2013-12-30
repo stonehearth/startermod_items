@@ -198,7 +198,7 @@ void Browser::OnPaint(CefRefPtr<CefBrowser> browser,
    }
 
    draw_count_++;
-   if (browser_framebuffer_ == nullptr || draw_count_ > 1) {
+   if (browser_framebuffer_ == nullptr) {
       return;
    }
 
