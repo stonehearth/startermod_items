@@ -579,7 +579,7 @@ function Landscaper:_create_boulder(x, y, elevation)
    local step_size = terrain_info[terrain_type].step_size
    local boulder_region = Region3()
    local boulder_center = Point3(x, elevation, y)
-   local i, j, half_width, half_length, half_height, boulder, chip, chunk
+   local i, j, half_width, half_length, half_height, boulder, chunk
 
    half_width, half_length, half_height = self:_get_boulder_dimensions(terrain_type)
 
@@ -592,10 +592,14 @@ function Landscaper:_create_boulder(x, y, elevation)
    boulder_region:add_cube(boulder)
 
    -- take out a small chip from each corner of larger boulders
-   if half_width * half_length >= 16 then
+   local avg_length = MathFns.round((2*half_width + 2*half_length) * 0.5)
+   if avg_length >= 6 then
+      local chip_size = MathFns.round(avg_length * 0.15)
+      local chip
+
       for j=-1, 1, 2 do
          for i=-1, 1, 2 do
-            chip = self:_get_boulder_chip(i, j, 2, boulder_center,
+            chip = self:_get_boulder_chip(i, j, chip_size, boulder_center,
                                           half_width, half_height, half_length)
             boulder_region:subtract_cube(chip)
          end
