@@ -16,13 +16,6 @@ App.StonehearthTitleScreenView = App.View.extend({
             self._populateAboutDetails(o);
          });
 
-      radiant.call('radiant:get_collection_status')
-         .done(function(o) {
-            if (!o.has_expressed_preference) {
-               self.get('parentView').addView(App.StonehearthAnalyticsOptView)
-            }
-         }); 
-
       $('#about').click(function(e) {
          $('#aboutDetails').position({
               of: $( "#about" ),
@@ -39,8 +32,18 @@ App.StonehearthTitleScreenView = App.View.extend({
       });
 
       $('#radiant').fadeIn(800);
+      
       setTimeout(function() {
-         $('#titlescreen').fadeIn(800);
+         $('#titlescreen').fadeIn(800, function() {
+
+            radiant.call('radiant:get_collection_status')
+               .done(function(o) {
+                  if (!o.has_expressed_preference) {
+                     self.get('parentView').addView(App.StonehearthAnalyticsOptView)
+                  }
+               }); 
+
+         });
       }, 3000)
    },
 
