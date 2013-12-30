@@ -138,8 +138,7 @@ function AiService:start_ai(entity, obj)
    end
 end
 
-function AiService:stop_ai(entity)
-   local id = entity:get_id();
+function AiService:stop_ai(id)
    self._entities[id] = nil
    self._ai_components[id] = nil
 end
