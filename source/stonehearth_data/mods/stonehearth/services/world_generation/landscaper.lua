@@ -592,10 +592,10 @@ function Landscaper:_create_boulder(x, y, elevation)
    boulder_region:add_cube(boulder)
 
    -- take out a small chip from each corner of larger boulders
-   if half_width * half_length >= 36 then
+   if half_width * half_length >= 16 then
       for j=-1, 1, 2 do
          for i=-1, 1, 2 do
-            chip = self:_get_boulder_chip(i, j, 1, boulder_center,
+            chip = self:_get_boulder_chip(i, j, 2, boulder_center,
                                           half_width, half_height, half_length)
             boulder_region:subtract_cube(chip)
          end
