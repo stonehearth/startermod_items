@@ -17,6 +17,7 @@
 #include "lib/lua/lua.h"
 #include "namespace.h"
 #include "protocols/tesseract.pb.h"
+#include "lib/perfmon/timeline.h"
 #include "protocol.h"
 
 using boost::asio::ip::tcp;
@@ -71,7 +72,6 @@ public:
 
    bool ProcessMessage(std::shared_ptr<RemoteClient> c, const tesseract::protocol::Request& msg);
    void EncodeUpdates(protocol::SendQueuePtr queue);
-   void Step();
 
    om::EntityPtr GetRootEntity();
    phys::OctTree &GetOctTree();
@@ -89,19 +89,24 @@ private:
    void ProcessTaskList();
    void ProcessJobList();
    void StepPathFinding();
+   rpc::ReactorDeferredPtr StartTaskManager();
+   void UpdateGameState();
+   void UpdateCollisions();
+
    void SendReply(tesseract::protocol::PostCommandReply const& reply);
    void InitializeModules();
    void InitDataModel();
    void main(); // public for the server.  xxx - there's a better way to factor this between the server and the in-proc listen server
-   void mainloop();
-   void idle();
-   void update_simulation();
-   void send_client_updates();
+   void Mainloop();
+   void Idle();
+   void SendClientUpdates();
             
    //void OnCellHover(render3d::RendererInterface *renderer, int x, int y, int z);
    //void on_keyboard_pressed(render3d::RendererInterface *renderer, const render3d::keyboard_event &e);
 
-   void process_messages();
+   void ReadClientMessages();
+   void FireLuaTraces();
+   void LuaGC();
 
    void start_accept();
    void handle_accept(std::shared_ptr<tcp::socket> s, const boost::system::error_code& error);
@@ -161,6 +166,9 @@ private:
    int                                 net_send_interval_;
    float                               base_walk_speed_;
    bool                                profile_next_lua_update_;
+   rpc::ReactorDeferredPtr             task_manager_deferred_;
+   perfmon::Timeline                   perf_timeline_;
+   core::Guard                         on_frame_end_guard_;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

@@ -6,13 +6,11 @@ App.StonehearthTaskManagerView = App.View.extend({
       var self = this;
       self.set('context', {});
 
-      radiant.call('stonehearth:get_clock_object')
-         .done(function(o) {
-            this.trace = radiant.trace(o.clock_object)
-               .progress(function(response) {
-                  self.set('context.data', response);
-               })
-         });
+      radiant.call('radiant:game:start_task_manager')
+            .progress(function (response) {
+               var foo = JSON.stringify(response)
+               self.set('context.data', foo);
+            })
    },
 
    destroy: function() {

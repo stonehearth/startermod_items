@@ -7,7 +7,6 @@
 #include "radiant_exceptions.h"
 #include "platform/utils.h"
 #include "simulation.h"
-#include "metrics.h"
 #include "jobs/path_finder.h"
 #include "jobs/follow_path.h"
 #include "jobs/goto_location.h"
@@ -46,6 +45,7 @@
 #include "lib/rpc/lua_module_router.h"
 #include "lib/rpc/lua_object_router.h"
 #include "remote_client.h"
+#include "lib/perfmon/frame.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -55,6 +55,8 @@ namespace po = boost::program_options;
 
 #define SIM_LOG(level)              LOG(simulation.core, level)
 #define SIM_LOG_GAMELOOP(level)     LOG_CATEGORY(simulation.core, level, "simulation.core (time left: " << game_loop_timer_.remaining() << ")")
+
+#define MEASURE_TASK_TIME(category)  perfmon::TimelineCounterGuard taskman_timer_ ## __LINE__ (perf_timeline_, category);
 
 Simulation::Simulation() :
    _showDebugNodes(false),
@@ -110,6 +112,9 @@ Simulation::Simulation() :
    });
    core_reactor_->AddRouteV("radiant:step_paths", [this](rpc::Function const& f) {
       StepPathFinding();
+   });
+   core_reactor_->AddRoute("radiant:game:start_task_manager", [this](rpc::Function const& f) {
+      return StartTaskManager();
    });
    core_reactor_->AddRouteV("radiant:profile_next_lua_upate", [this](rpc::Function const& f) {
       profile_next_lua_update_ = true;
@@ -185,6 +190,30 @@ void Simulation::CreateNew()
    now_ = 0;
 }
 
+rpc::ReactorDeferredPtr Simulation::StartTaskManager()
+{
+   if (!task_manager_deferred_) {
+      task_manager_deferred_ = std::make_shared<rpc::ReactorDeferred>("game task_manager");
+      on_frame_end_guard_ = perf_timeline_.OnFrameEnd([this](perfmon::Frame* frame) {
+         json::Node times(JSONNode(JSON_ARRAY));
+         perfmon::CounterValueType total_time = 0;
+         for (perfmon::Counter const* counter : frame->GetCounters()) {
+            json::Node entry;
+            perfmon::CounterValueType time = counter->GetValue();
+            entry.set("name", counter->GetName());
+            entry.set("time", perfmon::CounterToMilliseconds(time));
+            times.add(entry);
+            total_time += time;
+         }
+         json::Node summary;
+         summary.set("counters", times);
+         summary.set("total_time", perfmon::CounterToMilliseconds(total_time));
+         task_manager_deferred_->Notify(summary);
+      });
+   }
+   return task_manager_deferred_;
+}
+
 void Simulation::StepPathFinding()
 {
    platform::timer t(1000);
@@ -206,12 +235,17 @@ void Simulation::Load(std::string id)
    ASSERT(false);
 }
 
-void Simulation::Step()
+void Simulation::FireLuaTraces()
 {
-   PROFILE_BLOCK();
-   lastNow_ = now_;
+   MEASURE_TASK_TIME("lua")
 
-   //IncrementClock(interval);
+   SIM_LOG_GAMELOOP(7) << "firing lua traces";
+   lua_traces_->Flush();
+}
+
+void Simulation::UpdateGameState()
+{
+   MEASURE_TASK_TIME("lua")
 
    // Run AI...
    SIM_LOG_GAMELOOP(7) << "calling lua update";
@@ -222,16 +256,15 @@ void Simulation::Step()
       GetScript().ReportCStackThreadException(GetScript().GetCallbackThread(), e);
    }
    profile_next_lua_update_ = false;
+}
+
+void Simulation::UpdateCollisions()
+{
+   MEASURE_TASK_TIME("collisions")
 
    // Collision detection...
    SIM_LOG_GAMELOOP(7) << "updating collision system";
    GetOctTree().Update(now_);
-
-   ProcessTaskList();
-   ProcessJobList();
-
-   SIM_LOG_GAMELOOP(7) << "firing lua traces";
-   lua_traces_->Flush();
 }
 
 void Simulation::EncodeBeginUpdate(std::shared_ptr<RemoteClient> c)
@@ -339,7 +372,7 @@ void Simulation::EncodeDebugShapes(protocol::SendQueuePtr queue)
 
 void Simulation::ProcessTaskList()
 {
-   PROFILE_BLOCK();
+   MEASURE_TASK_TIME("native tasks")
    SIM_LOG_GAMELOOP(7) << "processing task list";
 
    auto i = tasks_.begin();
@@ -356,6 +389,8 @@ void Simulation::ProcessTaskList()
 
 void Simulation::ProcessJobList()
 {
+   MEASURE_TASK_TIME("pathfinder")
+
    // Pahtfinders down here...
    if (_singleStepPathFinding) {
       SIM_LOG(5) << "skipping job processing (single step is on).";
@@ -373,8 +408,8 @@ void Simulation::ProcessJobList()
             if (!job->IsIdle()) {
                idleCountdown = jobs_.size() + 2;
                job->Work(game_loop_timer_);
-               if (LOG_IS_ENABLED(simulation.core, 7)) {
-                  SIM_LOG_GAMELOOP(13) << job->GetProgress();
+               if (LOG_IS_ENABLED(simulation.jobs, 7)) {
+                  LOG(simulation.jobs, 7) << job->GetProgress();
                }
             }
             jobs_.push_back(front);
@@ -483,28 +518,27 @@ void Simulation::main()
    net_send_timer_.set(0); // the first update gets pushed out immediately
    game_loop_timer_.set(game_tick_interval_);
    while (1) {
-      mainloop();
-
-      unsigned int now = platform::get_current_time_in_ms();
-      if (now - last_stat_dump > 3000) {
-         //PROFILE_DUMP_STATS();
-         PROFILE_RESET();
-         last_stat_dump = now;
-      }
+      Mainloop();
    }
 }
 
-void Simulation::mainloop()
+void Simulation::Mainloop()
 {
-   PROFILE_BLOCK();
+   perf_timeline_.BeginFrame();
+
    SIM_LOG_GAMELOOP(7) << "starting next gameloop";
-   process_messages();
+   ReadClientMessages();
 
    if (!paused_) {
-      Step();
+      lastNow_ = now_;
+      UpdateGameState();
+      UpdateCollisions();
+      ProcessTaskList();
+      ProcessJobList();
+      FireLuaTraces();
    }
    if (net_send_timer_.expired(20)) {
-      send_client_updates();
+      SendClientUpdates();
       // reset the send timer.  We have a choice here of using "set" or "advance". Set
       // will set the timer to the current time + the interval.  Advance will set it to
       // the exact time we were *supposed* to render + the interval.  When the server is
@@ -516,16 +550,20 @@ void Simulation::mainloop()
    } else {
       SIM_LOG_GAMELOOP(7) << "net log still has " << net_send_timer_.remaining() << " till expired.";
    }
-   idle();
+   LuaGC();
+   Idle();
 }
 
-void Simulation::idle()
+void Simulation::LuaGC()
 {
-   PROFILE_BLOCK();
+   MEASURE_TASK_TIME("lua gc")
    SIM_LOG_GAMELOOP(7) << "starting lua gc";
-
-   // xxx: we should probably read and parse network events even while idle.
    scriptHost_->GC(game_loop_timer_);
+}
+
+void Simulation::Idle()
+{
+   MEASURE_TASK_TIME("idle")
 
    if (!noidle_) {
       SIM_LOG_GAMELOOP(7) << "idling";
@@ -542,9 +580,9 @@ void Simulation::idle()
    }
 }
 
-void Simulation::send_client_updates()
+void Simulation::SendClientUpdates()
 {
-   PROFILE_BLOCK();
+   MEASURE_TASK_TIME("network send")
    SIM_LOG_GAMELOOP(7) << "sending client updates (time left on net timer: " << net_send_timer_.remaining() << ")";
 
    for (std::shared_ptr<RemoteClient> c : _clients) {
@@ -555,15 +593,16 @@ void Simulation::send_client_updates()
 
 void Simulation::SendUpdates(std::shared_ptr<RemoteClient> c)
 {
+
    EncodeBeginUpdate(c);
    EncodeServerTick(c);
    EncodeUpdates(c);
    EncodeEndUpdate(c);
 }
 
-void Simulation::process_messages()
+void Simulation::ReadClientMessages()
 {
-   PROFILE_BLOCK();
+   MEASURE_TASK_TIME("network recv")
    SIM_LOG_GAMELOOP(7) << "processing messages";
 
    _io_service->poll();
