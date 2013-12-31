@@ -68,8 +68,8 @@ Renderer::Renderer() :
    assert(renderer_.get() == nullptr);
    renderer_.reset(this);
 
-   windowWidth_ = config_.screen_width;
-   windowHeight_ = config_.screen_height;
+   windowWidth_ = config_.screen_width.value;
+   windowHeight_ = config_.screen_height.value;
 
    glfwSetErrorCallback([](int errorCode, const char* errorString) {
       Renderer::GetInstance().lastGlfwError_ = BUILD_STRING(errorString << " (code: " << std::to_string(errorCode) << ")");
@@ -80,14 +80,14 @@ Renderer::Renderer() :
       throw std::runtime_error(BUILD_STRING("Unable to initialize glfw: " << lastGlfwError_));
    }
 
-   glfwWindowHint(GLFW_SAMPLES, config_.num_msaa_samples);
+   glfwWindowHint(GLFW_SAMPLES, config_.num_msaa_samples.value);
    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, config_.enable_gl_logging ? 1 : 0);
+   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, config_.enable_gl_logging.value ? 1 : 0);
 
    GLFWwindow *window;
    if (!(window = glfwCreateWindow(windowWidth_, windowHeight_, "Stonehearth", 
-        config_.enable_fullscreen ? glfwGetPrimaryMonitor() : nullptr, nullptr))) {
+        config_.enable_fullscreen.value ? glfwGetPrimaryMonitor() : nullptr, nullptr))) {
       glfwTerminate();
       throw std::runtime_error(BUILD_STRING("Unable to create glfw window: " << lastGlfwError_));
    }
@@ -96,7 +96,7 @@ Renderer::Renderer() :
 
    // Init Horde, looking for OpenGL 2.0 minimum.
    std::string s = (radiant::core::System::GetInstance().GetTempDirectory() / "horde3d_log.html").string();
-   if (!h3dInit(2, 0, config_.enable_gl_logging, s.c_str())) {
+   if (!h3dInit(2, 0, config_.enable_gl_logging.value, s.c_str())) {
       h3dutDumpMessages();
       throw std::runtime_error("Unable to initialize renderer.  Check horde log for details.");
    }
@@ -108,7 +108,7 @@ Renderer::Renderer() :
    h3dSetOption(H3DOptions::FastAnimation, 1);
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
 
-   ApplyConfig();
+   ApplyConfig(config_);
 
    SetDrawWorld(false);
 
@@ -350,53 +350,63 @@ void Renderer::GetConfigOptions()
    core::Config& config = core::Config::GetInstance();
 
    // "Uses the forward-renderer, instead of the deferred renderer."
-   config_.use_forward_renderer = config.Get("renderer.use_forward_renderer", true);
+   config_.use_forward_renderer.value = config.Get("renderer.use_forward_renderer", true);
 
    // "Enables SSAO blur."
-   config_.use_ssao_blur = config.Get("renderer.use_ssao_blur", true);
+   config_.use_ssao_blur.value = config.Get("renderer.use_ssao_blur", true);
 
    // "Enables shadows."
-   config_.use_shadows = config.Get("renderer.enable_shadows", true);
+   config_.use_shadows.value = config.Get("renderer.enable_shadows", true);
 
    // "Enables Screen-Space Ambient Occlusion (SSAO)."
-   config_.use_ssao = config.Get("renderer.enable_ssao", true);
+   config_.use_ssao.value = config.Get("renderer.enable_ssao", true);
 
    // "Sets the number of Multi-Sample Anti Aliasing samples to use."
-   config_.num_msaa_samples = config.Get("renderer.msaa_samples", 0);
+   config_.num_msaa_samples.value = config.Get("renderer.msaa_samples", 0);
 
    // "Sets the square resolution of the shadow maps."
-   config_.shadow_resolution = config.Get("renderer.shadow_resolution", 2048);
+   config_.shadow_resolution.value = config.Get("renderer.shadow_resolution", 2048);
 
    // "Enables vertical sync."
-   config_.enable_vsync = config.Get("renderer.enable_vsync", true);
+   config_.enable_vsync.value = config.Get("renderer.enable_vsync", true);
 
-   config_.enable_fullscreen = config.Get("renderer.enable_fullscreen", false);
+   config_.enable_fullscreen.value = config.Get("renderer.enable_fullscreen", false);
 
-   config_.enable_gl_logging = config.Get("renderer.enable_gl_logging", false);
+   config_.enable_gl_logging.value = config.Get("renderer.enable_gl_logging", false);
 
-   config_.screen_width = config.Get("renderer.screen_width", 1280);
-   config_.screen_height = config.Get("renderer.screen_height", 720);
+   config_.screen_width.value = config.Get("renderer.screen_width", 1280);
+   config_.screen_height.value = config.Get("renderer.screen_height", 720);
 }
 
-void Renderer::ApplyConfig()
+void Renderer::ApplyConfig(const RendererConfig& newConfig)
 {
-   if (config_.use_forward_renderer) {
+   memcpy(&config_, &newConfig, sizeof(RendererConfig));
+
+   H3DRendererCaps rendererCaps;
+   H3DGpuCaps gpuCaps;
+   h3dGetCapabilities(&rendererCaps, &gpuCaps);
+
+   // Presently, only the engine can decide if certain features are even allowed to run.
+   config_.num_msaa_samples.allowed = gpuCaps.MSAASupported;
+   config_.use_shadows.allowed = rendererCaps.ShadowsSupported;
+
+   if (config_.use_forward_renderer.value) {
       SetCurrentPipeline("pipelines/forward.pipeline.xml");
    } else {
       SetCurrentPipeline("pipelines/deferred_lighting.xml");
    }
 
-   SetStageEnable("SSAO", config_.use_ssao);
-   SetStageEnable("Simple, once-pass SSAO Blur", config_.use_ssao_blur);
+   SetStageEnable("SSAO", config_.use_ssao.value);
+   SetStageEnable("Simple, once-pass SSAO Blur", config_.use_ssao_blur.value);
    // Turn on copying if we're using SSAO, but not using blur.
-   SetStageEnable("SSAO Copy", config_.use_ssao && !config_.use_ssao_blur);
-   SetStageEnable("SSAO Default", !config_.use_ssao);
+   SetStageEnable("SSAO Copy", config_.use_ssao.value && !config_.use_ssao_blur.value);
+   SetStageEnable("SSAO Default", !config_.use_ssao.value);
 
    int oldMSAACount = (int)h3dGetOption(H3DOptions::SampleCount);
 
-   h3dSetOption(H3DOptions::EnableShadows, config_.use_shadows ? 1.0f : 0.0f);
-   h3dSetOption(H3DOptions::ShadowMapSize, (float)config_.shadow_resolution);
-   h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples);
+   h3dSetOption(H3DOptions::EnableShadows, config_.use_shadows.value ? 1.0f : 0.0f);
+   h3dSetOption(H3DOptions::ShadowMapSize, (float)config_.shadow_resolution.value);
+   h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples.value);
 
    if (oldMSAACount != (int)h3dGetOption(H3DOptions::SampleCount))
    {
@@ -410,7 +420,7 @@ void Renderer::ApplyConfig()
       LoadResources();
    }
 
-   glfwSwapInterval(config_.enable_vsync ? 1 : 0);
+   glfwSwapInterval(config_.enable_vsync.value ? 1 : 0);
 }
 
 SystemStats Renderer::GetStats()
