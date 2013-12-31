@@ -68,27 +68,27 @@ void PathFinder::SetFilterFn(luabind::object dst_filter)
 bool PathFinder::IsIdle() const
 {
    if (!enabled_) {
-      PF_LOG(7) << "is_idle: yes.  not enabled";
+      PF_LOG(5) << "is_idle: yes.  not enabled";
       return true;
    }
 
    if (!source_ || source_->IsIdle()) {
-      PF_LOG(7) << "is_idle: yes.  no source, or source is idle";
+      PF_LOG(5) << "is_idle: yes.  no source, or source is idle";
       return true;
    }
 
    if (entity_.expired()) {
-      PF_LOG(7) << "is_idle: yes.  no source entity.";
+      PF_LOG(5) << "is_idle: yes.  no source entity.";
       return true;
    }
 
    if (restart_search_) {
-      PF_LOG(7) << "is_idle: no.  restart pending";
+      PF_LOG(5) << "is_idle: no.  restart pending";
       return false;
    }
 
    if (IsSearchExhausted()) {
-      PF_LOG(7) << "is_idle: yes. search exhausted.";
+      PF_LOG(5) << "is_idle: yes. search exhausted.";
       return true;
    }
 
@@ -101,17 +101,17 @@ bool PathFinder::IsIdle() const
       }
    }
    if (all_idle) {
-      PF_LOG(7) << "is_idle: yes. all destinations idle.";
+      PF_LOG(5) << "is_idle: yes. all destinations idle.";
       return true;
    }
 
 
    if (solution_) {
-      PF_LOG(7) << "is_idle: yes. already solved!";
+      PF_LOG(5) << "is_idle: yes. already solved!";
       return true;
    }
 
-   PF_LOG(7) << "is_idle: no.  still work to do!";
+   PF_LOG(5) << "is_idle: no.  still work to do!";
    return false;
 }
 
@@ -248,6 +248,7 @@ void PathFinder::Work(const platform::timer &timer)
    }
 
    if (open_.empty()) {
+      PF_LOG(7) << "open set is empty!  returning";
       return;
    }
 
@@ -272,8 +273,11 @@ void PathFinder::Work(const platform::timer &timer)
    // Check each neighbor...
    const auto& o = GetSim().GetOctTree();
    
-   // xxx: not correct for reversed search yet...
    auto neighbors = o.ComputeNeighborMovementCost(entity_.lock(), current);
+   PF_LOG(7) << "compute neighbor movment cost from " << current << " returned " << neighbors.size() << " results";
+   if (neighbors.size() == 0) {
+      //DebugBreak();
+   }
 
    VERIFY_HEAPINESS();
    for (const auto& neighbor : neighbors) {
@@ -397,7 +401,7 @@ csg::Point3 PathFinder::GetFirstOpen()
    open_.pop_back();
    VERIFY_HEAPINESS();
 
-   PF_LOG(10) << " open size is " << open_.size();
+   PF_LOG(10) << " GetFirstOpen returning " << result << ".  " << open_.size() << " points remain in open set";
 
    return result;
 }
