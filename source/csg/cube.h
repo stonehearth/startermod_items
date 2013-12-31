@@ -35,29 +35,48 @@ public:
       PointIterator(const Cube& c, const Point& iter) :
          min(c.GetMin()),
          max(c.GetMax()),
-         iter_(iter),
          axis_(0)
       {
+         if (c.GetArea() <= 0) {
+            iter_ = end;
+            return;
+         }
+
+         ASSERT(iter == end || c.Contains(iter));
+         if (!c.Contains(iter)) {
+            iter_ = end;
+            return;
+         }
+         iter_ = iter;
       }
 
       const Point operator*() const {
          return iter_;
       }
+
       const void operator++() {
-         iter_[2]++;
-         if (iter_[2] == max[2]) {
-            iter_[2] = min[2];
-            iter_[0]++;
-            if (iter_[0] == max[0]) {
-               iter_[2] = min[2];
-               iter_[0] = min[0];
-               iter_[1]++;
+         if (iter_ != end) {
+            iter_.z++;
+            if (iter_.z == max.z) {
+               iter_.z = min.z;
+               iter_.x++;
+               if (iter_.x == max.x) {
+                  iter_.z = min.z;
+                  iter_.x = min.x;
+                  iter_.y++;
+                  if (iter_.y == max.y) {
+                     iter_ = end;
+                  }
+               }
             }
          }
       }
       bool operator!=(const PointIterator& rhs) {
          return iter_ != rhs.iter_;
       }
+
+   public:
+      static   Point3 end;
 
    private:
       Point    min;
@@ -67,7 +86,7 @@ public:
    };
 
    PointIterator begin() const { return PointIterator(*this, GetMin()); }
-   PointIterator end() const { return PointIterator(*this, Point(min[0], max[1], min[2])); }
+   PointIterator end() const { return PointIterator(*this, PointIterator::end); }
 
    S GetArea() const;
    bool IsEmpty() const { return GetArea() == 0; }
@@ -76,6 +95,7 @@ public:
    void SetMin(const Point& min_value) { min = min_value; }
    void SetMax(const Point& max_value) { max = max_value; }
    void Grow(const Point& pt);
+   void Grow(const Cube& cube); 
 
    void SetZero() {
       min.SetZero();

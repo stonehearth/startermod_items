@@ -21,6 +21,8 @@ Rect2f Rect2f::one(Point2f(0, 0), Point2f(1, 1));
 Cube3f Cube3f::zero(Point3f(0, 0, 0), Point3f(0, 0, 0));
 Cube3f Cube3f::one(Point3f(0, 0, 0), Point3f(1, 1, 1));
 
+Point3 Cube3::PointIterator::end(INT_MAX, INT_MAX, INT_MAX);
+
 template <class C>
 static bool Cube3IntersectsImpl(const C& cube, const csg::Ray3& ray, float& d)
 {
@@ -241,6 +243,13 @@ void Cube<S, C>::Grow(const Point& pt)
    }
 }
 
+template <class S, int C>
+void Cube<S, C>::Grow(const Cube& cube)
+{
+   Grow(cube.min);
+   Grow(cube.max);
+}
+
 template <int C>
 Cube<float, C> csg::ToFloat(Cube<int, C> const& cube) {
    return Cube<float, C>(ToFloat(cube.min), ToFloat(cube.max), cube.GetTag());
@@ -277,6 +286,7 @@ Cube<int, C> const& csg::ToInt(Cube<int, C> const& cube) {
    template bool Cls::Contains(const Cls::Point& other) const; \
    template Cls::Point Cls::GetClosestPoint2(const Cls::Point& other, Cls::ScalarType*) const; \
    template void Cls::Grow(const Cls::Point& other); \
+   template void Cls::Grow(const Cls& other); \
 
 MAKE_CUBE(Cube3)
 MAKE_CUBE(Cube3f)
