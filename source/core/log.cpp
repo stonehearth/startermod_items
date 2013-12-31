@@ -21,8 +21,8 @@ radiant::logger::LogCategories log_levels_;
 uint32 default_log_level_;
 static uint32 console_log_severity_;
 
-static const uint32 DEFAULT_LOG_LEVEL = 3;
-static const uint32 DEFAULT_CONSOLE_LOG_SEVERITY = 3;
+static const uint32 DEFAULT_LOG_LEVEL = 2;
+static const uint32 DEFAULT_CONSOLE_LOG_SEVERITY = 2;
 
 boost::log::sources::severity_logger< int > __radiant_log_source;
 
