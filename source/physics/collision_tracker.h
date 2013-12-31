@@ -24,6 +24,7 @@ public:
 
    virtual csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const = 0;
    virtual void MarkChanged() = 0;
+   virtual TrackerType GetType() const = 0;
 
 protected:
    NavGrid& GetNavGrid() const;

@@ -179,7 +179,8 @@ int Application::Run(int argc, const char** argv)
       // Windows CreateThread and boost::thread appear to work
       boost::thread client_thread(ClientThreadMain, server_port_);
 
-      sim_.Run(acceptor, &_io_service);
+      sim_.reset(new simulation::Simulation());
+      sim_->Run(acceptor, &_io_service);
       client_thread.join();
 
       radiant::logger::Exit();

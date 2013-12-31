@@ -52,7 +52,7 @@ void RegionCollisionShapeTracker::MarkChanged()
    if (region) {
       csg::Cube3 bounds = region->Get().GetBounds();
       bounds.Translate(GetEntityPosition());
-      GetNavGrid().AddCollisionTracker(NavGridTile::COLLISION, last_bounds_, bounds, shared_from_this());
+      GetNavGrid().AddCollisionTracker(last_bounds_, bounds, shared_from_this());
       last_bounds_ = bounds;
    }
 }
@@ -87,4 +87,9 @@ om::Region3BoxedPtr RegionCollisionShapeTracker::GetRegion() const
       return rcs->GetRegion();
    }
    return nullptr;
+}
+
+TrackerType RegionCollisionShapeTracker::GetType() const
+{
+   return COLLISION;
 }

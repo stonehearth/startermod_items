@@ -28,7 +28,7 @@ namespace radiant {
             static void ClientThreadMain(int server_port);
 
          private:
-            simulation::Simulation     sim_;
+            std::unique_ptr<simulation::Simulation> sim_;
             boost::asio::io_service _io_service;
             int server_port_;
             std::string crash_dump_uri_;

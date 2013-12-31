@@ -60,3 +60,8 @@ csg::Region3 TerrainTracker::GetOverlappingRegion(csg::Cube3 const& bounds) cons
 {
    return csg::Region3::empty;
 }
+
+TrackerType TerrainTracker::GetType() const
+{
+   return COLLISION;
+}

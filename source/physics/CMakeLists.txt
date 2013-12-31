@@ -3,6 +3,7 @@ add_library(physics STATIC
             octtree.cpp
             nav_grid.cpp
             nav_grid_tile.cpp
+            nav_grid_tile_data.cpp
             collision_tracker.cpp
             terrain_tracker.cpp
             terrain_tile_tracker.cpp
