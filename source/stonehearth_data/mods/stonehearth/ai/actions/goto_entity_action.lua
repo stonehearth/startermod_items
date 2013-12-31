@@ -18,8 +18,7 @@ function GotoEntityAction:run(ai, entity, target)
          ai:abort('target destination destroyed')
       end)
 
-   local pathfinder = _radiant.sim.create_path_finder('goto entity action')
-                         :set_source(entity)
+   local pathfinder = _radiant.sim.create_path_finder(entity, 'goto entity action')
                          :add_destination(target)
 
    log:debug('waiting for pathfinder to finish...')

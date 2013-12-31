@@ -55,8 +55,7 @@ function CarryItemOnPathTo:_find_path_to_destination_entity(target_item)
    end
 
    local desc = string.format('finding a path from %s to a target location', tostring(target_item))
-   self._pathfinder = radiant.pathfinder.create_path_finder(desc)
-                        :set_source(self._temp_entity)
+   self._pathfinder = radiant.pathfinder.create_path_finder(self._temp_entity, desc)
                         :add_destination(self._destination_entity)
                         :set_solved_cb(solved_cb)
 end

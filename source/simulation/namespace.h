@@ -16,6 +16,11 @@ BEGIN_RADIANT_SIMULATION_NAMESPACE
 class Simulation;
 class Job;
 class Task;
+class PathFinder;
+class EntityJobScheduler;
+
+DECLARE_SHARED_POINTER_TYPES(PathFinder)
+DECLARE_SHARED_POINTER_TYPES(EntityJobScheduler)
 
 END_RADIANT_SIMULATION_NAMESPACE
 

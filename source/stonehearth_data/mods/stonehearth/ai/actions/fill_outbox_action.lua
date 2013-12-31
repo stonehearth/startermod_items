@@ -34,8 +34,7 @@ function FillOutboxAction:run(ai, entity)
       ai:execute('stonehearth:pickup_item_on_table', item, workshop_entity)
 
       -- drop it in the outbox...
-      local pathfinder = radiant.pathfinder.create_path_finder('goto entity action')
-                              :set_source(entity)
+      local pathfinder = radiant.pathfinder.create_path_finder(entity, 'goto entity action')
                               :add_destination(outbox_entity)
       local path = ai:wait_for_path_finder(pathfinder)
       local drop_location = path:get_destination_point_of_interest()

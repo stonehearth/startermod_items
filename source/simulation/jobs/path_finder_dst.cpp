@@ -240,10 +240,12 @@ bool PathFinderDst::IsIdle() const
 
 void PathFinderDst::EncodeDebugShapes(radiant::protocol::shapelist *msg, csg::Color4 const& debug_color) const
 {
-   auto region = msg->add_region();
-   debug_color.SaveValue(region->mutable_color());
-   for (auto const& cube : world_space_adjacent_region_) {
-      cube.SaveValue(region->add_cubes());
+   if (LOG_IS_ENABLED(simulation.pathfinder, 7)) {
+      auto region = msg->add_region();
+      debug_color.SaveValue(region->mutable_color());
+      for (auto const& cube : world_space_adjacent_region_) {
+         cube.SaveValue(region->add_cubes());
+      }
    }
 }
 

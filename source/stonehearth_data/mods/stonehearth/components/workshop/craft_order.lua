@@ -165,8 +165,7 @@ function CraftOrder:search_for_ingredients()
                self._search_running = false
                self:search_for_ingredients()
             end
-            self._pathfinder = radiant.pathfinder.create_path_finder('workshop searching for items')
-                                  :set_source(workshop_entity)
+            self._pathfinder = radiant.pathfinder.create_path_finder(workshop_entity, 'workshop searching for items')
                                   :set_solved_cb(solved)
                                   :set_filter_fn(ingredient.filter)
                                   :find_closest_dst()
