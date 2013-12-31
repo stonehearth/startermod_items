@@ -5,6 +5,7 @@
 #include "egCamera.h"
 #include "libjson.h"
 #include "lib/json/node.h"
+#include "csg/random_number_generator.h"
 
 #if defined(ASSERT)
 #  undef ASSERT
@@ -315,13 +316,6 @@ void CubemitterNode::setParamF( int param, int compIdx, float value )
 	SceneNode::setParamF( param, compIdx, value );
 }
 
-
-float randomF( float min, float max )
-{
-	return (rand() / (float)RAND_MAX) * (max - min) + min;
-}
-
-
 void CubemitterNode::advanceTime( float timeDelta )
 {
    _curEmitterTime += timeDelta;
@@ -570,6 +564,7 @@ void CubemitterNode::updateAndSpawnCubes(int numToSpawn)
 
 void CubemitterNode::spawnCube(CubeData &d, CubeAttribute &ca)
 {
+   csg::RandomNumberGenerator &rng = csg::RandomNumberGenerator::DefaultInstance();
    CubemitterData data = _cubemitterRes.getPtr()->emitterData;
 
    d.maxLife = data.particle.lifetime.start->nextValue(_curEmitterTime);
@@ -580,8 +575,8 @@ void CubemitterNode::spawnCube(CubeData &d, CubeAttribute &ca)
 
    if (data.emission.origin.surfaceKind == cubemitter::OriginData::SurfaceKind::RECTANGLE)
    {
-      float randWidth = randomF(-data.emission.origin.width / 2.0f, data.emission.origin.width / 2.0f);
-      float randLength = randomF(-data.emission.origin.length / 2.0f, data.emission.origin.length / 2.0f);
+      float randWidth = rng.GetReal(-data.emission.origin.width / 2.0f, data.emission.origin.width / 2.0f);
+      float randLength = rng.GetReal(-data.emission.origin.length / 2.0f, data.emission.origin.length / 2.0f);
       Vec3f v1(m.c[0][0], m.c[0][1], m.c[0][2]);
       Vec3f v2(m.c[1][0], m.c[1][1], m.c[1][2]);
 
@@ -592,7 +587,7 @@ void CubemitterNode::spawnCube(CubeData &d, CubeAttribute &ca)
 
    float angle = degToRad( newAngle );
    m.c[3][0] = 0; m.c[3][1] = 0; m.c[3][2] = 0;
-   m.rotate( randomF( -angle, angle ), randomF( -angle, angle ), randomF( -angle, angle ) );
+   m.rotate( rng.GetReal( -angle, angle ), rng.GetReal( -angle, angle ), rng.GetReal( -angle, angle ) );
    d.direction = (m * Vec3f( 0, 0, -1 )).normalized();
 
    auto startCol = data.particle.color.start->nextValue(_curEmitterTime);

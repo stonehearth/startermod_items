@@ -122,12 +122,13 @@ Renderer::Renderer() :
    
    ssaoMat = h3dAddResource(H3DResTypes::Material, "materials/ssao.material.xml", 0);
 
+   csg::RandomNumberGenerator &rng = csg::RandomNumberGenerator::DefaultInstance();
    H3DRes veclookup = h3dCreateTexture("RandomVectorLookup", 4, 4, H3DFormats::TEX_RGBA32F, H3DResFlags::NoTexMipmaps);
    float *data2 = (float *)h3dMapResStream(veclookup, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
    for (int i = 0; i < 16; i++)
    {
-      float x = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
-      float y = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
+      float x = rng.GetReal(-1.0f, 1.0f);
+      float y = rng.GetReal(-1.0f, 1.0f);
       float z = 0;
       Horde3D::Vec3f v(x,y,z);
       v.normalize();
@@ -147,9 +148,9 @@ Renderer::Renderer() :
    // Sampler kernel generation--a work in progress.
    const int KernelSize = 16;
    for (int i = 0; i < KernelSize; ++i) {
-      float x = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
-      float y = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
-      float z = ((rand() / (float)RAND_MAX) * 0.5f) - 1.0f;
+      float x = rng.GetReal(-1.0f, 1.0f);
+      float y = rng.GetReal(-1.0f, 1.0f);
+      float z = rng.GetReal(-0.5f, 0.5f);
       Horde3D::Vec3f v(x,y,z);
       v.normalize();
 

@@ -8,7 +8,6 @@
 #include "lib/lua/bind.h"
 #include "physics/octtree.h"
 #include "platform/utils.h"
-#include "platform/random.h"
 #include "dm/store.h"
 #include "core/guard.h"
 #include "libjson.h"
