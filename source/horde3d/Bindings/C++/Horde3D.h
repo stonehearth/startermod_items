@@ -61,6 +61,17 @@ typedef int H3DNode;
 const H3DNode H3DRootNode = 1;
 
 
+struct H3DGpuCaps
+{
+   bool MSAASupported;
+};
+
+struct H3DRendererCaps
+{
+   bool ShadowsSupported;
+};
+
+
 /* Group: Enumerations */
 struct H3DOptions
 {
@@ -678,6 +689,8 @@ DLL const char *h3dGetVersionString();
 		true if extension is implemented, otherwise false
 */
 DLL bool h3dCheckExtension( const char *extensionName );
+
+DLL void h3dGetCapabilities(H3DRendererCaps* rendererCaps, H3DGpuCaps* gpuCaps);
 
 /* Function: h3dGetError
 		Checks if an error occured.

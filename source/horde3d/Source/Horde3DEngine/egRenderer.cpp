@@ -128,6 +128,17 @@ void Renderer::setGpuCompatibility()
    gpuCompatibility_.canDoShadows = !(gpu == CardType::INTEL && glVer < 30);
 }
 
+void Renderer::getEngineCapabilities(EngineRendererCaps* rendererCaps, EngineGpuCaps* gpuCaps) const
+{
+   if (rendererCaps) {
+      rendererCaps->ShadowsSupported = gpuCompatibility_.canDoShadows;
+   }
+
+   if (gpuCaps) {
+      gpuCaps->MSAASupported = gRDI->getCaps().rtMultisampling;
+   }
+}
+
 
 bool Renderer::init(int glMajor, int glMinor, bool enable_gl_logging)
 {
