@@ -55,21 +55,27 @@ struct FrameStartInfo {
    FrameStartInfo(int n, float i, int ft) : now(n), interpolate(i), frame_time(ft) { }
 };
 
+template<typename T>
+struct RendererConfigEntry {
+   T value;
+   bool allowed;
+};
+
 struct RendererConfig {
-   bool use_forward_renderer;
-   bool use_ssao;
-   bool use_ssao_blur;
-   bool use_shadows;
-   bool enable_vsync;
-   bool enable_fullscreen;
-   bool enable_gl_logging;
-   int  num_msaa_samples;
-   int  shadow_resolution;
+   RendererConfigEntry<bool> use_forward_renderer;
+   RendererConfigEntry<bool> use_ssao;
+   RendererConfigEntry<bool> use_ssao_blur;
+   RendererConfigEntry<bool> use_shadows;
+   RendererConfigEntry<bool> enable_vsync;
+   RendererConfigEntry<bool> enable_fullscreen;
+   RendererConfigEntry<bool> enable_gl_logging;
+   RendererConfigEntry<int>  num_msaa_samples;
+   RendererConfigEntry<int>  shadow_resolution;
 
-   int screen_width;
-   int screen_height;
+   RendererConfigEntry<int> screen_width;
+   RendererConfigEntry<int> screen_height;
 
-   bool enable_debug_keys;
+   RendererConfigEntry<bool> enable_debug_keys;
 };
 
 struct SystemStats {
@@ -103,7 +109,9 @@ class Renderer
       int GetWidth() const;
       int GetHeight() const;
       void SetUITextureSize(int width, int height);
-	  SystemStats GetStats();
+      SystemStats GetStats();
+      const RendererConfig& GetRendererConfig() const { return config_; }
+      void ApplyConfig(const RendererConfig& newConfig);
 
       csg::Point2 GetMousePosition() const;
       csg::Matrix4 GetNodeTransform(H3DNode node) const;
@@ -163,7 +171,6 @@ class Renderer
 
    private:
       void GetConfigOptions();
-      void ApplyConfig();
       void BuildSkySphere();
       void BuildStarfield();
       void SetStageEnable(const char* stageName, bool enabled);
