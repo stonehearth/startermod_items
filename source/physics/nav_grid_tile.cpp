@@ -29,6 +29,10 @@ NavGridTile::NavGridTile(NavGrid& ng, csg::Point3 const& index) :
    bounds_.max = bounds_.min + csg::Point3(TILE_SIZE, TILE_SIZE, TILE_SIZE);
 }
 
+NavGridTile::~NavGridTile()
+{
+}
+
 /*
  * -- NavGridTile::RemoveCollisionTracker
  *

@@ -61,6 +61,7 @@ class NavGrid {
       mutable NavGridTileMap           tiles_;
       CollisionTrackerMap              collision_trackers_;
       TerrainTileCollisionTrackerMap   terrain_tile_collsion_trackers_;
+      csg::Cube3                       bounds_;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE

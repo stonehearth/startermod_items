@@ -42,6 +42,7 @@ public:
    };
 
    NavGridTile(NavGrid &ng, csg::Point3 const& index);
+   ~NavGridTile();
    void RemoveCollisionTracker(TrackerType type, CollisionTrackerPtr tracker);
    void AddCollisionTracker(TrackerType type, CollisionTrackerPtr tracker);
    bool IsEmpty(csg::Cube3 const& bounds);

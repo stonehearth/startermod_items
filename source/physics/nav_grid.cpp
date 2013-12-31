@@ -20,7 +20,8 @@ using namespace radiant::phys;
 #define NG_LOG(level)              LOG(physics.navgrid, level)
 
 NavGrid::NavGrid(int trace_category) :
-   trace_category_(trace_category)
+   trace_category_(trace_category),
+   bounds_(csg::Cube3::zero)
 {
 }
 
@@ -128,6 +129,11 @@ bool NavGrid::CanStandOn(om::EntityPtr entity, csg::Point3 const& pt) const
 {
    csg::Point3 index, offset;
    csg::GetChunkIndex(pt, NavGridTile::TILE_SIZE, index, offset);
+   
+   if (!bounds_.Contains(pt)) {
+      return false;
+   }
+
    return GridTile(index).CanStandOn(offset);
 }
 
@@ -186,6 +192,9 @@ void NavGrid::AddCollisionTracker(NavGridTile::TrackerType type, csg::Cube3 cons
    csg::Cube3 current_chunks = csg::GetChunkIndex(bounds, NavGridTile::TILE_SIZE);
    csg::Cube3 previous_chunks = csg::GetChunkIndex(last_bounds, NavGridTile::TILE_SIZE);
 
+   bounds_.Grow(bounds.min - csg::Point3(-NavGridTile::TILE_SIZE, -NavGridTile::TILE_SIZE, -NavGridTile::TILE_SIZE));
+   bounds_.Grow(bounds.max + csg::Point3(NavGridTile::TILE_SIZE, NavGridTile::TILE_SIZE, NavGridTile::TILE_SIZE));
+
    // Remove trackers from tiles which no longer overlap the current bounds of the tracker,
    // but did overlap their previous bounds.
    for (csg::Point3 const& cursor : previous_chunks) {
@@ -217,7 +226,7 @@ NavGridTile& NavGrid::GridTile(csg::Point3 const& pt) const
       return i->second;
    }
    NG_LOG(5) << "constructing new grid tile at " << pt;
-   auto j = tiles_.insert(std::make_pair(pt, NavGridTile(const_cast<NavGrid&>(*this), pt))).first;
+   auto j = tiles_.emplace(pt, NavGridTile(const_cast<NavGrid&>(*this), pt)).first;
    return j->second;
 }
 
