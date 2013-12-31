@@ -9,11 +9,17 @@ BEGIN_RADIANT_PERFMON_NAMESPACE
 class TimelineCounterGuard {
 public:
    TimelineCounterGuard(char const* name);
+   TimelineCounterGuard(Timeline& timeline, char const* name);
+
    ~TimelineCounterGuard();
    
 private:
+   void Start(const char* name);
+
+private:
    bool              disposed_;
    Counter*          last_counter_;
+   Timeline*         timeline_;
 };
 
 void BeginFrame(bool enabled);

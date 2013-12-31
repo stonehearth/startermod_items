@@ -5,5 +5,4 @@ add_library(perfmon
             timeline.cpp
             store.cpp
             perfmon.cpp
-            hud.cpp
             )
