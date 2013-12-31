@@ -194,6 +194,12 @@ private:
       return create_ancestors(remaining_path, JSONNode(node_name, value));
    }
 
+   template <> JSONNode create_node(std::string const& path, unsigned int const& value) const {
+      std::string remaining_path, node_name;
+      chop_path_back(path, node_name, remaining_path);
+      return create_ancestors(remaining_path, JSONNode(node_name, value));
+   }
+
    template <> JSONNode create_node(std::string const& path, bool const& value) const {
       std::string remaining_path, node_name;
       chop_path_back(path, node_name, remaining_path);
