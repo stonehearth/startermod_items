@@ -50,6 +50,9 @@ App.StonehearthTitleScreenView = App.View.extend({
 
       credits: function() {
 
+      },
+      settings: function() {
+         this.get('parentView').addView(App.StonehearthSettingsView);
       }
    },
 
