@@ -211,10 +211,10 @@ protected:
 	Matrix4f calcCropMatrix( const Frustum &frustSlice, const Vec3f lightPos, const Matrix4f &lightViewProjMat );
    Matrix4f calcDirectionalLightShadowProj(const BoundingBox& worldBounds, const Frustum& frustSlice, const Matrix4f& lightViewMat, int numShadowMaps);
    void computeLightFrustumNearFar(const BoundingBox& worldBounds, const Matrix4f& lightViewMat, const Vec3f& lightMin, const Vec3f& lightMax, float* nearV, float* farV);
-   float computeTightCameraFarDistance();
-   Frustum computeDirectionalLightFrustum(float farPlaneDist);
+   void computeTightCameraBounds(float* minDist, float* maxDist);
+   Frustum computeDirectionalLightFrustum(float nearPlaneDist, float farPlaneDist);
    void quantizeShadowFrustum(const Frustum& frustSlice, int shadowMapSize, Vec3f* min, Vec3f* max);
-   void updateShadowMap(const Frustum* lightFrus, float maxDist);
+   void updateShadowMap(const Frustum* lightFrus, float minDist, float maxDist);
 
 	void drawOverlays( const std::string &shaderContext );
 

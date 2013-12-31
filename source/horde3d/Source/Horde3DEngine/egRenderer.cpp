@@ -1315,7 +1315,7 @@ void Renderer::computeLightFrustumNearFar(const BoundingBox& worldBounds, const 
 }
 
 
-void Renderer::updateShadowMap(const Frustum* lightFrus, float maxDist)
+void Renderer::updateShadowMap(const Frustum* lightFrus, float minDist, float maxDist)
 {
 	if( _curLight == 0x0 ) return;
 	
@@ -1351,11 +1351,8 @@ void Renderer::updateShadowMap(const Frustum* lightFrus, float maxDist)
 	}
 
    // Calculate split distances using PSSM scheme
-   const float nearDist = _curCamera->_frustNear;
-   const float farDist = maxf( maxDist, _curCamera->_frustNear + 0.01f );
-   const float firstSplit = 30.0f;
-   // const float nearDist = _curCamera->_frustNear;
-   // const float farDist = _curCamera->_frustFar;
+   const float nearDist = minDist;
+   const float farDist = maxf( maxDist, minDist + 0.01f );
    const uint32 numMaps = _curLight->_shadowMapCount;
    const float lambda = _curLight->_shadowSplitLambda;
 	
@@ -1371,11 +1368,6 @@ void Renderer::updateShadowMap(const Frustum* lightFrus, float maxDist)
 		_splitPlanes[i] = (1 - lambda) * uniformDist + lambda * logDist;  // Lerp
 	}
 
-   // Experiment: set a max-size for the nearest frustum piece, so that we can count on
-   // better resolution near the camera (which is still not strictly true in degenerate
-   // cases).
-   _splitPlanes[1] = std::min(_splitPlanes[1], firstSplit);
-	
 	// Prepare shadow map rendering
 	glEnable( GL_DEPTH_TEST );
    gRDI->setShadowOffsets(2.0f, 4.0f);
@@ -1744,9 +1736,12 @@ void Renderer::drawGeometry( const std::string &shaderContext, const std::string
 }
 
 
-float Renderer::computeTightCameraFarDistance()
+void Renderer::computeTightCameraBounds(float* minDist, float* maxDist)
 {
-   float result = 0.0f;
+   float defaultMax = *maxDist;
+   float defaultMin = *minDist;
+   *maxDist = 0.0f;
+   *minDist = 1000.0f;
 
    // First, get all the visible objects in the full camera's frustum.
    BoundingBox visibleAabb;
@@ -1768,26 +1763,48 @@ float Renderer::computeTightCameraFarDistance()
    // Extract the maximum distance of the clipped fragments.
    for (const auto& poly : clippedAabb)
    {
+      gRDI->_frameDebugInfo.addPolygon_(poly);
       for (const auto& point : poly.points())
       {
          float dist = -(_curCamera->getViewMat() * point).z;
-         if(dist > result)
+         if(dist > *maxDist)
          {
-            result = dist;
+            *maxDist = dist;
+         }
+
+         if (dist < *minDist)
+         {
+            *minDist = dist;
          }
       }
    }
-   return result;
+
+   if (*minDist < defaultMin) {
+      *minDist = defaultMin;
+      return;
+   }
+
+   // Check the near-plane--if it's even partially inside the visible AABB, then
+   // just revert to the near-plane as the min-dist.
+   for (int i = 0; i < 4; i++)
+   {
+      if (visibleAabb.contains(_curCamera->getFrustum().getCorner(i))) 
+      {
+         *minDist = defaultMin;
+         break;
+      }
+   }
 }
 
 
-Frustum Renderer::computeDirectionalLightFrustum(float farPlaneDist)
+Frustum Renderer::computeDirectionalLightFrustum(float nearPlaneDist, float farPlaneDist)
 {
    Frustum result;
    // Construct a tighter camera frustum, given the supplied far plane value.
    Frustum tightCamFrust;
-   tightCamFrust.buildViewFrustum(_curCamera->_absTrans, _curCamera->_frustLeft, _curCamera->_frustRight, 
-      _curCamera->_frustBottom, _curCamera->_frustTop, _curCamera->_frustNear, farPlaneDist);
+   float f = nearPlaneDist / _curCamera->_frustNear;
+   tightCamFrust.buildViewFrustum(_curCamera->_absTrans, _curCamera->_frustLeft * f, _curCamera->_frustRight * f, 
+      _curCamera->_frustBottom * f, _curCamera->_frustTop * f, nearPlaneDist, farPlaneDist);
 
    // Transform the camera frustum into light space, building a new AABB as we do so.
    BoundingBox bb;
@@ -1821,17 +1838,18 @@ void Renderer::drawLightGeometry( const std::string &shaderContext, const std::s
 
       // Save the far plane distance in case we have a directional light we want to cast shadows with.
       float maxDist = _curCamera->_frustFar;
+      float minDist = _curCamera->_frustNear;
 
       if (!noShadows && _curLight->_shadowMapCount > 0)
       {
-         maxDist = computeTightCameraFarDistance();
+         computeTightCameraBounds(&minDist, &maxDist);
       }
 
       if (_curLight->_directional)
       {
          if (!noShadows)
          {
-            dirLightFrus = computeDirectionalLightFrustum(maxDist);
+            dirLightFrus = computeDirectionalLightFrustum(minDist, maxDist);
             lightFrus = &dirLightFrus;
          } else {
             // If we're a directional light, and no shadows are to be cast, then just light
@@ -1885,7 +1903,7 @@ void Renderer::drawLightGeometry( const std::string &shaderContext, const std::s
 		// Update shadow map
 		if( !noShadows && _curLight->_shadowMapCount > 0 )
 		{
-			updateShadowMap(lightFrus, maxDist);
+			updateShadowMap(lightFrus, minDist, maxDist);
 			setupShadowMap( false );
 		}
 		else
@@ -1953,15 +1971,16 @@ void Renderer::drawLightShapes( const std::string &shaderContext, bool noShadows
 
       // Save the far plane distance in case we have a directional light we want to cast shadows with.
       float maxDist = _curCamera->_frustFar;
+      float minDist = _curCamera->_frustNear;
 
       if (!noShadows && _curLight->_shadowMapCount > 0)
       {
-         maxDist = computeTightCameraFarDistance();
+         computeTightCameraBounds(&minDist, &maxDist);
       }
 
       if (_curLight->_directional)
       {
-         dirLightFrus = computeDirectionalLightFrustum(maxDist);
+         dirLightFrus = computeDirectionalLightFrustum(minDist, maxDist);
          lightFrus = &dirLightFrus;
       } else {
          lightFrus = &(_curLight->getFrustum());
@@ -2007,7 +2026,7 @@ void Renderer::drawLightShapes( const std::string &shaderContext, bool noShadows
 		// Update shadow map
 		if( !noShadows && _curLight->_shadowMapCount > 0 )
 		{	
-         updateShadowMap(lightFrus, maxDist);
+         updateShadowMap(lightFrus, minDist, maxDist);
 			setupShadowMap( false );
 			curMatRes = 0x0;			
 		}
