@@ -133,6 +133,11 @@ struct GpuCompatibility {
    bool canDoShadows;
 };
 
+struct EngineRendererCaps
+{
+   bool ShadowsSupported;
+};
+
 
 class Renderer
 {
@@ -194,6 +199,8 @@ public:
 
    void setCurrentTime(float time) { _currentTime = time; }
    uint32 getShadowRendBuf() const { return _shadowRB; }
+
+   void getEngineCapabilities(EngineRendererCaps* rendererCaps, EngineGpuCaps* gpuCaps) const;
 
 protected:
    bool isShaderContextSwitch(const std::string &curContext, const MaterialResource *materialRes);

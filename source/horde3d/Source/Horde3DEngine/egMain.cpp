@@ -162,6 +162,10 @@ DLLEXP bool h3dSetOption( EngineOptions::List param, float value )
 	return Modules::config().setOption( param, value );
 }
 
+DLLEXP void h3dGetCapabilities(EngineRendererCaps* rendererCaps, EngineGpuCaps* gpuCaps)
+{
+   Modules::renderer().getEngineCapabilities(rendererCaps, gpuCaps);
+}
 
 DLLEXP float h3dGetStat( EngineStats::List param, bool reset )
 {
