@@ -422,9 +422,6 @@ void Client::run(int server_port)
    // this locks down the environment!  all types must be registered by now!!
    scriptHost_->Require("radiant.client");
 
-   _commands[GLFW_KEY_F12] = [&renderer]() {
-      renderer.SetShowDebugShapes(!renderer.GetShowDebugShapes());
-   };
    _commands[GLFW_KEY_F1] = [this]() {
       enable_debug_cursor_ = !enable_debug_cursor_;
       CLIENT_LOG(0) << "debug cursor " << (enable_debug_cursor_ ? "ON" : "OFF");
@@ -434,14 +431,23 @@ void Client::run(int server_port)
          core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
       }
    };
+
+   _commands[GLFW_KEY_F3] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_step_paths")); };
+   _commands[GLFW_KEY_F4] = [=]() { core_reactor_->Call(rpc::Function("radiant:step_paths")); };
+
+   _commands[GLFW_KEY_F9] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_debug_nodes")); };
+
    _commands[GLFW_KEY_F10] = [&renderer, this]() {
       perf_hud_shown_ = !perf_hud_shown_;
       renderer.ShowPerfHud(perf_hud_shown_);
    };
+
+   // Toggling this causes large memory leak in malloc (30 MB per toggle in a 25 tile world)
+   //_commands[GLFW_KEY_F12] = [&renderer]() {
+   //   renderer.SetShowDebugShapes(!renderer.GetShowDebugShapes());
+   //};
+
    _commands[GLFW_KEY_NUM_LOCK] = [=]() { core_reactor_->Call(rpc::Function("radiant:profile_next_lua_upate")); };
-   _commands[GLFW_KEY_F9] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_debug_nodes")); };
-   _commands[GLFW_KEY_F3] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_step_paths")); };
-   _commands[GLFW_KEY_F4] = [=]() { core_reactor_->Call(rpc::Function("radiant:step_paths")); };
 
    if (core::Config::GetInstance().Get("crash_key_enabled", false)) {
       _commands[GLFW_KEY_PAUSE] = []() {

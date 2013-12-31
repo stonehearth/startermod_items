@@ -50,7 +50,7 @@ App.StonehearthCalendarView = App.View.extend({
          this._sunrise_sounds_played = true;
       } else if (date.hour == this._constants.event_times.sunset_start && !this._sunset_start_sounds_played) {
          radiant.call('radiant:play_music', {
-               'track': 'stonehearth:ambient:summer_night',
+               'track': 'stonehearth:ambient:summer_day',
                'channel': 'ambient',
                'volume' : 40
             });                             
