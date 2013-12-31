@@ -1,0 +1,11 @@
+<script type="text/x-handlebars" data-template-name="settings">
+   <div class="settings">
+      <h1>Settings</h1>
+      <div id="buttons">
+         <input type="checkbox" id="opt_enableShadows" {{bindAttr checked="shadows_enabled"}} {{bindAttr disabled="shadows_forbidden"}}>
+		 <label for="opt_enableShadows">Enable Shadows</label>
+
+      </div>
+      <button {{action applySettings target=view}}>Apply</button>
+   </div>
+</script>
