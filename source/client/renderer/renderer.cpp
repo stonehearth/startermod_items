@@ -377,6 +377,8 @@ void Renderer::GetConfigOptions()
 
    config_.screen_width = config.Get("renderer.screen_width", 1280);
    config_.screen_height = config.Get("renderer.screen_height", 720);
+
+   config_.enable_debug_keys = config.Get("enable_debug_keys", false);
 }
 
 void Renderer::ApplyConfig()
@@ -549,8 +551,12 @@ void Renderer::RenderOneFrame(int now, float alpha)
 
    perfmon::TimelineCounterGuard tcg("render one");
 
-   bool debug = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS;
-   bool showStats = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
+   bool debug = false;
+   bool showStats = false;
+   if (config_.enable_debug_keys) {
+      debug = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS;
+      showStats = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
+   }
   
    bool showUI = true;
    const float ww = (float)h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportWidthI) /
@@ -1079,7 +1085,7 @@ core::Guard Renderer::OnRenderFrameStart(std::function<void(FrameStartInfo const
    return render_frame_start_slot_.Register(fn);
 }
 
-bool Renderer::GetShowDebugShapes()
+bool Renderer::ShowDebugShapes()
 {
    return show_debug_shapes_;
 }

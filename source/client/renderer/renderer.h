@@ -68,6 +68,8 @@ struct RendererConfig {
 
    int screen_width;
    int screen_height;
+
+   bool enable_debug_keys;
 };
 
 struct SystemStats {
@@ -132,7 +134,7 @@ class Renderer
       core::Guard OnRenderFrameStart(std::function<void(FrameStartInfo const&)> fn);
       core::Guard OnShowDebugShapesChanged(std::function<void(bool)> fn);
 
-      bool GetShowDebugShapes();
+      bool ShowDebugShapes();
       void SetShowDebugShapes(bool show_debug_shapes);
 
       void UpdateUITexture(const csg::Region2& rgn);
