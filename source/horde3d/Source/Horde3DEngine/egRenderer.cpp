@@ -2914,33 +2914,16 @@ void Renderer::renderDebugView()
 	color[0] = 0.4f; color[1] = 0.4f; color[2] = 0.4f; color[3] = 1;
    int frustNum = 0;
 
-   if (gRDI->_frameDebugInfo.getSplitFrustums().size() > 0) {
-      for (const auto& frust : gRDI->_frameDebugInfo.getSplitFrustums()) {
-   	   Modules::sceneMan().updateQueues( "rendering debug view", frust, 0x0, RenderingOrder::None,
-	                                     SceneNodeFlags::NoDraw, 0, true, true, true );
-	      gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &frustCol[frustNum * 4] );
-         for (const auto& queue : Modules::sceneMan().getRenderableQueues())
-         {
-            for( const auto& entry : queue.second )
-	         {
-		         const SceneNode *sn = entry.node;
-		         drawAABB( sn->_bBox.min(), sn->_bBox.max() );
-	         }
-         }
-         frustNum = (frustNum + 1) % 4;
-      }
-   } else {
-      Modules::sceneMan().updateQueues( "rendering debug view", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
-	                                    SceneNodeFlags::NoDraw, 0, true, true, true );
-	   gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color[0] );
-      for (const auto& queue : Modules::sceneMan().getRenderableQueues())
-      {
-         for( const auto& entry : queue.second )
-	      {
-		      const SceneNode *sn = entry.node;
-		      drawAABB( sn->_bBox.min(), sn->_bBox.max() );
-	      }
-      }
+   Modules::sceneMan().updateQueues( "rendering debug view", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
+	                                 SceneNodeFlags::NoDraw, 0, true, true, true );
+	gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color[0] );
+   for (const auto& queue : Modules::sceneMan().getRenderableQueues())
+   {
+      for( const auto& entry : queue.second )
+	   {
+		   const SceneNode *sn = entry.node;
+		   drawAABB( sn->_bBox.min(), sn->_bBox.max() );
+	   }
    }
 
 	Modules::sceneMan().updateQueues( "rendering debug view", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
@@ -2951,6 +2934,7 @@ void Renderer::renderDebugView()
       drawFrustum(frust);
       frustNum = (frustNum + 1) % 4;
    }
+
    frustNum = 0;
    for (const auto& frust : gRDI->_frameDebugInfo.getSplitFrustums())
    {
@@ -2959,11 +2943,11 @@ void Renderer::renderDebugView()
       frustNum = (frustNum + 1) % 4;
    }
 
-   for (const auto& lightAABB : gRDI->_frameDebugInfo.getDirectionalLightAABBs())
+   for (const auto& poly: gRDI->_frameDebugInfo.getPolygons())
    {
-	   color[0] = 0.0f; color[1] = 1.0f; color[2] = 0.0f; color[3] = 1;
+	   color[0] = 1.0f; color[1] = 0.0f; color[2] = 1.0f; color[3] = 1;
 	   gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, color );
-      drawAABB(lightAABB.min(), lightAABB.max());
+      drawPoly(poly.points());
    }
 
    glEnable( GL_CULL_FACE );
