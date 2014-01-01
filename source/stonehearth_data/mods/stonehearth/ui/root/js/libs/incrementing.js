@@ -27,21 +27,25 @@ function initIncrementButtons() {
 
 
   $(".numericButton").on("click", function() {
+    var button = $(this);
+    var inputControl = button.parent().find('input');
+    var oldValue = inputControl.val();
+    var newVal, inputMax, inputMin;
 
-    var $button = $(this),
-        oldValue = $button.parent().find("input").val(),
-        $input = $button.parent().find("input"),
-        newVal, inputMax, inputMin;
+    if (inputControl.prop('disabled')) {
+      return;
+    }
 
-    if ($button.text() == "+") {
-      inputMax = $input.attr('max');
+
+    if (button.text() == "+") {
+      inputMax = inputControl.attr('max');
       if (oldValue < inputMax) {
         newVal = parseFloat(oldValue) + 1;
       } else {
         newVal = inputMax;
       }
   	} else {
-      inputMin = $input.attr('min');
+      inputMin = inputControl.attr('min');
       if (oldValue > inputMin) {
         newVal = parseFloat(oldValue) - 1;
 	    } else {
@@ -49,7 +53,7 @@ function initIncrementButtons() {
       }
 	  }
 
-    $input.val(newVal);
+    inputControl.val(newVal);
 
   });
 
