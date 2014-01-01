@@ -51,8 +51,8 @@ App.StonehearthSettingsView = App.View.extend({
       applySettings: function() {
          var newConfig = {
             "shadows" : $('#opt_enableShadows').is(':checked'),
-            "enable_vsync" : $('#opt_enableVsync').is(':checked'),
-            "enable_fullscreen" : $('#opt_enableFullscreen').is(':checked'),
+            "vsync" : $('#opt_enableVsync').is(':checked'),
+            "fullscreen" : $('#opt_enableFullscreen').is(':checked'),
             "msaa" : parseInt($('#opt_numSamples').val()),
             "shadow_res" : this.fromValToRes(parseInt($('#opt_shadowRes').val()))
          };
