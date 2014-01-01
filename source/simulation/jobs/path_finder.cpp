@@ -183,7 +183,6 @@ void PathFinder::Restart()
    	int h = EstimateCostToDestination(node.pt);
       node.f = h;
       node.g = 0;
-      node.h = h;
    }
 }
 
@@ -315,7 +314,7 @@ void PathFinder::AddEdge(const PathFinderNode &current, const csg::Point3 &next,
          // not found in the open list.  add a brand new node.
          PF_LOG(10) << "          Adding " << next << " to open set.";
          cameFrom_[next] = current.pt;
-         open_.push_back(PathFinderNode(next, f, g, h));
+         open_.push_back(PathFinderNode(next, f, g));
          if (!rebuildHeap_) {
             push_heap(open_.begin(), open_.end(), PathFinderNode::CompareFitness);
          }
@@ -326,7 +325,6 @@ void PathFinder::AddEdge(const PathFinderNode &current, const csg::Point3 &next,
             cameFrom_[next] = current.pt;
             open_[i].g = g;
             open_[i].f = f;
-            open_[i].h = h;
             rebuildHeap_ = true; // really?
             PF_LOG(10) << "          Updating costs maps, f:" << f << "  g:" << g;
          }
