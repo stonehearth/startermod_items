@@ -19,6 +19,14 @@
                <div class="inc numericButton">+</div>
             </span>
          </div>
+         <div {{bindAttr class=":shadowResControl shadows_forbidden:numericDisabled"}}>
+            <label for="opt_shadowRes" class="shadowResLabel">Shadow Detail</label>
+            <span class="shadowResControlInput">
+               <div class="dec numericButton">-</div>
+               <input class="shadowResInput" id="opt_shadowRes" type="number" name="shadowResInput" {{bindAttr value="shadow_res"}} min="1" max="5" readonly="true" {{bindAttr disabled="shadows_forbidden"}}>
+               <div class="inc numericButton">+</div>
+            </span>
+         </div>
       </div>
       <button {{action applySettings target=view}}>Apply</button>
    </div>

@@ -3,6 +3,14 @@ App.StonehearthSettingsView = App.View.extend({
 
    modal: true,
 
+   fromResToVal : function(shadowRes) {
+      return (Math.log(shadowRes) / Math.log(2)) - 8;
+   },
+
+   fromValToRes : function(shadowVal) {
+      return Math.pow(2, shadowVal + 8);
+   },
+
    init: function() {
       this._super();
       var self = this;
@@ -20,6 +28,8 @@ App.StonehearthSettingsView = App.View.extend({
                o.shadows.value = false;
             }
             self.set('context.shadows_enabled', o.shadows.value);
+
+            self.set('context.shadow_res', self.fromResToVal(o.shadow_res.value))
 
             self.set('context.vsync_enabled', o.vsync.value);
 
@@ -43,7 +53,8 @@ App.StonehearthSettingsView = App.View.extend({
             "shadows" : $('#opt_enableShadows').is(':checked'),
             "enable_vsync" : $('#opt_enableVsync').is(':checked'),
             "enable_fullscreen" : $('#opt_enableFullscreen').is(':checked'),
-            "msaa" : parseInt($('#opt_numSamples').val())
+            "msaa" : parseInt($('#opt_numSamples').val()),
+            "shadow_res" : this.fromValToRes(parseInt($('#opt_shadowRes').val()))
          };
 
          radiant.call('radiant:set_config_options', newConfig);
