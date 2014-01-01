@@ -361,6 +361,7 @@ Client::Client() :
 
          newCfg.use_shadows.value = params.get<bool>("shadows", oldCfg.use_shadows.value);
          newCfg.num_msaa_samples.value = params.get<int>("msaa", oldCfg.num_msaa_samples.value);
+         newCfg.shadow_resolution.value = params.get<int>("shadow_res", oldCfg.shadow_resolution.value);
          
          Renderer::GetInstance().ApplyConfig(newCfg);
 
