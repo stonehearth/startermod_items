@@ -360,6 +360,7 @@ Client::Client() :
          memcpy(&newCfg, &oldCfg, sizeof(RendererConfig));
 
          newCfg.use_shadows.value = params.get<bool>("shadows", oldCfg.use_shadows.value);
+         newCfg.num_msaa_samples.value = params.get<int>("msaa", oldCfg.num_msaa_samples.value);
          
          Renderer::GetInstance().ApplyConfig(newCfg);
 

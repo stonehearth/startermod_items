@@ -15,15 +15,29 @@ App.StonehearthSettingsView = App.View.extend({
 
       radiant.call('radiant:get_config_options')
          .done(function(o) {
-            self.set('context.shadows_enabled', !!o.shadows.value);
+            self.set('context.shadows_enabled', o.shadows.value);
             self.set('context.shadows_forbidden', !o.shadows.allowed);
+
+            self.set('context.vsync_enabled', o.vsync.value);
+
+            self.set('context.fullscreen_enabled', o.fullscreen.value);
+
+            self.set('context.num_msaa_samples', o.msaa.value);
+            self.set('context.msaa_forbidden', !!o.msaa.allowed);
          });
+   },
+
+   didInsertElement: function() {
+      initIncrementButtons();
    },
 
    actions: {
       applySettings: function() {
          var newConfig = {
-            "shadows" : $('#opt_enableShadows').is(':checked')
+            "shadows" : $('#opt_enableShadows').is(':checked'),
+            "enable_vsync" : $('#opt_enableVsync').is(':checked'),
+            "enable_fullscreen" : $('#opt_enableFullscreen').is(':checked'),
+            "msaa" : parseInt($('#opt_numSamples').val())
          };
 
          radiant.call('radiant:set_config_options', newConfig);

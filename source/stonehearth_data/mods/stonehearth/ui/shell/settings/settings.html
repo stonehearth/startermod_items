@@ -3,8 +3,20 @@
       <h1>Settings</h1>
       <div id="buttons">
          <input type="checkbox" id="opt_enableShadows" {{bindAttr checked="shadows_enabled"}} {{bindAttr disabled="shadows_forbidden"}}>
-		 <label for="opt_enableShadows">Enable Shadows</label>
+		   <label class="chkSetting" for="opt_enableShadows">Enable Shadows</label>
 
+         <input type="checkbox" id="opt_enableVsync" {{bindAttr checked="vsync_enabled"}}>
+         <label class="chkSetting" for="opt_enableVsync">Enable Vertical Sync</label>
+
+         <input type="checkbox" id="opt_enableFullscreen" {{bindAttr checked="fullscreen_enabled"}}>
+         <label class="chkSetting" for="opt_enableFullscreen">Fullscreen</label>
+      
+         <label>Anti-Aliasing</label>
+         <span>
+            <div class="dec numericButton">-</div>
+            <input id="opt_numSamples" type="number" name="numSamples" {{bindAttr value="num_msaa_samples"}} min="0" max="4" readonly="true" {{bindAttr disabled="msaa_forbidden"}}>
+            <div class="inc numericButton">+</div>
+         </span>
       </div>
       <button {{action applySettings target=view}}>Apply</button>
    </div>
