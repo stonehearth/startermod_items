@@ -15,15 +15,21 @@ App.StonehearthSettingsView = App.View.extend({
 
       radiant.call('radiant:get_config_options')
          .done(function(o) {
-            self.set('context.shadows_enabled', o.shadows.value);
             self.set('context.shadows_forbidden', !o.shadows.allowed);
+            if (!o.shadows.allowed) {
+               o.shadows.value = false;
+            }
+            self.set('context.shadows_enabled', o.shadows.value);
 
             self.set('context.vsync_enabled', o.vsync.value);
 
             self.set('context.fullscreen_enabled', o.fullscreen.value);
 
+            self.set('context.msaa_forbidden', !o.msaa.allowed);
+            if (!o.msaa.allowed) {
+               o.msaa.value = 0;
+            }
             self.set('context.num_msaa_samples', o.msaa.value);
-            self.set('context.msaa_forbidden', !!o.msaa.allowed);
          });
    },
 

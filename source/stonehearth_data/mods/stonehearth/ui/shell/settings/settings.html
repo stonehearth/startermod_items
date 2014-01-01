@@ -11,12 +11,14 @@
          <input type="checkbox" id="opt_enableFullscreen" {{bindAttr checked="fullscreen_enabled"}}>
          <label class="chkSetting" for="opt_enableFullscreen">Fullscreen</label>
       
-         <label>Anti-Aliasing</label>
-         <span>
-            <div class="dec numericButton">-</div>
-            <input id="opt_numSamples" type="number" name="numSamples" {{bindAttr value="num_msaa_samples"}} min="0" max="4" readonly="true" {{bindAttr disabled="msaa_forbidden"}}>
-            <div class="inc numericButton">+</div>
-         </span>
+         <div {{bindAttr class=":aaControl msaa_forbidden:numericDisabled"}}>
+            <label for="opt_numSamples" class="aaLabel">Anti-Aliasing</label>
+            <span class="aaControlInput">
+               <div class="dec numericButton">-</div>
+               <input class="aaNumInput" id="opt_numSamples" type="number" name="numSamples" {{bindAttr value="num_msaa_samples"}} min="0" max="4" readonly="true" {{bindAttr disabled="msaa_forbidden"}}>
+               <div class="inc numericButton">+</div>
+            </span>
+         </div>
       </div>
       <button {{action applySettings target=view}}>Apply</button>
    </div>

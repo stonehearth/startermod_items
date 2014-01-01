@@ -412,10 +412,7 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig)
    {
       // MSAA change requires that we reload our pipelines (so that we can regenerate our
       // render target textures with the appropriate sampling).
-      H3DRes r = 0;
-      while ((r = h3dGetNextResource(H3DResTypes::Pipeline, r)) != 0) {
-         h3dUnloadResource(r);
-      }
+      FlushMaterials();
 
       LoadResources();
    }
