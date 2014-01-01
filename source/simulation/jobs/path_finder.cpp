@@ -188,20 +188,22 @@ void PathFinder::Restart()
 
 void PathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
 {
-   std::vector<csg::Point3> best;
-   csg::Color4 pathColor;
-   if (!solution_) {
-      RecommendBestPath(best);
-      pathColor = csg::Color4(192, 32, 0);
-   } else {
-      best = solution_->GetPoints();
-      pathColor = csg::Color4(32, 192, 0);
-   }
+   if (!IsIdle()) {
+      std::vector<csg::Point3> best;
+      csg::Color4 pathColor;
+      if (!solution_) {
+         RecommendBestPath(best);
+         pathColor = csg::Color4(192, 32, 0);
+      } else {
+         best = solution_->GetPoints();
+         pathColor = csg::Color4(32, 192, 0);
+      }
 
-   for (const auto& pt : best) {
-      auto coord = msg->add_coords();
-      pt.SaveValue(coord);
-      pathColor.SaveValue(coord->mutable_color());
+      for (const auto& pt : best) {
+         auto coord = msg->add_coords();
+         pt.SaveValue(coord);
+         pathColor.SaveValue(coord->mutable_color());
+      }
    }
 
 #if 0
