@@ -10,7 +10,7 @@ App.StonehearthTaskManagerView = App.View.extend({
             .progress(function (response) {
                var foo = JSON.stringify(response)
                $.each(response.counters, function(i, counter) {
-                  counter.name = counter.name.replace(/ /g, '_');
+                  counter.tag = counter.name.replace(/ /g, '_');
                });
 
                self._refresh(response);
@@ -36,13 +36,13 @@ App.StonehearthTaskManagerView = App.View.extend({
       this.bars.css('max-width', totalWidth);
 
       $.each(data.counters, function(i, counter) {
-         if(counter.name != 'idle') {
-            var bar = self.bars.find('.' + counter.name);
+         if (counter.tag != 'idle') {
+            var bar = self.bars.find('.' + counter.tag);
 
             if (bar.length == 0) {
                bar = $('<div>')
                   .addClass('counter')
-                  .addClass(counter.name);
+                  .addClass(counter.tag);
 
                self.bars.append(bar)
             } 
@@ -62,12 +62,13 @@ App.StonehearthTaskManagerView = App.View.extend({
       var self = this;
 
       $.each(data.counters, function(i, counter) {
-         var row = self.details.find('#' + counter.name);
+         var row = self.details.find('#' + counter.tag);
+         var percent = (counter.time * 100.0 / data.total_time).toFixed(1) + '%';
 
-         if (row.length == 0 ) {
-            self.details.find('table').append('<tr id=' + counter.name + '><td class="key ' + counter.name + '">&nbsp;&nbsp;<td class=name>' + counter.name + '<td class=time>' + counter.time);
+         if (row.length == 0) {
+            self.details.find('table').append('<tr id=' + counter.tag + '><td class="key ' + counter.tag + '">&nbsp;&nbsp;<td class=name>' + counter.name + '<td class=time>' + percent + '</td>');
          } else {
-            row.find('.time').html(counter.time)
+            row.find('.time').html(percent)
          }
       });
    },
