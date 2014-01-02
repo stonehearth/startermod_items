@@ -21,6 +21,7 @@ public:
    void Initialize() override;
    csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const override;
    void MarkChanged() override;
+   TrackerType GetType() const override;
 
 private:
    om::Region3BoxedPtr GetRegion() const;

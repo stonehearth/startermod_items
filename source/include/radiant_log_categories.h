@@ -34,6 +34,7 @@
    \
    BEGIN_GROUP(simulation) \
       ADD_CATEGORY(core) \
+      ADD_CATEGORY(jobs) \
       ADD_CATEGORY(pathfinder) \
       ADD_CATEGORY(follow_path) \
       ADD_CATEGORY(goto_location) \

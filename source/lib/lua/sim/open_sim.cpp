@@ -145,12 +145,17 @@ std::shared_ptr<GotoLocation> Sim_CreateGotoEntity(lua_State *L, om::EntityRef e
    return fp;
 }
 
-std::shared_ptr<PathFinder> Sim_CreatePathFinder(lua_State *L, std::string name)
+std::shared_ptr<PathFinder> Sim_CreatePathFinder(lua_State *L, om::EntityRef s, std::string name)
 {
-   Simulation &sim = GetSim(L);
-   std::shared_ptr<PathFinder> pf(new PathFinder(sim, name));
-   sim.AddJob(pf);
-   return pf;
+   om::EntityPtr source = s.lock();
+   if (source) {
+      Simulation &sim = GetSim(L);
+      std::shared_ptr<PathFinder> pf(new PathFinder(sim, name));
+      pf->SetSource(source);
+      sim.AddJobForEntity(source, pf);
+      return pf;
+   }
+   return nullptr;
 }
 
 std::shared_ptr<LuaJob> Sim_CreateJob(lua_State *L, std::string const& name, object cb)

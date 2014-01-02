@@ -65,10 +65,10 @@ class OctTree {
          dm::TracePtr   children_trace;
          dm::TracePtr   sensor_list_trace;
       };
-      std::map<dm::ObjectId, EntityMapEntry>       entities_;
-      std::map<dm::ObjectId, om::SensorRef>        sensors_;
+      std::map<dm::ObjectId, EntityMapEntry>    entities_;
+      std::map<dm::ObjectId, om::SensorRef>     sensors_;
       core::Guard                               guards_;
-      NavGrid                                   navgrid_;
+      mutable NavGrid                           navgrid_;
       int                                       trace_category_;
 };
 

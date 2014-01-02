@@ -9,6 +9,7 @@
 #include "csg/point.h"
 #include "csg/color.h"
 #include "om/region.h"
+#include "path_finder_node.h"
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
 
@@ -54,20 +55,19 @@ class PathFinder : public Job {
       bool IsSearchExhausted() const;
 
    private:
-      bool CompareEntries(const csg::Point3 &a, const csg::Point3 &b);
       void RecommendBestPath(std::vector<csg::Point3> &points) const;
       int EstimateCostToDestination(const csg::Point3 &pt) const;
       int EstimateCostToDestination(const csg::Point3 &pt, PathFinderDst** closest) const;
 
-      csg::Point3 GetFirstOpen();
+      PathFinderNode GetFirstOpen();
       void ReconstructPath(std::vector<csg::Point3> &solution, const csg::Point3 &dst) const;
-      void AddEdge(const csg::Point3 &current, const csg::Point3 &next, int cost);
+      void AddEdge(const PathFinderNode &current, const csg::Point3 &next, int cost);
       void RebuildHeap();
 
       void SolveSearch(const csg::Point3& last, PathFinderDst* dst);
       csg::Point3 GetSourceLocation();
 
-   public:
+   private:
       om::EntityRef                                entity_;
       om::MobRef                                   mob_;
       luabind::object                              solved_cb_;
@@ -79,20 +79,20 @@ class PathFinder : public Job {
       mutable PathPtr                              solution_;
       csg::Color4                                  debug_color_;
    
-      std::vector<csg::Point3>                      open_;
+      std::vector<PathFinderNode>                  open_;
+      std::set<csg::Point3>                        closed_;
 
+#if 0
       std::unordered_map<csg::Point3, bool, csg::Point3::Hash> closed_;
       std::unordered_map<csg::Point3, int, csg::Point3::Hash>  f_;
       std::unordered_map<csg::Point3, int, csg::Point3::Hash>  g_;
       std::unordered_map<csg::Point3, int, csg::Point3::Hash>  h_;
+#endif
       std::unordered_map<csg::Point3, csg::Point3, csg::Point3::Hash>  cameFrom_;
    
       std::unique_ptr<PathFinderSrc>               source_;
       mutable std::unordered_map<dm::ObjectId, std::unique_ptr<PathFinderDst>>  destinations_;
 };
-
-typedef std::weak_ptr<PathFinder> PathFinderRef;
-typedef std::shared_ptr<PathFinder> PathFinderPtr;
 
 std::ostream& operator<<(std::ostream& o, const PathFinder& pf);
 

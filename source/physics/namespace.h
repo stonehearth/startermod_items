@@ -18,6 +18,8 @@ typedef std::function<void()> TerrainChangeCb;
 
 class OctTree;
 class NavGrid;
+class NavGridTile;
+class NavGridTileData;
 class CollisionTracker;
 class TerrainTracker;
 class TerrainTileTracker;
@@ -27,6 +29,30 @@ class VerticalPathingRegionTracker;
 DECLARE_SHARED_POINTER_TYPES(CollisionTracker)
 DECLARE_SHARED_POINTER_TYPES(TerrainTracker)
 DECLARE_SHARED_POINTER_TYPES(TerrainTileTracker)
+
+enum {
+   TILE_SIZE = 16
+};
+
+/*
+ * We keep one 16x16x16 array of bits for every TrackerType, plus a number
+ * of derived arrays (e.g. can_stand_).
+ * 
+ * COLLISION - bits that are on represent voxels which overlap some entities
+ *             collision shape.  Mobile entities cannot overlap these voxels.
+ *
+ * LADDER - represents bits which overlap some entities VerticalPathingRegion
+ *          region.  These bits are both traversible (i.e. you can walk through
+ *          them) and can support an entity (i.e. you can stand on them).
+ *          I guess technically that makes them more like a chute, but \/\/
+ *          Ladder bits override collision bits!
+ */
+enum TrackerType {
+   COLLISION = 0,
+   LADDER = 1,
+   MAX_TRACKER_TYPES,
+};
+
 
 END_RADIANT_PHYSICS_NAMESPACE
 

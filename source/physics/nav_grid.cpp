@@ -4,6 +4,7 @@
 #include "nav_grid_tile.h"
 #include "dm/store.h"
 #include "csg/util.h"
+#include "core/config.h"
 #include "om/components/component.h"
 #include "om/components/mob.ridl.h"
 #include "om/components/terrain.ridl.h"
@@ -17,11 +18,21 @@
 using namespace radiant;
 using namespace radiant::phys;
 
+static const int DEFAULT_WORKING_SET_SIZE = 128;
+
 #define NG_LOG(level)              LOG(physics.navgrid, level)
 
 NavGrid::NavGrid(int trace_category) :
-   trace_category_(trace_category)
+   trace_category_(trace_category),
+   bounds_(csg::Cube3::zero)
 {
+   last_evicted_ = 0;
+   max_resident_ = core::Config::GetInstance().Get<int>("nav_grid.working_set_size", DEFAULT_WORKING_SET_SIZE);
+   if (max_resident_ != DEFAULT_WORKING_SET_SIZE) {
+      NG_LOG(1) << "working set size is " << max_resident_;
+   }
+   resident_tiles_.reserve(max_resident_);
+   resident_tiles_.resize(0);
 }
 
 /*
@@ -86,7 +97,7 @@ void NavGrid::AddTerrainTileTracker(om::EntityRef e, csg::Point3 const& offset, 
  * such a way that they're not partially hanging off the edge of a cliff and not
  * overlapping other trees.
  */
-bool NavGrid::IsValidStandingRegion(csg::Region3 const& collision_shape) const
+bool NavGrid::IsValidStandingRegion(csg::Region3 const& collision_shape)
 {
    for (csg::Cube3 const& cube : collision_shape) {
       if (!CanStandOn(cube)) {
@@ -106,7 +117,7 @@ bool NavGrid::IsValidStandingRegion(csg::Region3 const& collision_shape) const
  * xxx: we need a "non-walkable" region to clip against.  until that exists,
  * do the slow thing...
  */
-void NavGrid::RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3& region) const
+void NavGrid::RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3& region)
 {
    csg::Region3 r2;
    for (csg::Cube3 const& cube : region) {
@@ -124,11 +135,20 @@ void NavGrid::RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3& regio
  *
  * Returns the entity can possibly stand on the specified point.
  */
-bool NavGrid::CanStandOn(om::EntityPtr entity, csg::Point3 const& pt) const
+bool NavGrid::CanStandOn(om::EntityPtr entity, csg::Point3 const& pt)
 {
    csg::Point3 index, offset;
-   csg::GetChunkIndex(pt, NavGridTile::TILE_SIZE, index, offset);
-   return GridTile(index).CanStandOn(offset);
+   csg::GetChunkIndex(pt, TILE_SIZE, index, offset);
+   
+   if (!bounds_.Contains(pt)) {
+      return false;
+   }
+
+   NavGridTile& tile = GridTileResident(index);
+   tile.FlushDirty(*this, index);
+
+   ASSERT(tile.IsDataResident());
+   return tile.CanStandOn(offset);
 }
 
 /*
@@ -143,7 +163,7 @@ bool NavGrid::CanStandOn(om::EntityPtr entity, csg::Point3 const& pt) const
  * xxx: this is horribly, horribly expensive!  we should do this
  * with region clipping or somethign...
  */
-bool NavGrid::CanStandOn(csg::Cube3 const& cube) const
+bool NavGrid::CanStandOn(csg::Cube3 const& cube)
 {
    csg::Point3 const& min = cube.GetMin();
    csg::Point3 const& max = cube.GetMax();
@@ -167,7 +187,7 @@ bool NavGrid::CanStandOn(csg::Cube3 const& cube) const
  * Returns the trace category to use in TraceChanges, TraceDestroyed,
  * etc.
  */
-int NavGrid::GetTraceCategory() const
+int NavGrid::GetTraceCategory()
 {
    return trace_category_;
 }
@@ -180,25 +200,28 @@ int NavGrid::GetTraceCategory() const
  * about them and adds them to trackers which do.  This happens when regions are created,
  * moved around in the world, or when they grow or shrink.
  */
-void NavGrid::AddCollisionTracker(NavGridTile::TrackerType type, csg::Cube3 const& last_bounds, csg::Cube3 const& bounds, CollisionTrackerPtr tracker)
+void NavGrid::AddCollisionTracker(csg::Cube3 const& last_bounds, csg::Cube3 const& bounds, CollisionTrackerPtr tracker)
 {
    NG_LOG(3) << "collision notify bounds " << bounds << "changed (last_bounds: " << last_bounds << ")";
-   csg::Cube3 current_chunks = csg::GetChunkIndex(bounds, NavGridTile::TILE_SIZE);
-   csg::Cube3 previous_chunks = csg::GetChunkIndex(last_bounds, NavGridTile::TILE_SIZE);
+   csg::Cube3 current_chunks = csg::GetChunkIndex(bounds, TILE_SIZE);
+   csg::Cube3 previous_chunks = csg::GetChunkIndex(last_bounds, TILE_SIZE);
+
+   bounds_.Grow(bounds.min - csg::Point3(TILE_SIZE, TILE_SIZE, TILE_SIZE));
+   bounds_.Grow(bounds.max + csg::Point3(TILE_SIZE, TILE_SIZE, TILE_SIZE));
 
    // Remove trackers from tiles which no longer overlap the current bounds of the tracker,
    // but did overlap their previous bounds.
    for (csg::Point3 const& cursor : previous_chunks) {
       if (!current_chunks.Contains(cursor)) {
          NG_LOG(5) << "removing tracker from grid tile at " << cursor;
-         GridTile(cursor).RemoveCollisionTracker(type, tracker);
+         GridTileNonResident(cursor).RemoveCollisionTracker(tracker);
       }
    }
 
    // Add trackers to tiles which overlap the current bounds of the tracker.
    for (csg::Point3 const& cursor : current_chunks) {
       NG_LOG(5) << "adding tracker to grid tile at " << cursor;
-      GridTile(cursor).AddCollisionTracker(type, tracker);
+      GridTileNonResident(cursor).AddCollisionTracker(tracker);
    }
 }
 
@@ -207,18 +230,64 @@ void NavGrid::AddCollisionTracker(NavGridTile::TrackerType type, csg::Cube3 cons
  * -- NavGrid::GridTile
  *
  * Returns the tile for the world-coordinate point pt, creating it if it does
+ * not yet exist, and make all the tile data resident (though not necessarily
+ * up-to-date!).  (see NavGridTileData::CanStandOn)
+ */
+NavGridTile& NavGrid::GridTileResident(csg::Point3 const& pt)
+{
+   return GridTile(pt, true);
+}
+
+
+/*
+ * -- NavGrid::GridTileNonResident
+ *
+ * Returns the tile for the world-coordinate point pt, creating it if it does
+ * not yet exist.  This tile will not page in it's NavGridTileData, so it's
+ * only safe to call functions on this tile which update the metadata (e.g.
+ * AddCollisionTracker)
+ */
+NavGridTile& NavGrid::GridTileNonResident(csg::Point3 const& pt)
+{
+   return GridTile(pt, false);
+}
+
+/*
+ * -- NavGrid::GridTile
+ *
+ * Returns the tile for the world-coordinate point pt, creating it if it does
  * not yet exist.  If you don't want to create the tile if the point is invalid,
  * use .find on tiles_ directly.
  */
-NavGridTile& NavGrid::GridTile(csg::Point3 const& pt) const
+NavGridTile& NavGrid::GridTile(csg::Point3 const& pt, bool make_resident)
 {
-   auto i = tiles_.find(pt);
-   if (i != tiles_.end()) {
-      return i->second;
+   NavGridTileMap::iterator i = tiles_.find(pt);
+   if (i == tiles_.end()) {
+      NG_LOG(5) << "constructing new grid tile at " << pt;
+      i = tiles_.insert(std::make_pair(pt, NavGridTile())).first;
    }
-   NG_LOG(5) << "constructing new grid tile at " << pt;
-   auto j = tiles_.insert(std::make_pair(pt, NavGridTile(const_cast<NavGrid&>(*this), pt))).first;
-   return j->second;
+   NavGridTile& tile = i->second;
+
+   if (make_resident) {
+      if (tile.IsDataResident()) {
+         for (auto &entry : resident_tiles_) {
+            if (entry.first == pt) {
+               entry.second = true;
+               break;
+            }
+         }
+      } else {
+         NG_LOG(3) << "making nav grid tile " << pt << " resident";
+         tile.SetDataResident(true);
+         if (resident_tiles_.size() >= max_resident_) {         
+            EvictNextUnvisitedTile(pt);
+         } else {
+            resident_tiles_.push_back(std::make_pair(pt, true));
+         }
+      }
+   }
+
+   return tile;
 }
 
 
@@ -226,10 +295,46 @@ NavGridTile& NavGrid::GridTile(csg::Point3 const& pt) const
  * -- NavGrid::ShowDebugShapes
  *
  * Push some debugging information into the shaplist.
- */
+ */ 
 void NavGrid::ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg)
 {
-   csg::Point3 index = csg::GetChunkIndex(pt, NavGridTile::TILE_SIZE);
-   GridTile(index).ShowDebugShapes(msg);
+   csg::Point3 index = csg::GetChunkIndex(pt, TILE_SIZE);
+   NavGridTile& tile = GridTileResident(index);
+   tile.FlushDirty(*this, index);
+   tile.ShowDebugShapes(msg, index);
 }
 
+
+/*
+ * -- NavGrid::EvictNextUnvisitedTile
+ *
+ * Evict the NavGridTileData for the tile we're least likely to need in the near
+ * future.  The last_evicted_ iterator points to the tile immediately after
+ * the last tile that got evicted the last time.  We approximate the LRU tile by
+ * sweeping last_evicted_ through the resident_tiles_ map, clearing visited bits
+ * along the way, until we reach a tile that has not yet been visited.  This
+ * is a pretty good approximation.
+ *
+ * (see http://en.wikipedia.org/wiki/Page_replacement_algorithm#Clock)
+ */ 
+void NavGrid::EvictNextUnvisitedTile(csg::Point3 const& pt)
+{
+   while (true) {
+      if (last_evicted_ == resident_tiles_.size() - 1) {
+         last_evicted_ = 0;
+      }
+      std::pair<csg::Point3, bool>& entry = resident_tiles_[last_evicted_];
+      bool visited = entry.second;
+      if (visited) {
+         entry.second = false;
+      } else {
+         NG_LOG(3) << "evicted nav grid tile " << entry.first;
+         GridTileNonResident(entry.first).SetDataResident(false);
+         entry.first = pt;
+         entry.second = true;
+         last_evicted_++;
+         return;
+      }
+      last_evicted_++;
+   }
+}

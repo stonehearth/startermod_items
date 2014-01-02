@@ -72,6 +72,7 @@ end
 
 -- test for perfect reconstruction
 function Wavelet._test()
+   local rng = _radiant.csg.RandomNumberGenerator(1)
    local width, height, levels
    local x = {}
    local y = {}
@@ -83,7 +84,7 @@ function Wavelet._test()
    levels = 3
 
    for i=1, width*height do
-      x[i] = math.random(0, 100)
+      x[i] = rng:get_int(0, 100)
    end
 
    for i=1, width*height do
@@ -101,4 +102,3 @@ function Wavelet._test()
 end
 
 return Wavelet
-

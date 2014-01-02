@@ -34,10 +34,12 @@ PathFinder::PathFinder(Simulation& sim, std::string name) :
    enabled_(true),
    debug_color_(255, 192, 0, 128)
 {
+   PF_LOG(3) << "creating pathfinder";
 }
 
 PathFinder::~PathFinder()
 {
+   PF_LOG(3) << "destroying pathfinder";
 }
 
 void PathFinder::SetSource(om::EntityRef e)
@@ -68,27 +70,27 @@ void PathFinder::SetFilterFn(luabind::object dst_filter)
 bool PathFinder::IsIdle() const
 {
    if (!enabled_) {
-      PF_LOG(7) << "is_idle: yes.  not enabled";
+      PF_LOG(5) << "is_idle: yes.  not enabled";
       return true;
    }
 
    if (!source_ || source_->IsIdle()) {
-      PF_LOG(7) << "is_idle: yes.  no source, or source is idle";
+      PF_LOG(5) << "is_idle: yes.  no source, or source is idle";
       return true;
    }
 
    if (entity_.expired()) {
-      PF_LOG(7) << "is_idle: yes.  no source entity.";
+      PF_LOG(5) << "is_idle: yes.  no source entity.";
       return true;
    }
 
    if (restart_search_) {
-      PF_LOG(7) << "is_idle: no.  restart pending";
+      PF_LOG(5) << "is_idle: no.  restart pending";
       return false;
    }
 
    if (IsSearchExhausted()) {
-      PF_LOG(7) << "is_idle: yes. search exhausted.";
+      PF_LOG(5) << "is_idle: yes. search exhausted.";
       return true;
    }
 
@@ -101,17 +103,17 @@ bool PathFinder::IsIdle() const
       }
    }
    if (all_idle) {
-      PF_LOG(7) << "is_idle: yes. all destinations idle.";
+      PF_LOG(5) << "is_idle: yes. all destinations idle.";
       return true;
    }
 
 
    if (solution_) {
-      PF_LOG(7) << "is_idle: yes. already solved!";
+      PF_LOG(5) << "is_idle: yes. already solved!";
       return true;
    }
 
-   PF_LOG(7) << "is_idle: no.  still work to do!";
+   PF_LOG(5) << "is_idle: no.  still work to do! ( open:" << open_.size() << " closed:" << closed_.size() << ")";
    return false;
 }
 
@@ -177,34 +179,33 @@ void PathFinder::Restart()
    cameFrom_.clear();
    closed_.clear();
    open_.clear();
-   f_.clear();
-   g_.clear();
-   h_.clear();
 
    source_->InitializeOpenSet(open_);
-   for (csg::Point3 const& pt : open_) {
-   	int h = EstimateCostToDestination(pt);
-	   f_[pt] = h;
-	   h_[pt] = h;
+   for (PathFinderNode& node : open_) {
+   	int h = EstimateCostToDestination(node.pt);
+      node.f = h;
+      node.g = 0;
    }
 }
 
 void PathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
 {
-   std::vector<csg::Point3> best;
-   csg::Color4 pathColor;
-   if (!solution_) {
-      RecommendBestPath(best);
-      pathColor = csg::Color4(192, 32, 0);
-   } else {
-      best = solution_->GetPoints();
-      pathColor = csg::Color4(32, 192, 0);
-   }
+   if (!IsIdle()) {
+      std::vector<csg::Point3> best;
+      csg::Color4 pathColor;
+      if (!solution_) {
+         RecommendBestPath(best);
+         pathColor = csg::Color4(192, 32, 0);
+      } else {
+         best = solution_->GetPoints();
+         pathColor = csg::Color4(32, 192, 0);
+      }
 
-   for (const auto& pt : best) {
-      auto coord = msg->add_coords();
-      pt.SaveValue(coord);
-      pathColor.SaveValue(coord->mutable_color());
+      for (const auto& pt : best) {
+         auto coord = msg->add_coords();
+         pt.SaveValue(coord);
+         pathColor.SaveValue(coord->mutable_color());
+      }
    }
 
 #if 0
@@ -248,6 +249,7 @@ void PathFinder::Work(const platform::timer &timer)
    }
 
    if (open_.empty()) {
+      PF_LOG(7) << "open set is empty!  returning";
       return;
    }
 
@@ -256,14 +258,14 @@ void PathFinder::Work(const platform::timer &timer)
    }
 
    VERIFY_HEAPINESS();
-   csg::Point3 current = GetFirstOpen();
-   closed_[current] = true;
+   PathFinderNode current = GetFirstOpen();
+   closed_.insert(current.pt);
 
    PathFinderDst* closest;
-   if (EstimateCostToDestination(current, &closest) == 0) {
+   if (EstimateCostToDestination(current.pt, &closest) == 0) {
       // xxx: be careful!  this may end up being re-entrant (for example, removing
       // destinations).
-      SolveSearch(current, closest);
+      SolveSearch(current.pt, closest);
       return;
    }
 
@@ -272,8 +274,11 @@ void PathFinder::Work(const platform::timer &timer)
    // Check each neighbor...
    const auto& o = GetSim().GetOctTree();
    
-   // xxx: not correct for reversed search yet...
-   auto neighbors = o.ComputeNeighborMovementCost(entity_.lock(), current);
+   auto neighbors = o.ComputeNeighborMovementCost(entity_.lock(), current.pt);
+   PF_LOG(7) << "compute neighbor movment cost from " << current.pt << " returned " << neighbors.size() << " results";
+   if (neighbors.size() == 0) {
+      //DebugBreak();
+   }
 
    VERIFY_HEAPINESS();
    for (const auto& neighbor : neighbors) {
@@ -288,46 +293,45 @@ void PathFinder::Work(const platform::timer &timer)
 }
 
 
-void PathFinder::AddEdge(const csg::Point3 &current, const csg::Point3 &next, int movementCost)
+void PathFinder::AddEdge(const PathFinderNode &current, const csg::Point3 &next, int movementCost)
 {
-   PF_LOG(10) << "       Adding Edge " << current << " cost:" << next;
+   PF_LOG(10) << "       Adding Edge " << current.pt << " cost:" << next;
 
    VERIFY_HEAPINESS();
 
    if (closed_.find(next) == closed_.end()) {
       bool update = false;
-      int g = g_[current] + movementCost;
+      int g = current.g + movementCost;
 
-      auto currentg_ = g_.find(next);
-      bool found = currentg_ != g_.end();
-
+      uint i, c = open_.size();
+      for (i = 0; i < c; i++) {
+         if (open_[i].pt == next) {
+            break;
+         }
+      }
       VERIFY_HEAPINESS();
 
-      if (!found || currentg_->second > g) {
-         VERIFY_HEAPINESS();
-         int h = EstimateCostToDestination(next);
-         VERIFY_HEAPINESS();
+      int h = EstimateCostToDestination(next);
+      int f = g + h;
 
-         if (!rebuildHeap_) {
-            auto j = f_.find(next);
-            rebuildHeap_ = j != f_.end() && j->second != (g + h);
-         }
-         VERIFY_HEAPINESS();
-         cameFrom_[next] = current;
-         g_[next] = g;
-         f_[next] = g + h;
-         h_[next] = h;
-         VERIFY_HEAPINESS();
-
-         PF_LOG(10) << "          Updating costs maps, f:" << (g+h) << "  g:" << g;
-      }
-      if (!found) {
+      if (i == c) {
+         // not found in the open list.  add a brand new node.
          PF_LOG(10) << "          Adding " << next << " to open set.";
-         open_.push_back(next);
+         cameFrom_[next] = current.pt;
+         open_.push_back(PathFinderNode(next, f, g));
          if (!rebuildHeap_) {
-            push_heap(open_.begin(), open_.end(), bind(&PathFinder::CompareEntries, this, std::placeholders::_1, std::placeholders::_2));
+            push_heap(open_.begin(), open_.end(), PathFinderNode::CompareFitness);
          }
          VERIFY_HEAPINESS();
+      } else {
+         // found.  should we update?
+         if (g < open_[i].g) {
+            cameFrom_[next] = current.pt;
+            open_[i].g = g;
+            open_[i].f = f;
+            rebuildHeap_ = true; // really?
+            PF_LOG(10) << "          Updating costs maps, f:" << f << "  g:" << g;
+         }
       }
    }
 
@@ -342,7 +346,7 @@ int PathFinder::EstimateCostToSolution()
    if (IsIdle()) {
       return INT_MAX;
    }
-   return f_[open_.front()];
+   return open_.front().f;
 }
 
 int PathFinder::EstimateCostToDestination(const csg::Point3 &from) const
@@ -388,16 +392,16 @@ int PathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFinderDst
    return hMin;
 }
 
-csg::Point3 PathFinder::GetFirstOpen()
+PathFinderNode PathFinder::GetFirstOpen()
 {
    auto result = open_.front();
 
    VERIFY_HEAPINESS();
-   pop_heap(open_.begin(), open_.end(), bind(&PathFinder::CompareEntries, this, std::placeholders::_1, std::placeholders::_2));
+   pop_heap(open_.begin(), open_.end(), PathFinderNode::CompareFitness);
    open_.pop_back();
    VERIFY_HEAPINESS();
 
-   PF_LOG(10) << " open size is " << open_.size();
+   PF_LOG(10) << " GetFirstOpen returning " << result.pt << ".  " << open_.size() << " points remain in open set";
 
    return result;
 }
@@ -424,7 +428,7 @@ void PathFinder::RecommendBestPath(std::vector<csg::Point3> &points) const
       if (rebuildHeap_) {
          const_cast<PathFinder*>(this)->RebuildHeap();
       }
-      ReconstructPath(points, open_.front());
+      ReconstructPath(points, open_.front().pt);
    }
 }
 
@@ -433,16 +437,9 @@ std::string PathFinder::GetProgress() const
    return BUILD_STRING(GetName() << " " << "(open: " << open_.size() << "  closed: " << closed_.size() << ")");
 }
 
-bool PathFinder::CompareEntries(const csg::Point3 &a, const csg::Point3 &b)
-{
-   ASSERT(stdutil::contains(f_, a) && stdutil::contains(f_, b));
-   return f_[a] > f_[b];
-}
-
-
 void PathFinder::RebuildHeap()
 {
-   std::make_heap(open_.begin(), open_.end(), bind(&PathFinder::CompareEntries, this, std::placeholders::_1, std::placeholders::_2));
+   std::make_heap(open_.begin(), open_.end(), PathFinderNode::CompareFitness);
    VERIFY_HEAPINESS();
    rebuildHeap_ = false;
 }
@@ -526,7 +523,7 @@ std::string PathFinder::DescribeProgress()
    std::ostringstream progress;
    progress << GetName() << open_.size() << " open nodes. " << closed_.size() << " closed nodes. ";
    if (!open_.empty()) {
-      progress << EstimateCostToDestination(GetFirstOpen()) << " nodes from destination. ";
+      progress << EstimateCostToDestination(GetFirstOpen().pt) << " nodes from destination. ";
    }
    progress << "idle? " << IsIdle();
    return progress.str();

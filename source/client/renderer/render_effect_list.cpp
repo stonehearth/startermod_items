@@ -28,6 +28,7 @@
 #include "lib/lua/script_host.h"
 #include "lib/perfmon/perfmon.h"
 #include "lib/audio/input_stream.h"
+#include "csg/random_number_generator.h"
 #include <SFML/Audio.hpp>
 #include "horde3d\Source\Horde3DEngine\egHudElement.h"
 #include "horde3d\Source\Shared\utMath.h"
@@ -722,7 +723,7 @@ PlaySoundEffect::PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JS
    } else if (n.type() == JSON_NODE) {
       if (n.get<std::string>("type", "") == "one_of") {
          JSONNode items = n.get("items", JSONNode());
-         uint c = rand() * items.size() / RAND_MAX;
+         uint c = csg::RandomNumberGenerator::DefaultInstance().GetInt<uint>(0, items.size() - 1);
          ASSERT(c < items.size());
          track = items.at(c).as_string();
       }

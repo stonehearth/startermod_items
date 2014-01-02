@@ -20,7 +20,6 @@ function DeathAction:run(ai, entity)
 end
 
 function DeathAction:destroy(entity)
-   om:destroy_target_table(entity, self._aggro_table)
    --radiant.events.unlisten_to_entity(entity, 'stonehearth:events:on_damage', self)
 end
 

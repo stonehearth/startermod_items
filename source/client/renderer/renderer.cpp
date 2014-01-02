@@ -122,12 +122,13 @@ Renderer::Renderer() :
    
    ssaoMat = h3dAddResource(H3DResTypes::Material, "materials/ssao.material.xml", 0);
 
+   csg::RandomNumberGenerator &rng = csg::RandomNumberGenerator::DefaultInstance();
    H3DRes veclookup = h3dCreateTexture("RandomVectorLookup", 4, 4, H3DFormats::TEX_RGBA32F, H3DResFlags::NoTexMipmaps);
    float *data2 = (float *)h3dMapResStream(veclookup, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
    for (int i = 0; i < 16; i++)
    {
-      float x = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
-      float y = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
+      float x = rng.GetReal(-1.0f, 1.0f);
+      float y = rng.GetReal(-1.0f, 1.0f);
       float z = 0;
       Horde3D::Vec3f v(x,y,z);
       v.normalize();
@@ -147,9 +148,9 @@ Renderer::Renderer() :
    // Sampler kernel generation--a work in progress.
    const int KernelSize = 16;
    for (int i = 0; i < KernelSize; ++i) {
-      float x = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
-      float y = ((rand() / (float)RAND_MAX) * 2.0f) - 1.0f;
-      float z = ((rand() / (float)RAND_MAX) * 0.5f) - 1.0f;
+      float x = rng.GetReal(-1.0f, 1.0f);
+      float y = rng.GetReal(-1.0f, 1.0f);
+      float z = rng.GetReal(-0.5f, 0.5f);
       Horde3D::Vec3f v(x,y,z);
       v.normalize();
 
@@ -376,6 +377,8 @@ void Renderer::GetConfigOptions()
 
    config_.screen_width.value = config.Get("renderer.screen_width", 1280);
    config_.screen_height.value = config.Get("renderer.screen_height", 720);
+
+   config_.enable_debug_keys.value = config.Get("enable_debug_keys", false);
 }
 
 void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
@@ -572,8 +575,12 @@ void Renderer::RenderOneFrame(int now, float alpha)
 
    perfmon::TimelineCounterGuard tcg("render one");
 
-   bool debug = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS;
-   bool showStats = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
+   bool debug = false;
+   bool showStats = false;
+   if (config_.enable_debug_keys.value) {
+      debug = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS;
+      showStats = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
+   }
   
    bool showUI = true;
    const float ww = (float)h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportWidthI) /
@@ -1102,7 +1109,7 @@ core::Guard Renderer::OnRenderFrameStart(std::function<void(FrameStartInfo const
    return render_frame_start_slot_.Register(fn);
 }
 
-bool Renderer::GetShowDebugShapes()
+bool Renderer::ShowDebugShapes()
 {
    return show_debug_shapes_;
 }

@@ -9,7 +9,9 @@ function RabbitTest:__init()
    local tree = self:place_tree(-12, -12)
    local tree = self:place_tree(-12, 12)
    
+   self:place_citizen(6, 6) 
    local rabbit = self:place_item('stonehearth:rabbit', 0, 0)
+   local sheep = self:place_item('stonehearth:sheep', -6, -6)
    rabbit:add_component('stonehearth:leash'):set_to_entity_location(rabbit)
 
    --local bench = self:place_item('stonehearth:carpenter:workbench', -6, 6)

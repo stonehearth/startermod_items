@@ -1,0 +1,92 @@
+#taskManager {
+
+   .counter  {
+      background: #ccc;
+      float: left;
+      display: inline-block;
+      font-size: 8px;
+      height: 20px;
+   }
+
+   .unaccounted_time {
+      background: #999;
+   }
+
+   .network_recv {
+      background: #a86cca;
+   }
+
+   .network_send {
+      background: #dc70ce;
+   }
+
+   .lua {
+      background: #579cea;
+   }
+
+   .lua_gc {
+      background: #46e1f3;
+   }
+
+   .collisions {
+      background: #fb9e24;
+   }
+
+   .native_tasks {
+      background: #fccbfd;
+   }
+
+   .pathfinder {
+      background: #ffe763;
+   }
+
+   .idle {
+      background: #50e94d;
+   }
+
+   #meter {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      border: 3px solid #000;
+      background: #50e94d;
+   }
+
+   #details {
+      .outlined;
+      position: absolute;
+      bottom: 40px;
+      right: 10px;
+      display: none;
+      font-size: 12px;
+      text-align: left;
+      border: 3px solid #000;
+      padding: 10px;
+      background: rgba(0,0,0,0.5);
+      color: #fff;
+
+      table {
+         width: 280px;
+         border-collapse:collapse
+      }
+
+      .key {
+         border: 2px solid #000;
+      }
+
+      .time {
+         text-align: right;
+      }
+
+      tr:nth-child(odd) {
+         background: rgba(0,0,0,0.3);
+      }
+
+      td {
+         padding: 6px;
+      }
+   }
+}
+
+
+

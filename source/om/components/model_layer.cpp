@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "render_info.ridl.h"
 #include "model_layer.ridl.h"
+#include "csg/random_number_generator.h"
 #include <boost/algorithm/string.hpp>
 
 using namespace ::radiant;
@@ -21,6 +22,8 @@ void ModelLayer::ConstructObject()
 
 void ModelLayer::Init(json::Node const& obj)
 {
+   csg::RandomNumberGenerator &rng = csg::RandomNumberGenerator::DefaultInstance();
+
    if (__str_to_layer.empty()) {
       __str_to_layer["skeleton"] = Layer::SKELETON;
       __str_to_layer["skin"]  = Layer::SKIN;
@@ -45,7 +48,7 @@ void ModelLayer::Init(json::Node const& obj)
       } else if (e.type() == JSON_NODE) {
          if (e.get<std::string>("type", "") == "one_of") {
             json::Node items = e.get("items", json::Node());
-            int c = static_cast<int>(rand() * items.size() / RAND_MAX);
+            uint c = rng.GetInt(0, items.size() - 1);
             ASSERT(c < items.size());
             model_name = items.get<std::string>(c);
          }

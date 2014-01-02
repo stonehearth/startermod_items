@@ -8,6 +8,7 @@
 #include "path.h"
 #include "csg/point.h"
 #include "om/region.h"
+#include "path_finder_node.h"
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
 
@@ -19,7 +20,7 @@ public:
    ~PathFinderSrc();
 
    bool IsIdle() const;
-   void InitializeOpenSet(std::vector<csg::Point3>& open);
+   void InitializeOpenSet(std::vector<PathFinderNode>& open);
    void EncodeDebugShapes(protocol::shapelist *msg) const;
 
 protected:

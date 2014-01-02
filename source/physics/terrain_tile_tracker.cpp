@@ -39,7 +39,7 @@ void TerrainTileTracker::MarkChanged()
 
       // xxx: we could just always pass in the bounding box of the terrain tile, but that's difficult
       // to complicate until the tile terrain branch gets pushed... (sigh)
-      GetNavGrid().AddCollisionTracker(NavGridTile::COLLISION, last_bounds_, bounds, shared_from_this());
+      GetNavGrid().AddCollisionTracker(last_bounds_, bounds, shared_from_this());
       last_bounds_ = bounds;
    }
 }
@@ -51,4 +51,9 @@ csg::Region3 TerrainTileTracker::GetOverlappingRegion(csg::Cube3 const& bounds) 
       return region->Get().Translated(GetEntityPosition() + offset_) & bounds;
    }
    return csg::Region3::empty;
+}
+
+TrackerType TerrainTileTracker::GetType() const
+{
+   return COLLISION;
 }

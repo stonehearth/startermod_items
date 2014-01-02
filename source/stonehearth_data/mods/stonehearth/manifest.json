@@ -469,7 +469,7 @@
       "init_script" : "file(client_init.lua)"
    },
    "ui" :  {
-      "html" : [
+      "html" : [     
          "file(ui/common/modal_overlay/modal_overlay.html)",
          "file(ui/shell/shell.html)",
          "file(ui/shell/title/title.html)",
@@ -478,6 +478,7 @@
          "file(ui/shell/loading_screen/loading_screen.html)",
          "file(ui/shell/settings/settings.html)",
          "file(ui/game/game.html)",
+         "file(ui/game/task_manager/task_manager.html)",   
          "file(ui/game/create_camp/create_camp.html)",
          "file(ui/game/help_camera/help_camera.html)",
          "file(ui/game/build_workshop/build_workshop.html)",
@@ -504,6 +505,7 @@
          "file(ui/shell/loading_screen/loading_screen.js)",
          "file(ui/shell/settings/settings.js)",
          "file(ui/game/game.js)",
+         "file(ui/game/task_manager/task_manager.js)",   
          "file(ui/game/create_camp/create_camp.js)",
          "file(ui/game/help_camera/help_camera.js)",
          "file(ui/game/build_workshop/build_workshop.js)",
@@ -533,6 +535,7 @@
          "file(ui/shell/loading_screen/loading_screen.less)",
          "file(ui/shell/settings/settings.less)",         
          "file(ui/game/game.less)",
+         "file(ui/game/task_manager/task_manager.less)",   
          "file(ui/game/create_camp/create_camp.less)",
          "file(ui/game/help_camera/help_camera.less)",
          "file(ui/game/build_workshop/build_workshop.less)",

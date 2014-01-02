@@ -2,10 +2,11 @@ local MathFns = require 'services.world_generation.math.math_fns'
 
 local PerturbationGrid = class()
 
-function PerturbationGrid:__init(source_map_width, source_map_height, grid_spacing)
+function PerturbationGrid:__init(source_map_width, source_map_height, grid_spacing, rng)
    self.grid_spacing = grid_spacing
    self.perturbation_map_width = math.floor(source_map_width / grid_spacing)
    self.perturbation_map_height = math.floor(source_map_height / grid_spacing)
+   self._rng = rng
    
    local remainder_x = source_map_width % grid_spacing
    local remainder_y = source_map_height % grid_spacing
@@ -55,13 +56,14 @@ function PerturbationGrid:get_cell_bounds(i, j)
 end
 
 function PerturbationGrid:get_perturbed_coordinates(i, j, margin_size)
+   local rng = self._rng
    if margin_size*2 >= self.grid_spacing then
       margin_size = math.floor((self.grid_spacing-1)*0.5)
    end
 
    local x, y, width, height = self:get_cell_bounds(i, j)
-   local cell_x = math.random(margin_size, width-1-margin_size)
-   local cell_y = math.random(margin_size, height-1-margin_size)
+   local cell_x = rng:get_int(margin_size, width-1-margin_size)
+   local cell_y = rng:get_int(margin_size, height-1-margin_size)
    return x + cell_x, y + cell_y
 end
 

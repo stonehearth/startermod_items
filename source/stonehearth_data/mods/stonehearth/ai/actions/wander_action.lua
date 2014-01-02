@@ -4,36 +4,18 @@ local Wander = class()
 
 Wander.name = 'wander'
 Wander.does = 'stonehearth:idle:bored'
-Wander.priority = 0
+Wander.priority = 1
 
 function Wander:__init(ai, entity)
    self._ai = ai
    self._entity = entity
-   self:reset()
-   radiant.events.listen(radiant.events, 'stonehearth:very_slow_poll', self, self.on_poll)
-end
-
-function Wander:on_poll()
-   if self._polls_before_move == 0 then
-      if not self._entity:get_component('stonehearth:leash') then
-         self._entity:add_component('stonehearth:leash'):set_to_entity_location(self._entity)
-      end
-      self._ai:set_action_priority(self, 2)
-      self:reset()
-   else
-      self._polls_before_move = self._polls_before_move - 1
-   end
-end
-
-function Wander:stop(ai, entity)
-   self:reset()
-end
-
-function Wander:reset()
-   self._polls_before_move = math.random(5, 8)
 end
 
 function Wander:run(ai, entity)
+   if not self._entity:get_component('stonehearth:leash') then
+      self._entity:add_component('stonehearth:leash'):set_to_entity_location(self._entity)
+   end
+
    local leash_component = entity:get_component('stonehearth:leash')
    local leash_location = leash_component:get_location()
    local entity_location = radiant.entities.get_location_aligned(entity)

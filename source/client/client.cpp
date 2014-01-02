@@ -476,35 +476,34 @@ void Client::run(int server_port)
    // this locks down the environment!  all types must be registered by now!!
    scriptHost_->Require("radiant.client");
 
-   _commands[GLFW_KEY_F12] = [&renderer]() {
-      renderer.SetShowDebugShapes(!renderer.GetShowDebugShapes());
-   };
-   _commands[GLFW_KEY_F1] = [this]() {
-      enable_debug_cursor_ = !enable_debug_cursor_;
-      CLIENT_LOG(0) << "debug cursor " << (enable_debug_cursor_ ? "ON" : "OFF");
-      if (!enable_debug_cursor_) {
-         json::Node args;
-         args.set("enabled", false);
-         core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
-      }
-   };
-   _commands[GLFW_KEY_F10] = [&renderer, this]() {
-      perf_hud_shown_ = !perf_hud_shown_;
-      renderer.ShowPerfHud(perf_hud_shown_);
-   };
-   _commands[GLFW_KEY_NUM_LOCK] = [=]() { core_reactor_->Call(rpc::Function("radiant:profile_next_lua_upate")); };
-   _commands[GLFW_KEY_F9] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_debug_nodes")); };
-   _commands[GLFW_KEY_F3] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_step_paths")); };
-   _commands[GLFW_KEY_F4] = [=]() { core_reactor_->Call(rpc::Function("radiant:step_paths")); };
-
-   if (core::Config::GetInstance().Get("crash_key_enabled", false)) {
+   if (config.Get("enable_debug_keys", false)) {
+      _commands[GLFW_KEY_F1] = [this]() {
+         enable_debug_cursor_ = !enable_debug_cursor_;
+         CLIENT_LOG(0) << "debug cursor " << (enable_debug_cursor_ ? "ON" : "OFF");
+         if (!enable_debug_cursor_) {
+            json::Node args;
+            args.set("enabled", false);
+            core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
+         }
+      };
+      _commands[GLFW_KEY_F3] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_step_paths")); };
+      _commands[GLFW_KEY_F4] = [=]() { core_reactor_->Call(rpc::Function("radiant:step_paths")); };
+      _commands[GLFW_KEY_F9] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_debug_nodes")); };
+      _commands[GLFW_KEY_F10] = [&renderer, this]() {
+         perf_hud_shown_ = !perf_hud_shown_;
+         renderer.ShowPerfHud(perf_hud_shown_);
+      };
+      _commands[GLFW_KEY_F12] = [&renderer]() {
+         // Toggling this causes large memory leak in malloc (30 MB per toggle in a 25 tile world)
+         renderer.SetShowDebugShapes(!renderer.ShowDebugShapes());
+      };
       _commands[GLFW_KEY_PAUSE] = []() {
          // throw an exception that is not caught by Client::OnInput
          throw std::string("User hit crash key");
       };
+      _commands[GLFW_KEY_NUM_LOCK] = [=]() { core_reactor_->Call(rpc::Function("radiant:profile_next_lua_upate")); };
+      // _commands[VK_NUMPAD0] = std::shared_ptr<command>(new command_build_blueprint(*_proxy_manager, *_renderer, 500));
    }
-
-   // _commands[VK_NUMPAD0] = std::shared_ptr<command>(new command_build_blueprint(*_proxy_manager, *_renderer, 500));
 
    setup_connections();
    InitializeModules();
@@ -1005,7 +1004,7 @@ void Client::UpdateDebugCursor()
          args.set("enabled", true);
          args.set("cursor", pt);
          core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
-         CLIENT_LOG(1) << "requesting debug shapes for nav grid tile " << csg::GetChunkIndex(pt, phys::NavGridTile::TILE_SIZE);
+         CLIENT_LOG(1) << "requesting debug shapes for nav grid tile " << csg::GetChunkIndex(pt, phys::TILE_SIZE);
       } else {
          json::Node args;
          args.set("enabled", false);

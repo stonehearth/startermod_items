@@ -11,6 +11,8 @@
 using namespace ::radiant;
 using namespace ::radiant::simulation;
 
+#define PF_LOG(level)   LOG_CATEGORY(simulation.pathfinder, level, pf_.GetName())
+
 PathFinderSrc::PathFinderSrc(PathFinder &pf, om::EntityRef e) :
    pf_(pf),
    entity_(e),
@@ -43,13 +45,14 @@ PathFinderSrc::~PathFinderSrc()
 {
 }
 
-void PathFinderSrc::InitializeOpenSet(std::vector<csg::Point3>& open)
+void PathFinderSrc::InitializeOpenSet(std::vector<PathFinderNode>& open)
 {
    auto entity = entity_.lock();
    if (entity) {
       auto mob = entity->GetComponent<om::Mob>();
       if (mob) {
-         open.push_back(mob->GetWorldGridLocation());
+         open.push_back(PathFinderNode(mob->GetWorldGridLocation()));
+         PF_LOG(5) << "initialized open set with entity location " << open.back().pt;
       }
    }
 }

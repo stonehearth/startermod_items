@@ -182,6 +182,11 @@ bool RenderDevice::init(int glMajor, int glMinor, bool enable_gl_logging)
    _caps.hasPinnedMemory = glExt::AMD_pinned_memory;
    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &_caps.maxTextureSize);
 
+   // Don't trust Intel's EXT_framebuffer support on old drivers.
+   if (_caps.cardType == CardType::INTEL && _caps.glVersion <= 30) {
+      _caps.rtMultisampling = 0;
+   }
+
 	// Find supported depth format (some old ATI cards only support 16 bit depth for FBOs)
 	_depthFormat = GL_DEPTH_COMPONENT24;
 	uint32 testBuf = createRenderBuffer( 32, 32, TextureFormats::BGRA8, true, 1, 0 ); 

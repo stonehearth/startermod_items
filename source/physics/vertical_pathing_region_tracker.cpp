@@ -52,7 +52,7 @@ void VerticalPathingRegionTracker::MarkChanged()
    if (region) {
       csg::Cube3 bounds = region->Get().GetBounds();
       bounds.Translate(GetEntityPosition());
-      GetNavGrid().AddCollisionTracker(NavGridTile::LADDER, last_bounds_, bounds, shared_from_this());
+      GetNavGrid().AddCollisionTracker(last_bounds_, bounds, shared_from_this());
       last_bounds_ = bounds;
    }
 }
@@ -84,4 +84,9 @@ om::Region3BoxedPtr VerticalPathingRegionTracker::GetRegion() const
       return vpr->GetRegion();
    }
    return nullptr;
+}
+
+TrackerType VerticalPathingRegionTracker::GetType() const
+{
+   return LADDER;
 }

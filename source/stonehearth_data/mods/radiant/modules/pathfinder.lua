@@ -34,8 +34,8 @@ function _remove_entity_from_terrain(id)
    end
 end
 
-function pathfinder.create_path_finder(reason)
-   return PathFinderWrapper(_radiant.sim.create_path_finder(reason))
+function pathfinder.create_path_finder(entity, reason)
+   return PathFinderWrapper(_radiant.sim.create_path_finder(entity, reason))
 end
 
 function pathfinder._track_world_items(pathfinder)
