@@ -34,10 +34,12 @@ PathFinder::PathFinder(Simulation& sim, std::string name) :
    enabled_(true),
    debug_color_(255, 192, 0, 128)
 {
+   PF_LOG(3) << "creating pathfinder";
 }
 
 PathFinder::~PathFinder()
 {
+   PF_LOG(3) << "destroying pathfinder";
 }
 
 void PathFinder::SetSource(om::EntityRef e)
@@ -111,7 +113,7 @@ bool PathFinder::IsIdle() const
       return true;
    }
 
-   PF_LOG(5) << "is_idle: no.  still work to do!";
+   PF_LOG(5) << "is_idle: no.  still work to do! ( open:" << open_.size() << " closed:" << closed_.size() << ")";
    return false;
 }
 
