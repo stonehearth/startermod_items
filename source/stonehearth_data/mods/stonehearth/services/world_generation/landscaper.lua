@@ -34,7 +34,7 @@ local Landscaper = class()
 
 function Landscaper:__init(terrain_info, tile_width, tile_height, rng, async)
    if async == nil then async = false end
-   
+
    self.terrain_info = terrain_info
    self.tile_width = tile_width
    self.tile_height = tile_height
@@ -174,6 +174,7 @@ function Landscaper:_place_trees(tile_map, place_item)
                      end
 
                      if value >= medium_tree_threshold or terrain_type == TerrainType.Mountains then
+                        -- place (at most) a single tree in the cell
                         if rng:get_real(0, 1) < normal_tree_density then
                            place_item(tree_name, x, y)
                            feature_map:set(i, j, tree_name)
@@ -182,6 +183,7 @@ function Landscaper:_place_trees(tile_map, place_item)
                            feature_map:set(i, j, generic_vegetaion_name)
                         end
                       else
+                        -- place multiple small trees in the cell
                         -- TODO: clean up this code
                         local w, h, factor, nested_grid_spacing, exclusion_radius, placed
                         x, y, w, h = perturbation_grid:get_cell_bounds(i, j)
