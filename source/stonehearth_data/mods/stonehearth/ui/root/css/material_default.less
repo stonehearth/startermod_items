@@ -15,6 +15,14 @@ button {
    };
 }
 
+button:disabled {
+   opacity: 0.5;
+   &:hover {
+      border-image: url(images/default/controls/button/normal_button_border.png) 13 10 16 10;
+   
+   }
+}
+
 .frame {
    .controlFont;
    background: #3b352c;
