@@ -27,11 +27,5 @@
             ]
          }
       ]
-   },
-   "entity_data" : {
-      "stonehearth:idle_boredom_effects" : ["idle_look_around"],
-      "stonehearth:wander_leash" : {
-        "radius" : 5
-      }
    }
 }
