@@ -9,7 +9,7 @@
       },
       "stonehearth:ai" : {
          "actions" : [
-            "stonehearth:actions:follow_leash",
+            "stonehearth:actions:idle:look_around",
             "stonehearth:actions:wander"
          ]
       },
@@ -27,11 +27,5 @@
             ]
          }
       ]
-   },
-   "entity_data" : {
-      "stonehearth:idle_boredom_effects" : ["idle_look_around"],
-      "stonehearth:wander_leash" : {
-        "radius" : 5
-      }
    }
 }
