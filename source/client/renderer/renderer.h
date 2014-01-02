@@ -111,7 +111,7 @@ class Renderer
       void SetUITextureSize(int width, int height);
       SystemStats GetStats();
       const RendererConfig& GetRendererConfig() const { return config_; }
-      void ApplyConfig(const RendererConfig& newConfig);
+      void ApplyConfig(const RendererConfig& newConfig, bool persistConfig);
 
       csg::Point2 GetMousePosition() const;
       csg::Matrix4 GetNodeTransform(H3DNode node) const;

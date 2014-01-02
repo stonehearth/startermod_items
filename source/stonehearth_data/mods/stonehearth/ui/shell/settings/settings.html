@@ -1,5 +1,6 @@
 <script type="text/x-handlebars" data-template-name="settings">
-   <div class="settings">
+<div class="horizon">
+  <div class="settings">
       <h1>Settings</h1>
       <div id="buttons">
          <input type="checkbox" id="opt_enableShadows" {{bindAttr checked="shadows_enabled"}} {{bindAttr disabled="shadows_forbidden"}}>
@@ -28,6 +29,8 @@
             </span>
          </div>
       </div>
-      <button {{action applySettings target=view}}>Apply</button>
+      <button id="applyButton" disabled {{action applySettings target=view}}>Apply</button>
+      <button {{action cancel target=view}}>Cancel</button>
    </div>
+</div>
 </script>

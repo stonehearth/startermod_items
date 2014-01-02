@@ -108,7 +108,7 @@ Renderer::Renderer() :
    h3dSetOption(H3DOptions::FastAnimation, 1);
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
 
-   ApplyConfig(config_);
+   ApplyConfig(config_, false);
 
    SetDrawWorld(false);
 
@@ -381,7 +381,7 @@ void Renderer::GetConfigOptions()
    config_.enable_debug_keys.value = config.Get("enable_debug_keys", false);
 }
 
-void Renderer::ApplyConfig(const RendererConfig& newConfig)
+void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
 {
    memcpy(&config_, &newConfig, sizeof(RendererConfig));
 
@@ -422,19 +422,22 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig)
 
    glfwSwapInterval(config_.enable_vsync.value ? 1 : 0);
 
-   core::Config& config = core::Config::GetInstance();
+   if (persistConfig)
+   {
+      core::Config& config = core::Config::GetInstance();
 
-   config.Set("renderer.enable_shadows", config_.use_shadows.value);
-   config.Set("renderer.msaa_samples", config_.num_msaa_samples.value);
+      config.Set("renderer.enable_shadows", config_.use_shadows.value);
+      config.Set("renderer.msaa_samples", config_.num_msaa_samples.value);
 
-   config.Set("renderer.shadow_resolution", config_.shadow_resolution.value);
+      config.Set("renderer.shadow_resolution", config_.shadow_resolution.value);
 
-   config.Set("renderer.enable_vsync", config_.enable_vsync.value);
+      config.Set("renderer.enable_vsync", config_.enable_vsync.value);
 
-   config.Set("renderer.enable_fullscreen", config_.enable_fullscreen.value);
+      config.Set("renderer.enable_fullscreen", config_.enable_fullscreen.value);
 
-   config.Set("renderer.screen_width", config_.screen_width.value);
-   config.Set("renderer.screen_height", config_.screen_height.value);
+      config.Set("renderer.screen_width", config_.screen_width.value);
+      config.Set("renderer.screen_height", config_.screen_height.value);
+   }
 }
 
 SystemStats Renderer::GetStats()
