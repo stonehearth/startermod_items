@@ -23,6 +23,14 @@ App.StonehearthSettingsView = App.View.extend({
 
       radiant.call('radiant:get_config_options')
          .done(function(o) {
+            self.oldConfig = {
+               "shadows" : o.shadows.value,
+               "vsync" : o.vsync.value,
+               "shadow_res" : o.shadow_res.value,
+               "fullscreen" : o.fullscreen.value,
+               "msaa" : o.msaa.value
+            };
+
             self.set('context.shadows_forbidden', !o.shadows.allowed);
             if (!o.shadows.allowed) {
                o.shadows.value = false;
@@ -43,26 +51,66 @@ App.StonehearthSettingsView = App.View.extend({
          });
    },
 
+   reloadableSettingDidChange : function() {
+      this.applyConfig(false);
+   },
+
+   anySettingDidChange : function() {
+      $('#applyButton').prop('disabled', false);
+   },
+
    didInsertElement: function() {
       initIncrementButtons();
+
+      var self = this;
+      var reloadableCallback = function() {
+         self.reloadableSettingDidChange();
+      };
+      var anythingChangedCallback = function() {
+         self.anySettingDidChange();
+      };
+
+      $('#opt_enableShadows').change(anythingChangedCallback);
+      $('#opt_numSamples').change(anythingChangedCallback);
+      $('#opt_enableVsync').change(anythingChangedCallback);
+      $('#opt_enableFullscreen').change(anythingChangedCallback);
+      $('#opt_shadowRes').change(anythingChangedCallback);
+
+      $('#opt_enableShadows').change(reloadableCallback);
+      $('#opt_numSamples').change(reloadableCallback);
+      $('#opt_shadowRes').change(reloadableCallback);
+   },
+
+   getUiConfig: function(persistConfig) {
+      var newConfig = {
+         "shadows" : $('#opt_enableShadows').is(':checked'),
+         "vsync" : $('#opt_enableVsync').is(':checked'),
+         "fullscreen" : $('#opt_enableFullscreen').is(':checked'),
+         "msaa" : parseInt($('#opt_numSamples').val()),
+         "shadow_res" : this.fromValToRes(parseInt($('#opt_shadowRes').val())),
+         "persistConfig" : persistConfig
+      };
+      return newConfig;
+   },
+
+   applyConfig: function(persistConfig) {
+      var newConfig = this.getUiConfig(persistConfig);
+      radiant.call('radiant:set_config_options', newConfig);
    },
 
    actions: {
       applySettings: function() {
-         var newConfig = {
-            "shadows" : $('#opt_enableShadows').is(':checked'),
-            "vsync" : $('#opt_enableVsync').is(':checked'),
-            "fullscreen" : $('#opt_enableFullscreen').is(':checked'),
-            "msaa" : parseInt($('#opt_numSamples').val()),
-            "shadow_res" : this.fromValToRes(parseInt($('#opt_shadowRes').val()))
-         };
-
-         radiant.call('radiant:set_config_options', newConfig);
-
+         this.applyConfig(true);
          this.destroy();
       },
 
       close: function() {
+         radiant.call('radiant:set_config_options', this.oldConfig);
+         this.destroy();
+      },
+
+      cancel: function() {
+         radiant.call('radiant:set_config_options', this.oldConfig);
          this.destroy();
       }
    },
