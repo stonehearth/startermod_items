@@ -1,0 +1,21 @@
+{
+   "skeleton" : {
+      "root": [10.5,14,0],
+      "bodyBack": [10.5,17.5,10.5],
+      "tail": [10.5,21.9838,11.4929],
+      "leftBackLeg": [13.5,18.5,7.0438],
+      "leftBackFoot": [13.5,19,3.01602],
+      "rightBackLeg": [7.5,18.5,7.0438],
+      "rightBackFoot": [7.5,19,3.01602],
+      "bodyFront": [10.5,10.5,10.5],
+      "head": [10.5,8.08121,11],
+      "leftEar": [13.9926,4.5,12.5],
+      "rightEar": [7.02057,4.5,12.5],
+      "leftFrontLeg": [13.5,10,7.01377],
+      "leftFrontFoot": [13.5,10,3.01602],
+      "rightFrontLeg": [7.5,10,7.01377],
+      "rightFrontFoot": [7.5,10,3.01602]
+    },
+   "effects_root" : "file(effects)",
+   "animation_root" : "file(animations)"
+}
