@@ -4,11 +4,6 @@ function PathFinderWrapper:__init(pf)
    self._pf = pf
 end
 
-function PathFinderWrapper:set_source(s)
-   self._pf:set_source(s)
-   return self
-end
-
 function PathFinderWrapper:set_debug_color(c)
    self._pf:set_debug_color(c)
    return self

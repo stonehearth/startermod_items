@@ -141,8 +141,7 @@ function AdmireFire:_start_looking_for_fire()
 
    -- go find the path to the fire
    local desc = string.format('finding firepit for %s', tostring(self._entity))
-   self._pathfinder = radiant.pathfinder.create_path_finder(desc)
-                        :set_source(self._entity)
+   self._pathfinder = radiant.pathfinder.create_path_finder(self._entity, desc)
                         :set_filter_fn(filter_fn)
                         :set_solved_cb(pf_solved_cb)
                         :find_closest_dst()

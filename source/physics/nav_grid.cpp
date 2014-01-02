@@ -146,6 +146,8 @@ bool NavGrid::CanStandOn(om::EntityPtr entity, csg::Point3 const& pt)
 
    NavGridTile& tile = GridTileResident(index);
    tile.FlushDirty(*this, index);
+
+   ASSERT(tile.IsDataResident());
    return tile.CanStandOn(offset);
 }
 
@@ -267,7 +269,14 @@ NavGridTile& NavGrid::GridTile(csg::Point3 const& pt, bool make_resident)
    NavGridTile& tile = i->second;
 
    if (make_resident) {
-      if (!tile.IsDataResident()) {
+      if (tile.IsDataResident()) {
+         for (auto &entry : resident_tiles_) {
+            if (entry.first == pt) {
+               entry.second = true;
+               break;
+            }
+         }
+      } else {
          NG_LOG(3) << "making nav grid tile " << pt << " resident";
          tile.SetDataResident(true);
          if (resident_tiles_.size() >= max_resident_) {         

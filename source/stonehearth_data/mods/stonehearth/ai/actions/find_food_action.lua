@@ -109,8 +109,7 @@ function FindFoodAction:find_good_food()
    -- go find the path to the food
    log:debug('%s creating pathfinder to find food', tostring(self._entity));
    local desc = string.format('finding food for %s', tostring(self._entity))
-   self._pathfinder = radiant.pathfinder.create_path_finder(desc)
-                        :set_source(self._entity)
+   self._pathfinder = radiant.pathfinder.create_path_finder(self._entity, desc)
                         :set_filter_fn(filter_fn)
                         :set_solved_cb(solved_cb)
                         :find_closest_dst()

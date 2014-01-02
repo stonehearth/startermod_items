@@ -175,8 +175,7 @@ function WorkerTask:_consider_worker(worker)
          log:debug('%s creating new pathfinder for %s', self:get_name(), tostring(worker))
          local name = string.format('%s for worker %s', self:get_name(), tostring(worker))
          
-         local pf = radiant.pathfinder.create_path_finder(name)
-                                       :set_source(worker)
+         local pf = radiant.pathfinder.create_path_finder(worker, name)
                                        :set_debug_color(self._debug_color)
                                        
          -- forward all the valid destinations for this task to the new

@@ -10,6 +10,7 @@
 #include "jobs/path_finder.h"
 #include "jobs/follow_path.h"
 #include "jobs/goto_location.h"
+#include "jobs/entity_job_scheduler.h"
 #include "resources/res_manager.h"
 #include "dm/store.h"
 #include "dm/store_trace.h"
@@ -350,6 +351,20 @@ void Simulation::AddTask(std::shared_ptr<Task> task)
 void Simulation::AddJob(std::shared_ptr<Job> job)
 {
    jobs_.push_back(job);
+}
+
+void Simulation::AddJobForEntity(om::EntityPtr entity, PathFinderPtr pf)
+{
+   if (entity) {
+      dm::ObjectId id = entity->GetObjectId();
+      auto i = entity_jobs_schedulers_.find(id);
+      if (i == entity_jobs_schedulers_.end()) {
+         EntityJobSchedulerPtr ejs = std::make_shared<EntityJobScheduler>(*this, entity);
+         i = entity_jobs_schedulers_.insert(make_pair(id, ejs)).first;
+         jobs_.push_back(ejs);
+      }
+      i->second->RegisterPathfinder(pf);
+   }
 }
 
 void Simulation::EncodeDebugShapes(protocol::SendQueuePtr queue)

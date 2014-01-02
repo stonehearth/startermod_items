@@ -45,14 +45,14 @@ PathFinderSrc::~PathFinderSrc()
 {
 }
 
-void PathFinderSrc::InitializeOpenSet(std::vector<csg::Point3>& open)
+void PathFinderSrc::InitializeOpenSet(std::vector<PathFinderNode>& open)
 {
    auto entity = entity_.lock();
    if (entity) {
       auto mob = entity->GetComponent<om::Mob>();
       if (mob) {
-         open.push_back(mob->GetWorldGridLocation());
-         PF_LOG(5) << "initialized open set with entity location " << open.back();
+         open.push_back(PathFinderNode(mob->GetWorldGridLocation()));
+         PF_LOG(5) << "initialized open set with entity location " << open.back().pt;
       }
    }
 }

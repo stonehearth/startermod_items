@@ -69,6 +69,7 @@ public:
    /* End of new object model stuff */
    void AddTask(std::shared_ptr<Task> task);
    void AddJob(std::shared_ptr<Job> job);
+   void AddJobForEntity(om::EntityPtr entity, PathFinderPtr job);
 
    bool ProcessMessage(std::shared_ptr<RemoteClient> c, const tesseract::protocol::Request& msg);
    void EncodeUpdates(protocol::SendQueuePtr queue);
@@ -134,6 +135,7 @@ private:
    bool                                         debug_navgrid_enabled_;
    csg::Point3                                  debug_navgrid_point_;
 
+   std::unordered_map<dm::ObjectId, EntityJobSchedulerPtr>  entity_jobs_schedulers_;
    std::list<std::weak_ptr<Job>>                jobs_;
    std::list<std::weak_ptr<Task>>               tasks_;
    std::unordered_map<std::string, luabind::object>   routes_;
