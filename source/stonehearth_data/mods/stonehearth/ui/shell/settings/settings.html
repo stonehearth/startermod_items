@@ -7,10 +7,10 @@
 		   <label class="chkSetting" for="opt_enableShadows">Enable Shadows</label>
 
          <input type="checkbox" id="opt_enableVsync" {{bindAttr checked="vsync_enabled"}}>
-         <label class="chkSetting" for="opt_enableVsync">Enable Vertical Sync</label>
+         <label class="chkSetting" for="opt_enableVsync">Enable Vertical Sync (Requires Restart)</label>
 
          <input type="checkbox" id="opt_enableFullscreen" {{bindAttr checked="fullscreen_enabled"}}>
-         <label class="chkSetting" for="opt_enableFullscreen">Fullscreen</label>
+         <label class="chkSetting" for="opt_enableFullscreen">Fullscreen (Requires Restart)</label>
       
          <div {{bindAttr class=":aaControl msaa_forbidden:numericDisabled"}}>
             <label for="opt_numSamples" class="aaLabel">Anti-Aliasing</label>
