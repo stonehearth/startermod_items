@@ -39,18 +39,18 @@ function ResourceCallHandler:harvest_plant(session, response, plant)
       return radiant.entities.get_carrying(worker) == nil
    end
 
-   local harvest_task = worker_scheduler:add_worker_task('harvest_berries')
-                   :set_worker_filter_fn(not_carrying_fn)
-                   :add_work_object(plant)
-                   :set_priority(priorities.GATHER_FOOD)
+   local id = plant:get_id()
+   if not all_harvest_tasks [id] then
+      local harvest_task = worker_scheduler:add_worker_task('harvest_berries')
+                     :set_worker_filter_fn(not_carrying_fn)
+                     :add_work_object(plant)
+                     :set_action('stonehearth:harvest_plant')
+                     :set_max_workers(1)
+                     :set_priority(priorities.GATHER_FOOD)
+                     :start()
 
-   harvest_task:set_action_fn(
-      function (path)
-         return 'stonehearth:harvest_plant', path, harvest_task
-      end
-   )
-
-  harvest_task:start()
+      radiant.effects.run_effect(plant, '/stonehearth/data/effects/harvest_berries_overlay_effect')
+   end
 
    return true
 end
