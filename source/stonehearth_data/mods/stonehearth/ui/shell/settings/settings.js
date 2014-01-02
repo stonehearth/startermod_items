@@ -98,6 +98,10 @@ App.StonehearthSettingsView = App.View.extend({
       radiant.call('radiant:set_config_options', newConfig);
    },
 
+   dismiss: function() {
+      radiant.call('radiant:set_config_options', this.oldConfig);
+   },
+
    actions: {
       applySettings: function() {
          this.applyConfig(true);
@@ -105,12 +109,12 @@ App.StonehearthSettingsView = App.View.extend({
       },
 
       close: function() {
-         radiant.call('radiant:set_config_options', this.oldConfig);
+         this.dismiss();
          this.destroy();
       },
 
       cancel: function() {
-         radiant.call('radiant:set_config_options', this.oldConfig);
+         this.dismiss();
          this.destroy();
       }
    },
