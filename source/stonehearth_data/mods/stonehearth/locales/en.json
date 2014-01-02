@@ -11,6 +11,15 @@
    "opt_out_button" : "Nah",
    "opt_thanks" : "Thanks!",
 
+   "settings_title" : "Settings",
+   "settings_gfx_enable_shadows" : "Enable Shadows",
+   "settings_gfx_enable_vsync" : "Enable Vertical Sync (Requires Restart)",
+   "settings_gfx_enable_fullscreen" : "Fullscreen (Requires Restart)",
+   "settings_gfx_msaa" : "Anti-Aliasing Level",
+   "settings_gfx_shadows" : "Shadow Detail",
+   "settings_gfx_apply" : "Apply",
+   "settings_gfx_cancel" : "Cancel",
+
    "new_game_embark_button" : "Embark!",
    "new_game_founding_charter" : "Founder's Manual",
    "new_game_founding_charter_help" : "First, find a suitable spot for your new home. Pick a spot with easy access to:<p><ol><li><b>Food!</b> Wild berries often grow in the forest.<li><b>Lumber!</b> You'll need wood to do just about anything.</ol>When you're ready, click the banner then place it where you would like to settle.",
