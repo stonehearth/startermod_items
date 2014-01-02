@@ -40,10 +40,17 @@ function GatherAndCraftAction:run(ai, entity, recipe, ingredients)
       --If the user has paused progress, or cancelled the orderdon't continue.
       --Stopping will cause the  list to be reevaluated from scratch
       if workshop:is_paused() or (workshop:get_curr_order() == nil) then
+         --- xxx: should we ai:abort() here? -- tony
          return
       end
 
+      -- If the item doesn't exist anymore, bail.
       local item = ing_data.item
+      if not item or not item:is_valid() then
+         --- xxx: should we ai:abort() here? -- tony
+         return
+      end
+      
       if not radiant.entities.has_child_by_id(workshop_entity, item:get_id()) then
          -- grab it!
          ai:execute('stonehearth:pickup_item', ing_data.item)
