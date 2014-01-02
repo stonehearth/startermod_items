@@ -1,19 +1,19 @@
 <script type="text/x-handlebars" data-template-name="settings">
 <div class="horizon">
   <div class="settings">
-      <h1>Settings</h1>
+      <h1>{{i18n stonehearth:settings_title}}</h1>
       <div id="buttons">
          <input type="checkbox" id="opt_enableShadows" {{bindAttr checked="shadows_enabled"}} {{bindAttr disabled="shadows_forbidden"}}>
-		   <label class="chkSetting" for="opt_enableShadows">Enable Shadows</label>
+		   <label class="chkSetting" for="opt_enableShadows">{{i18n stonehearth:settings_gfx_enable_shadows}}</label>
 
          <input type="checkbox" id="opt_enableVsync" {{bindAttr checked="vsync_enabled"}}>
-         <label class="chkSetting" for="opt_enableVsync">Enable Vertical Sync (Requires Restart)</label>
+         <label class="chkSetting" for="opt_enableVsync">{{i18n stonehearth:settings_gfx_enable_vsync}}</label>
 
          <input type="checkbox" id="opt_enableFullscreen" {{bindAttr checked="fullscreen_enabled"}}>
-         <label class="chkSetting" for="opt_enableFullscreen">Fullscreen (Requires Restart)</label>
+         <label class="chkSetting" for="opt_enableFullscreen">{{i18n stonehearth:settings_gfx_enable_fullscreen}}</label>
       
          <div {{bindAttr class=":aaControl msaa_forbidden:numericDisabled"}}>
-            <label for="opt_numSamples" class="aaLabel">Anti-Aliasing</label>
+            <label for="opt_numSamples" class="aaLabel">{{i18n stonehearth:settings_gfx_msaa}}</label>
             <span class="aaControlInput">
                <div class="dec numericButton">-</div>
                <input class="aaNumInput" id="opt_numSamples" type="number" name="numSamples" {{bindAttr value="num_msaa_samples"}} min="0" max="4" readonly="true" {{bindAttr disabled="msaa_forbidden"}}>
@@ -21,7 +21,7 @@
             </span>
          </div>
          <div {{bindAttr class=":shadowResControl shadows_forbidden:numericDisabled"}}>
-            <label for="opt_shadowRes" class="shadowResLabel">Shadow Detail</label>
+            <label for="opt_shadowRes" class="shadowResLabel">{{i18n stonehearth:settings_gfx_shadows}}</label>
             <span class="shadowResControlInput">
                <div class="dec numericButton">-</div>
                <input class="shadowResInput" id="opt_shadowRes" type="number" name="shadowResInput" {{bindAttr value="shadow_res"}} min="1" max="5" readonly="true" {{bindAttr disabled="shadows_forbidden"}}>
@@ -29,8 +29,8 @@
             </span>
          </div>
       </div>
-      <button id="applyButton" disabled {{action applySettings target=view}}>Apply</button>
-      <button {{action cancel target=view}}>Cancel</button>
+      <button id="applyButton" disabled {{action applySettings target=view}}>{{i18n stonehearth:settings_gfx_apply}}</button>
+      <button {{action cancel target=view}}>{{i18n stonehearth:settings_gfx_cancel}}</button>
    </div>
 </div>
 </script>
