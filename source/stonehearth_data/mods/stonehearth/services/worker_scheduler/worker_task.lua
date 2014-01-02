@@ -49,11 +49,23 @@ function WorkerTask:notify_started_working()
       return false
    end
    self._num_workers = self._num_workers + 1
+   if self._max_workers == self._num_workers then
+      log:debug('max workers reached! disabling task')
+      if self._running then
+         --self._scheduler:_stop_worker_task(self)
+      end
+   end
    return true
 end
 
 function WorkerTask:notify_stopped_working()
    self._num_workers = self._num_workers - 1
+   if self._max_workers ~= nil and self._num_workers == self._max_workers - 1 then
+      log:debug('space available... re-enabling task')
+      if self._running then
+         --self._scheduler:_start_worker_task(self)
+      end   
+   end
 end
 
 function WorkerTask:set_debug_color(color)
@@ -152,6 +164,7 @@ end
 function WorkerTask:_remove_worker(id)
    local pf = self._pathfinders[id]
    if pf then
+      log:debug('%s removing worker %d', self:get_name(), id)
       pf:stop()
       self._pathfinders[id] = nil
    end
@@ -167,7 +180,12 @@ function WorkerTask:_consider_worker(worker)
    assert(self._running, string.format('%s cannot consider worker while not running', self:get_name()))
    assert(self._get_action_fn, string.format('no action function set for WorkerTask %s', self:get_name()))
    assert(self._worker_filter_fn, string.format('no worker filter function set for WorkerTask %s', self:get_name()))
-
+   
+   if self._max_workers and self._num_workers >= self._max_workers then
+      log:debug('%s rejection worker %s (max workers reached).', self:get_name(), tostring(worker))
+      return
+   end
+   
    local worker_id = worker:get_id()
    if not self._pathfinders[worker_id] then
       if self._worker_filter_fn(worker) then

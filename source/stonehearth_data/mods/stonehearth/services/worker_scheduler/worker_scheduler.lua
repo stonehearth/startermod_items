@@ -82,14 +82,12 @@ function WorkerScheduler:remove_worker(worker)
 end
 
 function WorkerScheduler:_start_worker_task(task)
-   assert(task:is_running(), "logical error: call to _start_worker_task for non-running task")
    for id, d in pairs(self._dispatchers) do
       task:_consider_worker(d:get_worker())
    end
 end
 
 function WorkerScheduler:_stop_worker_task(task)
-   assert(not task:is_running(), "logical error: call to _stop_worker_task for running task")
    for id, d in pairs(self._dispatchers) do
       task:_remove_worker(id)
    end
