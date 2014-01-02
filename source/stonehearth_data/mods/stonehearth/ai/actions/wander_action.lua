@@ -9,11 +9,6 @@ Wander.priority = 1
 function Wander:__init(ai, entity)
    self._ai = ai
    self._entity = entity
-   self:reset()
-end
-
-function Wander:stop(ai, entity)
-   self:reset()
 end
 
 function Wander:run(ai, entity)
