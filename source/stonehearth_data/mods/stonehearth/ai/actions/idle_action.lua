@@ -7,10 +7,6 @@ Idle.priority = 1
 function Idle:__init(ai, entity)
    self._entity = entity
    self:reset_boredom()
-   if radiant.entities.get_entity_data(entity, 'stonehearth:idle_boredom_effects') then
-      self._hasBoredEffect = true
-   end
-   self:reset_boredom()
 end
 
 function Idle:reset_boredom()

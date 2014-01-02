@@ -9,7 +9,7 @@
       },
       "stonehearth:ai" : {
          "actions" : [
-            "stonehearth:actions:follow_leash",
+            "stonehearth:actions:idle:look_around",
             "stonehearth:actions:wander"
          ]
       },
