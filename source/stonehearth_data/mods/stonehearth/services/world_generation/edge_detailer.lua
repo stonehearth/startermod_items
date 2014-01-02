@@ -7,14 +7,17 @@ local Point2 = _radiant.csg.Point2
 
 local EdgeDetailer = class()
 
-function EdgeDetailer:__init(terrain_info)
+function EdgeDetailer:__init(terrain_info, rng)
    self.terrain_info = terrain_info
    self.detail_seed_probability = 0.10
    self.detail_grow_probability = 0.85
    self.edge_threshold = 4
+   self._rng = rng
+   self._inverse_gaussian_random = InverseGaussianRandom(self._rng)
 end
 
 function EdgeDetailer:add_detail_blocks(height_map)
+   local rng = self._rng
    local i, j, edge
    local edge_threshold = self.edge_threshold
    local edge_map = Array2D(height_map.width, height_map.height)
@@ -27,7 +30,7 @@ function EdgeDetailer:add_detail_blocks(height_map)
          edge_map:set(i, j, edge)
 
          if edge then
-            if math.random() < self.detail_seed_probability then
+            if rng:get_real(0, 1) < self.detail_seed_probability then
                num_seeds = num_seeds + 1
                detail_seeds[num_seeds] = Point2(i, j)
             end
@@ -100,7 +103,7 @@ end
 -- inverse bell curve from 1 to quantization size
 function EdgeDetailer:_generate_detail_height(max_delta, base_height)
    if base_height >= self.terrain_info[TerrainType.Foothills].max_height then
-      -- if math.random() <= 0.50 then
+      -- if rng:get_real(0, 1) <= 0.50 then
          return max_delta -- CHECKCHECK
       -- else
          --return MathFns.round(max_delta*0.5)
@@ -110,20 +113,21 @@ function EdgeDetailer:_generate_detail_height(max_delta, base_height)
       -- edge values about 4x more likely than center value
       -- expanded form: ((max_delta+0.5) - (1-0.5)) / 2 / 2
       local std_dev = max_delta*0.25
-      return InverseGaussianRandom.generate_int(1, max_delta, std_dev)
+      return self._inverse_gaussian_random:get_int(1, max_delta, std_dev)
    end
 end
 
 function EdgeDetailer:_generate_detail_height_uniform(max_delta)
-   return math.random(1, max_delta)
+   return self._rng:get_int(1, max_delta)
 end
 
 function EdgeDetailer:_try_grow(height_map, edge_map, x, y, detail_height)
+   local rng = self._rng
    local edge, value
 
    edge = edge_map:get(x, y)
    if edge == false then return false end
-   if math.random() >= self.detail_grow_probability then return false end
+   if rng:get_real(0, 1) >= self.detail_grow_probability then return false end
 
    if edge < detail_height then detail_height = edge end
 
@@ -221,6 +225,7 @@ function EdgeDetailer:_is_grassland_edge(height_map, x, y, threshold)
 end
 
 function EdgeDetailer:remove_mountain_chunks(height_map, micro_map)
+   local rng = self._rng
    local chunk_probability = 0.5
    local foothills_max_height = self.terrain_info[TerrainType.Foothills].max_height
    local height, removed
@@ -230,11 +235,11 @@ function EdgeDetailer:remove_mountain_chunks(height_map, micro_map)
       for i=1, micro_map.width do
          height = micro_map:get(i, j)
 
-         if height > foothills_max_height and math.random() <= chunk_probability then
+         if height > foothills_max_height and rng:get_real(0, 1) <= chunk_probability then
             local dir, removed, angle, dx, dy
             
             -- randomly pick direction so chunks are not biased
-            angle = 90*math.random(0, 3)
+            angle = 90*rng:get_int(0, 3)
             dx, dy = _angle_to_xy(angle)
 
             -- check all 4 directions unless chunk is removed
@@ -325,9 +330,10 @@ function EdgeDetailer:_remove_chunk(height_map, micro_map, x, y, dx, dy)
 end
 
 function EdgeDetailer:_generate_chunk_length_and_offset(macro_block_size)
+   local rng = self._rng
    local quarter_macro_block_size = macro_block_size * 0.25
-   local chunk_length = quarter_macro_block_size * math.random(1, 4)
-   local chunk_offset = (macro_block_size - chunk_length) * math.random(0, 1)
+   local chunk_length = quarter_macro_block_size * rng:get_int(1, 4)
+   local chunk_offset = (macro_block_size - chunk_length) * rng:get_int(0, 1)
    return chunk_length, chunk_offset
 end
 
