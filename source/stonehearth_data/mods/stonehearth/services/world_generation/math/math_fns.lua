@@ -32,14 +32,14 @@ function MathFns.in_bounds(value, min, max)
 	return true
 end
 
-local max_unsigned_int = 4294967295
+local max_uint32 = 2^32-1
 
 function MathFns.point_hash(x, y)
    -- from Effective Java (2nd edition)
    local prime = 51
    local value = (prime + MathFns.int_hash(y)) * prime + MathFns.int_hash(x)
    value = value + prime -- don't hash (0,0) to 0
-   local hash = value % max_unsigned_int
+   local hash = value % (max_uint32+1)
    return hash
 end
 
@@ -47,11 +47,11 @@ function MathFns.int_hash(x)
    local unsigned
 
    if x >= 0 then unsigned = x
-   else           unsigned = max_unsigned_int+1 + x -- recall x is negative
+   else           unsigned = max_uint32+1 + x -- recall x is negative
    end
 
    -- simple hash function from Knuth
-   local hash = unsigned*2654435761 % max_unsigned_int
+   local hash = unsigned*2654435761 % (max_uint32+1)
    return hash
 end
 

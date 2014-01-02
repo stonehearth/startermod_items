@@ -1,7 +1,6 @@
 local TerrainType = require 'services.world_generation.terrain_type'
 local TerrainInfo = require 'services.world_generation.terrain_info'
 local Array2D = require 'services.world_generation.array_2D'
-local GaussianRandom = require 'services.world_generation.math.gaussian_random'
 local MathFns = require 'services.world_generation.math.math_fns'
 local FilterFns = require 'services.world_generation.filter.filter_fns'
 local Wavelet = require 'services.world_generation.filter.wavelet'
@@ -19,15 +18,12 @@ local log = radiant.log.create_logger('world_generation')
 -- Tile = 2D array of MacroBlocks fitting a theme (grassland, foothills, mountains)
 -- World = the entire playspace of a game
 
-function TerrainGenerator:__init(async, seed)
-   local default_seed = 3
-
+function TerrainGenerator:__init(rng, async)
    if async == nil then async = false end
-   if seed == nil then seed = default_seed end
 
    -- TODO: most of these should be private/underscore fields
-   self.async = async
-   self.random_seed = seed
+   self._rng = rng
+   self._async = async
 
    self.tile_size = 256
    self.macro_block_size = 32
@@ -44,18 +40,7 @@ function TerrainGenerator:__init(async, seed)
    self.blend_map_buffer = self:_create_blend_map(micro_size, micro_size)
    self.noise_map_buffer = Array2D(micro_size, micro_size)
 
-   self._edge_detailer = EdgeDetailer(self.terrain_info)
-end
-
-function TerrainGenerator:_set_random_seed(x, y)
-   local max_unsigned_int = 4294967295
-   local seed = self.random_seed
-
-   if x ~= nil and y ~= nil then 
-      seed = seed + MathFns.point_hash(x, y)
-   end
-
-   math.randomseed(seed % max_unsigned_int)
+   self._edge_detailer = EdgeDetailer(self.terrain_info, self._rng)
 end
 
 function TerrainGenerator:_create_blend_map(width, height)
@@ -79,9 +64,6 @@ function TerrainGenerator:generate_tile(terrain_type, tiles, x, y)
    if tiles ~= nil then
       log:info('Generating tile %d, %d', x, y)
    end
-
-   -- make each tile deterministic on x, y so we can modify a tile without affecting othes
-   self:_set_random_seed(x, y)
 
    tile_timer:start()
    micro_map_timer:start()
@@ -160,7 +142,7 @@ end
 
 -- allows this long running job to be completed in multiple sessions
 function TerrainGenerator:_yield()
-   if self.async then
+   if self._async then
       coroutine.yield()
    end
 end
@@ -347,21 +329,21 @@ function TerrainGenerator:_calc_std_dev(height)
 end
 
 function TerrainGenerator:_fill_noise_map(noise_map, blend_map)
-   local width = noise_map.width
-   local height = noise_map.height
-   local i, j, macro_block, value
+   local rng = self._rng
 
-   for j=1, height do
-      for i=1, width do
-         macro_block = blend_map:get(i, j)
-         if macro_block.forced_value then
-            value = macro_block.forced_value
-         else
-            value = GaussianRandom.generate(macro_block.mean, macro_block.std_dev)
-         end
-         noise_map:set(i, j, value)
+   local noise_fn = function(i, j)
+      local value, macro_block
+
+      macro_block = blend_map:get(i, j)
+      if macro_block.forced_value then
+         value = macro_block.forced_value
+      else
+         value = rng:get_gaussian(macro_block.mean, macro_block.std_dev)
       end
+      return value
    end
+
+   noise_map:fill(noise_fn)
 end
 
 function TerrainGenerator:_filter_noise_map(noise_map)
@@ -596,10 +578,10 @@ function TerrainGenerator:_shape_height_map(height_map, freq_scaling_coeff, leve
    local width = height_map.width
    local height = height_map.height
 
-   Wavelet.DWT_2D(height_map, width, height, levels, self.async)
+   Wavelet.DWT_2D(height_map, width, height, levels, self._async)
    WaveletFns.scale_high_freq(height_map, width, height, freq_scaling_coeff, levels)
    self:_yield()
-   Wavelet.IDWT_2D(height_map, width, height, levels, self.async)
+   Wavelet.IDWT_2D(height_map, width, height, levels, self._async)
 end
 
 function TerrainGenerator:_quantize_height_map(height_map, is_micro_map)

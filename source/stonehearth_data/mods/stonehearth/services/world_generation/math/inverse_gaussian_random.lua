@@ -1,17 +1,21 @@
-local GaussianRandom = require 'services.world_generation.math.gaussian_random'
 local MathFns = require 'services.world_generation.math.math_fns'
 
 local InverseGaussianRandom = class()
 local log = radiant.log.create_logger('world_generation')
 
+function InverseGaussianRandom:__init(rng)
+   self._rng = rng
+end
+
 -- Inverse Gaussian distribution which is high at the endpoints and low in the middle
 -- Splits a Gaussian distribution into two pieces and slides each half to the min and max endpoints
-function InverseGaussianRandom.generate(min, max, std_dev)
+function InverseGaussianRandom:get_real(min, max, std_dev)
+   local rng = self._rng
    local half_range = (max-min)*0.5
    local rand
 
    while true do
-      rand = GaussianRandom.generate(0, std_dev)
+      rand = rng:get_gaussian(0, std_dev)
       -- truncate the distribution so they don't overlap
       if math.abs(rand) < half_range then break end
 
@@ -24,7 +28,7 @@ function InverseGaussianRandom.generate(min, max, std_dev)
    elseif rand < 0 then
       return max+rand
    else -- rand == 0, very rare
-      local toss = math.random(0, 1)
+      local toss = rng:get_int(0, 1)
       if toss == 0 then
          return min
       else
@@ -33,9 +37,9 @@ function InverseGaussianRandom.generate(min, max, std_dev)
    end
 end
 
-function InverseGaussianRandom.generate_int(min, max, std_dev)
+function InverseGaussianRandom:get_int(min, max, std_dev)
    -- extend range by 0.5 on each end so that endpoint distribution is not clipped
-   local rand_float = InverseGaussianRandom.generate(min-0.5, max+0.5, std_dev)
+   local rand_float = self:get_real(min-0.5, max+0.5, std_dev)
    local rand_int = MathFns.round(rand_float)
 
    -- the extremely rare case where rand_float == max
@@ -47,7 +51,7 @@ function InverseGaussianRandom.generate_int(min, max, std_dev)
    return rand_int
 end
 
-function InverseGaussianRandom.simulate_probabilities(min, max, std_dev, iterations)
+function InverseGaussianRandom:simulate_probabilities(min, max, std_dev, iterations)
    local counts = {}
    local probabilities = {}
    local i, rand
@@ -57,7 +61,7 @@ function InverseGaussianRandom.simulate_probabilities(min, max, std_dev, iterati
    end
 
    for i=1, iterations do
-      rand = InverseGaussianRandom.generate_int(min, max, std_dev)
+      rand = self:get_int(min, max, std_dev)
       counts[rand] = counts[rand] + 1
    end
 
@@ -68,9 +72,9 @@ function InverseGaussianRandom.simulate_probabilities(min, max, std_dev, iterati
    return probabilities
 end
 
-function InverseGaussianRandom.print_probabilities(min, max, std_dev, iterations)
+function InverseGaussianRandom:print_probabilities(min, max, std_dev, iterations)
    local i, probabilities
-   probabilities = InverseGaussianRandom.simulate_probabilities(min, max, std_dev, iterations)
+   probabilities = self:simulate_probabilities(min, max, std_dev, iterations)
 
    for i=min, max do
       log:info('%d: %.2f%%', i, probabilities[i]*100)
