@@ -197,18 +197,19 @@ rpc::ReactorDeferredPtr Simulation::StartTaskManager()
       task_manager_deferred_ = std::make_shared<rpc::ReactorDeferred>("game task_manager");
       on_frame_end_guard_ = perf_timeline_.OnFrameEnd([this](perfmon::Frame* frame) {
          json::Node times(JSONNode(JSON_ARRAY));
-         perfmon::CounterValueType total_time = 0;
+         int total_time = 0;
          for (perfmon::Counter const* counter : frame->GetCounters()) {
             json::Node entry;
             perfmon::CounterValueType time = counter->GetValue();
+            int ms = perfmon::CounterToMilliseconds(time);
             entry.set("name", counter->GetName());
-            entry.set("time", perfmon::CounterToMilliseconds(time));
+            entry.set("time", ms);
             times.add(entry);
-            total_time += time;
+            total_time += ms;
          }
          json::Node summary;
          summary.set("counters", times);
-         summary.set("total_time", perfmon::CounterToMilliseconds(total_time));
+         summary.set("total_time", total_time);
          task_manager_deferred_->Notify(summary);
       });
    }
