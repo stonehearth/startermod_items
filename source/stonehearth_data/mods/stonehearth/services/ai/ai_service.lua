@@ -24,10 +24,6 @@ end
 
 function AiService:_on_event_loop(e)
    local now = e.now
-   -- xxx: this is O(n) of entities with self. UG. make the intention notify the ai_component when its priorities change
-   for id, ai_component in pairs(self._ai_components) do
-      ai_component:check_action_stack()
-   end
 
    for co, pred in pairs(self._waiting_until) do
       local run = false

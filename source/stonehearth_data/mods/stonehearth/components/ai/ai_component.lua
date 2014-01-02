@@ -1,13 +1,14 @@
 
 local AIComponent = class()
+local ExecutionFrame = require 'components.ai.execution_frame'
 local log = radiant.log.create_logger('ai.component')
 
 function AIComponent:__init(entity)
    self._entity = entity
    self._observers = {}
    self._actions = {}
-   self._action_stack = {}
-   self._priority_table = {}
+   self._action_index = {}
+   self._stack = {}
    self._ai_system = radiant.mods.load('stonehearth').ai
 end
 
@@ -15,11 +16,15 @@ function AIComponent:extend(json)
    self._ai_system:start_ai(self._entity, json)
 end
 
+function AIComponent:get_entity()
+   return self._entity
+end
+
 function AIComponent:destroy()
    self._ai_system:stop_ai(self._entity:get_id(), self)
 
    self._dead = true
-   self:_clear_action_stack()
+   self:_clear_stack()
 
    for obs, _ in pairs(self._observers) do
       if obs.destroy then
@@ -38,14 +43,20 @@ end
 function AIComponent:add_action(uri, action)
    assert(not self._actions[uri])
    self._actions[uri] = action
-   self:set_action_priority(action, action.priority)
+
+   local action_index = self._action_index[action.does]
+   if not action_index then
+      action_index = {}
+      self._action_index[action.does] = action_index
+   end
+   self._action_index[action.does][uri] = action
 end
 
 function AIComponent:remove_action(uri)
    local action = self._actions[uri]
    if action then
-      self:remove_from_priority_table(action)
       self._actions[uri] = nil
+      self._action_index[action.does][uri] = nil
 
       if action.destroy then
          action:destroy()
@@ -67,62 +78,11 @@ function AIComponent:remove_observer(observer)
    end
 end
 
-function AIComponent:set_action_priority(action, priority)
-   -- update the priority table
-  
-   local activity_name = action.does
-   local priorities = self._priority_table[activity_name]
-   if not priorities then
-      self._priority_table[activity_name] = {}
-      priorities = self._priority_table[activity_name]
-   end
-   priorities[action] = priority
-   
-   -- update the priority of the action in the action stack
-   for i=1, #self._action_stack do
-      local entry = self._action_stack[i]
-      if entry.action == action then
-         entry.priority = priority
-      end
-   end
-end
-
-function AIComponent:remove_from_priority_table(action)
-   local activity_name = action.does
-   local priorities = self._priority_table[activity_name]
-   if priorities then
-      priorities[action] = nil
-   end
-end
-
-function AIComponent:check_action_stack()
-   radiant.check.is_entity(self._entity)
-
-   if not self._co or #self._action_stack == 0 then
-      self:restart()
-      return
-   end
-
-   -- walk the entire action stack looking for better things to do...
-   local unwind_to_action = nil
-   for i, entry in ipairs(self._action_stack) do
-      local action, priority = self:_get_best_action(entry.activity, i-1)
-      if action ~= entry.action and priority > entry.priority then
-         log:debug('%s switching from %s to %s (priority:%d)', self._entity, entry.action.name, action.name, priority)
-         unwind_to_action = i
-         break
-      end
-   end
-   if unwind_to_action then
-      self:restart()
-   end
-end
-
 function AIComponent:restart()
    assert(not self._dead)
 
    radiant.check.is_entity(self._entity)
-   self:_clear_action_stack()
+   self:_clear_stack()
 
    self._co = self._ai_system:_create_thread(self, function()
       while not self._dead do
@@ -131,107 +91,28 @@ function AIComponent:restart()
    end)
 end
 
-function AIComponent:_get_best_action(activity, filter_depth)
+function AIComponent:_create_execution_frame(activity)
    local activity_name = select(1, unpack(activity))
-   local priorities = self._priority_table[activity_name]
+   local action_index = self._action_index[activity_name]
+   local actions = {}
 
-   assert(priorities)
-
-   -- return the new maximum
-   local best_a, best_p, list_best_a
-
-   log:spam('%s looking for best action for %s', self._entity, activity_name)
-   for a, p in pairs(priorities) do
-      log:spam('  action %s has priority %d', tostring(a.name), p)
-      if not best_p or p >= best_p then
-         -- get_best_action is called both to check the health of the current action
-         -- stack as well as to choose new actions to put on the stack.  In the first
-         -- case, we're simply checking to make sure that the action chosen at every
-         -- level is the same as what is recorded in the stack, so finding the action
-         -- in the stack is exactly what we want!  In the second case, we never, ever
-         -- want to recur (infinite ai loop, anyone?), so we'll choose the next best
-         -- action for ai:execute().  this is useful for inserting special actions into
-         -- the graph and deferring to the other implementations as part of your
-         -- implementation.
-         if not self:_is_in_action_stack(a, filter_depth) then
-            if not best_p or p > best_p then
-                -- new best_p found, wipe out the old list of candidate actions
-                list_best_a = {}
-            end
-            best_p = p
-
-            local weight = a.weight or 1
-
-            for i = 1, weight do
-               table.insert(list_best_a, a)
-            end
-         end
+   log:spam('%s creating execution frame for %s', self._entity, activity_name)
+   for uri, action in pairs(action_index) do
+      if self:_stack_contains(action) then
+         log:spam('  ignoring action %s (already in stack)', action.name)
+      else
+         log:spam('  adding action %s', action.name)
+         table.insert(actions, action)
       end
    end
-
-   -- choose a random action amoung all the actions with the highest priority (they all tie)
-   best_a = list_best_a[math.random(#list_best_a)]
-   log:spam('%s  best action for %s is %s (priority: %d)', self._entity, activity_name, tostring(best_a.name), best_p)
-   
-   return best_a, best_p
+   return ExecutionFrame(self, actions)
 end
 
-function AIComponent:_activities_equal(a, b)
-   if not a or not b then
-      return false
+function AIComponent:_clear_stack()
+   for i = #self._stack, 1, -1 do
+      self._stack[i]:do_stop(false)
    end
-
-   assert(type(a) == 'table')
-   assert(type(b) == 'table')
-   if #a ~= #b then
-      return false
-   end
-   for i = 1, #a do
-      local a_i = a[i]
-      local b_i = b[i]
-
-      if a_i == b_i then
-         return true
-      end
-
-      local a_type = type(a_i)
-      local b_type = type(b_i)
-      if a_type ~= b_type then
-         return false
-      end
-
-      if a_type == 'userdata' then
-         local a_key = a_i.get_id and a_i:get_id() and a_i:__towatch()
-         local b_key = b_i.get_id and b_i:get_id() and b_i:__towatch()
-         return a_key == b_key
-      end
-
-      -- table?  etc...
-      return false
-   end
-   return true
-end
-
-function AIComponent:_format_activity(activity)
-   if not activity then
-      return 'none'
-   end
-   local msg = activity[1]
-   for i = 2,#activity do
-      msg = msg .. ", " .. tostring(activity[i])
-   end
-   return "{" .. msg .."}"
-end
-
-function AIComponent:_clear_action_stack()
-   for i = #self._action_stack, 1, -1 do
-      local action = self._action_stack[i].action
-      if action.stop then
-         action:stop(self, self._entity, false)
-      end
-   end
-   self._action_stack = {}
-   self._current_activity = nil
+   self._stack = {}
    if self._co then
       self._ai_system:_terminate_thread(self._co)
    end
@@ -242,7 +123,7 @@ function AIComponent:abort(reason)
    if reason == nil then reason = 'no reason given' end
    log:info('%s Aborting current action because: %s', self._entity, reason)
    
-   self:_clear_action_stack()   
+   self:_clear_stack()   
    -- all actions have had their stop method called on them.  yield
    -- KILL_THREAD to get the ai service to call restart() next time,
    -- which will start us over at stonehearth:top.   
@@ -250,76 +131,34 @@ function AIComponent:abort(reason)
    self._ai_system:_complete_thread_termination(self._co)   
 end
 
-function AIComponent:_is_in_action_stack(action, filter_depth)
-   assert(filter_depth <= #self._action_stack, "we're looking too deep in _is_in_action_stack")
-   if filter_depth > 0 then
-      for i=1,filter_depth do
-         local entry = self._action_stack[i]
-         if entry.action == action then
-            return true
-         end
+function AIComponent:_stack_contains(action)
+   for _, execution_frame in ipairs(self._stack) do
+      if execution_frame:get_running_action() == action then
+         return true
       end
    end
+   return false
 end
 
 function AIComponent:execute(...)
+   -- get a set of valid actions for this excution frame 
    local activity = {...}
-   local action, priority = self:_get_best_action(activity, #self._action_stack)
+   local execution_frame = self:_create_execution_frame(activity)
+   
+   table.insert(self._stack, frame)
+   local stack_len = #self._stack
 
-   local action_main = function()
-      -- decoda_name = string.format("entity %d : %s action", self._entity:get_id(), tostring(action.name))
-      log:debug('%s coroutine starting action: %s for activity %s', self._entity, tostring(action.name), self:_format_activity(activity))
-      local result = { action:run(self, self._entity, select(2, unpack(activity))) }
-      log:debug('%s coroutine finished: %s', self._entity, tostring(action.name))
-      return result
-   end
+   local result = execution_frame:do_run(unpack(activity))   
+   execution_frame:do_stop(true)
 
-   local entry = {
-      activity = activity,
-      action = action,
-      priority = priority,
-      name = action.name and action.name or '- unnamed action -'
-   }
-   table.insert(self._action_stack, entry)
-   local len = #self._action_stack
-
-   -- just call it and hope for the best.  manually unwind at yields...
-   local result = action_main()
-   if action.stop then
-      action:stop(self)
-   end
-
-   assert(#self._action_stack == len)
-   assert(self._action_stack[len].action == action)
-   self._action_stack[len] = nil
+   assert(#self._stack == stack_len)
+   assert(self._stack[stack_len] == execution_frame)
+   table.pop(self._stack)
    return unpack(result)
 end
 
 function AIComponent:wait_until(obj)
    coroutine.yield(obj)
-end
-
-function AIComponent:wait_for_path_finder(pf)
-   local path
-   pf:set_solved_cb(
-      function(solution)
-         path = solution
-      end
-   )
-   log:debug('%s blocking until pathfinder finishes', self._entity)
-   self:wait_until(function()
-      if path ~= nil then
-         log:debug('%s pathfinder completed!  resuming action', self._entity)
-         return true
-      end
-      if pf:is_idle() then
-         log:debug('%s pathfinder went idle.  aborting!', self._entity)
-         self:abort('pathfinder unexpectedly went idle while finding path')
-      end
-      log:debug('%s waiting for pathfinder: %s', self._entity, pf:describe_progress())
-      return false
-   end)
-   return path
 end
 
 function AIComponent:suspend()
