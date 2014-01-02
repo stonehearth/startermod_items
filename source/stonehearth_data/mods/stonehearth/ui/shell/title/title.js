@@ -26,9 +26,7 @@ App.StonehearthTitleScreenView = App.View.extend({
       });
 
       $(document).keyup(function(e) {
-         if (e.keyCode == 27) { // esc
-            $('#titlescreen').show();
-         }   
+         $('#titlescreen').show();
       });
 
       $('#radiant').fadeIn(800);
