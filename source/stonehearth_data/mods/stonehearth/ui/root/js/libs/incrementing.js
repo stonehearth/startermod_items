@@ -53,8 +53,7 @@ function initIncrementButtons() {
       }
 	  }
 
-    inputControl.val(newVal);
-
+    inputControl.val(newVal).change();
   });
 
 }
