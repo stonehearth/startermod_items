@@ -142,7 +142,7 @@ function CraftOrder:search_for_ingredients()
    end
 
    for i, ingredient in ipairs(self._ingredients) do
-      if not ingredient.item then
+      if not ingredient.item or not ingredient.item:is_valid() then
          -- is the item on the bench?  if so, claim it and remove it from
          -- the bench list..
          for _, item in pairs(bench_items) do
@@ -152,7 +152,7 @@ function CraftOrder:search_for_ingredients()
                break
             end
          end
-         if not ingredient.item then
+         if not ingredient.item or not ingredient.item:is_valid() then
             -- not on the bench?  look around and see if we can find an item
             local solved = function(path)
                local item = path:get_destination()
