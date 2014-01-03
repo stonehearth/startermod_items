@@ -790,6 +790,8 @@ bool ShaderResource::load( const char *data, int size )
 
 void ShaderResource::compileCombination(ShaderContext &context, ShaderCombination &combination)
 {
+	Modules::log().writeInfo( "---- C O M P I L I N G  . S H A D E R . %s@%s ----",
+		_name.c_str(), context.id.c_str() );
 	// Add preamble
 	_tmpCode0 = _vertPreamble;
 	_tmpCode1 = _fragPreamble;
@@ -800,6 +802,7 @@ void ShaderResource::compileCombination(ShaderContext &context, ShaderCombinatio
 
    for (const auto& flag : Modules::config().shaderFlags)
    {
+      Modules::log().writeInfo("----- %s ----", flag.c_str());
 		_tmpCode0 += "#define " + flag + "\r\n";				
 		_tmpCode1 += "#define " + flag + "\r\n";
    }
@@ -812,8 +815,6 @@ void ShaderResource::compileCombination(ShaderContext &context, ShaderCombinatio
 	_tmpCode1 += getCode( context.fragCodeIdx )->assembleCode();
 
 	
-	Modules::log().writeInfo( "---- C O M P I L I N G  . S H A D E R . %s@%s ----",
-		_name.c_str(), context.id.c_str() );
 	
 	// Unload shader if necessary
    if( combination.shaderObj != 0 )

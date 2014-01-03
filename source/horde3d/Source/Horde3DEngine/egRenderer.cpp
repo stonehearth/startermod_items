@@ -759,6 +759,10 @@ ShaderCombination* Renderer::findShaderCombination(ShaderResource* r, ShaderCont
             break;
          }
       }
+
+      if (result != 0x0) {
+         break;
+      }
    }
 
    // If this is a new combination of engine flags, compile a new combination.
@@ -2530,13 +2534,11 @@ void Renderer::drawVoxelMeshes_Instances(const std::string &shaderContext, const
                                const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
                                int occSet)
 {
+   const unsigned int VoxelInstanceCutoff = 10;
    radiant::perfmon::TimelineCounterGuard dvm("drawVoxelMeshes_Instances");
 	if( frust1 == 0x0 ) return;
 	
 	MaterialResource *curMatRes = 0x0;
-
-   // Set vertex layout
-	gRDI->setVertexLayout( Modules::renderer()._vlInstanceVoxelModel );
 
    // Loop over mesh queue
 	for( const auto& instanceKind : Modules::sceneMan().getInstanceRenderableQueue(SceneNodeTypes::VoxelMesh) )
@@ -2551,6 +2553,8 @@ void Renderer::drawVoxelMeshes_Instances(const std::string &shaderContext, const
       if (instanceKind.second.size() <= 0) {
          continue;
       }
+
+      Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", instanceKind.second.size() >= VoxelInstanceCutoff);
 
       // Shadow offsets will always win against the custom model offsets (which we don't care about
       // during a shadow pass.)
@@ -2582,15 +2586,15 @@ void Renderer::drawVoxelMeshes_Instances(const std::string &shaderContext, const
          if( !instanceKey.matResource->isOfClass( theClass ) ) continue;
 			
 			// Set material
-			if( curMatRes != instanceKey.matResource )
-			{
+			//if( curMatRes != instanceKey.matResource )
+			//{
             if( !Modules::renderer().setMaterial( instanceKey.matResource, shaderContext ) )
 				{	
 					curMatRes = 0x0;
 					continue;
 				}
             curMatRes = instanceKey.matResource;
-			}
+			//}
 		} else {
 			Modules::renderer().setShaderComb( &Modules::renderer()._defColorShader );
 			Modules::renderer().commitGeneralUniforms();
@@ -2598,8 +2602,11 @@ void Renderer::drawVoxelMeshes_Instances(const std::string &shaderContext, const
 			gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color.x );
 		}
 
-      drawVoxelMesh_Instances_WithInstancing(instanceKind.second, vmn);
-      //drawVoxelMesh_Instances_WithoutInstancing(instanceKind.second, vmn);
+      if (gRDI->getCaps().hasInstancing && instanceKind.second.size() >= VoxelInstanceCutoff) {
+         drawVoxelMesh_Instances_WithInstancing(instanceKind.second, vmn);
+      } else {
+         drawVoxelMesh_Instances_WithoutInstancing(instanceKind.second, vmn);
+      }
    }
 
 	gRDI->setVertexLayout( 0 );
@@ -2610,12 +2617,14 @@ void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& ren
 {
    // Collect transform data for every node of this mesh/material kind.
    radiant::perfmon::SwitchToCounter("copy mesh instances");
+   // Set vertex layout
+	gRDI->setVertexLayout( Modules::renderer()._vlInstanceVoxelModel );
    float* transformBuffer = _vbInstanceVoxelBuf;
    for (const auto& node : renderableQueue) {
 		const VoxelMeshNode *meshNode = (VoxelMeshNode *)node.node;
 		const VoxelModelNode *modelNode = meshNode->getParentModel();
 		
-      memcpy(transformBuffer, meshNode->_absTrans.x, sizeof(float) * 16);
+      memcpy(transformBuffer, &meshNode->_absTrans.x[0], sizeof(float) * 16);
       transformBuffer += 16;
    }
    gRDI->updateBufferData(_vbInstanceVoxelData, 0, (transformBuffer - _vbInstanceVoxelBuf) * sizeof(float), _vbInstanceVoxelBuf);
@@ -2635,12 +2644,14 @@ void Renderer::drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& 
 {
    // Collect transform data for every node of this mesh/material kind.
    radiant::perfmon::SwitchToCounter("draw mesh instances");
+   // Set vertex layout
+   gRDI->setVertexLayout( Modules::renderer()._vlVoxelModel );
    ShaderCombination* curShader = Modules::renderer().getCurShader();
    for (const auto& node : renderableQueue) {
 		VoxelMeshNode *meshNode = (VoxelMeshNode *)node.node;
 		const VoxelModelNode *modelNode = meshNode->getParentModel();
 		
-      gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &meshNode->_absTrans.x );
+      gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &meshNode->_absTrans.x[0] );
       gRDI->drawIndexed(RDIPrimType::PRIM_TRILIST, vmn->getBatchStart(), vmn->getBatchCount(), 
          vmn->getVertRStart(), vmn->getVertREnd() - vmn->getVertRStart() + 1);
 

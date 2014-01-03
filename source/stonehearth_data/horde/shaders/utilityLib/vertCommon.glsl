@@ -13,11 +13,18 @@ uniform mat4 viewMat;
 uniform mat4 worldMat;
 uniform	mat3 worldNormalMat;
 
+#ifdef DRAW_WITH_INSTANCING
 attribute mat4 transform;
+#endif
 
 vec4 calcWorldPos( const vec4 pos )
 {
+
+#ifdef DRAW_WITH_INSTANCING
 	return transform * pos;
+#else	
+	return worldMat * pos;
+#endif
 }
 
 vec4 calcViewPos( const vec4 pos )
@@ -27,7 +34,11 @@ vec4 calcViewPos( const vec4 pos )
 
 vec3 calcWorldVec( const vec3 vec )
 {
+#ifdef DRAW_WITH_INSTANCING
 	return (transform * vec4(vec, 0)).xyz;
+#else
+	return (worldMat * vec4(vec, 0)).xyz;
+#endif
 }
 
 mat3 calcTanToWorldMat( const vec3 tangent, const vec3 bitangent, const vec3 normal )
