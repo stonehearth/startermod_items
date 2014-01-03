@@ -1,0 +1,25 @@
+{
+   "extends": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "material": "cloth",
+         "stacks": 1
+      },
+      "stonehearth:material" : {
+         "tags" : "cloth resource"
+      },
+      "model_variants": [
+         {
+            "models": [
+               "file(wool_bundle.qb)"
+            ]
+         }
+      ],
+      "unit_info": {
+         "name": "Bundle of Wool",
+         "description": "Warm and fluffy",
+         "icon" : "file(wool_bundle.png)"
+      }
+   }
+}

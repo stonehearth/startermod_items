@@ -170,6 +170,7 @@ function AIComponent:_get_best_action(activity, filter_depth)
    end
 
    -- choose a random action amoung all the actions with the highest priority (they all tie)
+   --BUG: Somethings, list_best_a is nil. Why is this?
    best_a = list_best_a[math.random(#list_best_a)]
    log:spam('%s  best action for %s is %s (priority: %d)', self._entity, activity_name, tostring(best_a.name), best_p)
    
@@ -300,7 +301,11 @@ function AIComponent:wait_until(obj)
 end
 
 function AIComponent:wait_for_path_finder(pf)
-   local path
+   local path = pf:get_solution()
+   if path then
+      return path
+   end
+
    pf:set_solved_cb(
       function(solution)
          path = solution
