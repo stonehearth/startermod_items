@@ -72,6 +72,8 @@
 
          "effects:talisman_glow" : "file(data/effects/talisman_glow)",
 
+         "wool_bundle" : "file(entities/cloth/wool/wool_bundle)",
+
          "oak_log" : "file(entities/trees/oak_tree/oak_log)",
          "small_oak_tree" : "file(entities/trees/oak_tree/small_oak_tree)",
          "medium_oak_tree" : "file(entities/trees/oak_tree/medium_oak_tree)",
@@ -181,6 +183,7 @@
          "actions:eat_food_action" : "file(ai/actions/eat_food_action.lua)",
          "actions:chop_tree_action" : "file(ai/actions/chop_tree_action.lua)",
          "actions:worker_harvest_plant_action" : "file(ai/actions/worker_harvest_plants_action.lua)",
+         "actions:shear_sheep_action" : "file(ai/actions/shear_sheep_action.lua)",
          "actions:carry_item_on_path_to" : "file(ai/actions/carry_item_on_path_to.lua)",
          "actions:worker_task_dispatcher" : "file(ai/actions/worker_task_dispatcher.lua)",
          "actions:worker_restock_action" : "file(ai/actions/worker_restock_action.lua)",
@@ -347,6 +350,11 @@
             "controller": "file(call_handlers/resource_call_handler.lua)",
             "endpoint" : "server"
          },
+         "shear_sheep" : {
+            "controller": "file(call_handlers/resource_call_handler.lua)",
+            "endpoint" : "server"
+         },
+
          "get_worker_tracker" : {
             "endpoint" : "server",
             "controller" : "file(call_handlers/object_tracker_call_handler.lua)"

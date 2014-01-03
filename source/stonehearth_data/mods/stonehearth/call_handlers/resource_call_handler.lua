@@ -39,17 +39,48 @@ function ResourceCallHandler:harvest_plant(session, response, plant)
       return radiant.entities.get_carrying(worker) == nil
    end
 
-   local id = plant:get_id()
-   if not all_harvest_tasks [id] then
-      local harvest_task = worker_scheduler:add_worker_task('harvest_berries')
-                     :set_worker_filter_fn(not_carrying_fn)
-                     :add_work_object(plant)
-                     :set_action('stonehearth:harvest_plant')
-                     :set_max_workers(1)
-                     :set_priority(priorities.GATHER_FOOD)
-                     :start()
+   local harvest_task = worker_scheduler:add_worker_task('harvest_berries')
+                   :set_worker_filter_fn(not_carrying_fn)
+                   :add_work_object(plant)
+                   :set_priority(priorities.GATHER_FOOD)
 
-      radiant.effects.run_effect(plant, '/stonehearth/data/effects/harvest_berries_overlay_effect')
+   harvest_task:set_action_fn(
+      function (path)
+         return 'stonehearth:harvest_plant', path, harvest_task
+      end
+   )
+
+   harvest_task:start()
+
+   return true
+end
+
+function ResourceCallHandler:shear_sheep(session, response, sheep)
+   local worker_scheduler = radiant.mods.load('stonehearth').worker_scheduler:get_worker_scheduler(session.faction)
+
+   -- Any worker that's not carrying anything will do...
+   local not_carrying_fn = function (worker)
+      return radiant.entities.get_carrying(worker) == nil
+   end
+
+   local id = sheep:get_id()
+   if not all_harvest_tasks [id] then
+      local harvest_task = worker_scheduler:add_worker_task('shear_sheep')
+                     :set_worker_filter_fn(not_carrying_fn)
+                     :add_work_object(sheep)
+                     :set_action('stonehearth:shear_sheep')
+                     :set_max_workers(1)
+                     :set_priority(priorities.GATHER_RESOURCE)
+
+   harvest_task:set_action_fn(
+      function (path)
+         return 'stonehearth:harvest_plant', path, harvest_task
+      end
+   )
+
+   harvest_task:start()
+
+      --radiant.effects.run_effect(plant, '/stonehearth/data/effects/harvest_berries_overlay_effect')
    end
 
    return true
