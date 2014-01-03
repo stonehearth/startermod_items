@@ -3,7 +3,7 @@
 ]]
 local Point3 = _radiant.csg.Point3
 local WorkerLightFireAction = class()
-local log = radiant.log.create_logger('actions.light_fire')
+local log = radiant.log.create_logger('firepit')
 
 WorkerLightFireAction.name = 'light fire'
 WorkerLightFireAction.does = 'stonehearth:light_fire'
@@ -17,7 +17,8 @@ end
 --- Grab the log, bring it to the fire, and light it.
 -- Make sure only one person is doing this at a time.
 function WorkerLightFireAction:run(ai, entity, path_to_log, firepit, task)
-   --Put in some logging
+   log:debug('%s running stonhearth:light_fire', tostring(entity))
+
    local name = entity:get_component('unit_info'):get_display_name()
    local log_entity = path_to_log:get_destination()
 
@@ -59,6 +60,8 @@ end
 
 --- Destroy the task if we were successful. Start it again if not
 function WorkerLightFireAction:stop()
+   log:debug('%s stopping stonhearth:light_fire', tostring(self._entity))
+
    if self._task then
       self._task:start()
       self._task = nil
