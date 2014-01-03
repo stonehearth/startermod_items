@@ -300,7 +300,11 @@ function AIComponent:wait_until(obj)
 end
 
 function AIComponent:wait_for_path_finder(pf)
-   local path
+   local path = pf:get_solution()
+   if path then
+      return path
+   end
+
    pf:set_solved_cb(
       function(solution)
          path = solution
