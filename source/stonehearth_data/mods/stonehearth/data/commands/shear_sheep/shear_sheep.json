@@ -1,0 +1,13 @@
+{
+   "type" : "command",
+
+   "name": "shear_sheep",
+   "tooltip": "Shear Sheep",
+   "icon": "file(shear_sheep.png)",
+
+   "action": "call",
+   "function": "stonehearth:shear_sheep",
+   "args": [
+      "{{self}}"
+   ]
+}

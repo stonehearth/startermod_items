@@ -72,6 +72,16 @@ static const std::regex call_path_regex__("/r/call/?");
 
 DEFINE_SINGLETON(Client);
 
+template<typename T> 
+json::Node makeRendererConfigNode(RendererConfigEntry<T>& e) {
+   json::Node n;
+
+   n.set("value", e.value);
+   n.set("allowed", e.allowed);
+
+   return n;
+}
+
 Client::Client() :
    _tcp_socket(_io_service),
    last_sequence_number_(-1),
@@ -319,6 +329,50 @@ Client::Client() :
       return result;
    });
 
+
+   core_reactor_->AddRoute("radiant:get_config_options", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:get_config_options");
+      try {
+         json::Node node;
+         RendererConfig cfg = Renderer::GetInstance().GetRendererConfig();
+         
+         node.set("shadows", makeRendererConfigNode(cfg.use_shadows));
+         node.set("msaa", makeRendererConfigNode(cfg.num_msaa_samples));
+         node.set("vsync", makeRendererConfigNode(cfg.enable_vsync));
+         node.set("xres", makeRendererConfigNode(cfg.screen_width));
+         node.set("yres", makeRendererConfigNode(cfg.screen_height));
+         node.set("fullscreen", makeRendererConfigNode(cfg.enable_fullscreen));
+         node.set("shadow_res", makeRendererConfigNode(cfg.shadow_resolution));
+
+         result->Resolve(node);
+      } catch (std::exception const& e) {
+         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
+      }
+      return result;
+   });
+
+   core_reactor_->AddRoute("radiant:set_config_options", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:set_config_options");
+      try {
+         json::Node params(json::Node(f.args).get_node(0));
+         RendererConfig oldCfg = Renderer::GetInstance().GetRendererConfig();
+         RendererConfig newCfg;
+         memcpy(&newCfg, &oldCfg, sizeof(RendererConfig));
+
+         bool persistConfig = params.get<bool>("persistConfig", false);
+         newCfg.use_shadows.value = params.get<bool>("shadows", oldCfg.use_shadows.value);
+         newCfg.num_msaa_samples.value = params.get<int>("msaa", oldCfg.num_msaa_samples.value);
+         newCfg.shadow_resolution.value = params.get<int>("shadow_res", oldCfg.shadow_resolution.value);
+         newCfg.enable_fullscreen.value = params.get<bool>("fullscreen", oldCfg.enable_fullscreen.value);
+         
+         Renderer::GetInstance().ApplyConfig(newCfg, persistConfig);
+
+         result->ResolveWithMsg("success");
+      } catch (std::exception const& e) {
+         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
+      }
+      return result;
+   });
 }
 
 Client::~Client()

@@ -103,7 +103,7 @@ end
 
 function AIComponent:_create_execution_frame(activity)
    local activity_name = select(1, unpack(activity))
-   
+  
    -- make sure this activity isn't in the stack
    for _, frame in ipairs(self._stack) do
       if frame:get_activity_name() == activity_name then

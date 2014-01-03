@@ -59,6 +59,7 @@
          "worker_axe" : "file(entities/tools/worker_axe)",
          "worker_hammer" : "file(entities/tools/worker_hammer)",
          "rabbit" : "file(entities/critters/rabbit)",
+         "sheep" : "file(entities/critters/sheep)",
          "wolf" : "file(entities/critters/wolf)",
          "wolf:teeth_weapon" : "file(entities/critters/wolf/wolf_teeth.json)",
          "male_1" : "file(entities/humans/male_1)",
@@ -70,6 +71,8 @@
          "workshop_outbox" : "file(entities/crafting/workshop_outbox)",
 
          "effects:talisman_glow" : "file(data/effects/talisman_glow)",
+
+         "wool_bundle" : "file(entities/cloth/wool/wool_bundle)",
 
          "oak_log" : "file(entities/trees/oak_tree/oak_log)",
          "small_oak_tree" : "file(entities/trees/oak_tree/small_oak_tree)",
@@ -180,6 +183,7 @@
          "actions:eat_food_action" : "file(ai/actions/eat_food_action.lua)",
          "actions:chop_tree_action" : "file(ai/actions/chop_tree_action.lua)",
          "actions:worker_harvest_plant_action" : "file(ai/actions/worker_harvest_plants_action.lua)",
+         "actions:shear_sheep_action" : "file(ai/actions/shear_sheep_action.lua)",
          "actions:carry_item_on_path_to" : "file(ai/actions/carry_item_on_path_to.lua)",
          "actions:worker_task_dispatcher" : "file(ai/actions/worker_task_dispatcher.lua)",
          "actions:worker_restock_action" : "file(ai/actions/worker_restock_action.lua)",
@@ -346,6 +350,11 @@
             "controller": "file(call_handlers/resource_call_handler.lua)",
             "endpoint" : "server"
          },
+         "shear_sheep" : {
+            "controller": "file(call_handlers/resource_call_handler.lua)",
+            "endpoint" : "server"
+         },
+
          "get_worker_tracker" : {
             "endpoint" : "server",
             "controller" : "file(call_handlers/object_tracker_call_handler.lua)"
@@ -476,6 +485,7 @@
          "file(ui/shell/analytics_opt/analytics_opt.html)",
          "file(ui/shell/new_game/new_game.html)",
          "file(ui/shell/loading_screen/loading_screen.html)",
+         "file(ui/shell/settings/settings.html)",
          "file(ui/game/game.html)",
          "file(ui/game/task_manager/task_manager.html)",   
          "file(ui/game/create_camp/create_camp.html)",
@@ -502,6 +512,7 @@
          "file(ui/shell/analytics_opt/analytics_opt.js)",
          "file(ui/shell/new_game/new_game.js)",
          "file(ui/shell/loading_screen/loading_screen.js)",
+         "file(ui/shell/settings/settings.js)",
          "file(ui/game/game.js)",
          "file(ui/game/task_manager/task_manager.js)",   
          "file(ui/game/create_camp/create_camp.js)",
@@ -531,6 +542,7 @@
          "file(ui/shell/analytics_opt/analytics_opt.less)",
          "file(ui/shell/new_game/new_game.less)",
          "file(ui/shell/loading_screen/loading_screen.less)",
+         "file(ui/shell/settings/settings.less)",         
          "file(ui/game/game.less)",
          "file(ui/game/task_manager/task_manager.less)",   
          "file(ui/game/create_camp/create_camp.less)",

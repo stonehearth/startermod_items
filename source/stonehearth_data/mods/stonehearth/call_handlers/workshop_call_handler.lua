@@ -4,7 +4,7 @@ local Color3 = _radiant.csg.Color3
 local Rect2 = _radiant.csg.Rect2
 local Point2 = _radiant.csg.Point2
 local WorkshopCallHandler = class()
-local log = radiant.log.create_logger('call_handlers.wor')
+local log = radiant.log.create_logger('call_handlers.worker')
 local priorities = require('constants').priorities.worker_task
 
 --- Client side object to add a new bench to the world.  this method is invoked

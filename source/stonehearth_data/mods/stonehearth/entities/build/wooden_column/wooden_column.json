@@ -9,7 +9,8 @@
       "stonehearth:construction_data" : {
          "project_adjacent_to_base": true,
          "brush": "file(wooden_column.qb)",
-         "max_workers": 1
+         "max_workers": 1,
+         "material_tag": "wood resource"
       }
    }
 }

@@ -105,6 +105,10 @@ struct DeviceCaps
    const char* renderer;
 };
 
+struct EngineGpuCaps
+{
+   bool MSAASupported;
+};
 
 // ---------------------------------------------------------
 // Vertex layout
