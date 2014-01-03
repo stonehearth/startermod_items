@@ -9,6 +9,7 @@ function AIComponent:__init(entity)
    self._actions = {}
    self._action_index = {}
    self._stack = {}
+   self._execution_count = 0
    self._ai_system = radiant.mods.load('stonehearth').ai
 end
 
@@ -115,6 +116,7 @@ function AIComponent:_clear_stack()
    self._stack = {}
    if self._co then
       self._ai_system:_terminate_thread(self._co)
+      self._co = nil
    end
 end
 
@@ -140,11 +142,31 @@ function AIComponent:_stack_contains(action)
    return false
 end
 
+function AIComponent:_for_each_execution_frame(fn)
+   local execution_count = self._execution_count
+   for _, ef in ipairs(self._stack) do
+      fn(ef)
+      if execution_count ~= self._execution_count then
+         break
+      end
+   end
+end
+
+function AIComponent:set_action_priority(action, n)
+   action.priority = n
+   self:_for_each_execution_frame(function(ef)
+      if ef:contains_action(action) then
+         ef:on_set_action_priority(action)
+      end
+   end)
+end
+
 function AIComponent:execute(...)
    -- get a set of valid actions for this excution frame 
    local activity = {...}
    local execution_frame = self:_create_execution_frame(activity)
    
+   self._execution_count = self._execution_count + 1
    table.insert(self._stack, frame)
    local stack_len = #self._stack
 

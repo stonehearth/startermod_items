@@ -1,4 +1,5 @@
 local AiService = class()
+local AiVersion1= require 'services.ai.ai_version_1'
 local AiInjector = require 'services.ai.ai_injector'
 local log = radiant.log.create_logger('ai.service')
 
@@ -79,7 +80,15 @@ end
 function AiService:add_action(entity, uri, injecting_entity)
    local ctor = radiant.mods.load_script(uri)
    local ai_component = self:_get_ai_component(entity)
-   local action = ctor(ai_component, entity, injecting_entity) 
+   
+   local action
+   if not ctor.version or ctor.version == 1 then
+      local ai = AiVersion1(ai_component)
+      action = ctor(ai, entity, injecting_entity)
+      ai:set_action(action)
+   else
+      action = ctor(entity, injecting_entity)
+   end
    ai_component:add_action(uri, action)
    return action
 end
