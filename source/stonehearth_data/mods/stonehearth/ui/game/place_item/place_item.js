@@ -30,7 +30,7 @@ $(document).ready(function(){
       radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' )
       $(top).trigger('radiant_show_tip', {
          title : i18n.t('stonehearth:item_movement_title') + " " + e.event_data.item_name,
-         description : i18n.t('stonehearth:move_description')
+         description : i18n.t('stonehearth:item_movement_description')
       });
       call_server_to_place_item(e);
 
