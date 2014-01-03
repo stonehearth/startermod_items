@@ -27,6 +27,7 @@ namespace Horde3D {
 class MaterialResource;
 class LightNode;
 class CameraNode;
+class VoxelMeshNode;
 struct ShaderContext;
 
 const uint32 MaxNumOverlayVerts = (1 << 16); // about 32k..
@@ -206,6 +207,7 @@ public:
    void getEngineCapabilities(EngineRendererCaps* rendererCaps, EngineGpuCaps* gpuCaps) const;
 
 protected:
+   ShaderCombination* findShaderCombination(ShaderResource* r, ShaderContext* context) const;
    bool isShaderContextSwitch(const std::string &curContext, const MaterialResource *materialRes);
 
    void setupViewMatrices( const Matrix4f &viewMat, const Matrix4f &projMat );
@@ -236,7 +238,8 @@ protected:
 	
 	void drawRenderables( const std::string &shaderContext, const std::string &theClass, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet );
-	
+   static void drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn);
+   static void drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn);
 	void renderDebugView();
 	void finishRendering();
 

@@ -745,6 +745,37 @@ void Renderer::commitGeneralUniforms()
 	}
 }
 
+ShaderCombination* Renderer::findShaderCombination(ShaderResource* r, ShaderContext* context) const
+{
+   // Look for a shader with the right combination of engine flags.
+   ShaderCombination* result = 0x0;
+   for (auto& sc : context->shaderCombinations)
+   {
+      result = &sc;
+      for (const auto& flag : Modules().config().shaderFlags)
+      {
+         if (sc.engineFlags.find(flag) == sc.engineFlags.end()) {
+            result = 0x0;
+            break;
+         }
+      }
+   }
+
+   // If this is a new combination of engine flags, compile a new combination.
+   if (result == 0x0)
+   {
+      context->shaderCombinations.push_back(ShaderCombination());
+      ShaderCombination& sc = context->shaderCombinations.back();
+      for (const auto& flag : Modules().config().shaderFlags) {
+         sc.engineFlags.insert(flag);
+      }
+
+      r->compileCombination(*context, sc);
+      result = &context->shaderCombinations.back();
+   }
+
+   return result;
+}
 
 bool Renderer::isShaderContextSwitch(const std::string &newContext, const MaterialResource *materialRes)
 {
@@ -758,7 +789,7 @@ bool Renderer::isShaderContextSwitch(const std::string &newContext, const Materi
       return false;
    }
 
-   ShaderCombination *scc = &(sc->shaderComb);
+   ShaderCombination *scc = findShaderCombination(sr, sc);
 	return scc != _curShader;
 }
 
@@ -783,7 +814,7 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, const std::string 
 		if( context == 0x0 ) return false;
 		
 		// Set shader combination
-      ShaderCombination *sc = &(context->shaderComb);
+      ShaderCombination *sc = findShaderCombination(shaderRes, context);
 		if( sc != _curShader ) setShaderComb( sc );
 		if( _curShader == 0x0 || gRDI->_curShaderId == 0 ) return false;
 
@@ -2567,31 +2598,55 @@ void Renderer::drawVoxelMeshes_Instances(const std::string &shaderContext, const
 			gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color.x );
 		}
 
-      // Collect transform data for every node of this mesh/material kind.
-      radiant::perfmon::SwitchToCounter("copy mesh instances");
-      float* transformBuffer = _vbInstanceVoxelBuf;
-      for (const auto& node : instanceKind.second) {
-		   const VoxelMeshNode *meshNode = (VoxelMeshNode *)node.node;
-		   const VoxelModelNode *modelNode = meshNode->getParentModel();
-		
-         memcpy(transformBuffer, meshNode->_absTrans.x, sizeof(float) * 16);
-         transformBuffer += 16;
-      }
-      gRDI->updateBufferData(_vbInstanceVoxelData, 0, (transformBuffer - _vbInstanceVoxelBuf) * sizeof(float), _vbInstanceVoxelBuf);
-
-      radiant::perfmon::SwitchToCounter("draw mesh instances");
-      // Draw instanced meshes.
-      gRDI->setVertexBuffer(1, _vbInstanceVoxelData, 0, sizeof(float) * 16);
-      gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, vmn->getBatchCount(), 0, instanceKind.second.size());
-      radiant::perfmon::SwitchToCounter("drawVoxelMeshes_Instances");
-
-		// Render
-		Modules::stats().incStat( EngineStats::BatchCount, 1 );
-		Modules::stats().incStat( EngineStats::TriCount, (vmn->getBatchCount() / 3.0f) * instanceKind.second.size() );
+      drawVoxelMesh_Instances_WithInstancing(instanceKind.second, vmn);
+      //drawVoxelMesh_Instances_WithoutInstancing(instanceKind.second, vmn);
    }
 
 	gRDI->setVertexLayout( 0 );
    glDisable(GL_POLYGON_OFFSET_FILL);
+}
+
+void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn)
+{
+   // Collect transform data for every node of this mesh/material kind.
+   radiant::perfmon::SwitchToCounter("copy mesh instances");
+   float* transformBuffer = _vbInstanceVoxelBuf;
+   for (const auto& node : renderableQueue) {
+		const VoxelMeshNode *meshNode = (VoxelMeshNode *)node.node;
+		const VoxelModelNode *modelNode = meshNode->getParentModel();
+		
+      memcpy(transformBuffer, meshNode->_absTrans.x, sizeof(float) * 16);
+      transformBuffer += 16;
+   }
+   gRDI->updateBufferData(_vbInstanceVoxelData, 0, (transformBuffer - _vbInstanceVoxelBuf) * sizeof(float), _vbInstanceVoxelBuf);
+
+   radiant::perfmon::SwitchToCounter("draw mesh instances");
+   // Draw instanced meshes.
+   gRDI->setVertexBuffer(1, _vbInstanceVoxelData, 0, sizeof(float) * 16);
+   gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, vmn->getBatchCount(), 0, renderableQueue.size());
+   radiant::perfmon::SwitchToCounter("drawVoxelMeshes_Instances");
+
+	// Render
+	Modules::stats().incStat( EngineStats::BatchCount, 1 );
+   Modules::stats().incStat( EngineStats::TriCount, (vmn->getBatchCount() / 3.0f) * renderableQueue.size() );
+}
+
+void Renderer::drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn)
+{
+   // Collect transform data for every node of this mesh/material kind.
+   radiant::perfmon::SwitchToCounter("draw mesh instances");
+   ShaderCombination* curShader = Modules::renderer().getCurShader();
+   for (const auto& node : renderableQueue) {
+		VoxelMeshNode *meshNode = (VoxelMeshNode *)node.node;
+		const VoxelModelNode *modelNode = meshNode->getParentModel();
+		
+      gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &meshNode->_absTrans.x );
+      gRDI->drawIndexed(RDIPrimType::PRIM_TRILIST, vmn->getBatchStart(), vmn->getBatchCount(), 
+         vmn->getVertRStart(), vmn->getVertREnd() - vmn->getVertRStart() + 1);
+
+      Modules::stats().incStat( EngineStats::BatchCount, 1 );
+   }
+   Modules::stats().incStat( EngineStats::TriCount, (vmn->getBatchCount() / 3.0f) * renderableQueue.size() );
 }
 
 void Renderer::drawParticles( const std::string &shaderContext, const std::string &theClass, bool debugView,
