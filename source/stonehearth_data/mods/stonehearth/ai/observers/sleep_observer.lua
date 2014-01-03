@@ -3,6 +3,7 @@ local calendar = require 'services.calendar.calendar_service'
 local SleepObserver = class()
 
 SleepObserver.does = 'stonehearth:top'
+SleepObserver.version = 1
 SleepObserver.priority = 0
 
 function SleepObserver:__init(entity)

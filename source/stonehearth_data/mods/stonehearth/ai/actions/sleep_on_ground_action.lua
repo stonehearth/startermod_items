@@ -4,6 +4,7 @@ local SleepOnGroundAction = class()
 
 SleepOnGroundAction.name = 'sleep on the cold, hard, unforgiving ground'
 SleepOnGroundAction.does = 'stonehearth:sleep_on_ground'
+SleepOnGroundAction.version = 1
 SleepOnGroundAction.priority = 1
 
 

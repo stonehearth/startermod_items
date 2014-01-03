@@ -2,6 +2,7 @@ local IdleLookAround = class()
 
 IdleLookAround.name = 'look around'
 IdleLookAround.does = 'stonehearth:idle:bored'
+IdleLookAround.version = 1
 IdleLookAround.priority = 1
 
 function IdleLookAround:run(ai, entity)

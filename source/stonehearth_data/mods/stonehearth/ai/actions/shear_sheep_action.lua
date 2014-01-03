@@ -10,6 +10,7 @@ local log = radiant.log.create_logger('actions.shear_sheep')
 
 ShearSheepAction.name = 'shear sheep'
 ShearSheepAction.does = 'stonehearth:shear_sheep'
+ShearSheepAction.version = 1
 ShearSheepAction.priority = 9
 
 -- XXX, it seems like this whole thing is pretty similar to harvesting plants. Can the two be unified?

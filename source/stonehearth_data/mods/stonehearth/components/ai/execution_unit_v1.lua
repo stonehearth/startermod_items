@@ -105,33 +105,39 @@ function ExecutionUnitV1:wait_until(obj)
 end
 
 function ExecutionUnitV1:suspend()
-   self._ai_system:suspend_thread()
+   self._ai_component:suspend_thread()
 end
 
-function ExecutionUnitV1:resume_v1()
-   self._ai_system:resume_thread()
+function ExecutionUnitV1:resume()
+   self._ai_component:resume_thread()
+end
+
+function ExecutionUnitV1:abort(reason)
+   self._ai_component:abort(reason)
 end
 
 function ExecutionUnitV1:wait_for_path_finder(pf)
-   local path
-   pf:set_solved_cb(
-      function(solution)
-         path = solution
-      end
-   )
-   log:debug('%s blocking until pathfinder finishes', self._entity)
-   self:wait_until(function()
-      if path ~= nil then
-         log:debug('%s pathfinder completed!  resuming action', self._entity)
-         return true
-      end
-      if pf:is_idle() then
-         log:debug('%s pathfinder went idle.  aborting!', self._entity)
-         self:abort('pathfinder unexpectedly went idle while finding path')
-      end
-      log:debug('%s waiting for pathfinder: %s', self._entity, pf:describe_progress())
-      return false
-   end)
+   local path = pf:get_solution()
+   if not path then
+      pf:set_solved_cb(
+         function(solution)
+            path = solution
+         end
+      )
+      log:debug('%s blocking until pathfinder finishes', self._entity)
+      self:wait_until(function()
+         if path ~= nil then
+            log:debug('%s pathfinder completed!  resuming action', self._entity)
+            return true
+         end
+         if pf:is_idle() then
+            log:debug('%s pathfinder went idle.  aborting!', self._entity)
+            self:abort('pathfinder unexpectedly went idle while finding path')
+         end
+         log:debug('%s waiting for pathfinder: %s', self._entity, pf:describe_progress())
+         return false
+      end)
+   end
    return path
 end
 

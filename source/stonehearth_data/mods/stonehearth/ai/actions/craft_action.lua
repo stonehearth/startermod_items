@@ -8,6 +8,7 @@ local CraftAction = class()
 
 CraftAction.name = 'craft action'
 CraftAction.does = 'stonehearth:craft'
+CraftAction.version = 1
 CraftAction.priority = 5
 
 --[[

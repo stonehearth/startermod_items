@@ -10,6 +10,7 @@ local CheckCraftableAction = class()
 
 CheckCraftableAction.name = 'check craftable'
 CheckCraftableAction.does = 'stonehearth:top'
+CheckCraftableAction.version = 1
 CheckCraftableAction.priority = 0
 
 function CheckCraftableAction:__init(ai, entity)

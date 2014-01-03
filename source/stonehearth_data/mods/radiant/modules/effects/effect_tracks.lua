@@ -61,6 +61,7 @@ function EffectTracks:get_name()
 end
 
 function EffectTracks:cleanup()
+   self._on_finished_fn = nil
    self._effect_list:remove_effect(self._effect)
    self._mgr:_remove_effect(self)
 end
@@ -69,9 +70,17 @@ function EffectTracks:finished()
    return not self._running
 end
 
+function EffectTracks:on_finished(fn)
+   self._on_finished_fn = fn
+end
+
+
 function EffectTracks:stop()
    if self._running then
       self._running = false
+      if self._on_finished_fn then
+         self._on_finished_fn()
+      end
       self:cleanup()
    end
 end

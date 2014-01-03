@@ -10,6 +10,7 @@ local AdmireFire = class()
 
 AdmireFire.name = 'admire fire'
 AdmireFire.does = 'stonehearth:idle'
+AdmireFire.version = 1
 AdmireFire.priority = 0
 
 function AdmireFire:__init(ai, entity)

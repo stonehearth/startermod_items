@@ -10,6 +10,7 @@ local FillOutboxAction = class()
 
 FillOutboxAction.name = 'fill outbox'
 FillOutboxAction.does = 'stonehearth:fill_outbox'
+FillOutboxAction.version = 1
 FillOutboxAction.priority = 5
 
 function FillOutboxAction:__init(ai, entity)

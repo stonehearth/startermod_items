@@ -2,6 +2,7 @@ local FollowDestination = class()
 
 FollowDestination.name = 'follow a destination'
 FollowDestination.does = 'stonehearth:follow_destination'
+FollowDestination.version = 1
 FollowDestination.priority = 1
 
 function FollowDestination:run(ai, entity, path, effect_name)

@@ -11,6 +11,7 @@ local log = radiant.log.create_logger('actions.find_food')
 
 FindFoodAction.name = 'find food'
 FindFoodAction.does = 'stonehearth:top'
+FindFoodAction.version = 1
 FindFoodAction.priority = 0
 
 function FindFoodAction:__init(ai, entity)

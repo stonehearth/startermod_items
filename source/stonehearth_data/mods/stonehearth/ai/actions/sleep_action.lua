@@ -10,6 +10,7 @@ local log = radiant.log.create_logger('actions.sleep')
 
 SleepAction.name = 'goto sleep'
 SleepAction.does = 'stonehearth:top'
+SleepAction.version = 1
 SleepAction.priority = 0
 
 function SleepAction:__init(ai, entity)
