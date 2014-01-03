@@ -11,6 +11,7 @@ local log = radiant.log.create_logger('actions.place_workshop')
 
 WorkerPlaceWorkshop.name = 'place workshop'
 WorkerPlaceWorkshop.does = 'stonehearth:place_workshop'
+WorkerPlaceWorkshop.version = 1
 WorkerPlaceWorkshop.priority = 5
 
 function WorkerPlaceWorkshop:__init(ai, entity)

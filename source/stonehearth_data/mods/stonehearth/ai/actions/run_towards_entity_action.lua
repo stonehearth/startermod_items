@@ -5,6 +5,7 @@ local Vec3 = _radiant.csg.Point3f
 
 RunTowardsEntity.name = 'run away from an entity'
 RunTowardsEntity.does = 'stonehearth:run_towards_entity'
+RunTowardsEntity.version = 1
 RunTowardsEntity.priority = 1
 
 function RunTowardsEntity:run(ai, entity, target, effect_name)

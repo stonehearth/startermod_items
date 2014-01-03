@@ -7,6 +7,7 @@ local GrabTalismanAction = class()
 
 GrabTalismanAction.name = 'grab talisman'
 GrabTalismanAction.does = 'stonehearth:top'
+GrabTalismanAction.version = 1
 GrabTalismanAction.priority = 0
 
 --[[

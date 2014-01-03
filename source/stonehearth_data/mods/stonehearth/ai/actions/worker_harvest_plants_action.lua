@@ -10,6 +10,7 @@ local log = radiant.log.create_logger('actions.harvest')
 
 HarvestPlantsAction.name = 'harvest plants'
 HarvestPlantsAction.does = 'stonehearth:harvest_plant'
+HarvestPlantsAction.version = 1
 HarvestPlantsAction.priority = 9
 
 function HarvestPlantsAction:__init(ai, entity)

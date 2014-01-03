@@ -2,6 +2,7 @@ local Attack = class()
 
 Attack.name = 'Attack!'
 Attack.does = 'stonehearth:attack'
+Attack.version = 1
 Attack.priority = 1
 
 function Attack:__init(ai, entity)

@@ -1,5 +1,7 @@
 local AiService = class()
 local AiInjector = require 'services.ai.ai_injector'
+local ExecutionUnitV1 = require 'components.ai.execution_unit_v1'
+local ExecutionUnitV2 = require 'components.ai.execution_unit_v2'
 local log = radiant.log.create_logger('ai.service')
 
 function AiService:__init()
@@ -26,7 +28,7 @@ function AiService:_on_event_loop(e)
    local now = e.now
    -- xxx: this is O(n) of entities with self. UG. make the intention notify the ai_component when its priorities change
    for id, ai_component in pairs(self._ai_components) do
-      ai_component:check_action_stack()
+      ai_component:restart_if_terminated()
    end
 
    for co, pred in pairs(self._waiting_until) do
@@ -83,8 +85,19 @@ end
 function AiService:add_action(entity, uri, injecting_entity)
    local ctor = radiant.mods.load_script(uri)
    local ai_component = self:_get_ai_component(entity)
-   local action = ctor(ai_component, entity, injecting_entity) 
-   ai_component:add_action(uri, action)
+   
+   local action
+   local execution_unit_ctor
+   if not ctor.version or ctor.version == 1 then
+      execution_unit_ctor = ExecutionUnitV1
+   else
+      execution_unit_ctor = ExecutionUnitV2
+   end
+   local unit = execution_unit_ctor(ai_component, entity, injecting_entity)
+   action = ctor(unit, entity, injecting_entity)
+   unit:set_action(action)
+   
+   ai_component:add_action(uri, unit)
    return action
 end
 
@@ -166,15 +179,13 @@ function AiService:_terminate_thread(co)
       self._waiting_until[co] = nil
       self._scheduled[co] = nil
       self._co_to_ai_component[co] = nil
-   end
-end
-
-function AiService:_complete_thread_termination(co)
-   if self._running_thread ~= co then
-      log:info('killing non running thread... nothing to do.')
-   else 
-      log:info('killing running thread... yielding KILL_THREAD.')
-      coroutine.yield(self.KILL_THREAD)
+      
+      if self._running_thread ~= co then
+         log:info('killing non running thread... nothing to do.')
+      else 
+         log:info('killing running thread... yielding KILL_THREAD.')
+         coroutine.yield(self.KILL_THREAD)
+      end
    end
 end
 

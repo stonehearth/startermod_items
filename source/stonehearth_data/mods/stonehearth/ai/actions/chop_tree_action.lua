@@ -5,6 +5,7 @@ local ChopTreeAction = class()
 
 ChopTreeAction.name = 'chop tree'
 ChopTreeAction.does = 'stonehearth:chop_tree'
+ChopTreeAction.version = 1
 ChopTreeAction.priority = 1
 
 function ChopTreeAction:run(ai, entity, path)

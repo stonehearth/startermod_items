@@ -7,6 +7,7 @@ local Vec3 = _radiant.csg.Point3f
 
 FearFire.name = 'fear fire'
 FearFire.does = 'stonehearth:top'
+FearFire.version = 1
 FearFire.priority = 0
 
 function FearFire:__init(ai, entity)

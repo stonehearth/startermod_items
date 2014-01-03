@@ -7,6 +7,7 @@ local log = radiant.log.create_logger('firepit')
 
 WorkerLightFireAction.name = 'light fire'
 WorkerLightFireAction.does = 'stonehearth:light_fire'
+WorkerLightFireAction.version = 1
 WorkerLightFireAction.priority = 5
 
 function WorkerLightFireAction:__init(ai, entity)

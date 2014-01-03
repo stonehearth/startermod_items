@@ -3,6 +3,7 @@ local DropCarryingInEntityAction = class()
 
 DropCarryingInEntityAction.name = 'drop carrying in entity'
 DropCarryingInEntityAction.does = 'stonehearth:drop_carrying_in_entity'
+DropCarryingInEntityAction.version = 1
 DropCarryingInEntityAction.priority = 5
 
 --- Put the carried object down on another object

@@ -7,6 +7,7 @@ local SleepInBedAction = class()
 
 SleepInBedAction.name = 'sleep in a bed'
 SleepInBedAction.does = 'stonehearth:sleep_in_bed'
+SleepInBedAction.version = 1
 SleepInBedAction.priority = 1
 
 

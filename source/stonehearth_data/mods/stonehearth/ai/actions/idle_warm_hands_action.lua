@@ -4,6 +4,7 @@ local IdleWarmHands = class()
 
 IdleWarmHands.name = 'warm hands'
 IdleWarmHands.does = 'stonehearth:idle:warm_hands'
+IdleWarmHands.version = 1
 IdleWarmHands.priority = 0
 
 function IdleWarmHands:__init(ai, entity, fire_entity)

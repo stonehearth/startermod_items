@@ -2,6 +2,7 @@ local Idle = class()
 
 Idle.name = 'default idle behavior'
 Idle.does = 'stonehearth:idle'
+Idle.version = 1
 Idle.priority = 1
 
 function Idle:__init(ai, entity)
