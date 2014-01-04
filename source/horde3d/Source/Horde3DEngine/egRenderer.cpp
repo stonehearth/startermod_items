@@ -2880,10 +2880,11 @@ void Renderer::render( CameraNode *camNode )
 
 				if( rt != 0x0 )
 				{
-					RDIRenderBuffer &rendBuf = gRDI->_rendBufs.getRef( rt->rendBuf );
+               rt->curRendBuf = _frameID % RenderTarget::NumRenderObjects;
+               RDIRenderBuffer &rendBuf = gRDI->_rendBufs.getRef( rt->rendBuf[rt->curRendBuf] );
 					gRDI->_outputBufferIndex = _curCamera->_outputBufferIndex;
 					gRDI->setViewport( 0, 0, rendBuf.width, rendBuf.height );
-					gRDI->setRenderBuffer( rt->rendBuf );
+               gRDI->setRenderBuffer( rt->rendBuf[rt->curRendBuf] );
 				}
 				else
 				{
@@ -2898,7 +2899,7 @@ void Renderer::render( CameraNode *camNode )
                uint32 rendBuf = 0;
    				RenderTarget* rt = (RenderTarget *)pc.params[0].getPtr();
                if (rt) {
-                  rendBuf = rt->rendBuf;
+                  rendBuf = rt->rendBuf[rt->curRendBuf];
                } else {
                   rendBuf = (uint32)pc.params[3].getInt();
                }
