@@ -1,12 +1,11 @@
 local NewGameCallHandler = class()
 local game_master = require 'services.game_master.game_master_service'
-local personality_service = require 'services.personality.personality_service'
+local personality_service = stonehearth.personality
 
 local Point3 = _radiant.csg.Point3
 
 function NewGameCallHandler:new_game(session, response, seed)
-   local wgs = radiant.mods.load('stonehearth').world_generation
-   local wg = wgs:create_world(true, seed)
+   stonehearth.world_generation:create_world(true, seed)
    return {}
 end
 
@@ -92,7 +91,7 @@ function NewGameCallHandler:_destroy_capture()
 end
 
 function NewGameCallHandler:create_camp(session, response, pt)
-   local faction = radiant.mods.load('stonehearth').population:get_faction('civ', 'stonehearth:factions:ascendancy')
+   local faction = stonehearth.population:get_faction('civ', 'stonehearth:factions:ascendancy')
    
    -- place the stanfard in the middle of the camp
    local location = Point3(pt.x, pt.y, pt.z)
@@ -146,9 +145,8 @@ function NewGameCallHandler:create_camp(session, response, pt)
 end
 
 function NewGameCallHandler:place_citizen(x, z)
-   local pop_service = radiant.mods.load('stonehearth').population
    --TODO: faction denotes which player is playing. Have user pick?
-   local faction = pop_service:get_faction('civ','stonehearth:factions:ascendancy')
+   local faction = stonehearth.population:get_faction('civ','stonehearth:factions:ascendancy')
    local citizen = faction:create_new_citizen()
 
    faction:promote_citizen(citizen, 'worker')
@@ -173,8 +171,7 @@ function NewGameCallHandler:place_stockpile(faction, x, z, w, h)
    local location = Point3(x, 1, z)
    local size = { w, h }
 
-   local inventory_service = radiant.mods.load('stonehearth').inventory
-   local inventory = inventory_service:get_inventory(faction)
+   local inventory = stonehearth.inventory:get_inventory(faction)
    inventory:create_stockpile(location, size)
 end
 

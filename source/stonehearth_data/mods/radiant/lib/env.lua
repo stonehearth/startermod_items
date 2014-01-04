@@ -47,8 +47,4 @@ require = function(s)
    end
 end
 
-
 require 'lualibs.unclasslib'
-
--- finish off by locking down the global namespace
-require 'lualibs.strict'

@@ -1,5 +1,3 @@
-radiant.mods.load('stonehearth')
-
 local PostureComponent = class()
 
 function PostureComponent:__init(entity, data_object)

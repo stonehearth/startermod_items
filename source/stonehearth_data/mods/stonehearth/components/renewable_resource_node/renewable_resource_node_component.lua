@@ -1,4 +1,4 @@
-local calendar = radiant.mods.load('stonehearth').calendar
+local calendar = stonehearth.calendar
 
 local RenewableResourceNodeComponent = class()
 

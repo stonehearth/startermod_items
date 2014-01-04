@@ -26,7 +26,7 @@ function Fabricator:__init(name, entity, blueprint)
    end
    
    local faction = radiant.entities.get_faction(blueprint)
-   local wss = radiant.mods.load('stonehearth').worker_scheduler
+   local wss = stonehearth.worker_scheduler
    self._worker_scheduler = wss:get_worker_scheduler(faction)
 
    -- initialize the fabricator entity.  we'll manually update the

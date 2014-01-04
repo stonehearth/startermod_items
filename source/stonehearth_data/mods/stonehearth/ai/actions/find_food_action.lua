@@ -3,7 +3,6 @@
    If > 120, set starving debuff. Once we've found food, set priority of eating it
    based on how hungry we are. 
 --]]
-radiant.mods.load('stonehearth')
 local priorities = require('constants').priorities.needs
 
 local FindFoodAction = class()

@@ -1,4 +1,4 @@
-local calendar = require 'services.calendar.calendar_service'
+local calendar = stonehearth.calendar
 local time_constants = radiant.resources.load_json('/stonehearth/services/calendar/calendar_constants.json')
 
 --[[

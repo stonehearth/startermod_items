@@ -9,7 +9,7 @@ local ResourceCallHandler = class()
 local all_harvest_tasks = {}
 
 function ResourceCallHandler:harvest_tree(session, response, tree)
-   local worker_scheduler = radiant.mods.load('stonehearth').worker_scheduler:get_worker_scheduler(session.faction)
+   local worker_scheduler = stonehearth.worker_scheduler:get_worker_scheduler(session.faction)
 
    -- Any worker that's not carrying anything will do...
    local not_carrying_fn = function (worker)
@@ -32,7 +32,7 @@ function ResourceCallHandler:harvest_tree(session, response, tree)
 end
 
 function ResourceCallHandler:harvest_plant(session, response, plant)
-   local worker_scheduler = radiant.mods.load('stonehearth').worker_scheduler:get_worker_scheduler(session.faction)
+   local worker_scheduler = stonehearth.worker_scheduler:get_worker_scheduler(session.faction)
 
    -- Any worker that's not carrying anything will do...
    local not_carrying_fn = function (worker)
@@ -56,7 +56,7 @@ function ResourceCallHandler:harvest_plant(session, response, plant)
 end
 
 function ResourceCallHandler:shear_sheep(session, response, sheep)
-   local worker_scheduler = radiant.mods.load('stonehearth').worker_scheduler:get_worker_scheduler(session.faction)
+   local worker_scheduler = stonehearth.worker_scheduler:get_worker_scheduler(session.faction)
 
    -- Any worker that's not carrying anything will do...
    local not_carrying_fn = function (worker)

@@ -6,10 +6,9 @@
    amounts of satisfaction, meaning it might be longer before a person 
    has to eat again. 
 --]]
-radiant.mods.load('stonehearth')
 local priorities = require('constants').priorities.needs
-local event_service = require 'services.event.event_service'
-local personality_service = require 'services.personality.personality_service'
+local event_service = stonehearth.events
+local personality_service = stonehearth.personality
 local Point3 = _radiant.csg.Point3
 
 local EatFoodAction = class()

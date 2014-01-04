@@ -42,9 +42,6 @@ function ExecutionUnitV1:get_weight()
    return self._action.weight or 1
 end
 
-function ExecutionUnitV1:get_args()
-end
-
 function ExecutionUnitV1:is_runnable(frame)
    assert(self._frame == frame)
    return self._action.priority > 0   

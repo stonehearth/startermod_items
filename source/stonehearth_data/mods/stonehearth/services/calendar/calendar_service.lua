@@ -23,7 +23,7 @@ CalendarService = class()
 
 function CalendarService:__init()
    self._timers = {}
-   self._event_service = require 'services.event.event_service'
+   self._event_service = stonehearth.events
    self._constants = constants
    radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self._on_event_loop)
 

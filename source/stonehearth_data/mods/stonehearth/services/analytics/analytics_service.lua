@@ -1,8 +1,8 @@
 local Vec3 = _radiant.csg.Point3f
 
 local AnalyticsService = class()
-local population_service = require 'services.population.population_service'
-local object_tracker = require 'services.object_tracker.object_tracker_service'
+local population_service = stonehearth.population
+local object_tracker = stonehearth.object_tracker
 
 function AnalyticsService:__init()
    radiant.events.listen(radiant.events, 'stonehearth:minute_poll', self, self.on_minute_poll)

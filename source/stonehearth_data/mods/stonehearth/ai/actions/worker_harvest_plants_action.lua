@@ -2,7 +2,7 @@
    Tell a worker to collect food and resources from a plant. 
 ]]
 
-local event_service = require 'services.event.event_service'
+local event_service = stonehearth.events
 local Point3 = _radiant.csg.Point3
 
 local HarvestPlantsAction = class()

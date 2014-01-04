@@ -474,9 +474,6 @@
          "homepage" : "file(/ui/root/index.html)"
       }
    },
-   "client" : {
-      "init_script" : "file(client_init.lua)"
-   },
    "ui" :  {
       "html" : [     
          "file(ui/common/modal_overlay/modal_overlay.html)",

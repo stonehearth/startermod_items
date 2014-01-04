@@ -2,8 +2,7 @@
    Need a more robust implementation later. For now,
    go to sleep at 9pm and wake up at 6am
 --]]
-radiant.mods.load('stonehearth') -- make sure it's loaded...
-local calendar = require 'services.calendar.calendar_service'
+local calendar = stonehearth.calendar
 
 local SleepAction = class()
 local log = radiant.log.create_logger('actions.sleep')

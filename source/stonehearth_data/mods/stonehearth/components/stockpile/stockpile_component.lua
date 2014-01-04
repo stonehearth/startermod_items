@@ -1,5 +1,5 @@
 local priorities = require('constants').priorities.worker_task
-local inventory_service = radiant.mods.load('stonehearth').inventory
+local inventory_service = stonehearth.inventory
 
 local StockpileComponent = class()
 local log = radiant.log.create_logger('stockpile')
@@ -434,7 +434,7 @@ function StockpileComponent:_create_worker_tasks()
    end
 
    local faction = radiant.entities.get_faction(self._entity)
-   local worker_scheduler = radiant.mods.load('stonehearth').worker_scheduler:get_worker_scheduler(faction)
+   local worker_scheduler = stonehearth.worker_scheduler:get_worker_scheduler(faction)
 
    -- If the tasks already exist, blow them away so we can remake them
    if self._pickup_task then

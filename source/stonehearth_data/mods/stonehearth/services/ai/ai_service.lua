@@ -199,4 +199,8 @@ function AiService:_schedule(co)
    self._waiting_until[co] = nil
 end
 
+function AiService:create_action(meta)
+   return nil
+end
+
 return AiService()

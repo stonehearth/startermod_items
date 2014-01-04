@@ -1,5 +1,5 @@
 local priorities = require('constants').priorities.worker_task
-local calendar = radiant.mods.load('stonehearth').calendar
+local calendar = stonehearth.calendar
 
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
@@ -192,7 +192,7 @@ end
 --- Create a worker task to gather wood
 function FirepitComponent:_init_gather_wood_task()
    if not self._light_task then
-      local ws = radiant.mods.load('stonehearth').worker_scheduler
+      local ws = stonehearth.worker_scheduler
       local faction = radiant.entities.get_faction(self._entity)
       assert(faction, "missing a faction on this firepit!")
       self._worker_scheduler = ws:get_worker_scheduler(faction)

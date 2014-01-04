@@ -4,7 +4,7 @@
    but it always happens, people naturally gravitate towards moving, lit things.
    TODO: rename to "find fireside seat or something"
 ]]
-local calendar = require 'services.calendar.calendar_service'
+local calendar = stonehearth.calendar
 
 local AdmireFire = class()
 

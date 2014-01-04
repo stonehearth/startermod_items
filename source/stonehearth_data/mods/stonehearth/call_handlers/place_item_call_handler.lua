@@ -162,8 +162,7 @@ function PlaceItemCallHandler:_init_pickup_worker_task(session, full_sized_uri, 
    radiant.terrain.place_entity(ghost_entity, location)
 
    --Summon the worker scheduler
-   local ws = radiant.mods.load('stonehearth').worker_scheduler
-   local worker_scheduler = ws:get_worker_scheduler(session.faction)
+   local worker_scheduler = stonehaerth.worker_scheduler:get_worker_scheduler(session.faction)
 
    -- Make a task for picking up the object the user designated
    -- Any worker that's not carrying anything will do...

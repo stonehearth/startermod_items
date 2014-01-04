@@ -10,7 +10,7 @@ function AIComponent:__init(entity)
    self._action_index = {}
    self._stack = {}
    self._execution_count = 0
-   self._ai_system = radiant.mods.load('stonehearth').ai
+   self._ai_system = stonehearth.ai
 end
 
 function AIComponent:extend(json)
@@ -46,6 +46,7 @@ function AIComponent:add_action(uri, action)
    self._actions[uri] = action
 
    local does = action:get_activity()
+   assert(does)
    local action_index = self._action_index[does]
    if not action_index then
       action_index = {}

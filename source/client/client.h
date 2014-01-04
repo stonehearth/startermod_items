@@ -99,7 +99,6 @@ class Client : public core::Singleton<Client> {
       void DefineRemoteObject(const tesseract::protocol::DefineRemoteObject& msg);
 
       void mainloop();
-      void InitializeModules();
       void setup_connections();
       void process_messages();
       void handle_connect(const boost::system::error_code& e);
@@ -127,8 +126,6 @@ class Client : public core::Singleton<Client> {
       void TraceUri(JSONNode const& query, rpc::HttpDeferredPtr response);
       bool TraceObjectUri(std::string const& uri, rpc::HttpDeferredPtr response);
       void TraceFileUri(std::string const& uri, rpc::HttpDeferredPtr response);
-      void LoadModuleInitScript(json::Node const& block);
-      void LoadModuleRoutes(std::string const& modulename, json::Node const& block);
 
       typedef std::function<void(tesseract::protocol::Update const& msg)> ServerReplyCb;
       void PushServerRequest(tesseract::protocol::Request& msg, ServerReplyCb replyCb);

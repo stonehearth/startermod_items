@@ -67,7 +67,7 @@ end
 --- If the item specifies ai to be injected, inject it
 function EquipmentComponent:_inject_item_ai(item, item_info)
    if item_info.injected_ai then
-      local ai_service = radiant.mods.load('stonehearth').ai
+      local ai_service = stonehearth.ai
       local injected_ai_token = ai_service:inject_ai(self._entity, item_info.injected_ai, item)
       self._injected_ais[item] = injected_ai_token
    end
@@ -83,7 +83,7 @@ end
 
 function EquipmentComponent:destroy()
    -- xxx, revoke injected ais for all equipped items
-   --radiant.mods.load('stonehearth').ai:revoke_injected_ai(self._injected_ai_token)
+   --stonehearth.ai:revoke_injected_ai(self._injected_ai_token)
 end
 
 

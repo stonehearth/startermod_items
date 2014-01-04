@@ -146,6 +146,7 @@ static std::string SanatizePath(std::string const& path)
 void Simulation::CreateNew()
 {
    using namespace luabind;
+   res::ResourceManager2 &resource_manager = res::ResourceManager2::GetInstance();
 
    lua_State* L = scriptHost_->GetInterpreter();
    lua_State* callback_thread = scriptHost_->GetCallbackThread();
@@ -169,15 +170,29 @@ void Simulation::CreateNew()
    base_walk_speed_ = base_walk_speed_ * 1000.0f / game_tick_interval_;
 
    game_api_ = scriptHost_->Require("radiant.server");
+   for (std::string const& name : resource_manager.GetModuleNames()) {
+      std::string script_name = BUILD_STRING(name << "." << name << "_server");
+      try {
+         luabind::globals(L)[name] = scriptHost_->Require(script_name);
+      } catch (std::exception const& e) {
+         SIM_LOG(1) << "module " << name << " failed to load " << script_name << ": " << e.what();
+      }
+   }
+   scriptHost_->Require("radiant.lualibs.strict");
 
    core::Config const& config = core::Config::GetInstance();
    std::string const module = config.Get<std::string>("game.mod");
-   json::Node const manifest = res::ResourceManager2::GetInstance().LookupManifest(module);
+   json::Node const manifest = resource_manager.LookupManifest(module);
    std::string const default_script = module + "/" + manifest.get<std::string>("game.script");
 
    std::string const game_script = config.Get("game.script", default_script);
    object game_ctor = scriptHost_->RequireScript(game_script);
-   game_ = luabind::call_function<luabind::object>(game_ctor);
+   try {
+      game_ = luabind::call_function<luabind::object>(game_ctor);
+   } catch (std::exception const& e) {
+      SIM_LOG(0) << "game failed to load: " << e.what();
+      return;
+   }
       
    /* xxx: this is all SUPER SUPER dangerous.  if any of these things cause lua
       to blow up, the process will exit(), since there's no protected handler installed!

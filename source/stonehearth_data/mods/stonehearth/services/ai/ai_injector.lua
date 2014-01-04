@@ -14,7 +14,7 @@ end
 
 function AiInjector:inject_ai(ai)
    log:info('injected ai into %s', self._entity)
-   local ai_service = radiant.mods.load('stonehearth').ai
+   local ai_service = stonehearth.ai
 
    if ai.actions then
       for _, uri in ipairs(ai.actions) do
@@ -34,7 +34,7 @@ end
 
 function AiInjector:destroy()
    log:info('revoking injected ai from %s', self._entity)
-   local ai_service = radiant.mods.load('stonehearth').ai
+   local ai_service = stonehearth.ai
 
    if self._injected.actions then
       for _, uri  in ipairs(self._injected.actions) do

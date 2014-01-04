@@ -3,7 +3,6 @@
    oneself from it--reaching into it, grabbing a serving item (like a plate or trencher)
    and then going off to eat it. 
 ]]
-radiant.mods.load('stonehearth')
 local priorities = require('constants').priorities.needs
 
 local GetFoodAction = class()

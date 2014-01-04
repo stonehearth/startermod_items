@@ -5,9 +5,9 @@
 
 local Personality = class()
 
-local calendar = radiant.mods.load('stonehearth').calendar
-local personality_service = require 'services.personality.personality_service'
-local event_service = require 'services.event.event_service'
+local calendar = stonehearth.calendar
+local personality_service = stonehearth.personality
+local event_service = stonehearth.events
 
 --REVIEW QUESTION: when to use radiant.mods.load and when to use require?
 --Explain and I'll add it to the wiki

@@ -4,7 +4,7 @@
 --with arbitrary steps for moving/creating.
 
 local Point3 = _radiant.csg.Point3
-local analytics = require 'services.analytics.analytics_service'
+local analytics = stonehearth.analytics
 
 local WorkerPlaceWorkshop = class()
 local log = radiant.log.create_logger('actions.place_workshop')

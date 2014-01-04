@@ -1,6 +1,6 @@
 local PopulationFaction = class()
 
-local personality_service = require 'services.personality.personality_service'
+local personality_service = stonehearth.personality
 
 --Separate the faction name (player chosen) from the kingdom name (ascendency, etc.)
 function PopulationFaction:__init(faction, kingdom)

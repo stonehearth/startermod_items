@@ -236,7 +236,7 @@ function WorkshopCallHandler:_start_worker_create_task(session, outbox_entity, w
    local ghost_entity = radiant.entities.get_entity(workbench_entity_id)
 
    --Summon the worker scheduler
-   local ws = radiant.mods.load('stonehearth').worker_scheduler
+   local ws = stonehearth.worker_scheduler
    local worker_scheduler = ws:get_worker_scheduler(session.faction)
 
    -- Who can do this task? Any worker that's not carrying anything will do...

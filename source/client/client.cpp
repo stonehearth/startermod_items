@@ -384,6 +384,7 @@ extern bool realtime;
 void Client::run(int server_port)
 {
    server_port_ = server_port;
+   setup_connections();
 
    hover_cursor_ = LoadCursor("stonehearth:cursors:hover");
    default_cursor_ = LoadCursor("stonehearth:cursors:default");
@@ -471,10 +472,18 @@ void Client::run(int server_port)
    authoringStore_.AddTracer(authoring_render_tracer_, dm::RPC_TRACES);
    authoringStore_.AddTracer(object_model_traces_, dm::OBJECT_MODEL_TRACES);
 
-   //luabind::globals(L)["_client"] = luabind::object(L, this);
-
-   // this locks down the environment!  all types must be registered by now!!
+   res::ResourceManager2 &resource_manager = res::ResourceManager2::GetInstance();
    scriptHost_->Require("radiant.client");
+   for (std::string const& name : resource_manager.GetModuleNames()) {
+      std::string script_name = BUILD_STRING(name << "." << name << "_client");
+      try {
+         luabind::globals(L)[name] = scriptHost_->Require(script_name);
+      } catch (std::exception const& e) {
+         CLIENT_LOG(1) << "module " << name << " failed to load " << script_name << ": " << e.what();
+      }
+   }
+   // this locks down the environment!  all types must be registered by now!!
+   scriptHost_->Require("radiant.lualibs.strict");
 
    if (config.Get("enable_debug_keys", false)) {
       _commands[GLFW_KEY_F1] = [this]() {
@@ -505,9 +514,6 @@ void Client::run(int server_port)
       // _commands[VK_NUMPAD0] = std::shared_ptr<command>(new command_build_blueprint(*_proxy_manager, *_renderer, 500));
    }
 
-   setup_connections();
-   InitializeModules();
-
    int last_event_time = 0;
    while (renderer.IsRunning()) {
       perfmon::BeginFrame(perf_hud_shown_);
@@ -517,31 +523,6 @@ void Client::run(int server_port)
       mainloop();
 
       int now = timeGetTime();
-   }
-}
-
-void Client::InitializeModules()
-{
-   auto& rm = res::ResourceManager2::GetInstance();
-   for (std::string const& modname : rm.GetModuleNames()) {
-      try {
-         json::Node manifest = rm.LookupManifest(modname);
-         json::Node const& block = manifest.get_node("client");
-         if (!block.empty()) {
-            CLIENT_LOG(3) << "loading init script for " << modname << "...";
-            LoadModuleInitScript(block);
-         }
-      } catch (std::exception const& e) {
-         CLIENT_LOG(1) << "load failed: " << e.what();
-      }
-   }
-}
-
-void Client::LoadModuleInitScript(json::Node const& block)
-{
-   std::string filename = block.get<std::string>("init_script", "");
-   if (!filename.empty()) {
-      scriptHost_->RequireScript(filename);
    }
 }
 

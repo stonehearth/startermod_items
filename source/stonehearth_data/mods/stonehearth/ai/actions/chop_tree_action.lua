@@ -1,5 +1,5 @@
-local event_service = require 'services.event.event_service'
-local personality_service = require 'services.personality.personality_service'
+local event_service = stonehearth.events
+local personality_service = stonehearth.personality
 
 local ChopTreeAction = class()
 

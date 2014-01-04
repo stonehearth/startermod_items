@@ -10,7 +10,7 @@
 local Point3 = _radiant.csg.Point3
 local CraftOrder = require 'components.workshop.craft_order'
 local CraftOrderList = require 'components.workshop.craft_order_list'
-local Analytics = require 'services.analytics.analytics_service'
+local Analytics = stonehearth.analytics
 
 local WorkshopComponent = class()
 

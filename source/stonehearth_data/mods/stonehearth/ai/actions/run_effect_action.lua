@@ -25,3 +25,17 @@ function RunEffectAction:stop()
 end
 
 return RunEffectAction
+
+--[[
+local run_effect_action = {
+   name = 'run effect',
+   does = 'stonehearth:run_effect',
+   priority = 1,
+   args = { effect_name = 'string' },
+   returns = { }
+}
+
+return stonehearth:create_action(run_effect_action)
+            :set_action_class(RunEffectAction)
+
+]]

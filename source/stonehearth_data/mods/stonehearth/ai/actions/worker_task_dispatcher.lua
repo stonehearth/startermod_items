@@ -13,9 +13,8 @@ function WorkerTaskDispatcher:__init(ai, entity)
    self._queued = {}
    
    local faction = self._entity:get_component('unit_info'):get_faction()
-   local ws = radiant.mods.load('stonehearth').worker_scheduler
    
-   self._scheduler = ws:get_worker_scheduler(faction)   
+   self._scheduler = stonehearth.worker_scheduler:get_worker_scheduler(faction)   
    self:_wait_for_next_task()
 end
 
