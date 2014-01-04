@@ -32,6 +32,7 @@ Timeline::Timeline() :
    }
 
    SetMaxColumns(300);
+   SetMaxTopTraces(10);
 
    perfmon_guard_ = perfmon::OnFrameEnd([=](perfmon::Frame* f) {
       perfmon::TimelineCounterGuard tcg("perhud add frame");
@@ -55,6 +56,12 @@ Timeline& Timeline::SetMaxColumns(uint max)
    return *this;
 }
 
+Timeline& Timeline::SetMaxTopTraces(uint max)
+{
+   max_top_traces_ = max;
+   return *this;
+}
+
 void Timeline::AddFrame(perfmon::Frame* frame)
 {
    for (perfmon::Counter const* counter : frame->GetCounters()) {
@@ -63,7 +70,7 @@ void Timeline::AddFrame(perfmon::Frame* frame)
       counter_times_[counter->GetName()] += time;
    }
 
-   columns_.emplace_back(TimelineColumn(*this, frame));
+   columns_.emplace_back(TimelineColumn(*this, frame, max_top_traces_));
    if (columns_.size() > max_columns_) {
       columns_.pop_front();
    }
@@ -104,7 +111,9 @@ void Timeline::RenderLegend(RenderContext &rc, csg::Point2f min, csg::Point2f ma
    csg::Rect2f box(min, min + one * box_height);
    float h = (box_height + 4) * one.y;
 
-   for (CounterData* c : counter_data_sorted_) {
+   int numToDraw = std::min((uint)counter_data_sorted_.size(), max_top_traces_);
+   for (int i = 0; i < numToDraw; i++) {
+      const auto* c = counter_data_sorted_[i];
       rc.DrawBox(box, c->color);
       rc.DrawString(c->name, box.min + csg::Point2f(one.x * (box_height + 5), 0), csg::Color3::white);
       box.min.y += h;
@@ -132,8 +141,9 @@ void Timeline::ColorColumns()
                   return counter_times_[lhs->name] > counter_times_[rhs->name];
                });
 
-   uint i, c = counter_data_sorted_.size(), color_count = colors_.size();
-   for (i = 0; i < c; i++) {
+   uint c = std::min((uint)counter_data_sorted_.size(), max_top_traces_);
+   uint color_count = colors_.size();
+   for (uint i = 0; i < c; i++) {
       counter_data_sorted_[i]->color = i < color_count ? colors_[i] : default_color_;
    }
 }

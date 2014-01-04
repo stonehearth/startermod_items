@@ -10,13 +10,32 @@
 using namespace ::radiant;
 using namespace ::radiant::client;
 
-TimelineColumn::TimelineColumn(Timeline& t, perfmon::Frame* frame)
+struct ColumnCompare {
+   bool operator()(const ColumnEntry &first, const ColumnEntry &second) const
+   {
+      return first.duration > second.duration;
+   }
+};
+
+TimelineColumn::TimelineColumn(Timeline& t, perfmon::Frame* frame, uint max_traces)
 {
+   std::priority_queue<ColumnEntry, std::vector<ColumnEntry>, ColumnCompare> entries;
    duration_ = 0;
    for (perfmon::Counter const* counter : frame->GetCounters()) {
       perfmon::CounterValueType time = counter->GetValue();
+
+      if (entries.size() < max_traces || entries.top().duration < time) {
+         if (entries.size() >= max_traces) {
+            entries.pop();
+         }
+         entries.push(ColumnEntry(t.GetCounterData(counter->GetName()), time));
+      }
       duration_ += time;
-      entries_.push_back(ColumnEntry(t.GetCounterData(counter->GetName()), time));
+   }
+
+   while (!entries.empty()) {
+      entries_.push_back(entries.top());
+      entries.pop();
    }
 }
 

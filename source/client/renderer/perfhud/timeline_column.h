@@ -4,24 +4,24 @@
 #include "namespace.h"
 #include "timeline.h"
 #include "lib/perfmon/namespace.h"
+#include <queue>
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
+
+struct ColumnEntry {
+   CounterData*               counter_data;
+   perfmon::CounterValueType  duration;
+   ColumnEntry() { }
+   ColumnEntry(CounterData* data, perfmon::CounterValueType t) : counter_data(data), duration(t) { }
+};
 
 class TimelineColumn
 {
 public:
-   TimelineColumn(Timeline& t, perfmon::Frame*);
+   TimelineColumn(Timeline& t, perfmon::Frame*, uint max_traces);
    ~TimelineColumn();
 
    TimelineColumn& Render(RenderContext & rc, csg::Rect2f const& rect);
-
-private:
-   struct ColumnEntry {
-      CounterData*               counter_data;
-      perfmon::CounterValueType  duration;
-      ColumnEntry() { }
-      ColumnEntry(CounterData* data, perfmon::CounterValueType t) : counter_data(data), duration(t) { }
-   };
 
 private:
    perfmon::CounterValueType     duration_;
