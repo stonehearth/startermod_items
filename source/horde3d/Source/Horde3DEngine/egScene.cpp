@@ -567,6 +567,7 @@ void SceneManager::updateQueues( const char* reason, const Frustum &frustum1, co
     sqr.query.secondaryFrustum = frustum2;
     sqr.query.useLightQueue = useLightQueue;
     sqr.query.useRenderableQueue = useRenderableQueue;
+    sqr.query.forceNoInstancing = forceNoInstancing;
  
    // Clear without affecting capacity
     if (useLightQueue) 
