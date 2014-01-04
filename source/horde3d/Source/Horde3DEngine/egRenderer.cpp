@@ -71,7 +71,11 @@ Renderer::Renderer()
 	_curShaderUpdateStamp = 1;
 	_maxAnisoMask = 0;
 	_smSize = 0;
-	_shadowRB = 0;
+
+   for (int i = 0; i < MaxShadowbufferNum; i++)
+   {
+	   _shadowRB[i] = 0;
+   }
 	_vlPosOnly = 0;
 	_vlOverlay = 0;
 	_vlModel = 0;
@@ -1071,15 +1075,22 @@ bool Renderer::setMaterial( MaterialResource *materialRes, const std::string &sh
 
 bool Renderer::createShadowRB( uint32 width, uint32 height )
 {
-	_shadowRB = gRDI->createRenderBuffer( width, height, TextureFormats::BGRA8, true, 0, 0 );
+   bool result = true;
+   for (int i = 0; i < MaxShadowbufferNum; i++)
+   {
+	   result = result && ((_shadowRB[i] = gRDI->createRenderBuffer( width, height, TextureFormats::BGRA8, true, 0, 0 ) != 0));
+   }
 	
-	return _shadowRB != 0;
+	return result;
 }
 
 
 void Renderer::releaseShadowRB()
 {
-	if( _shadowRB ) gRDI->destroyRenderBuffer( _shadowRB );
+   for (int i = 0; i < MaxShadowbufferNum; i++)
+   {
+	   if( _shadowRB[i] ) gRDI->destroyRenderBuffer( _shadowRB[i] );
+   }
 }
 
 
@@ -1090,7 +1101,7 @@ void Renderer::setupShadowMap( bool noShadows )
 	// Bind shadow map
 	if( !noShadows && _curLight->_shadowMapCount > 0 )
 	{
-		gRDI->setTexture( 12, gRDI->getRenderBufferTex( _shadowRB, 32 ), sampState );
+      gRDI->setTexture( 12, gRDI->getRenderBufferTex( _shadowRB[_frameID % MaxShadowbufferNum], 32 ), sampState );
 		_smSize = (float)Modules::config().shadowMapSize;
 	}
 	else
@@ -1367,9 +1378,9 @@ void Renderer::updateShadowMap(const Frustum* lightFrus, float minDist, float ma
 	
 	uint32 prevRendBuf = gRDI->_curRendBuf;
 	int prevVPX = gRDI->_vpX, prevVPY = gRDI->_vpY, prevVPWidth = gRDI->_vpWidth, prevVPHeight = gRDI->_vpHeight;
-	RDIRenderBuffer &shadowRT = gRDI->_rendBufs.getRef( _shadowRB );
+   RDIRenderBuffer &shadowRT = gRDI->_rendBufs.getRef( _shadowRB[_frameID % MaxShadowbufferNum] );
 	gRDI->setViewport( 0, 0, shadowRT.width, shadowRT.height );
-	gRDI->setRenderBuffer( _shadowRB );
+	gRDI->setRenderBuffer( _shadowRB[_frameID % MaxShadowbufferNum] );
 	
 	glColorMask( GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE );
 	glDepthMask( GL_TRUE );
@@ -2903,7 +2914,7 @@ void Renderer::render( CameraNode *camNode )
                } else {
                   rendBuf = (uint32)pc.params[3].getInt();
                }
-               if (rendBuf == _shadowRB) {
+               if (rendBuf == _shadowRB[_frameID % MaxShadowbufferNum]) {
                   // unbind the shadow texture
                   setupShadowMap( true );
                }
