@@ -10,6 +10,7 @@ local log = radiant.log.create_logger('actions.harvest')
 
 HarvestPlantsAction.name = 'harvest plants'
 HarvestPlantsAction.does = 'stonehearth:harvest_plant'
+HarvestPlantsAction.version = 1
 HarvestPlantsAction.priority = 9
 
 function HarvestPlantsAction:__init(ai, entity)
@@ -63,7 +64,7 @@ function HarvestPlantsAction:run(ai, entity, path, task)
       local front_point = self._entity:get_component('mob'):get_location_in_front()
       factory:spawn_resource(Point3(front_point.x, front_point.y, front_point.z))
    end   
-
+   
    --If we got here, we succeeded at the action.  We can get rid of this task now.
    self._task:destroy()
    self._task = nil

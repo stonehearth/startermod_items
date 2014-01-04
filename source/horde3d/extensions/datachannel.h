@@ -5,7 +5,6 @@
 #include "egPrimitives.h"
 #include "namespace.h"
 #include "lib/json/node.h"
-#include "csg/random_number_generator.h"
 
 using namespace ::radiant;
 using namespace ::radiant::json;
@@ -22,8 +21,9 @@ public:
 
    float random(float min, float max)
    {
-      csg::RandomNumberGenerator &rng = csg::RandomNumberGenerator::DefaultInstance();
-      return rng.GetReal(min, max);
+      // this doesn't need to be *too* uniform.  use rand() instead of csg::RandomNumberGenerator
+      // to avoid having to reorder min and max.
+      return (rand() / (float)RAND_MAX) * (max - min) + min;
    }
 
    virtual ValueEmitter<T>* clone() = 0;

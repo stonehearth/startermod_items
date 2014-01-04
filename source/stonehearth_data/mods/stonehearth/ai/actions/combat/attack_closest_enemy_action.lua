@@ -5,6 +5,7 @@ local Vec3 = _radiant.csg.Point3f
 
 AttackClosestEnemy.name = 'attack closest enemy'
 AttackClosestEnemy.does = 'stonehearth:top'
+AttackClosestEnemy.version = 1
 AttackClosestEnemy.priority = 0
 
 function AttackClosestEnemy:__init(ai, entity)

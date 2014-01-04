@@ -2,6 +2,7 @@ local FollowLeash = class()
 
 FollowLeash.name = 'wander'
 FollowLeash.does = 'stonehearth:top'
+FollowLeash.version = 1
 FollowLeash.priority = 0
 
 function FollowLeash:__init(ai, entity)

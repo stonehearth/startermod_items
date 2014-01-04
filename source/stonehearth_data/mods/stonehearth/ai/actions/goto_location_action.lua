@@ -6,6 +6,7 @@ local GotoLocation = class()
 
 GotoLocation.name = 'goto location'
 GotoLocation.does = 'stonehearth:goto_location'
+GotoLocation.version = 1
 GotoLocation.priority = 1
 
 function GotoLocation:run(ai, entity, dest, effect_name)

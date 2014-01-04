@@ -19,6 +19,12 @@ function Fabricator:__init(name, entity, blueprint)
    self._teardown = false
    self._dependencies = {}
    
+   local resource_data = blueprint:get_component('stonehearth:construction_data'):get_data()
+   self._resource_material = resource_data.material_tag
+   if not self._resource_material then
+      self._resource_material = 'wood resource'
+   end
+   
    local faction = radiant.entities.get_faction(blueprint)
    local wss = radiant.mods.load('stonehearth').worker_scheduler
    self._worker_scheduler = wss:get_worker_scheduler(faction)
@@ -219,12 +225,13 @@ function Fabricator:_start_project()
 end
 
 function Fabricator:_start_teardown_task()
+   local resource = self._resource_material
    local worker_filter_fn = function(worker)
       local carrying  = radiant.entities.get_carrying(worker)
       if not carrying then
          return true
       end
-      if not radiant.entities.is_material(carrying, 'wood resource') then
+      if not radiant.entities.is_material(carrying, resource) then
          return false
       end
       local item = carrying:get_component('item')
@@ -248,8 +255,9 @@ function Fabricator:_start_pickup_task()
       return not radiant.entities.get_carrying(worker)
    end
    
+   local resource = self._resource_material
    local work_obj_filter_fn = function(item)
-      return radiant.entities.is_material(item, 'wood resource')
+      return radiant.entities.is_material(item, resource)
    end
 
    local name = 'pickup to fabricate ' .. self.name
@@ -262,10 +270,14 @@ function Fabricator:_start_pickup_task()
                            :start()
 end
 
-function Fabricator:_start_fabricate_task()                           
+function Fabricator:_start_fabricate_task() 
+   local resource = self._resource_material                    
    local worker_filter_fn = function(worker)
       local carrying = radiant.entities.get_carrying(worker)
-      return carrying ~= nil
+      if carrying then 
+         return radiant.entities.is_material(carrying, resource)
+      end
+      return false
    end
    
    local action_fn = function (path)

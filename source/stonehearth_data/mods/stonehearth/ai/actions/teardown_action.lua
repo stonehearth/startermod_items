@@ -1,6 +1,7 @@
 local Fabricate = class()
 
 Fabricate.does = 'stonehearth:teardown'
+Fabricate.version = 1
 Fabricate.priority = 5
 
 function Fabricate:run(ai, entity, path)

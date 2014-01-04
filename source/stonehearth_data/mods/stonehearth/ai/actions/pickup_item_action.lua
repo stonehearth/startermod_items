@@ -2,6 +2,7 @@ local PickupItem = class()
 
 PickupItem.name = 'pickup an item'
 PickupItem.does = 'stonehearth:pickup_item'
+PickupItem.version = 1
 PickupItem.priority = 5
 --TODO we need a scale to  describe relative importance
 

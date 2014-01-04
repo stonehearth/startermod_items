@@ -4,6 +4,7 @@ local Wander = class()
 
 Wander.name = 'wander'
 Wander.does = 'stonehearth:idle:bored'
+Wander.version = 1
 Wander.priority = 1
 
 function Wander:__init(ai, entity)

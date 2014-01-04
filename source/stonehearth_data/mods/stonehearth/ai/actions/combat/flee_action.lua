@@ -7,6 +7,7 @@ local Vec3 = _radiant.csg.Point3f
 
 Flee.name = 'stonehearth:actions:flee'
 Flee.does = 'stonehearth:top'
+Flee.version = 1
 Flee.priority = 0
 
 function Flee:__init(ai, entity)

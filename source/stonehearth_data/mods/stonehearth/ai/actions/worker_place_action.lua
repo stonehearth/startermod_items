@@ -7,6 +7,7 @@ local log = radiant.log.create_logger('actions.place_item')
 
 WorkerPlaceItemAction.name = 'place item'
 WorkerPlaceItemAction.does = 'stonehearth:place_item'
+WorkerPlaceItemAction.version = 1
 WorkerPlaceItemAction.priority = 5
 
 function WorkerPlaceItemAction:__init(ai, entity)

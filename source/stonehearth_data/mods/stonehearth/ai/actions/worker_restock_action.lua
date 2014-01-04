@@ -2,6 +2,7 @@ local WorkerRestockAction = class()
 
 WorkerRestockAction.name = 'restock'
 WorkerRestockAction.does = 'stonehearth:restock'
+WorkerRestockAction.version = 1
 WorkerRestockAction.priority = 5
 
 function WorkerRestockAction:run(ai, entity, path, stockpile)

@@ -8,6 +8,7 @@ local CarryItemOnPathTo = class()
 
 CarryItemOnPathTo.name = 'carry item on path to'
 CarryItemOnPathTo.does = 'stonehearth:carry_item_on_path_to'
+CarryItemOnPathTo.version = 1
 CarryItemOnPathTo.priority = 5
 
 function CarryItemOnPathTo:__init(ai, entity)
@@ -32,11 +33,11 @@ function CarryItemOnPathTo:run(ai, entity, path_to_item, destination_entity)
    ai:execute('stonehearth:pickup_item_on_path', path_to_item)
 
    -- If we're here, pickup succeeded, so we're now carrying the item.
-   -- Wait until the PF we started earlier returns
-   ai:wait_until(function()
-      return self._path_to_destination ~= nil
-   end)
-   ai:execute('stonehearth:follow_path', self._path_to_destination)
+   -- Wait until the PF we started earlier returns.  Use ai:wait_for_path_finder to
+   -- catch all odd cases of failure (e.g. the pathfinder goes idle or
+   -- never finds a solution!)
+   local path = ai:wait_for_path_finder(self._pathfinder)
+   ai:execute('stonehearth:follow_path', path)
 end
 
 --- Make a pathfinder between the target item and the final destination
@@ -49,15 +50,9 @@ function CarryItemOnPathTo:_find_path_to_destination_entity(target_item)
    self._temp_entity = radiant.entities.create_entity()
    radiant.terrain.place_entity(self._temp_entity, target_item_loc)
 
-   --When the path is solved, save the path so we can get it elsewhere
-   local solved_cb = function(path)
-      self._path_to_destination = path
-   end
-
    local desc = string.format('finding a path from %s to a target location', tostring(target_item))
    self._pathfinder = radiant.pathfinder.create_path_finder(self._temp_entity, desc)
                         :add_destination(self._destination_entity)
-                        :set_solved_cb(solved_cb)
 end
 
 --- Destroy the temporary entities created for the pathfinder

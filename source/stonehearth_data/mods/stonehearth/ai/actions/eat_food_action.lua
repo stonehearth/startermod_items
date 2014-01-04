@@ -17,6 +17,7 @@ local log = radiant.log.create_logger('actions.eat_food')
 
 EatFoodAction.name = 'eat food'
 EatFoodAction.does = 'stonehearth:eat_food'
+EatFoodAction.version = 1
 EatFoodAction.priority = 5       --The minute this is called, it runs. 
 
 --Some constants

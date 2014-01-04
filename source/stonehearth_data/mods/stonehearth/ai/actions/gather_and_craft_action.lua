@@ -18,6 +18,7 @@ local GatherAndCraftAction = class()
 
 GatherAndCraftAction.name = 'gather and craft'
 GatherAndCraftAction.does = 'stonehearth:gather_and_craft'
+GatherAndCraftAction.version = 1
 GatherAndCraftAction.priority = 5
 
 function GatherAndCraftAction:__init(ai, entity)

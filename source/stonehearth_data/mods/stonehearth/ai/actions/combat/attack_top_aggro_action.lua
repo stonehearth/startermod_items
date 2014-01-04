@@ -5,6 +5,7 @@ local Vec3 = _radiant.csg.Point3f
 
 AttackTopAggro.name = 'AttackTopAggro!'
 AttackTopAggro.does = 'stonehearth:top'
+AttackTopAggro.version = 1
 AttackTopAggro.priority = 0
 
 function AttackTopAggro:__init(ai, entity)

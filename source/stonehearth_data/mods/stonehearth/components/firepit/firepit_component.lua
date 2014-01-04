@@ -4,6 +4,7 @@ local calendar = radiant.mods.load('stonehearth').calendar
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 
+local log = radiant.log.create_logger('firepit')
 local FirepitComponent = class()
 
 function FirepitComponent:__init(entity, data_store)
@@ -50,6 +51,7 @@ end
 --- If WE are added to the universe, register for events, etc/
 function FirepitComponent:_on_entity_add(id, entity)
    if self._entity and self._entity:get_id() == id then
+      log:debug('listining for hourly events')
       radiant.events.listen(calendar, 'stonehearth:hourly', self, self.on_hourly)
       self._placement_time = calendar.get_time_and_date().hour
       if self._placement_time == 23 then
@@ -75,6 +77,7 @@ function FirepitComponent:on_hourly(e)
    if e.now.hour >= self._placement_time + 1 then
       self:_should_light_fire()
 
+      log:debug('switching from hourly to sunset/sunrise events')
       radiant.events.listen(calendar, 'stonehearth:sunrise', self, self.on_sunrise)
       radiant.events.listen(calendar, 'stonehearth:sunset', self, self.on_sunset)
 
@@ -85,6 +88,7 @@ end
 --- Stop listening for events, destroy seats, terminate effects and tasks
 -- Call when firepit is moving or being destroyed.
 function FirepitComponent:_stop_functionality()
+   log:debug('unlistining for calendar sunset/sunrise events')
    radiant.events.unlisten(radiant.events, 'stonehearth:sunrise', self, self.on_sunrise)
    radiant.events.unlisten(radiant.events, 'stonehearth:sunset', self, self.on_sunset)
 
@@ -93,12 +97,14 @@ function FirepitComponent:_stop_functionality()
 
    if self._seats then
       for i, v in ipairs(self._seats) do
+         log:debug('destroying firepit seat %s', tostring(v))
          radiant.entities.destroy_entity(v)
       end
    end
    self._seats = nil
 
    if self._light_task then
+      log:debug('stopping light fire task')
       self._light_task:stop()
       self._light_task:destroy()
    end
@@ -134,10 +140,12 @@ function FirepitComponent:_should_light_fire()
 
       --Only do this if we haven't yet started the process for tonight
       if self._am_lighting_fire then
+         log:spam('time to light the fire, but ignoring (already lighting!)')
          return
       end
 
       self._am_lighting_fire = true
+      log:spam('decided to light the fire!')
 
       self:extinguish()
       self:_init_gather_wood_task()
@@ -147,15 +155,19 @@ end
 --- At sunrise, the fire eats the log inside of it
 function FirepitComponent:on_sunrise(e)
    if self._light_task then
+      log:debug('stopping light fire task on sunrize')
       self._light_task:stop()
+      self._light_task = nil
    end
    self:extinguish()
+   log:debug('decided it is no longer time to light the fire!')
    self._am_lighting_fire = false
 end
 
 ---Adds 8 seats around the firepit
 --TODO: add a random element to the placement of the seats.
 function FirepitComponent:_add_seats()
+   log:debug('adding firepit seats')
    self._seats = {}
    local firepit_loc = Point3(radiant.entities.get_world_grid_location(self._entity))
    self:_add_one_seat(1, Point3(firepit_loc.x + 5, firepit_loc.y, firepit_loc.z + 1))
@@ -174,6 +186,7 @@ function FirepitComponent:_add_one_seat(seat_number, location)
    seat_comp:add_to_center_of_attention(self._entity, seat_number)
    self._seats[seat_number] = seat
    radiant.terrain.place_entity(seat, location)
+   log:spam('place firepit seat at %s', tostring(location))
 end
 
 --- Create a worker task to gather wood
@@ -203,6 +216,8 @@ function FirepitComponent:_init_gather_wood_task()
          return material:is('wood resource')
       end
 
+      log:debug('creating light fire task')
+
       --Create the pickup task
       self._light_task = self._worker_scheduler:add_worker_task('lighting_fire_task')
                   :set_worker_filter_fn(not_carrying_fn)
@@ -213,9 +228,8 @@ function FirepitComponent:_init_gather_wood_task()
          function (path)
             -- TODO: destroying the worker task is not necessarily destroying the pf.
             if self then
+               log:debug('dispatching stonehearth:light_fire action')
                return 'stonehearth:light_fire', path, self._entity, self._light_task
-            else
-               return
             end
          end
       )
@@ -233,8 +247,10 @@ end
 -- that, we'd have to reparent the log to the fireplace.
 -- Add the seats now, since we don't want the admire fire pf to start till the fire is lit.
 -- @param log_entity to add to the fire
-function FirepitComponent:light(log)
-   self._my_wood = log
+function FirepitComponent:light(log_entity)
+   log:debug('lighting the fire')
+
+   self._my_wood = log_entity
    self._curr_fire_effect =
       radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/firepit_effect')
    if not self._seats then
@@ -247,6 +263,8 @@ end
 
 --- If there is wood, destroy it and extinguish the particles
 function FirepitComponent:extinguish()
+   log:debug('extinguishing the fire')
+
    if self._my_wood then
       radiant.entities.remove_child(self._entity, self._my_wood)
       radiant.entities.destroy_entity(self._my_wood)

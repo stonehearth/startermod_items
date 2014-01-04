@@ -783,7 +783,7 @@ void Client::OnMouseInput(Input const& input)
 
    if (!CallInputHandlers(input)) {
       if (rootObject_ && input.mouse.up[0]) {
-         CLIENT_LOG(2) << "updating selection...";
+         CLIENT_LOG(5) << "updating selection...";
          UpdateSelection(input.mouse);
       }
    }

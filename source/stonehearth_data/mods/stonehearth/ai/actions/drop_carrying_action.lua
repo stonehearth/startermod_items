@@ -3,6 +3,7 @@ local DropCarryingAction = class()
 
 DropCarryingAction.name = 'drop carrying'
 DropCarryingAction.does = 'stonehearth:drop_carrying'
+DropCarryingAction.version = 1
 DropCarryingAction.priority = 5
 --TODO we need a scale to  describe relative importance
 
