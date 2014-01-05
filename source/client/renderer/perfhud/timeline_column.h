@@ -4,7 +4,6 @@
 #include "namespace.h"
 #include "timeline.h"
 #include "lib/perfmon/namespace.h"
-#include <queue>
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -24,7 +23,6 @@ public:
    TimelineColumn& Render(RenderContext & rc, csg::Rect2f const& rect);
 
 private:
-   perfmon::CounterValueType     duration_;
    std::vector<ColumnEntry>      entries_;
 };
 

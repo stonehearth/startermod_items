@@ -6,6 +6,7 @@
 #include "core/guard.h"
 #include "lib/perfmon/namespace.h"
 #include "csg/color.h"
+#include "counter_data.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -25,6 +26,7 @@ private:
    friend TimelineColumn;
 
    CounterData* GetCounterData(std::string const& name);
+   CounterData* GetRemainingCounterData();
 
 private:
    void AddFrame(perfmon::Frame* frame);
@@ -44,6 +46,7 @@ private:
    perfmon::CounterValueType                       total_time_;
    std::vector<csg::Color3>                        colors_;
    csg::Color3                                     default_color_;
+   CounterData                                     remaining_counter_data_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

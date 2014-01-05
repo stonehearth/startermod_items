@@ -11,7 +11,8 @@ using namespace ::radiant::client;
 
 Timeline::Timeline() :
    default_color_(255, 255, 255),
-   total_time_(0)
+   total_time_(0),
+   remaining_counter_data_("remaining counters...", csg::Color3(64, 64, 64))
 {
    csg::Color3 const colors[] = {
       csg::Color3::FromString("#bf3632"),
@@ -119,6 +120,9 @@ void Timeline::RenderLegend(RenderContext &rc, csg::Point2f min, csg::Point2f ma
       box.min.y += h;
       box.max.y += h;
    }
+   // Draw the "remaining counters..." legend.
+   rc.DrawBox(box, remaining_counter_data_.color);
+   rc.DrawString(remaining_counter_data_.name, box.min + csg::Point2f(one.x * (box_height + 5), 0), csg::Color3::white);
 }
 
 CounterData* Timeline::GetCounterData(std::string const& name)
@@ -132,6 +136,18 @@ CounterData* Timeline::GetCounterData(std::string const& name)
    counter_data_[name] = cd;
    counter_data_sorted_.push_back(cd);
    return cd;
+}
+
+/*
+ * -- Timeline::GetRemainingCounterData
+ *
+ * Return the static counter used to render the total times of all the counters
+ * which didn't make the list.  This will appear as a (hopefully small) grey sliver
+ * at the top of every bar.
+ */
+CounterData* Timeline::GetRemainingCounterData()
+{
+   return &remaining_counter_data_;
 }
 
 void Timeline::ColorColumns()
