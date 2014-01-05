@@ -2,7 +2,8 @@ local IdleSwayAction = class()
 
 IdleSwayAction.name = 'sway'
 IdleSwayAction.does = 'stonehearth:idle:bored'
-IdleSwayAction.version = 1
+IdleSwayAction.args = { }
+IdleSwayAction.version = 2
 IdleSwayAction.priority = 1
 
 function IdleSwayAction:run(ai, entity)

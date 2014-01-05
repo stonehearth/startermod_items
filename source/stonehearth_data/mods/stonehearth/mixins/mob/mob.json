@@ -10,8 +10,8 @@
             "stonehearth:actions:drop_carrying_action",
             "stonehearth:actions:drop_carrying_in_entity",
             "stonehearth:actions:follow_path_action",
-            "stonehearth:actions:goto_entity_action",
-            "stonehearth:actions:goto_location_action",
+            "stonehearth:actions:run_to_entity_action",
+            "stonehearth:actions:run_to_location_action",
             "stonehearth:actions:idle_top_action",
             "stonehearth:actions:idle_action",
             "stonehearth:actions:idle_breathe_action",
@@ -24,6 +24,7 @@
             "stonehearth:actions:chase_target_action",
             "stonehearth:actions:flee_action",
             "stonehearth:actions:run_away_from_entity",
+            "stonehearth:actions:find_path_to_entity",
             "stonehearth:actions:run_towards_entity"
          ],
           "observers": [

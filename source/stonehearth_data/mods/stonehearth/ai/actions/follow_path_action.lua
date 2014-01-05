@@ -2,7 +2,11 @@ local FollowPathAction = class()
 
 FollowPathAction.name = 'follow path'
 FollowPathAction.does = 'stonehearth:follow_path'
-FollowPathAction.version = 1
+FollowPathAction.args = {
+   _radiant.sim.Path,   -- the path to follow
+   'string'             -- the effect_name to run while path following
+}
+FollowPathAction.version = 2
 FollowPathAction.priority = 1
 
 function FollowPathAction:run(ai, entity, path, effect_name)
@@ -10,14 +14,6 @@ function FollowPathAction:run(ai, entity, path, effect_name)
       return
    end
    
-   self._path_trace = radiant.entities.trace_location(path:get_destination(), 'watching path')
-      :on_changed(function()
-         ai:abort('path destination changed')
-      end)
-      :on_destroyed(function()
-         ai:abort('path destination destroyed')
-      end)
-
    local postures = entity:get_component('stonehearth:posture')
    if postures then
       self._postures_trace = postures:trace('follow path')
@@ -26,18 +22,13 @@ function FollowPathAction:run(ai, entity, path, effect_name)
          end)
    end
 
-   local speed = radiant.entities.get_attribute(entity, 'speed')   
+   local speed = radiant.entities.get_attribute(entity, 'speed')
    if speed == nil then
       speed = 100
    end
-   speed = speed / 100
+   speed = speed / 100.0
 
-   if not effect_name then
-      effect_name = 'run'
-   end
-   if not self._effect then
-      self._effect = radiant.effects.run_effect(entity, effect_name)
-   end   
+   self._effect = radiant.effects.run_effect(entity, effect_name)
    local arrived_fn = function()
       ai:resume()
    end
@@ -47,17 +38,13 @@ function FollowPathAction:run(ai, entity, path, effect_name)
 end
 
 function FollowPathAction:stop(ai, entity)
-   if self._effect then
-      self._effect:stop()
-      self._effect = nil
-   end
    if self._mover then
       self._mover:stop()
       self._mover = nil
    end
-   if self._path_trace then
-      self._path_trace:destroy()
-      self._path_trace = nil
+   if self._effect then
+      self._effect:stop()
+      self._effect = nil
    end
    if self._postures_trace then
       self._postures_trace:destroy()

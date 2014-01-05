@@ -5,7 +5,10 @@ local ChopTreeAction = class()
 
 ChopTreeAction.name = 'chop tree'
 ChopTreeAction.does = 'stonehearth:chop_tree'
-ChopTreeAction.version = 1
+ChopTreeAction.args = {
+   _radiant.om.Entity      -- the tree to chop
+}
+ChopTreeAction.version = 2
 ChopTreeAction.priority = 1
 
 function ChopTreeAction:run(ai, entity, path)

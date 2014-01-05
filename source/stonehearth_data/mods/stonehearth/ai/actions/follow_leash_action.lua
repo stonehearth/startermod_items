@@ -21,7 +21,7 @@ function FollowLeash:run(ai, entity)
    local location = leash_component:get_location()
 
    if location then
-      ai:execute('stonehearth:goto_location', location)
+      ai:execute('stonehearth:goto_location', location, 'run')
       ai:set_action_priority(self, 0)
    end
 end
@@ -52,7 +52,7 @@ function FollowLeash:run_old_wander_behavior(ai, entity)
       location.z = leash_location.z + math.random(-1, 1)
    end
 
-   ai:execute('stonehearth:goto_location', location)
+   ai:execute('stonehearth:goto_location', location, 'run')
    ai:set_action_priority(self, 0)
 end
 

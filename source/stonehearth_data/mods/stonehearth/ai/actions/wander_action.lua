@@ -4,9 +4,17 @@ local Wander = class()
 
 Wander.name = 'wander'
 Wander.does = 'stonehearth:idle:bored'
-Wander.version = 1
+Wander.args = { }
+Wander.version = 2
 Wander.priority = 1
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Debugging...DWT_1D
+Wander.does = 'stonehearth:top'
+Wander.priority = 10
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 function Wander:__init(ai, entity)
    self._ai = ai
    self._entity = entity
@@ -41,8 +49,16 @@ function Wander:run(ai, entity)
    destination.x = destination.x + dx
    destination.z = destination.z + dz
    
-   ai:execute('stonehearth:goto_location', destination)
+   ai:execute('stonehearth:goto_location', destination, 'run')
    self._ai:set_action_priority(self, 0)
+
+
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+   self._ai:set_action_priority(self, 10)
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
 end
 
 

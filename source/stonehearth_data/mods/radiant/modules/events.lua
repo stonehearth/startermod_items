@@ -1,4 +1,6 @@
-local events = {}
+local events = {
+   UNLISTEN = { 'remove installed hook' }
+}
 local singleton = {
    jobs = {}
 }
@@ -17,8 +19,8 @@ function events._convert_object_to_key(object)
    return object
 end
 
-function events.listen(object, event, self, fn)
-   assert(object and event and self and fn)
+function events.listen(object, event, self, fn, ...)
+   assert(object and event and self)
 
    local key = events._convert_object_to_key(object)
    if not events._senders[key] then
@@ -35,13 +37,30 @@ function events.listen(object, event, self, fn)
 
    log:debug('listening to event ' .. event)
    
-   table.insert(listeners, { self = self, fn = fn })
+   local entry = {
+      self = self,
+      fn = fn,
+      args = { ... }
+   }
+   table.insert(listeners, entry)
+end
+
+function events.unpublish(object)
+   local key = events._convert_object_to_key(object)
+
+   assert(object)
+   if not events._senders[key] then
+      log:debug('unpublish %s on unknown sender: %s', event, tostring(object))
+      return
+   end
+   log:debug('forcibly removing listeners while unpublishing %s')
+   events._senders[key] = nil
 end
 
 function events.unlisten(object, event, self, fn)
    local key = events._convert_object_to_key(object)
 
-   assert(object and event and self and fn)
+   assert(object and event and self)
    local senders = events._senders[key]
    if not senders then
       log:debug('unlisten %s on unknown sender: %s', event, tostring(object))
@@ -85,7 +104,18 @@ function events.trigger(object, event, ...)
             end
 
             log:debug('triggering event ' .. event)
-            listener.fn(listener.self, event_params)
+            local result = false
+            if listener.fn ~= nil then
+               -- type 1: listen was called with 'self' and a method to call
+               result = listener.fn(listener.self, event_params, unpack(listener.args))
+            else
+               -- type 2: listen was called with just a function!  call it
+               result = listener.self(event_params, unpack(listener.args))
+            end
+            -- auto-remove if the caller returned the magic value
+            if result == events.UNLISTEN then
+               events.unlisten(object, event, listener.self, listener.fn)
+            end
          end
       end
    end

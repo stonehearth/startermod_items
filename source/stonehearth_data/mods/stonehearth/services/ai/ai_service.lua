@@ -1,8 +1,10 @@
 local AiService = class()
 local AiInjector = require 'services.ai.ai_injector'
-local ExecutionUnitV1 = require 'components.ai.execution_unit_v1'
-local ExecutionUnitV2 = require 'components.ai.execution_unit_v2'
+local CompoundAction = require 'services.ai.compound_action'
 local log = radiant.log.create_logger('ai.service')
+
+AiService.ARGS = CompoundAction.ARGS
+AiService.PREV = CompoundAction.PREV
 
 function AiService:__init()
    -- SUSPEND_THREAD is a unique, non-integer token which indicates the thread
@@ -85,20 +87,8 @@ end
 function AiService:add_action(entity, uri, injecting_entity)
    local ctor = radiant.mods.load_script(uri)
    local ai_component = self:_get_ai_component(entity)
-   
-   local action
-   local execution_unit_ctor
-   if not ctor.version or ctor.version == 1 then
-      execution_unit_ctor = ExecutionUnitV1
-   else
-      execution_unit_ctor = ExecutionUnitV2
-   end
-   local unit = execution_unit_ctor(ai_component, entity, injecting_entity)
-   action = ctor(unit, entity, injecting_entity)
-   unit:set_action(action)
-   
-   ai_component:add_action(uri, unit)
-   return action
+
+   ai_component:add_action(uri, ctor, injecting_entity)
 end
 
 function AiService:remove_action(entity, uri)
@@ -199,8 +189,31 @@ function AiService:_schedule(co)
    self._waiting_until[co] = nil
 end
 
-function AiService:create_action(meta)
-   return nil
+
+local factory_mt = {
+   __call = function(self, ai_component, entity, injecting_entity)
+      return CompoundAction(self._base_action, self._actions)      
+   end
+}
+
+function AiService:create_compound_action(cls)
+   local factory = {      
+      _base_action = cls,
+      _actions = {},
+      does = cls.does,
+      version = cls.version,
+      args = cls.args,
+      run_args = cls.args,
+      priority = cls.priority,
+      
+      -- interface to compound action builder...
+      execute = function(self, ...)
+         table.insert(self._actions, {...})
+         return self
+      end
+   }
+   setmetatable(factory, factory_mt)
+   return factory
 end
 
 return AiService()

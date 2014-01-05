@@ -2,13 +2,15 @@
 local AIComponent = class()
 local ExecutionFrame = require 'components.ai.execution_frame'
 local log = radiant.log.create_logger('ai.component')
+local ExecutionUnitV1 = require 'components.ai.execution_unit_v1'
+local ExecutionUnitV2 = require 'components.ai.execution_unit_v2'
+
+local URI_TO_ACTIVITY = {}
 
 function AIComponent:__init(entity)
    self._entity = entity
    self._observers = {}
-   self._actions = {}
    self._action_index = {}
-   self._stack = {}
    self._execution_count = 0
    self._ai_system = stonehearth.ai
 end
@@ -32,39 +34,31 @@ function AIComponent:destroy()
          obs:destroy(self._entity)
       end
    end
-   for name, action in pairs(self._actions) do
-      if action.destroy then
-         action:destroy(self._entity)
-      end
-   end
    self._observers = {}
-   self._actions = {}
+   self._action_index = {}
 end
 
-function AIComponent:add_action(uri, action)
-   assert(not self._actions[uri])
-   self._actions[uri] = action
-
-   local does = action:get_activity()
+function AIComponent:add_action(uri, action_ctor, injecting_entity)
+   local does = action_ctor.does
    assert(does)
+   URI_TO_ACTIVITY[uri] = does
    local action_index = self._action_index[does]
    if not action_index then
       action_index = {}
       self._action_index[does] = action_index
    end
-   self._action_index[does][uri] = action
+   assert(not self._action_index[does][uri])
+   self._action_index[does][uri] = {
+      action_ctor = action_ctor,
+      injecting_entity = injecting_entity
+   }
 end
 
 function AIComponent:remove_action(uri)
-   local action = self._actions[uri]
-   local does = action:get_activity()
-   if action then
-      self._actions[uri] = nil
+   local does = URI_TO_ACTIVITY[uri]
+   if does then
       self._action_index[does][uri] = nil
-
-      if action.destroy then
-         action:destroy()
-      end
+      assert(false) -- need to find the lowest execution_frame that contains this action and restart it
    end
 end
 
@@ -95,35 +89,44 @@ function AIComponent:restart()
 
    radiant.check.is_entity(self._entity)
    self:_terminate_thread()
+   
    self._co = self._ai_system:_create_thread(self, function()
+      self._execution_frame = self:spawn('stonehearth:top')
       while not self._dead do
-         self:execute('stonehearth:top')
+         self._execution_frame:loop()
       end
    end)
 end
 
-function AIComponent:_create_execution_frame(activity)
+function AIComponent:spawn(...)
+   local activity = { ... }
    local activity_name = select(1, unpack(activity))
   
-   -- make sure this activity isn't in the stack
-   for _, frame in ipairs(self._stack) do
-      if frame:get_activity_name() == activity_name then
-         self:abort('cannot run activity "%s".  already in the stack!', activity_name)
+   -- create a new frame and return it   
+   local execution_units = {}
+   for uri, entry in pairs(self._action_index[activity_name]) do
+      local action, execution_unit_ctor
+      local ctor = entry.action_ctor
+      local injecting_entity = entry.injecting_entity
+      if not ctor.version or ctor.version == 1 then
+         execution_unit_ctor = ExecutionUnitV1
+      else
+         execution_unit_ctor = ExecutionUnitV2
       end
+      local unit = execution_unit_ctor(self, self._entity, injecting_entity)
+      action = ctor(unit, self._entity, injecting_entity)
+      unit:set_action(action)
+      execution_units[uri] = unit
    end
 
-   -- create a new frame and return it   
-   local actions = self._action_index[activity_name]
-
    log:spam('%s creating execution frame for %s', self._entity, activity_name)
-   return ExecutionFrame(self, actions, activity)
+   return ExecutionFrame(self, execution_units, activity)
 end
 
 function AIComponent:_terminate_thread()
-   for i = #self._stack, 1, -1 do
-      self._stack[i]:destroy(false)
+   if self._execution_frame then
+      self._execution_frame:abort('terminating thread')
    end
-   self._stack = {}
    
    if self._co then
       local co = self._co
@@ -140,25 +143,6 @@ function AIComponent:abort(reason)
    if reason == nil then reason = 'no reason given' end
    log:info('%s Aborting current action because: %s', self._entity, reason)  
    self:_terminate_thread()
-end
-
-function AIComponent:execute(...)
-   -- get a set of valid actions for this excution frame 
-   local activity = {...}
-   local frame = self:_create_execution_frame(activity)
-   
-   self._execution_count = self._execution_count + 1
-   table.insert(self._stack, frame)
-   local stack_len = #self._stack
-
-   local result = frame:execute(unpack(activity))   
-   
-   assert(#self._stack == stack_len)
-   assert(self._stack[stack_len] == frame)
-   frame:destroy()
-   
-   table.remove(self._stack)
-   return unpack(result)
 end
 
 function AIComponent:suspend_thread()

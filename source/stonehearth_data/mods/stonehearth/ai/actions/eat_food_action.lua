@@ -120,7 +120,7 @@ function EatFoodAction:run(ai, entity, food)
    if hunger >= 120 then
       local x = math.random(0 - CLOSE_DISTANCE, CLOSE_DISTANCE)
       local z = math.random(0 - CLOSE_DISTANCE, CLOSE_DISTANCE)
-      ai:execute('stonehearth:goto_location', Point3(entity_loc.x + x, entity_loc.y, entity_loc.z + z))
+      ai:execute('stonehearth:goto_location', Point3(entity_loc.x + x, entity_loc.y, entity_loc.z + z), 'run')
 
       radiant.entities.set_posture(self._entity, 'sitting')
       ai:execute('stonehearth:run_effect', 'sit_on_ground')
@@ -149,7 +149,7 @@ function EatFoodAction:run(ai, entity, food)
          --We don't have a path or didn't get the lease. Look for any place nearby
          local x = math.random(0 - FAR_DISTANCE, FAR_DISTANCE)
          local z = math.random(0 - FAR_DISTANCE, FAR_DISTANCE)
-         ai:execute('stonehearth:goto_location', Point3(entity_loc.x + x, entity_loc.y, entity_loc.z + z))
+         ai:execute('stonehearth:goto_location', Point3(entity_loc.x + x, entity_loc.y, entity_loc.z + z), 'run')
          
          radiant.entities.set_posture(self._entity, 'sitting')
          ai:execute('stonehearth:run_effect', 'sit_on_ground')

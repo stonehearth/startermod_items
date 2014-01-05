@@ -3,7 +3,8 @@ local IdleDespairAction = class()
 
 IdleDespairAction.name = 'despair'
 IdleDespairAction.does = 'stonehearth:idle:bored'
-IdleDespairAction.version = 1
+IdleBreatheAction.args = { }
+IdleDespairAction.version = 2
 IdleDespairAction.priority = 1
 IdleDespairAction.weight = 3
 

@@ -7,9 +7,11 @@ function HarvestTest:__init()
 
    self:place_tree(-9, -9)
    self:place_tree(12, -9)
+   --[[
    self:place_citizen(12, 12)
    self:place_citizen(8, 10)
    self:place_citizen(0, 0)
+   ]]
    local worker = self:place_citizen(-5, -5)
    local faction = worker:get_component('unit_info'):get_faction()
 

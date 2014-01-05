@@ -73,8 +73,10 @@ radiant.create_action({ does = 'stoneheath:deposit_in_stockpile'})
             :execute('stoneheath:deposit_in_stockpile', ARGS.2, PREVIOUS.dst_point_of_interest)
 
 -- restock
-radiant.create_action({ does = 'stonehearth:restock'})
-            :execute('stoneheath:pickup_nearest_item', ARGS.1)
-            :execute('stoneheath:deposit_in_stockpile', PREVIOUS.dst_location, ARGS.2)
+
+
+radiant.ai.create_action({ does = 'stonehearth:restock', )
+            :execute('stoneheath:pickup_nearest_item', { filter = radiant.ai.ARGS.filter })
+            :execute('stoneheath:deposit_in_stockpile', { location = radiant.ai.PREVIOUS.dst_location, stockpile = radiant.ai.ARGS.stockpile }) 
             --:then_execute('stonehearth:travel_to_stockpile', PREVIOUS.dst_location, ARGS.2)
 ]]

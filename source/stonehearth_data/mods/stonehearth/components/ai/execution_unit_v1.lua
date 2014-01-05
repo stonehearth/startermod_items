@@ -56,10 +56,19 @@ end
 function ExecutionUnitV1:leave_execution_frame(frame)
    assert(self._frame == frame)
    self._frame = nil
-   self:stop_frame()
+   self:stop_frame(frame)
 end
 
-function ExecutionUnitV1:stop_frame()
+function ExecutionUnitV1:start_background_processing()
+end
+
+function ExecutionUnitV1:stop_background_processing()
+end
+
+function ExecutionUnitV1:start_frame(frame)
+end
+
+function ExecutionUnitV1:stop_frame(frame)
    if self._state == RUNNING then
       if self._action.stop then
          self._action:stop()

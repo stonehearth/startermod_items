@@ -1,15 +1,18 @@
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
-local GotoLocation = class()
+local RunToLocation = class()
 
+RunToLocation.name = 'run to location'
+RunToLocation.does = 'stonehearth:goto_location'
+RunToLocation.args = {
+   Point3,     -- location to go to
+   'string'    -- default effect to use when travelling
+}
+RunToLocation.version = 2
+RunToLocation.priority = 1
 
-GotoLocation.name = 'goto location'
-GotoLocation.does = 'stonehearth:goto_location'
-GotoLocation.version = 1
-GotoLocation.priority = 1
-
-function GotoLocation:run(ai, entity, dest, effect_name)
+function RunToLocation:start_background_processing(ai, entity, location, effect_name)
    -- generally speaking, going directly to a location is a strange
    -- thing to do.  why did we not path find to an entity?  why is
    -- this location special?
@@ -28,21 +31,22 @@ function GotoLocation:run(ai, entity, dest, effect_name)
    
    self._dest_entity = radiant.entities.create_entity()
    self._dest_entity:set_debug_text('goto location proxy entity')
-   radiant.terrain.place_entity(self._dest_entity, dest)
-
-   local pf = radiant.pathfinder.create_path_finder(entity, 'goto_location')
-                  :add_destination(self._dest_entity)
-
-   local path = ai:wait_for_path_finder(pf)
-
-   ai:execute('stonehearth:follow_path', path, effect_name)
+   radiant.terrain.place_entity(self._dest_entity, location)
+   
+   self._goto_entity = ai:spawn('stonehearth:goto_entity', self._dest_entity, effect_name)
+   radiant.events.listen(self._goto_entity, 'ready', function()
+      ai:complete_background_processing()
+      return radiant.events.UNLISTEN
+   end)
+   self._goto_entity:start_background_processing()
 end
 
-function GotoLocation:stop()
-   if self._dest_entity then
-      radiant.entities.destroy_entity(self._dest_entity)
-      self._dest_entity = nil
-   end
+function RunToLocation:run(ai, entity)
+   self._goto_entity:run()
 end
 
-return GotoLocation
+function RunToLocation:stop()
+   self._goto_entity:stop()
+end
+
+return RunToLocation
