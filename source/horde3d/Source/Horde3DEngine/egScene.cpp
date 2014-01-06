@@ -25,6 +25,8 @@
 
 #define SCENE_LOG(level)      LOG(horde.scene, level)
 
+static const int MaxActiveRenderQueues = 1000;
+
 namespace Horde3D {
 
 using namespace std;
@@ -934,6 +936,24 @@ int SceneManager::checkNodeVisibility( SceneNode &node, CameraNode &cam, bool ch
 
 void SceneManager::clearQueryCache()
 {
+   // Do a pass to see if we have too many renderable queues.  TODO(klochek): collect some stats
+   // for each queue, so that we can more-intelligently get rid of disused queues.
+   int totalRQs = 0;
+   for (int i = 0; i < _queryCacheCount; i++) {
+      for (const auto& iqs : _queryCache[i].instanceRenderableQueues) {
+         totalRQs += iqs.second.size();
+      }
+
+      totalRQs += _queryCache[i].renderableQueues.size();
+   }
+
+   if (totalRQs > MaxActiveRenderQueues) {
+      Modules::log().writeWarning("Total RQs exceeds maximum; flushing.");
+      for (int i = 0; i < _queryCacheCount; i++) {
+         _queryCache[i].instanceRenderableQueues.clear();
+         _queryCache[i].renderableQueues.clear();
+      }
+   }
    _queryCacheCount = 0;
    _currentQuery = -1;
 }

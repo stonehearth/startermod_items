@@ -2633,6 +2633,7 @@ void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& ren
    // Set vertex layout
 	gRDI->setVertexLayout( Modules::renderer()._vlInstanceVoxelModel );
    float* transformBuffer = _vbInstanceVoxelBuf;
+   ASSERT(renderableQueue.size() <= MaxVoxelInstanceCount);
    for (const auto& node : renderableQueue) {
 		const VoxelMeshNode *meshNode = (VoxelMeshNode *)node.node;
 		const VoxelModelNode *modelNode = meshNode->getParentModel();
