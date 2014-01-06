@@ -2,8 +2,6 @@
 local AIComponent = class()
 local ExecutionFrame = require 'components.ai.execution_frame'
 local log = radiant.log.create_logger('ai.component')
-local ExecutionUnitV1 = require 'components.ai.execution_unit_v1'
-local ExecutionUnitV2 = require 'components.ai.execution_unit_v2'
 
 local URI_TO_ACTIVITY = {}
 
@@ -105,17 +103,7 @@ function AIComponent:spawn(...)
    -- create a new frame and return it   
    local execution_units = {}
    for uri, entry in pairs(self._action_index[activity_name]) do
-      local action, execution_unit_ctor
-      local ctor = entry.action_ctor
-      local injecting_entity = entry.injecting_entity
-      if not ctor.version or ctor.version == 1 then
-         execution_unit_ctor = ExecutionUnitV1
-      else
-         execution_unit_ctor = ExecutionUnitV2
-      end
-      local unit = execution_unit_ctor(self, self._entity, injecting_entity)
-      action = ctor(unit, self._entity, injecting_entity)
-      unit:set_action(action)
+      local unit = self._ai_system:create_execution_unit(self, entry.action_ctor, self._entity, entry.injecting_entity)
       execution_units[uri] = unit
    end
 

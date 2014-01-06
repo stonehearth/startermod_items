@@ -1,10 +1,11 @@
+local Path = _radiant.sim.Path
 local FollowPathAction = class()
 
 FollowPathAction.name = 'follow path'
 FollowPathAction.does = 'stonehearth:follow_path'
 FollowPathAction.args = {
-   _radiant.sim.Path,   -- the path to follow
-   'string'             -- the effect_name to run while path following
+   Path,          -- the path to follow
+   'string'       -- the effect_name to run while path following
 }
 FollowPathAction.version = 2
 FollowPathAction.priority = 1

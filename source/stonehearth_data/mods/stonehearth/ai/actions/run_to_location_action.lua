@@ -32,21 +32,17 @@ function RunToLocation:start_background_processing(ai, entity, location, effect_
    self._dest_entity = radiant.entities.create_entity()
    self._dest_entity:set_debug_text('goto location proxy entity')
    radiant.terrain.place_entity(self._dest_entity, location)
-   
-   self._goto_entity = ai:spawn('stonehearth:goto_entity', self._dest_entity, effect_name)
-   radiant.events.listen(self._goto_entity, 'ready', function()
-      ai:complete_background_processing()
-      return radiant.events.UNLISTEN
-   end)
-   self._goto_entity:start_background_processing()
+   ai:complete_background_processing(self._dest_entity, effect_name)
 end
 
-function RunToLocation:run(ai, entity)
-   self._goto_entity:run()
+function RunToLocation:stop_background_processing(ai, entity)
+   if self._dest_entity then
+      radiant.entities.destroy(self._dest_entity)
+      self._dest_entity = nil
+   end
 end
 
-function RunToLocation:stop()
-   self._goto_entity:stop()
-end
+local ai = stonehearth.ai
+return ai:create_compound_action(RunToLocation)
+         :execute('stonehearth:goto_entity', ai.PREV[1], ai.ARGS[2])
 
-return RunToLocation

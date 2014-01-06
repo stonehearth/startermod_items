@@ -21,6 +21,10 @@ function ExecutionUnitV1:set_action(action)
    self._action = action
 end
 
+function ExecutionUnitV1:get_action_interface()
+   return self
+end
+
 -- ExecutionFrame facing functions...
 function ExecutionUnitV1:get_activity()
    return self._action.does
@@ -28,6 +32,10 @@ end
 
 function ExecutionUnitV1:get_name()
    return self._action.name
+end
+
+function ExecutionUnitV1:get_version()
+   return self._action.version
 end
 
 function ExecutionUnitV1:get_frame()
@@ -47,15 +55,15 @@ function ExecutionUnitV1:is_runnable(frame)
    return self._action.priority > 0   
 end
 
-function ExecutionUnitV1:join_execution_frame(frame, args)
-   assert(not self._frame)
-   self._frame = frame
+function ExecutionUnitV1:get_run_args()
+   return self._args
+end
+
+function ExecutionUnitV1:initialize(args)
    self._args = args
 end
 
-function ExecutionUnitV1:leave_execution_frame(frame)
-   assert(self._frame == frame)
-   self._frame = nil
+function ExecutionUnitV1:destroy()
    self:stop_frame(frame)
 end
 

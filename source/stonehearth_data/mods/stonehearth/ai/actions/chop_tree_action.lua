@@ -1,12 +1,11 @@
-local event_service = stonehearth.events
-local personality_service = stonehearth.personality
-
+local Point3 = _radiant.csg.Point3
+local Entity = _radiant.om.Entity
 local ChopTreeAction = class()
 
 ChopTreeAction.name = 'chop tree'
 ChopTreeAction.does = 'stonehearth:chop_tree'
 ChopTreeAction.args = {
-   _radiant.om.Entity      -- the tree to chop
+   Entity      -- the tree to chop
 }
 ChopTreeAction.version = 2
 ChopTreeAction.priority = 1
@@ -36,7 +35,7 @@ function ChopTreeAction:run(ai, entity, path)
       end
    until not tree:is_valid()
    
-   radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
+   radiant.events.trigger(stonehearth.personality, 'stonehearth:journal_event', 
                           {entity = entity, description = 'chop_tree'})
 end
 

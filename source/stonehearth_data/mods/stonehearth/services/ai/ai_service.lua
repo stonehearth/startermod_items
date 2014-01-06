@@ -1,5 +1,7 @@
 local AiService = class()
 local AiInjector = require 'services.ai.ai_injector'
+local ExecutionUnitV1 = require 'components.ai.execution_unit_v1'
+local ExecutionUnitV2 = require 'components.ai.execution_unit_v2'
 local CompoundAction = require 'services.ai.compound_action'
 local log = radiant.log.create_logger('ai.service')
 
@@ -189,16 +191,43 @@ function AiService:_schedule(co)
    self._waiting_until[co] = nil
 end
 
+function AiService:format_args(args)
+   local msg = ''
+   if args then
+      for _, arg in ipairs(args) do
+         if #msg > 0 then
+            msg = msg .. ', '
+         end
+         msg = msg .. tostring(arg)
+      end
+   end
+   return msg
+end
+
+function AiService:create_execution_unit(ai_component, action_ctor, entity, injecting_entity)
+   local execution_unit_ctor
+   if not action_ctor.version or action_ctor.version == 1 then
+      execution_unit_ctor = ExecutionUnitV1
+   else
+      execution_unit_ctor = ExecutionUnitV2
+   end
+   local unit = execution_unit_ctor(ai_component, entity, injecting_entity)
+   local ai_interface = unit:get_action_interface()
+   local action = action_ctor(ai_interface, entity, injecting_entity)
+   unit:set_action(action)
+   return unit
+end
 
 local factory_mt = {
    __call = function(self, ai_component, entity, injecting_entity)
-      return CompoundAction(self._base_action, self._actions)      
+      local unit = stonehearth.ai:create_execution_unit(ai_component, self._base_action_ctor, entity, injecting_entity)
+      return CompoundAction(unit, self._actions)
    end
 }
 
 function AiService:create_compound_action(cls)
    local factory = {      
-      _base_action = cls,
+      _base_action_ctor = cls,
       _actions = {},
       does = cls.does,
       version = cls.version,

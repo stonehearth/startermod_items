@@ -15,12 +15,13 @@ Wander.does = 'stonehearth:top'
 Wander.priority = 10
 -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
 function Wander:__init(ai, entity)
    self._ai = ai
    self._entity = entity
 end
 
-function Wander:run(ai, entity)
+function Wander:start_background_processing(ai, entity)
    if not self._entity:get_component('stonehearth:leash') then
       self._entity:add_component('stonehearth:leash'):set_to_entity_location(self._entity)
    end
@@ -49,17 +50,9 @@ function Wander:run(ai, entity)
    destination.x = destination.x + dx
    destination.z = destination.z + dz
    
-   ai:execute('stonehearth:goto_location', destination, 'run')
-   self._ai:set_action_priority(self, 0)
-
-
--- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
--- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   self._ai:set_action_priority(self, 10)
--- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
--- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
+   ai:complete_background_processing(destination)
 end
 
-
-return Wander
+local ai = stonehearth.ai
+return ai:create_compound_action(Wander)
+         :execute('stonehearth:goto_location', ai.PREV[1], 'run')
