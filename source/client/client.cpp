@@ -364,6 +364,7 @@ Client::Client() :
          newCfg.num_msaa_samples.value = params.get<int>("msaa", oldCfg.num_msaa_samples.value);
          newCfg.shadow_resolution.value = params.get<int>("shadow_res", oldCfg.shadow_resolution.value);
          newCfg.enable_fullscreen.value = params.get<bool>("fullscreen", oldCfg.enable_fullscreen.value);
+         newCfg.enable_vsync.value = params.get<bool>("vsync", oldCfg.enable_vsync.value);
          
          Renderer::GetInstance().ApplyConfig(newCfg, persistConfig);
 

@@ -13,7 +13,7 @@
 
    "settings_title" : "Settings",
    "settings_gfx_enable_shadows" : "Enable Shadows",
-   "settings_gfx_enable_vsync" : "Enable Vertical Sync (Requires Restart)",
+   "settings_gfx_enable_vsync" : "Enable Vertical Sync",
    "settings_gfx_enable_fullscreen" : "Fullscreen (Requires Restart)",
    "settings_gfx_msaa" : "Anti-Aliasing Level",
    "settings_gfx_shadows" : "Shadow Detail",
