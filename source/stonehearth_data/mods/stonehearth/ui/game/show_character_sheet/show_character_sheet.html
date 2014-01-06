@@ -1,0 +1,59 @@
+<script type="text/x-handlebars" data-template-name="characterSheet">
+   <div id="characterSheet">
+      <div id="header">
+         <div class="name">{{unit_info.name}}</div>
+         <div class="description">{{unit_info.description}}</div>
+      </div>
+
+      <div id="glass">
+         <div id="mind">{{stonehearth:attributes.mind.effective_value}}</div>
+         <div id="body">{{stonehearth:attributes.body.effective_value}}</div>
+         <div id="spirit">{{stonehearth:attributes.spirit.effective_value}}</div>
+      </div>
+
+      <div class="content">
+
+         <div id="persona" class="column1">
+            <h2>{{i18n stonehearth:show_character_sheet_persona}}</h2>
+            <table>
+               <tr><td>Personality<td>Hopeful optimist
+               <tr><td>Traits<td>Sleepwalker, Enormous
+               <tr><td>Birthday<td>17th of Feastmun
+            </table>
+            <br>
+            <h2>{{i18n stonehearth:show_character_sheet_latest_journal}}</h2>
+
+            <div id="journalEntries">
+               <div class="logDate">{{view.firstJournalEntry.date}}</div>
+               <div class="logEntry">
+                  <div class="logTitle">{{view.firstJournalEntry.title}}</div> 
+                  <div>{{view.firstJournalEntry.text}}</div>
+               </div>
+            </div>
+
+         </div>
+
+         <div id="attributes" class="column2">
+            <h2>{{i18n stonehearth:show_character_sheet_attributes}}</h2>
+            <table>
+               <tr><td>Diligence<td>{{stonehearth:attributes.diligence.effective_value}}
+               <tr><td>Curiosity<td>{{stonehearth:attributes.curiosity.effective_value}}
+               <tr><td>Inventiveness<td>{{stonehearth:attributes.inventiveness.effective_value}}
+            </table>
+            <br>
+            <table>
+               <tr><td>Muscle<td>{{stonehearth:attributes.muscle.effective_value}}
+               <tr><td>Speed<td>{{stonehearth:attributes.speed.effective_value}}
+               <tr><td>Stamina<td>{{stonehearth:attributes.stamina.effective_value}}
+            </table>
+            <br>
+            <table>
+               <tr><td>Courage<td>{{stonehearth:attributes.courage.effective_value}}
+               <tr><td>Willpower<td>{{stonehearth:attributes.willpower.effective_value}}
+               <tr><td>Compassion<td>{{stonehearth:attributes.compassion.effective_value}}
+            </table>
+         </div>
+      </div>
+
+   </div>
+</script>

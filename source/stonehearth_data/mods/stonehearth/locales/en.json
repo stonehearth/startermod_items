@@ -66,6 +66,10 @@
    "hint_camera_orbit": "Right click and drag to rotate the camera",
    "hint_camera_zoom": "Use the mouse scroll wheel to zoom in and out",
 
+   "show_character_sheet_persona" : "Persona",
+   "show_character_sheet_latest_journal" : "Latest Journal",
+   "show_character_sheet_attributes" : "Attributes",
+
    "show_stockpile_all" : "All",
    "show_stockpile_none" : "None",
    "show_stockpile_storage_for" : "Storage for:",
