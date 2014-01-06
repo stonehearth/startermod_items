@@ -2,6 +2,7 @@ local GotoEntityAction = class()
 
 GotoEntityAction.name = 'goto entity'
 GotoEntityAction.does = 'stonehearth:goto_entity'
+GotoEntityAction.version = 1
 GotoEntityAction.priority = 2
 --TODO we need a scale to  describe relative importance
 local log = radiant.log.create_logger('ai.goto_entity')

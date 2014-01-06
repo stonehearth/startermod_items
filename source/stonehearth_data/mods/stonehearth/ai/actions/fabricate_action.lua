@@ -2,6 +2,7 @@ local Fabricate = class()
 
 Fabricate.name = 'fabricate'
 Fabricate.does = 'stonehearth:fabricate'
+Fabricate.version = 1
 Fabricate.priority = 5
 
 function Fabricate:run(ai, entity, path)

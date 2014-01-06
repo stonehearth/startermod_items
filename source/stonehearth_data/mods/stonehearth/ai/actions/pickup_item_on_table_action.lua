@@ -3,6 +3,7 @@ local log = radiant.log.create_logger('actions.pickup_item')
 
 PickupItemOnTable.name = 'pickup and item on the ground'
 PickupItemOnTable.does = 'stonehearth:pickup_item_on_table'
+PickupItemOnTable.version = 1
 PickupItemOnTable.priority = 5
 --TODO we need a scale to  describe relative importance
 

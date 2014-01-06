@@ -2,6 +2,7 @@ local PlayWithBallAction = class()
 
 PlayWithBallAction.name = 'play with a ball'
 PlayWithBallAction.does = 'stonehearth:top'
+PlayWithBallAction.version = 1
 PlayWithBallAction.priority = 99
 
 function PlayWithBallAction:__init(ai, entity, item)

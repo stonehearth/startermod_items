@@ -4,6 +4,7 @@ local ChaseTarget = class()
 
 ChaseTarget.name = 'chase target'
 ChaseTarget.does = 'stonehearth:attack:chase_target'
+ChaseTarget.version = 1
 ChaseTarget.priority = 0
 
 function ChaseTarget:run(ai, entity, target, effect_name)
