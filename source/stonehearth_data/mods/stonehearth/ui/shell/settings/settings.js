@@ -21,34 +21,6 @@ App.StonehearthSettingsView = App.View.extend({
          }
       });
 
-      radiant.call('radiant:get_config_options')
-         .done(function(o) {
-            self.oldConfig = {
-               "shadows" : o.shadows.value,
-               "vsync" : o.vsync.value,
-               "shadow_res" : o.shadow_res.value,
-               "fullscreen" : o.fullscreen.value,
-               "msaa" : o.msaa.value
-            };
-
-            self.set('context.shadows_forbidden', !o.shadows.allowed);
-            if (!o.shadows.allowed) {
-               o.shadows.value = false;
-            }
-            self.set('context.shadows_enabled', o.shadows.value);
-
-            self.set('context.shadow_res', self.fromResToVal(o.shadow_res.value))
-
-            self.set('context.vsync_enabled', o.vsync.value);
-
-            self.set('context.fullscreen_enabled', o.fullscreen.value);
-
-            self.set('context.msaa_forbidden', !o.msaa.allowed);
-            if (!o.msaa.allowed) {
-               o.msaa.value = 0;
-            }
-            self.set('context.num_msaa_samples', o.msaa.value);
-         });
    },
 
    reloadableSettingDidChange : function() {
@@ -79,6 +51,56 @@ App.StonehearthSettingsView = App.View.extend({
       $('#opt_enableShadows').change(reloadableCallback);
       $('#opt_numSamples').change(reloadableCallback);
       $('#opt_shadowRes').change(reloadableCallback);
+
+      radiant.call('radiant:get_config_options')
+         .done(function(o) {
+            self.oldConfig = {
+               "shadows" : o.shadows.value,
+               "vsync" : o.vsync.value,
+               "shadow_res" : o.shadow_res.value,
+               "fullscreen" : o.fullscreen.value,
+               "msaa" : o.msaa.value
+            };
+
+            self.set('context.shadows_forbidden', !o.shadows.allowed);
+            if (!o.shadows.allowed) {
+               o.shadows.value = false;
+            }
+            self.set('context.shadows_enabled', o.shadows.value);
+
+            self.set('context.shadow_res', self.fromResToVal(o.shadow_res.value))
+
+            self.set('context.vsync_enabled', o.vsync.value);
+
+            self.set('context.fullscreen_enabled', o.fullscreen.value);
+
+            self.set('context.msaa_forbidden', !o.msaa.allowed);
+            if (!o.msaa.allowed) {
+               o.msaa.value = 0;
+            }
+            self.set('context.num_msaa_samples', o.msaa.value);
+
+            $('#aaNumSlider').slider({
+               value: self.get('context.num_msaa_samples'),
+               min: 1,
+               max: 4,
+               step: 1,
+               slide: function( event, ui ) {
+                  anythingChangedCallback();
+               }
+            });            
+
+            $('#shadowResSlider').slider({
+               value: self.get('context.shadow_res'),
+               min: 1,
+               max: 4,
+               step: 1,
+               slide: function( event, ui ) {
+                  anythingChangedCallback();
+               }
+            });            
+         });
+
    },
 
    getUiConfig: function(persistConfig) {
@@ -86,8 +108,8 @@ App.StonehearthSettingsView = App.View.extend({
          "shadows" : $('#opt_enableShadows').is(':checked'),
          "vsync" : $('#opt_enableVsync').is(':checked'),
          "fullscreen" : $('#opt_enableFullscreen').is(':checked'),
-         "msaa" : parseInt($('#opt_numSamples').val()),
-         "shadow_res" : this.fromValToRes(parseInt($('#opt_shadowRes').val())),
+         "msaa" : $( "#aaNumSlider" ).slider( "value" ),
+         "shadow_res" :  this.fromValToRes($( "#shadowResSlider" ).slider( "value" )),
          "persistConfig" : persistConfig
       };
       return newConfig;

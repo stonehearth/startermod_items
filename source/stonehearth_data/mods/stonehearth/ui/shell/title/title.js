@@ -29,6 +29,10 @@ App.StonehearthTitleScreenView = App.View.extend({
          $('#titlescreen').show();
       });
 
+      $(document).click(function(e) {
+         $('#titlescreen').show();
+      });
+
       $('#radiant').fadeIn(800);
       
       setTimeout(function() {
