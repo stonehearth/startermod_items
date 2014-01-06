@@ -768,6 +768,7 @@ ShaderCombination* Renderer::findShaderCombination(ShaderResource* r, ShaderCont
          if (sc.engineFlags.size() == Modules().config().shaderFlags.size()) {
             break;
          }
+         result = 0x0;
       }
    }
 
