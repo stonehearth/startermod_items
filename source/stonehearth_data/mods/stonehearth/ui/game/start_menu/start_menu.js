@@ -18,6 +18,14 @@ App.StonehearthStartMenuView = App.View.extend({
             });
          }
       },
+      buildWeaverWorkshop: {
+         click: function () {
+            $(top).trigger('build_workshop.stonehearth', {
+               uri: '/stonehearth/entities/professions/weaver/profession_description.json'
+            });
+         }
+      },
+
       buildWallLoop: {
          click: function () {
             $(top).trigger('radiant_create_wall');

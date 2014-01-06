@@ -34,8 +34,7 @@
          ]  
       },
       "stonehearth:promotion_talisman": {
-         "script": "file(/professions/carpenter/carpenter.lua)",
-         "profession_name" : "Carpenter"
+         "script": "file(/professions/carpenter/carpenter.lua)"
       }
    }
 }

@@ -3,18 +3,20 @@
       "profession_type": "weaver",
       "name": "Weaver",      
       "script": "file(/professions/weaver/weaver.lua)",
-      "description": "weaves stuff"
+      "description": "Makes thread and cloth."
    },
    "crafter" : {
-      "work_effect": "weave",
+      "work_effect": "fiddle",
       "recipe_list": "/stonehearth/entities/professions/weaver/recipes"
    },
    "workshop" : {
       "name": "Weaver's Workshop",
-      "long_description" : "xxx insert weaver description here!",
-      "portrait" : "file(./images/workshop_portrait_level_1.png)",      
+      "long_description" : "Makes thread and cloth!  Can't really have a respectable civilization without one!",
+      "portrait" : "file(./images/workshop_portrait_level_1.png)",
+      "skin" : "file(./skin/skin.png)",    
+      "workbench_type" : "stonehearth:weaver:workbench",
       "ingredients": [
-         { "material" : "wood resource", "count" : 99 }
+         { "material" : "wood resource", "count" : 1 }
       ]
    }
 }

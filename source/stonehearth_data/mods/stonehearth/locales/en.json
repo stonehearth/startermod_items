@@ -102,6 +102,8 @@
    "workshop_open" : "Open!",
    "workshop_closed" : "Closed",
 
+   "weaver" : "Weaver",
+
    "build_workshop_requirements" : "Requirements",
    "build_workshop_create_stockpile" : "Crafter's Stockpile",
    "build_workshop_create_stockpile_description" : "The crafter will store crafted goods in this stockpile.<p>You probably want to place it near the workbench, but hey, it's your decision.",

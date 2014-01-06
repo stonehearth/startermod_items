@@ -73,8 +73,6 @@ function WorkerPlaceWorkshop:run(ai, entity, path, ghost_entity, outbox_entity, 
       radiant.effects.run_effect(entity, workshop_sound)
    end
 
-
-
    -- Place the promotion talisman on the workbench, if there is one
    local promotion_talisman_entity = workshop_component:init_from_scratch()
 

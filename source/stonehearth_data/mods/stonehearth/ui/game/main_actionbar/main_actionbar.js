@@ -38,12 +38,22 @@ App.StonehearthMainActionbarView = App.View.extend({
                      hotkey: 'w',
                      items: {
                         carpenter: {
-                           name: 'Carpenter',
+                           name: 'Carpenterrrr',
                            icon: imagePath + 'carpenter.png',
-                           hotkey: 'w',
+                           hotkey: 'c',
                            click: function () {
                               $(top).trigger('build_workshop.stonehearth', {
                                  uri: '/stonehearth/entities/professions/carpenter/profession_description.json'
+                              });
+                           }
+                        },
+                        weaver: {
+                           name: 'Weaver',
+                           icon: imagePath + 'weaver.png',
+                           hotkey: 'w',
+                           click: function () {
+                              $(top).trigger('build_workshop.stonehearth', {
+                                 uri: '/stonehearth/entities/professions/weaver/profession_description.json'
                               });
                            }
                         }
@@ -61,6 +71,7 @@ App.StonehearthMainActionbarView = App.View.extend({
                            click: function () {
                               $(top).trigger('radiant_create_wall');
                            }
+                        }
                         }
                      }
                   },

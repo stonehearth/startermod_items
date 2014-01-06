@@ -1,23 +1,21 @@
 {
-   "extends": "stonehearth:mixins:crafter_workbench",
    "type": "entity",
    "components": {
       "unit_info": {
          "name": "Weaver Workbench",
-         "description": "Clean enough."
+         "description": "Unclaimed."
       },
-      "stonehearth:workshop": {
-         "skin_class" : "weaver",
-         "promotion_talisman" : {
-            "entity" : "stonehearth:weaver:spindle",
-            "offset" : [0, 3, 0]
-         }
+      "stonehearth:commands" : {
+         "commands" : [
+            "file(/data/commands/promote_to_profession)",
+            "file(/data/commands/show_workshop)"
+         ]
       },
       "destination": {
          "region": [
             {
-               "min" : { "x" : -3, "y" : 0, "z" : -3 },
-               "max" : { "x" :  4, "y" : 1, "z" :  4 }
+               "min" : { "x" : -1, "y" : 0, "z" : -1 },
+               "max" : { "x" :  1, "y" : 1, "z" :  1 }
             }
          ]
       },
@@ -27,6 +25,19 @@
                "file(weaver_bench.qb)"
             ]
          }
-      ]
+      ],
+      "stonehearth:workshop": {
+         "profession_name" : "Weaver",
+         "skin_class" : "weaver",
+         "promotion_talisman" : {
+            "entity" : "stonehearth:weaver:spindle",
+            "offset" : [0, 3, 0]
+         },
+         "ingredients" : {
+            "material" : "wood resource",
+            "count" : 1
+         },
+         "build_sound_effect": "/stonehearth/data/effects/place_workshop/place_carpenter_workbench.json"
+      }
    }
 }

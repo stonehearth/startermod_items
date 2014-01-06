@@ -20,21 +20,15 @@ App.StonehearthCrafterBuildWorkshopView = App.View.extend({
 
    didInsertElement: function() {
       var self = this;
-      var infoUri = this.get('info');
-      /*
-      $.get(infoUri)
-         .done(function(info) {
-            console.log(info);
-         })
-      */
+      if (this.get('context.workshop') && !this.intialized) {
+         //Only start drawing the screen if we have the workshop, to avoid flicker
+         this._super();
 
-      if (!this.intialized)  {
          $('#crafterBuildWorkshopScroll') //xxx make aop
             .hide()
             .fadeIn();
 
-         //xxx, get this from the profession description on the server
-         this.createWorkbench('stonehearth:carpenter:workbench');
+         this.createWorkbench(this.get('context.workshop.workbench_type'));
 
          this.intialized = true;
       }
