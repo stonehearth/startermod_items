@@ -51,7 +51,10 @@ function WorkerPlaceWorkshop:run(ai, entity, path, ghost_entity, outbox_entity, 
    -- Run over to the workshop's designated location and use up first ingredient
    local target_location = radiant.entities.get_world_grid_location(ghost_entity)
    local materials = {}
-   ai:execute('stonehearth:drop_carrying', target_location)
+
+   --TODO: when we can delete ghost items, remember to dump these 
+   --materials back into the world
+   ai:execute('stonehearth:drop_carrying_in_entity', ghost_entity, Point3(0, 0, 0))
    table.insert(materials, carrying)
 
    --If there are more ingredients, iterate through them, carrying them over
@@ -78,7 +81,8 @@ function WorkerPlaceWorkshop:run(ai, entity, path, ghost_entity, outbox_entity, 
          -- TODO: use paths, are faster?
          ai:execute('stonehearth:pickup_item', ing_data.item)
          ai:execute('stonehearth:goto_entity', ghost_entity)
-         ai:execute('stonehearth:drop_carrying', target_location)
+         ai:execute('stonehearth:drop_carrying_in_entity', ghost_entity, Point3(0, 0, 0))
+
          table.insert(materials, ing_data.item)
       end
    end

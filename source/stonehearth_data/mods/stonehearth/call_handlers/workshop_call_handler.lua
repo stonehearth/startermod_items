@@ -257,7 +257,7 @@ function WorkshopCallHandler:_start_worker_create_task(session, outbox_entity, w
    if json and json.components then
       workshop_material = json.components['stonehearth:workshop'].ingredients[1].material
       ingredient_list_object = IngredientList(ghost_entity, {}, json.components['stonehearth:workshop'].ingredients)
-      local remaining = ingredient_list_object:remove_first_item()
+      local remaining = ingredient_list_object:remove_item_at(1)
       if remaining == 0 then
          ingredient_list_object = nil
       else 

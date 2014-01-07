@@ -135,9 +135,9 @@ end
 --- Removes the first ingredient
 --  Workaround because worker dispatcher requires at least one target
 --  @returns: number of items remaining
-function IngredientList:remove_first_item()
-   if #self._ingredients >= 1 then
-      table.remove(self._ingredients, 1)
+function IngredientList:remove_item_at(index)
+   if #self._ingredients >= index then
+      table.remove(self._ingredients, index)
    end
    return #self._ingredients
 end
