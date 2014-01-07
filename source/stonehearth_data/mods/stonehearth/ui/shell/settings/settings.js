@@ -89,6 +89,7 @@ App.StonehearthSettingsView = App.View.extend({
                min: 0,
                max: 4,
                step: 1,
+               disabled: self.get('context.msaa_forbidden'),
                slide: function( event, ui ) {
                   anythingChangedCallback();
                   $('#aaNumDescription').html(i18n.t('stonehearth:settings_slider_' + ui.value));
@@ -101,6 +102,7 @@ App.StonehearthSettingsView = App.View.extend({
                min: 0,
                max: 5,
                step: 1,
+               disabled: self.get('context.shadows_forbidden'),
                slide: function( event, ui ) {
                   anythingChangedCallback();
                   $('#shadowResDescription').html(i18n.t('stonehearth:settings_slider_' + ui.value));
