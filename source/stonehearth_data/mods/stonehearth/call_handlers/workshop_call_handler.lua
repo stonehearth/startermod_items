@@ -105,7 +105,7 @@ end
 
 --- When placing a workbench, if a key is pressed, call this function
 function WorkshopCallHandler:_on_keyboard_event(e, response)
-   if e.key == _radiant.client.KeyboardInput.ESC and e.down then
+   if e.key == _radiant.client.KeyboardInput.KEY_ESC and e.down then
       self:_destroy_capture()
       if self._cursor_entity then
          _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
@@ -124,7 +124,7 @@ end
 --- When placing an outbox, if a key is pressed, call this function
 --  Note: we don't need to destroy the capture becase the cleanup function already does.
 function WorkshopCallHandler:_on_outbox_keyboard_event(e, ghost_entity, response)
-   if e.key == _radiant.client.KeyboardInput.ESC and e.down then
+   if e.key == _radiant.client.KeyboardInput.KEY_ESC and e.down then
       _radiant.call('stonehearth:destroy_ghost_workbench', ghost_entity:get_id())
       response:resolve({cancelled = true})
    end
