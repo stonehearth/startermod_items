@@ -87,8 +87,10 @@ App.StonehearthSettingsView = App.View.extend({
                step: 1,
                slide: function( event, ui ) {
                   anythingChangedCallback();
+                  $('#aaNumDescription').html(i18n.t('stonehearth:settings_slider_' + ui.value));
                }
-            });            
+            }); 
+            $('#aaNumDescription').html(i18n.t('stonehearth:settings_slider_' + self.get('context.num_msaa_samples')));           
 
             $('#shadowResSlider').slider({
                value: self.get('context.shadow_res'),
@@ -97,8 +99,10 @@ App.StonehearthSettingsView = App.View.extend({
                step: 1,
                slide: function( event, ui ) {
                   anythingChangedCallback();
+                  $('#shadowResDescription').html(i18n.t('stonehearth:settings_slider_' + ui.value));
                }
-            });            
+            });
+            $('#shadowResDescription').html(i18n.t('stonehearth:settings_slider_' + self.get('context.shadow_res')));
          });
 
    },
