@@ -19,7 +19,11 @@ function events._convert_object_to_key(object)
    return object
 end
 
-function events.listen(object, event, self, fn, ...)
+-- takes 2 forms:
+-- radiant.events.listen(sender, 'event_name', object, method)
+-- radiant.events.listen(sender, 'event_name', function)
+
+function events.listen(object, event, self, fn)
    assert(object and event and self)
 
    local key = events._convert_object_to_key(object)
@@ -39,8 +43,7 @@ function events.listen(object, event, self, fn, ...)
    
    local entry = {
       self = self,
-      fn = fn,
-      args = { ... }
+      fn = fn
    }
    table.insert(listeners, entry)
 end
@@ -50,7 +53,7 @@ function events.unpublish(object)
 
    assert(object)
    if not events._senders[key] then
-      log:debug('unpublish %s on unknown sender: %s', event, tostring(object))
+      log:debug('unpublish on unknown sender: %s', tostring(object))
       return
    end
    log:debug('forcibly removing listeners while unpublishing %s')
@@ -90,27 +93,14 @@ function events.trigger(object, event, ...)
       local listeners = sender[event]
       if listeners then
          for i, listener in ipairs(listeners) do
-            -- build up the event object
-            local event_params = {}
-            event_params.sender = sender
-            event_params.event = event
-            
-            if ... then 
-               for name, value in pairs(...) do
-                  if name ~= 'sender' and name ~= 'event' then
-                     event_params[name] = value
-                  end
-               end
-            end
-
             log:debug('triggering event ' .. event)
             local result = false
             if listener.fn ~= nil then
                -- type 1: listen was called with 'self' and a method to call
-               result = listener.fn(listener.self, event_params, unpack(listener.args))
+               result = listener.fn(listener.self, ...)
             else
                -- type 2: listen was called with just a function!  call it
-               result = listener.self(event_params, unpack(listener.args))
+               result = listener.self(...)
             end
             -- auto-remove if the caller returned the magic value
             if result == events.UNLISTEN then

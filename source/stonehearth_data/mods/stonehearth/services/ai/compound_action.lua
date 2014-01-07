@@ -34,10 +34,10 @@ CompoundAction.PREV = PREV
 function CompoundAction:__init(action_unit, activities)
    -- initialize metadata   
    self._execution_unit = action_unit
-   radiant.events.listen(self._execution_unit, 'state_changed', self, self._on_unit_state_change)
    self._activities = activities
    
    local action = self._execution_unit:get_action()
+   action.name = 'ca(' .. action.name .. ')'
    self.name = action.name
    self.does = action.does
    self.priority = action.priority
@@ -47,13 +47,8 @@ function CompoundAction:__init(action_unit, activities)
    self.version = 2
 end
 
-function CompoundAction:_on_unit_state_change(e)
-   if e.state == 'ready' then
-      assert(#self._execution_frames == 0)
-      local run_args = self._execution_unit:get_run_args()
-      table.insert(self._previous_run_args, run_args)
-      self:_start_processing_next_activity()
-   end
+function CompoundAction:set_debug_route(debug_route)
+   self._execution_unit:set_debug_route(debug_route .. ' ca')
 end
 
 function CompoundAction:start_background_processing(ai, entity, ...)
@@ -62,12 +57,20 @@ function CompoundAction:start_background_processing(ai, entity, ...)
    self._execution_frames = {}
    self._previous_run_args = {}
    self._current_activity = 1
-   self._execution_unit:initialize(self._args)
+   
+   radiant.events.listen(self._execution_unit, 'ready', function(_, state)
+         assert(#self._execution_frames == 0)
+         local run_args = self._execution_unit:get_run_args()
+         table.insert(self._previous_run_args, run_args)
+         self:_start_processing_next_activity(ai)
+         return radiant.events.UNLISTEN
+      end)
+      
+   self._execution_unit:initialize(self._args, self._debug_route)
    self._execution_unit:start_background_processing()
 end
 
-
-function CompoundAction:_start_processing_next_activity()
+function CompoundAction:_start_processing_next_activity(ai)
    local activity = self._activities[self._current_activity]
    local translated = self:_replace_placeholders(activity)
    local frame = self._execution_unit:spawn(unpack(translated))
@@ -81,7 +84,7 @@ function CompoundAction:_start_processing_next_activity()
          self._current_activity = self._current_activity + 1
          self:_start_processing_next_activity(ai)
       else
-         self._execution_unit:complete_background_processing()
+         ai:complete_background_processing()
       end
       return radiant.events.UNLISTEN
    end)
@@ -120,6 +123,9 @@ function CompoundAction:stop()
       self._execution_frames[i]:stop()
    end
    self._execution_unit:stop()
+   self._execution_frames = nil
+   self._previous_run_args = nil
+   self._current_activity = nil   
 end
 
 function CompoundAction:stop_background_processing(ai, entity, ...)

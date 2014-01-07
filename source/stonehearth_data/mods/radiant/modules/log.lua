@@ -61,13 +61,13 @@ function Log.spam(category, format, ...)
    Log.write_(category, Log.SPAM, format, ...)
 end
 
-function Log.create_logger(sub_category)
+function Log.create_logger(sub_category, prefix)
    -- The stack offset for the helper functions is 4...
    --    1: __get_current_module_name
    --    2: Log.create_logger       
    --    3: --> some module whose name we want! <-- 
    local category = __get_current_module_name(3) .. '.' .. sub_category
-   return Logger(category)
+   return Logger(category, prefix)
 end
 
 return Log

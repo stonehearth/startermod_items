@@ -97,28 +97,28 @@ function AIComponent:restart()
 end
 
 function AIComponent:spawn(...)
+   return self:spawn_debug_route(nil, ...)
+end
+
+function AIComponent:spawn_debug_route(debug_route, ...)
    local activity = { ... }
    local activity_name = select(1, unpack(activity))
   
    -- create a new frame and return it   
-   local execution_units = {}
-   for uri, entry in pairs(self._action_index[activity_name]) do
-      local unit = self._ai_system:create_execution_unit(self, entry.action_ctor, self._entity, entry.injecting_entity)
-      execution_units[uri] = unit
-   end
-
    log:spam('%s creating execution frame for %s', self._entity, activity_name)
-   return ExecutionFrame(self, execution_units, activity)
+   local actions = self._action_index[activity_name]
+   return ExecutionFrame(self, actions, activity, debug_route)
 end
 
 function AIComponent:_terminate_thread()
    if self._execution_frame then
       self._execution_frame:abort('terminating thread')
    end
-   
+
    if self._co then
       local co = self._co
       self._co = nil
+      self._resume_error = nil
       
       -- If we're calling _terminate_thread() from the co-routine itself,
       -- this function MAY NOT RETURN!
@@ -135,6 +135,11 @@ end
 
 function AIComponent:suspend_thread()
    coroutine.yield(self._ai_system.SUSPEND_THREAD)
+   if self._resume_error then
+      local msg = self._resume_error
+      self._resume_error = nil
+      error(msg)
+   end
 end
 
 function AIComponent:resume_thread()

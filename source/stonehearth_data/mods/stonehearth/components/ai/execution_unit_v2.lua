@@ -1,18 +1,31 @@
 local ExecutionUnitV2 = class()
-local log = radiant.log.create_logger('ai.component')
 
 local IDLE = 'idle'
 local PROCESSING = 'processing'
 local READY = 'ready'
 local STARTED = 'started'
-local RUNNING = 'runnin'
+local RUNNING = 'running'
+local HALTED = 'halted'
 local DEAD = 'dead'
 
+local NEXT_UNIT_ID = 1
+
 function ExecutionUnitV2:__init(ai_component, entity, injecting_entity)
+   -- sometimes (ef -> compound_action -> ef) we get an ai_component that's actually the interface.
+   -- if so, reach through the matrix and grab the real component
+   if ai_component.___execution_unit then
+      ai_component = ai_component.___execution_unit._ai_component
+   end
+   assert(ai_component._entity)
+   
    self._entity = entity
    self._ai_component = ai_component
    self._execute_frame = nil
    self._nested_frames = {}
+   self._id = NEXT_UNIT_ID
+   NEXT_UNIT_ID = NEXT_UNIT_ID + 1
+   
+   self._log = radiant.log.create_logger('ai.exec_unit')
    
    self._ai_interface = { ___execution_unit = self }   
    local chain_function = function (fn)
@@ -24,7 +37,18 @@ function ExecutionUnitV2:__init(ai_component, entity, injecting_entity)
    chain_function('execute')   
    chain_function('suspend')
    chain_function('resume')
-   chain_function('abort')   
+   chain_function('abort')
+end
+
+function ExecutionUnitV2:set_debug_route(debug_route)
+   self._debug_route = debug_route .. ' u:' .. tostring(self._id)
+   local prefix = string.format('%s (%s)', self._debug_route, self:get_name())
+   self._log:set_prefix(prefix)
+   
+   -- for compoundaction...
+   if self._action.set_debug_route then
+      self._action:set_debug_route(debug_route)
+   end
 end
 
 function ExecutionUnitV2:get_action_interface()
@@ -38,7 +62,9 @@ function ExecutionUnitV2:__complete_background_processing(...)
 end
 
 function ExecutionUnitV2:__set_priority(action, priority)
-   self:set_action(action)
+   if not self._action then
+      self:set_action(action)
+   end
    if priority ~= self._action.priority then
       self._action.priority = priority
       -- notify the frame if we're currently in one.  we might not be! legacy
@@ -48,28 +74,34 @@ function ExecutionUnitV2:__set_priority(action, priority)
 end
 
 function ExecutionUnitV2:__execute(...)
+   self._log:spam('execute %s called', select(1, ...))
    assert(not self._execute_frame)
-   self._execute_frame = self._ai_component:spawn(...)
+   self._execute_frame = self._ai_component:spawn_debug_route(self._debug_route, ...)
    self._execute_frame:run()
-   self._execute_frame:terminate()
+   self._execute_frame:stop()
+   self._execute_frame:destroy()
    self._execute_frame = nil
 end 
 
 function ExecutionUnitV2:__spawn(...)
-   local frame = self._ai_component:spawn(...)
+   self._log:spam('spawn %s called', select(1, ...))
+   local frame = self._ai_component:spawn_debug_route(self._debug_route, ...)
    table.insert(self._nested_frames, frame)
    return frame
 end
 
 function ExecutionUnitV2:__suspend()
+   self._log:spam('suspend called')
    self._ai_component:suspend_thread()
 end
 
 function ExecutionUnitV2:__resume()
+   self._log:spam('resume called')
    self._ai_component:resume_thread()
 end
 
 function ExecutionUnitV2:__abort(reason)
+   self._log:spam('abort %s called', tostring(reason))
    self._ai_component:abort(reason)
 end
 
@@ -78,12 +110,15 @@ function ExecutionUnitV2:spawn(...)
 end
 
 function ExecutionUnitV2:destroy()
+   self._log:spam('destroy')
    if self._execute_frame then
-      self._execute_frame:terminate()
+      self._execute_frame:destroy()
+      self._execute_frame = nil
    end
    for _, frame in ipairs(self._nested_frames) do
-      frame:terminate()
+      frame:destroy()
    end
+   self._nested_frames = {}
    
    if self._state == IDLE or self._state == READY or self._state == DEAD then
       -- nothing to do
@@ -145,13 +180,20 @@ function ExecutionUnitV2:is_runnable()
 end
 
 function ExecutionUnitV2:initialize(args)
+   self._log:spam('initialize')
    self:_verify_execution_args(args)
    self._args = args
    self._run_args = nil
-   self:_set_state(IDLE)
+   if self._state == IDLE then
+      assert(not self._execute_frame)
+      assert(#self._nested_frames == 0)
+   else
+      self:_set_state(IDLE)
+   end
 end
 
 function ExecutionUnitV2:start_background_processing()
+   self._log:spam('start_background_processing')
    assert(self._state == PROCESSING or self._state == IDLE)
    if self._state == IDLE then
       -- don't start processing if we already have run args...
@@ -163,11 +205,14 @@ function ExecutionUnitV2:start_background_processing()
             self:__complete_background_processing(unpack(self._args))
          end
       end
+   elseif self._state == PROCESSING then
+      self._log:spam('ignoring start_background_processing call.  already thinking...')
    end
 end
 
 function ExecutionUnitV2:stop_background_processing()
-   assert(self._state == PROCESSING or self._state == READY)
+   self._log:spam('stop_background_processing')
+   assert(self._state == PROCESSING or self._state == READY or self._state == IDLE)
    if self._state == PROCESSING or self._state == READY then
       if self._action.stop_background_processing then
          self._action:stop_background_processing(self._ai_interface, self._entity)
@@ -175,10 +220,13 @@ function ExecutionUnitV2:stop_background_processing()
       if self._state == PROCESSING then
          self:_set_state(IDLE)
       end
+   elseif self._state == IDLE then
+      self._log:spam('ignoring stop_background_processing call.  not thinking...')
    end
 end
 
 function ExecutionUnitV2:start()
+   self._log:spam('start')
    assert(self:is_runnable())
    assert(self._state == READY)
    
@@ -189,22 +237,38 @@ function ExecutionUnitV2:start()
 end
 
 function ExecutionUnitV2:run()
+   self._log:spam('run')
    assert(self._run_args)
    assert(self:get_priority() > 0)
    assert(self._state == STARTED)
    
-   log:debug('%s coroutine starting action: %s (%s)',
-             self._entity, self:get_name(), stonehearth.ai:format_args(self._args))
-
    self:_set_state(RUNNING)
-   local result = { self._action:run(self._ai_interface, self._entity, unpack(self._run_args)) }
-   
-   log:debug('%s coroutine finished: %s', self._entity, tostring(self:get_name()))
+   local result = nil
+   if self._action.run then
+      self._log:debug('%s coroutine starting action: %s (%s)',
+                      self._entity, self:get_name(), stonehearth.ai:format_args(self._args))
+      result = { self._action:run(self._ai_interface, self._entity, unpack(self._run_args)) }      
+      self._log:debug('%s coroutine finished: %s', self._entity, tostring(self:get_name()))
+   else
+      self._log:debug('action has no run method.  (this is not an error, but is certainly weird)')
+   end
+   self:_set_state(HALTED)
    return result
 end
 
 function ExecutionUnitV2:stop()
-   if self._state == RUNNING then
+   self._log:spam('stop')
+   if self._state == RUNNING or self._state == HALTED then
+      self._log:debug('stop requested.')
+      if self._execute_frame then
+         self._execute_frame:destroy()
+         self._execute_frame = nil
+      end
+      for _, frame in ipairs(self._nested_frames) do
+         frame:stop()
+      end
+      self._nested_frames = {}
+      
       if self._action.stop then
          self._action:stop(self._ai_interface, self._entity)
       end
@@ -236,10 +300,13 @@ function ExecutionUnitV2:_is_type(var, cls)
 end
 
 function ExecutionUnitV2:_set_state(state)
-   assert (self._state ~= state)
+   self._log:spam('state change %s -> %s', tostring(self._state), state)
+   assert(state)
+   assert(self._state ~= state)
+   
    self._state = state
-   radiant.events.trigger(self, self._state, { execution_unit = self })
-   radiant.events.trigger(self, 'state_changed', { execution_unit = self, state = self._state })
+   radiant.events.trigger(self, self._state, self)
+   radiant.events.trigger(self, 'state_changed', self, self._state)
 end
 
 return ExecutionUnitV2

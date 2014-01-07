@@ -25,6 +25,9 @@ function ExecutionUnitV1:get_action_interface()
    return self
 end
 
+function ExecutionUnitV1:set_debug_route(debug_route)
+end
+
 -- ExecutionFrame facing functions...
 function ExecutionUnitV1:get_activity()
    return self._action.does
@@ -64,7 +67,7 @@ function ExecutionUnitV1:initialize(args)
 end
 
 function ExecutionUnitV1:destroy()
-   self:stop_frame(frame)
+   self:stop()
 end
 
 function ExecutionUnitV1:start_background_processing()
@@ -73,10 +76,10 @@ end
 function ExecutionUnitV1:stop_background_processing()
 end
 
-function ExecutionUnitV1:start_frame(frame)
+function ExecutionUnitV1:start()
 end
 
-function ExecutionUnitV1:stop_frame(frame)
+function ExecutionUnitV1:stop()
    if self._state == RUNNING then
       if self._action.stop then
          self._action:stop()

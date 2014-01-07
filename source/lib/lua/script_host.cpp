@@ -356,7 +356,7 @@ int ScriptHost::GetLogLevel(std::string const& category)
       last = category.rfind('.', last - 1);
    }
    if (config_level == SENTINEL) {
-      config_level = core::Config::GetInstance().Get<int>("logging.log_level", SENTINEL);
+      config_level = core::Config::GetInstance().Get<int>("logging.log_level", logger::GetDefaultLogLevel());
    }
    return config_level;
 }

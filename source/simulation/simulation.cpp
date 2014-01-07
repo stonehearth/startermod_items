@@ -166,8 +166,8 @@ void Simulation::CreateNew()
 
    game_tick_interval_ = core::Config::GetInstance().Get<int>("simulation.game_tick_interval", 200);
    net_send_interval_ = core::Config::GetInstance().Get<int>("simulation.net_send_interval", 200);
-   base_walk_speed_ = core::Config::GetInstance().Get<float>("simulation.base_walk_speed", 0.3f);
-   base_walk_speed_ = base_walk_speed_ * 1000.0f / game_tick_interval_;
+   base_walk_speed_ = core::Config::GetInstance().Get<float>("simulation.base_walk_speed", 7.5f);
+   base_walk_speed_ = base_walk_speed_ * game_tick_interval_ / 1000.0f;
 
    game_api_ = scriptHost_->Require("radiant.server");
    for (std::string const& name : resource_manager.GetModuleNames()) {

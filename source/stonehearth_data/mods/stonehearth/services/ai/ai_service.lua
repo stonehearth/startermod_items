@@ -204,7 +204,7 @@ function AiService:format_args(args)
    return msg
 end
 
-function AiService:create_execution_unit(ai_component, action_ctor, entity, injecting_entity)
+function AiService:create_execution_unit(ai_component, debug_route, action_ctor, entity, injecting_entity)
    local execution_unit_ctor
    if not action_ctor.version or action_ctor.version == 1 then
       execution_unit_ctor = ExecutionUnitV1
@@ -215,12 +215,15 @@ function AiService:create_execution_unit(ai_component, action_ctor, entity, inje
    local ai_interface = unit:get_action_interface()
    local action = action_ctor(ai_interface, entity, injecting_entity)
    unit:set_action(action)
+   if debug_route then
+      unit:set_debug_route(debug_route)
+   end
    return unit
 end
 
 local factory_mt = {
    __call = function(self, ai_component, entity, injecting_entity)
-      local unit = stonehearth.ai:create_execution_unit(ai_component, self._base_action_ctor, entity, injecting_entity)
+      local unit = stonehearth.ai:create_execution_unit(ai_component, nil, self._base_action_ctor, entity, injecting_entity)
       return CompoundAction(unit, self._actions)
    end
 }

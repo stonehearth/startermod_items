@@ -47,6 +47,11 @@ void radiant::logger::Init(boost::filesystem::path const& logfile)
    LOG_(0) << "logger initialized";
 }
 
+int radiant::logger::GetDefaultLogLevel()
+{
+   return default_log_level_;
+}
+
 void radiant::logger::Flush()
 {
    if (file_log_sink) {
