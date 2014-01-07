@@ -27,7 +27,7 @@
             <div class="subtitle">
                {{i18n stonehearth:build_workshop_requirements}}
                {{#each workshop.ingredients}}
-                  <div>{{count}} {{material}}</div>
+                  <div>{{this.count}} {{this.material}}</div>
                {{/each}}
             </div>
 

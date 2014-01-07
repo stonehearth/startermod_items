@@ -16,7 +16,8 @@
       "skin" : "file(./skin/skin.png)",    
       "workbench_type" : "stonehearth:weaver:workbench",
       "ingredients": [
-         { "material" : "wood resource", "count" : 1 }
+         { "material" : "wood resource", "count" : 1 },
+         { "material" : "fiber resource", "count" : 1 }
       ]
    }
 }

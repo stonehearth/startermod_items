@@ -35,11 +35,11 @@
          },
          "ingredients" : [
             {
-               "material" : "wood resource",
+               "material" : "fiber resource",
                "count" : 1
             },
             {
-               "material" : "fiber resource",
+               "material" : "wood resource",
                "count" : 1
             }
          ],
