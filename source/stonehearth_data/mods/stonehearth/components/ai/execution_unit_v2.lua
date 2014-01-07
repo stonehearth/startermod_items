@@ -131,8 +131,10 @@ function ExecutionUnitV2:destroy()
    end
    if self._action.destroy then
       self._action:destroy(self._ai_interface, self._entity)
-      self._action = nil
+   else
+      self._log:spam('action does not implement destroy')
    end
+   self._action = nil
    self:_set_state(DEAD)
    radiant.events.unpublish(self)   
 end
@@ -202,6 +204,7 @@ function ExecutionUnitV2:start_background_processing()
          if self._action.start_background_processing then
             self._action:start_background_processing(self._ai_interface, self._entity, unpack(self._args))
          else
+            self._log:spam('action does not implement start_background_processing')
             self:__complete_background_processing(unpack(self._args))
          end
       end
@@ -216,6 +219,8 @@ function ExecutionUnitV2:stop_background_processing()
    if self._state == PROCESSING or self._state == READY then
       if self._action.stop_background_processing then
          self._action:stop_background_processing(self._ai_interface, self._entity)
+      else
+         self._log:spam('action does not implement stop_background_processing')      
       end
       if self._state == PROCESSING then
          self:_set_state(IDLE)
@@ -232,6 +237,8 @@ function ExecutionUnitV2:start()
    
    if self._action.start then
       self._action:start(self._ai_interface, self._entity)
+   else
+      self._log:spam('action does not implement start')         
    end
    self:_set_state(STARTED)
 end
@@ -250,7 +257,7 @@ function ExecutionUnitV2:run()
       result = { self._action:run(self._ai_interface, self._entity, unpack(self._run_args)) }      
       self._log:debug('%s coroutine finished: %s', self._entity, tostring(self:get_name()))
    else
-      self._log:debug('action has no run method.  (this is not an error, but is certainly weird)')
+      self._log:debug('action does not implement run.  (this is not an error, but is certainly weird)')
    end
    self:_set_state(HALTED)
    return result
@@ -271,6 +278,8 @@ function ExecutionUnitV2:stop()
       
       if self._action.stop then
          self._action:stop(self._ai_interface, self._entity)
+      else
+         self._log:spam('action does not implement stop')
       end
       self._run_args = nil
       self:_set_state(IDLE)
@@ -301,8 +310,7 @@ end
 
 function ExecutionUnitV2:_set_state(state)
    self._log:spam('state change %s -> %s', tostring(self._state), state)
-   assert(state)
-   assert(self._state ~= state)
+   assert(state and self._state ~= state)
    
    self._state = state
    radiant.events.trigger(self, self._state, self)

@@ -9,7 +9,7 @@ Idle.priority = 1
 function Idle:run(ai, entity)
    local countdown = math.random(1, 3)
    while true do
-      if true or countdown <= 0 then
+      if countdown <= 0 then
          ai:execute('stonehearth:idle:bored')
          countdown = math.random(1, 3)
       else

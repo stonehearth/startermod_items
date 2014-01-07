@@ -183,6 +183,7 @@
          "actions:get_food_action" : "file(ai/actions/get_food_action.lua)",
          "actions:eat_food_action" : "file(ai/actions/eat_food_action.lua)",
          "actions:chop_tree_action" : "file(ai/actions/chop_tree_action.lua)",
+         "actions:chop_tree_adjacent_action" : "file(ai/actions/chop_tree_adjacent_action.lua)",
          "actions:worker_harvest_plant_action" : "file(ai/actions/worker_harvest_plants_action.lua)",
          "actions:shear_sheep_action" : "file(ai/actions/shear_sheep_action.lua)",
          "actions:carry_item_on_path_to" : "file(ai/actions/carry_item_on_path_to.lua)",

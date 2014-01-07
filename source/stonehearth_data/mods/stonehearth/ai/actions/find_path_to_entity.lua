@@ -39,6 +39,10 @@ function FindPathToEntityAction:stop_background_processing(ai, entity, target)
       self._pathfinder:stop()
       self._pathfinder = nil
    end
+   if self._trace then
+      self._trace:destroy()
+      self._trace = nil
+   end
 end
 
 function FindPathToEntityAction:run(ai, entity, path)

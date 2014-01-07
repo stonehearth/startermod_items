@@ -2,11 +2,12 @@ local AiService = class()
 local AiInjector = require 'services.ai.ai_injector'
 local ExecutionUnitV1 = require 'components.ai.execution_unit_v1'
 local ExecutionUnitV2 = require 'components.ai.execution_unit_v2'
-local CompoundAction = require 'services.ai.compound_action'
+local CompoundActionFactory = require 'services.ai.compound_action_factory'
+local placeholders = require 'services.ai.placeholders'
 local log = radiant.log.create_logger('ai.service')
 
-AiService.ARGS = CompoundAction.ARGS
-AiService.PREV = CompoundAction.PREV
+AiService.ARGS = placeholders.ARGS
+AiService.PREV = placeholders.PREV
 
 function AiService:__init()
    -- SUSPEND_THREAD is a unique, non-integer token which indicates the thread
@@ -96,6 +97,16 @@ end
 function AiService:remove_action(entity, uri)
    local ai_component = self:_get_ai_component(entity)
    ai_component:remove_action(uri)
+end
+
+function AiService:add_custom_action(entity, action_ctor, injecting_entity)
+   local ai_component = self:_get_ai_component(entity)
+   ai_component:add_action(action_ctor, action_ctor, injecting_entity)
+end
+
+function AiService:remove_custom_action(entity, action_ctor, injecting_entity)
+   local ai_component = self:_get_ai_component(entity)
+   ai_component:remove_action(action_ctor)
 end
 
 function AiService:add_observer(entity, uri, ...)
@@ -191,6 +202,10 @@ function AiService:_schedule(co)
    self._waiting_until[co] = nil
 end
 
+function AiService:format_activity(activity)
+   return activity[1] .. '(' .. self:format_args(select(2, activity)) .. ')'
+end
+
 function AiService:format_args(args)
    local msg = ''
    if args then
@@ -213,7 +228,13 @@ function AiService:create_execution_unit(ai_component, debug_route, action_ctor,
    end
    local unit = execution_unit_ctor(ai_component, entity, injecting_entity)
    local ai_interface = unit:get_action_interface()
-   local action = action_ctor(ai_interface, entity, injecting_entity)
+
+   local action
+   if action_ctor.create_action then
+      action = action_ctor:create_action(ai_interface, entity, injecting_entity)
+   else
+      action = action_ctor(ai_interface, entity, injecting_entity)
+   end
    unit:set_action(action)
    if debug_route then
       unit:set_debug_route(debug_route)
@@ -221,31 +242,8 @@ function AiService:create_execution_unit(ai_component, debug_route, action_ctor,
    return unit
 end
 
-local factory_mt = {
-   __call = function(self, ai_component, entity, injecting_entity)
-      local unit = stonehearth.ai:create_execution_unit(ai_component, nil, self._base_action_ctor, entity, injecting_entity)
-      return CompoundAction(unit, self._actions)
-   end
-}
-
-function AiService:create_compound_action(cls)
-   local factory = {      
-      _base_action_ctor = cls,
-      _actions = {},
-      does = cls.does,
-      version = cls.version,
-      args = cls.args,
-      run_args = cls.args,
-      priority = cls.priority,
-      
-      -- interface to compound action builder...
-      execute = function(self, ...)
-         table.insert(self._actions, {...})
-         return self
-      end
-   }
-   setmetatable(factory, factory_mt)
-   return factory
+function AiService:create_compound_action(action_ctor)
+   return CompoundActionFactory(action_ctor)
 end
 
 return AiService()

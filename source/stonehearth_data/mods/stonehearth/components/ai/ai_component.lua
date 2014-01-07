@@ -3,7 +3,7 @@ local AIComponent = class()
 local ExecutionFrame = require 'components.ai.execution_frame'
 local log = radiant.log.create_logger('ai.component')
 
-local URI_TO_ACTIVITY = {}
+local action_key_to_activity = {}
 
 function AIComponent:__init(entity)
    self._entity = entity
@@ -36,33 +36,38 @@ function AIComponent:destroy()
    self._action_index = {}
 end
 
-function AIComponent:add_action(uri, action_ctor, injecting_entity)
+function AIComponent:add_action(key, action_ctor, injecting_entity)
    local does = action_ctor.does
    assert(does)
-   URI_TO_ACTIVITY[uri] = does
+   assert(not action_key_to_activity[key])
+   action_key_to_activity[key] = does
    local action_index = self._action_index[does]
    if not action_index then
       action_index = {}
       self._action_index[does] = action_index
    end
-   assert(not self._action_index[does][uri])
-   self._action_index[does][uri] = {
+   assert(not self._action_index[does][key])
+   
+   local entry = {
       action_ctor = action_ctor,
-      injecting_entity = injecting_entity
+      injecting_entity = injecting_entity,
    }
+   self._action_index[does][key] = entry
+   radiant.events.trigger(self, 'action_added', key, entry, does)
 end
 
-function AIComponent:remove_action(uri)
-   local does = URI_TO_ACTIVITY[uri]
+function AIComponent:remove_action(key)
+   local does = action_key_to_activity[key]
    if does then
-      self._action_index[does][uri] = nil
+      self._action_index[does][key] = nil
       assert(false) -- need to find the lowest execution_frame that contains this action and restart it
    end
+   assert(false, 'gotta walk up the stack and remove it from all the running frames')
 end
 
-function AIComponent:add_observer(uri, observer)
-   assert(not self._observers[uri])
-   self._observers[uri] = observer
+function AIComponent:add_observer(key, observer)
+   assert(not self._observers[key])
+   self._observers[key] = observer
 end
 
 function AIComponent:remove_observer(observer)
@@ -70,7 +75,7 @@ function AIComponent:remove_observer(observer)
       if observer.destroy_observer then
          observer:destroy_observer()
       end
-      self._observer[uri] = nil
+      self._observer[key] = nil
    end
 end
 
@@ -107,6 +112,11 @@ function AIComponent:spawn_debug_route(debug_route, ...)
    -- create a new frame and return it   
    log:spam('%s creating execution frame for %s', self._entity, activity_name)
    local actions = self._action_index[activity_name]
+   if not actions then
+      log:warning('no actions for %s at the moment.  this is actually ok for tasks (they may come later)',
+                  stonehearth.ai:format_activity(activity))
+      actions = {}
+   end
    return ExecutionFrame(self, actions, activity, debug_route)
 end
 

@@ -18,6 +18,7 @@ function ResourceCallHandler:harvest_tree(session, response, tree)
 
    local id = tree:get_id()
    if not all_harvest_tasks[id] then
+      --[[
       all_harvest_tasks[id] = worker_scheduler:add_worker_task('chop_tree')
                                                  :set_worker_filter_fn(not_carrying_fn)
                                                  :add_work_object(tree)
@@ -25,6 +26,12 @@ function ResourceCallHandler:harvest_tree(session, response, tree)
                                                  :set_max_workers(1)
                                                  :set_priority(priorities.CHOP_TREE)
                                                  :start()
+      ]]
+      all_harvest_tasks[id] = stonehearth.tasks:get_scheduler('stonehearth:workers')
+                                :create_task('stonehearth:chop_tree', tree)
+                                :set_name('chop tree task')
+                                :start()
+
       radiant.effects.run_effect(tree, '/stonehearth/data/effects/chop_overlay_effect')
    end
    

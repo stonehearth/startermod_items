@@ -20,33 +20,79 @@ function ExecutionFrame:__init(ai_component, actions, activity, debug_route)
    self._entity = self._ai_component:get_entity()
    self._activity_name = activity[1]   
    self._state = CONSTRUCTED
+   self._execution_units = {}
+   
    self._id = NEXT_FRAME_ID
    NEXT_FRAME_ID = NEXT_FRAME_ID + 1
-   
+
+   self._log = radiant.log.create_logger('ai.exec_frame')
    if not debug_route then
       debug_route = 'e:' .. tostring(self._entity:get_id())
    end
-   self._debug_route = debug_route .. ' f:' .. tostring(self._id)
-   
-   local prefix = string.format('%s (%s)', self._debug_route, self._activity_name)
-   self._log = radiant.log.create_logger('ai.exec_frame', prefix)
+   self:set_debug_route(debug_route)  
    self._log:debug('creating execution frame')
    
    local ai = stonehearth.ai
-   self._execution_units = {}
-   for uri, entry in pairs(actions) do
-      local unit = ai:create_execution_unit(self._ai_component, self._debug_route, entry.action_ctor, self._entity, entry.injecting_entity)
-      self._execution_units[uri] = unit
+   for key, entry in pairs(actions) do
+      self:_add_execution_unit(key, entry)
    end
    
    -- notify everyone that they party's started
-   local args = { select(2, unpack(activity)) }
-   for uri, unit in pairs(self._execution_units) do
-      unit:set_debug_route(self._debug_route)
-      unit:initialize(args)
-      radiant.events.listen(unit, 'ready', self, self.on_unit_state_change)
-      radiant.events.listen(unit, 'priority_changed', self, self.on_unit_state_change)
+   self._args = { select(2, unpack(activity)) }
+   for _, unit in pairs(self._execution_units) do
+      self:_prime_execution_unit(unit)
    end
+   radiant.events.listen(self._ai_component, 'action_added', self, self._on_action_added)
+end
+
+function ExecutionFrame:_on_action_added(key, entry, does)
+   if self._activity_name == does then
+      local unit = self:_add_execution_unit(key, entry)
+      self:_prime_execution_unit(unit)
+      if self:_is_thinking() then
+         if self:_is_better_execution_unit(unit) then
+            unit:start_background_processing()
+         end
+      end
+   end
+end
+
+function ExecutionFrame:_is_thinking()
+   return self._state == PROCESSING or
+          self._state == READY or
+          self._state == RUNNING or
+          self._state == HALTED
+end
+
+function ExecutionFrame:_add_execution_unit(key, entry)
+   local name = tostring(type(key) == 'table' and key.name or key)
+   self._log:spam('adding new execution unit: %s', name)
+   
+   assert(not self._execution_units[key])   
+   local unit = stonehearth.ai:create_execution_unit(self._ai_component,
+                                                     self._debug_route,
+                                                     entry.action_ctor,
+                                                     self._entity,
+                                                     entry.injecting_entity)
+   self._execution_units[key] = unit
+   return unit
+end
+
+function ExecutionFrame:_prime_execution_unit(unit)
+   unit:set_debug_route(self._debug_route)
+   unit:initialize(self._args)
+   radiant.events.listen(unit, 'ready', self, self.on_unit_state_change)
+   radiant.events.listen(unit, 'priority_changed', self, self.on_unit_state_change)
+end
+
+
+function ExecutionFrame:set_debug_route(debug_route)
+   self._debug_route = debug_route .. ' f:' .. tostring(self._id)
+   local prefix = string.format('%s (%s)', self._debug_route, self._activity_name)
+   self._log:set_prefix(prefix)
+   for _, unit in pairs(self._execution_units) do
+      unit:set_debug_route(self._debug_route)
+   end   
 end
 
 function ExecutionFrame:destroy()
@@ -62,7 +108,7 @@ function ExecutionFrame:destroy()
          self._co = nil
       end
       
-      for uri, unit in pairs(self._execution_units) do
+      for _, unit in pairs(self._execution_units) do
          unit:destroy()
       end
       self._active_unit = nil
@@ -70,6 +116,7 @@ function ExecutionFrame:destroy()
 
       self:_set_state(DEAD)
       radiant.events.unpublish(self)
+      radiant.events.unlisten(self._ai_component, 'action_added', self, self._on_action_added)
    else
       self._log:spam('ignoring redundant destroy call (this is not an error, just letting you know)')
    end
@@ -102,7 +149,7 @@ function ExecutionFrame:start_background_processing()
    
    self._in_start_processing = true
    self:_set_state(PROCESSING)
-   for uri, unit in pairs(self._execution_units) do
+   for _, unit in pairs(self._execution_units) do
       if self:_is_better_execution_unit(unit) then
          unit:start_background_processing()
       end
@@ -120,7 +167,7 @@ function ExecutionFrame:stop_background_processing()
    assert(self._state == CONSTRUCTED or self._state == PROCESSING)
    
    if self._state == PROCESSING then
-      for uri, unit in pairs(self._execution_units) do
+      for _, unit in pairs(self._execution_units) do
          unit:stop_background_processing()
       end
       self:_set_state(CONSTRUCTED)
@@ -136,7 +183,7 @@ function ExecutionFrame:start()
    assert(self._active_unit)
 
    self:_set_state(STARTING)
-   for uri, unit in pairs(self._execution_units) do
+   for _, unit in pairs(self._execution_units) do
       if unit == self._active_unit then
          -- XXXXXXXXXXXXXXXXXXXXXX
          -- XXXXXXXXXXXXXXXXXXXXXX
@@ -209,7 +256,7 @@ function ExecutionFrame:stop()
    if self._state ~= STOPPED then
       self:_set_active_unit(nil)      
       self:_set_state(STOPPING)
-      for uri, unit in pairs(self._execution_units) do
+      for _, unit in pairs(self._execution_units) do
          unit:stop()
       end
       self:_set_state(STOPPED)
@@ -254,7 +301,7 @@ function ExecutionFrame:_get_best_execution_unit()
    local active_units = nil
    
    self._log:spam('%s looking for best execution unit for "%s"', self._entity, self._activity_name)
-   for uri, unit in pairs(self._execution_units) do
+   for _, unit in pairs(self._execution_units) do
       local name = unit:get_name()
       local priority = unit:get_priority()
       local is_runnable = unit:is_runnable()

@@ -3,6 +3,35 @@ local log = radiant.log.create_logger('worker')
 
 WorkerTaskDispatcher.name = 'worker task dispatcher'
 WorkerTaskDispatcher.does = 'stonehearth:top'
+WorkerTaskDispatcher.args = {}
+WorkerTaskDispatcher.version = 2
+WorkerTaskDispatcher.priority = 3
+
+function WorkerTaskDispatcher:__init(ai, entity)
+   self._entity = entity
+   stonehearth.tasks:get_scheduler('stonehearth:workers')
+                        :join(entity)
+end
+
+function WorkerTaskDispatcher:destroy()
+   stonehearth.tasks:get_scheduler('stonehearth:workers')
+                        :leave(self._entity)
+end
+
+-- wire stonehearth:work into the decision tree for all stonehearth:workers
+ stonehearth.tasks:get_scheduler('stonehearth:workers')
+                  :set_activity('stonehearth:work')
+
+local ai = stonehearth.ai
+return ai:create_compound_action(WorkerTaskDispatcher)
+         :execute('stonehearth:work')
+
+--[[
+local WorkerTaskDispatcher = class()
+local log = radiant.log.create_logger('worker')
+
+WorkerTaskDispatcher.name = 'worker task dispatcher'
+WorkerTaskDispatcher.does = 'stonehearth:top'
 WorkerTaskDispatcher.version = 1
 WorkerTaskDispatcher.priority = 0
 
@@ -120,3 +149,4 @@ function WorkerTaskDispatcher:stop()
 end
 
 return WorkerTaskDispatcher
+]]
