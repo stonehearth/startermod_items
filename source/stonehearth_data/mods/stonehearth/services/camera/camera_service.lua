@@ -28,7 +28,7 @@ function CameraService:__init()
   self._max_zoom = 300
 
   -- xxx, initialize this from a user setting?
-  self._scroll_on_drag = true
+  self._scroll_on_drag = false
 
   self:_update_camera(0)
 
@@ -236,11 +236,10 @@ function CameraService:_find_target()
 end
 
 function CameraService:_calculate_drag(e)
-  local drag_key_down = _radiant.client.is_key_down(_radiant.client.KeyboardInput.LEFT_SHIFT) or
-                        _radiant.client.is_key_down(_radiant.client.KeyboardInput.RIGHT_SHIFT)
+  local drag_key_down = _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_SPACE)
 
   local drag = drag_key_down or self._scroll_on_drag
-
+  
   if e:down(1) and drag then
     local r = _radiant.renderer.scene.cast_screen_ray(e.x, e.y)
     local screen_ray = _radiant.renderer.scene.get_screen_ray(e.x, e.y)
@@ -254,6 +253,7 @@ function CameraService:_calculate_drag(e)
       screen_ray.direction:scale(d)
       self._drag_start = screen_ray.origin + screen_ray.direction
     end
+
     local root = _radiant.client.get_entity(1)
     local terrain_comp = root:get_component('terrain')
     local bounds = terrain_comp:get_bounds():to_float()
@@ -269,6 +269,36 @@ function CameraService:_calculate_drag(e)
   end
 
   self:_drag(e.x, e.y)
+end
+
+function CameraService:_process_keys()
+  
+  local left = Vec3(0, 0, 0)
+  local forward = Vec3(0, 0, 0)
+  local x_scale = 0
+  local y_scale = 0
+
+  if _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_A) then
+     x_scale = -scroll_speed
+  elseif _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_D) then
+     x_scale = scroll_speed
+  end
+
+  left = _radiant.renderer.camera.get_left()
+  left:scale(x_scale)
+
+  if _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_W) then
+     y_scale = -scroll_speed
+  elseif _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_S) then
+     y_scale = scroll_speed
+  end
+
+  forward = _radiant.renderer.camera.get_forward()
+  forward.y = 0
+  forward:normalize()
+  forward:scale(y_scale)
+
+  self._continuous_delta = forward + left
 end
 
 function CameraService:_drag(x, y)
@@ -339,6 +369,8 @@ function CameraService:_calculate_scroll(e, screen_x, screen_y, gutter, focused)
 end
 
 function CameraService:_update_camera(frame_time)
+  self:_process_keys()
+
   local scaled_continuous_delta = Vec3(self._continuous_delta)
   scaled_continuous_delta:scale(frame_time / 1000.0)
   self._next_position = self._next_position + (scaled_continuous_delta) + self._impulse_delta

@@ -122,7 +122,7 @@ function ProxyRoomBuilder:_move_door()
 end
 
 function ProxyRoomBuilder:_on_keyboard_event(e)
-   if e.key == _radiant.client.KeyboardInput.ESC and e.down then
+   if e.key == _radiant.client.KeyboardInput.KEY_ESC and e.down then
       self:cancel()
       return true
    end

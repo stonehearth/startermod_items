@@ -77,7 +77,7 @@ function NewGameCallHandler:_on_mouse_event(e, response)
 end
 
 function NewGameCallHandler:_on_keyboard_event(e, response)
-   if e.key == _radiant.client.KeyboardInput.ESC and e.down then
+   if e.key == _radiant.client.KeyboardInput.KEY_ESC and e.down then
       self:_destroy_capture()
        _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
        response:resolve({ result = false })
