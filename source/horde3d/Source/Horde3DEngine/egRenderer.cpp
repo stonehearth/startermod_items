@@ -2568,7 +2568,8 @@ void Renderer::drawVoxelMeshes_Instances(const std::string &shaderContext, const
          continue;
       }
 
-      Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", instanceKind.second.size() >= VoxelInstanceCutoff);
+      bool useInstancing = instanceKind.second.size() >= VoxelInstanceCutoff && gRDI->getCaps().hasInstancing;
+      Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", useInstancing);
 
       // Shadow offsets will always win against the custom model offsets (which we don't care about
       // during a shadow pass.)
@@ -2616,7 +2617,7 @@ void Renderer::drawVoxelMeshes_Instances(const std::string &shaderContext, const
 			gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color.x );
 		}
 
-      if (gRDI->getCaps().hasInstancing && instanceKind.second.size() >= VoxelInstanceCutoff) {
+      if (useInstancing) {
          drawVoxelMesh_Instances_WithInstancing(instanceKind.second, vmn);
       } else {
          drawVoxelMesh_Instances_WithoutInstancing(instanceKind.second, vmn);
