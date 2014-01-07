@@ -262,12 +262,11 @@ void Renderer::BuildSkySphere()
    }
 
    // Set up texture coordinates for each vertex based on it's 'height'.  We will use this to
-   // interpolate a gradient.  Also, scale the vertices after computing the texture coordinate.
+   // interpolate a gradient.
    for (int i = 0; i < 2046; i++)
    {
       texData[i * 2 + 0] = 0.0f;
       texData[i * 2 + 1] = 1.0f - ((spVerts[i].y * 0.5f) + 0.5f);
-      spVerts[i] *= 100.0f;
    }
 
    skysphereMat = h3dAddResource(H3DResTypes::Material, "materials/skysphere.material.xml", 0);
@@ -300,7 +299,6 @@ void Renderer::BuildStarfield()
          rng.GetReal(-0.8f, 0.1f), 
          rng.GetReal(-1.0f, 1.0f));
       starPos.normalize();
-      starPos *= 900.0f;
       verts[i + 0] = starPos;
       verts[i + 1] = starPos;
       verts[i + 2] = starPos;
@@ -379,6 +377,8 @@ void Renderer::GetConfigOptions()
    config_.screen_height.value = config.Get("renderer.screen_height", 720);
 
    config_.enable_debug_keys.value = config.Get("enable_debug_keys", false);
+
+   config_.draw_distance.value = config.Get("renderer.draw_distance", 1000.0f);
 }
 
 void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
@@ -420,6 +420,11 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
       LoadResources();
    }
 
+   // Propagate far-plane value.
+   if (camera_) {
+      ResizeViewport();
+   }
+
    glfwSwapInterval(config_.enable_vsync.value ? 1 : 0);
 
    if (persistConfig)
@@ -437,6 +442,7 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
 
       config.Set("renderer.screen_width", config_.screen_width.value);
       config.Set("renderer.screen_height", config_.screen_height.value);
+      config.Set("renderer.draw_distance", config_.draw_distance.value);
    }
 }
 
@@ -623,15 +629,19 @@ void Renderer::RenderOneFrame(int now, float alpha)
 
    h3dSetMaterialArrayUniform( ssaoMat, "samplerKernel", ssaoSamplerData.data(), ssaoSamplerData.size());
    
-   // Update the position of the sky so that it is always around the camera.
+   float skysphereDistance = config_.draw_distance.value * 0.4f;
+   float starsphereDistance = config_.draw_distance.value * 0.9f;
+   // Update the position of the sky so that it is always around the camera.  This isn't strictly
+   // necessary for rendering, but very important for culling!  Horde doesn't (yet) know that
+   // some nodes should _always_ be drawn.
    h3dSetNodeTransform(meshNode, 
-      camera_->GetPosition().x, -50 + camera_->GetPosition().y, camera_->GetPosition().z,
-      25.0, 0.0, 0.0, 
-      1.0, 1.0, 1.0);
+      camera_->GetPosition().x, -(skysphereDistance * 0.5) + camera_->GetPosition().y, camera_->GetPosition().z,
+      25.0, 0.0, 0.0,
+      skysphereDistance, skysphereDistance, skysphereDistance);
    h3dSetNodeTransform(starfieldMeshNode, 
       camera_->GetPosition().x, camera_->GetPosition().y, camera_->GetPosition().z,
       0.0, 0.0, 0.0, 
-      1.0, 1.0, 1.0);
+      starsphereDistance, starsphereDistance, starsphereDistance);
 
    // Render scene
    perfmon::SwitchToCounter("render h3d");
@@ -803,7 +813,7 @@ void Renderer::ResizeViewport()
    h3dSetNodeParamI( camera, H3DCamera::ViewportHeightI, windowHeight_ );
    
    // Set virtual camera parameters
-   h3dSetupCameraView( camera, 45.0f, (float)windowWidth_ / windowHeight_, 2.0f, 1000.0f);
+   h3dSetupCameraView( camera, 45.0f, (float)windowWidth_ / windowHeight_, 2.0f, config_.draw_distance.value);
 }
 
 void Renderer::SetDrawWorld(bool drawWorld) 

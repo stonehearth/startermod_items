@@ -43,6 +43,24 @@ function PopulationFaction:_set_citizen_initial_state(citizen, gender)
    local personality = personality_service:get_new_personality()
    citizen:add_component('stonehearth:personality'):set_personality(personality)
 
+   -- stats 
+   radiant.entities.set_attribute(citizen, 'mind', math.random(1, 6))
+   radiant.entities.set_attribute(citizen, 'body', math.random(1, 6))
+   radiant.entities.set_attribute(citizen, 'spirit', math.random(1, 6))
+
+   radiant.entities.set_attribute(citizen, 'diligence', 100)
+   radiant.entities.set_attribute(citizen, 'curiosity', 100)
+   radiant.entities.set_attribute(citizen, 'inventiveness', 100)
+
+
+   radiant.entities.set_attribute(citizen, 'muscle', 100)
+   radiant.entities.set_attribute(citizen, 'stamina', 100)
+
+
+   radiant.entities.set_attribute(citizen, 'courage', 100)
+   radiant.entities.set_attribute(citizen, 'willpower', 100)
+   radiant.entities.set_attribute(citizen, 'compassion', 100)
+
    -- randomize hunger
    radiant.entities.set_attribute(citizen, 'hunger', math.random(1, 30))
 

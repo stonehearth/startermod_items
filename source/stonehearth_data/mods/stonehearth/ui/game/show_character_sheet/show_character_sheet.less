@@ -1,0 +1,118 @@
+#characterSheet {
+   position: absolute;
+   top: 10px;
+   left: 10px;
+   width: 764px;
+   height: 930px;
+   background: url('./images/bg.png');
+
+   #header {
+      position: absolute;
+      top: 52px;
+      left: 50px;
+
+      .name {
+         .controlFont;
+         font-size: 36px;
+      }
+
+      .description {
+         .controlFont;
+         font-size: 26px;
+         color: #fff;
+      }
+   }
+
+   #glass {
+      .controlFont;
+      position: absolute;
+      top: 195px;
+      left: 454px;
+      color: #fff;
+
+      #mind {
+
+      }
+
+      #body {
+
+      }
+
+      #spirit {
+
+      }
+   }
+
+   .content {
+      h2 {
+         color: #000;
+         text-shadow: none;
+         margin: 6px 0px;
+      }
+   }
+
+   .column1 {
+      position: absolute;
+      top: 467px;
+      left: 50px;
+      width: 295px;
+   }
+
+   .column2 {
+      position: absolute;
+      top: 467px;
+      left: 407px;
+      width: 295px;      
+   }
+
+   table {
+      width: 100%;
+      border-collapse:collapse;
+
+      td {
+         vertical-align: top;
+         padding: 4px;
+      }
+
+      td:first-of-type {
+      }
+
+      td:nth-of-type(2) {
+         .outlined;
+         color: #fff;
+         text-align: right;
+      }
+
+      tr:nth-child(even) {
+         background: rgba(0,0,0,0.1);
+      }
+
+   }
+
+   #persona {
+      font-size: 16px;
+   }
+
+   #attributes {
+      font-size: 16px;
+   }
+
+   #group {
+      padding-bottom: 16px;
+
+      .name {
+         float: left;
+      }
+      .value {
+         float: right;
+      }
+
+      .clear {
+         content: '.';
+         display: block;
+         clear: both;
+         visibility: hidden;
+      }         
+   }  
+
+}

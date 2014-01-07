@@ -113,8 +113,7 @@ h1, h2, h3, h4 {
 }
 
 h1 {
-	font-size: 1.1em;
-	margin-bottom: 0px;
+	margin: 4px;
 }
 
 .ui-progressbar {
@@ -140,4 +139,31 @@ h1 {
 }
 .ui-progressbar-indeterminate .ui-progressbar-value {
   background-image: none;
+}
+
+table.settings {
+   width: 100%;
+   border-collapse:collapse;
+
+   td {
+      vertical-align: top;
+      padding: 4px;
+   }
+
+   td:first-of-type {
+   }
+
+   td:nth-of-type(2) {
+      .outlined;
+      color: #fff;
+      text-align: right;
+   }
+
+   tr:nth-child(even) {
+      background: rgba(0,0,0,0.1);
+   }
+}
+
+.nobr { 
+   white-space:nowrap; 
 }

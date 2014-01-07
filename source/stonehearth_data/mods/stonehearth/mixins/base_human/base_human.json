@@ -28,6 +28,7 @@
 	   },
       "stonehearth:commands" : {
          "commands" : [
+            "file(/data/commands/show_character_sheet)"
          ]
       },
       "stonehearth:attributes" : {
