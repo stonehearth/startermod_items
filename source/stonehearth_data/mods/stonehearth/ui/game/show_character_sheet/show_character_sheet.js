@@ -17,7 +17,13 @@ App.StonehearthCharacterSheetView = App.View.extend({
    },
 
    firstJournalEntry: function() {
-      return { date: "date", title: "title", text: "this iss the entry" }
-   }
+      var log = this.get('stonehearth:personality.log');
+
+      if (log && log.length > 0) {
+         return log[1];
+      } else {
+         return { title: "no entries" };
+      }
+   }.property()
 
 });
