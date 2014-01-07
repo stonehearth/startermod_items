@@ -102,7 +102,7 @@ end
 
 function ExecutionUnitV2:__abort(reason)
    self._log:spam('abort %s called', tostring(reason))
-   self._ai_component:abort(reason)
+   assert(false, "i am way too sleepy to implement abort")
 end
 
 function ExecutionUnitV2:spawn(...)

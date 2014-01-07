@@ -6,15 +6,7 @@ Wander.name = 'wander'
 Wander.does = 'stonehearth:idle:bored'
 Wander.args = { }
 Wander.version = 2
-Wander.priority = 1
-
--- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
--- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
--- Debugging...DWT_1D
-Wander.does = 'stonehearth:top'
-Wander.priority = 10
--- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
--- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+Wander.priority = 2
 
 function Wander:__init(ai, entity)
    self._ai = ai
@@ -36,13 +28,11 @@ function Wander:start_background_processing(ai, entity)
 
    if ((entity_location.x + dx > leash_location.x + radius) or 
        (entity_location.x + dx < leash_location.x - radius)) then
-
        dx = dx * -1;
    end
 
    if ((entity_location.z + dz > leash_location.z + radius) or 
        (entity_location.x + dz < leash_location.z - radius)) then
-
        dz = dz * -1;
    end   
 

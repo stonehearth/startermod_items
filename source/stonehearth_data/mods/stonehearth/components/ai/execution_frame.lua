@@ -113,6 +113,21 @@ function ExecutionFrame:start_background_processing()
    self:_set_active_unit(unit)
 end
 
+function ExecutionFrame:stop_background_processing()
+   self._log:spam('stop_background_processing')
+   assert(not self._co)
+   assert(not self._co_running)
+   assert(self._state == CONSTRUCTED or self._state == PROCESSING)
+   
+   if self._state == PROCESSING then
+      for uri, unit in pairs(self._execution_units) do
+         unit:stop_background_processing()
+      end
+      self:_set_state(CONSTRUCTED)
+      self:_set_active_unit(nil)
+   end
+end
+
 function ExecutionFrame:start()
    self._log:spam('start')
    assert(not self._co)
@@ -281,7 +296,11 @@ function ExecutionFrame:_set_active_unit(unit)
       assert(unit:is_runnable() and unit:get_priority() > 0)
    end
    
-   if self._state == PROCESSING then
+   if self._state == CONSTRUCTED then
+      assert(not unit)
+      assert(not self._active_unit)
+      assert(not self._co)
+   elseif self._state == PROCESSING then
       self._active_unit = unit
       if unit then
          self:_set_state(READY)

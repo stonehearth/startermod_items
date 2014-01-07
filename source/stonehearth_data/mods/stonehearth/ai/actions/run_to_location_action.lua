@@ -37,7 +37,7 @@ end
 
 function RunToLocation:stop_background_processing(ai, entity)
    if self._dest_entity then
-      radiant.entities.destroy(self._dest_entity)
+      radiant.entities.destroy_entity(self._dest_entity)
       self._dest_entity = nil
    end
 end
