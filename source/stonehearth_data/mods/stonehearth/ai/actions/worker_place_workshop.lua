@@ -19,9 +19,8 @@ function WorkerPlaceWorkshop:__init(ai, entity)
    self._task = nil
 end
 
-function WorkerPlaceWorkshop:run(ai, entity, path, ghost_entity, outbox_entity, task)
+function WorkerPlaceWorkshop:run(ai, entity, path, ghost_entity, outbox_entity, ingredient_list_obj, task)
    --Run to get the target item that we can use to build the workshop
-   --TODO: what if we need multiple items to build?
    local target_ingredient = path:get_destination()
    if not target_ingredient then
       ai:abort()
@@ -48,12 +47,48 @@ function WorkerPlaceWorkshop:run(ai, entity, path, ghost_entity, outbox_entity, 
       ai:abort()
    end
 
-   -- Run over to the workshop's designated location and use up the wood
-   --TODO: Handle case where workshop requires multiple ingredients
+   -- Run over to the workshop's designated location and use up first ingredient
    local target_location = radiant.entities.get_world_grid_location(ghost_entity)
+   local materials = {}
    ai:execute('stonehearth:drop_carrying', target_location)
+   table.insert(materials, carrying)
+
+   --If there are more ingredients, iterate through them, carrying them over
+   if ingredient_list_obj then
+      if not ingredient_list_obj:get_all_ingredients() then
+         local everything_found_fn = function() 
+            ai:resume()
+         end
+         ingredient_list_obj:set_found_fn(everything_found_fn)
+         ai:suspend()
+      end
+
+      local ingredients = ingredient_list_obj:get_all_ingredients()
+      for _, ing_data in ipairs(ingredients) do
+
+         -- If the item doesn't exist anymore, bail.
+         local item = ing_data.item
+         if not item or not item:is_valid() then
+            ai:abort()
+            return
+         end
+      
+         -- grab it, bring it back, and drop it
+         -- TODO: use paths, are faster?
+         ai:execute('stonehearth:pickup_item', ing_data.item)
+         ai:execute('stonehearth:goto_entity', ghost_entity)
+         ai:execute('stonehearth:drop_carrying', target_location)
+         table.insert(materials, ing_data.item)
+      end
+   end
+
+   --Turn the materials into the workshop
    ai:execute('stonehearth:run_effect', 'work')
-   radiant.entities.destroy_entity(carrying)
+
+   --Destroy the materials
+   for i, item in ipairs(materials) do
+      radiant.entities.destroy_entity(item)
+   end
 
    --Create the workbench
    local ghost_object_data = ghost_entity:get_component('stonehearth:ghost_item'):get_object_data()

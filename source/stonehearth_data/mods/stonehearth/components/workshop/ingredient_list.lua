@@ -21,11 +21,17 @@ function IngredientList:__init(entity, existing_store, ingredient_data)
    self._ingredient_data = ingredient_data
    self._ingredients = {}
    self._existing_store = existing_store
+   self._found_fn = nil
 
    self._found_all_ingredients = false
    self._search_running = false
 
    self:_prep_ingredient_data()
+end
+
+--- Function that will trigger when everything is found
+function IngredientList:set_found_fn(found_fn)
+   self._found_fn = found_fn
 end
 
 --- Creates a new set of ingredients based on the data
@@ -109,6 +115,9 @@ function IngredientList:search_for_ingredients()
    end
    -- we've got everything! woot!
    self._found_all_ingredients = true
+   if self._found_fn then
+      self._found_fn()
+   end
 end
 
 --- If we've found the ingredients, return them.
@@ -121,6 +130,16 @@ function IngredientList:get_all_ingredients()
    if self._found_all_ingredients then
       return self._ingredients
    end
+end
+
+--- Removes the first ingredient
+--  Workaround because worker dispatcher requires at least one target
+--  @returns: number of items remaining
+function IngredientList:remove_first_item()
+   if #self._ingredients >= 1 then
+      table.remove(self._ingredients, 1)
+   end
+   return #self._ingredients
 end
 
 return IngredientList
