@@ -37,7 +37,7 @@ void main() {
   
   // We rotate the sphere just a bit, in order to minimize the perspective warping
   // of the sphere.
-  vec3 worldPos = (worldMat * vec4(vertPos.x, vertPos.y - 50.0, vertPos.z, 0.0)).xyz;
+  vec3 worldPos = (worldMat * vec4(vertPos.x, vertPos.y - 0.5, vertPos.z, 0.0)).xyz;
   gl_Position = projMat * vec4(worldPos, 1.0);
 }
 
