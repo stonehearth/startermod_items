@@ -1,3 +1,4 @@
-float calcFogFac(const float depth) {
-  return clamp(exp(-depth / 1000.0) - 1.7, 0.0, 1.0);
+float calcFogFac(const float depth, const float maxVisible) {
+  // return clamp(exp(-depth / maxVisible ) - 1.7, 0.0, 1.0);
+  return clamp(depth*depth / (maxVisible * maxVisible) * 2 - 1, 0.0, 1.0);
 }

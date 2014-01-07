@@ -71,6 +71,7 @@ struct RendererConfig {
    RendererConfigEntry<bool> enable_gl_logging;
    RendererConfigEntry<int>  num_msaa_samples;
    RendererConfigEntry<int>  shadow_resolution;
+   RendererConfigEntry<float> draw_distance;
 
    RendererConfigEntry<int> screen_width;
    RendererConfigEntry<int> screen_height;

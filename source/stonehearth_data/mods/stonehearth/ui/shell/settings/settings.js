@@ -3,7 +3,10 @@ App.StonehearthSettingsView = App.View.extend({
 
    modal: true,
 
-   fromResToVal : function(shadowRes) {
+   fromResToVal : function(shadowRes, shadowsEnabled) {
+      if (!shadowsEnabled) {
+         return 0;
+      }
       return (Math.log(shadowRes) / Math.log(2)) - 8;
    },
 
@@ -42,13 +45,11 @@ App.StonehearthSettingsView = App.View.extend({
          self.anySettingDidChange();
       };
 
-      $('#opt_enableShadows').change(anythingChangedCallback);
       $('#opt_numSamples').change(anythingChangedCallback);
       $('#opt_enableVsync').change(anythingChangedCallback);
       $('#opt_enableFullscreen').change(anythingChangedCallback);
       $('#opt_shadowRes').change(anythingChangedCallback);
 
-      $('#opt_enableShadows').change(reloadableCallback);
       $('#opt_numSamples').change(reloadableCallback);
       $('#opt_shadowRes').change(reloadableCallback);
 
@@ -59,7 +60,8 @@ App.StonehearthSettingsView = App.View.extend({
                "vsync" : o.vsync.value,
                "shadow_res" : o.shadow_res.value,
                "fullscreen" : o.fullscreen.value,
-               "msaa" : o.msaa.value
+               "msaa" : o.msaa.value,
+               "draw_distance" : o.draw_distance.value
             };
 
             self.set('context.shadows_forbidden', !o.shadows.allowed);
@@ -68,7 +70,7 @@ App.StonehearthSettingsView = App.View.extend({
             }
             self.set('context.shadows_enabled', o.shadows.value);
 
-            self.set('context.shadow_res', self.fromResToVal(o.shadow_res.value))
+            self.set('context.shadow_res', self.fromResToVal(o.shadow_res.value, o.shadows.value))
 
             self.set('context.vsync_enabled', o.vsync.value);
 
@@ -80,9 +82,11 @@ App.StonehearthSettingsView = App.View.extend({
             }
             self.set('context.num_msaa_samples', o.msaa.value);
 
+            self.set('context.draw_distance', o.draw_distance.value);
+
             $('#aaNumSlider').slider({
                value: self.get('context.num_msaa_samples'),
-               min: 1,
+               min: 0,
                max: 4,
                step: 1,
                slide: function( event, ui ) {
@@ -90,12 +94,12 @@ App.StonehearthSettingsView = App.View.extend({
                   $('#aaNumDescription').html(i18n.t('stonehearth:settings_slider_' + ui.value));
                }
             }); 
-            $('#aaNumDescription').html(i18n.t('stonehearth:settings_slider_' + self.get('context.num_msaa_samples')));           
+            $('#aaNumDescription').html(i18n.t('stonehearth:settings_slider_' + self.get('context.num_msaa_samples')));
 
             $('#shadowResSlider').slider({
                value: self.get('context.shadow_res'),
-               min: 1,
-               max: 4,
+               min: 0,
+               max: 5,
                step: 1,
                slide: function( event, ui ) {
                   anythingChangedCallback();
@@ -103,18 +107,31 @@ App.StonehearthSettingsView = App.View.extend({
                }
             });
             $('#shadowResDescription').html(i18n.t('stonehearth:settings_slider_' + self.get('context.shadow_res')));
+
+            $('#drawDistSlider').slider({
+               value: self.get('context.draw_distance'),
+               min: 500,
+               max: 1000,
+               step: 10,
+               slide: function( event, ui ) {
+                  anythingChangedCallback();
+                  $('#drawDistDescription').html(ui.value);
+               }
+            });
+            $('#drawDistDescription').html(self.get('context.draw_distance'));
          });
 
    },
 
    getUiConfig: function(persistConfig) {
       var newConfig = {
-         "shadows" : $('#opt_enableShadows').is(':checked'),
+         "shadows" : $( "#shadowResSlider" ).slider( "value" ) > 0,
          "vsync" : $('#opt_enableVsync').is(':checked'),
          "fullscreen" : $('#opt_enableFullscreen').is(':checked'),
          "msaa" : $( "#aaNumSlider" ).slider( "value" ),
          "shadow_res" :  this.fromValToRes($( "#shadowResSlider" ).slider( "value" )),
-         "persistConfig" : persistConfig
+         "persistConfig" : persistConfig,
+         "draw_distance" : $( "#drawDistSlider" ).slider( "value" )
       };
       return newConfig;
    },
