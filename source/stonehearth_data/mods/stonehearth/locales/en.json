@@ -20,6 +20,7 @@
    "settings_gfx_enable_fullscreen" : "Fullscreen (Requires Restart)",
    "settings_gfx_msaa" : "Anti-Aliasing Level",
    "settings_gfx_shadows" : "Shadow Detail",
+   "settings_gfx_drawdistance" : "Draw Distance",   
    "settings_slider_0" : "off",
    "settings_slider_1" : "just a touch",
    "settings_slider_2" : "a little",

@@ -343,6 +343,7 @@ Client::Client() :
          node.set("yres", makeRendererConfigNode(cfg.screen_height));
          node.set("fullscreen", makeRendererConfigNode(cfg.enable_fullscreen));
          node.set("shadow_res", makeRendererConfigNode(cfg.shadow_resolution));
+         node.set("draw_distance", makeRendererConfigNode(cfg.draw_distance));
 
          result->Resolve(node);
       } catch (std::exception const& e) {
@@ -365,6 +366,7 @@ Client::Client() :
          newCfg.shadow_resolution.value = params.get<int>("shadow_res", oldCfg.shadow_resolution.value);
          newCfg.enable_fullscreen.value = params.get<bool>("fullscreen", oldCfg.enable_fullscreen.value);
          newCfg.enable_vsync.value = params.get<bool>("vsync", oldCfg.enable_vsync.value);
+         newCfg.draw_distance.value = params.get<float>("draw_distance", oldCfg.draw_distance.value);
          
          Renderer::GetInstance().ApplyConfig(newCfg, persistConfig);
 

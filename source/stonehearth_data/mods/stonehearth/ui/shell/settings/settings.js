@@ -60,7 +60,8 @@ App.StonehearthSettingsView = App.View.extend({
                "vsync" : o.vsync.value,
                "shadow_res" : o.shadow_res.value,
                "fullscreen" : o.fullscreen.value,
-               "msaa" : o.msaa.value
+               "msaa" : o.msaa.value,
+               "draw_distance" : o.draw_distance.value
             };
 
             self.set('context.shadows_forbidden', !o.shadows.allowed);
@@ -80,6 +81,8 @@ App.StonehearthSettingsView = App.View.extend({
                o.msaa.value = 0;
             }
             self.set('context.num_msaa_samples', o.msaa.value);
+
+            self.set('context.draw_distance', o.draw_distance.value);
 
             $('#aaNumSlider').slider({
                value: self.get('context.num_msaa_samples'),
@@ -104,6 +107,18 @@ App.StonehearthSettingsView = App.View.extend({
                }
             });
             $('#shadowResDescription').html(i18n.t('stonehearth:settings_slider_' + self.get('context.shadow_res')));
+
+            $('#drawDistSlider').slider({
+               value: self.get('context.draw_distance'),
+               min: 500,
+               max: 1000,
+               step: 10,
+               slide: function( event, ui ) {
+                  anythingChangedCallback();
+                  $('#drawDistDescription').html(ui.value);
+               }
+            });
+            $('#drawDistDescription').html(self.get('context.draw_distance'));
          });
 
    },
@@ -115,7 +130,8 @@ App.StonehearthSettingsView = App.View.extend({
          "fullscreen" : $('#opt_enableFullscreen').is(':checked'),
          "msaa" : $( "#aaNumSlider" ).slider( "value" ),
          "shadow_res" :  this.fromValToRes($( "#shadowResSlider" ).slider( "value" )),
-         "persistConfig" : persistConfig
+         "persistConfig" : persistConfig,
+         "draw_distance" : $( "#drawDistSlider" ).slider( "value" )
       };
       return newConfig;
    },
