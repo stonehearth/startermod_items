@@ -84,6 +84,11 @@ App.StonehearthSettingsView = App.View.extend({
 
             self.set('context.draw_distance', o.draw_distance.value);
 
+            $('#gfxCardString').html(i18n.t('stonehearth:settings_gfx_cardinfo', {
+               "gpuRenderer": o.gfx_card_renderer, 
+               "gpuDriver": o.gfx_card_driver
+            }));
+
             $('#aaNumSlider').slider({
                value: self.get('context.num_msaa_samples'),
                min: 0,
