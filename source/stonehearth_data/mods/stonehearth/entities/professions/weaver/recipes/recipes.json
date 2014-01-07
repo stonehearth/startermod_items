@@ -1,0 +1,11 @@
+{
+   "craftable_recipes" : [
+      {
+         "category" : "Tools & Goods",
+         "recipes" : [
+            "file(spool_of_thread_recipe.json)",
+            "file(bolt_of_cloth_recipe.json)"
+         ]
+      }
+   ]
+}

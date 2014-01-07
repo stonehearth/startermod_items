@@ -52,6 +52,7 @@ function WorkshopComponent:extend(json)
          --TODO: specific crafter workshops should get their commands from a mixin,
          --but the mixins never load before the extend functions.
          --Make a more solid guarantee system of getting commands before this point.
+         self._profession_name = json.profession_name
          local command_component = self._entity:get_component('stonehearth:commands')
          if command_component then
             command_component:modify_command('promote_to_profession', function(command) 
@@ -210,7 +211,11 @@ function WorkshopComponent:init_promotion_talisman()
    self._entity:add_component('entity_container'):add_child(self._promotion_talisman_entity)
    self._promotion_talisman_entity:add_component('mob'):set_location_grid_aligned(Point3(offset[1], offset[2], offset[3]))
 
-   self._promotion_talisman_entity:get_component('stonehearth:promotion_talisman'):set_workshop(self)
+   local promotion_talisman_component = self._promotion_talisman_entity:get_component('stonehearth:promotion_talisman')
+   if promotion_talisman_component then
+      promotion_talisman_component:set_workshop(self)
+      promotion_talisman_component:set_profession_name(self._profession_name)
+   end
 
    return self._promotion_talisman_entity
 end

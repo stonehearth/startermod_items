@@ -63,6 +63,9 @@ App.StonehearthClassesPromoteView = App.View.extend({
    destroy: function() {
       $(top).off("radiant_selection_changed.promote_view");
       App.gameView.getView(App.StonehearthUnitFrameView).supressSelection(false);
+      if (this.get('context') != null) {
+         this.set('context.citizenToPromote', undefined);
+      }
       this._super();
    },
 

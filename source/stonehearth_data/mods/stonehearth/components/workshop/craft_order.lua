@@ -32,6 +32,7 @@
 ]]
 
 local object_tracker = require 'services.object_tracker.object_tracker_service'
+local IngredientList = require 'components.workshop.ingredient_list'
 
 local CraftOrder = class()
 
@@ -68,8 +69,11 @@ function CraftOrder:__init(recipe, enabled, condition, workshop)
    assert(self._faction and (#self._faction > 0), "workshop has no faction.")
 
    self._status = {is_crafting = false}
-   self:_prep_ingredient_data()
 
+   self._ingredient_list_object = IngredientList(
+      self._workshop:get_entity(), 
+      self._workshop:get_items_on_bench(), 
+      self._recipe.ingredients)
 end
 
 function CraftOrder:__tojson()
@@ -100,7 +104,6 @@ function CraftOrder:destroy()
 end
 
 -- Getters and Setters
-
 function CraftOrder:get_id()
    return self._id
 end
@@ -125,94 +128,9 @@ function CraftOrder:set_crafting_status(status)
    self._status.is_crafting = status;
 end
 
--- Public Functions
-
---[[
-   Look into the world for the ingredients and claim them
-]]
+--- Look into the world for the ingredients and claim them
 function CraftOrder:search_for_ingredients()
-   local bench_items = self._workshop:get_items_on_bench()
-   local workshop_entity = self._workshop:get_entity()
-
-   if self._found_all_ingredients then
-      return
-   end
-   if self._search_running then
-      return
-   end
-
-   for i, ingredient in ipairs(self._ingredients) do
-      if not ingredient.item or not ingredient.item:is_valid() then
-         -- is the item on the bench?  if so, claim it and remove it from
-         -- the bench list..
-         for _, item in pairs(bench_items) do
-            if ingredient.filter(item) then
-               ingredient.item = item
-               bench_items[_] = nil
-               break
-            end
-         end
-         if not ingredient.item or not ingredient.item:is_valid() then
-            -- not on the bench?  look around and see if we can find an item
-            local solved = function(path)
-               local item = path:get_destination()
-               ingredient.path = path
-               ingredient.item = item
-               if self._pathfinder then
-                  self._pathfinder:stop()
-               end
-               self._pathfinder = nil
-               self._search_running = false
-               self:search_for_ingredients()
-            end
-            self._pathfinder = radiant.pathfinder.create_path_finder(workshop_entity, 'workshop searching for items')
-                                  :set_solved_cb(solved)
-                                  :set_filter_fn(ingredient.filter)
-                                  :find_closest_dst()
-            self._search_running = true
-            return
-         end
-      end
-   end
-   -- we've got everything! woot!
-   self._found_all_ingredients = true
-end
-
---[[
-   Given a recipe, create empty items for each ingredient in the creipe
-]]
-function CraftOrder:_prep_ingredient_data()
-   self._ingredients = {}
-   for offset, ingredient_data in ipairs(self._recipe.ingredients) do
-      local filter = function(item_entity)
-         return self:_can_use_ingredient(item_entity, ingredient_data)
-      end
-      for i=1, ingredient_data.count do
-         local ingredient = {
-            item = nil,
-            path = nil,
-            filter = filter
-         }
-         table.insert(self._ingredients, ingredient)
-      end
-   end
-end
-
-function CraftOrder:_can_use_ingredient(item_entity, ingredient_data)
-   -- make sure it's an item...
-   local material = item_entity:get_component('stonehearth:material')
-   if not material or not material:is(ingredient_data.material) then
-      return false
-   end
-
-   -- make sure we're not using it for something else...
-   for _, ingredient in ipairs(self._ingredients) do
-      if ingredient.item and item_entity:get_id() == ingredient.item:get_id() then
-         return false
-      end
-   end
-
-   return true
+   self._ingredient_list_object:search_for_ingredients()
 end
 
 --[[
@@ -240,39 +158,24 @@ function CraftOrder:should_execute_order()
    end
 end
 
---[[
-   Check if the ingredients for an order are available in the
-   inventory and workbench. If so, reserve them and return true.
-   Otherwise, return false.
-   TODO: actually integrate with the inventory, clean up code
-   TODO: test what happens if some ingredients are already on the bench.
-
-   returns: true if ingredients are avaialble, false otherwise
-]]
+--- Check if the ingredients for an order are available in the inventory and workbench.
+--  If so, return them. 
 function CraftOrder:get_all_ingredients()
-   -- xxx: This implementation can be improved...there may be solutions that
-   -- it does not find because of overlapping tags (e.g. a recipe that requires
-   -- "magic wood" and "magic" blocks, where the "magic wood" block is on the
-   -- bench and there are no "magic" items in the world)
-
-   if self._found_all_ingredients then
-      -- xxx: do more validation?
-      return self._ingredients
-   end
+   return self._ingredient_list_object:get_all_ingredients()
 end
 
---[[
-   Call this whenever a part of an order is finished.
-   Used to determine if an order is fully complete. Inventory_below orders
-   are never complete, as the crafter is always monitoring if
-   they should be making more.
-   returns: true if the order is complete and can be removed from
-             the list, false otherwise.
-]]
+--- Call whenever a part of an order is finished. (ie, built 2 of 4)
+--   Used to determine if an order is fully complete. Inventory_below orders
+--   are never complete, as the crafter is always monitoring if
+--   they should be making more.
+--   @returns: true if the order is complete and can be removed from
+--             the list, false otherwise.
 function CraftOrder:check_complete()
-   --reset per-order variables
-   self._found_all_ingredients = false
-   self:_prep_ingredient_data()
+   self._ingredient_list_object = IngredientList(
+      self._workshop:get_entity(), 
+      self._workshop:get_items_on_bench(), 
+      self._recipe.ingredients)
+
    self:set_crafting_status(false)
 
    --check if we're done with the whole order
