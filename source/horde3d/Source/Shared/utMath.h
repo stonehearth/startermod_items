@@ -1142,27 +1142,30 @@ inline Polygon clipPolyToPlane(const Plane& plane, const Polygon& polygon)
 {
    std::vector<Vec3f> resultPoints;
 
-   for (unsigned int i = 0; i < polygon.points().size(); i++)
-   {
-      const Vec3f startPoint = polygon.points().at(i);
-      const Vec3f endPoint = polygon.points().at((i + 1) % polygon.points().size());
-      if (plane.distToPoint(startPoint) <= 0)
+   if (polygon.points().size() > 0) {
+      Vec3f s = polygon.points().back();
+      for (unsigned int i = 0; i < polygon.points().size(); i++)
       {
-         resultPoints.push_back(startPoint);
-
-         if (plane.distToPoint(endPoint) > 0)
+         const Vec3f e = polygon.points().at(i);
+         if (plane.distToPoint(e) < 0)
          {
+            if (plane.distToPoint(s) >= 0)
+            {
+               Vec3f result;
+               rayPlaneIntersection(s, e, plane, &result);
+               resultPoints.push_back(result);
+            }
+
+            resultPoints.push_back(e);
+
+         } else if (plane.distToPoint(s) < 0) {
             Vec3f result;
-            rayPlaneIntersection(startPoint, endPoint, plane, &result);
+            rayPlaneIntersection(s, e, plane, &result);
             resultPoints.push_back(result);
          }
-      } else if (plane.distToPoint(endPoint) <= 0) {
-         Vec3f result;
-         rayPlaneIntersection(startPoint, endPoint, plane, &result);
-         resultPoints.push_back(result);
+         s = e;
       }
    }
-
    return Polygon(resultPoints);
 }
 

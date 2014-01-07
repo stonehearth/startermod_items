@@ -18,6 +18,7 @@
 #include "egPrimitives.h"
 #include "egPipeline.h"
 #include <map>
+#include <unordered_map>
 
 
 namespace Horde3D {
@@ -30,6 +31,24 @@ class SceneGraphResource;
 const int RootNode = 1;
 const int QueryCacheSize = 32;
 
+struct InstanceKey {
+   Resource* geoResource;
+   MaterialResource* matResource;
+
+   bool operator==(const InstanceKey& other) const {
+      return geoResource == other.geoResource &&
+         matResource == other.matResource;
+   }
+   bool operator!=(const InstanceKey& other) const {
+      return !(other == *this);
+   }
+};
+
+struct hash_InstanceKey {
+   size_t operator()(const InstanceKey& x) const {
+      return (uint32)(x.geoResource) ^ (uint32)(x.matResource);
+   }
+};
 
 // =================================================================================================
 // Scene Node
@@ -125,6 +144,7 @@ public:
 	void update();
 	virtual bool checkIntersection( const Vec3f &rayOrig, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm ) const;
 
+   virtual const InstanceKey* getInstanceKey() { return 0x0; }
 	int getType() { return _type; };
 	NodeHandle getHandle() { return _handle; }
 	SceneNode *getParent() { return _parent; }
@@ -213,6 +233,7 @@ struct SpatialQuery
   uint32 filterRequired;
   bool useRenderableQueue;
   bool useLightQueue;
+  bool forceNoInstancing;
 };
 
 struct RendQueueItem
@@ -225,6 +246,11 @@ struct RendQueueItem
 	RendQueueItem( int type, float sortKey, SceneNode *node ) : node( node ), type( type ), sortKey( sortKey ) {}
 };
 
+typedef std::vector<RendQueueItem> RenderableQueue;
+typedef std::unordered_map<int, RenderableQueue > RenderableQueues;
+typedef std::unordered_map<InstanceKey, RenderableQueue, hash_InstanceKey > InstanceRenderableQueue;
+typedef std::unordered_map<int, InstanceRenderableQueue > InstanceRenderableQueues;
+
 class SpatialGraph
 {
 public:
@@ -234,7 +260,7 @@ public:
 	void removeNode( uint32 sgHandle );
 	void updateNode( uint32 sgHandle );
 
-   void query(const SpatialQuery& query, std::vector<RendQueueItem>& renderableQueue, 
+   void query(const SpatialQuery& query, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues,
       std::vector<SceneNode*>& lightQueue);
 
 protected:
@@ -259,6 +285,7 @@ struct NodeRegEntry
 	NodeTypeParsingFunc  parsingFunc;
 	NodeTypeFactoryFunc  factoryFunc;
 	NodeTypeRenderFunc   renderFunc;
+   NodeTypeRenderFunc   instanceRenderFunc;
 };
 
 struct CastRayResult
@@ -272,7 +299,8 @@ struct CastRayResult
 struct SpatialQueryResult
 {
    SpatialQuery query;
-   std::vector<RendQueueItem> renderableQueue;
+   RenderableQueues renderableQueues;
+   InstanceRenderableQueues instanceRenderableQueues;
    std::vector<SceneNode*> lightQueue;
 };
 
@@ -285,14 +313,14 @@ public:
 	~SceneManager();
 
 	void registerType( int type, const std::string &typeString, NodeTypeParsingFunc pf,
-	                   NodeTypeFactoryFunc ff, NodeTypeRenderFunc rf );
+	                   NodeTypeFactoryFunc ff, NodeTypeRenderFunc rf, NodeTypeRenderFunc irf );
 	NodeRegEntry *findType( int type );
 	NodeRegEntry *findType( const std::string &typeString );
 	
 	void updateNodes();
 	void updateSpatialNode( uint32 sgHandle ) { _spatialGraph->updateNode( sgHandle ); }
 	void updateQueues( const char* reason, const Frustum &frustum1, const Frustum *frustum2,
-	                   RenderingOrder::List order, uint32 filterIgnore, uint32 filterRequired, bool lightQueue, bool renderableQueue );
+	                   RenderingOrder::List order, uint32 filterIgnore, uint32 filterRequired, bool lightQueue, bool renderableQueue, bool forceNoInstancing=false );
 	
 	NodeHandle addNode( SceneNode *node, SceneNode &parent );
 	NodeHandle addNodes( SceneNode &parent, SceneGraphResource &sgRes );
@@ -311,7 +339,9 @@ public:
 	SceneNode &getRootNode() { return *_nodes[0]; }
 	SceneNode &getDefCamNode() { return *_nodes[1]; }
 	std::vector< SceneNode * > &getLightQueue();
-	std::vector< RendQueueItem > &getRenderableQueue();
+	RenderableQueue& getRenderableQueue(int itemType);
+   InstanceRenderableQueue& getInstanceRenderableQueue(int itemType);
+   RenderableQueues& getRenderableQueues();
 	
 	SceneNode *resolveNodeHandle( NodeHandle handle )
 		{ return (handle != 0 && (unsigned)(handle - 1) < _nodes.size()) ? _nodes[handle - 1] : 0x0; }

@@ -160,6 +160,12 @@ void VoxelMeshNode::setParamI( int param, int value )
 	SceneNode::setParamI( param, value );
 }
 
+const InstanceKey* VoxelMeshNode::getInstanceKey() {
+   _instanceKey.geoResource = _parentModel->getVoxelGeometryResource();
+   _instanceKey.matResource = _materialRes;
+   return &_instanceKey;
+}
+
 
 bool VoxelMeshNode::checkIntersection( const Vec3f &rayOrig, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm ) const
 {

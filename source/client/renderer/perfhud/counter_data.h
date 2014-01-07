@@ -9,6 +9,7 @@ class CounterData {
 public:
    CounterData() { }
    CounterData(std::string const& n ) : name(n) { }
+   CounterData(std::string const& n, csg::Color3 const& c) : name(n), color(c) { }
 
    std::string    name;
    csg::Color3    color;

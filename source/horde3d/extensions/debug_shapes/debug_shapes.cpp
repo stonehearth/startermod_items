@@ -51,10 +51,7 @@ void DebugShapesNode::renderFunc(const std::string &shaderContext, const std::st
    float old_line_width = 1.0f;
 
    // Loop through debug shape queue
-   for (const auto &entry : Modules::sceneMan().getRenderableQueue()) {
-      if (entry.type != SNT_DebugShapesNode) {
-         continue;
-      }
+   for (const auto &entry : Modules::sceneMan().getRenderableQueue(SNT_DebugShapesNode)) {
       DebugShapesNode *debugShapes = (DebugShapesNode *)entry.node;
       if (debugShapes->empty()) {
          continue;

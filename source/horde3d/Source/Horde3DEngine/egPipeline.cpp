@@ -348,10 +348,13 @@ bool PipelineResource::createRenderTargets()
 		uint32 width = ftoi_r( rt.width * rt.scale ), height = ftoi_r( rt.height * rt.scale );
 		if( width == 0 ) width = ftoi_r( _baseWidth * rt.scale );
 		if( height == 0 ) height = ftoi_r( _baseHeight * rt.scale );
-		
-		rt.rendBuf = gRDI->createRenderBuffer(
-			width, height, rt.format, rt.hasDepthBuf, rt.numColBufs, rt.samples );
-		if( rt.rendBuf == 0 ) return false;
+
+      for (int j = 0; j < RenderTarget::NumRenderObjects; j++) 
+      {
+		   rt.rendBuf[j] = gRDI->createRenderBuffer(
+			   width, height, rt.format, rt.hasDepthBuf, rt.numColBufs, rt.samples );
+		   if( rt.rendBuf[j] == 0 ) return false;
+      }
 	}
 	
 	return true;
@@ -363,8 +366,12 @@ void PipelineResource::releaseRenderTargets()
 	for( uint32 i = 0; i < _renderTargets.size(); ++i )
 	{
 		RenderTarget &rt = _renderTargets[i];
-		if( rt.rendBuf )
-			gRDI->destroyRenderBuffer( rt.rendBuf );
+
+      for (int j = 0; j < RenderTarget::NumRenderObjects; j++)
+      {
+		   if( rt.rendBuf[j] )
+			   gRDI->destroyRenderBuffer( rt.rendBuf[j] );
+      }
 	}
 }
 
@@ -590,7 +597,7 @@ bool PipelineResource::getRenderTargetData( const std::string &target, int bufIn
 	{	
 		RenderTarget *rt = findRenderTarget( target );
 		if( rt == 0x0 ) return false;
-		else rbObj = rt->rendBuf;
+      else rbObj = rt->rendBuf[rt->curRendBuf];
 	}
 	
 	return gRDI->getRenderBufferData(

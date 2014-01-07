@@ -178,7 +178,9 @@ void EngineConfig::setGlobalShaderFlag(const char* name, bool value)
    std::string flag(name);
 
    if (shaderFlags.find(flag) != shaderFlags.end()) {
-      shaderFlags.erase(flag);
+      if (!value) {
+         shaderFlags.erase(flag);
+      }
       return;
    }
 

@@ -40,7 +40,7 @@ bool DecalNode::InitExtension()
 	Modules::sceneMan().registerType(SNT_DecalNode, "Decal",
 		                              DecalNode::parsingFunc,
                                     DecalNode::factoryFunc,
-                                    DecalNode::renderFunc);
+                                    DecalNode::renderFunc, 0x0);
 
 	VertexLayoutAttrib attribs[2] = {
 		"vertPos",     0, 3, 0,
@@ -81,10 +81,7 @@ void DecalNode::renderFunc(const std::string &shaderContext, const std::string &
                            const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet)
 {
    bool offsetSet = false;
-   for (const auto &entry : Modules::sceneMan().getRenderableQueue()) {
-      if (entry.type != SNT_DecalNode) {
-         continue;
-      }
+   for (const auto &entry : Modules::sceneMan().getRenderableQueue(SNT_DecalNode)) {
       DecalNode *decal = (DecalNode *)entry.node;
 
       MaterialResource* material = decal->GetMaterial();

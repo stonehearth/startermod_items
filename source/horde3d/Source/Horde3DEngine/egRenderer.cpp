@@ -52,6 +52,8 @@ const char *fsDefColor =
 	"	gl_FragColor = color;\n"
 	"}\n";
 
+uint32 Renderer::_vbInstanceVoxelData;
+float* Renderer::_vbInstanceVoxelBuf;
 
 Renderer::Renderer()
 {
@@ -69,11 +71,16 @@ Renderer::Renderer()
 	_curShaderUpdateStamp = 1;
 	_maxAnisoMask = 0;
 	_smSize = 0;
-	_shadowRB = 0;
+
+   for (int i = 0; i < MaxShadowbufferNum; i++)
+   {
+	   _shadowRB[i] = 0;
+   }
 	_vlPosOnly = 0;
 	_vlOverlay = 0;
 	_vlModel = 0;
    _vlVoxelModel = 0;
+   _vlInstanceVoxelModel = 0;
 	_vlParticle = 0;
    bool openglES = false;
 #if defined(OPTIMIZE_GSLS)
@@ -87,6 +94,8 @@ Renderer::~Renderer()
 	releaseShadowRB();
 	gRDI->destroyTexture( _defShadowMap );
 	gRDI->destroyBuffer( _particleVBO );
+   gRDI->destroyBuffer(_vbInstanceVoxelData);
+   delete[] _vbInstanceVoxelBuf;
 	releaseShaderComb( _defColorShader );
 #if defined(OPTIMIZE_GSLS)
    glslopt_cleanup(_glsl_opt_ctx);
@@ -188,7 +197,22 @@ bool Renderer::init(int glMajor, int glMinor, bool enable_gl_logging)
 	};
 	_vlVoxelModel = gRDI->registerVertexLayout( 3, attribsVoxelModel );
 
-	VertexLayoutAttrib attribsParticle[2] = {
+	VertexLayoutAttrib attribsInstanceVoxelModel[4] = {
+      { "vertPos",     0, 3, 0 }, 
+      { "normal",      0, 3, 12 },
+      { "color",       0, 3, 24 },
+      { "transform",   1, 16, 0 }
+	};
+
+   VertexDivisorAttrib divisorsInstanceVoxelModel[4] = {
+      0, 0, 0, 1
+   };
+	_vlInstanceVoxelModel = gRDI->registerVertexLayout( 4, attribsInstanceVoxelModel, divisorsInstanceVoxelModel );
+
+   _vbInstanceVoxelData = gRDI->createVertexBuffer(MaxVoxelInstanceCount * (4 * 4) * sizeof(float), DYNAMIC, nullptr);
+   _vbInstanceVoxelBuf = new float[MaxVoxelInstanceCount * (4 * 4)];
+
+   VertexLayoutAttrib attribsParticle[2] = {
 		"texCoords0", 0, 2, 0,
 		"parIdx", 0, 1, 8
 	};
@@ -725,6 +749,44 @@ void Renderer::commitGeneralUniforms()
 	}
 }
 
+ShaderCombination* Renderer::findShaderCombination(ShaderResource* r, ShaderContext* context) const
+{
+   // Look for a shader with the right combination of engine flags.
+   ShaderCombination* result = 0x0;
+   for (auto& sc : context->shaderCombinations)
+   {
+      result = &sc;
+      for (const auto& flag : Modules().config().shaderFlags)
+      {
+         if (sc.engineFlags.find(flag) == sc.engineFlags.end()) {
+            result = 0x0;
+            break;
+         }
+      }
+
+      if (result != 0x0) {
+         if (sc.engineFlags.size() == Modules().config().shaderFlags.size()) {
+            break;
+         }
+         result = 0x0;
+      }
+   }
+
+   // If this is a new combination of engine flags, compile a new combination.
+   if (result == 0x0)
+   {
+      context->shaderCombinations.push_back(ShaderCombination());
+      ShaderCombination& sc = context->shaderCombinations.back();
+      for (const auto& flag : Modules().config().shaderFlags) {
+         sc.engineFlags.insert(flag);
+      }
+
+      r->compileCombination(*context, sc);
+      result = &context->shaderCombinations.back();
+   }
+
+   return result;
+}
 
 bool Renderer::isShaderContextSwitch(const std::string &newContext, const MaterialResource *materialRes)
 {
@@ -738,7 +800,7 @@ bool Renderer::isShaderContextSwitch(const std::string &newContext, const Materi
       return false;
    }
 
-   ShaderCombination *scc = &(sc->shaderComb);
+   ShaderCombination *scc = findShaderCombination(sr, sc);
 	return scc != _curShader;
 }
 
@@ -763,7 +825,7 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, const std::string 
 		if( context == 0x0 ) return false;
 		
 		// Set shader combination
-      ShaderCombination *sc = &(context->shaderComb);
+      ShaderCombination *sc = findShaderCombination(shaderRes, context);
 		if( sc != _curShader ) setShaderComb( sc );
 		if( _curShader == 0x0 || gRDI->_curShaderId == 0 ) return false;
 
@@ -1016,15 +1078,22 @@ bool Renderer::setMaterial( MaterialResource *materialRes, const std::string &sh
 
 bool Renderer::createShadowRB( uint32 width, uint32 height )
 {
-	_shadowRB = gRDI->createRenderBuffer( width, height, TextureFormats::BGRA8, true, 0, 0 );
+   bool result = true;
+   for (int i = 0; i < MaxShadowbufferNum; i++)
+   {
+	   result = result && ((_shadowRB[i] = gRDI->createRenderBuffer( width, height, TextureFormats::BGRA8, true, 0, 0 ) != 0));
+   }
 	
-	return _shadowRB != 0;
+	return result;
 }
 
 
 void Renderer::releaseShadowRB()
 {
-	if( _shadowRB ) gRDI->destroyRenderBuffer( _shadowRB );
+   for (int i = 0; i < MaxShadowbufferNum; i++)
+   {
+	   if( _shadowRB[i] ) gRDI->destroyRenderBuffer( _shadowRB[i] );
+   }
 }
 
 
@@ -1035,7 +1104,7 @@ void Renderer::setupShadowMap( bool noShadows )
 	// Bind shadow map
 	if( !noShadows && _curLight->_shadowMapCount > 0 )
 	{
-		gRDI->setTexture( 12, gRDI->getRenderBufferTex( _shadowRB, 32 ), sampState );
+      gRDI->setTexture( 12, gRDI->getRenderBufferTex( _shadowRB[_frameID % MaxShadowbufferNum], 32 ), sampState );
 		_smSize = (float)Modules::config().shadowMapSize;
 	}
 	else
@@ -1057,36 +1126,38 @@ Matrix4f Renderer::calcCropMatrix( const Frustum &frustSlice, const Vec3f lightP
 	
 	// Find post-projective space AABB of all objects in frustum
 	Modules::sceneMan().updateQueues("calculating crop matrix", frustSlice, 0x0, RenderingOrder::None,
-		SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
-	std::vector< RendQueueItem > &rendQueue = Modules::sceneMan().getRenderableQueue();
+		SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true, true );
 	
-	for( size_t i = 0, s = rendQueue.size(); i < s; ++i )
-	{
-		const BoundingBox &aabb = rendQueue[i].node->getBBox();
+   for (const auto& queue : Modules::sceneMan().getRenderableQueues())
+   {
+      for( const auto& entry : queue.second )
+	   {
+		   const BoundingBox &aabb = entry.node->getBBox();
 		
-		// Check if light is inside AABB
-		if( lightPos.x >= aabb.min().x && lightPos.y >= aabb.min().y && lightPos.z >= aabb.min().z &&
-			lightPos.x <= aabb.max().x && lightPos.y <= aabb.max().y && lightPos.z <= aabb.max().z )
-		{
-			bbMinX = bbMinY = bbMinZ = -1;
-			bbMaxX = bbMaxY = bbMaxZ = 1;
-			break;
-		}
+		   // Check if light is inside AABB
+		   if( lightPos.x >= aabb.min().x && lightPos.y >= aabb.min().y && lightPos.z >= aabb.min().z &&
+			   lightPos.x <= aabb.max().x && lightPos.y <= aabb.max().y && lightPos.z <= aabb.max().z )
+		   {
+			   bbMinX = bbMinY = bbMinZ = -1;
+			   bbMaxX = bbMaxY = bbMaxZ = 1;
+			   break;
+		   }
 		
-		for( uint32 j = 0; j < 8; ++j )
-		{
-			Vec4f v1 = lightViewProjMat * Vec4f( aabb.getCorner( j ) );
-			v1.w = 1.f / fabsf( v1.w );
-			v1.x *= v1.w; v1.y *= v1.w; v1.z *= v1.w;
+		   for( uint32 j = 0; j < 8; ++j )
+		   {
+			   Vec4f v1 = lightViewProjMat * Vec4f( aabb.getCorner( j ) );
+			   v1.w = 1.f / fabsf( v1.w );
+			   v1.x *= v1.w; v1.y *= v1.w; v1.z *= v1.w;
 			
-			if( v1.x < bbMinX ) bbMinX = v1.x;
-			if( v1.y < bbMinY ) bbMinY = v1.y;
-			if( v1.z < bbMinZ ) bbMinZ = v1.z;
-			if( v1.x > bbMaxX ) bbMaxX = v1.x;
-			if( v1.y > bbMaxY ) bbMaxY = v1.y;
-			if( v1.z > bbMaxZ ) bbMaxZ = v1.z;
-		}
-	}
+			   if( v1.x < bbMinX ) bbMinX = v1.x;
+			   if( v1.y < bbMinY ) bbMinY = v1.y;
+			   if( v1.z < bbMinZ ) bbMinZ = v1.z;
+			   if( v1.x > bbMaxX ) bbMaxX = v1.x;
+			   if( v1.y > bbMaxY ) bbMaxY = v1.y;
+			   if( v1.z > bbMaxZ ) bbMaxZ = v1.z;
+		   }
+	   }
+   }
 
 	// Find post-projective space AABB of frustum slice if light is not inside
 	if( frustSlice.cullSphere( _curLight->_absPos, 0 ) )
@@ -1304,15 +1375,15 @@ void Renderer::computeLightFrustumNearFar(const BoundingBox& worldBounds, const 
 }
 
 
-void Renderer::updateShadowMap(const Frustum* lightFrus, float maxDist)
+void Renderer::updateShadowMap(const Frustum* lightFrus, float minDist, float maxDist)
 {
 	if( _curLight == 0x0 ) return;
 	
 	uint32 prevRendBuf = gRDI->_curRendBuf;
 	int prevVPX = gRDI->_vpX, prevVPY = gRDI->_vpY, prevVPWidth = gRDI->_vpWidth, prevVPHeight = gRDI->_vpHeight;
-	RDIRenderBuffer &shadowRT = gRDI->_rendBufs.getRef( _shadowRB );
+   RDIRenderBuffer &shadowRT = gRDI->_rendBufs.getRef( _shadowRB[_frameID % MaxShadowbufferNum] );
 	gRDI->setViewport( 0, 0, shadowRT.width, shadowRT.height );
-	gRDI->setRenderBuffer( _shadowRB );
+	gRDI->setRenderBuffer( _shadowRB[_frameID % MaxShadowbufferNum] );
 	
 	glColorMask( GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE );
 	glDepthMask( GL_TRUE );
@@ -1329,19 +1400,19 @@ void Renderer::updateShadowMap(const Frustum* lightFrus, float maxDist)
    reason << "update shadowmap for light " << _curLight->getName();
 
 	Modules::sceneMan().updateQueues(reason.str().c_str(), *lightFrus, 0x0,
-		RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
-	for( const auto& entry : Modules::sceneMan().getRenderableQueue() )
+		RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true, true );
+	for( const auto& queue : Modules::sceneMan().getRenderableQueues() )
 	{
-      SceneNode* n = entry.node;
-      litAabb.makeUnion(n->getBBox());
+      for (const auto& entry : queue.second) 
+      {
+         SceneNode* n = entry.node;
+         litAabb.makeUnion(n->getBBox());
+      }
 	}
 
    // Calculate split distances using PSSM scheme
-   const float nearDist = _curCamera->_frustNear;
-   const float farDist = maxf( maxDist, _curCamera->_frustNear + 0.01f );
-   const float firstSplit = 30.0f;
-   // const float nearDist = _curCamera->_frustNear;
-   // const float farDist = _curCamera->_frustFar;
+   const float nearDist = minDist;
+   const float farDist = maxf( maxDist, minDist + 0.01f );
    const uint32 numMaps = _curLight->_shadowMapCount;
    const float lambda = _curLight->_shadowSplitLambda;
 	
@@ -1357,11 +1428,6 @@ void Renderer::updateShadowMap(const Frustum* lightFrus, float maxDist)
 		_splitPlanes[i] = (1 - lambda) * uniformDist + lambda * logDist;  // Lerp
 	}
 
-   // Experiment: set a max-size for the nearest frustum piece, so that we can count on
-   // better resolution near the camera (which is still not strictly true in degenerate
-   // cases).
-   _splitPlanes[1] = std::min(_splitPlanes[1], firstSplit);
-	
 	// Prepare shadow map rendering
 	glEnable( GL_DEPTH_TEST );
    gRDI->setShadowOffsets(2.0f, 4.0f);
@@ -1588,7 +1654,7 @@ void Renderer::drawOverlays( const std::string &shaderContext )
 	if( numOverlayVerts == 0 ) return;
 	
 	// Upload overlay vertices
-	gRDI->updateBufferData( _overlayVB, 0, MaxNumOverlayVerts * sizeof( OverlayVert ), _overlayVerts );
+	gRDI->updateBufferData( _overlayVB, 0, numOverlayVerts * sizeof( OverlayVert ), _overlayVerts );
 
 	gRDI->setVertexBuffer( 0, _overlayVB, 0, sizeof( OverlayVert ) );
 	gRDI->setIndexBuffer( _quadIdxBuf, IDXFMT_16 );
@@ -1599,14 +1665,12 @@ void Renderer::drawOverlays( const std::string &shaderContext )
 	
 	MaterialResource *curMatRes = 0x0;
 	
-	for( size_t i = 0, s = _overlayBatches.size(); i < s; ++i )
-	{
-		OverlayBatch &ob = _overlayBatches[i];
-		
+	gRDI->setVertexLayout( _vlOverlay );
+	for(auto& ob : _overlayBatches)
+	{		
 		if( curMatRes != ob.materialRes )
 		{
 			if( !setMaterial( ob.materialRes, shaderContext ) ) continue;
-			gRDI->setVertexLayout( _vlOverlay );
 			curMatRes = ob.materialRes;
 		}
 		
@@ -1732,18 +1796,24 @@ void Renderer::drawGeometry( const std::string &shaderContext, const std::string
 }
 
 
-float Renderer::computeTightCameraFarDistance()
+void Renderer::computeTightCameraBounds(float* minDist, float* maxDist)
 {
-   float result = 0.0f;
+   float defaultMax = *maxDist;
+   float defaultMin = *minDist;
+   *maxDist = 0.0f;
+   *minDist = 1000.0f;
 
    // First, get all the visible objects in the full camera's frustum.
    BoundingBox visibleAabb;
    Modules::sceneMan().updateQueues("computing tight camera", _curCamera->getFrustum(), 0x0,
-      RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true );
-   for( const auto& entry : Modules::sceneMan().getRenderableQueue() )
+      RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true, true);
+   for( const auto& queue : Modules::sceneMan().getRenderableQueues() )
    {
-      SceneNode* n = entry.node;
-	   visibleAabb.makeUnion(n->getBBox()); 
+      for (const auto& entry : queue.second)
+      {
+         SceneNode* n = entry.node;
+	      visibleAabb.makeUnion(n->getBBox());
+      }
    }
 
    // Tightly clip the resulting AABB of visible geometry against the frustum.
@@ -1753,26 +1823,48 @@ float Renderer::computeTightCameraFarDistance()
    // Extract the maximum distance of the clipped fragments.
    for (const auto& poly : clippedAabb)
    {
+      gRDI->_frameDebugInfo.addPolygon_(poly);
       for (const auto& point : poly.points())
       {
          float dist = -(_curCamera->getViewMat() * point).z;
-         if(dist > result)
+         if(dist > *maxDist)
          {
-            result = dist;
+            *maxDist = dist;
+         }
+
+         if (dist < *minDist)
+         {
+            *minDist = dist;
          }
       }
    }
-   return result;
+
+   if (*minDist < defaultMin) {
+      *minDist = defaultMin;
+      return;
+   }
+
+   // Check the near-plane--if it's even partially inside the visible AABB, then
+   // just revert to the near-plane as the min-dist.
+   for (int i = 0; i < 4; i++)
+   {
+      if (visibleAabb.contains(_curCamera->getFrustum().getCorner(i))) 
+      {
+         *minDist = defaultMin;
+         break;
+      }
+   }
 }
 
 
-Frustum Renderer::computeDirectionalLightFrustum(float farPlaneDist)
+Frustum Renderer::computeDirectionalLightFrustum(float nearPlaneDist, float farPlaneDist)
 {
    Frustum result;
    // Construct a tighter camera frustum, given the supplied far plane value.
    Frustum tightCamFrust;
-   tightCamFrust.buildViewFrustum(_curCamera->_absTrans, _curCamera->_frustLeft, _curCamera->_frustRight, 
-      _curCamera->_frustBottom, _curCamera->_frustTop, _curCamera->_frustNear, farPlaneDist);
+   float f = nearPlaneDist / _curCamera->_frustNear;
+   tightCamFrust.buildViewFrustum(_curCamera->_absTrans, _curCamera->_frustLeft * f, _curCamera->_frustRight * f, 
+      _curCamera->_frustBottom * f, _curCamera->_frustTop * f, nearPlaneDist, farPlaneDist);
 
    // Transform the camera frustum into light space, building a new AABB as we do so.
    BoundingBox bb;
@@ -1806,17 +1898,18 @@ void Renderer::drawLightGeometry( const std::string &shaderContext, const std::s
 
       // Save the far plane distance in case we have a directional light we want to cast shadows with.
       float maxDist = _curCamera->_frustFar;
+      float minDist = _curCamera->_frustNear;
 
       if (!noShadows && _curLight->_shadowMapCount > 0)
       {
-         maxDist = computeTightCameraFarDistance();
+         computeTightCameraBounds(&minDist, &maxDist);
       }
 
       if (_curLight->_directional)
       {
          if (!noShadows)
          {
-            dirLightFrus = computeDirectionalLightFrustum(maxDist);
+            dirLightFrus = computeDirectionalLightFrustum(minDist, maxDist);
             lightFrus = &dirLightFrus;
          } else {
             // If we're a directional light, and no shadows are to be cast, then just light
@@ -1870,7 +1963,7 @@ void Renderer::drawLightGeometry( const std::string &shaderContext, const std::s
 		// Update shadow map
 		if( !noShadows && _curLight->_shadowMapCount > 0 )
 		{
-			updateShadowMap(lightFrus, maxDist);
+			updateShadowMap(lightFrus, minDist, maxDist);
 			setupShadowMap( false );
 		}
 		else
@@ -1938,15 +2031,16 @@ void Renderer::drawLightShapes( const std::string &shaderContext, bool noShadows
 
       // Save the far plane distance in case we have a directional light we want to cast shadows with.
       float maxDist = _curCamera->_frustFar;
+      float minDist = _curCamera->_frustNear;
 
       if (!noShadows && _curLight->_shadowMapCount > 0)
       {
-         maxDist = computeTightCameraFarDistance();
+         computeTightCameraBounds(&minDist, &maxDist);
       }
 
       if (_curLight->_directional)
       {
-         dirLightFrus = computeDirectionalLightFrustum(maxDist);
+         dirLightFrus = computeDirectionalLightFrustum(minDist, maxDist);
          lightFrus = &dirLightFrus;
       } else {
          lightFrus = &(_curLight->getFrustum());
@@ -1992,7 +2086,7 @@ void Renderer::drawLightShapes( const std::string &shaderContext, bool noShadows
 		// Update shadow map
 		if( !noShadows && _curLight->_shadowMapCount > 0 )
 		{	
-         updateShadowMap(lightFrus, maxDist);
+         updateShadowMap(lightFrus, minDist, maxDist);
 			setupShadowMap( false );
 			curMatRes = 0x0;			
 		}
@@ -2073,9 +2167,12 @@ void Renderer::drawRenderables( const std::string &shaderContext, const std::str
 	{
 		if( itr->second.renderFunc != 0x0 ) {
 			(*itr->second.renderFunc)( shaderContext, theClass, debugView, frust1, frust2, order, occSet );
-      } else {
-         int i = 0;
       }
+
+      if (itr->second.instanceRenderFunc != 0x0) {
+         (*itr->second.instanceRenderFunc)( shaderContext, theClass, debugView, frust1, frust2, order, occSet );
+      }
+
 
 		++itr;
 	}
@@ -2098,10 +2195,8 @@ void Renderer::drawMeshes( const std::string &shaderContext, const std::string &
 	MaterialResource *curMatRes = 0x0;
 
 	// Loop over mesh queue
-	for( const auto& entry : Modules::sceneMan().getRenderableQueue() )
+	for( const auto& entry : Modules::sceneMan().getRenderableQueue(SceneNodeTypes::Mesh) )
 	{
-		if( entry.type != SceneNodeTypes::Mesh ) continue;
-		
 		MeshNode *meshNode = (MeshNode *)entry.node;
 		ModelNode *modelNode = meshNode->getParentModel();
 		
@@ -2273,9 +2368,8 @@ void Renderer::drawHudElements(const std::string &shaderContext, const std::stri
    radiant::perfmon::TimelineCounterGuard dvm("drawHudElements");
 	if( frust1 == 0x0 ) return;
 	
-	for( const auto& entry : Modules::sceneMan().getRenderableQueue() )
+	for( const auto& entry : Modules::sceneMan().getRenderableQueue(SceneNodeTypes::HudElement) )
 	{
-      if( entry.type != SceneNodeTypes::HudElement ) continue;
       HudElementNode* hudNode = (HudElementNode*) entry.node;
       
       for (const auto& hudElement : hudNode->getSubElements())
@@ -2298,10 +2392,8 @@ void Renderer::drawVoxelMeshes(const std::string &shaderContext, const std::stri
 	MaterialResource *curMatRes = 0x0;
 
 	// Loop over mesh queue
-	for( const auto& entry : Modules::sceneMan().getRenderableQueue() )
+	for( const auto& entry : Modules::sceneMan().getRenderableQueue(SceneNodeTypes::VoxelMesh) )
 	{
-		if( entry.type != SceneNodeTypes::VoxelMesh ) continue;
-		
 		VoxelMeshNode *meshNode = (VoxelMeshNode *)entry.node;
 		VoxelModelNode *modelNode = meshNode->getParentModel();
 		
@@ -2452,6 +2544,137 @@ void Renderer::drawVoxelMeshes(const std::string &shaderContext, const std::stri
 }
 
 
+void Renderer::drawVoxelMeshes_Instances(const std::string &shaderContext, const std::string &theClass, bool debugView,
+                               const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
+                               int occSet)
+{
+   const unsigned int VoxelInstanceCutoff = 10;
+   radiant::perfmon::TimelineCounterGuard dvm("drawVoxelMeshes_Instances");
+	if( frust1 == 0x0 ) return;
+	
+	MaterialResource *curMatRes = 0x0;
+
+   // Loop over mesh queue
+	for( const auto& instanceKind : Modules::sceneMan().getInstanceRenderableQueue(SceneNodeTypes::VoxelMesh) )
+	{
+      const InstanceKey& instanceKey = instanceKind.first;
+      const VoxelGeometryResource *curVoxelGeoRes = (VoxelGeometryResource*) instanceKind.first.geoResource;
+		// Check that mesh is valid
+		if(curVoxelGeoRes == 0x0) {
+			continue;
+      }
+
+      if (instanceKind.second.size() <= 0) {
+         continue;
+      }
+
+      Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", instanceKind.second.size() >= VoxelInstanceCutoff);
+
+      // Shadow offsets will always win against the custom model offsets (which we don't care about
+      // during a shadow pass.)
+      // TODO(klochek): awful--but how to fix?  We can keep cramming stuff into the InstanceKey, but to what end?
+      VoxelMeshNode* vmn = (VoxelMeshNode*)instanceKind.second.front().node;
+
+      float offset_x, offset_y;
+      if (gRDI->getShadowOffsets(&offset_x, &offset_y) || vmn->getParentModel()->getPolygonOffset(offset_x, offset_y))
+      {
+         glEnable(GL_POLYGON_OFFSET_FILL);
+         glPolygonOffset(offset_x, offset_y);
+      } else {
+         glDisable(GL_POLYGON_OFFSET_FILL);
+      }
+
+		// Bind geometry
+		// Indices
+		gRDI->setIndexBuffer(curVoxelGeoRes->getIndexBuf(),
+			                     curVoxelGeoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
+
+		// Vertices
+      gRDI->setVertexBuffer( 0, curVoxelGeoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
+
+		
+		ShaderCombination *prevShader = Modules::renderer().getCurShader();
+		
+		if( !debugView )
+		{
+         if( !instanceKey.matResource->isOfClass( theClass ) ) continue;
+			
+			// Set material
+			//if( curMatRes != instanceKey.matResource )
+			//{
+            if( !Modules::renderer().setMaterial( instanceKey.matResource, shaderContext ) )
+				{	
+					curMatRes = 0x0;
+					continue;
+				}
+            curMatRes = instanceKey.matResource;
+			//}
+		} else {
+			Modules::renderer().setShaderComb( &Modules::renderer()._defColorShader );
+			Modules::renderer().commitGeneralUniforms();
+			Vec4f color( 0.5f, 0.75f, 1, 1 );
+			gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color.x );
+		}
+
+      if (gRDI->getCaps().hasInstancing && instanceKind.second.size() >= VoxelInstanceCutoff) {
+         drawVoxelMesh_Instances_WithInstancing(instanceKind.second, vmn);
+      } else {
+         drawVoxelMesh_Instances_WithoutInstancing(instanceKind.second, vmn);
+      }
+   }
+
+	gRDI->setVertexLayout( 0 );
+   glDisable(GL_POLYGON_OFFSET_FILL);
+}
+
+void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn)
+{
+   // Collect transform data for every node of this mesh/material kind.
+   radiant::perfmon::SwitchToCounter("copy mesh instances");
+   // Set vertex layout
+	gRDI->setVertexLayout( Modules::renderer()._vlInstanceVoxelModel );
+   float* transformBuffer = _vbInstanceVoxelBuf;
+   ASSERT(renderableQueue.size() <= MaxVoxelInstanceCount);
+   for (const auto& node : renderableQueue) {
+		const VoxelMeshNode *meshNode = (VoxelMeshNode *)node.node;
+		const VoxelModelNode *modelNode = meshNode->getParentModel();
+		
+      memcpy(transformBuffer, &meshNode->_absTrans.x[0], sizeof(float) * 16);
+      transformBuffer += 16;
+   }
+   gRDI->updateBufferData(_vbInstanceVoxelData, 0, (transformBuffer - _vbInstanceVoxelBuf) * sizeof(float), _vbInstanceVoxelBuf);
+
+   radiant::perfmon::SwitchToCounter("draw mesh instances");
+   // Draw instanced meshes.
+   gRDI->setVertexBuffer(1, _vbInstanceVoxelData, 0, sizeof(float) * 16);
+   gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, vmn->getBatchCount(), 0, renderableQueue.size());
+   radiant::perfmon::SwitchToCounter("drawVoxelMeshes_Instances");
+
+	// Render
+	Modules::stats().incStat( EngineStats::BatchCount, 1 );
+   Modules::stats().incStat( EngineStats::TriCount, (vmn->getBatchCount() / 3.0f) * renderableQueue.size() );
+}
+
+void Renderer::drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn)
+{
+   // Collect transform data for every node of this mesh/material kind.
+   radiant::perfmon::SwitchToCounter("draw mesh instances");
+   // Set vertex layout
+   gRDI->setVertexLayout( Modules::renderer()._vlVoxelModel );
+   ShaderCombination* curShader = Modules::renderer().getCurShader();
+   for (const auto& node : renderableQueue) {
+		VoxelMeshNode *meshNode = (VoxelMeshNode *)node.node;
+		const VoxelModelNode *modelNode = meshNode->getParentModel();
+		
+      gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &meshNode->_absTrans.x[0] );
+      gRDI->drawIndexed(RDIPrimType::PRIM_TRILIST, vmn->getBatchStart(), vmn->getBatchCount(), 
+         vmn->getVertRStart(), vmn->getVertREnd() - vmn->getVertRStart() + 1);
+
+      Modules::stats().incStat( EngineStats::BatchCount, 1 );
+   }
+   Modules::stats().incStat( EngineStats::TriCount, (vmn->getBatchCount() / 3.0f) * renderableQueue.size() );
+}
+
 void Renderer::drawParticles( const std::string &shaderContext, const std::string &theClass, bool debugView,
                               const Frustum *frust1, const Frustum * /*frust2*/, RenderingOrder::List /*order*/,
                               int occSet )
@@ -2467,10 +2690,8 @@ void Renderer::drawParticles( const std::string &shaderContext, const std::strin
 	ASSERT( QuadIndexBufCount >= ParticlesPerBatch * 6 );
 
 	// Loop through emitter queue
-	for( const auto& entry : Modules::sceneMan().getRenderableQueue() )
+	for( const auto& entry : Modules::sceneMan().getRenderableQueue(SceneNodeTypes::Emitter) )
 	{
-		if( entry.type != SceneNodeTypes::Emitter ) continue; 
-		
 		EmitterNode *emitter = (EmitterNode *)entry.node;
 		
 		if( emitter->_particleCount == 0 ) continue;
@@ -2674,10 +2895,11 @@ void Renderer::render( CameraNode *camNode )
 
 				if( rt != 0x0 )
 				{
-					RDIRenderBuffer &rendBuf = gRDI->_rendBufs.getRef( rt->rendBuf );
+               rt->curRendBuf = _frameID % RenderTarget::NumRenderObjects;
+               RDIRenderBuffer &rendBuf = gRDI->_rendBufs.getRef( rt->rendBuf[rt->curRendBuf] );
 					gRDI->_outputBufferIndex = _curCamera->_outputBufferIndex;
 					gRDI->setViewport( 0, 0, rendBuf.width, rendBuf.height );
-					gRDI->setRenderBuffer( rt->rendBuf );
+               gRDI->setRenderBuffer( rt->rendBuf[rt->curRendBuf] );
 				}
 				else
 				{
@@ -2692,11 +2914,11 @@ void Renderer::render( CameraNode *camNode )
                uint32 rendBuf = 0;
    				RenderTarget* rt = (RenderTarget *)pc.params[0].getPtr();
                if (rt) {
-                  rendBuf = rt->rendBuf;
+                  rendBuf = rt->rendBuf[rt->curRendBuf];
                } else {
                   rendBuf = (uint32)pc.params[3].getInt();
                }
-               if (rendBuf == _shadowRB) {
+               if (rendBuf == _shadowRB[_frameID % MaxShadowbufferNum]) {
                   // unbind the shadow texture
                   setupShadowMap( true );
                }
@@ -2777,6 +2999,12 @@ void Renderer::collectOneDebugFrame()
 void Renderer::renderDebugView()
 {
 	float color[4] = { 0 };
+   float frustCol[16] = {
+      1,0,0,1,
+      0,1,0,1,
+      0,0,1,1,
+      1,1,0,1
+   };
 	
 	gRDI->setRenderBuffer( 0 );
 	setMaterial( 0x0, "" );
@@ -2784,8 +3012,6 @@ void Renderer::renderDebugView()
 
 	gRDI->clear( CLR_DEPTH | CLR_COLOR );
 
-	Modules::sceneMan().updateQueues( "rendering debug view", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
-	                                  SceneNodeFlags::NoDraw, 0, true, true );
 
 	// Draw renderable nodes as wireframe
 	setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
@@ -2798,27 +3024,29 @@ void Renderer::renderDebugView()
 	commitGeneralUniforms();
 	gRDI->setShaderConst( _defColorShader.uni_worldMat, CONST_FLOAT44, &Matrix4f().x[0] );
 	color[0] = 0.4f; color[1] = 0.4f; color[2] = 0.4f; color[3] = 1;
-	gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, color );
-	for( uint32 i = 0, s = (uint32)Modules::sceneMan().getRenderableQueue().size(); i < s; ++i )
-	{
-		SceneNode *sn = Modules::sceneMan().getRenderableQueue()[i].node;
-		
-		drawAABB( sn->_bBox.min(), sn->_bBox.max() );
-	}
-
    int frustNum = 0;
-   float frustCol[16] = {
-      1,0,0,1,
-      0,1,0,1,
-      0,0,1,1,
-      1,1,0,1
-   };
+
+   Modules::sceneMan().updateQueues( "rendering debug view", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
+	                                 SceneNodeFlags::NoDraw, 0, true, true, true );
+	gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color[0] );
+   for (const auto& queue : Modules::sceneMan().getRenderableQueues())
+   {
+      for( const auto& entry : queue.second )
+	   {
+		   const SceneNode *sn = entry.node;
+		   drawAABB( sn->_bBox.min(), sn->_bBox.max() );
+	   }
+   }
+
+	Modules::sceneMan().updateQueues( "rendering debug view", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
+	                                  SceneNodeFlags::NoDraw, 0, true, true );
    for (const auto& frust : gRDI->_frameDebugInfo.getShadowCascadeFrustums())
    {
 	   gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &frustCol[frustNum * 4] );
       drawFrustum(frust);
       frustNum = (frustNum + 1) % 4;
    }
+
    frustNum = 0;
    for (const auto& frust : gRDI->_frameDebugInfo.getSplitFrustums())
    {
@@ -2827,11 +3055,11 @@ void Renderer::renderDebugView()
       frustNum = (frustNum + 1) % 4;
    }
 
-   for (const auto& lightAABB : gRDI->_frameDebugInfo.getDirectionalLightAABBs())
+   for (const auto& poly: gRDI->_frameDebugInfo.getPolygons())
    {
-	   color[0] = 0.0f; color[1] = 1.0f; color[2] = 0.0f; color[3] = 1;
+	   color[0] = 1.0f; color[1] = 0.0f; color[2] = 1.0f; color[3] = 1;
 	   gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, color );
-      drawAABB(lightAABB.min(), lightAABB.max());
+      drawPoly(poly.points());
    }
 
    glEnable( GL_CULL_FACE );

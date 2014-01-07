@@ -27,11 +27,13 @@ namespace Horde3D {
 class MaterialResource;
 class LightNode;
 class CameraNode;
+class VoxelMeshNode;
 struct ShaderContext;
 
 const uint32 MaxNumOverlayVerts = (1 << 16); // about 32k..
 const uint32 ParticlesPerBatch = 64;	// Warning: The GPU must have enough registers
 const uint32 QuadIndexBufCount = MaxNumOverlayVerts * 6;
+const uint32 MaxVoxelInstanceCount = 10000;
 
 extern const char *vsDefColor;
 extern const char *fsDefColor;
@@ -180,6 +182,8 @@ public:
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet );
 	static void drawVoxelMeshes( const std::string &shaderContext, const std::string &theClass, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet );
+	static void drawVoxelMeshes_Instances( const std::string &shaderContext, const std::string &theClass, bool debugView,
+		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet );
 	static void drawParticles( const std::string &shaderContext, const std::string &theClass, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet );
    static void drawHudElements(const std::string &shaderContext, const std::string &theClass, bool debugView,
@@ -198,11 +202,12 @@ public:
    uint32 getPosColTexLayout() { return _vlPosColTex; }
 
    void setCurrentTime(float time) { _currentTime = time; }
-   uint32 getShadowRendBuf() const { return _shadowRB; }
+   uint32 getShadowRendBuf() const { return _shadowRB[_frameID % 3]; }
 
    void getEngineCapabilities(EngineRendererCaps* rendererCaps, EngineGpuCaps* gpuCaps) const;
 
 protected:
+   ShaderCombination* findShaderCombination(ShaderResource* r, ShaderContext* context) const;
    bool isShaderContextSwitch(const std::string &curContext, const MaterialResource *materialRes);
 
    void setupViewMatrices( const Matrix4f &viewMat, const Matrix4f &projMat );
@@ -215,10 +220,10 @@ protected:
 	Matrix4f calcCropMatrix( const Frustum &frustSlice, const Vec3f lightPos, const Matrix4f &lightViewProjMat );
    Matrix4f calcDirectionalLightShadowProj(const BoundingBox& worldBounds, const Frustum& frustSlice, const Matrix4f& lightViewMat, int numShadowMaps);
    void computeLightFrustumNearFar(const BoundingBox& worldBounds, const Matrix4f& lightViewMat, const Vec3f& lightMin, const Vec3f& lightMax, float* nearV, float* farV);
-   float computeTightCameraFarDistance();
-   Frustum computeDirectionalLightFrustum(float farPlaneDist);
+   void computeTightCameraBounds(float* minDist, float* maxDist);
+   Frustum computeDirectionalLightFrustum(float nearPlaneDist, float farPlaneDist);
    void quantizeShadowFrustum(const Frustum& frustSlice, int shadowMapSize, Vec3f* min, Vec3f* max);
-   void updateShadowMap(const Frustum* lightFrus, float maxDist);
+   void updateShadowMap(const Frustum* lightFrus, float minDist, float maxDist);
 
 	void drawOverlays( const std::string &shaderContext );
 
@@ -233,13 +238,15 @@ protected:
 	
 	void drawRenderables( const std::string &shaderContext, const std::string &theClass, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet );
-	
+   static void drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn);
+   static void drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn);
 	void renderDebugView();
 	void finishRendering();
 
    void setGpuCompatibility();
 
 protected:
+   const static int MaxShadowbufferNum = 3;
 	unsigned char                      *_scratchBuf;
 	uint32                             _scratchBufSize;
 
@@ -254,7 +261,7 @@ protected:
 	OverlayVert                        *_overlayVerts;
 	uint32                             _overlayVB;
 	
-	uint32                             _shadowRB;
+	uint32                             _shadowRB[MaxShadowbufferNum];
 	uint32                             _frameID;
 	uint32                             _defShadowMap;
 	uint32                             _quadIdxBuf;
@@ -272,10 +279,13 @@ protected:
 	float                              _splitPlanes[5];
 	Matrix4f                           _lightMats[4];
 
-	uint32                             _vlPosOnly, _vlOverlay, _vlModel, _vlParticle, _vlVoxelModel, _vlClipspace, _vlPosColTex;
+	uint32                             _vlPosOnly, _vlOverlay, _vlModel, _vlParticle, _vlVoxelModel, _vlClipspace, _vlPosColTex, _vlInstanceVoxelModel;
 	uint32                             _vbCube, _ibCube, _vbSphere, _ibSphere;
 	uint32                             _vbCone, _ibCone, _vbFSPoly;
    uint32                             _vbFrust, _vbPoly, _ibPoly;
+
+   static uint32                      _vbInstanceVoxelData;
+   static float*                      _vbInstanceVoxelBuf;
 
    // Feature-level compatibility of the card, determined by GPU specifics.
    GpuCompatibility                    gpuCompatibility_;
