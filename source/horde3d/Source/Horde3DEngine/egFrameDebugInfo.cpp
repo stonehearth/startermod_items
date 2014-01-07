@@ -47,6 +47,7 @@ void FrameDebugInfo::reset()
    shadowCascadeFrustums_.clear();
    directionalLights_.clear();
    splitFrustums_.clear();
+   polygons_.clear();
 }
 
 void FrameDebugInfo::setViewerFrustum_(const Frustum& f)
@@ -78,6 +79,14 @@ void FrameDebugInfo::addSplitFrustum_(const Frustum& f)
    if (samplingFrame_)
    {
       splitFrustums_.push_back(f);
+   }
+}
+
+void FrameDebugInfo::addPolygon_(const Polygon& f)
+{
+   if (samplingFrame_)
+   {
+      polygons_.push_back(f);
    }
 }
 

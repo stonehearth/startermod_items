@@ -120,25 +120,25 @@ bool Modules::init(int glMajor, int glMinor, bool enable_gl_logging, const std::
 
 	// Register node types
 	sceneMan().registerType( SceneNodeTypes::Group, "Group",
-		GroupNode::parsingFunc, GroupNode::factoryFunc, 0x0 );
+		GroupNode::parsingFunc, GroupNode::factoryFunc, 0x0, 0x0 );
 	sceneMan().registerType( SceneNodeTypes::Model, "Model",
-		ModelNode::parsingFunc, ModelNode::factoryFunc, 0x0 );
+		ModelNode::parsingFunc, ModelNode::factoryFunc, 0x0, 0x0 );
 	sceneMan().registerType( SceneNodeTypes::Mesh, "Mesh",
-		MeshNode::parsingFunc, MeshNode::factoryFunc, Renderer::drawMeshes );
+		MeshNode::parsingFunc, MeshNode::factoryFunc, Renderer::drawMeshes, 0x0 );
 	sceneMan().registerType( SceneNodeTypes::Joint, "Joint",
-		JointNode::parsingFunc, JointNode::factoryFunc, 0x0 );
+		JointNode::parsingFunc, JointNode::factoryFunc, 0x0, 0x0 );
 	sceneMan().registerType( SceneNodeTypes::Light, "Light",
-		LightNode::parsingFunc, LightNode::factoryFunc, 0x0 );
+		LightNode::parsingFunc, LightNode::factoryFunc, 0x0, 0x0 );
 	sceneMan().registerType( SceneNodeTypes::Camera, "Camera",
-		CameraNode::parsingFunc, CameraNode::factoryFunc, 0x0 );
+		CameraNode::parsingFunc, CameraNode::factoryFunc, 0x0, 0x0 );
 	sceneMan().registerType( SceneNodeTypes::Emitter, "Emitter",
-		EmitterNode::parsingFunc, EmitterNode::factoryFunc, Renderer::drawParticles );
+		EmitterNode::parsingFunc, EmitterNode::factoryFunc, Renderer::drawParticles, 0x0 );
 	sceneMan().registerType( SceneNodeTypes::VoxelModel, "VoxelModel",
-		VoxelModelNode::parsingFunc, VoxelModelNode::factoryFunc, 0x0 );
+		VoxelModelNode::parsingFunc, VoxelModelNode::factoryFunc, 0x0, 0x0 );
 	sceneMan().registerType( SceneNodeTypes::VoxelMesh, "VoxelMesh",
-		VoxelMeshNode::parsingFunc, VoxelMeshNode::factoryFunc, Renderer::drawVoxelMeshes );
+      VoxelMeshNode::parsingFunc, VoxelMeshNode::factoryFunc, Renderer::drawVoxelMeshes, Renderer::drawVoxelMeshes_Instances );
    sceneMan().registerType( SceneNodeTypes::HudElement, "HudElement",
-      HudElementNode::parsingFunc, HudElementNode::factoryFunc, Renderer::drawHudElements );
+      HudElementNode::parsingFunc, HudElementNode::factoryFunc, Renderer::drawHudElements, 0x0 );
 	
 	// Install extensions
 	installExtensions();

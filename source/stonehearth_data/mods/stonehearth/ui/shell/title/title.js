@@ -29,6 +29,10 @@ App.StonehearthTitleScreenView = App.View.extend({
          $('#titlescreen').show();
       });
 
+      $(document).click(function(e) {
+         $('#titlescreen').show();
+      });
+
       $('#radiant').fadeIn(800);
       
       setTimeout(function() {
@@ -62,6 +66,9 @@ App.StonehearthTitleScreenView = App.View.extend({
 
       credits: function() {
 
+      },
+      settings: function() {
+         this.get('parentView').addView(App.StonehearthSettingsView);
       }
    },
 

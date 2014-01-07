@@ -165,6 +165,7 @@ PFNGLDELETESYNCPROC glDeleteSync = 0x0;
 PFNGLVERTEXATTRIBDIVISORPROC   glVertexAttribDivisor = 0x0;
 PFNGLDRAWARRAYSINSTANCEDPROC   glDrawArraysInstanced = 0x0;
 PFNGLDRAWELEMENTSINSTANCEDPROC glDrawElementsInstanced = 0x0;
+PFNGLMAPBUFFERRANGEPROC        glMapBufferRange = 0x0;
 
 // GL 4.1
 PFNGLDEBUGMESSAGECONTROLARBPROC   glDebugMessageControlARB   = 0x0;
@@ -443,6 +444,7 @@ bool initOpenGLExtensions()
       r &= (glVertexAttribDivisor = (PFNGLVERTEXATTRIBDIVISORPROC) platGetProcAddress( "glVertexAttribDivisor" )) != 0x0;
       r &= (glDrawArraysInstanced = (PFNGLDRAWARRAYSINSTANCEDPROC) platGetProcAddress( "glDrawArraysInstanced" )) != 0x0;
       r &= (glDrawElementsInstanced = (PFNGLDRAWELEMENTSINSTANCEDPROC) platGetProcAddress( "glDrawElementsInstanced" )) != 0x0;
+      r &= (glMapBufferRange = (PFNGLMAPBUFFERRANGEPROC) platGetProcAddress( "glMapBufferRange" )) != 0x0;
    }
 
    if ((glExt::ARB_debug_output = isExtensionSupported("GL_ARB_debug_output"))) {

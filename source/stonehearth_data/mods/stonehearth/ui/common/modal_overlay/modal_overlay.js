@@ -32,6 +32,9 @@ App.StonehearthModalOverlayView = App.View.extend({
    actions: {
       dismiss: function () {
          if (this.modalView) {
+            if (this.modalView.dismiss) {
+               this.modalView.dismiss();
+            }
             this.modalView.destroy();
          }
          this.destroy();

@@ -1,0 +1,42 @@
+<script type="text/x-handlebars" data-template-name="settings">
+<div class="horizon">
+   <div class="settings">
+      <h1>{{i18n stonehearth:settings_title}}</h1>
+      
+      <h4 id="gfxCardString"></h4>
+
+      <table>
+         <tr>
+            <td>{{i18n stonehearth:settings_gfx_enable_vsync}}
+            <td>
+               <input type="checkbox" id="opt_enableVsync" {{bindAttr checked="vsync_enabled"}}>
+               <label class="chkSetting" for="opt_enableVsync"></label>
+         <tr>
+            <td>{{i18n stonehearth:settings_gfx_enable_fullscreen}}
+            <td>
+               <input type="checkbox" id="opt_enableFullscreen" {{bindAttr checked="fullscreen_enabled"}}>
+               <label class="chkSetting" for="opt_enableFullscreen"></label>
+         <tr>
+            <td>{{i18n stonehearth:settings_gfx_msaa}}
+            <td>
+               <div id="aaNumSlider"></div>
+               <div id="aaNumDescription" class="sliderDescription"></div>
+         <tr>
+            <td>{{i18n stonehearth:settings_gfx_shadows}}
+            <td>
+               <div id="shadowResSlider"></div>
+               <div id="shadowResDescription" class="sliderDescription"></div>
+         <tr>
+            <td>{{i18n stonehearth:settings_gfx_drawdistance}}
+            <td>
+               <div id="drawDistSlider"></div>
+               <div id="drawDistDescription" class="sliderDescription"></div>               
+      </table>
+   
+      <div id=buttons>
+         <button id="applyButton" disabled {{action applySettings target=view}}>{{i18n stonehearth:ok}}</button>
+         <button {{action cancel target=view}}>{{i18n stonehearth:cancel}}</button>
+      </div>
+   </div>
+</div>
+</script>

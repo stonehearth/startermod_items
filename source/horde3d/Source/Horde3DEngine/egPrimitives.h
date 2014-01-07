@@ -184,6 +184,13 @@ struct BoundingBox
       return _max;
    }
 
+   bool contains(const Vec3f& v) const {
+      ASSERT_VALID_BOX
+
+      return _max.x >= v.x && _max.y >= v.y && _max.z >= v.z &&
+         _min.x <= v.x && _min.y <= v.y && _min.z <= v.z;
+   }
+
    void growMax(const Vec3f& v)
    {
       ASSERT_VALID_BOX

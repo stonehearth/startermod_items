@@ -2,6 +2,7 @@ local MeleeAttack = class()
 
 MeleeAttack.name = 'melee attack!'
 MeleeAttack.does = 'stonehearth:attack:melee'
+MeleeAttack.version = 1
 MeleeAttack.priority = 0
 
 function MeleeAttack:__init(ai, entity, weapon)

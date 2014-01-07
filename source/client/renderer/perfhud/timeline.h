@@ -6,6 +6,7 @@
 #include "core/guard.h"
 #include "lib/perfmon/namespace.h"
 #include "csg/color.h"
+#include "counter_data.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -18,12 +19,14 @@ public:
    ~Timeline();
 
    Timeline& SetMaxColumns(uint max);
+   Timeline& SetMaxTopTraces(uint max);
    Timeline& Render(RenderContext & rc, csg::Rect2f const& rect);
 
 private:
    friend TimelineColumn;
 
    CounterData* GetCounterData(std::string const& name);
+   CounterData* GetRemainingCounterData();
 
 private:
    void AddFrame(perfmon::Frame* frame);
@@ -34,6 +37,7 @@ private:
 private:
    std::deque<TimelineColumn>                      columns_;
    uint                                            max_columns_;
+   uint                                            max_top_traces_;
    core::Guard                                     perfmon_guard_;
    std::vector<CounterData*>                       counter_data_sorted_;
    std::unordered_map<std::string, CounterData*>   counter_data_;
@@ -42,6 +46,7 @@ private:
    perfmon::CounterValueType                       total_time_;
    std::vector<csg::Color3>                        colors_;
    csg::Color3                                     default_color_;
+   CounterData                                     remaining_counter_data_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

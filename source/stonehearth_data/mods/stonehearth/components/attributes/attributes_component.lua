@@ -15,6 +15,7 @@ function AttributesComponent:extend(json)
       for n, v in pairs(json) do
          self._attributes[n] = {}
          self._attributes[n].value = v
+         self._attributes[n].effective_value = v
       end
    end
    self._data_binding:mark_changed()

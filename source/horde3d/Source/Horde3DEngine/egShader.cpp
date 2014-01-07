@@ -390,7 +390,10 @@ void ShaderResource::release()
 {
 	for( uint32 i = 0; i < _contexts.size(); ++i )
 	{
-		gRDI->destroyShader( _contexts[i].shaderComb.shaderObj );
+      for (auto& combination : _contexts[i].shaderCombinations)
+      {
+		   gRDI->destroyShader( combination.shaderObj );
+      }
 	}
 
 	_contexts.clear();
@@ -785,8 +788,10 @@ bool ShaderResource::load( const char *data, int size )
 }
 
 
-void ShaderResource::compileCombination( ShaderContext &context )
+void ShaderResource::compileCombination(ShaderContext &context, ShaderCombination &combination)
 {
+	Modules::log().writeInfo( "---- C O M P I L I N G  . S H A D E R . %s@%s ----",
+		_name.c_str(), context.id.c_str() );
 	// Add preamble
 	_tmpCode0 = _vertPreamble;
 	_tmpCode1 = _fragPreamble;
@@ -797,6 +802,7 @@ void ShaderResource::compileCombination( ShaderContext &context )
 
    for (const auto& flag : Modules::config().shaderFlags)
    {
+      Modules::log().writeInfo("----- %s ----", flag.c_str());
 		_tmpCode0 += "#define " + flag + "\r\n";				
 		_tmpCode1 += "#define " + flag + "\r\n";
    }
@@ -809,18 +815,16 @@ void ShaderResource::compileCombination( ShaderContext &context )
 	_tmpCode1 += getCode( context.fragCodeIdx )->assembleCode();
 
 	
-	Modules::log().writeInfo( "---- C O M P I L I N G  . S H A D E R . %s@%s ----",
-		_name.c_str(), context.id.c_str() );
 	
 	// Unload shader if necessary
-   if( context.shaderComb.shaderObj != 0 )
+   if( combination.shaderObj != 0 )
 	{
-		gRDI->destroyShader( context.shaderComb.shaderObj );
-		context.shaderComb.shaderObj = 0;
+		gRDI->destroyShader( combination.shaderObj );
+		combination.shaderObj = 0;
 	}
 	
 	// Compile shader
-	if( !Modules::renderer().createShaderComb( _name.c_str(), _tmpCode0.c_str(), _tmpCode1.c_str(), context.shaderComb ) )
+	if( !Modules::renderer().createShaderComb( _name.c_str(), _tmpCode0.c_str(), _tmpCode1.c_str(), combination ) )
 	{
 		Modules::log().writeError( "Shader resource '%s': Failed to compile shader context '%s' ",
 			_name.c_str(), context.id.c_str() );
@@ -838,14 +842,14 @@ void ShaderResource::compileCombination( ShaderContext &context )
 	}
 	else
 	{
-		gRDI->bindShader( context.shaderComb.shaderObj );
+		gRDI->bindShader( combination.shaderObj );
 
 		// Find samplers in compiled shader
-		context.shaderComb.customSamplers.reserve( _samplers.size() );
+		combination.customSamplers.reserve( _samplers.size() );
 		for( uint32 i = 0; i < _samplers.size(); ++i )
 		{
-			int samplerLoc = gRDI->getShaderSamplerLoc( context.shaderComb.shaderObj, _samplers[i].id.c_str() );
-			context.shaderComb.customSamplers.push_back( samplerLoc );
+			int samplerLoc = gRDI->getShaderSamplerLoc( combination.shaderObj, _samplers[i].id.c_str() );
+			combination.customSamplers.push_back( samplerLoc );
 			
 			// Set texture unit
 			if( samplerLoc >= 0 )
@@ -853,11 +857,11 @@ void ShaderResource::compileCombination( ShaderContext &context )
 		}
 		
 		// Find uniforms in compiled shader
-		context.shaderComb.customUniforms.reserve( _uniforms.size() );
+		combination.customUniforms.reserve( _uniforms.size() );
 		for( uint32 i = 0; i < _uniforms.size(); ++i )
 		{
-			context.shaderComb.customUniforms.push_back(
-				gRDI->getShaderConstLoc( context.shaderComb.shaderObj, _uniforms[i].id.c_str() ) );
+			combination.customUniforms.push_back(
+				gRDI->getShaderConstLoc( combination.shaderObj, _uniforms[i].id.c_str() ) );
 		}
 	}
 
@@ -871,15 +875,18 @@ void ShaderResource::compileContexts()
 	{
 		ShaderContext &context = _contexts[i];
 
-		if( !context.compiled )
+		if(!context.compiled)
 		{
-			if( !getCode( context.vertCodeIdx )->tryLinking() ||
-			    !getCode( context.fragCodeIdx )->tryLinking() )
+			if( !getCode(context.vertCodeIdx)->tryLinking() ||
+			    !getCode(context.fragCodeIdx)->tryLinking() )
 			{
 				continue;
 			}
-			
-			compileCombination( context );
+		
+         for (auto& combination : context.shaderCombinations)
+         {
+			   compileCombination(context, combination);
+         }
 			context.compiled = true;
 		}
 	}

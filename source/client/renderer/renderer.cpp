@@ -68,8 +68,8 @@ Renderer::Renderer() :
    assert(renderer_.get() == nullptr);
    renderer_.reset(this);
 
-   windowWidth_ = config_.screen_width;
-   windowHeight_ = config_.screen_height;
+   windowWidth_ = config_.screen_width.value;
+   windowHeight_ = config_.screen_height.value;
 
    glfwSetErrorCallback([](int errorCode, const char* errorString) {
       Renderer::GetInstance().lastGlfwError_ = BUILD_STRING(errorString << " (code: " << std::to_string(errorCode) << ")");
@@ -80,14 +80,14 @@ Renderer::Renderer() :
       throw std::runtime_error(BUILD_STRING("Unable to initialize glfw: " << lastGlfwError_));
    }
 
-   glfwWindowHint(GLFW_SAMPLES, config_.num_msaa_samples);
+   glfwWindowHint(GLFW_SAMPLES, config_.num_msaa_samples.value);
    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, config_.enable_gl_logging ? 1 : 0);
+   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, config_.enable_gl_logging.value ? 1 : 0);
 
    GLFWwindow *window;
    if (!(window = glfwCreateWindow(windowWidth_, windowHeight_, "Stonehearth", 
-        config_.enable_fullscreen ? glfwGetPrimaryMonitor() : nullptr, nullptr))) {
+        config_.enable_fullscreen.value ? glfwGetPrimaryMonitor() : nullptr, nullptr))) {
       glfwTerminate();
       throw std::runtime_error(BUILD_STRING("Unable to create glfw window: " << lastGlfwError_));
    }
@@ -96,7 +96,7 @@ Renderer::Renderer() :
 
    // Init Horde, looking for OpenGL 2.0 minimum.
    std::string s = (radiant::core::System::GetInstance().GetTempDirectory() / "horde3d_log.html").string();
-   if (!h3dInit(2, 0, config_.enable_gl_logging, s.c_str())) {
+   if (!h3dInit(2, 0, config_.enable_gl_logging.value, s.c_str())) {
       h3dutDumpMessages();
       throw std::runtime_error("Unable to initialize renderer.  Check horde log for details.");
    }
@@ -108,7 +108,7 @@ Renderer::Renderer() :
    h3dSetOption(H3DOptions::FastAnimation, 1);
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
 
-   ApplyConfig();
+   ApplyConfig(config_, false);
 
    SetDrawWorld(false);
 
@@ -262,12 +262,11 @@ void Renderer::BuildSkySphere()
    }
 
    // Set up texture coordinates for each vertex based on it's 'height'.  We will use this to
-   // interpolate a gradient.  Also, scale the vertices after computing the texture coordinate.
+   // interpolate a gradient.
    for (int i = 0; i < 2046; i++)
    {
       texData[i * 2 + 0] = 0.0f;
       texData[i * 2 + 1] = 1.0f - ((spVerts[i].y * 0.5f) + 0.5f);
-      spVerts[i] *= 100.0f;
    }
 
    skysphereMat = h3dAddResource(H3DResTypes::Material, "materials/skysphere.material.xml", 0);
@@ -300,7 +299,6 @@ void Renderer::BuildStarfield()
          rng.GetReal(-0.8f, 0.1f), 
          rng.GetReal(-1.0f, 1.0f));
       starPos.normalize();
-      starPos *= 900.0f;
       verts[i + 0] = starPos;
       verts[i + 1] = starPos;
       verts[i + 2] = starPos;
@@ -348,72 +346,104 @@ void Renderer::ShowPerfHud(bool value) {
 // These options should be worded so that they can default to false
 void Renderer::GetConfigOptions()
 {
-   core::Config& config = core::Config::GetInstance();
+   const core::Config& config = core::Config::GetInstance();
 
    // "Uses the forward-renderer, instead of the deferred renderer."
-   config_.use_forward_renderer = config.Get("renderer.use_forward_renderer", true);
+   config_.use_forward_renderer.value = config.Get("renderer.use_forward_renderer", true);
 
    // "Enables SSAO blur."
-   config_.use_ssao_blur = config.Get("renderer.use_ssao_blur", true);
+   config_.use_ssao_blur.value = config.Get("renderer.use_ssao_blur", true);
 
    // "Enables shadows."
-   config_.use_shadows = config.Get("renderer.enable_shadows", true);
+   config_.use_shadows.value = config.Get("renderer.enable_shadows", true);
 
    // "Enables Screen-Space Ambient Occlusion (SSAO)."
-   config_.use_ssao = config.Get("renderer.enable_ssao", true);
+   config_.use_ssao.value = config.Get("renderer.enable_ssao", true);
 
    // "Sets the number of Multi-Sample Anti Aliasing samples to use."
-   config_.num_msaa_samples = config.Get("renderer.msaa_samples", 0);
+   config_.num_msaa_samples.value = config.Get("renderer.msaa_samples", 0);
 
    // "Sets the square resolution of the shadow maps."
-   config_.shadow_resolution = config.Get("renderer.shadow_resolution", 2048);
+   config_.shadow_resolution.value = config.Get("renderer.shadow_resolution", 2048);
 
    // "Enables vertical sync."
-   config_.enable_vsync = config.Get("renderer.enable_vsync", true);
+   config_.enable_vsync.value = config.Get("renderer.enable_vsync", true);
 
-   config_.enable_fullscreen = config.Get("renderer.enable_fullscreen", false);
+   config_.enable_fullscreen.value = config.Get("renderer.enable_fullscreen", false);
 
-   config_.enable_gl_logging = config.Get("renderer.enable_gl_logging", false);
+   config_.enable_gl_logging.value = config.Get("renderer.enable_gl_logging", false);
 
-   config_.screen_width = config.Get("renderer.screen_width", 1280);
-   config_.screen_height = config.Get("renderer.screen_height", 720);
+   config_.screen_width.value = config.Get("renderer.screen_width", 1280);
+   config_.screen_height.value = config.Get("renderer.screen_height", 720);
 
-   config_.enable_debug_keys = config.Get("enable_debug_keys", false);
+   config_.enable_debug_keys.value = config.Get("enable_debug_keys", false);
+
+   config_.draw_distance.value = config.Get("renderer.draw_distance", 1000.0f);
 }
 
-void Renderer::ApplyConfig()
+void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
 {
-   if (config_.use_forward_renderer) {
+   memcpy(&config_, &newConfig, sizeof(RendererConfig));
+
+   H3DRendererCaps rendererCaps;
+   H3DGpuCaps gpuCaps;
+   h3dGetCapabilities(&rendererCaps, &gpuCaps);
+
+   // Presently, only the engine can decide if certain features are even allowed to run.
+   config_.num_msaa_samples.allowed = gpuCaps.MSAASupported;
+   config_.use_shadows.allowed = rendererCaps.ShadowsSupported;
+
+   if (config_.use_forward_renderer.value) {
       SetCurrentPipeline("pipelines/forward.pipeline.xml");
    } else {
       SetCurrentPipeline("pipelines/deferred_lighting.xml");
    }
 
-   SetStageEnable("SSAO", config_.use_ssao);
-   SetStageEnable("Simple, once-pass SSAO Blur", config_.use_ssao_blur);
+   SetStageEnable("SSAO", config_.use_ssao.value);
+   SetStageEnable("Simple, once-pass SSAO Blur", config_.use_ssao_blur.value);
    // Turn on copying if we're using SSAO, but not using blur.
-   SetStageEnable("SSAO Copy", config_.use_ssao && !config_.use_ssao_blur);
-   SetStageEnable("SSAO Default", !config_.use_ssao);
+   SetStageEnable("SSAO Copy", config_.use_ssao.value && !config_.use_ssao_blur.value);
+   SetStageEnable("SSAO Default", !config_.use_ssao.value);
 
    int oldMSAACount = (int)h3dGetOption(H3DOptions::SampleCount);
 
-   h3dSetOption(H3DOptions::EnableShadows, config_.use_shadows ? 1.0f : 0.0f);
-   h3dSetOption(H3DOptions::ShadowMapSize, (float)config_.shadow_resolution);
-   h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples);
+   h3dSetOption(H3DOptions::EnableShadows, config_.use_shadows.value ? 1.0f : 0.0f);
+   h3dSetOption(H3DOptions::ShadowMapSize, (float)config_.shadow_resolution.value);
+   h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples.value);
 
    if (oldMSAACount != (int)h3dGetOption(H3DOptions::SampleCount))
    {
       // MSAA change requires that we reload our pipelines (so that we can regenerate our
       // render target textures with the appropriate sampling).
-      H3DRes r = 0;
-      while ((r = h3dGetNextResource(H3DResTypes::Pipeline, r)) != 0) {
-         h3dUnloadResource(r);
-      }
+      FlushMaterials();
 
       LoadResources();
    }
 
-   glfwSwapInterval(config_.enable_vsync ? 1 : 0);
+   // Propagate far-plane value.
+   if (camera_) {
+      ResizeViewport();
+   }
+
+   glfwSwapInterval(config_.enable_vsync.value ? 1 : 0);
+
+   if (persistConfig)
+   {
+      core::Config& config = core::Config::GetInstance();
+
+      config.Set("renderer.enable_shadows", config_.use_shadows.value);
+      config.Set("renderer.msaa_samples", config_.num_msaa_samples.value);
+
+      config.Set("renderer.shadow_resolution", config_.shadow_resolution.value);
+
+      config.Set("renderer.enable_vsync", config_.enable_vsync.value);
+
+      config.Set("renderer.enable_fullscreen", config_.enable_fullscreen.value);
+
+      config.Set("renderer.screen_width", config_.screen_width.value);
+      config.Set("renderer.screen_height", config_.screen_height.value);
+      config.Set("renderer.draw_distance", config_.draw_distance.value);
+   }
 }
 
 SystemStats Renderer::GetStats()
@@ -553,7 +583,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
 
    bool debug = false;
    bool showStats = false;
-   if (config_.enable_debug_keys) {
+   if (config_.enable_debug_keys.value) {
       debug = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS;
       showStats = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
    }
@@ -599,15 +629,19 @@ void Renderer::RenderOneFrame(int now, float alpha)
 
    h3dSetMaterialArrayUniform( ssaoMat, "samplerKernel", ssaoSamplerData.data(), ssaoSamplerData.size());
    
-   // Update the position of the sky so that it is always around the camera.
+   float skysphereDistance = config_.draw_distance.value * 0.4f;
+   float starsphereDistance = config_.draw_distance.value * 0.9f;
+   // Update the position of the sky so that it is always around the camera.  This isn't strictly
+   // necessary for rendering, but very important for culling!  Horde doesn't (yet) know that
+   // some nodes should _always_ be drawn.
    h3dSetNodeTransform(meshNode, 
-      camera_->GetPosition().x, -50 + camera_->GetPosition().y, camera_->GetPosition().z,
-      25.0, 0.0, 0.0, 
-      1.0, 1.0, 1.0);
+      camera_->GetPosition().x, -(skysphereDistance * 0.5) + camera_->GetPosition().y, camera_->GetPosition().z,
+      25.0, 0.0, 0.0,
+      skysphereDistance, skysphereDistance, skysphereDistance);
    h3dSetNodeTransform(starfieldMeshNode, 
       camera_->GetPosition().x, camera_->GetPosition().y, camera_->GetPosition().z,
       0.0, 0.0, 0.0, 
-      1.0, 1.0, 1.0);
+      starsphereDistance, starsphereDistance, starsphereDistance);
 
    // Render scene
    perfmon::SwitchToCounter("render h3d");
@@ -779,7 +813,7 @@ void Renderer::ResizeViewport()
    h3dSetNodeParamI( camera, H3DCamera::ViewportHeightI, windowHeight_ );
    
    // Set virtual camera parameters
-   h3dSetupCameraView( camera, 45.0f, (float)windowWidth_ / windowHeight_, 2.0f, 1000.0f);
+   h3dSetupCameraView( camera, 45.0f, (float)windowWidth_ / windowHeight_, 2.0f, config_.draw_distance.value);
 }
 
 void Renderer::SetDrawWorld(bool drawWorld) 

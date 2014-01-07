@@ -3,6 +3,7 @@ local log = radiant.log.create_logger('worker')
 
 WorkerTaskDispatcher.name = 'worker task dispatcher'
 WorkerTaskDispatcher.does = 'stonehearth:top'
+WorkerTaskDispatcher.version = 1
 WorkerTaskDispatcher.priority = 0
 
 

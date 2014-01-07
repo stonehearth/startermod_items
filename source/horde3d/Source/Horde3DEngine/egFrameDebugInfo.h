@@ -31,6 +31,7 @@ public:
    const std::vector<Frustum>& getSplitFrustums() { return splitFrustums_; }
    const std::vector<Frustum>& getShadowCascadeFrustums() { return shadowCascadeFrustums_; }
    const std::vector<BoundingBox>& getDirectionalLightAABBs() { return directionalLights_; }
+   const std::vector<Polygon>& getPolygons() {return polygons_; }
    const Frustum& getViewerFrustum() { return sampledFrustum_; }
    void reset();
 
@@ -39,6 +40,7 @@ private:
    void addShadowCascadeFrustum_(const Frustum& f);
    void addDirectionalLightAABB_(const BoundingBox& b);
    void setViewerFrustum_(const Frustum& f);
+   void addPolygon_(const Polygon& p);
 
    bool samplingFrame_;
    Frustum sampledFrustum_;
@@ -46,6 +48,7 @@ private:
    std::vector<BoundingBox> directionalLights_;
    std::vector<Frustum> shadowCascadeFrustums_;
    std::vector<Frustum> splitFrustums_;
+   std::vector<Polygon> polygons_;
    
 
 	friend class SceneManager;

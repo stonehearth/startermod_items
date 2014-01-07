@@ -73,11 +73,11 @@ public:
 
 	void updateDynamicVertData();
 
-	uint32 getVertCount() { return _vertCount; }
-	char *getIndexData() { return _indexData; }
-	VoxelVertexData *getVertexData() { return _vertexData; }
-	uint32 getVertexBuf() { return _vertexBuf; }
-	uint32 getIndexBuf() { return _indexBuf; }
+	uint32 getVertCount() const { return _vertCount; }
+	char *getIndexData() const { return _indexData; }
+	VoxelVertexData *getVertexData() const { return _vertexData; }
+	uint32 getVertexBuf() const { return _vertexBuf; }
+	uint32 getIndexBuf() const { return _indexBuf; }
 
 public:
 	static uint32 defVertexBuffer, defIndexBuffer;

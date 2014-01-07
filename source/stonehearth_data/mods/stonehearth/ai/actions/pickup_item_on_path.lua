@@ -4,6 +4,7 @@ local PickupItemOnPath = class()
 
 PickupItemOnPath.name = 'pickup item on path'
 PickupItemOnPath.does = 'stonehearth:pickup_item_on_path'
+PickupItemOnPath.version = 1
 PickupItemOnPath.priority = 5
 
 function PickupItemOnPath:run(ai, entity, path)

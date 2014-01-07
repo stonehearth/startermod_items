@@ -8,6 +8,7 @@ local CarryItemOnPathTo = class()
 
 CarryItemOnPathTo.name = 'carry item on path to'
 CarryItemOnPathTo.does = 'stonehearth:carry_item_on_path_to'
+CarryItemOnPathTo.version = 1
 CarryItemOnPathTo.priority = 5
 
 function CarryItemOnPathTo:__init(ai, entity)

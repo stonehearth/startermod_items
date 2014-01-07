@@ -52,15 +52,15 @@ bool Extension::init()
 	Modules::sceneMan().registerType(SNT_DebugShapesNode, "DebugShapes",
 		                              DebugShapesNode::parsingFunc,
                                     DebugShapesNode::factoryFunc,
-                                    DebugShapesNode::renderFunc);
+                                    DebugShapesNode::renderFunc, 0x0);
    Modules::sceneMan().registerType(SNT_CubemitterNode, "Cubemitter",
 		                              CubemitterNode::parsingFunc,
                                     CubemitterNode::factoryFunc,
-                                    CubemitterNode::renderFunc);
+                                    CubemitterNode::renderFunc, 0x0);
    Modules::sceneMan().registerType(SNT_AnimatedLightNode, "AnimatedLight",
                                     AnimatedLightNode::parsingFunc,
                                     AnimatedLightNode::factoryFunc,
-                                    0x0);
+                                    0x0, 0x0);
    Modules::resMan().registerType(RT_CubemitterResource, "Cubemitter", 0x0, 0x0, 
                                     CubemitterResource::factoryFunc);
    Modules::resMan().registerType(RT_AnimatedLightResource, "AnimatedLight", 0x0, 0x0,

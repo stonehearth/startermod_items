@@ -10,6 +10,7 @@ local GetFoodAction = class()
 
 GetFoodAction.name = 'ged food!'
 GetFoodAction.does = 'stonehearth:get_food'
+GetFoodAction.version = 1
 GetFoodAction.priority = 5                    --The minute this action is called, it runs
 
 function GetFoodAction:__init(ai, entity)

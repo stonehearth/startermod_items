@@ -139,6 +139,7 @@ struct ShaderCombination
 
 	std::vector< int >  customSamplers;
 	std::vector< int >  customUniforms;
+   std::set<std::string> engineFlags;
 
 
 	ShaderCombination() :
@@ -161,7 +162,7 @@ struct ShaderContext
 	bool                              alphaToCoverage;
 	
 	// Shaders
-	ShaderCombination                 shaderComb;
+	std::vector<ShaderCombination>    shaderCombinations;
 	int                               vertCodeIdx, fragCodeIdx;
 	bool                              compiled;
 
@@ -239,7 +240,7 @@ public:
 private:
 	bool raiseError( const std::string &msg, int line = -1 );
 	bool parseFXSection( char *data );
-	void compileCombination( ShaderContext &context );
+	void compileCombination(ShaderContext &context, ShaderCombination &combination);
 	
 private:
 	static std::string            _vertPreamble, _fragPreamble;

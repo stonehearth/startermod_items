@@ -25,6 +25,8 @@
 
 #define SCENE_LOG(level)      LOG(horde.scene, level)
 
+static const int MaxActiveRenderQueues = 1000;
+
 namespace Horde3D {
 
 using namespace std;
@@ -355,8 +357,8 @@ struct RendQueueItemCompFunc
 };
 
 
-void SpatialGraph::query(const SpatialQuery& query, std::vector<RendQueueItem>& renderableQueue, 
-      std::vector<SceneNode*>& lightQueue)
+void SpatialGraph::query(const SpatialQuery& query, RenderableQueues& renderableQueues, 
+      InstanceRenderableQueues& instanceQueues, std::vector<SceneNode*>& lightQueue)
 {
    ASSERT(query.useLightQueue || query.useRenderableQueue);
 
@@ -411,8 +413,26 @@ void SpatialGraph::query(const SpatialQuery& query, std::vector<RendQueueItem>& 
             sortKey = -nearestDistToAABB( query.frustum.getOrigin(), node->_bBox.min(), node->_bBox.max() );
             break;
          }
-				
-         renderableQueue.push_back( RendQueueItem( node->_type, sortKey, node ) );
+         
+         if (node->getInstanceKey() != 0x0 && !query.forceNoInstancing) {
+            if (instanceQueues.find(node->_type) == instanceQueues.end()) {
+               instanceQueues[node->_type] = InstanceRenderableQueue();
+            }
+            InstanceRenderableQueue& iq = instanceQueues[node->_type];
+            
+            const InstanceKey& ik = *(node->getInstanceKey());
+            if (iq.find(ik) == iq.end()) {
+               iq[ik] = RenderableQueue();
+               iq[ik].reserve(1000);
+            }
+            iq[ik].push_back(RendQueueItem(node->_type, sortKey, node));
+         } else {
+            if (renderableQueues.find(node->_type) == renderableQueues.end()) {
+               renderableQueues[node->_type] = RenderableQueue();
+               renderableQueues[node->_type].reserve(1000);
+            }
+            renderableQueues[node->_type].push_back( RendQueueItem( node->_type, sortKey, node ) );
+         }
       }
       if (query.useLightQueue && node->_type == SceneNodeTypes::Light) {		 
          lightQueue.push_back( node );
@@ -420,8 +440,17 @@ void SpatialGraph::query(const SpatialQuery& query, std::vector<RendQueueItem>& 
    }
 
 	// Sort
-	if( query.order != RenderingOrder::None )
-		std::sort( renderableQueue.begin(), renderableQueue.end(), RendQueueItemCompFunc() );
+	if( query.order != RenderingOrder::None ) {
+      for (auto& item : renderableQueues) {
+         std::sort( item.second.begin(), item.second.end(), RendQueueItemCompFunc() );
+      }
+
+      for (auto& item : instanceQueues) {
+         for (auto& queue : item.second) {
+            std::sort(queue.second.begin(), queue.second.end(), RendQueueItemCompFunc());
+         }
+      }
+   }
 }
 
 
@@ -442,7 +471,6 @@ SceneManager::SceneManager()
    for (int i = 0; i < QueryCacheSize; i++)
    {
       _queryCache[i].lightQueue.reserve(20);
-      _queryCache[i].renderableQueue.reserve(1000);
    }
 }
 
@@ -459,13 +487,14 @@ SceneManager::~SceneManager()
 
 
 void SceneManager::registerType( int type, const std::string &typeString, NodeTypeParsingFunc pf,
-								 NodeTypeFactoryFunc ff, NodeTypeRenderFunc rf )
+								 NodeTypeFactoryFunc ff, NodeTypeRenderFunc rf, NodeTypeRenderFunc irf )
 {
 	NodeRegEntry entry;
 	entry.typeString = typeString;
 	entry.parsingFunc = pf;
 	entry.factoryFunc = ff;
 	entry.renderFunc = rf;
+   entry.instanceRenderFunc = irf;
 	_registry[type] = entry;
 }
 
@@ -502,7 +531,7 @@ void SceneManager::updateNodes()
 
 
 void SceneManager::updateQueues( const char* reason, const Frustum &frustum1, const Frustum *frustum2, RenderingOrder::List order,
-                                 uint32 filterIgnore, uint32 filterRequired, bool useLightQueue, bool useRenderableQueue )
+                                 uint32 filterIgnore, uint32 filterRequired, bool useLightQueue, bool useRenderableQueue, bool forceNoInstancing )
 {
    radiant::perfmon::TimelineCounterGuard uq("updateQueues");
 
@@ -514,6 +543,7 @@ void SceneManager::updateQueues( const char* reason, const Frustum &frustum1, co
    query.secondaryFrustum = frustum2;
    query.useLightQueue = useLightQueue;
    query.useRenderableQueue = useRenderableQueue;
+   query.forceNoInstancing = forceNoInstancing;
 
    _currentQuery = _checkQueryCache(query);
  
@@ -539,6 +569,7 @@ void SceneManager::updateQueues( const char* reason, const Frustum &frustum1, co
     sqr.query.secondaryFrustum = frustum2;
     sqr.query.useLightQueue = useLightQueue;
     sqr.query.useRenderableQueue = useRenderableQueue;
+    sqr.query.forceNoInstancing = forceNoInstancing;
  
    // Clear without affecting capacity
     if (useLightQueue) 
@@ -547,10 +578,18 @@ void SceneManager::updateQueues( const char* reason, const Frustum &frustum1, co
     }
     if (useRenderableQueue )
     {
-       sqr.renderableQueue.resize(0);
+       for (auto& item : sqr.renderableQueues) {
+          item.second.resize(0);
+       }
+
+       for (auto& item : sqr.instanceRenderableQueues) {
+          for (auto& instances : item.second) {
+             instances.second.resize(0);
+          }
+       }
     }
  
-    _spatialGraph->query(query, sqr.renderableQueue, sqr.lightQueue);
+    _spatialGraph->query(query, sqr.renderableQueues, sqr.instanceRenderableQueues, sqr.lightQueue);
 }
 
 
@@ -561,12 +600,32 @@ std::vector<SceneNode*>& SceneManager::getLightQueue()
 }
 
 
-std::vector<RendQueueItem>& SceneManager::getRenderableQueue() 
+RenderableQueue& SceneManager::getRenderableQueue(int itemType) 
 { 
    ASSERT(_currentQuery != -1);
-   return _queryCache[_currentQuery].renderableQueue;
+   RenderableQueues& renderQueues = _queryCache[_currentQuery].renderableQueues;
+   if (renderQueues.find(itemType) == renderQueues.end()) {
+      renderQueues[itemType] = RenderableQueue();
+      renderQueues[itemType].reserve(1000);
+   }
+   return renderQueues[itemType];
 }
 
+RenderableQueues& SceneManager::getRenderableQueues()
+{
+   ASSERT(_currentQuery != -1);
+   return _queryCache[_currentQuery].renderableQueues;
+}
+
+InstanceRenderableQueue& SceneManager::getInstanceRenderableQueue(int itemType)
+{
+   ASSERT(_currentQuery != -1);
+   InstanceRenderableQueues& renderQueues = _queryCache[_currentQuery].instanceRenderableQueues;
+   if (renderQueues.find(itemType) == renderQueues.end()) {
+      renderQueues[itemType] = InstanceRenderableQueue();
+   }
+   return renderQueues[itemType];
+}
 
 NodeHandle SceneManager::parseNode( SceneNodeTpl &tpl, SceneNode *parent )
 {
@@ -877,6 +936,24 @@ int SceneManager::checkNodeVisibility( SceneNode &node, CameraNode &cam, bool ch
 
 void SceneManager::clearQueryCache()
 {
+   // Do a pass to see if we have too many renderable queues.  TODO(klochek): collect some stats
+   // for each queue, so that we can more-intelligently get rid of disused queues.
+   int totalRQs = 0;
+   for (int i = 0; i < _queryCacheCount; i++) {
+      for (const auto& iqs : _queryCache[i].instanceRenderableQueues) {
+         totalRQs += iqs.second.size();
+      }
+
+      totalRQs += _queryCache[i].renderableQueues.size();
+   }
+
+   if (totalRQs > MaxActiveRenderQueues) {
+      Modules::log().writeWarning("Total RQs exceeds maximum; flushing.");
+      for (int i = 0; i < _queryCacheCount; i++) {
+         _queryCache[i].instanceRenderableQueues.clear();
+         _queryCache[i].renderableQueues.clear();
+      }
+   }
    _queryCacheCount = 0;
    _currentQuery = -1;
 }
@@ -888,6 +965,10 @@ int SceneManager::_checkQueryCache(const SpatialQuery& query)
    {
       SpatialQueryResult& r = _queryCache[i];
 
+      if (r.query.forceNoInstancing != query.forceNoInstancing) 
+      {
+         continue;
+      }
       if (r.query.filterIgnore != query.filterIgnore)
       {
          continue;
