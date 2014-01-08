@@ -35,36 +35,46 @@ local Landscaper = class()
 function Landscaper:__init(terrain_info, tile_width, tile_height, rng, async)
    if async == nil then async = false end
 
-   self.terrain_info = terrain_info
-   self.tile_width = tile_width
-   self.tile_height = tile_height
+   self._terrain_info = terrain_info
+   self._tile_width = tile_width
+   self._tile_height = tile_height
    self._rng = rng
    self._async = async
 
    -- assert that macroblocks are an integer multiple of the perturbation cell size
    -- no longer support arbitrary alignments in anticipation of future features
    local grid_spacing = 16
-   self.perturbation_grid = PerturbationGrid(tile_width, tile_height, grid_spacing, self._rng)
+   self._feature_cell_size = grid_spacing
+   self._perturbation_grid = PerturbationGrid(tile_width, tile_height, grid_spacing, self._rng)
 
-   local feature_map_width, feature_map_height = self.perturbation_grid:get_dimensions()
-   self.feature_map = Array2D(feature_map_width, feature_map_height)
+   local feature_map_width, feature_map_height = self._perturbation_grid:get_dimensions()
+   self._feature_map = Array2D(feature_map_width, feature_map_height)
 
-   self.noise_map_buffer = Array2D(self.feature_map.width, self.feature_map.height)
-   self.density_map_buffer = Array2D(self.feature_map.width, self.feature_map.height)
-end
-
-function Landscaper:_yield()
-   if self._async then
-      coroutine.yield()
-   end
+   self._noise_map_buffer = Array2D(self._feature_map.width, self._feature_map.height)
+   self._density_map_buffer = Array2D(self._feature_map.width, self._feature_map.height)
 end
 
 function Landscaper:clear_feature_map()
-   self.feature_map:clear(nil)
+   self._feature_map:clear(nil)
+end
+
+function Landscaper:get_feature_map()
+   return self._feature_map:clone()
+end
+
+function Landscaper:get_feature_cell_size()
+   return self._feature_cell_size
+end
+
+function Landscaper:is_forest_feature(feature_name)
+   if feature_name == nil then return false end
+   if is_tree_name(feature_name) then return true end
+   if feature_name == generic_vegetaion_name then return true end
+   return false
 end
 
 function Landscaper:place_flora(tile_map, world_offset_x, world_offset_y)
-   assert(tile_map.width == self.tile_width and tile_map.height == self.tile_height)
+   assert(tile_map.width == self._tile_width and tile_map.height == self._tile_height)
    if world_offset_x == nil then world_offset_x = 0 end
    if world_offset_y == nil then world_offset_y = 0 end
 
@@ -87,9 +97,9 @@ end
 
 function Landscaper:_place_trees(tile_map, place_item)
    local rng = self._rng
-   local terrain_info = self.terrain_info
-   local feature_map = self.feature_map
-   local perturbation_grid = self.perturbation_grid
+   local terrain_info = self._terrain_info
+   local feature_map = self._feature_map
+   local perturbation_grid = self._perturbation_grid
    local large_tree_threshold = 25
    local medium_tree_threshold = 6
    local small_tree_threshold = 0
@@ -97,8 +107,8 @@ function Landscaper:_place_trees(tile_map, place_item)
    local ground_radius = 2
    local normal_tree_density = 0.8
    local small_tree_density = 0.5
-   local noise_map = self.noise_map_buffer
-   local density_map = self.density_map_buffer
+   local noise_map = self._noise_map_buffer
+   local density_map = self._density_map_buffer
    local i, j, x, y, tree_type, tree_name, occupied, value, elevation, terrain_type
 
    local noise_fn = function(i, j)
@@ -119,7 +129,7 @@ function Landscaper:_place_trees(tile_map, place_item)
          --mean = mean + 0
          std_dev = std_dev * 0.30
       elseif terrain_type == TerrainType.Grassland then
-         local grassland_info = self.terrain_info[TerrainType.Grassland]
+         local grassland_info = self._terrain_info[TerrainType.Grassland]
 
          if elevation == grassland_info.max_height then
             -- sparse groves with large trees in the middle
@@ -132,7 +142,7 @@ function Landscaper:_place_trees(tile_map, place_item)
          end
       else
          -- TerrainType.Foothills
-         local foothills_info = self.terrain_info[TerrainType.Foothills]
+         local foothills_info = self._terrain_info[TerrainType.Foothills]
 
          if elevation == foothills_info.max_height then
             -- lots of continuous forest with low variance
@@ -166,7 +176,7 @@ function Landscaper:_place_trees(tile_map, place_item)
                   tree_type = self:_get_tree_type(elevation)
 
                   if tree_type ~= nil then 
-                     terrain_type = self.terrain_info:get_terrain_type(elevation)
+                     terrain_type = self._terrain_info:get_terrain_type(elevation)
 
                      if     value >= large_tree_threshold  then tree_name = get_tree_name(tree_type, large)
                      elseif value >= medium_tree_threshold then tree_name = get_tree_name(tree_type, medium)
@@ -217,11 +227,11 @@ end
 
 function Landscaper:_place_berry_bushes(tile_map, place_item)
    local rng = self._rng
-   local terrain_info = self.terrain_info
-   local feature_map = self.feature_map
-   local perturbation_grid = self.perturbation_grid
-   local noise_map = self.noise_map_buffer
-   local density_map = self.density_map_buffer
+   local terrain_info = self._terrain_info
+   local feature_map = self._feature_map
+   local perturbation_grid = self._perturbation_grid
+   local noise_map = self._noise_map_buffer
+   local density_map = self._density_map_buffer
    local item_spacing = math.floor(perturbation_grid.grid_spacing*0.33)
    local item_density = 0.90
    local i, j, x, y, w, h, rows, columns, occupied, value, placed
@@ -270,7 +280,7 @@ function Landscaper:_place_berry_bushes(tile_map, place_item)
          value = density_map:get(i, j)
 
          if value > 0 then
-            occupied = self.feature_map:get(i, j) ~= nil
+            occupied = self._feature_map:get(i, j) ~= nil
 
             if not occupied then
                x, y, w, h = perturbation_grid:get_cell_bounds(i, j)
@@ -278,7 +288,7 @@ function Landscaper:_place_berry_bushes(tile_map, place_item)
 
                placed = self:_place_pattern(tile_map, x, y, w, h, rows, columns, item_spacing, item_density, 1, try_place_item)
                if placed then
-                  self.feature_map:set(i, j, berry_bush_name)
+                  self._feature_map:set(i, j, berry_bush_name)
                end
             end
          end
@@ -300,14 +310,14 @@ end
 
 function Landscaper:_place_flowers(tile_map, place_item)
    local rng = self._rng
-   local terrain_info = self.terrain_info
-   local feature_map = self.feature_map
-   local perturbation_grid = self.perturbation_grid
+   local terrain_info = self._terrain_info
+   local feature_map = self._feature_map
+   local perturbation_grid = self._perturbation_grid
    local grid_spacing = perturbation_grid.grid_spacing
    local exclusion_radius = 1
    local ground_radius = 1
-   local noise_map = self.noise_map_buffer
-   local density_map = self.density_map_buffer
+   local noise_map = self._noise_map_buffer
+   local density_map = self._density_map_buffer
    local i, j, x, y, occupied, value, elevation, terrain_type
 
    local noise_fn = function(i, j)
@@ -441,11 +451,9 @@ function Landscaper:_is_flat(tile_map, x, y, distance)
    local height = tile_map:get(x, y)
    local is_flat = true
 
-   tile_map:visit_block(start_x, start_y, block_width, block_height,
+   is_flat = tile_map:visit_block(start_x, start_y, block_width, block_height,
       function (value)
-         if value == height then return true end
-         is_flat = false
-         return false
+         return value == height
       end
    )
 
@@ -458,7 +466,7 @@ function Landscaper:_get_tree_type(elevation)
    local high_foothills_juniper_chance = 0.8
    local low_foothills_juniper_chance = 0.2
 
-   local terrain_info = self.terrain_info
+   local terrain_info = self._terrain_info
 
    --if elevation > terrain_info.tree_line then return nil end
 
@@ -519,21 +527,21 @@ end
 function Landscaper:place_boulders(region3_boxed, tile_map)
    local boulder_region
    local exclusion_radius = 8
-   local grid_width, grid_height = self.perturbation_grid:get_dimensions()
+   local grid_width, grid_height = self._perturbation_grid:get_dimensions()
    local elevation, i, j, x, y
 
    -- no boulders on edge of map since they can get cut off
    region3_boxed:modify(function(region3)
       for j=2, grid_height-1 do
          for i=2, grid_width-1 do
-            x, y = self.perturbation_grid:get_perturbed_coordinates(i, j, exclusion_radius)
+            x, y = self._perturbation_grid:get_perturbed_coordinates(i, j, exclusion_radius)
 
             elevation = tile_map:get(x, y)
 
             if self:_should_place_boulder(elevation) then
                boulder_region = self:_create_boulder(x, y, elevation)
                region3:add_region(boulder_region)
-               self.feature_map:set(i, j, boulder_name)
+               self._feature_map:set(i, j, boulder_name)
             end
          end
       end
@@ -544,7 +552,7 @@ end
 
 function Landscaper:_should_place_boulder(elevation)
    local rng = self._rng
-   local terrain_type = self.terrain_info:get_terrain_type(elevation)
+   local terrain_type = self._terrain_info:get_terrain_type(elevation)
    local mountain_boulder_probability = 0.02
    local foothills_boulder_probability = 0.02
    local grassland_boulder_probability = 0.02
@@ -566,7 +574,7 @@ function Landscaper:_should_place_boulder(elevation)
 end
 
 function Landscaper:_create_boulder(x, y, elevation)
-   local terrain_info = self.terrain_info
+   local terrain_info = self._terrain_info
    local terrain_type = terrain_info:get_terrain_type(elevation)
    local step_size = terrain_info[terrain_type].step_size
    local boulder_region = Region3()
@@ -678,6 +686,12 @@ function Landscaper:_get_boulder_chunk(boulder_center, half_width, half_height, 
    end
 
    return ConstructCube3(corner1, corner2, 0)
+end
+
+function Landscaper:_yield()
+   if self._async then
+      coroutine.yield()
+   end
 end
 
 return Landscaper

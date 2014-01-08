@@ -104,7 +104,7 @@ end
 function EdgeDetailer:_generate_detail_height(max_delta, base_height)
    if base_height >= self.terrain_info[TerrainType.Foothills].max_height then
       -- if rng:get_real(0, 1) <= 0.50 then
-         return max_delta -- CHECKCHECK
+         return max_delta
       -- else
          --return MathFns.round(max_delta*0.5)
       -- end

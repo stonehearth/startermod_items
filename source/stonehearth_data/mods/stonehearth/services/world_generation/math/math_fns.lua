@@ -1,7 +1,8 @@
 local MathFns = class()
 
--- rounds towards +infinity even for negative numbers
--- this is the default for most math libraries
+-- works for negative numbers
+-- values ending in .5 round towards +infinity
+-- note that floor rounds towards -infinity
 function MathFns.round(value)
    return math.floor(value+0.5)
 end

@@ -21,24 +21,23 @@ local log = radiant.log.create_logger('world_generation')
 function TerrainGenerator:__init(rng, async)
    if async == nil then async = false end
 
-   -- TODO: most of these should be private/underscore fields
    self._rng = rng
    self._async = async
 
    self.tile_size = 256
    self.macro_block_size = 32
 
-   self.wavelet_levels = 4
-   self.frequency_scaling_coeff = 0.7
+   self._wavelet_levels = 4
+   self._frequency_scaling_coeff = 0.7
 
    self.terrain_info = TerrainInfo()
 
    local oversize_tile_size = self.tile_size + self.macro_block_size
-   self.oversize_map_buffer = Array2D(oversize_tile_size, oversize_tile_size)
+   self._oversize_map_buffer = Array2D(oversize_tile_size, oversize_tile_size)
 
    local micro_size = oversize_tile_size / self.macro_block_size
-   self.blend_map_buffer = self:_create_blend_map(micro_size, micro_size)
-   self.noise_map_buffer = Array2D(micro_size, micro_size)
+   self._blend_map_buffer = self:_create_blend_map(micro_size, micro_size)
+   self._noise_map_buffer = Array2D(micro_size, micro_size)
 
    self._edge_detailer = EdgeDetailer(self.terrain_info, self._rng)
 end
@@ -80,8 +79,8 @@ function TerrainGenerator:generate_tile(terrain_type, tiles, x, y)
 end
 
 function TerrainGenerator:_create_micro_map(terrain_type, tiles, x, y)
-   local blend_map = self.blend_map_buffer
-   local noise_map = self.noise_map_buffer
+   local blend_map = self._blend_map_buffer
+   local noise_map = self._noise_map_buffer
    local micro_map
 
    blend_map.terrain_type = terrain_type
@@ -118,13 +117,13 @@ function TerrainGenerator:_create_micro_map(terrain_type, tiles, x, y)
 end
 
 function TerrainGenerator:_create_tile_map(micro_map)
-   local oversize_map = self.oversize_map_buffer
+   local oversize_map = self._oversize_map_buffer
    local tile_map
 
    self:_create_oversize_map_from_micro_map(oversize_map, micro_map)
    self:_yield()
 
-   self:_shape_height_map(oversize_map, self.frequency_scaling_coeff, self.wavelet_levels)
+   self:_shape_height_map(oversize_map, self._frequency_scaling_coeff, self._wavelet_levels)
    self:_yield()
 
    self:_quantize_height_map(oversize_map, false)
@@ -138,13 +137,6 @@ function TerrainGenerator:_create_tile_map(micro_map)
    self:_yield()
 
    return tile_map
-end
-
--- allows this long running job to be completed in multiple sessions
-function TerrainGenerator:_yield()
-   if self._async then
-      coroutine.yield()
-   end
 end
 
 function TerrainGenerator:_fill_blend_map(blend_map, tiles, x, y)
@@ -199,7 +191,7 @@ function TerrainGenerator:_fill_blend_map(blend_map, tiles, x, y)
    -- for j=1, height do
    --    for i=1, width do
    --       if blend_map:is_boundary(i, j) then
-   --          _halve_macro_block_std_dev(blend_map:get(i, j)) -- CHECKCHECK
+   --          _halve_macro_block_std_dev(blend_map:get(i, j))
    --       end
    --    end
    -- end
@@ -358,7 +350,7 @@ function TerrainGenerator:_filter_noise_map(noise_map)
 
    return filtered_map
 
-   -- local micro_map = Array2D(width, height) -- CHECKCHECK
+   -- local micro_map = Array2D(width, height)
    -- micro_map.terrain_type = terrain_type
    -- FilterFns.filter_max_slope(micro_map, filtered_map, width, height, 8)
    -- micro_map.generated = true
@@ -663,6 +655,12 @@ function TerrainGenerator:_extract_tile_map(oversize_map)
       1, 1, tile_map_origin, tile_map_origin, self.tile_size, self.tile_size)
 
    return tile_map
+end
+
+function TerrainGenerator:_yield()
+   if self._async then
+      coroutine.yield()
+   end
 end
 
 function _print_blend_map(blend_map)
