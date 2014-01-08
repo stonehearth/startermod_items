@@ -589,8 +589,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    }
   
    bool showUI = true;
-   const float ww = (float)h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportWidthI) /
-                    (float)h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportHeightI);
+   const float ww = uiWidth_ / (float)uiHeight_;
 
    h3dSetOption(H3DOptions::DebugViewMode, debug);
    h3dSetOption(H3DOptions::WireframeMode, debug);
@@ -635,7 +634,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    // necessary for rendering, but very important for culling!  Horde doesn't (yet) know that
    // some nodes should _always_ be drawn.
    h3dSetNodeTransform(meshNode, 
-      camera_->GetPosition().x, -(skysphereDistance * 0.5) + camera_->GetPosition().y, camera_->GetPosition().z,
+      camera_->GetPosition().x, -(skysphereDistance * 0.5f) + camera_->GetPosition().y, camera_->GetPosition().z,
       25.0, 0.0, 0.0,
       skysphereDistance, skysphereDistance, skysphereDistance);
    h3dSetNodeTransform(starfieldMeshNode, 
@@ -1056,7 +1055,7 @@ void Renderer::SetViewMode(ViewMode mode)
 
 void Renderer::LoadResources()
 {
-   uiBuffer_.allocateBuffers(uiWidth_, uiHeight_);
+   uiBuffer_.allocateBuffers(std::max(uiWidth_, 1920), std::max(1080, uiHeight_));
    if (!h3dutLoadResourcesFromDisk("horde")) {
       // at this time, there's a bug in horde3d (?) which causes render
       // pipline corruption if invalid resources are even attempted to
@@ -1099,9 +1098,9 @@ lua::ScriptHost* Renderer::GetScriptHost() const
 
 void Renderer::SetUITextureSize(int width, int height)
 {
-   uiWidth_ = width;
-   uiHeight_ = height;
-   uiBuffer_.allocateBuffers(width, height);
+   uiWidth_ = std::max(1920, width);
+   uiHeight_ = std::max(1080, height);
+   uiBuffer_.allocateBuffers(uiWidth_, uiHeight_);
 }
 
 core::Guard Renderer::OnScreenResize(std::function<void(csg::Point2)> fn)

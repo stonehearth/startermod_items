@@ -1645,7 +1645,7 @@ void Renderer::clearOverlays()
 }
 
 
-void Renderer::drawOverlays( const std::string &shaderContext )
+void Renderer::drawOverlays( const std::string &shaderContext, float desiredAspect )
 {
 	uint32 numOverlayVerts = 0;
 	if( !_overlayBatches.empty() )
@@ -1660,8 +1660,13 @@ void Renderer::drawOverlays( const std::string &shaderContext )
 	gRDI->setIndexBuffer( _quadIdxBuf, IDXFMT_16 );
 	ASSERT( QuadIndexBufCount >= MaxNumOverlayVerts * 6 );
 
-	float aspect = (float)_curCamera->_vpWidth / (float)_curCamera->_vpHeight;
-	setupViewMatrices( Matrix4f(), Matrix4f::OrthoMat( 0, aspect, 1, 0, -1, 1 ) );
+   float aspect = (float)_curCamera->_vpWidth / (float)_curCamera->_vpHeight;
+   float right = aspect < desiredAspect ? desiredAspect : aspect;
+   float top = aspect < desiredAspect ? (desiredAspect / aspect) : 1.0;
+   float rightResidual = (desiredAspect - right) / 2.0f;
+   float topResidual = (1.0f - top) / 2.0f;
+
+   setupViewMatrices( Matrix4f(), Matrix4f::OrthoMat(rightResidual, right + rightResidual, top + topResidual, topResidual, -1, 1 ) );
 	
 	MaterialResource *curMatRes = 0x0;
 	
@@ -2944,7 +2949,7 @@ void Renderer::render( CameraNode *camNode )
 				break;
 
 			case PipelineCommands::DrawOverlays:
-				drawOverlays( pc.params[0].getString() );
+            drawOverlays( pc.params[0].getString(), pc.params[1].getFloat() );
 				break;
 
 			case PipelineCommands::DrawQuad:
