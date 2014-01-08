@@ -137,7 +137,7 @@ end
 function ExecutionFrame:on_unit_state_change(unit)   
    if not self._lock_active_unit then
       if self:_in_state(PROCESSING, READY, RUNNING) then
-         if self:_is_better_execution_unit(unit) then
+         if unit:is_runnable() and self:_is_better_execution_unit(unit) then
             self._log:spam('active unit %s being replaced by unit %s', self:_get_active_unit_name(), unit:get_name())
             self:_set_active_unit(unit)
          elseif unit == self._active_unit and not self._active_unit:is_runnable() then
@@ -177,8 +177,6 @@ end
 
 function ExecutionFrame:stop_thinking()
    self._log:spam('stop_thinking (state:%s)', self._state)
-   assert(not self._co)
-   assert(not self._co_running)
    
    if self._state == CONSTRUCTED  then
       assert(self._active_unit == nil)

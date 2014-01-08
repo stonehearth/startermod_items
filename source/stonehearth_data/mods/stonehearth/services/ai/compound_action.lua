@@ -23,44 +23,76 @@ function CompoundAction:set_debug_route(debug_route)
 end
 
 function CompoundAction:start_thinking(ai, entity, ...)
+   self._ai = ai
    self._args = { ... }
    assert(#self._run_frames == 0)
    assert(#self._think_frames == 0)
    self._previous_run_args = {}
+   self._previous_frames = {}
    self._current_activity = 1
    
-   radiant.events.listen(self._execution_unit, 'ready', function(_, state)
-         assert(#self._think_frames == 0)
-         local run_args = self._execution_unit:get_run_args()
-         table.insert(self._previous_run_args, run_args)
-         self:_start_processing_next_activity(ai)
-         return radiant.events.UNLISTEN
-      end)
-      
+   radiant.events.listen(self._execution_unit, 'state_changed', self, self._on_execution_unit_state_change)      
    self._execution_unit:initialize(self._args, self._debug_route)
    self._execution_unit:start_thinking()
 end
 
-function CompoundAction:_start_processing_next_activity(ai)
+function CompoundAction:_start_processing_next_activity()
    local activity = self._activities[self._current_activity]
    local translated = self:_replace_placeholders(activity)
-   local frame = ai:spawn(unpack(translated))
+   local frame = self._ai:spawn(unpack(translated))
    table.insert(self._think_frames, frame)
    
-   radiant.events.listen(frame, 'ready', function()
-      local unit = frame:get_active_execution_unit()
-      local run_args = unit:get_run_args()
+   radiant.events.listen(frame, 'state_changed', self, self._on_execution_frame_state_change)
+   frame:start_thinking()
+end
+
+function CompoundAction:_on_execution_unit_state_change(unit, state)
+   if state == 'ready' then
+      assert(#self._think_frames == 0)
+      local run_args = self._execution_unit:get_run_args()
+      table.insert(self._previous_run_args, run_args)
+      self:_start_processing_next_activity()
+   elseif state == 'processing' then
+      if #self._previous_run_args > 0 then
+         self._ai:abort('execution unit became un-ready.  starting over.')
+      end
+   end
+end
+
+function CompoundAction:_on_execution_frame_state_change(frame, state)
+   if state == 'ready' then
+      assert(self._previous_frames)
+      assert(self._previous_run_args)
+      self._previous_frames[frame] = true
+      local run_args = frame:get_active_execution_unit():get_run_args()
       table.insert(self._previous_run_args, run_args)
       if self._current_activity < #self._activities then
          self._current_activity = self._current_activity + 1
-         self:_start_processing_next_activity(ai)
+         self:_start_processing_next_activity(self._ai)
       else
-         ai:set_run_arguments()
+         self._ai:set_run_arguments()
       end
-      return radiant.events.UNLISTEN
-   end)
-   frame:start_thinking()
+   elseif state == 'processing' then
+      if self._previous_frames[frame] then
+         self._ai:abort('execution frame became un-ready.  starting over.')
+      end
+   end
 end
+
+function CompoundAction:stop_thinking(ai, entity, ...)
+   for i=#self._think_frames,1,-1 do
+      local frame = self._think_frames[i]
+      radiant.events.unlisten(frame, 'state_changed', self, self._on_execution_frame_state_change)      
+      frame:stop_thinking()
+   end  
+   self._think_frames = {}
+   self._previous_run_args = nil
+   self._current_activity = nil
+
+   radiant.events.unlisten(self._execution_unit, 'state_changed', self, self._on_execution_unit_state_change)      
+   self._execution_unit:stop_thinking()
+end
+
 
 function CompoundAction:_replace_placeholders(activity)
    local expanded  = { activity[1] }
@@ -103,16 +135,6 @@ function CompoundAction:stop()
    end
    self._run_frames = {}
    self._execution_unit:stop()
-end
-
-function CompoundAction:stop_thinking(ai, entity, ...)
-   for i=#self._think_frames,1,-1 do
-      self._think_frames[i]:stop_thinking()
-   end  
-   self._think_frames = {}
-   self._previous_run_args = nil
-   self._current_activity = nil
-   self._execution_unit:stop_thinking()
 end
 
 function CompoundAction:_get_arg(i)
