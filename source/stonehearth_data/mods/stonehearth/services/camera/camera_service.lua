@@ -47,6 +47,50 @@ function CameraService:__init()
     end)
 end
 
+function CameraService:_calculate_keyboard_orbit(e)
+  local keyboard_rotate = _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_Q) or
+    _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_E)
+
+  if keyboard_rotate and not self._dragging then
+     self._orbiting = true
+
+     local forward_dir = _radiant.renderer.camera.get_forward()
+     if math.abs(forward_dir.y) < 0.0001 then
+        return
+     end
+
+     --Huh?  Why!?
+     forward_dir:scale(-1)
+
+     local p = self:get_position()
+     -- Pick a location at the user's cursor, 20 units above the '0' level.
+     local d = 20 - p.y / forward_dir.y
+     forward_dir:scale(d)
+
+     self._orbit_target = forward_dir + p
+
+  elseif self._orbiting then
+    self._orbiting = false
+  end
+
+  if self._orbiting then
+    local deg_x = 0
+    local deg_y = 0
+
+    if _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_Q) then
+      deg_x = -3
+    elseif _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_E) then
+      deg_x = 3
+    else
+      deg_x = e.dx / -3.0
+      deg_y = e.dy / -2.0    
+    end
+
+    self:_orbit(self._orbit_target, deg_y, deg_x, 30.0, 70.0)
+  end
+
+end
+
 function CameraService:_calculate_orbit(e)
   if e:down(2) and not self._dragging then
     self._orbiting = true
@@ -84,12 +128,6 @@ function CameraService:_calculate_orbit(e)
 
   self:_orbit(self._orbit_target, deg_y, deg_x, 30.0, 70.0)
 
-  radiant.events.trigger(self, 'stonehearth:camera:update', {
-    pan = false,
-    orbit = true,
-    zoom = false,
-  })
-
 end
 
 function CameraService:_orbit(target, x_deg, y_deg, min_x, max_x)
@@ -126,6 +164,13 @@ function CameraService:_orbit(target, x_deg, y_deg, min_x, max_x)
 
   _radiant.renderer.camera.set_position(self._next_position)
   _radiant.renderer.camera.look_at(target)
+
+
+  radiant.events.trigger(self, 'stonehearth:camera:update', {
+    pan = false,
+    orbit = true,
+    zoom = false,
+  })  
 end
 
 function CameraService:_on_input(e) 
@@ -290,7 +335,11 @@ function CameraService:_calculate_drag(e)
 end
 
 function CameraService:_process_keys()
-  
+  self:_calculate_keyboard_orbit()
+  self:_calculate_keyboard_pan()
+end
+
+function CameraService:_calculate_keyboard_pan()
   local left = Vec3(0, 0, 0)
   local forward = Vec3(0, 0, 0)
   local x_scale = 0
