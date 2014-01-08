@@ -11,8 +11,9 @@ context TRANSLUCENT_ON_TOP
 
 
 [[VS_GENERAL]]
+#include "shaders/utilityLib/vertCommon.glsl"
+
 uniform    mat4    viewProjMat;
-uniform    mat4    worldMat;
 uniform    vec4    alpha;
 attribute  vec3    vertPos;
 attribute  vec3    color;
@@ -20,7 +21,7 @@ varying    vec4    vs_color;
 
 void main() {
    vs_color = vec4(color, alpha.a);
-	gl_Position = viewProjMat * worldMat * vec4(vertPos, 1.0);
+   gl_Position = viewProjMat * calcWorldPos(vec4(vertPos, 1.0));
 }
 
 [[FS_AMBIENT]]	

@@ -24,7 +24,9 @@ PerfHud::PerfHud(Renderer& r)
       rc_.SetScreenSize(pt);
    });
    rc_.SetTimelineHeight(perfmon::MillisecondsToCounter(100));
-   timeline_.SetMaxColumns(300);
+   timeline_
+      .SetMaxColumns(300)
+      .SetMaxTopTraces(10);
 }
 
 PerfHud::~PerfHud()

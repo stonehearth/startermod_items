@@ -10,6 +10,8 @@ function FoodTest:__init()
    local bush = self:place_item('stonehearth:berry_bush', -4, 4)
    local bush = self:place_item('stonehearth:berry_bush', 4, -4)
 
+   self:place_item_cluster('stonehearth:wool_bundle', 8, 8, 4, 4)
+
    self:place_item('stonehearth:arch_backed_chair_proxy', 6, 6)
 
    local tree = self:place_tree(-12, -12)

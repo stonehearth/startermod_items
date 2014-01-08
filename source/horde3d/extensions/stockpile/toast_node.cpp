@@ -49,7 +49,7 @@ bool ToastNode::InitExtension()
 	Modules::sceneMan().registerType(SNT_ToastNode, "Toast",
 		                              ToastNode::parsingFunc,
                                     ToastNode::factoryFunc,
-                                    ToastNode::renderFunc);
+                                    ToastNode::renderFunc, 0x0);
 
 	VertexLayoutAttrib attribs[2] = {
 		"vertPos",     0, 3, 0,
@@ -190,10 +190,7 @@ void ToastNode::renderFunc(const std::string &shaderContext, const std::string &
                            const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet)
 {
    bool offsetSet = false;
-   for (const auto &entry : Modules::sceneMan().getRenderableQueue()) {
-      if (entry.type != SNT_ToastNode) {
-         continue;
-      }
+   for (const auto &entry : Modules::sceneMan().getRenderableQueue(SNT_ToastNode)) {
       ToastNode *toast = (ToastNode *)entry.node;
 
       if (!fontMaterial_ || !fontMaterial_->isOfClass(theClass)) {

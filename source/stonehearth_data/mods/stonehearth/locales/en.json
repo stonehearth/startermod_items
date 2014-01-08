@@ -15,12 +15,13 @@
    "opt_thanks" : "Thanks!",
 
    "settings_title" : "Settings",
+   "settings_gfx_cardinfo" : "__gpuRenderer__ (__gpuDriver__)",
    "settings_gfx_enable_shadows" : "Enable Shadows",
    "settings_gfx_enable_vsync" : "Enable Vertical Sync",
    "settings_gfx_enable_fullscreen" : "Fullscreen (Requires Restart)",
    "settings_gfx_msaa" : "Anti-Aliasing Level",
    "settings_gfx_shadows" : "Shadow Detail",
-   "settings_gfx_drawdistance" : "Draw Distance",   
+   "settings_gfx_drawdistance" : "Draw Distance",
    "settings_slider_0" : "off",
    "settings_slider_1" : "just a touch",
    "settings_slider_2" : "a little",
@@ -122,6 +123,8 @@
    "workshop_remove_confirm": "Remove?",
    "workshop_open" : "Open!",
    "workshop_closed" : "Closed",
+
+   "weaver" : "Weaver",
 
    "build_workshop_requirements" : "Requirements",
    "build_workshop_create_stockpile" : "Crafter's Stockpile",

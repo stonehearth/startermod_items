@@ -24,7 +24,6 @@ namespace Horde3D {
 class MaterialResource;
 class VoxelModelNode;
 
-
 // =================================================================================================
 // VoxelMesh Node
 // =================================================================================================
@@ -76,13 +75,15 @@ public:
 	void onDetach( SceneNode &parentNode );
 	void onPostUpdate();
 
-	MaterialResource *getMaterialRes() { return _materialRes; }
-	uint32 getBatchStart() { return _batchStart; }
-	uint32 getBatchCount() { return _batchCount; }
-	uint32 getVertRStart() { return _vertRStart; }
-	uint32 getVertREnd() { return _vertREnd; }
-	uint32 getLodLevel() { return _lodLevel; }
-	VoxelModelNode *getParentModel() { return _parentModel; }
+	MaterialResource *getMaterialRes() const { return _materialRes; }
+	uint32 getBatchStart() const { return _batchStart; }
+	uint32 getBatchCount() const { return _batchCount; }
+	uint32 getVertRStart() const { return _vertRStart; }
+	uint32 getVertREnd() const { return _vertREnd; }
+	uint32 getLodLevel() const { return _lodLevel; }
+	VoxelModelNode *getParentModel() const { return _parentModel; }
+
+   const InstanceKey* getInstanceKey();
 
 protected:
 	VoxelMeshNode( const VoxelMeshNodeTpl &meshTpl );
@@ -100,6 +101,9 @@ protected:
 
 	std::vector< uint32 >  _occQueries;
 	std::vector< uint32 >  _lastVisited;
+
+private:
+   InstanceKey         _instanceKey;
 
 	friend class SceneManager;
 	friend class SceneNode;

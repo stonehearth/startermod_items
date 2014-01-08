@@ -939,12 +939,21 @@ extern PFNGLDELETESYNCPROC glDeleteSync;
 #ifndef GL_VERSION_3_3
 #define GL_VERSION_3_3
 
+#define GL_MAP_READ_BIT              0x1
+#define GL_MAP_WRITE_BIT             0x2
+#define GL_MAP_INVALIDATE_RANGE_BIT  0x4
+#define GL_MAP_INVALIDATE_BUFFER_BIT 0x8
+#define GL_MAP_FLUSH_EXPLICIT_BIT    0x10
+#define GL_MAP_UNSYNCHRONIZED_BIT    0x20
+
 typedef void (GLAPIENTRYP PFNGLVERTEXATTRIBDIVISORPROC) (GLuint index, GLint divisor);
 typedef void (GLAPIENTRYP PFNGLDRAWARRAYSINSTANCEDPROC) (GLenum mode, GLint first, GLsizei count, GLsizei primcount);
 typedef void (GLAPIENTRYP PFNGLDRAWELEMENTSINSTANCEDPROC) (GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei primcount);
+typedef GLvoid* (GLAPIENTRYP PFNGLMAPBUFFERRANGEPROC) (GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
 extern PFNGLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
 extern PFNGLDRAWARRAYSINSTANCEDPROC glDrawArraysInstanced;
 extern PFNGLDRAWELEMENTSINSTANCEDPROC glDrawElementsInstanced;
+extern PFNGLMAPBUFFERRANGEPROC glMapBufferRange;
 #endif // GL_VERSION_3_3
 
 #ifndef GL_VERSION_4_1

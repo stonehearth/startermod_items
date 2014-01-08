@@ -11,7 +11,6 @@
             "file(/data/commands/show_workshop)"
          ]
       },
-
       "destination": {
          "region": [
             {
@@ -34,10 +33,12 @@
             "entity" : "stonehearth:carpenter:saw",
             "offset" : [0, 3, 0]
          }, 
-         "ingredients" : {
-            "material" : "wood resource",
-            "count" : 1
-         },
+         "ingredients" : [
+            {
+               "material" : "wood resource",
+               "count" : 1
+            }
+         ],
          "build_sound_effect": "/stonehearth/data/effects/place_workshop/place_carpenter_workbench.json"
       }
    }

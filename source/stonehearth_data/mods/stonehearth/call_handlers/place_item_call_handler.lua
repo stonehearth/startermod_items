@@ -112,7 +112,7 @@ function PlaceItemCallHandler:_on_mouse_event(e, response)
 end
 
 function PlaceItemCallHandler:_on_keyboard_event(e)
-   if e.key == _radiant.client.KeyboardInput.ESC and e.down then
+   if e.key == _radiant.client.KeyboardInput.KEY_ESC and e.down then
       self:_destroy_capture()
        _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
    end

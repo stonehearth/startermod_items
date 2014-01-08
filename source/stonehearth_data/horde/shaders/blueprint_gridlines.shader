@@ -55,7 +55,6 @@ void main() {
 [[FS_BLUEPRINTS_COLOR_PASS]]
 
 uniform sampler3D gridMap;
-
 varying vec3 gridLineCoords;
 varying vec3 outColor;
 

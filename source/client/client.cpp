@@ -344,6 +344,8 @@ Client::Client() :
          node.set("fullscreen", makeRendererConfigNode(cfg.enable_fullscreen));
          node.set("shadow_res", makeRendererConfigNode(cfg.shadow_resolution));
          node.set("draw_distance", makeRendererConfigNode(cfg.draw_distance));
+         node.set("gfx_card_renderer", Renderer::GetInstance().GetStats().gpu_renderer);
+         node.set("gfx_card_driver", Renderer::GetInstance().GetStats().gl_version);
 
          result->Resolve(node);
       } catch (std::exception const& e) {
