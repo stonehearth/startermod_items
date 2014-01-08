@@ -16,10 +16,9 @@ function CameraService:__init()
   self._next_position = self:get_position()
   self._continuous_delta = Vec3(0, 0, 0)
   self._impulse_delta = Vec3(0, 0, 0)
+
   
   self._orbiting = false
-  self._orbit_target = Vec3(0, 0, 0)
-  
   self._dragging = false
   self._drag_start = Vec3(0, 0, 0)
   self._drag_origin = Vec3(0, 0, 0)
@@ -47,16 +46,15 @@ function CameraService:__init()
     end)
 end
 
-function CameraService:_calculate_keyboard_orbit(e)
-  local keyboard_rotate = _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_Q) or
-    _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_E)
-
-  if keyboard_rotate and not self._dragging then
-     self._orbiting = true
-
+function CameraService:_get_orbit_target() 
+  local r = self:_find_target()
+  if r.is_valid then
+     return r.point
+  else
      local forward_dir = _radiant.renderer.camera.get_forward()
+
      if math.abs(forward_dir.y) < 0.0001 then
-        return
+        return nil
      end
 
      --Huh?  Why!?
@@ -67,66 +65,42 @@ function CameraService:_calculate_keyboard_orbit(e)
      local d = 20 - p.y / forward_dir.y
      forward_dir:scale(d)
 
-     self._orbit_target = forward_dir + p
-
-  elseif self._orbiting then
-    self._orbiting = false
+     return forward_dir + p
   end
+end
 
-  if self._orbiting then
-    local deg_x = 0
-    local deg_y = 0
+function CameraService:_calculate_keyboard_orbit()
 
-    if _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_Q) then
-      deg_x = -3
-    elseif _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_E) then
-      deg_x = 3
-    else
-      deg_x = e.dx / -3.0
-      deg_y = e.dy / -2.0    
-    end
+  if _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_Q) or
+    _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_E) then
 
-    self:_orbit(self._orbit_target, deg_y, deg_x, 30.0, 70.0)
+     local deg_x = 0;
+     local deg_y = 0;
+     
+     if _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_Q) then
+        deg_x = -3
+     else
+        deg_x = 3
+     end
+
+     local orbit_target = self:_get_orbit_target()
+
+     if orbit_target then
+        self:_orbit(orbit_target, deg_y, deg_x, 30.0, 70.0)
+     end
   end
-
 end
 
 function CameraService:_calculate_orbit(e)
-  if e:down(2) and not self._dragging then
-    self._orbiting = true
+   if _radiant.client.is_mouse_button_down(_radiant.client.MouseInput.MOUSE_BUTTON_2) then
+      local orbit_target = self:_get_orbit_target()
+      local deg_x = e.dx / -3.0
+      local deg_y = e.dy / -2.0
 
-    local r = self:_find_target()
-    if r.is_valid then
-      self._orbit_target = r.point
-    else
-      local forward_dir = _radiant.renderer.camera.get_forward()
-
-      if math.abs(forward_dir.y) < 0.0001 then
-        return
+      if orbit_target then
+         self:_orbit(orbit_target, deg_y, deg_x, 30.0, 70.0)
       end
-
-      --Huh?  Why!?
-      forward_dir:scale(-1)
-
-      local p = self:get_position()
-      -- Pick a location at the user's cursor, 20 units above the '0' level.
-      local d = 20 - p.y / forward_dir.y
-      forward_dir:scale(d)
-
-      self._orbit_target = forward_dir + p
-    end
-  elseif e:up(2) and self._orbiting then
-    self._orbiting = false
-  end
-
-  if not self._orbiting then
-    return
-  end
-
-  local deg_x = e.dx / -3.0
-  local deg_y = e.dy / -2.0
-
-  self:_orbit(self._orbit_target, deg_y, deg_x, 30.0, 70.0)
+   end
 
 end
 
@@ -175,12 +149,7 @@ end
 
 function CameraService:_on_input(e) 
     if e.type == _radiant.client.Input.MOUSE then
-      self:_on_mouse_input(
-        e.mouse,
-        _radiant.renderer.screen.get_width(), 
-        _radiant.renderer.screen.get_height(), 
-        gutter_size,
-        e.focused)
+      self:_on_mouse_input(e.mouse, e.focused)
     elseif e.type == _radiant.client.Input.KEYBOARD then
       self:_on_keyboard_input(e.keyboard)
     end
@@ -199,8 +168,8 @@ function CameraService:_on_keyboard_input(e)
 
 end
 
-function CameraService:_on_mouse_input(e, screen_x, screen_y, gutter, focused)
-  self:_calculate_scroll(e, screen_x, screen_y, gutter, focused)
+function CameraService:_on_mouse_input(e, focused)
+  self:_calculate_scroll(e, focused)
   self:_calculate_drag(e)
   self:_calculate_orbit(e)
   --self:_calculate_jump(e)
@@ -302,7 +271,6 @@ end
 function CameraService:_calculate_drag(e)
   local drag_key_down = _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_SPACE)
   
-  --if e:down(1) and drag then
   if drag_key_down and not self._dragging then
     local r = _radiant.renderer.scene.cast_screen_ray(e.x, e.y)
     local screen_ray = _radiant.renderer.scene.get_screen_ray(e.x, e.y)
@@ -415,7 +383,10 @@ function CameraService:_drag(x, y)
   end
 end
 
-function CameraService:_calculate_scroll(e, screen_x, screen_y, gutter, focused)
+function CameraService:_calculate_scroll(e, focused)
+  local screen_x = _radiant.renderer.screen.get_width()
+  local screen_y = _radiant.renderer.screen.get_height()
+
   if not focused then
     self._continuous_delta = Vec3(0, 0, 0)
     return
@@ -428,17 +399,17 @@ function CameraService:_calculate_scroll(e, screen_x, screen_y, gutter, focused)
   local x_scale = 0
   local y_scale = 0
 
-  if mouse_x < gutter then
+  if mouse_x < gutter_size then
     x_scale = -scroll_speed
-  elseif mouse_x > screen_x - gutter then
+  elseif mouse_x > screen_x - gutter_size then
     x_scale = scroll_speed
   end
   left = _radiant.renderer.camera.get_left()
   left:scale(x_scale)
 
-  if mouse_y < gutter then
+  if mouse_y < gutter_size then
     y_scale = -scroll_speed
-  elseif mouse_y > screen_y - gutter then
+  elseif mouse_y > screen_y - gutter_size then
     y_scale = scroll_speed
   end
   forward = _radiant.renderer.camera.get_forward()
