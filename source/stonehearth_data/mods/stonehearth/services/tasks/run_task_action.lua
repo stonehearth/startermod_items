@@ -5,7 +5,7 @@ function RunTaskAction:__init(ai, task, scheduler_activity)
    self._task = task
    self._execution_frame = ai:spawn(unpack(task:get_activity()))
    radiant.events.listen(self._execution_frame, 'ready', function()
-         ai:complete_background_processing()
+         ai:set_run_arguments()
       end)
 
    radiant.events.listen(task, 'started', self, self._on_task_started)
@@ -21,25 +21,25 @@ end
 
 function RunTaskAction:_on_task_started()
    if self._should_think then
-      self._execution_frame:start_background_processing(self._task:get_args())
+      self._execution_frame:start_thinking(self._task:get_args())
    end
 end
 
 function RunTaskAction:_on_task_stopped()
    if self._should_think then
-      self._execution_frame:stop_background_processing()
+      self._execution_frame:stop_thinking()
    end
 end
 
-function RunTaskAction:start_background_processing(ai, entity)
+function RunTaskAction:start_thinking(ai, entity)
    self._should_think = true
    if self._task:get_state() == 'started' then
-      self._execution_frame:start_background_processing(self._task:get_args())
+      self._execution_frame:start_thinking(self._task:get_args())
    end
 end
 
-function RunTaskAction:stop_background_processing(ai, entity)
-   self._execution_frame:stop_background_processing(ai, entity)
+function RunTaskAction:stop_thinking(ai, entity)
+   self._execution_frame:stop_thinking(ai, entity)
    self._should_think = false
 end
 

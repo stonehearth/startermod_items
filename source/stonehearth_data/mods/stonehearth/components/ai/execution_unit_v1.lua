@@ -70,10 +70,10 @@ function ExecutionUnitV1:destroy()
    self:stop()
 end
 
-function ExecutionUnitV1:start_background_processing()
+function ExecutionUnitV1:start_thinking()
 end
 
-function ExecutionUnitV1:stop_background_processing()
+function ExecutionUnitV1:stop_thinking()
 end
 
 function ExecutionUnitV1:start()

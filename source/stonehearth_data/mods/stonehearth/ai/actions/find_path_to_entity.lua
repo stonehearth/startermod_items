@@ -15,7 +15,7 @@ FindPathToEntityAction.priority = 1
 
 local log = radiant.log.create_logger('ai.find_path_to_entity')
 
-function FindPathToEntityAction:start_background_processing(ai, entity, target)
+function FindPathToEntityAction:start_thinking(ai, entity, target)
    if not target or not target:is_valid() then
       ai:abort('invalid entity reference')
    end
@@ -31,14 +31,14 @@ function FindPathToEntityAction:start_background_processing(ai, entity, target)
    local solved = function(path)
       self._pathfinder:stop()
       self._pathfinder = nil
-      ai:complete_background_processing(path)
+      ai:set_run_arguments(path)
    end
    self._pathfinder = _radiant.sim.create_path_finder(entity, 'goto entity action')
                          :add_destination(target)
                          :set_solved_cb(solved)
 end
 
-function FindPathToEntityAction:stop_background_processing(ai, entity, target)
+function FindPathToEntityAction:stop_thinking(ai, entity, target)
    if self._pathfinder then
       self._pathfinder:stop()
       self._pathfinder = nil

@@ -51,7 +51,7 @@ function ExecutionFrame:_on_action_added(key, entry, does)
       self:_prime_execution_unit(unit)
       if self:_is_thinking() then
          if self:_is_better_execution_unit(unit) then
-            unit:start_background_processing()
+            unit:start_thinking()
          end
       end
    end
@@ -156,8 +156,8 @@ function ExecutionFrame:on_unit_state_change(unit)
    end
 end
 
-function ExecutionFrame:start_background_processing()
-   self._log:spam('start_background_processing (current unit:%s)', self:_get_active_unit_name())
+function ExecutionFrame:start_thinking()
+   self._log:spam('start_thinking (current unit:%s)', self:_get_active_unit_name())
    assert(not self._co)
    assert(not self._co_running)
    assert(self._state == CONSTRUCTED)
@@ -166,7 +166,7 @@ function ExecutionFrame:start_background_processing()
    self:_set_state(PROCESSING)
    for _, unit in pairs(self._execution_units) do
       if self:_is_better_execution_unit(unit) then
-         unit:start_background_processing()
+         unit:start_thinking()
       end
    end
    self._lock_active_unit = false
@@ -175,8 +175,8 @@ function ExecutionFrame:start_background_processing()
    self:_set_active_unit(unit)
 end
 
-function ExecutionFrame:stop_background_processing()
-   self._log:spam('stop_background_processing (state:%s)', self._state)
+function ExecutionFrame:stop_thinking()
+   self._log:spam('stop_thinking (state:%s)', self._state)
    assert(not self._co)
    assert(not self._co_running)
    
@@ -184,14 +184,14 @@ function ExecutionFrame:stop_background_processing()
       assert(self._active_unit == nil)
    elseif self:_in_state(PROCESSING, READY, STARTING, RUNNING, HALTED, STOPPING, STOPPED) then
       for _, unit in pairs(self._execution_units) do
-         unit:stop_background_processing()
+         unit:stop_thinking()
       end
       --self:_set_active_unit(nil)
       --self:_set_state(CONSTRUCTED)
    elseif self._state == DEAD then
       -- nothing to do
    else
-      assert(false, string.format('unknown state %s in stop_background_processing', self._state))
+      assert(false, string.format('unknown state %s in stop_thinking', self._state))
    end
 end
 
@@ -224,13 +224,13 @@ function ExecutionFrame:start()
          -- XXXXXXXXXXXXXXXXXXXXXX
          -- XXXXXXXXXXXXXXXXXXXXXX
          unit:start()
-         unit:stop_background_processing()
+         unit:stop_thinking()
       elseif not self:_is_better_execution_unit(unit) then
          -- this guy has no prayer...  just stop
-         unit:stop_background_processing()
+         unit:stop_thinking()
       else
          -- let better ones keep processing.  they may prempt in the future
-         unit:start_background_processing()
+         unit:start_thinking()
       end
    end
    
@@ -246,7 +246,7 @@ function ExecutionFrame:run()
    self._log:spam('begin run')
    
    if self._state == CONSTRUCTED then
-      self:start_background_processing()
+      self:start_thinking()
    end
    repeat
       if self._state == PROCESSING then
@@ -267,7 +267,7 @@ function ExecutionFrame:loop()
    while true do
       self:run()
       self._active_unit:stop()
-      self._active_unit:start_background_processing()
+      self._active_unit:start_thinking()
       self:_set_active_unit(nil)
       self:_set_state(CONSTRUCTED)
    end

@@ -10,6 +10,32 @@ local DEAD = 'dead'
 
 local NEXT_UNIT_ID = 1
 
+--[[
+
+         idle
+           |
+         (call action:start_thinking)
+           |
+         processing
+           |
+         (action calls ai:complete_processing)
+           |
+         ready
+           |
+         (call action:start)
+           |
+         (call action:run)
+           |
+         running
+           |
+         (action run returns)
+           |
+         (call action:stop)
+           |
+           +
+         (return to idle...)         
+]]
+
 function ExecutionUnitV2:__init(ai_component, entity, injecting_entity)
    -- sometimes (ef -> compound_action -> ef) we get an ai_component that's actually the interface.
    -- if so, reach through the matrix and grab the real component
@@ -21,7 +47,6 @@ function ExecutionUnitV2:__init(ai_component, entity, injecting_entity)
    self._entity = entity
    self._ai_component = ai_component
    self._execute_frame = nil
-   self._nested_frames = {}
    self._processing = false
    self._id = NEXT_UNIT_ID
    NEXT_UNIT_ID = NEXT_UNIT_ID + 1
@@ -32,8 +57,8 @@ function ExecutionUnitV2:__init(ai_component, entity, injecting_entity)
    local chain_function = function (fn)
       self._ai_interface[fn] = function(i, ...) return self['__'..fn](self, ...) end
    end
-   chain_function('complete_background_processing')
-   chain_function('uncomplete_background_processing')
+   chain_function('set_run_arguments')
+   chain_function('revoke_run_arguments')
    chain_function('set_priority')
    chain_function('spawn')
    chain_function('execute')   
@@ -57,20 +82,20 @@ function ExecutionUnitV2:get_action_interface()
    return self._ai_interface
 end
 
-function ExecutionUnitV2:__complete_background_processing(...)
+function ExecutionUnitV2:__set_run_arguments(...)
    assert(self._state == PROCESSING)
    self._run_args = { ... }
    self:_set_state(READY)
 end
 
-function ExecutionUnitV2:__uncomplete_background_processing(...)
+function ExecutionUnitV2:__revoke_run_arguments(...)
    if self._state == READY then
       self._run_args = nil
       self:_set_state(PROCESSING)
    elseif self._state == RUNNING then
       self:__abort('action is no longer ready to run')
    else
-      assert(not self._run_args, string.format('unexpected stated %s in uncomplete_background_processing', self._state))
+      assert(not self._run_args, string.format('unexpected stated %s in revoke_run_arguments', self._state))
    end
 end
 
@@ -103,9 +128,7 @@ end
 
 function ExecutionUnitV2:__spawn(...)
    self._log:spam('spawn %s called', select(1, ...))
-   local frame = self._ai_component:spawn_debug_route(self._debug_route, ...)
-   table.insert(self._nested_frames, frame)
-   return frame
+   return self._ai_component:spawn_debug_route(self._debug_route, ...)
 end
 
 function ExecutionUnitV2:__suspend()
@@ -120,7 +143,7 @@ end
 
 function ExecutionUnitV2:__abort(reason)
    self._log:spam('abort %s called', tostring(reason))
-   self:stop_background_processing()
+   self:stop_thinking()
    self:stop()
    --assert(false, "i am way too sleepy to implement abort")
 end
@@ -135,14 +158,9 @@ function ExecutionUnitV2:destroy()
       self._execute_frame:destroy()
       self._execute_frame = nil
    end
-   self._log:spam('destroying nested frames')
-   for _, frame in ipairs(self._nested_frames) do
-      frame:destroy()
-   end
-   self._nested_frames = {}
    
    self._log:spam('destroying action')
-   self:stop_background_processing()   
+   self:stop_thinking()   
    if self._state == IDLE or self._state == READY or self._state == DEAD then
       -- nothing to do
    elseif self._state == RUNNING or self._state == STARTED then
@@ -213,48 +231,47 @@ function ExecutionUnitV2:initialize(args)
    self._run_args = nil
    if self._state == IDLE then
       assert(not self._execute_frame)
-      assert(#self._nested_frames == 0)
    else
       self:_set_state(IDLE)
    end
 end
 
-function ExecutionUnitV2:start_background_processing()
-   self._log:spam('start_background_processing (statestart_background_processing (state:%s processing:%s)', self._state, tostring(self._processing))
+function ExecutionUnitV2:start_thinking()
+   self._log:spam('start_thinking (statestart_background_processing (state:%s processing:%s)', self._state, tostring(self._processing))
    
    if not self._processing then
       self._processing = true
       if not self._run_args then
          self:_set_state(PROCESSING)
-         if self._action.start_background_processing then
-            self._action:start_background_processing(self._ai_interface, self._entity, unpack(self._args))
+         if self._action.start_thinking then
+            self._action:start_thinking(self._ai_interface, self._entity, unpack(self._args))
          else
-            self._log:spam('action does not implement start_background_processing')
-            self:__complete_background_processing(unpack(self._args))
+            self._log:spam('action does not implement start_thinking')
+            self:__set_run_arguments(unpack(self._args))
          end
       else
-         self._log:spam('ignoring start_background_processing call.  already have args!')
+         self._log:spam('ignoring start_thinking call.  already have args!')
       end
    else
-      self._log:spam('ignoring start_background_processing call.  already thinking...')
+      self._log:spam('ignoring start_thinking call.  already thinking...')
    end
 end
 
-function ExecutionUnitV2:stop_background_processing()
-   self._log:spam('stop_background_processing (state:%s processing:%s)', tostring(self._state), tostring(self._processing))
+function ExecutionUnitV2:stop_thinking()
+   self._log:spam('stop_thinking (state:%s processing:%s)', tostring(self._state), tostring(self._processing))
    
    if self._processing then
       self._processing = false
-      if self._action.stop_background_processing then
-         self._action:stop_background_processing(self._ai_interface, self._entity)
+      if self._action.stop_thinking then
+         self._action:stop_thinking(self._ai_interface, self._entity)
       else
-         self._log:spam('action does not implement stop_background_processing')      
+         self._log:spam('action does not implement stop_thinking')      
       end
       if self._state == PROCESSING then
          self:_set_state(IDLE)
       end
    else
-      self._log:spam('ignoring stop_background_processing call.  not thinking...')
+      self._log:spam('ignoring stop_thinking call.  not thinking...')
    end
 end
 
@@ -300,10 +317,6 @@ function ExecutionUnitV2:stop()
          self._execute_frame:destroy()
          self._execute_frame = nil
       end
-      for _, frame in ipairs(self._nested_frames) do
-         frame:stop()
-      end
-      self._nested_frames = {}
       
       if self._action.stop then
          self._action:stop(self._ai_interface, self._entity)

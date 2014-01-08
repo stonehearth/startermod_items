@@ -13,7 +13,7 @@ function Wander:__init(ai, entity)
    self._entity = entity
 end
 
-function Wander:start_background_processing(ai, entity)
+function Wander:start_thinking(ai, entity)
    if not self._entity:get_component('stonehearth:leash') then
       self._entity:add_component('stonehearth:leash'):set_to_entity_location(self._entity)
    end
@@ -40,7 +40,7 @@ function Wander:start_background_processing(ai, entity)
    destination.x = destination.x + dx
    destination.z = destination.z + dz
    
-   ai:complete_background_processing(destination)
+   ai:set_run_arguments(destination)
 end
 
 local ai = stonehearth.ai

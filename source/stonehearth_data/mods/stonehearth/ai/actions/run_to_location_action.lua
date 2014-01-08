@@ -12,7 +12,7 @@ RunToLocation.args = {
 RunToLocation.version = 2
 RunToLocation.priority = 1
 
-function RunToLocation:start_background_processing(ai, entity, location, effect_name)
+function RunToLocation:start_thinking(ai, entity, location, effect_name)
    -- generally speaking, going directly to a location is a strange
    -- thing to do.  why did we not path find to an entity?  why is
    -- this location special?
@@ -32,10 +32,10 @@ function RunToLocation:start_background_processing(ai, entity, location, effect_
    self._dest_entity = radiant.entities.create_entity()
    self._dest_entity:set_debug_text('goto location proxy entity')
    radiant.terrain.place_entity(self._dest_entity, location)
-   ai:complete_background_processing(self._dest_entity, effect_name)
+   ai:set_run_arguments(self._dest_entity, effect_name)
 end
 
-function RunToLocation:stop_background_processing(ai, entity)
+function RunToLocation:stop_thinking(ai, entity)
    if self._dest_entity then
       radiant.entities.destroy_entity(self._dest_entity)
       self._dest_entity = nil

@@ -22,7 +22,7 @@ function CompoundAction:set_debug_route(debug_route)
    self._execution_unit:set_debug_route(debug_route)
 end
 
-function CompoundAction:start_background_processing(ai, entity, ...)
+function CompoundAction:start_thinking(ai, entity, ...)
    self._args = { ... }
    assert(#self._run_frames == 0)
    assert(#self._think_frames == 0)
@@ -38,7 +38,7 @@ function CompoundAction:start_background_processing(ai, entity, ...)
       end)
       
    self._execution_unit:initialize(self._args, self._debug_route)
-   self._execution_unit:start_background_processing()
+   self._execution_unit:start_thinking()
 end
 
 function CompoundAction:_start_processing_next_activity(ai)
@@ -55,11 +55,11 @@ function CompoundAction:_start_processing_next_activity(ai)
          self._current_activity = self._current_activity + 1
          self:_start_processing_next_activity(ai)
       else
-         ai:complete_background_processing()
+         ai:set_run_arguments()
       end
       return radiant.events.UNLISTEN
    end)
-   frame:start_background_processing()
+   frame:start_thinking()
 end
 
 function CompoundAction:_replace_placeholders(activity)
@@ -105,14 +105,14 @@ function CompoundAction:stop()
    self._execution_unit:stop()
 end
 
-function CompoundAction:stop_background_processing(ai, entity, ...)
+function CompoundAction:stop_thinking(ai, entity, ...)
    for i=#self._think_frames,1,-1 do
-      self._think_frames[i]:stop_background_processing()
+      self._think_frames[i]:stop_thinking()
    end  
    self._think_frames = {}
    self._previous_run_args = nil
    self._current_activity = nil
-   self._execution_unit:stop_background_processing()
+   self._execution_unit:stop_thinking()
 end
 
 function CompoundAction:_get_arg(i)

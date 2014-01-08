@@ -16,9 +16,9 @@ DropCarryingAction.priority = 1
    Put the object we're carrying down at a location
    location: the coordinates at which to drop off the object
 ]]
-function DropCarryingAction:start_background_processing(ai, entity, location)
+function DropCarryingAction:start_thinking(ai, entity, location)
    -- todo: ASSERT we're adjacent!
-   ai:complete_background_processing(location)
+   ai:set_run_arguments(location)
 end
 
 function DropCarryingAction:run(ai, entity, location)

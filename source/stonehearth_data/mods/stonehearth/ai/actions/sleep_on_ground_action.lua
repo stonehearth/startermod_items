@@ -12,19 +12,19 @@ function SleepOnGroundAction:__init(ai, entity)
    self._ai = ai
 end
 
-function SleepOnGroundAction:start_background_processing(ai, entity)
+function SleepOnGroundAction:start_thinking(ai, entity)
    radiant.events.listen(entity, 'stonehearth:attribute_changed:sleepiness', self, self._keep_think)
 end
 
-function SleepOnGroundAction:stop_background_processing(ai, entity)
+function SleepOnGroundAction:stop_thinking(ai, entity)
    radiant.events.unlisten(entity, 'stonehearth:attribute_changed:sleepiness', self, self._keep_think)
 end
 
 function SleepOnGroundAction:_keep_think(e)
    if e.value >= 120 then
-      self._ai:complete_background_processing()
+      self._ai:set_run_arguments()
    else
-      self._ai:uncomplete_background_processing()
+      self._ai:revoke_run_arguments()
    end
 end
 

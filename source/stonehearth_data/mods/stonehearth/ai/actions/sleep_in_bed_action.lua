@@ -17,11 +17,11 @@ function SleepInBedAction:__init(ai, entity)
    self._bed = nil
 end
 
-function SleepAction:start_background_processing(ai, entity)
+function SleepAction:start_thinking(ai, entity)
    radiant.events.listen(entity, 'stonehearth:attribute_changed:sleepiness', self, self.on_sleepiness_changed)
 end
 
-function SleepAction:stop_background_processing(ai, entity)
+function SleepAction:stop_thinking(ai, entity)
    radiant.events.unlisten(entity, 'stonehearth:attribute_changed:sleepiness', self, self.on_sleepiness_changed)
 end
 
