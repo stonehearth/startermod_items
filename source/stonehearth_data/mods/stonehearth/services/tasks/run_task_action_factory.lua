@@ -4,11 +4,12 @@ local RunTaskActionFactory = class()
 function RunTaskActionFactory:__init(task, priority, scheduler_activity)
    self._task = task
    self._scheduler_activity = scheduler_activity
-
+   scheduler_activity.args = scheduler_activity.args or {}
+   
    self.version = 2
    self.name = task:get_name()
-   self.does = scheduler_activity[1]
-   self.args = { select(2, unpack(scheduler_activity)) }
+   self.does = scheduler_activity.name
+   self.args = scheduler_activity.args
    self.priority = priority
 end
 

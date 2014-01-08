@@ -22,9 +22,9 @@ function CompoundAction:set_debug_route(debug_route)
    self._execution_unit:set_debug_route(debug_route)
 end
 
-function CompoundAction:start_thinking(ai, entity, ...)
+function CompoundAction:start_thinking(ai, entity, args)
    self._ai = ai
-   self._args = { ... }
+   self._args = args
    assert(#self._run_frames == 0)
    assert(#self._think_frames == 0)
    self._previous_run_args = {}
@@ -38,8 +38,8 @@ end
 
 function CompoundAction:_start_processing_next_activity()
    local activity = self._activities[self._current_activity]
-   local translated = self:_replace_placeholders(activity)
-   local frame = self._ai:spawn(unpack(translated))
+   local replaced = self:_replace_placeholders(activity.args)
+   local frame = self._ai:spawn(activity.name, replaced)
    table.insert(self._think_frames, frame)
    
    radiant.events.listen(frame, 'state_changed', self, self._on_execution_frame_state_change)
@@ -63,6 +63,7 @@ function CompoundAction:_on_execution_frame_state_change(frame, state)
    if state == 'ready' then
       assert(self._previous_frames)
       assert(self._previous_run_args)
+      assert(self._current_activity ~= nil)
       self._previous_frames[frame] = true
       local run_args = frame:get_active_execution_unit():get_run_args()
       table.insert(self._previous_run_args, run_args)
@@ -94,17 +95,20 @@ function CompoundAction:stop_thinking(ai, entity, ...)
 end
 
 
-function CompoundAction:_replace_placeholders(activity)
-   local expanded  = { activity[1] }
-   for i=2,#activity do
-      local arg = activity[i]
-      if type(arg) == 'table' and arg.__placeholder then
-         expanded[i] = arg(self)
+function CompoundAction:_replace_placeholders(args)
+   local replaced  = {}
+   for name, value in pairs(args) do
+      if type(value) == 'table' and value.__placeholder then
+         local result = value(self)
+         if result == nil then
+            self._ai:abort('placeholder %s failed to return a value', tostring(value))
+         end
+         replaced[name] = result
       else
-         expanded[i] = arg
+         replaced[name] = value
       end
    end
-   return expanded
+   return replaced
 end
 
 function CompoundAction:start()

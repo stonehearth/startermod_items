@@ -7,7 +7,7 @@ IdleBreatheAction.version = 2
 IdleBreatheAction.priority = 1
 
 function IdleBreatheAction:run(ai, entity)
-   ai:execute('stonehearth:run_effect', 'idle_breathe')
+   ai:execute('stonehearth:run_effect', { effect = 'idle_breathe'})
 end
 
 return IdleBreatheAction

@@ -11,6 +11,15 @@ function CALL_PLACEHOLDER_mt.__call(t, compound_action)
    assert(false, string.format('unknown placeholder type'))
 end
 
+function CALL_PLACEHOLDER_mt.__tostring(t)
+   if t.type == ARGS then
+      return 'ARGS.'..tostring(t.key)
+   elseif t.type == PREV then
+      return 'PREV.'..tostring(t.key)
+   end
+   assert(false, string.format('unknown placeholder type'))
+end
+
 PLACEHOLDER_mt = {}
 function PLACEHOLDER_mt.__index(t, key)
    local result = {

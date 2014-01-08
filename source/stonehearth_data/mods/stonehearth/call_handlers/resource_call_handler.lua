@@ -28,7 +28,7 @@ function ResourceCallHandler:harvest_tree(session, response, tree)
                                                  :start()
       ]]
       all_harvest_tasks[id] = stonehearth.tasks:get_scheduler('stonehearth:workers')
-                                :create_task('stonehearth:chop_tree', tree)
+                                :create_task('stonehearth:chop_tree', { tree = tree })
                                 :set_name('chop tree task')
                                 :once()
                                 :start()

@@ -101,17 +101,22 @@ function AIComponent:restart()
    end)
 end
 
-function AIComponent:spawn(...)
-   return self:spawn_debug_route(nil, ...)
+function AIComponent:spawn(name, args)
+   return self:spawn_debug_route(nil, name, args)
 end
 
-function AIComponent:spawn_debug_route(debug_route, ...)
-   local activity = { ... }
-   local activity_name = select(1, unpack(activity))
+function AIComponent:spawn_debug_route(debug_route, name, args)
+   assert(type(name) == 'string')
+   assert(args == nil or type(args) == 'table')
+
+   local activity = {
+      name = name,
+      args = args or {}
+   }
   
    -- create a new frame and return it   
-   log:spam('%s creating execution frame for %s', self._entity, activity_name)
-   local actions = self._action_index[activity_name]
+   log:spam('%s creating execution frame for %s', self._entity, name)
+   local actions = self._action_index[name]
    if not actions then
       log:warning('no actions for %s at the moment.  this is actually ok for tasks (they may come later)',
                   stonehearth.ai:format_activity(activity))

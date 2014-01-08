@@ -5,6 +5,9 @@ local Wander = class()
 Wander.name = 'wander'
 Wander.does = 'stonehearth:idle:bored'
 Wander.args = { }
+Wander.run_args = {
+  location = Point3     -- where to wander off to
+}
 Wander.version = 2
 Wander.priority = 2
 
@@ -40,9 +43,9 @@ function Wander:start_thinking(ai, entity)
    destination.x = destination.x + dx
    destination.z = destination.z + dz
    
-   ai:set_run_arguments(destination)
+   ai:set_run_arguments({ location = destination })
 end
 
 local ai = stonehearth.ai
 return ai:create_compound_action(Wander)
-         :execute('stonehearth:goto_location', ai.PREV[1], 'run')
+         :execute('stonehearth:goto_location', { location = ai.PREV.location, effect = 'run' })

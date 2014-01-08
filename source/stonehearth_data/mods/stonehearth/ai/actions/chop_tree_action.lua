@@ -5,12 +5,12 @@ local ChopTreeAction = class()
 ChopTreeAction.name = 'chop tree'
 ChopTreeAction.does = 'stonehearth:chop_tree'
 ChopTreeAction.args = {
-   Entity      -- the tree to chop
+   tree = Entity      -- the tree to chop
 }
 ChopTreeAction.version = 2
 ChopTreeAction.priority = 1
 
 local ai = stonehearth.ai
 return ai:create_compound_action(ChopTreeAction)
-         :execute('stonehearth:goto_entity', ai.ARGS[1], 'run')
-         :execute('stonehearth:chop_tree:adjacent', ai.ARGS[1])
+         :execute('stonehearth:goto_entity', { entity = ai.ARGS.tree, effect = 'run'})
+         :execute('stonehearth:chop_tree:adjacent', { tree = ai.ARGS.tree })

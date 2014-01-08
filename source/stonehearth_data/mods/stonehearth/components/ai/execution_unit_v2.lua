@@ -48,6 +48,7 @@ function ExecutionUnitV2:__init(ai_component, entity, injecting_entity)
    self._ai_component = ai_component
    self._execute_frame = nil
    self._processing = false
+   self._state = IDLE
    self._id = NEXT_UNIT_ID
    NEXT_UNIT_ID = NEXT_UNIT_ID + 1
    
@@ -82,9 +83,14 @@ function ExecutionUnitV2:get_action_interface()
    return self._ai_interface
 end
 
-function ExecutionUnitV2:__set_run_arguments(...)
+function ExecutionUnitV2:__set_run_arguments(run_args)
+   assert(run_args == nil or type(run_args) == 'table')
    assert(self._state == PROCESSING)
-   self._run_args = { ... }
+   if not run_args then
+      run_args = self._args
+   end
+   self:_verify_arguments(run_args, self._action.run_args or self._action.args)
+   self._run_args = run_args
    self:_set_state(READY)
 end
 
@@ -111,10 +117,10 @@ function ExecutionUnitV2:__set_priority(action, priority)
    end
 end
 
-function ExecutionUnitV2:__execute(...)
-   self._log:spam('execute %s called', select(1, ...))
+function ExecutionUnitV2:__execute(name, args)
+   self._log:spam('execute %s called', name)
    assert(not self._execute_frame)
-   self._execute_frame = self._ai_component:spawn_debug_route(self._debug_route, ...)
+   self._execute_frame = self._ai_component:spawn_debug_route(self._debug_route, name, args)
    self._execute_frame:run()
    
    -- execute_frame can be nil here if we got terminated early, usually because
@@ -126,9 +132,9 @@ function ExecutionUnitV2:__execute(...)
    end
 end 
 
-function ExecutionUnitV2:__spawn(...)
-   self._log:spam('spawn %s called', select(1, ...))
-   return self._ai_component:spawn_debug_route(self._debug_route, ...)
+function ExecutionUnitV2:__spawn(name, args)   
+   self._log:spam('spawn %s called', name)
+   return self._ai_component:spawn_debug_route(self._debug_route, name, args)
 end
 
 function ExecutionUnitV2:__suspend()
@@ -141,11 +147,13 @@ function ExecutionUnitV2:__resume()
    self._ai_component:resume_thread()
 end
 
-function ExecutionUnitV2:__abort(reason)
+function ExecutionUnitV2:__abort(reason, ...)
+   local reason = string.format(reason, ...)
    self._log:spam('abort %s called', tostring(reason))
    self:stop_thinking()
    self:stop()
-   --assert(false, "i am way too sleepy to implement abort")
+   -- why not destroy? -- tony
+   error(reason)
 end
 
 function ExecutionUnitV2:spawn(...)
@@ -192,10 +200,6 @@ function ExecutionUnitV2:get_action()
 end
 
 -- ExecutionFrame facing functions...
-function ExecutionUnitV2:get_activity()
-   return self._action.does
-end
-
 function ExecutionUnitV2:get_name()
    return self._action.name
 end
@@ -226,28 +230,29 @@ end
 
 function ExecutionUnitV2:initialize(args)
    self._log:spam('initialize')
-   self:_verify_execution_args(args)
    self._args = args
-   self._run_args = nil
-   if self._state == IDLE then
-      assert(not self._execute_frame)
-   else
-      self:_set_state(IDLE)
+   if self:_verify_arguments(args, self._action.args) then
+      self._run_args = nil
+      if self._state == IDLE then
+         assert(not self._execute_frame)
+      else
+         self:_set_state(IDLE)
+      end
    end
 end
 
 function ExecutionUnitV2:start_thinking()
-   self._log:spam('start_thinking (statestart_background_processing (state:%s processing:%s)', self._state, tostring(self._processing))
+   self._log:spam('start_thinking (state:%s processing:%s)', self._state, tostring(self._processing))
    
    if not self._processing then
       self._processing = true
       if not self._run_args then
          self:_set_state(PROCESSING)
          if self._action.start_thinking then
-            self._action:start_thinking(self._ai_interface, self._entity, unpack(self._args))
+            self._action:start_thinking(self._ai_interface, self._entity, self._args)
          else
             self._log:spam('action does not implement start_thinking')
-            self:__set_run_arguments(unpack(self._args))
+            self:__set_run_arguments(self._args)
          end
       else
          self._log:spam('ignoring start_thinking call.  already have args!')
@@ -298,8 +303,8 @@ function ExecutionUnitV2:run()
    local result = nil
    if self._action.run then
       self._log:debug('%s coroutine starting action: %s (%s)',
-                      self._entity, self:get_name(), stonehearth.ai:format_args(self._args))
-      result = { self._action:run(self._ai_interface, self._entity, unpack(self._run_args)) }      
+                      self._entity, self:get_name(), stonehearth.ai:format_args(self._run_args))
+      result = { self._action:run(self._ai_interface, self._entity, self._run_args) }      
       self._log:debug('%s coroutine finished: %s', self._entity, tostring(self:get_name()))
    else
       self._log:debug('action does not implement run.  (this is not an error, but is certainly weird)')
@@ -328,17 +333,28 @@ function ExecutionUnitV2:stop()
    end
 end
 
-function ExecutionUnitV2:_verify_execution_args(args)
-   if #args ~= #self._action.args then
-      self:__abort('unexpected number of arguments passed to %s (expected:%d got:%d)',
-                    self:get_name(), #self._action.args, #args)
-   end
-   for i, arg in ipairs(args) do
-      local expected = self._action.args[i]
-      if not self:_is_type(arg, expected) then
-         self:__abort('unexpected argument %d in %s (expected:%s got %s)', self:get_name(),
-                       i, tostring(expected), tostring(type(arg)))
+function ExecutionUnitV2:_verify_arguments(args, args_prototype)
+   -- special case 0 vs nil so people can leave out .args and .run_args if there are none.
+   args_prototype = args_prototype and args_prototype or {}
+   
+   assert(not args[1], string.format('%s needs to convert to object instead of array passing!', self:get_name()))
+   for name, value in pairs(args) do
+      local expected_type = args_prototype[name]
+      if not expected_type then
+         self:__abort('unexpected argument "%s" passed to "%s".', name, self:get_name())
+         return false
+      end
+      if not self:_is_type(value, expected_type) then
+         self:__abort('wrong type for argument "%s" in "%s" (expected:%s got %s)', name,
+                      self:get_name(), tostring(expected_type), tostring(type(value)))
+         return false                      
       end      
+   end
+   for name, value in pairs(args_prototype) do
+      if not args[name] then
+         self:__abort('missing argument "%s" in "%s".', name, self:get_name())
+         return false                      
+      end
    end
 end
 

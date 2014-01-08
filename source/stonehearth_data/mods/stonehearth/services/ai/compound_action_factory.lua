@@ -9,17 +9,21 @@ function CompoundActionFactory:__init(action)
    self.priority = action.priority
 
    self._base_action = action
-   self._chained_actions = {}
+   self._activity_sequence = {}
 end
 
-function CompoundActionFactory:execute(...)
-   table.insert(self._chained_actions, {...})
+function CompoundActionFactory:execute(name, args)
+   local activity = {
+      name = name,
+      args = args or {}
+   }
+   table.insert(self._activity_sequence, activity)
    return self
 end
 
 function CompoundActionFactory:create_action(ai_component, entity, injecting_entity)
    local unit = stonehearth.ai:create_execution_unit(ai_component, nil, self._base_action, entity, injecting_entity)
-   return CompoundAction(unit, self._chained_actions)
+   return CompoundAction(unit, self._activity_sequence)
 end
 
 return CompoundActionFactory

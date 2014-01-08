@@ -7,14 +7,13 @@ local STOPPED = 'stopped'
 function Task:__init(scheduler, activity)
    self._scheduler = scheduler
    self._activity = activity
-   self._args = { select(2, unpack(activity)) }
      
    self._id = NEXT_TASK_ID
    NEXT_TASK_ID = NEXT_TASK_ID + 1
    self._log = radiant.log.create_logger('tasks', 'task:'..tostring(self._id))   
    self._log:debug('creating new task for %s', scheduler:get_name())
    self._commited = false
-   self._name = activity[1] .. ' task'
+   self._name = activity.name .. ' task'
    self._complete_count = 0
    self:_set_state(STOPPED)
 end
@@ -40,7 +39,7 @@ function Task:get_state()
 end
 
 function Task:get_args()
-   return self._args
+   return self._activity[2] or {}
 end
 
 function Task:set_name(name)

@@ -3,15 +3,15 @@ local RunEffectAction = class()
 RunEffectAction.name = 'run effect'
 RunEffectAction.does = 'stonehearth:run_effect'
 RunEffectAction.args = {
-   'string' -- effect_name
+   effect = 'string' -- effect_name
 }
 RunEffectAction.version = 2
 RunEffectAction.priority = 1
 
-function RunEffectAction:run(ai, entity, effect_name)
+function RunEffectAction:run(ai, entity, args)   
    -- create the effect and register a callback to resume the ai thread
    -- when it finishes.
-   self._effect = radiant.effects.run_effect(entity, effect_name)
+   self._effect = radiant.effects.run_effect(entity, args.effect)
    self._effect:on_finished(function()
          self._effect = nil
          ai:resume()

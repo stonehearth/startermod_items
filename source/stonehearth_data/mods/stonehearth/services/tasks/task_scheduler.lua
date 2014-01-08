@@ -15,13 +15,22 @@ function TaskScheduler:get_name()
    return self._name
 end
 
-function TaskScheduler:set_activity(...)
-   self._activity = {...}
+function TaskScheduler:set_activity(name, args)
+   self._activity = {
+      name = name,
+      args = args or {}
+   }
    self._log:debug('setting activity to %s', stonehearth.ai:format_activity(self._activity))
 end
 
-function TaskScheduler:create_task(...)
-   local activity = { ... }
+function TaskScheduler:create_task(name, args)
+   assert(type(name) == 'string')
+   assert(args == nil or type(args) == 'table')
+   
+   local activity = {
+      name = name,
+      args = args or {}
+   }
    return Task(self, activity)
 end
 

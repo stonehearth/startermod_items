@@ -203,7 +203,7 @@ function AiService:_schedule(co)
 end
 
 function AiService:format_activity(activity)
-   return activity[1] .. '(' .. self:format_args(select(2, activity)) .. ')'
+   return activity.name .. '(' .. self:format_args(activity.args) .. ')'
 end
 
 function AiService:format_args(args)

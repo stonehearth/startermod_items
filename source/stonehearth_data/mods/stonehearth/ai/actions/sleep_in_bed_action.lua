@@ -1,87 +1,36 @@
---[[
-   SleepInBedAction handles the specifics of how to go to sleep once
-   a bed has been found. Finding a bed and managing all state related to
-   sleeping is done in sleep_action
---]]
-local SleepInBedAction = class()
+local RestockStockpileAction = class()
+local StockpileComponent = require 'components.stockpile.stockpile_component'
 
-SleepInBedAction.name = 'sleep in a bed'
-SleepInBedAction.does = 'stonehearth:sleep'
-SleepInBedAction.version = 2
-SleepInBedAction.priority = 1
+RestockStockpileAction.name = 'restock stockpile'
+RestockStockpileAction.does = 'stonehearth:restock_stockpile'
+RestockStockpileAction.args = {
+   stockpile = StockpileComponent      -- the stockpile that needs stuff
+}
+RestockStockpileAction.run_args = {
+   stockpile = StockpileComponent,     -- the stockpile that needs stuff
+   item_filter = 'function'            -- the filter function for stockpile items
+}
+RestockStockpileAction.version = 2
+RestockStockpileAction.priority = 1
 
-
-function SleepInBedAction:__init(ai, entity)
-   self._entity = entity         --the game character
+function RestockStockpileAction:start_thinking(ai, entity, stockpile)
    self._ai = ai
-   self._bed = nil
+   radiant.events.listen(stockpile, 'space_available', self, self._on_space_available)
+   self:_on_space_available(not stockpile:is_full())
 end
 
-function SleepAction:start_thinking(ai, entity)
-   radiant.events.listen(entity, 'stonehearth:attribute_changed:sleepiness', self, self.on_sleepiness_changed)
-end
-
-function SleepAction:stop_thinking(ai, entity)
-   radiant.events.unlisten(entity, 'stonehearth:attribute_changed:sleepiness', self, self.on_sleepiness_changed)
-end
-
---[[
-   Follow the path to the bed, then play the sleep-related animations.
---]]
-function SleepInBedAction:run(ai, entity, bed, path)
-   -- renew our lease on the bed.
-
-   -- Mark the bed as being used
-   self._bed = bed
-
-   -- If the bed moves or is destroyed between now and before the sleeper wakes up, just
-   -- go ahead and abort.
-   self._bed_moved_promise = radiant.entities.on_entity_moved(bed, function()
-      ai:abort()
-   end);
-
-   radiant.entities.on_destroy(bed, function()
-      self._bed = nil
-      local bed_lease = self._entity:get_component('stonehearth:bed_lease')
-      bed_lease:set_bed(nil)
-      ai:abort()
-   end);
-   
-   --Am I carrying anything? If so, drop it
-   local drop_location = radiant.entities.get_world_grid_location(entity)
-   ai:execute('stonehearth:drop_carrying', drop_location)
-
-   -- walk over to the bed
-   ai:execute('stonehearth:follow_path', path)
-
-   -- get ready to go to sleep
-   ai:execute('stonehearth:run_effect', 'yawn')
-
-   -- move directly on top of the bed
-   local bed_location = radiant.entities.get_world_grid_location(bed)
-
-   bed_location.y = bed_location.y + 1
-   bed_location.z = bed_location.z + 1
-   radiant.entities.move_to(entity, bed_location)
-   radiant.entities.turn_to(entity, 180) -- xxx, when beds can be placed at aritrary rotations this will break
-
-   -- goto sleep
-   ai:execute('stonehearth:run_effect', 'goto_sleep')
-
-   if not radiant.entities.has_buff(self._entity, 'stonehearth:buffs:sleeping') then
-      radiant.entities.add_buff(self._entity, 'stonehearth:buffs:sleeping');
+function RestockStockpileAction:_on_space_available(space_available)
+   if space_available then
+      self._ai:set_run_args(stockpile, stockpile:get_item_filter_fn)
+   else
+      self._ai:revoke_run_args()
    end
-   
-   ai:execute('stonehearth:run_effect', 'sleep')
 end
 
-function SleepInBedAction:stop()
-   if self._bed_moved_promise then
-      self._bed_moved_promise:destroy()
-      self._bed_moved_promise = nil
-   end
-   radiant.entities.remove_buff(self._entity, 'stonehearth:buffs:sleeping');
-   radiant.entities.unthink(self._entity, '/stonehearth/data/effects/thoughts/sleepy')
+function RestockStockpileAction:stop_thinking(ai, entity)
+   radiant.events.unlisten(stockpile, 'space_available', self, self._on_space_available)
 end
 
-return SleepInBedAction
+local ai = stonehearth.ai
+return ai.create_compound_action(RestockStockpileAction)
+         :execute('stonehearth:find_path_to_entity_type', { filter_fn = ai.PREV.item_filter })

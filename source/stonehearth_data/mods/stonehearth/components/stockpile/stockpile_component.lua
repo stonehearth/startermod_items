@@ -198,7 +198,7 @@ function StockpileComponent:get_bounds()
 end
 
 function StockpileComponent:is_full()
-   return false
+   return self._destination:get_region():get():empty()
 end
 
 function StockpileComponent:bounds_contain(item_entity)
@@ -221,9 +221,15 @@ function StockpileComponent:_add_to_region(entity)
    local pt = location - radiant.entities.get_world_grid_location(self._entity)
    log:debug('adding point %s to region', tostring(pt))
    self._data.item_locations[entity:get_id()] = pt
+   
+   local was_full = self:is_full()
    self._destination:get_region():modify(function(cursor)
       cursor:subtract_point(pt)
    end)
+   if not was_full and self:is_full() then
+      radiant.events.trigger(self, 'space_available', false)
+   end
+   
    log:debug('finished adding point %s to region', tostring(pt))
    self:_unreserve(location)
 end
@@ -232,10 +238,16 @@ function StockpileComponent:_remove_from_region(id)
    local pt = self._data.item_locations[id]
    log:debug('removing point %s from region', tostring(pt))
    self._data.item_locations[id] = nil
+   
+   local was_full = self:is_full()
    self._destination:get_region():modify(function(cursor)
       cursor:add_point(pt)
    end)
    log:debug('finished removing point %s from region', tostring(pt))
+   
+   if was_full and not self:is_full() then
+      radiant.events.trigger(self, 'space_available', true)
+   end
 end
 
 function StockpileComponent:_reserve(location)
@@ -433,6 +445,35 @@ function StockpileComponent:_create_worker_tasks()
       return
    end
 
+   if self._task ~= nil then
+      self._task:destroy()
+      self._task = nil
+   end
+   --[[
+   self._task = stonehearth.tasks:get_scheduler('stonehearth:workers')
+                                   :create_task('stonehearth:restock_stockpile', self)
+                                   :set_name('restock task')
+                                   :start()]]
+end
+
+function StockpileComponent:_get_item_filter_fn()
+   return function(entity)
+      log:spam('%s checking ok to pickup', entity)
+      if not self:can_stock_entity(entity) then
+         log:spam('%s not stockable.  not picking up', entity)
+         return false
+      end
+      local stockpile = get_stockpile_containing_entity(entity)
+      if stockpile and not stockpile:is_outbox() then
+         log:spam('%s contained in stockpile.  not picking up', entity)
+         return false
+      end
+      log:spam('ok to pickup %s (mob:%d)!', entity, entity:get_component('mob'):get_id())
+      return true
+   end
+end
+
+function StockpileComponent:_old_create_worker_tasks()
    local faction = radiant.entities.get_faction(self._entity)
    local worker_scheduler = stonehearth.worker_scheduler:get_worker_scheduler(faction)
 

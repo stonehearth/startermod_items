@@ -4,13 +4,15 @@ local FollowPathAction = class()
 FollowPathAction.name = 'follow path'
 FollowPathAction.does = 'stonehearth:follow_path'
 FollowPathAction.args = {
-   Path,          -- the path to follow
-   'string'       -- the effect_name to run while path following
+   path = Path,          -- the path to follow
+   effect = 'string'       -- the effect_name to run while path following
 }
 FollowPathAction.version = 2
 FollowPathAction.priority = 1
 
-function FollowPathAction:run(ai, entity, path, effect_name)
+function FollowPathAction:run(ai, entity, args)
+   local path = args.path
+
    if path:is_empty() then
       return
    end
@@ -29,7 +31,7 @@ function FollowPathAction:run(ai, entity, path, effect_name)
    end
    speed = speed / 100.0
 
-   self._effect = radiant.effects.run_effect(entity, effect_name)
+   self._effect = radiant.effects.run_effect(entity, args.effect)
    local arrived_fn = function()
       ai:resume()
    end

@@ -1,18 +1,22 @@
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
+local Entity = _radiant.om.Entity
 local RunToLocation = class()
 
 RunToLocation.name = 'run to location'
 RunToLocation.does = 'stonehearth:goto_location'
 RunToLocation.args = {
-   Point3,     -- location to go to
-   'string'    -- default effect to use when travelling
+   location = Point3,      -- location to go to
+   effect = 'string'  -- default effect to use when travelling
+}
+RunToLocation.run_args = {
+   entity = Entity        -- the proxy destination entity
 }
 RunToLocation.version = 2
 RunToLocation.priority = 1
 
-function RunToLocation:start_thinking(ai, entity, location, effect_name)
+function RunToLocation:start_thinking(ai, entity, args)
    -- generally speaking, going directly to a location is a strange
    -- thing to do.  why did we not path find to an entity?  why is
    -- this location special?
@@ -31,8 +35,8 @@ function RunToLocation:start_thinking(ai, entity, location, effect_name)
    
    self._dest_entity = radiant.entities.create_entity()
    self._dest_entity:set_debug_text('goto location proxy entity')
-   radiant.terrain.place_entity(self._dest_entity, location)
-   ai:set_run_arguments(self._dest_entity, effect_name)
+   radiant.terrain.place_entity(self._dest_entity, args.location)
+   ai:set_run_arguments({ entity = self._dest_entity })
 end
 
 function RunToLocation:stop_thinking(ai, entity)
@@ -44,5 +48,5 @@ end
 
 local ai = stonehearth.ai
 return ai:create_compound_action(RunToLocation)
-         :execute('stonehearth:goto_entity', ai.PREV[1], ai.ARGS[2])
+         :execute('stonehearth:goto_entity', { entity = ai.PREV.entity, effect = ai.ARGS.effect})
 

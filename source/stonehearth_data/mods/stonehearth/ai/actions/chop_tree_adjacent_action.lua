@@ -5,7 +5,7 @@ local ChopTreeAdjacentAction = class()
 ChopTreeAdjacentAction.name = 'chop tree adj'
 ChopTreeAdjacentAction.does = 'stonehearth:chop_tree:adjacent'
 ChopTreeAdjacentAction.args = {
-   Entity      -- the tree to chop
+   tree = Entity      -- the tree to chop
 }
 ChopTreeAdjacentAction.version = 2
 ChopTreeAdjacentAction.priority = 1
@@ -14,10 +14,12 @@ function ChopTreeAdjacentAction:start()
    -- TODO: check to make sure we're next to the tree
 end
 
-function ChopTreeAdjacentAction:run(ai, entity, tree)   
+function ChopTreeAdjacentAction:run(ai, entity, args)   
+   local tree = args.tree
+
    repeat
       radiant.entities.turn_to_face(entity, tree)
-      ai:execute('stonehearth:run_effect', 'chop')
+      ai:execute('stonehearth:run_effect', { effect = 'chop'})
       
       local factory = tree:get_component('stonehearth:resource_node')
       if factory then

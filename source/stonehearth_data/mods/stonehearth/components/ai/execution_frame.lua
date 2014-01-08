@@ -18,7 +18,7 @@ local NEXT_FRAME_ID = 1
 function ExecutionFrame:__init(ai_component, actions, activity, debug_route)
    self._ai_component = ai_component
    self._entity = self._ai_component:get_entity()
-   self._activity_name = activity[1]   
+   self._activity = activity
    self._state = CONSTRUCTED
    self._execution_units = {}
    
@@ -38,7 +38,6 @@ function ExecutionFrame:__init(ai_component, actions, activity, debug_route)
    end
    
    -- notify everyone that they party's started
-   self._args = { select(2, unpack(activity)) }
    for _, unit in pairs(self._execution_units) do
       self:_prime_execution_unit(unit)
    end
@@ -46,7 +45,7 @@ function ExecutionFrame:__init(ai_component, actions, activity, debug_route)
 end
 
 function ExecutionFrame:_on_action_added(key, entry, does)
-   if self._activity_name == does then
+   if self._activity.name == does then
       local unit = self:_add_execution_unit(key, entry)
       self:_prime_execution_unit(unit)
       if self:_is_thinking() then
@@ -80,7 +79,7 @@ end
 
 function ExecutionFrame:_prime_execution_unit(unit)
    unit:set_debug_route(self._debug_route)
-   unit:initialize(self._args)
+   unit:initialize(self._activity.args)
    radiant.events.listen(unit, 'ready', self, self.on_unit_state_change)
    radiant.events.listen(unit, 'idle', self, self.on_unit_state_change)
    radiant.events.listen(unit, 'dead', self, self.on_unit_state_change)
@@ -90,7 +89,7 @@ end
 
 function ExecutionFrame:set_debug_route(debug_route)
    self._debug_route = debug_route .. ' f:' .. tostring(self._id)
-   local prefix = string.format('%s (%s)', self._debug_route, self._activity_name)
+   local prefix = string.format('%s (%s)', self._debug_route, self._activity.name)
    self._log:set_prefix(prefix)
    for _, unit in pairs(self._execution_units) do
       unit:set_debug_route(self._debug_route)
@@ -125,8 +124,8 @@ function ExecutionFrame:destroy()
    end
 end
 
-function ExecutionFrame:get_activity_name()
-   return self._activity_name
+function ExecutionFrame:get_activity()
+   return self._activity
 end
 
 function ExecutionFrame:get_active_execution_unit()
@@ -320,7 +319,7 @@ function ExecutionFrame:_get_best_execution_unit()
    local best_priority = 0
    local active_units = nil
    
-   self._log:spam('%s looking for best execution unit for "%s"', self._entity, self._activity_name)
+   self._log:spam('%s looking for best execution unit for "%s"', self._entity, self._activity.name)
    for _, unit in pairs(self._execution_units) do
       local name = unit:get_name()
       local priority = unit:get_priority()
@@ -347,7 +346,7 @@ function ExecutionFrame:_get_best_execution_unit()
    
    -- choose a random unit amoung all the units with the highest priority (they all tie)
    local active_unit = active_units[math.random(#active_units)]
-   self._log:spam('%s  best unit for "%s" is "%s" (priority: %d)', self._entity, self._activity_name, active_unit:get_name(), best_priority)
+   self._log:spam('%s  best unit for "%s" is "%s" (priority: %d)', self._entity, self._activity.name, active_unit:get_name(), best_priority)
    
    return active_unit
 end

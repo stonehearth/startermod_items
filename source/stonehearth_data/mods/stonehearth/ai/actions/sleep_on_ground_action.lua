@@ -30,10 +30,10 @@ end
 
 function SleepOnGroundAction:run(ai, entity, bed, path)
    local drop_location = radiant.entities.get_world_grid_location(entity)
-   ai:execute('stonehearth:drop_carrying', drop_location)
-   ai:execute('stonehearth:run_effect', 'yawn')
-   ai:execute('stonehearth:run_effect', 'sit_on_ground')
-   ai:execute('stonehearth:run_effect_timed', 'sleep', 1)
+   ai:execute('stonehearth:drop_carrying', { location = drop_location })
+   ai:execute('stonehearth:run_effect', { effect = 'yawn' })
+   ai:execute('stonehearth:run_effect', { effect = 'sit_on_ground' })
+   ai:execute('stonehearth:run_effect_timed', { effect = 'sleep', duration = 1})
    radiant.entities.set_attribute(entity, 'sleepiness', 0)
 end
 

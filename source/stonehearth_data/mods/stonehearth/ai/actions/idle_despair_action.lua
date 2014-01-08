@@ -13,7 +13,7 @@ function IdleDespairAction:run(ai, entity)
    event_service:add_entry(name .. ' is so hungry it feels like despair.', 'warning')
 
    for i = 1, 3 do
-      ai:execute('stonehearth:run_effect', 'idle_despair')
+      ai:execute('stonehearth:run_effect', { effect = 'idle_despair' })
    end
 end
 
