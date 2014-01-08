@@ -205,7 +205,7 @@ var RadiantTrace;
 
                   var current = earr[i];
                   if (current) {
-                     self._destroy_ember_object(current);
+                     current.destroy();
                   }
 
                   earr[i] = child_eobj;
