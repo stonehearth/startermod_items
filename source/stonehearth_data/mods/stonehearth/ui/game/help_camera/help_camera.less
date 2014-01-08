@@ -8,16 +8,23 @@
    .hint {
       .outlined; 
       color: #fff;
-      width: 300px;
+      width: 500px;
       text-align: left;
 
-      img {
-         width: 52px;
-         height: 57px;
-         display: inline-block;
-         float: left;
+      h2 {
+         color: #fff;
+      }
+
+      tr {
+         height: 100px;
+      }
+
+
+      td:first-of-type {
+         text-align:center;
          padding-right: 10px;
       }
+
    }
 
    #panHint {
@@ -25,9 +32,18 @@
       top: 80px;
       left: 250px;
 
-      img {
-         content: url('images/mouse_left.png');
+      #option1 {
+         width: 194px;
+         height: 57px;
+         content: url('images/camera_move_1.png');
       }
+
+      #option2 {
+         width: 117px;
+         height: 79px;
+         content: url('images/camera_move_2.png');
+      }
+
    }
 
    #orbitHint {
@@ -35,8 +51,16 @@
       top: 80px;
       right: 250px;
 
-      img {
-         content: url('images/mouse_right.png');
+      #option1 {
+         width: 52px;
+         height: 57px;
+         content: url('images/camera_rotate_1.png');
+      }
+
+      #option2 {
+         width: 117px;
+         height: 41px;  
+         content: url('images/camera_rotate_2.png');
       }
 
    }
@@ -45,8 +69,10 @@
       margin: 80px auto;
       display: none;
 
-      img {
-         content: url('images/mouse_wheel.png');
+      #option1 {
+         width: 52px;
+         height: 57px;
+         content: url('images/camera_zoom.png');
       }
 
    }   

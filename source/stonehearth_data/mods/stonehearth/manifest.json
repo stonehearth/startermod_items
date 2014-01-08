@@ -10,6 +10,7 @@
    "radiant": {
       "entities" : {
          "cursors:arrow" : "file(data/cursors/arrow.cur)",
+         "cursors:camera_pan" : "file(data/cursors/camera_pan.cur)",
          "cursors:camera_move_down" : "file(data/cursors/camera_move_down.cur)",
          "cursors:camera_move_left" : "file(data/cursors/camera_move_left.cur)",
          "cursors:camera_move_right" : "file(data/cursors/camera_move_right.cur)",
