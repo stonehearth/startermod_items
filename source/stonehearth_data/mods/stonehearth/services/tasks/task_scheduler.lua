@@ -16,10 +16,7 @@ function TaskScheduler:get_name()
 end
 
 function TaskScheduler:set_activity(name, args)
-   self._activity = {
-      name = name,
-      args = args or {}
-   }
+   self._activity = stonehearth.ai:create_activity(name, args)
    self._log:debug('setting activity to %s', stonehearth.ai:format_activity(self._activity))
 end
 

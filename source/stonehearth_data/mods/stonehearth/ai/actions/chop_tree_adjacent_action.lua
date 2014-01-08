@@ -3,7 +3,7 @@ local Entity = _radiant.om.Entity
 local ChopTreeAdjacentAction = class()
 
 ChopTreeAdjacentAction.name = 'chop tree adj'
-ChopTreeAdjacentAction.does = 'stonehearth:chop_tree:adjacent'
+ChopTreeAdjacentAction.does = 'stonehearth:chop_tree_adjacent'
 ChopTreeAdjacentAction.args = {
    tree = Entity      -- the tree to chop
 }
@@ -11,7 +11,7 @@ ChopTreeAdjacentAction.version = 2
 ChopTreeAdjacentAction.priority = 1
 
 function ChopTreeAdjacentAction:start()
-   -- TODO: check to make sure we're next to the tree
+   -- TODO: check to make sure we'll be next to the tree
 end
 
 function ChopTreeAdjacentAction:run(ai, entity, args)   

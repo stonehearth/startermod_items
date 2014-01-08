@@ -7,7 +7,7 @@ function RunTaskAction:__init(ai, task, scheduler_activity)
    local activity = task:get_activity()
    self._execution_frame = ai:spawn(activity.name, activity.args)
    radiant.events.listen(self._execution_frame, 'ready', function()
-         ai:set_run_arguments()
+         ai:set_think_output()
       end)
 
    radiant.events.listen(task, 'started', self, self._on_task_started)

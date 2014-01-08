@@ -6,9 +6,6 @@ local CompoundActionFactory = require 'services.ai.compound_action_factory'
 local placeholders = require 'services.ai.placeholders'
 local log = radiant.log.create_logger('ai.service')
 
-AiService.ARGS = placeholders.ARGS
-AiService.PREV = placeholders.PREV
-
 function AiService:__init()
    -- SUSPEND_THREAD is a unique, non-integer token which indicates the thread
    -- should suspend.  It must be non-intenger, as yielding an int means "wait
@@ -25,6 +22,10 @@ function AiService:__init()
    self._scheduled = {}
    self._co_to_ai_component = {}
    self._waiting_until = {}
+   
+   for name, value in pairs(placeholders) do
+      AiService[name] = value
+   end
 
    radiant.events.listen(radiant.events, 'stonehearth:gameloop', self, self._on_event_loop)
 end
@@ -209,14 +210,14 @@ end
 function AiService:format_args(args)
    local msg = ''
    if args then
-      for _, arg in ipairs(args) do
+      for name, value in pairs(args) do
          if #msg > 0 then
             msg = msg .. ', '
          end
-         msg = msg .. tostring(arg)
+         msg = msg .. string.format('%s = %s ', name, radiant.util.tostring(value))
       end
    end
-   return msg
+   return '{ ' .. msg .. '}'
 end
 
 function AiService:create_execution_unit(ai_component, debug_route, action_ctor, entity, injecting_entity)
@@ -243,7 +244,33 @@ function AiService:create_execution_unit(ai_component, debug_route, action_ctor,
 end
 
 function AiService:create_compound_action(action_ctor)
+   assert(action_ctor)
+   -- cannot implement anything here.  it gets really confusing (where does start_thinking forward
+   -- its args to?  the next action in the chain or the calling action?)
+   assert(not action_ctor.start_thinking, 'compound actions must not contain implementation')
+   assert(not action_ctor.stop_thinking, 'compound actions must not contain implementation')
+   
    return CompoundActionFactory(action_ctor)
 end
+
+function AiService:create_activity(name, args)   
+   if args == nil then
+      args = {}
+   end
+   assert(type(name) == 'string', 'activity name must be a string')
+   assert(type(args) == 'table', 'activity arguments must be an associative array')
+   assert(not args[1], 'activity arguments contains numeric elements (invalid!)')
+
+   -- common error... trying to pass a class instance (e.g. 'foo', { my_instance })
+   -- this won't catch them all, but will catch all uses of unclasslib clases
+   assert(not args.__class, 'attempt to pass class for activity args (not using associative array?)')
+   assert(not args.__type,  'attempt to pass instance for activity args (not using associative array?)')
+
+   return {
+      name = name,
+      args = args
+   }
+end
+
 
 return AiService()

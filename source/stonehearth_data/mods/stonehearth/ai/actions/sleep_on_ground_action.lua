@@ -22,9 +22,9 @@ end
 
 function SleepOnGroundAction:_keep_think(e)
    if e.value >= 120 then
-      self._ai:set_run_arguments()
+      self._ai:set_think_output()
    else
-      self._ai:revoke_run_arguments()
+      self._ai:clear_think_output()
    end
 end
 

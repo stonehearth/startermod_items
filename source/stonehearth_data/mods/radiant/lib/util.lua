@@ -24,4 +24,27 @@ function util.colorcode_to_integer(cc)
    return result
 end
 
+function util.tostring(value)
+   local t = type(value)
+   if t == 'userdata' then
+      if value.get_type_name then
+         return value:get_type_name()
+      end
+      return class_info(value).name
+   elseif t == 'table' and t.__classsname then
+      return t.__classname
+   end
+   return tostring(value)
+end
+
+function util.is_type(var, cls)
+   local t = type(var)
+   if t == 'userdata' then
+      return var:get_type_id() == cls.get_type_id()
+   elseif t == 'table' and type(cls) == 'table' and var.__type == 'object' and cls.__type == 'class' then
+      return var:is_a(cls)
+   end
+   return t == cls
+end
+
 return util

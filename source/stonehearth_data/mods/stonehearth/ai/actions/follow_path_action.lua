@@ -5,10 +5,14 @@ FollowPathAction.name = 'follow path'
 FollowPathAction.does = 'stonehearth:follow_path'
 FollowPathAction.args = {
    path = Path,          -- the path to follow
-   effect = 'string'       -- the effect_name to run while path following
 }
 FollowPathAction.version = 2
 FollowPathAction.priority = 1
+
+function FollowPathAction:start_thinking(ai, entity, args)
+   ai.CURRENT.location = args.path:get_finish_point()
+   ai:set_think_output()
+end
 
 function FollowPathAction:run(ai, entity, args)
    local path = args.path
@@ -31,7 +35,7 @@ function FollowPathAction:run(ai, entity, args)
    end
    speed = speed / 100.0
 
-   self._effect = radiant.effects.run_effect(entity, args.effect)
+   self._effect = radiant.effects.run_effect(entity, 'run')
    local arrived_fn = function()
       ai:resume()
    end

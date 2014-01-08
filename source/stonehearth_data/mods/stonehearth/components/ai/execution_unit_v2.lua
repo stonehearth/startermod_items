@@ -58,14 +58,18 @@ function ExecutionUnitV2:__init(ai_component, entity, injecting_entity)
    local chain_function = function (fn)
       self._ai_interface[fn] = function(i, ...) return self['__'..fn](self, ...) end
    end
-   chain_function('set_run_arguments')
-   chain_function('revoke_run_arguments')
+   chain_function('set_think_output')
+   chain_function('clear_think_output')
    chain_function('set_priority')
    chain_function('spawn')
    chain_function('execute')   
    chain_function('suspend')
    chain_function('resume')
    chain_function('abort')
+end
+
+function ExecutionUnitV2:get_state()
+   return self._state
 end
 
 function ExecutionUnitV2:set_debug_route(debug_route)
@@ -83,25 +87,25 @@ function ExecutionUnitV2:get_action_interface()
    return self._ai_interface
 end
 
-function ExecutionUnitV2:__set_run_arguments(run_args)
-   assert(run_args == nil or type(run_args) == 'table')
+function ExecutionUnitV2:__set_think_output(think_output)
+   assert(think_output == nil or type(think_output) == 'table')
    assert(self._state == PROCESSING)
-   if not run_args then
-      run_args = self._args
+   if not think_output then
+      think_output = self._args
    end
-   self:_verify_arguments(run_args, self._action.run_args or self._action.args)
-   self._run_args = run_args
+   self:_verify_arguments(think_output, self._action.think_output or self._action.args)
+   self._think_output = think_output
    self:_set_state(READY)
 end
 
-function ExecutionUnitV2:__revoke_run_arguments(...)
+function ExecutionUnitV2:__clear_think_output(...)
    if self._state == READY then
-      self._run_args = nil
+      self._think_output = nil
       self:_set_state(PROCESSING)
    elseif self._state == RUNNING then
       self:__abort('action is no longer ready to run')
    else
-      assert(not self._run_args, string.format('unexpected stated %s in revoke_run_arguments', self._state))
+      assert(not self._think_output, string.format('unexpected stated %s in clear_think_output', self._state))
    end
 end
 
@@ -118,7 +122,7 @@ function ExecutionUnitV2:__set_priority(action, priority)
 end
 
 function ExecutionUnitV2:__execute(name, args)
-   self._log:spam('execute %s called', name)
+   self._log:spam('execute %s %s called', name, stonehearth.ai:format_args(args))
    assert(not self._execute_frame)
    self._execute_frame = self._ai_component:spawn_debug_route(self._debug_route, name, args)
    self._execute_frame:run()
@@ -137,13 +141,15 @@ function ExecutionUnitV2:__spawn(name, args)
    return self._ai_component:spawn_debug_route(self._debug_route, name, args)
 end
 
-function ExecutionUnitV2:__suspend()
-   self._log:spam('suspend called')
+function ExecutionUnitV2:__suspend(format, ...)
+   local reason = format and string.format(format, ...) or 'no reason given'
+   self._log:spam('suspend called (reason: %s)', reason)
    self._ai_component:suspend_thread()
 end
 
-function ExecutionUnitV2:__resume()
-   self._log:spam('resume called')
+function ExecutionUnitV2:__resume(format, ...)
+   local reason = format and string.format(format, ...) or 'no reason given'
+   self._log:spam('resume called (reason: %s)', reason)
    self._ai_component:resume_thread()
 end
 
@@ -216,12 +222,12 @@ function ExecutionUnitV2:get_weight()
    return self._action.weight or 1
 end
 
-function ExecutionUnitV2:get_run_args()
-   return self._run_args
+function ExecutionUnitV2:get_think_output()
+   return self._think_output
 end
 
 function ExecutionUnitV2:is_runnable()
-   return self._action.priority > 0 and self._run_args ~= nil and self._state == READY
+   return self._action.priority > 0 and self._think_output ~= nil and self._state == READY
 end
 
 function ExecutionUnitV2:is_active()
@@ -232,7 +238,7 @@ function ExecutionUnitV2:initialize(args)
    self._log:spam('initialize')
    self._args = args
    if self:_verify_arguments(args, self._action.args) then
-      self._run_args = nil
+      self._think_output = nil
       if self._state == IDLE then
          assert(not self._execute_frame)
       else
@@ -246,13 +252,14 @@ function ExecutionUnitV2:start_thinking()
    
    if not self._processing then
       self._processing = true
-      if not self._run_args then
+      self:_initialize_entity_current_state()
+      if not self._think_output then
          self:_set_state(PROCESSING)
          if self._action.start_thinking then
             self._action:start_thinking(self._ai_interface, self._entity, self._args)
          else
             self._log:spam('action does not implement start_thinking')
-            self:__set_run_arguments(self._args)
+            self:__set_think_output(self._args)
          end
       else
          self._log:spam('ignoring start_thinking call.  already have args!')
@@ -275,6 +282,7 @@ function ExecutionUnitV2:stop_thinking()
       if self._state == PROCESSING then
          self:_set_state(IDLE)
       end
+      self:_clear_entity_current_state()
    else
       self._log:spam('ignoring stop_thinking call.  not thinking...')
    end
@@ -295,7 +303,7 @@ end
 
 function ExecutionUnitV2:run()
    self._log:spam('run')
-   assert(self._run_args)
+   assert(self._think_output)
    assert(self:get_priority() > 0)
    assert(self._state == STARTED)
    
@@ -303,8 +311,8 @@ function ExecutionUnitV2:run()
    local result = nil
    if self._action.run then
       self._log:debug('%s coroutine starting action: %s (%s)',
-                      self._entity, self:get_name(), stonehearth.ai:format_args(self._run_args))
-      result = { self._action:run(self._ai_interface, self._entity, self._run_args) }      
+                      self._entity, self:get_name(), stonehearth.ai:format_args(self._think_output))
+      result = { self._action:run(self._ai_interface, self._entity, self._think_output) }      
       self._log:debug('%s coroutine finished: %s', self._entity, tostring(self:get_name()))
    else
       self._log:debug('action does not implement run.  (this is not an error, but is certainly weird)')
@@ -328,15 +336,23 @@ function ExecutionUnitV2:stop()
       else
          self._log:spam('action does not implement stop')
       end
-      self._run_args = nil
+      self._think_output = nil
       self:_set_state(IDLE)
    end
 end
 
 function ExecutionUnitV2:_verify_arguments(args, args_prototype)
-   -- special case 0 vs nil so people can leave out .args and .run_args if there are none.
+   -- special case 0 vs nil so people can leave out .args and .think_output if there are none.
    args_prototype = args_prototype and args_prototype or {}
-   
+   if args[1] then
+      self:__abort('activity arguments contains numeric elements (invalid!)')
+      return false
+   end
+   if args.__type then
+      self:__abort('attempt to pass instance for arguments (not using associative array?)')
+      return false
+   end
+
    assert(not args[1], string.format('%s needs to convert to object instead of array passing!', self:get_name()))
    for name, value in pairs(args) do
       local expected_type = args_prototype[name]
@@ -344,7 +360,7 @@ function ExecutionUnitV2:_verify_arguments(args, args_prototype)
          self:__abort('unexpected argument "%s" passed to "%s".', name, self:get_name())
          return false
       end
-      if not self:_is_type(value, expected_type) then
+      if not radiant.util.is_type(value, expected_type) then
          self:__abort('wrong type for argument "%s" in "%s" (expected:%s got %s)', name,
                       self:get_name(), tostring(expected_type), tostring(type(value)))
          return false                      
@@ -356,14 +372,6 @@ function ExecutionUnitV2:_verify_arguments(args, args_prototype)
          return false                      
       end
    end
-end
-
-function ExecutionUnitV2:_is_type(var, cls)
-   local t = type(var)
-   if t == 'userdata' then
-      return var:get_type_id() == cls.get_type_id()
-   end
-   return t == cls
 end
 
 -- XXXXXXXXXXXXXXXXX: make a State helper class!!
@@ -383,6 +391,31 @@ function ExecutionUnitV2:_set_state(state)
    self._state = state
    radiant.events.trigger(self, self._state, self)
    radiant.events.trigger(self, 'state_changed', self, self._state)
+end
+
+function ExecutionUnitV2:_initialize_entity_current_state()
+   self._entity_current_state = {
+      location = radiant.entities.get_world_grid_location(self._entity)
+   }
+   self._ai_interface.CURRENT = self._entity_current_state
+end
+
+function ExecutionUnitV2:_clear_entity_current_state()
+   self._entity_current_state = nil
+   self._ai_interface.CURRENT = nil
+end
+
+function ExecutionUnitV2:_get_entity_current_state()
+   if not self._entity_current_state then
+      self:__abort('cannot read CURRENT at this time')
+      return
+   end
+   
+   local result = self._entity_current_state[key]
+   if not result then
+      self:__abort('unknown state CURRENT.%s', key)      
+   end
+   return result
 end
 
 return ExecutionUnitV2

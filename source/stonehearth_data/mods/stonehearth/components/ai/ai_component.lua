@@ -109,10 +109,7 @@ function AIComponent:spawn_debug_route(debug_route, name, args)
    assert(type(name) == 'string')
    assert(args == nil or type(args) == 'table')
 
-   local activity = {
-      name = name,
-      args = args or {}
-   }
+   local activity = stonehearth.ai:create_activity(name, args)
   
    -- create a new frame and return it   
    log:spam('%s creating execution frame for %s', self._entity, name)

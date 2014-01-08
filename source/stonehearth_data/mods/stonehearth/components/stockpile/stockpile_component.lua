@@ -2,6 +2,7 @@ local priorities = require('constants').priorities.worker_task
 local inventory_service = stonehearth.inventory
 
 local StockpileComponent = class()
+StockpileComponent.__classname = 'StockpileComponent'
 local log = radiant.log.create_logger('stockpile')
 
 local Cube3 = _radiant.csg.Cube3
@@ -451,12 +452,13 @@ function StockpileComponent:_create_worker_tasks()
    end
    --[[
    self._task = stonehearth.tasks:get_scheduler('stonehearth:workers')
-                                   :create_task('stonehearth:restock_stockpile', self)
+                                   :create_task('stonehearth:restock_stockpile', { stockpile = self })
                                    :set_name('restock task')
-                                   :start()]]
+                                   :start()
+                                   ]]
 end
 
-function StockpileComponent:_get_item_filter_fn()
+function StockpileComponent:get_item_filter_fn()
    return function(entity)
       log:spam('%s checking ok to pickup', entity)
       if not self:can_stock_entity(entity) then
@@ -596,7 +598,6 @@ function StockpileComponent:_old_create_worker_tasks()
    -- fire 'em up!
    self._pickup_task:start()
    self._restock_task:start()
-
 end
 
 return StockpileComponent

@@ -27,14 +27,16 @@ using namespace ::radiant::simulation;
 #  define VERIFY_HEAPINESS()
 #endif
 
-PathFinder::PathFinder(Simulation& sim, std::string name) :
+PathFinder::PathFinder(Simulation& sim, std::string name, om::EntityPtr entity) :
    Job(sim, name),
    rebuildHeap_(false),
    restart_search_(true),
    enabled_(true),
+   entity_(entity),
    debug_color_(255, 192, 0, 128)
 {
    PF_LOG(3) << "creating pathfinder";
+   source_.reset(new PathFinderSrc(*this, entity));
 }
 
 PathFinder::~PathFinder()
@@ -42,18 +44,10 @@ PathFinder::~PathFinder()
    PF_LOG(3) << "destroying pathfinder";
 }
 
-void PathFinder::SetSource(om::EntityRef e)
+void PathFinder::SetSource(csg::Point3 const& location)
 {
-   entity_ = e;
-   mob_.reset();
-
-   source_.reset(new PathFinderSrc(*this, entity_));
-
-   auto entity = e.lock();
-   if (entity) {
-      mob_ = entity->GetComponent<om::Mob>();
-   }
-   RestartSearch("source changed");
+   source_->SetSourceOverride(location);
+   RestartSearch("source location changed");
 }
 
 void PathFinder::SetSolvedCb(luabind::object solved_cb)
@@ -119,11 +113,13 @@ bool PathFinder::IsIdle() const
 
 void PathFinder::Start()
 {
+   PF_LOG(5) << "start requested";
    enabled_ = true;
 }
 
 void PathFinder::Stop()
 {
+   PF_LOG(5) << "stop requested";
    enabled_ = false;
 }
 

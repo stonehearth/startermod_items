@@ -5,13 +5,14 @@
       },
       "stonehearth:ai" : {
          "actions" : [
-            "stonehearth:actions:carry_item_on_path_to",
             "stonehearth:actions:death_action",
             "stonehearth:actions:drop_carrying_action",
             "stonehearth:actions:drop_carrying_in_entity",
             "stonehearth:actions:follow_path_action",
-            "stonehearth:actions:run_to_entity_action",
+            "stonehearth:actions:run_to_entity",
+            "stonehearth:actions:run_to_entity_type",
             "stonehearth:actions:run_to_location_action",
+            "stonehearth:actions:create_proxy_entity",
             "stonehearth:actions:idle_top_action",
             "stonehearth:actions:idle_action",
             "stonehearth:actions:idle_breathe_action",
@@ -19,6 +20,7 @@
             "stonehearth:actions:pickup_item_on_table_action",
             "stonehearth:actions:pickup_item_on_path",
             "stonehearth:actions:pickup_item_action",
+            "stonehearth:actions:pickup_item_type",
             "stonehearth:actions:run_effect_action",
             "stonehearth:actions:run_effect_timed_action",
             "stonehearth:actions:attack_action",
@@ -26,6 +28,7 @@
             "stonehearth:actions:flee_action",
             "stonehearth:actions:run_away_from_entity",
             "stonehearth:actions:find_path_to_entity",
+            "stonehearth:actions:find_path_to_entity_type",
             "stonehearth:actions:run_towards_entity"
          ],
           "observers": [

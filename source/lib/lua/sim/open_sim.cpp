@@ -150,8 +150,7 @@ std::shared_ptr<PathFinder> Sim_CreatePathFinder(lua_State *L, om::EntityRef s, 
    om::EntityPtr source = s.lock();
    if (source) {
       Simulation &sim = GetSim(L);
-      std::shared_ptr<PathFinder> pf(new PathFinder(sim, name));
-      pf->SetSource(source);
+      std::shared_ptr<PathFinder> pf(new PathFinder(sim, name, source));
       sim.AddJobForEntity(source, pf);
       return pf;
    }
@@ -172,7 +171,7 @@ std::shared_ptr<PathFinder> PathFinder_AddDestination(lua_State* L, std::shared_
    return pf;
 }
 
-std::shared_ptr<PathFinder> PathFinder_SetSource(lua_State* L, std::shared_ptr<PathFinder> pf, om::EntityRef src)
+std::shared_ptr<PathFinder> PathFinder_SetSource(lua_State* L, std::shared_ptr<PathFinder> pf, csg::Point3 const& src)
 {
    pf->SetSource(src);
    return pf;

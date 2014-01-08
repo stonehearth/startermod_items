@@ -1,22 +1,24 @@
 local Path = _radiant.sim.Path
 local Entity = _radiant.om.Entity
-local FindPathToEntityAction = class()
+local Point3 = _radiant.csg.Point3
+local FindPathToEntity = class()
 
-FindPathToEntityAction.name = 'find path to entity'
-FindPathToEntityAction.does = 'stonehearth:find_path_to_entity'
-FindPathToEntityAction.args = {
-   entity = Entity,      -- entity to find a path to
+FindPathToEntity.name = 'find path to entity'
+FindPathToEntity.does = 'stonehearth:find_path_to_entity'
+FindPathToEntity.args = {
+   finish = Entity,      -- entity to find a path to
 }
-FindPathToEntityAction.run_args = {
+FindPathToEntity.think_output = {
    path = Path,       -- the path to destination, from the current Entity
 }
-FindPathToEntityAction.version = 2
-FindPathToEntityAction.priority = 1
+FindPathToEntity.version = 2
+FindPathToEntity.priority = 1
 
 local log = radiant.log.create_logger('ai.find_path_to_entity')
 
-function FindPathToEntityAction:start_thinking(ai, entity, args)
-   local destination = args.entity
+function FindPathToEntity:start_thinking(ai, entity, args)
+   local destination = args.finish
+   
    if not destination or not destination:is_valid() then
       ai:abort('invalid entity reference')
    end
@@ -32,14 +34,15 @@ function FindPathToEntityAction:start_thinking(ai, entity, args)
    local solved = function(path)
       self._pathfinder:stop()
       self._pathfinder = nil
-      ai:set_run_arguments({path = path})
+      ai:set_think_output({path = path})
    end
-   self._pathfinder = _radiant.sim.create_path_finder(entity, 'goto entity action')
+   self._pathfinder = _radiant.sim.create_path_finder(entity, 'find path to entity')
+                         :set_source(ai.CURRENT.location)
                          :add_destination(destination)
                          :set_solved_cb(solved)
 end
 
-function FindPathToEntityAction:stop_thinking(ai, entity)
+function FindPathToEntity:stop_thinking(ai, entity)
    if self._pathfinder then
       self._pathfinder:stop()
       self._pathfinder = nil
@@ -50,11 +53,11 @@ function FindPathToEntityAction:stop_thinking(ai, entity)
    end
 end
 
-function FindPathToEntityAction:run(ai, entity)
+function FindPathToEntity:run(ai, entity)
    -- nothing to do...
 end
 
-function FindPathToEntityAction:stop()
+function FindPathToEntity:stop()
    if self._pathfinder then
       self._pathfinder:stop()
       self._pathfinder = nil
@@ -65,4 +68,4 @@ function FindPathToEntityAction:stop()
    end
 end
 
-return FindPathToEntityAction
+return FindPathToEntity

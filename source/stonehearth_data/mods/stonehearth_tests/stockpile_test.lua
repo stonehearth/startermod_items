@@ -7,7 +7,7 @@ function StockpileTest:__init()
 
    self:place_item_cluster('stonehearth:oak_log', -15, -15, 3, 1);
    --self:place_citizen(15, 15)
-   local worker = self:place_citizen(0, 1)
+   --local worker = self:place_citizen(0, 1)
    local worker = self:place_citizen(2, 4)
    local faction = worker:get_component('unit_info'):get_faction()   
    --self:place_citizen(12, 12)

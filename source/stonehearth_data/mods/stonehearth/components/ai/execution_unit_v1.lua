@@ -58,7 +58,7 @@ function ExecutionUnitV1:is_runnable(frame)
    return self._action.priority > 0   
 end
 
-function ExecutionUnitV1:get_run_args()
+function ExecutionUnitV1:get_think_output()
    return self._args
 end
 
