@@ -10,6 +10,7 @@
             "file(table_for_one_recipe.json)",
             "file(dining_table_recipe.json)",
             "file(not_much_of_a_bed_recipe.json)",
+            "file(comfy_bed_recipe.json)",
          ]
       },
       {

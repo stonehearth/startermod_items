@@ -6,6 +6,8 @@ local Point2 = _radiant.csg.Point2
 local WorkshopCallHandler = class()
 local log = radiant.log.create_logger('call_handlers.worker')
 local priorities = require('constants').priorities.worker_task
+local IngredientList = require 'components.workshop.ingredient_list'
+
 
 --- Client side object to add a new bench to the world.  this method is invoked
 --  by POSTing to the route for this file in the manifest.
@@ -103,7 +105,7 @@ end
 
 --- When placing a workbench, if a key is pressed, call this function
 function WorkshopCallHandler:_on_keyboard_event(e, response)
-   if e.key == _radiant.client.KeyboardInput.ESC and e.down then
+   if e.key == _radiant.client.KeyboardInput.KEY_ESC and e.down then
       self:_destroy_capture()
       if self._cursor_entity then
          _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
@@ -122,7 +124,7 @@ end
 --- When placing an outbox, if a key is pressed, call this function
 --  Note: we don't need to destroy the capture becase the cleanup function already does.
 function WorkshopCallHandler:_on_outbox_keyboard_event(e, ghost_entity, response)
-   if e.key == _radiant.client.KeyboardInput.ESC and e.down then
+   if e.key == _radiant.client.KeyboardInput.KEY_ESC and e.down then
       _radiant.call('stonehearth:destroy_ghost_workbench', ghost_entity:get_id())
       response:resolve({cancelled = true})
    end
@@ -245,14 +247,22 @@ function WorkshopCallHandler:_start_worker_create_task(session, outbox_entity, w
    end
 
    --What object is suitable to build a workshop? By default, wood. 
-   --TODO: Right now, all workshops are built with 1 object.
-   --Fix worker action so it can build with multiple objects
    local ghost_object_data = ghost_entity:get_component('stonehearth:ghost_item'):get_object_data()
    local real_item_uri = ghost_object_data.full_sized_mod_url
    local json = radiant.resources.load_json(real_item_uri)
+
+   local ingredient_list_object = nil 
+
    local workshop_material = 'wood resource'
    if json and json.components then
-      workshop_material = json.components['stonehearth:workshop'].ingredients.material
+      workshop_material = json.components['stonehearth:workshop'].ingredients[1].material
+      ingredient_list_object = IngredientList(ghost_entity, {}, json.components['stonehearth:workshop'].ingredients)
+      local remaining = ingredient_list_object:remove_item_at(1)
+      if remaining == 0 then
+         ingredient_list_object = nil
+      else 
+         ingredient_list_object:search_for_ingredients()
+      end
    end
 
    local object_filter_fn = function(entity)
@@ -271,7 +281,7 @@ function WorkshopCallHandler:_start_worker_create_task(session, outbox_entity, w
 
    place_workshop_task:set_action_fn(
       function(path)
-         return 'stonehearth:place_workshop', path, ghost_entity, outbox_entity, place_workshop_task
+         return 'stonehearth:place_workshop', path, ghost_entity, outbox_entity, ingredient_list_object, place_workshop_task
       end)
 
    place_workshop_task:start()

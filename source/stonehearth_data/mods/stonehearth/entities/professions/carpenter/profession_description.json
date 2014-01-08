@@ -15,6 +15,7 @@
       "long_description" : "The carpenter makes things from wood. Things you will need...quite a lot.<p>So honestly, you should really make this guy first.",
       "portrait" : "file(./images/workshop_portrait_level_1.png)",
       "skin" : "file(./skin/workshop.png)",
+      "workbench_type" : "stonehearth:carpenter:workbench",
       "ingredients": [
          { "material" : "wood resource", "count" : 1 }
       ]

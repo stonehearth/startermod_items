@@ -584,7 +584,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    bool debug = false;
    bool showStats = false;
    if (config_.enable_debug_keys.value) {
-      debug = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS;
+      debug = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS;
       showStats = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
    }
   

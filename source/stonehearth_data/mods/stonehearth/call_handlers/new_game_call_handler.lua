@@ -77,7 +77,7 @@ function NewGameCallHandler:_on_mouse_event(e, response)
 end
 
 function NewGameCallHandler:_on_keyboard_event(e, response)
-   if e.key == _radiant.client.KeyboardInput.ESC and e.down then
+   if e.key == _radiant.client.KeyboardInput.KEY_ESC and e.down then
       self:_destroy_capture()
        _radiant.client.destroy_authoring_entity(self._cursor_entity:get_id())
        response:resolve({ result = false })
@@ -138,6 +138,11 @@ function NewGameCallHandler:create_camp(session, response, pt)
    radiant.entities.pickup_item(worker1, faction:create_entity('stonehearth:oak_log'))
    radiant.entities.pickup_item(worker2, faction:create_entity('stonehearth:oak_log'))
    radiant.entities.pickup_item(worker3, faction:create_entity('stonehearth:oak_log'))
+
+   --TODO: remove once we have sheep
+   radiant.entities.pickup_item(worker4, faction:create_entity('stonehearth:wool_bundle'))
+   radiant.entities.pickup_item(worker5, faction:create_entity('stonehearth:wool_bundle'))
+   radiant.entities.pickup_item(worker6, faction:create_entity('stonehearth:wool_bundle'))
 
    -- start the game master service
    --game_master.start()

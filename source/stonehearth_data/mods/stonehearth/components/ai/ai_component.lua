@@ -157,7 +157,13 @@ function AIComponent:execute(...)
    frame:destroy()
    
    table.remove(self._stack)
-   return unpack(result)
+   --Result could be nil if there are no valid actions of that type
+   if result then
+      return unpack(result)
+   else
+      log:debug('nothing to unpack')
+      return {}
+   end
 end
 
 function AIComponent:suspend_thread()

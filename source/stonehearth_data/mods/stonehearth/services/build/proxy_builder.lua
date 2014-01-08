@@ -94,8 +94,8 @@ function ProxyBuilder:add_roof()
 end
 
 function ProxyBuilder:shift_down()
-  return _radiant.client.is_key_down(_radiant.client.KeyboardInput.LEFT_SHIFT) or
-         _radiant.client.is_key_down(_radiant.client.KeyboardInput.RIGHT_SHIFT)
+  return _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_LEFT_SHIFT) or
+         _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_RIGHT_SHIFT)
 end
 
 --- Add all descendants of proxy to the 'order' list in package order.
