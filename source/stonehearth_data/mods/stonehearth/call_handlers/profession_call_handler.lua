@@ -15,9 +15,7 @@ function ProfessionCallHandler:grab_promotion_talisman(session, response, person
       talisman = entity
    end
 
-   radiant.events.trigger(person, 'stonehearth:grab_talisman', {
-      talisman = talisman
-   })
+   radiant.events.trigger(person, 'stonehearth:grab_talisman', talisman)
 
    return true
 end

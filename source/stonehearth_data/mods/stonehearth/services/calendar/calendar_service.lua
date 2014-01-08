@@ -40,17 +40,26 @@ function CalendarService:set_time(hour, minute, second)
    data.date.second = second;
 end
 
-function CalendarService:set_timer(hours, minutes, seconds, fn, param)
+function CalendarService:set_timer(hours, minutes, seconds, fn)
    local timer_length = (hours * self._constants.minutes_per_hour * self._constants.seconds_per_minute ) +
                             (minutes * self._constants.seconds_per_minute) + seconds
 
 
-   table.insert(self._timers, 
-      {
-         length = timer_length,
-         fn = fn,
-         param = param
-      })
+   local timer = {
+      length = timer_length,
+      fn = fn
+   }
+   table.insert(self._timers, timer)
+   return timer
+end
+
+function CalendarService:remove_timer(t)
+   for i, timer in ipairs(self._timers) do
+      if timer == t then
+         table.remove(self._timers, i)
+         return
+      end
+   end
 end
 
 function CalendarService:get_constants()
@@ -111,7 +120,7 @@ function CalendarService:update_timers(dt)
    for i, timer in ipairs(self._timers) do
       timer.length = timer.length - dt
       if timer.length <= 0 then
-         timer.fn(timer.param)
+         timer.fn()
          table.remove(self._timers, i)
       end
    end

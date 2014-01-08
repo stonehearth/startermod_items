@@ -1,41 +1,53 @@
 local event_service = stonehearth.events
 
 local SleepOnGroundAction = class()
-
 SleepOnGroundAction.name = 'sleep on the cold, hard, unforgiving ground'
-SleepOnGroundAction.does = 'stonehearth:sleep_on_ground'
-SleepOnGroundAction.version = 1
+SleepOnGroundAction.does = 'stonehearth:sleep'
+SleepOnGroundAction.args = {}
+SleepOnGroundAction.version = 2
 SleepOnGroundAction.priority = 1
-
 
 function SleepOnGroundAction:__init(ai, entity)
    self._entity = entity
    self._ai = ai
 end
 
-function SleepOnGroundAction:run(ai, entity, bed, path)
-   --Am I carrying anything? If so, drop it
-   local drop_location = radiant.entities.get_world_grid_location(entity)
+function SleepOnGroundAction:start_background_processing(ai, entity)
+   radiant.events.listen(entity, 'stonehearth:attribute_changed:sleepiness', self, self._keep_think)
+end
 
-   if not radiant.entities.has_buff(self._entity, 'stonehearth:buffs:sleeping') then
-      radiant.entities.add_buff(self._entity, 'stonehearth:buffs:sleeping');
+function SleepOnGroundAction:stop_background_processing(ai, entity)
+   radiant.events.unlisten(entity, 'stonehearth:attribute_changed:sleepiness', self, self._keep_think)
+end
+
+function SleepOnGroundAction:_keep_think(e)
+   if e.value >= 120 then
+      self._ai:complete_background_processing()
+   else
+      self._ai:uncomplete_background_processing()
    end
-      
+end
+
+function SleepOnGroundAction:run(ai, entity, bed, path)
+   local drop_location = radiant.entities.get_world_grid_location(entity)
    ai:execute('stonehearth:drop_carrying', drop_location)
    ai:execute('stonehearth:run_effect', 'yawn')
    ai:execute('stonehearth:run_effect', 'sit_on_ground')
-   ai:execute('stonehearth:run_effect', 'sleep')
-
+   ai:execute('stonehearth:run_effect_timed', 'sleep', 1)
+   radiant.entities.set_attribute(entity, 'sleepiness', 0)
 end
 
 function SleepOnGroundAction:stop()
-   radiant.entities.remove_buff(self._entity, 'stonehearth:buffs:sleeping');
    radiant.entities.add_buff(self._entity, 'stonehearth:buffs:groggy');
    radiant.entities.unthink(self._entity, '/stonehearth/data/effects/thoughts/sleepy')
 
+   if self._timer then
+      stonehearth.calendar:remove_timer(self._timer)
+   end
    -- xxx, localize
    local name = radiant.entities.get_display_name(self._entity)
    event_service:add_entry(name .. ' awakes groggy from sleeping on the cold, hard, unforgiving earth.', 'warning')
 end
 
 return SleepOnGroundAction
+

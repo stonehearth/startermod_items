@@ -30,6 +30,7 @@ function ResourceCallHandler:harvest_tree(session, response, tree)
       all_harvest_tasks[id] = stonehearth.tasks:get_scheduler('stonehearth:workers')
                                 :create_task('stonehearth:chop_tree', tree)
                                 :set_name('chop tree task')
+                                :once()
                                 :start()
 
       radiant.effects.run_effect(tree, '/stonehearth/data/effects/chop_overlay_effect')

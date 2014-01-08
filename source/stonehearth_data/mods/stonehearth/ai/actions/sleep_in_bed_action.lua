@@ -6,8 +6,8 @@
 local SleepInBedAction = class()
 
 SleepInBedAction.name = 'sleep in a bed'
-SleepInBedAction.does = 'stonehearth:sleep_in_bed'
-SleepInBedAction.version = 1
+SleepInBedAction.does = 'stonehearth:sleep'
+SleepInBedAction.version = 2
 SleepInBedAction.priority = 1
 
 
@@ -15,6 +15,14 @@ function SleepInBedAction:__init(ai, entity)
    self._entity = entity         --the game character
    self._ai = ai
    self._bed = nil
+end
+
+function SleepAction:start_background_processing(ai, entity)
+   radiant.events.listen(entity, 'stonehearth:attribute_changed:sleepiness', self, self.on_sleepiness_changed)
+end
+
+function SleepAction:stop_background_processing(ai, entity)
+   radiant.events.unlisten(entity, 'stonehearth:attribute_changed:sleepiness', self, self.on_sleepiness_changed)
 end
 
 --[[

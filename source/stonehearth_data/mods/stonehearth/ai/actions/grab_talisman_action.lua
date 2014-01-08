@@ -7,6 +7,7 @@ local GrabTalismanAction = class()
 
 GrabTalismanAction.name = 'grab talisman'
 GrabTalismanAction.does = 'stonehearth:top'
+GrabTalismanAction.args = { }
 GrabTalismanAction.version = 1
 GrabTalismanAction.priority = 0
 
@@ -25,9 +26,9 @@ function GrabTalismanAction:__init(ai, entity)
    radiant.events.listen(entity, 'stonehearth:on_trigger', self, self.on_trigger)
 end
 
-function GrabTalismanAction:grab_talisman(e)
-   self._talisman_entity = e.talisman
-   self._ai:set_action_priority(self, 100)
+function GrabTalismanAction:grab_talisman(talisman)
+   self._talisman = talisman
+   self._ai:set_action_priority(self, 10)
 end
 --[[
    When the action comes up on the priority lottery,

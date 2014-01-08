@@ -156,6 +156,7 @@
          "actions:run_to_location_action" : "file(ai/actions/run_to_location_action.lua)",
          "actions:fear_fire" : "file(ai/actions/fear_fire_action.lua)",
          "actions:run_effect_action" : "file(ai/actions/run_effect_action.lua)",
+         "actions:run_effect_timed_action" : "file(ai/actions/run_effect_timed_action.lua)",
          "actions:idle_top_action" : "file(ai/actions/idle_top_action.lua)",
          "actions:idle_action" : "file(ai/actions/idle_action.lua)",
          "actions:idle_breathe_action" : "file(ai/actions/idle_breathe_action.lua)",

@@ -15,6 +15,7 @@ function Task:__init(scheduler, activity)
    self._log:debug('creating new task for %s', scheduler:get_name())
    self._commited = false
    self._name = activity[1] .. ' task'
+   self._complete_count = 0
    self:_set_state(STOPPED)
 end
 
@@ -47,11 +48,22 @@ function Task:set_name(name)
    return self
 end
 
+function Task:once()
+   return self:times(1)
+end
+
+function Task:times(n)
+   assert(self._state ~= 'started')
+   self._times = n
+   return self
+end
+
 function Task:start()
    if not self._commited then
       self._scheduler:_commit_task(self)
       self._commited = true
    end
+   self._complete_count = 0
    self:_set_state(STARTED)
    return self
 end
@@ -69,6 +81,14 @@ function Task:_set_state(state)
    self._state = state
    radiant.events.trigger(self, self._state, self)
    radiant.events.trigger(self, 'state_changed', self, self._state)
+end
+
+function Task:__completed()
+   self._complete_count = self._complete_count + 1
+   if self._complete_count == self._times then
+      self._log:debug('task reached max number of completions (%d).  stopping', self._times)
+      self:stop()
+   end
 end
 
 return Task

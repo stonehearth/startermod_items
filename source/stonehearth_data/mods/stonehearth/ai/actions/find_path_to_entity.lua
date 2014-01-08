@@ -16,6 +16,10 @@ FindPathToEntityAction.priority = 1
 local log = radiant.log.create_logger('ai.find_path_to_entity')
 
 function FindPathToEntityAction:start_background_processing(ai, entity, target)
+   if not target or not target:is_valid() then
+      ai:abort('invalid entity reference')
+   end
+   
    self._trace = radiant.entities.trace_location(target, 'find path to entity')
       :on_changed(function()
          ai:abort('target destination changed')

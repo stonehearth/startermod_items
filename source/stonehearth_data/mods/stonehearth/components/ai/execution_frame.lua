@@ -82,6 +82,8 @@ function ExecutionFrame:_prime_execution_unit(unit)
    unit:set_debug_route(self._debug_route)
    unit:initialize(self._args)
    radiant.events.listen(unit, 'ready', self, self.on_unit_state_change)
+   radiant.events.listen(unit, 'idle', self, self.on_unit_state_change)
+   radiant.events.listen(unit, 'dead', self, self.on_unit_state_change)
    radiant.events.listen(unit, 'priority_changed', self, self.on_unit_state_change)
 end
 
@@ -96,6 +98,7 @@ function ExecutionFrame:set_debug_route(debug_route)
 end
 
 function ExecutionFrame:destroy()
+   self._log:debug('destroy')
    if self._state ~= DEAD then
       self._log:debug('terminating execution frame')
       assert(not self._co_running, 'destroy of a running execution frame not implemented (yet)')
@@ -131,47 +134,64 @@ function ExecutionFrame:get_active_execution_unit()
 end
 
 -- xxx
-function ExecutionFrame:on_unit_state_change(unit)
-   if self._in_start_processing then
-      return
-   end
-   
-   if self:_is_better_execution_unit(unit) then
-      self:_set_active_unit(unit)
+function ExecutionFrame:on_unit_state_change(unit)   
+   if not self._lock_active_unit then
+      if self:_in_state(PROCESSING, READY, RUNNING) then
+         if self:_is_better_execution_unit(unit) then
+            self._log:spam('active unit %s being replaced by unit %s', self:_get_active_unit_name(), unit:get_name())
+            self:_set_active_unit(unit)
+         elseif unit == self._active_unit and not self._active_unit:is_runnable() then
+            local new_unit = self:_get_best_execution_unit()
+            if new_unit then
+               self._log:spam('active unit %s has become unrunable.  replacing with unit %s',
+                              self:_get_active_unit_name(), new_unit and new_unit:get_name() or 'nil')
+               self:_set_active_unit(new_unit)
+            else
+               self._log:spam('no more runable units in frame!  terminating.')
+               self:_set_active_unit(nil)
+               self:_set_state(HALTED)            
+            end
+         end
+      end
    end
 end
 
 function ExecutionFrame:start_background_processing()
-   self._log:spam('start_background_processing')
+   self._log:spam('start_background_processing (current unit:%s)', self:_get_active_unit_name())
    assert(not self._co)
    assert(not self._co_running)
    assert(self._state == CONSTRUCTED)
    
-   self._in_start_processing = true
+   self._lock_active_unit = true
    self:_set_state(PROCESSING)
    for _, unit in pairs(self._execution_units) do
       if self:_is_better_execution_unit(unit) then
          unit:start_background_processing()
       end
    end
-   self._in_start_processing = false
+   self._lock_active_unit = false
    
    local unit = self:_get_best_execution_unit()
    self:_set_active_unit(unit)
 end
 
 function ExecutionFrame:stop_background_processing()
-   self._log:spam('stop_background_processing')
+   self._log:spam('stop_background_processing (state:%s)', self._state)
    assert(not self._co)
    assert(not self._co_running)
-   assert(self._state == CONSTRUCTED or self._state == PROCESSING)
    
-   if self._state == PROCESSING then
+   if self._state == CONSTRUCTED  then
+      assert(self._active_unit == nil)
+   elseif self:_in_state(PROCESSING, READY, STARTING, RUNNING, HALTED, STOPPING, STOPPED) then
       for _, unit in pairs(self._execution_units) do
          unit:stop_background_processing()
       end
-      self:_set_state(CONSTRUCTED)
-      self:_set_active_unit(nil)
+      --self:_set_active_unit(nil)
+      --self:_set_state(CONSTRUCTED)
+   elseif self._state == DEAD then
+      -- nothing to do
+   else
+      assert(false, string.format('unknown state %s in stop_background_processing', self._state))
    end
 end
 
@@ -193,7 +213,7 @@ function ExecutionFrame:start()
          -- XXXXXXXXXXXXXXXXXXXXXX
          if unit:get_version() == 1 then
             local name = unit:get_name()
-            assert(false, 'port all version1 actions please!')
+            assert(false, 'port all version1 actions please: '..name)
          end
          -- XXXXXXXXXXXXXXXXXXXXXX
          -- XXXXXXXXXXXXXXXXXXXXXX
@@ -203,8 +223,8 @@ function ExecutionFrame:start()
          -- XXXXXXXXXXXXXXXXXXXXXX
          -- XXXXXXXXXXXXXXXXXXXXXX
          -- XXXXXXXXXXXXXXXXXXXXXX
-
          unit:start()
+         unit:stop_background_processing()
       elseif not self:_is_better_execution_unit(unit) then
          -- this guy has no prayer...  just stop
          unit:stop_background_processing()
@@ -215,6 +235,7 @@ function ExecutionFrame:start()
    end
    
    assert(not self._co)
+   self._log:spam('creating new thread for %s', self._active_unit:get_name())
    self._co = coroutine.create(function()
          self._active_unit:run()
       end)   
@@ -229,7 +250,7 @@ function ExecutionFrame:run()
    end
    repeat
       if self._state == PROCESSING then
-         self:_suspend_until_ready()
+         self:_suspend_until_ready()         
       elseif self._state == READY then
          self:start()
       elseif self._state == RUNNING then
@@ -238,7 +259,7 @@ function ExecutionFrame:run()
       else
          assert(false, string.format('unknown state %s in state machine', self._state))
       end
-   until self._state == HALTED or self._state == DEAD
+   until self._state == HALTED or self._state == DEAD   
    self._log:spam('end run (state is %s)', self._state)
 end
 
@@ -247,7 +268,8 @@ function ExecutionFrame:loop()
       self:run()
       self._active_unit:stop()
       self._active_unit:start_background_processing()
-      self._state = CONSTRUCTED
+      self:_set_active_unit(nil)
+      self:_set_state(CONSTRUCTED)
    end
 end
 
@@ -337,12 +359,14 @@ function ExecutionFrame:_get_active_unit_name()
 end
 
 function ExecutionFrame:_set_active_unit(unit)
+   assert(not self._co_running)
    self._log:spam('changing active unit "%s" -> "%s" in %s state', self:_get_active_unit_name(),
                   unit and unit:get_name() or 'nil', self._state)
    if unit then
       assert(unit:is_runnable() and unit:get_priority() > 0)
    end
    
+   self._lock_active_unit = true
    if self._state == CONSTRUCTED then
       assert(not unit)
       assert(not self._active_unit)
@@ -357,7 +381,7 @@ function ExecutionFrame:_set_active_unit(unit)
       assert(not self._co_running)
       assert(self._active_unit)
       
-      if unit then
+      if unit then       
          local outgoing_unit = self._active_unit
          local msg = string.format('terminating %s so better action %s can go.', outgoing_unit:get_name(), unit:get_name())
          self._log:spam(msg)
@@ -375,8 +399,9 @@ function ExecutionFrame:_set_active_unit(unit)
          self._log:spam('terminating %s while running (by request)', self._active_unit:get_name())
          self._co = nil
          self._co_running = false
-         self._active_unit = nil         
+         self._active_unit = nil
       end
+      self._ai_component:resume_thread()
    elseif self._state == HALTED then
       assert(not unit)
       assert(not self._co)
@@ -388,9 +413,18 @@ function ExecutionFrame:_set_active_unit(unit)
       assert(not unit)
    else
       -- not yet implemented or error
-      assert(false, 'invalid state %s in set_active_unit', self._state)
+      assert(false, string.format('invalid state %s in set_active_unit', self._state))
    end
-   
+   self._lock_active_unit = false
+end
+
+function ExecutionFrame:_in_state(...)
+   for _, state in ipairs({...}) do
+      if self._state == state then
+         return true
+      end
+   end
+   return false
 end
 
 function ExecutionFrame:_set_state(state)

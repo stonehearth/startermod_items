@@ -95,11 +95,9 @@ function BuffsComponent:_apply_duration(uri, buff)
          buff_duration = buff_duration * self._calendar_constants.seconds_per_minute
       end
 
-      local buff_expired_function = function(buff_uri)
-         self:remove_buff(buff_uri)
-      end
-
-      calendar:set_timer(0, 0, buff_duration, buff_expired_function, uri)
+      calendar:set_timer(0, 0, buff_duration, function()
+         self:remove_buff(uri)
+      end)
    end
 end
 

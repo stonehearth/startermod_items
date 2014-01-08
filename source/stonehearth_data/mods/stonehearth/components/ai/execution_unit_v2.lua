@@ -22,6 +22,7 @@ function ExecutionUnitV2:__init(ai_component, entity, injecting_entity)
    self._ai_component = ai_component
    self._execute_frame = nil
    self._nested_frames = {}
+   self._processing = false
    self._id = NEXT_UNIT_ID
    NEXT_UNIT_ID = NEXT_UNIT_ID + 1
    
@@ -32,6 +33,7 @@ function ExecutionUnitV2:__init(ai_component, entity, injecting_entity)
       self._ai_interface[fn] = function(i, ...) return self['__'..fn](self, ...) end
    end
    chain_function('complete_background_processing')
+   chain_function('uncomplete_background_processing')
    chain_function('set_priority')
    chain_function('spawn')
    chain_function('execute')   
@@ -47,7 +49,7 @@ function ExecutionUnitV2:set_debug_route(debug_route)
    
    -- for compoundaction...
    if self._action.set_debug_route then
-      self._action:set_debug_route(debug_route)
+      self._action:set_debug_route(self._debug_route)
    end
 end
 
@@ -56,9 +58,20 @@ function ExecutionUnitV2:get_action_interface()
 end
 
 function ExecutionUnitV2:__complete_background_processing(...)
-   assert(self._state == PROCESSING)   
+   assert(self._state == PROCESSING)
    self._run_args = { ... }
    self:_set_state(READY)
+end
+
+function ExecutionUnitV2:__uncomplete_background_processing(...)
+   if self._state == READY then
+      self._run_args = nil
+      self:_set_state(PROCESSING)
+   elseif self._state == RUNNING then
+      self:__abort('action is no longer ready to run')
+   else
+      assert(not self._run_args, string.format('unexpected stated %s in uncomplete_background_processing', self._state))
+   end
 end
 
 function ExecutionUnitV2:__set_priority(action, priority)
@@ -78,9 +91,14 @@ function ExecutionUnitV2:__execute(...)
    assert(not self._execute_frame)
    self._execute_frame = self._ai_component:spawn_debug_route(self._debug_route, ...)
    self._execute_frame:run()
-   self._execute_frame:stop()
-   self._execute_frame:destroy()
-   self._execute_frame = nil
+   
+   -- execute_frame can be nil here if we got terminated early, usually because
+   -- the action called ai:abort().
+   if self._execute_frame then
+      self._execute_frame:stop()
+      self._execute_frame:destroy()
+      self._execute_frame = nil
+   end
 end 
 
 function ExecutionUnitV2:__spawn(...)
@@ -102,7 +120,9 @@ end
 
 function ExecutionUnitV2:__abort(reason)
    self._log:spam('abort %s called', tostring(reason))
-   assert(false, "i am way too sleepy to implement abort")
+   self:stop_background_processing()
+   self:stop()
+   --assert(false, "i am way too sleepy to implement abort")
 end
 
 function ExecutionUnitV2:spawn(...)
@@ -115,15 +135,16 @@ function ExecutionUnitV2:destroy()
       self._execute_frame:destroy()
       self._execute_frame = nil
    end
+   self._log:spam('destroying nested frames')
    for _, frame in ipairs(self._nested_frames) do
       frame:destroy()
    end
    self._nested_frames = {}
    
+   self._log:spam('destroying action')
+   self:stop_background_processing()   
    if self._state == IDLE or self._state == READY or self._state == DEAD then
       -- nothing to do
-   elseif self._state == PROCESSING then
-      self:stop_background_processing()
    elseif self._state == RUNNING or self._state == STARTED then
       self:stop()
    else
@@ -181,6 +202,10 @@ function ExecutionUnitV2:is_runnable()
    return self._action.priority > 0 and self._run_args ~= nil and self._state == READY
 end
 
+function ExecutionUnitV2:is_active()
+   return self:is_runnable() or self._state == STARTED or self._state == RUNNING or self._state == HALTED
+end
+
 function ExecutionUnitV2:initialize(args)
    self._log:spam('initialize')
    self:_verify_execution_args(args)
@@ -195,10 +220,10 @@ function ExecutionUnitV2:initialize(args)
 end
 
 function ExecutionUnitV2:start_background_processing()
-   self._log:spam('start_background_processing')
-   assert(self._state == PROCESSING or self._state == IDLE)
-   if self._state == IDLE then
-      -- don't start processing if we already have run args...
+   self._log:spam('start_background_processing (statestart_background_processing (state:%s processing:%s)', self._state, tostring(self._processing))
+   
+   if not self._processing then
+      self._processing = true
       if not self._run_args then
          self:_set_state(PROCESSING)
          if self._action.start_background_processing then
@@ -207,16 +232,19 @@ function ExecutionUnitV2:start_background_processing()
             self._log:spam('action does not implement start_background_processing')
             self:__complete_background_processing(unpack(self._args))
          end
+      else
+         self._log:spam('ignoring start_background_processing call.  already have args!')
       end
-   elseif self._state == PROCESSING then
+   else
       self._log:spam('ignoring start_background_processing call.  already thinking...')
    end
 end
 
 function ExecutionUnitV2:stop_background_processing()
-   self._log:spam('stop_background_processing')
-   assert(self._state == PROCESSING or self._state == READY or self._state == IDLE)
-   if self._state == PROCESSING or self._state == READY then
+   self._log:spam('stop_background_processing (state:%s processing:%s)', tostring(self._state), tostring(self._processing))
+   
+   if self._processing then
+      self._processing = false
       if self._action.stop_background_processing then
          self._action:stop_background_processing(self._ai_interface, self._entity)
       else
@@ -225,7 +253,7 @@ function ExecutionUnitV2:stop_background_processing()
       if self._state == PROCESSING then
          self:_set_state(IDLE)
       end
-   elseif self._state == IDLE then
+   else
       self._log:spam('ignoring stop_background_processing call.  not thinking...')
    end
 end
@@ -265,7 +293,8 @@ end
 
 function ExecutionUnitV2:stop()
    self._log:spam('stop')
-   if self._state == RUNNING or self._state == HALTED then
+   
+   if self:_in_state(RUNNING, HALTED) then
       self._log:debug('stop requested.')
       if self._execute_frame then
          self._execute_frame:destroy()
@@ -306,6 +335,16 @@ function ExecutionUnitV2:_is_type(var, cls)
       return var:get_type_id() == cls.get_type_id()
    end
    return t == cls
+end
+
+-- XXXXXXXXXXXXXXXXX: make a State helper class!!
+function ExecutionUnitV2:_in_state(...)
+   for _, state in ipairs({...}) do
+      if self._state == state then
+         return true
+      end
+   end
+   return false
 end
 
 function ExecutionUnitV2:_set_state(state)

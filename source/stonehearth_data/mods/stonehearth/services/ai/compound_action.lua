@@ -5,7 +5,8 @@ function CompoundAction:__init(action_unit, activities)
    -- initialize metadata   
    self._execution_unit = action_unit
    self._activities = activities
-   
+   self._run_frames = {}
+   self._think_frames = {}
    local action = self._execution_unit:get_action()
    action.name = 'ca(' .. action.name .. ')'
    self.name = action.name
@@ -18,18 +19,18 @@ function CompoundAction:__init(action_unit, activities)
 end
 
 function CompoundAction:set_debug_route(debug_route)
-   self._execution_unit:set_debug_route(debug_route .. ' ca')
+   self._execution_unit:set_debug_route(debug_route)
 end
 
 function CompoundAction:start_background_processing(ai, entity, ...)
    self._args = { ... }
-   assert(not self._execution_frames)
-   self._execution_frames = {}
+   assert(#self._run_frames == 0)
+   assert(#self._think_frames == 0)
    self._previous_run_args = {}
    self._current_activity = 1
    
    radiant.events.listen(self._execution_unit, 'ready', function(_, state)
-         assert(#self._execution_frames == 0)
+         assert(#self._think_frames == 0)
          local run_args = self._execution_unit:get_run_args()
          table.insert(self._previous_run_args, run_args)
          self:_start_processing_next_activity(ai)
@@ -43,8 +44,8 @@ end
 function CompoundAction:_start_processing_next_activity(ai)
    local activity = self._activities[self._current_activity]
    local translated = self:_replace_placeholders(activity)
-   local frame = self._execution_unit:spawn(unpack(translated))
-   table.insert(self._execution_frames, frame)
+   local frame = ai:spawn(unpack(translated))
+   table.insert(self._think_frames, frame)
    
    radiant.events.listen(frame, 'ready', function()
       local unit = frame:get_active_execution_unit()
@@ -75,33 +76,42 @@ function CompoundAction:_replace_placeholders(activity)
 end
 
 function CompoundAction:start()
+   self._run_frames = self._think_frames
+   self._think_frames = {}
+
    self._execution_unit:start()
-   for i=1,#self._execution_frames do
-      self._execution_frames[i]:start()
+   for i=1,#self._run_frames do
+      self._run_frames[i]:start()
    end
 end
 
 function CompoundAction:run(ai, entity, ...)
    self._execution_unit:run()
-   for i=1,#self._execution_frames do
-      self._execution_frames[i]:run()
+   for i=1,#self._run_frames do
+      -- stop each action immediately after it completes.
+      -- this lets it release resources after they are no longer needed
+      -- instead of waiting until the entire action sequence completes
+      self._run_frames[i]:run()
+      self._run_frames[i]:stop()
    end
+   self._execution_unit:stop()
 end
 
 function CompoundAction:stop()
-   for i=#self._execution_frames,1,-1 do
-      self._execution_frames[i]:stop()
+   for i=#self._run_frames,1,-1 do
+      self._run_frames[i]:stop()
    end
+   self._run_frames = {}
    self._execution_unit:stop()
-   self._execution_frames = nil
-   self._previous_run_args = nil
-   self._current_activity = nil   
 end
 
 function CompoundAction:stop_background_processing(ai, entity, ...)
-   for i=#self._execution_frames,1,-1 do
-      self._execution_frames[i]:stop_background_processing()
-   end
+   for i=#self._think_frames,1,-1 do
+      self._think_frames[i]:stop_background_processing()
+   end  
+   self._think_frames = {}
+   self._previous_run_args = nil
+   self._current_activity = nil
    self._execution_unit:stop_background_processing()
 end
 

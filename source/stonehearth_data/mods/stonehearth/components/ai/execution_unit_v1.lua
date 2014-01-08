@@ -77,6 +77,8 @@ function ExecutionUnitV1:stop_background_processing()
 end
 
 function ExecutionUnitV1:start()
+   local name = self._action.name
+   assert(false, 'nope!')
 end
 
 function ExecutionUnitV1:stop()
@@ -89,6 +91,9 @@ function ExecutionUnitV1:stop()
 end
 
 function ExecutionUnitV1:execute_frame(frame)
+   local name = self._action.name
+   assert(false, 'nope!')
+   
    assert(self._frame == frame)
    log:debug('%s coroutine starting action: %s for activity %s(%s)',
              self._entity, self:get_name(), self._frame:get_activity_name(), self._frame:format_args(self._args))

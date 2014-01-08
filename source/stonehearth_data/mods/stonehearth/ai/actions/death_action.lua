@@ -3,7 +3,8 @@ local log = radiant.log.create_logger('actions.death')
 
 DeathAction.name = 'die'
 DeathAction.does = 'stonehearth:top'
-DeathAction.version = 1
+DeathAction.args = {}
+DeathAction.version = 2
 DeathAction.priority = 0
 
 function DeathAction:__init(ai, entity)
