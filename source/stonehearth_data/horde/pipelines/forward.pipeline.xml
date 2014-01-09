@@ -1,7 +1,7 @@
 <!-- Forward Shading Pipeline -->
 <Pipeline>
    <Setup>
-      <RenderTarget id="OUTPUT" depthBuf="true" numColBufs="1" format="RGBA8" scale="1.0" maxSamples="4"/>
+      <RenderTarget id="OUTPUT" depthBuf="true" numColBufs="1" format="RGBA8" scale="1.0" maxSamples="16"/>
       <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" format="RGBA8" scale="1.0"/>
       <RenderTarget id="SkyTemp" numColBufs="1" depthBuf="false" format="RGBA8" scale="0.125"/>
    </Setup>
