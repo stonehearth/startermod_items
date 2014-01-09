@@ -60,7 +60,8 @@ Renderer::Renderer() :
    lastGlfwError_("none"),
    currentPipeline_(0),
    iconified_(false),
-   resize_pending_(false)
+   resize_pending_(false),
+   drawWorld_(false)
 {
    terrainConfig_ = res::ResourceManager2::GetInstance().LookupJson("stonehearth/renderers/terrain/config.json");
    GetConfigOptions();
@@ -110,7 +111,7 @@ Renderer::Renderer() :
 
    ApplyConfig(config_, false);
 
-   SetDrawWorld(false);
+   SetDrawWorld(drawWorld_);
 
    // Overlays
    fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
@@ -444,6 +445,9 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
       config.Set("renderer.screen_height", config_.screen_height.value);
       config.Set("renderer.draw_distance", config_.draw_distance.value);
    }
+
+   // We just flushed/loaded our pipeline, so don't forget to reset the draw bits!
+   SetDrawWorld(drawWorld_);
 }
 
 SystemStats Renderer::GetStats()
@@ -681,8 +685,8 @@ void Renderer::GetCameraToViewportRay(int viewportX, int viewportY, csg::Ray3* r
 {
    // compute normalized window coordinates in preparation for casting a ray
    // through the scene
-   float vw = h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportWidthI);
-   float vh = h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportHeightI);
+   float vw = (float)h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportWidthI);
+   float vh = (float)h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportHeightI);
 
    float nwx = viewportX / (float)vw;
    float nwy = 1.0f - (viewportY / (float)vh);
@@ -833,6 +837,7 @@ void Renderer::ResizeViewport()
 
 void Renderer::SetDrawWorld(bool drawWorld) 
 {
+   drawWorld_ = drawWorld;
    SetStageEnable("Sky", drawWorld);
    SetStageEnable("Starfield", drawWorld);
    SetStageEnable("Depth", drawWorld);
