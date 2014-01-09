@@ -998,7 +998,7 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
 	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
 	if( status != GL_FRAMEBUFFER_COMPLETE_EXT ) 
    {
-      Modules::log().writeError("Unable to create render buffer: %d, %d", status, rb.fbo);
+      Modules::log().writeError("Unable to create fbo: %d, %d", status, rb.fbo);
       valid = false;
    }
 	
@@ -1009,7 +1009,7 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
 		glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
 		if( status != GL_FRAMEBUFFER_COMPLETE_EXT ) 
       {
-         Modules::log().writeError("Unable to create render buffer (multisample).");
+         Modules::log().writeError("Unable to create fbo (multisample).");
          valid = false;
       }
 	}

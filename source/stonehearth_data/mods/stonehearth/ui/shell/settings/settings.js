@@ -12,7 +12,21 @@ App.StonehearthSettingsView = App.View.extend({
       return Math.pow(2, shadowVal + 8);
    },
 
-   init: function() {
+   fromSamplesToVal : function(msaaSamples, msaaEnabled) {
+      if (!msaaEnabled || msaaSamples == 0) {
+         return 0;
+      }
+      return (Math.log(msaaSamples) / Math.log(2));      
+   },
+
+   fromValToSamples : function(msaaVal) {
+      if (msaaVal == 0) {
+         return 0;
+      }
+      return Math.pow(2, msaaVal);
+   },
+
+   init : function() {
       this._super();
       var self = this;
       $(top).on('keyup keydown', function(e){
@@ -32,7 +46,7 @@ App.StonehearthSettingsView = App.View.extend({
       $('#applyButton').prop('disabled', false);
    },
 
-   didInsertElement: function() {
+   didInsertElement : function() {
       initIncrementButtons();
 
       var self = this;
@@ -83,7 +97,7 @@ App.StonehearthSettingsView = App.View.extend({
             if (!o.msaa.allowed) {
                o.msaa.value = 0;
             }
-            self.set('context.num_msaa_samples', o.msaa.value);
+            self.set('context.num_msaa_samples', self.fromSamplesToVal(o.msaa.value, o.msaa.allowed));
 
             self.set('context.draw_distance', o.draw_distance.value);
 
@@ -138,7 +152,7 @@ App.StonehearthSettingsView = App.View.extend({
          "shadows" : $( "#shadowResSlider" ).slider( "value" ) > 0,
          "vsync" : $('#opt_enableVsync').is(':checked'),
          "fullscreen" : $('#opt_enableFullscreen').is(':checked'),
-         "msaa" : $( "#aaNumSlider" ).slider( "value" ),
+         "msaa" : this.fromValToSamples($( "#aaNumSlider" ).slider( "value" )),
          "shadow_res" :  this.fromValToRes($( "#shadowResSlider" ).slider( "value" )),
          "persistConfig" : persistConfig,
          "draw_distance" : $( "#drawDistSlider" ).slider( "value" )
