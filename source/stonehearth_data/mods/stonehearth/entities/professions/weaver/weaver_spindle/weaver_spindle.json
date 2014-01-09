@@ -33,6 +33,9 @@
             "stonehearth:effects:talisman_glow"
          ]  
       },
+      "render_info" : {
+         "scale": 0.14
+      },      
       "stonehearth:promotion_talisman": {
          "script": "file(/professions/weaver/weaver.lua)"
       }

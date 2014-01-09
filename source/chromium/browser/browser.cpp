@@ -573,16 +573,8 @@ void Browser::SetRequestHandler(HandleRequestCb cb)
 
 void Browser::WindowToBrowser(int& x, int& y) 
 {
-   float desiredAspect = uiWidth_ / (float)uiHeight_;
-   float aspect = screenWidth_ / (float)screenHeight_;
-
-   float screenUiWidth = aspect > desiredAspect ? (aspect / desiredAspect) : 1.0f;
-   float widthResidual = (screenWidth_ - (screenUiWidth * screenWidth_)) / (2.0f * screenWidth_);
-   float screenUiHeight = aspect < desiredAspect ? (desiredAspect / aspect) : 1.0f;
-   float heightResidual = (screenHeight_ - (screenUiHeight * screenHeight_)) / (2.0f * screenHeight_);
-
-   x = (int)((((x / (float)screenWidth_) * screenUiWidth) + widthResidual) * uiWidth_);
-   y = (int)((((y / (float)screenHeight_) * screenUiHeight) + heightResidual) * uiHeight_);
+   x = (x / (float)screenWidth_) * uiWidth_;
+   y = (y / (float)screenHeight_) * uiHeight_;
 }
 
 void Browser::SetBrowserResizeCb(std::function<void(int, int)> cb)

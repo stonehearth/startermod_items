@@ -246,7 +246,7 @@ protected:
    void setGpuCompatibility();
 
 protected:
-   const static int MaxShadowbufferNum = 3;
+   const static int MaxShadowbufferNum = 1;
 	unsigned char                      *_scratchBuf;
 	uint32                             _scratchBufSize;
 

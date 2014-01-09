@@ -583,9 +583,7 @@ function Landscaper:_create_boulder(x, y, elevation)
 
    half_width, half_length, half_height = self:_get_boulder_dimensions(terrain_type)
 
-   -- -step_size to make sure boulder reaches floor of terrain when on ledge
-   -- +1 to make center of mass appear above ground
-   boulder = Cube3(Point3(x-half_width, elevation-step_size, y-half_length),
+   boulder = Cube3(Point3(x-half_width, elevation-2, y-half_length),
                          Point3(x+half_width, elevation+half_height, y+half_length),
                          Terrain.BOULDER)
 

@@ -1660,13 +1660,7 @@ void Renderer::drawOverlays( const std::string &shaderContext, float desiredAspe
 	gRDI->setIndexBuffer( _quadIdxBuf, IDXFMT_16 );
 	ASSERT( QuadIndexBufCount >= MaxNumOverlayVerts * 6 );
 
-   float aspect = (float)_curCamera->_vpWidth / (float)_curCamera->_vpHeight;
-   float right = aspect < desiredAspect ? desiredAspect : aspect;
-   float top = aspect < desiredAspect ? (desiredAspect / aspect) : 1.0;
-   float rightResidual = (desiredAspect - right) / 2.0f;
-   float topResidual = (1.0f - top) / 2.0f;
-
-   setupViewMatrices( Matrix4f(), Matrix4f::OrthoMat(rightResidual, right + rightResidual, top + topResidual, topResidual, -1, 1 ) );
+   setupViewMatrices( Matrix4f(), Matrix4f::OrthoMat(0, desiredAspect, 1.0, 0, -1, 1 ) );
 	
 	MaterialResource *curMatRes = 0x0;
 	
@@ -1760,12 +1754,12 @@ void Renderer::clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3,
 	{
 		if( depth ) mask |= CLR_DEPTH;
 		if( buf0 ) mask |= CLR_COLOR;
-		gRDI->setScissorRect( _curCamera->_vpX, _curCamera->_vpY, _curCamera->_vpWidth, _curCamera->_vpHeight );
-		glEnable( GL_SCISSOR_TEST );
+		//gRDI->setScissorRect( _curCamera->_vpX, _curCamera->_vpY, _curCamera->_vpWidth, _curCamera->_vpHeight );
+		//glEnable( GL_SCISSOR_TEST );
 	}
 	
 	gRDI->clear( mask, clrColor, 1.f );
-	glDisable( GL_SCISSOR_TEST );
+	//glDisable( GL_SCISSOR_TEST );
 	
 	// Restore state of glDrawBuffers
 	if( gRDI->_curRendBuf != 0x0 ) {
@@ -1805,8 +1799,8 @@ void Renderer::computeTightCameraBounds(float* minDist, float* maxDist)
 {
    float defaultMax = *maxDist;
    float defaultMin = *minDist;
-   *maxDist = 0.0f;
-   *minDist = 1000.0f;
+   *maxDist = defaultMin;
+   *minDist = defaultMax;
 
    // First, get all the visible objects in the full camera's frustum.
    BoundingBox visibleAabb;
@@ -1819,6 +1813,11 @@ void Renderer::computeTightCameraBounds(float* minDist, float* maxDist)
          SceneNode* n = entry.node;
 	      visibleAabb.makeUnion(n->getBBox());
       }
+   }
+
+   if (!visibleAabb.isValid())
+   {
+      return;
    }
 
    // Tightly clip the resulting AABB of visible geometry against the frustum.
