@@ -8,6 +8,10 @@ local log = radiant.log.create_logger('world_generation')
 local ScenarioManager = class()
 
 function ScenarioManager:__init(feature_cell_size, rng)
+   self._enabled = radiant.util.get_config('enable_scenarios', false)
+   if not self._enabled then
+      return
+   end
    self._feature_cell_size = feature_cell_size
    self._rng = rng
    local scenario_index = radiant.resources.load_json('stonehearth:scenarios:scenario_index')
@@ -29,6 +33,10 @@ end
 -- TODO: sort scenarios by priority then area
 -- TODO: randomize orientation in place_entity
 function ScenarioManager:place_scenarios(habitat_map, elevation_map, world_offset_x, world_offset_y)
+   if not self._enabled then
+      return
+   end
+   
    local rng = self._rng
    local feature_cell_size = self._feature_cell_size
    local scenarios, scenario_script

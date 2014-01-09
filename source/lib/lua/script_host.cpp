@@ -139,8 +139,17 @@ res::AnimationPtr ScriptHost_LoadAnimation(std::string uri)
    return res::ResourceManager2::GetInstance().LookupAnimation(uri);
 }
 
-IMPLEMENT_TRIVIAL_TOSTRING(ScriptHost);
+luabind::object ScriptHost::GetConfig(std::string const& flag)
+{
+   core::Config & config = core::Config::GetInstance();
+   if (config.Has(flag)) {
+      JSONNode node = config.Get<JSONNode>(flag);
+      return JsonToLua(node);
+   }
+   return luabind::object();
+}
 
+IMPLEMENT_TRIVIAL_TOSTRING(ScriptHost);
 
 ScriptHost::ScriptHost()
 {
@@ -161,6 +170,7 @@ ScriptHost::ScriptHost()
             lua::RegisterType<ScriptHost>()
                .def("log",             &ScriptHost::Log)
                .def("get_log_level",   &ScriptHost::GetLogLevel)
+               .def("get_config",      &ScriptHost::GetConfig)
                .def("report_error",    (void (ScriptHost::*)(std::string const& error, std::string const& traceback))&ScriptHost::ReportLuaStackException)
                .def("require",         (luabind::object (ScriptHost::*)(std::string const& name))&ScriptHost::Require)
                .def("require_script",  (luabind::object (ScriptHost::*)(std::string const& name))&ScriptHost::RequireScript)
