@@ -1,0 +1,26 @@
+{
+   "type" : "effect",
+   "tracks": {
+      "growing": {
+         "type": "cubemitter",
+         "start_time" : 0,
+         "end_time" : 50,
+         "cubemitter": "particles/fursplosion/growing.cubemitter.json",
+         "transforms": {
+            "x":0,
+            "y":1.2,
+            "z":0,
+            "rx":0,
+            "ry":0,
+            "rz":0
+         }
+      },
+      "change_model_trigger" : {
+         "type": "trigger_effect",
+         "start_time": 25,
+         "info": {
+            "event": "change_model"
+         }
+      }   
+   }
+}

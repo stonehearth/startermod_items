@@ -10,6 +10,7 @@ function RenewableResourceNodeComponent:__init(entity)
    self._harvest_command_name = nil   --name of the cmd that harvests the resource
    self._original_description = self._entity:get_component('unit_info'):get_description()
    self._wait_text = self._original_description
+   self._render_info = self._entity:add_component('render_info')
 end
    
 function RenewableResourceNodeComponent:extend(json)
@@ -34,6 +35,12 @@ function RenewableResourceNodeComponent:extend(json)
    if json.wait_text then
       self._wait_text = json.wait_text
    end
+
+   --If this renewable resource wants us to run an effect on renew, do it!
+   if json.renew_effect then
+      self._renew_effect = json.renew_effect
+   end
+
 end
 
 function RenewableResourceNodeComponent:spawn_resource(location)
@@ -54,17 +61,49 @@ function RenewableResourceNodeComponent:spawn_resource(location)
 
       --Change the description
       self._entity:get_component('unit_info'):set_description(self._wait_text)
+   
+      --Listen for renewal triggers, if relevant
+      if self._renew_effect then
+         radiant.events.listen(self._entity, 'stonehearth:on_effect_trigger', self, self.on_effect_trigger)
+         radiant.events.listen(self._entity, 'stonehearth:on_effect_finished', self, self.on_effect_finished)
+      end
    end
 end
 
+--- If the renew effect has a trigger in it to change the model, do so. 
+function RenewableResourceNodeComponent:on_effect_trigger(e)
+   local info = e.info
+   local effect = e.effect
+
+   if e.info.info.event == "change_model" and  self._renew_effect then
+      self:_reset_model()
+   end
+end
+
+--- If we ran a renew effect but have no trigger to set the model, do so on finish
+--  Note: the effect in question must be == to the renew_effect
+function RenewableResourceNodeComponent:on_effect_finished(e)
+   local effect = e.effect
+   if effect == self._renew_effect then
+      self:_reset_model()
+   end
+end
+
+--- Reset the model to the default. Also, stop listening for effects
+function RenewableResourceNodeComponent:_reset_model()
+   self._render_info:set_model_variant('')
+   radiant.events.unlisten(self._entity, 'stonehearth:on_effect_trigger', self, self.on_effect_trigger)
+   radiant.events.unlisten(self._entity, 'stonehearth:on_effect_finished', self, self.on_effect_finished)
+end
+
 function RenewableResourceNodeComponent:renew(location)
-   --Change the model
-   local render_info = self._entity:add_component('render_info')
-   if not render_info then
-      return
-   end 
-   render_info:set_model_variant('')
-   
+   --If we have a renew effect associated, run it. If not, just swap the model.
+   if self._renew_effect then
+      radiant.effects.run_effect(self._entity, self._renew_effect)
+   else 
+      self._render_info:set_model_variant('')
+   end
+
    --Enable the command again
    local bush_commands = self._entity:get_component('stonehearth:commands')
    bush_commands:enable_command(self._harvest_command_name, true)
@@ -72,6 +111,8 @@ function RenewableResourceNodeComponent:renew(location)
    --Change the description
    self._entity:get_component('unit_info'):set_description(self._original_description)
 end
+
+
 
 function RenewableResourceNodeComponent:on_hourly()
    if self._renewal_countdown <= 0 then

@@ -32,8 +32,6 @@ function PromoteTest:__init()
    outbox_component:set_outbox(true)
    workshop_component:associate_outbox(outbox_entity)
 
-   --local outbox = workshop_component:create_outbox(Point3(-9,0,-9), {3, 3}, faction)
-
    local tree = self:place_tree(-12, 0)
    local tree2 = self:place_tree(-12, 12)
 end
