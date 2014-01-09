@@ -1,26 +1,29 @@
 .horizon {
    position: absolute;
-   top: 50%;
+   top: 0
    left: 0px;
    width: 100%;
-   height: 1px;
-   overflow: visible;
-   display: block;
+   height: 100%;
+   display: flex;
+   background: rgba(0,0,0,0.6);
 }
 
 .settings {
+   .woodthick;
    .controlFont;
    color: #fff;
-   margin-left: -125px;
-   position: absolute;
-   left: 50%;
-   width: 500px;
-   top: -150px;
-   background: #272d39;
-   color: #fff;
-   border: 3px solid #000;
-   padding: 10px;
+   margin: auto;
    font-size: 18px;
+   max-width: 500px;
+
+   #inner {
+      padding: 20px;
+      padding-right: 30px;
+   }
+
+   #gfxCardString {
+      opacity: 0.5;
+   }
 
    input + label {
       padding: 0 0 0 36px;
@@ -55,6 +58,8 @@
          min-width: 150px;
          text-align: right;
       }
+
+      padding-bottom: 20px;
    }
 
    .h1 {
