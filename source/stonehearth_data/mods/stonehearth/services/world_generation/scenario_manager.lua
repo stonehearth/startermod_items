@@ -26,7 +26,8 @@ function ScenarioManager:__init(feature_cell_size, rng)
    end
 end
 
--- TODO: sort scenarios by decreasing area so largest are placed first
+-- TODO: sort scenarios by priority then area
+-- TODO: randomize orientation in place_entity
 function ScenarioManager:place_scenarios(habitat_map, elevation_map, world_offset_x, world_offset_y)
    local rng = self._rng
    local feature_cell_size = self._feature_cell_size
