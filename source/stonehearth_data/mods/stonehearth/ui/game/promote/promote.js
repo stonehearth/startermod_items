@@ -151,6 +151,12 @@ App.StonehearthClassesPromoteView = App.View.extend({
 
    _promoteCitizen: function() {
       var self = this;
+
+      if (this.get('context.citizenToPromote') == undefined) {
+         self.destroy();
+         return;
+      }
+      
       var person = this.get('context.citizenToPromote').__self;
 
       $('#promoteScroll').animate({ 'bottom' : -400 }, 200, function() { 

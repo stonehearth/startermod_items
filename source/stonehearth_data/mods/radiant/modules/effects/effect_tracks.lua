@@ -18,6 +18,8 @@ function EffectTracks:__init(mgr, entity, effect_path, effect_name, start_time, 
    self._effect_list = entity:add_component('effect_list')
    self._effect = self._effect_list:add_effect(effect_path, start_time)
    self._running = true
+   self._entity = entity
+   self._effect_path = effect_path
 
    if args then
       radiant.check.is_table(args)
@@ -81,6 +83,9 @@ function EffectTracks:stop()
       if self._on_finished_fn then
          self._on_finished_fn()
       end
+      radiant.events.trigger(self._entity, 'stonehearth:on_effect_finished', {
+         effect = self._effect_path
+      })
       self:cleanup()
    end
 end

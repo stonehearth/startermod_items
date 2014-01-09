@@ -1,8 +1,6 @@
 App.StonehearthSettingsView = App.View.extend({
    templateName: 'settings',
 
-   modal: true,
-
    fromResToVal : function(shadowRes, shadowsEnabled) {
       if (!shadowsEnabled) {
          return 0;
@@ -52,6 +50,11 @@ App.StonehearthSettingsView = App.View.extend({
       initIncrementButtons();
 
       var self = this;
+
+      $("#horizon").click(function() {
+         self.destroy();
+      });
+
       var reloadableCallback = function() {
          self.reloadableSettingDidChange();
       };
@@ -111,10 +114,10 @@ App.StonehearthSettingsView = App.View.extend({
                disabled: self.get('context.msaa_forbidden'),
                slide: function( event, ui ) {
                   anythingChangedCallback();
-                  $('#aaNumDescription').html(i18n.t('stonehearth:settings_slider_' + ui.value));
+                  $('#aaNumDescription').html(i18n.t('stonehearth:settings_aa_slider_' + ui.value));
                }
             }); 
-            $('#aaNumDescription').html(i18n.t('stonehearth:settings_slider_' + self.get('context.num_msaa_samples')));
+            $('#aaNumDescription').html(i18n.t('stonehearth:settings_aa_slider_' + self.get('context.num_msaa_samples')));
 
             $('#shadowResSlider').slider({
                value: self.get('context.shadow_res'),
@@ -124,10 +127,10 @@ App.StonehearthSettingsView = App.View.extend({
                disabled: self.get('context.shadows_forbidden'),
                slide: function( event, ui ) {
                   anythingChangedCallback();
-                  $('#shadowResDescription').html(i18n.t('stonehearth:settings_slider_' + ui.value));
+                  $('#shadowResDescription').html(i18n.t('stonehearth:settings_shadow_' + ui.value));
                }
             });
-            $('#shadowResDescription').html(i18n.t('stonehearth:settings_slider_' + self.get('context.shadow_res')));
+            $('#shadowResDescription').html(i18n.t('stonehearth:settings_shadow_' + self.get('context.shadow_res')));
 
             $('#drawDistSlider').slider({
                value: self.get('context.draw_distance'),

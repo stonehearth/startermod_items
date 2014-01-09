@@ -13,7 +13,7 @@ function HerdOfSheep:initialize(context)
    local increment = offset*2
    local dx, dy
 
-   -- place item is valid from (1, 1) to (width, length) inclusive
+   -- place_entity is valid from (1, 1) to (width, length) inclusive
    place_entity(sheep_name, math.floor(width/2), math.floor(length/2))
 
    for j=offset, length, increment do

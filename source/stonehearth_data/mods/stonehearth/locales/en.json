@@ -22,12 +22,20 @@
    "settings_gfx_msaa" : "Anti-Aliasing Level",
    "settings_gfx_shadows" : "Shadow Detail",
    "settings_gfx_drawdistance" : "Draw Distance",
-   "settings_slider_0" : "off",
-   "settings_slider_1" : "just a touch",
-   "settings_slider_2" : "a little",
-   "settings_slider_3" : "a lot",
-   "settings_slider_4" : "a whole lot!",
-   "settings_slider_5" : "really, quite a bit",
+
+   "settings_shadow_0" : "off",
+   "settings_shadow_1" : "just a touch",
+   "settings_shadow_2" : "a little",
+   "settings_shadow_3" : "a little more",
+   "settings_shadow_4" : "a lot",
+   "settings_shadow_5" : "a whole lot!",
+
+
+   "settings_aa_slider_0" : "off",
+   "settings_aa_slider_1" : "a little",
+   "settings_aa_slider_2" : "a little more",
+   "settings_aa_slider_3" : "a lot",
+   "settings_aa_slider_4" : "a whole lot!",
 
    "new_game_embark_button" : "Embark!",
    "new_game_founding_charter" : "Founder's Manual",
@@ -129,8 +137,6 @@
    "workshop_open" : "Open!",
    "workshop_closed" : "Closed",
 
-   "weaver" : "Weaver",
-
    "build_workshop_requirements" : "Requirements",
    "build_workshop_create_stockpile" : "Crafter's Stockpile",
    "build_workshop_create_stockpile_description" : "The crafter will store crafted goods in this stockpile.<p>You probably want to place it near the workbench, but hey, it's your decision.",
@@ -144,6 +150,13 @@
    "item_placement_description": "Click to place this item in the world. Right click to rotate the item before placing.",
    "item_placement_no_entities": "There is nothing to place!",
    "item_movement_title": "Move",
-   "item_movement_description": "Move this item elsewhere. Right click to rotate."
+   "item_movement_description": "Move this item elsewhere. Right click to rotate.",
+
+   "belaguered_leader" : "Beleaguered Leader",
+   "hopeless_optimist" : "Hopeless Optimist",
+   "lovable_rogue" : "Loveable Rogue",
+   "psychopathic_misanthrope" : "Psychopathic Misanthrope",
+   "insufferable_academic" : "Insufferable Academic",
+   "diligent_sweetheart" : "Diligent Sweetheart"
 }
 
