@@ -1799,8 +1799,8 @@ void Renderer::computeTightCameraBounds(float* minDist, float* maxDist)
 {
    float defaultMax = *maxDist;
    float defaultMin = *minDist;
-   *maxDist = 0.0f;
-   *minDist = 1000.0f;
+   *maxDist = defaultMin;
+   *minDist = defaultMax;
 
    // First, get all the visible objects in the full camera's frustum.
    BoundingBox visibleAabb;
@@ -1813,6 +1813,11 @@ void Renderer::computeTightCameraBounds(float* minDist, float* maxDist)
          SceneNode* n = entry.node;
 	      visibleAabb.makeUnion(n->getBBox());
       }
+   }
+
+   if (!visibleAabb.isValid())
+   {
+      return;
    }
 
    // Tightly clip the resulting AABB of visible geometry against the frustum.

@@ -207,6 +207,7 @@ class Renderer
       int               windowHeight_;
       int               uiWidth_;
       int               uiHeight_;
+      bool              drawWorld_;
 
       H3DResourceMap    pipelines_;
    	H3DRes            currentPipeline_;

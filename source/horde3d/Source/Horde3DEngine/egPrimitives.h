@@ -209,6 +209,12 @@ struct BoundingBox
       ASSERT_VALID_BOX
    }
 
+   bool isValid() const
+   {
+      return !((_min.x == FLT_MAX || _min.y == FLT_MAX || _min.z == FLT_MAX) ||
+          (_max.x == -FLT_MAX || _max.y == -FLT_MAX || _max.z == -FLT_MAX));
+   }
+
 private:
    Vec3f  _min, _max;
 };
