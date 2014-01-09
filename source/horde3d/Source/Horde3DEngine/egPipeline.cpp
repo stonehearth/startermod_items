@@ -236,9 +236,8 @@ const std::string PipelineResource::parseStage( XMLNode const &node, PipelineSta
 			
 			stage->commands.push_back( PipelineCommand( PipelineCommands::DrawOverlays ) );
 			vector< PipeCmdParam > &params = stage->commands.back().params;
-			params.resize( 2 );
+			params.resize( 1 );
 			params[0].setString( node1.getAttribute( "context" ) );
-         params[1].setFloat( (float)atof(node1.getAttribute( "desiredAspect", "1.77777")) );
 		}
 		else if( strcmp( node1.getName(), "DrawQuad" ) == 0 )
 		{
