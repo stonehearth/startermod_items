@@ -100,6 +100,8 @@ function Array2D:process_block(x, y, block_width, block_height, fn)
    end
 end
 
+-- terminates early if fn(x) returns false on an element
+-- returns true if fn(x) returns true for all elements, false otherwise
 function Array2D:visit_block(x, y, block_width, block_height, fn)
    local i, j, index, continue
    local offset = self:get_offset(x, y)-1
@@ -108,10 +110,13 @@ function Array2D:visit_block(x, y, block_width, block_height, fn)
       for i=1, block_width do
          index = offset+i
          continue = fn(self[index])
-         if not continue then break end
+         if not continue then
+            return false
+         end
       end
       offset = offset + self.width
    end
+   return true
 end
 
 function Array2D:print(format_string)

@@ -37,6 +37,9 @@ public:
    template <class T>
    T GetGaussian(T mean, T std_dev);
 
+   friend std::ostream& operator<<(std::ostream& out, const RandomNumberGenerator& rng);
+   friend std::istream& operator>>(std::istream& in, RandomNumberGenerator& rng);
+
 private:
    NO_COPY_CONSTRUCTOR(RandomNumberGenerator);
 
