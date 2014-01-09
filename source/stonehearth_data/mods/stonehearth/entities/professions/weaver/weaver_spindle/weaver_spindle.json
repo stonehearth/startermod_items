@@ -39,6 +39,9 @@
       "stonehearth:promotion_talisman": {
          "script": "file(/professions/weaver/weaver.lua)"
       }
+   },
+   "entity_data" : {
+      "stonehearth:activity_name" : "promote_weaver"
    }
 }
 
