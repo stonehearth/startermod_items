@@ -82,8 +82,6 @@ Renderer::Renderer() :
    }
 
    glfwWindowHint(GLFW_SAMPLES, config_.num_msaa_samples.value);
-   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, config_.enable_gl_logging.value ? 1 : 0);
 
    GLFWwindow *window;
@@ -812,20 +810,30 @@ void Renderer::ResizeViewport()
 {
    H3DNode camera = camera_->GetNode();
 
-   double desiredAspect = 1920.0 / 1080.0;
-   double aspect = windowWidth_ / (double)windowHeight_;
+   double desiredAspect = windowWidth_ / (double)windowHeight_;
+   int left = 0;
+   int top = 0;
+   int width = windowWidth_;
+   int height = windowHeight_;
+   if (windowWidth_ < 1920 || windowHeight_ < 1080) {
+      desiredAspect = 1920.0 / 1080.0;
+      double aspect = windowWidth_ / (double)windowHeight_;
 
-   double widthAspect = aspect > desiredAspect ? (aspect / desiredAspect) : 1.0;
-   double widthResidual = (windowWidth_ - (windowWidth_ / widthAspect));
-   double heightAspect = aspect < desiredAspect ? (desiredAspect / aspect) : 1.0;
-   double heightResidual = (windowHeight_ - (windowHeight_ / heightAspect));
+      double widthAspect = aspect > desiredAspect ? (aspect / desiredAspect) : 1.0;
+      double widthResidual = (windowWidth_ - (windowWidth_ / widthAspect));
+      double heightAspect = aspect < desiredAspect ? (desiredAspect / aspect) : 1.0;
+      double heightResidual = (windowHeight_ - (windowHeight_ / heightAspect));
    
-   int left = (int)(widthResidual * 0.5);
-   int top = (int)(heightResidual * 0.5);
-   int width = (int)(windowWidth_ - widthResidual);
-   int height = (int)(windowHeight_ - heightResidual);
-   
+      left = (int)(widthResidual * 0.5);
+      top = (int)(heightResidual * 0.5);
+      width = (int)(windowWidth_ - widthResidual);
+      height = (int)(windowHeight_ - heightResidual);
+   }
+
+   R_LOG(3) << "Window resized to " << windowWidth_ << "x" << windowHeight_ << ", viewport is (" << left << ", " << top << ", " << width << ", " << height << ")";
+
    // Resize viewport
+   h3dSetOverlayAspectRatio((float)desiredAspect);
    h3dSetNodeParamI( camera, H3DCamera::ViewportXI, left);
    h3dSetNodeParamI( camera, H3DCamera::ViewportYI, top);
    h3dSetNodeParamI( camera, H3DCamera::ViewportWidthI, width);
@@ -1131,8 +1139,13 @@ lua::ScriptHost* Renderer::GetScriptHost() const
 
 void Renderer::SetUITextureSize(int width, int height)
 {
-   uiWidth_ = std::max(1920, width);
-   uiHeight_ = std::max(1080, height);
+   uiWidth_ = 1920;
+   uiHeight_ = 1080;
+   if (width > 1920 && height > 1080) {
+      uiWidth_ = width;
+      uiHeight_ = height;
+   }
+
    uiBuffer_.allocateBuffers(uiWidth_, uiHeight_);
 }
 

@@ -64,7 +64,7 @@
       </Stage>
 
       <Stage id="Overlays">
-			<DrawOverlays context="OVERLAY" desiredAspect="1.77777"/>
+			<DrawOverlays context="OVERLAY"/>
 		</Stage>
 
       <Stage id="Final">

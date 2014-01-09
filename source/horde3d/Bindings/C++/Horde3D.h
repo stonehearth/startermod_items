@@ -904,6 +904,7 @@ DLL void h3dShowOverlays( const float *verts, int vertCount, float colR, float c
 */
 DLL void h3dClearOverlays();
 
+DLL void h3dSetOverlayAspectRatio(float aspect);
 
 /* Group: General resource management functions */
 /* Function: h3dGetResType

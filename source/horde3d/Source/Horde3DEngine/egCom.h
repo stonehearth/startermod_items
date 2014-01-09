@@ -79,6 +79,7 @@ public:
 	bool  dumpFailedShaders;
 	bool  gatherTimeStats;
    bool  enableShadows;
+   float overlayAspect;
    std::set<std::string> shaderFlags;
 };
 

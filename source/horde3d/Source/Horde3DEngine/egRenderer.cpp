@@ -1645,9 +1645,10 @@ void Renderer::clearOverlays()
 }
 
 
-void Renderer::drawOverlays( const std::string &shaderContext, float desiredAspect )
+void Renderer::drawOverlays( const std::string &shaderContext )
 {
 	uint32 numOverlayVerts = 0;
+   float desiredAspect = Modules::config().overlayAspect;
 	if( !_overlayBatches.empty() )
 		numOverlayVerts = _overlayBatches.back().firstVert + _overlayBatches.back().vertCount;
 	
@@ -2948,7 +2949,7 @@ void Renderer::render( CameraNode *camNode )
 				break;
 
 			case PipelineCommands::DrawOverlays:
-            drawOverlays( pc.params[0].getString(), pc.params[1].getFloat() );
+            drawOverlays( pc.params[0].getString() );
 				break;
 
 			case PipelineCommands::DrawQuad:
