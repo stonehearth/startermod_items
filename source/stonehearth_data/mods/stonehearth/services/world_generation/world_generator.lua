@@ -6,6 +6,9 @@ local HeightMapRenderer = require 'services.world_generation.height_map_renderer
 local FilterFns = require 'services.world_generation.filter.filter_fns'
 local MathFns = require 'services.world_generation.math.math_fns'
 local Timer = require 'services.world_generation.timer'
+local ScenarioManager = require 'services.world_generation.scenario_manager'
+local HabitatType = require 'services.world_generation.habitat_type'
+local HabitatManager = require 'services.world_generation.habitat_manager'
 local RandomNumberGenerator = _radiant.csg.RandomNumberGenerator
 local Point3 = _radiant.csg.Point3
 
@@ -27,6 +30,9 @@ function WorldGenerator:__init(async, game_seed)
    self._terrain_generator = tg
    self._height_map_renderer = HeightMapRenderer(tg.tile_size, tg.terrain_info)
    self._landscaper = Landscaper(tg.terrain_info, tg.tile_size, tg.tile_size, self._rng, self._async)
+   self._terrain_info = tg.terrain_info
+   self._scenario_service = ScenarioManager(self._landscaper:get_feature_cell_size(), self._rng)
+   self._habitat_manager = HabitatManager(self._terrain_info, self._landscaper)
 
    radiant.events.listen(radiant.events, 'stonehearth:slow_poll', self, self.on_poll)
 end
@@ -42,7 +48,6 @@ function WorldGenerator:on_poll()
 end
 
 function WorldGenerator:create_world()
-   
    local terrain_thread = function()
       local cpu_timer = Timer(Timer.CPU_TIME)
       local wall_clock_timer = Timer(Timer.WALL_CLOCK)
@@ -50,8 +55,8 @@ function WorldGenerator:create_world()
       wall_clock_timer:start()
 
       local tiles
-      --tiles = self:_create_world_blueprint()
-      tiles = self:_get_empty_blueprint(1, 1) -- useful for debugging real world scenarios without waiting for the load time
+      tiles = self:_create_world_blueprint()
+      --tiles = self:_get_empty_blueprint(1, 1) -- useful for debugging real world scenarios without waiting for the load time
       self:_generate_world(tiles)
 
       cpu_timer:stop()
@@ -72,19 +77,17 @@ function WorldGenerator:_generate_world(tiles)
    local num_tiles_y = tiles.height
    local terrain_info = self._terrain_generator.terrain_info
    local tile_size = self._terrain_generator.tile_size
-   local renderer = self._height_map_renderer
-   local timer = Timer(Timer.CPU_TIME)
    local tile_map, micro_map, tile_info, tile_seed
-   local origin_x, origin_y, offset_x, offset_y, offset_pt
-   local i, j, n, tile_order_list
-   local region3_boxed
+   local origin_x, origin_y, offset_x, offset_y
+   local i, j, n, tile_order_list, num_tiles
 
    tile_order_list = self:_build_tile_order_list(tiles)
+   num_tiles = #tile_order_list
 
    origin_x = num_tiles_x * tile_size / 2
    origin_y = num_tiles_y * tile_size / 2
 
-   for n=1, #tile_order_list do
+   for n=1, num_tiles do
       i = tile_order_list[n].x
       j = tile_order_list[n].y 
       tile_info = tiles:get(i, j)
@@ -94,31 +97,30 @@ function WorldGenerator:_generate_world(tiles)
       tile_seed = self:_get_tile_seed(i, j)
       self._rng:set_seed(tile_seed)
 
+      -- generate the heightmap for the tile
       tile_map, micro_map = self._terrain_generator:generate_tile(tile_info.terrain_type, tiles, i, j)
       tiles:set(i, j, micro_map)
       self:_yield()
 
+      -- calculate the world offset of the tile
       offset_x = (i-1)*tile_size-origin_x
       offset_y = (j-1)*tile_size-origin_y
-      offset_pt = Point3(offset_x, 0, offset_y)
 
-      timer:start()
+      -- clear features for new tile
       self._landscaper:clear_feature_map()
-      region3_boxed = renderer:create_new_region()
-      renderer:render_height_map_to_region(region3_boxed, tile_map)
-      self._landscaper:place_boulders(region3_boxed, tile_map)
-      renderer:add_region_to_terrain(region3_boxed, offset_pt)
-      timer:stop()
-      log:info('HeightMapRenderer time: %.3fs', timer:seconds())
-      self:_yield()
 
-      timer:start()
-      self._landscaper:place_flora(tile_map, offset_x, offset_y)
-      timer:stop()
-      log:info('Landscaper time: %.3fs', timer:seconds())
-      self:_yield()
+      -- render heightmap to region3
+      self:_render_heightmap_to_region3(tile_map, offset_x, offset_y)
 
-      self._progress = (n / #tile_order_list) * 100
+      -- place flora
+      self:_place_flora(tile_map, offset_x, offset_y)
+
+      -- place initial scenarios
+      self:_place_scenarios(micro_map, offset_x, offset_y)
+
+      -- update progress bar
+      self._progress = (n / num_tiles) * 100
+
    end
 
    radiant.events.trigger(radiant.events, 'stonehearth:generate_world_progress', {
@@ -127,19 +129,51 @@ function WorldGenerator:_generate_world(tiles)
    })
 end
 
+function WorldGenerator:_render_heightmap_to_region3(tile_map, offset_x, offset_y)
+   local renderer = self._height_map_renderer
+   local offset_pt = Point3(offset_x, 0, offset_y)
+   local timer = Timer(Timer.CPU_TIME)
+   local region3_boxed
+
+   timer:start()
+
+   region3_boxed = renderer:create_new_region()
+   renderer:render_height_map_to_region(region3_boxed, tile_map)
+   self._landscaper:place_boulders(region3_boxed, tile_map)
+   renderer:add_region_to_terrain(region3_boxed, offset_pt)
+
+   timer:stop()
+   log:info('HeightMapRenderer time: %.3fs', timer:seconds())
+   self:_yield()
+end
+
+function WorldGenerator:_place_flora(tile_map, offset_x, offset_y)
+   local timer = Timer(Timer.CPU_TIME)
+   timer:start()
+   self._landscaper:place_flora(tile_map, offset_x, offset_y)
+   timer:stop()
+   log:info('Landscaper time: %.3fs', timer:seconds())
+   self:_yield()
+end
+
+function WorldGenerator:_place_scenarios(micro_map, offset_x, offset_y)
+   local feature_map, habitat_map, elevation_map
+
+   feature_map = self._landscaper:get_feature_map()
+   habitat_map, elevation_map = self._habitat_manager:derive_habitat_map(feature_map, micro_map)
+   self._scenario_service:place_scenarios(habitat_map, elevation_map, offset_x, offset_y)
+   -- sync feature_map with habitat_map here if you need to reuse it
+end
+
 function WorldGenerator:_get_tile_seed(x, y)
    local max_unsigned_int = 4294967295
    local tile_hash = MathFns.point_hash(x, y)
    return (self._game_seed + tile_hash) % max_unsigned_int
 end
 
-function WorldGenerator:_yield()
-   if self._async then
-      coroutine.yield()
-   end
-end
-
 function WorldGenerator:_create_world_blueprint()
+   local mountains_threshold = 65
+   local foothills_threshold = 50
    local num_tiles_x = 5
    local num_tiles_y = 5
    local tiles = self:_get_empty_blueprint(num_tiles_x, num_tiles_y)
@@ -163,9 +197,9 @@ function WorldGenerator:_create_world_blueprint()
       for i=1, num_tiles_y do
          for j=1, num_tiles_x do
             value = height_map:get(i, j)
-            if value >= 65 then
+            if value >= mountains_threshold then
                terrain_type = TerrainType.Mountains
-            elseif value >= 50 then
+            elseif value >= foothills_threshold then
                terrain_type = TerrainType.Foothills
             else
                terrain_type = TerrainType.Grassland
@@ -280,7 +314,7 @@ function WorldGenerator:_build_tile_order_list(map)
          angle = self:_get_angle(dy, dx)
          coord_info.dist_metric = dx*dx + dy*dy + angle/1000
 
-         tile_order[#tile_order+1] = coord_info
+         table.insert(tile_order, coord_info)
       end
    end
 
@@ -300,6 +334,12 @@ function WorldGenerator:_get_angle(dy, dx)
    -- move minimum to 45 degrees (pi/4) so fill order looks better
    if value < pi/4 then value = value + 2*pi end
    return value
+end
+
+function WorldGenerator:_yield()
+   if self._async then
+      coroutine.yield()
+   end
 end
 
 return WorldGenerator

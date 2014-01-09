@@ -1,0 +1,23 @@
+{
+   "scenarios" : [
+      "file(bunnies/bunny_nest.json)"
+   ],
+   "categories" : {
+      "wildlife" : {
+         "frequency" : 0.50,
+         "priority" : 0
+      },
+      "ruins" : {
+         "frequency" : 0.20,
+         "priority" : 3
+      },
+      "encounter" : {
+         "frequency" : 0.20,
+         "priority" : 8
+      },
+      "boss" : {
+         "frequency" : 0.05,
+         "priority" : 10
+      }
+   }
+}

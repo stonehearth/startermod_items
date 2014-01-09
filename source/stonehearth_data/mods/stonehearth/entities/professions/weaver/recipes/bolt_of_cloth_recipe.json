@@ -1,7 +1,7 @@
 {
    "type":"recipe",
 
-   "work_units"  : 20,
+   "work_units"  : 10,
    "recipe_name" : "Basic Bolt of Cloth",
    "description" : "Used to create more comfortable furniture.",
    "flavor"      : "To make thicker by the width of one string: add string. Repeat 1,000,000 times.",

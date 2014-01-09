@@ -35,7 +35,7 @@ end
 -- })
 
 -- function WorldGenerationService:test_filter()
---    local rng = _radiant.csg.RandomNumberGenerator(1)
+--    local rng = _radiant.csg.get_default_random_number_generator()
 --    local size = 64
 --    local noise_map = Array2D(size, size)
 --    local filtered_map = Array2D(size, size)

@@ -328,6 +328,11 @@ static bool Client_IsKeyDown(int key)
    return glfwGetKey(glfwGetCurrentContext(), key) == GLFW_PRESS;
 }
 
+static bool Client_IsMouseButtonDown(int button)
+{
+   return glfwGetMouseButton(glfwGetCurrentContext(), button) == GLFW_PRESS;
+}
+
 DEFINE_INVALID_JSON_CONVERSION(CaptureInputPromise);
 DEFINE_INVALID_JSON_CONVERSION(TraceRenderFramePromise);
 DEFINE_INVALID_JSON_CONVERSION(SetCursorPromise);
@@ -359,6 +364,8 @@ void lua::client::open(lua_State* L)
             def("create_data_store",               &Client_CreateDataStore),
             def("is_valid_standing_region",        &Client_IsValidStandingRegion),
             def("is_key_down",                     &Client_IsKeyDown),
+            def("is_mouse_button_down",            &Client_IsMouseButtonDown),
+            
             lua::RegisterTypePtr<CaptureInputPromise>()
                .def("on_input",          &CaptureInputPromise::OnInput)
                .def("destroy",           &CaptureInputPromise::Destroy)
@@ -393,6 +400,12 @@ void lua::client::open(lua_State* L)
                .def_readonly("in_client_area", &MouseInput::in_client_area)
                .def("up",               &MouseEvent_GetUp)
                .def("down",             &MouseEvent_GetDown)
+               .enum_("constants") [
+                  value("MOUSE_BUTTON_1",    GLFW_MOUSE_BUTTON_1),
+                  value("MOUSE_BUTTON_2",    GLFW_MOUSE_BUTTON_2),
+                  value("MOUSE_BUTTON_3",    GLFW_MOUSE_BUTTON_3),
+                  value("MOUSE_BUTTON_4",    GLFW_MOUSE_BUTTON_4)
+               ]
             ,
             lua::RegisterType<KeyboardInput>()
                .enum_("constants") [

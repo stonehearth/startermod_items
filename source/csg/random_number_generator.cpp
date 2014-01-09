@@ -82,10 +82,49 @@ T RandomNumberGenerator::GetGaussian(T mean, T std_dev)
    return distribution(generator_);
 }
 
-std::ostream& csg::operator<<(std::ostream& out, const RandomNumberGenerator& source)
+static std::string const SerializationHeader = "RandomNumberGenerator(";
+static std::string const SerializationFooter = ")";
+
+static bool MatchString(std::istream& in, std::string const& str)
 {
-   out << "RandomNumberGenerator";
+   std::string data;
+   data.resize(str.length());
+   in.read(&data[0], str.length());
+   return data == str;
+}
+
+std::ostream& csg::operator<<(std::ostream& out, RandomNumberGenerator const& rng)
+{
+   out << SerializationHeader << rng.generator_ << SerializationFooter;
    return out;
+}
+
+std::istream& csg::operator>>(std::istream& in, RandomNumberGenerator& rng)
+{
+   std::string header, footer;
+
+   // read header
+   bool success = MatchString(in, SerializationHeader);
+   if (!success) {
+      throw core::Exception("Bad stream header when attempting to deserialize RandomNumberGenerator");
+   }
+
+   // deserialize the internal state of the generator
+   // Note: the generator_ implementation does not consume the final space!
+   in >> rng.generator_;
+
+   // Hack - read the orphaned space
+   if (in.peek() == ' ') {
+      in.get();
+   }
+
+   // read footer
+   success = MatchString(in, SerializationFooter);
+   if (!success) {
+      throw core::Exception("Bad stream footer when attempting to deserialize RandomNumberGenerator");
+   }
+
+   return in;
 }
 
 #define MAKE_INT_METHODS(T) \

@@ -1,0 +1,13 @@
+{
+   "name" : "bunny_nest",
+   "category" : "wildlife",
+   "habitat_type" : "grassland",
+   "size" : {
+      "width" : 16,
+      "length" : 16
+   },
+   "weight" : 10,
+   "difficulty" : 0,
+   "unique" : false,
+   "script" : "file(bunny_nest.lua)"
+}

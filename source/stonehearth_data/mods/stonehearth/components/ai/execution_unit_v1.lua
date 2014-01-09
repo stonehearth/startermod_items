@@ -54,7 +54,8 @@ function ExecutionUnitV1:get_weight()
 end
 
 function ExecutionUnitV1:is_runnable(frame)
-   assert(self._frame == frame)
+   --TODO: Promote to weaver asserts here for dudes 
+   --assert(self._frame == frame)
    return self._action.priority > 0   
 end
 
@@ -100,6 +101,13 @@ function ExecutionUnitV1:execute_frame(frame)
    
    self._state = RUNNING
    local result = { self._action:run(self, self._entity, unpack(self._args)) }
+   if result then
+      return result
+   else
+      --The might have been no items of that type
+      log:debug('%s coroutine failed: %s', self._entity, tostring(self:get_name()))
+      return nil
+   end
    
    log:debug('%s coroutine finished: %s', self._entity, tostring(self:get_name()))
    return result

@@ -43,7 +43,7 @@
                "count" : 1
             }
          ],
-         "build_sound_effect": "/stonehearth/data/effects/place_workshop/place_carpenter_workbench.json"
+         "build_sound_effect": "/stonehearth/data/effects/place_workshop/place_weaver_workbench.json"
       }
    }
 }

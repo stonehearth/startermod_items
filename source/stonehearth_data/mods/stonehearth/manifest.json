@@ -10,6 +10,7 @@
    "radiant": {
       "entities" : {
          "cursors:arrow" : "file(data/cursors/arrow.cur)",
+         "cursors:camera_pan" : "file(data/cursors/camera_pan.cur)",
          "cursors:camera_move_down" : "file(data/cursors/camera_move_down.cur)",
          "cursors:camera_move_left" : "file(data/cursors/camera_move_left.cur)",
          "cursors:camera_move_right" : "file(data/cursors/camera_move_right.cur)",
@@ -281,6 +282,7 @@
          "sounds:owl_call" : "file(data/sounds/effects/sh_owl_call.wav)",
          "sounds:rooster_call" : "file(data/sounds/effects/sh_rooster_call.wav)",
          "sounds:workshop_bench" : "file(data/sounds/effects/sh_workshop_bench.wav)",
+         "sounds:weaver_bench" : "file(data/sounds/effects/sh_weaver_bench.wav)",
          "sounds:sleeping_lullaby" : "file(data/sounds/effects/sleeping_lullaby.wav)",
          "sounds:eating" : "file(data/sounds/effects/sh_eating.wav)",
          "sounds:twinkle" : "file(data/sounds/effects/sh_twinkle.wav)",
@@ -297,9 +299,10 @@
          "ambient:summer_night" : "file(data/ambient/sh_amb_summer_night.ogg)",
          "ambient:dusk_wolves" : "file(data/ambient/sh_amb_dusk_wolves.ogg)",
 
-
          "indicators:sleepy" : "file(/stonehearth/data/effects/unit_status_effects/sleepy_indicator)",
-         "indicators:hungry" : "file(/stonehearth/data/effects/unit_status_effects/hungry_indicator)"         
+         "indicators:hungry" : "file(/stonehearth/data/effects/unit_status_effects/hungry_indicator)",
+
+         "scenarios:scenario_index" : "file(scenarios/index.json)"
       },
       "functions" : {
          "get_world_generation_progress": {
