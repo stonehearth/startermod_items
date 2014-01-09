@@ -69,6 +69,7 @@ public: // the static interface
    static bool CoerseToBool(luabind::object const& o);
 
 private:
+   luabind::object ScriptHost::GetConfig(std::string const& flag);
    static void* LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize);
    void Log(const char* category, int level, const char* str);
    int GetLogLevel(std::string const& category);

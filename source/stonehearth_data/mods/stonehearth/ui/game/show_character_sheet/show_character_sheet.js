@@ -21,8 +21,11 @@ App.StonehearthCharacterSheetView = App.View.extend({
 
       if (log && log.length > 0) {
          this.set('context.firstJournalEntry', log[0]);
+         this.set('context.firstJournalEntryText', log[0].entries[log[0].entries.length-1].text);
+         this.set('context.firstJournalEntryTitle', log[0].entries[log[0].entries.length-1].title);
       } else {
          this.set('context.firstJournalEntry', { title: "no entries" });
+         this.set('context.firstJournalEntryTitle', 'no entries');
       }
 
    }.observes('context.stonehearth:personality'),

@@ -2,6 +2,7 @@
    Call this action when a user clicks on a tool
    and then clicks on that person to take up that profession.
 ]]
+local personality_service = require 'services.personality.personality_service'
 
 local GrabTalismanAction = class()
 
@@ -88,8 +89,13 @@ function GrabTalismanAction:on_effect_trigger(e)
       local promotion_talisman_component = self._talisman_entity:get_component('stonehearth:promotion_talisman')
       local script = promotion_talisman_component:get_script()
       radiant.mods.load_script(script).promote(self._entity, promotion_talisman_component:get_workshop())
-   --else 
-   --   self._ai:abort()
+
+      --Log in personal event log
+      local activity_name = radiant.entities.get_entity_data(self._talisman_entity, 'stonehearth:activity_name')
+      if activity_name then
+         radiant.events.trigger(personality_service, 'stonehearth:journal_event', 
+                                {entity = self._entity, description = activity_name})
+      end
    end
 end
 

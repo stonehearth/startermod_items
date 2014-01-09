@@ -208,6 +208,8 @@
          "personal_logs:chopping_wood" : "file(data/personality/chopping_wood.json)",
          "personal_logs:embarking" :     "file(data/personality/embarking.json)",
          "personal_logs:eating_berries" :"file(data/personality/eating_berries.json)",
+         "personal_logs:promote_carpenter" :"file(data/personality/carpenter_promote.json)",
+         "personal_logs:promote_weaver" :"file(data/personality/weaver_promote.json)",
 
          "sounds:ui:action_hover" : "file(data/sounds/ui/action/action_hover.wav)",
          "sounds:ui:action_click" : "file(data/sounds/ui/action/action_click.wav)",

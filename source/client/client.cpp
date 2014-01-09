@@ -261,7 +261,7 @@ Client::Client() :
          json::Node node(f.args);
          std::string sound_url = node.get_node(0).as<std::string>();
          audio::AudioManager &a = audio::AudioManager::GetInstance();
-         //a.PlaySound(sound_url);
+         a.PlaySound(sound_url);
          result->ResolveWithMsg("success");
       } catch (std::exception const& e) {
          result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
@@ -297,7 +297,7 @@ Client::Client() :
          } else {
             a.SetNextMusicVolume(audio::DEF_MUSIC_VOL, channel);
          }
-         //a.PlayMusic(uri, channel);
+         a.PlayMusic(uri, channel);
 
          result->ResolveWithMsg("success");
       } catch (std::exception const& e) {
