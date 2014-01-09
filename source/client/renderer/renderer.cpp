@@ -685,8 +685,8 @@ void Renderer::GetCameraToViewportRay(int viewportX, int viewportY, csg::Ray3* r
 {
    // compute normalized window coordinates in preparation for casting a ray
    // through the scene
-   float vw = h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportWidthI);
-   float vh = h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportHeightI);
+   float vw = (float)h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportWidthI);
+   float vh = (float)h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportHeightI);
 
    float nwx = viewportX / (float)vw;
    float nwy = 1.0f - (viewportY / (float)vh);
