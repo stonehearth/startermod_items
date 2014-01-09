@@ -1,0 +1,48 @@
+{
+   "activities" : [
+      {
+         "id" : "promote_carpenter",
+         "trigger_policy" : [
+            {
+               "trigger_id" : "promote_carpenter",
+               "probability" : 100
+            }
+         ],
+         "text" : "On Hearing the Call of the Saw:",
+         "type" : "random",
+         "logs_by_personality" : {
+            "belaguered_leader" : {
+               "logs" : [
+               "It is my turn to wield the saw. Too bad mom always said I was bad with power."
+               ]
+            },
+            "hopeless_optimist" : {
+               "logs" : [
+               "Me, Carpenter? YES!! I've always wanted to make minature chairs!!!"
+               ]
+            },
+            "lovable_rogue" : {
+               "logs" : [
+               "You want me to be the carpenter? Can I... sell the stuff I make? Or is this communal property?"
+               ]
+            },
+            "psychopathic_misanthrope" : {
+               "logs" : [
+               "The Saw? Where some people see a tool, I see a serrated weapon. Saw, you are my new best friend."
+               ]
+            },
+            "insufferable_academic" : {
+               "logs" : [
+               "I shall endeavor to bring the music of the cubes to our furniture."
+               ]
+            },
+            "diligent_sweetheart" : {
+               "logs" : [
+               "Me? You want me to be the carpenter? Ok, I'll do my best!"
+               ]
+            }
+         }
+      }
+   ]
+}
+            

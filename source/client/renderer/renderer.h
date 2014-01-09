@@ -114,6 +114,7 @@ class Renderer
       const RendererConfig& GetRendererConfig() const { return config_; }
       void ApplyConfig(const RendererConfig& newConfig, bool persistConfig);
 
+      void GetViewportMouseCoords(double& x, double& y);
       csg::Point2 GetMousePosition() const;
       csg::Matrix4 GetNodeTransform(H3DNode node) const;
 
@@ -130,10 +131,10 @@ class Renderer
       typedef std::function<void(om::Selection& sel, const csg::Ray3& ray, const csg::Point3f& intersection, const csg::Point3f& normal)> UpdateSelectionFn;
       core::Guard TraceSelected(H3DNode node, UpdateSelectionFn fn);
 
-      void GetCameraToViewportRay(int windowX, int windowY, csg::Ray3* ray);
+      void GetCameraToViewportRay(int viewportX, int viewportY, csg::Ray3* ray);
       void CastRay(const csg::Point3f& origin, const csg::Point3f& direction, RayCastResult* result);
-      void CastScreenCameraRay(int windowX, int windowY, RayCastResult* result);
-      void QuerySceneRay(int windowX, int windowY, om::Selection &result);
+      void CastScreenCameraRay(int viewportX, int viewportY, RayCastResult* result);
+      void QuerySceneRay(int viewportX, int viewportY, om::Selection &result);
 
       typedef std::function<void (const Input&)> InputEventCb;
       void SetInputHandler(InputEventCb fn) { input_cb_ = fn; }
@@ -206,6 +207,7 @@ class Renderer
       int               windowHeight_;
       int               uiWidth_;
       int               uiHeight_;
+      bool              drawWorld_;
 
       H3DResourceMap    pipelines_;
    	H3DRes            currentPipeline_;

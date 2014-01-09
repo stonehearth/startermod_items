@@ -35,8 +35,12 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
    screenWidth_(width),
    screenHeight_(height)
 { 
-   uiWidth_ = std::max(screenWidth_, 1920);
-   uiHeight_ = std::max(screenHeight_, 1080);
+   uiWidth_ = 1920;
+   uiHeight_ = 1080;
+   if (screenWidth_ > 1920 && screenHeight_ > 1080) {
+      uiWidth_ = screenWidth_;
+      uiHeight_ = screenHeight_, 1080;
+   }
    browser_framebuffer_ = 0x0;
    last_browser_framebuffer_ = 0x0;
    draw_count_ = 0;
@@ -573,16 +577,8 @@ void Browser::SetRequestHandler(HandleRequestCb cb)
 
 void Browser::WindowToBrowser(int& x, int& y) 
 {
-   float desiredAspect = uiWidth_ / (float)uiHeight_;
-   float aspect = screenWidth_ / (float)screenHeight_;
-
-   float screenUiWidth = aspect > desiredAspect ? (aspect / desiredAspect) : 1.0f;
-   float widthResidual = (screenWidth_ - (screenUiWidth * screenWidth_)) / (2.0f * screenWidth_);
-   float screenUiHeight = aspect < desiredAspect ? (desiredAspect / aspect) : 1.0f;
-   float heightResidual = (screenHeight_ - (screenUiHeight * screenHeight_)) / (2.0f * screenHeight_);
-
-   x = (int)((((x / (float)screenWidth_) * screenUiWidth) + widthResidual) * uiWidth_);
-   y = (int)((((y / (float)screenHeight_) * screenUiHeight) + heightResidual) * uiHeight_);
+   x = (int)((x / (float)screenWidth_) * uiWidth_);
+   y = (int)((y / (float)screenHeight_) * uiHeight_);
 }
 
 void Browser::SetBrowserResizeCb(std::function<void(int, int)> cb)
@@ -599,8 +595,14 @@ void Browser::OnScreenResize(int w, int h)
    screenWidth_ = w;
    screenHeight_ = h;
 
-   uiHeight_ = std::max(screenHeight_, 1080);
-   uiWidth_ = std::max(screenWidth_, 1920);
+   uiWidth_ = 1920;
+   uiHeight_ = 1080;
+   if (screenWidth_ > 1920 && screenHeight_ > 1080) {
+      uiHeight_ = screenHeight_;
+      uiWidth_ = screenWidth_;
+   }
+
+   BROWSER_LOG(3) << "Browser (UI) resized to " << uiWidth_ << "x" << uiHeight_;
 
    if (resize_cb_) {
       resize_cb_(uiWidth_, uiHeight_);

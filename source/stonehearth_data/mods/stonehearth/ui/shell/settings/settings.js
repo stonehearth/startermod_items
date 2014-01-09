@@ -1,8 +1,6 @@
 App.StonehearthSettingsView = App.View.extend({
    templateName: 'settings',
 
-   modal: true,
-
    fromResToVal : function(shadowRes, shadowsEnabled) {
       if (!shadowsEnabled) {
          return 0;
@@ -14,7 +12,21 @@ App.StonehearthSettingsView = App.View.extend({
       return Math.pow(2, shadowVal + 8);
    },
 
-   init: function() {
+   fromSamplesToVal : function(msaaSamples, msaaEnabled) {
+      if (!msaaEnabled || msaaSamples == 0) {
+         return 0;
+      }
+      return (Math.log(msaaSamples) / Math.log(2));      
+   },
+
+   fromValToSamples : function(msaaVal) {
+      if (msaaVal == 0) {
+         return 0;
+      }
+      return Math.pow(2, msaaVal);
+   },
+
+   init : function() {
       this._super();
       var self = this;
       $(top).on('keyup keydown', function(e){
@@ -34,10 +46,15 @@ App.StonehearthSettingsView = App.View.extend({
       $('#applyButton').prop('disabled', false);
    },
 
-   didInsertElement: function() {
+   didInsertElement : function() {
       initIncrementButtons();
 
       var self = this;
+
+      $("#horizon").click(function() {
+         self.destroy();
+      });
+
       var reloadableCallback = function() {
          self.reloadableSettingDidChange();
       };
@@ -80,7 +97,7 @@ App.StonehearthSettingsView = App.View.extend({
             if (!o.msaa.allowed) {
                o.msaa.value = 0;
             }
-            self.set('context.num_msaa_samples', o.msaa.value);
+            self.set('context.num_msaa_samples', self.fromSamplesToVal(o.msaa.value, o.msaa.allowed));
 
             self.set('context.draw_distance', o.draw_distance.value);
 
@@ -97,10 +114,10 @@ App.StonehearthSettingsView = App.View.extend({
                disabled: self.get('context.msaa_forbidden'),
                slide: function( event, ui ) {
                   anythingChangedCallback();
-                  $('#aaNumDescription').html(i18n.t('stonehearth:settings_slider_' + ui.value));
+                  $('#aaNumDescription').html(i18n.t('stonehearth:settings_aa_slider_' + ui.value));
                }
             }); 
-            $('#aaNumDescription').html(i18n.t('stonehearth:settings_slider_' + self.get('context.num_msaa_samples')));
+            $('#aaNumDescription').html(i18n.t('stonehearth:settings_aa_slider_' + self.get('context.num_msaa_samples')));
 
             $('#shadowResSlider').slider({
                value: self.get('context.shadow_res'),
@@ -110,10 +127,10 @@ App.StonehearthSettingsView = App.View.extend({
                disabled: self.get('context.shadows_forbidden'),
                slide: function( event, ui ) {
                   anythingChangedCallback();
-                  $('#shadowResDescription').html(i18n.t('stonehearth:settings_slider_' + ui.value));
+                  $('#shadowResDescription').html(i18n.t('stonehearth:settings_shadow_' + ui.value));
                }
             });
-            $('#shadowResDescription').html(i18n.t('stonehearth:settings_slider_' + self.get('context.shadow_res')));
+            $('#shadowResDescription').html(i18n.t('stonehearth:settings_shadow_' + self.get('context.shadow_res')));
 
             $('#drawDistSlider').slider({
                value: self.get('context.draw_distance'),
@@ -135,7 +152,7 @@ App.StonehearthSettingsView = App.View.extend({
          "shadows" : $( "#shadowResSlider" ).slider( "value" ) > 0,
          "vsync" : $('#opt_enableVsync').is(':checked'),
          "fullscreen" : $('#opt_enableFullscreen').is(':checked'),
-         "msaa" : $( "#aaNumSlider" ).slider( "value" ),
+         "msaa" : this.fromValToSamples($( "#aaNumSlider" ).slider( "value" )),
          "shadow_res" :  this.fromValToRes($( "#shadowResSlider" ).slider( "value" )),
          "persistConfig" : persistConfig,
          "draw_distance" : $( "#drawDistSlider" ).slider( "value" )

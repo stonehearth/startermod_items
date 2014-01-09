@@ -26,7 +26,7 @@ end
 function HungerObserver:on_hourly(e)
 
    local hunger = self._attributes_component:get_attribute('hunger')
-   local hours_till_hungry = time_constants.hours_per_day/3
+   local hours_till_hungry = time_constants.hours_per_day
 
    -- TODO consider slowing hunger while sleepy
    hunger = hunger + (100/hours_till_hungry)

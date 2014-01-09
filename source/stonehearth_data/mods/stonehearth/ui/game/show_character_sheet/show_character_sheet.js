@@ -13,17 +13,30 @@ App.StonehearthCharacterSheetView = App.View.extend({
       "unit_info": {},
       "stonehearth:buffs" : {},
       "stonehearth:attributes" : {},
-      "stonehearth:personality" : {}
+      'stonehearth:personality' : {}
    },
 
-   firstJournalEntry: function() {
-      var log = this.get('stonehearth:personality.log');
+   _setFirstJournalEntry: function() {
+      var log = this.get('context.stonehearth:personality.log');
 
       if (log && log.length > 0) {
-         return log[1];
+         this.set('context.firstJournalEntry', log[0]);
+         this.set('context.firstJournalEntryText', log[0].entries[log[0].entries.length-1].text);
+         this.set('context.firstJournalEntryTitle', log[0].entries[log[0].entries.length-1].title);
       } else {
-         return { title: "no entries" };
+         this.set('context.firstJournalEntry', { title: "no entries" });
+         this.set('context.firstJournalEntryTitle', 'no entries');
       }
-   }.property()
+
+   }.observes('context.stonehearth:personality'),
+
+   didInsertElement: function() {
+      var p = this.get('context.stonehearth:personality');
+
+      if (p) {
+         $('#personality').html($.t(p.personality));   
+      }
+      
+   }
 
 });

@@ -225,7 +225,7 @@ protected:
    void quantizeShadowFrustum(const Frustum& frustSlice, int shadowMapSize, Vec3f* min, Vec3f* max);
    void updateShadowMap(const Frustum* lightFrus, float minDist, float maxDist);
 
-	void drawOverlays( const std::string &shaderContext, float desiredAspect );
+	void drawOverlays( const std::string &shaderContext );
 
 	void bindPipeBuffer( uint32 rbObj, const std::string &sampler, uint32 bufIndex );
 	void clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3, float r, float g, float b, float a );

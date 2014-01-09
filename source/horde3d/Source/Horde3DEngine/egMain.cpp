@@ -721,6 +721,12 @@ DLLEXP NodeHandle h3dGetNodeFindResult( int index )
 }
 
 
+DLLEXP void h3dSetOverlayAspectRatio(float aspect)
+{
+   Modules::config().overlayAspect = aspect;
+}
+
+
 DLLEXP NodeHandle h3dCastRay( NodeHandle node, float ox, float oy, float oz, float dx, float dy, float dz, int numNearest )
 {
 	SceneNode *sn = Modules::sceneMan().resolveNodeHandle( node );

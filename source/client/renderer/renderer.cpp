@@ -60,7 +60,8 @@ Renderer::Renderer() :
    lastGlfwError_("none"),
    currentPipeline_(0),
    iconified_(false),
-   resize_pending_(false)
+   resize_pending_(false),
+   drawWorld_(false)
 {
    terrainConfig_ = res::ResourceManager2::GetInstance().LookupJson("stonehearth/renderers/terrain/config.json");
    GetConfigOptions();
@@ -81,8 +82,6 @@ Renderer::Renderer() :
    }
 
    glfwWindowHint(GLFW_SAMPLES, config_.num_msaa_samples.value);
-   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, config_.enable_gl_logging.value ? 1 : 0);
 
    GLFWwindow *window;
@@ -110,7 +109,7 @@ Renderer::Renderer() :
 
    ApplyConfig(config_, false);
 
-   SetDrawWorld(false);
+   SetDrawWorld(drawWorld_);
 
    // Overlays
    fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
@@ -444,6 +443,9 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
       config.Set("renderer.screen_height", config_.screen_height.value);
       config.Set("renderer.draw_distance", config_.draw_distance.value);
    }
+
+   // We just flushed/loaded our pipeline, so don't forget to reset the draw bits!
+   SetDrawWorld(drawWorld_);
 }
 
 SystemStats Renderer::GetStats()
@@ -677,12 +679,15 @@ bool Renderer::IsRunning() const
    return true;
 }
 
-void Renderer::GetCameraToViewportRay(int windowX, int windowY, csg::Ray3* ray)
+void Renderer::GetCameraToViewportRay(int viewportX, int viewportY, csg::Ray3* ray)
 {
    // compute normalized window coordinates in preparation for casting a ray
    // through the scene
-   float nwx = ((float)windowX) / windowWidth_;
-   float nwy = 1.0f - ((float)windowY) / windowHeight_;
+   float vw = (float)h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportWidthI);
+   float vh = (float)h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportHeightI);
+
+   float nwx = viewportX / (float)vw;
+   float nwy = 1.0f - (viewportY / (float)vh);
 
    // calculate the ray starting at the eye position of the camera, casting
    // through the specified window coordinates into the scene
@@ -715,7 +720,7 @@ void Renderer::CastRay(const csg::Point3f& origin, const csg::Point3f& direction
    result->is_valid = true;
 }
 
-void Renderer::CastScreenCameraRay(int windowX, int windowY, RayCastResult* result)
+void Renderer::CastScreenCameraRay(int viewportX, int viewportY, RayCastResult* result)
 {
    result->is_valid = false;
 
@@ -724,15 +729,15 @@ void Renderer::CastScreenCameraRay(int windowX, int windowY, RayCastResult* resu
    }
 
    csg::Ray3 ray;
-   GetCameraToViewportRay(windowX, windowY, &ray);
+   GetCameraToViewportRay(viewportX, viewportY, &ray);
 
    CastRay(ray.origin, ray.direction, result);
 }
 
-void Renderer::QuerySceneRay(int windowX, int windowY, om::Selection &result)
+void Renderer::QuerySceneRay(int viewportX, int viewportY, om::Selection &result)
 {
    RayCastResult r;
-   CastScreenCameraRay(windowX, windowY, &r);
+   CastScreenCameraRay(viewportX, viewportY, &r);
    if (!r.is_valid) {
       return;
    }
@@ -805,18 +810,42 @@ void Renderer::ResizeViewport()
 {
    H3DNode camera = camera_->GetNode();
 
+   double desiredAspect = windowWidth_ / (double)windowHeight_;
+   int left = 0;
+   int top = 0;
+   int width = windowWidth_;
+   int height = windowHeight_;
+   if (windowWidth_ < 1920 || windowHeight_ < 1080) {
+      desiredAspect = 1920.0 / 1080.0;
+      double aspect = windowWidth_ / (double)windowHeight_;
+
+      double widthAspect = aspect > desiredAspect ? (aspect / desiredAspect) : 1.0;
+      double widthResidual = (windowWidth_ - (windowWidth_ / widthAspect));
+      double heightAspect = aspect < desiredAspect ? (desiredAspect / aspect) : 1.0;
+      double heightResidual = (windowHeight_ - (windowHeight_ / heightAspect));
+   
+      left = (int)(widthResidual * 0.5);
+      top = (int)(heightResidual * 0.5);
+      width = (int)(windowWidth_ - widthResidual);
+      height = (int)(windowHeight_ - heightResidual);
+   }
+
+   R_LOG(3) << "Window resized to " << windowWidth_ << "x" << windowHeight_ << ", viewport is (" << left << ", " << top << ", " << width << ", " << height << ")";
+
    // Resize viewport
-   h3dSetNodeParamI( camera, H3DCamera::ViewportXI, 0 );
-   h3dSetNodeParamI( camera, H3DCamera::ViewportYI, 0 );
-   h3dSetNodeParamI( camera, H3DCamera::ViewportWidthI, windowWidth_ );
-   h3dSetNodeParamI( camera, H3DCamera::ViewportHeightI, windowHeight_ );
+   h3dSetOverlayAspectRatio((float)desiredAspect);
+   h3dSetNodeParamI( camera, H3DCamera::ViewportXI, left);
+   h3dSetNodeParamI( camera, H3DCamera::ViewportYI, top);
+   h3dSetNodeParamI( camera, H3DCamera::ViewportWidthI, width);
+   h3dSetNodeParamI( camera, H3DCamera::ViewportHeightI, height);
    
    // Set virtual camera parameters
-   h3dSetupCameraView( camera, 45.0f, (float)windowWidth_ / windowHeight_, 2.0f, config_.draw_distance.value);
+   h3dSetupCameraView( camera, 45.0f, width / (float)height, 2.0f, config_.draw_distance.value);
 }
 
 void Renderer::SetDrawWorld(bool drawWorld) 
 {
+   drawWorld_ = drawWorld;
    SetStageEnable("Sky", drawWorld);
    SetStageEnable("Starfield", drawWorld);
    SetStageEnable("Depth", drawWorld);
@@ -912,6 +941,7 @@ void Renderer::OnMouseEnter(int entered)
 
 void Renderer::OnMouseMove(double x, double y)
 {
+   GetViewportMouseCoords(x, y);
    input_.mouse.dx = (int)x - input_.mouse.x;
    input_.mouse.dy = (int)y - input_.mouse.y;
    
@@ -976,6 +1006,15 @@ void Renderer::OnKey(int key, int down)
    DispatchInputEvent();
 }
 
+void Renderer::GetViewportMouseCoords(double& x, double& y)
+{
+   int vx = h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportXI);
+   int vy = h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportYI);
+
+   x = x - vx;
+   y = y - vy;
+}
+
 void Renderer::OnWindowResized(int newWidth, int newHeight) {
    if (newWidth == 0 || newHeight == 0)
    {
@@ -985,7 +1024,9 @@ void Renderer::OnWindowResized(int newWidth, int newHeight) {
    ResizeWindow(newWidth, newHeight);
    ResizeViewport();
    ResizePipelines();
-   screen_resize_slot_.Signal(csg::Point2(windowWidth_, windowHeight_));
+   screen_resize_slot_.Signal(csg::Point2(
+      h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportWidthI), 
+      h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportHeightI)));
 }
 
 void Renderer::OnFocusChanged(int wasFocused) {
@@ -1098,8 +1139,13 @@ lua::ScriptHost* Renderer::GetScriptHost() const
 
 void Renderer::SetUITextureSize(int width, int height)
 {
-   uiWidth_ = std::max(1920, width);
-   uiHeight_ = std::max(1080, height);
+   uiWidth_ = 1920;
+   uiHeight_ = 1080;
+   if (width > 1920 && height > 1080) {
+      uiWidth_ = width;
+      uiHeight_ = height;
+   }
+
    uiBuffer_.allocateBuffers(uiWidth_, uiHeight_);
 }
 

@@ -62,7 +62,7 @@ function Log.spam(category, format, ...)
 end
 
 function Log.create_logger(sub_category, prefix)
-   -- The stack offset for the helper functions is 4...
+   -- The stack offset for the helper functions is 3...
    --    1: __get_current_module_name
    --    2: Log.create_logger       
    --    3: --> some module whose name we want! <-- 

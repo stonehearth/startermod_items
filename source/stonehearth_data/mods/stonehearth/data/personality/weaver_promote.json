@@ -1,0 +1,48 @@
+{
+   "activities" : [
+      {
+         "id" : "promote_weaver",
+         "trigger_policy" : [
+            {
+               "trigger_id" : "promote_weaver",
+               "probability" : 100
+            }
+         ],
+         "text" : "On Spindles:",
+         "type" : "random",
+         "logs_by_personality" : {
+            "belaguered_leader" : {
+               "logs" : [
+               "I don't know... I always expected a more epic role in life. Well, this will probably be good for my blood pressure."
+               ]
+            },
+            "hopeless_optimist" : {
+               "logs" : [
+               "Woo! Now that I'm the weaver, I live to make comfy beds for everyone!"
+               ]
+            },
+            "lovable_rogue" : {
+               "logs" : [
+               "Hmm... if a spider is a weaver, is a weaver like a spider? Everyone shall sleep safe in my webs. ...Was that too creepy?"
+               ]
+            },
+            "psychopathic_misanthrope" : {
+               "logs" : [
+               "You want me to be the weaver? Everything I know about weaving: jab the pointy end into the other person. This should be interesting."
+               ]
+            },
+            "insufferable_academic" : {
+               "logs" : [
+               "There is a meditative grace in fine knotwork. Stare, my friends, stare until your souls belong to meeeeee."
+               ]
+            },
+            "diligent_sweetheart" : {
+               "logs" : [
+               "Oh! First thing's first--time to make everyone a new winter scarf!"
+               ]
+            }
+         }
+      }
+   ]
+}
+            

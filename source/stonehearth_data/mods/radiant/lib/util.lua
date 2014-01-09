@@ -47,4 +47,14 @@ function util.is_type(var, cls)
    return t == cls
 end
 
+function util.get_config(str, default)
+   -- The stack offset for the helper functions is 3...
+   --    1: __get_current_module_name
+   --    2: util.config_get       
+   --    3: --> some module whose name we want! <-- 
+   local modname = __get_current_module_name(3)
+   local value = _host:get_config('mods.' .. modname .. "." .. str)
+   return value == nil and default or value
+end
+
 return util

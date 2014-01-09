@@ -14,10 +14,7 @@ function RabbitTest:__init()
    local sheep = self:place_item('stonehearth:sheep', -3, -6)
    local sheep = self:place_item('stonehearth:sheep', 0, -6)
    local sheep = self:place_item('stonehearth:sheep', 3, -6)
-   local sheep = self:place_item('stonehearth:sheep', 6, -6)
-
-   --local bench = self:place_item('stonehearth:carpenter:workbench', -6, 6)
-   
+   local sheep = self:place_item('stonehearth:sheep', 6, -6)   
 end
 
 return RabbitTest

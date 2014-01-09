@@ -46,6 +46,7 @@ EngineConfig::EngineConfig()
 	dumpFailedShaders = false;
 	gatherTimeStats = true;
    enableShadows = true;
+   overlayAspect = 1.0;
 }
 
 
