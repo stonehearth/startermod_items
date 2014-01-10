@@ -5,9 +5,9 @@ local log = radiant.log.create_logger('world_generation')
 --             that will (attempt to) be placed in a tile. Frequencies > 1.00 are supported.
 -- priority - The order in which the scenarios will be placed (lower priorites may not find a site).
 function ScenarioCategory:__init(name, frequency, priority, rng)
-   self._name = name
-   self._frequency = frequency
-   self._priority = priority
+   self.name = name
+   self.frequency = frequency
+   self.priority = priority
    self._rng = rng
    self._scenarios = {}
 
@@ -28,9 +28,9 @@ function ScenarioCategory:remove(name)
    self._scenarios[name] = nil
 end
 
-function ScenarioCategory:pick_scenarios()
+function ScenarioCategory:select_scenarios()
    local rng = self._rng
-   local frequency = self._frequency
+   local frequency = self.frequency
    local scenario
    local selected_scenarios = {}
 
@@ -66,7 +66,7 @@ function ScenarioCategory:_pick_scenario()
       end
    end
 
-   log:error('Total weight in ScenarioCategory %s is incorrect!', self._name)
+   log:error('Total weight in ScenarioCategory %s is incorrect!', self.name)
    return nil
 end
 
