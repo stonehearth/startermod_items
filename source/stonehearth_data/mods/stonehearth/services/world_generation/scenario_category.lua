@@ -28,7 +28,7 @@ function ScenarioCategory:remove(name)
    self._scenarios[name] = nil
 end
 
-function ScenarioCategory:pick_scenarios()
+function ScenarioCategory:select_scenarios()
    local rng = self._rng
    local frequency = self._frequency
    local scenario
