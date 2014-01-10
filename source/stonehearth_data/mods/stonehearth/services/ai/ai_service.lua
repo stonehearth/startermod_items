@@ -210,6 +210,7 @@ end
 function AiService:format_args(args)
    local msg = ''
    if args then
+      assert(type(args) == 'table', string.format('invalid activity arguments: %s', radiant.util.tostring(args)))
       for name, value in pairs(args) do
          if #msg > 0 then
             msg = msg .. ', '

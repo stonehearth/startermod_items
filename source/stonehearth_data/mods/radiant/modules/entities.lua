@@ -3,6 +3,7 @@ local singleton = {}
 
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
+local Entity = _radiant.om.Entity
 local log = radiant.log.create_logger('entities')
 
 function entities.__init()
@@ -436,16 +437,16 @@ end
    location: the target location
    returns: true if the entity is adjacent to the specified ocation
 ]]
-function entities.is_adjacent_to(entity, location)
-   -- xxx: this style doesn't work until we fix util:is_a().
-   --local point_a = util:is_a(arg1, Entity) and singleton.get_world_grid_location(arg1) or arg1
-   --local point_b = util:is_a(arg2, Entity) and singleton.get_world_grid_location(arg2) or arg2
-   local point_a = entities.get_world_grid_location(entity)
-   local point_b = location
-
-   radiant.check.is_a(point_a, Point3)
-   radiant.check.is_a(point_b, Point3)
-   return point_a:is_adjacent_to(point_b)
+function entities.is_adjacent_to(subject, target)
+   if radiant.util.is_a(subject, Entity) then
+      subject = entities.get_world_grid_location(subject)
+   end
+   if radiant.util.is_a(target, Entity) then
+      target = entities.get_world_grid_location(target)
+   end
+   radiant.check.is_a(subject, Point3)
+   radiant.check.is_a(target, Point3)
+   return subject:is_adjacent_to(target)
 end
 
 

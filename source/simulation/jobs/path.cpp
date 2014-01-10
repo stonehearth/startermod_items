@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "path.h"
+#include "om/entity.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -19,13 +20,21 @@ Path::Path(const std::vector<csg::Point3>& points, om::EntityRef source, om::Ent
 
 std::ostream& Path::Format(std::ostream& os) const
 {
-   os << "[path " << id_;
-   if (!points_.empty()) {
-      os << " " << points_.front() << " -> " << points_.back();
-   } else {
-      os << "no points on path";
+   os << "[id:" << id_;
+   om::EntityPtr source = source_.lock();
+   if (source) {
+      os << " " << *source << " -> ";
    }
-   os << "]";
+   if (!points_.empty()) {
+      os << " " << points_.front() << " -> " << points_.back() << " -> ";
+   } else {
+      os << " no points! -> ";
+   }
+   om::EntityPtr destination = destination_.lock();
+   if (destination) {
+      os << *destination << " -> ";
+   }
+   os << " dpoi:" << finish_pt_ << "]";
    return os;
 }
 

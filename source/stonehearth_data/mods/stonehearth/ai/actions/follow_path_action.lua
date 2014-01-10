@@ -9,8 +9,11 @@ FollowPathAction.args = {
 FollowPathAction.version = 2
 FollowPathAction.priority = 1
 
+local log = radiant.log.create_logger('ai.follow_path')
+
 function FollowPathAction:start_thinking(ai, entity, args)
    ai.CURRENT.location = args.path:get_finish_point()
+   log:spam('setting CURRENT.location %s (path = %s)', tostring(ai.CURRENT.location), tostring(args.path))
    ai:set_think_output()
 end
 

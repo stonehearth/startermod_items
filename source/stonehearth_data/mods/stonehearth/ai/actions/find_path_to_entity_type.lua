@@ -14,24 +14,26 @@ FindPathToEntityType.think_output = {
 FindPathToEntityType.version = 2
 FindPathToEntityType.priority = 1
 
-local log = radiant.log.create_logger('ai.find_path_to_entity')
+local log = radiant.log.create_logger('ai.find_path_to_entity_type')
 
 function FindPathToEntityType:start_thinking(ai, entity, args)
    local filter_fn = args.filter_fn
 
    local on_added = function(id, entity)
       if filter_fn(entity) then
+         log:spam('adding entity %s to pathfinder', tostring(entity))
          self._pathfinder:add_destination(entity)
       end
    end
    local on_removed = function(id)
+      log:spam('removing entity %d to pathfinder', id)
       self._pathfinder:remove_destination(id)
    end
    local solved = function(path)
-      self._pathfinder:stop()
-      self._pathfinder = nil
+      log:spam('solved!')
       ai:set_think_output({path = path, destination = path:get_destination()})
    end
+   log:spam('finding path from CURRENT.location %s to item type...', tostring(ai.CURRENT.location))
    self._pathfinder = _radiant.sim.create_path_finder(entity, 'goto entity action')
                          :set_source(ai.CURRENT.location)
                          :set_solved_cb(solved)
@@ -39,6 +41,7 @@ function FindPathToEntityType:start_thinking(ai, entity, args)
 end
 
 function FindPathToEntityType:stop_thinking(ai, entity)
+   log:spam('stop thinking.')
    if self._pathfinder then
       self._pathfinder:stop()
       self._pathfinder = nil
