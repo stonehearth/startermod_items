@@ -48,6 +48,13 @@ public:
    void SetUri(std::string str) { uri_ = str; }
 
 private:
+   template <typename T> void CacheComponent(std::shared_ptr<T> component) { }
+   template <typename T> std::shared_ptr<T> GetCachedComponent() const { return nullptr; }
+
+   template <> void CacheComponent(std::shared_ptr<Mob> component) { cached_mob_component_ = component; }
+   template <> std::shared_ptr<Mob> GetCachedComponent() const { return cached_mob_component_.lock(); }
+
+private:
    void ConstructObject() override;
    void InitializeRecordFields() override;
    NO_COPY_CONSTRUCTOR(Entity)
@@ -56,6 +63,9 @@ private:
    dm::Boxed<std::string>  debug_text_;
    dm::Boxed<std::string>  uri_;
    ComponentMap            components_;
+
+private:
+   std::weak_ptr<Mob>      cached_mob_component_;
 };
 std::ostream& operator<<(std::ostream& os, const Entity& o);
 

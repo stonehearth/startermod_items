@@ -85,6 +85,7 @@ template <class T> std::shared_ptr<T> Entity::AddComponent()
       // weak references from GetComponent, etc.
       component->SetEntity(shared_from_this()); 
       components_.Add(component->GetObjectClassNameLower(), component);
+      CacheComponent<T>(component);
    }
    return component;
 }
@@ -102,7 +103,11 @@ void Entity::AddComponent(std::string const& name, DataStorePtr component)
 
 template <class T> std::shared_ptr<T> Entity::GetComponent() const
 {
-   return std::static_pointer_cast<T>(GetComponent(T::GetClassNameLower()));
+   std::shared_ptr<T> component = GetCachedComponent<T>();
+   if (!component) {
+      component = std::static_pointer_cast<T>(GetComponent(T::GetClassNameLower()));
+   }
+   return component;
 }
 
 #define OM_OBJECT(Clas, lower) \
