@@ -2,8 +2,8 @@
    "type" : "command",
 
    "name": "show_stockpile",
-   "enabled_tooltip": "Edit",
-   "disabled_tooltip": "Editing disabled",
+   "tooltip": "Edit Stockpile",
+   "description" : "Set the rules for what can and cannot be stored in this stockpile",
    "icon": "file(show_stockpile.png)",
 
    "action": "fire_event",

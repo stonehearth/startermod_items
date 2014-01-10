@@ -2,7 +2,8 @@
    "type" : "command",
 
    "name": "chop",
-   "tooltip": "Chop Tree",
+   "tooltip": "Harvest",
+   "description": "Harvest for lumber, or just to get it out of the way.",
    "icon": "file(chop_tree.png)",
 
    "action": "call",
