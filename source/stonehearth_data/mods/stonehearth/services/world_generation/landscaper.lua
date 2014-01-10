@@ -73,16 +73,16 @@ function Landscaper:is_forest_feature(feature_name)
    return false
 end
 
-function Landscaper:place_flora(tile_map, world_offset_x, world_offset_y)
+function Landscaper:place_flora(tile_map, tile_offset_x, tile_offset_y)
    assert(tile_map.width == self._tile_width and tile_map.height == self._tile_height)
-   if world_offset_x == nil then world_offset_x = 0 end
-   if world_offset_y == nil then world_offset_y = 0 end
+   if tile_offset_x == nil then tile_offset_x = 0 end
+   if tile_offset_y == nil then tile_offset_y = 0 end
 
    local place_item = function(uri, x, y)
       local entity = radiant.entities.create_entity(uri)
       -- switch from lua height_map base 1 coordinates to c++ base 0 coordinates
       -- swtich from tile coordinates to world coordinates
-      radiant.terrain.place_entity(entity, Point3(x+world_offset_x-1, 1, y+world_offset_y-1))
+      radiant.terrain.place_entity(entity, Point3(x+tile_offset_x-1, 1, y+tile_offset_y-1))
       self:_set_random_facing(entity)
       return entity
    end

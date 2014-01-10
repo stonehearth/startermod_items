@@ -1,7 +1,7 @@
 {
    "name" : "herd_of_sheep",
    "category" : "wildlife",
-   "habitat_type" : "grassland",
+   "habitat_types" : ["grassland"],
    "size" : {
       "width" : 16,
       "length" : 16
